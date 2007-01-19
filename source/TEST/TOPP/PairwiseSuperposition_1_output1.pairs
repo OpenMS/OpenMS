@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
 <pairlist>
 <pair nr="0">
-	<pairquality>0.097471</pairquality>
+	<pairquality>0.340362</pairquality>
 	<first>
 	<feature id="0">
 		<position dim="0">1626.27</position>
@@ -30,7 +30,7 @@
 	</second>
 </pair>
 <pair nr="1">
-	<pairquality>0.0902789</pairquality>
+	<pairquality>0.211033</pairquality>
 	<first>
 	<feature id="2">
 		<position dim="0">1854.31</position>
@@ -59,7 +59,7 @@
 	</second>
 </pair>
 <pair nr="2">
-	<pairquality>0.0931348</pairquality>
+	<pairquality>0.217709</pairquality>
 	<first>
 	<feature id="4">
 		<position dim="0">1854.31</position>
@@ -88,7 +88,7 @@
 	</second>
 </pair>
 <pair nr="3">
-	<pairquality>0.0932615</pairquality>
+	<pairquality>0.218006</pairquality>
 	<first>
 	<feature id="6">
 		<position dim="0">1854.31</position>
@@ -117,7 +117,7 @@
 	</second>
 </pair>
 <pair nr="4">
-	<pairquality>0.0978807</pairquality>
+	<pairquality>0.189313</pairquality>
 	<first>
 	<feature id="8">
 		<position dim="0">1978.33</position>
@@ -146,7 +146,7 @@
 	</second>
 </pair>
 <pair nr="5">
-	<pairquality>0.0946838</pairquality>
+	<pairquality>0.341203</pairquality>
 	<first>
 	<feature id="10">
 		<position dim="0">2230.37</position>
@@ -175,7 +175,7 @@
 	</second>
 </pair>
 <pair nr="6">
-	<pairquality>0.0933903</pairquality>
+	<pairquality>0.336541</pairquality>
 	<first>
 	<feature id="12">
 		<position dim="0">2230.37</position>
@@ -204,7 +204,7 @@
 	</second>
 </pair>
 <pair nr="7">
-	<pairquality>0.0976553</pairquality>
+	<pairquality>0.352337</pairquality>
 	<first>
 	<feature id="14">
 		<position dim="0">2414.4</position>
@@ -233,7 +233,7 @@
 	</second>
 </pair>
 <pair nr="8">
-	<pairquality>0.100503</pairquality>
+	<pairquality>0.362612</pairquality>
 	<first>
 	<feature id="16">
 		<position dim="0">2414.4</position>
@@ -262,7 +262,7 @@
 	</second>
 </pair>
 <pair nr="9">
-	<pairquality>0.0917093</pairquality>
+	<pairquality>0.330885</pairquality>
 	<first>
 	<feature id="18">
 		<position dim="0">2414.4</position>
@@ -291,7 +291,7 @@
 	</second>
 </pair>
 <pair nr="10">
-	<pairquality>0.0951964</pairquality>
+	<pairquality>0.332212</pairquality>
 	<first>
 	<feature id="20">
 		<position dim="0">2532.42</position>
@@ -320,7 +320,7 @@
 	</second>
 </pair>
 <pair nr="11">
-	<pairquality>0.0932969</pairquality>
+	<pairquality>0.325583</pairquality>
 	<first>
 	<feature id="22">
 		<position dim="0">2532.42</position>
@@ -349,7 +349,7 @@
 	</second>
 </pair>
 <pair nr="12">
-	<pairquality>0.0938632</pairquality>
+	<pairquality>0.327559</pairquality>
 	<first>
 	<feature id="24">
 		<position dim="0">2532.42</position>
@@ -378,7 +378,7 @@
 	</second>
 </pair>
 <pair nr="13">
-	<pairquality>0.0949268</pairquality>
+	<pairquality>0.331271</pairquality>
 	<first>
 	<feature id="26">
 		<position dim="0">2532.42</position>
@@ -407,7 +407,7 @@
 	</second>
 </pair>
 <pair nr="14">
-	<pairquality>0.0958136</pairquality>
+	<pairquality>0.334366</pairquality>
 	<first>
 	<feature id="28">
 		<position dim="0">2532.42</position>
@@ -436,7 +436,7 @@
 	</second>
 </pair>
 <pair nr="15">
-	<pairquality>0.093986</pairquality>
+	<pairquality>0.327988</pairquality>
 	<first>
 	<feature id="30">
 		<position dim="0">2532.42</position>
@@ -465,7 +465,7 @@
 	</second>
 </pair>
 <pair nr="16">
-	<pairquality>0.0598465</pairquality>
+	<pairquality>0.14761</pairquality>
 	<first>
 	<feature id="32">
 		<position dim="0">3194.53</position>
@@ -494,7 +494,7 @@
 	</second>
 </pair>
 <pair nr="17">
-	<pairquality>0.0585111</pairquality>
+	<pairquality>0.182551</pairquality>
 	<first>
 	<feature id="34">
 		<position dim="0">3266.54</position>
@@ -523,7 +523,7 @@
 	</second>
 </pair>
 <pair nr="18">
-	<pairquality>0.0762755</pairquality>
+	<pairquality>0.274867</pairquality>
 	<first>
 	<feature id="36">
 		<position dim="0">3418.57</position>
