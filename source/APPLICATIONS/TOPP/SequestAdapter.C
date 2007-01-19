@@ -355,7 +355,7 @@ class TOPPSequestAdapter
 					{
 						for ( vector< SignedInt >::const_iterator i = charges.begin(); i != charges.end(); ++i )
 						{
-							filename = common_name + "." + String(scan_number) + "." + String(spec_i->getPrecursorPeak().getCharge()) + ".dta_" + String( (PointerSizeUInt) (dtas / max_dtas_per_run) );
+							filename = common_name + "." + String(scan_number) + "." + *i + ".dta_" + String( (PointerSizeUInt) (dtas / max_dtas_per_run) );
 							if ( make_dtas )
 							{
 								++dtas;
