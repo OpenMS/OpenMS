@@ -154,13 +154,24 @@ namespace OpenMS
     /// Destructor
     virtual ~BasePairwiseMapMatcher()
   {}
-    
-    /// Set parameters  
+
+    /// Set parameters
     virtual void setParam(const Param& param)
     {
       FactoryProduct::setParam(param);
+
+      DataValue data_value = param_.getValue("number_buckets:RT");
+      if (data_value != DataValue::EMPTY)
+      {
+        number_buckets_[RT] = (int)data_value;
+      }
+      data_value = param_.getValue("number_buckets:MZ");
+      if (data_value != DataValue::EMPTY)
+      {
+        number_buckets_[MZ] = (int)data_value;
+      }
     }
-  
+
     /// Set element map
     void setElementMap(Size const index, const PointMapType& element_map)
     {
