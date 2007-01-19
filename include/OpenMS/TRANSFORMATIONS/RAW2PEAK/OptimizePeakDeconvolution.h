@@ -92,7 +92,8 @@ namespace OpenMS
 	There are a few constraints for the parameters: the positions are equidistant according to the peptide
 	mass rule, e.g. two consecutive isotopic peaks are 1.003/charge away from each other. Besides the
 	peaks have all the same left and right width, respectively.
-   	
+
+	@ingroup PeakPicking
        
    */
   class OptimizePeakDeconvolution
