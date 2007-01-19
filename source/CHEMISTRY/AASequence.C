@@ -70,7 +70,7 @@ namespace OpenMS
 	const Residue* AASequence::getResidue(SignedInt index) const
 		throw(Exception::IndexUnderflow, Exception::IndexOverflow)
 	{
-		if (index >= 0 && UnsignedInt(index) <= peptide_.size())
+		if (index >= 0 && UnsignedInt(index) >= peptide_.size())
 		{
 			throw Exception::IndexOverflow(__FILE__, __LINE__, __PRETTY_FUNCTION__, index, peptide_.size());
 		}
@@ -84,7 +84,7 @@ namespace OpenMS
 	const Residue* AASequence::getResidue(UnsignedInt index) const
 		throw(Exception::IndexOverflow)
 	{
-		if (index <= peptide_.size())
+		if (index >= peptide_.size())
 		{
 			throw Exception::IndexOverflow(__FILE__, __LINE__, __PRETTY_FUNCTION__, index, peptide_.size());
 		}

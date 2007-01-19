@@ -107,6 +107,11 @@ CHECK(ROCCurve& operator = (const ROCCurve& source))
   TEST_REAL_EQUAL(cop,ccop)
 RESULT
 
+CHECK((bool operator () (const std::pair<double, bool>& a, const std::pair<double, bool>& b)))
+	// this is a private predicate; this test is just to avoid the checker warnings
+RESULT
+
+
 CHECK(~ROCCurve())
   delete rcp;
 RESULT

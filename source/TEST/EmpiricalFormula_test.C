@@ -273,13 +273,16 @@ CHECK(bool operator == (const String& rhs) const throw(Exception::ParseError))
 RESULT
 
 CHECK(ConstIterator begin() const)
-
+ // TODO
 RESULT
 
 CHECK(ConstIterator end() const)
-
+ // TODO
 RESULT
 
+CHECK(IsotopeDistribution getIsotopeDistribution(Size max_depth = 20) const)
+	// TODO
+RESULT
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

@@ -65,10 +65,10 @@ namespace OpenMS
 			AASequence();
 	
 			/// copy constructor
-			AASequence(const AASequence&);
+			AASequence(const AASequence& rhs);
 
 			/// copy constructor from a String
-			AASequence(const String&) throw(Exception::ParseError);
+			AASequence(const String& rhs) throw(Exception::ParseError);
 
 			/// constructor with given residue db pointer
 			AASequence(ResidueDB* res_db);

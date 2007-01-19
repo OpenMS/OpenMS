@@ -79,9 +79,9 @@ namespace OpenMS
     /// assignment operator
     SpectrumCheapDPCorr& operator = (const SpectrumCheapDPCorr& source);
 
-		double operator () (const PeakSpectrum&, const PeakSpectrum&) const;
+		double operator () (const PeakSpectrum& a, const PeakSpectrum& b) const;
 
-		double operator () (const PeakSpectrum&) const;
+		double operator () (const PeakSpectrum& a) const;
 		// @}
 
 		// @name Accessors
@@ -101,7 +101,7 @@ namespace OpenMS
 		///
 		HashMap<Size, Size> getPeakMap() const;
 
-    /// set weighting of <i>csb</i> for consensus from next function call operator
+    /// set weighting of the second spectrum for consensus from next function call operator
     void setFactor(double f);
 		// @}
 

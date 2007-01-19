@@ -25,8 +25,6 @@
 # --------------------------------------------------------------------------
 
 include ../config_defs.mak
-include ../common.mak
--include .Dependencies
 
 DIRECTORY=TEST
 
@@ -401,6 +399,9 @@ all:	$(EXECUTABLES)
 CPP_SOURCES=$(EXECUTABLES:=.C)
 OBJECTS=$(EXECUTABLES:=.o)
 VALGRINDS=$(EXECUTABLES:=.vgr)
+
+include ../common.mak
+-include .Dependencies
 
 # remove the library specific flags
 # and replace them by the application specific

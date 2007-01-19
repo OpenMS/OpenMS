@@ -55,29 +55,29 @@ e_ptr = new SpectrumCheapDPCorr();
 
 CHECK(SpectrumCheapDPCorr(const SpectrumCheapDPCorr& source))
 	SpectrumCheapDPCorr copy(*e_ptr);
-	TEST_EQUAL(*e_ptr == copy, true)
+	TEST_EQUAL(copy.getParam(), e_ptr->getParam())
+	TEST_EQUAL(copy.getName(), e_ptr->getName())
 RESULT
 
-CHECK(double operator () (const ClusterSpectrum& csa, const ClusterSpectrum& csb))
+CHECK(SpectrumCheapDPCorr& operator = (const SpectrumCheapDPCorr& source))
+	SpectrumCheapDPCorr copy;
+	copy = *e_ptr;
+	TEST_EQUAL(copy.getParam(), e_ptr->getParam())
+	TEST_EQUAL(copy.getName(), e_ptr->getName())
+RESULT
+
+CHECK(double operator () (const PeakSpectrum& a, const PeakSpectrum& b) const)
 	DTAFile dta_file;
 	PeakSpectrum spec1;
 	dta_file.load("data/Transformers_tests.dta", spec1);
-
-	//ClusterSpectrum csa(spec, 0, 1, 1);
-	//BinnedRep csa(spec, 1, 1);
-	
 
 	DTAFile dta_file2;
 	PeakSpectrum spec2;
 	dta_file2.load("data/Transformers_tests_2.dta", spec2);
 
-	//ClusterSpectrum csb(spec2, 0, 1, 1);	
-	//BinnedRep csb(spec, 1, 1);
-	
 	double score = (*e_ptr)(spec1, spec2);
 
 	PRECISION(0.1)
-	/// @todo next to equality tests fail, don't know why (andreas)
 	TEST_REAL_EQUAL(score, 10145.4)
 
 	score = (*e_ptr)(spec1, spec1);
@@ -98,9 +98,34 @@ CHECK(const PeakSpectrum& lastconsensus() const)
 	TEST_EQUAL(e_ptr->lastconsensus().size(), 121)
 RESULT
 
-CHECK(bool usebins() const)
-	// @todo fails ???? (andreas)
-	//TEST_EQUAL(e_ptr->usebins(), false)
+CHECK((HashMap<Size, Size> getPeakMap() const))
+	TEST_EQUAL(e_ptr->getPeakMap().size(), 121)
+RESULT
+
+CHECK(double operator () (const PeakSpectrum& a) const)
+  DTAFile dta_file;
+  PeakSpectrum spec1;
+  dta_file.load("data/Transformers_tests.dta", spec1);
+
+  double score = (*e_ptr)(spec1);
+
+  TEST_REAL_EQUAL(score, 12295.5)
+
+RESULT
+
+CHECK(static PeakSpectrumCompareFunctor* create())
+	PeakSpectrumCompareFunctor* cf = SpectrumCheapDPCorr::create();
+	SpectrumCheapDPCorr corr;
+	TEST_EQUAL(cf->getParam(), corr.getParam())
+	TEST_EQUAL(cf->getName(), corr.getName())
+RESULT
+
+CHECK(static const String getName())
+	TEST_EQUAL(SpectrumCheapDPCorr::getName(), "SpectrumCheapDPCorr")
+RESULT
+
+CHECK(void setFactor(double f))
+	// TODO
 RESULT
 
 delete e_ptr;

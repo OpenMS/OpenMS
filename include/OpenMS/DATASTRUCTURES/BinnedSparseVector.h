@@ -228,8 +228,9 @@ namespace OpenMS
 		// @name Typedefs
 		// @{
     typedef BinnedSparseVectorConstIterator const_iterator;
-		
+		typedef BinnedSparseVectorConstIterator ConstIterator;
     typedef BinnedSparseVectorIterator iterator;
+		typedef BinnedSparseVectorIterator Iterator;
 		// @}
     
     /// @name Constructor and Desctructor
