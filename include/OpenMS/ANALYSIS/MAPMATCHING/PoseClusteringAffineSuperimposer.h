@@ -39,11 +39,8 @@
 #include <map>
 #include <math.h>
 
-#if defined OPENMS_DEBUG && ! defined V_PoseClusteringAffineSuperimposer
-#define V_PoseClusteringAffineSuperimposer(bla) // std::cout << bla << std::endl;
-#else
+//#define V_PoseClusteringAffineSuperimposer(bla) std::cout << bla << std::endl;
 #define V_PoseClusteringAffineSuperimposer(bla)
-#endif
 
 namespace OpenMS
 {

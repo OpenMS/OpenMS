@@ -97,7 +97,7 @@ using namespace std;
 	</ol>
 	
 	@todo look for possible crash codes of sequest and catching them (Martin)
-	
+	@todo delete deleteTempFiles and getRandomFilename
 */
 
 // We do not want this class to show up in the docu -> cond
@@ -109,7 +109,8 @@ class TOPPSequestAdapter
 	public:
 		TOPPSequestAdapter()
 			: TOPPBase("SequestAdapter", "annotates MS/MS spectra using Sequest.")
-		{}
+		{
+		}
 	
 	protected:
 		static const SignedInt max_peptide_mass_units = 2;
@@ -517,7 +518,6 @@ class TOPPSequestAdapter
 			}
 
 			string_buffer = getStringOption_("in");
-			writeDebug_(String("Input file: ") + string_buffer, 1);
 			if ( string_buffer.empty() )
 			{
 				writeLog_("No input file specified. Aborting!");
@@ -597,7 +597,6 @@ class TOPPSequestAdapter
 				if ( !sequest_out )
 				{
 					input_filename = getStringOption_("out");
-					writeDebug_(String("Output file: ") + input_filename, 1);
 					if ( input_filename.empty() )
 					{
 						writeLog_("No output file specified. Aborting!");
@@ -633,7 +632,6 @@ class TOPPSequestAdapter
 				password = getStringOption_("password");
 			
 				sequest_directory_win = getStringOption_("sequest_directory_win");
-				writeDebug_(String("Sequest directory: ") + sequest_directory_win, 1);
 				if ( !sequest_directory_win.hasSuffix("sequest.exe") ) sequest_directory_win.ensureLastChar('\\');
 				if ( !isWinFormat(sequest_directory_win) )
 				{
@@ -991,7 +989,6 @@ class TOPPSequestAdapter
 			if ( sequest_out )
 			{
 				string_buffer = getStringOption_("out");
-				writeDebug_(String("Output file: ") + string_buffer, 1);
 				if ( string_buffer.empty() )
 				{
 					writeLog_("No output file specified. Aborting!");
@@ -1198,12 +1195,12 @@ class TOPPSequestAdapter
 				ProteinIdentification protein_identification;
 				UnsignedInt identification_size = identifications.size();
 				
-				QDir qdir(temp_data_directory, "*.out", QDir::Name, QDir::Files);
+				QDir qdir(out_directory, "*.out", QDir::Name, QDir::Files);
 				QStringList qlist = qdir.entryList();
 				
 				if ( qlist.isEmpty() )
 				{
-					writeLog_("No .out found. Aborting!");
+					writeLog_(String("Error: No .out files found in '") + out_directory + "'. Aborting!");
 					qlist.clear();
 					deleteTempFiles(input_filename, logfile, batch_filename);
 					return UNKNOWN_ERROR;
@@ -1218,7 +1215,7 @@ class TOPPSequestAdapter
 					bool append = false;
 					for ( QStringList::const_iterator i = qlist.constBegin(); i != qlist.constEnd(); ++i )
 					{
-						sequest_outfile.out2SummaryHtml(temp_data_directory + string((*i).ascii()), summary, database, append);
+						sequest_outfile.out2SummaryHtml(out_directory + string((*i).ascii()), summary, database, append);
 					}
 					//sequest_outfile.finishSummaryHtml(summary);
 					
@@ -1274,7 +1271,7 @@ class TOPPSequestAdapter
 					
 					for ( QStringList::const_iterator i = qlist.constBegin(); i != qlist.constEnd(); ++i )
 					{
-						if ( !qfile.remove(QString(temp_data_directory.c_str() + *i)) ) writeLog_(string((*i).ascii()) + "could not be removed!");
+						if ( !qfile.remove(QString(out_directory.c_str() + *i)) ) writeLog_(string((*i).ascii()) + "could not be removed!");
 					}
 				}
 				

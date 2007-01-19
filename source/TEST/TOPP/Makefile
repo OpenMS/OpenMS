@@ -52,10 +52,8 @@ UNCONDITIONAL_TESTS = \
 	Resampler_test \
 	SequestAdapter_test\
 	SpectraFilter_test \
-	FeatureFinder_test
-
-# \
-# 	PeakPicker_test
+	FeatureFinder_test \
+	PeakPicker_test
 
 ifeq ($(CGAL_SUPPORT),true)
 CGAL_TESTS= \
@@ -562,10 +560,10 @@ SequestAdapter_test: $(NUMERICDIFF)
 	@$(ECHO) "SequestAdapter:"
 	@$(RM) -rf ./tmp/*.dta_*
 	@$(ECHO) "- Test 1: -sequest_in"
-	@$(call RUN_PROG_OPT,SequestAdapter,-ini SequestAdapter_1_parameters.ini -sequest_in)
+	@$(call RUN_PROG_OPT,SequestAdapter,-ini SequestAdapter_1_parameters.ini -in Inspect_Sequest.mzXML -out SequestAdapter_1_output.tmp -sequest_in)
 	@$(call TEST_FILE_EQUAL,SequestAdapter_1_output.sequest_in,SequestAdapter_1_output.tmp)
 	@$(ECHO) "- Test 2: -sequest_out"
-	@$(call RUN_PROG_OPT,SequestAdapter,-ini SequestAdapter_1_parameters.ini -in ./temp -sequest_out)
+	@$(call RUN_PROG_OPT,SequestAdapter,-ini SequestAdapter_2_parameters.ini -in ./tmp -out SequestAdapter_2_output.tmp -sequest_out -debug 5)
 	@$(call TEST_FILE_EQUAL,SequestAdapter_2_output.analysisXML,SequestAdapter_2_output.tmp)
 	@$(RM) -rf ./tmp/*.dta_*
 

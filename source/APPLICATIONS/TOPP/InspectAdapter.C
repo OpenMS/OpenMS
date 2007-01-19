@@ -261,7 +261,6 @@ class TOPPInspectAdapter
 			if ( inspect_out && inspect_in )
 			{
 				temp_data_directory = getStringOption_("temp_data_directory");
-				writeDebug_(String("Temp directory: ") + temp_data_directory, 1);
 				if ( temp_data_directory.empty() )
 				{
 					writeLog_("No directory for temporary files specified. Aborting!");
@@ -273,7 +272,6 @@ class TOPPInspectAdapter
 			}
 			
 			string_buffer = getStringOption_("in");
-			writeDebug_(String("Input file: ") + string_buffer, 1);
 			if ( string_buffer.empty() )
 			{
 				writeLog_("No input file specified. Aborting!");
@@ -297,7 +295,6 @@ class TOPPInspectAdapter
 			}
 			
 			string_buffer = getStringOption_("out");
-			writeDebug_(String("Output file: ") + string_buffer, 1);
 			if ( string_buffer.empty() )
 			{
 				writeLog_("No output file specified. Aborting!");
@@ -319,7 +316,6 @@ class TOPPInspectAdapter
 			}
 			
 			inspect_directory = getStringOption_("inspect_directory");
-			writeDebug_(String("Inspect directory: ") + inspect_directory, 1);
 			if ( inspect_in && inspect_directory.empty() && inspect_out )
 			{
 				writeLog_("No inspect directory file specified. Aborting!");
