@@ -191,7 +191,7 @@ namespace OpenMS
 					line.erase(0,3); // all these lines look like '0  gi|1584947|prf||2123446B gamma sar'
 					
 					protein_hit.clear();
-					getACAndACType(substrings[1], accession, accession_type);
+					getACAndACType(line, accession, accession_type);
 					protein_hit.setAccession(accession);
 					protein_hit.setAccessionType(accession_type);
 					protein_hit.setRank(ac_position_map.size());
