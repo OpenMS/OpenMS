@@ -133,7 +133,9 @@ namespace OpenMS
 			provided from the GSL is used. The optimized parameters are the m/z values,
 			the left and right width, which shall be equal for a peak in all scans,
 			and the peaks' heights.
-       
+
+			@ingroup PeakPicking
+			
       @todo use Param::setDefaults instead of if (dv.isEmpty() || dv.toString() == "") ... (Alexandra)
     */
     class TwoDOptimization
