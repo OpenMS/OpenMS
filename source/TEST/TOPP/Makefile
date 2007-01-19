@@ -448,10 +448,10 @@ IDFilter_test: $(NUMERICDIFF)
 InspectAdapter_test: $(NUMERICDIFF)
 	@$(ECHO) ""
 	@$(ECHO) "InspectAdapter:"
-# 	@$(call RUN_PROG_OPT,InspectAdapter,-ini InspectAdapter_1_parameters.ini -inspect_in)
-# 	@$(call TEST_FILE_EQUAL,InspectAdapter_1_output.inspect_in,InspectAdapter_1_output.tmp)
-# 	@$(call RUN_PROG_OPT,InspectAdapter,-in InspectAdapter.output -out InspectAdapter_2_output.tmp -inspect_out)
-# 	@$(call TEST_FILE_EQUAL,InspectAdapter_2_output.analysisXML,InspectAdapter_2_output.tmp)
+	@$(call RUN_PROG_OPT,InspectAdapter,-ini InspectAdapter_1_parameters.ini -inspect_in)
+	@$(call TEST_FILE_EQUAL,InspectAdapter_1_output.inspect_in,InspectAdapter_1_output.tmp)
+	@$(call RUN_PROG_OPT,InspectAdapter,-ini InspectAdapter_1_parameters.ini -in InspectAdapter.output -out InspectAdapter_2_output.tmp -inspect_out)
+	@$(call TEST_FILE_EQUAL,InspectAdapter_2_output.analysisXML,InspectAdapter_2_output.tmp)
 
 
 LabeledMatcher_test: $(NUMERICDIFF)
@@ -559,7 +559,7 @@ SequestAdapter_test: $(NUMERICDIFF)
 	@$(ECHO) "SequestAdapter:"
 	@$(call RUN_PROG_OPT,SequestAdapter,-ini SequestAdapter_1_parameters.ini -sequest_in)
 	@$(call TEST_FILE_EQUAL,SequestAdapter_1_output.sequest_in,SequestAdapter_1_output.tmp)
-	@$(call RUN_PROG_OPT,SequestAdapter,-in SequestAdapter_2_input.sequestXML -out SequestAdapter_2_output.tmp -sequest_out)
+	@$(call RUN_PROG_OPT,SequestAdapter,-ini SequestAdapter_1_parameters.ini -in SequestAdapter_2_input.sequestXML -out SequestAdapter_2_output.tmp -sequest_out)
 	@$(call TEST_FILE_EQUAL,SequestAdapter_2_output.analysisXML,SequestAdapter_2_output.tmp)
 
 
