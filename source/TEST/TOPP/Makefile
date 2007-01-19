@@ -560,14 +560,14 @@ InspectAdapter_test: $(NUMERICDIFF)
 SequestAdapter_test: $(NUMERICDIFF)
 	@$(ECHO) ""
 	@$(ECHO) "SequestAdapter:"
-	@$(RM) -rf ./tmp/*.*
+	@$(RM) -rf ./tmp/*.dta_*
 	@$(ECHO) "- Test 1: -sequest_in"
 	@$(call RUN_PROG_OPT,SequestAdapter,-ini SequestAdapter_1_parameters.ini -sequest_in)
 	@$(call TEST_FILE_EQUAL,SequestAdapter_1_output.sequest_in,SequestAdapter_1_output.tmp)
 	@$(ECHO) "- Test 2: -sequest_out"
-	@$(call RUN_PROG_OPT,SequestAdapter,-ini SequestAdapter_1_parameters.ini -in SequestAdapter_2_input.sequestXML -out SequestAdapter_2_output.tmp -sequest_out)
+	@$(call RUN_PROG_OPT,SequestAdapter,-ini SequestAdapter_1_parameters.ini -in ./temp -sequest_out)
 	@$(call TEST_FILE_EQUAL,SequestAdapter_2_output.analysisXML,SequestAdapter_2_output.tmp)
-	@$(RM) -rf ./tmp/*.*
+	@$(RM) -rf ./tmp/*.dta_*
 
 SpectraFilter_test: $(NUMERICDIFF)
 	@$(ECHO) ""
