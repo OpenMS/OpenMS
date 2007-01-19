@@ -36,7 +36,7 @@
 			<OL>
 				<LI> Das Modul web auschecken:
 				<BR>
-				<TT>cvs -d:ext:login@cvs.sf.net:/cvsroot/open-ms co web</TT>
+				<TT>svn co https://svn.sourceforge.net/svnroot/open-ms/website</TT>
 				<LI> Die Website editieren
 				<LI> Änderungen einchecken
 				<LI> Auf shell.sourceforge.net das Skript <TT>/home/groups/o/op/open-ms/scripts/webupdate.sh</TT> ausführen. 
@@ -68,8 +68,7 @@
 		muss unter vielen Distributionen explizit aktiviert werden. Das geht mit 
 		dem configure flag --with-cxxflags=-D_FILE_OFFSET_BITS=64.
 		
-		
-		<LI><B>Add a new release to Sourceforge</B>
+		<LI><B>How is an new release created</B>
 			<OL>
 			<LI> Prepare the release file (OpenMS):
 				<OL>

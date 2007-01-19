@@ -9,7 +9,7 @@ dnl
 dnl 
 dnl    Some initialization stuff...
 dnl 
-AC_INIT(OpenMS, 0.90 , www.OpenMS.de)
+AC_INIT(OpenMS, 0.95 , www.OpenMS.de)
 AC_CONFIG_HEADER([
 	config.h:config/config.h.in
 ])
@@ -641,7 +641,7 @@ dnl
 dnl Currently, we require QT 3.3.x. QT 4.x isn't supported yet.
 QT_MIN_VERSION=330
 QT_MAX_VERSION=399
-QT_RECOMMENDED_VERSION=3.3.5
+QT_RECOMMENDED_VERSION=3.3.6
 ENABLE_GUI=true
 CF_GUI
 

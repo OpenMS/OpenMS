@@ -63,6 +63,7 @@
 	TODO:
 	- FileConverter: FileTyp automatisch erkennen einbauen 
 	- FileInfo: FileTyp automatisch erkennen einbauen 
+	- ParamHander-Klasse (getDefaults())
 	- MzXMLFile: Parsen bei MetaDataOnly abbrechen wenn die scans kommen (ohne error)
 	- MzDataFile: Parsen bei MetaDataOnly abbrechen wenn die scans kommen (ohne error)
 	- TOPPView:
