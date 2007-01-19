@@ -99,9 +99,7 @@ namespace OpenMS
 		/// Test for equality 
 		bool operator == (const ScanIndexMSExperiment& rhs) const
 		{
-			return (std::vector < PeakContainerIterator_ >::operator == (rhs) &&
-					    		last_rt_     == rhs.last_rt_ &&
-									last_rank_ == rhs.last_rank_);	
+			return (std::operator==(*this, rhs));	
 		}
 
 		/// Test for inequality

@@ -195,7 +195,11 @@ void MarrWaveletSeeder::sweep_()
 
         // search for maximal positions in the cwt and extract potential peaks
         std::vector<int> local_maxima;
-        getMaxPositions_(current_scan.begin(), current_scan.end(), cwt_, local_maxima,current_rt);
+        getMaxPositions_(current_scan.begin(), current_scan.end(), cwt_, local_maxima 
+				                           #ifdef DEBUG_FEATUREFINDER
+																	 ,current_rt 
+																	 #endif
+																	 );
 
         int nr_maxima = local_maxima.size();
         std::cout << "# local maxima in cwt : " << nr_maxima << std::endl;
@@ -555,14 +559,18 @@ void MarrWaveletSeeder::sweep_()
 
 } // end of void sweep_()
 
-void MarrWaveletSeeder::getMaxPositions_( RawDataPointIterator first, RawDataPointIterator last, const ContinuousWaveletTransform& wt, std::vector<int>& localmax, CoordinateType current_rt)
+void MarrWaveletSeeder::getMaxPositions_( RawDataPointIterator first, RawDataPointIterator last, const ContinuousWaveletTransform& wt, std::vector<int>& localmax
+																																#ifdef DEBUG_FEATUREFINDER 
+																																, CoordinateType current_rt
+																																#endif
+																																)
 {
     if (wt.getSize() == 0)
         return;
 
     int zeros_left_index  = wt.getLeftPaddingIndex();
     int zeros_right_index = wt.getRightPaddingIndex();
-
+		
     // Points to most intensive data point in the signal
     RawDataPointIterator it_max_pos;
 		

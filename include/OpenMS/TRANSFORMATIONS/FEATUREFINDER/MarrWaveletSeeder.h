@@ -161,7 +161,11 @@ namespace OpenMS
     } // end of searchInScan_
 	
 	/// Finds local maxima in the cwt
-	void getMaxPositions_( RawDataPointIterator first, RawDataPointIterator last, const ContinuousWaveletTransform& wt, std::vector<int>& localmax,CoordinateType curr_peak);
+	void getMaxPositions_( RawDataPointIterator first, RawDataPointIterator last, const ContinuousWaveletTransform& wt, std::vector<int>& localmax
+																		 #ifdef DEBUG_FEATUREFINDER
+																		 ,CoordinateType curr_peak
+																		 #endif
+																		 );
  
   /// Sums the intensities in adjacent scans
   void sumUp_(ContainerType& scan, UnsignedInt& current_scan_index );

@@ -99,7 +99,7 @@ exp.set2DData(dpa);
 
 CHECK(ScanIndexMSExperiment& operator = (const ScanIndexMSExperiment& rhs))
 	ScanIndexMSExperiment<ExpType> ind1;
-	scani.init(exp.peakBegin(),exp.peakEnd());
+	ind1.init(exp.peakBegin(),exp.peakEnd());
 	ScanIndexMSExperiment<ExpType> ind2 = ind1;
 	
 	TEST_EQUAL(ind1==ind2,true)
@@ -108,7 +108,7 @@ RESULT
 
 CHECK(ScanIndexMSExperiment(const ScanIndexMSExperiment& rhs ))
 	ScanIndexMSExperiment<ExpType> ind1;
-	scani.init(exp.peakBegin(),exp.peakEnd());
+	ind1.init(exp.peakBegin(),exp.peakEnd());
 	ScanIndexMSExperiment<ExpType> ind2(ind1);
 	
 	TEST_EQUAL(ind1==ind2,true)
@@ -116,7 +116,7 @@ RESULT
 
 CHECK(bool operator != (const ScanIndexMSExperiment& rhs) const)
 	ScanIndexMSExperiment<ExpType> ind1;
-	scani.init(exp.peakBegin(),exp.peakEnd());
+	ind1.init(exp.peakBegin(),exp.peakEnd());
 	ScanIndexMSExperiment<ExpType> ind2;
 	
 	TEST_EQUAL(ind1!=ind2,true)
@@ -124,7 +124,7 @@ RESULT
 
 CHECK(bool operator == (const ScanIndexMSExperiment& rhs) const)
 	ScanIndexMSExperiment<ExpType> ind1;
-	scani.init(exp.peakBegin(),exp.peakEnd());
+	ind1.init(exp.peakBegin(),exp.peakEnd());
 	ScanIndexMSExperiment<ExpType> ind2(ind1);
 	
 	TEST_EQUAL(ind1==ind2,true)

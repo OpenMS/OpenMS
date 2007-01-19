@@ -189,12 +189,6 @@ CHECK((void store(String filename, const DFeatureMap<2>& feature_map) const thro
 
 RESULT
 
-CHECK(PeakFileOptions& getOptions())
-	DFeatureMapFile mf;
-	PeakFileOptions pfopt;
-	
-	TEST_EQUAL(mf.getOptions()==pfopt,true) 
-RESULT
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

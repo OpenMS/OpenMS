@@ -53,6 +53,10 @@ class TestProduct1 : public FactoryProduct
 		defaults_.setValue("value",1);
 		param_.setDefaults(defaults_,"",false);
 	}
+	
+	TestProduct1(Param p): FactoryProduct(p)
+	{
+	}
 };
 
 class TestProduct2 : public FactoryProduct

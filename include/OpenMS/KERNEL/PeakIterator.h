@@ -106,7 +106,7 @@ namespace Internal
 		}
 
 		/// Test for equality
-		bool operator==(const PeakIterator& rhs)
+		bool operator==(const PeakIterator& rhs) const
 		{
 			return ( peak_index_ == rhs.peak_index_ &&
 			         rt_ == rhs.rt_ &&
