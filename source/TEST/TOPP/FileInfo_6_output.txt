@@ -36,9 +36,14 @@ Instument
   Mass Analyzer(s) : Unknown, 
 
 Contact Person
-  Name             : 15
+  First Name       : 
+  Last Name        : 15
   Email            : 
 
 Contact Person
-  Name             : 7
+  First Name       : 
+  Last Name        : 7
   Email            : 
+
+
+
