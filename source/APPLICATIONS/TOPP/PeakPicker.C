@@ -158,12 +158,12 @@ class TOPPPeakPicker
     MSExperiment<DPickedPeak<1> > ms_exp_peaks;
     peak_picker.pickExperiment(ms_exp_raw,ms_exp_peaks);
   
-// 		//-------------------------------------------------------------
-// 		// writing output
-// 		//-------------------------------------------------------------
+		//-------------------------------------------------------------
+		// writing output
+		//-------------------------------------------------------------
 
-// 		ms_exp_peaks.getProcessingMethod().setSpectrumType(SpectrumSettings::PEAKS);
-// 		mz_data_file.store(out,ms_exp_peaks);
+		ms_exp_peaks.getProcessingMethod().setSpectrumType(SpectrumSettings::PEAKS);
+		mz_data_file.store(out,ms_exp_peaks);
 
 
 		
