@@ -92,7 +92,6 @@ class TOPPPeakPicker
   {
   	registerStringOption_("in","<file>","","input mzData file (raw data)");
 		registerStringOption_("out","<file>","","output mzData file (peak data)");
-    registerFlag_("optimize_peaks","flag that turns on the optimization of peak parameters");
 		addEmptyLine_();
   	addText_("Parameters for the peak picker algorithm can be given in the 'algorithm' part of INI file:\n"
 							"<NODE algorithm>\n"
@@ -100,7 +99,7 @@ class TOPPPeakPicker
 							"    <ITEM name=\"bucket\" value=\"10\" type=\"int\" />\n"
 							"    <ITEM name=\"window\" value=\"700\" type=\"int\" />\n"
 							"  </NODE>\n"
-							"  <ITEM name=\"optimize_peaks\" value=\"off\" type=\"string\"/>\n"
+							"  <ITEM name=\"optimization\" value=\"off\" type=\"string\"/>\n"
 							"  <NODE name=\"wavelet_transform\">\n"
 							"    <ITEM name=\"scale\" value=\"0.2\" type=\"float\" />\n"
 							"  </NODE>\n"
@@ -125,26 +124,15 @@ class TOPPPeakPicker
 
     String in = getStringOption_("in");
     String out = getStringOption_("out");
-    bool optimize_peaks = getFlag_("optimize_peaks");
-		
     //-------------------------------------------------------------
     // Init peak picker
     //-------------------------------------------------------------
 		Param pepi_param = getParam_().copy("algorithm:",true);
-		
-    //optimization
-    if (optimize_peaks)
-    {
-      pepi_param.setValue("Optimization:skip_optimization","no");
-    }
-    else
-    {
-      pepi_param.setValue("Optimization:skip_optimization","yes");
-    }
+
 		
 		writeDebug_("Parameters passed to PeakPickerCWT", pepi_param,3);
     PeakPickerCWT peak_picker;
-    peak_picker.setParam(pepi_param);
+		peak_picker.setParam(pepi_param);
 
     //-------------------------------------------------------------
     // loading input
@@ -170,13 +158,15 @@ class TOPPPeakPicker
     MSExperiment<DPickedPeak<1> > ms_exp_peaks;
     peak_picker.pickExperiment(ms_exp_raw,ms_exp_peaks);
   
-		//-------------------------------------------------------------
-		// writing output
-		//-------------------------------------------------------------
+// 		//-------------------------------------------------------------
+// 		// writing output
+// 		//-------------------------------------------------------------
 
-		ms_exp_peaks.getProcessingMethod().setSpectrumType(SpectrumSettings::PEAKS);
-		mz_data_file.store(out,ms_exp_peaks);
+// 		ms_exp_peaks.getProcessingMethod().setSpectrumType(SpectrumSettings::PEAKS);
+// 		mz_data_file.store(out,ms_exp_peaks);
 
+
+		
 		return EXECUTION_OK;
 	}
 };

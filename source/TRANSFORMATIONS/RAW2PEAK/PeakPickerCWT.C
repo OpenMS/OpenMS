@@ -52,7 +52,7 @@ namespace OpenMS
 		defaults_.setValue("thresholds:signal_to_noise",3);
 		
 		//Optimization parameters
-  	defaults_.setValue("Optimization:skip_optimization","yes");
+  	defaults_.setValue("Optimization:optimization","no");
 		defaults_.setValue("Optimization:penalties:position",0.0);
 		defaults_.setValue("Optimization:penalties:left_width",1.0); 	
 		defaults_.setValue("Optimization:penalties:right_width",1.0); 	
@@ -87,6 +87,7 @@ namespace OpenMS
 		defaults_.setValue("2D_optimization:delta_abs_error",1e-05f);
 		defaults_.setValue("2D_optimization:delta_rel_error",1e-05f);
 		defaults_.setValue("2D_optimization:iterations",10);
+
 		
 		
   	
@@ -101,20 +102,25 @@ namespace OpenMS
     PeakPicker::setParam(param);
 
     peak_corr_bound_ = (float)param_.getValue("thresholds:correlation");
-    String opt = param_.getValue("Optimization:skip_optimization").toString();
-    if (opt=="yes")
-    {
-      optimization_ = false;
-    }
-    else if (opt=="no")
+    String opt = param_.getValue("Optimization:optimization").toString();
+    if (opt=="one_dimensional")
     {
       optimization_ = true;
+			two_d_optimization_ = false;
     }
-    else
+    else if (opt=="two_dimensional")
     {
-    	cerr << "Warning: PeakPickerCWT option 'Optimization:skip_optimization' should be 'yes' or 'no'!"
-    			 << " It is set to '" << opt << "'" << endl;
+      two_d_optimization_ = true;
+			optimization_ = false;
     }
+    else 
+    {
+			optimization_ = false;
+			two_d_optimization_ = false;
+    	
+    }
+
+
     scale_ = (float)param_.getValue("wavelet_transform:scale");
     noise_level_ = (float)param_.getValue("thresholds:noise_level");
     radius_ = (int)param_.getValue("thresholds:search_radius");
@@ -134,21 +140,7 @@ namespace OpenMS
 				cerr << "Warning: PeakPickerCWT option 'deconvolution:skip_deconvolution' should be 'yes' or 'no'!"
 						 << " It is set to '" << opt << "'" << endl;
 			}
-
-		opt = param_.getValue("2D_optimization:skip_optimization").toString();
-		if (opt=="yes")
-			{
-				two_d_optimization_ = false;
-			}
-		else if (opt=="no")
-			{
-				two_d_optimization_ = true;
-			}
-		else
-			{
-				cerr << "Warning: PeakPickerCWT option '2D_optimization:skip_optimization' should be 'yes' or 'no'!"
-						 << " It is set to '" << opt << "'" << endl;
-			}
+		
 	}
 	
 

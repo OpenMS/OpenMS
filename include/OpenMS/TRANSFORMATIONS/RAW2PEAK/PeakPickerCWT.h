@@ -305,12 +305,6 @@ namespace OpenMS
         // vector of peak endpoint positions
         std::vector<double> peak_endpoints;
 
-        if (optimization_)
-        {
-          OptimizationFunctions::positions_.clear();
-          OptimizationFunctions::signal_.clear();
-        }
-
         // copy the raw data into a DPeakArray<DRawDataPoint<D> >
         RawDataArrayType raw_peak_array;
         // signal to noise estimator
@@ -318,8 +312,7 @@ namespace OpenMS
 				Param sne_param(param_.copy("SignalToNoiseEstimationParameter:",true));
 				if(sne_param.empty()) sne.setParam(Param());
 				else sne.setParam(sne_param);
-				 
-        unsigned int n = distance(first, last);
+			  unsigned int n = distance(first, last);
         raw_peak_array.resize(n);
 
         for (unsigned int i = 0; i < n; ++i)
@@ -343,19 +336,6 @@ namespace OpenMS
 #ifdef DEBUG_PEAK_PICKING
         std::cout << "SNE init " << timer.getCPUTime() << std::endl;
 #endif
-        if (optimization_)
-        {
-          unsigned int l=raw_peak_array.size();
-
-          OptimizationFunctions::positions_.resize(l);
-          OptimizationFunctions::signal_.resize(l);
-
-          for (unsigned int i = 0; i < l ;++i)
-          {
-            OptimizationFunctions::positions_[i] = raw_peak_array[i].getPos();
-            OptimizationFunctions::signal_[i] = raw_peak_array[i].getIntensity();
-          }
-        }
 
 				// thresholds for deconvolution
 				double fwhm_threshold = (float)param_.getValue("deconvolution:fwhm_threshold");
@@ -489,25 +469,6 @@ namespace OpenMS
 
         if (peak_shapes_.size() > 0)
         {
-          if (optimization_)
-          {
-            struct OpenMS::OptimizationFunctions::PenaltyFactors penalties;
-
-            penalties.pos = (float)param_.getValue("Optimization:Penalties:Position");
-            penalties.lWidth = (float)param_.getValue("Optimization:Penalties:LeftWidth");
-            penalties.rWidth = (float)param_.getValue("Optimization:Penalties:RightWidth");
-            OptimizePick opt(penalties,
-            								 (unsigned int)param_.getValue("Optimization:Iterations"), 
-            								 (double)param_.getValue("Optimization:DeltaAbsError"), 
-            								 (double)param_.getValue("Optimization:DeltaRelError"));
-            opt.optimize(peak_shapes_);
-
-          //   // compute the new correlation coefficients
-//             for (unsigned int i=0, j=0; i < peak_shapes_.size(); ++i, j+=2)
-//             {
-//               peak_shapes_[i].r_value=opt.correlate(peak_shapes_[i],peak_endpoints[j], peak_endpoints[j+1]);
-//             }
-          } // if optimization
 
           // write the picked peaks to the outputcontainer
           for (unsigned int i = 0; i < peak_shapes_.size(); ++i)
@@ -603,12 +564,11 @@ namespace OpenMS
 				// sort spectra
 				ms_exp_peaks.sortSpectra(true);
 
-				
-				if(two_d_optimization_)
+				if(two_d_optimization_ || optimization_)
 					{
 						TwoDOptimization my_2d(param_);
-
-						my_2d.twoDOptimize(first,last,ms_exp_peaks);
+						
+						my_2d.twoDOptimize(first,last,ms_exp_peaks,two_d_optimization_);
 					}
 				// sort spectra
 				ms_exp_peaks.sortSpectra(true);
