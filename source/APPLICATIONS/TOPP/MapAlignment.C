@@ -73,7 +73,8 @@ class TOPPMapAlignment
   public:
     TOPPMapAlignment()
         : TOPPBase("MapAlignment","aligns multiple feature, peak or consensus maps")
-    {}
+    {
+    }
 
   protected: 
     void registerOptionsAndFlags_()
@@ -88,9 +89,19 @@ class TOPPMapAlignment
 
       addEmptyLine_();
       addText_("This tool requires an INI file with at least the names of the input files and the map_type.\n"
-               "Parameters for the alignment algorithm can be given only in the 'algorithm' seciton  of the INI file.");
-      
+              	"Parameters for the alignment algorithm can be given only in the 'algorithm' seciton  of the INI file:\n"
+								"  <NODE name=\"file_names\">\n"
+								"    <ITEM name=\"1\" value=\"file1.xml\" type=\"string\"/>\n"
+								"    <ITEM name=\"2\" value=\"file2.xml\" type=\"string\"/>\n"
+								"    <ITEM name=\"3\" value=\"file3.xml\" type=\"string\"/>\n"
+								"  </NODE>\n"
+								"  <NODE name=\"algorithm\">\n"
+								"    <ITEM name=\"map_type\" value=\"feature_map\" type=\"string\"/>\n"
+								"    ...\n"
+								"  </NODE>");
+			
       registerSubsection_("algorithm");
+      registerSubsection_("file_names");
     }
 
 

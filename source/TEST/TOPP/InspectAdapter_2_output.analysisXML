@@ -11,7 +11,7 @@
 			<userParam name="mz_type" value="float" />
 			<userParam name="retention_time_unit" value="seconds" />
 			<userParam name="mz_unit" value="Thomson" />
-			<userParam name="date_group_0" value="2007-01-19 10:51:45"/>
+# date group removed
 		</settings>
 	</description>
 	<ident>
