@@ -1,0 +1,14 @@
+spectra,/home/software/OpenMS/OpenMS/source/TEST/TOPP/Inspect_Sequest.mzXML
+db,/home/software/OpenMS/OpenMS/source/TEST/TOPP/Inspect_FASTAFile_test4.trie
+protease,Trypsin
+mod,+57,C,fix
+mod,80,STY,opt,phosphorylation
+mod,16,M
+mod,43,*,nterminal
+mods,4
+maxptmsize,250
+PM_tolerance,1
+IonTolerance,0.5
+multicharge,1
+instrument,Instrument_TEST
+TagCount,3

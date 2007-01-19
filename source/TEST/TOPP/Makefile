@@ -4,7 +4,7 @@
 # --------------------------------------------------------------------------
 #                   OpenMS Mass Spectrometry Framework
 # --------------------------------------------------------------------------
-#  Copyright (C) 2003-2007 -- Oliver Kohlbacher, Knut Reinert
+#  Copyright (C) 2003-2006 -- Oliver Kohlbacher, Knut Reinert
 #
 #  This library is free software; you can redistribute it and/or
 #  modify it under the terms of the GNU Lesser General Public
@@ -49,12 +49,13 @@ UNCONDITIONAL_TESTS = \
 	MapStatistics_test \
 	MascotAdapter_test \
 	NoiseFilter_test \
+	Resampler_test \
 	SequestAdapter_test\
-	PeakPicker_test \
 	SpectraFilter_test \
 	FeatureFinder_test
 
-# Resampler_test \
+# \
+# 	PeakPicker_test
 
 ifeq ($(CGAL_SUPPORT),true)
 CGAL_TESTS= \
@@ -81,13 +82,13 @@ CGAL_PIPELINE_TESTS = \
 TOPP_PIPELINE_TESTS = ${UNCONDITIONAL_PIPELINE_TESTS} ${CGAL_PIPELINE_TESTS}
 
 # Files to remove
-CLEANUP = ${RM} -f *.tmp *.log core.* *.TMP
+CLEANUP = ${RM} -f *.tmp *.log core.* *.TMP region* cut* feature* model*
 
 # Shortcut to TOPP bin path.
 TOPP = ${OPENMS_PATH}/bin/
 
 # Diff that allows for slight numeric differences
-REL_DEVIATION = 1.05 # relative deviation allowed
+REL_DEVIATION = 1.01 # relative deviation allowed
 ABS_DEVIATION = 0.01 # absolute deviation allowed
 DEVIATION = $(REL_DEVIATION) $(ABS_DEVIATION)
 NUMERICDIFF = NumericDiff
@@ -106,7 +107,6 @@ default:  help $(TOPP_TOOL_TESTS) $(TOPP_PIPELINE_TESTS)
 
 clean:
 	@$(CLEANUP)
-	@${RM} -f *.output
 
 #######################################################################
 # HELP TARGET
@@ -171,7 +171,7 @@ ifdef VERBOSE
 RUN_PROG_OPT = $(RUN_PROG_OPT_INTERNAL)
 else
 # extra ( ) are used because the programm call might have its own indirection (e.g. FileInfo)
-RUN_PROG_OPT = ( $(RUN_PROG_OPT_INTERNAL) ) > $(1).output 2>&1
+RUN_PROG_OPT = ( $(RUN_PROG_OPT_INTERNAL) ) > /dev/null 2>&1
 endif
 
 #######################################################################
@@ -448,7 +448,10 @@ IDFilter_test: $(NUMERICDIFF)
 InspectAdapter_test: $(NUMERICDIFF)
 	@$(ECHO) ""
 	@$(ECHO) "InspectAdapter:"
-	@$(ECHO) "	... todo ..."
+# 	@$(call RUN_PROG_OPT,InspectAdapter,-ini InspectAdapter_1_parameters.ini -inspect_in)
+# 	@$(call TEST_FILE_EQUAL,InspectAdapter_1_output.inspect_in,InspectAdapter_1_output.tmp)
+# 	@$(call RUN_PROG_OPT,InspectAdapter,-in InspectAdapter.output -out InspectAdapter_2_output.tmp -inspect_out)
+# 	@$(call TEST_FILE_EQUAL,InspectAdapter_2_output.analysisXML,InspectAdapter_2_output.tmp)
 
 
 LabeledMatcher_test: $(NUMERICDIFF)
@@ -460,7 +463,7 @@ LabeledMatcher_test: $(NUMERICDIFF)
 
 MapAlignment_test: $(NUMERICDIFF)
 	@$(ECHO) ""
-	@$(ECHO) "MapAlignment:"
+
 	@$(ECHO) "- Test 1: feature files"
 	@$(call RUN_PROG_OPT,MapAlignment, -ini MapAlignment_1_feature_parameters.ini -out MapAlignment_1_feature_output.tmp)
 	@$(call TEST_FILE_EQUAL,MapAlignment_1_feature_consensus.xml, MapAlignment_1_feature_output.tmp)
@@ -514,15 +517,8 @@ NoiseFilter_test: $(NUMERICDIFF)
 PeakPicker_test: $(NUMERICDIFF)
 	@$(ECHO) ""
 	@$(ECHO) "PeakPicker:"
-	@$(ECHO) "-Test 1: PeakPicker"
 	@$(call RUN_PROG_OPT,PeakPicker, -ini PeakPicker_parameters.ini -in RawData_input.mzData -out PeakPicker_output.tmp)
 	@$(call TEST_FILE_EQUAL,PeakPicker_output.tmp, PeakPicker_output.mzData)
-
-	@$(ECHO) ""
-	@$(ECHO) "-Test2 :PeakPicker with deconvolution"
-	@$(call RUN_PROG_OPT,PeakPicker, -ini PeakPicker_deconv_parameters.ini -in PeakPicker_deconv_input.mzData -out PeakPicker_deconv_output.tmp)
-	@$(call TEST_FILE_EQUAL,PeakPicker_deconv_output.tmp, PeakPicker_deconv_output.mzData)
-
 
 Resampler_test: $(NUMERICDIFF)
 	@$(ECHO) ""
@@ -561,7 +557,10 @@ RTPredict_test: $(NUMERICDIFF)
 SequestAdapter_test: $(NUMERICDIFF)
 	@$(ECHO) ""
 	@$(ECHO) "SequestAdapter:"
-	@$(ECHO) "	... todo ..."
+	@$(call RUN_PROG_OPT,SequestAdapter,-ini SequestAdapter_1_parameters.ini -sequest_in)
+	@$(call TEST_FILE_EQUAL,SequestAdapter_1_output.sequest_in,SequestAdapter_1_output.tmp)
+	@$(call RUN_PROG_OPT,SequestAdapter,-in SequestAdapter_2_input.sequestXML -out SequestAdapter_2_output.tmp -sequest_out)
+	@$(call TEST_FILE_EQUAL,SequestAdapter_2_output.analysisXML,SequestAdapter_2_output.tmp)
 
 
 SpectraFilter_test: $(NUMERICDIFF)
@@ -573,8 +572,8 @@ SpectraFilter_test: $(NUMERICDIFF)
 	@$(ECHO) "- Test 2: -filter WindowMower"
 	@$(call RUN_PROG_OPT,SpectraFilter,-in SpectraFilter_2_input.mzData -out SpectraFilter_2_output.mzData.tmp -filters WindowMower)
 	@$(call TEST_FILE_EQUAL,SpectraFilter_2_output.mzData,SpectraFilter_2_output.mzData.tmp)
-	@$(ECHO) "- Test 3: -filter WindowMower -ini SpectraFilter_3_parameters.ini"
-	@$(call RUN_PROG_OPT,SpectraFilter,-in SpectraFilter_3_input.mzData -out SpectraFilter_3_output.mzData.tmp -ini  SpectraFilter_3_parameters.ini -filters WindowMower)
+	@$(ECHO) "- Test 3: -filter ThresholdMower,SqrtMower -ini SpectraFilter_3_parameters.ini"
+	@$(call RUN_PROG_OPT,SpectraFilter,-in SpectraFilter_3_input.mzData -out SpectraFilter_3_output.mzData.tmp -ini SpectraFilter_3_parameters.ini -filters SqrtMower)
 	@$(call TEST_FILE_EQUAL,SpectraFilter_3_output.mzData,SpectraFilter_3_output.mzData.tmp)
 
 

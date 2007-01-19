@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="yes"?>
+<mzIdent>
+	<description>
+		<admin>
+			<sampleName> unknown </sampleName>
+		</admin>
+		<settings>
+			<userParam name="number_of_identifications" value="0" />
+			<userParam name="number_of_protein_identifications" value="1" />
+			<userParam name="retention_time_type" value="float" />
+			<userParam name="mz_type" value="float" />
+			<userParam name="retention_time_unit" value="seconds" />
+			<userParam name="mz_unit" value="Thomson" />
+			<userParam name="date_group_0" value="2007-01-17 17:29:25"/>
+		</settings>
+	</description>
+	<ident>
+		<proteinGroup count="0">
+			<userParam name="proteins" value="all"/>
+		</proteinGroup>
+	</ident>
+</mzIdent>
