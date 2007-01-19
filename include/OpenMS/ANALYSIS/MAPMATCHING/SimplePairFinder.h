@@ -31,7 +31,7 @@
 #include <OpenMS/ANALYSIS/MAPMATCHING/BasePairFinder.h>
 
 #if defined OPENMS_DEBUG && ! defined V_SimplePairFinder
-#define V_SimplePairFinder(bla)  std::cout << bla << std::endl;
+#define V_SimplePairFinder(bla) // std::cout << bla << std::endl;
 #else
 #define V_SimplePairFinder(bla)
 #endif
