@@ -121,9 +121,9 @@ class TOPPSequestAdapter
 			addText_("The definitions for the parameters are taken from the site:\n"
 										 "http://www.grosse-coosmann.de/~florian/Parameters.html#file.");
 			registerStringOption_("out", "<file>", "", "output file in analysisXML format.\n"
-			                                           "Note: In mode 'inspect_in' a Sequest input file is written.", false);
+			                                           "Note: In mode 'sequest_in' a Sequest input file is written.", false);
 			registerStringOption_("in", "<file>", "", "input file(s) in mzXML format (comma-separated).\n"
-					 																			"Note: In mode 'inspect_out' a directory with Sequest results files\n"
+					 																			"Note: In mode 'sequest_out' a directory with Sequest results files\n"
 																								"(.out) is read", false);
 			registerFlag_("sequest_in", "if this flag is set the SequestAdapter will read in mzXML\n"
 																								"and write an Sequest input file\n"
@@ -314,7 +314,7 @@ class TOPPSequestAdapter
 			const String& logfile,
 			const String& batchfile)
 		{
-			if ( input_filename.hasSuffix("tmp.sequest.input") ) remove(input_filename.c_str());
+			if ( input_filename.hasSuffix("tmp.sequest.in") ) remove(input_filename.c_str());
 			if ( logfile.hasSuffix("tmp.sequest.log") ) remove(logfile.c_str());
 			if ( batchfile.hasSuffix("sequest_run.bat") ) remove(batchfile.c_str());
 		}
@@ -613,7 +613,7 @@ class TOPPSequestAdapter
 						input_filename = temp_data_directory + "temp.sequest.in";
 						input_file_directory_network = temp_data_directory_network;
 					}
-					else input_file_directory_network = getStringOption_("sequest_in_directory_network");
+					else input_file_directory_network = getStringOption_("sequest_input_directory_network");
 				}
 			}
 			
@@ -664,7 +664,7 @@ class TOPPSequestAdapter
 				writeLog_("The logfile must not be named " + temp_data_directory + "sequest.log. Aborting!");
 				return ILLEGAL_PARAMETERS;
 			}
-
+			
 			//batch_filename = getStringOption_("batchfile");
 			if ( batch_filename.empty() ) batch_filename = "sequest_run.bat";
 			else if ( !batch_filename.hasSuffix(".bat") ) batch_filename.append(".bat");

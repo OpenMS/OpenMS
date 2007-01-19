@@ -120,7 +120,7 @@ class TOPPInspectAdapter
 																							 "write an Inspect input file and generate a trie database");
 			registerFlag_("inspect_out", "if this flag is set the InspectAdapter will read in a Inspect results file\n"
 																								 "and write analysisXML");
-			registerStringOption_("inspect_directory", "<dir>", "", "the directory in which Inspect is located");
+			registerStringOption_("inspect_directory", "<dir>", "", "the directory in which Inspect is located", false);
 			registerStringOption_("temp_data_directory", "<dir>", "", "a directory in which some temporary files can be stored", false);
 			registerStringOption_("dbs", "<file>", "", "name(s) of database(s) to search in (FASTA and SwissProt supported)", false);
 			registerStringOption_("trie_dbs", "<file>", "", "name(s) of databases(s) to search in (trie-format)", false);
