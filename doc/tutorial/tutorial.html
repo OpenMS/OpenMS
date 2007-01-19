@@ -300,7 +300,9 @@ peak_picker.setPeakBound(200);
 peak_picker.setWaveletScale(0.2);
 // Enable the optimization of the peak parameters
 peak_picker.setOptimizationFlag(true);
-
+// Enable the deconvolution of overlapping peaks
+peak_picker.setDeconvolutionFlag(true);
+      
 // Container for the resulting peaks
 MSSpectrum &lt;DPickedPeak &lt;1&gt; &gt; peak_spectrum;
 
@@ -375,12 +377,6 @@ OpenMS/source/TRANSFORMATIONS/RAW2PEAK.
   <br>
   <br>
   
-  <b>ExtractSignalRegions</b>
-  <br>
-  This class improves the run time of the peak picker by
-  decomposing the raw mass spectra into smaller parts on which the peaks are picked.
-  <br>
-  <br>
   <b>DSignalToNoiseEstimator</b>
   <br>
   This class provides the estimation of the signal to noise ratios
@@ -403,7 +399,30 @@ OpenMS/source/TRANSFORMATIONS/RAW2PEAK.
   to fit the sum of all peaks to the experimental signal.
   OptimizePeak offers a standard technique from nonlinear
   optimization, the Levenberg-Marquardt algorithm.
+  <br>
+  <br>
+  <b>OptimizePeakDeconvolution</b>
+  <br>
+  This class implements the optional deconvolution of overlapping
+  peaks. If a peak is too broad or asymmetric it is assumed that there
+  are more underlying peaks. They are detected using the CWT.
+  Afterwards the peak parameters of the "new" peaks are optimized
+  using the Levenberg-Marquardt algorithm. Here again the sum of the
+  peaks is fitted to the experimental signal.
+  <br>
+  <br>
+  <b>TwoDOptimization</b>
+  <br>
+  This class first detects peak clusters, i.e. peaks that occur
+  shortly after one another. Afterwards the peak parameters in the
+  clusters are optimized. Here one can choose between applying
+  OptimizePick for each scan in the cluster (which yields a speed
+  improvement compared to applying OptimizePick to the whole scan)
+  or a two dimensional optimization. Here peaks occuring in several
+  scans get the same m/z-value.
 
+
+	
   <h3>Feature Finder</h3>
   The FeatureFinder implements an algorithms for the identification
   of features in LC/MS maps. By feature, we understand a chemical
