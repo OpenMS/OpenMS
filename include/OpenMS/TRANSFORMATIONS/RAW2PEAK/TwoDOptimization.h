@@ -186,9 +186,6 @@ namespace OpenMS
 	else max_iteration_ = (unsigned int)dv;
 
 
-	dv = param_.getValue("2D_optimization:real_2D");
-	if(dv.isEmpty() || dv.toString() != "yes") real_2D_ = false;
-	else real_2D_ = true;
 
 	penalties_ = OptimizationFunctions::PenaltyFactorsInt();
 	dv = param_.getValue("2D_optimization:penalties:height");
@@ -284,7 +281,7 @@ namespace OpenMS
       template <typename InputSpectrumIterator,typename OutputPeakType>
       void twoDOptimize(InputSpectrumIterator& first,
 			InputSpectrumIterator& last,
-			MSExperiment< OutputPeakType >& ms_exp);
+			MSExperiment< OutputPeakType >& ms_exp,bool real2D=true);
 
 
     protected:
@@ -362,9 +359,10 @@ namespace OpenMS
     template <typename InputSpectrumIterator,typename OutputPeakType>
     void TwoDOptimization::twoDOptimize(InputSpectrumIterator& first,
 					InputSpectrumIterator& last,
-					MSExperiment< OutputPeakType >& ms_exp)
+					MSExperiment< OutputPeakType >& ms_exp,bool real2D)
     {
-      
+			real_2D_ = real2D;
+			
       typedef typename InputSpectrumIterator::value_type InputSpectrumType;
       typedef typename InputSpectrumType::value_type RawDataPointType;
       typedef MSSpectrum<RawDataPointType> SpectrumType;
