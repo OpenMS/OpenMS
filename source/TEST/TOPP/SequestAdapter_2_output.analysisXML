@@ -25,7 +25,7 @@
 					<userParam name="identification_index" value="0" />
 					<userParam name="peptide_significance_threshold" value="1"/>
 					<userParam name="precursor_charge" value="2" />
-					<userParam name="precursor_retention_time" value="0" />
+					<userParam name="precursor_retention_time" value="21.9494" />
 					<userParam name="precursor_mz" value="866.606" />
 					<userParam name="score" value="0.05" />
 					<userParam name="score_type" value="SEQUEST"/>
@@ -44,7 +44,7 @@
 					<userParam name="identification_index" value="0" />
 					<userParam name="peptide_significance_threshold" value="1"/>
 					<userParam name="precursor_charge" value="2" />
-					<userParam name="precursor_retention_time" value="0" />
+					<userParam name="precursor_retention_time" value="21.9494" />
 					<userParam name="precursor_mz" value="866.606" />
 					<userParam name="score" value="0.05" />
 					<userParam name="score_type" value="SEQUEST"/>
@@ -63,7 +63,7 @@
 					<userParam name="identification_index" value="0" />
 					<userParam name="peptide_significance_threshold" value="1"/>
 					<userParam name="precursor_charge" value="2" />
-					<userParam name="precursor_retention_time" value="0" />
+					<userParam name="precursor_retention_time" value="21.9494" />
 					<userParam name="precursor_mz" value="866.606" />
 					<userParam name="score" value="0.05" />
 					<userParam name="score_type" value="SEQUEST"/>
@@ -82,7 +82,7 @@
 					<userParam name="identification_index" value="0" />
 					<userParam name="peptide_significance_threshold" value="1"/>
 					<userParam name="precursor_charge" value="2" />
-					<userParam name="precursor_retention_time" value="0" />
+					<userParam name="precursor_retention_time" value="21.9494" />
 					<userParam name="precursor_mz" value="866.606" />
 					<userParam name="score" value="0.04" />
 					<userParam name="score_type" value="SEQUEST"/>
@@ -101,7 +101,7 @@
 					<userParam name="identification_index" value="0" />
 					<userParam name="peptide_significance_threshold" value="1"/>
 					<userParam name="precursor_charge" value="2" />
-					<userParam name="precursor_retention_time" value="0" />
+					<userParam name="precursor_retention_time" value="21.9494" />
 					<userParam name="precursor_mz" value="866.606" />
 					<userParam name="score" value="0.04" />
 					<userParam name="score_type" value="SEQUEST"/>
@@ -120,7 +120,7 @@
 					<userParam name="identification_index" value="2" />
 					<userParam name="peptide_significance_threshold" value="0"/>
 					<userParam name="precursor_charge" value="2" />
-					<userParam name="precursor_retention_time" value="0" />
+					<userParam name="precursor_retention_time" value="31.1325" />
 					<userParam name="precursor_mz" value="823.336" />
 					<userParam name="score" value="0" />
 					<userParam name="score_type" value="SEQUEST"/>
@@ -139,7 +139,7 @@
 					<userParam name="identification_index" value="2" />
 					<userParam name="peptide_significance_threshold" value="0"/>
 					<userParam name="precursor_charge" value="2" />
-					<userParam name="precursor_retention_time" value="0" />
+					<userParam name="precursor_retention_time" value="31.1325" />
 					<userParam name="precursor_mz" value="823.336" />
 					<userParam name="score" value="0" />
 					<userParam name="score_type" value="SEQUEST"/>
@@ -158,7 +158,7 @@
 					<userParam name="identification_index" value="2" />
 					<userParam name="peptide_significance_threshold" value="0"/>
 					<userParam name="precursor_charge" value="2" />
-					<userParam name="precursor_retention_time" value="0" />
+					<userParam name="precursor_retention_time" value="31.1325" />
 					<userParam name="precursor_mz" value="823.336" />
 					<userParam name="score" value="0" />
 					<userParam name="score_type" value="SEQUEST"/>
@@ -177,7 +177,7 @@
 					<userParam name="identification_index" value="2" />
 					<userParam name="peptide_significance_threshold" value="0"/>
 					<userParam name="precursor_charge" value="2" />
-					<userParam name="precursor_retention_time" value="0" />
+					<userParam name="precursor_retention_time" value="31.1325" />
 					<userParam name="precursor_mz" value="823.336" />
 					<userParam name="score" value="0" />
 					<userParam name="score_type" value="SEQUEST"/>
@@ -196,7 +196,7 @@
 					<userParam name="identification_index" value="2" />
 					<userParam name="peptide_significance_threshold" value="0"/>
 					<userParam name="precursor_charge" value="2" />
-					<userParam name="precursor_retention_time" value="0" />
+					<userParam name="precursor_retention_time" value="31.1325" />
 					<userParam name="precursor_mz" value="823.336" />
 					<userParam name="score" value="0" />
 					<userParam name="score_type" value="SEQUEST"/>
@@ -215,7 +215,7 @@
 					<userParam name="identification_index" value="2" />
 					<userParam name="peptide_significance_threshold" value="0"/>
 					<userParam name="precursor_charge" value="2" />
-					<userParam name="precursor_retention_time" value="0" />
+					<userParam name="precursor_retention_time" value="31.1325" />
 					<userParam name="precursor_mz" value="823.336" />
 					<userParam name="score" value="0" />
 					<userParam name="score_type" value="SEQUEST"/>
@@ -234,7 +234,7 @@
 					<userParam name="identification_index" value="2" />
 					<userParam name="peptide_significance_threshold" value="0"/>
 					<userParam name="precursor_charge" value="2" />
-					<userParam name="precursor_retention_time" value="0" />
+					<userParam name="precursor_retention_time" value="31.1325" />
 					<userParam name="precursor_mz" value="823.336" />
 					<userParam name="score" value="0" />
 					<userParam name="score_type" value="SEQUEST"/>
@@ -253,7 +253,7 @@
 					<userParam name="identification_index" value="2" />
 					<userParam name="peptide_significance_threshold" value="0"/>
 					<userParam name="precursor_charge" value="2" />
-					<userParam name="precursor_retention_time" value="0" />
+					<userParam name="precursor_retention_time" value="31.1325" />
 					<userParam name="precursor_mz" value="823.336" />
 					<userParam name="score" value="0" />
 					<userParam name="score_type" value="SEQUEST"/>
@@ -272,7 +272,7 @@
 					<userParam name="identification_index" value="2" />
 					<userParam name="peptide_significance_threshold" value="0"/>
 					<userParam name="precursor_charge" value="2" />
-					<userParam name="precursor_retention_time" value="0" />
+					<userParam name="precursor_retention_time" value="31.1325" />
 					<userParam name="precursor_mz" value="823.336" />
 					<userParam name="score" value="0" />
 					<userParam name="score_type" value="SEQUEST"/>
@@ -291,7 +291,7 @@
 					<userParam name="identification_index" value="2" />
 					<userParam name="peptide_significance_threshold" value="0"/>
 					<userParam name="precursor_charge" value="2" />
-					<userParam name="precursor_retention_time" value="0" />
+					<userParam name="precursor_retention_time" value="31.1325" />
 					<userParam name="precursor_mz" value="823.336" />
 					<userParam name="score" value="0" />
 					<userParam name="score_type" value="SEQUEST"/>
@@ -310,7 +310,7 @@
 					<userParam name="identification_index" value="4" />
 					<userParam name="peptide_significance_threshold" value="0"/>
 					<userParam name="precursor_charge" value="2" />
-					<userParam name="precursor_retention_time" value="0" />
+					<userParam name="precursor_retention_time" value="26.3065" />
 					<userParam name="precursor_mz" value="863.966" />
 					<userParam name="score" value="0.01" />
 					<userParam name="score_type" value="SEQUEST"/>
@@ -329,7 +329,7 @@
 					<userParam name="identification_index" value="4" />
 					<userParam name="peptide_significance_threshold" value="0"/>
 					<userParam name="precursor_charge" value="2" />
-					<userParam name="precursor_retention_time" value="0" />
+					<userParam name="precursor_retention_time" value="26.3065" />
 					<userParam name="precursor_mz" value="863.966" />
 					<userParam name="score" value="0.01" />
 					<userParam name="score_type" value="SEQUEST"/>
@@ -348,7 +348,7 @@
 					<userParam name="identification_index" value="4" />
 					<userParam name="peptide_significance_threshold" value="0"/>
 					<userParam name="precursor_charge" value="2" />
-					<userParam name="precursor_retention_time" value="0" />
+					<userParam name="precursor_retention_time" value="26.3065" />
 					<userParam name="precursor_mz" value="863.966" />
 					<userParam name="score" value="0.01" />
 					<userParam name="score_type" value="SEQUEST"/>
@@ -367,7 +367,7 @@
 					<userParam name="identification_index" value="4" />
 					<userParam name="peptide_significance_threshold" value="0"/>
 					<userParam name="precursor_charge" value="2" />
-					<userParam name="precursor_retention_time" value="0" />
+					<userParam name="precursor_retention_time" value="26.3065" />
 					<userParam name="precursor_mz" value="863.966" />
 					<userParam name="score" value="0.01" />
 					<userParam name="score_type" value="SEQUEST"/>
@@ -386,7 +386,7 @@
 					<userParam name="identification_index" value="4" />
 					<userParam name="peptide_significance_threshold" value="0"/>
 					<userParam name="precursor_charge" value="2" />
-					<userParam name="precursor_retention_time" value="0" />
+					<userParam name="precursor_retention_time" value="26.3065" />
 					<userParam name="precursor_mz" value="863.966" />
 					<userParam name="score" value="0.01" />
 					<userParam name="score_type" value="SEQUEST"/>
@@ -405,7 +405,7 @@
 					<userParam name="identification_index" value="4" />
 					<userParam name="peptide_significance_threshold" value="0"/>
 					<userParam name="precursor_charge" value="2" />
-					<userParam name="precursor_retention_time" value="0" />
+					<userParam name="precursor_retention_time" value="26.3065" />
 					<userParam name="precursor_mz" value="863.966" />
 					<userParam name="score" value="0.01" />
 					<userParam name="score_type" value="SEQUEST"/>
@@ -424,7 +424,7 @@
 					<userParam name="identification_index" value="4" />
 					<userParam name="peptide_significance_threshold" value="0"/>
 					<userParam name="precursor_charge" value="2" />
-					<userParam name="precursor_retention_time" value="0" />
+					<userParam name="precursor_retention_time" value="26.3065" />
 					<userParam name="precursor_mz" value="863.966" />
 					<userParam name="score" value="0.01" />
 					<userParam name="score_type" value="SEQUEST"/>
@@ -443,7 +443,7 @@
 					<userParam name="identification_index" value="4" />
 					<userParam name="peptide_significance_threshold" value="0"/>
 					<userParam name="precursor_charge" value="2" />
-					<userParam name="precursor_retention_time" value="0" />
+					<userParam name="precursor_retention_time" value="26.3065" />
 					<userParam name="precursor_mz" value="863.966" />
 					<userParam name="score" value="0.01" />
 					<userParam name="score_type" value="SEQUEST"/>
@@ -462,7 +462,7 @@
 					<userParam name="identification_index" value="4" />
 					<userParam name="peptide_significance_threshold" value="0"/>
 					<userParam name="precursor_charge" value="2" />
-					<userParam name="precursor_retention_time" value="0" />
+					<userParam name="precursor_retention_time" value="26.3065" />
 					<userParam name="precursor_mz" value="863.966" />
 					<userParam name="score" value="0.01" />
 					<userParam name="score_type" value="SEQUEST"/>
@@ -481,7 +481,7 @@
 					<userParam name="identification_index" value="4" />
 					<userParam name="peptide_significance_threshold" value="0"/>
 					<userParam name="precursor_charge" value="2" />
-					<userParam name="precursor_retention_time" value="0" />
+					<userParam name="precursor_retention_time" value="26.3065" />
 					<userParam name="precursor_mz" value="863.966" />
 					<userParam name="score" value="0.01" />
 					<userParam name="score_type" value="SEQUEST"/>
@@ -500,7 +500,7 @@
 					<userParam name="identification_index" value="4" />
 					<userParam name="peptide_significance_threshold" value="0"/>
 					<userParam name="precursor_charge" value="2" />
-					<userParam name="precursor_retention_time" value="0" />
+					<userParam name="precursor_retention_time" value="26.3065" />
 					<userParam name="precursor_mz" value="863.966" />
 					<userParam name="score" value="0.01" />
 					<userParam name="score_type" value="SEQUEST"/>
@@ -519,7 +519,7 @@
 					<userParam name="identification_index" value="4" />
 					<userParam name="peptide_significance_threshold" value="0"/>
 					<userParam name="precursor_charge" value="2" />
-					<userParam name="precursor_retention_time" value="0" />
+					<userParam name="precursor_retention_time" value="26.3065" />
 					<userParam name="precursor_mz" value="863.966" />
 					<userParam name="score" value="0.01" />
 					<userParam name="score_type" value="SEQUEST"/>
@@ -538,7 +538,7 @@
 					<userParam name="identification_index" value="4" />
 					<userParam name="peptide_significance_threshold" value="0"/>
 					<userParam name="precursor_charge" value="2" />
-					<userParam name="precursor_retention_time" value="0" />
+					<userParam name="precursor_retention_time" value="26.3065" />
 					<userParam name="precursor_mz" value="863.966" />
 					<userParam name="score" value="0.02" />
 					<userParam name="score_type" value="SEQUEST"/>
