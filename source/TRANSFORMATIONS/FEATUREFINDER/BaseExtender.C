@@ -29,14 +29,12 @@
 
 // all from BaseExtender derived classes
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SimpleExtender.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MvAvgExtender.h>
 
 namespace OpenMS
 {
 	void BaseExtender::registerChildren()
 	{
 		Factory<BaseExtender>::registerProduct(SimpleExtender::getName(), &SimpleExtender::create);
-		Factory<BaseExtender>::registerProduct(MvAvgExtender::getName(), &MvAvgExtender::create);
 	}	
 
 	BaseExtender::BaseExtender() : FeaFiModule() { }
