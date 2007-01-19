@@ -46,12 +46,13 @@
 namespace OpenMS
 {
 	/**
-		@brief Representation of an Sequest outfile.
-		
-		@todo check whether every getline may throw an exception (Martin)
-		
-		@ingroup FileIO
-	*/
+    @brief Representation of a Sequest output file
+    
+    This class serves to read in a Sequest outfile. The information can be
+    retrieved via the load function.
+  	
+  	@ingroup FileIO
+  */
 	class SequestOutfile
 	{
 		public:
@@ -59,12 +60,14 @@ namespace OpenMS
 			SequestOutfile();
 			
 			 /**
-				@brief loads data from a Mascot outfile
+				@brief loads data from a Inspect outfile
 				
 				@param result_filename the file to be loaded
 				@param identifications the identifications
 				@param protein_identification the protein identifications
 				@param p_value_threshold the significance level (for the peptide hit scores)
+			  @param pvalues a list with the pvalues of the peptides (pvalues computed with peptide prophet)
+			  @param database the database used for the search
 				
 				This class serves to read in a Sequest outfile. The information can be
 				retrieved via the load function.
@@ -73,8 +76,10 @@ namespace OpenMS
 				*/
 			void load(const std::string& result_filename, std::vector< IdentificationData >& identifications, ProteinIdentification& protein_identification, const Real& p_value_threshold, std::vector< Real >& pvalues, const std::string& database = "") throw (Exception::FileNotFound, Exception::ParseError);
 
+			
 			void finishSummaryHtml(const std::string& summary_filename) throw (Exception::UnableToCreateFile);
 
+			/// write a
 			void out2SummaryHtml(std::string out_filename, const std::string& summary_filename, const std::string& database_filename, bool& append) throw(Exception::FileNotFound, Exception::ParseError, Exception::UnableToCreateFile);
 
 			std::map< String, std::vector< Real > > getPeptidePValues(const std::string& out_dir, const std::string& prob_filename) throw (Exception::FileNotFound, Exception::ParseError);
