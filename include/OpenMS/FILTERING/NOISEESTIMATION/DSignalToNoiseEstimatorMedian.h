@@ -354,15 +354,16 @@ namespace OpenMS
       // print Warning message if there are unknown parameters (typos?)
       // ... define a default object
       Param default_p;
-      default_p.setValue("SignalToNoiseEstimationParameter:WindowLength", win_len_);
-      default_p.setValue("SignalToNoiseEstimationParameter:BinCount", (double) bin_count_);
-      default_p.setValue("SignalToNoiseEstimationParameter:MinReqElementsInWindow", (double) min_required_elements_);
-      default_p.setValue("SignalToNoiseEstimationParameter:NoiseEmptyWindow", noise_for_empty_window_);
-      default_p.setValue("SignalToNoiseEstimationParameter:MaxIntensity", max_intensity_);
-      default_p.setValue("SignalToNoiseEstimationParameter:AutoMode", (double) auto_mode_);
-      default_p.setValue("SignalToNoiseEstimationParameter:AutoMaxIntensity", auto_max_intensity_);
+      default_p.setValue("WindowLength", win_len_);
+      default_p.setValue("BinCount", (double) bin_count_);
+      default_p.setValue("MinReqElementsInWindow", (double) min_required_elements_);
+      default_p.setValue("NoiseEmptyWindow", noise_for_empty_window_);
+      default_p.setValue("MaxIntensity", max_intensity_);
+      default_p.setValue("AutoMode", (double) auto_mode_);
+      default_p.setValue("AutoMaxIntensity", auto_max_intensity_);
 
       param_.setDefaults(default_p);
+
       // ... and check it against current param object:
       param_.checkDefaults("DSignalToNoiseEstimatorMedian",default_p);
 			
