@@ -444,16 +444,6 @@ IDFilter_test: $(NUMERICDIFF)
 	@$(call RUN_PROG_OPT,IDFilter,-in IDFilter_1_input.analysisXML -out IDFilter_3_output.tmp -exclusion_peptides_file IDFilter_3_input.analysisXML)
 	@$(call TEST_FILE_EQUAL,IDFilter_3_output.analysisXML,IDFilter_3_output.tmp)
 
-
-InspectAdapter_test: $(NUMERICDIFF)
-	@$(ECHO) ""
-	@$(ECHO) "InspectAdapter:"
-	@$(call RUN_PROG_OPT,InspectAdapter,-ini InspectAdapter_1_parameters.ini -inspect_in)
-	@$(call TEST_FILE_EQUAL,InspectAdapter_1_output.inspect_in,InspectAdapter_1_output.tmp)
-	@$(call RUN_PROG_OPT,InspectAdapter,-ini InspectAdapter_1_parameters.ini -in InspectAdapter.output -out InspectAdapter_2_output.tmp -inspect_out)
-	@$(call TEST_FILE_EQUAL,InspectAdapter_2_output.analysisXML,InspectAdapter_2_output.tmp)
-
-
 LabeledMatcher_test: $(NUMERICDIFF)
 	@$(ECHO) ""
 	@$(ECHO) "LabeledMatcher:"
@@ -553,15 +543,26 @@ RTPredict_test: $(NUMERICDIFF)
 	@$(call RUN_PROG_OPT,RTPredict,-in RTPredict_1_input.analysisXML -out RTPredict_1_output.tmp -total_gradient_time 3000 -svm_model RTPredict_1_input.model)
 	@$(call TEST_FILE_EQUAL,RTPredict_1_output.tmp,RTPredict_1_output.analysisXML)
 
+InspectAdapter_test: $(NUMERICDIFF)
+	@$(ECHO) ""
+	@$(ECHO) "InspectAdapter:"
+	@$(call RUN_PROG_OPT,InspectAdapter,-ini InspectAdapter_1_parameters.ini -inspect_in)
+	@$(SED) -i 's/^spectra,.*$$/spectra,dummy.mzXML/g' InspectAdapter_1_output.tmp
+	@$(SED) -i 's/^db,.*$$/db,dummy.trie/g' InspectAdapter_1_output.tmp
+	@$(call TEST_FILE_EQUAL,InspectAdapter_1_output.inspect_in,InspectAdapter_1_output.tmp)
+	@$(call RUN_PROG_OPT,InspectAdapter,-ini InspectAdapter_1_parameters.ini -in InspectAdapter.output -out InspectAdapter_2_output.tmp -inspect_out)
+	@$(call TEST_FILE_EQUAL,InspectAdapter_2_output.analysisXML,InspectAdapter_2_output.tmp)
+
 
 SequestAdapter_test: $(NUMERICDIFF)
 	@$(ECHO) ""
 	@$(ECHO) "SequestAdapter:"
+	@$(RM) -rf ./tmp/*.*
 	@$(call RUN_PROG_OPT,SequestAdapter,-ini SequestAdapter_1_parameters.ini -sequest_in)
 	@$(call TEST_FILE_EQUAL,SequestAdapter_1_output.sequest_in,SequestAdapter_1_output.tmp)
 	@$(call RUN_PROG_OPT,SequestAdapter,-ini SequestAdapter_1_parameters.ini -in SequestAdapter_2_input.sequestXML -out SequestAdapter_2_output.tmp -sequest_out)
 	@$(call TEST_FILE_EQUAL,SequestAdapter_2_output.analysisXML,SequestAdapter_2_output.tmp)
-
+	@$(RM) -rf ./tmp/*.*
 
 SpectraFilter_test: $(NUMERICDIFF)
 	@$(ECHO) ""

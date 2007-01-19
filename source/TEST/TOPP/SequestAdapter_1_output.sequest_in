@@ -1,9 +1,9 @@
 [SEQUEST]
-database_name = \\bude\langwisc\daten\Inspect_Sequest_FASTAFile_test.fasta
-peptide_mass_tolerance = 1.3
+database_name = \\Inspect_Sequest_FASTAFile_test.fasta
+peptide_mass_tolerance = 1
 peptide_mass_units = 0; 0=amu, 1=mmu, 2=ppm
 ion_series = 0 1 1 0 1 0 0 0 0 0 1 0;nABY ABCDVWXYZ
-fragment_ion_tolerance = 0.3
+fragment_ion_tolerance = 0.5
 num_output_lines = 2
 num_results = 2
 num_description_lines = 0
