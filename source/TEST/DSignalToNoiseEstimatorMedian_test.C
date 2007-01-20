@@ -29,6 +29,8 @@
 ///////////////////////////
 
 #include <OpenMS/FILTERING/NOISEESTIMATION/DSignalToNoiseEstimatorMedian.h>
+#include <OpenMS/FORMAT/DTAFile.h>
+#include <OpenMS/KERNEL/MSSpectrum.h>
 
 ///////////////////////////
 
@@ -197,43 +199,25 @@ RESULT
 
 
 CHECK(double getSignalToNoise(PeakIterator data_point))
-  DPeakArray<1,DRawDataPoint<1> > raw_data;
-  int i;
-  for (i=0; i < 6; ++i)
-  {
-    DRawDataPoint<1> p;
-    DPosition<1> pos = i*130;
-    if ((i == 2) || (i == 4))
-    {
-      p.setIntensity(100);
-    }
-    else
-    {
-      p.setIntensity(0);
-    }
-    p.setPosition(pos);
-    raw_data.push_back(p);
-  }
 
-  DSignalToNoiseEstimatorMedian<1,  DPeakArray<1,DRawDataPoint<1> >::const_iterator > sne(40);
-  // test sparse window
+  // A container for the raw data 
+  MSSpectrum <DRawDataPoint <1> > raw_data;
+  DTAFile dta_file;
+  dta_file.load("./data/DSignalToNoise_test.dta", raw_data);
+  
+    
+  DSignalToNoiseEstimatorMedian<1,  MSSpectrum <DRawDataPoint <1> >::const_iterator > sne(40);  //winLen of 40 Th
   sne.setMinReqElements(10);
   sne.setNoiseForEmtpyWindow(2);
   sne.init(raw_data.begin(),raw_data.end());
 
-  for (i=0; i < (int)raw_data.size(); ++i)
-  {
-    DPeakArray<1,DRawDataPoint<1> >::const_iterator first = raw_data.begin() + i;
+  DPeakArray<1,DRawDataPoint<1> >::const_iterator first = raw_data.begin() + 1;
+  TEST_REAL_EQUAL(sne.getSignalToNoise(first), 1.07393);
 
-    if ((i == 2) || (i == 4))
-    {
-      TEST_REAL_EQUAL(sne.getSignalToNoise(first), 50);
-    }
-    else
-    {
-      TEST_REAL_EQUAL(sne.getSignalToNoise(first), 0);
-    }
-  }
+  first = raw_data.begin() + 15;
+  TEST_REAL_EQUAL(sne.getSignalToNoise(first), 2.14786);
+
+
 RESULT
 
 // MUTABLE GET-METHODS  

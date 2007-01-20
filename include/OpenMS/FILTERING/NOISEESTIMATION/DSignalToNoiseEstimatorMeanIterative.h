@@ -810,7 +810,7 @@ namespace OpenMS
       }
 
       /// stores the noise estimate for each peak
-      ///@TODO change to std::hash_map<const char*, int, hash<const char*>, eqstr>  == the current one is SORTED (WHY??)!
+      ///TODO change to std::hash_map<const char*, int, hash<const char*>, eqstr>  == the current one is SORTED (WHY??)!
       std::map< PeakType, double, typename PeakType::PositionLess > stn_estimates_;
       //HashMap <PeakType, double> stn_estimates_; // --> error cast to int
 
