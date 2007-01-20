@@ -57,17 +57,10 @@ namespace OpenMS
    	P:           	the epsilon parameter for epsilon-SVR
    	GAMMA:       	the gamma parameter of the POLY, RBF and SIGMOID kernel
 	*/
-	typedef enum
-	{
-			SVM_TYPE, KERNEL_TYPE, DEGREE, C, NU, P, GAMMA, PROBABILITY, SIGMA, BORDER_LENGTH
-	} SVM_parameter_type;
+	enum SVM_parameter_type{SVM_TYPE, KERNEL_TYPE, DEGREE, C, NU, P, GAMMA, PROBABILITY, SIGMA, BORDER_LENGTH};
 	
-	typedef enum
-	{
-			OLIGO = 19, OLIGO_COMBINED
-	} SVM_kernel_type; /* kernel_type */
+	enum SVM_kernel_type{OLIGO = 19, OLIGO_COMBINED}; /* kernel_type */
 	
-	/// Wrapper class for the libSVM implementation
 	class SVMWrapper
 	{
 	 public:
@@ -108,9 +101,10 @@ namespace OpenMS
 		  /**
 		    @brief	saves the svm model 
 
-	      The model of the trained svm is saved into 'modelFilename'.
+	      The model of the trained svm is saved into 'modelFilename'. Throws an exception if 
+	      the model cannot be saved.
 			*/
-	    void saveModel(std::string modelFilename);
+	    void saveModel(std::string modelFilename) const throw (Exception::UnableToCreateFile);
 	
 		  /**
 		    @brief loads the model
@@ -128,14 +122,6 @@ namespace OpenMS
 		  */
 	    std::vector<DoubleReal>* predict(struct svm_problem* predictProblem);
 
-		  /**
-		    @brief predicts the labels using the trained model
-		    
-	     	 The prediction process is started and the results are returned.
-
-		  */
-	    std::vector<DoubleReal>* predict(const std::vector<svm_node*>& vectors);
-	
 		  /**
 		    @brief You can get the actual int- parameters of the svm
 
@@ -233,10 +219,10 @@ namespace OpenMS
 		  /**
 		    @brief Scales the data such that every coloumn is scaled to [-1, 1].
 		    
+		    Scales the x[][].value values of the svm_problem* structure. If the second 
+		    parameter is omitted, the data is scaled to [-1, 1]. Otherwise the data is scaled to [0, max_scale_value]
 		  */
-			void scaleData(svm_problem* data, UnsignedInt number_of_combinations = 1, UnsignedInt start_combination = 0, SignedInt max_scale_value = -1);
-
-  		void setTrainingSample(svm_problem* training_sample);
+			void scaleData(svm_problem* data, SignedInt max_scale_value = -1);
 
 			static void calculateGaussTable(UnsignedInt border_length, DoubleReal sigma, std::vector<DoubleReal>&	gauss_table);
 
@@ -250,6 +236,8 @@ namespace OpenMS
 		  */
 			svm_problem* computeKernelMatrix(svm_problem* problem1, svm_problem* problem2);
 
+  		void setTrainingSample(svm_problem* training_sample);
+
 		protected:
 						
 			void destroyProblem(svm_problem* problem);
@@ -257,6 +245,12 @@ namespace OpenMS
 	 private:
 			UnsignedInt getNumberOfEnclosedPoints(DoubleReal m1, DoubleReal m2, const std::vector<std::pair<DoubleReal, DoubleReal> >& 	points);
 	
+		  /**
+		    @brief Initializes the svm with standard parameters
+		    
+		  */
+	    void initParameters();
+
 	    svm_parameter* 												param_;  	       	    // the parameters for the svm
 	    svm_model*     												model_;   			      // the learnt svm discriminant
 	    DoubleReal 														sigma_;								// for the oligo kernel (amount of positional smearing) 
@@ -267,13 +261,7 @@ namespace OpenMS
 			UnsignedInt			 											border_length_;				// the actual kernel type				
 			svm_problem*													training_set_;				// the training set
 			svm_problem*													training_problem_;		// the training set
-			bool 																	loaded_model_;				// indicates wether a model is loaded from a file or not
 
-		  /**
-		    @brief Initializes the svm with standard parameters
-		    
-		  */
-	    void initParameters();
 	};
  
 } // namespace OpenMS

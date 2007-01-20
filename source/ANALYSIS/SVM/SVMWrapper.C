@@ -28,6 +28,7 @@
 #include <OpenMS/DATASTRUCTURES/DateTime.h>
 #include <OpenMS/FORMAT/LibSVMEncoder.h>
 #include <OpenMS/MATH/STATISTICS/BasicStatistics.h>
+#include <OpenMS/FORMAT/TextFile.h>
 
 #include <numeric>
 #include <iostream>
@@ -41,7 +42,7 @@ using namespace std;
 namespace OpenMS 
 {
 		
-	SVMWrapper::SVMWrapper() : param_(NULL), model_(NULL), sigma_(0), sigmas_(vector<DoubleReal>()), gauss_table_(), kernel_type_(PRECOMPUTED), border_length_(0), training_set_(NULL), training_problem_(NULL), loaded_model_(false)
+	SVMWrapper::SVMWrapper() : param_(NULL), model_(NULL), sigma_(0), sigmas_(vector<DoubleReal>()), gauss_table_(), kernel_type_(PRECOMPUTED), border_length_(0), training_set_(NULL), training_problem_(NULL)
 	{	
 	  param_ = (struct svm_parameter*) malloc(sizeof(struct svm_parameter));
 	  initParameters();
@@ -217,7 +218,6 @@ namespace OpenMS
 	
 	int SVMWrapper::train(struct svm_problem* problem)
 	{
-	  loaded_model_ = false;
 	  if (problem != NULL 
 				&& param_ != NULL 
 				&& (svm_check_parameter(problem,param_) == NULL))
@@ -238,10 +238,6 @@ namespace OpenMS
     		}
     		training_problem_ = computeKernelMatrix(problem, problem);
     		problem = training_problem_;
-			}
-			else if (kernel_type_ == PRECOMPUTED)
-			{
-				training_problem_ = problem;
 			}
 			
 			model_ = svm_train(problem, param_);
@@ -268,16 +264,30 @@ namespace OpenMS
 	  }
 	}
 	
-	void SVMWrapper::saveModel(string model_filename)
+	void SVMWrapper::saveModel(string model_filename) const throw (Exception::UnableToCreateFile)
 	{
+		SignedInt status = 0;
+		
 	  if (model_ != NULL)
 	  {
-	    svm_save_model(model_filename.c_str(), model_);
+	    status = svm_save_model(model_filename.c_str(), model_);
+	  }
+	  else
+	  {
+	  	throw Exception::UnableToCreateFile(__FILE__, __LINE__, __PRETTY_FUNCTION__, model_filename);
+	  }
+	  if (status == -1)
+	  {
+	  	throw Exception::UnableToCreateFile(__FILE__, __LINE__, __PRETTY_FUNCTION__, model_filename);
 	  }
 	}
 	
 	void SVMWrapper::loadModel(string model_filename)
 	{
+		TextFile file;
+		TextFile::iterator it;
+		vector<String> parts;
+		
 	  if (model_ != NULL)
 	  {
 			svm_destroy_model(model_);
@@ -285,8 +295,33 @@ namespace OpenMS
 	  }
 	  model_ = svm_load_model(model_filename.c_str());
 	  setParameter(SVM_TYPE, svm_get_svm_type(model_));
-	  loaded_model_ = true;
-		
+	  file.load(model_filename, true);
+	  
+		it = file.search("kernel_type");
+		if (it != file.end())
+		{
+			it->split(' ', parts);
+			if (parts[1] == "linear")
+			{
+				setParameter(KERNEL_TYPE, LINEAR);
+			}
+			else if (parts[1] == "polynomial")
+			{
+				setParameter(KERNEL_TYPE, POLY);
+			}
+			else if (parts[1] == "rbf")
+			{
+				setParameter(KERNEL_TYPE, RBF);
+			}
+			else if (parts[1] == "sigmoid")
+			{
+				setParameter(KERNEL_TYPE, SIGMOID);
+			}
+			else if (parts[1] == "precomputed")
+			{
+				setParameter(KERNEL_TYPE, OLIGO);
+			}
+		}
 	}
 	
 	vector<DoubleReal>* SVMWrapper::predict(struct svm_problem* problem)
@@ -307,12 +342,11 @@ namespace OpenMS
 				cout << "Training set is null and kernel type == PRECOMPUTED" << endl;
 			}
 
-
     if (model_ == NULL || problem == NULL)
     {
 			return results;
     }
-		if (param_->kernel_type == PRECOMPUTED && kernel_type_ != PRECOMPUTED)
+		if (kernel_type_ == OLIGO)
 		{
 			if (training_set_ == NULL)
 			{
@@ -327,30 +361,11 @@ namespace OpenMS
 			results->push_back(label);
 		}
 		
-		if (param_->kernel_type == PRECOMPUTED && !loaded_model_)
+		if (kernel_type_ == OLIGO)
 		{
     	destroyProblem(problem);
 		}
 
-    return results;
-	}
-	
-	vector<DoubleReal>* SVMWrapper::predict(const std::vector<svm_node*>& vectors)
-	{
-    DoubleReal          label = 0.0;
-    vector<DoubleReal>* results = new vector<DoubleReal>();
-
-    if (model_ == NULL)
-    {
-			return results;
-    }
-   
-    for(UnsignedInt i = 0; i < vectors.size(); i++)
-    {
-			label = svm_predict(model_, vectors[i]);
-			results->push_back(label);
-		}
-		
     return results;
 	}
 	
@@ -1285,106 +1300,66 @@ namespace OpenMS
 		}
 	}																		  			
 	
-	void SVMWrapper::scaleData(svm_problem* data, UnsignedInt number_of_combinations, UnsignedInt start_combination, SignedInt max_scale_value)
+	void SVMWrapper::scaleData(svm_problem* data, SignedInt max_scale_value)
 	{
 		vector<DoubleReal> max_values;
 		vector<DoubleReal> min_values;
 		vector<DoubleReal> sums;
-		UnsignedInt j = number_of_combinations;
 		SignedInt max_index = 0;
-		UnsignedInt counter = 0;
+		SignedInt j = 0;
 		
-		for(UnsignedInt k = start_combination; k < number_of_combinations; ++k)
+		for(SignedInt i = 0; i < data->l; ++i)
 		{
-			for(SignedInt i = 0; i < data->l; ++i)
+			j = 0;
+			while(data->x[i][j].index != -1)
 			{
-				j = 0;
-				counter = 0;
-				// if the libsvm vector does not contain a norm at the beginning the scaling should start from that index j
-				if (data->x[i][j].index != -1)
+				if (data->x[i][j].index > max_index)
 				{
-					++counter;
+					max_index = data->x[i][j].index;
 				}
-				while(counter < number_of_combinations + k)
-				{
-					if (data->x[i][j].index == -1)
-					{
-						++counter;
-					}
-					++j;
-				}
-				while(data->x[i][j].index != -1)
-				{
-					if (data->x[i][j].index > max_index)
-					{
-						max_index = data->x[i][j].index;
-					}
-					++j;
-				}
+				++j;
 			}
-			
-			max_values.resize(max_index, 0);
-			min_values.resize(max_index, 0);
-			sums.resize(max_index, 0);
-			
-			for(SignedInt i = 0; i < data->l; ++i)
+		}
+		
+		max_values.resize(max_index, 0);
+		min_values.resize(max_index, 0);
+		sums.resize(max_index, 0);
+		
+		for(SignedInt i = 0; i < data->l; ++i)
+		{
+			j = 0;
+			while(data->x[i][j].index != -1)
 			{
-				j = 0;
-				counter = 0;
-				while(counter < number_of_combinations + k)
+				if (data->x[i][j].value > max_values.at(data->x[i][j].index - 1))
 				{
-					if (data->x[i][j].index == -1)
-					{
-						++counter;
-					}
-					++j;
+					max_values.at(data->x[i][j].index - 1) = data->x[i][j].value;
 				}
-				while(data->x[i][j].index != -1)
+				sums.at(data->x[i][j].index - 1) = sums.at(data->x[i][j].index - 1) + data->x[i][j].value;
+				if (data->x[i][j].value < min_values.at(data->x[i][j].index - 1))
 				{
-					if (data->x[i][j].value > max_values.at(data->x[i][j].index - 1))
-					{
-						max_values.at(data->x[i][j].index - 1) = data->x[i][j].value;
-					}
-					sums.at(data->x[i][j].index - 1) = sums.at(data->x[i][j].index - 1) + data->x[i][j].value;
-					if (data->x[i][j].value < min_values.at(data->x[i][j].index - 1))
-					{
-						min_values.at(data->x[i][j].index - 1) = data->x[i][j].value;
-					}
-	
-					++j;
+					min_values.at(data->x[i][j].index - 1) = data->x[i][j].value;
 				}
+
+				++j;
 			}
-			for(SignedInt i = 0; i < data->l; ++i)
+		}
+		for(SignedInt i = 0; i < data->l; ++i)
+		{
+			j = 0;
+			while(data->x[i][j].index != -1)				
 			{
-				j = 0;
-				counter = 0;
-				while(counter < number_of_combinations + k)
+				if (max_scale_value == -1)
 				{
-					if (data->x[i][j].index == -1)
-					{
-						++counter;
-					}
-					++j;
+					data->x[i][j].value = 2 * (data->x[i][j].value - min_values.at(data->x[i][j].index - 1))
+																/ (max_values.at(data->x[i][j].index - 1) - min_values.at(data->x[i][j].index - 1)) - 1;																			
 				}
-				while(data->x[i][j].index != -1)				
+				else
 				{
-					if (max_scale_value == -1)
-					{
-						data->x[i][j].value = 2 * (data->x[i][j].value - min_values.at(data->x[i][j].index - 1))
-																	/ (max_values.at(data->x[i][j].index - 1) - min_values.at(data->x[i][j].index - 1)) - 1;																			
-					}
-					else
-					{
-						data->x[i][j].value = max_scale_value * (data->x[i][j].value - min_values.at(data->x[i][j].index - 1))
-																		/ (max_values.at(data->x[i][j].index - 1) - min_values.at(data->x[i][j].index - 1));																			
-					}
-					++j;
+					data->x[i][j].value = max_scale_value * (data->x[i][j].value - min_values.at(data->x[i][j].index - 1))
+																	/ (max_values.at(data->x[i][j].index - 1) - min_values.at(data->x[i][j].index - 1));																			
 				}
+				++j;
 			}
-			max_values.clear();
-			min_values.clear();
-			sums.clear();
-			max_index = 0;
 		}
 	}																		  																										
 
