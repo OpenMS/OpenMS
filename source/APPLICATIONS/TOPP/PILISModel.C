@@ -40,6 +40,16 @@ using namespace std;
 	@page PILISModel PILISModel
 	
 	@brief Can be used to train the PILIS model with a given set of spectra an identifications
+
+	The PILISModel can be trained with spectra and identifications to gain information about 
+	the fragmentation of a specific instrument. Training spectra are read from the in parameter
+	which should be in mzData format. The identifications of the spectra are read from file 
+	given in the id_in parameter. The spectra and the identifications should be in the same order.
+	
+	The default parameters of the model are given in the model_file parameter, this can either be
+	the default file stored in <OpenMS>/data/PILIS/ or a custom modelfile with already trained 
+	parameters. The trained parameters are written into the file trained_model_file. This parameter
+	file can be used with PILISIdentification to generate identifications of MS/MS spectra.
 */
 
 

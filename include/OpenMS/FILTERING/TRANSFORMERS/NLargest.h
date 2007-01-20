@@ -33,7 +33,7 @@ namespace OpenMS
 {
 
 	/**	
-  	@brief NLargest removes all but the n largest peaks<br>
+  	@brief NLargest removes all but the n largest peaks
   
   	@param n number of peaks to keep
 

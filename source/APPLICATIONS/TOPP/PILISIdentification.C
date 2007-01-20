@@ -41,6 +41,15 @@ using namespace std;
 	@page PILISIdentification PILISIdentification
 	
 	@brief Performs an identification with PILIS
+
+	The PILISIdentification TOPP tool performs a identification run with 
+	the PILIS identification engine. As input the file given in the in 
+	parameters is used. The identifications are written into an AnalysisXML
+	file given in the out parameter. Additionally the model_file must be 
+	specified. To perform a search also a peptide database file should be
+	used,given in the peptide_db_file parameter. This should contain a 
+	peptide in a separate line, either only the sequence or additionally 
+	with weight and charge in the second and third column.
 */
 
 
@@ -61,7 +70,7 @@ class TOPPPILISIdentification
 		void registerOptionsAndFlags_()
 		{
 			registerStringOption_("in", "<file>", "", "input file in MzData format", true);
-			registerStringOption_("out", "<file>", "", "output file in MzData format", true);
+			registerStringOption_("out", "<file>", "", "output file in AnalysisXML format", true);
 			registerStringOption_("model_file", "<file", "", "the model file of the PILISModel", true);
 			registerStringOption_("peptide_db_file", "<file>", "", "a file which should contain peptides in the format\n"
 																														 "DFPIANGER 1019.09 1\n"
@@ -69,7 +78,6 @@ class TOPPPILISIdentification
 																														 "the third the charge. As a alternative the sequence file\n"
 																														 "may contain only peptide sequences each in a separate line\n"
 																														 "repectively", true);
-			registerStringOption_("bla", "", "", "", true);
 			addEmptyLine_();
 		}
 		
