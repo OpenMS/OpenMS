@@ -326,7 +326,6 @@ CHECK((svm_problem* computeKernelMatrix(svm_problem* problem1, svm_problem* prob
 	data = encoder.encodeLibSVMProblemWithOligoBorderVectors(sequences, &labels, 1, allowed_characters, border_length);
 	kernel_matrix = svm.computeKernelMatrix(data, data);
 	svm.train(data);
-	svm.saveModel("test_model");
 
 	PRECISION(0.0001)
 	TEST_REAL_EQUAL(kernel_matrix->x[0][0].value, 1)
@@ -403,7 +402,6 @@ CHECK((void getDecisionValues(svm_problem* data, std::vector<DoubleReal>& decisi
 		labels.push_back(((DoubleReal) i * 2) / 3 + 0.03);
 	}
 	problem = encoder.encodeLibSVMProblem(*encoded_vectors, &labels);
-	encoder.storeLibSVMProblem("test_data", problem);
 	svm.train(problem);
 	predicted_labels = svm.predict(problem);
 	TEST_NOT_EQUAL(predicted_labels->size(), 0)
