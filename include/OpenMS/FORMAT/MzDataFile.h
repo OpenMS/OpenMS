@@ -35,8 +35,6 @@ namespace OpenMS
 {
 	/**
 		@brief File adapter for MzData files
-
-		@todo test all optional attributes (Thomas K.)
 		
 		@ingroup FileIO
 	*/

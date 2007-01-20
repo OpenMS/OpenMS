@@ -35,7 +35,9 @@
 	<a href="#alignment">alignment</a>
 
 
-  <h2>Kernel<a name="kernel"></h2>
+	<!-- -------------------------------------------------------------------- -->
+	<H2>Kernel<a name="kernel"></h2>
+
   
 	<img src="Kernel.png" align=left>  
 	
@@ -43,7 +45,9 @@
   actual MS data: Peaks, Spectra, Features, Maps, ...
 	<br clear="all">
 	
-  <h3>Main datastructures</h3>
+	<!-- -------------------------------------------------------------------- -->
+	<H3>Main datastructures</h3>
+
   <TABLE border=0>
   <TR>
   <TD valign=top>
@@ -64,6 +68,7 @@
 	</TABLE>
 
  <h3>Traits</h3>
+
   The traits class used as template argument of many Kernel classes
   determines the type that e.g. position, intensity and charge
   have. By default most of these types are doubles.
@@ -71,7 +76,9 @@
   If you do not need double precicion, you can use float traits
   instead.
 
-  <h3>D-dimensional coordinates</h3>
+	<!-- -------------------------------------------------------------------- -->
+	<H3>D-dimensional coordinates</h3>
+
   <b>DPosition</b> represents a coordinate in D-dimensional space.
   Dimensions are accessed by <tt>operator[]</tt>.
   <br>
@@ -94,7 +101,9 @@ D-dimensions hypercube and offers some convenient methods e.g. for
 intersection and center.
 </pre>
 
-  <h3>Raw data, peaks and features</h3>
+	<!-- -------------------------------------------------------------------- -->
+	<H3>Raw data, peaks and features</h3>
+
   <b>DRawDataPoint</b> is rawdata point with a D-dimensional
   position and an intensity. Raw data means that no 'peak picking'
   or other pre-processing methods were performed on this data.
@@ -114,7 +123,9 @@ intersection and center.
   peaks related to a specific peptide or some other chemical
   entity.
 
-  <h3>DSpectrum and peak container</h3>
+	<!-- -------------------------------------------------------------------- -->
+	<H3>DSpectrum and peak container</h3>
+
   <b>DSpectrum</b> represents a D-dimensional spectrum i.e. a
   container of D-dimensional data points (any class derived from
   DRawDataPoint).
@@ -155,15 +166,22 @@ for (Spectrum2D::Iterator it = spectrum.getContainer().begin(); it!=spectrum.get
 }
 </pre>
 
-  <h2>Datastructures<a name="datastructures"></h2> 
+	<!-- -------------------------------------------------------------------- -->
+	<H2>Datastructures<a name="datastructures"></h2>
+
   The <tt>DATASTRUCTURES</tt> folder contains shared datastructure
   classes, e.g. a convenient string implementation.
 
-  <h2>Format<a name="format"></h2> 
+	<!-- -------------------------------------------------------------------- -->
+	<H2>Format<a name="format"></h2>
+
   The <tt>FORMAT</tt> folder contains classes for both database and
   file I/O.
 
-  <h3>File adapter</h3>
+	<!-- -------------------------------------------------------------------- -->
+	<H3>File IO</h3>
+
+  
   <b>DTAFile</b> is an adapter to read and write DTA files (*.dta).
   DTA is a simple ASCII-based format for MS data. The first line
   contains the singly protonated peptide mass (MH+) and the peptide
@@ -222,7 +240,26 @@ andi.load(map,"dummy.cdf");
 mzdata.store(map,"dummy.mzData");
 </pre>
 
-  <h2>Metadata<a name="metadata"></h2> 
+In order to make the support for different file types easier, the class
+<tt>FileHandler</tt> can be used. It loads a file into the appropriate
+datastructure independent of the file type.
+
+<pre>
+MSExperiment<> in;
+FileHandler().loadExperiment("data/MaxReducer_test.dta2d",in);
+</pre>
+
+
+	<!-- -------------------------------------------------------------------- -->
+	<H3>Database IO</h3>
+
+
+
+  An OpenMS DB can be accessed using the <tt>DBAdapter</tt> class.
+
+	<!-- -------------------------------------------------------------------- -->
+	<H2>Metadata<a name="metadata"></h2>
+
   The <tt>METADATA</tt> folder contains classes for storage of MS
   metadata, e.g. instrument settings and sample description.
   <br>
@@ -237,7 +274,9 @@ mzdata.store(map,"dummy.mzData");
   precorsor information (if it is a MS spectrum) and results of ID
   engines (Mascot, Sequest, ...). <img src="MetaData.png">
 
-  <h3>MetaInfo</h3>
+	<!-- -------------------------------------------------------------------- -->
+	<H3>MetaInfo</h3>
+
   <img src="MetaInfo.png"
         align="left"> MetaInfo is used to easily store information
         of any type you like, that does not fit into the the other
@@ -264,11 +303,15 @@ mzdata.store(map,"dummy.mzData");
   <br clear="all">
 
 
-  <h2>Transformations<a name="transformations"></h2> 
+	<!-- -------------------------------------------------------------------- -->
+	<H2>Transformations<a name="transformations"></h2>
+
   The TRANSFORMATIONS folder contains classes for the
   transformations of raw and peak data.
 
-  <h3>RAW2PEAK</h3>
+	<!-- -------------------------------------------------------------------- -->
+	<H3>RAW2PEAK</h3>
+
   This folder contains classes for the transformation from raw to peak data.
   During this so called "peak picking" process we converte the raw ion count data, aquired by the machine, into peak lists
   for the further processing.
@@ -423,7 +466,9 @@ OpenMS/source/TRANSFORMATIONS/RAW2PEAK.
 
 
 	
-  <h3>Feature Finder</h3>
+	<!-- -------------------------------------------------------------------- -->
+	<H3>Feature Finder</h3>
+
   The FeatureFinder implements an algorithms for the identification
   of features in LC/MS maps. By feature, we understand a chemical
   compound, usually a peptide, contained in the sample. Our
@@ -487,12 +532,16 @@ features = ff.run();
   that outlined here. For details please have a look at the class
   diagram given below. <img src="FeatureFinder.png">
 
-  <h2>Filtering<a name="filtering"></h2> 
+	<!-- -------------------------------------------------------------------- -->
+	<H2>Filtering<a name="filtering"></h2>
+
   The FILTERING folder contains classes for calibration, smoothing
   and the baseline-filtering of raw data as well as a class for 
   filtering identifications.
 
-  <h3>Baseline filtering</h3>
+	<!-- -------------------------------------------------------------------- -->
+	<H3>Baseline filtering</h3>
+
   This is folder contains classes for baseline filtering of raw
   data.
   <br>
@@ -559,7 +608,9 @@ tophat.filterExperiment(raw_experiment, filtered_experiment);
 Instead of setting the width of the structuring element manually you can also use a parameter file.
 The two other constructors of the top hat filter need either the parameters stored in a xml file or in a Param object.
   
-  <h3>Smoothing</h3>
+	<!-- -------------------------------------------------------------------- -->
+	<H3>Smoothing</h3>
+
   This folder contains smoothing filter classes for raw data.
   <br>
   <br>
@@ -706,14 +757,20 @@ sgolay.filterExperiment(raw_experiment, filtered_experiment);
   </ul>
 
 
-  <h2>Visual<a name="visual"></h2> 
+	<!-- -------------------------------------------------------------------- -->
+	<H2>Visual<a name="visual"></h2>
+
   The <tt>VISUAL</tt> folder contains classes of the GUI.
 
 
-  <h2>Analysis<a name="analysis"></h2> 
+	<!-- -------------------------------------------------------------------- -->
+	<H2>Analysis<a name="analysis"></h2>
+
   The ANALYSIS folder contains algorithms and modules for the high-level processing and analysis of LC/MS data.
   
-  <h3>MAPMATCHING</h3>
+	<!-- -------------------------------------------------------------------- -->
+	<H3>MAPMATCHING</h3>
+
   <br>
   The MAPMATHING folder contains classes for <b>Map Alignment</b>.
   During Map Alignment, we try to identify corresponding elements in multiple maps.
@@ -773,6 +830,7 @@ cons_file.store("Consensus.xml",alignment);
 </html>
 
 <!--<h3>Map Matching</h3>
+
   After a raw data map has been picked and searched for features,
   we need to map features from different maps i.e. experiments onto
   each other before we are able to make meaningful comparisons.

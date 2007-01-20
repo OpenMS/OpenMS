@@ -50,7 +50,6 @@ namespace OpenMS
 
   	@todo This class is not bug free. Maintainer should check this (Eva)
   	@todo This class is not used anymore. Remove? (Eva)
-		
 		@todo use Param::setDefaults instead of if (dv.isEmpty() || dv.toString() == "") ... (Eva)
 		
     @ingroup SignalToNoiseEstimators

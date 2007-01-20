@@ -55,9 +55,8 @@
 /*	
 	Release (immer):
 	- HP updaten (21.)
-	- Debug-output abstellen
-	- Tutorial + TOPP Docu korrekturlesen
-	- SequestAdapter und InspectAdapter anschauen (wenn Tests da)
+	- TOPP Docu korrekturlesen
+	- SequestAdapter und InspectAdapter anschauen
 
 	TODO:
 	- Kernel/Datastructures nach Pass-By-Copy durchsuchen
@@ -68,7 +67,7 @@
 	- MzXMLFile: Parsen bei MetaDataOnly abbrechen wenn die scans kommen (ohne error)
 	- MzDataFile: Parsen bei MetaDataOnly abbrechen wenn die scans kommen (ohne error)
 	- FeatureFinder wirklich auf MSExperiment umstellen
-	- check_test durch C++-Parser oder doxygen output ersetzen
+	- check_test durch C++-Parser oder doxygen output ersetzen (coding conventions benennung erzwingen)
 	- TOPPView:
 		- FloatKernel statt DoubleKernel?
 		- Feature markiert -> konvexe Hülle markiert

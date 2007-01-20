@@ -53,3 +53,15 @@
 	
 	@ingroup Filtering
 */
+
+/** 
+	@defgroup SpectraFilter Spectra Filters
+	
+	@ingroup Filtering
+*/
+
+/**
+	@defgroup PeakMarker Peak Marker
+
+	@ingroup Filtering
+*/

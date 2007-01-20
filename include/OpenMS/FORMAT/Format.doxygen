@@ -40,6 +40,7 @@
 	@brief File IO classes.
 	
 	This module contains all classes that are involved in file IO.
+	Take a look at the FileHandler class!
 	
 	@ingroup Format
 */

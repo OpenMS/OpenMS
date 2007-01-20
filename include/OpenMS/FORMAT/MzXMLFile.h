@@ -37,8 +37,6 @@ namespace OpenMS
 	/**
 		@brief File adapter for MzXML files
 	
-		@todo test all optional attributes (Thomas K.)
-	
 		@ingroup FileIO
 	*/
 	class MzXMLFile : public Internal::SchemaFile

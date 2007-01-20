@@ -33,12 +33,6 @@
 
 namespace OpenMS
 {
-  /**
-		@defgroup PeakMarker Peak Marker
-
-		@ingroup Filtering
-	*/
-
 	/**
   	@brief PeakMarker marks peaks that seem to fulfil some criterion
   */

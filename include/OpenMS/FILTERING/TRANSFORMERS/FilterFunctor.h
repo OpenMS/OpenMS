@@ -33,16 +33,10 @@
 
 namespace OpenMS
 {
-	/** 
-		@defgroup SpectraFilter Spectra Filters
-		
-		@ingroup Filtering
-	*/
-
   /**	
   	@brief A FilterFunctor extracts some spectrum characteristics for quality assessment
   	
-  	@todo write test
+  	@todo write test (Andreas)
   */
   class FilterFunctor : public FactoryProduct
   {

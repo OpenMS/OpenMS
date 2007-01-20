@@ -39,11 +39,7 @@ namespace OpenMS
 	{
 		class SchemaHandler;
 	
-		/**
-			@brief Base class for loading/storing XML files that have a handler derived from SchemaHandler.
-		
-			@ingroup FileIO
-		*/
+		///Base class for loading/storing XML files that have a handler derived from SchemaHandler.
 		class SchemaFile
 		{
 			public:

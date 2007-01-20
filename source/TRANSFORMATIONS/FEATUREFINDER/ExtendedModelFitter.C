@@ -35,7 +35,6 @@
 #include <OpenMS/CONCEPT/Factory.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/BaseQuality.h>
 
-//TODO: remove
 #include <iostream>
 #include <fstream>
 #include <numeric>

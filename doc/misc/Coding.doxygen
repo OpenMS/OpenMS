@@ -30,7 +30,7 @@
 
 @page coding_conventions OpenMS Coding conventions
 
-<CENTER>Rev: 1347</CENTER>
+<CENTER>$Revision$</CENTER>
 
 <H1 style="margin-top:40px; border-top:4px solid grey; text-align:left;">Formatting</H1>
 
@@ -438,6 +438,9 @@ The defgroup command indicates that a comment block contains documentation for a
 This can be used to categorize classes, files or namespaces, and document those categories.
 You can also use groups as members of other groups, thus building a hierarchy of groups.
 Using the ingroup command a comment block of a class, file or namespace will be added to the group or groups.
+
+The groups (or modules as doxygen calls them) definded by the ingroup command should contain only the classes 
+of special interest to the OpenMS user. Helper classes and such must be omitted.
 
 Documentation which does not belong to a specific .C or .h file can be written into a
 separate Doxygen file (with the ending .doxygen). This file will also be parsed by Doxygen.

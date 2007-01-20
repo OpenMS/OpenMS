@@ -163,7 +163,6 @@ namespace OpenMS
 	
 	void OpenDialog::showMetadata()
 	{
-		//TODO implement!
 		QMessageBox::information( this, "Show metadata","This feature is not implemented yet!" );
 	}
 	

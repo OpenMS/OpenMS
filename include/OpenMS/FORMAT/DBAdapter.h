@@ -57,7 +57,6 @@ namespace OpenMS
     @ingroup DatabaseIO
     
     @todo add support for loading metadata or selection of the data -- PeakFileOptions (Thomas S.)
-    @todo add support for missing classes / add missing members to classes(Thomas S.)
   */
  
   class DBAdapter
