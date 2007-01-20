@@ -34,7 +34,7 @@ namespace OpenMS
 {
 
 	/**
-  	@brief Base class for MSSpectrum preprocessing classes
+  	@brief Base class for Spectrum preprocessing classes
   */
   class PreprocessingFunctor : public FactoryProduct
   {

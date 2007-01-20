@@ -32,10 +32,8 @@
 namespace OpenMS
 {
   /**
-  	@brief TICFilter calculates TIC and ratio of TIC in parent ion range (=parention m/z +- window )
+  	@brief TICFilter calculates TIC
   
-  	@param window half size of parent ion range
-
 		@ingroup SpectraFilter
   */
   class TICFilter : public FilterFunctor

@@ -33,7 +33,7 @@
 namespace OpenMS
 {
   /**
-  	@brief Scales the intensity of peaks to log(intensity)
+  	@brief Scales the intensity of peaks to the sqrt 
 
 		@ingroup SpectraPreprocessing
   */
