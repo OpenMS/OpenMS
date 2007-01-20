@@ -56,11 +56,8 @@
 	Release (immer):
 	- HP updaten (21.)
 	- Debug-output abstellen
-  - Tutorial + TOPP Docu korrekturlesen
-  - SequestAdapter und InspectAdapter anschauen (wenn Tests da)
-	- Coding convention -> Doxygen intern
-	- FAQ-Punkte -> InternalFAQ
-	- Was ist beim Release zu tun -> FAQInternal
+	- Tutorial + TOPP Docu korrekturlesen
+	- SequestAdapter und InspectAdapter anschauen (wenn Tests da)
 
 	TODO:
 	- Kernel/Datastructures nach Pass-By-Copy durchsuchen

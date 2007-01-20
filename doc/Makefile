@@ -31,7 +31,6 @@ help:
 	@echo "Main targets are:"
 	@echo "  - 'make [help]'  shows this help"
 	@echo "  - 'make doc'     creates the HTML documentation"
-	@echo "  - 'make style'   creates the coding conventions"
 	@echo ""
 
 #######################################################################
@@ -45,8 +44,3 @@ doc:
 idoc:
 	@test -f Doxyfile || cp ../source/config/Doxyfile.in Doxyfile
 	@doxygen Doxyfile_internal
-
-#######################################################################
-# creates the coding conventions
-style:
-	@cd misc/ && make coding_style.pdf && rm *.aux *.log *.dvi

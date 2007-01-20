@@ -16,18 +16,3 @@ This folder contains some useful tools for developers:
 
   checker.php        -  Reports errors in the code, test, documentation, ...
 
-Unfortunately there are some bugs in the C++ parser 'check_test'.
-It fails under the following conditions:
-
-  - Extra semicolon after method implementation in the header.
-  
-  - Method arguments are distributed over several rows.
-  
-  - Nested class declarations.
-	
-	- Several variable declarations in one row (int a,b,c;)
-	
-	- Union declarations
-
-	- Pure access declarations
-

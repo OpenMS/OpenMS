@@ -31,7 +31,6 @@
 	
 	<UL>
 	
-	
 		<LI><B>Wie update ich die Website?</B>
 			<OL>
 				<LI> Das Modul web auschecken:
@@ -41,12 +40,12 @@
 				<LI> Änderungen einchecken
 				<LI> Auf shell.sourceforge.net das Skript <TT>/home/groups/o/op/open-ms/scripts/webupdate.sh</TT> ausführen. 
 			</OL>
-			
-			
-		<LI><B>Wie ist die URL der testbuilts?</B>
+		
+		<LI><B>Was sind die wichtigen URLs für OpenMS?</B>
 		<BR>
-		http://www-bs2.informatik.uni-tuebingen.de/services/OpenMS/
-	
+		http://www-bs2.informatik.uni-tuebingen.de/services/OpenMS/search/
+		<BR>
+		Neben der Docu-Suche können dort weitere Links gefunden werden.
 		
 		<LI><B>Wie kann ich mir anzeigen lassen welche shared libraries eine Applikation benutzt?</B>
 		<BR>
@@ -62,39 +61,141 @@
 		<BR>
 		Mit den configure Optionen --with-cxxflags bzw. --with-ldflags.
 		
-		<LI><B>MSExperimentExtern stürzt ab mit der Fehlermeldung "file size limit exceeded"</B>
-		<BR>
-		Dies ist ein Problem mit der maximalen Dateigröße unter Linux. LSF (large file support)
-		muss unter vielen Distributionen explizit aktiviert werden. Das geht mit 
-		dem configure flag --with-cxxflags=-D_FILE_OFFSET_BITS=64.
-		
 		<LI><B>How is an new release created</B>
 			<OL>
-			<LI> Prepare the release file (OpenMS):
-				<OL>
-					<LI> Update Version number in <tt>source/configure.ac</tt> (AC_INIT macro)
-					<LI> Run autoconf
-					<LI> SVN commit
-					<LI> Run the script <tt>source/config/tools/make_dist.sh</tt>
-				</OL>
-			<LI> Prepare the release file (contrib):
-				<OL>
-					<LI> Update Version number in <tt>configure.ac</tt> (AC_INIT macro)
-					<LI> Remove the <tt>.svn</tt> directory
-					<LI> Generate a compressed tarball (naming convention: OpenMS_contrib-´version-number´.tar.gz)
-				</OL>
-			<LI> FTP to upload.sourceforge.net (see http://sourceforge.net/docman/display_doc.php?docid=6445&group_id=1#howtoupload)
-			<LI> Login as "anonymous"
-			<LI> Use your e-mail address as the password for this login
-			<LI> Set your client to binary mode ("bin" on command-line clients)
-			<LI> Change your current directory to /incoming ("cd /incoming")
-			<LI> Upload the desired tarball file for the release ("put filename")
-			<LI> Login in the "Admin" section on http://sourceforge.net/project/showfiles.php?group_id=90558
-			<LI> Go to "File Releases"
-			<LI> Now you can add your release
-			<LI> Go to "Edit Releases" to change the status of the old release to "hidden" 
-		</OL>
-		
+				<LI> Prepare the release file (OpenMS):
+					<OL>
+						<LI> Update Version number in <tt>source/configure.ac</tt> (AC_INIT macro)
+						<LI> Run autoconf
+						<LI> SVN commit
+						<LI> Run the script <tt>source/config/tools/make_dist.sh</tt>
+					</OL>
+				<LI> Prepare the release file (contrib):
+					<OL>
+						<LI> Update Version number in <tt>configure.ac</tt> (AC_INIT macro)
+						<LI> Remove the <tt>.svn</tt> directory
+						<LI> Generate a compressed tarball (naming convention: OpenMS_contrib-´version-number´.tar.gz)
+					</OL>
+				<LI> FTP to upload.sourceforge.net (see http://sourceforge.net/docman/display_doc.php?docid=6445&group_id=1#howtoupload)
+				<LI> Login as "anonymous"
+				<LI> Use your e-mail address as the password for this login
+				<LI> Set your client to binary mode ("bin" on command-line clients)
+				<LI> Change your current directory to /incoming ("cd /incoming")
+				<LI> Upload the desired tarball file for the release ("put filename")
+				<LI> Login in the "Admin" section on http://sourceforge.net/project/showfiles.php?group_id=90558
+				<LI> Go to "File Releases"
+				<LI> Now you can add your release
+				<LI> Go to "Edit Releases" to change the status of the old release to "hidden" 
+			</OL>
+
+		<LI><B>Was ist für ein Release zu tun?</B>
+			<OL>
+				<LI> Fehler die 'source/config/tools/checker.php' ausgibt korrigieren
+				<LI> Docu unter 'doc/index.html' korrekturlesen
+				<LI> TOPP-Doku unter 'doc/html/TOPP.html' korrekturlesen
+				<LI> Den Output von '&lt;topp-tool&gt; --help' korrekturlesen
+				<LI> Den Output der TOPP-tests 'source/TEST/TOPP/&lt;topp-tool&gt;.output' auf vergessenen Debug-Output prüfen
+			</OL>
+
+   <li><b>After adding a class or after a SVN update, a 'undefined reference' error occurs during execution of programs.</b><br>
+      Deleting the files <tt>libOpenMS.objects</tt> and
+      <tt>libOpenMS_GUI.objects</tt> in the <tt>source</tt> folder
+      will reset the files that are added to the library.
+
+
+    <li><b>After a SVN update, a 'No rule to make target' error occurs during 'make'.</b><br>
+      Try 'make depend' in order to get the dependencies right!
+
+
+    <li><b>Can I use QT designer to create GUI widgets?</b><br>
+      Yes! If you want to create a class called 'Widget':
+
+      <ul>
+        <li>Create .ui-File with QT designer and store it as
+        <tt>Widget.ui</tt>. The main widget has to be called
+        <tt>WidgetTemplate</tt>.</li>
+
+
+        <li>Add the class to the <tt>Makefile</tt>
+        (<tt>Widget.C</tt>, <tt>Widget_moc.C</tt>,
+        <tt>WidgetTemplate.C</tt>, <tt>WidgetTemplate_moc.C</tt>).
+        Use LayerItem as an example which changes are needed.</li>
+
+
+        <li>From the .ui-File the files
+        <tt>source/VISUAL/ClassTemplate.C</tt> and
+        <tt>include/OpenMS/VISUAL/UIC/ClassTemplate.h</tt> are
+        created by the build system when you execute <tt>'make
+        depend'</tt> and <tt>'make'</tt>.
+        <br>
+        DO NOT CHECK IN THESE FILES, AS THEY ARE GENERATED
+        AUTOMATICALLY, WHEN NEEDED!!!</li>
+
+
+        <li>Derive the class <tt>Widget</tt> from
+        <tt>WidgetTemplate</tt> and use overloading to define the
+        underlying behaviour. You need to check in the
+        <tt>Widget.h</tt> and <tt>Widget.C</tt> files.</li>
+      </ul>
+
+
+    <li><b>How do I debug uncaught exceptions?</b><br>
+      There is a mechanism to have a core dumped if an uncaught
+      exception occurs.
+      <br>
+      To enable it, the environment variable OPENMS_DUMP_CORE has
+      to be set.
+      <br>
+      Each time an uncaught exception occures, the OPENMS_DUMP_CORE
+      variable is checked and a segmentation fault is caused, if it
+      is set.
+
+
+    <li><b>Why is no core dumped, although a fatal error occured?</b><br>
+      Try the 'ulimit -c unlimited' command. It sets the maximum
+      size of a core to unlimited.
+      <br>
+      <br>
+      <i>Note:</i> We observed that, on some systems, no core is
+      dumped even if the size of the core file is set to unlimited.
+      We are not sure what causes this problem.
+
+
+    <li><b>How can I set breakpoints in 'gdb' to debug OpenMS?</b><br>
+      Let's say you want to debug the 'TOPPView' application and
+      you want it to stop at line 341 of 'SpectrumMDIWindow.C'.
+      <br>
+      <ol>
+        <li>Run gdb:
+        <br>
+        <tt>shell&gt; gdb TOPPView</tt></li>
+
+
+        <li>Start the application (and close it):
+        <br>
+        <tt>gdb&gt; run [arguments]</tt></li>
+
+
+        <li>Set the breakpoint:
+        <br>
+        <tt>gdb&gt; break SpectrumMDIWindow.C:341</tt></li>
+
+
+        <li>Start the application again (with the same arguments):
+        <br>
+        <tt>gdb&gt; run</tt></li>
+      </ol>
+
+
+    <li><b>How do I add a new directory in the <tt>source/</tt> directory to the built system?</b><br>
+      Add the new directory name to the end of the
+      '<tt>SUBDIRS</tt>' variable in <tt>source/configure.ac</tt>.
+
+    <li><b>The $id$ string in my test is not expanded to the SVN id. Why?</b><br>
+      In Subversion you have to set the keyword expansion expilcitly:<BR>
+      <tt>svn propset svn:keywords Id &lt;file&gt;</tt>
+
+
 	</UL>
 */
 
