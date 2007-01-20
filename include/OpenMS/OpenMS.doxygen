@@ -63,6 +63,7 @@
 	- Was ist beim Release zu tun -> FAQInternal
 
 	TODO:
+	- Kernel/Datastructures nach Pass-By-Copy durchsuchen
 	- Valgrind
 	- FileConverter: FileTyp automatisch erkennen einbauen 
 	- FileInfo: FileTyp automatisch erkennen einbauen 
