@@ -40,7 +40,7 @@ namespace OpenMS
   
   	@param bins number of regions
 
-		@ingroup SpectraFilters
+		@ingroup SpectraFilter
   */
   class PeakPosBins : public FilterFunctor
   {

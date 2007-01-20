@@ -41,7 +41,7 @@ namespace OpenMS
   	It is based on the linear regression formula from their 2003 Paper
   	http://www.systemsbiology.org/PDFs/Keller.Emperical%20statistical%20model.Anal%20Chem.02.pdf
 
-		@ingroup SpectraFilters
+		@ingroup SpectraFilter
   */	
   class KellerQuality : public FilterFunctor
   {

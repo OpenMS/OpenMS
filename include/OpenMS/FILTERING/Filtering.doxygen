@@ -27,7 +27,7 @@
 /**
 	@defgroup Filtering Filtering
 	
-	
+	@brief This group contains filtering classes for spectra	
 */
 
 /**
@@ -43,8 +43,15 @@
 */
 
 /**
-	@defgroup SpectraPreprocessing Spectra Preprocessors
+	@defgroup SpectraPreprocessers Spectra Preprocessors
 	
+	@brief The spectra preprocessors filter the spectra with different criterions
+
+	The preprocessors are able to handle single spectra as well as whole MSExperiments (PeakMap). For 
+	single spectra this can be achieved by calling the filterSpectrum or filterPeakSpectrum functions. 
+	Additionally PeakMaps can be filtered using the filterPeakMap function. The details of the filters
+	and their options are described in the class documentation respectively.
+
 	@ingroup Filtering
 */
 
@@ -57,11 +64,18 @@
 /** 
 	@defgroup SpectraFilter Spectra Filters
 	
+	@brief Spectra filters report single values of spectra e.g. the TIC
+
 	@ingroup Filtering
 */
 
 /**
 	@defgroup PeakMarker Peak Marker
+
+	@brief These classes mark peaks according to different criterions
+
+	For a detailed description of the available parameters and functions the details are documented 
+	in the class documentation
 
 	@ingroup Filtering
 */

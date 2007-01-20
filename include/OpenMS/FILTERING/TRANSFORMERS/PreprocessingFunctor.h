@@ -32,7 +32,6 @@
 
 namespace OpenMS
 {
-
 	/**
   	@brief Base class for Spectrum preprocessing classes
   */

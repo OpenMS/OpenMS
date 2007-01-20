@@ -38,7 +38,7 @@ namespace OpenMS
   /**
   	@brief MarkerMower uses PeakMarker to find peaks, those that are not marked get removed
 
-		@ingroup SpectraPreprocessing
+		@ingroup SpectraPreprocessers
   */
   class MarkerMower : public PreprocessingFunctor
   {

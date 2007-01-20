@@ -35,6 +35,10 @@ namespace OpenMS
 {
 	/**
 		@defgroup SpectraComparison Spectra Comparison
+
+		@brief The classes within this group are used to compare single spectra, by reporting a similarity value.
+
+
 	*/
 
 	/**

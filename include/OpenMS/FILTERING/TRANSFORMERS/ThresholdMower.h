@@ -38,7 +38,7 @@ namespace OpenMS
 	  for comparable results we suggest normalizing (for example with Normalizer) all
 	  Spectra first
 
-		@ingroup SpectraPreprocessing
+		@ingroup SpectraPreprocessers
   */
   class ThresholdMower
     :	public PreprocessingFunctor

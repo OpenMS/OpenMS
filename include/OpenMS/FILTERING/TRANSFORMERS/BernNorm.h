@@ -43,7 +43,7 @@ namespace OpenMS
   @param C2
 	@param threshold
 
-	@ingroup SpectraPreprocessing
+	@ingroup SpectraPreprocessers
   */
   class BernNorm
     : public PreprocessingFunctor

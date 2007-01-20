@@ -38,7 +38,7 @@ namespace OpenMS
   
 	  @param window_size consider all peaks inside parent ion m/z +- window_size
 
-		@ingroup SpectraPreprocessing
+		@ingroup SpectraPreprocessers
   */
   class ParentPeakMower : public PreprocessingFunctor
   {

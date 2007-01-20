@@ -35,7 +35,7 @@ namespace OpenMS
   /**
   	@brief Scaler scales the peak by ranking the peaks and assigning intensity according to rank
 
-		@ingroup SpectraPreprocessing
+		@ingroup SpectraPreprocessers
   */
   class Scaler
     : public PreprocessingFunctor

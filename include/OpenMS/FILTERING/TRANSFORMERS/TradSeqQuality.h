@@ -43,7 +43,7 @@ namespace OpenMS
 	  @param dCn_2+ min deltaCN for charge state 2
 	  @param dCn_3+ min deltaCN for charge state 3
 
-		@ingroup SpectraFiltering
+		@ingroup SpectraFilter
   */
   class TradSeqQuality : public FilterFunctor
   {

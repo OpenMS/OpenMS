@@ -39,7 +39,7 @@ namespace OpenMS
 	   	to_one = peaks get scaled relative to the maximum intensity<br>
 	    to_TIC = peaks get scaled relative to the TIC <br>
 		
-		@ingroup SpectraPreprocessing
+		@ingroup SpectraPreprocessers
   */
   class Normalizer
     : public PreprocessingFunctor

@@ -37,7 +37,7 @@ namespace OpenMS
   
   	@param n number of peaks to keep
 
-		@ingroup SpectraPreprocessing
+		@ingroup SpectraPreprocessers
   */
   class NLargest
     : public PreprocessingFunctor

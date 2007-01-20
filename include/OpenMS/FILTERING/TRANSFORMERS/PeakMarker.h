@@ -34,7 +34,8 @@
 namespace OpenMS
 {
 	/**
-  	@brief PeakMarker marks peaks that seem to fulfil some criterion
+  	@brief PeakMarker marks peaks that seem to fulfill some criterion
+
   */
   class PeakMarker
     : public FactoryProduct

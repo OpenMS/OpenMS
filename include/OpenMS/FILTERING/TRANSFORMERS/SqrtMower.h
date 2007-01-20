@@ -35,7 +35,7 @@ namespace OpenMS
   /**
   	@brief Scales the intensity of peaks to the sqrt 
 
-		@ingroup SpectraPreprocessing
+		@ingroup SpectraPreprocessers
   */
   class SqrtMower : public PreprocessingFunctor
   {

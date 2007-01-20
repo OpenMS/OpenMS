@@ -39,7 +39,7 @@ namespace OpenMS
   /**
   	@brief PeakDiffBins calculates all differences between pairs and returns the fraction of the total intensity in the specified regions
 
-		@ingroup SpectraFilters
+		@ingroup SpectraFilter
   */
   class PeakDiffBins : public FilterFunctor
   {
