@@ -153,12 +153,12 @@ namespace OpenMS
 		std::stringstream query; // query to build
 		String end;              // end of the query that is added afer all fields
 		String tmp;              // temporary data
-		bool new_entry;          // stores if the current object is already in the DB
+		bool new_entry(false);          // stores if the current object is already in the DB
 		QSqlQuery result;        // place to store the query results in
-		int parent_id;           // stores parent_id of meta information
-		UID acquisition_info_id; // stores id of acquisition_info
-		UID meta_id;             // stores MetaInfo id of meta information that was just stored
-		UID meta_parent_id;      // stores parent ID of MetaInfo that will be stored
+		int parent_id(-1);           // stores parent_id of meta information
+		UID acquisition_info_id(0); // stores id of acquisition_info
+		UID meta_id(0);             // stores MetaInfo id of meta information that was just stored
+		UID meta_parent_id(0);      // stores parent ID of MetaInfo that will be stored
 
 		//----------------------------------------------------------------------------------------
 		//------------------------------- CHECK DB VERSION --------------------------------------- 

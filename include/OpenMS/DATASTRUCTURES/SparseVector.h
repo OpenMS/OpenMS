@@ -40,9 +40,7 @@ namespace OpenMS
   	similarities dont need to be saved<br>
   	the resulting matrix is a banded matrix with varying bandwith <br> <br>
 
-		@ingroup DataStructures 
-
-		@todo fully interface? (andreas)
+		@ingroup Datastructures 
   */
   class SparseVector 
   {

@@ -39,7 +39,7 @@ namespace OpenMS
    		this should use less space than a normal vector ad distance functions can just 
    		ignore (hop()) zeroes, so it should be a little bit faster, too 
 
-			@ingroup DataStructures
+			@ingroup Datastructures
   */
   class BinnedSparseVector
   {

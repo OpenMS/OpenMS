@@ -33,28 +33,18 @@
 
 namespace OpenMS
 {
-
-  /**
-		@defgroup Comparison Comparison
-	*/
-
 	/**
 		@defgroup SpectraComparison Spectra Comparison
 	*/
 
 	/**
 	
-		@brief Base class for compare functors of spectra; compare functors returns a similiarity value of two spectra
-	
-  	BinnedRepCompareFunctor classes return a value for a pair of BinnedRep objects
-  	ideally the value should reflect the similarity of the pair
-  	similarities of spectra should be > 0
-		
-  	@param filterwindow
-		
-    maximum mass difference for spectra that get similarity > 0
+		@brief Base class for compare functors of binned spectra which report the spectra similarity
 
-		@ingroup Comparison
+		The similarity of two binned spectra is calculated with the operator (). The self similarity 
+		can also be calculated with this operator by skipping the second argument.
+
+		@ingroup SpectraComparison
   */
   class BinnedRepCompareFunctor : public FactoryProduct
   {

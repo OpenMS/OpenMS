@@ -224,11 +224,11 @@ class TOPPInspectAdapter
 				inspect_output_filename;
 			
 			bool
-				inspect_in,
-				inspect_out,
-				blind_only,
-				blind,
-				no_tmp_dbs;
+				inspect_in(false),
+				inspect_out(false),
+				blind_only(false),
+				blind(false),
+				no_tmp_dbs(false);
 			
 			Real p_value_threshold = 1.0;
 			Real cutoff_p_value;

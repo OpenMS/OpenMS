@@ -41,7 +41,7 @@ namespace OpenMS
   	ideally the value should reflect the similarity of the pair
   	similarities of spectra should be > 0
 		
-		@ingroup Comparison
+		@ingroup SpectraComparison
   */
   class PeakSpectrumCompareFunctor : public FactoryProduct
   {
