@@ -80,8 +80,8 @@ using namespace std;
 	- <b>intensity_cutoff_factor</b> intensity ratio (compared to seed)
 	- <b>tolerance_stdev_bounding_box</b> influence of the width of the bounding box during the fit
 	- <b>intensity_cutoff_factor</b> After fitting, the model is used to truncate the feature region and to remove points with low probability under the model. This is the corresponding threshold.
-	-<b>mz:interpolation_step</b> Gives the interpolation step size in m/z domain
-	-<b>rt:interpolation_step</b> interpolation step size in time domain
+	- <b>mz:interpolation_step</b> Gives the interpolation step size in m/z domain
+	- <b>rt:interpolation_step</b> interpolation step size in time domain
 	
 */
 

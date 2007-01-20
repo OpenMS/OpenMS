@@ -78,11 +78,8 @@ using namespace std;
 				created from the mzXML file.
 				Calling an Sequest process should look like the following:				
 				
-				<ul>	
-					<li>
-						@code sequest -P\<inputfilename\> \<path to dta files\>*.dta  @endcode
-					</li>
-				</ul>
+				@code sequest -P\<inputfilename\> \<path to dta files\>*.dta  @endcode
+
 				Consult your Sequest reference manual for further details.
 				
 				This mode is selected by the <b>-sequest_in</b> option in the command line.

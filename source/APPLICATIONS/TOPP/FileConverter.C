@@ -44,7 +44,7 @@ using namespace std;
 	
 	@brief Converts between different MS file formats.
 	
-	Supported input file types are: 'mzData', 'mzXML', 'DTA2D', 'ANDIMS' (cdf).
+	Supported input file types are: 'mzData', 'mzXML', 'DTA2D', 'ANDIMS' (cdf).<BR>
 	'FeatureFile' (OpenMS features) is also supported but will lose feature specific information.
 	
 	Supported output file types are: 'mzData', 'mzXML', 'DTA2D'

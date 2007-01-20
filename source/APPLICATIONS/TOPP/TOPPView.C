@@ -32,11 +32,7 @@
   The following figure shows two instances of TOPPView displaying a HPLC/MS map and a MS raw spectrum:
  	
  	\image html TOPPView.png
- 	
-  TOPPView can be found in the <tt>OpenMS/source/APPLICATIONS/TOPP/</tt> directory.
-  
-  Use the command <tt>'make TOPPView'</tt> to build it after you built OpenMS.
-  
+
   <HR>
   
   Short description of the main features and options of TOPPView: 

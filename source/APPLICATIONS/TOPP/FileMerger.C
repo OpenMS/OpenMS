@@ -42,15 +42,13 @@ using namespace std;
 	
 	@brief Merges several files into an mzData file.
 	
-	Input is a text file with a list of file names and (optional) retention times.
+	Input is a text file containing a list of file names and (optional) retention times.
 	Output is a mzData file that contains the merged scans.
 	
 	The meta information that is valid for the whole experiment is taken from the first file.
 	
-	If the retention time it is taken from the corresponding input file.
-	Alternatively the FileMerger numbers the scans consecutively starting from 1 if the flag '-rt_auto' is given.
-	Or the retention time can be given in the file list if the flag '-rt_file' is given.
-	
+	The retention times for the individual scans are taken from the input file(s) metadata,
+	form the input file names or are generated.
 */
 
 // We do not want this class to show up in the docu:
@@ -78,8 +76,8 @@ class TOPPFileMerger
 														"If this flag is activated, the file list has to contain a filename and a\n"
 														"retention time separated by tab in each line.");
 		registerFlag_("rt_from_filename", "If this flag is set FileMerger tries to guess the rt of the spectrum.\n"
-																			"This option is useful for merging DTA file, which should contain the\n"
-																			"rt directly followed by a floating point number as the retention time:\n"
+																			"This option is useful for merging DTA file, which should contain the string\n"
+																			"'rt' directly followed by a floating point number:\n"
 																			"i.e. my_spectrum_rt2795.15.dta"); 
 		registerIntOption_("ms_level", "<num>", 2, "this option is useful for use with DTA files which does not \n"
 																								"contain MS level information. The given level is assigned to the spectra.", false);

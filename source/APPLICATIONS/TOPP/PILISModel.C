@@ -47,7 +47,7 @@ using namespace std;
 	given in the id_in parameter. The spectra and the identifications should be in the same order.
 	
 	The default parameters of the model are given in the model_file parameter, this can either be
-	the default file stored in <OpenMS>/data/PILIS/ or a custom modelfile with already trained 
+	the default file stored in /data/PILIS/ or a custom modelfile with already trained 
 	parameters. The trained parameters are written into the file trained_model_file. This parameter
 	file can be used with PILISIdentification to generate identifications of MS/MS spectra.
 */

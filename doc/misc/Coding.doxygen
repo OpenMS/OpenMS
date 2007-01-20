@@ -548,11 +548,12 @@ The abbreviation TOPP stands for The OpenMS
 
 Proteomics Pipeline, a collection of tools based upon the
 C++ classes in OpenMS.  The TOPP tools are located in <TT>source/APPLICATIONS/TOPP</TT>.
+
 <H3>Suplementary files</H3>
 
 If a test needs suplementary files, put these files in the same folder.
 The name of suplementary files has to begin with the name of the tested tool.
-All extensions but <TT>.tmp</TT> or <TT>.log</TT> are possible.
+All extensions but <TT>.tmp</TT>, <TT>.output</TT> or <TT>.log</TT> are possible.
 
 <H3>Running the tests</H3>
 

@@ -75,11 +75,8 @@ using namespace std;
 				have to remain at the given positions.
 				Calling an Inspect process should look like the following:				
 				
-				<ul>	
-					<li>
-						@code ./inspect -i  inputfilename -o outputfilename  @endcode
-					</li>
-				</ul>
+				@code ./inspect -i  inputfilename -o outputfilename  @endcode
+
 				Consult your Inspect reference manual for further details.
 				
 				This mode is selected by the <b>-inspect_in</b> option in the command line.

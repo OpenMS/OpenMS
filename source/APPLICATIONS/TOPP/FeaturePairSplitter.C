@@ -63,11 +63,6 @@ using namespace std;
 	The qualities are written one per line; a typical file name extension would be '.txt'.
 
 	The dump option generates output suitable to be run through Gnuplot.
-
-	@note All options needed to operate this tool can be given in the command
-	line, so no INI file is needed.
-
-
 */
 
 // We do not want this class to show up in the docu:

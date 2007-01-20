@@ -42,9 +42,8 @@ using namespace std;
 	@brief Extracts portions of the data from an mzData file.
 	
 	With this tool it is possible to exctract m/z, retention time and intensity ranges from a input mzData file
-	and to write all data that lies within the given ranges to an output mzData file. It can also extract spectra
-	of a certain MS level e.g. MS/MS spectra when using level '2'.
-	
+	and to write all data that lies within the given ranges to an output mzData file.<BR>
+	It can also extract spectra of a certain MS level e.g. MS/MS spectra when using level '2'.
 */
 
 // We do not want this class to show up in the docu:

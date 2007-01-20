@@ -51,8 +51,6 @@ using namespace std;
  	(pgm = portable network graphics, a very simple image file format).
 	The output has a uniform spacing in both dimensions regardless of the input.
 	You can output the data in transposed order, reverse video, with gamma correction, etc.
-	
-	Most of the functionality is implemented in Bilinearinterpolation and Matrix.
 
 	@todo fix test (Clemens)
 	@todo support for a better graphics format like png - use Qt (Clemens,Marc)

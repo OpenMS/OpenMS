@@ -60,8 +60,8 @@ using namespace std;
 
   @code
   <NODE name="NLargest"> 
-    <ITEM name="n" value="100" type="float"/> <br>
-  </NODE> <br
+    <ITEM name="n" value="100" type="float"/>
+  </NODE>
 	@endcode
 
 */
