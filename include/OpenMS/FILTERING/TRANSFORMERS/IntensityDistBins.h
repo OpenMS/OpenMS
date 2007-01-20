@@ -33,6 +33,8 @@
 
 namespace OpenMS
 {
+	class ClusterSpectrum;
+  
   /**
 	  @brief IntensityDistBins divides the intensity range into <i>bins</i> regions and counts the peaks that fall into each bin
 	  
@@ -40,8 +42,6 @@ namespace OpenMS
 
 		@ingroup SpectraFilters
   */
-	class ClusterSpectrum;
-	
   class IntensityDistBins : public FilterFunctor
   {
   public:

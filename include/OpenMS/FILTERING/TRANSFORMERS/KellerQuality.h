@@ -31,7 +31,10 @@
 
 #include <map>
 
-namespace OpenMS{
+namespace OpenMS
+{
+	class ClusterSpectrum;
+	
   /**
   	@brief KellerQuality assigns a quality measure to a spectrum.
   	
@@ -39,10 +42,7 @@ namespace OpenMS{
   	http://www.systemsbiology.org/PDFs/Keller.Emperical%20statistical%20model.Anal%20Chem.02.pdf
 
 		@ingroup SpectraFilters
-  */
-
-	class ClusterSpectrum;
-	
+  */	
   class KellerQuality : public FilterFunctor
   {
   public:

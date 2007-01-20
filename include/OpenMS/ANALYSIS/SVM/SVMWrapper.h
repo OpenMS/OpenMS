@@ -67,6 +67,7 @@ namespace OpenMS
 			OLIGO = 19, OLIGO_COMBINED
 	} SVM_kernel_type; /* kernel_type */
 	
+	/// Wrapper class for the libSVM implementation
 	class SVMWrapper
 	{
 	 public:

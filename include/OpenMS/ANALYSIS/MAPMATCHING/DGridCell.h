@@ -37,7 +37,7 @@
 namespace OpenMS
 {
 	
-	/* @brief D-dimensional grid cell over a map.
+	/** @brief D-dimensional grid cell over a map.
 	 */
 	template <Size D, typename Traits = KernelTraits>
 	class DGridCell : public DRange<D, Traits>

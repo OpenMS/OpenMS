@@ -39,15 +39,15 @@
 
 namespace OpenMS
 {
+	// forward declarations
+	class PeakSpectrumCompareFunctor;
+	
 	/**
 	  @brief This class actually implements a complete identification run with PILIS
 
 		The PILISIdentification class needs a PILISModel and a PILISSequenceDB to generate
 		identifications. Simply call getIdentifications with a PeakMap.
 	*/
-	// forward declarations
-	class PeakSpectrumCompareFunctor;
-	
 	class PILISIdentification
 	{
 

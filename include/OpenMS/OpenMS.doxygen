@@ -54,19 +54,23 @@
 
 /*	
 	Release (immer):
-	- Valgrind
-	- Tests alle mit SVN-ID austatten
-	- HP updaten
+	- HP updaten (21.)
 	- Debug-output abstellen
   - Tutorial + TOPP Docu korrekturlesen
   - SequestAdapter und InspectAdapter anschauen (wenn Tests da)
+	- Coding convention -> Doxygen intern
+	- FAQ-Punkte -> InternalFAQ
+	- Was ist beim Release zu tun -> FAQInternal
 
 	TODO:
+	- Valgrind
 	- FileConverter: FileTyp automatisch erkennen einbauen 
 	- FileInfo: FileTyp automatisch erkennen einbauen 
 	- ParamHander-Klasse (getDefaults())
 	- MzXMLFile: Parsen bei MetaDataOnly abbrechen wenn die scans kommen (ohne error)
 	- MzDataFile: Parsen bei MetaDataOnly abbrechen wenn die scans kommen (ohne error)
+	- FeatureFinder wirklich auf MSExperiment umstellen
+	- check_test durch C++-Parser oder doxygen output ersetzen
 	- TOPPView:
 		- FloatKernel statt DoubleKernel?
 		- Feature markiert -> konvexe Hülle markiert

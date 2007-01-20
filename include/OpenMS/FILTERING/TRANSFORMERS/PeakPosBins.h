@@ -33,6 +33,8 @@
 
 namespace OpenMS
 {
+	class ClusterSpectrum;
+	
   /**
   	@brief PeakPosBins sums the intensity in <i>bins</i> regions<br>
   
@@ -40,8 +42,6 @@ namespace OpenMS
 
 		@ingroup SpectraFilters
   */
-	class ClusterSpectrum;
-	
   class PeakPosBins : public FilterFunctor
   {
   public:

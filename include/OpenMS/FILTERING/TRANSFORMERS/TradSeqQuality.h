@@ -31,6 +31,8 @@
 
 namespace OpenMS
 {
+	class ClusterSpectrum;
+	
   /**
 	  @brief TradSeqQuality returns a number > 0 if the sequest score are above a certain XCorr and above a certain deltaCN
 	  
@@ -43,9 +45,6 @@ namespace OpenMS
 
 		@ingroup SpectraFiltering
   */
-
-	class ClusterSpectrum;
-	
   class TradSeqQuality : public FilterFunctor
   {
   public:
