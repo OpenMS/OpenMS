@@ -61,6 +61,15 @@ namespace OpenMS
 	
 	enum SVM_kernel_type{OLIGO = 19, OLIGO_COMBINED}; /* kernel_type */
 	
+  /**
+    @brief Serves as a wrapper for the libsvm
+    
+    This class can be used for svm predictions. You can either perform classification or regression and
+		choose certain kernel fuctions and additional parameters. Furthermore the models can be saved and 
+		loaded and we support also a new kernel function that was specially designed for learning with
+		small sequences of different lengths.
+    
+  */
 	class SVMWrapper
 	{
 	 public:
