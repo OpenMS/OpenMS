@@ -92,7 +92,8 @@ using namespace std;
 	</ol>
 	
 	@todo extract by-ions, compute protein score? (Martin)
-	
+	@todo replace fileContent by TextFile class (Martin)
+	@todo replace deleteTempFiles by File::remove (Martin)
 */
 
 // We do not want this class to show up in the docu -> cond
@@ -104,7 +105,8 @@ class TOPPInspectAdapter
 	public:
 		TOPPInspectAdapter()
 			: TOPPBase("InspectAdapter", "annotates MS/MS spectra using Inspect.")
-		{}
+		{
+		}
 	
 	protected:
 		void registerOptionsAndFlags_()

@@ -94,7 +94,7 @@ using namespace std;
 	</ol>
 	
 	@todo look for possible crash codes of sequest and catching them (Martin)
-	@todo delete deleteTempFiles and getRandomFilename
+	@todo replace deleteTempFiles by File::remove (Martin)
 */
 
 // We do not want this class to show up in the docu -> cond
@@ -276,34 +276,6 @@ class TOPPSequestAdapter
 			else network_path.erase(0, pos-backslashes);
 			if ( network_path.length() < backslashes+1 ) return false;
 			return true;
-		}
-
-		String getRandomFilename()
-		{
-			String s;
-			char c = 0;
-			/*
-			48-57 numbers
-			65-90 capitals
-			97-122 lower case
-			*/
-
-			do
-			{
-				if ( (c > 47 && c < 58 ) || (c > 64 && c < 91 ) || (c > 96 && c < 123 ) ) ++c;
-				else if ( c < 48 ) c = 48;
-				else if ( c > 57 && c < 65 ) c = 65;
-				else if ( c > 90 && c < 97 ) c = 97;
-				else if ( c > 122 )
-				{
-					s.append("Z");
-					c = 48;
-				}
-			}
-			while ( File::exists(String(s + String(c))) );
-
-			s.append(1, c);
-			return s;
 		}
 		
 		void
@@ -1092,7 +1064,13 @@ class TOPPSequestAdapter
 			if ( sequest_in && sequest_out )
 			{
 				// creating a batch file for windows (command doesn't accept commands that are longer than 256 chars)
-				String sequest_screen_output = getRandomFilename(); // direct the screen-output to a file
+				String sequest_screen_output; // direct the screen-output to a file
+				do
+				{
+					sequest_screen_output = String::random(10);
+				}
+				while ( File::exists(sequest_screen_output) );
+				
 				ofstream batchfile(String(temp_data_directory + batch_filename).c_str());
 				if ( !batchfile )
 				{

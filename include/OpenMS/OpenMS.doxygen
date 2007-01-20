@@ -52,12 +52,7 @@
 	@author Alexandra Zerck
 */
 
-/*	
-	Release (immer):
-	- HP updaten (21.)
-	- TOPP Docu korrekturlesen
-	- SequestAdapter und InspectAdapter anschauen
-
+/*
 	TODO:
 	- Kernel/Datastructures nach Pass-By-Copy durchsuchen
 	- Valgrind
@@ -83,5 +78,5 @@
 		- Messen in 1D
 		- Reduktion in 2D
 		- TOPP Tools aus TOPPView aufrufen (system call)
-			- Param visuall editierbar
+			- Param visuell editierbar
 */
