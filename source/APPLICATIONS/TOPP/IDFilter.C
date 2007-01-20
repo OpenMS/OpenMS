@@ -71,19 +71,14 @@ using namespace std;
 		</li>
 		<li>
 			<b>predicted retention time</b>:<br> To filter identifications according to their 
-			predicted retention times you have to set two parameters: The total 
-			number of seconds that the gradient ran. 
-			<li>
-			The model is learnt for normalized retention times and the 
-			sigma that is calculated and stored in the analysisXMLFile corresponds to these normalized retention times. 
-			</li>
-			<li>
+			predicted retention times you have to set two parameters:<br>  
+			The total number of seconds that the gradient ran. (The model is learnt for normalized retention times and the 
+			sigma that is calculated and stored in the analysisXMLFile corresponds to these normalized retention times.) <br>
 			The maximum allowed deviation from the original
 			retention time using the laplace error model that is learnt for confidently assigned peptides in RTModel. 
 			It serves as a scaling of standard 
 			deviations that are allowed for the predicted retention times. If set to 1 this means that one standard 
 			deviation unit is allowed. 
-			</li>
 			This filter can only be applied to AnalysisXML files produced by RTPredict.
 		</li>
 		<li>

@@ -109,9 +109,9 @@ using namespace std;
 		<li>
 			Give a range of parameters for which a CV should be performed:
 			The RTModel application will perform a CV to find the best 
-			parameter combination in the given range and afterwars train
+			parameter combination in the given range and afterwards train
 			the svm with the best parameters and the whole training data.
-			Afterwards the model will be stored.
+			Then the model is be stored.
 		</li>
 	</ol>
 			
@@ -149,8 +149,8 @@ class TOPPRTModel
 			registerDoubleOption_("total_gradient_time","<time>",0.0,"the time (in seconds) of the gradient");
 			addEmptyLine_();
 			addText_("Parameters for the grid search / cross validation:");
-			registerIntOption_("number_of_runs","<n>",50,"????",false);
-			registerIntOption_("number_of_partitions","<n>",10,"????",false);
+			registerIntOption_("number_of_runs","<n>",50,"number of runs for the CV",false);
+			registerIntOption_("number_of_partitions","<n>",10,"number of CV partitions",false);
 			registerIntOption_("degree_start","<int>",0,"starting point of degree",false);
 			registerIntOption_("degree_step_size","<int>",0,"starting point of degree",false);
 			registerIntOption_("degree_stop","<int>",0,"starting point of degree",false);
@@ -315,7 +315,7 @@ class TOPPRTModel
 					else
 					{
 						writeLog_("For one spectrum there should not be more than one peptide."
-								      "Please use the IDFilter with the -strict option to achieve this. Aborting!");
+								      "Please use the IDFilter with the -best_hits option to achieve this. Aborting!");
 						writeLog_("Hits: ");
 						for(vector<PeptideHit>::iterator it = identifications[i].id.getPeptideHits().begin(); 
 								it != identifications[i].id.getPeptideHits().end(); 
