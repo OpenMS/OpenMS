@@ -170,6 +170,14 @@ namespace OpenMS
 	    static svm_problem* mergePartitions(const std::vector<svm_problem*>* const problems,UnsignedInt except);
 																	 				
 		  /**
+		    @brief predicts the labels using the trained model
+		    
+	     	 The prediction process is started and the results are returned.
+
+		  */
+	    std::vector<DoubleReal>* predict(const std::vector<svm_node*>& vectors);
+	
+		  /**
 		    @brief Returns the stored labels of the encoded SVM data 
 		    
 		  */

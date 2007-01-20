@@ -963,6 +963,25 @@ namespace OpenMS
 		return best_parameters;									
 	}
 
+	vector<DoubleReal>* SVMWrapper::predict(const std::vector<svm_node*>& vectors)
+	{
+    DoubleReal          label = 0.0;
+    vector<DoubleReal>* results = new vector<DoubleReal>();
+
+    if (model_ == NULL)
+    {
+			return results;
+    }
+   
+    for(UnsignedInt i = 0; i < vectors.size(); i++)
+    {
+			label = svm_predict(model_, vectors[i]);
+			results->push_back(label);
+		}
+		
+    return results;
+	}
+	
 	double SVMWrapper::getSVRProbability()
 	{
 		if (model_ != NULL)

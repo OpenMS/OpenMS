@@ -109,11 +109,17 @@ using namespace std;
 			@code ./nph-mascot.exe 1 -commandline -f mascotOutFile < mascotGenericFormatFile @endcode
 		</li>
 		<li>
-			copy mascotOutFile to the server on which the TOPP applications are installed
+			# call the script to export your outfile in mascot xml
+			@code ./export_dat.pl do_export=1 export_format=XML file=mascotOutFile _sigthreshold=0 
+			_showsubset=1 show_same_sets=1 show_unassigned=0 prot_score=0 pep_exp_z=0 pep_score=0 
+			pep_homol=0 pep_ident=0 pep_seq=1 show_header=1 show_queries=1 pep_rank=0 > mascotXMLFile @endcode
+		</li>
+		<li>
+			copy mascotXMLFile to the server on which the TOPP applications are installed
 		</li>
 		<li>
 			# execute MascotAdapter in mode 3			
-			@code ./MascotAdapter -in mascotOutFile -out analysisXMLFile -mascot_out @endcode
+			@code ./MascotAdapter -in mascotXMLFile -out analysisXMLFile -mascot_out @endcode
 		</li>
 	</ul>
 

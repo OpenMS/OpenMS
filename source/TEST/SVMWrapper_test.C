@@ -658,6 +658,37 @@ CHECK((void saveModel(std::string modelFilename) const throw(Exception::UnableTo
 	}
 RESULT
 
+CHECK((std::vector<DoubleReal>* predict(const std::vector<svm_node*>& vectors)))
+	LibSVMEncoder encoder;
+	vector< vector< pair<SignedInt, DoubleReal> > > vectors;		
+	vector< pair<SignedInt, DoubleReal> > temp_vector;
+	vector<svm_node*>* encoded_vectors;
+	UnsignedInt count = 8;
+	vector<DoubleReal> labels;
+	vector<DoubleReal>* predicted_labels;
+	svm_problem* problem;
+	
+	for(UnsignedInt j = 0; j < count; j++)
+	{	
+		for(UnsignedInt i = 0; i < 6; i++)
+		{
+			temp_vector.push_back(make_pair(i * 2, ((DoubleReal) i) * j * 0.3));
+		}
+		vectors.push_back(temp_vector);
+	}
+	encoded_vectors = encoder.encodeLibSVMVectors(vectors);
+	for(UnsignedInt i = 0; i < count; i++)
+	{
+		labels.push_back(((DoubleReal) i * 2) / 3 + 0.03);
+	}
+	problem = encoder.encodeLibSVMProblem(*encoded_vectors, &labels);
+	svm.train(problem);
+	predicted_labels = svm.predict(*encoded_vectors);
+	TEST_NOT_EQUAL(predicted_labels->size(), 0)
+	
+RESULT
+
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 

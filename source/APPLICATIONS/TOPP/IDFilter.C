@@ -72,8 +72,19 @@ using namespace std;
 		<li>
 			<b>predicted retention time</b>:<br> To filter identifications according to their 
 			predicted retention times you have to set two parameters: The total 
-			number of seconds that the gradient ran (warum ?????) and the maximum allowed deviation from the original
-			retention time. This filter can only be applied to AnalysisXML files produced by RTPredict.
+			number of seconds that the gradient ran. 
+			<li>
+			The model is learnt for normalized retention times and the 
+			sigma that is calculated and stored in the analysisXMLFile corresponds to these normalized retention times. 
+			</li>
+			<li>
+			The maximum allowed deviation from the original
+			retention time using the laplace error model that is learnt for confidently assigned peptides in RTModel. 
+			It serves as a scaling of standard 
+			deviations that are allowed for the predicted retention times. If set to 1 this means that one standard 
+			deviation unit is allowed. 
+			</li>
+			This filter can only be applied to AnalysisXML files produced by RTPredict.
 		</li>
 		<li>
 			<b>exclusion peptides</b>:<br> For this option you specify an AnalysisXML file.
@@ -115,7 +126,7 @@ class TOPPIDFilter
 		registerDoubleOption_("pep_fraction","<fraction>",0.0,"the fraction of the peptide significance threshold that should be reached by a peptide hit",false);	
 		registerDoubleOption_("prot_fraction","<fraction>",0.0,"the fraction of the protein significance threshold that should be reached by a protein hit",false);
 		registerDoubleOption_("total_gradient_time","<time>",0.0,"the total time the HPLC gradient ran",false);	
-		registerDoubleOption_("allowed_deviation","<dev>",0.0,"absolut/relativ???? Auch keine Docu in IDFilter!",false);	
+		registerDoubleOption_("allowed_deviation","<dev>",0.0,"standard deviation allowed for the predicted retention times",false);	
 		registerFlag_("best_hits","If this flag is set only the highest scoring hit is kept.\n"
 															"If there is are two or more highest scoring hits, none are kept.");
 	}
