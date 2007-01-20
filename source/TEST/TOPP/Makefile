@@ -560,15 +560,13 @@ InspectAdapter_test: $(NUMERICDIFF)
 	@$(call RUN_PROG_OPT,InspectAdapter,-ini InspectAdapter_1_parameters.ini -in InspectAdapter.out -out InspectAdapter_2_output.tmp -inspect_out)
 	@$(SED) -i 's/^.*date_group_0.*$$/# date group removed/g' InspectAdapter_2_output.tmp
 	@$(call TEST_FILE_EQUAL,InspectAdapter_2_output.analysisXML,InspectAdapter_2_output.tmp)
-
+	@$(RM) -rf Inspect_FASTAFile_test4.trie Inspect_FASTAFile_test4.index
 
 SequestAdapter_test: $(NUMERICDIFF)
 	@$(ECHO) ""
 	@$(ECHO) "SequestAdapter:"
 	
-	@$(RM) -rf ./tmp/*.dta_*
-	@$(RM) -rf ./tmp/sequest_run.bat
-	@$(RM) -rf ./tmp/temp.sequest.in
+	@$(RM) -rf ./tmp/*.dta_*  ./tmp/sequest_run.bat ./tmp/temp.sequest.in
 	@$(ECHO) "- Test 1: -sequest_in"
 	@$(call RUN_PROG_OPT,SequestAdapter,-ini SequestAdapter_1_parameters.ini -in Inspect_Sequest.mzXML -out SequestAdapter_1_output.tmp -sequest_in)
 	@$(call TEST_FILE_EQUAL,SequestAdapter_1_output.sequest_in,SequestAdapter_1_output.tmp)
@@ -577,9 +575,7 @@ SequestAdapter_test: $(NUMERICDIFF)
 	@$(call RUN_PROG_OPT,SequestAdapter,-ini SequestAdapter_2_parameters.ini -in tmp -out SequestAdapter_2_output.tmp -sequest_out)
 	@$(SED) -i 's/^.*date_group_1.*$$/# date group removed/g' SequestAdapter_2_output.tmp
 	@$(call TEST_FILE_EQUAL,SequestAdapter_2_output.analysisXML,SequestAdapter_2_output.tmp)
-	@$(RM) -rf ./tmp/*.dta_*
-	@$(RM) -rf ./tmp/sequest_run.bat
-	@$(RM) -rf ./tmp/temp.sequest.in
+	@$(RM) -rf ./tmp/*.dta_* ./tmp/sequest_run.bat ./tmp/temp.sequest.in
 
 SpectraFilter_test: $(NUMERICDIFF)
 	@$(ECHO) ""
