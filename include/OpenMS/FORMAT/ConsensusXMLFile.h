@@ -34,7 +34,11 @@
 namespace OpenMS
 {
   /**
-    @brief 
+    @brief This class provides Input functionality for ConsensusMaps and Output functionality for 
+    StarAlignments.
+     
+     This class can be used to load the content of a consensusXML file into a ConsensusMap 
+     or to save the content of a StarAlignment object into an XML file.
 
     @ingroup FileIO
   */

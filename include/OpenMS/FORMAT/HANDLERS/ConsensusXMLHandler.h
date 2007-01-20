@@ -57,8 +57,6 @@ namespace OpenMS
       
       @brief XML Handler for a consensusXML.
      
-      This class can be used to load the content of a consensusXML file into a consensusMap 
-      or to save the content of a StarAlignment object into an XML file. 
     */
     template < typename AlignmentT >
     class ConsensusXMLHandler
