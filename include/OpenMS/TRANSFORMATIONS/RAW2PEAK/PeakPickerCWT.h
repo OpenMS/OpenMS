@@ -218,11 +218,11 @@ namespace OpenMS
         optimization_ = optimization;
         if (optimization)
         {
-        	param_.setValue("Optimization:skip_optimization","no");
+        	param_.setValue("Optimization:optimization","one_dimensional");
         }
 				else
 				{
-        	param_.setValue("Optimization:skip_optimization","yes");
+        	param_.setValue("Optimization:optimization","no");
         }	
       }
 		
@@ -255,12 +255,9 @@ namespace OpenMS
         two_d_optimization_ = two_d_optimization;
         if (two_d_optimization)
         {
-        	param_.setValue("2D_optimization:skip_optimization","no");
+        	param_.setValue("Optimization:optimization","two_dimensional");
         }
-				else
-				{
-        	param_.setValue("2D_optimization:skip_optimization","yes");
-        }	
+				
       }
       //@}
 
@@ -309,9 +306,12 @@ namespace OpenMS
         RawDataArrayType raw_peak_array;
         // signal to noise estimator
         DSignalToNoiseEstimatorMedian<1, typename RawDataArrayType::const_iterator> sne;
+				std::cout<< "anfang"<<std::endl; 
 				Param sne_param(param_.copy("SignalToNoiseEstimationParameter:",true));
+				std::cout << "ctor"<<std::endl;
 				if(sne_param.empty()) sne.setParam(Param());
 				else sne.setParam(sne_param);
+				std::cout<< "setprama"<<std::endl;
 			  unsigned int n = distance(first, last);
         raw_peak_array.resize(n);
 
