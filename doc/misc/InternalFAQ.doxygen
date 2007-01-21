@@ -73,8 +73,7 @@
 				<LI> Prepare the release file (contrib):
 					<OL>
 						<LI> Update Version number in <tt>configure.ac</tt> (AC_INIT macro)
-						<LI> Remove the <tt>.svn</tt> directory
-						<LI> Generate a compressed tarball (naming convention: OpenMS_contrib-´version-number´.tar.gz)
+						<LI> Run the script <tt>source/config/tools/make_dist_contrib.sh</tt>
 					</OL>
 				<LI> FTP to upload.sourceforge.net (see http://sourceforge.net/docman/display_doc.php?docid=6445&group_id=1#howtoupload)
 				<LI> Login as "anonymous"
@@ -119,7 +118,7 @@
         <li>Add the class to the <tt>Makefile</tt>
         (<tt>Widget.C</tt>, <tt>Widget_moc.C</tt>,
         <tt>WidgetTemplate.C</tt>, <tt>WidgetTemplate_moc.C</tt>).
-        Use LayerItem as an example which changes are needed.</li>
+        Use OpenDialog as an example which changes are needed.</li>
 
 
         <li>From the .ui-File the files
