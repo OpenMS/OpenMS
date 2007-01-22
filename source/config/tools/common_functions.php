@@ -182,4 +182,86 @@ function parseMaintainerLine($line)
 	return array_unique($result);
 }
 
+/**
+	@brief parses the member information form a file
+	
+	@param path The OpenMS path
+	@param header The header file name
+	@param members A list of member function strings is written to this variable
+*/
+function getPublicMembers($path,$header,&$members)
+{
+	$class = substr(basename($header),0,-2);
+
+	######################## needed stuff ###############################
+	if (!file_exists("$path/doc/xml/"))
+	{
+		print "Error: The directory '$path/doc/xml/' is needed!\n";
+		print "       Please execute 'make idoc' in '$path/doc/'.\n";
+	}
+	
+	######################## load file ###############################
+	exec("find $path/doc/xml/ -name \"*OpenMS*".$class.".xml\"",$out);
+	if (count($out)!=1)
+	{
+		print "Error: Several possibilities for class '$class'. Aborting!\n";
+		exit;
+	}
+	
+	######################## load file ###############################
+	$class = simplexml_load_file($out[0]);
+	$members = array();
+	
+	foreach ($class->compounddef->sectiondef as $section)
+	{
+		#only public members section
+		//if ($section["kind"]!="public-type" && $section["friend"]!="public-type")
+		if (true)
+		{
+			foreach($section->memberdef as $member)
+			{
+				#only public members
+				if ($member["prot"]=="public" && $member["kind"]=="function")
+				{
+					#name
+					$mem = $member->definition." ".$member->argsstring;
+					#exceptions
+					$except = " throw (";
+					$first = true;
+					foreach($member->exceptions->ref as $ref)
+					{
+						if (!$first)
+						{
+							$except .= ", ";
+						}
+						else
+						{
+							$first = false;
+						}
+						$except .= (string) $ref;
+					}
+					if ($except!=" throw (")
+					{
+						$mem .= $except.")";
+					}
+					# modifier
+					if ($member["static"]!="no")
+					{
+						$mem = "static ".$mem;
+					}
+					if ($member["inline"]!="no")
+					{
+						$mem = "inline ".$mem;
+					}
+					if ($member["virt"]!="non-virtual")
+					{
+						$mem = "virtual ".$mem;
+					}
+					$members[]=$mem;
+				}
+			}
+		}
+	}
+}
+
 ?>
