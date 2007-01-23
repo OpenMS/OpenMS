@@ -26,7 +26,7 @@
 
 
 //OpenMS includes
-#include <OpenMS/FORMAT/DBConnection.h>
+#include <OpenMS/FORMAT/DB/DBConnection.h>
 
 //QT
 #include <qsqlrecord.h>
