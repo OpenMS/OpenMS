@@ -61,8 +61,6 @@ namespace OpenMS
 
   /**
   	@brief MDI window of TOPPView tool
-  	
-  	@todo catch exceptions in sgolay (Eva)
   */
   class TOPPViewBase : public QMainWindow, public PreferencesManager
   {

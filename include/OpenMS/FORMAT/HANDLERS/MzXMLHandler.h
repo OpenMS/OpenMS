@@ -45,6 +45,8 @@ namespace OpenMS
 
 		MapType has to be a MSExperiment or have the same interface.
   		Do not use this class. It is only needed in MzXMLFile.
+  	
+  	@todo Softly abort parsing after metadata, if only metadata should be read (Thomas S.)
   */
 	template <typename MapType>
   class MzXMLHandler

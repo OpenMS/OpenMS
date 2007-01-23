@@ -25,7 +25,6 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/COMPARISON/CLUSTERING/ClusterSpectrum.h>
-#include <OpenMS/FORMAT/DBAdapter.h>
 
 #include <sstream>
 
@@ -59,7 +58,6 @@ namespace OpenMS
   ClusterSpectrum::ClusterSpectrum()
     : specp_(0),
     	binrepp_(0),
-    	adapterp_(0),
     	binsize_(0),
     	binspread_(0),
     	id_(0),
@@ -70,10 +68,9 @@ namespace OpenMS
   {
   }
   
-  ClusterSpectrum::ClusterSpectrum(long id, DBAdapter* adapterp,double size,uint spread)
+  ClusterSpectrum::ClusterSpectrum(long id,double size,uint spread)
     : specp_(0),
     	binrepp_(0),
-    	adapterp_(adapterp), 
     	binsize_(size), 
     	binspread_(spread), 
     	id_(id),
@@ -84,10 +81,9 @@ namespace OpenMS
   {
   }
 
-  ClusterSpectrum::ClusterSpectrum(const PeakSpectrum& spec,DBAdapter* adapterp, double binsize , uint binspread )
+  ClusterSpectrum::ClusterSpectrum(const PeakSpectrum& spec, double binsize , uint binspread )
     : specp_(new PeakSpectrum(spec)), 
     	binrepp_(0),
-    	adapterp_(adapterp),
     	binsize_(binsize),
     	binspread_(binspread),
     	id_(spec.getPersistenceId()),
@@ -100,10 +96,9 @@ namespace OpenMS
   }
   
   
-  ClusterSpectrum::ClusterSpectrum(PeakSpectrum* specp, DBAdapter* adapterp, double binsize, uint binspread)
+  ClusterSpectrum::ClusterSpectrum(PeakSpectrum* specp, double binsize, uint binspread)
     : specp_(specp),
     	binrepp_(0),
-    	adapterp_(adapterp), 
     	binsize_(binsize), 
     	binspread_(binspread), 
     	id_(specp->getPersistenceId()),
@@ -115,10 +110,9 @@ namespace OpenMS
     updatecache_();
   }
 
-  ClusterSpectrum::ClusterSpectrum(BinnedRep* binrepp, DBAdapter* adapterp)
+  ClusterSpectrum::ClusterSpectrum(BinnedRep* binrepp)
     : specp_(0), 
     	binrepp_(binrepp), 
-    	adapterp_(adapterp), 
     	binsize_(binrepp->getBinSize()), 
     	binspread_(binrepp->getBinSpread()),
     	id_(binrepp->id()), 
@@ -133,7 +127,6 @@ namespace OpenMS
   ClusterSpectrum::ClusterSpectrum(PeakSpectrum* specp, BinnedRep* binrepp)
     : specp_(specp),
     	binrepp_(binrepp),
-    	adapterp_(0),
     	binsize_(binrepp->getBinSize()), 
     	binspread_(binrepp->getBinSpread()),
     	id_(binrepp->id()),
@@ -152,7 +145,6 @@ namespace OpenMS
   ClusterSpectrum::ClusterSpectrum( const ClusterSpectrum& source)
     : specp_(0),
     	binrepp_(0),
-    	adapterp_(source.adapterp_),
     	binsize_(source.binsize_),
     	binspread_(source.binspread_),
     	id_(source.id_),
@@ -183,7 +175,6 @@ namespace OpenMS
     {
       binrepp_ = new BinnedRep(*source.binrepp_);
     }
-    adapterp_=source.adapterp_;   
     binsize_=source.binsize_;   
     binspread_=source.binspread_;   
     id_=source.id_;
@@ -215,51 +206,19 @@ namespace OpenMS
   
   const BinnedRep& ClusterSpectrum::getBinrep() const
   {
-    if (!adapterp_)
+    if (binrepp_ )
     {
-      if (binrepp_ )
-      {
-        return *binrepp_;
-      }
-      else if ( specp_ )
-      {
-        binrepp_ = new BinnedRep(binsize_,binspread_);
-        (*binrepp_) << (*specp_);
-        return *binrepp_;
-      }
-      else
-      {
-        throw WrongRepresentation(__FILE__, __LINE__, __PRETTY_FUNCTION__,"no BinnedRep in ClusterSpectrum and no DBAdapter* given");
-      }
+      return *binrepp_;
     }
-    //if a DBAdapter is present, the other Representation is created
-    else 
+    else if ( specp_ )
     {
-      if (binrepp_)
-      {
-        return *binrepp_;  
-      }
-      else
-      {
-        if (binsize_ < 0 )
-        {
-          throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,"binsize_");
-        }
-        else 
-        {
-          if (!specp_)
-          {
-            getSpec();
-          }
-          binrepp_ = new BinnedRep(binsize_,binspread_);
-          (*binrepp_) << (*specp_);
-          // this works if only one ( i.e. binrepp_ or specp_ is needed )
-          // otherwise it takes much time
-          delete specp_;
-          specp_ = 0;
-          return *binrepp_;
-        }
-      }
+      binrepp_ = new BinnedRep(binsize_,binspread_);
+      (*binrepp_) << (*specp_);
+      return *binrepp_;
+    }
+    else
+    {
+      throw WrongRepresentation(__FILE__, __LINE__, __PRETTY_FUNCTION__,"no BinnedRep in ClusterSpectrum and no DBAdapter* given");
     }
   }
 
@@ -279,40 +238,14 @@ namespace OpenMS
       delete binrepp_;
       binrepp_ = 0;
     }
-    if (!adapterp_)
+
+    if (specp_ )
     {
-      if (specp_ )
-      {
-        return *specp_;
-      }
-      else 
-      {
-        throw WrongRepresentation(__FILE__, __LINE__, __PRETTY_FUNCTION__,"no PeakSpectrum in ClusterSpectrum and no DBAdapter* given");
-      }
+      return *specp_;
     }
     else 
     {
-      if (specp_)
-      {
-        return *specp_;
-      }
-      else
-      {
-        //specp_ = dynamic_cast<PeakSpectrum*>(adapterp_->createObject(id_)); //TODO Persistence
-        
-        specp_->getContainer().sortByPosition();
-        if (specp_)
-        {
-          return *specp_;
-        }
-        else 
-        {
-          ostringstream ss;
-          ss.str("");
-          ss << "id " << id_ << " ";
-          throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,ss.str().c_str());
-        }
-      }
+      throw WrongRepresentation(__FILE__, __LINE__, __PRETTY_FUNCTION__,"no PeakSpectrum in ClusterSpectrum and no DBAdapter* given");
     }
   }
 
@@ -322,23 +255,6 @@ namespace OpenMS
 
     getSpec();
 
-/*
-    if ( specp_->getIdentification().size() == 0 )
-    {
-      if (!adapterp_ && ! adapterp )
-      {
-        cerr << (int) adapterp_ << endl;
-        throw Exception::Base(__FILE__, __LINE__, __PRETTY_FUNCTION__,"No DBAdapter","this operation needs a DBAdapter*");
-      }
-      if (!adapterp) adapterp = adapterp_;
-      if (specp_->getIdentification().size() == 0 )
-      {
-				#ifdef OPENMS_HAS_DB
-        specp_->loadIdentification(dynamic_cast<DBAdapter*>(adapterp));
-				#endif
-      }
-    }
-*/
     return specp_->getIdentifications();
   }
   
@@ -376,11 +292,6 @@ namespace OpenMS
       parent_mass_ = binrepp_->getParentmz();
       parentioncharge_ = binrepp_->getPrecursorPeakCharge();
       cached_ = 1;     
-    }
-    else if ( adapterp_ )
-    {
-      getSpec();
-      updatecache_();
     }
     else
     {

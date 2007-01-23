@@ -54,15 +54,11 @@
 
 /*
 	TODO:
+	- check_test durch C++-Parser oder doxygen output ersetzen (coding conventions benennung erzwingen)
 	- Kernel/Datastructures nach Pass-By-Copy durchsuchen
 	- Valgrind
-	- FileConverter: FileTyp automatisch erkennen einbauen 
-	- FileInfo: FileTyp automatisch erkennen einbauen 
 	- ParamHander-Klasse (getDefaults())
-	- MzXMLFile: Parsen bei MetaDataOnly abbrechen wenn die scans kommen (ohne error)
-	- MzDataFile: Parsen bei MetaDataOnly abbrechen wenn die scans kommen (ohne error)
 	- FeatureFinder wirklich auf MSExperiment umstellen
-	- check_test durch C++-Parser oder doxygen output ersetzen (coding conventions benennung erzwingen)
 	- TOPPView:
 		- FloatKernel statt DoubleKernel?
 		- Feature markiert -> konvexe Hülle markiert
@@ -71,7 +67,6 @@
 	TODO (Hiwis):
 	- Base 64 verschnellern (gleich in MSExp schreiben nicht in double-Array)
 	- MSExperiment: AreaIterator mit min/max int als Filter, MS-level als Filter
-	- Debug streams (status, debug, error, warning)
 	- TOPPView:
 		- ohne quadtree
 		- Visualisierung von FeaturePairs -> TOPP tool ändern

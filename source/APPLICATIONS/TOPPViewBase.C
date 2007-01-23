@@ -27,8 +27,8 @@
 #include <OpenMS/APPLICATIONS/TOPPViewBase.h>
 
 #ifdef DB_DEF
-#include <OpenMS/FORMAT/DBConnection.h>
-#include <OpenMS/FORMAT/DBAdapter.h>
+#include <OpenMS/FORMAT/DB/DBConnection.h>
+#include <OpenMS/FORMAT/DB/DBAdapter.h>
 #include <OpenMS/VISUAL/DIALOGS/DBSpectrumSelectorDialog.h>
 #endif
 

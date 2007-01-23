@@ -31,21 +31,7 @@ THISLIB=$(LIBNAME)
 
 include ../../config_defs.mak
 
-CPP_SOURCES=
-
-ifeq ($(ANDIMS_SUPPORT),true)
-	ifeq ($(NETCDF_SUPPORT),true)
-		ANDI_SOURCES=\
-			ANDIHandler.C
-	endif
-endif
-
-ifeq ($(CGAL_SUPPORT),true)
-	CGAL_SOURCES=\
-		ConsensusXMLHandler.C
-endif
-
-HANDLER_SOURCES=\
+CPP_SOURCES=\
 	XMLHandler.C\
 	SchemaHandler.C\
 	MzDataHandler.C\
@@ -60,8 +46,19 @@ HANDLER_SOURCES=\
 	MascotXMLHandler.C\
 	XMLSchemes.C
 
-ADD_CPP_SOURCES = $(ANDI_SOURCES) $(CGAL_SOURCES) $(HANDLER_SOURCES)
-ADD_INCLUDES=$(GUI_INCLUDES)
+ifeq ($(ANDIMS_SUPPORT),true)
+	ifeq ($(NETCDF_SUPPORT),true)
+		ANDI_SOURCES=\
+			ANDIHandler.C
+	endif
+endif
+
+ifeq ($(CGAL_SUPPORT),true)
+	CGAL_SOURCES=\
+		ConsensusXMLHandler.C
+endif
+
+ADD_CPP_SOURCES = $(ANDI_SOURCES) $(CGAL_SOURCES)
 
 include ../../common.mak
 -include .Dependencies

@@ -28,6 +28,8 @@
 #include <OpenMS/DATASTRUCTURES/String.h>
 
 #include <qfileinfo.h>
+#include <qdir.h>
+#include <qstringlist.h>
 
 #include <fstream>
 #include <stdio.h>
@@ -63,6 +65,12 @@ namespace OpenMS
 	{
 		QFileInfo fi(file);
 		file = fi.absFilePath().ascii();
+	}
+
+	String File::basename(const string& file)
+	{
+		QFileInfo fi(file);
+		return fi.fileName().ascii();
 	}
 
 	bool File::readable(const string& file)
@@ -106,6 +114,31 @@ namespace OpenMS
 		}
 		
 		return "";
+	}
+	
+	bool File::fileList(const std::string& dir, const std::string& file_pattern, vector<String>& output)
+	{
+		QDir d(dir, file_pattern, QDir::Name, QDir::Files);
+		QStringList list = d.entryList();
+
+		//clear and check if empty
+		output.clear();
+		if (list.size()==0)
+		{
+			return false;
+		}
+		
+		//resize output
+		output.resize(list.size());
+		
+		//fill output
+		UnsignedInt i = 0;
+		for ( QStringList::const_iterator it = list.constBegin(); it != list.constEnd(); ++it )
+		{
+			output[i++] = (*it).ascii();
+		}
+		
+		return true;
 	}
 
 } // namespace OpenMS

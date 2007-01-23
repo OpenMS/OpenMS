@@ -49,11 +49,18 @@ namespace OpenMS
 			/// Return true if the file does not exist of the file is empty
 			static bool empty(const std::string& file);
 		
-			/// Removes a file (if it exists). Returns true if the file was successfully deleted (or if it did not exist).
+			/**
+				@brief Removes a file (if it exists). 
+			
+				@return Returns true if the file was successfully deleted (or if it did not exist).
+			*/
 			static bool remove(const std::string& file);
 
 			/// Replaces the relative path in the argument with the absolute path.
 			static void absolutePath(std::string& file);
+
+			/// Returns the basename of the file (without the path).
+			static String basename(const std::string& file);
 			
 			/// Return true if the file exists and is readable
 			static bool readable(const std::string& file);
@@ -71,6 +78,13 @@ namespace OpenMS
 				If the file is not found there, an empty string is returned.
 			*/
 			static String find(const String& filename, std::vector<String> directories = std::vector<String>());
+			
+			/**
+				@brief Method for getting list of files matching @file_pattern in directory @dir
+				
+				@return If there are matching files
+			*/
+			static bool fileList(const std::string& dir, const std::string& file_pattern, std::vector<String>& output);
 	};
 
 }

@@ -25,7 +25,8 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/PairMatcher.h>
-#include <qstring.h>
+
+#include <iomanip>
 
 using namespace std;
 
@@ -206,17 +207,14 @@ namespace OpenMS
 				hull.addPoint( pairs[i].getSecond().getPosition() - DPosition<2>(0,fak) );
 				first->second.getConvexHulls().push_back( hull );
 
-				DPosition<2> diff
-					= pairs[i].getFirst().getPosition()-pairs[i].getSecond().getPosition();
-				double ratio
-					= pairs[i].getFirst().getIntensity()/pairs[i].getSecond().getIntensity();
-				QString meta = QString("%1Quality: %2, Intens.Ratio: %3, Dist.: RT %4, MZ %5; ")
-											.arg(string(first->second.getMetaValue(3)))
-											.arg(pairs[i].getQuality(),4,'f',2)
-											.arg(ratio,4,'f',2)
-											.arg(fabs(diff[RT]),4,'f',2)
-											.arg(fabs(diff[MZ]),4,'f',2);
-				first->second.setMetaValue(3,meta.ascii() );
+				DPosition<2> diff = pairs[i].getFirst().getPosition()-pairs[i].getSecond().getPosition();
+				double ratio = pairs[i].getFirst().getIntensity()/pairs[i].getSecond().getIntensity();
+				
+				stringstream s;
+				s << string(first->second.getMetaValue(3)) << "Quality: " << pairs[i].getQuality() << ", Intens.Ratio: "
+					<< ratio << ", Dist.: RT " << fabs(diff[RT]) << ", MZ " << fabs(diff[MZ]) << "; ";
+				
+				first->second.setMetaValue(3,s.str());
 			}
 
 			for (UniqueFeatureMap::const_iterator it=tmp.begin(); it!=tmp.end(); ++it)
@@ -231,25 +229,15 @@ namespace OpenMS
 					<< "\tRatio\tCharge\tDiff[RT]\tDiff[MZ]\n";
 			for (Size i=0; i<pairs.size(); ++i)
 			{
-				DPosition<2> diff
-					= pairs[i].getFirst().getPosition()-pairs[i].getSecond().getPosition();
-				out <<	QString("%1\t%2\t%3\t%4\t%5\t%6\t%7\t%8\t%9")
-										.arg(pairs[i].getQuality(),7,'f',2)
-										.arg(pairs[i].getFirst().getPosition()[0],7,'f',2)
-										.arg(pairs[i].getFirst().getPosition()[1],7,'f',2)
-										.arg(pairs[i].getFirst().getIntensity(),7,'f',2)
-										.arg(pairs[i].getFirst().getOverallQuality(),7,'f',2)
-										.arg(pairs[i].getSecond().getPosition()[0],7,'f',2)
-										.arg(pairs[i].getSecond().getPosition()[1],7,'f',2)
-										.arg(pairs[i].getSecond().getIntensity(),7,'f',2)
-										.arg(pairs[i].getSecond().getOverallQuality(),7,'f',2)
-						<< QString("\t%1\t%2\t%3\t%4\n")
-										.arg(pairs[i].getFirst().getIntensity()/
-												 pairs[i].getSecond().getIntensity(),7,'f',2)
-										.arg(pairs[i].getFirst().getCharge())
-										.arg(diff[RT],4,'f',2)
-										.arg(diff[MZ],4,'f',2);
+				DPosition<2> diff = pairs[i].getFirst().getPosition()-pairs[i].getSecond().getPosition();
+				out << setiosflags(ios::fixed) << setprecision(2)
+						<< pairs[i].getQuality() << "\t" << pairs[i].getFirst().getPosition()[0] << "\t" 
+						<< pairs[i].getFirst().getPosition()[1] << "\t" << pairs[i].getFirst().getIntensity() << "\t" 
+						<< pairs[i].getFirst().getOverallQuality() << "\t" << pairs[i].getSecond().getPosition()[0] << "\t"
+						<< pairs[i].getSecond().getPosition()[1] << "\t" << pairs[i].getSecond().getIntensity() << "\t"
+						<< pairs[i].getSecond().getOverallQuality() << "\t" << pairs[i].getFirst().getIntensity()/pairs[i].getSecond().getIntensity() << "\t"
+						<< pairs[i].getFirst().getCharge() << "\t" << diff[RT] << "\t"
+						<< diff[MZ] << endl;
 			}
 		}
-
-}
+	}

@@ -73,7 +73,7 @@ CHECK(double operator () (const ClusterSpectrum& spec))
 	PeakSpectrum spec;
 	dta_file.load("data/Transformers_tests.dta", spec);
 
-	ClusterSpectrum cs(spec, 0, 1, 1);
+	ClusterSpectrum cs(spec, 1, 1);
 	
 	double filter = (*e_ptr)(cs);
 	TEST_REAL_EQUAL(filter, -1000)

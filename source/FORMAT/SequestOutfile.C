@@ -25,6 +25,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/SequestOutfile.h>
+#include <OpenMS/SYSTEM/File.h>
 
 using namespace std;
 
@@ -816,8 +817,7 @@ namespace OpenMS
 			throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, out_filename);
 		}
 
-		QFileInfo file_info(out_filename);
-		out_filename = file_info.fileName().ascii();
+		out_filename = File::basename(out_filename);
 
 		String line, line_buffer;
 		stringstream line_ss;

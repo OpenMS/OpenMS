@@ -49,6 +49,8 @@ using namespace std;
 	
 	Supported output file types are: 'mzData', 'mzXML', 'DTA2D'
 	'FeatureFile' can be generated using defaults for feature specific information.
+	
+	@todo add file type recognition by file content (Marc)
 */
 
 // We do not want this class to show up in the docu:

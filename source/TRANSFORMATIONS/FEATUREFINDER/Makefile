@@ -60,7 +60,6 @@ CPP_SOURCES=\
 
 
 ADD_CPP_SOURCES = $(CGAL_SOURCES)
-ADD_INCLUDES=$(GUI_INCLUDES)
 
 include ../../common.mak
 -include .Dependencies

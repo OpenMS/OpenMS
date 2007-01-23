@@ -212,7 +212,6 @@ EXECUTABLES_FILTERING = \
 	TopHatFilter_test\
 	MorphFilter_test\
 	DSignalToNoiseEstimator_test\
-	DSignalToNoiseEstimatorWindowing_test\
 	DSignalToNoiseEstimatorMedian_test\
 	DSignalToNoiseEstimatorMeanIterative_test\
 	SmoothFilter_test\

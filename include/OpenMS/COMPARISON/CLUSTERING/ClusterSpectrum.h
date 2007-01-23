@@ -89,19 +89,19 @@ namespace OpenMS
     		although it is more efficient to get the spectra in large chunks directly
         with DBAdapter (ca 5% in simple benchmarks(10k spectra)), getting them on demand allows using less memory<br>
     */
-    ClusterSpectrum(long id, DBAdapter* adapterp , double binsize_ = 0 , uint binspread_ = 0);
+    ClusterSpectrum(long id, double binsize_ = 0 , uint binspread_ = 0);
 
     /// default constructor
     ClusterSpectrum();
 
     /// detailed constructor with PeakSpectrum, DBAdapter and binning parameters
-    ClusterSpectrum(const PeakSpectrum& spec, DBAdapter* adapterp = 0, double binsize = 0, uint binspread = 0);
+    ClusterSpectrum(const PeakSpectrum& spec, double binsize = 0, uint binspread = 0);
 
     /// detailed constructor with PeakSpectrum pointer, DBAdapter and binning parameters
-    ClusterSpectrum(PeakSpectrum* specp, DBAdapter* adapterp = 0, double binsize = 0, uint binspread = 0);
+    ClusterSpectrum(PeakSpectrum* specp, double binsize = 0, uint binspread = 0);
 
     /// detailed constructor with BinnedRep pointer and DBAdapter
-    ClusterSpectrum(BinnedRep* binrepp, DBAdapter* adapterp = 0);
+    ClusterSpectrum(BinnedRep* binrepp);
 
     /// detailed constructor with PeakSpectrum pointer and BinnedRep pointer
     ClusterSpectrum(PeakSpectrum* specp, BinnedRep* binrepp);
@@ -165,7 +165,6 @@ namespace OpenMS
     //const accessor
     mutable PeakSpectrum* specp_;
     mutable BinnedRep* binrepp_;
-    DBAdapter* adapterp_;
     double binsize_;
     uint binspread_;
     long id_;

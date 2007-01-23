@@ -148,7 +148,7 @@ CHECK((static void printInfo(std::ostream& out, const PairVectorType& pairs)))
 	const Pairs& pairs = pm.getBestPairs();
 	stringstream s;
 	PairMatcher::printInfo(s,pairs);
-	TEST_EQUAL(s.str(), "Found the following 1 pairs:\nQuality\tFirst[RT]\tFirst[MZ]\tFirst[Int]\tFirst[Corr]\tSecond[RT]\tSecond[MZ]\tSecond[Int]\tSecond[Corr]\tRatio\tCharge\tDiff[RT]\tDiff[MZ]\n   0.36\t   0.10\t   0.00\t   1.00\t   1.00\t   0.00\t   4.00\t   2.00\t   1.00\t   0.50\t1\t0.10\t-4.00\n");
+	TEST_EQUAL(s.str(), "Found the following 1 pairs:\nQuality\tFirst[RT]\tFirst[MZ]\tFirst[Int]\tFirst[Corr]\tSecond[RT]\tSecond[MZ]\tSecond[Int]\tSecond[Corr]\tRatio\tCharge\tDiff[RT]\tDiff[MZ]\n0.36\t0.10\t0.00\t1.00\t1.00\t0.00\t4.00\t2.00\t1.00\t0.50\t1\t0.10\t-4.00\n");
 RESULT
 
 CHECK((static void fillFeatureMap(FeatureMapType&, const PairVectorType&)))

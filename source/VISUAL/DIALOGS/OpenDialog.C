@@ -29,7 +29,7 @@
 #include <OpenMS/VISUAL/DIALOGS/OpenDialog.h>
 #include <OpenMS/VISUAL/DIALOGS/DBSpectrumSelectorDialog.h>
 #include <OpenMS/FORMAT/Param.h>
-#include <OpenMS/FORMAT/DBConnection.h>
+#include <OpenMS/FORMAT/DB/DBConnection.h>
 
 // QT includes
 #include <qmessagebox.h>

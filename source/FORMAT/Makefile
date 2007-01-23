@@ -68,12 +68,6 @@ ifeq ($(ANDIMS_SUPPORT),true)
 	endif
 endif
 
-ifeq ($(ENABLE_DB),true)
-	DB_CPP_SOURCES=\
-		DBConnection.C\
-		DBAdapter.C
-endif
-
 ifeq ($(LIBSVM_SUPPORT),true)
 	LIBSVM_SOURCES=\
 		LibSVMEncoder.C
@@ -87,16 +81,9 @@ endif
 
 # Take care of subdirectories of FORMAT
 
-FORMAT_DIRS=HANDLERS
+FORMAT_DIRS=HANDLERS DB
 
-#conditional compiles QT
-ifeq ($(ENABLE_DB),true)
-	ADD_CPP_SOURCES= $(GUI_CPP_SOURCES) ${DB_CPP_SOURCES}
-else
-	ADD_CPP_SOURCES=  ${DB_CPP_SOURCES}
-endif
-
-default:	dirs $(OBJECTS)
+default: dirs $(OBJECTS)
 
 dirs:	dummy
 	@$(MAKE) subdirs SUBDIRS="$(FORMAT_DIRS)" TARGET="default"
@@ -109,11 +96,11 @@ dummy:
 depend:	dummy
 	@echo "creating dependencies for $(DIRECTORY)..."
 	@echo "" > .Dependencies
-	@$(CXX) -M  -fPIC -pedantic -Wno-long-long -Wno-deprecated  $(CPP_SOURCES) $(ADD_CPP_SOURCES) $(STD_CPP_INCLUDES) $(ADD_INCLUDES) $(OPENMS_INCLUDES)  >.Dependencies
+	@$(CXX) -M  -fPIC -pedantic -Wno-long-long -Wno-deprecated  $(CPP_SOURCES) $(STD_CPP_INCLUDES) $(ADD_INCLUDES) $(OPENMS_INCLUDES)  >.Dependencies
 	@$(MAKE) subdirs SUBDIRS="$(FORMAT_DIRS)" TARGET=depend
 
 default_clean:
-	@-$(RM) -rf .Dependencies *~  core.* $(OBJECTS) $(MOC_SOURCES) $(ADD_MOC_SOURCES) $(EXECUTABLES) $(EXECUTABLE)
+	@-$(RM) -rf .Dependencies *~  core.* $(OBJECTS) $(EXECUTABLES) $(EXECUTABLE)
 	@$(MAKE) subdirs SUBDIRS="$(FORMAT_DIRS)" TARGET=default_clean
 
 collectlib:	echodir
@@ -124,9 +111,7 @@ collectlib:	echodir
 
 include ../config.mak
 
-OPENMS_INCLUDES=$(GUI_INCLUDES)
-
-SOURCES		= $(CPP_SOURCES) $(MOC_SOURCES) $(ADD_CPP_SOURCES) $(ADD_MOC_SOURCES) $(ANDI_SOURCES) $(LIBSVM_SOURCES) $(CGAL_SOURCES)
+SOURCES		= $(CPP_SOURCES) $(ANDI_SOURCES) $(LIBSVM_SOURCES) $(CGAL_SOURCES)
 OBJECTS 	= $(SOURCES:.C=.o)
 
 default:	echodir $(OBJECTS)

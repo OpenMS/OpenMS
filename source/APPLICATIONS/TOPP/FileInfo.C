@@ -49,6 +49,8 @@ using namespace std;
 	for each MS level is displayed.
 	
 	Additionally an overview of the metadata of the experiment can be displayed.
+	
+	@todo add file type recognition by file content (Marc)
 */
 
 // We do not want this class to show up in the docu:

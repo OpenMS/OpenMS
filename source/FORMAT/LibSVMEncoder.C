@@ -27,13 +27,11 @@
 #include <OpenMS/FORMAT/LibSVMEncoder.h>
 #include <OpenMS/ANALYSIS/SVM/SVMWrapper.h>
 #include <OpenMS/FORMAT/TextFile.h>
+#include <OpenMS/SYSTEM/File.h>
 
 #include <map>
 #include <iostream>
 #include <fstream>
-
-#include <qfile.h>
-#include <qfileinfo.h>
 
 using namespace std;
 
@@ -220,7 +218,6 @@ namespace OpenMS
 	bool LibSVMEncoder::storeLibSVMProblem(const String& filename, const svm_problem* problem) const
 	{
 		ofstream output_file(filename.c_str());
-		QFile file;
 		SignedInt j = 0;
 		SignedInt counter = 0;
 		
@@ -230,15 +227,11 @@ namespace OpenMS
 		}
 		
 		// checking if file is writable
-		file.setName(filename.c_str());
-		file.open( IO_WriteOnly );
-		if (!file.isWritable())
+		if (!File::writable(filename))
 		{
-			file.close();				
 			return false;
 		}
-		file.close();
-				
+			
 		// writing feature vectors		
 		for(SignedInt i = 0; i < problem->l; i++)
 		{
@@ -264,18 +257,16 @@ namespace OpenMS
 		UnsignedInt counter = 0;
 		vector<String> parts;
 		vector<String> temp_parts;
-		QFileInfo file_info;
 		
-		file_info.setFile(filename.c_str());
-		if (!file_info.exists())
+		if (!File::exists(filename))
 		{
 			return NULL;
 		}
-		if (!file_info.isReadable())
+		if (!File::readable(filename))
 		{
 			return NULL;
 		}
-    if (file_info.size() == 0)
+    if (File::empty(filename))
     {
 			return NULL;
     }		

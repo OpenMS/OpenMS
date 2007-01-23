@@ -66,7 +66,7 @@ CHECK(ClusterSpectrum::~ClusterSpectrum())
 RESULT
 
 CHECK(ClusterSpectrum::ClusterSpectrum(MSSpectrum< DPeak<1> >*))
-  cspec = new ClusterSpectrum(spec,0,0.5,2);
+  cspec = new ClusterSpectrum(spec,0.5,2);
   TEST_NOT_EQUAL(cspec,0)
 RESULT
 

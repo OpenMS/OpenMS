@@ -88,6 +88,15 @@ CHECK((static void absolutePath(std::string& file)))
 	// not testable
 RESULT
 
+CHECK((static String basename(std::string& file)))
+	TEST_EQUAL(File::basename("/souce/config/bla/bluff.h"),"bluff.h");
+RESULT
+
+CHECK(static bool fileList(const std::string& dir, const std::string& file_pattern, std::vector<String>& output))
+	vector<String> vec;
+	TEST_EQUAL(File::fileList("data/","*.bliblaluff",vec),false);
+RESULT
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST

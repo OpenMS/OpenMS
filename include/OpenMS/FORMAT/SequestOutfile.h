@@ -41,8 +41,6 @@
 #include <string>
 #include <vector>
 
-#include <qfileinfo.h>
-
 namespace OpenMS
 {
 	/**

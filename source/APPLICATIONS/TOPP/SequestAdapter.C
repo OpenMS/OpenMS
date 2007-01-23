@@ -41,9 +41,6 @@
 #include <vector>
 #include <algorithm>
 
-#include <qdir.h>
-#include <qstringlist.h>
-
 using namespace OpenMS;
 using namespace std;
 
@@ -339,6 +336,11 @@ class TOPPSequestAdapter
 				}
 			}
 			
+//			for (map< String, DoubleReal >::const_iterator it = filenames_and_precursor_retention_times.begin(); it!=filenames_and_precursor_retention_times.end(); ++it)
+//			{
+//				cout << it->first << " -> " << it->second << endl;
+//			}
+			
 			return msms_spectra;
 		}
 
@@ -356,9 +358,9 @@ class TOPPSequestAdapter
 				logfile,
 				output_filename,
 				input_filename,
-				input_filename_win,
 				input_file_directory_network,
-				user, password,
+				user,
+				password,
 				sequest_computer,
 				temp_data_directory,
 				temp_data_directory_win,
@@ -366,12 +368,7 @@ class TOPPSequestAdapter
 				sequest_directory_win,
 				database,
 				database_directory_network,
-				dta_directory,
-				dta_directory_win,
-				dta_directory_network,
 				out_directory,
-				out_directory_win,
-				out_directory_network,
 				batch_filename,
 				string_buffer,
 				string_buffer2,
@@ -403,7 +400,6 @@ class TOPPSequestAdapter
 			Real p_value = 0.05;
 			
 			map< String, DoubleReal > filenames_and_precursor_retention_times;
-			char separator = '/';
 			
 			//-------------------------------------------------------------
 			// (2) parsing and checking parameters
@@ -490,7 +486,6 @@ class TOPPSequestAdapter
 			if ( string_buffer.empty() )
 			{
 				writeLog_("No input file specified. Aborting!");
-				//printUsage_();
 				return ILLEGAL_PARAMETERS;
 			}
 			else
@@ -503,13 +498,13 @@ class TOPPSequestAdapter
 				else // if only sequest_out is set, in is the out_directory
 				{
 					out_directory = string_buffer;
+					if ( !out_directory.empty() ) out_directory.ensureLastChar('/');
 					
 					// if only sequest_out is set, the mzXML files have to be given to retrieve the retention times
 					string_buffer = getStringOption_("mzXMLs");
 					if ( string_buffer.empty() )
 					{
 						writeLog_("No mzXML files specified. Aborting!");
-      //printUsage_();
 						return ILLEGAL_PARAMETERS;
 					}
 					else
@@ -530,10 +525,9 @@ class TOPPSequestAdapter
 			if ( temp_data_directory.empty() )
 			{
 				writeLog_("No directory for temporary files given. Aborting!");
-    //printUsage_();
 				return ILLEGAL_PARAMETERS;
 			}
-			temp_data_directory.ensureLastChar(separator);
+			temp_data_directory.ensureLastChar('/');
 			
 			temp_data_directory_win = getStringOption_("temp_data_directory_win");
 			temp_data_directory_win.ensureLastChar('\\');
@@ -541,14 +535,12 @@ class TOPPSequestAdapter
 			if ( !isWinFormat(temp_data_directory_win) )
 			{
 				writeLog_("Windows path for the directory for temporary files has wrong format: " + temp_data_directory_win + ". Aborting!");
-    //printUsage_();
 				return ILLEGAL_PARAMETERS;
 			}
 			temp_data_directory_network = getStringOption_("temp_data_directory_network");
 			if ( temp_data_directory_network.empty() )
 			{
 				writeLog_("Network path for the directory for temporary files is empty. Aborting!");
-    //printUsage_();
 				return ILLEGAL_PARAMETERS;
 			}
 			if ( !correctNetworkPath(temp_data_directory_network) )
@@ -569,7 +561,6 @@ class TOPPSequestAdapter
 					if ( input_filename.empty() )
 					{
 						writeLog_("No output file specified. Aborting!");
-      //printUsage_();
 						return ILLEGAL_PARAMETERS;
 					}
 				}
@@ -592,8 +583,7 @@ class TOPPSequestAdapter
 					writeLog_(input_file_directory_network + "is no network path. Aborting!");
 					return ILLEGAL_PARAMETERS;
 				}
-				QFileInfo file_info(input_filename);
-				string_buffer = file_info.fileName().ascii();
+				string_buffer = File::basename(input_filename);
 				if ( !input_file_directory_network.hasSuffix(string_buffer) ) input_file_directory_network.append("\\" + string_buffer);
 				
 				user = getStringOption_("user");
@@ -605,7 +595,6 @@ class TOPPSequestAdapter
 				if ( !isWinFormat(sequest_directory_win) )
 				{
 					writeLog_("Windows path for the SEQUEST working directory has wrong format: " + sequest_directory_win + ". Aborting!");
-     //printUsage_();
 					return ILLEGAL_PARAMETERS;
 				}
 				else if ( sequest_directory_win.empty() )
@@ -615,13 +604,12 @@ class TOPPSequestAdapter
 				}
 				
 				peptide_prophet_directory = getStringOption_("peptide_prophet_directory");
-				if ( !peptide_prophet_directory.empty() ) peptide_prophet_directory.ensureLastChar(separator);
+				if ( !peptide_prophet_directory.empty() ) peptide_prophet_directory.ensureLastChar('/');
 				
 				sequest_computer = getStringOption_("sequest_computer");
 				if ( sequest_computer.empty() )
 				{
 					writeLog_("No sequest computer name given. Aborting!");
-     //printUsage_();
 					return ILLEGAL_PARAMETERS;
 				}
 			}
@@ -640,7 +628,6 @@ class TOPPSequestAdapter
 			if ( database.empty() )
 			{
 				writeLog_("No database specified. Aborting!");
-    //printUsage_();
 				return ILLEGAL_PARAMETERS;
 			}
 			
@@ -652,8 +639,7 @@ class TOPPSequestAdapter
 					writeLog_(database_directory_network + "is no network path. Aborting!");
 					return ILLEGAL_PARAMETERS;
 				}
-				QFileInfo file_info(database);
-				string_buffer = file_info.fileName().ascii();
+				string_buffer = File::basename(database);
 				if ( !database_directory_network.hasSuffix(string_buffer) ) database_directory_network.append("\\" + string_buffer);
 				sequest_infile.setDatabase(database_directory_network);
 				
@@ -1025,8 +1011,8 @@ class TOPPSequestAdapter
 			// creating the dta files
 			if ( make_dtas ) // if there are already .dta files in the folder, stop the adapter
 			{
-				QDir qdir(temp_data_directory, "*.dta_*", QDir::Name, QDir::Files);
-				if ( !qdir.entryList().empty() )
+				vector<String> dummy;
+				if (File::fileList(temp_data_directory,String("*.dta_*"),dummy))
 				{
 					writeLog_("There are already dta files in directory " + temp_data_directory + ". Aborting!");
 					deleteTempFiles(input_filename, logfile, batch_filename);
@@ -1039,16 +1025,17 @@ class TOPPSequestAdapter
 			UnsignedInt msms_spectra_altogether = 0;
 			if ( make_dtas ) writeLog_("creating dta files");
 			dtas = 0;
-			QFileInfo file_info;
+			String basename;
 			for ( vector< String >::const_iterator spec_i = spectra.begin(); spec_i != spectra.end(); ++spec_i )
 			{
-				file_info.setFile(*spec_i);
-				String common_name = temp_data_directory + string(file_info.fileName().ascii());
+				basename = File::basename(*spec_i);
+				String common_name = out_directory + basename;
 				
 				MzXMLFile().load(*spec_i, msexperiment);
 				
 				msms_spectra_in_file = MSExperiment2DTAs(msexperiment, common_name, charges, filenames_and_precursor_retention_times, make_dtas);
-				writeLog_(String(msms_spectra_in_file) + " MS/MS spectra in file " + file_info.fileName().ascii());
+				
+				writeLog_(String(msms_spectra_in_file) + " MS/MS spectra in file " + basename);
 
 				msms_spectra_altogether += msms_spectra_in_file;
 			}
@@ -1108,14 +1095,15 @@ class TOPPSequestAdapter
 					for ( PointerSizeUInt i = 0; i <= (PointerSizeUInt) (dtas / max_dtas_per_run); ++i )
 					{
 						writeLog_("removing dta files");
-						QDir qdir(temp_data_directory, "*.dta_" + String(i) , QDir::Name, QDir::Files);
-						QStringList qlist = qdir.entryList();
-						
-						for ( QStringList::const_iterator i = qlist.constBegin(); i != qlist.constEnd(); ++i )
+						vector<String> to_delete;
+						if (File::fileList(temp_data_directory,String("*.dta_") + i,to_delete))
 						{
-							if ( !File::remove(temp_data_directory + (*i).ascii()) )
+							for (vector<String>::const_iterator it = to_delete.begin(); it != to_delete.end(); ++it)
 							{
-								writeLog_(string((*i).ascii()) + "could not be removed!");
+								if ( !File::remove(temp_data_directory + *it) )
+								{
+									writeLog_(String("'") + temp_data_directory + *it + "' could not be removed!");
+								}
 							}
 						}
 					}
@@ -1147,18 +1135,20 @@ class TOPPSequestAdapter
 			
 			if ( sequest_out )
 			{
-				if ( !keep_dta_files ) // remove all dtas
+				// remove all dtas
+				if ( !keep_dta_files ) 
 				{
 					for ( PointerSizeUInt i = 0; i <= (PointerSizeUInt) (dtas / max_dtas_per_run); ++i )
 					{
-						QDir qdir(temp_data_directory, "*.dta_" + String(i) , QDir::Name, QDir::Files);
-						QStringList qlist = qdir.entryList();
-						
-						for ( QStringList::const_iterator i = qlist.constBegin(); i != qlist.constEnd(); ++i )
+						vector<String> to_delete;
+						if (File::fileList(temp_data_directory,String("*.dta_") + i,to_delete))
 						{
-							if ( !File::remove(temp_data_directory + (*i).ascii()) )
+							for (vector<String>::const_iterator it = to_delete.begin(); it != to_delete.end(); ++it)
 							{
-								writeLog_(string((*i).ascii()) + "could not be removed!");
+								if ( !File::remove(temp_data_directory + *it) )
+								{
+									writeLog_(String("'") + temp_data_directory + *it + "' could not be removed!");
+								}
 							}
 						}
 					}
@@ -1168,14 +1158,11 @@ class TOPPSequestAdapter
 				vector< IdentificationData > identifications;
 				ProteinIdentification protein_identification;
 				UnsignedInt identification_size = identifications.size();
-				
-				QDir qdir(out_directory, "*.out", QDir::Name, QDir::Files);
-				QStringList qlist = qdir.entryList();
-				
-				if ( qlist.isEmpty() )
+
+				vector<String> out_files;
+				if (!File::fileList(out_directory,String("*.out"),out_files))
 				{
 					writeLog_(String("Error: No .out files found in '") + out_directory + "'. Aborting!");
-					qlist.clear();
 					deleteTempFiles(input_filename, logfile, batch_filename);
 					return UNKNOWN_ERROR;
 				}
@@ -1187,9 +1174,9 @@ class TOPPSequestAdapter
 				{
 					String summary = "tmp.summary.html";
 					bool append = false;
-					for ( QStringList::const_iterator i = qlist.constBegin(); i != qlist.constEnd(); ++i )
+					for ( vector<String>::const_iterator i = out_files.begin(); i != out_files.end(); ++i )
 					{
-						sequest_outfile.out2SummaryHtml(out_directory + string((*i).ascii()), summary, database, append);
+						sequest_outfile.out2SummaryHtml(out_directory + *i, summary, database, append);
 					}
 					//sequest_outfile.finishSummaryHtml(summary);
 					
@@ -1201,7 +1188,6 @@ class TOPPSequestAdapter
 					if ( status != 0 )
 					{
 						writeLog_("Problems with Peptide Prophet. Aborting!");
-						qlist.clear();
 						deleteTempFiles(input_filename, logfile, batch_filename);
 						return UNKNOWN_ERROR;
 					}
@@ -1216,17 +1202,24 @@ class TOPPSequestAdapter
 				String filename;
 				vector< Real > pvalues;
 				
-				for ( QStringList::const_iterator i = qlist.constBegin(); i != qlist.constEnd(); ++i )
+				for ( vector<String>::const_iterator i = out_files.begin(); i != out_files.end(); ++i )
 				{
-					filename = temp_data_directory + string((*i).ascii());
-					if ( filenames_and_pvalues.empty() ) sequest_outfile.load(filename, identifications, protein_identification, p_value, pvalues, database);
-					else sequest_outfile.load(filename, identifications, protein_identification, p_value, filenames_and_pvalues[temp_data_directory + string((*i).ascii())], database);
+					filename = out_directory + *i;
+					if ( filenames_and_pvalues.empty() )
+					{
+						sequest_outfile.load(filename, identifications, protein_identification, p_value, pvalues, database);
+					}
+					else
+					{
+						sequest_outfile.load(filename, identifications, protein_identification, p_value, filenames_and_pvalues[out_directory + *i], database);
+					}
 					
 					// save the retention times
 					if ( identification_size != identifications.size() )
 					{
 						identification_size = identifications.size();
 						identifications.back().rt = filenames_and_precursor_retention_times[filename];
+						//cout << "LFF: " << filename << endl;
 					}
 				}
 				
@@ -1239,17 +1232,14 @@ class TOPPSequestAdapter
 				if ( !keep_out_files )
 				{
 					writeLog_("removing out files");
-					qdir.setPath(temp_data_directory);
-					qlist = qdir.entryList("*.out", QDir::Files, QDir::Name);
-					QFile qfile;
-					
-					for ( QStringList::const_iterator i = qlist.constBegin(); i != qlist.constEnd(); ++i )
+					for ( vector<String>::const_iterator i = out_files.begin(); i != out_files.end(); ++i )
 					{
-						if ( !qfile.remove(QString(out_directory.c_str() + *i)) ) writeLog_(string((*i).ascii()) + "could not be removed!");
+						if ( !File::remove(out_directory + *i) )
+						{
+							writeLog_(String("'") + out_directory + *i + "' could not be removed!");
+						}
 					}
 				}
-				
-				qlist.clear();
 			}
 			
 			// (3.3) deleting all temporary files
