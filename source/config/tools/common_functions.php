@@ -187,9 +187,10 @@ function parseMaintainerLine($line)
 	
 	@param path The OpenMS path
 	@param header The header file name
-	@param members A list of member function strings is written to this variable
+	
+	@return Returns the parses information
 */
-function getPublicMembers($path,$header,&$members)
+function getClassInfo($path,$header)
 {
 	$class = substr(basename($header),0,-2);
 
@@ -200,31 +201,71 @@ function getPublicMembers($path,$header,&$members)
 		print "       Please execute 'make idoc' in '$path/doc/'.\n";
 	}
 	
+	$members = array(
+		"public"=> array(),
+		"non-public"=> array(),
+		"variables"=> array(),
+		);
+	
 	######################## load file ###############################
-	exec("find $path/doc/xml/ -name \"*OpenMS*".$class.".xml\"",$out);
-	if (count($out)!=1)
+	$paths = array(
+		"",
+		"Internal_1_1",
+		"Math_1_1",
+		);
+	
+	$found = false;
+	foreach ($paths as $p)
 	{
-		print "Error: Several possibilities for class '$class'. Aborting!\n";
-		exit;
+		$tmp = "$path/doc/xml/classOpenMS_1_1".$p.$class.".xml";
+		if (file_exists($tmp))
+		{
+			$class = simplexml_load_file($tmp);
+			$found = true;
+			break;
+		}
+	}
+	if (!$found)
+	{
+		print "Error: No XML file found for class '$class'. Aborting!\n";
+		return $members;
 	}
 	
-	######################## load file ###############################
-	$class = simplexml_load_file($out[0]);
-	$members = array();
+	######################## parse ###############################
 	
+	$classname = substr($class->compounddef->compoundname,8);
 	foreach ($class->compounddef->sectiondef as $section)
 	{
-		#only public members section
-		//if ($section["kind"]!="public-type" && $section["friend"]!="public-type")
-		if (true)
+		foreach($section->memberdef as $member)
 		{
-			foreach($section->memberdef as $member)
+			#method
+			if ($member["kind"]=="function")
 			{
-				#only public members
-				if ($member["prot"]=="public" && $member["kind"]=="function")
+				#public methods
+				if ($member["prot"]=="public")
 				{
 					#name
-					$mem = $member->definition." ".$member->argsstring;
+					$mem = $member->definition.$member->argsstring;
+					
+					#template parameters
+					if (isset($member->templateparamlist))
+					{
+						$first = true;
+						foreach($member->templateparamlist->param as $para)
+						{
+							if ($first)
+							{
+								$template = "template <".$para->type." ".$para->defname;
+								$first = false;
+							}
+							else
+							{
+								$template .= ", ".$para->type." ".$para->defname;
+							}
+						}
+						if (isset($template)) $mem = $template."> ".$mem;
+					}
+					
 					#exceptions
 					$except = " throw (";
 					$first = true;
@@ -244,24 +285,26 @@ function getPublicMembers($path,$header,&$members)
 					{
 						$mem .= $except.")";
 					}
-					# modifier
-					if ($member["static"]!="no")
-					{
-						$mem = "static ".$mem;
-					}
-					if ($member["inline"]!="no")
-					{
-						$mem = "inline ".$mem;
-					}
-					if ($member["virt"]!="non-virtual")
-					{
-						$mem = "virtual ".$mem;
-					}
-					$members[]=$mem;
+					
+					# remove namespace stuff
+					$mem = strtr($mem,array($classname."::"=>""));
+					
+					$members["public-long"][]=$mem;
+					$members["public"][] = (string)$member->name;
 				}
+				#non-public methods
+				else
+				{
+					$members["non-public"][] = (string)$member->name;
+				}
+			}
+			else if($member["kind"]=="variable" && $member["prot"]!="public")
+			{
+				$members["variables"][] = (string)$member->name;
 			}
 		}
 	}
+	return $members;
 }
 
 ?>

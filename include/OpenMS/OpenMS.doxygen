@@ -54,7 +54,8 @@
 
 /*
 	TODO:
-	- check_test durch C++-Parser oder doxygen output ersetzen (coding conventions benennung erzwingen)
+	- check_test ersetzen in create_test.php und correct_test.php
+	- checker.php Coding: Constructor + serialize + QT-Members zulassen 
 	- Kernel/Datastructures nach Pass-By-Copy durchsuchen
 	- Valgrind
 	- ParamHander-Klasse (getDefaults())

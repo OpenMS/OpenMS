@@ -82,6 +82,7 @@
 															"test_output"    => "check test output for warnings and errors",
 															"topp_output"    => "check TOPP test output for warnings and errors",
 															"svn_keywords"   => "check if the SVN keywords are set for tests",
+															"coding"				 => "check if coding convention is followed"
 														);
 	
 	$options = array("-u","-t");
@@ -174,10 +175,12 @@
 	########################### NEEDED FILES ###############################
 	
 	$abort = false;
-	if (!file_exists("$path/source/config/tools/check_test"))
+	$out = array();
+	exec("cd $path/doc/xml/ && ls -a *.xml | wc -l",$out);
+	if (trim($out[0]) < 100)
 	{
-		print "Error: For this script, the file '$path/source/config/tools/check_test' is needed!\n";
-		print "       Please execute 'make' in '$path/source/config/tools/'.\n";
+		print "Error: For this script, doxygen XML output is needed!\n";
+		print "       Please execute 'make idoc' in '$path/doc/'.\n";
 		$abort = true;
 	}
 	if ($test == "all" || $test == "doxygen_errors")
@@ -191,7 +194,8 @@
 	}
 	if ($test == "all" || $test == "test_output")
 	{
-		exec("cd $path/source/TEST/ && ls -a *.output | wc -l",$out);
+		$out = array();
+		exec("cd $path/source/TEST/ && ls -a *.output 2> /dev/null | wc -l",$out);
 		if (trim($out[0]) < 100)
 		{
 			print "Error: For the 'test_output' test, test output files are needed!\n";
@@ -202,7 +206,7 @@
 	if ($test == "all" || $test == "topp_output")
 	{
 		$out = array();
-		exec("cd $path/source/TEST/TOPP/ && ls -a *.output | wc -l",$out);
+		exec("cd $path/source/TEST/TOPP/ && ls -a *.output 2> /dev/null | wc -l",$out);
 		if (trim($out[0]) < 10)
 		{
 			print "Error: For the 'topp_output' test, TOPP test output files are needed!\n";
@@ -218,7 +222,7 @@
 	########################### MAINTAINERS ################################
 	
 	$files=array();
-	exec("cd $path && find include/ -name \"*.h\" ! -name \"*Template.h\"", $files);
+	exec("cd $path && find include/OpenMS/ -name \"*.h\" ! -name \"*Template.h\"", $files);
 	exec("cd $path && find source/ -name \"*.C\" ! -regex \".*/EXAMPLES/.*\" ! -regex \".*/tools/.*\" ! -name \"*_moc.C\" ! -name \"moc_*.C\" ! -name \"*Template.C\"", $files);
 	
 	//look up Maintainer in first 40 lines of files
@@ -308,30 +312,33 @@
 			$called_tests[] = "source/TEST/".strtr($line,array("\\"=>""," "=>"", "	"=>"")).".C";
 		}
 	}
-	$doxygen_errors = array();
-	$errorfile = file("$path/doc/doxygen-error.log");
-	foreach($errorfile as $line)
+
+	if ($test == "all" || $test == "doxygen_errors")
 	{
-		if (ereg("(.*/[a-zA-Z0-9_]+\.[hC]):[0-9]+:",$line,$parts))
+		$doxygen_errors = array();
+		$errorfile = file("$path/doc/doxygen-error.log");
+		foreach($errorfile as $line)
 		{
-			//skip warning where doxygen cannot resolve members
-			if (strpos($line,"no uniquely matching class member")===FALSE && strpos($line,"no matching class member")===FALSE)
+			if (ereg("(.*/[a-zA-Z0-9_]+\.[hC]):[0-9]+:",$line,$parts))
 			{
-				$pos = strpos($parts[1],"source/");
-				if($pos!==FALSE)
+				//skip warning where doxygen cannot resolve members
+				if (strpos($line,"no uniquely matching class member")===FALSE && strpos($line,"no matching class member")===FALSE)
 				{
-					$doxygen_errors[] = substr($parts[1],$pos);
-				}
-				$pos = strpos($parts[1],"include/OpenMS/");
-				if($pos!==FALSE)
-				{
-					$doxygen_errors[] = substr($parts[1],$pos);
+					$pos = strpos($parts[1],"source/");
+					if($pos!==FALSE)
+					{
+						$doxygen_errors[] = substr($parts[1],$pos);
+					}
+					$pos = strpos($parts[1],"include/OpenMS/");
+					if($pos!==FALSE)
+					{
+						$doxygen_errors[] = substr($parts[1],$pos);
+					}
 				}
 			}
 		}
+		$doxygen_errors = array_unique($doxygen_errors);
 	}
-	$doxygen_errors = array_unique($doxygen_errors);
-	
 	########################################################################
 	########################### TESTS ######################################
 	########################################################################
@@ -347,6 +354,35 @@
 		// file content
 		$file = file($path."/".$f);
 		
+		#########################load class info ################################
+		$dont_report = array(
+			"RangeUtils.h",
+			"ComparatorUtils.h",
+			"KernelTraits.h",
+			"StandardTypes.h",
+			"DimensionDescription.h",
+			"MathFunctions.h",
+			"ClassTest.h",
+			"LayerData.h",
+			"config.h",
+			"XMLSchemes.h",
+			"Serialization.h",
+			"Exception.h",
+			"Types.h",
+			"Macros.h",
+			"Benchmark.h",
+			"Constants.h",
+			);
+
+		if (!endsWith($f,"_registerChildren.h") && endsWith($f,".h") && !in_array($basename,$dont_report))
+		{
+			$class_info = getClassInfo($path,$f,true,true,true);
+		}
+		else
+		{
+			unset($class_info);
+		}
+
 		########################### guards ######################################
 		if ($test == "all" || $test == "guards")
 		{
@@ -445,7 +481,6 @@
 				"/CONCEPT/Benchmark.h",
 				"/CONCEPT/Constants.h",
 				"/config.h",
-				"source/config/tools/check_test.C",
 				"include/OpenMS/APPLICATIONS/TOPPViewBase.h",
 				"_registerChildren.h",
 				"DataReducer.h",
@@ -529,31 +564,164 @@
 			}
 		}
 		
-		########################### check_test  #####################################
-		$dont_report = array(
-			"MathFunctions.h",
-			"ClassTest.h",
-			"RangeUtils.h",
-		);
-		if ($test == "all" || $test == "check_test")
+		########################### test errors  #####################################
+
+		#stuff replaced in methods
+		$replace = array(
+			"std::" => "",
+			"OpenMS::" => "",
+			" " => "",
+			"\t" => "",
+			"=0" => "",
+			"throw()" => "",
+			"virtual" => "",
+			"static" => "",
+			"/*" => "",
+			"*/" => "",
+			);
+		
+		if (isset($class_info) && ($test == "all" || $test == "check_test"))
 		{
-			if (endsWith($f,".h") && in_array($testname,$files) && !in_array($basename,$dont_report))
+			if (in_array($testname,$files))
 			{
+				#parse doxygen XML file
 				$result = array();
-				exec("$path/source/config/tools/check_test $path/$f $path/$testname 2>&1",$result);
-				if (count($result)!=0)
+				
+				#parse test and report missing methods
+				$tmp = file($testname);
+				$tests = array();
+				foreach ($tmp as $line)
 				{
-					realOutput("check_test errors in '$f'",$user,$verbose,$f);
+					
+					$line = trim($line);
+					if (beginsWith($line,"CHECK("))
+					{
+						# strip brackets
+						$function = trim(substr($line,5));
+						while ($function[0]=='(' && $function[strlen($function)-1]==')')
+						{
+							$function = trim(substr($function,1,-1));
+						}
+						# ignore extra function tests
+						if (!beginsWith($function,"[EXTRA]"))
+						{
+							$tests[] = $function;
+						}
+					}
+				}
+				
+				#make a copy without whitespaces
+				$tmp  =array();
+				foreach ($class_info["public-long"] as $m)
+				{
+					$tmp[] = strtr($m,$replace);
+				}
+				
+				#compare tests and declarations
+				$unknown = array();
+				foreach ($tests as $t)
+				{
+					$stripped = strtr($t,$replace);
+					$pos = array_search($stripped,$tmp);
+					if ($pos === FALSE)
+					{
+						$unknown[] = $t;
+					}
+					else
+					{
+						unset($tmp[$pos]);
+					}
+				}
+				
+				$out = array();
+				#report missing tests
+				if (count($unknown)!=0)
+				{
+					$out[] = "  Tests of unknown methods:\n";
+					foreach ($unknown as $u)
+					{
+						$out[] = "    - '$u'\n";	
+					}
+				}
+				#report extra tests
+				if (count($tmp)!=0)
+				{
+					$out[] = "  Missing tests:\n";
+					foreach ($tmp as $t)
+					{
+						# look up test with spaces
+						foreach($class_info["public-long"] as $z)
+						{
+							if (strtr($z,$replace)==$t)
+							{
+								$out[] = "    - '$z'\n";	
+								break;
+							}
+						}
+					}
+				}
+				# print out report if missing or extra tests
+				if (count($out)!=0)
+				{
+					realOutput("Test error in '$f'",$user,$verbose,$testname);
 					if ($verbose)
 					{
-						foreach ($result as $r)
+						foreach ($out as $o)
 						{
-							print "  ".trim($r)."\n";
+							print $o;
 						}
 					}
 				}
 			}
 		}
+		
+		
+		
+		############################## coding ##########################################
+		if (isset($class_info) && ($test == "all" || $test == "coding"))
+		{
+			$out = array();
+			#variables
+			# -underscore at the end
+			foreach($class_info["variables"] as $tmp)
+			{
+				if (!endswith($tmp,'_'))
+				{
+					$out[] = "  - invalid non-public variable name '$tmp'\n";
+				}
+			}
+			foreach($class_info["non-public"] as $tmp)
+			{
+				if (!endswith($tmp,'_'))
+				{
+					$out[] = "  - invalid non-public method name '$tmp'\n";
+				}
+				else if (strpos(substr($tmp,0,-1),'_')!==FALSE)
+				{
+					$out[] = "  - invalid non-public method name '$tmp'\n";
+				}
+			}
+			foreach($class_info["public"] as $tmp)
+			{
+				if (strpos($tmp,'_')!==FALSE)
+				{
+					$out[] = "  - invalid public method name '$tmp'\n";
+				}
+			}
+			if (count($out)!=0)
+			{
+				realOutput("Coding convention violation in '$f'",$user,$verbose,$f);
+				if ($verbose)
+				{
+					foreach ($out as $o)
+					{
+						print $o;
+					}
+				}
+			}
+		}
+
+		
 		
 		########################### warnings test  #####################################
 		if ($test == "all" || $test == "test_output")

@@ -55,12 +55,12 @@ column:
 @code
 while (continue == true)
 {
-  for (int i = 0; i &lt; 10; i++)
+  for (int i = 0; i < 10; i++)
   {
     ...
   }
 
-  if (x &lt; 7)
+  if (x < 7)
   {
     ....
   }
@@ -115,10 +115,10 @@ way:
 #ifndef OPENMS_CORE_DPEAK_H
 #define OPENMS_CORE_DPEAK_H
 
-#include &lt;OpenMS/CONCEPT/Types.h&gt;
+#include <OpenMS/CONCEPT/Types.h>
 
-#include &lt;functional&gt;
-#include &lt;sstream&gt;
+#include <functional>
+#include <sstream>
 
 namespace OpenMS
 {
@@ -139,7 +139,7 @@ namespace OpenMS
 // $Maintainer: Marc Sturm $
 // --------------------------------------------------------------------------
 
-#include &lt;OpenMS/CORE/DPeak.h&gt;
+#include <OpenMS/CORE/DPeak.h>
 
 namespace OpenMS
 {
@@ -235,7 +235,7 @@ to simplify debugging.  <TT>__FILE__</TT> and <TT>__LINE__</TT> are standard-def
 preprocessor macros.  The symbol <TT>__PRETTY_FUNCTION__</TT> works similar to a
 <code>char*</code> and contains the type signature of the function as well as its
 bare name, if the GNU compiler is being used.  It is defined to
-<code>"&lt;unknown&gt;"</code> on other platforms. Exception::Base provides methods
+<code>&lt;unknown&gt;</code> on other platforms. Exception::Base provides methods
 (<TT>getFile</TT>, <TT>getLine</TT>, <TT>getFunction</TT>) that allow the localization
 of the exception's cause.
 
@@ -326,9 +326,9 @@ Enumerated values and preprocessor constants are all upper case
   letters.  Parts of the name are separated by underscores.
 
 @code
-#define MYCLASS_SUPPORTS_MIN_MAX 0</TT> (preprocessor constant
-enum DimensionId { DIM_MZ = 0, DIM_RT = 1 };</TT> (enumerated values
-enum DimensionId_ { MZ = 0, RT = 1 };</TT> (enumerated values
+#define MYCLASS_SUPPORTS_MIN_MAX 0 //preprocessor constant
+enum DimensionId { DIM_MZ = 0, DIM_RT = 1 }; //enumerated values
+enum DimensionId_ { MZ = 0, RT = 1 }; //enumerated values
 @endcode
 
 (You should avoid using the preprocessor anyway.  Normally, <TT>const</TT> and
@@ -391,8 +391,8 @@ class Test
     */
     enum EnumType
     {
-      int EVal1,     ///&lt; Enum value 1.
-      int EVal2      ///&lt; Enum value 2.
+      int EVal1,     ///< Enum value 1.
+      int EVal2      ///< Enum value 2.
     };
 
     /**
@@ -430,7 +430,7 @@ class Test
     //@}
 
   protected:
-    int value;       ///&lt; An integer value.
+    int value;       ///< An integer value.
 };
 @endverbatim
 
