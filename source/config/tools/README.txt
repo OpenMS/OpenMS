@@ -13,4 +13,6 @@ This folder contains some useful tools for developers:
   check_includes.php -  Checks for unneeded includes.
 
   checker.php        -  Reports errors in the code, test, documentation, ...
+                        This tool relies on doxygen XML output.
+                        Rebuild the doceumentation in order to update the results. 
 

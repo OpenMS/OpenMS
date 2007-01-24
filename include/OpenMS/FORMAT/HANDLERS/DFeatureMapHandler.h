@@ -286,11 +286,11 @@ namespace OpenMS
    			feature_        = new DFeature<D>();
    			break;
 			case QUALITY:
-				tmp_str = getAttributeAsString(DIM);
+				tmp_str = getAttributeAsString_(DIM);
 				current_qcoord_ = asUnsignedInt_(tmp_str); 
 				break;
 			case POSITION:
-				tmp_str = getAttributeAsString(DIM);
+				tmp_str = getAttributeAsString_(DIM);
 				current_pcoord_ = asUnsignedInt_(tmp_str); 
 				break;
 			case CONVEXHULL: 
@@ -300,13 +300,13 @@ namespace OpenMS
 				hull_position_  = new DPosition<D>(); 
 				break;
 			case HPOSITION:  
-				tmp_str = getAttributeAsString(DIM);
+				tmp_str = getAttributeAsString_(DIM);
 				current_hcoord_ = asUnsignedInt_(tmp_str); 
 				break;
 			case FEATMODEL:
 				model_desc_ = new ModelDescription<D>();
 		  	param_ = new Param();
-				tmp_str = getAttributeAsString(NAME);
+				tmp_str = getAttributeAsString_(NAME);
 		  	if (tmp_str != "")
 		  	{
 		  		model_desc_->setName(tmp_str);
@@ -314,8 +314,8 @@ namespace OpenMS
 		  	break;
 		  case PARAM:
 		  {
-		  	String name = getAttributeAsString(NAME);
-				String value = getAttributeAsString(VALUE);
+		  	String name = getAttributeAsString_(NAME);
+				String value = getAttributeAsString_(VALUE);
 		  	if (name != "" && value != "")
 		  		param_->setValue(name, value);
 		  	break;

@@ -134,7 +134,7 @@ namespace OpenMS
 	
 	protected:
 		/// Draws the icon defined in the meta info of @p peak at the position @p p
-		void drawIcon(const PeakType& peak, const QPoint& p);
+		void drawIcon_(const PeakType& peak, const QPoint& p);
 		
 		/**
 			@brief Changes visible area interval
@@ -182,7 +182,7 @@ namespace OpenMS
 		/// Iterator on peak next to mouse position
 		SpectrumIteratorType nearest_peak_;
 		/// Find peak next to the given position
-		SpectrumIteratorType findPeakAtPosition(QPoint);  
+		SpectrumIteratorType findPeakAtPosition_(QPoint);  
 		
 		/// pen for drawing of normal peaks
 		QPen norm_pen_;

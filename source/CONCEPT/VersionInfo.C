@@ -59,9 +59,4 @@ namespace OpenMS
 		}
 		return minor;
 	}
-	
-	const char* VersionInfo::RELEASE_DATE_AND_TIME = "@(#)OpenMS kernel compiled on: " __DATE__ ", " __TIME__;
-
-	const char* VersionInfo::RELEASE_WHAT_STRING = "@(#)OpenMS kernel version: V." PACKAGE_VERSION;					  
-
 }

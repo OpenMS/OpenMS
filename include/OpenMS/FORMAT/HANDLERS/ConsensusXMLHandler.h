@@ -291,7 +291,7 @@ namespace OpenMS
           case PARAM:
           break;
           case MAPLIST:
-          tmp_str = getAttributeAsString(COUNT);
+          tmp_str = getAttributeAsString_(COUNT);
           if (tmp_str != "")
           {
             UnsignedInt count = asUnsignedInt_(tmp_str);
@@ -300,7 +300,7 @@ namespace OpenMS
           }
           break;
           case MAPTYPE:
-          tmp_str = getAttributeAsString(NAME);
+          tmp_str = getAttributeAsString_(NAME);
           if (tmp_str != "")
           {
             if (tmp_str == "feature_map")
@@ -318,11 +318,11 @@ namespace OpenMS
           }
           break;
           case MAP:
-          tmp_str = getAttributeAsString(ID);
+          tmp_str = getAttributeAsString_(ID);
           if (tmp_str != "")
           {
             UnsignedInt id = asUnsignedInt_(tmp_str);
-            tmp_str = getAttributeAsString(NAME);
+            tmp_str = getAttributeAsString_(NAME);
 
             // load FeatureMapXML
             if (feature_map_flag_)
@@ -349,19 +349,19 @@ namespace OpenMS
           consensus_element_range_ = true;
           break;
           case CENTROID:
-          tmp_str = getAttributeAsString(RT_ATT);
+          tmp_str = getAttributeAsString_(RT_ATT);
           if (tmp_str != "")
           {
             pos_[RT] = asDouble_(tmp_str);
           }
 
-          tmp_str = getAttributeAsString(MZ_ATT);
+          tmp_str = getAttributeAsString_(MZ_ATT);
           if (tmp_str != "")
           {
             pos_[MZ] = asDouble_(tmp_str);
           }
 
-          tmp_str = getAttributeAsString(IT);
+          tmp_str = getAttributeAsString_(IT);
           if (tmp_str != "")
           {
             it_ = asDouble_(tmp_str);
@@ -370,32 +370,32 @@ namespace OpenMS
           case RANGE:
           if (consensus_element_range_)
           {
-            tmp_str = getAttributeAsString(RTMIN);
+            tmp_str = getAttributeAsString_(RTMIN);
             if (tmp_str != "")
             {
               pos_range_.setMinX(asDouble_(tmp_str));
 
-              tmp_str = getAttributeAsString(RTMAX);
+              tmp_str = getAttributeAsString_(RTMAX);
               if (tmp_str != "")
               {
                 pos_range_.setMaxX(asDouble_(tmp_str));
 
-                tmp_str = getAttributeAsString(MZMIN);
+                tmp_str = getAttributeAsString_(MZMIN);
                 if (tmp_str != "")
                 {
                   pos_range_.setMinY(asDouble_(tmp_str));
 
-                  tmp_str = getAttributeAsString(MZMAX);
+                  tmp_str = getAttributeAsString_(MZMAX);
                   if (tmp_str != "")
                   {
                     pos_range_.setMaxY(asDouble_(tmp_str));
 
-                    tmp_str = getAttributeAsString(ITMIN);
+                    tmp_str = getAttributeAsString_(ITMIN);
                     if (tmp_str != "")
                     {
                       it_range_.setMin(asDouble_(tmp_str));
 
-                      tmp_str = getAttributeAsString(ITMAX);
+                      tmp_str = getAttributeAsString_(ITMAX);
                       if (tmp_str != "")
                       {
                         it_range_.setMax(asDouble_(tmp_str));
@@ -411,11 +411,11 @@ namespace OpenMS
           break;
           case ELEMENT:
           IndexTuple< ElementContainerType > act_index_tuple;
-          tmp_str = getAttributeAsString(MAP_ATT);
+          tmp_str = getAttributeAsString_(MAP_ATT);
           if (tmp_str != "")
           {
             UnsignedInt map_index = asUnsignedInt_(tmp_str);
-            tmp_str = getAttributeAsString(ID);
+            tmp_str = getAttributeAsString_(ID);
 
             if (tmp_str != "")
             {
@@ -424,10 +424,10 @@ namespace OpenMS
               act_index_tuple.setMapIndex(map_index);
               act_index_tuple.setElementIndex(element_index);
 
-              tmp_str = getAttributeAsString(RT_ATT);
+              tmp_str = getAttributeAsString_(RT_ATT);
               PositionType pos;
               pos[0] = asDouble_(tmp_str);
-              tmp_str = getAttributeAsString(MZ_ATT);
+              tmp_str = getAttributeAsString_(MZ_ATT);
               pos[1] = asDouble_(tmp_str);
 
               act_index_tuple.setTransformedPosition(pos);

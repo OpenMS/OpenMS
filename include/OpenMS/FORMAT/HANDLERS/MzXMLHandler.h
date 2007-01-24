@@ -176,7 +176,7 @@ namespace OpenMS
 		UnsignedInt spec_write_counter_;
 		
 		/// Add name, value and description to a given MetaInfo object
-		void setAddInfo(MetaInfoInterface& info, const String& name, const String& value, const String& description)
+		void setAddInfo_(MetaInfoInterface& info, const String& name, const String& value, const String& description)
 		{
 			info.metaRegistry().registerName(name, description);
 			info.setMetaValue(name,value);
@@ -252,11 +252,11 @@ namespace OpenMS
 		{
 			if (is_parser_in_tag_[INSTRUMENT])
 			{
-				 setAddInfo(exp_->getInstrument(),"#Comment" , xercesc::XMLString::transcode(chars), "Instrument.Comment");
+				 setAddInfo_(exp_->getInstrument(),"#Comment" , xercesc::XMLString::transcode(chars), "Instrument.Comment");
 			}
 			else if (is_parser_in_tag_[DATAPROCESSING])
 			{
-				setAddInfo(exp_->getProcessingMethod(),"#Comment", xercesc::XMLString::transcode(chars),"DataProcessing.Comment");
+				setAddInfo_(exp_->getProcessingMethod(),"#Comment", xercesc::XMLString::transcode(chars),"DataProcessing.Comment");
 			}
 			else if (is_parser_in_tag_[SCAN])
 			{
@@ -294,7 +294,7 @@ namespace OpenMS
 			case MSRUN:
 				if (options_.getMetadataOnly())
 				{
-					tmp_str = getAttributeAsString(SCANCOUNT);
+					tmp_str = getAttributeAsString_(SCANCOUNT);
 					if (tmp_str!="") // optional attribute
 					{  
 						exp_->reserve( asUnsignedInt_(tmp_str) );
@@ -306,7 +306,7 @@ namespace OpenMS
 				// look for schema information
 				if (atts_->getIndex(xercesc::XMLString::transcode(enum2str_(ATTMAP,SCHEMA).c_str()))!=-1)
 				{
-					tmp_str = getAttributeAsString(SCHEMA);
+					tmp_str = getAttributeAsString_(SCHEMA);
 					//std::cout << "SCHEMA: " << tmp_str << std::endl;
 					if (tmp_str!="")
 					{
@@ -326,7 +326,7 @@ namespace OpenMS
 				}
 				break;
 			case PARENTFILE:
-				tmp_str = getAttributeAsString(FILENAME);
+				tmp_str = getAttributeAsString_(FILENAME);
 				if (tmp_str != "") // required attribute
 				{
 					exp_->getSourceFile().setNameOfFile( tmp_str.c_str() );
@@ -336,7 +336,7 @@ namespace OpenMS
 					error("'fileName' attribute missing in 'parentFile' tag");
 				}
 				
-				tmp_str = getAttributeAsString(FILETYPE);
+				tmp_str = getAttributeAsString_(FILETYPE);
 				if (tmp_str != "") // required attribute
 				{
 					exp_->getSourceFile().setFileType( tmp_str );
@@ -346,7 +346,7 @@ namespace OpenMS
 					error("'fileType' attribute missing in 'parentFile' tag");
 				}
 				
-				tmp_str = getAttributeAsString(FILESHA1);
+				tmp_str = getAttributeAsString_(FILESHA1);
 				if (tmp_str != "") // required attribute
 				{
 					exp_->getSourceFile().setSha1(tmp_str);
@@ -374,7 +374,7 @@ namespace OpenMS
 			case SOFTWARE:
 				if (is_parser_in_tag_[DATAPROCESSING])
 				{
-					tmp_str = getAttributeAsString(SOFTWAREVERSION);
+					tmp_str = getAttributeAsString_(SOFTWAREVERSION);
 					if (tmp_str != "") // required attribute
 					{
 						exp_->getSoftware().setVersion(tmp_str);
@@ -384,7 +384,7 @@ namespace OpenMS
 						error("'software' tag below 'dataProcessing' tag misses required attribute 'version'");
 					}
 					
-					tmp_str = getAttributeAsString(NAME);
+					tmp_str = getAttributeAsString_(NAME);
 					if (tmp_str != "") // required attribute
 					{
 						exp_->getSoftware().setName(tmp_str);
@@ -394,7 +394,7 @@ namespace OpenMS
 						error("'software' tag below 'dataProcessing' tag misses required attribute 'name'");
 					}
 					
-					tmp_str = getAttributeAsString(TYPE);
+					tmp_str = getAttributeAsString_(TYPE);
 					if (tmp_str != "") // required attribute
 					{
 						exp_->getSoftware().setComment(tmp_str);
@@ -404,7 +404,7 @@ namespace OpenMS
 						error("'software' tag below 'dataProcessing' tag misses required attribute 'version'");
 					}
 					
-					tmp_str = getAttributeAsString(COMPLETION_TIME);
+					tmp_str = getAttributeAsString_(COMPLETION_TIME);
 					if (tmp_str != "") // optional attribute
 					{
 						exp_->getSoftware().setCompletionTime( asDateTime_(tmp_str) );
@@ -423,7 +423,7 @@ namespace OpenMS
 					registry.registerName(swt,swt_d);
 					registry.registerName(cmpl,cmpl_d);
 					
-					tmp_str = getAttributeAsString(NAME);
+					tmp_str = getAttributeAsString_(NAME);
 					if (tmp_str != "") // required attribute
 					{
 						exp_->getInstrument().setMetaValue(swn, tmp_str);
@@ -433,7 +433,7 @@ namespace OpenMS
 						error("'software' tag below 'instrument' tag misses required attribute 'name'");
 					}
 					
-					tmp_str = getAttributeAsString(SOFTWAREVERSION);
+					tmp_str = getAttributeAsString_(SOFTWAREVERSION);
 					if (tmp_str != "") // required attribute
 					{
 						exp_->getInstrument().setMetaValue(swv, tmp_str);
@@ -443,7 +443,7 @@ namespace OpenMS
 						error("'software' tag below 'instrument' tag misses required attribute 'version'");
 					}
 					
-					tmp_str = getAttributeAsString(TYPE);
+					tmp_str = getAttributeAsString_(TYPE);
 					if (tmp_str != "") // required attribute
 					{
 						exp_->getInstrument().setMetaValue(swt, tmp_str);
@@ -453,7 +453,7 @@ namespace OpenMS
 						error("'software' tag below 'instrument' tag misses required attribute 'type'");
 					}
 					
-					tmp_str = getAttributeAsString(COMPLETION_TIME);
+					tmp_str = getAttributeAsString_(COMPLETION_TIME);
 					if  (tmp_str != "") // optional attribute
 					{
 						DateTime time = asDateTime_(tmp_str);
@@ -478,25 +478,25 @@ namespace OpenMS
 					
 					PrecursorPeakType& peak = spec_->getPrecursorPeak();
 					
-					tmp_str = getAttributeAsString(PRECURSOR_INTENSITY);
+					tmp_str = getAttributeAsString_(PRECURSOR_INTENSITY);
 					if (tmp_str != "") // optional attribute
 					{
 						peak.setIntensity( asFloat_(tmp_str) );
 					}
 					
-					tmp_str = getAttributeAsString(PRECURSOR_CHARGE);
+					tmp_str = getAttributeAsString_(PRECURSOR_CHARGE);
 					if (tmp_str != "") // optional attribute
 					{
 						peak.setCharge(asSignedInt_(tmp_str));
 					}
 					
-					tmp_str = getAttributeAsString(PRECURSOR_SCANNUM);
+					tmp_str = getAttributeAsString_(PRECURSOR_SCANNUM);
 					if (tmp_str != "") // optional attribute
 					{
 						// ignore
 					}
 					
-					tmp_str = getAttributeAsString(WINDOW_WIDENESS);
+					tmp_str = getAttributeAsString_(WINDOW_WIDENESS);
 					if (tmp_str != "") // optional attribute
 					{
 						spec_->getPrecursor().setWindowSize(asDouble_(tmp_str));
@@ -505,7 +505,7 @@ namespace OpenMS
 				break;
 			case MALDI:
 				{
-					tmp_str = getAttributeAsString(PLATEID);
+					tmp_str = getAttributeAsString_(PLATEID);
 					if (tmp_str != "") // required attribute
 					{
 						// TODO
@@ -515,7 +515,7 @@ namespace OpenMS
 						error("'maldi' tag misses required attribute 'plateID'");
 					}
 					
-					tmp_str = getAttributeAsString(SPOTID);
+					tmp_str = getAttributeAsString_(SPOTID);
 					if (tmp_str != "") // required attribute
 					{
 						// TODO
@@ -525,19 +525,19 @@ namespace OpenMS
 						error("'maldi' tag misses required attribute 'spotID'");
 					}
 					
-					tmp_str = getAttributeAsString(LASER_SHOOT_COUNT);
+					tmp_str = getAttributeAsString_(LASER_SHOOT_COUNT);
 					if (tmp_str != "") // optional attribute
 					{
 						// TODO
 					}
 					
-					tmp_str = getAttributeAsString(LASER_FREQUENCY);
+					tmp_str = getAttributeAsString_(LASER_FREQUENCY);
 					if (tmp_str != "") // optional attribute
 					{
 						// TODO
 					}
 					
-					tmp_str = getAttributeAsString(LASER_INTESITY);
+					tmp_str = getAttributeAsString_(LASER_INTESITY);
 					if (tmp_str != "") // optional attribute
 					{
 						// TODO
@@ -548,7 +548,7 @@ namespace OpenMS
 				{
 					if (options_.getMetadataOnly()) break;
 					
-					tmp_str = getAttributeAsString(NUM);
+					tmp_str = getAttributeAsString_(NUM);
 					if (tmp_str == "")
 					{
 						error("'scan' tag misses required attribute 'num'");
@@ -564,7 +564,7 @@ namespace OpenMS
 					SpectrumType spec;
 					
 					// required attributes
-					tmp_str = getAttributeAsString(MSLEVEL);
+					tmp_str = getAttributeAsString_(MSLEVEL);
 					if (tmp_str != "")
 					{
 						spec.setMSLevel(asSignedInt_(tmp_str));
@@ -575,7 +575,7 @@ namespace OpenMS
 						break;
 					}
 					
-					tmp_str = getAttributeAsString(PEAKSCOUNT);
+					tmp_str = getAttributeAsString_(PEAKSCOUNT);
 					if (tmp_str != "")
 					{
 						peak_count_ = asSignedInt_(tmp_str);
@@ -639,7 +639,7 @@ namespace OpenMS
 				}
 				break;
 			case SCANORIGIN:
-				tmp_str = getAttributeAsString(PARENTFILEID);
+				tmp_str = getAttributeAsString_(PARENTFILEID);
 				if (tmp_str != "") // required attribute
 				{
 					// ignore
@@ -649,7 +649,7 @@ namespace OpenMS
 					error("'parentFileID' attribute missing in 'scanOrigin' tag");
 				}
 				
-				tmp_str = getAttributeAsString(NUM);
+				tmp_str = getAttributeAsString_(NUM);
 				if (tmp_str != "") // required attribute
 				{
 					// ignore
@@ -661,8 +661,8 @@ namespace OpenMS
 				break;
 			case OPERATOR:
 				{
-					String first = getAttributeAsString(FIRST_NAME);  // required attribute
-					String last = getAttributeAsString(LAST_NAME);    // required attribute
+					String first = getAttributeAsString_(FIRST_NAME);  // required attribute
+					String last = getAttributeAsString_(LAST_NAME);    // required attribute
 					
 					if (first == "")
 					{
@@ -678,20 +678,20 @@ namespace OpenMS
 						exp_->getContacts().back().setFirstName(first);
 						exp_->getContacts().back().setLastName(last);
 						
-						tmp_str = getAttributeAsString(EMAIL);
+						tmp_str = getAttributeAsString_(EMAIL);
 						if (tmp_str != "") // optional attribute
 						{
 							exp_->getContacts().back().setEmail(tmp_str);
 						}
 						
 						String contact_info;
-						tmp_str = getAttributeAsString(PHONE);
+						tmp_str = getAttributeAsString_(PHONE);
 						if (tmp_str != "") // optional attribute
 						{
 							contact_info = "PHONE: " + tmp_str;
 						}
 						
-						tmp_str = getAttributeAsString(URI);
+						tmp_str = getAttributeAsString_(URI);
 						if (tmp_str != "") // optional attribute
 						{
 							contact_info += String(contact_info == "" ? "" : " ") + "URI: " + tmp_str;
@@ -707,14 +707,14 @@ namespace OpenMS
 				break;
 			case MANUFACTURER:
 				{
-					tmp_str = getAttributeAsString(CATEGORY);
+					tmp_str = getAttributeAsString_(CATEGORY);
 					if (tmp_str == "") // required attribute
 					{
 						error("'manufacturer' tag misses required attribute 'category'");
 					}
 					else if (tmp_str == enum2str_(TAGMAP,MANUFACTURER))
 					{
-						tmp_str = getAttributeAsString(VALUE);
+						tmp_str = getAttributeAsString_(VALUE);
 						if (tmp_str != "")
 						{
 							exp_->getInstrument().setVendor(tmp_str);
@@ -732,14 +732,14 @@ namespace OpenMS
 				break;
 			case MODEL:
 				{
-					tmp_str = getAttributeAsString(CATEGORY);
+					tmp_str = getAttributeAsString_(CATEGORY);
 					if (tmp_str == "") // required attribute
 					{
 						error("'model' tag misses required attribute 'category'");
 					}
 					else if (tmp_str == enum2str_(TAGMAP,MODEL))
 					{
-						tmp_str = getAttributeAsString(VALUE);
+						tmp_str = getAttributeAsString_(VALUE);
 						if (tmp_str != "")
 						{
 							exp_->getInstrument().setModel(tmp_str);
@@ -757,14 +757,14 @@ namespace OpenMS
 				break;
 			case IONISATION:
 				{
-					tmp_str = getAttributeAsString(CATEGORY);
+					tmp_str = getAttributeAsString_(CATEGORY);
 					if (tmp_str == "") // required attribute
 					{
 						error("'ionization' tag misses required attribute 'category'");
 					}
 					else if (tmp_str == enum2str_(TAGMAP,IONISATION))
 					{
-						tmp_str = getAttributeAsString(VALUE);
+						tmp_str = getAttributeAsString_(VALUE);
 						if (tmp_str != "")
 						{
 							exp_->getInstrument().getIonSource().setIonizationMethod(
@@ -785,14 +785,14 @@ namespace OpenMS
 				break;
 			case ANALYZER:
 				{
-					tmp_str = getAttributeAsString(CATEGORY);
+					tmp_str = getAttributeAsString_(CATEGORY);
 					if (tmp_str == "")
 					{
 						error("'analyzer' tag misses required attribute 'category'");
 					}
 					else if (tmp_str == enum2str_(TAGMAP,ANALYZER))
 					{
-						tmp_str = getAttributeAsString(VALUE);
+						tmp_str = getAttributeAsString_(VALUE);
 						if (tmp_str != "")
 						{
 							exp_->getInstrument().getMassAnalyzers().insert(exp_->getInstrument().getMassAnalyzers().end(), MassAnalyzer());
@@ -814,14 +814,14 @@ namespace OpenMS
 				break;
 			case DETECTOR:
 				{
-					tmp_str = getAttributeAsString(CATEGORY);
+					tmp_str = getAttributeAsString_(CATEGORY);
 					if (tmp_str == "")
 					{
 						error("'detector' tag misses required attribute 'category'");
 					}
 					else if (tmp_str == enum2str_(TAGMAP,DETECTOR))
 					{
-						tmp_str = getAttributeAsString(VALUE);
+						tmp_str = getAttributeAsString_(VALUE);
 						if (tmp_str != "")
 						{
 							IonDetector& ion_d = exp_->getInstrument().getIonDetector();
@@ -840,14 +840,14 @@ namespace OpenMS
 				break;
 			case RESOLUTION:
 				{
-					tmp_str = getAttributeAsString(CATEGORY);
+					tmp_str = getAttributeAsString_(CATEGORY);
 					if (tmp_str == "")
 					{
 						error("'resolution' tag misses required attribute 'category'");
 					}
 					else if (tmp_str == enum2str_(TAGMAP,RESOLUTION))
 					{
-						tmp_str = getAttributeAsString(VALUE);
+						tmp_str = getAttributeAsString_(VALUE);
 						if (tmp_str != "")
 						{
 							if (analyzer_ == 0) break;
@@ -895,8 +895,8 @@ namespace OpenMS
 					break;
 			case NAMEVALUE:
 				{
-					String name = getAttributeAsString(NAME);
-					String value = getAttributeAsString(VALUE);
+					String name = getAttributeAsString_(NAME);
+					String value = getAttributeAsString_(VALUE);
 					
 					if (name == "")
 					{
@@ -911,13 +911,13 @@ namespace OpenMS
 					
 					if (is_parser_in_tag_[INSTRUMENT])
 					{
-						setAddInfo(exp_->getInstrument(), name, value, "Instrument.Comment");
+						setAddInfo_(exp_->getInstrument(), name, value, "Instrument.Comment");
 					}
 					else if (is_parser_in_tag_[SCAN] )
 					{
 						if (!options_.getMetadataOnly())
 						{
-							setAddInfo(	*spec_, name, value, "Instrument.Comment");
+							setAddInfo_(	*spec_, name, value, "Instrument.Comment");
 						}
 					}
 					else
@@ -928,8 +928,8 @@ namespace OpenMS
 				break;
 			case PROCESSING:
 				{
-					String name = getAttributeAsString(NAME);
-					String value = getAttributeAsString(TYPE);
+					String name = getAttributeAsString_(NAME);
+					String value = getAttributeAsString_(TYPE);
 					
 					if (name == "")
 					{
@@ -941,8 +941,8 @@ namespace OpenMS
 					}
 					else
 					{
-						setAddInfo(exp_->getProcessingMethod(), name + "#" + value,
-							getAttributeAsString(VALUE), "Processing.Comment");
+						setAddInfo_(exp_->getProcessingMethod(), name + "#" + value,
+							getAttributeAsString_(VALUE), "Processing.Comment");
 					}
 				}
 				break;

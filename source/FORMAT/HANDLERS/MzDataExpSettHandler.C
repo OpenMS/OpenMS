@@ -181,17 +181,17 @@ namespace OpenMS
 	void MzDataExpSettHandler::userParam_(const XMLCh* name, const XMLCh* value)
 	{
 		if (is_parser_in_tag_[DETECTOR])
-			setAddInfo(exp_->getInstrument().getIonDetector(), XMLString::transcode(name),XMLString::transcode(value),"Descr.Instrument.Detector.UserParam");
+			setAddInfo_(exp_->getInstrument().getIonDetector(), XMLString::transcode(name),XMLString::transcode(value),"Descr.Instrument.Detector.UserParam");
 		else if (is_parser_in_tag_[INSTSRC])
-			setAddInfo(exp_->getInstrument().getIonSource(), XMLString::transcode(name),XMLString::transcode(value),"Descr.Instrument.Source.UserParam");
+			setAddInfo_(exp_->getInstrument().getIonSource(), XMLString::transcode(name),XMLString::transcode(value),"Descr.Instrument.Source.UserParam");
 		else if (is_parser_in_tag_[SAMPLEDESCRIPTION])
-			setAddInfo(exp_->getSample(),XMLString::transcode(name),XMLString::transcode(value),"Descr.Admin.SampleDescription.UserParam");
+			setAddInfo_(exp_->getSample(),XMLString::transcode(name),XMLString::transcode(value),"Descr.Admin.SampleDescription.UserParam");
 		else if (is_parser_in_tag_[ANALYZER])
-			setAddInfo(*analyzer_,XMLString::transcode(name),XMLString::transcode(value),"AnalyzerList.Analyzer.UserParam");
+			setAddInfo_(*analyzer_,XMLString::transcode(name),XMLString::transcode(value),"AnalyzerList.Analyzer.UserParam");
 		else if (is_parser_in_tag_[INSTADDITIONAL])
-			setAddInfo(exp_->getInstrument(),XMLString::transcode(name),XMLString::transcode(value),"Description.Instrument.Additional");
+			setAddInfo_(exp_->getInstrument(),XMLString::transcode(name),XMLString::transcode(value),"Description.Instrument.Additional");
 		else if (is_parser_in_tag_[PROCMETHOD])
-			setAddInfo(exp_->getProcessingMethod(), XMLString::transcode(name),XMLString::transcode(value),"DataProcessing.ProcessingMethod.UserParam");
+			setAddInfo_(exp_->getProcessingMethod(), XMLString::transcode(name),XMLString::transcode(value),"DataProcessing.ProcessingMethod.UserParam");
 		else
 		{
 			const Locator* loc = 0;

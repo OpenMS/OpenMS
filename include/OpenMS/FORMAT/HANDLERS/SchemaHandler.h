@@ -131,68 +131,73 @@ namespace OpenMS
 			/// Fill particular map @p str2enum with given string array @p enum2str
 			void fillMap_(String2EnumMap& str2enum, const Enum2StringMap& enum2str);
 
-		/// Add name, value and description to a given MetaInfo object
-		void setAddInfo(	MetaInfoInterface& info, const String& name, const String& value, const String& description);
-
-		/**  @brief write cvsParamType element containing floats to stream */
-		/**
-				 @p value float value
-				 @p acc acquisition number defined by ontology
-				 @p name term defined by ontology
-				 @p indent number of tabs used in front of tag
-
-					Example:
-					&lt;cvParam cvLabel="psi" accession="PSI:@p acc" name="@p name" value="@p value"/&gt;
-		*/
-		void writeCVS_(std::ostream& os, float value, const String& acc, const String& name, int indent=4);
-
-		/**  @brief write cvsParamType element containing strings to stream */
-		/**
-				 @p value string value
-				 @p acc acquisition number defined by ontology
-				 @p name term defined by ontology
-				 @p indent number of tabs used in front of tag
-
-					Example:
-					&lt;cvParam cvLabel="psi" accession="PSI:@p acc" name="@p name" value="@p value"/&gt;
-		*/
-		void writeCVS_(std::ostream& os, const String& value, const String& acc, const String& name, int indent=4);
-
-		/**  @brief write cvsParamType element containing enum-value to stream */
-		/**
-				 @p map index
-				 @p value enumeration value
-				 @p acc acquisition number defined by ontology
-				 @p name term defined by ontology
-				 @p indent number of tabs used in front of tag
-
-					Example:
-					&lt;cvParam cvLabel="psi" accession="PSI:@p acc" name="@p name" value=""/&gt;
-		*/
-		void writeCVS_(std::ostream& os, int value, int map, const String& acc, const String& name, int indent=4);
-
-		/**  
-			@brief write multiple userParam elements containing MetaInfo to stream
+			/// Add name, value and description to a given MetaInfo object
+			void setAddInfo_(	MetaInfoInterface& info, const String& name, const String& value, const String& description);
+	
+			/**  
+				@brief write cvsParamType element containing floats to stream
+				
+				@p value float value
+				@p acc acquisition number defined by ontology
+				@p name term defined by ontology
+				@p indent number of tabs used in front of tag
+				
+				Example:
+				&lt;cvParam cvLabel="psi" accession="PSI:@p acc" name="@p name" value="@p value"/&gt;
+			*/
+			void writeCVS_(std::ostream& os, float value, const String& acc, const String& name, int indent=4);
+	
+			/**  
+				@brief write cvsParamType element containing strings to stream
+				
+				@p value string value
+				@p acc acquisition number defined by ontology
+				@p name term defined by ontology
+				@p indent number of tabs used in front of tag
+				
+				Example:
+				&lt;cvParam cvLabel="psi" accession="PSI:@p acc" name="@p name" value="@p value"/&gt;
+			*/
+			void writeCVS_(std::ostream& os, const String& value, const String& acc, const String& name, int indent=4);
+	
+			/**  
+				@brief write cvsParamType element containing enum-value to stream
+	
+				@p map index
+				@p value enumeration value
+				@p acc acquisition number defined by ontology
+				@p name term defined by ontology
+				@p indent number of tabs used in front of tag
+				
+				Example:
+				&lt;cvParam cvLabel="psi" accession="PSI:@p acc" name="@p name" value=""/&gt;
+			*/
+			void writeCVS_(std::ostream& os, int value, int map, const String& acc, const String& name, int indent=4);
+	
+			/**  
+				@brief write multiple userParam elements containing MetaInfo to stream
+				
+				@p meta interface to access all meta info
+				@p indent number of tabs used in front of tag
+				
+				Example:
+				&lt;userParam name="??" value="??"/&gt;
+			*/
+			void writeUserParam_(std::ostream& os, const MetaInfoInterface& meta, int indent=4);
+	
+			/// check if value of attribute equals the required value, otherwise throw error
+			void checkAttribute_(UnsignedInt attribute, const String& required, const String& required_alt="");
+	
+			/// return value of attribute as String
+			String getAttributeAsString_(UnsignedInt attribute);
 			
-			@p meta interface to access all meta info
-			@p indent number of tabs used in front of tag
 			
-			Example:
-			&lt;userParam name="??" value="??"/&gt;
-		*/
-		void writeUserParam_(std::ostream& os, const MetaInfoInterface& meta, int indent=4);
-
-		/// check if value of attribute equals the required value, otherwise throw error
-		void checkAttribute_(UnsignedInt attribute, const String& required, const String& required_alt="");
-
-		/// return value of attribute as String
-		String getAttributeAsString(UnsignedInt attribute);
-		
-		void setMaps_(UnsignedInt tagmap, UnsignedInt attmap);
-		
-	private:
-		UnsignedInt tag_map_, att_map_;
-  };
+			void setMaps_(UnsignedInt tagmap, UnsignedInt attmap);
+			
+		private:
+			UnsignedInt tag_map_, att_map_;
+  	
+  	};
 
 	} // namespace Internal
 } // namespace OpenMS

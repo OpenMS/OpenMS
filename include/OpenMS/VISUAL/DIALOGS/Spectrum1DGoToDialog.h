@@ -54,7 +54,7 @@ namespace OpenMS
 	    virtual void setVisibleAreaButton_clicked();
 	    
 	  protected:
-	    float minPos, maxPos, centerPos;
+	    float min_pos_, max_pos_, center_pos_;
 	};
 
 }

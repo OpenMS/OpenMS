@@ -239,7 +239,7 @@ CHECK((String suffix(char delim) const throw (Exception::ElementNotFound)))
 	TEST_EXCEPTION(Exception::ElementNotFound<char>, s.suffix('Z'));
 RESULT
 
-CHECK((String substr(SignedInt start = 0, SignedInt n = NPOS) const))
+CHECK((String substr(SignedInt start=0, SignedInt n=NPOS) const))
 	String s("abcdef");
 	//std::string functionality
 	TEST_EQUAL(s.substr(0),"abcdef");

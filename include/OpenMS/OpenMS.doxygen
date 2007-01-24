@@ -54,8 +54,6 @@
 
 /*
 	TODO:
-	- check_test ersetzen in create_test.php
-	- checker.php-Fehler korrigieren
 	- @todo FileInfo + FileConverter
 	- ParamHander-Klasse (getDefaults())
 	- FeatureFinder wirklich auf MSExperiment umstellen

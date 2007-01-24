@@ -40,28 +40,28 @@ namespace OpenMS
 			Size container_size = container.size();
 			// area
 			for (UnsignedInt i=0; i<container_size; i++) tmp[i] = container[i].getArea();
-			writeBinary(os,container_size,"supDataArrayBinary","area",1);
+			writeBinary_(os,container_size,"supDataArrayBinary","area",1);
 			// FWHM
 			for (UnsignedInt i=0; i<container_size; i++) tmp[i] = container[i].getFWHM();
-			writeBinary(os,container_size,"supDataArrayBinary","fwhm",2);
+			writeBinary_(os,container_size,"supDataArrayBinary","fwhm",2);
 			// LeftWidthParameter
 			for (UnsignedInt i=0; i<container_size; i++) tmp[i] = container[i].getLeftWidthParameter();
-			writeBinary(os,container_size,"supDataArrayBinary","leftWidth",3);
+			writeBinary_(os,container_size,"supDataArrayBinary","leftWidth",3);
 			// RightWidthParameter
 			for (UnsignedInt i=0; i<container_size; i++) tmp[i] = container[i].getRightWidthParameter();
-			writeBinary(os,container_size,"supDataArrayBinary","rightWidth",4);
+			writeBinary_(os,container_size,"supDataArrayBinary","rightWidth",4);
 			// charge
 			for (UnsignedInt i=0; i<container_size; i++) tmp[i] = container[i].getCharge();
-			writeBinary(os,container_size,"supDataArrayBinary","charge",5);
+			writeBinary_(os,container_size,"supDataArrayBinary","charge",5);
 			// signal to noise
 			for (UnsignedInt i=0; i<container_size; i++) tmp[i] = container[i].getSN();
-			writeBinary(os,container_size,"supDataArrayBinary","signalToNoise",6);
+			writeBinary_(os,container_size,"supDataArrayBinary","signalToNoise",6);
 			// rValue
 			for (UnsignedInt i=0; i<container_size; i++) tmp[i] = container[i].getRValue();
-			writeBinary(os,container_size,"supDataArrayBinary","rValue",7);
+			writeBinary_(os,container_size,"supDataArrayBinary","rValue",7);
 			// peakShape
 			for (UnsignedInt i=0; i<container_size; i++) tmp[i] = container[i].getPeakShape();
-			writeBinary(os,container_size,"supDataArrayBinary","peakShape",8);
+			writeBinary_(os,container_size,"supDataArrayBinary","peakShape",8);
 	
 		}
 
@@ -71,14 +71,14 @@ namespace OpenMS
 		{
 			enum PickedPeakMembers {AREA = 2, FWHM, LEFT, RIGHT, CHARGE, SN, RVALUE, SHAPE};
 
-			peak.setArea( getDatum(data,AREA,n));
-			peak.setFWHM( getDatum(data,FWHM,n));
-			peak.setLeftWidthParameter( getDatum(data,LEFT,n));
-			peak.setRightWidthParameter( getDatum(data,RIGHT,n));
-			peak.setCharge(static_cast<DPickedPeak<1,KernelTraits>::ChargeType>(getDatum(data,CHARGE,n)));
-			peak.setSN( getDatum(data,SN,n));
-			peak.setRValue( getDatum(data,RVALUE,n));
-			peak.setPeakShape(PeakShapeType::Enum(int(getDatum(data,SHAPE,n))));
+			peak.setArea( getDatum_(data,AREA,n));
+			peak.setFWHM( getDatum_(data,FWHM,n));
+			peak.setLeftWidthParameter( getDatum_(data,LEFT,n));
+			peak.setRightWidthParameter( getDatum_(data,RIGHT,n));
+			peak.setCharge(static_cast<DPickedPeak<1,KernelTraits>::ChargeType>(getDatum_(data,CHARGE,n)));
+			peak.setSN( getDatum_(data,SN,n));
+			peak.setRValue( getDatum_(data,RVALUE,n));
+			peak.setPeakShape(PeakShapeType::Enum(int(getDatum_(data,SHAPE,n))));
 		}
 		
 	} // namespace Interanal

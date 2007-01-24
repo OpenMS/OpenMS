@@ -127,7 +127,7 @@ namespace OpenMS
 		h = (isXAxis)? h : h-margin_;
 	
 		// probe legend font size (use a third (fifth) of available space for legend)
-		int legend_font_size = (isXAxis)? probe_font_(QString(legend_.c_str()),w,h/3.0) :  probe_font_(QString(legend_.c_str()),h,w/5.0);
+		int legend_font_size = (isXAxis)? probeFont_(QString(legend_.c_str()),w,h/3.0) :  probeFont_(QString(legend_.c_str()),h,w/5.0);
 	
 		// probe text font size with last axis labels  
 		QString probe = "";
@@ -149,11 +149,11 @@ namespace OpenMS
 		int text_font_size;
 		// use rest of space for axis label (i.e. 1/5 legend, 4/5 label) or use all available space if no legend is shown;
 		if (show_legend_) 
-			text_font_size = (isXAxis)? probe_font_(probe,trans_dist,0.8*h*2.0/3) 
-				: probe_font_(probe,0.8*w,trans_dist,index);
+			text_font_size = (isXAxis)? probeFont_(probe,trans_dist,0.8*h*2.0/3) 
+				: probeFont_(probe,0.8*w,trans_dist,index);
 		else
-			text_font_size = (isXAxis)? probe_font_(probe,trans_dist,0.8*h) 
-				: probe_font_(probe,w,trans_dist,index);
+			text_font_size = (isXAxis)? probeFont_(probe,trans_dist,0.8*h) 
+				: probeFont_(probe,w,trans_dist,index);
 	
 		// length of one big tick equals a quarter of the text_font_size
 		double grid_scaling = text_font_size/4;

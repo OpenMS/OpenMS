@@ -59,7 +59,7 @@ namespace OpenMS
   		{
 				MetaInfoRegistry& registry =	MetaInfo().registry();
 				for (int i=0; i<NUM_PARAM; i++) {
-					registry.registerName(userParams[i], description[i]);
+					registry.registerName(user_params_[i], description_[i]);
 				}
 			}
       ///
@@ -107,9 +107,9 @@ namespace OpenMS
 											INSTOS, INSTID, INLETTEMP, IONMODEADD, SRCTEMP, ACCPOT,
 											INSTPARAMS, DETPOT, DETENTRPOT, NUM_PARAM};
 		/// strings used as meta values
-		static const std::string userParams[];
+		static const std::string user_params_[];
 		/// description of the meta values
-		static const std::string description[];
+		static const std::string description_[];
 		//@}
 
 		/// convert all char* struct members to string in case member is NULL
@@ -143,13 +143,13 @@ namespace OpenMS
 	//---------------------------------------------------------------------------
 
 	template <typename MapType>
-	const std::string ANDIHandler<MapType>::userParams[] = {"ContactPosition",
+	const std::string ANDIHandler<MapType>::user_params_[] = {"ContactPosition",
 			"ProcessingNumer", "ErrorLog", "CalibrationHistory", "NumOfCalibrations",
 			"InstSerial", "InstComments", "InstSoftware", "InstFirmware", "InstOS", "InstID",
 			"InletTemp", "IonModeAdd", "SrcTemp", "AccPot", "InstParams", "DetPot", "DetEntrPot"};
 
 	template <typename MapType>
-	const std::string ANDIHandler<MapType>::description[] = {"Position of the contact person",
+	const std::string ANDIHandler<MapType>::description_[] = {"Position of the contact person",
 			"number of times processed", "Processing Method error log", "history of calibration",
 			"number of times calibrated", "Instrument serial number", "Instrument id comments",
 			"Instrument software revision", "Instrument firmware revision",
@@ -254,14 +254,14 @@ namespace OpenMS
 
 		ContactPerson contact;
 		contact.setLastName( string_(admin_data->operator_name) );
-		contact.setMetaValue(userParams[CONTACT], std::string("Operator"));
+		contact.setMetaValue(user_params_[CONTACT], std::string("Operator"));
 		exp_.getContacts().push_back(contact);
 
 		
 		contact = ContactPerson();
 		contact.setLastName( string_(admin_data->dataset_owner) );
 		contact.setContactInfo( string_(admin_data->dataset_origin) );
-		contact.setMetaValue(userParams[CONTACT], std::string("Dataset owner"));
+		contact.setMetaValue(user_params_[CONTACT], std::string("Dataset owner"));
 		exp_.getContacts().push_back(contact);
  		
 		typedef ProcessingMethod pm;
@@ -270,14 +270,14 @@ namespace OpenMS
 		exp_.getProcessingMethod().setSpectrumType( (SpectrumSettings::SpectrumType) exp_map[admin_data->experiment_type - expt_centroid]);
 
 		exp_.getSoftware().setName( string_(admin_data->post_expt_program_name) );
-		exp_.getProcessingMethod().setMetaValue(userParams[ERROR], string_(admin_data->error_log));
-		exp_.getProcessingMethod().setMetaValue(userParams[PROC], int_(admin_data->number_times_processed));
+		exp_.getProcessingMethod().setMetaValue(user_params_[ERROR], string_(admin_data->error_log));
+		exp_.getProcessingMethod().setMetaValue(user_params_[PROC], int_(admin_data->number_times_processed));
 	 
 		std::stringstream buffer;
 		buffer << string_(admin_data->calibration_history_0) << string_(admin_data->calibration_history_1)
 					 << string_(admin_data->calibration_history_2) << string_(admin_data->calibration_history_3);
-		exp_.getProcessingMethod().setMetaValue(userParams[CALHIST], buffer.str());	
-		exp_.getProcessingMethod().setMetaValue(userParams[CALTIMES], int_(admin_data->number_times_calibrated));	
+		exp_.getProcessingMethod().setMetaValue(user_params_[CALHIST], buffer.str());	
+		exp_.getProcessingMethod().setMetaValue(user_params_[CALTIMES], int_(admin_data->number_times_calibrated));	
 
 		// unused MS_Admin_Data fields: comments, experiment_title, ms_template_revision, netcdf_revision, languages
 		// experiment_date_time, netcdf_date_time, source_file_date_time, pre_expt_program_name
@@ -306,7 +306,7 @@ namespace OpenMS
 	template <typename MapType>
 	void ANDIHandler<MapType>::getTestData_(MS_Test_Data* test_data)
 	{
-		exp_.getInstrument().setMetaValue(userParams[INSTPARAMS], string_(test_data->comments));
+		exp_.getInstrument().setMetaValue(user_params_[INSTPARAMS], string_(test_data->comments));
 
 
 		// Membrane Separator, Capillary Direct, Open Split, Jet Separator, Direct Inlet Probe, Septum, Particle Beam,
@@ -318,7 +318,7 @@ namespace OpenMS
 		is::PARTICLEBEAM, is::RESERVOIR, is::MOVINGBELT, 0, is::FLOWINJECTIONANALYSIS, is::ELECTROSPRAYINLET,
 		is::INFUSION, is::THERMOSPRAYINLET, 0, 0};
 		src.setInletType( (is::InletType) inlet_map[test_data->ms_inlet - inlet_membrane]);
-		src.setMetaValue(userParams[INLETTEMP], float_(test_data->ms_inlet_temperature));
+		src.setMetaValue(user_params_[INLETTEMP], float_(test_data->ms_inlet_temperature));
 
 		// Electron Impact, Chemical Ionization, Fast Atom Bombardment, Field Desorption, Field Ionization,
 		// Electrospray, Thermospray, Atmospheric Pressure Chemical Ionization, Plasma Desorption,
@@ -336,9 +336,9 @@ namespace OpenMS
 		buffer << "LaserWaveLength=" << test_data->laser_wavelength << " ";
 		buffer << "FilamentCurrent=" << test_data->filament_current << " ";
 		buffer << "EmissionCurrent=" << test_data->emission_current << " ";
-		src.setMetaValue(userParams[IONMODEADD], buffer.str());
-		src.setMetaValue(userParams[SRCTEMP], test_data->source_temperature);
-		src.setMetaValue(userParams[ACCPOT], test_data->accelerating_potential);
+		src.setMetaValue(user_params_[IONMODEADD], buffer.str());
+		src.setMetaValue(user_params_[SRCTEMP], test_data->source_temperature);
+		src.setMetaValue(user_params_[ACCPOT], test_data->accelerating_potential);
 
 		pol_ = (IonSource::Polarity) (test_data->ionization_polarity - polarity_plus + 1);
 
@@ -350,8 +350,8 @@ namespace OpenMS
 													id::CONVERSIONDYNODEELECTRONMULTIPLIER, id::CONVERSIONDYNODEPHOTOMULTIPLIER,
 													id::MULTICOLLECTOR, 0};
 		det.setType( (id::Type) detector_map[test_data->detector_type - detector_em]);
-		det.setMetaValue(userParams[DETPOT], float_(test_data->detector_potential));
-		det.setMetaValue(userParams[DETENTRPOT], float_(test_data->detector_entrance_potential));
+		det.setMetaValue(user_params_[DETPOT], float_(test_data->detector_potential));
+		det.setMetaValue(user_params_[DETENTRPOT], float_(test_data->detector_entrance_potential));
 
 
 
@@ -390,12 +390,12 @@ namespace OpenMS
 		exp_.getInstrument().setVendor( string_(inst_data->manufacturer) );
 		exp_.getInstrument().setModel( string_(inst_data->model_number) );
 
-		exp_.getInstrument().setMetaValue(userParams[INSTSERIAL], string_(inst_data->serial_number));
-		exp_.getInstrument().setMetaValue(userParams[INSTCOMMENTS], string_(inst_data->comments));
-		exp_.getInstrument().setMetaValue(userParams[INSTSOFTWARE], string_(inst_data->software_version));
-		exp_.getInstrument().setMetaValue(userParams[INSTFIRMWARE], string_(inst_data->firmware_version));
-		exp_.getInstrument().setMetaValue(userParams[INSTOS], string_(inst_data->operating_system));
-		exp_.getInstrument().setMetaValue(userParams[INSTID], string_(inst_data->id));
+		exp_.getInstrument().setMetaValue(user_params_[INSTSERIAL], string_(inst_data->serial_number));
+		exp_.getInstrument().setMetaValue(user_params_[INSTCOMMENTS], string_(inst_data->comments));
+		exp_.getInstrument().setMetaValue(user_params_[INSTSOFTWARE], string_(inst_data->software_version));
+		exp_.getInstrument().setMetaValue(user_params_[INSTFIRMWARE], string_(inst_data->firmware_version));
+		exp_.getInstrument().setMetaValue(user_params_[INSTOS], string_(inst_data->operating_system));
+		exp_.getInstrument().setMetaValue(user_params_[INSTID], string_(inst_data->id));
 	}
 
 	template <typename MapType>

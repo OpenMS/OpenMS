@@ -210,6 +210,14 @@ CHECK((void addTreatment(const SampleTreatment& treatment, SignedInt before_posi
 	TEST_REAL_EQUAL((dynamic_cast<const Tagging&>(s.getTreatment(2))).getMassShift(),5.0)
 RESULT
 
+CHECK((SampleTreatment& getTreatment(UnsignedInt position) throw(Exception::IndexOverflow)))
+	Sample s;
+	Digestion d;
+	s.addTreatment(d);
+	(dynamic_cast<Digestion&>(s.getTreatment(0))).setEnzyme("bluff");
+	TEST_EQUAL((dynamic_cast<const Digestion&>(s.getTreatment(0))).getEnzyme(),"bluff")
+RESULT
+
 CHECK((void removeTreatment(UnsignedInt position) throw(Exception::IndexOverflow)))
 	Sample s;
 	Digestion d;

@@ -80,7 +80,7 @@ namespace OpenMS
 			static String find(const String& filename, std::vector<String> directories = std::vector<String>());
 			
 			/**
-				@brief Method for getting list of files matching @file_pattern in directory @dir
+				@brief Method for getting list of files matching @p file_pattern in directory @p dir
 				
 				@return If there are matching files
 			*/

@@ -36,11 +36,11 @@ namespace OpenMS
 	Spectrum2DGoToDialog::Spectrum2DGoToDialog( QWidget * parent, const char * name, WFlags fl)
 		: Spectrum2DGoToDialogTemplate(parent,name,fl),
 	  area_(DRange<2>(0.0f, 0.0f, 1000.0f, 1000.0f)),
-	  centerX((area_.minX() + area_.maxX())/2.0f),
-	  centerY((area_.minY() + area_.maxY())/2.0f)
+	  center_x_((area_.minX() + area_.maxX())/2.0f),
+	  center_y_((area_.minY() + area_.maxY())/2.0f)
 	{
-	  centerPositionXLineEdit->setText(QString().setNum(centerX));
-	  centerPositionYLineEdit->setText(QString().setNum(centerY));
+	  centerPositionXLineEdit->setText(QString().setNum(center_x_));
+	  centerPositionYLineEdit->setText(QString().setNum(center_y_));
 	  minXLineEdit->setText(QString().setNum(area_.minX()));
 	  maxXLineEdit->setText(QString().setNum(area_.maxX()));
 	  minYLineEdit->setText(QString().setNum(area_.minY()));
@@ -57,20 +57,20 @@ namespace OpenMS
 	{
 	  // update model
 	  area_.setMinX(minX);
-	  centerX = (area_.minX() + area_.maxX())/2.0f;
+	  center_x_ = (area_.minX() + area_.maxX())/2.0f;
 	  // update view
 	  minXLineEdit->setText(QString().setNum(area_.minX()));
-	  centerPositionXLineEdit->setText(QString().setNum(centerX));
+	  centerPositionXLineEdit->setText(QString().setNum(center_x_));
 	}
 	
 	void Spectrum2DGoToDialog::setMaxX(float maxX)
 	{
 	  // update model
 	  area_.setMaxX(maxX);
-	  centerX = (area_.minX() + area_.maxX())/2.0f;
+	  center_x_ = (area_.minX() + area_.maxX())/2.0f;
 	  // update view
 	  maxXLineEdit->setText(QString().setNum(area_.maxX()));
-	  centerPositionXLineEdit->setText(QString().setNum(centerX));  
+	  centerPositionXLineEdit->setText(QString().setNum(center_x_));  
 	}
 	
 	float Spectrum2DGoToDialog::getMinX()
@@ -87,10 +87,10 @@ namespace OpenMS
 	{
 	  // update model
 	  area_.setMinY(minY);
-	  centerY = (area_.minY() + area_.maxY())/2.0f;
+	  center_y_ = (area_.minY() + area_.maxY())/2.0f;
 	  // update view
 	  minYLineEdit->setText(QString().setNum(area_.minY()));
-	  centerPositionYLineEdit->setText(QString().setNum(centerY));
+	  centerPositionYLineEdit->setText(QString().setNum(center_y_));
 	  
 	}
 	
@@ -98,10 +98,10 @@ namespace OpenMS
 	{
 	  // update model
 	  area_.setMaxY(maxY);
-	  centerY = (area_.minY() + area_.maxY())/2.0f;
+	  center_y_ = (area_.minY() + area_.maxY())/2.0f;
 	  // update view
 	  maxYLineEdit->setText(QString().setNum(area_.maxY()));
-	  centerPositionYLineEdit->setText(QString().setNum(centerY));  
+	  centerPositionYLineEdit->setText(QString().setNum(center_y_));  
 	}
 	
 	float Spectrum2DGoToDialog::getMinY()
@@ -117,11 +117,11 @@ namespace OpenMS
 	void Spectrum2DGoToDialog::gotoButton_clicked()
 	{
 	  // calculate translation of the center
-	  float newCenterX = centerPositionXLineEdit->text().toFloat();
-	  float translationX = newCenterX - centerX;
+	  float new_center_x = centerPositionXLineEdit->text().toFloat();
+	  float translationX = new_center_x - center_x_;
 	  
-	  float newCenterY = centerPositionYLineEdit->text().toFloat();
-	  float translationY = newCenterY - centerY;
+	  float new_center_y = centerPositionYLineEdit->text().toFloat();
+	  float translationY = new_center_y - center_y_;
 	
 	  // update model
 	  area_.setMinX(area_.minX() + translationX);

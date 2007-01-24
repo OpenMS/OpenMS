@@ -32,8 +32,8 @@ using namespace std;
 
 namespace OpenMS
 {
+		const double PairMatcher::sqrt2_ = sqrt(2);
 
-		const double PairMatcher::sqrt2 = sqrt(2);
 
 		PairMatcher::PairMatcher(FeatureMapType& features)
 		: FactoryProduct(), features_(features), pairs_(), best_pairs_()
@@ -126,8 +126,8 @@ namespace OpenMS
 						diff[MZ] = fabs( it->getPosition()[MZ] - check->second->getPosition()[MZ] );
 						diff[RT] = it->getPosition()[RT] - check->second->getPosition()[RT];
 
-						double score =  p_value_(diff[MZ], mz_opt, mz_stdev, mz_stdev)
-													* p_value_(diff[RT],rt_pair_dist, rt_stdev_low, rt_stdev_high)
+						double score =  PValue_(diff[MZ], mz_opt, mz_stdev, mz_stdev)
+													* PValue_(diff[RT],rt_pair_dist, rt_stdev_low, rt_stdev_high)
 													* check->second->getOverallQuality()
 													* it->getOverallQuality();
 

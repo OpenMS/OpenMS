@@ -56,7 +56,7 @@ namespace OpenMS
 	    float getMaxY();
 	  protected:
 	    DRange<2> area_;
-	    float centerX, centerY;
+	    float center_x_, center_y_;
 	  protected slots:
 	    virtual void gotoButton_clicked();
 	    virtual void setVisibleAreaButton_clicked();

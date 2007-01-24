@@ -39,7 +39,7 @@ namespace OpenMS
 	Spectrum2DWidget::Spectrum2DWidget(QWidget* parent, const char* name, WFlags f)
 		: SpectrumWidget(parent, name, f)
 	{
-		setCanvas(new Spectrum2DCanvas(this));
+		setCanvas_(new Spectrum2DCanvas(this));
 		connect(canvas(), SIGNAL(sendStatusMessage(std::string, OpenMS::UnsignedInt)),
 		        this, SIGNAL(sendStatusMessage(std::string, OpenMS::UnsignedInt)));
 		connect(canvas(), SIGNAL(sendCursorStatus(double,double,double)),

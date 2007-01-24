@@ -75,7 +75,7 @@ CHECK(float getMzRangeStop() const)
 	TEST_REAL_EQUAL(tmp.getMzRangeStop(),0.0);
 RESULT
 
-CHECK(void setMzRangeStop(float mz_range_sto))
+CHECK(void setMzRangeStop(float mz_range_stop))
 	InstrumentSettings tmp;
 	tmp.setMzRangeStop(47.11);
 	TEST_REAL_EQUAL(tmp.getMzRangeStop(),47.11);

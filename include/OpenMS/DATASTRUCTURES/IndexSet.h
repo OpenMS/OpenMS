@@ -118,15 +118,15 @@ public:
         IndexSetConstIterator& operator ++ ()
         {
             // not inside a range or at end or next index equals range end
-            if ( ref_->set_[pos_]!=DOTS || pos_+1 >= ref_->set_.size() || index_+1==ref_->set_[pos_+1])
+            if ( ref_->set_[pos_]!=DOTS_ || pos_+1 >= ref_->set_.size() || index_+1==ref_->set_[pos_+1])
                 pos_++;
 
             if (pos_ >= ref_->set_.size()) //at end
             {
-                index_ = END;
-                pos_ = END;
+                index_ = END_;
+                pos_ = END_;
             }
-            else if(ref_->set_[pos_]==DOTS) // inside a range
+            else if(ref_->set_[pos_]==DOTS_) // inside a range
                 index_++;
             else
                 index_ = ref_->set_[pos_];
@@ -143,12 +143,12 @@ public:
         IndexSetConstIterator& operator -- ()
         {
             // at end or not inside a range or prev index equals range begin
-            if (pos_==END)
+            if (pos_==END_)
                 pos_ = ref_->set_.size()-1;
-            else if ( ref_->set_[pos_]!=DOTS || index_-1==ref_->set_[pos_-1])
+            else if ( ref_->set_[pos_]!=DOTS_ || index_-1==ref_->set_[pos_-1])
                 pos_--;
 
-            if (ref_->set_[pos_]==DOTS) // inside a range
+            if (ref_->set_[pos_]==DOTS_) // inside a range
                 index_--;
             else
                 index_ = ref_->set_[pos_];
@@ -267,17 +267,17 @@ protected:
 
     indices [ @p skip_from , ... , @p skip_to ] are removed
     */
-    void sort_(UnsignedInt skip_from=END, UnsignedInt skip_to=END);
+    void sort_(UnsignedInt skip_from=END_, UnsignedInt skip_to=END_);
 
 		/// internal value for "..." to define a range of indices
-    static const UnsignedInt DOTS;
+    static const UnsignedInt DOTS_;
 		/// internal value for end iterator
-    static const UnsignedInt END;
+    static const UnsignedInt END_;
 
 		/**
 			@brief set of indices
 
-			facilitates compression by containining enum-value DOTS to indicate index ranges
+			facilitates compression by containining enum-value DOTS_ to indicate index ranges
 		*/
     std::vector<UnsignedInt> set_;
 

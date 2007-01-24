@@ -44,7 +44,7 @@ namespace OpenMS
 	Spectrum3DWidget::Spectrum3DWidget(QWidget* parent, const char* name, WFlags f)
 	  : SpectrumWidget(parent, name, f)		
 	{
-		setCanvas(new Spectrum3DCanvas(this));
+		setCanvas_(new Spectrum3DCanvas(this));
 		
 		delete(grid_);
 		grid_ = new QGridLayout(this, 1,1);	

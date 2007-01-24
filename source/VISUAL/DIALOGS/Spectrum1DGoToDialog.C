@@ -36,13 +36,13 @@ namespace OpenMS
 
 	Spectrum1DGoToDialog::Spectrum1DGoToDialog( QWidget * parent, const char * name, WFlags fl)
 		:	Spectrum1DGoToDialogTemplate(parent,name,fl),
-	  minPos(0.0f),
-	  maxPos(1000.0f),
-	  centerPos((minPos+maxPos)/2.0f)
+	  min_pos_(0.0f),
+	  max_pos_(1000.0f),
+	  center_pos_((min_pos_+max_pos_)/2.0f)
 	{
-	  minPositionLineEdit->setText(QString().setNum(minPos));
-	  maxPositionLineEdit->setText(QString().setNum(maxPos));
-	  centerPositionLineEdit->setText(QString().setNum(centerPos));
+	  minPositionLineEdit->setText(QString().setNum(min_pos_));
+	  maxPositionLineEdit->setText(QString().setNum(max_pos_));
+	  centerPositionLineEdit->setText(QString().setNum(center_pos_));
 	}
 	
 	Spectrum1DGoToDialog::~Spectrum1DGoToDialog()
@@ -53,31 +53,31 @@ namespace OpenMS
 	void Spectrum1DGoToDialog::setMinPosition(float min)
 	{
 	  // update model
-	  minPos = min; 
-	  centerPos = (minPos+maxPos)/2.0f;
+	  min_pos_ = min; 
+	  center_pos_ = (min_pos_+max_pos_)/2.0f;
 	  // update view
 	  minPositionLineEdit->setText(QString().setNum(min)); 
-	  centerPositionLineEdit->setText(QString().setNum(centerPos)); 
+	  centerPositionLineEdit->setText(QString().setNum(center_pos_)); 
 	}
 	
 	void Spectrum1DGoToDialog::setMaxPosition(float max)
 	{
 	  // update model
-	  maxPos = max;
-	  centerPos = (minPos+maxPos)/2.0f;
+	  max_pos_ = max;
+	  center_pos_ = (min_pos_+max_pos_)/2.0f;
 	  // update view
 	  maxPositionLineEdit->setText(QString().setNum(max));
-	  centerPositionLineEdit->setText(QString().setNum(centerPos)); 
+	  centerPositionLineEdit->setText(QString().setNum(center_pos_)); 
 	}
 	
 	float Spectrum1DGoToDialog::getMinPosition()
 	{
-	  return minPos;
+	  return min_pos_;
 	}
 	
 	float Spectrum1DGoToDialog::getMaxPosition()
 	{
-	  return maxPos;
+	  return max_pos_;
 	}
 	
 	
@@ -85,10 +85,10 @@ namespace OpenMS
 	{
 	  // calculate translation of the center
 	  float newCenter = centerPositionLineEdit->text().toFloat();
-	  float translation = newCenter - centerPos;
+	  float translation = newCenter - center_pos_;
 	  // update model
-	  minPos += translation;
-	  maxPos += translation;
+	  min_pos_ += translation;
+	  max_pos_ += translation;
 	  // conversion succeded
 	  done(QDialog::Accepted);
 	}
@@ -96,8 +96,8 @@ namespace OpenMS
 	void Spectrum1DGoToDialog::setVisibleAreaButton_clicked()
 	{
 	  // update model
-	  minPos = minPositionLineEdit->text().toFloat();
-	  maxPos = maxPositionLineEdit->text().toFloat();
+	  min_pos_ = minPositionLineEdit->text().toFloat();
+	  max_pos_ = maxPositionLineEdit->text().toFloat();
 	  // conversion succeded
 	  done(QDialog::Accepted);
 	}

@@ -38,7 +38,7 @@ namespace OpenMS
 		scan_mode_(SCANMODENULL),
 		polarity_(IonSource::POLNULL),
 		mz_range_start_(0.0),
-		mz_range_stop(0.0)
+		mz_range_stop_(0.0)
 	{
 		
 	}
@@ -48,7 +48,7 @@ namespace OpenMS
 	  scan_mode_(source.scan_mode_),
 	  polarity_(source.polarity_),
 	  mz_range_start_(source.mz_range_start_),
-	  mz_range_stop(source.mz_range_stop)
+	  mz_range_stop_(source.mz_range_stop_)
 	{
 	  
 	}
@@ -65,7 +65,7 @@ namespace OpenMS
 	  scan_mode_ = source.scan_mode_;
 	  polarity_ = source.polarity_;
 	  mz_range_start_ = source.mz_range_start_;
-	  mz_range_stop = source.mz_range_stop;
+	  mz_range_stop_ = source.mz_range_stop_;
 	  MetaInfoInterface::operator=(source);
 	  
 	  return *this;
@@ -77,7 +77,7 @@ namespace OpenMS
 	 	  scan_mode_ == rhs.scan_mode_ &&
 		  polarity_ == rhs.polarity_ &&
 		  mz_range_start_ == rhs.mz_range_start_ &&
-		  mz_range_stop == rhs.mz_range_stop &&
+		  mz_range_stop_ == rhs.mz_range_stop_ &&
   		MetaInfoInterface::operator==(rhs)
   		;
   }
@@ -119,12 +119,12 @@ namespace OpenMS
 	
 	float InstrumentSettings::getMzRangeStop() const 
 	{
-	  return mz_range_stop; 
+	  return mz_range_stop_; 
 	}
 	
-	void InstrumentSettings::setMzRangeStop(float mz_range_sto)
+	void InstrumentSettings::setMzRangeStop(float mz_range_stop)
 	{
-	  mz_range_stop = mz_range_sto; 
+	  mz_range_stop_ = mz_range_stop; 
 	}
 	
 }

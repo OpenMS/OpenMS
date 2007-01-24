@@ -166,6 +166,10 @@ CHECK((~TOPPBase()))
 	delete ptr;
 RESULT
 
+CHECK(ExitCodes main(int argc, char **argv))
+	// is tested implicitly in all tests
+RESULT
+
 //parts to build command lines
 char* a1 ="TOPPBaseTest";
 char* a3 ="-ini";

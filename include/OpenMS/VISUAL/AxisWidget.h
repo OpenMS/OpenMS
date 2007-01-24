@@ -206,7 +206,7 @@ namespace OpenMS
 				return res;
 			}
 	
-			inline int probe_font_(QString probe, double width, double height, int index=0)
+			inline int probeFont_(QString probe, double width, double height, int index=0)
 			{
 				int probe_font = 10;
 				painter_.setFont(QFont("courier",probe_font));

@@ -127,7 +127,7 @@ namespace OpenMS
 		}
 	}
 
-	void SchemaHandler::setAddInfo(	MetaInfoInterface& info, const String& name, const String& value, const String& description)
+	void SchemaHandler::setAddInfo_(	MetaInfoInterface& info, const String& name, const String& value, const String& description)
 	{
 		info.setMetaValue(info.metaRegistry().registerName(name, description),value);
 	}
@@ -180,7 +180,7 @@ namespace OpenMS
 		}
 	}
 
-	String SchemaHandler::getAttributeAsString(UnsignedInt attribute)
+	String SchemaHandler::getAttributeAsString_(UnsignedInt attribute)
 	{
 		//TODO improve performace
 		const XMLCh* tmp = xercesc::XMLString::transcode(enum2str_(att_map_, attribute).c_str());

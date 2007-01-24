@@ -54,8 +54,7 @@ class Test: public SampleTreatment
 		};
 		
 		Test(const Test& source):
-		SampleTreatment(source),
-		dummy(source.dummy)
+		SampleTreatment(source)
 		{
 			
 		};
@@ -70,7 +69,6 @@ class Test: public SampleTreatment
 		  if (&source != this)
 		  {
 		  	SampleTreatment::operator=(source);
-		    dummy = source.dummy;
 		  }
 		  return *this;
 		};
@@ -87,48 +85,37 @@ class Test: public SampleTreatment
 	  	
 	  	const Test* tmp = dynamic_cast<const Test*>(&rhs);
 			return 
-				SampleTreatment::operator==(*tmp) &&
-				dummy == tmp->dummy
+				SampleTreatment::operator==(*tmp)
 				;
 		};
-		
-		String dummy;
 };
 
-// default ctor
 Test* dv_ptr = 0;
 CHECK((SampleTreatment(const String& type)))
 	dv_ptr = new Test;
 	TEST_NOT_EQUAL(dv_ptr, 0)
 RESULT
 
-// destructor
 CHECK((~SampleTreatment()))
 	delete dv_ptr;
 RESULT
 
-//basic accessors
-CHECK([EXTRA] dummy member)
-	Test s;
-	s.dummy = "TTEST";
-	TEST_EQUAL(s.dummy,"TTEST")
-RESULT
-
-//getType
-CHECK((const String& getType() const))
+CHECK(const String& getType() const)
 	Test s;
 	TEST_EQUAL(s.getType(),"Test")
 RESULT
 
-//getType
-CHECK((const String& getType() const))
+CHECK((const String& getComment() const))
 	Test s;
 	TEST_EQUAL(s.getComment(),"")
+RESULT
+
+CHECK(void setComment(const String& comment))
+	Test s;
 	s.setComment("blubb");
 	TEST_EQUAL(s.getComment(),"blubb");
 RESULT
 
-//meta info
 CHECK([EXTRA] MetaInfo)
 	Test s;
 	//empty
@@ -143,34 +130,30 @@ CHECK([EXTRA] MetaInfo)
 	TEST_REAL_EQUAL(double(s.getMetaValue("size")),1.0)
 RESULT
 
-//copy ctr
 CHECK((SampleTreatment(const SampleTreatment&)))
 	Test s;
 	//set
-	s.dummy= "TTEST";
+	s.setComment("TTEST");
 	s.setMetaValue("origin",string("horse"));
 	//copy
 	Test s2(s);
 	//get
-	TEST_EQUAL(s2.dummy,"TTEST")
+	TEST_EQUAL(s2.getComment(),"TTEST")
 	TEST_EQUAL("horse",s.getMetaValue("origin"))
 RESULT
 
-//assignment operator
-//copy ctr
 CHECK((SampleTreatment& operator=(const SampleTreatment&)))
 	Test s,s2;
 	//set
-	s.dummy= "TTEST";
+	s.setComment("TTEST");
 	s.setMetaValue("origin",string("horse"));
 	//assign
 	s2 = s;
 	//get
-	TEST_EQUAL(s2.dummy,"TTEST")
+	TEST_EQUAL(s2.getComment(),"TTEST")
 	TEST_EQUAL("horse",s.getMetaValue("origin"))
 RESULT
 
-//clone
 CHECK((virtual SampleTreatment* clone() const=0))
 	Test s;
 	SampleTreatment* st1;
@@ -178,7 +161,7 @@ CHECK((virtual SampleTreatment* clone() const=0))
 	Test* dp;
 	
 	//set
-	s.dummy= "TTEST";
+	s.setComment("TTEST");
 	s.setMetaValue("origin",string("horse"));
 
 	//assign
@@ -187,14 +170,14 @@ CHECK((virtual SampleTreatment* clone() const=0))
 	dp = dynamic_cast<Test*>(st);
 	
 	//get
-	TEST_EQUAL(dp->dummy,"TTEST")
+	TEST_EQUAL(dp->getComment(),"TTEST")
 	TEST_EQUAL("horse",dp->getMetaValue("origin"))
 RESULT
 
 CHECK((bool operator== (const SampleTreatment& rhs) const))
 	Test edit,empty;
 	
-	edit.dummy = "bla";
+	edit.setComment("bla");
 	TEST_EQUAL(edit==empty, false);
 	edit = empty;
 	TEST_EQUAL(edit==empty, true);		

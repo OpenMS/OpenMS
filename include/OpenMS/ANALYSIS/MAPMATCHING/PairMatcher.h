@@ -131,8 +131,9 @@ namespace OpenMS
     }
 
 		protected:
-		/// Square root of two
-		static const double sqrt2;
+    /// Square root of two
+    static const double sqrt2_;
+
 
 		/// features to be paired
 		FeatureMapType& features_;
@@ -153,14 +154,14 @@ namespace OpenMS
 
 		/// return the p-value at position x for the bi-Gaussian distribution
 		/// with mean @p m and standard deviation @p sig1 (left) and @p sig2 (right)
-		inline double p_value_(double x, double m, double sig1, double sig2)
+		inline double PValue_(double x, double m, double sig1, double sig2)
 		{
 			if (m<x)
 			{
-				return 1-erf((x-m)/sig2/sqrt2);
+				return 1-erf((x-m)/sig2/sqrt2_);
 			}
 			else{
-				return 1-erf((m-x)/sig1/sqrt2);
+				return 1-erf((m-x)/sig1/sqrt2_);
 			}
 		}
 

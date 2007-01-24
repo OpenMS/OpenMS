@@ -83,7 +83,7 @@ namespace OpenMS
 			@brief Returns a pointer to canvas object
 			
 			Returns a pointer to the canvas object. The canvas object
-			is set with the setCanvas() method. This is usually done
+			is set with the setCanvas_() method. This is usually done
 			in the constructor.
 			
 			@note Don't delete this object
@@ -216,7 +216,7 @@ namespace OpenMS
 		/// Destructor
 		~SpectrumWidget();
 		/// Adds the canvas to the layout and connects some signals/slots
-		void setCanvas(SpectrumCanvas* canvas);
+		void setCanvas_(SpectrumCanvas* canvas);
   	/// Switch between different intensitiy modes
   	virtual void intensityModeChange_();
 		/// creates the intensity distribution of the widget

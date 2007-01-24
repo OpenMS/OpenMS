@@ -24,8 +24,8 @@
 // $Maintainer: Marc Sturm $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_FORMAT_DBCONNECTION_H
-#define OPENMS_FORMAT_DBCONNECTION_H
+#ifndef OPENMS_FORMAT_DB_DBCONNECTION_H
+#define OPENMS_FORMAT_DB_DBCONNECTION_H
 
 #include <OpenMS/config.h>
 
@@ -241,4 +241,5 @@ namespace OpenMS
 		}
 	}
 }
+
 #endif

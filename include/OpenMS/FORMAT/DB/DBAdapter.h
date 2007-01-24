@@ -24,8 +24,8 @@
 // $Maintainer: Marc Sturm $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_FORMAT_DBADAPTER_H
-#define OPENMS_FORMAT_DBADAPTER_H
+#ifndef OPENMS_FORMAT_DB_DBADAPTER_H
+#define OPENMS_FORMAT_DB_DBADAPTER_H
 
 //#include <OpenMS/config.h>
 
@@ -1107,4 +1107,5 @@ namespace OpenMS
 		spec.setPersistenceId(id);
 	}
 }
+
 #endif

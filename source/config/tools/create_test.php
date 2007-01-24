@@ -25,24 +25,25 @@
 # $Maintainer: Marc Sturm $
 # --------------------------------------------------------------------------
 
+	error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
+	
+	include "common_functions.php";
 
 	########################usage###############################
-	if ($argc<2 OR $argc>3)
+	if ($argc!=3)
 	{
-?>
-Usage: create_test.php <header_file> [class]
-  <header_file> -- the header of the class to create the test from
-	[class]       -- if class is given, only methods of that class are tested
-  
-<?
-	exit;	
-	}
+		print "Usage: create_test.php <Absolut path to OpenMS> <Absolut path to header>\n";
+  				"  <header_file> -- the header of the class to create the test from.\n";
+ 		exit;
+ 	}
 	
-	// if class set -> use it
-  if ($argc==3) $class = $argv[2];
-	// else parse it from filename
-	else $class = substr($argv[1],strrpos($argv[1],'/')+1,-2);
+	$path = $argv[1];
+	$file = $argv[2];
+	$class = substr(basename($file),0,-2);
 
+	#load file info
+	$class_info = getClassInfo($path,$file,0);	
+	
 ?>
 // -*- Mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
@@ -79,7 +80,7 @@ Usage: create_test.php <header_file> [class]
 using namespace OpenMS;
 using namespace std;
 
-START_TEST(<? print $class; ?>, "$<? print "Id"; ?>$")
+START_TEST(<? print $class; ?>, "$Id$")
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
@@ -95,7 +96,16 @@ CHECK(~<? print $class; ?>())
 RESULT
 
 <?
-passthru('./check_test '.$argv[1].' '.$argv[2].' -c');
+foreach ($class_info["public-long"] as $c)
+{
+	if (trim($c) != $class_info["classname"]."()")
+	{
+		print "CHECK($c)\n";
+		print "  // TODO\n";
+		print "RESULT\n";
+		print "\n";
+	}
+}
 ?>
 
 /////////////////////////////////////////////////////////////

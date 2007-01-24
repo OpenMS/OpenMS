@@ -215,7 +215,7 @@ namespace OpenMS
 			void userParam_(const String& name, const String& value);
 
 			/// write binary data to stream using the first decoder_ (previously filled)
-			inline void writeBinary(std::ostream& os, Size size, const String& tag, const String& desc="", int id=-1)
+			inline void writeBinary_(std::ostream& os, Size size, const String& tag, const String& desc="", int id=-1)
 			{
 				os 	<< "\t\t\t<" << tag;
 				if (id>=0)
@@ -233,7 +233,7 @@ namespace OpenMS
 					 << "</data>\n\t\t\t</" << tag << ">\n";
 			}
 
-			inline double getDatum(const std::vector<void*>& ptrs,  UnsignedInt member, UnsignedInt index)
+			inline double getDatum_(const std::vector<void*>& ptrs,  UnsignedInt member, UnsignedInt index)
 			{
 				if (precisions_[member]==DOUBLE)
 				{
@@ -372,8 +372,8 @@ namespace OpenMS
 				case CVPARAM: 
 				case USERPARAM:
 				{
-					String name = getAttributeAsString(NAME);
-					String value = getAttributeAsString(VALUE);
+					String name = getAttributeAsString_(NAME);
+					String value = getAttributeAsString_(VALUE);
 					
 					if (name == "")
 					{
@@ -397,7 +397,7 @@ namespace OpenMS
 					break;
 			  }
 				case SUPARRAYBINARY:
-					meta_id_ = getAttributeAsString(ID);
+					meta_id_ = getAttributeAsString_(ID);
 					break;
 				case SPECTRUM:
 // 					exp_->push_back(SpectrumType());
@@ -405,11 +405,11 @@ namespace OpenMS
 					break;
 			  case SPECTRUMLIST:
 			  	//std::cout << Date::now() << " Reserving space for spectra" << std::endl;
-			  	exp_->reserve( asSignedInt_(getAttributeAsString(COUNT)) );
+			  	exp_->reserve( asSignedInt_(getAttributeAsString_(COUNT)) );
 			  	//std::cout << Date::now() << " done" << std::endl;
 			  	break;
 				case ACQSPEC:
-					tmp_type = getAttributeAsString(SPECTRUMTYPE);
+					tmp_type = getAttributeAsString_(SPECTRUMTYPE);
 					if  (tmp_type == "CentroidMassSpectrum")
 					{
 						spec_.setType(SpectrumSettings::PEAKS);
@@ -423,21 +423,21 @@ namespace OpenMS
 						spec_.setType(SpectrumSettings::UNKNOWN);
 					}
 					
-					spec_.getAcquisitionInfo().setMethodOfCombination(getAttributeAsString(METHOD_OF_COMBINATION));
+					spec_.getAcquisitionInfo().setMethodOfCombination(getAttributeAsString_(METHOD_OF_COMBINATION));
 					break;
 				case ACQUISITION:
 					{
 						spec_.getAcquisitionInfo().insert(spec_.getAcquisitionInfo().end(), Acquisition());
 						acq_ = &(spec_.getAcquisitionInfo().back());
-						acq_->setNumber(asSignedInt_(getAttributeAsString(ACQNUMBER)));
+						acq_->setNumber(asSignedInt_(getAttributeAsString_(ACQNUMBER)));
 					}	
 					break;
 				case SPECTRUMINSTRUMENT:
 				case ACQINSTRUMENT:
 				{
-					spec_.setMSLevel(asSignedInt_(getAttributeAsString(MSLEVEL)));
-					String start = getAttributeAsString(MZRANGE_START);
-					String stop = getAttributeAsString(MZRANGE_STOP);
+					spec_.setMSLevel(asSignedInt_(getAttributeAsString_(MSLEVEL)));
+					String start = getAttributeAsString_(MZRANGE_START);
+					String stop = getAttributeAsString_(MZRANGE_STOP);
 					
 					if  (start != "")
 					{
@@ -468,24 +468,24 @@ namespace OpenMS
 					//UNHANDLED: "spectrumRef";
 					break;
 				case SUPDESC:
-					meta_id_ = getAttributeAsString(SUP_DATA_ARRAY_REF);
+					meta_id_ = getAttributeAsString_(SUP_DATA_ARRAY_REF);
 					break;
 				case DATA:
 					if (options_.getMetadataOnly()) break;
 					
 					// store precision for later
-					precisions_.push_back((Precision)str2enum_(PRECISION, getAttributeAsString(ATT_PRECISION)));
-					endians_.push_back((Endian)str2enum_(ENDIAN, getAttributeAsString(ATT_ENDIAN)));
+					precisions_.push_back((Precision)str2enum_(PRECISION, getAttributeAsString_(ATT_PRECISION)));
+					endians_.push_back((Endian)str2enum_(ENDIAN, getAttributeAsString_(ATT_ENDIAN)));
 					if (is_parser_in_tag_[MZARRAYBINARY])
 					{
-						peak_count_ = asSignedInt_(getAttributeAsString(LENGTH));
+						peak_count_ = asSignedInt_(getAttributeAsString_(LENGTH));
 						//std::cout << Date::now() << " Reserving space for peaks" << std::endl;
 						spec_.getContainer().reserve(peak_count_);
 					}
 					break;
 				case MZDATA:
 					{
-						String s = getAttributeAsString(VERSION);
+						String s = getAttributeAsString_(VERSION);
 						for (UnsignedInt index=0; index<Schemes::MzData_num; ++index)
 						{
 							if (s!=String(schema_) && s.hasSubstring(Schemes::MzData[index][0]))
@@ -565,23 +565,23 @@ namespace OpenMS
 		{
 			if(is_parser_in_tag_[SPECTRUMINSTRUMENT] || is_parser_in_tag_[ACQINSTRUMENT])
 			{
-				setAddInfo(spec_.getInstrumentSettings(), name, value, "SpectrumSettings.SpectrumInstrument.UserParam");
+				setAddInfo_(spec_.getInstrumentSettings(), name, value, "SpectrumSettings.SpectrumInstrument.UserParam");
 			}
 			else if(is_parser_in_tag_[ACQUISITION])
 			{
-				setAddInfo(*acq_, name, value, "SpectrumSettings.AcqSpecification.Acquisition.UserParam");
+				setAddInfo_(*acq_, name, value, "SpectrumSettings.AcqSpecification.Acquisition.UserParam");
 			}
 			else if (is_parser_in_tag_[IONSELECTION])
 			{
-				setAddInfo(spec_.getPrecursorPeak(), name, value, "PrecursorList.Precursor.IonSelection.UserParam");
+				setAddInfo_(spec_.getPrecursorPeak(), name, value, "PrecursorList.Precursor.IonSelection.UserParam");
 			}
 			else if (is_parser_in_tag_[ACTIVATION])
 			{
-				setAddInfo(*prec_, name, value, "PrecursorList.Precursor.Activation.UserParam");
+				setAddInfo_(*prec_, name, value, "PrecursorList.Precursor.Activation.UserParam");
 			}
 			else if (is_parser_in_tag_[SUPDATADESC])
 			{
-				setAddInfo(spec_.getMetaInfoDescriptions()[meta_id_], name, value, "Spectrum.SupDesc.SupDataDesc.UserParam");
+				setAddInfo_(spec_.getMetaInfoDescriptions()[meta_id_], name, value, "Spectrum.SupDesc.SupDataDesc.UserParam");
 			}
 			else
 			{
@@ -651,7 +651,7 @@ namespace OpenMS
 						spec_.getPrecursorPeak().getIntensity() = asFloat_(value);
 						break;
 					case IUNITS:
-						setAddInfo(spec_.getPrecursorPeak(),"#IntensityUnits", value, "Precursor.IonSelection.IntensityUnits");
+						setAddInfo_(spec_.getPrecursorPeak(),"#IntensityUnits", value, "Precursor.IonSelection.IntensityUnits");
 						break;
 					default:
 						error = "PrecursorList.Precursor.IonSelection.UserParam";
@@ -727,8 +727,8 @@ namespace OpenMS
 				//push_back the peaks into the container
 				for (Size n = 0 ; n < peak_count_ ; n++)
 				{
-					double mz = getDatum(ptrs,MZ,n);
-					double intensity = getDatum(ptrs,INTENS,n);
+					double mz = getDatum_(ptrs,MZ,n);
+					double intensity = getDatum_(ptrs,INTENS,n);
 					if ((!options_.hasMZRange() || options_.getMZRange().encloses(DPosition<1>(mz)))
 					 && (!options_.hasIntensityRange() || options_.getIntensityRange().encloses(DPosition<1>(intensity))))
 					{
@@ -890,12 +890,12 @@ namespace OpenMS
 				float* tmp = decoder_[0].getFloatBuffer(spec.size());
 				for (UnsignedInt i=0; i<spec.size(); i++)
 					tmp[i] = spec.getContainer()[i].getPosition()[0];
-				writeBinary(os,spec.size(),"mzArrayBinary");
+				writeBinary_(os,spec.size(),"mzArrayBinary");
 
 				// intensity
 				for (UnsignedInt i=0; i<spec.size(); i++)
 					tmp[i] = spec.getContainer()[i].getIntensity();
-				writeBinary(os,spec.size(),"intenArrayBinary");
+				writeBinary_(os,spec.size(),"intenArrayBinary");
 
 				// write the supplementary data for picked peaks (is a no-op otherwise)
 				if (options_.getWriteSupplementalData())

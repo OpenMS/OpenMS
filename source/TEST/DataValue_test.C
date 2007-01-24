@@ -273,7 +273,7 @@ CHECK(([EXTRA] (int/unsigned int/float/double/short/long)DataValue(int(-222))))
 	TEST_EQUAL((long)d,-222)
 RESULT
 
-CHECK((friend bool operator==(const DataValue&, const DataValue&)))
+CHECK(([EXTRA] friend bool operator==(const DataValue&, const DataValue&)))
   DataValue a(5.0);
   DataValue b(5.0);
   TEST_EQUAL(a==b,true);
@@ -297,7 +297,7 @@ CHECK((friend bool operator==(const DataValue&, const DataValue&)))
   TEST_EQUAL(a==b,false);
 RESULT
 
-CHECK((friend bool operator!=(const DataValue&, const DataValue&)))
+CHECK(([EXTRA] friend bool operator!=(const DataValue&, const DataValue&)))
   DataValue a(5.0);
   DataValue b(5.1);
   TEST_EQUAL(a!=b,true);
@@ -330,7 +330,7 @@ CHECK((std::string toString() const))
   
 RESULT
 
-CHECK((friend std::ostream& operator<<(std::ostream&, const DataValue&)))
+CHECK(([EXTRA] friend std::ostream& operator<<(std::ostream&, const DataValue&)))
 	DataValue a((int)5), b((long)100), c((double)1.111), d((float)1.1), e("hello "), f(std::string("world")), g;
 	std::ostringstream os;
   os << a << b << c << d << e << f << g;

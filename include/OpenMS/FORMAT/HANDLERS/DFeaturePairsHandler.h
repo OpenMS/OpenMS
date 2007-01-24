@@ -183,30 +183,30 @@ namespace OpenMS
 			case FEATURE:	 feature_        = new DFeature<D>(); break;
 			case PAIR:			 pair_	         = new DFeaturePair<D>(); break;
 			case QUALITY:
-				tmp_str = getAttributeAsString(DIM);
+				tmp_str = getAttributeAsString_(DIM);
 				current_qcoord_ = asUnsignedInt_(tmp_str);
 				break;
 			case POSITION:
-				tmp_str = getAttributeAsString(DIM);
+				tmp_str = getAttributeAsString_(DIM);
 				current_pcoord_ = asUnsignedInt_(tmp_str);
 				break;
 		case CONVEXHULL: current_chull_  = new ConvexHullType(); break;
 		case HULLPOINT:  hull_position_  = new DPosition<D>(); break;
 		case HPOSITION:
-				tmp_str = getAttributeAsString(DIM);
+				tmp_str = getAttributeAsString_(DIM);
 			current_hcoord_ = asUnsignedInt_(tmp_str);
 			break;
 		case FEATMODEL:
 			model_desc_ = new ModelDescription<D>();
 			param_ = new Param();
-			tmp_str = getAttributeAsString(NAME);
+			tmp_str = getAttributeAsString_(NAME);
 			if (tmp_str != "")
 				model_desc_->setName(tmp_str);
 			break;
 		case PARAM:
 		{
-			String name = getAttributeAsString(NAME);
-				String value = getAttributeAsString(VALUE);
+			String name = getAttributeAsString_(NAME);
+				String value = getAttributeAsString_(VALUE);
 			if (name != "" && value != "")
 					param_->setValue(name, value);
 			break;

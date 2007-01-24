@@ -59,11 +59,6 @@ namespace OpenMS
 				The part of the release number after the first and before the second dot.
 		*/
 		static int getMinorRevision();
-
-		protected:
-
-		static const char* RELEASE_DATE_AND_TIME;
-	  static const char* RELEASE_WHAT_STRING;
 	};
 	
 }

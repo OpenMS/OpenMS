@@ -32,7 +32,7 @@
 	######################## helper functions ###############################
 	function printUsage()
 	{
-		print "Usage: checker.php <Path to OpenMS> [-u \"user name\"] [-t test] [options]\n";
+		print "Usage: checker.php <Absolut path to OpenMS> [-u \"user name\"] [-t test] [options]\n";
 		print "\n";
 		print "If no user name is given, the tests are performed for all users.\n";
 		print "\n";
@@ -635,8 +635,8 @@
 			# non-public member
 			foreach($class_info["non-public"] as $tmp)
 			{
-				# constructor, destructor, serialize method and QT events are allowed
-				if ( endswith($tmp,'Event') || endsWith($tmp,'serialize') || $tmp==$class_info["classname"] || $tmp=='~'.$class_info["classname"] )
+				# constructor, destructor, serialize methods and QT events are allowed
+				if ( endswith($tmp,'Event') || endsWith($tmp,'load')  || endsWith($tmp,'save') || endsWith($tmp,'serialize') || $tmp==$class_info["classname"] || $tmp=='~'.$class_info["classname"] )
 				{
 					continue;
 				}
@@ -647,14 +647,6 @@
 				else if (strpos(substr($tmp,0,-1),'_')!==FALSE)
 				{
 					$out[] = "  - invalid non-public method name '$tmp'\n";
-				}
-			}
-			#public members
-			foreach($class_info["public"] as $tmp)
-			{
-				if (strpos($tmp,'_')!==FALSE)
-				{
-					$out[] = "  - invalid public method name '$tmp'\n";
 				}
 			}
 			#output

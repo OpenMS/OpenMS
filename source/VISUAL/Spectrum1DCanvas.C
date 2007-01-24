@@ -252,7 +252,7 @@ namespace OpenMS
 	{
 		if (e->button() == LeftButton && action_mode_ == AM_SELECT)
 		{
-			SpectrumIteratorType i = findPeakAtPosition(e->pos());
+			SpectrumIteratorType i = findPeakAtPosition_(e->pos());
 			if (i != currentPeakData_()[0].end())
 			{
 				i->metaRegistry().registerName("extended_label","","");
@@ -282,7 +282,7 @@ namespace OpenMS
 			{ 
 				emit sendCursorStatus();
 	 			setCursor(Qt::ArrowCursor);
-				nearest_peak_ = findPeakAtPosition(p);
+				nearest_peak_ = findPeakAtPosition_(p);
 				invalidate_();
 				break;
 			}
@@ -348,7 +348,7 @@ namespace OpenMS
 		}
 	}
 	
-	Spectrum1DCanvas::SpectrumIteratorType Spectrum1DCanvas::findPeakAtPosition(QPoint p)
+	Spectrum1DCanvas::SpectrumIteratorType Spectrum1DCanvas::findPeakAtPosition_(QPoint p)
 	{
 		//  Input: position p on screen
 		//  Algorithmn:
@@ -537,7 +537,7 @@ namespace OpenMS
 	//////////////////////////////////////////////////////////////////////////////////
 	// data plotting
 	
-	void Spectrum1DCanvas::drawIcon(const PeakType& peak, const QPoint& p)
+	void Spectrum1DCanvas::drawIcon_(const PeakType& peak, const QPoint& p)
 	{
 		// draw icon associated to current peak
 		if (peak.metaValueExists(4))
@@ -601,7 +601,7 @@ namespace OpenMS
 				}
 			}
 			//draw icon if necessary
-			drawIcon(*it, p);
+			drawIcon_(*it, p);
 		}
 		painter_.restore();
 	}
@@ -684,7 +684,7 @@ namespace OpenMS
 				emit sendCursorStatus( it->getPosition()[0], it->getIntensity());
 			}
 			// draw associated icon
-			drawIcon(*it, p);
+			drawIcon_(*it, p);
 		}
 	
 		// clipping on left side

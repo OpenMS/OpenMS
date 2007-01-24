@@ -81,13 +81,13 @@ namespace OpenMS
 			/// returns the scan end in m/z dimension (default is 0.0)
       float getMzRangeStop() const;
       /// sets the scan end in m/z dimension
-      void setMzRangeStop(float mz_range_sto);
+      void setMzRangeStop(float mz_range_stop);
 
     protected:
       ScanMode scan_mode_;
       IonSource::Polarity polarity_;
       float mz_range_start_;
-      float mz_range_stop;
+      float mz_range_stop_;
   };
 } // namespace OpenMS
 

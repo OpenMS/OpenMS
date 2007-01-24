@@ -32,8 +32,8 @@ using namespace std;
 
 namespace OpenMS
 {
-	const UnsignedInt IndexSet::DOTS = std::numeric_limits<UnsignedInt>::max();
-	const UnsignedInt IndexSet::END = std::numeric_limits<UnsignedInt>::max();
+	const UnsignedInt IndexSet::DOTS_ = std::numeric_limits<UnsignedInt>::max();
+	const UnsignedInt IndexSet::END_ = std::numeric_limits<UnsignedInt>::max();
 
 	IndexSet::IndexSet() : set_(), is_sorted_(true), size_(0)
 	{}
@@ -112,7 +112,7 @@ namespace OpenMS
 			set_.push_back(index_from);			
 			if (index_from != index_to) // skip if: add(n,n)
 			{
-				if (index_from+1 < index_to) set_.push_back(DOTS);      // skip if: add(n,n+1)
+				if (index_from+1 < index_to) set_.push_back(DOTS_);      // skip if: add(n,n+1)
 				set_.push_back(index_to);
 			}
 		}
@@ -138,7 +138,7 @@ namespace OpenMS
 	{
 		if (!is_sorted_) throw Exception::Precondition(__FILE__, __LINE__, __PRETTY_FUNCTION__,"The set is not sorted! It has to be in order to access it!");
 		if (set_.size()==0) //empty IndexSet
-			return ConstIterator(END,END,this);
+			return ConstIterator(END_,END_,this);
 		else
 			return ConstIterator(set_[0],0,this);
 	}
@@ -157,7 +157,7 @@ namespace OpenMS
 
 		// index_ = "one bigger than last Index" for comperators
 		// pos_ = "set size" for decrement
-		return ConstIterator(END,END,this);
+		return ConstIterator(END_,END_,this);
 	}
 
 	void IndexSet::sort()
@@ -170,7 +170,7 @@ namespace OpenMS
 		is_sorted_ = true;
 		vector<UnsignedInt> tmp;
 		for (const_iterator it=begin(); it!=end(); it++)	
-			if ( skip_from == END || *it < skip_from || *it > skip_to) //user defined skip
+			if ( skip_from == END_ || *it < skip_from || *it > skip_to) //user defined skip
 				tmp.push_back(*it);
 
 		std::sort(tmp.begin(),tmp.end());
@@ -210,12 +210,12 @@ namespace OpenMS
 		UnsignedInt size = set.set_.size();
 		for (UnsignedInt i=0; i<size; ++i)
 		{
-			if (set.set_[i] == IndexSet::DOTS)
+			if (set.set_[i] == IndexSet::DOTS_)
 				os << "..";
 			else
 			{
 				os << set.set_[i];
-				if (i+1<size && set.set_[i+1] != IndexSet::DOTS)	os << ",";
+				if (i+1<size && set.set_[i+1] != IndexSet::DOTS_)	os << ",";
 			}
 		}
 		return os;

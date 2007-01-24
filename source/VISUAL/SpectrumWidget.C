@@ -64,7 +64,7 @@ namespace OpenMS
 	}
 	
 	
-	void SpectrumWidget::setCanvas(SpectrumCanvas* canvas)
+	void SpectrumWidget::setCanvas_(SpectrumCanvas* canvas)
 	{
 		canvas_ = canvas;
 		grid_->addWidget(canvas_, 0, 2);

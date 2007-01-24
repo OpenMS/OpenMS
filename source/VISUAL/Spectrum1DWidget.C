@@ -44,7 +44,7 @@ namespace OpenMS
 		: SpectrumWidget(parent, name, f)
 	{
 		//set the label mode for the axes  - side effect
-		setCanvas(new Spectrum1DCanvas(this, "Spectrum1DCanvas"));
+		setCanvas_(new Spectrum1DCanvas(this, "Spectrum1DCanvas"));
 		connect(canvas(), SIGNAL(sendStatusMessage(std::string, OpenMS::UnsignedInt)), this, SIGNAL(sendStatusMessage(std::string, OpenMS::UnsignedInt)));
 		connect(canvas(), SIGNAL(sendCursorStatus(double,double,double)), this, SIGNAL(sendCursorStatus(double,double,double)));
 		
