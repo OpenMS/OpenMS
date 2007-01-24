@@ -49,8 +49,6 @@ using namespace std;
 	for each MS level is displayed.
 	
 	Additionally an overview of the metadata of the experiment can be displayed.
-	
-	@todo add file type recognition by file content (Marc)
 */
 
 // We do not want this class to show up in the docu:
@@ -71,7 +69,7 @@ class TOPPFileInfo
 		virtual void registerOptionsAndFlags_()
 		{
 			registerStringOption_("in","<file>","","input file");
-			registerStringOption_("in_type","<type>","","input file type (default: determined from input file extension)\n"
+			registerStringOption_("in_type","<type>","","input file type (default: determined from file extension or content)\n"
 			                                            "Valid types are: 'mzData', 'mzXML', 'DTA2D', 'ANDIMS' (cdf) , 'FeatureFile'", false);
 			registerFlag_("m","show meta information about the whole experiment");
 		}
@@ -93,7 +91,19 @@ class TOPPFileInfo
 			if (in_type==FileHandler::UNKNOWN)
 			{
 				in_type = fh.getTypeByFileName(in);
-				writeDebug_(String("Input file type (from file extention): ") + fh.typeToName(in_type), 1);
+				writeDebug_(String("Input file type (from file extention): ") + fh.typeToName(in_type), 2);
+			}
+
+			if (in_type==FileHandler::UNKNOWN)
+			{
+				in_type = fh.getTypeByContent(in);
+				writeDebug_(String("Input file type (from content): ") + fh.typeToName(in_type), 2);
+			}
+
+			if (in_type==FileHandler::UNKNOWN)
+			{
+				writeLog_("Error: Could not determine input file type!");
+				return PARSE_ERROR;
 			}
 
 			cout << endl

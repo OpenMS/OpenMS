@@ -247,7 +247,7 @@ namespace OpenMS
 		//error handling
 		//----------------------------------------------------------
 		
-		///Errors caused by the user
+		// Errors caused by the user
 		catch(Exception::UnableToCreateFile& e)
 		{
 			writeLog_(String("Error: Unable to write file (") + e.what() + ")");
@@ -284,7 +284,7 @@ namespace OpenMS
 			writeDebug_(String("Error occured in line ") + e.getLine() + " of file " + e.getFile() + " (in function: " + e.getFunction() + ") !",1);
 			return MISSING_PARAMETERS;
 		}
-		///Internal errors because of wrong use of this class
+		// Internal errors because of wrong use of this class
 		catch(Exception::UnregisteredParameter& e)
 		{
 			writeLog_(String("Internal error: Request for unregistered parameter '") + e.what() + ")");
@@ -297,7 +297,7 @@ namespace OpenMS
 			writeDebug_(String("Error occured in line ") + e.getLine() + " of file " + e.getFile() + " (in function: " + e.getFunction() + ") !",1);
 			return INTERNAL_ERROR;
 		}
-		///All other errors
+		// All other errors
 		catch(Exception::Base& e)
 		{
 			writeLog_(String("Error: Unexpected internal error (") + e.what() + ")");

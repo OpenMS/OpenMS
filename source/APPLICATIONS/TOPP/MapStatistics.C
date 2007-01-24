@@ -104,17 +104,24 @@ protected:
 			in_type = fh.getTypeByFileName(in);
 			writeDebug_(String("Input file type (from file extention): ") + fh.typeToName(in_type), 1);
 		}
+
+		if (in_type==FileHandler::UNKNOWN)
+		{
+			in_type = fh.getTypeByContent(in);
+			writeDebug_(String("Input file type (from content): ") + fh.typeToName(in_type), 2);
+		}
+
+		if (in_type==FileHandler::UNKNOWN)
+		{
+			writeLog_("Error: Could not determine input file type!");
+			return PARSE_ERROR;
+		}
 		
 		//-------------------------------------------------------------
 		// calculations
 		//-------------------------------------------------------------
 
-		if (in_type == FileHandler::UNKNOWN)
-		{	
-			writeLog_(" Unknown input type given. Aborting!");
-			return ILLEGAL_PARAMETERS;
-		}
-		else if (in_type == FileHandler::FEATURE)
+		if (in_type == FileHandler::FEATURE)
 		{
 			DFeatureMap<2> map;
 			DFeatureMapFile().load(in,map);

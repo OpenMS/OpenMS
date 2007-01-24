@@ -37,7 +37,16 @@ namespace OpenMS
 
 	FileHandler::Type FileHandler::getTypeByFileName(const String& filename)
 	{
-		String tmp = filename.suffix('.');
+		String tmp;
+		try
+		{
+			tmp = filename.suffix('.');
+		}
+		// no '.' => unknown type
+		catch (Exception::IndexOverflow)
+		{
+			return UNKNOWN;
+		}
 		tmp.toUpper();
 		if (tmp == "MZDATA")
 		{

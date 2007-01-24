@@ -49,8 +49,6 @@ using namespace std;
 	
 	Supported output file types are: 'mzData', 'mzXML', 'DTA2D'
 	'FeatureFile' can be generated using defaults for feature specific information.
-	
-	@todo add file type recognition by file content (Marc)
 */
 
 // We do not want this class to show up in the docu:
@@ -72,7 +70,7 @@ class TOPPFileConverter
 	{
 		registerStringOption_("in","<file>","","input file");
 		registerStringOption_("in_type", "<type>", "",
-													"input file type (default: determined from input file extension)\n"
+													"input file type (default: determined from file extension or content)\n"
 													"Valid input types are: 'mzData', 'mzXML', 'DTA2D', 'ANDIMS'.\n"
 													"'FeatureFile' can be converted, but will lose feature specific information", false);
 		registerStringOption_("out","<file>","","output file");
@@ -100,8 +98,21 @@ class TOPPFileConverter
 		if (in_type==FileHandler::UNKNOWN)
 		{
 			in_type = fh.getTypeByFileName(in);
-			writeDebug_(String("Input file type (from file extention): ") + fh.typeToName(in_type), 1);
+			writeDebug_(String("Input file type (from file extention): ") + fh.typeToName(in_type), 2);
 		}
+
+		if (in_type==FileHandler::UNKNOWN)
+		{
+			in_type = fh.getTypeByContent(in);
+			writeDebug_(String("Input file type (from content): ") + fh.typeToName(in_type), 2);
+		}
+
+		if (in_type==FileHandler::UNKNOWN)
+		{
+			writeLog_("Error: Could not determine input file type!");
+			return PARSE_ERROR;
+		}
+
 	
 		//output file names and types
 		String out = getStringOption_("out");
@@ -111,7 +122,13 @@ class TOPPFileConverter
 		{
 			out_type = fh.getTypeByFileName(out);
 		}
-		
+
+		if (out_type==FileHandler::UNKNOWN)
+		{
+			writeLog_("Error: Could not determine output file type!");
+			return PARSE_ERROR;
+		}
+
 		writeDebug_(String("Output file type: ") + fh.typeToName(out_type), 1);
 			
 		//-------------------------------------------------------------
@@ -137,15 +154,9 @@ class TOPPFileConverter
 			fm.sortByPosition();
 			exp.set2DData(fm);
 		}
-		else if (in_type != FileHandler::UNKNOWN)
-		{
-			fh.loadExperiment(in,exp,in_type);
-		}
 		else
 		{
-			writeLog_("Unknown input file type given. Aborting!");
-			printUsage_();
-			return ILLEGAL_PARAMETERS;			
+			fh.loadExperiment(in,exp,in_type);
 		}
 	
 		//-------------------------------------------------------------

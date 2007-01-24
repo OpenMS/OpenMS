@@ -54,7 +54,6 @@
 
 /*
 	TODO:
-	- @todo FileInfo + FileConverter
 	- ParamHander-Klasse (getDefaults())
 	- FeatureFinder wirklich auf MSExperiment umstellen
 	- Kernel/Datastructures nach Pass-By-Copy durchsuchen
