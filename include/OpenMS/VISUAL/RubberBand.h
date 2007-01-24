@@ -37,7 +37,7 @@ namespace OpenMS
 		
 		Implementation as described in the "C++ GUI Programming with Qt 3" book.
 		
-		@todo replace by the same as used in 2D and 3D? (Marc)
+		@todo replace by the same as used in 2D and 3D? (Thomas S.)
 		
 		@ingroup Visual
 	*/

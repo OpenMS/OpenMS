@@ -61,6 +61,9 @@ namespace OpenMS
   	view.
   	
   	@todo Make marching squares continous along RT (Marc)
+  	@todo Add visualization of feature pairs -> change LabeledMatcher (Marc)
+  	@todo Add reduction of 2D data (Marc)
+  	@todo Show marked convex hull for marked feature (Marc)
   	
   	@ingroup spectrum_widgets
   */

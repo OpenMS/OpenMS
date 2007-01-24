@@ -50,7 +50,7 @@ namespace OpenMS
 	/**
 		@brief Canvas for visualization of spectrum
 		
-		
+		@todo Add measurement (Marc)
 		
 		@ingroup spectrum_widgets
 	*/

@@ -42,6 +42,8 @@ namespace Internal
 		
 		This iterator allows us to move through the data structure in a linear
 		manner i.e. we don't need to jump to the next spectrum manually.
+		
+		@todo Add filter for MS-level and Int-Range (Marc)
 	*/
 	template<class ValueT, class ReferenceT, class PointerT, class SpectrumIteratorT, class PeakIteratorT>
 	class AreaIterator : public std::iterator<std::bidirectional_iterator_tag, ValueT>

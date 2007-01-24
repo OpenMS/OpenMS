@@ -73,7 +73,7 @@ check options:
 									"Exception" => array("throw","Base"),
 									"DPickedPeak" => array("PeakShapeType","DPickedPeak"),
 									"TimeStamp" => array("PreciseTime","TimeStamp"),
-									"Identification" => array("Identification", "IdentificationData")
+									"Identification" => array("Identification", "IdentificationData"),
 									
 	 							);
 

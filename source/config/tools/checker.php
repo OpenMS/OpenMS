@@ -354,8 +354,8 @@
 		// file content
 		$file = file($path."/".$f);
 		
-		#########################load class info ################################
-		$dont_report = array(
+		######################### load class info ################################
+		$dont_load = array(
 			"RangeUtils.h",
 			"ComparatorUtils.h",
 			"KernelTraits.h",
@@ -374,9 +374,9 @@
 			"Constants.h",
 			);
 
-		if (!endsWith($f,"_registerChildren.h") && endsWith($f,".h") && !in_array($basename,$dont_report))
+		if (!endsWith($f,"_registerChildren.h") && endsWith($f,".h") && !in_array($basename,$dont_load))
 		{
-			$class_info = getClassInfo($path,$f,true,true,true);
+			$class_info = getClassInfo($path,$f);
 		}
 		else
 		{
@@ -565,110 +565,39 @@
 		}
 		
 		########################### test errors  #####################################
-
-		#stuff replaced in methods
-		$replace = array(
-			"std::" => "",
-			"OpenMS::" => "",
-			" " => "",
-			"\t" => "",
-			"=0" => "",
-			"throw()" => "",
-			"virtual" => "",
-			"static" => "",
-			"/*" => "",
-			"*/" => "",
-			);
 		
 		if (isset($class_info) && ($test == "all" || $test == "check_test"))
 		{
 			if (in_array($testname,$files))
 			{
-				#parse doxygen XML file
-				$result = array();
 				
-				#parse test and report missing methods
-				$tmp = file($testname);
-				$tests = array();
-				foreach ($tmp as $line)
-				{
-					
-					$line = trim($line);
-					if (beginsWith($line,"CHECK("))
-					{
-						# strip brackets
-						$function = trim(substr($line,5));
-						while ($function[0]=='(' && $function[strlen($function)-1]==')')
-						{
-							$function = trim(substr($function,1,-1));
-						}
-						# ignore extra function tests
-						if (!beginsWith($function,"[EXTRA]"))
-						{
-							$tests[] = $function;
-						}
-					}
-				}
+ 				#parse test
+ 				parseTestFile("$path/$testname",$tests);
 				
-				#make a copy without whitespaces
-				$tmp  =array();
-				foreach ($class_info["public-long"] as $m)
-				{
-					$tmp[] = strtr($m,$replace);
-				}
+				#compare declarations and tests
+				$out = compareDeclarationsAndTests($class_info["public-long"],$tests);
 				
-				#compare tests and declarations
-				$unknown = array();
-				foreach ($tests as $t)
+				#output
+				if (count($out["missing"])!=0 || count($out["unknown"])!=0)
 				{
-					$stripped = strtr($t,$replace);
-					$pos = array_search($stripped,$tmp);
-					if ($pos === FALSE)
-					{
-						$unknown[] = $t;
-					}
-					else
-					{
-						unset($tmp[$pos]);
-					}
-				}
-				
-				$out = array();
-				#report missing tests
-				if (count($unknown)!=0)
-				{
-					$out[] = "  Tests of unknown methods:\n";
-					foreach ($unknown as $u)
-					{
-						$out[] = "    - '$u'\n";	
-					}
-				}
-				#report extra tests
-				if (count($tmp)!=0)
-				{
-					$out[] = "  Missing tests:\n";
-					foreach ($tmp as $t)
-					{
-						# look up test with spaces
-						foreach($class_info["public-long"] as $z)
-						{
-							if (strtr($z,$replace)==$t)
-							{
-								$out[] = "    - '$z'\n";	
-								break;
-							}
-						}
-					}
-				}
-				# print out report if missing or extra tests
-				if (count($out)!=0)
-				{
-					realOutput("Test error in '$f'",$user,$verbose,$testname);
+					realOutput("Test errors in '$f'",$user,$verbose,$testname);
 					if ($verbose)
 					{
-						foreach ($out as $o)
+						if (count($out["unknown"])!=0)
 						{
-							print $o;
+							print "  Tests of unknown methods:\n";
+							foreach ($out["unknown"] as $u)
+							{
+								print "    - '$u'\n";
+							}
+						}
+						if (count($out["missing"])!=0)
+						{
+							print "  Missing tests:\n";
+							foreach ($out["missing"] as $m)
+							{
+								print "    - '$m'\n";
+							}
 						}
 					}
 				}
@@ -682,7 +611,6 @@
 		{
 			$out = array();
 			#variables
-			# -underscore at the end
 			foreach($class_info["variables"] as $tmp)
 			{
 				if (!endswith($tmp,'_'))
@@ -690,8 +618,14 @@
 					$out[] = "  - invalid non-public variable name '$tmp'\n";
 				}
 			}
+			# non-public member
 			foreach($class_info["non-public"] as $tmp)
 			{
+				# constructor, destructor, serialize method and QT events are allowed
+				if ( endswith($tmp,'Event') || endsWith($tmp,'serialize') || $tmp==$class_info["classname"] || $tmp=='~'.$class_info["classname"] )
+				{
+					continue;
+				}
 				if (!endswith($tmp,'_'))
 				{
 					$out[] = "  - invalid non-public method name '$tmp'\n";
@@ -701,6 +635,7 @@
 					$out[] = "  - invalid non-public method name '$tmp'\n";
 				}
 			}
+			#public members
 			foreach($class_info["public"] as $tmp)
 			{
 				if (strpos($tmp,'_')!==FALSE)
@@ -708,6 +643,7 @@
 					$out[] = "  - invalid public method name '$tmp'\n";
 				}
 			}
+			#output
 			if (count($out)!=0)
 			{
 				realOutput("Coding convention violation in '$f'",$user,$verbose,$f);
@@ -720,7 +656,6 @@
 				}
 			}
 		}
-
 		
 		
 		########################### warnings test  #####################################

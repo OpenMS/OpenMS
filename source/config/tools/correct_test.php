@@ -27,17 +27,13 @@
 
 error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 
-if ( $argc<3 || $argc>4 || ( $argc==4 &&  $argv[$argc-1]!="-verbose") )
+if ( $argc<3 || $argc>4 )
 {
-	print "\n\nUsage: correct_test.php <Absolut path to OpenMS> <Absolut path to header> [-verbose]\n\n";
+	print "\n\nUsage: correct_test.php <Absolut path to OpenMS> <Absolut path to header> [-v]\n\n";
 	exit;	
 }
 
-$verbose = false;
-if ($argc==4 && $argv[$argc-1]=="-verbose")
-{
-	$verbose = true;
-}
+########################## auxilary functions ##################################
 
 function penalize_name($f1, $f2)
 {
@@ -49,20 +45,77 @@ function penalize_name($f1, $f2)
 	{
 		$p = 0;
 	}
-	//print_r($r1);
-	//print_r($r2);
-	//print "\nF1: $f1\nR1: $r1[1]\nF2: $f2\nR2: $r2[1]\nScore: $p\n";
 	return $p;
 }
 
-//determine methods
-$check_test = $argv[1]."/source/config/tools/check_test";
-exec("$check_test $argv[2] -a",$out, $return);
-if (!file_exists($check_test))
+######################## parameter handling ####################################
+$verbose = false;
+if (in_array("-v",$argv))
 {
-	print "Tool $check_test not present => Aborting!";
-	exit(1);
+	$verbose = true;
 }
+
+$path = $argv[1];
+$header = $argv[2];
+$basename = basename($header);
+
+######################## determine methods to correct ##########################
+
+$class_info = getClassInfo($path,$header);
+
+#make a stripped copys
+$tmp  =array();
+foreach ($class_info["public-long"] as $m)
+{
+	$tmp[] = strtr($m,$method_replacements);
+}
+
+#compare tests and declarations
+$unknown = array();
+foreach ($tests as $t)
+{
+	$stripped = strtr($t,$method_replacements);
+	$pos = array_search($stripped,$tmp);
+	if ($pos === FALSE)
+	{
+		$unknown[] = $t;
+	}
+	else
+	{
+		unset($tmp[$pos]);
+	}
+}
+
+$out = array();
+#report missing tests
+if (count($unknown)!=0)
+{
+	$out[] = "  Tests of unknown methods:\n";
+	foreach ($unknown as $u)
+	{
+		$out[] = "    - '$u'\n";	
+	}
+}
+#report extra tests
+if (count($tmp)!=0)
+{
+	$out[] = "  Missing tests:\n";
+	foreach ($tmp as $t)
+	{
+		# look up test with spaces
+		foreach($class_info["public-long"] as $z)
+		{
+			if (strtr($z,$method_replacements)==$t)
+			{
+				$out[] = "    - '$z'\n";	
+				break;
+			}
+		}
+	}
+}
+
+
+#######################################
 
 $methods = array();
 for ($i=1; $i< count($out); ++$i)
@@ -161,7 +214,7 @@ for($i=0; $i<count($tests); ++$i)
 	}
 	print "\n[enter]  => 0\n";
 	print   "[i]      => ignore this test\n";
-	print   "[x]      => make [EXTRA] test (is ignored by check_test)\n";
+	print   "[x]      => make [EXTRA] test (is ignored by checker.php)\n";
 	print   "[CTRL+C] => abort\n";
 	
 	//read in choise

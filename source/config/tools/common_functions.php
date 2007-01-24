@@ -25,7 +25,7 @@
 # $Maintainer: Marc Sturm $
 # --------------------------------------------------------------------------
 
-//write array to file line by line
+///write array to file line by line
 function writeFile($name,$array)
 {
 	$fp = fopen($name,"w");
@@ -35,7 +35,7 @@ function writeFile($name,$array)
 	fclose($fp);
 }
 
-// returns true if $string begins with $begin, return false otherwise
+/// returns true if $string begins with $begin, return false otherwise
 function beginsWith($string,$begin)
 {
 	if (substr($string,0,strlen($begin)) == $begin )
@@ -45,7 +45,7 @@ function beginsWith($string,$begin)
 	return false;
 }
 
-// returns true if $string ends with $end, return false otherwise
+/// returns true if $string ends with $end, return false otherwise
 function endsWith($string,$end)
 {
 	if (substr($string,-1*strlen($end)) == $end )
@@ -55,27 +55,31 @@ function endsWith($string,$end)
 	return false;
 }
 
-// returns the prefix of length $length of string $string
+/// returns the prefix of length $length of string $string
 function prefix($string,$length)
 {
 	return substr($string,$length);
 }
 
-// returns the suffix of length $length of string $string
+/// returns the suffix of length $length of string $string
 function suffix($string,$length)
 {
 	return substr($string,-1*$length);
 }
 
-// returns the include guard for the included file $include
-// give only the path and filename i.e. the part between "#include <" and ">"
+/**
+	returns the include guard for the included file $include
+	give only the path and filename i.e. the part between "#include <" and ">"
+*/
 function includeToGuard($include)
 {
 	return strtoupper(str_replace(".","_",str_replace("/","_",$include)));
 }
 
-//return true if the given line is a include line, returns false otherwise
-//the fielname and path of the include are written into $include if it is given 
+/**
+	return true if the given line is a include line, returns false otherwise
+	the fielname and path of the include are written into $include if it is given 
+*/
 function isIncludeLine($line,&$include)
 {
 	if (ereg ("^#[ \t]*include[ \t]*<(.*)>", ltrim($line),$parts))
@@ -112,7 +116,7 @@ function isIdentifierChar($char)
 	return isAlnum($char) || $char == '_';
 }
 
-// tokenize a line into something like C++-Tokens (not exactly, but good enough)
+/// tokenize a line into something like C++-Tokens (not exactly, but good enough)
 function tokenize($line)
 {
 	$result = array();
@@ -156,15 +160,10 @@ function tokenize($line)
 		}
 	}
 	
-/*	print("tokenize: ");
-	
-	for ($i = 0; $i != count($result); $i++) {
-		print("\"" . $result[$i] . "\" ");
-	}
-	print("\n");*/
 	return $result;
 }
 
+/// parses out the maintainers from the maintainer line
 function parseMaintainerLine($line)
 {
 	$replacements = array(
@@ -192,7 +191,13 @@ function parseMaintainerLine($line)
 */
 function getClassInfo($path,$header)
 {
-	$class = substr(basename($header),0,-2);
+	$members = array(
+		"classname" => substr(basename($header),0,-2),
+		"public-long" => array(),
+		"public" => array(),
+		"non-public" => array(),
+		"variables" => array(),
+		);
 
 	######################## needed stuff ###############################
 	if (!file_exists("$path/doc/xml/"))
@@ -200,12 +205,6 @@ function getClassInfo($path,$header)
 		print "Error: The directory '$path/doc/xml/' is needed!\n";
 		print "       Please execute 'make idoc' in '$path/doc/'.\n";
 	}
-	
-	$members = array(
-		"public"=> array(),
-		"non-public"=> array(),
-		"variables"=> array(),
-		);
 	
 	######################## load file ###############################
 	$paths = array(
@@ -217,7 +216,7 @@ function getClassInfo($path,$header)
 	$found = false;
 	foreach ($paths as $p)
 	{
-		$tmp = "$path/doc/xml/classOpenMS_1_1".$p.$class.".xml";
+		$tmp = "$path/doc/xml/classOpenMS_1_1".$p.$members["classname"].".xml";
 		if (file_exists($tmp))
 		{
 			$class = simplexml_load_file($tmp);
@@ -227,7 +226,7 @@ function getClassInfo($path,$header)
 	}
 	if (!$found)
 	{
-		print "Error: No XML file found for class '$class'. Aborting!\n";
+		print "Error: No XML file found for class '".$members["classname"]."'. Aborting!\n";
 		return $members;
 	}
 	
@@ -305,6 +304,97 @@ function getClassInfo($path,$header)
 		}
 	}
 	return $members;
+}
+
+/// Load information about the tested methods
+function parseTestFile($filename,&$tests)
+{
+	$tests = array();
+	
+	#load file
+	$tmp = file($filename);
+	
+	foreach ($tmp as $line)
+	{	
+		$line = trim($line);
+		if (beginsWith($line,"CHECK("))
+		{
+			# strip brackets
+			$function = trim(substr($line,5));
+			while ($function[0]=='(' && $function[strlen($function)-1]==')')
+			{
+				$function = trim(substr($function,1,-1));
+			}
+			# ignore extra function tests
+			if (!beginsWith($function,"[EXTRA]"))
+			{
+				$tests[] = $function;
+			}
+		}
+	}
+}
+
+/// Comares declared and tested methods
+function compareDeclarationsAndTests($declarations,$tests)
+{
+	# Replacements to use when comparing methods
+	$method_replacements = array(
+	"std::" => "",
+	"OpenMS::" => "",
+	" " => "",
+	"\t" => "",
+	"=0" => "",
+	"throw()" => "",
+	"virtual" => "",
+	"static" => "",
+	"/*" => "",
+	"*/" => "",
+	);
+	
+	$out = array(
+		"missing" => array(),
+		"unknown" => array(),
+		);
+
+	#make a copy without whitespaces
+	$tmp  = array();
+	foreach ($declarations as $m)
+	{
+		$tmp[] = strtr($m,$method_replacements);
+	}
+	
+	#compare tests and declarations
+	foreach ($tests as $t)
+	{
+		$stripped = strtr($t,$method_replacements);
+		$pos = array_search($stripped,$tmp);
+		if ($pos === FALSE)
+		{
+			$out["unknown"][] = $t;
+		}
+		else
+		{
+			unset($tmp[$pos]);
+		}
+	}
+	
+	#report extra tests
+	if (count($tmp)!=0)
+	{
+		foreach ($tmp as $t)
+		{
+			# look up test with spaces
+			foreach($declarations as $z)
+			{
+				if (strtr($z,$method_replacements)==$t)
+				{
+					$out["missing"][] = $z;	
+					break;
+				}
+			}
+		}
+	}
+	return $out;
 }
 
 ?>

@@ -55,24 +55,10 @@
 /*
 	TODO:
 	- check_test ersetzen in create_test.php und correct_test.php
-	- checker.php Coding: Constructor + serialize + QT-Members zulassen 
-	- Kernel/Datastructures nach Pass-By-Copy durchsuchen
-	- Valgrind
+	- checker-Fehler korrigieren
+	- @todo FileInfo + FileConverter
 	- ParamHander-Klasse (getDefaults())
 	- FeatureFinder wirklich auf MSExperiment umstellen
-	- TOPPView:
-		- FloatKernel statt DoubleKernel?
-		- Feature markiert -> konvexe Hülle markiert
-		- Preferences für Layers
-	
-	TODO (Hiwis):
-	- Base 64 verschnellern (gleich in MSExp schreiben nicht in double-Array)
-	- MSExperiment: AreaIterator mit min/max int als Filter, MS-level als Filter
-	- TOPPView:
-		- ohne quadtree
-		- Visualisierung von FeaturePairs -> TOPP tool ändern
-		- Messen in 1D
-		- Reduktion in 2D
-		- TOPP Tools aus TOPPView aufrufen (system call)
-			- Param visuell editierbar
+	- Kernel/Datastructures nach Pass-By-Copy durchsuchen
+	- Valgrind
 */
