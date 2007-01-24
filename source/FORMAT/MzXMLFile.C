@@ -41,5 +41,15 @@ namespace OpenMS
 	{
 	}
 
+	PeakFileOptions& MzXMLFile::getOptions()
+	{
+		return options_;
+	}
+
+  const PeakFileOptions& MzXMLFile::getOptions() const
+  {
+  	return options_;
+  }
+
 } // namespace OpenMS
 

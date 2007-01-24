@@ -57,6 +57,17 @@ CHECK((~MzDataFile()))
 	delete ptr;
 RESULT
 
+CHECK(const PeakFileOptions& getOptions() const)
+	MzDataFile file;
+	TEST_EQUAL(file.getOptions().hasMSLevels(),false)
+RESULT
+
+CHECK(PeakFileOptions& getOptions())
+	MzDataFile file;
+	file.getOptions().addMSLevel(1);
+	TEST_EQUAL(file.getOptions().hasMSLevels(),true);
+RESULT
+
 CHECK((template<typename MapType> void load(const String& filename, MapType& map) throw(Exception::FileNotFound, Exception::ParseError)))
 	PRECISION(0.01)
 

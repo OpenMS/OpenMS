@@ -37,5 +37,15 @@ namespace OpenMS
 	{
 	}
 
+	PeakFileOptions& MzDataFile::getOptions()
+	{
+		return options_;
+	}
+
+  const PeakFileOptions& MzDataFile::getOptions() const
+  {
+  	return options_;
+  }
+
 }// namespace OpenMS
 

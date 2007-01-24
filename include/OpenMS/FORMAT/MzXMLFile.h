@@ -47,8 +47,11 @@ namespace OpenMS
 			///Destructor
 			~MzXMLFile();
 			
-			/// Mutable access to the options for loading/storing 
-			PeakFileOptions& getOptions() { return options_; }
+      /// Mutable access to the options for loading/storing 
+      PeakFileOptions& getOptions();
+
+      /// Non-mutable access to the options for loading/storing 
+      const PeakFileOptions& getOptions() const;
 
 			/**
 				@brief Loads a map from a MzXML file.
