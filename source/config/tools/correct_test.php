@@ -27,6 +27,8 @@
 
 error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 
+include "common_functions.php";
+
 if ( $argc<3 || $argc>4 )
 {
 	print "\n\nUsage: correct_test.php <Absolut path to OpenMS> <Absolut path to header> [-v]\n\n";
@@ -35,17 +37,24 @@ if ( $argc<3 || $argc>4 )
 
 ########################## auxilary functions ##################################
 
+/// penalizes differing method names with 100
 function penalize_name($f1, $f2)
 {
-	$p = 100;
-	eregi("[ 	]+([^ 	]+)[ 	]?\(", " ".$f1, $r1);
-	eregi("[ 	]+([^ 	]+)[ 	]?\(", " ".$f2, $r2);
+	# extract name (between whitepace and bracket
+	$tmp = trim(substr($f1,0,strpos($f1,"(")));
+	$tmp = strtr($tmp,array("operator "=>"operator","operator\t"=>"operator"));
+	$n1 = trim(substr($tmp,max(strrpos($tmp," "), strrpos($tmp,"\t"))));
 	
-	if ($r1[1]==$r2[1])
+	# extract name (between whitepace and bracket
+	$tmp = trim(substr($f2,0,strpos($f2,"(")));
+	$tmp = strtr($tmp,array("operator "=>"operator","operator\t"=>"operator"));
+	$n2 = trim(substr($tmp,max(strrpos($tmp," "), strrpos($tmp,"\t"))));
+	
+	if ($n1==$n2)
 	{
-		$p = 0;
+		return 0;
 	}
-	return $p;
+	return 100;
 }
 
 ######################## parameter handling ####################################
@@ -58,109 +67,36 @@ if (in_array("-v",$argv))
 $path = $argv[1];
 $header = $argv[2];
 $basename = basename($header);
+$test_name = "$path/source/TEST/".substr($basename,0,-2)."_test.C";
 
-######################## determine methods to correct ##########################
-
-$class_info = getClassInfo($path,$header);
-
-#make a stripped copys
-$tmp  =array();
-foreach ($class_info["public-long"] as $m)
-{
-	$tmp[] = strtr($m,$method_replacements);
-}
-
-#compare tests and declarations
-$unknown = array();
-foreach ($tests as $t)
-{
-	$stripped = strtr($t,$method_replacements);
-	$pos = array_search($stripped,$tmp);
-	if ($pos === FALSE)
-	{
-		$unknown[] = $t;
-	}
-	else
-	{
-		unset($tmp[$pos]);
-	}
-}
-
-$out = array();
-#report missing tests
-if (count($unknown)!=0)
-{
-	$out[] = "  Tests of unknown methods:\n";
-	foreach ($unknown as $u)
-	{
-		$out[] = "    - '$u'\n";	
-	}
-}
-#report extra tests
-if (count($tmp)!=0)
-{
-	$out[] = "  Missing tests:\n";
-	foreach ($tmp as $t)
-	{
-		# look up test with spaces
-		foreach($class_info["public-long"] as $z)
-		{
-			if (strtr($z,$method_replacements)==$t)
-			{
-				$out[] = "    - '$z'\n";	
-				break;
-			}
-		}
-	}
-}
-
-
-#######################################
-
-$methods = array();
-for ($i=1; $i< count($out); ++$i)
-{
-	$methods[] = substr(trim($out[$i]),1,-1);
-}
-
-// print methods in verbose mode
-if ($verbose)
-{
-	print "\n\nDecalared methods:\n";
-	foreach ($methods as $m) print "  '$m'\n";
-}
-
-//parse test
-$test_name = $argv[1]."/source/TEST/".substr($argv[2], strrpos($argv[2],"/")+1,-2)."_test.C";
-
-if (!file_exists($test_name))
-{
-	print "Test $test_name not present => Aborting!";
-	exit(1);
-}
-
-$test = file($test_name);
-$tests = array();
-foreach($test as $line)
-{
-	$line = trim($line);
-	if (substr($line,0,5)=="CHECK")
-	{
-		//extract method
-		$tmp = trim(substr($line,strpos($line,"(")+1,-1));
-		while ($tmp[0]=="(" && $tmp[strlen($tmp)-1]==")")
-		{
-			$tmp = trim(substr($tmp,1,-1));
-		}
-		$tests[] = $tmp;
-	}
-}
+######################## determine tested methods ##############################
+parseTestFile($test_name,&$tests);
 
 if ($verbose)
 {
 	print "\n\nTests:\n";
-	foreach ($tests as $t) print "  '$t'\n";
+	foreach ($tests as $t)
+	{
+		print "  '$t'\n";
+	}
 }
+
+######################## determine declared methods ##########################
+$class_info = getClassInfo($path,$header,0);
+$methods = $class_info["public-long"];
+
+// print methods in verbose mode
+if ($verbose)
+{
+	print "\n\Methods to correct:\n";
+	foreach ($methods as $m)
+	{
+		print "  '$m'\n";
+	}
+}
+
+
+######################deter#################
 
 if (count($tests)==0 || count($methods)==0)
 {
@@ -168,15 +104,27 @@ if (count($tests)==0 || count($methods)==0)
 	exit;
 }
 
-//calculate diff
-$replace_whitespaces = array("\t"=>""," "=>"");
+$replace_strings = array(
+	"\t" => "",
+	" " => "",
+	"std::" => "",
+	"OpenMS::" => "",
+	);
 
 $dists = array();
 for($i=0; $i<count($tests); ++$i)
 {
 	for($j=0; $j<count($methods); ++$j)
 	{
-		$dists[$i][$j] = penalize_name($tests[$i],$methods[$j]) + levenshtein ( strtr($tests[$i],$replace_whitespaces), strtr($methods[$j],$replace_whitespaces), 1, 10, 10 );
+		$penalty = levenshtein ( strtr($tests[$i],$replace_strings), strtr($methods[$j],$replace_strings), 1, 10, 10 );
+//		if ($penalty!=0)
+//		{
+			$penalty += penalize_name($tests[$i],$methods[$j]);
+//		}
+		$dists[$i][$j] = $penalty;		
+		//print "-- '$tests[$i]'\n";
+		//print "-- '$methods[$j]'\n";
+		//print "-------> '".$dists[$i][$j]."'\n";
 	}
 }
 
@@ -189,14 +137,8 @@ for($i=0; $i<count($tests); ++$i)
 	// abort if exact match
 	if (current($array)==0)
 	{
-		$replace[] = $methods[key($array)];
+		$replace[] = $tests[$i];
 		continue;
-	}
-	
-	if (strtoupper(substr($tests[$i],0,7))=="[EXTRA]")
-	{
-	  $replace[] = $tests[$i];
-	  continue;
 	}
 	
 	print "\n\nTest:     ".$tests[$i]."\n\n";
@@ -251,9 +193,9 @@ exec("mv $test_name $test_name.bak");
 //write test
 $fp=fopen($test_name,"w");
 $i=0;
-foreach($test as $line)
+foreach(file($test_name.".bak") as $line)
 {
-	if (substr(trim($line),0,5)=="CHECK")
+	if (substr(trim($line),0,5)=="CHECK" && strpos($line,"[EXTRA]")===FALSE)
 	{
 		fwrite($fp,"CHECK((".$replace[$i]."))\n");
 		++$i;

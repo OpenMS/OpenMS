@@ -182,19 +182,19 @@ CHECK((MzDataExpSettHandler(ExperimentalSettings& exp, const String& filename)))
 	TEST_EQUAL(e.getSample().getMetaValue("SampleComment"), "Sample")
 RESULT
 
-CHECK(~MzDataExpSettHandler())
+CHECK((~MzDataExpSettHandler()))
 	// implicitly tested in the test above
 RESULT
 
-CHECK(void characters(const XMLCh* const chars, const unsigned int length))
+CHECK((void characters(const XMLCh* const chars, const unsigned int length)))
 	// implicitly tested in the test above
 RESULT
 
-CHECK(void endElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname))
+CHECK((void endElement(const XMLCh *const , const XMLCh *const, const XMLCh *const qname)))
 	// implicitly tested in the test above
 RESULT
 
-CHECK(void startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const xercesc::Attributes& attributes))
+CHECK((virtual void startElement(const XMLCh *const , const XMLCh *const, const XMLCh *const qname, const xercesc::Attributes &attributes)))
 	// implicitly tested in the test above
 RESULT
 

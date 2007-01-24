@@ -43,8 +43,9 @@
 		}
 		print "\n";
 		print "options:\n";
-		print "  -v     verbose mode\n";
-		print "  --help shows this help\n";
+		print "  -v         verbose mode\n";
+		print "  -d <level> debug mode\n";
+		print "  --help     shows this help\n";
 	}
 
 	function realOutput($text,$user,$verbose,$filename)
@@ -85,7 +86,7 @@
 															"coding"				 => "check if coding convention is followed"
 														);
 	
-	$options = array("-u","-t");
+	$options = array("-u","-t","-d");
 	
 	$flags = array("-v");
 	
@@ -144,6 +145,13 @@
 	{
 		$verbose = true;
 	}
+
+	#debug
+	$debug = 0; 
+	if (in_array("-d",$argv))
+	{
+		$debug = $argv[array_search("-d",$argv)+1];
+	}
 	
 	#user
 	$user = "all"; 
@@ -167,9 +175,10 @@
 	
 	if ($verbose)
 	{
-		print "Path: '$path'\n";
-		print "User: '$user'\n";
-		print "Test: '$test'\n";
+		print "Path : '$path'\n";
+		print "User : '$user'\n";
+		print "Test : '$test'\n";
+		print "Debug: '$debug'\n";
 	}
 
 	########################### NEEDED FILES ###############################
@@ -344,6 +353,11 @@
 	########################################################################
 	foreach ($files_todo as $f)
 	{
+		if ($debug>0)
+		{
+			print "File name: '$f'\n";
+		}
+		
 		//file name (without path)
 		$basename = basename($f);
 		//class name (for source and header files)
@@ -376,7 +390,7 @@
 
 		if (!endsWith($f,"_registerChildren.h") && endsWith($f,".h") && !in_array($basename,$dont_load))
 		{
-			$class_info = getClassInfo($path,$f);
+			$class_info = getClassInfo($path,$f,$debug);
 		}
 		else
 		{

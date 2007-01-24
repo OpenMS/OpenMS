@@ -39,21 +39,21 @@ START_TEST(Gradient, "$Id$")
 /////////////////////////////////////////////////////////////
 
 Gradient* ptr = 0;
-CHECK(Gradient())
+CHECK((Gradient()))
 	ptr = new Gradient();
 	TEST_NOT_EQUAL(ptr, 0)
 RESULT
 
-CHECK(~Gradient())
+CHECK((~Gradient()))
 	delete ptr;
 RESULT
 
-CHECK(const std::vector<String>& getEluents() const)
+CHECK((const std::vector<String>& getEluents() const))
   Gradient tmp;
   TEST_EQUAL(tmp.getEluents().size(),0);
 RESULT
 
-CHECK(void addEluent(const String& eluent) throw(Exception::InvalidValue))
+CHECK((void addEluent(const String& eluent) throw(Exception::InvalidValue)))
   Gradient tmp;
 
   tmp.addEluent("A");
@@ -68,7 +68,7 @@ CHECK(void addEluent(const String& eluent) throw(Exception::InvalidValue))
   TEST_EXCEPTION(Exception::InvalidValue,tmp.addEluent("B"))
 RESULT
 
-CHECK(void clearEluents())
+CHECK((void clearEluents()))
   Gradient tmp;
 
   tmp.addEluent("A");
@@ -76,12 +76,12 @@ CHECK(void clearEluents())
   TEST_EQUAL(tmp.getEluents().size(),0);
 RESULT
 
-CHECK(const std::vector<SignedInt>& getTimepoints() const)
+CHECK((const std::vector<SignedInt>& getTimepoints() const))
   Gradient tmp;
   TEST_EQUAL(tmp.getTimepoints().size(),0);
 RESULT
 
-CHECK(void addTimepoint(SignedInt timepoint) throw(Exception::OutOfRange))
+CHECK((void addTimepoint(SignedInt timepoint) throw(Exception::OutOfRange)))
   Gradient tmp;
 
   tmp.addTimepoint(5);
@@ -98,7 +98,7 @@ CHECK(void addTimepoint(SignedInt timepoint) throw(Exception::OutOfRange))
   tmp.addTimepoint(8);
 RESULT
 
-CHECK(void clearTimepoints())
+CHECK((void clearTimepoints()))
   Gradient tmp;
 
   tmp.addTimepoint(5);
@@ -106,7 +106,7 @@ CHECK(void clearTimepoints())
   TEST_EQUAL(tmp.getTimepoints().size(),0);
 RESULT
 
-CHECK(const std::vector< std::vector< UnsignedInt >& getPercentages() const)
+CHECK((const std::vector< std::vector< UnsignedInt > > & getPercentages() const))
   Gradient tmp;
   tmp.addTimepoint(5);
   tmp.addTimepoint(7);
@@ -125,7 +125,7 @@ CHECK(const std::vector< std::vector< UnsignedInt >& getPercentages() const)
   TEST_EQUAL(tmp.getPercentages()[2][1],0);
 RESULT
 
-CHECK(void setPercentage(const String& eluent, SignedInt timepoint, UnsignedInt percentage) throw(Exception::InvalidValue))
+CHECK((void setPercentage(const String& eluent, SignedInt timepoint, UnsignedInt percentage) throw(Exception::InvalidValue)))
   Gradient tmp;
   tmp.addTimepoint(5);
   tmp.addTimepoint(7);
@@ -156,7 +156,7 @@ CHECK(void setPercentage(const String& eluent, SignedInt timepoint, UnsignedInt 
   TEST_EXCEPTION(Exception::InvalidValue,tmp.setPercentage("C",7,101));
 RESULT
 
-CHECK(UnsignedInt getPercentage(const String& eluent, SignedInt timepoint) const throw(Exception::InvalidValue))
+CHECK((UnsignedInt getPercentage(const String& eluent, SignedInt timepoint) const throw(Exception::InvalidValue)))
   Gradient tmp;
   tmp.addTimepoint(5);
   tmp.addTimepoint(7);
@@ -182,7 +182,7 @@ CHECK(UnsignedInt getPercentage(const String& eluent, SignedInt timepoint) const
   TEST_EXCEPTION(Exception::InvalidValue,tmp.getPercentage("C",9));
 RESULT
 
-CHECK(void clearPercentages())
+CHECK((void clearPercentages()))
   Gradient tmp;
   tmp.addTimepoint(5);
   tmp.addTimepoint(7);
@@ -211,7 +211,7 @@ CHECK(void clearPercentages())
   TEST_EQUAL(tmp.getPercentages()[2][1],0);
 RESULT
 
-CHECK(bool isValid() const)
+CHECK((bool isValid() const))
   Gradient tmp;
   TEST_EQUAL(tmp.isValid(),true);
   tmp.addTimepoint(5);
@@ -251,7 +251,7 @@ CHECK(bool isValid() const)
   TEST_EQUAL(tmp.isValid(),true);
 RESULT
 
-CHECK(Gradient(const Gradient& source))
+CHECK((Gradient(const Gradient& source)))
   Gradient tmp;
   tmp.addTimepoint(5);
   tmp.addEluent("A");
@@ -267,7 +267,7 @@ CHECK(Gradient(const Gradient& source))
   TEST_EQUAL(tmp2.getPercentage("B",5),10);
 RESULT
 
-CHECK(Gradient& operator = (const Gradient& source))
+CHECK((Gradient& operator = (const Gradient& source)))
   Gradient tmp;
   tmp.addTimepoint(5);
   tmp.addEluent("A");
@@ -289,7 +289,7 @@ CHECK(Gradient& operator = (const Gradient& source))
 	TEST_EQUAL(tmp2.getEluents().size(),0);
 RESULT
 
-CHECK(bool operator == (const Gradient& source) const)
+CHECK((bool operator == (const Gradient& source) const))
   Gradient base;
   base.addTimepoint(5);
   base.addEluent("A");
@@ -312,7 +312,7 @@ CHECK(bool operator == (const Gradient& source) const)
 	TEST_EQUAL(edit==base,false);
 RESULT
 
-CHECK(bool operator != (const Gradient& source) const)
+CHECK((bool operator != (const Gradient& source) const))
   Gradient base;
   base.addTimepoint(5);
   base.addEluent("A");

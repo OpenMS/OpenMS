@@ -97,13 +97,13 @@ class Test: public SampleTreatment
 
 // default ctor
 Test* dv_ptr = 0;
-CHECK(SampleTreatment(const String& type))
+CHECK((SampleTreatment(const String& type)))
 	dv_ptr = new Test;
 	TEST_NOT_EQUAL(dv_ptr, 0)
 RESULT
 
 // destructor
-CHECK(~SampleTreatment())
+CHECK((~SampleTreatment()))
 	delete dv_ptr;
 RESULT
 
@@ -115,13 +115,13 @@ CHECK([EXTRA] dummy member)
 RESULT
 
 //getType
-CHECK(const String& getType() const)
+CHECK((const String& getType() const))
 	Test s;
 	TEST_EQUAL(s.getType(),"Test")
 RESULT
 
 //getType
-CHECK(const String& getType() const)
+CHECK((const String& getType() const))
 	Test s;
 	TEST_EQUAL(s.getComment(),"")
 	s.setComment("blubb");
@@ -144,7 +144,7 @@ CHECK([EXTRA] MetaInfo)
 RESULT
 
 //copy ctr
-CHECK(SampleTreatment(const SampleTreatment&))
+CHECK((SampleTreatment(const SampleTreatment&)))
 	Test s;
 	//set
 	s.dummy= "TTEST";
@@ -158,7 +158,7 @@ RESULT
 
 //assignment operator
 //copy ctr
-CHECK(SampleTreatment& operator=(const SampleTreatment&))
+CHECK((SampleTreatment& operator=(const SampleTreatment&)))
 	Test s,s2;
 	//set
 	s.dummy= "TTEST";
@@ -171,7 +171,7 @@ CHECK(SampleTreatment& operator=(const SampleTreatment&))
 RESULT
 
 //clone
-CHECK(SampleTreatment* clone() const)
+CHECK((virtual SampleTreatment* clone() const=0))
 	Test s;
 	SampleTreatment* st1;
 	SampleTreatment* st;
@@ -191,7 +191,7 @@ CHECK(SampleTreatment* clone() const)
 	TEST_EQUAL("horse",dp->getMetaValue("origin"))
 RESULT
 
-CHECK(bool operator== (const SampleTreatment& rhs) const)
+CHECK((bool operator== (const SampleTreatment& rhs) const))
 	Test edit,empty;
 	
 	edit.dummy = "bla";

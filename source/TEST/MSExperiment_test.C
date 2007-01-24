@@ -304,7 +304,7 @@ CHECK((const AreaType& getDataRange() const))
 	TEST_REAL_EQUAL(tmp.getDataRange().max()[0],-numeric_limits<DPosition<2>::CoordinateType>::max())
 RESULT
 
-CHECK((void updateRanges()))
+CHECK((virtual void updateRanges()))
 	MSExperiment< DRawDataPoint<1> > tmp;
 	MSSpectrum< DRawDataPoint<1> > s;
 	DRawDataPoint<1> p;

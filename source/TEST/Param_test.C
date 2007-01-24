@@ -503,7 +503,7 @@ CHECK((ConstIterator end() const))
 	TEST_EQUAL((--p.end())==p.begin(),true)
 RESULT
 
-CHECK((void checkDefaults("Test",const Param& defaults, String prefix="", std::ostream& os = std::cout) const))
+CHECK((void checkDefaults(const String &name, const Param &defaults, String prefix="", std::ostream &os=std::cout) const))
 	ostringstream os;
 	Param p,d;
 	p.setValue("string",String("bla"));

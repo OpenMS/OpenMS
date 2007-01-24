@@ -66,7 +66,7 @@ CHECK((IndexSet& operator = (const IndexSet& source)))
   TEST_EQUAL(is1, is2)
 RESULT
 
-CHECK(IndexSet(const IndexSet& source))
+CHECK((IndexSet(const IndexSet& source)))
 	IndexSet is1(10,21);	
   IndexSet is2(is1);
   TEST_EQUAL(is1, is2)
@@ -394,21 +394,21 @@ CHECK((IndexSetConstIterator operator -- (int)))
   TEST_EQUAL( i, 10)
 RESULT
 
-CHECK(Size size() const)
+CHECK((Size size() const))
 	IndexSet s;
 	TEST_EQUAL(s.size(),0);
 	s.add(5).add(7).add(17);
 	TEST_EQUAL(s.size(),3);
 RESULT
 
-CHECK(bool isEmpty())
+CHECK((bool isEmpty()))
 	IndexSet s;
 	TEST_EQUAL(s.isEmpty(),true);
 	s.add(5);
 	TEST_EQUAL(s.isEmpty(),false);
 RESULT
 
-CHECK(void sort())
+CHECK((void sort()))
 	IndexSet s;
 	TEST_EQUAL(s.size(),0);
 	s.add(5,9).add(7);

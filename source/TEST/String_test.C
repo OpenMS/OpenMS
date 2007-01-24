@@ -227,13 +227,13 @@ CHECK((String suffix(SizeType length) const throw(Exception::IndexOverflow)))
 	TEST_EXCEPTION(Exception::IndexOverflow, s.suffix(s.size()+1));
 RESULT
 
-CHECK((String prefix(char delim) const throw(Exception::ElementNotFound<char>)))
+CHECK((String prefix(char delim) const throw (Exception::ElementNotFound)))
 	TEST_EQUAL(s.prefix('F'), "ACDE");
 	TEST_EQUAL(s.prefix('A'), "");
 	TEST_EXCEPTION(Exception::ElementNotFound<char>, s.suffix('Z'));
 RESULT
 
-CHECK((String suffix(char delim) const throw(Exception::ElementNotFound<char>)))
+CHECK((String suffix(char delim) const throw (Exception::ElementNotFound)))
 	TEST_EQUAL(s.suffix('S'), "TVWY");
 	TEST_EQUAL(s.suffix('Y'), "");
 	TEST_EXCEPTION(Exception::ElementNotFound<char>, s.suffix('Z'));
@@ -362,7 +362,7 @@ CHECK((double toDouble() const throw(Exception::ConversionError)))
 	TEST_EQUAL(String(s.toDouble()),"47218.89");
 RESULT
 
-CHECK((static String random(Size length)))
+CHECK((String random(Size length)))
 	String s;
 	String s2 = s.random(10);
 	TEST_EQUAL(s2.size(),10);

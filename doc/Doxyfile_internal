@@ -1,15 +1,22 @@
 @INCLUDE = Doxyfile
 
-# Doxyfile 1.4.6
+# Doxyfile 1.5.1
 
+# generate all lists
 GENERATE_TODOLIST      = YES
 GENERATE_TESTLIST      = YES
 GENERATE_BUGLIST       = YES
 GENERATE_DEPRECATEDLIST= YES
+
+# issue all possible warnings
 QUIET                  = NO
 WARNINGS               = YES
 WARN_IF_UNDOCUMENTED   = YES
 WARN_IF_DOC_ERROR      = YES
 WARN_NO_PARAMDOC       = YES
 
+# Internal info sections
 ENABLED_SECTIONS       = INTERNAL_INFO
+
+# XML for checker.php
+GENERATE_XML           = YES

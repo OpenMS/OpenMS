@@ -189,7 +189,7 @@ function parseMaintainerLine($line)
 	
 	@return Returns the parses information
 */
-function getClassInfo($path,$header)
+function getClassInfo($path,$header, $debug)
 {
 	$members = array(
 		"classname" => substr(basename($header),0,-2),
@@ -265,26 +265,34 @@ function getClassInfo($path,$header)
 						if (isset($template)) $mem = $template."> ".$mem;
 					}
 					
-					#exceptions
-					$except = " throw (";
-					$first = true;
-					foreach($member->exceptions->ref as $ref)
+					if ($debug>4)
 					{
-						if (!$first)
-						{
-							$except .= ", ";
-						}
-						else
-						{
-							$first = false;
-						}
-						$except .= (string) $ref;
-					}
-					if ($except!=" throw (")
-					{
-						$mem .= $except.")";
+						print "Exceptions for '$mem':\n";
+						var_dump($member->exceptions);
 					}
 					
+					#exceptions
+					if (isset($member->exceptions))
+					{
+						$except = " throw (";
+						$first = true;
+						foreach($member->exceptions->ref as $ref)
+						{
+							if (!$first)
+							{
+								$except .= ", ";
+							}
+							else
+							{
+								$first = false;
+							}
+							$except .= (string) $ref;
+						}
+						if ($except!=" throw (")
+						{
+							$mem .= $except.")";
+						}
+					}
 					# remove namespace stuff
 					$mem = strtr($mem,array($classname."::"=>""));
 					

@@ -44,12 +44,12 @@ using namespace std;
 //1D check
 DIntervalBase<1,FloatKernelTraits>* ptr1 = 0;
 
-CHECK(DIntervalBase())
+CHECK((DIntervalBase()))
 	ptr1 = new DIntervalBase<1,FloatKernelTraits>;
 	TEST_NOT_EQUAL(ptr1, 0)
 RESULT
 
-CHECK(~DIntervalBase())
+CHECK((~DIntervalBase()))
 	delete ptr1;
 RESULT
 
@@ -76,11 +76,11 @@ I2Pos p2;
 p2[0]=65.0;
 p2[1]=-57.5;
 
-CHECK(PositionType const& max() const)
+CHECK((PositionType const& max() const))
   TEST_EQUAL(empty.max(),I2Pos::min_negative);
 RESULT
 
-CHECK(PositionType const& min() const)
+CHECK((PositionType const& min() const))
   TEST_EQUAL(empty.min(),I2Pos::max);
 RESULT
 
@@ -94,7 +94,7 @@ CHECK([EXTRA] zero)
   TEST_EQUAL(I2::zero.min(),I2Pos::zero);
 RESULT
 
-CHECK(void setMinMax(PositionType const & min, PositionType const & max))
+CHECK((void setMinMax(PositionType const & min, PositionType const & max)))
   I2 tmp(empty);
   tmp.setMinMax(p1,p2);
   TEST_REAL_EQUAL(tmp.min()[0],5.0);
@@ -103,7 +103,7 @@ CHECK(void setMinMax(PositionType const & min, PositionType const & max))
   TEST_REAL_EQUAL(tmp.max()[1],17.5);
 RESULT
 
-CHECK(void setMin(PositionType const & position))
+CHECK((void setMin(PositionType const & position)))
   I2 tmp(empty);
   tmp.setMin(p1);
   TEST_EQUAL(tmp.min(),p1);
@@ -115,7 +115,7 @@ CHECK(void setMin(PositionType const & position))
   TEST_REAL_EQUAL(tmp.max()[1],17.5);
 RESULT
 
-CHECK(void setMax(PositionType const & position))
+CHECK((void setMax(PositionType const & position)))
   I2 tmp(empty);
   tmp.setMax(p1);
   TEST_EQUAL(tmp.min(),p1);
@@ -127,7 +127,7 @@ CHECK(void setMax(PositionType const & position))
   TEST_REAL_EQUAL(tmp.max()[1],-57.5);
 RESULT
 
-CHECK(bool operator == (const DIntervalBase& rhs) const throw())
+CHECK((bool operator==(const DIntervalBase &rhs) const ))
 	I2 tmp;
 	TEST_EQUAL(tmp==tmp,true);
 	TEST_EQUAL(tmp==empty,true);
@@ -136,7 +136,7 @@ CHECK(bool operator == (const DIntervalBase& rhs) const throw())
 	TEST_EQUAL(tmp==empty,false);
 RESULT
 
-CHECK(bool operator != (const DIntervalBase& rhs) const throw())
+CHECK((bool operator!=(const DIntervalBase &rhs) const ))
 	I2 tmp;
 	TEST_EQUAL(tmp!=tmp,false);
 	TEST_EQUAL(tmp!=empty,false);
@@ -145,19 +145,19 @@ CHECK(bool operator != (const DIntervalBase& rhs) const throw())
 	TEST_EQUAL(tmp!=empty,true);
 RESULT
 
-CHECK(DIntervalBase(const DIntervalBase& rhs))
+CHECK((DIntervalBase(const DIntervalBase& rhs)))
 	I2 tmp(p1,p2);
 	I2 tmp2(tmp);
 	TEST_EQUAL(tmp==tmp2,true);
 RESULT
 
-CHECK(DIntervalBase( PositionType const & minimum, PositionType const & maximum ))
+CHECK((DIntervalBase( PositionType const & minimum, PositionType const & maximum )))
 	I2 tmp(p1,p2);
 	I2 tmp2(tmp.min(), tmp.max());
 	TEST_EQUAL(tmp==tmp2,true);
 RESULT
 
-CHECK(DIntervalBase& operator=(const DIntervalBase & rhs))
+CHECK((DIntervalBase& operator=(const DIntervalBase & rhs)))
 	I2 tmp(p1,p2);
 	I2 tmp2;
 	TEST_EQUAL(tmp==tmp2,false);
@@ -168,7 +168,7 @@ CHECK(DIntervalBase& operator=(const DIntervalBase & rhs))
 	TEST_EQUAL(tmp==empty,true);
 RESULT
 
-CHECK(void clear())
+CHECK((void clear()))
 	I2 tmp;
 	TEST_EQUAL(tmp==empty,true);
 	tmp.setMax(p1);
@@ -177,69 +177,69 @@ CHECK(void clear())
 	TEST_EQUAL(tmp==empty,true);
 RESULT
 
-CHECK(PositionType center() const)
+CHECK((PositionType center() const))
   I2 tmp(p1,p2);
   I2Pos pos(tmp.center());
   TEST_REAL_EQUAL(pos[0],35.0);
   TEST_REAL_EQUAL(pos[1],-20.0);
 RESULT
 
-CHECK(PositionType diagonal() const)
+CHECK((PositionType diagonal() const))
   I2 tmp(p1,p2);
   I2Pos pos(tmp.diagonal());
   TEST_REAL_EQUAL(pos[0],60.0);
   TEST_REAL_EQUAL(pos[1],75.0);
 RESULT
 
-CHECK(CoordinateType width() const)
+CHECK((CoordinateType width() const))
 	I2 tmp(p1,p2);
 	TEST_REAL_EQUAL(tmp.width(),60.0)
 RESULT
 
-CHECK(CoordinateType height() const)
+CHECK((CoordinateType height() const))
 	I2 tmp(p1,p2);
 	TEST_REAL_EQUAL(tmp.height(),75.0)
 RESULT
 
-CHECK(CoordinateType maxX() const)
+CHECK((CoordinateType maxX() const))
 	I2 tmp(p1,p2);
 	TEST_REAL_EQUAL(tmp.maxX(),65.0)
 RESULT
 
-CHECK(CoordinateType maxY() const)
+CHECK((CoordinateType maxY() const))
 	I2 tmp(p1,p2);
 	TEST_REAL_EQUAL(tmp.maxY(),17.5)
 RESULT
 
-CHECK(CoordinateType minX() const)
+CHECK((CoordinateType minX() const))
 	I2 tmp(p1,p2);
 	TEST_REAL_EQUAL(tmp.minX(),5.0)
 RESULT
 
-CHECK(CoordinateType minY() const)
+CHECK((CoordinateType minY() const))
 	I2 tmp(p1,p2);
 	TEST_REAL_EQUAL(tmp.minY(),-57.5)
 RESULT
 
-CHECK(void setMinX(CoordinateType const c))
+CHECK((void setMinX(CoordinateType const c)))
 	I2 tmp(p1,p2);
 	tmp.setMinX(57.67);
 	TEST_REAL_EQUAL(tmp.minX(),57.67)
 RESULT
 
-CHECK(void setMaxX(CoordinateType const c))
+CHECK((void setMaxX(CoordinateType const c)))
 	I2 tmp(p1,p2);
 	tmp.setMaxX(57.67);
 	TEST_REAL_EQUAL(tmp.maxX(),57.67)
 RESULT
 
-CHECK(void setMinY(CoordinateType const c))
+CHECK((void setMinY(CoordinateType const c)))
 	I2 tmp(p1,p2);
 	tmp.setMinY(57.67);
 	TEST_REAL_EQUAL(tmp.minY(),57.67)
 RESULT
 
-CHECK(void setMaxY(CoordinateType const c))
+CHECK((void setMaxY(CoordinateType const c)))
 	I2 tmp(p1,p2);
 	tmp.setMaxY(57.67);
 	TEST_REAL_EQUAL(tmp.maxY(),57.67)
@@ -247,7 +247,7 @@ RESULT
 
 
 
-CHECK(template<Size D2> void assign(const DIntervalBase<D2> rhs))
+CHECK((template < D2> void assign(const DIntervalBase< D2 > rhs)))
 DIntervalBase<2>::PositionType p1;
 p1[0]=5.0;
 p1[1]=17.5;
