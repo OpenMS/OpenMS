@@ -186,6 +186,16 @@ namespace OpenMS
 		}
   }
 
+	void MetaInfo::getKeys(vector<UnsignedInt>& keys) const
+  {
+    keys.resize(index_to_value_.size());
+    UnsignedInt i =0;
+		for (map<UnsignedInt,DataValue>::const_iterator it = index_to_value_.begin(); it != index_to_value_.end(); ++it)
+		{
+			keys[i++]=it->first;
+		}
+  }
+
   bool MetaInfo::empty() const
 	{
 		return index_to_value_.empty();

@@ -103,6 +103,9 @@ namespace OpenMS
 	
 	    /// fills the given vector with a list of all keys for which a value is set
 	    void getKeys(std::vector<std::string>& keys) const;
+
+	    /// fills the given vector with a list of all keys for which a value is set
+	    void getKeys(std::vector<UnsignedInt>& keys) const;
 	    
 	    /// returns if the MetaInfo is empty
 	    bool isMetaEmpty() const;

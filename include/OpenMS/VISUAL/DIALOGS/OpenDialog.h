@@ -43,6 +43,8 @@ namespace OpenMS
 		
 		Allows selecting a spectrum/map from a file or the DB.
 		
+		@todo Implement meta data preview properly (Marc)
+		
 		@ingroup Dialogs
 	*/
 	class OpenDialog: public OpenDialogTemplate

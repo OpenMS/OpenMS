@@ -1,0 +1,217 @@
+// -*- Mode: C++; tab-width: 2; -*-
+// vi: set ts=2:
+//
+// --------------------------------------------------------------------------
+//                   OpenMS Mass Spectrometry Framework
+// --------------------------------------------------------------------------
+//  Copymain (C) 2003-2005 -- Oliver Kohlbacher, Knut Reinert
+//
+//  this library is free massanalyzer; you can redistribute it and/or
+//  modify it under the terms of the GNU Lesser General Public
+//  License as published by the Free MassAnalyzer Foundation; either
+//  version 2.1 of the License, or (at your option) any later version.
+//
+//  this library is distributed in the hope that it will be useful,
+//  but WITHOUT ANY WARRANTY; without even the implied warranty of
+//  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+//  Lesser General Public License for more details.
+//
+//  You should have received a copy of the GNU Lesser General Public
+//  License along with this library; if not, write to the Free Software
+//  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+//
+// --------------------------------------------------------------------------
+// $Maintainer:  stefan_heess $
+// --------------------------------------------------------------------------s
+
+
+#include <OpenMS/VISUAL/VISUALIZER/MassAnalyzerVisualizer.h>
+#include <OpenMS/VISUAL/VISUALIZER/BaseVisualizer.h>
+#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/METADATA/MassAnalyzer.h>
+
+
+
+//QT
+#include <qlayout.h>
+#include <qwidget.h>
+#include <qlabel.h> 
+#include <qlineedit.h>
+#include <qpushbutton.h>
+#include <qstring.h>
+#include <qvalidator.h>
+
+//STL
+#include <iostream>
+#include <vector>
+#include <string>
+
+//using namespace std;
+using namespace OpenMS;
+using namespace std;
+
+//Constructor
+MassAnalyzerVisualizer::MassAnalyzerVisualizer(QWidget *parent, const char *name) : BaseVisualizer(parent, name)
+{
+	type_="MassAnalyzer";
+  
+	addLabel("Modify massanalyzer information.");	
+	addSeperator();  
+	
+	addComboBox(massanalyzer_type_, "Type");
+	addComboBox(massanalyzer_res_method_, "Resolution method");
+	addComboBox(massanalyzer_res_type_, "Resolution type");
+	addComboBox(massanalyzer_scan_func_, "Scan function");
+	addComboBox(massanalyzer_scan_dir_, "Scan direction");
+	addComboBox(massanalyzer_scan_law_, "Scan law");
+	addComboBox(massanalyzer_tandem_scan_method_, "Tandem scan maethod");
+	addComboBox(massanalyzer_reflectron_state_, "Reflectron state");
+		
+	addLineEdit(massanalyzer_res_, "Resolution" );
+	addLineEdit(massanalyzer_acc_, "Accuracy" );
+	addLineEdit(massanalyzer_scan_rate_, "Scan rate (in s)" );
+	addLineEdit(massanalyzer_scan_time_, "Scan time (in s)" );
+	addLineEdit(massanalyzer_TOF_, "TOF Total path length (in mm)" );
+	addLineEdit(massanalyzer_iso_, "Isolation width (in m/z)" );
+	addLineEdit(massanalyzer_final_MS_, "Final MS exponent" );
+	addLineEdit(massanalyzer_magnetic_fs_, "Magnetic field strength (in T)" );
+	
+		
+	
+	addVSpacer();
+	addSeperator();
+	addLabel("Save changes or restore original data.");
+	addHorizontalButtons(savebutton_, "Save",  cancelbutton_, "Cancel");
+	
+  connect(savebutton_, SIGNAL(clicked()), this, SLOT(store()) );
+	connect(cancelbutton_, SIGNAL(clicked()), this, SLOT(reject()) );
+	
+	
+	// A validator to check the input for the resolution
+	QDoubleValidator *massanalyzer_res_vali_= new QDoubleValidator(massanalyzer_res_);
+	massanalyzer_res_->setValidator(massanalyzer_res_vali_);
+	// A validator to check the input for the accuracy
+	QDoubleValidator *massanalyzer_acc_vali_ = new QDoubleValidator(massanalyzer_acc_);
+	massanalyzer_acc_->setValidator(massanalyzer_acc_vali_);
+	// A validator to check the input for the scan rate
+	QDoubleValidator *massanalyzer_sr_vali_= new QDoubleValidator(massanalyzer_scan_rate_);
+	massanalyzer_scan_rate_->setValidator(massanalyzer_sr_vali_);
+	// A validator to check the input for the scan time
+	QDoubleValidator *massanalyzer_st_vali_ = new QDoubleValidator(massanalyzer_scan_time_);
+	massanalyzer_scan_time_->setValidator(massanalyzer_st_vali_);
+	// A validator to check the input for the TOF total path length
+	QDoubleValidator *massanalyzer_TOF_vali_ = new QDoubleValidator(massanalyzer_TOF_);
+	massanalyzer_TOF_->setValidator(massanalyzer_TOF_vali_);
+	// A validator to check the input for the isolation width
+	QDoubleValidator *massanalyzer_iso_vali_ = new QDoubleValidator(massanalyzer_iso_);
+	massanalyzer_iso_->setValidator(massanalyzer_iso_vali_);
+	// A validator to check the input for the final MS exponent
+	QIntValidator *massanalyzer_final_vali_ = new QIntValidator(massanalyzer_final_MS_);
+	massanalyzer_final_MS_->setValidator(massanalyzer_final_vali_);
+	// A validator to check the input for the magnetic field strngth
+	QDoubleValidator *massanalyzer_fs_vali_ = new QDoubleValidator(massanalyzer_magnetic_fs_);
+	massanalyzer_magnetic_fs_->setValidator(massanalyzer_fs_vali_);
+			
+}
+
+
+void MassAnalyzerVisualizer::load(MassAnalyzer &s)
+{
+  //Pointer to current object to keep track of the actual object
+	ptr_ = &s;
+	
+	//Copy of current object for restoring the original values
+	tempmassanalyzer_=s;
+			
+  fillComboBox(massanalyzer_type_, s.NamesOfAnalyzerType , MassAnalyzer::SIZE_OF_ANALYZERTYPE);
+	fillComboBox(massanalyzer_res_method_, s.NamesOfResolutionMethod , MassAnalyzer::SIZE_OF_RESOLUTIONMETHOD);
+	fillComboBox(massanalyzer_res_type_, s.NamesOfResolutionType , MassAnalyzer::SIZE_OF_RESOLUTIONTYPE);
+	fillComboBox(massanalyzer_scan_func_, s.NamesOfScanFunction , MassAnalyzer::SIZE_OF_SCANFUNCTION);
+	fillComboBox(massanalyzer_scan_dir_, s.NamesOfScanDirection , MassAnalyzer::SIZE_OF_SCANDIRECTION);
+	fillComboBox(massanalyzer_scan_law_, s.NamesOfScanLaw , MassAnalyzer::SIZE_OF_SCANLAW);
+	fillComboBox(massanalyzer_tandem_scan_method_, s.NamesOfTandemScanningMethod , MassAnalyzer::SIZE_OF_TANDEMSCANNINGMETHOD);
+	fillComboBox(massanalyzer_reflectron_state_, s.NamesOfReflectronState , MassAnalyzer::SIZE_OF_REFLECTRONSTATE);
+	
+	update();
+}
+
+void MassAnalyzerVisualizer::update()
+{
+		massanalyzer_type_->setCurrentItem(tempmassanalyzer_.getType()); 
+		massanalyzer_res_method_->setCurrentItem(tempmassanalyzer_.getResolutionMethod()); 
+		massanalyzer_res_type_->setCurrentItem(tempmassanalyzer_.getResolutionType()); 
+		massanalyzer_scan_func_->setCurrentItem(tempmassanalyzer_.getScanFunction()); 
+		massanalyzer_scan_dir_->setCurrentItem(tempmassanalyzer_.getScanDirection()); 
+		massanalyzer_scan_law_->setCurrentItem(tempmassanalyzer_.getScanLaw()); 
+		massanalyzer_tandem_scan_method_->setCurrentItem(tempmassanalyzer_.getTandemScanMethod()); 
+		massanalyzer_reflectron_state_->setCurrentItem(tempmassanalyzer_.getReflectronState()); 
+		
+		massanalyzer_res_->setText(String( tempmassanalyzer_.getResolution() ));
+		massanalyzer_acc_->setText(String( tempmassanalyzer_.getAccuracy() ));
+		massanalyzer_scan_rate_->setText(String( tempmassanalyzer_.getScanRate() ));
+		massanalyzer_scan_time_->setText(String( tempmassanalyzer_.getScanTime() ));
+		massanalyzer_TOF_->setText(String( tempmassanalyzer_.getTOFTotalPathLength() ));
+		massanalyzer_iso_->setText(String( tempmassanalyzer_.getIsolationWidth() ));
+		massanalyzer_final_MS_->setText(String( tempmassanalyzer_.getFinalMSExponent() ));
+		massanalyzer_magnetic_fs_->setText(String( tempmassanalyzer_.getMagneticFieldStrength() ));
+}
+
+void MassAnalyzerVisualizer::store()
+{
+	try
+	{
+		
+		(*ptr_).setType((MassAnalyzer::AnalyzerType)massanalyzer_type_->currentItem());		
+		(*ptr_).setResolutionMethod((MassAnalyzer::ResolutionMethod)massanalyzer_res_method_->currentItem());		
+		(*ptr_).setResolutionType((MassAnalyzer::ResolutionType)massanalyzer_res_type_->currentItem());		
+		(*ptr_).setScanFunction((MassAnalyzer::ScanFunction)massanalyzer_scan_func_->currentItem());		
+		(*ptr_).setScanDirection((MassAnalyzer::ScanDirection)massanalyzer_scan_dir_->currentItem());		
+		(*ptr_).setScanLaw((MassAnalyzer::ScanLaw)massanalyzer_scan_law_->currentItem());		
+		(*ptr_).setTandemScanMethod((MassAnalyzer::TandemScanningMethod)	massanalyzer_tandem_scan_method_->currentItem());		
+		(*ptr_).setReflectronState((MassAnalyzer::ReflectronState)massanalyzer_reflectron_state_->currentItem());		
+		
+		String m((const char*) massanalyzer_res_->text()) ;
+		(*ptr_).setResolution(m.toFloat() );
+		String n((const char*) massanalyzer_acc_->text()) ;
+		(*ptr_).setAccuracy(n.toFloat() );
+		String o((const char*) massanalyzer_scan_rate_->text()) ;
+		(*ptr_).setScanRate(o.toFloat() );
+		String p((const char*) massanalyzer_scan_time_->text()) ;
+		(*ptr_).setScanTime(p.toFloat() );
+		String q((const char*) massanalyzer_TOF_->text()) ;
+		(*ptr_).setTOFTotalPathLength(q.toFloat() );
+		String r((const char*) massanalyzer_iso_->text()) ;
+		(*ptr_).setIsolationWidth(r.toFloat() );
+		
+		String s((const char*) massanalyzer_final_MS_->text()) ;
+		(*ptr_).setFinalMSExponent(s.toInt() );
+		
+		String t((const char*) massanalyzer_magnetic_fs_->text()) ;
+		(*ptr_).setMagneticFieldStrength(t.toFloat() );
+		
+		
+		
+		tempmassanalyzer_=(*ptr_);
+	}
+	catch(exception& e)
+	{
+		std::cout<<"Error while trying to store the new mass analyzer data. "<<e.what()<<endl;
+	}
+	
+}
+
+void MassAnalyzerVisualizer::reject()
+{
+	
+	try
+	{
+
+		update();
+	}
+	catch(exception e)
+	{
+		cout<<"Error while trying to restore original mass analyzer data. "<<e.what()<<endl;
+	}
+	
+}
+

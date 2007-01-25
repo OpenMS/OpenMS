@@ -1,0 +1,155 @@
+// -*- Mode: C++; tab-width: 2; -*-
+// vi: set ts=2:
+//
+// --------------------------------------------------------------------------
+//                   OpenMS Mass Spectrometry Framework
+// --------------------------------------------------------------------------
+//  Copymain (C) 2003-2005 -- Oliver Kohlbacher, Knut Reinert
+//
+//  this library is free processingmethod; you can redistribute it and/or
+//  modify it under the terms of the GNU Lesser General Public
+//  License as published by the Free ProcessingMethod Foundation; either
+//  version 2.1 of the License, or (at your option) any later version.
+//
+//  this library is distributed in the hope that it will be useful,
+//  but WITHOUT ANY WARRANTY; without even the implied warranty of
+//  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+//  Lesser General Public License for more details.
+//
+//  You should have received a copy of the GNU Lesser General Public
+//  License along with this library; if not, write to the Free Software
+//  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+//
+// --------------------------------------------------------------------------
+// $Maintainer:  stefan_heess $
+// --------------------------------------------------------------------------s
+
+
+#include <OpenMS/VISUAL/VISUALIZER/ProcessingMethodVisualizer.h>
+#include <OpenMS/VISUAL/VISUALIZER/BaseVisualizer.h>
+#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/METADATA/ProcessingMethod.h>
+
+
+
+//QT
+#include <qlayout.h>
+#include <qwidget.h>
+#include <qlabel.h> 
+#include <qlineedit.h>
+#include <qpushbutton.h>
+#include <qstring.h>
+#include <qvalidator.h>
+
+//STL
+#include <iostream>
+#include <vector>
+#include <string>
+
+//using namespace std;
+using namespace OpenMS;
+using namespace std;
+
+//Constructor
+ProcessingMethodVisualizer::ProcessingMethodVisualizer(QWidget *parent, const char *name) : BaseVisualizer(parent, name)
+{
+	type_="ProcessingMethod";
+  
+	addLabel("Modify processing method information.");	
+	addSeperator();  
+	
+	addComboBox(processingmethod_deisotoping_, "Deisotoping");
+	addComboBox(processingmethod_charge_deconvolution_, "Charge deconvolution");
+	addComboBox(processingmethod_method_, "Method");
+	
+	addVSpacer();
+	addSeperator();
+	addLabel("Save changes or restore original data.");
+	addHorizontalButtons(savebutton_, "Save",  cancelbutton_, "Cancel");
+	
+  connect(savebutton_, SIGNAL(clicked()), this, SLOT(store()) );
+	connect(cancelbutton_, SIGNAL(clicked()), this, SLOT(reject()) );
+	
+}
+
+
+void ProcessingMethodVisualizer::load(ProcessingMethod &s)
+{
+  //Pointer to current object to keep track of the actual object
+	ptr_ = &s;
+	
+	//Copy of current object for restoring the original values
+	tempprocessingmethod_=s;
+	
+	//An array for bool values
+	std::string bool_values_[3]= {"FALSE","TRUE"};		
+	
+	fillComboBox(processingmethod_method_, SpectrumSettings::NamesOfSpectrumType , SpectrumSettings::SIZE_OF_SPECTRUMTYPE);
+	fillComboBox(processingmethod_deisotoping_, bool_values_ , 2);
+	fillComboBox(processingmethod_charge_deconvolution_, bool_values_ , 2);
+	
+	update();
+}
+
+void ProcessingMethodVisualizer::update()
+{		
+		
+		//update deisotoping
+		if(tempprocessingmethod_.getDeisotoping())
+		{
+			processingmethod_deisotoping_->setCurrentItem(1);
+		}
+		else 
+		{ 
+			processingmethod_deisotoping_->setCurrentItem(0);
+		}
+		
+		
+		//update charge_deconvolution
+		if(tempprocessingmethod_.getChargeDeconvolution())
+		{
+			processingmethod_charge_deconvolution_->setCurrentItem(1);
+		}
+		else 
+		{ 
+			processingmethod_charge_deconvolution_->setCurrentItem(0);
+		}
+		
+	
+		processingmethod_method_->setCurrentItem(tempprocessingmethod_.getSpectrumType()); 
+		
+}
+
+void ProcessingMethodVisualizer::store()
+{
+	try
+	{
+		(*ptr_).setSpectrumType((SpectrumSettings::SpectrumType)processingmethod_method_->currentItem());		
+		(*ptr_).setDeisotoping(processingmethod_deisotoping_->currentItem());		
+		(*ptr_).setChargeDeconvolution(processingmethod_charge_deconvolution_->currentItem());
+		
+		tempprocessingmethod_=(*ptr_);
+		
+	}
+	catch(exception& e)
+	{
+		std::cout<<"Error while trying to store the new processing method data. "<<e.what()<<endl;
+	}
+	
+}
+
+void ProcessingMethodVisualizer::reject()
+{
+	
+	try
+	{
+
+		update();
+	}
+	catch(exception e)
+	{
+		cout<<"Error while trying to restore original processing method data. "<<e.what()<<endl;
+	}
+	
+}
+

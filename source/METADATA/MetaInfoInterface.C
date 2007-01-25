@@ -205,7 +205,15 @@ namespace OpenMS
 			meta_->getKeys(keys);
 		}
   }
-  
+
+	void MetaInfoInterface::getKeys(std::vector<UnsignedInt>& keys) const
+  {
+		if (meta_!=0)
+		{
+			meta_->getKeys(keys);
+		}
+  }
+
   bool MetaInfoInterface::isMetaEmpty() const
   {
 		if (meta_==0)

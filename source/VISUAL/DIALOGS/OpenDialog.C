@@ -30,6 +30,7 @@
 #include <OpenMS/VISUAL/DIALOGS/DBSpectrumSelectorDialog.h>
 #include <OpenMS/FORMAT/Param.h>
 #include <OpenMS/FORMAT/DB/DBConnection.h>
+#include <OpenMS/VISUAL/MSMetaDataExplorer.h>
 
 // QT includes
 #include <qmessagebox.h>
@@ -163,7 +164,19 @@ namespace OpenMS
 	
 	void OpenDialog::showMetadata()
 	{
-		QMessageBox::information( this, "Show metadata","This feature is not implemented yet!" );
+		if (names_.size()!=0)
+		{
+			cout << "SHOW" << endl;
+			MSExperiment<> exp;
+			FileHandler().loadExperiment(names_[0],exp);
+			
+			
+			QDialog *dlg = new QDialog(this,QString::null, true);
+      dlg->setCaption("Meta data");
+			MSMetaDataExplorer expolorer(dlg);
+			expolorer.add(&exp);
+      dlg->exec();
+		}
 	}
 	
 	const vector<String>& OpenDialog::getNames() const

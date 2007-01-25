@@ -63,7 +63,9 @@ GUI_CPP_SOURCES=\
 	ListStack.C\
 	PeakIcon.C\
 	MappingInfo.C\
-	AxisTickCalculator.C		
+	AxisTickCalculator.C\
+	DataTable.C\
+	MSMetaDataExplorer.C
 
 GUI_MOC_SOURCES=\
 	SpectrumCanvas_moc.C\
@@ -84,7 +86,9 @@ GUI_MOC_SOURCES=\
 	ColorSelector_moc.C\
 	MultiGradientSelector_moc.C\
 	HistogramWidget_moc.C\
-	ListStack_moc.C
+	ListStack_moc.C\
+	DataTable_moc.C\
+	MSMetaDataExplorer_moc.C
 
 UIC_SOURCES=
 
@@ -104,7 +108,7 @@ OBJECTS 	= $(SOURCES:.C=.o)
 
 # Take care of subdirectories of VISUAL
 
-VISUAL_DIRS=DIALOGS
+VISUAL_DIRS=DIALOGS VISUALIZER
 
 default:	echodir dirs $(OBJECTS)
 
@@ -205,4 +209,11 @@ HistogramWidget_moc.C:  $(HEADER_DIR)/HistogramWidget.h
 
 ListStack_moc.C:  $(HEADER_DIR)/ListStack.h
 	$(MOC) $(HEADER_DIR)/ListStack.h -o ListStack_moc.C
+
+DataTable_moc.C:  $(HEADER_DIR)/DataTable.h
+	$(MOC) $(HEADER_DIR)/DataTable.h -o DataTable_moc.C
+
+MSMetaDataExplorer_moc.C:  $(HEADER_DIR)/MSMetaDataExplorer.h
+	$(MOC) $(HEADER_DIR)/MSMetaDataExplorer.h -o MSMetaDataExplorer_moc.C
+
 
