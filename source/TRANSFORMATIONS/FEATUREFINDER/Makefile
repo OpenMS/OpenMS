@@ -31,32 +31,32 @@ THISLIB=$(LIBNAME)
 include ../../config_defs.mak
 
 CPP_SOURCES=\
-	BaseExtender.C\
-	BaseModel.C\
-	BaseModelFitter.C\
-	BaseQuality.C\
-	BaseSeeder.C\
-	BiGaussModel.C\
-	Correlation.C\
 	FeaFiModule.C\
-	FeatureFinder.C\
-	GaussModel.C\
-	IsotopeModel.C\
 	ModelDescription.C\
+	BaseModel.C\
 	ProductModel.C\
-	SimpleExtender.C\
-	SimpleModelFitter.C\
-	SimpleSeeder.C\
+	GaussModel.C\
+	BiGaussModel.C\
+	IsotopeModel.C\
 	EmgModel.C\
-	ExtendedModelFitter.C\
 	LmaGaussModel.C\
 	LogNormalModel.C\
+	BaseExtender.C\
+	SimpleExtender.C\
+	BaseModelFitter.C\
+	SimpleModelFitter.C\
+	ExtendedModelFitter.C\
+	BaseSeeder.C\
+	SimpleSeeder.C\
+	MarrWaveletSeeder.C\
+	PickedPeakSeeder.C\
+	IsotopeWaveletSeeder.C\
+	BaseQuality.C\
+	Correlation.C\
 	EuclideanDistance.C\
 	RankCorrelation.C\
-	MarrWaveletSeeder.C\
 	FeaFiTraits.C\
-	PickedPeakSeeder.C\
-	IsotopeWaveletSeeder.C
+	FeatureFinder.C
 
 
 ADD_CPP_SOURCES = $(CGAL_SOURCES)

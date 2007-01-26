@@ -45,9 +45,40 @@ using std::stringstream;
 class TestModel : public InterpolationModel< >
 {
   public:
-	TestModel(): InterpolationModel< >()
+	TestModel()
+		: InterpolationModel< >()
 	{
-		name_ = TestModel::getName();
+		setName(getProductName());
+		
+		check_defaults_ = false;
+		
+		defaultsToParam_();
+	}
+
+
+	TestModel(const TestModel& source)
+		: InterpolationModel< >(source)
+	{
+		updateMembers_();
+	}
+	
+	virtual ~TestModel()
+	{
+	}
+	
+	virtual TestModel& operator = (const TestModel& source)
+	{
+		if (&source == this) return *this;
+		
+		InterpolationModel< >::operator = (source);
+		updateMembers_();
+		
+		return *this;
+	}
+	
+	void updateMembers_()
+	{
+		 InterpolationModel< >::updateMembers_();
 	}
 
 	IntensityType getIntensity(const PositionType& pos) const
@@ -78,7 +109,12 @@ class TestModel : public InterpolationModel< >
 		return 10.0;
 	}
 
-	static const String getName(){ return "TestModel"; }
+	static const String getProductName()
+	{ 
+		return "TestModel"; 
+	}
+
+
 
 };
 
@@ -98,17 +134,12 @@ RESULT
 // assignment operator
 CHECK(TestModel& operator = (const TestModel& source))
 	TestModel tm1;
-  tm1.setCutOff(3.3);
   TestModel tm2;
+  
+  tm1.setCutOff(3.3);
   tm2 = tm1;
-
-  TestModel tm3;
-	Param p;
-	p.setValue("cutoff",3.3f);
-  tm3.setParam(p);
-
-  tm1 = TestModel();
-	TEST_EQUAL(tm3,tm2)
+	TEST_REAL_EQUAL(tm1.getCutOff(),tm2.getCutOff())
+	TEST_REAL_EQUAL(tm1.getScalingFactor(),tm2.getScalingFactor())
 RESULT
 
 // copy constructor
@@ -184,6 +215,14 @@ RESULT
 CHECK(void  getCenter() const)
 	const TestModel t;
  TEST_REAL_EQUAL(t.getCenter(),10.0);
+RESULT
+
+CHECK([EXTRA] DefaultParmHandler::setParameters(...))
+	Param p;
+	p.setValue("cutoff",17.0);
+	TestModel m;
+	m.setParameters(p);
+	TEST_REAL_EQUAL(m.getParameters().getValue("cutoff"), 17.0)
 RESULT
 
 /////////////////////////////////////////////////////////////

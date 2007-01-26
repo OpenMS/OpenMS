@@ -21,12 +21,44 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Ole Schulz-Trieglaff $
+// $Maintainer: Marc Sturm $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/ProductModel.h>
+#include <OpenMS/CONCEPT/FactoryProduct2.h>
+
+using namespace std;
 
 namespace OpenMS
 {
+	FactoryProduct2::FactoryProduct2(const String& name)
+		: DefaultParamHandler(name)
+	{
+	}
+	
+	FactoryProduct2::FactoryProduct2(const FactoryProduct2& source)
+		: DefaultParamHandler(source)
+	{
+		
+	}
+	
+	FactoryProduct2& FactoryProduct2::operator=(const FactoryProduct2& rhs)
+	{
+		if (this == &rhs) return *this;
+		
+		DefaultParamHandler::operator=(rhs);
+		
+		return *this;
+	}
+	
+	bool FactoryProduct2::operator == (const FactoryProduct2& rhs) const
+	{
+			return DefaultParamHandler::operator==(rhs);
+	}
+	
+	std::ostream& operator << (std::ostream& os, const FactoryProduct2& prod)
+	{
+		os << prod.getName() << ":" << std::endl << prod.getParameters();
+		return os;
+	}
 
 }

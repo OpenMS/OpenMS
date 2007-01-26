@@ -30,16 +30,17 @@
 namespace OpenMS
 {
     BiGaussModel::BiGaussModel()
-		: InterpolationModel<>(), min_(0.0), max_(1.0), statistics1_(), statistics2_()
+		: InterpolationModel<>(), statistics1_(), statistics2_()
 		{
-			this->name_ = getName();
-
+			setName(getProductName());
+			
 			defaults_.setValue("bounding_box:min",0.0);
 			defaults_.setValue("bounding_box:max",1.0);
 			defaults_.setValue("statistics:mean",0.0);
 			defaults_.setValue("statistics:variance1",1.0);
 			defaults_.setValue("statistics:variance2",1.0);
-			param_ = defaults_;
+			
+			defaultsToParam_();
 		}
 
   	BiGaussModel::BiGaussModel(const BiGaussModel& source)
@@ -47,15 +48,22 @@ namespace OpenMS
 		{
 			setParam(source.statistics1_.mean(), source.statistics1_.variance(),
 							 source.statistics2_.variance(),source.min_, source.max_);
+			updateMembers_();
 		}
 
-    BiGaussModel::~BiGaussModel(){}
+    BiGaussModel::~BiGaussModel()
+    {
+    }
 
    	BiGaussModel& BiGaussModel::operator = (const BiGaussModel& source)
 		{
+			if (&source == this) return *this;
+			
 			InterpolationModel<>::operator = (source);
 			setParam(source.statistics1_.mean(), source.statistics1_.variance(),
 							 source.statistics2_.variance(),source.min_, source.max_);
+			updateMembers_();
+			
 			return *this;
 		}
 
@@ -88,8 +96,7 @@ namespace OpenMS
 			interpolation_.setOffset ( min_ );
 		}
 
-		void BiGaussModel::setParam(CoordinateType mean, CoordinateType variance1,
-						CoordinateType variance2,	CoordinateType min, CoordinateType max)
+		void BiGaussModel::setParam(CoordinateType mean, CoordinateType variance1, CoordinateType variance2,	CoordinateType min, CoordinateType max)
 		{
 			min_ = min;
 			max_ = max;
@@ -98,39 +105,27 @@ namespace OpenMS
 			statistics1_.setVariance(variance1);
 			statistics2_.setVariance(variance2);
 
+			param_.setValue("bounding_box:min", min_);
+			param_.setValue("bounding_box:max", max_);
+			param_.setValue("statistics:mean", statistics1_.mean());
+			param_.setValue("statistics:variance1", statistics1_.variance());
+			param_.setValue("statistics:variance2", statistics2_.variance());
+
 			setSamples();
 		}
 
-		void BiGaussModel::setParam(const Param& param)
+		void BiGaussModel::updateMembers_()
 		{
-			InterpolationModel<>::setParam(param);
+			InterpolationModel<>::updateMembers_();
+			
 			min_ = param_.getValue("bounding_box:min");
 			max_ = param_.getValue("bounding_box:max");
 			statistics1_.setMean(param_.getValue("statistics:mean"));
 			statistics2_.setMean(param_.getValue("statistics:mean"));
 			statistics1_.setVariance(param_.getValue("statistics:variance1"));
 			statistics2_.setVariance(param_.getValue("statistics:variance2"));
+			
 			setSamples();
-		}
-
-    const Param& BiGaussModel::getParam() const
-		{
-			param_.setValue("bounding_box:min", min_);
-			param_.setValue("bounding_box:max", max_);
-			param_.setValue("statistics:mean", statistics1_.mean());
-			param_.setValue("statistics:variance1", statistics1_.variance());
-			param_.setValue("statistics:variance2", statistics2_.variance());
-			return InterpolationModel<>::getParam();
-		}
-
-		Param& BiGaussModel::getParam()
-		{
-			param_.setValue("bounding_box:min", min_);
-			param_.setValue("bounding_box:max", max_);
-			param_.setValue("statistics:mean", statistics1_.mean());
-			param_.setValue("statistics:variance1", statistics1_.variance());
-			param_.setValue("statistics:variance2", statistics2_.variance());
-			return InterpolationModel<>::getParam();
 		}
 
 		void BiGaussModel::setOffset(double offset)
@@ -140,7 +135,12 @@ namespace OpenMS
 			max_ += diff;
 			statistics1_.setMean(statistics1_.mean()+diff);
 			statistics2_.setMean(statistics2_.mean()+diff);
+			
 			InterpolationModel<>::setOffset(offset);
+
+			param_.setValue("bounding_box:min", min_);
+			param_.setValue("bounding_box:max", max_);
+			param_.setValue("statistics:mean", statistics1_.mean());
 		}
 
 		const BiGaussModel::CoordinateType BiGaussModel::getCenter() const

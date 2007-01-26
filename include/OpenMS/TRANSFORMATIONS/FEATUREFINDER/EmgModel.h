@@ -58,15 +58,7 @@ namespace OpenMS
 		/// assignment operator
 		virtual EmgModel& operator = (const EmgModel& source);
 
-		void setParam(const Param& param);
-
 		void setParam(const BasicStatistics& statistics, CoordinateType height, CoordinateType width, CoordinateType symmetry, CoordinateType retention, CoordinateType min, CoordinateType max);
-
-		/// get parameters (const access)
-		const Param& getParam() const;
-
-		/// get parameters
-		Param& getParam();
 
 		/// create new EmgModel object (needed by Factory)
 		static BaseModel<1>* create()
@@ -75,7 +67,7 @@ namespace OpenMS
   	}
 
 		/// name of the model (needed by Factory)
-		static const String getName()
+		static const String getProductName()
 		{
 			return "EmgModel";
 		}
@@ -97,8 +89,8 @@ namespace OpenMS
 		CoordinateType width_;
 		CoordinateType symmetry_;
 		CoordinateType retention_;
-
-
+		
+		void updateMembers_();
 	};
 }
 

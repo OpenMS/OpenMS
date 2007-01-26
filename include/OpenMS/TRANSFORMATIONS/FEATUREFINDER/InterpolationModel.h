@@ -34,7 +34,7 @@
 
 namespace OpenMS
 {
-  /** @brief abstract class for 1D-models that are approximated using linear interpolation
+  /** @brief Abstract class for 1D-models that are approximated using linear interpolation
 	
 			Model wrapping LinearInterpolation for speed-up in calculation of predicted intensities
 			Derived classes have to implement setSamples()
@@ -71,9 +71,6 @@ namespace OpenMS
 				: BaseModel<1,Traits>(),
 					interpolation_()
 			{
-				setScalingFactor(1.0);
-				setInterpolationStep(0.1);
-
 				this->defaults_.setValue("interpolation_step",0.1);
 				this->defaults_.setValue("intensity_scaling",1.0);
 			}
@@ -81,65 +78,45 @@ namespace OpenMS
       /// copy constructor
       InterpolationModel(const InterpolationModel& source)
 				: BaseModel<1,Traits>(source),
-					interpolation_(source.interpolation_)
+					interpolation_(source.interpolation_),
+					interpolation_step_(source.interpolation_step_),
+					scaling_(source.scaling_)
 			{
-				setScalingFactor(source.scaling_);
-				setInterpolationStep(source.interpolation_step_);
 			}
 
       /// destructor
-      virtual ~InterpolationModel(){}
+      virtual ~InterpolationModel()
+      {
+      }
 
       /// assignment operator
       virtual InterpolationModel& operator = (const InterpolationModel& source)
 			{
+				if (&source ==this) return *this;
+				
 				BaseModel<1,Traits>::operator = (source);
-				setInterpolationStep(source.interpolation_step_);
+				interpolation_step_ = source.interpolation_step_;
 				interpolation_ = source.interpolation_;
-				setScalingFactor(source.scaling_);
+				scaling_ = source.scaling_;
+				
 				return *this;
 			}
 
-      /// acess model predicted intensity at position @p pos
+      /// access model predicted intensity at position @p pos
       IntensityType getIntensity(const PositionType& pos) const
 			{
 				return interpolation_.value(pos[0]);
 			}
 			
-			/// acess model predicted intensity at position @p pos
+			/// access model predicted intensity at position @p pos
       IntensityType getIntensity(const CoordinateType& coord) const
 			{
 				return interpolation_.value(coord);
 			}
 
-			/** @brief set the interpolation step for the linear interpolation of the model
-
-				For setting to take affect, call setSamples() or setParm.
-			*/
-			void setInterpolationStep(CoordinateType interpolation_step)
-			{
-				interpolation_step_ = interpolation_step;
-			}
-
 			const LinearInterpolation& getInterpolation() const
 			{
 				return interpolation_;
-			}
-
-			LinearInterpolation& getInterpolation()
-			{
-				return interpolation_;
-			}
-
-			/** @brief set the scaling for the model
-
-				A scaling factor of @p scaling means that the area under the model equals
-				@p scaling. Default is 1.
-				For setting to take affect, call setSamples() or setParm.
-			*/
-			void setScalingFactor(CoordinateType scaling)
-			{
-				scaling_ = scaling;
 			}
 
 			/** @brief get the scaling for the model
@@ -151,28 +128,6 @@ namespace OpenMS
 			{
 				return scaling_;
 			}
-
-			virtual void setParam(const Param& param)
-			{
-				BaseModel<1,Traits>::setParam(param);
-				interpolation_step_ = this->param_.getValue("interpolation_step");
-				scaling_ = this->param_.getValue("intensity_scaling");
-			}
-
-    	virtual const Param& getParam() const
-			{
-				this->param_.setValue("interpolation_step",interpolation_step_);
-				this->param_.setValue("intensity_scaling",scaling_);
-				return BaseModel<1,Traits>::getParam();
-			}
-
-    	virtual Param& getParam()
-			{
-				this->param_.setValue("interpolation_step",interpolation_step_);
-				this->param_.setValue("intensity_scaling",scaling_);
-				return BaseModel<1,Traits>::getParam();
-			}
-
 
 			/** @brief set the offset of the model
 
@@ -202,11 +157,35 @@ namespace OpenMS
 
 			/// set sample/supporting points of interpolation wrt params.
 			virtual void setSamples() =0;
+			
+			/**
+				@brief Set the interpolation step for the linear interpolation of the model
+				
+				For setting to take affect, call setSamples().
+			*/
+			void setInterpolationStep(const CoordinateType& interpolation_step)
+			{
+				interpolation_step_ = interpolation_step;
+				this->param_.setValue("interpolation_step",interpolation_step_);
+			}
+
+			void setScalingFactor(const CoordinateType& scaling)
+			{
+			  scaling_ = scaling;
+				this->param_.setValue("intensity_scaling",scaling_);
+			}
 
 		protected:
 			LinearInterpolation interpolation_;
 			CoordinateType interpolation_step_;
 			CoordinateType scaling_;
+
+			void updateMembers_()
+			{
+				BaseModel<1,Traits>::updateMembers_();
+				interpolation_step_ = this->param_.getValue("interpolation_step");
+				scaling_ = this->param_.getValue("intensity_scaling");
+			}
   };
 }
 

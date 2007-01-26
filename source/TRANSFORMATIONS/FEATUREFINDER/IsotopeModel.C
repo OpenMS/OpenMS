@@ -35,9 +35,10 @@ namespace OpenMS
 {
     IsotopeModel::IsotopeModel()
 		: InterpolationModel<>(),
-			isotope_stdev_(0.1), charge_(1), mean_(0.0), monoisotopic_mz_(0.0)
+			monoisotopic_mz_(0.0)
 		{
-			name_ = getName();
+			setName(getProductName());
+			
 			defaults_.setValue("averagines:C",0.0443);
 			defaults_.setValue("averagines:H",0.0);
 			defaults_.setValue("averagines:N",0.0037);
@@ -49,30 +50,29 @@ namespace OpenMS
 			defaults_.setValue("isotope:stdev",0.1);
 			defaults_.setValue("charge",1);
 			defaults_.setValue("statistics:mean",0.0);
-			param_ = defaults_;
-
-			averagine_[C] = param_.getValue("averagines:C");
-			averagine_[H] = param_.getValue("averagines:H");
-			averagine_[N] = param_.getValue("averagines:N");
-			averagine_[O] = param_.getValue("averagines:O");
-			averagine_[S] = param_.getValue("averagines:S");
-			max_isotope_ = param_.getValue("isotope:maximum");
-			trim_right_cutoff_ = param_.getValue("isotope:trim_right_cutoff");
-			isotope_distance_ = param_.getValue("isotope:distance");
+			
+			defaultsToParam_();
 		}
 
   	IsotopeModel::IsotopeModel(const IsotopeModel& source)
 		: InterpolationModel<>(source)
 		{
 			setParam(source.mean_, source.charge_, source.isotope_stdev_);
+			updateMembers_();
 		}
 
-    IsotopeModel::~IsotopeModel(){}
+    IsotopeModel::~IsotopeModel()
+    {
+    }
 
    	IsotopeModel& IsotopeModel::operator = (const IsotopeModel& source)
 		{
+			if (&source == this) return *this;
+			
 			InterpolationModel<>::operator = (source);
 			setParam(source.mean_, source.charge_, source.isotope_stdev_);
+			updateMembers_();
+			
 			return *this;
 		}
 
@@ -187,47 +187,17 @@ namespace OpenMS
 			}
 		}
 
-		void IsotopeModel::setParam(CoordinateType mean,
-						UnsignedInt charge, CoordinateType isotope_stdev)
+		void IsotopeModel::setParam(CoordinateType mean, UnsignedInt charge, CoordinateType isotope_stdev)
 		{
 			charge_ = charge;
 			isotope_stdev_ = isotope_stdev;
 			mean_ = mean;
-			setSamples();
-		}
 
-		void IsotopeModel::setParam(const Param& param)
-		{
-			InterpolationModel<>::setParam(param);
-			charge_ = param_.getValue("charge");
-			isotope_stdev_ = param_.getValue("isotope:stdev");
-			mean_ = param_.getValue("statistics:mean");
-
-			averagine_[C] = param_.getValue("averagines:C");
-			averagine_[H] = param_.getValue("averagines:H");
-			averagine_[N] = param_.getValue("averagines:N");
-			averagine_[O] = param_.getValue("averagines:O");
-			averagine_[S] = param_.getValue("averagines:S");
-			max_isotope_ = param_.getValue("isotope:maximum");
-			trim_right_cutoff_ = param_.getValue("isotope:trim_right_cutoff");
-			isotope_distance_ = param_.getValue("isotope:distance");
-			setSamples();
-		}
-
-		const Param& IsotopeModel::getParam() const
-		{
 			param_.setValue("charge", static_cast<SignedInt>(charge_));
 			param_.setValue("isotope:stdev",isotope_stdev_);
 			param_.setValue("statistics:mean", mean_);
-			return InterpolationModel<>::getParam();
-		}
-
-		Param& IsotopeModel::getParam()
-		{
-			param_.setValue("charge", static_cast<SignedInt>(charge_));
-			param_.setValue("isotope:stdev",isotope_stdev_);
-			param_.setValue("statistics:mean", mean_);
-			return InterpolationModel<>::getParam();
+			
+			setSamples();
 		}
 
 		void IsotopeModel::setOffset(double offset)
@@ -237,6 +207,8 @@ namespace OpenMS
 			monoisotopic_mz_ += diff;
 
 			InterpolationModel<>::setOffset(offset);
+
+			param_.setValue("statistics:mean", mean_);
 		}
 
 		const IsotopeModel::CoordinateType& IsotopeModel::getOffset()
@@ -252,5 +224,25 @@ namespace OpenMS
 		const IsotopeModel::CoordinateType IsotopeModel::getCenter() const
 		{
 			return monoisotopic_mz_;
+		}
+
+		void IsotopeModel::updateMembers_()
+		{
+			InterpolationModel<>::updateMembers_();
+
+			charge_ = param_.getValue("charge");
+			isotope_stdev_ = param_.getValue("isotope:stdev");
+			mean_ = param_.getValue("statistics:mean");
+			max_isotope_ = param_.getValue("isotope:maximum");
+			trim_right_cutoff_ = param_.getValue("isotope:trim_right_cutoff");
+			isotope_distance_ = param_.getValue("isotope:distance");
+
+			averagine_[C] = param_.getValue("averagines:C");
+			averagine_[H] = param_.getValue("averagines:H");
+			averagine_[N] = param_.getValue("averagines:N");
+			averagine_[O] = param_.getValue("averagines:O");
+			averagine_[S] = param_.getValue("averagines:S");
+			
+			setSamples();
 		}
 }

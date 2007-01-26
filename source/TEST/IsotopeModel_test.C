@@ -58,7 +58,7 @@ RESULT
 
 
 CHECK(const String getName())
-	TEST_EQUAL(IsotopeModel::getName(),"IsotopeModel")
+	TEST_EQUAL(IsotopeModel::getProductName(),"IsotopeModel")
 	TEST_EQUAL(IsotopeModel().getName(),"IsotopeModel")
 RESULT
 
@@ -74,7 +74,7 @@ CHECK(IsotopeModel& operator = (const IsotopeModel& source))
 	im3.setParam(670.5, 3, 0.8);
 
   im1 = IsotopeModel();
-	TEST_EQUAL(im3.getParam(), im2.getParam())
+	TEST_EQUAL(im3.getParameters(), im2.getParameters())
 RESULT
 
 // copy ctor
@@ -87,16 +87,16 @@ CHECK(IsotopeModel(const IsotopeModel& source))
 	im3.setParam(670.5, 3, 0.8);
 
   im1 = IsotopeModel();
-	TEST_EQUAL(im3.getParam(), im2.getParam())
+	TEST_EQUAL(im3.getParameters(), im2.getParameters())
 RESULT
 
-CHECK(void setParam(Param param))
+CHECK([EXTRA] DefaultParamHandler::setParameters(...))
 	PRECISION(0.001)
 	IsotopeModel im1;
 	im1.setParam(670.5, 3, 0.8);
 
 	IsotopeModel im2;
-	im2.setParam(im1.getParam());
+	im2.setParameters(im1.getParameters());
 
 	DPeakArray<1> dpa1;
 	DPeakArray<1> dpa2;
@@ -158,7 +158,7 @@ CHECK(void setOffset(double offset))
 	IsotopeModel im2;
 	im2.setParam(672.3, 3, 0.8);
 
-	TEST_EQUAL(im1.getParam(), im2.getParam())
+	TEST_EQUAL(im1.getParameters(), im2.getParameters())
 	TEST_REAL_EQUAL(im1.getCenter(), im2.getCenter())
 	TEST_REAL_EQUAL(im1.getCenter(), 671.909)
 

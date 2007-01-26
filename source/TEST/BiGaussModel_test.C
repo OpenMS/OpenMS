@@ -57,7 +57,7 @@ RESULT
 
 
 CHECK(const String getName())
-	TEST_EQUAL(BiGaussModel::getName(),"BiGaussModel")
+	TEST_EQUAL(BiGaussModel::getProductName(),"BiGaussModel")
 	TEST_EQUAL(BiGaussModel().getName(),"BiGaussModel")
 RESULT
 
@@ -77,7 +77,7 @@ CHECK(BiGaussModel& operator = (const BiGaussModel& source))
 	bgm3.setParam(680.1, 2.0, 5.0, 678.9, 789.0);
 
   bgm1 = BiGaussModel();
-	TEST_EQUAL(bgm3.getParam(), bgm2.getParam())
+	TEST_EQUAL(bgm3.getParameters(), bgm2.getParameters())
 RESULT
 
 // copy ctor
@@ -95,17 +95,17 @@ CHECK(BiGaussModel(const BiGaussModel& source))
 	bgm3.setParam(680.1, 2.0, 5.0, 678.9, 789.0);
 
   bgm1 = BiGaussModel();
-	TEST_EQUAL(bgm3.getParam(), bgm2.getParam())
+	TEST_EQUAL(bgm3.getParameters(), bgm2.getParameters())
 RESULT
 
-CHECK(void setParam(Param param))
+CHECK([EXTRA] DefaultParamHandler::setParameters(...))
 	PRECISION(0.001)
 	BiGaussModel bgm1;
 	bgm1.setParam(680.1, 2.0, 5.0, 678.9, 789.0);
 	bgm1.setOffset(680.0);
 
 	BiGaussModel bgm2;
-	bgm2.setParam(bgm1.getParam());
+	bgm2.setParameters(bgm1.getParameters());
 	TEST_REAL_EQUAL(bgm1.getCenter(), 681.2)
 
 	DPeakArray<1> dpa1;
@@ -181,7 +181,7 @@ CHECK(void setOffset(double offset))
 	BiGaussModel bgm2;
 	bgm2.setParam(682.1, 2.0, 5.0, 680.9, 791.0);
 
-	TEST_EQUAL(bgm1.getParam(), bgm2.getParam())
+	TEST_EQUAL(bgm1.getParameters(), bgm2.getParameters())
 	TEST_REAL_EQUAL(bgm1.getCenter(), bgm2.getCenter())
 	TEST_REAL_EQUAL(bgm1.getCenter(), 682.1)
 

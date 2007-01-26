@@ -45,10 +45,39 @@ using std::stringstream;
 class TestModel : public BaseModel<3>
 {
   public:
-	TestModel(): BaseModel<3>()
+	TestModel()
+		: BaseModel<3>()
 	{
+		setName(getProductName());
+		
 		check_defaults_ = false;
-		name_ = TestModel::getName();
+		
+		defaultsToParam_();
+	}
+
+	TestModel(const TestModel& source)
+		: BaseModel<3>(source)
+	{
+		updateMembers_();
+	}
+	
+	virtual ~TestModel()
+	{
+	}
+	
+	virtual TestModel& operator = (const TestModel& source)
+	{
+		if (&source == this) return *this;
+		
+		BaseModel<3>::operator = (source);
+		updateMembers_();
+		
+		return *this;
+	}
+	
+	void updateMembers_()
+	{
+		BaseModel<3>::updateMembers_();
 	}
 
 	IntensityType getIntensity(const PositionType& pos) const
@@ -70,7 +99,10 @@ class TestModel : public BaseModel<3>
 	{
 	}
 
-	static const String getName(){ return "TestModel"; }
+	static const String getProductName()
+	{ 
+		return "TestModel"; 
+	}
 
 };
 
@@ -90,31 +122,20 @@ RESULT
 // assignment operator
 CHECK(TestModel& operator = (const TestModel& source))
 	TestModel tm1;
-  tm1.setCutOff(3.3);
   TestModel tm2;
+  
+  tm1.setCutOff(3.3);
   tm2 = tm1;
-
-  TestModel tm3;
-	Param p;
-	p.setValue("cutoff",3.3f);
-  tm3.setParam(p);
-
-  tm1 = TestModel();
-	TEST_EQUAL(tm3,tm2)
+	TEST_REAL_EQUAL(tm1.getCutOff(),tm2.getCutOff())
 RESULT
 
 // copy constructor
 CHECK(TestModel(const TestModel& source))
-	TestModel fp1;	
-  fp1.setCutOff(0.1);
-
-  TestModel fp2(fp1);
-
-  TestModel fp3;
-  fp3.setCutOff(0.1);
-
-  fp1 = TestModel();
-	TEST_EQUAL(fp2, fp3)
+	TestModel tm1;	
+  tm1.setCutOff(0.1);
+	
+  TestModel tm2(tm1);
+	TEST_REAL_EQUAL(tm1.getCutOff(),tm2.getCutOff())
 RESULT
 
 CHECK(IntensityType getCutOff() const)
@@ -179,6 +200,14 @@ CHECK(void  fillIntensities(PeakIterator beg, PeakIterator end) const)
   TEST_EQUAL(vec[3].getIntensity(), -0.5)
 RESULT
 	
+CHECK([EXTRA] DefaultParmHandler::setParameters(...))
+	Param p;
+	p.setValue("cutoff",17.0);
+	TestModel m;
+	m.setParameters(p);
+	TEST_REAL_EQUAL(m.getParameters().getValue("cutoff"), 17.0)
+RESULT
+
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

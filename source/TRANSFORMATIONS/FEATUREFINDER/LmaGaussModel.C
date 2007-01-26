@@ -35,7 +35,8 @@ namespace OpenMS
 	LmaGaussModel::LmaGaussModel()
 		: InterpolationModel()
 	{
-		this->name_ = getName();
+		setName(getProductName());
+		
 		defaults_.setValue("bounding_box:min",0.0f);
 		defaults_.setValue("bounding_box:max",1.0f);
 		defaults_.setValue("statistics:mean",0.0f);
@@ -44,22 +45,28 @@ namespace OpenMS
 		defaults_.setValue("lma:standard_deviation",5.0f);
 		defaults_.setValue("lma:expected_value",1200.0f);
 
-		param_ = defaults_;
-		setParam(param_);
+		defaultsToParam_();
 	}
 
 	LmaGaussModel::LmaGaussModel(const LmaGaussModel& source)
 		: InterpolationModel(source)
 	{
 		setParam(source.statistics_, source.scale_factor_, source.standard_deviation_, source.expected_value_, source.min_, source.max_);
+		updateMembers_();
 	}
 
-	LmaGaussModel::~LmaGaussModel(){}
+	LmaGaussModel::~LmaGaussModel()
+	{
+	}
 
 	LmaGaussModel& LmaGaussModel::operator = (const LmaGaussModel& source)
 	{
+		if (&source == this) return *this;
+		
 		InterpolationModel::operator = (source);
 		setParam(source.statistics_, source.scale_factor_, source.standard_deviation_, source.expected_value_, source.min_, source.max_);
+		updateMembers_();
+		
 		return *this;
 	}
 
@@ -96,25 +103,6 @@ namespace OpenMS
 		standard_deviation_ = standard_deviation;
 		expected_value_ = expected_value;
 
-		setSamples();
-	}
-
-	void LmaGaussModel::setParam(const Param& param)
-	{
-		InterpolationModel::setParam(param);
-		min_ = param_.getValue("bounding_box:min");
-		max_ = param_.getValue("bounding_box:max");
-		statistics_.setMean( param_.getValue("statistics:mean") );
-		statistics_.setVariance(param_.getValue("statistics:variance"));
-		scale_factor_= param.getValue("lma:scale_factor");
-		standard_deviation_ = param.getValue("lma:standard_deviation");
-		expected_value_= param.getValue("lma:expected_value");
-
-		setSamples();
-	}
-
-	const Param& LmaGaussModel::getParam() const
-	{
 		param_.setValue("bounding_box:min", min_);
 		param_.setValue("bounding_box:max", max_);
 		param_.setValue("statistics:mean", statistics_.mean());
@@ -122,19 +110,8 @@ namespace OpenMS
 		param_.setValue("lma:scale_factor", scale_factor_);
 		param_.setValue("lma:standard_deviation", standard_deviation_);
 		param_.setValue("lma:expected_value", expected_value_);
-		return InterpolationModel::getParam();
-	}
 
-	Param& LmaGaussModel::getParam()
-	{
-		param_.setValue("bounding_box:min", min_);
-		param_.setValue("bounding_box:max", max_);
-		param_.setValue("statistics:mean", statistics_.mean());
-		param_.setValue("statistics:variance", statistics_.variance());
-		param_.setValue("lma:scale_factor", scale_factor_);
-		param_.setValue("lma:standard_deviation", standard_deviation_);
-		param_.setValue("lma:expected_value", expected_value_);
-		return InterpolationModel::getParam();
+		setSamples();
 	}
 
 	void LmaGaussModel::setOffset(CoordinateType offset)
@@ -143,12 +120,32 @@ namespace OpenMS
 		min_ += diff;
 		max_ += diff;
 		statistics_.setMean(statistics_.mean()+diff);
+		
 		InterpolationModel::setOffset(offset);
+		
+		param_.setValue("bounding_box:min", min_);
+		param_.setValue("bounding_box:max", max_);
+		param_.setValue("statistics:mean", statistics_.mean());
 	}
 
 	const LmaGaussModel::CoordinateType LmaGaussModel::getCenter() const
 	{
 		return statistics_.mean();
+	}
+
+	void LmaGaussModel::updateMembers_()
+	{
+		InterpolationModel::updateMembers_();
+		
+		min_ = param_.getValue("bounding_box:min");
+		max_ = param_.getValue("bounding_box:max");
+		statistics_.setMean( param_.getValue("statistics:mean") );
+		statistics_.setVariance(param_.getValue("statistics:variance"));
+		scale_factor_= param_.getValue("lma:scale_factor");
+		standard_deviation_ = param_.getValue("lma:standard_deviation");
+		expected_value_= param_.getValue("lma:expected_value");
+		
+		setSamples();
 	}
 
 }

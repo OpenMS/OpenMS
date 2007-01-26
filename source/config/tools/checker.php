@@ -29,6 +29,8 @@
 	
 	include "common_functions.php";
 	
+	#TODO: add check for self assignment
+	
 	######################## helper functions ###############################
 	function printUsage()
 	{

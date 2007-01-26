@@ -55,7 +55,7 @@ RESULT
 
 
 CHECK(const String getName())
-	TEST_EQUAL(LogNormalModel::getName(),"LogNormalModel")
+	TEST_EQUAL(LogNormalModel::getProductName(),"LogNormalModel")
 	TEST_EQUAL(LogNormalModel().getName(),"LogNormalModel")
 RESULT
 
@@ -76,7 +76,7 @@ CHECK(LogNormalModel& operator = (const LogNormalModel& source))
 	em3.setParam(stat, 100000.0, 5.0, 5.0, 725.0, 2.0, 678.9, 789.0);
 
   	logm1 = LogNormalModel();
-	TEST_EQUAL(em3.getParam(), logm2.getParam())
+	TEST_EQUAL(em3.getParameters(), logm2.getParameters())
 RESULT
 
 // copy ctor
@@ -94,7 +94,7 @@ CHECK(LogNormalModel(const LogNormalModel& source))
 	logm3.setParam(stat, 100000.0, 5.0, 5.0, 725.0, 2.0, 678.9, 789.0);
 
  	logm1 = LogNormalModel();
-	TEST_EQUAL(logm3.getParam(), logm2.getParam())
+	TEST_EQUAL(logm3.getParameters(), logm2.getParameters())
 RESULT
 
 CHECK(void setParam(Param param))
@@ -168,7 +168,7 @@ CHECK(void setOffset(double offset))
 	logm2.setParam(stat, 1000000.0, 20.0, 3.0, 400.0, 2.0, 678.9, 700.0);
 	logm2.setOffset(680.9);
 
-	TEST_EQUAL(logm1.getParam(), logm2.getParam())
+	TEST_EQUAL(logm1.getParameters(), logm2.getParameters())
 	TEST_REAL_EQUAL(logm1.getCenter(), logm2.getCenter())
 	TEST_REAL_EQUAL(logm1.getCenter(), 682.1)
 

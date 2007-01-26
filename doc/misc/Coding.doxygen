@@ -76,7 +76,6 @@ if (isValid(a))
 which might later be changed to something like
 
 @code
-
 if (isValid(a))
   error = 0;
   return 0;
@@ -166,29 +165,30 @@ The use of 'using namespace std;' is forbidden in all headers!!
 
 Each OpenMS class has to provide the following minimal interface:
 @code
-  class Test
-  {
-    public:
+class Test
+{
+  public:
+    
+    // default constructor (can be private in order to hide it)
+    Test();
 
-      Test();
+    // copy constructor
+    Test(const Test& test);
 
-      /// copy constructor
-      Test(const Test&amp; test);
+    // destructor
+    virtual ~Test();
 
-      /// destructor
-      virtual ~Test();
-
-      /// assignment operator
-      Test&amp; operator = (const Test&amp; test)
-      {
-        //ALWAYS CHECK FOR SELF ASSIGMENT!
-        if (this == &amp;test) return *this;
-        //...
-        return *this;
-      }
-  };
-
+    // assignment operator
+    Test& operator = (const Test& test)
+    {
+      //ALWAYS CHECK FOR SELF ASSIGNEMT!
+      if (this == &test) return *this;
+      //...
+      return *this;
+    }
+};
 @endcode
+
 Note that the destructor should be a virtual function, unless you have a very
 good reason why it shouldn't.  (E.g., saving a vtable pointer.)  Essentially,
 the reason is that otherwise an <TT>operator delete</TT> invocation on a
@@ -197,13 +197,37 @@ pointer to a base class will fail badly.
 <H1 style="margin-top:40px; border-top:4px solid grey; text-align:left;">Accessors for members</H1>
 
 Accessors to protected or private members of a class are implemented as a pair
-of setMember(...) and getMember() methods.
-This is necessary as accessors that return references to a member cannot be wrapped with Python!
+of get-method and set-method. This is necessary as accessors that return references to a member cannot be wrapped with Python!
 
-There is one exception to this strict rule. For members that are too large to be
-read with the get-method, modified and written back with the set-method, the
-get-method may return a reference to the member. But then an additional const
-get-method has to be implemented!
+For members that are too large to be read with the get-method, modified and written back with the set-method, 
+an additional non-const get-method can be implemented!
+
+@code
+class Test
+{
+  public:
+  	// always implement a non-mutable get-method
+    Type& getMember() const
+    {
+      return member_;
+    }
+    
+		// always implement a set-method
+    void setName(const Type& name)
+    {
+      name_ = member_;
+    }
+		
+		// if really necessary implement a mutable get-method
+    Type& getName()
+    {
+      return member_;
+    }
+
+  protected:
+    Type member_;
+};
+@endcode
 
 <H1 style="margin-top:40px; border-top:4px solid grey; text-align:left;">Exception handling</H1>
 
@@ -315,10 +339,10 @@ type. It should not prefix the variable name.
 
 @code
 void hello(); //ordinary function, no arguments
-int countPeaks(PeakArray const&amp; p); //ordinary function
-bool ignore(string&amp; /* name */); //ordinary function with an unused argument
-bool isAdjacentTo(Peak const * const * const &amp; p) const; //an ordinary function
-bool doSomething_(int i, string&amp; name); //protected or private member function
+int countPeaks(PeakArray const& p); //ordinary function
+bool ignore(string& /* name */); //ordinary function with an unused argument
+bool isAdjacentTo(Peak const * const * const & p) const; //an ordinary function
+bool doSomething_(int i, string& name); //protected or private member function
 @endcode
 <H2 style="margin-top:20px; border-top:1px solid grey;">Enums and preprocessor constants</H2>
 

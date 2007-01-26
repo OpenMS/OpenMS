@@ -59,15 +59,7 @@ namespace OpenMS
 		/// assignment operator
 		virtual LmaGaussModel& operator = (const LmaGaussModel& source);
 
-		void setParam(const Param& param);
-
 		void setParam(const BasicStatistics& statistics, CoordinateType scale_factor, CoordinateType standard_deviation, CoordinateType expected_value, CoordinateType min, CoordinateType max);
-
-		/// get parameters (const access)
-		const Param& getParam() const;
-
-		/// get parameters
-		Param& getParam();
 
 		/// create new EmgModel object (needed by Factory)
 		static BaseModel<1>* create()
@@ -76,7 +68,7 @@ namespace OpenMS
   	}
 
 		/// name of the model (needed by Factory)
-		static const String getName()
+		static const String getProductName()
 		{
 			return "LmaGaussModel";
 		}
@@ -97,7 +89,8 @@ namespace OpenMS
 		CoordinateType scale_factor_;
 		CoordinateType standard_deviation_;
 		CoordinateType expected_value_;
-	
+
+		void updateMembers_();	
 	};
 }
 

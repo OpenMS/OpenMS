@@ -55,7 +55,7 @@ RESULT
 
 
 CHECK(const String getName())
-	TEST_EQUAL(LmaGaussModel::getName(),"LmaGaussModel")
+	TEST_EQUAL(LmaGaussModel::getProductName(),"LmaGaussModel")
 	TEST_EQUAL(LmaGaussModel().getName(),"LmaGaussModel")
 RESULT
 
@@ -75,7 +75,7 @@ CHECK(LmaGaussModel& operator = (const LmaGaussModel& source))
 	lm3.setInterpolationStep(0.3);
 	lm3.setParam(stat, 1000000.0, 2.0, 680.0, 678.9, 789.0);
 
-	TEST_EQUAL(lm3.getParam(), lm2.getParam())
+	TEST_EQUAL(lm3.getParameters(), lm2.getParameters())
 RESULT
 
 // copy ctor
@@ -92,7 +92,7 @@ CHECK(LmaGaussModel(const LmaGaussModel& source))
 	lm3.setInterpolationStep(0.3);
 	lm3.setParam(stat, 10.0, 2.0, 680.0, 678.9, 789.0);
 
-	TEST_EQUAL(lm3.getParam(), lm2.getParam())
+	TEST_EQUAL(lm3.getParameters(), lm2.getParameters())
 RESULT
 
 CHECK(void setParam(Param param))
@@ -108,7 +108,7 @@ CHECK(void setParam(Param param))
 	TEST_REAL_EQUAL(lm1.getCenter(), 680.2)
 
 	LmaGaussModel lm2;
-	lm2.setParam(lm1.getParam());
+	lm2.setParameters(lm1.getParameters());
 
 	DPeakArray<1> dpa1;
 	DPeakArray<1> dpa2;
@@ -177,7 +177,7 @@ CHECK(void setOffset(double offset))
 	lm2.setParam(stat, 10.0, 2.0, 700.0, 678.9, 789.0);
 	lm2.setOffset(680.9);
 
-	TEST_EQUAL(lm1.getParam(), lm2.getParam())
+	TEST_EQUAL(lm1.getParameters(), lm2.getParameters())
 	TEST_REAL_EQUAL(lm1.getCenter(), lm2.getCenter())
 	TEST_REAL_EQUAL(lm1.getCenter(), 682.1)
 

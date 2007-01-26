@@ -44,18 +44,18 @@ namespace OpenMS
 
 	template<>
 	void BaseModel<2>::registerChildren(){
-		Factory< BaseModel<2> >::registerProduct(ProductModel<2>::getName(), &ProductModel<2>::create);
+		Factory< BaseModel<2> >::registerProduct(ProductModel<2>::getProductName(), &ProductModel<2>::create);
 	}
 
 	template<>
 	void BaseModel<1>::registerChildren(){
 
-		Factory< BaseModel<1> >::registerProduct(GaussModel::getName(), &GaussModel::create);
-		Factory< BaseModel<1> >::registerProduct(BiGaussModel::getName(), &BiGaussModel::create);
-		Factory< BaseModel<1> >::registerProduct(IsotopeModel::getName(), &IsotopeModel::create);
-		Factory< BaseModel<1> >::registerProduct(EmgModel::getName(), &EmgModel::create);
-		Factory< BaseModel<1> >::registerProduct(LmaGaussModel::getName(), &LmaGaussModel::create);
-		Factory< BaseModel<1> >::registerProduct(LogNormalModel::getName(), &LogNormalModel::create);
+		Factory< BaseModel<1> >::registerProduct(GaussModel::getProductName(), &GaussModel::create);
+		Factory< BaseModel<1> >::registerProduct(BiGaussModel::getProductName(), &BiGaussModel::create);
+		Factory< BaseModel<1> >::registerProduct(IsotopeModel::getProductName(), &IsotopeModel::create);
+		Factory< BaseModel<1> >::registerProduct(EmgModel::getProductName(), &EmgModel::create);
+		Factory< BaseModel<1> >::registerProduct(LmaGaussModel::getProductName(), &LmaGaussModel::create);
+		Factory< BaseModel<1> >::registerProduct(LogNormalModel::getProductName(), &LogNormalModel::create);
 
 		return;
 	}

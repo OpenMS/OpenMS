@@ -55,7 +55,7 @@ namespace OpenMS
 	
 */
 class GaussModel
-            : public InterpolationModel<>
+	: public InterpolationModel<>
 {
 
 public:
@@ -74,17 +74,8 @@ public:
 
     /// assignment operator
     virtual GaussModel& operator = (const GaussModel& source);
-
-    void setParam(const Param& param);
-
-    void setParam(const BasicStatistics& statistics,
-                  CoordinateType min, CoordinateType max);
-
-    /// get parameters (const access)
-    const Param& getParam() const;
-
-    /// get parameters
-    Param& getParam();
+    
+    void setParam(const BasicStatistics& statistics, CoordinateType min, CoordinateType max);
 
     /// create new GaussModel object (needed by Factory)
     static BaseModel<1>* create()
@@ -93,7 +84,7 @@ public:
     }
 
     /// name of the model (needed by Factory)
-    static const String getName()
+    static const String getProductName()
     {
         return "GaussModel";
     }
@@ -115,6 +106,8 @@ protected:
     CoordinateType  min_;
     CoordinateType  max_;
     BasicStatistics statistics_;
+
+		void updateMembers_();
 };
 }
 

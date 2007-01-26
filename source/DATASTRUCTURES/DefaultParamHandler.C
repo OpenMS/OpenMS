@@ -1,0 +1,143 @@
+// -*- Mode: C++; tab-width: 2; -*-
+// vi: set ts=2:
+//
+// --------------------------------------------------------------------------
+//                   OpenMS Mass Spectrometry Framework
+// --------------------------------------------------------------------------
+//  Copyright (C) 2003-2007 -- Oliver Kohlbacher, Knut Reinert
+//
+//  This library is free software; you can redistribute it and/or
+//  modify it under the terms of the GNU Lesser General Public
+//  License as published by the Free Software Foundation; either
+//  version 2.1 of the License, or (at your option) any later version.
+//
+//  This library is distributed in the hope that it will be useful,
+//  but WITHOUT ANY WARRANTY; without even the implied warranty of
+//  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+//  Lesser General Public License for more details.
+//
+//  You should have received a copy of the GNU Lesser General Public
+//  License along with this library; if not, write to the Free Software
+//  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+//
+// --------------------------------------------------------------------------
+// $Maintainer: Marc Sturm $
+// --------------------------------------------------------------------------
+
+#include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
+
+using namespace std;
+
+namespace OpenMS
+{
+	DefaultParamHandler::DefaultParamHandler(const String& name)
+		: error_name_(name),
+			check_defaults_(true)
+	{
+		
+	}
+
+	DefaultParamHandler::DefaultParamHandler(const DefaultParamHandler& rhs)
+		: param_(rhs.param_),
+			defaults_(rhs.defaults_),
+			subsections_(rhs.subsections_),
+			error_name_(rhs.error_name_),
+			check_defaults_(rhs.check_defaults_)
+	{
+	}
+	
+	DefaultParamHandler& DefaultParamHandler::operator= (const DefaultParamHandler& rhs)
+	{
+		if (&rhs==this) return *this;
+		
+		//copy members
+		param_ = rhs.param_;
+		defaults_ = rhs.defaults_;
+		subsections_ = rhs.subsections_;
+		error_name_ = rhs.error_name_;
+		check_defaults_ = rhs.check_defaults_;
+		
+		return *this;
+	}
+	
+	bool DefaultParamHandler::operator== (const DefaultParamHandler& rhs) const
+	{
+		return 
+			param_ == rhs.param_ &&
+			defaults_ == rhs.defaults_ &&
+			subsections_ == rhs.subsections_ &&
+			error_name_ == rhs.error_name_ &&
+			check_defaults_ == rhs.check_defaults_
+			;
+	}
+
+	DefaultParamHandler::~DefaultParamHandler()
+	{
+		
+	}	
+
+	void DefaultParamHandler::setParameters(const Param& param)
+	{
+		//set defaults and apply new parameters
+		Param tmp(param);
+		tmp.setDefaults(defaults_);
+		param_ = tmp;
+		
+		if (check_defaults_)
+		{
+			if (defaults_.size()==0)
+			{
+				cout << "Warning no default parameters for DefaultParameterHandler '" << error_name_ << "' specified!" << endl;
+			}
+			
+			//remove registered subsections and check defaults
+			for(vector<String>::const_iterator it = subsections_.begin(); it != subsections_.end(); ++it)
+			{
+				tmp.remove(*it+':');
+			}
+			tmp.checkDefaults(error_name_,defaults_);
+		}
+		
+		//do necessary changes to other member variables
+		updateMembers_();	
+	}
+
+	void DefaultParamHandler::defaultsToParam_()
+	{
+		param_.setDefaults(defaults_);
+		updateMembers_();	
+	}
+
+	void DefaultParamHandler::updateMembers_()
+	{
+		
+	}
+
+	const Param& DefaultParamHandler::getParameters() const
+	{
+		return param_;
+	}
+	
+	const Param& DefaultParamHandler::getDefaults() const
+	{
+		return defaults_;
+	}
+
+	const String& DefaultParamHandler::getName() const
+	{
+		return error_name_;
+	}
+
+	void DefaultParamHandler::setName(const String& name)
+	{
+		error_name_ = name;
+	}
+
+	const std::vector<String>& DefaultParamHandler::getSubsections() const
+	{
+		return subsections_;
+	}
+
+} // namespace OpenMS
+
+

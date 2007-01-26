@@ -49,7 +49,8 @@ CPP_SOURCES=\
 	QuadTree.C\
 	RangeManager.C\
 	ScanIndexMSExperiment.C\
-	DConvexHull.C
+	DConvexHull.C\
+	DefaultParamHandler.C
 
 include ../common.mak
 -include .Dependencies

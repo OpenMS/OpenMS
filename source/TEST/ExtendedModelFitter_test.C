@@ -155,15 +155,15 @@ CHECK( DFeature<2> fit(const IndexSet& set) throw (UnableToFit))
 		(feature.getModelDescription().createModel());
 
 	BaseModel<1>* mz_model = model->getModel(MZ);
-	TEST_REAL_EQUAL(mz_model->getParam().getValue("statistics:mean"),mean[MZ]);
+	TEST_REAL_EQUAL(mz_model->getParameters().getValue("statistics:mean"),mean[MZ]);
 	PRECISION(stdev[MZ]*stdev[MZ]*0.05)		// Variances can differ by 5%
-	TEST_REAL_EQUAL(mz_model->getParam().getValue("statistics:variance"),stdev[MZ]*stdev[MZ]);
+	TEST_REAL_EQUAL(mz_model->getParameters().getValue("statistics:variance"),stdev[MZ]*stdev[MZ]);
 	PRECISION(default_precision)
 
 	BaseModel<1>* rt_model = model->getModel(RT);
-	TEST_REAL_EQUAL(rt_model->getParam().getValue("statistics:mean"),mean[RT]);
+	TEST_REAL_EQUAL(rt_model->getParameters().getValue("statistics:mean"),mean[RT]);
 	PRECISION(stdev[RT]*stdev[RT])
-	TEST_REAL_EQUAL(rt_model->getParam().getValue("statistics:variance"),stdev[RT]*stdev[RT]);
+	TEST_REAL_EQUAL(rt_model->getParameters().getValue("statistics:variance"),stdev[RT]*stdev[RT]);
 	PRECISION(default_precision)
 
 	// test predicted intensities
@@ -241,13 +241,13 @@ CHECK( DFeature<2> fit(const IndexSet& set) throw (UnableToFit))
 
 	BaseModel<1>* rt_model = model->getModel(RT);
 	PRECISION(mean[RT]*0.01)		// Mean can differ by 1%
-	TEST_REAL_EQUAL(rt_model->getParam().getValue("statistics:mean"),mean[RT]);
+	TEST_REAL_EQUAL(rt_model->getParameters().getValue("statistics:mean"),mean[RT]);
 	PRECISION(stdev[1])		// Variances can differ by 15%
-	TEST_REAL_EQUAL(sqrt(rt_model->getParam().getValue("statistics:variance")),stdev[1]);
+	TEST_REAL_EQUAL(sqrt(rt_model->getParameters().getValue("statistics:variance")),stdev[1]);
 	PRECISION(default_precision)
 
 	BaseModel<1>* mz_model = model->getModel(MZ);
-	TEST_REAL_EQUAL(mz_model->getParam().getValue("isotope:stdev"),stdev[2]);
+	TEST_REAL_EQUAL(mz_model->getParameters().getValue("isotope:stdev"),stdev[2]);
 
 	// test predicted intensities
 	DPosition<2> pos;

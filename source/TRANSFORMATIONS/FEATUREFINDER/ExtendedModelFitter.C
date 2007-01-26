@@ -415,7 +415,7 @@ namespace OpenMS
 			mz_model = new IsotopeModel();
 			Param iso_param = param_.copy("isotope_model:",true);
 			iso_param.remove("stdev");
-			static_cast<IsotopeModel*>(mz_model)->setParam(iso_param);
+			mz_model->setParameters(iso_param);
 			mz_model->setInterpolationStep(interpolation_step_mz);
 			static_cast<IsotopeModel*>(mz_model)->setParam(mz_stat_.mean(), mz_fit, isotope_stdev);
 		}

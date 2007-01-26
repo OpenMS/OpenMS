@@ -57,15 +57,7 @@ namespace OpenMS
 		/// assignment operator
 		virtual LogNormalModel& operator = (const LogNormalModel& source);
 
-		void setParam(const Param& param);
-
 		void setParam(const BasicStatistics& statistics, CoordinateType height, CoordinateType width, CoordinateType symmetry, CoordinateType retention, CoordinateType r, CoordinateType min, CoordinateType max);
-
-		/// get parameters (const access)
-		const Param& getParam() const;
-
-		/// get parameters
-		Param& getParam();
 
 		/// create new LogNormalModel object (needed by Factory)
 		static BaseModel<1>* create()
@@ -74,7 +66,7 @@ namespace OpenMS
   	}
 
 		/// name of the model (needed by Factory)
-		static const String getName()
+		static const String getProductName()
 		{
 			return "LogNormalModel";
 		}
@@ -97,6 +89,8 @@ namespace OpenMS
 		CoordinateType symmetry_;
 		CoordinateType retention_;
 		CoordinateType r_;
+
+		void updateMembers_();
 	};
 }
 

@@ -35,7 +35,8 @@ CPP_SOURCES= \
 	HashFunction.C\
 	TimeStamp.C\
 	VersionInfo.C\
-	FactoryProduct.C
+	FactoryProduct.C\
+	FactoryProduct2.C
 
 include ../common.mak
 -include .Dependencies

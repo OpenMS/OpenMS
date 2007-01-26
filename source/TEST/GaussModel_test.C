@@ -55,9 +55,9 @@ CHECK(~GaussModel())
 RESULT
 
 
-CHECK(const String getName())
-	TEST_EQUAL(GaussModel::getName(),"GaussModel")
-	TEST_EQUAL(GaussModel().getName(),"GaussModel")
+CHECK(const String getProductName())
+	TEST_EQUAL(GaussModel::getProductName(),"GaussModel")
+	TEST_EQUAL(GaussModel().getProductName(),"GaussModel")
 RESULT
 
 // assignment operator
@@ -79,7 +79,7 @@ CHECK(GaussModel& operator = (const GaussModel& source))
 	gm3.setParam(stat, 678.9, 789.0);
 
   gm1 = GaussModel();
-	TEST_EQUAL(gm3.getParam(), gm2.getParam())
+	TEST_EQUAL(gm3.getParameters(), gm2.getParameters())
 RESULT
 
 // copy ctor
@@ -99,10 +99,10 @@ CHECK(GaussModel(const GaussModel& source))
 	gm3.setParam(stat, 678.9, 789.0);
 
   	gm1 = GaussModel();
-	TEST_EQUAL(gm3.getParam(), gm2.getParam())
+	TEST_EQUAL(gm3.getParameters(), gm2.getParameters())
 RESULT
 
-CHECK(void setParam(Param param))
+CHECK([EXTRA] DefaultParmHandler::setParameters(...))
 	PRECISION(0.001)
 	GaussModel gm1;
 	BasicStatistics<>  stat;
@@ -116,7 +116,8 @@ CHECK(void setParam(Param param))
 	TEST_REAL_EQUAL(gm1.getCenter(), 680.2)
 
 	GaussModel gm2;
-	gm2.setParam(gm1.getParam());
+	const Param p(gm1.getParameters());
+	gm2.setParameters(p);
 
 	DPeakArray<1> dpa1;
 	DPeakArray<1> dpa2;
@@ -180,7 +181,7 @@ CHECK(void setOffset(double offset))
 	stat.setVariance(2.0);
 	gm2.setParam(stat, 680.9, 791.0);
 
-	TEST_EQUAL(gm1.getParam(), gm2.getParam())
+	TEST_EQUAL(gm1.getParameters(), gm2.getParameters())
 	TEST_REAL_EQUAL(gm1.getCenter(), gm2.getCenter())
 	TEST_REAL_EQUAL(gm1.getCenter(), 682.1)
 

@@ -86,15 +86,7 @@ namespace OpenMS
     /// assignment operator 
     virtual IsotopeModel& operator = (const IsotopeModel& source);
 
-		void setParam(const Param& param);
-
 		void setParam(CoordinateType mean, UnsignedInt charge, CoordinateType isotope_stdev);
-
-		/// get parameters (const access)
-		const Param& getParam() const;
-
-		/// get parameters
-		Param& getParam();
 
 		UnsignedInt getCharge();
 
@@ -105,7 +97,7 @@ namespace OpenMS
   	}
 
 		/// name of the model (needed by Factory)
-    static const String getName()
+    static const String getProductName()
     {
 	     return "IsotopeModel";
   	}
@@ -139,6 +131,8 @@ namespace OpenMS
 			int max_isotope_;
 			double trim_right_cutoff_;
 			double isotope_distance_;
+  
+  		void updateMembers_();
   };
 }
 

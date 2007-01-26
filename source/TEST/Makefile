@@ -39,6 +39,7 @@ EXECUTABLES_CONCEPT = \
 	TimeStamp_test\
 	VersionInfo_test\
 	FactoryProduct_test\
+	FactoryProduct2_test\
 	Factory_test
 
 #DATASTRUCTURES
@@ -62,7 +63,8 @@ EXECUTABLES_DATASTRUCTURES = \
 	QuadTree_test\
 	RangeManager_test\
 	Matrix_test\
-	DConvexHull_test
+	DConvexHull_test\
+	DefaultParamHandler_test
 
 #METADATA
 

@@ -36,7 +36,8 @@ namespace OpenMS
 	EmgModel::EmgModel()
 		: InterpolationModel()
 	{
-		this->name_ = getName();
+		setName(getProductName());
+		
 		defaults_.setValue("bounding_box:min",0.0f);
 		defaults_.setValue("bounding_box:max",1.0f);
 		defaults_.setValue("statistics:mean",0.0f);
@@ -45,23 +46,29 @@ namespace OpenMS
 		defaults_.setValue("emg:width",5.0f);
 		defaults_.setValue("emg:symmetry",5.0f);
 		defaults_.setValue("emg:retention",1200.0f);
-
-		param_ = defaults_;
-		setParam(param_);
+		
+		defaultsToParam_();
 	}
 
 	EmgModel::EmgModel(const EmgModel& source)
 		: InterpolationModel(source)
 	{
 		setParam(source.statistics_, source.height_, source.width_, source.symmetry_, source.retention_, source.min_, source.max_);
+		updateMembers_();
 	}
 
-	EmgModel::~EmgModel(){}
+	EmgModel::~EmgModel()
+	{	
+	}
 
 	EmgModel& EmgModel::operator = (const EmgModel& source)
 	{
+		if (&source == this) return *this;
+		
 		InterpolationModel::operator = (source);
 		setParam(source.statistics_, source.height_, source.width_, source.symmetry_, source.retention_, source.min_, source.max_);
+		updateMembers_();
+		
 		return *this;
 	}
 
@@ -102,26 +109,6 @@ namespace OpenMS
 		symmetry_ =  symmetry;
 		retention_ = retention;
 
-		setSamples();
-	}
-
-	void EmgModel::setParam(const Param& param)
-	{
-		InterpolationModel::setParam(param);
-		min_ = param_.getValue("bounding_box:min");
-		max_ = param_.getValue("bounding_box:max");
-		statistics_.setMean( param_.getValue("statistics:mean") );
-		statistics_.setVariance(param_.getValue("statistics:variance"));
-		height_ = param.getValue("emg:height");
-		width_ = param.getValue("emg:width");
-		symmetry_ = param.getValue("emg:symmetry");
-		retention_ = param.getValue("emg:retention");
-
-		setSamples();
-	}
-
-	const Param& EmgModel::getParam() const
-	{
 		param_.setValue("bounding_box:min", min_);
 		param_.setValue("bounding_box:max", max_);
 		param_.setValue("statistics:mean", statistics_.mean());
@@ -130,20 +117,8 @@ namespace OpenMS
 		param_.setValue("emg:width", width_);
 		param_.setValue("emg:symmetry", symmetry_);
 		param_.setValue("emg:retention", retention_);
-		return InterpolationModel::getParam();
-	}
 
-	Param& EmgModel::getParam()
-	{
-		param_.setValue("bounding_box:min", min_);
-		param_.setValue("bounding_box:max", max_);
-		param_.setValue("statistics:mean", statistics_.mean());
-		param_.setValue("statistics:variance", statistics_.variance());
-		param_.setValue("emg:height", height_);
-		param_.setValue("emg:width", width_);
-		param_.setValue("emg:symmetry", symmetry_);
-		param_.setValue("emg:retention", retention_);
-		return InterpolationModel::getParam();
+		setSamples();
 	}
 
 	void EmgModel::setOffset(CoordinateType offset)
@@ -152,12 +127,33 @@ namespace OpenMS
 		min_ += diff;
 		max_ += diff;
 		statistics_.setMean(statistics_.mean()+diff);
+
 		InterpolationModel::setOffset(offset);
+
+		param_.setValue("bounding_box:min", min_);
+		param_.setValue("bounding_box:max", max_);
+		param_.setValue("statistics:mean", statistics_.mean());
 	}
 
 	const EmgModel::CoordinateType EmgModel::getCenter() const
 	{
 		return statistics_.mean();
 	}
+	
+	void EmgModel::updateMembers_()
+	{
+		InterpolationModel::updateMembers_();
 
+		min_ = param_.getValue("bounding_box:min");
+		max_ = param_.getValue("bounding_box:max");
+		statistics_.setMean( param_.getValue("statistics:mean") );
+		statistics_.setVariance(param_.getValue("statistics:variance"));
+		height_ = param_.getValue("emg:height");
+		width_ = param_.getValue("emg:width");
+		symmetry_ = param_.getValue("emg:symmetry");
+		retention_ = param_.getValue("emg:retention");
+		
+		setSamples();
+	}
+	
 }

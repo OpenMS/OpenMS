@@ -56,7 +56,7 @@ RESULT
 
 
 CHECK(const String getName())
-	TEST_EQUAL(EmgModel::getName(),"EmgModel")
+	TEST_EQUAL(EmgModel::getProductName(),"EmgModel")
 	TEST_EQUAL(EmgModel().getName(),"EmgModel")
 RESULT
 
@@ -77,7 +77,7 @@ CHECK(EmgModel& operator = (const EmgModel& source))
 	em3.setParam(stat, 100000.0, 5.0, 5.0, 725.0, 678.9, 789.0);
 
   	em1 = EmgModel();
-	TEST_EQUAL(em3.getParam(), em2.getParam())
+	TEST_EQUAL(em3.getParameters(), em2.getParameters())
 RESULT
 
 // copy ctor
@@ -95,7 +95,7 @@ CHECK(EmgModel(const EmgModel& source))
 	em3.setParam(stat, 100000.0, 5.0, 5.0, 725.0, 678.9, 789.0);
 
  	em1 = EmgModel();
-	TEST_EQUAL(em3.getParam(), em2.getParam())
+	TEST_EQUAL(em3.getParameters(), em2.getParameters())
 RESULT
 
 CHECK(void setParam(Param param))
@@ -111,7 +111,7 @@ CHECK(void setParam(Param param))
 	TEST_REAL_EQUAL(em1.getCenter(), 680.2)
 
 	EmgModel em2;
-	em2.setParam(em1.getParam());
+	em2.setParameters(em1.getParameters());
 
 	DPeakArray<1> dpa1;
 	DPeakArray<1> dpa2;
@@ -171,7 +171,7 @@ CHECK(void setOffset(double offset))
 	em2.setParam(stat, 100000.0, 5.0, 5.0, 725.0, 678.9, 789.0);
 	em2.setOffset(680.9);
 
-	TEST_EQUAL(em1.getParam(), em2.getParam())
+	TEST_EQUAL(em1.getParameters(), em2.getParameters())
 	TEST_REAL_EQUAL(em1.getCenter(), em2.getCenter())
 	TEST_REAL_EQUAL(em1.getCenter(), 682.1)
 

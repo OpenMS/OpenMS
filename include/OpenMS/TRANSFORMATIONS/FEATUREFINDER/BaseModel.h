@@ -29,7 +29,7 @@
 #define OPENMS_TRANSFORMATIONS_FEATUREFINDER_BASEMODEL_H
 
 
-#include <OpenMS/CONCEPT/FactoryProduct.h>
+#include <OpenMS/CONCEPT/FactoryProduct2.h>
 #include <OpenMS/KERNEL/KernelTraits.h>
 #include <OpenMS/KERNEL/DPeakArray.h>
 #include <vector>
@@ -39,7 +39,7 @@ namespace OpenMS
   /** @brief Abstract base class for all D-dimensional models.
 		
 			Every derived class has to implement the static functions
-      "T* create()" and "const String getName()" (see FactoryProduct for details)
+      "T* create()" and "const String getProductName()" (see FactoryProduct for details)
 
 			Every derived class should implement a getParm method to allow lazy parameter
 			setting i.e. each time the getParam is called the param_ object is updated rather than
@@ -51,7 +51,7 @@ namespace OpenMS
 
   template <UnsignedInt D, typename Traits = KernelTraits>
     class BaseModel
-    : public FactoryProduct
+    : public FactoryProduct2
     {
 
       public:
@@ -67,27 +67,31 @@ namespace OpenMS
 
       /// standard constructor. 
       BaseModel()
-				: FactoryProduct()
+				: FactoryProduct2("BaseModel")
 			{
-				setCutOff(0.0);
 				defaults_.setValue("cutoff",0.0);
 			}
 
       /// copy constructor 
       BaseModel(const BaseModel& source)
-				: FactoryProduct(source)
+				: FactoryProduct2(source),
+					cut_off_(source.cut_off_)
 			{
-				setCutOff(source.cut_off_);
 			}
 
       /// Destructor 
-      virtual ~BaseModel(){}
+      virtual ~BaseModel()
+      {	
+      }
 
       /// assignment operator
       virtual BaseModel& operator = (const BaseModel& source)
 			{
-				FactoryProduct::operator = (source);
-				setCutOff(source.cut_off_);
+				if (&source == this) return *this;
+				
+				FactoryProduct2::operator = (source);
+				cut_off_ = source.cut_off_;
+				
 				return *this;
 			}
 
@@ -120,35 +124,18 @@ namespace OpenMS
 			}
 
 			/// get cutoff value
-			virtual IntensityType getCutOff() const	{	return cut_off_;	}
-
+			virtual IntensityType getCutOff() const	
+			{	
+				return cut_off_;	
+			}
 
 			///	set cutoff value
 			virtual void setCutOff(IntensityType cut_off)
 			{
 				cut_off_ = cut_off;
-			}
-
-			virtual void setParam(const Param& param)
-			{
-				FactoryProduct::setParam(param);
-				cut_off_ = static_cast<double>(param_.getValue("cutoff"));
-			}
-
-    	/// get parameters (const access)
-    	virtual const Param& getParam() const
-			{
 				param_.setValue("cutoff",(double)cut_off_);
-				return FactoryProduct::getParam();
 			}
-
-    	/// get parameters
-    	virtual Param& getParam()
-			{
-				param_.setValue("cutoff",(double)cut_off_);
-				return FactoryProduct::getParam();
-			}
-
+			
 			/// get reasonable set of samples from the model (i.e. for printing)
 			virtual void getSamples(SamplesType& cont) const =0;
 
@@ -165,6 +152,12 @@ namespace OpenMS
 
 		protected:
 			IntensityType cut_off_;
+
+			//docu in base class
+			void updateMembers_()
+			{
+				cut_off_ = (double)param_.getValue("cutoff");
+			}
   };
 }
 

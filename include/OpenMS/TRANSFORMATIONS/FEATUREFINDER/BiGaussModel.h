@@ -61,7 +61,6 @@ namespace OpenMS
 	class BiGaussModel
   : public InterpolationModel<>
   {
-
 		public:
 		typedef InterpolationModel<>::CoordinateType CoordinateType;
 
@@ -77,16 +76,7 @@ namespace OpenMS
     /// assignment operator
     virtual BiGaussModel& operator = (const BiGaussModel& source);
 
-		void setParam(const Param& param);
-
-		void setParam(CoordinateType mean, CoordinateType variance1,
-						CoordinateType variance2,	CoordinateType min, CoordinateType max);
-
-		/// get parameters (const access)
-		const Param& getParam() const;
-
-		/// get parameters
-		Param& getParam();
+		void setParam(CoordinateType mean, CoordinateType variance1, CoordinateType variance2,	CoordinateType min, CoordinateType max);
 
 		/// create new BiGaussModel object (function needed by Factory)
 		static BaseModel<1>* create()
@@ -95,7 +85,7 @@ namespace OpenMS
   	}
 
 		/// name of the model (needed by Factory)
-    static const String getName()
+    static const String getProductName()
     {
 	     return "BiGaussModel";
   	}
@@ -118,6 +108,8 @@ namespace OpenMS
 			CoordinateType max_;
 			Math::BasicStatistics<> statistics1_;
 			Math::BasicStatistics<> statistics2_;
+			
+			void updateMembers_();
   };
 }
 

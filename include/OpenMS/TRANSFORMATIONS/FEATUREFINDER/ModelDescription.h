@@ -58,7 +58,7 @@ namespace OpenMS
 		/// constructor provided for convenience
 		ModelDescription(const BaseModel<D,Traits>* model):
 			name_(model->getName()),
-			parameters_(model->getParam())
+			parameters_(model->getParameters())
 		{}
 
 		/// destructor 
@@ -78,7 +78,7 @@ namespace OpenMS
 		{
 			if (name_ == "") return 0;				
 			BaseModel<D,Traits>* model = Factory< BaseModel<D,Traits> >::create(name_);
-			model->setParam(parameters_);
+			model->setParameters(parameters_);
 			return model;
 		}
 		
