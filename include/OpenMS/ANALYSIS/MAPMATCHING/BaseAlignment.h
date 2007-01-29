@@ -56,7 +56,7 @@ namespace OpenMS
      Corresponding elements are grouped together and stored as a consensus
      element in the final consensus map (a stl vector of consensus elements). 
    
-  **/
+  */
   template < typename ConsensusElementT >
   class BaseAlignment
   {

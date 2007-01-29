@@ -124,7 +124,7 @@ namespace OpenMS
 			The working horse of the discrete-time continuous wavelet transform, but for several charges at the same time.
 		 	Note that you should compute a convolution instead of an correlation. Since we do not mirror the wavelet function
 		 	this yields the same.		
-		**/																			
+		*/																			
 		void fastMultiCorrelate(const DPeakArray<1, PeakType >& signal, 
 	 																	std::vector<DPeakArray<1, PeakType > >* pwts, 
 																		std::vector<double>* wt_thresholds);
@@ -135,7 +135,7 @@ namespace OpenMS
 				The lambda parameter essentially influences the shape of the wavelet.
 		 		Since isotope patterns depend on mass, the wavelet has to adapt its shape. 
 		 		For more insights look at the formula of the wavelet function. 
-		**/
+		*/
 		inline CoordinateType getLambda (const CoordinateType realMass) const 
 		{	
 			return (0.035 + 0.000678*realMass); 

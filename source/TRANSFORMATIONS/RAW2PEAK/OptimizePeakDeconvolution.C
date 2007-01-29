@@ -44,7 +44,7 @@ namespace OpenMS
     
     
 
-/** Evaluation of the target function for nonlinear optimization. **/
+		// Evaluation of the target function for nonlinear optimization.
     int residualDC(const gsl_vector* x, void* params , gsl_vector* f)
     {
       // According to the gsl conventions, x contains the parameters to be optimized.
@@ -61,22 +61,22 @@ namespace OpenMS
       double rightwidth = gsl_vector_get(x,1);
       //double posP1 = gsl_vector_get(x,2);
       
-      /** iterate over all points of the signal **/
+      // iterate over all points of the signal
       for (size_t current_point = 0; current_point < positions_DC_.size(); current_point++)
 	{
 	  double computed_signal     = 0.;
 	  double current_position    = positions_DC_[current_point];
 	  double experimental_signal = signal_DC_[current_point];	
     
-	  /** iterate over all peaks **/
+	  //iterate over all peaks
 	  for (size_t current_peak = 0; current_peak < peaks_DC_.size(); current_peak++)
 	    {
-	      /** Store the current parameters for this peak **/
+	      //Store the current parameters for this peak
 	      double p_height 	   = gsl_vector_get(x,2+ 2*current_peak);
 	      double p_position    = gsl_vector_get(x,2+ 2*current_peak +1);
 	      double p_width  	   = (current_position <= p_position) ? leftwidth : rightwidth;
 
-	      /** is it a Lorentz or a Sech - Peak? **/
+	      //is it a Lorentz or a Sech - Peak?
 	      if (peaks_DC_[current_peak].type == PeakShapeType::LORENTZ_PEAK)
 		{
 		  computed_signal += p_height / (1. + pow(p_width * (current_position - p_position), 2));
@@ -170,22 +170,22 @@ namespace OpenMS
       gsl_matrix_set_zero(J);
     
       
-      /** iterate over all points of the signal **/
+      // iterate over all points of the signal
       for (size_t current_point = 0; current_point < positions_DC_.size(); current_point++)
 	{
 	  double current_position    = positions_DC_[current_point];
 
-	  /** iterate over all peaks **/
+	  // iterate over all peaks
 	  for (size_t current_peak = 0; current_peak < peaks_DC_.size(); current_peak++)
 	    {
 
 	      
-	      /** Store the current parameters for this peak **/
+	      //Store the current parameters for this peak
 	      double p_height 	   = gsl_vector_get(x, 2+2*current_peak);
 	      double p_position    = gsl_vector_get(x, 2+2*current_peak+1);
 	      double p_width  	    = (current_position <= p_position) ? leftwidth : rightwidth;
 
-	      /** is it a Lorentz or a Sech - Peak? **/
+	      //is it a Lorentz or a Sech - Peak?
 	      if (peaks_DC_[current_peak].type == PeakShapeType::LORENTZ_PEAK)
 		{
 		  double diff      = current_position - p_position;
@@ -304,7 +304,7 @@ namespace OpenMS
       return GSL_SUCCESS;
     }
 
-    /** Driver function for the evaluation of function and jacobian. **/
+    // Driver function for the evaluation of function and jacobian.
     int evaluateDC(const gsl_vector* x, void* params, gsl_vector* f, gsl_matrix* J)
     {
       residualDC(x, params, f);

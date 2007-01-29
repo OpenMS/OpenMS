@@ -48,47 +48,42 @@ namespace OpenMS
 	@brief The feature detection algorithm in OpenMS.
 	
 	@ingroup Transformations
-	
 */
 
 /**
-  	@brief The base class of the Feature Finding algorithm.
+	@brief The base class of the Feature Finding algorithm.
+	
+	By feature finding, we understand the search for 
+	peptides or other chemical compounds different from noise
+	in a MS map. 
+	
+	Our algorithm consists of three different stages: seeding,
+	extension and model fitting. In the seeding stage, we mark
+	data points with high intensity as seeds. During the extension
+	phase, these seeds are extended by collecting other data points
+	that lie within a certain distance from the seed and have an intensity
+	significantly larger than the background noise in the data set.
+	The seed together with the data points collected during its
+	extension comprise the region of a potential feature.
+	
+	Finally, we fit a hypothetical model of the compound we want
+	to detect to the feature region. If the correlation between the
+	distribution of the data points and the model is too low, the
+	feature is discarded. Furthermore, we can remove datapoints
+	having a very low probability given the model from the feature
+	region.
+	
+	This class reads the parameters from the Param class,
+	initialises the traits class and the seeder, extender and
+	model fitting classes.
+	
+	@note The input data should be sorted and not contain any tandem spectra.
   	
-  	By feature finding, we understand the search for 
-  	peptides or other chemical compounds different from noise
-  	in a MS map. 
-  	
-  	Our algorithm consists of three different stages: seeding,
-  	extension and model fitting. In the seeding stage, we mark
-  	data points with high intensity as seeds. During the extension
-  	phase, these seeds are extended by collecting other data points
-  	that lie within a certain distance from the seed and have an intensity
-  	significantly larger than the background noise in the data set.
-  	The seed together with the data points collected during its
-  	extension comprise the region of a potential feature.
-  	
-  	Finally, we fit a hypothetical model of the compound we want
-  	to detect to the feature region. If the correlation between the
-  	distribution of the data points and the model is too low, the
-  	feature is discarded. Furthermore, we can remove datapoints
-  	having a very low probability given the model from the feature
-  	region.
-  	
-  	This class reads the parameters from the Param class,
-  	initialises the traits class and the seeder, extender and
-  	model fitting classes.
-		
-		@note The input data should be sorted and not contain any tandem spectra.
- 	  	
-  	@ingroup FeatureFinder
-  
+	@ingroup FeatureFinder
 */
-
-
 class FeatureFinder
 {
-
-public:
+	public:
     typedef std::vector<BaseSeeder*> SeederVector;
     typedef std::vector<BaseExtender*> ExtenderVector;
     typedef std::vector<BaseModelFitter*> FitterVector;
@@ -136,9 +131,9 @@ public:
     void removeFitter(const String& name);
 
     /**
-      	@brief set FeatureFinder param file  
-       	@return false if param file is not valid 
-      */
+    	@brief set FeatureFinder param file  
+     	@return false if param file is not valid 
+    */
     bool setParam(const Param& param);
 
 
@@ -163,31 +158,36 @@ protected:
 
     inline bool setModule(String module)
     {
-        Param mod_param = param_.copy(module+":",true);
-        if (mod_param.empty())
-            return false;
-        Param::ConstIterator it;
-        for (it=mod_param.begin(); it!=mod_param.end(); it++)
+      Param mod_param = param_.copy(module+":",true);
+      if (mod_param.empty()) return false;
+      Param::ConstIterator it;
+      for (it=mod_param.begin(); it!=mod_param.end(); it++)
+      {
+        if (it->first.substr(it->first.size()-2,2) == "ID")
         {
-            if (it->first.substr(it->first.size()-2,2) == "ID")
-            {
-                String impl_name = it->second;
-                std::vector<String> substrings;
-                String(it->first).split(':',substrings);
-                String node = substrings[substrings.size()-2];
-                Param sub_param;
-                sub_param = mod_param.copy(node+":",true);
-                sub_param.remove("ID");
+          String impl_name = it->second;
+          std::vector<String> substrings;
+          String(it->first).split(':',substrings);
+          String node = substrings[substrings.size()-2];
+          Param sub_param;
+          sub_param = mod_param.copy(node+":",true);
+          sub_param.remove("ID");
 
-                if (module=="Seeders")
-                    addSeeder(impl_name, &sub_param);
-                else if (module=="Extenders")
-                    addExtender(impl_name, &sub_param);
-                else if (module=="ModelFitters")
-                    addFitter(impl_name, &sub_param);
-            }
+          if (module=="Seeders")
+          {
+          	addSeeder(impl_name, &sub_param);
+          }
+          else if (module=="Extenders")
+          {
+          	addExtender(impl_name, &sub_param);
+          }
+          else if (module=="ModelFitters")
+          {
+          	addFitter(impl_name, &sub_param);
+        	}
         }
-        return true;
+      }
+      return true;
     }
 
     Param param_;

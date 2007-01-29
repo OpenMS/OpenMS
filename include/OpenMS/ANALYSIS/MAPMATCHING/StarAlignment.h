@@ -62,7 +62,7 @@ namespace OpenMS
      loose the former consensus information.
      
      @ingroup MapAlignment
-  **/
+  */
   template < typename ConsensusElementT = ConsensusFeature< FeatureMap > >
   class StarAlignment : public BaseAlignment< ConsensusElementT >
   {

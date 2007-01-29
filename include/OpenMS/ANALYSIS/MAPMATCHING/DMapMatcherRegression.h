@@ -45,7 +45,7 @@ namespace OpenMS
 
   /**
 		 @brief Map matching using linear regression.
-	**/
+	*/
   template <typename ElementT = DFeature<2> >
   class DMapMatcherRegression
 		: public DBaseMapMatcher<ElementT>

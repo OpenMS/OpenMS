@@ -59,7 +59,7 @@ namespace OpenMS
 	using namespace Internal;
 	using namespace std;
 
-	/** positions and signal values **/
+	//positions and signal values
 	std::vector<double> positionsDC_;
 	std::vector<double> signalDC_;
 
@@ -117,7 +117,7 @@ namespace OpenMS
 		if (quality_) delete quality_;
 		quality_ = Factory<BaseQuality>::create(param_.getValue("quality:type"));
 
-		/** parameter for optimization **/
+		//parameter for optimization
 		DataValue dv = param_.getValue("rt:max_iteration");
 		if (dv.isEmpty() || dv.toString() == "") max_iteration_ = 500;
 		else max_iteration_ = (unsigned int)dv;
@@ -490,7 +490,7 @@ namespace OpenMS
 		return max_correlation;
 	}
 
-	/** create a vector with RT-values & Intensities and compute the parameters (intial values) for the EMG & Gauss function **/
+	//create a vector with RT-values & Intensities and compute the parameters (intial values) for the EMG & Gauss function
 	void ExtendedModelFitter::setData(const IndexSet& set)
 	{
 		// start rt-value with intensity 0.0
@@ -506,10 +506,10 @@ namespace OpenMS
 		//String fname = String("feature") + counter_ + "_orginal_" + profile_;
 		//ofstream orgFile(fname.c_str());
 
-		/** iterate over all points of the signal **/
+		// iterate over all points of the signal
 		for (IndexSet::const_iterator it=set.begin(); it!=set.end(); it++)
 		{
-			/** store the current rt-position and signal **/
+			// store the current rt-position and signal
 			float position = traits_->getPeakRt(*it);
 			float signal = traits_->getPeakIntensity(*it);
 			//float mz = traits_->getPeakMz(*it);
@@ -517,7 +517,7 @@ namespace OpenMS
 
 			//orgFile << position << "  " << mz << " " << signal << "\n";
 
-			/** fill vectors with rt-postion and signal**/
+			// fill vectors with rt-postion and signal
 			if (positionsDC_.empty() || positionsDC_.back()!=position) {
 				positionsDC_.push_back(position);
 				signalDC_.push_back(signal);
@@ -592,7 +592,7 @@ namespace OpenMS
 		r_ = 1.5;
 	}
 
-	/** Evaluation of the target function for nonlinear optimization. **/
+	//Evaluation of the target function for nonlinear optimization.
 	int residualDC(const gsl_vector* x, void* params , gsl_vector* f)
 	{
 		size_t n = ((struct ExpFitPolyData*)params)->n;
@@ -628,12 +628,12 @@ namespace OpenMS
 
 				double Yi = 0.0;
 
-				/** iterate over all points of the signal **/
+				// iterate over all points of the signal
 				for (size_t i = 0; i < n; i++)
 				{
 					double t = positionsDC_[i];
 
-					/** Simplified EMG **/
+					// Simplified EMG
 					Yi=(h*w/s)*sqrt(2*M_PI)*exp(((w*w)/(2*s*s))-((t-z)/s))/(1+exp((-2.4055/sqrt(2))*(((t-z)/w)-w/s)));
 
 					gsl_vector_set(f, i, (Yi - signalDC_[i]));
@@ -702,7 +702,7 @@ namespace OpenMS
 		}
 		else
 		{
-			/** Simplified EMG (sEMG) **/
+			//Simplified EMG (sEMG)
 			if (profile=="EMG")
 			{
 				double h = gsl_vector_get(x,0);
@@ -717,7 +717,7 @@ namespace OpenMS
 				double exp1, exp2, exp3 = 0.0;
 				double derivative_height, derivative_width, derivative_symmetry, derivative_retention = 0.0;
 
-				/** iterate over all points of the signal **/
+				// iterate over all points of the signal
 				for (size_t i = 0; i < n; i++)
 				{
 					double t = positionsDC_[i];
@@ -756,7 +756,7 @@ namespace OpenMS
 
 				double derivative_height, derivative_width, derivative_symmetry, derivative_retention,  derivative_r = 0.0;
 
-				/** iterate over all points of the signal **/
+				// iterate over all points of the signal
 				for (size_t i = 0; i < n; i++)
 				{
 					double t = positionsDC_[i];
@@ -790,7 +790,7 @@ namespace OpenMS
 		return GSL_SUCCESS;
 	}
 
-	/** Driver function for the evaluation of function and jacobian. **/
+	// Driver function for the evaluation of function and jacobian.
 	int evaluateDC(const gsl_vector* x, void* params, gsl_vector* f, gsl_matrix* J)
 	{
 		residualDC(x, params, f);
@@ -799,7 +799,7 @@ namespace OpenMS
 		return GSL_SUCCESS;
 	}
 
-	/** perform a nonlinear optimization **/
+	// perform a nonlinear optimization
 	void ExtendedModelFitter::optimize()
 	{
 		const gsl_multifit_fdfsolver_type *T;

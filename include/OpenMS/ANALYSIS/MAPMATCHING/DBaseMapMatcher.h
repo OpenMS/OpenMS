@@ -50,7 +50,7 @@ namespace OpenMS
     It then estimates the parameters of a transformation
     describing the shift in retention time and m/z between
     the two maps.  
-   **/
+  */
   template <typename ElementT = DFeature<2> >
   class DBaseMapMatcher
   {

@@ -41,7 +41,7 @@ namespace OpenMS
     @brief This class applies a transformation as computed by
     class DBaseMapMatcher to a set of features.
         
-   **/
+  */
   template < typename MapT = DFeatureMap<2, DFeature<2> > >
   class DMapDewarper
   {

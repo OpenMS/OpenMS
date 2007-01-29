@@ -26,10 +26,438 @@
 
 #include<OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeaFiTraits.h>
 
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/BaseSeeder.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/BaseExtender.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/BaseModelFitter.h>
+#include <OpenMS/SYSTEM/StopWatch.h>
+
+#include <fstream>
+
+using namespace std;
+
 namespace OpenMS
 {
-		FeaFiTraits default_traits1;
-		FeaFiTraits default_traits2;
+
+  FeaFiTraits::FeaFiTraits() 
+  {
+  }
+
+
+  FeaFiTraits::~FeaFiTraits() 
+  {	
+  }
+
+  FeaFiTraits::FeaFiTraits(const FeaFiTraits& source)
+    : map_(source.map_),
+	    flags_(source.flags_),
+	    scan_index_(source.scan_index_),
+	    features_(source.features_)
+  {
+  }
+
+
+  FeaFiTraits& FeaFiTraits::operator = (const FeaFiTraits& source)
+  {
+    if (&source == this) return *this;
+
+    map_ = source.map_;
+    flags_ = source.flags_;
+    scan_index_ = source.scan_index_;
+    features_ = source.features_;
+
+    return *this;
+  }
+
+
+  void FeaFiTraits::setData(MapType& exp)
+  {
+		map_.setBufferSize( exp.getBufferSize() );
+		map_.updateBuffer();
+		
+		// copy scanwise such that we can remove tandem spectra
+		for (UnsignedInt i=0; i<exp.size(); ++i)
+		{
+			if (exp[i].getMSLevel() == 1) map_.push_back(exp[i]);
+		}	
+ 		
+		cout << "Updating range information. " << endl;
+    // update range informations
+    map_.updateRanges();				
+		
+		if (map_.getSize() == 0)
+		{
+			cout << "No data provided. Aborting. " << endl;
+			return;
+		}
+		
+		cout << "This map contains " << map_.size() << " scans  ";
+		cout << "and " << map_.getSize() << " data points. " << endl;
+		
+    // resize internal data structures
+    flags_.resize(map_.size());
+		for (UnsignedInt i=0; i<map_.size(); ++i)
+		{
+			flags_[i].assign(map_[i].size(),FeaFiTraits::UNUSED);
+		}
+		
+		scan_index_.init ( map_.peakBegin(), map_.peakEnd() );
+ }
+	
+
+  void FeaFiTraits::setData(MSExperiment<DPeak<1> >& exp)
+  {
+		for (UnsignedInt i=0; i<exp.size(); ++i)
+		{
+			if (exp[i].getMSLevel() == 1) map_.push_back(exp[i]);
+		}	
+	
+		cout << "Updating range information. " << endl;
+    // update range informations
+    map_.updateRanges();
+
+		if (map_.getSize() == 0)
+		{
+			cout << "No data provided. Aborting. " << endl;
+			return;
+		}
+							
+		cout << "This map contains " << map_.size() << " scans ";
+		cout << "and " << map_.getSize() << " data points. " << endl;
+
+    // resize internal data structures
+    flags_.resize(map_.size());
+		for (UnsignedInt i=0; i<map_.size(); ++i)
+		{
+			flags_[i].assign(map_[i].size(),FeaFiTraits::UNUSED);
+		}
+		
+		scan_index_.init ( map_.peakBegin(), map_.peakEnd() );
+  }
+ 
+
+	const ScanIndexMSExperiment<FeaFiTraits::MapType>& FeaFiTraits::getScanIndex() 
+	{
+		return scan_index_; 
+	}
+
+
+  FeaFiTraits::PositionType2D FeaFiTraits::getPeakPos(const IDX& index) const
+  { 
+  	PositionType2D pos;
+  	pos[RT] = map_[index.first].getRetentionTime();
+  	pos[MZ] = map_[index.first][index.second].getPos();
+  	return pos;
+  }
+
+
+  void FeaFiTraits::getNextRt(IDX& index) throw (Exception::IndexOverflow, NoSuccessor)
+  {
+//		IDX original_index = index;
+		
+#ifdef DEBUG_FEATUREFINDER
+  	//Outside of map (should not happen)
+    if (index.first>=map_.size() || index.second>=map_[index.first].size())
+    {
+    	throw Exception::IndexOverflow(__FILE__, __LINE__, "FeaFiTraits::getNextMz", index.first, map_.getSize());
+    }
+#endif
+		//last scan
+    if (index.first==map_.size()-1)
+    {
+    	throw NoSuccessor(__FILE__, __LINE__, "FeaFiTraits::getNextRt",index);
+		}
+
+//		MapType::PIterator piter;
+//		try
+//		{
+//		 piter = scan_index_.getNextRt(map_[index.first].getRetentionTime(),map_[index.first][index.second].getPos());
+//		}
+//		catch (Exception::Base ex)
+//		{
+//		 throw NoSuccessor(__FILE__, __LINE__, "FeaFiTraits::getNextRt", index);
+//		}
+//		
+//		
+//		IDX ole_index = piter.getPeakNumber();
+//		index = original_index;
+		
+		// perform binary search to find the neighbour in rt dimension
+		CoordinateType mz_pos = map_[index.first][index.second].getPos();
+		++index.first;
+		MapType::SpectrumType::ConstIterator it = lower_bound(map_[index.first].begin(), map_[index.first].end(), map_[index.first-1][index.second], MapType::SpectrumType::PeakType::PositionLess());	
+		
+		// if the found peak is at the end of the spectrum, there is not much we can do.
+		if ( it == map_[index.first].end() )
+		{
+	 		index.second = map_[index.first].size()-1;
+		}
+		// if the found peak is at the beginning of the spectrum, there is not much we can do.
+		else if ( it == map_[index.first].begin() ) 
+		{
+			index.second = 0;
+		}
+		// see if the next smaller one fits better
+		else 
+		{	
+			// peak to the right is closer (in m/z dimension)
+			if (it->getPos() - mz_pos < mz_pos - (it-1)->getPos() )
+			{
+				index.second = it - map_[index.first].begin(); 
+			}
+			else
+			{
+				index.second = --it - map_[index.first].begin(); 
+			}
+		}
+//		if (index!=ole_index)
+//		{
+//			cout << "PEAK: " << getPeakRt(original_index) << "/" << getPeakMz(original_index) << " (" << original_index.first << "/" << original_index.second << ")" << endl;
+//			cout << "Ole : " << getPeakRt(ole_index) << "/" << getPeakMz(ole_index) << " (" << ole_index.first << "/" << ole_index.second << ")" << endl;
+//			cout << "Marc: " << getPeakRt(index) << "/" << getPeakMz(index) << " (" << index.first << "/" << index.second << ")" << endl;
+//		}
+  }
+
+  /// fills @p index with the index of previous peak in RT dimension
+	void FeaFiTraits::getPrevRt(IDX& index) throw (Exception::IndexOverflow, NoSuccessor)
+  {
+#ifdef DEBUG_FEATUREFINDER
+  	//Outside of map (should not happen)
+    if (index.first>=map_.size() || index.second>=map_[index.first].size())
+    {
+    	throw Exception::IndexOverflow(__FILE__, __LINE__, "FeaFiTraits::getNextMz", index.first, map_.getSize());
+    }
+#endif
+		// first scan
+		if (index.first == 0)
+		{
+			throw  NoSuccessor(__FILE__, __LINE__, "FeaFiTraits::getPrevRt", index);
+		}
+		
+    MapType::PIterator piter;
+    try
+    {
+    	piter = scan_index_.getPrevRt(map_[index.first].getRetentionTime(),map_[index.first][index.second].getPos());
+    }
+    catch (Exception::Base ex)
+    {
+    	throw NoSuccessor(__FILE__, __LINE__, "FeaFiTraits::getPrevRt", index);
+    }
+
+    index = piter.getPeakNumber();
+  }
+	
+	//Calculates the convex hull of a index set and adds it to the feature
+	void FeaFiTraits::addConvexHull(const IndexSet& set, DFeature<2>& f) const
+	{
+		vector< DPosition<2> > points;
+		points.reserve(set.size());
+		PositionType2D tmp;
+		for (IndexSet::const_iterator it=set.begin(); it!=set.end(); ++it)
+    {
+    	tmp[MZ] = map_[it->first][it->second].getPos();
+    	tmp[RT] = map_[it->first].getRetentionTime();
+    	points.push_back(tmp);
+    }
+		f.getConvexHulls().resize(f.getConvexHulls().size()+1);
+		f.getConvexHulls()[f.getConvexHulls().size()-1] = points;	
+	}
+
+  /// run main loop
+  const DFeatureMap<2>& FeaFiTraits::run(const vector<BaseSeeder*>& seeders, const vector<BaseExtender*>& extenders, const vector<BaseModelFitter*>& fitters)
+  {
+    // Visualize seeds and extension in TOPPView:
+    // get all Seeds and save corresponding peaks as "features"
+    // get convex hull of the extension and use it for the "feature"
+
+    // counts the number of features collected so far,
+    // is needed for the gnuplot output.
+#ifdef DEBUG_FEATUREFINDER
+    int nr_feat = 0;
+#endif
+
+    if (map_.getSize() == 0)
+    {
+      cout << " No data provided! Aborting..." << endl;
+      return features_;
+    }
+
+    if (seeders.size() == 0 || extenders.size() == 0 || fitters.size() == 0)
+    {
+      cout << " No modules set. Aborting..." << endl;
+      return features_;
+    }
+
+    // gather information for fitting summary
+    map<String,int> exception;									//count exceptions
+    int no_exceptions = 0;
+    map<String,int> mz_model;									//count used mz models
+    map<float,int> mz_stdev;										//count used mz standard deviations
+    vector<int> charge(10);											//count used charges
+    double corr_mean=0.0, corr_max=0.0, corr_min=1.0; 	//boxplot for correlation
+
+    StopWatch watch;
+    unsigned int seed_count = 0;
+    try
+  	{
+      while (true)
+      {
+				IndexSet seed_region = seeders[0]->nextSeed();
+
+        watch.start();
+        cout << "Extension ..." << endl;
+        IndexSet peaks = extenders[0]->extend(seed_region);
+        watch.stop();
+        cout << "Time spent for extension: " << watch.getClockTime() << endl;
+        watch.reset();
+        ++seed_count;
+				cout << "This is seed nr " << seed_count << endl;
+        try
+        {
+          watch.start();
+          features_.push_back(fitters[0]->fit(peaks));
+          watch.stop();
+          cout << "Time spent for fitting: " << watch.getClockTime() << endl;
+          watch.reset();
+
+#ifdef DEBUG_FEATUREFINDER
+          writeGnuPlotFile_(peaks,false,nr_feat++);
+#endif
+          // gather information for fitting summary
+          const DFeature<2>& f = features_[features_.size()-1];
+
+          float corr = f.getOverallQuality();
+          corr_mean += corr;
+          if (corr<corr_min) corr_min = corr;
+          if (corr>corr_max) corr_max = corr;
+
+          // count estimated charge states
+          unsigned int ch = f.getCharge();
+          if (ch>= charge.size())
+          {
+          	charge.resize(ch);
+          }
+          charge.at(ch)++;
+
+          const Param& p = f.getModelDescription().getParam();
+          ++mz_model[ p.getValue("MZ") ];
+
+          DataValue dp = p.getValue("MZ:isotope:stdev");
+          if (dp != DataValue::EMPTY)
+          {
+          	++mz_stdev[p.getValue("MZ:isotope:stdev")];
+          }
+
+        }
+        catch( BaseModelFitter::UnableToFit ex)
+        {
+          // set unused flag for all data points
+          for (IndexSet::const_iterator it=peaks.begin(); it!=peaks.end(); ++it)
+          {
+          	getPeakFlag(*it) = FeaFiTraits::UNUSED;
+          }
+          cout << " " << ex.what() << endl;
+          watch.stop();
+          cout << "Time spent for fitting: " << watch.getClockTime() << endl;
+          watch.reset();
+          ++no_exceptions;
+          ++exception[ex.getName()];
+					
+				#ifdef DEBUG_FEATUREFINDER
+          writeGnuPlotFile_(peaks,false,nr_feat++);
+				#endif
+        }
+
+      } // end of while(true)
+  	}
+    catch(NoSuccessor ex)
+    {
+    }
+
+    // Print summary:
+    Size size = features_.size();
+
+    cout << size << " features were found. " << endl;
+
+//		cout << "seed count " << seed_count << endl;
+
+    cout << "FeatureFinder summary:\n"
+    << "Correlation:\n\tminimum: " << corr_min << "\n\tmean: " << corr_mean/size
+    << "\n\tmaximum: " << corr_max << endl;
+
+    cout << "Exceptions:\n";
+    for (map<String,int>::const_iterator it=exception.begin(); it!=exception.end(); ++it)
+    {
+      cout << "\t" << it->first << ": " << it->second*100/no_exceptions << "% (" << it->second << ")\n";
+    }
+
+    cout << "Chosen mz models:\n";
+    for (map<String,int>::const_iterator it=mz_model.begin(); it!=mz_model.end(); ++it)
+    {
+      cout << "\t" << it->first << ": " << it->second*100/size << "% (" << it->second << ")\n";
+    }
+
+    cout << "Chosen mz stdevs:\n";
+    for (map<float,int>::const_iterator it=mz_stdev.begin(); it!=mz_stdev.end(); ++it)
+    {
+      cout << "\t" << it->first << ": " << it->second*100/(size-charge[0]) << "% (" << it->second << ")\n";
+    }
+
+    cout << "Charges:\n";
+    for (unsigned int i=1; i<charge.size(); ++i)
+    {
+      if (charge[i]!=0)
+      {
+        cout << "\t+" << i << ": " << charge[i]*100/(size-charge[0]) << "% (" << charge[i] << ")\n";
+      }
+		}
+#ifdef DEBUG_FEATUREFINDER
+    IndexSet empty;
+    writeGnuPlotFile_(empty,true,nr_feat);
+#endif
+
+    return features_;
+
+  } // end of run(seeders, extenders, fitters)
+
+  void FeaFiTraits::writeGnuPlotFile_(IndexSet peaks, bool last,int nr_feat)
+  {
+    // write feature + surrounding region to file
+    if (!last)
+    {
+      String gp_fname("plot.gp");
+      ofstream gpfile( gp_fname.c_str(), ios_base::app  );
+
+      String file    = String("region") + nr_feat;
+
+			if (nr_feat == 0)
+			{
+				gpfile << "splot \'" << file << "\' w i title \"\" " << endl;
+			}
+			else
+			{
+				gpfile << "replot \'" << file << "\' w i title \"\" " << endl;
+			}
+      ofstream myfile(file.c_str()); // data file
+      IndexSet::const_iterator citer = peaks.begin();
+
+      while (citer != peaks.end())
+      {
+        myfile << getPeakRt(*citer) << " " << getPeakMz(*citer) << " " << getPeakIntensity(*citer) << endl;
+        citer++;
+      }
+      myfile.close();
+      gpfile.close();
+    }
+    else
+    {
+      String gp_fname("plot.gp");
+
+      ofstream gpfile( gp_fname.c_str() , ios_base::app );
+      gpfile << "pause -1 \'Please hit enter to continue....\' " << endl;
+      gpfile.close();
+    }
+  }
+
 
 } // end of namespace OpenMS
 

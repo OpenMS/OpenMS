@@ -52,8 +52,7 @@ namespace OpenMS
      
      Policy for copy constructor and assignment: element_map_ is
      maintained as pointer and taken shallow copy. 
-  **/
-
+  */
   template <typename MapT = DFeatureMap<2> >
   class BaseSuperimposer : public FactoryProduct
   {

@@ -61,9 +61,7 @@ namespace OpenMS
      more similar than two points that differ in MZ by 1Th. To be able to use the euclidean distance in the nearest neighbour search, 
      we have to transform the elements MZ position m into a new MZ position m'= m / (diff_intercept_RT/diff_intercept_MZ).
      E.g. given diff_intercept_RT=1 and diff_intercept_MZ=0.1 results in 1s difference in RT is similar to 0.1Th difference in MZ.
-  **/
-
-
+  */
   template < typename ConsensusMapT = DFeatureMap< 2, DFeature< 2, KernelTraits > >, typename ElementMapT = DFeatureMap< 2, DFeature< 2, KernelTraits > > >
   class DelaunayPairFinder : public BasePairFinder<ConsensusMapT>
   {

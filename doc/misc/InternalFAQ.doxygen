@@ -97,9 +97,7 @@
 			</OL>
 
    <li><b>After adding a class or after a SVN update, a 'undefined reference' error occurs during execution of programs.</b><br>
-      Deleting the files <tt>libOpenMS.objects</tt> and
-      <tt>libOpenMS_GUI.objects</tt> in the <tt>source</tt> folder
-      will reset the files that are added to the library.
+      Execute <tt>make recollect</tt> in the <tt>source</tt> folder, which will update the files that are added to the library.
 
 
     <li><b>After a SVN update, a 'No rule to make target' error occurs during 'make'.</b><br>

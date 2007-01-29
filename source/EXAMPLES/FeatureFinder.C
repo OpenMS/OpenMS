@@ -40,11 +40,7 @@
 using namespace OpenMS;
 using namespace std;
 
-/**
-  
-  @brief Short example application for the feature finder algorithm
-    
- **/ 
+///Short example application for the feature finder algorithm
 int main(int argc, char *argv[])
 {
 	

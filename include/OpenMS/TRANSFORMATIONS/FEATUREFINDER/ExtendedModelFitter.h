@@ -153,19 +153,19 @@ namespace OpenMS
 
 		void setParam(const Param& param);
 
-		/** create a vector with RT-values & Intensities and compute the parameters (intial values) for the EMG, Gauss and logNormal function */
+		/// create a vector with RT-values & Intensities and compute the parameters (intial values) for the EMG, Gauss and logNormal function
 		void setData (const IndexSet& set);
 
-		/** Evaluation of the target function for nonlinear optimization. **/
+		/// Evaluation of the target function for nonlinear optimization.
 		int residual(const gsl_vector* x, void* /* params */, gsl_vector* f);
 
-		/** Compute the Jacobian of the residual, where each row of the matrix corresponds to a point in the data. */
+		/// Compute the Jacobian of the residual, where each row of the matrix corresponds to a point in the data.
 		int jacobian(const gsl_vector* x, void* /* params */, gsl_matrix* J);
 
-		/** Driver function for the evaluation of function and jacobian. **/
+		/// Driver function for the evaluation of function and jacobian.
 		int evaluate(const gsl_vector* x, void* params, gsl_vector* f, gsl_matrix* J);
 
-		/** perform a nonlinear optimization **/
+		/// perform a nonlinear optimization
 		void optimize();
 
 	 protected:
@@ -187,7 +187,7 @@ namespace OpenMS
 
 		unsigned int counter_;
 
-		/** Maximum number of iterations **/
+		/// Maximum number of iterations
 		unsigned int max_iteration_;
 
 		/// parameter of log normal function
@@ -204,8 +204,10 @@ namespace OpenMS
 		/// the name of the function
 		std::string profile_;
 
-		/** Test for the convergence of the sequence by comparing the last iteration step dx
-    		with the absolute error epsabs and relative error epsrel to the current position x **/
+		/** 
+			Test for the convergence of the sequence by comparing the last iteration step dx
+    	with the absolute error epsabs and relative error epsrel to the current position x 
+    */
 		double eps_abs_;
 		double eps_rel_;
 

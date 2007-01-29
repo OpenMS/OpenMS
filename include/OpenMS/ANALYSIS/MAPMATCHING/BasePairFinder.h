@@ -57,7 +57,7 @@ namespace OpenMS
      maintained as pointer and taken shallow copy. 
      But param_ is deep.
 
-  **/
+  */
   template < typename MapT = DFeatureMap< 2, DFeature< 2, KernelTraits > > >
   class BasePairFinder : public FactoryProduct
   {

@@ -60,7 +60,7 @@ namespace OpenMS
 	NOTE: This container works only with DPeak's. Other point types are not supported.
 				
 	@ingroup Kernel
-**/
+*/
 template < typename PeakT = DPeak<1> >
 class MSExperimentExtern
             : public RangeManager<2, typename PeakT::TraitsType>

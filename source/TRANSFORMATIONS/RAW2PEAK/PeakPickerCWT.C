@@ -527,7 +527,7 @@ namespace OpenMS
     RawDataArrayType lorentz_peak(n);
     RawDataArrayType lorentz_peak2(n);
 
-    /** TODO: switch the type of the transform **/
+    // TODO: switch the type of the transform
 
     ContinuousWaveletTransformNumIntegration lorentz_cwt;
     ContinuousWaveletTransformNumIntegration lorentz_ms2_cwt;

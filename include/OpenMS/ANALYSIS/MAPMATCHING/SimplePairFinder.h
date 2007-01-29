@@ -52,7 +52,7 @@ namespace OpenMS
      
      @todo Description of the similarity measure (Clemens).
     
-  **/
+  */
   template < typename MapT = DFeatureMap< 2, DFeature< 2, KernelTraits > > >
   class SimplePairFinder : public BasePairFinder< MapT >
   {

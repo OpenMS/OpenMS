@@ -64,8 +64,7 @@ namespace OpenMS
    @todo Avoid the "0.01 hack" in initGridTransformation(). (Eva)
      
      @ingroup Analysis
-  **/
-
+  */
   template < typename MapT = DFeatureMap< 2, DFeature< 2, KernelTraits > > >
   class BasePairwiseMapMatcher : public FactoryProduct
   {

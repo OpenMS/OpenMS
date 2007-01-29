@@ -54,11 +54,13 @@
 
 /*
 	FeatureFinder wirklich auf MSExperiment umstellen
-	  - ScanIndex ScanIndexMSExperiment PeakIterator entfernen
-	  - Spectralength aus MSExperiment entfernen
+		- Fehlende Module implementieren
+	  	- ScanIndex ScanIndexMSExperiment PeakIterator entfernen
+	  	- Spectralength aus MSExperiment entfernen
 		- setParam-Methoden aus Modellen entfernen -> Factory wirklich benutzen
 		- ALARM
-		- nicht-inline-Methoden von FeaFiTraits in .C-File
+	- TOPPView: + ohne Spaces
+	- Alexandra: Tab=4, kein /** **/
 	TODO:
 	- ParamHander-Klasse (getDefaults())
 	- Kernel/Datastructures nach Pass-By-Copy durchsuchen

@@ -494,7 +494,7 @@ namespace OpenMS
       @brief protected struct to store parameters my, sigma for a gaussian distribution
       
       Accessors are : mean and variance      
-      **/ 
+    */ 
     struct GaussianEstimate 
     {
       double mean;

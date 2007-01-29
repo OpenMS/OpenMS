@@ -47,7 +47,7 @@ namespace OpenMS
     std::map<int, std::vector<MSSpectrum<DPickedPeak<1> >::Iterator > > matching_peaks;
     std::multimap<double,IsotopeCluster>::iterator iso_map_iter;
 
-    /** Evaluation of the target function for nonlinear optimization. **/
+    // Evaluation of the target function for nonlinear optimization.
     int residual2D(const gsl_vector* x, void* params , gsl_vector* f)
     {
       // According to the gsl conventions, x contains the parameters to be optimized.
@@ -65,11 +65,11 @@ namespace OpenMS
        std::vector<std::pair<UnsignedInt,UnsignedInt> >::iterator peak_iter = iso_map_iter->second.peaks_.begin();
        gsl_vector_set_zero(f);
    
-       /** iterate over all scans **/
+       //iterate over all scans
        for (size_t current_scan = 0; current_scan < num_scans; ++current_scan)
  	{
 	  unsigned int curr_scan_idx = current_scan + iso_map_iter->second.peaks_[0].first;
- 	  /** iterate over all points of the signal **/
+ 	  //iterate over all points of the signal
  	  for (int current_point = 0;
 	       current_point +  TwoDOptimizationFunctions::signal2D[2*current_scan].second
 		 <= TwoDOptimizationFunctions::signal2D[2*current_scan+1].second;
@@ -94,7 +94,7 @@ namespace OpenMS
 	      size_t current_peak = 0;
 	      peak_iter = iso_map_iter->second.peaks_.begin();
 	      while(peak_iter != iso_map_iter->second.peaks_.end() && peak_iter->first != curr_scan_idx) ++peak_iter;
-	      /** iterate over all peaks of the current scan **/
+	      //iterate over all peaks of the current scan
 	      while(peak_iter != iso_map_iter->second.peaks_.end() && peak_iter->first == curr_scan_idx)
 		{
 		  int peak_idx = distance(iso_map_iter->second.peaks_.begin(),peak_iter);
@@ -122,7 +122,7 @@ namespace OpenMS
 			    <<gsl_vector_get(x,3*current_peak) << "\t" <<gsl_vector_get(x,3*current_peak+1)
 			    << "\t"<<gsl_vector_get(x,3*current_peak+2)<<std::endl;
 #endif
-		  /** Store the current parameters for this peak **/ 
+		  //Store the current parameters for this peak
 		  p_position    = gsl_vector_get(x,total_nr_peaks+3*map_idx);
 		  p_height 	    = gsl_vector_get(x,peak_idx);
 		  p_width  	    = (current_position <= p_position) ?
@@ -132,7 +132,7 @@ namespace OpenMS
 		  
 
 
- 		  /** is it a Lorentz or a Sech - Peak? **/
+ 		  //is it a Lorentz or a Sech - Peak?
  		  if (((picked_peaks_iter + peak_iter->first)->begin()+peak_iter->second)->getPeakShape()
  		      == PeakShapeType::LORENTZ_PEAK)
 		    {
@@ -248,11 +248,11 @@ namespace OpenMS
        std::vector<double> ov_weight(matching_peaks.size(),0);
        std::vector<std::pair<UnsignedInt,UnsignedInt> >::iterator peak_iter = iso_map_iter->second.peaks_.begin();
    
-       /** iterate over all scans **/
+       //iterate over all scans
        for (size_t current_scan = 0; current_scan < num_scans; ++current_scan)
  	{
 	  unsigned int curr_scan_idx = current_scan + iso_map_iter->second.peaks_[0].first;
- 	  /** iterate over all points of the signal **/
+ 	  // iterate over all points of the signal
  	  for (int current_point = 0;
 	       current_point +  TwoDOptimizationFunctions::signal2D[2*current_scan].second
 		 <= TwoDOptimizationFunctions::signal2D[2*current_scan+1].second;
@@ -277,7 +277,7 @@ namespace OpenMS
 	      size_t current_peak = 0;
 	      peak_iter = iso_map_iter->second.peaks_.begin();
 	      while(peak_iter != iso_map_iter->second.peaks_.end() && peak_iter->first != curr_scan_idx) ++peak_iter;
-	      /** iterate over all peaks of the current scan **/
+	      //iterate over all peaks of the current scan
 	      while(peak_iter != iso_map_iter->second.peaks_.end() && peak_iter->first == curr_scan_idx)
 		{
 		  int peak_idx = distance(iso_map_iter->second.peaks_.begin(),peak_iter);
@@ -305,7 +305,7 @@ namespace OpenMS
 			    <<gsl_vector_get(x,3*current_peak) << "\t" <<gsl_vector_get(x,3*current_peak+1)
 			    << "\t"<<gsl_vector_get(x,3*current_peak+2)<<std::endl;
 #endif
-		  /** Store the current parameters for this peak **/ 
+		  // Store the current parameters for this peak
 		  p_position    = gsl_vector_get(x,total_nr_peaks+3*map_idx);
 		  p_height 	    = gsl_vector_get(x,peak_idx);
 		  p_width  	    = (current_position <= p_position) ?
@@ -319,7 +319,7 @@ namespace OpenMS
 		  double ddl_left_old = gsl_matrix_get(J, counter_posf, total_nr_peaks +3*map_idx+1);
 		  double ddl_right_old = gsl_matrix_get(J, counter_posf, total_nr_peaks +3*map_idx+2);
 		  
- 		  /** is it a Lorentz or a Sech - Peak? **/
+ 		  //is it a Lorentz or a Sech - Peak?
  		  if (((picked_peaks_iter + peak_iter->first)->begin()+peak_iter->second)->getPeakShape()
  		      == PeakShapeType::LORENTZ_PEAK)
 		    {
@@ -468,7 +468,7 @@ namespace OpenMS
        return GSL_SUCCESS;       
     }
 
-    /** Driver function for the evaluation of function and jacobian. **/
+    //Driver function for the evaluation of function and jacobian.
     int evaluate2D(const gsl_vector* x, void* params, gsl_vector* f, gsl_matrix* J)
     {
       residual2D(x, params, f);
@@ -625,7 +625,7 @@ namespace OpenMS
 #ifdef DEBUG_2D
 	  std::cout << "Before optimization: ||f|| = " << gsl_blas_dnrm2(fit->f) << std::endl;
 #endif
-	  /** Iteration **/
+	  // Iteration
 	  int iteration = 0;
 	  int status;
       

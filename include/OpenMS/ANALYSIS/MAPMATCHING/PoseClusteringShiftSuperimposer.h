@@ -58,7 +58,7 @@ namespace OpenMS
      
      This superimposer hashs all possible shifts and defines the 
      translation with the most votes as the best one.        
-  **/
+  */
   template < typename MapT = DFeatureMap<2> >
   class PoseClusteringShiftSuperimposer
         : public BaseSuperimposer< MapT >

@@ -230,14 +230,11 @@ namespace OpenMS
 		}
 	}
 
-	/************************************************************************/
-	/*																																			*/
-	/*  getClockTime returns the current amount of real (clock) time			*/
-	/*  accumulated by this stop_watch.  If the stop_watch is stopped, this is just		*/
-	/*  the total accumulated time.  If the stop_watch is running, this is the		*/
-	/*  accumulated time + the time since the stop_watch was last started.				*/
-	/*																																			*/
-	/************************************************************************/
+
+	//getClockTime returns the current amount of real (clock) time			
+	//accumulated by this stop_watch.  If the stop_watch is stopped, this is just		
+	//the total accumulated time.  If the stop_watch is running, this is the		
+	//accumulated time + the time since the stop_watch was last started.				
 	double StopWatch::getClockTime() const
 	{
 		PointerSizeInt elapsed_seconds;
@@ -286,15 +283,10 @@ namespace OpenMS
 		return (double)((double)elapsed_seconds + (double)elapsed_useconds / 1000000.0);
 	}
 
-	/************************************************************************/
-	/*																																			*/
-	/*   getUserTime reports the current amount of user cpu time						*/
-	/*   accumulated by this StopWatch.  If the stop_watch is currently off,					*/
-	/*   this is just the accumulated time.  If the StopWatch is running, this	*/
-	/*   is the accumulated time plust the time since the stop_watch was last    */
-	/*   started.																														*/
-	/*																																			*/
-	/************************************************************************/
+	//getUserTime reports the current amount of user cpu time
+	//accumulated by this StopWatch.  If the stop_watch is currently off,
+	//this is just the accumulated time.  If the StopWatch is running, this
+	//is the accumulated time plust the time since the stop_watch was last started.
 	double StopWatch::getUserTime() const
 	{
 		double temp_value;
@@ -339,15 +331,10 @@ namespace OpenMS
 		#endif	
 	}
 
-	/************************************************************************/
-	/*																																			*/
-	/*      system_time reports the current amount of system cpu time       */
-	/*   accumulated by this StopWatch.  If the stop_watch is currently off,					*/
-	/*   this is just the accumulated time.  If the StopWatch is running, this	*/
-	/*   is the accumulated time plus  the time since the stop_watch was last    */
-	/*   started.																														*/
-	/*																																			*/
-	/************************************************************************/
+	// system_time reports the current amount of system cpu time 
+	// accumulated by this StopWatch.  If the stop_watch is currently off,
+	// this is just the accumulated time.  If the StopWatch is running, this
+	// is the accumulated time plus  the time since the stop_watch was last started
 	double StopWatch::getSystemTime() const
 	{
 		double temp_value = 0.0;

@@ -278,7 +278,7 @@ namespace OpenMS
       return GSL_SUCCESS;
     }
 
-    /** Driver function for the evaluation of function and jacobian. **/
+    // Driver function for the evaluation of function and jacobian.
     int evaluate(const gsl_vector* x, void* params, gsl_vector* f, gsl_matrix* J)
     {
       residual(x, params, f);
@@ -325,7 +325,7 @@ namespace OpenMS
     OptimizationFunctions::peaks_.assign(peaks.begin(),peaks.end());
 
     gsl_vector *start_value=gsl_vector_alloc(4*OptimizationFunctions::peaks_.size());
-    /** We have to initialize the parameters for the optimization **/
+    // We have to initialize the parameters for the optimization
     for (size_t i = 0; i < OptimizationFunctions::peaks_.size(); i++)
     {
       PeakShape current_peak = OptimizationFunctions::peaks_[i];
