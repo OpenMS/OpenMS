@@ -39,28 +39,38 @@ namespace OpenMS
 		Factory<BaseModelFitter>::registerProduct(ExtendedModelFitter::getName(), &ExtendedModelFitter::create);
 	}	
 
-	BaseModelFitter::BaseModelFitter() : FeaFiModule() {}
+	BaseModelFitter::BaseModelFitter() 
+		: FeaFiModule()
+	{	
+	}
 
 	BaseModelFitter::BaseModelFitter(const BaseModelFitter& source)
 		: FeaFiModule(source) 
-	{}
+	{
+	}
 
-	BaseModelFitter::~BaseModelFitter(){}
+	BaseModelFitter::~BaseModelFitter()
+	{
+	}
 
   
 	BaseModelFitter& BaseModelFitter::operator = (const BaseModelFitter& source)
 	{
+		if (&source == this) return *this;
+		
 		FeaFiModule::operator = (source);
+		
 		return *this;
 	}
 
-	BaseModelFitter::UnableToFit::UnableToFit(const char* file, int line, const char* function,
-		const std::string& name , const std::string& message)	throw()
+	BaseModelFitter::UnableToFit::UnableToFit(const char* file, int line, const char* function, const std::string& name , const std::string& message) throw()
 		:	Base(file, line, function, name, message)
 	{
 	}
 
-	BaseModelFitter::UnableToFit::~UnableToFit() throw(){}
+	BaseModelFitter::UnableToFit::~UnableToFit() throw()
+	{	
+	}
 
 }
 

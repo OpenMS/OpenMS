@@ -129,12 +129,15 @@ CHECK( DFeature<2> fit(const IndexSet& set) throw (UnableToFit))
 
 	DPeak<2> p;
 	DPeakArray<2> peak_array;
-	for (Size mz=0; mz<mz_num; mz++) for (Size rt=0; rt<rt_num; rt++)
+	for (Size mz=0; mz<mz_num; mz++) 
 	{
-		p.getPosition()[MZ] = mzs[mz];
-		p.getPosition()[RT] = rts[rt];
-		p.getIntensity() = intens[mz*rt_num+rt];
-		peak_array.push_back(p);
+		for (Size rt=0; rt<rt_num; rt++)
+		{
+			p.getPosition()[MZ] = mzs[mz];
+			p.getPosition()[RT] = rts[rt];
+			p.getIntensity() = intens[mz*rt_num+rt];
+			peak_array.push_back(p);
+		}
 	}
 	peak_array.sortByPosition();
 		
@@ -148,14 +151,20 @@ CHECK( DFeature<2> fit(const IndexSet& set) throw (UnableToFit))
 	Param param = fitter.getParam();
 	param.setValue("intensity_cutoff_factor",0.0f);
 	fitter.setParam(param);
-	IndexSet set;
-	set.add(0,rt_num*mz_num-1);
+	FeaFiModule::IndexSet  set;
+	for (Size mz=0; mz<mz_num; mz++) 
+	{
+		for (Size rt=0; rt<rt_num; rt++)
+		{
+			set.insert(std::make_pair(rt,mz));
+		}
+	}
 	DFeature<2> feature = fitter.fit(set);
 
 	TEST_REAL_EQUAL(feature.getPosition()[MZ], mean[MZ]);
 	TEST_REAL_EQUAL(feature.getPosition()[RT], mean[RT]);
 	TEST_REAL_EQUAL(feature.getIntensity(), 79820.9);
-	TEST_EQUAL(feature.getCharge(), 1);
+	TEST_EQUAL(feature.getCharge(), 0);
 	PRECISION(0.01)
 	TEST_REAL_EQUAL(feature.getOverallQuality(), 0.99);
 
@@ -233,8 +242,14 @@ CHECK( DFeature<2> fit(const IndexSet& set) throw (UnableToFit))
 	param.setValue("rt:interpolation_step",0.05f);
 	param.setValue("intensity_cutoff_factor",0.0f);
 	fitter.setParam(param);
-	IndexSet set;
-	set.add(0,rt_num*mz_num-1);
+	FeaFiModule::IndexSet  set;
+	for (UnsignedInt i=0; i<exp.size(); ++i) 
+	{
+		for (UnsignedInt j=0; j<exp[i].size(); ++j) 
+		{
+			set.insert(std::make_pair(i,j));
+		}
+	}
 	DFeature<2> feature = fitter.fit(set);
 
 	TEST_REAL_EQUAL(feature.getPosition()[MZ], mean[MZ]);

@@ -34,8 +34,6 @@
 
 #include <OpenMS/CONCEPT/Exception.h>
 
-#include <OpenMS/DATASTRUCTURES/IndexSet.h>
-
 #include <OpenMS/KERNEL/DimensionDescription.h>
 #include <OpenMS/KERNEL/DPeakArray.h>
 #include <OpenMS/KERNEL/ComparatorUtils.h>
@@ -89,7 +87,7 @@ CHECK(nextSeed())
 	{
 		DPeak<1> p;
 		p.getPosition()[0] = mzs[i];
-		p.getIntensity()    = its[i];
+		p.getIntensity() = its[i];
 		
 		spec.push_back(p);
 	}
@@ -100,9 +98,12 @@ CHECK(nextSeed())
 	
 	extender.setTraits(traits);
  	
-	IndexSet seeding_region;
-	seeding_region.add(4);
-  IndexSet region = extender.extend(seeding_region);
+	FeaFiModule::IndexSet  set;
+	for (UnsignedInt i=0; i< 5; ++i)
+	{
+		set.insert(std::make_pair(0,i));
+	}
+  FeaFiModule::IndexSet  region = extender.extend(set);
   
   TEST_NOT_EQUAL(region.size(),0);
   

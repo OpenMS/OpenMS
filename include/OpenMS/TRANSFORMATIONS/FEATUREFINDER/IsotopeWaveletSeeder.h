@@ -91,7 +91,7 @@ namespace OpenMS
 		/// Stores the charge states examined
 		typedef std::list<UnsignedInt> ChargeVector;
 
-    /// standard constructor
+    /// Default constructor
     IsotopeWaveletSeeder();
 
     /// destructor 
@@ -136,7 +136,10 @@ namespace OpenMS
 		 		Since isotope patterns depend on mass, the wavelet has to adapt its shape. 
 		 		For more insights look at the formula of the wavelet function. 
 		**/
-		inline CoordinateType getLambda (const CoordinateType realMass) const {	return (0.035 + 0.000678*realMass); }																	
+		inline CoordinateType getLambda (const CoordinateType realMass) const 
+		{	
+			return (0.035 + 0.000678*realMass); 
+		}																	
 		
 		/// The wavelet (mother) function. 
  		inline double phiRaw (const double t, const double lambda, const double a) throw ()

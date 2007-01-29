@@ -29,7 +29,6 @@
 ///////////////////////////
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/BaseModelFitter.h>
-#include <OpenMS/DATASTRUCTURES/IndexSet.h>
 #include <OpenMS/CONCEPT/Exception.h>
 
 
@@ -98,11 +97,11 @@ RESULT
 
 CHECK(DFeature<2> fit(const IndexSet& /*extension*/) throw(UnableToFit))
 	TestFitter ft;
-	IndexSet inds;
-	inds.add(6);
+	FeaFiModule::IndexSet  inds;
+	inds.insert(std::make_pair(7,7));
 	DFeature<2> result = ft.fit(inds);
 	DFeature<2> empty;
-  TEST_EQUAL(result, empty)
+  TEST_EQUAL(result==empty,true)
 RESULT
 	
 CHECK(static void registerChildren())

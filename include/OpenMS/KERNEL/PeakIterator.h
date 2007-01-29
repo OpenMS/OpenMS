@@ -196,12 +196,9 @@ namespace Internal
 		const CoordinateType& getRt() const { return rt_; }
 		/// Returns the index of the peak this iterator points to 
 		/// NOTE: Call updateRanges() before using this function
-		UnsignedInt getPeakNumber()
+		std::pair<UnsignedInt,UnsignedInt> getPeakNumber()
 		{
-			if (scan_index_ > 0)
-				return (exp_->spectra_lengths_[ (scan_index_-1) ] + peak_index_);
-			else
-				return peak_index_;
+			return std::make_pair(scan_index_,peak_index_);
 		}
 		//@}
 

@@ -64,7 +64,7 @@ namespace OpenMS
 		public:
 		typedef InterpolationModel<>::CoordinateType CoordinateType;
 
-    /// standard constructor
+    /// Default constructor
     BiGaussModel();
 
     /// copy constructor

@@ -35,7 +35,6 @@
 
 #include <OpenMS/KERNEL/DimensionDescription.h>
 
-
 ///////////////////////////
 
 START_TEST(ExtendedModelFitter, "$Id: ExtendedModelFitter_test.C")
@@ -44,7 +43,7 @@ START_TEST(ExtendedModelFitter, "$Id: ExtendedModelFitter_test.C")
 /////////////////////////////////////////////////////////////
 
 using namespace OpenMS;
-using std::stringstream;
+using namespace std;
 
 enum DimensionId
 {
@@ -140,8 +139,14 @@ CHECK( DFeature<2> fit(const IndexSet& set) throw (UnableToFit))
 	Param param = fitter.getParam();
 	param.setValue("intensity_cutoff_factor",0.0f);
 	fitter.setParam(param);
-	IndexSet set;
-	set.add(0,rt_num*mz_num-1);
+	FeaFiModule::IndexSet  set;
+	for (UnsignedInt i=0; i<exp.size(); ++i) 
+	{
+		for (UnsignedInt j=0; j<exp[i].size(); ++j) 
+		{
+			set.insert(std::make_pair(i,j));
+		}
+	}
 	DFeature<2> feature = fitter.fit(set);
 
 	TEST_REAL_EQUAL(feature.getPosition()[MZ], mean[MZ]);
@@ -150,8 +155,10 @@ CHECK( DFeature<2> fit(const IndexSet& set) throw (UnableToFit))
 	TEST_EQUAL(feature.getCharge(), 0);
 	PRECISION(0.01)
 	TEST_REAL_EQUAL(feature.getOverallQuality(), 0.99);
-
-	ProductModel<2>* model = static_cast< ProductModel<2>* >
+	
+	cout << "MODEL PARAMETERS:" << endl << feature.getModelDescription().getParam() << endl;
+		
+	ProductModel<2>* model = dynamic_cast< ProductModel<2>* >
 		(feature.getModelDescription().createModel());
 
 	BaseModel<1>* mz_model = model->getModel(MZ);
@@ -165,7 +172,7 @@ CHECK( DFeature<2> fit(const IndexSet& set) throw (UnableToFit))
 	PRECISION(stdev[RT]*stdev[RT])
 	TEST_REAL_EQUAL(rt_model->getParameters().getValue("statistics:variance"),stdev[RT]*stdev[RT]);
 	PRECISION(default_precision)
-
+	
 	// test predicted intensities
 	DPosition<2> pos;
 	for (Size mz=0; mz<mz_num; mz++) for (Size rt=0; rt<rt_num; rt++)
@@ -175,7 +182,6 @@ CHECK( DFeature<2> fit(const IndexSet& set) throw (UnableToFit))
 		PRECISION(intens[mz*rt_num+rt]*0.08)		// Intensities can differ by 8%
 		TEST_REAL_EQUAL(model->getIntensity(pos),intens[mz*rt_num+rt])
 	}
-
 
 RESULT
 
@@ -226,8 +232,14 @@ CHECK( DFeature<2> fit(const IndexSet& set) throw (UnableToFit))
 	param.setValue("rt:interpolation_step",0.05f);
 	param.setValue("intensity_cutoff_factor",0.0f);
 	fitter.setParam(param);
-	IndexSet set;
-	set.add(0,rt_num*mz_num-1);
+	FeaFiModule::IndexSet  set;
+	for (UnsignedInt i=0; i<exp.size(); ++i) 
+	{
+		for (UnsignedInt j=0; j<exp[i].size(); ++j) 
+		{
+			set.insert(std::make_pair(i,j));
+		}
+	}
 	DFeature<2> feature = fitter.fit(set);
 
 	TEST_REAL_EQUAL(feature.getPosition()[MZ], mean[MZ]);
@@ -236,14 +248,14 @@ CHECK( DFeature<2> fit(const IndexSet& set) throw (UnableToFit))
 	TEST_EQUAL(feature.getCharge(), 2);
 	TEST_REAL_EQUAL(feature.getOverallQuality(), 0.9);
 
-	ProductModel<2>* model = static_cast< ProductModel<2>* >
+	ProductModel<2>* model = dynamic_cast< ProductModel<2>* >
 		(feature.getModelDescription().createModel());
 
 	BaseModel<1>* rt_model = model->getModel(RT);
 	PRECISION(mean[RT]*0.01)		// Mean can differ by 1%
 	TEST_REAL_EQUAL(rt_model->getParameters().getValue("statistics:mean"),mean[RT]);
 	PRECISION(stdev[1])		// Variances can differ by 15%
-	TEST_REAL_EQUAL(sqrt(rt_model->getParameters().getValue("statistics:variance")),stdev[1]);
+	TEST_REAL_EQUAL(sqrt((double)(rt_model->getParameters().getValue("statistics:variance"))),stdev[1]);
 	PRECISION(default_precision)
 
 	BaseModel<1>* mz_model = model->getModel(MZ);

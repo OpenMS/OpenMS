@@ -43,15 +43,16 @@ FeatureFinder::FeatureFinder(const FeatureFinder& source)
         seeders_(source.seeders_),
         extenders_(source.extenders_),
         fitters_(source.fitters_)
-{	}
+{
+}
 
 FeatureFinder::~FeatureFinder()
-{}
+{
+}
 
 FeatureFinder& FeatureFinder::operator = (const FeatureFinder& source)
 {
-    if (&source == this)
-        return *this;
+    if (&source == this) return *this;
 
     traits_       = source.traits_;
     seeders_   = source.seeders_;
@@ -152,10 +153,9 @@ bool FeatureFinder::setParam(const Param& param)
 }
 
 
-const FeatureFinder::FeatureVector& FeatureFinder::run()
+const DFeatureMap<2>& FeatureFinder::run()
 {
-    if (!traits_)
-        throw Exception::Base(__FILE__, __LINE__,"FeatureFinder::run()","NotInitialized","FeatureFinder has not been initialized");
+    if (!traits_) throw Exception::Base(__FILE__, __LINE__,"FeatureFinder::run()","NotInitialized","FeatureFinder has not been initialized");
 
     for (SeederVector::iterator it=seeders_.begin(); it!=seeders_.end(); ++it)
         (*it)->setTraits(traits_);

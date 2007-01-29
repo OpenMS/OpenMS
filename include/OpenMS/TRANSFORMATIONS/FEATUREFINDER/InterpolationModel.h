@@ -66,7 +66,7 @@ namespace OpenMS
 			typedef typename LinearInterpolation::container_type ContainerType;
 			typedef DPeakArray<1, DPeak<1,Traits> > SamplesType;
 
-      /// standard constructor
+      /// Default constructor
       InterpolationModel()
 				: BaseModel<1,Traits>(),
 					interpolation_()

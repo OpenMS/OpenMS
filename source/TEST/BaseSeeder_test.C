@@ -30,8 +30,6 @@
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/BaseSeeder.h>
 
-#include <OpenMS/DATASTRUCTURES/IndexSet.h>
-
 #include <OpenMS/CONCEPT/Exception.h>
 
 ///////////////////////////
@@ -54,8 +52,8 @@ class TestSeeder : public BaseSeeder
 	
 	IndexSet nextSeed() throw (NoSuccessor)
 	{
-		IndexSet set;
-		set.add(1);
+		FeaFiModule::IndexSet  set;
+		set.insert(std::make_pair(7,7));
 		return set;
 	}
 	
@@ -100,9 +98,9 @@ RESULT
 
 CHECK(IndexSet nextSeed() throw (NoSuccessor))
 	TestSeeder s;
-	IndexSet almost_empty;
-	almost_empty.add(1);
-	TEST_EQUAL(s.nextSeed(),almost_empty);
+	FeaFiModule::IndexSet  almost_empty;
+	almost_empty.insert(std::make_pair(7,7));
+	TEST_EQUAL(s.nextSeed()==almost_empty,true);
 RESULT
 
 CHECK(static void registerChildren())

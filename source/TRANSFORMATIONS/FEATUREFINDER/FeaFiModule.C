@@ -29,19 +29,27 @@
 
 namespace OpenMS
 {
-	FeaFiModule::FeaFiModule(): FactoryProduct(), traits_(0){ }
+	FeaFiModule::FeaFiModule(): FactoryProduct(), traits_(0)
+	{
+	}
 
 	FeaFiModule::FeaFiModule(const FeaFiModule& source)
 		:FactoryProduct(source),
 		traits_(source.traits_)
-	{}
+	{
+	}
 
-	FeaFiModule::~FeaFiModule(){}
+	FeaFiModule::~FeaFiModule()
+	{
+	}
 
 	FeaFiModule& FeaFiModule::operator = (const FeaFiModule& source)
 	{
+		if (&source == this) return *this;
+		
 		FactoryProduct::operator = (source);
 		traits_ = source.traits_;
+		
 		return *this;
 	}
 
@@ -50,13 +58,15 @@ namespace OpenMS
 		traits_ = traits;
 	}
 
-	FeaFiModule::NoSuccessor::NoSuccessor(const char* file, int line, const char* function, const UnsignedInt& index)
-		throw()
-		:	Base(file, line, function, "NoSuccessor", "no successor/predecessor"), index_(index)
+	FeaFiModule::NoSuccessor::NoSuccessor(const char* file, int line, const char* function, const IDX& index) throw()
+		:	Base(file, line, function, "NoSuccessor", "no successor/predecessor"), 
+			index_(index)
 	{
-		what_ = "there is no successor/predecessor for the given Index: " + String(index_);
+		what_ = String("there is no successor/predecessor for the given Index: ") + index_.first + "/" + index_.second;
 		Exception::globalHandler.setMessage(what_);
 	}
 
-	FeaFiModule::NoSuccessor::~NoSuccessor() throw(){}
+	FeaFiModule::NoSuccessor::~NoSuccessor() throw()
+	{
+	}
 }

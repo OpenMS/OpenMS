@@ -26,18 +26,20 @@
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/RankCorrelation.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeaFiTraits.h>
-#include <OpenMS/DATASTRUCTURES/IndexSet.h>
 #include <iostream>
 
 namespace OpenMS
 {
 
-	RankCorrelation::RankCorrelation():	BaseQuality()
+	RankCorrelation::RankCorrelation()
+		:	BaseQuality()
 	{
 		name_ = RankCorrelation::getName();
 	}
 
-	RankCorrelation::~RankCorrelation(){}
+	RankCorrelation::~RankCorrelation()
+	{
+	}
 
 	double RankCorrelation::evaluate(const IndexSet& set, const BaseModel<2>& model)
 	{
@@ -49,9 +51,8 @@ namespace OpenMS
 			
 		for (IndexSet::const_iterator it=set.begin(); it!=set.end(); ++it)
 		{
-			const DRawDataPoint<2>& peak = traits_->getPeak(*it);
-			ranks_model.push_back( model.getIntensity(peak.getPosition()) );
-			ranks_data.push_back( peak.getIntensity());
+			ranks_model.push_back( model.getIntensity( traits_->getPeakPos(*it) ) );
+			ranks_data.push_back( traits_->getPeakIntensity(*it));
 		}
 		
 // 		for (UnsignedInt i=0; i< ranks_data.size(); ++i)
@@ -67,8 +68,8 @@ namespace OpenMS
 		std::sort(ranks_data.begin(),ranks_data.end());
 		std::sort(ranks_model.begin(),ranks_model.end());
 		
-		compute_rank(ranks_data);
-		compute_rank(ranks_model);
+		computeRank_(ranks_data);
+		computeRank_(ranks_model);
 		
 		int mu = (ranks_data.size() + 1) / 2; // mean of ranks
 
@@ -89,13 +90,11 @@ namespace OpenMS
 		for (unsigned int i=0; i<ranks_data.size();++i)
 		{
 			sum_model_data  += (ranks_data[i] - mu) *(ranks_model[i] - mu);
-			
 			sqsum_data   += (ranks_data[i] - mu) * (ranks_data[i] - mu);
 			sqsum_model += (ranks_model[i] - mu) * (ranks_model[i] - mu);
 		}
-/*		
-		std::cout << "sqsum_data : " << sqsum_data << std::endl;
-		std::cout << "sqsum_model : " << sqsum_model << std::endl;*/
+//		std::cout << "sqsum_data : " << sqsum_data << std::endl;
+//		std::cout << "sqsum_model : " << sqsum_model << std::endl;
 		
 		// check for division by zero
 		if ( ! sqsum_data || ! sqsum_model ) return 0;		
@@ -123,9 +122,8 @@ namespace OpenMS
 				
 		for (IndexSet::const_iterator it=set.begin(); it!=set.end(); ++it)
 		{
-			const DRawDataPoint<2>& peak = traits_->getPeak(*it);
-			const CoordinateType coord = peak.getPosition()[dim];
-			ranks_data.push_back(peak.getIntensity());
+			const CoordinateType coord = traits_->getPeakPos(*it)[dim];
+			ranks_data.push_back(traits_->getPeakIntensity(*it));
 			ranks_model.push_back( model.getIntensity( coord ) );
 		}
 		
@@ -143,8 +141,8 @@ namespace OpenMS
 		std::sort(ranks_data.begin(),ranks_data.end() );
 		std::sort(ranks_model.begin(),ranks_model.end() );
 		
-		compute_rank(ranks_data);
-		compute_rank(ranks_model);
+		computeRank_(ranks_data);
+		computeRank_(ranks_model);
 		
 		int mu = (ranks_data.size() + 1) / 2; // mean of ranks
 		

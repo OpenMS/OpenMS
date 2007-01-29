@@ -67,7 +67,8 @@ IsotopeWaveletSeeder::IsotopeWaveletSeeder():
 }
 
 IsotopeWaveletSeeder::~IsotopeWaveletSeeder()
-{}
+{
+}
 
 
 IndexSet IsotopeWaveletSeeder::nextSeed() throw (NoSuccessor)
@@ -112,7 +113,7 @@ IndexSet IsotopeWaveletSeeder::nextSeed() throw (NoSuccessor)
             DPeakArray<1, PeakType> current_scan = traits_->getData()[i].getContainer();
 
 						#ifdef DEBUG_FEATUREFINDER
-            String filename = "scan_" + String( traits_->getData()[i].getRetentionTime() );
+            String filename =  String("scan_") + traits_->getData()[i].getRetentionTime();
             std::ofstream outfile(filename.c_str());
             for (UnsignedInt k=0; k<current_scan.size();++k)
             {
@@ -471,7 +472,7 @@ void IsotopeWaveletSeeder::identifyCharge (const std::vector<DPeakArray<1, PeakT
         
 				// write debug output
 				CoordinateType current_rt = traits_->getData()[scan].getRetentionTime();
-				String filename = "cwt_" + String(current_rt) + "_charge_" + String(c+1);
+				String filename = String("cwt_") + current_rt + "_charge_" + (c+1);
         std::ofstream outfile(filename.c_str());
 				containerType::iterator write_iter;
         for (write_iter=c_candidate.begin(); write_iter != c_candidate.end(); ++write_iter)

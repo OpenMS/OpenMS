@@ -29,7 +29,6 @@
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeaFiModule.h>
 #include <OpenMS/KERNEL/KernelTraits.h>
-#include <OpenMS/DATASTRUCTURES/IndexSet.h>
 
 namespace OpenMS
 {
@@ -48,10 +47,7 @@ namespace OpenMS
   {
 
   public:
-  	
-  	typedef KernelTraits::ChargeType ChargeType;
-  	
-    /// standard constructor
+    /// Default constructor
     BaseExtender();
 
     /// copy constructor  

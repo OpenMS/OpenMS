@@ -29,31 +29,39 @@
 
 // all from BaseSeeder derived classes
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SimpleSeeder.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MarrWaveletSeeder.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/PickedPeakSeeder.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/IsotopeWaveletSeeder.h>
+//#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MarrWaveletSeeder.h>
+//#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/PickedPeakSeeder.h>
+//#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/IsotopeWaveletSeeder.h>
 
 namespace OpenMS
 {
 	void BaseSeeder::registerChildren()
 	{
 		Factory<BaseSeeder>::registerProduct(SimpleSeeder::getName(), &SimpleSeeder::create);
-		Factory<BaseSeeder>::registerProduct(MarrWaveletSeeder::getName(), &MarrWaveletSeeder::create);
- 		Factory<BaseSeeder>::registerProduct(PickedPeakSeeder::getName(), &PickedPeakSeeder::create);
-		Factory<BaseSeeder>::registerProduct(IsotopeWaveletSeeder::getName(), &IsotopeWaveletSeeder::create);
+//		Factory<BaseSeeder>::registerProduct(MarrWaveletSeeder::getName(), &MarrWaveletSeeder::create);
+// 		Factory<BaseSeeder>::registerProduct(PickedPeakSeeder::getName(), &PickedPeakSeeder::create);
+//		Factory<BaseSeeder>::registerProduct(IsotopeWaveletSeeder::getName(), &IsotopeWaveletSeeder::create);
 	}	
 	
-	BaseSeeder::BaseSeeder(): FeaFiModule(){ }
+	BaseSeeder::BaseSeeder(): FeaFiModule()
+	{
+	}
 
 	BaseSeeder::BaseSeeder(const BaseSeeder& source)
 		: FeaFiModule(source)
-	{}
+	{
+	}
 
-	BaseSeeder::~BaseSeeder() {}
+	BaseSeeder::~BaseSeeder()
+	{
+	}
 
     BaseSeeder& BaseSeeder::operator = (const BaseSeeder& source)
 	{
+		if (&source == this) return *this;
+		
 		FeaFiModule::operator = (source);
+		
 		return *this;
 	}
 }

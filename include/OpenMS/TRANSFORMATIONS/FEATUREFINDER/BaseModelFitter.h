@@ -32,7 +32,6 @@
 
 namespace OpenMS
 {
-  class IndexSet;
 
   /** @brief Abstract base class for ModelFitter-Module of FeatureFinder.
    
@@ -45,43 +44,41 @@ namespace OpenMS
   class BaseModelFitter 
     : public FeaFiModule
   {
-
-  public:
-    /** @brief Inner Classes for Exception handling
-     		
-     		UnableToFit-Excpetion if ModelFitter can not fit a model
-				i.e. data set with standard deviation of zero 
-		*/
-   	class UnableToFit
-     : public Exception::Base
-     {
-     public:
-       UnableToFit(const char* file, int line, const char* function,
-			 						 const std::string& name , const std::string& message) throw();
-       virtual ~UnableToFit() throw();
-     };
-
-    /// standard constructor
-    BaseModelFitter();
-
-    /// copy constructor
-    BaseModelFitter(const BaseModelFitter& source);
-
-    /// destructor
-    virtual ~BaseModelFitter();
-
-    /// assignment operator
-    virtual BaseModelFitter& operator = (const BaseModelFitter& source);
-
-    /// register all derived classes here 
-    static void registerChildren();
-
-    /** @brief fit the range of indices onto a model
-    
-       \param extension range of peaks that ought to be fitted 
-       \return feature 
-    */
-    virtual DFeature<2> fit(const IndexSet& extension) throw(UnableToFit) =0;
+  	public:
+	    /** @brief Inner Classes for Exception handling
+	     		
+	     		UnableToFit-Excpetion if ModelFitter can not fit a model
+					i.e. data set with standard deviation of zero 
+			*/
+	   	class UnableToFit
+	     : public Exception::Base
+			{
+				public:
+				 UnableToFit(const char* file, int line, const char* function, const std::string& name , const std::string& message) throw();
+				 virtual ~UnableToFit() throw();
+			};
+	
+	    /// Default constructor
+	    BaseModelFitter();
+	
+	    /// copy constructor
+	    BaseModelFitter(const BaseModelFitter& source);
+	
+	    /// destructor
+	    virtual ~BaseModelFitter();
+	
+	    /// assignment operator
+	    virtual BaseModelFitter& operator = (const BaseModelFitter& source);
+	
+	    /// register all derived classes here 
+	    static void registerChildren();
+	
+	    /** @brief fit the range of indices onto a model
+	    
+	       @param extension range of peaks that ought to be fitted 
+	       @return feature 
+	    */
+	    virtual DFeature<2> fit(const IndexSet& extension) throw(UnableToFit) =0;
 
   };
 }

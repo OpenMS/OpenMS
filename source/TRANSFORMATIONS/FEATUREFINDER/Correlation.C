@@ -25,7 +25,6 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/Correlation.h>
-#include <OpenMS/DATASTRUCTURES/IndexSet.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeaFiTraits.h>
 
 namespace OpenMS
@@ -36,7 +35,9 @@ namespace OpenMS
 		name_ = Correlation::getName();
 	}
 
-	Correlation::~Correlation(){}
+	Correlation::~Correlation()
+	{
+	}
 
 	double Correlation::evaluate(const IndexSet& set, const BaseModel<2>& model)
 	{
@@ -57,9 +58,8 @@ namespace OpenMS
 
 		for (IndexSet::const_iterator it=set.begin(); it!=set.end(); ++it)
 		{
-			const DRawDataPoint<2>& peak = traits_->getPeak(*it);
-			*data_iter    = peak.getIntensity();
-			*model_iter = model.getIntensity(peak.getPosition());
+			*data_iter    = traits_->getPeakIntensity(*it);
+			*model_iter = model.getIntensity(traits_->getPeakPos(*it));
 			
 			model_avg += *model_iter;
 			data_avg    += *data_iter;
@@ -115,9 +115,8 @@ namespace OpenMS
 
 		for (IndexSet::const_iterator it=set.begin(); it!=set.end(); ++it)
 		{
-			const DRawDataPoint<2>& peak = traits_->getPeak(*it);
-			*data_iter    = peak.getIntensity();
-			*model_iter = model.getIntensity(peak.getPosition()[dim] );
+			*data_iter    = traits_->getPeakIntensity(*it);
+			*model_iter = model.getIntensity(traits_->getPeakPos(*it)[dim] );
 			
 			model_avg += *model_iter;
 			data_avg    += *data_iter;

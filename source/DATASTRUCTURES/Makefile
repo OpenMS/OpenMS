@@ -38,7 +38,6 @@ CPP_SOURCES=\
 	DataValue.C\
 	HashMap.C\
 	String.C\
-	IndexSet.C\
 	ScanIndex.C\
 	RunningAveragePosition.C\
 	Date.C\

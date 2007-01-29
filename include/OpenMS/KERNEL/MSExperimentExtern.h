@@ -307,7 +307,7 @@ public:
             nr_dpoints_(0), spectra_lengths_(0),
 						last_scan_index_(0), ms_levels_()
     { 
-        file_name_ = "msexp_" + String(std::rand());
+        file_name_ = String("msexp_") + std::rand();
         exp_.resize(buffer_size_);
         buffer2scan_.resize(buffer_size_);
     }
@@ -324,7 +324,7 @@ public:
     {
         // genarete new temp file and copy the old one
 				std::remove( file_name_ .c_str());
-        file_name_ = "msexp_" + String(std::rand());
+        file_name_ = String("msexp_") + std::rand();
         copyTmpFile_(source.file_name_);
     }
 
@@ -356,7 +356,7 @@ public:
 
         // generate new name for temp file
         std::remove( file_name_ .c_str());
-        file_name_ = "msexp_" + String(std::rand());
+        file_name_ = String("msexp_") + std::rand();
         // and copy the old one
         copyTmpFile_(source.file_name_);
 				
@@ -738,7 +738,7 @@ public:
 
         // generate new name for temp file
         std::remove( file_name_ .c_str());
-        file_name_ = "msexp_" + String(std::rand());
+        file_name_ = String("msexp_") + std::rand();
 
     }
 

@@ -52,6 +52,7 @@ namespace OpenMS
 		counter_(0)
 	{
 		name_ = SimpleModelFitter::getName();
+		
 		defaults_.setValue("tolerance_stdev_bounding_box",3.0f);
 		defaults_.setValue("feature_intensity_sum",1);
 		defaults_.setValue("min_num_peaks:final",5);
@@ -97,9 +98,8 @@ namespace OpenMS
 		// not enough peaks to fit
 		if (set.size() < static_cast<Size>(param_.getValue("min_num_peaks:extended")))
 		{
-			String mess = "Skipping feature, IndexSet size too small: "+String(set.size());
-			throw UnableToFit(__FILE__, __LINE__,__PRETTY_FUNCTION__,
-												"UnableToFit-IndexSet", mess.c_str());
+			String mess = String("Skipping feature, IndexSet size too small: ") + set.size();
+			throw UnableToFit(__FILE__, __LINE__,__PRETTY_FUNCTION__, "UnableToFit-IndexSet", mess.c_str());
 		}
 		
 		quality_->setTraits(traits_);
@@ -121,8 +121,8 @@ namespace OpenMS
 										 RtIterator(set.begin(),traits_) );
 
 		// Calculate bounding box
-		IndexSetIter it=set.begin();
-		min_ = max_ = traits_->getPeak(*it).getPosition();
+		IndexSet::const_iterator it=set.begin();
+		min_ = max_ = traits_->getPeakPos(*it);
 		for ( ++it; it!=set.end(); ++it )
 		{
 			CoordinateType tmp = traits_->getPeakMz(*it);
@@ -173,22 +173,22 @@ namespace OpenMS
 
 		// find peak with highest predicted intensity to use as cutoff
 		float model_max = 0;
-		for (IndexSetIter it=set.begin(); it!=set.end(); ++it)
+		for (IndexSet::const_iterator it=set.begin(); it!=set.end(); ++it)
 		{
-			const DRawDataPoint<2>& p = traits_->getPeak(*it);
-			float model_int = final->getIntensity(p.getPosition());
+			float model_int = final->getIntensity(traits_->getPeakPos(*it));
 			if (model_int>model_max) model_max = model_int;
 		}
 		final->setCutOff( model_max * float(param_.getValue("intensity_cutoff_factor")));
 
 		// Cutoff low intensities wrt to model maximum -> cutoff independent of scaling
 		IndexSet model_set;
-		for (IndexSetIter it=set.begin(); it!=set.end(); ++it) 
+		for (IndexSet::const_iterator it=set.begin(); it!=set.end(); ++it) 
 		{
-			if ( final->isContained( traits_->getPeak(*it).getPosition() ))
+			if ( final->isContained( traits_->getPeakPos(*it) ))
 			{
-				model_set.add(*it);
-			}else		// free dismissed peak via setting the appropriate flag
+				model_set.insert(*it);
+			}
+			else		// free dismissed peak via setting the appropriate flag
 			{
 				traits_->getPeakFlag(*it) = FeaFiTraits::UNUSED;
 			}
@@ -202,8 +202,7 @@ namespace OpenMS
 			delete final;
 			throw UnableToFit(__FILE__, __LINE__,__PRETTY_FUNCTION__,
 						"UnableToFit-FinalSet",
-						"Skipping feature, IndexSet size after cutoff too small: "
-						+String(model_set.size()));
+						String("Skipping feature, IndexSet size after cutoff too small: ") + model_set.size() );
 		}
 		max_quality = quality_->evaluate(model_set, *final); // recalculate quality after cutoff
 		
@@ -213,22 +212,20 @@ namespace OpenMS
 		if (max_quality < static_cast<float>(param_.getValue("quality:minimum")))
 		{
 			delete final;
-			String mess = "Skipping feature, correlation too small: "+String(max_quality);
-			throw UnableToFit(__FILE__, __LINE__,__PRETTY_FUNCTION__,
-												"UnableToFit-Correlation", mess.c_str());
+			String mess = String("Skipping feature, correlation too small: ") + max_quality;
+			throw UnableToFit(__FILE__, __LINE__,__PRETTY_FUNCTION__, "UnableToFit-Correlation", mess.c_str());
 		}
 
 		// Calculate intensity scaling
 		float model_sum = 0;
 		float data_sum = 0;
 		float data_max = 0;
-		for (IndexSetIter it=model_set.begin(); it!=model_set.end(); ++it)
+		for (IndexSet::const_iterator it=model_set.begin(); it!=model_set.end(); ++it)
 		{
-			const DRawDataPoint<2>& p = traits_->getPeak(*it);
-			float model_int = final->getIntensity(p.getPosition());
+			float model_int = final->getIntensity(traits_->getPeakPos(*it));
 			model_sum += model_int;
-			data_sum += p.getIntensity();
-			if (p.getIntensity() > data_max) data_max = p.getIntensity();
+			data_sum += traits_->getPeakIntensity(*it);
+			if (traits_->getPeakIntensity(*it) > data_max) data_max = traits_->getPeakIntensity(*it);
 		}
 
 		// fit has too low quality or fit was not possible i.e. because of zero stdev
@@ -248,10 +245,8 @@ namespace OpenMS
 		DFeature<2> f;
 		f.setModelDescription( ModelDescription<2>(final) );
 		f.setOverallQuality(max_quality);
-		f.getPosition()[RT] = static_cast<InterpolationModel<>*>(
-														final->getModel(RT))->getCenter();
-		f.getPosition()[MZ] = static_cast<InterpolationModel<>*>(
-														final->getModel(MZ))->getCenter();
+		f.getPosition()[RT] = static_cast<InterpolationModel<>*>(final->getModel(RT))->getCenter();
+		f.getPosition()[MZ] = static_cast<InterpolationModel<>*>(final->getModel(MZ))->getCenter();
 		
 		// set feature charge												
 		if (final->getModel(MZ)->getName() == "IsotopeModel")
@@ -259,10 +254,10 @@ namespace OpenMS
 			f.setCharge(static_cast<IsotopeModel*>(final->getModel(MZ))->getCharge());
 		}
 		// if we used a simple Gaussian model to fit the feature, we can't say anything about
-		// its charge state. So we simply assume that it has charge one.
+		// its charge state. The value 0 indicates that charge state is undetermined.
 		else 
 		{
-			f.setCharge(1);		
+			f.setCharge(0);		
 		}
 				
 		int const intensity_choice = param_.getValue("feature_intensity_sum");
@@ -271,7 +266,7 @@ namespace OpenMS
 		if (intensity_choice == 1)
 		{
 			// intensity of the feature is the sum of all included data points
-			for (IndexSetIter it=model_set.begin(); it!=model_set.end(); ++it) 
+			for (IndexSet::const_iterator it=model_set.begin(); it!=model_set.end(); ++it) 
 			{
 				feature_intensity += traits_->getPeakIntensity(*it);
 			}
@@ -279,34 +274,27 @@ namespace OpenMS
 		else
 		{
 			// feature intensity is the maximum intensity of all peaks
-			for (IndexSetIter it=model_set.begin(); it!=model_set.end(); ++it) 
+			for (IndexSet::const_iterator it=model_set.begin(); it!=model_set.end(); ++it) 
 			{
 				if (traits_->getPeakIntensity(*it) > feature_intensity)
 					feature_intensity = traits_->getPeakIntensity(*it);
 			}	
-		} 
-		f.setIntensity(feature_intensity);
-		f.getConvexHulls().push_back(traits_->calculateConvexHull(model_set));
-		
-		std::cout << Date::now() << " Feature " << counter_  
-							<< ": (" << f.getPosition()[RT]
-							<< "," << f.getPosition()[MZ] << ") Qual.:"
-							<< max_quality << "\n";
+		}
 		
 		f.setIntensity(feature_intensity);
-		f.getConvexHulls().push_back(traits_->calculateConvexHull(model_set));
+		traits_->addConvexHull(model_set, f);
+		
+		std::cout << Date::now() << " Feature " << counter_ << ": (" << f.getPosition()[RT]
+							<< "," << f.getPosition()[MZ] << ") Qual.:" << max_quality << "\n";
 		
 		f.getQuality(RT) = quality_->evaluate(model_set, *final->getModel(RT), RT );
 		f.getQuality(MZ) = quality_->evaluate(model_set, *(static_cast<InterpolationModel<>*>(final->getModel(MZ)) ),MZ );
 
 		// save meta data in feature for TOPPView
-		String meta = "Feature #" + String(counter_)
-									+ ", +"	+ String(f.getCharge())
-									+ ", " + String(set.size()) + "->" + String(model_set.size())
-									+ ", Corr: (" + String(max_quality)
-									+ "," + String(f.getQuality(RT))
-									+ "," + String(f.getQuality(MZ)) + ")";
-		f.setMetaValue(3,meta);
+		stringstream s;
+		s <<  "Feature #" << counter_ << ", +" << f.getCharge() << ", " << set.size() << "->" << model_set.size() 
+			<< ", Corr: (" << max_quality << "," << f.getQuality(RT) << "," << f.getQuality(MZ) << ")";
+		f.setMetaValue(3,s.str());
 		
 		#ifdef DEBUG_FEATUREFINDER
 		// write debug output
@@ -314,26 +302,26 @@ namespace OpenMS
 		CoordinateType mz = f.getPosition()[MZ];
 		
 		// write feature model 
-		String fname = "model"+ String(counter_) + "_" + String(rt) + "_" + String(mz);
+		String fname = String("model") + counter_ + "_" + rt + "_" + mz;
 		ofstream file(fname.c_str()); 
-		for (IndexSetIter it=model_set.begin(); it!=model_set.end(); ++it) 
+		for (IndexSet::const_iterator it=model_set.begin(); it!=model_set.end(); ++it) 
 		{
-			if ( final->isContained( traits_->getPeak(*it).getPosition() ))
+			FeaFiTraits::PositionType2D p = traits_->getPeakPos(*it);
+			if ( final->isContained(p) )
 			{
-				const DRawDataPoint<2>& p = traits_->getPeak(*it);
-				file << p.getPosition()[RT] << " " << p.getPosition()[MZ] << " " << final->getIntensity( p.getPosition() ) << "\n";						
+				file << p[RT] << " " << p[MZ] << " " << final->getIntensity(p) << "\n";						
 			}
 		}
 		
 		// wrote peaks remaining after model fit
-		fname = "feature"+String(counter_) + String(counter_) + "_" + String(rt) + "_" + String(mz);
+		fname = String("feature") + counter_ + "_" + rt + "_" + mz;
 		ofstream file2(fname.c_str()); 
-		for (IndexSetIter it=model_set.begin(); it!=model_set.end(); ++it) 
+		for (IndexSet::const_iterator it=model_set.begin(); it!=model_set.end(); ++it) 
 		{
-			if ( final->isContained( traits_->getPeak(*it).getPosition() ))
+			FeaFiTraits::PositionType2D p = traits_->getPeakPos(*it);
+			if ( final->isContained(p) )
 			{
-				const DRawDataPoint<2>& p = traits_->getPeak(*it);
-				file2 << p.getPosition()[RT] << " " << p.getPosition()[MZ] << " " << p.getIntensity() << "\n";						
+				file2 << p[RT] << " " << p[MZ] << " " << traits_->getPeakIntensity(*it) << "\n";						
 			}
 		}
 		file.close();
@@ -344,8 +332,7 @@ namespace OpenMS
 	  return f;
 	}
 
-	double SimpleModelFitter::fit_(const IndexSet& set, MzFitting mz_fit, RtFitting rt_fit,
-		 Coordinate isotope_stdev)
+	double SimpleModelFitter::fit_(const IndexSet& set, MzFitting mz_fit, RtFitting rt_fit, Coordinate isotope_stdev)
 	{
 		const Coordinate interpolation_step_mz = param_.getValue("mz:interpolation_step");
 		const Coordinate interpolation_step_rt = param_.getValue("rt:interpolation_step");
@@ -389,9 +376,7 @@ namespace OpenMS
 	}
 
 
-	double SimpleModelFitter::fitOffset_(	InterpolationModel<>* model,
-			const IndexSet& set, const double stdev1,  const double stdev2,
-			const Coordinate offset_step)
+	double SimpleModelFitter::fitOffset_(	InterpolationModel<>* model, const IndexSet& set, const double stdev1,  const double stdev2, const Coordinate offset_step)
 	{
 		const Coordinate offset_min = model->getInterpolation().supportMin() - stdev1;
 		const Coordinate offset_max = model->getInterpolation().supportMin() + stdev2;

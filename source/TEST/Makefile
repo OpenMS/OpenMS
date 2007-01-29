@@ -48,7 +48,6 @@ EXECUTABLES_DATASTRUCTURES = \
 	String_test\
 	Date_test\
 	HashMap_test\
-	IndexSet_test\
 	DPosition_test\
 	RunningAveragePosition_test\
 	ScanIndex_test\
@@ -327,6 +326,7 @@ EXECUTABLES_ANALYSIS_ID =\
 	PILISSequenceDB_test\
 	PILISModel_test\
 	PILISIdentification_test
+
 # APPLICATIONS
 
 EXECUTABLES_APPLICATIONS = \
@@ -334,31 +334,37 @@ EXECUTABLES_APPLICATIONS = \
 
 # TRANSFORMATIONS
 
-EXECUTABLES_TRANSFORMATIONS = \
-	FeatureFinder_test\
-	BaseExtender_test\
-	BaseModelFitter_test\
-	BaseSeeder_test\
-	BaseQuality_test\
+EXECUTABLES_TRANSFORMATIONS_FEATUREFINDER = \
 	FeaFiTraits_test\
 	FeaFiModule_test\
-	BaseModel_test\
+	BaseQuality_test\
+	Correlation_test\
+	RankCorrelation_test\
+	EuclideanDistance_test\
 	ModelDescription_test\
+	BaseModel_test\
+	EmgModel_test\
+	LmaGaussModel_test\
+	LogNormalModel_test\
+	BaseSeeder_test\
+	SimpleSeeder_test\
+	BaseExtender_test\
+	SimpleExtender_test\
+	BaseModelFitter_test\
+	SimpleModelFitter_test\
+	ExtendedModelFitter_test\
 	InterpolationModel_test\
 	GaussModel_test\
 	BiGaussModel_test\
 	IsotopeModel_test\
 	ProductModel_test\
-	SimpleExtender_test\
-	SimpleModelFitter_test\
-	EmgModel_test\
-	LmaGaussModel_test\
-	LogNormalModel_test\
-	ExtendedModelFitter_test\
-	SimpleSeeder_test\
-	Correlation_test\
-	EuclideanDistance_test\
-	RankCorrelation_test\
+	FeatureFinder_test
+
+#	MarrWaveletSeeder_test\
+#	IsotopeWaveletSeeder_test\
+#	PickedPeakSeeder_test\
+
+EXECUTABLES_TRANSFORMATIONS_PEAKPICKER = \
 	ContinuousWaveletTransform_test\
 	PeakShape_test\
 	PeakPicker_test\
@@ -366,9 +372,6 @@ EXECUTABLES_TRANSFORMATIONS = \
 	ContinuousWaveletTransformNumIntegration_test\
 	OptimizePick_test\
 	PeakPickerCWT_test\
-	MarrWaveletSeeder_test\
-	IsotopeWaveletSeeder_test\
-	PickedPeakSeeder_test\
 	OptimizePeakDeconvolution_test\
 	TwoDOptimization_test
 
@@ -385,7 +388,8 @@ EXECUTABLES = \
 	$(EXECUTABLES_DATASTRUCTURES)\
 	$(EXECUTABLES_VISUAL)\
 	$(EXECUTABLES_CHEMISTRY)\
-	$(EXECUTABLES_TRANSFORMATIONS)\
+	$(EXECUTABLES_TRANSFORMATIONS_FEATUREFINDER)\
+	$(EXECUTABLES_TRANSFORMATIONS_PEAKPICKER)\
 	$(EXECUTABLES_ANALYSIS_ID)\
 	$(EXECUTABLES_ANALYSIS_SVM)\
 	$(EXECUTABLES_ANALYSIS_MAPMATCHING)\
@@ -470,8 +474,8 @@ visual_test:	$(EXECUTABLES_VISUAL) dummy
 chemistry_test:	$(EXECUTABLES_CHEMISTRY) dummy
 	@./runtests -section "CHEMISTRY" $(TEST_OPTIONS) $(EXECUTABLES_CHEMISTRY)
 
-transformations_test:	$(EXECUTABLES_TRANSFORMATIONS) dummy
-	@./runtests -section "TRANSFORMATIONS" $(TEST_OPTIONS) $(EXECUTABLES_TRANSFORMATIONS)
+transformations_test:	$(EXECUTABLES_TRANSFORMATIONS_FEATUREFINDER) $(EXECUTABLES_TRANSFORMATIONS_PEAKPICKER) dummy
+	@./runtests -section "TRANSFORMATIONS" $(TEST_OPTIONS) $(EXECUTABLES_TRANSFORMATIONS_FEATUREFINDER) $(EXECUTABLES_TRANSFORMATIONS_PEAKPICKER)
 
 analysis_id_test:	$(EXECUTABLES_ANALYSIS_ID) dummy
 	@./runtests -section "ANALYSIS_ID" $(TEST_OPTIONS) $(EXECUTABLES_ANALYSIS_ID)

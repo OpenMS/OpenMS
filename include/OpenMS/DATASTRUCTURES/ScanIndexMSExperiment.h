@@ -110,20 +110,22 @@ namespace OpenMS
 		
 		/// We throw this exception if the next (previous) peak is requested for a peak in the last (first) scan.
 		class NoSuccessor
-     : public Exception::Base
-     {
-     public:
-       NoSuccessor(const char* file, int line, const char* function, const UnsignedInt& index) throw()
-       :	Base(file, line, function, "NoSuccessor", "no successor/predecessor"), index_(index)
-			{
-				what_ = "there is no successor/predecessor for the given Index: " + index_;
-				Exception::globalHandler.setMessage(what_);
-			}
+    	: public Exception::Base
+    {
+     	public:
+       	NoSuccessor(const char* file, int line, const char* function, const UnsignedInt& index) throw()
+       		:	Base(file, line, function, "NoSuccessor", "no successor/predecessor"), index_(index)
+				{
+					what_ = "there is no successor/predecessor for the given Index: " + index_;
+					Exception::globalHandler.setMessage(what_);
+				}
        
-       virtual ~NoSuccessor() throw(){}
+       	virtual ~NoSuccessor() throw()
+       	{
+       	}
        
-     protected:
-       UnsignedInt index_;  // index without successor/predecessor
+	     protected:
+	       UnsignedInt index_;  // index without successor/predecessor
        
      }; // end of class NoSuccessor
 		
@@ -134,7 +136,7 @@ namespace OpenMS
 				Note that <code>this->size() == this->scan_position_.size() + 1</code>
 				because the first one deals with ranges (pairs).
 				
-				@NOTE: Use the peak iterators peakBegin() and peakEnd() to initialize the DS.
+				@note Use the peak iterators peakBegin() and peakEnd() to initialize the DS.
 				
 		*/
 		void init ( PeakIterator _begin, PeakIterator const _end ) throw ()

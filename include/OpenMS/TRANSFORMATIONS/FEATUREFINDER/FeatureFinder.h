@@ -78,7 +78,7 @@ namespace OpenMS
   	initialises the traits class and the seeder, extender and
   	model fitting classes.
 		
-		@NOTE: The input data should be sorted and not contain any tandem spectra.
+		@note The input data should be sorted and not contain any tandem spectra.
  	  	
   	@ingroup FeatureFinder
   
@@ -89,13 +89,12 @@ class FeatureFinder
 {
 
 public:
-    typedef DFeatureMap<2> FeatureVector;
     typedef std::vector<BaseSeeder*> SeederVector;
     typedef std::vector<BaseExtender*> ExtenderVector;
     typedef std::vector<BaseModelFitter*> FitterVector;
 		typedef FeaFiTraits::MapType MapType;
 
-    /// standard constructor.
+    /// Default constructor.
     FeatureFinder();
     /// copy constructor
     FeatureFinder(const FeatureFinder& source);
@@ -144,13 +143,19 @@ public:
 
 
     /// Sets data using instance of MSExperimentExtern.
-    void setData(MapType& exp) { traits_->setData(exp); }
+    void setData(MapType& exp)
+    { 
+    	traits_->setData(exp); 
+    }
 		
 		/// Sets data using instance of MSExperiment
-    void setData(MSExperiment<DPeak<1> >& exp) { traits_->setData(exp); }
+    void setData(MSExperiment<DPeak<1> >& exp) 
+    { 
+    	traits_->setData(exp); 
+    }
 	
     /// start feature finding
-    const FeatureVector& run();
+    const DFeatureMap<2>& run();
 
     friend std::ostream& operator << (std::ostream& os, const FeatureFinder& finder);
 

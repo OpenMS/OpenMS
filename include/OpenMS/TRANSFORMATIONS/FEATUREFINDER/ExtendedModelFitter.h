@@ -126,13 +126,13 @@ namespace OpenMS
 			};
 
 		typedef DFeature<2>::CoordinateType CoordinateType;
-		typedef DFeature<2>::PositionType PositionType;
+		typedef DFeature<2>::PositionType PositionType2D;
 
 		enum RtFitting{ RTGAUSS=0, LMAGAUSS=1, EMGAUSS=2, BIGAUSS=3, LOGNORMAL=4 };
 		enum MzFitting{ MZGAUSS=0, CHARGE1=1, CHARGE2=2, CHARGE3=3, CHARGE4=4	};
 
 
-    /// standard constructor
+    /// Default constructor
     ExtendedModelFitter();
 
     /// destructor
@@ -171,12 +171,9 @@ namespace OpenMS
 	 protected:
 
 		/// fit offset by maximizing of quality
-		double fitOffset_(	InterpolationModel<>* model, const IndexSet& set,
-												const double stdev1, const double stdev2,
-												const Coordinate offset_step);
+		double fitOffset_(	InterpolationModel<>* model, const IndexSet& set, const double stdev1, const double stdev2, const Coordinate offset_step);
 
-		double fit_(	const IndexSet& set, MzFitting mz_fit, RtFitting rt_fit,
-									Coordinate isotope_stdev=0.1);
+		double fit_(	const IndexSet& set, MzFitting mz_fit, RtFitting rt_fit, Coordinate isotope_stdev=0.1);
 
 		BaseQuality* quality_;
 		ProductModel<2> model2D_;
@@ -185,8 +182,8 @@ namespace OpenMS
 		double stdev_mz_;
 		double stdev_rt1_;
 		double stdev_rt2_;
-		PositionType min_;
-		PositionType max_;
+		PositionType2D min_;
+		PositionType2D max_;
 
 		unsigned int counter_;
 

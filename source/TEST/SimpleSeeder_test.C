@@ -95,8 +95,8 @@ CHECK(nextSeed())
 	
 	seeder.setTraits(traits);
 	
-	IndexSet region;
-	Index peak;
+	FeaFiModule::IndexSet  region;
+	FeaFiModule::IDX peak;
 	
 	region = seeder.nextSeed();
 	peak =  *(region.begin());

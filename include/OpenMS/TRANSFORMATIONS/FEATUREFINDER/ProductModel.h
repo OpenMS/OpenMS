@@ -64,7 +64,7 @@ public:
     typedef DPosition<D,Traits> PositionType;
     typedef DPeakArray<D, DPeak<D,Traits> > SamplesType;
 
-    /// standard constructor
+    /// Default constructor
     ProductModel()
 	    : BaseModel<D,Traits>(),
 	    	distributions_(D,0)
@@ -128,7 +128,6 @@ public:
             setModel(dim,desc.createModel());
           }
       	}
-      	
         updateMembers_();
         
         return *this;
@@ -142,7 +141,7 @@ public:
       {
         if (distributions_[dim]==0)
         {
-        	throw Exception::Base(__FILE__, __LINE__, __PRETTY_FUNCTION__, "ProductModel: model for dimension "+String(dim)+" not set.","");
+        	throw Exception::Base(__FILE__, __LINE__, __PRETTY_FUNCTION__, String("ProductModel: model for dimension ") + dim + " not set.","");
 				}
         intens *= distributions_[dim]->getIntensity(pos[dim]);
       }
@@ -158,7 +157,7 @@ public:
     /// Returns the name of the model
     static const String getProductName()
     {
-        return "ProductModel" + String(D) + "D";
+        return String("ProductModel") + D + "D";
     }
 
     /** @brief set model @p dist for dimension @p dim
@@ -249,10 +248,8 @@ public:
 		void updateMembers_()
 		{
 			BaseModel<D,Traits>::updateMembers_();
-				
 			scale_ = (double)(this->param_.getValue("intensity_scaling"));
-		
-      for (UnsignedInt dim=0; dim<D; ++dim)
+	    for (UnsignedInt dim=0; dim<D; ++dim)
       {
         String name = DimensionDescription<DimensionTags>::dimension_name_short[dim];
         DataValue d = this->param_.getValue(name);

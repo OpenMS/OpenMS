@@ -84,7 +84,7 @@ CHECK(nextSeed())
 	param.setValue("min_number_peaks",3);
 	seeder.setParam(param);
 	
-	IndexSet region;
+	FeaFiModule::IndexSet  region;
 	Index peak;
 	
 	region = seeder.nextSeed();

@@ -97,11 +97,10 @@ RESULT
 
 CHECK(const IndexSet& extend(const IndexSet& seed_region))
 	TestExtender text;
-	IndexSet inds;
-	inds.add(6);
-	IndexSet result = text.extend(inds);
-	IndexSet empty;
-  TEST_EQUAL(result, empty)
+	FeaFiModule::IndexSet  inds;
+	inds.insert(std::make_pair(7,7));
+	FeaFiModule::IndexSet result = text.extend(inds);
+  TEST_EQUAL(result.size(),0)
 RESULT
 
 CHECK(static void registerChildren())

@@ -25,38 +25,34 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/EuclideanDistance.h>
-#include <OpenMS/DATASTRUCTURES/IndexSet.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeaFiTraits.h>
 #include <iostream>
 
 namespace OpenMS
 {
 
-	EuclideanDistance::EuclideanDistance():	BaseQuality()
+	EuclideanDistance::EuclideanDistance()
+		:	BaseQuality()
 	{
 		name_ = EuclideanDistance::getName();
 	}
 
-	EuclideanDistance::~EuclideanDistance(){}
+	EuclideanDistance::~EuclideanDistance()
+	{
+	}
 
 	double EuclideanDistance::evaluate(const IndexSet& set, const BaseModel<2>& model)
 	{
 		if (!traits_) throw Exception::NullPointer(__FILE__, __LINE__, __PRETTY_FUNCTION__);
+		
 		typedef BaseModel<2>::IntensityType Intensity;
 		
 		Intensity temp_diff = 0;		// differences between different coordinate vectors
 		Intensity sum_diff   = 0;		// sum of differences		
-
 		for (IndexSet::const_iterator it=set.begin(); it!=set.end(); ++it)
 		{
-			const DRawDataPoint<2>& peak = traits_->getPeak(*it);
-			Intensity model_it = model.getIntensity(peak.getPosition());
-			Intensity data_it  = peak.getIntensity();
-			
-			temp_diff = (model_it - data_it);
-			temp_diff *= temp_diff;
-			
-			sum_diff += temp_diff;
+			temp_diff = (model.getIntensity(traits_->getPeakPos(*it)) - traits_->getPeakIntensity(*it));
+			sum_diff += temp_diff * temp_diff;
 		}
 		
 		return (0 - sqrt(sum_diff));
@@ -65,21 +61,15 @@ namespace OpenMS
 	double EuclideanDistance::evaluate(const IndexSet& set, const BaseModel<1>& model, UnsignedInt dim)
 	{
 		if (!traits_) throw Exception::NullPointer(__FILE__, __LINE__, __PRETTY_FUNCTION__);
+		
 		typedef BaseModel<2>::IntensityType Intensity;
 		
 		Intensity temp_diff = 0;		// differences between different coordinate vectors
 		Intensity sum_diff   = 0;		// sum of differences		
-
 		for (IndexSet::const_iterator it=set.begin(); it!=set.end(); ++it)
 		{
-			const DRawDataPoint<2>& peak = traits_->getPeak(*it);
-			Intensity model_it = model.getIntensity(peak.getPosition()[dim]);
-			Intensity data_it  = peak.getIntensity();
-			
-			temp_diff = (model_it - data_it);
-			temp_diff *= temp_diff;
-			
-			sum_diff += temp_diff;
+			temp_diff = (model.getIntensity(traits_->getPeakPos(*it)[dim]) - traits_->getPeakIntensity(*it));			
+			sum_diff += temp_diff * temp_diff;
 		}
 		
 		return (0-sqrt(sum_diff));

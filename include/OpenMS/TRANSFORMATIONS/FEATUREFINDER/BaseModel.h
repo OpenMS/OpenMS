@@ -36,19 +36,14 @@
 
 namespace OpenMS
 {
-  /** @brief Abstract base class for all D-dimensional models.
+  /** 
+  	@brief Abstract base class for all D-dimensional models.
 		
-			Every derived class has to implement the static functions
-      "T* create()" and "const String getProductName()" (see FactoryProduct for details)
-
-			Every derived class should implement a getParm method to allow lazy parameter
-			setting i.e. each time the getParam is called the param_ object is updated rather than
-			when the set methods are called allowing fast resetting of the model during fitting.
-			
-			@ingroup FeatureFinder
+		Every derived class has to implement the static functions
+    "T* create()" and "const String getProductName()" (see FactoryProduct for details)
 		
+		@ingroup FeatureFinder
    */
-
   template <UnsignedInt D, typename Traits = KernelTraits>
     class BaseModel
     : public FactoryProduct2
@@ -65,7 +60,7 @@ namespace OpenMS
 	  	typedef DPeakArray<D, DPeak<D,Traits> > SamplesType;
 
 
-      /// standard constructor. 
+      /// Default constructor. 
       BaseModel()
 				: FactoryProduct2("BaseModel")
 			{

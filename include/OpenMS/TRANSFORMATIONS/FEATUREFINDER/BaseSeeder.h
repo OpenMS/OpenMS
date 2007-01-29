@@ -28,7 +28,6 @@
 #define OPENMS_TRANSFORMATIONS_FEATUREFINDER_BASESEEDER_H
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeaFiModule.h>
-#include <OpenMS/DATASTRUCTURES/IndexSet.h>
 
 namespace OpenMS
 {
@@ -45,7 +44,7 @@ namespace OpenMS
   {
 
   public:
-    /// standard constructor 
+    /// Default constructor 
     BaseSeeder();
 
     /// copy constructor 

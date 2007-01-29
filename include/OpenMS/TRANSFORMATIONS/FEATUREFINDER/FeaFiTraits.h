@@ -29,24 +29,16 @@
 #define OPENMS_TRANSFORMATIONS_FEATUREFINDER_FEAFITRAITS_H
 
 #include <OpenMS/DATASTRUCTURES/ScanIndexMSExperiment.h>
-#include <OpenMS/DATASTRUCTURES/IndexSet.h>
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/BaseSeeder.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/BaseExtender.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/BaseModelFitter.h>
-
-#include <OpenMS/KERNEL/DRawDataPoint.h>
-#include <OpenMS/KERNEL/DFeature.h>
 #include <OpenMS/KERNEL/DFeatureMap.h>
-#include <OpenMS/KERNEL/DimensionDescription.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/MSExperimentExtern.h>
-
 #include <OpenMS/SYSTEM/StopWatch.h>
 
-#include <OpenMS/CONCEPT/Exception.h>
-#include <OpenMS/CONCEPT/Types.h>
-
+#include <set>
 #include <fstream>
 #include <sstream>
 #include <string>
@@ -65,8 +57,11 @@ namespace OpenMS
 **/
 class FeaFiTraits
 {
-
-public:
+	public:
+		/// Index in a MSExperiment
+		typedef std::pair<UnsignedInt,UnsignedInt> IDX;
+		/// Index set
+		typedef std::set<IDX> IndexSet;
 
     /// Defines the coordinates of peaks / features.
     enum DimensionId
@@ -77,29 +72,29 @@ public:
 
     /// Flag for each data point
     enum Flag { UNUSED, SEED, INSIDE_FEATURE };
-
+		
+		/// Internal map type
     typedef MSExperimentExtern<DPeak<1> > MapType;
+		/// Intensity type of the map
+    typedef MapType::IntensityType IntensityType;
+    /// Coordinate type of the map
+    typedef MapType::CoordinateType CoordinateType;
 
-    typedef std::vector<Flag> FlagVector;
+    /// 2D position type (needed for models)
+    typedef DPosition<2> PositionType2D;
 
-    typedef DRawDataPoint<2> PeakType;
-    typedef DRawDataPoint<2>::IntensityType IntensityType;
-    typedef DRawDataPoint<2>::CoordinateType CoordinateType;
-    typedef DRawDataPoint<2>::PositionType PositionType;
-    typedef DFeature<2>::ChargeType ChargeType;
-
-    typedef PeakType::NthPositionLess< RT > RTless;
-    typedef PeakType::NthPositionLess< MZ > MZless;
-
-    typedef DFeatureMap<2> FeatureVector;
-    typedef DFeature<2>::ConvexHullType ConvexHullType;
+		/// No successor exception
     typedef FeaFiModule::NoSuccessor NoSuccessor;
 
-    /// standard constructor
-    FeaFiTraits() {}
+    /// Default constructor
+    FeaFiTraits() 
+    {
+    }
 
     /// destructor
-    virtual ~FeaFiTraits() {}
+    virtual ~FeaFiTraits() 
+    {	
+    }
 
     /// copy constructor
     FeaFiTraits(const FeaFiTraits& source)
@@ -107,244 +102,276 @@ public:
             flags_(source.flags_),
             scan_index_(source.scan_index_),
             features_(source.features_)
-    {}
+    {
+    }
 
     /// assignment operator
     FeaFiTraits& operator = (const FeaFiTraits& source)
     {
-        if (&source == this)
-            return *this;
+      if (&source == this) return *this;
 
-        map_             = source.map_;
-        flags_             = source.flags_;
-        scan_index_   = source.scan_index_;
-        features_        = source.features_;
+      map_ = source.map_;
+      flags_ = source.flags_;
+      scan_index_ = source.scan_index_;
+      features_ = source.features_;
 
-        return *this;
+      return *this;
     }
 
     /// set internal data and update range information
     void setData(MapType& exp)
     {			
-				if (exp.size() == 0)
-				{
-					std::cout << "No data provided. Aborting. " << std::endl;
-					return;
-				}
-		
-				map_.setBufferSize( exp.getBufferSize() );
-				map_.updateBuffer();
-				
-				// copy scanwise such that we can remove tandem spectra
-				for (UnsignedInt i=0; i<exp.size(); ++i)
-				{
-					if (exp[i].getMSLevel() == 1) map_.push_back(exp[i]);
-				}	
-		 
-				std::cout << "Updating range information. " << std::endl;
-        // update range informations
-        map_.updateRanges();				
-				
-				std::cout << "This map contains " << map_.size() << " scans  ";
-				std::cout << "and " << map_.getSize() << " data points. " << std::endl;
-
-        // resize internal data structures
-        flags_.reserve(map_.getSize());
-
-				// set peak flags
-        for (UnsignedInt i=0; i<map_.getSize(); ++i)
-            flags_.push_back(FeaFiTraits::UNUSED);
-				
-				scan_index_.init ( map_.peakBegin(), map_.peakEnd() );
+			map_.setBufferSize( exp.getBufferSize() );
+			map_.updateBuffer();
+			
+			// copy scanwise such that we can remove tandem spectra
+			for (UnsignedInt i=0; i<exp.size(); ++i)
+			{
+				if (exp[i].getMSLevel() == 1) map_.push_back(exp[i]);
+			}	
+	 		
+			std::cout << "Updating range information. " << std::endl;
+      // update range informations
+      map_.updateRanges();				
+			
+			if (map_.getSize() == 0)
+			{
+				std::cout << "No data provided. Aborting. " << std::endl;
+				return;
+			}
+			
+			std::cout << "This map contains " << map_.size() << " scans  ";
+			std::cout << "and " << map_.getSize() << " data points. " << std::endl;
+			
+      // resize internal data structures
+      flags_.resize(map_.size());
+			for (UnsignedInt i=0; i<map_.size(); ++i)
+			{
+				flags_[i].assign(map_[i].size(),FeaFiTraits::UNUSED);
+			}
+			
+			scan_index_.init ( map_.peakBegin(), map_.peakEnd() );
    }
 		
 		/// copy input data to external memory and update range information 
     void setData(MSExperiment<DPeak<1> >& exp)
     {
-				if (exp.size() == 0)
-				{
-					std::cout << "No data provided. Aborting. " << std::endl;
-					return;
-				}
+			for (UnsignedInt i=0; i<exp.size(); ++i)
+			{
+				if (exp[i].getMSLevel() == 1) map_.push_back(exp[i]);
+			}	
 		
-				for (UnsignedInt i=0; i<exp.size(); ++i)
-				{
-					if (exp[i].getMSLevel() == 1) map_.push_back(exp[i]);
-				}	
+			std::cout << "Updating range information. " << std::endl;
+      // update range informations
+      map_.updateRanges();
+
+			if (map_.getSize() == 0)
+			{
+				std::cout << "No data provided. Aborting. " << std::endl;
+				return;
+			}
 								
-				std::cout << "Updating range information. " << std::endl;
-        // update range informations
-        map_.updateRanges();
-				
-				std::cout << "This map contains " << map_.size() << " scans ";
-				std::cout << "and " << map_.getSize() << " data points. " << std::endl;
+			std::cout << "This map contains " << map_.size() << " scans ";
+			std::cout << "and " << map_.getSize() << " data points. " << std::endl;
 
-        // resize internal data structures
-        flags_.reserve(map_.getSize());
-
-				// set peak flags
-        for (UnsignedInt i=0; i<map_.getSize(); ++i)
-            flags_.push_back(FeaFiTraits::UNUSED);
-						
-				if (map_.getSize() == 0)
-				{
-					std::cout << "No data provided. Aborting. " << std::endl;
-					return;
-				}
-				scan_index_.init ( map_.peakBegin(), map_.peakEnd() );
+      // resize internal data structures
+      flags_.resize(map_.size());
+			for (UnsignedInt i=0; i<map_.size(); ++i)
+			{
+				flags_[i].assign(map_[i].size(),FeaFiTraits::UNUSED);
+			}
+			
+			scan_index_.init ( map_.peakBegin(), map_.peakEnd() );
     }
 			
 		/// Mutable access to LC-MS map
-		MapType& getData() { return map_; }
+		inline MapType& getData() 
+		{ 
+			return map_; 
+		}
 		/// Const access to LC-MS map
-		const MapType& getData() const { return map_; }
+		inline const MapType& getData() const 
+		{ 
+			return map_; 
+		}
 			
     /// non-mutable access flag with index @p index .
-    const Flag& getPeakFlag(const UnsignedInt index) const throw (Exception::IndexOverflow) {  return flags_.at(index); }
+    inline const Flag& getPeakFlag(const IDX& index) const throw (Exception::IndexOverflow) 
+    {  
+    	return flags_[index.first][index.second];
+    }
     /// mutable access flag with index @p index.
-    Flag& getPeakFlag(const UnsignedInt index) throw (Exception::IndexOverflow) { return flags_.at(index); }
-    /// access peak with index @p index.
-   	PeakType getPeak(const UnsignedInt index) const throw (Exception::IndexOverflow) { return map_.getPeak(index);  }
+    inline Flag& getPeakFlag(const IDX& index) throw (Exception::IndexOverflow) 
+    { 
+    	return flags_[index.first][index.second];
+    }
 
     /// retrieve the number of peaks.
-    const UnsignedInt getNumberOfPeaks()  { return map_.getSize(); }
+    inline UnsignedInt getNumberOfPeaks() 
+    { 
+    	return map_.getSize(); 
+    }
+    
 		/// Retrieve index datastructure 
-		const ScanIndexMSExperiment<MapType >& getScanIndex() { return scan_index_; }
+		const ScanIndexMSExperiment<MapType >& getScanIndex() 
+		{ 
+			return scan_index_; 
+		}
 	
     /// access intensity of peak with index @p index.
-    const IntensityType& getPeakIntensity(const UnsignedInt index) const throw (Exception::IndexOverflow) { return map_.getPeak(index).getIntensity(); }
+    inline const IntensityType& getPeakIntensity(const IDX& index) const
+    { 
+    	return map_[index.first][index.second].getIntensity(); 
+    }
     /// access m/z of peak with index @p index .
-    const CoordinateType& getPeakMz(const UnsignedInt index) const throw (Exception::IndexOverflow) { return map_.getPeak(index).getPosition()[MZ]; }
+    inline const CoordinateType& getPeakMz(const IDX& index) const
+    { 
+    	return map_[index.first][index.second].getPos(); 
+    }
     /// access retention time of peak with index @p index.
-    const CoordinateType& getPeakRt(const UnsignedInt index) const throw (Exception::IndexOverflow) { return map_.getPeak(index).getPosition()[RT]; }
+    inline const CoordinateType& getPeakRt(const IDX& index) const
+    { 
+    	return map_[index.first].getRetentionTime();
+    }
+
+    /// returns the 2D coordinates of a peak (needed for models)
+    PositionType2D getPeakPos(const IDX& index) const
+    { 
+    	PositionType2D pos;
+    	pos[RT] = map_[index.first].getRetentionTime();
+    	pos[MZ] = map_[index.first][index.second].getPos();
+    	return pos;
+    }
 		
     /// access scan number of peak with index @p index
-    const UnsignedInt getPeakScanNr(const UnsignedInt index) const throw (Exception::IndexOverflow)
+    const UnsignedInt getPeakScanNr(const IDX& index) const throw (Exception::IndexOverflow)
     {
-        if (index>=map_.getSize())
-            throw Exception::IndexOverflow(__FILE__, __LINE__, "SimpleFeaFiTraits::getScanNr()", index, map_.getSize());
-        CoordinateType current_rt = getPeakRt(index);
-        return scan_index_.getRank(current_rt);
+    	if (index.first>=map_.size())
+    	{
+      	throw Exception::IndexOverflow(__FILE__, __LINE__, "SimpleFeaFiTraits::getScanNr() RT", index.first, map_.size());
+      }
+    	if (index.second>=map_[index.first].size())
+    	{
+      	throw Exception::IndexOverflow(__FILE__, __LINE__, "SimpleFeaFiTraits::getScanNr() MZ", index.second, map_[index.first].size());
+      }
+      CoordinateType current_rt = getPeakRt(index);
+      return scan_index_.getRank(current_rt);
     }
 
-    /** @brief get index of next peak in m/z dimensio.
-
-    \param index of the peak whose successor is requested
-    \return index of the next peak 
-    */
-    UnsignedInt getNextMz(UnsignedInt index) const throw (Exception::IndexOverflow, NoSuccessor)
+    /// fills @p index with the index of next peak in m/z dimension
+    inline void getNextMz(IDX& index) const throw (Exception::IndexOverflow, NoSuccessor)
     {
-        if (index>=map_.getSize())
-            throw Exception::IndexOverflow(__FILE__, __LINE__, "FeaFiTraits::getNextMz", index, map_.getSize());
-        if (index >= (map_.getSize()-1) )
-            throw NoSuccessor(__FILE__, __LINE__, "FeaFiTraits::getNextMz", index);
-							
-        // check whether we walked out of the current scan i.e. the retention
-        // time has changed
-        if (getPeakRt(index) != getPeakRt(index+1))
-            throw NoSuccessor(__FILE__, __LINE__, "FeaFiTraits::getNextMz", index);
+#ifdef DEBUG_FEATUREFINDER
+    	//Outside of map (should not happen)
+      if (index.first>=map_.size() || index.second>=map_[index.first].size())
+      {
+      	throw Exception::IndexOverflow(__FILE__, __LINE__, "FeaFiTraits::getNextMz", index.first, map_.getSize());
+      }
+#endif
+    	//At the last peak of this spectrum
+      if (index.second==map_[index.first].size()-1)
+      {
+      	throw NoSuccessor(__FILE__, __LINE__, "FeaFiTraits::getNextMz", index);
+      }
 
-        // since we sorted by rt and then by m/z, the peak with the same rt but
-        // the larger m/z is simply one step further in the peak vector
-        return ++index;
+      ++index.second;
     }
 
-    /** @brief get index of previous peak in m/z dimension.
-
-    \param index of the peak whose predecessor is requested
-    \return index of the previous peak
-    */
-    UnsignedInt getPrevMz(UnsignedInt index) const throw (Exception::IndexOverflow, NoSuccessor)
+    /// fills @p index with the index of previous peak in m/z dimension
+    inline void getPrevMz(IDX& index) const throw (Exception::IndexOverflow, NoSuccessor)
     {
-        if (index>=map_.getSize())
-            throw Exception::IndexOverflow(__FILE__, __LINE__, "FeaFiTraits::getPrevMz", index, map_.getSize());
-
-        // if we are at the beginning of the peak vector, there will be no previous peak ;-)
-        if (index == 0)
-            throw NoSuccessor(__FILE__, __LINE__, "FeaFiTraits::getPrevMz", index);
-
-        // check whether we walked out of the current scan i.e. the retention
-        // time has changed (same problem as above in nextMz() )
-        if (getPeakRt(index) != getPeakRt(index-1))
-            throw NoSuccessor(__FILE__, __LINE__, "FeaFiTraits::getPrevMz", index);
-						
-        // same as above
-        return --index;
+#ifdef DEBUG_FEATUREFINDER
+    	//Outside of map (should not happen)
+      if (index.first>=map_.size() || index.second>=map_[index.first].size())
+      {
+      	throw Exception::IndexOverflow(__FILE__, __LINE__, "FeaFiTraits::getNextMz", index.first, map_.getSize());
+      }
+#endif
+      //begin of scan
+      if (index.second==0)
+      {
+      	throw NoSuccessor(__FILE__, __LINE__, "FeaFiTraits::getPrevMz", index);
+			}
+			
+      --index.second;
     }
 
-    /** @brief get index of next peak in retention time dimension.
-     
-    \param index of the peak whose successor is requested
-    \return index of the next peak
-    */
-    UnsignedInt getNextRt(const UnsignedInt index) throw (Exception::IndexOverflow, NoSuccessor)
+    /// fills @p index with the index of next peak in RT dimension
+    inline void getNextRt(IDX& index) throw (Exception::IndexOverflow, NoSuccessor)
     {
-        if (index>=map_.getSize())
-//             throw Exception::IndexOverflow(__FILE__, __LINE__, "FeaFiTraits::getNextRt", index, map_.getSize());
-								NoSuccessor(__FILE__, __LINE__, "getNextRt()",index);
-								
-        const PeakType p  = map_.getPeak(index);
-
-        MapType::PIterator piter;
-        try
-        {
-            piter = scan_index_.getNextRt(p.getPosition()[RT],p.getPosition()[MZ]);
-        }
-        catch (Exception::Base ex)
-        {
-            throw NoSuccessor(__FILE__, __LINE__, "FeaFiTraits::getNextRt", index);
-        }
-        
-				UnsignedInt peak_index = piter.getPeakNumber();
-				
-//         if (peak_index>=map_.getSize())
-//             throw Exception::IndexOverflow(__FILE__, __LINE__, "FeaFiTraits::getNextRt", peak_index, map_.getSize());
-
-				if (peak_index>=map_.getSize() )
-					NoSuccessor(__FILE__, __LINE__, "getNextRt()",peak_index);
-
-        return peak_index;
+ #ifdef DEBUG_FEATUREFINDER
+    	//Outside of map (should not happen)
+      if (index.first>=map_.size() || index.second>=map_[index.first].size())
+      {
+      	throw Exception::IndexOverflow(__FILE__, __LINE__, "FeaFiTraits::getNextMz", index.first, map_.getSize());
+      }
+#endif
+			//last scan
+      if (index.first==map_.size()-1)
+      {
+      	throw NoSuccessor(__FILE__, __LINE__, "FeaFiTraits::getNextRt",index);
+			}
+			
+      MapType::PIterator piter;
+      try
+      {
+      	piter = scan_index_.getNextRt(map_[index.first].getRetentionTime(),map_[index.first][index.second].getPos());
+      }
+      catch (Exception::Base ex)
+      {
+      	throw NoSuccessor(__FILE__, __LINE__, "FeaFiTraits::getNextRt", index);
+      }
+      
+			index = piter.getPeakNumber();
     }
 
-    /** @brief get index of next peak in retiontion time dimension.
-
-    		\param index of the peak whose predecessor is requested
-    		\return index of the previous peak
-    */
-    UnsignedInt getPrevRt(const UnsignedInt index) throw (Exception::IndexOverflow, NoSuccessor)
+    /// fills @p index with the index of previous peak in RT dimension
+		inline void getPrevRt(IDX& index) throw (Exception::IndexOverflow, NoSuccessor)
     {
-				// if we are at the beginning of the peak vector, there will be no previous peak ;-)
-				if (index == 0)
-					throw  NoSuccessor(__FILE__, __LINE__, "FeaFiTraits::getPrevRt", index);
-		
-		     if (index>=map_.getSize())
-// 							 throw Exception::IndexOverflow(__FILE__, __LINE__, "FeaFiTraits::getPrevRt", index, map_.getSize());
-								throw  NoSuccessor(__FILE__, __LINE__, "FeaFiTraits::getPrevRt", index);
-				
-        const PeakType p = getPeak(index);
-        MapType::PIterator piter;
-        try
-        {
-            piter = scan_index_.getPrevRt(p.getPosition()[RT],p.getPosition()[MZ]);
-        }
-        catch (Exception::Base ex)
-        {
-            throw NoSuccessor(__FILE__, __LINE__, "FeaFiTraits::getPrevRt", index);
-        }
+#ifdef DEBUG_FEATUREFINDER
+    	//Outside of map (should not happen)
+      if (index.first>=map_.size() || index.second>=map_[index.first].size())
+      {
+      	throw Exception::IndexOverflow(__FILE__, __LINE__, "FeaFiTraits::getNextMz", index.first, map_.getSize());
+      }
+#endif
+			// first scan
+			if (index.first == 0)
+			{
+				throw  NoSuccessor(__FILE__, __LINE__, "FeaFiTraits::getPrevRt", index);
+			}
+			
+      MapType::PIterator piter;
+      try
+      {
+      	piter = scan_index_.getPrevRt(map_[index.first].getRetentionTime(),map_[index.first][index.second].getPos());
+      }
+      catch (Exception::Base ex)
+      {
+      	throw NoSuccessor(__FILE__, __LINE__, "FeaFiTraits::getPrevRt", index);
+      }
   
-        UnsignedInt peak_index = piter.getPeakNumber();
-				
-//         if (peak_index>=map_.getSize())
-//             throw Exception::IndexOverflow(__FILE__, __LINE__, "FeaFiTraits::getPrevRt", peak_index, map_.getSize());
-						
-				if (peak_index>=map_.getSize() )
-					NoSuccessor(__FILE__, __LINE__, "getPrevRt()", peak_index);
-
-        return peak_index;
+      index = piter.getPeakNumber();
     }
+		
+		//Calculates the convex hull of a index set and adds it to the feature
+		void addConvexHull(const IndexSet& set, DFeature<2>& f) const
+		{
+			std::vector< DPosition<2> > points;
+			points.reserve(set.size());
+			PositionType2D tmp;
+			for (IndexSet::const_iterator it=set.begin(); it!=set.end(); ++it)
+	    {
+	    	tmp[MZ] = map_[it->first][it->second].getPos();
+	    	tmp[RT] = map_[it->first].getRetentionTime();
+      	points.push_back(tmp);
+	    }
+			f.getConvexHulls().resize(f.getConvexHulls().size()+1);
+			f.getConvexHulls()[f.getConvexHulls().size()-1] = points;	
+		}
 
     /// run main loop
-    const FeatureVector& run(const std::vector<BaseSeeder*>& seeders,
+    const DFeatureMap<2>& run(const std::vector<BaseSeeder*>& seeders,
                              const std::vector<BaseExtender*>& extenders,
                              const std::vector<BaseModelFitter*>& fitters)
     {
@@ -364,9 +391,7 @@ public:
             return features_;
         }
 
-        if (seeders.size() == 0 ||
-             extenders.size() == 0 ||
-             fitters.size() == 0)
+        if (seeders.size() == 0 || extenders.size() == 0 || fitters.size() == 0)
         {
             std::cout << " No modules set. Aborting..." << std::endl;
             return features_;
@@ -383,82 +408,80 @@ public:
         StopWatch watch;
         unsigned int seed_count = 0;
         try
-        {
-            while (true)
+      	{
+          while (true)
+          {
+						IndexSet seed_region = seeders[0]->nextSeed();
+
+            watch.start();
+            std::cout << "Extension ..." << std::endl;
+            IndexSet peaks = extenders[0]->extend(seed_region);
+            watch.stop();
+            std::cout << "Time spent for extension: " << watch.getClockTime() << std::endl;
+            watch.reset();
+            ++seed_count;
+						std::cout << "This is seed nr " << seed_count << std::endl;
+            try
             {
-								IndexSet seed_region = seeders[0]->nextSeed();
+              watch.start();
+              features_.push_back(fitters[0]->fit(peaks));
+              watch.stop();
+              std::cout << "Time spent for fitting: " << watch.getClockTime() << std::endl;
+              watch.reset();
 
-                watch.start();
-                std::cout << "Extension ..." << std::endl;
-                IndexSet peaks = extenders[0]->extend(seed_region);
-                watch.stop();
-                std::cout << "Time spent for extension: " << watch.getClockTime() << std::endl;
-                watch.reset();
-                ++seed_count;
-								std::cout << "This is seed nr " << seed_count << std::endl;
-                try
-                {
+							#ifdef DEBUG_FEATUREFINDER
+              writeGnuPlotFile_(peaks,false,nr_feat++);
+							#endif
+              // gather information for fitting summary
+              const DFeature<2>& f = features_[features_.size()-1];
 
-                    watch.start();
-                    features_.push_back(fitters[0]->fit(peaks));
-                    watch.stop();
-                    std::cout << "Time spent for fitting: " << watch.getClockTime() << std::endl;
-                    watch.reset();
+              float corr = f.getOverallQuality();
+              corr_mean += corr;
+              if (corr<corr_min) corr_min = corr;
+              if (corr>corr_max) corr_max = corr;
 
-										#ifdef DEBUG_FEATUREFINDER
-                    writeGnuPlotFile_(peaks,false,nr_feat++);
-										#endif
-                    // gather information for fitting summary
-                    const DFeature<2>& f = features_[features_.size()-1];
+              // count estimated charge states
+              unsigned int ch = f.getCharge();
+              if (ch>= charge.size())
+              {
+              	charge.resize(ch);
+              }
+              charge.at(ch)++;
 
-                    float corr = f.getOverallQuality();
-                    corr_mean += corr;
-                    if (corr<corr_min)
-                        corr_min = corr;
-                    if (corr>corr_max)
-                        corr_max = corr;
+              const Param& p = f.getModelDescription().getParam();
+              ++mz_model[ p.getValue("MZ") ];
 
-                    // count estimated charge states
-                    unsigned int ch = f.getCharge();
-                    if (ch>= charge.size())
-                    {
-                        charge.resize(ch);
-                    }
-                    charge.at(ch)++;
+              DataValue dp = p.getValue("MZ:isotope:stdev");
+              if (dp != DataValue::EMPTY)
+              {
+              	++mz_stdev[p.getValue("MZ:isotope:stdev")];
+              }
 
-                    const Param& p = f.getModelDescription().getParam();
-                    ++mz_model[ p.getValue("MZ") ];
+            }
+            catch( BaseModelFitter::UnableToFit ex)
+            {
+              // set unused flag for all data points
+              for (IndexSet::const_iterator it=peaks.begin(); it!=peaks.end(); ++it)
+              {
+              	getPeakFlag(*it) = FeaFiTraits::UNUSED;
+              }
+              std::cout << " " << ex.what() << std::endl;
+              watch.stop();
+              std::cout << "Time spent for fitting: " << watch.getClockTime() << std::endl;
+              watch.reset();
+              ++no_exceptions;
+              ++exception[ex.getName()];
+							
+							#ifdef DEBUG_FEATUREFINDER
+              writeGnuPlotFile_(peaks,false,nr_feat++);
+							#endif
+            }
 
-                    DataValue dp = p.getValue("MZ:isotope:stdev");
-                    if (dp != DataValue::EMPTY)
-                    {
-                        ++mz_stdev[p.getValue("MZ:isotope:stdev")];
-                    }
-
-                }
-                catch( BaseModelFitter::UnableToFit ex)
-                {
-                    // set unused flag for all data points
-                    for (IndexSet::ConstIterator it=peaks.begin(); it!=peaks.end(); ++it)
-                    {
-                        getPeakFlag(*it) = FeaFiTraits::UNUSED;
-                    }
-                    std::cout << " " << ex.what() << std::endl;
-                    watch.stop();
-                    std::cout << "Time spent for fitting: " << watch.getClockTime() << std::endl;
-                    watch.reset();
-                    ++no_exceptions;
-                    ++exception[ex.getName()];
-										
-										#ifdef DEBUG_FEATUREFINDER
-                    writeGnuPlotFile_(peaks,false,nr_feat++);
-										#endif
-                }
-
-            } // end of while(true)
-        }
+          } // end of while(true)
+      	}
         catch(NoSuccessor ex)
-        { }
+        {
+        }
 
         // Print summary:
         Size size = features_.size();
@@ -509,24 +532,8 @@ public:
 
     } // end of run(seeders, extenders, fitters)
 
-    ///@brief Calculate the convex hull of the peaks contained in @p set
-    const ConvexHullType calculateConvexHull(const IndexSet& set )
-    {
-      ConvexHullType hull;
-      
-    	//convert to vector of DPosition
-			std::vector< DPosition<2> > points;				
-			for (IndexSet::const_iterator it = set.begin(); it!=set.end(); ++it)
-      {
-      	points.push_back(getPeak(*it).getPosition());
-      }
-      //calculate convex hull
-      hull = points;
-      return hull;
-    }
-
-protected:
-   /// Writes gnuplot output (only for debugging purposes)
+	protected:
+  	/// Writes gnuplot output (only for debugging purposes)
     void writeGnuPlotFile_(IndexSet peaks, bool last,int nr_feat)
     {
         // write feature + surrounding region to file
@@ -535,7 +542,7 @@ protected:
             String gp_fname("plot.gp");
             std::ofstream gpfile( gp_fname.c_str(), std::ios_base::app  );
 
-            String file    = "region" + String(nr_feat);
+            String file    = String("region") + nr_feat;
 
 						if (nr_feat == 0)
 							gpfile << "splot \'" << file << "\' w i title \"\" " << std::endl;
@@ -570,60 +577,72 @@ protected:
     MapType map_;
 
     /// Flags indicating whether a peak is unused, a seed or inside a feature region
-    FlagVector flags_;
+    std::vector< std::vector<Flag> > flags_;
 
     /// stores reference to the scan numbers for each peak.
     ScanIndexMSExperiment<MapType, MapType::PIterator > scan_index_;
 
     /// The found features in the LC/MS map
-    FeatureVector features_;
+    DFeatureMap<2> features_;
 };
 
 namespace Internal
 {
-/// @brief makes operator*() return intensity of the corresponding peak
-struct IntensityIterator : IndexSet::const_iterator
-{
-    IntensityIterator ( IndexSet::const_iterator const & iter, FeaFiTraits const * traits )
-            : IndexSet::const_iterator(iter),
-            traits_(traits)
-    {}
+	/// makes operator*() return intensity of the corresponding peak
+	struct IntensityIterator 
+		: FeaFiTraits::IndexSet ::const_iterator
+	{
+    IntensityIterator ( FeaFiTraits::IndexSet ::const_iterator const & iter, FeaFiTraits const * traits )
+      : FeaFiTraits::IndexSet ::const_iterator(iter),
+      	traits_(traits)
+    {
+    }
+    
     FeaFiTraits::IntensityType operator * () const throw()
     {
-        return traits_->getPeakIntensity( IndexSet::const_iterator::operator *() );
+    	return traits_->getPeakIntensity( FeaFiTraits::IndexSet ::const_iterator::operator *() );
     }
-protected:
-    FeaFiTraits const * traits_;
-};
-
-///  @brief Makes operator*() return mz of the corresponding peak
-struct MzIterator : IndexSet::const_iterator
-{
-    MzIterator ( IndexSet::const_iterator const & iter, FeaFiTraits const * traits )
-            : IndexSet::const_iterator(iter),
-            traits_(traits)
-    {}
+    
+		protected:
+	    FeaFiTraits const * traits_;
+	};
+	
+	/// Makes operator*() return mz of the corresponding peak
+	struct MzIterator 
+		: FeaFiTraits::IndexSet ::const_iterator
+	{
+    MzIterator ( FeaFiTraits::IndexSet ::const_iterator const & iter, FeaFiTraits const * traits )
+			: FeaFiTraits::IndexSet ::const_iterator(iter), 
+				traits_(traits)
+    {
+    }
+    
     FeaFiTraits::CoordinateType operator * () const throw()
     {
-        return traits_->getPeakMz( IndexSet::const_iterator::operator *() );
+    	return traits_->getPeakMz( FeaFiTraits::IndexSet ::const_iterator::operator *() );
     }
-protected:
-    FeaFiTraits const * traits_;
-};
-
-/// @brief Makes operator*() return retention time of the corresponding peak
-struct RtIterator : IndexSet::const_iterator
-{
-    RtIterator ( IndexSet::const_iterator const & iter, FeaFiTraits const * traits )
-            : IndexSet::const_iterator(iter),
-            traits_(traits)
-    {}
+    
+		protected:
+	    FeaFiTraits const * traits_;
+	};
+	
+	/// Makes operator*() return retention time of the corresponding peak
+	struct RtIterator 
+		: FeaFiTraits::IndexSet ::const_iterator
+	{
+    RtIterator ( FeaFiTraits::IndexSet ::const_iterator const & iter, FeaFiTraits const * traits )
+    	: FeaFiTraits::IndexSet ::const_iterator(iter),
+    		traits_(traits)
+    {
+    }
+    
     FeaFiTraits::CoordinateType operator * () const throw()
     {
-        return traits_->getPeakRt( IndexSet::const_iterator::operator *() );
+    	return traits_->getPeakRt( FeaFiTraits::IndexSet ::const_iterator::operator *() );
     }
-protected:
-    FeaFiTraits const * traits_;
+		
+		protected:
+	    FeaFiTraits const * traits_;
 };
 
 } // namespace Internal

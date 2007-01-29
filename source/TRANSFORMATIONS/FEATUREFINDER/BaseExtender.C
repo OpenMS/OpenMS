@@ -37,16 +37,25 @@ namespace OpenMS
 		Factory<BaseExtender>::registerProduct(SimpleExtender::getName(), &SimpleExtender::create);
 	}	
 
-	BaseExtender::BaseExtender() : FeaFiModule() { }
+	BaseExtender::BaseExtender() : FeaFiModule()
+	{
+	}
 
 	BaseExtender::BaseExtender(const BaseExtender& source)
-		: FeaFiModule(source) {}
+		: FeaFiModule(source)
+	{
+	}
 
-	BaseExtender::~BaseExtender(){}
+	BaseExtender::~BaseExtender()
+	{
+	}
 	
 	BaseExtender& BaseExtender::operator = (const BaseExtender& source)
 	{
+		if (&source == this) return *this;
+		
 		FeaFiModule::operator = (source);
+		
 		return *this;
 	}
 }

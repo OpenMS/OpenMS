@@ -46,29 +46,40 @@ namespace OpenMS
 	{
 		public:
 		
-		/// standard constructor 
-		ModelDescription(): name_(), parameters_(){}
+		/// Default constructor 
+		ModelDescription()
+			: name_(), 
+				parameters_()
+		{
+		}
 		
 		/// copy constructor 
-		ModelDescription(const ModelDescription& source):
-			name_(source.name_),
-			parameters_(source.parameters_)
-		{}
+		ModelDescription(const ModelDescription& source)
+			:	name_(source.name_),
+				parameters_(source.parameters_)
+		{
+		}
 
 		/// constructor provided for convenience
-		ModelDescription(const BaseModel<D,Traits>* model):
-			name_(model->getName()),
-			parameters_(model->getParameters())
-		{}
+		ModelDescription(const BaseModel<D,Traits>* model)
+			: name_(model->getName()),
+				parameters_(model->getParameters())
+		{
+		}
 
 		/// destructor 
-		virtual ~ModelDescription(){}
+		virtual ~ModelDescription()
+		{
+		}
 		
 		/// assignment operator 
 		virtual ModelDescription& operator = (const ModelDescription& source)
 		{
+			if (&source == this) return *this;
+			
 			name_ = source.name_;
 			parameters_ = source.parameters_;
+			
 			return *this;
 		}
 		
@@ -85,18 +96,36 @@ namespace OpenMS
 		/**	Accessors	*/
 		//@{
 		/// Non-mutable access to model name
-		inline const String& getName() const { return name_; }
+		inline const String& getName() const
+		{ 
+			return name_; 
+		}
 		/// Mutable access to the model name
-		inline String& getName() { return name_; }
+		inline String& getName() 
+		{ 
+			return name_; 
+		}
 		/// Set the model name
-		inline void setName(const String& name) { name_ = name; }
+		inline void setName(const String& name)
+		{ 
+			name_ = name; 
+		}
 
 		/// Non-mutable access to model parameters
-		inline const Param& getParam() const { return parameters_; }
+		inline const Param& getParam() const 
+		{ 
+			return parameters_; 
+		}
 		/// Mutable access to the model parameters
-		inline Param& getParam() { return parameters_; }
+		inline Param& getParam() 
+		{ 
+			return parameters_;
+		}
 		/// Set the model parameters
-		inline void setParam(const Param& param) { parameters_ = param; }
+		inline void setParam(const Param& param)
+		{ 
+			parameters_ = param; 
+		}
     
 		/**	@name Predicates */
 		//@{

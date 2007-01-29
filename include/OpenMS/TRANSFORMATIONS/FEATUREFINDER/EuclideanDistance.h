@@ -33,18 +33,19 @@
 
 namespace OpenMS
 {
-	/** @brief Measures the quality of a modelfit to some realworld data. 
+	/**
+		@brief Measures the quality of a modelfit to some realworld data. 
 	  
-	 		Quality is measured as the euclidean distance between model and data.
-	 		
-	 		@ingroup FeatureFinder
-	 	*/
+ 		Quality is measured as the euclidean distance between model and data.
+ 		
+ 		@ingroup FeatureFinder
+ 	*/
   class EuclideanDistance 
     : public BaseQuality
   {
 
   public:
-    /// standard constructor
+    /// Default constructor
     EuclideanDistance();
 
     /// destructor 
@@ -56,14 +57,23 @@ namespace OpenMS
     /// evaluates the quality of the fit of @p model to @p set along dimension @p dim
     double evaluate(const IndexSet& set, const BaseModel<1>& model, UnsignedInt dim);
 
-	/// creates instance of this class (function is called by factory).
-    static BaseQuality* create() { return new EuclideanDistance(); }
+		/// creates instance of this class (function is called by factory).
+    static BaseQuality* create() 
+    { 
+    	return new EuclideanDistance(); 
+    }
 
 		/// Name of this quality
-    static const String getName() { return "EuclideanDistance"; }
+    static const String getName() 
+    { 
+    	return "EuclideanDistance"; 
+    }
 		
 		/// Returns significance
-		double getPvalue() { return pval_; }
+		double getPvalue() 
+		{ 
+			return pval_; 
+		}
   };
 }
 #endif // OPENMS_TRANSFORMATIONS_FEATUREFINDER_EUCLIDEANDISTANCE_H

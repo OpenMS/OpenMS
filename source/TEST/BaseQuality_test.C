@@ -32,8 +32,6 @@
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/GaussModel.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/ProductModel.h>
 
-#include <OpenMS/DATASTRUCTURES/IndexSet.h>
-
 #include <OpenMS/CONCEPT/Exception.h>
 
 #include <OpenMS/MATH/STATISTICS/BasicStatistics.h>
@@ -109,8 +107,8 @@ RESULT
 
 CHECK(double evaluate(const IndexSet& /*set*/, const BaseModel<2>& /*model*/))
 	TestQuality ft;
-	IndexSet inds;
-	inds.add(6);
+	FeaFiModule::IndexSet  inds;
+	inds.insert(std::make_pair(7,7));
 	
 	// compile model
 	GaussModel * gm1 = new GaussModel();
@@ -137,8 +135,8 @@ RESULT
 
 CHECK(double evaluate(const IndexSet& /*set*/, const BaseModel<1>& /*model*/, UnsignedInt dim))
 	TestQuality ft;
-	IndexSet inds;
-	inds.add(6);
+	FeaFiModule::IndexSet  inds;
+	inds.insert(std::make_pair(7,7));
 	GaussModel bm;
 	TEST_REAL_EQUAL(ft.evaluate(inds,bm,1),3.0);
 RESULT

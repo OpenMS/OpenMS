@@ -138,9 +138,9 @@ namespace OpenMS
 	DFeature<2> ExtendedModelFitter::fit(const IndexSet& set) throw (UnableToFit)
 	{
 		// not enough peaks to fit
-		if (set.size() < static_cast<Size>(param_.getValue("min_num_peaks:extended")))
+		if (set.size() < (UnsignedInt)(param_.getValue("min_num_peaks:extended")))
 		{
-			String mess = "Skipping feature, IndexSet size too small: "+String(set.size());
+			String mess = String("Skipping feature, IndexSet size too small: ") + set.size();
 			throw UnableToFit(__FILE__, __LINE__,__PRETTY_FUNCTION__,"UnableToFit-IndexSet", mess.c_str());
 		}
 
@@ -164,7 +164,7 @@ namespace OpenMS
 
 		// Calculate bounding box
 		IndexSetIter it=set.begin();
-		min_ = max_ = traits_->getPeak(*it).getPosition();
+		min_ = max_ = traits_->getPeakPos(*it);
 		for ( ++it; it!=set.end(); ++it )
 		{
 			CoordinateType tmp = traits_->getPeakMz(*it);
@@ -219,8 +219,8 @@ namespace OpenMS
 		}
 
 		// model with highest correlation
-		ProductModel<2>* final = static_cast< ProductModel<2>* >(model_desc.createModel());
-
+		ProductModel<2>* final = dynamic_cast< ProductModel<2>* >(model_desc.createModel());
+		
 		// model_desc.createModel() returns 0 if class model_desc is not initialized
 		// in this case something went wrong during the modelfitting and we stop.
 		if (! final)
@@ -233,8 +233,7 @@ namespace OpenMS
 		float model_max = 0;
 		for (IndexSetIter it=set.begin(); it!=set.end(); ++it)
 		{
-			const DRawDataPoint<2>& p = traits_->getPeak(*it);
-			float model_int = final->getIntensity(p.getPosition());
+			float model_int = final->getIntensity(traits_->getPeakPos(*it));
 			if (model_int>model_max) model_max = model_int;
 		}
 		final->setCutOff( model_max * float(param_.getValue("intensity_cutoff_factor")));
@@ -242,9 +241,9 @@ namespace OpenMS
 		// Cutoff low intensities wrt to model maximum -> cutoff independent of scaling
 		IndexSet model_set;
 		for (IndexSetIter it=set.begin(); it!=set.end(); ++it) {
-			if ( final->isContained( traits_->getPeak(*it).getPosition() ))
+			if ( final->isContained(traits_->getPeakPos(*it)) )
 			{
-				model_set.add(*it);
+				model_set.insert(*it);
 			}else		// free dismissed peak via setting the appropriate flag
 			{
 				traits_->getPeakFlag(*it) = FeaFiTraits::UNUSED;
@@ -254,23 +253,22 @@ namespace OpenMS
 		std::cout << " Selected " << model_set.size() << " from " << set.size() << " peaks.\n";
 
 		// not enough peaks left for feature
-		if (model_set.size() < static_cast<Size>(param_.getValue("min_num_peaks:final")))
+		if (model_set.size() < (UnsignedInt)(param_.getValue("min_num_peaks:final")))
 		{
 			delete final;
 			throw UnableToFit(__FILE__, __LINE__,__PRETTY_FUNCTION__,
 												"UnableToFit-FinalSet",
-												"Skipping feature, IndexSet size after cutoff too small: "
-												+String(model_set.size()));
+												String("Skipping feature, IndexSet size after cutoff too small: ") + model_set.size() );
 		}
  		max_quality = quality_->evaluate(model_set, *final); // recalculate quality after cutoff
 
 		std::cout << "P-value : " << quality_->getPvalue() << std::endl;
 		
 		// fit has too low quality or fit was not possible i.e. because of zero stdev
-		if (max_quality < static_cast<float>(param_.getValue("quality:minimum")))
+		if (max_quality < (float)(param_.getValue("quality:minimum")))
 		{
 			delete final;
-			String mess = "Skipping feature, correlation too small: "+String(max_quality);
+			String mess = String("Skipping feature, correlation too small: ") + max_quality;
 			throw UnableToFit(__FILE__, __LINE__,__PRETTY_FUNCTION__,"UnableToFit-Correlation", mess.c_str());
 		}
 
@@ -280,11 +278,10 @@ namespace OpenMS
 		float data_max = 0;
 		for (IndexSetIter it=model_set.begin(); it!=model_set.end(); ++it)
 		{
-			const DRawDataPoint<2>& p = traits_->getPeak(*it);
-			float model_int = final->getIntensity(p.getPosition());
+			float model_int = final->getIntensity(traits_->getPeakPos(*it));
 			model_sum += model_int;
-			data_sum += p.getIntensity();
-			if (p.getIntensity() > data_max) data_max = p.getIntensity();
+			data_sum += traits_->getPeakIntensity(*it);
+			if (traits_->getPeakIntensity(*it) > data_max) data_max = traits_->getPeakIntensity(*it);
 		}
 
 		// fit has too low quality or fit was not possible i.e. because of zero stdev
@@ -304,11 +301,11 @@ namespace OpenMS
 		DFeature<2> f;
 		f.setModelDescription( ModelDescription<2>(final) );
 		f.setOverallQuality(max_quality);
-		f.getPosition()[RT] = static_cast<InterpolationModel<>*>(final->getModel(RT))->getCenter();
-		f.getPosition()[MZ] = static_cast<InterpolationModel<>*>(final->getModel(MZ))->getCenter();
+		f.getPosition()[RT] = dynamic_cast<InterpolationModel<>*>(final->getModel(RT))->getCenter();
+		f.getPosition()[MZ] = dynamic_cast<InterpolationModel<>*>(final->getModel(MZ))->getCenter();
 		if (final->getModel(MZ)->getName() == "IsotopeModel")
 		{
-			f.setCharge(static_cast<IsotopeModel*>(final->getModel(MZ))->getCharge());
+			f.setCharge(dynamic_cast<IsotopeModel*>(final->getModel(MZ))->getCharge());
 		}
 		// if we used a simple Gaussian model to fit the feature, we can't say anything about
 		// its charge state. The value 0 indicates that charge state is undetermined.
@@ -339,7 +336,7 @@ namespace OpenMS
 		} 
 		
 		f.setIntensity(feature_intensity);
-		f.getConvexHulls().push_back(traits_->calculateConvexHull(model_set));
+		traits_->addConvexHull(model_set, f);
 
 		std::cout << Date::now() << " Feature " << counter_
 							<< ": (" << f.getPosition()[RT]
@@ -348,7 +345,7 @@ namespace OpenMS
 
 
 		f.getQuality(RT) = quality_->evaluate(model_set, *final->getModel(RT), RT );
-		f.getQuality(MZ) = quality_->evaluate(model_set, *(static_cast<InterpolationModel<>*>(final->getModel(MZ)) ), MZ );
+		f.getQuality(MZ) = quality_->evaluate(model_set, *(dynamic_cast<InterpolationModel<>*>(final->getModel(MZ)) ), MZ );
 
 		// save meta data in feature for TOPPView
 		stringstream meta ;
@@ -362,26 +359,26 @@ namespace OpenMS
 		CoordinateType mz = f.getPosition()[MZ];
 		
 		// write feature model 
-		String fname = String("model")+ String(counter_) + "_" + String(rt) + "_" + String(mz);
+		String fname = String("model")+ counter_ + "_" + rt + "_" + mz;
 		ofstream file(fname.c_str()); 
 		for (IndexSetIter it=model_set.begin(); it!=model_set.end(); ++it) 
 		{
-			if ( final->isContained( traits_->getPeak(*it).getPosition() ))
+			DPosition<2> pos = traits_->getPeakPos(*it);
+			if ( final->isContained(pos) )
 			{
-				const DRawDataPoint<2>& p = traits_->getPeak(*it);
-				file << p.getPosition()[RT] << " " << p.getPosition()[MZ] << " " << final->getIntensity( p.getPosition() ) << "\n";						
+				file << pos[RT] << " " << pos[MZ] << " " << final->getIntensity( traits_->getPeakPos(*it)) << "\n";						
 			}
 		}
 		
 		// wrote peaks remaining after model fit
-		fname = String("feature") + String(counter_) +  "_" + String(rt) + "_" + String(mz);
+		fname = String("feature") + counter_ +  "_" + rt + "_" + mz;
 		ofstream file2(fname.c_str()); 
 		for (IndexSetIter it=model_set.begin(); it!=model_set.end(); ++it) 
 		{
-			if ( final->isContained( traits_->getPeak(*it).getPosition() ))
+			DPosition<2> pos = traits_->getPeakPos(*it);
+			if ( final->isContained(pos) )
 			{
-				const DRawDataPoint<2>& p = traits_->getPeak(*it);
-				file2 << p.getPosition()[RT] << " " << p.getPosition()[MZ] << " " << p.getIntensity() << "\n";						
+				file2 << pos[RT] << " " << pos[MZ] << " " << traits_->getPeakIntensity(*it) << "\n";						
 			}
 		}
 		file.close();
@@ -407,7 +404,7 @@ namespace OpenMS
 		{
 			mz_model = new GaussModel();
 			mz_model->setInterpolationStep(interpolation_step_mz);
-			static_cast<GaussModel*>(mz_model)->setParam(mz_stat_, min_[MZ], max_[MZ]);
+			dynamic_cast<GaussModel*>(mz_model)->setParam(mz_stat_, min_[MZ], max_[MZ]);
 		}
 		else
 		{
@@ -417,39 +414,39 @@ namespace OpenMS
 			iso_param.remove("stdev");
 			mz_model->setParameters(iso_param);
 			mz_model->setInterpolationStep(interpolation_step_mz);
-			static_cast<IsotopeModel*>(mz_model)->setParam(mz_stat_.mean(), mz_fit, isotope_stdev);
+			dynamic_cast<IsotopeModel*>(mz_model)->setParam(mz_stat_.mean(), mz_fit, isotope_stdev);
 		}
 		InterpolationModel<>* rt_model;
 		if (rt_fit==RTGAUSS)
 		{
 			rt_model = new GaussModel();
 			rt_model->setInterpolationStep(interpolation_step_rt);
-			static_cast<GaussModel*>(rt_model)->setParam(rt_stat_, min_[RT], max_[RT]);
+			dynamic_cast<GaussModel*>(rt_model)->setParam(rt_stat_, min_[RT], max_[RT]);
 
 		}
 		else if (rt_fit==LMAGAUSS)
 		{
 			rt_model = new LmaGaussModel();
 			rt_model->setInterpolationStep(interpolation_step_rt);
-			static_cast<LmaGaussModel*>(rt_model)->setParam(rt_stat_, scale_factor_, standard_deviation_, expected_value_, min_[RT], max_[RT]);
+			dynamic_cast<LmaGaussModel*>(rt_model)->setParam(rt_stat_, scale_factor_, standard_deviation_, expected_value_, min_[RT], max_[RT]);
 		}
 		else if (rt_fit==EMGAUSS)
 		{
 			rt_model = new EmgModel();
 			rt_model->setInterpolationStep(interpolation_step_rt);
-			static_cast<EmgModel*>(rt_model)->setParam(rt_stat_, height_, width_, symmetry_, retention_, min_[RT], max_[RT]);
+			dynamic_cast<EmgModel*>(rt_model)->setParam(rt_stat_, height_, width_, symmetry_, retention_, min_[RT], max_[RT]);
 		}
 		else if (rt_fit==LOGNORMAL)
 		{
 			rt_model = new LogNormalModel();
 			rt_model->setInterpolationStep(interpolation_step_rt);
-			static_cast<LogNormalModel*>(rt_model)->setParam(rt_stat_, height_, width_, symmetry_, retention_, r_, min_[RT], max_[RT]);
+			dynamic_cast<LogNormalModel*>(rt_model)->setParam(rt_stat_, height_, width_, symmetry_, retention_, r_, min_[RT], max_[RT]);
 		}
 		else
 		{
 			rt_model = new BiGaussModel();
 			rt_model->setInterpolationStep(interpolation_step_rt);
-			static_cast<BiGaussModel*>(rt_model)->setParam(rt_stat_.mean(), rt_stat_.variance1(), rt_stat_.variance2(), min_[RT], max_[RT]);
+			dynamic_cast<BiGaussModel*>(rt_model)->setParam(rt_stat_.mean(), rt_stat_.variance1(), rt_stat_.variance2(), min_[RT], max_[RT]);
 		}
 
 		model2D_.setModel(MZ, mz_model).setModel(RT, rt_model);
@@ -506,7 +503,7 @@ namespace OpenMS
 		// sum over all intensities
 		double sum = 0.0;
 
-		//String fname = "feature"+String(counter_)+"_orginal_"+profile_;
+		//String fname = String("feature") + counter_ + "_orginal_" + profile_;
 		//ofstream orgFile(fname.c_str());
 
 		/** iterate over all points of the signal **/

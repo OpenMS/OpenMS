@@ -62,6 +62,7 @@ namespace OpenMS
     : public BaseSeeder
   {
 		typedef FeaFiTraits::IntensityType IntensityType;
+		typedef FeaFiTraits::MapType MapType;
 				
 		enum DimensionId
     {
@@ -70,37 +71,25 @@ namespace OpenMS
     };
 
   public:
-		/** @brief Functor that allows to compare the indizes of two peaks by their intensity.
-
-		*/
+		///Functor that allows to compare the indizes of two peaks by their intensity.
   	class IntensityLess 
-  	{
-  		typedef FeaFiTraits::IntensityType IntensityType;
-			
+  	{			
   		public:
-  			/// Construtor
   			IntensityLess(FeaFiTraits* traits)
-					: intensities_(0)
+					: map_(&(traits->getData()))
   			{
-					// save peak intensities
-					intensities_ = new IntensityType[ traits->getNumberOfPeaks() ];
-					for (UnsignedInt i=0; i<traits->getNumberOfPeaks();++i)
-					{
-						intensities_[i] = traits->getPeakIntensity(i) ;
-					}
 				}
   			
-  			/// Overloaded () operator that allows to treat this class as a functor.
-  			bool operator() (const Index& x, const Index& y)
+  			bool operator() (const IDX& x, const IDX& y)
 				{
-    			return intensities_[x] < intensities_[y];
+    			return map_->operator[](x.first)[x.second].getIntensity() < map_->operator[](y.first)[y.second].getIntensity();
 				}
   			
   		protected:
-					IntensityType* intensities_;
+				FeaFiTraits::MapType* map_;
   	};
   	
-    /// standard constructor
+    /// Default constructor
     SimpleSeeder();
 
     /// destructor 
@@ -124,13 +113,13 @@ namespace OpenMS
   	void sort_();
   	
   	/// contains the indizes 
-  	std::vector<UnsignedInt> indizes_;
-  	
+  	std::vector<IDX> indizes_;
+
   	/// Indicates whether the vector of indizes is sorted 
   	bool is_initialised_;
   	
   	/// Points to the next peak in the peak vector 
-  	std::vector<UnsignedInt>::const_iterator current_peak_;
+  	std::vector<IDX>::const_iterator current_peak_;
   	
   	/// counts the number of seeds that we returned so far
   	UnsignedInt nr_seeds_;

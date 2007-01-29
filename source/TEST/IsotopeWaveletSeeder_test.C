@@ -66,7 +66,7 @@ CHECK((~IsotopeWaveletSeeder()))
 	delete ptr;
 RESULT
 
-CHECK((IndexSet nextSeed() throw(NoSuccessor)))
+CHECK((FeaFiModule::IndexSet  nextSeed() throw(NoSuccessor)))
   IsotopeWaveletSeeder seeder;
   FeaFiTraits* traits = new FeaFiTraits();
  
@@ -81,7 +81,7 @@ CHECK((IndexSet nextSeed() throw(NoSuccessor)))
   param.setValue("rtvotes_cutoff",0);
 	seeder.setParam(param);
 	
-	IndexSet region;
+	FeaFiModule::IndexSet  region;
 	Index peak;
 	
 	region = seeder.nextSeed();

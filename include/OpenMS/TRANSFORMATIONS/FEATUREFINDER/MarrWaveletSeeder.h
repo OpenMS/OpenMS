@@ -31,7 +31,6 @@
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeaFiTraits.h>
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/ContinuousWaveletTransformNumIntegration.h>
 
-#include <OpenMS/DATASTRUCTURES/IndexSet.h>
 #include <OpenMS/KERNEL/DimensionDescription.h>
 #include <OpenMS/KERNEL/KernelTraits.h>
 
@@ -69,7 +68,8 @@ namespace OpenMS
     {
         IsotopeCluster()
           : charge_(0), peaks_(), scans_()
-        {}
+        {
+        }
      
         // predicted charge state of this peptide
         UnsignedInt charge_;
@@ -96,7 +96,7 @@ namespace OpenMS
 	typedef TableType::value_type TableEntry;
 	
   public:
-	   /// standard constructor
+	   /// Default constructor
     MarrWaveletSeeder();
 
     /// destructor 

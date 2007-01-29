@@ -74,7 +74,7 @@ namespace OpenMS
 
 		enum Averagines{C=0,H,N,O,S,AVERAGINE_NUM};
 
-    /// standard constructor
+    /// Default constructor
     IsotopeModel();
 
     ///  copy constructor

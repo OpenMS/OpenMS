@@ -74,7 +74,8 @@ MarrWaveletSeeder::MarrWaveletSeeder()
 }
 
 MarrWaveletSeeder::~MarrWaveletSeeder()
-{}
+{
+}
 
 IndexSet MarrWaveletSeeder::nextSeed() throw (NoSuccessor)
 {
@@ -150,7 +151,7 @@ void MarrWaveletSeeder::sweep_()
         std::cout << "Retention time: " << current_rt << std::endl;
 
 				#ifdef DEBUG_FEATUREFINDER
-        String fname = "scan_" + String(current_rt);
+        String fname = String("scan_") + current_rt;
         std::ofstream peakfile( fname.c_str() );
         for(unsigned k = 0; k<current_scan.size();++k)
         {
@@ -169,7 +170,7 @@ void MarrWaveletSeeder::sweep_()
         cwt_.transform(current_scan.begin(), current_scan.end(),resolution_cwt);
 
 				#ifdef DEBUG_FEATUREFINDER
-        fname = "cwt_" + String(current_rt);
+        fname = String("cwt_") + current_rt;
         std::ofstream gpfile( fname.c_str() );
         for (int i=0;i<cwt_.getSize(); ++i)
         {
@@ -590,7 +591,7 @@ void MarrWaveletSeeder::getMaxPositions_( RawDataPointIterator first, RawDataPoi
                 ( wt[i]  > noise_level_cwt_ ) )
         {
 						#ifdef DEBUG_FEATUREFINDER
-            String fname = "cwt_localmax_" + String(current_rt);
+            String fname = String("cwt_localmax_") + current_rt;
             std::ofstream gpfile( fname.c_str(), std::ios_base::app);
             gpfile << (first + i)->getPos()  << "  " << cwt_[i] << std::endl;
             gpfile.close();

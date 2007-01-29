@@ -106,10 +106,8 @@ namespace OpenMS
   	typedef FeaFiTraits::CoordinateType CoordinateType;
 		/// Priority of a point (see below)
   	typedef KernelTraits::ProbabilityType ProbabilityType;
-		/// Point type (raw, picked etc)
-		typedef FeaFiTraits::PeakType PeakType;
 		/// Position of a point
-		typedef PeakType::PositionType PositionType;
+		typedef  FeaFiTraits::PositionType2D PositionType2D;
   	
   	enum DimensionId
 			{ 
@@ -117,7 +115,7 @@ namespace OpenMS
 				MZ = DimensionDescription < LCMS_Tag >::MZ
 			};
   
-  	/// standard constructor
+  	/// Default constructor
     SimpleExtender();
 
     /// destructor
@@ -152,12 +150,14 @@ namespace OpenMS
      * */ 	
   	struct IndexWithPriority
   	{
-  		IndexWithPriority(UnsignedInt i, double p) : index(i), priority(p) {}
+  		IndexWithPriority(const IDX& i, double p) : index(i), priority(p)
+  		{
+  		}
   		
-  		UnsignedInt index;
+  		IDX index;
   		ProbabilityType priority;
   		
-			/// @brief Compares two indizes by priority.		
+			///Compares two indizes by priority.		
   		struct PriorityLess
   		{  			 			  			
   			
@@ -173,25 +173,25 @@ namespace OpenMS
   protected:
   	 	
   	/// Checks if the current peak is too far from the centroid
-  	bool isTooFarFromCentroid_(UnsignedInt current_index);
+  	bool isTooFarFromCentroid_(const IDX& current_index);
    	
    	/// Extends the seed into positive m/z direction   	
-  	void moveMzUp_(UnsignedInt current_peak);
+  	void moveMzUp_(const IDX& current_peak);
   	
   	/// Extends the seed into negative m/z direction 
-  	void moveMzDown_(UnsignedInt current_peak);
+  	void moveMzDown_(const IDX& current_peak);
   	
   	/// Extension into positive rt dimension 
-  	void moveRtUp_(UnsignedInt current_peak);
+  	void moveRtUp_(const IDX& current_peak);
   	
   	/// Extends the seed into negative retention time direction 
-  	void moveRtDown_(UnsignedInt current_peak);
+  	void moveRtDown_(const IDX& current_peak);
   	
   	/// Computes the priority of a peak as function of intensity and distance from seed. 
-  	ProbabilityType computePeakPriority_(PeakType & peak);
+  	ProbabilityType computePeakPriority_(const IDX& index);
   	
   	/// Checks the neighbours of the current for insertion into the boundary.
-  	void checkNeighbour_(UnsignedInt current_peak);
+  	void checkNeighbour_(const IDX& index);
   	
   	/// This flag indicates whether the first seed has already been processed. 
   	bool first_seed_seen_;
@@ -203,13 +203,13 @@ namespace OpenMS
   	IntensityType intensity_factor_;
   	  	
   	/// keeps an running average of the peak coordinates weighted by the intensities 
-  	RunningAveragePosition< PositionType > running_avg_;
+  	RunningAveragePosition< PositionType2D > running_avg_;
   	
   	/// Keeps track of peaks already included in the boundary (value is priority of peak) 
-  	std::map<UnsignedInt, ProbabilityType> priorities_; 
+  	std::map<IDX, ProbabilityType> priorities_; 
   	
   	/// Position of last peak extracted from the boundary (used to compute the priority of neighbouring peaks)
-  	PositionType last_pos_extracted_;
+  	PositionType2D last_pos_extracted_;
 		  	
   	/// Represents the boundary of a feature 
   	std::priority_queue< IndexWithPriority, std::vector < IndexWithPriority > , IndexWithPriority::PriorityLess > boundary_;    
@@ -237,8 +237,6 @@ namespace OpenMS
 		
 		/// Minium priority for points in the feature region (priority is function of intensity and distance to seed)
 		ProbabilityType priority_threshold_;
-		
-		PositionType seed_;
 		
   };
 }

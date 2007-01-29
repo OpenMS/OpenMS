@@ -28,6 +28,8 @@
 
 #include <iostream>
 
+using namespace std;
+
 namespace OpenMS
 {
 
@@ -41,15 +43,29 @@ namespace OpenMS
 		param_ = defaults_;
 	}
 
-	SimpleSeeder::~SimpleSeeder(){}
+	SimpleSeeder::~SimpleSeeder()
+	{
+	}
 
-  IndexSet SimpleSeeder::nextSeed() throw (NoSuccessor)
+  FeaFiModule::IndexSet SimpleSeeder::nextSeed() throw (NoSuccessor)
 	{
 		if (!is_initialised_) 
 		{
+			//fill indices
+			indizes_.resize(traits_->getData().getSize());
+			UnsignedInt k = 0;
+			UnsignedInt i = 0;
+			while (i < traits_->getData().size())
+			{
+				UnsignedInt j = 0;
+				while (j < traits_->getData()[i].size())
+				{
+					indizes_[k++] = make_pair(i,j);
+					++j;
+				}
+				++i;
+			}
 			
-			UnsignedInt endIndex = traits_->getNumberOfPeaks();
-			for (UnsignedInt i=0;i<endIndex;++i) indizes_.push_back(i);
 			sort_(); // sort index vector by intensity of peaks
 		
 			current_peak_ = indizes_.begin();
@@ -67,8 +83,7 @@ namespace OpenMS
 		
 		// while the current peak is either already used or in a feature
 		// jump to next peak...
-		while (current_peak_ != indizes_.end() 
-		       && traits_->getPeakFlag(*current_peak_) != FeaFiTraits::UNUSED) 
+		while (current_peak_ != indizes_.end() && traits_->getPeakFlag(*current_peak_) != FeaFiTraits::UNUSED) 
 		{
 			current_peak_++;
 		}
@@ -98,10 +113,10 @@ namespace OpenMS
 		// set flag
 		traits_->getPeakFlag(*current_peak_) = FeaFiTraits::SEED;
 		
-		IndexSet bla;
-		bla.add( *current_peak_++ );
+		IndexSet result;
+		result.insert( *current_peak_++ );
 				
-		return bla;
+		return result;
 	}
 	
 	void SimpleSeeder::sort_() 
@@ -111,6 +126,7 @@ namespace OpenMS
 		
 		// we want to retrieve the peak with the highest
 		// intensity first, therefore we reverse the order of peaks
+		// ALARM
 		reverse(indizes_.begin(),indizes_.end());
 	}
 

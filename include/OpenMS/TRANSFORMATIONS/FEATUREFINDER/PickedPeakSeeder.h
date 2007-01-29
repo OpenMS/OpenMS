@@ -42,53 +42,56 @@
 namespace OpenMS
 {
 
-/** @brief Seeding class
-
-		This extender module sweeps through the scans and classifies cluster 
- 		of peaks as candidate peptides if the distance between successive peaks 
- 		is 1 Da (charge 1) , 0.5 Da (charge 2) or 0.3 Da (charge 3) etc.
- 
- 		@NOTE This module works only for picked peaks. Used it in combination with class DummySeeder.
- 
- 		@NOTE Experiments have shown that this extender produces a lot of false positive hits. It would be
- 		better to take also the relaitive intensities between the peaks into consideration and to check if these
- 		a similar to an isotopic pattern.
-  			
-		@ingroup FeatureFinder
+	/** @brief Seeding class
 	
-*/
-class PickedPeakSeeder
-            : public BaseSeeder
-{
-		 /// stores information about an isotopic cluser (i.e. potential peptide charge variant)
-    struct IsotopeCluster
-    {
-        IsotopeCluster()
-                : charge_(0), peaks_(), scans_()
-        {}
-
-        // predicted charge state of this peptide
-        UnsignedInt charge_;
-        // peaks in this cluster
-        IndexSet peaks_;
-        // scans containing peaks which belong to this cluster
-        std::vector<UnsignedInt> scans_;
-    };
-
-    typedef FeaFiTraits::IntensityType IntensityType;
-    typedef FeaFiTraits::CoordinateType CoordinateType;
-    typedef KernelTraits::ProbabilityType ProbabilityType;
+			This extender module sweeps through the scans and classifies cluster 
+	 		of peaks as candidate peptides if the distance between successive peaks 
+	 		is 1 Da (charge 1) , 0.5 Da (charge 2) or 0.3 Da (charge 3) etc.
+	 
+	 		@note This module works only for picked peaks. Used it in combination with class DummySeeder.
+	 
+	 		@note Experiments have shown that this extender produces a lot of false positive hits. It would be
+	 		better to take also the relaitive intensities between the peaks into consideration and to check if these
+	 		a similar to an isotopic pattern.
+	  			
+			@ingroup FeatureFinder
+		
+	*/
+	class PickedPeakSeeder
+	  : public BaseSeeder
+	{
+		public:
+		/// stores information about an isotopic cluser (i.e. potential peptide charge variant)
+		struct IsotopeCluster
+		{
+	    IsotopeCluster()
+	      : charge_(0), 
+	      	peaks_(), 
+	      	scans_()
+	    {
+	    }
+	
+	    // predicted charge state of this peptide
+	    UnsignedInt charge_;
+	    // peaks in this cluster
+	    IndexSet peaks_;
+	    // scans containing peaks which belong to this cluster
+	    std::vector<UnsignedInt> scans_;
+		};
+	
+	  typedef FeaFiTraits::IntensityType IntensityType;
+	  typedef FeaFiTraits::CoordinateType CoordinateType;
+	  typedef KernelTraits::ProbabilityType ProbabilityType;
 		typedef std::multimap<CoordinateType,IsotopeCluster> TableType;
 		typedef TableType::value_type TableEntry;
+	
+	  enum DimensionId
+	  {
+      RT = DimensionDescription < LCMS_Tag >::RT,
+      MZ = DimensionDescription < LCMS_Tag >::MZ
+	  };
 
-    enum DimensionId
-    {
-        RT = DimensionDescription < LCMS_Tag >::RT,
-        MZ = DimensionDescription < LCMS_Tag >::MZ
-    };
-
-public:
-    /// standard constructor
+    /// Default constructor
     PickedPeakSeeder();
 
     /// destructor
@@ -106,50 +109,46 @@ public:
     {
         return "PickedPeakSeeder";
     }
-
-   
-
-protected:
-
+	
+	protected:
+		
     /// Finds the neighbour of the peak denoted by @p current_mz in the previous scan
-    std::vector<double>::iterator searchInScan_(std::vector<CoordinateType>::iterator scan_begin,
-            																												std::vector<CoordinateType>::iterator scan_end ,
-            																												CoordinateType current_mz)
+    std::vector<double>::iterator searchInScan_(const std::vector<CoordinateType>::iterator& scan_begin, CoordinateType current_mz)
     {
+      // perform binary search to find the neighbour in rt dimension
+      // 	lower_bound finds the peak with m/z current_mz or the next larger peak if this peak does not exist.
+      std::vector<CoordinateType>::iterator insert_iter = lower_bound(scan_begin,scan_end,current_mz);
 
-        // perform binary search to find the neighbour in rt dimension
-        // 	lower_bound finds the peak with m/z current_mz or the next larger peak if this peak does not exist.
-        std::vector<CoordinateType>::iterator insert_iter = lower_bound(scan_begin,scan_end,current_mz);
-
-        // the peak found by lower_bound does not have to be the closest one, therefore we have
-        // to check both neighbours
-        if ( insert_iter == scan_end ) // we are at the and have only one choice
+      // the peak found by lower_bound does not have to be the closest one, therefore we have
+      // to check both neighbours
+      if ( insert_iter == scan_end ) // we are at the and have only one choice
+      {
+      	return --insert_iter;
+      }
+      else
+      {
+        // if the found peak is at the beginning of the spectrum,
+        // there is not much we can do.
+        if ( insert_iter == scan_begin )
         {
-            return --insert_iter;
+            return insert_iter;
         }
-        else
+        else // see if the next smaller one fits better
         {
-            // if the found peak is at the beginning of the spectrum,
-            // there is not much we can do.
-            if ( insert_iter == scan_begin )
-            {
-                return insert_iter;
-            }
-            else // see if the next smaller one fits better
-            {
-                double delta_mz = fabs(*insert_iter - current_mz);
-                --insert_iter;
+          double delta_mz = fabs(*insert_iter - current_mz);
+          
+          --insert_iter;
 
-                if ( fabs(*insert_iter - current_mz) < delta_mz )
-                {
-                    return insert_iter; // peak to the left is closer (in m/z dimension)
-                }
-                else
-                {
-                    return ++insert_iter;    // peak to the right is closer
-                }
-            }
+          if ( fabs(*insert_iter - current_mz) < delta_mz )
+          {
+          	return insert_iter; // peak to the left is closer (in m/z dimension)
+          }
+          else
+          {
+          	return ++insert_iter;    // peak to the right is closer
+          }
         }
+      }
 
     } // end of searchInScan_
 
@@ -192,7 +191,6 @@ protected:
     CoordinateType charge5_ub_;
     /// lower bound for distance between charge 5 peaks
     CoordinateType charge5_lb_;
-
-};
+	};
 }
 #endif // OPENMS_TRANSFORMATIONS_FEATUREFINDER_PICKEDPEAKSEEDER_H

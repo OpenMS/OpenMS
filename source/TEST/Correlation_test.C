@@ -34,7 +34,6 @@
 
 #include <OpenMS/MATH/STATISTICS/BasicStatistics.h>
 
-#include <OpenMS/DATASTRUCTURES/IndexSet.h>
 ///////////////////////////
 
 START_TEST(Correlation, "$Id Correlation_test.C 139 2006-07-14 10:08:39Z ole_st $")
@@ -109,8 +108,11 @@ CHECK((double evaluate(const IndexSet& set, const BaseModel<1>& model, UnsignedI
 		
 	corr.setTraits(&traits);
 	
-	IndexSet set;
-	set.add(0,4);
+	FeaFiModule::IndexSet  set;
+	for (UnsignedInt i=0; i<=4; ++i)
+	{
+		set.insert(std::make_pair(i,0));
+	}
 	
 	// evaluate rt dimension
 	double result = corr.evaluate(set, gm1,0);
@@ -182,8 +184,11 @@ CHECK((double evaluate(const IndexSet& set, const BaseModel<2>& model)))
 	
 	corr.setTraits(&traits);
 	
-	IndexSet set;
-	set.add(0,4);
+	FeaFiModule::IndexSet  set;
+	for (UnsignedInt i=0; i<=4; ++i)
+	{
+		set.insert(std::make_pair(i,0));
+	}
 	
 	double result = corr.evaluate(set, pm1);
 	double pval   = corr.getPvalue();

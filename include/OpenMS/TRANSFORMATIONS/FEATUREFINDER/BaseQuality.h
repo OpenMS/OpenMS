@@ -34,8 +34,6 @@
 
 namespace OpenMS
 {
-	class IndexSet;
-
   /** @brief Abstract base class to calculate quality for Modelfitting
     
   	 Abstract base class to calculate quality for Modelfitting
@@ -48,7 +46,7 @@ namespace OpenMS
   class BaseQuality: public FeaFiModule
   {
   public:
-    /// standard constructor
+    /// Default constructor
     BaseQuality();
 
     /// copy constructor
@@ -70,7 +68,10 @@ namespace OpenMS
     virtual double evaluate(const IndexSet& set, const BaseModel<1>& model, UnsignedInt dim)=0;
 		
 		/// Returns the significance of the last fit (if applicable, otherwise -1
-		double getPvalue() { return pval_; }
+		double getPvalue()
+		{ 
+			return pval_;
+		}
 		
 	protected:
 		/// Significance of fit

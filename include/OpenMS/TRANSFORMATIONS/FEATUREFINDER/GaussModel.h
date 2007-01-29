@@ -63,7 +63,7 @@ public:
     typedef Math::BasicStatistics<CoordinateType > BasicStatistics;
     typedef InterpolationModel<> InterpolationModel;
 
-    /// standard constructor
+    /// Default constructor
     GaussModel();
 
     /// copy constructor

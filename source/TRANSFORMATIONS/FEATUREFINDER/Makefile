@@ -48,17 +48,17 @@ CPP_SOURCES=\
 	ExtendedModelFitter.C\
 	BaseSeeder.C\
 	SimpleSeeder.C\
-	MarrWaveletSeeder.C\
-	PickedPeakSeeder.C\
-	IsotopeWaveletSeeder.C\
 	BaseQuality.C\
 	Correlation.C\
-	EuclideanDistance.C\
 	RankCorrelation.C\
+	EuclideanDistance.C\
 	FeaFiTraits.C\
 	FeatureFinder.C
 
-
+#	MarrWaveletSeeder.C\
+#	PickedPeakSeeder.C\
+#	IsotopeWaveletSeeder.C\
+	
 ADD_CPP_SOURCES = $(CGAL_SOURCES)
 
 include ../../common.mak
