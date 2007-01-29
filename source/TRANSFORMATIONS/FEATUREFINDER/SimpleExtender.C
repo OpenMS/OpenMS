@@ -164,14 +164,9 @@ namespace OpenMS
 			running_avg_.add(last_pos_extracted_,scan[current_index.second].getIntensity());
 
 			// explore neighbourhood of current peak
-			std::cout << "CURRENT INDEX: " << current_index.first << " " << current_index.second << std::endl;
-			std::cout << "--MZ UP--"<< std::endl;
 			moveMzUp_(current_index);
-			std::cout << "--MZ DOWN--"<< std::endl;
 			moveMzDown_(current_index);
-			std::cout << "--RT UP--"<< std::endl;
 			moveRtUp_(current_index);
-			std::cout << "--RT DOWN--"<< std::endl;
 			moveRtDown_(current_index);
 
 			// check peak flags (if data point is already inside a feature region or used as seed, we discard it)

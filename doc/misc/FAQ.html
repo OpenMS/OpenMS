@@ -25,7 +25,8 @@
 		
     <li>
       <h3>After compiling OpenMS successfully, I receive a linker error saying something about <tt>QString:QString(std::char...)</tt></h3>
-      Try compiling OpenMS with the multithread version of QT by running configure with the option --with-qt-mt. 
+      Try compiling OpenMS with a multithread version of QT. In order to do that use the '-thread' falg in Qt's configure
+      and run OpenMS configure with the option '--with-qt-mt'. 
     </li>
  
   </UL>

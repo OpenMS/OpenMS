@@ -181,7 +181,7 @@ namespace OpenMS
 											
 											IsotopeCluster isoclust;
 											isoclust.charge_ = current_charge;
-											isoclust.scans_.push_back( traits_->getPeakScanNr(curr_peak) );
+											isoclust.scans_.push_back( curr_peak.first );
 	
 											entry_to_insert = iso_map_.insert( TableEntry(mz_in_hash, isoclust) );           
 	                }
@@ -194,7 +194,7 @@ namespace OpenMS
 	                   										
 											std::pair<TableType::iterator, TableType::iterator> range = iso_map_.equal_range(mz_in_hash);
 											
-											UnsignedInt current_scan = traits_->getPeakScanNr(curr_peak);
+											UnsignedInt current_scan = curr_peak.first;
 																					
 											if (range.first != range.second)		// several peak cluster at this m/z found
 											{
@@ -217,7 +217,7 @@ namespace OpenMS
 												entry_to_insert	 = range.first;										
 											}
 	                    // save current rt and m/z
-	                    entry_to_insert->second.scans_.push_back( traits_->getPeakScanNr(curr_peak) );
+	                    entry_to_insert->second.scans_.push_back( curr_peak.first );
 	
 											#ifdef DEBUG_FEATUREFINDER
 	                    std::cout << "Cluster with " << entry_to_insert->second.peaks_.size() << " peaks retrieved." << std::endl;
@@ -236,7 +236,7 @@ namespace OpenMS
 									
 									IsotopeCluster isoclust;
 									isoclust.charge_ = current_charge;
-									isoclust.scans_.push_back( traits_->getPeakScanNr(curr_peak) );
+									isoclust.scans_.push_back( curr_peak.first );
 	
 									entry_to_insert = iso_map_.insert( TableEntry(mz_in_hash, isoclust) );          
 	            }
