@@ -750,12 +750,6 @@ CHECK((const CoordinateType& getRetentionTime() const))
   TEST_REAL_EQUAL(sdi.getRetentionTime(),-1)
 RESULT
 
-CHECK((CoordinateType& getRetentionTime()))
-  DSpectrum<1> sdi;
-  sdi.getRetentionTime() = 47.11;
-  TEST_REAL_EQUAL(sdi.getRetentionTime(),47.11)
-RESULT
-
 CHECK((CoordinateType getNormalizedRetentionTime() const))
   DSpectrum<1> sdi;
   TEST_REAL_EQUAL(sdi.getNormalizedRetentionTime(),-1)

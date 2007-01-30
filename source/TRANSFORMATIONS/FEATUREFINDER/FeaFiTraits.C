@@ -50,7 +50,6 @@ namespace OpenMS
   FeaFiTraits::FeaFiTraits(const FeaFiTraits& source)
     : map_(source.map_),
 	    flags_(source.flags_),
-	    scan_index_(source.scan_index_),
 	    features_(source.features_)
   {
   }
@@ -62,7 +61,6 @@ namespace OpenMS
 
     map_ = source.map_;
     flags_ = source.flags_;
-    scan_index_ = source.scan_index_;
     features_ = source.features_;
 
     return *this;
@@ -99,8 +97,6 @@ namespace OpenMS
 		{
 			flags_[i].assign(map_[i].size(),FeaFiTraits::UNUSED);
 		}
-		
-		scan_index_.init ( map_.peakBegin(), map_.peakEnd() );
  }
 	
 
@@ -130,30 +126,10 @@ namespace OpenMS
 		{
 			flags_[i].assign(map_[i].size(),FeaFiTraits::UNUSED);
 		}
-		
-		scan_index_.init ( map_.peakBegin(), map_.peakEnd() );
   }
- 
-
-	const ScanIndexMSExperiment<FeaFiTraits::MapType>& FeaFiTraits::getScanIndex() 
-	{
-		return scan_index_; 
-	}
-
-
-  FeaFiTraits::PositionType2D FeaFiTraits::getPeakPos(const IDX& index) const
-  { 
-  	PositionType2D pos;
-  	pos[RT] = map_[index.first].getRetentionTime();
-  	pos[MZ] = map_[index.first][index.second].getPos();
-  	return pos;
-  }
-
 
   void FeaFiTraits::getNextRt(IDX& index) throw (Exception::IndexOverflow, NoSuccessor)
   {
-//		IDX original_index = index;
-		
 #ifdef DEBUG_FEATUREFINDER
   	//Outside of map (should not happen)
     if (index.first>=map_.size() || index.second>=map_[index.first].size())
@@ -166,20 +142,6 @@ namespace OpenMS
     {
     	throw NoSuccessor(__FILE__, __LINE__, "FeaFiTraits::getNextRt",index);
 		}
-
-//		MapType::PIterator piter;
-//		try
-//		{
-//		 piter = scan_index_.getNextRt(map_[index.first].getRetentionTime(),map_[index.first][index.second].getPos());
-//		}
-//		catch (Exception::Base ex)
-//		{
-//		 throw NoSuccessor(__FILE__, __LINE__, "FeaFiTraits::getNextRt", index);
-//		}
-//		
-//		
-//		IDX ole_index = piter.getPeakNumber();
-//		index = original_index;
 		
 		// perform binary search to find the neighbour in rt dimension
 		CoordinateType mz_pos = map_[index.first][index.second].getPos();
@@ -209,15 +171,9 @@ namespace OpenMS
 				index.second = --it - map_[index.first].begin(); 
 			}
 		}
-//		if (index!=ole_index)
-//		{
-//			cout << "PEAK: " << getPeakRt(original_index) << "/" << getPeakMz(original_index) << " (" << original_index.first << "/" << original_index.second << ")" << endl;
-//			cout << "Ole : " << getPeakRt(ole_index) << "/" << getPeakMz(ole_index) << " (" << ole_index.first << "/" << ole_index.second << ")" << endl;
-//			cout << "Marc: " << getPeakRt(index) << "/" << getPeakMz(index) << " (" << index.first << "/" << index.second << ")" << endl;
-//		}
   }
-
-  /// fills @p index with the index of previous peak in RT dimension
+  
+  
 	void FeaFiTraits::getPrevRt(IDX& index) throw (Exception::IndexOverflow, NoSuccessor)
   {
 #ifdef DEBUG_FEATUREFINDER
@@ -233,17 +189,34 @@ namespace OpenMS
 			throw  NoSuccessor(__FILE__, __LINE__, "FeaFiTraits::getPrevRt", index);
 		}
 		
-    MapType::PIterator piter;
-    try
-    {
-    	piter = scan_index_.getPrevRt(map_[index.first].getRetentionTime(),map_[index.first][index.second].getPos());
-    }
-    catch (Exception::Base ex)
-    {
-    	throw NoSuccessor(__FILE__, __LINE__, "FeaFiTraits::getPrevRt", index);
-    }
-
-    index = piter.getPeakNumber();
+		// perform binary search to find the neighbour in rt dimension
+		CoordinateType mz_pos = map_[index.first][index.second].getPos();
+		--index.first;
+		MapType::SpectrumType::ConstIterator it = lower_bound(map_[index.first].begin(), map_[index.first].end(), map_[index.first+1][index.second], MapType::SpectrumType::PeakType::PositionLess());	
+		
+		// if the found peak is at the end of the spectrum, there is not much we can do.
+		if ( it == map_[index.first].end() )
+		{
+	 		index.second = map_[index.first].size()-1;
+		}
+		// if the found peak is at the beginning of the spectrum, there is not much we can do.
+		else if ( it == map_[index.first].begin() ) 
+		{
+			index.second = 0;
+		}
+		// see if the next smaller one fits better
+		else 
+		{	
+			// peak to the right is closer (in m/z dimension)
+			if (it->getPos() - mz_pos < mz_pos - (it-1)->getPos() )
+			{
+				index.second = it - map_[index.first].begin(); 
+			}
+			else
+			{
+				index.second = --it - map_[index.first].begin(); 
+			}
+		}
   }
 	
 	//Calculates the convex hull of a index set and adds it to the feature
@@ -262,7 +235,6 @@ namespace OpenMS
 		f.getConvexHulls()[f.getConvexHulls().size()-1] = points;	
 	}
 
-  /// run main loop
   const DFeatureMap<2>& FeaFiTraits::run(const vector<BaseSeeder*>& seeders, const vector<BaseExtender*>& extenders, const vector<BaseModelFitter*>& fitters)
   {
     // Visualize seeds and extension in TOPPView:

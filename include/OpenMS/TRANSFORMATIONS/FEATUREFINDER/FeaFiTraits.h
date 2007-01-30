@@ -28,7 +28,6 @@
 #ifndef OPENMS_TRANSFORMATIONS_FEATUREFINDER_FEAFITRAITS_H
 #define OPENMS_TRANSFORMATIONS_FEATUREFINDER_FEAFITRAITS_H
 
-#include <OpenMS/DATASTRUCTURES/ScanIndexMSExperiment.h>
 #include <OpenMS/KERNEL/DFeatureMap.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/MSExperimentExtern.h>
@@ -125,9 +124,6 @@ namespace OpenMS
 	    { 
 	    	return map_.getSize(); 
 	    }
-	    
-			/// Retrieve index datastructure 
-			const ScanIndexMSExperiment<MapType >& getScanIndex();
 		
 	    /// access intensity of peak with index @p index.
 	    inline const IntensityType& getPeakIntensity(const IDX& index) const
@@ -146,7 +142,10 @@ namespace OpenMS
 	    }
 	
 	    /// returns the 2D coordinates of a peak (needed for models)
-	    PositionType2D getPeakPos(const IDX& index) const;
+	    inline PositionType2D getPeakPos(const IDX& index) const
+			{ 
+				return PositionType2D(map_[index.first].getRetentionTime(),map_[index.first][index.second].getPos());
+			}
 	
 	    /// fills @p index with the index of next peak in m/z dimension
 	    inline void getNextMz(IDX& index) const throw (Exception::IndexOverflow, NoSuccessor)
@@ -186,10 +185,10 @@ namespace OpenMS
 	      --index.second;
 	    }
 	
-	    /// fills @p index with the index of next peak in RT dimension
+	    /// fills @p index with the index of nearest peak in m/z dimension in the next spectrum
 	    void getNextRt(IDX& index) throw (Exception::IndexOverflow, NoSuccessor);
 	
-	    /// fills @p index with the index of previous peak in RT dimension
+	    /// fills @p index with the index of nearest peak in m/z dimension in the previous spectrum
 			void getPrevRt(IDX& index) throw (Exception::IndexOverflow, NoSuccessor);
 			
 			//Calculates the convex hull of a index set and adds it to the feature
@@ -209,9 +208,6 @@ namespace OpenMS
 	
 	    /// Flags indicating whether a peak is unused, a seed or inside a feature region
 	    std::vector< std::vector<Flag> > flags_;
-	
-	    /// stores reference to the scan numbers for each peak.
-	    ScanIndexMSExperiment<MapType, MapType::PIterator > scan_index_;
 	
 	    /// The found features in the LC/MS map
 	    DFeatureMap<2> features_;

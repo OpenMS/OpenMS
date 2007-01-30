@@ -59,7 +59,7 @@ namespace OpenMS
      Afterwards a pairfinder class (e.g. SimplePairFinder or DelaunayPairFinder) 
      dewarps the data and searches for corresponding points in both maps.
           
-     @NOTE If a piecewise transformation is assumed, the user can define a grid by setting 
+     @note If a piecewise transformation is assumed, the user can define a grid by setting 
      the number of buckets in the RT as well as the MZ dimension.   
      Call initGridTransformation() before run()!   
      

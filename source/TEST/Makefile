@@ -50,8 +50,6 @@ EXECUTABLES_DATASTRUCTURES = \
 	HashMap_test\
 	DPosition_test\
 	RunningAveragePosition_test\
-	ScanIndex_test\
-	ScanIndexMSExperiment_test\
 	DIntervalBase_test\
 	DRange_test\
 	DBoundingBox_test\

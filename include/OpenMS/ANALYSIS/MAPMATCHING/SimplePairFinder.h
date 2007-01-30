@@ -47,7 +47,7 @@ namespace OpenMS
      given two point maps and a transformation defined for the second element map (if no
      transformation is given, the pairs are found in the two original maps). 
      
-     @NOTE This pair finder do not offer a method to compute consensus elements given 
+     @note This pair finder do not offer a method to compute consensus elements given 
      two element maps!
      
      @todo Description of the similarity measure (Clemens).

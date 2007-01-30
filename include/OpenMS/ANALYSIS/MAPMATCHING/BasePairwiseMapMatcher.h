@@ -57,7 +57,7 @@ namespace OpenMS
      (the so called scene map) onto the other map (the so called model map).
      Given the transformation correspoinding elements in the two maps are determined.
      
-     @NOTE If a piecewise transformation is assumed, the user can define a grid by setting 
+     @note If a piecewise transformation is assumed, the user can define a grid by setting 
      the number of buckets in the RT as well as the MZ dimension. 
      Call initGridTransformation() before run()!
 

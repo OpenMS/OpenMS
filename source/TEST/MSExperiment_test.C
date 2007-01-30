@@ -291,11 +291,6 @@ CHECK((UnsignedInt getSize() const))
 	TEST_EQUAL(tmp.getSize(),0)
 RESULT
 
-CHECK((const std::vector<UnsignedInt>& getSpectraLengths() const))
-	MSExperiment<DRawDataPoint<1> > tmp;
-	TEST_EQUAL(tmp.getSpectraLengths().size(),0)
-RESULT
-
 CHECK((const AreaType& getDataRange() const))
 	MSExperiment<DRawDataPoint<1> > tmp;
 	TEST_REAL_EQUAL(tmp.getDataRange().min()[1],numeric_limits<DPosition<2>::CoordinateType>::max())
@@ -369,12 +364,6 @@ CHECK((virtual void updateRanges()))
 	TEST_EQUAL(tmp.getMSLevels().size(),2)
 	TEST_EQUAL(tmp.getMSLevels()[0],1)
 	TEST_EQUAL(tmp.getMSLevels()[1],3)
-
-	TEST_EQUAL(tmp.getSpectraLengths().size(),4)
-	TEST_EQUAL(tmp.getSpectraLengths()[0],1)
-	TEST_EQUAL(tmp.getSpectraLengths()[1],2)
-	TEST_EQUAL(tmp.getSpectraLengths()[2],3)
-	TEST_EQUAL(tmp.getSpectraLengths()[3],4)
 	
 	TEST_EQUAL(tmp.getSize(),4)
 	
@@ -390,9 +379,6 @@ CHECK((virtual void updateRanges()))
 	TEST_REAL_EQUAL(tmp.getMaxRT(),40.0)
 	TEST_EQUAL(tmp.getMSLevels().size(),1)
 	TEST_EQUAL(tmp.getMSLevels()[0],1)
-	TEST_EQUAL(tmp.getSpectraLengths().size(),2)
-	TEST_EQUAL(tmp.getSpectraLengths()[0],1)
-	TEST_EQUAL(tmp.getSpectraLengths()[1],2)
 	TEST_EQUAL(tmp.getSize(),2)
 	tmp.updateRanges(1);
 	TEST_REAL_EQUAL(tmp.getMinMZ(),5.0)
@@ -403,9 +389,6 @@ CHECK((virtual void updateRanges()))
 	TEST_REAL_EQUAL(tmp.getMaxRT(),40.0)
 	TEST_EQUAL(tmp.getMSLevels().size(),1)
 	TEST_EQUAL(tmp.getMSLevels()[0],1)
-	TEST_EQUAL(tmp.getSpectraLengths().size(),2)
-	TEST_EQUAL(tmp.getSpectraLengths()[0],1)
-	TEST_EQUAL(tmp.getSpectraLengths()[1],2)
 	TEST_EQUAL(tmp.getSize(),2)
 
 	//test with only one peak
@@ -486,9 +469,6 @@ CHECK((void updateRanges(SignedInt ms_level)))
 	TEST_REAL_EQUAL(tmp.getMaxRT(),40.0)
 	TEST_EQUAL(tmp.getMSLevels().size(),1)
 	TEST_EQUAL(tmp.getMSLevels()[0],1)
-	TEST_EQUAL(tmp.getSpectraLengths().size(),2)
-	TEST_EQUAL(tmp.getSpectraLengths()[0],1)
-	TEST_EQUAL(tmp.getSpectraLengths()[1],2)
 	TEST_EQUAL(tmp.getSize(),2)
 	tmp.updateRanges(1);
 	TEST_REAL_EQUAL(tmp.getMinMZ(),5.0)
@@ -499,9 +479,6 @@ CHECK((void updateRanges(SignedInt ms_level)))
 	TEST_REAL_EQUAL(tmp.getMaxRT(),40.0)
 	TEST_EQUAL(tmp.getMSLevels().size(),1)
 	TEST_EQUAL(tmp.getMSLevels()[0],1)
-	TEST_EQUAL(tmp.getSpectraLengths().size(),2)
-	TEST_EQUAL(tmp.getSpectraLengths()[0],1)
-	TEST_EQUAL(tmp.getSpectraLengths()[1],2)
 	TEST_EQUAL(tmp.getSize(),2)
 
 	//test with only one peak
@@ -524,84 +501,6 @@ CHECK((void updateRanges(SignedInt ms_level)))
 	TEST_REAL_EQUAL(tmp2.getMinRT(),30.0)
 	TEST_REAL_EQUAL(tmp2.getMaxRT(),30.0)
 	
-RESULT
-
-CHECK((DRawDataPoint<2> getPeak(const UnsignedInt index) throw(Exception::IndexOverflow)))
-	DPeakArray<2> plist;
-	
-	DPeak<2> p1;
-	p1.getPosition()[0] = 1.0;
-	p1.getPosition()[1] = 2.0;
-	plist.push_back(p1);
-		
-	DPeak<2> p2;
-	p2.getPosition()[0] = 1.0;
-	p2.getPosition()[1] = 3.0;
-	plist.push_back(p2);
-		
-	DPeak<2> p3;
-	p3.getPosition()[0] = 2.0;
-	p3.getPosition()[1] = 10.0;
-	plist.push_back(p3);
-	
-	DPeak<2> p4;
-	p4.getPosition()[0] = 2.0;
-	p4.getPosition()[1] = 11.0;
-	plist.push_back(p4);
-	
-	MSExperiment<> exp;
-	exp.set2DData(plist);
-	
-	exp.updateRanges();
-	 	
-	TEST_EQUAL(exp.getPeak(0).getPosition()[1],2.0);
-	
-	TEST_EQUAL(exp.getPeak(1).getPosition()[1],3.0);
-	
-	TEST_EQUAL(exp.getPeak(2).getPosition()[1],10.0);
-	
-	TEST_EQUAL(exp.getPeak(3).getPosition()[1],11.0);
-	
-
-RESULT
-
-CHECK((PeakIterator()))
-	DPeakArray<2> plist;
-	
-	DPeak<2> p1;
-	p1.getPosition()[0] = 1.0;
-	p1.getPosition()[1] = 2.0;
-	plist.push_back(p1);
-		
-	DPeak<2> p2;
-	p2.getPosition()[0] = 1.0;
-	p2.getPosition()[1] = 3.0;
-	plist.push_back(p2);
-		
-	DPeak<2> p3;
-	p3.getPosition()[0] = 2.0;
-	p3.getPosition()[1] = 10.0;
-	plist.push_back(p3);
-	
-	DPeak<2> p4;
-	p4.getPosition()[0] = 2.0;
-	p4.getPosition()[1] = 11.0;
-	plist.push_back(p4);
-	
-	MSExperiment<> exp;
-	exp.set2DData(plist);
-		
-	MSExperiment< >::PIterator rt_it = exp.peakBegin(); 	
-	
-	TEST_EQUAL(rt_it->getPosition()[0],2.0);
-	rt_it++;
-	TEST_EQUAL(rt_it->getPosition()[0],3.0);
-	rt_it++;
-	TEST_EQUAL(rt_it->getPosition()[0],10.0);
-	rt_it++;
-	TEST_EQUAL(rt_it->getPosition()[0],11.0);
-	rt_it++;
-	TEST_EQUAL(rt_it==exp.peakEnd(),true);
 RESULT
 
 CHECK((AreaIterator()))
@@ -771,18 +670,11 @@ CHECK((void sortSpectra(bool sort_mz = true)))
 	exp.set2DData(plist);
 	
 	exp.sortSpectra(true);
-	
-	MSExperiment< >::PIterator rt_it = exp.peakBegin();
  	
-	TEST_EQUAL(rt_it->getPosition()[0],3.0);
-	rt_it++;
-	TEST_EQUAL(rt_it->getPosition()[0],5.0);
-	rt_it++;
-	TEST_EQUAL(rt_it->getPosition()[0],11.0);
-	rt_it++;
-	TEST_EQUAL(rt_it->getPosition()[0],14.0);
-	rt_it++;
-	TEST_EQUAL(rt_it==exp.peakEnd(),true);
+	TEST_REAL_EQUAL(exp[0][0].getPos(),3.0);
+	TEST_REAL_EQUAL(exp[0][1].getPos(),5.0);
+	TEST_REAL_EQUAL(exp[1][0].getPos(),11.0);
+	TEST_REAL_EQUAL(exp[1][1].getPos(),14.0);
 RESULT
 
 CHECK((void reset()))

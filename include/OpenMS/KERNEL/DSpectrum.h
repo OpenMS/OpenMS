@@ -439,16 +439,6 @@ namespace OpenMS
 	    	return retention_time_; 
 	    }
 
-			/**
-				@brief returns a mutable reference to the absolute retention time (unit is seconds)
-				
-				This method is needed for the MSExperiment::PeakIterator
-			*/
-	    CoordinateType& getRetentionTime() 
-	    { 
-	    	return retention_time_; 
-	    }
-
 			/// returns the retention time interval start (unit is seconds)
 	    const CoordinateType& getRetentionTimeStart() const 
 	    { 

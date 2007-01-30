@@ -213,13 +213,6 @@ class TOPPResampler
 			bilip.setMapping_0( 0, rt_u, rows-1, rt_l ); // scans run bottom-up
 			bilip.setMapping_1( 0, mz_l, cols-1, mz_u ); // peaks run left-right
 
-			/* Avoid usage of PIterator (this should be somewhat faster). This
-				 define should be removed as soon as the TOPP test (which is yet to be
-				 written) has convinced me that it really works. (Clemens, 2007-01-09)
-			*/			
-#define RESAMPLER_AVOID_PITERATOR 1
-
-#if RESAMPLER_AVOID_PITERATOR
 			for ( MSExperimentType::ConstIterator spec_iter = exp.begin();
 						spec_iter != exp.end();
 						++spec_iter
@@ -234,13 +227,6 @@ class TOPPResampler
 					bilip.addValue(rt,peak1_iter->getPos(),peak1_iter->getIntensity());
 				}
 			}
-#else
-			for ( MSExperimentType::PIterator iter = exp.peakBegin(); iter != exp.peakEnd(); ++iter )
-			{
-				bilip.addValue(iter.getRt(),iter->getPos(),iter->getIntensity());
-			}
-#endif
-
 		}
 		else
 		{ // transposed
@@ -248,7 +234,6 @@ class TOPPResampler
 			bilip.setMapping_0( 0, mz_u, rows-1, mz_l ); // spectra run bottom-up
 			bilip.setMapping_1( 0, rt_l, cols-1, rt_u ); // scans run left-right
 
-#if RESAMPLER_AVOID_PITERATOR
 			for ( MSExperimentType::ConstIterator spec_iter = exp.begin();
 						spec_iter != exp.end();
 						++spec_iter
@@ -263,14 +248,6 @@ class TOPPResampler
 					bilip.addValue(peak1_iter->getPos(),rt,peak1_iter->getIntensity());
 				}
 			}
-#else
-			for ( MSExperimentType::PIterator iter = exp.peakBegin(); iter != exp.peakEnd(); ++iter )
-			{
-				bilip.addValue(iter->getPos(),iter.getRt(),iter->getIntensity());
-			}
-#endif
-
-#undef RESAMPLER_AVOID_PITERATOR
 
 		} // if
 				

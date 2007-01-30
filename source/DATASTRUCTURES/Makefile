@@ -38,7 +38,6 @@ CPP_SOURCES=\
 	DataValue.C\
 	HashMap.C\
 	String.C\
-	ScanIndex.C\
 	RunningAveragePosition.C\
 	Date.C\
 	Matrix.C\
@@ -47,7 +46,6 @@ CPP_SOURCES=\
 	DateTime.C\
 	QuadTree.C\
 	RangeManager.C\
-	ScanIndexMSExperiment.C\
 	DConvexHull.C\
 	DefaultParamHandler.C
 
