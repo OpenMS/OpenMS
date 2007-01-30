@@ -33,9 +33,11 @@ using namespace std;
 namespace OpenMS
 {
 
-	SimpleSeeder::SimpleSeeder(): 
-		BaseSeeder(), is_initialised_(false),
-		nr_seeds_(1), noise_threshold_(0)
+	SimpleSeeder::SimpleSeeder()
+		: BaseSeeder(), 
+			is_initialised_(false),
+			nr_seeds_(1), 
+			noise_threshold_(0)
 	{
 		name_ = SimpleSeeder::getName();
 		defaults_.setValue("intensity_perc",0.03f);
@@ -66,7 +68,8 @@ namespace OpenMS
 				++i;
 			}
 			
-			sort_(); // sort index vector by intensity of peaks
+			// sort index vector by intensity of peaks (highest first)
+			sort(indizes_.rbegin(),indizes_.rend(),SimpleSeeder::IntensityLess::IntensityLess(traits_));
 		
 			current_peak_ = indizes_.begin();
 			is_initialised_ = true;
@@ -118,16 +121,4 @@ namespace OpenMS
 				
 		return result;
 	}
-	
-	void SimpleSeeder::sort_() 
-	{
-		SimpleSeeder::IntensityLess comp = SimpleSeeder::IntensityLess::IntensityLess(traits_);
-		sort(indizes_.begin(),indizes_.end(),comp);
-		
-		// we want to retrieve the peak with the highest
-		// intensity first, therefore we reverse the order of peaks
-		// ALARM
-		reverse(indizes_.begin(),indizes_.end());
-	}
-
 }

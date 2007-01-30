@@ -46,7 +46,7 @@ namespace OpenMS
 		
 		Erosion and dilatation are implemented using van Herk's method.
   	
-  	@todo use Param::setDefaults instead of if (dv.isEmpty() || dv.toString() == "") ... (Eva) 
+  	@todo use DefaultParamHandler (Eva) 
   */
 
   class MorphFilter

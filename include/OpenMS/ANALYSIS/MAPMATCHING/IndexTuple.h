@@ -158,7 +158,7 @@ namespace OpenMS
       struct IndexLess
             : std::binary_function < IndexTuple, IndexTuple, bool >
       {
-        bool operator () ( IndexTuple const & left, IndexTuple const & right ) const
+        inline bool operator () ( IndexTuple const & left, IndexTuple const & right ) const
         {
           return ( left.map_index_ < right.map_index_ );
         }

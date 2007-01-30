@@ -175,19 +175,19 @@ namespace OpenMS
 		struct OverallQualityLess
 			: std::binary_function < DFeature, DFeature, bool >
 		{
-			bool operator () ( DFeature const & left, DFeature const & right ) const
+			inline bool operator () ( DFeature const & left, DFeature const & right ) const
 			{
 				return ( left.getOverallQuality() < right.getOverallQuality() );
 			}
-			bool operator () ( DFeature const & left, QualityType const & right ) const
+			inline bool operator () ( DFeature const & left, QualityType const & right ) const
 			{
 				return ( left.getOverallQuality() < right );
 			}
-			bool operator () ( QualityType const & left, DFeature const & right ) const
+			inline bool operator () ( QualityType const & left, DFeature const & right ) const
 			{
 				return ( left < right.getOverallQuality() );
 			}
-			bool operator () ( QualityType const & left, QualityType const & right ) const
+			inline bool operator () ( QualityType const & left, QualityType const & right ) const
 			{
 				return ( left < right );
 			}

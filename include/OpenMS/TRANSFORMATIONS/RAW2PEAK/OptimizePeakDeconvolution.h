@@ -58,7 +58,7 @@ namespace OpenMS
 			A great deviation (squared deviation) of a peak shape's position or its left or right width parameter can be penalised.
 			During the optimization negative heights may occur, they are penalised as well.
 		
-			 @todo use Param::setDefaults instead of if (dv.isEmpty() || dv.toString() == "") ... (Alexandra)
+			 @todo use DefaultParamHandler (Alexandra)
 		*/
     struct PenaltyFactorsInt : public PenaltyFactors
     {

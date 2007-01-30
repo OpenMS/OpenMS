@@ -123,7 +123,7 @@ namespace OpenMS
       PositionLess() : dimension_(-1) {}
       ~PositionLess() {}
 
-      bool operator () (const PeakShape& a, const PeakShape& b)
+      inline bool operator () (const PeakShape& a, const PeakShape& b)
       {
         return (a.mz_position < b.mz_position);
       }

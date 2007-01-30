@@ -94,7 +94,7 @@ namespace OpenMS
             .  
     
     
-    @todo use Param::setDefaults instead of if (dv.isEmpty() || dv.toString() == "") ... (Chris)
+    @todo use DefaultParamHandler (Chris)
     
     @ingroup SignalToNoiseEstimators
     

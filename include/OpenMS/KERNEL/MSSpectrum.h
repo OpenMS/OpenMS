@@ -65,7 +65,7 @@ namespace OpenMS
 		struct RTLess
 			: public std::binary_function <MSSpectrum, MSSpectrum, bool>
 		{
-			bool operator () (const MSSpectrum& a, const MSSpectrum& b) const
+			inline bool operator () (const MSSpectrum& a, const MSSpectrum& b) const
 			{
 				return (a.getRetentionTime() < b.getRetentionTime());
 			}

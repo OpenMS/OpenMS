@@ -109,22 +109,23 @@ namespace OpenMS
         {
           mow = OpenDialog::NOISE_ESTIMATOR;
         }
-
+				
+				bool last_was_plus = false;
         for (StringListIterator it=begin; it!=end; ++it)
         {
-          if (it->find("+")==std::string::npos)
+          if (*it=="+")
           {
-          	addSpectrum(*it,true,getPrefAsString("Preferences:DefaultMapView")=="2D",true,mow);
+          	last_was_plus = true;
+          	continue;
+        	}
+        	else if (!last_was_plus)
+        	{
+        		addSpectrum(*it,true,getPrefAsString("Preferences:DefaultMapView")=="2D",true,mow);
         	}
         	else
-        	{        		
-        		std::vector<String> parts;
-        		String(*it).split('+',parts);
-        		addSpectrum(parts[0],true,getPrefAsString("Preferences:DefaultMapView")=="2D",true,mow);
-        		for (std::vector<String>::const_iterator it2 = parts.begin()+1; it2 != parts.end(); ++it2)
-        		{
-        			addSpectrum(*it2,false,getPrefAsString("Preferences:DefaultMapView")=="2D",true,mow);
-        		}
+        	{
+        		last_was_plus = false;
+        		addSpectrum(*it,false,getPrefAsString("Preferences:DefaultMapView")=="2D",true,mow);
         	}
         }
         maximizeActiveSpectrum();

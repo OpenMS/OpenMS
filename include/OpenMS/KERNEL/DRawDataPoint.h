@@ -163,19 +163,19 @@ namespace OpenMS
 		struct IntensityLess
 			: std::binary_function < DRawDataPoint, DRawDataPoint, bool >
 		{
-			bool operator () ( DRawDataPoint const & left, DRawDataPoint const & right ) const
+			inline bool operator () ( DRawDataPoint const & left, DRawDataPoint const & right ) const
 			{
 				return ( left.getIntensity() < right.getIntensity() );
 			}
-			bool operator () ( DRawDataPoint const & left, IntensityType const & right ) const
+			inline bool operator () ( DRawDataPoint const & left, IntensityType const & right ) const
 			{
 				return ( left.getIntensity() < right );
 			}
-			bool operator () ( IntensityType const & left, DRawDataPoint const & right ) const
+			inline bool operator () ( IntensityType const & left, DRawDataPoint const & right ) const
 			{
 				return ( left< right.getIntensity() );
 			}
-			bool operator () ( IntensityType const & left, IntensityType const & right ) const
+			inline bool operator () ( IntensityType const & left, IntensityType const & right ) const
 			{
 				return ( left < right );
 			}
@@ -191,19 +191,19 @@ namespace OpenMS
 			enum { DIMENSION = i };
 			
 			/// comparison of two DRawDataPoints
-			bool operator () ( DRawDataPoint const & left, DRawDataPoint const & right ) const throw()
+			inline bool operator () ( DRawDataPoint const & left, DRawDataPoint const & right ) const throw()
 			{
 				return (left.getPosition()[i] < right.getPosition()[i]);
 			}
 			
 			/// comparison of a DRawDataPoint with a CoordinateType
-			bool operator () ( DRawDataPoint const & left, CoordinateType const & right ) const throw()
+			inline bool operator () ( DRawDataPoint const & left, CoordinateType const & right ) const throw()
 			{
 				return (left.getPosition()[i] < right );
 			}
 			
 			/// comparison of a CoordinateType with a DRawDataPoint
-			bool operator () ( CoordinateType const & left, DRawDataPoint const & right ) const throw()
+			inline bool operator () ( CoordinateType const & left, DRawDataPoint const & right ) const throw()
 			{
 				return (left < right.getPosition()[i] );
 			}
@@ -214,7 +214,7 @@ namespace OpenMS
 				Sometimes we need a way to find out which way the CoordinateType is
 				sorted and adding this overload seems to be the best way to achieve that goal.
 			*/
-			bool operator () ( CoordinateType const & left, CoordinateType const & right ) const throw()
+			inline bool operator () ( CoordinateType const & left, CoordinateType const & right ) const throw()
 			{
 				return (left < right );
 			}
@@ -229,7 +229,7 @@ namespace OpenMS
 		struct PositionLess
 			: public std::binary_function <DRawDataPoint, DRawDataPoint, bool>
 		{
-			bool operator () (const DRawDataPoint& a, const DRawDataPoint& b) const
+			inline bool operator () (const DRawDataPoint& a, const DRawDataPoint& b) const
 			{
 				return (a.getPosition() < b.getPosition());
 			}

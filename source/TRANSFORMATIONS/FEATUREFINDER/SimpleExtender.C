@@ -330,21 +330,18 @@ namespace OpenMS
     if (traits_->getPeakFlag(index)== FeaFiTraits::UNUSED)
     {
 			double pr_new = computePeakPriority_(index);
-			
-			
-			std::map<IDX, double>::iterator piter = priorities_.find(index);
-			if (piter == priorities_.end()) // not yet in boundary
+
+			if (pr_new > priority_threshold_) // check if priority larger than threshold
 			{
-				//ALARM sollte die abfrage nicht nach außen?
-				if (pr_new > priority_threshold_) // check if priority larger than threshold
+				std::map<IDX, double>::iterator piter = priorities_.find(index);
+				if (piter == priorities_.end()) // not yet in boundary
 				{
 					priorities_[index] = pr_new;
 					IndexWithPriority peak(index,pr_new);
 					boundary_.push(peak);	// add to boundary
 				}
-			} // end if (piter ...)
-			
-		} // end if traits_->...
+			}
+		}
 	}
 
 

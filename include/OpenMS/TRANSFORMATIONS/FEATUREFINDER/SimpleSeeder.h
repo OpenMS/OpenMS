@@ -40,23 +40,25 @@
 namespace OpenMS
 {
 
-	/** @brief Seeding class that follows the description of Groepl et al (2004)
+	/** 
+		@brief Seeding class that follows the description of Groepl et al (2004)
 	  
-	 		The intensity threshold for seeding is taken to be a fixed percentage
-	 		of the 5th largest peak.	  
-	 		
-	 		<table>
-			<tr><td>min_intensity</td>
-					<td>absolute value for the minimum intensity of a seed
-					    if not set, a fixed percentage (see below) of the intensity of
-					    the fifth largest peak is taken (no default).</td></tr>
-			<tr><td>intensity_perc</td>
-					<td>percentage (see below) of the intensity of
-					    the fifth largest peak is taken (default: 0.3 = 30%).</td></tr>
-			</table>
-			
-			@ingroup FeatureFinder
+ 		The intensity threshold for seeding is taken to be a fixed percentage
+ 		of the 5th largest peak.	  
+ 		
+ 		<table>
+		<tr><td>min_intensity</td>
+				<td>absolute value for the minimum intensity of a seed
+				    if not set, a fixed percentage (see below) of the intensity of
+				    the fifth largest peak is taken (no default).</td></tr>
+		<tr><td>intensity_perc</td>
+				<td>percentage (see below) of the intensity of
+				    the fifth largest peak is taken (default: 0.3 = 30%).</td></tr>
+		</table>
 		
+		@ingroup FeatureFinder
+		
+		@todo Copy indices of peaks with an intensity higher than the threshold only (Ole, Marc)
 	*/ 
   class SimpleSeeder 
     : public BaseSeeder
@@ -80,7 +82,7 @@ namespace OpenMS
   			{
 				}
   			
-  			bool operator() (const IDX& x, const IDX& y)
+  			inline bool operator() (const IDX& x, const IDX& y)
 				{
     			return map_->operator[](x.first)[x.second].getIntensity() < map_->operator[](y.first)[y.second].getIntensity();
 				}
@@ -109,9 +111,6 @@ namespace OpenMS
     }
 
   protected:
-    /// sort the indizes according to peak intensity
-  	void sort_();
-  	
   	/// contains the indizes 
   	std::vector<IDX> indizes_;
 

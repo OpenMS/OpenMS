@@ -110,7 +110,7 @@ namespace OpenMS
     {
     public:
     	template<typename Arg>
-      bool operator()(const Arg& a, const Arg& b)
+      inline bool operator()(const Arg& a, const Arg& b)
       {
         return a.getRank() < b.getRank();
       }

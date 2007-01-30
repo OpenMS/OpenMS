@@ -136,7 +136,7 @@ namespace OpenMS
 
 			@ingroup PeakPicking
 			
-      @todo use Param::setDefaults instead of if (dv.isEmpty() || dv.toString() == "") ... (Alexandra)
+      @todo use DefaultParamHandler (Alexandra)
     */
     class TwoDOptimization
     {

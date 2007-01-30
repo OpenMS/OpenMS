@@ -40,20 +40,22 @@
 namespace OpenMS
 {
 	/**
-		 @brief Management and storage of INI files.
-	
-		 This class provides a means to associate string names to int/double/string values.
-	
-		 It is similar to a map<string,DataValue> but it also supports hierarchical 
-		 data and to save/load the contained data as XML.
-	
-		 Hierachy levels are separated from each other and from the name by colons.
-	
-		 Example: 'common:file_options:default_file_open_path = /share/'
- 	
-		 @note In the XML representation only the types 'int', 'string' ,'float' and 'double' are available.
-	
-		 @ingroup FileIO
+		@brief Management and storage of INI files.
+		
+		This class provides a means to associate string names to int/double/string values.
+		
+		It is similar to a map<string,DataValue> but it also supports hierarchical 
+		data and to save/load the contained data as XML.
+		
+		Hierachy levels are separated from each other and from the name by colons.
+		
+		Example: 'common:file_options:default_file_open_path = /share/'
+		
+		@note In the XML representation only the types 'int', 'string' ,'float' and 'double' are available.
+		
+		@see DefaultParamHandler
+		
+		@ingroup FileIO
 	*/
 	class Param
 	{

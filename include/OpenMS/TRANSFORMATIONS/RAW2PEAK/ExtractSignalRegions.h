@@ -44,7 +44,7 @@ namespace OpenMS
   To improve the run time of the peak picker the raw mass spectra are decomposed into
   smaller parts.
   
-  @todo use Param::setDefaults instead of if (dv.isEmpty() || dv.toString() == "") ... (Eva)
+  @todo use DefaultParamHandler (Eva)
 */
 
 class ExtractSignalRegions

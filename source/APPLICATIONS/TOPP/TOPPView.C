@@ -121,8 +121,11 @@ void print_usage()
 			 << " " << tool_name << " [options] [files]" << endl
 			 << endl
 			 << "Options are:" << endl
-			 << "  --help            shows this help" << endl
+			 << "  --help           Shows this help" << endl
 			 << "  -ini <File>      Sets the INI file (default: ~/.TOPPView.ini)" << endl
+			 << endl
+			 << "To open several files in one window put a '+' in between the files." << endl
+			 << "Example: 'TOPPView 1.dta + 2.dta + 3.dta'" << endl
 			 << endl ;
 }
 
