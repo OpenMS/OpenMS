@@ -130,13 +130,10 @@ namespace OpenMS
 
   void FeaFiTraits::getNextRt(IDX& index) throw (Exception::IndexOverflow, NoSuccessor)
   {
-#ifdef DEBUG_FEATUREFINDER
-  	//Outside of map (should not happen)
-    if (index.first>=map_.size() || index.second>=map_[index.first].size())
-    {
-    	throw Exception::IndexOverflow(__FILE__, __LINE__, "FeaFiTraits::getNextMz", index.first, map_.getSize());
-    }
-#endif
+  	//Corrupt index
+  	OPENMS_PRECONDITION(index.first<map_.size(), "Scan index outside of map!");
+    OPENMS_PRECONDITION(index.second<map_[index.first].size(), "Peak index outside of scan!");
+		
 		//last scan
     if (index.first==map_.size()-1)
     {
@@ -176,13 +173,10 @@ namespace OpenMS
   
 	void FeaFiTraits::getPrevRt(IDX& index) throw (Exception::IndexOverflow, NoSuccessor)
   {
-#ifdef DEBUG_FEATUREFINDER
-  	//Outside of map (should not happen)
-    if (index.first>=map_.size() || index.second>=map_[index.first].size())
-    {
-    	throw Exception::IndexOverflow(__FILE__, __LINE__, "FeaFiTraits::getNextMz", index.first, map_.getSize());
-    }
-#endif
+  	//Corrupt index
+  	OPENMS_PRECONDITION(index.first<map_.size(), "Scan index outside of map!");
+    OPENMS_PRECONDITION(index.second<map_[index.first].size(), "Peak index outside of scan!");
+		
 		// first scan
 		if (index.first == 0)
 		{

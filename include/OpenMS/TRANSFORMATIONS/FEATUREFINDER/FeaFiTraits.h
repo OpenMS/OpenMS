@@ -150,13 +150,10 @@ namespace OpenMS
 	    /// fills @p index with the index of next peak in m/z dimension
 	    inline void getNextMz(IDX& index) const throw (Exception::IndexOverflow, NoSuccessor)
 	    {
-#ifdef DEBUG_FEATUREFINDER
-	    	//Outside of map (should not happen)
-	      if (index.first>=map_.size() || index.second>=map_[index.first].size())
-	      {
-	      	throw Exception::IndexOverflow(__FILE__, __LINE__, "FeaFiTraits::getNextMz", index.first, map_.getSize());
-	      }
-#endif
+	    	//Corrupt index
+	    	OPENMS_PRECONDITION(index.first<map_.size(), "Scan index outside of map!");
+	      OPENMS_PRECONDITION(index.second<map_[index.first].size(), "Peak index outside of scan!");
+	    	
 	    	//At the last peak of this spectrum
 	      if (index.second==map_[index.first].size()-1)
 	      {
@@ -169,13 +166,10 @@ namespace OpenMS
 	    /// fills @p index with the index of previous peak in m/z dimension
 	    inline void getPrevMz(IDX& index) const throw (Exception::IndexOverflow, NoSuccessor)
 	    {
-#ifdef DEBUG_FEATUREFINDER
-	    	//Outside of map (should not happen)
-	      if (index.first>=map_.size() || index.second>=map_[index.first].size())
-	      {
-	      	throw Exception::IndexOverflow(__FILE__, __LINE__, "FeaFiTraits::getNextMz", index.first, map_.getSize());
-	      }
-#endif
+	    	//Corrupt index
+	    	OPENMS_PRECONDITION(index.first<map_.size(), "Scan index outside of map!");
+	      OPENMS_PRECONDITION(index.second<map_[index.first].size(), "Peak index outside of scan!");
+
 	      //begin of scan
 	      if (index.second==0)
 	      {
