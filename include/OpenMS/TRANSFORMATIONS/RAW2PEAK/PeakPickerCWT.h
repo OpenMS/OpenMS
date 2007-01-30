@@ -306,12 +306,9 @@ namespace OpenMS
         RawDataArrayType raw_peak_array;
         // signal to noise estimator
         DSignalToNoiseEstimatorMedian<1, typename RawDataArrayType::const_iterator> sne;
-				std::cout<< "anfang"<<std::endl; 
 				Param sne_param(param_.copy("SignalToNoiseEstimationParameter:",true));
-				std::cout << "ctor"<<std::endl;
 				if(sne_param.empty()) sne.setParam(Param());
 				else sne.setParam(sne_param);
-				std::cout<< "setprama"<<std::endl;
 			  unsigned int n = distance(first, last);
         raw_peak_array.resize(n);
 

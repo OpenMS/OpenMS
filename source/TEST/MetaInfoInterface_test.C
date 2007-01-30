@@ -201,6 +201,32 @@ CHECK((void getKeys(std::vector<std::string>& keys) const))
 	TEST_EQUAL(tmp2[4],tmp[4])
 RESULT
 
+CHECK(void getKeys(std::vector< UnsignedInt > &keys) const)
+	MetaInfoInterface mi;
+	mi.setMetaValue("label",String("tag"));
+	mi.setMetaValue("icon",String("kreis"));
+	vector<UnsignedInt> vec;
+	mi.getKeys(vec);
+	TEST_EQUAL(vec.size(),2)
+	TEST_EQUAL(vec[0],3)
+	TEST_EQUAL(vec[1],4)
+	
+	mi.metaRegistry().registerName("a","test");
+	mi.metaRegistry().registerName("d","test");
+	mi.metaRegistry().registerName("x","test");
+	mi.setMetaValue("a",1);
+	mi.setMetaValue("d",1);
+	mi.setMetaValue("x",1);
+	mi.getKeys(vec);
+	
+	TEST_EQUAL(vec.size(),5)
+	TEST_EQUAL(vec[0],3)
+	TEST_EQUAL(vec[1],4)
+	TEST_EQUAL(vec[2],1025)
+	TEST_EQUAL(vec[3],1026)
+	TEST_EQUAL(vec[4],1027)
+RESULT
+
 CHECK((bool metaValueExists(const std::string& name) const))
 	MetaInfoInterface mi4;
 	TEST_EQUAL(mi4.metaValueExists("cluster_id"),false)

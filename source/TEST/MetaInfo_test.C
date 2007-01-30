@@ -183,6 +183,32 @@ CHECK((void getKeys(std::vector<std::string>& keys) const))
 	TEST_EQUAL(tmp2[4],tmp[4])
 RESULT
 
+CHECK(void getKeys(std::vector< UnsignedInt > &keys) const)
+	MetaInfo mi;
+	mi.setValue("label",String("tag"));
+	mi.setValue("icon",String("kreis"));
+	vector<UnsignedInt> vec;
+	mi.getKeys(vec);
+	TEST_EQUAL(vec.size(),2)
+	TEST_EQUAL(vec[0],3)
+	TEST_EQUAL(vec[1],4)
+	
+	mi.registry().registerName("a","test");
+	mi.registry().registerName("d","test");
+	mi.registry().registerName("x","test");
+	mi.setValue("a",1);
+	mi.setValue("d",1);
+	mi.setValue("x",1);
+	mi.getKeys(vec);
+	
+	TEST_EQUAL(vec.size(),5)
+	TEST_EQUAL(vec[0],3)
+	TEST_EQUAL(vec[1],4)
+	TEST_EQUAL(vec[2],1025)
+	TEST_EQUAL(vec[3],1026)
+	TEST_EQUAL(vec[4],1027)
+RESULT
+
 CHECK((bool exists(const std::string& name) const))
 	MetaInfo mi4;
 	TEST_EQUAL(mi4.exists("cluster_id"),false)

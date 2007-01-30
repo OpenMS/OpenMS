@@ -83,16 +83,16 @@ class TestHandler
 };
 
 DefaultParamHandler* ptr = 0;
-CHECK(DefaultParamHandler(const String& name))
+CHECK((DefaultParamHandler(const String& name)))
 	ptr = new DefaultParamHandler("dummy");
 	TEST_NOT_EQUAL(ptr, 0)
 RESULT
 
-CHECK(~DefaultParamHandler())
+CHECK((~DefaultParamHandler()))
 	delete ptr;
 RESULT
 
-CHECK(void defaultsToParam_())
+CHECK(([EXTRA]void defaultsToParam_()))
 	DefaultParamHandler s("dummy2");
 RESULT
 
@@ -101,18 +101,18 @@ CHECK((const String& getName() const))
   TEST_EQUAL(s.getName(), "dummy2")
 RESULT
 
-CHECK(void setName(const String& name))
+CHECK((void setName(const String& name)))
 	DefaultParamHandler s("dummy2");
 	s.setName("SetName");
   TEST_EQUAL(s.getName(), "SetName")
 RESULT
 
-CHECK(const std::vector<String>& getSubsections() const)
+CHECK((const std::vector<String>& getSubsections() const))
 	DefaultParamHandler s("dummy2");
   TEST_EQUAL(s.getSubsections().size(),0)
 RESULT
 
-CHECK(const Param& getDefaults() const)
+CHECK((const Param& getDefaults() const))
 	DefaultParamHandler s("dummy2");
   TEST_EQUAL(s.getDefaults().size(),0)
 	TestHandler t("dummy2");
@@ -128,7 +128,7 @@ CHECK((const Param& getParameters() const))
   TEST_EQUAL(s.string_var, "default")
 RESULT
 
-CHECK((void setParam(const Param& p)))
+CHECK((void setParameters(const Param &param)))
 	Param p;
 	p.setValue("int",1);
 	p.setValue("string","test");
@@ -153,7 +153,7 @@ CHECK((bool operator == (const DefaultParamHandler& rhs) const))
 	TEST_EQUAL(empty==h,false);
 RESULT
 
-CHECK((DefaultParamHandler& operator = (const DefaultParamHandler& source)))
+CHECK((DefaultParamHandler & operator=(const DefaultParamHandler &rhs)))
 	Param p;
 	p.setValue("int",1);
 	p.setValue("string","test");
@@ -172,7 +172,7 @@ CHECK((DefaultParamHandler& operator = (const DefaultParamHandler& source)))
 	TEST_EQUAL(s2==TestHandler("dummy"),true)
 RESULT
 
-CHECK((DefaultParamHandler(const DefaultParamHandler& source)))
+CHECK((DefaultParamHandler(const DefaultParamHandler &rhs)))
 	Param p;
 	p.setValue("int",1);
 	p.setValue("string","test");

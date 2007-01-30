@@ -54,8 +54,8 @@
 
 /*
 	TODO:
-	- FactoryProduct durch FactoryProduct2 ersetzen
 	- Fehlende FeaFi-Module implementieren
+	- FactoryProduct durch FactoryProduct2 ersetzen
 	- setParam-Methoden aus Modellen entfernen -> Factory wirklich benutzen
 	- Kernel/Datastructures nach Pass-By-Copy durchsuchen
 	- Valgrind
