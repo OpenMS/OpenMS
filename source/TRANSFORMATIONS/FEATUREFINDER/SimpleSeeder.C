@@ -53,19 +53,30 @@ namespace OpenMS
 	{
 		if (!is_initialised_) 
 		{
-			//fill indices
-			indizes_.resize(traits_->getData().getSize());
-			UnsignedInt k = 0;
-			UnsignedInt i = 0;
-			while (i < traits_->getData().size())
+			// determine mininum intensity for last seed
+			noise_threshold_  = param_.getValue("min_intensity");
+			if (noise_threshold_ == -1)	// -1 is default value
 			{
-				UnsignedInt j = 0;
-				while (j < traits_->getData()[i].size())
+				IntensityType int_perc = param_.getValue("intensity_perc");;
+				noise_threshold_ = int_perc * traits_->getData().getMaxInt();			
+			}
+			
+			//reserve space for a ten'th of the peaks
+			indizes_.reserve((std::vector<IDX>::size_type)round(traits_->getData().getSize() / 10.0));
+			//fill indices for peaks above noise threshold
+			IDX tmp = make_pair(0,0);
+			while (tmp.first < traits_->getData().size())
+			{
+				tmp.second = 0;
+				while (tmp.second < traits_->getData()[tmp.first].size())
 				{
-					indizes_[k++] = make_pair(i,j);
-					++j;
+					if (traits_->getPeakIntensity(tmp)>noise_threshold_)
+					{
+						indizes_.push_back(tmp);
+					}
+					++tmp.second;
 				}
-				++i;
+				++tmp.first;
 			}
 			
 			// sort index vector by intensity of peaks (highest first)
@@ -73,15 +84,6 @@ namespace OpenMS
 		
 			current_peak_ = indizes_.begin();
 			is_initialised_ = true;
-			
-			// determine mininum intensity for last seed
-			noise_threshold_  = param_.getValue("min_intensity");
-			if (noise_threshold_ == -1)	// -1 is default value
-			{
-				IntensityType int_perc = param_.getValue("intensity_perc");;
-				noise_threshold_ = int_perc * traits_->getPeakIntensity(*current_peak_);			
-			}
-			
 		}
 		
 		// while the current peak is either already used or in a feature

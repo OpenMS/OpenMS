@@ -42,6 +42,7 @@ namespace OpenMS
 		
 		@todo Write test with more than one scan (Ole)
 		@todo Fix self aligment bug - position marked with the comment NO_SELF_ALIGNMENT (Ole)
+		@todo Document parameters (Ole)
 		
 		@ingroup FeatureFinder
 	*/ 
@@ -85,44 +86,30 @@ namespace OpenMS
 	
 	  protected:
 	    /// Finds the neighbour of the peak denoted by @p current_mz in the previous scan
-	    std::vector<double>::iterator searchInScan_(const std::vector<CoordinateType>::iterator& scan_begin, const std::vector<CoordinateType>::iterator& scan_end, CoordinateType current_mz)
+	    std::vector<double>::const_iterator searchInScan_(const std::vector<CoordinateType>::const_iterator& scan_begin, const std::vector<CoordinateType>::const_iterator& scan_end, CoordinateType current_mz)
 	    {
 	      // perform binary search to find the neighbour in rt dimension
 	      // 	lower_bound finds the peak with m/z current_mz or the next larger peak if this peak does not exist.
-	      std::vector<CoordinateType>::iterator insert_iter = lower_bound(scan_begin,scan_end,current_mz);
+	      std::vector<CoordinateType>::const_iterator insert_iter = lower_bound(scan_begin,scan_end,current_mz);
 	
 	      // the peak found by lower_bound does not have to be the closest one, therefore we have
 	      // to check both neighbours
 	      if ( insert_iter == scan_end ) // we are at the and have only one choice
 	      {
-	      	return --insert_iter;
+	      	--insert_iter;
 	      }
-	      else
-	      {
-	        // if the found peak is at the beginning of the spectrum,
-	        // there is not much we can do.
-	        if ( insert_iter == scan_begin )
-	        {
-	            return insert_iter;
-	        }
-	        else // see if the next smaller one fits better
-	        {
-	          double delta_mz = fabs(*insert_iter - current_mz);
-	          
-	          --insert_iter;
-	
-	          if ( fabs(*insert_iter - current_mz) < delta_mz )
-	          {
-	          	return insert_iter; // peak to the left is closer (in m/z dimension)
-	          }
-	          else
-	          {
-	          	return ++insert_iter;    // peak to the right is closer
-	          }
-	        }
+        // if the found peak is at the beginning of the spectrum,
+        // there is not much we can do.
+        else if ( insert_iter != scan_begin )
+        {
+          if ( *insert_iter - current_mz < current_mz - *(--insert_iter) )
+          {
+          	++insert_iter;    // peak to the right is closer
+          }
 	      }
-	
-	    } // end of searchInScan_
+	      //std::cout <<"LFP: " << current_mz << " : " << *(insert_iter-1) << " - "<<*insert_iter << " - "<<*(insert_iter+1) << std::endl;
+				return insert_iter;
+	    }
 
 			/// Finds local maxima in the cwt
 			void getMaxPositions_( const SpectrumType::const_iterator& first, 

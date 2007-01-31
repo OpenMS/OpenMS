@@ -46,7 +46,8 @@ namespace OpenMS
  		better to check if the relaitive intensities between the peaks is similar to an isotopic pattern.
   	
   	@todo Write test with more than one scan (Ole)
-  	
+		@todo Document parameters (Ole)
+		  	
 		@ingroup FeatureFinder
 	*/
 	class PickedPeakSeeder

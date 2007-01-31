@@ -201,7 +201,7 @@ namespace OpenMS
 	
 			int nr_maxima = local_maxima.size();
 			cout << "# local maxima in cwt : " << nr_maxima << endl;
-	
+			
 			// test for groups local maxima resembling isotopic pattern
 			for (int z = 0; z< ( nr_maxima - 2); ++z)
 			{
@@ -226,7 +226,7 @@ namespace OpenMS
 					if (iso_last_scan.size() > 0)  // Did we find any isotopic cluster in the last scan?
 					{
 						// there were some isotopic clustures in the last scan...
-						vector<double>::iterator it = searchInScan_(iso_last_scan.begin(),iso_last_scan.end(),curr_mz);
+						vector<double>::const_iterator it = searchInScan_(iso_last_scan.begin(),iso_last_scan.end(),curr_mz);
 						CoordinateType delta_mz = fabs(*it - curr_mz);
 	
 						if ( delta_mz > tolerance_mz) // check if first peak of last cluster is close enough
@@ -405,7 +405,7 @@ namespace OpenMS
 					if (iso_last_scan.size() > 0)  // Did we find any isotopic cluster in the last scan?
 					{
 						// there were some isotopic clustures in the last scan...
-						vector<double>::iterator it = searchInScan_(iso_last_scan.begin(),iso_last_scan.end(),this_mass);
+						vector<double>::const_iterator it = searchInScan_(iso_last_scan.begin(),iso_last_scan.end(),this_mass);
 						CoordinateType delta_mz = fabs(*it - this_mass);
 	
 						if ( delta_mz > tolerance_mz) // check if first peak of last cluster is close enough
@@ -513,7 +513,7 @@ namespace OpenMS
 				}
 			}	
 	
-			cout << "Numer of potential seeds in this scan: " << iso_last_scan.size() << endl;
+			cout << "Numer of potential seeds in this scan: " << iso_curr_scan.size() << endl;
 	
 		} // end scan loop
 	
@@ -540,6 +540,7 @@ namespace OpenMS
 		}
 	
 		curr_region_ = iso_map_.begin();
+		
 		cout << iso_map_.size() << " clusters remained after filtering." << endl;
 	
 	} // end of void sweep_()

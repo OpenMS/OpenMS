@@ -52,6 +52,7 @@ namespace OpenMS
 		modelling the isotopic distribution.
 		
 		@todo Write test with more than one scan (Ole)
+		@todo Document parameters (Ole)
 		
 		@ingroup FeatureFinder
 	*/ 
