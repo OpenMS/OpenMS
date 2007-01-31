@@ -1471,7 +1471,7 @@ namespace OpenMS
 		intensityModeChange_();
 	
 		//update current layer
-		if (current_layer_ >= getLayerCount())
+		if (current_layer_!=0 && current_layer_ >= getLayerCount())
 		{
 			current_layer_ = getLayerCount()-1;
 		}

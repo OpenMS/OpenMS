@@ -193,7 +193,7 @@ void Spectrum3DCanvas::makeReducedDataSet()
 		{
 			for(UnsignedInt i = 0; i<layers_.size();i++)
 			{
-				// @todo added fix for segfault for release
+				// @todo added fix for segfault for release (Cornelia)
 				if (datareducer_ != 0)
 				{
 					datareducer_->applyReduction(getLayer(i).peaks,getLayer_(i).reduced);
@@ -284,6 +284,13 @@ void Spectrum3DCanvas::removeLayer(int layer_index)
 		return;
 	}
 	layers_.erase(layers_.begin()+layer_index);
+	
+	//update current layer
+	if (current_layer_!=0 && current_layer_ >= getLayerCount())
+	{
+	current_layer_ = getLayerCount()-1;
+	}
+	
 	recalculateRanges_(1,0,2);
 	visible_area_.assign(overall_data_range_);
 	repaintAll();

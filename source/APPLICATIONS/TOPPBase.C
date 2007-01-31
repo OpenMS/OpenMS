@@ -178,8 +178,10 @@ namespace OpenMS
 		}
 		
 		ExitCodes result;
+#ifndef DEBUG_TOPP
 		try
 		{
+#endif
 			//-------------------------------------------------------------
 			// load INI file
 			//-------------------------------------------------------------
@@ -241,6 +243,8 @@ namespace OpenMS
 			//----------------------------------------------------------
 			
 			result = main_(argc, argv);
+
+#ifndef DEBUG_TOPP
 		}
 
 		//----------------------------------------------------------
@@ -304,6 +308,7 @@ namespace OpenMS
 			writeDebug_(String("Error occured in line ") + e.getLine() + " of file " + e.getFile() + " (in function: " + e.getFunction() + ") !",1);
 			return UNKNOWN_ERROR;
 		}
+#endif
 	  
 		log_.close();
 		

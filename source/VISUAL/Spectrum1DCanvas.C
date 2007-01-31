@@ -467,31 +467,34 @@ namespace OpenMS
 		layers_.erase(layers_.begin()+layer_index);
 		draw_modes_.erase(draw_modes_.begin()+layer_index);
 	
-		//refresh values of visible_begin_ and visible_end_
+		//clear other relevant variables
 		visible_begin_.clear();
 		visible_end_.clear();
-		for (UnsignedInt index=0; index < getLayerCount(); ++index)
-		{
-			visible_begin_.push_back(getPeakData_(index)[0].begin());
-			visible_end_.push_back(getPeakData_(index)[0].end());
-		}
-	
+		selected_peaks_.clear();
+
 		//update current layer
-		if (current_layer_ >= getLayerCount())
+		if (current_layer_!=0 && current_layer_ >= getLayerCount())
 		{
 			current_layer_ = getLayerCount()-1;
 		}
-		//update nearest peak
-		nearest_peak_ = currentPeakData_()[0].end();
-		//clear selected peaks
-		selected_peaks_.clear();
-		selected_peaks_.push_back(currentPeakData_()[0].begin());
 		
+		// end this method if there are no more layers
 		if (layers_.empty())
 		{
 			resetRanges_();
 			return;
 		}
+
+		//update relevant variables
+		for (UnsignedInt index=0; index < getLayerCount(); ++index)
+		{
+			visible_begin_.push_back(getPeakData_(index)[0].begin());
+			visible_end_.push_back(getPeakData_(index)[0].end());
+		}
+		//update nearest peak
+		nearest_peak_ = currentPeakData_()[0].end();
+		//update selected peaks
+		selected_peaks_.push_back(currentPeakData_()[0].begin());
 	
 		//update range area
 		recalculateRanges_(0,2,1);

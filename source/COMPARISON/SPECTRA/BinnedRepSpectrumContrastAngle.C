@@ -106,7 +106,7 @@ namespace OpenMS
       }
       else 
       {
-				// @todo another Exeption?!? Which one? ????
+				/// @todo another Exeption?! (Andreas)
         //throw CanNotHappen(__FILE__, __LINE__, __PRETTY_FUNCTION__);
       }
     }

@@ -153,9 +153,11 @@ int main( int argc, char ** argv )
 		print_usage();
 		return 1;
 	}
-	
+
+#ifndef DEBUG_TOPP	
 	try
 	{
+#endif
 	  QApplication a( argc, argv );
 	  TOPPViewBase* mw = TOPPViewBase::instance();
 	  a.setMainWidget(mw);
@@ -183,10 +185,10 @@ int main( int argc, char ** argv )
 	  int res = a.exec();
 		mw->savePreferences();
 	  return res;
+#ifndef DEBUG_TOPP
 	}
-
 	//######################## ERROR HANDLING #################################
-	
+
 	catch(Exception::UnableToCreateFile& e)
 	{
 		cout << String("Error: Unable to write file (") << e.what() << ")" << endl << "Code location: " << e.getFile() << ":" << e.getLine() << endl;
@@ -222,6 +224,7 @@ int main( int argc, char ** argv )
 		cout << String("Error: Unexpected error (") << e.what() << ")" << endl << "Code location: " << e.getFile() << ":" << e.getLine() << endl;
 		return 1;
 	}
+#endif
 	
 	return 0;
 }

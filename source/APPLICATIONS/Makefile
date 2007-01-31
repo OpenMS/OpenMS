@@ -82,3 +82,7 @@ include ../config.mak
 
 TOPPViewBase_moc.C:  $(HEADER_DIR)/TOPPViewBase.h
 	$(MOC) $(HEADER_DIR)/TOPPViewBase.h -o TOPPViewBase_moc.C
+
+# For debugging the TOPP applications, please create the file 'Makefile_debug'
+# and add the line 'ADD_CXXFLAGS=-DDEBUG_FEATUREFINDER' to it
+-include Makefile_debug

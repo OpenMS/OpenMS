@@ -90,7 +90,7 @@ CHECK(double operator () (const BinnedRep& a) const)
   dta_file.load("data/Transformers_tests.dta", spec1);
   BinnedRep br1(spec1, 1.0, 1);
 
-	PRECISION(0.1) // @todo fix the 32/64 bit precision here
+	PRECISION(0.1) /// @todo fix the 32/64 bit precision here (Andreas)
 	TEST_REAL_EQUAL((*e_ptr)(br1), 0.986786)
 RESULT
 

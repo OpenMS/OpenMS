@@ -507,7 +507,6 @@ namespace OpenMS
 
 		inline LayerData& getCurrentLayer_()
 		{
-			//std::cout << "getCurrentLayer_: "<< current_layer_ << std::endl;
 			OPENMS_PRECONDITION(current_layer_ < layers_.size(), "SpectrumCanvas::getLayer() index overflow");
 			return getLayer_(current_layer_);
 		}
