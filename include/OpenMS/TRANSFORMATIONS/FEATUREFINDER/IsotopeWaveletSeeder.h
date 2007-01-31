@@ -42,7 +42,7 @@
 #include <fstream>
 #include <list>
 #include <hash_map.h>
-#include <math.h>
+#include <cmath>
 #include <values.h>
 #include <algorithm>
 #include <vector>
