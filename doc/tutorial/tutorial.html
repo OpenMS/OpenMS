@@ -23,6 +23,11 @@
 
   <h1>Tutorial</h1>
 	
+	This is a tutorial for people that want to develop new applications using OpenMS.
+	<BR>
+	If you're not a programmer, have a look at the <a href="../misc/TOPP.html">TOPP</a> section.
+	<BR>
+	<BR>
 	Subsections of this tutorial are:
 	<a href="#kernel">Kernel</a> | 
 	<a href="#datastructures">Datastructures</a> | 
@@ -48,24 +53,17 @@
 	<!-- -------------------------------------------------------------------- -->
 	<H3>Main datastructures</h3>
 
-  <TABLE border=0>
-  <TR>
-  <TD valign=top>
-	  <b>MSSpectrum</b> is a 1-dimensional spectrum of an
-	  arbitrary peak type that holds meta information as well
-	  (SpectrumSettings).
-	  <br>
-	  <b>MSExperiment</b> is a two dimensional MS
-	  experiment. It is implemented as a vector of MSSpectrum and is
-	  derived from ExperimentalSettings for meta information.
-		<BR>
-		Those two main classes consist of several other classes that are explained now.
-	</TD>
-	<TD>
-		<img src="Kernel_main.png">
-	</TD>
-	</TR>
-	</TABLE>
+  <b>MSSpectrum</b> is a 1-dimensional spectrum of an
+  arbitrary peak type that holds meta information as well
+  (SpectrumSettings).
+  <br>
+  <b>MSExperiment</b> is a two dimensional MS
+  experiment. It is implemented as a vector of MSSpectrum and is
+  derived from ExperimentalSettings for meta information.
+	<BR>
+	Those two main classes consist of several other classes that are explained now.
+	<BR>
+	<img src="Kernel_main.png">
 
  <h3>Traits</h3>
 
