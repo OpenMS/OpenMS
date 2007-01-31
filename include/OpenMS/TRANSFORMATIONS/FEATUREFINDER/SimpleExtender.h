@@ -30,17 +30,9 @@
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/BaseExtender.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeaFiTraits.h>
 #include <OpenMS/DATASTRUCTURES/RunningAveragePosition.h>
-
-#include <OpenMS/KERNEL/DimensionDescription.h>
-#include <OpenMS/KERNEL/KernelTraits.h>
-
 #include <OpenMS/MATH/MISC/LinearInterpolation.h>
 
 #include <queue>
-#include <vector>
-#include <map>
-#include <algorithm>
-#include <iostream>
 
 namespace OpenMS
 {
@@ -90,10 +82,11 @@ namespace OpenMS
 					points into this region if their intensity is larger than [intensity_factor * (intensity of the seed)].
 					(default value is 0.03) .</td></tr>
 			</table>
-			
-			@ingroup FeatureFinder
 		
-	 */
+		@todo Write a meaningful test (Ole)	
+		
+		@ingroup FeatureFinder
+	*/
   class SimpleExtender 
     : public BaseExtender
   {

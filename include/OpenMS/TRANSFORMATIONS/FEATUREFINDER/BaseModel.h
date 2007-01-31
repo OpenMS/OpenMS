@@ -24,15 +24,12 @@
 // $Maintainer: Ole Schulz-Trieglaff $
 // --------------------------------------------------------------------------
 
-
 #ifndef OPENMS_TRANSFORMATIONS_FEATUREFINDER_BASEMODEL_H
 #define OPENMS_TRANSFORMATIONS_FEATUREFINDER_BASEMODEL_H
-
 
 #include <OpenMS/CONCEPT/FactoryProduct2.h>
 #include <OpenMS/KERNEL/KernelTraits.h>
 #include <OpenMS/KERNEL/DPeakArray.h>
-#include <vector>
 
 namespace OpenMS
 {
@@ -50,109 +47,109 @@ namespace OpenMS
     {
 
       public:
-      typedef int Flag;
-      typedef std::vector<Flag> Flags;
-
-      typedef typename DPeak<D,Traits>::IntensityType IntensityType;
-	  	typedef typename DPeak<D,Traits>::CoordinateType CoordinateType;
-      typedef DPosition<D,Traits> PositionType;
-      typedef DPeak<D,Traits> PeakType;
-	  	typedef DPeakArray<D, DPeak<D,Traits> > SamplesType;
-
-
-      /// Default constructor. 
-      BaseModel()
-				: FactoryProduct2("BaseModel")
-			{
-				defaults_.setValue("cutoff",0.0);
-			}
-
-      /// copy constructor 
-      BaseModel(const BaseModel& source)
-				: FactoryProduct2(source),
-					cut_off_(source.cut_off_)
-			{
-			}
-
-      /// Destructor 
-      virtual ~BaseModel()
-      {	
-      }
-
-      /// assignment operator
-      virtual BaseModel& operator = (const BaseModel& source)
-			{
-				if (&source == this) return *this;
-				
-				FactoryProduct2::operator = (source);
-				cut_off_ = source.cut_off_;
-				
-				return *this;
-			}
-
-      /// register all derived classes here
-      static void registerChildren();
-			
-      /// acess model predicted intensity at position @p pos
-      virtual IntensityType getIntensity(const PositionType& pos) const=0;
-      
-      /// check if position @p pos is part of the model regarding the models cut-off.
-      virtual bool isContained(const PositionType& pos) const
-			{
-				return getIntensity(pos) >= cut_off_;
-			}
-
-      /// set DPeaks intensity to model predicted intensity.
-      virtual void  fillIntensity(PeakType& peak) const
-			{
-				peak.setIntensity( getIntensity(peak.getPosition()) );
-			}
-
-      //// set DPeaks intensity to model predicted intensity.
-			template <class PeakIterator>
-      void  fillIntensities(PeakIterator beg, PeakIterator end) const
-			{
-	    	for (PeakIterator it=beg; it!=end; it++)
+	      typedef int Flag;
+	      typedef std::vector<Flag> Flags;
+	
+	      typedef typename DPeak<D,Traits>::IntensityType IntensityType;
+		  	typedef typename DPeak<D,Traits>::CoordinateType CoordinateType;
+	      typedef DPosition<D,Traits> PositionType;
+	      typedef DPeak<D,Traits> PeakType;
+		  	typedef DPeakArray<D, DPeak<D,Traits> > SamplesType;
+	
+	
+	      /// Default constructor. 
+	      BaseModel()
+					: FactoryProduct2("BaseModel")
 				{
-					fillIntensity(*it);
+					defaults_.setValue("cutoff",0.0);
 				}
-			}
-
-			/// get cutoff value
-			virtual IntensityType getCutOff() const	
-			{	
-				return cut_off_;	
-			}
-
-			///	set cutoff value
-			virtual void setCutOff(IntensityType cut_off)
-			{
-				cut_off_ = cut_off;
-				param_.setValue("cutoff",(double)cut_off_);
-			}
-			
-			/// get reasonable set of samples from the model (i.e. for printing)
-			virtual void getSamples(SamplesType& cont) const =0;
-
-			/// fill stream with reasonable set of samples from the model (i.e. for printing)
-			virtual void getSamples(std::ostream& os)
-			{
-				SamplesType samples;
-				getSamples(samples);
-				for (typename SamplesType::ConstIterator it=samples.begin();it!=samples.end(); ++it)
+	
+	      /// copy constructor 
+	      BaseModel(const BaseModel& source)
+					: FactoryProduct2(source),
+						cut_off_(source.cut_off_)
 				{
-					os << *it << std::endl;
 				}
-			}
-
-		protected:
-			IntensityType cut_off_;
-
-			//docu in base class
-			void updateMembers_()
-			{
-				cut_off_ = (double)param_.getValue("cutoff");
-			}
+	
+	      /// Destructor 
+	      virtual ~BaseModel()
+	      {	
+	      }
+	
+	      /// assignment operator
+	      virtual BaseModel& operator = (const BaseModel& source)
+				{
+					if (&source == this) return *this;
+					
+					FactoryProduct2::operator = (source);
+					cut_off_ = source.cut_off_;
+					
+					return *this;
+				}
+	
+	      /// register all derived classes here
+	      static void registerChildren();
+				
+	      /// acess model predicted intensity at position @p pos
+	      virtual IntensityType getIntensity(const PositionType& pos) const=0;
+	      
+	      /// check if position @p pos is part of the model regarding the models cut-off.
+	      virtual bool isContained(const PositionType& pos) const
+				{
+					return getIntensity(pos) >= cut_off_;
+				}
+	
+	      /// set DPeaks intensity to model predicted intensity.
+	      virtual void  fillIntensity(PeakType& peak) const
+				{
+					peak.setIntensity( getIntensity(peak.getPosition()) );
+				}
+	
+	      //// set DPeaks intensity to model predicted intensity.
+				template <class PeakIterator>
+	      void  fillIntensities(PeakIterator beg, PeakIterator end) const
+				{
+		    	for (PeakIterator it=beg; it!=end; it++)
+					{
+						fillIntensity(*it);
+					}
+				}
+	
+				/// get cutoff value
+				virtual IntensityType getCutOff() const	
+				{	
+					return cut_off_;	
+				}
+	
+				///	set cutoff value
+				virtual void setCutOff(IntensityType cut_off)
+				{
+					cut_off_ = cut_off;
+					param_.setValue("cutoff",(double)cut_off_);
+				}
+				
+				/// get reasonable set of samples from the model (i.e. for printing)
+				virtual void getSamples(SamplesType& cont) const =0;
+	
+				/// fill stream with reasonable set of samples from the model (i.e. for printing)
+				virtual void getSamples(std::ostream& os)
+				{
+					SamplesType samples;
+					getSamples(samples);
+					for (typename SamplesType::ConstIterator it=samples.begin();it!=samples.end(); ++it)
+					{
+						os << *it << std::endl;
+					}
+				}
+	
+			protected:
+				IntensityType cut_off_;
+	
+				//docu in base class
+				void updateMembers_()
+				{
+					cut_off_ = (double)param_.getValue("cutoff");
+				}
   };
 }
 

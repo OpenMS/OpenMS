@@ -30,7 +30,7 @@
 // all from BaseSeeder derived classes
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SimpleSeeder.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/PickedPeakSeeder.h>
-//#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MarrWaveletSeeder.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MarrWaveletSeeder.h>
 //#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/IsotopeWaveletSeeder.h>
 
 namespace OpenMS
@@ -39,8 +39,7 @@ namespace OpenMS
 	{
 		Factory<BaseSeeder>::registerProduct(SimpleSeeder::getName(), &SimpleSeeder::create);
  		Factory<BaseSeeder>::registerProduct(PickedPeakSeeder::getName(), &PickedPeakSeeder::create);
-
-//		Factory<BaseSeeder>::registerProduct(MarrWaveletSeeder::getName(), &MarrWaveletSeeder::create);
+		Factory<BaseSeeder>::registerProduct(MarrWaveletSeeder::getName(), &MarrWaveletSeeder::create);
 //		Factory<BaseSeeder>::registerProduct(IsotopeWaveletSeeder::getName(), &IsotopeWaveletSeeder::create);
 	}	
 	

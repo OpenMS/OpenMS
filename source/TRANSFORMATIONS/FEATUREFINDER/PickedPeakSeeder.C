@@ -25,7 +25,6 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/PickedPeakSeeder.h>
-#include <iostream>
 
 using namespace std;
 
@@ -170,7 +169,7 @@ namespace OpenMS
 							isoclust.charge_ = current_charge;
 							isoclust.scans_.push_back(i);
 	
-							entry_to_insert = iso_map_.insert( TableEntry(mz_in_hash, isoclust) );		   
+							entry_to_insert = iso_map_.insert( TableType::value_type(mz_in_hash, isoclust) );		   
 						}
 						else
 						{
@@ -220,7 +219,7 @@ namespace OpenMS
 						isoclust.charge_ = current_charge;
 						isoclust.scans_.push_back(i);
 	
-						entry_to_insert = iso_map_.insert( TableEntry(mz_in_hash, isoclust) );		  
+						entry_to_insert = iso_map_.insert( TableType::value_type(mz_in_hash, isoclust) );		  
 					}
 		
 	#ifdef DEBUG_FEATUREFINDER

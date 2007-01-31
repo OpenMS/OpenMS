@@ -31,38 +31,58 @@
 
 namespace OpenMS
 {
-  /** @brief Abstract base class for Seeder-Module of FeatureFinder 
+  /** 
+  	@brief Abstract base class for Seeder-Module of FeatureFinder 
    
-  	 	Abstract base class for Seeder-Module of FeatureFinder
-      every derived class has to implement the static functions
-      "T* create()" and "const String getName()" (see FactoryProduct for details)
-      
-      @ingroup FeatureFinder
-      
-   */
-  class BaseSeeder: public FeaFiModule
+	 	Abstract base class for Seeder-Module of FeatureFinder
+    every derived class has to implement the static functions
+    "T* create()" and "const String getName()" (see FactoryProduct for details)
+    
+    @ingroup FeatureFinder
+  */
+  class BaseSeeder
+  	: public FeaFiModule
   {
 
-  public:
-    /// Default constructor 
-    BaseSeeder();
-
-    /// copy constructor 
-    BaseSeeder(const BaseSeeder& source);
-
-    /// destructor 
-    virtual ~BaseSeeder();
-
-    /// assignment operator 
-    virtual BaseSeeder& operator = (const BaseSeeder& source);
-
-    /// register all derived classes here 
-    static void registerChildren();
-
-    /// return next seed 
-    virtual IndexSet nextSeed() throw (NoSuccessor)=0;
-
-    
+	  public:
+			/**
+				@brief Stores information about an isotopic cluster (i.e. potential peptide charge variant)
+	    	
+	    	This struct is used in several implemented Seeders.
+	    */
+	    struct IsotopeCluster
+	    {
+	      IsotopeCluster()
+	        : charge_(0), 
+	        	peaks_(), 
+	        	scans_()
+	      {
+	      }
+	      /// predicted charge state of this peptide
+	      UnsignedInt charge_;
+	      /// peaks in this cluster
+	      IndexSet peaks_;
+	      /// the scans of this cluster
+	      std::vector<UnsignedInt> scans_;
+	    };
+	  	
+	    /// Default constructor 
+	    BaseSeeder();
+	
+	    /// copy constructor 
+	    BaseSeeder(const BaseSeeder& source);
+	
+	    /// destructor 
+	    virtual ~BaseSeeder();
+	
+	    /// assignment operator 
+	    virtual BaseSeeder& operator = (const BaseSeeder& source);
+	
+	    /// register all derived classes here 
+	    static void registerChildren();
+	
+	    /// return next seed 
+	    virtual IndexSet nextSeed() throw (NoSuccessor)=0;
   };
 }
 #endif // OPENMS_TRANSFORMATIONS_FEATUREFINDER_BASESEEDER_H

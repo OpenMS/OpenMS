@@ -84,7 +84,7 @@ CHECK(nextSeed())
 	seeder.setParam(param);
 		
 	FeaFiModule::IndexSet  region;
-	Index peak;
+	FeaFiModule::IDX peak;
 	
 	region = seeder.nextSeed();
 	peak =  *(region.begin());
@@ -101,6 +101,8 @@ CHECK(nextSeed())
 	region = seeder.nextSeed();
 	peak =  *(region.begin());
 	TEST_EQUAL(traits->getPeakIntensity(peak),1697);		
+
+	TEST_EXCEPTION( FeaFiModule::NoSuccessor , seeder.nextSeed() )
 	 
 RESULT
 

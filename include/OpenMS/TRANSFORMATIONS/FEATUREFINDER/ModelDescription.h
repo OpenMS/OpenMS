@@ -28,7 +28,6 @@
 #define OPENMS_TRANSFORMATIONS_FEATUREFINDER_MODELDESCRIPTION_H
 
 #include <OpenMS/FORMAT/Param.h>
-#include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/BaseModel.h>
 #include <OpenMS/CONCEPT/Factory.h>
 

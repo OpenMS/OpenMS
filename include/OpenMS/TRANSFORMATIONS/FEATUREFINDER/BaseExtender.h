@@ -33,47 +33,46 @@
 namespace OpenMS
 {
 
-  /**  @brief Abstract base class for Extender-Module of FeatureFinder.
+  /**  
+  	@brief Abstract base class for Extender-Module of FeatureFinder.
     
- 			Every derived class has to implement the static functions
-      "T* create()" and "const String getName()" (see FactoryProduct for details).
-      
-      @ingroup FeatureFinder
-   
-   */
-
+		Every derived class has to implement the static functions
+    "T* create()" and "const String getName()" (see FactoryProduct for details).
+    
+    @ingroup FeatureFinder
+  */
   class BaseExtender 
     : public FeaFiModule
   {
 
-  public:
-    /// Default constructor
-    BaseExtender();
-
-    /// copy constructor  
-    BaseExtender(const BaseExtender& source);
-
-    ///   destructor  
-    virtual ~BaseExtender();
-
-    /// assignment operator  
-    virtual BaseExtender& operator = (const BaseExtender& source);
-
-    /// register all derived classes here  
-    static void registerChildren();
-
-    /** 
-    	@brief extend given seed  
-    
-			@param seed_region index of peak that serves as seed for feature
-			@return IndexSet of peaks that could be part of a feature (only valid until next call to extend) 
-    */
-    virtual const IndexSet& extend(const IndexSet& seed_region)=0;
-			
-  protected:
-    
-    /// Set of indizes representing the region that belongs to this feature.
-    IndexSet region_;
+	  public:
+	    /// Default constructor
+	    BaseExtender();
+	
+	    /// copy constructor  
+	    BaseExtender(const BaseExtender& source);
+	
+	    ///   destructor  
+	    virtual ~BaseExtender();
+	
+	    /// assignment operator  
+	    virtual BaseExtender& operator = (const BaseExtender& source);
+	
+	    /// register all derived classes here  
+	    static void registerChildren();
+	
+	    /** 
+	    	@brief extend given seed  
+	    
+				@param seed_region index of peak that serves as seed for feature
+				@return IndexSet of peaks that could be part of a feature (only valid until next call to extend) 
+	    */
+	    virtual const IndexSet& extend(const IndexSet& seed_region)=0;
+				
+	  protected:
+	    
+	    /// Set of indizes representing the region that belongs to this feature.
+	    IndexSet region_;
     
   };
 }

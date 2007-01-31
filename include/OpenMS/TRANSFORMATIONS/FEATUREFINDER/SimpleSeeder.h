@@ -58,7 +58,8 @@ namespace OpenMS
 		
 		@ingroup FeatureFinder
 		
-		@todo Copy indices of peaks with an intensity higher than the threshold only (Ole, Marc)
+		@todo Write test with more than one scan (Ole)
+		@todo Copy indices of peaks with an intensity higher than the threshold only (Ole)
 	*/ 
   class SimpleSeeder 
     : public BaseSeeder

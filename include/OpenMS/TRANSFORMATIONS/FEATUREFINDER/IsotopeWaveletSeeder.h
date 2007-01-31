@@ -30,11 +30,6 @@
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/BaseSeeder.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeaFiTraits.h>
 
-#include <OpenMS/CONCEPT/Types.h>
-#include <OpenMS/CONCEPT/Exception.h>
-
-#include <OpenMS/KERNEL/DimensionDescription.h>
-
 // GSL includes
 #include <gsl/gsl_sf_gamma.h>
 
@@ -47,17 +42,18 @@
 #include <algorithm>
 #include <vector>
 
-
 namespace OpenMS
 {
 
-	/** @brief Seeding module for the peptide quantification algorithm in OpenMS.
+	/** 
+		@brief Seeding module which uses a isotopic wavelet to find seeds.
 	
-			This seeder select interesting regions in the map using a wavelet funtion
-			modelling the isotopic distribution.
-				
-			@ingroup FeatureFinder
+		This seeder select interesting regions in the map using a wavelet funtion
+		modelling the isotopic distribution.
 		
+		@todo Write test with more than one scan (Ole)
+		
+		@ingroup FeatureFinder
 	*/ 
   class IsotopeWaveletSeeder 
     : public BaseSeeder
@@ -67,8 +63,8 @@ namespace OpenMS
   
   	enum DimensionId
     {
-        RT = DimensionDescription < LCMS_Tag >::RT,
-        MZ = DimensionDescription < LCMS_Tag >::MZ
+      RT = DimensionDescription < LCMS_Tag >::RT,
+      MZ = DimensionDescription < LCMS_Tag >::MZ
     };
 
     typedef FeaFiTraits::IntensityType IntensityType;

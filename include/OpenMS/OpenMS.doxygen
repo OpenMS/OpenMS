@@ -54,7 +54,7 @@
 
 /*
 	TODO:
-	- Fehlende FeaFi-Module implementieren
+	- IsotopeWaveletSeeder implementieren
 	- FactoryProduct durch FactoryProduct2 ersetzen
 	- setParam-Methoden aus Modellen entfernen -> Factory wirklich benutzen
 	- Kernel/Datastructures nach Pass-By-Copy durchsuchen

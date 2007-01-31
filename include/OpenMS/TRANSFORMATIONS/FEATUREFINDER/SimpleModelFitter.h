@@ -29,16 +29,10 @@
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/BaseModelFitter.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeaFiTraits.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/ProductModel.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/InterpolationModel.h>
-#include <OpenMS/KERNEL/DimensionDescription.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/ProductModel.h>
 #include <OpenMS/MATH/STATISTICS/BasicStatistics.h>
 #include <OpenMS/MATH/STATISTICS/AsymmetricStatistics.h>
-
-#include<iostream>  
-#include<fstream>   
-#include<sstream>
-#include<string>
 
 namespace OpenMS
 {

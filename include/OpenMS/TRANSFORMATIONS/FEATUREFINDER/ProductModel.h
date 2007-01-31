@@ -31,8 +31,6 @@
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/BaseModel.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/ModelDescription.h>
 #include <OpenMS/KERNEL/DimensionDescription.h>
-#include <OpenMS/CONCEPT/Exception.h>
-#include <vector>
 
 namespace OpenMS
 {

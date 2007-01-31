@@ -31,8 +31,6 @@
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeaFiTraits.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/ProductModel.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/InterpolationModel.h>
-#include <OpenMS/KERNEL/DimensionDescription.h>
-#include <OpenMS/MATH/STATISTICS/BasicStatistics.h>
 #include <OpenMS/MATH/STATISTICS/AsymmetricStatistics.h>
 
 #include <gsl/gsl_rng.h>
@@ -40,11 +38,6 @@
 #include <gsl/gsl_vector.h>
 #include <gsl/gsl_multifit_nlin.h>
 #include <gsl/gsl_blas.h>
-
-#include<iostream>
-#include<fstream>
-#include<sstream>
-#include<string>
 
 namespace OpenMS
 {

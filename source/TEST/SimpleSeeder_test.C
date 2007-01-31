@@ -117,7 +117,9 @@ CHECK(nextSeed())
 	region = seeder.nextSeed();
 	peak =  *(region.begin());
 	TEST_EQUAL(traits->getPeakIntensity(peak),3);		
-  
+
+	TEST_EXCEPTION( FeaFiModule::NoSuccessor , seeder.nextSeed() )
+
 RESULT
 
 /////////////////////////////////////////////////////////////

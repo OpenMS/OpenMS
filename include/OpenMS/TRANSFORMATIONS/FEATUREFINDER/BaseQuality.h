@@ -45,37 +45,37 @@ namespace OpenMS
    */
   class BaseQuality: public FeaFiModule
   {
-  public:
-    /// Default constructor
-    BaseQuality();
-
-    /// copy constructor
-    BaseQuality(const BaseQuality& source);
-
-    /// destructor 
-    virtual ~BaseQuality();
-
-    /// assignment operator
-    virtual BaseQuality& operator = (const BaseQuality& source);
-
-    /// register all derived classes here 
-    static void registerChildren();
-
-    /// Computes the goodness of fit between model @p model and peaks denoted by @p set
-    virtual double evaluate(const IndexSet& set, const BaseModel<2>& model)=0;
-    
-    /// Computes the goodness of fit between model @p model and peaks @p set along dimension @p dim.
-    virtual double evaluate(const IndexSet& set, const BaseModel<1>& model, UnsignedInt dim)=0;
-		
-		/// Returns the significance of the last fit (if applicable, otherwise -1
-		double getPvalue()
-		{ 
-			return pval_;
-		}
-		
-	protected:
-		/// Significance of fit
-		double pval_;
+	  public:
+	    /// Default constructor
+	    BaseQuality();
+	
+	    /// copy constructor
+	    BaseQuality(const BaseQuality& source);
+	
+	    /// destructor 
+	    virtual ~BaseQuality();
+	
+	    /// assignment operator
+	    virtual BaseQuality& operator = (const BaseQuality& source);
+	
+	    /// register all derived classes here 
+	    static void registerChildren();
+	
+	    /// Computes the goodness of fit between model @p model and peaks denoted by @p set
+	    virtual double evaluate(const IndexSet& set, const BaseModel<2>& model)=0;
+	    
+	    /// Computes the goodness of fit between model @p model and peaks @p set along dimension @p dim.
+	    virtual double evaluate(const IndexSet& set, const BaseModel<1>& model, UnsignedInt dim)=0;
+			
+			/// Returns the significance of the last fit (if applicable, otherwise -1
+			double getPvalue()
+			{ 
+				return pval_;
+			}
+			
+		protected:
+			/// Significance of fit
+			double pval_;
 			
   };
 }

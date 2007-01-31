@@ -91,7 +91,9 @@ CHECK((FeaFiModule::IndexSet  nextSeed() throw(NoSuccessor)))
 	region = seeder.nextSeed();
 	peak =  *(region.begin());
 	TEST_EQUAL(traits->getPeakIntensity(peak),1512);					
-  
+
+	TEST_EXCEPTION( FeaFiModule::NoSuccessor , seeder.nextSeed() )
+ 
 RESULT
 
 CHECK(static const String getName())

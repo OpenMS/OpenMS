@@ -41,12 +41,14 @@ namespace OpenMS
 	class BaseExtender;
 	class BaseModelFitter;
 	/**
-		 @brief Traits class for the feature finding algorithm.
-		 
-		 This class is rather an "umbrella" for the different modules / steps of the algorithm
-		 than a traits class in the traditional sense.
+		@brief Traits class for the feature finding algorithm.
 		
-		 @ingroup FeatureFinder 	
+		This class is rather an "umbrella" for the different modules / steps of the algorithm
+		than a traits class in the traditional sense.
+		
+		@todo Write tests for all methods (Ole)
+		
+		@ingroup FeatureFinder 	
 	*/
 	class FeaFiTraits
 	{
