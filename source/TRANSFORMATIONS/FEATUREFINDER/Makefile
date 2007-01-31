@@ -48,6 +48,7 @@ CPP_SOURCES=\
 	ExtendedModelFitter.C\
 	BaseSeeder.C\
 	SimpleSeeder.C\
+	PickedPeakSeeder.C\
 	BaseQuality.C\
 	Correlation.C\
 	RankCorrelation.C\
@@ -56,7 +57,6 @@ CPP_SOURCES=\
 	FeatureFinder.C
 
 #	MarrWaveletSeeder.C\
-#	PickedPeakSeeder.C\
 #	IsotopeWaveletSeeder.C\
 	
 ADD_CPP_SOURCES = $(CGAL_SOURCES)

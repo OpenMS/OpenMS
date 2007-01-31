@@ -346,6 +346,7 @@ EXECUTABLES_TRANSFORMATIONS_FEATUREFINDER = \
 	LogNormalModel_test\
 	BaseSeeder_test\
 	SimpleSeeder_test\
+	PickedPeakSeeder_test\
 	BaseExtender_test\
 	SimpleExtender_test\
 	BaseModelFitter_test\
@@ -360,7 +361,6 @@ EXECUTABLES_TRANSFORMATIONS_FEATUREFINDER = \
 
 #	MarrWaveletSeeder_test\
 #	IsotopeWaveletSeeder_test\
-#	PickedPeakSeeder_test\
 
 EXECUTABLES_TRANSFORMATIONS_PEAKPICKER = \
 	ContinuousWaveletTransform_test\

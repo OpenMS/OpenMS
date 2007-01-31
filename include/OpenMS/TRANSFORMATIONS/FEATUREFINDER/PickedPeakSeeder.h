@@ -42,20 +42,19 @@
 namespace OpenMS
 {
 
-	/** @brief Seeding class
-	
-			This extender module sweeps through the scans and classifies cluster 
-	 		of peaks as candidate peptides if the distance between successive peaks 
-	 		is 1 Da (charge 1) , 0.5 Da (charge 2) or 0.3 Da (charge 3) etc.
-	 
-	 		@note This module works only for picked peaks. Used it in combination with class DummySeeder.
-	 
-	 		@note Experiments have shown that this extender produces a lot of false positive hits. It would be
-	 		better to take also the relaitive intensities between the peaks into consideration and to check if these
-	 		a similar to an isotopic pattern.
-	  			
-			@ingroup FeatureFinder
-		
+	/** 
+		@brief Seeding class
+
+		This extender module sweeps through the scans and classifies cluster 
+ 		of peaks as candidate peptides if the distance between successive peaks 
+ 		is 1 Da (charge 1) , 0.5 Da (charge 2) or 0.3 Da (charge 3) etc.
+ 
+ 		@note This module works only for picked peaks. Used it in combination with class DummySeeder.
+ 
+ 		@note Experiments have shown that this extender produces a lot of false positive hits. It would be
+ 		better to check if the relaitive intensities between the peaks is similar to an isotopic pattern.
+  			
+		@ingroup FeatureFinder
 	*/
 	class PickedPeakSeeder
 	  : public BaseSeeder
@@ -113,7 +112,7 @@ namespace OpenMS
 	protected:
 		
     /// Finds the neighbour of the peak denoted by @p current_mz in the previous scan
-    std::vector<double>::iterator searchInScan_(const std::vector<CoordinateType>::iterator& scan_begin, CoordinateType current_mz)
+    std::vector<double>::iterator searchInScan_(const std::vector<CoordinateType>::iterator& scan_begin, const std::vector<CoordinateType>::iterator& scan_end, CoordinateType current_mz)
     {
       // perform binary search to find the neighbour in rt dimension
       // 	lower_bound finds the peak with m/z current_mz or the next larger peak if this peak does not exist.
@@ -152,8 +151,8 @@ namespace OpenMS
 
     } // end of searchInScan_
 
-    /// Test if the distance between two peaks is equal to 1  / z (where z=1,2,....)
-    UnsignedInt testDistance2NextPeak_(CoordinateType dist2nextpeak);
+    /// Find out which charge state belongs to this distance
+    UnsignedInt distanceToCharge_(const CoordinateType& dist);
 
     /// Sweeps through scans and detects isotopic patterns
     void sweep_();

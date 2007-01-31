@@ -54,7 +54,6 @@
 
 /*
 	TODO:
-	- Debugging of TOPP-Tools mit Makefile (wie bei FeaFi)
 	- Fehlende FeaFi-Module implementieren
 	- FactoryProduct durch FactoryProduct2 ersetzen
 	- setParam-Methoden aus Modellen entfernen -> Factory wirklich benutzen

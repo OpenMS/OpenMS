@@ -23,7 +23,6 @@
 // --------------------------------------------------------------------------
 // $Maintainer: Ole Schulz-Trieglaff $
 // --------------------------------------------------------------------------
-//
 
 #include <OpenMS/CONCEPT/ClassTest.h>
 
@@ -85,7 +84,7 @@ CHECK(nextSeed())
 	seeder.setParam(param);
 	
 	FeaFiModule::IndexSet  region;
-	Index peak;
+	FeaFiModule::IDX peak;
 	
 	region = seeder.nextSeed();
 	peak =  *(region.begin());
