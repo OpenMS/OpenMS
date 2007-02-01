@@ -70,22 +70,77 @@ namespace OpenMS
   	//const double epsilon(0.4);
     //const double epsilon(0.2);
     //const double c(0.0004);
-    double score(0), sum(0), sum1(0), sum2(0), squared_sum1(0), squared_sum2(0);
+    double score(0), sum(0), sum1(0), sum2(0)/*, squared_sum1(0), squared_sum2(0)*/;
+
     for (PeakSpectrum::ConstIterator it1 = s1.begin(); it1 != s1.end(); ++it1)
     {
       sum1 += it1->getIntensity();
+			/*
       for (PeakSpectrum::ConstIterator it2 = s1.begin(); it2 != s1.end(); ++it2)
       {
         if (abs(it1->getPosition()[0] - it2->getPosition()[0]) <= 2 * epsilon)
         {
           squared_sum1 += it1->getIntensity() * it2->getIntensity();
         }
-      }
+      }*/
     }
+
+/*
+		Size i_left(0);
+		for (Size i = 0; i != s1.getContainer().size(); ++i)
+		{
+			sum1 += s1.getContainer()[i].getIntensity();
+			for (Size j = i_left; j != s1.getContainer().size(); ++j)
+			{
+				double pos1(s1.getContainer()[i].getPosition()[0]), pos2(s1.getContainer()[j].getPosition()[0]);
+				if (abs(pos1 - pos2) <= 2 * epsilon)
+				{
+					squared_sum1 += s1.getContainer()[i].getIntensity() * s1.getContainer()[j].getIntensity();
+				}
+				else
+				{
+					if (pos2 > pos1)
+					{
+						break;
+					}
+					else
+					{
+						i_left = i;
+					}
+				}
+			}
+		}*/
+
+/*
+    i_left = 0;
+    for (Size i = 0; i != s2.getContainer().size(); ++i)
+    {
+      sum2 += s2.getContainer()[i].getIntensity();
+      for (Size j = i_left; j != s2.getContainer().size(); ++j)
+      {
+        double pos1(s2.getContainer()[i].getPosition()[0]), pos2(s2.getContainer()[j].getPosition()[0]);
+        if (abs(pos1 - pos2) <= 2 * epsilon)
+        {
+          squared_sum1 += s2.getContainer()[i].getIntensity() * s2.getContainer()[j].getIntensity();
+        }
+        else
+        {
+          if (pos2 > pos1)
+          {
+            break;
+          }
+          else
+          {
+            i_left = i;
+          }
+        }
+      }
+    }*/
 
     for (PeakSpectrum::ConstIterator it1 = s2.begin(); it1 != s2.end(); ++it1)
     {
       sum2 += it1->getIntensity();
+			/*
       for (PeakSpectrum::ConstIterator it2 = s2.begin(); it2 != s2.end(); ++it2)
       {
         if (abs(it1->getPosition()[0] - it2->getPosition()[0]) <= 2 * epsilon)
@@ -93,8 +148,35 @@ namespace OpenMS
           squared_sum2 += it1->getIntensity() * it2->getIntensity();
         }
       }
+			*/
     }
 
+		Size j_left(0);
+		for (Size i = 0; i != s1.getContainer().size(); ++i)
+		{
+			for (Size j = j_left; j != s2.getContainer().size(); ++j)
+			{
+				double pos1(s1.getContainer()[i].getPosition()[0]), pos2(s2.getContainer()[j].getPosition()[0]);
+				if (abs(pos1 - pos2) <= 2 * epsilon)
+				{
+					sum += sqrt(s1.getContainer()[i].getIntensity() * s2.getContainer()[j].getIntensity());
+				}
+				else
+				{
+					if (pos2 > pos1)
+					{
+						break;
+					}
+					else
+					{
+						j_left = j;
+					}
+				}
+			}
+		}
+
+
+		/*
     for (PeakSpectrum::ConstIterator it1 = s1.begin(); it1 != s1.end(); ++it1)
     {
       for (PeakSpectrum::ConstIterator it2 = s2.begin(); it2 != s2.end(); ++it2)
@@ -104,7 +186,7 @@ namespace OpenMS
           sum += sqrt(it1->getIntensity() * it2->getIntensity());
         }
       }
-    }
+    }*/
 
     score = sum / (sqrt(sum1 * sum2));
 

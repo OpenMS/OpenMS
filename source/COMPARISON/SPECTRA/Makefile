@@ -40,7 +40,9 @@ CPP_SOURCES=\
 	SpectrumPrecursorComparator.C\
 	PeakSpectrumCompareFunctor.C\
 	BinnedRepCompareFunctor.C\
-	ZhangSimilarityScore.C
+	ZhangSimilarityScore.C\
+	SpectrumAlignmentScore.C\
+	SpectrumAlignment.C
 	
 
 ADD_CPP_SOURCES = 

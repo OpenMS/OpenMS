@@ -44,7 +44,8 @@ CPP_SOURCES=\
 	DGridHandler.C\
 	MzDataExpSettHandler.C\
 	MascotXMLHandler.C\
-	XMLSchemes.C
+	XMLSchemes.C\
+	OMSSAXMLHandler.C
 
 ifeq ($(ANDIMS_SUPPORT),true)
 	ifeq ($(NETCDF_SUPPORT),true)

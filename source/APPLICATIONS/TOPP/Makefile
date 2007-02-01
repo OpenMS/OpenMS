@@ -69,7 +69,8 @@ EXECUTABLES=\
 	Resampler\
 	FeatureFinder\
 	PILISModel\
-	PILISIdentification
+	PILISIdentification\
+	OMSSAAdapter
 
 
 all: $(EXECUTABLES)
@@ -229,6 +230,10 @@ PILISIdentification: PILISIdentification.o
 	$(CP) $@ $(OPENMS_PATH)/bin/
 
 PILISModel: PILISModel.o
+	$(CXX) $(LDFLAGS) -o $@ $< $(LIBS)
+	$(CP) $@ $(OPENMS_PATH)/bin/
+
+OMSSAAdapter: OMSSAAdapter.o
 	$(CXX) $(LDFLAGS) -o $@ $< $(LIBS)
 	$(CP) $@ $(OPENMS_PATH)/bin/
 

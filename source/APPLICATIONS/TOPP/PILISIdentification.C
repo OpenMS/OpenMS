@@ -104,9 +104,13 @@ class TOPPPILISIdentification
       //-------------------------------------------------------------
       // calculations
       //-------------------------------------------------------------
-			
+		
+			writeDebug_("Reading model file", 2);
+
 			PILISModel* model = new PILISModel();
 			model->readFromFile(getStringOption_("model_file"));
+
+			writeDebug_("Reading sequence db", 2);
 
 			PILISSequenceDB* db = new PILISSequenceDB();
 			db->addPeptidesFromFile(getStringOption_("peptide_db_file"));
@@ -116,7 +120,6 @@ class TOPPPILISIdentification
 			
 			PILIS_id.setSequenceDB(db);
 			PILIS_id.setModel(model);
-			PILIS_id.setScoringType("ZhangSimilarityScore");
 			
 			Size no(1);
 			for (PeakMap::ConstIterator it = exp.begin(); it != exp.end(); ++it, ++no)
@@ -135,6 +138,10 @@ class TOPPPILISIdentification
 				}
 			}
 			
+			delete model;
+			delete db;
+
+
 			//-------------------------------------------------------------
 			// writing output
 			//-------------------------------------------------------------

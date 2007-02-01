@@ -30,6 +30,7 @@
 #include <OpenMS/COMPARISON/SPECTRA/SpectrumCheapDPCorr.h>
 #include <OpenMS/COMPARISON/SPECTRA/SpectrumPrecursorComparator.h>
 #include <OpenMS/COMPARISON/SPECTRA/ZhangSimilarityScore.h>
+#include <OpenMS/COMPARISON/SPECTRA/SpectrumAlignmentScore.h>
 
 #include <OpenMS/CONCEPT/Factory.h>
 
@@ -71,6 +72,7 @@ namespace OpenMS
     Factory<PeakSpectrumCompareFunctor>::registerProduct(SpectrumCheapDPCorr::getName(), &SpectrumCheapDPCorr::create);
     Factory<PeakSpectrumCompareFunctor>::registerProduct(SpectrumPrecursorComparator::getName(), &SpectrumPrecursorComparator::create);
 		Factory<PeakSpectrumCompareFunctor>::registerProduct(ZhangSimilarityScore::getName(), &ZhangSimilarityScore::create);
+		Factory<PeakSpectrumCompareFunctor>::registerProduct(SpectrumAlignmentScore::getName(), &SpectrumAlignmentScore::create);
 	}
 	
   /**

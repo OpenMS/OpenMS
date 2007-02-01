@@ -39,6 +39,7 @@
 #include <OpenMS/ANALYSIS/ID/ProtonDistributionModel.h>
 #include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
 #include <OpenMS/CHEMISTRY/ResidueDB.h>
+#include <OpenMS/COMPARISON/SPECTRA/SpectrumAlignment.h>
 #include <OpenMS/FORMAT/TextFile.h>
 
 namespace OpenMS 
@@ -92,7 +93,7 @@ namespace OpenMS
 			void writeToFile(const String& filename);
 
 			/// greedy specturm aligner, should be replaced by a better algorithm
-			void getSpectrumAlignment(HashMap<Size, Size>& peak_map, const PeakSpectrum& spec1, const PeakSpectrum& spec2);
+			//void getSpectrumAlignment(HashMap<Size, Size>& peak_map, const PeakSpectrum& spec1, const PeakSpectrum& spec2);
 
 			/// simulates a spectrum with the model of the given peptide and charge and writes it to the given PeakSpectrum
 			void getSpectrum(PeakSpectrum& spec, const AASequence& peptide, UnsignedInt charge);
@@ -204,7 +205,10 @@ namespace OpenMS
 
 			/// extracts the ions intensities of a training spectrum
 			double getIntensitiesFromSpectrum_(const PeakSpectrum& train_spec, IonPeaks_& ion_ints, const AASequence& peptide, UnsignedInt charge);
-			
+
+			/// aligns two spectra a writes the intensities from the first which matches the second to the vector
+			double getIntensitiesFromComparison_(const PeakSpectrum& train_spec, const PeakSpectrum& theo_spec, std::vector<double>& intensities);
+
 			/// trains precursor and related peaks
 			void trainPrecursorIons_(double initial_probability, double intensity, double intensity_NH3, double intensity_H2O, const AASequence& peptide);
 
@@ -272,6 +276,12 @@ namespace OpenMS
 
 			/// true if the instance is valid
 			bool valid_;
+
+			/// stores the peaks of a spectrum
+			HashMap<double, std::vector<Peak> > peaks_;
+
+			/// the alignment algorithm used
+			SpectrumAlignment spectra_aligner_;
 	};
 }
 #endif

@@ -27,9 +27,11 @@
 
 #include <OpenMS/ANALYSIS/ID/PILISIdentification.h>
 #include <OpenMS/COMPARISON/SPECTRA/ZhangSimilarityScore.h>
+#include <OpenMS/COMPARISON/SPECTRA/SpectrumAlignmentScore.h>
 #include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
 #include <OpenMS/COMPARISON/CLUSTERING/ClusterSpectrum.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
+#include <OpenMS/FILTERING/TRANSFORMERS/Normalizer.h>
 
 using namespace std;
 
@@ -39,13 +41,15 @@ namespace OpenMS
 	PILISIdentification::PILISIdentification()
 		:	sequence_db_(0),
 			hmm_model_(0),
+			pre_scorer_(0),
 			scorer_(0),
 			own_sequence_db_(false),
 			own_model_(false)
 	{
 		defaults_.setValue("prcr_m_tol", double(3.0));
 		defaults_.setValue("max_candidates", 200);
-		defaults_.setValue("score_name", "ZhangSimilarityScore");
+		defaults_.setValue("pre_score_name", "ZhangSimilarityScore");
+		defaults_.setValue("score_name", "SpectrumAlignmentScore");
 
 		aa_weight_['K'] = 128.095;
   	aa_weight_['M'] = 131.04;
@@ -69,8 +73,8 @@ namespace OpenMS
   	aa_weight_['L'] = 113.084;
 
 		param_ = defaults_;
+		pre_scorer_ = Factory<PeakSpectrumCompareFunctor>::create((String)defaults_.getValue("pre_score_name"));
 		scorer_ = Factory<PeakSpectrumCompareFunctor>::create((String)defaults_.getValue("score_name"));
-		scoring_type_ = (String)defaults_.getValue("score_name");
 	}
 
 	PILISIdentification::PILISIdentification(const PILISIdentification& rhs)
@@ -78,8 +82,8 @@ namespace OpenMS
 			defaults_(rhs.defaults_),
 			sequence_db_(0),
 			hmm_model_(0),
+			pre_scorer_(Factory<PeakSpectrumCompareFunctor>::create(rhs.pre_scorer_->getName())),
 			scorer_(Factory<PeakSpectrumCompareFunctor>::create(rhs.scorer_->getName())),
-			scoring_type_(scorer_->getName()),
 			own_sequence_db_(false),
 			own_model_(false)
 	{
@@ -94,7 +98,6 @@ namespace OpenMS
 			defaults_ = rhs.defaults_;
 			param_ = rhs.param_;
 			scorer_ = Factory<PeakSpectrumCompareFunctor>::create(rhs.scorer_->getName());
-			scoring_type_ = scorer_->getName();
 			own_sequence_db_ = false;
 			own_model_ = false;
 			param_ = rhs.param_;
@@ -177,31 +180,40 @@ namespace OpenMS
 			return;
 		}
 		
+		PeakSpectrum spec_copy(spec);
+		Normalizer normalizer;
+		normalizer.getParam().setValue("method", "to_one");
+
+		normalizer.filterSpectrum(spec_copy);
+		
+
 		double pre_tol = (double)param_.getValue("prcr_m_tol");
 		String score_name = param_.getValue("score_name");
+		
+		scorer_ = Factory<PeakSpectrumCompareFunctor>::create(score_name);
 	
-		double pre_pos = spec.getPrecursorPeak().getPosition()[0];
+		double pre_pos = spec_copy.getPrecursorPeak().getPosition()[0];
 
     if (pre_pos < 200) // TODO
     {
-      cerr << "PILISIdentification: spectrum does not have a precursor peak set. Precursor peak @ m/z=" << pre_pos << ", charge=" << spec.getPrecursorPeak().getCharge() << endl;
+      cerr << "PILISIdentification: spectrum does not have a precursor peak set. Precursor peak @ m/z=" << pre_pos << ", charge=" << spec_copy.getPrecursorPeak().getCharge() << endl;
       return;
     }
 		vector<PILISSequenceDB::PepStruct> cand_peptides;
     getSequenceDB_()->getPeptides(cand_peptides, pre_pos - pre_tol, pre_pos + pre_tol);
-    //cerr << "#cand peptides: " << cand_peptides.size() << ", " << pre_pos << ", +/- " << pre_tol << endl;
+    
+		//cerr << "#cand peptides: " << cand_peptides.size() << ", " << pre_pos << ", +/- " << pre_tol << endl;
 
 		Identification pre_id;
-		getPreIdentification_(pre_id, spec, cand_peptides);
+		getPreIdentification_(pre_id, spec_copy, cand_peptides);
 
-		getFinalIdentification_(id, spec, pre_id);
+		getFinalIdentification_(id, spec_copy, pre_id);
 
 		return;
 	}
 
 	void PILISIdentification::getPreIdentification_(Identification& id, const PeakSpectrum& spec, const std::vector<PILISSequenceDB::PepStruct>& cand_peptides)
 	{
-		//cerr << "void PILISIdentification::getPreIdentification_(Identification& id, const PeakSpectrum& spec, const std::vector<PILISSequenceDB::PepStruct>& cand_peptides)" << endl;
     // get simple spectra for pre-eliminate most of the candidates
     for (vector<PILISSequenceDB::PepStruct>::const_iterator it1 = cand_peptides.begin(); it1 != cand_peptides.end(); ++it1)
     {
@@ -209,14 +221,8 @@ namespace OpenMS
       PeakSpectrum sim_spec;
       getSpectrum_(sim_spec, it1->peptide, it1->charge);
 
-			//cerr << it1->peptide << " " << it1->charge << endl;
-			for (PeakSpectrum::ConstIterator it = sim_spec.begin(); it != sim_spec.end(); ++it)
-			{
-				//cerr << it->getPosition()[0] << " " << it->getIntensity() << endl;
-			}
-			
-      double score = (*scorer_)(sim_spec, spec);
-      PeptideHit peptide_hit(score, "Zhang", 0, it1->charge, it1->peptide);
+      double score = (*pre_scorer_)(sim_spec, spec);
+      PeptideHit peptide_hit(score, "PILIS", 0, it1->charge, it1->peptide);
       id.insertPeptideHit(peptide_hit);
     }
 
@@ -226,7 +232,6 @@ namespace OpenMS
 
 	void PILISIdentification::getFinalIdentification_(Identification& id, const PeakSpectrum& spec, const Identification& pre_id)
 	{
-		//cerr << "void PILISIdentification::getFinalIdentification_(Identification& id, const PeakSpectrum& spec, const Identification& pre_id)" << endl;
 		unsigned int max_candidates = (unsigned int)param_.getValue("max_candidates");
 		for (Size i = 0; i < pre_id.getPeptideHits().size() && i < max_candidates; ++i)
     {
@@ -258,21 +263,14 @@ namespace OpenMS
           it1->setIntensity(0.01);
         }
       }
-
+			
       double score = (*scorer_)(sim_spec, spec);
-      //cerr << it->size() << " " << spec.size() << " " << score << endl;
-      PeptideHit peptide_hit(score, "Zhang", 0, pre_id.getPeptideHits()[i].getCharge(), sequence);
+      PeptideHit peptide_hit(score, "PILIS", 0, pre_id.getPeptideHits()[i].getCharge(), sequence);
       id.insertPeptideHit(peptide_hit);
-      //cerr << peptide_sequence << " " << score << endl;
     }
 
     id.assignRanks();
 
-    //if (id.getPeptideHits().size() > 0)
-    //{
-    //  cerr << id.getPeptideHits().begin()->getSequence() << " " << id.getPeptideHits().begin()->getScore() << endl;
-    //}
-	
 		return;
 	}
 	
@@ -363,7 +361,7 @@ namespace OpenMS
 	{
 		param_ = defaults_;
 		scorer_ = Factory<PeakSpectrumCompareFunctor>::create((String)defaults_.getValue("score_name"));
-		scoring_type_ = (String)defaults_.getValue("score_name");
+		pre_scorer_ = Factory<PeakSpectrumCompareFunctor>::create((String)defaults_.getValue("pre_score_name"));
 		return;
 	}
 	
@@ -372,15 +370,5 @@ namespace OpenMS
 		param_ = param;
 	}
 
-	void PILISIdentification::setScoringType(const String& name)
-	{
-		scorer_ = Factory<PeakSpectrumCompareFunctor>::create(name);
-		scoring_type_ = name;
-	}
-
-	const String& PILISIdentification::getScoringType() const
-	{
-		return scoring_type_;
-	}
 }
 

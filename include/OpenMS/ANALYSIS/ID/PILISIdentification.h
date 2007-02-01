@@ -95,12 +95,6 @@ namespace OpenMS
 
 			/// resets the parameters to default values
 			void resetToDefaultParam();
-
-			/// sets the scoring type, all PeakSpectrumCompareFunctors are allowed
-			void setScoringType(const String& type);
-
-			/// gets the scoring type set, or an empty string
-			const String& getScoringType() const;
 			//@}
 
 		protected:
@@ -135,12 +129,12 @@ namespace OpenMS
 			/// amino acids weights for the simple spectra generator
 			HashMap<char, double> aa_weight_;
 
+			/// scorer for pre comparison
+			PeakSpectrumCompareFunctor* pre_scorer_;
+
 			/// scorer for spectra comparison
 			PeakSpectrumCompareFunctor* scorer_;
 
-			/// name of the scorer
-			String scoring_type_;
-		
 			/// a peaks, just to not instantiate it over and over again
 			Peak p_;
 

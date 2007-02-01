@@ -62,14 +62,12 @@ ptr = new PILISIdentification();
 CHECK(PILISIdentification(const PILISIdentification& source))
 	PILISIdentification copy(*ptr);
 	TEST_EQUAL(copy.getParam(), ptr->getParam())
-	TEST_EQUAL(copy.getScoringType(), "ZhangSimilarityScore")
 RESULT
 
 CHECK(PILISIdentification& operator = (const PILISIdentification&))
 	PILISIdentification copy;
 	copy = *ptr;
 	TEST_EQUAL(copy.getParam(), ptr->getParam())
-	TEST_EQUAL(copy.getScoringType(), "ZhangSimilarityScore")
 RESULT
 
 CHECK(Param& getParam())
@@ -88,18 +86,9 @@ CHECK(void setParam(const Param& param))
 	ptr->setParam(p);
 RESULT
 
-CHECK(const String& getScoringType() const)
-	TEST_EQUAL(ptr->getScoringType(), "ZhangSimilarityScore")
-RESULT
-CHECK(void setScoringType(const String& type))
-	ptr->setScoringType("SpectrumCheapDPCorr");
-	TEST_EQUAL(ptr->getScoringType(), "SpectrumCheapDPCorr")
-RESULT
-
 CHECK(void resetToDefaultParam())
 	ptr->resetToDefaultParam();
 	PILISIdentification id;
-	TEST_EQUAL(ptr->getScoringType(), "ZhangSimilarityScore")
 	TEST_EQUAL(ptr->getParam(), id.getParam())
 RESULT
 
@@ -111,7 +100,8 @@ RESULT
 
 CHECK(void setModel(PILISModel* hmm_model))
 	PILISModel* model = new PILISModel();
-	model->readFromFile("../../data/PILIS/PILIS_default_model.dat");
+	//model->readFromFile("../../data/PILIS/PILIS_default_model.dat");
+	model->readFromFile("/share/usr/bertsch/Diplom_sources/PILIS_model_debug.dat");
 	ptr->setModel(model);
 RESULT
 

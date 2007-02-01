@@ -27,7 +27,6 @@
 
 #include <OpenMS/ANALYSIS/ID/PILISModel.h>
 #include <OpenMS/CHEMISTRY/IsotopeDistribution.h>
-#include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/SYSTEM/File.h>
 
@@ -45,13 +44,6 @@
 
 #define ALIGMENT_DEBUG
 #undef  ALIGMENT_DEBUG
-
-// TODO's from refactoring
-// 	- replace getSpectrumAlignment by better, separate method. DP ????
-
-// TODO refactoring of the pieces:
-// 			- spectra alignment
-//			-	method to get peak intensities via spectra comparison
 
 // TODO parameter for upper and lower m/z boundaries
 // TODO rewrite of neutral losses (depend on which charges?), do it like Pre?
@@ -106,20 +98,19 @@ namespace OpenMS
 
 	PILISModel& PILISModel::operator = (const PILISModel& model)
 	{
-		if (this == &model)
+		if (this != &model)
 		{
-			return *this;
+			hmm_ = model.hmm_;
+	    hmm_precursor_ = model.hmm_precursor_;
+  	  hmms_losses_ = model.hmms_losses_;
+	    prot_dist_ = model.prot_dist_;
+	    tsg_ = model.tsg_;
+	    name_to_enum_ = model.name_to_enum_;
+	    enum_to_name_ = model.enum_to_name_;
+	    param_ = model.param_;
+	    default_ = model.default_;
+	    valid_ = model.valid_;
 		}
-		hmm_ = model.hmm_;
-    hmm_precursor_ = model.hmm_precursor_;
-    hmms_losses_ = model.hmms_losses_;
-    prot_dist_ = model.prot_dist_;
-    tsg_ = model.tsg_;
-    name_to_enum_ = model.name_to_enum_;
-    enum_to_name_ = model.enum_to_name_;
-    param_ = model.param_;
-    default_ = model.default_;
-    valid_ = model.valid_;
 		return *this;
 	}
 	
@@ -205,6 +196,7 @@ namespace OpenMS
 		if (!valid_)
 		{
 			cerr << "PILISModel: cannot train, initialize model from file first, e.g. data/PILIS/PILIS_model_default.dat" << endl;
+			return;
 		}
 
 		PeakSpectrum train_spec = in_spec;
@@ -217,7 +209,10 @@ namespace OpenMS
 		//double pre_int1(0), pre_int_H2O_1(0), pre_int_NH3_1(0), pre_int2(0), pre_int_H2O_2(0), pre_int_NH3_2(0);
 		PrecursorPeaks_ pre_ints_1, pre_ints_2;
 		getPrecursorIntensitiesFromSpectrum_(train_spec, pre_ints_1, peptide_weight, 1);
-		getPrecursorIntensitiesFromSpectrum_(train_spec, pre_ints_2, peptide_weight, 2);
+		if (charge > 1)
+		{
+			getPrecursorIntensitiesFromSpectrum_(train_spec, pre_ints_2, peptide_weight, 2);
+		}
 		// get the ions intensities, y and b ions and losses H2O, NH3 respectively
 		
 		IonPeaks_ ints_1, ints_2;
@@ -225,20 +220,34 @@ namespace OpenMS
 		//{
 			// TODO
 			double sum1 = getIntensitiesFromSpectrum_(train_spec, ints_1, peptide, 1);
-			double sum2 = getIntensitiesFromSpectrum_(train_spec, ints_2, peptide, 2);
+			
+			double sum2(0);
+			
+			if (charge > 1)
+			{
+				sum2 = getIntensitiesFromSpectrum_(train_spec, ints_2, peptide, 2);
+			}
 		//}
 
 		// normalize the intensities
 		//cerr << "pre_ints="	<< pre_ints_1.pre << " " <<  pre_ints_2.pre << " " << pre_ints_1.pre_NH3 << " " <<  pre_ints_2.pre_NH3 << " " <<  pre_ints_1.pre_H2O << " " <<  pre_ints_2.pre_H2O << endl;
 		double sum(0);
-		sum += sum1 + sum2;
-		sum += pre_ints_1.pre + pre_ints_2.pre + pre_ints_1.pre_NH3 + pre_ints_2.pre_NH3 + pre_ints_1.pre_H2O + pre_ints_2.pre_H2O;
+		sum += sum1;
+		sum += pre_ints_1.pre + pre_ints_1.pre_NH3 + pre_ints_1.pre_H2O;
+		if (charge > 1)
+		{
+			sum += sum2 + pre_ints_2.pre + pre_ints_2.pre_NH3 + pre_ints_2.pre_H2O;
+		}
 		pre_ints_1.pre /= sum;
-		pre_ints_2.pre  /= sum;
 		pre_ints_1.pre_NH3 /= sum;
-		pre_ints_2.pre_NH3 /= sum;
 		pre_ints_1.pre_H2O /= sum;
-		pre_ints_2.pre_H2O /= sum;
+
+		if (charge > 1)
+		{
+			pre_ints_2.pre  /= sum;
+			pre_ints_2.pre_NH3 /= sum;
+			pre_ints_2.pre_H2O /= sum;
+		}
 
 		for (HashMap<IonType_, vector<double> >::Iterator it1 = ints_1.ints.begin(); it1 != ints_1.ints.end(); ++it1)
 		{
@@ -248,11 +257,14 @@ namespace OpenMS
 			}
 		}
 
-		for (HashMap<IonType_, vector<double> >::Iterator it1 = ints_2.ints.begin(); it1 != ints_2.ints.end(); ++it1)
+		if (charge > 1)
 		{
-			for (vector<double>::iterator it2 = it1->second.begin(); it2 != it1->second.end(); ++it2)
+			for (HashMap<IonType_, vector<double> >::Iterator it1 = ints_2.ints.begin(); it1 != ints_2.ints.end(); ++it1)
 			{
-				*it2 /= sum;
+				for (vector<double>::iterator it2 = it1->second.begin(); it2 != it1->second.end(); ++it2)
+				{
+					*it2 /= sum;
+				}
 			}
 		}
 	
@@ -361,18 +373,26 @@ namespace OpenMS
 			}
 
 			double y_sum1 = ints_1.ints[YIon][suffix_pos - 1] + ints_1.ints[YIon_H2O][suffix_pos - 1] + ints_1.ints[YIon_NH3][suffix_pos - 1];
-			double y_sum2 = ints_2.ints[YIon][suffix_pos - 1] + ints_2.ints[YIon_H2O][suffix_pos - 1] + ints_2.ints[YIon_NH3][suffix_pos - 1];
 			double b_sum1 = ints_1.ints[BIon][i] + ints_1.ints[BIon_H2O][i] + ints_1.ints[BIon_NH3][i]; 
-			double b_sum2 = ints_2.ints[BIon][i] + ints_2.ints[BIon_H2O][i] + ints_2.ints[BIon_NH3][i];
 		
+			double y_sum2(0), b_sum2(0);
+			if (charge > 1)
+			{
+				y_sum2 = ints_2.ints[YIon][suffix_pos - 1] + ints_2.ints[YIon_H2O][suffix_pos - 1] + ints_2.ints[YIon_NH3][suffix_pos - 1];
+				b_sum2 = ints_2.ints[BIon][i] + ints_2.ints[BIon_H2O][i] + ints_2.ints[BIon_NH3][i];
+			}
+
 			//cerr << prefix << " - " << suffix << " " << b_sum1 << " " << y_sum1 << " " << i + 1 << " " << suffix_pos << endl;
 			
 			hmm_.setTrainingEmissionProbability(b_name1, b_sum1);
 			hmm_.setTrainingEmissionProbability(a_name1, ints_1.ints[AIon][i]);
 			hmm_.setTrainingEmissionProbability(y_name1, y_sum1);
 
-      hmm_.setTrainingEmissionProbability(b_name2, b_sum2);
-      hmm_.setTrainingEmissionProbability(y_name2, y_sum2);
+			if (charge > 1)
+			{
+      	hmm_.setTrainingEmissionProbability(b_name2, b_sum2);
+      	hmm_.setTrainingEmissionProbability(y_name2, y_sum2);
+			}
 
 			hmm_.setTrainingEmissionProbability("AA"+pos_name, b_sum1 + b_sum2 + y_sum1 + y_sum2);
 
@@ -399,8 +419,11 @@ namespace OpenMS
 
 			hmm_.setTransitionProbability("axyz"+pos_name, a_name1, 1); // simple the one and only way to go
 
-      hmm_.setTransitionProbability("bxyz"+pos_name, b_name2, bint2);
-      hmm_.setTransitionProbability("bxyz"+pos_name, y_name2, yint2);
+			if (charge > 1)
+			{
+      	hmm_.setTransitionProbability("bxyz"+pos_name, b_name2, bint2);
+      	hmm_.setTransitionProbability("bxyz"+pos_name, y_name2, yint2);
+			}
 
       //hmm_.setTransitionProbability("axyz"+pos_name, a_name2, aint2);
 		
@@ -481,9 +504,17 @@ namespace OpenMS
 			if (ints_1.ints[YIon][suffix_pos - 1] > 0.01)
 			{
 				HashMap<NeutralLossType_, double> y_intensities;
-				y_intensities[LOSS_TYPE_H2O] = ints_1.ints[YIon_H2O][suffix_pos - 1] + ints_2.ints[YIon_H2O][suffix_pos - 1];
-				y_intensities[LOSS_TYPE_NH3] = ints_1.ints[YIon_NH3][suffix_pos - 1] + ints_2.ints[YIon_NH3][suffix_pos - 1];
-				double ion_intensity = ints_1.ints[YIon][suffix_pos - 1] + ints_2.ints[YIon][suffix_pos - 1];
+				y_intensities[LOSS_TYPE_H2O] = ints_1.ints[YIon_H2O][suffix_pos - 1];
+				y_intensities[LOSS_TYPE_NH3] = ints_1.ints[YIon_NH3][suffix_pos - 1];
+				double ion_intensity = ints_1.ints[YIon][suffix_pos - 1];
+
+				if (charge > 1)
+				{
+					y_intensities[LOSS_TYPE_H2O] += ints_2.ints[YIon_H2O][suffix_pos - 1];
+					y_intensities[LOSS_TYPE_NH3] += ints_2.ints[YIon_NH3][suffix_pos - 1];
+					ion_intensity += ints_2.ints[YIon][suffix_pos - 1];
+				}
+				//cerr << "YLOSS: " << y_sum1 + y_sum2 << " " << y_intensities[LOSS_TYPE_H2O] << " " << y_intensities[LOSS_TYPE_NH3] << " " << ion_intensity << endl;
 				trainNeutralLossesFromIon_(y_sum1 + y_sum2, y_intensities, Residue::YIon, ion_intensity, suffix);
 			}
 			
@@ -491,9 +522,17 @@ namespace OpenMS
 			if (ints_1.ints[BIon][i] > 0.01)
 			{
       	HashMap<NeutralLossType_, double> b_intensities;
-      	b_intensities[LOSS_TYPE_H2O] = ints_1.ints[BIon_H2O][i] + ints_2.ints[BIon_H2O][i];
-      	b_intensities[LOSS_TYPE_NH3] = ints_1.ints[BIon_NH3][i] + ints_2.ints[BIon_NH3][i];
-      	double ion_intensity = ints_1.ints[BIon][i] + ints_2.ints[BIon][i];      
+      	b_intensities[LOSS_TYPE_H2O] = ints_1.ints[BIon_H2O][i];
+      	b_intensities[LOSS_TYPE_NH3] = ints_1.ints[BIon_NH3][i];
+      	double ion_intensity = ints_1.ints[BIon][i];
+
+				if (charge > 1)
+				{
+					b_intensities[LOSS_TYPE_H2O] += ints_2.ints[BIon_H2O][i];
+					b_intensities[LOSS_TYPE_NH3] += ints_2.ints[BIon_NH3][i];
+					ion_intensity += ints_2.ints[BIon][i];
+				}
+				//cerr << "BLOSS: " << b_sum1 + b_sum2 << " " << b_intensities[LOSS_TYPE_H2O] << " " << b_intensities[LOSS_TYPE_NH3] << " " << ion_intensity << endl;
 				trainNeutralLossesFromIon_(b_sum1 + b_sum2, b_intensities, Residue::BIon, ion_intensity, prefix);
 			}
 
@@ -565,135 +604,73 @@ namespace OpenMS
     PeakSpectrum y_theo_spec, y_H2O_theo_spec, y_NH3_theo_spec;
 		TheoreticalSpectrumGenerator tsg;
     tsg_.addPeaks(y_theo_spec, peptide, Residue::YIon, z);
-    DPeak<1> p;
+    
+		DPeak<1> p;
 		p.setIntensity(1);
     for (PeakSpectrum::ConstIterator it = y_theo_spec.begin(); it != y_theo_spec.end(); ++it)
     {
-      p.setPosition(it->getPosition() - Formulas::H2O.getMonoWeight() / z);
+      p.setPosition(it->getPosition() - Formulas::H2O.getMonoWeight() / (double)z);
       y_H2O_theo_spec.getContainer().push_back(p);
 
-      p.setPosition(it->getPosition() - Formulas::NH3.getMonoWeight() / z);
+      p.setPosition(it->getPosition() - Formulas::NH3.getMonoWeight() / (double)z);
       y_NH3_theo_spec.getContainer().push_back(p);
     }
 
-      HashMap<Size, Size> peak_map;
-      getSpectrumAlignment(peak_map, y_theo_spec, train_spec);
-      for (Size j = 0; j != peptide.size(); ++j)
-      {
-        if (peak_map.has(j))
-        {
-          double tmp = train_spec.getContainer()[peak_map[j]].getIntensity();
-					ion_ints.ints[YIon].push_back(tmp);
-					sum += tmp;
-        }
-				else
-				{
-					ion_ints.ints[YIon].push_back(0.0);
-				}
-      }
+		vector<double> y_ints(peptide.size() - 1, 0.0);
+		sum += getIntensitiesFromComparison_(train_spec, y_theo_spec, y_ints);
+		ion_ints.ints[YIon] = y_ints;
 
-			peak_map.clear();
-      getSpectrumAlignment(peak_map, y_H2O_theo_spec, train_spec);
-      for (Size j = 0; j != peptide.size(); ++j)
-      {
-        if (peak_map.has(j))
-        {
-					ion_ints.ints[YIon_H2O].push_back(train_spec.getContainer()[peak_map[j]].getIntensity());
-					sum += ion_ints.ints[YIon_H2O][ion_ints.ints[YIon_H2O].size() - 1];
-        }
-				else
-				{
-					ion_ints.ints[YIon_H2O].push_back(0.0);
-				}
-      }
+		vector<double> y_H2O_ints(peptide.size() - 1, 0.0);
+		sum += getIntensitiesFromComparison_(train_spec, y_H2O_theo_spec, y_H2O_ints);
+		ion_ints.ints[YIon_H2O] = y_H2O_ints;
 
-			peak_map.clear();
-      getSpectrumAlignment(peak_map, y_NH3_theo_spec, train_spec);
-      for (Size j = 0; j != peptide.size(); ++j)
-      {
-        if (peak_map.has(j))
-        {
-					ion_ints.ints[YIon_NH3].push_back(train_spec.getContainer()[peak_map[j]].getIntensity());
-					sum += ion_ints.ints[YIon_NH3][ion_ints.ints[YIon_NH3].size() - 1];
-        }
-				else
-				{
-					ion_ints.ints[YIon_NH3].push_back(0.0);
-				}
-      }
+		vector<double> y_NH3_ints(peptide.size() - 1, 0.0);
+		sum += getIntensitiesFromComparison_(train_spec, y_NH3_theo_spec, y_NH3_ints);
+		ion_ints.ints[YIon_NH3] = y_NH3_ints;
 
-      PeakSpectrum a_theo_spec;
-      tsg.addPeaks(a_theo_spec, peptide, Residue::AIon, z);
-			peak_map.clear();
-      getSpectrumAlignment(peak_map, a_theo_spec, train_spec);
-      for (Size j = 0; j != peptide.size(); ++j)
-      {
-        if (peak_map.has(j))
-        {
-					ion_ints.ints[AIon].push_back(train_spec.getContainer()[peak_map[j]].getIntensity());
-					sum += ion_ints.ints[AIon][ion_ints.ints[AIon].size() - 1];
-        }
-				else
-				{
-					ion_ints.ints[AIon].push_back(0.0);
-				}
-      }
+    PeakSpectrum a_theo_spec;
+    tsg.addPeaks(a_theo_spec, peptide, Residue::AIon, z);
+			
+		vector<double> a_ints(peptide.size() - 1, 0.0);
+		sum += getIntensitiesFromComparison_(train_spec, a_theo_spec, a_ints);
+		ion_ints.ints[AIon] = a_ints;
 
-      PeakSpectrum b_theo_spec, b_H2O_theo_spec, b_NH3_theo_spec;
-      tsg.addPeaks(b_theo_spec, peptide, Residue::BIon, z);
-      for (PeakSpectrum::ConstIterator it = b_theo_spec.begin(); it != b_theo_spec.end(); ++it)
-      {
-        p.setPosition(it->getPosition() - Formulas::H2O.getMonoWeight() / z);
-        b_H2O_theo_spec.getContainer().push_back(p);
-        p.setPosition(it->getPosition() - Formulas::NH3.getMonoWeight() / z);
-        b_NH3_theo_spec.getContainer().push_back(p);
-      }
+    PeakSpectrum b_theo_spec, b_H2O_theo_spec, b_NH3_theo_spec;
+    tsg.addPeaks(b_theo_spec, peptide, Residue::BIon, z);
+    for (PeakSpectrum::ConstIterator it = b_theo_spec.begin(); it != b_theo_spec.end(); ++it)
+    {
+      p.setPosition(it->getPosition() - Formulas::H2O.getMonoWeight() / (double)z);
+      b_H2O_theo_spec.getContainer().push_back(p);
+      p.setPosition(it->getPosition() - Formulas::NH3.getMonoWeight() / (double)z);
+      b_NH3_theo_spec.getContainer().push_back(p);
+    }
 
-			peak_map.clear();
-      getSpectrumAlignment(peak_map, b_theo_spec, train_spec);
-      for (Size j = 0; j != peptide.size(); ++j)
-      {
-        if (peak_map.has(j))
-        {
-					ion_ints.ints[BIon].push_back(train_spec.getContainer()[peak_map[j]].getIntensity());
-					sum += ion_ints.ints[BIon][ion_ints.ints[BIon].size() - 1];
-        }
-				else
-				{
-					ion_ints.ints[BIon].push_back(0.0);
-				}
-      }
+		vector<double> b_ints(peptide.size() - 1, 0.0);
+		sum += getIntensitiesFromComparison_(train_spec, b_theo_spec, b_ints);
+		ion_ints.ints[BIon] = b_ints;
 
-			peak_map.clear();
-			getSpectrumAlignment(peak_map, b_H2O_theo_spec, train_spec);
-      for (Size j = 0; j != peptide.size(); ++j)
-      {
-        if (peak_map.has(j))
-        {
-					ion_ints.ints[BIon_H2O].push_back(train_spec.getContainer()[peak_map[j]].getIntensity());
-					sum += ion_ints.ints[BIon_H2O][ion_ints.ints[BIon_H2O].size() - 1];
-        }
-				else
-				{
-					ion_ints.ints[BIon_H2O].push_back(0.0);
-				}
-      }
+		vector<double> b_H2O_ints(peptide.size() - 1, 0.0);
+		sum += getIntensitiesFromComparison_(train_spec, b_H2O_theo_spec, b_H2O_ints);
+		ion_ints.ints[BIon_H2O] = b_H2O_ints;
 
-			peak_map.clear();
-      getSpectrumAlignment(peak_map, b_NH3_theo_spec, train_spec);
-      for (Size j = 0; j != peptide.size(); ++j)
-      {
-        if (peak_map.has(j))
-        {
-					ion_ints.ints[BIon_NH3].push_back(train_spec.getContainer()[peak_map[j]].getIntensity());
-					sum += ion_ints.ints[BIon_NH3][ion_ints.ints[BIon_NH3].size() - 1];
-        }
-				else
-				{
-					ion_ints.ints[BIon_NH3].push_back(0.0);
-				}
-      }	
+		vector<double> b_NH3_ints(peptide.size() - 1, 0.0);
+		sum += getIntensitiesFromComparison_(train_spec, b_NH3_theo_spec, b_NH3_ints);
+		ion_ints.ints[BIon_NH3] = b_NH3_ints;
 
+		return sum;
+	}
+
+	double PILISModel::getIntensitiesFromComparison_(const PeakSpectrum& train_spec, const PeakSpectrum& theo_spec, vector<double>& intensities)
+	{
+		double sum(0);
+		vector<pair<Size, Size> > peak_map;
+		spectra_aligner_.getSpectrumAlignment(peak_map, train_spec, theo_spec);
+
+    for (vector<pair<Size, Size> >::const_iterator it = peak_map.begin(); it != peak_map.end(); ++it)
+    {
+			intensities[it->second] = train_spec.getContainer()[it->first].getIntensity();
+			sum += train_spec.getContainer()[it->first].getIntensity();
+    }
 		return sum;
 	}
 	
@@ -967,6 +944,7 @@ namespace OpenMS
 		}
 	}
 
+/*
 	void PILISModel::getSpectrumAlignment(HashMap<Size, Size>& peak_map, const PeakSpectrum& spec1, const PeakSpectrum& spec2)
 	{
 		//cerr << "HashMap<Size, Size> HMMModel2::getSpectrumAlignment(const PeakSpectrum& spec1, const PeakSpectrum& spec2)" << endl;
@@ -1013,6 +991,8 @@ namespace OpenMS
 		#endif
 		//cerr << peak_map.size() << endl;
 	}
+
+	*/
 
 	void PILISModel::getSpectrum(PeakSpectrum& spec, const AASequence& peptide, UnsignedInt charge)
 	{
@@ -1225,6 +1205,9 @@ namespace OpenMS
     HashMap<HMMState*, double> tmp;
 		hmm_.calculateEmissionProbabilities(tmp);
 
+		// clear peaks from last spectrum
+		peaks_.clear();
+
 		//stringstream peptide_ss;
 		//peptide_ss << peptide;
 		//hmm_.writetoYGFFile(String("stats/model_graph_train_"+peptide_ss.str()+"_"+String(charge)+".graphml").c_str());
@@ -1398,46 +1381,39 @@ namespace OpenMS
 				addPeaks_(weight, charge, 0.0, pre_ints[LOSS_TYPE_NONE], spec, id, "M");
 			}
 		}
-		
-		/*
-		for (HashMap<HMMState*, double>::ConstIterator it = tmp.begin(); it != tmp.end(); ++it)
+	
+		// now build the spectrum with the peaks
+		//Peak p;
+		for (HashMap<double, vector<Peak> >::ConstIterator it = peaks_.begin(); it != peaks_.end(); ++it)
 		{
-			String name = it->first->getName();
-			if (!name.hasSubstring("end") && name != "[M+H]+" && name != "[M+2H]++")
+			if (it->second.size() == 1/* && it->second.begin()->getIntensity() != 0*/)
 			{
-				// TODO get rid of 'k-' names
-				//if (name.hasSubstring("k-"))
-				//{
-				//	
-				//}
-				double charge(1);
-				if (name.hasSubstring("++"))
+				spec.getContainer().push_back(*it->second.begin());
+			}
+			else
+			{
+				double int_sum(0);
+				p = *it->second.begin();
+				for (vector<Peak>::const_iterator pit = it->second.begin(); pit != it->second.end(); ++pit)
 				{
-					charge = 2;
-				}	
-				double weight = 0; //name_to_formula[name].getMonoWeight();
-				p.setPosition(weight/charge);
-				id.estimateFromPeptideWeight(weight);
-				p.setIntensity(it->second * id.getContainer()[0].second);
-				// TODO
-				// p.setMetaValue("IonName", string(name.c_str()));
-				if (p.getPosition()[0] >= LOWER_MZ && p.getPosition()[0] <= UPPER_MZ)
-				{
-					spec.getContainer().push_back(p);
+					int_sum += pit->getIntensity();
+					if (pit->getMetaValue("IonName") != "")
+					{
+						p.setMetaValue("IonName", pit->getMetaValue("IonName"));
+					}
 				}
 
-				
-				p.setPosition((weight + 1)/charge);
-				p.setIntensity(it->second * id.getContainer()[1].second);
-				// TODO
-				// p.setMetaValue("IonName", string(""));
-				if (p.getPosition()[0] >= LOWER_MZ && p.getPosition()[0] <= UPPER_MZ)
-				{
-					spec.getContainer().push_back(p);
-				}
+				/*if (int_sum != 0)
+				{*/
+					//p = *it->second.begin();
+					p.setIntensity(int_sum);
+					//p.setPosition(pit->first);
+				//}
+				spec.getContainer().push_back(p);
 			}
 		}
-		*/
+
+		spec.getContainer().sortByPosition();
 
 		#ifdef SIM_DEBUG
 		cerr << "now mapping the intensities to positions" << endl;
@@ -1584,13 +1560,13 @@ namespace OpenMS
 		return is_charge_remote;
 	}
 
-	void PILISModel::addPeaks_(double mz, int charge, double offset, double intensity, PeakSpectrum& spectrum, const IsotopeDistribution& id, const String& name)
+	void PILISModel::addPeaks_(double mz, int charge, double offset, double intensity, PeakSpectrum& /*spectrum*/, const IsotopeDistribution& id, const String& name)
 	{
 		static DPeak<1> p;
 		Size i = 0;
 		for (IsotopeDistribution::ConstIterator it = id.begin(); it != id.end(); ++it, ++i)
 		{
-			double pos = (mz + i + charge + offset) / charge;
+			double pos = (mz + i + charge + offset) / (double)charge;
 			p.setPosition(pos);
 			if (it == id.begin())
 			{
@@ -1600,7 +1576,8 @@ namespace OpenMS
 			if (pos >= (double)param_.getValue("lower_mz") && pos <= (double)param_.getValue("upper_mz"))
 			{
 				p.setIntensity(intensity * it->second);
-				spectrum.getContainer().push_back(p);
+				//spectrum.getContainer().push_back(p);
+				peaks_[p.getPosition()[0]].push_back(p);
 			}
 
 			if (it == id.begin())
@@ -1608,6 +1585,7 @@ namespace OpenMS
 				p.setMetaValue("IonName", string(""));
 			}
 		}
+
 		return;
 	}
 	

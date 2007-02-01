@@ -59,7 +59,9 @@ CPP_SOURCES=\
 	DGridFile.C\
 	SchemaFile.C\
 	PeakFileOptions.C\
-	PeakTypeEstimator.C
+	PeakTypeEstimator.C\
+	OMSSAXMLFile.C\
+	OMSSACSVFile.C
 
 ifeq ($(ANDIMS_SUPPORT),true)
 	ifeq ($(NETCDF_SUPPORT),true)
