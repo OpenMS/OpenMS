@@ -34,8 +34,11 @@
 namespace OpenMS
 {
 	
-	/** @brief Log-normal distribution model for elution profiles.
-	 */
+	/** 
+		@brief Log-normal distribution model for elution profiles.
+	
+		@todo Remove setParam method and use setParameters instead (Clemens, Marcel)
+	*/
 	class LogNormalModel
 		: public InterpolationModel<>
 	{

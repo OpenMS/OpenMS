@@ -34,9 +34,11 @@
 
 namespace OpenMS
 {
-	/** @brief Exponentially modified gaussian distribution model for elution
-			profiles.
-	 */
+	/** 
+		@brief Exponentially modified gaussian distribution model for elution profiles.
+		
+		@todo Remove setParam method and use setParameters instead (Clemens, Marcel)
+	*/
 	class EmgModel
 		: public InterpolationModel<>
 	{

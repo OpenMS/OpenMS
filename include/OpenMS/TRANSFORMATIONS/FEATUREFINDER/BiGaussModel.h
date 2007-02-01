@@ -55,6 +55,8 @@ namespace OpenMS
 							variance1 is the variance of the lower half of the asymmetric peak.</td></tr>
 		</table>
 		
+		@todo Remove setParam method and use setParameters instead (Ole)
+		
 		@ingroup FeatureFinder
 		
 	*/

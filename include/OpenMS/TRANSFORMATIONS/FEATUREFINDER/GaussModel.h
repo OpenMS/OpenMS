@@ -51,8 +51,9 @@ namespace OpenMS
 			<td>mean and variance of the data used to fit the model</td></tr>
 	</table>
 	
-	@ingroup FeatureFinder
+	@todo Remove setParam method and use setParameters instead (Ole)
 	
+	@ingroup FeatureFinder
 */
 class GaussModel
 	: public InterpolationModel<>

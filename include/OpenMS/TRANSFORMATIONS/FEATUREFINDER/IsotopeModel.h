@@ -61,8 +61,9 @@ namespace OpenMS
 					 (C,H,N,O,S) given a mass</td></tr>
 		</table>
 		
-		@ingroup FeatureFinder
+		@todo Remove setParam method and use setParameters instead (Ole)
 		
+		@ingroup FeatureFinder
 	*/
 	class IsotopeModel
   : public InterpolationModel<>

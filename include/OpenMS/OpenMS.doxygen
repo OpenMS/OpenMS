@@ -51,11 +51,3 @@
 	@author Marc Sturm
 	@author Alexandra Zerck
 */
-
-/*
-	TODO:
-	- FactoryProduct durch FactoryProduct2 ersetzen
-	- setParam-Methoden aus Modellen entfernen -> Factory wirklich benutzen
-	- Kernel/Datastructures nach Pass-By-Copy durchsuchen
-	- Valgrind
-*/
