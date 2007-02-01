@@ -46,8 +46,8 @@ class TestExtender : public BaseExtender
   public:
 	TestExtender(): BaseExtender()
 	{
+		setName(TestExtender::getName());
 		check_defaults_ = false;
-		name_ = TestExtender::getName();
 	}
 
 	const IndexSet& extend(const IndexSet& /*seed_region*/)

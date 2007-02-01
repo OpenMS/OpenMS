@@ -196,7 +196,7 @@ CHECK((double evaluate(const IndexSet& set, const BaseModel<2>& model)))
 RESULT
 
 CHECK(const String getName())
-	TEST_EQUAL(EuclideanDistance::getName(),"EuclideanDistance")
+	TEST_EQUAL(EuclideanDistance::getProductName(),"EuclideanDistance")
 	TEST_EQUAL(EuclideanDistance().getName(),"EuclideanDistance")
 RESULT
 

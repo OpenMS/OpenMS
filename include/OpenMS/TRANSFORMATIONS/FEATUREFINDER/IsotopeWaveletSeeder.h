@@ -79,6 +79,12 @@ namespace OpenMS
     /// destructor 
     virtual ~IsotopeWaveletSeeder();
 
+    /// Copy constructor
+    IsotopeWaveletSeeder(const IsotopeWaveletSeeder& rhs);
+    
+    /// Assignment operator
+    IsotopeWaveletSeeder& operator= (const IsotopeWaveletSeeder& rhs);
+
     /// return next seed 
     IndexSet nextSeed() throw (NoSuccessor);
 
@@ -87,13 +93,14 @@ namespace OpenMS
       return new IsotopeWaveletSeeder();
     }
 
-    static const String getName()
+    static const String getProductName()
     {
       return "IsotopeWaveletSeeder";
     }
 		
   protected:
-  
+  	virtual void updateMembers_();
+  	
 		/// Computes m/z spacing of the LC-MS map
 		void computeSpacings_();
 		

@@ -23,16 +23,21 @@
 // --------------------------------------------------------------------------
 // $Maintainer: Cornelia Friedle $
 // --------------------------------------------------------------------------
-//
 
 #include <OpenMS/FILTERING/DATAREDUCTION/SumReducer.h>
+
 using namespace std;
+
 namespace OpenMS
 {
 
   SumReducer::SumReducer(): DataReducer()
   {
-		name_ = SumReducer::getName();
+		setName(SumReducer::getProductName());
+
+		defaults_.setValue("Rangeperstep",2);
+		
+		defaultsToParam_();		
   }
   
   SumReducer::~SumReducer()

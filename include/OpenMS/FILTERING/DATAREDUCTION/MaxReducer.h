@@ -56,7 +56,7 @@ namespace OpenMS
 			}
 	
 			/// returns the name of this module
-			static const  String getName()
+			static const String getProductName()
 			{
 				return "MaxReducer";
 			}

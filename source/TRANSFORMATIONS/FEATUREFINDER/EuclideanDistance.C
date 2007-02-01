@@ -34,7 +34,8 @@ namespace OpenMS
 	EuclideanDistance::EuclideanDistance()
 		:	BaseQuality()
 	{
-		name_ = EuclideanDistance::getName();
+		setName(getProductName());
+		check_defaults_ = false;
 	}
 
 	EuclideanDistance::~EuclideanDistance()

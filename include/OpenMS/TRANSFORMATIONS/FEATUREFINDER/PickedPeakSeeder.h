@@ -32,7 +32,6 @@
 
 namespace OpenMS
 {
-
 	/** 
 		@brief Seeding module which tries to find seeds by looking at 
 
@@ -70,6 +69,12 @@ namespace OpenMS
 	
 	    /// destructor
 	    virtual ~PickedPeakSeeder();
+
+	    /// Copy constructor
+	    PickedPeakSeeder(const PickedPeakSeeder& rhs);
+	    
+	    /// Assignment operator
+	    PickedPeakSeeder& operator= (const PickedPeakSeeder& rhs);
 	
 	    /// return next seed
 	    IndexSet nextSeed() throw (NoSuccessor);
@@ -79,12 +84,13 @@ namespace OpenMS
 	        return new PickedPeakSeeder();
 	    }
 	
-	    static const String getName()
+	    static const String getProductName()
 	    {
 	        return "PickedPeakSeeder";
 	    }
 		
 		protected:
+			virtual void updateMembers_();
 			
 	    /// Finds the neighbour of the peak denoted by @p current_mz in the previous scan
 	    std::vector<double>::iterator searchInScan_(const std::vector<CoordinateType>::iterator& scan_begin, const std::vector<CoordinateType>::iterator& scan_end, CoordinateType current_mz)

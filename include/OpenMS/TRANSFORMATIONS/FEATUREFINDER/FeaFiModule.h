@@ -27,7 +27,7 @@
 #ifndef OPENMS_TRANSFORMATIONS_FEATUREFINDER_FEAFIMODULE_H
 #define OPENMS_TRANSFORMATIONS_FEATUREFINDER_FEAFIMODULE_H
 
-#include <OpenMS/CONCEPT/FactoryProduct.h>
+#include <OpenMS/CONCEPT/FactoryProduct2.h>
 #include <OpenMS/CONCEPT/Types.h>
 #include <set>
 
@@ -42,7 +42,7 @@ namespace OpenMS
 		@ingroup FeatureFinder
   */
 	class FeaFiModule 
-    : public FactoryProduct
+    : public FactoryProduct2
   {	
   	public:
 			/// Index in a MSExperiment

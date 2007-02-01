@@ -64,7 +64,7 @@ CHECK(~SimpleModelFitter())
 	delete ptr;
 RESULT
 
-CHECK(void SimpleModelFitter::setParam(const Param& param))
+CHECK(void SimpleModelFitter::setParameters(const Param& param))
 	SimpleModelFitter* fitter = new SimpleModelFitter();
 	Param p1;
 
@@ -73,8 +73,8 @@ CHECK(void SimpleModelFitter::setParam(const Param& param))
 	p1.setValue("isotope_model:stdev:first",0.08f);
 	p1.setValue("isotope_model:stdev:last",0.12f);
 	p1.setValue("isotope_model:stdev:step",0.02f);
-	fitter->setParam(p1);
-	Param p2 = fitter->getParam();
+	fitter->setParameters(p1);
+	Param p2 = fitter->getParameters();
 	// check changes
 	TEST_EQUAL(p2.getValue("quality:minimum"),DataValue(0.0f))
 	TEST_EQUAL(p2.getValue("isotope_model:stdev:first"),DataValue(0.08f))
@@ -89,7 +89,7 @@ CHECK(void SimpleModelFitter::setParam(const Param& param))
 	TEST_EQUAL(p2.getValue("quality:type"),DataValue("Correlation"))
 	TEST_EQUAL(p2.getValue("tolerance_stdev_bounding_box"),DataValue(3.0f))
 
-	Param p3 = static_cast<FactoryProduct*>(fitter)->getParam();
+	Param p3 = fitter->getParameters();
 	TEST_EQUAL(p3.getValue("quality:minimum"),DataValue(0.0f))
 	TEST_EQUAL(p3.getValue("isotope_model:stdev:first"),DataValue(0.08f))
 	TEST_EQUAL(p3.getValue("isotope_model:stdev:last"),DataValue(0.12f))
@@ -148,9 +148,9 @@ CHECK( DFeature<2> fit(const IndexSet& set) throw (UnableToFit))
 	
 	SimpleModelFitter fitter;
 	fitter.setTraits(&traits);
-	Param param = fitter.getParam();
+	Param param = fitter.getParameters();
 	param.setValue("intensity_cutoff_factor",0.0f);
-	fitter.setParam(param);
+	fitter.setParameters(param);
 	FeaFiModule::IndexSet  set;
 	for (Size mz=0; mz<mz_num; mz++) 
 	{
@@ -241,7 +241,7 @@ CHECK( DFeature<2> fit(const IndexSet& set) throw (UnableToFit))
 	param.setValue("isotope_model:stdev:step",0.02f);
 	param.setValue("rt:interpolation_step",0.05f);
 	param.setValue("intensity_cutoff_factor",0.0f);
-	fitter.setParam(param);
+	fitter.setParameters(param);
 	FeaFiModule::IndexSet  set;
 	for (UnsignedInt i=0; i<exp.size(); ++i) 
 	{

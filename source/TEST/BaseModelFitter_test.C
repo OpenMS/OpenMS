@@ -46,8 +46,8 @@ class TestFitter : public BaseModelFitter
   public:
 	TestFitter(): BaseModelFitter()
 	{
+		setName(TestFitter::getName());
 		check_defaults_ = false;
-		name_ = TestFitter::getName();
 	}
 
 	DFeature<2> fit(const IndexSet& /*extension*/) throw(UnableToFit)

@@ -64,113 +64,113 @@ namespace OpenMS
 	{
 		public:
 			
-		/** @name Type definitions
-		*/
-		//@{	
-		///
-		typedef DFeature<2> FeatureType;
-		typedef DFeatureMap<2> FeatureMapType;
-		typedef DFeaturePair<2> PairType;
-		typedef DFeaturePairVector<2> PairVectorType;
-		typedef QuadTree< KernelTraits, FeatureType > QuadTreeType;
-		//@}
-
-	  /// Defines the coordinates of peaks / features.
-		enum DimensionId
-		{
-			RT = DimensionDescription < LCMS_Tag >::RT,
-			MZ = DimensionDescription < LCMS_Tag >::MZ
-		};
-		
-		/// Constructor
-		PairMatcher(FeatureMapType& features);
-
-		/// Copy constructor
-		PairMatcher(const PairMatcher& source);
-
-		///  Assignment operator
-    virtual PairMatcher& operator = (const PairMatcher& source);
-
-		/// Destructor
-		virtual ~PairMatcher();
-
-		/** @brief Pairing step of the PairMatcher
-
-			Return pairs of features that have the same charge and a distance
-			lying within a user-defined range.
-		*/
-		const PairVectorType& run();
-
-		/** @brief Matching step of the PairMatcher
-
-			Greedy 2-approximation to extract a set of pairs so that each feature
-			is contained in at most one pair.
-		*/
-		const PairVectorType& getBestPairs();
-
-
-		/** @brief Convert pair vector into feature map
-
-				Convert pair vector into feature map for visualization in TOPPView.
-				The pairing is shown as an octagon stored in the convex hull layer of
-				the first feature of each pair.
-				This feature also contains some of the pairs meta values (quality, ratio, ...).
-		*/
-		static void fillFeatureMap(FeatureMapType&, const PairVectorType&);
-
-		/** @brief Print informations about the pair vector @p pairs to stream @p out
-
-			 Print informations (quality, ratio, charge, feature positions, ...)
-			 about the pair vector @p pairs to stream @p out
-		*/
-		static void printInfo(std::ostream& out, const PairVectorType& pairs);
-
-		static const String getName()
-    {
-      return "PairMatcher";
-    }
+			/** @name Type definitions
+			*/
+			//@{	
+			///
+			typedef DFeature<2> FeatureType;
+			typedef DFeatureMap<2> FeatureMapType;
+			typedef DFeaturePair<2> PairType;
+			typedef DFeaturePairVector<2> PairVectorType;
+			typedef QuadTree< KernelTraits, FeatureType > QuadTreeType;
+			//@}
+	
+		  /// Defines the coordinates of peaks / features.
+			enum DimensionId
+			{
+				RT = DimensionDescription < LCMS_Tag >::RT,
+				MZ = DimensionDescription < LCMS_Tag >::MZ
+			};
+			
+			/// Constructor
+			PairMatcher(FeatureMapType& features);
+	
+			/// Copy constructor
+			PairMatcher(const PairMatcher& source);
+	
+			///  Assignment operator
+	    virtual PairMatcher& operator = (const PairMatcher& source);
+	
+			/// Destructor
+			virtual ~PairMatcher();
+	
+			/** @brief Pairing step of the PairMatcher
+	
+				Return pairs of features that have the same charge and a distance
+				lying within a user-defined range.
+			*/
+			const PairVectorType& run();
+	
+			/** @brief Matching step of the PairMatcher
+	
+				Greedy 2-approximation to extract a set of pairs so that each feature
+				is contained in at most one pair.
+			*/
+			const PairVectorType& getBestPairs();
+	
+	
+			/** @brief Convert pair vector into feature map
+	
+					Convert pair vector into feature map for visualization in TOPPView.
+					The pairing is shown as an octagon stored in the convex hull layer of
+					the first feature of each pair.
+					This feature also contains some of the pairs meta values (quality, ratio, ...).
+			*/
+			static void fillFeatureMap(FeatureMapType&, const PairVectorType&);
+	
+			/** @brief Print informations about the pair vector @p pairs to stream @p out
+	
+				 Print informations (quality, ratio, charge, feature positions, ...)
+				 about the pair vector @p pairs to stream @p out
+			*/
+			static void printInfo(std::ostream& out, const PairVectorType& pairs);
+	
+			static const String getName()
+	    {
+	      return "PairMatcher";
+	    }
 
 		protected:
-    /// Square root of two
-    static const double sqrt2_;
-
-
-		/// features to be paired
-		FeatureMapType& features_;
-
-		/// all possible pairs (after Pairing)
-		PairVectorType pairs_;
-
-		/// only the best pairs, no ambiguities (after Matching)
-		PairVectorType best_pairs_;
-
-		/// Compare to pairs by comparing their qualities
-		struct Comparator{
-			bool operator()(const PairType& a, const PairType& b)
+	    /// Square root of two
+	    static const double sqrt2_;
+	
+	
+			/// features to be paired
+			FeatureMapType& features_;
+	
+			/// all possible pairs (after Pairing)
+			PairVectorType pairs_;
+	
+			/// only the best pairs, no ambiguities (after Matching)
+			PairVectorType best_pairs_;
+	
+			/// Compare to pairs by comparing their qualities
+			struct Comparator{
+				bool operator()(const PairType& a, const PairType& b)
+				{
+					return a.getQuality() > b.getQuality();
+				}
+			};
+	
+			/// return the p-value at position x for the bi-Gaussian distribution
+			/// with mean @p m and standard deviation @p sig1 (left) and @p sig2 (right)
+			inline double PValue_(double x, double m, double sig1, double sig2)
 			{
-				return a.getQuality() > b.getQuality();
+				if (m<x)
+				{
+					return 1-erf((x-m)/sig2/sqrt2_);
+				}
+				else{
+					return 1-erf((m-x)/sig1/sqrt2_);
+				}
 			}
-		};
-
-		/// return the p-value at position x for the bi-Gaussian distribution
-		/// with mean @p m and standard deviation @p sig1 (left) and @p sig2 (right)
-		inline double PValue_(double x, double m, double sig1, double sig2)
-		{
-			if (m<x)
-			{
-				return 1-erf((x-m)/sig2/sqrt2_);
-			}
-			else{
-				return 1-erf((m-x)/sig1/sqrt2_);
-			}
-		}
 
 		private:
-		/// constants for accessing feature meta values
-		enum Constants{
-			ID=11,				/**<  used to assocate the feature with its index in the set */
-			LOW_QUALITY		/**< used by the greedy approximation */
-		};
+			/// constants for accessing feature meta values
+			enum Constants{
+				ID=11,				/**<  used to assocate the feature with its index in the set */
+				LOW_QUALITY		/**< used by the greedy approximation */
+			};
 
 	}; // end of class PairMatcher
 

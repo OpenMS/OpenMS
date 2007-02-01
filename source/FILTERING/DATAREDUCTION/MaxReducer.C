@@ -29,9 +29,14 @@ using namespace std;
 namespace OpenMS
 {
 	
-  MaxReducer::MaxReducer(): DataReducer()
-  {	
-		name_= MaxReducer::getName();
+  MaxReducer::MaxReducer()
+  	: DataReducer()
+  {
+		setName(MaxReducer::getProductName());
+
+		defaults_.setValue("Peaksperstep",10);
+		
+		defaultsToParam_();		
   }
   
   MaxReducer::~MaxReducer()

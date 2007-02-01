@@ -59,7 +59,7 @@ CHECK((void applyReduction(const ExperimentType& in, ExperimentType& out )))
   Param param;	
   SumReducer sumreducer;
   param.setValue("Rangeperstep",0.5);
-  sumreducer.setParam(param);
+  sumreducer.setParameters(param);
   in.updateRanges();
   sumreducer.applyReduction(in,out);
   TEST_EQUAL(in.size(),3)

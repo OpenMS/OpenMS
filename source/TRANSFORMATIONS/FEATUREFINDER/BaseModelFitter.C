@@ -35,8 +35,8 @@ namespace OpenMS
 {
 	void BaseModelFitter::registerChildren()
 	{
-		Factory<BaseModelFitter>::registerProduct(SimpleModelFitter::getName(), &SimpleModelFitter::create);
-		Factory<BaseModelFitter>::registerProduct(ExtendedModelFitter::getName(), &ExtendedModelFitter::create);
+		Factory<BaseModelFitter>::registerProduct(SimpleModelFitter::getProductName(), &SimpleModelFitter::create);
+		Factory<BaseModelFitter>::registerProduct(ExtendedModelFitter::getProductName(), &ExtendedModelFitter::create);
 	}	
 
 	BaseModelFitter::BaseModelFitter() 

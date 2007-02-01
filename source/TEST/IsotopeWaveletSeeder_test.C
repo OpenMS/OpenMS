@@ -81,7 +81,7 @@ CHECK((FeaFiModule::IndexSet  nextSeed() throw(NoSuccessor)))
 	
 	Param param;
   param.setValue("rtvotes_cutoff",0);
-	seeder.setParam(param);
+	seeder.setParameters(param);
 	
 	FeaFiModule::IndexSet  region;
 	FeaFiModule::IDX peak;
@@ -98,8 +98,8 @@ CHECK((FeaFiModule::IndexSet  nextSeed() throw(NoSuccessor)))
  
 RESULT
 
-CHECK(static const String getName())
-	TEST_EQUAL(IsotopeWaveletSeeder::getName(),"IsotopeWaveletSeeder");
+CHECK(static const String getProductName())
+	TEST_EQUAL(IsotopeWaveletSeeder::getProductName(),"IsotopeWaveletSeeder");
 RESULT
 
 CHECK(static BaseSeeder* create())

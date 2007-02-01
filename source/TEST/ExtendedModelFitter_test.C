@@ -64,7 +64,7 @@ CHECK(~ExtendedModelFitter())
 	delete ptr;
 RESULT
 
-CHECK(void ExtendedModelFitter::setParam(const Param& param))
+CHECK(void ExtendedModelFitter::setParameters(const Param& param))
 	ExtendedModelFitter* fitter = new ExtendedModelFitter();
 	Param p1;
 
@@ -73,8 +73,8 @@ CHECK(void ExtendedModelFitter::setParam(const Param& param))
 	p1.setValue("isotope_model:stdev:first",0.08f);
 	p1.setValue("isotope_model:stdev:last",0.12f);
 	p1.setValue("isotope_model:stdev:step",0.02f);
-	fitter->setParam(p1);
-	Param p2 = fitter->getParam();
+	fitter->setParameters(p1);
+	Param p2 = fitter->getParameters();
 	// check changes
 	TEST_EQUAL(p2.getValue("quality:minimum"),DataValue(0.0f))
 	TEST_EQUAL(p2.getValue("isotope_model:stdev:first"),DataValue(0.08f))
@@ -85,15 +85,15 @@ CHECK(void ExtendedModelFitter::setParam(const Param& param))
 	TEST_EQUAL(p2.getValue("mz:interpolation_step"),DataValue(0.03f))
 	TEST_EQUAL(p2.getValue("rt:interpolation_step"),DataValue(0.2f))
 	TEST_EQUAL(p2.getValue("rt:max_iteration"),DataValue(500))
-	TEST_EQUAL(p2.getValue("rt:deltaAbsError"),DataValue(1e-4))
-	TEST_EQUAL(p2.getValue("rt:deltaRelError"),DataValue(1e-4))
+	TEST_EQUAL(p2.getValue("rt:deltaAbsError"),DataValue(0.0001))
+	TEST_EQUAL(p2.getValue("rt:deltaRelError"),DataValue(0.0001))
 	TEST_EQUAL(p2.getValue("rt:profile"),DataValue("EMG"))
 	TEST_EQUAL(p2.getValue("min_num_peaks:final"),DataValue(5))
 	TEST_EQUAL(p2.getValue("min_num_peaks:extended"),DataValue(10))
 	TEST_EQUAL(p2.getValue("quality:type"),DataValue("Correlation"))
 	TEST_EQUAL(p2.getValue("tolerance_stdev_bounding_box"),DataValue(3.0f))
 
-	Param p3 = static_cast<FactoryProduct*>(fitter)->getParam();
+	Param p3 = fitter->getParameters();
 	TEST_EQUAL(p3.getValue("quality:minimum"),DataValue(0.0f))
 	TEST_EQUAL(p3.getValue("isotope_model:stdev:first"),DataValue(0.08f))
 	TEST_EQUAL(p3.getValue("isotope_model:stdev:last"),DataValue(0.12f))
@@ -136,9 +136,9 @@ CHECK( DFeature<2> fit(const IndexSet& set) throw (UnableToFit))
 	
 	ExtendedModelFitter fitter;
 	fitter.setTraits(&traits);
-	Param param = fitter.getParam();
+	Param param = fitter.getParameters();
 	param.setValue("intensity_cutoff_factor",0.0f);
-	fitter.setParam(param);
+	fitter.setParameters(param);
 	FeaFiModule::IndexSet  set;
 	for (UnsignedInt i=0; i<exp.size(); ++i) 
 	{
@@ -155,8 +155,6 @@ CHECK( DFeature<2> fit(const IndexSet& set) throw (UnableToFit))
 	TEST_EQUAL(feature.getCharge(), 0);
 	PRECISION(0.01)
 	TEST_REAL_EQUAL(feature.getOverallQuality(), 0.99);
-	
-	cout << "MODEL PARAMETERS:" << endl << feature.getModelDescription().getParam() << endl;
 		
 	ProductModel<2>* model = dynamic_cast< ProductModel<2>* >
 		(feature.getModelDescription().createModel());
@@ -231,7 +229,7 @@ CHECK( DFeature<2> fit(const IndexSet& set) throw (UnableToFit))
 	param.setValue("isotope_model:stdev:step",0.02f);
 	param.setValue("rt:interpolation_step",0.05f);
 	param.setValue("intensity_cutoff_factor",0.0f);
-	fitter.setParam(param);
+	fitter.setParameters(param);
 	FeaFiModule::IndexSet  set;
 	for (UnsignedInt i=0; i<exp.size(); ++i) 
 	{

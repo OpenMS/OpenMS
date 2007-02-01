@@ -49,6 +49,7 @@ namespace OpenMS
 	
 	namespace Internal
 	{
+		// Helper struct for ExtendedModelFitter
 		struct ExpFitPolyData
 		{
 			size_t n;
@@ -65,14 +66,19 @@ namespace OpenMS
 
 	ExtendedModelFitter::ExtendedModelFitter()
 		: BaseModelFitter(),
+			quality_(0),
 			model2D_(),
 			mz_stat_(),
 			rt_stat_(),
-			stdev_mz_(0), stdev_rt1_(0), stdev_rt2_(0),
-			min_(), max_(),
+			stdev_mz_(0), 
+			stdev_rt1_(0), 
+			stdev_rt2_(0),
+			min_(), 
+			max_(),
 			counter_(0)
 	{
-		name_ = ExtendedModelFitter::getName();
+		setName(getProductName());
+		
 		defaults_.setValue("tolerance_stdev_bounding_box",3.0f);
 		defaults_.setValue("feature_intensity_sum",1);
 		defaults_.setValue("min_num_peaks:final",5);
@@ -81,8 +87,8 @@ namespace OpenMS
 		defaults_.setValue("feature_intensity_sum",1);
 		defaults_.setValue("rt:interpolation_step",0.2f);
 		defaults_.setValue("rt:max_iteration",500);
-		defaults_.setValue("rt:deltaAbsError",1e-4);
-		defaults_.setValue("rt:deltaRelError",1e-4);
+		defaults_.setValue("rt:deltaAbsError",0.0001);
+		defaults_.setValue("rt:deltaRelError",0.0001);
 		defaults_.setValue("rt:profile","EMG");
 		defaults_.setValue("mz:interpolation_step",0.03f);
 		defaults_.setValue("mz:model_type:first",0);
@@ -101,9 +107,7 @@ namespace OpenMS
 		defaults_.setValue("isotope_model:isotope:maximum",1000000);
 		defaults_.setValue("isotope_model:isotope:distance",1.000495f);
 		
-
-		param_ = defaults_;
-		quality_ = Factory<BaseQuality>::create(param_.getValue("quality:type"));
+		defaultsToParam_();
 	}
 
 	ExtendedModelFitter::~ExtendedModelFitter()
@@ -111,28 +115,33 @@ namespace OpenMS
 		delete quality_;
 	}
 
-	void ExtendedModelFitter::setParam(const Param& param)
+  ExtendedModelFitter::ExtendedModelFitter(const ExtendedModelFitter& rhs)
+    : BaseModelFitter(rhs),
+    	quality_(0)
+  {
+    updateMembers_();
+  }
+  
+  ExtendedModelFitter& ExtendedModelFitter::operator= (const ExtendedModelFitter& rhs)
+  {
+    if (&rhs == this) return *this;
+    
+    BaseModelFitter::operator=(rhs);
+    
+    updateMembers_();
+    
+    return *this;
+  }
+
+	void ExtendedModelFitter::updateMembers_()
 	{
-		BaseModelFitter::setParam(param);
 		if (quality_) delete quality_;
 		quality_ = Factory<BaseQuality>::create(param_.getValue("quality:type"));
-
-		//parameter for optimization
-		DataValue dv = param_.getValue("rt:max_iteration");
-		if (dv.isEmpty() || dv.toString() == "") max_iteration_ = 500;
-		else max_iteration_ = (unsigned int)dv;
-
-		dv = param_.getValue("rt:DeltaAbsError");
-		if (dv.isEmpty() || dv.toString() == "") eps_abs_ = 1e-4f;
-		else eps_abs_ = (double)dv;
-
-		dv = param_.getValue("rt:DeltaRelError");
-		if (dv.isEmpty() || dv.toString() == "") eps_rel_ = 1e-4f;
-		else eps_rel_ = (double)dv;
-
-		dv = param_.getValue("rt:profile");
-		if (dv.isEmpty() || dv.toString() == "") profile_ = "EMG";
-		else profile_ = (string)dv;
+		
+		max_iteration_ = param_.getValue("rt:max_iteration");
+		eps_abs_ = param_.getValue("rt:deltaAbsError");
+		eps_rel_ = param_.getValue("rt:deltaRelError");
+		profile_ = (string)param_.getValue("rt:profile");
 	}
 
 	DFeature<2> ExtendedModelFitter::fit(const IndexSet& set) throw (UnableToFit)

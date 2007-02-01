@@ -81,7 +81,7 @@ CHECK(nextSeed())
 	
 	Param param;
   param.setValue("min_number_scans",0);
-	seeder.setParam(param);
+	seeder.setParameters(param);
 		
 	FeaFiModule::IndexSet  region;
 	FeaFiModule::IDX peak;

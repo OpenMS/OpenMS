@@ -35,7 +35,7 @@ namespace OpenMS
 		: BaseSeeder(), 
 			is_initialized_(false)
 	{
-    name_ = PickedPeakSeeder::getName();
+    setName(getProductName());
 
     // lower and upper bounds for distances between isotopic peaks (defaults)
     // charge 1
@@ -62,12 +62,31 @@ namespace OpenMS
     // minimum number of peaks per cluster
     defaults_.setValue("min_number_peaks",6);
 
-    param_ = defaults_;
+    defaultsToParam_();
 	}
 	
 	PickedPeakSeeder::~PickedPeakSeeder()
 	{
 	}
+
+  PickedPeakSeeder::PickedPeakSeeder(const PickedPeakSeeder& rhs)
+    : BaseSeeder(rhs),
+    	is_initialized_(false)
+  {
+    updateMembers_();
+  }
+  
+  PickedPeakSeeder& PickedPeakSeeder::operator= (const PickedPeakSeeder& rhs)
+  {
+    if (&rhs == this) return *this;
+    
+    BaseSeeder::operator=(rhs);
+    is_initialized_ = false;
+    
+    updateMembers_();
+    
+    return *this;
+  }
 	
 	FeaFiModule::IndexSet PickedPeakSeeder::nextSeed() throw (NoSuccessor)
 	{
@@ -89,12 +108,8 @@ namespace OpenMS
     return next_region;	
 	}
 	
-	void PickedPeakSeeder::sweep_()
+	void PickedPeakSeeder::updateMembers_()
 	{
-		// stores the monoisotopic peaks of isotopic clusters
-		vector<double> iso_last_scan;
-		vector<double> iso_curr_scan;
-	
 		// retrieve values for accepted peaks distances
 		charge1_ub_	= param_.getValue("charge1_ub");
 		charge1_lb_	 = param_.getValue("charge1_lb");
@@ -109,7 +124,14 @@ namespace OpenMS
 		charge4_lb_	 = param_.getValue("charge4_lb");
 	
 		charge5_ub_	= param_.getValue("charge5_ub");
-		charge5_lb_	 = param_.getValue("charge5_lb");
+		charge5_lb_	 = param_.getValue("charge5_lb");		
+	}
+	
+	void PickedPeakSeeder::sweep_()
+	{
+		// stores the monoisotopic peaks of isotopic clusters
+		vector<double> iso_last_scan;
+		vector<double> iso_curr_scan;
 	
 		CoordinateType tolerance_mz = param_.getValue("tolerance_mz");
 	

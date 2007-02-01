@@ -60,7 +60,7 @@ CHECK( static Factory* instance() )
 RESULT
 
 CHECK( static void registerProduct(const String& name, const FunctionType creator) )
-	Factory<BaseExtender>::registerProduct(SimpleExtender::getName(), &SimpleExtender::create);
+	Factory<BaseExtender>::registerProduct(SimpleExtender::getProductName(), &SimpleExtender::create);
 	BaseExtender* ext = Factory<BaseExtender>::create("SimpleExtender");
 	TEST_NOT_EQUAL(ext, 0)
 RESULT

@@ -97,6 +97,12 @@ namespace OpenMS
     /// destructor 
     virtual ~SimpleSeeder();
 
+	  /// Copy constructor
+	  SimpleSeeder(const SimpleSeeder& rhs);
+	  
+	  /// Assignment operator
+	  SimpleSeeder& operator= (const SimpleSeeder& rhs);
+  
     /// return next seed 
     IndexSet nextSeed() throw (NoSuccessor);
 
@@ -105,7 +111,7 @@ namespace OpenMS
       return new SimpleSeeder();
     }
 
-    static const String getName()
+    static const String getProductName()
     {
       return "SimpleSeeder";
     }
@@ -115,17 +121,13 @@ namespace OpenMS
   	std::vector<IDX> indizes_;
 
   	/// Indicates whether the vector of indizes is sorted 
-  	bool is_initialised_;
+  	bool is_initialized_;
   	
   	/// Points to the next peak in the peak vector 
   	std::vector<IDX>::const_iterator current_peak_;
   	
   	/// counts the number of seeds that we returned so far
   	UnsignedInt nr_seeds_;
-  	
-  	/// the assumed noise threshold as a percentage of the fifth largest peak
-  	IntensityType noise_threshold_;
-
   };
 }
 #endif // OPENMS_TRANSFORMATIONS_FEATUREFINDER_SIMPLESEEDER_H

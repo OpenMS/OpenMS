@@ -42,7 +42,7 @@ namespace OpenMS
 	    intensity_factor_(0), 
 			avg_intensity_factor_(0)
 	{
-    name_ = IsotopeWaveletSeeder::getName();
+    setName(getProductName());
 
 		// minimal number of scans for an isotopic pattern
 		defaults_.setValue("rtvotes_cutoff",5);
@@ -64,32 +64,52 @@ namespace OpenMS
 		defaults_.setValue("tolerance_scansum",0.1);
 		defaults_.setValue("min_samplingrate",0.05);
 				
-    param_ = defaults_;
+    defaultsToParam_();
 	}
 	
 	IsotopeWaveletSeeder::~IsotopeWaveletSeeder()
 	{
 	}
-	
+
+  IsotopeWaveletSeeder::IsotopeWaveletSeeder(const IsotopeWaveletSeeder& rhs)
+    : BaseSeeder(rhs),
+    	is_initialized_(false)
+  {
+    updateMembers_();
+  }
+  
+  IsotopeWaveletSeeder& IsotopeWaveletSeeder::operator= (const IsotopeWaveletSeeder& rhs)
+  {
+    if (&rhs == this) return *this;
+    
+    BaseSeeder::operator=(rhs);
+    is_initialized_ = false;
+    
+    updateMembers_();
+    
+    return *this;
+  }
+
+	void IsotopeWaveletSeeder::updateMembers_()
+	{
+		rt_votes_cutoff_ = param_.getValue("rtvotes_cutoff");
+		intensity_factor_ = param_.getValue("intensity_factor");
+		avg_intensity_factor_ = param_.getValue("avg_intensity_factor");
+		mass_tolerance_right_ = param_.getValue("mass_tolerance_right");
+		mass_tolerance_left_ = param_.getValue("mass_tolerance_left");
+		tolerance_scansum_ = param_.getValue("tolerance_scansum");
+		
+    // store charge states
+    for (UnsignedInt i=(UnsignedInt)param_.getValue("min_charge"); i<=(UnsignedInt)param_.getValue("max_charge"); ++i)
+    {
+    	charges_.push_back(i);           
+		}
+	}
 	
 	FeaFiModule::IndexSet IsotopeWaveletSeeder::nextSeed() throw (NoSuccessor)
 	{
     if (!is_initialized_)
     {
-      // reading params
-			rt_votes_cutoff_ = param_.getValue("rtvotes_cutoff");
-			intensity_factor_ = param_.getValue("intensity_factor");
-			avg_intensity_factor_ = param_.getValue("avg_intensity_factor");
-			mass_tolerance_right_ = param_.getValue("mass_tolerance_right");
-			mass_tolerance_left_ = param_.getValue("mass_tolerance_left");
-			tolerance_scansum_ = param_.getValue("tolerance_scansum");
-			
-			UnsignedInt max_charge = param_.getValue("max_charge");
-			UnsignedInt min_charge = param_.getValue("min_charge"); 
-			
-      // store charge states
-      for (UnsignedInt i=min_charge;i<=max_charge;++i) charges_.push_back(i);           
-
       // compute spacings
       computeSpacings_();
 			

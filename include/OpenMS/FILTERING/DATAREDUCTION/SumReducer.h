@@ -31,10 +31,10 @@
 
 namespace OpenMS
 {
-		/**
-			@brief Reduces the amount of data in an experiment by summing the
-			intensities of neighboring peaks.
-		*/
+	/**
+		@brief Reduces the amount of data in an experiment by summing the
+		intensities of neighboring peaks.
+	*/
 	class SumReducer
 	  : public DataReducer
 	{
@@ -55,7 +55,7 @@ namespace OpenMS
 			}
 	
 			/// returns the name of this module
-			static const String getName()
+			static const String getProductName()
 			{
 				return "SumReducer";
 			}

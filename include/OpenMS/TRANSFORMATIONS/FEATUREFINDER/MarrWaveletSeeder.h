@@ -69,6 +69,12 @@ namespace OpenMS
 	
 	    /// destructor 
 	    virtual ~MarrWaveletSeeder();
+
+	    /// Copy constructor
+	    MarrWaveletSeeder(const MarrWaveletSeeder& rhs);
+	    
+	    /// Assignment operator
+	    MarrWaveletSeeder& operator= (const MarrWaveletSeeder& rhs);
 	
 	    /// return next seed 
 	    IndexSet nextSeed() throw (NoSuccessor);
@@ -78,12 +84,14 @@ namespace OpenMS
 	      return new MarrWaveletSeeder();
 	    }
 	
-	    static const String getName()
+	    static const String getProductName()
 	    {
 	      return "MarrWaveletSeeder";
 	    }
 	
 	  protected:
+	  	virtual void updateMembers_();
+	  	
 	    /// Finds the neighbour of the peak denoted by @p current_mz in the previous scan
 	    std::vector<double>::const_iterator searchInScan_(const std::vector<CoordinateType>::const_iterator& scan_begin, const std::vector<CoordinateType>::const_iterator& scan_end, CoordinateType current_mz)
 	    {
@@ -172,11 +180,8 @@ namespace OpenMS
 			/// Minimum ion count
 			IntensityType noise_level_signal_;
 		
-	   /// The min. intensity in the cwt 
-	   IntensityType noise_level_cwt_;
-	
-		 /// S/N threshold for single peaks in the cwt
-		 IntensityType high_peak_intensity_factor_;
+	   	/// The min. intensity in the cwt 
+	   	IntensityType noise_level_cwt_;
 	 
   };
 }

@@ -36,10 +36,9 @@ using namespace std;
 namespace OpenMS
 {
 	DataReducer::DataReducer()
-		: FactoryProduct()
+		: FactoryProduct2("DataRaducer")
 	{
-		defaults_.setValue("Peaksperstep",10);
-		defaults_.setValue("Rangeperstep",10);
+
 	} 
 	
 	DataReducer::~DataReducer()
@@ -47,21 +46,23 @@ namespace OpenMS
 	} 
 	
 	DataReducer::DataReducer(const DataReducer& source)
-    : FactoryProduct(source)
+    : FactoryProduct2(source)
   {
-		name_ = source.getName();
   }
 	
 	DataReducer& DataReducer::operator=(const DataReducer& source)
   {
-   FactoryProduct::operator=(source);
-	 return *this;
+		if (&source == this) return *this;
+	   
+	  FactoryProduct2::operator=(source);
+	   
+		return *this;
   }
 	
 	void DataReducer::registerChildren()
 	{
-		Factory<DataReducer>::registerProduct(MaxReducer::getName(), &MaxReducer::create);
-		Factory<DataReducer>::registerProduct(SumReducer::getName(), &SumReducer::create);
+		Factory<DataReducer>::registerProduct(MaxReducer::getProductName(), &MaxReducer::create);
+		Factory<DataReducer>::registerProduct(SumReducer::getProductName(), &SumReducer::create);
 	}
 
 }// namespace openms

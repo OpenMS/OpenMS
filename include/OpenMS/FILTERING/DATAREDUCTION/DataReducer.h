@@ -27,7 +27,7 @@
 #ifndef OPENMS_FILTERING_DATAREDUCTION_DATAREDUCER_H
 #define OPENMS_FILTERING_DATAREDUCTION_DATAREDUCER_H
 
-#include<OpenMS/CONCEPT/FactoryProduct.h>
+#include<OpenMS/CONCEPT/FactoryProduct2.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 
 namespace OpenMS
@@ -36,10 +36,10 @@ namespace OpenMS
 	@brief Abstract base class for different datareduction-methodes
 
 	@note every derived class has to implement the static functions
-	      "DataReducer* create()" and "const String getName()" (see FactoryProduct for details)
+	      "DataReducer* create()" and "const String getProductName()" (see FactoryProduct for details)
 */ 
 	class DataReducer
-	  : public FactoryProduct
+	  : public FactoryProduct2
 	{	
 		public:
 			typedef MSExperiment<> ExperimentType;

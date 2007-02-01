@@ -145,8 +145,7 @@ namespace OpenMS
 			protected:
 				IntensityType cut_off_;
 	
-				//docu in base class
-				void updateMembers_()
+				virtual void updateMembers_()
 				{
 					cut_off_ = (double)param_.getValue("cutoff");
 				}

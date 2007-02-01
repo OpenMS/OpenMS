@@ -34,7 +34,8 @@ namespace OpenMS
 	RankCorrelation::RankCorrelation()
 		:	BaseQuality()
 	{
-		name_ = RankCorrelation::getName();
+		setName(getProductName());
+		check_defaults_ = false;
 	}
 
 	RankCorrelation::~RankCorrelation()

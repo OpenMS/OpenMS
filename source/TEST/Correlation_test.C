@@ -198,7 +198,7 @@ CHECK((double evaluate(const IndexSet& set, const BaseModel<2>& model)))
 RESULT
 
 CHECK(const String getName())
-	TEST_EQUAL(Correlation::getName(),"Correlation")
+	TEST_EQUAL(Correlation::getProductName(),"Correlation")
 	TEST_EQUAL(Correlation().getName(),"Correlation")
 RESULT
 

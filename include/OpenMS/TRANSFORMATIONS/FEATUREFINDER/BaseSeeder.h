@@ -36,7 +36,7 @@ namespace OpenMS
    
 	 	Abstract base class for Seeder-Module of FeatureFinder
     every derived class has to implement the static functions
-    "T* create()" and "const String getName()" (see FactoryProduct for details)
+    "T* create()" and "const String getProductName()" (see FactoryProduct for details)
     
     @ingroup FeatureFinder
   */

@@ -35,30 +35,50 @@ namespace OpenMS
 
 	SimpleSeeder::SimpleSeeder()
 		: BaseSeeder(), 
-			is_initialised_(false),
-			nr_seeds_(1), 
-			noise_threshold_(0)
+			is_initialized_(false),
+			nr_seeds_(1)
 	{
-		name_ = SimpleSeeder::getName();
+		setName(getProductName());
+		
 		defaults_.setValue("intensity_perc",0.03f);
 		defaults_.setValue("min_intensity",-1.0f);
-		param_ = defaults_;
+		
+		defaultsToParam_();
 	}
 
 	SimpleSeeder::~SimpleSeeder()
 	{
 	}
 
+  SimpleSeeder::SimpleSeeder(const SimpleSeeder& rhs)
+    : BaseSeeder(rhs),
+    	is_initialized_(false)
+  {
+    updateMembers_();
+  }
+  
+  SimpleSeeder& SimpleSeeder::operator= (const SimpleSeeder& rhs)
+  {
+    if (&rhs == this) return *this;
+    
+    BaseSeeder::operator=(rhs);
+    is_initialized_ = false;
+    
+    updateMembers_();
+    
+    return *this;
+  }
+
   FeaFiModule::IndexSet SimpleSeeder::nextSeed() throw (NoSuccessor)
 	{
-		if (!is_initialised_) 
+		if (!is_initialized_) 
 		{
 			// determine mininum intensity for last seed
-			noise_threshold_  = param_.getValue("min_intensity");
-			if (noise_threshold_ == -1)	// -1 is default value
+			IntensityType noise_threshold  = param_.getValue("min_intensity");
+			if (noise_threshold == -1)	// -1 is default value
 			{
 				IntensityType int_perc = param_.getValue("intensity_perc");;
-				noise_threshold_ = int_perc * traits_->getData().getMaxInt();			
+				noise_threshold = int_perc * traits_->getData().getMaxInt();			
 			}
 			
 			//reserve space for a ten'th of the peaks
@@ -70,7 +90,7 @@ namespace OpenMS
 				tmp.second = 0;
 				while (tmp.second < traits_->getData()[tmp.first].size())
 				{
-					if (traits_->getPeakIntensity(tmp)>noise_threshold_)
+					if (traits_->getPeakIntensity(tmp)>noise_threshold)
 					{
 						indizes_.push_back(tmp);
 					}
@@ -83,7 +103,7 @@ namespace OpenMS
 			sort(indizes_.rbegin(),indizes_.rend(),SimpleSeeder::IntensityLess::IntensityLess(traits_));
 		
 			current_peak_ = indizes_.begin();
-			is_initialised_ = true;
+			is_initialized_ = true;
 		}
 		
 		// while the current peak is either already used or in a feature
@@ -106,14 +126,6 @@ namespace OpenMS
 // 							<< traits_->getPeakMz(*current_peak_)
 // 							<< ") with intensity " << traits_->getPeakIntensity(*current_peak_) << std::endl;
 		#endif
-		
-		// if the intensity of the next seed is below this threshold,
-		// seeding stops and we throw an execption.
-		if (traits_->getPeakIntensity(*current_peak_) < noise_threshold_) 
-		{
-			std::cout << "Intensity below threshold: " << noise_threshold_ << std::endl;
-			throw NoSuccessor(__FILE__, __LINE__,__PRETTY_FUNCTION__, *current_peak_); 	
-		}
 		
 		// set flag
 		traits_->getPeakFlag(*current_peak_) = FeaFiTraits::SEED;

@@ -61,7 +61,7 @@ CHECK((void applyReduction(const ExperimentType& in, ExperimentType& out )))
   Param param;	
   MaxReducer maxreducer;
   param.setValue("Peaksperstep",3);
-  maxreducer.setParam(param);
+  maxreducer.setParameters(param);
   in.updateRanges();
   maxreducer.applyReduction(in,out);
 	TEST_EQUAL(out.size(),3)

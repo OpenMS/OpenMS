@@ -44,14 +44,18 @@ namespace OpenMS
 
 	SimpleModelFitter::SimpleModelFitter()
 	: BaseModelFitter(),
+		quality_(0),
 	 	model2D_(),
 		mz_stat_(),
 		rt_stat_(),
-		stdev_mz_(0), stdev_rt1_(0), stdev_rt2_(0),
-		min_(), max_(),
+		stdev_mz_(0), 
+		stdev_rt1_(0), 
+		stdev_rt2_(0),
+		min_(), 
+		max_(),
 		counter_(0)
 	{
-		name_ = SimpleModelFitter::getName();
+		setName(getProductName());
 		
 		defaults_.setValue("tolerance_stdev_bounding_box",3.0f);
 		defaults_.setValue("feature_intensity_sum",1);
@@ -76,8 +80,7 @@ namespace OpenMS
 		defaults_.setValue("isotope_model:isotope:maximum",1000000);
 		defaults_.setValue("isotope_model:isotope:distance",1.000495f);
 		
-		param_ = defaults_;
-		quality_ = Factory<BaseQuality>::create(param_.getValue("quality:type"));
+		defaultsToParam_();
 	}
 
 	SimpleModelFitter::~SimpleModelFitter()
@@ -85,9 +88,27 @@ namespace OpenMS
 		delete quality_;
 	}
 
-	void SimpleModelFitter::setParam(const Param& param)
+
+  SimpleModelFitter::SimpleModelFitter(const SimpleModelFitter& rhs)
+    : BaseModelFitter(rhs),
+    	quality_(0)
+  {
+    updateMembers_();
+  }
+  
+  SimpleModelFitter& SimpleModelFitter::operator= (const SimpleModelFitter& rhs)
+  {
+    if (&rhs == this) return *this;
+    
+    BaseModelFitter::operator=(rhs);
+    
+    updateMembers_();
+    
+    return *this;
+  }
+
+	void SimpleModelFitter::updateMembers_()
 	{
-		BaseModelFitter::setParam(param);
 		if (quality_) delete quality_;
 		quality_ = Factory<BaseQuality>::create(param_.getValue("quality:type"));
 	}

@@ -50,10 +50,11 @@ using namespace OpenMS::Math;
 class TestQuality : public BaseQuality
 {
   public:
-	TestQuality(): BaseQuality()
+	TestQuality()
+		: BaseQuality()
 	{
+		setName(TestQuality::getProductName());
 		check_defaults_ = false;
-		name_ = TestQuality::getName();
 	}
 
 	double evaluate(const IndexSet& /*set*/, const BaseModel<2>& /*model*/)
@@ -66,7 +67,10 @@ class TestQuality : public BaseQuality
 		return 3.0;
 	}
 	
-	static const String getName(){ return "TestQuality"; }
+	static const String getProductName()
+	{ 
+		return "TestQuality"; 
+	}
 };
 
 // default ctor

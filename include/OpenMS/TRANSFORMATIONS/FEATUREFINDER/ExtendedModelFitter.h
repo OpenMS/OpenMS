@@ -131,6 +131,12 @@ namespace OpenMS
     /// destructor
     virtual ~ExtendedModelFitter();
 
+   	/// Copy constructor
+    ExtendedModelFitter(const ExtendedModelFitter& rhs);
+    
+    /// Assignment operator
+    ExtendedModelFitter& operator= (const ExtendedModelFitter& rhs);
+
     /// return next seed
     DFeature<2> fit(const IndexSet& range) throw (UnableToFit);
 
@@ -139,12 +145,10 @@ namespace OpenMS
       return new ExtendedModelFitter();
     }
 
-    static const String getName()
+    static const String getProductName()
     {
       return "ExtendedModelFitter";
     }
-
-		void setParam(const Param& param);
 
 		/// create a vector with RT-values & Intensities and compute the parameters (intial values) for the EMG, Gauss and logNormal function
 		void setData (const IndexSet& set);
@@ -163,10 +167,12 @@ namespace OpenMS
 
 	 protected:
 
-		/// fit offset by maximizing of quality
-		double fitOffset_(	InterpolationModel<>* model, const IndexSet& set, const double stdev1, const double stdev2, const Coordinate offset_step);
+		virtual void updateMembers_();
 
-		double fit_(	const IndexSet& set, MzFitting mz_fit, RtFitting rt_fit, Coordinate isotope_stdev=0.1);
+		/// fit offset by maximizing of quality
+		double fitOffset_(InterpolationModel<>* model, const IndexSet& set, const double stdev1, const double stdev2, const Coordinate offset_step);
+
+		double fit_(const IndexSet& set, MzFitting mz_fit, RtFitting rt_fit, Coordinate isotope_stdev=0.1);
 
 		BaseQuality* quality_;
 		ProductModel<2> model2D_;

@@ -64,7 +64,7 @@ namespace OpenMS
     }
 
 		/// Name of this quality
-    static const String getName() 
+    static const String getProductName() 
     { 
     	return "EuclideanDistance"; 
     }

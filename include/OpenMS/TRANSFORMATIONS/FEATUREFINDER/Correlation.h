@@ -70,7 +70,7 @@ namespace OpenMS
     }
 
 		/// name of this quality measure
-   	static const String getName() 
+   	static const String getProductName() 
    	{ 
 			return "Correlation";
    	}		

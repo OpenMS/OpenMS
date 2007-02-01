@@ -30,9 +30,11 @@
 namespace OpenMS
 {
 
-	Correlation::Correlation():	BaseQuality()
+	Correlation::Correlation()
+		:	BaseQuality()
 	{
-		name_ = Correlation::getName();
+		setName(getProductName());
+		check_defaults_ = false;
 	}
 
 	Correlation::~Correlation()
@@ -147,7 +149,5 @@ namespace OpenMS
 		
  		return fabs(corr);
 	}
-	
-	
 
 }

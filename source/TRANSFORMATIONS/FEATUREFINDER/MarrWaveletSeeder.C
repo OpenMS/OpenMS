@@ -34,7 +34,7 @@ namespace OpenMS
 			: BaseSeeder(), 
 				is_initialized_(false)
 	{
-		name_ = MarrWaveletSeeder::getName();
+		setName(getProductName());
 	
 		// lower and upper bounds for distances between isotopic peaks (defaults)
 		// charge 1
@@ -70,12 +70,31 @@ namespace OpenMS
 		// minimum number of peaks per cluster
 		defaults_.setValue("min_number_peaks",20);
 	
-		param_ = defaults_;
+		defaultsToParam_();
 	}
 	
 	MarrWaveletSeeder::~MarrWaveletSeeder()
 	{
 	}
+
+  MarrWaveletSeeder::MarrWaveletSeeder(const MarrWaveletSeeder& rhs)
+    : BaseSeeder(rhs),
+    	is_initialized_(false)
+  {
+    updateMembers_();
+  }
+  
+  MarrWaveletSeeder& MarrWaveletSeeder::operator= (const MarrWaveletSeeder& rhs)
+  {
+    if (&rhs == this) return *this;
+    
+    BaseSeeder::operator=(rhs);
+    is_initialized_ = false;
+    
+    updateMembers_();
+    
+    return *this;
+  }
 	
 	FeaFiModule::IndexSet MarrWaveletSeeder::nextSeed() throw (NoSuccessor)
 	{
@@ -90,20 +109,13 @@ namespace OpenMS
 			throw NoSuccessor(__FILE__, __LINE__,__PRETTY_FUNCTION__, make_pair(0,0));
 		}
 		
-		IndexSet next_region = (*curr_region_).second.peaks_;
-		++curr_region_;
-			
 		cout << "Retrieving next region with charge: " << (*curr_region_).second.charge_ << endl; 
 			
-		return next_region;
+		return (curr_region_++)->second.peaks_;
 	}
 	
-	void MarrWaveletSeeder::sweep_()
+	void MarrWaveletSeeder::updateMembers_()
 	{
-		// stores the monoisotopic peaks of isotopic clusters
-		vector<CoordinateType> iso_last_scan;			// in the previous scan
-		vector<CoordinateType> iso_curr_scan;			// in the last scan
-	
 		// retrieve values for accepted peaks distances
 		charge1_ub_	= param_.getValue("charge1_ub");
 		charge1_lb_	 = param_.getValue("charge1_lb");
@@ -119,13 +131,21 @@ namespace OpenMS
 	
 		charge5_ub_	= param_.getValue("charge5_ub");
 		charge5_lb_	 = param_.getValue("charge5_lb");
+	}
 	
-		// thresholds for cwt
+	void MarrWaveletSeeder::sweep_()
+	{
+		// stores the monoisotopic peaks of isotopic clusters
+		vector<CoordinateType> iso_last_scan;			// in the previous scan
+		vector<CoordinateType> iso_curr_scan;			// in the last scan
+
 		CoordinateType tolerance_mz = param_.getValue("tolerance_mz");
 		double cwt_scale = param_.getValue("cwt_scale");
+		
 		noise_level_signal_ = param_.getValue("noise_level_signal");
 		noise_level_cwt_ = param_.getValue("noise_level_cwt");
-		high_peak_intensity_factor_ = param_.getValue("high_peak_intensity_factor");
+		/// S/N threshold for single peaks in the cwt
+		IntensityType high_peak_intensity_factor = param_.getValue("high_peak_intensity_factor");		
 	
 		UnsignedInt current_charge = 0; // charge state of the current isotopic cluster
 		CoordinateType mz_in_hash = 0; // used as reference to the current isotopic peak
@@ -387,7 +407,7 @@ namespace OpenMS
 			// check for very high local maxima in cwt
 			for (int z = 0; z< nr_maxima; ++z)
 			{							
-				if ( cwt_[ local_maxima[z] ] > (high_peak_intensity_factor_ *cwt_avg) &&
+				if ( cwt_[ local_maxima[z] ] > (high_peak_intensity_factor *cwt_avg) &&
 					traits_->getPeakFlag(  make_pair(currscan_index, local_maxima[z])) == FeaFiTraits::UNUSED )
 				{
 					// We have reached a data point with high intensity in the wavelet

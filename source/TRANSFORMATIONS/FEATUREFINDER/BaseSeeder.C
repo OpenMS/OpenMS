@@ -37,13 +37,14 @@ namespace OpenMS
 {
 	void BaseSeeder::registerChildren()
 	{
-		Factory<BaseSeeder>::registerProduct(SimpleSeeder::getName(), &SimpleSeeder::create);
- 		Factory<BaseSeeder>::registerProduct(PickedPeakSeeder::getName(), &PickedPeakSeeder::create);
-		Factory<BaseSeeder>::registerProduct(MarrWaveletSeeder::getName(), &MarrWaveletSeeder::create);
-		Factory<BaseSeeder>::registerProduct(IsotopeWaveletSeeder::getName(), &IsotopeWaveletSeeder::create);
+		Factory<BaseSeeder>::registerProduct(SimpleSeeder::getProductName(), &SimpleSeeder::create);
+ 		Factory<BaseSeeder>::registerProduct(PickedPeakSeeder::getProductName(), &PickedPeakSeeder::create);
+		Factory<BaseSeeder>::registerProduct(MarrWaveletSeeder::getProductName(), &MarrWaveletSeeder::create);
+		Factory<BaseSeeder>::registerProduct(IsotopeWaveletSeeder::getProductName(), &IsotopeWaveletSeeder::create);
 	}	
 	
-	BaseSeeder::BaseSeeder(): FeaFiModule()
+	BaseSeeder::BaseSeeder()
+		: FeaFiModule()
 	{
 	}
 

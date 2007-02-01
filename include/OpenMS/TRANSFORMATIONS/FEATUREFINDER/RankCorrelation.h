@@ -74,7 +74,7 @@ namespace OpenMS
    	}
 
 		/// name 
-	  static const String getName()
+	  static const String getProductName()
 	  { 
 	  	return "RankCorrelation"; 
 	  }

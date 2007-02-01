@@ -40,25 +40,25 @@ namespace OpenMS
 	/**
 	  @brief Implements the extension phase of the FeatureFinder as described by Groepl et al. (2005)
 	  
-	  				We want to determine a region around a seed that is
-	  				provided by the seeder. Initially, this region is
-	  				empty. The boundary of this region is implemented
-	  				using a MutablePriorityQueue which contains only
-	  				the seed at the beginning.
-	  
-	  				At each step, we choose a data point from the boundary,
-	  				move it into the region and explore the neigbourhood of
-	  				this point in a cross-wise manner (m/z up, m/z down, rt up
-	 	        and rt down). During this exploration we compute the priority
-	   				of all encountered points as a function of the distance from
-	  				the extracted point. If this priority exceeds a threshold,
-	  				we insert the corresponding point into the boundary and proceed.
-	 	
-	  				We stop the extension phase if all peaks contained in the
-	 	        boundary have an intensity lower than a threshold or are too
-	  	      distant from the centroid of the feature.
-	  
-	  				Parameters:
+		We want to determine a region around a seed that is
+		provided by the seeder. Initially, this region is
+		empty. The boundary of this region is implemented
+		using a MutablePriorityQueue which contains only
+		the seed at the beginning.
+
+		At each step, we choose a data point from the boundary,
+		move it into the region and explore the neigbourhood of
+		this point in a cross-wise manner (m/z up, m/z down, rt up
+    and rt down). During this exploration we compute the priority
+		of all encountered points as a function of the distance from
+		the extracted point. If this priority exceeds a threshold,
+		we insert the corresponding point into the boundary and proceed.
+
+		We stop the extension phase if all peaks contained in the
+    boundary have an intensity lower than a threshold or are too
+    distant from the centroid of the feature.
+
+		Parameters:
 			<table>
 			<tr><td>tolerance_rt</td>
 					<td>Scale for the interpolation of the rt priority distribution (default 2.0)</td></tr>
@@ -114,6 +114,12 @@ namespace OpenMS
     /// destructor
     virtual ~SimpleExtender();
 
+    /// Copy constructor
+    SimpleExtender(const SimpleExtender& rhs);
+    
+    /// Assignment operator
+    SimpleExtender& operator= (const SimpleExtender& rhs);
+
     /// return next seed
     const IndexSet& extend(const IndexSet& seed_region);
 
@@ -124,23 +130,23 @@ namespace OpenMS
     }
 
 		/// returns the name of this module 
-    static const String getName()
+    static const String getProductName()
     {
       return "SimpleExtender";
     }
     
     /**
-     *  @brief A helper structure to sort indizes by their priority.
-     * 
-     *  This structure is used to keep track of the boundary of a 
-     *  feature. After a peak is found during the extension phase,
-     *  we compute its priority (which is dependant on its distance from
-     *  the point that was the last to be extracted from the boundary
-     *  and its intensity). If this priority is large enough, we include
-     *  the point into the boundary. The boundary (which is implemented
-     *  as mutable priority queue) sorts the peaks by this priority.
-     * 
-     * */ 	
+     @brief A helper structure to sort indizes by their priority.
+     
+     This structure is used to keep track of the boundary of a 
+     feature. After a peak is found during the extension phase,
+     we compute its priority (which is dependant on its distance from
+     the point that was the last to be extracted from the boundary
+     and its intensity). If this priority is large enough, we include
+     the point into the boundary. The boundary (which is implemented
+     as mutable priority queue) sorts the peaks by this priority.
+     
+    */ 	
   	struct IndexWithPriority
   	{
   		IndexWithPriority(const IDX& i, double p) : index(i), priority(p)
@@ -164,7 +170,8 @@ namespace OpenMS
   	};
             
   protected:
-  	 	
+  	virtual void updateMembers_();
+  	
   	/// Checks if the current peak is too far from the centroid
   	bool isTooFarFromCentroid_(const IDX& current_index);
    	
@@ -185,9 +192,6 @@ namespace OpenMS
   	
   	/// Checks the neighbours of the current for insertion into the boundary.
   	void checkNeighbour_(const IDX& index);
-  	
-  	/// This flag indicates whether the first seed has already been processed. 
-  	bool first_seed_seen_;
   	
   	/// Data points with intensity below this threshold are not considered in the extension phase. 
   	IntensityType intensity_threshold_;

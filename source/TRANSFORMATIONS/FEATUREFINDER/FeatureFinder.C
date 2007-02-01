@@ -76,21 +76,21 @@ namespace OpenMS
 	void FeatureFinder::addSeeder(const String& name, const Param* param)
 	{
 		BaseSeeder* p = Factory<BaseSeeder>::create(name);
-		if (param) p->setParam(*param);
+		if (param) p->setParameters(*param);
 		seeders_.push_back(p);
 	}
 	
 	void FeatureFinder::addExtender(const String& name, const Param* param)
 	{
 		BaseExtender* p = Factory<BaseExtender>::create(name);
-		if (param) p->setParam(*param);
+		if (param) p->setParameters(*param);
 		extenders_.push_back(p);
 	}
 	
 	void FeatureFinder::addFitter(const String& name, const Param* param)
 	{
 		BaseModelFitter* p = Factory<BaseModelFitter>::create(name);
-		if (param) p->setParam(*param);
+		if (param) p->setParameters(*param);
 		fitters_.push_back(p);
 	}
 	

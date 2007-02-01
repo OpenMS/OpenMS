@@ -41,7 +41,8 @@ namespace OpenMS
 	/**
 		 @brief Simple model fitter using gaussian or isotope model in mz and bigauss in rt.
 
-		 For the isotope model different charges and deviations are tested.<br>
+		 For the isotope model different charges and deviations are tested.
+		 
 		 Parameters:
 		 <table>
 		 <tr><td></td><td></td><td>tolerance_stdev_bounding_box</td>
@@ -95,60 +96,65 @@ namespace OpenMS
   class SimpleModelFitter
     : public BaseModelFitter
   {
-
-	 public:
-		typedef FeaFiTraits::CoordinateType Coordinate;
-
-		enum DimensionId
-			{
-				RT = DimensionDescription < LCMS_Tag >::RT,
-				MZ = DimensionDescription < LCMS_Tag >::MZ
-			};
-		
-		typedef DFeature<2>::CoordinateType CoordinateType;
-		typedef DFeature<2>::PositionType PositionType2D;
-
-		enum RtFitting{ RTGAUSS=0, BIGAUSS=1};
-		enum MzFitting{ MZGAUSS=0, CHARGE1=1, CHARGE2=2, CHARGE3=3, CHARGE4=4	};
-
-    /// Default constructor
-    SimpleModelFitter();
-
-    /// destructor
-    virtual ~SimpleModelFitter();
-
-    /// return next seed
-    DFeature<2> fit(const IndexSet& range) throw (UnableToFit);
-
-    static BaseModelFitter* create()
-    {
-      return new SimpleModelFitter();
-    }
-
-    static const String getName()
-    {
-      return "SimpleModelFitter";
-    }
-
-		void setParam(const Param& param);
-
-	 protected:
-		/// fit offset by maximizing of quality
-		double fitOffset_(	InterpolationModel<>* model, const IndexSet& set, const double stdev1, const double stdev2, const Coordinate offset_step);
-
-		double fit_(	const IndexSet& set, MzFitting mz_fit, RtFitting rt_fit, Coordinate isotope_stdev=0.1);
-
-		BaseQuality* quality_;
-		ProductModel<2> model2D_;
-		Math::BasicStatistics<> mz_stat_;
-		Math::AsymmetricStatistics<> rt_stat_;
-		double stdev_mz_;
-		double stdev_rt1_;
-		double stdev_rt2_;
-		PositionType2D min_;
-		PositionType2D max_;
+  	public:
+			typedef FeaFiTraits::CoordinateType Coordinate;
 	
-		unsigned int counter_;
+			enum DimensionId
+				{
+					RT = DimensionDescription < LCMS_Tag >::RT,
+					MZ = DimensionDescription < LCMS_Tag >::MZ
+				};
+			
+			typedef DFeature<2>::CoordinateType CoordinateType;
+			typedef DFeature<2>::PositionType PositionType2D;
+	
+			enum RtFitting{ RTGAUSS=0, BIGAUSS=1};
+			enum MzFitting{ MZGAUSS=0, CHARGE1=1, CHARGE2=2, CHARGE3=3, CHARGE4=4	};
+	
+	    /// Default constructor
+	    SimpleModelFitter();
+	
+	    /// destructor
+	    virtual ~SimpleModelFitter();
+
+	    /// Copy constructor
+	    SimpleModelFitter(const SimpleModelFitter& rhs);
+	    
+	    /// Assignment operator
+	    SimpleModelFitter& operator= (const SimpleModelFitter& rhs);
+	
+	    /// return next seed
+	    DFeature<2> fit(const IndexSet& range) throw (UnableToFit);
+	
+	    static BaseModelFitter* create()
+	    {
+	      return new SimpleModelFitter();
+	    }
+	
+	    static const String getProductName()
+	    {
+	      return "SimpleModelFitter";
+	    }
+	
+		protected:
+			virtual void updateMembers_();
+			
+			/// fit offset by maximizing of quality
+			double fitOffset_(	InterpolationModel<>* model, const IndexSet& set, const double stdev1, const double stdev2, const Coordinate offset_step);
+	
+			double fit_(	const IndexSet& set, MzFitting mz_fit, RtFitting rt_fit, Coordinate isotope_stdev=0.1);
+	
+			BaseQuality* quality_;
+			ProductModel<2> model2D_;
+			Math::BasicStatistics<> mz_stat_;
+			Math::AsymmetricStatistics<> rt_stat_;
+			double stdev_mz_;
+			double stdev_rt1_;
+			double stdev_rt2_;
+			PositionType2D min_;
+			PositionType2D max_;
+		
+			unsigned int counter_;
   };
 }
 #endif // OPENMS_TRANSFORMATIONS_FEATUREFINDER_SIMPLEMODELFITTER_H

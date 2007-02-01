@@ -34,7 +34,7 @@ namespace OpenMS
 {
 	void BaseExtender::registerChildren()
 	{
-		Factory<BaseExtender>::registerProduct(SimpleExtender::getName(), &SimpleExtender::create);
+		Factory<BaseExtender>::registerProduct(SimpleExtender::getProductName(), &SimpleExtender::create);
 	}	
 
 	BaseExtender::BaseExtender() : FeaFiModule()

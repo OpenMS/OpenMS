@@ -35,10 +35,14 @@
 
 namespace OpenMS
 {
-	/** @brief Base class for a model (e.g. isotope distributions, rt model) in the FeatureFinder.
+	/** 
+		@brief Stores the name and parameters of a model.
+		
+		This class also allows reconstruction of the model.
 	
-		@ingroup FeatureFinder
-				
+		@see BaseModel
+		
+		@ingroup FeatureFinder		
 	*/  
   template <UnsignedInt D, typename Traits = KernelTraits>
 	class ModelDescription

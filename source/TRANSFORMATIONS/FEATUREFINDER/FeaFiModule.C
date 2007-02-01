@@ -29,12 +29,14 @@
 
 namespace OpenMS
 {
-	FeaFiModule::FeaFiModule(): FactoryProduct(), traits_(0)
+	FeaFiModule::FeaFiModule()
+		: FactoryProduct2("FeaFiModule"), 
+			traits_(0)
 	{
 	}
 
 	FeaFiModule::FeaFiModule(const FeaFiModule& source)
-		:FactoryProduct(source),
+		:FactoryProduct2(source),
 		traits_(source.traits_)
 	{
 	}
@@ -47,7 +49,7 @@ namespace OpenMS
 	{
 		if (&source == this) return *this;
 		
-		FactoryProduct::operator = (source);
+		FactoryProduct2::operator = (source);
 		traits_ = source.traits_;
 		
 		return *this;

@@ -44,10 +44,11 @@ using namespace OpenMS;
 class TestSeeder : public BaseSeeder
 {
   public:
-	TestSeeder(): BaseSeeder()
+	TestSeeder()
+		: BaseSeeder()
 	{
+		setName(TestSeeder::getName());
 		check_defaults_ = false;
-		name_ = TestSeeder::getName();
 	}
 	
 	IndexSet nextSeed() throw (NoSuccessor)

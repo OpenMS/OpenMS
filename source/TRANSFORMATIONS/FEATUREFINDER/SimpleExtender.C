@@ -31,12 +31,11 @@ namespace OpenMS
 
 	SimpleExtender::SimpleExtender() 
 	: BaseExtender(),
-		first_seed_seen_(false), 
 		intensity_threshold_(0),
 		last_pos_extracted_(),
 		intensity_sum_(0)
 	{
-    name_ = SimpleExtender::getName();
+    setName(getProductName());
     
     defaults_.setValue("tolerance_rt",2.0f);
     defaults_.setValue("tolerance_mz",0.5f);
@@ -48,41 +47,57 @@ namespace OpenMS
     defaults_.setValue("intensity_factor",0.03f);
 		defaults_.setValue("min_intensity_contribution",0.01f);
 
-    param_ = defaults_;
+    defaultsToParam_();
 	}
 
 	SimpleExtender::~SimpleExtender()
 	{
 	}
 
+  SimpleExtender::SimpleExtender(const SimpleExtender& rhs)
+    : BaseExtender(rhs)
+  {
+    updateMembers_();
+  }
+  
+  SimpleExtender& SimpleExtender::operator= (const SimpleExtender& rhs)
+  {
+    if (&rhs == this) return *this;
+    
+    BaseExtender::operator=(rhs);
+    
+    updateMembers_();
+    
+    return *this;
+  }
+
+  void SimpleExtender::updateMembers_()
+  {
+		CoordinateType tol_rt = param_.getValue("tolerance_rt");
+		CoordinateType tol_mz = param_.getValue("tolerance_mz");
+		intensity_factor_ = param_.getValue("intensity_factor");
+
+		dist_mz_up_ = param_.getValue("dist_mz_up");
+		dist_mz_down_ = param_.getValue("dist_mz_down");
+		dist_rt_up_ = param_.getValue("dist_rt_up");
+		dist_rt_down_ = param_.getValue("dist_rt_down");
+
+		priority_threshold_ = param_.getValue("priority_thr");
+		min_intensity_contribution_ = param_.getValue("min_intensity_contribution");
+
+		// initialise priority distributions
+		//ALARM
+		score_distribution_rt_.getData().push_back(1.0);
+		score_distribution_rt_.setScale(tol_rt);
+		score_distribution_rt_.setOffset(0);
+
+		score_distribution_mz_.getData().push_back(1.0);
+		score_distribution_mz_.setScale(tol_mz);
+		score_distribution_mz_.setOffset(0);	
+  }
+
 	const FeaFiModule::IndexSet& SimpleExtender::extend(const IndexSet& seed_region)
 	{
-    if (!first_seed_seen_)
-    {
-			CoordinateType tol_rt = param_.getValue("tolerance_rt");
-			CoordinateType tol_mz = param_.getValue("tolerance_mz");
-			intensity_factor_ = param_.getValue("intensity_factor");
-
-			dist_mz_up_ = param_.getValue("dist_mz_up");
-			dist_mz_down_ = param_.getValue("dist_mz_down");
-			dist_rt_up_ = param_.getValue("dist_rt_up");
-			dist_rt_down_ = param_.getValue("dist_rt_down");
-
-			priority_threshold_              = param_.getValue("priority_thr");
-			min_intensity_contribution_ = param_.getValue("min_intensity_contribution");
-
-			// initialise priority distributions
-			score_distribution_rt_.getData().push_back(1.0);
-			score_distribution_rt_.setScale(tol_rt);
-			score_distribution_rt_.setOffset(0);
-
-			score_distribution_mz_.getData().push_back(1.0);
-			score_distribution_mz_.setScale(tol_mz);
-			score_distribution_mz_.setOffset(0);
-			
-			first_seed_seen_ = true;			
-    }
-
     // empty region and boundary datastructures
     region_.clear();
 		priorities_.clear();
