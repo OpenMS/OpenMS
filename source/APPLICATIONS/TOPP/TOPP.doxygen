@@ -67,6 +67,7 @@
     - \subpage InspectAdapter
   	- \subpage MascotAdapter
     - \subpage SequestAdapter
+    - \subpage OMSSAAdapter
  		- \subpage RTPredict
  		- \subpage RTModel    
  		- \subpage PILISModel
