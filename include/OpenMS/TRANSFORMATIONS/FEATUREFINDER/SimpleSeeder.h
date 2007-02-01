@@ -58,7 +58,7 @@ namespace OpenMS
 		
 		@ingroup FeatureFinder
 		
-		@todo Write test with more than one scan (Ole)
+		@todo Write test with more than one scan and test not only the intensity (Ole)
 	*/ 
   class SimpleSeeder 
     : public BaseSeeder

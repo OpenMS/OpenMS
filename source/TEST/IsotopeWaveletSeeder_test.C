@@ -67,6 +67,8 @@ CHECK((~IsotopeWaveletSeeder()))
 RESULT
 
 CHECK((FeaFiModule::IndexSet  nextSeed() throw(NoSuccessor)))
+	PRECISION(0.01)
+	
   IsotopeWaveletSeeder seeder;
   FeaFiTraits* traits = new FeaFiTraits();
  
@@ -82,16 +84,16 @@ CHECK((FeaFiModule::IndexSet  nextSeed() throw(NoSuccessor)))
 	seeder.setParam(param);
 	
 	FeaFiModule::IndexSet  region;
-	Index peak;
+	FeaFiModule::IDX peak;
 	
 	region = seeder.nextSeed();
 	peak =  *(region.begin());
-	TEST_EQUAL(traits->getPeakIntensity(peak),1245);	
+	TEST_EQUAL(traits->getPeakIntensity(peak),1317);	
 	
 	region = seeder.nextSeed();
 	peak =  *(region.begin());
-	TEST_EQUAL(traits->getPeakIntensity(peak),1512);					
-
+	TEST_EQUAL(traits->getPeakIntensity(peak),999);					
+	
 	TEST_EXCEPTION( FeaFiModule::NoSuccessor , seeder.nextSeed() )
  
 RESULT

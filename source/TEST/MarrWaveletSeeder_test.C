@@ -88,19 +88,11 @@ CHECK(nextSeed())
 	
 	region = seeder.nextSeed();
 	peak =  *(region.begin());
-	TEST_EQUAL(traits->getPeakIntensity(peak),792);	
+	TEST_EQUAL(traits->getPeakIntensity(peak),4492);
 	
 	region = seeder.nextSeed();
 	peak =  *(region.begin());
-	TEST_EQUAL(traits->getPeakIntensity(peak),4492);					
-	
-	region = seeder.nextSeed();
-	peak =  *(region.begin());
-	TEST_EQUAL(traits->getPeakIntensity(peak),2061);		
-	
-	region = seeder.nextSeed();
-	peak =  *(region.begin());
-	TEST_EQUAL(traits->getPeakIntensity(peak),1697);		
+	TEST_EQUAL(traits->getPeakIntensity(peak),1697);
 
 	TEST_EXCEPTION( FeaFiModule::NoSuccessor , seeder.nextSeed() )
 	 

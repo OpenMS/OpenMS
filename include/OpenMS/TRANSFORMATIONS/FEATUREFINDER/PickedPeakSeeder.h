@@ -45,7 +45,7 @@ namespace OpenMS
  		@note Experiments have shown that this extender produces a lot of false positive hits. It would be
  		better to check if the relaitive intensities between the peaks is similar to an isotopic pattern.
   	
-  	@todo Write test with more than one scan (Ole)
+  	@todo Write test with more than one scan and test not only the intensity (Ole)
 		@todo Document parameters (Ole)
 		  	
 		@ingroup FeatureFinder

@@ -40,8 +40,7 @@ namespace OpenMS
 		in each scan. Patterns that occur in several consecutive scans are declared as seeds
 		for the extension phase.
 		
-		@todo Write test with more than one scan (Ole)
-		@todo Fix self aligment bug - position marked with the comment NO_SELF_ALIGNMENT (Ole)
+		@todo Write test with more than one scan and test not only the intensity (Ole)
 		@todo Document parameters (Ole)
 		
 		@ingroup FeatureFinder

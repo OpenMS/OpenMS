@@ -611,16 +611,10 @@ namespace OpenMS
 	void MarrWaveletSeeder::sumUp_(SpectrumType& scan, UnsignedInt current_scan_index)
 	{
 		//Sum up those following scans that exist
-		for ( UnsignedInt i=current_scan_index 
-					; i < current_scan_index + (UnsignedInt)(param_.getValue("scans_to_sumup")) && i < traits_->getData().size()
+		for ( UnsignedInt i=current_scan_index + 1
+					; i < current_scan_index + 1 + (UnsignedInt)(param_.getValue("scans_to_sumup")) && i < traits_->getData().size()
 				 	; ++i
 				)
-		//NO_SELF_ALIGNMENT
-		//The correct loop would be this:
-		//for ( UnsignedInt i=current_scan_index + 1
-		//			; i < current_scan_index + 1 + (UnsignedInt)(param_.getValue("scans_to_sumup")) && i < traits_->getData().size()
-		//		 	; ++i
-		//		)
 		{
 			AlignAndSum_(scan,traits_->getData()[i]);
 		}

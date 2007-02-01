@@ -30,28 +30,17 @@
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/BaseSeeder.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeaFiTraits.h>
 
-// GSL includes
-#include <gsl/gsl_sf_gamma.h>
-
-#include <iostream>
-#include <fstream>
-#include <list>
 #include <hash_map.h>
-#include <cmath>
-#include <values.h>
-#include <algorithm>
-#include <vector>
 
 namespace OpenMS
 {
-
 	/** 
 		@brief Seeding module which uses a isotopic wavelet to find seeds.
 	
 		This seeder select interesting regions in the map using a wavelet funtion
 		modelling the isotopic distribution.
 		
-		@todo Write test with more than one scan (Ole)
+		@todo Write test with more than one scan and test not only the intensity (Ole)
 		@todo Document parameters (Ole)
 		
 		@ingroup FeatureFinder
@@ -72,13 +61,9 @@ namespace OpenMS
     typedef FeaFiTraits::CoordinateType CoordinateType;
     typedef KernelTraits::ProbabilityType ProbabilityType;
 		typedef FeaFiTraits::MapType MapType;
-		typedef MapType::PIterator PeakIterator;
 		typedef MapType::PeakType PeakType;
 		typedef MapType::SpectrumType SpectrumType;
-		typedef SpectrumType::ContainerType ContainerType;
 		
-		/// Compare one dimensional points by the mass
-		typedef PeakType::NthPositionLess<0> MZless;
 		/// The mother wavelets (one for each charge state)
 		typedef std::vector<std::vector<double> > WaveletCollection; 
 		/// The Hash entry, stores pairs of scan number and list of charge scores
@@ -122,9 +107,7 @@ namespace OpenMS
 		 	Note that you should compute a convolution instead of an correlation. Since we do not mirror the wavelet function
 		 	this yields the same.		
 		*/																			
-		void fastMultiCorrelate(const DPeakArray<1, PeakType >& signal, 
-	 																	std::vector<DPeakArray<1, PeakType > >* pwts, 
-																		std::vector<double>* wt_thresholds);
+		void fastMultiCorrelate(const SpectrumType& signal, std::vector<DPeakArray<1, PeakType > >* pwts, std::vector<double>* wt_thresholds);
 		
 		/** 
 				@brief Returns the lamba parameter of the mother wavelet
@@ -139,7 +122,7 @@ namespace OpenMS
 		}																	
 		
 		/// The wavelet (mother) function. 
- 		inline double phiRaw (const double t, const double lambda, const double a) throw ()
+ 		inline double phiRaw (double t, double lambda, double a) throw ()
 		{	
 			if (t>2*peak_cut_off_)	return(0);
 			
@@ -161,43 +144,42 @@ namespace OpenMS
 		}
 		
 		/// Assigns scores to each charge state of a isotopic pattern
-		void identifyCharge (const std::vector<DPeakArray<1, PeakType > >& candidates, 
-																std::vector<double>* wt_thresholds, 
-																UnsignedInt scan);
+		void identifyCharge(const std::vector<DPeakArray<1, PeakType > >& candidates, std::vector<double>* wt_thresholds, UnsignedInt scan);
 		
 		/// Returns the interpolated value 
-		inline double getInterpolatedValue (const double x0, const double x, const double x1, 
-			const double f0, const double f1) const throw ()
+		inline double getInterpolatedValue (double x0, double x, double x1, double f0, double f1) const throw ()
 		{
 			return (f0 + (f1-f0)/(x1-x0) * (x-x0));
 		}
 
 		/// Returns a bucket containing the mass/charge @p mz
-		inline std::pair<int, int> getNearBys (const unsigned int scan, const double mz, const unsigned int start=0)
+		inline std::pair<int, int> getNearBys(UnsignedInt scan, double mz, UnsignedInt start=0)
 		{
-				for (unsigned int i=start; i<traits_->getData()[scan].getContainer().size(); ++i)
+			for (unsigned int i=start; i<traits_->getData()[scan].getContainer().size(); ++i)
+			{
+				if (traits_->getData()[scan].getContainer()[i].getPos() > mz)
 				{
-						if (traits_->getData()[scan].getContainer()[i].getPos() > mz)
-							return (std::pair<int, int> (i-1, i));
+					return std::make_pair(i-1, i);
 				}
+			}
 
-				//not found
-				return (std::pair<int, int> (-1, -1));
+			//not found
+			return std::make_pair(-1,-1);
 		}	
 		
 		/// Returns the absolute mean of the intensities in @p signal
 		double getAbsMean (const DPeakArray<1, PeakType >& signal,
-																	const unsigned int startIndex, 
-																	const unsigned int endIndex) const;
+																	UnsignedInt startIndex, 
+																	UnsignedInt endIndex) const;
 		
 		/// Removes entries from hash occuring in less then rt_votes_cutoff_ scans
 		void filterHashByRTVotes ();
 		
-		/// Sums the intensities in adjacent scans
-  	void sumUp_(ContainerType& scan, UnsignedInt& current_scan_index );
-	
-		/// Aligns to scans
-		void AlignAndSum_(ContainerType& scan, ContainerType& neighbour);
+	  /// Sums the intensities in adjacent scans
+	  void sumUp_(SpectrumType& scan, UnsignedInt current_scan_index);
+		
+		///Aligns the two scans and increases intensities of peaks in @p scan if those peaks are present in @p neighbour
+		void AlignAndSum_(SpectrumType& scan, const SpectrumType& neighbour);
 										
 		/// Does not need much explanation.
 		bool is_initialized_;
