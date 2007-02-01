@@ -138,7 +138,7 @@ class TOPPLabeledMatcher
 	
 	    Param pm_param = getParam_().copy("algorithm:",true);
 	    writeDebug_("Parameters passed to PairMatcher", pm_param, 3);
-	    pm.setParam(pm_param);
+	    pm.setParameters(pm_param);
 	
 	    writeDebug_(" Running LabeledMatcher...",1);
 	

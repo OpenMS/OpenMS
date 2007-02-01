@@ -80,8 +80,9 @@ CHECK((PairMatcher(FeatureMapType& features)))
 	TEST_NOT_EQUAL(ptr, 0)
 RESULT
 
-CHECK(static const String getName())
-	TEST_EQUAL(PairMatcher::getName(), "PairMatcher")
+CHECK(static const String getProductName())
+	TEST_EQUAL(PairMatcher::getProductName(), "PairMatcher")
+	TEST_EQUAL(PairMatcher(features).getName(), "PairMatcher")
 RESULT
 
 CHECK((~PairMatcher()))
@@ -89,13 +90,16 @@ CHECK((~PairMatcher()))
 RESULT
 
 CHECK((PairMatcher& operator = (const PairMatcher& source)))
+	Param p;	
+	p.setValue("rt_stdev_low",0.1);
+	p.setValue("rt_stdev_high",0.2);
+	p.setValue("mz_stdev",0.3);
+	p.setValue("mz_pair_dist",5.0);
+	p.setValue("rt_pair_dist",0.4);
+  
   PairMatcher pm1(features);
-	pm1.getParam().setValue("rt_stdev_low",0.1);
-	pm1.getParam().setValue("rt_stdev_high",0.2);
-	pm1.getParam().setValue("mz_stdev",0.3);
-	pm1.getParam().setValue("mz_pair_dist",5.0);
-	pm1.getParam().setValue("rt_pair_dist",0.4);
-
+	pm1.setParameters(p);
+	
 	Features empty_features;
   PairMatcher pm2(empty_features);
   pm2 = pm1;

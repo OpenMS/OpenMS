@@ -36,30 +36,41 @@ namespace OpenMS
 
 
 		PairMatcher::PairMatcher(FeatureMapType& features)
-		: FactoryProduct(), features_(features), pairs_(), best_pairs_()
+			: FactoryProduct2("PairMatcher"), 
+				features_(features), 
+				pairs_(), 
+				best_pairs_()
 		{
-			name_ = PairMatcher::getName();
+			setName(PairMatcher::getName());
+			
 			defaults_.setValue("rt_stdev_low",0.22);
 			defaults_.setValue("rt_stdev_high",0.65);
 			defaults_.setValue("mz_stdev",0.025);
 			defaults_.setValue("mz_pair_dist",4.0);
 			defaults_.setValue("rt_pair_dist",0.3);
-			param_ = defaults_;
+			
+			defaultsToParam_();
 		}
 
-		PairMatcher::~PairMatcher(){}
+		PairMatcher::~PairMatcher()
+		{	
+		}
 
     PairMatcher& PairMatcher::operator = (const PairMatcher& source)
     {
-			FactoryProduct::operator = (source);
+			FactoryProduct2::operator = (source);
 			features_ = source.features_;
 			return *this;
 		}
 
 		PairMatcher::PairMatcher(const PairMatcher& source)
-		: FactoryProduct(source), features_(source.features_),
-			pairs_(source.pairs_), best_pairs_()
-		{}
+		: FactoryProduct2(source), 
+			features_
+			(source.features_),
+			pairs_(source.pairs_), 
+			best_pairs_()
+		{	
+		}
 
 		const PairMatcher::PairVectorType& PairMatcher::run()
 		{

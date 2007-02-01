@@ -31,7 +31,7 @@
 #include <OpenMS/KERNEL/DimensionDescription.h>
 #include <OpenMS/KERNEL/DFeatureMap.h>
 #include <OpenMS/KERNEL/KernelTraits.h>
-#include <OpenMS/CONCEPT/FactoryProduct.h>
+#include <OpenMS/CONCEPT/FactoryProduct2.h>
 #include <OpenMS/DATASTRUCTURES/QuadTree.h>
 
 #include <cmath>
@@ -60,7 +60,8 @@ namespace OpenMS
 					<td>standard deviation above optimal retention time distance</td></tr>
 			</table>
 	*/
-	class PairMatcher: public FactoryProduct
+	class PairMatcher
+		: public FactoryProduct2
 	{
 		public:
 			
@@ -125,7 +126,7 @@ namespace OpenMS
 			*/
 			static void printInfo(std::ostream& out, const PairVectorType& pairs);
 	
-			static const String getName()
+			static const String getProductName()
 	    {
 	      return "PairMatcher";
 	    }
@@ -133,7 +134,6 @@ namespace OpenMS
 		protected:
 	    /// Square root of two
 	    static const double sqrt2_;
-	
 	
 			/// features to be paired
 			FeatureMapType& features_;
@@ -145,7 +145,8 @@ namespace OpenMS
 			PairVectorType best_pairs_;
 	
 			/// Compare to pairs by comparing their qualities
-			struct Comparator{
+			struct Comparator
+			{
 				bool operator()(const PairType& a, const PairType& b)
 				{
 					return a.getQuality() > b.getQuality();
@@ -167,7 +168,8 @@ namespace OpenMS
 
 		private:
 			/// constants for accessing feature meta values
-			enum Constants{
+			enum Constants
+			{
 				ID=11,				/**<  used to assocate the feature with its index in the set */
 				LOW_QUALITY		/**< used by the greedy approximation */
 			};
