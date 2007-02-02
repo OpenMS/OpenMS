@@ -61,14 +61,14 @@ CHECK((PoseClusteringPairwiseMapMatcher& operator= (const PoseClusteringPairwise
   ElementMapType second;
   
   PoseClusteringPairwiseMapMatcher<ElementMapType> pcpmm;
-  pcpmm.setParam(param);
+  pcpmm.setParameters(param);
   pcpmm.setElementMap(0,first);
   pcpmm.setElementMap(1,second);
   
   PoseClusteringPairwiseMapMatcher<ElementMapType> pcpmm_copy;
   pcpmm_copy = pcpmm;
   
-  TEST_EQUAL(pcpmm.getParam() == pcpmm_copy.getParam(),true)
+  TEST_EQUAL(pcpmm.getParameters() == pcpmm_copy.getParameters(),true)
   TEST_EQUAL(&(pcpmm.getElementMap(0)) == &(pcpmm_copy.getElementMap(0)),true)
   TEST_EQUAL(&(pcpmm.getElementMap(1)) == &(pcpmm_copy.getElementMap(1)),true)
 RESULT
@@ -80,13 +80,13 @@ CHECK((PoseClusteringPairwiseMapMatcher(const PoseClusteringPairwiseMapMatcher& 
   ElementMapType second;
   
   PoseClusteringPairwiseMapMatcher<ElementMapType> pcpmm;
-  pcpmm.setParam(param);
+  pcpmm.setParameters(param);
   pcpmm.setElementMap(0,first);
   pcpmm.setElementMap(1,second);
   
   PoseClusteringPairwiseMapMatcher<ElementMapType> pcpmm_copy(pcpmm);
   
-  TEST_EQUAL(pcpmm.getParam() == pcpmm_copy.getParam(),true)
+  TEST_EQUAL(pcpmm.getParameters() == pcpmm_copy.getParameters(),true)
   TEST_EQUAL(&(pcpmm.getElementMap(0)) == &(pcpmm_copy.getElementMap(0)),true)
   TEST_EQUAL(&(pcpmm.getElementMap(1)) == &(pcpmm_copy.getElementMap(1)),true)
 RESULT
@@ -130,7 +130,7 @@ CHECK((void run()))
   modell.push_back(feat4);
   
   PoseClusteringPairwiseMapMatcher<ElementMapType> pcpmm;
-  pcpmm.setParam(param);
+  pcpmm.setParameters(param);
   pcpmm.setElementMap(0,modell);
   pcpmm.setElementMap(1,scene);
   pcpmm.initGridTransformation(scene);

@@ -35,9 +35,9 @@ namespace OpenMS
   template < typename MapT>
   void BasePairwiseMapMatcher<MapT>::registerChildren()
   {
-    Factory< BasePairwiseMapMatcher<PointMapType> >::registerProduct(PoseClusteringPairwiseMapMatcher<PointMapType>::getName(), &PoseClusteringPairwiseMapMatcher<PointMapType>::create);
+    Factory< BasePairwiseMapMatcher<PointMapType> >::registerProduct(PoseClusteringPairwiseMapMatcher<PointMapType>::getProductName(), &PoseClusteringPairwiseMapMatcher<PointMapType>::create);
   }
 
 } // namespace OpenMS
 
-#endif  // OPENMS_ANALYSIS_MAPMATCHING_BasePairFinder_H
+#endif  // OPENMS_ANALYSIS_MAPMATCHING_BASEPAIRWISEMAPMATCHER_H

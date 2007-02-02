@@ -39,18 +39,33 @@ typedef DFeatureMap<2, ElementType> ElementMapType;
 typedef DFeaturePair < 2, ElementType > ElementPairType;
 typedef DFeaturePairVector < 2, ElementType > ElementPairVectorType;
 
-class TestPairFinder : public BasePairFinder<ElementMapType>
+class TestPairFinder 
+	: public BasePairFinder<ElementMapType>
 {
   public:
-	TestPairFinder() : BasePairFinder<ElementMapType>(){ check_defaults_ = false; }
-	TestPairFinder(const TestPairFinder& bpf) : BasePairFinder<ElementMapType>(bpf){}
+	TestPairFinder() 
+		: BasePairFinder<ElementMapType>()
+	{
+		check_defaults_ = false; 
+	}
+	
+	TestPairFinder(const TestPairFinder& bpf) 
+	: BasePairFinder<ElementMapType>(bpf)
+	{	
+	}
+	
 	TestPairFinder& operator=(const TestPairFinder& bpf)
 	{
-		 BasePairFinder<ElementMapType>::operator=(bpf);
-		 return *this;
+		if (&bpf==this) return *this;
+		
+		BasePairFinder<ElementMapType>::operator=(bpf);
+		
+		return *this;
 	}
+	
 	virtual void findElementPairs() 
 	{
+		
 	}
 
 };
@@ -78,7 +93,7 @@ CHECK((BasePairFinder& operator = (const BasePairFinder& source)))
   ElementPairVectorType pairs;
   
   TestPairFinder bpf;
-  bpf.setParam(param);
+  bpf.setParameters(param);
   bpf.setElementMap(0,first);
   bpf.setElementMap(1,second);
   bpf.setElementPairs(pairs);
@@ -86,7 +101,7 @@ CHECK((BasePairFinder& operator = (const BasePairFinder& source)))
   TestPairFinder bpf_copy;
   bpf_copy = bpf;
   
-  TEST_EQUAL(bpf.getParam() == bpf_copy.getParam(),true)
+  TEST_EQUAL(bpf.getParameters() == bpf_copy.getParameters(),true)
   TEST_EQUAL(&(bpf.getElementMap(0)) == &(bpf_copy.getElementMap(0)),true)
   TEST_EQUAL(&(bpf.getElementMap(1)) == &(bpf_copy.getElementMap(1)),true)
 	TEST_EQUAL(&(bpf.getElementPairs()) == &(bpf_copy.getElementPairs()),true)
@@ -100,14 +115,14 @@ CHECK((BasePairFinder(const BasePairFinder& source)))
   ElementPairVectorType pairs;
   
   TestPairFinder bpf;
-  bpf.setParam(param);
+  bpf.setParameters(param);
   bpf.setElementMap(0,first);
   bpf.setElementMap(1,second);
   bpf.setElementPairs(pairs);
   
   TestPairFinder bpf_copy(bpf);
   
-  TEST_EQUAL(bpf.getParam() == bpf_copy.getParam(),true)
+  TEST_EQUAL(bpf.getParameters() == bpf_copy.getParameters(),true)
   TEST_EQUAL(&(bpf.getElementMap(0)) == &(bpf_copy.getElementMap(0)),true)
   TEST_EQUAL(&(bpf.getElementMap(1)) == &(bpf_copy.getElementMap(1)),true)
 	TEST_EQUAL(&(bpf.getElementPairs()) == &(bpf_copy.getElementPairs()),true)
@@ -122,14 +137,14 @@ CHECK((const ElementPairVectorType& getElementPairs() const))
   TEST_EQUAL(&(bpf_copy.getElementPairs()) == &pairs,true)
 RESULT
 
-CHECK((const Param& getParam() const))
+CHECK((const Param& getParameters() const))
   Param param;
   param.setValue("bla",3);
   TestPairFinder bpf;
-  bpf.setParam(param);
+  bpf.setParameters(param);
   const TestPairFinder bpf_copy(bpf);
  
-  TEST_EQUAL(bpf_copy.getParam() == param,true)
+  TEST_EQUAL(bpf_copy.getParameters() == param,true)
 RESULT
 
 CHECK((const PointMapType& getElementMap(Size index) const))
@@ -163,14 +178,14 @@ CHECK((void setElementPairs(ElementPairVectorType& element_pairs)))
   TEST_EQUAL(&(bpf_copy.getElementPairs()) == &pairs,true)
 RESULT
 
-CHECK((void setParam(const Param& param)))
+CHECK((void setParameters(const Param& param)))
   Param param;
   TestPairFinder bpf;
   param.setValue("bla",3);
-  bpf.setParam(param);
+  bpf.setParameters(param);
   const TestPairFinder bpf_copy(bpf);
  
-  TEST_EQUAL(bpf_copy.getParam() == param,true)
+  TEST_EQUAL(bpf_copy.getParameters() == param,true)
 RESULT
 
 CHECK((void setTransformation(Size dim, const TransformationType& trafo)))

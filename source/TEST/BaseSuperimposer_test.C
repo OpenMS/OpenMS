@@ -40,8 +40,16 @@ typedef DFeatureMap<2, ElementType> ElementMapType;
 class TestSuperimposer : public BaseSuperimposer<ElementMapType>
 {
   public:
-	TestSuperimposer() : BaseSuperimposer<ElementMapType>(){ check_defaults_ = false; }
-	TestSuperimposer(const TestSuperimposer& bpf) : BaseSuperimposer<ElementMapType>(bpf){}
+	TestSuperimposer() 
+		: BaseSuperimposer<ElementMapType>()
+	{ 
+		check_defaults_ = false; 
+	}
+	TestSuperimposer(const TestSuperimposer& bpf) 
+		: BaseSuperimposer<ElementMapType>(bpf)
+	{
+	}
+	
 	TestSuperimposer& operator=(const TestSuperimposer& bpf)
 	{
 		 BaseSuperimposer<ElementMapType>::operator=(bpf);
@@ -75,7 +83,7 @@ CHECK(BaseSuperimposer& operator = (BaseSuperimposer source))
   TransformationType trafo(1.,2.);
  
   TestSuperimposer bsi;
-  bsi.setParam(param);
+  bsi.setParameters(param);
   bsi.setElementMap(0,first);
   bsi.setElementMap(1,second);
   bsi.setTransformation(0,trafo);
@@ -83,7 +91,7 @@ CHECK(BaseSuperimposer& operator = (BaseSuperimposer source))
   TestSuperimposer bsi_copy;
   bsi_copy = bsi;
   
-  TEST_EQUAL(bsi.getParam() == bsi_copy.getParam(),true)
+  TEST_EQUAL(bsi.getParameters() == bsi_copy.getParameters(),true)
   TEST_EQUAL(&(bsi.getElementMap(0)) == &(bsi_copy.getElementMap(0)),true)
   TEST_EQUAL(&(bsi.getElementMap(1)) == &(bsi_copy.getElementMap(1)),true)
   TEST_REAL_EQUAL((bsi.getTransformation(0)).getSlope(),trafo.getSlope())
@@ -98,27 +106,27 @@ CHECK(BaseSuperimposer(const BaseSuperimposer& source))
   TransformationType trafo(1.,2.);
  
   TestSuperimposer bsi;
-  bsi.setParam(param);
+  bsi.setParameters(param);
   bsi.setElementMap(0,first);
   bsi.setElementMap(1,second);
   bsi.setTransformation(0,trafo);
   
   TestSuperimposer bsi_copy(bsi);
   
-  TEST_EQUAL(bsi.getParam() == bsi_copy.getParam(),true)
+  TEST_EQUAL(bsi.getParameters() == bsi_copy.getParameters(),true)
   TEST_EQUAL(&(bsi.getElementMap(0)) == &(bsi_copy.getElementMap(0)),true)
   TEST_EQUAL(&(bsi.getElementMap(1)) == &(bsi_copy.getElementMap(1)),true)
   TEST_REAL_EQUAL((bsi.getTransformation(0)).getSlope(),trafo.getSlope())
   TEST_REAL_EQUAL((bsi.getTransformation(0)).getIntercept(),trafo.getIntercept())
 RESULT
 
-CHECK(const Param& getParam() const)
+CHECK(const Param& getParameters() const)
   Param param;
   param.setValue("bla",3);
   TestSuperimposer bsi;
-  bsi.setParam(param);
+  bsi.setParameters(param);
   const TestSuperimposer bsi_copy(bsi);
-  TEST_EQUAL(bsi_copy.getParam() == param,true)
+  TEST_EQUAL(bsi_copy.getParameters() == param,true)
 RESULT
 
 CHECK(const PointMapType& getElementMap(Size index))
@@ -154,13 +162,13 @@ CHECK((void setElementMap(Size const index, const PointMapType& Element_map)))
   TEST_EQUAL(&(bsi.getElementMap(0)) == &map,true)
 RESULT
 
-CHECK(void setParam(const Param& param))
+CHECK(void setParameters(const Param& param))
   Param param;
   TestSuperimposer bsi;
   param.setValue("bla",3);
-  bsi.setParam(param);
+  bsi.setParameters(param);
   const TestSuperimposer bsi_copy(bsi);
-  TEST_EQUAL(bsi_copy.getParam() == param,true)
+  TEST_EQUAL(bsi_copy.getParameters() == param,true)
 RESULT
 
 CHECK((void setTransformation(Size dim, const TransformationType& trafo)))

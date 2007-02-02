@@ -25,7 +25,7 @@
 // --------------------------------------------------------------------------
 
 /**
-	@mainpage OpenMS
+	@mainpage OpenMS class documentation
 	
 	@section OpenMS_section OpenMS is a free platform for the analysis of HPLC/MS data.
 	
@@ -39,8 +39,12 @@
 	
 	@section TOPP_section TOPP - The OpenMS proteomics pipeline.
 	
+	 TOPP is a pipeline for the analysis of HPLC/MS data. It consists of several small applications that
+  can be chained to create analysis pipelines tailored for a specific problem.
+	
 	Documentation of the TOPP tools can be found \subpage TOPP "here".
-
+	
+	
 	@author Andreas Bertsch
 	@author Clemens Gr&ouml;pl
 	@author Oliver Kohlbacher

@@ -135,7 +135,7 @@ class TOPPUnlabeledMatcher
 			Param param_alg = getParam_().copy("algorithm:",true);
 			writeDebug_("Parameters passed to PoseClusteringMapMatcher", param_alg,3);
 
-      poseclust_feature_matcher.setParam(param_alg);
+      poseclust_feature_matcher.setParameters(param_alg);
 
       for ( Size index = 0; index < 2; ++index )
       {

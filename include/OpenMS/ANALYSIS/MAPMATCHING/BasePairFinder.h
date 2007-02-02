@@ -34,7 +34,7 @@
 #include <OpenMS/ANALYSIS/MAPMATCHING/DLinearMapping.h>
 #include <OpenMS/KERNEL/DFeatureMap.h>
 #include <OpenMS/KERNEL/DimensionDescription.h>
-#include <OpenMS/CONCEPT/FactoryProduct.h>
+#include <OpenMS/CONCEPT/FactoryProduct2.h>
 
 #include <utility>
 #include <fstream>
@@ -59,7 +59,8 @@ namespace OpenMS
 
   */
   template < typename MapT = DFeatureMap< 2, DFeature< 2, KernelTraits > > >
-  class BasePairFinder : public FactoryProduct
+  class BasePairFinder 
+  	: public FactoryProduct2
   {
   public:
     /// Defines the coordinates of elements.
@@ -107,7 +108,7 @@ namespace OpenMS
 
     /// Constructor
     BasePairFinder()
-        : FactoryProduct(),
+        : FactoryProduct2("BasePairFinder"),
         element_pairs_(0)
     {
       element_map_[MODEL] = 0;
@@ -116,12 +117,11 @@ namespace OpenMS
       transformation_[RT].setIntercept(0);
       transformation_[MZ].setSlope(1);
       transformation_[MZ].setIntercept(0);
-      FactoryProduct::name_ = "simple";
     }
 
     /// Copy constructor
     BasePairFinder(const BasePairFinder& source)
-        : FactoryProduct(source),
+        : FactoryProduct2(source),
         element_pairs_(source.element_pairs_)
     {
       element_map_[MODEL] = source.element_map_[MODEL];
@@ -133,26 +133,23 @@ namespace OpenMS
     ///  Assignment operator
     BasePairFinder& operator = (const BasePairFinder& source)
     {
-      if (&source==this)
-        return *this;
+      if (&source==this) return *this;
 
-      FactoryProduct::operator = (source);
+      FactoryProduct2::operator = (source);
+      
       element_map_[MODEL] = source.element_map_[MODEL];
       element_map_[SCENE] = source.element_map_[SCENE];
       element_pairs_ = source.element_pairs_;
       transformation_[RT] = source.transformation_[RT];
       transformation_[MZ] = source.transformation_[MZ];
+      
       return *this;
     }
 
     /// Destructor
     virtual ~BasePairFinder()
-  {}
-
-    virtual void setParam(const Param& param)
-    {
-      FactoryProduct::setParam(param);
-    }
+		{
+		}
 
     void setElementMap(Size const index, const PointMapType& element_map)
     {

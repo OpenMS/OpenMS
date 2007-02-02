@@ -45,17 +45,17 @@ namespace OpenMS
 {
 
   /**
-  @brief Superimposer that uses a voting scheme to find a good affine transformation.
+  	@brief Superimposer that uses a voting scheme to find a good affine transformation.
 
-     It works on two element maps (DFeatureMap is the default map type, 
-     but you can also use a pointer map like DPeakConstReferenceArray) and 
-     computes a affine transformation, that maps the elements of one map (scene map) 
-     as near as possible to the elements in the other map (model map).
-     A element can be a DPeak, a DFeature, a ConsensusPeak or ConsensusFeature 
-     (wheras DFeature is the default element type).
-     
-     This superimposer hashs all possible affine transformations and defines the 
-     transformation with the most votes as the best one.        
+		It works on two element maps (DFeatureMap is the default map type, 
+		but you can also use a pointer map like DPeakConstReferenceArray) and 
+		computes a affine transformation, that maps the elements of one map (scene map) 
+		as near as possible to the elements in the other map (model map).
+		A element can be a DPeak, a DFeature, a ConsensusPeak or ConsensusFeature 
+		(wheras DFeature is the default element type).
+		
+		This superimposer hashs all possible affine transformations and defines the 
+		transformation with the most votes as the best one.        
   */
   template < typename MapT = DFeatureMap<2> >
   class PoseClusteringAffineSuperimposer
@@ -95,7 +95,7 @@ namespace OpenMS
      We need this to make the intensity bounding box use the intensity type
      instead of the coordinate type.
      */
-  struct IntensityBoundingBoxTraits : Base::TraitsType
+  	struct IntensityBoundingBoxTraits : Base::TraitsType
     {
       typedef typename Base::TraitsType::IntensityType CoordinateType;
     };
@@ -116,25 +116,20 @@ namespace OpenMS
     typedef std::map< PairType, QualityType> AffineTransformationMapType;
 
     using Base::param_;
-    using Base::setParam;
+    using Base::setParameters;
+    using Base::getParameters;
+    using Base::subsections_;
+    using Base::defaultsToParam_;
     using Base::defaults_;
     using Base::element_map_;
     using Base::final_transformation_;
 
     /// Constructor
     PoseClusteringAffineSuperimposer()
-        : Base(),
-        mz_bucket_size_(1)
+        : Base()
     {
-      shift_bucket_size_[0] = 1;
-      shift_bucket_size_[1] = 0.1;
-      scaling_bucket_size_[0] = 0.5;
-      scaling_bucket_size_[1] = 0.1;
-      bucket_window_shift_[0] = 1;
-      bucket_window_shift_[1] = 1;
-      bucket_window_scaling_[0] = 1;
-      bucket_window_scaling_[1] = 1;
-
+    	setName(getProductName());
+    	
       defaults_.setValue("tuple_search:mz_bucket_size",1);
       defaults_.setValue("transformation_space:shift_bucket_size:RT",1);
       defaults_.setValue("transformation_space:shift_bucket_size:MZ",0.1);
@@ -152,26 +147,8 @@ namespace OpenMS
       defaults_.setValue("transformation_space:min_scaling:MZ",-1.5);
       defaults_.setValue("transformation_space:max_scaling:RT",3);
       defaults_.setValue("transformation_space:max_scaling:MZ",1.5);
-
-      PositionType min;
-      PositionType max;
-      min[RT] = -3;
-      min[MZ] = -1.5;
-      max[RT] = 3;
-      max[MZ] = 1.5;
-
-      scaling_bounding_box_.enlarge(min);
-      scaling_bounding_box_.enlarge(max);
-
-      min[RT] = -1000;
-      min[MZ] = -5;
-      max[RT] = 1000;
-      max[MZ] = 5;
-
-      shift_bounding_box_.enlarge(min);
-      shift_bounding_box_.enlarge(max);
-
-      setParam(Param());
+			
+			defaultsToParam_();
     }
 
     /// Copy constructor
@@ -180,49 +157,35 @@ namespace OpenMS
         model_map_red_(source.model_map_red_),
         scene_map_partners_(source.scene_map_partners_),
         rt_hash_(source.rt_hash_),
-        mz_hash_(source.mz_hash_),
-        shift_bounding_box_(source.shift_bounding_box_),
-        scaling_bounding_box_(source.scaling_bounding_box_),
-        shift_bucket_size_(source.shift_bucket_size_),
-        scaling_bucket_size_(source.scaling_bucket_size_),
-        mz_bucket_size_(source.mz_bucket_size_)
-
+        mz_hash_(source.mz_hash_)
     {
       num_buckets_shift_[0] = source.num_buckets_shift_[0];
       num_buckets_shift_[1] = source.num_buckets_shift_[1];
       num_buckets_scaling_[0] = source.num_buckets_scaling_[0];
       num_buckets_scaling_[1] = source.num_buckets_scaling_[1];
-      bucket_window_shift_[0] = source.bucket_window_shift_[0];
-      bucket_window_shift_[1] = source.bucket_window_shift_[1];
-      bucket_window_scaling_[0] = source.bucket_window_scaling_[0];
-      bucket_window_scaling_[1] = source.bucket_window_scaling_[1];
+
+			updateMembers_();
     }
 
     ///  Assignment operator
     PoseClusteringAffineSuperimposer& operator = (const PoseClusteringAffineSuperimposer& source)
     {
-      if (&source==this)
-        return *this;
+      if (&source==this) return *this;
 
       Base::operator=(source);
+
       model_map_red_ = source.model_map_red_;
       scene_map_partners_ = source.scene_map_partners_;
       rt_hash_ = source.rt_hash_;
       mz_hash_ = source.mz_hash_;
-      shift_bounding_box_ = source.shift_bounding_box_;
-      scaling_bounding_box_ = source.scaling_bounding_box_;
-      shift_bucket_size_ = source.shift_bucket_size_;
-      scaling_bucket_size_ = source.scaling_bucket_size_;
+
       num_buckets_shift_[0] = source.num_buckets_shift_[0];
       num_buckets_shift_[1] = source.num_buckets_shift_[1];
       num_buckets_scaling_[0] = source.num_buckets_scaling_[0];
       num_buckets_scaling_[1] = source.num_buckets_scaling_[1];
-      bucket_window_shift_[0] = source.bucket_window_shift_[0];
-      bucket_window_shift_[1] = source.bucket_window_shift_[1];
-      bucket_window_scaling_[0] = source.bucket_window_scaling_[0];
-      bucket_window_scaling_[1] = source.bucket_window_scaling_[1];
-      mz_bucket_size_ = source.mz_bucket_size_;
 
+			updateMembers_();
+			
       return *this;
     }
 
@@ -254,16 +217,80 @@ namespace OpenMS
     }
 
     /// Returns the name of this module
-    static const String getName()
+    static const String getProductName()
     {
       return "poseclustering_affine";
     }
 
-    /// Set parameters
-    virtual void setParam(const Param& param)
+    /// Set size of the mz tolerance of point partners
+    void setMzBucketSize(double mz_bucket_size)
     {
-      Base::setParam(param);
+      mz_bucket_size_ = mz_bucket_size;
+      param_.setValue("tuple_search:mz_bucket_size", mz_bucket_size);
+    }
 
+    /// Get size of the mz tolerance of point partners
+    double getMzBucketSize() const
+    {
+      return mz_bucket_size_;
+    }
+
+    /// Set size of shift buckets (in dimension dim)
+    void setShiftBucketSize(UnsignedInt dim, double shift_bucket_size)
+    {
+      shift_bucket_size_[dim] = shift_bucket_size;
+      param_.setValue(String("transformation_space:shift_bucket_size:") + DimensionDescriptionType::dimension_name_short[dim], shift_bucket_size);
+    }
+
+    /// Get size of shift buckets (in dimension dim)
+    double getShiftBucketSize(UnsignedInt dim) const
+    {
+      return shift_bucket_size_[dim];
+    }
+
+    /// Set size of scaling buckets (in dimension dim)
+    void setScalingBucketSize(UnsignedInt dim, double scaling_bucket_size)
+    {
+      scaling_bucket_size_[dim] = scaling_bucket_size;
+      param_.setValue(String("transformation_space:scaling_bucket_size:") + DimensionDescriptionType::dimension_name_short[dim], scaling_bucket_size);
+    }
+
+    /// Get size of scaling buckets (in dimension dim)
+    double getScalingBucketSize(UnsignedInt dim) const
+    {
+      return scaling_bucket_size_[dim];
+    }
+
+    /// Set number of neighbouring shift buckets to be considered for the calculation of the final transformation (in dimension dim)
+    void setBucketWindowShift(UnsignedInt dim, UnsignedInt bucket_window_shift)
+    {
+      bucket_window_shift_[dim] = bucket_window_shift;
+      param_.setValue(String("transformation_space:bucket_window_shift:") + DimensionDescriptionType::dimension_name_short[dim], (int)bucket_window_shift);
+    }
+
+    /// Get number of neighbouring shift buckets to be considered for the calculation of the final transformation (in dimension dim)
+    UnsignedInt getBucketWindowShift(UnsignedInt dim) const
+    {
+      return bucket_window_shift_[dim];
+    }
+
+    /// Set number of neighbouring scaling buckets to be considered for the calculation of the final transformation (in dimension dim)
+    void setBucketWindowScaling(UnsignedInt dim, UnsignedInt bucket_window_scaling)
+    {
+      bucket_window_scaling_[dim] = bucket_window_scaling;
+      param_.setValue(String("transformation_space:bucket_window_scaling:") + DimensionDescriptionType::dimension_name_short[dim], (int)bucket_window_scaling);
+    }
+
+    /// Get number of neighbouring scaling buckets to be considered for the calculation of the final transformation (in dimension dim)
+    UnsignedInt getBucketWindowScaling(UnsignedInt dim) const
+    {
+      return bucket_window_scaling_[dim];
+    }
+
+
+  protected:
+  	virtual void updateMembers_()
+  	{
  			mz_bucket_size_ = (CoordinateType)param_.getValue("tuple_search:mz_bucket_size");
       shift_bucket_size_[0] = (CoordinateType)param_.getValue("transformation_space:shift_bucket_size:RT");
       shift_bucket_size_[1] = (CoordinateType)param_.getValue("transformation_space:shift_bucket_size:MZ");
@@ -291,84 +318,8 @@ namespace OpenMS
 
       shift_bounding_box_.enlarge(min);
       shift_bounding_box_.enlarge(max);
-    }
-
-    /// Set size of the mz tolerance of point partners
-    void setMzBucketSize(double mz_bucket_size)
-    {
-      mz_bucket_size_ = mz_bucket_size;
-      String param_name = "tuple_search:mz_bucket_size";
-      param_.setValue(param_name, mz_bucket_size);
-    }
-
-    /// Get size of the mz tolerance of point partners
-    double getMzBucketSize() const
-    {
-      return mz_bucket_size_;
-    }
-
-    /// Set size of shift buckets (in dimension dim)
-    void setShiftBucketSize(UnsignedInt dim, double shift_bucket_size)
-    {
-      shift_bucket_size_[dim] = shift_bucket_size;
-      String param_name_prefix = "transformation_space:shift_bucket_size:";
-      String param_name = param_name_prefix + DimensionDescriptionType::dimension_name_short[dim];
-      param_.setValue(param_name, shift_bucket_size);
-    }
-
-    /// Get size of shift buckets (in dimension dim)
-    double getShiftBucketSize(UnsignedInt dim) const
-    {
-      return shift_bucket_size_[dim];
-    }
-
-    /// Set size of scaling buckets (in dimension dim)
-    void setScalingBucketSize(UnsignedInt dim, double scaling_bucket_size)
-    {
-      scaling_bucket_size_[dim] = scaling_bucket_size;
-      String param_name_prefix = "transformation_space:scaling_bucket_size:";
-      String param_name = param_name_prefix + DimensionDescriptionType::dimension_name_short[dim];
-      param_.setValue(param_name, scaling_bucket_size);
-    }
-
-    /// Get size of scaling buckets (in dimension dim)
-    double getScalingBucketSize(UnsignedInt dim) const
-    {
-      return scaling_bucket_size_[dim];
-    }
-
-    /// Set number of neighbouring shift buckets to be considered for the calculation of the final transformation (in dimension dim)
-    void setBucketWindowShift(UnsignedInt dim, UnsignedInt bucket_window_shift)
-    {
-      bucket_window_shift_[dim] = bucket_window_shift;
-      String param_name_prefix = "transformation_space:bucket_window_shift:";
-      String param_name = param_name_prefix + DimensionDescriptionType::dimension_name_short[dim];
-      param_.setValue(param_name, (int)bucket_window_shift);
-    }
-
-    /// Get number of neighbouring shift buckets to be considered for the calculation of the final transformation (in dimension dim)
-    UnsignedInt getBucketWindowShift(UnsignedInt dim) const
-    {
-      return bucket_window_shift_[dim];
-    }
-
-    /// Set number of neighbouring scaling buckets to be considered for the calculation of the final transformation (in dimension dim)
-    void setBucketWindowScaling(UnsignedInt dim, UnsignedInt bucket_window_scaling)
-    {
-      bucket_window_scaling_[dim] = bucket_window_scaling;
-      String param_name_prefix = "transformation_space:bucket_window_scaling:";
-      String param_name = param_name_prefix + DimensionDescriptionType::dimension_name_short[dim];
-      param_.setValue(param_name, (int)bucket_window_scaling);
-    }
-
-    /// Get number of neighbouring scaling buckets to be considered for the calculation of the final transformation (in dimension dim)
-    UnsignedInt getBucketWindowScaling(UnsignedInt dim) const
-    {
-      return bucket_window_scaling_[dim];
-    }
-
-
-  protected:
+  	}
+  	
     /// To speed up the calculation of the final transformation, we confine the number of
     /// considered point pairs. We match a point p in the model map only onto those points p'
     /// in the scene map that lie in a certain mz intervall.

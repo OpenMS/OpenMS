@@ -35,12 +35,12 @@ namespace OpenMS
   template < typename MapT>
   void BaseSuperimposer<MapT>::registerChildren()
   {
-    Factory< BaseSuperimposer<PointMapType> >::registerProduct(PoseClusteringShiftSuperimposer<PointMapType>::getName(), &PoseClusteringShiftSuperimposer<PointMapType>::create);
+    Factory< BaseSuperimposer<PointMapType> >::registerProduct(PoseClusteringShiftSuperimposer<PointMapType>::getProductName(), &PoseClusteringShiftSuperimposer<PointMapType>::create);
 
-    Factory< BaseSuperimposer<PointMapType> >::registerProduct(PoseClusteringAffineSuperimposer<PointMapType>::getName(),        &PoseClusteringAffineSuperimposer<PointMapType>::create);
+    Factory< BaseSuperimposer<PointMapType> >::registerProduct(PoseClusteringAffineSuperimposer<PointMapType>::getProductName(), &PoseClusteringAffineSuperimposer<PointMapType>::create);
 
   }
 
 } // namespace OpenMS
 
-#endif  // OPENMS_ANALYSIS_MAPMATCHING_BasePairFinder_H
+#endif  // OPENMS_ANALYSIS_MAPMATCHING_BASESUPERIMPOSER_REGISTERCHILDREN_H

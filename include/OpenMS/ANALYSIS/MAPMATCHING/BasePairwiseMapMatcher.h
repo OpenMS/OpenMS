@@ -33,7 +33,7 @@
 #include <OpenMS/KERNEL/DFeatureMap.h>
 #include <OpenMS/KERNEL/DimensionDescription.h>
 #include <OpenMS/DATASTRUCTURES/DBoundingBox.h>
-#include <OpenMS/CONCEPT/FactoryProduct.h>
+#include <OpenMS/CONCEPT/FactoryProduct2.h>
 
 #include <utility>
 #include <fstream>
@@ -42,31 +42,32 @@ namespace OpenMS
 {
 
   /**
-     @brief The base class of all pairwise point matching algorithms.
-
-     This class defines the basic interface for all point matching
-     algorithms.  
-     It works on two point maps and computes a vector of corresponding points
-     in both maps (given by a point pairs vector). 
-     A point can be a DPeak, a DFeature, a ConsensusPeak or ConsensusFeature 
-     (wheras DFeature is the default element type).
-     
-     The point pairs created by the algorithm solve a
-     (bipartite) matching problem between two point maps.
-     Therefore first a transformation is estimated, that maps the one map 
-     (the so called scene map) onto the other map (the so called model map).
-     Given the transformation correspoinding elements in the two maps are determined.
-     
-     @note If a piecewise transformation is assumed, the user can define a grid by setting 
-     the number of buckets in the RT as well as the MZ dimension. 
-     Call initGridTransformation() before run()!
-
-   @todo Avoid the "0.01 hack" in initGridTransformation(). (Eva)
-     
-     @ingroup Analysis
+		@brief The base class of all pairwise point matching algorithms.
+		
+		This class defines the basic interface for all point matching
+		algorithms.  
+		It works on two point maps and computes a vector of corresponding points
+		in both maps (given by a point pairs vector). 
+		A point can be a DPeak, a DFeature, a ConsensusPeak or ConsensusFeature 
+		(wheras DFeature is the default element type).
+		
+		The point pairs created by the algorithm solve a
+		(bipartite) matching problem between two point maps.
+		Therefore first a transformation is estimated, that maps the one map 
+		(the so called scene map) onto the other map (the so called model map).
+		Given the transformation correspoinding elements in the two maps are determined.
+		
+		@note If a piecewise transformation is assumed, the user can define a grid by setting 
+		the number of buckets in the RT as well as the MZ dimension. 
+		Call initGridTransformation() before run()!
+		
+		@todo Avoid the "0.01 hack" in initGridTransformation(). (Eva)
+		
+		@ingroup Analysis
   */
   template < typename MapT = DFeatureMap< 2, DFeature< 2, KernelTraits > > >
-  class BasePairwiseMapMatcher : public FactoryProduct
+  class BasePairwiseMapMatcher 
+  	: public FactoryProduct2
   {
   public:
     typedef DimensionDescription<LCMS_Tag> DimensionDescriptionType;
@@ -108,69 +109,54 @@ namespace OpenMS
 
     /// Constructor
     BasePairwiseMapMatcher()
-        : FactoryProduct()
+        : FactoryProduct2("BasePairWiseMapMatcher")
     {
       element_map_[0] = 0;
       element_map_[1] = 0;
-      number_buckets_[0] = 1;
-      number_buckets_[1] = 1;
-      FactoryProduct::name_ = "poseclustering_pairwise";
-      FactoryProduct::check_defaults_ = false;
+      defaults_.setValue("number_buckets:RT",1);
+      defaults_.setValue("number_buckets:MZ",1);
+      
+			// no need to call defaultsToParam_() as it is called in the non-abstract children 
     }
 
     /// Copy constructor
     BasePairwiseMapMatcher(const BasePairwiseMapMatcher& source)
-        : FactoryProduct(source),
+        : FactoryProduct2(source),
         all_element_pairs_(source.all_element_pairs_),
         bounding_box_scene_map_(source.bounding_box_scene_map_),
         box_size_(source.box_size_)
     {
       element_map_[0] = source.element_map_[0];
       element_map_[1] = source.element_map_[1];
-      number_buckets_[0] = source.number_buckets_[0];
-      number_buckets_[1] = source.number_buckets_[1];
       grid_ = source.grid_;
+    	
+    	// no need to call defaultsToParam_() as it is called in the non-abstract children 
     }
 
     ///  Assignment operator
     BasePairwiseMapMatcher& operator = (const BasePairwiseMapMatcher& source)
     {
-      if (&source==this)
-        return *this;
+      if (&source==this) return *this;
 
-      FactoryProduct::operator = (source);
+      FactoryProduct2::operator = (source);
+      	
       element_map_[0] = source.element_map_[0];
       element_map_[1] = source.element_map_[1];
       all_element_pairs_ = source.all_element_pairs_;
       grid_ = source.grid_;
       bounding_box_scene_map_ = source.bounding_box_scene_map_;
       box_size_ = source.box_size_;
-      number_buckets_[0] = source.number_buckets_[0];
-      number_buckets_[1] = source.number_buckets_[1];
+      
+      // no need to call defaultsToParam_() as it is called in the non-abstract children 
+      
       return *this;
     }
 
     /// Destructor
     virtual ~BasePairwiseMapMatcher()
-  {}
-
-    /// Set parameters
-    virtual void setParam(const Param& param)
-    {
-      FactoryProduct::setParam(param);
-
-      DataValue data_value = param_.getValue("number_buckets:RT");
-      if (data_value != DataValue::EMPTY)
-      {
-        number_buckets_[RT] = (int)data_value;
-      }
-      data_value = param_.getValue("number_buckets:MZ");
-      if (data_value != DataValue::EMPTY)
-      {
-        number_buckets_[MZ] = (int)data_value;
-      }
-    }
-
+  	{
+  	}
+		
     /// Set element map
     void setElementMap(Size const index, const PointMapType& element_map)
     {
@@ -195,10 +181,11 @@ namespace OpenMS
       return grid_;
     }
 
-    /// Set number of buckets in dimension index
-    void setNumberBuckets(Size const index, UnsignedInt number)
+    /// Set @p number of buckets in dimension @p dim
+    void setNumberBuckets(Size dim, UnsignedInt number)
     {
-      number_buckets_[index] = number;
+      number_buckets_[dim] = number;
+			param_.setValue(String("number_buckets:") + DimensionDescriptionType::dimension_name_short[dim], (SignedInt)number);
     }
 
     /// Get number of buckets in dimension index
@@ -260,6 +247,14 @@ namespace OpenMS
     //  int dumpElementPairs(const String& filename); // code is below
 
   protected:
+  	virtual void updateMembers_()
+  	{
+      for ( Size dim = 0; dim < 2; ++dim)
+      {
+				number_buckets_[dim] = param_.getValue(String("number_buckets:") + DimensionDescriptionType::dimension_name_short[dim]);
+      }
+  	}
+  	
     /// Two maps of elements to be matched
     PointMapType const * element_map_[2];
 
@@ -277,24 +272,6 @@ namespace OpenMS
 
     /// Number of buckets in each dimension
     UnsignedInt number_buckets_[2];
-
-    /// Parses the parameters, assigns their values to instance members.
-    void parseParam_()
-    {
-      /// Check the user defined size of the grid cells
-      std::string param_name_prefix = "number_buckets:";
-      PositionType number_buckets;
-      for ( Size dimension = 0; dimension < 2; ++dimension)
-      {
-        std::string param_name =
-          param_name_prefix + DimensionDescriptionType::dimension_name_short[dimension];
-        DataValue data_value = param_.getValue(param_name);
-        if ( data_value != DataValue::EMPTY )
-        {
-          number_buckets_[dimension] = data_value;
-        }
-      }
-    } // parseParam_
   }
   ; // BasePairwiseMapMatcher
 

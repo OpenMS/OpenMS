@@ -66,7 +66,8 @@ namespace OpenMS
      @ingroup MatchingAlgorithm
   */
   template < typename MapT = DFeatureMap< 2, DFeature< 2, KernelTraits > > >
-  class PoseClusteringPairwiseMapMatcher : public BasePairwiseMapMatcher<MapT>
+  class PoseClusteringPairwiseMapMatcher 
+  	: public BasePairwiseMapMatcher<MapT>
   {
   public:
     typedef DimensionDescription<LCMS_Tag> DimensionDescriptionType;
@@ -100,7 +101,7 @@ namespace OpenMS
 
     using Base::param_;
     using Base::defaults_;
-    using Base::getParam;
+    using Base::subsections_;
     using Base::element_map_;
     using Base::grid_;
     using Base::all_element_pairs_;
@@ -111,35 +112,44 @@ namespace OpenMS
 
     /// Constructor
     PoseClusteringPairwiseMapMatcher()
-        : Base()
+        : Base(),
+        	superimposer_(0),
+        	pair_finder_(0)
     {
-      pair_finder_ = 0;
-      superimposer_ = 0;
-
+    	setName(getProductName());
+    	
       defaults_.setValue("pairfinder:type", "simple");
-
-      setParam(Param());
+			defaults_.setValue("superimposer:type", "none");
+			subsections_.push_back("debug");
+			subsections_.push_back("pairfinder");
+			subsections_.push_back("superimposer");
+			
+			Base::defaultsToParam_();
     }
 
     /// Copy constructor
     PoseClusteringPairwiseMapMatcher(const PoseClusteringPairwiseMapMatcher& source)
         : Base(source)
-    {}
+    {
+    	updateMembers_();	
+    }
 
     ///  Assignment operator
     PoseClusteringPairwiseMapMatcher& operator= (const PoseClusteringPairwiseMapMatcher& source)
     {
-      if (&source==this)
-        return *this;
+      if (&source==this) return *this;
 
       Base::operator = (source);
-
+			
+			updateMembers_();	
+			
       return *this;
     }
 
     /// Destructor
     virtual ~PoseClusteringPairwiseMapMatcher()
-  {}
+  	{
+  	}
 
     /// Returns an instance of this class
     static BasePairwiseMapMatcher<MapT>* create()
@@ -148,39 +158,14 @@ namespace OpenMS
     }
 
     /// Returns the name of this module
-    static const String getName()
+    static const String getProductName()
     {
       return "poseclustering_pairwise";
-    }
-
-    virtual void setParam(const Param& param)
-    {
-      Base::setParam(param);
-
-      if (defaults_.getValue("pairfinder:type") == DataValue::EMPTY)
-      {
-        std::cout << "Warning: Unknown parameter 'pair_finder' found!" << std::endl;
-      }
     }
 
     /// Estimates the transformation for each grid cell and searches for element pairs.
     virtual void run()
     {
-      DataValue data_value = getParam().getValue("pairfinder:type");
-      pair_finder_ = Factory<BasePairFinder<PeakConstReferenceMapType> >::create(data_value);
-      Param param_copy = getParam().copy("pairfinder:",true);
-      param_copy.remove("type");
-      pair_finder_->setParam(param_copy);
-      
-      data_value = getParam().getValue("superimposer:type");
-      if (data_value != DataValue::EMPTY)
-      {
-        superimposer_ = Factory<BaseSuperimposer<PeakConstReferenceMapType> >::create(data_value);
-        Param param_copy = getParam().copy("superimposer:",true);	
-        param_copy.remove("type");
-        superimposer_->setParam(param_copy);
-      }
-
       // compute the bounding boxes of the grid cells and initialize the grid transformation
       if (grid_.size() == 0)
       {
@@ -208,6 +193,58 @@ namespace OpenMS
     }
 
   protected:
+   virtual void updateMembers_()
+    {
+      Base::updateMembers_();
+			
+			//create pairfinder if it does not exist or if it changed
+			if (pair_finder_==0 || pair_finder_->getName()!=param_.getValue("pairfinder:type"))
+			{
+				delete pair_finder_;
+      	pair_finder_ = Factory<BasePairFinder<PeakConstReferenceMapType> >::create(param_.getValue("pairfinder:type"));
+      }
+      //update pairfinder parameters if necessary
+      Param param_copy = param_.copy("pairfinder:",true);
+      param_copy.remove("type");
+      if (!(pair_finder_->getParameters()==param_copy))
+      {
+      	pair_finder_->setParameters(param_copy);
+     	}
+     	 
+      //update superimposer
+      String type = param_.getValue("superimposer:type");
+      if (superimposer_==0)
+      {
+      	if (type != "none")
+      	{
+      		delete superimposer_;
+        	superimposer_ = Factory<BaseSuperimposer<PeakConstReferenceMapType> >::create(type);
+      	}
+      }
+      else
+      {
+      	if (type == "none")
+      	{
+      		delete superimposer_;
+      	}
+      	else if (superimposer_->getName()!=type)
+      	{
+      		delete superimposer_;
+        	superimposer_ = Factory<BaseSuperimposer<PeakConstReferenceMapType> >::create(type);
+      	}
+      }
+      //update superimposer parameters if necessary
+      if (superimposer_!=0)
+      {
+      	Param param_copy = param_.copy("superimposer:",true);	
+      	param_copy.remove("type");
+	      if (!(superimposer_->getParameters()==param_copy))
+	      {
+	      	superimposer_->setParameters(param_copy);
+	     	}
+	  	}
+    }
+    
     /// This class computes the shift for the best mapping of one element map to another
     BaseSuperimposer<PeakConstReferenceMapType>* superimposer_;
     /// Given the shift, the pair_finder_ searches for corresponding elements in the two maps
@@ -226,15 +263,14 @@ namespace OpenMS
         superimposer_->setElementMap(MODEL, model_map);
       }
 
-      String shift_buckets_file = getParam().getValue("debug:shift_buckets_file");
-      String element_buckets_file = getParam().getValue("debug:feature_buckets_file");
+      String shift_buckets_file = param_.getValue("debug:shift_buckets_file");
+      String element_buckets_file = param_.getValue("debug:feature_buckets_file");
 
       // iterate over all grid cells of the scene map
       for (Size i = 0; i < scene_grid_maps.size(); ++i)
       {
         if (scene_grid_maps[i].size() > 0)
         {
-          String algorithm = getParam().getValue("superimposer:type");
           if ( superimposer_ != 0 )
           {
             V_computeMatching_("PoseClusteringPairwiseMapMatcher:  superimposer \"pose_clustering\", start superimposer");

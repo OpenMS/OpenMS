@@ -28,5 +28,5 @@
 
 namespace OpenMS
 {
-		
+	StarAlignment<> default_staralignment;
 } 

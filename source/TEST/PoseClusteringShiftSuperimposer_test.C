@@ -146,8 +146,12 @@ CHECK(PoseClusteringShiftSuperimposer(const PoseClusteringShiftSuperimposer& sou
   pcsi.setElementBucketWindow(1,4);
   pcsi.setShiftBucketWindow(0,4);
   pcsi.setShiftBucketWindow(1,5);
-    
+  
+  cout << pcsi.getParameters() << endl;
+  
   PoseClusteringShiftSuperimposer<FeatureMap> pcsi_copy(pcsi);
+  
+   cout << pcsi_copy.getParameters() << endl;
     
   TEST_REAL_EQUAL(pcsi_copy.getShiftBucketSize(0),1.9)
   TEST_REAL_EQUAL(pcsi_copy.getShiftBucketSize(1),2.9)
@@ -165,10 +169,14 @@ CHECK(PoseClusteringAffineSuperimposer& operator = (const PoseClusteringAffineSu
   pcsi.setElementBucketWindow(1,4);
   pcsi.setShiftBucketWindow(0,4);
   pcsi.setShiftBucketWindow(1,5);
-    
+
+  cout << pcsi.getParameters() << endl;
+  
   PoseClusteringShiftSuperimposer<FeatureMap> pcsi_copy;
   pcsi_copy = pcsi;
-    
+  
+  cout << pcsi_copy.getParameters() << endl;
+  
   TEST_REAL_EQUAL(pcsi_copy.getShiftBucketSize(0),1.9)
   TEST_REAL_EQUAL(pcsi_copy.getShiftBucketSize(1),2.9)
   TEST_REAL_EQUAL(pcsi_copy.getElementBucketWindow(0),3)

@@ -54,7 +54,8 @@ namespace OpenMS
      maintained as pointer and taken shallow copy. 
   */
   template <typename MapT = DFeatureMap<2> >
-  class BaseSuperimposer : public FactoryProduct
+  class BaseSuperimposer 
+  	: public FactoryProduct2
   {
   public:
     /// Defines the coordinates of elements.
@@ -96,17 +97,16 @@ namespace OpenMS
 
     /// Constructor
     BaseSuperimposer()
-        : FactoryProduct(),
+        : FactoryProduct2("BaseSuperimposer"),
           final_transformation_()
     {
       element_map_[MODEL] = 0;
       element_map_[SCENE] = 0;
-      FactoryProduct::name_ = "poseclustering_shift";
     }
 
     /// Copy constructor
     BaseSuperimposer(const BaseSuperimposer& source)
-        : FactoryProduct(source)
+        : FactoryProduct2(source)
     {
       element_map_[MODEL] = source.element_map_[MODEL];
       element_map_[SCENE] = source.element_map_[SCENE];
@@ -117,25 +117,22 @@ namespace OpenMS
     /// Assignment operator
     virtual BaseSuperimposer& operator = (const BaseSuperimposer& source)
     {
-      if (&source==this)
-        return *this;
+      if (&source==this) return *this;
         
-      FactoryProduct::operator=(source);
+      FactoryProduct2::operator=(source);
+      	
       element_map_[MODEL] = source.element_map_[MODEL];
       element_map_[SCENE] = source.element_map_[SCENE];
       final_transformation_[RT] = source.final_transformation_[RT];
       final_transformation_[MZ] = source.final_transformation_[MZ];
+      
       return *this;
     }
 
     /// Destructor
     virtual ~BaseSuperimposer()
-  {}
-
-    virtual void setParam(const Param& param)
-    {
-      FactoryProduct::setParam(param);
-    }
+  	{
+  	}
 
     /// Set element map
     void setElementMap(Size const index, const PointMapType& element_map)

@@ -87,28 +87,24 @@ namespace OpenMS
 
     using Base::param_;
     using Base::defaults_;
-    using Base::setParam;
+    using Base::setName;
     using Base::element_map_;
     using Base::element_pairs_;
     using Base::transformation_;
 
     /// Constructor
     SimplePairFinder()
-        : Base(),
-        pair_min_quality_(0.01)
+        : Base()
     {
-      diff_intercept_[RT] = 1;
-      diff_intercept_[MZ] = 0.1;
-      diff_exponent_[RT] = 2;
-      diff_exponent_[MZ] = 1;
-      
+    	setName(getProductName());
+    	   
       defaults_.setValue("similarity:diff_intercept:RT",1);
       defaults_.setValue("similarity:diff_intercept:MZ",0.1);
       defaults_.setValue("similarity:diff_exponent:RT",2);
       defaults_.setValue("similarity:diff_exponent:MZ",1);
       defaults_.setValue("similarity:pair_min_quality",0.01);  
       
-      setParam(Param());          
+      Base::defaultsToParam_();        
     }
 
     /// Copy constructor
@@ -121,39 +117,28 @@ namespace OpenMS
       diff_intercept_[MZ] = source.diff_intercept_[MZ];
       diff_exponent_[RT] = source.diff_exponent_[RT];
       diff_exponent_[MZ] = source.diff_exponent_[MZ];
+    	
+    	updateMembers_();
     }
 
     ///  Assignment operator
     virtual SimplePairFinder& operator = (SimplePairFinder source)
     {
-      if (&source==this)
-        return *this;
+      if (&source==this) return *this;
 
       Base::operator=(source);
-      diff_intercept_[RT] = source.diff_intercept_[RT];
-      diff_intercept_[MZ] = source.diff_intercept_[MZ];
-      diff_exponent_[RT] = source.diff_exponent_[RT];
-      diff_exponent_[MZ] = source.diff_exponent_[MZ];
-      pair_min_quality_ = source.pair_min_quality_;
+
       transformed_positions_second_map_ = source.transformed_positions_second_map_;
+      
+      updateMembers_();
+      
       return *this;
     }
 
     /// Destructor
     virtual ~SimplePairFinder()
-  {}
-  
-    /// Set parameters
-    virtual void setParam(const Param& param)
-    {
-      Base::setParam(param);
-           
-      diff_intercept_[RT] = (QualityType)param_.getValue("similarity:diff_intercept:RT");
-      diff_intercept_[MZ] = (QualityType)param_.getValue("similarity:diff_intercept:MZ");
-      diff_exponent_[RT] = (QualityType)param_.getValue("similarity:diff_exponent:RT");
-      diff_exponent_[MZ] = (QualityType)param_.getValue("similarity:diff_exponent:MZ");
-      pair_min_quality_ = (QualityType)param_.getValue("similarity:pair_min_quality");
-    }
+  	{
+  	}
   
     /// returns an instance of this class
     static BasePairFinder<PointMapType>* create()
@@ -162,7 +147,7 @@ namespace OpenMS
     }
 
     /// returns the name of this module
-    static const String getName()
+    static const String getProductName()
     {
       return "simple";
     }
@@ -192,9 +177,7 @@ namespace OpenMS
     void setDiffIntercept(const UnsignedInt& dim, const double& intercept)
     {
       diff_intercept_[dim] = intercept;
-      String param_name_prefix = "similarity:diff_intercept:";
-      String param_name = param_name_prefix + DimensionDescriptionType::dimension_name_short[dim];
-      param_.setValue(param_name, intercept);
+      param_.setValue(String("similarity:diff_intercept:") + DimensionDescriptionType::dimension_name_short[dim], intercept);
     }
 
     /// Get pair min quality
@@ -207,8 +190,7 @@ namespace OpenMS
     void setPairMinQuality(const double& quality)
     {
       pair_min_quality_ = quality;
-      String param_name = "similarity:pair_min_quality";
-      param_.setValue(param_name, quality);
+      param_.setValue("similarity:pair_min_quality", quality);
     }
 
     //       template < typename ResultMapType >
@@ -334,6 +316,15 @@ namespace OpenMS
 
 
   protected:
+    virtual void updateMembers_()
+    {
+      diff_intercept_[RT] = (QualityType)param_.getValue("similarity:diff_intercept:RT");
+      diff_intercept_[MZ] = (QualityType)param_.getValue("similarity:diff_intercept:MZ");
+      diff_exponent_[RT] = (QualityType)param_.getValue("similarity:diff_exponent:RT");
+      diff_exponent_[MZ] = (QualityType)param_.getValue("similarity:diff_exponent:MZ");
+      pair_min_quality_ = (QualityType)param_.getValue("similarity:pair_min_quality");
+    }
+    
     /// A parameter for #similarity_().
     QualityType diff_exponent_[2];
 

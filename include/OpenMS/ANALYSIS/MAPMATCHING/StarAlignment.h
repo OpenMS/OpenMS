@@ -272,13 +272,13 @@ namespace OpenMS
       if (data_value != DataValue::EMPTY)
       {
         pairwise_matcher_ = Factory<BasePairwiseMapMatcher< ConsensusMapType > >::create(data_value);
-        pairwise_matcher_->setParam(param_matcher);
+        pairwise_matcher_->setParameters(param_matcher);
       }
       else
       {
         pairwise_matcher_ = Factory<BasePairwiseMapMatcher< ConsensusMapType > >::create(data_value);
         param_.setValue("matching_algorithm:type","poseclustering_pairwise");
-        pairwise_matcher_->setParam(param_matcher);
+        pairwise_matcher_->setParameters(param_matcher);
       }
       
       pairwise_matcher_->setElementMap(MODEL,cons_ref_map);
@@ -382,7 +382,7 @@ namespace OpenMS
 #endif
           // compute the consensus of the reference map and map i
           DelaunayPairFinder<ConsensusMapType, ElementContainerType> pair_finder;
-          pair_finder.setParam(param_.copy("consensus_algorithm:",true));
+          pair_finder.setParameters(param_.copy("consensus_algorithm:",true));
           pair_finder.computeConsensusMap(map,final_consensus_map_);
 
 #ifdef DEBUG_ALIGNMENT
@@ -485,13 +485,13 @@ namespace OpenMS
       if (data_value != DataValue::EMPTY)
       {
         pairwise_matcher_ = Factory<BasePairwiseMapMatcher< PeakConstReferenceMapType > >::create(data_value);
-        pairwise_matcher_->setParam(param_matcher);
+        pairwise_matcher_->setParameters(param_matcher);
       }
       else
       {
         pairwise_matcher_ = Factory<BasePairwiseMapMatcher< PeakConstReferenceMapType > >::create(data_value);
         param_.setValue("matching_algorithm:type","poseclustering_pairwise");
-        pairwise_matcher_->setParam(param_matcher);
+        pairwise_matcher_->setParameters(param_matcher);
       }
       pairwise_matcher_->setElementMap(MODEL,reference_most_intense);
 
@@ -590,7 +590,7 @@ namespace OpenMS
 #endif
           // compute the consensus of the reference map and map i
           DelaunayPairFinder<ConsensusMapType, ElementContainerType> pair_finder;
-          pair_finder.setParam(param_.copy("consensus_algorithm:",true));
+          pair_finder.setParameters(param_.copy("consensus_algorithm:",true));
           pair_finder.computeConsensusMap(map,final_consensus_map_);
 
 #ifdef DEBUG_ALIGNMENT

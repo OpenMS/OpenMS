@@ -28,5 +28,5 @@
 
 namespace OpenMS
 {
-		
+	SimplePairFinder<> default_simplepairfinder;
 } 

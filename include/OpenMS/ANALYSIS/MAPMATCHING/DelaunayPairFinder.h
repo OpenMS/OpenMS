@@ -63,7 +63,8 @@ namespace OpenMS
      E.g. given diff_intercept_RT=1 and diff_intercept_MZ=0.1 results in 1s difference in RT is similar to 0.1Th difference in MZ.
   */
   template < typename ConsensusMapT = DFeatureMap< 2, DFeature< 2, KernelTraits > >, typename ElementMapT = DFeatureMap< 2, DFeature< 2, KernelTraits > > >
-  class DelaunayPairFinder : public BasePairFinder<ConsensusMapT>
+  class DelaunayPairFinder 
+  	: public BasePairFinder<ConsensusMapT>
   {
   public:
     typedef DimensionDescription<LCMS_Tag> DimensionDescriptionType;
@@ -98,20 +99,13 @@ namespace OpenMS
     using Base::element_map_;
     using Base::element_pairs_;
     using Base::transformation_;
-    using Base::setParam;
 
     /// Constructor
     DelaunayPairFinder()
         : Base()
     {
-
-      diff_intercept_[RT] = 1;
-      diff_intercept_[MZ] = 0.1;
-      max_pair_distance_[RT] = 3;
-      max_pair_distance_[MZ] = 1;
-      precision_[RT] = 20;
-      precision_[MZ] = 5;
-
+			setName(getProductName());
+			
       defaults_.setValue("similarity:max_pair_distance:RT",3);
       defaults_.setValue("similarity:max_pair_distance:MZ",1);
       defaults_.setValue("similarity:precision:RT",20);
@@ -119,40 +113,32 @@ namespace OpenMS
       defaults_.setValue("similarity:diff_intercept:RT",1);
       defaults_.setValue("similarity:diff_intercept:MZ",0.1);
 
-      setParam(Param());
+      Base::defaultsToParam_();
     }
 
     /// Copy constructor
     DelaunayPairFinder(const DelaunayPairFinder& source)
         : Base(source)
     {
-      diff_intercept_[RT] = source.diff_intercept_[RT];
-      diff_intercept_[MZ] = source.diff_intercept_[MZ];
-      max_pair_distance_[RT] = source.max_pair_distance_[RT];
-      max_pair_distance_[MZ] = source.max_pair_distance_[MZ];
-      precision_[RT] = source.precision_[RT];
-      precision_[MZ] = source.precision_[MZ];
+			updateMembers_();
     }
 
     ///  Assignment operator
     virtual DelaunayPairFinder& operator = (DelaunayPairFinder source)
     {
-      if (&source==this)
-        return *this;
+      if (&source==this) return *this;
 
       Base::operator=(source);
-      diff_intercept_[RT] = source.diff_intercept_[RT];
-      diff_intercept_[MZ] = source.diff_intercept_[MZ];
-      max_pair_distance_[RT] = source.max_pair_distance_[RT];
-      max_pair_distance_[MZ] = source.max_pair_distance_[MZ];
-      precision_[RT] = source.precision_[RT];
-      precision_[MZ] = source.precision_[MZ];
+      
+      updateMembers_();
+      	
       return *this;
     }
 
     /// Destructor
     virtual ~DelaunayPairFinder()
-  {}
+  	{
+  	}
 
     /// Returns an instance of this class
     static BasePairFinder<PointMapType>* create()
@@ -161,14 +147,14 @@ namespace OpenMS
     }
 
     /// Returns the name of this module
-    static const String getName()
+    static const String getProductName()
     {
       return "delaunay";
     }
 
     /// Nested class, which inherits from the cgal Point_2 class and additionally contains the a reference to
     /// the corresponding element and an unique key
-  class Point : public CGAL::Point_2< CGAL::Cartesian<double> >
+  	class Point : public CGAL::Point_2< CGAL::Cartesian<double> >
     {
     public:
 
@@ -228,7 +214,7 @@ namespace OpenMS
 
     /// To construct a delaunay triangulation with our Point class we have to write an own
     /// geometric traits class and the operator() (that generates a Point given a CGAL circle)
-  class  GeometricTraits : public CGAL::Cartesian<double>
+  	class  GeometricTraits : public CGAL::Cartesian<double>
     {
     public:
       typedef Point Point_2;
@@ -252,20 +238,6 @@ namespace OpenMS
     typedef CGAL::Point_set_2< GeometricTraits, CGAL::Triangulation_data_structure_2< CGAL::Triangulation_vertex_base_2< GeometricTraits > > > Point_set_2;
     typedef typename Point_set_2::Vertex_handle Vertex_handle;
 
-    virtual void setParam(const Param& param)
-    {
-      Base::setParam(param);
-
-      max_pair_distance_[RT] = (float)param_.getValue("similarity:max_pair_distance:RT");
-      max_pair_distance_[MZ] = (float)param_.getValue("similarity:max_pair_distance:MZ");
-
-      precision_[RT] = (float)param_.getValue("similarity:precision:RT");
-      precision_[MZ] = (float)param_.getValue("similarity:precision:MZ");
-
-      diff_intercept_[RT] = (double)param_.getValue("similarity:diff_intercept:RT");
-      diff_intercept_[MZ] = (double)param_.getValue("similarity:diff_intercept:MZ");
-    }
-
     /// Get diff intercept
     double getDiffIntercept(const UnsignedInt& dim)
     {
@@ -276,9 +248,7 @@ namespace OpenMS
     void setDiffIntercept(const UnsignedInt& dim, const double& intercept)
     {
       diff_intercept_[dim] = intercept;
-      String param_name_prefix = "similarity:diff_intercept:";
-      String param_name = param_name_prefix + DimensionDescriptionType::dimension_name_short[dim];
-      param_.setValue(param_name, intercept);
+      param_.setValue(String("similarity:diff_intercept:") + DimensionDescriptionType::dimension_name_short[dim], intercept);
     }
 
     /// Get max_pair_distance_
@@ -291,9 +261,7 @@ namespace OpenMS
     void setMaxPairDistance(const UnsignedInt& dim, const float& max_pair_distance)
     {
       max_pair_distance_[dim] = max_pair_distance;
-      String param_name_prefix = "similarity:max_pair_distance:";
-      String param_name = param_name_prefix + DimensionDescriptionType::dimension_name_short[dim];
-      param_.setValue(param_name, max_pair_distance);
+      param_.setValue(String("similarity:max_pair_distance:") + DimensionDescriptionType::dimension_name_short[dim], max_pair_distance);
     }
 
     /// Get precision
@@ -306,9 +274,7 @@ namespace OpenMS
     void setPrecision(const UnsignedInt& dim, const float& precision)
     {
       precision_[dim] = precision;
-      String param_name_prefix = "similarity:precision:";
-      String param_name = param_name_prefix + DimensionDescriptionType::dimension_name_short[dim];
-      param_.setValue(param_name, precision);
+      param_.setValue(String("similarity:precision:") + DimensionDescriptionType::dimension_name_short[dim], precision);
     }
 
     /// The actual algorithm for finding element pairs.
@@ -600,6 +566,18 @@ namespace OpenMS
 
 
   protected:
+    virtual void updateMembers_()
+    {
+      max_pair_distance_[RT] = (float)param_.getValue("similarity:max_pair_distance:RT");
+      max_pair_distance_[MZ] = (float)param_.getValue("similarity:max_pair_distance:MZ");
+
+      precision_[RT] = (float)param_.getValue("similarity:precision:RT");
+      precision_[MZ] = (float)param_.getValue("similarity:precision:MZ");
+
+      diff_intercept_[RT] = (double)param_.getValue("similarity:diff_intercept:RT");
+      diff_intercept_[MZ] = (double)param_.getValue("similarity:diff_intercept:MZ");
+    }
+
     /// A parameter for similarity_().
     double diff_intercept_[2];
     /// To uniquely assign an element e1 of the scene map to another element e2 in the model map

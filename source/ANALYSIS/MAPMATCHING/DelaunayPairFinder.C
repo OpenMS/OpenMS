@@ -28,5 +28,5 @@
 
 namespace OpenMS
 {
-		
+	DelaunayPairFinder<> default_delaunypairfinder;
 } 

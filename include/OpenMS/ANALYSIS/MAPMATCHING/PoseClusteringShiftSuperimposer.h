@@ -201,8 +201,10 @@ namespace OpenMS
     typedef Matrix < ShiftType > ShiftMatrixType;
     typedef DLinearMapping< 1, TraitsType > FinalShiftType;
 
-    using Base::setParam;
-    using Base::getParam;
+    using Base::setParameters;
+    using Base::getParameters;
+    using Base::subsections_;
+    using Base::defaultsToParam_;
     using Base::param_;
     using Base::defaults_;
     using Base::setElementMap;
@@ -213,15 +215,8 @@ namespace OpenMS
     PoseClusteringShiftSuperimposer()
         : Base()
     {
-      shift_bucket_size_[0] = 5;
-      shift_bucket_size_[1] = 0.1;
-      element_bucket_size_[0] = 150;
-      element_bucket_size_[1] = 4;
-      element_bucket_window_[0] = 2;
-      element_bucket_window_[1] = 1;
-      shift_bucket_window_[0] = 2;
-      shift_bucket_window_[1] = 1;
-
+			setName(getProductName());
+			
       defaults_.setValue("feature_map:bucket_size:RT",150);
       defaults_.setValue("feature_map:bucket_size:MZ",4);
       defaults_.setValue("transformation_space:shift_bucket_size:RT",5);
@@ -230,47 +225,37 @@ namespace OpenMS
       defaults_.setValue("feature_map:bucket_window:MZ",1);
       defaults_.setValue("transformation_space:bucket_window_shift:RT",2);
       defaults_.setValue("transformation_space:bucket_window_shift:MZ",1);
-
-      setParam(Param());
+			subsections_.push_back("debug");
+			
+      defaultsToParam_();
     }
 
     /// Copy constructor
     PoseClusteringShiftSuperimposer(const PoseClusteringShiftSuperimposer& source)
         : Base(source),
-        element_bucket_size_(source.element_bucket_size_),
+        element_bucket_(source.element_bucket_),
         shift_bucket_(source.shift_bucket_),
         shift_bounding_box_(source.shift_bounding_box_),
         shift_bounding_box_enlarged_(source.shift_bounding_box_enlarged_)
     {
-      shift_bucket_size_[0] = source.shift_bucket_size_[0];
-      shift_bucket_size_[1] = source.shift_bucket_size_[1];
-      shift_bucket_window_[0] = source.shift_bucket_window_[0];
-      shift_bucket_window_[1] = source.shift_bucket_window_[1];
-      element_bucket_[0] = source.element_bucket_[0];
-      element_bucket_[1] = source.element_bucket_[1];
-      element_bucket_window_[0] = source.element_bucket_window_[0];
-      element_bucket_window_[1] = source.element_bucket_window_[1];
+			updateMembers_();
     }
 
     ///  Assignment operator
     PoseClusteringShiftSuperimposer& operator = (const PoseClusteringShiftSuperimposer& source)
     {
-      if (&source==this)
-        return *this;
+      if (&source==this) return *this;
 
       Base::operator=(source);
+      	
       element_bucket_[0] = source.element_bucket_[0];
       element_bucket_[1] = source.element_bucket_[1];
-      element_bucket_size_ = source.element_bucket_size_;
       shift_bucket_ = source.shift_bucket_;
       shift_bounding_box_ = source.shift_bounding_box_;
       shift_bounding_box_enlarged_ = source.shift_bounding_box_enlarged_;
-      shift_bucket_size_[0] = source.shift_bucket_size_[0];
-      shift_bucket_size_[1] = source.shift_bucket_size_[1];
-      shift_bucket_window_[0] = source.shift_bucket_window_[0];
-      shift_bucket_window_[1] = source.shift_bucket_window_[1];
-      element_bucket_window_[0] = source.element_bucket_window_[0];
-      element_bucket_window_[1] = source.element_bucket_window_[1];
+ 			
+ 			updateMembers_();
+ 			
       return *this;
     }
 
@@ -307,33 +292,16 @@ namespace OpenMS
     }
 
     /// Returns the name of this module
-    static const String getName()
+    static const String getProductName()
     {
       return "poseclustering_shift";
-    }
-
-    /// Set parameters
-    virtual void setParam(const Param& param)
-    {
-      Base::setParam(param);
-
-      shift_bucket_size_[0] = (CoordinateType)param_.getValue("transformation_space:shift_bucket_size:RT");
-      shift_bucket_size_[1] = (CoordinateType)param_.getValue("transformation_space:shift_bucket_size:MZ");
-      element_bucket_window_[0] = (Size)param_.getValue("feature_map:bucket_window:RT");
-      element_bucket_window_[1] = (Size)param_.getValue("feature_map:bucket_window:MZ");
-      shift_bucket_window_[0] = (Size)param_.getValue("transformation_space:bucket_window_shift:RT");
-      shift_bucket_window_[1] = (Size)param_.getValue("transformation_space:bucket_window_shift:MZ");
-      element_bucket_size_[0] = (CoordinateType)param_.getValue("feature_map:bucket_size:RT");
-      element_bucket_size_[1] = (CoordinateType)param_.getValue("feature_map:bucket_size:MZ");
     }
 
     /// Set size of shift buckets (in dimension dim)
     void setShiftBucketSize(UnsignedInt dim, double shift_bucket_size)
     {
       shift_bucket_size_[dim] = shift_bucket_size;
-      String param_name_prefix = "transformation_space:shift_bucket_size:";
-      String param_name = param_name_prefix + DimensionDescriptionType::dimension_name_short[dim];
-      param_.setValue(param_name, (float)shift_bucket_size);
+      param_.setValue( String("transformation_space:shift_bucket_size:") + DimensionDescriptionType::dimension_name_short[dim], (float)shift_bucket_size);
     }
 
     /// Get size of shift buckets (in dimension dim)
@@ -346,9 +314,7 @@ namespace OpenMS
     void setElementBucketWindow(UnsignedInt dim, Size element_bucket_window)
     {
       element_bucket_window_[dim] = element_bucket_window;
-      String param_name_prefix = "feature_map:bucket_window:";
-      String param_name = param_name_prefix + DimensionDescriptionType::dimension_name_short[dim];
-      param_.setValue(param_name, (int)element_bucket_window);
+      param_.setValue(String("feature_map:bucket_window:") + DimensionDescriptionType::dimension_name_short[dim], (int)element_bucket_window);
     }
 
     /// Get number of neighbouring shift buckets to be considered for the calculation of the final transformation (in dimension dim)
@@ -361,9 +327,7 @@ namespace OpenMS
     void setShiftBucketWindow(UnsignedInt dim, Size shift_bucket_window)
     {
       shift_bucket_window_[dim] = shift_bucket_window;
-      String param_name_prefix = "transformation_space:bucket_window_shift:";
-      String param_name = param_name_prefix + DimensionDescriptionType::dimension_name_short[dim];
-      param_.setValue(param_name, (int)shift_bucket_window);
+      param_.setValue(String("transformation_space:bucket_window_shift:") + DimensionDescriptionType::dimension_name_short[dim], (int)shift_bucket_window);
     }
 
     /// Get number of neighbouring shift buckets to be considered for the calculation of the final transformation (in dimension dim)
@@ -372,6 +336,18 @@ namespace OpenMS
       return shift_bucket_window_[dim];
     }
   protected:
+    virtual void updateMembers_()
+    {
+      shift_bucket_size_[0] = (CoordinateType)param_.getValue("transformation_space:shift_bucket_size:RT");
+      shift_bucket_size_[1] = (CoordinateType)param_.getValue("transformation_space:shift_bucket_size:MZ");
+      element_bucket_window_[0] = (Size)param_.getValue("feature_map:bucket_window:RT");
+      element_bucket_window_[1] = (Size)param_.getValue("feature_map:bucket_window:MZ");
+      shift_bucket_window_[0] = (Size)param_.getValue("transformation_space:bucket_window_shift:RT");
+      shift_bucket_window_[1] = (Size)param_.getValue("transformation_space:bucket_window_shift:MZ");
+      element_bucket_size_[0] = (CoordinateType)param_.getValue("feature_map:bucket_size:RT");
+      element_bucket_size_[1] = (CoordinateType)param_.getValue("feature_map:bucket_size:MZ");
+    }
+
     /// Fill the buckets with the indices of the corresponding elements.
     void computeElementBuckets_()
     {
@@ -457,7 +433,7 @@ namespace OpenMS
         }
 
         // Optionally, write debug output as specified in param.
-        String element_buckets_file_base = getParam().getValue("debug:feature_buckets_file");
+        String element_buckets_file_base = getParameters().getValue("debug:feature_buckets_file");
         if ( !element_buckets_file_base.empty() )
         {
           String const element_buckets_file = element_buckets_file_base+String(map_index?"_SCENE":"_MODEL");
@@ -568,7 +544,7 @@ namespace OpenMS
 #define V_computeShiftBuckets_enumeration(bla) V_computeShiftBuckets_(bla)
 
       // progress dots
-      DataValue const & param_progress_dots = this->getParam().getValue("debug:progress_dots");
+      DataValue const & param_progress_dots = this->getParameters().getValue("debug:progress_dots");
       int progress_dots
       = param_progress_dots.isEmpty() ? 0 : int(param_progress_dots);
 
@@ -703,7 +679,7 @@ namespace OpenMS
 #undef V_computeShiftBuckets_enumeration
 
       // Optionally, write debug output as specified in param.
-      DataValue data_value_dump_shift_buckets = getParam().getValue("debug:dump_shift_buckets");
+      DataValue data_value_dump_shift_buckets = getParameters().getValue("debug:dump_shift_buckets");
       if ( data_value_dump_shift_buckets != DataValue::EMPTY )
       {
         std::string   dump_filename = data_value_dump_shift_buckets;

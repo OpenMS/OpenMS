@@ -36,13 +36,11 @@ namespace OpenMS
 
 
 		PairMatcher::PairMatcher(FeatureMapType& features)
-			: FactoryProduct2("PairMatcher"), 
+			: FactoryProduct2(PairMatcher::getProductName()), 
 				features_(features), 
 				pairs_(), 
 				best_pairs_()
 		{
-			setName(PairMatcher::getName());
-			
 			defaults_.setValue("rt_stdev_low",0.22);
 			defaults_.setValue("rt_stdev_high",0.65);
 			defaults_.setValue("mz_stdev",0.025);
