@@ -48,7 +48,7 @@ namespace OpenMS
 		The PILISIdentification class needs a PILISModel and a PILISSequenceDB to generate
 		identifications. Simply call getIdentifications with a PeakMap.
 	*/
-	class PILISIdentification
+	class PILISIdentification : public DefaultParamHandler
 	{
 
 		public:
@@ -67,7 +67,7 @@ namespace OpenMS
 			//@}
 		
 			///
-			PILISIdentification& operator = (const PILISIdentification&);
+			PILISIdentification& operator = (const PILISIdentification& source);
 
 			/** @name Accessors
 			 */
@@ -83,18 +83,6 @@ namespace OpenMS
 
 			/// performs an identification run on a PeakSpectrum
 			void getIdentification(Identification& id, const PeakSpectrum& spectrum);
-
-			/// mutable access to the parameters
-			Param& getParam();
-
-			/// non-mutable access to the parameters
-			const Param& getParam() const;
-			
-			/// sets the parameters
-			void setParam(const Param& param);
-
-			/// resets the parameters to default values
-			void resetToDefaultParam();
 			//@}
 
 		protected:
@@ -114,12 +102,6 @@ namespace OpenMS
 			/// returns the sequence database pointer
 			PILISSequenceDB* getSequenceDB_();
 			
-			/// the params 
-			Param param_;
-
-			/// default parameter
-			Param defaults_;
-
 			/// the sequence database for the candidate peptides
 			PILISSequenceDB* sequence_db_;
 
@@ -143,6 +125,9 @@ namespace OpenMS
 
 			/// flag whether the istance has a internal model
 			bool own_model_;
+
+			/// update members method from DefaultParamHandler to update the members 
+			void updateMembers_();
 	};
 }
 

@@ -37,7 +37,7 @@ namespace OpenMS
 		@brief A base class for all classes handling default parameters.
 		
 		This class facilitates the handling of parameters.
-		It manages default parameterm, checks for wrong/misspelled parameters
+		It manages default parameter, checks for wrong/misspelled parameters
 		and keeps extra member variables in synronicity with the parameters
 		stored in param_.
 		

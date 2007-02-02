@@ -58,21 +58,23 @@ namespace OpenMS
 	ResidueDB PILISModel::res_db_;
 
 	PILISModel::PILISModel()
-		: valid_(false)
+		: DefaultParamHandler("PILISModel"),
+			valid_(false)
 	{	
-		default_.setValue("upper_mz", 2000.0);
-		default_.setValue("lower_mz", 200.0);
-		default_.setValue("charge_remote_threshold", 0.2);
-		default_.setValue("charge_remote_factor", 1.0);
-		default_.setValue("charge_directed_threshold", 0.3);
-		default_.setValue("charge_directed_factor", 1.0);
-		default_.setValue("side_chain_intensity_threshold", 0.0);
-		default_.setValue("side_chain_factor", 1.0);
-		default_.setValue("model_depth", 4);
-		default_.setValue("visible_model_depth", 30);
-		default_.setValue("precursor_error", 3.0);
+		defaults_.setValue("upper_mz", 2000.0);
+		defaults_.setValue("lower_mz", 200.0);
+		defaults_.setValue("charge_remote_threshold", 0.2);
+		defaults_.setValue("charge_remote_factor", 1.0);
+		defaults_.setValue("charge_directed_threshold", 0.3);
+		defaults_.setValue("charge_directed_factor", 1.0);
+		defaults_.setValue("side_chain_intensity_threshold", 0.0);
+		defaults_.setValue("side_chain_factor", 1.0);
+		defaults_.setValue("model_depth", 4);
+		defaults_.setValue("visible_model_depth", 30);
+		defaults_.setValue("precursor_error", 3.0);
 		
-		param_ = default_;
+		//param_ = default_;
+		defaultsToParam_();
 
 		initModels_();
 	}
@@ -82,15 +84,14 @@ namespace OpenMS
 	}
 
 	PILISModel::PILISModel(const PILISModel& model)
-		: hmm_(model.hmm_),
+		: DefaultParamHandler(model),
+			hmm_(model.hmm_),
 			hmm_precursor_(model.hmm_precursor_),
 			hmms_losses_(model.hmms_losses_),
 			prot_dist_(model.prot_dist_),
 			tsg_(model.tsg_),
 			name_to_enum_(model.name_to_enum_),
 			enum_to_name_(model.enum_to_name_),
-			param_(model.param_),
-			default_(model.default_),
 			valid_(model.valid_)
 	{
 		initModels_();
@@ -100,6 +101,7 @@ namespace OpenMS
 	{
 		if (this != &model)
 		{
+			DefaultParamHandler::operator=(model);
 			hmm_ = model.hmm_;
 	    hmm_precursor_ = model.hmm_precursor_;
   	  hmms_losses_ = model.hmms_losses_;
@@ -107,8 +109,6 @@ namespace OpenMS
 	    tsg_ = model.tsg_;
 	    name_to_enum_ = model.name_to_enum_;
 	    enum_to_name_ = model.enum_to_name_;
-	    param_ = model.param_;
-	    default_ = model.default_;
 	    valid_ = model.valid_;
 		}
 		return *this;
@@ -2158,6 +2158,7 @@ namespace OpenMS
 		model.buildSynonyms();
 	}
 
+/*
 	Param& PILISModel::getParam()
 	{
 		return param_;
@@ -2177,5 +2178,6 @@ namespace OpenMS
 	{
 		param_ = default_;
 	}
+*/
 } // namespace OpenMS
 

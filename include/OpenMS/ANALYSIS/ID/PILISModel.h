@@ -41,6 +41,7 @@
 #include <OpenMS/CHEMISTRY/ResidueDB.h>
 #include <OpenMS/COMPARISON/SPECTRA/SpectrumAlignment.h>
 #include <OpenMS/FORMAT/TextFile.h>
+#include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 
 namespace OpenMS 
 {
@@ -53,7 +54,7 @@ namespace OpenMS
 		from a peptide. The spectrum generator can be accessed via the getSpectrum
 		method.
 	*/	
-	class PILISModel 
+	class PILISModel : public DefaultParamHandler
 	{
 		public:
 						
@@ -102,16 +103,16 @@ namespace OpenMS
 			void evaluate();
 
 			/// mutable access to the parameters
-			Param& getParam();
+			//Param& getParam();
 
 			/// non-mutable access to the parameters
-			const Param& getParam() const;
+			//const Param& getParam() const;
 
 			/// set the parameters
-			void setParam(const Param& param);
+			//void setParam(const Param& param);
 
 			/// resets the parameters to the default values
-			void resetToDefaultParam();
+			//void resetToDefaultParam();
 			//@}
 
 		protected:
@@ -269,10 +270,10 @@ namespace OpenMS
 			HashMap<States_, String> enum_to_name_;
 
 			/// params_ of the model
-			Param param_;
+			//Param param_;
 
 			/// default parameters of the model
-			Param default_;
+			//Param default_;
 
 			/// true if the instance is valid
 			bool valid_;

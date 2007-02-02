@@ -61,36 +61,39 @@ ptr = new PILISIdentification();
 
 CHECK(PILISIdentification(const PILISIdentification& source))
 	PILISIdentification copy(*ptr);
-	TEST_EQUAL(copy.getParam(), ptr->getParam())
+	TEST_EQUAL(copy.getParameters(), ptr->getParameters())
 RESULT
 
 CHECK(PILISIdentification& operator = (const PILISIdentification&))
 	PILISIdentification copy;
 	copy = *ptr;
-	TEST_EQUAL(copy.getParam(), ptr->getParam())
+	TEST_EQUAL(copy.getParameters(), ptr->getParameters())
 RESULT
+
 
 CHECK(Param& getParam())
-	ptr->getParam().setValue("bla", "blubb");
-	TEST_EQUAL(ptr->getParam().getValue("bla"), "blubb")
+	Param p(ptr->getParameters());
+	p.setValue("bla", "blubb");
+	ptr->setParameters(p);
+	TEST_EQUAL(ptr->getParameters().getValue("bla"), "blubb")
 RESULT
 
-CHECK(const Param& getParam() const)
-	Param p(ptr->getParam());
+CHECK(const Param& getParameters() const)
+	Param p(ptr->getParameters());
 	TEST_EQUAL(p.getValue("bla"), "blubb")
 RESULT
 
-CHECK(void setParam(const Param& param))
+CHECK(void setParameters(const Param& param))
 	Param p;
 	p.setValue("blubb", "bla");
-	ptr->setParam(p);
+	ptr->setParameters(p);
 RESULT
 
-CHECK(void resetToDefaultParam())
-	ptr->resetToDefaultParam();
-	PILISIdentification id;
-	TEST_EQUAL(ptr->getParam(), id.getParam())
-RESULT
+//CHECK(void resetToDefaultParam())
+//	ptr->resetToDefaultParam();
+//	PILISIdentification id;
+//	TEST_EQUAL(ptr->getParam(), id.getParam())
+//RESULT
 
 CHECK(void setSequenceDB(PILISSequenceDB* sequence_db))
 	PILISSequenceDB* db = new PILISSequenceDB();

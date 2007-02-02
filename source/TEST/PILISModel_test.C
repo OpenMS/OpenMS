@@ -59,35 +59,35 @@ ptr = new PILISModel();
 
 CHECK(PILISModel(const PILISModel& model))
 	PILISModel copy(*ptr);
-	TEST_EQUAL(copy.getParam(), ptr->getParam())
+	TEST_EQUAL(copy.getParameters(), ptr->getParameters())
 RESULT
 
 CHECK(PILISModel& operator = (const PILISModel& mode))
 	PILISModel copy;
 	copy = *ptr;
-	TEST_EQUAL(copy.getParam(), ptr->getParam())
+	TEST_EQUAL(copy.getParameters(), ptr->getParameters())
 RESULT
 
-CHECK(Param& getParam())
-	ptr->getParam().setValue("bla", "blubb");
+//CHECK(Param& getParameters())
+//	ptr->getParam().setValue("bla", "blubb");
+//RESULT
+
+CHECK(const Param& getParameters() const)
+	Param p(ptr->getParameters());
+	TEST_REAL_EQUAL((double)p.getValue("upper_mz"), 2000.0)
 RESULT
 
-CHECK(const Param& getParam() const)
-	Param p(ptr->getParam());
-	TEST_REAL_EQUAL(p.getValue("upper_mz"), 2000.0)
-RESULT
-
-CHECK(void setParam(const Param& param))
+CHECK(void setParameters(const Param& param))
 	Param p;
 	p.setValue("blubb", "bla");
-	ptr->setParam(p);
-	TEST_EQUAL(ptr->getParam().getValue("blubb"), "bla")
+	ptr->setParameters(p);
+	TEST_EQUAL(ptr->getParameters().getValue("blubb"), "bla")
 RESULT
 
-CHECK(void resetToDefaultParam())
-	ptr->resetToDefaultParam();
-	TEST_REAL_EQUAL(ptr->getParam().getValue("upper_mz"), 2000.0)
-RESULT
+//CHECK(void resetToDefaultParam())
+//	ptr->resetToDefaultParam();
+//	TEST_REAL_EQUAL(ptr->getParam().getValue("upper_mz"), 2000.0)
+//RESULT
 
 CHECK(void writetoYGFFile(const String& filename))
 	// TODO
