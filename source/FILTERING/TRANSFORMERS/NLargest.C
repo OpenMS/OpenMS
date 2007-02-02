@@ -33,26 +33,22 @@ namespace OpenMS
   NLargest::NLargest()
     : PreprocessingFunctor()
   {
-		name_ = NLargest::getName();
+		setName(NLargest::getProductName());
     defaults_.setValue("n", 200);
-		param_ = defaults_;
+		defaultsToParam_();
   }
 
 	NLargest::NLargest(Size n)
 		: PreprocessingFunctor()
 	{
-		name_ = NLargest::getName();
-		defaults_.setValue("n", 200);
-		param_ = defaults_;
-		param_.setValue("n", (SignedInt)n);
+		setName(NLargest::getProductName());
+		defaults_.setValue("n", (int)n);
+		defaultsToParam_();
 	}
 
   NLargest::NLargest(const NLargest& source)
     : PreprocessingFunctor(source)
   {
-		defaults_ = source.defaults_;
-		param_ = source.param_;
-		name_ = source.getName();
   }
 
   NLargest::~NLargest()

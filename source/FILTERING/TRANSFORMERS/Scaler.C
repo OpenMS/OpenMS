@@ -33,13 +33,13 @@ namespace OpenMS
     : PreprocessingFunctor()
   {
 		check_defaults_ = false;
-		name_ = Scaler::getName();
+		setName(Scaler::getProductName());
+		defaultsToParam_();
   }
 
   Scaler::Scaler(const Scaler& source)
     : PreprocessingFunctor(source)
   {
-		check_defaults_ = false;
   }
 
   Scaler::~Scaler()

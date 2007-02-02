@@ -36,10 +36,10 @@ namespace OpenMS
   ComplementFilter::ComplementFilter()
 		:	FilterFunctor()
   { 
-		name_ = ComplementFilter::getName();
+		setName(ComplementFilter::getProductName());
     //value from Bioinformatics, Bern 2004
 		defaults_.setValue("tolerance", 0.37f);
-		param_ = defaults_;
+		defaultsToParam_();
   }
 
 	ComplementFilter::ComplementFilter(const ComplementFilter& source)

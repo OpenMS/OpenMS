@@ -35,7 +35,7 @@ namespace OpenMS
   GoodDiffFilter::GoodDiffFilter()
     :FilterFunctor()
   {
-		name_ = GoodDiffFilter::getName();
+		setName(GoodDiffFilter::getProductName());
     //values from kinter sherman
 
 
@@ -62,7 +62,7 @@ namespace OpenMS
      
     //value from Bioinformatics, Bern 2004
     defaults_.setValue("tolerance", 0.37f);
-		param_ = defaults_;
+		defaultsToParam_();
   }
   
   GoodDiffFilter::GoodDiffFilter( const GoodDiffFilter& source )

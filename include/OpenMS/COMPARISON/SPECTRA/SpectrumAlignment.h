@@ -44,7 +44,7 @@ namespace OpenMS
 		@ingroup SpectraComparison
   */
 	
-  class SpectrumAlignment : public FactoryProduct
+  class SpectrumAlignment : public FactoryProduct2
   {
   public:
 	
@@ -69,10 +69,9 @@ namespace OpenMS
 		// @name Accessors
 		// @{
 		///
-    static FactoryProduct* create() { return new SpectrumAlignment(); }
-
+		
 		///
-		static const String getName()
+		static const String getProductName()
 		{
 			return "SpectrumAlignment";
 		}

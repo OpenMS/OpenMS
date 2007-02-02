@@ -78,7 +78,7 @@ namespace OpenMS
     static BinnedRepCompareFunctor* create() {return new BinnedRepMutualInformation();}
 
 		///
-		static const String getName()
+		static const String getProductName()
 		{
 			return "BinnedRepMutualInformation";
 		}

@@ -56,14 +56,14 @@ e_ptr = new ParentPeakMower();
 
 CHECK((ParentPeakMower(const ParentPeakMower& source)))
 	ParentPeakMower copy(*e_ptr);
-	TEST_EQUAL(copy.getParam(), e_ptr->getParam())
+	TEST_EQUAL(copy.getParameters(), e_ptr->getParameters())
 	TEST_EQUAL(copy.getName(), e_ptr->getName())
 RESULT
 
 CHECK((ParentPeakMower& operator = (const ParentPeakMower& source)))
 	ParentPeakMower copy;
 	copy = *e_ptr;
-	TEST_EQUAL(copy.getParam(), e_ptr->getParam())
+	TEST_EQUAL(copy.getParameters(), e_ptr->getParameters())
 	TEST_EQUAL(copy.getName(), e_ptr->getName())
 RESULT
 
@@ -78,10 +78,12 @@ CHECK((template<typename SpectrumType> void filterSpectrum(SpectrumType& spectru
 	TEST_REAL_EQUAL((spec.begin() + 40)->getIntensity(), 37.5)
 
 	double window_size(2.0);
-	e_ptr->getParam().setValue("window_size", window_size);
-	e_ptr->getParam().setValue("default_charge", 2);
-	e_ptr->getParam().setValue("clean_all_charge_states", (short)1);
-	e_ptr->getParam().setValue("set_to_zero", (short)1);
+	Param p(e_ptr->getParameters());
+	p.setValue("window_size", window_size);
+	p.setValue("default_charge", 2);
+	p.setValue("clean_all_charge_states", (short)1);
+	p.setValue("set_to_zero", (short)1);
+	e_ptr->setParameters(p);
 
 	e_ptr->filterSpectrum(spec);
 	double pre_1_pos(spec.getPrecursorPeak().getPosition()[0] * spec.getPrecursorPeak().getCharge());
@@ -112,7 +114,7 @@ RESULT
 CHECK((static PreprocessingFunctor* create()))
 	PreprocessingFunctor* ppf = ParentPeakMower::create();
 	ParentPeakMower ppm;
-	TEST_EQUAL(ppf->getParam(), ppm.getParam())
+	TEST_EQUAL(ppf->getParameters(), ppm.getParameters())
 	TEST_EQUAL(ppf->getName(), ppm.getName())
 RESULT
 
@@ -135,10 +137,12 @@ CHECK((void filterPeakMap(PeakMap& exp)))
   TEST_REAL_EQUAL((pm.begin()->begin() + 40)->getIntensity(), 37.5)
 
   double window_size(2.0);
-  e_ptr->getParam().setValue("window_size", window_size);
-  e_ptr->getParam().setValue("default_charge", 2);
-  e_ptr->getParam().setValue("clean_all_charge_states", (short)1);
-  e_ptr->getParam().setValue("set_to_zero", (short)1);
+	Param p(e_ptr->getParameters());
+  p.setValue("window_size", window_size);
+  p.setValue("default_charge", 2);
+  p.setValue("clean_all_charge_states", (short)1);
+  p.setValue("set_to_zero", (short)1);
+	e_ptr->setParameters(p);
 
   e_ptr->filterPeakMap(pm);
   double pre_1_pos(pm.begin()->getPrecursorPeak().getPosition()[0] * pm.begin()->getPrecursorPeak().getCharge());
@@ -178,10 +182,12 @@ CHECK((void filterPeakSpectrum(PeakSpectrum& spectrum)))
   TEST_REAL_EQUAL((spec.begin() + 40)->getIntensity(), 37.5)
 
   double window_size(2.0);
-  e_ptr->getParam().setValue("window_size", window_size);
-  e_ptr->getParam().setValue("default_charge", 2);
-  e_ptr->getParam().setValue("clean_all_charge_states", (short)1);
-  e_ptr->getParam().setValue("set_to_zero", (short)1);
+	Param p(e_ptr->getParameters());
+  p.setValue("window_size", window_size);
+  p.setValue("default_charge", 2);
+  p.setValue("clean_all_charge_states", (short)1);
+  p.setValue("set_to_zero", (short)1);
+	e_ptr->setParameters(p);
 
   e_ptr->filterPeakSpectrum(spec);
   double pre_1_pos(spec.getPrecursorPeak().getPosition()[0] * spec.getPrecursorPeak().getCharge());

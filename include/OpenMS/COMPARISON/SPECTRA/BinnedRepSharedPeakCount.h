@@ -75,7 +75,7 @@ namespace OpenMS
     	static BinnedRepCompareFunctor* create() {return new BinnedRepSharedPeakCount();}
 
 			///
-			static const String getName()
+			static const String getProductName()
 			{
 				return "BinnedRepSharedPeakCount";
 			}

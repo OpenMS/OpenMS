@@ -88,7 +88,7 @@ namespace OpenMS
 		void filterPeakMap(PeakMap& exp);
 		
 		/// 
-		static const String getName()
+		static const String getProductName()
 		{
 			return "ThresholdMower";
 		}

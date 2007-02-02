@@ -43,12 +43,12 @@ namespace OpenMS
     : PeakSpectrumCompareFunctor(),
 			lastconsensus_()
   {
-		name_ = SpectrumCheapDPCorr::getName();
+		setName(SpectrumCheapDPCorr::getProductName());
     defaults_.setValue("variation", 0.001);
     defaults_.setValue("int_cnt", 0); 
     defaults_.setValue("keeppeaks", 0);
-		param_ = defaults_;
     factor_ = 0.5;
+		defaultsToParam_();
   }
 
   SpectrumCheapDPCorr::SpectrumCheapDPCorr(const SpectrumCheapDPCorr& source)

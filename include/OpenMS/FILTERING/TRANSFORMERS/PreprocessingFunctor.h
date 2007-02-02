@@ -27,7 +27,7 @@
 #ifndef OPENMS_FILTERING_TRANSFORMERS_PREPROCESSINGFUNCTOR_H
 #define OPENMS_FILTERING_TRANSFORMERS_PREPROCESSINGFUNCTOR_H
 
-#include <OpenMS/CONCEPT/FactoryProduct.h>
+#include <OpenMS/CONCEPT/FactoryProduct2.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 
 namespace OpenMS
@@ -35,7 +35,7 @@ namespace OpenMS
 	/**
   	@brief Base class for Spectrum preprocessing classes
   */
-  class PreprocessingFunctor : public FactoryProduct
+  class PreprocessingFunctor : public FactoryProduct2
   {
   public:
 
@@ -61,6 +61,12 @@ namespace OpenMS
 
 		/// filters an MSExperiment, this method should be overwritten in the derived classes
 		virtual void filterPeakMap(PeakMap& exp) = 0;
+
+		///
+		static const String getProductName()
+		{
+			return "PreprocessingFunctor";
+		}
 
 	};
 

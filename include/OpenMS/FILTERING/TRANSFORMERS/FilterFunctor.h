@@ -27,7 +27,7 @@
 #ifndef OPENMS_FILTERING_TRANSFORMERS_FILTERFUNCTOR_H
 #define OPENMS_FILTERING_TRANSFORMERS_FILTERFUNCTOR_H
 
-#include <OpenMS/CONCEPT/FactoryProduct.h>
+#include <OpenMS/CONCEPT/FactoryProduct2.h>
 
 #include <vector>
 
@@ -38,7 +38,7 @@ namespace OpenMS
   	
   	@todo write test (Andreas)
   */
-  class FilterFunctor : public FactoryProduct
+  class FilterFunctor : public FactoryProduct2
   {
   public:
 
@@ -63,6 +63,10 @@ namespace OpenMS
 			return 0;
 		}
 
+		static const String getProductName()
+		{
+			return "FilterFunctor";
+		}
   };
 }
 #endif // OPENMS_FILTERING_TRANSFORMERS_FILTERFUNCTOR_H

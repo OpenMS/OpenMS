@@ -55,14 +55,14 @@ e_ptr = new SpectrumCheapDPCorr();
 
 CHECK(SpectrumCheapDPCorr(const SpectrumCheapDPCorr& source))
 	SpectrumCheapDPCorr copy(*e_ptr);
-	TEST_EQUAL(copy.getParam(), e_ptr->getParam())
+	TEST_EQUAL(copy.getParameters(), e_ptr->getParameters())
 	TEST_EQUAL(copy.getName(), e_ptr->getName())
 RESULT
 
 CHECK(SpectrumCheapDPCorr& operator = (const SpectrumCheapDPCorr& source))
 	SpectrumCheapDPCorr copy;
 	copy = *e_ptr;
-	TEST_EQUAL(copy.getParam(), e_ptr->getParam())
+	TEST_EQUAL(copy.getParameters(), e_ptr->getParameters())
 	TEST_EQUAL(copy.getName(), e_ptr->getName())
 RESULT
 
@@ -116,12 +116,12 @@ RESULT
 CHECK(static PeakSpectrumCompareFunctor* create())
 	PeakSpectrumCompareFunctor* cf = SpectrumCheapDPCorr::create();
 	SpectrumCheapDPCorr corr;
-	TEST_EQUAL(cf->getParam(), corr.getParam())
+	TEST_EQUAL(cf->getParameters(), corr.getParameters())
 	TEST_EQUAL(cf->getName(), corr.getName())
 RESULT
 
-CHECK(static const String getName())
-	TEST_EQUAL(SpectrumCheapDPCorr::getName(), "SpectrumCheapDPCorr")
+CHECK(static const String getProductName())
+	TEST_EQUAL(SpectrumCheapDPCorr::getProductName(), "SpectrumCheapDPCorr")
 RESULT
 
 CHECK(void setFactor(double f))

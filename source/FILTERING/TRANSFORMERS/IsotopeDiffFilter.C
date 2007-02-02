@@ -37,10 +37,10 @@ namespace OpenMS
   IsotopeDiffFilter::IsotopeDiffFilter()
     : FilterFunctor()
   { 
-		name_ = IsotopeDiffFilter::getName();
+		setName(IsotopeDiffFilter::getProductName());
     //value from Bioinformatics, Bern 2004
     defaults_.setValue("tolerance", 0.37);
-		param_ = defaults_;
+		defaultsToParam_();
   }
   
   IsotopeDiffFilter::IsotopeDiffFilter(const IsotopeDiffFilter& source)

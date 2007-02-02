@@ -74,7 +74,7 @@ namespace OpenMS
     static BinnedRepCompareFunctor* create(){return new BinnedRepSpectrumContrastAngle();}
 
 		///
-		static const String getName()
+		static const String getProductName()
 		{
 			return "BinnedRepSpectrumContrastAngle";
 		}

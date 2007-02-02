@@ -79,7 +79,7 @@ namespace OpenMS
 	IsotopeDistribution::IsotopeDistribution IsotopeDistribution::operator + (const IsotopeDistribution& iso) const
 	{
 		ContainerType result;
-		convolve(result, distribution_, iso.distribution_);
+		convolve_(result, distribution_, iso.distribution_);
 		IsotopeDistribution result_iso;
 		result_iso.setMaxIsotope(max_isotope_);
 		result_iso.set(result);
@@ -89,7 +89,7 @@ namespace OpenMS
 	IsotopeDistribution::IsotopeDistribution& IsotopeDistribution::operator += (const IsotopeDistribution& iso)
 	{
 		ContainerType result;
-		convolve(result, distribution_, iso.distribution_);
+		convolve_(result, distribution_, iso.distribution_);
 		distribution_ = result;
 		return *this;
 	}
@@ -97,7 +97,7 @@ namespace OpenMS
 	IsotopeDistribution::IsotopeDistribution& IsotopeDistribution::operator *= (UnsignedInt factor)
 	{
 		ContainerType result;
-		convolvePow(result, distribution_, factor);
+		convolvePow_(result, distribution_, factor);
 		distribution_ = result;
 		return *this;
 	}
@@ -105,7 +105,7 @@ namespace OpenMS
 	IsotopeDistribution::IsotopeDistribution IsotopeDistribution::operator * (UnsignedInt factor) const
 	{
 		ContainerType result;
-		convolvePow(result, distribution_, factor);
+		convolvePow_(result, distribution_, factor);
 		IsotopeDistribution result_iso;
 		result_iso.setMaxIsotope(max_isotope_);
 		result_iso.set(result);
@@ -159,7 +159,7 @@ namespace OpenMS
 		C_dist.push_back(make_pair<UnsignedInt, double>(12, 0.9893));
 		C_dist.push_back(make_pair<UnsignedInt, double>(13, 0.0107));
 
-		convolvePow(distribution_, C_dist, Size((weight*0.464)/12.0));
+		convolvePow_(distribution_, C_dist, Size((weight*0.464)/12.0));
 	}
 
 	bool IsotopeDistribution::operator == (const IsotopeDistribution& isotope_distribution) const
@@ -173,7 +173,7 @@ namespace OpenMS
 		return !(isotope_distribution == *this);
 	}
 
-	void IsotopeDistribution::convolve(ContainerType& result, const ContainerType& left, const ContainerType& right) const
+	void IsotopeDistribution::convolve_(ContainerType& result, const ContainerType& left, const ContainerType& right) const
 	{
 		if (left.size() == 0 || right.size() == 0)
 		{
@@ -200,7 +200,7 @@ namespace OpenMS
 		}
 	}
 
-	void IsotopeDistribution::convolvePow(ContainerType& result, const ContainerType& input, Size n) const
+	void IsotopeDistribution::convolvePow_(ContainerType& result, const ContainerType& input, Size n) const
 	{
 		/*	
 		// my code 
@@ -242,25 +242,25 @@ namespace OpenMS
     // to avoid taking unneccessary squares, we check the loop condition
     // somewhere in the middle
     ContainerType convolution_power;
-    convolveSquare(convolution_power, input);
+    convolveSquare_(convolution_power, input);
     for (Size i = 1; ; ++i)
     {
       if (n & (1 << i))
       {
-        convolve(intermediate, result, convolution_power);
+        convolve_(intermediate, result, convolution_power);
         swap(intermediate, result);
       }
       // check the loop condition
       if (i >= log2n) break;
 			
       // prepare next round
-      convolveSquare(intermediate, convolution_power);
+      convolveSquare_(intermediate, convolution_power);
       swap(intermediate, convolution_power);
     }
 		// Clemens' code end
 	}
 
-  void IsotopeDistribution::convolveSquare(ContainerType& result, const ContainerType& input) const
+  void IsotopeDistribution::convolveSquare_(ContainerType& result, const ContainerType& input) const
   {
 	  result.clear();
    	int r_max = min(2 * input.size() - 1, (ContainerType::size_type)(max_isotope_ + 1));

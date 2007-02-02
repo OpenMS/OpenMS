@@ -56,14 +56,14 @@ e_ptr = new ComplementFilter();
 
 CHECK((ComplementFilter(const ComplementFilter& source)))
 	ComplementFilter copy(*e_ptr);
-	TEST_EQUAL(copy.getParam(), e_ptr->getParam())
+	TEST_EQUAL(copy.getParameters(), e_ptr->getParameters())
 	TEST_EQUAL(copy.getName(), e_ptr->getName())
 RESULT
 
 CHECK((ComplementFilter& operator = (const ComplementFilter& source)))
 	ComplementFilter copy;
 	copy = *e_ptr;
-	TEST_EQUAL(copy.getParam(), e_ptr->getParam())
+	TEST_EQUAL(copy.getParameters(), e_ptr->getParameters())
 	TEST_EQUAL(copy.getName(), e_ptr->getName())
 RESULT
 
@@ -75,7 +75,9 @@ CHECK((template<typename SpectrumType> double apply(SpectrumType& spectrum)))
 	double filter = e_ptr->apply(spec);
 	TEST_REAL_EQUAL(filter, 37.0)
 
-	e_ptr->getParam().setValue("tolerance", 2);
+	Param p;
+	p.setValue("tolerance", 2);
+	e_ptr->setParameters(p);
 	filter = e_ptr->apply(spec);
 	TEST_REAL_EQUAL(filter, 132.5)
 	
@@ -84,7 +86,7 @@ RESULT
 CHECK((static FilterFunctor* create()))
 	FilterFunctor* ff = ComplementFilter::create();
 	ComplementFilter cf;
-	TEST_EQUAL(ff->getParam(), cf.getParam())
+	TEST_EQUAL(ff->getParameters(), cf.getParameters())
 	TEST_EQUAL(ff->getName(), cf.getName())
 RESULT
 

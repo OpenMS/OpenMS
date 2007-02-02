@@ -182,7 +182,7 @@ class TOPPSpectraFilter
 				Param filter_param = getParam_().copy((*it)->getName()+":", true);
 				writeDebug_("Used filter parameters", filter_param, 3);
 				writeDebug_("Applying filter: " +  (*it)->getName(), 1);
-				(*it)->setParam(filter_param);
+				(*it)->setParameters(filter_param);
 				(*it)->filterPeakMap(exp);
 			}
 

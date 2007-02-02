@@ -33,14 +33,14 @@ namespace OpenMS
   SqrtMower::SqrtMower()
     : PreprocessingFunctor()
   {
-		name_ = SqrtMower::getName();
+		setName(SqrtMower::getProductName());
 		check_defaults_ = false;
+		defaultsToParam_();
   }
 
   SqrtMower::SqrtMower(const SqrtMower& source)
     : PreprocessingFunctor(source)
   {
-		check_defaults_ = false;
   }
 
   SqrtMower& SqrtMower::operator = (const SqrtMower& source)

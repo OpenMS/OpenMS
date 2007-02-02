@@ -113,7 +113,7 @@ namespace OpenMS
 		}
 	
 		/// returns the name to register at the factory
-		static const String getName()
+		static const String getProductName()
 		{
 			return "ComplementMarker";
 		}

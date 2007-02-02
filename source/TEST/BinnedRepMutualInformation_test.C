@@ -56,14 +56,14 @@ e_ptr = new BinnedRepMutualInformation();
 CHECK(BinnedRepMutualInformation(const BinnedRepMutualInformation& source))
 	BinnedRepMutualInformation copy(*e_ptr);
 	TEST_EQUAL(copy.getName(), e_ptr->getName())
-	TEST_EQUAL(copy.getParam(), e_ptr->getParam())
+	TEST_EQUAL(copy.getParameters(), e_ptr->getParameters())
 RESULT
 
 CHECK(BinnedRepMutualInformation& operator = (const BinnedRepMutualInformation& source))
 	BinnedRepMutualInformation copy;
 	copy = *e_ptr;
 	TEST_EQUAL(copy.getName(), e_ptr->getName())
-	TEST_EQUAL(copy.getParam(), e_ptr->getParam())
+	TEST_EQUAL(copy.getParameters(), e_ptr->getParameters())
 RESULT
 			  
 
@@ -98,11 +98,11 @@ CHECK(static BinnedRepCompareFunctor* create())
 	BinnedRepCompareFunctor* cf = BinnedRepMutualInformation::create();
 	BinnedRepMutualInformation mi;
 	TEST_EQUAL(cf->getName(), mi.getName())
-	TEST_EQUAL(cf->getParam(), mi.getParam())
+	TEST_EQUAL(cf->getParameters(), mi.getParameters())
 RESULT
 
-CHECK(static const String getName())
-	TEST_EQUAL(e_ptr->getName(), "BinnedRepMutualInformation")
+CHECK(static const String getProductName())
+	TEST_EQUAL(e_ptr->getProductName(), "BinnedRepMutualInformation")
 RESULT
 
 delete e_ptr;

@@ -36,7 +36,9 @@ namespace OpenMS
 			mask_() 
   {
 		check_defaults_ = false;
-		name_ = PeakDiffBins::getName();
+		setName(PeakDiffBins::getProductName());
+		defaultsToParam_();
+
     // value from Bioinformatics, Bern 2004
     double mindiff = 1;
     double maxdiff = 187;
@@ -53,8 +55,6 @@ namespace OpenMS
     : FilterFunctor(source),
 			mask_(source.mask_) 
   {
-		check_defaults_ = false;
-		name_ = source.getName();
   }
   
   PeakDiffBins& PeakDiffBins::operator = (const PeakDiffBins& source)

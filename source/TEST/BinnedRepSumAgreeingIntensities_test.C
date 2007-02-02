@@ -56,14 +56,14 @@ e_ptr = new BinnedRepSumAgreeingIntensities();
 
 CHECK(BinnedRepSumAgreeingIntensities(const BinnedRepSumAgreeingIntensities& source))
 	BinnedRepSumAgreeingIntensities copy(*e_ptr);
-	TEST_EQUAL(copy.getParam(), e_ptr->getParam())
+	TEST_EQUAL(copy.getParameters(), e_ptr->getParameters())
 	TEST_EQUAL(copy.getName(), e_ptr->getName())
 RESULT
 
 CHECK(BinnedRepSumAgreeingIntensities& operator = (const BinnedRepSumAgreeingIntensities& source))
 	BinnedRepSumAgreeingIntensities copy;
 	copy = *e_ptr;
-	TEST_EQUAL(copy.getParam(), e_ptr->getParam())
+	TEST_EQUAL(copy.getParameters(), e_ptr->getParameters())
 	TEST_EQUAL(copy.getName(), e_ptr->getName())
 RESULT
 
@@ -106,7 +106,7 @@ RESULT
 CHECK(static BinnedRepCompareFunctor* create())
 	BinnedRepCompareFunctor* brcf = BinnedRepSumAgreeingIntensities::create();
 	BinnedRepSumAgreeingIntensities sai;
-	TEST_EQUAL(brcf->getParam(), sai.getParam())
+	TEST_EQUAL(brcf->getParameters(), sai.getParameters())
 	TEST_EQUAL(brcf->getName(), sai.getName())
 RESULT
 

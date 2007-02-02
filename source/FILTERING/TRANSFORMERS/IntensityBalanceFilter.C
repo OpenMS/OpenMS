@@ -34,10 +34,11 @@ namespace OpenMS
     :FilterFunctor()
   { 
 		check_defaults_ = false;
-		name_ = IntensityBalanceFilter::getName();
+		setName(IntensityBalanceFilter::getProductName());
+		defaultsToParam_();
   }
 
-  IntensityBalanceFilter::IntensityBalanceFilter(const IntensityBalanceFilter& source )
+  IntensityBalanceFilter::IntensityBalanceFilter(const IntensityBalanceFilter& source)
     : FilterFunctor(source)
   {
 		check_defaults_ = false;

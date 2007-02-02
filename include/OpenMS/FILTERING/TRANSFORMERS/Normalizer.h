@@ -70,7 +70,7 @@ namespace OpenMS
     static PreprocessingFunctor* create() { return new Normalizer();}
 
 		///
-		static const String getName()
+		static const String getProductName()
 		{
 			return "Normalizer";
 		}

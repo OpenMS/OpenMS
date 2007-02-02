@@ -78,7 +78,7 @@ namespace OpenMS
     static PeakSpectrumCompareFunctor* create() { return new ZhangSimilarityScore(); }
 
 		///
-		static const String getName()
+		static const String getProductName()
 		{
 			return "ZhangSimilarityScore";
 		}

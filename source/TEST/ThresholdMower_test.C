@@ -56,14 +56,14 @@ e_ptr = new ThresholdMower();
 
 CHECK((ThresholdMower(const ThresholdMower& source)))
 	ThresholdMower copy(*e_ptr);
-	TEST_EQUAL(copy.getParam(), e_ptr->getParam())
+	TEST_EQUAL(copy.getParameters(), e_ptr->getParameters())
 	TEST_EQUAL(copy.getName(), e_ptr->getName())
 RESULT
 
 CHECK((ThresholdMower& operator=(const ThresholdMower& source)))
 	ThresholdMower copy;
 	copy = *e_ptr;
-	TEST_EQUAL(copy.getParam(), e_ptr->getParam())
+	TEST_EQUAL(copy.getParameters(), e_ptr->getParameters())
 	TEST_EQUAL(copy.getName(), e_ptr->getName());
 RESULT
 
@@ -74,12 +74,16 @@ CHECK((template<typename SpectrumType> void filterSpectrum(SpectrumType& spectru
 	
 	TEST_EQUAL(spec.size(), 121)
 
-	e_ptr->getParam().setValue("threshold", 1);
+	Param p(e_ptr->getParameters());
+	p.setValue("threshold", 1);
+	e_ptr->setParameters(p);
 
 	e_ptr->filterSpectrum(spec);
 	TEST_EQUAL(spec.size(), 121)
 
-	e_ptr->getParam().setValue("threshold", 10);
+	p.setValue("threshold", 10);
+	e_ptr->setParameters(p);
+
 	e_ptr->filterSpectrum(spec);
 	TEST_EQUAL(spec.size(), 14)
 RESULT
@@ -87,7 +91,7 @@ RESULT
 CHECK((static PreprocessingFunctor* create()))
 	PreprocessingFunctor* ppf = ThresholdMower::create();
 	ThresholdMower mower;
-	TEST_EQUAL(ppf->getParam(), mower.getParam())
+	TEST_EQUAL(ppf->getParameters(), mower.getParameters())
 	TEST_EQUAL(ppf->getName(), mower.getName())
 RESULT
 
@@ -105,12 +109,15 @@ CHECK((void filterPeakMap(PeakMap& exp)))
 
   TEST_EQUAL(pm.begin()->size(), 121)
 
-  e_ptr->getParam().setValue("threshold", 1);
+	Param p(e_ptr->getParameters());
+	p.setValue("threshold", 1);
+	e_ptr->setParameters(p);
 
   e_ptr->filterPeakMap(pm);
   TEST_EQUAL(pm.begin()->size(), 121)
 
-  e_ptr->getParam().setValue("threshold", 10);
+  p.setValue("threshold", 10);
+	e_ptr->setParameters(p);
   e_ptr->filterPeakMap(pm);
   TEST_EQUAL(pm.begin()->size(), 14)
 
@@ -123,12 +130,15 @@ CHECK((void filterPeakSpectrum(PeakSpectrum& spectrum)))
 
   TEST_EQUAL(spec.size(), 121)
 
-  e_ptr->getParam().setValue("threshold", 1);
+	Param p(e_ptr->getParameters());
+ 	p.setValue("threshold", 1);
+	e_ptr->setParameters(p);
 
   e_ptr->filterPeakSpectrum(spec);
   TEST_EQUAL(spec.size(), 121)
 
-  e_ptr->getParam().setValue("threshold", 10);
+  p.setValue("threshold", 10);
+	e_ptr->setParameters(p);
   e_ptr->filterPeakSpectrum(spec);
   TEST_EQUAL(spec.size(), 14)
 RESULT

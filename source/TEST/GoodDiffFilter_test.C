@@ -56,14 +56,14 @@ e_ptr = new GoodDiffFilter();
 
 CHECK((GoodDiffFilter(const GoodDiffFilter& source)))
 	GoodDiffFilter copy(*e_ptr);
-	TEST_EQUAL(copy.getParam(), e_ptr->getParam())
+	TEST_EQUAL(copy.getParameters(), e_ptr->getParameters())
 	TEST_EQUAL(copy.getName(), e_ptr->getName())
 RESULT
 
 CHECK((GoodDiffFilter& operator=(const GoodDiffFilter& source)))
 	GoodDiffFilter copy;
 	copy = *e_ptr;
-	TEST_EQUAL(copy.getParam(), e_ptr->getParam())
+	TEST_EQUAL(copy.getParameters(), e_ptr->getParameters())
 	TEST_EQUAL(copy.getName(), e_ptr->getName())
 RESULT
 
@@ -76,7 +76,9 @@ CHECK((template<typename SpectrumType> double apply(SpectrumType& spectrum)))
 
 	TEST_REAL_EQUAL(filter, 0.104879)
 
-	e_ptr->getParam().setValue("tolerance", 10);
+	Param p(e_ptr->getParameters());
+	p.setValue("tolerance", 10);
+	e_ptr->setParameters(p);
 	filter = e_ptr->apply(spec);
 	
 	TEST_REAL_EQUAL(filter, 0.811684)
@@ -85,7 +87,7 @@ RESULT
 CHECK((static FilterFunctor* create()))
 	FilterFunctor* ff = GoodDiffFilter::create();
 	GoodDiffFilter good;
-	TEST_EQUAL(ff->getParam(), good.getParam())
+	TEST_EQUAL(ff->getParameters(), good.getParameters())
 	TEST_EQUAL(ff->getName(), good.getName())
 RESULT
 

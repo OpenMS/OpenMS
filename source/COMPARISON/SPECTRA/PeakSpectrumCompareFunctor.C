@@ -42,15 +42,14 @@ using namespace std;
 namespace OpenMS
 {
   PeakSpectrumCompareFunctor::PeakSpectrumCompareFunctor()
-		: FactoryProduct()
+		: FactoryProduct2(PeakSpectrumCompareFunctor::getProductName())
   {
-		name_ = PeakSpectrumCompareFunctor::getName();
     defaults_.setValue("filterwindow", 2.3);
-		param_ = defaults_;
+		defaultsToParam_();
   }
   
   PeakSpectrumCompareFunctor::PeakSpectrumCompareFunctor(const PeakSpectrumCompareFunctor& source)
-		:	FactoryProduct(source)
+		:	FactoryProduct2(source)
   {
   }
  
@@ -62,17 +61,17 @@ namespace OpenMS
   {
 		if (this != &source)
 		{
-    	FactoryProduct::operator=(source);
+    	FactoryProduct2::operator=(source);
 		}
     return *this;
   }
  
 	void PeakSpectrumCompareFunctor::registerChildren()
 	{
-    Factory<PeakSpectrumCompareFunctor>::registerProduct(SpectrumCheapDPCorr::getName(), &SpectrumCheapDPCorr::create);
-    Factory<PeakSpectrumCompareFunctor>::registerProduct(SpectrumPrecursorComparator::getName(), &SpectrumPrecursorComparator::create);
-		Factory<PeakSpectrumCompareFunctor>::registerProduct(ZhangSimilarityScore::getName(), &ZhangSimilarityScore::create);
-		Factory<PeakSpectrumCompareFunctor>::registerProduct(SpectrumAlignmentScore::getName(), &SpectrumAlignmentScore::create);
+    Factory<PeakSpectrumCompareFunctor>::registerProduct(SpectrumCheapDPCorr::getProductName(), &SpectrumCheapDPCorr::create);
+    Factory<PeakSpectrumCompareFunctor>::registerProduct(SpectrumPrecursorComparator::getProductName(), &SpectrumPrecursorComparator::create);
+		Factory<PeakSpectrumCompareFunctor>::registerProduct(ZhangSimilarityScore::getProductName(), &ZhangSimilarityScore::create);
+		Factory<PeakSpectrumCompareFunctor>::registerProduct(SpectrumAlignmentScore::getProductName(), &SpectrumAlignmentScore::create);
 	}
 	
   /**

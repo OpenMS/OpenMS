@@ -57,14 +57,14 @@ e_ptr = new KellerQuality();
 
 CHECK(KellerQuality(const KellerQuality& source))
 	KellerQuality copy(*e_ptr);
-	TEST_EQUAL(copy.getParam(), e_ptr->getParam())
+	TEST_EQUAL(copy.getParameters(), e_ptr->getParameters())
 	TEST_EQUAL(copy.getName(), e_ptr->getName())
 RESULT
 
 CHECK(KellerQuality& operator = (const KellerQuality& source))
 	KellerQuality copy;
 	copy = *e_ptr;
-	TEST_EQUAL(copy.getParam(), e_ptr->getParam())
+	TEST_EQUAL(copy.getParameters(), e_ptr->getParameters())
 	TEST_EQUAL(copy.getName(), e_ptr->getName())
 RESULT
 
@@ -84,7 +84,7 @@ RESULT
 CHECK(static FilterFunctor* create())
 	FilterFunctor* ff = KellerQuality::create();
 	KellerQuality kq;
-	TEST_EQUAL(ff->getParam(), kq.getParam())
+	TEST_EQUAL(ff->getParameters(), kq.getParameters())
 	TEST_EQUAL(ff->getName(), kq.getName())
 RESULT
 

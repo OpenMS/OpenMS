@@ -34,17 +34,16 @@ namespace OpenMS
   IsotopeMarker::IsotopeMarker()
     : PeakMarker()
   {
-		name_ = IsotopeMarker::getName();
+		setName(IsotopeMarker::getProductName());
     defaults_.setValue("marks", 1);
     defaults_.setValue("mz_variation", 0.1);
     defaults_.setValue("in_variation", 0.5);
-		param_ = defaults_;
+		defaultsToParam_();
   }
 
   IsotopeMarker::IsotopeMarker(const IsotopeMarker& source)
     : PeakMarker(source)
   {
-		name_ = source.getName();
   }
   
   IsotopeMarker::~IsotopeMarker()

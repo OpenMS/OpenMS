@@ -27,7 +27,7 @@
 #ifndef OPENMS_COMPARISON_SPECTRA_BINNEDREPCOMPAREFUNCTOR_H
 #define OPENMS_COMPARISON_SPECTRA_BINNEDREPCOMPAREFUNCTOR_H
 
-#include <OpenMS/CONCEPT/FactoryProduct.h>
+#include <OpenMS/CONCEPT/FactoryProduct2.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/COMPARISON/CLUSTERING/BinnedRep.h>
 
@@ -50,7 +50,7 @@ namespace OpenMS
 
 		@ingroup SpectraComparison
   */
-  class BinnedRepCompareFunctor : public FactoryProduct
+  class BinnedRepCompareFunctor : public FactoryProduct2
   {
 
   public:
@@ -86,6 +86,11 @@ namespace OpenMS
 
 		/// registers all derived products 
 		static void registerChildren();
+
+		static const String getProductName()
+		{
+			return "BinnedRepCompareFunctor";
+		}
 		//@}
 
   protected:

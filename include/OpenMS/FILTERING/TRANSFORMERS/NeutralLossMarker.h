@@ -121,7 +121,7 @@ namespace OpenMS
 		}
 
 		///
-		static const String getName()
+		static const String getProductName()
 		{
 			return "NeutralLossMarker";
 		}

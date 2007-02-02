@@ -27,7 +27,7 @@
 #ifndef OPENMS_COMPARISON_SPECTRA_PEAKSPECTRUMCOMPAREFUNCTOR_H
 #define OPENMS_COMPARISON_SPECTRA_PEAKSPECTRUMCOMPAREFUNCTOR_H
 
-#include <OpenMS/CONCEPT/FactoryProduct.h>
+#include <OpenMS/CONCEPT/FactoryProduct2.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 
 namespace OpenMS
@@ -43,7 +43,7 @@ namespace OpenMS
 		
 		@ingroup SpectraComparison
   */
-  class PeakSpectrumCompareFunctor : public FactoryProduct
+  class PeakSpectrumCompareFunctor : public FactoryProduct2
   {
 
   public:
@@ -68,6 +68,12 @@ namespace OpenMS
 
 		/// registers all derived products 
 		static void registerChildren();
+
+		/// 
+		static const String getProductName()
+		{
+			return "PeakSpectrumCompareFunctor";
+		}
 
   protected:
 

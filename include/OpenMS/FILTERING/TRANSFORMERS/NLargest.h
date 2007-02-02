@@ -74,7 +74,7 @@ namespace OpenMS
 		}	
 		
 		/// static name method to register with factory
-		static const String getName()
+		static const String getProductName()
 		{
 			return "NLargest";
 		}

@@ -45,18 +45,18 @@ using namespace std;
 
 BinnedSparseVector* sv2p;
 
-CHECK(BinnedSparseVector::BinnedSparseVector())
+CHECK(BinnedSparseVector())
   sv2p = new BinnedSparseVector();
   TEST_NOT_EQUAL(sv2p, 0)
 RESULT
 
-CHECK(BinnedSparseVector::resize())
+CHECK(void resize())
   TEST_EQUAL(sv2p->size(),0)
   sv2p->resize(10);
   TEST_EQUAL(sv2p->size(),10)
 RESULT
 
-CHECK(BinnedSparseVector::operator[]())
+CHECK(operator[]())
   TEST_EQUAL(sv2p->nonzero_size(),0)
   (*sv2p)[3] = 1.2;
   TEST_EQUAL(sv2p->nonzero_size(),1)
@@ -64,7 +64,7 @@ CHECK(BinnedSparseVector::operator[]())
   TEST_EQUAL(sv2p->nonzero_size(),2)
 RESULT
  
-CHECK(BinnedSparseVector::push_back())
+CHECK(push_back())
   sv2p->push_back(1.3);
   TEST_EQUAL(sv2p->size(),11)
   TEST_EQUAL(sv2p->nonzero_size(),3)
@@ -89,13 +89,13 @@ CHECK(contents + size)
   }
 RESULT
 
-CHECK(BinnedSparseVector::clear())
+CHECK(void clear())
   sv2p->clear();
   TEST_EQUAL(sv2p->size(),0)
   TEST_EQUAL(sv2p->nonzero_size(),0)
 RESULT
 
-CHECK(BinnedSparseVector::iterator)
+CHECK(iterator)
   sv2p->resize(10);
   uint i = 0;
   for ( BinnedSparseVector::iterator vit = sv2p->begin(); vit != sv2p->end();++vit)
@@ -123,7 +123,7 @@ CHECK(BinnedSparseVector::iterator)
   TEST_EQUAL(3,sv2p->nonzero_size())
 RESULT
 
-CHECK(BinnedSparseVector::const_iterator)
+CHECK(const_iterator)
   uint i = 0;
   for ( BinnedSparseVector::const_iterator cvit = sv2p->begin(); cvit != sv2p->end();++cvit)
   {
@@ -141,7 +141,7 @@ CHECK(BinnedSparseVector::const_iterator)
   TEST_EQUAL(i,10)
 RESULT
 
-CHECK(BinnedSparseVector::~BinnedSparseVector())
+CHECK(~BinnedSparseVector())
   delete sv2p;
 RESULT
 

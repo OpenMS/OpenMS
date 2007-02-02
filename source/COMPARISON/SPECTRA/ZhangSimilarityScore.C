@@ -36,9 +36,9 @@ namespace OpenMS
   ZhangSimilarityScore::ZhangSimilarityScore()
     : PeakSpectrumCompareFunctor()
   {
-		name_ = ZhangSimilarityScore::getName();
+		setName(ZhangSimilarityScore::getProductName());
 		defaults_.setValue("epsilon", 0.2);
-		param_ = defaults_;
+		defaultsToParam_();
   }
 
   ZhangSimilarityScore::ZhangSimilarityScore(const ZhangSimilarityScore& source)

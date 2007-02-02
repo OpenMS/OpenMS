@@ -56,14 +56,14 @@ e_ptr = new MarkerMower();
 
 CHECK((MarkerMower(const MarkerMower& source)))
 	MarkerMower copy(*e_ptr);
-	TEST_EQUAL(copy.getParam(), e_ptr->getParam())
+	TEST_EQUAL(copy.getParameters(), e_ptr->getParameters())
 	TEST_EQUAL(copy.getName(), e_ptr->getName())
 RESULT
 
 CHECK((MarkerMower& operator = (const MarkerMower& source)))
 	MarkerMower copy;
 	copy = *e_ptr;
-	TEST_EQUAL(copy.getParam(), e_ptr->getParam())
+	TEST_EQUAL(copy.getParameters(), e_ptr->getParameters())
 	TEST_EQUAL(copy.getName(), e_ptr->getName())
 RESULT
 
@@ -73,7 +73,9 @@ CHECK((template<typename SpectrumType> void filterSpectrum(SpectrumType& spectru
 	dta_file.load("data/Transformers_tests.dta", spec);
 	TEST_EQUAL(spec.size(), 121)
 
-	e_ptr->getParam().setValue("n", 10);
+	Param p(e_ptr->getParameters());
+	p.setValue("n", 10);
+	e_ptr->setParameters(p);
 	e_ptr->filterSpectrum(spec);
 	TEST_EQUAL(spec.size(), 0)
 RESULT
@@ -81,12 +83,12 @@ RESULT
 CHECK((static PreprocessingFunctor* create()))
 	PreprocessingFunctor* ppf = MarkerMower::create();
 	MarkerMower mower;
-	TEST_EQUAL(ppf->getParam(), mower.getParam())
+	TEST_EQUAL(ppf->getParameters(), mower.getParameters())
 	TEST_EQUAL(ppf->getName(), mower.getName())
 RESULT
 
-CHECK((static const String getName()))
-	TEST_EQUAL(e_ptr->getName(), "MarkerMower")
+CHECK((static const String getProductName()))
+	TEST_EQUAL(e_ptr->getProductName(), "MarkerMower")
 RESULT
 
 CHECK((void filterPeakMap(PeakMap& exp)))
@@ -101,7 +103,9 @@ CHECK((void filterPeakMap(PeakMap& exp)))
 
   TEST_EQUAL(pm.begin()->size(), 121)
 
-  e_ptr->getParam().setValue("n", 10);
+	Param p(e_ptr->getParameters());
+	p.setValue("n", 10);
+	e_ptr->setParameters(p);
   e_ptr->filterPeakMap(pm);
   TEST_EQUAL(pm.begin()->size(), 0)
 RESULT
@@ -113,8 +117,10 @@ CHECK((void filterPeakSpectrum(PeakSpectrum& spectrum)))
   PeakSpectrum spec;
   dta_file.load("data/Transformers_tests.dta", spec);
   TEST_EQUAL(spec.size(), 121)
-
-  e_ptr->getParam().setValue("n", 10);
+	
+	Param p(e_ptr->getParameters());
+	p.setValue("n", 10);
+	e_ptr->setParameters(p);
   e_ptr->filterPeakSpectrum(spec);
   TEST_EQUAL(spec.size(), 0)
 RESULT

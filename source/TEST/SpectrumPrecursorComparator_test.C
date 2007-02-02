@@ -56,14 +56,14 @@ e_ptr = new SpectrumPrecursorComparator();
 CHECK(SpectrumPrecursorComparator(const SpectrumPrecursorComparator& source))
 	SpectrumPrecursorComparator copy(*e_ptr);
 	TEST_EQUAL(copy.getName(), e_ptr->getName())
-	TEST_EQUAL(copy.getParam(), e_ptr->getParam())
+	TEST_EQUAL(copy.getParameters(), e_ptr->getParameters())
 RESULT
 
 CHECK(SpectrumPrecursorComparator& operator = (const SpectrumPrecursorComparator& source))
 	SpectrumPrecursorComparator copy;
 	copy = *e_ptr;
 	TEST_EQUAL(copy.getName(), e_ptr->getName())
-	TEST_EQUAL(copy.getParam(), e_ptr->getParam())
+	TEST_EQUAL(copy.getParameters(), e_ptr->getParameters())
 RESULT
 
 CHECK(double operator () (const PeakSpectrum& a, const PeakSpectrum& b) const)
@@ -97,7 +97,7 @@ CHECK(static PeakSpectrumCompareFunctor* create())
 	PeakSpectrumCompareFunctor* cf = SpectrumPrecursorComparator::create();
 	SpectrumPrecursorComparator pre_comp;
 	TEST_EQUAL(cf->getName(), pre_comp.getName())
-	TEST_EQUAL(cf->getParam(), pre_comp.getParam())
+	TEST_EQUAL(cf->getParameters(), pre_comp.getParameters())
 RESULT
 
 CHECK(static const String getName())

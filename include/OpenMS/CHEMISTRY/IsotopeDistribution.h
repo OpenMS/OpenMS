@@ -168,13 +168,13 @@ namespace OpenMS
 		protected:
 
 			/// convolves the distributions @p left and @p right and stores the result in @p result
-			void convolve(ContainerType& result, const ContainerType& left, const ContainerType& right) const;
+			void convolve_(ContainerType& result, const ContainerType& left, const ContainerType& right) const;
 
 			/// convolves the distribution @p input @p factor times and stores the result in @p result
-			void convolvePow(ContainerType& result, const ContainerType& input, Size factor) const;
+			void convolvePow_(ContainerType& result, const ContainerType& input, Size factor) const;
 
 			/// convolves the distribution @p input with itself and stores the result in @p result
-			void convolveSquare(ContainerType& result, const ContainerType& input) const;
+			void convolveSquare_(ContainerType& result, const ContainerType& input) const;
 
 			/// maximal isotopes which is used to calculate the distribution
 			Size max_isotope_;

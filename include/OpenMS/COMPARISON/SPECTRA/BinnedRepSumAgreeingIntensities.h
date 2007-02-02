@@ -75,7 +75,7 @@ namespace OpenMS
     static BinnedRepCompareFunctor* create() { return new BinnedRepSumAgreeingIntensities(); }
 
 		///
-		static const String getName()
+		static const String getProductName()
 		{
 			return "BinnedRepSumAgreeingIntensities";
 		}

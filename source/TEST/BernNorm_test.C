@@ -56,14 +56,14 @@ e_ptr = new BernNorm();
 
 CHECK((BernNorm(const BernNorm& source)))
 	BernNorm copy(*e_ptr);
-	TEST_EQUAL(copy.getParam(), e_ptr->getParam())
+	TEST_EQUAL(copy.getParameters(), e_ptr->getParameters())
 	TEST_EQUAL(copy.getName(), e_ptr->getName())
 RESULT
 
 CHECK((BernNorm& operator=(const BernNorm& source)))
 	BernNorm copy;
 	copy = *e_ptr;
-	TEST_EQUAL(copy.getParam(), e_ptr->getParam())
+	TEST_EQUAL(copy.getParameters(), e_ptr->getParameters())
 	TEST_EQUAL(copy.getName(), e_ptr->getName())
 RESULT
 
@@ -78,7 +78,9 @@ CHECK((template<typename SpectrumType> void filterSpectrum(SpectrumType& spectru
 	
 	TEST_EQUAL(spec.size(), 121)
 
-	e_ptr->getParam().setValue("C2", 2000.0);
+	Param p(e_ptr->getParameters());
+	p.setValue("C2", 2000.0);
+	e_ptr->setParameters(p);
 	e_ptr->filterSpectrum(spec);
 
 	TEST_EQUAL(spec.size(), 28)
@@ -88,7 +90,7 @@ RESULT
 CHECK((static PreprocessingFunctor* create()))
 	PreprocessingFunctor* ppf = BernNorm::create();
 	BernNorm bern;
-	TEST_EQUAL(ppf->getParam(), bern.getParam())
+	TEST_EQUAL(ppf->getParameters(), bern.getParameters())
 	TEST_EQUAL(ppf->getName(), bern.getName())
 RESULT
   
@@ -113,7 +115,9 @@ CHECK((void filterPeakMap(PeakMap& exp)))
 
   TEST_EQUAL(pm.begin()->size(), 121)
 
-  e_ptr->getParam().setValue("C2", 2000.0);
+	Param p(e_ptr->getParameters());
+	p.setValue("C2", 2000.0);
+  e_ptr->setParameters(p);
   e_ptr->filterPeakMap(pm);
 
   TEST_EQUAL(pm.begin()->size(), 28)
@@ -135,7 +139,9 @@ CHECK((void filterPeakSpectrum(PeakSpectrum& spectrum)))
 
   TEST_EQUAL(spec.size(), 121)
 
-  e_ptr->getParam().setValue("C2", 2000.0);
+	Param p(e_ptr->getParameters());
+	p.setValue("C2", 2000.0);
+  e_ptr->setParameters(p);
   e_ptr->filterPeakSpectrum(spec);
 
   TEST_EQUAL(spec.size(), 28)

@@ -73,7 +73,7 @@ namespace OpenMS
     std::vector<double> operator () (const ClusterSpectrum& spec);
 
 		///
-		static const String getName()
+		static const String getProductName()
 		{
 			return "PeakPosBins";
 		}

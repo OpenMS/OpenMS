@@ -77,12 +77,10 @@ namespace OpenMS
     static PeakSpectrumCompareFunctor* create() { return new SpectrumAlignmentScore(); }
 
 		///
-		static const String getName()
+		static const String getProductName()
 		{
 			return "SpectrumAlignmentScore";
 		}
-
-		void getSpectrumAlignment(std::vector<std::pair<Size, Size> >& alignment, const PeakSpectrum& s1, const PeakSpectrum& s2, double epsilon) const;
 		// @}
 
   };

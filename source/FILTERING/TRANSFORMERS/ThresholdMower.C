@@ -33,9 +33,9 @@ namespace OpenMS
   ThresholdMower::ThresholdMower()
     : PreprocessingFunctor()
   {
-		name_ = ThresholdMower::getName();
+		setName(ThresholdMower::getProductName());
     defaults_.setValue("threshold", 0.05f);
-		param_ = defaults_;
+		defaultsToParam_();
   }
 
   ThresholdMower::ThresholdMower(const ThresholdMower& source)

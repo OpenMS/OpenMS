@@ -34,16 +34,15 @@ namespace OpenMS
   NeutralLossMarker::NeutralLossMarker()
     : PeakMarker()
   {
-		name_ = NeutralLossMarker::getName();
+		setName(NeutralLossMarker::getProductName());
 		defaults_.setValue("marks", 1);
     defaults_.setValue("tolerance", 0.2);
-		param_ = defaults_;
+		defaultsToParam_();
   }
 
   NeutralLossMarker::NeutralLossMarker(const NeutralLossMarker& source)
     : PeakMarker(source)
   {
-		name_ = source.getName();
   }
   
   NeutralLossMarker::~NeutralLossMarker()

@@ -36,9 +36,9 @@ namespace OpenMS
   SpectrumAlignmentScore::SpectrumAlignmentScore()
     : PeakSpectrumCompareFunctor()
   {
-		name_ = SpectrumAlignmentScore::getName();
+		setName(SpectrumAlignmentScore::getProductName());
 		defaults_.setValue("epsilon", 0.3);
-		param_ = defaults_;
+		defaultsToParam_();
   }
 
   SpectrumAlignmentScore::SpectrumAlignmentScore(const SpectrumAlignmentScore& source)
@@ -69,7 +69,9 @@ namespace OpenMS
 		const double epsilon = (double)param_.getValue("epsilon");
    	
 		SpectrumAlignment aligner;
-		aligner.getParam().setValue("epsilon", epsilon);
+		Param p;
+		p.setValue("epsilon", epsilon);
+		aligner.setParameters(p);
 
 		vector<pair<Size, Size> > alignment;
 		aligner.getSpectrumAlignment(alignment, s1, s2);

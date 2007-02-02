@@ -33,12 +33,12 @@
 
 using namespace std;
 
-namespace OpenMS{
+namespace OpenMS
+{
 
   KellerQuality::KellerQuality(const KellerQuality& source)
     : FilterFunctor(source)
   {
-		name_ = source.getName();
   }
     
   KellerQuality& KellerQuality::operator = (const KellerQuality& source)
@@ -52,7 +52,7 @@ namespace OpenMS{
   
   KellerQuality::KellerQuality()
   {
-		name_ = KellerQuality::getName();
+		setName(KellerQuality::getProductName());
     // values from private communication from andrew keller
 
     defaults_.setValue("constant_1+", -0.236);
@@ -78,7 +78,7 @@ namespace OpenMS{
     defaults_.setValue("dCn_1+", 3.904);
     defaults_.setValue("dCn_2+", 7.317);
     defaults_.setValue("dCn_3+",11.263);
-		param_ = defaults_;
+		defaultsToParam_();
   }
 
   KellerQuality::~KellerQuality()

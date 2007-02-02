@@ -39,12 +39,12 @@
 namespace OpenMS
 {
   PreprocessingFunctor::PreprocessingFunctor()
-    : FactoryProduct()
+    : FactoryProduct2(PreprocessingFunctor::getProductName())
   {
   }
 
   PreprocessingFunctor::PreprocessingFunctor(const PreprocessingFunctor& source)
-    : FactoryProduct(source)
+    : FactoryProduct2(source)
   {
 		
   }
@@ -55,22 +55,22 @@ namespace OpenMS
 	
 	void PreprocessingFunctor::registerChildren()
 	{
-    Factory<PreprocessingFunctor>::registerProduct(ThresholdMower::getName(), &ThresholdMower::create);
-    Factory<PreprocessingFunctor>::registerProduct(WindowMower::getName(), &WindowMower::create);
-    Factory<PreprocessingFunctor>::registerProduct(Scaler::getName(), &Scaler::create);
-    Factory<PreprocessingFunctor>::registerProduct(NLargest::getName(), &NLargest::create);
-    Factory<PreprocessingFunctor>::registerProduct(BernNorm::getName(), &BernNorm::create);
-    Factory<PreprocessingFunctor>::registerProduct(MarkerMower::getName(), &MarkerMower::create);
-    Factory<PreprocessingFunctor>::registerProduct(SqrtMower::getName(), &SqrtMower::create);
-    Factory<PreprocessingFunctor>::registerProduct(Normalizer::getName(), &Normalizer::create);
-    Factory<PreprocessingFunctor>::registerProduct(ParentPeakMower::getName(), &ParentPeakMower::create);
+    Factory<PreprocessingFunctor>::registerProduct(ThresholdMower::getProductName(), &ThresholdMower::create);
+    Factory<PreprocessingFunctor>::registerProduct(WindowMower::getProductName(), &WindowMower::create);
+    Factory<PreprocessingFunctor>::registerProduct(Scaler::getProductName(), &Scaler::create);
+    Factory<PreprocessingFunctor>::registerProduct(NLargest::getProductName(), &NLargest::create);
+    Factory<PreprocessingFunctor>::registerProduct(BernNorm::getProductName(), &BernNorm::create);
+    Factory<PreprocessingFunctor>::registerProduct(MarkerMower::getProductName(), &MarkerMower::create);
+    Factory<PreprocessingFunctor>::registerProduct(SqrtMower::getProductName(), &SqrtMower::create);
+    Factory<PreprocessingFunctor>::registerProduct(Normalizer::getProductName(), &Normalizer::create);
+    Factory<PreprocessingFunctor>::registerProduct(ParentPeakMower::getProductName(), &ParentPeakMower::create);
 	}
 	
   PreprocessingFunctor& PreprocessingFunctor::operator = (const PreprocessingFunctor& source)
   {
 		if (this != &source)
 		{
-   		FactoryProduct::operator=(source);
+   		FactoryProduct2::operator=(source);
 		}
     return *this;
   }

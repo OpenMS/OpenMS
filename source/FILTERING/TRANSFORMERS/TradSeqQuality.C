@@ -38,7 +38,7 @@ namespace OpenMS{
   TradSeqQuality::TradSeqQuality()
     :FilterFunctor()
   {
-		name_ = TradSeqQuality::getName();
+		setName(TradSeqQuality::getProductName());
     defaults_.setValue("xcorr_1+", 1.9);
     defaults_.setValue("xcorr_2+", 2.2);
     defaults_.setValue("xcorr_3+", 3.75);
@@ -46,7 +46,7 @@ namespace OpenMS{
     defaults_.setValue("dCn_1+", 0.08);
     defaults_.setValue("dCn_2+", 0.08);
     defaults_.setValue("dCn_3+", 0.08);
-		param_ = defaults_;
+		defaultsToParam_();
   }
 
   TradSeqQuality::TradSeqQuality(const TradSeqQuality& source)

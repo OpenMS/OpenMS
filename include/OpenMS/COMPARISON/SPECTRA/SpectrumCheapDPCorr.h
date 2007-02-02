@@ -90,7 +90,7 @@ namespace OpenMS
     static PeakSpectrumCompareFunctor* create() { return new SpectrumCheapDPCorr(); }
 
 		///
-		static const String getName()
+		static const String getProductName()
 		{
 			return "SpectrumCheapDPCorr";
 		}

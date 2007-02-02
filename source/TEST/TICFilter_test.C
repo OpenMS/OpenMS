@@ -56,14 +56,14 @@ e_ptr = new TICFilter();
 
 CHECK((TICFilter(const TICFilter& source)))
 	TICFilter copy(*e_ptr);
-	TEST_EQUAL(copy.getParam(), e_ptr->getParam());
+	TEST_EQUAL(copy.getParameters(), e_ptr->getParameters());
 	TEST_EQUAL(copy.getName(), e_ptr->getName());
 RESULT
 
 CHECK((TICFilter& operator=(const TICFilter& source)))
 	TICFilter copy;
 	copy = *e_ptr;
-	TEST_EQUAL(copy.getParam(), e_ptr->getParam());
+	TEST_EQUAL(copy.getParameters(), e_ptr->getParameters());
 	TEST_EQUAL(copy.getName(), e_ptr->getName());
 RESULT
 

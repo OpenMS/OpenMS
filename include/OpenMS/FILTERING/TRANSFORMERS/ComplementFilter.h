@@ -108,7 +108,7 @@ namespace OpenMS
 		}
 
 		/// returns the name for registration at the factory
-		static const String getName()
+		static const String getProductName()
 		{
 			return "ComplementFilter";
 		}

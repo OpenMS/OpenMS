@@ -39,15 +39,14 @@ using namespace std;
 namespace OpenMS
 {
   SpectrumAlignment::SpectrumAlignment()
-		: FactoryProduct()
+		: FactoryProduct2(SpectrumAlignment::getProductName())
   {
-		name_ = SpectrumAlignment::getName();
 		defaults_.setValue("epsilon", 0.3);
-		param_ = defaults_;
+		defaultsToParam_();
   }
 
   SpectrumAlignment::SpectrumAlignment(const SpectrumAlignment& source)
-		: FactoryProduct(source)
+		: FactoryProduct2(source)
   {
   }
 
@@ -59,7 +58,7 @@ namespace OpenMS
   {
 		if (this != &source)
 		{
-    	FactoryProduct::operator = (source);
+    	FactoryProduct2::operator = (source);
 		}
     return *this;
   }

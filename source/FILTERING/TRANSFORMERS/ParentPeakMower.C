@@ -34,7 +34,7 @@ namespace OpenMS
   ParentPeakMower::ParentPeakMower()
     : PreprocessingFunctor()
   {
-		name_ = ParentPeakMower::getName();
+		setName(ParentPeakMower::getProductName());
     defaults_.setValue("window_size", 2.0);
 		defaults_.setValue("default_charge", (int)2);
 		defaults_.setValue("clean_all_charge_states", (short)1);
@@ -43,13 +43,12 @@ namespace OpenMS
 		defaults_.setValue("reduce_by_factor", (short)0);
 		defaults_.setValue("factor", 1000.0);
 		defaults_.setValue("set_to_zero", (short)1);
-		param_ = defaults_;
+		defaultsToParam_();
   }
 
   ParentPeakMower::ParentPeakMower(const ParentPeakMower& source)
     : PreprocessingFunctor(source)
   {
-		name_ = source.getName();
   }
 
   ParentPeakMower::~ParentPeakMower()

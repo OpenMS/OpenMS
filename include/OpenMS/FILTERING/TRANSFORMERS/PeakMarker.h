@@ -29,7 +29,7 @@
 
 #include <map>
 
-#include <OpenMS/CONCEPT/FactoryProduct.h>
+#include <OpenMS/CONCEPT/FactoryProduct2.h>
 
 namespace OpenMS
 {
@@ -38,7 +38,7 @@ namespace OpenMS
 
   */
   class PeakMarker
-    : public FactoryProduct
+    : public FactoryProduct2
   {
   public:
 
@@ -56,6 +56,12 @@ namespace OpenMS
 
 		/// method to mark peaks
 		template <typename SpectrumType> void apply(std::map<double, bool>& /* marked */, SpectrumType& /* spectrum */) {}
+
+		///
+		static const String getProductName()
+		{
+			return "PeakMarker";
+		}
   };
 
 }

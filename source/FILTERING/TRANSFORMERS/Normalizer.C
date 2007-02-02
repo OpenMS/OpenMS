@@ -34,15 +34,14 @@ namespace OpenMS
   Normalizer::Normalizer()
     : PreprocessingFunctor()
   {
-		name_ = Normalizer::getName();
+		setName(Normalizer::getProductName());
     defaults_.setValue("method", "to_one");
-		param_ = defaults_;
+		defaultsToParam_();
   }
 
   Normalizer::Normalizer(const Normalizer& source)
     : PreprocessingFunctor(source)
   {
-		name_ = source.getName();
   }
 
   Normalizer::~Normalizer()

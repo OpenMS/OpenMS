@@ -37,7 +37,8 @@ namespace OpenMS
   BinnedRepSharedPeakCount::BinnedRepSharedPeakCount()
 		: BinnedRepCompareFunctor()
   {
-		name_ = BinnedRepSharedPeakCount::getName();
+		setName(BinnedRepSharedPeakCount::getProductName());
+		defaultsToParam_();
   }
 
   BinnedRepSharedPeakCount::BinnedRepSharedPeakCount(const BinnedRepSharedPeakCount& source)
@@ -47,7 +48,10 @@ namespace OpenMS
 
   BinnedRepSharedPeakCount& BinnedRepSharedPeakCount::operator= (const BinnedRepSharedPeakCount& source)
   {
-    BinnedRepCompareFunctor::operator=(source);
+		if (&source != this)
+		{
+	    BinnedRepCompareFunctor::operator=(source);
+		}
     return *this;
   }
   

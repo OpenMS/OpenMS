@@ -56,14 +56,14 @@ e_ptr = new Normalizer();
 
 CHECK((Normalizer(const Normalizer& source)))
 	Normalizer copy(*e_ptr);
-	TEST_EQUAL(copy.getParam(), e_ptr->getParam())
+	TEST_EQUAL(copy.getParameters(), e_ptr->getParameters())
 	TEST_EQUAL(copy.getName(), e_ptr->getName())
 RESULT
 
 CHECK((Normalizer& operator = (const Normalizer& source)))
 	Normalizer copy;
 	copy = *e_ptr;
-	TEST_EQUAL(copy.getParam(), e_ptr->getParam())
+	TEST_EQUAL(copy.getParameters(), e_ptr->getParameters())
 	TEST_EQUAL(copy.getName(), e_ptr->getName())
 RESULT
 
@@ -82,7 +82,9 @@ CHECK((template<typename SpectrumType> void filterSpectrum(SpectrumType& spectru
 	
 	TEST_EQUAL(spec.rbegin()->getIntensity(), 1)
 
-	e_ptr->getParam().setValue("method", "to_TIC");
+	Param p(e_ptr->getParameters());
+	p.setValue("method", "to_TIC");
+	e_ptr->setParameters(p);
 	e_ptr->filterSpectrum(spec);
 
 	double sum(0);
@@ -97,7 +99,7 @@ RESULT
 CHECK((static PreprocessingFunctor* create()))
 	PreprocessingFunctor* ppf = Normalizer::create();
 	Normalizer norm;
-	TEST_EQUAL(ppf->getParam(), norm.getParam())
+	TEST_EQUAL(ppf->getParameters(), norm.getParameters())
 	TEST_EQUAL(ppf->getName(), norm.getName())
 RESULT
 
@@ -126,7 +128,9 @@ CHECK((void filterPeakMap(PeakMap& exp)))
 
   TEST_EQUAL(pm.begin()->rbegin()->getIntensity(), 1)
 
-  e_ptr->getParam().setValue("method", "to_TIC");
+	Param p(e_ptr->getParameters());
+	p.setValue("method", "to_TIC");
+	e_ptr->setParameters(p);
   e_ptr->filterPeakMap(pm);
 
   double sum(0);
@@ -156,7 +160,9 @@ CHECK((void filterPeakSpectrum(PeakSpectrum& spectrum)))
 
   TEST_EQUAL(spec.rbegin()->getIntensity(), 1)
 
-  e_ptr->getParam().setValue("method", "to_TIC");
+	Param p(e_ptr->getParameters());
+	p.setValue("method", "to_TIC");
+	e_ptr->setParameters(p);
   e_ptr->filterPeakSpectrum(spec);
 
   double sum(0);

@@ -71,7 +71,7 @@ CHECK(PILISIdentification& operator = (const PILISIdentification&))
 RESULT
 
 
-CHECK(Param& getParam())
+CHECK(Param& getParameters())
 	Param p(ptr->getParameters());
 	p.setValue("bla", "blubb");
 	ptr->setParameters(p);
@@ -92,7 +92,7 @@ RESULT
 //CHECK(void resetToDefaultParam())
 //	ptr->resetToDefaultParam();
 //	PILISIdentification id;
-//	TEST_EQUAL(ptr->getParam(), id.getParam())
+//	TEST_EQUAL(ptr->getParameters(), id.getParameters())
 //RESULT
 
 CHECK(void setSequenceDB(PILISSequenceDB* sequence_db))

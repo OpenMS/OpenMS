@@ -50,7 +50,7 @@ RESULT
 
 CHECK(NLargest(Size n))
 	NLargest filter(10);
-	TEST_EQUAL((unsigned int)filter.getParam().getValue("n"), 10)
+	TEST_EQUAL((unsigned int)filter.getParameters().getValue("n"), 10)
 RESULT
 
 CHECK((~NLargest()))
@@ -61,14 +61,14 @@ e_ptr = new NLargest();
 
 CHECK((NLargest(const NLargest& source)))
 	NLargest copy(*e_ptr);
-	TEST_EQUAL(copy.getParam(), e_ptr->getParam())
+	TEST_EQUAL(copy.getParameters(), e_ptr->getParameters())
 	TEST_EQUAL(copy.getName(), e_ptr->getName())
 RESULT
 
 CHECK((NLargest& operator=(const NLargest& source)))
 	NLargest copy;
 	copy = *e_ptr;
-	TEST_EQUAL(copy.getParam(), e_ptr->getParam())
+	TEST_EQUAL(copy.getParameters(), e_ptr->getParameters())
 	TEST_EQUAL(copy.getName(), e_ptr->getName())
 RESULT
 
@@ -78,7 +78,9 @@ CHECK((template<typename SpectrumType> void filterSpectrum(SpectrumType& spectru
 	dta_file.load("data/Transformers_tests.dta", spec);
 	TEST_EQUAL(spec.size(), 121)
 
-	e_ptr->getParam().setValue("n", 10);
+	Param p(e_ptr->getParameters());
+	p.setValue("n", 10);
+	e_ptr->setParameters(p);
 	e_ptr->filterSpectrum(spec);
 	TEST_EQUAL(spec.size(), 10)
 RESULT
@@ -86,7 +88,7 @@ RESULT
 CHECK((static PreprocessingFunctor* create()))
 	PreprocessingFunctor* ppf = NLargest::create();
 	NLargest nlargest;
-	TEST_EQUAL(ppf->getParam(), nlargest.getParam())
+	TEST_EQUAL(ppf->getParameters(), nlargest.getParameters())
 	TEST_EQUAL(ppf->getName(), nlargest.getName())
 RESULT
 
@@ -106,7 +108,9 @@ CHECK((void filterPeakMap(PeakMap& exp)))
 
   TEST_EQUAL(pm.begin()->size(), 121)
 
-  e_ptr->getParam().setValue("n", 10);
+	Param p(e_ptr->getParameters());
+	p.setValue("n", 10);
+  e_ptr->setParameters(p);
   e_ptr->filterPeakMap(pm);
   TEST_EQUAL(pm.begin()->size(), 10)
 RESULT
@@ -118,8 +122,10 @@ CHECK((void filterPeakSpectrum(PeakSpectrum& spectrum)))
   PeakSpectrum spec;
   dta_file.load("data/Transformers_tests.dta", spec);
   TEST_EQUAL(spec.size(), 121)
-
-  e_ptr->getParam().setValue("n", 10);
+	
+	Param p(e_ptr->getParameters());
+	p.setValue("n", 10);
+  e_ptr->setParameters(p);
   e_ptr->filterPeakSpectrum(spec);
   TEST_EQUAL(spec.size(), 10)
 RESULT

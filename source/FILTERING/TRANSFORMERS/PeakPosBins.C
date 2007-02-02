@@ -36,15 +36,14 @@ namespace OpenMS
   PeakPosBins::PeakPosBins()
     :FilterFunctor() 
   {
-		name_ = PeakPosBins::getName();
+		setName(PeakPosBins::getProductName());
 		defaults_.setValue("bins", 10);
-		param_ = defaults_;
+		defaultsToParam_();
   }
 
   PeakPosBins::PeakPosBins(const PeakPosBins& source)
     : FilterFunctor(source)
   {
-		name_ = source.getName();
   }
     
   PeakPosBins& PeakPosBins::operator = (const PeakPosBins& source)

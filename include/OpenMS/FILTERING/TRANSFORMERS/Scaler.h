@@ -66,7 +66,7 @@ namespace OpenMS
     static PreprocessingFunctor* create() { return new Scaler(); }
 
 		///
-		static const String getName()
+		static const String getProductName()
 		{
 			return "Scaler";
 		}

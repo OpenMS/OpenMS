@@ -69,7 +69,7 @@ CHECK(PILISModel& operator = (const PILISModel& mode))
 RESULT
 
 //CHECK(Param& getParameters())
-//	ptr->getParam().setValue("bla", "blubb");
+//	ptr->getParameters().setValue("bla", "blubb");
 //RESULT
 
 CHECK(const Param& getParameters() const)
@@ -86,7 +86,7 @@ RESULT
 
 //CHECK(void resetToDefaultParam())
 //	ptr->resetToDefaultParam();
-//	TEST_REAL_EQUAL(ptr->getParam().getValue("upper_mz"), 2000.0)
+//	TEST_REAL_EQUAL(ptr->getParameters().getValue("upper_mz"), 2000.0)
 //RESULT
 
 CHECK(void writetoYGFFile(const String& filename))

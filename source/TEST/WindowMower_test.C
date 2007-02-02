@@ -56,14 +56,14 @@ e_ptr = new WindowMower();
 
 CHECK((WindowMower(const WindowMower& source)))
 	WindowMower copy(*e_ptr);
-	TEST_EQUAL(copy.getParam(), e_ptr->getParam())
+	TEST_EQUAL(copy.getParameters(), e_ptr->getParameters())
 	TEST_EQUAL(copy.getName(), e_ptr->getName())
 RESULT
 
 CHECK((WindowMower& operator = (const WindowMower& source)))
 	WindowMower copy;
 	copy = *e_ptr;
-	TEST_EQUAL(copy.getParam(), e_ptr->getParam())
+	TEST_EQUAL(copy.getParameters(), e_ptr->getParameters())
 	TEST_EQUAL(copy.getName(), e_ptr->getName())
 RESULT
 
@@ -73,8 +73,10 @@ CHECK((template<typename SpectrumType> void filterSpectrum(SpectrumType& spectru
 	dta_file.load("data/Transformers_tests.dta", spec);
 	TEST_EQUAL(spec.size(), 121)
 
-	e_ptr->getParam().setValue("windowsize", 50); // default
-	e_ptr->getParam().setValue("peakcount", 2);
+	Param p(e_ptr->getParameters());
+	p.setValue("windowsize", 50); // default
+	p.setValue("peakcount", 2);
+	e_ptr->setParameters(p);
 	
 	e_ptr->filterSpectrum(spec);
 	
@@ -85,7 +87,7 @@ RESULT
 CHECK((static PreprocessingFunctor* create()))
 	PreprocessingFunctor* ppf = WindowMower::create();
 	WindowMower mower;
-	TEST_EQUAL(ppf->getParam(), mower.getParam())
+	TEST_EQUAL(ppf->getParameters(), mower.getParameters())
 	TEST_EQUAL(ppf->getName(), mower.getName())
 RESULT
 
@@ -103,8 +105,10 @@ CHECK((void filterPeakMap(PeakMap& exp)))
 
   TEST_EQUAL(pm.begin()->size(), 121)
 
-  e_ptr->getParam().setValue("windowsize", 50); // default
-  e_ptr->getParam().setValue("peakcount", 2);
+  Param p(e_ptr->getParameters());
+  p.setValue("windowsize", 50); // default
+  p.setValue("peakcount", 2);
+  e_ptr->setParameters(p);
 
   e_ptr->filterPeakMap(pm);
 
@@ -117,8 +121,10 @@ CHECK((void filterPeakSpectrum(PeakSpectrum& spectrum)))
   dta_file.load("data/Transformers_tests.dta", spec);
   TEST_EQUAL(spec.size(), 121)
 
-  e_ptr->getParam().setValue("windowsize", 50); // default
-  e_ptr->getParam().setValue("peakcount", 2);
+  Param p(e_ptr->getParameters());
+  p.setValue("windowsize", 50); // default
+  p.setValue("peakcount", 2);
+  e_ptr->setParameters(p);
 
   e_ptr->filterPeakSpectrum(spec);
 

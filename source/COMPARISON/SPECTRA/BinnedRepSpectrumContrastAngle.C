@@ -36,7 +36,7 @@ namespace OpenMS
   BinnedRepSpectrumContrastAngle::BinnedRepSpectrumContrastAngle()
 		: BinnedRepCompareFunctor()
   {
-		name_ = BinnedRepSpectrumContrastAngle::getName();
+		setName(BinnedRepSpectrumContrastAngle::getProductName());
   }
 
   BinnedRepSpectrumContrastAngle::BinnedRepSpectrumContrastAngle(const BinnedRepSpectrumContrastAngle& source)

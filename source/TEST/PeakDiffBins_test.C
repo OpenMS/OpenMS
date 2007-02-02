@@ -57,14 +57,14 @@ e_ptr = new PeakDiffBins();
 
 CHECK(PeakDiffBins(const PeakDiffBins& source))
 	PeakDiffBins copy(*e_ptr);
-	TEST_EQUAL(copy.getParam(), e_ptr->getParam())
+	TEST_EQUAL(copy.getParameters(), e_ptr->getParameters())
 	TEST_EQUAL(copy.getName(), e_ptr->getName())
 RESULT
 
 CHECK(PeakDiffBins& operator = (const PeakDiffBins& source))
 	PeakDiffBins copy;
 	copy = *e_ptr;
-	TEST_EQUAL(copy.getParam(), e_ptr->getParam())
+	TEST_EQUAL(copy.getParameters(), e_ptr->getParameters())
 	TEST_EQUAL(copy.getName(), e_ptr->getName())
 RESULT
 
@@ -84,7 +84,7 @@ RESULT
 CHECK(static FilterFunctor* create())
 	FilterFunctor* ff = PeakDiffBins::create();
 	PeakDiffBins filter;
-	TEST_EQUAL(filter.getParam(), ff->getParam())
+	TEST_EQUAL(filter.getParameters(), ff->getParameters())
 	TEST_EQUAL(filter.getName(), ff->getName())
 RESULT
 

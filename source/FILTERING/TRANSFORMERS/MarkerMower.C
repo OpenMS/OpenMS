@@ -41,18 +41,17 @@ namespace OpenMS
     : PreprocessingFunctor()
   {
 		check_defaults_ = false;
-		name_ = MarkerMower::getName();
+		setName(MarkerMower::getProductName());
     //todo remove
     //insertmarker(new IsotopeMarker());
     //insertmarker(new ComplementMarker());
     //insertmarker(new NeutralLossMarker());
+		defaultsToParam_();
   }
 
   MarkerMower::MarkerMower(const MarkerMower& source)
     : PreprocessingFunctor(source)
   {
-		check_defaults_ = false;
-		name_ = source.getName();
   }
 
   MarkerMower::~MarkerMower()

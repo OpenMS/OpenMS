@@ -33,10 +33,10 @@ namespace OpenMS
   ComplementMarker::ComplementMarker()
     : PeakMarker()
   {
-		name_ = ComplementMarker::getName();
+		setName(ComplementMarker::getProductName());
     defaults_.setValue("tolerance", 1);
     defaults_.setValue("marks", 1);
-		param_ = defaults_;
+		defaultsToParam_();
   }
 
   ComplementMarker::ComplementMarker(const ComplementMarker& source)

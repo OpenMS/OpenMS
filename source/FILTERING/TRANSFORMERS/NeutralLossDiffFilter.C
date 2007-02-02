@@ -37,16 +37,15 @@ namespace OpenMS
   NeutralLossDiffFilter::NeutralLossDiffFilter()
     : FilterFunctor()
   { 
-		name_ = NeutralLossDiffFilter::getName();
+		setName(NeutralLossDiffFilter::getProductName());
     //value from Bioinformatics, Bern 2004
     defaults_.setValue("tolerance", 0.37f);
-		param_ = defaults_;
+		defaultsToParam_();
   }
   
   NeutralLossDiffFilter::NeutralLossDiffFilter(const NeutralLossDiffFilter& source)
     : FilterFunctor(source)
   { 
-		name_ = source.getName();
   }
   
   NeutralLossDiffFilter& NeutralLossDiffFilter::operator = (const NeutralLossDiffFilter& source)

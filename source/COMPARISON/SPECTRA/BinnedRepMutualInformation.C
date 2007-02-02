@@ -36,9 +36,9 @@ namespace OpenMS
   BinnedRepMutualInformation::BinnedRepMutualInformation()
 		:	BinnedRepCompareFunctor()
   {
-		name_ = BinnedRepMutualInformation::getName();
+		setName(BinnedRepMutualInformation::getProductName());
     defaults_.setValue("intervals", 3);
-		param_ = defaults_;
+		defaultsToParam_();
   }
 
   BinnedRepMutualInformation::BinnedRepMutualInformation(const BinnedRepMutualInformation& source)

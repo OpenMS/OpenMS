@@ -57,14 +57,14 @@ e_ptr = new BinnedRepSharedPeakCount();
 CHECK(BinnedRepSharedPeakCount(const BinnedRepSharedPeakCount& source))
 	BinnedRepSharedPeakCount copy(*e_ptr);
 	TEST_EQUAL(copy.getName(), e_ptr->getName())
-	TEST_EQUAL(copy.getParam(), e_ptr->getParam())
+	TEST_EQUAL(copy.getParameters(), e_ptr->getParameters())
 RESULT
 
 CHECK(BinnedRepSharedPeakCount& operator=(const BinnedRepSharedPeakCount& source))
 	BinnedRepSharedPeakCount copy;
 	copy = *e_ptr;
 	TEST_EQUAL(copy.getName(), e_ptr->getName())
-	TEST_EQUAL(copy.getParam(), e_ptr->getParam())
+	TEST_EQUAL(copy.getParameters(), e_ptr->getParameters())
 RESULT
 
 CHECK(double operator () (const BinnedRep& a) const)

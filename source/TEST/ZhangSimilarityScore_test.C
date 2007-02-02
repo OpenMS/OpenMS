@@ -58,14 +58,14 @@ ptr = new ZhangSimilarityScore();
 CHECK(ZhangSimilarityScore(const ZhangSimilarityScore& source))
 	ZhangSimilarityScore copy(*ptr);
 	TEST_EQUAL(copy.getName(), ptr->getName());
-	TEST_EQUAL(copy.getParam(), ptr->getParam());
+	TEST_EQUAL(copy.getParameters(), ptr->getParameters());
 RESULT
 
 CHECK(ZhangSimilarityScore& operator = (const ZhangSimilarityScore& source))
 	ZhangSimilarityScore copy;
 	copy = *ptr;
 	TEST_EQUAL(copy.getName(), ptr->getName());
-	TEST_EQUAL(copy.getParam(), ptr->getParam());
+	TEST_EQUAL(copy.getParameters(), ptr->getParameters());
 RESULT
 
 CHECK(double operator () (const PeakSpectrum& spec) const)
@@ -79,7 +79,7 @@ RESULT
 CHECK(static PeakSpectrumCompareFunctor* create())
 	PeakSpectrumCompareFunctor* psf = ZhangSimilarityScore::create();
 	ZhangSimilarityScore zhang;
-	TEST_EQUAL(psf->getParam(), zhang.getParam())
+	TEST_EQUAL(psf->getParameters(), zhang.getParameters())
 	TEST_EQUAL(psf->getName(), zhang.getName())
 RESULT
 

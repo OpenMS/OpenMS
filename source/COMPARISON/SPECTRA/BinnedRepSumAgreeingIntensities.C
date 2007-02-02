@@ -36,7 +36,8 @@ namespace OpenMS
   BinnedRepSumAgreeingIntensities::BinnedRepSumAgreeingIntensities()
 		: BinnedRepCompareFunctor()
   {
-		name_ = BinnedRepSumAgreeingIntensities::getName();
+		setName(BinnedRepSumAgreeingIntensities::getProductName());
+		defaultsToParam_();
   }
 
   BinnedRepSumAgreeingIntensities::BinnedRepSumAgreeingIntensities(const BinnedRepSumAgreeingIntensities& source)

@@ -181,7 +181,9 @@ namespace OpenMS
 		
 		PeakSpectrum spec_copy(spec);
 		Normalizer normalizer;
-		normalizer.getParam().setValue("method", "to_one");
+		Param param(normalizer.getParameters());
+		param.setValue("method", "to_one");
+		normalizer.setParameters(param);
 
 		normalizer.filterSpectrum(spec_copy);
 		

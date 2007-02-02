@@ -58,14 +58,14 @@ e_ptr = new ComplementMarker();
 
 CHECK((ComplementMarker(const ComplementMarker& source)))
 	ComplementMarker copy(*e_ptr);
-	TEST_EQUAL(copy.getParam(), e_ptr->getParam())
+	TEST_EQUAL(copy.getParameters(), e_ptr->getParameters())
 	TEST_EQUAL(copy.getName(), e_ptr->getName())
 RESULT
 
 CHECK((ComplementMarker& operator = (const ComplementMarker& source)))
 	ComplementMarker copy;
 	copy = *e_ptr;
-	TEST_EQUAL(copy.getParam(), e_ptr->getParam())
+	TEST_EQUAL(copy.getParameters(), e_ptr->getParameters())
 	TEST_EQUAL(copy.getName(), e_ptr->getName())
 RESULT
 
@@ -79,8 +79,10 @@ CHECK((template<typename SpectrumType> void apply(std::map<double, bool> marked,
 	
 	TEST_EQUAL(marked.size(), 0)
 
-	e_ptr->getParam().setValue("marks", 10);
-	e_ptr->getParam().setValue("tolerance", 10);
+	Param p(e_ptr->getParameters());
+	p.setValue("marks", 10);
+	p.setValue("tolerance", 10);
+	e_ptr->setParameters(p);
 	marked.clear();
 	e_ptr->apply(marked, spec);
 	TEST_EQUAL(marked.size(), 0)
@@ -90,7 +92,7 @@ RESULT
 CHECK((static PeakMarker* create()))
 	PeakMarker* pm = ComplementMarker::create();
 	ComplementMarker cm;
-	TEST_EQUAL(pm->getParam(), cm.getParam())
+	TEST_EQUAL(pm->getParameters(), cm.getParameters())
 	TEST_EQUAL(pm->getName(), cm.getName())
 RESULT
 

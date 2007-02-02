@@ -32,14 +32,14 @@ namespace OpenMS
   BernNorm::BernNorm()
     : PreprocessingFunctor()
   {
-		name_ = BernNorm::getName();
+		setName(BernNorm::getProductName());
     // values from the paper
     // they should be good for GoodDiff and Complements
     // IsotopeDiffs needs lower peaks
     defaults_.setValue("C1", 28.0f);
     defaults_.setValue("C2", 400.0f);
     defaults_.setValue("threshold", 0.1f); // i.e. what is a significant peak
-		param_ = defaults_;
+		defaultsToParam_();
   }
 
   BernNorm::BernNorm(const BernNorm& source)

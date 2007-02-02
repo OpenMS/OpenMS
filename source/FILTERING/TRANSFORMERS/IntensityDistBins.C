@@ -37,9 +37,9 @@ namespace OpenMS
   IntensityDistBins::IntensityDistBins()
     : FilterFunctor()
   {
-		name_ = IntensityDistBins::getName();
+		setName(IntensityDistBins::getProductName());
     defaults_.setValue("bins", 10);
-		param_ = defaults_;
+		defaultsToParam_();
   }
   
   IntensityDistBins::IntensityDistBins(const IntensityDistBins& source)

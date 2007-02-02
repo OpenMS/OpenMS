@@ -58,14 +58,14 @@ e_ptr = new IsotopeMarker();
 
 CHECK((IsotopeMarker(const IsotopeMarker& source)))
 	IsotopeMarker copy(*e_ptr);
-	TEST_EQUAL(copy.getParam(), e_ptr->getParam())
+	TEST_EQUAL(copy.getParameters(), e_ptr->getParameters())
 	TEST_EQUAL(copy.getName(), e_ptr->getName())
 RESULT
 
 CHECK((IsotopeMarker& operator=(const IsotopeMarker& source)))
 	IsotopeMarker copy;
 	copy = *e_ptr;
-	TEST_EQUAL(copy.getParam(), e_ptr->getParam())
+	TEST_EQUAL(copy.getParameters(), e_ptr->getParameters())
 	TEST_EQUAL(copy.getName(), e_ptr->getName())
 RESULT
 
@@ -80,7 +80,7 @@ CHECK((template<typename SpectrumType> void apply(std::map<double, bool> marked,
 	TEST_EQUAL(marked.size(), 0)
 
 	/// @todo (Andreas)
-	//e_ptr->getParam().setValue("n", 10);
+	//e_ptr->getParameters().setValue("n", 10);
 	//e_ptr->apply(spec);
 	//TEST_EQUAL(spec.size(), 10)
 RESULT
@@ -88,7 +88,7 @@ RESULT
 CHECK((static PeakMarker* create()))
 	PeakMarker* pm = IsotopeMarker::create();
 	IsotopeMarker im;
-	TEST_EQUAL(pm->getParam(), im.getParam())
+	TEST_EQUAL(pm->getParameters(), im.getParameters())
 	TEST_EQUAL(pm->getName(), im.getName())
 RESULT
 

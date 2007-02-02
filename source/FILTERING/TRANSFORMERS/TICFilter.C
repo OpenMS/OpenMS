@@ -38,9 +38,9 @@ namespace OpenMS
   TICFilter::TICFilter()
     :FilterFunctor()
   {
-		name_ = TICFilter::getName();
+		setName(TICFilter::getProductName());
     defaults_.setValue("window", 5);
-		param_ = defaults_;
+		defaultsToParam_();
   }
 
   TICFilter::TICFilter(const TICFilter& source)

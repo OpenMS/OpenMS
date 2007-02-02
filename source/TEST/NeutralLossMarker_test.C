@@ -58,14 +58,14 @@ e_ptr = new NeutralLossMarker();
 
 CHECK((NeutralLossMarker(const NeutralLossMarker& source)))
 	NeutralLossMarker copy(*e_ptr);
-	TEST_EQUAL(copy.getParam(), e_ptr->getParam())
+	TEST_EQUAL(copy.getParameters(), e_ptr->getParameters())
 	TEST_EQUAL(copy.getName(), e_ptr->getName())
 RESULT
 
 CHECK((NeutralLossMarker& operator = (const NeutralLossMarker& source)))
 	NeutralLossMarker copy;
 	copy = *e_ptr;
-	TEST_EQUAL(copy.getParam(), e_ptr->getParam())
+	TEST_EQUAL(copy.getParameters(), e_ptr->getParameters())
 	TEST_EQUAL(copy.getName(), e_ptr->getName())
 RESULT
 
@@ -79,7 +79,10 @@ CHECK((template<typename SpectrumType> void apply(std::map<double, bool>& marked
 
 	TEST_EQUAL(marked.size(), 17)
 	
-	e_ptr->getParam().setValue("tolerance", 10);
+	Param p(e_ptr->getParameters());
+	p.setValue("tolerance", 10);
+	e_ptr->setParameters(p);
+
 	marked.clear();
 	e_ptr->apply(marked, spec);
 	TEST_EQUAL(marked.size(), 49)
@@ -88,7 +91,7 @@ RESULT
 CHECK((static PeakMarker* create()))
 	PeakMarker* pm = NeutralLossMarker::create();
 	NeutralLossMarker marker;
-	TEST_EQUAL(pm->getParam(), marker.getParam())
+	TEST_EQUAL(pm->getParameters(), marker.getParameters())
 	TEST_EQUAL(pm->getName(), marker.getName())
 RESULT
 

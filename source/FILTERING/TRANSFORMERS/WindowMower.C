@@ -32,10 +32,10 @@ namespace OpenMS
   WindowMower::WindowMower()
     : PreprocessingFunctor()
   {
-		name_ = WindowMower::getName();
+		setName(WindowMower::getProductName());
     defaults_.setValue("windowsize", 50); // smallest amino acid
     defaults_.setValue("peakcount", 2); // b and y ion
-		param_ = defaults_;
+		defaultsToParam_();
   }
 
   WindowMower::WindowMower(const WindowMower& source)

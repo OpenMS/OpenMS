@@ -42,15 +42,15 @@ using namespace std;
 namespace OpenMS
 {
   BinnedRepCompareFunctor::BinnedRepCompareFunctor()
-		: FactoryProduct()
+		: FactoryProduct2(BinnedRepCompareFunctor::getProductName())
   {
-		name_ = BinnedRepCompareFunctor::getName();
+		//setName(BinnedRepCompareFunctor::getName())
     defaults_.setValue("filterwindow", 2.3);
-		param_ = defaults_;
+		defaultsToParam_();
   }
   
   BinnedRepCompareFunctor::BinnedRepCompareFunctor(const BinnedRepCompareFunctor& source)
-		:	FactoryProduct(source)
+		:	FactoryProduct2(source)
   {
   }
  
@@ -62,17 +62,17 @@ namespace OpenMS
   {
 		if (this != &source)
 		{
-    	FactoryProduct::operator=(source);
+    	FactoryProduct2::operator=(source);
 		}
     return *this;
   }
  
 	void BinnedRepCompareFunctor::registerChildren()
 	{
-    Factory<BinnedRepCompareFunctor>::registerProduct(BinnedRepSpectrumContrastAngle::getName(), &BinnedRepSpectrumContrastAngle::create);
-    Factory<BinnedRepCompareFunctor>::registerProduct(BinnedRepMutualInformation::getName(), &BinnedRepMutualInformation::create);
-    Factory<BinnedRepCompareFunctor>::registerProduct(BinnedRepSumAgreeingIntensities::getName(), &BinnedRepSumAgreeingIntensities::create);
-    Factory<BinnedRepCompareFunctor>::registerProduct(BinnedRepSharedPeakCount::getName(), &BinnedRepSharedPeakCount::create);
+    Factory<BinnedRepCompareFunctor>::registerProduct(BinnedRepSpectrumContrastAngle::getProductName(), &BinnedRepSpectrumContrastAngle::create);
+    Factory<BinnedRepCompareFunctor>::registerProduct(BinnedRepMutualInformation::getProductName(), &BinnedRepMutualInformation::create);
+    Factory<BinnedRepCompareFunctor>::registerProduct(BinnedRepSumAgreeingIntensities::getProductName(), &BinnedRepSumAgreeingIntensities::create);
+    Factory<BinnedRepCompareFunctor>::registerProduct(BinnedRepSharedPeakCount::getProductName(), &BinnedRepSharedPeakCount::create);
 	}
 	
   /**

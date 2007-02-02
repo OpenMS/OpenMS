@@ -56,14 +56,14 @@ e_ptr = new NeutralLossDiffFilter();
 
 CHECK((NeutralLossDiffFilter(const NeutralLossDiffFilter& source)))
 	NeutralLossDiffFilter copy(*e_ptr);
-	TEST_EQUAL(copy.getParam(), e_ptr->getParam())
+	TEST_EQUAL(copy.getParameters(), e_ptr->getParameters())
 	TEST_EQUAL(copy.getName(), e_ptr->getName())
 RESULT
 
 CHECK((NeutralLossDiffFilter& operator = (const NeutralLossDiffFilter& source)))
 	NeutralLossDiffFilter copy;
 	copy = *e_ptr;
-	TEST_EQUAL(copy.getParam(), e_ptr->getParam())
+	TEST_EQUAL(copy.getParameters(), e_ptr->getParameters())
 	TEST_EQUAL(copy.getName(), e_ptr->getName())
 RESULT
 
@@ -75,7 +75,9 @@ CHECK((template<typename SpectrumType> double apply(SpectrumType& spectrum)))
 	double filter = e_ptr->apply(spec);
 	TEST_REAL_EQUAL(filter, 429.0)
 
-	e_ptr->getParam().setValue("tolerance", 10);
+	Param p(e_ptr->getParameters());
+	p.setValue("tolerance", 10);
+	e_ptr->setParameters(p);
 	filter = e_ptr->apply(spec);
 	TEST_REAL_EQUAL(filter, 2482.5)
 RESULT
@@ -83,7 +85,7 @@ RESULT
 CHECK((static FilterFunctor* create()))
 	FilterFunctor* ff = NeutralLossDiffFilter::create();
 	NeutralLossDiffFilter filter;
-	TEST_EQUAL(ff->getParam(), filter.getParam())
+	TEST_EQUAL(ff->getParameters(), filter.getParameters())
 	TEST_EQUAL(ff->getName(), filter.getName())
 RESULT
 

@@ -35,9 +35,9 @@ namespace OpenMS
   SpectrumPrecursorComparator::SpectrumPrecursorComparator()
     : PeakSpectrumCompareFunctor()
   {
-		name_ = SpectrumPrecursorComparator::getName();
+		setName(SpectrumPrecursorComparator::getProductName());
     defaults_.setValue("window", 2);
-		param_ = defaults_;
+		defaultsToParam_();
   }
 
   SpectrumPrecursorComparator::SpectrumPrecursorComparator(const SpectrumPrecursorComparator& source)
