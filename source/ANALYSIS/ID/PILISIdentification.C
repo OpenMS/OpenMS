@@ -39,7 +39,8 @@ namespace OpenMS
 {
 	
 	PILISIdentification::PILISIdentification()
-		:	sequence_db_(0),
+		:	DefaultParamHandler("PILISIdentification"),
+			sequence_db_(0),
 			hmm_model_(0),
 			pre_scorer_(0),
 			scorer_(0),
@@ -72,35 +73,33 @@ namespace OpenMS
   	aa_weight_['I'] = 113.084;
   	aa_weight_['L'] = 113.084;
 
-		param_ = defaults_;
-		pre_scorer_ = Factory<PeakSpectrumCompareFunctor>::create((String)defaults_.getValue("pre_score_name"));
-		scorer_ = Factory<PeakSpectrumCompareFunctor>::create((String)defaults_.getValue("score_name"));
+		//param_ = defaults_;
+		//pre_scorer_ = Factory<PeakSpectrumCompareFunctor>::create((String)defaults_.getValue("pre_score_name"));
+		//scorer_ = Factory<PeakSpectrumCompareFunctor>::create((String)defaults_.getValue("score_name"));
+
+		defaultsToParam_();
 	}
 
 	PILISIdentification::PILISIdentification(const PILISIdentification& rhs)
-		: param_(rhs.param_),
-			defaults_(rhs.defaults_),
+		: DefaultParamHandler(rhs),
 			sequence_db_(0),
 			hmm_model_(0),
-			pre_scorer_(Factory<PeakSpectrumCompareFunctor>::create(rhs.pre_scorer_->getName())),
-			scorer_(Factory<PeakSpectrumCompareFunctor>::create(rhs.scorer_->getName())),
 			own_sequence_db_(false),
 			own_model_(false)
 	{
+		updateMembers_();
 	}
 
 	PILISIdentification& PILISIdentification::operator = (const PILISIdentification& rhs)
 	{
 		if (this != &rhs)
 		{
+			DefaultParamHandler::operator=(rhs);
 			sequence_db_ = 0;
 			hmm_model_ = 0;
-			defaults_ = rhs.defaults_;
-			param_ = rhs.param_;
-			scorer_ = Factory<PeakSpectrumCompareFunctor>::create(rhs.scorer_->getName());
 			own_sequence_db_ = false;
 			own_model_ = false;
-			param_ = rhs.param_;
+			updateMembers_();
 		}
 		return *this;
 	}
@@ -346,29 +345,11 @@ namespace OpenMS
 		
 		return;
 	}
-	
-	Param& PILISIdentification::getParam()
-	{
-		return param_;
-	}
 
-	const Param& PILISIdentification::getParam() const
+	void PILISIdentification::updateMembers_()
 	{
-		return param_;
-	}
-
-	void PILISIdentification::resetToDefaultParam()
-	{
-		param_ = defaults_;
-		scorer_ = Factory<PeakSpectrumCompareFunctor>::create((String)defaults_.getValue("score_name"));
 		pre_scorer_ = Factory<PeakSpectrumCompareFunctor>::create((String)defaults_.getValue("pre_score_name"));
-		return;
+    scorer_ = Factory<PeakSpectrumCompareFunctor>::create((String)defaults_.getValue("score_name"));
 	}
-	
-	void PILISIdentification::setParam(const Param& param)
-	{
-		param_ = param;
-	}
-
 }
 
