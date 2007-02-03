@@ -36,7 +36,7 @@ namespace OpenMS
 
 
 		PairMatcher::PairMatcher(FeatureMapType& features)
-			: FactoryProduct2(PairMatcher::getProductName()), 
+			: FactoryProduct(PairMatcher::getProductName()), 
 				features_(features), 
 				pairs_(), 
 				best_pairs_()
@@ -56,13 +56,13 @@ namespace OpenMS
 
     PairMatcher& PairMatcher::operator = (const PairMatcher& source)
     {
-			FactoryProduct2::operator = (source);
+			FactoryProduct::operator = (source);
 			features_ = source.features_;
 			return *this;
 		}
 
 		PairMatcher::PairMatcher(const PairMatcher& source)
-		: FactoryProduct2(source), 
+		: FactoryProduct(source), 
 			features_
 			(source.features_),
 			pairs_(source.pairs_), 

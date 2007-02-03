@@ -31,7 +31,7 @@
 #include <OpenMS/KERNEL/DimensionDescription.h>
 #include <OpenMS/KERNEL/DFeatureMap.h>
 #include <OpenMS/KERNEL/KernelTraits.h>
-#include <OpenMS/CONCEPT/FactoryProduct2.h>
+#include <OpenMS/CONCEPT/FactoryProduct.h>
 #include <OpenMS/DATASTRUCTURES/QuadTree.h>
 
 #include <cmath>
@@ -61,7 +61,7 @@ namespace OpenMS
 			</table>
 	*/
 	class PairMatcher
-		: public FactoryProduct2
+		: public FactoryProduct
 	{
 		public:
 			

@@ -34,7 +34,7 @@
 #include <OpenMS/ANALYSIS/MAPMATCHING/DLinearMapping.h>
 #include <OpenMS/KERNEL/DFeatureMap.h>
 #include <OpenMS/KERNEL/DimensionDescription.h>
-#include <OpenMS/CONCEPT/FactoryProduct2.h>
+#include <OpenMS/CONCEPT/FactoryProduct.h>
 
 #include <utility>
 #include <fstream>
@@ -60,7 +60,7 @@ namespace OpenMS
   */
   template < typename MapT = DFeatureMap< 2, DFeature< 2, KernelTraits > > >
   class BasePairFinder 
-  	: public FactoryProduct2
+  	: public FactoryProduct
   {
   public:
     /// Defines the coordinates of elements.
@@ -108,7 +108,7 @@ namespace OpenMS
 
     /// Constructor
     BasePairFinder()
-        : FactoryProduct2("BasePairFinder"),
+        : FactoryProduct("BasePairFinder"),
         element_pairs_(0)
     {
       element_map_[MODEL] = 0;
@@ -121,7 +121,7 @@ namespace OpenMS
 
     /// Copy constructor
     BasePairFinder(const BasePairFinder& source)
-        : FactoryProduct2(source),
+        : FactoryProduct(source),
         element_pairs_(source.element_pairs_)
     {
       element_map_[MODEL] = source.element_map_[MODEL];
@@ -135,7 +135,7 @@ namespace OpenMS
     {
       if (&source==this) return *this;
 
-      FactoryProduct2::operator = (source);
+      FactoryProduct::operator = (source);
       
       element_map_[MODEL] = source.element_map_[MODEL];
       element_map_[SCENE] = source.element_map_[SCENE];

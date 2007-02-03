@@ -28,6 +28,8 @@
 
 namespace OpenMS
 {
-        DRange<1> default_drange_1;
-        DRange<2> default_drange_2;
+	/// @cond DOXYGEN_IGNORES_THIS
+  DRange<1> default_drange_1;
+  DRange<2> default_drange_2;
+  /// @endcond
 }

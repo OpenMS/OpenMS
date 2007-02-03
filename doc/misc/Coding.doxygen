@@ -87,18 +87,6 @@ line. We recommend method (a).
 However, this is mainly a question of personal style, so no explicit checking
 is performed to enforce this rule.
 
-<H2 style="margin-top:20px; border-top:1px solid grey;">Method declarations</H2>
-
-OpenMS uses some tools to validate that all declared methods are tested.
-These tools require that the method declarations are formatted in a specific
-way:
-
-<UL>
-  <LI> All method arguments must be listed in one line. Spreading them over serveral lines is not permitted.
-  <LI> No semicolons after method implementations in a header are permitted although they are syntactiacally correct.
-  <LI> Nested class declations should not be used unless absolutely required.
-  <LI> Several variable declarations in one row <code>int a,b,c;</code>
-</UL>
 <H2 style="margin-top:20px; border-top:1px solid grey;">Sample .h file</H2>
 
 @code
@@ -148,18 +136,24 @@ namespace OpenMS
 Every <TT>.h</TT> file must be accompanied by a <TT>.C</TT> file, even if is
 just a ``dummy''.  This way a global <TT>make</TT> will
 stumble across errors.
+<BR>
+For template classes default instances with common template arguments should be put into 
+the <tt>.C</tt> file. The varaible names of these instances start with <tt>default_</tt>. 
+Here an example for the <tt>DPeak</tt> class:
+@code
+#include <OpenMS/KERNEL/DPeak.h>
 
-<H1 style="margin-top:40px; border-top:4px solid grey; text-align:left;">Name spaces</H1>
-
-Everything is implemented in the namespace <TT>OpenMS</TT>.  Please refrain
-from writing <TT>using namespace OpenMS;</TT> or similar in a context where
-other libraries might be involved (that is, basically everywhere&nbsp;:-).  This
-applies to <TT>.C</TT> files as well!  For <TT>.h</TT> files it is strictly
-forbidden.  Instead, introduce individual symbols to the scope where you need
-them.  E.g. you only have to write <TT>using OpenMS::DPeak;</TT> once per
-<TT>.C</TT> file, and yet this immediately gives a hint to where the symbol is
-defined.
-The use of 'using namespace std;' is forbidden in all headers!!
+namespace OpenMS
+{
+  /// @cond DOXYGEN_IGNORES_THIS
+  DPeak<1> default_dpeak_1;
+  DPeak<2> default_dpeak_2;
+  /// @endcond
+}
+@endcode
+The compiler does instanciate the template and detects errors at compile time that
+way. Doing this saves your time! Otherwise the error is detected much laten, when 
+the test is compiles.
 
 <H1 style="margin-top:40px; border-top:4px solid grey; text-align:left;">Class requirements</H1>
 
@@ -194,7 +188,24 @@ good reason why it shouldn't.  (E.g., saving a vtable pointer.)  Essentially,
 the reason is that otherwise an <TT>operator delete</TT> invocation on a
 pointer to a base class will fail badly.
 
-<H1 style="margin-top:40px; border-top:4px solid grey; text-align:left;">Accessors for members</H1>
+
+
+
+<H1 style="margin-top:40px; border-top:4px solid grey; text-align:left;">General rules</H1>
+
+<H2 style="margin-top:20px; border-top:1px solid grey;">Namespaces</H2>
+
+Everything is implemented in the namespace <TT>OpenMS</TT>.  Please refrain
+from writing <TT>using namespace OpenMS;</TT> or similar in a context where
+other libraries might be involved (that is, basically everywhere&nbsp;:-).  This
+applies to <TT>.C</TT> files as well!  For <TT>.h</TT> files it is strictly
+forbidden.  Instead, introduce individual symbols to the scope where you need
+them.  E.g. you only have to write <TT>using OpenMS::DPeak;</TT> once per
+<TT>.C</TT> file, and yet this immediately gives a hint to where the symbol is
+defined.
+The use of 'using namespace std;' is forbidden in all headers!!
+
+<H2 style="margin-top:20px; border-top:1px solid grey;">Accessors to members</H2>
 
 Accessors to protected or private members of a class are implemented as a pair
 of get-method and set-method. This is necessary as accessors that return references to a member cannot be wrapped with Python!
@@ -229,6 +240,40 @@ class Test
 };
 @endcode
 
+<H2 style="margin-top:20px; border-top:1px solid grey;">Pass-by-value versus pass-by-reference</H2>
+Except of primitive types all method arguments should be passed as non-mutable references.
+<p>
+Return types of methods should be non-mutable references as well.
+Sometimes you cannot use references as the retuned value is constructed in the method.
+If the constructed type is large, you can save computation time like that:
+@code
+//Bad idea
+LargeObject someFunction()
+{
+  LargeObject tmp = ...
+  return tmp;
+}
+
+//Better idea
+void someFunction(LargeObject& obj)
+{
+  obj = ...
+}
+@endcode
+
+<H2 style="margin-top:20px; border-top:1px solid grey;">Pointer or reference</H2>
+If you do not have really good reasons to do so, do not use pointers.
+They tend to cause segmentation faults!
+In 9 out of 10 cases a reference does the job as well!
+
+<H2 style="margin-top:20px; border-top:1px solid grey;">Iterators</H2>
+
+In simple looping constructs, iterators are generally preferable to indexed
+access.  Prefer ``<code>++i</code>'' to ``<code>i++</code>'', because the preincrement operator can safe
+a copy constructor.  Use <code>const_iterators</code> where possible to help
+avoiding unwanted side effects.
+
+
 <H1 style="margin-top:40px; border-top:4px solid grey; text-align:left;">Exception handling</H1>
 
 No OpenMS program should dump a core if an error occurs. Instead, it should
@@ -262,13 +307,6 @@ bare name, if the GNU compiler is being used.  It is defined to
 <code>&lt;unknown&gt;</code> on other platforms. Exception::Base provides methods
 (<TT>getFile</TT>, <TT>getLine</TT>, <TT>getFunction</TT>) that allow the localization
 of the exception's cause.
-
-<H1 style="margin-top:40px; border-top:4px solid grey; text-align:left;">Iterators</H1>
-
-In simple looping constructs, iterators are generally preferable to indexed
-access.  Prefer ``<code>++i</code>'' to ``<code>i++</code>'', because the preincrement operator can safe
-a copy constructor.  Use <code>const_iterators</code> where possible to help
-avoiding unwanted side effects.
 
 <H1 style="margin-top:40px; border-top:4px solid grey; text-align:left;">Naming conventions</H1>
 
@@ -510,8 +548,7 @@ if you want to use it in texts; the one here expands to
 
 Each OpenMS class has to provide a test program. This test program has to check
 each method of the class. The test programs reside in the directory
-<TT>source/TEST</TT>. To create a new test program, rename a copy of the file
-<TT>Skeleton_test.C</TT> to the new class test name (usually <TT>&lt;classname&gt;_test.C</TT>). The test program has to be coded using the class test
+<TT>source/TEST</TT> are usually named <TT>&lt;classname&gt;_test.C</TT>. The test program has to be coded using the class test
 macros as described in the OpenMS online reference. Special care should be taken
 to cover all special cases (e.g. what happens, if a method is called with
 empty strings, negative values, zero, null pointers etc.).

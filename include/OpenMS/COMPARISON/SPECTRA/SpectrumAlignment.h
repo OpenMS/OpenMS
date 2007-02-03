@@ -27,7 +27,6 @@
 #ifndef OPENMS_COMPARISON_SPECTRA_SPECTRUMALIGNMENT_H
 #define OPENMS_COMPARISON_SPECTRA_SPECTRUMALIGNMENT_H
 
-#include <OpenMS/CONCEPT/FactoryProduct.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 
 #include <vector>
@@ -44,7 +43,7 @@ namespace OpenMS
 		@ingroup SpectraComparison
   */
 	
-  class SpectrumAlignment : public FactoryProduct2
+  class SpectrumAlignment : public FactoryProduct
   {
   public:
 	

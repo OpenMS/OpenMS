@@ -39,12 +39,12 @@
 namespace OpenMS
 {
   PreprocessingFunctor::PreprocessingFunctor()
-    : FactoryProduct2(PreprocessingFunctor::getProductName())
+    : FactoryProduct(PreprocessingFunctor::getProductName())
   {
   }
 
   PreprocessingFunctor::PreprocessingFunctor(const PreprocessingFunctor& source)
-    : FactoryProduct2(source)
+    : FactoryProduct(source)
   {
 		
   }
@@ -70,7 +70,7 @@ namespace OpenMS
   {
 		if (this != &source)
 		{
-   		FactoryProduct2::operator=(source);
+   		FactoryProduct::operator=(source);
 		}
     return *this;
   }

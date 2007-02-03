@@ -27,7 +27,7 @@
 #ifndef OPENMS_TRANSFORMATIONS_FEATUREFINDER_BASEMODEL_H
 #define OPENMS_TRANSFORMATIONS_FEATUREFINDER_BASEMODEL_H
 
-#include <OpenMS/CONCEPT/FactoryProduct2.h>
+#include <OpenMS/CONCEPT/FactoryProduct.h>
 #include <OpenMS/KERNEL/KernelTraits.h>
 #include <OpenMS/KERNEL/DPeakArray.h>
 
@@ -43,7 +43,7 @@ namespace OpenMS
    */
   template <UnsignedInt D, typename Traits = KernelTraits>
     class BaseModel
-    : public FactoryProduct2
+    : public FactoryProduct
     {
 
       public:
@@ -59,14 +59,14 @@ namespace OpenMS
 	
 	      /// Default constructor. 
 	      BaseModel()
-					: FactoryProduct2("BaseModel")
+					: FactoryProduct("BaseModel")
 				{
 					defaults_.setValue("cutoff",0.0);
 				}
 	
 	      /// copy constructor 
 	      BaseModel(const BaseModel& source)
-					: FactoryProduct2(source),
+					: FactoryProduct(source),
 						cut_off_(source.cut_off_)
 				{
 				}
@@ -81,7 +81,7 @@ namespace OpenMS
 				{
 					if (&source == this) return *this;
 					
-					FactoryProduct2::operator = (source);
+					FactoryProduct::operator = (source);
 					cut_off_ = source.cut_off_;
 					
 					return *this;

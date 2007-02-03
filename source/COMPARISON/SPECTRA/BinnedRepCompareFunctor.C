@@ -42,7 +42,7 @@ using namespace std;
 namespace OpenMS
 {
   BinnedRepCompareFunctor::BinnedRepCompareFunctor()
-		: FactoryProduct2(BinnedRepCompareFunctor::getProductName())
+		: FactoryProduct(BinnedRepCompareFunctor::getProductName())
   {
 		//setName(BinnedRepCompareFunctor::getName())
     defaults_.setValue("filterwindow", 2.3);
@@ -50,7 +50,7 @@ namespace OpenMS
   }
   
   BinnedRepCompareFunctor::BinnedRepCompareFunctor(const BinnedRepCompareFunctor& source)
-		:	FactoryProduct2(source)
+		:	FactoryProduct(source)
   {
   }
  
@@ -62,7 +62,7 @@ namespace OpenMS
   {
 		if (this != &source)
 		{
-    	FactoryProduct2::operator=(source);
+    	FactoryProduct::operator=(source);
 		}
     return *this;
   }

@@ -28,6 +28,8 @@
 
 namespace OpenMS
 {
-        DPosition<1> default_dposition_1;
-        DPosition<2> default_dposition_2;
+	/// @cond DOXYGEN_IGNORES_THIS
+	DPosition<1> default_dposition_1;
+	DPosition<2> default_dposition_2;
+	/// @endcond
 }

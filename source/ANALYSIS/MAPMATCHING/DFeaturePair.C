@@ -28,5 +28,7 @@
 
 namespace OpenMS
 {
-        DFeaturePair<2> default_dfeaturepair;
+	/// @cond DOXYGEN_IGNORES_THIS
+  DFeaturePair<2> default_dfeaturepair;
+  /// @endcond
 }

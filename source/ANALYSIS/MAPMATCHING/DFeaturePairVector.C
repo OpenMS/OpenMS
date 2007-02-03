@@ -30,8 +30,8 @@
 
 namespace OpenMS
 {
-	
+	/// @cond DOXYGEN_IGNORES_THIS
 	DFeaturePairVector<2> default_dfeaturepairvector2;
-	
-} // end of namespace OpenMS
+	/// @endcond
+}
 

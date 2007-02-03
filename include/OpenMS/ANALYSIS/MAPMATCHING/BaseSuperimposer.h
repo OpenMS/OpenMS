@@ -31,7 +31,6 @@
 #include <OpenMS/ANALYSIS/MAPMATCHING/DLinearMapping.h>
 #include <OpenMS/KERNEL/DFeatureMap.h>
 #include <OpenMS/KERNEL/DimensionDescription.h>
-#include <OpenMS/CONCEPT/FactoryProduct.h>
 
 #include <utility>
 #include <fstream>
@@ -55,7 +54,7 @@ namespace OpenMS
   */
   template <typename MapT = DFeatureMap<2> >
   class BaseSuperimposer 
-  	: public FactoryProduct2
+  	: public FactoryProduct
   {
   public:
     /// Defines the coordinates of elements.
@@ -97,7 +96,7 @@ namespace OpenMS
 
     /// Constructor
     BaseSuperimposer()
-        : FactoryProduct2("BaseSuperimposer"),
+        : FactoryProduct("BaseSuperimposer"),
           final_transformation_()
     {
       element_map_[MODEL] = 0;
@@ -106,7 +105,7 @@ namespace OpenMS
 
     /// Copy constructor
     BaseSuperimposer(const BaseSuperimposer& source)
-        : FactoryProduct2(source)
+        : FactoryProduct(source)
     {
       element_map_[MODEL] = source.element_map_[MODEL];
       element_map_[SCENE] = source.element_map_[SCENE];
@@ -119,7 +118,7 @@ namespace OpenMS
     {
       if (&source==this) return *this;
         
-      FactoryProduct2::operator=(source);
+      FactoryProduct::operator=(source);
       	
       element_map_[MODEL] = source.element_map_[MODEL];
       element_map_[SCENE] = source.element_map_[SCENE];

@@ -28,12 +28,12 @@
 namespace OpenMS
 {
   PeakMarker::PeakMarker()
-    : FactoryProduct2(PeakMarker::getProductName())
+    : FactoryProduct(PeakMarker::getProductName())
   {
   }
 
   PeakMarker::PeakMarker(const PeakMarker& source)
-    : FactoryProduct2(source)
+    : FactoryProduct(source)
   {
   }
 
@@ -45,7 +45,7 @@ namespace OpenMS
   {
 		if (this != &source)
 		{
-    	FactoryProduct2::operator=(source);
+    	FactoryProduct::operator=(source);
 		}
     return *this;
   }

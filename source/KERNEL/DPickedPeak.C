@@ -28,6 +28,8 @@
 
 namespace OpenMS
 {
-				DPickedPeak<1> default_dpickedpeak_1;
-				DPickedPeak<2> default_dpickedpeak_2;
+	/// @cond DOXYGEN_IGNORES_THIS
+	DPickedPeak<1> default_dpickedpeak_1;
+	DPickedPeak<2> default_dpickedpeak_2;
+	/// @endcond
 }

@@ -21,14 +21,13 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Ole Schulz-Trieglaff$
+// $Maintainer: Marc Sturm $
 // --------------------------------------------------------------------------
 
 #ifndef OPENMS_CONCEPT_FACTORYPRODUCT_H
 #define OPENMS_CONCEPT_FACTORYPRODUCT_H
 
-#include <OpenMS/FORMAT/Param.h>
-#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 
 namespace OpenMS
 {
@@ -38,56 +37,38 @@ namespace OpenMS
       that registers all from T derived classes S at Factory<T>.<br>
 
       Every from T derived class S has to implement the static function T* create()
-      which is going to be registered at Factory<T> 
-      as well as the static function const String getName() which returns the name
-      the class is registered by.
-			The used name has to be assigned to @p name_ in the constructor of class S.
+      which is going to be registered at Factory<T>.
+      <BR>
+      Additionally the static function const String getProductName() is required, which returns the name
+      the class is registered by. The used name has to be given in the Constructor.
+			
+			@note Please read the documentation of DefaultParamHandler carefully if you derive a FactoryProduct!
 			
 			@ingroup Concept
 	*/
 
   class FactoryProduct
+  	: public DefaultParamHandler
   {
+		public:
+			/// Constructor
+			FactoryProduct(const String& name);
+			
+			/// Copy constructor 
+			FactoryProduct(const FactoryProduct& source);
+			
+			/// Assignment operator
+			virtual FactoryProduct& operator = (const FactoryProduct& source);
+			
+			/// Equality operator
+			virtual bool operator == (const FactoryProduct& rhs) const;
 
-	 public:
-    /// standard constructor
-    FactoryProduct();
-
-    /// copy constructor 
-    FactoryProduct(const FactoryProduct& source);
-
-    /// destructor
-    virtual ~FactoryProduct();
-
-    /// assignment operator
-    virtual FactoryProduct& operator = (const FactoryProduct& source);
-
-    /// parameterized constructor
-    FactoryProduct(const Param& p);
-
-    /// set/checks parameters and applies defaults
-    virtual void setParam(const Param& p);
-
-    /// get parameters (const access)
-    virtual const Param& getParam() const;
-
-    /// get parameters
-    virtual Param& getParam();
-
-		/// returns the name of this module
-    const String& getName() const;
-
-    bool operator == (const FactoryProduct& rhs) const;
-	
-		bool operator != (const FactoryProduct& rhs) const;
-
-	 protected:
-    	
-		mutable Param param_;
-		Param defaults_;
-		bool check_defaults_;
-    String name_;
-		
+		protected:
+			
+		private:
+	    /// Hidden default construcor (name is required)
+	    FactoryProduct();			
+			
   };
 
 	/// Print the contents to a stream.

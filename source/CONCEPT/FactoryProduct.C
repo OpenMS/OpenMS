@@ -21,7 +21,7 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Ole Schulz-Trieglaff$
+// $Maintainer: Marc Sturm $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/FactoryProduct.h>
@@ -30,92 +30,34 @@ using namespace std;
 
 namespace OpenMS
 {
-	FactoryProduct::FactoryProduct(): 
-		param_(), 
-		defaults_(), 
-		check_defaults_(true), 
-		name_()
+	FactoryProduct::FactoryProduct(const String& name)
+		: DefaultParamHandler(name)
 	{
 	}
-
+	
 	FactoryProduct::FactoryProduct(const FactoryProduct& source)
-		: defaults_(source.defaults_),
-			check_defaults_(source.check_defaults_),
-			name_(source.name_)
+		: DefaultParamHandler(source)
 	{
-		setParam(source.getParam());
-	}
-
-	FactoryProduct::~FactoryProduct()
-	{	
-	}
-
-	FactoryProduct& FactoryProduct::operator = (const FactoryProduct& source)
-	{
-		if (this == &source) return *this;
 		
-		defaults_ = source.defaults_;
-		name_ = source.name_;
-		check_defaults_ = source.check_defaults_;
-		setParam(source.getParam());
+	}
+	
+	FactoryProduct& FactoryProduct::operator=(const FactoryProduct& rhs)
+	{
+		if (this == &rhs) return *this;
+		
+		DefaultParamHandler::operator=(rhs);
 		
 		return *this;
-	}
-
-	FactoryProduct::FactoryProduct(const Param& p)
-	{
-		FactoryProduct();
-		setParam(p);
-	}
-
-	void FactoryProduct::setParam(const Param& p)
-	{
-		if (check_defaults_)
-		{
-			//cout << "FactoryProduct '" << name_ << "' number of defaults: " << defaults_.size() << endl;
-			if (defaults_.size()==0)
-			{
-				cout << "Warning no default parameters for FactoryProduct '" << name_ << "' specified!" << endl;
-			}
-			param_ = p;
-			param_.setDefaults(defaults_,"",false);
-			param_.checkDefaults(getName(),defaults_,"");
-		}
-		else
-		{
-			param_ = p;
-			param_.setDefaults(defaults_);
-		}
-	}
-
-  const Param& FactoryProduct::getParam() const
-	{
-		return param_;
-	}
-
-  Param& FactoryProduct::getParam()
-	{
-		return param_;
-	}
-
-	const String& FactoryProduct::getName() const
-	{
-		return name_;
 	}
 	
 	bool FactoryProduct::operator == (const FactoryProduct& rhs) const
 	{
-			return getParam()==rhs.getParam() && getName()==rhs.getName();
+			return DefaultParamHandler::operator==(rhs);
 	}
-
-	bool FactoryProduct::operator != (const FactoryProduct& rhs) const
-	{
-		return !(operator == (rhs));
-	}
-
+	
 	std::ostream& operator << (std::ostream& os, const FactoryProduct& prod)
 	{
-		os << prod.getName() << ":" << std::endl << prod.getParam();
+		os << prod.getName() << ":" << std::endl << prod.getParameters();
 		return os;
 	}
 

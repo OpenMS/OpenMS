@@ -27,7 +27,7 @@
 #ifndef OPENMS_FILTERING_DATAREDUCTION_DATAREDUCER_H
 #define OPENMS_FILTERING_DATAREDUCTION_DATAREDUCER_H
 
-#include<OpenMS/CONCEPT/FactoryProduct2.h>
+#include<OpenMS/CONCEPT/FactoryProduct.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 
 namespace OpenMS
@@ -39,7 +39,7 @@ namespace OpenMS
 	      "DataReducer* create()" and "const String getProductName()" (see FactoryProduct for details)
 */ 
 	class DataReducer
-	  : public FactoryProduct2
+	  : public FactoryProduct
 	{	
 		public:
 			typedef MSExperiment<> ExperimentType;

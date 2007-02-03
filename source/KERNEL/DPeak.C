@@ -28,6 +28,8 @@
 
 namespace OpenMS
 {
-				DPeak<1> default_dpeak_1;
-				DPeak<2> default_dpeak_2;
+	/// @cond DOXYGEN_IGNORES_THIS
+	DPeak<1> default_dpeak_1;
+	DPeak<2> default_dpeak_2;
+	/// @endcond
 }

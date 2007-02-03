@@ -29,5 +29,7 @@
 
 namespace OpenMS
 {
+	/// @cond DOXYGEN_IGNORES_THIS
 	HashMap<String, Size> default_hashmap;
+	/// @endcond
 }

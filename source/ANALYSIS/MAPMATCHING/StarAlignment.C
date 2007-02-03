@@ -28,5 +28,7 @@
 
 namespace OpenMS
 {
+	/// @cond DOXYGEN_IGNORES_THIS
 	StarAlignment<> default_staralignment;
+	/// @endcond
 } 

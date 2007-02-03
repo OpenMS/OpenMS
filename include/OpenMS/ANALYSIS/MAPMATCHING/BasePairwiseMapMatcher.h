@@ -33,7 +33,7 @@
 #include <OpenMS/KERNEL/DFeatureMap.h>
 #include <OpenMS/KERNEL/DimensionDescription.h>
 #include <OpenMS/DATASTRUCTURES/DBoundingBox.h>
-#include <OpenMS/CONCEPT/FactoryProduct2.h>
+#include <OpenMS/CONCEPT/FactoryProduct.h>
 
 #include <utility>
 #include <fstream>
@@ -67,7 +67,7 @@ namespace OpenMS
   */
   template < typename MapT = DFeatureMap< 2, DFeature< 2, KernelTraits > > >
   class BasePairwiseMapMatcher 
-  	: public FactoryProduct2
+  	: public FactoryProduct
   {
   public:
     typedef DimensionDescription<LCMS_Tag> DimensionDescriptionType;
@@ -109,7 +109,7 @@ namespace OpenMS
 
     /// Constructor
     BasePairwiseMapMatcher()
-        : FactoryProduct2("BasePairWiseMapMatcher")
+        : FactoryProduct("BasePairWiseMapMatcher")
     {
       element_map_[0] = 0;
       element_map_[1] = 0;
@@ -121,7 +121,7 @@ namespace OpenMS
 
     /// Copy constructor
     BasePairwiseMapMatcher(const BasePairwiseMapMatcher& source)
-        : FactoryProduct2(source),
+        : FactoryProduct(source),
         all_element_pairs_(source.all_element_pairs_),
         bounding_box_scene_map_(source.bounding_box_scene_map_),
         box_size_(source.box_size_)
@@ -138,7 +138,7 @@ namespace OpenMS
     {
       if (&source==this) return *this;
 
-      FactoryProduct2::operator = (source);
+      FactoryProduct::operator = (source);
       	
       element_map_[0] = source.element_map_[0];
       element_map_[1] = source.element_map_[1];

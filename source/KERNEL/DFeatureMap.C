@@ -28,7 +28,8 @@
 
 namespace OpenMS
 {
+	/// @cond DOXYGEN_IGNORES_THIS
 	DFeatureMap<1> default_dfeaturemap_1;
 	DFeatureMap<2> default_dfeaturemap_2;
-
+	/// @endcond
 }

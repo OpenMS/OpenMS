@@ -28,6 +28,8 @@
 
 namespace OpenMS
 {
+	/// @cond DOXYGEN_IGNORES_THIS
 	DSpectrum<1> default_dspectrum_1;
 	DSpectrum<2> default_dspectrum_2;
+	/// @endcond
 }

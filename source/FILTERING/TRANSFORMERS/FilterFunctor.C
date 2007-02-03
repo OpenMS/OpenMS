@@ -45,12 +45,12 @@
 namespace OpenMS
 {
   FilterFunctor::FilterFunctor()
-    : FactoryProduct2(FilterFunctor::getProductName())
+    : FactoryProduct(FilterFunctor::getProductName())
   {	
   }
   
   FilterFunctor::FilterFunctor(const FilterFunctor& source)
-    : FactoryProduct2(source)
+    : FactoryProduct(source)
   {
   }
   
@@ -58,7 +58,7 @@ namespace OpenMS
   {
 		if (this != &source)
 		{
-    	FactoryProduct2::operator=(source);
+    	FactoryProduct::operator=(source);
 		}
     return *this;
   }

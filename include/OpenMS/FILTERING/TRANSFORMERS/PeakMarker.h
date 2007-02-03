@@ -29,7 +29,7 @@
 
 #include <map>
 
-#include <OpenMS/CONCEPT/FactoryProduct2.h>
+#include <OpenMS/CONCEPT/FactoryProduct.h>
 
 namespace OpenMS
 {
@@ -38,7 +38,7 @@ namespace OpenMS
 
   */
   class PeakMarker
-    : public FactoryProduct2
+    : public FactoryProduct
   {
   public:
 

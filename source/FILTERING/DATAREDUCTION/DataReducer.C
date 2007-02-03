@@ -36,7 +36,7 @@ using namespace std;
 namespace OpenMS
 {
 	DataReducer::DataReducer()
-		: FactoryProduct2("DataRaducer")
+		: FactoryProduct("DataRaducer")
 	{
 
 	} 
@@ -46,7 +46,7 @@ namespace OpenMS
 	} 
 	
 	DataReducer::DataReducer(const DataReducer& source)
-    : FactoryProduct2(source)
+    : FactoryProduct(source)
   {
   }
 	
@@ -54,7 +54,7 @@ namespace OpenMS
   {
 		if (&source == this) return *this;
 	   
-	  FactoryProduct2::operator=(source);
+	  FactoryProduct::operator=(source);
 	   
 		return *this;
   }

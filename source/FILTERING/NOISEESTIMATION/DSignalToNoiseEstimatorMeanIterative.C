@@ -30,6 +30,8 @@
 
 namespace OpenMS
 {
+	/// @cond DOXYGEN_IGNORES_THIS
   DSignalToNoiseEstimatorMeanIterative<> default_sn_meanit1;
   DSignalToNoiseEstimatorMeanIterative<2, DPeakArray<2,DRawDataPoint<2> >::const_iterator > default_sn_meanit2;
+	/// @endcond
 }

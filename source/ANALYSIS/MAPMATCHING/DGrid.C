@@ -29,8 +29,8 @@
 
 namespace OpenMS
 {
-	
+	/// @cond DOXYGEN_IGNORES_THIS
   DGrid<2> default_dgrid2;
-	
-} // end of namespace OpenMS
+  /// @endcond
+}
 

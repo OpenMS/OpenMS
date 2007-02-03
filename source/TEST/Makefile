@@ -39,7 +39,6 @@ EXECUTABLES_CONCEPT = \
 	TimeStamp_test\
 	VersionInfo_test\
 	FactoryProduct_test\
-	FactoryProduct2_test\
 	Factory_test
 
 #DATASTRUCTURES
