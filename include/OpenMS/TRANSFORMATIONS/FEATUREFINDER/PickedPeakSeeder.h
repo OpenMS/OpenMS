@@ -39,8 +39,6 @@ namespace OpenMS
  		of peaks as candidate peptides if the distance between successive peaks 
  		is 1 Da (charge 1) , 0.5 Da (charge 2) or 0.3 Da (charge 3) etc.
  
- 		@note This module works only for picked peaks. Used it in combination with class DummySeeder.
- 
  		@note Experiments have shown that this extender produces a lot of false positive hits. It would be
  		better to check if the relaitive intensities between the peaks is similar to an isotopic pattern.
   	

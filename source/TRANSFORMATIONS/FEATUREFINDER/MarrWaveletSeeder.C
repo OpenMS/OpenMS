@@ -414,13 +414,12 @@ namespace OpenMS
 					// transform. This might be an interesting signal even without isotopic pattern,
 					// so we collect some surrounding data points and see if we meet this point
 					// in the next scan again....
-					cout << "High peak in cwt !!" << endl;
+// 					cout << "High peak in cwt !!" << endl;
 					UnsignedInt this_peak =  local_maxima[z];
 					CoordinateType this_mass	 = current_scan[ this_peak ].getPos();
 					
 					// hash entry to write in
 					TableType::iterator entry_to_insert;		
-
 										
 					if (iso_last_scan.size() > 0)  // Did we find any isotopic cluster in the last scan?
 					{
