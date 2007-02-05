@@ -75,7 +75,7 @@ CHECK((FeaFiModule::IndexSet  nextSeed() throw(NoSuccessor)))
 	MSExperiment<DPeak<1> > exp;
 	MzDataFile().load("data/IsotopeWaveletTestData.mzData",exp);
 	
-	traits->setData(exp);
+	traits->setData(exp.begin(), exp.end(),100);
 	
 	seeder.setTraits(traits);
 	

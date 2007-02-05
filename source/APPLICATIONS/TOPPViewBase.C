@@ -2040,9 +2040,8 @@ namespace OpenMS
       {
         //find features
         FeatureFinder& finder = dialog.getFeatureFinder();
-
-        SpectrumCanvas::ExperimentType in = w->widget()->canvas()->getCurrentPeakData();
-        finder.setData(in);
+        
+        finder.setData(w->widget()->canvas()->getCurrentPeakData().begin(),w->widget()->canvas()->getCurrentPeakData().end(),1500);
         DFeatureMap<2> map = finder.run();
 
         //display features

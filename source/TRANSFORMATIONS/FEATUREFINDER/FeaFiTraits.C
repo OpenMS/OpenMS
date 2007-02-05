@@ -66,68 +66,6 @@ namespace OpenMS
     return *this;
   }
 
-
-  void FeaFiTraits::setData(MapType& exp)
-  {
-		map_.setBufferSize( exp.getBufferSize() );
-		map_.updateBuffer();
-		
-		// copy scanwise such that we can remove tandem spectra
-		for (UnsignedInt i=0; i<exp.size(); ++i)
-		{
-			if (exp[i].getMSLevel() == 1) map_.push_back(exp[i]);
-		}	
- 		
-		cout << "Updating range information. " << endl;
-    // update range informations
-    map_.updateRanges();				
-		
-		if (map_.getSize() == 0)
-		{
-			cout << "No data provided. Aborting. " << endl;
-			return;
-		}
-		
-		cout << "This map contains " << map_.size() << " scans  ";
-		cout << "and " << map_.getSize() << " data points. " << endl;
-		
-    // resize internal data structures
-    flags_.resize(map_.size());
-		for (UnsignedInt i=0; i<map_.size(); ++i)
-		{
-			flags_[i].assign(map_[i].size(),FeaFiTraits::UNUSED);
-		}
- }
-	
-
-  void FeaFiTraits::setData(MSExperiment<DPeak<1> >& exp)
-  {
-		for (UnsignedInt i=0; i<exp.size(); ++i)
-		{
-			if (exp[i].getMSLevel() == 1) map_.push_back(exp[i]);
-		}	
-	
-		cout << "Updating range information. " << endl;
-    // update range informations
-    map_.updateRanges();
-
-		if (map_.getSize() == 0)
-		{
-			cout << "No data provided. Aborting. " << endl;
-			return;
-		}
-							
-		cout << "This map contains " << map_.size() << " scans ";
-		cout << "and " << map_.getSize() << " data points. " << endl;
-
-    // resize internal data structures
-    flags_.resize(map_.size());
-		for (UnsignedInt i=0; i<map_.size(); ++i)
-		{
-			flags_[i].assign(map_[i].size(),FeaFiTraits::UNUSED);
-		}
-  }
-
   void FeaFiTraits::getNextRt(IDX& index) throw (Exception::IndexOverflow, NoSuccessor)
   {
   	//Corrupt index
@@ -267,6 +205,7 @@ namespace OpenMS
   	{
       while (true)
       {
+				cout << "Seeding ..." << endl;
 				IndexSet seed_region = seeders[0]->nextSeed();
 
         watch.start();

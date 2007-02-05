@@ -56,7 +56,7 @@ CHECK(~FeaFiTraits())
 RESULT
 
 CHECK(const ConvexHullType& FeaFiTraits::calculateConvexHull(const IndexSet& set))
-FeaFiTraits t;
+	FeaFiTraits t;
 	DPeak<2> p;
 	DPeakArray<2> peak_array;
 	p.getPosition()[0] = 1240.54; p.getPosition()[1] = 687.6;       peak_array.push_back(p);
@@ -91,7 +91,7 @@ FeaFiTraits t;
 	peak_array.sortByPosition();
 	MSExperimentExtern<DPeak<1> > exp;
 	exp.set2DData(peak_array);
-	t.setData(exp);
+	t.setData(exp.begin(), exp.end(),100);
 	
 	FeaFiTraits::IndexSet set;
 	for (UnsignedInt i=0; i<exp.size(); ++i) 
@@ -134,7 +134,7 @@ CHECK(const ConvexHullType& FeaFiTraits::calculateConvexHull(const IndexSet& set
 	peak_array.sortByPosition();
 	MSExperimentExtern<DPeak<1> > exp;
 	exp.set2DData(peak_array);
-	t.setData(exp);
+	t.setData(exp.begin(), exp.end(),100);
 	
 	FeaFiTraits::IndexSet set;
 	for (UnsignedInt i=0; i<exp.size(); ++i) 
@@ -180,7 +180,7 @@ CHECK(const ConvexHullType& FeaFiTraits::calculateConvexHull(const IndexSet& set
 	peak_array.sortByPosition();
 	MSExperimentExtern<DPeak<1> > exp;
 	exp.set2DData(peak_array);
-	t.setData(exp);
+	t.setData(exp.begin(), exp.end(),100);
 	
 	FeaFiTraits::IndexSet set;
 	for (UnsignedInt i=0; i<exp.size(); ++i) 
@@ -216,7 +216,7 @@ CHECK(const ConvexHullType& BaseFeaFiTraits::calculateConvexHull(const IndexSet&
 	peak_array.sortByPosition();
 	MSExperimentExtern<DPeak<1> > exp;
 	exp.set2DData(peak_array);
-	t.setData(exp);
+	t.setData(exp.begin(), exp.end(),100);
 	
 	FeaFiTraits::IndexSet set;
 	for (UnsignedInt i=0; i<exp.size(); ++i) 

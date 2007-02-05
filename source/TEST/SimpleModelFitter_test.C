@@ -144,7 +144,7 @@ CHECK( DFeature<2> fit(const IndexSet& set) throw (UnableToFit))
 	MSExperimentExtern<DPeak<1> > exp;
 	exp.set2DData(peak_array);
 		
-	traits.setData(exp);
+	traits.setData(exp.begin(), exp.end(),100);
 	
 	SimpleModelFitter fitter;
 	fitter.setTraits(&traits);
@@ -230,7 +230,7 @@ CHECK( DFeature<2> fit(const IndexSet& set) throw (UnableToFit))
 	MSExperimentExtern<DPeak<1> > exp;
 	exp.set2DData(peak_array);
 	
-	traits.setData(exp);
+	traits.setData(exp.begin(), exp.end(),100);
 	
 	SimpleModelFitter fitter;
 	fitter.setTraits(&traits);

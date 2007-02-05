@@ -104,7 +104,7 @@ CHECK((double evaluate(const IndexSet& set, const BaseModel<1>& model, UnsignedI
 	
 	MSExperimentExtern<DPeak<1> > exp;
 	exp.set2DData(peak_array);
-	traits.setData(exp);
+	traits.setData(exp.begin(), exp.end(),100);
 		
 	corr.setTraits(&traits);
 	
@@ -181,7 +181,7 @@ CHECK((double evaluate(const IndexSet& set, const BaseModel<2>& model)))
 	
 	MSExperimentExtern<DPeak<1> > exp;
 	exp.set2DData(peak_array);
-	traits.setData(exp);
+	traits.setData(exp.begin(), exp.end(),100);
 	
 	corr.setTraits(&traits);
 	

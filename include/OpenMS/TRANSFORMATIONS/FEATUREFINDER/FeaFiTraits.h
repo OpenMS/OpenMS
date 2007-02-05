@@ -92,12 +92,44 @@ namespace OpenMS
 	
 	    /// assignment operator
 	    FeaFiTraits& operator = (const FeaFiTraits& source);
-	
-	    /// set internal data and update range information
-	    void setData(MapType& exp);
 			
-			/// copy input data to external memory and update range information 
-	    void setData(MSExperiment<DPeak<1> >& exp);
+			/**
+				@brief copy input data to external memory and update range information
+				
+				@p buffer_size is the size of the ring buffer used in the internal MSExperimentExtern
+				
+				
+			*/
+			template <class SpectrumIteratorType>
+	    void setData(const SpectrumIteratorType& begin, const SpectrumIteratorType& end, UnsignedInt buffer_size)
+		  {
+		  	map_.setBufferSize( buffer_size );
+				map_.updateBuffer();
+		
+				for (SpectrumIteratorType it = begin; it != end; ++it)
+				{
+					if (it->getMSLevel() == 1) map_.push_back(*it);
+				}	
+			
+				std::cout << "Updating range information. " << std::endl;
+		    // update range informations
+		    map_.updateRanges();
+		
+				if (map_.getSize() == 0)
+				{
+					std::cout << "No data provided. Aborting. " << std::endl;
+					return;
+				}
+									
+				std::cout << "This map contains " << map_.size() << " scans and " << map_.getSize() << " data points. " << std::endl;
+		
+		    // resize internal data structures
+		    flags_.resize(map_.size());
+				for (UnsignedInt i=0; i<map_.size(); ++i)
+				{
+					flags_[i].assign(map_[i].size(),FeaFiTraits::UNUSED);
+				}
+		  }
 				
 			/// Mutable access to LC-MS map
 			inline MapType& getData() 
@@ -119,12 +151,6 @@ namespace OpenMS
 	    inline Flag& getPeakFlag(const IDX& index) throw (Exception::IndexOverflow) 
 	    { 
 	    	return flags_[index.first][index.second];
-	    }
-	
-	    /// retrieve the number of peaks.
-	    inline UnsignedInt getNumberOfPeaks() 
-	    { 
-	    	return map_.getSize(); 
 	    }
 		
 	    /// access intensity of peak with index @p index.

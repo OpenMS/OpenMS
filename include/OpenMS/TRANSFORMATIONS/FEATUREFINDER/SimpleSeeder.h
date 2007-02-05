@@ -57,8 +57,6 @@ namespace OpenMS
 		</table>
 		
 		@ingroup FeatureFinder
-		
-		@todo Write test with more than one scan and test not only the intensity (Ole)
 	*/ 
   class SimpleSeeder 
     : public BaseSeeder
@@ -78,17 +76,17 @@ namespace OpenMS
   	{			
   		public:
   			IntensityLess(FeaFiTraits* traits)
-					: map_(&(traits->getData()))
+					: traits_(traits)
   			{
 				}
   			
   			inline bool operator() (const IDX& x, const IDX& y)
 				{
-    			return map_->operator[](x.first)[x.second].getIntensity() < map_->operator[](y.first)[y.second].getIntensity();
+    			return traits_->getPeakIntensity(x) < traits_->getPeakIntensity(y);
 				}
   			
   		protected:
-				FeaFiTraits::MapType* map_;
+				FeaFiTraits* traits_;
   	};
   	
     /// Default constructor

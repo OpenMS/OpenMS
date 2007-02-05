@@ -94,7 +94,7 @@ CHECK(nextSeed())
 	
 	exp.push_back(spec);
 	
-	traits->setData(exp);
+	traits->setData(exp.begin(), exp.end(),100);
 	
 	extender.setTraits(traits);
  	

@@ -68,55 +68,92 @@ CHECK(~SimpleSeeder())
 	delete ptr;
 RESULT
 
-CHECK(nextSeed())
-  SimpleSeeder seeder;
-  FeaFiTraits* traits = new FeaFiTraits();
-  DPeakArray<2> peak_array;
-  
-  double mzs[] = {675, 675.5, 676, 676.5, 677};
-	double rts[] = {1261, 1261, 1261, 1261, 1261};
-	double its[] = {5, 10, 7, 3, 15};
-	
-	const Size num = 5;
-	
-	for (unsigned int i=0; i < num; i++)
-	{
-		DPeak<2> p;
-		p.getPosition()[MZ] = mzs[i];
-		p.getPosition()[RT] = rts[i];
-		p.getIntensity()    = its[i];
-		peak_array.push_back(p);
-	}
-	
-	MSExperiment<DPeak<1> > exp;
-	exp.set2DData(peak_array);
+MSExperiment<>::PeakType p;
 
-	traits->setData(exp);
+// SPECTRUM 1
+MSExperiment<>::SpectrumType s1;
+s1.setRetentionTime(1.0);
+
+p.setPos(500.0);
+p.setIntensity(10.0);
+s1.push_back(p);
+
+p.setPos(600.0);
+p.setIntensity(20.0);
+s1.push_back(p);
+
+p.setPos(800.0);
+p.setIntensity(30.0);
+s1.push_back(p);
+
+p.setPos(1000.0);
+p.setIntensity(40.0);
+s1.push_back(p);
+
+p.setPos(1200.0);
+p.setIntensity(110.0);
+s1.push_back(p);
+
+// SPECTRUM 2
+MSExperiment<>::SpectrumType s2;
+s2.setRetentionTime(2.0);
+
+p.setPos(500.0);
+p.setIntensity(100.0);
+s2.push_back(p);
+
+p.setPos(600.0);
+p.setIntensity(80.0);
+s2.push_back(p);
+
+p.setPos(800.0);
+p.setIntensity(30.0);
+s2.push_back(p);
+
+p.setPos(1000.0);
+p.setIntensity(10.0);
+s2.push_back(p);
+
+p.setPos(1200.0);
+p.setIntensity(110.0);
+s2.push_back(p);
+
+CHECK(nextSeed())
+  
+	MSExperiment<> exp;
+	exp.push_back(s1);
+	exp.push_back(s2);
 	
+  FeaFiTraits* traits = new FeaFiTraits();
+	traits->setData(exp.begin(), exp.end(),100);
+	traits->getPeakFlag(make_pair(0,4)) = FeaFiTraits::INSIDE_FEATURE;
+	traits->getPeakFlag(make_pair(1,4)) = FeaFiTraits::INSIDE_FEATURE;
+	
+	SimpleSeeder seeder;
 	seeder.setTraits(traits);
-	
-	FeaFiModule::IndexSet  region;
+	Param param;
+	param.setValue("min_intensity",35);
+	seeder.setParameters(param);
+	FeaFiModule::IndexSet region;
 	FeaFiModule::IDX peak;
 	
 	region = seeder.nextSeed();
 	peak =  *(region.begin());
-	TEST_EQUAL(traits->getPeakIntensity(peak),15);	
+	TEST_EQUAL(traits->getPeakIntensity(peak),100.0);
+	TEST_EQUAL(traits->getPeakMz(peak),500.0);
+	TEST_EQUAL(traits->getPeakRt(peak),2.0);
 	
 	region = seeder.nextSeed();
 	peak =  *(region.begin());
-	TEST_EQUAL(traits->getPeakIntensity(peak),10);					
+	TEST_EQUAL(traits->getPeakIntensity(peak),80.0);
+	TEST_EQUAL(traits->getPeakMz(peak),600.0);
+	TEST_EQUAL(traits->getPeakRt(peak),2.0);
 	
 	region = seeder.nextSeed();
 	peak =  *(region.begin());
-	TEST_EQUAL(traits->getPeakIntensity(peak),7);		
-	
-	region = seeder.nextSeed();
-	peak =  *(region.begin());
-	TEST_EQUAL(traits->getPeakIntensity(peak),5);		
-	
-	region = seeder.nextSeed();
-	peak =  *(region.begin());
-	TEST_EQUAL(traits->getPeakIntensity(peak),3);		
+	TEST_EQUAL(traits->getPeakIntensity(peak),40.0);
+	TEST_EQUAL(traits->getPeakMz(peak),1000.0);
+	TEST_EQUAL(traits->getPeakRt(peak),1.0);
 
 	TEST_EXCEPTION( FeaFiModule::NoSuccessor , seeder.nextSeed() )
 

@@ -54,7 +54,6 @@ namespace OpenMS
     : BaseSeeder(rhs),
     	is_initialized_(false)
   {
-    updateMembers_();
   }
   
   SimpleSeeder& SimpleSeeder::operator= (const SimpleSeeder& rhs)
@@ -63,8 +62,6 @@ namespace OpenMS
     
     BaseSeeder::operator=(rhs);
     is_initialized_ = false;
-    
-    updateMembers_();
     
     return *this;
   }
@@ -81,8 +78,8 @@ namespace OpenMS
 				noise_threshold = int_perc * traits_->getData().getMaxInt();			
 			}
 			
-			//reserve space for a ten'th of the peaks
-			indizes_.reserve((std::vector<IDX>::size_type)round(traits_->getData().getSize() / 10.0));
+			//reserve space for a quater of the peaks
+			indizes_.reserve((std::vector<IDX>::size_type)round(traits_->getData().getSize() / 4.0));
 			//fill indices for peaks above noise threshold
 			IDX tmp = make_pair(0,0);
 			while (tmp.first < traits_->getData().size())
@@ -98,9 +95,16 @@ namespace OpenMS
 				}
 				++tmp.first;
 			}
+#ifdef DEBUG_FEATUREFINDER
+ 		std::cout	<< "Number of peaks above threshold (" << noise_threshold	<< "): " << indizes_.size() << endl;
+#endif
 			
 			// sort index vector by intensity of peaks (highest first)
 			sort(indizes_.rbegin(),indizes_.rend(),SimpleSeeder::IntensityLess::IntensityLess(traits_));
+
+#ifdef DEBUG_FEATUREFINDER
+ 		std::cout	<< "Finished sorting!" << endl;
+#endif
 		
 			current_peak_ = indizes_.begin();
 			is_initialized_ = true;
@@ -120,12 +124,12 @@ namespace OpenMS
 		
 		nr_seeds_++;
 		
-		#ifdef DEBUG_FEATUREFINDER
+#ifdef DEBUG_FEATUREFINDER
 // 		std::cout	<< "Processing seed " << nr_seeds_	<< " ("
 // 							<< traits_->getPeakRt(*current_peak_) << ","
 // 							<< traits_->getPeakMz(*current_peak_)
 // 							<< ") with intensity " << traits_->getPeakIntensity(*current_peak_) << std::endl;
-		#endif
+#endif
 		
 		// set flag
 		traits_->getPeakFlag(*current_peak_) = FeaFiTraits::SEED;

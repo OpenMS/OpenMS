@@ -131,15 +131,10 @@ namespace OpenMS
 	
 	
 	    /// Sets data using instance of MSExperimentExtern.
-	    void setData(MapType& exp)
-	    { 
-	    	traits_->setData(exp); 
-	    }
-			
-			/// Sets data using instance of MSExperiment
-	    void setData(MSExperiment<DPeak<1> >& exp) 
-	    { 
-	    	traits_->setData(exp); 
+	    template <class SpectrumIteratorType>
+	    void setData(const SpectrumIteratorType& begin, const SpectrumIteratorType& end, UnsignedInt buffer_size)
+		  { 
+	    	traits_->setData(begin, end, buffer_size); 
 	    }
 		
 	    /// start feature finding
@@ -149,7 +144,7 @@ namespace OpenMS
 	
 		protected:
 	
-	    inline bool setModule(String module)
+	    inline bool setModule(const String& module)
 	    {
 	      Param mod_param = param_.copy(module+":",true);
 	      if (mod_param.empty()) return false;

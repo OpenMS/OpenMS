@@ -103,6 +103,7 @@ class TOPPFeatureFinder
 	{
 		registerStringOption_("in","<file>","","input file in MzData format");
 		registerStringOption_("out","<file>","","output file in feature format");
+		registerIntOption_("buffer_size","<size>",1500,"size of the spectrum buffer used internally", false);
 		
 		addEmptyLine_();
 		addText_("This application implements an algorithm for peptide feature detection\n"
@@ -122,11 +123,6 @@ class TOPPFeatureFinder
 		//input file names and types
 		String in = getStringOption_("in");	
 		String out = getStringOption_("out");
-		
-		writeLog_(String(" Reading input file ") + in);
-			
-		MSExperiment<DPeak<1> > exp;
-		MzDataFile().load(in,exp);
 
 		FeatureFinder ff;
 		Param const& feafi_param = getParam_().copy("algorithm:",true);
@@ -140,8 +136,14 @@ class TOPPFeatureFinder
 		}
 		
 		ff.setParam(feafi_param);
-		ff.setData(exp);
-	
+		
+		//New scope => exp is deleted as soon as the FeatureFinder has made a copy
+		writeLog_(String("Reading input file ") + in);
+		{
+			MSExperiment<DPeak<1> > exp;
+			MzDataFile().load(in,exp);
+			ff.setData(exp.begin(),exp.end(),getIntOption_("buffer_size"));
+		}
 		writeLog_(" Running FeatureFinder...");
 		
 		DFeatureMap<2> features = ff.run();

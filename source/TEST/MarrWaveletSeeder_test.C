@@ -75,7 +75,7 @@ CHECK(nextSeed())
 	MSExperiment<DPeak<1> > exp;
 	MzDataFile().load("data/MarrWaveletTestData.mzData",exp);
 	
-	traits->setData(exp);
+	traits->setData(exp.begin(), exp.end(),100);
 	
 	seeder.setTraits(traits);
 	
