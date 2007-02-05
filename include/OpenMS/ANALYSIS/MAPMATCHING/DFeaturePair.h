@@ -40,7 +40,7 @@ namespace OpenMS
 /**
 	 @brief A pair of features in two different maps.
 
-   The purpose of the mapmatching stage is two identify pairs of features in
+   The purpose of the mapmatching stage is to identify pairs of features in
    different map, to estimate a transformation that maps features in a
    specified range onto each other and to execute this transform
    (dewarping).

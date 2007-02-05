@@ -129,7 +129,9 @@ namespace OpenMS
 
     /// Copy constructor
     PoseClusteringPairwiseMapMatcher(const PoseClusteringPairwiseMapMatcher& source)
-        : Base(source)
+        : Base(source),
+        	superimposer_(0),
+        	pair_finder_(0)
     {
     	updateMembers_();	
     }
