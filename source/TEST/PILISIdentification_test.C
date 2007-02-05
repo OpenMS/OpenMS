@@ -103,8 +103,7 @@ RESULT
 
 CHECK(void setModel(PILISModel* hmm_model))
 	PILISModel* model = new PILISModel();
-	//model->readFromFile("../../data/PILIS/PILIS_default_model.dat");
-	model->readFromFile("/share/usr/bertsch/Diplom_sources/PILIS_model_debug.dat");
+	model->readFromFile("../../data/PILIS/PILIS_default_model.dat");
 	ptr->setModel(model);
 RESULT
 
