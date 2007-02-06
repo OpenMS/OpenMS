@@ -36,10 +36,14 @@ namespace OpenMS
 	/**	
 		@brief A base class for all classes handling default parameters.
 		
-		This class facilitates the handling of parameters.
-		It manages default parameter, checks for wrong/misspelled parameters
-		and keeps extra member variables in synronicity with the parameters
-		stored in param_.
+		This class facilitates the handling of parameters:
+		- it manages default parameter (defaults_)
+		- it checks for wrong/misspelled parameters
+		- subsections that are i.e. passed to other classes can be excluded from the check (subsections_)
+		- it keeps member variables in synronicity with the parameters stored in param_
+		
+		Extra member variables are needed if getting the value from param_ would be too slow
+		e.g. when they are used in methods that are called very often.
 		
 		No matter if you have extra variables or not, do the following:
 		- Set defaults_ and subsections_ in the derived classes' default constructor.
@@ -54,9 +58,6 @@ namespace OpenMS
 		- If you need mutable access to the extra member variables, provide a set-method and make sure to set
 		  the corresponding value in param_ as well!
 
-		@note Extra member variables for parameters make sense only if getting the value from param_ would be too slow.
-					E.g. when they are used in methods that are called very often. 
-	
 		@ingroup Datastructures
 	*/
 	class DefaultParamHandler

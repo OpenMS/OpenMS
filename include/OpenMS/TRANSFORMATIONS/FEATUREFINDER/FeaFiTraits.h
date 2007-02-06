@@ -48,6 +48,8 @@ namespace OpenMS
 		
 		@todo Write tests for all methods (Ole)
 		
+		@todo Make chosing between different map types (MSExperiment or MSExperimentExtern) possbile (Ole)
+		
 		@ingroup FeatureFinder 	
 	*/
 	class FeaFiTraits

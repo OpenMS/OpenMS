@@ -26,6 +26,8 @@
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SimpleExtender.h>
 
+using namespace std;
+
 namespace OpenMS
 {
 
@@ -77,16 +79,21 @@ namespace OpenMS
 		dist_rt_down_ = param_.getValue("dist_rt_down");
 
 		priority_threshold_ = param_.getValue("priority_thr");
-		min_intensity_contribution_ = param_.getValue("min_intensity_contribution");
 
 		// initialise priority distributions
-		score_distribution_rt_.getData().push_back(1.0);
+		if (score_distribution_rt_.getData().size()!=1)
+		{
+			score_distribution_rt_.getData().push_back(1.0);
+			score_distribution_rt_.setOffset(0);
+		}
 		score_distribution_rt_.setScale(param_.getValue("tolerance_rt"));
-		score_distribution_rt_.setOffset(0);
-
-		score_distribution_mz_.getData().push_back(1.0);
-		score_distribution_mz_.setScale(param_.getValue("tolerance_mz"));
-		score_distribution_mz_.setOffset(0);	
+		
+		if (score_distribution_mz_.getData().size()!=1)
+		{
+			score_distribution_mz_.getData().push_back(1.0);
+			score_distribution_mz_.setOffset(0);	
+ 		}
+ 		score_distribution_mz_.setScale(param_.getValue("tolerance_mz"));
   }
 
 
@@ -96,7 +103,7 @@ namespace OpenMS
     region_.clear();
 		priorities_.clear();
     running_avg_.clear();
-		boundary_ = std::priority_queue< IndexWithPriority, std::vector < IndexWithPriority > , IndexWithPriority::PriorityLess >();
+		boundary_ = priority_queue< IndexWithPriority, vector < IndexWithPriority > , IndexWithPriority::PriorityLess >();
 		
 		// find maximum of region (seed)
 		CoordinateType max_intensity = 0.0;
@@ -123,13 +130,14 @@ namespace OpenMS
 			boundary_.push(IndexWithPriority(*citer,priority));
     }
 		
-		std::cout << "Extending from " << traits_->getPeakRt(seed) << "/" << traits_->getPeakMz(seed) 
-							<< " (" << seed.first << "/" << seed.second << ")" << std::endl;
+		cout << "Extending from " << traits_->getPeakRt(seed) << "/" << traits_->getPeakMz(seed) 
+							<< " (" << seed.first << "/" << seed.second << ")" << endl;
 		
 		//compute intensity threshold and sum
 		intensity_threshold_ = (double)param_.getValue("intensity_factor") * traits_->getPeakIntensity(seed);
-		IntensityType intensity_sum = traits_->getPeakIntensity(seed);
-
+		IntensityType intensity_sum = 0.0;
+		IntensityType min_intensity_contribution = param_.getValue("min_intensity_contribution");
+				
     while (!boundary_.empty())
     {
 			// remove peak with highest priority
@@ -139,11 +147,12 @@ namespace OpenMS
     	//Corrupt index
     	OPENMS_PRECONDITION(current_index.first<traits_->getData().size(), "Scan index outside of map!");
       OPENMS_PRECONDITION(current_index.second<traits_->getData()[current_index.first].size(), "Peak index outside of scan!");
-				
-			if (traits_->getPeakIntensity(current_index) < (intensity_sum * min_intensity_contribution_) )
+			
+			// Here one could also devide the intensity_sum by max((IntensityType)region_.size(),1.0))
+			if (traits_->getPeakIntensity(current_index) < intensity_sum  *  min_intensity_contribution )
 			{
- 				//std::cout << "Skipping point because of low intensity contribution. " << std::endl;
- 				//std::cout << current_peak.getIntensity() << " " << (intensity_sum * min_intensity_contribution_) << std::endl;
+ 				//cout << "Skipping point because of low intensity contribution. " << endl;
+ 				//cout << current_peak.getIntensity() << " " << (intensity_sum * min_intensity_contribution) << endl;
 				continue;			 
 			}
 			
@@ -170,12 +179,12 @@ namespace OpenMS
 				traits_->getPeakFlag(current_index) = FeaFiTraits::INSIDE_FEATURE;
 				region_.insert(current_index);
 				intensity_sum += traits_->getPeakIntensity(current_index);
-	 			//std::cout << "Added point to region. Intensity sum is now: " << intensity_sum << std::endl;
-	 			//std::cout << "Intensity of the added point is : " << current_peak.getIntensity() << std::endl;
+	 			//cout << "Added point to region. Intensity sum is now: " << intensity_sum << endl;
+	 			//cout << "Intensity of the added point is : " << current_peak.getIntensity() << endl;
 			}
     } // end of while ( !boundary_.empty() )
 
-    std::cout << "SimpleExtender: Feature region size: " << region_.size() << std::endl;
+    cout << "Feature region size: " << region_.size() << endl;
     
     return region_;
 
@@ -293,7 +302,7 @@ namespace OpenMS
 			
 			if (pr_new > priority_threshold_) // check if priority larger than threshold
 			{
-				std::map<IDX, double>::iterator piter = priorities_.find(index);
+				map<IDX, double>::iterator piter = priorities_.find(index);
 				if (piter == priorities_.end()) // not yet in boundary
 				{
 					priorities_[index] = pr_new;

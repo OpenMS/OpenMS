@@ -83,7 +83,9 @@ namespace OpenMS
 					(default value is 0.03) .</td></tr>
 			</table>
 		
-		@todo Write a meaningful test (Ole)	
+		@todo Test on different data types (peak, raw, low/high intensity) (Ole)
+		@todo Use priorities or remove them (Ole)
+		@todo Try to divide intensity_sum by region_.size() (Ole)
 		
 		@ingroup FeatureFinder
 	*/
@@ -210,12 +212,8 @@ namespace OpenMS
 
 		/// Score distribution in m/z
 		Math::LinearInterpolation < CoordinateType, ProbabilityType > score_distribution_mz_;
-	
 		
-		/// Mininum percentage of the already collected intensity that a new pointed has to contribute
-		IntensityType min_intensity_contribution_;
-		
-		/// Mininum intensity of a boundary point. Calculated from 'intensity_factor' and the seed intensity;
+		/// Mininum intensity of a boundary point. Calculated from 'intensity_factor' and the seed intensity
 		IntensityType intensity_threshold_;
 		
 		/// Maximum distance to seed in positive m/z
