@@ -101,10 +101,6 @@ namespace OpenMS
 			
 			// sort index vector by intensity of peaks (highest first)
 			sort(indizes_.rbegin(),indizes_.rend(),SimpleSeeder::IntensityLess::IntensityLess(traits_));
-
-#ifdef DEBUG_FEATUREFINDER
- 		std::cout	<< "Finished sorting!" << endl;
-#endif
 		
 			current_peak_ = indizes_.begin();
 			is_initialized_ = true;
@@ -123,13 +119,6 @@ namespace OpenMS
 		}
 		
 		nr_seeds_++;
-		
-#ifdef DEBUG_FEATUREFINDER
-// 		std::cout	<< "Processing seed " << nr_seeds_	<< " ("
-// 							<< traits_->getPeakRt(*current_peak_) << ","
-// 							<< traits_->getPeakMz(*current_peak_)
-// 							<< ") with intensity " << traits_->getPeakIntensity(*current_peak_) << std::endl;
-#endif
 		
 		// set flag
 		traits_->getPeakFlag(*current_peak_) = FeaFiTraits::SEED;

@@ -275,6 +275,8 @@ namespace OpenMS
 		double current_spacing;
 		for (MapType::Iterator it = traits_->getData().begin(); it != traits_->getData().end(); ++it)
 		{
+			if (it->size() == 0) continue;
+			
 			for (SpectrumType::ConstIterator it2 = it->begin() + 1; it2 != it->end(); ++it2)
 			{
 				current_spacing = it2->getPos() - (it2-1)->getPos();
