@@ -30,7 +30,7 @@
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/BasePairFinder.h>
 
-#define V_SimplePairFinder(bla) std::cout << bla << std::endl;
+#define V_SimplePairFinder(bla) // std::cout << bla << std::endl;
 
 namespace OpenMS
 {

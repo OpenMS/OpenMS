@@ -11,12 +11,12 @@
 	</second>
 	<mappinglist>
 		<mapping name="DLinearMapping">
-			<param name="DLinearMapping:intercept" value="13.6054"></param>
-			<param name="DLinearMapping:slope" value="1.006"></param>
+			<param name="DLinearMapping:intercept" value="-16.779"></param>
+			<param name="DLinearMapping:slope" value="0.995196"></param>
 		</mapping>
 		<mapping name="DLinearMapping">
-			<param name="DLinearMapping:intercept" value="0.00116097"></param>
-			<param name="DLinearMapping:slope" value="0.999993"></param>
+			<param name="DLinearMapping:intercept" value="-0.000616378"></param>
+			<param name="DLinearMapping:slope" value="1"></param>
 		</mapping>
 	</mappinglist>
 </cell>

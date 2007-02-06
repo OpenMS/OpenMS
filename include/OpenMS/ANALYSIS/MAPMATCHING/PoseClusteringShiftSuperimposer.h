@@ -37,7 +37,7 @@
 
 #include <fstream>
 
-#define V_PoseClusteringShiftSuperimposer(bla) std::cout << bla << std::endl;
+#define V_PoseClusteringShiftSuperimposer(bla) // std::cout << bla << std::endl;
 
 namespace OpenMS
 {
