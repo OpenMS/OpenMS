@@ -31,9 +31,7 @@ namespace OpenMS
 
 	SimpleExtender::SimpleExtender() 
 	: BaseExtender(),
-		intensity_threshold_(0),
-		last_pos_extracted_(),
-		intensity_sum_(0)
+		last_pos_extracted_()
 	{
     setName(getProductName());
     
@@ -73,10 +71,6 @@ namespace OpenMS
 
   void SimpleExtender::updateMembers_()
   {
-		CoordinateType tol_rt = param_.getValue("tolerance_rt");
-		CoordinateType tol_mz = param_.getValue("tolerance_mz");
-		intensity_factor_ = param_.getValue("intensity_factor");
-
 		dist_mz_up_ = param_.getValue("dist_mz_up");
 		dist_mz_down_ = param_.getValue("dist_mz_down");
 		dist_rt_up_ = param_.getValue("dist_rt_up");
@@ -86,15 +80,15 @@ namespace OpenMS
 		min_intensity_contribution_ = param_.getValue("min_intensity_contribution");
 
 		// initialise priority distributions
-		//ALARM
 		score_distribution_rt_.getData().push_back(1.0);
-		score_distribution_rt_.setScale(tol_rt);
+		score_distribution_rt_.setScale(param_.getValue("tolerance_rt"));
 		score_distribution_rt_.setOffset(0);
 
 		score_distribution_mz_.getData().push_back(1.0);
-		score_distribution_mz_.setScale(tol_mz);
+		score_distribution_mz_.setScale(param_.getValue("tolerance_mz"));
 		score_distribution_mz_.setOffset(0);	
   }
+
 
 	const FeaFiModule::IndexSet& SimpleExtender::extend(const IndexSet& seed_region)
 	{
@@ -102,81 +96,67 @@ namespace OpenMS
     region_.clear();
 		priorities_.clear();
     running_avg_.clear();
-		while (boundary_.size() > 0) boundary_.pop();
+		boundary_ = std::priority_queue< IndexWithPriority, std::vector < IndexWithPriority > , IndexWithPriority::PriorityLess >();
 		
+		// find maximum of region (seed)
 		CoordinateType max_intensity = 0.0;
-		IDX seed_index;
-		
-		// find maximum of region and set seed flag
+		IDX seed;
     for (IndexSet::const_iterator citer = seed_region.begin(); citer != seed_region.end(); ++citer)
     {	
-    	FeaFiTraits::MapType::SpectrumType& scan = traits_->getData()[citer->first];
-      if (scan[citer->second].getIntensity() > max_intensity)
+      if (traits_->getPeakIntensity(*citer) > max_intensity)
       {
-        seed_index     = *citer;
-        max_intensity = scan[citer->second].getIntensity();						
+        seed = *citer;
+        max_intensity = traits_->getPeakIntensity(seed);						
 			}
-			
-  		IndexWithPriority iwp(*citer,computePeakPriority_(*citer));
-			boundary_.push(iwp);
     }
-    
-    traits_->getPeakFlag(seed_index) = FeaFiTraits::SEED;
+    traits_->getPeakFlag(seed) = FeaFiTraits::SEED;
     		
-		 // remember last peak to be extracted from the boundary
-    // (in this case the seed !)
-		IDX seed = seed_index;
-		last_pos_extracted_[RT] = traits_->getData()[seed_index.first].getRetentionTime();
-		last_pos_extracted_[MZ] = traits_->getData()[seed_index.first][seed_index.second].getPos();
+		// remember last peak to be extracted from the boundary (in this case the seed !)
+		last_pos_extracted_[RT] = traits_->getPeakRt(seed);
+		last_pos_extracted_[MZ] = traits_->getPeakMz(seed);
 		
-		std::cout << "New seed at " << seed.first << " " << seed.second << std::endl;
+		// Add peaks in the region to the boundary
+    for (IndexSet::const_iterator citer = seed_region.begin(); citer != seed_region.end(); ++citer)
+    {	
+    	ProbabilityType priority = computePeakPriority_(*citer);
+    	priorities_[*citer] = priority;
+			boundary_.push(IndexWithPriority(*citer,priority));
+    }
 		
-		intensity_threshold_ = intensity_factor_ * traits_->getPeakIntensity(seed);
-		intensity_sum_        = traits_->getPeakIntensity(seed);
-
-    ProbabilityType prior = computePeakPriority_(seed);
-    IndexWithPriority seed_p(seed_index,prior);
-
-    // at the beginning, the boundary contains only the seed
-    boundary_.push(seed_p);
-    priorities_[seed_index] = prior;
+		std::cout << "Extending from " << traits_->getPeakRt(seed) << "/" << traits_->getPeakMz(seed) 
+							<< " (" << seed.first << "/" << seed.second << ")" << std::endl;
+		
+		//compute intensity threshold and sum
+		intensity_threshold_ = (double)param_.getValue("intensity_factor") * traits_->getPeakIntensity(seed);
+		IntensityType intensity_sum = traits_->getPeakIntensity(seed);
 
     while (!boundary_.empty())
     {
-			
 			// remove peak with highest priority
-			IndexWithPriority const index_priority = boundary_.top();
+			const IDX  current_index = boundary_.top().index;
 			boundary_.pop();
 			
-			const IDX  current_index = index_priority.index;
-			if (current_index.first >= traits_->getData().size() || current_index.second >= traits_->getData()[current_index.first].size())
-			{
-				std::cout << "WARNING: Index too large " << current_index.first << " " << current_index.second << std::endl;
-				continue;
-			}
-			
-			FeaFiTraits::MapType::SpectrumType& scan = traits_->getData()[current_index.first];
-			
-			// skip this point if its intensity is too large
-			if (scan[current_index.second].getIntensity() <  intensity_threshold_)	continue;
+    	//Corrupt index
+    	OPENMS_PRECONDITION(current_index.first<traits_->getData().size(), "Scan index outside of map!");
+      OPENMS_PRECONDITION(current_index.second<traits_->getData()[current_index.first].size(), "Peak index outside of scan!");
 				
-			if (scan[current_index.second].getIntensity() < (intensity_sum_ * min_intensity_contribution_) )
+			if (traits_->getPeakIntensity(current_index) < (intensity_sum * min_intensity_contribution_) )
 			{
-// 				std::cout << "Skipping point because of low intensity contribution. " << std::endl;
-// 				std::cout << current_peak.getIntensity() << " " << (intensity_sum_ * min_intensity_contribution_) << std::endl;
+ 				//std::cout << "Skipping point because of low intensity contribution. " << std::endl;
+ 				//std::cout << current_peak.getIntensity() << " " << (intensity_sum * min_intensity_contribution_) << std::endl;
 				continue;			 
 			}
 			
 			// remember last peak to be extracted from the boundary
-			last_pos_extracted_[RT] = scan.getRetentionTime();
-			last_pos_extracted_[MZ] = scan[current_index.second].getPos();
+			last_pos_extracted_[RT] = traits_->getPeakRt(current_index);
+			last_pos_extracted_[MZ] = traits_->getPeakMz(current_index);
 
 			// Now we explore the neighbourhood of the current peak. Peaks in this area are included
 			// into the boundary if their intensity is not too low and they are not too
 			// far away from the seed.
 			
 			// Add position to the current average of positions weighted by intensity
-			running_avg_.add(last_pos_extracted_,scan[current_index.second].getIntensity());
+			running_avg_.add(last_pos_extracted_,traits_->getPeakIntensity(current_index));
 
 			// explore neighbourhood of current peak
 			moveMzUp_(current_index);
@@ -189,9 +169,9 @@ namespace OpenMS
 			{
 				traits_->getPeakFlag(current_index) = FeaFiTraits::INSIDE_FEATURE;
 				region_.insert(current_index);
-				intensity_sum_ += scan[current_index.second].getIntensity();
-// 				std::cout << "Added point to region. Intensity sum is now: " << intensity_sum_ << std::endl;
-// 				std::cout << "Intensity of the added point is : " << current_peak.getIntensity() << std::endl;
+				intensity_sum += traits_->getPeakIntensity(current_index);
+	 			//std::cout << "Added point to region. Intensity sum is now: " << intensity_sum << std::endl;
+	 			//std::cout << "Intensity of the added point is : " << current_peak.getIntensity() << std::endl;
 			}
     } // end of while ( !boundary_.empty() )
 
@@ -199,55 +179,41 @@ namespace OpenMS
     
     return region_;
 
-	} // end of extend(Unsigned int seed_index)
+	} // end of extend
 
-	/**
-	 * \brief Checks whether the current peak is to far away from the seed
-	 * 
-	 * */
+
 	bool SimpleExtender::isTooFarFromCentroid_(const IDX& index)
 	{
-		// error check, this should not happen
-		if (index.first >= traits_->getData().size() || index.second >= traits_->getData()[index.first].size())
-		{
-			std::cout << "WARNING: Index too large " << index.first << " " << index.second << " (SimpleExtender::isTooFarFromCentroid_)" << std::endl;
-			return false;
-		}
-	
-		FeaFiTraits::MapType::SpectrumType& scan = traits_->getData()[index.first];
-	
-    FeaFiTraits::PositionType2D const curr_mean = running_avg_.getPosition();
+  	//Corrupt index
+  	OPENMS_PRECONDITION(index.first<traits_->getData().size(), "Scan index outside of map!");
+    OPENMS_PRECONDITION(index.second<traits_->getData()[index.first].size(), "Peak index outside of scan!");
 
-    if ( scan[index.second].getPos() > curr_mean[MZ] + dist_mz_up_   ||
-				 scan[index.second].getPos() < curr_mean[MZ] - dist_mz_down_ ||
-				 scan.getRetentionTime() > curr_mean[RT] + dist_rt_up_   ||
-				 scan.getRetentionTime() < curr_mean[RT] - dist_rt_down_ )
+     const FeaFiTraits::PositionType2D& curr_mean = running_avg_.getPosition();
+
+    if ( traits_->getPeakMz(index) > curr_mean[MZ] + dist_mz_up_   ||
+				 traits_->getPeakMz(index) < curr_mean[MZ] - dist_mz_down_ ||
+				 traits_->getPeakRt(index) > curr_mean[RT] + dist_rt_up_   ||
+				 traits_->getPeakRt(index) < curr_mean[RT] - dist_rt_down_ )
     {
-			// close enough
+    	//too far
 			return true;
     }
 		
-		// too far away from centroid of region
-    return false;
+		//close enough
+		return false;
 	}
 
 	void SimpleExtender::moveMzUp_(const IDX& index)
 	{
-    try // moving up in m/z direction
+    try
     {
     	IDX tmp = index;
 			while (true)
 			{
-				traits_->getNextMz(tmp); // take next peak
-				
-				// stop if we've left the current scan
-				if (isTooFarFromCentroid_(tmp) ) break;
-
-				// check this neighbour for insertion into the boundary
+				traits_->getNextMz(tmp);
+				if (isTooFarFromCentroid_(tmp)) break;
 				checkNeighbour_(tmp);
-
-			} // end of while (true)
-
+			}
     }
     catch(NoSuccessor)
     {
@@ -256,21 +222,15 @@ namespace OpenMS
 
 	void SimpleExtender::moveMzDown_(const IDX& index)
 	{
-    try // moving down in m/z direction
+    try
     {
     	IDX tmp = index;
 			while (true)
 			{
-				traits_->getPrevMz(tmp);	// take next peak
-				
-				// stop if we've left the current scan
+				traits_->getPrevMz(tmp);
 				if (isTooFarFromCentroid_(tmp))	break;
-
-				// check this neighbour for insertion into the boundary
 				checkNeighbour_(tmp);
-
-			} // end of while (true)
-
+			}
     }
     catch(NoSuccessor)
     {
@@ -279,20 +239,15 @@ namespace OpenMS
 
 	void SimpleExtender::moveRtUp_(const IDX& index)
 	{
-    try // moving up in retention time
+    try
     {
     	IDX tmp = index;
 			while (true)
 			{
-				traits_->getNextRt(tmp); // take next peak
-
-				if (isTooFarFromCentroid_(tmp)) 	break;
-
-				// check this neighbour for insertion into the boundary
+				traits_->getNextRt(tmp);
+				if (isTooFarFromCentroid_(tmp)) break;
 				checkNeighbour_(tmp);
-
-			} // end of while (true)
-
+			}
     }
     catch(NoSuccessor)
     {
@@ -301,20 +256,15 @@ namespace OpenMS
 
 	void SimpleExtender::moveRtDown_(const IDX& index)
 	{
-    try // moving up in retention time
+    try
     {
 			IDX tmp = index;
 			while (true)
 			{
-				traits_->getPrevRt(tmp); // take next peak
-
-				if (isTooFarFromCentroid_(tmp)) 	break;
-
-				// check this neighbour for insertion into the boundary
+				traits_->getPrevRt(tmp);
+				if (isTooFarFromCentroid_(tmp)) break;
 				checkNeighbour_(tmp);
-
-			} // end of while (true)
-
+			}
     }
     catch(NoSuccessor)
     {
@@ -330,30 +280,24 @@ namespace OpenMS
 
 	void SimpleExtender::checkNeighbour_(const IDX& index)
 	{
-		// error check, this should not happen
-		if (index.first >= traits_->getData().size() || index.second >= traits_->getData()[index.first].size())
-		{
-			std::cout << "WARNING: Index too large " << index.first << " " << index.second << " (SimpleExtender::checkNeighbour_)" << std::endl;
-			return;
-		}
-	
-		FeaFiTraits::MapType::SpectrumType& scan = traits_->getData()[index.first];
+  	//Corrupt index
+  	OPENMS_PRECONDITION(index.first<traits_->getData().size(), "Scan index outside of map!");
+    OPENMS_PRECONDITION(index.second<traits_->getData()[index.first].size(), "Peak index outside of scan!");
 		
-    // we don't care about points with intensity zero (or < 0 which might occur if TopHatFilter was applied)
-    if (scan[index.second].getIntensity() <= 0) 	return;
+    // skip this point if its intensity is too low
+    if (traits_->getPeakIntensity(index) <= intensity_threshold_) 	return;
 
-    if (traits_->getPeakFlag(index)== FeaFiTraits::UNUSED)
+    if (traits_->getPeakFlag(index) == FeaFiTraits::UNUSED)
     {
 			double pr_new = computePeakPriority_(index);
-
+			
 			if (pr_new > priority_threshold_) // check if priority larger than threshold
 			{
 				std::map<IDX, double>::iterator piter = priorities_.find(index);
 				if (piter == priorities_.end()) // not yet in boundary
 				{
 					priorities_[index] = pr_new;
-					IndexWithPriority peak(index,pr_new);
-					boundary_.push(peak);	// add to boundary
+					boundary_.push(IndexWithPriority(index,pr_new));
 				}
 			}
 		}

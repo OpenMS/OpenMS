@@ -60,6 +60,7 @@
 #include <OpenMS/VISUAL/DIALOGS/BaselineFilteringDialog.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/VISUAL/Spectrum3DCanvas.h>
+#include <OpenMS/SYSTEM/File.h>
 
 // Qt
 #include <qaction.h>
@@ -462,42 +463,54 @@ namespace OpenMS
 
   void TOPPViewBase::addSpectrum(const String& filename,bool as_new_window, bool maps_as_2d, bool maximize, OpenDialog::Mower use_mower, FileHandler::Type force_type)
   {
-    //for comparison
-    String filename_lower(filename);
-    filename_lower.toLower();
-
-    if (filename == "")
-    {
-      return;
-    }
-    QFileInfo file(filename.c_str());
-    if (!file.exists())
+    if (!File::exists(filename))
     {
       QMessageBox::warning(this,"Open file error",("The file '"+filename+"' does not exist!").c_str());
       return;
     }
 
     //extract the filename without path
-    String caption = file.fileName().ascii();
+    String caption = File::basename(filename);
 
     //update recent files list
     addRecentFile_(filename);
 
     //windowpointer
     SpectrumWindow* w=0;
-
+    
     if (activeWindow_()==0)
     {
       as_new_window = true;
     }
 
+		//determine file type if not forced
+		FileHandler fh;
+		if (force_type==FileHandler::UNKNOWN)
+		{
+			if (force_type==FileHandler::UNKNOWN)
+			{
+				force_type = fh.getTypeByFileName(filename);
+			}
+
+			if (force_type==FileHandler::UNKNOWN)
+			{
+				force_type = fh.getTypeByContent(filename);
+			}
+		}
+
+		if (force_type==FileHandler::UNKNOWN)
+		{
+      QMessageBox::warning(this,"Open file error",("Could not determine file type of '"+filename+"'!").c_str());
+      return;
+		}
+
     if (as_new_window)
     {
-      if (filename_lower.hasSuffix(".dta")) //1D
+      if (force_type==FileHandler::DTA)
       {
         w = new Spectrum1DWindow(ws_,"Spectrum1DWindow",WDestructiveClose);
       }
-      else if (maps_as_2d || filename_lower.hasSuffix(".feat")) //2d or features
+      else if (maps_as_2d || force_type==FileHandler::FEATURE) //2d or features
       {
         w = new Spectrum2DWindow(ws_,"Spectrum1DWindow",WDestructiveClose);
       }
@@ -513,7 +526,7 @@ namespace OpenMS
     {
       if (active1DWindow_()!=0) //1D window
       {
-        if (!filename_lower.hasSuffix(".dta"))
+        if (force_type!=FileHandler::DTA)
         {
           QMessageBox::warning(this,"Wrong file type",("You cannot open 2D data ("+filename+") in a 1D window!").c_str());
           return;
@@ -523,7 +536,7 @@ namespace OpenMS
       }
       else if (active2DWindow_()!=0) //2d window
       {
-        if (filename_lower.hasSuffix(".dta"))
+        if (force_type==FileHandler::DTA)
         {
           QMessageBox::warning(this,"Wrong file type",("You cannot open 1D data ("+filename+") in a 2D window!").c_str());
           return;
@@ -532,7 +545,7 @@ namespace OpenMS
       }
       else if (active3DWindow_()!=0)//3d window
       {
-        if (filename_lower.hasSuffix(".dta"))
+        if (force_type==FileHandler::DTA)
         {
           QMessageBox::warning(this,"Wrong file type",("You cannot open 1D data ("+filename+") in a 3D window!").c_str());
           return;
@@ -542,7 +555,7 @@ namespace OpenMS
     }
 
     //try to read the data from file (feature)
-    if (filename_lower.hasSuffix(".feat"))
+    if (force_type==FileHandler::FEATURE)
     {
       DFeatureMap<2> map;
       try
@@ -563,7 +576,7 @@ namespace OpenMS
       SpectrumCanvas::ExperimentType* exp = &(w->widget()->canvas()->addEmptyPeakLayer());
       try
       {
-        FileHandler().loadExperiment(filename,*exp, force_type);
+        fh.loadExperiment(filename,*exp, force_type);
       }
       catch(Exception::Base& e)
       {
@@ -854,14 +867,12 @@ namespace OpenMS
     unlinkActive_();
     if (path!="<unlinked>")
     {
-      QFileInfo file;
       //link spectras
       QWidgetList windows = ws_->windowList();
       for ( int i = 0; i < int(windows.count()); ++i )
       {
         QWidget *window = windows.at(i);
-        file = QFileInfo(window->caption());
-        if (file.fileName()+"  ("+window->caption()+")"==path)
+        if (File::basename(window->caption())+"  ("+window->caption().ascii()+")"==path)
         {
           //connect the slots
           connect(activeWindow_()->widget()->canvas(),SIGNAL(visibleAreaChanged(DRange<2>)),dynamic_cast<SpectrumWindow*>(window)->widget()->canvas(),SLOT(setVisibleArea(DRange<2>)));
@@ -1094,7 +1105,6 @@ namespace OpenMS
       };
 
       //update link selector
-      QFileInfo file;
       int current_index=0;
       int active_linked_to_address = link_map_[PointerSizeInt(&(*ws_->activeWindow()))];
       link_box_->clear();
@@ -1106,8 +1116,7 @@ namespace OpenMS
         if (window!=w)
         {
           current_index++;
-          file = QFileInfo(window->caption());
-          link_box_->insertItem(file.fileName()+"  ("+window->caption()+")");
+          link_box_->insertItem(File::basename(window->caption())+"  ("+window->caption().ascii()+")");
           if (active_linked_to_address==PointerSizeInt(&(*window)))
           {
             link_box_->setCurrentItem(current_index);

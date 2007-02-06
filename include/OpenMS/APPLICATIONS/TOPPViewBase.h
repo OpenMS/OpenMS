@@ -40,6 +40,7 @@
 //QT
 #include <qmainwindow.h>
 #include <qworkspace.h>
+
 class QAction;
 class QComboBox;
 class QToolButton;

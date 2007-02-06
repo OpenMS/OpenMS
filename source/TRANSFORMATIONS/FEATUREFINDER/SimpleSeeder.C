@@ -41,7 +41,7 @@ namespace OpenMS
 		setName(getProductName());
 		
 		defaults_.setValue("intensity_perc",0.03f);
-		defaults_.setValue("min_intensity",-1.0f);
+		defaults_.setValue("min_intensity",0.0f);
 		
 		defaultsToParam_();
 	}
@@ -72,7 +72,7 @@ namespace OpenMS
 		{
 			// determine mininum intensity for last seed
 			IntensityType noise_threshold  = param_.getValue("min_intensity");
-			if (noise_threshold == -1)	// -1 is default value
+			if (noise_threshold == 0.0)
 			{
 				IntensityType int_perc = param_.getValue("intensity_perc");;
 				noise_threshold = int_perc * traits_->getData().getMaxInt();			

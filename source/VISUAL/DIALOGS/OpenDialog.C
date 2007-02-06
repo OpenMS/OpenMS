@@ -31,6 +31,7 @@
 #include <OpenMS/FORMAT/Param.h>
 #include <OpenMS/FORMAT/DB/DBConnection.h>
 #include <OpenMS/VISUAL/MSMetaDataExplorer.h>
+#include <OpenMS/SYSTEM/File.h>
 
 // QT includes
 #include <qmessagebox.h>
@@ -98,14 +99,13 @@ namespace OpenMS
 				name_label->setText( "" );
 				for(QStringList::iterator it=files.begin();it!=files.end();it++)
 				{
-					QFileInfo path_info( *it );
 					// set path in the first file
 					if (it==files.begin())
 					{
-						path_label->setText( path_info.dirPath() );
+						path_label->setText( File::path(*it) );
 					}
-					names_.push_back(path_info.filePath().ascii());
-					name_label->setText( name_label->text() + path_info.fileName() + " " );
+					names_.push_back((*it).ascii());
+					name_label->setText( name_label->text() + File::basename(*it) + " " );
 				}
 			}
 		}

@@ -69,7 +69,7 @@ namespace OpenMS
 	    enum Flag { UNUSED, SEED, INSIDE_FEATURE };
 			
 			/// Internal map type
-	    typedef MSExperimentExtern<DPeak<1> > MapType;
+	    typedef MSExperimentExtern< DPeak<1> > MapType;
 			/// Intensity type of the map
 	    typedef MapType::IntensityType IntensityType;
 	    /// Coordinate type of the map

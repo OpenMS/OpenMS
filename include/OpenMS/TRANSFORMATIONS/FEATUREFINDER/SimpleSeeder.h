@@ -42,18 +42,18 @@ namespace OpenMS
 
 	/** 
 		@brief Seeding class that follows the description of Groepl et al (2004)
-	  
- 		The intensity threshold for seeding is taken to be a fixed percentage
- 		of the 5th largest peak.	  
  		
  		<table>
-		<tr><td>min_intensity</td>
-				<td>absolute value for the minimum intensity of a seed
-				    if not set, a fixed percentage (see below) of the intensity of
-				    the fifth largest peak is taken (no default).</td></tr>
-		<tr><td>intensity_perc</td>
-				<td>percentage (see below) of the intensity of
-				    the fifth largest peak is taken (default: 0.3 = 30%).</td></tr>
+			<tr>
+				<td>min_intensity</td>
+				<td>Absolute value for the minimum intensity of a seed. If set to 0, a fixed 
+					  percentage of the intensity of the largest peak is taken (see below).</td>
+			</tr>
+			<tr>
+				<td>intensity_perc</td>
+				<td>Minimum percentage of the intensity of the largest peak that a seed has to have
+				    (used only if min_nitensity is set to 0.</td>
+			</tr>
 		</table>
 		
 		@ingroup FeatureFinder

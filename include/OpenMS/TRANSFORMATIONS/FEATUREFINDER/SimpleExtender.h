@@ -192,12 +192,6 @@ namespace OpenMS
   	
   	/// Checks the neighbours of the current for insertion into the boundary.
   	void checkNeighbour_(const IDX& index);
-  	
-  	/// Data points with intensity below this threshold are not considered in the extension phase. 
-  	IntensityType intensity_threshold_;
-  	
-		/// Factor for minimum seed intensity 
-  	IntensityType intensity_factor_;
   	  	
   	/// keeps an running average of the peak coordinates weighted by the intensities 
   	RunningAveragePosition< PositionType2D > running_avg_;
@@ -216,12 +210,13 @@ namespace OpenMS
 
 		/// Score distribution in m/z
 		Math::LinearInterpolation < CoordinateType, ProbabilityType > score_distribution_mz_;
-		
-		/// Sum of the intensities collected so far
-		IntensityType intensity_sum_;
+	
 		
 		/// Mininum percentage of the already collected intensity that a new pointed has to contribute
 		IntensityType min_intensity_contribution_;
+		
+		/// Mininum intensity of a boundary point. Calculated from 'intensity_factor' and the seed intensity;
+		IntensityType intensity_threshold_;
 		
 		/// Maximum distance to seed in positive m/z
 		CoordinateType dist_mz_up_; 

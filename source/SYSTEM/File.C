@@ -73,6 +73,12 @@ namespace OpenMS
 		return fi.fileName().ascii();
 	}
 
+	String File::path(const string& file)
+	{
+		QFileInfo fi(file);
+		return fi.dirPath().ascii();
+	}
+
 	bool File::readable(const string& file)
 	{
 		QFileInfo fi(file);

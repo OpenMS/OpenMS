@@ -61,6 +61,9 @@ namespace OpenMS
 
 			/// Returns the basename of the file (without the path).
 			static String basename(const std::string& file);
+
+			/// Returns the path of the file (without the file name).
+			static String path(const std::string& file);
 			
 			/// Return true if the file exists and is readable
 			static bool readable(const std::string& file);

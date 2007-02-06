@@ -181,13 +181,13 @@ namespace OpenMS
 
     if (map_.getSize() == 0)
     {
-      cout << " No data provided! Aborting..." << endl;
+      cout << "No data provided! Aborting..." << endl;
       return features_;
     }
 
     if (seeders.size() == 0 || extenders.size() == 0 || fitters.size() == 0)
     {
-      cout << " No modules set. Aborting..." << endl;
+      cout << "No modules set. Aborting..." << endl;
       return features_;
     }
 
@@ -205,17 +205,16 @@ namespace OpenMS
   	{
       while (true)
       {
-				cout << "Seeding ..." << endl;
+				cout << "(1) Seeding (#" << ++seed_count << ")..." << endl;
 				IndexSet seed_region = seeders[0]->nextSeed();
 
+				cout << "(2) Extension ..." << endl;
         watch.start();
-        cout << "Extension ..." << endl;
         IndexSet peaks = extenders[0]->extend(seed_region);
         watch.stop();
         cout << "Time spent for extension: " << watch.getClockTime() << endl;
         watch.reset();
-        ++seed_count;
-				cout << "This is seed nr " << seed_count << endl;
+				cout << "(3) ModelFitting ..." << endl;
         try
         {
           watch.start();
@@ -228,7 +227,7 @@ namespace OpenMS
           writeGnuPlotFile_(peaks,false,nr_feat++);
 #endif
           // gather information for fitting summary
-          const DFeature<2>& f = features_[features_.size()-1];
+          const DFeature<2>& f = features_.back();
 
           float corr = f.getOverallQuality();
           corr_mean += corr;
@@ -241,7 +240,7 @@ namespace OpenMS
           {
           	charge.resize(ch);
           }
-          charge.at(ch)++;
+        	charge[ch]++;
 
           const Param& p = f.getModelDescription().getParam();
           ++mz_model[ p.getValue("MZ") ];
@@ -249,9 +248,8 @@ namespace OpenMS
           DataValue dp = p.getValue("MZ:isotope:stdev");
           if (dp != DataValue::EMPTY)
           {
-          	++mz_stdev[p.getValue("MZ:isotope:stdev")];
+          	++mz_stdev[dp];
           }
-
         }
         catch( BaseModelFitter::UnableToFit ex)
         {

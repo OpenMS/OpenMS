@@ -88,6 +88,10 @@ CHECK((void absolutePath(std::string &file)))
 	// not testable
 RESULT
 
+CHECK((String path(const std::string &file)))
+	// not testable
+RESULT
+
 CHECK((String basename(const std::string &file)))
 	TEST_EQUAL(File::basename("/souce/config/bla/bluff.h"),"bluff.h");
 RESULT

@@ -82,7 +82,7 @@ endif
 TOPP_PIPELINE_TESTS = ${UNCONDITIONAL_PIPELINE_TESTS} ${CGAL_PIPELINE_TESTS}
 
 # Files to remove
-CLEANUP = ${RM} -f *.tmp *.log core.* *.TMP
+CLEANUP = ${RM} -f *.tmp *.log core.* *.TMP region* feature* model* plot.gp
 
 # Shortcut to TOPP bin path.
 TOPP = ${OPENMS_PATH}/bin/

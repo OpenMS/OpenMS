@@ -26,7 +26,6 @@
 
 #include <OpenMS/FORMAT/MzDataFile.h>
 #include <OpenMS/FORMAT/DFeatureMapFile.h>
-#include <OpenMS/KERNEL/MSExperimentExtern.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinder.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 
@@ -56,6 +55,8 @@ using namespace std;
   Right now only the seeder with the ID <tt>SimpleSeeder</tt> should be used.
   The critical parameters for this seeder are:
   - <b>min_intensity</b> the minimum intensity to consider a data point as seed
+  - <b>intensity_perc</b> Minimum intensity percentage (relative to maximum peak) that a peak has to have
+       as a seed. Only used when min_intensity is 0.
   
   <b>Extension:</b><br>
   Right now only the extender with the ID <tt>SimpleExtender</tt> should be used.
@@ -83,6 +84,7 @@ using namespace std;
 	- <b>mz:interpolation_step</b> Gives the interpolation step size in m/z domain
 	- <b>rt:interpolation_step</b> interpolation step size in time domain
 	
+	@todo Add test with SimpleModelFitter (Ole)
 */
 
 // We do not want this class to show up in the docu:
@@ -144,7 +146,7 @@ class TOPPFeatureFinder
 			MzDataFile().load(in,exp);
 			ff.setData(exp.begin(),exp.end(),getIntOption_("buffer_size"));
 		}
-		writeLog_(" Running FeatureFinder...");
+		writeLog_("Running FeatureFinder...");
 		
 		DFeatureMap<2> features = ff.run();
 	
@@ -152,7 +154,7 @@ class TOPPFeatureFinder
 		// writing files
 		//-------------------------------------------------------------
 	
-		writeLog_(String(" Writing results to ") + out);
+		writeLog_(String("Writing results to ") + out);
 		DFeatureMapFile map_file;
 		map_file.store(out,features);			
 			

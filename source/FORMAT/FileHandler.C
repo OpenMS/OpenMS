@@ -43,7 +43,7 @@ namespace OpenMS
 			tmp = filename.suffix('.');
 		}
 		// no '.' => unknown type
-		catch (Exception::IndexOverflow)
+		catch (Exception::ElementNotFound<char>)
 		{
 			return UNKNOWN;
 		}
