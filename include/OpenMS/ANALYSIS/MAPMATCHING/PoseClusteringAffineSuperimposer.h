@@ -45,17 +45,17 @@ namespace OpenMS
 {
 
   /**
-  	@brief Superimposer that uses a voting scheme to find a good affine transformation.
+    @brief Superimposer that uses a voting scheme to find a good affine transformation.
 
-		It works on two element maps (DFeatureMap is the default map type, 
-		but you can also use a pointer map like DPeakConstReferenceArray) and 
-		computes a affine transformation, that maps the elements of one map (scene map) 
-		as near as possible to the elements in the other map (model map).
-		A element can be a DPeak, a DFeature, a ConsensusPeak or ConsensusFeature 
-		(wheras DFeature is the default element type).
-		
-		This superimposer hashs all possible affine transformations and defines the 
-		transformation with the most votes as the best one.        
+  It works on two element maps (DFeatureMap is the default map type, 
+  but you can also use a pointer map like DPeakConstReferenceArray) and 
+  computes a affine transformation, that maps the elements of one map (scene map) 
+  as near as possible to the elements in the other map (model map).
+  A element can be a DPeak, a DFeature, a ConsensusPeak or ConsensusFeature 
+  (wheras DFeature is the default element type).
+
+  This superimposer hashs all possible affine transformations and defines the 
+  transformation with the most votes as the best one.        
   */
   template < typename MapT = DFeatureMap<2> >
   class PoseClusteringAffineSuperimposer
@@ -95,7 +95,7 @@ namespace OpenMS
      We need this to make the intensity bounding box use the intensity type
      instead of the coordinate type.
      */
-  	struct IntensityBoundingBoxTraits : Base::TraitsType
+  struct IntensityBoundingBoxTraits : Base::TraitsType
     {
       typedef typename Base::TraitsType::IntensityType CoordinateType;
     };
@@ -128,8 +128,8 @@ namespace OpenMS
     PoseClusteringAffineSuperimposer()
         : Base()
     {
-    	setName(getProductName());
-    	
+      setName(getProductName());
+
       defaults_.setValue("tuple_search:mz_bucket_size",1);
       defaults_.setValue("transformation_space:shift_bucket_size:RT",1);
       defaults_.setValue("transformation_space:shift_bucket_size:MZ",0.1);
@@ -147,8 +147,8 @@ namespace OpenMS
       defaults_.setValue("transformation_space:min_scaling:MZ",-1.5);
       defaults_.setValue("transformation_space:max_scaling:RT",3);
       defaults_.setValue("transformation_space:max_scaling:MZ",1.5);
-			
-			defaultsToParam_();
+
+      defaultsToParam_();
     }
 
     /// Copy constructor
@@ -164,7 +164,7 @@ namespace OpenMS
       num_buckets_scaling_[0] = source.num_buckets_scaling_[0];
       num_buckets_scaling_[1] = source.num_buckets_scaling_[1];
 
-			updateMembers_();
+      updateMembers_();
     }
 
     ///  Assignment operator
@@ -184,8 +184,8 @@ namespace OpenMS
       num_buckets_scaling_[0] = source.num_buckets_scaling_[0];
       num_buckets_scaling_[1] = source.num_buckets_scaling_[1];
 
-			updateMembers_();
-			
+      updateMembers_();
+
       return *this;
     }
 
@@ -200,8 +200,23 @@ namespace OpenMS
     {
       if ( !this->element_map_[MODEL]->empty() && !this->element_map_[SCENE]->empty() )
       {
+        // compute total intensities of both maps for normalisation
+        IntensityType total_int_model_map = 0;
+        UnsignedInt n = element_map_[MODEL]->size();
+        for (UnsignedInt i = 0; i < n; ++i)
+        {
+          total_int_model_map += (*element_map_[MODEL])[i].getIntensity();
+        }
+
+        IntensityType total_int_scene_map = 0;
+        n = element_map_[SCENE]->size();
+        for (UnsignedInt i = 0; i < n; ++i)
+        {
+          total_int_scene_map += (*element_map_[SCENE])[i].getIntensity();
+        }
+
         preprocess_();
-        hashAffineTransformations_();
+        hashAffineTransformations_(total_int_model_map,total_int_scene_map);
         estimateFinalAffineTransformation_();
       }
       else
@@ -289,9 +304,9 @@ namespace OpenMS
 
 
   protected:
-  	virtual void updateMembers_()
-  	{
- 			mz_bucket_size_ = (CoordinateType)param_.getValue("tuple_search:mz_bucket_size");
+    virtual void updateMembers_()
+    {
+      mz_bucket_size_ = (CoordinateType)param_.getValue("tuple_search:mz_bucket_size");
       shift_bucket_size_[0] = (CoordinateType)param_.getValue("transformation_space:shift_bucket_size:RT");
       shift_bucket_size_[1] = (CoordinateType)param_.getValue("transformation_space:shift_bucket_size:MZ");
       scaling_bucket_size_[0] = (CoordinateType)param_.getValue("transformation_space:scaling_bucket_size:RT");
@@ -308,18 +323,19 @@ namespace OpenMS
       max[RT] = (CoordinateType)param_.getValue("transformation_space:max_shift:RT");
       max[MZ] = (CoordinateType)param_.getValue("transformation_space:max_shift:MZ");
 
-      scaling_bounding_box_.enlarge(min);
-      scaling_bounding_box_.enlarge(max);
+      shift_bounding_box_.enlarge(min);
+      shift_bounding_box_.enlarge(max);
 
       min[RT] = (CoordinateType)param_.getValue("transformation_space:min_scaling:RT");
       min[MZ] = (CoordinateType)param_.getValue("transformation_space:min_scaling:MZ");
       max[RT] = (CoordinateType)param_.getValue("transformation_space:max_scaling:RT");
       max[MZ] = (CoordinateType)param_.getValue("transformation_space:max_scaling:MZ");
 
-      shift_bounding_box_.enlarge(min);
-      shift_bounding_box_.enlarge(max);
-  	}
-  	
+      scaling_bounding_box_.enlarge(min);
+      scaling_bounding_box_.enlarge(max);
+
+    }
+
     /// To speed up the calculation of the final transformation, we confine the number of
     /// considered point pairs. We match a point p in the model map only onto those points p'
     /// in the scene map that lie in a certain mz intervall.
@@ -349,9 +365,14 @@ namespace OpenMS
         typename TraitsType::RealType min_mz = act_mz - mz_bucket_size_;
         typename TraitsType::RealType max_mz = act_mz + mz_bucket_size_;
 
+        typename TraitsType::CoordinateType act_rt = model_map[i].getPosition()[RT];
+        typename TraitsType::CoordinateType min_rt = act_rt - 1000;
+        typename TraitsType::CoordinateType max_rt = act_rt + 1000;
+
         std::vector< const PointType* > partners;
         // search for the left end of the intervall
-        while ((it_first >= scene_map.begin()) && (it_first != scene_map.end()) && (it_first->getPosition()[MZ] < min_mz) && (it_first->getPosition()[MZ] < max_mz))
+        while ((it_first >= scene_map.begin()) && (it_first != scene_map.end()) && (it_first->getPosition()[MZ] < min_mz)
+               && (it_first->getPosition()[MZ] < max_mz) && (it_first->getPosition()[MZ] < min_mz) )
         {
           ++it_first;
         }
@@ -364,9 +385,18 @@ namespace OpenMS
           ++it_last;
         }
 
+        /// TODO Remove
+        PeakPointerArray partner_;
+        //         std::cout << "Partners of " << model_map[i] <<  std::endl;
         for (typename PeakPointerArray::const_iterator it = it_first; it != it_last; ++it)
         {
-          partners.push_back(&(*it));
+          //           std::cout << *it << std::endl;
+          if ((it->getPosition()[RT] < max_rt) && (it->getPosition()[RT] > min_rt) )
+          {
+            partners.push_back(&(*it));
+            //             std::cout << *it << std::endl;
+          }
+
         }
 
         if (partners.size() > 0)
@@ -375,7 +405,7 @@ namespace OpenMS
           scene_map_partners_.push_back(partners);
         }
       }
-      std::cout.flush();
+      //       std::cout.flush();
 
       // Compute shift_bucket_size_ and num_buckets.
       PositionType diagonal_shift = shift_bounding_box_.diagonal();
@@ -400,16 +430,16 @@ namespace OpenMS
 
     /// Compute the transformations between each point pair in the model map and each point pair in the scene map
     /// and hash the affine transformation.
-    void hashAffineTransformations_()
+    void hashAffineTransformations_(const IntensityType& total_int_model_map, const IntensityType& total_int_scene_map )
     {
 #define V_hashAffineTransformations_(bla) V_PoseClusteringAffineSuperimposer(bla)
-
-
       // take each point pair in the model map
       UnsignedInt n = model_map_red_.size();
       for (UnsignedInt i = 0; i < n; ++i)
       {
-        for (UnsignedInt j = i+1; j < n; ++j)
+        // take only the next 10 neighbours in m/z as partner in the model map
+        UnsignedInt k=((i+10)> n) ? n : (i+10);
+        for (UnsignedInt j = i+1; j < k; ++j)
         {
           // avoid cross mappings (i,j) -> (k,l) (e.g. i_rt < j_rt and k_rt > l_rt)
           // and point pairs with equal retention times (e.g. i_rt == j_rt)
@@ -419,147 +449,171 @@ namespace OpenMS
           std::vector< const PointType* >& partners_j  = scene_map_partners_[j];
           UnsignedInt m = partners_i.size();
           UnsignedInt p = partners_j.size();
+
           for (UnsignedInt k = 0; k < m; ++k)
           {
             for (UnsignedInt l = 0; l < p; ++l)
             {
-              if (((diff[RT] < 0) && (partners_i[k]->getPosition() < partners_j[l]->getPosition()))
-                  || ((diff[RT] > 0) && (partners_i[k]->getPosition() > partners_j[l]->getPosition())))
+              PositionType diff_2 = (partners_j[l]->getPosition()[RT] - partners_i[k]->getPosition()[RT]);
+
+              // compute the transformation (i,j) -> (k,l)
+              PositionType shift;
+              PositionType scaling;
+              bool transformation_ok[2];
+              transformation_ok[0] = false;
+              transformation_ok[1] = false;
+
+              if ((fabs(diff[RT]) > 0.001) && (fabs(diff_2[RT]) > 0.001))
               {
-                // compute the transformation (i,j) -> (k,l)
-                PositionType shift;
-                PositionType scaling;
+                scaling[RT] = (model_map_red_[j].getPosition()[RT] - model_map_red_[i].getPosition()[RT])
+                              /(partners_j[l]->getPosition()[RT] - partners_i[k]->getPosition()[RT]);
 
-                if (fabs(diff[RT]) > 0.001)
-                {
-                  scaling[RT] = (model_map_red_[j].getPosition()[RT] - model_map_red_[i].getPosition()[RT])
-                                /(partners_j[l]->getPosition()[RT] - partners_i[k]->getPosition()[RT]);
-
-                  shift[RT] =  model_map_red_[i].getPosition()[RT] - partners_i[k]->getPosition()[RT]*scaling[RT];
-                  /* if (scaling[RT] < scaling_bucket_size_[RT])
-                  {
-                    std::cout << "Match " << partners_j[l]->getPosition()[RT] << " and " << partners_i[k]->getPosition()[RT] << '\n'
-                    << " onto " << model_map_red_[j].getPosition()[RT] << " and " <<  model_map_red_[i].getPosition()[RT] << std::endl;
-                  } */
-                }
-                else
-                {
-                  scaling[RT] = 1.;
-                  shift[RT] = 0;
-                }
-                if (fabs(diff[MZ]) > 0.001)
-                {
-                  scaling[MZ] = (model_map_red_[j].getPosition()[MZ] - model_map_red_[i].getPosition()[MZ])
-                                /(partners_j[l]->getPosition()[MZ] - partners_i[k]->getPosition()[MZ]);
-
-                  shift[MZ] =  model_map_red_[i].getPosition()[MZ] - partners_i[k]->getPosition()[MZ]*scaling[MZ];
-                }
-                else
-                {
-                  scaling[MZ] = 1.;
-                  shift[MZ] = 0;
-                }
-
-                // check if the transformation paramerters lie in the hash map
-                if (scaling_bounding_box_.encloses(scaling) && shift_bounding_box_.encloses(shift))
-                {
-                  // compute the hash indices
-                  int bucket_shift_index[2];
-                  int bucket_scaling_index[2];
-                  PositionType bucket_fraction_shift(0,0);
-                  PositionType bucket_fraction_scaling(0,0);
-                  for ( Size dimension = 0; dimension < 2; ++dimension )
-                  {
-                    bucket_fraction_shift[dimension] = (shift[dimension] - shift_bounding_box_.min()[dimension]) / shift_bucket_size_[dimension];  // floating point division
-                    bucket_fraction_scaling[dimension] = (scaling[dimension] - scaling_bounding_box_.min()[dimension]) / scaling_bucket_size_[dimension];  // floating point division
-                    //                       std::cout << "bucket_fraction_scaling " << bucket_fraction_scaling[dimension]<< std::endl;
-                    bucket_shift_index[dimension]    = (int) bucket_fraction_shift[dimension]; // round down (yes we are >= 0)
-                    //                       std::cout << "bucket_shift_index " <<  bucket_shift_index[dimension] << std::endl;
-                    bucket_scaling_index[dimension]    = (int) bucket_fraction_scaling[dimension]; // round down (yes we are >= 0)
-                    //                       std::cout << "bucket_scaling_index " << bucket_shift_index[dimension] << std::endl;
-                    bucket_fraction_shift[dimension] -= bucket_shift_index[dimension];          // fractional part
-                    //                       std::cout << "bucket_fraction_shift " << bucket_fraction_shift[dimension]<< std::endl;
-                    bucket_fraction_scaling[dimension] -= bucket_scaling_index[dimension];          // fractional part
-                    //                       std::cout << "bucket_fraction_scaling" << bucket_fraction_scaling[dimension]<< std::endl;
-                  }
-                  //                     std::cout << "Buckets rt (" << bucket_shift_index[RT] << ',' << bucket_scaling_index[RT] << ')' << std::endl;
-                  //                     std::cout << "Buckets mz (" << bucket_shift_index[MZ] << ',' << bucket_scaling_index[MZ] << ')' << std::endl;
+                shift[RT] =  model_map_red_[i].getPosition()[RT] - partners_i[k]->getPosition()[RT]*scaling[RT];
+                transformation_ok[RT] = true;
+              }
 
 
-                  // hash the transformation if possible
-                  PositionType bucket_fraction_complement_shift(1,1);
-                  PositionType bucket_fraction_complement_scaling(1,1);
-                  bucket_fraction_complement_shift -= bucket_fraction_shift;
-                  bucket_fraction_complement_scaling -= bucket_fraction_scaling;
-                  // Distribute the vote of the shift among the four neighboring buckets.
-                  QualityType factor;
+              if ((fabs(diff[MZ]) > 0.001) && (fabs(diff_2[MZ]) > 0.001))
+              {
+                scaling[MZ] = (model_map_red_[j].getPosition()[MZ] - model_map_red_[i].getPosition()[MZ])
+                              /(partners_j[l]->getPosition()[MZ] - partners_i[k]->getPosition()[MZ]);
 
-                  if (scaling[RT] > 0.1 )
-                  {
-                    // rt
-                    factor = bucket_fraction_complement_shift[RT] * bucket_fraction_complement_scaling[RT];
-                    rt_hash_[PairType(bucket_shift_index[RT], bucket_scaling_index[RT])] += factor;
-                    //                     std::cout << "hash shift " << bucket_shift_index[RT]*shift_bucket_size_[RT] + shift_bounding_box_.min()[RT] << std::endl;
-                    //                     std::cout << "hash scaling " << bucket_scaling_index[RT]*scaling_bucket_size_[RT] + scaling_bounding_box_.min()[RT] << std::endl;
-                    //                     std::cout << "factor" << factor << std::endl;
+                shift[MZ] =  model_map_red_[i].getPosition()[MZ] - partners_i[k]->getPosition()[MZ]*scaling[MZ];
+                transformation_ok[MZ] = true;
+              }
 
-                    factor = bucket_fraction_complement_shift[RT] * bucket_fraction_scaling[RT];
-                    rt_hash_[PairType(bucket_shift_index[RT], bucket_scaling_index[RT] + 1 )] += factor;
-                    //                     std::cout << "hash shift " << bucket_shift_index[RT]*shift_bucket_size_[RT] + shift_bounding_box_.min()[RT] << std::endl;
-                    //                     std::cout << "hash scaling " << (bucket_scaling_index[RT]+1)*scaling_bucket_size_[RT] + scaling_bounding_box_.min()[RT] << std::endl;
+              // compute the hash indices
+              int bucket_shift_index;
+              int bucket_scaling_index;
+              CoordinateType bucket_fraction_shift = 0.;
+              CoordinateType bucket_fraction_scaling = 0.;
 
-                    factor = bucket_fraction_shift[RT] * bucket_fraction_complement_scaling[RT];
-                    rt_hash_[PairType( bucket_shift_index[RT] + 1, bucket_scaling_index[RT] )] += factor;
+              IntensityType int_i = model_map_red_[i].getIntensity()/total_int_model_map;
+              IntensityType int_k = partners_i[k]->getIntensity()/total_int_scene_map;
+              IntensityType int_j = model_map_red_[j].getIntensity()/total_int_model_map;
+              IntensityType int_l = partners_j[l]->getIntensity()/total_int_scene_map;
+              QualityType int_similarity_jl = (int_j < int_l) ? int_j/int_l : int_l/int_j;
+              QualityType int_similarity_ik = (int_i < int_k) ? int_i/int_k : int_k/int_i;
+              QualityType int_similarity =  int_similarity_ik + int_similarity_jl;
 
-                    factor = bucket_fraction_shift[RT] * bucket_fraction_scaling[RT];
-                    rt_hash_[PairType( bucket_shift_index[RT] + 1, bucket_scaling_index[RT] + 1 )] += factor;
-                  }
+              // check if the transformation paramerters lie in the hash map
+              if ( transformation_ok[RT] && (scaling_bounding_box_.min()[RT] < scaling[RT]) && (scaling_bounding_box_.max()[RT] > scaling[RT])
+                   && (shift_bounding_box_.min()[RT] < shift[RT]) && (shift_bounding_box_.max()[RT] > shift[RT]))
+              {
+                bucket_fraction_shift = (shift[RT] - shift_bounding_box_.min()[RT]) / shift_bucket_size_[RT];  // floating point division
+                bucket_fraction_scaling = (scaling[RT] - scaling_bounding_box_.min()[RT]) / scaling_bucket_size_[RT];  // floating point division
+                bucket_shift_index    = (int) bucket_fraction_shift; // round down (yes we are >= 0)
+                //                       std::cout << "bucket_shift_index " <<  bucket_shift_index[RT] << std::endl;
+                bucket_scaling_index    = (int) bucket_fraction_scaling; // round down (yes we are >= 0)
+                //                       std::cout << "bucket_scaling_index " << bucket_shift_index[RT] << std::endl;
+                bucket_fraction_shift -= bucket_shift_index;          // fractional part
+                //                       std::cout << "bucket_fraction_shift " << bucket_fraction_shift[RT]<< std::endl;
+                bucket_fraction_scaling -= bucket_scaling_index;          // fractional part
+                //                       std::cout << "bucket_fraction_scaling" << bucket_fraction_scaling[RT]<< std::endl;
 
-                  if (scaling[MZ] > 0.1 )
-                  {
-                    // mz
-                    factor = bucket_fraction_complement_shift[MZ] * bucket_fraction_complement_scaling[MZ];
-                    mz_hash_[PairType( bucket_shift_index[MZ], bucket_scaling_index[MZ] )] += factor;
+                //                     std::cout << "Buckets rt (" << bucket_shift_index[RT] << ',' << bucket_scaling_index[RT] << ')' << std::endl;
+                //                     std::cout << "Buckets mz (" << bucket_shift_index[MZ] << ',' << bucket_scaling_index[MZ] << ')' << std::endl;
 
-                    factor = bucket_fraction_complement_shift[MZ] * bucket_fraction_scaling[MZ];
-                    mz_hash_[PairType( bucket_shift_index[MZ], bucket_scaling_index[MZ] + 1 )] += factor;
+                // hash the transformation if possible
+                CoordinateType bucket_fraction_complement_shift = 1.;
+                CoordinateType bucket_fraction_complement_scaling = 1.;
+                bucket_fraction_complement_shift -= bucket_fraction_shift;
+                bucket_fraction_complement_scaling -= bucket_fraction_scaling;
 
-                    factor = bucket_fraction_shift[MZ] * bucket_fraction_complement_scaling[MZ];
-                    mz_hash_[PairType( bucket_shift_index[MZ] + 1, bucket_scaling_index[MZ] )] += factor;
+                // Distribute the vote of the shift among the four neighboring buckets.
+                QualityType factor;
+                // rt
+                factor = bucket_fraction_complement_shift * bucket_fraction_complement_scaling * int_similarity;
+                rt_hash_[PairType(bucket_shift_index, bucket_scaling_index)] += factor;
+                //                     std::cout << "hash shift " << bucket_shift_index*shift_bucket_size_ + shift_bounding_box_.min() << std::endl;
+                //                     std::cout << "hash scaling " << bucket_scaling_index*scaling_bucket_size_ + scaling_bounding_box_.min()[RT] << std::endl;
+                //                     std::cout << "factor" << factor << std::endl;
 
-                    factor = bucket_fraction_shift[MZ] * bucket_fraction_scaling[MZ];
-                    mz_hash_[PairType( bucket_shift_index[MZ] + 1, bucket_scaling_index[MZ] + 1 )] += factor;
-                  }
-                } // if
-              } // for l
-            } // for k
-          } // if
+                factor = bucket_fraction_complement_shift * bucket_fraction_scaling * int_similarity;
+                rt_hash_[PairType(bucket_shift_index, bucket_scaling_index + 1 )] += factor;
+                //                     std::cout << "hash shift " << bucket_shift_index*shift_bucket_size_ + shift_bounding_box_.min()[RT] << std::endl;
+                //                     std::cout << "hash scaling " << (bucket_scaling_index+1)*scaling_bucket_size_ + scaling_bounding_box_.min() << std::endl;
+
+                factor = bucket_fraction_shift * bucket_fraction_complement_scaling * int_similarity;
+                rt_hash_[PairType( bucket_shift_index + 1, bucket_scaling_index )] += factor;
+
+                factor = bucket_fraction_shift * bucket_fraction_scaling * int_similarity_ik;
+                rt_hash_[PairType( bucket_shift_index + 1, bucket_scaling_index + 1 )] += factor;
+              }
+
+              if ( transformation_ok[MZ] && (scaling_bounding_box_.min()[MZ] < scaling[MZ]) && (scaling_bounding_box_.max()[MZ] > scaling[MZ])
+                   && (shift_bounding_box_.min()[MZ] < shift[MZ]) && (shift_bounding_box_.max()[MZ] > shift[MZ]))
+              {
+                bucket_fraction_shift = (shift[MZ] - shift_bounding_box_.min()[MZ]) / shift_bucket_size_[MZ];  // floating point division
+                bucket_fraction_scaling = (scaling[MZ] - scaling_bounding_box_.min()[MZ]) / scaling_bucket_size_[MZ];  // floating point division
+                bucket_shift_index    = (int) bucket_fraction_shift; // round down (yes we are >= 0)
+                //                       std::cout << "bucket_shift_index " <<  bucket_shift_index[MZ] << std::endl;
+                bucket_scaling_index    = (int) bucket_fraction_scaling; // round down (yes we are >= 0)
+                //                       std::cout << "bucket_scaling_index " << bucket_shift_index[MZ] << std::endl;
+                bucket_fraction_shift -= bucket_shift_index;          // fractional part
+                //                       std::cout << "bucket_fraction_shift " << bucket_fraction_shift[MZ]<< std::endl;
+                bucket_fraction_scaling -= bucket_scaling_index;          // fractional part
+                //                       std::cout << "bucket_fraction_scaling" << bucket_fraction_scaling[MZ]<< std::endl;
+
+                //                     std::cout << "Buckets rt (" << bucket_shift_index[MZ] << ',' << bucket_scaling_index[MZ] << ')' << std::endl;
+                //                     std::cout << "Buckets mz (" << bucket_shift_index[MZ] << ',' << bucket_scaling_index[MZ] << ')' << std::endl;
+
+                // hash the transformation if possible
+                CoordinateType bucket_fraction_complement_shift = 1.;
+                CoordinateType bucket_fraction_complement_scaling = 1.;
+                bucket_fraction_complement_shift -= bucket_fraction_shift;
+                bucket_fraction_complement_scaling -= bucket_fraction_scaling;
+
+                // Distribute the vote of the shift among the four neighboring buckets.
+                QualityType factor;
+
+                // mz
+                factor = bucket_fraction_complement_shift * bucket_fraction_complement_scaling * int_similarity;
+                mz_hash_[PairType(bucket_shift_index, bucket_scaling_index)] += factor;
+                //                     std::cout << "hash shift " << bucket_shift_index*shift_bucket_size_ + shift_bounding_box_.min() << std::endl;
+                //                     std::cout << "hash scaling " << bucket_scaling_index*scaling_bucket_size_ + scaling_bounding_box_.min()[MZ] << std::endl;
+                //                     std::cout << "factor" << factor << std::endl;
+
+                factor = bucket_fraction_complement_shift * bucket_fraction_scaling * int_similarity;
+                mz_hash_[PairType(bucket_shift_index, bucket_scaling_index + 1 )] += factor;
+                //                     std::cout << "hash shift " << bucket_shift_index*shift_bucket_size_ + shift_bounding_box_.min()[MZ] << std::endl;
+                //                     std::cout << "hash scaling " << (bucket_scaling_index+1)*scaling_bucket_size_ + scaling_bounding_box_.min() << std::endl;
+
+                factor = bucket_fraction_shift * bucket_fraction_complement_scaling * int_similarity;
+                mz_hash_[PairType( bucket_shift_index + 1, bucket_scaling_index )] += factor;
+
+                factor = bucket_fraction_shift * bucket_fraction_scaling * int_similarity;
+                mz_hash_[PairType( bucket_shift_index + 1, bucket_scaling_index + 1 )] += factor;
+              }
+            } // for l
+          } // for k
         } // for j
       } // for i
 
-//       std::ofstream rt_os("rt_matrix.dat", std::ios::out);
-//       std::ofstream mz_os("mz_matrix.dat", std::ios::out);
-// 
-//       typename AffineTransformationMapType::const_iterator it = rt_hash_.begin();
-//       while (it != rt_hash_.end())
-//       {
-//         rt_os << ((it->first).first)*shift_bucket_size_[RT] + shift_bounding_box_.min()[RT] << ' '
-//         << ((it->first).second)*scaling_bucket_size_[RT] + scaling_bounding_box_.min()[RT] << ' '
-//         << it->second << '\n';
-//         ++it;
-//       }
-// 
-//       it = mz_hash_.begin();
-//       while (it != mz_hash_.end())
-//       {
-//         mz_os << ((it->first).first)*shift_bucket_size_[MZ] + shift_bounding_box_.min()[MZ] << ' '
-//         << ((it->first).second)*scaling_bucket_size_[MZ] + scaling_bounding_box_.min()[MZ] << ' '
-//         << it->second << '\n';
-//         ++it;
-//       }
-//       rt_os.flush();
-//       mz_os.flush();
 
+
+      //       std::ofstream rt_os("rt_matrix.dat", std::ios::out);
+      //       std::ofstream mz_os("mz_matrix.dat", std::ios::out);
+      //
+      //       typename AffineTransformationMapType::const_iterator it = rt_hash_.begin();
+      //       while (it != rt_hash_.end())
+      //       {
+      //         rt_os << ((it->first).first)*shift_bucket_size_[RT] + shift_bounding_box_.min()[RT] << ' '
+      //         << ((it->first).second)*scaling_bucket_size_[RT] + scaling_bounding_box_.min()[RT] << ' '
+      //         << it->second << '\n';
+      //         ++it;
+      //       }
+      //
+      //       it = mz_hash_.begin();
+      //       while (it != mz_hash_.end())
+      //       {
+      //         mz_os << ((it->first).first)*shift_bucket_size_[MZ] + shift_bounding_box_.min()[MZ] << ' '
+      //         << ((it->first).second)*scaling_bucket_size_[MZ] + scaling_bounding_box_.min()[MZ] << ' '
+      //         << it->second << '\n';
+      //         ++it;
+      //       }
+      //       rt_os.flush();
+      //       mz_os.flush();
 #undef V_hashAffineTransformations_
 
     } // hashAffineTransformations_
@@ -753,9 +807,9 @@ namespace OpenMS
 
     /// Maximum deviation in mz of two partner points
     CoordinateType mz_bucket_size_;
+
   }
   ; // PoseClusteringAffineSuperimposer
-
 } // namespace OpenMS
 
 #endif  // OPENMS_ANALYSIS_MAPMATCHING_PoseClusteringAffineSuperimposer_H

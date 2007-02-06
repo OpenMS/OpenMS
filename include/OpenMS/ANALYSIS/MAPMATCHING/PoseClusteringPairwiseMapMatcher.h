@@ -186,6 +186,7 @@ namespace OpenMS
       // compute the matching of each scene's grid cell elements and all the elements of the model map
       computeMatching_(model_pointer_map,scene_grid_maps);
 
+
       //         String all_element_pairs_gnuplot_file =
       //           param_.getValue("debug:all_element_pairs_gnuplot_file");
       //         if ( !all_element_pairs_gnuplot_file.empty() )
@@ -279,7 +280,6 @@ namespace OpenMS
 
             superimposer_->setElementMap(SCENE, scene_grid_maps[i]);
             superimposer_->run();
-
             // ???? copy array to vector -- but the old Grid class will be replaced anyway
             grid_[i].getMappings().resize(2,0);
             for ( Size dim = 0; dim < 2; ++dim )
@@ -297,6 +297,7 @@ namespace OpenMS
           {
             V_computeMatching_("PoseClusteringPairwiseMapMatcher: algorithm \"simple\", skip superimposer");
           }
+
 
           pair_finder_->setElementPairs(all_element_pairs_);
           pair_finder_->setElementMap(SCENE, scene_grid_maps[i]);
@@ -325,15 +326,15 @@ namespace OpenMS
         scene_grid_maps[grid_index].push_back(scene_map[i]);
       }
 
-      for (Size i = 0; i < scene_grid_maps.size(); ++i)
-      {
-        V_buildGrid_("scene_grid_maps["<<i<<"].size(): "<<scene_grid_maps[i].size()<<'\n');
-
-        for (Size j = 0; j < scene_grid_maps[i].size(); ++j)
-        {
-          V_buildGrid_(((scene_grid_maps[i])[j]).getPosition());
-        }
-      }
+      //       for (Size i = 0; i < scene_grid_maps.size(); ++i)
+      //       {
+      //         V_buildGrid_("scene_grid_maps["<<i<<"].size(): "<<scene_grid_maps[i].size()<<'\n');
+      //
+      //         for (Size j = 0; j < scene_grid_maps[i].size(); ++j)
+      //         {
+      //           V_buildGrid_(((scene_grid_maps[i])[j]).getPosition());
+      //         }
+      //       }
 #undef V_buildGrid_
 
     }

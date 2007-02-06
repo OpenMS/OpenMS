@@ -198,7 +198,7 @@ CHECK((void findElementPairs()))
   scene.push_back(feat2);
   scene.push_back(feat3);
   
-  FeatureMap modell;
+  FeatureMap model;
   Feature feat4;
   Feature feat5;
   Feature feat6;
@@ -211,14 +211,14 @@ CHECK((void findElementPairs()))
   feat5.setIntensity(300);
   feat6.setPosition(pos6);
   feat6.setIntensity(400);
-  modell.push_back(feat4);
-  modell.push_back(feat5);
-  modell.push_back(feat6);
+  model.push_back(feat4);
+  model.push_back(feat5);
+  model.push_back(feat6);
   
   DelaunayPairFinder<FeatureMap> dpf;
   dpf.setDiffIntercept(0,1.0);
   dpf.setDiffIntercept(1,1.0);
-  dpf.setElementMap(0,modell);
+  dpf.setElementMap(0,model);
   dpf.setElementMap(1,scene);
   DFeaturePairVector < 2, Feature > pairs;
   dpf.setElementPairs(pairs);
@@ -253,7 +253,7 @@ CHECK((template< typename ResultMapType > void computeConsensusMap(const PointMa
   scene.push_back(cons2);
   scene.push_back(cons3);
   
-  ConsensusMap<ConsensusFeature<FeatureMap> > modell;
+  ConsensusMap<ConsensusFeature<FeatureMap> > model;
   Feature feat4;
   Feature feat5;
   Feature feat6;
@@ -269,17 +269,17 @@ CHECK((template< typename ResultMapType > void computeConsensusMap(const PointMa
   ConsensusFeature<FeatureMap> cons4(1,0,feat4);
   ConsensusFeature<FeatureMap> cons5(1,1,feat5);
   ConsensusFeature<FeatureMap> cons6(1,2,feat6);
-  modell.push_back(cons4);
-  modell.push_back(cons5);
-  modell.push_back(cons6);
+  model.push_back(cons4);
+  model.push_back(cons5);
+  model.push_back(cons6);
   
   DelaunayPairFinder<ConsensusMap<ConsensusFeature<FeatureMap> > > dpf;
   dpf.setDiffIntercept(0,1.0);
   dpf.setDiffIntercept(1,1.0);
-  dpf.computeConsensusMap(scene,modell);
-  Group<FeatureMap> group1 = modell.begin()->getFeatures();
-  Group<FeatureMap> group2 = (modell.begin()+1)->getFeatures();
-  Group<FeatureMap> group3 = (modell.begin()+2)->getFeatures();
+  dpf.computeConsensusMap(scene,model);
+  Group<FeatureMap> group1 = model.begin()->getFeatures();
+  Group<FeatureMap> group2 = (model.begin()+1)->getFeatures();
+  Group<FeatureMap> group3 = (model.begin()+2)->getFeatures();
   
   IndexTuple<FeatureMap> ind1(0,0,feat1);
   IndexTuple<FeatureMap> ind2(0,1,feat2);
@@ -320,7 +320,7 @@ RESULT
 //   scene.push_back(feat2);
 //   scene.push_back(feat3);
 //   
-//   FeatureMap modell;
+//   FeatureMap model;
 //   Feature feat4;
 //   Feature feat5;
 //   Feature feat6;
@@ -333,14 +333,14 @@ RESULT
 //   feat5.setIntensity(300);
 //   feat6.setPosition(pos6);
 //   feat6.setIntensity(400);
-//   modell.push_back(feat4);
-//   modell.push_back(feat5);
-//   modell.push_back(feat6);
+//   model.push_back(feat4);
+//   model.push_back(feat5);
+//   model.push_back(feat6);
 //   
 //   DelaunayPairFinder<FeatureMap> dpf;
 //   dpf.setDiffIntercept(0,1.0);
 //   dpf.setDiffIntercept(1,1.0);
-//   dpf.setElementMap(0,modell);
+//   dpf.setElementMap(0,model);
 //   dpf.setElementMap(1,scene);
 //   DFeaturePairVector < 2, Feature > pairs;
 //   dpf.setElementPairs(pairs);

@@ -184,13 +184,13 @@ CHECK((void findElementPairs()))
   DFeaturePairVector < 2, Feature > pairs;
   dpf.setElementPairs(pairs);
   dpf.findElementPairs();
-  
-  TEST_EQUAL((pairs.begin())->first == feat4, true)
-  TEST_EQUAL((pairs.begin())->second == feat1, true)
-  TEST_EQUAL((pairs.begin()+1)->first == feat5, true)
-  TEST_EQUAL((pairs.begin()+1)->second == feat2, true)
-  TEST_EQUAL((pairs.begin()+2)->first == feat6,true)
-  TEST_EQUAL((pairs.begin()+2)->second == feat3,true)
+    
+  TEST_EQUAL((pairs.begin())->first == feat1, true)
+  TEST_EQUAL((pairs.begin())->second == feat4, true)
+  TEST_EQUAL((pairs.begin()+1)->first == feat2, true)
+  TEST_EQUAL((pairs.begin()+1)->second == feat5, true)
+  TEST_EQUAL((pairs.begin()+2)->first == feat3,true)
+  TEST_EQUAL((pairs.begin()+2)->second == feat6,true)
 RESULT
 
 

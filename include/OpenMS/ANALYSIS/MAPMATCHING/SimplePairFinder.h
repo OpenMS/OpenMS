@@ -30,11 +30,7 @@
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/BasePairFinder.h>
 
-#if defined OPENMS_DEBUG && ! defined V_SimplePairFinder
-#define V_SimplePairFinder(bla) // std::cout << bla << std::endl;
-#else
-#define V_SimplePairFinder(bla)
-#endif
+#define V_SimplePairFinder(bla) std::cout << bla << std::endl;
 
 namespace OpenMS
 {
@@ -139,7 +135,7 @@ namespace OpenMS
     virtual ~SimplePairFinder()
   	{
   	}
-  
+
     /// returns an instance of this class
     static BasePairFinder<PointMapType>* create()
     {
@@ -199,9 +195,9 @@ namespace OpenMS
 
     /** @brief Find pairs of elements in both maps.
 
-		For each feature, we find the nearest neighbor in the other map according to @sa similarity_().
-		If two features point at each other, they become a pair.
-		*/
+    For each feature, we find the nearest neighbor in the other map according to @sa similarity_().
+    If two features point at each other, they become a pair.
+    */
     virtual void findElementPairs()
     {
 #define V_findElementPairs(bla) V_SimplePairFinder(bla)
@@ -225,7 +221,7 @@ namespace OpenMS
         }
       }
 
-      V_findElementPairs("SimplePairFinder::run(): find element pairs");
+      V_findElementPairs("SimplePairFinder::run(): find element pairs" << pair_min_quality_);
 
       // progress dots
       DataValue const & param_progress_dots = this->param_.getValue("debug:progress_dots");
@@ -300,12 +296,10 @@ namespace OpenMS
                best_companion_quality_1[best_companion_of_fi0] > pair_min_quality_
              )
           {
-            element_pairs_->push_back
-            ( ElementPairType ( (*element_map_[MODEL])[fi0],
-                                (*element_map_[SCENE])[best_companion_of_fi0],
-                                best_companion_quality_0[fi0] + best_companion_quality_1[best_companion_of_fi0]
-                              )
-            );
+            element_pairs_->push_back( ElementPairType ( (*element_map_[SCENE])[best_companion_of_fi0],
+                                       (*element_map_[MODEL])[fi0],
+                                       best_companion_quality_0[fi0] + best_companion_quality_1[best_companion_of_fi0]
+                                                       ));
           }
         }
       }
@@ -343,19 +337,19 @@ namespace OpenMS
     The returned value should express our confidence that one element might
     possibly be matched to the other.
 
-		The similarity is computed as follows.
-		- For each dimension:
-		  - take the absolute difference of the coordinates
-		  - add #diff_intercept_ to it
-		  - raise the sum to power of #diff_exponent_
-		  .
-		- Multiply these numbers for both dimensions.
-		- Take the reciprocal value of the result.
-		.
+    The similarity is computed as follows.
+    - For each dimension:
+    - take the absolute difference of the coordinates
+    - add #diff_intercept_ to it
+    - raise the sum to power of #diff_exponent_
+    .
+    - Multiply these numbers for both dimensions.
+    - Take the reciprocal value of the result.
+    .
 
-		The parameter #diff_exponent_ controls the asymptotic decay rate for large
-		differences.  The parameter #diff_intercept_ is important for small
-		differences.  
+    The parameter #diff_exponent_ controls the asymptotic decay rate for large
+    differences.  The parameter #diff_intercept_ is important for small
+    differences.  
 
     */
     QualityType similarity_ ( PointType const & left, PointType const & right, const PositionType& new_position) const
