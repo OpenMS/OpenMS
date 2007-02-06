@@ -283,7 +283,10 @@ namespace OpenMS
 
 
 			/// Returns \c true if getData() is empty.
-			bool empty () const throw() { return data_.empty(); }
+			bool empty () const throw()
+			{
+				return data_.empty();
+			}
 
 			//@}
 
@@ -295,9 +298,16 @@ namespace OpenMS
 			/// The transformation from "outside" to "inside" coordinates.
 			KeyType key2index ( KeyType pos ) const throw()
 			{
-				pos -= offset_;
-				pos /= scale_;
-				return pos;
+				if ( scale_ )
+				{
+					pos -= offset_;
+					pos /= scale_;
+					return pos;
+				}
+				else
+				{
+					return 0;
+				}
 			}
 
 			/// The transformation from "inside" to "outside" coordinates.
@@ -309,17 +319,26 @@ namespace OpenMS
 			}
 
 			/// Accessor.  "Scale" is the difference (in "outside" units) between consecutive entries in "Data".
-			KeyType const & getScale () const throw(){ return scale_; }
+			KeyType const & getScale () const throw()
+			{
+				return scale_;
+			}
 
 			/**@brief Accessor.  "Scale" is the difference (in "outside" units) between consecutive entries in "Data".
 
 			<b>Note:</b> Using this invalidates the inside and outside reference
 			points.
 			*/
-			void setScale ( KeyType const & scale ) throw() { scale_ = scale; }
+			void setScale ( KeyType const & scale ) throw()
+			{
+				scale_ = scale;
+			}
 
 			/// Accessor.  "Offset" is the point (in "outside" units) which corresponds to "Data[0]".
-			KeyType const & getOffset () const throw() { return offset_; }
+			KeyType const & getOffset () const throw()
+			{
+				return offset_;
+			}
 
 			/**@brief Accessor.  "Offset" is the point (in "outside" units) which
 				 corresponds to "Data[0]".
@@ -327,7 +346,10 @@ namespace OpenMS
 				 <b>Note:</b> Using this invalidates the inside and outside reference
 				 points.
 			*/
-			void setOffset ( KeyType const & offset ) throw() { offset_ = offset; }
+			void setOffset ( KeyType const & offset ) throw()
+			{
+				offset_ = offset;
+			}
 
 			/**@brief Specifies the mapping from "outside" to "inside" coordinates by the following data:
 				 - <code>scale</code>: the difference in outside coordinates between consecutive values in the data vector.
@@ -350,19 +372,50 @@ namespace OpenMS
 				offset_  = outside - scale * inside;
 			}
 
+			/**@brief Specifies the mapping from "outside" to "inside" coordinates by the following data:
+				 - <code>inside_low</code> and <code>outside_low</code>: these axis positions are mapped onto each other.
+				 - <code>inside_high</code> and <code>outside_high</code>: these axis positions are mapped onto each other.
+
+				 This four argument version is just a convenience overload for the three argument version, which see.
+			*/
+			void setMapping ( KeyType const & inside_low, KeyType const & outside_low,
+												KeyType const & inside_high, KeyType const & outside_high )
+			{
+				if ( inside_high != inside_low )
+				{
+					setMapping ( ( outside_high - outside_low ) / ( inside_high - inside_low ),
+											 inside_low, outside_low );
+				}
+				else
+				{
+					setMapping ( 0, inside_low, outside_low );
+				}
+				return;
+			}
+			
 			/// Accessor.  See setMapping().
-			KeyType const & getInsideReferencePoint () const throw() { return inside_; }
+			KeyType const & getInsideReferencePoint () const throw()
+			{
+				return inside_;
+			}
 
 			/// Accessor.  See setMapping().
-			KeyType const & getOutsideReferencePoint () const throw() { return outside_; }
+			KeyType const & getOutsideReferencePoint () const throw()
+			{
+				return outside_;
+			}
 
 			/// Lower boundary of the support, in "outside" coordinates.
 			KeyType supportMin() const throw()
-			{ return index2key ( empty() ? 0 : -1 ); }
+			{
+				return index2key ( empty() ? 0 : -1 );
+			}
 
 			/// Upper boundary of the support, in "outside" coordinates.
 			KeyType supportMax() const throw()
-			{ return index2key ( data_.size() ); }
+			{
+				return index2key ( data_.size() );
+			}
 
 			//@}
 
