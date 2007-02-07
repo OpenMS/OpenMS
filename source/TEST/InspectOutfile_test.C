@@ -179,6 +179,14 @@ CHECK(void getACAndACType(String line, string& accession, string& accession_type
 	file.getACAndACType("gi|1619818|gnl|PID|d1013471|", accession, accession_type);
 	TEST_EQUAL(accession, "d1013471")
 	TEST_EQUAL(accession_type, "PID")
+
+	file.getACAndACType("Q30DX2 Gamma-gliadin/LMW-glutenin chimera Ch7 (Fragment).", accession, accession_type);
+	TEST_EQUAL(accession, "Q30DX2")
+	TEST_EQUAL(accession_type, "SwissProt")
+
+	file.getACAndACType(">P68509|1433F_BOVIN", accession, accession_type);
+	TEST_EQUAL(accession, "P68509")
+	TEST_EQUAL(accession_type, "SwissProt")
 RESULT
 
 CHECK(void getPrecursorRTandMZ(const vector< pair< String, vector< UnsignedInt > > >& files_and_scan_numbers, std::vector< IdentificationData >& ids))

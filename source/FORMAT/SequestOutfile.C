@@ -390,6 +390,8 @@ namespace OpenMS
 		string& accession,
 		string& accession_type)
 	{
+		accession.clear();
+		accession_type.clear();
 		pair<string, string> p;
 		// if it's a FASTA line
 		if ( line.hasPrefix(">") ) line.erase(0,1);
@@ -469,24 +471,35 @@ namespace OpenMS
 		}
 		else
 		{
-			size_t pos1 = line.find('|');
-			accession = line.substr(0, pos1);
-			if ( (accession.size() == 6) && (String("OPQ").find(accession[0], 0) != string::npos) ) accession_type = "SwissProt";
-			else
+			size_t pos1 = line.find('(', 0);
+			size_t pos2;
+			if ( pos1 != string::npos )
 			{
-				pos1 = line.find('(', 0);
-				size_t pos2;
-				if ( pos1 != string::npos )
+				pos2 = line.find(')', ++pos1);
+				if ( pos2 != string::npos )
 				{
-					pos2 = line.find(')', ++pos1);
-					if ( pos2 != string::npos )
+					accession = line.substr(pos1, pos2 - pos1);
+					if ( (accession.size() == 6) && (String("OPQ").find(accession[0], 0) != string::npos) ) accession_type = "SwissProt";
+					else accession.clear();
+				}
+			}
+			if ( accession.empty() )
+			{
+				pos1 = line.find('|');
+				accession = line.substr(0, pos1);
+				if ( (accession.size() == 6) && (String("OPQ").find(accession[0], 0) != string::npos) ) accession_type = "SwissProt";
+				else
+				{
+					pos1 = line.find(' ');
+					accession = line.substr(0, pos1);
+					if ( (accession.size() == 6) && (String("OPQ").find(accession[0], 0) != string::npos) ) accession_type = "SwissProt";
+					else
 					{
-						accession = line.substr(pos1, pos2 - pos1);
-						if ( (accession.size() == 6) && (String("OPQ").find(accession[0], 0) != string::npos) ) accession_type = "SwissProt";
+						accession = line.substr(0, 6);
+						if ( String("OPQ").find(accession[0], 0) != string::npos ) accession_type = "SwissProt";
 						else accession.clear();
 					}
 				}
-				else accession.clear();
 			}
 		}
 		if ( accession.empty() )

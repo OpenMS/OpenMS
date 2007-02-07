@@ -273,6 +273,8 @@ namespace OpenMS
 		string& accession,
 		string& accession_type)
 	{
+		accession.clear();
+		accession_type.clear();
 		pair<string, string> p;
 		// if it's a FASTA line
 		if ( line.hasPrefix(">") ) line.erase(0,1);
@@ -364,12 +366,23 @@ namespace OpenMS
 					else accession.clear();
 				}
 			}
-			else
+			if ( accession.empty() )
 			{
 				pos1 = line.find('|');
 				accession = line.substr(0, pos1);
 				if ( (accession.size() == 6) && (String("OPQ").find(accession[0], 0) != string::npos) ) accession_type = "SwissProt";
-				else accession.clear();
+				else
+				{
+					pos1 = line.find(' ');
+					accession = line.substr(0, pos1);
+					if ( (accession.size() == 6) && (String("OPQ").find(accession[0], 0) != string::npos) ) accession_type = "SwissProt";
+					else
+					{
+						accession = line.substr(0, 6);
+						if ( String("OPQ").find(accession[0], 0) != string::npos ) accession_type = "SwissProt";
+						else accession.clear();
+					}
+				}
 			}
 		}
 		if ( accession.empty() )
