@@ -79,7 +79,11 @@ CHECK(Type getTypeByContent(const String& filename) throw(Exception::FileNotFoun
 	TEST_EQUAL(tmp.getTypeByContent("data/MzDataFile_test_1.mzData"), FileHandler::MZDATA)
 	TEST_EQUAL(tmp.getTypeByContent("data/DFeatureMapFile.xml"), FileHandler::FEATURE)
 	TEST_EQUAL(tmp.getTypeByContent("data/MzXMLFile_test_1.mzXML"), FileHandler::MZXML)
-	TEST_EQUAL(tmp.getTypeByContent("data/DTAFile_test.dta"), FileHandler::UNKNOWN)
+	TEST_EQUAL(tmp.getTypeByContent("data/DTAFile_test.dta"), FileHandler::DTA)
+	TEST_EQUAL(tmp.getTypeByContent("data/DTA2DFile_test_1.dta2d"), FileHandler::DTA2D)
+	TEST_EQUAL(tmp.getTypeByContent("data/DTA2DFile_test_2.dta2d"), FileHandler::DTA2D)
+	TEST_EQUAL(tmp.getTypeByContent("data/ANDIFile_test.cdf"), FileHandler::ANDIMS)
+	TEST_EQUAL(tmp.getTypeByContent("data/class_test_infile.txt"), FileHandler::UNKNOWN)
 RESULT
 
 CHECK(template<class PeakType> bool loadExperiment(const String& filename, MSExperiment<PeakType>& exp, Type force_type = UNKNOWN))

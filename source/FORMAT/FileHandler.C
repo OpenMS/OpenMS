@@ -133,18 +133,74 @@ namespace OpenMS
     }
 
     //load first 5 lines
-    String input, tmp;
-    for (UnsignedInt i=0; i<5; ++i)
-    {
-			getline(is,tmp,'\n');
-			input += tmp;
-    }
+    String one, two, three, four, five;
+    getline(is,one,'\n');
+    one.trim();
+    getline(is,two,'\n');
+    two.trim();
+    getline(is,three,'\n');
+    three.trim();
+    getline(is,four,'\n');
+   	four.trim();
+    getline(is,five,'\n');
+    five.trim();
+    // concatenate trimmed lines
+    String two_five = two + ' ' + three + ' ' + four + ' ' + five;
+    // replace tabs by spaces
+    two_five.substitute('\t',' ');
+    
+		//mzXML (all lines)
+    if ((one + ' ' + two_five).find("mzXML")!=string::npos) return MZXML;
+    
+    //mzData (all lines)
+    if ((one + ' ' + two_five).find("mzData")!=string::npos) return MZDATA;
+    
+    //feature map (all lines)
+    if ((one + ' ' + two_five).find("featureMap")!=string::npos) return FEATURE;
+    
+    //ANDIMS (first line)
+    if (one.find("CDF")!=string::npos) return ANDIMS;
 
-		//Search for strings
-    if (input.find("mzXML")!=string::npos) return MZXML;
-    if (input.find("mzData")!=string::npos) return MZDATA;
-    if (input.find("featureMap")!=string::npos) return FEATURE;
-
+		//tokenize lines two to five
+		vector<String> parts;
+		two_five.split(' ',parts);
+		
+		//DTA
+		if (parts.size()==8)
+		{
+			bool conversion_error = false;
+			try
+			{
+				for (UnsignedInt i=0; i<8; ++i)
+				{
+					parts[i].toFloat();
+				}
+			}
+			catch (Exception::ConversionError)
+			{
+				conversion_error = true;
+			}
+			if (!conversion_error) return DTA;
+		}
+		
+		//DTA2D
+		if (parts.size()==12)
+		{
+			bool conversion_error = false;
+			try
+			{
+				for (UnsignedInt i=0; i<12; ++i)
+				{
+					parts[i].toFloat();
+				}
+			}
+			catch (Exception::ConversionError)
+			{
+				conversion_error = true;
+			}
+			if (!conversion_error) return DTA2D;
+		}
+		
 		return UNKNOWN;
 	}
 

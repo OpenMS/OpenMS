@@ -74,7 +74,7 @@ namespace OpenMS
 		/// Determines the file type from a file name
 		Type getTypeByFileName(const String& filename);
 
-		/// Determines the file type of XML files by parsing the first few lines
+		/// Determines the file type of a file by parsing the first few lines
 		Type getTypeByContent(const String& filename) throw (Exception::FileNotFound);
 
 		/// Converts a file type name into a Type
