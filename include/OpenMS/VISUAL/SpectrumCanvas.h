@@ -222,10 +222,10 @@ namespace OpenMS
 		}
 		
 		/**
-			@brief Returns the visible area
+			@brief Returns the currently visible area
 			
-			Returns the current visible area.
-			@return the visible area
+			Dimension 0 is the m/z dimension.
+			Dimension 1 is the RT dimension (not used in 1D).
 		*/
 		inline const AreaType& getVisibleArea() 
 		{ 

@@ -47,7 +47,8 @@ namespace OpenMS
 	
 		x_axis_->setLegend(DimensionDescription < LCMS_Tag >::dimension_unit_short[Spectrum2DCanvas::MZ]);
 		y_axis_->setLegend(DimensionDescription < LCMS_Tag >::dimension_unit_short[Spectrum2DCanvas::RT]);
-			
+		y_axis_->setMinimumWidth(60);
+		
 		addClient(canvas(), "Canvas", true);
 	
 	}

@@ -173,6 +173,7 @@ namespace OpenMS
     QPopupMenu * file = new QPopupMenu(this);
     menuBar()->insertItem("&File", file);
     file->insertItem("&Open",this,SLOT(openSpectrumDialog()));
+    file->insertItem("&Save layer as",this,SLOT(saveLayer()));
     file->insertItem("&Close",this,SLOT(closeFile()));
     file->insertSeparator();
     recent_menu_ = new QPopupMenu(this);
@@ -755,6 +756,128 @@ namespace OpenMS
     if (ws_->activeWindow())
     {
       ws_->activeWindow()->close();
+    }
+  }
+
+  void TOPPViewBase::saveLayer()
+  {
+    //check if there is a active window
+    if (ws_->activeWindow())
+    {
+      const LayerData& layer = activeWindow_()->widget()->canvas()->getCurrentLayer();
+      //warn if hidden layer => wrong layer selected...
+    	if (!layer.visible)
+    	{
+    		QMessageBox::warning(this,"Warning","The current layer is not visible!");
+    	}
+    	//Visible area
+    	const SpectrumCanvas::AreaType& area = activeWindow_()->widget()->canvas()->getVisibleArea();
+    	
+    	if (layer.type==LayerData::DT_PEAK)
+    	{
+    		//Extract selected visible data to out
+    		LayerData::ExperimentType out;
+    		out.ExperimentalSettings::operator=(layer.peaks);
+    		LayerData::ExperimentType::ConstIterator begin;
+    		LayerData::ExperimentType::ConstIterator end; 
+    		if (layer.peaks.size()==1)
+    		{
+	    		begin = layer.peaks.begin();
+	    		end = layer.peaks.end();
+    		}
+    		else
+    		{
+	    		begin = layer.peaks.RTBegin(area.min()[1]);
+	    		end = layer.peaks.RTBegin(area.max()[1]);
+    		}
+    		out.resize(end-begin);
+				
+				UnsignedInt i = 0;
+    		for (LayerData::ExperimentType::ConstIterator it=begin; it!=end; ++it)
+    		{
+  				out[i].SpectrumSettings::operator=(*it);
+  				out[i].setRetentionTime(it->getRetentionTime());
+  				out[i].setMSLevel(it->getMSLevel());
+  				out[i].setPrecursorPeak(it->getPrecursorPeak());
+  				for (LayerData::ExperimentType::SpectrumType::ConstIterator it2 = it->MZBegin(area.min()[0]); it2!= it->MZEnd(area.max()[0]); ++it2)
+  				{
+  					if ( it2->getIntensity() >= layer.min_int && it2->getIntensity() <= layer.max_int)
+  					{
+  						out[i].push_back(*it2);
+  					}
+  				}
+  				++i;
+    		}
+    		//no extracted data
+    		if (out.size()==0)
+    		{
+    		  QMessageBox::warning(this,"Warning","The displayed region of the current layer is empty!");
+    		  return;
+    		}
+    		//one scan => DTA
+    		else if (out.size()==1)
+    		{
+		      QString file_name = QFileDialog::getSaveFileName( prefs_.getValue("Preferences:DefaultPath").toString().c_str(),
+					                    "DTA files (*.dta)",
+					                    this, "Save spectrum dialog","Select filename for spectrum" );
+					if (!file_name.isEmpty())
+					{
+					  DTAFile().store(file_name.ascii(),out[0]);
+					}
+    		}
+    		//more than one scan => MzData
+    		else
+    		{
+		      QString file_name = QFileDialog::getSaveFileName( prefs_.getValue("Preferences:DefaultPath").toString().c_str(),
+					                    "MzData files (*.mzData)",
+					                    this, "Save map dialog","Select filename for map" );
+					if (!file_name.isEmpty())
+					{
+					  MzDataFile().store(file_name.ascii(),out);
+					}
+    		}
+			}
+			else //feature data
+			{
+		    enum DimensionId
+		    {
+	        RT = DimensionDescription < LCMS_Tag >::RT,
+	        MZ = DimensionDescription < LCMS_Tag >::MZ
+		    };
+	    
+    		//Extract selected visible data to out
+    		LayerData::FeatureMapType out;
+    		out.ExperimentalSettings::operator=(layer.features);
+    		for (LayerData::FeatureMapType::ConstIterator it=layer.features.begin(); it!=layer.features.end(); ++it)
+    		{
+					if ( it->getIntensity() >= layer.min_int && 
+							 it->getIntensity() <= layer.max_int &&
+							 it->getPosition()[RT] >= area.min()[1] &&
+							 it->getPosition()[RT] <= area.max()[1] &&
+							 it->getPosition()[MZ] >= area.min()[0] &&
+							 it->getPosition()[MZ] <= area.max()[0]
+						 )
+					{
+						out.push_back(*it);
+					}
+  			}
+    		//no extracted data
+    		if (out.size()==0)
+    		{
+    		  QMessageBox::warning(this,"Warning","The displayed region of the current layer is empty!");
+    		  return;
+    		}
+    		else
+    		{
+		      QString file_name = QFileDialog::getSaveFileName( prefs_.getValue("Preferences:DefaultPath").toString().c_str(),
+					                    "features files (*.feat)",
+					                    this, "Save feature data dialog","Select filename for feature data" );
+					if (!file_name.isEmpty())
+					{
+					  DFeatureMapFile().store(file_name.ascii(),out);
+					}
+    		}
+			}
     }
   }
 

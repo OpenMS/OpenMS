@@ -157,6 +157,8 @@ namespace OpenMS
       void print();
       /// closes the active window
       void closeFile();
+      /// saves the current view of the current layer
+      void saveLayer();
       /// updates the toolbar, when the active window changes
       void updateToolbar(QWidget* widget);
       /// adapts the layer bar to the active window
