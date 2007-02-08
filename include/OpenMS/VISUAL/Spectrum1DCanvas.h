@@ -52,6 +52,8 @@ namespace OpenMS
 		
 		@todo Add measurement (Marc)
 		
+		@bug Logarithmic intensity mode is broken
+		
 		@ingroup spectrum_widgets
 	*/
 	class Spectrum1DCanvas : public SpectrumCanvas

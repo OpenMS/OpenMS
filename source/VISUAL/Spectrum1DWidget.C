@@ -50,7 +50,7 @@ namespace OpenMS
 		
 		x_axis_->setLegend("m/z");
 		y_axis_->setLegend("Intensity");
-		y_axis_->setMinimumWidth(60);
+		y_axis_->setMinimumWidth(50);
 		addClient(canvas(),"Canvas",true);
 	}
 	

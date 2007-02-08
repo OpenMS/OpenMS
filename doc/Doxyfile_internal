@@ -2,11 +2,7 @@
 
 # Doxyfile 1.5.1
 
-# generate all lists
 GENERATE_TODOLIST      = YES
-GENERATE_TESTLIST      = YES
-GENERATE_BUGLIST       = YES
-GENERATE_DEPRECATEDLIST= YES
 
 # issue all possible warnings
 QUIET                  = NO

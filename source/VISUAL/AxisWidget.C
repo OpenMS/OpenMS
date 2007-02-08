@@ -62,14 +62,16 @@ namespace OpenMS
 	{
 		buffer_ = new QPixmap(1,1);
 		if (!(alignment==RIGHT || alignment==LEFT || alignment==BOTTOM || alignment==TOP))
+		{
 			throw Exception::OutOfRange(__FILE__, __LINE__, __PRETTY_FUNCTION__);
-		unit_scaling_ = 1;
-		act_legend_ = base_legend_ = 0;
+		}
 		setAxisBounds(0.0,100.0);  // min_, max_
-	
-	 	if (alignment==RIGHT || alignment==LEFT )	{
+	 	if (alignment==RIGHT || alignment==LEFT )	
+	 	{
 			setMinimumSize(30,100);	 
-		}	else{
+		}
+		else
+		{
 			setMinimumSize(100, 30);
 		}
 		resize(minimumSize());
@@ -95,7 +97,6 @@ namespace OpenMS
 	}
 	
 	void AxisWidget::resize(int w, int h)
-	
 	{
 		bool isXAxis = (alignment_==BOTTOM || alignment_==TOP);
 	
@@ -136,7 +137,9 @@ namespace OpenMS
 		{
 			QString s;
 			if (grid_line_.size()>i)
+			{
 				s = QString("%1").arg(scale_(grid_line_[i][ grid_line_[i].size()-1])); //last axis label
+			}
 			if (s.length() > probe.length())
 			{
 				probe = s;
@@ -148,13 +151,15 @@ namespace OpenMS
 	
 		int text_font_size;
 		// use rest of space for axis label (i.e. 1/5 legend, 4/5 label) or use all available space if no legend is shown;
-		if (show_legend_) 
-			text_font_size = (isXAxis)? probeFont_(probe,trans_dist,0.8*h*2.0/3) 
-				: probeFont_(probe,0.8*w,trans_dist,index);
+		if (show_legend_)
+		{
+			text_font_size = (isXAxis)? probeFont_(probe,trans_dist,0.8*h*2.0/3) : probeFont_(probe,0.8*w,trans_dist,index);
+		}
 		else
-			text_font_size = (isXAxis)? probeFont_(probe,trans_dist,0.8*h) 
-				: probeFont_(probe,w,trans_dist,index);
-	
+		{
+			text_font_size = (isXAxis)? probeFont_(probe,trans_dist,0.8*h) : probeFont_(probe,w,trans_dist,index);
+		}
+		
 		// length of one big tick equals a quarter of the text_font_size
 		double grid_scaling = text_font_size/4;
 		if (grid_scaling > w/5 ) grid_scaling = w/5;  // don't let font size get to big
@@ -199,7 +204,9 @@ namespace OpenMS
 	      if (inverse_orientation_)
 	      {
 					x = static_cast<int>(intervalTransformation(*it, min_, max_, i_end, i_beg)) + ((alignment_==LEFT || alignment_==RIGHT)?-1:1)*margin_;
-				}else{
+				}
+				else
+				{
 					x = static_cast<int>(intervalTransformation(*it, min_, max_, i_beg, i_end));
 				}
 	
@@ -344,12 +351,17 @@ namespace OpenMS
 	
 	void AxisWidget::showLegend(bool show_legend)
 	{
-		if (show_legend_ != show_legend){
+		if (show_legend_ != show_legend)
+		{
 	  	show_legend_ = show_legend;
-		  if (show_legend_) 
+		  if (show_legend_)
+		  { 
 			  QToolTip::remove(this);
+	  	}
 	  	else
+	  	{
 		  	QToolTip::add(this,legend_.c_str());
+	    }
 	    invalidate_();
 	  }
 	}
@@ -377,51 +389,17 @@ namespace OpenMS
 		return inverse_orientation_;
 	}
 	
-	bool AxisWidget::setLegend(const std::string& legend)
+	void AxisWidget::setLegend(const std::string& legend)
 	{
-		if (legend_vec_.size()>0){
-			return false;
-		}else{
+		if (legend_ != legend)
+		{
 			legend_ = legend;
-		}
-		return true;
-	}
-	
-	void AxisWidget::setExtendedLegend(std::vector<std::string> legend, double scaling_factor, UnsignedInt base)
-	{
-		legend_vec_ = legend;
-		unit_scaling_ = scaling_factor;
-		base_legend_ = base;
-		act_legend_ = base;
-		legend_ = legend_vec_[act_legend_];
-	}
-	
-	const std::vector<std::string>& AxisWidget::getExtendedLegend()
-	{
-		return legend_vec_;
-	}
-	
-	UnsignedInt AxisWidget::getUnit()
-	{
-		return act_legend_;
-	}
-	
-	bool AxisWidget::setUnit(UnsignedInt new_legend)
-	{
-		if (new_legend > legend_vec_.size()){
-			return false;
-		}	else {
-	    if (new_legend != act_legend_) {
-	  		act_legend_ = new_legend;
-		  	legend_ = legend_vec_[act_legend_];
-			  if (!show_legend_){  // changed legend_ makes QToolTip text invalid
-				  QToolTip::remove(this);
-	  			QToolTip::add(this,legend_.c_str());
-		  	}
-				invalidate_();
-	    }
-		}
-		return true;
+			if (!show_legend_)
+	  	{ 
+			  QToolTip::remove(this);
+	 	 		QToolTip::add(this,legend_.c_str());
+   	 	}
+  	}
 	}
 	
 	QSize AxisWidget::sizeHint () const
@@ -438,7 +416,6 @@ namespace OpenMS
 			return false;
 		}
 	}
-		
 
 	const AxisWidget::GridVector& AxisWidget::gridLines()
 	{

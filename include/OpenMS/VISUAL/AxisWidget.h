@@ -94,34 +94,26 @@ namespace OpenMS
 			bool isLogScale();
 	
 			/// sets the legend text
-			/// returns false if and extended legend is already set
-			bool setLegend(const std::string& legend);
+			void setLegend(const std::string& legend);
 	
 			/// returns the actual legend text
 			std::string getLegend();
-	
-			/// sets a vector of units available as legend (i.e. sec, min, hours), the factor connecting these units and the index of the default unit
-			void setExtendedLegend(std::vector<std::string> legend, double scaling_factor, UnsignedInt base=0);
-	
+
 			/// set true to display the axis label in inverse order (left to right or bottom to top)
 			void setInverseOrientation(bool inverse_orientation);
 			bool hasInverseOrientation();
 	
-			/// gets a reference to the vector of units available as legend
-			const std::vector<std::string>& getExtendedLegend();
-	
-			/// get the index of the unit that is set as legend
-			UnsignedInt getUnit();
-	
-			/// set the legend to one of the units contained in the extended legend vector
-			/// returns fals if index not available
-			bool setUnit(UnsignedInt);
-	
 			/// see QWidget
 			virtual QSize sizeHint () const;
 	
-	    inline double getAxisMinimum() const {return min_;};
-	    inline double getAxisMaximum() const {return max_;};
+	    inline double getAxisMinimum() const
+	    {
+	    	return min_;
+	    };
+	    inline double getAxisMaximum() const 
+	    {
+	    	return max_;
+	    };
 	
 			inline void setPenWidth(int p)
 			{
@@ -167,13 +159,6 @@ namespace OpenMS
 			/// maximum number of tick levels (default=3)
 			UnsignedInt tick_level_;
 	
-			/// vector of units that can be used as legend
-			std::vector<std::string> legend_vec_;
-			/// index of actual chosen and default/base legend
-			UnsignedInt act_legend_, base_legend_;
-			/// scaling factor to switch between units
-			double unit_scaling_;
-	
 			///painting buffer
 			QPixmap* buffer_;
 			///the painter
@@ -195,15 +180,7 @@ namespace OpenMS
 			/// Scale axis values to correct value (i.e. reverse log, unit conversion)
 			inline double scale_(double x)
 			{
-				double res;
-				if (act_legend_ > base_legend_){
-					res = x/pow(unit_scaling_,act_legend_-base_legend_); // performe unit conversion if necessary
-				}else{
-					res = x*pow(unit_scaling_,base_legend_-act_legend_);
-				}
-				res = (is_log_)? Math::round_decimal(pow(res,10),-8) : Math::round_decimal(res,-8);
-	
-				return res;
+				return (is_log_)? Math::round_decimal(pow(x,10),-8) : Math::round_decimal(x,-8);
 			}
 	
 			inline int probeFont_(QString probe, double width, double height, int index=0)
@@ -215,11 +192,17 @@ namespace OpenMS
 				double ratio2 = prb_bound.height()/height;
 				double res = (ratio1 > ratio2)? ratio1:ratio2;
 				if (index==1)
+				{
 					return static_cast<int>(probe_font/res*3.0/2.4);
+				}
 				else if (index==2)
+				{
 					return static_cast<int>(probe_font/res*3.0/2);
-				else 
+				}
+				else
+				{ 
 					return static_cast<int>(probe_font/res);
+				}
 			}
  	};
 } // namespace OpenMS
