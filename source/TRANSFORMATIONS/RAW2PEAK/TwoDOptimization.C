@@ -27,6 +27,9 @@
 
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/TwoDOptimization.h>
 
+using namespace std;
+using namespace OpenMS::TwoDOptimizationFunctions;
+
 namespace OpenMS
 {
   namespace TwoDOptimizationFunctions
@@ -477,8 +480,6 @@ namespace OpenMS
     }
 
   }// namespace
-
-
 
 
 	void TwoDOptimization::findMatchingPeaks_(std::multimap<double, IsotopeCluster>::iterator& it,

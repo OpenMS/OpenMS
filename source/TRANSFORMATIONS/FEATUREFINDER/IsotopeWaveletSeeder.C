@@ -229,7 +229,7 @@ namespace OpenMS
 					break;
 				}			
 				
-				SpectrumType::Iterator insert_iter = std::lower_bound(traits_->getData()[current_scan].begin(),traits_->getData()[current_scan].end(),mass_to_find,PeakType::NthPositionLess<0>());	
+				SpectrumType::ConstIterator insert_iter = std::lower_bound(traits_->getData()[current_scan].begin(),traits_->getData()[current_scan].end(),mass_to_find,PeakType::NthPositionLess<0>());	
 				
 				CoordinateType miso_mass = insert_iter->getPos();
 			
@@ -273,7 +273,7 @@ namespace OpenMS
 		min_spacing_ = INT_MAX;
 		
 		double current_spacing;
-		for (MapType::Iterator it = traits_->getData().begin(); it != traits_->getData().end(); ++it)
+		for (MapType::ConstIterator it = traits_->getData().begin(); it != traits_->getData().end(); ++it)
 		{
 			if (it->size() == 0) continue;
 			

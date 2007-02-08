@@ -47,35 +47,16 @@ namespace OpenMS
   {	
   }
 
-  FeaFiTraits::FeaFiTraits(const FeaFiTraits& source)
-    : map_(source.map_),
-	    flags_(source.flags_),
-	    features_(source.features_)
-  {
-  }
-
-
-  FeaFiTraits& FeaFiTraits::operator = (const FeaFiTraits& source)
-  {
-    if (&source == this) return *this;
-
-    map_ = source.map_;
-    flags_ = source.flags_;
-    features_ = source.features_;
-
-    return *this;
-  }
-
-  void FeaFiTraits::getNextRt(IDX& index) throw (Exception::IndexOverflow, NoSuccessor)
+  void FeaFiTraits::getNextRt(IDX& index) throw (NoSuccessor, Exception::Precondition)
   {
   	//Corrupt index
   	OPENMS_PRECONDITION(index.first<map_.size(), "Scan index outside of map!");
     OPENMS_PRECONDITION(index.second<map_[index.first].size(), "Peak index outside of scan!");
 		
 		//last scan
-    if (index.first==map_.size()-1)
+    if (index.first == map_.size()-1)
     {
-    	throw NoSuccessor(__FILE__, __LINE__, "FeaFiTraits::getNextRt",index);
+    	throw NoSuccessor(__FILE__, __LINE__, "FeaFiTraits::getNextRt", index);
 		}
 		
 		// perform binary search to find the neighbour in rt dimension
@@ -109,7 +90,7 @@ namespace OpenMS
   }
   
   
-	void FeaFiTraits::getPrevRt(IDX& index) throw (Exception::IndexOverflow, NoSuccessor)
+	void FeaFiTraits::getPrevRt(IDX& index) throw (NoSuccessor, Exception::Precondition)
   {
   	//Corrupt index
   	OPENMS_PRECONDITION(index.first<map_.size(), "Scan index outside of map!");
@@ -118,7 +99,7 @@ namespace OpenMS
 		// first scan
 		if (index.first == 0)
 		{
-			throw  NoSuccessor(__FILE__, __LINE__, "FeaFiTraits::getPrevRt", index);
+			throw NoSuccessor(__FILE__, __LINE__, "FeaFiTraits::getPrevRt", index);
 		}
 		
 		// perform binary search to find the neighbour in rt dimension

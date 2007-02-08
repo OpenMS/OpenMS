@@ -86,16 +86,16 @@ CHECK((FactoryProduct(const String& name)))
 	TEST_NOT_EQUAL(ptr, 0)
 RESULT
 
-CHECK((~FactoryProduct()))
+CHECK([EXTRA] ~FactoryProduct())
 	delete ptr;
 RESULT
 
-CHECK((const String& getName() const))
+CHECK([EXTRA] const String& getName() const)
 	TestProduct1 s;
   TEST_EQUAL(s.getName(), "TestProduct1")
 RESULT
 
-CHECK((const Param& getParameters() const))
+CHECK([EXTRA] const Param& getParameters() const)
 	TestProduct1 s;
   Param p;
   p.setValue("value",1);
@@ -104,7 +104,7 @@ CHECK((const Param& getParameters() const))
 RESULT
 
 
-CHECK((void setParam(const Param& p)))
+CHECK([EXTRA] void setParameters(const Param& p))
 	TestProduct1 s;
   Param p;
 	p.setValue("value",1);
