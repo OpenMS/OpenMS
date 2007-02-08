@@ -103,10 +103,6 @@ namespace OpenMS
 	protected:
 		// Docu in base class
 		virtual Math::Histogram<UnsignedInt,float> createIntensityDistribution_();
-		
-	private:
-		/// shows the context menu at position p
-		void showContextMenu_(QPoint p);
 	};
 }
 

@@ -61,9 +61,6 @@ namespace OpenMS
 
 			// Docu in base class
 		  virtual void showGoToDialog();
-
-	protected:
-		void createContextMenu_();
 	};
 } //namespace
 	

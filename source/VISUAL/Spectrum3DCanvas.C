@@ -50,7 +50,6 @@ Spectrum3DCanvas::Spectrum3DCanvas(QWidget* parent, const char* name, WFlags f)
 {  
 	setFocusPolicy(QWidget::TabFocus);
 	openglcanvas_= new Spectrum3DOpenGLCanvas(this,"openglcanvas", *this);
-	connect(openglcanvas_, SIGNAL(rightButton(QPoint)), this,SLOT(showContextMenu(QPoint)) );
 	action_mode_ = AM_TRANSLATE;
 	legend_shown_ = true;
 }
@@ -63,11 +62,6 @@ Spectrum3DCanvas::~Spectrum3DCanvas()
 void Spectrum3DCanvas::resizeEvent(QResizeEvent *e)
 {
 	openglcanvas_ ->resize(e->size().width(),e->size().height());
-}
-
-void Spectrum3DCanvas::showContextMenu(QPoint p)
-{
-	emit contextMenu(p);
 }
 
 void Spectrum3DCanvas::showLegend(bool show)

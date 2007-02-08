@@ -180,14 +180,10 @@ namespace OpenMS
 		void sendStatusMessage(std::string, OpenMS::UnsignedInt);
 		/// Displays peak information in the status bar (m/z, RT, intensity)
 		void sendCursorStatus(double,double,double);
-		/// Opens the context menu
-		void contextMenu(QPoint pos);
 		
 	public slots:
 		/// Shows the intensity distribution of the data
 		void showIntensityDistribution();
-		/// Class showLegend(bool) after casting @p show to a bool
-		void showLegend(int show);
 		/// Sets mapping of m/z values to x-axis or y-axis
 		virtual void mzToXAxis(bool mz_to_x_axis);
 		/// Updates the axes by calling recalculateAxes_();

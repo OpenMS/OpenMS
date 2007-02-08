@@ -156,8 +156,6 @@ namespace OpenMS
 		
 		if (e->button() == Qt::RightButton)
 		{
-			// context menu
-			emit contextMenu(e->globalPos());
 			return;
 		}
 		
@@ -541,8 +539,7 @@ namespace OpenMS
 				}
 				if (e->button() == Qt::RightButton)
 				{
-					// context menu
-					emit contextMenu(e->globalPos());
+					return;
 				}
 				break;
 			}

@@ -36,15 +36,13 @@ namespace OpenMS
 
 	SpectrumWindow::SpectrumWindow(QWidget* parent, const char* name, WFlags f)  
 		: QMainWindow(parent,name,f),
-			PreferencesManager(),
-			context_menu_(0)
+			PreferencesManager()
 	{
 		setMinimumSize(300,300);	// prevents errors caused by too small width,height values
 	}
 	
 	SpectrumWindow::~SpectrumWindow()
 	{
-		if (context_menu_!=0) delete(context_menu_);
 	}
 	
 	void SpectrumWindow::setWidget_(SpectrumWidget* widget)
@@ -78,49 +76,6 @@ namespace OpenMS
 		connect(sw,SIGNAL(sendStatusMessage(std::string,OpenMS::UnsignedInt)),this,SLOT(showStatusMessage(std::string,OpenMS::UnsignedInt)));
 		connect(sw,SIGNAL(sendCursorStatus(double,double,double)),this,SLOT(showCursorStatus(double,double,double)));
 		connect(sw,SIGNAL(modesChanged(QWidget*)),this,SLOT(modesChangedSlot(QWidget*)));
-		connect(sw, SIGNAL(contextMenu(QPoint)), this, SLOT(showContextMenu_(QPoint)));
-	}
-	
-	void SpectrumWindow::createContextMenu_()
-	{
-		if (context_menu_!=0)
-		{
-			delete(context_menu_);
-		}
-		
-		//create menu
-		context_menu_ = new QPopupMenu(this);
-	 	SignedInt item;
-	
-		//intensity distrubution
-		context_menu_->insertItem("intensity distribution",widget_,SLOT(showIntensityDistribution()));
-		context_menu_->insertSeparator();
-	
-		//legend menu
-		QPopupMenu* legend_menu = new QPopupMenu(context_menu_);
-		item = legend_menu->insertItem("shown",widget_,SLOT(showLegend(int)),0,1);
-		if (widget_->isLegendShown()) legend_menu->setItemEnabled(item,false);
-		item = legend_menu->insertItem("hidden",widget_,SLOT(showLegend(int)),0,0);
-		if (!widget_->isLegendShown()) legend_menu->setItemEnabled(item,false);
-		context_menu_->insertItem("legend",legend_menu);
-		context_menu_->insertSeparator();	
-	
-		//Preferences
-		context_menu_->insertItem("Preferences",this,SLOT(showPreferences_()));
-		context_menu_->insertSeparator();	
-	
-	}
-	
-	void SpectrumWindow::showContextMenu_(QPoint p)
-	{
-		createContextMenu_();
-		context_menu_->popup(p);
-	}
-	
-	void SpectrumWindow::showPreferences_()
-	{
-		setActive(true);
-		emit openPreferences();
 	}
 
 	void SpectrumWindow::setMainPreferences(const Param& prefs)

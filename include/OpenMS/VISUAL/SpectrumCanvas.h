@@ -476,15 +476,6 @@ namespace OpenMS
 				
 		/// Emited when the cursor position changes (for displaying in status bar)
 		void sendCursorStatus(double pos=-1.0, double intens=-1.0, double rt=-1.0);
-		
-		/**
-			@brief Context menu request
-			
-			This signal is emitted when a context menu has to be shown, e.g. after the right mouse button is hit
-			@param pos The global position where the context menu
-			should pop up
-		*/
-		void contextMenu(QPoint pos);
 
 		/// Displays a status message. See TOPPViewBase::showStatusMessage .
 		void sendStatusMessage(std::string, OpenMS::UnsignedInt);

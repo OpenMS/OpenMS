@@ -78,9 +78,6 @@ namespace OpenMS
 		// Docu in base class
     virtual void showGoToDialog();    
 
-	protected slots:
-		virtual void createContextMenu_();
-
 	protected:
 		QGridLayout* grid_;
 		Spectrum1DWidget* projection_vert_;

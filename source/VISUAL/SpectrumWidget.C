@@ -68,8 +68,7 @@ namespace OpenMS
 	{
 		canvas_ = canvas;
 		grid_->addWidget(canvas_, 0, 2);
-	
-		connect(canvas_, SIGNAL(contextMenu(QPoint)), this, SIGNAL(contextMenu(QPoint)));
+
 		//axes
 		connect(canvas_, SIGNAL(visibleAreaChanged(DRange<2>)), this, SLOT(updateAxes()));
 		connect(canvas_, SIGNAL(recalculateAxes()), this, SLOT(updateAxes()));
@@ -146,11 +145,6 @@ namespace OpenMS
 		y_axis_->showLegend(show);
 		x_axis_->showLegend(show);
 		update();
-	}
-
-	void SpectrumWidget::showLegend(int show)
-	{
-		showLegend((bool)(show));
 	}
 	
 	void SpectrumWidget::updateAxes()

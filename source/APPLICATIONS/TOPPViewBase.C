@@ -61,6 +61,7 @@
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/VISUAL/Spectrum3DCanvas.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/VISUAL/MSMetaDataExplorer.h>
 
 // Qt
 #include <qaction.h>
@@ -173,7 +174,6 @@ namespace OpenMS
     QPopupMenu * file = new QPopupMenu(this);
     menuBar()->insertItem("&File", file);
     file->insertItem("&Open",this,SLOT(openSpectrumDialog()));
-    file->insertItem("&Save layer as",this,SLOT(saveLayer()));
     file->insertItem("&Close",this,SLOT(closeFile()));
     file->insertSeparator();
     recent_menu_ = new QPopupMenu(this);
@@ -181,11 +181,22 @@ namespace OpenMS
     file->insertSeparator();
     file->insertItem("&Preferences",this, SLOT(preferencesDialog()));
     file->insertItem("&Quit",qApp,SLOT(quit()));
+    
+    //Layer menu
+    QPopupMenu * layer = new QPopupMenu(this);
+    menuBar()->insertItem("&Layer", layer);
+    layer->insertItem("&Save visible data",this,SLOT(saveLayer()));
+    layer->insertItem("&Edit metadata",this,SLOT(editMetadata()));
+    layer->insertItem("&Intensity distribution",this,SLOT(layerIntensityDistribution()));
+		layer->insertSeparator();
+    layer->insertItem("&Preferences",this, SLOT(layerPreferencesDialog()));
+    
     //View menu
     QPopupMenu * view = new QPopupMenu(this);
     menuBar()->insertItem("&View", view);
-    view->insertItem("&go to",this,SLOT(gotoDialog()), CTRL+Key_G);
-
+    view->insertItem("&Go to",this,SLOT(gotoDialog()), CTRL+Key_G);
+   	view->insertItem("Show/Hide axis legends",this,SLOT(changeAxisVisibility()));
+   	
     //Image menu
     QPopupMenu * image = new QPopupMenu(this);
     menuBar()->insertItem("&Image", image);
@@ -199,6 +210,7 @@ namespace OpenMS
     windows->insertItem("&Tile automatic",this->ws_,SLOT(tile()));
     windows->insertItem(QIconSet(QPixmap(XPM_tile_h)),"Tile &vertical",this,SLOT(tileHorizontal()));
     windows->insertItem(QIconSet(QPixmap(XPM_tile_v)),"Tile &horizontal",this,SLOT(tileVertical()));
+    
     //Tools menu
     tools_menu_ = new QPopupMenu(this);
     menuBar()->insertItem("&Tools", tools_menu_);
@@ -256,7 +268,6 @@ namespace OpenMS
     //set preferences file name + load preferencs
     loadPreferences();
   }
-
 
   void TOPPViewBase::addDBSpectrum(UnsignedInt db_id, bool as_new_window, bool maps_as_2d, bool maximize, OpenDialog::Mower use_mower)
   {
@@ -881,6 +892,62 @@ namespace OpenMS
     }
   }
 
+  void TOPPViewBase::editMetadata()
+  {
+    //check if there is a active window
+    if (ws_->activeWindow())
+    {
+      const LayerData& layer = activeWindow_()->widget()->canvas()->getCurrentLayer();
+      //warn if hidden layer => wrong layer selected...
+    	if (!layer.visible)
+    	{
+    		QMessageBox::warning(this,"Warning","The current layer is not visible!");
+    	}
+			QDialog *dlg = new QDialog(this,QString::null, true);
+      dlg->setCaption("Edit meta data");
+			MSMetaDataExplorer expolorer(dlg);
+      if (layer.type==LayerData::DT_PEAK) //peak data
+    	{
+    		expolorer.add(&(const_cast<LayerData&>(layer).peaks));
+    	}
+    	else //feature data
+    	{
+    		expolorer.add(&(const_cast<LayerData&>(layer).features));
+    	}
+      dlg->exec();
+    }
+  }
+
+  void TOPPViewBase::layerPreferencesDialog()
+  {
+    if (ws_->activeWindow())
+    {
+      activeWindow_()->setActive(true);
+	  	if (showPreferencesDialog())
+	    {
+	      savePreferences();
+	    }
+    }
+  }
+
+  void TOPPViewBase::layerIntensityDistribution()
+  {
+    //check if there is a active window
+    if (ws_->activeWindow())
+    {
+      activeWindow_()->widget()->showIntensityDistribution();
+    }  	
+  }
+
+  void TOPPViewBase::changeAxisVisibility()
+  {
+    //check if there is a active window
+    if (ws_->activeWindow())
+    {
+      activeWindow_()->widget()->showLegend(!activeWindow_()->widget()->isLegendShown());
+    }  	
+  }
+
   void TOPPViewBase::closeFileByTab(OpenMS::SignedInt tab_identifier_)
   {
     SpectrumWindow* window = id_map_[tab_identifier_];
@@ -1357,17 +1424,10 @@ namespace OpenMS
 
 	void TOPPViewBase::layerContextMenu(QListViewItem* item, const QPoint & pos, int /*col*/)
 	{
-		//cout << "layerContextMenu(QListViewItem* item, const QPoint & pos, int col)" << endl;
-		if (item)
+		if (item && item!=layer_manager_->firstChild())
 		{
 			QPopupMenu* context_menu = new QPopupMenu(layer_manager_);
-			if (item!=layer_manager_->firstChild())
-			{
-				context_menu->insertItem("Delete",0,0);
-			}
-			//TODO Layer preferences
-			//context_menu->insertItem("Preferences",1,1);
-			
+			context_menu->insertItem("Delete",0,0);
 			int result = context_menu->exec(pos);
 			//delete
 			if (result == 0)
@@ -1378,19 +1438,13 @@ namespace OpenMS
 		    {
 		      if (it.current()==item)
 		      {
-		      	//cout << "  REMOVING: " << i << endl;
-						activeCanvas_()->removeLayer(i);
+		  			activeCanvas_()->removeLayer(i);
 						updateLayerbar();
 						break;
 		      }
 					++it;
 					++i;
 		    }
-			}
-			//show preferences
-			else if (result == 1)
-			{
-				//TODO Layer preferences
 			}
 			delete (context_menu);
 		}
@@ -1503,7 +1557,6 @@ namespace OpenMS
     connect(sw,SIGNAL(sendStatusMessage(std::string,OpenMS::UnsignedInt)),this,SLOT(showStatusMessage(std::string,OpenMS::UnsignedInt)));
     connect(sw,SIGNAL(sendCursorStatus(double,double,double)),this,SLOT(showCursorStatus(double,double,double)));
     connect(sw,SIGNAL(modesChanged(QWidget*)),this,SLOT(updateToolbar(QWidget*)));
-    connect(sw,SIGNAL(openPreferences()),this,SLOT(preferencesDialog()));
     connect(sw,SIGNAL(destroyed()),this,SLOT(windowClosed()));
   
   	Spectrum2DWindow* sw2 = dynamic_cast<Spectrum2DWindow*>(sw);
@@ -2110,7 +2163,7 @@ namespace OpenMS
     default_preferences.setValue("DefaultMapView", "2D");
     default_preferences.setValue("DefaultPath", ".");
     default_preferences.setValue("NumberOfRecentFiles", 15);
-    default_preferences.setValue("Legend", "Show");
+    default_preferences.setValue("Legend", "Hide");
     default_preferences.setValue("MapIntensityCutoff", "None");
 
     //1d

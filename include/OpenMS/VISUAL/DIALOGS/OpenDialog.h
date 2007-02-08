@@ -43,7 +43,7 @@ namespace OpenMS
 		
 		Allows selecting a spectrum/map from a file or the DB.
 		
-		@todo Implement meta data preview properly (Marc)
+		@todo Implement meta data preview with DB load metadata only (Marc)
 		
 		@ingroup Dialogs
 	*/

@@ -101,23 +101,12 @@ namespace OpenMS
 			void modesChangedSlot(QWidget*);
 			/// Displays a GoTo dialog
       virtual void showGoToDialog() = 0;		      
-		
-		protected slots:
-			/// Pops up the context menu at position @p p
-			void showContextMenu_(QPoint p);
-			/// Pops up the preference menu
-			void showPreferences_();		
 
 		protected:
 			/// Sets the pointer to the child widget and the back pointer
 			void setWidget_(SpectrumWidget* widget);
       /// Pointer to the child widget
 			SpectrumWidget* widget_;
-			
-			/// Creates the context menu if the pointer is 0
-			virtual void createContextMenu_();
-			///context menu widget
-			QPopupMenu* context_menu_;
 	};
 }
 #endif

@@ -137,7 +137,7 @@ namespace OpenMS
 			{
 				if (e->button() == Qt::RightButton)
 				{
-					emit contextMenu(e->globalPos());
+					return;
 				}
 				// Peak selection
 				else if (nearest_peak_ != currentPeakData_()[0].end())
@@ -228,7 +228,7 @@ namespace OpenMS
 	
 				if (e->button() == Qt::RightButton)
 				{
-					emit contextMenu(e->globalPos());
+					return;
 				}
 				break;
 			}
@@ -237,7 +237,7 @@ namespace OpenMS
 				setCursor(cursor_translate_);
 				if (e->button() == Qt::RightButton)
 				{
-					emit contextMenu(e->globalPos());
+					return;
 				}
 				break;
 			}

@@ -67,7 +67,6 @@ namespace OpenMS
 		
 		connectWidgetSignals(widget());
 		
-		connect(widget(), SIGNAL(contextMenu(QPoint)), this, SLOT(showContextMenu_(QPoint)));
 		connect(widget()->canvas(), SIGNAL(showProjectionHorizontal(const MSExperiment<>&)), this, SLOT(horizontalProjection(const MSExperiment<>&)));
 		connect(widget()->canvas(), SIGNAL(showProjectionVertical(const MSExperiment<>&)), this, SLOT(verticalProjection(const MSExperiment<>&)));
 	
@@ -81,12 +80,6 @@ namespace OpenMS
 	Spectrum2DWindow::~Spectrum2DWindow()
 	{
 		
-	}
-	
-	void Spectrum2DWindow::createContextMenu_()
-	{
-		SpectrumWindow::createContextMenu_();
-		context_menu_->insertItem("Hide Projections",this,SLOT(hideProjections()));
 	}
 	
 	void Spectrum2DWindow::hideProjections()

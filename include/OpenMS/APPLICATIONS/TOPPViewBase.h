@@ -67,6 +67,7 @@ namespace OpenMS
   	@todo Add preferences for layers (Marc)
   	@todo Reimplement PrefernceDialogPages (Marc)
   	@todo Use float kernel? (Marc)
+  	@todo Use right mouse button for navigation in data (Marc)
   */
   class TOPPViewBase : public QMainWindow, public PreferencesManager
   {
@@ -151,6 +152,14 @@ namespace OpenMS
       void gotoDialog();
       /// shows the preferences dialog
       void preferencesDialog();
+      /// lets the user edit the preferences of a layer
+      void layerPreferencesDialog();
+      /// Lets the user change the intensity distribution of a layer
+      void layerIntensityDistribution();
+			/// Changes the axis visibility of the current window
+			void changeAxisVisibility();
+      /// lets the user edit the meta data of a layer
+      void editMetadata();
       /// saves the contents of the active window
       void saveImage();
       /// saves the content of active window to an image

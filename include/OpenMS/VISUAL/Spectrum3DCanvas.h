@@ -148,8 +148,6 @@ namespace OpenMS
 		int peaks_per_rt_;
 
 public slots:
-    ///shows the contextmenu at position p
-    void showContextMenu(QPoint p);
     // Docu in base class
     void activateLayer(int layer_index);
     // Docu in base class
