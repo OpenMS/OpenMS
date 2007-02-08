@@ -59,13 +59,9 @@
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/OptimizePeakDeconvolution.h>
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/OptimizePick.h>
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakShape.h>
-using std::vector;
-using std::pair;
-
-
 
 namespace OpenMS
-{
+{   
 	/// stores information about an isotopic cluser (i.e. potential peptide charge variant)
 	struct IsotopeCluster
 	{
@@ -80,7 +76,7 @@ namespace OpenMS
 		// the scans of this cluster
 		std::vector<double> scans_;
 	};
-    
+	
   /**
 		 @brief Namespace for all functions and classes needed for 2D optimization.
 	
@@ -110,20 +106,7 @@ namespace OpenMS
     int evaluate2D(const gsl_vector* x, void* params, gsl_vector* f, gsl_matrix* J);
 
   }
-
-
  
-  
-
-  using TwoDOptimizationFunctions::total_nr_peaks;
-  using TwoDOptimizationFunctions::signal2D; 
-  using TwoDOptimizationFunctions::raw_data_first;
-  using TwoDOptimizationFunctions::picked_peaks_iter;
-  using TwoDOptimizationFunctions::matching_peaks;
-  using TwoDOptimizationFunctions::iso_map_iter;
-  
-  
-    
 	/**
 		 @brief This class provides the two-dimensional optimization of the picked peak parameters.
 			
@@ -656,7 +639,7 @@ namespace OpenMS
 						intensity = raw_data_iter->getIntensity();
 					}
 				++raw_data_iter;
-				pair<unsigned int,unsigned int> left,right;
+				std::pair<unsigned int,unsigned int> left,right;
 				left.first = distance(first,iter);
 				left.second = distance(iter->begin(),raw_data_iter);
 

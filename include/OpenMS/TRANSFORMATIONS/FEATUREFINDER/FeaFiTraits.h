@@ -46,8 +46,6 @@ namespace OpenMS
 		This class is rather an "umbrella" for the different modules / steps of the algorithm
 		than a traits class in the traditional sense.
 		
-		@todo Write tests for all methods (Ole)
-		
 		@todo Make chosing between different map types (MSExperiment or MSExperimentExtern) possbile (Ole)
 		
 		@ingroup FeatureFinder 	
@@ -63,8 +61,8 @@ namespace OpenMS
 	    /// Defines the coordinates of peaks / features.
 	    enum DimensionId
 	    {
-	        RT = DimensionDescription < LCMS_Tag >::RT,
-	        MZ = DimensionDescription < LCMS_Tag >::MZ
+        RT = DimensionDescription < LCMS_Tag >::RT,
+        MZ = DimensionDescription < LCMS_Tag >::MZ
 	    };
 	
 	    /// Flag for each data point
@@ -88,12 +86,6 @@ namespace OpenMS
 	
 	    /// destructor
 	    virtual ~FeaFiTraits();
-	
-	    /// copy constructor
-	    FeaFiTraits(const FeaFiTraits& source);
-	
-	    /// assignment operator
-	    FeaFiTraits& operator = (const FeaFiTraits& source);
 			
 			/**
 				@brief copy input data to external memory and update range information
@@ -119,7 +111,7 @@ namespace OpenMS
 		
 				if (map_.getSize() == 0)
 				{
-					std::cout << "No data provided. Aborting. " << std::endl;
+					std::cout << "No data with MS level 1 provided. Aborting. " << std::endl;
 					return;
 				}
 									
@@ -132,12 +124,7 @@ namespace OpenMS
 					flags_[i].assign(map_[i].size(),FeaFiTraits::UNUSED);
 				}
 		  }
-				
-			/// Mutable access to LC-MS map
-			inline MapType& getData() 
-			{ 
-				return map_; 
-			}
+
 			/// Const access to LC-MS map
 			inline const MapType& getData() const 
 			{ 
@@ -145,12 +132,12 @@ namespace OpenMS
 			}
 				
 	    /// non-mutable access flag with index @p index .
-	    inline const Flag& getPeakFlag(const IDX& index) const throw (Exception::IndexOverflow) 
-	    {  
+	    inline const Flag& getPeakFlag(const IDX& index) const
+	    {
 	    	return flags_[index.first][index.second];
 	    }
 	    /// mutable access flag with index @p index.
-	    inline Flag& getPeakFlag(const IDX& index) throw (Exception::IndexOverflow) 
+	    inline Flag& getPeakFlag(const IDX& index) 
 	    { 
 	    	return flags_[index.first][index.second];
 	    }
@@ -178,12 +165,12 @@ namespace OpenMS
 			}
 	
 	    /// fills @p index with the index of next peak in m/z dimension
-	    inline void getNextMz(IDX& index) const throw (Exception::IndexOverflow, NoSuccessor)
+	    inline void getNextMz(IDX& index) const throw (NoSuccessor, Exception::Precondition)
 	    {
-	    	//Corrupt index
-	    	OPENMS_PRECONDITION(index.first<map_.size(), "Scan index outside of map!");
-	      OPENMS_PRECONDITION(index.second<map_[index.first].size(), "Peak index outside of scan!");
-	    	
+		  	//Corrupt index
+		  	OPENMS_PRECONDITION(index.first<map_.size(), "Scan index outside of map!");
+		    OPENMS_PRECONDITION(index.second<map_[index.first].size(), "Peak index outside of scan!");
+    
 	    	//At the last peak of this spectrum
 	      if (index.second==map_[index.first].size()-1)
 	      {
@@ -194,12 +181,12 @@ namespace OpenMS
 	    }
 	
 	    /// fills @p index with the index of previous peak in m/z dimension
-	    inline void getPrevMz(IDX& index) const throw (Exception::IndexOverflow, NoSuccessor)
+	    inline void getPrevMz(IDX& index) const throw (NoSuccessor, Exception::Precondition)
 	    {
-	    	//Corrupt index
-	    	OPENMS_PRECONDITION(index.first<map_.size(), "Scan index outside of map!");
-	      OPENMS_PRECONDITION(index.second<map_[index.first].size(), "Peak index outside of scan!");
-
+		  	//Corrupt index
+		  	OPENMS_PRECONDITION(index.first<map_.size(), "Scan index outside of map!");
+		    OPENMS_PRECONDITION(index.second<map_[index.first].size(), "Peak index outside of scan!");
+    
 	      //begin of scan
 	      if (index.second==0)
 	      {
@@ -210,10 +197,10 @@ namespace OpenMS
 	    }
 	
 	    /// fills @p index with the index of nearest peak in m/z dimension in the next spectrum
-	    void getNextRt(IDX& index) throw (Exception::IndexOverflow, NoSuccessor);
+	    void getNextRt(IDX& index) throw (NoSuccessor, Exception::Precondition);
 	
 	    /// fills @p index with the index of nearest peak in m/z dimension in the previous spectrum
-			void getPrevRt(IDX& index) throw (Exception::IndexOverflow, NoSuccessor);
+			void getPrevRt(IDX& index) throw (NoSuccessor, Exception::Precondition);
 			
 			//Calculates the convex hull of a index set and adds it to the feature
 			void addConvexHull(const IndexSet& set, DFeature<2>& f) const;

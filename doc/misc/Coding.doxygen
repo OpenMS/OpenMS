@@ -193,17 +193,17 @@ pointer to a base class will fail badly.
 
 <H1 style="margin-top:40px; border-top:4px solid grey; text-align:left;">General rules</H1>
 
-<H2 style="margin-top:20px; border-top:1px solid grey;">Namespaces</H2>
+<H2 style="margin-top:20px; border-top:1px solid grey;">Namespaces and the 'using' directive</H2>
 
-Everything is implemented in the namespace <TT>OpenMS</TT>.  Please refrain
-from writing <TT>using namespace OpenMS;</TT> or similar in a context where
-other libraries might be involved (that is, basically everywhere&nbsp;:-).  This
-applies to <TT>.C</TT> files as well!  For <TT>.h</TT> files it is strictly
-forbidden.  Instead, introduce individual symbols to the scope where you need
-them.  E.g. you only have to write <TT>using OpenMS::DPeak;</TT> once per
-<TT>.C</TT> file, and yet this immediately gives a hint to where the symbol is
-defined.
-The use of 'using namespace std;' is forbidden in all headers!!
+OpenMS code is implemented in the namespace <TT>OpenMS</TT>. 
+<p>
+For <TT>.h</TT> files it is strictly forbidden to use <TT>using namespace OpenMS;</TT>, 
+<TT>using namespace std;</TT> or similar. This may cause name clashes (see 'Effective C++').
+<p>
+In <TT>.C</TT> files you should not import complete namespaces to the scope either.
+Instead, introduce individual symbols to the scope where you need
+them. E.g. you would write <TT>using std::vector;</TT> instead of <TT>using namespace std;</TT>.
+This immediately gives a hint to where the symbol is defined as well.
 
 <H2 style="margin-top:20px; border-top:1px solid grey;">Accessors to members</H2>
 
