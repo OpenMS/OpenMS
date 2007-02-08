@@ -36,6 +36,7 @@
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/METADATA/ContactPerson.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 
 #include <stdlib.h>
 #include <vector>
@@ -89,9 +90,6 @@ using namespace std;
 				This mode is selected by the <b>-sequest_out</b> option in the command line.
 				</li>
 	</ol>
-	
-	@todo look for possible crash codes of sequest and catching them (Martin)
-	@todo replace deleteTempFiles by File::remove (Martin)
 */
 
 // We do not want this class to show up in the docu -> cond
@@ -274,17 +272,6 @@ class TOPPSequestAdapter
 			if ( network_path.length() < backslashes+1 ) return false;
 			return true;
 		}
-		
-		void
-		deleteTempFiles(
-			const String& input_filename,
-			const String& logfile,
-			const String& batchfile)
-		{
-			if ( input_filename.hasSuffix("tmp.sequest.in") ) remove(input_filename.c_str());
-			if ( logfile.hasSuffix("tmp.sequest.log") ) remove(logfile.c_str());
-			if ( batchfile.hasSuffix("sequest_run.bat") ) remove(batchfile.c_str());
-		}
 
 		UnsignedInt
 		MSExperiment2DTAs(
@@ -401,6 +388,8 @@ class TOPPSequestAdapter
 			
 			map< String, DoubleReal > filenames_and_precursor_retention_times;
 			
+			vector< String > tmp_names;
+			
 			//-------------------------------------------------------------
 			// (2) parsing and checking parameters
 			//-------------------------------------------------------------
@@ -420,7 +409,11 @@ class TOPPSequestAdapter
 			if ( !sequest_in && !sequest_out ) sequest_in = sequest_out = true;
 			
 			logfile = getStringOption_("log");
-			if ( logfile.empty() ) logfile = "temp.sequest.log";
+			if ( logfile.empty() )
+			{
+				logfile = "temp.sequest.log";
+				tmp_names.push_back(logfile);
+			}
 
 			string_buffer = getStringOption_("charges");
 			if ( string_buffer.empty() )
@@ -570,6 +563,7 @@ class TOPPSequestAdapter
 					if ( input_filename.empty() )
 					{
 						input_filename = temp_data_directory + "temp.sequest.in";
+						tmp_names.push_back(input_filename);
 						input_file_directory_network = temp_data_directory_network;
 					}
 					else input_file_directory_network = getStringOption_("sequest_input_directory_network");
@@ -621,7 +615,11 @@ class TOPPSequestAdapter
 			}
 			
 			//batch_filename = getStringOption_("batchfile");
-			if ( batch_filename.empty() ) batch_filename = "sequest_run.bat";
+			if ( batch_filename.empty() )
+			{
+				batch_filename = "sequest_run.bat";
+				tmp_names.push_back(batch_filename);
+			}
 			else if ( !batch_filename.hasSuffix(".bat") ) batch_filename.append(".bat");
 			
 			database = getStringOption_("db");
@@ -1015,7 +1013,7 @@ class TOPPSequestAdapter
 				if (File::fileList(temp_data_directory,String("*.dta_*"),dummy))
 				{
 					writeLog_("There are already dta files in directory " + temp_data_directory + ". Aborting!");
-					deleteTempFiles(input_filename, logfile, batch_filename);
+					for ( vector< String >::const_iterator tmp_names_i = tmp_names.begin(); tmp_names_i != tmp_names.end(); ++tmp_names_i ) remove(tmp_names_i->c_str());
 					return UNKNOWN_ERROR;
 				}
 			}
@@ -1025,15 +1023,23 @@ class TOPPSequestAdapter
 			UnsignedInt msms_spectra_altogether = 0;
 			if ( make_dtas ) writeLog_("creating dta files");
 			dtas = 0;
-			String basename;
+			String basename, dta_files_common_name;
+			FileHandler fh;
+			FileHandler::Type type;
 			for ( vector< String >::const_iterator spec_i = spectra.begin(); spec_i != spectra.end(); ++spec_i )
 			{
 				basename = File::basename(*spec_i);
-				String common_name = out_directory + basename;
+				dta_files_common_name = out_directory + basename;
 				
-				MzXMLFile().load(*spec_i, msexperiment);
+				type = fh.getTypeByContent(basename);
+				if ( type == FileHandler::UNKNOWN )
+				{
+					writeLog_("Could not determine type of the file. Aborting!");
+					return PARSE_ERROR;
+				}
+				fh.loadExperiment(basename, msexperiment, type);
 				
-				msms_spectra_in_file = MSExperiment2DTAs(msexperiment, common_name, charges, filenames_and_precursor_retention_times, make_dtas);
+				msms_spectra_in_file = MSExperiment2DTAs(msexperiment, dta_files_common_name, charges, filenames_and_precursor_retention_times, make_dtas);
 				
 				writeLog_(String(msms_spectra_in_file) + " MS/MS spectra in file " + basename);
 
@@ -1043,7 +1049,6 @@ class TOPPSequestAdapter
 			if ( !msms_spectra_altogether )
 			{
 				writeLog_("No MS/MS spectra found in any of the mzXML files. Aborting!");
-
 				return UNKNOWN_ERROR;
 			}
 
@@ -1090,7 +1095,8 @@ class TOPPSequestAdapter
 				if ( status != 0 )
 				{
 					writeLog_("Sequest problem. Aborting! (Details can be seen in the logfile: \"" + logfile + "\")");
-					deleteTempFiles(input_filename, logfile, batch_filename);
+					for ( vector< String >::const_iterator tmp_names_i = tmp_names.begin(); tmp_names_i != tmp_names.end(); ++tmp_names_i ) remove(tmp_names_i->c_str());
+					
 					// remove all dtas
 					for ( PointerSizeUInt i = 0; i <= (PointerSizeUInt) (dtas / max_dtas_per_run); ++i )
 					{
@@ -1163,7 +1169,8 @@ class TOPPSequestAdapter
 				if (!File::fileList(out_directory,String("*.out"),out_files))
 				{
 					writeLog_(String("Error: No .out files found in '") + out_directory + "'. Aborting!");
-					deleteTempFiles(input_filename, logfile, batch_filename);
+					for ( vector< String >::const_iterator tmp_names_i = tmp_names.begin(); tmp_names_i != tmp_names.end(); ++tmp_names_i ) remove(tmp_names_i->c_str());
+					
 					return UNKNOWN_ERROR;
 				}
 				
@@ -1188,7 +1195,8 @@ class TOPPSequestAdapter
 					if ( status != 0 )
 					{
 						writeLog_("Problems with Peptide Prophet. Aborting!");
-						deleteTempFiles(input_filename, logfile, batch_filename);
+						for ( vector< String >::const_iterator tmp_names_i = tmp_names.begin(); tmp_names_i != tmp_names.end(); ++tmp_names_i ) remove(tmp_names_i->c_str());
+						
 						return UNKNOWN_ERROR;
 					}
 					filenames_and_pvalues = sequest_outfile.getPeptidePValues(temp_data_directory, summary + ".prob");
@@ -1243,7 +1251,7 @@ class TOPPSequestAdapter
 			}
 			
 			// (3.3) deleting all temporary files
-			deleteTempFiles(input_filename, logfile, batch_filename);
+			for ( vector< String >::const_iterator tmp_names_i = tmp_names.begin(); tmp_names_i != tmp_names.end(); ++tmp_names_i ) remove(tmp_names_i->c_str());
 			
 			return EXECUTION_OK;
 		}

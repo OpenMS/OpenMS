@@ -37,6 +37,7 @@
 #include <OpenMS/METADATA/PeptideHit.h>
 #include <OpenMS/METADATA/ProteinHit.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 
 #include <fstream>
 #include <iostream>
@@ -86,6 +87,8 @@ namespace OpenMS
 
 			/// retrieve sequences from a trie database
 			std::vector< UnsignedInt > getSequences(const std::string& database_filename, const std::map< UnsignedInt, UnsignedInt >& wanted_records, std::vector< String >& sequences) throw (Exception::FileNotFound);
+
+			template< typename PeakT > void getExperiment(MSExperiment< PeakT >& exp, String& type, const String& in_filename) throw(Exception::ParseError);
 
 		protected:
 			/// a record in the index file that belongs to a trie database consists of three parts

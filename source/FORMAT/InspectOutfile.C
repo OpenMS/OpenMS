@@ -442,18 +442,12 @@ namespace OpenMS
 		Exception::ParseError)
 	{
 		MSExperiment<> experiment;
+		String type;
 		
 		UnsignedInt pos = 0;
 		for ( vector< pair< String, vector< UnsignedInt > > >::const_iterator fs_i = files_and_scan_numbers.begin(); fs_i != files_and_scan_numbers.end(); ++fs_i )
 		{
-			try
-			{
-				MzXMLFile().load(fs_i->first, experiment);
-			}
-			catch (Exception::ParseError pe) // if it's not a MzXML, it's supposed to be an MzData
-			{
-				MzDataFile().load(fs_i->first, experiment);
-			}
+			getExperiment(experiment, type, fs_i->first); // may throw an exception if the filetype could not be determined
 			
 			if ( experiment.size() < fs_i->second.back() )
 			{
@@ -845,6 +839,28 @@ namespace OpenMS
 		}
 		
 		return wanted_records;
+	}
+
+	template< typename PeakT >
+	void
+	InspectOutfile::getExperiment(
+		MSExperiment< PeakT >& exp,
+		String& type,
+		const String& in_filename)
+	throw(
+		Exception::ParseError)
+	{
+		type.clear();
+		exp.reset();
+		//input file type
+		FileHandler fh;
+		FileHandler::Type in_type = fh.getTypeByContent(in_filename);
+		if (in_type==FileHandler::UNKNOWN)
+		{
+			throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Could not determine type of the file. Aborting!" , in_filename);
+		}
+		type = fh.typeToName(in_type);
+		fh.loadExperiment(in_filename, exp, in_type);
 	}
 	
 	const UnsignedInt InspectOutfile::db_pos_length_ = 8;

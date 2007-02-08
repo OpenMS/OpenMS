@@ -78,7 +78,7 @@ namespace OpenMS
 			/// write a
 			void out2SummaryHtml(std::string out_filename, const std::string& summary_filename, const std::string& database_filename, bool& append) throw(Exception::FileNotFound, Exception::ParseError, Exception::UnableToCreateFile);
 
-			std::map< String, std::vector< Real > > getPeptidePValues(const std::string& out_dir, const std::string& prob_filename) throw (Exception::FileNotFound, Exception::ParseError);
+			std::map< String, std::vector< Real > > getPeptidePValues(const std::string& out_dir, const std::string& prob_filename) throw (Exception::FileNotFound);
 			
 			/// retrieve columns from a Sequest outfile line
 			bool getColumns(const String& line, std::vector< String >& substrings, UnsignedInt number_of_columns, UnsignedInt reference_column);

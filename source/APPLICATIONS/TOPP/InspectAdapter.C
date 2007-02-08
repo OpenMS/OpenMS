@@ -29,6 +29,7 @@
 #include <OpenMS/FORMAT/InspectInfile.h>
 #include <OpenMS/FORMAT/InspectOutfile.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/FORMAT/TextFile.h>
 
 #include <stdlib.h>
 #include <vector>
@@ -92,8 +93,6 @@ using namespace std;
 	</ol>
 	
 	@todo extract by-ions, compute protein score? (Martin)
-	@todo replace fileContent by TextFile class (Martin)
-	@todo replace deleteTempFiles by File::remove (Martin)
 */
 
 // We do not want this class to show up in the docu -> cond
@@ -159,37 +158,6 @@ class TOPPInspectAdapter
 			registerStringOption_("contact_info", "<info>", "unknown", "Some information about the contact", false);
 		}
 
-		void fileContent(const string& filename, string& content)
-		{
-			content.clear();
-			ifstream ifs(filename.c_str());
-			if ( !ifs )
-			{
-				throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename);
-			}
-			streampos sp = ifs.seekg(0, ios::end).tellg();
-			ifs.seekg(0, std::ios::beg);
-			char* cp = new char[sp];
-			ifs.read(cp, sp);
-			ifs.close();
-			ifs.clear();
-			content = string(cp);
-			delete(cp);
-		}
-
-		// deleting all temporary files
-		void deleteTempFiles(const String& input_filename, const String& output_filename, const String& inspect_output_filename, const String& db_filename, const String& idx_filename, const String& snd_db_filename, const String& snd_idx_filename, const String& inspect_logfile)
-		{
-			if ( input_filename.hasSuffix("tmp.inspect.input") ) remove(input_filename.c_str());
-			if ( output_filename.hasSuffix("tmp.inspect.output") ) remove(output_filename.c_str());
-			if ( inspect_output_filename.hasSuffix("tmp.direct.inspect.output") ) remove(inspect_output_filename.c_str());
-			if ( db_filename.hasSuffix("tmp.inspect.db.trie") ) remove(db_filename.c_str());
-			if ( idx_filename.hasSuffix("tmp.inspect.db.index") ) remove(idx_filename.c_str());
-			if ( snd_db_filename.hasSuffix("tmp.inspect.db.snd.trie") ) remove(snd_db_filename.c_str());
-			if ( snd_idx_filename.hasSuffix("tmp.inspect.db.snd.index") ) remove(snd_idx_filename.c_str());
- 			if ( inspect_logfile.hasSuffix("tmp.inspect.log") ) remove(inspect_logfile.c_str());
-		}
-
 		ExitCodes main_(int , char**)
 		{
 			//-------------------------------------------------------------
@@ -236,6 +204,7 @@ class TOPPInspectAdapter
 			
 			ContactPerson contact_person;
 			
+			vector< String > tmp_names;
 			
 			//-------------------------------------------------------------
 			// (2) parsing and checking parameters
@@ -282,11 +251,33 @@ class TOPPInspectAdapter
 				File::absolutePath(string_buffer);
 				if ( inspect_in )
 				{
+					MSExperiment<> experiment;
+					String type;
+					try
+					{
+						inspect_outfile.getExperiment(experiment, type, string_buffer); // may throw an exception if the filetype could not be determined
+					}
+					catch(Exception::ParseError pe )
+					{
+						writeLog_(pe.getMessage());
+						return PARSE_ERROR;
+					}
+					if ( type != "mzXML" )
+					{
+						string_buffer.append(".mzXML");
+						MzXMLFile().store(string_buffer, experiment);
+						//tmp_names.push_back(string_buffer);
+					}
 					inspect_infile.setSpectra(string_buffer);
+					
 					if ( inspect_out )
 					{
 						inspect_output_filename = getStringOption_("inspect_output");
-						if ( inspect_output_filename.empty() ) inspect_output_filename = temp_data_directory + "tmp.direct.inspect.output";
+						if ( inspect_output_filename.empty() )
+						{
+							inspect_output_filename = temp_data_directory + "tmp.direct.inspect.output";
+							tmp_names.push_back(inspect_output_filename);
+						}
 					}
 				}
 				else inspect_output_filename = string_buffer;
@@ -309,7 +300,11 @@ class TOPPInspectAdapter
 			if ( inspect_in && inspect_out )
 			{
 				inspect_input_filename = getStringOption_("inspect_input");
-				if ( inspect_input_filename.empty() ) inspect_input_filename = temp_data_directory + "tmp.inspect.input";
+				if ( inspect_input_filename.empty() )
+				{
+					inspect_input_filename = temp_data_directory + "tmp.inspect.input";
+					tmp_names.push_back(inspect_input_filename);
+				}
 				
 				File::absolutePath(inspect_input_filename);
 			}
@@ -382,8 +377,10 @@ class TOPPInspectAdapter
 						else
 						{
 							db_filename = temp_data_directory + "tmp.inspect.db.trie";
+							tmp_names.push_back(db_filename);
 							inspect_infile.setDb(db_filename);
 							idx_filename = temp_data_directory + "tmp.inspect.db.index";
+							tmp_names.push_back(idx_filename);
 						}
 					}
 				}
@@ -422,6 +419,8 @@ class TOPPInspectAdapter
 				{
 					snd_db_filename = temp_data_directory + "tmp.inspect.db.snd.trie";
 					snd_idx_filename = temp_data_directory + "tmp.inspect.db.snd.index";
+					tmp_names.push_back(snd_db_filename);
+					tmp_names.push_back(snd_idx_filename);
 				}
 				else if ( blind )
 				{
@@ -522,6 +521,7 @@ class TOPPInspectAdapter
 				}
 				
 				inspect_logfile = temp_data_directory + "tmp.inspect.log";
+				tmp_names.push_back(inspect_logfile);
 			}
 			
 			if ( blind && inspect_in )
@@ -701,9 +701,9 @@ class TOPPInspectAdapter
 
 				if (status != 0)
 				{
-					fileContent(inspect_logfile, string_buffer);
+					string_buffer = TextFile(inspect_logfile).asString();
 					writeLog_("Inspect problem: " + string_buffer + " Aborting!");
-					deleteTempFiles(inspect_input_filename, output_filename, inspect_output_filename, db_filename, idx_filename, snd_db_filename, snd_idx_filename, inspect_logfile);
+					for ( vector< String >::const_iterator tmp_names_i = tmp_names.begin(); tmp_names_i != tmp_names.end(); ++tmp_names_i ) remove(tmp_names_i->c_str());
 					return EXTERNAL_PROGRAM_ERROR;
 				}
 				
@@ -716,7 +716,7 @@ class TOPPInspectAdapter
 					inspect_out = false;
 					writeLog_("No proteins matching criteria for generating minimized database for blind search!");
 					
-					deleteTempFiles(inspect_input_filename, output_filename, inspect_output_filename, db_filename, idx_filename, snd_db_filename, snd_idx_filename, inspect_logfile);
+					for ( vector< String >::const_iterator tmp_names_i = tmp_names.begin(); tmp_names_i != tmp_names.end(); ++tmp_names_i ) remove(tmp_names_i->c_str());
 				}
 				inspect_outfile.compressTrieDB(db_filename, idx_filename, wanted_records, snd_db_filename, snd_idx_filename, false);
 				
@@ -748,9 +748,9 @@ class TOPPInspectAdapter
 				
 				if (status != 0)
 				{
-					fileContent(inspect_logfile, string_buffer);
+					string_buffer = TextFile(inspect_logfile).asString();
 					writeLog_("Inspect problem: " + string_buffer + " Aborting!");
-					deleteTempFiles(inspect_input_filename, output_filename, inspect_output_filename, db_filename, idx_filename, snd_db_filename, snd_idx_filename, inspect_logfile);
+					for ( vector< String >::const_iterator tmp_names_i = tmp_names.begin(); tmp_names_i != tmp_names.end(); ++tmp_names_i ) remove(tmp_names_i->c_str());
 					return EXTERNAL_PROGRAM_ERROR;
 				}
 			}
@@ -770,7 +770,7 @@ class TOPPInspectAdapter
 					}
 					catch( Exception::ParseError pe )
 					{
-						deleteTempFiles(inspect_input_filename, output_filename, inspect_output_filename, db_filename, idx_filename, snd_db_filename, snd_idx_filename, inspect_logfile);
+						for ( vector< String >::const_iterator tmp_names_i = tmp_names.begin(); tmp_names_i != tmp_names.end(); ++tmp_names_i ) remove(tmp_names_i->c_str());
 						writeLog_(pe.getMessage());
 						return INPUT_FILE_CORRUPT;
 					}
@@ -788,8 +788,8 @@ class TOPPInspectAdapter
 			}
 			
 			// (3.3) deleting all temporary files
-			deleteTempFiles(inspect_input_filename, output_filename, inspect_output_filename, db_filename, idx_filename, snd_db_filename, snd_idx_filename, inspect_logfile);
-
+			for ( vector< String >::const_iterator tmp_names_i = tmp_names.begin(); tmp_names_i != tmp_names.end(); ++tmp_names_i ) remove(tmp_names_i->c_str());
+			
 			return EXECUTION_OK;
 		}
 };

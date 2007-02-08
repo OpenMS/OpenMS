@@ -921,8 +921,7 @@ namespace OpenMS
 		const string& out_dir,
 		const string& prob_filename)
 	throw(
-		Exception::FileNotFound,
-		Exception::ParseError)
+		Exception::FileNotFound)
 	{
 		ifstream prob_file(prob_filename.c_str());
 		if ( !prob_file )
@@ -954,5 +953,4 @@ namespace OpenMS
 		
 		return filenames_and_pvalues;
 	}
-	
 } //namespace OpenMS
