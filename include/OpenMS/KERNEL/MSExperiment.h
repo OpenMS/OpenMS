@@ -72,9 +72,9 @@ namespace OpenMS
 	    typedef typename std::vector<SpectrumType>::const_iterator ConstIterator;
 	
 			/// Mutable area iterator type (for traversal of a rectangular subset of the peaks)
-			typedef Internal::AreaIterator<PeakT, PeakT&, PeakT*, Iterator, typename SpectrumType::Iterator> AIterator;
+			typedef Internal::AreaIterator<PeakT, PeakT&, PeakT*, Iterator, typename SpectrumType::Iterator> AreaIterator;
 			/// Immutable area iterator type (for traversal of a rectangular subset of the peaks)
-			typedef Internal::AreaIterator<PeakT, const PeakT&, const PeakT*, ConstIterator, typename SpectrumType::ConstIterator> AConstIterator;
+			typedef Internal::AreaIterator<const PeakT, const PeakT&, const PeakT*, ConstIterator, typename SpectrumType::ConstIterator> ConstAreaIterator;
 	
 	    /// Peak type
 	    typedef PeakT PeakType;
@@ -159,26 +159,26 @@ namespace OpenMS
 	    template <class Container>
 	    void get2DData(Container& cont) const
 	    {
-	        const int MZ = DimensionDescription < LCMS_Tag >::MZ;
-	        const int RT = DimensionDescription < LCMS_Tag >::RT;
-	
-	        for (typename Base_::const_iterator spec = Base_::begin(); spec != Base_::end(); ++spec)
-	        {
-	            if (spec->getMSLevel()!=1)
-	            {
-	                continue;
-	            }
-	            for (typename MSSpectrum<PeakT>::const_iterator it = spec->
-	              begin();
-	              it!=spec->end();
-	              ++it)
-	            {
-	              cont.insert(cont.end(), typename Container::value_type());
-	              cont.back().getPosition()[RT] = spec->getRetentionTime();
-	              cont.back().setIntensity(it->getIntensity());
-	              cont.back().getPosition()[MZ] = it->getPosition()[0];
-	            }
-	        }
+        const int MZ = DimensionDescription < LCMS_Tag >::MZ;
+        const int RT = DimensionDescription < LCMS_Tag >::RT;
+
+        for (typename Base_::const_iterator spec = Base_::begin(); spec != Base_::end(); ++spec)
+        {
+          if (spec->getMSLevel()!=1)
+          {
+              continue;
+          }
+          for (typename MSSpectrum<PeakT>::const_iterator it = spec->
+            begin();
+            it!=spec->end();
+            ++it)
+          {
+            cont.insert(cont.end(), typename Container::value_type());
+            cont.back().getPosition()[RT] = spec->getRetentionTime();
+            cont.back().setIntensity(it->getIntensity());
+            cont.back().getPosition()[MZ] = it->getPosition()[0];
+          }
+        }
 	    }
 	
 	    /**
@@ -222,29 +222,35 @@ namespace OpenMS
 					spectrum->back().getPosition()[0] = iter->getPosition()[MZ];
 				}
 	    }
-	
-			/// Returns an area iterator for @p area
-			AIterator areaBegin(const AreaType& area)
+
+			///Returns an area iterator for @p area
+			AreaIterator areaBegin(CoordinateType min_rt, CoordinateType max_rt, CoordinateType min_mz, CoordinateType max_mz)
 			{
-				return AIterator(RTBegin(area.minX()), RTEnd(area.maxX()), area.minY(), area.maxY());
+				OPENMS_PRECONDITION(min_rt<=max_rt, "Swapped RT range boundaries!")
+				OPENMS_PRECONDITION(min_mz<=max_mz, "Swapped MZ range boundaries!")
+				std::cout << "areaBegin: " << min_rt << " " << max_rt << " " << min_mz << " " << max_mz << std::endl;
+				return AreaIterator(RTBegin(min_rt), RTEnd(max_rt), min_mz, max_mz);
 			}
 			
-			/// Returns an invalid area iterator marking as the end iterator
-			AIterator areaEnd()
+			/// Returns an invalid area iterator marking the end of an area
+			AreaIterator areaEnd()
 			{
-				return AIterator();
+				return AreaIterator(Base_::end(),Base_::back().end());
 			}
 			
-			/// Returns an immutable area iterator for @p area
-			AConstIterator areaBegin(const AreaType& area) const
+			///Returns a non-mutable area iterator for @p area
+			ConstAreaIterator areaBeginConst(CoordinateType min_rt, CoordinateType max_rt, CoordinateType min_mz, CoordinateType max_mz) const
 			{
-				return AConstIterator(RTBegin(area.minX()), RTEnd(area.maxX()), area.minY(), area.maxY());
+				OPENMS_PRECONDITION(min_rt<=max_rt, "Swapped RT range boundaries!")
+				OPENMS_PRECONDITION(min_mz<=max_mz, "Swapped MZ range boundaries!") 
+				std::cout << "areaBeginConst: " << min_rt << " " << max_rt << " " << min_mz << " " << max_mz << std::endl;
+				return ConstAreaIterator(RTBegin(min_rt), RTEnd(max_rt), min_mz, max_mz);
 			}
 			
-			/// Returns an immutable invalid area iterator marking as the end iterator
-			AConstIterator areaEnd() const
+			/// Returns an non-mutable invalid area iterator marking the end of an area
+			ConstAreaIterator areaEndConst() const
 			{
-				return AConstIterator();
+				return ConstAreaIterator(Base_::end(),Base_::back().end());
 			}
 	
 	    /**

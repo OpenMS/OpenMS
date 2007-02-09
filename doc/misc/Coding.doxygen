@@ -195,7 +195,9 @@ pointer to a base class will fail badly.
 
 <H2 style="margin-top:20px; border-top:1px solid grey;">Namespaces and the 'using' directive</H2>
 
-OpenMS code is implemented in the namespace <TT>OpenMS</TT>. 
+The main OpenMS classes are implemented in the namespace <TT>OpenMS</TT>.
+Auxilary classes are implemented in <TT>OpenMS::Internal</TT>.
+There are some other namespaces e.g. for constants and exceptions.
 <p>
 For <TT>.h</TT> files it is strictly forbidden to use <TT>using namespace OpenMS;</TT>, 
 <TT>using namespace std;</TT> or similar. This may cause name clashes (see 'Effective C++').

@@ -39,25 +39,47 @@ START_TEST(AreaIterator, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-typedef DPeak<1> Peak;
-typedef MSExperiment<Peak> Experiment;
-typedef Experiment::AIterator AIterator;
+typedef MSExperiment<> Map;
+typedef Internal::AreaIterator<Map::PeakType, Map::PeakType&, Map::PeakType*, Map::Iterator, Map::SpectrumType::Iterator> AI;
+typedef Internal::AreaIterator<Map::PeakType, const Map::PeakType&, const Map::PeakType*, Map::ConstIterator, Map::SpectrumType::ConstIterator> CAI;
 
-AIterator* ptr1 = 0, *ptr2 = 0;
-Experiment exp;
+AI* ptr1 = 0, *ptr2 = 0;
 
-CHECK(AreaIterator())
-	// initialize experiment
-	Experiment::SpectrumType spec;
-	spec.push_back(Peak());
-	spec.setRetentionTime(0);
-	exp.push_back(spec);
+Map exp;
+exp.resize(5);
+exp[0].resize(2);
+exp[0].setRetentionTime(2.0);
+exp[0].setMSLevel(1);
+exp[0][0].setPos(502);
+exp[0][1].setPos(510);
 
-	ptr1 = new AIterator();
+exp[1].resize(2);
+exp[1].setRetentionTime(4.0);
+exp[1].setMSLevel(1);
+exp[1][0].setPos(504);
+exp[1][1].setPos(506);
+
+exp[2].setRetentionTime(6.0);
+exp[2].setMSLevel(1);
+
+exp[3].resize(2);
+exp[3].setRetentionTime(8.0);
+exp[3].setMSLevel(1);
+exp[3][0].setPos(504.1);
+exp[3][1].setPos(506.1);
+
+exp[4].resize(2);
+exp[4].setRetentionTime(10.0);
+exp[4].setMSLevel(1);
+exp[4][0].setPos(502.1);
+exp[4][1].setPos(510.1);
+
+CHECK(AreaIterator(const SpectrumIteratorType& spectrum_end, const PeakIteratorType& peak_end ))
+	ptr1 = new AI(exp.end(),exp.back().end());
 RESULT
 
-CHECK(AreaIterator(SpectrumIteratorType begin, SpectrumIteratorType end, CoordinateType low_mz, CoordinateType high_mz))
-	ptr2 = new AIterator(exp.RTBegin(0), exp.RTEnd(0), 0, 0);
+CHECK(AreaIterator(const SpectrumIteratorType& begin, const SpectrumIteratorType& end, CoordinateType low_mz, CoordinateType high_mz))
+	ptr2 = new AI(exp.RTBegin(0), exp.RTEnd(0), 0, 0);
 RESULT
 
 CHECK(~AreaIterator())
@@ -65,63 +87,91 @@ CHECK(~AreaIterator())
 	delete ptr2;
 RESULT
 
-CHECK(AreaIterator(const AreaIterator& rhs))
-	AIterator iter = exp.areaEnd();
-	AIterator iter2(iter);
-	TEST_EQUAL(iter == iter2, true);
-RESULT
+CHECK(Tut ConstAreaIterator was er soll )
+	//whole area
+	AI it = AI(exp.RTBegin(0), exp.RTEnd(15), 500, 520);
+	TEST_REAL_EQUAL(it->getPos(),502.0);
+	++it;
+	TEST_REAL_EQUAL(it->getPos(),510.0);
+	++it;
+	TEST_REAL_EQUAL(it->getPos(),504.0);
+	++it;
+	TEST_REAL_EQUAL(it->getPos(),506.0);
+	++it;
+	TEST_REAL_EQUAL(it->getPos(),504.1);
+	++it;
+	TEST_REAL_EQUAL(it->getPos(),506.1);
+	++it;
+	TEST_REAL_EQUAL(it->getPos(),502.1);
+	++it;
+	TEST_REAL_EQUAL(it->getPos(),510.1);
+	++it;
+	TEST_EQUAL(it==exp.areaEnd(),true);
+	
+	//center peaks
+	it = AI(exp.RTBegin(3), exp.RTEnd(9), 503, 509);
+	TEST_REAL_EQUAL(it->getPos(),504.0);
+	++it;
+	TEST_REAL_EQUAL(it->getPos(),506.0);
+	++it;
+	TEST_REAL_EQUAL(it->getPos(),504.1);
+	++it;
+	TEST_REAL_EQUAL(it->getPos(),506.1);
+	++it;
+	TEST_EQUAL(it==exp.areaEnd(),true);
+	
+	//upper left area
+	it = AI(exp.RTBegin(0), exp.RTEnd(7), 505, 520);
+	TEST_REAL_EQUAL(it->getPos(),510.0);
+	++it;
+	TEST_REAL_EQUAL(it->getPos(),506.0);
+	++it;
+	TEST_EQUAL(it==exp.areaEnd(),true);
+	
+	//upper right area
+	it = AI(exp.RTBegin(5), exp.RTEnd(11), 505, 520);
+	TEST_REAL_EQUAL(it->getPos(),506.1);
+	++it;
+	TEST_REAL_EQUAL(it->getPos(),510.1);
+	++it;
+	TEST_EQUAL(it==exp.areaEnd(),true);
+	
+	//lower right
+	it = AI(exp.RTBegin(5), exp.RTEnd(11), 500, 505);
+	TEST_REAL_EQUAL(it->getPos(),504.1);
+	++it;
+	TEST_REAL_EQUAL(it->getPos(),502.1);
+	++it;
+	TEST_EQUAL(it==exp.areaEnd(),true);
 
-CHECK(AreaIterator& operator=(const AreaIterator& rhs))
-	AIterator iter = exp.areaEnd();
-	AIterator iter2;
-	iter2 = iter;
-	TEST_EQUAL(iter == iter2, true);
-RESULT
+	//lower left
+	it = AI(exp.RTBegin(0), exp.RTEnd(7), 500, 505);
+	TEST_REAL_EQUAL(it->getPos(),502.0);
+	++it;
+	TEST_REAL_EQUAL(it->getPos(),504.0);
+	++it;
+	TEST_EQUAL(it==exp.areaEnd(),true);
 
-CHECK(bool operator==(const AreaIterator& rhs))
-	AIterator iter, iter2;
-	TEST_EQUAL(iter == iter2, true);
-RESULT
+	//Test with empty RT range
+	it = AI(exp.RTBegin(5), exp.RTEnd(5.5), 500, 520);
+	TEST_EQUAL(it==exp.areaEnd(),true);
 
-CHECK(bool operator!=(const AreaIterator& rhs))
-	AIterator iter, iter2;
-	TEST_EQUAL(iter != iter2, false);
-RESULT
+	//Test with empty MZ range
+	it = AI(exp.RTBegin(0), exp.RTEnd(15), 505, 505.5);
+	TEST_EQUAL(it==exp.areaEnd(),true);
 
-CHECK(AreaIterator& operator++())
-	DPosition<2> lower(0), upper(10);
-	DRange<2> range(lower, upper);
-	AIterator iter = exp.areaBegin(range);
-	AIterator iter2(iter);
-	++iter;
-	TEST_EQUAL(iter == iter2, false);
-	TEST_EQUAL(iter == exp.areaEnd(), true);
-	TEST_EQUAL(iter2 == exp.areaEnd(), false);
-RESULT
+	//Test with empty RT + MZ range
+	it = AI(exp.RTBegin(5), exp.RTEnd(5.5), 505, 505.5);
+	TEST_EQUAL(it==exp.areaEnd(),true);
 
-CHECK(AreaIterator operator++(int))
-	DPosition<2> lower(0), upper(10);
-	DRange<2> range(lower, upper);
-	AIterator iter = exp.areaBegin(range);
-	AIterator iter2(iter);
-	iter++;
-	TEST_EQUAL(iter == iter2, false);
-	TEST_EQUAL(iter == exp.areaEnd(), true);
-	TEST_EQUAL(iter2 == exp.areaEnd(), false);
-RESULT
-
-CHECK(reference operator*())
-	DPosition<2> lower(0), upper(10);
-	DRange<2> range(lower, upper);
-	AIterator iter = exp.areaBegin(range);
-	TEST_EQUAL(*iter == Peak(), true);
-RESULT
-
-CHECK(pointer operator->())
-	DPosition<2> lower(0), upper(10);
-	DRange<2> range(lower, upper);
-	AIterator iter = exp.areaBegin(range);
-	TEST_EQUAL(iter->getPos() == 0, true);
+	//Test with empty (no MS level 1) experiment
+	exp[0].setMSLevel(2);
+	exp[1].setMSLevel(2);
+	exp[2].setMSLevel(2);
+	exp[3].setMSLevel(2);
+	exp[4].setMSLevel(2);
+	it = AI(exp.RTBegin(0), exp.RTEnd(15), 500, 520);
+	TEST_EQUAL(it==exp.areaEnd(),true);
 RESULT
 
 /////////////////////////////////////////////////////////////

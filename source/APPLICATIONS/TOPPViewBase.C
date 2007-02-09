@@ -37,6 +37,7 @@
 #include <OpenMS/VISUAL/DIALOGS/FeaFiDialog.h>
 #endif
 
+#include <OpenMS/CONCEPT/TimeStamp.h>
 #include <OpenMS/VISUAL/DIALOGS/SaveImageDialog.h>
 #include <OpenMS/VISUAL/DIALOGS/TOPPViewBasePDP.h>
 #include <OpenMS/VISUAL/Spectrum1DWidget.h>
@@ -588,7 +589,10 @@ namespace OpenMS
       SpectrumCanvas::ExperimentType* exp = &(w->widget()->canvas()->addEmptyPeakLayer());
       try
       {
+      	long start = PreciseTime::now().getSeconds();
+      	cout << "loadExperiment BEGIN" << endl;
         fh.loadExperiment(filename,*exp, force_type);
+        cout << "loadExperiment END: " << PreciseTime::now().getSeconds()-start << " s" << endl;
       }
       catch(Exception::Base& e)
       {
@@ -614,15 +618,27 @@ namespace OpenMS
       {
         cutoff = estimateNoise_(*exp);
       }
+    	long start = PreciseTime::now().getSeconds();
+    	cout << "finishAdding BEGIN" << endl;
       w->widget()->canvas()->finishAdding(cutoff);
       w->widget()->canvas()->setCurrentLayerName(caption);
+      cout << "finishAdding END: " << PreciseTime::now().getSeconds()-start << " s" << endl;
     }
-    updateLayerbar();
+  	long start = PreciseTime::now().getSeconds();
+  	cout << "updateLayerbar BEGIN" << endl;
+  	updateLayerbar();
+    cout << "updateLayerbar END: " << PreciseTime::now().getSeconds()-start << " s" << endl;
 
+		start = PreciseTime::now().getSeconds();
+  	cout << "showMaximized BEGIN" << endl;
     if(maximize)
     {
       w->showMaximized();
     }
+    cout << "showMaximized END: " << PreciseTime::now().getSeconds()-start << " s" << endl;
+		
+		start = PreciseTime::now().getSeconds();
+  	cout << "as_new_window BEGIN" << endl;
     if (as_new_window)
     {
       connectWindowSignals_(w);
@@ -630,6 +646,7 @@ namespace OpenMS
       addClient(w,filename);
       addTab_(w,caption);
     }
+    cout << "as_new_window END: " << PreciseTime::now().getSeconds()-start << " s" << endl;
   }
 
   void TOPPViewBase::addRecentFile_(const String& filename)

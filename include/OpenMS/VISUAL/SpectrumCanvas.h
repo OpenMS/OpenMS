@@ -721,7 +721,7 @@ namespace OpenMS
 		*/
 		void recalculateRanges_(UnsignedInt mz_dim, UnsignedInt rt_dim, UnsignedInt it_dim);
 		
-		/// Stores the data range (m/z and RT) of all layers
+		/// Stores the data range (m/z, RT and intensity) of all layers
 		DRange<3> overall_data_range_;
 		
 		/// Stores whether or not to show a grid.

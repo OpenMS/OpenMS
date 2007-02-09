@@ -29,7 +29,6 @@
 #define OPENMS_VISUAL_SPECTRUM2DCANVAS_H
 
 // OpenMS
-#include <OpenMS/DATASTRUCTURES/QuadTree.h>
 #include <OpenMS/VISUAL/SpectrumCanvas.h>
 #include <OpenMS/KERNEL/DimensionDescription.h>
 #include <OpenMS/VISUAL/MultiGradient.h>
@@ -60,10 +59,10 @@ namespace OpenMS
   	zoom stack is provided for going back to an earlier
   	view.
   	
-  	@todo Make marching squares continous along RT (Marc)
   	@todo Add visualization of feature pairs -> change LabeledMatcher (Marc)
   	@todo Add reduction of 2D data (Marc)
-  	@todo Show marked convex hull for marked feature (Marc)
+  	@todo Optimize findnextPeak_ and show marked convex hull for marked feature (Marc)
+  	@todo Try drawing rectangles instead of circles (Marc)
   	
   	@ingroup spectrum_widgets
   */
@@ -263,12 +262,12 @@ namespace OpenMS
       void paintSurface_(UnsignedInt layer_index, QPainter* p);
 
       /**
-      	@brief Paints convex hulls of features.
+      	@brief Paints convex hulls of a feature.
       	
-      	@param layer_index The index of the layer.
+      	@param hulls Reference to convex hll vector.
       	@param p The QPainter to paint on.
       */
-      void paintConvexHulls_(UnsignedInt layer_index, QPainter* p);
+      void paintConvexHulls_(const DFeature<2>::ConvexHullVector& hulls, QPainter* p);
 
       // Docu in base class
       virtual void intensityModeChange_();
@@ -291,11 +290,6 @@ namespace OpenMS
       	@see projection_rt_
       */
       void createProjections_(const AreaType& area, bool shift_pressed, bool ctrl_pressed);
-
-      /// Quadtree type for peak data
-      typedef QuadTree<KernelTraits, PeakType > QuadTreeType_;
-      /// Quadtree type for feature data
-      typedef QuadTree<KernelTraits, FeatureType > FeatureQuadTreeType_;
 
       /// zooms around position pos with factor.
       void zoom_(const PointType& pos, float factor, bool add_to_stack = false);
@@ -330,26 +324,7 @@ namespace OpenMS
       void highlightPeak_(QPainter* p, DPeak<2>* peak);
 
       /// Returns the nearest peak to position @p pos
-      DPeak<2>* findNearestPeak_(QPoint pos);
-
-      /**
-      	@brief This quad tree stores the peaks which are actually shown (for peaks). 
-      	
-      	It's a pointer since the constructor of a QuadTree needs the bounding area
-        of all points ever inserted, and this area is not known in the Spectrum2DCanvas constructor.
-      */
-      std::vector<QuadTreeType_*> trees_;
-
-      /**
-      	@brief This quad tree stores the peaks which are actually shown (for features). 
-      	
-      	It's a pointer since the constructor of a QuadTree needs the bounding area
-        of all points ever inserted, and this area is not known in the Spectrum2DCanvas constructor.
-      */
-      std::vector<FeatureQuadTreeType_*> feature_trees_;
-
-      /// Rebuilts the quadtree corresponding to layer @p layer_index with the new area @p new_area
-      void reconstructQuadtree_(UnsignedInt layer_index, const AreaType& new_area, bool warn_on_identical_position = false);
+      DPeak<2>* findNearestPeak_(const QPoint& pos);
 
       /// marching squares matrices for the layers
       std::vector< std::vector< std::vector<float> > > marching_squares_matrices_;

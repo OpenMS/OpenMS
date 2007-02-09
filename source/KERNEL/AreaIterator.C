@@ -28,9 +28,6 @@
 
 namespace OpenMS
 {
-namespace Internal
-{
-
-}//namespace Internal
-}//namespace OpenMS
+	
+}
 

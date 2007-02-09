@@ -63,11 +63,11 @@ namespace OpenMS
   /**
   	@brief MDI window of TOPPView tool
   	
-  	@todo Remove Quadtrees (Marc)
   	@todo Add preferences for layers (Marc)
   	@todo Reimplement PrefernceDialogPages (Marc)
-  	@todo Use float kernel? (Marc)
+  	@todo Do not write empty scans (Marc)
   	@todo Use right mouse button for navigation in data (Marc)
+  	@todo Improve performance of dataToWidget_ (Marc)
   */
   class TOPPViewBase : public QMainWindow, public PreferencesManager
   {
