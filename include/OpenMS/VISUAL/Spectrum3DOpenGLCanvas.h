@@ -53,6 +53,8 @@ namespace OpenMS
 	/**
 		@brief OpenGL Canvas for 3D-visualization of map data
 		
+		@todo Make scaling methods that are called inside the AreaIterator loop inline (Cornelia)
+		
 		@ingroup spectrum_widgets
 	*/
 	

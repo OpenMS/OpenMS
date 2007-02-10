@@ -398,7 +398,7 @@ GLuint Spectrum3DOpenGLCanvas::makeLegend()
 	qglColor(black);			
 	QFont font("TypeWriter");
 	font.setPixelSize(12);
-	QString result("rt");
+	QString result("RT");
 	renderText (0.0, 
 							-corner_-20.0, 
 							-near_-2*corner_+20.0,
@@ -442,7 +442,7 @@ GLuint Spectrum3DOpenGLCanvas::makeLegend()
 				}
 		}
 	font.setPixelSize(12);	
-	result= "mz";
+	result= "m/z";
 	renderText (-corner_-20.0, 
 							-corner_-20.0,
 							-near_-3*corner_,
@@ -605,6 +605,7 @@ GLuint Spectrum3DOpenGLCanvas::makeLegend()
 	glEndList();
 	return list;
 }
+
 GLuint Spectrum3DOpenGLCanvas::makeGround()
 {
 	GLuint list = glGenLists(1);
@@ -699,79 +700,72 @@ GLuint Spectrum3DOpenGLCanvas::makeDataAsTopView()
 	glNewList(list,GL_COMPILE);
 	glPointSize(3.0);
 	if(canvas_3d_.getPrefAsInt("Preferences:3D:Shade:Mode"))
-		{
-			glShadeModel(GL_SMOOTH); 
-		}
+	{
+		glShadeModel(GL_SMOOTH); 
+	}
 	else
-		{
-			glShadeModel(GL_FLAT); 
-		}
-	switch (canvas_3d_.getPrefAsInt("Preferences:3D:Data:Mode"))
-		{
-		case 0:
-		case 1:
-		case 2:
-			for(UnsignedInt i =0;i<canvas_3d_.getLayerCount();i++)
+	{
+		glShadeModel(GL_FLAT); 
+	}
+
+	//if mode it black, we need to set this only once
+	qglColor(black);		
+
+	for(UnsignedInt i =0;i<canvas_3d_.getLayerCount();i++)
+	{	
+		//cout << "Layer: " << i << endl;
+		if(canvas_3d_.getLayer(i).visible)
+		{	
+			//cout << "  - VISIBLE" << endl;
+			double min_int = canvas_3d_.getLayer(i).min_int;
+			double max_int = canvas_3d_.getLayer(i).max_int;
+			
+			//cout << "  - RT: " << canvas_3d_.visible_area_.min_[0] << " " << canvas_3d_.visible_area_.max_[0] << endl;
+			//cout << "  - MZ: " << canvas_3d_.visible_area_.min_[1] << " " << canvas_3d_.visible_area_.max_[1] << endl;
+	
+			for (Spectrum3DCanvas::ExperimentType::ConstAreaIterator it = canvas_3d_.getCurrentPeakData().areaBeginConst(canvas_3d_.visible_area_.min_[0],canvas_3d_.visible_area_.max_[0],canvas_3d_.visible_area_.min_[1],canvas_3d_.visible_area_.max_[1]); 
+					 it != canvas_3d_.getCurrentPeakData().areaEndConst(); 
+					 ++it)
 			{
-				if(canvas_3d_.getLayer(i).visible)
-				{	
+				if (it->getIntensity()>=min_int && it->getIntensity()<=max_int)
+				{
 					
-					double min_int = canvas_3d_.getLayer(i).min_int;
-					double max_int = canvas_3d_.getLayer(i).max_int;
+					glBegin(GL_POINTS);
 					
-					for (Spectrum3DCanvas::ExperimentType::ConstIterator spec_it = canvas_3d_.getPeakData(i).RTBegin(canvas_3d_.visible_area_.min_[0]); 
-							 spec_it != canvas_3d_.getPeakData(i).RTEnd(canvas_3d_.visible_area_.max_[0]); 
-							 ++spec_it)
+					if(mode)
 					{
-						if (spec_it->getMSLevel()!=1)
+						double intensity = 0;
+						switch (canvas_3d_.intensity_mode_)
 						{
-							continue;
+							case SpectrumCanvas::IM_NONE:
+								qglColor( gradient_.precalculatedColorAt(it->getIntensity()));
+								break;
+							case SpectrumCanvas::IM_LOG:
+								qglColor( gradient_.precalculatedColorAt(log10(it->getIntensity())));
+								break;
+							case SpectrumCanvas::IM_PERCENTAGE:	
+								intensity = it->getIntensity() * 100.0 /canvas_3d_.getMaxIntensity(i);
+								qglColor( gradient_.precalculatedColorAt(intensity ));
+								break;
+							case SpectrumCanvas::IM_SNAP:
+								qglColor( gradient_.precalculatedColorAt(it->getIntensity()));
+								break;
 						}
-						for (BaseSpectrum::ConstIterator it = spec_it->MZBegin(canvas_3d_.visible_area_.min_[1]); 
-								 it!=spec_it->MZEnd(canvas_3d_.visible_area_.max_[1]); 
-								 ++it)
-						{	
-							if(it->getIntensity()>= min_int && it->getIntensity()<= max_int)
-							{
-								glBegin(GL_POINTS);
-								if(mode)
-								{
-									double intensity = 0;
-									switch (canvas_3d_.intensity_mode_)
-									{
-									case SpectrumCanvas::IM_NONE:
-										qglColor(QColor( gradient_.precalculatedColorAt(it->getIntensity())));
-										break;
-									case SpectrumCanvas::IM_LOG:
-										qglColor(QColor( gradient_.precalculatedColorAt(log10(it->getIntensity()))));
-										break;
-									case SpectrumCanvas::IM_PERCENTAGE:	
-										intensity = it->getIntensity() * 100.0 /canvas_3d_.getMaxIntensity(i);
-										qglColor(QColor( gradient_.precalculatedColorAt(intensity )));
-										break;
-									case SpectrumCanvas::IM_SNAP:
-										qglColor(QColor( gradient_.precalculatedColorAt(it->getIntensity())));
-										break;
-									}
-									glVertex3d(-corner_+(GLfloat)scaledRT(spec_it->getRetentionTime()), 
-														 -corner_,
-														 -near_-2*corner_-(GLfloat)scaledMZ(it->getPosition()[0]));
-								}
-								else
-								{
-									qglColor(black);			
-									glVertex3d(-corner_+(GLfloat)scaledRT(spec_it->getRetentionTime()), 
-														 -corner_,
-														 -near_-2*corner_-(GLfloat)scaledMZ(it->getPosition()[0]));
-								}
-								glEnd();		
-							}
-						}
+						glVertex3d(-corner_+(GLfloat)scaledRT(it.getRetentionTime()), 
+											 -corner_,
+											 -near_-2*corner_-(GLfloat)scaledMZ(it->getPos()));
 					}
+					else
+					{	
+						glVertex3d(-corner_+(GLfloat)scaledRT(it.getRetentionTime()), 
+											 -corner_,
+											 -near_-2*corner_-(GLfloat)scaledMZ(it->getPos()));
+					}
+					glEnd();		
 				}
 			}
-			break;
 		}
+	}
 	glEndList();
 	return list; 
 }
@@ -784,129 +778,121 @@ GLuint Spectrum3DOpenGLCanvas::makeDataAsStick()
 	glNewList(list,GL_COMPILE);
 	glLineWidth(canvas_3d_.getPref("Preferences:3D:Dot:LineWidth"));
 	if(canvas_3d_.getPrefAsInt("Preferences:3D:Shade:Mode"))
-		{
-			glShadeModel(GL_SMOOTH); 
-		}
+	{
+		glShadeModel(GL_SMOOTH); 
+	}
 	else
-		{
-			glShadeModel(GL_FLAT); 
-		}
+	{
+		glShadeModel(GL_FLAT); 
+	}
 
-	switch (canvas_3d_.getPrefAsInt("Preferences:3D:Data:Mode"))
-		{
-		case 0:
-		case 1:
-		case 2:	
+	//if mode it black, we need to set this only once
+	qglColor(black);		
 
 	for(UnsignedInt i =0;i<canvas_3d_.getLayerCount();i++)
 	{	
+		//cout << "Layer: " << i << endl;
 		if(canvas_3d_.getLayer(i).visible)
 		{	
+			//cout << "  - VISIBLE" << endl;
 			double min_int = canvas_3d_.getLayer(i).min_int;
 			double max_int = canvas_3d_.getLayer(i).max_int;
 			
-			for (Spectrum3DCanvas::ExperimentType::ConstIterator spec_it = canvas_3d_.getPeakData(i).RTBegin(canvas_3d_.visible_area_.min_[0]); 
-					 spec_it != canvas_3d_.getPeakData(i).RTEnd(canvas_3d_.visible_area_.max_[0]); 
-					 ++spec_it)
+			//cout << "  - RT: " << canvas_3d_.visible_area_.min_[0] << " " << canvas_3d_.visible_area_.max_[0] << endl;
+			//cout << "  - MZ: " << canvas_3d_.visible_area_.min_[1] << " " << canvas_3d_.visible_area_.max_[1] << endl;
+
+			for (Spectrum3DCanvas::ExperimentType::ConstAreaIterator it = canvas_3d_.getCurrentPeakData().areaBeginConst(canvas_3d_.visible_area_.min_[0],canvas_3d_.visible_area_.max_[0],canvas_3d_.visible_area_.min_[1],canvas_3d_.visible_area_.max_[1]); 
+					 it != canvas_3d_.getCurrentPeakData().areaEndConst(); 
+					 ++it)
 			{
-				if (spec_it->getMSLevel()!=1)
+				if (it->getIntensity()>=min_int && it->getIntensity()<=max_int)
 				{
-					continue;
-				}
-				for (BaseSpectrum::ConstIterator it = spec_it->MZBegin(canvas_3d_.visible_area_.min_[1]); it!=spec_it->MZEnd(canvas_3d_.visible_area_.max_[1]); ++it)
-				{			
-					if(it->getIntensity()>= min_int && it->getIntensity()<=max_int)
+					glBegin(GL_LINES);
+		
+					if(mode)
 					{
-						glBegin(GL_LINES);
-			
-						if(mode)
+						double intensity = 0;
+						switch (canvas_3d_.intensity_mode_)
 						{
-							double intensity = 0;
-							switch (canvas_3d_.intensity_mode_)
-							{
+						
+						case SpectrumCanvas::IM_PERCENTAGE:	
 							
-							case SpectrumCanvas::IM_PERCENTAGE:	
-								
-								intensity = it->getIntensity() * 100.0 /canvas_3d_.getMaxIntensity(i);
-								qglColor(QColor( gradient_.precalculatedColorAt(0)));
-								glVertex3d(-corner_+(GLfloat)scaledRT(spec_it->getRetentionTime()), 
-													 -corner_,
-													 -near_-2*corner_-(GLfloat)scaledMZ(it->getPosition()[0]));
-								qglColor(QColor( gradient_.precalculatedColorAt(intensity )));
-								glVertex3d(-corner_+(GLfloat)scaledRT(spec_it->getRetentionTime()),
-													 -corner_+(GLfloat)scaledIntensity(it->getIntensity(),i),
-													 -near_-2*corner_-(GLfloat)scaledMZ(it->getPosition()[0]));
-									break;
-							
-							case SpectrumCanvas::IM_NONE:
-							
-								qglColor(QColor( gradient_.precalculatedColorAt(canvas_3d_.overall_data_range_.min_[2])));
-								glVertex3d(-corner_+(GLfloat)scaledRT(spec_it->getRetentionTime()), 
-													 -corner_,
-													 -near_-2*corner_-(GLfloat)scaledMZ(it->getPosition()[0]));
-								qglColor(QColor( gradient_.precalculatedColorAt(it->getIntensity())));
-								glVertex3d(-corner_+(GLfloat)scaledRT(spec_it->getRetentionTime()),
-													 -corner_+(GLfloat)scaledIntensity(it->getIntensity(),i),
-													 -near_-2*corner_-(GLfloat)scaledMZ(it->getPosition()[0]));
+							intensity = it->getIntensity() * 100.0 /canvas_3d_.getMaxIntensity(i);
+							qglColor( gradient_.precalculatedColorAt(0));
+							glVertex3d(-corner_+(GLfloat)scaledRT(it.getRetentionTime()), 
+												 -corner_,
+												 -near_-2*corner_-(GLfloat)scaledMZ(it->getPos()));
+							qglColor( gradient_.precalculatedColorAt(intensity ));
+							glVertex3d(-corner_+(GLfloat)scaledRT(it.getRetentionTime()),
+												 -corner_+(GLfloat)scaledIntensity(it->getIntensity(),i),
+												 -near_-2*corner_-(GLfloat)scaledMZ(it->getPos()));
 								break;
+						
+						case SpectrumCanvas::IM_NONE:
+						
+							qglColor( gradient_.precalculatedColorAt(canvas_3d_.overall_data_range_.min_[2]));
+							glVertex3d(-corner_+(GLfloat)scaledRT(it.getRetentionTime()), 
+												 -corner_,
+												 -near_-2*corner_-(GLfloat)scaledMZ(it->getPos()));
+							qglColor( gradient_.precalculatedColorAt(it->getIntensity()));
+							glVertex3d(-corner_+(GLfloat)scaledRT(it.getRetentionTime()),
+												 -corner_+(GLfloat)scaledIntensity(it->getIntensity(),i),
+												 -near_-2*corner_-(GLfloat)scaledMZ(it->getPos()));
+							break;
+						
+						case SpectrumCanvas::IM_SNAP:
 							
-							case SpectrumCanvas::IM_SNAP:
-								
-								qglColor(QColor( gradient_.precalculatedColorAt(int_scale_.min_[0])));
-								glVertex3d(-corner_+(GLfloat)scaledRT(spec_it->getRetentionTime()), 
-													 -corner_,
-													 -near_-2*corner_-(GLfloat)scaledMZ(it->getPosition()[0]));
-								qglColor(QColor( gradient_.precalculatedColorAt(it->getIntensity())));
-								glVertex3d(-corner_+(GLfloat)scaledRT(spec_it->getRetentionTime()),
-													 -corner_+(GLfloat)scaledIntensity(it->getIntensity(),i),
-													 -near_-2*corner_-(GLfloat)scaledMZ(it->getPosition()[0]));
-								
-								break;
+							qglColor(gradient_.precalculatedColorAt(int_scale_.min_[0]));
+							glVertex3d(-corner_+(GLfloat)scaledRT(it.getRetentionTime()), 
+												 -corner_,
+												 -near_-2*corner_-(GLfloat)scaledMZ(it->getPos()));
+							qglColor(gradient_.precalculatedColorAt(it->getIntensity()));
+							glVertex3d(-corner_+(GLfloat)scaledRT(it.getRetentionTime()),
+												 -corner_+(GLfloat)scaledIntensity(it->getIntensity(),i),
+												 -near_-2*corner_-(GLfloat)scaledMZ(it->getPos()));
 							
-							case SpectrumCanvas::IM_LOG:
-								qglColor(QColor( gradient_.precalculatedColorAt(log10(canvas_3d_.overall_data_range_.min_[2]))));
-								glVertex3d(-corner_+(GLfloat)scaledRT(spec_it->getRetentionTime()), 
-													 -corner_,
-													 -near_-2*corner_-(GLfloat)scaledMZ(it->getPosition()[0]));
-								qglColor(QColor( gradient_.precalculatedColorAt(log10(it->getIntensity()))));
-								glVertex3d(-corner_+(GLfloat)scaledRT(spec_it->getRetentionTime()),
-													 -corner_+(GLfloat)scaledIntensity(log10(it->getIntensity()),i),
-													 -near_-2*corner_-(GLfloat)scaledMZ(it->getPosition()[0]));
-								break;
-								
-							}
+							break;
+						
+						case SpectrumCanvas::IM_LOG:
+							qglColor(gradient_.precalculatedColorAt(log10(canvas_3d_.overall_data_range_.min_[2])));
+							glVertex3d(-corner_+(GLfloat)scaledRT(it.getRetentionTime()), 
+												 -corner_,
+												 -near_-2*corner_-(GLfloat)scaledMZ(it->getPos()));
+							qglColor(gradient_.precalculatedColorAt(log10(it->getIntensity())));
+							glVertex3d(-corner_+(GLfloat)scaledRT(it.getRetentionTime()),
+												 -corner_+(GLfloat)scaledIntensity(log10(it->getIntensity()),i),
+												 -near_-2*corner_-(GLfloat)scaledMZ(it->getPos()));
+							break;
+							
 						}
-						else
-						{
-							qglColor(black);	
-							if(canvas_3d_.intensity_mode_ == SpectrumCanvas::IM_LOG)
-								{
-										glVertex3d(-corner_+(GLfloat)scaledRT(spec_it->getRetentionTime()), 
-															 -corner_,
-															 -near_-2*corner_-(GLfloat)scaledMZ(it->getPosition()[0]));
-										glVertex3d(-corner_+(GLfloat)scaledRT(spec_it->getRetentionTime()),
-															 -corner_+(GLfloat)scaledIntensity(log10(it->getIntensity()),i),
-															 -near_-2*corner_-(GLfloat)scaledMZ(it->getPosition()[0]));
-								}
-							else
-								{
-									glVertex3d(-corner_+(GLfloat)scaledRT(spec_it->getRetentionTime()), 
-														 -corner_,
-														 -near_-2*corner_-(GLfloat)scaledMZ(it->getPosition()[0]));
-									glVertex3d(-corner_+(GLfloat)scaledRT(spec_it->getRetentionTime()),
-														 -corner_+(GLfloat)scaledIntensity(it->getIntensity(),i),
-														 -near_-2*corner_-(GLfloat)scaledMZ(it->getPosition()[0]));
-							}
-						}
-						glEnd();
 					}
+					else
+					{
+						if(canvas_3d_.intensity_mode_ == SpectrumCanvas::IM_LOG)
+							{
+									glVertex3d(-corner_+(GLfloat)scaledRT(it.getRetentionTime()), 
+														 -corner_,
+														 -near_-2*corner_-(GLfloat)scaledMZ(it->getPos()));
+									glVertex3d(-corner_+(GLfloat)scaledRT(it.getRetentionTime()),
+														 -corner_+(GLfloat)scaledIntensity(log10(it->getIntensity()),i),
+														 -near_-2*corner_-(GLfloat)scaledMZ(it->getPos()));
+							}
+						else
+							{
+								glVertex3d(-corner_+(GLfloat)scaledRT(it.getRetentionTime()), 
+													 -corner_,
+													 -near_-2*corner_-(GLfloat)scaledMZ(it->getPos()));
+								glVertex3d(-corner_+(GLfloat)scaledRT(it.getRetentionTime()),
+													 -corner_+(GLfloat)scaledIntensity(it->getIntensity(),i),
+													 -near_-2*corner_-(GLfloat)scaledMZ(it->getPos()));
+						}
+					}
+					glEnd();
 				}
-				
 			}
+			
 		}
 	}
-	break;
-		}
 	glEndList();
 	return list; 
 }
