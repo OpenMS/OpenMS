@@ -122,11 +122,10 @@ namespace OpenMS
 			}
 			else if (action_mode_ == AM_MEASURE)
 			{
-				DPeak<2>* tmp = nearest_peak_;
-				if (tmp)
+				if (nearest_peak_)
 				{
 					delete(measurement_start_);
-					measurement_start_ = new DPeak<2>(*tmp);
+					measurement_start_ = new DFeature<2>(*nearest_peak_);
 				}
 				else
 				{
@@ -176,7 +175,7 @@ namespace OpenMS
 					}
 					else
 					{
-						measurement_stop_ = new DPeak<2>(*measurement_stop_);
+						measurement_stop_ = new DFeature<2>(*measurement_stop_);
 					}
 					
 					refresh_();
@@ -269,33 +268,33 @@ namespace OpenMS
 			p.drawLine(dataToWidget_(measurement_start_->getPosition()), line_end);
 		}
 		
-		highlightPeak_(&p, nearest_peak_);
 		highlightPeak_(&p, measurement_start_);
 		highlightPeak_(&p, measurement_stop_);
+		highlightPeak_(&p, nearest_peak_);
+		//highlight convex hull of nearest peak
+		if (nearest_peak_ && getCurrentLayer().type==LayerData::DT_FEATURE)
+		{
+			p.setPen(QPen(Qt::red, 2));
+			p.setBrush(Qt::NoBrush);
+			paintConvexHulls_(nearest_peak_->getConvexHulls(),&p);
+		}
 	}
 	
-	void Spectrum2DCanvas::highlightPeak_(QPainter* p, DPeak<2>* peak)
+	void Spectrum2DCanvas::highlightPeak_(QPainter* p, DFeature<2>* peak)
 	{
-		if (!peak)
-			return;
+		if (!peak) return;
 		
-		const QPoint diff(5, 5);
 		p->setPen(QPen(Qt::red, 2));
-		
-		QPoint peak_pos(dataToWidget_(peak->getPosition()));
-		QRect peak_rect(peak_pos - diff, peak_pos + diff);
-		
-		//cout << "Highlight: " << peak_rect.x() << " " << peak_rect.y() << endl;
-		
-		p->drawEllipse(peak_rect);
+		QPoint pos(dataToWidget_(peak->getPosition()));
+		p->drawEllipse(pos.x() - 5, pos.y() - 5, 10, 10);
 	}
 	
-	DPeak<2>* Spectrum2DCanvas::findNearestPeak_(const QPoint& pos)
+	DFeature<2>* Spectrum2DCanvas::findNearestPeak_(const QPoint& pos)
 	{
 		//Constructing the area corrects swapped mapping of RT and m/z
 		AreaType area (widgetToData_(pos - QPoint(5,5)),widgetToData_(pos + QPoint(5,5)));
 
-		DPeak<2>* max_peak = 0;
+		DFeature<2>* max_peak = 0;
 		float max_int = 0.0f;
 		
 		if (getCurrentLayer().type==LayerData::DT_PEAK)
@@ -337,7 +336,8 @@ namespace OpenMS
 						tmp_peak_.setIntensity(i->getIntensity());
 						tmp_peak_.getPosition()[0] = i->getPosition()[1];
 						tmp_peak_.getPosition()[1] = i->getPosition()[0];
-	
+						tmp_peak_.getConvexHulls() = i->getConvexHulls();
+						
 						max_peak = &tmp_peak_;
 					}				
 				}
@@ -364,7 +364,7 @@ namespace OpenMS
 				if (e->state() == Qt::NoButton)
 				{
 					
-					DPeak<2>* max_peak = findNearestPeak_(pos);
+					DFeature<2>* max_peak = findNearestPeak_(pos);
 					
 					if (max_peak)
 					{
@@ -421,7 +421,7 @@ namespace OpenMS
 				// highlight nearest peak
 				if (e->state() == Qt::NoButton)
 				{
-					DPeak<2>* max_peak = findNearestPeak_(pos);
+					DFeature<2>* max_peak = findNearestPeak_(pos);
 					
 					if (max_peak && max_peak != nearest_peak_ && !measurement_start_)
 					{
@@ -698,24 +698,42 @@ namespace OpenMS
 					}
 					pos = dataToWidget_(i->getPosition()[MZ],i->getPosition()[RT]);
 					p->drawEllipse(pos.x() - 2, pos.y() - 2, 4, 4);
-					paintConvexHulls_(i->getConvexHulls(),p);
 				}
 			}
 		}
 	}
 
-	void Spectrum2DCanvas::paintConvexHulls_(const DFeature<2>::ConvexHullVector& hulls, QPainter* p)
+	void Spectrum2DCanvas::paintConvexHulls_(UnsignedInt layer_index, QPainter* p)
 	{
 		p->setPen(Qt::black);
 		p->setBrush(Qt::NoBrush);
-		
-		QPointArray points;
-		QPoint tmp;
 
+		double min_int = getLayer(layer_index).min_int;
+		double max_int = getLayer(layer_index).max_int;
+
+		for (FeatureMapType::ConstIterator i = getLayer(layer_index).features.begin();
+			   i != getLayer(layer_index).features.end();
+			   ++i)
+		{
+			if ( i->getPosition()[RT] >= visible_area_.min()[1] &&
+					 i->getPosition()[RT] <= visible_area_.max()[1] &&
+					 i->getPosition()[MZ] >= visible_area_.min()[0] &&
+					 i->getPosition()[MZ] <= visible_area_.max()[0] &&
+					 i->getIntensity()>=min_int &&
+					 i->getIntensity()<=max_int)
+			{
+				paintConvexHulls_(i->getConvexHulls(),p);
+			}
+		}
+	}            
+
+  void Spectrum2DCanvas::paintConvexHulls_(const DFeature<2>::ConvexHullVector& hulls, QPainter* p)
+  {
+		QPointArray points;
+		
 		//iterate over all convex hulls
 		for (UnsignedInt hull=0; hull<hulls.size(); ++hull)
 		{
-			
 			points.resize(hulls[hull].getPoints().size());
 			UnsignedInt index=0;
 			//iterate over hull points
@@ -726,8 +744,8 @@ namespace OpenMS
 			//cout << "Hull: " << hull << " Points: " << points.size()<<endl;
 			p->drawPolygon(points);
 		}
-	}            
-	
+  }
+
 	void Spectrum2DCanvas::paintContours_(UnsignedInt layer_index, QPainter* p)
 	{
 		if (max_values_[layer_index] == 0) return;
@@ -1114,6 +1132,7 @@ namespace OpenMS
 					{
 						//cout << "dot feature layer: " << i << endl;
 						paintDots_(i, &p);
+						paintConvexHulls_(i, &p);
 					}
 				}
 			}
@@ -1451,8 +1470,10 @@ namespace OpenMS
 		
 		//unselect all peaks
 		nearest_peak_ = 0;
-    measurement_start_ = 0;
-    measurement_stop_ = 0;
+		delete(measurement_start_);
+		measurement_start_ = 0;
+		delete(measurement_stop_);
+		measurement_stop_ = 0;
 
 		refresh_();
 	}

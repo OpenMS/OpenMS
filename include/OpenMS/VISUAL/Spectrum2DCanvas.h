@@ -61,8 +61,7 @@ namespace OpenMS
   	
   	@todo Add visualization of feature pairs -> change LabeledMatcher (Marc)
   	@todo Add reduction of 2D data (Marc)
-  	@todo Optimize findnextPeak_ and show marked convex hull for marked feature (Marc)
-  	@todo Try drawing rectangles instead of circles (Marc)
+  	@todo Try: drawing rectangles instead of circles, not using a brush but a wider pen (Marc)
   	
   	@ingroup spectrum_widgets
   */
@@ -262,9 +261,17 @@ namespace OpenMS
       void paintSurface_(UnsignedInt layer_index, QPainter* p);
 
       /**
-      	@brief Paints convex hulls of a feature.
+      	@brief Paints all feature convex hulls for a feature layer.
       	
-      	@param hulls Reference to convex hll vector.
+      	@param layer_index Index of the layer.
+      	@param p The QPainter to paint on.
+      */
+      void paintConvexHulls_(UnsignedInt layer_index, QPainter* p);
+
+      /**
+      	@brief Paints feature convex hulls.
+      	
+      	@param hulls Reference to convex hull vector.
       	@param p The QPainter to paint on.
       */
       void paintConvexHulls_(const DFeature<2>::ConvexHullVector& hulls, QPainter* p);
@@ -321,10 +328,10 @@ namespace OpenMS
       /// Highlights peak under cursor and start/stop peak for measurement
       void highlightPeaks_();
       /// Highlights a single peak
-      void highlightPeak_(QPainter* p, DPeak<2>* peak);
+      void highlightPeak_(QPainter* p, DFeature<2>* peak);
 
       /// Returns the nearest peak to position @p pos
-      DPeak<2>* findNearestPeak_(const QPoint& pos);
+      DFeature<2>* findNearestPeak_(const QPoint& pos);
 
       /// marching squares matrices for the layers
       std::vector< std::vector< std::vector<float> > > marching_squares_matrices_;
@@ -338,14 +345,14 @@ namespace OpenMS
       /// Flags whether or not to show individual peaks for each layer
       std::vector<bool> show_dots_;
 
-      /// the nearest peak to the mouse cursor.
-      DPeak<2>* nearest_peak_;
-      /// start peak of measuring mode
-      DPeak<2>* measurement_start_;
-      /// end peak of measuring mode
-      DPeak<2>* measurement_stop_;
-      /// temporary peak that is constructed out of the 1D Peak and the RT (for findNearestPeak_)
-      DPeak<2> tmp_peak_;
+      /// the nearest peak/feature to the mouse cursor (DFeature to be able to store the convex hull too)
+      DFeature<2>* nearest_peak_;
+      /// start peak/feature of measuring mode
+      DFeature<2>* measurement_start_;
+      /// end peak/feature of measuring mode
+      DFeature<2>* measurement_stop_;
+      /// temporary peak/feature for findNearestPeak_
+      DFeature<2> tmp_peak_;
 
       /// Gradient for dots
       MultiGradient dot_gradient_;
