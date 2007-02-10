@@ -82,22 +82,22 @@ namespace OpenMS
 		
 	}
 	
-	double HistogramDialog::getLeftSplitter()
+	float HistogramDialog::getLeftSplitter()
 	{ 	
 		return mw_->getLeftSplitter();	
 	}
 	
-	double HistogramDialog::getRightSplitter()
+	float HistogramDialog::getRightSplitter()
 	{ 	
 		return mw_->getRightSplitter();	
 	}
 	
-	void HistogramDialog::setLeftSplitter(double position)
+	void HistogramDialog::setLeftSplitter(float position)
 	{
 		mw_->setLeftSplitter(position);
 	}
 	
-	void HistogramDialog::setRightSplitter(double position)
+	void HistogramDialog::setRightSplitter(float position)
 	{
 		mw_->setRightSplitter(position);
 	}

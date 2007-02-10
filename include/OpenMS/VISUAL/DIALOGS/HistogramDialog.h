@@ -51,14 +51,14 @@ namespace OpenMS
 			~HistogramDialog();
 			
 			/// Returns the value of the left splitter
-			double getLeftSplitter();
+			float getLeftSplitter();
 			/// Returns the value of the right splitter
-			double getRightSplitter();
+			float getRightSplitter();
 			
 			/// Sets the value of the left splitter
-			void setLeftSplitter(double position);
+			void setLeftSplitter(float position);
 			/// Sets the value of the right splitter
-			void setRightSplitter(double position);
+			void setRightSplitter(float position);
 
 		protected:
 			HistogramWidget *mw_;

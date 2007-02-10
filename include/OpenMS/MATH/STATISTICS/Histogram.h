@@ -232,7 +232,15 @@ namespace OpenMS
 			/// Non-mutable iterator pointing after the last bin
 			inline ConstIterator end() const { return bins_.end(); }
 			//@}
-	
+			
+			/// Transforms the bin values with f(x)=log(x+1)
+			void applyLogTransformation()
+			{
+				for (typename std::vector<ValueType>::iterator it = bins_.begin(); it!=bins_.end(); ++it)
+				{
+					*it = (ValueType)log(*it+1);
+				}
+			}
 		 protected:
 			/// Lower bound
 			BinSizeType min_;

@@ -49,7 +49,7 @@ namespace OpenMS
 		
 		It can also be used to define a left and right boundary inside the values.
 		
-		@todo splitters disappear sometimes! Only with Cygwin X-Server? (Marc)
+		@bug Splitter are not shown although they are painted sometimes
 		
 		@ingroup Visual
 	*/
@@ -64,9 +64,9 @@ namespace OpenMS
 			virtual ~HistogramWidget();
 			
 			/// Returns the value f the lower splitter
-			double getLeftSplitter();
+			float getLeftSplitter();
 			/// Returns the value of the upper splitter
-			double getRightSplitter();
+			float getRightSplitter();
 			/// set x-axis legend; default is 'x'
 			void setLegend(const std::string& legend);
 
@@ -74,15 +74,15 @@ namespace OpenMS
 			/// Shows the splitters if @p on is true. Hides them otherwise.
 			void showSplitters(bool on);
 			/// Sets the value of the right splitter
-			void setRightSplitter(double pos);
+			void setRightSplitter(float pos);
 			/// Sets the value of the left splitter
-			void setLeftSplitter(double pos);
+			void setLeftSplitter(float pos);
 
 		protected:
 			Math::Histogram<UnsignedInt,float> dist_;
 			bool show_splitters_;
-			double left_splitter_;
-			double right_splitter_;
+			float left_splitter_;
+			float right_splitter_;
 			/// the splitter that is currently dragged (0=none, 1=left, 2=right)
 			UnsignedInt moving_splitter_;
 			AxisWidget *bottom_axis_;

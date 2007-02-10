@@ -65,7 +65,6 @@ namespace OpenMS
   	
   	@todo Add preferences for layers (Marc)
   	@todo Reimplement PrefernceDialogPages (Marc)
-  	@todo Do not write empty scans (Marc)
   	@todo Use right mouse button for navigation in data (Marc)
   	@todo Improve performance of dataToWidget_ (Marc)
   */

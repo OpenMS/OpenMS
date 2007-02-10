@@ -130,6 +130,7 @@ namespace OpenMS
 	void SpectrumWidget::showIntensityDistribution()
 	{
 		HistogramDialog dw(createIntensityDistribution_());
+		//cout << "showIntensityDistribution: " << canvas_->getCurrentLayer().min_int << " " << canvas_->getCurrentLayer().max_int << endl;
 		dw.setLeftSplitter(canvas_->getCurrentLayer().min_int);
 		dw.setRightSplitter(canvas_->getCurrentLayer().max_int);
 		

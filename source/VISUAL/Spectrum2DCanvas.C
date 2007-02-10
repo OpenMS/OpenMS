@@ -154,7 +154,7 @@ namespace OpenMS
 			default:
 			case AM_SELECT:
 			{
-				if (e->button() == Qt::LeftButton)
+				if (e->button() == Qt::LeftButton && getCurrentLayer().type==LayerData::DT_PEAK)
 				{
 					//determine data coordiantes
 					AreaType area(widgetToData_(last_mouse_pos_), widgetToData_(pos));
@@ -301,10 +301,10 @@ namespace OpenMS
 		if (getCurrentLayer().type==LayerData::DT_PEAK)
 		{
 			for (ExperimentType::ConstAreaIterator i = getCurrentPeakData().areaBeginConst(area.min()[1],area.max()[1],area.min()[0],area.max()[0]); 
-					 i != getCurrentLayer().peaks.areaEndConst(); 
+					 i != getCurrentPeakData().areaEndConst(); 
 					 ++i)
 			{
-				if (i->getIntensity() > max_int)
+				if (i->getIntensity() > max_int && i->getIntensity()>=getCurrentLayer().min_int && i->getIntensity()<=getCurrentLayer().max_int)
 				{
 					//cout << "new max: " << i.getRetentionTime() << " " << i->getPos() << endl;
 					max_int = i->getIntensity();
@@ -326,7 +326,9 @@ namespace OpenMS
 				if ( i->getPosition()[RT] >= area.min()[1] &&
 						 i->getPosition()[RT] <= area.max()[1] &&
 						 i->getPosition()[MZ] >= area.min()[0] &&
-						 i->getPosition()[MZ] <= area.max()[0])
+						 i->getPosition()[MZ] <= area.max()[0] &&
+						 i->getIntensity()    >= getCurrentLayer().min_int &&
+						 i->getIntensity()    <= getCurrentLayer().max_int )
 				{
 					if (i->getIntensity() > max_int)
 					{
@@ -601,8 +603,8 @@ namespace OpenMS
 				// build sum of all peak heights in the current cell
 				float sum = 0.0f;
 
-				for (ExperimentType::ConstAreaIterator i = getCurrentPeakData().areaBeginConst(y - half_height, y + half_height, x - half_width, x + half_width); 
-						 i != getCurrentLayer().peaks.areaEndConst(); 
+				for (ExperimentType::ConstAreaIterator i = getPeakData(layer_index).areaBeginConst(y - half_height, y + half_height, x - half_width, x + half_width); 
+						 i != getPeakData(layer_index).areaEndConst(); 
 						 ++i)
 				{
 					sum += i->getIntensity();
@@ -652,7 +654,7 @@ namespace OpenMS
 			percentage_factor_ = 1.0;
 		}
 		
-		//tmporary varaible
+		//tmporary variable
 		QPoint pos;
 		
 		double min_int = getLayer(layer_index).min_int;
@@ -660,8 +662,8 @@ namespace OpenMS
 		
 		if (getLayer(layer_index).type==LayerData::DT_PEAK) //peaks
 		{
-			for (ExperimentType::ConstAreaIterator i = getCurrentPeakData().areaBeginConst(visible_area_.min()[1],visible_area_.max()[1],visible_area_.min()[0],visible_area_.max()[0]); 
-					 i != getCurrentLayer().peaks.areaEndConst(); 
+			for (ExperimentType::ConstAreaIterator i = getPeakData(layer_index).areaBeginConst(visible_area_.min()[1],visible_area_.max()[1],visible_area_.min()[0],visible_area_.max()[0]); 
+					 i != getPeakData(layer_index).areaEndConst(); 
 					 ++i)
 			{
 				if (i->getIntensity()>=min_int && i->getIntensity()<=max_int)
@@ -678,8 +680,8 @@ namespace OpenMS
 		}
 		else //features
 		{
-			for (FeatureMapType::ConstIterator i = getCurrentLayer().features.begin();
-				   i != getCurrentLayer().features.end();
+			for (FeatureMapType::ConstIterator i = getLayer(layer_index).features.begin();
+				   i != getLayer(layer_index).features.end();
 				   ++i)
 			{
 				if ( i->getPosition()[RT] >= visible_area_.min()[1] &&
@@ -1082,24 +1084,27 @@ namespace OpenMS
 		emit sendStatusMessage("repainting", 0);
 		
 		long start = PreciseTime::now().getSeconds();
+		//cout << "Visible area:" << visible_area_ << endl;
   	cout << "repainting BEGIN" << endl;
 		for (UnsignedInt i=0; i<getLayerCount(); i++)
 		{
-			//cout << "Spec: " << i << endl;
 			if (getLayer(i).visible)
 			{
 				if (getLayer(i).type==LayerData::DT_PEAK)
 				{
 					if (show_surface_[i])
 					{
+						//cout << "surface peak layer: " << i << endl;
 						paintSurface_(i, &p);
 					}
 					if (show_contours_[i])
 					{
+						//cout << "countour peak layer: " << i << endl;
 						paintContours_(i, &p);
 					}
 					if (show_dots_[i])
 					{
+						//cout << "dot peak layer: " << i << endl;
 						paintDots_(i, &p);
 					}
 				}
@@ -1107,6 +1112,7 @@ namespace OpenMS
 				{
 					if (show_dots_[i])
 					{
+						//cout << "dot feature layer: " << i << endl;
 						paintDots_(i, &p);
 					}
 				}
@@ -1199,6 +1205,8 @@ namespace OpenMS
 		ExperimentType::CoordinateType rt_h = area.maxY();
 		ExperimentType::CoordinateType mz_l = area.minX();
 		ExperimentType::CoordinateType mz_h = area.maxX();
+
+		//cout << "Projection: "<< rt_l << " " << rt_h << " " << mz_l << " " << mz_h << endl;
 		
 		if (shift_pressed)
 		{
@@ -1227,14 +1235,19 @@ namespace OpenMS
 			}
 		}
 		
+		//cout << "Projection (buttons): "<< rt_l << " " << rt_h << " " << mz_l << " " << mz_h << endl;
+		
 		//create projection data
 		map<float, float> mz, rt;
 		for (ExperimentType::ConstAreaIterator i = getCurrentPeakData().areaBeginConst(rt_l,rt_h,mz_l,mz_h); 
-				 i != getCurrentLayer().peaks.areaEndConst(); 
+				 i != getCurrentPeakData().areaEndConst();
 				 ++i)
 		{
-			mz[i->getPos()] += i->getIntensity();
-			rt[i.getRetentionTime()] += i->getIntensity();
+			if (i->getIntensity()>=getCurrentLayer().min_int && i->getIntensity()<=getCurrentLayer().max_int)
+			{
+				mz[i->getPos()] += i->getIntensity();
+				rt[i.getRetentionTime()] += i->getIntensity();
+			}
 		}
 		
 		// write to spectra
@@ -1355,9 +1368,19 @@ namespace OpenMS
 		
 		//overall values update
 		updateRanges_(current_layer_,0,1,2);
-		
-		resetZoom();
-		
+
+		if (getLayerCount()==1)
+		{
+			AreaType tmp_area;
+			tmp_area.assign(overall_data_range_);
+			visible_area_ = tmp_area;
+			emit visibleAreaChanged(tmp_area);
+		}
+		else
+		{
+			resetZoom();
+		}
+
 		intensityModeChange_();
 		
 		emit sendStatusMessage("",0);
@@ -1392,8 +1415,13 @@ namespace OpenMS
 		//update visible area and boundaries
 		recalculateRanges_(0,1,2);
 
-		intensityModeChange_();
-	
+		AreaType tmp;
+		tmp.assign(overall_data_range_);
+		if (tmp != visible_area_)
+		{
+			visible_area_.assign(overall_data_range_);
+		}
+
 		//update current layer
 		if (current_layer_!=0 && current_layer_ >= getLayerCount())
 		{
@@ -1404,7 +1432,9 @@ namespace OpenMS
 		{
 			return;
 		}
-	
+
+		intensityModeChange_();
+
 		emit layerActivated(this);
 		invalidate_();
 	}
@@ -1419,10 +1449,12 @@ namespace OpenMS
 		current_layer_ = layer_index;
 		emit layerActivated(this);
 		
-		// no peak is selected
+		//unselect all peaks
 		nearest_peak_ = 0;
-	
-		invalidate_();
+    measurement_start_ = 0;
+    measurement_stop_ = 0;
+
+		refresh_();
 	}
 	
 	void Spectrum2DCanvas::repaintAll()
@@ -1443,29 +1475,31 @@ namespace OpenMS
 				{
 					if (getLayer(i).type==LayerData::DT_PEAK)
 					{
-						for (ExperimentType::ConstAreaIterator i = getCurrentPeakData().areaBeginConst(visible_area_.min()[1],visible_area_.max()[1],visible_area_.min()[0],visible_area_.max()[0]); 
-								 i != getCurrentLayer().peaks.areaEndConst(); 
-								 ++i)
+						for (ExperimentType::ConstAreaIterator it = getPeakData(i).areaBeginConst(visible_area_.min()[1],visible_area_.max()[1],visible_area_.min()[0],visible_area_.max()[0]); 
+								 it != getPeakData(i).areaEndConst(); 
+								 ++it)
 						{
-							if (i->getIntensity() > local_max)
+							if (it->getIntensity() > local_max && it->getIntensity()>=getLayer(i).min_int && it->getIntensity()<=getLayer(i).max_int)
 							{
-								local_max = i->getIntensity();
+								local_max = it->getIntensity();
 							}
 						}
 					}
 					else //features
 					{
-						for (FeatureMapType::ConstIterator i = getCurrentLayer().features.begin();
-							   i != getCurrentLayer().features.end();
-							   ++i)
+						for (FeatureMapType::ConstIterator it = getLayer(i).features.begin();
+							   it != getLayer(i).features.end();
+							   ++it)
 						{
-							if ( i->getPosition()[RT] >= visible_area_.min()[1] &&
-									 i->getPosition()[RT] <= visible_area_.max()[1] &&
-									 i->getPosition()[MZ] >= visible_area_.min()[0] &&
-									 i->getPosition()[MZ] <= visible_area_.max()[0] &&
-									 i->getIntensity() > local_max)
+							if ( it->getPosition()[RT] >= visible_area_.min()[1] &&
+									 it->getPosition()[RT] <= visible_area_.max()[1] &&
+									 it->getPosition()[MZ] >= visible_area_.min()[0] &&
+									 it->getPosition()[MZ] <= visible_area_.max()[0] &&
+									 it->getIntensity()>=getLayer(i).min_int && 
+									 it->getIntensity()<=getLayer(i).max_int &&
+									 it->getIntensity() > local_max)
 							{
-								local_max = i->getIntensity();
+								local_max = it->getIntensity();
 							}
 						}
 					}
