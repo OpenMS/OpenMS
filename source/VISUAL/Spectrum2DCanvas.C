@@ -36,7 +36,7 @@
 //QT
 #include <qimage.h>
 #include <qpainter.h>
-
+#include <qbitmap.h>
 
 using namespace std;
 
@@ -252,11 +252,11 @@ namespace OpenMS
 		{
 			p.setPen(Qt::black);
 			
-			QPoint line_end;
+			QPoint line_begin, line_end;
 			
 			if (measurement_stop_)
 			{
-				line_end = dataToWidget_(measurement_stop_->getPosition());
+				 dataToWidget_(measurement_stop_->getPosition(), line_end);
 				//cout << "Line end: " << line_end << endl;
 			}
 			else
@@ -264,8 +264,8 @@ namespace OpenMS
 				line_end = last_mouse_pos_;
 				//cout << "Ende: " << line_end.x() << " " << line_end.y() << endl;
 			}
-			
-			p.drawLine(dataToWidget_(measurement_start_->getPosition()), line_end);
+			dataToWidget_(measurement_start_->getPosition(), line_begin);
+			p.drawLine(line_begin, line_end);
 		}
 		
 		highlightPeak_(&p, measurement_start_);
@@ -275,7 +275,7 @@ namespace OpenMS
 		if (nearest_peak_ && getCurrentLayer().type==LayerData::DT_FEATURE)
 		{
 			p.setPen(QPen(Qt::red, 2));
-			p.setBrush(Qt::NoBrush);
+			//p.setBrush(Qt::NoBrush);
 			paintConvexHulls_(nearest_peak_->getConvexHulls(),&p);
 		}
 	}
@@ -285,7 +285,8 @@ namespace OpenMS
 		if (!peak) return;
 		
 		p->setPen(QPen(Qt::red, 2));
-		QPoint pos(dataToWidget_(peak->getPosition()));
+		QPoint pos;
+		dataToWidget_(peak->getPosition(),pos);
 		p->drawEllipse(pos.x() - 5, pos.y() - 5, 10, 10);
 	}
 	
@@ -635,8 +636,25 @@ namespace OpenMS
 	
 	void Spectrum2DCanvas::paintDots_(UnsignedInt layer_index, QPainter* p)
 	{
+		// Create this dot shape: 
+		// .##.
+		// ####
+		// ####
+		// .##.
+		// This is much faster than always drawing circles
+		QBitmap dotshape(4,4,false);
+		dotshape.fill(Qt::color1);
+		QPainter dotshape_painter(&dotshape);
+		dotshape_painter.setPen(Qt::color0);
+		dotshape_painter.drawPoint(0,0);
+		dotshape_painter.drawPoint(3,3);
+		dotshape_painter.drawPoint(0,3);
+		dotshape_painter.drawPoint(3,0);
+		//shift of the bitmap
+		QPoint shift(2,2);
+		
+		//color pto black in case DOT_BLACK is selected
 		p->setPen(Qt::black);
-		p->setBrush(Qt::black);
 		
 		if (intensity_mode_ == IM_PERCENTAGE)
 		{
@@ -659,6 +677,7 @@ namespace OpenMS
 		
 		double min_int = getLayer(layer_index).min_int;
 		double max_int = getLayer(layer_index).max_int;
+		SignedInt mode = getDotMode();
 		
 		if (getLayer(layer_index).type==LayerData::DT_PEAK) //peaks
 		{
@@ -668,13 +687,12 @@ namespace OpenMS
 			{
 				if (i->getIntensity()>=min_int && i->getIntensity()<=max_int)
 				{
-					if (getDotMode()==DOT_GRADIENT)
+					if (mode==DOT_GRADIENT)
 					{
 						p->setPen(heightColor_(i->getIntensity(), dot_gradient_));
-						p->setBrush(heightColor_(i->getIntensity(), dot_gradient_));
 					}
-					pos = dataToWidget_(i->getPos(), i.getRetentionTime());
-					p->drawEllipse(pos.x() - 2, pos.y() - 2, 4, 4);
+					dataToWidget_(i->getPos(), i.getRetentionTime(),pos);
+					p->drawPixmap(pos-shift, dotshape);
 				}
 			}
 		}
@@ -691,13 +709,12 @@ namespace OpenMS
 						 i->getIntensity()>=min_int &&
 						 i->getIntensity()<=max_int)
 				{
-					if (getDotMode()==DOT_GRADIENT)
+					if (mode==DOT_GRADIENT)
 					{
 						p->setPen(heightColor_(i->getIntensity(), dot_gradient_));
-						p->setBrush(heightColor_(i->getIntensity(), dot_gradient_));
 					}
-					pos = dataToWidget_(i->getPosition()[MZ],i->getPosition()[RT]);
-					p->drawEllipse(pos.x() - 2, pos.y() - 2, 4, 4);
+					dataToWidget_(i->getPosition()[MZ],i->getPosition()[RT],pos);
+					p->drawPixmap(pos-shift, dotshape);
 				}
 			}
 		}
@@ -706,7 +723,7 @@ namespace OpenMS
 	void Spectrum2DCanvas::paintConvexHulls_(UnsignedInt layer_index, QPainter* p)
 	{
 		p->setPen(Qt::black);
-		p->setBrush(Qt::NoBrush);
+		//p->setBrush(Qt::NoBrush);
 
 		double min_int = getLayer(layer_index).min_int;
 		double max_int = getLayer(layer_index).max_int;
@@ -736,10 +753,12 @@ namespace OpenMS
 		{
 			points.resize(hulls[hull].getPoints().size());
 			UnsignedInt index=0;
+			QPoint pos;
 			//iterate over hull points
 			for(DFeature<2>::ConvexHullType::PointArrayType::const_iterator it=hulls[hull].getPoints().begin(); it!=hulls[hull].getPoints().end(); ++it, ++index)
 			{
-				points.setPoint(index, dataToWidget_(it->Y(), it->X()));
+				dataToWidget_(it->Y(), it->X(),pos);
+				points.setPoint(index, pos);
 			}	
 			//cout << "Hull: " << hull << " Points: " << points.size()<<endl;
 			p->drawPolygon(points);
@@ -761,7 +780,9 @@ namespace OpenMS
 		SignedInt pixel_height = height() / steps;
 		float data_width = visible_area_.width() / steps;
 		float data_height = visible_area_.height() / steps;
-	
+		
+		QPoint cell_pos;
+		
 		// draw the lines
 		float y = visible_area_.minY();
 		for (int i = 0; i < steps; i++)
@@ -785,7 +806,8 @@ namespace OpenMS
 				  right_bottom = marching_squares_matrices_[layer_index][i + 1][j];		
 				}
 	
-				QPoint cell_pos = dataToWidget_(x, y) - QPoint(0,pixel_height+1);
+				dataToWidget_(x, y, cell_pos);
+				cell_pos.setY(cell_pos.y() - (pixel_height+1));
 
 				const float minimum = min(left_top, min(right_top, min(left_bottom, right_bottom)));
 				const float maximum = max(left_top, max(right_top, max(left_bottom, right_bottom)));
@@ -976,6 +998,7 @@ namespace OpenMS
 		//draw
 		QRgb* pixel;
 		float y = visible_area_.minY();
+		QPoint cell_pos;
 		for (int i = 0; i < steps; i++)
 		{
 			float x = visible_area_.minX();
@@ -996,7 +1019,8 @@ namespace OpenMS
 					left_top = color_matrix[i][j + 1];
 					right_bottom = color_matrix[i + 1][j];					
 				}
-				QPoint cell_pos = dataToWidget_(x, y) - QPoint(0,pixel_height+1);
+				dataToWidget_(x, y, cell_pos);
+				cell_pos.setY(cell_pos.y() - (pixel_height+1));
 				
 				//cout << cell_pos.x() << " " << cell_pos.y() << endl;
 				

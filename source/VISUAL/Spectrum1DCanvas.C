@@ -86,9 +86,9 @@ namespace OpenMS
 		changeVisibleArea_(AreaType(lo, visible_area_.minY(), hi, visible_area_.maxY()), add_to_stack);
 	}
 	
-	QPoint Spectrum1DCanvas::dataToWidget_(const PeakType& peak)
+	void Spectrum1DCanvas::dataToWidget_(const PeakType& peak, QPoint& point)
 	{
-		return SpectrumCanvas::dataToWidget_(peak.getPosition()[0], snap_factor_*percentage_factor_*peak.getIntensity());
+		SpectrumCanvas::dataToWidget_(peak.getPosition()[0], snap_factor_*percentage_factor_*peak.getIntensity(), point);
 	}
 	
 	//////////////////////////////////////////////////////////////////////////////////
@@ -117,9 +117,12 @@ namespace OpenMS
 			{
 				if (action_mode_ == AM_ZOOM)
 				{
-					rubber_band_.show();	
-					rubber_band_.setTopLeft(SpectrumCanvas::dataToWidget_(pos.X(), overall_data_range_.maxY()));
-					rubber_band_.setBottomRight(SpectrumCanvas::dataToWidget_(pos.X(), overall_data_range_.minY()));
+					rubber_band_.show();
+					QPoint tmp;
+					SpectrumCanvas::dataToWidget_(pos.X(), overall_data_range_.maxY(), tmp);
+					rubber_band_.setTopLeft(tmp);
+					SpectrumCanvas::dataToWidget_(pos.X(), overall_data_range_.minY(),tmp);
+					rubber_band_.setBottomRight(tmp);
 	
 					rubber_band_.updateRegion(this);
 				}
@@ -302,7 +305,9 @@ namespace OpenMS
 					else // zoom on position axis only
 					{
 						rubber_band_.updateRegion(this);
-						rubber_band_.setBottomRight(SpectrumCanvas::dataToWidget_(pos.X(), overall_data_range_.minY()));
+						QPoint tmp;
+						SpectrumCanvas::dataToWidget_(pos.X(), overall_data_range_.minY(),tmp);
+						rubber_band_.setBottomRight(tmp);
 						rubber_band_.updateRegion(this);
 					}
 				}
@@ -405,9 +410,12 @@ namespace OpenMS
 		//	cout << left_it->getIntensity() << " " << right_it->getIntensity() << endl;
 	
 		SpectrumIteratorType nearest_it = left_it;
-	
-		double dest_interval_start = SpectrumCanvas::dataToWidget_(0, overall_data_range_.minY()).y();
-		double dest_interval_end = SpectrumCanvas::dataToWidget_(0, overall_data_range_.maxY()).y();
+		
+		QPoint tmp;
+		SpectrumCanvas::dataToWidget_(0, overall_data_range_.minY(),tmp);
+		double dest_interval_start = tmp.y();
+		SpectrumCanvas::dataToWidget_(0, overall_data_range_.maxY(),tmp);
+		double dest_interval_end = tmp.y();
 		//double dest_interval_start, dest_interval_end;
 		// select source interval start and end depending on diagram orientation
 	
@@ -572,13 +580,13 @@ namespace OpenMS
 			}
 			if (intensity_mode_==IM_LOG)
 			{
-				p = SpectrumCanvas::dataToWidget_(it->getPosition()[0], log(it->getIntensity()+1)*log_factor);
+				SpectrumCanvas::dataToWidget_(it->getPosition()[0], log(it->getIntensity()+1)*log_factor,p);
 			}
 			else
 			{
-				p = dataToWidget_(*it);
+				dataToWidget_(*it,p);
 			}
-			p0 = SpectrumCanvas::dataToWidget_(it->getPosition()[0], 0.0f);
+			SpectrumCanvas::dataToWidget_(it->getPosition()[0], 0.0f, p0);
 			
 			// highlight selected peak
 			if (it->getPosition()[0] == nearest_peak_->getPosition()[0])
@@ -614,7 +622,9 @@ namespace OpenMS
 		painter_.save();
 		painter_.setBrush(NoBrush);
 		painter_.setPen(norm_pen_);
-
+		
+		QPoint begin, end;
+		
 		//Factor to stretch the log value to the shown intensity interval
 		float log_factor = getPeakData(index).getMaxInt()/log(getPeakData(index).getMaxInt());
 		
@@ -633,7 +643,9 @@ namespace OpenMS
 				return;
 			}
 			// draw line (clipping performed by Qt on both sides)
-			painter_.drawLine(dataToWidget_(*(visible_begin_[index] - 1)), dataToWidget_(*visible_begin_[index]));
+			dataToWidget_(*(visible_begin_[index] - 1), begin);
+			dataToWidget_(*visible_begin_[index], end);
+			painter_.drawLine(begin, end);
 			return;
 		}
 	
@@ -645,11 +657,11 @@ namespace OpenMS
 		{
 			if (intensity_mode_==IM_LOG)
 			{
-				p = SpectrumCanvas::dataToWidget_(it->getPosition()[0], log(it->getIntensity()+1)*log_factor);
+				SpectrumCanvas::dataToWidget_(it->getPosition()[0], log(it->getIntensity()+1)*log_factor,p);
 			}
 			else
 			{
-				p = dataToWidget_(*it);
+				dataToWidget_(*it, p);
 			}
 
 			// connect lines
@@ -693,13 +705,17 @@ namespace OpenMS
 		// clipping on left side
 		if (visible_begin_[index] > getPeakData_(index)[0].begin())
 		{
-			painter_.drawLine(dataToWidget_(*(visible_begin_[index]-1)), dataToWidget_(*(visible_begin_[index])));
+			dataToWidget_(*(visible_begin_[index]-1), begin);
+			dataToWidget_(*(visible_begin_[index]), end);
+			painter_.drawLine(begin, end);
 		}
 	
 		// clipping on right side
 		if (visible_end_[index] < getPeakData_(index)[0].end())
 		{
-			painter_.drawLine( dataToWidget_(*(visible_end_[index]-1)), dataToWidget_(*(visible_end_[index])));
+			dataToWidget_(*(visible_end_[index]-1), begin);
+			dataToWidget_(*(visible_end_[index]), end);
+			painter_.drawLine(begin,end);
 		}
 	
 		painter_.restore();

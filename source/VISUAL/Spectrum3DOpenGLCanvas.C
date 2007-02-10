@@ -693,6 +693,8 @@ GLuint Spectrum3DOpenGLCanvas::makeCoordinates()
 
 GLuint Spectrum3DOpenGLCanvas::makeDataAsTopView()
 {
+	SignedInt mode = canvas_3d_.getPref("Preferences:3D:Dot:Mode");
+	
 	GLuint list = glGenLists(1);
 	glNewList(list,GL_COMPILE);
 	glPointSize(3.0);
@@ -732,7 +734,7 @@ GLuint Spectrum3DOpenGLCanvas::makeDataAsTopView()
 							if(it->getIntensity()>= min_int && it->getIntensity()<= max_int)
 							{
 								glBegin(GL_POINTS);
-								if(int(canvas_3d_.getPref("Preferences:3D:Dot:Mode")))
+								if(mode)
 								{
 									double intensity = 0;
 									switch (canvas_3d_.intensity_mode_)
@@ -776,6 +778,8 @@ GLuint Spectrum3DOpenGLCanvas::makeDataAsTopView()
 
 GLuint Spectrum3DOpenGLCanvas::makeDataAsStick()
 {
+	SignedInt mode = canvas_3d_.getPref("Preferences:3D:Dot:Mode");
+				
 	GLuint list = glGenLists(1);
 	glNewList(list,GL_COMPILE);
 	glLineWidth(canvas_3d_.getPref("Preferences:3D:Dot:LineWidth"));
@@ -815,7 +819,7 @@ GLuint Spectrum3DOpenGLCanvas::makeDataAsStick()
 					{
 						glBegin(GL_LINES);
 			
-						if(int(canvas_3d_.getPref("Preferences:3D:Dot:Mode")))
+						if(mode)
 						{
 							double intensity = 0;
 							switch (canvas_3d_.intensity_mode_)

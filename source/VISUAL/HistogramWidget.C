@@ -49,9 +49,6 @@ namespace OpenMS
 	moving_splitter_(0),
 	margin_(30)
 	{
-		//use log scale for int
-		dist_.applyLogTransformation();
-		
 		left_splitter_ =  dist_.min();
 		right_splitter_ = dist_.max();
 		setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);

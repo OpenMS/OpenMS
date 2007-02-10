@@ -64,9 +64,8 @@ namespace OpenMS
   	@brief MDI window of TOPPView tool
   	
   	@todo Add preferences for layers (Marc)
-  	@todo Reimplement PrefernceDialogPages (Marc)
+  	@todo Reimplement PreferenceDialogPages (Marc)
   	@todo Use right mouse button for navigation in data (Marc)
-  	@todo Improve performance of dataToWidget_ (Marc)
   */
   class TOPPViewBase : public QMainWindow, public PreferencesManager
   {

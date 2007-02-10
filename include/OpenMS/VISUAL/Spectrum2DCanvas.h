@@ -61,7 +61,6 @@ namespace OpenMS
   	
   	@todo Add visualization of feature pairs -> change LabeledMatcher (Marc)
   	@todo Add reduction of 2D data (Marc)
-  	@todo Try: drawing rectangles instead of circles, not using a brush but a wider pen (Marc)
   	
   	@ingroup spectrum_widgets
   */
@@ -84,7 +83,7 @@ namespace OpenMS
       {
         DOT_BLACK = 0,            ///< use black only
         DOT_GRADIENT = 1          ///< use gradient
-    };
+    	};
 
       //@}
 

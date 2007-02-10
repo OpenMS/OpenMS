@@ -630,30 +630,26 @@ namespace OpenMS
 			Translates chart coordinates to widget coordinates.
 			@param x the chart coordinate x
 			@param y the chart coordinate y
-			@return widget coordinates
+			@param point returned widget coordinates
 		*/
-		inline QPoint dataToWidget_(float x, float y)
+		inline void dataToWidget_(float x, float y, QPoint& point)
 		{
 			if (!isMzToXAxis())
 			{
-				return QPoint(
-					 				static_cast<int>((y - visible_area_.minY()) / visible_area_.height() * width()),
-					 				height() - static_cast<int>((x - visible_area_.minX()) / visible_area_.width() * height())
-						      );
+				point.setX( static_cast<int>((y - visible_area_.minY()) / visible_area_.height() * width()));
+				point.setY(height() - static_cast<int>((x - visible_area_.minX()) / visible_area_.width() * height()));
 			}
 			else
 			{
-				return QPoint(
-					       static_cast<int>((x - visible_area_.minX()) / visible_area_.width() * width()),
-						     height() - static_cast<int>((y - visible_area_.minY()) / visible_area_.height() * height())
-						     );		
+				point.setX( static_cast<int>((x - visible_area_.minX()) / visible_area_.width() * width()));
+				point.setY( height() - static_cast<int>((y - visible_area_.minY()) / visible_area_.height() * height()));
 			}
 		}
 		
-		/// Calls dataToWidget_(float, float) with x and y position of @p pos
-		inline QPoint dataToWidget_(const PointType& pos)
+		/// Calls dataToWidget_(float x, float y, QPoint& point) with x and y position of @p pos
+		inline void dataToWidget_(const PointType& pos, QPoint& point)
 		{
-			return dataToWidget_(pos.X(), pos.Y());
+			dataToWidget_(pos.X(), pos.Y(),point);
 		}
 		
 		/**
