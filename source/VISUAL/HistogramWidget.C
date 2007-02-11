@@ -47,8 +47,12 @@ namespace OpenMS
 	dist_(distribution),
 	show_splitters_(false),
 	moving_splitter_(0),
-	margin_(30)
+	margin_(30),
+	scaling_factor_(100)
 	{
+     //use log scale for int 	 
+     dist_.applyLogTransformation(100);
+     
 		left_splitter_ =  dist_.min();
 		right_splitter_ = dist_.max();
 		setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
@@ -230,7 +234,7 @@ namespace OpenMS
 		for (UnsignedInt i=0; i<dist_.size();++i)
 		{
 			UnsignedInt p = UnsignedInt((float(i)/(dist_.size()-1))*(w-margin_));
-			UnsignedInt top = UnsignedInt((float(dist_[i])/dist_.maxValue())*(h-margin_));
+			UnsignedInt top = UnsignedInt(((dist_[i] / scaling_factor_)/(dist_.maxValue() / scaling_factor_))*(h-margin_));
 			painter.drawLine(p+1,h,p+1,h-top);
 		}
 	
@@ -238,7 +242,7 @@ namespace OpenMS
 		float total_sum=0;
 		for (UnsignedInt i=0; i<dist_.size();++i)
 		{
-			total_sum += dist_.min()+(i+0.5)*dist_.binSize() * dist_[i];
+			total_sum += (dist_[i] / scaling_factor_);
 		}	
 	
 		// draw part of total intensity
@@ -248,7 +252,7 @@ namespace OpenMS
 		float int_sum=0;
 		for (UnsignedInt i=0; i<dist_.size();++i)
 		{
-			int_sum += dist_.min()+(i+0.5)*dist_.binSize() * dist_[i];
+			int_sum += (dist_[i] / scaling_factor_);
 			point.setX(UnsignedInt((float(i)/(dist_.size()-1))*(w-margin_)));
 			point.setY(UnsignedInt((1-(int_sum / total_sum))*(h-margin_)+margin_));
 			painter.drawLine(last_point,point);

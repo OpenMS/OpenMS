@@ -232,6 +232,15 @@ namespace OpenMS
 			/// Non-mutable iterator pointing after the last bin
 			inline ConstIterator end() const { return bins_.end(); }
 			//@}
+
+			/// Transforms the bin values with f(x)=multiplier*log(x+1) 	 
+			void applyLogTransformation(float multiplier) 	 
+			{ 	 
+				for (typename std::vector<ValueType>::iterator it = bins_.begin(); it!=bins_.end(); ++it) 	 
+				{ 	 
+					*it = (ValueType)(multiplier*log((float)(*it+1.0f))); 	 
+				} 	 
+			}
 			
 		protected:
 			/// Lower bound

@@ -91,7 +91,11 @@ namespace OpenMS
 			QPixmap* buffer_;
 			/// repaints the contents to the buffer and calls update()
 			void invalidate_();
-	
+			
+			/// Factor that is used to for scaling the intensities after the log transformation. 
+			/// The higher this factor is the smoother is the diagram.
+			float scaling_factor_;
+			
 			void paintEvent( QPaintEvent * );
 			void mousePressEvent( QMouseEvent *);
 			void mouseReleaseEvent( QMouseEvent *);
