@@ -2,7 +2,7 @@
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
-//                   OpenMS Mass Spectrometry Framework
+//                   OpenMS Mass Spectrometry Framework 
 // --------------------------------------------------------------------------
 //  Copyright (C) 2003-2007 -- Oliver Kohlbacher, Knut Reinert
 //
@@ -21,47 +21,41 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Ole Schulz-Trieglaff $
+// $Maintainer: Marc Sturm $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_TRANSFORMATIONS_FEATUREFINDER_BASESEEDER_H
-#define OPENMS_TRANSFORMATIONS_FEATUREFINDER_BASESEEDER_H
+#ifndef OPENMS_DATASTRUCTURES_ISOTOPECLUSTER_H
+#define OPENMS_DATASTRUCTURES_ISOTOPECLUSTER_H
 
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeaFiModule.h>
+#include <OpenMS/CONCEPT/Types.h>
+
+#include <set>
 
 namespace OpenMS
-{
-  /** 
-  	@brief Abstract base class for Seeder-Module of FeatureFinder 
-   
-	 	Abstract base class for Seeder-Module of FeatureFinder
-    every derived class has to implement the static functions
-    "T* create()" and "const String getProductName()" (see FactoryProduct for details)
-    
-    @ingroup FeatureFinder
-  */
-  class BaseSeeder
-  	: public FeaFiModule
+{	
+	///Stores information about an isotopic cluster (i.e. potential peptide charge variants)
+  struct IsotopeCluster
   {
-
-	  public:	  	
-	    /// Default constructor 
-	    BaseSeeder();
-	
-	    /// copy constructor 
-	    BaseSeeder(const BaseSeeder& source);
-	
-	    /// destructor 
-	    virtual ~BaseSeeder();
-	
-	    /// assignment operator 
-	    virtual BaseSeeder& operator = (const BaseSeeder& source);
-	
-	    /// register all derived classes here 
-	    static void registerChildren();
-	
-	    /// return next seed 
-	    virtual IndexSet nextSeed() throw (NoSuccessor)=0;
+  	//An index in an MSExperiment
+  	typedef std::pair<UnsignedInt,UnsignedInt> IDX;
+  	
+    IsotopeCluster()
+      : charge_(0), 
+      	peaks_(), 
+      	scans_()
+    {
+    }
+    
+    /// predicted charge state of this peptide
+    UnsignedInt charge_;
+    
+    /// peaks in this cluster
+    std::set<IDX> peaks_;
+    
+    /// the scans of this cluster
+    std::vector<UnsignedInt> scans_;
   };
-}
-#endif // OPENMS_TRANSFORMATIONS_FEATUREFINDER_BASESEEDER_H
+
+} // namespace OPENMS
+
+#endif // OPENMS_DATASTRUCTURES_ISOTOPECLUSTER_H

@@ -29,6 +29,7 @@
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/BaseSeeder.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeaFiTraits.h>
+#include <OpenMS/DATASTRUCTURES/IsotopeCluster.h>
 
 namespace OpenMS
 {
