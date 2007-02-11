@@ -40,4 +40,16 @@ namespace OpenMS {
 	{
 		
 	}
+	
+	void DFeaturePairsFile::pairsToFeatures(const DFeaturePairVector<2>& pairs, DFeatureMap<2>& map)
+	{
+		map.clear();
+
+		for (Size i=0; i<pairs.size(); ++i)
+		{
+			map.push_back(pairs[i].getFirst());
+			map.push_back(pairs[i].getSecond());
+		}
+	}
+	
 }

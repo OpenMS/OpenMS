@@ -329,10 +329,12 @@ namespace OpenMS
 
 		/**
 			@brief Add a feature data layer (data is copied)
-		
+			
+			@param pairs Flag that indicates that a feature pair file was read.
+			
 			@return the index of the new layer. -1 if no new layer was created.
 		*/
-		SignedInt addLayer(const FeatureMapType&);
+		SignedInt addLayer(const FeatureMapType& map, bool pairs);
 		
 		//@}
 		

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
-<pairlist>
+<featurePairs>
 <pair nr="0">
 	<pairquality>0.340362</pairquality>
 	<first>
@@ -551,7 +551,7 @@
 	</feature>
 	</second>
 </pair>
-</pairlist>
+</featurePairs>
 <!-- Local Variables: -->
 <!-- mode: nxml -->
 <!-- tab-width: 2 -->

@@ -94,18 +94,17 @@ namespace OpenMS
 				try
 				{
 					tree.insert(features_[i].getPosition(), &features_[i] );
-				}catch(Exception::IllegalTreeOperation e)
+				}
+				catch(Exception::IllegalTreeOperation e)
 				{
 					cout << "Warning: Multiple identical feature positions in given feature map!" << endl;
 				}
 			}
 
-			// clear convex hulls and meta value, set id for each feature
+			// set id for each feature
 			int id = -1;
 			for (FeatureMapType::Iterator it = features_.begin(); it != features_.end(); ++it)
 			{
-				it->getConvexHulls().clear();
-				it->setMetaValue(3,std::string(""));
 				it->setMetaValue(ID,++id);
 			}
 
@@ -187,47 +186,6 @@ namespace OpenMS
 				}
 			}
 			return best_pairs_;
-		}
-
-		void PairMatcher::fillFeatureMap(FeatureMapType& map, const PairVectorType& pairs)
-		{
-			map.clear();
-			// put pairs in feature map, make sure every feature is unique
-			// to avoid problems with quad tree in TOPPView
-			typedef std::map< DPosition<2> , DFeature<2> > UniqueFeatureMap;
-			UniqueFeatureMap tmp;
-
-			for (Size i=0; i<pairs.size(); ++i)
-			{
-				tmp.insert( make_pair( pairs[i].getFirst().getPosition() , pairs[i].getFirst()) );
-				tmp.insert( make_pair( pairs[i].getSecond().getPosition(), pairs[i].getSecond()) );
-
-				UniqueFeatureMap::iterator first = tmp.find( pairs[i].getFirst().getPosition() );
-
-				DFeature<2>::ConvexHullType hull;
-				const double fak = 0.3;
-				hull.addPoint( pairs[i].getFirst().getPosition() - DPosition<2>(fak,0) );
-				hull.addPoint( pairs[i].getFirst().getPosition() - DPosition<2>(0,fak) );
-				hull.addPoint( pairs[i].getFirst().getPosition() + DPosition<2>(fak,0) );
-				hull.addPoint( pairs[i].getFirst().getPosition() + DPosition<2>(0,fak) );
-				hull.addPoint( pairs[i].getSecond().getPosition() + DPosition<2>(fak,0) );
-				hull.addPoint( pairs[i].getSecond().getPosition() + DPosition<2>(0,fak) );
-				hull.addPoint( pairs[i].getSecond().getPosition() - DPosition<2>(fak,0) );
-				hull.addPoint( pairs[i].getSecond().getPosition() - DPosition<2>(0,fak) );
-				first->second.getConvexHulls().push_back( hull );
-
-				DPosition<2> diff = pairs[i].getFirst().getPosition()-pairs[i].getSecond().getPosition();
-				double ratio = pairs[i].getFirst().getIntensity()/pairs[i].getSecond().getIntensity();
-				
-				stringstream s;
-				s << string(first->second.getMetaValue(3)) << "Quality: " << pairs[i].getQuality() << ", Intens.Ratio: "
-					<< ratio << ", Dist.: RT " << fabs(diff[RT]) << ", MZ " << fabs(diff[MZ]) << "; ";
-				
-				first->second.setMetaValue(3,s.str());
-			}
-
-			for (UniqueFeatureMap::const_iterator it=tmp.begin(); it!=tmp.end(); ++it)
-				map.push_back(it->second);
 		}
 
 		void PairMatcher::printInfo(std::ostream& out, const PairVectorType& pairs)

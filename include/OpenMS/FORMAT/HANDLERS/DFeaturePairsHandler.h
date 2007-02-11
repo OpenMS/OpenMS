@@ -274,7 +274,7 @@ namespace OpenMS
 	{
 
 		os << "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>\n";
-		os << "<pairlist>" << std::endl;
+		os << "<featurePairs>" << std::endl;
 
 		// write features with their attributes
 		for (UnsignedInt s=0; s<cpairs_->size(); s++)
@@ -298,7 +298,7 @@ namespace OpenMS
 
 		} // end for ( features )
 
-		os << "</pairlist>" << std::endl;
+		os << "</featurePairs>" << std::endl;
 		os <<
 			"<!-- Local Variables: -->\n"
 			"<!-- mode: nxml -->\n"

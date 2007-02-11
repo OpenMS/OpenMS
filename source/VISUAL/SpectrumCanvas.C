@@ -325,11 +325,18 @@ namespace OpenMS
 		return finishAdding();
 	}
 
-	SignedInt SpectrumCanvas::addLayer(const FeatureMapType& in)
+	SignedInt SpectrumCanvas::addLayer(const FeatureMapType& map, bool pairs)
 	{
 		layers_.resize(layers_.size()+1);
-		layers_.back().features = in;
-		layers_.back().type = LayerData::DT_FEATURE;
+		layers_.back().features = map;
+		if (pairs)
+		{
+			layers_.back().type = LayerData::DT_FEATURE_PAIR;
+		}
+		else
+		{
+			layers_.back().type = LayerData::DT_FEATURE;
+		}
 		return finishAdding();
 	}
 	

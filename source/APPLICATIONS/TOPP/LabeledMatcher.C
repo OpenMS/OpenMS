@@ -24,8 +24,8 @@
 // $Maintainer: Marc Sturm $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/FORMAT/DFeatureMapFile.h>
 #include <OpenMS/FORMAT/DFeaturePairsFile.h>
+#include <OpenMS/FORMAT/DFeatureMapFile.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/PairMatcher.h>
 #include <OpenMS/KERNEL/ComparatorUtils.h>
 #include <OpenMS/KERNEL/DFeatureMap.h>
@@ -50,9 +50,7 @@ using namespace std;
  
 	This module identifies pairs of isotope-labeled features in a LC/MS features map.
 	By feature, we understand a peptide in a MS sample that reveals a characteristic isotope distribution.
- 	
- 	@todo remove vis_all and vis_best as soon as FeaturePair files can be shown in TOPPView (Marc)
- 	
+
 */
 
 // We do not want this class to show up in the docu:
@@ -75,8 +73,7 @@ class TOPPLabeledMatcher
 	  {
 			registerStringOption_("in","<file>","","input file in FeatureMap format");
 			registerStringOption_("out","<file>","","output file in FeaturePairs format");
-			registerStringOption_("vis_all","<file>","","output file of all pairs for visualisation in TOPPView", false);
-			registerStringOption_("vis_best","<file>","","output file of the best pairs for visualisation in TOPPView", false);
+			registerStringOption_("best","<file>","","output file of the best pairs in FeaturePairs format", false);
 	  	addEmptyLine_();
 	  	addText_("RT and m/z shifts and ranges can currently only be given in the 'algorithm' part of INI file:\n"
 							 "  <NODE name=\"algorithm\">\n"
@@ -102,18 +99,12 @@ class TOPPLabeledMatcher
 	    // input file to be read
 	    String inputfile = "";
 	
-	    // output file to be written
-	    String outputfile = "";
-	    String vis_all_outputfile = "";
-	    String vis_best_outputfile = "";
-	
 	    // determine name of input file
 	    inputfile = getStringOption_("in");
-	    outputfile = getStringOption_("out");
+	    String outputfile = getStringOption_("out");
 	
 	    // determine name ouf visualization output file
-	    vis_all_outputfile = getStringOption_("vis_all");
-	    vis_best_outputfile = getStringOption_("vis_best");
+	    String best_outputfile = getStringOption_("best");
 	
 	    //-------------------------------------------------------------
 	    // reading input
@@ -144,30 +135,19 @@ class TOPPLabeledMatcher
 	
 	    const DFeaturePairVector<2>* pairs = &pm.run();
 	
-	    // save pairs in DFeatureMap for visualization in TOPPView
-	    // (until visualization of DFeaturePairFile is available)
-	    if (vis_all_outputfile!="")
-	    {
-	      DFeatureMap<2> map;
-	      PairMatcher::fillFeatureMap(map,*pairs);
-	      DFeatureMapFile().store(vis_all_outputfile,map);
-	    }
-	
-	    if (vis_best_outputfile!="")
-	    {
-	      DFeatureMap<2> map;
-	      pairs = &pm.getBestPairs();
-	      PairMatcher::fillFeatureMap(map,*pairs);
-	      DFeatureMapFile().store(vis_best_outputfile,map);
-	    }
-	
 	    //-------------------------------------------------------------
 	    // writing files
 	    //-------------------------------------------------------------
 	
 	    writeDebug_(String(" Writing results to ") + outputfile, 1 );
 	    DFeaturePairsFile().store(outputfile,*pairs);
-	
+			
+			writeDebug_(String(" Writing results to ") + best_outputfile, 1 );
+			if (best_outputfile!="")
+	    {
+	    	DFeaturePairsFile().store(best_outputfile,pm.getBestPairs());
+	    }
+			
 	    return EXECUTION_OK;
 	  }
 };

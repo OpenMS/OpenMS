@@ -155,20 +155,6 @@ CHECK((static void printInfo(std::ostream& out, const PairVectorType& pairs)))
 	TEST_EQUAL(s.str(), "Found the following 1 pairs:\nQuality\tFirst[RT]\tFirst[MZ]\tFirst[Int]\tFirst[Corr]\tSecond[RT]\tSecond[MZ]\tSecond[Int]\tSecond[Corr]\tRatio\tCharge\tDiff[RT]\tDiff[MZ]\n0.36\t0.10\t0.00\t1.00\t1.00\t0.00\t4.00\t2.00\t1.00\t0.50\t1\t0.10\t-4.00\n");
 RESULT
 
-CHECK((static void fillFeatureMap(FeatureMapType&, const PairVectorType&)))
-	PairMatcher pm(features);
-	const Pairs& pairs = pm.run();
-
-	Features pair_feats;
-	PairMatcher::fillFeatureMap(pair_feats,pairs);
-	TEST_EQUAL(pair_feats.size(),3)
-	ABORT_IF(pair_feats.size()!=3)
-	TEST_EQUAL(pair_feats[0].getPosition(), features[1].getPosition())
-	TEST_EQUAL(pair_feats[1].getPosition(), features[0].getPosition())
-	TEST_EQUAL(pair_feats[2].getPosition(), features[3].getPosition())
-
-RESULT
-
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST

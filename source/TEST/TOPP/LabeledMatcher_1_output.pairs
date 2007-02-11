@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
-<pairlist>
+<featurePairs>
 <pair nr="0">
 	<pairquality>12</pairquality>
 	<first>
@@ -13,6 +13,24 @@
 		<charge>1</charge>
 		<model name="">
 		</model>
+		<convexhull nr="0">
+			<hullpoint>
+				<hposition dim="0">11</hposition>
+				<hposition dim="1">560</hposition>
+			</hullpoint>
+			<hullpoint>
+				<hposition dim="0">12</hposition>
+				<hposition dim="1">558</hposition>
+			</hullpoint>
+			<hullpoint>
+				<hposition dim="0">11</hposition>
+				<hposition dim="1">556</hposition>
+			</hullpoint>
+			<hullpoint>
+				<hposition dim="0">10</hposition>
+				<hposition dim="1">558</hposition>
+			</hullpoint>
+		</convexhull>
 	</feature>
 	</first>
 	<second>
@@ -58,7 +76,7 @@
 	</feature>
 	</second>
 </pair>
-</pairlist>
+</featurePairs>
 <!-- Local Variables: -->
 <!-- mode: nxml -->
 <!-- tab-width: 2 -->

@@ -71,7 +71,7 @@ void Spectrum3DCanvas::showLegend(bool show)
 }
 SignedInt Spectrum3DCanvas::finishAdding(float low_intensity_cutoff)
 {
-	if (layers_.back().type==LayerData::DT_FEATURE)
+	if (layers_.back().type!=LayerData::DT_PEAK)
 	{
 		return -1;
 	}

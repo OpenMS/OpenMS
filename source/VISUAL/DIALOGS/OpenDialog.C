@@ -87,8 +87,8 @@ namespace OpenMS
 			filter_single += ";;ANDI/MS files (*.cdf;*.CDF)";
 			filter_all +=";*.cdf;*.CDF";
 	#endif
-			filter_single +=";;mzXML files (*.mzXML;*.mzxml;*.MZXML);;mzData files (*.mzData;*.mzdata;*.MZDATA);;feature map (*.feat;*.FEAT);;all files (*.*)";
-			filter_all += ";*.mzXML;*.mzxml;*.MZXML;*.mzData;*.mzdata;*.MZDATA;*.feat;*.FEAT);;" + filter_single;
+			filter_single +=";;mzXML files (*.mzXML;*.mzxml;*.MZXML);;mzData files (*.mzData;*.mzdata;*.MZDATA);;feature map (*.feat;*.FEAT);;feature pairs (*.pairs;*.PAIRS);;all files (*.*)";
+			filter_all += ";*.mzXML;*.mzxml;*.MZXML;*.mzData;*.mzdata;*.MZDATA;*.feat;*.FEAT;*.pairs;*.PAIRS);;" + filter_single;
 		
 		 	QStringList files = QFileDialog::getOpenFileNames(filter_all.c_str(), prefs_.getValue("Preferences:DefaultPath").toString().c_str(), this,"open file dialog", "Select file(s) to open");
 			//check if the dialog was canceled

@@ -45,9 +45,10 @@ namespace OpenMS
 		///Dataset types
 		enum DataType
 		{
-			DT_PEAK,		    ///< Peak/Raw data
-			DT_FEATURE,	    ///< Feature data
-			DT_UNKNOWN			///< Undefined data type indicating an error
+			DT_PEAK,		      ///< Peak/Raw data
+			DT_FEATURE,	      ///< Feature data
+			DT_FEATURE_PAIR,	///< Feature pair data (treated like features, but a line is drawn between even and uneven indices)
+			DT_UNKNOWN			  ///< Undefined data type indicating an error
 		};
 		/// Main data type (experiment)
 		typedef MSExperiment<> ExperimentType;

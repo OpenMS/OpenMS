@@ -62,6 +62,7 @@
 #include <OpenMS/VISUAL/Spectrum3DCanvas.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/VISUAL/MSMetaDataExplorer.h>
+#include <OpenMS/FORMAT/DFeaturePairsFile.h>
 
 // Qt
 #include <qaction.h>
@@ -522,7 +523,7 @@ namespace OpenMS
       {
         w = new Spectrum1DWindow(ws_,"Spectrum1DWindow",WDestructiveClose);
       }
-      else if (maps_as_2d || force_type==FileHandler::FEATURE) //2d or features
+      else if (maps_as_2d || force_type==FileHandler::FEATURE || force_type==FileHandler::FEATURE_PAIRS) //2d or features
       {
         w = new Spectrum2DWindow(ws_,"Spectrum1DWindow",WDestructiveClose);
       }
@@ -566,8 +567,8 @@ namespace OpenMS
       }
     }
 
-    //try to read the data from file (feature)
-    if (force_type==FileHandler::FEATURE)
+    //try to read the data from file
+    if (force_type==FileHandler::FEATURE) //features
     {
       DFeatureMap<2> map;
       try
@@ -579,7 +580,27 @@ namespace OpenMS
         QMessageBox::warning(this,"Error",(String("Error while reading feature file: ")+e.what()).c_str());
         return;
       }
-      w->widget()->canvas()->addLayer(map);
+      w->widget()->canvas()->addLayer(map,false);
+      w->widget()->canvas()->setCurrentLayerName(caption);
+    }
+    else if (force_type==FileHandler::FEATURE_PAIRS) //feature pairs
+    {
+    	//load pairs
+      DFeaturePairVector<2> pairs;
+      try
+      {
+        DFeaturePairsFile().load(filename,pairs);
+      }
+      catch(Exception::Base& e)
+      {
+        QMessageBox::warning(this,"Error",(String("Error while reading feature pairs file: ")+e.what()).c_str());
+        return;
+      }
+      
+      //convert to features
+      DFeatureMap<2> map;
+      DFeaturePairsFile::pairsToFeatures(pairs,map);
+      w->widget()->canvas()->addLayer(map,true);
       w->widget()->canvas()->setCurrentLayerName(caption);
     }
     else
@@ -905,14 +926,14 @@ namespace OpenMS
     	}
 			QDialog *dlg = new QDialog(this,QString::null, true);
       dlg->setCaption("Edit meta data");
-			MSMetaDataExplorer expolorer(dlg);
+			MSMetaDataExplorer explorer(dlg);
       if (layer.type==LayerData::DT_PEAK) //peak data
     	{
-    		expolorer.add(&(const_cast<LayerData&>(layer).peaks));
+    		explorer.add(&(const_cast<LayerData&>(layer).peaks));
     	}
     	else //feature data
     	{
-    		expolorer.add(&(const_cast<LayerData&>(layer).features));
+    		explorer.add(&(const_cast<LayerData&>(layer).features));
     	}
       dlg->exec();
     }
@@ -2230,7 +2251,7 @@ namespace OpenMS
         DFeatureMap<2> map = finder.run();
 
         //display features
-        w->widget()->canvas()->addLayer(map);
+        w->widget()->canvas()->addLayer(map,false);
         w->widget()->canvas()->setCurrentLayerName(w->widget()->canvas()->getCurrentLayer().name+" (features)");
         updateLayerbar();
       }

@@ -32,7 +32,7 @@ using namespace std;
 
 namespace OpenMS
 {
-	const std::string FileHandler::NamesOfTypes[] = {"Unknown", "DTA", "DTA2D", "mzData", "mzXML", "FeatureFile", "ANDIMS" };
+	const std::string FileHandler::NamesOfTypes[] = {"Unknown", "DTA", "DTA2D", "mzData", "mzXML", "FeatureFile", "FeaturePairs", "ANDIMS" };
 
 
 	FileHandler::Type FileHandler::getTypeByFileName(const String& filename)
@@ -71,6 +71,10 @@ namespace OpenMS
 		else if (tmp == "FEAT")
 		{
 			return FEATURE;
+		}
+		else if (tmp == "PAIRS")
+		{
+			return FEATURE_PAIRS;
 		}
 
 		return UNKNOWN;
@@ -115,6 +119,8 @@ namespace OpenMS
 			return true;
 		case FEATURE:
 			return true;
+		case FEATURE_PAIRS:
+			return true;
 #ifdef ANDIMS_DEF
 		case ANDIMS:
 			return true;
@@ -157,7 +163,10 @@ namespace OpenMS
     
     //feature map (all lines)
     if ((one + ' ' + two_five).find("featureMap")!=string::npos) return FEATURE;
-    
+
+    //feature pairs (all lines)
+    if ((one + ' ' + two_five).find("featurePairs")!=string::npos) return FEATURE_PAIRS;
+        
     //ANDIMS (first line)
     if (one.find("CDF")!=string::npos) return ANDIMS;
 

@@ -30,6 +30,7 @@
 #include <OpenMS/FORMAT/SchemaFile.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/DFeaturePairVector.h>
 #include <OpenMS/FORMAT/HANDLERS/DFeaturePairsHandler.h>
+#include <OpenMS/KERNEL/DFeatureMap.h>
 
 namespace OpenMS
 {
@@ -43,7 +44,8 @@ namespace OpenMS
 	
 		@ingroup FileIO
 	*/
-	class DFeaturePairsFile : public Internal::SchemaFile
+	class DFeaturePairsFile 
+		: public Internal::SchemaFile
 	{
 		public:
 			/** @name Constructors and Destructor */
@@ -72,6 +74,13 @@ namespace OpenMS
 				Internal::DFeaturePairsHandler<D> handler(pairs,filename);
 				save_(filename, &handler);
 			}
+
+			/** 
+				@brief Convert pair vector into feature map
+
+			*/
+			static void pairsToFeatures(const DFeaturePairVector<2>& pairs, DFeatureMap<2>& map);
+
 			//@}
 	};
 

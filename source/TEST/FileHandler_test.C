@@ -49,6 +49,7 @@ CHECK(String typeToName(Type type))
 	TEST_EQUAL("mzXML", tmp.typeToName(FileHandler::MZXML));
 	TEST_EQUAL("FeatureFile", tmp.typeToName(FileHandler::FEATURE));
 	TEST_EQUAL("ANDIMS", tmp.typeToName(FileHandler::ANDIMS));
+	TEST_EQUAL("FeaturePairs", tmp.typeToName(FileHandler::FEATURE_PAIRS));
 RESULT
 
 CHECK(Type nameToType(const String& name))
@@ -59,6 +60,7 @@ CHECK(Type nameToType(const String& name))
 	TEST_EQUAL(FileHandler::MZDATA, tmp.nameToType("mzData"));
 	TEST_EQUAL(FileHandler::MZXML, tmp.nameToType("mzXML"));
 	TEST_EQUAL(FileHandler::FEATURE, tmp.nameToType("FeatureFile"));
+	TEST_EQUAL(FileHandler::FEATURE_PAIRS, tmp.nameToType("FeaturePairs"));
 	TEST_EQUAL(FileHandler::ANDIMS, tmp.nameToType("ANDIMS"));
 	TEST_EQUAL(FileHandler::ANDIMS, tmp.nameToType("aNdIMs"));
 RESULT
@@ -70,6 +72,7 @@ CHECK(Type getTypeByFileName(const String& filename))
 	TEST_EQUAL(tmp.getTypeByFileName("test.MzData"), FileHandler::MZDATA)
 	TEST_EQUAL(tmp.getTypeByFileName("test.DTA2D"), FileHandler::DTA2D)
 	TEST_EQUAL(tmp.getTypeByFileName("test.feat"), FileHandler::FEATURE)
+	TEST_EQUAL(tmp.getTypeByFileName("test.pairs"), FileHandler::FEATURE_PAIRS)
 	TEST_EQUAL(tmp.getTypeByFileName("test.MZXML"), FileHandler::MZXML)
 	TEST_EQUAL(tmp.getTypeByFileName("test.cdf"), FileHandler::ANDIMS)
 RESULT
@@ -78,6 +81,7 @@ CHECK(Type getTypeByContent(const String& filename) throw(Exception::FileNotFoun
 	FileHandler tmp;
 	TEST_EQUAL(tmp.getTypeByContent("data/MzDataFile_test_1.mzData"), FileHandler::MZDATA)
 	TEST_EQUAL(tmp.getTypeByContent("data/DFeatureMapFile.xml"), FileHandler::FEATURE)
+	TEST_EQUAL(tmp.getTypeByContent("data/DFeaturePairsFile.xml"), FileHandler::FEATURE_PAIRS)
 	TEST_EQUAL(tmp.getTypeByContent("data/MzXMLFile_test_1.mzXML"), FileHandler::MZXML)
 	TEST_EQUAL(tmp.getTypeByContent("data/DTAFile_test.dta"), FileHandler::DTA)
 	TEST_EQUAL(tmp.getTypeByContent("data/DTA2DFile_test_1.dta2d"), FileHandler::DTA2D)
@@ -110,6 +114,7 @@ CHECK(bool isSupported(Type type))
 	TEST_EQUAL(true, tmp.isSupported(FileHandler::MZDATA));
   TEST_EQUAL(true, tmp.isSupported(FileHandler::MZXML));
 	TEST_EQUAL(true, tmp.isSupported(FileHandler::FEATURE));
+	TEST_EQUAL(true, tmp.isSupported(FileHandler::FEATURE_PAIRS));
 #ifdef ANDIMS_DEF
   TEST_EQUAL(true, tmp.isSupported(FileHandler::ANDIMS));
 #else

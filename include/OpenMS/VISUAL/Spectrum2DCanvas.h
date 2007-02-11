@@ -59,7 +59,6 @@ namespace OpenMS
   	zoom stack is provided for going back to an earlier
   	view.
   	
-  	@todo Add visualization of feature pairs -> change LabeledMatcher (Marc)
   	@todo Add reduction of 2D data (Marc)
   	
   	@ingroup spectrum_widgets
@@ -76,7 +75,7 @@ namespace OpenMS
       {
         MZ = DimensionDescription < LCMS_Tag >::MZ,
         RT = DimensionDescription < LCMS_Tag >::RT
-    };
+    	};
 
       ///View modes for 2D dots.
       enum DotModes
@@ -275,6 +274,14 @@ namespace OpenMS
       */
       void paintConvexHulls_(const DFeature<2>::ConvexHullVector& hulls, QPainter* p);
 
+      /**
+      	@brief Paints feature pair connections.
+      	
+      	@param layer_index Index of the layer.
+      	@param p The QPainter to paint on.
+      */
+			void paintFeaturePairConnections_(UnsignedInt layer_index, QPainter* p);
+			
       // Docu in base class
       virtual void intensityModeChange_();
       // Docu in base class

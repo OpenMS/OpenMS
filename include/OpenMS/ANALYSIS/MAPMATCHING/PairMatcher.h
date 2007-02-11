@@ -109,16 +109,6 @@ namespace OpenMS
 			*/
 			const PairVectorType& getBestPairs();
 	
-	
-			/** @brief Convert pair vector into feature map
-	
-					Convert pair vector into feature map for visualization in TOPPView.
-					The pairing is shown as an octagon stored in the convex hull layer of
-					the first feature of each pair.
-					This feature also contains some of the pairs meta values (quality, ratio, ...).
-			*/
-			static void fillFeatureMap(FeatureMapType&, const PairVectorType&);
-	
 			/** @brief Print informations about the pair vector @p pairs to stream @p out
 	
 				 Print informations (quality, ratio, charge, feature positions, ...)

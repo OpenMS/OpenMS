@@ -278,7 +278,7 @@ namespace OpenMS
 				"1.0",
 
 				// Tags
-				";pairlist;pair;pairquality;first;second;feature;position;intensity;quality;"
+				";featurePairs;pair;pairquality;first;second;feature;position;intensity;quality;"
 				"overallquality;charge;model;param;convexhull;hullpoint;hposition",
 				
 				// Attributes
