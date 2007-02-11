@@ -24,29 +24,27 @@
 // $Maintainer: Ole Schulz-Trieglaff$
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_TRANSFORMATIONS_FEATUREFINDER_MARRWAVELETSEEDER_H
-#define OPENMS_TRANSFORMATIONS_FEATUREFINDER_MARRWAVELETSEEDER_H
+#ifndef OPENMS_TRANSFORMATIONS_FEATUREFINDER_PEAKSEEDER_H
+#define OPENMS_TRANSFORMATIONS_FEATUREFINDER_PEAKSEEDER_H
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/BaseSeeder.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeaFiTraits.h>
-#include <OpenMS/TRANSFORMATIONS/RAW2PEAK/ContinuousWaveletTransformNumIntegration.h>
+#include <OpenMS/FILTERING/NOISEESTIMATION/DSignalToNoiseEstimatorMeanIterative.h>
 #include <OpenMS/DATASTRUCTURES/IsotopeCluster.h>
 
 namespace OpenMS
 {
 	/** 
-		@brief Seeding module based on the Marr wavelet transform to detect (poorly resolved) isotopic pattern.
-	  
- 		Uses the continuous wavelet transform (Marr mother wavelet) to detect isotopic pattern
-		in each scan. Patterns that occur in several consecutive scans are declared as seeds
-		for the extension phase.
+		@brief Seeding module which selects single peaks based on their s/n ratio.
 		
-		@todo Write test with more than one scan and test not only the intensity (Ole)
-		@todo Document parameters (Ole)
+		Groups of peaks a clustered within a certain distance and traced over consecutive scans.
+		
+		This class we developed for a third-party project and we should discuss whether we want
+		it to become part of OpenMS.
 		
 		@ingroup FeatureFinder
 	*/ 
-  class MarrWaveletSeeder 
+  class PeakSeeder 
     : public BaseSeeder
   {
   	public:	
@@ -62,38 +60,36 @@ namespace OpenMS
 	
 			typedef FeaFiTraits::MapType MapType;
 			typedef MapType::SpectrumType SpectrumType;
-			typedef	MapType::PeakType PeakType;
+			typedef MapType::PeakType PeakType;
 			typedef std::multimap<CoordinateType,IsotopeCluster> TableType;
 	
 		  /// Default constructor
-	    MarrWaveletSeeder();
+	    PeakSeeder();
 	
 	    /// destructor 
-	    virtual ~MarrWaveletSeeder();
+	    virtual ~PeakSeeder();
 
 	    /// Copy constructor
-	    MarrWaveletSeeder(const MarrWaveletSeeder& rhs);
+	    PeakSeeder(const PeakSeeder& rhs);
 	    
 	    /// Assignment operator
-	    MarrWaveletSeeder& operator= (const MarrWaveletSeeder& rhs);
+	    PeakSeeder& operator= (const PeakSeeder& rhs);
 	
 	    /// return next seed 
 	    IndexSet nextSeed() throw (NoSuccessor);
 	
 	    static BaseSeeder* create()
 	    {
-	      return new MarrWaveletSeeder();
+	      return new PeakSeeder();
 	    }
 	
 	    static const String getProductName()
 	    {
-	      return "MarrWaveletSeeder";
+	      return "PeakSeeder";
 	    }
 	
 	  protected:
-			
-	  	virtual void updateMembers_();
-	  	
+	 
 	    /// Finds the neighbour of the peak denoted by @p current_mz in the previous scan
 	    std::vector<double>::const_iterator searchInScan_(const std::vector<CoordinateType>::const_iterator& scan_begin, const std::vector<CoordinateType>::const_iterator& scan_end, CoordinateType current_mz)
 	    {
@@ -116,28 +112,24 @@ namespace OpenMS
           	++insert_iter;    // peak to the right is closer
           }
 	      }
+
 				return insert_iter;
 	    }
 
 			/// Finds local maxima in the cwt
-			void getMaxPositions_( const SpectrumType::const_iterator& first, 
-														 const SpectrumType::const_iterator& last, 
-														 const ContinuousWaveletTransform& wt,
-														 std::vector<int>& localmax
-#ifdef DEBUG_FEATUREFINDER
-														 ,CoordinateType curr_peak
-#endif
-														 );
-		 
-		  /// Sums the intensities in adjacent scans
-		  void sumUp_(SpectrumType& scan, UnsignedInt current_scan_index);
-			
-			///Aligns the two scans and increases intensities of peaks in @p scan if those peaks are present in @p neighbour
-			void AlignAndSum_(SpectrumType& scan, const SpectrumType& neighbour);
-		 	
-	    /// Find out which charge state belongs to this distance
-	    UnsignedInt distanceToCharge_(const CoordinateType& dist);
-		
+			void filterAndComputeLocalMax_(const SpectrumType & vec, 
+														 						 							std::vector<int>& localmax
+																											#ifdef DEBUG_FEATUREFINDER
+														 													,const UnsignedInt& currscan_index
+																											#endif
+														 													);
+																											
+			/// Retrieves the iterator for a peak cluster at mz @p  curr_mz.
+			TableType::iterator retrieveHashIter_(const CoordinateType& curr_mz, 
+																													 CoordinateType& mz_in_hash, 
+																													 const std::vector<CoordinateType>& iso_last_scan,
+																													 const UnsignedInt& currscan_index );
+	
 		  /// Sweeps through scans and detects isotopic patterns
 		  void sweep_();
 		
@@ -150,40 +142,9 @@ namespace OpenMS
 		  /// indicates whether the extender has been initialized
 		  bool is_initialized_;
 			
-			/// upper bound for distance between charge 1 peaks
-			CoordinateType charge1_ub_;
-			/// lower bound for distance between charge 1 peaks
-			CoordinateType charge1_lb_;
+			/// 
 			
-			/// upper bound for distance between charge 2 peaks
-			CoordinateType charge2_ub_;
-			/// lower bound for distance between charge 2 peaks
-			CoordinateType charge2_lb_;	
-			
-			/// upper bound for distance between charge 3 peaks
-			CoordinateType charge3_ub_;
-			/// lower bound for distance between charge 3 peaks
-			CoordinateType charge3_lb_;	
-			
-			/// upper bound for distance between charge 4 peaks
-			CoordinateType charge4_ub_;
-			/// lower bound for distance between charge 4 peaks
-			CoordinateType charge4_lb_;	
-			
-			/// upper bound for distance between charge 5 peaks
-			CoordinateType charge5_ub_;
-			/// lower bound for distance between charge 4 peaks
-			CoordinateType charge5_lb_;
-			
-			/// Computes the wavelet transform for a given scan
-			ContinuousWaveletTransformNumIntegration cwt_;
-						
-			/// Minimum ion count
-			IntensityType noise_level_signal_;
-		
-	   	/// The min. intensity in the cwt 
-	   	IntensityType noise_level_cwt_;
 	 
   };
 }
-#endif // OPENMS_TRANSFORMATIONS_FEATUREFINDER_MARRWAVELETSEEDER_H
+#endif // OPENMS_TRANSFORMATIONS_FEATUREFINDER_PEAKSEEDER_H

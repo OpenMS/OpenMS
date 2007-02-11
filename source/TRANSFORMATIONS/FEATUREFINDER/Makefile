@@ -56,7 +56,10 @@ CPP_SOURCES=\
 	RankCorrelation.C\
 	EuclideanDistance.C\
 	FeaFiTraits.C\
-	FeatureFinder.C
+	FeatureFinder.C\
+	PeakSeeder.C\
+	PeakExtender.C\
+	PeakFitter.C
 
 ADD_CPP_SOURCES = $(CGAL_SOURCES)
 

@@ -73,10 +73,10 @@ namespace OpenMS
 
   void SimpleExtender::updateMembers_()
   {
-		dist_mz_up_ = param_.getValue("dist_mz_up");
+		dist_mz_up_     = param_.getValue("dist_mz_up");
 		dist_mz_down_ = param_.getValue("dist_mz_down");
-		dist_rt_up_ = param_.getValue("dist_rt_up");
-		dist_rt_down_ = param_.getValue("dist_rt_down");
+		dist_rt_up_       = param_.getValue("dist_rt_up");
+		dist_rt_down_   = param_.getValue("dist_rt_down");
 
 		priority_threshold_ = param_.getValue("priority_thr");
 
@@ -118,11 +118,11 @@ namespace OpenMS
     }
     traits_->getPeakFlag(seed) = FeaFiTraits::SEED;
     		
-		// remember last peak to be extracted from the boundary (in this case the seed !)
+		// remember last extracted point (in this case the seed !)
 		last_pos_extracted_[RT] = traits_->getPeakRt(seed);
 		last_pos_extracted_[MZ] = traits_->getPeakMz(seed);
 		
-		// Add peaks in the region to the boundary
+		// Add peaks in the region to boundary
     for (IndexSet::const_iterator citer = seed_region.begin(); citer != seed_region.end(); ++citer)
     {	
     	ProbabilityType priority = computePeakPriority_(*citer);
@@ -130,8 +130,8 @@ namespace OpenMS
 			boundary_.push(IndexWithPriority(*citer,priority));
     }
 		
-		cout << "Extending from " << traits_->getPeakRt(seed) << "/" << traits_->getPeakMz(seed) 
-							<< " (" << seed.first << "/" << seed.second << ")" << endl;
+		cout << "Extending from " << traits_->getPeakRt(seed) << "/" << traits_->getPeakMz(seed); 
+		cout << " (" << seed.first << "/" << seed.second << ")" << endl;
 		
 		//compute intensity threshold and sum
 		intensity_threshold_ = (double)param_.getValue("intensity_factor") * traits_->getPeakIntensity(seed);
@@ -156,7 +156,7 @@ namespace OpenMS
 				continue;			 
 			}
 			
-			// remember last peak to be extracted from the boundary
+			// remember last extracted peak
 			last_pos_extracted_[RT] = traits_->getPeakRt(current_index);
 			last_pos_extracted_[MZ] = traits_->getPeakMz(current_index);
 
@@ -193,9 +193,10 @@ namespace OpenMS
 
 	bool SimpleExtender::isTooFarFromCentroid_(const IDX& index)
 	{
+	
   	//Corrupt index
   	OPENMS_PRECONDITION(index.first<traits_->getData().size(), "Scan index outside of map!");
-    OPENMS_PRECONDITION(index.second<traits_->getData()[index.first].size(), "Peak index outside of scan!");
+    OPENMS_PRECONDITION(index.second<traits_->getData()[index.first].size() , "Peak index outside of scan!");
 
      const FeaFiTraits::PositionType2D& curr_mean = running_avg_.getPosition();
 
@@ -251,6 +252,7 @@ namespace OpenMS
     try
     {
     	IDX tmp = index;
+
 			while (true)
 			{
 				traits_->getNextRt(tmp);
@@ -300,7 +302,7 @@ namespace OpenMS
     {
 			double pr_new = computePeakPriority_(index);
 			
-			if (pr_new > priority_threshold_) // check if priority larger than threshold
+			if (pr_new > priority_threshold_)
 			{
 				map<IDX, double>::iterator piter = priorities_.find(index);
 				if (piter == priorities_.end()) // not yet in boundary
@@ -309,6 +311,10 @@ namespace OpenMS
 					boundary_.push(IndexWithPriority(index,pr_new));
 				}
 			}
+			
+			// Note that Clemens used to update priorities in his FF algo version...
+			// I don't think that this is necessary. 
+			
 		}
 	}
 

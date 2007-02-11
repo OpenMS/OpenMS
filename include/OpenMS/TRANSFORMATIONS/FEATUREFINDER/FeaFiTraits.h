@@ -46,14 +46,14 @@ namespace OpenMS
 		This class is rather an "umbrella" for the different modules / steps of the algorithm
 		than a traits class in the traditional sense.
 		
-		@todo Make chosing between different map types (MSExperiment or MSExperimentExtern) possbile (Ole)
+		@todo Allow choice between different map types (MSExperiment or MSExperimentExtern) (Ole)
 		
 		@ingroup FeatureFinder 	
 	*/
 	class FeaFiTraits
 	{
 		public:
-			/// Index in a MSExperiment
+			/// Index in a MSExperiment ( first index denotes rt, second m/z )
 			typedef std::pair<UnsignedInt,UnsignedInt> IDX;
 			/// Index set
 			typedef std::set<IDX> IndexSet;
@@ -74,7 +74,7 @@ namespace OpenMS
 	    typedef MapType::IntensityType IntensityType;
 	    /// Coordinate type of the map
 	    typedef MapType::CoordinateType CoordinateType;
-	
+				
 	    /// 2D position type (needed for models)
 	    typedef DPosition<2> PositionType2D;
 	
@@ -91,8 +91,6 @@ namespace OpenMS
 				@brief copy input data to external memory and update range information
 				
 				@p buffer_size is the size of the ring buffer used in the internal MSExperimentExtern
-				
-				
 			*/
 			template <class SpectrumIteratorType>
 	    void setData(const SpectrumIteratorType& begin, const SpectrumIteratorType& end, UnsignedInt buffer_size)
@@ -102,7 +100,7 @@ namespace OpenMS
 		
 				for (SpectrumIteratorType it = begin; it != end; ++it)
 				{
-					if (it->getMSLevel() == 1) map_.push_back(*it);
+					if (it->getMSLevel() == 1 && it->size() > 0) map_.push_back(*it);	// remove empty scans.
 				}	
 			
 				std::cout << "Updating range information. " << std::endl;
@@ -125,6 +123,7 @@ namespace OpenMS
 				}
 		  }
 
+			
 			/// Const access to LC-MS map
 			inline const MapType& getData() const 
 			{ 

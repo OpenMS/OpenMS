@@ -345,7 +345,7 @@ namespace OpenMS
 				file2 << p[RT] << " " << p[MZ] << " " << traits_->getPeakIntensity(*it) << "\n";						
 			}
 		}
-		file.close();
+		file2.close();
 		#endif
 		++counter_;
 

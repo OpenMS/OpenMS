@@ -66,6 +66,8 @@ namespace OpenMS
   	@todo Add preferences for layers (Marc)
   	@todo Reimplement PreferenceDialogPages (Marc)
   	@todo Use right mouse button for navigation in data (Marc)
+		@todo: Use log-scaled intensities intensity-cutoff plot (Marc)
+		
   */
   class TOPPViewBase : public QMainWindow, public PreferencesManager
   {

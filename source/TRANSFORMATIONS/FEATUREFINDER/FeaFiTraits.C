@@ -60,16 +60,20 @@ namespace OpenMS
 		}
 		
 		// perform binary search to find the neighbour in rt dimension
-		CoordinateType mz_pos = map_[index.first][index.second].getPos();
+		CoordinateType mz_pos = map_[index.first][index.second].getPos();	// mz value we want to find
 		++index.first;
 		MapType::SpectrumType::ConstIterator it = lower_bound(map_[index.first].begin(), map_[index.first].end(), map_[index.first-1][index.second], MapType::SpectrumType::PeakType::PositionLess());	
 		
-		// if the found peak is at the end of the spectrum, there is not much we can do.
+		// if the found peak is at the end of the spectrum, there is not much we can do...
 		if ( it == map_[index.first].end() )
 		{
-	 		index.second = map_[index.first].size()-1;
+			// check for empty scans
+			if ( map_[index.first].size() > 0 )
+	 			index.second = map_[index.first].size()-1;
+			else
+				index.second = 0;
 		}
-		// if the found peak is at the beginning of the spectrum, there is not much we can do.
+		// if the found peak is at the beginning of the spectrum, there is also not much we can do ! 
 		else if ( it == map_[index.first].begin() ) 
 		{
 			index.second = 0;
@@ -79,10 +83,10 @@ namespace OpenMS
 		{	
 			// peak to the right is closer (in m/z dimension)
 			if (it->getPos() - mz_pos < mz_pos - (it-1)->getPos() )
-			{
+			{				
 				index.second = it - map_[index.first].begin(); 
 			}
-			else
+			else	// left one is closer
 			{
 				index.second = --it - map_[index.first].begin(); 
 			}
@@ -110,7 +114,11 @@ namespace OpenMS
 		// if the found peak is at the end of the spectrum, there is not much we can do.
 		if ( it == map_[index.first].end() )
 		{
-	 		index.second = map_[index.first].size()-1;
+	 		// check for empty scans
+			if ( map_[index.first].size() > 0 )
+	 			index.second = map_[index.first].size()-1;
+			else
+				index.second = 0;
 		}
 		// if the found peak is at the beginning of the spectrum, there is not much we can do.
 		else if ( it == map_[index.first].begin() ) 
@@ -186,9 +194,8 @@ namespace OpenMS
   	{
       while (true)
       {
-				cout << "(1) Seeding (#" << ++seed_count << ")..." << endl;
+				cout << "(1) Seeding ( seed # " << ++seed_count << ")..." << endl;
 				IndexSet seed_region = seeders[0]->nextSeed();
-
 				cout << "(2) Extension ..." << endl;
         watch.start();
         IndexSet peaks = extenders[0]->extend(seed_region);

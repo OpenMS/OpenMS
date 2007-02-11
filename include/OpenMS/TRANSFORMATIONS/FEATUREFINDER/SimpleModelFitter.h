@@ -154,7 +154,7 @@ namespace OpenMS
 			PositionType2D min_;
 			PositionType2D max_;
 		
-			unsigned int counter_;
+			UnsignedInt counter_;
   };
 }
 #endif // OPENMS_TRANSFORMATIONS_FEATUREFINDER_SIMPLEMODELFITTER_H

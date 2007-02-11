@@ -45,10 +45,11 @@ namespace OpenMS
     (StdevMP * StDev) above the mean value. After three iterations, the mean value is 
     considered to be the noise level. If the number of elements in the current window is not sufficient (param: MinReqElementsInWindow),
     the noise level is set to a default value (param: NoiseEmptyWindow).
+		
     The whole computation is histogram based, so the user will need to supply a number of bins (param: BinCount), which determines
     the level of error and runtime. The maximal intensity for a datapoint to be included in the histogram can be either determined 
     automatically (params: AutoMaxIntensity, AutoMode) by two different methods or can be set directly by the user (param: MaxIntensity).
-    If provided, the MaxIntensity param is always favoured over AutoMaxIntensity&AutoMode. Know that Auto-Mode will slow down the 
+    If provided, the MaxIntensity param is always favoured over AutoMaxIntensity&AutoMode. Note that Auto-Mode will slow down the 
     computation.
     
     The class uses a lazy evaluation approach and will compute ALL StN values when the first request is made. 
@@ -246,8 +247,6 @@ namespace OpenMS
       /// Destructor
       virtual ~DSignalToNoiseEstimatorMeanIterative()
       {}
-
-
 
       /** @name Assignment
        */
@@ -488,9 +487,6 @@ namespace OpenMS
         auto_max_intensity_ = (double) param_.getValue("AutoMaxIntensity");
 
         is_result_valid_ = false;
-
-
-
       }
 
       /// Initialisation of the raw data interval and estimation of noise and baseline levels
@@ -810,7 +806,7 @@ namespace OpenMS
       }
 
       /// stores the noise estimate for each peak
-      ///TODO change to std::hash_map<const char*, int, hash<const char*>, eqstr>  == the current one is SORTED (WHY??)!
+      /// Todo: change to std::hash_map<const char*, int, hash<const char*>, eqstr>  == the current one is SORTED (WHY??)! (Chris)
       std::map< PeakType, double, typename PeakType::PositionLess > stn_estimates_;
       //HashMap <PeakType, double> stn_estimates_; // --> error cast to int
 

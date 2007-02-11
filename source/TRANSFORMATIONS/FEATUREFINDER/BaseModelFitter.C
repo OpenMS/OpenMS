@@ -30,6 +30,7 @@
 // all from BaseModelFitter derived classes
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SimpleModelFitter.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/ExtendedModelFitter.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/PeakFitter.h>
 
 namespace OpenMS
 {
@@ -37,6 +38,7 @@ namespace OpenMS
 	{
 		Factory<BaseModelFitter>::registerProduct(SimpleModelFitter::getProductName(), &SimpleModelFitter::create);
 		Factory<BaseModelFitter>::registerProduct(ExtendedModelFitter::getProductName(), &ExtendedModelFitter::create);
+		Factory<BaseModelFitter>::registerProduct(PeakFitter::getProductName(), &PeakFitter::create);
 	}	
 
 	BaseModelFitter::BaseModelFitter() 
