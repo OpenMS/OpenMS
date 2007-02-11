@@ -296,7 +296,9 @@ namespace OpenMS
 		AreaType area (widgetToData_(pos - QPoint(5,5)),widgetToData_(pos + QPoint(5,5)));
 
 		DFeature<2>* max_peak = 0;
-		float max_int = 0.0f;
+		float max_int = -1 * numeric_limits<float>::max();
+		
+		//cout << "findNearestPeak_: Int range -- " << getCurrentLayer().min_int << " "  << getCurrentLayer().max_int << endl;
 		
 		if (getCurrentLayer().type==LayerData::DT_PEAK)
 		{
