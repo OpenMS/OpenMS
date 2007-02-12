@@ -63,7 +63,7 @@ Each HPLC objects contains a gradient object. A gradient objects contains a list
 
 	public: 
 	  /// Default constructor
-		GradientVisualizer(QWidget *parent =0, const char *name = 0);
+		GradientVisualizer(bool editable= FALSE, QWidget *parent =0, const char *name = 0);
 		/// Loads the meta data from the object to the viewer.
 		void load(Gradient &g);
 		
@@ -83,11 +83,11 @@ Each HPLC objects contains a gradient object. A gradient objects contains a list
 		
 	private: 
 	  /// Loads a list of eluent, timepoint and percentage triplets.
-		void loadData();	
+		void loadData_();	
 		/// Remove all data from layout
-		void removeData();
+		void removeData_();
 		/// Updates GUI with new data
-		void update();
+		void update_();
 		
 		/// A validator to check the input for the new timepoint.
 		QIntValidator *timepoint_vali_;	
@@ -115,7 +115,7 @@ Each HPLC objects contains a gradient object. A gradient objects contains a list
 		std::vector< QLabel* > gradientlabel_;
 		
 		/// Pointer to fields with actual data
-		QLineEdit* percentage;
+		QLineEdit* percentage_;
 		
 		
 		/** @name Some buttons.
@@ -139,10 +139,6 @@ Each HPLC objects contains a gradient object. A gradient objects contains a list
 		Gradient* ptr_;
 		/// Working-Copy of current object. 
 		Gradient tempgradient_;
-		
-		
-			
-		
 		
 	};
 

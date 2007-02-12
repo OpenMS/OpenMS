@@ -51,7 +51,7 @@ using namespace OpenMS;
 using namespace std;
 
 //Constructor
-IonDetectorVisualizer::IonDetectorVisualizer(QWidget *parent, const char *name) : BaseVisualizer(parent, name)
+IonDetectorVisualizer::IonDetectorVisualizer(bool editable, QWidget *parent, const char *name) : BaseVisualizer(editable, parent, name)
 {
 	type_="IonDetector";
   
@@ -63,13 +63,7 @@ IonDetectorVisualizer::IonDetectorVisualizer(QWidget *parent, const char *name) 
 	addLineEdit(iondetector_res_, "Resolution (in ns)" );
 	addLineEdit(iondetector_freq_, "ADC sampling frequency (in MHz)" );
 	
-	addVSpacer();
-	addSeperator();
-	addLabel("Save changes or restore original data.");
-	addHorizontalButtons(savebutton_, "Save",  cancelbutton_, "Cancel");
-	
-  connect(savebutton_, SIGNAL(clicked()), this, SLOT(store()) );
-	connect(cancelbutton_, SIGNAL(clicked()), this, SLOT(reject()) );
+	finishAdding_();
 	
 	// A Validator to check the input for the resolution
 	QDoubleValidator *res_vali_ = new QDoubleValidator(iondetector_res_);
@@ -94,10 +88,10 @@ void IonDetectorVisualizer::load(IonDetector &s)
 		fillComboBox(iondetector_ac_mode_, s.NamesOfAcquisitionMode , IonDetector::SIZE_OF_ACQUISITIONMODE);
 	
 	
-	update();
+	update_();
 }
 
-void IonDetectorVisualizer::update()
+void IonDetectorVisualizer::update_()
 {
 		iondetector_res_->setText(String( tempiondetector_.getResolution() ));
 		iondetector_freq_->setText(String( tempiondetector_.getADCSamplingFrequency() ));
@@ -134,7 +128,7 @@ void IonDetectorVisualizer::reject()
 	try
 	{
 
-		update();
+		update_();
 	}
 	catch(exception e)
 	{

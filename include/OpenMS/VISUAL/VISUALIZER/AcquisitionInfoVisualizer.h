@@ -57,7 +57,7 @@ This class provides all functionality to view the meta information of an object 
 
 	public: 
 	   /// Default constructor
-		AcquisitionInfoVisualizer(QWidget *parent =0, const char *name = 0);
+		AcquisitionInfoVisualizer(bool editable= FALSE, QWidget *parent =0, const char *name = 0);
 		/// Loads the meta data from the object to the viewer.
 		void load(AcquisitionInfo &h);
 

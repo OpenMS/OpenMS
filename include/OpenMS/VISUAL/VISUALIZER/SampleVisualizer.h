@@ -64,7 +64,7 @@ This class provides all functionality to view the meta information of an object 
 
 	public: 
 	  /// Default constructor
-		SampleVisualizer(QWidget *parent =0, const char *name = 0);
+		SampleVisualizer(bool editable= FALSE, QWidget *parent =0, const char *name = 0);
 			/// Loads the meta data from the object to the viewer.
 		void load(Sample &s);
 	  
@@ -81,7 +81,7 @@ This class provides all functionality to view the meta information of an object 
 		Sample  tempsample_;
 	  	
 		/// Sets the comboboxes with current values
-		void update();
+		void update_();
 		
 		/** @name Edit fields and buttons
    */

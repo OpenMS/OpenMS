@@ -51,7 +51,7 @@ using namespace OpenMS;
 using namespace std;
 
 //Constructor
-MassAnalyzerVisualizer::MassAnalyzerVisualizer(QWidget *parent, const char *name) : BaseVisualizer(parent, name)
+MassAnalyzerVisualizer::MassAnalyzerVisualizer(bool editable, QWidget *parent, const char *name) : BaseVisualizer(editable, parent, name)
 {
 	type_="MassAnalyzer";
   
@@ -76,15 +76,7 @@ MassAnalyzerVisualizer::MassAnalyzerVisualizer(QWidget *parent, const char *name
 	addLineEdit(massanalyzer_final_MS_, "Final MS exponent" );
 	addLineEdit(massanalyzer_magnetic_fs_, "Magnetic field strength (in T)" );
 	
-		
-	
-	addVSpacer();
-	addSeperator();
-	addLabel("Save changes or restore original data.");
-	addHorizontalButtons(savebutton_, "Save",  cancelbutton_, "Cancel");
-	
-  connect(savebutton_, SIGNAL(clicked()), this, SLOT(store()) );
-	connect(cancelbutton_, SIGNAL(clicked()), this, SLOT(reject()) );
+	finishAdding_();
 	
 	
 	// A validator to check the input for the resolution
@@ -132,10 +124,10 @@ void MassAnalyzerVisualizer::load(MassAnalyzer &s)
 	fillComboBox(massanalyzer_tandem_scan_method_, s.NamesOfTandemScanningMethod , MassAnalyzer::SIZE_OF_TANDEMSCANNINGMETHOD);
 	fillComboBox(massanalyzer_reflectron_state_, s.NamesOfReflectronState , MassAnalyzer::SIZE_OF_REFLECTRONSTATE);
 	
-	update();
+	update_();
 }
 
-void MassAnalyzerVisualizer::update()
+void MassAnalyzerVisualizer::update_()
 {
 		massanalyzer_type_->setCurrentItem(tempmassanalyzer_.getType()); 
 		massanalyzer_res_method_->setCurrentItem(tempmassanalyzer_.getResolutionMethod()); 
@@ -206,7 +198,7 @@ void MassAnalyzerVisualizer::reject()
 	try
 	{
 
-		update();
+		update_();
 	}
 	catch(exception e)
 	{

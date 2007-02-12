@@ -50,14 +50,18 @@ class QComboBox;
 
 
 namespace OpenMS {
+/**
+@brief Class that displays all meta information for Software objects
 
+This class provides all functionality to view the meta information of an object of type Software.
+*/
 	
 	class SoftwareVisualizer : public BaseVisualizer
 	{
 		Q_OBJECT
 
 	public: 
-		SoftwareVisualizer(QWidget *parent =0, const char *name = 0);
+		SoftwareVisualizer(bool editable= FALSE, QWidget *parent =0, const char *name = 0);
 		void load(Software &s);
 	  
 	private slots:

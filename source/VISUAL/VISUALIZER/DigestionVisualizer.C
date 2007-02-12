@@ -61,24 +61,21 @@ using namespace OpenMS;
 using namespace std;
 
 //Constructor
-DigestionVisualizer::DigestionVisualizer(QWidget *parent, const char *name) : BaseVisualizer(parent, name)
+DigestionVisualizer::DigestionVisualizer(bool editable, QWidget *parent, const char *name) 
+	: BaseVisualizer(editable, parent, name)
 {
   type_="Digestion";
 	
 	addLabel("Modify Digestion information");		
 	addSeperator();
 	addLineEdit(treatmenttype_, "Treatment type" );
+	addTextEdit(treatmentcomment_, "Comment" );
 	addLineEdit(digestionenzyme_, "Enzyme" );
 	addLineEdit(digestiontime_, "Digestion time (in minutes)" );
 	addLineEdit(digestiontemperature_, "Temperature (in °C)" );
 	addLineEdit(digestionPH_, "PH" );
-	addVSpacer();	
-	addSeperator();
-	addLabel("Save changes or restore original data.");
-	addHorizontalButtons(savebutton_, "Save",  cancelbutton_, "Cancel");
 	
-  connect(savebutton_, SIGNAL(clicked()), this, SLOT(store()) );
-	connect(cancelbutton_, SIGNAL(clicked()), this, SLOT(reject()) );
+	finishAdding_();
 	
 	// A validator to check the input for the time
 	QDoubleValidator *timevali_ = new QDoubleValidator(digestiontime_);
@@ -99,10 +96,13 @@ void DigestionVisualizer::load(Digestion &d)
 	
 	//Copy of current object for restoring the original values
 	tempdig_=d;
-  digestionenzyme_->setText(d.getEnzyme());
-	digestiontime_->setText(String(d.getDigestionTime()) );
-  digestiontemperature_->setText(String(d.getTemperature()));
-	digestionPH_->setText(String(d.getPh())); 
+	treatmenttype_->setText(tempdig_.getType());
+	treatmenttype_->setReadOnly(true);
+	treatmentcomment_->setText(tempdig_.getComment());
+  digestionenzyme_->setText(tempdig_.getEnzyme());
+	digestiontime_->setText(String(tempdig_.getDigestionTime()) );
+  digestiontemperature_->setText(String(tempdig_.getTemperature()));
+	digestionPH_->setText(String(tempdig_.getPh())); 
 	
 			
 }
@@ -111,12 +111,10 @@ void DigestionVisualizer::store()
 {
 	try
 	{		
+		(*ptr_).setComment(string((const char*) treatmentcomment_->text()));
 		(*ptr_).setEnzyme(string((const char*)digestionenzyme_->text()));
-				
 		(*ptr_).setDigestionTime(String((const char*)digestiontime_->text()).toFloat() );
-		
 		(*ptr_).setTemperature(String((const char*)digestiontime_->text()).toFloat() );
-		
 		(*ptr_).setPh(String((const char*)digestiontime_->text()).toFloat() );
 		
 		tempdig_ = (*ptr_);

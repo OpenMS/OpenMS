@@ -57,7 +57,7 @@ This class provides all functionality to view the meta information of an object 
 
 	public: 
 	   /// Default constructor
-		PeptideHitVisualizer(QWidget *parent =0, const char *name = 0);
+		PeptideHitVisualizer(bool editable= FALSE, QWidget *parent =0, const char *name = 0);
 		/// Loads the meta data from the object to the viewer.
 		void load(PeptideHit &h);
 
@@ -73,6 +73,7 @@ This class provides all functionality to view the meta information of an object 
    */
     //@{
 		QLineEdit *peptidehit_score_;
+		QLineEdit *peptidehit_charge_;
 		QLineEdit *peptidehit_score_type_;
 		QLineEdit *peptidehit_rank_;
 		QTextEdit *peptidehit_sequence_;

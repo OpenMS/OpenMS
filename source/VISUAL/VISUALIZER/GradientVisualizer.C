@@ -47,10 +47,10 @@ using namespace OpenMS;
 using namespace std;
 
 //Constructor
-GradientVisualizer::GradientVisualizer(QWidget *parent, const char *name) : BaseVisualizer(parent, name)
+GradientVisualizer::GradientVisualizer(bool editable, QWidget *parent, const char *name) 
+	: BaseVisualizer(editable, parent, name)
 {
-	
-  //type_="Gradient";
+	//type_="Gradient";
 	nextrow_=0;
 	
 	viewlayout_ = new QGridLayout();
@@ -72,17 +72,11 @@ void GradientVisualizer::load(Gradient &g)
 	//Copy of current object for restoring the original values
 	tempgradient_=g;
 	  
-	
-	
-		
-	
-	
 	//Get the actuall eluent, timepoint and percentage values.
-	//loadData(tempgradient_);
-	loadData();
+	loadData_();
 			
 	addSeperator();
-	//addLabel("Modify Gradient information");
+	
 	addLineEditButton("Add new Eluent", new_eluent_,  add_eluent_button_, "Add Eluent");
 	addLineEditButton( "Add new Timepoint", new_timepoint_, add_timepoint_button_, "Add Timepoint");
 	addLabel("Attention: All percentage values at a certain timepoint must add up to 100.");
@@ -90,21 +84,16 @@ void GradientVisualizer::load(Gradient &g)
 	addSeperator();
 	addLabel("Remove all eluents, timepoints and percentage values.");
 	addButton(removebutton_, "Remove");
-	addVSpacer();
-	addSeperator();
-  addLabel("Save changes or restore original data.");
-	addHorizontalButtons(savebutton_, "Save",  cancelbutton_, "Cancel");
 	
-	//Input validator
-	timepoint_vali_= new QIntValidator(new_timepoint_);
-	new_timepoint_->setValidator(timepoint_vali_);
-	
+	finishAdding_();
 	
 	connect(add_timepoint_button_, SIGNAL(clicked()), this, SLOT(addTimepoint()) );	
 	connect(add_eluent_button_, SIGNAL(clicked()), this, SLOT(addEluent()) );	
   connect(removebutton_, SIGNAL(clicked()), this, SLOT(deleteData()) );	
-	connect(savebutton_, SIGNAL(clicked()), this, SLOT(store()) );
-	connect(cancelbutton_, SIGNAL(clicked()), this, SLOT(reject()) );
+	
+	//Input validator
+	timepoint_vali_= new QIntValidator(new_timepoint_);
+	new_timepoint_->setValidator(timepoint_vali_);
 	
 }
 
@@ -121,7 +110,7 @@ void GradientVisualizer::deleteData()
 	tempgradient_.clearTimepoints();
 	tempgradient_.clearPercentages();
 	
-	update();
+	update_();
 }
 
 
@@ -134,7 +123,7 @@ void GradientVisualizer::addTimepoint()
 	if(m.trim().length() !=0 && timepoints_[num_time-1] < m.toInt())
 	{
 		tempgradient_.addTimepoint(m.toInt());
-		update();
+		update_();
 	}
 	
 }
@@ -156,7 +145,7 @@ void GradientVisualizer::addEluent()
 			}
 		}
 		tempgradient_.addEluent( m );
-		update();
+		update_();
 	}
 		
 }
@@ -220,7 +209,7 @@ void GradientVisualizer::store()
 //			private
 //----------------------------------------------------------------------------
 
-void GradientVisualizer::loadData()
+void GradientVisualizer::loadData_()
 {
 	
   nextrow_ =0;
@@ -277,13 +266,12 @@ void GradientVisualizer::loadData()
 	
 	  for(UnsignedInt j=0; j<timepoints_.size(); ++j)
 		{
-		  //QLineEdit* percentage = new QLineEdit(this);
-			percentage = new QLineEdit(this);
-			percentage->setText( String(  tempgradient_.getPercentage( eluents_[i], timepoints_[j]) )  );
-			viewlayout_->addWidget(percentage, nextrow_, j+1);
+		  percentage_ = new QLineEdit(this);
+			percentage_->setText( String(  tempgradient_.getPercentage( eluents_[i], timepoints_[j]) )  );
+			viewlayout_->addWidget(percentage_, nextrow_, j+1);
 			//Store pointers to the QLineEdits
-			gradientdata_.push_back(percentage);	
-			percentage->show();
+			gradientdata_.push_back(percentage_);	
+			percentage_->show();
 		}	
 						
 		nextrow_++;	
@@ -291,7 +279,7 @@ void GradientVisualizer::loadData()
 		
 }
 
-void GradientVisualizer::removeData()
+void GradientVisualizer::removeData_()
 {	
   
 	//Remove QLineEdits
@@ -323,16 +311,16 @@ void GradientVisualizer::removeData()
   this->repaint();
 }
 
-void GradientVisualizer::update()
+void GradientVisualizer::update_()
 {
 	
 	try
 	{
 	  //Delete all data in GUI		
-		removeData();
+		removeData_();
 	
 		//Update GUI
-		loadData();		
+		loadData_();		
 		
 	}
 	catch(exception e)
@@ -350,13 +338,11 @@ void GradientVisualizer::reject()
 	{
 	  
 		//Delete all data in GUI		
-		removeData();		
+		removeData_();		
 		//Restore original data and refill GUI
 		tempgradient_=(*ptr_);
-		//nextrow_=0;
-		loadData();		
-		//loadData(tempgradient_);
-		
+		loadData_();		
+				
 	}
 	catch(exception e)
 	{

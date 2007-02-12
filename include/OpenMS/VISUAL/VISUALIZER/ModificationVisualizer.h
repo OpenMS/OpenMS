@@ -55,7 +55,7 @@ This class provides all functionality to view the meta information of an object 
 
 	public: 
 	  /// Default constructor
-		ModificationVisualizer(QWidget *parent =0, const char *name = 0);
+		ModificationVisualizer(bool editable= FALSE, QWidget *parent =0, const char *name = 0);
 		/// Loads the meta data from the object to the viewer.
 		void load(Modification &m);
 
@@ -69,12 +69,13 @@ This class provides all functionality to view the meta information of an object 
 		
 				
 		/// Sets the comboboxes with current values
-		void updateMod();
+		void updateMod_();
 		
 		/** @name Edit fields and buttons
    */
     //@{
 		QLineEdit *treatmenttype_;
+		QTextEdit *treatmentcomment_;
 		QLineEdit *modificationname_;
 		QLineEdit *modificationmass_;
 		QComboBox *modificationspecificity_;

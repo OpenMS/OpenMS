@@ -45,20 +45,15 @@ using namespace OpenMS;
 using namespace std;
 
 //Constructor
-AcquisitionInfoVisualizer::AcquisitionInfoVisualizer(QWidget *parent, const char *name) : BaseVisualizer(parent, name)
+AcquisitionInfoVisualizer::AcquisitionInfoVisualizer(bool editable, QWidget *parent, const char *name) 
+	: BaseVisualizer(editable, parent, name)
 {
   
 	addLabel("Show AcquisitionInfo information");		
 	addSeperator();
 	addLineEdit(acquisitioninfo_method_, "Method of combination" );
 	
-	addVSpacer();	
-	addSeperator();
-	addLabel("Save changes or restore original data.");
-	addHorizontalButtons(savebutton_, "Save",  cancelbutton_, "Cancel");
-	
-  connect(savebutton_, SIGNAL(clicked()), this, SLOT(store()) );
-	connect(cancelbutton_, SIGNAL(clicked()), this, SLOT(reject()) );
+	finishAdding_();
 	
 	// A validator to check the input for the temperature.
 	QIntValidator *acquisitioninfo_method_vali_ = new QIntValidator(acquisitioninfo_method_);

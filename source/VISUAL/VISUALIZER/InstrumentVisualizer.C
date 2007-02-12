@@ -50,7 +50,7 @@ using namespace OpenMS;
 using namespace std;
 
 //Constructor
-InstrumentVisualizer::InstrumentVisualizer(QWidget *parent, const char *name) : BaseVisualizer(parent, name)
+InstrumentVisualizer::InstrumentVisualizer(bool editable, QWidget *parent, const char *name) : BaseVisualizer(editable, parent, name)
 {
 	type_="Instrument";
   
@@ -61,15 +61,7 @@ InstrumentVisualizer::InstrumentVisualizer(QWidget *parent, const char *name) : 
 	addLineEdit(instrument_model_, "Model");
 	addTextEdit(instrument_customizations_, "Customizations" );
 	
-	addEmptyLine();
-	addSeperator();
-	addLabel("Save changes or restore original data.");
-	addHorizontalButtons(savebutton_, "Save",  cancelbutton_, "Cancel");
-	
-  connect(savebutton_, SIGNAL(clicked()), this, SLOT(store()) );
-	connect(cancelbutton_, SIGNAL(clicked()), this, SLOT(reject()) );
-	
-			
+	finishAdding_();
 }
 
 

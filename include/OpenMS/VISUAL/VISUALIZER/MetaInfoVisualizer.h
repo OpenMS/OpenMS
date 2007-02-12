@@ -62,7 +62,7 @@ Meta information is an array of Type-Name-Value tupels. Classes that have a Meta
 
 	public: 
 	  /// Default constructor
-		MetaInfoVisualizer(QWidget *parent =0, const char *name = 0);
+		MetaInfoVisualizer(bool editable= FALSE, QWidget *parent =0, const char *name = 0);
 		/// Loads the meta data from the object to the viewer.
 		void load(MetaInfoInterface &m);
 		
@@ -81,7 +81,7 @@ Meta information is an array of Type-Name-Value tupels. Classes that have a Meta
 
 	private: 
 	  /// Loads all Type-Value pairs one after another. 
-		void loadData(UnsignedInt index);	
+		void loadData_(UnsignedInt index);	
 			
 	  /** @name Edit fields for new Type-Value pair.
 		*/
@@ -122,8 +122,6 @@ Meta information is an array of Type-Name-Value tupels. Classes that have a Meta
 		
 		/// Container for metainfo data.
 		std::vector<UnsignedInt> keys_;
-			
-		
 		
 	};
 

@@ -51,7 +51,8 @@ using namespace OpenMS;
 using namespace std;
 
 //Constructor
-PrecursorVisualizer::PrecursorVisualizer(QWidget *parent, const char *name) : BaseVisualizer(parent, name)
+PrecursorVisualizer::PrecursorVisualizer(bool editable, QWidget *parent, const char *name) 
+	: BaseVisualizer(editable, parent, name)
 {
 	type_="Precursor";
   
@@ -61,18 +62,17 @@ PrecursorVisualizer::PrecursorVisualizer(QWidget *parent, const char *name) : Ba
 	addComboBox(precursor_activation_method_, "Activation method");
 	addLineEdit(precursor_activation_energy_, "Activation energy");
 	addComboBox(precursor_energy_units_, "Energy unit");
-		
-	addVSpacer();
-	addSeperator();
-	addLabel("Save changes or restore original data.");
-	addHorizontalButtons(savebutton_, "Save",  cancelbutton_, "Cancel");
+	addLineEdit(precursor_window_size_, "Window size");	
 	
-  connect(savebutton_, SIGNAL(clicked()), this, SLOT(store()) );
-	connect(cancelbutton_, SIGNAL(clicked()), this, SLOT(reject()) );
+	finishAdding_();
 	
 	// A validator to check the input for the energy.
 	QDoubleValidator *precursor_energy_vali_ = new QDoubleValidator(precursor_activation_energy_);
 	precursor_activation_energy_->setValidator(precursor_energy_vali_);
+	
+	// A validator to check the input for window size
+	QDoubleValidator *precursor_window_size_vali_ = new QDoubleValidator(precursor_window_size_);
+	precursor_window_size_->setValidator(precursor_window_size_vali_);
 }
 
 
@@ -89,16 +89,16 @@ void PrecursorVisualizer::load(Precursor &s)
 	fillComboBox(precursor_energy_units_, Precursor::NamesOfEnergyUnits , Precursor::SIZE_OF_ENERGYUNITS);
 	
 	
-	update();
+	update_();
 }
 
-void PrecursorVisualizer::update()
+void PrecursorVisualizer::update_()
 {		
 		
 	precursor_activation_method_->setCurrentItem(tempprecursor_.getActivationMethod()); 
 	precursor_activation_energy_->setText(String( tempprecursor_.getActivationEnergy() ) );
 	precursor_energy_units_->setCurrentItem(tempprecursor_.getActivationEnergyUnit()); 
-		
+ 	precursor_window_size_->setText(String( tempprecursor_.getWindowSize() ) );		
 }
 
 void PrecursorVisualizer::store()
@@ -108,6 +108,7 @@ void PrecursorVisualizer::store()
 		(*ptr_).setActivationMethod((Precursor::ActivationMethod)precursor_activation_method_->currentItem());		
 		(*ptr_).setActivationEnergy(String((const char*)precursor_activation_energy_->text()  ).toFloat() );		
 		(*ptr_).setActivationEnergyUnit((Precursor::EnergyUnits)precursor_energy_units_->currentItem());	
+		(*ptr_).setWindowSize(String((const char*)precursor_window_size_->text()  ).toFloat() );		
 		
 		tempprecursor_=(*ptr_);
 		
@@ -125,7 +126,7 @@ void PrecursorVisualizer::reject()
 	try
 	{
 
-		update();
+		update_();
 	}
 	catch(exception e)
 	{

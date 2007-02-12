@@ -51,7 +51,8 @@ using namespace OpenMS;
 using namespace std;
 
 //Constructor
-InstrumentSettingsVisualizer::InstrumentSettingsVisualizer(QWidget *parent, const char *name) : BaseVisualizer(parent, name)
+InstrumentSettingsVisualizer::InstrumentSettingsVisualizer(bool editable, QWidget *parent, const char *name) 
+	: BaseVisualizer(editable, parent, name)
 {
 	type_="InstrumentSettings";
   
@@ -62,13 +63,7 @@ InstrumentSettingsVisualizer::InstrumentSettingsVisualizer(QWidget *parent, cons
 	addLineEdit(instrumentsettings_mz_range_start_, "Scan begin (in m/z dimension)");
 	addLineEdit(instrumentsettings_mz_range_stop_, "Scan stop (in m/z dimension)");
 		
-	addVSpacer();
-	addSeperator();
-	addLabel("Save changes or restore original data.");
-	addHorizontalButtons(savebutton_, "Save",  cancelbutton_, "Cancel");
-	
-  connect(savebutton_, SIGNAL(clicked()), this, SLOT(store()) );
-	connect(cancelbutton_, SIGNAL(clicked()), this, SLOT(reject()) );
+	finishAdding_();
 	
 	// A validator to check the input for the mz_range_start_
 	QDoubleValidator *instrumentsettings_mz_range_start_vali_ = new QDoubleValidator(instrumentsettings_mz_range_start_);
@@ -92,10 +87,10 @@ void InstrumentSettingsVisualizer::load(InstrumentSettings &is)
   fillComboBox(instrumentsettings_scan_mode_, InstrumentSettings::NamesOfScanMode , InstrumentSettings::SIZE_OF_SCANMODE);
 	fillComboBox(instrumentsettings_polarity_, IonSource::NamesOfPolarity , IonSource::SIZE_OF_POLARITY);
 		
-	update();
+	update_();
 }
 
-void InstrumentSettingsVisualizer::update()
+void InstrumentSettingsVisualizer::update_()
 {
 		instrumentsettings_scan_mode_->setCurrentItem(tempinstrumentsettings_.getScanMode()); 
 		instrumentsettings_polarity_->setCurrentItem(tempinstrumentsettings_.getPolarity()); 
@@ -128,7 +123,7 @@ void InstrumentSettingsVisualizer::reject()
 	try
 	{
 
-		update();
+		update_();
 	}
 	catch(exception e)
 	{

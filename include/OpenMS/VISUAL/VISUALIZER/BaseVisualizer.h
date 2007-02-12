@@ -49,32 +49,32 @@ Increases ease of use to store data.
 		Q_OBJECT
 
 		public:
-		/// Default constructor 
-		BaseVisualizer(QWidget *parent =0, const char *name = 0);
-		/// Returns the type of the visualizer class.
-		String getType();
-		///Defines a friend class that can use the functionality of the subclasses.
-		friend class MSMetaDataExplorer;
-		
+			/// Default constructor 
+			BaseVisualizer(bool editable=FALSE, QWidget *parent =0, const char *name = 0);
+			/// Returns the type of the visualizer class.
+			String getType();
+			///Defines a friend class that can use the functionality of the subclasses.
+			friend class MSMetaDataExplorer;
+			
 		protected:
-		/// Adds buttons common to all visualizers
-		void finishAdding_();
+			/// Adds buttons common to all visualizers
+			void finishAdding_();
+			
+			///The type of the object to be displayed.
+			String type_;
+			
+	    ///Undo buttons.	
+			QPushButton *undobutton_;		
+			
+			private slots:
+			///Saves the changes made to the object.
+			virtual void store()=0;
+			
+			///Undo the changes made to the object.
+			virtual void reject()=0;
 		
-		///The type of the object to be displayed.
-		String type_;
-
-     /** @name Some buttons.
-		*/
-    //@{
-		QPushButton *savebutton_;
-		QPushButton *cancelbutton_;
-		//@}
-		
-		
-		private slots:
-		///Saves the changes made to the object.
-		virtual void store()=0;
-		
+			
+				
 	};
 
 

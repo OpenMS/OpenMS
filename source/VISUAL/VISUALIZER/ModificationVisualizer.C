@@ -45,26 +45,21 @@ using namespace OpenMS;
 using namespace std;
 
 //Constructor
-ModificationVisualizer::ModificationVisualizer(QWidget *parent, const char *name) : BaseVisualizer(parent, name)
+ModificationVisualizer::ModificationVisualizer(bool editable, QWidget *parent, const char *name) : BaseVisualizer(editable, parent, name)
 {
 	type_="Modification";
 	
 	addLabel("Modify Modification information");		
 	addSeperator();
 	addLineEdit(treatmenttype_, "Treatment type" );
+	addTextEdit(treatmentcomment_, "Comment" );
 	addLineEdit(modificationname_, "Reagent name" );
 	addLineEdit(modificationmass_, "Mass change" );
 	 
 	addComboBox(modificationspecificity_, "Specificity Type");
 	addLineEdit(modificationAA_, "Affected Amino Acids" );
 	
-	addVSpacer();
-	addSeperator();
-	addLabel("Save changes or restore original data.");
-	addHorizontalButtons(savebutton_, "Save",  cancelbutton_, "Cancel");
-	
-  connect(savebutton_, SIGNAL(clicked()), this, SLOT(store()) );
-	connect(cancelbutton_, SIGNAL(clicked()), this, SLOT(reject()) );
+	finishAdding_();
 	
 	// A Validator to check the input for the mass
 	QDoubleValidator *massvali_ = new QDoubleValidator(modificationmass_);
@@ -82,13 +77,15 @@ void ModificationVisualizer::load(Modification &m)
 	
 	fillComboBox(modificationspecificity_, m.NamesOfSpecificityType, Modification::SIZE_OF_SPECIFICITYTYPE);
   
-	updateMod();
+	updateMod_();
 			
 }
 
-void ModificationVisualizer::updateMod()
+void ModificationVisualizer::updateMod_()
 {
 	treatmenttype_->setText(tempmod_.getType());
+	treatmenttype_->setReadOnly(true);
+	treatmentcomment_->setText(tempmod_.getComment());
   modificationname_->setText(tempmod_.getReagentName());
 	modificationmass_->setText(String(tempmod_.getMass()) );
 	modificationspecificity_->setCurrentItem(tempmod_.getSpecificityType());
@@ -101,6 +98,8 @@ void ModificationVisualizer::store()
 {
 try
 	{
+		(*ptr_).setComment(string((const char*) treatmentcomment_->text()));
+		
 		(*ptr_).setReagentName(string((const char*) modificationname_->text()));
 				
 		String m((const char*) modificationmass_->text()) ;
@@ -127,7 +126,7 @@ void ModificationVisualizer::reject()
 {
 	try
 	{
-		updateMod();
+		updateMod_();
 	}
 	catch(exception e)
 	{

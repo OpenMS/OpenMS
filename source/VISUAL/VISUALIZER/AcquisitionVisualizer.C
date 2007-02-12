@@ -45,7 +45,8 @@ using namespace OpenMS;
 using namespace std;
 
 //Constructor
-AcquisitionVisualizer::AcquisitionVisualizer(QWidget *parent, const char *name) : BaseVisualizer(parent, name)
+AcquisitionVisualizer::AcquisitionVisualizer(bool editable, QWidget *parent, const char *name) 
+	: BaseVisualizer(editable, parent, name)
 {
   
 	addLabel("Show Acquisition information");		
@@ -53,13 +54,7 @@ AcquisitionVisualizer::AcquisitionVisualizer(QWidget *parent, const char *name) 
 	addLineEdit(acquisitionnumber_, "Index/Number of the scan" );
 	acquisitionnumber_->setReadOnly(true);
 		
-	addVSpacer();
-	addSeperator();
-	addLabel("Save changes or restore original data.");
-	addHorizontalButtons(savebutton_, "Save",  cancelbutton_, "Cancel");
-	
-  connect(savebutton_, SIGNAL(clicked()), this, SLOT(store()) );
-	connect(cancelbutton_, SIGNAL(clicked()), this, SLOT(reject()) );
+	finishAdding_();
 	
 	// A validator to check the input for the temperature.
 	QIntValidator *acquisition_number_vali_ = new QIntValidator(acquisitionnumber_);

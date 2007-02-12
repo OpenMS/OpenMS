@@ -50,7 +50,7 @@ using namespace OpenMS;
 using namespace std;
 
 //Constructor
-IonSourceVisualizer::IonSourceVisualizer(QWidget *parent, const char *name) : BaseVisualizer(parent, name)
+IonSourceVisualizer::IonSourceVisualizer(bool editable, QWidget *parent, const char *name) : BaseVisualizer(editable, parent, name)
 {
 	type_="IonSource";
   
@@ -60,15 +60,7 @@ IonSourceVisualizer::IonSourceVisualizer(QWidget *parent, const char *name) : Ba
 	addComboBox(ionsource_ionization_method_, "Ionization method");
 	addComboBox(ionsource_polarity_, "Polarity");      
 	
-	addVSpacer();
-	addSeperator();
-	addLabel("Save changes or restore original data.");
-	addHorizontalButtons(savebutton_, "Save",  cancelbutton_, "Cancel");
-	
-  connect(savebutton_, SIGNAL(clicked()), this, SLOT(store()) );
-	connect(cancelbutton_, SIGNAL(clicked()), this, SLOT(reject()) );
-	
-			
+	finishAdding_();
 }
 
 
@@ -84,10 +76,10 @@ void IonSourceVisualizer::load(IonSource &s)
 	fillComboBox(ionsource_ionization_method_, s.NamesOfIonizationMethod , IonSource::SIZE_OF_IONIZATIONMETHOD);
 	fillComboBox(ionsource_polarity_, s.NamesOfPolarity , IonSource::SIZE_OF_POLARITY);
 	
-	update();
+	update_();
 }
 
-void IonSourceVisualizer::update()
+void IonSourceVisualizer::update_()
 {
 		ionsource_inlet_type_->setCurrentItem(tempionsource_.getInletType()); 
 		ionsource_ionization_method_->setCurrentItem(tempionsource_.getIonizationMethod()); 
@@ -118,7 +110,7 @@ void IonSourceVisualizer::reject()
 	try
 	{
 
-		update();
+		update_();
 	}
 	catch(exception e)
 	{

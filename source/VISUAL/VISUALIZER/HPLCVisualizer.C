@@ -45,7 +45,8 @@ using namespace OpenMS;
 using namespace std;
 
 //Constructor
-HPLCVisualizer::HPLCVisualizer(QWidget *parent, const char *name) : BaseVisualizer(parent, name)
+HPLCVisualizer::HPLCVisualizer(bool editable, QWidget *parent, const char *name) 
+	: BaseVisualizer(editable, parent, name)
 {
   
 	addLabel("Modify HPLC information");		
@@ -57,12 +58,7 @@ HPLCVisualizer::HPLCVisualizer(QWidget *parent, const char *name) : BaseVisualiz
 	addLineEdit(hplcflux_, "Flux (in µl/sec)" );
 	addTextEdit(hplccomment_, "Comment");
 		
-	addSeperator();
-	addLabel("Save changes or restore original data.");
-	addHorizontalButtons(savebutton_, "Save",  cancelbutton_, "Cancel");
-	
-  connect(savebutton_, SIGNAL(clicked()), this, SLOT(store()) );
-	connect(cancelbutton_, SIGNAL(clicked()), this, SLOT(reject()) );
+	finishAdding_();
 	
 	// A validator to check the input for the temperature.
 	QIntValidator *hplc_temperature_vali_ = new QIntValidator(hplctemperature_);

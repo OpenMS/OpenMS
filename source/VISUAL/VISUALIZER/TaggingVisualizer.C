@@ -44,13 +44,15 @@ using namespace OpenMS;
 using namespace std;
 
 //Constructor
-TaggingVisualizer::TaggingVisualizer(QWidget *parent, const char *name) : BaseVisualizer(parent, name)
+TaggingVisualizer::TaggingVisualizer(bool editable, QWidget *parent, const char *name) 
+	: BaseVisualizer(editable, parent, name)
 {
 	type_="Tagging";
 	
 	addLabel("Modify Tagging information");		
 	addSeperator();
 	addLineEdit(treatmenttype_, "Treatment type" );
+	addTextEdit(treatmentcomment_, "Comment" );
 	addLineEdit(modificationname_, "Reagent name" );
 	addLineEdit(modificationmass_, "Mass" );
 	 
@@ -59,12 +61,8 @@ TaggingVisualizer::TaggingVisualizer(QWidget *parent, const char *name) : BaseVi
 	
 	addLineEdit(taggingmass_shift_, "Mass_Shift" );
 	addComboBox(taggingvariant_, "Variant");
-	addVSpacer();	
-	addSeperator();
-	addLabel("Save changes or restore original data");
-	addHorizontalButtons(savebutton_, "Save",  cancelbutton_, "Cancel");
-  connect(savebutton_, SIGNAL(clicked()), this, SLOT(store()) );
-	connect(cancelbutton_, SIGNAL(clicked()), this, SLOT(reject()) );
+	
+	finishAdding_();
 	
 	massvali_ = new QDoubleValidator(modificationmass_);
 	modificationmass_->setValidator(massvali_);
@@ -85,11 +83,14 @@ void TaggingVisualizer::load(Tagging &t)
   fillComboBox(taggingvariant_, t.NamesOfIsotopeVariant, Tagging::SIZE_OF_ISOTOPEVARIANT);
 	
 	
-	updateTag();
+	updateTag_();
 }
 
-void TaggingVisualizer::updateTag()
+void TaggingVisualizer::updateTag_()
 {
+	treatmenttype_->setText(temptag_.getType());
+	treatmenttype_->setReadOnly(true);
+	treatmentcomment_->setText(temptag_.getComment());
 	modificationname_->setText(temptag_.getReagentName());
 	modificationmass_->setText(String(temptag_.getMass()) );
 	modificationspecificity_->setCurrentItem(temptag_.getSpecificityType());
@@ -103,20 +104,16 @@ void TaggingVisualizer::store()
 {
 	try
 	{
-		
+		(*ptr_).setComment(string((const char*) treatmentcomment_->text()));
 		(*ptr_).setReagentName(string((const char*) modificationname_->text()));
 				
 		String m((const char*) modificationmass_->text()) ;
 		(*ptr_).setMass(m.toFloat() );
 				
-		(*ptr_).setSpecificityType((Modification::SpecificityType)modificationspecificity_->currentItem());		
-		
+		(*ptr_).setSpecificityType((Modification::SpecificityType)modificationspecificity_->currentItem());	
 		(*ptr_).setAffectedAminoAcids(string((const char*) modificationAA_->text()) );
-		
 		(*ptr_).setMassShift(String((const char*)taggingmass_shift_->text()).toFloat() );
-		
 		(*ptr_).setVariant((Tagging::IsotopeVariant)taggingvariant_->currentItem());		
-		
 		
 		temptag_ = (*ptr_);
 		
@@ -131,8 +128,8 @@ void TaggingVisualizer::reject()
 {
 	try
 	{
-		updateTag();
-		//load(temptag_);
+		updateTag_();
+		
 	}
 	catch(exception e)
 	{

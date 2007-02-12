@@ -166,17 +166,28 @@ namespace OpenMS
 	{
 		if (names_.size()!=0)
 		{
-			cout << "SHOW" << endl;
+			
+			
 			MSExperiment<> exp;
 			FileHandler().loadExperiment(names_[0],exp);
 			
+			//MSMetaDataExplorer dlg(true, this);
+			MSMetaDataExplorer dlg(false, this);
+			dlg.setCaption("Meta data");			
+			dlg.add(&exp);
 			
-			QDialog *dlg = new QDialog(this,QString::null, true);
-      dlg->setCaption("Meta data");
-			MSMetaDataExplorer expolorer(dlg);
-			expolorer.add(&exp);
-      dlg->exec();
+      if( dlg.exec())
+			{
+				cout<<"Dialog accepted."<<endl;
+			}
+			else 
+			{ 
+					cout<<"Dialog rejected."<<endl; 
+			}
+			
+			
 		}
+		
 	}
 	
 	const vector<String>& OpenDialog::getNames() const

@@ -60,7 +60,7 @@ This class provides all functionality to view the meta information of an object 
 
 	public: 
 	  /// Default constructor
-		IonSourceVisualizer(QWidget *parent =0, const char *name = 0);
+		IonSourceVisualizer(bool editable= FALSE, QWidget *parent =0, const char *name = 0);
 		/// Loads the meta data from the object to the viewer.
 		void load(IonSource &s);
 	  
@@ -76,7 +76,7 @@ This class provides all functionality to view the meta information of an object 
 		/// Copy of current object for restoring the original values
 		IonSource  tempionsource_;
 		/// Fills the comboboxes with current values
-		void update();
+		void update_();
 	  
 		/** @name Comboboxes to choose properties
    */

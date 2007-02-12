@@ -61,7 +61,7 @@ This class provides all functionality to view the meta information of an object 
 
 	public: 
 	  /// Default constructor
-		MassAnalyzerVisualizer(QWidget *parent =0, const char *name = 0);
+		MassAnalyzerVisualizer(bool editable= FALSE, QWidget *parent =0, const char *name = 0);
 		/// Loads the meta data from the object to the viewer.
 		void load(MassAnalyzer &s);
 	  
@@ -77,7 +77,7 @@ This class provides all functionality to view the meta information of an object 
 		/// Copy of current object for restoring the original values
 		MassAnalyzer  tempmassanalyzer_;
 		/// Fills the comboboxes with current values
-		void update();
+		void update_();
 	  
 		
 			

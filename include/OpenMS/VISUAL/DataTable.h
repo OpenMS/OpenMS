@@ -48,74 +48,68 @@
 
 
 
-namespace OpenMS {
-/**
-@brief A class that provides some functions for displaying data.
-
-This class is a basic class for all classes to be displayed in the MetaData viewer. 
-So it provides some functions needed in all subclasses.
-*/
-
-	class DataTable : public QWidget
+namespace OpenMS 
+{
+	/**
+		@brief A class that provides some functions for displaying data.
+		
+		This class is a basic class for all classes to be displayed in the MetaData viewer. 
+		So it provides some functions needed in all subclasses.
+	*/
+	class DataTable 
+		: public QWidget
 	{
 		Q_OBJECT
 
 		public: 
-		/// Default constructor
-		DataTable(QWidget *parent =0, const char *name = 0);
-		/// Adds a label to the grid layout.
-		void addLabel(const QString &label);
-		/// Adds 3 labels to the grid layout.
-		void add3Labels(const QString &label1, const QString &label2, const QString &label3);
-	  /// Adds a line edit field with label to the grid layout.
-		void addLineEdit(QLineEdit* &ptr ,  const QString &label);
-		 /// Adds 3 line edit fields to the grid layout.
-		void add3LineEdits(QLineEdit* &ptr1 , QLineEdit* &ptr2 , QLineEdit* &ptr3);
-		/// Adds a line edit field with label and button to the next free position in the grid.
-		void addLineEditButton(const QString &labelname, QLineEdit* &ptr1, QPushButton* &ptr2, const QString &buttonlabel);
-
-		/// Adds a text edit field to the grid layout.
-		void addTextEdit(QTextEdit* &ptr ,  const QString &label);
-		/// Adds a line edit field to the grid layout.
-		void addComboBox(QComboBox* &ptr ,  const QString &label);//,  const std::string* items[]);
-		/// Fills a combo box with data.
-		void fillComboBox(QComboBox* &ptr , const std::string* items, int agr);
-		/// Adds a spin box field to the grid layout.
-		void addSpinBox(QSpinBox* &ptr ,  const QString &label);
-				
-		/// Adds vertical spacer.
-		void addVSpacer();
-		/// Adds a button to the next free position in the grid.
-		void addButton(QPushButton* &ptr, const QString &label);
-		/// Adds a button to a specific position in the grid.
-		void addButton(QPushButton* &ptr, const QString &label, int row, int col);
-		/// Adds two buttons in a row.
-		void addHorizontalButtons(QPushButton* &ptr1, const QString &label1, QPushButton* &ptr2, const QString &label2);
-		
-		/// Adds a horizontal line as a seperator.
-		void addSeperator();
-		
-		/// Adds an empty line.
-		void addEmptyLine();
-		
+			/// Default constructor
+			DataTable(bool editable, QWidget *parent =0, const char *name = 0);
+			/// Adds a label to the grid layout.
+			void addLabel(const QString &label);
+		  /// Adds a line edit field with label to the grid layout.
+			void addLineEdit(QLineEdit* &ptr ,  const QString &label);
+			/// Adds a line edit field with label and button to the next free position in the grid.
+			void addLineEditButton(const QString &labelname, QLineEdit* &ptr1, QPushButton* &ptr2, const QString &buttonlabel);
+	
+			/// Adds a text edit field to the grid layout.
+			void addTextEdit(QTextEdit* &ptr ,  const QString &label);
+			/// Adds a line edit field to the grid layout.
+			void addComboBox(QComboBox* &ptr ,  const QString &label);//,  const std::string* items[]);
+			/// Fills a combo box with data.
+			void fillComboBox(QComboBox* &ptr , const std::string* items, int agr);
+					
+			/// Adds vertical spacer.
+			void addVSpacer();
+			/// Adds a button to the next free position in the grid.
+			void addButton(QPushButton* &ptr, const QString &label);
+			/// Adds two buttons in a row.
+			void addHorizontalButtons(QPushButton* &ptr1, const QString &label1, QPushButton* &ptr2, const QString &label2);
+			
+			/// Adds a horizontal line as a seperator.
+			void addSeperator();
+			
+			/// Adds an empty line.
+			void addEmptyLine();
+			
+			/// Returns if the values are editable
+			bool isEditable() const;
 		
 		
 		protected:
-	  /// The main layout.
-		QGridLayout* mainlayout_;	
-		
-		/// Counter for the grid row.
-		UnsignedInt row_;
-		/// Counter for the grid column.
-		UnsignedInt column_;
-		
-		/// Adds a label.
-		void addLabel_(const QString &labelName, UnsignedInt row );
-		
-		
-		
-		
-		
+		  /// The main layout.
+			QGridLayout* mainlayout_;	
+			
+			/// Counter for the grid row.
+			UnsignedInt row_;
+			/// Counter for the grid column.
+			UnsignedInt column_;
+			
+			/// Adds a label.
+			void addLabel_(const QString &labelName, UnsignedInt row );
+
+		private:
+			/// Edit flag
+			bool editable_;
 				
 	};
 

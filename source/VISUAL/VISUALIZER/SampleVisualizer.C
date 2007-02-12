@@ -53,7 +53,8 @@ using namespace OpenMS;
 using namespace std;
 
 //Constructor
-SampleVisualizer::SampleVisualizer(QWidget *parent, const char *name) : BaseVisualizer(parent, name)
+SampleVisualizer::SampleVisualizer(bool editable, QWidget *parent, const char *name) 
+	: BaseVisualizer(editable, parent, name)
 {
 	type_="Sample";
   
@@ -71,13 +72,8 @@ SampleVisualizer::SampleVisualizer(QWidget *parent, const char *name) : BaseVisu
 	addLineEdit(samplemass_,"Mass (in mg)");
 	addLineEdit(samplevolume_, "Volume (in ml)");
 	addLineEdit(sampleconcentration_, "Concentration (in mg/ml)");
-	addVSpacer();
-	addSeperator();
-	addLabel("Save changes or restore original data");
-	addHorizontalButtons(savebutton_, "Save",  cancelbutton_, "Cancel");
-	
-  connect(savebutton_, SIGNAL(clicked()), this, SLOT(store()) );
-	connect(cancelbutton_, SIGNAL(clicked()), this, SLOT(reject()) );
+	 
+	finishAdding_();
 	
 	// A validator to check the input for the mass
 	QDoubleValidator *sample_massvali_ = new QDoubleValidator(samplemass_);
@@ -103,10 +99,10 @@ void SampleVisualizer::load(Sample &s)
 		
 	fillComboBox(samplestate_, s.NamesOfSampleState , Sample::SIZE_OF_SAMPLESTATE);
 	
-  update();		
+  update_();		
 }
 
-void SampleVisualizer::update()
+void SampleVisualizer::update_()
 {
 	samplename_->setText(tempsample_.getName());
 	samplenumber_->setText(tempsample_.getNumber());
@@ -156,7 +152,7 @@ void SampleVisualizer::reject()
 	try
 	{
 		//load(tempsample_);
-		update();
+		update_();
 	}
 	catch(exception e)
 	{

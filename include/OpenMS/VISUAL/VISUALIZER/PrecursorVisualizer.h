@@ -60,7 +60,7 @@ This class provides all functionality to view the meta information of an object 
 
 	public: 
 	  /// Default constructor
-		PrecursorVisualizer(QWidget *parent =0, const char *name = 0);
+		PrecursorVisualizer(bool editable= FALSE, QWidget *parent =0, const char *name = 0);
 		/// Loads the meta data from the object to the viewer.
 		void load(Precursor &s);
 	  
@@ -76,7 +76,7 @@ This class provides all functionality to view the meta information of an object 
 		/// Copy of current object for restoring the original values
 		Precursor  tempprecursor_;
 		/// Fills the comboboxes with current values
-		void update();
+		void update_();
 	  	
 		
 		
@@ -87,6 +87,7 @@ This class provides all functionality to view the meta information of an object 
 		QComboBox *precursor_activation_method_;
 		QComboBox *precursor_energy_units_;
 		QLineEdit *precursor_activation_energy_;
+		QLineEdit *precursor_window_size_;
 		//@}
 
      /** @name Some buttons.

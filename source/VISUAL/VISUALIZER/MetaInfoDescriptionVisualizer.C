@@ -45,7 +45,7 @@ using namespace OpenMS;
 using namespace std;
 
 //Constructor
-MetaInfoDescriptionVisualizer::MetaInfoDescriptionVisualizer(QWidget *parent, const char *name) : BaseVisualizer(parent, name)
+MetaInfoDescriptionVisualizer::MetaInfoDescriptionVisualizer(bool editable, QWidget *parent, const char *name) : BaseVisualizer(editable, parent, name)
 {
   
 	addLabel("Modify MetaInfoDescription information");		
@@ -53,15 +53,7 @@ MetaInfoDescriptionVisualizer::MetaInfoDescriptionVisualizer(QWidget *parent, co
 	addLineEdit(metainfodescription_name_, "Name of peak annotations" );
 	addTextEdit(metainfodescription_comment_, "Comment" );
 		
-	addSeperator();
-	addLabel("Save changes or restore original data.");
-	addHorizontalButtons(savebutton_, "Save",  cancelbutton_, "Cancel");
-	
-  connect(savebutton_, SIGNAL(clicked()), this, SLOT(store()) );
-	connect(cancelbutton_, SIGNAL(clicked()), this, SLOT(reject()) );
-	
-	
-	
+	finishAdding_();
 }
 
 

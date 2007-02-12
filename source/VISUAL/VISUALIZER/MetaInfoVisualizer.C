@@ -47,9 +47,10 @@ using namespace OpenMS;
 using namespace std;
 
 //Constructor
-MetaInfoVisualizer::MetaInfoVisualizer(QWidget *parent, const char *name) : BaseVisualizer(parent, name)
+MetaInfoVisualizer::MetaInfoVisualizer(bool editable, QWidget *parent, const char *name) : BaseVisualizer(editable, parent, name)
 {
   type_="MetaInfo";
+	
 	buttongroup_ = new QButtonGroup();
 	nextrow_=0;
 	
@@ -81,7 +82,7 @@ void MetaInfoVisualizer::load(MetaInfoInterface &m)
 	//Load actual metaInfo Data into viewLayout_
 	for(UnsignedInt i=0; i< keys_.size(); ++i)
 	{ 
-	  loadData(keys_[i]);
+	  loadData_(keys_[i]);
 	}
 	
 	addSeperator();
@@ -89,18 +90,20 @@ void MetaInfoVisualizer::load(MetaInfoInterface &m)
 	addLineEdit(newkey_, "Key");
 	addLineEdit(newdescription_, "Description");
 	addLineEdit(newvalue_, "Value");
-	addVSpacer();
 	addHorizontalButtons(addbutton_, "Add", clearbutton_, "Clear");
+	if(!isEditable())
+	{
+				addbutton_->setEnabled(false);
+				clearbutton_->setEnabled(false);
+	}
+	addVSpacer();
 	
-	addSeperator();
-	addLabel("Save changes or restore original data.");
-	addHorizontalButtons(savebutton_, "Save",  cancelbutton_, "Cancel");
+	finishAdding_();
 		
 	connect(buttongroup_, SIGNAL(clicked(int)), this, SLOT(remove(int)) );			
 	connect(addbutton_, SIGNAL(clicked()), this, SLOT(add()) );
 	connect(clearbutton_, SIGNAL(clicked()), this, SLOT(clear()) );
-  connect(savebutton_, SIGNAL(clicked()), this, SLOT(store()) );
-	connect(cancelbutton_, SIGNAL(clicked()), this, SLOT(reject()) );
+  
 	
 }
 
@@ -166,7 +169,7 @@ void MetaInfoVisualizer::remove(int index)
 }
 
 
-void MetaInfoVisualizer::loadData(UnsignedInt index)
+void MetaInfoVisualizer::loadData_(UnsignedInt index)
 {
   //----------------------------------------------------------------------------	
   //  All metainfo goes into the viewlayout_ 
@@ -185,6 +188,10 @@ void MetaInfoVisualizer::loadData(UnsignedInt index)
 			viewlayout_->addWidget(ptr, nextrow_, 1);
 							
 			button = new QPushButton("Remove", this);
+			if(!isEditable())
+			{
+				button->setEnabled(false);
+			}
 			viewlayout_->addWidget(button, nextrow_, 2);
 			
 			//Store information about ID(index) and QWidget
@@ -236,7 +243,7 @@ void MetaInfoVisualizer::add()
 		  return;
 		}
 		
-		loadData(newindex);	
+		loadData_(newindex);	
 			
 	}
 	catch(exception& e)
@@ -304,7 +311,7 @@ void MetaInfoVisualizer::reject()
 		ptr_->getKeys(keys_);
 		for(UnsignedInt i =0; i< keys_.size(); ++i)
 		{	
-			loadData(keys_[i]);
+			loadData_(keys_[i]);
 		}
 		
 		

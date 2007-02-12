@@ -59,7 +59,7 @@ This class provides all functionality to view the meta information of an object 
 
 	public: 
 	  /// Default constructor
-		IonDetectorVisualizer(QWidget *parent =0, const char *name = 0);
+		IonDetectorVisualizer(bool editable= FALSE, QWidget *parent =0, const char *name = 0);
 		/// Loads the meta data from the object to the viewer.
 		void load(IonDetector &s);
 	  
@@ -75,7 +75,7 @@ This class provides all functionality to view the meta information of an object 
 		/// Copy of current object for restoring the original values
 		IonDetector  tempiondetector_;
 		/// Sets the comboboxes with current values
-		void update();
+		void update_();
 	  	
 		/** @name edit fields to modify properties
    */

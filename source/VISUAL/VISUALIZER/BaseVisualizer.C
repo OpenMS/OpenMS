@@ -58,7 +58,8 @@ using namespace OpenMS;
 using namespace std;
 
 //Constructor
-BaseVisualizer::BaseVisualizer(QWidget *parent, const char *name) : DataTable(parent, name)
+BaseVisualizer::BaseVisualizer(bool editable, QWidget *parent, const char *name) 
+	: DataTable(editable, parent, name)
 {
   
 }
@@ -73,14 +74,21 @@ void BaseVisualizer::store()
 
 }
 
+void BaseVisualizer::reject()
+{
+
+}
+
 void BaseVisualizer::finishAdding_()
 {
 	addVSpacer();
-	addSeperator();
-	addLabel("Save changes or restore original data.");
-	addHorizontalButtons(savebutton_, "Save",  cancelbutton_, "Cancel");
 	
-  connect(savebutton_, SIGNAL(clicked()), this, SLOT(store()) );
-	connect(cancelbutton_, SIGNAL(clicked()), this, SLOT(reject()) );
+	if(isEditable())
+	{	
+		addSeperator();
+		addButton(undobutton_, "Undo");
+		connect(undobutton_, SIGNAL(clicked()), this, SLOT(reject()) );
+	}
 }
+
 

@@ -45,20 +45,17 @@ using namespace OpenMS;
 using namespace std;
 
 //Constructor
-SourceFileVisualizer::SourceFileVisualizer(QWidget *parent, const char *name) : BaseVisualizer(parent, name)
+SourceFileVisualizer::SourceFileVisualizer(bool editable, QWidget *parent, const char *name) : BaseVisualizer(editable, parent, name)
 {
-        addLabel("Modify source file information");
-        addSeperator();	
-        addLineEdit(name_of_file_, "Name of file" );
+	addLabel("Modify source file information");
+	addSeperator();	
+	addLineEdit(name_of_file_, "Name of file" );
 	addLineEdit(path_to_file_, "Path to file" );
+	addLineEdit(file_size_, "File size (in MB)" );
 	addLineEdit(file_type_, "File type" );
-	addVSpacer();		
-	addSeperator();
-        addLabel("Save changes or restore original data");	
-        addHorizontalButtons(savebutton_, "Save",  cancelbutton_, "Cancel");
+	addLineEdit(sha1_, "SHA1 hash value" );
 	
-        connect(savebutton_, SIGNAL(clicked()), this, SLOT(store()) );
-	connect(cancelbutton_, SIGNAL(clicked()), this, SLOT(reject()) );
+	finishAdding_();
 		
 }
 
@@ -69,9 +66,11 @@ void SourceFileVisualizer::load(SourceFile &s)
 	
 	//Copy of current object for restoring the original values
 	tempSourceFile_=s;
-        name_of_file_->setText(s.getNameOfFile());
+  name_of_file_->setText(s.getNameOfFile());
 	path_to_file_->setText(s.getPathToFile() );
-        file_type_->setText(String(s.getFileType()));
+	file_size_->setText(String(s.getFileSize()));
+  file_type_->setText(String(s.getFileType()));
+	sha1_->setText(String(s.getSha1()));
 		
 			
 }
@@ -82,10 +81,10 @@ void SourceFileVisualizer::store()
 	{
 				
 		(*ptr_).setNameOfFile(string((const char*)name_of_file_->text()));
-				
 		(*ptr_).setPathToFile(string((const char*)path_to_file_->text()) );
-		
-		(*ptr_).setFileType(string((const char*)file_type_->text() ));
+		(*ptr_).setFileSize(String((const char*)file_size_->text() ).toFloat() );
+		(*ptr_).setFileType(string((const char*)file_type_->text() ) );
+		(*ptr_).setSha1(string((const char*)sha1_->text() ) );
 				
 		tempSourceFile_=(*ptr_);
 	}
@@ -95,7 +94,7 @@ void SourceFileVisualizer::store()
 	}
 }
 
-        void SourceFileVisualizer::reject()
+void SourceFileVisualizer::reject()
 {
 	try
 	{

@@ -60,7 +60,7 @@ This class provides all functionality to view the meta information of an object 
 
 	public: 
 	  /// Default constructor
-		ExperimentalSettingsVisualizer(QWidget *parent =0, const char *name = 0);
+		ExperimentalSettingsVisualizer(bool editable= FALSE, QWidget *parent =0, const char *name = 0);
 		/// Loads the meta data from the object to the viewer.
 		void load(ExperimentalSettings &s);
 	  
@@ -76,12 +76,14 @@ This class provides all functionality to view the meta information of an object 
 		/// Copy of current object for restoring the original values
 		ExperimentalSettings  tempexperimentalsettings_;
 		/// Fills the comboboxes with current values
-		void update();
+		void update_();
 	  
 		/// The type of this experiment
    	QComboBox *experimentalsettings_type_;
 		/// The date of this experiment
 		QLineEdit *experimentalsettings_date_;		
+		/// The comment to this experiment
+		QTextEdit *experimentalsettings_comment_;
 	};
 }
 #endif

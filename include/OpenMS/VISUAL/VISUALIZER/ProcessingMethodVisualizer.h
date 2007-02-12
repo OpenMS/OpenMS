@@ -60,7 +60,7 @@ This class provides all functionality to view the meta information of an object 
 
 	public: 
 	  /// Default constructor
-		ProcessingMethodVisualizer(QWidget *parent =0, const char *name = 0);
+		ProcessingMethodVisualizer(bool editable= FALSE, QWidget *parent =0, const char *name = 0);
 		/// Loads the meta data from the object to the viewer.
 		void load(ProcessingMethod &s);
 	  
@@ -76,7 +76,7 @@ This class provides all functionality to view the meta information of an object 
 		/// Copy of current object for restoring the original values
 		ProcessingMethod  tempprocessingmethod_;
 		/// Fills the comboboxes with current values
-		void update();
+		void update_();
 	  	
 		
 		
@@ -87,6 +87,7 @@ This class provides all functionality to view the meta information of an object 
 		QComboBox *processingmethod_deisotoping_;
 		QComboBox *processingmethod_charge_deconvolution_;
 		QComboBox *processingmethod_method_;
+		QLineEdit *processingmethod_intensity_cutoff_;
 		//@}
 
      /** @name Some buttons.

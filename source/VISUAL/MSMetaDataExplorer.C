@@ -69,30 +69,56 @@
 using namespace std;
 using namespace OpenMS;
 
-MSMetaDataExplorer::MSMetaDataExplorer(QWidget *parent, const char *name) 
-	: QSplitter(Horizontal, parent, name)
+//MSMetaDataExplorer::MSMetaDataExplorer(QWidget *parent, const char *name, bool modal, WFlags fl): QDialog(parent, name, modal, fl)
+MSMetaDataExplorer::MSMetaDataExplorer(bool editable, QWidget *parent, const char *name, bool modal, WFlags fl)
+: QDialog(parent, name, modal, fl), editable_(editable)
 {    
-  //Create the tree for exploring data 
+  
+	//basiclayout_ = new QHBoxLayout(this);
+	basiclayout_ = new QGridLayout(this, 3, 2);
+	basiclayout_->setSpacing(6);
+  basiclayout_->setMargin(11); 
+	
+	vertlayout_ = new QVBoxLayout();
+	vertlayout_->setSpacing(6);
+  vertlayout_->setMargin(11); 
+	
+	buttonlayout_ = new QHBoxLayout();
+	buttonlayout_->setSpacing(6);
+	buttonlayout_->setMargin(11); 
+	
+	//layer_bar_ = new QToolBar(this,"Browse in Metadata tree");
+  		
+	//Create the tree for exploring data 
 	listview_ = new QListView(this);    
 	listview_->addColumn(QObject::tr("Browse in Metadata tree"));
-	//listview_->addColumn(QObject::tr(""), 0);
-	//listview_->addColumn(QObject::tr(""), 0);
-	
-	listview_->setResizeMode(QListView::AllColumns);
+	listview_->addColumn(QObject::tr(""));
+	listview_->setColumnWidth(1,0);
+	listview_->setResizeMode(QListView::NoColumn);
 	listview_->setRootIsDecorated(true);
-  listview_->resize(300,200);
-	//-1 means NO sorting
-	listview_->setSorting(2, true);
-	//listview_->setSorting(-1);
+  listview_->setSorting(2, true);
+
 	
 	//Vertical splitter for the right part
-	splitvert_ = new QSplitter(Vertical, this); 
+	//splitvert_ = new QSplitter(Vertical, this); 
   
+	basiclayout_->addMultiCellWidget(listview_, 0,3, 0,0);
+	//basiclayout_->addWidget(splitvert_);
+	basiclayout_->addMultiCellLayout(vertlayout_, 0,3, 1,1);
 	  
 	//Create WidgetStack for managing visible metadata
-  ws_ = new QWidgetStack(splitvert_);
-	ws_->resize(500,200);
+  //ws_ = new QWidgetStack(splitvert_);
+	ws_ = new QWidgetStack(this);
+	//splitvert_ = new QWidgetStack(this);
+	QLabel* hline = new QLabel(this);
+	hline->setFrameShape(QFrame::HLine); 
 	
+	vertlayout_->addWidget(ws_);
+	//vertlayout_->addWidget(splitvert_);
+	vertlayout_->addWidget(hline);
+	vertlayout_->addLayout(buttonlayout_);
+	
+	/*	
 	QWidget* wid = new QWidget(splitvert_);
 	wid->setFixedHeight(70);
 	
@@ -106,27 +132,53 @@ MSMetaDataExplorer::MSMetaDataExplorer(QWidget *parent, const char *name)
 	
 	glayout_->addLayout(vertlayout_, 0,0);
 	
-	saveallbutton_ = new QPushButton("Save All", wid);
-  vertlayout_->addStretch(1);
-	vertlayout_->addWidget(saveallbutton_ );
+	vertlayout_->addStretch(1);
+	*/
 	
-  //show sample attributes
-  connect(listview_, SIGNAL(clicked(QListViewItem*)), this, SLOT(showDetails(QListViewItem*))  );
-	//save all changes
-	connect(saveallbutton_, SIGNAL(clicked()), this, SLOT(saveAll())  );
+	
+	
+	if(isEditable())
+	{
+	
+		saveallbutton_ = new QPushButton("OK", this);
+	  cancelbutton_ = new QPushButton("Cancel", this);
+		buttonlayout_->addStretch(1);
+		buttonlayout_->addWidget(saveallbutton_ );
+		buttonlayout_->addWidget(cancelbutton_ );
+		//closebutton_->hide();
+		connect(saveallbutton_, SIGNAL(clicked()), this, SLOT(saveAll_())  );
+		connect(cancelbutton_, SIGNAL(clicked()), this, SLOT(reject())  );
+	}
+	else 
+	{
+	
+		closebutton_ = new QPushButton("Close", this);
+		buttonlayout_->addStretch(1);
+		buttonlayout_->addWidget(closebutton_ );
+		connect(closebutton_, SIGNAL(clicked()), this, SLOT(reject())  );
+		//cancelbutton_->hide();
+		//saveallbutton_->hide();
+	}
+	
+  connect(listview_, SIGNAL(clicked(QListViewItem*)), this, SLOT(showDetails_(QListViewItem*))  );
+	
   
-	
-  //create and initialize id number for objects, so that the widgets may be identified
+	//create and initialize id number for objects, so that the widgets may be identified
 	//used in function makeID
   obj_id_ = 0;
-  
-  //other stuff
-  setMinimumSize(1000,600);
-  
+	
   
 }//end of constructor
 
-void MSMetaDataExplorer::showDetails(QListViewItem *item)
+
+
+bool MSMetaDataExplorer::isEditable()
+{
+		return editable_;
+}
+
+
+void MSMetaDataExplorer::showDetails_(QListViewItem *item)
 {
   //Signal clicked from the ListItem arrives here.
   //This SLOT emits further signals, so that the atrributes
@@ -144,7 +196,7 @@ void MSMetaDataExplorer::showDetails(QListViewItem *item)
 }
 
 //Save all changes
-void MSMetaDataExplorer::saveAll()
+void MSMetaDataExplorer::saveAll_()
 {
 	try
 	{
@@ -158,6 +210,8 @@ void MSMetaDataExplorer::saveAll()
 			b_ptr->store();
 		}
 		
+		//close dialog
+		this->accept();
 		
 	}
 	catch(exception& e)
@@ -168,21 +222,235 @@ void MSMetaDataExplorer::saveAll()
 	
 }
 
+int MSMetaDataExplorer::makeID_()
+{
+  int id= obj_id_;
+  obj_id_++;
+  
+  return id;
+}
+
+//--------------------------------------------------------------------------
+//	Functions modifying the listview
+//--------------------------------------------------------------------------
+
+void MSMetaDataExplorer::updateProteinHits_(ProteinIdentification pid, int tree_item_id)
+{
+		
+		ProteinIdentification protid = pid;
+		float threshold = protid.getProteinSignificanceThreshold();
+		
+		// find item in tree belonging to ProteinIdentification object
+		const QString qs = String(tree_item_id);
+		QListViewItem *item =listview_->findItem(qs, 1);
+		
+			
+		item->sortChildItems(2, true);
+		//item->sort();		
+		// get all children of this item
+		QListViewItem *first =item->firstChild();
+		QListViewItem *current = first;
+		
+		//set the items visible or not visible depending to their score and the current threshold
+		for(int i=0; i<item->childCount(); ++i)
+		{
+							
+				if( (current->text(2)).toFloat() <=threshold)
+				{
+						current->setVisible(false);
+				}
+				else
+				{
+					current->setVisible(true);
+				}
+				
+				QListViewItem *next= current->nextSibling();
+				current = next;
+		}
+		
+}
+
+
+void MSMetaDataExplorer::updateNonRefPeptideHits_(Identification id, int tree_item_id)
+{
+		
+		Identification ident = id;
+		vector< ProteinHit > prots= id.getProteinHits(); 
+		
+		String date_time;
+		multimap< String, ProteinHit > map;
+		vector<PeptideHit> *hits;
+		
+		ident.getDateTime().get(date_time);
+		
+		for(vector<ProteinHit>::iterator it = prots.begin(); it != prots.end();	it++)
+		{
+			map.insert(make_pair(date_time, *it));
+		}
+		
+		hits = ident.getNonReferencingHits(map);
+		
+				
+		// find item in tree belonging to Identification object
+		const QString qs = String(tree_item_id);
+		QListViewItem *item =listview_->findItem(qs, 1);
+		
+		// get all children of this item
+		QListViewItem *first =item->firstChild();
+		QListViewItem *current = first;
+		
+			
+		//set the items visible or not visible depending of non referencing peptide hits
+		for(int i=0; i<item->childCount(); ++i)
+		{
+				for(UnsignedInt i=0; i<hits->size(); ++i)
+				{
+					String name("Pep ");
+				  String score((*hits)[i].getScore());
+					String seq = (*hits)[i].getSequence();
+		
+					name = name+ seq+" (" +score+")";
+					
+					
+						if( current->text(0)==name && current->text(3)== seq)
+						{
+								current->setVisible(true);
+								break;
+						}
+						else
+						{
+							current->setVisible(false);
+						}
+				}
+				QListViewItem *next= current->nextSibling();
+				current = next;	
+		}
+
+}
+
+void MSMetaDataExplorer::updatePeptideHits_(Identification id, int tree_item_id)
+{
+		
+		Identification& ident = id;
+		float threshold = ident.getPeptideSignificanceThreshold();
+				
+		// find item in tree belonging to Identification object
+		const QString qs = String(tree_item_id);
+		QListViewItem *item =listview_->findItem(qs, 1);
+		
+		// get all children of this item
+		QListViewItem *first =item->firstChild();
+		QListViewItem *current = first;
+		
+		//set the items visible or not visible depending to their score and the current threshold
+		for(int i=0; i<item->childCount(); ++i)
+		{
+							
+				if( (current->text(2)).toFloat() <=threshold)
+				{
+						current->setVisible(false);
+				}
+				else
+				{
+					current->setVisible(true);
+				}
+				
+				QListViewItem *next= current->nextSibling();
+				current = next;
+		}
+		
+}
+
+void MSMetaDataExplorer::updateRefPeptideHits_(Identification id, int tree_item_id, String ref_date, String ref_acc)
+{
+	  if(ref_date.trim()=="" && ref_acc.trim()=="")
+		{
+			return;
+		}
+		
+		
+		Identification& ident = id;
+				
+		// find item in tree belonging to Identification object
+		const QString qs = String(tree_item_id);
+		QListViewItem *item =listview_->findItem(qs, 1);
+		
+		// get all children of this item
+		QListViewItem *first =item->firstChild();
+		QListViewItem *current = first;
+		bool hit = false;
+				
+		ident.sort();
+		
+		vector< PeptideHit >& peps= ident.getPeptideHits(); 
+		
+		//Set all items to not visible
+			for(int i=0; i<item->childCount(); ++i)
+			{
+				 current->setVisible(false);
+				 QListViewItem *next= current->nextSibling();
+				 current = next;
+			}
+			current = first;
+		
+		//search all peptide hits
+		for(UnsignedInt i=0; i<peps.size(); ++i)
+		{
+			vector<pair<String, String> >& protlist = peps[i].getProteinIndices();
+			
+			String name("Pep ");
+			String score(peps[i].getScore());
+			String seq = peps[i].getSequence();
+			name = name+ seq+ " (" +score+")";
+			
+			
+			//search all protein hits belonging to current peptide hit
+			for(vector< pair<String, String> >::iterator it = protlist.begin(); it != protlist.end();	it++)
+			{
+					//Check if peptide hit refers to a certain protein hit.
+					if( (ref_date.trim()=="" && it->second == ref_acc )|| 
+					    (it->first==ref_date && ref_acc.trim()=="") ||
+							(it->first==ref_date && it->second == ref_acc)   )
+					{
+						hit = true;
+						break;	
+					}
+			}
+			
+			if(hit)
+			{
+				//Search QListviewItem belonging to peptide and set it visible.
+				for(int i=0; i<item->childCount(); ++i)
+				{		
+						if( current->text(0)==name && current->text(3)== seq )
+						{
+							current->setVisible(true);
+						}					
+						QListViewItem *next= current->nextSibling();
+						current = next;
+				}
+				current = first;	
+			}
+			
+			hit = false;
+			
+			
+		}
+			
+		
+}
 
 
 //-------------------------------------------------------------------------------
 //	overloaded visualize functions to call the corresponding data visualizer
 //-------------------------------------------------------------------------------
 
-
-
-
 //Visualizing sample object
 void MSMetaDataExplorer::visualize_(Sample &s, QListViewItem* parent )
 {
     				
 		QListViewItem* item;
-    int widgetID = makeID();
+    int widgetID = makeID_();
     String w_id(widgetID);
 		String name(s.getName());
 		String id("Sample ");
@@ -195,8 +463,9 @@ void MSMetaDataExplorer::visualize_(Sample &s, QListViewItem* parent )
 		else
 		{
 			item = new QListViewItem(parent, id , w_id, "0" );
-		} 
-		OpenMS::SampleVisualizer *sv = new OpenMS::SampleVisualizer(splitvert_); 
+		}
+		
+		OpenMS::SampleVisualizer *sv = new OpenMS::SampleVisualizer(isEditable(), this); 
     ws_->addWidget(sv, widgetID);
     sv->load(s);
 
@@ -248,7 +517,7 @@ void MSMetaDataExplorer::visualize_(Sample &s, QListViewItem* parent )
 void MSMetaDataExplorer::visualize_(MetaInfoInterface &m, QListViewItem* parent)
 {
     
-		int widgetID = makeID();
+		int widgetID = makeID_();
 		String w_id(widgetID);
 		if(parent==0)
 		{
@@ -258,7 +527,7 @@ void MSMetaDataExplorer::visualize_(MetaInfoInterface &m, QListViewItem* parent)
 		{
 			new QListViewItem(parent, "MetaInfo" , w_id, "0" );
 		}
-		OpenMS::MetaInfoVisualizer *meta = new OpenMS::MetaInfoVisualizer(splitvert_);  
+		OpenMS::MetaInfoVisualizer *meta = new OpenMS::MetaInfoVisualizer(isEditable(),this);  
 		ws_->addWidget(meta, widgetID);
 		meta->load(m);   
 		
@@ -270,7 +539,7 @@ void MSMetaDataExplorer::visualize_(MetaInfoInterface &m, QListViewItem* parent)
 void MSMetaDataExplorer::visualize_(Digestion &d, QListViewItem* parent)
 {
     QListViewItem* item;
-		int widgetID = makeID();
+		int widgetID = makeID_();
 		String w_id(widgetID);
 		if(parent==0)
 		{
@@ -287,7 +556,7 @@ void MSMetaDataExplorer::visualize_(Digestion &d, QListViewItem* parent)
 		{
 				visualize_(dynamic_cast<MetaInfoInterface&>(d), item);
 		}
-		OpenMS::DigestionVisualizer *dig = new OpenMS::DigestionVisualizer(splitvert_);  
+		OpenMS::DigestionVisualizer *dig = new OpenMS::DigestionVisualizer(isEditable(), this);  
 		ws_->addWidget(dig, widgetID);
 		dig->load(d);   
 }
@@ -298,7 +567,7 @@ void MSMetaDataExplorer::visualize_(Digestion &d, QListViewItem* parent)
 void MSMetaDataExplorer::visualize_(Modification &m, QListViewItem* parent)
 {
 		QListViewItem* item;
-    int widgetID = makeID();
+    int widgetID = makeID_();
 		String w_id(widgetID);
 		if(parent==0)
 		{
@@ -313,7 +582,7 @@ void MSMetaDataExplorer::visualize_(Modification &m, QListViewItem* parent)
 		{
 				visualize_(dynamic_cast<MetaInfoInterface&>(m), item);
 		}
-		OpenMS::ModificationVisualizer *mod = new OpenMS::ModificationVisualizer(splitvert_);  
+		OpenMS::ModificationVisualizer *mod = new OpenMS::ModificationVisualizer(isEditable(), this);  
 		ws_->addWidget(mod, widgetID);
 		mod->load(m);   
 }
@@ -323,7 +592,7 @@ void MSMetaDataExplorer::visualize_(Modification &m, QListViewItem* parent)
 void MSMetaDataExplorer::visualize_(Tagging &t, QListViewItem* parent)
 {
 		QListViewItem* item;
-    int widgetID = makeID();
+    int widgetID = makeID_();
 		String w_id(widgetID);
 		if(parent==0)
 		{
@@ -338,7 +607,7 @@ void MSMetaDataExplorer::visualize_(Tagging &t, QListViewItem* parent)
 		{
 				visualize_(dynamic_cast<MetaInfoInterface&>(t), item);
 		}
-		OpenMS::TaggingVisualizer *tag = new OpenMS::TaggingVisualizer(splitvert_);  
+		OpenMS::TaggingVisualizer *tag = new OpenMS::TaggingVisualizer(isEditable(), this);  
 		ws_->addWidget(tag, widgetID);
 		tag->load(t);  
 }
@@ -349,7 +618,7 @@ void MSMetaDataExplorer::visualize_(Tagging &t, QListViewItem* parent)
 void MSMetaDataExplorer::visualize_(Software &s, QListViewItem* parent)
 {
     QListViewItem* item;
-    int widgetID = makeID();
+    int widgetID = makeID_();
 		String w_id(widgetID);
 		if(parent==0)
 		{
@@ -361,7 +630,7 @@ void MSMetaDataExplorer::visualize_(Software &s, QListViewItem* parent)
 		}
 		
 		//check for gradient object
-		OpenMS::SoftwareVisualizer *software = new OpenMS::SoftwareVisualizer(splitvert_);  
+		OpenMS::SoftwareVisualizer *software = new OpenMS::SoftwareVisualizer(isEditable(), this);  
 		ws_->addWidget(software, widgetID);
 		software->load(s);  
 }
@@ -372,7 +641,7 @@ void MSMetaDataExplorer::visualize_(Software &s, QListViewItem* parent)
 void MSMetaDataExplorer::visualize_(HPLC &h, QListViewItem* parent)
 {
     QListViewItem* item;
-    int widgetID = makeID();
+    int widgetID = makeID_();
 		String w_id(widgetID);
 		if(parent==0)
 		{
@@ -384,7 +653,7 @@ void MSMetaDataExplorer::visualize_(HPLC &h, QListViewItem* parent)
 		}
 		
 		//check for gradient object
-		OpenMS::HPLCVisualizer *hplc = new OpenMS::HPLCVisualizer(splitvert_);  
+		OpenMS::HPLCVisualizer *hplc = new OpenMS::HPLCVisualizer(isEditable(), this);  
 		ws_->addWidget(hplc, widgetID);
 		hplc->load(h);  
 			
@@ -403,7 +672,7 @@ void MSMetaDataExplorer::visualize_(HPLC &h, QListViewItem* parent)
 //Visualizing Gradient object
 void MSMetaDataExplorer::visualize_(Gradient &gradient, QListViewItem* parent)
 {
-    int widgetID = makeID();
+    int widgetID = makeID_();
 		String w_id(widgetID);
 		if(parent==0)
 		{
@@ -415,7 +684,7 @@ void MSMetaDataExplorer::visualize_(Gradient &gradient, QListViewItem* parent)
 		}
 		
 		//check for gradient object
-		OpenMS::GradientVisualizer *grad = new OpenMS::GradientVisualizer(splitvert_); 
+		OpenMS::GradientVisualizer *grad = new OpenMS::GradientVisualizer(isEditable(), this); 
 		ws_->addWidget(grad, widgetID);
 		grad->load(gradient);  
 		
@@ -426,7 +695,7 @@ void MSMetaDataExplorer::visualize_(Gradient &gradient, QListViewItem* parent)
 //Visualizing SourceFile object
 void MSMetaDataExplorer::visualize_(SourceFile &source, QListViewItem* parent)
 {
-    int widgetID = makeID();
+    int widgetID = makeID_();
 		String w_id(widgetID);
 		if(parent==0)
 		{
@@ -437,7 +706,7 @@ void MSMetaDataExplorer::visualize_(SourceFile &source, QListViewItem* parent)
 			new QListViewItem(parent, "SourceFile" , w_id, "0" );  
 		}
 		
-		OpenMS::SourceFileVisualizer *sourcefile = new OpenMS::SourceFileVisualizer(splitvert_); 
+		OpenMS::SourceFileVisualizer *sourcefile = new OpenMS::SourceFileVisualizer(isEditable(), this); 
 		ws_->addWidget(sourcefile, widgetID);
 		sourcefile->load(source);  
 		
@@ -449,7 +718,7 @@ void MSMetaDataExplorer::visualize_(SourceFile &source, QListViewItem* parent)
 void MSMetaDataExplorer::visualize_(ContactPerson &person, QListViewItem* parent)
 {
     QListViewItem* item;
-		int widgetID = makeID();
+		int widgetID = makeID_();
 		String w_id(widgetID);
 		if(parent==0)
 		{
@@ -460,7 +729,7 @@ void MSMetaDataExplorer::visualize_(ContactPerson &person, QListViewItem* parent
 			item = new QListViewItem(parent, "ContactPerson" , w_id, "0" );  
 		}
 		
-		OpenMS::ContactPersonVisualizer *cp = new OpenMS::ContactPersonVisualizer(splitvert_); 
+		OpenMS::ContactPersonVisualizer *cp = new OpenMS::ContactPersonVisualizer(isEditable(), this); 
 		ws_->addWidget(cp, widgetID);
 		cp->load(person);    
 		
@@ -476,7 +745,7 @@ void MSMetaDataExplorer::visualize_(ContactPerson &person, QListViewItem* parent
 void MSMetaDataExplorer::visualize_(Instrument &instrument, QListViewItem* parent)
 {
     QListViewItem* item;
-		int widgetID = makeID();
+		int widgetID = makeID_();
 		String w_id(widgetID);
 		if(parent==0)
 		{
@@ -487,7 +756,7 @@ void MSMetaDataExplorer::visualize_(Instrument &instrument, QListViewItem* paren
 			item = new QListViewItem(parent, "Instrument" , w_id, "0" );  
 		}
 		
-		OpenMS::InstrumentVisualizer *iv = new OpenMS::InstrumentVisualizer(splitvert_); 
+		OpenMS::InstrumentVisualizer *iv = new OpenMS::InstrumentVisualizer(isEditable(), this); 
 		ws_->addWidget(iv, widgetID);
 		iv->load(instrument);    
 		
@@ -542,7 +811,7 @@ void MSMetaDataExplorer::visualize_(Instrument &instrument, QListViewItem* paren
 void MSMetaDataExplorer::visualize_(IonSource &is, QListViewItem* parent)
 {
     QListViewItem* item;
-		int widgetID = makeID();
+		int widgetID = makeID_();
 		String w_id(widgetID);
 		if(parent==0)
 		{
@@ -553,7 +822,7 @@ void MSMetaDataExplorer::visualize_(IonSource &is, QListViewItem* parent)
 			item = new QListViewItem(parent, "IonSource" , w_id, "0" );  
 		}
 		
-		OpenMS::IonSourceVisualizer *isv = new OpenMS::IonSourceVisualizer(splitvert_); 
+		OpenMS::IonSourceVisualizer *isv = new OpenMS::IonSourceVisualizer(isEditable(), this); 
 		ws_->addWidget(isv, widgetID);
 		isv->load(is);    
 		
@@ -569,7 +838,7 @@ void MSMetaDataExplorer::visualize_(IonSource &is, QListViewItem* parent)
 void MSMetaDataExplorer::visualize_(IonDetector &id, QListViewItem* parent)
 {
     QListViewItem* item;
-		int widgetID = makeID();
+		int widgetID = makeID_();
 		String w_id(widgetID);
 		if(parent==0)
 		{
@@ -580,7 +849,7 @@ void MSMetaDataExplorer::visualize_(IonDetector &id, QListViewItem* parent)
 			item = new QListViewItem(parent, "IonDetector" , w_id, "0" );  
 		}
 		
-		OpenMS::IonDetectorVisualizer *idv = new OpenMS::IonDetectorVisualizer(splitvert_); 
+		OpenMS::IonDetectorVisualizer *idv = new OpenMS::IonDetectorVisualizer(isEditable(), this); 
 		ws_->addWidget(idv, widgetID);
 		idv->load(id);    
 		
@@ -596,7 +865,7 @@ void MSMetaDataExplorer::visualize_(IonDetector &id, QListViewItem* parent)
 void MSMetaDataExplorer::visualize_(MassAnalyzer &ma, QListViewItem* parent)
 {
     QListViewItem* item;
-		int widgetID = makeID();
+		int widgetID = makeID_();
 		String w_id(widgetID);
 		if(parent==0)
 		{
@@ -607,7 +876,7 @@ void MSMetaDataExplorer::visualize_(MassAnalyzer &ma, QListViewItem* parent)
 			item = new QListViewItem(parent, "MassAnalyzer" , w_id, "0" );  
 		}
 		
-		OpenMS::MassAnalyzerVisualizer *mav = new OpenMS::MassAnalyzerVisualizer(splitvert_); 
+		OpenMS::MassAnalyzerVisualizer *mav = new OpenMS::MassAnalyzerVisualizer(isEditable(), this); 
 		ws_->addWidget(mav, widgetID);
 		mav->load(ma);    
 		
@@ -623,7 +892,7 @@ void MSMetaDataExplorer::visualize_(MassAnalyzer &ma, QListViewItem* parent)
 void MSMetaDataExplorer::visualize_(ProcessingMethod &pm, QListViewItem* parent)
 {
     QListViewItem* item;
-		int widgetID = makeID();
+		int widgetID = makeID_();
 		String w_id(widgetID);
 		if(parent==0)
 		{
@@ -634,7 +903,7 @@ void MSMetaDataExplorer::visualize_(ProcessingMethod &pm, QListViewItem* parent)
 			item = new QListViewItem(parent, "ProcessingMethod" , w_id, "0" );  
 		}
 		
-		OpenMS::ProcessingMethodVisualizer *pmv = new OpenMS::ProcessingMethodVisualizer(splitvert_); 
+		OpenMS::ProcessingMethodVisualizer *pmv = new OpenMS::ProcessingMethodVisualizer(isEditable(), this); 
 		ws_->addWidget(pmv, widgetID);
 		pmv->load(pm);    
 		
@@ -650,7 +919,7 @@ void MSMetaDataExplorer::visualize_(ProcessingMethod &pm, QListViewItem* parent)
 void MSMetaDataExplorer::visualize_(ProteinIdentification &pid, QListViewItem* parent)
 {
     QListViewItem* item;
-		int widgetID = makeID();
+		int widgetID = makeID_();
 		String w_id(widgetID);
 		if(parent==0)
 		{
@@ -690,7 +959,7 @@ void MSMetaDataExplorer::visualize_(ProteinIdentification &pid, QListViewItem* p
 void MSMetaDataExplorer::visualize_(Identification &id, QListViewItem* parent)
 {
     QListViewItem* item;
-		int widgetID = makeID();
+		int widgetID = makeID_();
 		String w_id(widgetID);
 		if(parent==0)
 		{
@@ -726,218 +995,12 @@ void MSMetaDataExplorer::visualize_(Identification &id, QListViewItem* parent)
 }
 
 
-void MSMetaDataExplorer::updateProteinHits(ProteinIdentification pid, int tree_item_id)
-{
-		
-		ProteinIdentification protid = pid;
-		float threshold = protid.getProteinSignificanceThreshold();
-		
-		// find item in tree belonging to ProteinIdentification object
-		const QString qs = String(tree_item_id);
-		QListViewItem *item =listview_->findItem(qs, 1);
-		
-			
-		item->sortChildItems(2, true);
-		//item->sort();		
-		// get all children of this item
-		QListViewItem *first =item->firstChild();
-		QListViewItem *current = first;
-		
-		//set the items visible or not visible depending to their score and the current threshold
-		for(int i=0; i<item->childCount(); ++i)
-		{
-							
-				if( (current->text(2)).toFloat() <=threshold)
-				{
-						current->setVisible(false);
-				}
-				else
-				{
-					current->setVisible(true);
-				}
-				
-				QListViewItem *next= current->nextSibling();
-				current = next;
-		}
-		
-}
-
-
-void MSMetaDataExplorer::updateNonRefPeptideHits(Identification id, int tree_item_id)
-{
-		
-		Identification ident = id;
-		vector< ProteinHit > prots= ident.getProteinHits(); 
-		
-		String date_time;
-		multimap< String, ProteinHit > map;
-		vector<PeptideHit> *hits;
-		
-		ident.getDateTime().get(date_time);
-		
-		for(vector<ProteinHit>::iterator it = prots.begin(); it != prots.end();	it++)
-		{
-			map.insert(make_pair(date_time, *it));
-		}																													
-		hits = ident.getNonReferencingHits(map);
-		
-				
-		// find item in tree belonging to Identification object
-		const QString qs = String(tree_item_id);
-		QListViewItem *item =listview_->findItem(qs, 1);
-		
-		// get all children of this item
-		QListViewItem *first =item->firstChild();
-		QListViewItem *current = first;
-		
-			
-		//set the items visible or not visible depending of non referencing peptide hits
-		for(int i=0; i<item->childCount(); ++i)
-		{
-				for(UnsignedInt i=0; i<hits->size(); ++i)
-				{
-					String name("Pep ");
-					String score((*hits)[i].getScore());
-					String seq = (*hits)[i].getSequence();
-					name = name+ seq+" (" +score+")";
-					
-					
-						if( current->text(0)==name && current->text(3)== seq)
-						{
-								current->setVisible(true);
-								break;
-						}
-						else
-						{
-							current->setVisible(false);
-						}
-				}
-				QListViewItem *next= current->nextSibling();
-				current = next;	
-		}
-
-}
-
-void MSMetaDataExplorer::updatePeptideHits(Identification id, int tree_item_id)
-{
-		
-		Identification ident = id;
-		float threshold = ident.getPeptideSignificanceThreshold();
-				
-		// find item in tree belonging to Identification object
-		const QString qs = String(tree_item_id);
-		QListViewItem *item =listview_->findItem(qs, 1);
-		
-		// get all children of this item
-		QListViewItem *first =item->firstChild();
-		QListViewItem *current = first;
-		
-		//set the items visible or not visible depending to their score and the current threshold
-		for(int i=0; i<item->childCount(); ++i)
-		{
-							
-				if( (current->text(2)).toFloat() <=threshold)
-				{
-						current->setVisible(false);
-				}
-				else
-				{
-					current->setVisible(true);
-				}
-				
-				QListViewItem *next= current->nextSibling();
-				current = next;
-		}
-		
-}
-
-void MSMetaDataExplorer::updateRefPeptideHits(Identification id, int tree_item_id, String ref_date, String ref_acc)
-{
-	  if(ref_date.trim()=="" && ref_acc.trim()=="")
-		{
-			return;
-		}
-		
-		
-		Identification ident = id;
-				
-		// find item in tree belonging to Identification object
-		const QString qs = String(tree_item_id);
-		QListViewItem *item =listview_->findItem(qs, 1);
-		
-		// get all children of this item
-		QListViewItem *first =item->firstChild();
-		QListViewItem *current = first;
-		bool hit = false;
-				
-		ident.sort();
-		
-		vector< PeptideHit > peps= ident.getPeptideHits(); 
-		
-		//Set all items to not visible
-			for(int i=0; i<item->childCount(); ++i)
-			{
-				 current->setVisible(false);
-				 QListViewItem *next= current->nextSibling();
-				 current = next;
-			}
-			current = first;
-		
-		//search all peptide hits
-		for(UnsignedInt i=0; i<peps.size(); ++i)
-		{
-			vector<pair<String, String> > protlist = peps[i].getProteinIndices();
-			
-			String name("Pep ");
-			String score(peps[i].getScore());
-			String seq = peps[i].getSequence();
-			name = name+ seq+ " (" +score+")";
-			
-			
-			//search all protein hits belonging to current peptide hit
-			for(vector< pair<String, String> >::iterator it = protlist.begin(); it != protlist.end();	it++)
-			{
-					//Check if peptide hit refers to a certain protein hit.
-					if( (ref_date.trim()=="" && it->second == ref_acc )|| 
-					    (it->first==ref_date && ref_acc.trim()=="") ||
-							(it->first==ref_date && it->second == ref_acc)   )
-					{
-						hit = true;
-						break;	
-					}
-			}
-			
-			if(hit)
-			{
-				//Search QListviewItem belonging to peptide and set it visible.
-				for(int i=0; i<item->childCount(); ++i)
-				{		
-						if( current->text(0)==name && current->text(3)== seq )
-						{
-							current->setVisible(true);
-						}					
-						QListViewItem *next= current->nextSibling();
-						current = next;
-				}
-				current = first;	
-			}
-			
-			hit = false;
-			
-			
-		}
-		
-			
-	
-		
-		
-}
 
 //Visualizing ProteinHit object
 void MSMetaDataExplorer::visualize_(ProteinHit &phit, QListViewItem* parent)
 {
     QListViewItem* item;
-		int widgetID = makeID();
+		int widgetID = makeID_();
 		String w_id(widgetID);
 		String name("Prot ");
 		String identifier(phit.getAccession());
@@ -955,7 +1018,7 @@ void MSMetaDataExplorer::visualize_(ProteinHit &phit, QListViewItem* parent)
 			item = new QListViewItem(parent, name , w_id, String(phit.getScore()));  
 		}
 		
-		OpenMS::ProteinHitVisualizer *phitv = new OpenMS::ProteinHitVisualizer(splitvert_); 
+		OpenMS::ProteinHitVisualizer *phitv = new OpenMS::ProteinHitVisualizer(isEditable(), this); 
 		ws_->addWidget(phitv, widgetID);
 		phitv->load(phit);    
 }
@@ -964,7 +1027,7 @@ void MSMetaDataExplorer::visualize_(ProteinHit &phit, QListViewItem* parent)
 void MSMetaDataExplorer::visualize_(PeptideHit &pephit, QListViewItem* parent, vector<ProteinHit> *prots )
 {
     QListViewItem* item;
-		int widgetID = makeID();
+		int widgetID = makeID_();
 		String w_id(widgetID);
 		
 		String name("Pep ");
@@ -982,7 +1045,7 @@ void MSMetaDataExplorer::visualize_(PeptideHit &pephit, QListViewItem* parent, v
 				item = new QListViewItem(parent, name , w_id, String(pephit.getScore()), pephit.getSequence());  
 		}
 		
-		OpenMS::PeptideHitVisualizer *pephitv = new OpenMS::PeptideHitVisualizer(splitvert_); 
+		OpenMS::PeptideHitVisualizer *pephitv = new OpenMS::PeptideHitVisualizer(isEditable(), this); 
 		ws_->addWidget(pephitv, widgetID);
 		pephitv->load(pephit); 
 		
@@ -1011,82 +1074,14 @@ void MSMetaDataExplorer::visualize_(PeptideHit &pephit, QListViewItem* parent, v
 
 
 
-//Visualizing SpectrumSettings object
-void MSMetaDataExplorer::visualize_(SpectrumSettings &ss, QListViewItem* parent)
-{
-		QListViewItem* item;
-		int widgetID = makeID();
-		String w_id(widgetID);
-		if(parent==0)
-		{
-			item =new QListViewItem(listview_, listview_->lastItem(), "SpectrumSettings" , w_id, "0" );
-		}
-		else
-		{
-			item = new QListViewItem(parent, "SpectrumSettings" , w_id, "0" );
-		}
-				
-		OpenMS::SpectrumSettingsVisualizer *ssv = new OpenMS::SpectrumSettingsVisualizer(splitvert_);  
-		ws_->addWidget(ssv, widgetID);
-		ssv->load(ss);
-		
-		
-		
-		try
-		{
-			
-			//check for InstrumentSettings
-			InstrumentSettings &insSet = ss.getInstrumentSettings();
-			visualize_(insSet, item);
-			
-			//check for Identification
-			vector<Identification>& IDs= ss.getIdentifications();  
-			if(IDs.size() != 0)
-			{
-				for(UnsignedInt i=0; i<IDs.size(); ++i)    
-				{
-					visualize_(IDs[i], item);
-				}
-			}
-			
-			//check for Precursor
-			Precursor &pre = ss.getPrecursor();
-			visualize_(pre, item);
-					
-			//check for MetaInfoDescription
-			std::map<String, MetaInfoDescription> mid;
-			mid=ss.getMetaInfoDescriptions();
-			String key("");
-			String *key_ptr=&key;
-			
-			map<String, MetaInfoDescription>::iterator iter;   
-  		for( iter = mid.begin(); iter != mid.end(); iter++ ) 
-			{
-				key=iter->first;
-				visualize_(iter->second, item, key_ptr );
-      }
-			
-			//MetaInfoDescription &meta = mid["map1"];
-			//visualize_(meta, item);
-					
-			
-			//check for AcquisitionInfo
-			AcquisitionInfo &ac = ss.getAcquisitionInfo();
-			visualize_(ac, item);
-		
-		}
-		catch(exception& e)
-		{
-			std::cout<<"Error while trying to visualize SpectrumSettings. "<<e.what()<<endl;
-		}
-		
-}
+
 
 //Visualizing ExperimentalSettings object
 void MSMetaDataExplorer::visualize_(ExperimentalSettings &es, QListViewItem* parent)
 {
+		
 		QListViewItem* item;
-		int widgetID = makeID();
+		int widgetID = makeID_();
 		String w_id(widgetID);
 		if(parent==0)
 		{
@@ -1096,10 +1091,12 @@ void MSMetaDataExplorer::visualize_(ExperimentalSettings &es, QListViewItem* par
 		{
 			item = new QListViewItem(parent, "ExperimentalSettings" , w_id, "0" );
 		}
-				
-		OpenMS::ExperimentalSettingsVisualizer *esv = new OpenMS::ExperimentalSettingsVisualizer(splitvert_);  
+		
+		//OpenMS::ExperimentalSettingsVisualizer *esv = new OpenMS::ExperimentalSettingsVisualizer(isEditable(), splitvert_);  
+		OpenMS::ExperimentalSettingsVisualizer *esv = new OpenMS::ExperimentalSettingsVisualizer(isEditable(), this);  
 		ws_->addWidget(esv, widgetID);
 		esv->load(es);
+		
 		
 		//check for metainfo objects
 		if(! es.isMetaEmpty() )
@@ -1109,6 +1106,10 @@ void MSMetaDataExplorer::visualize_(ExperimentalSettings &es, QListViewItem* par
 		
 		try
 		{
+			//check for Sample
+			Sample& sample = es.getSample();
+			visualize_(sample, item);
+			
 			
 			//check for ProteinIdentification
 			vector<ProteinIdentification>& protIDs= es.getProteinIdentifications();  
@@ -1122,15 +1123,15 @@ void MSMetaDataExplorer::visualize_(ExperimentalSettings &es, QListViewItem* par
 			}
 			
 			//check for ProcessingMethod
-			ProcessingMethod &pm = es.getProcessingMethod();
+			ProcessingMethod& pm = es.getProcessingMethod();
 			visualize_(pm, item);
 			
 			//check for Instrument
-			Instrument &instrument = es.getInstrument();
+			Instrument& instrument = es.getInstrument();
 			visualize_(instrument, item);
 			
 			//check for SourceFile
-			SourceFile &sf = es.getSourceFile();
+			SourceFile& sf = es.getSourceFile();
 			visualize_(sf, item);
 			
 			
@@ -1146,16 +1147,12 @@ void MSMetaDataExplorer::visualize_(ExperimentalSettings &es, QListViewItem* par
 			}  
 			
 			
-			//check for Sample
-			Sample &sample = es.getSample();
-			visualize_(sample, item);
-			
 			//check for Software
-			Software &sw = es.getSoftware();
+			Software& sw = es.getSoftware();
 			visualize_(sw, item);
 			
 			//check for HPLC
-			HPLC &hplc = es.getHPLC();
+			HPLC& hplc = es.getHPLC();
 			visualize_(hplc, item);
 			
 		}
@@ -1167,23 +1164,85 @@ void MSMetaDataExplorer::visualize_(ExperimentalSettings &es, QListViewItem* par
 }
 
 
-int MSMetaDataExplorer::makeID()
-{
-  int id= obj_id_;
-  obj_id_++;
-  
-  return id;
-}
+
 //-----------------------------------------------------------------------------
 //			Spectrum Settings
 //-----------------------------------------------------------------------------
 
+//Visualizing SpectrumSettings object
+void MSMetaDataExplorer::visualize_(SpectrumSettings &ss, QListViewItem* parent)
+{
+		QListViewItem* item;
+		int widgetID = makeID_();
+		String w_id(widgetID);
+		if(parent==0)
+		{
+			item =new QListViewItem(listview_, listview_->lastItem(), "SpectrumSettings" , w_id, "0" );
+		}
+		else
+		{
+			item = new QListViewItem(parent, "SpectrumSettings" , w_id, "0" );
+		}
+				
+		OpenMS::SpectrumSettingsVisualizer *ssv = new OpenMS::SpectrumSettingsVisualizer(isEditable(), this);  
+		ws_->addWidget(ssv, widgetID);
+		ssv->load(ss);
+		
+		
+		
+		try
+		{
+			
+			//check for InstrumentSettings
+			InstrumentSettings& insSet = ss.getInstrumentSettings();
+			visualize_(insSet, item);
+			
+			//check for Identification
+			vector<Identification>& IDs= ss.getIdentifications();  
+			if(IDs.size() != 0)
+			{
+				for(UnsignedInt i=0; i<IDs.size(); ++i)    
+				{
+					visualize_(IDs[i], item);
+				}
+			}
+			
+			//check for Precursor
+			Precursor& pre = ss.getPrecursor();
+			visualize_(pre, item);
+					
+			//check for MetaInfoDescription
+			std::map<String, MetaInfoDescription>& mid =ss.getMetaInfoDescriptions();
+			//mid=ss.getMetaInfoDescriptions();
+			String key("");
+			String *key_ptr=&key;
+			
+			map<String, MetaInfoDescription>::iterator iter;   
+  		for( iter = mid.begin(); iter != mid.end(); iter++ ) 
+			{
+				key=iter->first;
+				visualize_(iter->second, item, key_ptr );
+      }
+			
+			 					
+			
+			//check for AcquisitionInfo
+			AcquisitionInfo& ac = ss.getAcquisitionInfo();
+			visualize_(ac, item);
+		
+		}
+		catch(exception& e)
+		{
+			std::cout<<"Error while trying to visualize SpectrumSettings. "<<e.what()<<endl;
+		}
+		
+}
 
 //Visualizing InstrumentSettings object
 void MSMetaDataExplorer::visualize_(InstrumentSettings &is, QListViewItem* parent)
 {
     QListViewItem* item;
-		int widgetID = makeID();
+		int widgetID = makeID_();
 		String w_id(widgetID);
 		
 		if(parent==0)
@@ -1201,7 +1260,7 @@ void MSMetaDataExplorer::visualize_(InstrumentSettings &is, QListViewItem* paren
 		{
 				visualize_(dynamic_cast<MetaInfoInterface&>(is), item);
 		}
-		OpenMS::InstrumentSettingsVisualizer *isv = new OpenMS::InstrumentSettingsVisualizer(splitvert_);  
+		OpenMS::InstrumentSettingsVisualizer *isv = new OpenMS::InstrumentSettingsVisualizer(isEditable(), this);  
 		ws_->addWidget(isv, widgetID);
 		isv->load(is);   
 }
@@ -1210,7 +1269,7 @@ void MSMetaDataExplorer::visualize_(InstrumentSettings &is, QListViewItem* paren
 void MSMetaDataExplorer::visualize_(Acquisition &a, QListViewItem* parent)
 {
     QListViewItem* item;
-		int widgetID = makeID();
+		int widgetID = makeID_();
 		String w_id(widgetID);
 		String name("Acquisition Nr. ");
 		String number(a.getNumber());
@@ -1230,7 +1289,7 @@ void MSMetaDataExplorer::visualize_(Acquisition &a, QListViewItem* parent)
 		{
 				visualize_(dynamic_cast<MetaInfoInterface&>(a), item);
 		}
-		OpenMS::AcquisitionVisualizer *av = new OpenMS::AcquisitionVisualizer(splitvert_);  
+		OpenMS::AcquisitionVisualizer *av = new OpenMS::AcquisitionVisualizer(isEditable(), this);  
 		ws_->addWidget(av, widgetID);
 		av->load(a);   
 }
@@ -1239,7 +1298,7 @@ void MSMetaDataExplorer::visualize_(Acquisition &a, QListViewItem* parent)
 void MSMetaDataExplorer::visualize_(AcquisitionInfo &ai, QListViewItem* parent)
 {
     QListViewItem* item;
-		int widgetID = makeID();
+		int widgetID = makeID_();
 		String w_id(widgetID);
 		
 		if(parent==0)
@@ -1253,7 +1312,7 @@ void MSMetaDataExplorer::visualize_(AcquisitionInfo &ai, QListViewItem* parent)
 		}
 		
 		
-		OpenMS::AcquisitionInfoVisualizer *aiv = new OpenMS::AcquisitionInfoVisualizer(splitvert_);  
+		OpenMS::AcquisitionInfoVisualizer *aiv = new OpenMS::AcquisitionInfoVisualizer(isEditable(), this);  
 		ws_->addWidget(aiv, widgetID);
 		aiv->load(ai); 
 		
@@ -1270,7 +1329,7 @@ void MSMetaDataExplorer::visualize_(AcquisitionInfo &ai, QListViewItem* parent)
 void MSMetaDataExplorer::visualize_(MetaInfoDescription &mid,  QListViewItem* parent, String* key)
 {
     QListViewItem* item;
-		int widgetID = makeID();
+		int widgetID = makeID_();
 		String w_id(widgetID);
 		String name("MetaInfoDescription ");
 		name = name + (*key);
@@ -1290,12 +1349,12 @@ void MSMetaDataExplorer::visualize_(MetaInfoDescription &mid,  QListViewItem* pa
 		{
 				visualize_(dynamic_cast<MetaInfoInterface&>(mid), item);
 		}
-		OpenMS::MetaInfoDescriptionVisualizer *midv = new OpenMS::MetaInfoDescriptionVisualizer(splitvert_);  
+		OpenMS::MetaInfoDescriptionVisualizer *midv = new OpenMS::MetaInfoDescriptionVisualizer(isEditable(), this);  
 		ws_->addWidget(midv, widgetID);
 		midv->load(mid);   
 		
 		//Check for source file
-		SourceFile &source= mid.getSourceFile();
+		SourceFile& source= mid.getSourceFile();
 		visualize_(source, item);
 }
 
@@ -1304,7 +1363,7 @@ void MSMetaDataExplorer::visualize_(MetaInfoDescription &mid,  QListViewItem* pa
 void MSMetaDataExplorer::visualize_(Precursor &pre, QListViewItem* parent)
 {
     QListViewItem* item;
-		int widgetID = makeID();
+		int widgetID = makeID_();
 		String w_id(widgetID);
 		
 		if(parent==0)
@@ -1318,7 +1377,7 @@ void MSMetaDataExplorer::visualize_(Precursor &pre, QListViewItem* parent)
 		}
 		
 		
-		OpenMS::PrecursorVisualizer *prev = new OpenMS::PrecursorVisualizer(splitvert_);  
+		OpenMS::PrecursorVisualizer *prev = new OpenMS::PrecursorVisualizer(isEditable(), this);  
 		ws_->addWidget(prev, widgetID);
 		prev->load(pre);   
 }

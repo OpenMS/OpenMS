@@ -43,7 +43,8 @@ using namespace OpenMS;
 using namespace std;
 
 //Constructor
-ContactPersonVisualizer::ContactPersonVisualizer(QWidget *parent, const char *name) : BaseVisualizer(parent, name)
+ContactPersonVisualizer::ContactPersonVisualizer(bool editable, QWidget *parent, const char *name) 
+	: BaseVisualizer(editable, parent, name)
 {
   
 	addLabel("Modify ContactPerson information");		
@@ -53,13 +54,8 @@ ContactPersonVisualizer::ContactPersonVisualizer(QWidget *parent, const char *na
 	addLineEdit(cp_institution_, "Institution" );
 	addLineEdit(cp_email_, "Email" );
 	addLineEdit(cp_contact_info_, "Contact info" );
-	addVSpacer();		
-	addSeperator();
-	addLabel("Save changes or restore original data.");
-	addHorizontalButtons(savebutton_, "Save",  cancelbutton_, "Cancel");
 	
-  connect(savebutton_, SIGNAL(clicked()), this, SLOT(store()) );
-	connect(cancelbutton_, SIGNAL(clicked()), this, SLOT(reject()) );
+	finishAdding_();
 	
 }
 

@@ -45,7 +45,7 @@ using namespace OpenMS;
 using namespace std;
 
 //Constructor
-ProteinHitVisualizer::ProteinHitVisualizer(QWidget *parent, const char *name) : BaseVisualizer(parent, name)
+ProteinHitVisualizer::ProteinHitVisualizer(bool editable, QWidget *parent, const char *name) : BaseVisualizer(editable, parent, name)
 {
   
 	addLabel("Show ProteinHit information.");		
@@ -59,11 +59,6 @@ ProteinHitVisualizer::ProteinHitVisualizer(QWidget *parent, const char *name) : 
 	
 	
 	addSeperator();
-	//addLabel("Save changes or restore original data.");
-	//addHorizontalButtons(savebutton_, "Save",  cancelbutton_, "Cancel");
-	
-  //connect(savebutton_, SIGNAL(clicked()), this, SLOT(store()) );
-	//connect(cancelbutton_, SIGNAL(clicked()), this, SLOT(reject()) );
 	
 }
 

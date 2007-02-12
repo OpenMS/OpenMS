@@ -67,6 +67,8 @@
 #include <qsplitter.h>
 #include <qpushbutton.h>
 #include <qlayout.h>
+#include <qdialog.h>
+#include <qtoolbar.h>
 
 
 
@@ -86,16 +88,19 @@ namespace OpenMS
 		
 		@ingroup Visual
 		*/
-  class MSMetaDataExplorer 
-  	: public QSplitter 
+  class MSMetaDataExplorer : public QDialog 
+	//class MSMetaDataExplorer : public QSplitter 
   {
     Q_OBJECT
   
     public: 
 		  /// Default constructor
-			MSMetaDataExplorer(QWidget *parent =0, const char *name = 0);
+			//MSMetaDataExplorer(QWidget *parent =0, const char *name = 0, bool modal = FALSE, WFlags fl = 0);
 		  
-		  /**
+			/// Constructor with flag for edit mode
+			MSMetaDataExplorer(bool editable = FALSE, QWidget *parent =0, const char *name = 0, bool modal = FALSE, WFlags fl = 0 );
+		  
+			/**
 			@brief A template class to add classes
 			
 			Simple function to add classes to the viewer. Passes the object to be displayed to the corresponding visualizer class according to its type.
@@ -105,15 +110,19 @@ namespace OpenMS
 				visualize_(*ptr);
 			}
 			
+		///	 Check if mode is editable or not
+		bool isEditable();	
+			
 		/// Defines friend classess that can use the functionality of the subclasses.
 		friend class ProteinIdentificationVisualizer;
 		friend class IdentificationVisualizer;
       
     private slots:
 		 /// Raises the corresponding viewer from the widget stack according to the item selected in the tree.
-   	 void showDetails(QListViewItem *item);
-		 /// Saves all changes 
-		 void saveAll();
+   	 void showDetails_(QListViewItem *item);
+		 
+		 /// Saves all changes and close explorer
+		 void saveAll_();
 				 
     private:
 			/// Calls visualizer class for class type ExperimentalSettings.
@@ -170,18 +179,22 @@ namespace OpenMS
 			void visualize_(Identification &id, QListViewItem* parent=0);
 			
 			/// Creates id numbers for the widgets on the stack.
-			int makeID();
+			int makeID_();
 			
-			 /** 
+						 /** 
 			 @brief Update visible protein hits.
 			 
 			 Updates the protein hit information of objects of type ProteinIdentification.
+			 
+			 @param pid 
+			 
+			 Identifier of the identification object belonging to this database search.
 			 
 			 @param tree_item_id 
 			 
 			 Identifier of the item in the tree belonging to the ProteinIdentification object that is displayed.
 			 */
-			 void updateProteinHits(ProteinIdentification pid, int tree_item_id);
+			 void updateProteinHits_(ProteinIdentification pid, int tree_item_id);
 		 	
 			 
 			 
@@ -190,11 +203,15 @@ namespace OpenMS
 			 
 			 Updates the peptide hit information of objects of type Identification depending on a threshold.
 			 
+			 @param id 
+			 
+			 Identifier of the identification object belonging to this database search.
+			 
 			 @param tree_item_id 
 			 
 			 Identifier of the item in the tree belonging to the ProteinIdentification object that is displayed.
 			 */
-			 void updatePeptideHits(Identification id, int tree_item_id);
+			 void updatePeptideHits_(Identification id, int tree_item_id);
 			 
 			 
 			 /** 
@@ -202,39 +219,80 @@ namespace OpenMS
 			 
 			 Updates the peptide hit information of objects of type Identification depending on referencing protein hits.
 			 
+			 @param id 
+			 
+			 Identifier of the identification object belonging to this database search.
+			 
 			 @param tree_item_id 
 			 
 			 Identifier of the item in the tree belonging to the ProteinIdentification object that is displayed.
+			 
+			 @param ref_date 
+			 
+			 Petide Hits referencing to protein hits with the same date of database search.
+			 
+			 @param ref_acc
+			 
+			 Petide Hits referencing to protein hits with the same acquisition number.
 			 */
-			 void updateRefPeptideHits(Identification id, int tree_item_id, String ref_date, String ref_acc);
+			 void updateRefPeptideHits_(Identification id, int tree_item_id, String ref_date, String ref_acc);
 			 
 			 
 			 /** 
 			 @brief Update visible peptide hits.
 			 
-			 Updates the peptide hit information of objects of type Identification depending non referencing protein hits.
+			 Updates the peptide hit information of objects of type Identification depending non referencing protein hits.<br>
 			 Only peptide hits that do not reference any protein hit will be displayed.			 			 
 			 
+			 Updates the peptide hit information of objects of type Identification depending on referencing protein hits.
+			 
+			 @param id 
+			 
+			 Identifier of the identification object belonging to this database search.
+			 
+			 @param tree_item_id 
+			 
+			 Identifier of the item in the tree belonging to the ProteinIdentification object that is displayed.
+			 
 			 */
-			 void updateNonRefPeptideHits(Identification id,  int tree_item_id);
+			 void updateNonRefPeptideHits_(Identification id,  int tree_item_id);
 			 
-			 
-			/// Basic layout for the two main windows.
-			QHBoxLayout* vertlayout_;	
-			/// Grid layout for basic layout.
-			QGridLayout* glayout_;		
+			 /// The calling dialog
+			//QDialog *parent_;
+			//MetaDialog parent_;
+			/// Indicates the mode
+			bool editable_;
+			
+			/// Basic layout.
+			//QHBoxLayout* basiclayout_;	
+			QGridLayout *basiclayout_;	
+			
+			/// Basic layout for the widget stack.
+			//QHBoxLayout *vertlayout_;	
+			QVBoxLayout *vertlayout_;	
+			QHBoxLayout *buttonlayout_;	
+			
+			/// Grid layout for widget stack layout.
+			QGridLayout *glayout_;		
 			/// Splitter
-			QSplitter *splitvert_;
+			//QSplitter 
+			QWidgetStack *splitvert_;
 			/// A widgetstack that keeps track of all widgets.
 			QWidgetStack *ws_;
 			/// The selected widget.
 			QWidget *wp_;
 			/// Save button
 			QPushButton *saveallbutton_;
+			/// Close Button
+			QPushButton *closebutton_;
+			/// Cancel Button
+			QPushButton *cancelbutton_;
 			/// ID for widgets.
 			int obj_id_;
 			/// The tree.
 			QListView *listview_;
+			/// The menu bar
+			QToolBar *layer_bar_;
 			
 			
 			

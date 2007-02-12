@@ -61,7 +61,7 @@ This class provides all functionality to view the meta information of an object 
 
 	public: 
 	  /// Default constructor
-		DigestionVisualizer(QWidget *parent =0, const char *name = 0);
+		DigestionVisualizer(bool editable= FALSE, QWidget *parent =0, const char *name = 0);
 		/// Loads the meta data from the object to the viewer.
 		void load(Digestion &d);
 
@@ -78,6 +78,7 @@ This class provides all functionality to view the meta information of an object 
    */
     //@{
 		QLineEdit *treatmenttype_;
+		QTextEdit *treatmentcomment_;
 		QLineEdit *digestionenzyme_;
 		QLineEdit *digestiontime_;
 		QLineEdit *digestiontemperature_;

@@ -51,7 +51,7 @@ using namespace OpenMS;
 using namespace std;
 
 //Constructor
-ProcessingMethodVisualizer::ProcessingMethodVisualizer(QWidget *parent, const char *name) : BaseVisualizer(parent, name)
+ProcessingMethodVisualizer::ProcessingMethodVisualizer(bool editable, QWidget *parent, const char *name) : BaseVisualizer(editable, parent, name)
 {
 	type_="ProcessingMethod";
   
@@ -61,15 +61,13 @@ ProcessingMethodVisualizer::ProcessingMethodVisualizer(QWidget *parent, const ch
 	addComboBox(processingmethod_deisotoping_, "Deisotoping");
 	addComboBox(processingmethod_charge_deconvolution_, "Charge deconvolution");
 	addComboBox(processingmethod_method_, "Method");
+	addLineEdit(processingmethod_intensity_cutoff_, "Intensity cutoff");	
 	
-	addVSpacer();
-	addSeperator();
-	addLabel("Save changes or restore original data.");
-	addHorizontalButtons(savebutton_, "Save",  cancelbutton_, "Cancel");
+	finishAdding_();
 	
-  connect(savebutton_, SIGNAL(clicked()), this, SLOT(store()) );
-	connect(cancelbutton_, SIGNAL(clicked()), this, SLOT(reject()) );
-	
+	// A validator to check the input for intensity cutoff
+	QDoubleValidator *processingmethod_intensity_cutoff_vali_ = new QDoubleValidator(processingmethod_intensity_cutoff_);
+	processingmethod_intensity_cutoff_->setValidator(processingmethod_intensity_cutoff_vali_);
 }
 
 
@@ -88,10 +86,10 @@ void ProcessingMethodVisualizer::load(ProcessingMethod &s)
 	fillComboBox(processingmethod_deisotoping_, bool_values_ , 2);
 	fillComboBox(processingmethod_charge_deconvolution_, bool_values_ , 2);
 	
-	update();
+	update_();
 }
 
-void ProcessingMethodVisualizer::update()
+void ProcessingMethodVisualizer::update_()
 {		
 		
 		//update deisotoping
@@ -115,9 +113,9 @@ void ProcessingMethodVisualizer::update()
 			processingmethod_charge_deconvolution_->setCurrentItem(0);
 		}
 		
-	
+		processingmethod_intensity_cutoff_->setText(String( tempprocessingmethod_.getIntensityCutoff() ) );		
 		processingmethod_method_->setCurrentItem(tempprocessingmethod_.getSpectrumType()); 
-		
+	
 }
 
 void ProcessingMethodVisualizer::store()
@@ -127,7 +125,8 @@ void ProcessingMethodVisualizer::store()
 		(*ptr_).setSpectrumType((SpectrumSettings::SpectrumType)processingmethod_method_->currentItem());		
 		(*ptr_).setDeisotoping(processingmethod_deisotoping_->currentItem());		
 		(*ptr_).setChargeDeconvolution(processingmethod_charge_deconvolution_->currentItem());
-		
+		(*ptr_).setIntensityCutoff(String((const char*)processingmethod_intensity_cutoff_->text()  ).toFloat() );		
+			
 		tempprocessingmethod_=(*ptr_);
 		
 	}
@@ -144,7 +143,7 @@ void ProcessingMethodVisualizer::reject()
 	try
 	{
 
-		update();
+		update_();
 	}
 	catch(exception e)
 	{

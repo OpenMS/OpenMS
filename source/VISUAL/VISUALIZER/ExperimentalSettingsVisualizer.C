@@ -50,7 +50,7 @@ using namespace OpenMS;
 using namespace std;
 
 //Constructor
-ExperimentalSettingsVisualizer::ExperimentalSettingsVisualizer(QWidget *parent, const char *name) : BaseVisualizer(parent, name)
+ExperimentalSettingsVisualizer::ExperimentalSettingsVisualizer(bool editable, QWidget *parent, const char *name) : BaseVisualizer(editable, parent, name)
 {
 	type_="ExperimentalSettings";
   
@@ -58,6 +58,7 @@ ExperimentalSettingsVisualizer::ExperimentalSettingsVisualizer(QWidget *parent, 
 	addSeperator();  
 	addComboBox(experimentalsettings_type_, "Type of the experiment");
 	addLineEdit(experimentalsettings_date_, "Date of experiment");
+	addTextEdit(experimentalsettings_comment_, "Comment");
 	
 	finishAdding_();
 }
@@ -73,27 +74,29 @@ void ExperimentalSettingsVisualizer::load(ExperimentalSettings &s)
 			
   fillComboBox(experimentalsettings_type_, s.NamesOfExperimentType , ExperimentalSettings::SIZE_OF_EXPERIMENTTYPE);
 		
-	update();
+	update_();
 }
 
-void ExperimentalSettingsVisualizer::update()
+void ExperimentalSettingsVisualizer::update_()
 {
 		experimentalsettings_type_->setCurrentItem(tempexperimentalsettings_.getType()); 
 		String str;
     tempexperimentalsettings_.getDate().get(str);
 	  experimentalsettings_date_->setText(str); 
+		experimentalsettings_comment_->setText(tempexperimentalsettings_.getComment());
 }
 
 void ExperimentalSettingsVisualizer::store()
 {
 	try
 	{
-			
+		
 		(*ptr_).setType((ExperimentalSettings::ExperimentType)experimentalsettings_type_->currentItem());		
 		Date date;
 		String n((const char*) experimentalsettings_date_->text());
 		date.set(n);
 		(*ptr_).setDate(date);
+		(*ptr_).setComment(string((const char*) experimentalsettings_comment_->text()) );
 		
 		tempexperimentalsettings_=(*ptr_);
 	}
@@ -110,7 +113,7 @@ void ExperimentalSettingsVisualizer::reject()
 	try
 	{
 
-		update();
+		update_();
 	}
 	catch(exception e)
 	{

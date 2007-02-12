@@ -57,7 +57,7 @@ This class provides all functionality to view the meta information of an object 
 
 	public: 
          /// Default constructor
-	      SourceFileVisualizer(QWidget *parent =0, const char *name = 0);
+	      SourceFileVisualizer(bool editable= FALSE, QWidget *parent =0, const char *name = 0);
         /// Loads the meta data from the object to the viewer.
 	      void load(SourceFile &h);
 
@@ -74,7 +74,9 @@ This class provides all functionality to view the meta information of an object 
     //@{
 		QLineEdit *name_of_file_;
 		QLineEdit *path_to_file_;
+		QLineEdit *file_size_;
 		QLineEdit *file_type_;
+		QLineEdit *sha1_;
 		QPushButton *savebutton_;
 		QPushButton *cancelbutton_;
 		//@}

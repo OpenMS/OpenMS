@@ -50,7 +50,8 @@ using namespace OpenMS;
 using namespace std;
 
 //Constructor
-SpectrumSettingsVisualizer::SpectrumSettingsVisualizer(QWidget *parent, const char *name) : BaseVisualizer(parent, name)
+SpectrumSettingsVisualizer::SpectrumSettingsVisualizer(bool editable, QWidget *parent, const char *name) 
+	: BaseVisualizer(editable, parent, name)
 {
 	type_="SpectrumSettings";
   
@@ -73,10 +74,10 @@ void SpectrumSettingsVisualizer::load(SpectrumSettings &s)
 			
   fillComboBox(spectrumsettings_type_, s.NamesOfSpectrumType , SpectrumSettings::SIZE_OF_SPECTRUMTYPE);
 		
-	update();
+	update_();
 }
 
-void SpectrumSettingsVisualizer::update()
+void SpectrumSettingsVisualizer::update_()
 {
 		spectrumsettings_type_->setCurrentItem(tempspectrumsettings_.getType()); 
 		spectrumsettings_comment_->setText(tempspectrumsettings_.getComment());
@@ -106,7 +107,7 @@ void SpectrumSettingsVisualizer::reject()
 	try
 	{
 
-		update();
+		update_();
 	}
 	catch(exception e)
 	{

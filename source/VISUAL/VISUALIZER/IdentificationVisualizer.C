@@ -52,10 +52,10 @@ using namespace OpenMS;
 using namespace std;
 
 //Constructor
-IdentificationVisualizer::IdentificationVisualizer(QWidget *parent, MSMetaDataExplorer *caller, const char *name) : BaseVisualizer(parent, name)
+IdentificationVisualizer::IdentificationVisualizer(bool editable, QWidget *parent, MSMetaDataExplorer *caller, const char *name) : BaseVisualizer(editable,parent, name)
 {
 	type_="Identification";
-	pidv_caller= caller;
+	pidv_caller_= caller;
 	
 	addLabel("Modify identification information.");	
 	addSeperator();        
@@ -75,13 +75,9 @@ IdentificationVisualizer::IdentificationVisualizer(QWidget *parent, MSMetaDataEx
 	addSeperator();
 	addLabel("Show peptide hits NOT referencing any protein.");
 	addButton(updatebutton3_, "Show peptide hits");
-	addVSpacer();
-	addSeperator();
-	addLabel("Save changes or restore original data.");
-	addHorizontalButtons(savebutton_, "Save",  cancelbutton_, "Cancel");
 	
-  connect(savebutton_, SIGNAL(clicked()), this, SLOT(store()) );
-	connect(cancelbutton_, SIGNAL(clicked()), this, SLOT(reject()) );
+	finishAdding_();
+	
 	connect(updatebutton_, SIGNAL(clicked()), this, SLOT(updateTree()) );
 	connect(updatebutton2_, SIGNAL(clicked()), this, SLOT(searchRefPeptides()) );
 	connect(updatebutton3_, SIGNAL(clicked()), this, SLOT(searchNonRefPeptides()) );
@@ -115,7 +111,7 @@ void IdentificationVisualizer::updateTree()
 	String m((const char*) identification_threshold_->text()) ;
 	tempidentification_.setPeptideSignificanceThreshold(m.toFloat() );
 			
-	pidv_caller->updatePeptideHits(tempidentification_, tree_id_ );
+	pidv_caller_->updatePeptideHits_(tempidentification_, tree_id_ );
 	
 }
 
@@ -125,13 +121,13 @@ void IdentificationVisualizer::searchRefPeptides()
 	String ref_date((const char*) identification_ref_date_->text()) ;
 	String ref_acc((const char*) identification_acc_->text()) ;
 	
-	pidv_caller->updateRefPeptideHits(tempidentification_, tree_id_, ref_date, ref_acc);
+	pidv_caller_->updateRefPeptideHits_(tempidentification_, tree_id_, ref_date, ref_acc);
 	
 }
 
 void IdentificationVisualizer::searchNonRefPeptides()
 {
-	pidv_caller->updateNonRefPeptideHits(tempidentification_ , tree_id_ );
+	pidv_caller_->updateNonRefPeptideHits_(tempidentification_ , tree_id_ );
 }
 
 void IdentificationVisualizer::store()

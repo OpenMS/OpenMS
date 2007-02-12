@@ -52,10 +52,10 @@ using namespace OpenMS;
 using namespace std;
 
 //Constructor
-ProteinIdentificationVisualizer::ProteinIdentificationVisualizer(QWidget *parent, MSMetaDataExplorer *caller, const char *name) : BaseVisualizer(parent, name)
+ProteinIdentificationVisualizer::ProteinIdentificationVisualizer(bool editable, QWidget *parent, MSMetaDataExplorer *caller, const char *name) : BaseVisualizer(editable, parent, name)
 {
 	type_="ProteinIdentification";
-	pidv_caller= caller;
+	pidv_caller_= caller;
 	
 	addLabel("Modify protein identification information.");	
 	addSeperator();        
@@ -64,13 +64,9 @@ ProteinIdentificationVisualizer::ProteinIdentificationVisualizer(QWidget *parent
 	addSeperator();       
 	addLabel("Show protein hits with score equal or higher than current threshold.");
 	addButton(updatebutton_, "Show protein hits");
-	addVSpacer();
-	addSeperator();
-	addLabel("Save changes or restore original data.");
-	addHorizontalButtons(savebutton_, "Save",  cancelbutton_, "Cancel");
 	
-  connect(savebutton_, SIGNAL(clicked()), this, SLOT(store()) );
-	connect(cancelbutton_, SIGNAL(clicked()), this, SLOT(reject()) );
+	finishAdding_();
+	
 	connect(updatebutton_, SIGNAL(clicked()), this, SLOT(updateTree()) );
 		
 	// A validator to check the input for the protein significance threshold
@@ -102,7 +98,7 @@ void ProteinIdentificationVisualizer::updateTree()
 	String m((const char*) proteinidentification_threshold_->text()) ;
 	tempproteinidentification_.setProteinSignificanceThreshold(m.toFloat() );
 	
-	pidv_caller->updateProteinHits(tempproteinidentification_, tree_id_);
+	pidv_caller_->updateProteinHits_(tempproteinidentification_, tree_id_);
 	
 }
 

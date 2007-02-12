@@ -45,9 +45,10 @@
 using namespace OpenMS;
 
 //Constructor
-DataTable::DataTable(QWidget *parent, const char *name) : QWidget(parent, name)
+DataTable::DataTable(bool editable, QWidget *parent, const char *name) 
+	: QWidget(parent, name),
+		editable_(editable)
 {
-  
   //for the actual metadata
 	mainlayout_= new QGridLayout(this);
   mainlayout_->setSpacing(6);
@@ -55,10 +56,6 @@ DataTable::DataTable(QWidget *parent, const char *name) : QWidget(parent, name)
 	mainlayout_->setName("DataTable Layout");
 	row_=0;
 	column_=0;
-	
-	
-  
-	
 }
 
 
@@ -77,33 +74,12 @@ void DataTable::addLabel(const QString &labelName)
 	row_++;
 }
 
-void DataTable::add3Labels(const QString &labelName1, const QString &labelName2, const QString &labelName3)
-{
-	QLabel *label1 = new QLabel(labelName1, this);
-  QLabel *label2 = new QLabel(labelName2, this);
-  QLabel *label3 = new QLabel(labelName3, this);
-  mainlayout_->addWidget(label1, row_, 0);
-	mainlayout_->addWidget(label2, row_, 1);
-	mainlayout_->addWidget(label3, row_, 2);
-	row_++;
-	
-}
-
 void DataTable::addLineEdit(QLineEdit* &ptr, const QString &label)
 {
 	ptr = new QLineEdit(this);
 	addLabel_(label, row_);
 	mainlayout_->addWidget(ptr, row_, 1);
-	row_++;
-	
-}
-
-
-void DataTable::add3LineEdits(QLineEdit* &ptr1, QLineEdit* &ptr2, QLineEdit* &ptr3)
-{
-	mainlayout_->addWidget(ptr1, row_, 0);
-	mainlayout_->addWidget(ptr2, row_, 1);
-	mainlayout_->addWidget(ptr3, row_, 2);
+	ptr->setReadOnly(!isEditable());
 	row_++;
 	
 }
@@ -123,6 +99,8 @@ void DataTable::addLineEditButton(const QString &labelname, QLineEdit* &ptr1, QP
 	bfLayout->addStretch(1);
 	bfLayout->addWidget(ptr2);
 	mainlayout_->addMultiCellWidget(buttonField, row_, row_, 0, 2);
+	ptr1->setReadOnly(!isEditable());
+	ptr2->setEnabled(isEditable());
 	row_++;
 
 }
@@ -133,8 +111,8 @@ void DataTable::addTextEdit(QTextEdit* &ptr ,const QString &label)
 	ptr = new QTextEdit(this);
 	addLabel_(label, row_);
 	mainlayout_->addWidget(ptr, row_, 1);
+	ptr->setReadOnly(!isEditable());
 	row_++;
-	
 }
 
 
@@ -143,8 +121,8 @@ void DataTable::addComboBox(QComboBox* &ptr , const QString &label)
 	ptr = new QComboBox(false, this);
 	addLabel_(label, row_);
 	mainlayout_->addWidget(ptr, row_, 1);
-	row_++;
-	
+	ptr->blockSignals(true);
+	row_++;	
 }
 
 
@@ -154,17 +132,6 @@ void DataTable::fillComboBox(QComboBox* &ptr , const std::string* items, int agr
 	{
 			ptr->insertItem((QString)items[i],i);
 	}	
-}
-
-
-
-void DataTable::addSpinBox(QSpinBox* &ptr , const QString &label)
-{
-	ptr = new QSpinBox(0,500, 1, this);
-	addLabel_(label, row_);
-	mainlayout_->addWidget(ptr, row_, 1);
-	row_++;
-	
 }
 
 void DataTable::addButton(QPushButton* &ptr, const QString &label )
@@ -177,15 +144,9 @@ void DataTable::addButton(QPushButton* &ptr, const QString &label )
 	bfLayout->addStretch(1);
 	bfLayout->addWidget(ptr);
 	mainlayout_->addMultiCellWidget(buttonField, row_, row_, 0, 2);
+	ptr->setEnabled(isEditable());
 	row_++;
 	
-}
-
-void DataTable::addButton(QPushButton* &ptr, const QString &label, int row, int col )
-{
-	ptr = new QPushButton(label, this);
-	mainlayout_->addWidget(ptr, row, col);
-	//row_++;
 }
 
 void DataTable::addVSpacer()
@@ -231,3 +192,9 @@ void DataTable::addEmptyLine()
 	row_++;
 	
 }
+
+bool DataTable::isEditable() const
+{
+	return editable_;
+}
+

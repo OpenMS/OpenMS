@@ -56,7 +56,7 @@ This class provides all functionality to view the meta information of an object 
 
 	public: 
 	  /// Default constructor
-		TaggingVisualizer(QWidget *parent =0, const char *name = 0);
+		TaggingVisualizer(bool editable= FALSE, QWidget *parent =0, const char *name = 0);
 		/// Loads the meta data from the object to the viewer.
 		void load(Tagging &t);
 
@@ -75,18 +75,21 @@ This class provides all functionality to view the meta information of an object 
 		QDoubleValidator *shiftvali_;
 			
 		/// Sets the fields and comboboxes with current values
-		void updateTag();
+		void updateTag_();
 		
 		/** @name Edit fields and buttons
    */
     //@{
 		QLineEdit *treatmenttype_;
+		QTextEdit *treatmentcomment_;
 		QLineEdit *modificationname_;
 		QLineEdit *modificationmass_;
 		QComboBox *modificationspecificity_;
 		QLineEdit *modificationAA_;
 		QLineEdit *taggingmass_shift_;
 		QComboBox *taggingvariant_;
+		
+		
 		QPushButton *savebutton_;
 		QPushButton *cancelbutton_;
 		//@}

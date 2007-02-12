@@ -45,23 +45,20 @@ using namespace OpenMS;
 using namespace std;
 
 //Constructor
-PeptideHitVisualizer::PeptideHitVisualizer(QWidget *parent, const char *name) : BaseVisualizer(parent, name)
+PeptideHitVisualizer::PeptideHitVisualizer(bool editable, QWidget *parent, const char *name) : BaseVisualizer(editable, parent, name)
 {
   
 	addLabel("Show PeptideHit information.");		
 	addSeperator();
 	addLineEdit(peptidehit_score_, "Score" );
 	addLineEdit(peptidehit_score_type_, "Score type" );
+	addLineEdit(peptidehit_charge_, "Charge" );
 	addLineEdit(peptidehit_rank_, "Rank" );
 	addTextEdit(peptidehit_sequence_, "Sequence" );
 	
 	
 	addSeperator();
-	//addLabel("Save changes or restore original data.");
-	//addHorizontalButtons(savebutton_, "Save",  cancelbutton_, "Cancel");
 	
-  //connect(savebutton_, SIGNAL(clicked()), this, SLOT(store()) );
-	//connect(cancelbutton_, SIGNAL(clicked()), this, SLOT(reject()) );
 	
 }
 
@@ -76,6 +73,8 @@ void PeptideHitVisualizer::load(PeptideHit &h)
 	peptidehit_score_->setReadOnly(true);
 	peptidehit_score_type_->setText(tempPeptideHit_.getScoreType() );
 	peptidehit_score_type_->setReadOnly(true);
+	peptidehit_charge_->setText(String(tempPeptideHit_.getCharge()) );
+	peptidehit_charge_->setReadOnly(true);
   peptidehit_rank_->setText(String(tempPeptideHit_.getRank()));
 	peptidehit_rank_->setReadOnly(true);
 	peptidehit_sequence_->setText(tempPeptideHit_.getSequence()); 

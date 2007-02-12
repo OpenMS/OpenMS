@@ -57,6 +57,7 @@ GUI_CPP_SOURCES=\
 	SmoothingDialog.C\
 	BaselineFilteringDialog.C\
 	FeaFiDialog.C
+	
 
 
 GUI_MOC_SOURCES=\
@@ -86,6 +87,7 @@ GUI_MOC_SOURCES=\
 	FeaFiDialogTemplate_moc.C\
 	FeaFiDialog_moc.C\
 	TOPPViewBasePDP_moc.C
+	
 
 GUI_UIC_SOURCES=\
 	Spectrum1DGoToDialogTemplate.C\
@@ -202,6 +204,5 @@ SmoothingDialog_moc.C:  $(HEADER_DIR)/SmoothingDialog.h
 
 BaselineFilteringDialog_moc.C:  $(HEADER_DIR)/BaselineFilteringDialog.h
 	$(MOC) $(HEADER_DIR)/BaselineFilteringDialog.h -o BaselineFilteringDialog_moc.C
-
 
 
