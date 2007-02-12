@@ -27,6 +27,7 @@
 #ifndef OPENMS_MATH_MISC_LINEARINTERPOLATION_H
 #define OPENMS_MATH_MISC_LINEARINTERPOLATION_H
 
+#include <cmath> // for modf() (which is an overloaded function in C++)
 #include <vector>
 
 namespace OpenMS
@@ -131,29 +132,47 @@ namespace OpenMS
 			ValueType value ( KeyType arg_pos ) const throw()
 			{
 
+				typedef typename container_type::difference_type DiffType;
+
 				// apply the key transformation
-				KeyType const pos = key2index(arg_pos);
+				KeyType left_key;
+				KeyType pos = key2index(arg_pos);
+				KeyType frac = std::modf(pos, &left_key);
+				DiffType const left = DiffType(left_key);
 
-				int const size_ = data_.size();
-				int const left = int(pos); // this rounds towards zero
-
-				if ( pos <= 0 )
-					if ( left != 0 )
+				// At left margin?
+				if ( pos < 0 )
+				{
+					if ( left /* <= -1 */ )
+					{
 						return 0;
-					else  // that is: -1 < pos <= 0
-						return data_[ 0 ] * ( 1. + pos ) ;
-
-				if ( left >= size_ - 1 )
-					if ( left != size_ - 1 )
-						return 0;
+					}
 					else
-						return data_[ left ] * ( size_ - pos );
-
-				KeyType factor = pos - KeyType(left);
-
-				return // weighted average
-					data_[ left + 1 ] * factor +
-					data_[ left ] * ( 1. - factor );
+					{ // left == 0
+						return data_[ 0 ] * ( 1 + frac );
+					}
+				}
+				else // pos >= 0
+				{
+					// At right margin?
+					DiffType const back = data_.size() - 1;
+					if ( left >= back )
+					{
+						if ( left != back )
+						{
+							return 0;
+						}
+						else
+						{
+							return data_[ left ] * ( 1 - frac );
+						}
+					}
+					else
+					{
+						// In between!
+						return data_[ left + 1 ] * frac + data_[ left ] * ( 1 - frac );
+					}
+				}
 			}
 
 
@@ -163,43 +182,51 @@ namespace OpenMS
 			void addValue ( KeyType arg_pos, ValueType arg_value ) throw()
 			{
 
+				typedef typename container_type::difference_type DiffType;
+
 				// apply the key transformation
-				KeyType const pos = key2index(arg_pos);
+				KeyType left_key;
+				KeyType pos = key2index(arg_pos);
+				KeyType frac = std::modf(pos, &left_key);
+				DiffType const left = DiffType(left_key);
 
-				int const size_ = data_.size();
-				int const left = int(pos); // this rounds towards zero
-
-				// lower margin
-				if ( pos <= 0 )
-					if ( left != 0 )
-					{ // pos <= -1
-						return;
-					}
-					else
-					{ // -1 < pos <= 0
-						data_[ 0 ] += ( 1. + pos ) * arg_value;
-						return ;
-					}
-
-				// upper margin
-				if ( left >= size_ - 1 )
+				// At left margin?
+				if ( pos < 0 )
 				{
-					if ( left != size_ - 1 )
+					if ( left /* <= -1 */ )
 					{
 						return;
 					}
 					else
-					{
-						data_[ left ] += ( size_ - pos ) * arg_value;
+					{ // left == 0
+						data_[ 0 ] += ( 1 + frac ) * arg_value;
 						return;
 					}
 				}
-
-				// in between
-				KeyType factor = pos - KeyType(left);
-				data_[ left + 1 ] += factor * arg_value;
-				data_[ left ] += ( 1. - factor ) * arg_value;
-				return;
+				else // pos >= 0
+				{
+					// At right margin?
+					DiffType const back = data_.size() - 1;
+					if ( left >= back )
+					{
+						if ( left != back )
+						{
+							return;
+						}
+						else
+						{
+							data_[ left ] += ( 1 - frac ) * arg_value;
+							return;
+						}
+					}
+					else
+					{
+						// In between!
+						data_[ left + 1 ] += frac * arg_value;
+						data_[ left ] += ( 1 - frac ) * arg_value;
+						return;
+					}
+				}
 			}
 
 			/// Returns the interpolated derivative.
