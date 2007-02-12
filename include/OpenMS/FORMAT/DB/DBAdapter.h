@@ -36,6 +36,7 @@
 #include <OpenMS/METADATA/Digestion.h>
 #include <OpenMS/METADATA/Modification.h>
 #include <OpenMS/METADATA/Tagging.h>
+#include <OpenMS/FORMAT/PeakFileOptions.h>
 
 //QT includes
 #include <qsqlquery.h>
@@ -72,13 +73,13 @@ namespace OpenMS
 			template <class ExperimentType>
 			void storeExperiment(ExperimentType& exp);
 
-			/// Reads a MSExperiment
+			/// Reads a MSExperiment according to a set of options
 			template <class ExperimentType>
-			void loadExperiment(UID id, ExperimentType& exp);
+			void loadExperiment(UID id, ExperimentType& exp, PeakFileOptions options = PeakFileOptions());
 
-			/// Reads a MSSpectrum
 			template <class SpectrumType>
-			void loadSpectrum(UID id, SpectrumType& spec);
+			/// Reads a MSSpectrum according to a set of options
+			void loadSpectrum(UID id, SpectrumType& spec, PeakFileOptions options = PeakFileOptions());
 
 			/**
 				@brief Returns true if the DB is up-to-date (Checks the version in ADMIN_Version table).
@@ -766,7 +767,7 @@ namespace OpenMS
 	}
 
 	template <class ExperimentType>
-	void DBAdapter::loadExperiment(UID id, ExperimentType& exp)
+	void DBAdapter::loadExperiment(UID id, ExperimentType& exp, PeakFileOptions options)
 	{
 		//----------------------------------------------------------------------------------------
 		//------------------------------- CHECK DB VERSION --------------------------------------- 
@@ -843,7 +844,7 @@ namespace OpenMS
 		// I'll still preserve the code in order to optimize in the future. Maybe I was just being blind. ;-)
 		
 		String last_name;
-		bool timepoints_done;
+		bool timepoints_done = false;
 		query.str("");
 		/*
 		query << "SELECT id,Name FROM META_GradientEluent WHERE fid_HPLC=" << parent_id;
@@ -873,7 +874,6 @@ namespace OpenMS
 		if (result.isValid())
 		{
 			last_name = result.value(0).toString().ascii();
-			timepoints_done = false;
 			exp.getHPLC().getGradient().addEluent(last_name);
 		}
 		
@@ -963,10 +963,38 @@ namespace OpenMS
 			result.next();
 		}
 		exp.getInstrument().setMassAnalyzers(analyzers);
-		
+
+		//id
+		exp.setPersistenceId(id);
+
+		// if we don't have to load the spectra, we're already done
+		if (options.getMetadataOnly())
+		{
+			return;
+		}
+
 		//spectra
 		query.str("");
-		query << "SELECT id FROM DATA_Spectrum WHERE fid_MSExperiment='" << id << "' ORDER BY id ASC";
+		query << "SELECT id FROM DATA_Spectrum WHERE fid_MSExperiment=" << id;
+		if (options.hasRTRange())
+		{
+			query << " AND RetentionTime > " << options.getRTRange().min() << " AND RetentionTime < " << options.getRTRange().max();
+		}
+		if (options.hasMSLevels())
+		{
+			const std::vector<int>& levels = options.getMSLevels();
+			query << " AND (";
+			for (std::vector<int>::const_iterator it = levels.begin(); it != levels.end(); it++)
+			{
+				query << "MSLevel=" << *it;
+				if (it+1 != levels.end())
+				{
+					query << " OR ";
+				}
+			}
+			query << ")";
+		}
+		query << " ORDER BY id ASC";
 		
 		db_con_.executeQuery(query.str(),result);
 		exp.resize(result.size());
@@ -974,17 +1002,14 @@ namespace OpenMS
 		result.first();
 		while (result.isValid())
 		{
-			loadSpectrum(result.value(0).asInt(),exp[i]);
+			loadSpectrum(result.value(0).asInt(), exp[i], options);
 			++i;
 			result.next();
 		}
-		
-		//id
-		exp.setPersistenceId(id);
 	}
 
 	template <class SpectrumType>
-	void DBAdapter::loadSpectrum(UID id, SpectrumType& spec)
+	void DBAdapter::loadSpectrum(UID id, SpectrumType& spec, PeakFileOptions options)
 	{
 		//----------------------------------------------------------------------------------------
 		//------------------------------- CHECK DB VERSION --------------------------------------- 
@@ -1089,7 +1114,16 @@ namespace OpenMS
 		
 		//Peaks
 		query.str("");
-		query << "SELECT mz,Intensity,fid_MetaInfo FROM DATA_Peak WHERE fid_Spectrum='" << id << "' ORDER BY mz ASC";
+		query << "SELECT mz,Intensity,fid_MetaInfo FROM DATA_Peak WHERE fid_Spectrum='" << id << "' ";
+		if (options.hasMZRange())
+		{
+			query << " AND mz > " << options.getMZRange().min() << " AND mz < " << options.getMZRange().max();
+		}
+		if (options.hasIntensityRange())
+		{
+			query << " AND Intensity > " << options.getIntensityRange().min() << " AND Intensity < " << options.getIntensityRange().max();
+		}
+		query << " ORDER BY mz ASC";
 		db_con_.executeQuery(query.str(),result);
 
 		typename SpectrumType::PeakType p;

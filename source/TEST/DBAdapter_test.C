@@ -379,6 +379,22 @@ if (do_tests)
 				TEST_REAL_EQUAL( spec.getContainer()[i].getIntensity() , exp_original.begin()->getContainer()[i].getIntensity() )
 				TEST_REAL_EQUAL( spec.getContainer()[i].getPosition()[0] , exp_original.begin()->getContainer()[i].getPosition()[0] )
 			}
+
+			PeakFileOptions options;
+			options.setIntensityRange(DRange<1> (600, 1000));
+			a.loadSpectrum(spec_tmp_id, spec, options);
+			
+			// check if the Intensity restriction worked - first peak (525) should have been skipped
+			TEST_REAL_EQUAL( spec[0].getIntensity() , 620 )
+			TEST_REAL_EQUAL( spec[1].getIntensity() , 701 )
+
+			options = PeakFileOptions();
+			options.setMZRange(DRange<1> (650, 1000));
+			a.loadSpectrum(spec_tmp_id, spec, options);
+
+			// check if the MZ restriction worked - first peak (600.1) should have been skipped
+			TEST_REAL_EQUAL( spec[0].getPosition()[0] , 700.1 )
+			TEST_REAL_EQUAL( spec[1].getPosition()[0] , 800.1 )
 		RESULT
 		
 	  // load experiment from database
@@ -517,6 +533,25 @@ if (do_tests)
 			TEST_EQUAL((int)exp_new.getMetaValue("color"),5)
 			TEST_EQUAL((string)exp_new[0].getMetaValue("icon"),"Spectrum1")
 			TEST_EQUAL((string)exp_new[1].getMetaValue("icon"),"Spectrum2")
+
+			exp_new = MSExperiment<>();
+			PeakFileOptions options;
+			options = PeakFileOptions();
+			options.setRTRange(DRange<1> (2.5, 4.5));
+			a.loadExperiment(tmp_id, exp_new, options);
+
+			// check if the RT restriction worked - first spectrum should have been skipped
+			TEST_REAL_EQUAL( exp_new[0][0].getPosition()[0] , 100.155 )
+
+			exp_new = MSExperiment<>();
+			options = PeakFileOptions();
+			std::vector<int> levels;
+			levels.push_back(2);
+			options.setMSLevels(levels);
+			a.loadExperiment(tmp_id, exp_new, options);
+
+			// check if the MSLevel restriction worked - first spectrum should have been skipped
+			TEST_REAL_EQUAL( exp_new[0][0].getPosition()[0] , 100.155 )
 		RESULT
 	
 		// save modified version of already existing experiment - old records should be updated.
