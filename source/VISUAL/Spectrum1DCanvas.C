@@ -70,11 +70,6 @@ namespace OpenMS
 	void Spectrum1DCanvas::paintEvent(QPaintEvent* e)
 	{
 		SpectrumCanvas::paintEvent(e);
-		
-		QPainter painter(this);
-//		redundant
-//		rubber_band_.draw(painter);
-		painter.end();
 	}
 	
 	void Spectrum1DCanvas::setVisibleArea(DRange<2> range)
@@ -103,37 +98,6 @@ namespace OpenMS
 	
 		if (e->button() == LeftButton)
 		{
-			PointType pos = widgetToData_(p);
-			if (e->state() & QMouseEvent::ShiftButton)
-			{
-				if (action_mode_ == AM_ZOOM)
-				{
-/*
-					// should be redundant now
-					rubber_band_.show();
-					rubber_band_.setTopLeft(p);
-					rubber_band_.setBottomRight(p);
-					rubber_band_.updateRegion(this);
-*/
-				}
-			}
-			else
-			{
-				if (action_mode_ == AM_ZOOM)
-				{
-/*
-					// should be redundant as well - I also can't see the point of converting coordinates to data and back to widget
-					rubber_band_.show();
-					QPoint tmp;
-					SpectrumCanvas::dataToWidget_(pos.X(), overall_data_range_.maxY(), tmp);
-					rubber_band_.setTopLeft(tmp);
-					SpectrumCanvas::dataToWidget_(pos.X(), overall_data_range_.minY(),tmp);
-					rubber_band_.setBottomRight(tmp);
-	
-					rubber_band_.updateRegion(this);
-*/
-				}
-			}
 			if (action_mode_ == AM_TRANSLATE) setCursor(cursor_translate_in_progress_);
 		}
 	}
@@ -188,14 +152,7 @@ namespace OpenMS
 				// zoom-in-at-position or zoom-in-to-area
 				if (e->button() == LeftButton)
 				{
-/*
-					rubber_band_.hide();
-					rubber_band_.updateRegion(this);
-					QRect rect = rubber_band_.getRect();
-					rubber_band_.setRect(QRect(0,0,0,0));
-*/
 					QRect rect = QRect(last_mouse_pos_, e->pos());
-
 
 					if (rect.width() > 4 && rect.height() > 4)   // free zoom
 					{
@@ -316,24 +273,10 @@ namespace OpenMS
 					if (e->state() & QMouseEvent::ShiftButton) // free zoom
 					{
 						qp.drawRect(last_mouse_pos_.x(), last_mouse_pos_.y(), p.x() - last_mouse_pos_.x(), p.y() - last_mouse_pos_.y());
-/*
-						// should be redundant
-						rubber_band_.updateRegion(this);
-						rubber_band_.setBottomRight(p);
-						rubber_band_.updateRegion(this);
-*/
 					}
 					else // zoom on position axis only
 					{
 						qp.drawRect(last_mouse_pos_.x(), 0, p.x() - last_mouse_pos_.x(), height());
-/*
-						// should be redundant
-						rubber_band_.updateRegion(this);
-						QPoint tmp;
-						SpectrumCanvas::dataToWidget_(pos.X(), overall_data_range_.minY(),tmp);
-						rubber_band_.setBottomRight(tmp);
-						rubber_band_.updateRegion(this);
-*/
 					}
 				}
 				if (e->state() & QMouseEvent::ShiftButton)

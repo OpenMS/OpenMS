@@ -34,7 +34,6 @@
 
 // OpenMS
 #include <OpenMS/VISUAL/SpectrumCanvas.h>
-// #include <OpenMS/VISUAL/RubberBand.h>
 
 //QT
 #include <qpainter.h>
@@ -150,10 +149,6 @@ namespace OpenMS
 		/// Calls dataToWidget_(const PointType&, QPoint& point) but takes snap_factor_ and percentage_factor_ into account.
 		void dataToWidget_(const PeakType& peak, QPoint& point);
 		
-/*
-		/// RubberBand for zooming
-		RubberBand rubber_band_;
-*/
     /**
     	@brief Reblits the drawing buffer onto the screen.
 
