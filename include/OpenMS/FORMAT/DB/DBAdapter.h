@@ -56,8 +56,6 @@ namespace OpenMS
     It can be used to create objects from the DB or store them in the DB.
     
     @ingroup DatabaseIO
-    
-    @todo add support for loading metadata or selection of the data -- PeakFileOptions (Thomas S.)
   */
  
   class DBAdapter
