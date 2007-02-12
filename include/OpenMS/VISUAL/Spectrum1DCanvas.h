@@ -34,9 +34,11 @@
 
 // OpenMS
 #include <OpenMS/VISUAL/SpectrumCanvas.h>
-#include <OpenMS/VISUAL/RubberBand.h>
+// #include <OpenMS/VISUAL/RubberBand.h>
 
 //QT
+#include <qpainter.h>
+
 class QAction;
 
 namespace OpenMS
@@ -148,8 +150,19 @@ namespace OpenMS
 		/// Calls dataToWidget_(const PointType&, QPoint& point) but takes snap_factor_ and percentage_factor_ into account.
 		void dataToWidget_(const PeakType& peak, QPoint& point);
 		
+/*
 		/// RubberBand for zooming
 		RubberBand rubber_band_;
+*/
+    /**
+    	@brief Reblits the drawing buffer onto the screen.
+
+    	Refreshes the screen. This function should be called
+    	when the internal buffer is still current and the screen
+    	representation was damaged by overdrawing. If the internal
+    	buffer is outdated, invalidate_() should be called.
+    */
+    void refresh_();
 
 		// Docu in base class
 		virtual void invalidate_();

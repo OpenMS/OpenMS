@@ -72,7 +72,8 @@ namespace OpenMS
 		SpectrumCanvas::paintEvent(e);
 		
 		QPainter painter(this);
-		rubber_band_.draw(painter);
+//		redundant
+//		rubber_band_.draw(painter);
 		painter.end();
 	}
 	
@@ -107,16 +108,21 @@ namespace OpenMS
 			{
 				if (action_mode_ == AM_ZOOM)
 				{
+/*
+					// should be redundant now
 					rubber_band_.show();
 					rubber_band_.setTopLeft(p);
 					rubber_band_.setBottomRight(p);
 					rubber_band_.updateRegion(this);
+*/
 				}
 			}
 			else
 			{
 				if (action_mode_ == AM_ZOOM)
 				{
+/*
+					// should be redundant as well - I also can't see the point of converting coordinates to data and back to widget
 					rubber_band_.show();
 					QPoint tmp;
 					SpectrumCanvas::dataToWidget_(pos.X(), overall_data_range_.maxY(), tmp);
@@ -125,6 +131,7 @@ namespace OpenMS
 					rubber_band_.setBottomRight(tmp);
 	
 					rubber_band_.updateRegion(this);
+*/
 				}
 			}
 			if (action_mode_ == AM_TRANSLATE) setCursor(cursor_translate_in_progress_);
@@ -181,11 +188,15 @@ namespace OpenMS
 				// zoom-in-at-position or zoom-in-to-area
 				if (e->button() == LeftButton)
 				{
+/*
 					rubber_band_.hide();
 					rubber_band_.updateRegion(this);
 					QRect rect = rubber_band_.getRect();
 					rubber_band_.setRect(QRect(0,0,0,0));
-	
+*/
+					QRect rect = QRect(last_mouse_pos_, e->pos());
+
+
 					if (rect.width() > 4 && rect.height() > 4)   // free zoom
 					{
 						Spectrum1DCanvas::AreaType area(widgetToData_(rect.topLeft()), widgetToData_(rect.bottomRight()));
@@ -296,19 +307,33 @@ namespace OpenMS
 	
 				if (e->state() & LeftButton)
 				{
+					refresh_();
+					QPainter qp(this);
+					qp.setPen(Qt::NoPen);
+					qp.setBrush(Qt::cyan);
+					qp.setRasterOp(Qt::XorROP);
+
 					if (e->state() & QMouseEvent::ShiftButton) // free zoom
 					{
+						qp.drawRect(last_mouse_pos_.x(), last_mouse_pos_.y(), p.x() - last_mouse_pos_.x(), p.y() - last_mouse_pos_.y());
+/*
+						// should be redundant
 						rubber_band_.updateRegion(this);
 						rubber_band_.setBottomRight(p);
 						rubber_band_.updateRegion(this);
+*/
 					}
 					else // zoom on position axis only
 					{
+						qp.drawRect(last_mouse_pos_.x(), 0, p.x() - last_mouse_pos_.x(), height());
+/*
+						// should be redundant
 						rubber_band_.updateRegion(this);
 						QPoint tmp;
 						SpectrumCanvas::dataToWidget_(pos.X(), overall_data_range_.minY(),tmp);
 						rubber_band_.setBottomRight(tmp);
 						rubber_band_.updateRegion(this);
+*/
 					}
 				}
 				if (e->state() & QMouseEvent::ShiftButton)
@@ -934,7 +959,13 @@ namespace OpenMS
 			changeVisibleArea_(newval, newval + (visible_area_.maxX() - visible_area_.minX()));
 		}
 	}
-
+	
+	void Spectrum1DCanvas::refresh_()
+	{
+		bitBlt(this, 0, 0, buffer_, 0, 0, width(), height(), Qt::CopyROP, true);
+		
+//		highlightPeaks_();
+	}
 }//Namespace
 
 
