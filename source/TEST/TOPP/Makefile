@@ -28,15 +28,15 @@ include ../../config_defs.mak
 
 DIRECTORY=TEST/TOPP
 
-# Tests for individual tools.
+# Tests for individual tools, in alphabetical order
 UNCONDITIONAL_TESTS = \
 	AdditiveSeries_test \
 	AnalysisXMLMerger_test \
 	BaselineFilter_test \
-	DBImporter_test \
 	DBExporter_test \
+	DBImporter_test \
 	DTAExtractor_test \
-	MapDewarper_test \
+	FeatureFinder_test \
 	FeaturePairSplitter_test \
 	FileConverter_test \
 	FileFilter_test \
@@ -45,27 +45,28 @@ UNCONDITIONAL_TESTS = \
 	IDFilter_test \
 	InspectAdapter_test \
 	LabeledMatcher_test \
+	MapDewarper_test \
 	MapMatcher_test \
 	MapStatistics_test \
 	MascotAdapter_test \
 	NoiseFilter_test \
+	PeakPicker_test \
+	Resampler_test \
 	SequestAdapter_test\
 	SpectraFilter_test \
-	FeatureFinder_test \
-	PeakPicker_test
-
-#	Resampler_test \
 
 ifeq ($(CGAL_SUPPORT),true)
 CGAL_TESTS= \
+	MapAlignment_test \
 	UnlabeledMatcher_test \
-	MapAlignment_test
+
 endif
 
 ifeq ($(LIBSVM_SUPPORT),true)
 LIBSVM_TESTS= \
 	RTModel_test \
-	RTPredict_test
+	RTPredict_test \
+
 endif
 
 TOPP_TOOL_TESTS = ${UNCONDITIONAL_TESTS} ${LIBSVM_TESTS} ${CGAL_TESTS}
