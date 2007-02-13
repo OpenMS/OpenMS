@@ -508,6 +508,34 @@ namespace OpenMS
 			return os;
 		}
 
+		/**@brief Equality comparator.
+
+		If matrices have different row or colmn numbers, throws a precondition exception.
+		*/
+		bool operator == ( Matrix const & rhs ) const
+			throw (Exception::Precondition)
+		{
+			OPENMS_PRECONDITION(cols_ == rhs.cols_,
+													"Matrices have different row sizes.");
+			OPENMS_PRECONDITION(rows_ == rhs.rows_,
+													"Matrices have different column sizes.");
+			return static_cast < typename Matrix<Value>::Base const &>(*this) == static_cast < typename Matrix<Value>::Base const &>(rhs);
+		}
+
+		/**@brief Less-than comparator.  Comparison is done lexicographically: first by row, then by column.
+
+		If matrices have different row or column numbers, throws a precondition exception.
+		*/
+		bool operator < (Matrix const & rhs) const
+			throw (Exception::Precondition)
+		{
+			OPENMS_PRECONDITION(cols_ == rhs.cols_,
+													"Matrices have different row sizes.");
+			OPENMS_PRECONDITION(rows_ == rhs.rows_,
+													"Matrices have different column sizes.");
+			return static_cast < typename Matrix<Value>::Base const &>(*this) < static_cast < typename Matrix<Value>::Base const &>(rhs);
+		}
+
 	 protected:
 
 		///@name Data members
@@ -519,41 +547,6 @@ namespace OpenMS
 		//@}
 
 	}; // class Matrix
-
-
-	/**@brief Equality comparator.
-
-	If matrices have different row or colmn numbers, throws a precondition exception.
-
-	@relatesalso Matrix
-	*/
-	template <typename Value>
-	bool operator == (Matrix<Value> const & left, Matrix<Value> const & right)
-		throw (Exception::Precondition)
-	{
-		OPENMS_PRECONDITION(left.cols_ == right.cols_,
-												"Matrices have different row sizes.");
-		OPENMS_PRECONDITION(left.rows_ == right.rows_,
-												"Matrices have different column sizes.");
-		return left.operator==(right);
-	}
-
-	/**@brief Less-than comparator.  Comparison is done lexicographically: first by row, then by column.
-
-	If matrices have different row or column numbers, throws a precondition exception.
-
-	@relatesalso Matrix
-	*/
-	template <typename Value>
-	bool operator < (Matrix<Value> const & left, Matrix<Value> const & right)
-		throw (Exception::Precondition)
-	{
-		OPENMS_PRECONDITION(left.cols_ == right.cols_,
-												"Matrices have different row sizes.");
-		OPENMS_PRECONDITION(left.rows_ == right.rows_,
-												"Matrices have different column sizes.");
-		return left.operator<(right);
-	}
 
 	/**@brief Print the contents to a stream.
 

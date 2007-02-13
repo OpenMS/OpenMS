@@ -43,6 +43,16 @@
 
 namespace OpenMS
 {
+	template < typename T >
+	std::ostream & operator << ( std::ostream & os, std::vector < T > const & cont )
+	{
+		for ( typename std::vector<T>::const_iterator iter = cont.begin(); iter != cont.end(); ++iter )
+		{
+			os << ' ' << *iter;
+		}
+		return os;
+	}
+
 	// no extra stuff required for this test
 }
 
@@ -68,6 +78,9 @@ CHECK( typedefs )
 	containerValue = 0;
 }
 RESULT
+
+typedef BilinearInterpolation < float, double > BIFD;
+
 //-----------------------------------------------------------
 CHECK( default constructor )
 {
@@ -99,14 +112,14 @@ CHECK( value() )
 		for ( float y = -2; y <= cols + 1; y += .25 )
 		{
 			std::cout << bifd.value(x,y) << ' ' ;
-		} 
+		}
 		std::cout << '\n';
-	} 
+	}
 
 	BIFD resampled;
 	resampled.getData().resize((rows+3)*4+1,(cols+3)*4+1);
-	bifd.setMapping_0 ( 4, 0, 8 ); 
-	bifd.setMapping_1 ( 4, 0, 8 ); 
+	bifd.setMapping_0 ( 4, 0, 8 );
+	bifd.setMapping_1 ( 4, 0, 8 );
 	for ( int p = 0; p != resampled.getData().size(); ++p )
 	{
 		const int i = resampled.getData().rowIndex(p);
@@ -119,7 +132,7 @@ CHECK( value() )
 	resampled.getData().writePGM(std::cout,1000,100);
 	resampled.getData().writePGM(resampled_pgm,1000,100);
 	STATUS("dump of matrix resampled finished");
-	
+
 }
 RESULT
 //-----------------------------------------------------------
@@ -145,8 +158,8 @@ CHECK( simple painting application ... \n )
 #if 0
 		resampled.getData().clear();
 		resampled.getData().resize((rows+3)*4+1,(cols+3)*4+1);
-		bifd.setMapping_0 ( 4, 0, 8 ); 
-		bifd.setMapping_1 ( 4, 0, 8 ); 
+		bifd.setMapping_0 ( 4, 0, 8 );
+		bifd.setMapping_1 ( 4, 0, 8 );
 		for ( int p = 0; p != resampled.getData().size(); ++p )
 		{
 			const int i = resampled.getData().rowIndex(p);
@@ -293,7 +306,49 @@ RESULT
 
 CHECK((void addValue( KeyType arg_pos_0, KeyType arg_pos_1, ValueType arg_value ) throw()))
 {
-  // ???
+
+	for ( int i = -50; i <= 100; ++i )
+	{
+		float p = i / 10.;
+		STATUS(i);
+
+		for ( int j = -50; j <= 100; ++j )
+		{
+			float q = j / 10.;
+			STATUS("i: " << i);
+			STATUS("j: " << j);
+
+			BIFD bifd_small;
+			bifd_small.getData().resize(5,5,0);
+			bifd_small.setMapping_0( 0, 0, 5, 5 );
+			bifd_small.setMapping_1( 0, 0, 5, 5 );
+			bifd_small.addValue( p, q, 100 );
+			for ( BIFD::ContainerType::iterator iter = bifd_small.getData().begin();
+						iter != bifd_small.getData().end();
+						++iter
+					) *iter = round(*iter);
+			STATUS("          " << bifd_small.getData());
+
+			BIFD bifd_big;
+			bifd_big.getData().resize(15,15,0);
+			bifd_big.setMapping_0( 5, 0, 10, 5 );
+			bifd_big.setMapping_1( 5, 0, 10, 5 );
+			bifd_big.addValue( p, q, 100 );
+			for ( BIFD::ContainerType::iterator iter = bifd_big.getData().begin();
+						iter != bifd_big.getData().end();
+						++iter
+					) *iter = round(*iter);
+			STATUS(bifd_big.getData());
+
+			BIFD::ContainerType big_submatrix;
+			big_submatrix.resize(5,5);
+			for ( int m = 0; m < 5; ++m )
+				for ( int n = 0; n < 5; ++n )
+					big_submatrix(m,n)=bifd_big.getData()(m+5,n+5);
+
+			TEST_EQUAL(bifd_small.getData(),big_submatrix);
+		}
+	}
 }
 RESULT
 

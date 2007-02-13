@@ -87,13 +87,13 @@ CHECK((LinearInterpolation( KeyType scale = 1., KeyType offset = 0. )))
 	LIFD lifd0;
 	LIFD lifd1 ( 1.125 );
 	LIFD lifd2 ( 1.125, 3.5 );
-	
+
 	TEST_EQUAL ( lifd0.getScale(), 1 );
 	TEST_EQUAL ( lifd0.getOffset(), 0 );
-	
+
 	TEST_EQUAL ( lifd1.getScale(), 1.125 );
 	TEST_EQUAL ( lifd1.getOffset(), 0 );
-	
+
 	TEST_EQUAL ( lifd2.getScale(), 1.125 );
 	TEST_EQUAL ( lifd2.getOffset(), 3.5 );
 }
@@ -229,7 +229,7 @@ RESULT
 CHECK((void setMapping( KeyType const & inside_low, KeyType const & outside_low, KeyType const & inside_high, KeyType const & outside_high )))
 {
 	LIFD lifd;
-	
+
 	lifd.setMapping( 13, 130, 14, 140 );
 	TEST_REAL_EQUAL(lifd.getScale(), 10)
 	TEST_REAL_EQUAL(lifd.getInsideReferencePoint(), 13)
@@ -248,7 +248,7 @@ CHECK(LinearInterpolation( LinearInterpolation const & arg ))
 	v.push_back(20.333);
 	v.push_back(-.1);
 	lifd.setData(v);
-	
+
 	LIFD lifd2 = lifd;
 	TEST_REAL_EQUAL(lifd2.getScale(), 10);
 	TEST_REAL_EQUAL(lifd2.getInsideReferencePoint(), 13);
@@ -268,7 +268,7 @@ CHECK(LinearInterpolation& operator= ( LinearInterpolation const & arg ))
 	v.push_back(20.333);
 	v.push_back(-.1);
 	lifd.setData(v);
-	
+
 	LIFD lifd2;
 	lifd2 = lifd;
 	TEST_REAL_EQUAL(lifd2.getScale(), 10);
@@ -276,7 +276,7 @@ CHECK(LinearInterpolation& operator= ( LinearInterpolation const & arg ))
 	TEST_REAL_EQUAL(lifd2.getOutsideReferencePoint(), 130);
 	for ( int i = 0; i < v.size(); ++i )
 		TEST_EQUAL(lifd2.getData()[i],v[i]);
-	
+
 }
 RESULT
 
@@ -357,7 +357,7 @@ CHECK(ValueType value( KeyType arg_pos ) const throw())
 			0, 0.00, 0.00, 0.00,
 			0
 		};
-	
+
 	for ( int i = 0; i < num_values+4; ++i )
 	{
 		TEST_REAL_EQUAL ( lifd0.value ( i-2 ), inter_values[4*i] );
@@ -384,7 +384,7 @@ CHECK(ValueType value( KeyType arg_pos ) const throw())
 
 	for ( int i = -8; i < num_inter_values-8; ++i )
 	{
-		double pos = i/4.; 
+		double pos = i/4.;
 		TEST_REAL_EQUAL ( lifd1.value ( pos*scale+offset ), lifd0.value ( pos ) ) ;
 	}
 
@@ -448,7 +448,7 @@ CHECK(ValueType derivative( KeyType arg_pos ) const throw())
 			-0.50, -0.25,  0.00,  0.00, // 0 .. (0) .. 0
 			0
 		};
-	
+
 	int const num_inter_values = sizeof (inter_values) / sizeof (*inter_values);
 	for ( int i = -8; i < num_inter_values-8; ++i )
 	{

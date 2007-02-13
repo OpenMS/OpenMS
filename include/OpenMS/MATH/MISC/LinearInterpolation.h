@@ -109,14 +109,14 @@ namespace OpenMS
 			LinearInterpolation & operator= ( LinearInterpolation const & arg )
 			{
 				 if (&arg == this)
-            return *this;
-						
+	    return *this;
+
 					scale_   = arg.scale_;
 					offset_  = arg.offset_;
 					inside_  = arg.inside_;
 					outside_ = arg.outside_;
 					data_    = arg.data_;
-					
+
 					return *this;
 			}
 
@@ -186,8 +186,8 @@ namespace OpenMS
 
 				// apply the key transformation
 				KeyType left_key;
-				KeyType pos = key2index(arg_pos);
-				KeyType frac = std::modf(pos, &left_key);
+				KeyType const pos = key2index(arg_pos);
+				KeyType const frac = std::modf(pos, &left_key);
 				DiffType const left = DiffType(left_key);
 
 				// At left margin?
@@ -213,7 +213,7 @@ namespace OpenMS
 						{
 							return;
 						}
-						else
+						else // left == back
 						{
 							data_[ left ] += ( 1 - frac ) * arg_value;
 							return;
@@ -293,7 +293,7 @@ namespace OpenMS
 			{
 				return data_;
 			}
-			
+
 			/// Returns the internal random access container from which interpolated values are being sampled.
 			ContainerType const & getData () const throw()
 			{
@@ -422,7 +422,7 @@ namespace OpenMS
 				}
 				return;
 			}
-			
+
 			/// Accessor.  See setMapping().
 			KeyType const & getInsideReferencePoint () const throw()
 			{
