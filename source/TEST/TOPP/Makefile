@@ -454,7 +454,7 @@ LabeledMatcher_test: $(NUMERICDIFF)
 MapAlignment_test: $(NUMERICDIFF)
 	@$(ECHO) ""
 	@$(ECHO) "MapAlignment:"
-	
+
 	@$(ECHO) "- Test 1: feature files"
 	@$(call RUN_PROG_OPT,MapAlignment, -ini MapAlignment_1_feature_parameters.ini -out MapAlignment_1_feature_output.tmp)
 	@$(call TEST_FILE_EQUAL,MapAlignment_1_feature_consensus.xml, MapAlignment_1_feature_output.tmp)
@@ -507,8 +507,8 @@ NoiseFilter_test: $(NUMERICDIFF)
 PeakPicker_test: $(NUMERICDIFF)
 	@$(ECHO) ""
 	@$(ECHO) "PeakPicker:"
-	
-	@$(ECHO) "-Test1 :PeakPicker without deconvolution" 	 
+
+	@$(ECHO) "-Test1 :PeakPicker without deconvolution"
 	@$(call RUN_PROG_OPT,PeakPicker, -ini PeakPicker_parameters.ini -in RawData_input.mzData -out PeakPicker_output.tmp)
 	@$(call TEST_FILE_EQUAL,PeakPicker_output.tmp, PeakPicker_output.mzData)
 
@@ -554,13 +554,13 @@ RTPredict_test: $(NUMERICDIFF)
 InspectAdapter_test: $(NUMERICDIFF)
 	@$(ECHO) ""
 	@$(ECHO) "InspectAdapter:"
-	
+
 	@$(ECHO) "- Test 1: -inspect_in"
 	@$(call RUN_PROG_OPT,InspectAdapter,-ini InspectAdapter_1_parameters.ini -inspect_in)
 	@$(SED) -i 's/^spectra,.*$$/spectra,dummy.mzXML/g' InspectAdapter_1_output.tmp
 	@$(SED) -i 's/^db,.*$$/db,dummy.trie/g' InspectAdapter_1_output.tmp
 	@$(call TEST_FILE_EQUAL,InspectAdapter_1_output.inspect_in,InspectAdapter_1_output.tmp)
-	
+
 	@$(ECHO) "- Test 2: -inspect_out"
 	@$(call RUN_PROG_OPT,InspectAdapter,-ini InspectAdapter_1_parameters.ini -in InspectAdapter.out -out InspectAdapter_2_output.tmp -inspect_out)
 	@$(SED) -i 's/^.*date_group_0.*$$/# date group removed/g' InspectAdapter_2_output.tmp
@@ -570,13 +570,13 @@ InspectAdapter_test: $(NUMERICDIFF)
 SequestAdapter_test: $(NUMERICDIFF)
 	@$(ECHO) ""
 	@$(ECHO) "SequestAdapter:"
-	
+
 	@$(RM) -rf ./tmp/*.dta_*  ./tmp/sequest_run.bat ./tmp/temp.sequest.in
 	@$(ECHO) "- Test 1: -sequest_in"
 	@$(call RUN_PROG_OPT,SequestAdapter,-ini SequestAdapter_1_parameters.ini -in Inspect_Sequest.mzXML -out SequestAdapter_1_output.tmp -sequest_in)
 	@$(call TEST_FILE_EQUAL,SequestAdapter_1_output.sequest_in,SequestAdapter_1_output.tmp)
 	@$(RM) -rf Inspect_Sequest*.dta_*
-	
+
 	@$(ECHO) "- Test 2: -sequest_out"
 	@$(call RUN_PROG_OPT,SequestAdapter,-ini SequestAdapter_2_parameters.ini -in tmp -out SequestAdapter_2_output.tmp -sequest_out)
 	@$(SED) -i 's/^.*date_group_1.*$$/# date group removed/g' SequestAdapter_2_output.tmp
@@ -586,18 +586,18 @@ SequestAdapter_test: $(NUMERICDIFF)
 SpectraFilter_test: $(NUMERICDIFF)
 	@$(ECHO) ""
 	@$(ECHO) "SpectraFilter:"
-	
+
 	@$(ECHO) "- Test 1: -filter SqrtMower"
 	@$(call RUN_PROG_OPT,SpectraFilter,-in SpectraFilter_1_input.mzData -out SpectraFilter_1_output.mzData.tmp -filters SqrtMower)
 	@$(call TEST_FILE_EQUAL,SpectraFilter_1_output.mzData,SpectraFilter_1_output.mzData.tmp)
-	
+
 	@$(ECHO) "- Test 2: -filter WindowMower"
 	@$(call RUN_PROG_OPT,SpectraFilter,-in SpectraFilter_2_input.mzData -out SpectraFilter_2_output.mzData.tmp -filters WindowMower)
 	@$(call TEST_FILE_EQUAL,SpectraFilter_2_output.mzData,SpectraFilter_2_output.mzData.tmp)
-	
+
 	@$(ECHO) "- Test 3: -filter WindowMower -ini SpectraFilter_3_parameters.ini"
 	@$(call RUN_PROG_OPT,SpectraFilter,-in SpectraFilter_3_input.mzData -out SpectraFilter_3_output.mzData.tmp -ini  SpectraFilter_3_parameters.ini -filters WindowMower)
-	@$(call TEST_FILE_EQUAL,SpectraFilter_3_output.mzData,SpectraFilter_3_output.mzData.tmp)        
+	@$(call TEST_FILE_EQUAL,SpectraFilter_3_output.mzData,SpectraFilter_3_output.mzData.tmp)
 
 UnlabeledMatcher_test: $(NUMERICDIFF)
 	@$(ECHO) ""
