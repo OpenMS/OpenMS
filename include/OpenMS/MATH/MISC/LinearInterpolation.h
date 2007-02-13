@@ -229,7 +229,10 @@ namespace OpenMS
 				}
 			}
 
-			/// Returns the interpolated derivative.
+			/**@brief Returns the interpolated derivative.
+
+			Please drop me (= the maintainer) a message if you are using this.
+			*/
 			ValueType derivative ( KeyType arg_pos ) const throw()
 			{
 

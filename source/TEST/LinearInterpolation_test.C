@@ -44,7 +44,15 @@
 
 namespace OpenMS
 {
-	// no extra stuff required for this test
+	template < typename T >
+	std::ostream & operator << ( std::ostream & os, std::vector < T > const & cont )
+	{
+		for ( typename std::vector<T>::const_iterator iter = cont.begin(); iter != cont.end(); ++iter )
+		{
+			os << ' ' << *iter;
+		}
+		return os;
+	}
 }
 
 using namespace OpenMS;
@@ -323,13 +331,6 @@ CHECK(KeyType supportMax() const throw())
 }
 RESULT
 
-
-
-
-
-
-
-
 //-----------------------------------------------------------
 CHECK(ValueType value( KeyType arg_pos ) const throw())
 {
@@ -386,6 +387,36 @@ CHECK(ValueType value( KeyType arg_pos ) const throw())
 		double pos = i/4.; 
 		TEST_REAL_EQUAL ( lifd1.value ( pos*scale+offset ), lifd0.value ( pos ) ) ;
 	}
+
+	{
+
+		PRECISION(0.001);
+
+		LIFD lifd_small;
+		lifd_small.getData().resize(5,0);
+		lifd_small.setMapping( 0, 0, 5, 5 );
+
+		LIFD lifd_big;
+		lifd_big.getData().resize(15,0);
+		lifd_big.setMapping( 5, 0, 10, 5 );
+
+		for ( int i = 0; i < 5; ++i )
+		{
+			lifd_small.getData()[i] = lifd_big.getData()[i+5] = i * 25 + 100;
+		}
+		STATUS("          " << lifd_small.getData());
+		STATUS(lifd_big.getData());
+
+		for ( int i = -50; i <= 100; ++i )
+		{
+			float pos = i / 10.;
+			STATUS(i);
+			TEST_REAL_EQUAL(lifd_small.value(pos),lifd_big.value(pos));
+		}
+
+	}
+
+
 
 }
 RESULT
@@ -518,6 +549,34 @@ CHECK((void addValue( KeyType arg_pos, ValueType arg_value ) throw()))
 			STATUS(i << ": " << lininterpol.getData()[i]);
 		}
 		TEST_REAL_EQUAL(lininterpol.getData()[4],0);
+	}
+
+	{
+
+		for ( int i = -50; i <= 100; ++i )
+		{
+			float pos = i / 10.;
+			STATUS(i);
+
+			LIFD lifd_small;
+			lifd_small.getData().resize(5);
+			lifd_small.setMapping( 0, 0, 5, 5 );
+			lifd_small.addValue( pos, 10 );
+			for ( LIFD::ContainerType::iterator iter = lifd_small.getData().begin(); iter != lifd_small.getData().end(); ++ iter ) *iter = round(*iter);
+			STATUS("          " << lifd_small.getData());
+
+			LIFD lifd_big;
+			lifd_big.getData().resize(15);
+			lifd_big.setMapping( 5, 0, 10, 5 );
+						lifd_big.addValue( pos, 10 );
+			for ( LIFD::ContainerType::iterator iter = lifd_big.getData().begin(); iter != lifd_big.getData().end(); ++ iter ) *iter = round(*iter);
+			STATUS(lifd_big.getData());
+
+			std::vector < LIFD::ContainerType::value_type > big_infix ( lifd_big.getData().begin()+5, lifd_big.getData().begin()+10 );
+
+			TEST_EQUAL(lifd_small.getData(),big_infix);
+		}
+
 	}
 
 }
