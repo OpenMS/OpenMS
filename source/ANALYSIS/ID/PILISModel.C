@@ -2157,27 +2157,5 @@ namespace OpenMS
 		model.disableTransitions();
 		model.buildSynonyms();
 	}
-
-/*
-	Param& PILISModel::getParam()
-	{
-		return param_;
-	}
-
-	const Param& PILISModel::getParam() const
-	{
-		return param_;
-	}
-
-	void PILISModel::setParam(const Param& param)
-	{
-		param_ = param;
-	}
-
-	void PILISModel::resetToDefaultParam()
-	{
-		param_ = default_;
-	}
-*/
 } // namespace OpenMS
 

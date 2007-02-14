@@ -30,6 +30,7 @@
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/FORMAT/Param.h>
 #include <OpenMS/CHEMISTRY/Residue.h>
+#include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 
 namespace OpenMS
 {
@@ -38,11 +39,9 @@ namespace OpenMS
 	/** 
 		@brief Generates theoretical spectra with various options
 		
-		@todo replace SpectrumGenerator in CLUSTERING (Andreas)
-		
 		@ingroup Chemistry
 	*/
-	class TheoreticalSpectrumGenerator
+	class TheoreticalSpectrumGenerator : public DefaultParamHandler
 	{
 		public:
 		
@@ -73,21 +72,10 @@ namespace OpenMS
 
 			/// adds the precursor peaks to the spectrum
 			void addPrecursorPeaks(PeakSpectrum& spec, const AASequence& peptide, SignedInt charge = 1);
-
-			/// mutable acces to the parameters
-			Param& getParam();
-
-			/// non-mutable access to the parameters
-			const Param& getParam() const;
-
-			/// set the parameters
-			void setParam(const Param& param);
 			//@}
 
 		private:
 			
-			Param param_;
-
 			Peak p_;
 		};
 }

@@ -269,12 +269,6 @@ namespace OpenMS
 			/// enum to name mapping of the losses/precursor states
 			HashMap<States_, String> enum_to_name_;
 
-			/// params_ of the model
-			//Param param_;
-
-			/// default parameters of the model
-			//Param default_;
-
 			/// true if the instance is valid
 			bool valid_;
 

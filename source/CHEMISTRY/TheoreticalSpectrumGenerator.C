@@ -37,34 +37,37 @@ namespace OpenMS
 {
 
 	TheoreticalSpectrumGenerator::TheoreticalSpectrumGenerator()
+		:	DefaultParamHandler("TheoreticalSpectrumGenerator")
 	{
-		param_.setValue("add_isotopes", 0);
-		param_.setValue("max_isotope", 2);
-		param_.setValue("add_metainfo", 0);
-		param_.setValue("add_losses", 0);
-		param_.setValue("add_precursor_peaks", 0);
+		defaults_.setValue("add_isotopes", 0);
+		defaults_.setValue("max_isotope", 2);
+		defaults_.setValue("add_metainfo", 0);
+		defaults_.setValue("add_losses", 0);
+		defaults_.setValue("add_precursor_peaks", 0);
 
 		// intensity options of the ions
-		param_.setValue("y_intensity", 1.0);
-		param_.setValue("b_intensity", 1.0);
-		param_.setValue("a_intensity", 1.0);
-		param_.setValue("c_intensity", 1.0);
-		param_.setValue("x_intensity", 1.0);
-		param_.setValue("z_intensity", 1.0);
+		defaults_.setValue("y_intensity", 1.0);
+		defaults_.setValue("b_intensity", 1.0);
+		defaults_.setValue("a_intensity", 1.0);
+		defaults_.setValue("c_intensity", 1.0);
+		defaults_.setValue("x_intensity", 1.0);
+		defaults_.setValue("z_intensity", 1.0);
 
-		param_.setValue("relative_loss_intensity", 0.1);
+		defaults_.setValue("relative_loss_intensity", 0.1);
 		
 		// precursor intensity
-		param_.setValue("precursor_intensity", 1.0);
-		param_.setValue("precursor_H2O_intensity", 1.0);
-		param_.setValue("precursor_NH3_intensity", 1.0);
+		defaults_.setValue("precursor_intensity", 1.0);
+		defaults_.setValue("precursor_H2O_intensity", 1.0);
+		defaults_.setValue("precursor_NH3_intensity", 1.0);
+
+		defaultsToParam_();
 
 		// just in case someone wants the ion names;
 		p_.metaRegistry().registerName("IonName", "Name of the ion");
 	}
 
 	TheoreticalSpectrumGenerator::TheoreticalSpectrumGenerator(const TheoreticalSpectrumGenerator& rhs)
-		: param_(rhs.param_)
+		: DefaultParamHandler(rhs)
 	{
 	}
 
@@ -72,7 +75,7 @@ namespace OpenMS
 	{
 		if (this != &rhs)
 		{
-			param_ = rhs.param_;
+			DefaultParamHandler::operator=(rhs);
 		}
 		return *this;
 	}
@@ -330,20 +333,5 @@ namespace OpenMS
 
 		}
 		
-	}
-
-	void TheoreticalSpectrumGenerator::setParam(const Param& param)
-	{
-		param_ = param;
-	}
-
-	Param& TheoreticalSpectrumGenerator::getParam()
-	{
-		return param_;
-	}
-
-	const Param& TheoreticalSpectrumGenerator::getParam() const
-	{
-		return param_;
 	}
 }
