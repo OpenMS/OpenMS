@@ -65,13 +65,13 @@ namespace OpenMS
 			int count =0;
 			int counter_posf=0;
 			unsigned int num_scans = TwoDOptimizationFunctions::signal2D.size()/2;
-			std::vector<std::pair<UnsignedInt,UnsignedInt> >::iterator peak_iter = iso_map_iter->second.peaks_.begin();
+			std::set<std::pair<UnsignedInt,UnsignedInt> >::iterator peak_iter = iso_map_iter->second.peaks_.begin();
 			gsl_vector_set_zero(f);
    
 			//iterate over all scans
 			for (size_t current_scan = 0; current_scan < num_scans; ++current_scan)
 				{
-					unsigned int curr_scan_idx = current_scan + iso_map_iter->second.peaks_[0].first;
+					unsigned int curr_scan_idx = current_scan + iso_map_iter->second.peaks_.begin()->first;
 					//iterate over all points of the signal
 					for (int current_point = 0;
 							 current_point +  TwoDOptimizationFunctions::signal2D[2*current_scan].second
@@ -249,12 +249,12 @@ namespace OpenMS
 			int counter_posf=0;
 			unsigned int num_scans = TwoDOptimizationFunctions::signal2D.size()/2;
 			std::vector<double> ov_weight(matching_peaks.size(),0);
-			std::vector<std::pair<UnsignedInt,UnsignedInt> >::iterator peak_iter = iso_map_iter->second.peaks_.begin();
+			std::set<std::pair<UnsignedInt,UnsignedInt> >::iterator peak_iter = iso_map_iter->second.peaks_.begin();
    
 			//iterate over all scans
 			for (size_t current_scan = 0; current_scan < num_scans; ++current_scan)
 				{
-					unsigned int curr_scan_idx = current_scan + iso_map_iter->second.peaks_[0].first;
+					unsigned int curr_scan_idx = current_scan + iso_map_iter->second.peaks_.begin()->first;
 					// iterate over all points of the signal
 					for (int current_point = 0;
 							 current_point +  TwoDOptimizationFunctions::signal2D[2*current_scan].second
@@ -485,11 +485,13 @@ namespace OpenMS
 	void TwoDOptimization::findMatchingPeaks_(std::multimap<double, IsotopeCluster>::iterator& it,
 																						MSExperiment< DPickedPeak<1> >& ms_exp)
 	{
-		for(unsigned int peak=0; peak < it->second.peaks_.size(); ++peak)
+		IndexSet::const_iterator iter = it->second.peaks_.begin();
+		for(; iter != it->second.peaks_.end(); ++iter)
 			{
-				double mz = (ms_exp[it->second.peaks_[peak].first].begin()+it->second.peaks_[peak].second)->getPos();
+				
+				double mz = (ms_exp[iter->first][iter->second]).getPos();
 				mz *= 5;
-				matching_peaks_[(int)(mz+0.5)].push_back(ms_exp[it->second.peaks_[peak].first].begin()+it->second.peaks_[peak].second);
+				matching_peaks_[(int)(mz+0.5)].push_back(ms_exp[iter->first].begin()+iter->second);
 			}
 
 		std::map<int, std::vector<MSSpectrum<DPickedPeak<1> >::Iterator > >::iterator it2 = matching_peaks_.begin();
@@ -761,7 +763,7 @@ namespace OpenMS
 		else
 			eps_rel = (double)dv;
 
-		vector<PeakShape> peak_shapes;
+		std::vector<PeakShape> peak_shapes;
        
 
 		// go through the clusters
@@ -806,14 +808,24 @@ namespace OpenMS
 								++ms_it;
 							}
 
-						MSSpectrum<DPickedPeak<1> >::iterator first_peak = (ms_exp[iso_map_iter->second.peaks_[idx].first].begin()+
-																																iso_map_iter->second.peaks_[idx].second);
-						unsigned int old_idx = idx;
-						while(idx < iso_map_iter->second.peaks_.size() &&
-									iso_map_iter->second.peaks_[idx].first - iso_map_iter->second.peaks_[0].first == i)
+						
+						Idx pair;
+						pair.first =  iso_map_iter->second.peaks_.begin()->first + idx;
+						
+						IndexSet::const_iterator set_iter = lower_bound(iso_map_iter->second.peaks_.begin(),
+																														iso_map_iter->second.peaks_.end(),
+																														pair,IndexLess());
+						
+						
+						// find the last entry with this rt-value
+						++pair.first;
+						IndexSet::const_iterator set_iter2 = lower_bound(iso_map_iter->second.peaks_.begin(),
+																														 iso_map_iter->second.peaks_.end(),
+																														 pair,IndexLess());
+						
+						while(set_iter != set_iter2)
 							{
-								DPickedPeak<1> peak = *(ms_exp[iso_map_iter->second.peaks_[idx].first].begin()+
-																				iso_map_iter->second.peaks_[idx].second);
+								DPickedPeak<1> peak = *(ms_exp[set_iter->first].begin()+set_iter->second);
 								PeakShape shape(peak.getIntensity(),
 																peak.getPos(),
 																peak.getLeftWidthParameter(),
@@ -821,31 +833,46 @@ namespace OpenMS
 																peak.getArea(),
 																peak.getPeakShape());
 								peak_shapes.push_back(shape);
-								++idx;
+								++set_iter;
+								
 							}
+						std::cout	<< "rt "<<(raw_data_first + TwoDOptimizationFunctions::signal2D[2*i].first)->getRetentionTime() <<"\n";
 						OptimizePick opt(penalties,max_iteration,eps_abs,eps_rel);
+						std::cout	<< "vorher\n";
+						for(unsigned int p =0; p < peak_shapes.size();++p)
+							{
+								std::cout	<< peak_shapes[p].mz_position <<"\t" << peak_shapes[p].height
+													<<"\t" << peak_shapes[p].left_width <<"\t" << peak_shapes[p].right_width 	<<std::endl;
+							}
 						opt.optimize(peak_shapes);
-
+						std::cout	<< "nachher\n";
+						for(unsigned int p =0; p < peak_shapes.size();++p)
+							{
+								std::cout	<< peak_shapes[p].mz_position <<"\t" << peak_shapes[p].height
+													<<"\t" << peak_shapes[p].left_width <<"\t" << peak_shapes[p].right_width 	<<std::endl;
+							}
 	     
 						std::sort(peak_shapes.begin(),peak_shapes.end(),PeakShape::PositionLess());
+						pair.first =  iso_map_iter->second.peaks_.begin()->first + idx;
+						
+						set_iter = lower_bound(iso_map_iter->second.peaks_.begin(),
+																	 iso_map_iter->second.peaks_.end(),
+																	 pair,IndexLess());
 						unsigned int i=0;
-						while(old_idx < iso_map_iter->second.peaks_.size() &&
-									iso_map_iter->second.peaks_[old_idx].first - iso_map_iter->second.peaks_[0].first == i)
+						while(i < peak_shapes.size())
 							{
-								(ms_exp[iso_map_iter->second.peaks_[old_idx].first].begin()+
-								 iso_map_iter->second.peaks_[old_idx].second) -> setPos(peak_shapes[i].mz_position);
+								(ms_exp[set_iter->first][set_iter->second]) . setPos(peak_shapes[i].mz_position);
 
-								(ms_exp[iso_map_iter->second.peaks_[old_idx].first].begin()+
-								 iso_map_iter->second.peaks_[old_idx].second) -> setIntensity(peak_shapes[i].height);
+								(ms_exp[set_iter->first][set_iter->second]) . setIntensity(peak_shapes[i].height);
 
-								(ms_exp[iso_map_iter->second.peaks_[old_idx].first].begin()+
-								 iso_map_iter->second.peaks_[old_idx].second) -> setLeftWidthParameter(peak_shapes[i].left_width);
+								(ms_exp[set_iter->first][set_iter->second]) . setLeftWidthParameter(peak_shapes[i].left_width);
 
-								(ms_exp[iso_map_iter->second.peaks_[old_idx].first].begin()+
-								 iso_map_iter->second.peaks_[old_idx].second) -> setRightWidthParameter(peak_shapes[i].right_width);
-								++old_idx;
+								(ms_exp[set_iter->first][set_iter->second]) . setRightWidthParameter(peak_shapes[i].right_width);
+							
+								++set_iter;
 								++i;
 							}
+						++idx;
 						peak_shapes.clear();
 					}
 

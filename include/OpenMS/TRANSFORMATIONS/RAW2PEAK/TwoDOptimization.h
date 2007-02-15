@@ -39,6 +39,7 @@
 #include <vector>
 #include <utility>
 #include <cmath>
+#include <set>
 
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakShape.h>
 #include <OpenMS/KERNEL/DPickedPeak.h>
@@ -47,6 +48,7 @@
 #include <OpenMS/KERNEL/DPeak.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/FORMAT/Param.h>
+#include <OpenMS/DATASTRUCTURES/IsotopeCluster.h>
 
 #ifndef OPENMS_SYSTEM_STOPWATCH_H
 # include <OpenMS/SYSTEM/StopWatch.h>
@@ -62,20 +64,9 @@
 
 namespace OpenMS
 {   
-	/// stores information about an isotopic cluser (i.e. potential peptide charge variant)
-	struct IsotopeCluster
-	{
-		IsotopeCluster()
-			: charge_(0), peaks_(), scans_()
-		{}
-      
-		// predicted charge state of this peptide
-		UnsignedInt charge_;
-		// peaks in this cluster
-		std::vector< std::pair<UnsignedInt,UnsignedInt> > peaks_;
-		// the scans of this cluster
-		std::vector<double> scans_;
-	};
+	
+	typedef std::pair<unsigned int,unsigned int> Idx  ;
+	typedef std::set<Idx> IndexSet;
 	
   /**
 		 @brief Namespace for all functions and classes needed for 2D optimization.
@@ -125,7 +116,15 @@ namespace OpenMS
 	{
 	public:
 
-
+		///Comparator for the retention time.
+		struct IndexLess
+			: public std::binary_function <Idx,Idx, bool>
+		{
+			inline bool operator () (const Idx& a, const Idx& b) const
+			{
+				return (a.first < b.first);
+			}
+		};
       
 		/// Constructor
 		TwoDOptimization()
@@ -429,7 +428,7 @@ namespace OpenMS
 #endif
 														IsotopeCluster new_cluster;
 														new_cluster.charge_  = current_charge;
-														new_cluster.scans_.push_back( current_rt );					
+														new_cluster.scans_.push_back( curr_scan );					
 														cluster_iter = iso_map_.insert(std::pair<double,IsotopeCluster>(mz_in_hash,new_cluster));
 			      
 													}
@@ -441,10 +440,10 @@ namespace OpenMS
 														cluster_iter = clusters_last_scan[distance(iso_last_scan.begin(),it)];
 
 														// check whether this scan is already contained
-														if(find(cluster_iter->second.scans_.begin(),cluster_iter->second.scans_.end(),current_rt)
+														if(find(cluster_iter->second.scans_.begin(),cluster_iter->second.scans_.end(),curr_scan)
 															 == cluster_iter->second.scans_.end())
 															{
-																cluster_iter->second.scans_.push_back( current_rt );
+																cluster_iter->second.scans_.push_back( curr_scan );
 															}
 			      
 #ifdef DEBUG_2D
@@ -466,7 +465,7 @@ namespace OpenMS
 												// create new isotopic cluster
 												IsotopeCluster new_cluster;
 												new_cluster.charge_  = current_charge;
-												new_cluster.scans_.push_back( current_rt );					
+												new_cluster.scans_.push_back( curr_scan );					
 												cluster_iter = iso_map_.insert(std::pair<double,IsotopeCluster>(mz_in_hash,new_cluster));
 
 											}
@@ -477,13 +476,13 @@ namespace OpenMS
 
 
 		      
-										cluster_iter->second.peaks_.push_back(std::pair<UnsignedInt,UnsignedInt>(curr_scan,curr_peak));
+										cluster_iter->second.peaks_.insert(std::pair<UnsignedInt,UnsignedInt>(curr_scan,curr_peak));
 		      
 										iso_curr_scan.push_back(  mz_in_hash );
 										clusters_curr_scan.push_back(cluster_iter);
 										++curr_peak;
 		      
-										cluster_iter->second.peaks_.push_back(std::pair<UnsignedInt,UnsignedInt>(curr_scan,curr_peak));
+										cluster_iter->second.peaks_.insert(std::pair<UnsignedInt,UnsignedInt>(curr_scan,curr_peak));
 										iso_curr_scan.push_back((peak_it+curr_peak)->getPos());
 										clusters_curr_scan.push_back(cluster_iter);
 		      
@@ -496,7 +495,7 @@ namespace OpenMS
 										while (dist2nextpeak <= max_peak_distance_
 													 &&  curr_peak < (nr_peaks_in_scan-1) )
 											{
-												cluster_iter->second.peaks_.push_back(std::pair<UnsignedInt,UnsignedInt>(curr_scan,curr_peak+1));				// save peak in cluster
+												cluster_iter->second.peaks_.insert(std::pair<UnsignedInt,UnsignedInt>(curr_scan,curr_peak+1));				// save peak in cluster
 												iso_curr_scan.push_back((peak_it+curr_peak+1)->getPos());
 												clusters_curr_scan.push_back(cluster_iter);
 												// std::cout << "new enter'd: "<<(peak_it+curr_peak+1)->getPos()<<" im while"<<std::endl;
@@ -594,35 +593,32 @@ namespace OpenMS
 				typename MSExperiment<OutputPeakType>::iterator exp_it;
 	  
 				// first the right scan through binary search
-				rt = iso_map_iter->second.scans_[i];
+				rt = exp[iso_map_iter->second.scans_[i]].getRetentionTime();
 				spec.setRetentionTime(rt);
 				InputSpectrumIterator iter = lower_bound(first, last, spec, typename MSSpectrum<InputPeakType>::RTLess());
 
 				exp_it = exp.RTBegin(rt);
 				// now the right mz
-				unsigned int j=0;
-				while(j < (iso_map_iter->second.peaks_.size()-1) &&
-							iso_map_iter->second.peaks_[j].first != iso_map_iter->second.peaks_[0].first + i)
-					{
-						++j;
-					}
+				IndexSet::const_iterator j=(iso_map_iter->second.peaks_.begin());
+																		
+				Idx pair;
+				pair.first =  iso_map_iter->second.peaks_.begin()->first + i;
+				IndexSet::const_iterator set_iter = lower_bound(iso_map_iter->second.peaks_.begin(),
+																												iso_map_iter->second.peaks_.end(),
+																												pair,IndexLess());
+				
 				// consider a bit more of the signal to the left
-				first_peak_mz = (exp_it->begin() + iso_map_iter->second.peaks_[j].second)->getPos() - 1;
-				if(j == iso_map_iter->second.peaks_.size()-1)
-					{
-						last_peak_mz = first_peak_mz;
-					}
-				else{
-					while(j < iso_map_iter->second.peaks_.size()-1  &&
-								iso_map_iter->second.peaks_[j].first == iso_map_iter->second.peaks_[0].first + i) 
-						{
-							++j;
-						}
-					if(j >= iso_map_iter->second.peaks_.size() || 
-						 iso_map_iter->second.peaks_[j].first != iso_map_iter->second.peaks_[0].first + i)  --j;
-					last_peak_mz = (exp_it->begin() + iso_map_iter->second.peaks_[j].second)->getPos();
-				}
-
+				first_peak_mz = (exp_it->begin() + set_iter->second)->getPos() - 1;
+				
+				// find the last entry with this rt-value
+				++pair.first;
+				IndexSet::const_iterator set_iter2 = lower_bound(iso_map_iter->second.peaks_.begin(),
+																												 iso_map_iter->second.peaks_.end(),
+																												 pair,IndexLess());
+				--set_iter2;
+				last_peak_mz = (exp_it->begin() + set_iter2->second)->getPos() + 1;
+				
+				std::cout << "first peak mz "<<first_peak_mz << "\tlast peak mz "<<last_peak_mz <<std::endl;
 				peak.setPos(first_peak_mz);
 				typename MSSpectrum<InputPeakType>::const_iterator raw_data_iter
 					= lower_bound(iter->begin(), iter->end(), peak, typename InputPeakType::PositionLess());
@@ -639,7 +635,7 @@ namespace OpenMS
 						intensity = raw_data_iter->getIntensity();
 					}
 				++raw_data_iter;
-				std::pair<unsigned int,unsigned int> left,right;
+				Idx left,right;
 				left.first = distance(first,iter);
 				left.second = distance(iter->begin(),raw_data_iter);
 
