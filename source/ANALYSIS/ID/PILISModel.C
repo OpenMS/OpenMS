@@ -45,11 +45,6 @@
 #define ALIGMENT_DEBUG
 #undef  ALIGMENT_DEBUG
 
-// TODO parameter for upper and lower m/z boundaries
-// TODO rewrite of neutral losses (depend on which charges?), do it like Pre?
-// TODO charge directed/charge remote more fading, any more needed? Or ok?
-// TODO position dependance of pathways (model explicitly?); hm, values that makes sense only for charge directed
-
 using namespace std;
 
 namespace OpenMS 
@@ -72,8 +67,11 @@ namespace OpenMS
 		defaults_.setValue("model_depth", 4);
 		defaults_.setValue("visible_model_depth", 30);
 		defaults_.setValue("precursor_error", 3.0);
+		defaults_.setValue("min_main_ion_intensity", 0.1);
+		defaults_.setValue("min_main_ion_intensity_threshold", 0.1);
+		defaults_.setValue("min_loss_ion_intensity", 0.05);
+		defaults_.setValue("min_loss_ion_intensity_threshold", 0.05);
 		
-		//param_ = default_;
 		defaultsToParam_();
 
 		initModels_();
@@ -508,14 +506,16 @@ namespace OpenMS
 				y_intensities[LOSS_TYPE_NH3] = ints_1.ints[YIon_NH3][suffix_pos - 1];
 				double ion_intensity = ints_1.ints[YIon][suffix_pos - 1];
 
+/*
 				if (charge > 1)
 				{
 					y_intensities[LOSS_TYPE_H2O] += ints_2.ints[YIon_H2O][suffix_pos - 1];
 					y_intensities[LOSS_TYPE_NH3] += ints_2.ints[YIon_NH3][suffix_pos - 1];
 					ion_intensity += ints_2.ints[YIon][suffix_pos - 1];
 				}
+				*/
 				//cerr << "YLOSS: " << y_sum1 + y_sum2 << " " << y_intensities[LOSS_TYPE_H2O] << " " << y_intensities[LOSS_TYPE_NH3] << " " << ion_intensity << endl;
-				trainNeutralLossesFromIon_(y_sum1 + y_sum2, y_intensities, Residue::YIon, ion_intensity, suffix);
+				trainNeutralLossesFromIon_(y_sum1/* + y_sum2*/, y_intensities, Residue::YIon, ion_intensity, suffix);
 			}
 			
 
@@ -525,15 +525,17 @@ namespace OpenMS
       	b_intensities[LOSS_TYPE_H2O] = ints_1.ints[BIon_H2O][i];
       	b_intensities[LOSS_TYPE_NH3] = ints_1.ints[BIon_NH3][i];
       	double ion_intensity = ints_1.ints[BIon][i];
-
+				
+				/*
 				if (charge > 1)
 				{
 					b_intensities[LOSS_TYPE_H2O] += ints_2.ints[BIon_H2O][i];
 					b_intensities[LOSS_TYPE_NH3] += ints_2.ints[BIon_NH3][i];
 					ion_intensity += ints_2.ints[BIon][i];
 				}
+				*/
 				//cerr << "BLOSS: " << b_sum1 + b_sum2 << " " << b_intensities[LOSS_TYPE_H2O] << " " << b_intensities[LOSS_TYPE_NH3] << " " << ion_intensity << endl;
-				trainNeutralLossesFromIon_(b_sum1 + b_sum2, b_intensities, Residue::BIon, ion_intensity, prefix);
+				trainNeutralLossesFromIon_(b_sum1/* + b_sum2*/, b_intensities, Residue::BIon, ion_intensity, prefix);
 			}
 
 		}
@@ -1258,10 +1260,10 @@ namespace OpenMS
 			//cerr << endl;
 			
 			// first isotope peak
-			addPeaks_(weight, 1, 0.0, prefix_ints1[i], spec, id, "b"+String(i+1));
+			addPeaks_(weight, 1, 0.0, prefix_ints1[i], spec, id, "b"+String(i+1) + "+");
 			if (charge == 2)
 			{
-				addPeaks_(weight, 2, 0.0, prefix_ints2[i], spec, id, "b"+String(i+1));
+				addPeaks_(weight, 2, 0.0, prefix_ints2[i], spec, id, "b"+String(i+1) + "++");
 
 				// neutral losses
 				// get fractions as the different charge states are treated together 
@@ -1270,14 +1272,14 @@ namespace OpenMS
 		
 				if (prefix_losses[i].has(LOSS_TYPE_H2O))
 				{
-					addPeaks_(weight, 1, -18.0, prefix_losses[i][LOSS_TYPE_H2O] * loss_1_fraction, spec, id, "b" + String(i+1) + "-H2O");
+					addPeaks_(weight, 1, -18.0, prefix_losses[i][LOSS_TYPE_H2O] * loss_1_fraction, spec, id, "b" + String(i+1) + "-H2O+");
 
           // doubly charged
 					addPeaks_(weight, 2, -18.0, prefix_losses[i][LOSS_TYPE_H2O] * loss_2_fraction, spec, id, "b" + String(i+1) + "-H2O++");
 				}
 				if (prefix_losses[i].has(LOSS_TYPE_NH3))
 				{
-					addPeaks_(weight, 1, -17.0, prefix_losses[i][LOSS_TYPE_NH3] * loss_1_fraction, spec, id, "b" + String(i+1) + "-NH3");
+					addPeaks_(weight, 1, -17.0, prefix_losses[i][LOSS_TYPE_NH3] * loss_1_fraction, spec, id, "b" + String(i+1) + "-NH3+");
           // doubly charged
 					addPeaks_(weight, 2, -17.0, prefix_losses[i][LOSS_TYPE_NH3] * loss_2_fraction, spec, id, "b" + String(i+1) + "-NH3++");
 				}
@@ -1286,11 +1288,11 @@ namespace OpenMS
 			{
 				if (prefix_losses[i].has(LOSS_TYPE_H2O))
         {
-					addPeaks_(weight, 1, -18.0, prefix_losses[i][LOSS_TYPE_H2O], spec, id, "b" + String(i+1) + "-H2O");
+					addPeaks_(weight, 1, -18.0, prefix_losses[i][LOSS_TYPE_H2O], spec, id, "b" + String(i+1) + "-H2O+");
 				}
 				if (prefix_losses[i].has(LOSS_TYPE_NH3))
         {
-					addPeaks_(weight, 1, -17.0, prefix_losses[i][LOSS_TYPE_NH3], spec, id, "b" + String(i+1) + "-NH3");
+					addPeaks_(weight, 1, -17.0, prefix_losses[i][LOSS_TYPE_NH3], spec, id, "b" + String(i+1) + "-NH3+");
 				}
 			}
 
@@ -1298,7 +1300,7 @@ namespace OpenMS
 			//weight = prefixes[i].getMonoWeight(Residue::AIon);
 			//id.estimateFromPeptideWeight(weight);
 			double a_int1 = tmp[hmm_.getState(a_names1[i])];
-			addPeaks_(weight, 1, 0.0, a_int1, spec, id, "a" + String(i+1));
+			addPeaks_(weight, 1, 0.0, a_int1, spec, id, "a" + String(i+1) + "+");
 
 			if (charge == 2)
 			{
@@ -1309,7 +1311,7 @@ namespace OpenMS
 			// suffix ions
 			weight = suffixes[i].getMonoWeight(Residue::YIon);
       id.estimateFromPeptideWeight(weight);
-			addPeaks_(weight, 1, 0.0, suffix_ints1[i], spec, id, suffix_names1[i]);
+			addPeaks_(weight, 1, 0.0, suffix_ints1[i], spec, id, suffix_names1[i] + "+");
       if (charge == 2)
       {
 				addPeaks_(weight, 2, 0.0, suffix_ints2[i], spec, id, suffix_names2[i] + "++");
@@ -1321,14 +1323,14 @@ namespace OpenMS
 
         if (suffix_losses[i].has(LOSS_TYPE_H2O))
 	      {
-					addPeaks_(weight, 1, -18.0, suffix_losses[i][LOSS_TYPE_H2O] * loss_1_fraction, spec, id, "y" + String(i + 1) + "-H2O");
+					addPeaks_(weight, 1, -18.0, suffix_losses[i][LOSS_TYPE_H2O] * loss_1_fraction, spec, id, "y" + String(i + 1) + "-H2O+");
           // doubly charged
 					addPeaks_(weight, 2, -18.0, suffix_losses[i][LOSS_TYPE_H2O] * loss_2_fraction, spec, id, "y" + String(i + 1) + "-H2O++");
         }
 
         if (suffix_losses[i].has(LOSS_TYPE_NH3))
         {
-					addPeaks_(weight, 1, -17.0, suffix_losses[i][LOSS_TYPE_NH3] * loss_1_fraction, spec, id, "y" + String(i + 1) + "-NH3");
+					addPeaks_(weight, 1, -17.0, suffix_losses[i][LOSS_TYPE_NH3] * loss_1_fraction, spec, id, "y" + String(i + 1) + "-NH3+");
           // doubly charged
 					addPeaks_(weight, 2, -17.0, suffix_losses[i][LOSS_TYPE_NH3] * loss_2_fraction, spec, id, "y" + String(i + 1) + "-NH3++");
         }
@@ -1339,11 +1341,11 @@ namespace OpenMS
         {
 					//cerr << "H2O: " << suffix_losses[i][LOSS_TYPE_H2O] << " " << suffix_ints1[i] << endl;
 					//cerr << "NH3: " << suffix_losses[i][LOSS_TYPE_H2O] << endl;
-					addPeaks_(weight, 1, -18.0, suffix_losses[i][LOSS_TYPE_H2O], spec, id, "y" + String(i + 1) + "-H2O");
+					addPeaks_(weight, 1, -18.0, suffix_losses[i][LOSS_TYPE_H2O], spec, id, "y" + String(i + 1) + "-H2O+");
         }
         if (suffix_losses[i].has(LOSS_TYPE_NH3))
         {
-					addPeaks_(weight, 1, -17.0, suffix_losses[i][LOSS_TYPE_NH3], spec, id, "y" + String(i + 1) + "-NH3");
+					addPeaks_(weight, 1, -17.0, suffix_losses[i][LOSS_TYPE_NH3], spec, id, "y" + String(i + 1) + "-NH3+");
         }
       }
 		}
@@ -1384,11 +1386,16 @@ namespace OpenMS
 	
 		// now build the spectrum with the peaks
 		//Peak p;
+		double intensity_max(0);
 		for (HashMap<double, vector<Peak> >::ConstIterator it = peaks_.begin(); it != peaks_.end(); ++it)
 		{
 			if (it->second.size() == 1/* && it->second.begin()->getIntensity() != 0*/)
 			{
 				spec.getContainer().push_back(*it->second.begin());
+				if (intensity_max < spec.getContainer().back().getIntensity())
+				{
+					intensity_max = spec.getContainer().back().getIntensity();
+				}
 			}
 			else
 			{
@@ -1407,9 +1414,14 @@ namespace OpenMS
 				{*/
 					//p = *it->second.begin();
 					p.setIntensity(int_sum);
+
 					//p.setPosition(pit->first);
 				//}
 				spec.getContainer().push_back(p);
+				if (intensity_max < int_sum)
+				{
+					intensity_max = int_sum;
+				}
 			}
 		}
 
@@ -1423,6 +1435,36 @@ namespace OpenMS
 		}
 		#endif
 
+		double min_main_ion_intensity = (double)param_.getValue("min_main_ion_intensity");
+		double min_main_ion_intensity_threshold = (double)param_.getValue("min_main_ion_intensity_threshold");
+		double min_loss_ion_intensity = (double)param_.getValue("min_loss_ion_intensity");
+		double min_loss_ion_intensity_threshold = (double)param_.getValue("min_loss_ion_intensity_threshold");
+		// TODO switch to enable disable default
+		for (PeakSpectrum::Iterator it = spec.begin(); it != spec.end(); ++it)
+		{
+			it->setIntensity(it->getIntensity() / intensity_max);
+			String ion_name(it->getMetaValue("IonName"));
+			//cerr << ion_name << endl;
+			if (ion_name != "")
+			{
+				if ((ion_name.hasSubstring("H2O") || ion_name.hasSubstring("NH3") || ion_name[0] == 'a'))
+				{
+					if (it->getIntensity() < min_loss_ion_intensity_threshold)
+					{
+						it->setIntensity(min_loss_ion_intensity);
+					}
+					//cerr << "LOSS NAME: " << ion_name << " " << it->getIntensity() << endl;
+				}
+				else
+				{
+					if (it->getIntensity() < min_main_ion_intensity_threshold)
+					{
+						it->setIntensity(min_main_ion_intensity);
+					}
+					//cerr << "MAIN NAME: " << ion_name << " " << it->getIntensity() << endl;
+				}
+			}
+		}
 
 		return;
 	}

@@ -51,6 +51,7 @@ namespace OpenMS
 		defaults_.setValue("max_candidates", 200);
 		defaults_.setValue("pre_score_name", "ZhangSimilarityScore");
 		defaults_.setValue("score_name", "SpectrumAlignmentScore");
+		defaults_.setValue("exponent", 0.3);
 
 		aa_weight_['K'] = 128.095;
   	aa_weight_['M'] = 131.04;
@@ -192,6 +193,9 @@ namespace OpenMS
 		String score_name = param_.getValue("score_name");
 		
 		scorer_ = Factory<PeakSpectrumCompareFunctor>::create(score_name);
+		Param scorer_param(scorer_->getParameters());
+		scorer_param.setValue("exponent", (double)param_.getValue("exponent"));
+		scorer_->setParameters(scorer_param);
 	
 		double pre_pos = spec_copy.getPrecursorPeak().getPosition()[0];
 
@@ -243,6 +247,7 @@ namespace OpenMS
 
       // normalize the spectra and add intensity to too small peaks
       // TODO remove cheating
+			/*
       double max(0);
       for (PeakSpectrum::ConstIterator it1 = sim_spec.begin(); it1 != sim_spec.end(); ++it1)
       {
@@ -252,6 +257,7 @@ namespace OpenMS
         }
       }
 
+			
       for (PeakSpectrum::Iterator it1 = sim_spec.begin(); it1 != sim_spec.end(); ++it1)
       {
         it1->setIntensity(it1->getIntensity()/max);
@@ -263,7 +269,7 @@ namespace OpenMS
         {
           it1->setIntensity(0.01);
         }
-      }
+      }*/
 			
       double score = (*scorer_)(sim_spec, spec);
       PeptideHit peptide_hit(score, "PILIS", 0, pre_id.getPeptideHits()[i].getCharge(), sequence);

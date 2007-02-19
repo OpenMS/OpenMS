@@ -26,10 +26,10 @@
 //
 
 #include <OpenMS/COMPARISON/SPECTRA/SpectrumAlignment.h>
-#include <OpenMS/DATASTRUCTURES/HashMap.h>
+//#include <OpenMS/DATASTRUCTURES/HashMap.h>
 #include <cmath>
 #include <limits>
-#include <set>
+#include <map>
 
 #define ALIGNMENT_DEBUG
 #undef  ALIGNMENT_DEBUG
@@ -66,8 +66,10 @@ namespace OpenMS
 	void SpectrumAlignment::getSpectrumAlignment(vector<pair<Size, Size> >& alignment, const PeakSpectrum& s1, const PeakSpectrum& s2) const
 	{
 		double epsilon = (double)param_.getValue("epsilon");
-		HashMap<Size, HashMap<Size, pair<Size, Size> > > traceback;
-		HashMap<Size, HashMap<Size, double> > matrix;
+		//HashMap<Size, HashMap<Size, pair<Size, Size> > > traceback;
+		//HashMap<Size, HashMap<Size, double> > matrix;
+		map<Size, map<Size, pair<Size, Size> > > traceback;
+		map<Size, map<Size, double> > matrix;
 		
 		// init the matrix with "gap costs" epsilon
 		matrix[0][0] = 0;
@@ -112,7 +114,7 @@ namespace OpenMS
 
 				double score_align = diff_align;
 				
-				if (matrix.has(i - 1) && matrix[i - 1].has(j - 1))
+				if (matrix.find(i - 1) != matrix.end() && matrix[i - 1].find(j - 1) != matrix[i - 1].end())
 				{
 					score_align += matrix[i - 1][j - 1];
 				}
@@ -122,7 +124,7 @@ namespace OpenMS
 				}
 
 				double score_up = epsilon;
-				if (matrix.has(i) && matrix[i].has(j - 1))
+				if (matrix.find(i) != matrix.end() && matrix[i].find(j - 1) != matrix[i].end())
 				{
 					score_up += matrix[i][j - 1];
 				}
@@ -132,7 +134,7 @@ namespace OpenMS
 				}
 				
 				double score_left = epsilon;
-				if (matrix.has(i - 1) && matrix[i - 1].has(j))
+				if (matrix.find(i - 1) != matrix.end() && matrix[i - 1].find(j) != matrix[i - 1].end())
 				{
 					score_left += matrix[i - 1][j];
 				}

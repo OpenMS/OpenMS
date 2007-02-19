@@ -29,6 +29,7 @@
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/BaseSeeder.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeaFiTraits.h>
+#include <OpenMS/DATASTRUCTURES/HashMap.h>
 
 #include <hash_map.h>
 
@@ -205,7 +206,7 @@ namespace OpenMS
 		//// Hash storing the detected regions
 		SweepLineHash hash_;
 		/// Stores the Gamme function
-		hash_map<UnsignedInt, double> preComputedGamma_;
+		HashMap<UnsignedInt, double> preComputedGamma_;
 		/// Iterator pointing at the next region
 		SweepLineHash::const_iterator hash_iter_;
 		/// Determines threshold for the minimum score of a peak

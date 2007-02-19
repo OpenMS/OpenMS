@@ -27,7 +27,6 @@
 
 #include <OpenMS/COMPARISON/SPECTRA/SpectrumAlignmentScore.h>
 #include <OpenMS/COMPARISON/SPECTRA/SpectrumAlignment.h>
-#include <OpenMS/DATASTRUCTURES/HashMap.h>
 
 using namespace std;
 
@@ -38,6 +37,7 @@ namespace OpenMS
   {
 		setName(SpectrumAlignmentScore::getProductName());
 		defaults_.setValue("epsilon", 0.3);
+		defaults_.setValue("exponent", 0.5);
 		defaultsToParam_();
   }
 
@@ -67,7 +67,8 @@ namespace OpenMS
   double SpectrumAlignmentScore::operator () (const PeakSpectrum& s1, const PeakSpectrum& s2) const
   {			
 		const double epsilon = (double)param_.getValue("epsilon");
-   	
+   	const double exponent = (double)param_.getValue("exponent");
+
 		SpectrumAlignment aligner;
 		Param p;
 		p.setValue("epsilon", epsilon);
@@ -90,7 +91,7 @@ namespace OpenMS
 		
 		for (vector<pair<Size, Size> >::const_iterator it = alignment.begin(); it != alignment.end(); ++it)
 		{
-			sum += sqrt(s1.getContainer()[it->first].getIntensity() * s2.getContainer()[it->second].getIntensity());
+			sum += pow(s1.getContainer()[it->first].getIntensity() * s2.getContainer()[it->second].getIntensity(), exponent);
 		}
 
     score = sum / (sqrt(sum1 * sum2));

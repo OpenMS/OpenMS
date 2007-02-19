@@ -78,6 +78,7 @@ class TOPPPILISIdentification
 																														 "the third the charge. As a alternative the sequence file\n"
 																														 "may contain only peptide sequences each in a separate line\n"
 																														 "repectively", true);
+			registerDoubleOption_("exponent", "<float>", 0.3, "exponent of the SpectrumAlignmentScore; see documentation of that class for more info", false);
 			addEmptyLine_();
 		}
 		
@@ -120,7 +121,12 @@ class TOPPPILISIdentification
 			
 			PILIS_id.setSequenceDB(db);
 			PILIS_id.setModel(model);
-			
+
+			double exponent = getDoubleOption_("exponent");
+			Param p(PILIS_id.getParameters());
+			p.setValue("exponent", exponent);
+			PILIS_id.setParameters(p);
+
 			Size no(1);
 			for (PeakMap::ConstIterator it = exp.begin(); it != exp.end(); ++it, ++no)
 			{
@@ -131,7 +137,8 @@ class TOPPPILISIdentification
 							
 				if (it->getMSLevel() == 2)
 				{
-					writeDebug_(no + "/" + exp.size(), 1);
+					writeDebug_(String(no) + "/" + String(exp.size()), 1);
+					//cerr << no << "/" << exp.size() << endl;
 					Identification id;
 					PILIS_id.getIdentification(id, *it);
 					ids.push_back(id);

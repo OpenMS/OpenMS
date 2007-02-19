@@ -73,6 +73,7 @@ class TOPPPILISModel
 			registerStringOption_("id_in", "<file>", "", "input file for the annotations in AnalysisXML format");
 			registerStringOption_("model_file", "<file>", "", "model file for training");
 			registerStringOption_("trained_model_file", "<file>", "", "the output file of the trained model");
+			registerDoubleOption_("threshold", "<double>", 0.0, "only annotated peptides with score higher than the given threshold are used", false);
 			addEmptyLine_();
 		}
 		
@@ -87,6 +88,7 @@ class TOPPPILISModel
 			String id_in(getStringOption_("id_in"));
 			String model_file(getStringOption_("model_file"));
 			String trained_model_file(getStringOption_("trained_model_file"));
+			double threshold(getDoubleOption_("threshold"));
 						
       //-------------------------------------------------------------
       // loading input
@@ -108,17 +110,56 @@ class TOPPPILISModel
 			vector<IdentificationData> peptide_ids;
 			id_in_file.load(id_in, prot_ids, peptide_ids);
 
+			HashMap<String, HashMap<Size, HashMap<Size, PeptideHit> > > ids; // [peptide][charge][index]
+			for (Size i = 0; i != peptide_ids.size(); ++i)
+			{
+				if (peptide_ids[i].id.getPeptideHits().size() > 0)
+				{
+					PeptideHit hit = *peptide_ids[i].id.getPeptideHits().begin();
+					ids[hit.getSequence()][hit.getCharge()][i] = hit;
+				}
+			}
+
+			HashMap<Size, PeptideHit> ids_to_train;
+			for (HashMap<String, HashMap<Size, HashMap<Size, PeptideHit> > >::ConstIterator it1 = ids.begin(); it1 != ids.end(); ++it1)
+			{
+				for (HashMap<Size, HashMap<Size, PeptideHit> >::ConstIterator it2 = it1->second.begin(); it2 != it1->second.end(); ++it2)
+				{
+					double score(0);
+					Size max_idx(0);
+					PeptideHit max_hit;
+					double has_max(false);
+					for (HashMap<Size, PeptideHit>::ConstIterator it3 = it2->second.begin(); it3 != it2->second.end(); ++it3)
+					{
+						if (it3->second.getScore() > score)
+						{
+							score = it3->second.getScore();
+							max_idx = it3->first;
+							max_hit = it3->second;
+							has_max = true;
+						}
+					}
+					if (has_max)
+					{
+						ids_to_train[max_idx] = max_hit;
+					}
+				}
+			}
+
 			if (peptide_ids.size() != exp.size())
 			{
 				throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "number of spectra and number of annotation from the file differ", "should be equal");
 			}
 
 			PeakMap::ConstIterator map_it = exp.begin();
-			for (vector<IdentificationData>::const_iterator it = peptide_ids.begin(); it != peptide_ids.end(); ++it, ++map_it)
+			//for (vector<IdentificationData>::const_iterator it = peptide_ids.begin(); it != peptide_ids.end(); ++it, ++map_it)
+			for (HashMap<Size, PeptideHit>::ConstIterator it = ids_to_train.begin(); it != ids_to_train.end(); ++it)
 			{
-				if (it->id.getPeptideHits().size() > 0)
+				//if (it->id.getPeptideHits().size() > 0 && it->id.getPeptideHits().begin()->getScore() > 0.8)
+				if (it->second.getScore() > threshold)
 				{
-					PeptideHit hit = *it->id.getPeptideHits().begin();
+					//PeptideHit hit = *it->id.getPeptideHits().begin();
+					PeptideHit hit = it->second;
 					writeDebug_("Training with peptide: " + hit.getSequence() + " (z=" + String(hit.getCharge()) + ")", 1);
 					model->train(*map_it, hit.getSequence(), hit.getCharge());
 				}
