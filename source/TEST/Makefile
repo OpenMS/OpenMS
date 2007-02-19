@@ -185,6 +185,8 @@ EXECUTABLES_FORMAT = \
 	InspectOutfile_test\
 	SequestInfile_test\
 	SequestOutfile_test\
+	PTMXMLFile_test\
+	IsotopeXMLFile_test\
 
 ifeq ($(CGAL_SUPPORT),true)
 EXECUTABLES_FORMAT_CGAL=\

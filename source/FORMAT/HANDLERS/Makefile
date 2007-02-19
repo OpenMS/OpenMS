@@ -45,7 +45,9 @@ CPP_SOURCES=\
 	MzDataExpSettHandler.C\
 	MascotXMLHandler.C\
 	XMLSchemes.C\
-	OMSSAXMLHandler.C
+	OMSSAXMLHandler.C\
+	PTMXMLHandler.C\
+	IsotopeXMLHandler.C\
 
 ifeq ($(ANDIMS_SUPPORT),true)
 	ifeq ($(NETCDF_SUPPORT),true)

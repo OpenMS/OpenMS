@@ -33,6 +33,7 @@
 #include <iostream>
 #include <map>
 #include <set>
+#include <sstream>
 #include <string>
 
 
@@ -63,22 +64,15 @@ namespace OpenMS
 			/// stores the experiment data in a Sequest input file that can be used as input for Sequest shell execution
 			void store(const String& filename) throw (Exception::UnableToCreateFile);
 
-			void setDynMod(char amino_acid, Real mass);
-
-			/// returns the enzyme used for cleavage
-			const String& getEnzymeInfo() const;
-			/// sets the enzyme used for cleavage
-			void setEnzymeInfo(String& value);
+			/// returns the enzyme list
+			const std::map< String, std::vector< String > >& getEnzymeInfo() const;
+			/// returns the enzyme list as a string
+			const String getEnzymeInfoAsString() const;
 
 			/// returns the used database
 			const String& getDatabase() const;
 			/// sets the used database
 			void setDatabase(const String& value);
-
-			/// returns the snd database used
-			const String& getSndDatabase() const;
-			/// sets the second database used
-			void setSndDatabase(const String& value);
 
 			/// returns whether neutral losses are considered for the a-, b- and y-ions
 			const String& getNeutralLossesForIons() const;
@@ -175,7 +169,7 @@ namespace OpenMS
 			/// returns the enzyme used for cleavage (by means of the number from a list of enzymes)
 			SignedInt getEnzymeNumber() const;
 			/// sets the enzyme used for cleavage (by means of the number from a list of enzymes)
-			SignedInt setEnzymeNumber(SignedInt value);
+			SignedInt setEnzyme(String value);
 
 			/// returns the maximum number of amino acids containing the same modification in a peptide
 			SignedInt getMaxAAPerModPerPeptide() const;
@@ -255,8 +249,7 @@ namespace OpenMS
 			bool getResiduesInUpperCase() const;
 			/// sets whether residues are in upper case
 			void setResiduesInUpperCase(bool value);
-
-
+			
 			/// adds an enzyme to the list and sets is as used
 			/// the vector constists of four strings:
 			/// name, cut direction: 0 (N to C) / 1, cuts after (list of aa), doesn't cut before (list of aa)
@@ -269,7 +262,7 @@ namespace OpenMS
 
 		protected:
 			/// returns some standard enzymes (used to initialize the enzyme list)
-			String getStandardEnzymeInfo();
+			void setStandardEnzymeInfo();
 
 			/// the amino acids in one-letter-code
 			static const String aas_single_letter_;// = "GASPVTCLIXNOBDQKZEMHFRYW";
@@ -277,7 +270,7 @@ namespace OpenMS
 			/// the static modifications (map of amino acids and corresponding modification)
 			std::map< char, Real > stat_mods_;
 
-			String enzyme_info_; ///< an endline-delimited list of enzymes; each with cutting direction 0 (N to C) /1; cuts after (list of aa); doesn't cut before (list of aa); the attributes are tab-delimited
+			std::map< String, std::vector< String > > enzyme_info_; ///< an endline-delimited list of enzymes; each with cutting direction 0 (N to C) /1; cuts after (list of aa); doesn't cut before (list of aa); the attributes are tab-delimited
 			String database_; ///< database used
 			String snd_database_; ///< second database used
 			String neutral_losses_for_ions_; ///< whether neutral losses are considered for the a-; b- and y-ions (e.g. 011 for b- and y-ions)
@@ -303,7 +296,6 @@ namespace OpenMS
 			SignedInt peptide_mass_unit_;///< peptide mass unit (0 = amu; 1 = mmu; 2 = ppm)
 			SignedInt output_lines_;///< number of peptides to be displayed
 			SignedInt enzyme_number_;///< number of the enzyme used for cleavage
-			SignedInt highest_enzyme_number_;///< highest enzyme number
 			SignedInt max_AA_per_mod_per_peptide_;///< maximum number of amino acids containing the same modification in a peptide
 			SignedInt max_mods_per_peptide_;///< maximum number of modifications per peptide
 			SignedInt nucleotide_reading_frame_;///< nucleotide reading frame:

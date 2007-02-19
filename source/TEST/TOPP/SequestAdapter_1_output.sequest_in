@@ -1,5 +1,5 @@
 [SEQUEST]
-database_name = \\Inspect_Sequest_FASTAFile_test.fasta
+database_name = \\TEST\Inspect_Sequest_FASTAFile_test.fasta
 peptide_mass_tolerance = 1
 peptide_mass_units = 0; 0=amu, 1=mmu, 2=ppm
 ion_series = 0 1 1 0 1 0 0 0 0 0 1 0;nABY ABCDVWXYZ
@@ -9,9 +9,9 @@ num_results = 2
 num_description_lines = 0
 show_fragment_ions = 1
 print_duplicate_references = 1
-enzyme_number = 17
-diff_search_options = 15.9949 M
-term_diff_search_options = 2 1
+enzyme_number = 14
+diff_search_options = 79.97991705 DHRSTY 95.97991705 C
+term_diff_search_options = -16 -16
 remove_precursor_peak = 0
 ion_cutoff_percentage = 0.3
 protein_mass_filter = 0 0.5
@@ -31,10 +31,10 @@ match_peak_tolerance = 0.3
 residues_in_upper_case = 1
 
 
-add_Nterm_peptide = 3
-add_Cterm_peptide = 1
-add_Nterm_protein = 4
-add_Cterm_protein = 2
+add_Nterm_peptide = 43.02482467
+add_Cterm_peptide = -16
+add_Nterm_protein = -16
+add_Cterm_protein = -16
 
 add_G_Glycine = 0; added to G - avg.  57.0519, mono.  57.02146
 add_A_Alanine = 0; added to A - avg.  71.0788, mono.  71.03711
@@ -62,21 +62,21 @@ add_Y_Tyrosine = 0; added to Y - avg. 163.1760, mono. 163.06333
 add_W_Tryptophan = 0; added to W - avg. 186.2132, mono. 186.07931
 
 [SEQUEST_ENZYME_INFO]
-0.  No_Enzyme              0      -                        -
-1.  Trypsin_Strict         1      KR                       -
-2.  Trypsin                1      KRLNH                    -
-3.  Chymotrypsin           1      FWYL                     -
-4.  Chymotrypsin_WYF       1      FWY                      -
-5.  Clostripain            1      R                        -
-6.  Cyanogen_Bromide       1      M                        -
-7.  IodosoBenzoate         1      W                        -
-8.  Proline_Endopept       1      P                        -
-9.  GluC                   1      E                        -
-10. GluC_ED                1      ED                       -
-11. LysC                   1      K                        -
-12. AspN                   0      D                        -
-13. AspN_DE                0      DE                       -
-14. Elastase               1      ALIV                     P
-15. Elastase/Tryp/Chymo    1      ALIVKRWFY                P
-16. Trypsin/Chymo          1      KRLFWYN                  -
-17. TEST_enzyme            1      K                        -
+0.  AspN                    0     D             -
+1.  AspN_DE                 0     DE            -
+2.  Chymotrypsin            1     FWYL          -
+3.  Chymotrypsin_WYF        1     FWY           -
+4.  Clostripain             1     R             -
+5.  Cyanogen_Bromide        1     M             -
+6.  Elastase                1     ALIV          P
+7.  Elastase/Tryp/Chymo     1     ALIVKRWFY     P
+8.  GluC                    1     E             -
+9.  GluC_ED                 1     ED            -
+10.  IodosoBenzoate          1     W             -
+11.  LysC                    1     K             -
+12.  No_Enzyme               0     -             -
+13.  Proline_Endopept        1     P             -
+14.  TEST_enzyme             1     K             -
+15.  Trypsin                 1     KRLNH         -
+16.  Trypsin/Chymo           1     KRLFWYN       -
+17.  Trypsin_Strict          1     KR            -

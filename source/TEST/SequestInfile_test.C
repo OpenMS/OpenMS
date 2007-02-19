@@ -59,38 +59,38 @@ SequestInfile file;
 
 stringstream ss;
 ss << "[SEQUEST_ENZYME_INFO]" << endl;
-ss << "0.  No_Enzyme              0      -                        -" << endl;
-ss << "1.  Trypsin_Strict         1      KR                       -" << endl;
-ss << "2.  Trypsin                1      KRLNH                    -" << endl;
-ss << "3.  Chymotrypsin           1      FWYL                     -" << endl;
-ss << "4.  Chymotrypsin_WYF       1      FWY                      -" << endl;
-ss << "5.  Clostripain            1      R                        -" << endl;
-ss << "6.  Cyanogen_Bromide       1      M                        -" << endl;
-ss << "7.  IodosoBenzoate         1      W                        -" << endl;
-ss << "8.  Proline_Endopept       1      P                        -" << endl;
-ss << "9.  GluC                   1      E                        -" << endl;
-ss << "10. GluC_ED                1      ED                       -" << endl;
-ss << "11. LysC                   1      K                        -" << endl;
-ss << "12. AspN                   0      D                        -" << endl;
-ss << "13. AspN_DE                0      DE                       -" << endl;
-ss << "14. Elastase               1      ALIV                     P" << endl;
-ss << "15. Elastase/Tryp/Chymo    1      ALIVKRWFY                P" << endl;
-ss << "16. Trypsin/Chymo          1      KRLFWYN                  -" << endl;
+ss << "0.  AspN                    0     D             -" << endl;
+ss << "1.  AspN_DE                 0     DE            -" << endl;
+ss << "2.  Chymotrypsin            1     FWYL          -" << endl;
+ss << "3.  Chymotrypsin_WYF        1     FWY           -" << endl;
+ss << "4.  Clostripain             1     R             -" << endl;
+ss << "5.  Cyanogen_Bromide        1     M             -" << endl;
+ss << "6.  Elastase                1     ALIV          P" << endl;
+ss << "7.  Elastase/Tryp/Chymo     1     ALIVKRWFY     P" << endl;
+ss << "8.  GluC                    1     E             -" << endl;
+ss << "9.  GluC_ED                 1     ED            -" << endl;
+ss << "10.  IodosoBenzoate          1     W             -" << endl;
+ss << "11.  LysC                    1     K             -" << endl;
+ss << "12.  No_Enzyme               0     -             -" << endl;
+ss << "13.  Proline_Endopept        1     P             -" << endl;
+ss << "14.  Trypsin                 1     KRLNH         -" << endl;
+ss << "15.  Trypsin/Chymo           1     KRLFWYN       -" << endl;
+ss << "16.  Trypsin_Strict          1     KR            -" << endl;
 
-CHECK(const String& getEnzymeInfo())
-	TEST_EQUAL(file.getEnzymeInfo(), ss.str())
+CHECK(const String getEnzymeInfoAsString())
+	TEST_EQUAL(file.getEnzymeInfoAsString(), ss.str())
 RESULT
 
 CHECK(void addEnzymeInfo(String& value))
 	std::vector< String > e_info;
-	e_info.push_back("TestEnzyme");
+	e_info.push_back("Z_TestEnzyme");
 	e_info.push_back("1");
 	e_info.push_back("RMW");
 	e_info.push_back("-");
 	file.addEnzymeInfo(e_info);
 	e_info.clear();
-	ss << "17. TestEnzyme             1      RMW                      -" << endl;
-	TEST_EQUAL(file.getEnzymeInfo(), ss.str())
+	ss << "17.  Z_TestEnzyme            1     RMW           -" << endl;
+	TEST_EQUAL(file.getEnzymeInfoAsString(), ss.str())
 RESULT
 
 CHECK(void setDatabase(const String& value))
@@ -102,14 +102,14 @@ CHECK(const String& getDatabase())
 	TEST_EQUAL(file.getDatabase() , "\\\\bude\\langwisc\\sequest_test\\Analysis.mzXML.fasta")
 RESULT
 
-CHECK(void setSndDatabase(const String& value))
-	file.setSndDatabase("\\\\bude\\langwisc\\sequest_test\\Analysis.mzXML.fasta1");
-	TEST_EQUAL(file.getSndDatabase() , "\\\\bude\\langwisc\\sequest_test\\Analysis.mzXML.fasta1")
-RESULT
-
-CHECK(const String& getSndDatabase())
-	TEST_EQUAL(file.getSndDatabase() , "\\\\bude\\langwisc\\sequest_test\\Analysis.mzXML.fasta1")
-RESULT
+// CHECK(void setSndDatabase(const String& value))
+// 	file.setSndDatabase("\\\\bude\\langwisc\\sequest_test\\Analysis.mzXML.fasta1");
+// 	TEST_EQUAL(file.getSndDatabase() , "\\\\bude\\langwisc\\sequest_test\\Analysis.mzXML.fasta1")
+// RESULT
+// 
+// CHECK(const String& getSndDatabase())
+// 	TEST_EQUAL(file.getSndDatabase() , "\\\\bude\\langwisc\\sequest_test\\Analysis.mzXML.fasta1")
+// RESULT
 
 CHECK(void setNeutralLossesForIons(const String& value))
 	file.setNeutralLossesForIons("0 1 1");
@@ -276,15 +276,13 @@ CHECK(SignedInt getOutputLines())
 RESULT
 
 CHECK(SignedInt setEnzymeNumber(SignedInt value))
-	TEST_EQUAL(file.setEnzymeNumber(-1), 17)
-	TEST_EQUAL(file.setEnzymeNumber(20), 17)
-	TEST_EQUAL(file.setEnzymeNumber(1), 0)
-	file.setEnzymeNumber(1);
-	TEST_EQUAL(file.getEnzymeNumber() , 1)
+	TEST_EQUAL(file.setEnzyme("i_dont_exist_enzyme"), 18)
+	TEST_EQUAL(file.setEnzyme("Trypsin"), 0)
+	TEST_EQUAL(file.getEnzymeNumber() , 14)
 RESULT
 
 CHECK(SignedInt getEnzymeNumber())
-	TEST_EQUAL(file.getEnzymeNumber() , 1)
+	TEST_EQUAL(file.getEnzymeNumber() , 14)
 RESULT
 
 CHECK(void setMaxAAPerModPerPeptide(SignedInt value))

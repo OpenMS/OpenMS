@@ -1,10 +1,10 @@
 spectra,dummy.mzXML
 db,dummy.trie
 protease,Trypsin
-mod,+57,C,fix
-mod,80,STY,opt,phosphorylation
-mod,16,M
-mod,43,*,nterminal
+mod,57.3,C,fix
+mod,79.97991705,STYDHCR,opt,Phosphorylation
+mod,16,M,opt
+mod,43.02482467,*,nterminal,Carbamylation
 mods,4
 maxptmsize,250
 PM_tolerance,1

@@ -31,7 +31,8 @@ using namespace std;
 
 namespace OpenMS 
 {
-	SequestOutfile::SequestOutfile()
+	SequestOutfile::SequestOutfile():
+		out2summary_number(0)
 	{}
 	
   void
@@ -103,7 +104,7 @@ namespace OpenMS
 			throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, result_filename);
 		}
 		
-		UnsignedInt line_number = 0; // used to report in which line an error occured
+		UnsignedInt line_number = 1; // used to report in which line an error occured
 		while ( getline(result_file, line) ) // skip all lines until the one with '---'
 		{
 			if ( !line.empty() && (line[line.length()-1] < 33) ) line.resize(line.length()-1);
@@ -118,8 +119,8 @@ namespace OpenMS
 		
 		query = &(identifications.back().id);
 		
-		vector< String > databases;
-		databases.push_back(database);
+// 		vector< String > databases;
+// 		databases.push_back(database);
 		
 		PeptideHit peptide_hit;
 		ProteinHit protein_hit;
@@ -189,7 +190,16 @@ namespace OpenMS
 					getline(result_file, line);
 					if ( !line.empty() && (line[line.length()-1] < 33) ) line.resize(line.length()-1);
 					line.trim();
-					line.erase(0,3); // all these lines look like '0  gi|1584947|prf||2123446B gamma sar'
+					// all these lines look like '0  accession', e.g. '0  gi|1584947|prf||2123446B gamma sar'
+					if ( !line.hasPrefix("0  ") ) // if the line doesn't look like that
+					{
+						stringstream error_message;
+						error_message << "Line " << line_number << " doesn't look like a line with additional found proteins! (Should look like this: 0  gi|1584947|prf||2123446B gamma sar)";
+						result_file.close();
+						result_file.clear();
+						throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, error_message.str().c_str() , result_filename);
+					}
+					line.erase(0,3);
 					
 					protein_hit.clear();
 					getACAndACType(line, accession, accession_type);
@@ -769,10 +779,9 @@ namespace OpenMS
 
 	void
 	SequestOutfile::out2SummaryHtml(
-		string out_filename,
+		const string& out_filename,
 		const string& summary_filename,
-		const string& database_filename,
-		bool& append)
+		const string& database_filename)
 	throw(
 		Exception::FileNotFound,
 		Exception::ParseError,
@@ -780,15 +789,15 @@ namespace OpenMS
 	{
 		ofstream summary;
 		// write the fileheader, if not in append mode (one fileheader only)
-		if ( !append )
+		if ( !out2summary_number )
 		{
+			++out2summary_number;
 			summary.open(summary_filename.c_str());
 			if ( !summary )
 			{
 				throw Exception::UnableToCreateFile(__FILE__, __LINE__, __PRETTY_FUNCTION__, summary_filename);
 			}
-			summary << "<HTML>" << endl << "<HEAD><TITLE>HTML-SUMMARY</TITLE></HEAD>" << endl << "<BODY BGCOLOR=\"#FFFFFF\">" << endl << "<PRE><FONT COLOR=\"green\">HTML-SUMMARY</FONT>" << endl  << endl << "<FONT COLOR=\"green\">   #    File                          MH+                  XCorr    dCn      Sp    RSp    Ions   Ref                                    Sequence</FONT>" << endl << "<FONT COLOR=\"green\">  ----  --------------------------  -------------------    ------  -----   ------  ---   ------  ----------------------------------  -------------------</FONT>" << endl;
-			append = true;
+			summary << "<HTML>" << endl << "<HEAD><TITLE>HTML-SUMMARY</TITLE></HEAD>" << endl << "<BODY BGCOLOR=\"#FFFFFF\">" << endl << "<PRE><FONT COLOR=\"green\">HTML-SUMMARY</FONT>" << endl  << endl << "<FONT COLOR=\"green\">   #    File         MH+                  XCorr    dCn      Sp    RSp    Ions   Ref             Sequence</FONT>" << endl << "<FONT COLOR=\"green\">  ----  ---------  -------------------    ------  -----   ------  ---   ------  -----------  ----------</FONT>" << endl;
 		}
 		else summary.open(summary_filename.c_str(), ios::out | ios::app);
 		if ( !summary )
@@ -820,7 +829,7 @@ namespace OpenMS
 			reference_column(0),
 			peptide_column(0),
 			score_column(0);
-		
+			
 		readOutHeader(out_filename, datetime, precursor_mz_value, charge, precursor_mass_type, ion_mass_type, number_column, rank_sp_column, id_column, mh_column, delta_cn_column, xcorr_column, sp_column, sf_column, ions_column, reference_column, peptide_column, score_column, number_of_columns, displayed_peptides);
 		
 		// open the result file
@@ -830,9 +839,10 @@ namespace OpenMS
 			throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, out_filename);
 		}
 
-		out_filename = File::basename(out_filename);
+		String out_filename_base = File::basename(out_filename);
+		out_filename_base.erase(out_filename_base.length() - 4);
 
-		String line, line_buffer;
+		String line, line_buffer, peptide;
 		stringstream line_ss;
 		vector< String > substrings;
 		UnsignedInt line_number = 0;
@@ -845,20 +855,24 @@ namespace OpenMS
 		}
 		
 		UnsignedInt proteins_per_peptide;
-		for ( UnsignedInt i = 0; i < displayed_peptides; ++i )
+		UnsignedInt i = 0;
+		for ( ; i < displayed_peptides; )
 		{
 			if ( !getline(out_file, line) )
 			{
-				out_file.close();
-				out_file.clear();
-				summary.close();
-				summary.clear();
-				throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "not enough lines in file!" , out_filename);
+// 				out_file.close();
+// 				out_file.clear();
+// 				summary.close();
+// 				summary.clear();
+// 				throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "not enough lines in file!" , out_filename);
+				break;
 			}
-			if ( !line.empty() && (line[line.length()-1] < 33) ) line.resize(line.length()-1);
-			
-			if ( !getColumns(line, substrings, number_of_columns, reference_column) ) break; // if less peptides were found than may be displayed, break
 			++line_number;
+			if ( !line.empty() && (line[line.length()-1] < 33) ) line.resize(line.length()-1);
+			line.trim();
+			if ( line.empty() ) continue;
+			
+			getColumns(line, substrings, number_of_columns, reference_column);
 			
 			// check whether the line has enough columns
 			if (substrings.size() < number_of_columns )
@@ -877,13 +891,16 @@ namespace OpenMS
 				substrings[reference_column].resize(substrings[reference_column].find_last_of('+'));
 			}
 			else proteins_per_peptide = 0;
-			if ( i ) line_buffer.replace(line_buffer.find("###"), 3, String(substrings[delta_cn_column].toFloat() - last_delta_cn));
+			if ( i ) line_buffer.replace(line_buffer.find("###"), 3, String(substrings[delta_cn_column].toFloat() - last_delta_cn)); // the delta_cn for the the preceeding value is computed using this value
+			++i;
 			summary << line_buffer;
 			last_delta_cn = substrings[delta_cn_column].toFloat();
 			
+			peptide = substrings[peptide_column].substr(2, substrings[peptide_column].length() - 4);
+			
 			substrings[reference_column].remove('>');
 			line_ss.str("");
-			line_ss << i+1 << " " << out_filename.substr(0, out_filename.length() - 4) << " " << substrings[mh_column] << " (" << precursor_mz_value - substrings[mh_column].toFloat() << ") " << substrings[xcorr_column] << " " << "###" << " " << substrings[sp_column] << " " << substrings[rank_sp_column].substr(substrings[rank_sp_column].find('/') + 1) << " " << substrings[ions_column] << " <A HREF=\"/cgi-bin/comet-fastadb.cgi?Ref=" << substrings[reference_column] << "&amp;Db=" << database_filename << "&amp;NucDb=0&amp;Pep=" << substrings[peptide_column].substr(2,  substrings[peptide_column].length() - 4 ) << "&amp;MassType=" << ion_mass_type << "\">" <<  substrings[reference_column] << "</A> " << substrings[peptide_column][0] << ".<A HREF=\"http://www.ncbi.nlm.nih.gov\">" << substrings[peptide_column].substr(2,  substrings[peptide_column].length() - 4 ) << "</A>." << substrings[peptide_column][substrings[peptide_column].length() - 1] << endl;
+			line_ss << "     " << (out2summary_number + i) << "  <A HREF=\"\">" << out_filename_base << "</A>  " << substrings[mh_column] << " (" << precursor_mz_value - substrings[mh_column].toFloat() << ")  " << substrings[xcorr_column] << "  " << "###" << " " << substrings[sp_column] << " " << substrings[rank_sp_column].substr(substrings[rank_sp_column].find('/') + 1) << " <A HREF=\"\">" << substrings[ions_column] << "</A>   <A HREF=\"&amp;Db=" << database_filename << "&amp;\">" <<  substrings[reference_column] << "</A>   " << substrings[peptide_column][0] << ".<A HREF=\"http://www.ncbi.nlm.nih.gov\">" << peptide << "</A>." << substrings[peptide_column][substrings[peptide_column].length() - 1] << endl;
 			
 			line_buffer = line_ss.str();
 			
@@ -892,6 +909,12 @@ namespace OpenMS
 				getline(out_file, line);
 			}
 		}
+		if ( i == 1 )
+		{
+			line_buffer.replace(line_buffer.find("###"), 3, "1"); // the delta_cn for the the preceeding value is computed using this value
+			summary << line_buffer;
+		}
+		out2summary_number += displayed_peptides;
 		
 		out_file.close();
 		out_file.clear();
@@ -900,7 +923,7 @@ namespace OpenMS
 	}
 	
 	void
-	finishSummaryHtml(
+	SequestOutfile::finishSummaryHtml(
 		const string& summary_filename
 	)
 	throw(
@@ -928,7 +951,7 @@ namespace OpenMS
 		{
 			throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, prob_filename);
 		}
-		
+unsigned int n = 0;
 		// the probability file has one line for each peptide
 		// each line consists of filename\tprobability\tstuff/negonly
 		String line, filename;
@@ -943,12 +966,16 @@ namespace OpenMS
 			substrings[0].append(".out");
 			if ( filename != substrings[0] ) // if a new filename is found, insert a vector and set the pointer accordingly
 			{
-				filenames_and_pvalues[substrings[0]] = vector< Real >();
 				filename = substrings[0];
+				filenames_and_pvalues[filename] = vector< Real >();
 				pvalues = &filenames_and_pvalues[filename];
 			}
 			if ( substrings[2] == "negonly" ) pvalues->push_back(1.0);
-			else pvalues->push_back(1.0 - substrings[1].toFloat());
+			else
+			{
+				pvalues->push_back(1.0 - substrings[1].toFloat());
+				if ( 1.0 - substrings[1].toFloat() <= 0.05 ) ++n;
+			}
 		}
 		
 		return filenames_and_pvalues;

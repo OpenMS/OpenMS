@@ -76,7 +76,7 @@ namespace OpenMS
 			void finishSummaryHtml(const std::string& summary_filename) throw (Exception::UnableToCreateFile);
 
 			/// write a
-			void out2SummaryHtml(std::string out_filename, const std::string& summary_filename, const std::string& database_filename, bool& append) throw(Exception::FileNotFound, Exception::ParseError, Exception::UnableToCreateFile);
+			void out2SummaryHtml(const std::string& out_filename, const std::string& summary_filename, const std::string& database_filename) throw(Exception::FileNotFound, Exception::ParseError, Exception::UnableToCreateFile);
 
 			std::map< String, std::vector< Real > > getPeptidePValues(const std::string& out_dir, const std::string& prob_filename) throw (Exception::FileNotFound);
 			
@@ -94,6 +94,9 @@ namespace OpenMS
 			bool updatePeptideHits(PeptideHit& peptide_hit, std::vector< PeptideHit >& peptide_hits);
 
 			void readOutHeader(const std::string& result_filename, DateTime& datetime, Real& precursor_mz_value, SignedInt& charge, UnsignedInt& precursor_mass_type, UnsignedInt& ion_mass_type, SignedInt& number_column, SignedInt& rank_sp_column, SignedInt& id_column, SignedInt& mh_column, SignedInt& delta_cn_column, SignedInt& xcorr_column, SignedInt& sp_column, SignedInt& sf_column, SignedInt& ions_column, SignedInt& reference_column, SignedInt& peptide_column, SignedInt& score_column, UnsignedInt& number_of_columns, UnsignedInt& displayed_peptides) throw(Exception::FileNotFound, Exception::ParseError);
+			
+		private:
+			UnsignedInt out2summary_number;
    };
 	
 } //namespace OpenMS

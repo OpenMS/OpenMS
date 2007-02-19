@@ -66,7 +66,7 @@ namespace OpenMS
 		residues_in_upper_case_(1)
 	{
 		for ( String::const_iterator aa_i = aas_single_letter_.begin(); aa_i != aas_single_letter_.end(); ++ aa_i )	stat_mods_[*aa_i] = 0.0;
-		enzyme_info_ = getStandardEnzymeInfo();
+		setStandardEnzymeInfo();
 	}
 	
 	SequestInfile::SequestInfile(const SequestInfile& sequest_infile)
@@ -74,7 +74,6 @@ namespace OpenMS
 		stat_mods_ = sequest_infile.getStatMods();
 		enzyme_info_ = sequest_infile.getEnzymeInfo(),
 		database_ = sequest_infile.getDatabase(),
-		snd_database_ = sequest_infile.getSndDatabase(),
 		neutral_losses_for_ions_ = sequest_infile.getNeutralLossesForIons(),
 		ion_series_weights_ = sequest_infile.getIonSeriesWeights(),
 		dyn_mods_ = sequest_infile.getDynMods(),
@@ -122,7 +121,6 @@ namespace OpenMS
 			stat_mods_ = sequest_infile.getStatMods();
 			enzyme_info_ = sequest_infile.getEnzymeInfo(),
 			database_ = sequest_infile.getDatabase(),
-			snd_database_ = sequest_infile.getSndDatabase(),
 			neutral_losses_for_ions_ = sequest_infile.getNeutralLossesForIons(),
 			ion_series_weights_ = sequest_infile.getIonSeriesWeights(),
 			dyn_mods_ = sequest_infile.getDynMods(),
@@ -173,8 +171,6 @@ namespace OpenMS
 		ofs << "[SEQUEST]" << endl;
 		
 		ofs << "database_name = " << database_ << endl;
-		
-		if ( !snd_database_.empty() ) ofs << "first_database_name = " << database_ << endl << "second_database_name = " << snd_database_ << endl;
 		
 		ofs << "peptide_mass_tolerance = " << peptide_mass_tolerance_ << endl;
 		
@@ -269,41 +265,34 @@ namespace OpenMS
 		ofs << "add_Y_Tyrosine = " << stat_mods_['Y'] << "; added to Y - avg. 163.1760, mono. 163.06333" << endl;
 		ofs << "add_W_Tryptophan = " << stat_mods_['W'] << "; added to W - avg. 186.2132, mono. 186.07931" << endl << endl;
 		
-		ofs << enzyme_info_;
+		ofs << getEnzymeInfoAsString();
 	}
+
+	const map< String, vector< String > >& SequestInfile::getEnzymeInfo() const {return enzyme_info_;}
 	
-	String SequestInfile::getStandardEnzymeInfo()
+	const String SequestInfile::getEnzymeInfoAsString() const
 	{
 		stringstream ss;
+		UnsignedInt i = 0;
+		UnsignedInt max_name_length = 0;
+		UnsignedInt max_cut_before_length = 0;
+		UnsignedInt max_doesnt_cut_after_length = 0;
 		ss << "[SEQUEST_ENZYME_INFO]" << endl;
-		ss << "0.  No_Enzyme              0      -                        -" << endl;
-		ss << "1.  Trypsin_Strict         1      KR                       -" << endl;
-		ss << "2.  Trypsin                1      KRLNH                    -" << endl;
-		ss << "3.  Chymotrypsin           1      FWYL                     -" << endl;
-		ss << "4.  Chymotrypsin_WYF       1      FWY                      -" << endl;
-		ss << "5.  Clostripain            1      R                        -" << endl;
-		ss << "6.  Cyanogen_Bromide       1      M                        -" << endl;
-		ss << "7.  IodosoBenzoate         1      W                        -" << endl;
-		ss << "8.  Proline_Endopept       1      P                        -" << endl;
-		ss << "9.  GluC                   1      E                        -" << endl;
-		ss << "10. GluC_ED                1      ED                       -" << endl;
-		ss << "11. LysC                   1      K                        -" << endl;
-		ss << "12. AspN                   0      D                        -" << endl;
-		ss << "13. AspN_DE                0      DE                       -" << endl;
-		ss << "14. Elastase               1      ALIV                     P" << endl;
-		ss << "15. Elastase/Tryp/Chymo    1      ALIVKRWFY                P" << endl;
-		ss << "16. Trypsin/Chymo          1      KRLFWYN                  -" << endl;
-		
-		highest_enzyme_number_ = 16;
-		
-		return ss.str();
+		for ( map< String, vector< String > >::const_iterator einfo_i = enzyme_info_.begin(); einfo_i != enzyme_info_.end(); ++einfo_i )
+		{
+			max_name_length = max(max_name_length, einfo_i->first.length());
+			max_cut_before_length = max(max_cut_before_length, einfo_i->second[1].length());
+			max_doesnt_cut_after_length = max(max_doesnt_cut_after_length, einfo_i->second[2].length());
+		}
+		for ( map< String, vector< String > >::const_iterator einfo_i = enzyme_info_.begin(); einfo_i != enzyme_info_.end(); ++einfo_i, ++i )
+		{
+			ss << i << ".  " << einfo_i->first << String(max_name_length + 5 - einfo_i->first.length(), ' ') << einfo_i->second[0] << "     " << einfo_i->second[1] << String(max_cut_before_length + 5 - einfo_i->second[1].length(), ' ') << einfo_i->second[2] << endl;
+		}
+		return String(ss.str());
 	}
 	
-	const String& SequestInfile::getEnzymeInfo() const {return enzyme_info_;}
 	void SequestInfile::addEnzymeInfo(vector< String >& enzyme_info)
 	{
-		enzyme_number_ = ++highest_enzyme_number_;
-		
 		// remove duplicates from the concerned amino acids
 		set< char > aas;
 		for ( String::const_iterator s_i = enzyme_info[2].begin(); s_i != enzyme_info[2].end(); ++s_i )
@@ -319,18 +308,19 @@ namespace OpenMS
 				enzyme_info[2].append(1, *aa_i);
 			}
 		}
-	
-		stringstream ss;
-		ss << enzyme_number_ << ". " << enzyme_info[0] << String(max(22 - enzyme_info[0].length(), (String::size_type)0) + 1, ' ') << enzyme_info[1] << String(6, ' ') << enzyme_info[2] << String(max(aas_single_letter_.length() - enzyme_info[2].length(), (String::size_type)0) + 1, ' ') << enzyme_info[3] << endl;
 		
-		enzyme_info_.append(ss.str());
+		String enzyme_name = enzyme_info[0];
+		enzyme_info.erase(enzyme_info.begin());
+		enzyme_info_[enzyme_name] = enzyme_info;
+		enzyme_number_ = 0;
+		for ( std::map< String, std::vector< String > >::const_iterator einfo_i = enzyme_info_.begin(); einfo_i != enzyme_info_.end(); ++einfo_i, ++enzyme_number_ )
+		{
+			if ( einfo_i->first == enzyme_name ) break;
+		}
 	}
 	
 	const String& SequestInfile::getDatabase() const {return database_;}
 	void SequestInfile::setDatabase(const String& value){database_ = value;}
-	
-	const String& SequestInfile::getSndDatabase() const {return snd_database_;}
-	void SequestInfile::setSndDatabase(const String& value){snd_database_ = value;}
 	
 	const String& SequestInfile::getNeutralLossesForIons() const {return neutral_losses_for_ions_;}
 	void SequestInfile::setNeutralLossesForIons(const String& neutral_losses_for_ions){neutral_losses_for_ions_ = neutral_losses_for_ions;}
@@ -389,11 +379,15 @@ namespace OpenMS
 	void SequestInfile::setOutputLines(SignedInt value){output_lines_ = value;}
 	
 	SignedInt SequestInfile::getEnzymeNumber() const {return enzyme_number_;}
-	SignedInt SequestInfile::setEnzymeNumber(SignedInt value)
+	SignedInt SequestInfile::setEnzyme(String enzyme_name)
 	{
-		if ( value < 0 || value > highest_enzyme_number_ ) return highest_enzyme_number_;
-		enzyme_number_ = value;
-		return 0;
+		enzyme_number_ = 0;
+		std::map< String, std::vector< String > >::const_iterator einfo_i;
+		for ( einfo_i = enzyme_info_.begin(); einfo_i != enzyme_info_.end(); ++einfo_i, ++enzyme_number_ )
+		{
+			if ( einfo_i->first == enzyme_name ) break;
+		}
+		return ( einfo_i == enzyme_info_.end() ) ? enzyme_info_.size() : 0;
 	}
 	
 	SignedInt SequestInfile::getMaxAAPerModPerPeptide() const {return max_AA_per_mod_per_peptide_;}
@@ -451,6 +445,29 @@ namespace OpenMS
 			stat_mods_[*s_i] = mass;
 		}
 		return 0;
+	}
+	
+	void SequestInfile::setStandardEnzymeInfo()
+	{
+		vector< String > info;
+		//		 cuts n to c?							 cuts before							doesn't cut after
+		info.push_back("0");info.push_back("-");info.push_back("-");enzyme_info_["No_Enzyme"] = info; info.clear();
+		info.push_back("1");info.push_back("KR");info.push_back("-");enzyme_info_["Trypsin_Strict"] = info; info.clear();
+		info.push_back("1");info.push_back("KRLNH");info.push_back("-");enzyme_info_["Trypsin"] = info; info.clear();
+		info.push_back("1");info.push_back("FWYL");info.push_back("-");enzyme_info_["Chymotrypsin"] = info; info.clear();
+		info.push_back("1");info.push_back("FWY");info.push_back("-");enzyme_info_["Chymotrypsin_WYF"] = info; info.clear();
+		info.push_back("1");info.push_back("R");info.push_back("-");enzyme_info_["Clostripain"] = info; info.clear();
+		info.push_back("1");info.push_back("M");info.push_back("-");enzyme_info_["Cyanogen_Bromide"] = info; info.clear();
+		info.push_back("1");info.push_back("W");info.push_back("-");enzyme_info_["IodosoBenzoate"] = info; info.clear();
+		info.push_back("1");info.push_back("P");info.push_back("-");enzyme_info_["Proline_Endopept"] = info; info.clear();
+		info.push_back("1");info.push_back("E");info.push_back("-");enzyme_info_["GluC"] = info; info.clear();
+		info.push_back("1");info.push_back("ED");info.push_back("-");enzyme_info_["GluC_ED"] = info; info.clear();
+		info.push_back("1");info.push_back("K");info.push_back("-");enzyme_info_["LysC"] = info; info.clear();
+		info.push_back("0");info.push_back("D");info.push_back("-");enzyme_info_["AspN"] = info; info.clear();
+		info.push_back("0");info.push_back("DE");info.push_back("-");enzyme_info_["AspN_DE"] = info; info.clear();
+		info.push_back("1");info.push_back("ALIV");info.push_back("P");enzyme_info_["Elastase"] = info; info.clear();
+		info.push_back("1");info.push_back("ALIVKRWFY");info.push_back("P");enzyme_info_["Elastase/Tryp/Chymo"] = info; info.clear();
+		info.push_back("1");info.push_back("KRLFWYN");info.push_back("-");enzyme_info_["Trypsin/Chymo"] = info; info.clear();
 	}
 	
 	const String SequestInfile::aas_single_letter_ = "GASPVTCLIXNOBDQKZEMHFRYW";

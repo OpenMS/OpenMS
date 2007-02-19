@@ -1,0 +1,2552 @@
+<PTMs>
+	<PTM>
+		<name>Acetylation</name>
+		<composition>H(2) C(2) O</composition>
+		<possible_amino_acids>KCS</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Amidation</name>
+		<composition>H N O(-1)</composition>
+		<possible_amino_acids></possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Biotinylation</name>
+		<composition>H(14) C(10) N(2) O(2) S</composition>
+		<possible_amino_acids>K</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Iodoacetamide derivative</name>
+		<composition>H(3) C(2) N O</composition>
+		<possible_amino_acids>CKHDE</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Carbamylation</name>
+		<composition>H C N O</composition>
+		<possible_amino_acids>KRCM</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Iodoacetic acid derivative</name>
+		<composition>H(2) C(2) O(2)</composition>
+		<possible_amino_acids>CKW</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Deamidation</name>
+		<composition>H(-1) N(-1) O</composition>
+		<possible_amino_acids>NQRF</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Gygi ICAT(TM) d0</name>
+		<composition>H(38) C(22) N(4) O(6) S</composition>
+		<possible_amino_acids>C</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Gygi ICAT(TM) d8</name>
+		<composition>H(30) 2H(8) C(22) N(4) O(6) S</composition>
+		<possible_amino_acids>C</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Homoserine</name>
+		<composition>H(-2) C(-1) O S(-1)</composition>
+		<possible_amino_acids>M</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Homoserine lactone</name>
+		<composition>H(-4) C(-1) S(-1)</composition>
+		<possible_amino_acids>M</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Applied Biosystems original ICAT(TM) d8</name>
+		<composition>H(26) 2H(8) C(20) N(4) O(5) S</composition>
+		<possible_amino_acids>C</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Applied Biosystems original ICAT(TM) d0</name>
+		<composition>H(34) C(20) N(4) O(5) S</composition>
+		<possible_amino_acids>C</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>N-isopropylcarboxamidomethyl</name>
+		<composition>H(9) C(5) N O</composition>
+		<possible_amino_acids>C</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Biotinyl-iodoacetamidyl-3,6-dioxaoctanediamine</name>
+		<composition>H(30) C(18) N(4) O(5) S</composition>
+		<possible_amino_acids>C</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Phosphorylation</name>
+		<composition>H O(3) P</composition>
+		<possible_amino_acids>STYDHCR</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Dehydration</name>
+		<composition>H(-2) O(-1)</composition>
+		<possible_amino_acids>NQSTYDC</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Acrylamide adduct</name>
+		<composition>H(5) C(3) N O</composition>
+		<possible_amino_acids>C</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>pyridylacetyl</name>
+		<composition>H(5) C(7) N O</composition>
+		<possible_amino_acids>K</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>S-carbamoylmethylcysteine cyclization (N-terminus)</name>
+		<composition>C(2) O</composition>
+		<possible_amino_acids>C</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Pyro-glu from E</name>
+		<composition>H(-2) O(-1)</composition>
+		<possible_amino_acids>E</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Pyro-glu from Q</name>
+		<composition>H(-3) N(-1)</composition>
+		<possible_amino_acids>Q</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>N-Succinimidyl-3-morpholine acetate</name>
+		<composition>H(9) C(6) N O(2)</composition>
+		<possible_amino_acids>K</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Sodium adduct</name>
+		<composition>H(-1) Na</composition>
+		<possible_amino_acids>DE</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>S-pyridylethylation</name>
+		<composition>H(7) C(7) N</composition>
+		<possible_amino_acids>C</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Methylation</name>
+		<composition>H(2) C</composition>
+		<possible_amino_acids>CHKNQRILDEST</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Oxidation or Hydroxylation</name>
+		<composition>O</composition>
+		<possible_amino_acids>DKNPFYRMCHW</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>di-Methylation</name>
+		<composition>H(4) C(2)</composition>
+		<possible_amino_acids>KRNP</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>tri-Methylation</name>
+		<composition>H(6) C(3)</composition>
+		<possible_amino_acids>KRA</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Beta-methylthiolation</name>
+		<composition>H(2) C S</composition>
+		<possible_amino_acids>DNC</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>O-Sulfonation</name>
+		<composition>O(3) S</composition>
+		<possible_amino_acids>STYC</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Hexose</name>
+		<composition>Hex</composition>
+		<possible_amino_acids>KNTWCRY</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Lipoyl</name>
+		<composition>H(12) C(8) O S(2)</composition>
+		<possible_amino_acids>K</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>N-Acetylhexosamine</name>
+		<composition>HexNAc</composition>
+		<possible_amino_acids>NST</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Farnesylation</name>
+		<composition>H(24) C(15)</composition>
+		<possible_amino_acids>C</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Myristoylation</name>
+		<composition>H(26) C(14) O</composition>
+		<possible_amino_acids>GKC</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Pyridoxal phosphate</name>
+		<composition>H(8) C(8) N O(5) P</composition>
+		<possible_amino_acids>K</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Palmitoylation</name>
+		<composition>H(30) C(16) O</composition>
+		<possible_amino_acids>CKST</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Geranyl-geranyl</name>
+		<composition>H(32) C(20)</composition>
+		<possible_amino_acids>C</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Phosphopantetheine</name>
+		<composition>H(21) C(11) N(2) O(6) P S</composition>
+		<possible_amino_acids>S</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Flavin adenine dinucleotide</name>
+		<composition>H(31) C(27) N(9) O(15) P(2)</composition>
+		<possible_amino_acids>CHY</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>N-acyl diglyceride cysteine</name>
+		<composition>H(96) C(51) O(5)</composition>
+		<possible_amino_acids>C</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Guanidination</name>
+		<composition>H(2) C N(2)</composition>
+		<possible_amino_acids>K</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>4-hydroxynonenal (HNE)</name>
+		<composition>H(16) C(9) O(2)</composition>
+		<possible_amino_acids>CHK</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>N-glucuronylation</name>
+		<composition>H(8) C(6) O(6)</composition>
+		<possible_amino_acids>S</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>glutathione disulfide</name>
+		<composition>H(15) C(10) N(3) O(6) S</composition>
+		<possible_amino_acids>C</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Acetate labeling reagent (N-term and K) (heavy form, +3amu)</name>
+		<composition>H(-1) 2H(3) C(2) O</composition>
+		<possible_amino_acids>K</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Propionate labeling reagent light form (N-term and K)</name>
+		<composition>H(4) C(3) O</composition>
+		<possible_amino_acids>K</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Propionate labeling reagent heavy form (+3amu), N-term and K</name>
+		<composition>H(4) 13C(3) O</composition>
+		<possible_amino_acids>K</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Quaternary amine labeling reagent light form (N-term and K)</name>
+		<composition>H(13) C(7) N O</composition>
+		<possible_amino_acids>K</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Quaternary amine labeling reagent heavy (+3amu) form, N-term and K</name>
+		<composition>H(10) 2H(3) C(7) N O</composition>
+		<possible_amino_acids>K</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Quaternary amine labeling reagent heavy form (+6amu), N-term and K</name>
+		<composition>H(7) 2H(6) C(7) N O</composition>
+		<possible_amino_acids>K</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Quaternary amine labeling reagent heavy form (+9amu), N-term and K</name>
+		<composition>H(4) 2H(9) C(7) N O</composition>
+		<possible_amino_acids>K</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Succinic anhydride labeling reagent light form (N-term and K)</name>
+		<composition>H(4) C(4) O(3)</composition>
+		<possible_amino_acids>K</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Succinic anhydride labeling reagent, heavy form (+4amu, 4H2), N-term and K</name>
+		<composition>2H(4) C(4) O(3)</composition>
+		<possible_amino_acids>K</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Succinic anhydride labeling reagent, heavy form (+4amu, 4C13), N-term and K</name>
+		<composition>H(4) 13C(4) O(3)</composition>
+		<possible_amino_acids>K</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Iminobiotinylation</name>
+		<composition>H(15) C(10) N(3) O S</composition>
+		<possible_amino_acids>K</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>ESP-Tag light d0</name>
+		<composition>H(26) C(16) N(4) O(2) S</composition>
+		<possible_amino_acids>K</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>ESP-Tag heavy d10</name>
+		<composition>H(16) 2H(10) C(16) N(4) O(2) S</composition>
+		<possible_amino_acids>K</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>NHS-LC-Biotin</name>
+		<composition>H(25) C(16) N(3) O(3) S</composition>
+		<possible_amino_acids>K</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>EDT-maleimide-PEO-biotin</name>
+		<composition>H(39) C(25) N(5) O(6) S(3)</composition>
+		<possible_amino_acids>ST</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>IMID d0</name>
+		<composition>H(4) C(3) N(2)</composition>
+		<possible_amino_acids>K</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>IMID d4</name>
+		<composition>2H(4) C(3) N(2)</composition>
+		<possible_amino_acids>K</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Acrylamide d3</name>
+		<composition>H(2) 2H(3) C(3) N O</composition>
+		<possible_amino_acids>C</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Applied Biosystems cleavable ICAT(TM) light</name>
+		<composition>H(17) C(10) N(3) O(3)</composition>
+		<possible_amino_acids>C</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Applied Biosystems cleavable ICAT(TM) heavy</name>
+		<composition>H(17) C 13C(9) N(3) O(3)</composition>
+		<possible_amino_acids>C</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Addition of N-formyl met</name>
+		<composition>H(9) C(6) N O(2) S</composition>
+		<possible_amino_acids></possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>N-ethylmaleimide on cysteines</name>
+		<composition>H(7) C(6) N O(2)</composition>
+		<possible_amino_acids>C</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Oxidized lysine biotinylated with biotin-LC-hydrazide, reduced</name>
+		<composition>H(26) C(16) N(4) O(3) S</composition>
+		<possible_amino_acids>K</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Oxidized lysine biotinylated with biotin-LC-hydrazide</name>
+		<composition>H(24) C(16) N(4) O(3) S</composition>
+		<possible_amino_acids>K</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Oxidized proline biotinylated with biotin-LC-hydrazide, reduced</name>
+		<composition>H(29) C(16) N(5) O(3) S</composition>
+		<possible_amino_acids>P</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Oxidized Proline biotinylated with biotin-LC-hydrazide</name>
+		<composition>H(27) C(16) N(5) O(3) S</composition>
+		<possible_amino_acids>P</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Oxidized arginine biotinylated with biotin-LC-hydrazide</name>
+		<composition>H(22) C(15) N(2) O(3) S</composition>
+		<possible_amino_acids>R</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Oxidized arginine biotinylated with biotin-LC-hydrazide, reduced</name>
+		<composition>H(24) C(15) N(2) O(3) S</composition>
+		<possible_amino_acids>R</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>EDT-iodo-PEO-biotin</name>
+		<composition>H(34) C(20) N(4) O(4) S(3)</composition>
+		<possible_amino_acids>ST</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Thio Ether Formation - BTP Adduct</name>
+		<composition>H(21) C(22) P</composition>
+		<possible_amino_acids>C</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>ubiquitinylation residue</name>
+		<composition>H(6) C(4) N(2) O(2)</composition>
+		<possible_amino_acids>K</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Formylation</name>
+		<composition>C O</composition>
+		<possible_amino_acids>KST</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>N-iodoacetyl, p-chlorobenzyl-12C6-glucamine</name>
+		<composition>H(20) C(15) N O(6) Cl</composition>
+		<possible_amino_acids>C</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>N-iodoacetyl, p-chlorobenzyl-13C6-glucamine</name>
+		<composition>H(20) C(9) 13C(6) N O(6) Cl</composition>
+		<possible_amino_acids>C</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>thioacylation of primary amines (N-term and Lys)</name>
+		<composition>H(4) C(3) O S</composition>
+		<possible_amino_acids>K</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>fluorophenylalanine replacement of phenylalanine</name>
+		<composition>H(-1) F</composition>
+		<possible_amino_acids>F</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>5-Iodoacetamidofluorescein (Molecular Probe, Eugene, OR)</name>
+		<composition>H(14) C(22) N O(6)</composition>
+		<possible_amino_acids>C</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Iodination</name>
+		<composition>H(-1) I</composition>
+		<possible_amino_acids>YH</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>di-Iodination</name>
+		<composition>H(-2) I(2)</composition>
+		<possible_amino_acids>Y</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>tri-Iodination</name>
+		<composition>H(-3) I(3)</composition>
+		<possible_amino_acids>Y</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>(cis-delta 5)-tetradecaenoyl</name>
+		<composition>H(24) C(14) O</composition>
+		<possible_amino_acids>G</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>(cis,cis-delta 5, delta 8)-tetradecadienoyl</name>
+		<composition>H(22) C(14) O</composition>
+		<possible_amino_acids>G</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>labeling reagent light form (N-term and K)</name>
+		<composition>H(4) C(7) O</composition>
+		<possible_amino_acids>K</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>N-linked glycan core</name>
+		<composition>Hex(5) HexNAc(2)</composition>
+		<possible_amino_acids>N</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>5-dimethylaminonaphthalene-1-sulfonyl</name>
+		<composition>H(11) C(12) N O(2) S</composition>
+		<possible_amino_acids>K</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>ISD a-series (C-Term)</name>
+		<composition>H(-1) C(-1) O(-1)</composition>
+		<possible_amino_acids></possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>amidination of lysines or N-terminal amines with methyl acetimidate</name>
+		<composition>H(3) C(2) N</composition>
+		<possible_amino_acids>K</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>HexNAc1dHex1</name>
+		<composition>dHex HexNAc</composition>
+		<possible_amino_acids>N</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>HexNAc2</name>
+		<composition>HexNAc(2)</composition>
+		<possible_amino_acids>N</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Hex3</name>
+		<composition>Hex(3)</composition>
+		<possible_amino_acids>N</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>HexNAc1dHex2</name>
+		<composition>dHex(2) HexNAc</composition>
+		<possible_amino_acids>N</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Hex1HexNAc1dHex1</name>
+		<composition>dHex Hex HexNAc</composition>
+		<possible_amino_acids>N</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>HexNAc2dHex1</name>
+		<composition>dHex HexNAc(2)</composition>
+		<possible_amino_acids>N</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Hex1HexNAc2</name>
+		<composition>Hex HexNAc(2)</composition>
+		<possible_amino_acids>N</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Hex1HexNAc1NeuAc1</name>
+		<composition>Hex HexNAc NeuAc</composition>
+		<possible_amino_acids>N</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>HexNAc2dHex2</name>
+		<composition>dHex(2) HexNAc(2)</composition>
+		<possible_amino_acids>N</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Hex1HexNAc2Pent1</name>
+		<composition>Pent Hex HexNAc(2)</composition>
+		<possible_amino_acids>N</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Hex1HexNAc2dHex1</name>
+		<composition>dHex Hex HexNAc(2)</composition>
+		<possible_amino_acids>N</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Hex2HexNAc2</name>
+		<composition>Hex(2) HexNAc(2)</composition>
+		<possible_amino_acids>N</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Hex3HexNAc1Pent1</name>
+		<composition>Pent Hex(3) HexNAc</composition>
+		<possible_amino_acids>N</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Hex1HexNAc2dHex1Pent1</name>
+		<composition>Pent dHex Hex HexNAc(2)</composition>
+		<possible_amino_acids>N</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Hex1HexNAc2dHex2</name>
+		<composition>dHex(2) Hex HexNAc(2)</composition>
+		<possible_amino_acids>N</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Hex2HexNAc2Pent1</name>
+		<composition>Pent Hex(2) HexNAc(2)</composition>
+		<possible_amino_acids>N</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Hex2HexNAc2dHex1</name>
+		<composition>dHex Hex(2) HexNAc(2)</composition>
+		<possible_amino_acids>N</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Hex3HexNAc2</name>
+		<composition>Hex(3) HexNAc(2)</composition>
+		<possible_amino_acids>N</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Hex1HexNAc1NeuAc2</name>
+		<composition>Hex HexNAc NeuAc(2)</composition>
+		<possible_amino_acids>N</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Hex3HexNAc2P1</name>
+		<composition>P Hex(3) HexNAc(2)</composition>
+		<possible_amino_acids>N</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Selenium replaces sulphur</name>
+		<composition>S(-1) Se</composition>
+		<possible_amino_acids>MC</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>glycosylated asparagine 18O labeling</name>
+		<composition>H O(-1) 18O</composition>
+		<possible_amino_acids>N</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Shimadzu 13CNBS</name>
+		<composition>H(3) 13C(6) N O(2) S</composition>
+		<possible_amino_acids>W</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Shimadzu 12CNBS</name>
+		<composition>H(3) C(6) N O(2) S</composition>
+		<possible_amino_acids>W</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Michael addition of BHT quinone methide to Cysteine and Lysine</name>
+		<composition>H(22) C(15) O</composition>
+		<possible_amino_acids>KHC</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>phosphorylation to amine thiol</name>
+		<composition>H(9) C(4) N O(-1) S</composition>
+		<possible_amino_acids>ST</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>13C(9) Silac label</name>
+		<composition>C(-9) 13C(9)</composition>
+		<possible_amino_acids>Y</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>C13 label (Phosphotyrosine)</name>
+		<composition>H C(-9) 13C(9) O(3) P</composition>
+		<possible_amino_acids>Y</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Hydroxyphenylglyoxal arginine</name>
+		<composition>H(4) C(8) O(2)</composition>
+		<possible_amino_acids>R</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>2 Hydroxyphenylglyoxal arginine</name>
+		<composition>H(10) C(16) O(5)</composition>
+		<possible_amino_acids>R</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>13C(6) Silac label</name>
+		<composition>C(-6) 13C(6)</composition>
+		<possible_amino_acids>RKLFI</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>O18 label at both C-terminal oxygens</name>
+		<composition>O(-2) 18O(2)</composition>
+		<possible_amino_acids></possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>6-aminoquinolyl-N-hydroxysuccinimidyl carbamate</name>
+		<composition>H(6) C(10) N(2) O</composition>
+		<possible_amino_acids>K</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>APTA-d0</name>
+		<composition>H(18) C(9) N(2) O</composition>
+		<possible_amino_acids>C</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>APTA d3</name>
+		<composition>H(16) 2H(3) C(9) N(2) O</composition>
+		<possible_amino_acids>C</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>EAPTA d0</name>
+		<composition>H(20) C(10) N(2) O</composition>
+		<possible_amino_acids>C</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>EAPTA d5</name>
+		<composition>H(15) 2H(5) C(10) N(2) O</composition>
+		<possible_amino_acids>C</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>DiMethyl-CHD2</name>
+		<composition>2H(4) C(2)</composition>
+		<possible_amino_acids>K</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>EDT</name>
+		<composition>H(4) C(2) O(-1) S(2)</composition>
+		<possible_amino_acids>ST</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Acrolein addition +94</name>
+		<composition>H(6) C(6) O</composition>
+		<possible_amino_acids>K</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Acrolein addition +56</name>
+		<composition>H(4) C(3) O</composition>
+		<possible_amino_acids>CHK</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Acrolein addition +38</name>
+		<composition>H(2) C(3)</composition>
+		<possible_amino_acids>K</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Acrolein addition +76</name>
+		<composition>H(4) C(6)</composition>
+		<possible_amino_acids>K</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Acrolein addition +112</name>
+		<composition>H(8) C(6) O(2)</composition>
+		<possible_amino_acids>K</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>N-ethyl iodoacetamide-d0</name>
+		<composition>H(7) C(4) N O</composition>
+		<possible_amino_acids>CY</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>N-ethyl iodoacetamide-d5</name>
+		<composition>H(2) 2H(5) C(4) N O</composition>
+		<possible_amino_acids>CY</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>ADP  Ribose addition</name>
+		<composition>H(21) C(15) N(5) O(13) P(2)</composition>
+		<possible_amino_acids>RCNSE</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Representative mass and accurate mass for 116 and 117</name>
+		<composition>H(12) C(4) 13C(3) N 15N O</composition>
+		<possible_amino_acids>KY</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Light IDBEST tag for quantitation</name>
+		<composition>H(13) C(12) N(2) O(2) Br</composition>
+		<possible_amino_acids>C</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Crotonaldehyde</name>
+		<composition>H(6) C(4) O</composition>
+		<possible_amino_acids>CHK</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Acetaldehyde +26</name>
+		<composition>H(2) C(2)</composition>
+		<possible_amino_acids>HK</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Acetaldehyde +28</name>
+		<composition>H(4) C(2)</composition>
+		<possible_amino_acids>HK</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Propionaldehyde +40</name>
+		<composition>H(4) C(3)</composition>
+		<possible_amino_acids>HK</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>O18 Labeling</name>
+		<composition>O(-1) 18O</composition>
+		<possible_amino_acids>STY</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>13C(6) 15N(2) Silac label</name>
+		<composition>C(-6) 13C(6) N(-2) 15N(2)</composition>
+		<possible_amino_acids>K</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Thiophosphorylation</name>
+		<composition>H O(2) P S</composition>
+		<possible_amino_acids>STY</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>4-sulfophenyl isothiocyanate</name>
+		<composition>H(5) C(7) N O(3) S(2)</composition>
+		<possible_amino_acids>K</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Trideuteration</name>
+		<composition>H(-3) 2H(3)</composition>
+		<possible_amino_acids>L</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>phosphorylation to pyridyl thiol</name>
+		<composition>H(7) C(7) N O(-1) S</composition>
+		<possible_amino_acids>ST</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>13C(6) 15N(4) Silac label</name>
+		<composition>C(-6) 13C(6) N(-4) 15N(4)</composition>
+		<possible_amino_acids>R</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>13C(5) 15N(1) Silac label</name>
+		<composition>C(-5) 13C(5) N(-1) 15N</composition>
+		<possible_amino_acids>V</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>13C(9) 15N(1) Silac label</name>
+		<composition>C(-9) 13C(9) N(-1) 15N</composition>
+		<possible_amino_acids>F</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>nucleophilic addtion to cytopiloyne</name>
+		<composition>H(22) C(19) O(7)</composition>
+		<possible_amino_acids>CKPRSY</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>nucleophilic addition to cytopiloyne+H2O</name>
+		<composition>H(24) C(19) O(8)</composition>
+		<possible_amino_acids>CKRSTY</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>sulfonation of N-terminus</name>
+		<composition>H(4) C(3) O(4) S</composition>
+		<possible_amino_acids></possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>covalent modification of lysine by cross-linking reagent</name>
+		<composition>H(15) C(12) N O(5)</composition>
+		<possible_amino_acids>K</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>S-nitrosylation</name>
+		<composition>H(-1) N O</composition>
+		<possible_amino_acids>C</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Aminoethylbenzenesulfonylation</name>
+		<composition>H(9) C(8) N O(2) S</composition>
+		<possible_amino_acids>HKSY</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Ethanolation of Cys</name>
+		<composition>H(4) C(2) O</composition>
+		<possible_amino_acids>C</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Ethylation</name>
+		<composition>H(4) C(2)</composition>
+		<possible_amino_acids>KE</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Cysteine modified Coenzyme A</name>
+		<composition>H(34) C(21) N(7) O(16) P(3) S</composition>
+		<possible_amino_acids>C</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Deuterium Methylation of Lysine</name>
+		<composition>2H(2) C</composition>
+		<possible_amino_acids>K</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Light Sulfanilic Acid (SA) C12</name>
+		<composition>H(5) C(6) N O(2) S</composition>
+		<possible_amino_acids>DE</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Heavy Sulfanilic Acid (SA) C13</name>
+		<composition>H(5) 13C(6) N O(2) S</composition>
+		<possible_amino_acids>DE</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Tryptophan oxidation to oxolactone</name>
+		<composition>H(-2) O</composition>
+		<possible_amino_acids>W</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Biotin polyethyleneoxide amine</name>
+		<composition>H(28) C(16) N(4) O(3) S</composition>
+		<possible_amino_acids>DE</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Pierce EZ-Link Biotin-HPDP</name>
+		<composition>H(32) C(19) N(4) O(3) S(2)</composition>
+		<possible_amino_acids>C</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Mercury Mercaptan</name>
+		<composition>Hg</composition>
+		<possible_amino_acids>C</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Cross-link of (Iodo)-uracil MP with W,F,Y</name>
+		<composition>H(11) C(9) N(2) O(9) P</composition>
+		<possible_amino_acids>FWY</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>3-(carbamidomethylthio)propanoyl</name>
+		<composition>H(7) C(5) N O(2) S</composition>
+		<possible_amino_acids>K</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>biotinoyl-iodoacetyl-ethylenediamine</name>
+		<composition>H(22) C(14) N(4) O(3) S</composition>
+		<possible_amino_acids>C</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Fucose</name>
+		<composition>dHex</composition>
+		<possible_amino_acids>ST</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>deuterated methyl ester</name>
+		<composition>H(-1) 2H(3) C</composition>
+		<possible_amino_acids>DE</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Carboxylation</name>
+		<composition>C O(2)</composition>
+		<possible_amino_acids>WKDEM</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Monobromobimane derivative</name>
+		<composition>H(10) C(10) N(2) O(2)</composition>
+		<possible_amino_acids>C</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Menadione derivative</name>
+		<composition>H(6) C(11) O(2)</composition>
+		<possible_amino_acids>CK</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Cysteine mercaptoethanol</name>
+		<composition>H(4) C(2) O S</composition>
+		<possible_amino_acids>C</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Fucosylated biantennary (-2 galactose)</name>
+		<composition>dHex Hex(3) HexNAc(4)</composition>
+		<possible_amino_acids>N</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Fucosylated biantennary (-1 galactose)</name>
+		<composition>dHex Hex(4) HexNAc(4)</composition>
+		<possible_amino_acids>N</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Fucosylated biantennary</name>
+		<composition>dHex Hex(5) HexNAc(4)</composition>
+		<possible_amino_acids>N</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Biantennary (-2 galactose)</name>
+		<composition>Hex(3) HexNAc(4)</composition>
+		<possible_amino_acids>N</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Biantennary (-1 galactose)</name>
+		<composition>Hex(4) HexNAc(4)</composition>
+		<possible_amino_acids>N</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Biantennary</name>
+		<composition>Hex(5) HexNAc(4)</composition>
+		<possible_amino_acids>N</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Cysteinylation</name>
+		<composition>H(5) C(3) N O(2) S</composition>
+		<possible_amino_acids>C</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Loss of C-terminal K from Heavy Chain of MAb</name>
+		<composition>H(-12) C(-6) N(-2) O(-1)</composition>
+		<possible_amino_acids>K</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Nmethylmaleimide</name>
+		<composition>H(5) C(5) N O(2)</composition>
+		<possible_amino_acids>CK</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>2,5-dimethypyrrole</name>
+		<composition>H(6) C(6)</composition>
+		<possible_amino_acids>K</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>MDA adduct +62</name>
+		<composition>H(2) C(5)</composition>
+		<possible_amino_acids>K</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>MDA adduct +54</name>
+		<composition>H(2) C(3) O</composition>
+		<possible_amino_acids>KR</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Nethylmaleimidehydrolysis</name>
+		<composition>H(9) C(6) N O(3)</composition>
+		<possible_amino_acids>CK</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>N-Succinimide</name>
+		<composition>H(-1) O(-1)</composition>
+		<possible_amino_acids>N</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>bis-N-I-sulfonerahodamine</name>
+		<composition>H(30) C(31) N(4) O(6) S I</composition>
+		<possible_amino_acids>C</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>dimethyl 3,3\'-dithiobispropionimidate</name>
+		<composition>H(5) C(3) N S</composition>
+		<possible_amino_acids>NQRK</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>10-ethoxyphosphinyl-N-(biotinamidopentyl)decanamide</name>
+		<composition>H(49) C(27) N(4) O(5) P S</composition>
+		<possible_amino_acids>SYT</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>S-Ethylcystine from Serine</name>
+		<composition>H(4) C(2) O(-1) S</composition>
+		<possible_amino_acids>S</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>monomethylated arginine</name>
+		<composition>H(-1) 2H(3) 13C</composition>
+		<possible_amino_acids>R</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>dimethylated arginine</name>
+		<composition>H(-2) 2H(6) 13C(2)</composition>
+		<possible_amino_acids>R</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>thiophosphate labeled with biotin-HPDP</name>
+		<composition>H(34) C(19) N(4) O(5) P S(3)</composition>
+		<possible_amino_acids>STY</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>6-N-biotinylaminohexyl isopropyl phosphate</name>
+		<composition>H(34) C(19) N(3) O(5) P S</composition>
+		<possible_amino_acids>SYT</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>reduced 4-Hydroxynonenal</name>
+		<composition>H(18) C(9) O(2)</composition>
+		<possible_amino_acids>CHK</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Michael addition with methylamine</name>
+		<composition>H(3) C N O(-1)</composition>
+		<possible_amino_acids>ST</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>bromination</name>
+		<composition>H(-1) Br</composition>
+		<possible_amino_acids>WHF</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Tyrosine oxidation to 2-aminotyrosine</name>
+		<composition>H N</composition>
+		<possible_amino_acids>Y</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>oxidized Arginine biotinylated with biotin hydrazide</name>
+		<composition>H(13) C(9) N O(2) S</composition>
+		<possible_amino_acids>R</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Arginine oxidation to glutamic semialdehyde</name>
+		<composition>H(-5) C(-1) N(-3) O</composition>
+		<possible_amino_acids>R</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>cysteine oxidation to cysteic acid</name>
+		<composition>O(3)</composition>
+		<possible_amino_acids>C</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>histidine oxidation to aspargine</name>
+		<composition>H(-1) C(-2) N(-1) O</composition>
+		<possible_amino_acids>H</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>histidine oxidation to aspartic acid</name>
+		<composition>H(-2) C(-2) N(-2) O(2)</composition>
+		<possible_amino_acids>H</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>tryptophan oxidation to hydroxykynurenin</name>
+		<composition>C(-1) O(2)</composition>
+		<possible_amino_acids>W</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>tryptophan oxidation to kynurenin</name>
+		<composition>C(-1) O</composition>
+		<possible_amino_acids>W</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Lysine oxidation to aminoadipic semialdehyde</name>
+		<composition>H(-3) N(-1) O</composition>
+		<possible_amino_acids>K</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>oxidized Lysine biotinylated with biotin hydrazide</name>
+		<composition>H(15) C(10) N(3) O(2) S</composition>
+		<possible_amino_acids>K</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Oxidation to nitro</name>
+		<composition>H(-1) N O(2)</composition>
+		<possible_amino_acids>WY</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>oxidized proline biotinylated with biotin hydrazide</name>
+		<composition>H(18) C(10) N(4) O(2) S</composition>
+		<possible_amino_acids>P</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>proline oxidation to pyroglutamic acid</name>
+		<composition>H(-2) O</composition>
+		<possible_amino_acids>P</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Proline oxidation to pyrrolidinone</name>
+		<composition>H(-2) C(-1) O(-1)</composition>
+		<possible_amino_acids>P</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>oxidized Threonine biotinylated with biotin hydrazide</name>
+		<composition>H(16) C(10) N(4) O S</composition>
+		<possible_amino_acids>T</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>O-Diisopropylphosphorylation</name>
+		<composition>H(13) C(6) O(3) P</composition>
+		<possible_amino_acids>STY</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>O-Isopropylphosphorylation</name>
+		<composition>H(7) C(3) O(3) P</composition>
+		<possible_amino_acids>STY</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Bruker Daltonics SERVA-ICPL(TM) quantification chemistry, heavy form</name>
+		<composition>H(3) 13C(6) N O</composition>
+		<possible_amino_acids>K</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Bruker Daltonics SERVA-ICPL(TM) quantification chemistry, light form</name>
+		<composition>H(3) C(6) N O</composition>
+		<possible_amino_acids>K</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Deamidation in presence of O18</name>
+		<composition>H(-1) N(-1) 18O</composition>
+		<possible_amino_acids>NQ</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Dehydroalanine (from Cysteine)</name>
+		<composition>H(-2) S(-1)</composition>
+		<possible_amino_acids>C</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Pyrrolidone from Proline</name>
+		<composition>C(-1) O(-1)</composition>
+		<possible_amino_acids>P</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Michael addition of hydroxymethylvinyl ketone to cysteine</name>
+		<composition>H(6) C(4) O(2)</composition>
+		<possible_amino_acids>C</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Ornithine from Arginine</name>
+		<composition>H(-2) C(-1) N(-2)</composition>
+		<possible_amino_acids>R</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Half of a disulfide bridge</name>
+		<composition>H(-1)</composition>
+		<possible_amino_acids>C</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Diphthamide</name>
+		<composition>H(15) C(7) N(2) O</composition>
+		<possible_amino_acids>H</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>hydroxyfarnesyl</name>
+		<composition>H(24) C(15) O</composition>
+		<possible_amino_acids>C</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>diacylglycerol</name>
+		<composition>H(68) C(37) O(4)</composition>
+		<possible_amino_acids>C</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>carboxyethyl</name>
+		<composition>H(4) C(3) O(2)</composition>
+		<possible_amino_acids>K</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>hypusine</name>
+		<composition>H(9) C(4) N O</composition>
+		<possible_amino_acids>K</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>retinal</name>
+		<composition>H(26) C(20)</composition>
+		<possible_amino_acids>K</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>alpha-amino adipic acid</name>
+		<composition>H(-3) N(-1) O(2)</composition>
+		<possible_amino_acids>K</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>pyruvic acid from N-term cys</name>
+		<composition>H(-3) N(-1) O S(-1)</composition>
+		<possible_amino_acids>C</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Loss of ammonia</name>
+		<composition>H(-3) N(-1)</composition>
+		<possible_amino_acids>TSC</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>phycocyanobilin</name>
+		<composition>H(38) C(33) N(4) O(6)</composition>
+		<possible_amino_acids>C</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>phycoerythrobilin</name>
+		<composition>H(40) C(33) N(4) O(6)</composition>
+		<possible_amino_acids>C</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>phytochromobilin</name>
+		<composition>H(36) C(33) N(4) O(6)</composition>
+		<possible_amino_acids>C</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>heme</name>
+		<composition>H(32) C(34) N(4) O(4) Fe</composition>
+		<possible_amino_acids>CH</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>molybdopterin</name>
+		<composition>H(11) C(10) N(5) O(8) P S(2) Mo</composition>
+		<possible_amino_acids>C</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>quinone</name>
+		<composition>H(-2) O(2)</composition>
+		<possible_amino_acids>YW</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>glucosylgalactosyl hydroxylysine</name>
+		<composition>O Hex(2)</composition>
+		<possible_amino_acids>K</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>glycosylphosphatidylinositol</name>
+		<composition>H(6) C(2) N O(3) P</composition>
+		<possible_amino_acids></possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>phosphoribosyl dephospho-coenzyme A</name>
+		<composition>H(42) C(26) N(7) O(19) P(3) S</composition>
+		<possible_amino_acids>S</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>glycerylphosphorylethanolamine</name>
+		<composition>H(12) C(5) N O(5) P</composition>
+		<possible_amino_acids>E</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>triiodo</name>
+		<composition>H C(6) O I(3)</composition>
+		<possible_amino_acids>Y</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>tetraiodo</name>
+		<composition>C(6) O I(4)</composition>
+		<possible_amino_acids>Y</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Dehydroalanine (from Tyrosine)</name>
+		<composition>H(-6) C(-6) O(-1)</composition>
+		<possible_amino_acids>Y</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>2-amino-3-oxo-butanoic_acid</name>
+		<composition>H(-2)</composition>
+		<possible_amino_acids>YST</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>oxoalanine</name>
+		<composition>H(-2) O S(-1)</composition>
+		<possible_amino_acids>C</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>lactic acid from N-term Ser</name>
+		<composition>H(-1) N(-1)</composition>
+		<possible_amino_acids>S</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>AMP binding site</name>
+		<composition>H(12) C(10) N(5) O(6) P</composition>
+		<possible_amino_acids>YKTH</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>hydroxycinnamyl</name>
+		<composition>H(6) C(9) O(2)</composition>
+		<possible_amino_acids>C</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>glycosyl-L-hydroxyproline</name>
+		<composition>H(8) C(5) O(5)</composition>
+		<possible_amino_acids>P</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>flavin mononucleotide</name>
+		<composition>H(19) C(17) N(4) O(9) P</composition>
+		<possible_amino_acids>CH</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>S-diphytanylglycerol diether</name>
+		<composition>H(86) C(43) O(2)</composition>
+		<possible_amino_acids>C</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>phenyl isocyanate</name>
+		<composition>H(5) C(7) N O</composition>
+		<possible_amino_acids></possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>d5-phenyl isocyanate</name>
+		<composition>2H(5) C(7) N O</composition>
+		<possible_amino_acids></possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>phospho-guanosine</name>
+		<composition>H(12) C(10) N(5) O(7) P</composition>
+		<possible_amino_acids>KH</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>hydroxymethyl</name>
+		<composition>H(2) C O</composition>
+		<possible_amino_acids>N</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>L-selenocysteinyl molybdenum bis(molybdopterin guanine dinucleotide)</name>
+		<composition>H(47) C(40) N(20) O(26) P(4) S(3) Se Mo</composition>
+		<possible_amino_acids>C</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>dipyrrolylmethanemethyl</name>
+		<composition>H(22) C(20) N(2) O(8)</composition>
+		<possible_amino_acids>C</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>uridine phosphodiester</name>
+		<composition>H(11) C(9) N(2) O(8) P</composition>
+		<possible_amino_acids>YH</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>glycerophospho</name>
+		<composition>H(7) C(3) O(5) P</composition>
+		<possible_amino_acids>S</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>thiocarboxylic acid</name>
+		<composition>O(-1) S</composition>
+		<possible_amino_acids>G</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>persulfide</name>
+		<composition>S</composition>
+		<possible_amino_acids>C</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>N-pyruvic acid 2-iminyl</name>
+		<composition>H(2) C(3) O(2)</composition>
+		<possible_amino_acids>CVK</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>selenyl</name>
+		<composition>Se</composition>
+		<possible_amino_acids>C</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>molybdenum bis(molybdopterin guanine dinucleotide)</name>
+		<composition>H(47) C(40) N(20) O(26) P(4) S(4) Mo</composition>
+		<possible_amino_acids>CD</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>dihydroxy</name>
+		<composition>O(2)</composition>
+		<possible_amino_acids>PRKMFWYC</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>octanoyl</name>
+		<composition>H(14) C(8) O</composition>
+		<possible_amino_acids>ST</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>N-acetylglucosamine-1-phosphoryl</name>
+		<composition>H O(3) P HexNAc</composition>
+		<possible_amino_acids>S</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>phosphoglycosyl-D-mannose-1-phosphoryl</name>
+		<composition>H O(3) P Hex</composition>
+		<possible_amino_acids>S</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>palmitoleyl</name>
+		<composition>H(28) C(16) O</composition>
+		<possible_amino_acids>C</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>cholesterol ester</name>
+		<composition>H(44) C(27)</composition>
+		<possible_amino_acids></possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>3,4-didehydroretinylidene</name>
+		<composition>H(24) C(20)</composition>
+		<possible_amino_acids>K</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>cis-14-hydroxy-10,13-dioxo-7-heptadecenoic ester</name>
+		<composition>H(26) C(17) O(4)</composition>
+		<possible_amino_acids>D</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>4-methyl-delta-1-pyrroline-5-carboxyl</name>
+		<composition>H(7) C(6) N O</composition>
+		<possible_amino_acids>K</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>hydroxyheme</name>
+		<composition>H(30) C(34) N(4) O(4) Fe</composition>
+		<possible_amino_acids>E</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>(3-aminopropyl)(L-aspartyl-1-amino)phosphoryl-5-adenosine</name>
+		<composition>H(19) C(13) N(6) O(6) P</composition>
+		<possible_amino_acids></possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>cyano</name>
+		<composition>H(-1) C N</composition>
+		<possible_amino_acids>C</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>hydrogenase diiron subcluster</name>
+		<composition>H(-1) C(5) N(2) O(5) S(2) Fe(2)</composition>
+		<possible_amino_acids>C</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>amidino</name>
+		<composition>H(2) C N(2)</composition>
+		<possible_amino_acids>C</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>O3-(riboflavin phosphoryl)</name>
+		<composition>H(19) C(17) N(4) O(8) P</composition>
+		<possible_amino_acids>TS</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>S-(4a-FMN)</name>
+		<composition>H(21) C(17) N(4) O(9) P</composition>
+		<possible_amino_acids>C</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>copper sulfido molybdopterin cytosine dinuncleotide</name>
+		<composition>H(24) C(19) N(8) O(15) P(2) S(3) Cu Mo</composition>
+		<possible_amino_acids>C</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>5-hydroxy-N6,N6,N6-trimethyl</name>
+		<composition>H(7) C(3) O</composition>
+		<possible_amino_acids>K</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>reduction</name>
+		<composition>O(-1)</composition>
+		<possible_amino_acids>DST</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>microcin E492 siderophore ester from serine</name>
+		<composition>H(37) C(36) N(3) O(20)</composition>
+		<possible_amino_acids></possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>lipid</name>
+		<composition>H(18) C(10) O</composition>
+		<possible_amino_acids>ST</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>monoglutamyl</name>
+		<composition>H(7) C(5) N O(3)</composition>
+		<possible_amino_acids>E</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>diglutamyl</name>
+		<composition>H(14) C(10) N(2) O(6)</composition>
+		<possible_amino_acids>E</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>triglutamyl</name>
+		<composition>H(21) C(15) N(3) O(9)</composition>
+		<possible_amino_acids>E</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>tetraglutamyl</name>
+		<composition>H(28) C(20) N(4) O(12)</composition>
+		<possible_amino_acids>E</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Hexosamine</name>
+		<composition>H(11) C(6) N O(4)</composition>
+		<possible_amino_acids>KNTW</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>One end of crosslink attached, one end free</name>
+		<composition>H(14) C(8) N(2) O</composition>
+		<possible_amino_acids>K</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Both ends of crosslink attached to same peptide</name>
+		<composition>H(10) C(7) N(2)</composition>
+		<possible_amino_acids>K</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>naphthalene-2,3-dicarboxaldehyde</name>
+		<composition>H(5) C(13) N</composition>
+		<possible_amino_acids>K</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>4-sulfophenyl isothiocyanate (Heavy C13)</name>
+		<composition>H(5) C 13C(6) N O(3) S(2)</composition>
+		<possible_amino_acids>K</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>aminoethylcysteine</name>
+		<composition>H(5) C(2) N O(-1) S</composition>
+		<possible_amino_acids>ST</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>4-trimethyllammoniumbutyryl-</name>
+		<composition>H(14) C(7) N O</composition>
+		<possible_amino_acids>K</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>d9-4-trimethyllammoniumbutyryl-</name>
+		<composition>H(5) 2H(9) C(7) N O</composition>
+		<possible_amino_acids>K</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>fluorescein-5-thiosemicarbazide</name>
+		<composition>H(15) C(21) N(3) O(5) S</composition>
+		<possible_amino_acids>CKPRS</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>4,4,5,5-D4 Lysine</name>
+		<composition>H(-4) 2H(4)</composition>
+		<possible_amino_acids>K</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Dehydropyrrolizidine alkaloid (dehydroretronecine) on cysteines</name>
+		<composition>H(8) C(8) N</composition>
+		<possible_amino_acids>C</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Heptose</name>
+		<composition>Hep</composition>
+		<possible_amino_acids>KNQRST</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Bisphenol A diglycidyl ether derivative</name>
+		<composition>H(24) C(21) O(4)</composition>
+		<possible_amino_acids>C</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Cy3 CyDye DIGE Fluor saturation dye</name>
+		<composition>H(44) C(37) N(4) O(6) S</composition>
+		<possible_amino_acids>C</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Cy5 CyDye DIGE Fluor saturation dye</name>
+		<composition>H(44) C(38) N(4) O(6) S</composition>
+		<possible_amino_acids>C</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Michael addition of t-butyl hydroxylated BHT (BHTOH) to C, H or K</name>
+		<composition>H(22) C(15) O(2)</composition>
+		<possible_amino_acids>CHK</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Heavy IDBEST tag for quantitation</name>
+		<composition>H(13) C(10) 13C(2) N(2) O(2) Br</composition>
+		<possible_amino_acids>C</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Nmethylmaleimidehydrolysis</name>
+		<composition>H(7) C(5) N O(3)</composition>
+		<possible_amino_acids>C</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>3-methyl-2-pyridyl isocyanate</name>
+		<composition>H(6) C(7) N(2) O</composition>
+		<possible_amino_acids></possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Levuglandinyl - lysine lactam adduct</name>
+		<composition>H(28) C(20) O(4)</composition>
+		<possible_amino_acids>K</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Levuglandinyl - lysine hydroxylactam adduct</name>
+		<composition>H(28) C(20) O(5)</composition>
+		<possible_amino_acids>K</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Levuglandinyl - arginine lactam adduct</name>
+		<composition>H(26) C(19) N(-2) O(4)</composition>
+		<possible_amino_acids>R</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Levuglandinyl - arginine hydroxylactam adduct</name>
+		<composition>H(26) C(19) N(-2) O(5)</composition>
+		<possible_amino_acids>R</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>DiMethyl-C13HD2</name>
+		<composition>2H(4) 13C(2)</composition>
+		<possible_amino_acids>K</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Lactosylation</name>
+		<composition>Hex(2)</composition>
+		<possible_amino_acids>KR</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>[3-(2,5)-Dioxopyrrolidin-1-yloxycarbonyl)-propyl]dimethyloctylammonium</name>
+		<composition>H(29) C(14) N O</composition>
+		<possible_amino_acids>K</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>propyl-1,2-dideoxy-2\'-methyl-alpha-D-glucopyranoso-[2,1-d]-Delta2\'-thiazoline</name>
+		<composition>H(14) C(9) N O(4) S</composition>
+		<possible_amino_acids>C</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>fluorescein-5-maleimide</name>
+		<composition>H(13) C(24) N O(7)</composition>
+		<possible_amino_acids>C</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Diethylation, analogous to Dimethylation</name>
+		<composition>H(8) C(4)</composition>
+		<possible_amino_acids>K</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>4,4\'-dianilino-1,1\'-binaphthyl-5,5\'-disulfonic acid</name>
+		<composition>H(20) C(32) N(2) O(6) S(2)</composition>
+		<possible_amino_acids>K</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Piperidination</name>
+		<composition>H(8) C(5)</composition>
+		<possible_amino_acids>K</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Maleimide-PEO2-Biotin</name>
+		<composition>H(35) C(23) N(5) O(7) S</composition>
+		<possible_amino_acids>C</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Sulfo-NHS-LC-LC-Biotin</name>
+		<composition>H(36) C(22) N(4) O(4) S</composition>
+		<possible_amino_acids>K</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>CLIP_TRAQ_1</name>
+		<composition>H(12) C(7) N(2) O</composition>
+		<possible_amino_acids>KY</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>CLIP_TRAQ_2</name>
+		<composition>H(12) C(6) 13C N(2) O</composition>
+		<possible_amino_acids>KY</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Prompt loss of side chain from oxidised Met</name>
+		<composition>H(-4) C(-1) S(-1)</composition>
+		<possible_amino_acids>M</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Deamidation followed by a methylation</name>
+		<composition>H C N(-1) O</composition>
+		<possible_amino_acids>QN</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Dimethylation of proline residue</name>
+		<composition>H(5) C(2)</composition>
+		<possible_amino_acids>P</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Replacement of proton by potassium</name>
+		<composition>H(-1) K</composition>
+		<possible_amino_acids>DE</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Replacement of proton by copper</name>
+		<composition>H(-1) Cu</composition>
+		<possible_amino_acids>DE</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Accurate mass for 114</name>
+		<composition>H(12) C(5) 13C(2) N(2) 18O</composition>
+		<possible_amino_acids>KY</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Accurate mass for 115</name>
+		<composition>H(12) C(6) 13C N 15N 18O</composition>
+		<possible_amino_acids>KY</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Dibromo</name>
+		<composition>H(-2) Br(2)</composition>
+		<possible_amino_acids>Y</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Ubiquitination</name>
+		<composition>H(29) C(16) N(7) O(4)</composition>
+		<possible_amino_acids>K</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>CLIP_TRAQ_3</name>
+		<composition>H(20) C(11) 13C N(3) O(4)</composition>
+		<possible_amino_acids>KY</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>CLIP_TRAQ_4</name>
+		<composition>H(15) C(9) 13C N(2) O(5)</composition>
+		<possible_amino_acids>KY</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>15-deoxy-delta 12,14-Prostaglandin J2-biotinimide</name>
+		<composition>H(54) C(35) N(4) O(4) S</composition>
+		<possible_amino_acids>C</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Prostaglandin A1-biotinimide</name>
+		<composition>H(60) C(36) N(4) O(5) S</composition>
+		<possible_amino_acids>C</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Ala- Ser substitution</name>
+		<composition>O</composition>
+		<possible_amino_acids>A</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Ala- Thr substitution</name>
+		<composition>H(2) C O</composition>
+		<possible_amino_acids>A</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Ala- Asp substitution</name>
+		<composition>C O(2)</composition>
+		<possible_amino_acids>A</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Ala- Pro substitution</name>
+		<composition>H(2) C(2)</composition>
+		<possible_amino_acids>A</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Ala- Gly substitution</name>
+		<composition>H(-2) C(-1)</composition>
+		<possible_amino_acids>A</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Ala- Glu substitution</name>
+		<composition>H(2) C(2) O(2)</composition>
+		<possible_amino_acids>A</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Ala- Val substitution</name>
+		<composition>H(4) C(2)</composition>
+		<possible_amino_acids>A</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Cys- Phe substitution</name>
+		<composition>H(4) C(6) S(-1)</composition>
+		<possible_amino_acids>C</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Cys- Ser substitution</name>
+		<composition>O S(-1)</composition>
+		<possible_amino_acids>C</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Cys- Trp substitution</name>
+		<composition>H(5) C(8) N S(-1)</composition>
+		<possible_amino_acids>C</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Cys- Tyr substitution</name>
+		<composition>H(4) C(6) O S(-1)</composition>
+		<possible_amino_acids>C</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Cys- Arg substitution</name>
+		<composition>H(7) C(3) N(3) S(-1)</composition>
+		<possible_amino_acids>C</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Cys- Gly substitution</name>
+		<composition>H(-2) C(-1) S(-1)</composition>
+		<possible_amino_acids>C</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Asp- Ala substitution</name>
+		<composition>C(-1) O(-2)</composition>
+		<possible_amino_acids>D</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Asp- His substitution</name>
+		<composition>H(2) C(2) N(2) O(-2)</composition>
+		<possible_amino_acids>D</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Asp- Asn substitution</name>
+		<composition>H N O(-1)</composition>
+		<possible_amino_acids>D</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Asp- Gly substitution</name>
+		<composition>H(-2) C(-2) O(-2)</composition>
+		<possible_amino_acids>D</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Asp- Tyr substitution</name>
+		<composition>H(4) C(5) O(-1)</composition>
+		<possible_amino_acids>D</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Asp- Glu substitution</name>
+		<composition>H(2) C</composition>
+		<possible_amino_acids>D</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Asp- Val substitution</name>
+		<composition>H(4) C O(-2)</composition>
+		<possible_amino_acids>D</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Glu- Ala substitution</name>
+		<composition>H(-2) C(-2) O(-2)</composition>
+		<possible_amino_acids>E</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Glu- Gln substitution</name>
+		<composition>H N O(-1)</composition>
+		<possible_amino_acids>E</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Glu- Asp substitution</name>
+		<composition>H(-2) C(-1)</composition>
+		<possible_amino_acids>E</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Glu- Lys substitution</name>
+		<composition>H(5) C N O(-2)</composition>
+		<possible_amino_acids>E</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Glu- Gly substitution</name>
+		<composition>H(-4) C(-3) O(-2)</composition>
+		<possible_amino_acids>E</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Glu- Val substitution</name>
+		<composition>H(2) O(-2)</composition>
+		<possible_amino_acids>E</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Phe- Ser substitution</name>
+		<composition>H(-4) C(-6) O</composition>
+		<possible_amino_acids>F</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Phe- Cys substitution</name>
+		<composition>H(-4) C(-6) S</composition>
+		<possible_amino_acids>F</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Phe- Ile or Phe- Leu substitution</name>
+		<composition>H(2) C(-3)</composition>
+		<possible_amino_acids>F</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Phe- Tyr substitution</name>
+		<composition>O</composition>
+		<possible_amino_acids>F</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Phe- Val substitution</name>
+		<composition>C(-4)</composition>
+		<possible_amino_acids>F</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Gly- Ala substitution</name>
+		<composition>H(2) C</composition>
+		<possible_amino_acids>G</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Gly- Ser substitution</name>
+		<composition>H(2) C O</composition>
+		<possible_amino_acids>G</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Gly- Trp substitution</name>
+		<composition>H(7) C(9) N</composition>
+		<possible_amino_acids>G</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Gly- Glu substitution</name>
+		<composition>H(4) C(3) O(2)</composition>
+		<possible_amino_acids>G</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Gly- Val substitution</name>
+		<composition>H(6) C(3)</composition>
+		<possible_amino_acids>G</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Gly- Asp substitution</name>
+		<composition>H(2) C(2) O(2)</composition>
+		<possible_amino_acids>G</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Gly- Cys substitution</name>
+		<composition>H(2) C S</composition>
+		<possible_amino_acids>G</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Gly- Arg substitution</name>
+		<composition>H(9) C(4) N(3)</composition>
+		<possible_amino_acids>G</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>His- Pro substitution</name>
+		<composition>C(-1) N(-2)</composition>
+		<possible_amino_acids>H</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>His- Tyr substitution</name>
+		<composition>H(2) C(3) N(-2) O</composition>
+		<possible_amino_acids>H</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>His- Gln substitution</name>
+		<composition>H C(-1) N(-1) O</composition>
+		<possible_amino_acids>H</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>His- Arg substitution</name>
+		<composition>H(5) N</composition>
+		<possible_amino_acids>H</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>His- Leu substitution</name>
+		<composition>H(4) N(-2)</composition>
+		<possible_amino_acids>H</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Ile- Phe substitution</name>
+		<composition>H(-2) C(3)</composition>
+		<possible_amino_acids>I</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Ile- Ser substitution</name>
+		<composition>H(-6) C(-3) O</composition>
+		<possible_amino_acids>I</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Ile- Thr substitution</name>
+		<composition>H(-4) C(-2) O</composition>
+		<possible_amino_acids>I</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Ile- Asn substitution</name>
+		<composition>H(-5) C(-2) N O</composition>
+		<possible_amino_acids>I</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Ile- Lys substitution</name>
+		<composition>H N</composition>
+		<possible_amino_acids>I</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Ile- Val substitution</name>
+		<composition>H(-2) C(-1)</composition>
+		<possible_amino_acids>I</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Ile- Met substitution</name>
+		<composition>H(-2) C(-1) S</composition>
+		<possible_amino_acids>I</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Ile- Arg substitution</name>
+		<composition>H N(3)</composition>
+		<possible_amino_acids>I</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Lys- Thr substitution</name>
+		<composition>H(-5) C(-2) N(-1) O</composition>
+		<possible_amino_acids>K</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Lys- Asn substitution</name>
+		<composition>H(-6) C(-2) O</composition>
+		<possible_amino_acids>K</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Lys- Glu substitution</name>
+		<composition>H(-5) C(-1) N(-1) O(2)</composition>
+		<possible_amino_acids>K</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Lys- Gln substitution</name>
+		<composition>H(-4) C(-1) O</composition>
+		<possible_amino_acids>K</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Lys- Met substitution</name>
+		<composition>H(-3) C(-1) N(-1) S</composition>
+		<possible_amino_acids>K</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Lys- Arg substitution</name>
+		<composition>N(2)</composition>
+		<possible_amino_acids>K</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Lys- Ile substitution</name>
+		<composition>H(-1) N(-1)</composition>
+		<possible_amino_acids>K</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Leu- Ser substitution</name>
+		<composition>H(-6) C(-3) O</composition>
+		<possible_amino_acids>L</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Leu- Phe substitution</name>
+		<composition>H(-2) C(3)</composition>
+		<possible_amino_acids>L</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Leu- Trp substitution</name>
+		<composition>H(-1) C(5) N</composition>
+		<possible_amino_acids>L</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Leu- Pro substitution</name>
+		<composition>H(-4) C(-1)</composition>
+		<possible_amino_acids>L</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Leu- Val substitution</name>
+		<composition>H(-2) C(-1)</composition>
+		<possible_amino_acids>L</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Leu- His substitution</name>
+		<composition>H(-4) N(2)</composition>
+		<possible_amino_acids>L</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Leu- Gln substitution</name>
+		<composition>H(-3) C(-1) N O</composition>
+		<possible_amino_acids>L</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Leu- Met substitution</name>
+		<composition>H(-2) C(-1) S</composition>
+		<possible_amino_acids>L</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Leu- Arg substitution</name>
+		<composition>H N(3)</composition>
+		<possible_amino_acids>L</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Met- Thr substitution</name>
+		<composition>H(-2) C(-1) O S(-1)</composition>
+		<possible_amino_acids>M</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Met- Arg substitution</name>
+		<composition>H(3) C N(3) S(-1)</composition>
+		<possible_amino_acids>M</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Met- Ile substitution</name>
+		<composition>H(2) C S(-1)</composition>
+		<possible_amino_acids>M</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Met- Lys substitution</name>
+		<composition>H(3) C N S(-1)</composition>
+		<possible_amino_acids>M</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Met- Leu substitution</name>
+		<composition>H(2) C S(-1)</composition>
+		<possible_amino_acids>M</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Met- Val substitution</name>
+		<composition>S(-1)</composition>
+		<possible_amino_acids>M</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Asn- Ser substitution</name>
+		<composition>H(-1) C(-1) N(-1)</composition>
+		<possible_amino_acids>N</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Asn- Thr substitution</name>
+		<composition>H N(-1)</composition>
+		<possible_amino_acids>N</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Asn- Lys substitution</name>
+		<composition>H(6) C(2) O(-1)</composition>
+		<possible_amino_acids>N</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Asn- Tyr substitution</name>
+		<composition>H(3) C(5) N(-1)</composition>
+		<possible_amino_acids>N</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Asn- His substitution</name>
+		<composition>H C(2) N O(-1)</composition>
+		<possible_amino_acids>N</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Asn- Asp substitution</name>
+		<composition>H(-1) N(-1) O</composition>
+		<possible_amino_acids>N</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Asn- Ile substitution</name>
+		<composition>H(5) C(2) N(-1) O(-1)</composition>
+		<possible_amino_acids>N</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Pro- Ser substitution</name>
+		<composition>H(-2) C(-2) O</composition>
+		<possible_amino_acids>P</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Pro- Ala substitution</name>
+		<composition>H(-2) C(-2)</composition>
+		<possible_amino_acids>P</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Pro- His substitution</name>
+		<composition>C N(2)</composition>
+		<possible_amino_acids>P</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Pro- Gln substitution</name>
+		<composition>H N O</composition>
+		<possible_amino_acids>P</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Pro- Thr substitution</name>
+		<composition>C(-1) O</composition>
+		<possible_amino_acids>P</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Pro- Arg substitution</name>
+		<composition>H(5) C N(3)</composition>
+		<possible_amino_acids>P</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Pro- Leu substitution</name>
+		<composition>H(4) C</composition>
+		<possible_amino_acids>P</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Gln- Pro substitution</name>
+		<composition>H(-1) N(-1) O(-1)</composition>
+		<possible_amino_acids>Q</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Gln- Lys substitution</name>
+		<composition>H(4) C O(-1)</composition>
+		<possible_amino_acids>Q</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Gln- Glu substitution</name>
+		<composition>H(-1) N(-1) O</composition>
+		<possible_amino_acids>Q</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Gln- His substitution</name>
+		<composition>H(-1) C N O(-1)</composition>
+		<possible_amino_acids>Q</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Gln- Arg substitution</name>
+		<composition>H(4) C N(2) O(-1)</composition>
+		<possible_amino_acids>Q</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Gln- Leu substitution</name>
+		<composition>H(3) C N(-1) O(-1)</composition>
+		<possible_amino_acids>Q</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Arg- Ser substitution</name>
+		<composition>H(-7) C(-3) N(-3) O</composition>
+		<possible_amino_acids>R</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Arg- Trp substitution</name>
+		<composition>H(-2) C(5) N(-2)</composition>
+		<possible_amino_acids>R</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Arg- Thr substitution</name>
+		<composition>H(-5) C(-2) N(-3) O</composition>
+		<possible_amino_acids>R</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Arg- Pro substitution</name>
+		<composition>H(-5) C(-1) N(-3)</composition>
+		<possible_amino_acids>R</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Arg- Lys substitution</name>
+		<composition>N(-2)</composition>
+		<possible_amino_acids>R</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Arg- His substitution</name>
+		<composition>H(-5) N(-1)</composition>
+		<possible_amino_acids>R</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Arg- Gln substitution</name>
+		<composition>H(-4) C(-1) N(-2) O</composition>
+		<possible_amino_acids>R</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Arg- Met substitution</name>
+		<composition>H(-3) C(-1) N(-3) S</composition>
+		<possible_amino_acids>R</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Arg- Cys substitution</name>
+		<composition>H(-7) C(-3) N(-3) S</composition>
+		<possible_amino_acids>R</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Arg- Ile or Arg- Leu substitution</name>
+		<composition>H(-1) N(-3)</composition>
+		<possible_amino_acids>R</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Arg- Gly substitution</name>
+		<composition>H(-9) C(-4) N(-3)</composition>
+		<possible_amino_acids>R</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Ser- Phe substitution</name>
+		<composition>H(4) C(6) O(-1)</composition>
+		<possible_amino_acids>S</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Ser- Ala substitution</name>
+		<composition>O(-1)</composition>
+		<possible_amino_acids>S</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Ser- Trp substitution</name>
+		<composition>H(5) C(8) N O(-1)</composition>
+		<possible_amino_acids>S</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Ser- Thr substitution</name>
+		<composition>H(2) C</composition>
+		<possible_amino_acids>S</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Ser- Asn substitution</name>
+		<composition>H C N</composition>
+		<possible_amino_acids>S</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Ser- Pro substitution</name>
+		<composition>H(2) C(2) O(-1)</composition>
+		<possible_amino_acids>S</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Ser- Tyr substitution</name>
+		<composition>H(4) C(6)</composition>
+		<possible_amino_acids>S</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Ser- Cys substitution</name>
+		<composition>O(-1) S</composition>
+		<possible_amino_acids>S</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Ser- Arg substitution</name>
+		<composition>H(7) C(3) N(3) O(-1)</composition>
+		<possible_amino_acids>S</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Ser- Ile or Ser- Leu substitution</name>
+		<composition>H(6) C(3) O(-1)</composition>
+		<possible_amino_acids>S</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Ser- Gly substitution</name>
+		<composition>H(-2) C(-1) O(-1)</composition>
+		<possible_amino_acids>S</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Thr- Ser substitution</name>
+		<composition>H(-2) C(-1)</composition>
+		<possible_amino_acids>T</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Thr- Ala substitution</name>
+		<composition>H(-2) C(-1) O(-1)</composition>
+		<possible_amino_acids>T</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Thr- Asn substitution</name>
+		<composition>H(-1) N</composition>
+		<possible_amino_acids>T</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Thr- Lys substitution</name>
+		<composition>H(5) C(2) N O(-1)</composition>
+		<possible_amino_acids>T</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Thr- Pro substitution</name>
+		<composition>C O(-1)</composition>
+		<possible_amino_acids>T</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Thr- Met substitution</name>
+		<composition>H(2) C O(-1) S</composition>
+		<possible_amino_acids>T</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Thr- Ile substitution</name>
+		<composition>H(4) C(2) O(-1)</composition>
+		<possible_amino_acids>T</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Thr- Arg substitution</name>
+		<composition>H(5) C(2) N(3) O(-1)</composition>
+		<possible_amino_acids>T</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Val- Phe substitution</name>
+		<composition>C(4)</composition>
+		<possible_amino_acids>V</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Val- Ala substitution</name>
+		<composition>H(-4) C(-2)</composition>
+		<possible_amino_acids>V</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Val- Glu substitution</name>
+		<composition>H(-2) O(2)</composition>
+		<possible_amino_acids>V</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Val- Met substitution</name>
+		<composition>S</composition>
+		<possible_amino_acids>V</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Val- Asp substitution</name>
+		<composition>H(-4) C(-1) O(2)</composition>
+		<possible_amino_acids>V</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Val- Ile or Val- Leu substitution</name>
+		<composition>H(2) C</composition>
+		<possible_amino_acids>V</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Val- Gly substitution</name>
+		<composition>H(-6) C(-3)</composition>
+		<possible_amino_acids>V</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Trp- Ser substitution</name>
+		<composition>H(-5) C(-8) N(-1) O</composition>
+		<possible_amino_acids>W</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Trp- Cys substitution</name>
+		<composition>H(-5) C(-8) N(-1) S</composition>
+		<possible_amino_acids>W</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Trp- Arg substitution</name>
+		<composition>H(2) C(-5) N(2)</composition>
+		<possible_amino_acids>W</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Trp- Gly substitution</name>
+		<composition>H(-7) C(-9) N(-1)</composition>
+		<possible_amino_acids>W</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Trp- Leu substitution</name>
+		<composition>H C(-5) N(-1)</composition>
+		<possible_amino_acids>W</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Tyr- Phe substitution</name>
+		<composition>O(-1)</composition>
+		<possible_amino_acids>Y</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Tyr- Ser substitution</name>
+		<composition>H(-4) C(-6)</composition>
+		<possible_amino_acids>Y</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Tyr- Asn substitution</name>
+		<composition>H(-3) C(-5) N</composition>
+		<possible_amino_acids>Y</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Tyr- His substitution</name>
+		<composition>H(-2) C(-3) N(2) O(-1)</composition>
+		<possible_amino_acids>Y</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Tyr- Asp substitution</name>
+		<composition>H(-4) C(-5) O</composition>
+		<possible_amino_acids>Y</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Tyr- Cys substitution</name>
+		<composition>H(-4) C(-6) O(-1) S</composition>
+		<possible_amino_acids>Y</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Mass Defect Tag on lysine e-amino</name>
+		<composition>H(12) C(11) N O Br</composition>
+		<possible_amino_acids>HKYW</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Nitroalkylation by Nitro Linoleic Acid</name>
+		<composition>H(31) C(18) N O(4)</composition>
+		<possible_amino_acids>CH</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Nitroalkylation by Nitro Oleic Acid</name>
+		<composition>H(33) C(18) N O(4)</composition>
+		<possible_amino_acids>CH</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Bruker Daltonics SERVA-ICPL(TM) quantification chemistry, medium form</name>
+		<composition>H(-1) 2H(4) C(6) N O</composition>
+		<possible_amino_acids>K</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>13C(6) 15N(1) Silac label</name>
+		<composition>C(-6) 13C(6) N(-1) 15N</composition>
+		<possible_amino_acids>L</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>13C(6) 15N(2) (D)9 SILAC label</name>
+		<composition>H(-9) 2H(9) C(-6) 13C(6) N(-2) 15N(2)</composition>
+		<possible_amino_acids>K</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Nicotinic Acid</name>
+		<composition>H(3) C(6) N O</composition>
+		<possible_amino_acids></possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>deuterated Nicotinic Acid</name>
+		<composition>H 2H(3) C(6) N O</composition>
+		<possible_amino_acids></possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Dehydrated 4-hydroxynonenal</name>
+		<composition>H(14) C(9) O</composition>
+		<possible_amino_acids>CHK</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>4-Oxononenal (ONE)</name>
+		<composition>H(14) C(9) O(2)</composition>
+		<possible_amino_acids>CHK</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>O-Dimethylphosphorylation</name>
+		<composition>H(5) C(2) O(3) P</composition>
+		<possible_amino_acids>STY</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>O-Methylphosphorylation</name>
+		<composition>H(3) C O(3) P</composition>
+		<possible_amino_acids>STY</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>O-Diethylphosphorylation</name>
+		<composition>H(9) C(4) O(3) P</composition>
+		<possible_amino_acids>STY</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>O-Ethylphosphorylation</name>
+		<composition>H(5) C(2) O(3) P</composition>
+		<possible_amino_acids>STY</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>O-pinacolylmethylphosphonylation</name>
+		<composition>H(15) C(7) O(2) P</composition>
+		<possible_amino_acids>STY</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Methylphosphonylation</name>
+		<composition>H(3) C O(2) P</composition>
+		<possible_amino_acids>STY</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>O-Isopropylmethylphosphonylation</name>
+		<composition>H(9) C(4) O(2) P</composition>
+		<possible_amino_acids>STY</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Representative mass and accurate mass for 113, 114, 116 and 117</name>
+		<composition>H(24) C(7) 13C(7) N(3) 15N O(3)</composition>
+		<possible_amino_acids>KY</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Accurate mass for 115, 118, 119 and 121</name>
+		<composition>H(24) C(8) 13C(6) N(2) 15N(2) O(3)</composition>
+		<possible_amino_acids>KY</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Carboxyl modification with ethanolamine</name>
+		<composition>H(5) C(2) N</composition>
+		<possible_amino_acids>DE</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Dithiothreitol (DTT)</name>
+		<composition>H(8) C(4) O S(2)</composition>
+		<possible_amino_acids>ST</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>Dithiothreitol (DTT) on Cys</name>
+		<composition>H(8) C(4) O(2) S</composition>
+		<possible_amino_acids>C</possible_amino_acids>
+	</PTM>
+</PTMs>

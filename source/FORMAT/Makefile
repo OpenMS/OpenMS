@@ -61,7 +61,9 @@ CPP_SOURCES=\
 	PeakFileOptions.C\
 	PeakTypeEstimator.C\
 	OMSSAXMLFile.C\
-	OMSSACSVFile.C
+	OMSSACSVFile.C\
+	PTMXMLFile.C\
+	IsotopeXMLFile.C\
 
 ifeq ($(ANDIMS_SUPPORT),true)
 	ifeq ($(NETCDF_SUPPORT),true)

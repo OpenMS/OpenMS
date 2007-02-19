@@ -106,7 +106,7 @@ namespace OpenMS
 			ofs << "mod";
 			for ( vector< String >::const_iterator i = iter->begin(); i != iter->end(); ++i)
 			{
-				ofs << "," << *i;
+				if ( !i->empty()) ofs << "," << *i;
 			}
 			ofs << endl;
 		}

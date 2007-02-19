@@ -28,6 +28,8 @@
 #include <OpenMS/FORMAT/AnalysisXMLFile.h>
 #include <OpenMS/FORMAT/InspectInfile.h>
 #include <OpenMS/FORMAT/InspectOutfile.h>
+#include <OpenMS/FORMAT/IsotopeXMLFile.h>
+#include <OpenMS/FORMAT/PTMXMLFile.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/FORMAT/TextFile.h>
 
@@ -128,11 +130,16 @@ class TOPPInspectAdapter
 																										 "and does not attempt to correct the parent mass.)", false);
 			registerDoubleOption_("precursor_mass_tolerance", "<tol>", 2.0 , "the precursor mass tolerance", false);
 			registerDoubleOption_("peak_mass_tolerance", "<tol>", 1.0, "the peak mass tolerance", false);
-			registerStringOption_("modifications", "<mods>", "", "the modifications: <MASS>,<RESIDUES>,<TYPE>,<NAME>:...\n"
-																													 "i.e. 80,STY,opt,phosphorylation\n"
-																													 "MASS and RESIDUES are mandatory\n"
-																													 "Valid values for \"TYPE\" are \"fix\", \"cterminal\", \"nterminal\",\n"
-																													 "and \"opt\" (the default).\n", false);
+			registerFlag_("list_modifications", "show a list of the available modifications");
+			registerStringOption_("modifications", "<mods>", "", "the colon-seperated modifications; may be\n"
+																																													 "<name>,<type>, e.g.: Deamidation,opt or\n"
+																																													 "<composition>,<residues>,<type>,<name>, e.g.: H(2).C(2).O,KCS,opt,Acetyl or\n"
+																																													 "<mass>,<residues>,<type>,<name>, e.g.: 42.0367,KCS,opt,Acetyl or\n"
+																																													 "Valid values for \"type\" are \"fix\", \"cterminal\", \"nterminal\",\n"
+																																													 "and \"opt\" (the default).\n", false);
+			registerFlag_("use_monoisotopic_mod_mass", "use monoisotopic masses for the modifications");
+			registerStringOption_("modifications_xml_file", "<file>", "", "name of an XML file with the modifications", false);
+			registerStringOption_("isotopes_xml_file", "<file>", "", "name of an XML file with the masses and probabilities of isotopes", false);
 			registerStringOption_("cleavage", "<enz>", "Trypsin", "the enzyme used for digestion", false);
 			registerStringOption_("inspect_output", "<file>", "", "name for the output file of Inspect (may only be used in a full run)", false);
 			registerStringOption_("inspect_input", "<file>", "", "name for the input file of Inspect (may only be used in a full run)", false);
@@ -158,6 +165,62 @@ class TOPPInspectAdapter
 			registerStringOption_("contact_info", "<info>", "unknown", "Some information about the contact", false);
 		}
 
+		String get_composition_elements(const String& composition, vector< vector< String > >& iso_sym_occ, char seperator = ' ')
+		{
+			iso_sym_occ.clear();
+			vector< String > substrings;
+			composition.split(seperator, substrings); // get the single elements of the composition: e.g. 18O(-1) or C(3) or N
+			if ( substrings.empty() ) substrings.push_back(composition);
+			UnsignedInt pos, pos2;
+			String isotope, symbol, occurences;
+			// for each element, get the isotope (if used), the symbol and the occurences
+			for ( vector< String >::const_iterator e_i = substrings.begin(); e_i != substrings.end(); ++e_i )
+			{
+				isotope.clear();
+				occurences = "1";
+				pos = 0;
+				while ( (bool) isdigit((*e_i)[pos]) ) ++pos; // if an isotope is used, find it
+				isotope = e_i->substr(0, pos);
+				if ( isotope.empty() ) isotope = "0";
+				pos2 = e_i->find('(', pos);
+				if ( pos2 != string::npos ) // if the element occurs more than once, a bracket is found
+				{
+					symbol = e_i->substr(pos, pos2++ - pos);
+					occurences = e_i->substr(pos2, e_i->length() - pos2 - 1 );
+				}
+				else
+				{
+					symbol = e_i->substr(pos).toLower().firstToUpper();
+					occurences = "1";
+				}
+				// check whether this really is a chemical symbol (only characters, max length 2)
+				if ( symbol.length() > 2 || (isalpha(symbol[0]) == 0) || (isalpha(symbol[symbol.length() - 1]) == 0) ) return (composition);
+				// then check whether isotope and occurences are numbers
+				SignedInt i_iso, i_occ;
+				try
+				{
+					i_iso = isotope.toInt();
+					i_occ = occurences.toInt();
+				}
+				catch( Exception::ConversionError ce )
+				{
+					return composition;
+				}
+				if ( String(i_iso) != isotope || String(i_occ) != occurences )
+				{
+					return composition;
+				}
+				
+				// if this is a composition, insert its elements into the vector
+				iso_sym_occ.push_back(vector< String >());
+				iso_sym_occ.back().push_back(isotope);
+				iso_sym_occ.back().push_back(symbol);
+				iso_sym_occ.back().push_back(occurences);
+			}
+			
+			return String();
+		}
+
 		ExitCodes main_(int , char**)
 		{
 			//-------------------------------------------------------------
@@ -169,6 +232,7 @@ class TOPPInspectAdapter
 			
 			vector< String >
 				substrings,
+				substrings2,
 				dbs,
 				seq_files;
 			
@@ -188,7 +252,9 @@ class TOPPInspectAdapter
 				snd_db_directory,
 				output_filename,
 				inspect_input_filename,
-				inspect_output_filename;
+				inspect_output_filename,
+				modifications_filename,
+				isotope_filename;
 			
 			bool
 				inspect_in(false),
@@ -209,6 +275,49 @@ class TOPPInspectAdapter
 			//-------------------------------------------------------------
 			// (2) parsing and checking parameters
 			//-------------------------------------------------------------
+			
+			modifications_filename = getStringOption_("modifications_xml_file");
+			
+			if ( getFlag_("list_modifications") )
+			{
+				if ( modifications_filename.empty() )
+				{
+					writeLog_("No modifications XML file given. Aborting!");
+					return INPUT_FILE_NOT_FOUND;
+				}
+				if ( !File::readable(modifications_filename) )
+				{
+					writeLog_("Modifications XML file is not readable. Aborting!");
+					return INPUT_FILE_NOT_READABLE;
+				}
+				map< String, pair< String, String > > ptm_informations;
+				try
+				{
+					PTMXMLFile().load(modifications_filename, ptm_informations);
+				}
+				catch ( Exception::ParseError pe )
+				{
+					writeLog_(pe.getMessage());
+					return PARSE_ERROR;
+				}
+				
+				// output the information
+				stringstream ptm_info;
+				UnsignedInt max_name_length, max_composition_length, max_amino_acids_length;
+				max_name_length = max_composition_length = max_amino_acids_length = 0;
+				for ( map< String, pair< String, String > >::const_iterator mod_i = ptm_informations.begin(); mod_i != ptm_informations.end(); ++mod_i )
+				{
+					max_name_length = max(max_name_length, mod_i->first.length());
+					max_composition_length = max(max_composition_length, mod_i->second.first.length());
+					max_amino_acids_length = max(max_amino_acids_length, mod_i->second.second.length());
+				}
+				ptm_info << "These modifications are taken from unimod" << endl;
+				ptm_info << "name" << String(max_name_length - 4, ' ') << "\t" << "composition" << String(max_composition_length - 11, ' ') << "\t" << "amino_acids" << String(max_amino_acids_length - 11, ' ') << endl;
+				for ( map< String, pair< String, String > >::const_iterator mod_i = ptm_informations.begin(); mod_i != ptm_informations.end(); ++mod_i )
+				{
+					ptm_info << mod_i->first << String(max_name_length - mod_i->first.length(), ' ') << "\t" << mod_i->second.first << String(max_composition_length - mod_i->second.first.length(), ' ') << "\t" << mod_i->second.second << String(max_amino_acids_length - mod_i->second.second.length(), ' ') << endl;
+				}
+			}
 			
 			inspect_in = getFlag_("inspect_in");
 			inspect_out = getFlag_("inspect_out");
@@ -437,37 +546,222 @@ class TOPPInspectAdapter
 					}
 				}
 				
-				// get the single modifications
+				// get the known modifications
 				if ( !blind_only )
 				{
 					string_buffer = getStringOption_("modifications");
-					string_buffer.split(':', substrings);
-					
-					if ( substrings.empty() && !string_buffer.empty() ) substrings.push_back(string_buffer);
-					// for each modification get the mass, residues, type (optional) and name (optional)
-					for ( vector< String >::iterator i = substrings.begin(); i != substrings.end(); ++i)
+					bool monoisotopic = getFlag_("use_monoisotopic_mod_mass");
+					if ( !string_buffer.empty() ) // if modifications are used get look whether whether composition and residues (and type and name) is given which needs the isotope file, the name (and type) is used (then one additionally needs the modifications file) or only the mass and residues (and type and name) is given, in which case no further file is needed
 					{
-						mod.push_back(vector< String >());
-						i->split(',', mod.back());
-						if ( mod.back().size() < 2 || mod.back().size() > 4 )
+						string_buffer.split(':', substrings); // get the single modifications
+						
+						// one vector if compositions are used (needs isotope xml file) and one vector if masses were given
+						vector< vector< String > > iso_sym_occ, mass_res_type_name;
+						
+						// to store the informations about modifications from the ptm xml file
+						map< String, pair< String, String > > ptm_informations;
+						
+						// to store the informations about isotopes from the isotopes xml file
+						map< String, vector< pair< DoubleReal, DoubleReal > > > isotopes_mass_and_probability;
+						map< String, DoubleReal > isotope_masses;
+						
+						UnsignedInt comp_mass_name_given;
+						String types = "opt#fix#cterminal#nterminal";
+						
+						for ( vector< String >::const_iterator mod_i = substrings.begin(); mod_i != substrings.end(); ++mod_i )
 						{
-							writeLog_("Illegal number of parameters for modification given. Aborting!");
-							return ILLEGAL_PARAMETERS;
-						}
-						else
-						{
+							if ( mod_i->empty() ) continue;
+							iso_sym_occ.clear();
+							// get the components of the modification
+							mod_i->split(',', substrings2);
+							if ( substrings2.empty() ) substrings2.push_back(*mod_i);
+							mass_res_type_name.push_back(vector< String >(4));
+							
+							// check whether the first component is a composition, mass or name
+								// remove + signs
+							if ( substrings2[0].hasPrefix("+") ) substrings2[0].erase(0, 1);
+							if ( substrings2[0].hasSuffix("+") ) substrings2[0].erase(substrings2[0].length() - 1, 1);
+							if ( substrings2[0].hasSuffix("-") ) // a '-' at the end will not be converted
+							{
+								substrings2[0].erase(substrings2[0].length() - 1, 1);
+								substrings2[0].insert(0, "-");
+							}
+							bool is_mass = false;
 							try
 							{
-								mod.back().front().toFloat();
+								is_mass = ( String(substrings2[0].toDouble()) == substrings2[0] );
 							}
-							catch ( Exception::ConversionError ce )
+							catch ( Exception::ConversionError ce ) {}
+							if ( is_mass ) // if it's a mass
 							{
-								writeLog_("Given mass is no float. Aborting!");
-								return ILLEGAL_PARAMETERS;
+								mass_res_type_name.back()[0] = substrings2[0]; // mass
+								comp_mass_name_given = 0;
+							}
+							else if ( get_composition_elements(substrings2[0], iso_sym_occ, '.').empty() ) // if it is a composition, put it into the vector
+							{
+								mass_res_type_name.back()[0] = substrings2[0]; // composition
+								comp_mass_name_given = 1;
+							}
+							else // if it's a name, try to find it in the ptm xml file
+							{
+								if ( ptm_informations.empty() ) // if the ptm xml file has not been read yet, read it
+								{
+									if ( modifications_filename.empty() )
+									{
+										writeLog_("No modifications XML file given. Aborting!");
+										return INPUT_FILE_NOT_FOUND;
+									}
+									if ( !File::readable(modifications_filename) )
+									{
+										writeLog_("Modifications XML file is not readable. Aborting!");
+										return INPUT_FILE_NOT_READABLE;
+									}
+									
+									// getting all available modifications from a file
+									try
+									{
+										PTMXMLFile().load(modifications_filename, ptm_informations);
+									}
+									catch ( Exception::ParseError pe )
+									{
+										writeLog_(pe.getMessage());
+										return PARSE_ERROR;
+									}
+								}
+								
+								if ( ptm_informations.find(substrings2[0]) == ptm_informations.end() ) // if the modification cannot be found
+								{
+									writeLog_("The Modification " + substrings2[0] + " can not be found in file " + modifications_filename + ". Aborting!");
+									return ILLEGAL_PARAMETERS;
+								}
+								mass_res_type_name.back()[0] = ptm_informations[substrings2[0]].first; // composition
+								mass_res_type_name.back()[1] = ptm_informations[substrings2[0]].second; // residues
+								mass_res_type_name.back()[3] = substrings2[0]; // name
+								// get the type
+								if ( substrings2.size() > 1 )
+								{
+									// if it's not a legal type
+									if ( types.find(substrings2[1]) == string::npos )
+									{
+										writeLog_("The given type (" + substrings2[1] + ") is neither opt, fix, cterminal nor nterminal. Aborting!");
+										return ILLEGAL_PARAMETERS;
+									}
+									mass_res_type_name.back()[2] = substrings2[1];
+								}
+								else mass_res_type_name.back()[2] = "opt";
+								comp_mass_name_given = 2;
+							}
+							
+							// now get the residues and, if available the type and the name
+							if ( comp_mass_name_given < 2 )
+							{
+								if ( substrings2.size() < 2 )
+								{
+									writeLog_("No residues for modification given (" + *mod_i + "). Aborting!");
+									return ILLEGAL_PARAMETERS;
+								}
+								// get the residues
+								mass_res_type_name.back()[1] = substrings2[1];
+								
+								// get the type
+								if ( substrings2.size() > 2 )
+								{
+									// if it's not a legal type
+									if ( types.find(substrings2[2]) == string::npos )
+									{
+										writeLog_("The given type (" + substrings2[2] + ") is neither opt, fix, cterminal nor nterminal. Aborting!");
+										return ILLEGAL_PARAMETERS;
+									}
+									mass_res_type_name.back()[2] = substrings2[2];
+									
+									// get the name
+									if ( substrings2.size() > 3 ) mass_res_type_name.back()[3] = substrings2[3];
+								}
+								else mass_res_type_name.back()[2] = "opt";
+							}
+							
+							// if a composition is given, get the corresponding mass
+							if ( comp_mass_name_given )
+							{
+								if ( isotope_masses.empty() ) // if the isotopes xml file has not been read yet, read it
+								{
+									string isotopes_filename = getStringOption_("isotopes_xml_file");
+									if ( isotopes_filename.empty() )
+									{
+										writeLog_("No isotopes XML file given. Aborting!");
+										return INPUT_FILE_NOT_FOUND;
+									}
+									if ( !File::readable(isotopes_filename) )
+									{
+										writeLog_("Isotopes XML file is not readable. Aborting!");
+										return INPUT_FILE_NOT_READABLE;
+									}
+									
+									try
+									{
+										IsotopeXMLFile().load(isotopes_filename, isotopes_mass_and_probability);
+									}
+									catch ( Exception::ParseError pe )
+									{
+										writeLog_(pe.getMessage());
+										return PARSE_ERROR;
+									}
+									
+									DoubleReal mass, probability; // compute the monoisotopic or average mass
+									for ( map< String, vector< pair< DoubleReal, DoubleReal > > >::const_iterator iso_i = isotopes_mass_and_probability.begin(); iso_i != isotopes_mass_and_probability.end(); ++iso_i )
+									{
+										mass = probability = 0;
+										for ( vector< pair< DoubleReal, DoubleReal > >::const_iterator mp_i = iso_i->second.begin(); mp_i != iso_i->second.end(); ++mp_i )
+										{
+											if ( monoisotopic )
+											{
+												if ( probability < mp_i->second )
+												{
+													mass = mp_i->first;
+													probability = mp_i->second;
+												}
+											}
+											else mass += mp_i->first * mp_i->second;
+										}
+										isotope_masses[iso_i->first] = mass;
+									}
+								}
+								
+								// compute the mass
+								DoubleReal mass = 0;
+								// get the single components of the composition
+								if ( comp_mass_name_given == 2 )
+								{
+									if ( !get_composition_elements(mass_res_type_name.back()[0], iso_sym_occ).empty() )
+									{
+										writeLog_("There's something wrong with this composition: " + mass_res_type_name.back()[0] + ". Aborting!");
+										return ILLEGAL_PARAMETERS;
+									}
+								}
+								for ( vector< vector< String > >::const_iterator comp_i = iso_sym_occ.begin(); comp_i != iso_sym_occ.end(); ++comp_i )
+								{
+									if ( (*comp_i)[0] == "0" )
+									{
+										mass += isotope_masses[(*comp_i)[1]] * (*comp_i)[2].toDouble();
+									}
+									else // if an isotope was used, get the mass
+									{
+										for ( vector< pair< DoubleReal, DoubleReal > >::const_iterator iso_i = isotopes_mass_and_probability[(*comp_i)[1]].begin(); iso_i != isotopes_mass_and_probability[(*comp_i)[1]].end(); ++iso_i )
+										{
+											if ( ((SignedInt) (iso_i->first + 0.5)) == (*comp_i)[0].toDouble() ) // round the mass
+											{
+												mass += iso_i->first * (*comp_i)[2].toDouble();
+												break;
+											}
+										}
+									}
+								}
+								mass_res_type_name.back()[0] = String(mass);
 							}
 						}
+						
+						inspect_infile.setMod(mass_res_type_name);
 					}
-					inspect_infile.setMod(mod);
 				}
 				
 				inspect_infile.setProtease(getStringOption_("cleavage"));
