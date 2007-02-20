@@ -187,6 +187,10 @@ CHECK(void getACAndACType(String line, string& accession, string& accession_type
 	file.getACAndACType(">P68509|1433F_BOVIN", accession, accession_type);
 	TEST_EQUAL(accession, "P68509")
 	TEST_EQUAL(accession_type, "SwissProt")
+
+	file.getACAndACType(">ACBLA (P68509) F_BOVIN", accession, accession_type);
+	TEST_EQUAL(accession, "P68509")
+	TEST_EQUAL(accession_type, "SwissProt")
 RESULT
 
 CHECK(void getPrecursorRTandMZ(const vector< pair< String, vector< UnsignedInt > > >& files_and_scan_numbers, std::vector< IdentificationData >& ids))

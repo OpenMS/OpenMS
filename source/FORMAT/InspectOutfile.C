@@ -333,13 +333,13 @@ namespace OpenMS
 			accession = line.substr(4, line.find('|', 4) - 4);
 			accession_type = "NCBI";
 		}
-		// if it's a swissprot line
-		else if ( line.hasPrefix("AC") )
-		{
-			line.erase(0,2);
-			accession = line.trim();
-			accession_type = "SwissProt";
-		}
+// 		// if it's a swissprot line
+// 		else if ( line.hasPrefix("AC") )
+// 		{
+// 			line.erase(0,2);
+// 			accession = line.trim();
+// 			accession_type = "SwissProt";
+// 		}
 		else if ( line.hasPrefix("gnl") )
 		{
 			line.erase(0,3);

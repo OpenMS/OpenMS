@@ -218,6 +218,10 @@ CHECK(void getACAndACType(String line, string& accession, string& accession_type
 	file.getACAndACType(">P68509|1433F_BOVIN", accession, accession_type);
 	TEST_EQUAL(accession, "P68509")
 	TEST_EQUAL(accession_type, "SwissProt")
+
+	file.getACAndACType(">ACBLA (P68509) F_BOVIN", accession, accession_type);
+	TEST_EQUAL(accession, "P68509")
+	TEST_EQUAL(accession_type, "SwissProt")
 RESULT
 
 CHECK(bool updatePeptideHits(PeptideHit& peptide_hit, vector< PeptideHit >& peptide_hits))
