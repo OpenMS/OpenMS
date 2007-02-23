@@ -49,7 +49,7 @@ DataTable::DataTable(bool editable, QWidget *parent)
   mainlayout_->setSpacing(6);
   mainlayout_->setMargin(11);
 	row_=0;
-	column_=0;
+	
 }
 
 
@@ -58,6 +58,7 @@ void DataTable::addLabel_(const QString &labelName, UnsignedInt row)
 {
 	QLabel *label = new QLabel(labelName, this);
 	mainlayout_->addWidget(label, row, 0);
+	
 }
 
 //public member functios
@@ -71,7 +72,7 @@ void DataTable::addLineEdit(QLineEdit* &ptr, const QString &label)
 {
 	ptr = new QLineEdit(this);
 	addLabel_(label, row_);
-	mainlayout_->addWidget(ptr, row_, 1);
+	mainlayout_->addWidget(ptr, row_, 1, 1, 2);
 	ptr->setReadOnly(!isEditable());
 	row_++;
 	
@@ -79,19 +80,24 @@ void DataTable::addLineEdit(QLineEdit* &ptr, const QString &label)
 
 void DataTable::addLineEditButton(const QString &labelname, QLineEdit* &ptr1, QPushButton* &ptr2, const QString &buttonlabel)
 {
-	QWidget* buttonField = new QWidget(this);
-	QHBoxLayout* bfLayout = new QHBoxLayout(buttonField);
-	bfLayout->setSpacing(6);
-  bfLayout->setMargin(11); 
-	QLabel* label = new QLabel(labelname, buttonField);
-	ptr1 = new QLineEdit(buttonField);
-	ptr2 = new QPushButton(buttonlabel, buttonField);
+	//QWidget* buttonField = new QWidget(this);
+	//QHBoxLayout* bfLayout = new QHBoxLayout(buttonField);
+	//bfLayout->setSpacing(6);
+  //bfLayout->setMargin(11); 
+	QLabel* label = new QLabel(labelname, this);
+	ptr1 = new QLineEdit(this);
+	ptr2 = new QPushButton(buttonlabel, this);
+	/*
 	bfLayout->addWidget(label);
 	bfLayout->addStretch(1);
 	bfLayout->addWidget(ptr1);
 	bfLayout->addStretch(1);
 	bfLayout->addWidget(ptr2);
-	mainlayout_->addWidget(buttonField, row_, row_, 0, 2);
+	*/
+	mainlayout_->addWidget(label, row_, 0);
+	mainlayout_->addWidget(ptr1, row_, 1);
+	mainlayout_->addWidget(ptr2, row_, 2);
+	//mainlayout_->addWidget(buttonField, row_, 0, 0, 2);
 	ptr1->setReadOnly(!isEditable());
 	ptr2->setEnabled(isEditable());
 	row_++;
@@ -103,7 +109,7 @@ void DataTable::addTextEdit(QTextEdit* &ptr ,const QString &label)
 {
 	ptr = new QTextEdit(this);
 	addLabel_(label, row_);
-	mainlayout_->addWidget(ptr, row_, 1);
+	mainlayout_->addWidget(ptr, row_, 1, 1, 2);
 	ptr->setReadOnly(!isEditable());
 	row_++;
 }
@@ -113,7 +119,7 @@ void DataTable::addComboBox(QComboBox* &ptr , const QString &label)
 {
 	ptr = new QComboBox(this);
 	addLabel_(label, row_);
-	mainlayout_->addWidget(ptr, row_, 1);
+	mainlayout_->addWidget(ptr, row_, 1,1, 2);
 	ptr->blockSignals(true);
 	row_++;	
 }
@@ -129,14 +135,10 @@ void DataTable::fillComboBox(QComboBox* &ptr , const std::string* items, int agr
 
 void DataTable::addButton(QPushButton* &ptr, const QString &label )
 {
-	QWidget* buttonField = new QWidget(this);
-	QHBoxLayout* bfLayout = new QHBoxLayout(buttonField);
-	bfLayout->setSpacing(6);
-  bfLayout->setMargin(11); 
-	ptr = new QPushButton(label, buttonField);
-	bfLayout->addStretch(1);
-	bfLayout->addWidget(ptr);
-	mainlayout_->addWidget(buttonField, row_, row_, 0, 2);
+	ptr = new QPushButton(label, this);
+	QSpacerItem* vspacer = new QSpacerItem( 0, 0, QSizePolicy::Expanding, QSizePolicy::Expanding );
+	mainlayout_->addItem(vspacer, row_, 0, 0, 2);
+	mainlayout_->addWidget(ptr, row_, 2);
 	ptr->setEnabled(isEditable());
 	row_++;
 	
@@ -145,45 +147,34 @@ void DataTable::addButton(QPushButton* &ptr, const QString &label )
 void DataTable::addVSpacer()
 {
 	QSpacerItem* vspacer = new QSpacerItem( 0, 0, QSizePolicy::Expanding, QSizePolicy::Expanding );
-	mainlayout_->addItem(vspacer, row_, row_, 0, 2);;
+	//ToDo: Reihen und Spalten richtig einstellen
+	mainlayout_->addItem(vspacer, row_, 0, 1, 3);
 	row_++;
 }
 
 
 
-void DataTable::addHorizontalButtons(QPushButton* &ptr1, const QString &label1, QPushButton* &ptr2, const QString &label2 )
+void DataTable::add2Buttons(QPushButton* &ptr1, const QString &label1, QPushButton* &ptr2, const QString &label2 )
 {
-  QWidget* buttonField = new QWidget(this);
-	QHBoxLayout* bfLayout = new QHBoxLayout(buttonField);
-	bfLayout->setSpacing(6);
-  bfLayout->setMargin(11); 
-	ptr1 = new QPushButton(label1, buttonField);
-	ptr2 = new QPushButton(label2, buttonField);
-	bfLayout->addStretch(1);
-	bfLayout->addWidget(ptr1);
-	bfLayout->addWidget(ptr2);
-	mainlayout_->addWidget(buttonField, row_, row_, 0, 2);
+  
+	ptr1 = new QPushButton(label1, this);
+	ptr2 = new QPushButton(label2, this);
+	QSpacerItem* vspacer = new QSpacerItem( 0, 0, QSizePolicy::Expanding, QSizePolicy::Expanding );
+	mainlayout_->addItem(vspacer, row_, 0);
+	mainlayout_->addWidget(ptr1, row_, 1);
+	mainlayout_->addWidget(ptr2, row_, 2);
 	row_++;
 }
+
 
 void DataTable::addSeperator()
 {
 	QLabel* pLabel = new QLabel(this);
-	mainlayout_->addWidget(pLabel, row_, row_,0, 2);
+	mainlayout_->addWidget(pLabel, row_, 0, 1, 3);
 	row_++;
 	
 }
 		
-		
-void DataTable::addEmptyLine()
-{
-	QLabel *label1 = new QLabel(this);
-	QLabel *label2 = new QLabel(this);
-	mainlayout_->addWidget(label1, row_, 0);
-	mainlayout_->addWidget(label2, row_, 1);
-	row_++;
-	
-}
 
 bool DataTable::isEditable() const
 {

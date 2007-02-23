@@ -74,14 +74,12 @@ namespace OpenMS
 			/// Adds a button to the next free position in the grid.
 			void addButton(QPushButton* &ptr, const QString &label);
 			/// Adds two buttons in a row.
-			void addHorizontalButtons(QPushButton* &ptr1, const QString &label1, QPushButton* &ptr2, const QString &label2);
+			void add2Buttons(QPushButton* &ptr1, const QString &label1, QPushButton* &ptr2, const QString &label2);
 			
 			/// Adds a horizontal line as a seperator.
 			void addSeperator();
 			
-			/// Adds an empty line.
-			void addEmptyLine();
-			
+					
 			/// Returns if the values are editable
 			bool isEditable() const;
 		
@@ -92,10 +90,8 @@ namespace OpenMS
 			
 			/// Counter for the grid row.
 			UnsignedInt row_;
-			/// Counter for the grid column.
-			UnsignedInt column_;
-			
-			/// Adds a label.
+						
+			/// Adds a label. Helper class to make label adding more convenient.
 			void addLabel_(const QString &labelName, UnsignedInt row );
 
 		private:

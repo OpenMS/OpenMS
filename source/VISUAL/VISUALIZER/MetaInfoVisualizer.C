@@ -89,13 +89,12 @@ void MetaInfoVisualizer::load(MetaInfoInterface &m)
 	addLineEdit(newkey_, "Key");
 	addLineEdit(newdescription_, "Description");
 	addLineEdit(newvalue_, "Value");
-	addHorizontalButtons(addbutton_, "Add", clearbutton_, "Clear");
+	add2Buttons(addbutton_, "Add", clearbutton_, "Clear");
 	if(!isEditable())
 	{
 				addbutton_->setEnabled(false);
 				clearbutton_->setEnabled(false);
 	}
-	addVSpacer();
 	
 	finishAdding_();
 		

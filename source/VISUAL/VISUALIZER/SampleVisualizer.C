@@ -55,8 +55,7 @@ SampleVisualizer::SampleVisualizer(bool editable, QWidget *parent)
 	
 	addComboBox(samplestate_, "State");
 	
-	addEmptyLine();
-	
+		
 	addLineEdit(samplemass_,"Mass (in mg)");
 	addLineEdit(samplevolume_, "Volume (in ml)");
 	addLineEdit(sampleconcentration_, "Concentration (in mg/ml)");

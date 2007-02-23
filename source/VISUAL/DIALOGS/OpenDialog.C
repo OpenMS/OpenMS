@@ -33,6 +33,14 @@
 #include <OpenMS/VISUAL/MSMetaDataExplorer.h>
 #include <OpenMS/SYSTEM/File.h>
 
+
+//OpenMS meta data include
+#include <OpenMS/METADATA/Precursor.h>
+#include <OpenMS/METADATA/Sample.h>
+#include <OpenMS/METADATA/Digestion.h>
+#include <OpenMS/METADATA/Modification.h>
+#include <OpenMS/METADATA/Tagging.h>
+
 // QT includes
 #include <QtGui/QMessageBox>
 #include <QtGui/QRadioButton>
@@ -171,9 +179,123 @@ namespace OpenMS
 			MSExperiment<> exp;
 			FileHandler().loadExperiment(names_[0],exp);
 			
-			MSMetaDataExplorer dlg(false, this);
-			dlg.setWindowTitle("Meta data");			
-			dlg.add(&exp);
+			//------------------------------------------------------------------
+			//		Test meta data objects
+			//------------------------------------------------------------------
+			Precursor pre;
+			pre.setActivationMethod(Precursor::PSD);
+			pre.setActivationEnergy(25.5);
+			pre.setActivationEnergyUnit(Precursor::PERCENT);			
+			
+			//------------------------------------------------------------------------------
+			//              Set Sample objects
+			//------------------------------------------------------------------------------
+			Sample s, s2, s3, s4;
+			std::vector<Sample> v;
+			std::vector<Sample> v2;
+			
+			s.setName("Test1");
+			s.setNumber("Sample4711");
+			s.setOrganism("Human");
+			s.setComment("Sample Description");
+			s.setState(Sample::LIQUID);
+			s.setMass(4711.2);
+			s.setVolume(4711.3);
+			s.setConcentration(4711.4);
+			for(UnsignedInt i=1; i<6; ++i)
+			{
+				std::string test="Test";
+				test=test+String(i);
+				s.setMetaValue(i, test);
+			}
+			
+			s2.setName("Test2");
+			s2.setNumber("Sample4asfad711");
+			s2.setOrganism("Human");
+			s2.setComment("Sample Description");
+			s2.setState(Sample::LIQUID);
+			s2.setMass(4711.2);
+			s2.setVolume(4711.3);
+			s2.setConcentration(4711.4);	
+			//mw->add(ptr2);
+			
+			s3.setName("Test3");
+			s3.setNumber("Sample4asfad711");
+			s3.setOrganism("Human");
+			s3.setComment("Sample Description");
+			s3.setState(Sample::LIQUID);
+			s3.setMass(4711.2);
+			s3.setVolume(4711.3);
+			s3.setConcentration(4711.4);	
+			
+			
+			s4.setName("Test4");
+			s4.setNumber("Sample4asfad711");
+			s4.setOrganism("Human");
+			s4.setComment("Sample Description");
+			s4.setState(Sample::LIQUID);
+			s4.setMass(4711.2);
+			s4.setVolume(4711.3);
+			s4.setConcentration(4711.4);	
+			
+			//------------------------------------------------------------------------------
+			//                     build some treatments
+			//------------------------------------------------------------------------------
+			Digestion d;
+			Modification m;
+			Tagging t;
+			//different treatments
+			d.setEnzyme("D");
+			
+			for(UnsignedInt i=1; i<6; ++i)
+			{
+				std::string test="Test";
+				test=test+String(i);
+				d.setMetaValue(i, test);
+			}
+				
+			m.setReagentName("m");
+			m.setSpecificityType(Modification::NTERM);
+			
+			// Set some metavalues to test MetaInfoVisualizer
+			for(UnsignedInt i=1; i<6; ++i)
+			{
+				std::string test="Test";
+				test=test+String(i);
+				m.setMetaValue(i, test);
+			}
+			
+			t.setMassShift(5.0);
+			for(UnsignedInt i=1; i<6; ++i)
+			{
+				std::string test="Test";
+				test=test+String(i);
+				t.setMetaValue(i, test);
+			}
+			s.addTreatment(d);
+			s.addTreatment(m);
+			s.addTreatment(t);
+			
+			//v2.push_back(s3);
+			v2.push_back(s4);
+			s2.setSubsamples(v2);
+			
+			v.push_back(s2);
+			s.setSubsamples(v);
+		
+	
+			//-------------------------------------------------------------------------
+			//		end of meta data testing
+			//-------------------------------------------------------------------------
+						
+			//MSMetaDataExplorer dlg(false, this);
+			MSMetaDataExplorer dlg(true, this);
+			dlg.setWindowTitle("Meta data");
+						
+			//dlg.add(&pre);
+			dlg.add(&s);
+			
+			//dlg.add(&exp);
 			
      	dlg.exec();
 		}

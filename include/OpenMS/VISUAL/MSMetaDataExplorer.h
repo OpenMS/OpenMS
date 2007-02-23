@@ -89,9 +89,9 @@ namespace OpenMS
 			MSMetaDataExplorer(bool editable = FALSE, QWidget *parent = 0, bool modal = FALSE );
 		  
 			/**
-				@brief A template class to add classes
+			@brief A template function to add classes
 				
-				Simple function to add classes to the viewer. Passes the object to be displayed to the corresponding visualizer class according to its type.
+			The meta data information of many different objects can be visualized using this function. A pointer of the object is passed to a type specific function managing the visulization of the meta data.
 			*/
 			template <class T> void add(T *ptr ) 
 			{                
@@ -111,13 +111,14 @@ namespace OpenMS
 			
 			/// Saves all changes and close explorer
 			void saveAll_();
-				 
+			
+							 
     private:
 			/// Calls visualizer class for class type ExperimentalSettings.
 			void visualize_(ExperimentalSettings& meta, QTreeWidgetItem* parent=0); 
 			/// Calls visualizer class for class type SpectrumSettings.
 			void visualize_(SpectrumSettings& meta, QTreeWidgetItem* parent=0); 
-		  /// Calls visualizer class for class type MetaInfoInterface.
+		 	/// Calls visualizer class for class type MetaInfoInterface.
 			void visualize_(MetaInfoInterface& meta, QTreeWidgetItem* parent=0); 
 			/// Calls visualizer class for class type Sample.
 			void visualize_(Sample& meta, QTreeWidgetItem* parent=0); 
@@ -129,7 +130,7 @@ namespace OpenMS
 			void visualize_(Modification& meta, QTreeWidgetItem* parent=0); 
 			/// Calls visualizer class for class type Tagging.
 			void visualize_(Tagging& meta, QTreeWidgetItem* parent=0); 
-      /// Calls visualizer class for class type Gradient.
+			/// Calls visualizer class for class type Gradient.
 			void visualize_(Gradient& meta, QTreeWidgetItem* parent=0); 
 			/// Calls visualizer class for class type Software.
 			void visualize_(Software& meta, QTreeWidgetItem* parent=0); 
@@ -167,12 +168,12 @@ namespace OpenMS
 			void visualize_(Identification& meta, QTreeWidgetItem* parent=0);
 			
 			/** 
-				@brief Update visible protein hits.
+			@brief Update visible protein hits.
 				
-				Updates the protein hit information of objects of type ProteinIdentification.
+			Updates the protein hit information of objects of type ProteinIdentification.
 				
-				@param pid  Identifier of the identification object belonging to this database search.
-				@param tree_item_id  Identifier of the item in the tree belonging to the ProteinIdentification object that is displayed.
+			@param pid  Identifier of the identification object belonging to this database search.
+			@param tree_item_id  Identifier of the item in the tree belonging to the ProteinIdentification object that is displayed.
 			*/
 			void updateProteinHits_(ProteinIdentification pid, int tree_item_id);
 		 	
@@ -236,6 +237,8 @@ namespace OpenMS
 			QPushButton* closebutton_;
 			/// Cancel Button
 			QPushButton* cancelbutton_;
+			/// Undo Button
+			QPushButton* undobutton_;
 			
 			/// The tree.
 			QTreeWidget* treeview_;

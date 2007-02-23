@@ -61,7 +61,12 @@
 #include <QtGui/QHBoxLayout>
 #include <QtGui/QPushButton>
 
+class QLayoutItem;
+
 using namespace std;
+
+
+//class QtGui/QLayoutItem;
 
 namespace OpenMS
 {
@@ -72,55 +77,38 @@ namespace OpenMS
 	{    
 	  setModal(modal);
 	  
-		//basiclayout_ = new QHBoxLayout(this);
 		basiclayout_ = new QGridLayout(this);
 		basiclayout_->setSpacing(6);
-	  basiclayout_->setMargin(11); 
+		basiclayout_->setMargin(11); 
 		
-		vertlayout_ = new QVBoxLayout();
-		vertlayout_->setSpacing(6);
-	  vertlayout_->setMargin(11); 
-		
-		buttonlayout_ = new QHBoxLayout();
-		buttonlayout_->setSpacing(6);
-		buttonlayout_->setMargin(11); 
-	  		
 		//Create the tree for exploring data 
 		treeview_ = new QTreeWidget(this);
 		treeview_->setMinimumWidth(250);
-		treeview_->setColumnCount(2);
+		treeview_->setColumnCount(1);
 		treeview_->setHeaderLabel("Browse in Metadata tree");
 		treeview_->setRootIsDecorated(true);
-	  treeview_->sortByColumn(2, Qt::AscendingOrder);
-	  
-		basiclayout_->addWidget(treeview_, 0,0,3,1);
-		basiclayout_->addLayout(vertlayout_, 0,1,3,1);
-		  
+	 	basiclayout_->addWidget(treeview_, 0,0,5,3);
+		//basiclayout_->addWidget(treeview_, 0,0,6,3);
+				  
 		//Create WidgetStack for managing visible metadata
 		ws_ = new QStackedWidget(this);
-		QLabel* hline = new QLabel(this);
-		
-		vertlayout_->addWidget(ws_);
-		vertlayout_->addWidget(hline);
-		vertlayout_->addLayout(buttonlayout_);	
-		
+		basiclayout_->addWidget(ws_, 0,3,3,3);
+				
 		if(isEditable())
 		{
-		
 			saveallbutton_ = new QPushButton("OK", this);
-		  cancelbutton_ = new QPushButton("Cancel", this);
-			buttonlayout_->addStretch(1);
-			buttonlayout_->addWidget(saveallbutton_ );
-			buttonlayout_->addWidget(cancelbutton_ );
+		 	cancelbutton_ = new QPushButton("Cancel", this);
+			basiclayout_->addWidget(saveallbutton_, 5, 4);
+			basiclayout_->addWidget(cancelbutton_,5 ,5);
 			connect(saveallbutton_, SIGNAL(clicked()), this, SLOT(saveAll_())  );
 			connect(cancelbutton_, SIGNAL(clicked()), this, SLOT(reject())  );
 		}
 		else 
 		{
-		
 			closebutton_ = new QPushButton("Close", this);
-			buttonlayout_->addStretch(1);
-			buttonlayout_->addWidget(closebutton_ );
+			QSpacerItem* vspacer = new QSpacerItem( 0, 0, QSizePolicy::Expanding, QSizePolicy::Expanding );
+			basiclayout_->addItem(vspacer, 3,3,1,3);
+			basiclayout_->addWidget(closebutton_,4 ,5);
 			connect(closebutton_, SIGNAL(clicked()), this, SLOT(reject())  );
 		}
 		
@@ -140,6 +128,8 @@ namespace OpenMS
 	{
 	  ws_->setCurrentIndex(item->text(1).toInt());
 	}
+	
+	
 	
 	//Save all changes
 	void MSMetaDataExplorer::saveAll_()

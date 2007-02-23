@@ -33,37 +33,39 @@ using namespace std;
 namespace OpenMS
 {
 
-BaseVisualizer::BaseVisualizer(bool editable, QWidget *parent) 
+	BaseVisualizer::BaseVisualizer(bool editable, QWidget *parent) 
 	: DataTable(editable, parent)
-{
+	{
   
-}
-
-String BaseVisualizer::getType()
-{
-	return type_;
-}
-
-void BaseVisualizer::store()
-{
-
-}
-
-void BaseVisualizer::reject()
-{
-
-}
-
-void BaseVisualizer::finishAdding_()
-{
-	addVSpacer();
-	
-	if(isEditable())
-	{	
-		addSeperator();
-		addButton(undobutton_, "Undo");
-		connect(undobutton_, SIGNAL(clicked()), this, SLOT(reject()) );
 	}
-}
+
+	String BaseVisualizer::getType()
+	{
+		return type_;
+	}
+	
+	void BaseVisualizer::store()
+	{
+	
+	}
+	
+	void BaseVisualizer::reject()
+	{
+	
+	}
+	
+	void BaseVisualizer::finishAdding_()
+	{
+		
+		
+		if(isEditable())
+		{	
+			addSeperator();
+			addButton(undobutton_, "Undo");
+			connect(undobutton_, SIGNAL(clicked()), this, SLOT(reject()) );
+		}
+		
+		addVSpacer();
+	}
 
 }

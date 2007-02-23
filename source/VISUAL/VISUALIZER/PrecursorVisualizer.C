@@ -43,8 +43,9 @@ PrecursorVisualizer::PrecursorVisualizer(bool editable, QWidget *parent)
 	: BaseVisualizer(editable, parent)
 {
 	type_="Precursor";
-  
+ 
 	addLabel("Modify processing method information.");	
+	
 	addSeperator();  
 	
 	addComboBox(precursor_activation_method_, "Activation method");
