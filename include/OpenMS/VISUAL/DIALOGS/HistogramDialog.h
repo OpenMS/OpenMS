@@ -28,7 +28,7 @@
 #ifndef OPENMS_VISUAL_DIALOGS_HISTOGRAMDIALOG_H
 #define OPENMS_VISUAL_DIALOGS_HISTOGRAMDIALOG_H
 
-#include <qdialog.h>
+#include <QtGui/QDialog>
 
 #include <OpenMS/MATH/STATISTICS/Histogram.h>
 #include <OpenMS/VISUAL/HistogramWidget.h>
@@ -40,13 +40,14 @@ namespace OpenMS
 	
 		@ingroup Dialogs
 	*/
-	class HistogramDialog : public QDialog
+	class HistogramDialog
+		: public QDialog
 	{
 		Q_OBJECT
 		
 		public:
 			/// Constructor
-			HistogramDialog(const Math::Histogram<UnsignedInt,float>& distribution, QWidget* parent=0, const char* name="HistogramDialog");
+			HistogramDialog(const Math::Histogram<UnsignedInt,float>& distribution, QWidget* parent=0);
 			/// Destructor
 			~HistogramDialog();
 			

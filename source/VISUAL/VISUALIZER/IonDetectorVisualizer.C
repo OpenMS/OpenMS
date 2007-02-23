@@ -24,34 +24,23 @@
 // $Maintainer:  stefan_heess $
 // --------------------------------------------------------------------------s
 
-
 #include <OpenMS/VISUAL/VISUALIZER/IonDetectorVisualizer.h>
-#include <OpenMS/VISUAL/VISUALIZER/BaseVisualizer.h>
-#include <OpenMS/DATASTRUCTURES/String.h>
-#include <OpenMS/METADATA/IonDetector.h>
-
-
 
 //QT
-#include <qlayout.h>
-#include <qwidget.h>
-#include <qlabel.h> 
-#include <qlineedit.h>
-#include <qpushbutton.h>
-#include <qstring.h>
-#include <qvalidator.h>
+#include <QtGui/QLineEdit>
+#include <QtGui/QComboBox>
+
 
 //STL
 #include <iostream>
-#include <vector>
-#include <string>
 
-//using namespace std;
-using namespace OpenMS;
 using namespace std;
 
+namespace OpenMS
+{
+
 //Constructor
-IonDetectorVisualizer::IonDetectorVisualizer(bool editable, QWidget *parent, const char *name) : BaseVisualizer(editable, parent, name)
+IonDetectorVisualizer::IonDetectorVisualizer(bool editable, QWidget *parent) : BaseVisualizer(editable, parent)
 {
 	type_="IonDetector";
   
@@ -93,10 +82,10 @@ void IonDetectorVisualizer::load(IonDetector &s)
 
 void IonDetectorVisualizer::update_()
 {
-		iondetector_res_->setText(String( tempiondetector_.getResolution() ));
-		iondetector_freq_->setText(String( tempiondetector_.getADCSamplingFrequency() ));
-		iondetector_type_->setCurrentItem(tempiondetector_.getType()); 
-		iondetector_ac_mode_->setCurrentItem(tempiondetector_.getAcquisitionMode()); 
+		iondetector_res_->setText(String( tempiondetector_.getResolution() ).c_str());
+		iondetector_freq_->setText(String( tempiondetector_.getADCSamplingFrequency() ).c_str());
+		iondetector_type_->setCurrentIndex(tempiondetector_.getType()); 
+		iondetector_ac_mode_->setCurrentIndex(tempiondetector_.getAcquisitionMode()); 
 		
 }
 
@@ -105,12 +94,12 @@ void IonDetectorVisualizer::store()
 	try
 	{
 
-		String m((const char*) iondetector_res_->text()) ;
-		(*ptr_).setResolution(m.toFloat() );
-		String n((const char*) iondetector_freq_->text()) ;
-		(*ptr_).setADCSamplingFrequency(n.toFloat() );
-		(*ptr_).setType((IonDetector::Type)iondetector_type_->currentItem());		
-		(*ptr_).setAcquisitionMode((IonDetector::AcquisitionMode)iondetector_ac_mode_->currentItem());		
+		String m(iondetector_res_->text().toStdString());
+		(*ptr_).setResolution(m.toFloat());
+		String n(iondetector_freq_->text().toStdString());
+		(*ptr_).setADCSamplingFrequency(n.toFloat());
+		(*ptr_).setType((IonDetector::Type)iondetector_type_->currentIndex());		
+		(*ptr_).setAcquisitionMode((IonDetector::AcquisitionMode)iondetector_ac_mode_->currentIndex());		
 		
 		
 		tempiondetector_=(*ptr_);
@@ -137,3 +126,4 @@ void IonDetectorVisualizer::reject()
 	
 }
 
+}

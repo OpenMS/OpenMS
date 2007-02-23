@@ -25,27 +25,19 @@
 // --------------------------------------------------------------------------
 
 //OpenMS
-#include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/VISUAL/VISUALIZER/MetaInfoDescriptionVisualizer.h>
-#include <OpenMS/VISUAL/VISUALIZER/BaseVisualizer.h>
-
 
 //QT
-#include <qwidget.h>
-#include <qlabel.h> 
-#include <qlineedit.h>
-#include <qtextedit.h>
-#include <qpushbutton.h>
-#include <iostream>
-#include <vector>
-#include <qvalidator.h>
+#include <QtGui/QLineEdit>
+#include <QtGui/QTextEdit>
 
-//using namespace std;
-using namespace OpenMS;
 using namespace std;
 
+namespace OpenMS
+{
+
 //Constructor
-MetaInfoDescriptionVisualizer::MetaInfoDescriptionVisualizer(bool editable, QWidget *parent, const char *name) : BaseVisualizer(editable, parent, name)
+MetaInfoDescriptionVisualizer::MetaInfoDescriptionVisualizer(bool editable, QWidget *parent) : BaseVisualizer(editable, parent)
 {
   
 	addLabel("Modify MetaInfoDescription information");		
@@ -64,8 +56,8 @@ void MetaInfoDescriptionVisualizer::load(MetaInfoDescription &a)
 	//Copy of current object for restoring the original values
 	tempMetaInfoDescription_=a;
 	
-  metainfodescription_name_->setText(tempMetaInfoDescription_.getName() );
-	metainfodescription_comment_->setText(tempMetaInfoDescription_.getComment() );
+  metainfodescription_name_->setText(tempMetaInfoDescription_.getName().c_str() );
+	metainfodescription_comment_->setText(tempMetaInfoDescription_.getComment().c_str() );
 				
 }
 
@@ -74,8 +66,8 @@ void MetaInfoDescriptionVisualizer::store()
 	try
 	{
 				
-		(*ptr_).setName(String((const char*)metainfodescription_name_->text()) );
-		(*ptr_).setComment(String((const char*)metainfodescription_comment_->text()) );
+		(*ptr_).setName(metainfodescription_name_->text().toStdString());
+		(*ptr_).setComment(metainfodescription_comment_->toPlainText().toStdString());
 					
 		tempMetaInfoDescription_ = (*ptr_);
 		
@@ -96,4 +88,6 @@ void MetaInfoDescriptionVisualizer::reject()
 	{
 		cout<<"Error while trying to restore original MetaInfoDescription data. "<<e.what()<<endl;
 	} 
+}
+
 }

@@ -29,7 +29,7 @@
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 
-#include <qapplication.h>
+#include <QtGui/QApplication>
 
 using namespace OpenMS;
 using namespace std;

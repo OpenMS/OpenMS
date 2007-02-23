@@ -26,13 +26,13 @@
 
 //OpenMS
 #include <OpenMS/VISUAL/Spectrum3DWindow.h>
-#include <iostream.h>
-#include <qpopupmenu.h>
+#include <OpenMS/VISUAL/Spectrum3DWidget.h>
+
 namespace OpenMS 
 {
 	
-	Spectrum3DWindow::Spectrum3DWindow(QWidget* parent, const char* name, WFlags f)
-		: SpectrumWindow(parent,name,f)
+	Spectrum3DWindow::Spectrum3DWindow(QWidget* parent)
+		: SpectrumWindow(parent)
 	{
 		setWidget_(new Spectrum3DWidget(this));
 		setCentralWidget(widget());

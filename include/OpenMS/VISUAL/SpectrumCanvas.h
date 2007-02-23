@@ -28,26 +28,21 @@
 #define OPENMS_VISUAL_SPECTRUMCANVAS_H
 
 //OpenMS
-#include <OpenMS/config.h>
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/VISUAL/PreferencesManager.h>
 #include <OpenMS/DATASTRUCTURES/DRange.h>
 #include <OpenMS/VISUAL/LayerData.h>
 
+//QT
+#include <QtGui/QWidget>
+#include <QtGui/QRubberBand>
+
 //STL
 #include <stack>
 #include <vector>
 
-//QT
-#include <qwidget.h>
-#include <qcursor.h>
-
-class QPainter;
-class QPixmap;
-
 namespace OpenMS
 {
-	class AxisWidget;
 	class SpectrumWidget;
 	class DataReducer;
 	
@@ -67,7 +62,9 @@ namespace OpenMS
 		
 		@ingroup spectrum_widgets
 	*/
-	class SpectrumCanvas : public QWidget, public PreferencesManager
+	class SpectrumCanvas 
+		: public QWidget, 
+			public PreferencesManager
 	{
 		Q_OBJECT
 	
@@ -114,14 +111,8 @@ namespace OpenMS
 		
 		//@}
 
-		/**
-			@brief Constructor.
-			
-			@param parent the parent QWidget
-			@param name the widget's name
-			@param f Window flags
-		*/
-		SpectrumCanvas(QWidget* parent = 0, const char* name="SpectrumCanvas", WFlags f=0);
+		/// Default constructor
+		SpectrumCanvas(QWidget* parent = 0);
 		
 		/**
 			@brief Sets the spectrum widget.
@@ -168,6 +159,22 @@ namespace OpenMS
 		inline void setActionMode(ActionModes mode) 
 		{ 
 			action_mode_ = mode;
+			if (mode == AM_ZOOM)
+			{
+				setCursor(Qt::CrossCursor);
+			}
+			else if (mode == AM_SELECT)
+			{
+			  setCursor(Qt::ArrowCursor);
+			}
+			else if (mode == AM_TRANSLATE)
+			{
+				setCursor(cursor_translate_);	
+			}
+			else if (mode == AM_MEASURE)
+			{
+				setCursor(Qt::ArrowCursor);
+			}
 			actionModeChange_();
 		}
 		
@@ -246,18 +253,6 @@ namespace OpenMS
 		
 		/// Sets the mapping of m/z to axes
 		void mzToXAxis(bool mz_to_x_axis);
-		
-		/**
-			@brief Sets the pen width
-			
-			Sets the pen width and repaints the widget. This is useful for printing.
-			@param p the new pen width
-		*/
-		inline void setPenWidth(int p)
-		{
-			pen_width_ = p;
-			invalidate_();
-		}
 		
 		/**
 			@brief Sets the preferences object
@@ -524,17 +519,8 @@ namespace OpenMS
 			return getCurrentLayer_().peaks;
 		}
 	
-		/**
-			@brief QT resize event of the widget
-			
-		*/
-		virtual void resizeEvent(QResizeEvent* e);
-		
-		/**
-			@brief QT repaint event of the widget
-			
-		*/
-		virtual void paintEvent(QPaintEvent* e);
+		/// reimplemented QT event
+		void resizeEvent(QResizeEvent* e);
 		
 		/**
 			@brief Change of the intensity distribution
@@ -551,16 +537,6 @@ namespace OpenMS
 
 		///This function is called whenever the action mode changes. Reimplement if you need to react on such changes.
 		virtual void axisMappingChange_();
-		
-		/**
-			@brief Invalidates the contents of the back buffer and repaints.
-			
-			Repaints the content into buffer_ after a data or view change (e.g. zoom, translate, displayed intesity). You need to
-			reimplement this method and you need to draw all contents into buffer_ rather than to paint on the widget directly.
-			
-			@see recalculate_
-		*/
-		virtual void invalidate_() = 0;
 		
 		/**
 			@brief Sets the visible area
@@ -661,10 +637,10 @@ namespace OpenMS
 			
 			@param p the QPainter to paint the grid lines on
 		*/
-		void paintGridLines_(QPainter* p);
+		void paintGridLines_(QPainter& painter);
 		
-		/// Buffer pixmap for fast reblitting of damaged content
-		QPixmap* buffer_;
+		/// Buffer that stores the actual peak information
+		QPixmap buffer_;
 		
 		/// Stores the current action mode (Pick, Zoom, Translate)
 		ActionModes action_mode_;
@@ -677,9 +653,6 @@ namespace OpenMS
 		
 		/// Stores the mapping of m/z
 		bool mz_to_x_axis_;
-		
-		/// Stores the pen width. Drawing thicker lines (e.g. in printing) leads to better results
-		UnsignedInt pen_width_;
 		
 		/// Stores the currently visible area.
 		AreaType visible_area_;
@@ -697,18 +670,11 @@ namespace OpenMS
 			@note Make sure the updateRanges() of the layers has been called before this method is called
 		*/
 		void updateRanges_(UnsignedInt layer_index, UnsignedInt mz_dim, UnsignedInt rt_dim, UnsignedInt it_dim);
-
-		/**
-			@brief Resets data and range to +/- infinity
-		
-			@see overall_data_range_
-		*/
-		void resetRanges_();
 		
 		/**
 			@brief Recalculates the data range.
 			
-			This method calls resetRanges_() followed by updateRanges_(UnsignedInt,UnsignedInt,UnsignedInt,UnsignedInt)
+			This method resets overall_data_range_ and calls updateRanges_(UnsignedInt,UnsignedInt,UnsignedInt,UnsignedInt)
 			for all layers.
 	
 			@param mz_dim Index of m/z in overall_data_range_
@@ -731,15 +697,19 @@ namespace OpenMS
 		/// The zoom stack. This is dealt with in the changeVisibleArea_() and zoomBack_() functions.
 		std::stack<AreaType> zoom_stack_;
 
-		/// Whether to recalculate the data before drawing. This is used to optimize redrawing in invalidate_().
-		bool recalculate_;
-		
 		/**
-			@brief Creates mouse cursors
+			@brief Updates the diplayed data
 			
-			Creates custom cursors for translate action
+			The default implementation calls QQidget::update().
+			
+			This method is reimplemented in the 3D view to update the OpenGL widget.
+			
+			@param caller_name Name of the calling function (use __PRETTY_FUNCTION__).
 		*/
-		void createCustomMouseCursors_();
+		virtual void update_(const char* caller_name);
+
+		/// Whether to recalculate the data in the buffer when repainting
+		bool update_buffer_;
 
 		/// The cursor used in the @c translate action mode
 		QCursor cursor_translate_;
@@ -775,6 +745,9 @@ namespace OpenMS
 			In this mode the highest currently visible intensisty is treated like the maximum overall intensity.
 		*/
 		double snap_factor_;
+		
+		/// Rubber band for selected area
+		QRubberBand rubber_band_;
 	};
 }
 

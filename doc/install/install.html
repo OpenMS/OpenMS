@@ -145,11 +145,11 @@
 
   <a name="qt" id="qt"></a>
   <h3>Qt</h3>
-  For GUI, database access and visualisation we use Qt. The Qt-x11-free versions 3.3.x and 3.3.x have 
-  been tested and used with OpenMS. You can obtain the source from 
+  For GUI and database access we use Qt. The Qt 4.2.2 open source version  
+  has been tested and used with OpenMS. You can obtain the source from 
   <a href="http://www.trolltech.com/download/index.html" target="blank">http://www.trolltech.com/download/index.html</a>.
   <BR>
-  <b>Note:</b> Version 4.x is not supported!
+  <b>Note:</b> Version 3.x is not supported any more! <br>
 	<b>Note:</b> If you want to use the preinstalled binaries, make sure that
 	the qt-devel package is installed.  
 
@@ -160,15 +160,8 @@
 
   <pre>
 &gt; ./configure -verbose (... see below)
-&gt; gmake
+&gt; make
 </pre>
-
-  <p><b>OpenGL support:</b> 
-  <BR>
-  On some systems OpenGL is only included in QT when you add the
-  <code>-thread</code> flag to configure. Note that in that case you
-  have to use the <code>--with-qt-mt</code> flag in the OpenMS
-  configure.</p>
 
   <p><b>SQL support:</b>
   <br>
@@ -184,7 +177,8 @@
   <br>
   <br>
   
-  First download the contrib package.
+  First download the contrib package (you can find the contrib package <a href=
+	  "http://sourceforge.net/project/showfiles.php?group_id=90558">here</a>).
   <br>
   After extracting the package call the following commands:
 
@@ -286,11 +280,6 @@
     <tr>
       <td>--with-qt=QTDIR</td>
       <td>QT is installed in QTDIR.</td>
-    </tr>
-    <tr>
-      <td>--with-qt-mt</td>
-      <td>use a threadsafe version of the QT lib
-      (libqt-mt)/TD&gt;</td>
     </tr>
     <tr>
       <td>--with-compiler=CXX</td>

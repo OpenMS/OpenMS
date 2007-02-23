@@ -30,7 +30,7 @@
 
 #include <OpenMS/config.h>
 #include <OpenMS/VISUAL/DIALOGS/PreferencesDialogPage.h>
-#include <qradiobutton.h>
+#include <QtGui/QRadioButton>
 class QSpinBox;
 class QComboBox;
 
@@ -49,7 +49,7 @@ namespace OpenMS
       Q_OBJECT
       
     public:
-      Spectrum3DCanvasPDP( Spectrum3DCanvas* manager, QWidget* parent = 0, const char* name = "Spectrum3DWidgetPDP", WFlags f = 0);
+      Spectrum3DCanvasPDP( Spectrum3DCanvas* manager, QWidget* parent = 0);
       virtual ~Spectrum3DCanvasPDP();
       virtual void load();
       virtual void save();

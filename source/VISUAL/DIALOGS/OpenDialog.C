@@ -34,40 +34,42 @@
 #include <OpenMS/SYSTEM/File.h>
 
 // QT includes
-#include <qmessagebox.h>
-#include <qbuttongroup.h>
-#include <qradiobutton.h>
-#include <qfiledialog.h>
-#include <qlineedit.h>
-#include <qpushbutton.h>
-#include <qinputdialog.h>
-#include <qcombobox.h>
+#include <QtGui/QMessageBox>
+#include <QtGui/QRadioButton>
+#include <QtGui/QFileDialog>
+#include <QtGui/QLineEdit>
+#include <QtGui/QPushButton>
+#include <QtGui/QInputDialog>
+#include <QtGui/QComboBox>
 
 // STL includes
 #include <iostream>
 
 using namespace std;
+
 namespace OpenMS
 {
 
-	OpenDialog::OpenDialog( Param& preferences, QWidget * parent, const char * name, WFlags fl)
-		: OpenDialogTemplate(parent,name,fl),
+	OpenDialog::OpenDialog( Param& preferences, QWidget * parent)
+		: QDialog(parent),
 			prefs_(preferences)
 	{
+		setupUi(this);
+		
 		if (!(bool(getPrefAsInt_("Preferences:DefaultMapView"))))
 		{
 			d3_radio->setChecked(true);
 		}
 		if ((String)(getPref_("Preferences:MapIntensityCutoff"))!="None")
 		{
-			mower->setCurrentText("Noise Estimator");
+			mower->setCurrentIndex(mower->findText("Noise Estimator"));
 		}
 
 		FileHandler fh;
-		filetypes_->insertItem("Detect automatically",0);
+		filetypes_->insertItem(0,"Detect automatically",0);
 		for (int i=1; i< FileHandler::SIZE_OF_TYPE; ++i)
 		{
-			filetypes_->insertItem(fh.typeToName((FileHandler::Type)(i)),i);
+			filetypes_->insertItem(filetypes_->count(),fh.typeToName((FileHandler::Type)(i)).c_str(),i);
 		}
 	}
 	
@@ -79,18 +81,18 @@ namespace OpenMS
 	void OpenDialog::browse()
 	{
 		//browse files
-		if (source->selected()==dynamic_cast<QButton*>(file_radio))
+		if (file_radio->isChecked())
 		{
-			String filter_all = "all files (*.dta;*.dta2d;*.DTA;*.DTA2D";
-			String filter_single = "dta files (*.dta;*.DTA);;dta2d files (*.dta2d;*.DTA2D)";
+			String filter_all = "readable files (*.dta *.dta2d";
+			String filter_single = "dta files (*.dta);;dta2d files (*.dta2d)";
 	#ifdef ANDIMS_DEF
-			filter_single += ";;ANDI/MS files (*.cdf;*.CDF)";
-			filter_all +=";*.cdf;*.CDF";
+			filter_all +=" *.cdf";
+			filter_single += ";;ANDI/MS files (*.cdf)";
 	#endif
-			filter_single +=";;mzXML files (*.mzXML;*.mzxml;*.MZXML);;mzData files (*.mzData;*.mzdata;*.MZDATA);;feature map (*.feat;*.FEAT);;feature pairs (*.pairs;*.PAIRS);;all files (*.*)";
-			filter_all += ";*.mzXML;*.mzxml;*.MZXML;*.mzData;*.mzdata;*.MZDATA;*.feat;*.FEAT;*.pairs;*.PAIRS);;" + filter_single;
+			filter_all += " *.mzXML *.mzData *.feat *.pairs);;" ;
+			filter_single +=";;mzXML files (*.mzXML);;mzData files (*.mzData);;feature map (*.feat);;feature pairs (*.pairs);;all files (*.*)";
 		
-		 	QStringList files = QFileDialog::getOpenFileNames(filter_all.c_str(), prefs_.getValue("Preferences:DefaultPath").toString().c_str(), this,"open file dialog", "Select file(s) to open");
+		 	QStringList files = QFileDialog::getOpenFileNames(this, "Open file(s)", prefs_.getValue("Preferences:DefaultPath").toString().c_str(), (filter_all+ filter_single).c_str());
 			//check if the dialog was canceled
 			if (files.size()!=0)
 			{
@@ -102,17 +104,17 @@ namespace OpenMS
 					// set path in the first file
 					if (it==files.begin())
 					{
-						path_label->setText( File::path(*it) );
+						path_label->setText( File::path((*it).toAscii().data()).c_str() );
 					}
-					names_.push_back((*it).ascii());
-					name_label->setText( name_label->text() + File::basename(*it) + " " );
+					names_.push_back((*it).toAscii().data());
+					name_label->setText( (String(name_label->text().toAscii().data()) + File::basename((*it).toAscii().data()) + " ").c_str() );
 				}
 			}
 		}
 		else 
 		//browse DB
 		{
-	#ifdef DB_DEF
+#ifdef DB_DEF
 			DBConnection db;
 			try
 			{
@@ -121,11 +123,11 @@ namespace OpenMS
 					stringstream ss;
 					ss << "Enter password for user '" << getPref_("Preferences:DB:Login") << "' at '"<< getPref_("Preferences:DB:Host")<<":"<<getPref_("Preferences:DB:Port")<<"' : ";
 					bool ok;
-					QString text = QInputDialog::getText("TOPPView Database Password", ss.str().c_str(), QLineEdit::Password,QString::null, &ok, this);
+					QString text = QInputDialog::getText(this, "TOPPView Database Password", ss.str().c_str(), QLineEdit::Password,QString::null, &ok);
 					if ( ok )
-						{
-							prefs_.setValue("DBPassword",text.ascii());
-						}
+					{
+						prefs_.setValue("DBPassword",text.toAscii().data());
+					}
 				}
 		
 				if (!(prefs_.getValue("DBPassword").isEmpty()))
@@ -155,10 +157,10 @@ namespace OpenMS
 				prefs_.remove("DBPassword");
 				stringstream ss;
 				ss << "Unable to log in to the database server.\nCheck the login data in preferences!\n\nDatabase error message:\n"<<er.what();
-				QMessageBox::warning ( this, "Connection problem", ss.str().c_str(), QMessageBox::Ok , QMessageBox::NoButton );
+				QMessageBox::warning ( this, "Connection problem", ss.str().c_str(), QMessageBox::Ok , Qt::NoButton );
 		
 			}
-	#endif
+#endif
 		}
 	}
 	
@@ -166,28 +168,15 @@ namespace OpenMS
 	{
 		if (names_.size()!=0)
 		{
-			
-			
 			MSExperiment<> exp;
 			FileHandler().loadExperiment(names_[0],exp);
 			
-			//MSMetaDataExplorer dlg(true, this);
 			MSMetaDataExplorer dlg(false, this);
-			dlg.setCaption("Meta data");			
+			dlg.setWindowTitle("Meta data");			
 			dlg.add(&exp);
 			
-      if( dlg.exec())
-			{
-				cout<<"Dialog accepted."<<endl;
-			}
-			else 
-			{ 
-					cout<<"Dialog rejected."<<endl; 
-			}
-			
-			
+     	dlg.exec();
 		}
-		
 	}
 	
 	const vector<String>& OpenDialog::getNames() const
@@ -198,7 +187,7 @@ namespace OpenMS
 	OpenDialog::DataSource OpenDialog::getSource() const
 	{
 		// files
-		if (source->selected()==dynamic_cast<QButton*>(file_radio))
+		if (file_radio->isChecked())
 		{
 			return FILE;
 		}
@@ -217,7 +206,7 @@ namespace OpenMS
 	
 	bool OpenDialog::isViewMaps2D() const
 	{
-		if (open_maps->selected()==dynamic_cast<QButton*>(d2_radio))
+		if (d2_radio->isChecked())
 		{
 			return true;
 		}
@@ -226,7 +215,7 @@ namespace OpenMS
 	
 	OpenDialog::Mower OpenDialog::getMower() const
 	{
-		if (mower->currentItem()==0)
+		if (mower->currentIndex()==0)
 		{
 			return NO_MOWER;
 		}
@@ -235,7 +224,7 @@ namespace OpenMS
 	
 	bool OpenDialog::isOpenAsNewTab() const
 	{
-		if (open_in->selected()==dynamic_cast<QButton*>(newtab_radio))
+		if (newtab_radio->isChecked())
 		{
 			return true;
 		}
@@ -244,7 +233,7 @@ namespace OpenMS
 
   FileHandler::Type OpenDialog::forcedFileType() const
   {
-  	return (FileHandler::Type) (filetypes_->currentItem());
+  	return (FileHandler::Type) (filetypes_->currentIndex());
   }
 
 }

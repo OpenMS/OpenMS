@@ -34,22 +34,5 @@ include @OPENMS_PATH@/source@BINFMT_PATH@/config_defs.mak
 	$(LEX) -P$(PARSER_PREFIX) -o$@ $*.l
 
 # Rule to create header files from .ui files (using UIC)
-# .dh files are dummy files required due to the stupidity 
-# of some implementations of make (e.g. SUN)
-# They are just empty files that exist whenever the corresponding
-# *Template.h files exists.
-#
-.ui.dh:
-	$(UIC) -o $(UIC_DIR)/$*Template.h $< && touch $*.dh
-
-.dhTemplate.C:
-	$(UIC) -o $@ -impl $(UIC_DIR)/$*Template.h $*.ui
-
-#
-# Rule to create moc files from header files (using MOC)
-#
-.dhTemplate_moc.C: $*.dh
-	$(MOC) -o $@ $(UIC_DIR)/$*Template.h
-
-.dh_moc.C:  $*.dh
-	$(MOC) -o $@ $(HEADER_DIR)/$*.h
+.ui.h:
+	$(UIC) -o $(UIC_DIR)/$*Template.h $<

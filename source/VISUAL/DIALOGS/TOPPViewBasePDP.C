@@ -30,19 +30,18 @@
 #include <OpenMS/VISUAL/MultiGradientSelector.h>
 #include <OpenMS/VISUAL/ColorSelector.h>
 // Qt
-#include <qlayout.h>
-#include <qlineedit.h>
-#include <qradiobutton.h>
-#include <qtabwidget.h>
-#include <qlabel.h>
-#include <qgroupbox.h>
-#include <qcheckbox.h>
-#include <qvbuttongroup.h>
-#include <qhbuttongroup.h>
-#include <qfiledialog.h>
-#include <qcombobox.h>
-#include <qpushbutton.h>
-#include <qspinbox.h>
+#include <QtGui/QLayout>
+#include <QtGui/QLineEdit>
+#include <QtGui/QRadioButton>
+#include <QtGui/QTabWidget>
+#include <QtGui/QLabel>
+#include <QtGui/QGroupBox>
+#include <QtGui/QCheckBox>
+#include <QtGui/QFileDialog>
+#include <QtGui/QComboBox>
+#include <QtGui/QPushButton>
+#include <QtGui/QSpinBox>
+#include <QtGui/QGridLayout>
 
 using namespace std;
 
@@ -53,239 +52,212 @@ namespace OpenMS
 	{
 
 
-		TOPPViewBasePDP::TOPPViewBasePDP( TOPPViewBase* manager, QWidget* parent, const char* name, WFlags f)
-			:PreferencesDialogPage(manager,parent,name,f)
+		TOPPViewBasePDP::TOPPViewBasePDP( TOPPViewBase* manager, QWidget* parent)
+			:PreferencesDialogPage(manager,parent)
 		{
-			help_ = "This is the preferences dialog of the main window!"
-							"<br>";
+			help_ = "This is the preferences dialog of the main window!";
 		
-			QGridLayout* grid;
-			QLabel* label;
-			QWidget* background;
-		
+			//temporary box
+			QGroupBox* box;
+			
 			//tab widget
-			grid = new QGridLayout(this);
-			QTabWidget* tab = new QTabWidget(this);
-			grid->addWidget(tab,0,0);
+			QTabWidget* tab_widget = new QTabWidget(this);
+			(new QGridLayout(this))->addWidget(tab_widget);
+			//tab	
+			QWidget* tab; 
+			//tab layout
+			QGridLayout* grid;
 			
 			//-----------General Tab-----------
-			background = new QWidget(this);
-			grid = new QGridLayout(background,2,2);
-			grid->setMargin(6);
-			grid->setSpacing(4);
+			tab = new QWidget(tab_widget);
+			grid = new QGridLayout(tab);
 			
 			//default path
-			label = new QLabel("Default path:",background);
-			grid->addWidget(label,0,0,AlignLeft);
-			main_default_path_ = new QLineEdit(background);
-			grid->addWidget(main_default_path_,0,1,AlignLeft);
+			main_default_path_ = new QLineEdit(tab);
+			addWidget(grid,0,"Default path:",main_default_path_);
 			main_default_path_->setMinimumWidth(fontMetrics().width('W') * 25);
-			QPushButton* tmp = new QPushButton("Browse",background);
-			grid->addWidget(tmp,0,2,AlignLeft);
+			QPushButton* tmp = new QPushButton("Browse",tab);
+			grid->addWidget(tmp,0,2);
 			connect(tmp,SIGNAL(clicked()),this,SLOT(browseDefaultPath_()));
 			//recent files
-			label = new QLabel("Number of recent files:",background);
-			grid->addWidget(label,1,0,AlignLeft);
-			recent_files_ = new QSpinBox(1,99,1,background);
-			grid->addWidget(recent_files_,1,1,AlignLeft);
+			recent_files_ = addSpinBox(tab,1,20,1);
+			addWidget(grid,1,"Number of recent files:",recent_files_);
 			//default map view
-			label = new QLabel("Default map visualization:",background);
-			grid->addWidget(label,2,0,AlignTop);
-			default_map_view_ = new QComboBox(false, background, "read-only combobox");
-			default_map_view_->insertItem("2D");
-			default_map_view_->insertItem("3D");
-			grid->addWidget(default_map_view_,2,1,AlignLeft);
+			default_map_view_ = new QComboBox( tab);
+			default_map_view_->insertItem(0,"2D");
+			default_map_view_->insertItem(1,"3D");
+			addWidget(grid,2,"Default map visualization:",default_map_view_);
 			//legend
-			label = new QLabel("Axis legend: ",background);
-			grid->addWidget(label,3,0,AlignTop);
-			show_legend_ = new QComboBox(false, background, "read-only combobox");
-			show_legend_->insertItem("Show");
-			show_legend_->insertItem("Hide");
-			grid->addWidget(show_legend_,3,1,AlignTop);
+			show_legend_ = new QComboBox( tab);
+			show_legend_->insertItem(0,"Show");
+			show_legend_->insertItem(1,"Hide");
+			addWidget(grid,3,"Axis legend:",show_legend_);
 			//legend
-			label = new QLabel("Map intensity cutoff: ",background);
-			grid->addWidget(label,4,0,AlignTop);
-			intensity_cutoff_ = new QComboBox(false, background, "read-only combobox");
-			intensity_cutoff_->insertItem("None");
-			intensity_cutoff_->insertItem("Noise Estimator");
-			grid->addWidget(intensity_cutoff_,4,1,AlignTop);
+			intensity_cutoff_ = new QComboBox( tab);
+			intensity_cutoff_->insertItem(0,"None");
+			intensity_cutoff_->insertItem(1,"Noise Estimator");
+			addWidget(grid,4,"Map intensity cutoff:",intensity_cutoff_);
 			
-			grid->setRowStretch (5,2);
+			finish(grid);
 			
-			tab->addTab(background,"General");
+			tab_widget->addTab(tab,"General");
 		
 			//-------------DB Tab-------------
-			background = new QWidget(tab);
-			grid = new QGridLayout(background,3,3);
-			grid->setMargin(6);
-			grid->setSpacing(4);
+			tab = new QWidget(tab_widget);
+			grid = new QGridLayout(tab);
 		
-			label = new QLabel("Host:",background);
-			grid->addWidget(label,0,0,AlignLeft);
-			db_host_ = new QLineEdit(background);
-			grid->addWidget(db_host_,0,1,AlignLeft);
-			db_host_->setMinimumWidth(fontMetrics().width('W') * 25);
+			db_host_ = new QLineEdit(tab);
+			db_host_->setMaximumWidth(fontMetrics().width('W') * 15);
+			addWidget(grid,0,"Host:",db_host_);
 		
-			label = new QLabel("Port:",background);
-			grid->addWidget(label,1,0,AlignLeft);
-			db_port_ = new QLineEdit(background);
-			grid->addWidget(db_port_,1,1,AlignLeft);
+			db_port_ = new QLineEdit(tab);
 			db_port_->setMaximumWidth(fontMetrics().width('W') * 5);
+			addWidget(grid,1,"Port:",db_port_);
 		
-			label = new QLabel("Database name:",background);
-			grid->addWidget(label,2,0,AlignLeft);
-			db_name_ = new QLineEdit(background);
-			grid->addWidget(db_name_,2,1,AlignLeft);
+			db_name_ = new QLineEdit(tab);
+			addWidget(grid,2,"Database name:",db_name_);
 		
-			label = new QLabel("Login:",background);
-			grid->addWidget(label,3,0,AlignLeft);
-			db_login_ = new QLineEdit(background);
-			grid->addWidget(db_login_,3,1,AlignLeft);
+			db_login_ = new QLineEdit(tab);
+			addWidget(grid,3,"Login:",db_login_);
 			
-			grid->setRowStretch (4,2);
+			finish(grid);
 			
-			tab->addTab(background,"DB");
+			tab_widget->addTab(tab,"DB");
 		
 			//-----------1D View Tab-----------
-			background = new QWidget(tab);
-			grid = new QGridLayout(background,2,2);
-			grid->setMargin(6);
-			grid->setSpacing(4);
-		
-			QGroupBox* box = new QGroupBox(2, Qt::Horizontal,"Colors",background);
-			label = new QLabel("Peak color: ",box);
+			tab = new QWidget(tab_widget);
+			grid = new QGridLayout(tab);
+			
+			//color box
+			box = addBox(grid,0,0,"Colors");
 			peak_color_ = new ColorSelector(box);
-			label = new QLabel("Icon color: ",box);
+			addWidget(box->layout(),0,"Peak color:",peak_color_);
 			icon_color_ = new ColorSelector(box);
-			label = new QLabel("Highlighted peak color: ",box);
-		
+			addWidget(box->layout(),1,"Icon color:",icon_color_);
 			high_color_ = new ColorSelector(box);
-			label = new QLabel("Background color: ",box);
+			addWidget(box->layout(),2,"Highlighted peak color:",high_color_);
 			back_color_1D_ = new ColorSelector(box);
-			grid->addWidget(box,0,0);
-		
-			box = new QGroupBox(2,Qt::Horizontal,"Mapping",background);
-			label = new QLabel("Map m/z to: ",box);
-			axis_mapping_ = new QComboBox(false, box, "read-only combobox");
-			axis_mapping_->insertItem("X-Axis");
-			axis_mapping_->insertItem("Y-Axis");
-			grid->addWidget(box,1,0);
+			addWidget(box->layout(),3,"Background color:",back_color_1D_);						
+
+			//mapping box
+			box = addBox(grid,1,0,"Mapping");		
+			axis_mapping_ = new QComboBox( box);
+			axis_mapping_->insertItem(0,"X-Axis");
+			axis_mapping_->insertItem(1,"Y-Axis");
+			addWidget(box->layout(),0,"Map m/z to: ",axis_mapping_);
 			
-			grid->setRowStretch (2,2);
+			finish(grid);
 			
-			tab->addTab(background,"1D View");
+			tab_widget->addTab(tab,"1D View");
 		
 			//-----------2D View Tab-----------
-			background = new QWidget(tab);
-		
-			grid = new QGridLayout(background,2,2);
-			grid->setMargin(6);
-			grid->setSpacing(4);
-			
-			//dot mode
-			box = new QGroupBox(2,Qt::Horizontal,"Dot coloring",background);
-			QVButtonGroup* button_group;
-			button_group = new QVButtonGroup("Mode:",box);
-			button_group->setFrameStyle(QFrame::NoFrame);
-			dot_mode_black_ = new QRadioButton("Black",button_group);
-			dot_mode_gradient_ = new QRadioButton("Gradient",button_group);
-			box->addSpace(0);
-			dot_gradient_ = new MultiGradientSelector(box);
-			grid->addMultiCellWidget(box,0,1,0,0);
-		
-			//surface mode
-			box = new QGroupBox(2,Qt::Horizontal,"Surface coloring",background);
-			surface_gradient_ = new MultiGradientSelector(box);
-			grid->addWidget(box,0,1);
-			
-			//colors
-			box = new QGroupBox(2,Qt::Horizontal,"Colors",background);
-			label = new QLabel("Background color: ",box);
-			back_color_2D_ = new ColorSelector(box);
-			label = new QLabel("Interpolation steps: ",box);
-			interpolation_steps_ = new QSpinBox(10,1000,1,box,"");
-			interpolation_steps_->setSizePolicy(QSizePolicy::Fixed,QSizePolicy::Minimum);
-			grid->addWidget(box,1,1);
+			tab = new QWidget(tab_widget);
+			grid = new QGridLayout(tab);
 
-			//details
-			box = new QGroupBox(2,Qt::Horizontal,"Surface/contour details",background);
-			label = new QLabel("Squares per axis: ",box);
-			marching_squares_steps_ = new QSpinBox(10,100,1,box,"");
-			marching_squares_steps_->setSizePolicy(QSizePolicy::Fixed,QSizePolicy::Minimum);
-			label = new QLabel("Contour lines: ",box);
-			contour_steps_ = new QSpinBox(3,30,1,box,"");
-			contour_steps_->setSizePolicy(QSizePolicy::Fixed,QSizePolicy::Minimum);
-			grid->addWidget(box,2,0);
+			//colors
+			box = addBox(grid,0,0,"Colors");
+			back_color_2D_ = new ColorSelector(box);
+			addWidget(box->layout(),0,"Background color:",back_color_2D_);
+			interpolation_steps_ = addSpinBox(box,10,1000,1);
+			addWidget(box->layout(),1,"Interpolation steps:",interpolation_steps_);
+			finish(box->layout());
 			
 			//mapping
-			box = new QGroupBox(2,Qt::Horizontal,"Mapping",background);
-			label = new QLabel("Map m/z to: ",box);
-			axis_mapping_2d_ = new QComboBox(false, box, "read-only combobox");
-			axis_mapping_2d_->insertItem("X-Axis");
-			axis_mapping_2d_->insertItem("Y-Axis");
-			grid->addWidget(box,3,0);
+			box = addBox(grid,1,0,"Mapping");
+			axis_mapping_2d_ = new QComboBox( box);
+			axis_mapping_2d_->insertItem(0,"X-Axis");
+			axis_mapping_2d_->insertItem(1,"Y-Axis");
+			addWidget(box->layout(),0,"Map m/z to:",axis_mapping_2d_);
+			finish(box->layout());			
+						
+			//dot mode
+			box = addBox(grid,0,1,"Dot Colors");
+			QVBoxLayout* tmp2 = new QVBoxLayout();
+			dot_mode_black_ = new QRadioButton("Black",tab);
+			tmp2->addWidget(dot_mode_black_);
+			dot_mode_gradient_ = new QRadioButton("Gradient",tab);
+			tmp2->addWidget(dot_mode_gradient_);
+			addLayout(box->layout(),0,"Mode:",tmp2);
+	
+			dot_gradient_ = new MultiGradientSelector(box);
+			addWidget(box->layout(),1,"Gradient:",dot_gradient_);
+			finish(box->layout());
+					
+			//surface mode
+			box = addBox(grid,1,1,"Surface/contour settings");
+			surface_gradient_ = new MultiGradientSelector(box);
+			addWidget(box->layout(),0,"Gradient:",surface_gradient_);			
+
+			marching_squares_steps_ = addSpinBox(box,10,100,1);
+			addWidget(box->layout(),1,"Squares per axis:",marching_squares_steps_);
 			
-			grid->setRowStretch (4,2);
+			contour_steps_ = addSpinBox(box,3,30,1);
+			addWidget(box->layout(),2,"Contour lines:",contour_steps_);
+			finish(box->layout());
 			
-			tab->addTab(background,"2D View");
+			finish(grid);
+			
+			tab_widget->addTab(tab,"2D View");
 	
 			//-----------3D View Tab-----------
-			background = new QWidget(tab);
-		
-			grid = new QGridLayout(background,4,2);
-			grid->setMargin(6);
-			grid->setSpacing(4);	
-		
-			box = new QGroupBox(2,Qt::Horizontal,"Dot coloring",background);
-		  QVButtonGroup* coloring_group_3d = new QVButtonGroup("Color Mode:",box);
-		  //coloring_group_3d->setFrameStyle(QFrame::NoFrame);
-			box->addSpace(0);
-	    
-	    dot_mode_black_3d_ = new QRadioButton("Black",coloring_group_3d);
-			dot_mode_gradient_3d_ = new QRadioButton("Gradient",coloring_group_3d);
-			dot_gradient_3d_ = new MultiGradientSelector(coloring_group_3d);
-			//box->addSpace(0);
-			QHButtonGroup* interpolation_box = new QHButtonGroup("Interpolation steps",box);
-			label = new QLabel("Interpolation steps: ",interpolation_box);
-			dot_interpolation_steps_3d_ = new QSpinBox(10,1000,1,interpolation_box,"");
-			dot_interpolation_steps_3d_->setSizePolicy(QSizePolicy::Fixed,QSizePolicy::Minimum);
-			box->addSpace(0);
-			QVButtonGroup* shading_group_3d = new QVButtonGroup("Shade Mode:",box);
-			//shading_group_3d->setFrameStyle(QFrame::NoFrame);
-			shade_mode_flat_3d_ = new QRadioButton("Flat",shading_group_3d);
-			shade_mode_smooth_3d_ = new QRadioButton("Smooth",shading_group_3d);	
-			grid->addMultiCellWidget(box,0,3,0,0);
+			tab = new QWidget(tab_widget);
+			grid = new QGridLayout(tab);
 			
-			box = new QGroupBox(2,Qt::Horizontal,"Line Width",background);
-			label = new QLabel("Line Width: ",box);
-			dot_line_width_ = new QSpinBox(1,10,1,box,"");
-			dot_line_width_->setSizePolicy(QSizePolicy::Fixed,QSizePolicy::Minimum);
-			grid->addWidget(box,0,1);	
+			//peak color box
+			box = addBox(grid,0,0,"Peak colors",1,2);
+
+			tmp2 = new QVBoxLayout();
+			dot_mode_black_3d_ = new QRadioButton("Black",tab);
+			tmp2->addWidget(dot_mode_black_3d_);
+			dot_mode_gradient_3d_ = new QRadioButton("Gradient",tab);
+			tmp2->addWidget(dot_mode_gradient_3d_);
+			addLayout(box->layout(),0,"Mode:",tmp2);
+
+			dot_gradient_3d_ = new MultiGradientSelector(box);
+			addWidget(box->layout(),1,"Gradient:",dot_gradient_3d_);
+
+			dot_interpolation_steps_3d_ = addSpinBox(box,10,1000,1);
+			addWidget(box->layout(),2,"Interpolation steps:",dot_interpolation_steps_3d_);
+			finish(box->layout());
 			
-			box = new QGroupBox(2,Qt::Horizontal,"Colors",background);
-			label = new QLabel("Background color: ",box);
+			tmp2 = new QVBoxLayout();
+			QButtonGroup* tmp3 = new QButtonGroup(tab);
+			shade_mode_flat_3d_ = new QRadioButton("Flat",tab);
+			tmp2->addWidget(shade_mode_flat_3d_);
+			tmp3->addButton(shade_mode_flat_3d_);
+			shade_mode_smooth_3d_ = new QRadioButton("Smooth",tab);
+			tmp2->addWidget(shade_mode_smooth_3d_);
+			tmp3->addButton(shade_mode_smooth_3d_);
+			addLayout(box->layout(),3,"Shade mode:",tmp2);
+			finish(box->layout());
+			
+			//misc box
+			box = addBox(grid,1,0,"Misc");
+			
+			dot_line_width_ = addSpinBox(box,1,10,1);
+			addWidget(box->layout(),0,"Line width:",dot_line_width_);
+			
 			back_color_3d_ = new ColorSelector(box);
-			label = new QLabel("Axes color: ",box);
+			addWidget(box->layout(),1,"Background color:",back_color_3d_);
 			axes_color_3d_ = new ColorSelector(box);
+			addWidget(box->layout(),2,"Axis color:",axes_color_3d_);
+			finish(box->layout());
+
+			//data reduction box
+		 	box = addBox(grid,1,1,"Data reduction");
+			data_reduction_3d_ = new QComboBox( box);
+			data_reduction_3d_->insertItem(0,"Reduction OFF");
+			data_reduction_3d_->insertItem(1,"MaxReduction");
+			data_reduction_3d_->insertItem(2,"SumReduction");
+			addWidget(box->layout(),0,"Mode:",data_reduction_3d_);
+
+			reduction_diplay_peaks_3d_ = addSpinBox(box,5000,200000,5000);
+			addWidget(box->layout(),1,"Displayed Peaks:",reduction_diplay_peaks_3d_);
+			finish(box->layout());
 			
-			grid->addWidget(box,1,1);	
-
-
-		 	box = new QGroupBox(2,Qt::Horizontal,"Data",background);
-			label = new QLabel("Reduction Mode:  ",box);
-			data_reduction_3d_ = new QComboBox(false, box, "read-only combobox");
-			data_reduction_3d_->insertItem("Reduction OFF");
-			data_reduction_3d_->insertItem("MaxReduction");
-			data_reduction_3d_->insertItem("SumReduction");
-			label = new QLabel("Displayed Peaks : ",box);
-			reduction_diplay_peaks_3d_ = new QSpinBox(10000,50000,10000,box,"");
-		
-			grid->addWidget(box,2,1);	
-
-			grid->addWidget(box,2,1);	
-			grid->setRowStretch (2,2);
-			
-			tab->addTab(background,"3D View");
+			finish(grid);
+						
+			tab_widget->addTab(tab,"3D View");
 	
 			load();
 		}
@@ -300,9 +272,9 @@ namespace OpenMS
 			//general
 			main_default_path_->setText(manager_->getPrefAsString("Preferences:DefaultPath").c_str());
 			recent_files_->setValue(manager_->getPrefAsInt("Preferences:NumberOfRecentFiles"));
-			default_map_view_->setCurrentText(manager_->getPrefAsString("Preferences:DefaultMapView").c_str());
-			show_legend_->setCurrentText(manager_->getPrefAsString("Preferences:Legend").c_str());
-			intensity_cutoff_->setCurrentText(manager_->getPrefAsString("Preferences:MapIntensityCutoff").c_str());
+			default_map_view_->setCurrentIndex(default_map_view_->findText(manager_->getPrefAsString("Preferences:DefaultMapView").c_str()));
+			show_legend_->setCurrentIndex(show_legend_->findText(manager_->getPrefAsString("Preferences:Legend").c_str()));
+			intensity_cutoff_->setCurrentIndex(intensity_cutoff_->findText(manager_->getPrefAsString("Preferences:MapIntensityCutoff").c_str()));
 			
 			
 			//DB
@@ -316,7 +288,7 @@ namespace OpenMS
 			icon_color_->setColor(QColor(manager_->getPrefAsString("Preferences:1D:IconColor").c_str()));
 			high_color_->setColor(QColor(manager_->getPrefAsString("Preferences:1D:HighColor").c_str()));
 			back_color_1D_->setColor(QColor(manager_->getPrefAsString("Preferences:1D:BackgroundColor").c_str()));
-			axis_mapping_->setCurrentText(manager_->getPrefAsString("Preferences:1D:Mapping:MappingOfMzTo").c_str());
+			axis_mapping_->setCurrentIndex(axis_mapping_->findText(manager_->getPrefAsString("Preferences:1D:Mapping:MappingOfMzTo").c_str()));
 
 			//2D
 			if (UnsignedInt(manager_->getPref("Preferences:2D:Dot:Mode"))==Spectrum2DCanvas::DOT_GRADIENT)
@@ -334,7 +306,7 @@ namespace OpenMS
 			interpolation_steps_->setValue(UnsignedInt(manager_->getPref("Preferences:2D:InterpolationSteps")));
 			surface_gradient_->gradient().fromString(manager_->getPrefAsString("Preferences:2D:Surface:Gradient"));
 			back_color_2D_->setColor(QColor(manager_->getPrefAsString("Preferences:2D:BackgroundColor").c_str()));
-			axis_mapping_2d_->setCurrentText(manager_->getPrefAsString("Preferences:2D:Mapping:MappingOfMzTo").c_str());
+			axis_mapping_2d_->setCurrentIndex(axis_mapping_2d_->findText(manager_->getPrefAsString("Preferences:2D:Mapping:MappingOfMzTo").c_str()));
 	
 			//3d
 		
@@ -356,7 +328,7 @@ namespace OpenMS
 				dot_mode_black_3d_->setChecked(true);
 			}
 			
-			data_reduction_3d_->setCurrentText(manager_->getPrefAsString("Preferences:3D:Reduction:Mode").c_str());	
+			data_reduction_3d_->setCurrentIndex(data_reduction_3d_->findText(manager_->getPrefAsString("Preferences:3D:Reduction:Mode").c_str()));	
 			reduction_diplay_peaks_3d_->setValue(UnsignedInt(manager_->getPrefAsInt("Preferences:3D:DisplayedPeaks")));
 		
 			dot_interpolation_steps_3d_->setValue(UnsignedInt(manager_->getPref("Preferences:3D:Dot:InterpolationSteps")));
@@ -370,25 +342,25 @@ namespace OpenMS
 		void TOPPViewBasePDP::save()
 		{
 			//main
-			manager_->setPref("Preferences:DefaultPath", main_default_path_->text().ascii());
+			manager_->setPref("Preferences:DefaultPath", main_default_path_->text().toAscii().data());
 			manager_->setPref("Preferences:NumberOfRecentFiles", recent_files_->value());
-			manager_->setPref("Preferences:DefaultMapView", default_map_view_->currentText().ascii());
-			manager_->setPref("Preferences:Legend", show_legend_->currentText().ascii());
-			manager_->setPref("Preferences:MapIntensityCutoff", intensity_cutoff_->currentText().ascii());
+			manager_->setPref("Preferences:DefaultMapView", default_map_view_->currentText().toAscii().data());
+			manager_->setPref("Preferences:Legend", show_legend_->currentText().toAscii().data());
+			manager_->setPref("Preferences:MapIntensityCutoff", intensity_cutoff_->currentText().toAscii().data());
 
 			//DB
-			manager_->setPref("Preferences:DB:Host",db_host_->text().ascii());
-			manager_->setPref("Preferences:DB:Port",db_port_->text().ascii());
-			manager_->setPref("Preferences:DB:Name",db_name_->text().ascii());
-			manager_->setPref("Preferences:DB:Login",db_login_->text().ascii());
+			manager_->setPref("Preferences:DB:Host",db_host_->text().toAscii().data());
+			manager_->setPref("Preferences:DB:Port",db_port_->text().toAscii().data());
+			manager_->setPref("Preferences:DB:Name",db_name_->text().toAscii().data());
+			manager_->setPref("Preferences:DB:Login",db_login_->text().toAscii().data());
 			manager_->removePref("DBPassword");
 
 			//1D
-			manager_->setPref("Preferences:1D:PeakColor",peak_color_->getColor().name().ascii());
-			manager_->setPref("Preferences:1D:IconColor",icon_color_->getColor().name().ascii());
-			manager_->setPref("Preferences:1D:HighColor",high_color_->getColor().name().ascii());
-			manager_->setPref("Preferences:1D:BackgroundColor",back_color_1D_->getColor().name().ascii());
-			manager_->setPref("Preferences:1D:Mapping:MappingOfMzTo",axis_mapping_->currentText().ascii());
+			manager_->setPref("Preferences:1D:PeakColor",peak_color_->getColor().name().toAscii().data());
+			manager_->setPref("Preferences:1D:IconColor",icon_color_->getColor().name().toAscii().data());
+			manager_->setPref("Preferences:1D:HighColor",high_color_->getColor().name().toAscii().data());
+			manager_->setPref("Preferences:1D:BackgroundColor",back_color_1D_->getColor().name().toAscii().data());
+			manager_->setPref("Preferences:1D:Mapping:MappingOfMzTo",axis_mapping_->currentText().toAscii().data());
 			
 			//2D
 			if (dot_mode_gradient_->isChecked())
@@ -402,8 +374,8 @@ namespace OpenMS
 			manager_->setPref("Preferences:2D:MarchingSquaresSteps",marching_squares_steps_->value());
 			manager_->setPref("Preferences:2D:Contour:Lines",contour_steps_->value());
 			manager_->setPref("Preferences:2D:InterpolationSteps",interpolation_steps_->value());
-			manager_->setPref("Preferences:2D:BackgroundColor",back_color_2D_->getColor().name().ascii());
-			manager_->setPref("Preferences:2D:Mapping:MappingOfMzTo",axis_mapping_2d_->currentText().ascii());
+			manager_->setPref("Preferences:2D:BackgroundColor",back_color_2D_->getColor().name().toAscii().data());
+			manager_->setPref("Preferences:2D:Mapping:MappingOfMzTo",axis_mapping_2d_->currentText().toAscii().data());
 			manager_->setPref("Preferences:2D:Dot:Gradient",dot_gradient_->gradient().toString());
 			manager_->setPref("Preferences:2D:Surface:Gradient",surface_gradient_->gradient().toString());
 			
@@ -427,31 +399,31 @@ namespace OpenMS
 			{
 				manager_->setPref("Preferences:3D:Shade:Mode", Spectrum3DCanvas::SHADE_SMOOTH);	
 			}
-		  manager_->setPref("Preferences:3D:BackgroundColor",back_color_3d_->getColor().name().ascii());
-			manager_->setPref("Preferences:3D:AxesColor",axes_color_3d_->getColor().name().ascii());
+		  manager_->setPref("Preferences:3D:BackgroundColor",back_color_3d_->getColor().name().toAscii().data());
+			manager_->setPref("Preferences:3D:AxesColor",axes_color_3d_->getColor().name().toAscii().data());
 			manager_->setPref("Preferences:3D:Dot:LineWidth",dot_line_width_->value());
 	
-			if(data_reduction_3d_->currentText().ascii()=="MaxReduction")
+			if(data_reduction_3d_->currentText().toAscii().data()=="MaxReduction")
 			{
 				manager_->setPref("Preferences:3D:Data:Mode",Spectrum3DCanvas::REDUCTION_MAX);
 			}
-			else if(data_reduction_3d_->currentText().ascii()=="Reduction OFF")
+			else if(data_reduction_3d_->currentText().toAscii().data()=="Reduction OFF")
 			{
 				manager_->setPref("Preferences:3D:Data:Mode",Spectrum3DCanvas::REDUCTION_OFF);
 			}
-			else if(data_reduction_3d_->currentText().ascii()=="SumReduction")
+			else if(data_reduction_3d_->currentText().toAscii().data()=="SumReduction")
 			{
 				manager_->setPref("Preferences:3D:Data:Mode",Spectrum3DCanvas::REDUCTION_SUM);
 			}
 			
-			manager_->setPref("Preferences:3D:Reduction:Mode", data_reduction_3d_->currentText().ascii());
+			manager_->setPref("Preferences:3D:Reduction:Mode", data_reduction_3d_->currentText().toAscii().data());
 			manager_->setPref("Preferences:3D:DisplayedPeaks",	reduction_diplay_peaks_3d_->value());
 		
 		}
 		
 		void TOPPViewBasePDP::browseDefaultPath_()
 		{
-			QString path = QFileDialog::getExistingDirectory(main_default_path_->text(), this, "get existing directory", "Choose a directory", TRUE );
+			QString path = QFileDialog::getExistingDirectory(this, "Choose a directory", main_default_path_->text());
 			if (path!="")
 			{
 				main_default_path_->setText(path);

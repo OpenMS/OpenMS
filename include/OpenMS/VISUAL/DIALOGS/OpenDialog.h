@@ -47,7 +47,9 @@ namespace OpenMS
 		
 		@ingroup Dialogs
 	*/
-	class OpenDialog: public OpenDialogTemplate
+	class OpenDialog
+		: public QDialog,
+  		public Ui::OpenDialogTemplate
 	{
 		Q_OBJECT
 		
@@ -67,7 +69,7 @@ namespace OpenMS
 			};
 			
 			/// constructor
-			OpenDialog(Param& preferences, QWidget* parent = 0, const char* name = 0, WFlags fl = 0 );
+			OpenDialog(Param& preferences, QWidget* parent = 0 );
 			/// destructor
 			virtual ~OpenDialog();    
 			

@@ -23,32 +23,22 @@
 // --------------------------------------------------------------------------
 // $Maintainer: stefan_heess $
 // --------------------------------------------------------------------------
-
  
 #ifndef OPENMS_VISUAL_VISUALIZER_METAINFOVISUALIZER_H
 #define OPENMS_VISUAL_VISUALIZER_METAINFOVISUALIZER_H
 
 //OpenMS
-#include <OpenMS/config.h>
 #include <OpenMS/VISUAL/VISUALIZER/BaseVisualizer.h>
 #include <OpenMS/METADATA/MetaInfoInterface.h>
 
-//QT
-#include <qtextedit.h>
-#include <qpushbutton.h>
-#include <qwidget.h>
-#include <qlayout.h>
-
 //STL
-#include <iostream>
 #include <vector>
 #include <utility>
 
-
-
 class QLabel;
 class QLineEdit;
-
+class QAbstractButton;
+class QButtonGroup;
 
 namespace OpenMS {
 /**
@@ -62,7 +52,7 @@ Meta information is an array of Type-Name-Value tupels. Classes that have a Meta
 
 	public: 
 	  /// Default constructor
-		MetaInfoVisualizer(bool editable= FALSE, QWidget *parent =0, const char *name = 0);
+		MetaInfoVisualizer(bool editable= FALSE, QWidget *parent =0);
 		/// Loads the meta data from the object to the viewer.
 		void load(MetaInfoInterface &m);
 		
@@ -96,7 +86,7 @@ Meta information is an array of Type-Name-Value tupels. Classes that have a Meta
 		//@{
 		std::vector< std::pair<UnsignedInt,QLineEdit*> > metainfoptr_;
 		std::vector< std::pair<UnsignedInt,QLabel*> > metalabels_;
-		std::vector< std::pair<UnsignedInt,QButton*> > metabuttons_;
+		std::vector< std::pair<UnsignedInt,QAbstractButton*> > metabuttons_;
 		//@}		
 		
 		/** @name Some buttons.

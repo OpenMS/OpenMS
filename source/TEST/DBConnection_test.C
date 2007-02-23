@@ -29,7 +29,9 @@
 ///////////////////////////
 #include <OpenMS/FORMAT/TextFile.h>
 #include <OpenMS/FORMAT/DB/DBConnection.h>
-#include <qapplication.h>
+
+#include <QtGui/QApplication>
+#include <QtSql/QSqlQuery>
 ///////////////////////////
 
 using namespace OpenMS;

@@ -2957,117 +2957,103 @@ fi
 
 
 AC_DEFUN(CF_GUI_QT_BASICS, [
-	AC_MSG_CHECKING(for QT headers)
+	AC_MSG_CHECKING(for Qt headers)
 	if test "${QTDIR}" != "" ; then
-		CF_FIND_HEADER(QT_INCPATH,qgl.h,${QTDIR}/include ${PROJECT[]_PATH}/contrib/qt/include)
+		CF_FIND_HEADER(QT_INCPATH,Qt/qgl.h,${QTDIR}/include)
 	else
-		CF_FIND_HEADER(QT_INCPATH,qgl.h,${PROJECT[]_PATH}/contrib/qt/include)
+		CF_FIND_HEADER(QT_INCPATH,Qt/qgl.h,)
 	fi
 
 	if test "${QT_INCPATH}" = "" ; then
 		AC_MSG_RESULT((not found!))
 		AC_MSG_RESULT()
-		AC_MSG_RESULT(No QT header files found! Please specify the path to the QT headers)
+		AC_MSG_RESULT(Qt header file Qt/qgl.h not found! Please specify the path to the Qt headers)
 		AC_MSG_RESULT(by passing the option --with-qt-incl=DIR to configure.)
-		AC_MSG_RESULT(You may also set the environment variable QTDIR to the correct)
-		AC_MSG_RESULT(path - configure will recognize this, too.)
-		AC_MSG_RESULT(The QT package can be found under the following URL:)
+		AC_MSG_RESULT(The Qt package can be found under the following URL:)
 		AC_MSG_RESULT(  http://www.troll.no/qt)
 		CF_ERROR
 	else
 		AC_MSG_RESULT((${QT_INCPATH}))	
 	fi
 
-	AC_MSG_CHECKING(for libqt${QT_MT_SUFFIX})
+	AC_MSG_CHECKING(for libQtCore)
 	if test "${QTDIR}" != "" ; then
-		if test "${QT_MT_SUFFIX}" = "-mt" -o "${QT_MT_SUFFIX+set}" != set ; then
-			if test -a "${QTDIR}/lib/libqt-mt.so" ; then
-				QT_LIBPATH="${QTDIR}/lib"
-			elif test -a "${QTDIR}/lib/libqt.so" ; then
-				QT_LIBPATH="${QTDIR}/lib"
-				QT_MT_SUFFIX=""
-			fi
+		if test -a "${QTDIR}/lib/libQtCore.so" ; then
+			QT_LIBPATH="${QTDIR}/lib"
+		fi
 			if test "${QT_LIBPATH}" = "" ; then
-				CF_FIND_LIB(QT_LIBPATH, libqt${QT_MT_SUFFIX}, ${QTDIR}/lib ${QTDIR}/lib/${BINFMT} ${PROJECT[]_PATH}/contrib/qt/include)
-			fi
-		else	
-			if test -a "${QTDIR}/lib/libqt.so" ; then
-				QT_LIBPATH="${QTDIR}/lib"
-			elif test -a "${QTDIR}/lib/libqt-mt.so" ; then
-				QT_LIBPATH="${QTDIR}/lib"
-				QT_MT_SUFFIX="-mt"
-			fi
-			if test "${QT_LIBPATH}" = "" ; then
-				CF_FIND_LIB(QT_LIBPATH, libqt${QT_MT_SUFFIX}, ${QTDIR}/lib ${QTDIR}/lib/${BINFMT} ${PROJECT[]_PATH}/contrib/qt/include)
-			fi
+			CF_FIND_LIB(QT_LIBPATH, libQtCore, ${QTDIR}/lib ${QTDIR}/lib/${BINFMT})
 		fi
 	else
-		CF_FIND_LIB(QT_LIBPATH, libqt${QT_MT_SUFFIX}, ${PROJECT[]_PATH}/contrib/qt/lib ${PROJECT[]_PATH}/contrib/qt/lib/${BINFMT})
+		CF_FIND_LIB(QT_LIBPATH, libQtCore, ${PROJECT[]_PATH}/contrib/qt/lib ${PROJECT[]_PATH}/contrib/qt/lib/${BINFMT})
 	fi
 
 	if test "${QT_LIBPATH}" = "" ; then
 		AC_MSG_RESULT((not found!))
 		AC_MSG_RESULT()
-		AC_MSG_RESULT([The QT library could not be found. Please specify the path to libqt])
+		AC_MSG_RESULT([The Qt4 libraries could not be found. Please specify the path to libQtCore])
  		AC_MSG_RESULT([by passing the option --with-qt-libs=DIR to configure.])
-		AC_MSG_RESULT([You may also set the environment variable QTDIR to the correct])
-		AC_MSG_RESULT([path - configure will recognize this, too.])
-		AC_MSG_RESULT([If the QT library was built with thread support enabled (libqt-mt])
-		AC_MSG_RESULT([instead of libqt), please specify the option --with-threadsafe-qt.])
-		AC_MSG_RESULT([The QT package can be found under the following URL:])
+		AC_MSG_RESULT([The Qt package can be found under the following URL:])
 		AC_MSG_RESULT(  http://www.troll.no/qt)
 		CF_ERROR
 	else
-		AC_MSG_RESULT((${QT_LIBPATH}))	
+		AC_MSG_RESULT((${QT_LIBPATH}))
 	fi
 
-				
-	dnl
-	dnl extract the QT version number and version number string from include/qglobal.h
-	dnl
-	QT_VERSION=`${GREP} "#define QT_VERSION[^_]" ${QT_INCPATH}/qglobal.h | ${TR} '\011' ' ' | ${TR} -s ' ' | ${CUT} -d\  -f3`
-	QT_VERSION_STR=`${GREP} "#define QT_VERSION_STR" ${QT_INCPATH}/qglobal.h | ${TR} '\011' ' ' | ${TR} -s ' ' | ${CUT} -d\  -f3 | ${TR} -d '\042'`
-	AC_MSG_CHECKING(for QT version number in qglobal.h)
-	if test "${QT_VERSION}" = "" ; then
-		AC_MSG_RESULT([<unknown>])
-		AC_MSG_RESULT()
-		AC_MSG_RESULT([  Could not determine version number of QT library -- please])
-		AC_MSG_RESULT([  check config.log for details.])
-		AC_MSG_RESULT([  You might have a problem with your (DY)LD_LIBRARY_PATH.])
-		AC_MSG_RESULT([  Please check the settings of QTDIR as well or specify])
-		AC_MSG_RESULT([  the path to the library/headers with])
-		AC_MSG_RESULT([    --with-qt-libs=<DIR> / --with-qt-incl=<DIR>])
-		CF_ERROR
-	else
-		AC_MSG_RESULT([${QT_VERSION} (${QT_VERSION_STR})])
-		AC_DEFINE_UNQUOTED(PROJECT[]_QT_VERSION, ${QT_VERSION})
-		AC_DEFINE_UNQUOTED(PROJECT[]_QT_VERSION_STR, ${QT_VERSION_STR})
-		if test "${QT_MT_SUFFIX}" = "-mt" ; then
-			AC_DEFINE(PROJECT[]_QT_HAS_THREADS,)
+  AC_MSG_CHECKING(for libQtGui)
+  if test "${QT_LIBPATH}" != "" ; then
+    if test -a "${QT_LIBPATH}/libQtGui.so" ; then
+      AC_MSG_RESULT(yes)
+  	else
+    	AC_MSG_RESULT((not found!))
+	    AC_MSG_RESULT()
+	    AC_MSG_RESULT([The QtGui library could not be found. Please specify the path to libqt])
+	    AC_MSG_RESULT([by passing the option --with-qt-libs=DIR to configure.])
+	    AC_MSG_RESULT([The QT package can be found under the following URL:])
+	    AC_MSG_RESULT(  http://www.troll.no/qt)
+	    AC_MSG_RESULT()
+	    AC_MSG_RESULT(Note: OpenMS requires QT 4.x! QT3 is no longer supported.)
+	    CF_ERROR
 		fi
-	fi			
-		
-	dnl
-	dnl  Check for the right version number of QT
-	dnl
-	if test `echo ${QT_VERSION} | ${CUT} -c1-2` != "0x" ; then
-		if test "${QT_VERSION}" -lt ${QT_MIN_VERSION} -o "${QT_VERSION}" -gt ${QT_MAX_VERSION} ; then
-			AC_MSG_RESULT()
-			AC_MSG_RESULT([QT version ]${QT_RECOMMENDED_VERSION}[ is recommended for PROJECT[]. Please update])
-			AC_MSG_RESULT([to a suitable version or specify the path to a more])
-			AC_MSG_RESULT([suitable version of libqt* by passing the option --with-qt-libs=DIR])
-			AC_MSG_RESULT([to configure.])
-			AC_MSG_RESULT([You may also set the environment variable QTDIR to the correct])
-			AC_MSG_RESULT([path - configure will recognize this, too.])
-			AC_MSG_RESULT()
-			AC_MSG_RESULT([The complete QT package can be found under the following URL:])
-			AC_MSG_RESULT([  http://www.troll.no/qt])
-			CF_ERROR
-		fi
-	fi
+  fi
+
+  AC_MSG_CHECKING(for libQtOpenGL)
+  if test "${QT_LIBPATH}" != "" ; then
+    if test -a "${QT_LIBPATH}/libQtOpenGL.so" ; then
+      AC_MSG_RESULT(yes)
+    else
+      AC_MSG_RESULT((not found!))
+      AC_MSG_RESULT()
+      AC_MSG_RESULT([The QtOpenGL library could not be found. Please specify the path to libqt])
+      AC_MSG_RESULT([by passing the option --with-qt-libs=DIR to configure.])
+      AC_MSG_RESULT([The QT package can be found under the following URL:])
+      AC_MSG_RESULT(  http://www.troll.no/qt)
+      AC_MSG_RESULT()
+      AC_MSG_RESULT(Note: OpenMS requires QT 4.x! QT3 is no longer supported.)
+      CF_ERROR
+    fi
+  fi
+
+  AC_MSG_CHECKING(for libQtSql)
+  if test "${QT_LIBPATH}" != "" ; then
+    if test -a "${QT_LIBPATH}/libQtSql.so" ; then
+      AC_MSG_RESULT(yes)
+    else
+      AC_MSG_RESULT((not found!))
+      AC_MSG_RESULT()
+      AC_MSG_RESULT([The QtSql library could not be found. Please specify the path to libqt])
+      AC_MSG_RESULT([by passing the option --with-qt-libs=DIR to configure.])
+      AC_MSG_RESULT([The QT package can be found under the following URL:])
+      AC_MSG_RESULT(  http://www.troll.no/qt)
+      AC_MSG_RESULT()
+      AC_MSG_RESULT(Note: OpenMS requires QT 4.x! QT3 is no longer supported.)
+      CF_ERROR
+    fi
+  fi
+	
 
 	dnl
-	dnl	Add the QT include path to the GUI includes
+	dnl	Add the Qt include path to the GUI includes
 	dnl
 	if test "${QT_INCPATH}" != /usr/include && test "${QT_INCPATH}" != "" ; then
 		GUI_INCLUDES="${GUI_INCLUDES} -I${QT_INCPATH}"
@@ -3171,124 +3157,187 @@ AC_DEFUN(CF_GUI_OPENGL_LINK_TEST, [
 
 AC_DEFUN(CF_GUI_QT_LINK_TEST, [
 		X=`pwd`
-		AC_MSG_CHECKING(linking against QT libraries)
+		AC_MSG_CHECKING(linking against QtCore lib)
 
 		if test "${QT_LIBPATH}" != "/usr/lib" ; then
-			QTQGL_LIBOPTS="-L${QT_LIBPATH} -lqgl -lqt${QT_MT_SUFFIX}"
-			QT_LIBOPTS="-L${QT_LIBPATH} -lqt${QT_MT_SUFFIX}"
+			QT_LIBOPTS="-L${QT_LIBPATH} -lQtCore -lQtSql -lQtGui -lQtOpenGL"
 		else 
 			QT_LIBPATH=""
-			QTQGL_LIBOPTS="-lqgl -lqt${QT_MT_SUFFIX}"
-			QT_LIBOPTS="-lqt${QT_MT_SUFFIX}"
+			QT_LIBOPTS="-lQtCore -lQtSql -lQtGui -lQtOpenGL"
 		fi
 
+		dnl
+		dnl	test the general linking (QtCore)
+		dnl
 		SAVE_LIBS=${LIBS}
-		LIBS="${QTQGL_LIBOPTS} ${OPENGL_LIBOPTS} ${X11_LIBOPTS} ${LIBS} ${GUI_INCLUDES}"
-		AC_TRY_LINK([#include <qgl.h>], [QGLWidget widget;], QT_LINKING_OK=1)
+		LIBS="-L${QT_LIBPATH} -lQtCore ${X11_LIBOPTS} ${LIBS} ${GUI_INCLUDES}"
+
+		QT_LINKING_OK=0
+		AC_TRY_LINK([#include <QtCore/QDir>], [QDir dir;], QT_LINKING_OK=1)
+
+	  if test "${QT_LINKING_OK+set}" != set ; then
+  	  AC_MSG_RESULT(no)
+    	AC_MSG_RESULT()
+    	AC_MSG_RESULT([Cannot link against Qt!])
+    	AC_MSG_RESULT([If Qt4 is installed, please specify the path to the library])
+    	AC_MSG_RESULT([using the option --with-qt-libs=DIR])
+    	AC_MSG_RESULT()
+    	AC_MSG_RESULT([Another possible reason is threading support. Have a look at the OpenMS installation documentation!])
+    	CF_ERROR
+		else
+			AC_MSG_RESULT(yes)
+		fi
+
+		dnl
+		dnl linking against the QtGui lib
+		dnl
+		AC_MSG_CHECKING(linking against QtGui lib)
+
+		LIBS="-L${QT_LIBPATH} -lQtCore -lQtGui ${X11_LIBOPTS} ${LIBS} ${GUI_INCLUDES}"
+		
+		QT_LINKING_OK=0
+    AC_TRY_LINK([#include <QtGui/QWidget>], [QWidget widget;], QT_LINKING_OK=1)
+
+    if test "${QT_LINKING_OK+set}" != set ; then
+      AC_MSG_RESULT(no)
+      AC_MSG_RESULT()
+      AC_MSG_RESULT([Cannot link against QtGui!])
+      AC_MSG_RESULT([If Qt4 is installed, please specify the path to the library])
+      AC_MSG_RESULT([using the option --with-qt-libs=DIR])
+      AC_MSG_RESULT()
+      AC_MSG_RESULT([Another possible reason is threading support. Have a look at the OpenMS installation documentation!])
+      CF_ERROR
+    else
+      AC_MSG_RESULT(yes)
+    fi
+
+
+		dnl 
+		dnl	linking against the QtOpenGL lib
+		dnl 
+		AC_MSG_CHECKING(linking against QtOpenGL lib)
+
+		LIBS="L${QT_LIBPATH} -lQtCore -ltGui -lQtOpenGL ${X11_LIBOPTS} ${LIBS} ${GUI_INCLUDES}"
+
+		QT_LINKING_OK=0
+		AC_TRY_LINK([#include <QtOpenGL/QGLWidget>], [QGlWidget widget;], QT_LINKING_OK=1) 
+
+    if test "${QT_LINKING_OK+set}" != set ; then
+      AC_MSG_RESULT(no)
+      AC_MSG_RESULT()
+      AC_MSG_RESULT([Cannot link against QtOpenGL!])
+      AC_MSG_RESULT([If Qt4 is installed, please specify the path to the library])
+      AC_MSG_RESULT([using the option --with-qt-libs=DIR])
+      AC_MSG_RESULT()
+      AC_MSG_RESULT([Another possible reason is threading support. Have a look at the OpenMS installation documentation!])
+      CF_ERROR
+    else
+      AC_MSG_RESULT(yes)
+    fi
+
+
+		dnl
+		dnl linkin against QtSql
+		dnl
+		AC_MSG_CHECKING(linking against QtSql lib)
+
+		LIBS="L${QT_LIBPATH} -lQtCore -lQtSql ${X11_LIBOPTS} ${LIBS} ${GUI_INCLUDES}"
+
+		QT_LINKING_OK=0
+		AC_TRY_LINK([#include <QtSql/QSqlDatabase>], [QSqlDatabase db;], QT_LINKING_OK=1)
+
+    if test "${QT_LINKING_OK+set}" != set ; then
+      AC_MSG_RESULT(no)
+      AC_MSG_RESULT()
+      AC_MSG_RESULT([Cannot link against QtSql!])
+      AC_MSG_RESULT([If Qt4 is installed, please specify the path to the library])
+      AC_MSG_RESULT([using the option --with-qt-libs=DIR])
+      AC_MSG_RESULT()
+      AC_MSG_RESULT([Another possible reason is threading support. Have a look at the OpenMS installation documentation!])
+      CF_ERROR
+    else
+      AC_MSG_RESULT(yes)
+    fi
+
 		LIBS=${SAVE_LIBS}
 
-		if test "${QT_LINKING_OK+set}" != set ; then
-			SAVE_LIBS=${LIBS}
-			LIBS="${QT_LIBOPTS} ${OPENGL_LIBOPTS} ${X11_LIBOPTS} ${LIBS} ${GUI_INCLUDES}"
-			AC_TRY_LINK([#include <qgl.h>], [QGLWidget wid;], QT_LINKING_OK=1)
-			LIBS=${SAVE_LIBS}
-		else
-			dnl link against qgl as well (for qt <= 2.0)
-			QT_LIBOPTS="${QTQGL_LIBOPTS}"
-		fi
+    dnl
+    dnl  identify the version of the library
+    dnl
+    AC_MSG_CHECKING(QT library version)
+    SAVE_LIBS=${LIBS}
+    LIBS="${QT_LIBOPTS} ${OPENGL_LIBOPTS} ${X11_LIBOPTS} ${LIBS}"
+    if test "${OS}" = "Darwin" ; then
+      DYLD_LIBRARY_PATH="${QT_LIBPATH}:${X11_LIBPATH}:${OPENGL_LIBPATH}:${GLEW_LIBPATH}:${DYLD_LIBRARY_PATH}"
+      export DYLD_LIBRARY_PATH
+      echo "DYLD_LIBRARY_PATH = ${DYLD_LIBRARY_PATH}" 1>&5
+    else
+      LD_LIBRARY_PATH="${QT_LIBPATH}:${X11_LIBPATH}:${OPENGL_LIBPATH}:${GLEW_LIBPATH}:${LD_LIBRARY_PATH}"
+      export LD_LIBRARY_PATH
+      echo "LD_LIBRARY_PATH = ${LD_LIBRARY_PATH}" 1>&5
+    fi
+    AC_TRY_RUN(
+      [
+        #include <stdio.h>
+        const char* qVersion();
+        int main()
+        {
+          FILE* f = fopen("qt.version", "w");
+          fprintf(f, "%s\n", qVersion());
+          fclose(f);
+          return 0;
+        }
+      ],
+      QT_VERSION_OK=1,
+      DUMMY=0,
+      DUMMY=0
+    )
+    LIBS=${SAVE_LIBS}
 
-		if test "${QT_LINKING_OK+set}" != set ; then
-			SAVE_LIBS=${LIBS}
-			X11_LIBOPTS="-lXrender -lfreetype ${X11_LIBOPTS}"
-			LIBS="${QT_LIBOPTS} ${OPENGL_LIBOPTS} ${X11_LIBOPTS} ${LIBS} ${GUI_INCLUDES}"
-			AC_TRY_LINK([#include <qgl.h>], [QGLWidget wid;], QT_LINKING_OK=1)
-			LIBS=${SAVE_LIBS}
-		fi
-
-	if test "${QT_LINKING_OK+set}" != set ; then
-		AC_MSG_RESULT(no)
-		AC_MSG_RESULT()
-		AC_MSG_RESULT([Cannot link against libqt!])
-		AC_MSG_RESULT([If QT is installed, please specify the path to the library])
-		AC_MSG_RESULT([using the option --with-qt-libs=DIR or the environment variable QTDIR.])
-		AC_MSG_RESULT()
-		AC_MSG_RESULT([Another possible reason is threading support. Have a look at  the OpenMS installation documentation!])
-		CF_ERROR
-	else
-		AC_MSG_RESULT(yes)
-		
-		dnl  
-		dnl  identify the version of the library
-		dnl
-		AC_MSG_CHECKING(QT library version)
-		SAVE_LIBS=${LIBS}
-		LIBS="${QT_LIBOPTS} ${OPENGL_LIBOPTS} ${X11_LIBOPTS} ${LIBS}"
-		if test "${OS}" = "Darwin" ; then
-			DYLD_LIBRARY_PATH="${QT_LIBPATH}:${X11_LIBPATH}:${OPENGL_LIBPATH}:${DYLD_LIBRARY_PATH}"
-			export DYLD_LIBRARY_PATH
-			echo "DYLD_LIBRARY_PATH = ${DYLD_LIBRARY_PATH}" 1>&5
-		else
-			LD_LIBRARY_PATH="${QT_LIBPATH}:${X11_LIBPATH}:${OPENGL_LIBPATH}:${LD_LIBRARY_PATH}"
-			export LD_LIBRARY_PATH
-			echo "LD_LIBRARY_PATH = ${LD_LIBRARY_PATH}" 1>&5
-		fi
-		AC_TRY_RUN(
-			[
-				#include <stdio.h> 
-				const char* qVersion();
-				int main()
-				{
-					FILE* f = fopen("qt.version", "w");
-					fprintf(f, "%s\n", qVersion());
-					fclose(f);
-					return 0;
-				}
-			], 
-			QT_VERSION_OK=1,
-			DUMMY=0,
-			DUMMY=0
-		)
-		LIBS=${SAVE_LIBS}
-		
-		dnl
-		dnl	if the program compiled and ran successfully,
-		dnl extract the QT version number
-		dnl
-		if test "${QT_VERSION_OK+set}" != set; then
-			AC_MSG_RESULT(no)
-			AC_MSG_RESULT()
-			AC_MSG_RESULT(The execution of a program linked against the QT)
-			AC_MSG_RESULT(library failed. Please have a look at config.log)
-			AC_MSG_RESULT((the last few lines) to find out what happened.)
-			AC_MSG_RESULT(Perhaps you specified the wrong library or the)
-			AC_MSG_RESULT(X11 libraries are in conflict with any other library.)
-			AC_MSG_RESULT(You might also want to check your LD_LIBRARY_PATH.)
-			CF_ERROR
-		else
-			QT_VERSION_STRING=`cat qt.version`
-			AC_MSG_RESULT(${QT_VERSION_STRING})
-
-			dnl
-			dnl  test whether this version is the right one
-			dnl
+    dnl
+    dnl if the program compiled and ran successfully,
+    dnl extract the QT version number
+    dnl
+    if test "${QT_VERSION_OK+set}" != set; then
+      AC_MSG_RESULT(no)
+      AC_MSG_RESULT()
+      AC_MSG_RESULT(The execution of a program linked against the QT)
+      AC_MSG_RESULT(library failed. Please have a look at config.log)
+      AC_MSG_RESULT((the last few lines) to find out what happened.)
+      AC_MSG_RESULT(Perhaps you specified the wrong library or the)
+      AC_MSG_RESULT(X11 libraries are in conflict with any other library.)
+      AC_MSG_RESULT(You might also want to check your LD_LIBRARY_PATH.)
+      CF_ERROR
+    else
+      QT_VERSION_STR=`cat qt.version | ${SED} "s/-.*//"`
 			${RM} qt.version 2>/dev/null
-			QT_MAJOR=`echo ${QT_VERSION_STRING} | ${CUT} -d. -f1`
-			if test "${QT_MAJOR}" -lt 3 ; then
-				AC_MSG_RESULT()
-				AC_MSG_RESULT(QT version 3.x is required.)
-				AC_MSG_RESULT(Please install version QT Version 3 (at least 3.0.6))
-				AC_MSG_RESULT(which can be obtained from)
-				AC_MSG_RESULT()
-				AC_MSG_RESULT(  www.troll.no/qt)
-				CF_ERROR
-			fi
-		fi
-	fi
+      AC_MSG_RESULT(${QT_VERSION_STR})
+
+      dnl
+      dnl  Check for the right version number of QT
+      dnl
+      if test `echo ${QT_VERSION_STR} | ${CUT} -c1-2 | ${SED} "s/-.*//"` != "0x" ; then
+        QT_VERSION=`echo ${QT_VERSION_STR} | ${TR} -d "." `
+        if test "${QT_VERSION}" -lt "${QT_MIN_VERSION}" -o "${QT_VERSION}" -gt "${QT_MAX_VERSION}" ; then
+          AC_MSG_RESULT()
+          AC_MSG_RESULT([QT version ]${QT_RECOMMENDED_VERSION}[ is recommended for PROJECT[]. Please update])
+          AC_MSG_RESULT([to a suitable version or specify the path to a more])
+          AC_MSG_RESULT([suitable version of libqt* by passing the option --with-qt-libs=DIR])
+          AC_MSG_RESULT([to configure.])
+          AC_MSG_RESULT()
+          AC_MSG_RESULT([The complete QT package can be found under the following URL:])
+          AC_MSG_RESULT([  http://www.troll.no/qt])
+          CF_ERROR
+        fi
+      fi
+    fi
+
 ])
+
 
 AC_DEFUN(CF_GUI_QT_EXECUTABLES, [
 	dnl
-	dnl	try to find the MOC (QT meta object compiler)
+	dnl	try to find the MOC (Qt meta object compiler)
 	dnl It is usually installed in ${QTDIR}/bin/moc
 	dnl
 	if test "${ENABLE_GUI}" = true ; then
@@ -3304,7 +3353,7 @@ AC_DEFUN(CF_GUI_QT_EXECUTABLES, [
 		AC_PATH_PROG(MOC,moc,moc)
 		if test "${MOC}" = moc ; then
 			AC_MSG_RESULT()
-			AC_MSG_RESULT([Could not find the QT Meta Object Compiler (moc)!])
+			AC_MSG_RESULT([Could not find the Qt Meta Object Compiler (moc)!])
 			AC_MSG_RESULT([You might run into trouble if you want to compile MolGUI.])
 			AC_MSG_RESULT([Please include the correct path to moc into your])
 			AC_MSG_RESULT([PATH environment variable or specify the path to moc])
@@ -3317,7 +3366,7 @@ AC_DEFUN(CF_GUI_QT_EXECUTABLES, [
 		AC_MSG_CHECKING(whether we can run moc)
     if test ! -x "${MOC}" ; then
 			AC_MSG_RESULT()
-			AC_MSG_RESULT([The QT Meta Object Compiler (moc) found in ])
+			AC_MSG_RESULT([The Qt Meta Object Compiler (moc) found in ])
       AC_MSG_RESULT("  ${MOC}")
       AC_MSG_RESULT([seems not to be an executable!])
 			AC_MSG_RESULT([Please include the correct path to moc into your])
@@ -3332,8 +3381,8 @@ AC_DEFUN(CF_GUI_QT_EXECUTABLES, [
 			
 			if test "${MOC_VERSION}" != "${QT_VERSION_STR}" ; then
 				AC_MSG_RESULT()
-				AC_MSG_RESULT([QT version (${QT_VERSION_STR}) is incompatible with moc version (${MOC_VERISON})!])
-				AC_MSG_RESULT([Please check your QTDIR environment variable, include the correct])
+				AC_MSG_RESULT([Qt version (${QT_VERSION_STR}) is incompatible with moc version (${MOC_VERSION})!])
+				AC_MSG_RESULT([Please set the correct --with-qt=QTDIR option, include the correct ])
 				AC_MSG_RESULT([path to moc in your PATH environment variable, or specify the correct])
 				AC_MSG_RESULT([path to moc using the option --with-moc=PATH to rerun configure.])
 				CF_ERROR
@@ -3342,7 +3391,7 @@ AC_DEFUN(CF_GUI_QT_EXECUTABLES, [
 	fi
 
 	dnl
-	dnl	try to find the UIC (QT user interface compiler)
+	dnl	try to find the UIC (Qt user interface compiler)
 	dnl It is usually installed in ${QTDIR}/bin/uic
 	dnl
 	if test "${ENABLE_GUI}" = true ; then
@@ -3358,8 +3407,7 @@ AC_DEFUN(CF_GUI_QT_EXECUTABLES, [
 		AC_PATH_PROG(UIC,uic,uic)
 		if test "${UIC}" = uic ; then
 			AC_MSG_RESULT()
-			AC_MSG_RESULT([Could not find the QT User Interface Compiler (uic)!])
-			AC_MSG_RESULT([You might run into trouble if you want to compile MolGUI.])
+			AC_MSG_RESULT([Could not find the Qt User Interface Compiler (uic)!])
 			AC_MSG_RESULT([Please include the correct path to uic into your])
 			AC_MSG_RESULT([PATH environment variable or specify the path to uic])
 			AC_MSG_RESULT([using the option --with-uic=PATH to rerun configure.])
@@ -3372,7 +3420,7 @@ AC_DEFUN(CF_GUI_QT_EXECUTABLES, [
 		AC_MSG_CHECKING(whether uic is executable)
     if test ! -x "${UIC}" ; then
 			AC_MSG_RESULT()
-			AC_MSG_RESULT([The QT User Interface Compiler (uic) found in ])
+			AC_MSG_RESULT([The Qt User Interface Compiler (uic) found in ])
       AC_MSG_RESULT("   ${UIC}")
       AC_MSG_RESULT([seems not to be an executable!])
 			AC_MSG_RESULT([Please include the correct path to uic into your])
@@ -3387,7 +3435,7 @@ AC_DEFUN(CF_GUI_QT_EXECUTABLES, [
 			
 			if test "${UIC_VERSION}" != "${QT_VERSION_STR}" ; then
 				AC_MSG_RESULT()
-				AC_MSG_RESULT([QT version (${QT_VERSION_STR}) is incompatible with uic version (${UIC_VERISON})!])
+				AC_MSG_RESULT([Qt version (${QT_VERSION_STR}) is incompatible with uic version (${UIC_VERISON})!])
 				AC_MSG_RESULT([Please check your QTDIR environment variable, include the correct])
 				AC_MSG_RESULT([path to uic in your PATH environment variable, or specify the correct])
 				AC_MSG_RESULT([path to uic using the option --with-uic=PATH to rerun configure.])
@@ -3506,7 +3554,7 @@ dnl		GUI support
 dnl
 AC_DEFUN(CF_GUI, [
 dnl
-dnl    search for X-libs and includes, QT and 3D stuff (OpenGL/MESA)
+dnl    search for X-libs and includes, Qt and 3D stuff (OpenGL/MESA)
 dnl
 if test "${ENABLE_GUI}" = true ; then
 	AC_PATH_X
@@ -3527,7 +3575,7 @@ if test "${ENABLE_GUI}" = true ; then
 	dnl Check for OpenGL/Mesa
 	CF_GUI_OPENGL
 
-	dnl Check for QT basics (version, headers, existence of library)
+	dnl Check for Qt basics (version, headers, existence of library)
 	CF_GUI_QT_BASICS
 
 	dnl Check for X11 libraries to link against
@@ -3537,10 +3585,10 @@ if test "${ENABLE_GUI}" = true ; then
 	CF_GUI_OPENGL_LINK_TEST
 	
 	dnl Check whether we can link against all libraries together 
-  dnl (build a simple QT executable and determine QT version number)
+  dnl (build a simple Qt executable and determine Qt version number)
 	CF_GUI_QT_LINK_TEST
 
-	dnl Check for QT executables required to build the dialogs (MOC, UIC)
+	dnl Check for Qt executables required to build the dialogs (MOC, UIC)
 	CF_GUI_QT_EXECUTABLES
 
 	dnl Check for special features, e.g. SQL drivers

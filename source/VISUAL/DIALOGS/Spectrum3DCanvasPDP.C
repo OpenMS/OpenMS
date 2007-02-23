@@ -31,14 +31,14 @@
 
 
 // Qt
-#include <qlayout.h>
-#include <qradiobutton.h>
-#include <qlabel.h>
-#include <qgroupbox.h>
-#include <qvbuttongroup.h>
-#include <qhbuttongroup.h>
-#include <qspinbox.h>
-#include <qcombobox.h>
+#include <QtGui/QLayout>
+#include <QtGui/QRadioButton>
+#include <QtGui/QLabel>
+#include <QtGui/QGroupBox>
+#include <QtGui/QSpinBox>
+#include <QtGui/QComboBox>
+#include <QtGui/QGridLayout>
+#include <QtGui/QButtonGroup>
 
 using namespace std;
 
@@ -46,60 +46,66 @@ namespace OpenMS
 {
 	namespace Internal
 	{
-		Spectrum3DCanvasPDP::Spectrum3DCanvasPDP(Spectrum3DCanvas* manager, QWidget* parent, const char* name, WFlags f)
-				: PreferencesDialogPage(manager,parent,name,f)
+		Spectrum3DCanvasPDP::Spectrum3DCanvasPDP(Spectrum3DCanvas* manager, QWidget* parent)
+				: PreferencesDialogPage(manager,parent)
 		{
-			help_ = "This is the preferences dialog of 3D spectrum!"
-								"<br>";
-			QGridLayout* grid;
-			QLabel * label;
-			grid = new QGridLayout(this, 4, 2);
-			grid->setMargin(6);
-			grid->setSpacing(4);	
-
-			QGroupBox* box = new QGroupBox(2,Qt::Horizontal,"Dot coloring",this);
-
-			QVButtonGroup* coloring_group = new QVButtonGroup("Color Mode:",box);
-			box->addSpace(0);  
-			dot_mode_black_ = new QRadioButton("Black",coloring_group);
-			dot_mode_gradient_ = new QRadioButton("Gradient",coloring_group);
-			dot_gradient_ = new MultiGradientSelector(coloring_group);
-		// 	box->addSpace(0);
-			//		
-			QHButtonGroup* interpolation_box = new QHButtonGroup("Interpolation steps",box);
-			label = new QLabel("Interpolation steps: ",interpolation_box);
-			dot_interpolation_steps_ = new QSpinBox(10,1000,1,interpolation_box,"");
-			dot_interpolation_steps_->setSizePolicy(QSizePolicy::Fixed,QSizePolicy::Minimum);
-			box->addSpace(0);
-			QVButtonGroup* shading_group = new QVButtonGroup("Shade Mode:",box);
-			//shading_group->setFrameStyle(QFrame::NoFrame);
-			shade_mode_flat_ = new QRadioButton("Flat",shading_group);
-			shade_mode_smooth_ = new QRadioButton("Smooth",shading_group);	
-			grid->addMultiCellWidget(box,0,3,0,0);
-
-			box = new QGroupBox(2,Qt::Horizontal,"Line Width",this);
-			label = new QLabel("Line Width: ",box);
-			dot_line_width_ = new QSpinBox(1,10,1,box,"");
-			dot_line_width_->setSizePolicy(QSizePolicy::Fixed,QSizePolicy::Minimum);
-			grid->addWidget(box,0,1);	
-
-			box = new QGroupBox(2,Qt::Horizontal,"Colors",this);
-			label = new QLabel("Background color: ",box);
-			background_color_ = new ColorSelector(box);
-			label = new QLabel("Axes Color: ",box);
-			axes_color_ = new ColorSelector(box);
-			grid->addWidget(box,1,1);	
-
-			box = new QGroupBox(2,Qt::Horizontal,"Data",this);
-			label = new QLabel("Reduction Mode:  ",box);
-			data_reduction_ = new QComboBox(false, box, "read-only combobox");
-			data_reduction_->insertItem("Reduction OFF");
-			data_reduction_->insertItem("MaxReduction");
-			data_reduction_->insertItem("SumReduction");
-			label = new QLabel("Displayed Peaks : ",box);
-			reduction_diplay_peaks_ = new QSpinBox(10000,50000,10000,box,"");
+			help_ = "This is the preferences dialog of a 3D view of a map!";
 			
-			grid->addWidget(box,2,1);
+			QGridLayout* grid = new QGridLayout(this);
+
+			//peak color box
+			QGroupBox* box = addBox(grid,0,0,"Peak colors",1,2);
+
+			QVBoxLayout* tmp2 = new QVBoxLayout();
+			dot_mode_black_= new QRadioButton("Black",this);
+			tmp2->addWidget(dot_mode_black_);
+			dot_mode_gradient_= new QRadioButton("Gradient",this);
+			tmp2->addWidget(dot_mode_gradient_);
+			addLayout(box->layout(),0,"Mode:",tmp2);
+
+			dot_gradient_= new MultiGradientSelector(box);
+			addWidget(box->layout(),1,"Gradient:",dot_gradient_);
+
+			dot_interpolation_steps_= addSpinBox(box,10,1000,1);
+			addWidget(box->layout(),2,"Interpolation steps:",dot_interpolation_steps_);
+			finish(box->layout());
+			
+			tmp2 = new QVBoxLayout();
+			QButtonGroup* tmp3 = new QButtonGroup(this);
+			shade_mode_flat_= new QRadioButton("Flat",this);
+			tmp2->addWidget(shade_mode_flat_);
+			tmp3->addButton(shade_mode_flat_);
+			shade_mode_smooth_= new QRadioButton("Smooth",this);
+			tmp2->addWidget(shade_mode_smooth_);
+			tmp3->addButton(shade_mode_smooth_);
+			addLayout(box->layout(),3,"Shade mode:",tmp2);
+			finish(box->layout());
+			
+			//misc box
+			box = addBox(grid,1,0,"Misc");
+			
+			dot_line_width_ = addSpinBox(box,1,10,1);
+			addWidget(box->layout(),0,"Line width:",dot_line_width_);
+			
+			background_color_= new ColorSelector(box);
+			addWidget(box->layout(),1,"Background color:",background_color_);
+			axes_color_= new ColorSelector(box);
+			addWidget(box->layout(),2,"Axis color:",axes_color_);
+			finish(box->layout());
+
+			//data reduction box
+		 	box = addBox(grid,1,1,"Data reduction");
+			data_reduction_= new QComboBox( box);
+			data_reduction_->insertItem(0,"Reduction OFF");
+			data_reduction_->insertItem(1,"MaxReduction");
+			data_reduction_->insertItem(2,"SumReduction");
+			addWidget(box->layout(),0,"Mode:",data_reduction_);
+
+			reduction_diplay_peaks_= addSpinBox(box,5000,200000,5000);
+			addWidget(box->layout(),1,"Displayed Peaks:",reduction_diplay_peaks_);
+			finish(box->layout());
+			
+			finish(grid);
 		
 			load();
 		}
@@ -135,7 +141,7 @@ namespace OpenMS
 					shade_mode_smooth_->setChecked(true);
 				}
 			}
-			data_reduction_->setCurrentText(man->getPrefAsString("Preferences:3D:Reduction:Mode").c_str());	
+			data_reduction_->setCurrentIndex(data_reduction_->findText(man->getPrefAsString("Preferences:3D:Reduction:Mode").c_str()));	
 			reduction_diplay_peaks_->setValue(UnsignedInt(man->getPrefAsInt("Preferences:3D:DisplayedPeaks")));
 		
 			background_color_->setColor(QColor(man->getPrefAsString("Preferences:3D:BackgroundColor").c_str()));
@@ -174,24 +180,24 @@ namespace OpenMS
 				}
 			} 
 
-			if(data_reduction_->currentText().ascii()=="MaxReduction")
+			if(data_reduction_->currentText().toAscii().data()=="MaxReduction")
 			{
 				man->setPref("Preferences:3D:Data:Mode",Spectrum3DCanvas::REDUCTION_MAX);
 			}
-			else if(data_reduction_->currentText().ascii()=="Reduction OFF")
+			else if(data_reduction_->currentText().toAscii().data()=="Reduction OFF")
 			{
 				man->setPref("Preferences:3D:Data:Mode",Spectrum3DCanvas::REDUCTION_OFF);
 			}
-			else if(data_reduction_->currentText().ascii()=="SumReduction")
+			else if(data_reduction_->currentText().toAscii().data()=="SumReduction")
 			{
 				man->setPref("Preferences:3D:Data:Mode",Spectrum3DCanvas::REDUCTION_SUM);
 			}
 			
-			man->setPref("Preferences:3D:Reduction:Mode", data_reduction_->currentText().ascii());
+			man->setPref("Preferences:3D:Reduction:Mode", data_reduction_->currentText().toAscii().data());
 			man->setPref("Preferences:3D:DisplayedPeaks",	reduction_diplay_peaks_->value());
 			
-			man->setPref("Preferences:3D:BackgroundColor",background_color_->getColor().name().ascii());
-			man->setPref("Preferences:3D:AxesColor",axes_color_->getColor().name().ascii());
+			man->setPref("Preferences:3D:BackgroundColor",background_color_->getColor().name().toAscii().data());
+			man->setPref("Preferences:3D:AxesColor",axes_color_->getColor().name().toAscii().data());
 			man->setPref("Preferences:3D:Dot:LineWidth",dot_line_width_->value());
 		
 			man->setDataMode();

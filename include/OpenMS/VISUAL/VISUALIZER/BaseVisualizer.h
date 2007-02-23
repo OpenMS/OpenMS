@@ -24,17 +24,11 @@
 // $Maintainer: stefan_heess $
 // --------------------------------------------------------------------------
 
- 
 #ifndef OPENMS_VISUAL_VISUALIZER_BASEVISUALIZER_H
 #define OPENMS_VISUAL_VISUALIZER_BASEVISUALIZER_H
 
-#include <OpenMS/config.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/VISUAL/DataTable.h>
-
-//QT
-#include <qwidget.h>
-
 
 namespace OpenMS {
 /**
@@ -50,7 +44,7 @@ Increases ease of use to store data.
 
 		public:
 			/// Default constructor 
-			BaseVisualizer(bool editable=FALSE, QWidget *parent =0, const char *name = 0);
+			BaseVisualizer(bool editable=FALSE, QWidget *parent =0);
 			/// Returns the type of the visualizer class.
 			String getType();
 			///Defines a friend class that can use the functionality of the subclasses.

@@ -30,10 +30,11 @@
 #include <OpenMS/VISUAL/ListStack.h>
 
 #include <iostream>
-#include <qdialog.h>
-#include <qpushbutton.h>
-#include <qlayout.h>
-#include <qmessagebox.h>
+#include <QtGui/QDialog>
+#include <QtGui/QPushButton>
+#include <QtGui/QLayout>
+#include <QtGui/QMessageBox>
+#include <QtGui/QGridLayout>
 
 using namespace std;
 
@@ -46,10 +47,10 @@ namespace OpenMS
 		QGridLayout* layout;
 		QPushButton* button;
 		
-		setCaption("Preferences");
+		setWindowTitle("Preferences");
 	
 		//layout
-		layout = new QGridLayout(this,2,5);
+		layout = new QGridLayout(this);
 		layout->setSpacing(4);
 		layout->setMargin(6);
 		
@@ -77,7 +78,7 @@ namespace OpenMS
 	
 		//liststack
 		stack_ = new ListStack(this);
-		layout->addMultiCellWidget(stack_,0,0,0,4);
+		layout->addWidget(stack_,0,0,1,5);
 	}
 	
 	PreferencesDialog::~PreferencesDialog()
@@ -85,10 +86,10 @@ namespace OpenMS
 		
 	}
 	
-	void PreferencesDialog::addPage(std::string name, PreferencesDialogPage* page, PreferencesManager* creator, PreferencesManager* parent) 
+	void PreferencesDialog::addPage(std::string name, PreferencesDialogPage* page, PreferencesManager* creator, bool highlight, PreferencesManager* parent) 
 	{
 		pages_.push_back(page);
-		stack_->addWidget(name,page,creator,parent);
+		stack_->addWidget(name,page,creator,highlight,parent);
 		stack_->expand();
 	}
 	

@@ -31,12 +31,13 @@
 #include <OpenMS/VISUAL/ColorSelector.h>
 
 // Qt
-#include <qlayout.h>
-#include <qradiobutton.h>
-#include <qlabel.h>
-#include <qgroupbox.h>
-#include <qvbuttongroup.h>
-#include <qspinbox.h>
+#include <QtGui/QLayout>
+#include <QtGui/QRadioButton>
+#include <QtGui/QLabel>
+#include <QtGui/QGroupBox>
+#include <QtGui/QSpinBox>
+#include <QtGui/QGridLayout>
+#include <QtGui/QButtonGroup>
 
 using namespace std;
 
@@ -46,53 +47,45 @@ namespace OpenMS
 	namespace Internal
 	{
 		
-		Spectrum2DCanvasPDP::Spectrum2DCanvasPDP( Spectrum2DCanvas* manager, QWidget* parent, const char* name, WFlags f):
-		PreferencesDialogPage(manager,parent,name,f)
+		Spectrum2DCanvasPDP::Spectrum2DCanvasPDP( Spectrum2DCanvas* manager, QWidget* parent):
+		PreferencesDialogPage(manager,parent)
 		{
-			help_ = "This is the preferences dialog of 2D spectrum!"
-							"<br>";
+			help_ = "This is the preferences dialog of a 2D view of a map!";
 		
-			QGridLayout* grid;
-			QLabel* label;
-				
-			grid = new QGridLayout(this,3,7);
-			grid->setMargin(6);
-			grid->setSpacing(4);	
+			QGridLayout* grid = new QGridLayout(this);
 			
-			//dot mode
-			QGroupBox* box = new QGroupBox(2,Qt::Horizontal,"Dot coloring",this);
-			QVButtonGroup* coloring_group = new QVButtonGroup("Mode:",box);
-			coloring_group->setFrameStyle(QFrame::NoFrame);
-			box->addSpace(0);
-			dot_mode_black_ = new QRadioButton("Black",coloring_group);
-			dot_mode_gradient_ = new QRadioButton("Gradient",coloring_group);
-			dot_gradient_ = new MultiGradientSelector(box);
-			
-			grid->addMultiCellWidget(box,0,1,0,0);
-			
-			//Surface mode
-			box = new QGroupBox(2,Qt::Horizontal,"Surface coloring",this);
-			surface_gradient_ = new MultiGradientSelector(box);
-			grid->addWidget(box,0,1);
-
 			//colors
-			box = new QGroupBox(2,Qt::Horizontal,"Colors",this);
-			label = new QLabel("Background color: ",box);
+			QGroupBox* box = addBox(grid,0,0,"Colors",2,1);
 			background_color_ = new ColorSelector(box);
-			label = new QLabel("Interpolation steps: ",box);
-			interpolation_steps_ = new QSpinBox(10,1000,1,box,"");
-			interpolation_steps_->setSizePolicy(QSizePolicy::Fixed,QSizePolicy::Minimum);
-			grid->addWidget(box,1,1);
+			addWidget(box->layout(),0,"Background color:",background_color_);
+			interpolation_steps_ = addSpinBox(box,10,1000,1);
+			addWidget(box->layout(),1,"Interpolation steps:",interpolation_steps_);
+			finish(box->layout());		
+						
+			//dot mode
+			box = addBox(grid,0,1,"Dot Colors");
+			QVBoxLayout* tmp2 = new QVBoxLayout();
+			dot_mode_black_ = new QRadioButton("Black",this);
+			tmp2->addWidget(dot_mode_black_);
+			dot_mode_gradient_ = new QRadioButton("Gradient",this);
+			tmp2->addWidget(dot_mode_gradient_);
+			addLayout(box->layout(),0,"Mode:",tmp2);
+	
+			dot_gradient_ = new MultiGradientSelector(box);
+			addWidget(box->layout(),1,"Gradient:",dot_gradient_);
+			finish(box->layout());
+					
+			//surface mode
+			box = addBox(grid,1,1,"Surface/contour settings");
+			surface_gradient_ = new MultiGradientSelector(box);
+			addWidget(box->layout(),0,"Gradient:",surface_gradient_);			
+
+			marching_squares_steps_ = addSpinBox(box,10,100,1);
+			addWidget(box->layout(),1,"Squares per axis:",marching_squares_steps_);
 			
-			//details
-			box = new QGroupBox(2,Qt::Horizontal,"Surface/contour details",this);
-			label = new QLabel("Squares per axis: ",box);
-			marching_squares_steps_ = new QSpinBox(10,100,1,box,"");
-			marching_squares_steps_->setSizePolicy(QSizePolicy::Fixed,QSizePolicy::Minimum);
-			label = new QLabel("Contour lines: ",box);
-			contour_steps_ = new QSpinBox(3,30,1,box,"");
-			contour_steps_->setSizePolicy(QSizePolicy::Fixed,QSizePolicy::Minimum);
-			grid->addWidget(box,2,0);
+			contour_steps_ = addSpinBox(box,3,30,1);
+			addWidget(box->layout(),2,"Contour lines:",contour_steps_);
+			finish(box->layout());
 
 			load();
 		}
@@ -136,7 +129,7 @@ namespace OpenMS
 			}
 			man->setDotGradient(dot_gradient_->gradient().toString());
 			man->setSurfaceGradient(surface_gradient_->gradient().toString());
-			man->setPref("Preferences:2D:BackgroundColor",background_color_->getColor().name().ascii());
+			man->setPref("Preferences:2D:BackgroundColor",background_color_->getColor().name().toAscii().data());
 			man->setPref("Preferences:2D:MarchingSquaresSteps",marching_squares_steps_->value());
 			man->setPref("Preferences:2D:InterpolationSteps",interpolation_steps_->value());
 			man->setPref("Preferences:2D:Contour:Lines",contour_steps_->value());

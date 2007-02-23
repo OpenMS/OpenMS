@@ -1,288 +1,180 @@
-<!DOCTYPE UI><UI version="3.3" stdsetdef="1">
-<class>Spectrum2DGoToDialogTemplate</class>
-<widget class="QDialog">
-    <property name="name">
-        <cstring>Spectrum2DGoToDialogTemplate</cstring>
-    </property>
-    <property name="geometry">
-        <rect>
-            <x>0</x>
-            <y>0</y>
-            <width>396</width>
-            <height>187</height>
-        </rect>
-    </property>
-    <property name="caption">
-        <string>go to</string>
-    </property>
-    <widget class="QLayoutWidget">
-        <property name="name">
-            <cstring>layout3</cstring>
-        </property>
-        <property name="geometry">
-            <rect>
-                <x>15</x>
-                <y>10</y>
-                <width>370</width>
-                <height>165</height>
-            </rect>
-        </property>
-        <grid>
-            <property name="name">
-                <cstring>unnamed</cstring>
-            </property>
-            <widget class="QLineEdit" row="4" column="1" rowspan="1" colspan="3">
-                <property name="name">
-                    <cstring>minXLineEdit</cstring>
-                </property>
-                <property name="maximumSize">
-                    <size>
-                        <width>300</width>
-                        <height>32767</height>
-                    </size>
-                </property>
-            </widget>
-            <widget class="QLineEdit" row="4" column="4" rowspan="1" colspan="2">
-                <property name="name">
-                    <cstring>maxXLineEdit</cstring>
-                </property>
-                <property name="maximumSize">
-                    <size>
-                        <width>300</width>
-                        <height>32767</height>
-                    </size>
-                </property>
-            </widget>
-            <widget class="Line" row="2" column="0" rowspan="1" colspan="6">
-                <property name="name">
-                    <cstring>line3</cstring>
-                </property>
-                <property name="frameShape">
-                    <enum>HLine</enum>
-                </property>
-                <property name="frameShadow">
-                    <enum>Sunken</enum>
-                </property>
-                <property name="orientation">
-                    <enum>Horizontal</enum>
-                </property>
-            </widget>
-            <widget class="QLabel" row="4" column="0">
-                <property name="name">
-                    <cstring>textLabel1_2</cstring>
-                </property>
-                <property name="text">
-                    <string>m/z:</string>
-                </property>
-            </widget>
-            <widget class="QLineEdit" row="5" column="4" rowspan="1" colspan="2">
-                <property name="name">
-                    <cstring>maxYLineEdit</cstring>
-                </property>
-                <property name="maximumSize">
-                    <size>
-                        <width>300</width>
-                        <height>32767</height>
-                    </size>
-                </property>
-            </widget>
-            <widget class="QLineEdit" row="1" column="3" rowspan="1" colspan="2">
-                <property name="name">
-                    <cstring>centerPositionYLineEdit</cstring>
-                </property>
-                <property name="sizePolicy">
-                    <sizepolicy>
-                        <hsizetype>3</hsizetype>
-                        <vsizetype>0</vsizetype>
-                        <horstretch>0</horstretch>
-                        <verstretch>0</verstretch>
-                    </sizepolicy>
-                </property>
-                <property name="maximumSize">
-                    <size>
-                        <width>100</width>
-                        <height>32767</height>
-                    </size>
-                </property>
-                <property name="alignment">
-                    <set>AlignAuto</set>
-                </property>
-            </widget>
-            <widget class="QLabel" row="1" column="2">
-                <property name="name">
-                    <cstring>textLabel1_3</cstring>
-                </property>
-                <property name="text">
-                    <string>RT:</string>
-                </property>
-            </widget>
-            <widget class="QLabel" row="5" column="0">
-                <property name="name">
-                    <cstring>textLabel2_3</cstring>
-                </property>
-                <property name="text">
-                    <string>RT:</string>
-                </property>
-            </widget>
-            <widget class="QLineEdit" row="1" column="1">
-                <property name="name">
-                    <cstring>centerPositionXLineEdit</cstring>
-                </property>
-                <property name="sizePolicy">
-                    <sizepolicy>
-                        <hsizetype>3</hsizetype>
-                        <vsizetype>0</vsizetype>
-                        <horstretch>0</horstretch>
-                        <verstretch>0</verstretch>
-                    </sizepolicy>
-                </property>
-                <property name="maximumSize">
-                    <size>
-                        <width>100</width>
-                        <height>32767</height>
-                    </size>
-                </property>
-                <property name="alignment">
-                    <set>AlignAuto</set>
-                </property>
-            </widget>
-            <widget class="QPushButton" row="6" column="5">
-                <property name="name">
-                    <cstring>setVisibleAreaButton</cstring>
-                </property>
-                <property name="text">
-                    <string>go</string>
-                </property>
-            </widget>
-            <widget class="QLineEdit" row="5" column="1" rowspan="1" colspan="3">
-                <property name="name">
-                    <cstring>minYLineEdit</cstring>
-                </property>
-                <property name="maximumSize">
-                    <size>
-                        <width>300</width>
-                        <height>32767</height>
-                    </size>
-                </property>
-            </widget>
-            <widget class="QLabel" row="1" column="0">
-                <property name="name">
-                    <cstring>textLabel1</cstring>
-                </property>
-                <property name="text">
-                    <string>m/z:</string>
-                </property>
-            </widget>
-            <widget class="QLabel" row="0" column="0" rowspan="1" colspan="6">
-                <property name="name">
-                    <cstring>textLabel2</cstring>
-                </property>
-                <property name="font">
-                    <font>
-                        <bold>1</bold>
-                    </font>
-                </property>
-                <property name="text">
-                    <string>Center to position</string>
-                </property>
-            </widget>
-            <widget class="QPushButton" row="1" column="5">
-                <property name="name">
-                    <cstring>gotoButton</cstring>
-                </property>
-                <property name="text">
-                    <string>go</string>
-                </property>
-            </widget>
-            <widget class="QLabel" row="3" column="0" rowspan="1" colspan="6">
-                <property name="name">
-                    <cstring>textLabel2_2</cstring>
-                </property>
-                <property name="font">
-                    <font>
-                        <bold>1</bold>
-                    </font>
-                </property>
-                <property name="text">
-                    <string>Show range</string>
-                </property>
-            </widget>
-        </grid>
-    </widget>
-</widget>
-<connections>
-    <connection>
-        <sender>gotoButton</sender>
-        <signal>clicked()</signal>
-        <receiver>Spectrum2DGoToDialogTemplate</receiver>
-        <slot>gotoButton_clicked()</slot>
-    </connection>
-    <connection>
-        <sender>setVisibleAreaButton</sender>
-        <signal>clicked()</signal>
-        <receiver>Spectrum2DGoToDialogTemplate</receiver>
-        <slot>setVisibleAreaButton_clicked()</slot>
-    </connection>
-    <connection>
-        <sender>centerPositionXLineEdit</sender>
-        <signal>returnPressed()</signal>
-        <receiver>Spectrum2DGoToDialogTemplate</receiver>
-        <slot>gotoButton_clicked()</slot>
-    </connection>
-    <connection>
-        <sender>centerPositionYLineEdit</sender>
-        <signal>returnPressed()</signal>
-        <receiver>Spectrum2DGoToDialogTemplate</receiver>
-        <slot>gotoButton_clicked()</slot>
-    </connection>
-    <connection>
-        <sender>minXLineEdit</sender>
-        <signal>returnPressed()</signal>
-        <receiver>Spectrum2DGoToDialogTemplate</receiver>
-        <slot>setVisibleAreaButton_clicked()</slot>
-    </connection>
-    <connection>
-        <sender>maxXLineEdit</sender>
-        <signal>returnPressed()</signal>
-        <receiver>Spectrum2DGoToDialogTemplate</receiver>
-        <slot>setVisibleAreaButton_clicked()</slot>
-    </connection>
-    <connection>
-        <sender>maxYLineEdit</sender>
-        <signal>returnPressed()</signal>
-        <receiver>Spectrum2DGoToDialogTemplate</receiver>
-        <slot>setVisibleAreaButton_clicked()</slot>
-    </connection>
-    <connection>
-        <sender>minYLineEdit</sender>
-        <signal>returnPressed()</signal>
-        <receiver>Spectrum2DGoToDialogTemplate</receiver>
-        <slot>setVisibleAreaButton_clicked()</slot>
-    </connection>
-</connections>
-<tabstops>
-    <tabstop>centerPositionXLineEdit</tabstop>
-    <tabstop>centerPositionYLineEdit</tabstop>
-    <tabstop>gotoButton</tabstop>
-    <tabstop>minXLineEdit</tabstop>
-    <tabstop>maxXLineEdit</tabstop>
-    <tabstop>minYLineEdit</tabstop>
-    <tabstop>maxYLineEdit</tabstop>
-    <tabstop>setVisibleAreaButton</tabstop>
-</tabstops>
-<slots>
-    <slot access="protected">gotoButton_clicked()</slot>
-    <slot access="protected">setVisibleAreaButton_clicked()</slot>
-</slots>
-<functions>
-    <function>setMinX(float minX)</function>
-    <function>setMaxX(float maxX)</function>
-    <function returnType="float">getMinX()</function>
-    <function returnType="float">getMaxX()</function>
-    <function>setMinY(float minY)</function>
-    <function>setMaxY(float maxY)</function>
-    <function returnType="float">getMinY()</function>
-    <function returnType="float">getMaxY()</function>
-</functions>
-<layoutdefaults spacing="6" margin="11"/>
-</UI>
+<ui version="4.0" >
+ <class>Spectrum2DGoToDialogTemplate</class>
+ <widget class="QDialog" name="Spectrum2DGoToDialogTemplate" >
+  <property name="geometry" >
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>223</width>
+    <height>131</height>
+   </rect>
+  </property>
+  <property name="windowTitle" >
+   <string>go to</string>
+  </property>
+  <layout class="QVBoxLayout" >
+   <property name="margin" >
+    <number>9</number>
+   </property>
+   <property name="spacing" >
+    <number>6</number>
+   </property>
+   <item>
+    <layout class="QGridLayout" >
+     <property name="margin" >
+      <number>0</number>
+     </property>
+     <property name="spacing" >
+      <number>6</number>
+     </property>
+     <item row="2" column="2" >
+      <widget class="QLineEdit" name="max_rt_" >
+       <property name="maximumSize" >
+        <size>
+         <width>300</width>
+         <height>32767</height>
+        </size>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="0" >
+      <widget class="QLabel" name="textLabel1_2" >
+       <property name="text" >
+        <string>m/z:</string>
+       </property>
+       <property name="wordWrap" >
+        <bool>false</bool>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="1" >
+      <widget class="QLineEdit" name="min_mz_" >
+       <property name="maximumSize" >
+        <size>
+         <width>300</width>
+         <height>32767</height>
+        </size>
+       </property>
+      </widget>
+     </item>
+     <item row="2" column="0" >
+      <widget class="QLabel" name="textLabel2_3" >
+       <property name="text" >
+        <string>RT:</string>
+       </property>
+       <property name="wordWrap" >
+        <bool>false</bool>
+       </property>
+      </widget>
+     </item>
+     <item row="2" column="1" >
+      <widget class="QLineEdit" name="min_rt_" >
+       <property name="maximumSize" >
+        <size>
+         <width>300</width>
+         <height>32767</height>
+        </size>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="2" >
+      <widget class="QLineEdit" name="max_mz_" >
+       <property name="maximumSize" >
+        <size>
+         <width>300</width>
+         <height>32767</height>
+        </size>
+       </property>
+      </widget>
+     </item>
+     <item row="0" column="0" colspan="3" >
+      <widget class="QLabel" name="textLabel2_2" >
+       <property name="font" >
+        <font>
+         <weight>75</weight>
+         <bold>true</bold>
+        </font>
+       </property>
+       <property name="text" >
+        <string>Show range</string>
+       </property>
+       <property name="wordWrap" >
+        <bool>false</bool>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+   <item>
+    <layout class="QHBoxLayout" >
+     <property name="margin" >
+      <number>0</number>
+     </property>
+     <property name="spacing" >
+      <number>6</number>
+     </property>
+     <item>
+      <spacer>
+       <property name="orientation" >
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="sizeHint" >
+        <size>
+         <width>40</width>
+         <height>20</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+     <item>
+      <widget class="QPushButton" name="button" >
+       <property name="text" >
+        <string>go</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+   <item>
+    <spacer>
+     <property name="orientation" >
+      <enum>Qt::Vertical</enum>
+     </property>
+     <property name="sizeHint" >
+      <size>
+       <width>20</width>
+       <height>40</height>
+      </size>
+     </property>
+    </spacer>
+   </item>
+  </layout>
+ </widget>
+ <layoutdefault spacing="6" margin="11" />
+ <tabstops>
+  <tabstop>min_mz_</tabstop>
+  <tabstop>max_mz_</tabstop>
+  <tabstop>min_rt_</tabstop>
+  <tabstop>max_rt_</tabstop>
+  <tabstop>button</tabstop>
+ </tabstops>
+ <resources/>
+ <connections>
+  <connection>
+   <sender>button</sender>
+   <signal>clicked()</signal>
+   <receiver>Spectrum2DGoToDialogTemplate</receiver>
+   <slot>accept()</slot>
+   <hints>
+    <hint type="sourcelabel" >
+     <x>158</x>
+     <y>102</y>
+    </hint>
+    <hint type="destinationlabel" >
+     <x>20</x>
+     <y>20</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
+</ui>

@@ -30,10 +30,11 @@
 #include <OpenMS/VISUAL/Spectrum2DCanvas.h>
 
 // Qt
-#include <qlayout.h>
-#include <qlabel.h>
-#include <qgroupbox.h>
-#include <qcombobox.h>
+#include <QtGui/QLayout>
+#include <QtGui/QLabel>
+#include <QtGui/QGroupBox>
+#include <QtGui/QComboBox>
+#include <QtGui/QGridLayout>
 
 using namespace std;
 
@@ -43,29 +44,25 @@ namespace OpenMS
 	namespace Internal
 	{
 	
-		Spectrum2DWidgetPDP::Spectrum2DWidgetPDP( Spectrum2DWidget* manager, QWidget* parent, const char* name, WFlags f)
-			: PreferencesDialogPage(manager,parent,name,f)
+		Spectrum2DWidgetPDP::Spectrum2DWidgetPDP( Spectrum2DWidget* manager, QWidget* parent)
+			: PreferencesDialogPage(manager,parent)
 		{
-			help_ = "This is the preferences dialog of 2D spectrum !"
-							"<br>";
+			help_ = "This is the preferences dialog of a 2D view of a map!";
 		
-			QGridLayout* grid;
-		
-			grid = new QGridLayout(this,1,1);
-			grid->setMargin(6);
-			grid->setSpacing(4);	
+			QGridLayout* grid = new QGridLayout(this);
 			
+			//Spectrum2DCanvas
 			canvas_ = manager->client("Canvas", this);
-			grid->addMultiCellWidget(canvas_, 0,1,0,1);
+			grid->addWidget(canvas_, 0,0,1,2);
 			
-			QGroupBox* box = new QGroupBox(2,Qt::Horizontal,"Mapping",this);
-			QLabel* label;
-			label = new QLabel("Map m/z to: ",box);
-			axis_mapping_ = new QComboBox(false, box, "read-only combobox");
-			axis_mapping_->insertItem("X-Axis");
-			axis_mapping_->insertItem("Y-Axis");  
-			grid->addWidget(box,2,0);
-
+			//mapping
+			QGroupBox* box = addBox(grid,1,0,"Mapping");
+			axis_mapping_ = new QComboBox( box);
+			axis_mapping_->insertItem(0,"X-Axis");
+			axis_mapping_->insertItem(1,"Y-Axis");
+			addWidget(box->layout(),0,"Map m/z to:",axis_mapping_);
+			finish(box->layout());			
+			
 			load();
 		}
 		
@@ -77,7 +74,14 @@ namespace OpenMS
 		void Spectrum2DWidgetPDP::load()
 		{
 			Spectrum2DWidget* w = dynamic_cast<Spectrum2DWidget*>(manager_);
-		  (w->canvas()->isMzToXAxis()) ? axis_mapping_->setCurrentText("X-Axis") : axis_mapping_->setCurrentText("Y-Axis");
+			if (w->canvas()->isMzToXAxis())
+			{
+				axis_mapping_->setCurrentIndex(0);
+			}
+			else
+			{
+				axis_mapping_->setCurrentIndex(1);
+			}
 		}
 		
 		void Spectrum2DWidgetPDP::save()

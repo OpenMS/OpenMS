@@ -27,9 +27,8 @@
 // OpenMS includes
 #include <OpenMS/VISUAL/MultiGradient.h>
 
-// stl
-#include <iostream>
-#include <sstream>
+#include <QtGui/QColor>
+
 #include <math.h>
 
 using namespace std;
@@ -192,7 +191,7 @@ namespace OpenMS
 			{
 				out << ";";
 			}
-			out << it->first << "," << it->second.name();
+			out << it->first << "," << it->second.name().toAscii().data();
 		}
 		return out.str();
 	}

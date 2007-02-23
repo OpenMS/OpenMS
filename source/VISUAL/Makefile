@@ -39,6 +39,19 @@ THISLIB=$(LIBNAME)
 
 # These depend on QT:
 GUI_CPP_SOURCES=\
+	EnhancedTabBar.C\
+	AxisWidget.C\
+	ColorSelector.C\
+	MultiGradient.C\
+	MultiGradientSelector.C\
+	HistogramWidget.C\
+	PreferencesManager.C\
+	ListStack.C\
+	PeakIcon.C\
+	MappingInfo.C\
+	AxisTickCalculator.C\
+	DataTable.C\
+	MSMetaDataExplorer.C\
 	LayerData.C\
 	SpectrumCanvas.C\
 	SpectrumWidget.C\
@@ -52,22 +65,18 @@ GUI_CPP_SOURCES=\
 	Spectrum3DCanvas.C\
 	Spectrum3DOpenGLCanvas.C\
 	Spectrum3DWidget.C\
-	Spectrum3DWindow.C\
-	EnhancedTabBar.C\
-	AxisWidget.C\
-	ColorSelector.C\
-	MultiGradientSelector.C\
-	MultiGradient.C\
-	HistogramWidget.C\
-	PreferencesManager.C\
-	ListStack.C\
-	PeakIcon.C\
-	MappingInfo.C\
-	AxisTickCalculator.C\
-	DataTable.C\
-	MSMetaDataExplorer.C
+	Spectrum3DWindow.C
+
 
 GUI_MOC_SOURCES=\
+	EnhancedTabBar_moc.C\
+	AxisWidget_moc.C\
+	ColorSelector_moc.C\
+	MultiGradientSelector_moc.C\
+	HistogramWidget_moc.C\
+	ListStack_moc.C\
+	DataTable_moc.C\
+	MSMetaDataExplorer_moc.C\
 	SpectrumCanvas_moc.C\
 	SpectrumWindow_moc.C\
 	SpectrumWidget_moc.C\
@@ -80,17 +89,7 @@ GUI_MOC_SOURCES=\
 	Spectrum3DCanvas_moc.C\
 	Spectrum3DOpenGLCanvas_moc.C\
 	Spectrum3DWidget_moc.C\
-	Spectrum3DWindow_moc.C\
-	EnhancedTabBar_moc.C\
-	AxisWidget_moc.C\
-	ColorSelector_moc.C\
-	MultiGradientSelector_moc.C\
-	HistogramWidget_moc.C\
-	ListStack_moc.C\
-	DataTable_moc.C\
-	MSMetaDataExplorer_moc.C
-
-UIC_SOURCES=
+	Spectrum3DWindow_moc.C
 
 #conditional compiles QT
 ifeq ($(ENABLE_GUI),true)
@@ -103,7 +102,7 @@ endif
 
 ADD_INCLUDES=$(GUI_INCLUDES)
 
-SOURCES		= ${UIC_SOURCES} $(CPP_SOURCES) $(MOC_SOURCES) $(ADD_CPP_SOURCES) $(ADD_MOC_SOURCES) $(ANDI_SOURCES)
+SOURCES		= $(CPP_SOURCES) $(MOC_SOURCES) $(ADD_CPP_SOURCES) $(ADD_MOC_SOURCES) $(ANDI_SOURCES)
 OBJECTS 	= $(SOURCES:.C=.o)
 
 # Take care of subdirectories of VISUAL
@@ -125,10 +124,10 @@ dummy:
 depend:	uic_depend $(MOC_SOURCES) $(ADD_MOC_SOURCES)
 	@echo "creating dependencies for $(DIRECTORY)..."
 	@echo "" > .Dependencies
-	@$(CXX) -M  -fPIC -pedantic -Wno-long-long -Wno-deprecated  $(CPP_SOURCES) $(ADD_CPP_SOURCES) $(STD_CPP_INCLUDES) $(ADD_INCLUDES) $(OPENMS_INCLUDES)  >.Dependencies
+	@$(CXX) -M  -fPIC -pedantic -Wno-long-long -Wno-deprecated  $(CPP_SOURCES) $(ADD_CPP_SOURCES) $(ADD_MOC_SOURCES) $(STD_CPP_INCLUDES) $(ADD_INCLUDES) $(OPENMS_INCLUDES)  >.Dependencies
 	@$(MAKE) subdirs SUBDIRS="$(VISUAL_DIRS)" TARGET=depend
 
-uic_depend: $(UIC_SOURCES)
+uic_depend:
 	@$(MAKE) subdirs SUBDIRS="$(VISUAL_DIRS)" TARGET=uic_depend
 
 uic_clean:
@@ -215,5 +214,11 @@ DataTable_moc.C:  $(HEADER_DIR)/DataTable.h
 
 MSMetaDataExplorer_moc.C:  $(HEADER_DIR)/MSMetaDataExplorer.h
 	$(MOC) $(HEADER_DIR)/MSMetaDataExplorer.h -o MSMetaDataExplorer_moc.C
+	
 
-
+# For debugging the visual classes, create the file 'Makefile_debug' and 
+# set 'ADD_CXXFLAGS' one or more of the following flags
+#  -DDEBUG_TOPPVIEW  
+#  -DTIMING_TOPPVIEW (time measurement of repaint methods)
+#  -DDEBUG_UPDATE_ (output of update_(...) callers) 
+-include Makefile_debug

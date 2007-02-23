@@ -28,13 +28,8 @@
 #define OPENMS_VISUAL_AXISWIDGET_H
 
 // QT
-#include <qwidget.h>
-#include <qpainter.h>
-class QPixmap;
-
-// STL
-#include <vector>
-#include <math.h>
+#include <QtGui/QWidget>
+class QPaintEvent;
 
 // OpenMS
 #include <OpenMS/CONCEPT/Types.h>
@@ -51,7 +46,8 @@ namespace OpenMS
 	
 		@ingroup Visual
 	*/
-	class AxisWidget : public QWidget
+	class AxisWidget 
+		: public QWidget
 	{
 		Q_OBJECT
 		
@@ -59,12 +55,13 @@ namespace OpenMS
 	
 			///Vector of vector of doubles that defines the grid
 			typedef std::vector<std::vector<double> > GridVector;
+			
 			/// Where the axis is placed
 			static enum {TOP, BOTTOM, LEFT, RIGHT} ALIGNMENT_ENUM;
 	
 	
 			/// constructor
-			AxisWidget(UnsignedInt alignment, const char* legend="", QWidget* parent = 0, const char* name = "AxisWidget", WFlags f = 0);
+			AxisWidget(UnsignedInt alignment, const char* legend="", QWidget* parent = 0);
 			/// destructor
 			virtual ~AxisWidget();
 	
@@ -103,9 +100,10 @@ namespace OpenMS
 			void setInverseOrientation(bool inverse_orientation);
 			bool hasInverseOrientation();
 	
-			/// see QWidget
-			virtual QSize sizeHint () const;
-	
+			/// 
+			void setAllowShortNumbers(bool short_nums = true);
+
+
 	    inline double getAxisMinimum() const
 	    {
 	    	return min_;
@@ -118,29 +116,19 @@ namespace OpenMS
 			inline void setPenWidth(int p)
 			{
 				pen_width_ = p;
-				invalidate_();
+				update();
 			}
-	
-		signals:
-			void sendAxisMouseMovement();
 	
 		public slots:
 			///sets min/max of the axis
 			void setAxisBounds(double min, double max);
-			/// see QWidget
-			void resize(int,int);
-			/// see QWidget
-			void resize(QSize);
-			/// set maximum number of tick levels (default=3), reduce number in case of small axis
-			bool setTickLevel(UnsignedInt level);
-			void mouseMoveEvent( QMouseEvent *e);
+			
+			/// set maximum number of tick levels (1 <= level <= 3)
+			void setTickLevel(UnsignedInt level);
 	
 		protected:
 			/// Vector that defines the position of the ticks/gridlines and the shown values on axis
 			GridVector grid_line_;
-	
-	    /// The MappingInfo object holds information about switched/mirrored axis
-	    MappingInfo mapping_info_;
 	
 			/// format of axis scale (linear or logarithmic)
 			bool is_log_;
@@ -158,24 +146,13 @@ namespace OpenMS
 			std::string legend_;
 			/// maximum number of tick levels (default=3)
 			UnsignedInt tick_level_;
-	
-			///painting buffer
-			QPixmap* buffer_;
-			///the painter
-			QPainter painter_;
 			/// drawing thicker lines (e.g. in printing) leads to better results
 			UnsignedInt pen_width_;
-	
-			/// see QWidget
-			void resizeEvent( QResizeEvent * );
+
 			/// see QWidget
 			void paintEvent( QPaintEvent * );
-	
+			
 			double grid_line_dist_;
-	
-		private:
-			///repaint the content of the widget to the internal pixmap if content or size changed.
-			void invalidate_();
 	
 			/// Scale axis values to correct value (i.e. reverse log, unit conversion)
 			inline double scale_(double x)
@@ -183,27 +160,13 @@ namespace OpenMS
 				return (is_log_)? Math::round_decimal(pow(x,10),-8) : Math::round_decimal(x,-8);
 			}
 	
-			inline int probeFont_(QString probe, double width, double height, int index=0)
-			{
-				int probe_font = 10;
-				painter_.setFont(QFont("courier",probe_font));
-				QRect prb_bound = QFontMetrics(painter_.font()).boundingRect(probe);
-				double ratio1 = prb_bound.width()/width;
-				double ratio2 = prb_bound.height()/height;
-				double res = (ratio1 > ratio2)? ratio1:ratio2;
-				if (index==1)
-				{
-					return static_cast<int>(probe_font/res*3.0/2.4);
-				}
-				else if (index==2)
-				{
-					return static_cast<int>(probe_font/res*3.0/2);
-				}
-				else
-				{ 
-					return static_cast<int>(probe_font/res);
-				}
-			}
+			int probeFont_(QPainter& painter, const QString& probe, double width, double height, int index=0);
+
+			/// calculates the unit of the intensity axis shortened with k,M,G...
+			void getShortenedNumber_(QString& short_num, double number);
+
+			/// true if k/M/G units can be used
+			bool allow_short_numbers_;
  	};
 } // namespace OpenMS
 

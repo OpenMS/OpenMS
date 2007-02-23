@@ -26,13 +26,15 @@
 
 // OpenMS includes
 #include <OpenMS/VISUAL/EnhancedTabBar.h>
+#include <QtGui/QMouseEvent>
 
 using namespace std;
 
 namespace OpenMS
 {
 
-	EnhancedTabBar::EnhancedTabBar( QWidget * parent, const char * name) : QTabBar(parent,name)
+	EnhancedTabBar::EnhancedTabBar( QWidget * parent) 
+		: QTabBar(parent)
 	{
 		
 	}
@@ -45,15 +47,18 @@ namespace OpenMS
 
 	void EnhancedTabBar::mouseDoubleClickEvent ( QMouseEvent * e )
 	{
-		if ( e->button() != LeftButton ) 
+		if ( e->button() != Qt::LeftButton ) 
 		{
 			e->ignore();
 			return;
-    } 	
-		QTab *t = selectTab( e->pos() );
-	  if ( t && t->isEnabled() ) 
-	  {
-			emit doubleClicked( t->identifier() );
+    }
+    for (int i=0; i<this->count(); ++i)
+    {
+			if (tabRect(i).contains(e->pos()))
+			{
+				emit doubleClicked(i);
+				break;
+			}
 		}
 	}
 	

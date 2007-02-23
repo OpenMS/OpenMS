@@ -27,7 +27,6 @@
 #ifndef OPENMS_VISUAL_SPECTRUM1DWINDOW_H
 #define OPENMS_VISUAL_SPECTRUM1DWINDOW_H
 
-#include <OpenMS/config.h>
 #include <OpenMS/VISUAL/SpectrumWindow.h>
 
 namespace OpenMS
@@ -45,10 +44,11 @@ namespace OpenMS
 	{
 		Q_OBJECT
 		public:
+
 			/// Constructor
-			Spectrum1DWindow(QWidget* parent=0, const char* name="Spectrum1DWindow", WFlags f=0);
+			Spectrum1DWindow(QWidget* parent=0);
 			/// Destructor
-			~Spectrum1DWindow();
+			virtual ~Spectrum1DWindow();
 			
 			// Docu in base class
 			Spectrum1DWidget* widget();

@@ -36,7 +36,6 @@ HEADER_DIR=$(OPENMS_PATH)/include/OpenMS/$(DIRECTORY)
 # Where the UIC-created headers reside
 UIC_DIR=$(OPENMS_PATH)/include/OpenMS/$(DIRECTORY)/UIC
 
-
 THISLIB=$(LIBNAME)
 
 # These depend on QT:
@@ -67,7 +66,7 @@ GUI_CPP_SOURCES=\
 	PrecursorVisualizer.C\
 	InstrumentSettingsVisualizer.C\
 	IdentificationVisualizer.C\
-	SpectrumSettingsVisualizer.C\
+	SpectrumSettingsVisualizer.C
 
 GUI_MOC_SOURCES=\
 	BaseVisualizer_moc.C\
@@ -132,7 +131,7 @@ dummy:
 depend:	uic_depend $(MOC_SOURCES) $(ADD_MOC_SOURCES)
 	@echo "creating dependencies for $(DIRECTORY)..."
 	@echo "" > .Dependencies
-	@$(CXX) -M  -fPIC -pedantic -Wno-long-long -Wno-deprecated  $(CPP_SOURCES) $(ADD_CPP_SOURCES) $(STD_CPP_INCLUDES) $(ADD_INCLUDES) $(OPENMS_INCLUDES)  >.Dependencies
+	@$(CXX) -M  -fPIC -pedantic -Wno-long-long -Wno-deprecated  $(CPP_SOURCES) $(ADD_CPP_SOURCES) $(ADD_MOC_SOURCES) $(STD_CPP_INCLUDES) $(ADD_INCLUDES) $(OPENMS_INCLUDES)  >.Dependencies
 	@$(MAKE) subdirs SUBDIRS="$(VISUAL_DIRS)" TARGET=depend
 
 uic_depend: $(UIC_SOURCES)
@@ -236,4 +235,4 @@ IdentificationVisualizer_moc.C:  $(HEADER_DIR)/IdentificationVisualizer.h
 	$(MOC) $(HEADER_DIR)/IdentificationVisualizer.h -o IdentificationVisualizer_moc.C		
 	
 SpectrumSettingsVisualizer_moc.C:  $(HEADER_DIR)/SpectrumSettingsVisualizer.h
-	$(MOC) $(HEADER_DIR)/SpectrumSettingsVisualizer.h -o SpectrumSettingsVisualizer_moc.C	
+	$(MOC) $(HEADER_DIR)/SpectrumSettingsVisualizer.h -o SpectrumSettingsVisualizer_moc.C

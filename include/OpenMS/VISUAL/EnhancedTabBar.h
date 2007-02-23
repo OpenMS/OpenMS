@@ -30,7 +30,8 @@
 #include <OpenMS/CONCEPT/Types.h>
 
 //QT
-#include <qtabbar.h>
+#include <QtGui/QTabBar>
+class QMouseEvent;
 
 namespace OpenMS 
 {
@@ -41,19 +42,19 @@ namespace OpenMS
 		
 		@ingroup Visual
 	*/
-	
-	class EnhancedTabBar: public QTabBar
+	class EnhancedTabBar
+		: public QTabBar
 	{
 		Q_OBJECT
 		public:
 		/// Constructor
-		EnhancedTabBar( QWidget * parent = 0, const char * name = 0 );
+		EnhancedTabBar( QWidget * parent = 0);
 		/// Destructor
 		~EnhancedTabBar();
 	
 		signals:
-		/// Signal emited when double clicked
-		void doubleClicked(OpenMS::SignedInt);
+		/// Signal emited when double clicked. Returns the tab index
+		void doubleClicked(int);
 	
 		protected:
 		void mouseDoubleClickEvent ( QMouseEvent * e );

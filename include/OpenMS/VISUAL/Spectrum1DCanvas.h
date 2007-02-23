@@ -27,8 +27,6 @@
 #ifndef OPENMS_VISUAL_SPECTRUM1DCANVAS_H
 #define OPENMS_VISUAL_SPECTRUM1DCANVAS_H
 
-#include <OpenMS/config.h>
-
 // STL
 #include <vector>
 
@@ -36,8 +34,6 @@
 #include <OpenMS/VISUAL/SpectrumCanvas.h>
 
 //QT
-#include <qpainter.h>
-
 class QAction;
 
 namespace OpenMS
@@ -52,8 +48,6 @@ namespace OpenMS
 		@brief Canvas for visualization of spectrum
 		
 		@todo Add measurement (Marc)
-		
-		@bug Logarithmic intensity mode is broken
 		
 		@ingroup spectrum_widgets
 	*/
@@ -71,15 +65,8 @@ namespace OpenMS
 			LM_XPERCENT_YPERCENT
 		};
 		
-		/**
-			@brief Default constructor
-			
-			@param parent The parent widget.
-			@param name The widget name.
-			@param f Qt::WidgetFlags that are passed on.
-		*/
-		Spectrum1DCanvas(QWidget* parent = 0, const char* name = "Spectrum1DCanvas", WFlags f = 0);	
-		
+		/// Default constructor
+		Spectrum1DCanvas(QWidget* parent = 0);
 		/// Destructor
 		virtual ~Spectrum1DCanvas();
 	
@@ -136,9 +123,6 @@ namespace OpenMS
 		virtual void verticalScrollBarChange(int value);
 	
 	protected:
-		/// Draws the icon defined in the meta info of @p peak at the position @p p
-		void drawIcon_(const PeakType& peak, const QPoint& p);
-		
 		/**
 			@brief Changes visible area interval
 			
@@ -148,19 +132,6 @@ namespace OpenMS
 		
 		/// Calls dataToWidget_(const PointType&, QPoint& point) but takes snap_factor_ and percentage_factor_ into account.
 		void dataToWidget_(const PeakType& peak, QPoint& point);
-		
-    /**
-    	@brief Reblits the drawing buffer onto the screen.
-
-    	Refreshes the screen. This function should be called
-    	when the internal buffer is still current and the screen
-    	representation was damaged by overdrawing. If the internal
-    	buffer is outdated, invalidate_() should be called.
-    */
-    void refresh_();
-
-		// Docu in base class
-		virtual void invalidate_();
 		
 		/**
 			@brief Sets the visible area
@@ -179,44 +150,23 @@ namespace OpenMS
 		
 		/// Array of selected peak iterators
 		std::vector<SpectrumIteratorType> selected_peaks_;
-		
-		/// The (one and only) painter. 
-		QPainter painter_;
 
 		/// Draw modes (for each spectrum)
-		std::vector<DrawModes> draw_modes_;
-		/// Iterators on first visible peak (for each spectrum)
-		std::vector<SpectrumIteratorType> visible_begin_;
-		/// Iterators after the last visible peak (for each spectrum)
-		std::vector<SpectrumIteratorType> visible_end_;    
+		std::vector<DrawModes> draw_modes_; 
 		/// Iterator on peak next to mouse position
-		SpectrumIteratorType nearest_peak_;
+		SpectrumIteratorType selected_peak_;
 		/// Find peak next to the given position
 		SpectrumIteratorType findPeakAtPosition_(QPoint);  
-		
-		/// pen for drawing of normal peaks
-		QPen norm_pen_;
-		/// pen for drawing of highlighted peaks
-		QPen high_pen_;
-		/// pen for drawing of icons
-		QPen icon_pen_; 
 
-		/// Draws peaks for layer @p index
-		void drawPeaks_(UnsignedInt index);
-		/// Draws connectedLines for layer @p index
-		void drawConnectedLines_(UnsignedInt index);
-
-		/// QT Event
-		void paintEvent( QPaintEvent * );
-		/// QT Event
-		void mousePressEvent( QMouseEvent *);
-		/// QT Event
-		void mouseDoubleClickEvent( QMouseEvent *);
-		/// QT Event
-		void mouseReleaseEvent( QMouseEvent *);
-		/// QT Event
-		void mouseMoveEvent( QMouseEvent *);
-
+    /** @name Reimplemented QT events */
+    //@{
+		void paintEvent(QPaintEvent* e);
+		void mousePressEvent(QMouseEvent* e);
+		void mouseDoubleClickEvent(QMouseEvent* e);
+		void mouseReleaseEvent(QMouseEvent* e);
+		void mouseMoveEvent(QMouseEvent* e);
+		void wheelEvent(QWheelEvent* e);
+    //@}
 
 	};
 } // namespace OpenMS

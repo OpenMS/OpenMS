@@ -25,27 +25,21 @@
 // --------------------------------------------------------------------------
 
 //OpenMS
-#include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/VISUAL/VISUALIZER/ProteinHitVisualizer.h>
-#include <OpenMS/VISUAL/VISUALIZER/BaseVisualizer.h>
-//#include <OpenMS/VISUAL/DataTable.h>
 
 //QT
-#include <qwidget.h>
-#include <qlabel.h> 
-#include <qlineedit.h>
-#include <qtextedit.h>
-#include <qpushbutton.h>
-#include <iostream>
-#include <vector>
-#include <qvalidator.h>
+#include <QtGui/QTextEdit>
+#include <QtGui/QLineEdit>
 
-//using namespace std;
-using namespace OpenMS;
+#include <iostream>
+
 using namespace std;
 
+namespace OpenMS
+{
+
 //Constructor
-ProteinHitVisualizer::ProteinHitVisualizer(bool editable, QWidget *parent, const char *name) : BaseVisualizer(editable, parent, name)
+ProteinHitVisualizer::ProteinHitVisualizer(bool editable, QWidget *parent) : BaseVisualizer(editable, parent)
 {
   
 	addLabel("Show ProteinHit information.");		
@@ -69,17 +63,17 @@ void ProteinHitVisualizer::load(ProteinHit &h)
 	
 	//Copy of current object for restoring the original values
 	tempProteinHit_=h;
-  proteinhit_score_->setText(String(tempProteinHit_.getScore()) );
+  proteinhit_score_->setText(String(tempProteinHit_.getScore()).c_str() );
 	proteinhit_score_->setReadOnly(true);
-	proteinhit_score_type_->setText(tempProteinHit_.getScoreType() );
+	proteinhit_score_type_->setText(tempProteinHit_.getScoreType().c_str() );
 	proteinhit_score_type_->setReadOnly(true);
-  proteinhit_rank_->setText(String(tempProteinHit_.getRank()));
+  proteinhit_rank_->setText(String(tempProteinHit_.getRank()).c_str());
 	proteinhit_rank_->setReadOnly(true);
-	proteinhit_accession_->setText(tempProteinHit_.getAccession());
+	proteinhit_accession_->setText(tempProteinHit_.getAccession().c_str());
 	proteinhit_accession_->setReadOnly(true);
-	proteinhit_accession_type_->setText(tempProteinHit_.getAccessionType());
+	proteinhit_accession_type_->setText(tempProteinHit_.getAccessionType().c_str());
 	proteinhit_accession_type_->setReadOnly(true);
-	proteinhit_sequence_->setText(tempProteinHit_.getSequence()); 
+	proteinhit_sequence_->setText(tempProteinHit_.getSequence().c_str()); 
 	proteinhit_sequence_->setReadOnly(true);
 	
 			
@@ -109,4 +103,6 @@ void ProteinHitVisualizer::reject()
 	{
 		cout<<"Error while trying to restore original ProteinHit data. "<<e.what()<<endl;
 	} 
+}
+
 }

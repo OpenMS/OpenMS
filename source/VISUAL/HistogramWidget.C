@@ -26,8 +26,10 @@
 
 
 // Qt
-#include <qlayout.h>
-#include <qtable.h>
+#include <QtGui/QResizeEvent>
+#include <QtGui/QMouseEvent>
+#include <QtGui/QPaintEvent>
+#include <QtGui/QPainter>
 
 // STL
 #include <iostream>
@@ -42,13 +44,14 @@ namespace OpenMS
 {
 	using namespace Math;
 	
-	HistogramWidget::HistogramWidget(const Histogram<UnsignedInt,float>& distribution, QWidget* parent, const char* name)
-	: QWidget(parent, name,Qt::WPaintClever),
-	dist_(distribution),
-	show_splitters_(false),
-	moving_splitter_(0),
-	margin_(30),
-	scaling_factor_(100)
+	HistogramWidget::HistogramWidget(const Histogram<UnsignedInt,float>& distribution, QWidget* parent)
+	  : QWidget(parent),
+		dist_(distribution),
+		show_splitters_(false),
+		moving_splitter_(0),
+		margin_(30),
+		buffer_(),
+		scaling_factor_(100)
 	{
      //use log scale for int 	 
      dist_.applyLogTransformation(100);
@@ -56,7 +59,6 @@ namespace OpenMS
 		left_splitter_ =  dist_.min();
 		right_splitter_ = dist_.max();
 		setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
-		buffer_ = new QPixmap(1,1);
 		setMinimumSize(600,450);
 		bottom_axis_ = new AxisWidget(AxisWidget::BOTTOM,"x",this);
 		//bottom_axis_->setPaletteBackgroundColor(Qt::yellow); //for debugging:
@@ -103,7 +105,7 @@ namespace OpenMS
 	
 	void HistogramWidget::mousePressEvent( QMouseEvent *e)
 	{
-		if (show_splitters_ && e->button()==LeftButton)
+		if (show_splitters_ && e->button()==Qt::LeftButton)
 		{
 			//left
 			SignedInt p = margin_ + UnsignedInt(((left_splitter_-dist_.min())/(dist_.max()-dist_.min()))*(width()-2*margin_));
@@ -128,7 +130,7 @@ namespace OpenMS
 	
 	void HistogramWidget::mouseMoveEvent( QMouseEvent *e)
 	{
-		if (show_splitters_ && (e->state() & LeftButton))
+		if (show_splitters_ && (e->buttons() & Qt::LeftButton))
 		{
 			//left
 			if (moving_splitter_==1)
@@ -185,8 +187,9 @@ namespace OpenMS
 	
 	void HistogramWidget::paintEvent( QPaintEvent * /*e*/)
 	{
-		//cout << "Paint event" << endl;
-		bitBlt(this, margin_, 0, buffer_);
+		QPainter painter2(this);
+		painter2.drawPixmap(margin_, 0, buffer_);
+		
 		//draw splitters
 		if (show_splitters_)
 		{
@@ -213,17 +216,17 @@ namespace OpenMS
 	
 	void HistogramWidget::resizeEvent( QResizeEvent * /*e*/)
 	{
-		buffer_->resize(width()-margin_,height()-bottom_axis_->height());
+		buffer_ = QPixmap(width()-margin_,height()-bottom_axis_->height());
 		bottom_axis_->setGeometry(margin_,height()-bottom_axis_->height(),width()-margin_,bottom_axis_->height());
 		invalidate_();
 	}
 	
 	void HistogramWidget::invalidate_()
 	{
-		QPainter painter(buffer_);
-		buffer_->fill(paletteBackgroundColor());
-		UnsignedInt w = buffer_->width();
-		UnsignedInt h = buffer_->height();
+		QPainter painter(&buffer_);
+		buffer_.fill(palette().window().color());
+		UnsignedInt w = buffer_.width();
+		UnsignedInt h = buffer_.height();
 	
 		//draw distribution	
 		QPen pen;

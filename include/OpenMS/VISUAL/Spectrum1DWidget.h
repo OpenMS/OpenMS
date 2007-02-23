@@ -33,7 +33,6 @@
 // OpenMS
 #include <OpenMS/VISUAL/SpectrumWidget.h>
 #include <OpenMS/VISUAL/Spectrum1DCanvas.h>
-#include <OpenMS/config.h>
 
 class QAction;
 
@@ -51,15 +50,8 @@ namespace OpenMS
 		Q_OBJECT
 		
 	public:
-		/**
-			@brief Default constructor
-			
-			@param parent The parent widget.
-			@param name The widget name.
-			@param f Qt::WidgetFlags that are passed on.
-		*/
-		Spectrum1DWidget(QWidget* parent = 0, const char* name = "Spectrum1DWidget", WFlags f = 0);
-		
+		/// Default constructor
+		Spectrum1DWidget(QWidget* parent = 0);
 		///Destructor
 		virtual ~Spectrum1DWidget();
 		

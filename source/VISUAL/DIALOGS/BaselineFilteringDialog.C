@@ -26,18 +26,20 @@
 
 // OpenMS includes
 #include <OpenMS/VISUAL/DIALOGS/BaselineFilteringDialog.h>
-#include <qlineedit.h>
-#include <qcheckbox.h>
-#include <qpushbutton.h>
+#include <QtGui/QLineEdit>
+#include <QtGui/QCheckBox>
+#include <QtGui/QPushButton>
 
 using namespace std;
 
 namespace OpenMS
 {
 
-	BaselineFilteringDialog::BaselineFilteringDialog(QWidget* parent, const char* name , WFlags fl )
-	    : BaselineFilteringDialogTemplate(parent,name,fl)
+	BaselineFilteringDialog::BaselineFilteringDialog(QWidget* parent )
+		: QDialog(parent)
 	{
+		setupUi(this);
+		
 	  struc_elem_line_edit->setText(QString().setNum(5));
 	  spacing_line_edit->setText(QString().setNum(0.2));
 	  resampling_check_box->setChecked(false);

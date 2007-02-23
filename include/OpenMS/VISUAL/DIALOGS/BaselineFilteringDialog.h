@@ -38,12 +38,15 @@ namespace OpenMS
   	
   	@ingroup Dialogs
   */
-  class BaselineFilteringDialog: public BaselineFilteringDialogTemplate
+  class BaselineFilteringDialog
+  	: public QDialog,
+  		public Ui::BaselineFilteringDialogTemplate
+			
   {
       Q_OBJECT
 
     public:
-      BaselineFilteringDialog(QWidget* parent = 0, const char* name = 0, WFlags fl = 0);
+      BaselineFilteringDialog(QWidget* parent = 0);
       ~BaselineFilteringDialog();
       void setStrucElemWidth(float kw);
       float getStrucElemWidth();

@@ -28,25 +28,16 @@
 #ifndef OPENMS_VISUAL_DATATABLE_H
 #define OPENMS_VISUAL_DATATABLE_H
 
-#include <OpenMS/config.h>
 #include <OpenMS/CONCEPT/Types.h>
 
 //QT
-#include <qtextedit.h>
-#include <qhbox.h>
-#include <qspinbox.h>
-#include <qpushbutton.h>
-#include <qwidget.h>
-#include <qlayout.h>
-#include <qlabel.h>
-#include <qaction.h>
-#include <qlineedit.h>
-#include <qcombobox.h>
-#include <qlistview.h>
-#include <qlistbox.h>
-#include <qbuttongroup.h>
+#include <QtGui/QWidget>
 
-
+class QPushButton;
+class QGridLayout;
+class QLineEdit;
+class QTextEdit;
+class QComboBox;
 
 namespace OpenMS 
 {
@@ -63,7 +54,7 @@ namespace OpenMS
 
 		public: 
 			/// Default constructor
-			DataTable(bool editable, QWidget *parent =0, const char *name = 0);
+			DataTable(bool editable, QWidget *parent =0);
 			/// Adds a label to the grid layout.
 			void addLabel(const QString &label);
 		  /// Adds a line edit field with label to the grid layout.

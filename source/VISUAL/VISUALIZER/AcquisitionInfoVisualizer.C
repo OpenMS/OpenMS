@@ -25,28 +25,23 @@
 // --------------------------------------------------------------------------
 
 //OpenMS
-#include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/VISUAL/VISUALIZER/AcquisitionInfoVisualizer.h>
-#include <OpenMS/VISUAL/VISUALIZER/BaseVisualizer.h>
 
+// QT
+#include <QtGui/QValidator>
+#include <QtGui/QLineEdit>
 
-//QT
-#include <qwidget.h>
-#include <qlabel.h> 
-#include <qlineedit.h>
-#include <qtextedit.h>
-#include <qpushbutton.h>
+// STL
 #include <iostream>
-#include <vector>
-#include <qvalidator.h>
 
-//using namespace std;
-using namespace OpenMS;
 using namespace std;
 
+namespace OpenMS
+{
+
 //Constructor
-AcquisitionInfoVisualizer::AcquisitionInfoVisualizer(bool editable, QWidget *parent, const char *name) 
-	: BaseVisualizer(editable, parent, name)
+AcquisitionInfoVisualizer::AcquisitionInfoVisualizer(bool editable, QWidget *parent) 
+	: BaseVisualizer(editable, parent)
 {
   
 	addLabel("Show AcquisitionInfo information");		
@@ -68,8 +63,7 @@ void AcquisitionInfoVisualizer::load(AcquisitionInfo &a)
 	
 	//Copy of current object for restoring the original values
 	tempAcquisitionInfo_=a;
-  acquisitioninfo_method_->setText(tempAcquisitionInfo_.getMethodOfCombination() );
-				
+  acquisitioninfo_method_->setText( tempAcquisitionInfo_.getMethodOfCombination().c_str() );
 }
 
 void AcquisitionInfoVisualizer::store()
@@ -77,7 +71,7 @@ void AcquisitionInfoVisualizer::store()
 	try
 	{
 				
-		(*ptr_).setMethodOfCombination(String((const char*)acquisitioninfo_method_->text()) );
+		(*ptr_).setMethodOfCombination(acquisitioninfo_method_->text().toStdString());
 					
 		tempAcquisitionInfo_ = (*ptr_);
 		
@@ -98,4 +92,6 @@ void AcquisitionInfoVisualizer::reject()
 	{
 		cout<<"Error while trying to restore original AcquisitionInfo data. "<<e.what()<<endl;
 	} 
+}
+
 }

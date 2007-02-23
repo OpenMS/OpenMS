@@ -28,7 +28,6 @@
 #define OPENMS_VISUAL_SPECTRUM3DWIDGET_H
 
 #include <OpenMS/VISUAL/SpectrumWidget.h>
-#include <OpenMS/config.h>
 
 namespace OpenMS
 {	
@@ -42,35 +41,33 @@ namespace OpenMS
 	{
 		Q_OBJECT		
 
-	public:	
-		/**
-			@brief Constructor
+		public:	
+			///Constructor
+			Spectrum3DWidget(QWidget* parent = 0);
+			
+			/// Destructor
+			virtual ~Spectrum3DWidget();
+			
+			// Docu in base class
+			Spectrum3DCanvas* canvas();
+			
+			// Docu in base class
+			virtual PreferencesDialogPage* createPreferences(QWidget* parent);  
+			// Docu in base class
+			virtual void recalculateAxes_();
+			// Docu in base class
+			virtual Math::Histogram<UnsignedInt, float> createIntensityDistribution_();   
+			// Docu in base class
+			virtual QImage getImage(UnsignedInt width, UnsignedInt height);
+	
+			bool isLegendShown() ;
+		
+		public slots:
+			void showLegend(int);
 
-			@param parent The parent Widget
-			@param name The Widget's name
-			@param f Widget flags
-		*/
-		Spectrum3DWidget(QWidget* parent = 0, const char* name = "Spectrum3DWidget", WFlags f = 0);
-		
-		/// Destructor
-		virtual ~Spectrum3DWidget();
-		
-		// Docu in base class
-		Spectrum3DCanvas* canvas();
-		
-		// Docu in base class
-		virtual PreferencesDialogPage* createPreferences(QWidget* parent);  
-		// Docu in base class
-		virtual void recalculateAxes_();
-		// Docu in base class
-		virtual Math::Histogram<UnsignedInt, float> createIntensityDistribution_();   
-		// Docu in base class
-		virtual QImage getImage(UnsignedInt width, UnsignedInt height);
+		protected:
+			bool legend_shown_;
 
-		bool isLegendShown() ;
-		bool legend_shown_;
-public slots:
-void showLegend(int);
 	};
 	
 }//namespace

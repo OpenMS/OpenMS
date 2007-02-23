@@ -27,59 +27,50 @@
 #ifndef OPENMS_VISUAL_MSMETADATAEXPLORER_H
 #define OPENMS_VISUAL_MSMETADATAEXPLORER_H
 
-//OpenMS
-#include <OpenMS/config.h>
-#include <OpenMS/METADATA/Sample.h>
-#include <OpenMS/METADATA/HPLC.h>
-#include <OpenMS/METADATA/Digestion.h>
-#include <OpenMS/METADATA/Modification.h>
-#include <OpenMS/METADATA/Tagging.h>
-#include <OpenMS/METADATA/MetaInfoInterface.h>
-#include <OpenMS/METADATA/Gradient.h>
-#include <OpenMS/METADATA/Software.h>
-#include <OpenMS/METADATA/SourceFile.h>
-#include <OpenMS/METADATA/ContactPerson.h>
-#include <OpenMS/METADATA/Instrument.h>
-#include <OpenMS/METADATA/IonSource.h>
-#include <OpenMS/METADATA/IonDetector.h>
-#include <OpenMS/METADATA/MassAnalyzer.h>
-#include <OpenMS/METADATA/ProcessingMethod.h>
-#include <OpenMS/METADATA/ProteinIdentification.h>
-#include <OpenMS/METADATA/ProteinHit.h>
-#include <OpenMS/METADATA/PeptideHit.h>
-#include <OpenMS/METADATA/ExperimentalSettings.h>
-#include <OpenMS/METADATA/Acquisition.h>
-#include <OpenMS/METADATA/AcquisitionInfo.h>
-#include <OpenMS/METADATA/MetaInfoDescription.h>
-#include <OpenMS/METADATA/Precursor.h>
-#include <OpenMS/METADATA/InstrumentSettings.h>
-#include <OpenMS/METADATA/Identification.h>
-#include <OpenMS/METADATA/SpectrumSettings.h>
-
-//STL
-#include <iostream>
+#include <OpenMS/DATASTRUCTURES/String.h>
 
 //QT
-#include <qstringlist.h>
-#include <qmainwindow.h>
-#include <qwidget.h>
-#include <qwidgetstack.h>
-#include <qsplitter.h>
-#include <qpushbutton.h>
-#include <qlayout.h>
-#include <qdialog.h>
-#include <qtoolbar.h>
-
-
-
-class QListView;
-class QListViewItem;
-
-
-
+#include <QtGui/QDialog>
+class QTreeWidgetItem;
+class QPushButton;
+class QStackedWidget;
+class QTreeWidget;
+class QHBoxLayout;
+class QVBoxLayout;
+class QGridLayout;
 
 namespace OpenMS 
 {
+	class Acquisition;
+	class AcquisitionInfo;
+	class ContactPerson;
+	class Digestion;
+	class ExperimentalSettings;
+	class Gradient;
+	class HPLC;
+	class Identification;
+	class Instrument;
+	class InstrumentSettings;
+	class IonDetector;
+	class IonSource;
+	class MassAnalyzer;
+	class MetaInfo;
+	class MetaInfoDescription;
+	class MetaInfoInterface;
+	class MetaInfoRegistry;
+	class Modification;
+	class PeptideHit;
+	class Precursor;
+	class ProcessingMethod;
+	class ProteinHit;
+	class ProteinIdentification;
+	class Sample;
+	class SampleTreatment;
+	class Software;
+	class SourceFile;
+	class SpectrumSettings;
+	class Tagging;
+	
 	/**
 		@brief A basic viewer for metadata
 		
@@ -87,219 +78,167 @@ namespace OpenMS
 		The meta info data of the tree items are shown in the right part of the viewer, when they are selected in the tree.
 		
 		@ingroup Visual
-		*/
-  class MSMetaDataExplorer : public QDialog 
-	//class MSMetaDataExplorer : public QSplitter 
+	*/
+  class MSMetaDataExplorer 
+  	: public QDialog
   {
     Q_OBJECT
   
     public: 
-		  /// Default constructor
-			//MSMetaDataExplorer(QWidget *parent =0, const char *name = 0, bool modal = FALSE, WFlags fl = 0);
-		  
 			/// Constructor with flag for edit mode
-			MSMetaDataExplorer(bool editable = FALSE, QWidget *parent =0, const char *name = 0, bool modal = FALSE, WFlags fl = 0 );
+			MSMetaDataExplorer(bool editable = FALSE, QWidget *parent = 0, bool modal = FALSE );
 		  
 			/**
-			@brief A template class to add classes
-			
-			Simple function to add classes to the viewer. Passes the object to be displayed to the corresponding visualizer class according to its type.
+				@brief A template class to add classes
+				
+				Simple function to add classes to the viewer. Passes the object to be displayed to the corresponding visualizer class according to its type.
 			*/
 			template <class T> void add(T *ptr ) 
 			{                
 				visualize_(*ptr);
 			}
 			
-		///	 Check if mode is editable or not
-		bool isEditable();	
-			
-		/// Defines friend classess that can use the functionality of the subclasses.
-		friend class ProteinIdentificationVisualizer;
-		friend class IdentificationVisualizer;
+			///	 Check if mode is editable or not
+			bool isEditable();	
+				
+			/// Defines friend classess that can use the functionality of the subclasses.
+			friend class ProteinIdentificationVisualizer;
+			friend class IdentificationVisualizer;
       
     private slots:
-		 /// Raises the corresponding viewer from the widget stack according to the item selected in the tree.
-   	 void showDetails_(QListViewItem *item);
-		 
-		 /// Saves all changes and close explorer
-		 void saveAll_();
+			/// Raises the corresponding viewer from the widget stack according to the item selected in the tree.
+			void showDetails_(QTreeWidgetItem *item, int column);
+			
+			/// Saves all changes and close explorer
+			void saveAll_();
 				 
     private:
 			/// Calls visualizer class for class type ExperimentalSettings.
-			void visualize_(ExperimentalSettings &es, QListViewItem* parent=0); 
+			void visualize_(ExperimentalSettings& meta, QTreeWidgetItem* parent=0); 
 			/// Calls visualizer class for class type SpectrumSettings.
-			void visualize_(SpectrumSettings &es, QListViewItem* parent=0); 
+			void visualize_(SpectrumSettings& meta, QTreeWidgetItem* parent=0); 
 		  /// Calls visualizer class for class type MetaInfoInterface.
-			void visualize_(MetaInfoInterface &m, QListViewItem* parent=0); 
+			void visualize_(MetaInfoInterface& meta, QTreeWidgetItem* parent=0); 
 			/// Calls visualizer class for class type Sample.
-			void visualize_(Sample &s, QListViewItem* parent=0); 
+			void visualize_(Sample& meta, QTreeWidgetItem* parent=0); 
 			/// Calls visualizer class for class type HPLC.
-			void visualize_(HPLC &h, QListViewItem* parent=0); 
+			void visualize_(HPLC& meta, QTreeWidgetItem* parent=0); 
 			/// Calls visualizer class for class type Digestion.
-			void visualize_(Digestion &d, QListViewItem* parent=0); 
+			void visualize_(Digestion& meta, QTreeWidgetItem* parent=0); 
 			/// Calls visualizer class for class type Modification.
-			void visualize_(Modification &m, QListViewItem* parent=0); 
+			void visualize_(Modification& meta, QTreeWidgetItem* parent=0); 
 			/// Calls visualizer class for class type Tagging.
-			void visualize_(Tagging &t, QListViewItem* parent=0); 
+			void visualize_(Tagging& meta, QTreeWidgetItem* parent=0); 
       /// Calls visualizer class for class type Gradient.
-			void visualize_(Gradient &g, QListViewItem* parent=0); 
+			void visualize_(Gradient& meta, QTreeWidgetItem* parent=0); 
 			/// Calls visualizer class for class type Software.
-			void visualize_(Software &s, QListViewItem* parent=0); 
+			void visualize_(Software& meta, QTreeWidgetItem* parent=0); 
 			/// Calls visualizer class for class type SourceFile
-			void visualize_(SourceFile &s, QListViewItem* parent=0); 
+			void visualize_(SourceFile& meta, QTreeWidgetItem* parent=0); 
 			/// Calls visualizer class for class type ContactPerson
-			void visualize_(ContactPerson &person, QListViewItem* parent=0); 
+			void visualize_(ContactPerson& meta, QTreeWidgetItem* parent=0); 
 			/// Calls visualizer class for class type Instrument
-			void visualize_(Instrument &instrument, QListViewItem* parent=0); 
+			void visualize_(Instrument& meta, QTreeWidgetItem* parent=0); 
 			/// Calls visualizer class for class type IonSource
-			void visualize_(IonSource &is, QListViewItem* parent=0);
+			void visualize_(IonSource& meta, QTreeWidgetItem* parent=0);
 			/// Calls visualizer class for class type IonDetector
-			void visualize_(IonDetector &id, QListViewItem* parent=0);
+			void visualize_(IonDetector& meta, QTreeWidgetItem* parent=0);
 			/// Calls visualizer class for class type MassAnalyzer
-			void visualize_(MassAnalyzer &ma, QListViewItem* parent=0);
+			void visualize_(MassAnalyzer& meta, QTreeWidgetItem* parent=0);
 			/// Calls visualizer class for class type ProcessingMethod
-			void visualize_(ProcessingMethod &ma, QListViewItem* parent=0);
+			void visualize_(ProcessingMethod& meta, QTreeWidgetItem* parent=0);
 			/// Calls visualizer class for class type ProteinIdentification
-			void visualize_(ProteinIdentification &pid, QListViewItem* parent=0);
+			void visualize_(ProteinIdentification& meta, QTreeWidgetItem* parent=0);
 			/// Calls visualizer class for class type ProteinHit
-			void visualize_(ProteinHit &phit, QListViewItem* parent=0);
+			void visualize_(ProteinHit& meta, QTreeWidgetItem* parent=0);
 			/// Calls visualizer class for class type PeptideHit
-			void visualize_(PeptideHit &pephit, QListViewItem* parent=0, std::vector<ProteinHit> *prots=0);
+			void visualize_(PeptideHit& meta, QTreeWidgetItem* parent=0, std::vector<ProteinHit> *prots=0);
 			/// Calls visualizer class for class type Aquisition
-			void visualize_(Acquisition &a, QListViewItem* parent=0);
+			void visualize_(Acquisition& meta, QTreeWidgetItem* parent=0);
 			/// Calls visualizer class for class type AcquisitionInfo
-			void visualize_(AcquisitionInfo &ai, QListViewItem* parent=0);
+			void visualize_(AcquisitionInfo& meta, QTreeWidgetItem* parent=0);
 			/// Calls visualizer class for class type MetaInfoDescription
-			void visualize_(MetaInfoDescription &mid,  QListViewItem* parent=0, String *key=0);
+			void visualize_(MetaInfoDescription& meta,  QTreeWidgetItem* parent=0, const String& key="");
 			/// Calls visualizer class for class type Precursor
-			void visualize_(Precursor &pre, QListViewItem* parent=0);
+			void visualize_(Precursor& meta, QTreeWidgetItem* parent=0);
 			/// Calls visualizer class for class type InstrumentSettings
-			void visualize_(InstrumentSettings &is, QListViewItem* parent=0);
+			void visualize_(InstrumentSettings& meta, QTreeWidgetItem* parent=0);
 			/// Calls visualizer class for class type Identification
-			void visualize_(Identification &id, QListViewItem* parent=0);
+			void visualize_(Identification& meta, QTreeWidgetItem* parent=0);
 			
-			/// Creates id numbers for the widgets on the stack.
-			int makeID_();
-			
-						 /** 
-			 @brief Update visible protein hits.
-			 
-			 Updates the protein hit information of objects of type ProteinIdentification.
-			 
-			 @param pid 
-			 
-			 Identifier of the identification object belonging to this database search.
-			 
-			 @param tree_item_id 
-			 
-			 Identifier of the item in the tree belonging to the ProteinIdentification object that is displayed.
-			 */
-			 void updateProteinHits_(ProteinIdentification pid, int tree_item_id);
+			/** 
+				@brief Update visible protein hits.
+				
+				Updates the protein hit information of objects of type ProteinIdentification.
+				
+				@param pid  Identifier of the identification object belonging to this database search.
+				@param tree_item_id  Identifier of the item in the tree belonging to the ProteinIdentification object that is displayed.
+			*/
+			void updateProteinHits_(ProteinIdentification pid, int tree_item_id);
 		 	
 			 
 			 
-			 /** 
-			 @brief Update visible peptide hits.
+			/** 
+				@brief Update visible peptide hits.
+				
+				Updates the peptide hit information of objects of type Identification depending on a threshold.
+				
+				@param id  Identifier of the identification object belonging to this database search.
+				@param tree_item_id  Identifier of the item in the tree belonging to the ProteinIdentification object that is displayed.
+			*/
+			void updatePeptideHits_(Identification id, int tree_item_id);
+			
+			
+			/** 
+				@brief Update visible peptide hits.
+				
+				Updates the peptide hit information of objects of type Identification depending on referencing protein hits.
+				
+				@param id  Identifier of the identification object belonging to this database search.
+				@param tree_item_id Identifier of the item in the tree belonging to the ProteinIdentification object that is displayed.
+				@param ref_date Petide Hits referencing to protein hits with the same date of database search.
+				@param ref_acc Petide Hits referencing to protein hits with the same acquisition number.
+			*/
+			void updateRefPeptideHits_(Identification id, int tree_item_id, String ref_date, String ref_acc);
+			
+			
+			/** 
+				@brief Update visible peptide hits.
+				
+				Updates the peptide hit information of objects of type Identification depending non referencing protein hits.<br>
+				Only peptide hits that do not reference any protein hit will be displayed.			 			 
+				
+				Updates the peptide hit information of objects of type Identification depending on referencing protein hits.
+				
+				@param id  Identifier of the identification object belonging to this database search.
+				@param tree_item_id  Identifier of the item in the tree belonging to the ProteinIdentification object that is displayed.
+			*/
+			void updateNonRefPeptideHits_(Identification id,  int tree_item_id);
 			 
-			 Updates the peptide hit information of objects of type Identification depending on a threshold.
-			 
-			 @param id 
-			 
-			 Identifier of the identification object belonging to this database search.
-			 
-			 @param tree_item_id 
-			 
-			 Identifier of the item in the tree belonging to the ProteinIdentification object that is displayed.
-			 */
-			 void updatePeptideHits_(Identification id, int tree_item_id);
-			 
-			 
-			 /** 
-			 @brief Update visible peptide hits.
-			 
-			 Updates the peptide hit information of objects of type Identification depending on referencing protein hits.
-			 
-			 @param id 
-			 
-			 Identifier of the identification object belonging to this database search.
-			 
-			 @param tree_item_id 
-			 
-			 Identifier of the item in the tree belonging to the ProteinIdentification object that is displayed.
-			 
-			 @param ref_date 
-			 
-			 Petide Hits referencing to protein hits with the same date of database search.
-			 
-			 @param ref_acc
-			 
-			 Petide Hits referencing to protein hits with the same acquisition number.
-			 */
-			 void updateRefPeptideHits_(Identification id, int tree_item_id, String ref_date, String ref_acc);
-			 
-			 
-			 /** 
-			 @brief Update visible peptide hits.
-			 
-			 Updates the peptide hit information of objects of type Identification depending non referencing protein hits.<br>
-			 Only peptide hits that do not reference any protein hit will be displayed.			 			 
-			 
-			 Updates the peptide hit information of objects of type Identification depending on referencing protein hits.
-			 
-			 @param id 
-			 
-			 Identifier of the identification object belonging to this database search.
-			 
-			 @param tree_item_id 
-			 
-			 Identifier of the item in the tree belonging to the ProteinIdentification object that is displayed.
-			 
-			 */
-			 void updateNonRefPeptideHits_(Identification id,  int tree_item_id);
-			 
-			 /// The calling dialog
-			//QDialog *parent_;
-			//MetaDialog parent_;
 			/// Indicates the mode
 			bool editable_;
 			
 			/// Basic layout.
-			//QHBoxLayout* basiclayout_;	
-			QGridLayout *basiclayout_;	
+			QGridLayout* basiclayout_;	
 			
-			/// Basic layout for the widget stack.
-			//QHBoxLayout *vertlayout_;	
-			QVBoxLayout *vertlayout_;	
-			QHBoxLayout *buttonlayout_;	
+			/// Remove
+			QVBoxLayout* vertlayout_;
+			/// Remove
+			QHBoxLayout* buttonlayout_;	
 			
-			/// Grid layout for widget stack layout.
-			QGridLayout *glayout_;		
-			/// Splitter
 			//QSplitter 
-			QWidgetStack *splitvert_;
+			QStackedWidget* splitvert_;
 			/// A widgetstack that keeps track of all widgets.
-			QWidgetStack *ws_;
-			/// The selected widget.
-			QWidget *wp_;
+			QStackedWidget* ws_;
 			/// Save button
-			QPushButton *saveallbutton_;
+			QPushButton* saveallbutton_;
 			/// Close Button
-			QPushButton *closebutton_;
+			QPushButton* closebutton_;
 			/// Cancel Button
-			QPushButton *cancelbutton_;
-			/// ID for widgets.
-			int obj_id_;
+			QPushButton* cancelbutton_;
+			
 			/// The tree.
-			QListView *listview_;
-			/// The menu bar
-			QToolBar *layer_bar_;
-			
-			
-			
-			
-
-  
-};
-
+			QTreeWidget* treeview_;
+	};
 }
 #endif

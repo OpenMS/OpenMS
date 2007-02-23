@@ -24,10 +24,6 @@
 // $Maintainer: Marc Sturm $
 // --------------------------------------------------------------------------
 
-
-// QT
-#include <qpopupmenu.h>
-
 //STL
 #include <iostream>
 
@@ -41,11 +37,11 @@ using namespace std;
 namespace OpenMS
 {
 
-	Spectrum1DWindow::Spectrum1DWindow(QWidget* parent, const char* name, WFlags f)
-		: SpectrumWindow(parent,name,f)
+	Spectrum1DWindow::Spectrum1DWindow(QWidget* parent)
+		: SpectrumWindow(parent)
 	{
 		setWidget_(new Spectrum1DWidget(this));
-		widget()->setParent(this);
+		widget()->PreferencesManager::setParent(this);
 		widget()->show();
 		setCentralWidget(widget());
 		connectWidgetSignals(widget());
@@ -68,11 +64,13 @@ namespace OpenMS
 	
 	void Spectrum1DWindow::showGoToDialog()
 	{
-	  Spectrum1DGoToDialog goToDialog(this, "Spectrum1DGoToDialog");
-	  goToDialog.setMinPosition(widget()->canvas()->getDataRange().minX());
-	  goToDialog.setMaxPosition(widget()->canvas()->getDataRange().maxX());
-	  goToDialog.exec();
-	  widget()->canvas()->setVisibleArea(SpectrumCanvas::AreaType(goToDialog.getMinPosition(),0,goToDialog.getMaxPosition(),0));
+	  Spectrum1DGoToDialog goto_dialog(this);
+	  goto_dialog.setMin(widget()->canvas()->getDataRange().minX());
+	  goto_dialog.setMax(widget()->canvas()->getDataRange().maxX());
+	  if (goto_dialog.exec())
+	  {
+	  	widget()->canvas()->setVisibleArea(SpectrumCanvas::AreaType(goto_dialog.getMin(),0,goto_dialog.getMax(),0));
+		}
 	}
 
 } //namespace

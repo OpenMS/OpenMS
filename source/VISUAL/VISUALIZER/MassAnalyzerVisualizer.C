@@ -24,34 +24,22 @@
 // $Maintainer:  stefan_heess $
 // --------------------------------------------------------------------------s
 
-
 #include <OpenMS/VISUAL/VISUALIZER/MassAnalyzerVisualizer.h>
-#include <OpenMS/VISUAL/VISUALIZER/BaseVisualizer.h>
-#include <OpenMS/DATASTRUCTURES/String.h>
-#include <OpenMS/METADATA/MassAnalyzer.h>
-
-
 
 //QT
-#include <qlayout.h>
-#include <qwidget.h>
-#include <qlabel.h> 
-#include <qlineedit.h>
-#include <qpushbutton.h>
-#include <qstring.h>
-#include <qvalidator.h>
+#include <QtGui/QLineEdit>
+#include <QtGui/QComboBox>
 
 //STL
 #include <iostream>
-#include <vector>
-#include <string>
 
-//using namespace std;
-using namespace OpenMS;
 using namespace std;
 
+namespace OpenMS
+{
+
 //Constructor
-MassAnalyzerVisualizer::MassAnalyzerVisualizer(bool editable, QWidget *parent, const char *name) : BaseVisualizer(editable, parent, name)
+MassAnalyzerVisualizer::MassAnalyzerVisualizer(bool editable, QWidget *parent) : BaseVisualizer(editable, parent)
 {
 	type_="MassAnalyzer";
   
@@ -129,23 +117,23 @@ void MassAnalyzerVisualizer::load(MassAnalyzer &s)
 
 void MassAnalyzerVisualizer::update_()
 {
-		massanalyzer_type_->setCurrentItem(tempmassanalyzer_.getType()); 
-		massanalyzer_res_method_->setCurrentItem(tempmassanalyzer_.getResolutionMethod()); 
-		massanalyzer_res_type_->setCurrentItem(tempmassanalyzer_.getResolutionType()); 
-		massanalyzer_scan_func_->setCurrentItem(tempmassanalyzer_.getScanFunction()); 
-		massanalyzer_scan_dir_->setCurrentItem(tempmassanalyzer_.getScanDirection()); 
-		massanalyzer_scan_law_->setCurrentItem(tempmassanalyzer_.getScanLaw()); 
-		massanalyzer_tandem_scan_method_->setCurrentItem(tempmassanalyzer_.getTandemScanMethod()); 
-		massanalyzer_reflectron_state_->setCurrentItem(tempmassanalyzer_.getReflectronState()); 
+		massanalyzer_type_->setCurrentIndex(tempmassanalyzer_.getType()); 
+		massanalyzer_res_method_->setCurrentIndex(tempmassanalyzer_.getResolutionMethod()); 
+		massanalyzer_res_type_->setCurrentIndex(tempmassanalyzer_.getResolutionType()); 
+		massanalyzer_scan_func_->setCurrentIndex(tempmassanalyzer_.getScanFunction()); 
+		massanalyzer_scan_dir_->setCurrentIndex(tempmassanalyzer_.getScanDirection()); 
+		massanalyzer_scan_law_->setCurrentIndex(tempmassanalyzer_.getScanLaw()); 
+		massanalyzer_tandem_scan_method_->setCurrentIndex(tempmassanalyzer_.getTandemScanMethod()); 
+		massanalyzer_reflectron_state_->setCurrentIndex(tempmassanalyzer_.getReflectronState()); 
 		
-		massanalyzer_res_->setText(String( tempmassanalyzer_.getResolution() ));
-		massanalyzer_acc_->setText(String( tempmassanalyzer_.getAccuracy() ));
-		massanalyzer_scan_rate_->setText(String( tempmassanalyzer_.getScanRate() ));
-		massanalyzer_scan_time_->setText(String( tempmassanalyzer_.getScanTime() ));
-		massanalyzer_TOF_->setText(String( tempmassanalyzer_.getTOFTotalPathLength() ));
-		massanalyzer_iso_->setText(String( tempmassanalyzer_.getIsolationWidth() ));
-		massanalyzer_final_MS_->setText(String( tempmassanalyzer_.getFinalMSExponent() ));
-		massanalyzer_magnetic_fs_->setText(String( tempmassanalyzer_.getMagneticFieldStrength() ));
+		massanalyzer_res_->setText(String( tempmassanalyzer_.getResolution() ).c_str());
+		massanalyzer_acc_->setText(String( tempmassanalyzer_.getAccuracy() ).c_str());
+		massanalyzer_scan_rate_->setText(String( tempmassanalyzer_.getScanRate() ).c_str());
+		massanalyzer_scan_time_->setText(String( tempmassanalyzer_.getScanTime() ).c_str());
+		massanalyzer_TOF_->setText(String( tempmassanalyzer_.getTOFTotalPathLength() ).c_str());
+		massanalyzer_iso_->setText(String( tempmassanalyzer_.getIsolationWidth() ).c_str());
+		massanalyzer_final_MS_->setText(String( tempmassanalyzer_.getFinalMSExponent() ).c_str());
+		massanalyzer_magnetic_fs_->setText(String( tempmassanalyzer_.getMagneticFieldStrength() ).c_str());
 }
 
 void MassAnalyzerVisualizer::store()
@@ -153,32 +141,32 @@ void MassAnalyzerVisualizer::store()
 	try
 	{
 		
-		(*ptr_).setType((MassAnalyzer::AnalyzerType)massanalyzer_type_->currentItem());		
-		(*ptr_).setResolutionMethod((MassAnalyzer::ResolutionMethod)massanalyzer_res_method_->currentItem());		
-		(*ptr_).setResolutionType((MassAnalyzer::ResolutionType)massanalyzer_res_type_->currentItem());		
-		(*ptr_).setScanFunction((MassAnalyzer::ScanFunction)massanalyzer_scan_func_->currentItem());		
-		(*ptr_).setScanDirection((MassAnalyzer::ScanDirection)massanalyzer_scan_dir_->currentItem());		
-		(*ptr_).setScanLaw((MassAnalyzer::ScanLaw)massanalyzer_scan_law_->currentItem());		
-		(*ptr_).setTandemScanMethod((MassAnalyzer::TandemScanningMethod)	massanalyzer_tandem_scan_method_->currentItem());		
-		(*ptr_).setReflectronState((MassAnalyzer::ReflectronState)massanalyzer_reflectron_state_->currentItem());		
+		(*ptr_).setType((MassAnalyzer::AnalyzerType)massanalyzer_type_->currentIndex());		
+		(*ptr_).setResolutionMethod((MassAnalyzer::ResolutionMethod)massanalyzer_res_method_->currentIndex());		
+		(*ptr_).setResolutionType((MassAnalyzer::ResolutionType)massanalyzer_res_type_->currentIndex());		
+		(*ptr_).setScanFunction((MassAnalyzer::ScanFunction)massanalyzer_scan_func_->currentIndex());		
+		(*ptr_).setScanDirection((MassAnalyzer::ScanDirection)massanalyzer_scan_dir_->currentIndex());		
+		(*ptr_).setScanLaw((MassAnalyzer::ScanLaw)massanalyzer_scan_law_->currentIndex());		
+		(*ptr_).setTandemScanMethod((MassAnalyzer::TandemScanningMethod)	massanalyzer_tandem_scan_method_->currentIndex());		
+		(*ptr_).setReflectronState((MassAnalyzer::ReflectronState)massanalyzer_reflectron_state_->currentIndex());		
 		
-		String m((const char*) massanalyzer_res_->text()) ;
-		(*ptr_).setResolution(m.toFloat() );
-		String n((const char*) massanalyzer_acc_->text()) ;
-		(*ptr_).setAccuracy(n.toFloat() );
-		String o((const char*) massanalyzer_scan_rate_->text()) ;
-		(*ptr_).setScanRate(o.toFloat() );
-		String p((const char*) massanalyzer_scan_time_->text()) ;
-		(*ptr_).setScanTime(p.toFloat() );
-		String q((const char*) massanalyzer_TOF_->text()) ;
-		(*ptr_).setTOFTotalPathLength(q.toFloat() );
-		String r((const char*) massanalyzer_iso_->text()) ;
-		(*ptr_).setIsolationWidth(r.toFloat() );
+		String m(massanalyzer_res_->text().toStdString());
+		(*ptr_).setResolution(m.toFloat());
+		String n(massanalyzer_acc_->text().toStdString());
+		(*ptr_).setAccuracy(n.toFloat());
+		String o(massanalyzer_scan_rate_->text().toStdString());
+		(*ptr_).setScanRate(o.toFloat());
+		String p(massanalyzer_scan_time_->text().toStdString());
+		(*ptr_).setScanTime(p.toFloat());
+		String q(massanalyzer_TOF_->text().toStdString());
+		(*ptr_).setTOFTotalPathLength(q.toFloat());
+		String r(massanalyzer_iso_->text().toStdString());
+		(*ptr_).setIsolationWidth(r.toFloat());
 		
-		String s((const char*) massanalyzer_final_MS_->text()) ;
-		(*ptr_).setFinalMSExponent(s.toInt() );
+		String s(massanalyzer_final_MS_->text().toStdString());
+		(*ptr_).setFinalMSExponent(s.toInt());
 		
-		String t((const char*) massanalyzer_magnetic_fs_->text()) ;
+		String t(massanalyzer_magnetic_fs_->text().toStdString());
 		(*ptr_).setMagneticFieldStrength(t.toFloat() );
 		
 		
@@ -207,3 +195,4 @@ void MassAnalyzerVisualizer::reject()
 	
 }
 
+}

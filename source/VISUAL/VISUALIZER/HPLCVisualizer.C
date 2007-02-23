@@ -25,28 +25,22 @@
 // --------------------------------------------------------------------------
 
 //OpenMS
-#include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/VISUAL/VISUALIZER/HPLCVisualizer.h>
-#include <OpenMS/VISUAL/VISUALIZER/BaseVisualizer.h>
-//#include <OpenMS/VISUAL/DataTable.h>
 
 //QT
-#include <qwidget.h>
-#include <qlabel.h> 
-#include <qlineedit.h>
-#include <qtextedit.h>
-#include <qpushbutton.h>
+#include <QtGui/QLineEdit>
+#include <QtGui/QTextEdit>
+#include <QtGui/QValidator>
 #include <iostream>
-#include <vector>
-#include <qvalidator.h>
 
-//using namespace std;
-using namespace OpenMS;
 using namespace std;
 
+namespace OpenMS
+{
+
 //Constructor
-HPLCVisualizer::HPLCVisualizer(bool editable, QWidget *parent, const char *name) 
-	: BaseVisualizer(editable, parent, name)
+HPLCVisualizer::HPLCVisualizer(bool editable, QWidget *parent) 
+	: BaseVisualizer(editable, parent)
 {
   
 	addLabel("Modify HPLC information");		
@@ -79,12 +73,12 @@ void HPLCVisualizer::load(HPLC &h)
 	
 	//Copy of current object for restoring the original values
 	tempHPLC_=h;
-  hplcinstrument_->setText(h.getInstrument());
-	hplccolumn_->setText(h.getColumn() );
-  hplctemperature_->setText(String(h.getTemperature()));
-	hplcpressure_->setText(String(h.getPressure()));
-	hplcflux_->setText(String(h.getFlux()));
-	hplccomment_->setText(h.getComment()); 
+  hplcinstrument_->setText(h.getInstrument().c_str());
+	hplccolumn_->setText(h.getColumn().c_str() );
+  hplctemperature_->setText(String(h.getTemperature()).c_str());
+	hplcpressure_->setText(String(h.getPressure()).c_str());
+	hplcflux_->setText(String(h.getFlux()).c_str());
+	hplccomment_->setText(h.getComment().c_str()); 
 	
 			
 }
@@ -95,17 +89,17 @@ void HPLCVisualizer::store()
 	{
 				
 		
-		(*ptr_).setInstrument(string((const char*)hplcinstrument_->text()));
+		(*ptr_).setInstrument(hplcinstrument_->text().toStdString());
 				
-		(*ptr_).setColumn(string((const char*)hplccolumn_->text()) );
+		(*ptr_).setColumn(hplccolumn_->text().toStdString());
 		
-		(*ptr_).setTemperature(String((const char*)hplctemperature_->text()).toInt() );
+		(*ptr_).setTemperature(hplctemperature_->text().toInt() );
 		
-		(*ptr_).setPressure(String((const char*)hplcpressure_->text()).toInt() );
+		(*ptr_).setPressure(hplcpressure_->text().toInt() );
 		
-		(*ptr_).setFlux(String((const char*)hplcflux_->text()).toInt() );
+		(*ptr_).setFlux(hplcflux_->text().toInt());
 		
-		(*ptr_).setComment(string((const char*)hplccomment_->text()) );
+		(*ptr_).setComment(hplccomment_->toPlainText().toStdString());
 		
 		tempHPLC_ = (*ptr_);
 		
@@ -126,4 +120,6 @@ void HPLCVisualizer::reject()
 	{
 		cout<<"Error while trying to restore original HPLC data. "<<e.what()<<endl;
 	} 
+}
+
 }

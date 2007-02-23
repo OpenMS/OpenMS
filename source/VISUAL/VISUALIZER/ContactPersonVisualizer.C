@@ -25,26 +25,19 @@
 // --------------------------------------------------------------------------
 
 //OpenMS
-#include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/VISUAL/VISUALIZER/ContactPersonVisualizer.h>
-#include <OpenMS/VISUAL/VISUALIZER/BaseVisualizer.h>
 
 //QT
-#include <qwidget.h>
-#include <qlabel.h> 
-#include <qlineedit.h>
-#include <qpushbutton.h>
-#include <iostream>
-#include <vector>
+#include <QtGui/QLineEdit>
 
-
-//using namespace std;
-using namespace OpenMS;
 using namespace std;
 
+namespace OpenMS
+{
+
 //Constructor
-ContactPersonVisualizer::ContactPersonVisualizer(bool editable, QWidget *parent, const char *name) 
-	: BaseVisualizer(editable, parent, name)
+ContactPersonVisualizer::ContactPersonVisualizer(bool editable, QWidget *parent) 
+	: BaseVisualizer(editable, parent)
 {
   
 	addLabel("Modify ContactPerson information");		
@@ -66,11 +59,11 @@ void ContactPersonVisualizer::load(ContactPerson &h)
 	
 	//Copy of current object for restoring the original values
 	tempContactPerson_=h;
-  cp_firstname_->setText(h.getFirstName());
-  cp_lastname_->setText(h.getLastName());
-	cp_institution_->setText(h.getInstitution() );
-  cp_email_->setText(h.getEmail() );
-	cp_contact_info_->setText(h.getContactInfo() );
+  cp_firstname_->setText(h.getFirstName().c_str());
+  cp_lastname_->setText(h.getLastName().c_str());
+	cp_institution_->setText(h.getInstitution().c_str() );
+  cp_email_->setText(h.getEmail().c_str() );
+	cp_contact_info_->setText(h.getContactInfo().c_str() );
 		
 			
 }
@@ -80,15 +73,15 @@ void ContactPersonVisualizer::store()
 	try
 	{
 				
-		(*ptr_).setFirstName(string((const char*)cp_firstname_->text()));
+		(*ptr_).setFirstName(cp_firstname_->text().toStdString());
 
-		(*ptr_).setLastName(string((const char*)cp_lastname_->text()));
+		(*ptr_).setLastName(cp_lastname_->text().toStdString());
 				
-		(*ptr_).setInstitution(string((const char*)cp_institution_->text()) );
+		(*ptr_).setInstitution(cp_institution_->text().toStdString());
 		
-		(*ptr_).setEmail(string((const char*)cp_email_->text()) );
+		(*ptr_).setEmail(cp_email_->text().toStdString());
 		
-		(*ptr_).setContactInfo(string((const char*)cp_contact_info_->text()) );
+		(*ptr_).setContactInfo(cp_contact_info_->text().toStdString());
 		
 		tempContactPerson_ = (*ptr_);
 		
@@ -109,4 +102,6 @@ void ContactPersonVisualizer::reject()
 	{
 		cout<<"Error while trying to restore original contact person data. "<<e.what()<<endl;
 	} 
+}
+
 }

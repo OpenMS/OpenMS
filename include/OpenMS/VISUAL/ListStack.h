@@ -29,36 +29,31 @@
 #define OPENMS_VISUAL_LISTSTACK_H
 
 //QT
-#include <qlistview.h>
-#include <qwidgetstack.h>
-
-//STL
-#include <string>
-#include <map>
-#include <vector>
+#include <QtGui/QTreeWidget>
+#include <QtGui/QStackedWidget>
 
 namespace OpenMS 
 {
 	/**
-		@brief Tree view combined with a widget stack.
+		@brief QTreeWidget combined with a QStackedWidget.
 		
-		Displays and manages a tree view of itemsand a stack of widgets.
-		The shown stack item is determined by the activated entry in the tree view.
+		Displays and manages a tree view of items and a stack of widgets.
 		
 		\image html ListStack.png
 		
 		In the above example image a ListStack is shown that consists of the tree view (left red rectangle)
-		and the widget stack (right red triangle).
+		and the widget stack (right red rectangle).
 		
 		@ingroup Visual
 	*/
-	class ListStack : public QWidget
+	class ListStack 
+		: public QWidget
 	{
 		Q_OBJECT
 
 		public:
 			///Constructor
-			ListStack( QWidget * parent = 0, const char * name = 0 );
+			ListStack( QWidget * parent = 0);
 			///Destructor
 			~ListStack();
 
@@ -66,24 +61,33 @@ namespace OpenMS
 			void expand();
 
 			/**
-				@brief Adds a widget with a certain name to the stack.
+				@brief Adds an entry to the stack.
 			
-				Creator and parent are needed to locate the position where to insert the widget.
+				@param name The name displayed in the the QTreeWidget
+				@param widget The widget to associate with the name
+				@param creator A pointer to the owner of the page
+				@param parent A pointer to the owner's parent widget
+				@param highlight Activates this page if true
 			*/
-			void addWidget(std::string name, QWidget* widget, void* creator, void* parent=0);
+			void addWidget(std::string name, QWidget* widget, void* creator, bool highlight, void* parent=0);
 
 			///returns a pointer to the active widget
 			QWidget* activeWidget();
 
-
 		protected:
-			QWidgetStack* stack_;
-			QListView* list_;
-			QListViewItem* last_;
-			std::map<void*,QListViewItem*> w_to_item_;
+			/// Widget stack
+			QStackedWidget* stack_;
+			/// Tree view
+			QTreeWidget* tree_;
+			/// The last inserted item
+			QTreeWidgetItem* last_;
+			/// Connection map between owners and TreeWidgetItems (for finding the right place to add children)
+			std::map<void*,QTreeWidgetItem*> w_to_item_;
+			/// Connection map between TreeWidgetItem and index in the QStackedWidget
+			std::map<QTreeWidgetItem*, int> item_to_index_;
 			
 		protected slots:
-			void raiseWidget_( QListViewItem* ptr );
+			void raiseActiveWidget_();
 
 	};
 

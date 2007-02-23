@@ -28,18 +28,14 @@
 #ifndef OPENMS_VISUAL_PREFERENCESMANAGER_H
 #define OPENMS_VISUAL_PREFERENCESMANAGER_H
 
-// STL
-#include <string>
-#include <vector>
 
-// OpenMS
-#include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/FORMAT/Param.h>
-#include <OpenMS/VISUAL/DIALOGS/PreferencesDialogPage.h>
 
+class QWidget;
 
 namespace OpenMS
 {
+	class PreferencesDialogPage;
 	class PreferencesDialog;
 	class String;
 	/**

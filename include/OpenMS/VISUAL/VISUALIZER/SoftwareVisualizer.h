@@ -23,31 +23,16 @@
 // --------------------------------------------------------------------------
 // $Maintainer: stefan_heess $
 // --------------------------------------------------------------------------
-
  
 #ifndef OPENMS_VISUAL_VISUALIZER_SOFTWAREVISUALIZER_H
 #define OPENMS_VISUAL_VISUALIZER_SOFTWAREVISUALIZER_H
 
-
 //OpenMS
-#include <OpenMS/config.h>
 #include <OpenMS/METADATA/Software.h>
 #include <OpenMS/VISUAL/VISUALIZER/BaseVisualizer.h>
 
-//QT
-#include <qtextedit.h>
-#include <qhbox.h>
-#include <qspinbox.h>
-#include <qpushbutton.h>
-#include <iostream>
-#include <qwidget.h>
-#include <qlistbox.h>
-#include <qvalidator.h>
-
 class QLineEdit;
 class QComboBox;
-
-
 
 namespace OpenMS {
 /**
@@ -61,7 +46,7 @@ This class provides all functionality to view the meta information of an object 
 		Q_OBJECT
 
 	public: 
-		SoftwareVisualizer(bool editable= FALSE, QWidget *parent =0, const char *name = 0);
+		SoftwareVisualizer(bool editable= FALSE, QWidget *parent =0);
 		void load(Software &s);
 	  
 	private slots:

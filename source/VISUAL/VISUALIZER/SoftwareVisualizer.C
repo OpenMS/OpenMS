@@ -24,36 +24,21 @@
 // $Maintainer:  stefan_heess $
 // --------------------------------------------------------------------------s
 
-
 #include <OpenMS/VISUAL/VISUALIZER/SoftwareVisualizer.h>
-#include <OpenMS/VISUAL/VISUALIZER/BaseVisualizer.h>
-#include <OpenMS/DATASTRUCTURES/String.h>
-#include <OpenMS/METADATA/Software.h>
-#include <OpenMS/DATASTRUCTURES/DateTime.h>
-
 
 //QT
-#include <qlayout.h>
-#include <qwidget.h>
-#include <qcombobox.h>
-#include <qlabel.h> 
-#include <qlineedit.h>
-#include <qlistview.h>
-#include <qtextedit.h>
-#include <qpushbutton.h>
-#include <qstring.h>
-#include <qvalidator.h>
+#include <QtGui/QTextEdit>
+#include <QtGui/QLineEdit>
 
 #include <iostream>
-#include <vector>
-#include <string>
 
-//using namespace std;
-using namespace OpenMS;
 using namespace std;
 
+namespace OpenMS
+{
+
 //Constructor
-SoftwareVisualizer::SoftwareVisualizer(bool editable, QWidget *parent, const char *name) : BaseVisualizer(editable, parent, name)
+SoftwareVisualizer::SoftwareVisualizer(bool editable, QWidget *parent) : BaseVisualizer(editable, parent)
 {
 	type_="Software";
   
@@ -78,12 +63,12 @@ void SoftwareVisualizer::load(Software &s)
 	//Copy of current object for restoring the original values
 	tempsoftware_=s;
 			
-  software_name_->setText(s.getName());
-	software_version_->setText(s.getVersion());
-	software_comment_->setText(s.getComment());
+  software_name_->setText(s.getName().c_str());
+	software_version_->setText(s.getVersion().c_str());
+	software_comment_->setText(s.getComment().c_str());
   String str;
   s.getCompletionTime().get(str);
-	software_completion_time_->setText(str); 
+	software_completion_time_->setText(str.c_str()); 
 				
 }
 
@@ -91,13 +76,13 @@ void SoftwareVisualizer::store()
 {
 	try
 	{
-		(*ptr_).setName(string((const char*) software_name_->text()) );
-		(*ptr_).setVersion(string((const char*) software_version_->text()) );
-		String m((const char*) software_completion_time_->text()) ;
+		(*ptr_).setName(software_name_->text().toStdString());
+		(*ptr_).setVersion(software_version_->text().toStdString());
+		String m(software_completion_time_->text().toStdString());
 		DateTime date;
 		date.set(m);
 		(*ptr_).setCompletionTime(date);
-		(*ptr_).setComment(string((const char*) software_comment_->text()) );
+		(*ptr_).setComment(software_comment_->toPlainText().toStdString());
 		
 		tempsoftware_=(*ptr_);		
 	}
@@ -122,3 +107,4 @@ void SoftwareVisualizer::reject()
 	
 }
 
+}

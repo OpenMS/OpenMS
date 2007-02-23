@@ -25,28 +25,23 @@
 // --------------------------------------------------------------------------
 
 //OpenMS
-#include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/VISUAL/VISUALIZER/AcquisitionVisualizer.h>
-#include <OpenMS/VISUAL/VISUALIZER/BaseVisualizer.h>
-
 
 //QT
-#include <qwidget.h>
-#include <qlabel.h> 
-#include <qlineedit.h>
-#include <qtextedit.h>
-#include <qpushbutton.h>
-#include <iostream>
-#include <vector>
-#include <qvalidator.h>
+#include <QtGui/QLineEdit>
+#include <QtGui/QValidator>
 
-//using namespace std;
-using namespace OpenMS;
+// STL
+#include <iostream>
+
 using namespace std;
 
+namespace OpenMS
+{
+
 //Constructor
-AcquisitionVisualizer::AcquisitionVisualizer(bool editable, QWidget *parent, const char *name) 
-	: BaseVisualizer(editable, parent, name)
+AcquisitionVisualizer::AcquisitionVisualizer(bool editable, QWidget *parent) 
+	: BaseVisualizer(editable, parent)
 {
   
 	addLabel("Show Acquisition information");		
@@ -69,7 +64,7 @@ void AcquisitionVisualizer::load(Acquisition &a)
 	
 	//Copy of current object for restoring the original values
 	tempAcquisition_=a;
-  acquisitionnumber_->setText(String(tempAcquisition_.getNumber()) );
+  acquisitionnumber_->setText(String(tempAcquisition_.getNumber()).c_str() );
 				
 }
 
@@ -99,4 +94,6 @@ void AcquisitionVisualizer::reject()
 	{
 		cout<<"Error while trying to restore original Acquisition data. "<<e.what()<<endl;
 	} 
+}
+
 }

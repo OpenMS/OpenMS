@@ -27,11 +27,14 @@
 #include <OpenMS/VISUAL/DIALOGS/DBSpectrumSelectorDialog.h>
 #include <OpenMS/FORMAT/DB/DBConnection.h>
 
-#include <qpushbutton.h>
-#include <qlayout.h>
-#include <qlineedit.h>
-#include <qtable.h>
-#include <qlabel.h>
+#include <QtGui/QPushButton>
+#include <QtGui/QLayout>
+#include <QtGui/QLineEdit>
+#include <QtGui/QTableWidget>
+#include <QtGui/QLabel>
+#include <QtSql/QSqlQuery>
+#include <QtGui/QHBoxLayout>
+#include <QtGui/QVBoxLayout>
 
 #include <sstream>
 
@@ -40,12 +43,12 @@ using namespace std;
 
 namespace OpenMS
 {
-	DBSpectrumSelectorDialog::DBSpectrumSelectorDialog(DBConnection& adapter, vector<UnsignedInt>& result,QWidget* parent, const char* name) 
-	 : QDialog(parent,name), 
+	DBSpectrumSelectorDialog::DBSpectrumSelectorDialog(DBConnection& adapter, vector<UnsignedInt>& result,QWidget* parent) 
+	 : QDialog(parent), 
 	 	 adapter_(adapter), 
 	 	 result_(result)
 	{ 	
-		setCaption("Select spectra from DB to open");
+		setWindowTitle("Select spectra from DB to open");
 		
 		//OK+Cancel button + layout
 		QPushButton* cancel_button_ = new QPushButton("&Cancel",this);
@@ -75,21 +78,16 @@ namespace OpenMS
 		hbox2_->setMargin(6);
 	
 		//table + layout
-		table_ = new QTable(0,4,this);
+		table_ = new QTableWidget(0,4,this);
 		table_->setMinimumWidth(650);
 		table_->setMinimumHeight(300);
 		//todo sort whole rows instead of one column
 		//table_->setSorting(true);
-		table_->setSelectionMode(QTable::NoSelection);
-		table_->setRowMovingEnabled(false);
-		table_->setColumnReadOnly(1,true);
-		table_->setColumnReadOnly(2,true);
-		table_->setColumnReadOnly(3,true);
-		table_->setLeftMargin(0);
-		table_->horizontalHeader()->setLabel(0, "",20);
-		table_->horizontalHeader()->setLabel(1, "MS Experiment id",100);
-		table_->horizontalHeader()->setLabel(2, "description",400);
-		table_->horizontalHeader()->setLabel(3, "type",80);
+		table_->setSelectionMode(QTableWidget::NoSelection);
+		table_->horizontalHeaderItem(0)->setText("");
+		table_->horizontalHeaderItem(1)->setText("MS Experiment id");
+		table_->horizontalHeaderItem(2)->setText("description");
+		table_->horizontalHeaderItem(3)->setText("type");
 		QVBoxLayout* vbox1_ = new QVBoxLayout(this);
 		vbox1_->addLayout(hbox2_);
 		vbox1_->insertWidget(-1,table_,1);
@@ -106,11 +104,11 @@ namespace OpenMS
 	
 	void DBSpectrumSelectorDialog::ok()
 	{ 	
-		for (SignedInt col=0;col<table_->numRows();++col)
+		for (SignedInt col=0;col<table_->rowCount();++col)
 		{
-			if(dynamic_cast<QCheckTableItem*>(table_->item(col,0))->isChecked())
+			if(table_->item(col,0)->checkState()==Qt::Checked)
 			{
-				result_.push_back(atoi(table_->text(col,1).ascii()));
+				result_.push_back(table_->item(col,1)->text().toInt());
 			}
 		}
 		emit accept();
@@ -122,33 +120,31 @@ namespace OpenMS
 		query << "SELECT e.id,e.Description, count(s.id) FROM META_MSExperiment e right join DATA_Spectrum s on e.id=s.fid_MSExperiment WHERE";
 		if(search_string_->text()!="")
 		{
-			query << " e.description like '%"<<search_string_->text().ascii()<<"%' and ";
+			query << " e.description like '%"<<search_string_->text().toAscii().data()<<"%' and ";
 		}
 		query << " s.MSLevel='1' GROUP BY e.id ORDER BY e.id ASC";
 		QSqlQuery result;
 		adapter_.executeQuery(query.str(),result);
-		table_->setNumRows(result.size());
-	 	table_->setLeftMargin(0);
+		table_->setRowCount(result.size());
 	 	UnsignedInt row=0;
 	 	while(result.isValid())
 		{
 			//id, description
 	 		for (unsigned int col = 0; col < 3; col++) 
 	 		{ 
-	      table_->setText(row,col+1,result.value(col).toString());
+	      table_->item(row,col+1)->setText(result.value(col).toString());
 	    }
 	    //type
-	    if (result.value(2).asInt()==1)
+	    if (result.value(2).toInt()==1)
 	    {
-	    	table_->setText(row,3,"MS");
+	    	table_->item(row,3)->setText("MS");
 	    }
 	    else
 	    {
-	    	table_->setText(row,3,"HPLC-MS");
+	    	table_->item(row,3)->setText("HPLC-MS");
 	    }
 	    //checkboxes
-	    QCheckTableItem* checker = new QCheckTableItem(table_,QString());
-	    table_->setItem(row,0,checker);
+	    table_->item(row,0)->setCheckState(Qt::Unchecked);
 	    ++row;
 	    result.next();
 		}

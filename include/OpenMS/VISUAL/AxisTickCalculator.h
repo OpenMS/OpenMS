@@ -30,6 +30,7 @@
 // STL
 #include <vector>
 #include <OpenMS/CONCEPT/Types.h>
+
 namespace OpenMS
 {
 	/**

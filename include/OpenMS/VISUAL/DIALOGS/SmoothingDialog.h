@@ -38,12 +38,14 @@ namespace OpenMS
   	
   	@ingroup Dialogs
   */
-  class SmoothingDialog: public SmoothingDialogTemplate
+  class SmoothingDialog
+  	: public QDialog,
+  		public Ui::SmoothingDialogTemplate
   {
       Q_OBJECT
 
     public:
-      SmoothingDialog(QWidget* parent = 0, const char* name = 0, WFlags fl = 0);
+      SmoothingDialog(QWidget* parent = 0);
       ~SmoothingDialog();
       void setKernelWidth(float kw);
       float getKernelWidth();

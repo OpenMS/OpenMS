@@ -29,20 +29,13 @@
 #define OPENMS_VISUAL_VISUALIZER_TAGGINGVISUALIZER_H
 
 //OpenMS
-#include <OpenMS/config.h>
 #include <OpenMS/METADATA/Tagging.h>
 #include <OpenMS/VISUAL/VISUALIZER/BaseVisualizer.h>
-
-//QT
-#include <qtextedit.h>
-#include <qpushbutton.h>
-#include <iostream>
-#include <qwidget.h>
-#include <qvalidator.h>
 
 class QLabel;
 class QLineEdit;
 class QComboBox;
+class QDoubleValidator;
 
 namespace OpenMS {
 /**
@@ -56,7 +49,7 @@ This class provides all functionality to view the meta information of an object 
 
 	public: 
 	  /// Default constructor
-		TaggingVisualizer(bool editable= FALSE, QWidget *parent =0, const char *name = 0);
+		TaggingVisualizer(bool editable= FALSE, QWidget *parent =0);
 		/// Loads the meta data from the object to the viewer.
 		void load(Tagging &t);
 

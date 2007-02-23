@@ -27,18 +27,15 @@
 #ifndef OPENMS_VISUAL_SPECTRUMWINDOW_H
 #define OPENMS_VISUAL_SPECTRUMWINDOW_H
 
-#include <OpenMS/config.h>
-
 //OpenMS
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/VISUAL/PreferencesManager.h>
 
-//QT
-#include <qmainwindow.h>
-#include <qaction.h>
-
 //STL
 #include <string>
+
+//QT
+#include <QtGui/QMainWindow>
 
 namespace OpenMS 
 {
@@ -60,13 +57,15 @@ namespace OpenMS
 		
 		@ingroup spectrum_widgets
 	*/
-	class SpectrumWindow : public QMainWindow, public PreferencesManager
+	class SpectrumWindow 
+		: public QMainWindow, 
+			public PreferencesManager
 	{
 		Q_OBJECT
 		public:
 			
 			/// Constructor
-			SpectrumWindow(QWidget* parent=0, const char* name="SpectrumWindow", WFlags f=0);
+			SpectrumWindow(QWidget* parent=0);
 			/// Destructor
 			virtual ~SpectrumWindow();
 			
@@ -82,6 +81,8 @@ namespace OpenMS
 			///Set the main Param object
 			void setMainPreferences(const Param& prefs);
 			
+			int window_id;
+			
 		signals:
 			/// Display a status message. See TOPPViewBase::showStatusMessage .
 			void sendStatusMessage(std::string,OpenMS::UnsignedInt);
@@ -91,6 +92,8 @@ namespace OpenMS
 		  void modesChanged(QWidget*);
 		  /// Shows the main preferences dialog
 		  void openPreferences();
+		  /// Message about the destruction of this widget
+		  void aboutToBeDestroyed(int window_id);
 			
 		public slots:
 			/// Displays a status message. See TOPPViewBase::showStatusMessage .

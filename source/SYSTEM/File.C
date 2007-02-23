@@ -27,9 +27,9 @@
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 
-#include <qfileinfo.h>
-#include <qdir.h>
-#include <qstringlist.h>
+#include <QtCore/QFileInfo>
+#include <QtCore/QDir>
+#include <QtCore/QStringList>
 
 #include <fstream>
 #include <stdio.h>
@@ -43,13 +43,13 @@ namespace OpenMS
 
 	bool File::exists(const string& file)
 	{
-		QFileInfo fi(file);
+		QFileInfo fi(file.c_str());
 		return fi.exists();
 	}
 
 	bool File::empty(const string& file)
 	{
-		QFileInfo fi(file);
+		QFileInfo fi(file.c_str());
 		return (!fi.exists() || fi.size()==0);
 	}
 
@@ -63,33 +63,33 @@ namespace OpenMS
 	
 	void File::absolutePath(string& file)
 	{
-		QFileInfo fi(file);
-		file = fi.absFilePath().ascii();
+		QFileInfo fi(file.c_str());
+		file = fi.absoluteFilePath().toAscii().data();
 	}
 
 	String File::basename(const string& file)
 	{
-		QFileInfo fi(file);
-		return fi.fileName().ascii();
+		QFileInfo fi(file.c_str());
+		return fi.fileName().toAscii().data();
 	}
 
 	String File::path(const string& file)
 	{
-		QFileInfo fi(file);
-		return fi.dirPath().ascii();
+		QFileInfo fi(file.c_str());
+		return fi.filePath().toAscii().data();
 	}
 
 	bool File::readable(const string& file)
 	{
-		QFileInfo fi(file);
+		QFileInfo fi(file.c_str());
 		return (fi.exists() && fi.isReadable());
 	}
 
 	bool File::writable(const string& file)
 	{
 		QFile f;
-		f.setName(file);
-		f.open(IO_WriteOnly);
+		f.setFileName(file.c_str());
+		f.open(QIODevice::WriteOnly);
 		bool tmp = f.isWritable();
 		f.close();
 		
@@ -124,7 +124,7 @@ namespace OpenMS
 	
 	bool File::fileList(const std::string& dir, const std::string& file_pattern, vector<String>& output)
 	{
-		QDir d(dir, file_pattern, QDir::Name, QDir::Files);
+		QDir d(dir.c_str(), file_pattern.c_str(), QDir::Name, QDir::Files);
 		QStringList list = d.entryList();
 
 		//clear and check if empty
@@ -141,7 +141,7 @@ namespace OpenMS
 		UnsignedInt i = 0;
 		for ( QStringList::const_iterator it = list.constBegin(); it != list.constEnd(); ++it )
 		{
-			output[i++] = (*it).ascii();
+			output[i++] = (*it).toAscii().data();
 		}
 		
 		return true;

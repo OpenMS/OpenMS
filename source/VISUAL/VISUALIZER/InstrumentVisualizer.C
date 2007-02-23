@@ -24,33 +24,24 @@
 // $Maintainer:  stefan_heess $
 // --------------------------------------------------------------------------s
 
-
 #include <OpenMS/VISUAL/VISUALIZER/InstrumentVisualizer.h>
-#include <OpenMS/VISUAL/VISUALIZER/BaseVisualizer.h>
-#include <OpenMS/DATASTRUCTURES/String.h>
-#include <OpenMS/METADATA/Instrument.h>
-
-
 
 //QT
-#include <qlayout.h>
-#include <qwidget.h>
-#include <qlabel.h> 
-#include <qlineedit.h>
-#include <qpushbutton.h>
-#include <qstring.h>
+#include <QtGui/QLineEdit>
+#include <QtGui/QTextEdit>
+#include <QtGui/QComboBox>
 
 //STL
 #include <iostream>
-#include <vector>
 #include <string>
 
-//using namespace std;
-using namespace OpenMS;
 using namespace std;
 
+namespace OpenMS
+{
+
 //Constructor
-InstrumentVisualizer::InstrumentVisualizer(bool editable, QWidget *parent, const char *name) : BaseVisualizer(editable, parent, name)
+InstrumentVisualizer::InstrumentVisualizer(bool editable, QWidget *parent) : BaseVisualizer(editable, parent)
 {
 	type_="Instrument";
   
@@ -73,10 +64,10 @@ void InstrumentVisualizer::load(Instrument &s)
 	//Copy of current object for restoring the original values
 	tempinstrument_=s;
 			
-  instrument_name_->setText(s.getName());
-	instrument_vendor_->setText(s.getVendor());
-	instrument_model_->setText(s.getModel());
-  instrument_customizations_->setText(s.getCustomizations()); 
+  instrument_name_->setText(s.getName().c_str());
+	instrument_vendor_->setText(s.getVendor().c_str());
+	instrument_model_->setText(s.getModel().c_str());
+  instrument_customizations_->setText(s.getCustomizations().c_str()); 
 				
 }
 
@@ -85,10 +76,10 @@ void InstrumentVisualizer::store()
 	try
 	{
 		
-		(*ptr_).setName(string((const char*) instrument_name_->text()) );
-		(*ptr_).setVendor(string((const char*) instrument_vendor_->text()) );
-		(*ptr_).setModel(string((const char*) instrument_model_->text()));
-		(*ptr_).setCustomizations(string((const char*) instrument_customizations_->text()) );
+		(*ptr_).setName(instrument_name_->text().toStdString());
+		(*ptr_).setVendor(instrument_vendor_->text().toStdString());
+		(*ptr_).setModel(instrument_model_->text().toStdString());
+		(*ptr_).setCustomizations(instrument_customizations_->toPlainText().toStdString());
 		
 		tempinstrument_ = (*ptr_);		
 	}
@@ -113,3 +104,4 @@ void InstrumentVisualizer::reject()
 	
 }
 
+}

@@ -29,15 +29,13 @@
 #define OPENMS_VISUAL_HISTOGRAMWIDGET_H
 
 // QT
-#include <qwidget.h>
-#include <qpixmap.h>
+#include <QtGui/QWidget>
+#include <QtGui/QPixmap>
+class QPaintEvent;
+class QResizeEvent;
+class QMouseEvent;
 
-// STL
-#include <map>
-#include <string>
-
-// OpenMS
-#include <OpenMS/CONCEPT/Types.h>
+//OpenMS
 #include <OpenMS/MATH/STATISTICS/Histogram.h>
 
 namespace OpenMS
@@ -49,17 +47,16 @@ namespace OpenMS
 		
 		It can also be used to define a left and right boundary inside the values.
 		
-		@bug Splitter are not shown although they are painted sometimes
-		
 		@ingroup Visual
 	*/
-	class HistogramWidget : public QWidget
+	class HistogramWidget
+		: public QWidget
 	{
 		Q_OBJECT
 		
 		public:
 			/// Constructor
-			HistogramWidget(const Math::Histogram<UnsignedInt,float>& distribution, QWidget* parent = 0, const char* name = "HistogramWidget");
+			HistogramWidget(const Math::Histogram<UnsignedInt,float>& distribution, QWidget* parent = 0);
 			/// Destructor
 			virtual ~HistogramWidget();
 			
@@ -88,7 +85,7 @@ namespace OpenMS
 			AxisWidget *bottom_axis_;
 			UnsignedInt margin_;
 			/// internal buffer for the double buffering
-			QPixmap* buffer_;
+			QPixmap buffer_;
 			/// repaints the contents to the buffer and calls update()
 			void invalidate_();
 			

@@ -25,9 +25,8 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/VISUAL/PeakIcon.h>
-#include <qpainter.h>
-#include <qrect.h>
 
+#include <QtGui/QPainter>
 
 namespace OpenMS
 {

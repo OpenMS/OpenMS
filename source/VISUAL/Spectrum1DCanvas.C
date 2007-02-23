@@ -25,16 +25,19 @@
 // --------------------------------------------------------------------------
 
 // Qt
-#include <qmessagebox.h>
-#include <qaction.h>
-#include <qtimer.h>
-
+#include <QtGui/QMouseEvent>
+#include <QtGui/QMessageBox>
+#include <QtGui/QPainterPath>
+#include <QtGui/QPainter>
+#include <QtCore/QTime>
+ 
 // OpenMS
 #include <OpenMS/VISUAL/PeakIcon.h>
 #include <OpenMS/MATH/MISC/MathFunctions.h>
 #include <OpenMS/VISUAL/Spectrum1DCanvas.h>
 #include <OpenMS/VISUAL/DIALOGS/Spectrum1DCanvasPDP.h>
 #include <OpenMS/FORMAT/PeakTypeEstimator.h>
+#include <OpenMS/CONCEPT/TimeStamp.h>
 
 using namespace std;
 
@@ -43,10 +46,9 @@ namespace OpenMS
 	using namespace Math;
 	using namespace Internal;
 		
-	Spectrum1DCanvas::Spectrum1DCanvas(QWidget* parent, const char* name, WFlags f)
-		: SpectrumCanvas(parent, name, f | WRepaintNoErase)
+	Spectrum1DCanvas::Spectrum1DCanvas(QWidget* parent)
+		: SpectrumCanvas(parent)
 	{
-		
 	}
 	
 	//change the current layer
@@ -60,16 +62,11 @@ namespace OpenMS
 		current_layer_ = layer_index;
 			
 		// no peak is selected
-		nearest_peak_ = currentPeakData_()[0].end();
+		selected_peak_ = currentPeakData_()[0].end();
 		selected_peaks_.clear();
 		selected_peaks_.push_back(currentPeakData_()[0].begin());
 		
 		emit layerActivated(this);
-	}
-	
-	void Spectrum1DCanvas::paintEvent(QPaintEvent* e)
-	{
-		SpectrumCanvas::paintEvent(e);
 	}
 	
 	void Spectrum1DCanvas::setVisibleArea(DRange<2> range)
@@ -84,165 +81,32 @@ namespace OpenMS
 	
 	void Spectrum1DCanvas::dataToWidget_(const PeakType& peak, QPoint& point)
 	{
-		SpectrumCanvas::dataToWidget_(peak.getPosition()[0], snap_factor_*percentage_factor_*peak.getIntensity(), point);
+		SpectrumCanvas::dataToWidget_(peak.getPos(), snap_factor_*percentage_factor_*peak.getIntensity(), point);
 	}
 	
 	//////////////////////////////////////////////////////////////////////////////////
 	// Qt events
 	
-	void Spectrum1DCanvas::mousePressEvent( QMouseEvent *e)
+	void Spectrum1DCanvas::mousePressEvent( QMouseEvent* e)
 	{
 		// get mouse position in widget coordinates
-		QPoint p = e->pos();
-		last_mouse_pos_ = p;
+		last_mouse_pos_ = e->pos();
 	
-		if (e->button() == LeftButton)
+		if (e->button() == Qt::LeftButton)
 		{
-			if (action_mode_ == AM_TRANSLATE) setCursor(cursor_translate_in_progress_);
+			if (action_mode_ == AM_TRANSLATE)
+			{
+				setCursor(cursor_translate_in_progress_);
+			}
+			else if (action_mode_ == AM_ZOOM)
+			{
+				rubber_band_.setGeometry(e->pos().x(),e->pos().y(),0,0);
+				rubber_band_.show();
+			}
 		}
 	}
-	
-	
-	void Spectrum1DCanvas::mouseReleaseEvent(QMouseEvent *e)
-	{
-		switch (action_mode_)
-		{
-			case AM_SELECT:
-			{
-				if (e->button() == Qt::RightButton)
-				{
-					return;
-				}
-				// Peak selection
-				else if (nearest_peak_ != currentPeakData_()[0].end())
-				{
-					if (!nearest_peak_->metaValueExists(4) || (UnsignedInt)(nearest_peak_->getMetaValue(4)) == PeakIcon::IT_NOICON)
-					{
-						nearest_peak_->setMetaValue(4, SignedInt(PeakIcon::IT_ELLIPSE));
-						selected_peaks_.push_back(nearest_peak_);
-	
-						ostringstream msg;
-						msg << "Selected peak at position " << nearest_peak_->getPosition()[0]  << " (" << (selected_peaks_.size()-1);
-						msg << " peaks selected altogether.)";
-						emit sendStatusMessage(msg.str(), 5000);
-					}
-					else
-					{
-						nearest_peak_->setMetaValue(4,SignedInt(PeakIcon::IT_NOICON));
-						vector<SpectrumIteratorType>::iterator it_tmp = std::find(selected_peaks_.begin(), selected_peaks_.end(), nearest_peak_);
-	
-						if(it_tmp != selected_peaks_.end())
-						{
-							selected_peaks_.erase(it_tmp);
-	
-							ostringstream msg;
-							msg << "Deselected peak at position " << nearest_peak_->getPosition()[0]  << " (" << (selected_peaks_.size()-1);
-							msg << " peaks selected altogether.)";
-							emit sendStatusMessage(msg.str(), 5000);
-						}
-	
-						//cout << "selected_peaks_.size(): " << selected_peaks_.size() << endl;
-					}
-					invalidate_();
-				}
-				break;
-			}
-			case AM_ZOOM:
-			{
-				// zoom-in-at-position or zoom-in-to-area
-				if (e->button() == LeftButton)
-				{
-					QRect rect = QRect(last_mouse_pos_, e->pos());
 
-					if (rect.width() > 4 && rect.height() > 4)   // free zoom
-					{
-						Spectrum1DCanvas::AreaType area(widgetToData_(rect.topLeft()), widgetToData_(rect.bottomRight()));
-						if (e->state() & QMouseEvent::ShiftButton)
-						{
-							//check if selected area is outside visible area and correct errors
-							if (area.minX() < visible_area_.minX())
-							{
-								area.setMinX(visible_area_.minX());
-							}
-							if (area.minY() < visible_area_.minY())
-							{
-								area.setMinY(visible_area_.minY());
-							}
-							if (area.maxX() > visible_area_.maxX())
-							{
-								area.setMaxX(visible_area_.maxX());
-							}
-							if (area.maxY() > visible_area_.maxY())
-							{
-								area.setMaxY(visible_area_.maxY());
-							}
-							changeVisibleArea_(area);
-						}
-						else
-						{
-							changeVisibleArea_(area.minX(), area.maxX(), true);
-						}
-					}
-					else                                        // position axis only zoom
-					{
-						double position = widgetToData_(rect.topLeft()).X();
-						double delta = (visible_area_.maxX()-visible_area_.minX())/4.0;
-						changeVisibleArea_(position - delta, position + delta, true);
-					}
-				}
-	
-				// zoom-back
-				if (e->button() == Qt::MidButton)
-				{
-					zoomBack_();
-				}
-	
-				if (e->button() == Qt::RightButton)
-				{
-					return;
-				}
-				break;
-			}
-			case AM_TRANSLATE:
-			{
-				setCursor(cursor_translate_);
-				if (e->button() == Qt::RightButton)
-				{
-					return;
-				}
-				break;
-			}
-			case AM_MEASURE:
-			{
-				
-			}	
-		}
-	}
-	
-	void Spectrum1DCanvas::mouseDoubleClickEvent( QMouseEvent *e)
-	{
-		if (e->button() == LeftButton && action_mode_ == AM_SELECT)
-		{
-			SpectrumIteratorType i = findPeakAtPosition_(e->pos());
-			if (i != currentPeakData_()[0].end())
-			{
-				i->metaRegistry().registerName("extended_label","","");
-				if (i->metaValueExists("extended_label"))
-				{
-					QMessageBox::information( this, "Extended meta information",
-					QString(i->getMetaValue("extended_label").toChar()) );
-				}
-			}
-		}
-	
-		// mid-doubleclick shows the whole spectrum
-		if (e->button() == Qt::MidButton)
-		{
-			resetZoom();
-		}
-	}
-	
-	void Spectrum1DCanvas::mouseMoveEvent( QMouseEvent *e)
+	void Spectrum1DCanvas::mouseMoveEvent(QMouseEvent* e)
 	{
 		// mouse position relative to the diagram widget
 		QPoint p = e->pos();
@@ -252,46 +116,41 @@ namespace OpenMS
 			case AM_SELECT:
 			{ 
 				emit sendCursorStatus();
-	 			setCursor(Qt::ArrowCursor);
-				nearest_peak_ = findPeakAtPosition_(p);
-				invalidate_();
+				selected_peak_ = findPeakAtPosition_(p);
+				update_(__PRETTY_FUNCTION__);
 				break;
 			}
 			case AM_ZOOM:
 			{
-				setCursor(Qt::CrossCursor);
 				PointType pos = widgetToData_(p);
 	
-				if (e->state() & LeftButton)
+				if (e->buttons() & Qt::LeftButton)
 				{
-					refresh_();
-					QPainter qp(this);
-					qp.setPen(Qt::NoPen);
-					qp.setBrush(Qt::cyan);
-					qp.setRasterOp(Qt::XorROP);
-
-					if (e->state() & QMouseEvent::ShiftButton) // free zoom
+					if (e->modifiers() & Qt::ShiftModifier) // free zoom
 					{
-						qp.drawRect(last_mouse_pos_.x(), last_mouse_pos_.y(), p.x() - last_mouse_pos_.x(), p.y() - last_mouse_pos_.y());
+						rubber_band_.setGeometry(last_mouse_pos_.x(), last_mouse_pos_.y(), p.x() - last_mouse_pos_.x(), p.y() - last_mouse_pos_.y());
 					}
 					else // zoom on position axis only
 					{
-						qp.drawRect(last_mouse_pos_.x(), 0, p.x() - last_mouse_pos_.x(), height());
+						rubber_band_.setGeometry(last_mouse_pos_.x(), 0, p.x() - last_mouse_pos_.x(), height());
 					}
+					update_(__PRETTY_FUNCTION__);
 				}
-				if (e->state() & QMouseEvent::ShiftButton)
+				if (e->modifiers() & Qt::ShiftModifier)
+				{
 					emit sendCursorStatus( pos.X(), pos.Y());
+				}
 				else
+				{
 					emit sendCursorStatus( pos.X() );
+				}
 				break;
 			}
 			case AM_TRANSLATE:
 			{
-				setCursor(cursor_translate_);
 				// Translation of visible area
-				if(e->state() & QMouseEvent::LeftButton)
+				if(e->buttons() & Qt::LeftButton)
 				{
-					setCursor(cursor_translate_in_progress_);
 					// translation in data metric
 					double shift = widgetToData_(last_mouse_pos_).X() - widgetToData_(p).X();
 					double newLo = visible_area_.minX() + shift;
@@ -314,68 +173,182 @@ namespace OpenMS
 				}
 				break;
 			}
+			default:
+				break;
+		}
+	}
+
+	
+	void Spectrum1DCanvas::mouseReleaseEvent(QMouseEvent* e)
+	{
+		switch (action_mode_)
+		{
+			case AM_SELECT:
+			{
+				// Peak selection
+				if (e->button() == Qt::LeftButton && selected_peak_ != currentPeakData_()[0].end())
+				{
+					if (!selected_peak_->metaValueExists(4) || (UnsignedInt)(selected_peak_->getMetaValue(4)) == PeakIcon::IT_NOICON)
+					{
+						selected_peak_->setMetaValue(4, SignedInt(PeakIcon::IT_ELLIPSE));
+						selected_peaks_.push_back(selected_peak_);
+	
+						ostringstream msg;
+						msg << "Selected peak at position " << selected_peak_->getPos()  << " (" << (selected_peaks_.size()-1);
+						msg << " peaks selected altogether.)";
+						emit sendStatusMessage(msg.str(), 5000);
+					}
+					else
+					{
+						selected_peak_->setMetaValue(4,SignedInt(PeakIcon::IT_NOICON));
+						vector<SpectrumIteratorType>::iterator it_tmp = std::find(selected_peaks_.begin(), selected_peaks_.end(), selected_peak_);
+	
+						if(it_tmp != selected_peaks_.end())
+						{
+							selected_peaks_.erase(it_tmp);
+	
+							ostringstream msg;
+							msg << "Deselected peak at position " << selected_peak_->getPos()  << " (" << (selected_peaks_.size()-1);
+							msg << " peaks selected altogether.)";
+							emit sendStatusMessage(msg.str(), 5000);
+						}
+	
+						//cout << "selected_peaks_.size(): " << selected_peaks_.size() << endl;
+					}
+					update_buffer_ = true;
+					update_(__PRETTY_FUNCTION__);
+				}
+				break;
+			}
+			case AM_ZOOM:
+			{
+				rubber_band_.hide();
+				
+				// zoom-in-at-position or zoom-in-to-area
+				if (e->button() == Qt::LeftButton)
+				{
+					QRect rect = rubber_band_.geometry();
+					
+					//cout << "Canvas area (x,y)-(x1,y1): " << rect.x() << "/" << rect.y() << " - " << rect.x() + rect.width() << "/" << rect.y() + rect.height() << endl;
+					
+					if (rect.width()!=0 && rect.height()!=0) // probably double click -> mouseDoubleClickEvent
+					{
+						AreaType area(widgetToData_(rect.topLeft()), widgetToData_(rect.bottomRight()));
+						if (e->modifiers() & Qt::ShiftModifier)
+						{
+							//check if selected area is outside visible area and correct errors
+							if (area.minX() < visible_area_.minX())
+							{
+								area.setMinX(visible_area_.minX());
+							}
+							if (area.minY() < visible_area_.minY())
+							{
+								area.setMinY(visible_area_.minY());
+							}
+							if (area.maxX() > visible_area_.maxX())
+							{
+								area.setMaxX(visible_area_.maxX());
+							}
+							if (area.maxY() > visible_area_.maxY())
+							{
+								area.setMaxY(visible_area_.maxY());
+							}
+							//cout << "Data area (corrected): " << area << endl;
+							changeVisibleArea_(area);
+						}
+						else
+						{
+							changeVisibleArea_(area.minX(), area.maxX(), true);
+						}
+					}
+				}
+				break;
+			}
+			case AM_TRANSLATE:
+			{
+				setCursor(cursor_translate_);
+				break;
+			}
 			case AM_MEASURE:
 			{
 				
-			}
+			}	
 		}
 	}
 	
+	void Spectrum1DCanvas::mouseDoubleClickEvent(QMouseEvent* e)
+	{
+		if (e->button() == Qt::LeftButton && action_mode_ == AM_SELECT)
+		{
+			SpectrumIteratorType i = findPeakAtPosition_(e->pos());
+			if (i != currentPeakData_()[0].end())
+			{
+				i->metaRegistry().registerName("extended_label","","");
+				if (i->metaValueExists("extended_label"))
+				{
+					QMessageBox::information( this, "Extended meta information",
+					QString(i->getMetaValue("extended_label").toChar()) );
+				}
+			}
+		}
+	
+		// left-doubleclick shows the whole spectrum
+		if (e->button() == Qt::LeftButton && action_mode_ == AM_ZOOM)
+		{
+			resetZoom();
+		}
+	}
+
+	void Spectrum1DCanvas::wheelEvent(QWheelEvent* e)
+	{
+		switch (action_mode_)
+		{
+			case AM_ZOOM:
+				if (e->delta() > 0) // forward rotation -> zoom in
+				{
+					double position = widgetToData_(e->pos()).X();
+					double delta = (visible_area_.maxX()-visible_area_.minX())/2.5;
+					changeVisibleArea_(position - delta, position + delta, true);
+				}
+				else // backward rotation -> zoom out
+				{
+					zoomBack_();
+				}
+				break;
+			default:
+				e->ignore();
+		}
+		e->accept();
+	}
+
 	Spectrum1DCanvas::SpectrumIteratorType Spectrum1DCanvas::findPeakAtPosition_(QPoint p)
 	{
-		//  Input: position p on screen
-		//  Algorithmn:
-		//	1. step:
-		//		transform interval [P.x, P.x+1.0) into diagramm metrics: [P.x, P.x+1.0) => [d.x1, d.x2)
-		//	2. step:
-		//		find the 2 iterators in the layer that points to the first peak that falls into this interval
-		//		and the first, that falls off the interval
-		//	Depending on how many peaks (if any) lie between this two iterators further decisions have to be made
-		//  Case 0: no peak
-		//	Case 1: one peak => we already found the nearest peak
-		// 	Case 2: several peaks => as all peaks between these two iterators will be projected on the same line on the screen further
-		//					decision must me made (based on P.y) (see code)
-		// now a slightly modified version is used. the only difference is, that the source interval
-		// has a length of 3 pixels (to simplify grabbing of a peak).
+		//reference to the current data
+		SpectrumType& spectrum = currentPeakData_()[0];
 		
 		// get the interval (in diagramm metric) that will be projected on screen coordinate p.x() or p.y() (depending on orientation)
 		PointType lt = widgetToData_(p - QPoint(1, 1));
 		PointType rb = widgetToData_(p + QPoint(1, 1));
-		double interval_start = min(lt.X(),rb.X());
-		double interval_end = max(lt.X(),rb.X());
-		
-		// debug code:
-		//	cout << "Intervall start: " << interval_start << endl;
-		//	cout << "Intervall end:   " << interval_end << endl;
 	
 		// get iterator on first peak with higher position than interval_start
 		PeakType temp;
-		temp.getPosition()[0] = interval_start;
-		SpectrumIteratorType left_it = lower_bound(visible_begin_[current_layer_], visible_end_[current_layer_], temp, PeakType::PositionLess());
+		temp.getPos() = min(lt.X(),rb.X());
+		SpectrumIteratorType left_it = lower_bound(spectrum.begin(), spectrum.end(), temp, PeakType::PositionLess());
 	
 		// get iterator on first peak with higher position than interval_end
-		temp.getPosition()[0] = interval_end;
-		SpectrumIteratorType	right_it = lower_bound(visible_begin_[current_layer_], visible_end_[current_layer_], temp, PeakType::PositionLess());
+		temp.getPos() = max(lt.X(),rb.X());
+		SpectrumIteratorType	right_it = lower_bound(left_it, spectrum.end(), temp, PeakType::PositionLess());
 	
-		//debug code:
-		//	cout << "left_it and *left_it: "  << left_it->getPosition()[0] << " " << left_it->getIntensity() << endl;
-		//	cout << "right_it and *right_it: "  << right_it->getPosition()[0] << " " << right_it->getIntensity() << endl;
 	
-		if (left_it == right_it)
+		if (left_it == right_it) // both are equal => no peak falls into this interval
 		{
-		//	cout << "case 0: no peak" << endl;	// debug code
-			return currentPeakData_()[0].end();  // both are equal => no peak falls into this interval
+			return spectrum.end();
 		}
 	
 		if (left_it == right_it-1 )
 		{
-		//	cout << "case 1: one peak falls into the interval " << endl; // debug code
 			return left_it;
 		}
-	
-		// debug code
-		//	cout << " case 3: several peaks in the same interval" << endl;
-		//	cout << left_it->getIntensity() << " " << right_it->getIntensity() << endl;
 	
 		SpectrumIteratorType nearest_it = left_it;
 		
@@ -444,8 +417,6 @@ namespace OpenMS
 		draw_modes_.erase(draw_modes_.begin()+layer_index);
 	
 		//clear other relevant variables
-		visible_begin_.clear();
-		visible_end_.clear();
 		selected_peaks_.clear();
 
 		//update current layer
@@ -454,21 +425,15 @@ namespace OpenMS
 			current_layer_ = getLayerCount()-1;
 		}
 		
-		// end this method if there are no more layers
+		//abort if there are no layers anymore
 		if (layers_.empty())
 		{
-			resetRanges_();
+			overall_data_range_ = DRange<3>::empty;
 			return;
 		}
-
-		//update relevant variables
-		for (UnsignedInt index=0; index < getLayerCount(); ++index)
-		{
-			visible_begin_.push_back(getPeakData_(index)[0].begin());
-			visible_end_.push_back(getPeakData_(index)[0].end());
-		}
+		
 		//update nearest peak
-		nearest_peak_ = currentPeakData_()[0].end();
+		selected_peak_ = currentPeakData_()[0].end();
 		//update selected peaks
 		selected_peaks_.push_back(currentPeakData_()[0].begin());
 	
@@ -495,7 +460,8 @@ namespace OpenMS
 			changeVisibleArea_(overall_data_range_.minX(), overall_data_range_.maxX());
 		}
 		
-		invalidate_();
+		update_buffer_ = true;
+		update_(__PRETTY_FUNCTION__);
 	}
 
 	void Spectrum1DCanvas::setDrawMode(DrawModes mode)
@@ -503,190 +469,14 @@ namespace OpenMS
 		if (draw_modes_[current_layer_]!=mode)
 		{
 			draw_modes_[current_layer_] = mode;
-			invalidate_();
+			update_buffer_ = true;
+			update_(__PRETTY_FUNCTION__);
 		}
 	}
 
 	Spectrum1DCanvas::DrawModes Spectrum1DCanvas::getDrawMode() const
 	{ 
 		return draw_modes_[current_layer_]; 
-	}
-
-	
-	//////////////////////////////////////////////////////////////////////////////////
-	// data plotting
-	
-	void Spectrum1DCanvas::drawIcon_(const PeakType& peak, const QPoint& p)
-	{
-		// draw icon associated to current peak
-		if (peak.metaValueExists(4))
-		{
-			painter_.setPen(icon_pen_);	
-			PeakIcon::drawIcon((PeakIcon::Icon)(UnsignedInt)(peak.getMetaValue(4)),painter_,QRect(p.x() - 5, p.y() - 5, 10, 10));
-			painter_.setPen(norm_pen_);
-		}
-	}
-	
-	void Spectrum1DCanvas::drawPeaks_(UnsignedInt index)
-	{
-		painter_.save();
-		painter_.setBrush(NoBrush);
-		painter_.setPen(norm_pen_);
-		
-		//Factor to stretch the log value to the shown intensity interval
-		float log_factor = getPeakData(index).getMaxInt()/log(getPeakData(index).getMaxInt());
-		
-		QPoint p, p0;
-		bool custom_color;
-		double min_int = getLayer(index).min_int;
-		double max_int = getLayer(index).max_int;
-		for (SpectrumIteratorType it = visible_begin_[index]; it != visible_end_[index]; ++it)
-		{
-			if (it->getIntensity() < min_int || it->getIntensity() > max_int)
-			{
-				continue;
-			}
-			if (intensity_mode_==IM_LOG)
-			{
-				SpectrumCanvas::dataToWidget_(it->getPosition()[0], log(it->getIntensity()+1)*log_factor,p);
-			}
-			else
-			{
-				dataToWidget_(*it,p);
-			}
-			SpectrumCanvas::dataToWidget_(it->getPosition()[0], 0.0f, p0);
-			
-			// highlight selected peak
-			if (it->getPosition()[0] == nearest_peak_->getPosition()[0])
-			{
-				painter_.setPen(high_pen_);
-				painter_.drawLine(p0, p);
-				painter_.setPen(norm_pen_);
-				emit sendCursorStatus( it->getPosition()[0], it->getIntensity());
-			}
-			else
-			{
-				// custom peak color
-				custom_color = it->metaValueExists(5);
-				if (custom_color)
-				{
-					QPen pen(QColor(string(it->getMetaValue(5)).c_str()), pen_width_);
-					painter_.setPen(pen);
-				}
-				painter_.drawLine(p0, p);
-				if (custom_color)
-				{
-					painter_.setPen(norm_pen_);
-				}
-			}
-			//draw icon if necessary
-			drawIcon_(*it, p);
-		}
-		painter_.restore();
-	}
-	
-	void Spectrum1DCanvas::drawConnectedLines_(UnsignedInt index)
-	{
-		painter_.save();
-		painter_.setBrush(NoBrush);
-		painter_.setPen(norm_pen_);
-		
-		QPoint begin, end;
-		
-		//Factor to stretch the log value to the shown intensity interval
-		float log_factor = getPeakData(index).getMaxInt()/log(getPeakData(index).getMaxInt());
-		
-		//cases where 1 or 0 points are shown
-		if (visible_begin_[index]==visible_end_[index])
-		{
-			// check cases where no peak at all is visible
-			if (visible_begin_[index] == getPeakData_(index)[0].end()) 
-			{
-				painter_.restore();
-				return;
-			}
-			if (visible_end_[index] == getPeakData_(index)[0].begin())
-			{
-				painter_.restore();
-				return;
-			}
-			// draw line (clipping performed by Qt on both sides)
-			dataToWidget_(*(visible_begin_[index] - 1), begin);
-			dataToWidget_(*visible_begin_[index], end);
-			painter_.drawLine(begin, end);
-			return;
-		}
-	
-		// connect peaks in visible area; (no clipping needed)
-		bool firstPoint=true;
-		QPoint p;
-		bool custom_color;
-		for (SpectrumIteratorType it = visible_begin_[index]; it != visible_end_[index]; it++)
-		{
-			if (intensity_mode_==IM_LOG)
-			{
-				SpectrumCanvas::dataToWidget_(it->getPosition()[0], log(it->getIntensity()+1)*log_factor,p);
-			}
-			else
-			{
-				dataToWidget_(*it, p);
-			}
-
-			// connect lines
-			if (firstPoint)
-			{
-				
-				painter_.moveTo(p);
-				firstPoint = false;
-			} 
-			else
-			{
-				// custom peak color
-				custom_color = it->metaValueExists(5);
-				if (custom_color)
-				{
-					QPen pen(QColor(string(it->getMetaValue(5)).c_str()), pen_width_);
-					painter_.setPen(pen);
-				}
-				painter_.lineTo(p);
-				if (custom_color)
-				{
-					painter_.setPen(norm_pen_);
-				}
-			};
-	
-			// highlight selected peak
-			if (it->getPosition()[0] == nearest_peak_->getPosition()[0])
-			{
-				painter_.save();
-				painter_.setPen(high_pen_);
-				painter_.drawLine(p.x(), p.y()-4, p.x(), p.y()+4);
-				painter_.drawLine(p.x()-4, p.y(), p.x()+4, p.y());
-				painter_.restore();
-
-				emit sendCursorStatus( it->getPosition()[0], it->getIntensity());
-			}
-			// draw associated icon
-			drawIcon_(*it, p);
-		}
-	
-		// clipping on left side
-		if (visible_begin_[index] > getPeakData_(index)[0].begin())
-		{
-			dataToWidget_(*(visible_begin_[index]-1), begin);
-			dataToWidget_(*(visible_begin_[index]), end);
-			painter_.drawLine(begin, end);
-		}
-	
-		// clipping on right side
-		if (visible_end_[index] < getPeakData_(index)[0].end())
-		{
-			dataToWidget_(*(visible_end_[index]-1), begin);
-			dataToWidget_(*(visible_end_[index]), end);
-			painter_.drawLine(begin,end);
-		}
-	
-		painter_.restore();
 	}
 	
 	void Spectrum1DCanvas::setMainPreferences(const Param& prefs)
@@ -698,86 +488,253 @@ namespace OpenMS
 		}
 	}
 	
-	void Spectrum1DCanvas::invalidate_()
-	{
-		// get color settings
-		setPaletteBackgroundColor(QColor(getPrefAsString("Preferences:1D:BackgroundColor").c_str()));
-		setBackgroundColor(QColor(getPrefAsString("Preferences:1D:BackgroundColor").c_str()));
-	
-		norm_pen_ = QPen(QColor(getPrefAsString("Preferences:1D:PeakColor").c_str()), pen_width_);
-		high_pen_ = QPen(QColor(getPrefAsString("Preferences:1D:HighColor").c_str()), pen_width_+2);
-		icon_pen_ = QPen(QColor(getPrefAsString("Preferences:1D:IconColor").c_str()), pen_width_);
-	
-		//repaint content
-		painter_.begin(buffer_);
-		// flushing buffer_ with widget color
-		painter_.fillRect(0, 0, width(), height(), backgroundColor());
+	void Spectrum1DCanvas::paintEvent(QPaintEvent* e)
+	{		
+#ifdef DEBUG_TOPPVIEW
+		cout << "BEGIN " << __PRETTY_FUNCTION__ << endl;
+	  cout << "  Visible area -- m/z: " << visible_area_.minX() << " - " << visible_area_.maxX() << " int: " << visible_area_.minY() << " - " << visible_area_.maxY() << endl;
+	  cout << "  Overall area -- m/z: " << overall_data_range_.min()[0] << " - " << overall_data_range_.max()[0] << " int: " << overall_data_range_.min()[1] << " - " << overall_data_range_.max()[1] << endl; 
+#endif
+#ifdef TIMING_TOPPVIEW
+		QTime timer;
+ 		timer.start();
+#endif
 		
-		emit recalculateAxes();
-		paintGridLines_(&painter_);
-		
-		for (UnsignedInt i=0; i< getLayerCount();++i)
+		QPainter painter;
+		QPoint begin, end;
+		float log_factor;
+
+		if (update_buffer_)
 		{
-			if (!getLayer(i).visible)
-			{
-				continue;
-			}
-	
-			if (intensity_mode_ == IM_PERCENTAGE)
-			{
-				percentage_factor_ = overall_data_range_.max()[1]/getPeakData(i)[0].getMaxInt();
-			}
-			else 
-			{
-				percentage_factor_ = 1.0;
-			}
+			update_buffer_ = false;
 			
-			switch (draw_modes_[i])
+			painter.begin(&buffer_);
+
+			QPen icon_pen = QPen(QColor(getPrefAsString("Preferences:1D:IconColor").c_str()), 1);
+			QPen norm_pen = QPen(QColor(getPrefAsString("Preferences:1D:PeakColor").c_str()), 1);
+			painter.setPen(norm_pen);
+
+			buffer_.fill(QColor(getPrefAsString("Preferences:1D:BackgroundColor").c_str()).rgb());
+
+			emit recalculateAxes();
+			paintGridLines_(painter);
+			
+			SpectrumIteratorType vbegin, vend;
+								
+			for (UnsignedInt i=0; i< getLayerCount();++i)
 			{
-				case DM_PEAKS:
-					drawPeaks_(i);
-					break;
-				case DM_CONNECTEDLINES:
-					drawConnectedLines_(i);
-					break;
-				default:
-					throw Exception::NotImplemented(__FILE__, __LINE__, __PRETTY_FUNCTION__);
-			}
-		}
+				if (getLayer(i).visible)
+				{
+					if (intensity_mode_ == IM_PERCENTAGE)
+					{
+						percentage_factor_ = overall_data_range_.max()[1]/getPeakData(i)[0].getMaxInt();
+					}
+					else 
+					{
+						percentage_factor_ = 1.0;
+					}
+					
+					vbegin = getPeakData_(i)[0].MZBegin(visible_area_.minX());
+					vend = getPeakData_(i)[0].MZEnd(visible_area_.maxX());
+
+					//Factor to stretch the log value to the shown intensity interval
+					log_factor = getPeakData(i).getMaxInt()/log(getPeakData(i).getMaxInt());
+					
+					switch (draw_modes_[i])
+					{
+						case DM_PEAKS:
+							//-----------------------------------------DRAWING PEAKS-------------------------------------------
+							
+							bool custom_color;
 	
-		painter_.end();
-		repaint(false);
+							for (SpectrumIteratorType it = vbegin; it != vend; ++it)
+							{
+								if (it->getIntensity() >= getLayer(i).min_int && it->getIntensity() <= getLayer(i).max_int)
+								{
+									if (intensity_mode_==IM_LOG)
+									{
+										SpectrumCanvas::dataToWidget_(it->getPos(), log(it->getIntensity()+1)*log_factor,end);
+									}
+									else
+									{
+										dataToWidget_(*it,end);
+									}
+									SpectrumCanvas::dataToWidget_(it->getPos(), 0.0f, begin);
+									
+									// draw peak
+									custom_color = it->metaValueExists(5);
+									if (custom_color)
+									{
+										painter.save();
+										painter.setPen(QColor(string(it->getMetaValue(5)).c_str()));
+									}
+									painter.drawLine(begin, end);
+									if (custom_color)
+									{
+										painter.restore();
+									}
+									
+									//draw icon if necessary
+									if (it->metaValueExists(4))
+									{
+										painter.save();
+										painter.setPen(icon_pen);	
+										PeakIcon::drawIcon((PeakIcon::Icon)(UnsignedInt)(it->getMetaValue(4)),painter,QRect(end.x() - 5, end.y() - 5, 10, 10));
+										painter.restore();
+									}
+								}
+							}
+							//-----------------------------------------DRAWING PEAKS END-------------------------------------------
+							break;
+						case DM_CONNECTEDLINES:
+							{
+								//-------------------------------------DRAWING CONNECTED LINES-----------------------------------------
+								QPainterPath path;
+							
+								// connect peaks in visible area; (no clipping needed)
+								bool first_point=true;
+								for (SpectrumIteratorType it = vbegin; it != vend; it++)
+								{
+									if (intensity_mode_==IM_LOG)
+									{
+										SpectrumCanvas::dataToWidget_(it->getPos(), log(it->getIntensity()+1)*log_factor,begin);
+									}
+									else
+									{
+										dataToWidget_(*it, begin);
+									}
+						
+									// connect lines
+									if (first_point)
+									{
+										path.moveTo(begin);
+										first_point = false;
+									} 
+									else
+									{
+										path.lineTo(begin);
+									}
+									
+									// draw associated icon
+									if (it->metaValueExists(4))
+									{
+										painter.save();
+										painter.setPen(icon_pen);											
+										PeakIcon::drawIcon((PeakIcon::Icon)(UnsignedInt)(it->getMetaValue(4)),painter,QRect(begin.x() - 5, begin.y() - 5, 10, 10));
+										painter.restore();
+									}
+								}
+								painter.drawPath(path);
+									
+								// clipping on left side
+								if (vbegin != getPeakData_(i)[0].begin())
+								{
+									dataToWidget_(*(vbegin-1), begin);
+									dataToWidget_(*(vbegin), end);
+									painter.drawLine(begin, end);
+								}
+							
+								// clipping on right side
+								if (vend != getPeakData_(i)[0].end())
+								{
+									dataToWidget_(*(vend-1), begin);
+									dataToWidget_(*(vend), end);
+									painter.drawLine(begin,end);
+								}
+								//-------------------------------------DRAWING CONNECTED LINES END-----------------------------------------
+							}
+							break;
+						default:
+							throw Exception::NotImplemented(__FILE__, __LINE__, __PRETTY_FUNCTION__);
+					}
+				}
+			}
+			painter.end();
+		}
+		
+		painter.begin(this);
+		
+		//draw peak data
+		QVector<QRect> rects = e->region().rects();
+		for (int i = 0; i < (int)rects.size(); ++i)
+		{
+			painter.drawPixmap(rects[i].topLeft(), buffer_, rects[i]);
+		}
+		
+		//draw selected peak
+		if (selected_peak_!=currentPeakData_()[0].end())
+		{
+			painter.save();
+			painter.setPen(QPen(QColor(getPrefAsString("Preferences:1D:HighColor").c_str()), 2));		
+			if (getDrawMode() == DM_PEAKS)
+			{
+				if (intensity_mode_==IM_LOG)
+				{
+					log_factor = getCurrentPeakData().getMaxInt()/log(getCurrentPeakData().getMaxInt());
+					SpectrumCanvas::dataToWidget_(selected_peak_->getPos(), log(selected_peak_->getIntensity()+1)*log_factor,end);
+				}
+				else
+				{
+					dataToWidget_(*selected_peak_,end);
+				}
+				SpectrumCanvas::dataToWidget_(selected_peak_->getPos(), 0.0f, begin);
+				painter.drawLine(begin, end);
+			}
+			else if (getDrawMode() == DM_CONNECTEDLINES)
+			{
+				if (intensity_mode_==IM_LOG)
+				{
+					log_factor = getCurrentPeakData().getMaxInt()/log(getCurrentPeakData().getMaxInt());
+					SpectrumCanvas::dataToWidget_(selected_peak_->getPos(), log(selected_peak_->getIntensity()+1)*log_factor,begin);
+				}
+				else
+				{
+					dataToWidget_(*selected_peak_, begin);
+				}
+				painter.drawLine(begin.x(), begin.y()-4, begin.x(), begin.y()+4);
+				painter.drawLine(begin.x()-4, begin.y(), begin.x()+4, begin.y());
+			}
+			painter.restore();
+			emit sendCursorStatus( selected_peak_->getPos(), selected_peak_->getIntensity());
+		}
+		
+		painter.end();
+#ifdef DEBUG_TOPPVIEW
+		cout << "END   " << __PRETTY_FUNCTION__ << endl;
+#endif
+#ifdef TIMING_TOPPVIEW	
+		cout << "1D PaintEvent took " << timer.elapsed() << " ms" << endl;
+#endif	
 	}
 	
 	void Spectrum1DCanvas::changeVisibleArea_(const AreaType& new_area, bool add_to_stack)
 	{
-		//prevent deadlock
+#ifdef DEBUG_TOPPVIEW
+		cout << "BEGIN " << __PRETTY_FUNCTION__ << endl;
+#endif
 		if (new_area==visible_area_)
 		{
 			return;
 		}
-	
-		if (!layers_.empty())
+		//store old zoom state
+		if (add_to_stack)
 		{
-			// get iterators on peaks that outline the visible area
-			for (UnsignedInt i=0; i<getLayerCount();++i)
-			{
-				visible_begin_[i] = getPeakData_(i)[0].MZBegin(new_area.minX());
-				visible_end_[i]   = getPeakData_(i)[0].MZBegin(new_area.maxX());
-			}
-			
-			if (action_mode_ != AM_SELECT)
-			{
-				nearest_peak_ = visible_end_[current_layer_];
-			}
-
-			recalculateSnapFactor_();	
+			zoom_stack_.push(visible_area_);
 		}
-
-		SpectrumCanvas::changeVisibleArea_(new_area, add_to_stack);
+		visible_area_ = new_area;
+		
+		updateScrollbars_();
+		recalculateSnapFactor_();
+		
+		emit visibleAreaChanged(new_area);
+		update_buffer_ = true;
+		update_(__PRETTY_FUNCTION__);
+#ifdef DEBUG_TOPPVIEW
+		cout << "END   " << __PRETTY_FUNCTION__ << endl;
+#endif
 	}
 	
-	// destructor
+	/// Destructor
 	Spectrum1DCanvas::~Spectrum1DCanvas()
 	{
 		
@@ -803,6 +760,9 @@ namespace OpenMS
 
 	SignedInt Spectrum1DCanvas::finishAdding(float low_intensity_cutoff)
 	{
+#ifdef DEBUG_TOPPVIEW
+		cout << "BEGIN " << __PRETTY_FUNCTION__ << endl;
+#endif
 		current_layer_ = getLayerCount()-1;
 		currentPeakData_().updateRanges();
 		
@@ -817,10 +777,6 @@ namespace OpenMS
 		getCurrentLayer_().min_int = low_intensity_cutoff;
 		getCurrentLayer_().max_int = getCurrentPeakData().getMaxInt();
 	
-		//add new values to visible_begin_ and visible_end_
-		visible_begin_.push_back(currentPeakData_()[0].begin());
-		visible_end_.push_back(currentPeakData_()[0].end());
-	
 		//add new draw mode
 		draw_modes_.push_back(DM_PEAKS);
 		//estimate peak type
@@ -833,6 +789,11 @@ namespace OpenMS
 		// sort peaks in accending order of position
 		currentPeakData_()[0].getContainer().sortByPosition();
 		
+		//update nearest peak
+		selected_peak_ = currentPeakData_()[0].end();
+		//update selected peaks
+		selected_peaks_.push_back(currentPeakData_()[0].begin());
+		
 		//update ranges
 		recalculateRanges_(0,2,1);
 		overall_data_range_.setMinY(0.0);  // minimal intensity always 0.0
@@ -844,18 +805,22 @@ namespace OpenMS
 		resetZoom();
 		
 		emit layerActivated(this);
+
+#ifdef DEBUG_TOPPVIEW
+		cout << "END   " << __PRETTY_FUNCTION__ << endl;
+#endif
 		
 		return current_layer_;
 	}
 
   void Spectrum1DCanvas::recalculateSnapFactor_()
   {
-		if (intensity_mode_ == IM_SNAP) 
+  	if (intensity_mode_ == IM_SNAP) 
 		{
 			double local_max  = -numeric_limits<double>::max();
 			for (UnsignedInt i=0; i<getLayerCount();++i)
 			{
-				SpectrumIteratorType tmp  = max_element(visible_begin_[i], visible_end_[i], PeakType::IntensityLess());
+				SpectrumIteratorType tmp  = max_element(getPeakData_(i)[0].MZBegin(visible_area_.minX()), getPeakData_(i)[0].MZEnd(visible_area_.maxX()), PeakType::IntensityLess());
 				if (tmp->getIntensity() > local_max) 
 				{
 					local_max = tmp->getIntensity();
@@ -897,18 +862,10 @@ namespace OpenMS
 		{
 			double range = (overall_data_range_.maxX() - overall_data_range_.minX())- (visible_area_.maxX() - visible_area_.minX());
 			double newval = (1.0 - (double(value) - overall_data_range_.minX()) / range )* range + overall_data_range_.minX();
-			//cout << value << " " << newval << " " << newval + (visible_area_.maxX() - visible_area_.minX()) << endl;
-			//cout << "Min: " <<  overall_data_range_.minX() << " Range: " << range << endl << endl;
 			changeVisibleArea_(newval, newval + (visible_area_.maxX() - visible_area_.minX()));
 		}
 	}
-	
-	void Spectrum1DCanvas::refresh_()
-	{
-		bitBlt(this, 0, 0, buffer_, 0, 0, width(), height(), Qt::CopyROP, true);
-		
-//		highlightPeaks_();
-	}
+
 }//Namespace
 
 

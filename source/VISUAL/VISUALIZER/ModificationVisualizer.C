@@ -23,29 +23,24 @@
 // --------------------------------------------------------------------------
 // $Maintainer: stefan_heess  $
 // --------------------------------------------------------------------------
-#include <OpenMS/DATASTRUCTURES/String.h>
+
 #include <OpenMS/VISUAL/VISUALIZER/ModificationVisualizer.h>
-#include <OpenMS/VISUAL/VISUALIZER/BaseVisualizer.h>
-#include <OpenMS/METADATA/Modification.h>
 
 //QT
-#include <qlayout.h>
-#include <qwidget.h>
-#include <qlabel.h> 
-#include <qlineedit.h>
-#include <qtextedit.h>
-#include <qpushbutton.h>
-#include <qvalidator.h>
+#include <QtGui/QTextEdit>
+#include <QtGui/QComboBox>
+#include <QtGui/QLineEdit>
+
 #include <iostream>
 #include <vector>
 
-
-//using namespace std;
-using namespace OpenMS;
 using namespace std;
 
+namespace OpenMS
+{
+
 //Constructor
-ModificationVisualizer::ModificationVisualizer(bool editable, QWidget *parent, const char *name) : BaseVisualizer(editable, parent, name)
+ModificationVisualizer::ModificationVisualizer(bool editable, QWidget *parent) : BaseVisualizer(editable, parent)
 {
 	type_="Modification";
 	
@@ -83,13 +78,13 @@ void ModificationVisualizer::load(Modification &m)
 
 void ModificationVisualizer::updateMod_()
 {
-	treatmenttype_->setText(tempmod_.getType());
+	treatmenttype_->setText(tempmod_.getType().c_str());
 	treatmenttype_->setReadOnly(true);
-	treatmentcomment_->setText(tempmod_.getComment());
-  modificationname_->setText(tempmod_.getReagentName());
-	modificationmass_->setText(String(tempmod_.getMass()) );
-	modificationspecificity_->setCurrentItem(tempmod_.getSpecificityType());
-	modificationAA_->setText(tempmod_.getAffectedAminoAcids() ); 
+	treatmentcomment_->setText(tempmod_.getComment().c_str());
+  modificationname_->setText(tempmod_.getReagentName().c_str());
+	modificationmass_->setText(String(tempmod_.getMass()).c_str() );
+	modificationspecificity_->setCurrentIndex(tempmod_.getSpecificityType());
+	modificationAA_->setText(tempmod_.getAffectedAminoAcids().c_str() ); 
 
 }
 
@@ -98,19 +93,19 @@ void ModificationVisualizer::store()
 {
 try
 	{
-		(*ptr_).setComment(string((const char*) treatmentcomment_->text()));
+		(*ptr_).setComment(treatmentcomment_->toPlainText().toStdString());
 		
-		(*ptr_).setReagentName(string((const char*) modificationname_->text()));
+		(*ptr_).setReagentName(modificationname_->text().toStdString());
 				
-		String m((const char*) modificationmass_->text()) ;
+		String m(modificationmass_->text().toStdString()) ;
 		
 				
 		(*ptr_).setMass(m.toFloat() );
 		
-		(*ptr_).setSpecificityType((Modification::SpecificityType)modificationspecificity_->currentItem());		
+		(*ptr_).setSpecificityType((Modification::SpecificityType)modificationspecificity_->currentIndex());		
 		
 				
-		(*ptr_).setAffectedAminoAcids(string((const char*) modificationAA_->text()) );
+		(*ptr_).setAffectedAminoAcids(modificationAA_->text().toStdString());
 		
 		tempmod_ = (*ptr_);
 		
@@ -134,3 +129,4 @@ void ModificationVisualizer::reject()
 	}
 }
 
+}

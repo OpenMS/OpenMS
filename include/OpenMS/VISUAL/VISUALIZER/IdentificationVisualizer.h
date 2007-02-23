@@ -23,39 +23,26 @@
 // --------------------------------------------------------------------------
 // $Maintainer: stefan_heess $
 // --------------------------------------------------------------------------
-
  
 #ifndef OPENMS_VISUAL_VISUALIZER_IDENTIFICATIONVISUALIZER_H
 #define OPENMS_VISUAL_VISUALIZER_IDENTIFICATIONVISUALIZER_H
 
-
 //OpenMS
-#include <OpenMS/config.h>
 #include <OpenMS/METADATA/Identification.h>
 #include <OpenMS/VISUAL/VISUALIZER/BaseVisualizer.h>
-#include <OpenMS/VISUAL/MSMetaDataExplorer.h>
-
-//QT
-#include <qtextedit.h>
-#include <qhbox.h>
-#include <qspinbox.h>
-#include <qpushbutton.h>
-#include <iostream>
-#include <qwidget.h>
-#include <qlistbox.h>
-#include <qvalidator.h>
 
 class QLineEdit;
 class QComboBox;
 
+namespace OpenMS
+{
+	class MSMetaDataExplorer;
 
+	/**
+		@brief Class that displays all meta information for Identification objects
 
-namespace OpenMS {
-/**
-@brief Class that displays all meta information for Identification objects
-
-This class provides all functionality to view the meta information of an object of type Identification.
-*/
+		This class provides all functionality to view the meta information of an object of type Identification.
+	*/
 	
 	class IdentificationVisualizer : public BaseVisualizer
 	{
@@ -63,7 +50,7 @@ This class provides all functionality to view the meta information of an object 
 
 	public: 
 	  /// Default constructor
-		IdentificationVisualizer(bool editable= FALSE, QWidget *parent =0, MSMetaDataExplorer *caller=0, const char *name = 0);
+		IdentificationVisualizer(bool editable= FALSE, QWidget *parent =0, MSMetaDataExplorer *caller=0);
 		/// Loads the meta data from the object to the viewer. Gets the id of the item in the tree as parameter.
 		void load(Identification &s, int tree_item_id);
 	  

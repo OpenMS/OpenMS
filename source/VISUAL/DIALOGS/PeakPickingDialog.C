@@ -26,18 +26,20 @@
 
 // OpenMS includes
 #include <OpenMS/VISUAL/DIALOGS/PeakPickingDialog.h>
-#include <qlineedit.h>
-#include <qcheckbox.h>
-#include <qpushbutton.h>
+#include <QtGui/QLineEdit>
+#include <QtGui/QCheckBox>
+#include <QtGui/QPushButton>
 
 using namespace std;
 
 namespace OpenMS
 {
 
-	PeakPickingDialog::PeakPickingDialog(QWidget* parent, const char* name , WFlags fl )
-	    : PeakPickingDialogTemplate(parent,name,fl)
+	PeakPickingDialog::PeakPickingDialog(QWidget* parent )
+	    : QDialog(parent)
 	{
+		setupUi(this);
+		
 	  height_line_edit->setText(QString().setNum(200));
 	  height_ms2_line_edit->setText(QString().setNum(50));
 	  signal_to_noise_line_edit->setText(QString().setNum(5));

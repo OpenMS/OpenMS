@@ -852,12 +852,11 @@ Optional Features:
   --enable-debuginfo      add -g to the compiler flags (to create debug information). Disables optimization!
   --disable-pedantic      removes the '-pedantic' flag when using gcc
   --disable-db            disable support for database connectivity
-  --with-db-driver        set the SQL DB driver to use (default: QMYSQL3)
+  --with-db-plugin        set the Qt SQL DB plugin to use (default: QMYSQL)
   --disable-cgal          disable the use of CGAL (for advanced d-dimensional geometry)
   --disable-netcdf        disable the use of NetCDF (a library for a data format)
   --disable-andims        disable the use of ANDI/MS (a library for a data format based on NetCDF)
   --disable-boost         disable the use of the Boost library (used for persitence)
-  --enable-python         enable Python support and search for executable
   --disable-libsvm        disable the use of libSVM (needed for rentention time prediction)
 
 Optional Packages:
@@ -869,16 +868,15 @@ Optional Packages:
   --with-arflags=FLAGS    add FLAGS to the flags for the creation of the static libraries
   --with-dynarflags=FLAGS add FLAGS to the flags for the creation of the shared libraries
   --with-default-path=DIR use default path DIR/include for header files and DIR/lib for libraries ("../contrib" if unset)
-  --with-qt=QTDIR         QT is installed in QTDIR. Prefer this over the following options.
-  --with-qt-incl=DIR      QT header files are in DIR
-  --with-qt-libs=DIR      QT libraries are in DIR
-  --with-qt-mt            use a threadsafe version of the QT lib (libqt-mt)
-  --with-cgal-incl=DIR    CGAL header files are in DIR
-  --with-cgal-libs=DIR    CGAL libraries are in DIR
-  --with-moc=MOC          use MOC as the absolut	e path to the QT meta object compiler (moc)
+  --with-qt=QTDIR         Qt4 is installed in QTDIR. Prefer this over the following options.
+  --with-qt-incl=DIR      Qt4 header files are in DIR
+  --with-qt-libs=DIR      Qt4 libraries are in DIR
+  --with-moc=MOC          use MOC as the absolute path to the QT meta object compiler (moc)
   --with-uic=UIC          use UIC as the absolute path to the QT user interface compiler (uic)
   --with-opengl-incl=DIR  OpenGL/Mesa header files are in DIR/GL
   --with-opengl-libs=DIR  OpenGL/Mesa libraries are in DIR/GL
+  --with-cgal-incl=DIR    CGAL header files are in DIR
+  --with-cgal-libs=DIR    CGAL libraries are in DIR
   --with-mesa             use MESA instead of OpenGL
   --with-netcdf-incl=DIR  specify the location of the NetCDF header file "netcdf.h"
   --with-netcdf-libs=DIR  specify the location of the NetCDF archive files "libnetcdf.a" and "libnetcdf_c++.a"
@@ -888,13 +886,6 @@ Optional Packages:
   --with-gsl-libs=DIR     specify the location of the GSL library files "libgsl.so" and "libgslcblas.so"
   --with-boost-incl=DIR   specify the location of the directory containing "boost/version.hpp"
   --with-boost-libs=DIR   specify the location of the Boost library files e.g. "libboost_serialization-gcc.a"
-  --with-python=EXE       enable Python support and use Python executable in EXE
-  --with-python-incl=DIR  Python includes (Python.h) is in DIR
-  --with-python-libs=DIR  Python library (libpython*.a) is in DIR
-  --with-python-ldopts=X  Use additional options X when linking with the Python library
-  --with-sip=DIR          the SIP executable resides in DIR
-  --with-sip-lib=DIR      the SIP library resides in DIR
-  --with-sip-incl=DIR     the SIP header file resides in DIR
   --with-libsvm-incl=DIR  specify the location of the libSVM directory containing "svm.h"
   --with-libsvm-libs=DIR  specify the location of the libSVM directory containing "svm.o"
   --with-xerces-incl=DIR  specify the location of the XERCES include directory containing "xercesc/util/Base64.hpp"
@@ -1493,9 +1484,9 @@ if test "${enable_db+set}" = set; then
   enableval="$enable_db"
 
 fi;
-# Check whether --enable-db-driver or --disable-db-driver was given.
-if test "${enable_db_driver+set}" = set; then
-  enableval="$enable_db_driver"
+# Check whether --enable-db-plugin or --disable-db-plugin was given.
+if test "${enable_db_plugin+set}" = set; then
+  enableval="$enable_db_plugin"
 
 fi;
 
@@ -1553,29 +1544,6 @@ if test "${with_qt_libs+set}" = set; then
 
 fi;
 
-# Check whether --with-qt-mt or --without-qt-mt was given.
-if test "${with_qt_mt+set}" = set; then
-  withval="$with_qt_mt"
-
-fi;
-# Check whether --enable-cgal or --disable-cgal was given.
-if test "${enable_cgal+set}" = set; then
-  enableval="$enable_cgal"
-
-fi;
-
-# Check whether --with-cgal-incl or --without-cgal-incl was given.
-if test "${with_cgal_incl+set}" = set; then
-  withval="$with_cgal_incl"
-
-fi;
-
-# Check whether --with-cgal-libs or --without-cgal-libs was given.
-if test "${with_cgal_libs+set}" = set; then
-  withval="$with_cgal_libs"
-
-fi;
-
 # Check whether --with-moc or --without-moc was given.
 if test "${with_moc+set}" = set; then
   withval="$with_moc"
@@ -1597,6 +1565,23 @@ fi;
 # Check whether --with-opengl-libs or --without-opengl-libs was given.
 if test "${with_opengl_libs+set}" = set; then
   withval="$with_opengl_libs"
+
+fi;
+# Check whether --enable-cgal or --disable-cgal was given.
+if test "${enable_cgal+set}" = set; then
+  enableval="$enable_cgal"
+
+fi;
+
+# Check whether --with-cgal-incl or --without-cgal-incl was given.
+if test "${with_cgal_incl+set}" = set; then
+  withval="$with_cgal_incl"
+
+fi;
+
+# Check whether --with-cgal-libs or --without-cgal-libs was given.
+if test "${with_cgal_libs+set}" = set; then
+  withval="$with_cgal_libs"
 
 fi;
 
@@ -1668,53 +1653,6 @@ if test "${with_boost_libs+set}" = set; then
   withval="$with_boost_libs"
 
 fi;
-# Check whether --enable-python or --disable-python was given.
-if test "${enable_python+set}" = set; then
-  enableval="$enable_python"
-
-fi;
-
-# Check whether --with-python or --without-python was given.
-if test "${with_python+set}" = set; then
-  withval="$with_python"
-
-fi;
-
-# Check whether --with-python-incl or --without-python-incl was given.
-if test "${with_python_incl+set}" = set; then
-  withval="$with_python_incl"
-
-fi;
-
-# Check whether --with-python-libs or --without-python-libs was given.
-if test "${with_python_libs+set}" = set; then
-  withval="$with_python_libs"
-
-fi;
-
-# Check whether --with-python-ldopts or --without-python-ldopts was given.
-if test "${with_python_ldopts+set}" = set; then
-  withval="$with_python_ldopts"
-
-fi;
-
-# Check whether --with-sip or --without-sip was given.
-if test "${with_sip+set}" = set; then
-  withval="$with_sip"
-
-fi;
-
-# Check whether --with-sip-lib or --without-sip-lib was given.
-if test "${with_sip_lib+set}" = set; then
-  withval="$with_sip_lib"
-
-fi;
-
-# Check whether --with-sip-incl or --without-sip-incl was given.
-if test "${with_sip_incl+set}" = set; then
-  withval="$with_sip_incl"
-
-fi;
 # Check whether --enable-libsvm or --disable-libsvm was given.
 if test "${enable_libsvm+set}" = set; then
   enableval="$enable_libsvm"
@@ -1744,6 +1682,8 @@ if test "${with_xerces_libs+set}" = set; then
   withval="$with_xerces_libs"
 
 fi;
+
+
 
 
 
@@ -1791,7 +1731,7 @@ fi
 if test "$with_db_plugin" != ""; then
 	DB_PLUGIN="${with_db_plugin}"
 else
-	DB_PLUGIN="QMYSQL3"
+	DB_PLUGIN="QMYSQL"
 fi
 cat >>confdefs.h <<_ACEOF
 #define DB_PLUGIN "${DB_PLUGIN}"
@@ -1927,22 +1867,16 @@ if test "$with_arflags" != "" ; then
 	AROPTS="${AROPTS}`echo $with_arflags|tr ,  \  `"
 fi
 
-if test "$with_qt" != "" ; then
+#if test "$with_qt" != "" ; then
   QTDIR=$with_qt
-fi
+#fi
 if test "$with_qt_incl" != "" ; then
   QT_INCPATH=$with_qt_incl
 fi
 if test "$with_qt_libs" != "" ; then
   QT_LIBPATH=$with_qt_libs
 fi
-if test "$with_qt_mt" = "yes" ; then
-  USE_THREADSAFE_QT=true
-  QT_MT_SUFFIX="-mt"
-else
-  USE_THREADSAFE_QT=false
-  QT_MT_SUFFIX=""
-fi
+
 if test "$with_opengl_incl" != "" ; then
   OPENGL_INCPATH=$with_opengl_incl
 fi
@@ -21408,9 +21342,9 @@ echo "${ECHO_T}disabled" >&6
 
 
 
-QT_MIN_VERSION=330
-QT_MAX_VERSION=399
-QT_RECOMMENDED_VERSION=3.3.6
+QT_MIN_VERSION=410
+QT_MAX_VERSION=499
+QT_RECOMMENDED_VERSION=4.2.2
 ENABLE_GUI=true
 
 if test "${ENABLE_GUI}" = true ; then
@@ -22221,8 +22155,8 @@ fi
 
 
 
-	echo "$as_me:$LINENO: checking for QT headers" >&5
-echo $ECHO_N "checking for QT headers... $ECHO_C" >&6
+	echo "$as_me:$LINENO: checking for Qt headers" >&5
+echo $ECHO_N "checking for Qt headers... $ECHO_C" >&6
 	if test "${QTDIR}" != "" ; then
 
 	_INCLUDES=
@@ -22232,8 +22166,8 @@ echo $ECHO_N "checking for QT headers... $ECHO_C" >&6
 	fi
 
 	if test "${_INCLUDES}" = "" ; then
-		for i in ${QTDIR}/include ${OpenMS_PATH}/contrib/qt/include /usr/include /opt/include ; do
-			if test -f "$i/qgl.h" -a "${_INCLUDES}" = ""; then
+		for i in ${QTDIR}/include /usr/include /opt/include ; do
+			if test -f "$i/Qt/qgl.h" -a "${_INCLUDES}" = ""; then
 				_INCLUDES="$i"
 			fi
 		done
@@ -22241,7 +22175,7 @@ echo $ECHO_N "checking for QT headers... $ECHO_C" >&6
 
 	if test "${_INCLUDES}" = "" ; then
 		for i in /usr/*/include /opt/*/include ; do
-			if test -f "$i/qgl.h" -a "${_INCLUDES}" = ""; then
+			if test -f "$i/Qt/qgl.h" -a "${_INCLUDES}" = ""; then
 				_INCLUDES="$i"
 			fi
 		done
@@ -22249,7 +22183,7 @@ echo $ECHO_N "checking for QT headers... $ECHO_C" >&6
 
 	if test "${_INCLUDES}" = "" ; then
 		for i in /opt/*/*/include /usr/*/*/include /usr/local/*/*/include ; do
-			if test -f "$i/qgl.h" -a "${_INCLUDES}" = ""; then
+			if test -f "$i/Qt/qgl.h" -a "${_INCLUDES}" = ""; then
 				_INCLUDES="$i"
 			fi
 		done
@@ -22258,7 +22192,7 @@ echo $ECHO_N "checking for QT headers... $ECHO_C" >&6
 	if test "${_INCLUDES}" = "" -a "${FIND}" != "-" ; then
 		if test "${FIND_KNOWS_PATH}" = false ; then
 			FIND_OPT="-name"
-			_TMP_FIND_NAME="qgl.h"
+			_TMP_FIND_NAME="Qt/qgl.h"
 			while test _`${EGREP} / $_TMP_FIND_NAME`_ != __ ; do
 				_TMP_FIND_NAME=`echo ${_TMP_FIND_NAME}|${CUT} -d/ -f2-`
 			done
@@ -22266,7 +22200,7 @@ echo $ECHO_N "checking for QT headers... $ECHO_C" >&6
 			FIND_ARG="\*${_TMP_FIND_NAME}\*"
 		else
 			FIND_OPT="-path"
-			FIND_ARG="\*qgl.h\*"
+			FIND_ARG="\*Qt/qgl.h\*"
 		fi
 
 		_TMP=`${FIND} /usr ${FIND_OPT} ${FIND_ARG} -print 2>/dev/null`
@@ -22285,8 +22219,8 @@ echo $ECHO_N "checking for QT headers... $ECHO_C" >&6
 			done
 		fi
 
-		if test "${_INCLUDES}" = "" -a "${QTDIR}/include ${OpenMS_PATH}/contrib/qt/include" != ""; then
-			for i in ${QTDIR}/include ${OpenMS_PATH}/contrib/qt/include /dev/null ; do
+		if test "${_INCLUDES}" = "" -a "${QTDIR}/include" != ""; then
+			for i in ${QTDIR}/include /dev/null ; do
 				_TMP=`${FIND} $i ${FIND_OPT} ${FIND_ARG} -print 2>/dev/null`
 				for j in ${_TMP} ; do
 					if test "${_INCLUDES}" = "" ; then
@@ -22308,8 +22242,8 @@ echo $ECHO_N "checking for QT headers... $ECHO_C" >&6
 	fi
 
 	if test "${_INCLUDES}" = "" ; then
-		for i in ${OpenMS_PATH}/contrib/qt/include /usr/include /opt/include ; do
-			if test -f "$i/qgl.h" -a "${_INCLUDES}" = ""; then
+		for i in  /usr/include /opt/include ; do
+			if test -f "$i/Qt/qgl.h" -a "${_INCLUDES}" = ""; then
 				_INCLUDES="$i"
 			fi
 		done
@@ -22317,7 +22251,7 @@ echo $ECHO_N "checking for QT headers... $ECHO_C" >&6
 
 	if test "${_INCLUDES}" = "" ; then
 		for i in /usr/*/include /opt/*/include ; do
-			if test -f "$i/qgl.h" -a "${_INCLUDES}" = ""; then
+			if test -f "$i/Qt/qgl.h" -a "${_INCLUDES}" = ""; then
 				_INCLUDES="$i"
 			fi
 		done
@@ -22325,7 +22259,7 @@ echo $ECHO_N "checking for QT headers... $ECHO_C" >&6
 
 	if test "${_INCLUDES}" = "" ; then
 		for i in /opt/*/*/include /usr/*/*/include /usr/local/*/*/include ; do
-			if test -f "$i/qgl.h" -a "${_INCLUDES}" = ""; then
+			if test -f "$i/Qt/qgl.h" -a "${_INCLUDES}" = ""; then
 				_INCLUDES="$i"
 			fi
 		done
@@ -22334,7 +22268,7 @@ echo $ECHO_N "checking for QT headers... $ECHO_C" >&6
 	if test "${_INCLUDES}" = "" -a "${FIND}" != "-" ; then
 		if test "${FIND_KNOWS_PATH}" = false ; then
 			FIND_OPT="-name"
-			_TMP_FIND_NAME="qgl.h"
+			_TMP_FIND_NAME="Qt/qgl.h"
 			while test _`${EGREP} / $_TMP_FIND_NAME`_ != __ ; do
 				_TMP_FIND_NAME=`echo ${_TMP_FIND_NAME}|${CUT} -d/ -f2-`
 			done
@@ -22342,7 +22276,7 @@ echo $ECHO_N "checking for QT headers... $ECHO_C" >&6
 			FIND_ARG="\*${_TMP_FIND_NAME}\*"
 		else
 			FIND_OPT="-path"
-			FIND_ARG="\*qgl.h\*"
+			FIND_ARG="\*Qt/qgl.h\*"
 		fi
 
 		_TMP=`${FIND} /usr ${FIND_OPT} ${FIND_ARG} -print 2>/dev/null`
@@ -22361,8 +22295,8 @@ echo $ECHO_N "checking for QT headers... $ECHO_C" >&6
 			done
 		fi
 
-		if test "${_INCLUDES}" = "" -a "${OpenMS_PATH}/contrib/qt/include" != ""; then
-			for i in ${OpenMS_PATH}/contrib/qt/include /dev/null ; do
+		if test "${_INCLUDES}" = "" -a "" != ""; then
+			for i in  /dev/null ; do
 				_TMP=`${FIND} $i ${FIND_OPT} ${FIND_ARG} -print 2>/dev/null`
 				for j in ${_TMP} ; do
 					if test "${_INCLUDES}" = "" ; then
@@ -22382,16 +22316,12 @@ echo $ECHO_N "checking for QT headers... $ECHO_C" >&6
 echo "${ECHO_T}(not found!)" >&6
 		echo "$as_me:$LINENO: result: " >&5
 echo "${ECHO_T}" >&6
-		echo "$as_me:$LINENO: result: No QT header files found! Please specify the path to the QT headers" >&5
-echo "${ECHO_T}No QT header files found! Please specify the path to the QT headers" >&6
+		echo "$as_me:$LINENO: result: Qt header file Qt/qgl.h not found! Please specify the path to the Qt headers" >&5
+echo "${ECHO_T}Qt header file Qt/qgl.h not found! Please specify the path to the Qt headers" >&6
 		echo "$as_me:$LINENO: result: by passing the option --with-qt-incl=DIR to configure." >&5
 echo "${ECHO_T}by passing the option --with-qt-incl=DIR to configure." >&6
-		echo "$as_me:$LINENO: result: You may also set the environment variable QTDIR to the correct" >&5
-echo "${ECHO_T}You may also set the environment variable QTDIR to the correct" >&6
-		echo "$as_me:$LINENO: result: path - configure will recognize this" >&5
-echo "${ECHO_T}path - configure will recognize this" >&6
-		echo "$as_me:$LINENO: result: The QT package can be found under the following URL:" >&5
-echo "${ECHO_T}The QT package can be found under the following URL:" >&6
+		echo "$as_me:$LINENO: result: The Qt package can be found under the following URL:" >&5
+echo "${ECHO_T}The Qt package can be found under the following URL:" >&6
 		echo "$as_me:$LINENO: result: http://www.troll.no/qt" >&5
 echo "${ECHO_T}http://www.troll.no/qt" >&6
 
@@ -22429,16 +22359,12 @@ echo "$as_me: error: Aborted." >&2;}
 echo "${ECHO_T}(${QT_INCPATH})" >&6
 	fi
 
-	echo "$as_me:$LINENO: checking for libqt${QT_MT_SUFFIX}" >&5
-echo $ECHO_N "checking for libqt${QT_MT_SUFFIX}... $ECHO_C" >&6
+	echo "$as_me:$LINENO: checking for libQtCore" >&5
+echo $ECHO_N "checking for libQtCore... $ECHO_C" >&6
 	if test "${QTDIR}" != "" ; then
-		if test "${QT_MT_SUFFIX}" = "-mt" -o "${QT_MT_SUFFIX+set}" != set ; then
-			if test -a "${QTDIR}/lib/libqt-mt.so" ; then
-				QT_LIBPATH="${QTDIR}/lib"
-			elif test -a "${QTDIR}/lib/libqt.so" ; then
-				QT_LIBPATH="${QTDIR}/lib"
-				QT_MT_SUFFIX=""
-			fi
+		if test -a "${QTDIR}/lib/libQtCore.so" ; then
+			QT_LIBPATH="${QTDIR}/lib"
+		fi
 			if test "${QT_LIBPATH}" = "" ; then
 
 	_LIBS=
@@ -22448,8 +22374,8 @@ echo $ECHO_N "checking for libqt${QT_MT_SUFFIX}... $ECHO_C" >&6
 	fi
 
 	if test "${_LIBS}" = "" ; then
-		for i in ${QTDIR}/lib ${QTDIR}/lib/${BINFMT} ${OpenMS_PATH}/contrib/qt/include /usr/lib /opt/lib ; do
-			for j in $i/libqt${QT_MT_SUFFIX}.* ; do
+		for i in ${QTDIR}/lib ${QTDIR}/lib/${BINFMT} /usr/lib /opt/lib ; do
+			for j in $i/libQtCore.* ; do
 				if test -f "$j" -a "${_LIBS}" = ""; then
 					_LIBS="$i"
 				fi
@@ -22459,7 +22385,7 @@ echo $ECHO_N "checking for libqt${QT_MT_SUFFIX}... $ECHO_C" >&6
 
 	if test "${_LIBS}" = "" ; then
 		for i in /usr/*/lib /opt/*/lib ; do
-			for j in $i/libqt${QT_MT_SUFFIX}.* ; do
+			for j in $i/libQtCore.* ; do
 				if test -f "$j" -a "${_LIBS}" = ""; then
 					_LIBS="$i"
 				fi
@@ -22469,7 +22395,7 @@ echo $ECHO_N "checking for libqt${QT_MT_SUFFIX}... $ECHO_C" >&6
 
 	if test "${_LIBS}" = "" ; then
 		for i in /opt/*/*/lib /usr/*/*/lib /usr/local/*/*/lib ; do
-			for j in $i/libqt${QT_MT_SUFFIX}.* ; do
+			for j in $i/libQtCore.* ; do
 				if test -f "$j" -a "${_LIBS}" = ""; then
 					_LIBS="$i"
 				fi
@@ -22478,13 +22404,13 @@ echo $ECHO_N "checking for libqt${QT_MT_SUFFIX}... $ECHO_C" >&6
 	fi
 
 	if test "${_LIBS}" = "" -a "${FIND}" != "-" ; then
-		if test "${_LIBS}" = "" -a "${QTDIR}/lib ${QTDIR}/lib/${BINFMT} ${OpenMS_PATH}/contrib/qt/include" != ""; then
-			for i in ${QTDIR}/lib ${QTDIR}/lib/${BINFMT} ${OpenMS_PATH}/contrib/qt/include /dev/null; do
+		if test "${_LIBS}" = "" -a "${QTDIR}/lib ${QTDIR}/lib/${BINFMT}" != ""; then
+			for i in ${QTDIR}/lib ${QTDIR}/lib/${BINFMT} /dev/null; do
 				if test "${_LIBS}" = "" ; then
-					_TMP=`${FIND} $i -name "libqt${QT_MT_SUFFIX}*" -print 2>/dev/null`
+					_TMP=`${FIND} $i -name "libQtCore*" -print 2>/dev/null`
 					for j in ${_TMP} ; do
 						if test "${_LIBS}" = "" ; then
-							_LIBS=`echo $j|${SED} "s/\/libqt${QT_MT_SUFFIX}.*/\//"`
+							_LIBS=`echo $j|${SED} "s/\/libQtCore.*/\//"`
 						fi
 					done
 				fi
@@ -22492,19 +22418,19 @@ echo $ECHO_N "checking for libqt${QT_MT_SUFFIX}... $ECHO_C" >&6
 		fi
 
 		if test "${_LIBS}" = "" ; then
-			_TMP=`${FIND} /opt -name "libqt${QT_MT_SUFFIX}*" -print 2>/dev/null`
+			_TMP=`${FIND} /opt -name "libQtCore*" -print 2>/dev/null`
 			for j in ${_TMP} ; do
 				if test "${_LIBS}" = "" ; then
-					_LIBS=`echo $j|${SED} "s/\/libqt${QT_MT_SUFFIX}.*/\//"`
+					_LIBS=`echo $j|${SED} "s/\/libQtCore.*/\//"`
 				fi
 			done
 		fi
 
 		if test "${_LIBS}" = "" ; then
-			_TMP=`${FIND} /usr -name "libqt${QT_MT_SUFFIX}*" -print 2>/dev/null`
+			_TMP=`${FIND} /usr -name "libQtCore*" -print 2>/dev/null`
 			for j in ${_TMP} ; do
 				if test "${_LIBS}" = "" ; then
-					_LIBS=`echo $j|${SED} "s/\/libqt${QT_MT_SUFFIX}.*/\//"`
+					_LIBS=`echo $j|${SED} "s/\/libQtCore.*/\//"`
 				fi
 			done
 		fi
@@ -22513,89 +22439,6 @@ echo $ECHO_N "checking for libqt${QT_MT_SUFFIX}... $ECHO_C" >&6
 
 	QT_LIBPATH="${_LIBS}"
 
-			fi
-		else
-			if test -a "${QTDIR}/lib/libqt.so" ; then
-				QT_LIBPATH="${QTDIR}/lib"
-			elif test -a "${QTDIR}/lib/libqt-mt.so" ; then
-				QT_LIBPATH="${QTDIR}/lib"
-				QT_MT_SUFFIX="-mt"
-			fi
-			if test "${QT_LIBPATH}" = "" ; then
-
-	_LIBS=
-
-		if test "${QT_LIBPATH}" != "" ; then
-		_LIBS=${QT_LIBPATH}
-	fi
-
-	if test "${_LIBS}" = "" ; then
-		for i in ${QTDIR}/lib ${QTDIR}/lib/${BINFMT} ${OpenMS_PATH}/contrib/qt/include /usr/lib /opt/lib ; do
-			for j in $i/libqt${QT_MT_SUFFIX}.* ; do
-				if test -f "$j" -a "${_LIBS}" = ""; then
-					_LIBS="$i"
-				fi
-			done
-		done
-	fi
-
-	if test "${_LIBS}" = "" ; then
-		for i in /usr/*/lib /opt/*/lib ; do
-			for j in $i/libqt${QT_MT_SUFFIX}.* ; do
-				if test -f "$j" -a "${_LIBS}" = ""; then
-					_LIBS="$i"
-				fi
-			done
-		done
-	fi
-
-	if test "${_LIBS}" = "" ; then
-		for i in /opt/*/*/lib /usr/*/*/lib /usr/local/*/*/lib ; do
-			for j in $i/libqt${QT_MT_SUFFIX}.* ; do
-				if test -f "$j" -a "${_LIBS}" = ""; then
-					_LIBS="$i"
-				fi
-			done
-		done
-	fi
-
-	if test "${_LIBS}" = "" -a "${FIND}" != "-" ; then
-		if test "${_LIBS}" = "" -a "${QTDIR}/lib ${QTDIR}/lib/${BINFMT} ${OpenMS_PATH}/contrib/qt/include" != ""; then
-			for i in ${QTDIR}/lib ${QTDIR}/lib/${BINFMT} ${OpenMS_PATH}/contrib/qt/include /dev/null; do
-				if test "${_LIBS}" = "" ; then
-					_TMP=`${FIND} $i -name "libqt${QT_MT_SUFFIX}*" -print 2>/dev/null`
-					for j in ${_TMP} ; do
-						if test "${_LIBS}" = "" ; then
-							_LIBS=`echo $j|${SED} "s/\/libqt${QT_MT_SUFFIX}.*/\//"`
-						fi
-					done
-				fi
-			done
-		fi
-
-		if test "${_LIBS}" = "" ; then
-			_TMP=`${FIND} /opt -name "libqt${QT_MT_SUFFIX}*" -print 2>/dev/null`
-			for j in ${_TMP} ; do
-				if test "${_LIBS}" = "" ; then
-					_LIBS=`echo $j|${SED} "s/\/libqt${QT_MT_SUFFIX}.*/\//"`
-				fi
-			done
-		fi
-
-		if test "${_LIBS}" = "" ; then
-			_TMP=`${FIND} /usr -name "libqt${QT_MT_SUFFIX}*" -print 2>/dev/null`
-			for j in ${_TMP} ; do
-				if test "${_LIBS}" = "" ; then
-					_LIBS=`echo $j|${SED} "s/\/libqt${QT_MT_SUFFIX}.*/\//"`
-				fi
-			done
-		fi
-
-	fi
-
-	QT_LIBPATH="${_LIBS}"
-
-			fi
 		fi
 	else
 
@@ -22607,7 +22450,7 @@ echo $ECHO_N "checking for libqt${QT_MT_SUFFIX}... $ECHO_C" >&6
 
 	if test "${_LIBS}" = "" ; then
 		for i in ${OpenMS_PATH}/contrib/qt/lib ${OpenMS_PATH}/contrib/qt/lib/${BINFMT} /usr/lib /opt/lib ; do
-			for j in $i/libqt${QT_MT_SUFFIX}.* ; do
+			for j in $i/libQtCore.* ; do
 				if test -f "$j" -a "${_LIBS}" = ""; then
 					_LIBS="$i"
 				fi
@@ -22617,7 +22460,7 @@ echo $ECHO_N "checking for libqt${QT_MT_SUFFIX}... $ECHO_C" >&6
 
 	if test "${_LIBS}" = "" ; then
 		for i in /usr/*/lib /opt/*/lib ; do
-			for j in $i/libqt${QT_MT_SUFFIX}.* ; do
+			for j in $i/libQtCore.* ; do
 				if test -f "$j" -a "${_LIBS}" = ""; then
 					_LIBS="$i"
 				fi
@@ -22627,7 +22470,7 @@ echo $ECHO_N "checking for libqt${QT_MT_SUFFIX}... $ECHO_C" >&6
 
 	if test "${_LIBS}" = "" ; then
 		for i in /opt/*/*/lib /usr/*/*/lib /usr/local/*/*/lib ; do
-			for j in $i/libqt${QT_MT_SUFFIX}.* ; do
+			for j in $i/libQtCore.* ; do
 				if test -f "$j" -a "${_LIBS}" = ""; then
 					_LIBS="$i"
 				fi
@@ -22639,10 +22482,10 @@ echo $ECHO_N "checking for libqt${QT_MT_SUFFIX}... $ECHO_C" >&6
 		if test "${_LIBS}" = "" -a "${OpenMS_PATH}/contrib/qt/lib ${OpenMS_PATH}/contrib/qt/lib/${BINFMT}" != ""; then
 			for i in ${OpenMS_PATH}/contrib/qt/lib ${OpenMS_PATH}/contrib/qt/lib/${BINFMT} /dev/null; do
 				if test "${_LIBS}" = "" ; then
-					_TMP=`${FIND} $i -name "libqt${QT_MT_SUFFIX}*" -print 2>/dev/null`
+					_TMP=`${FIND} $i -name "libQtCore*" -print 2>/dev/null`
 					for j in ${_TMP} ; do
 						if test "${_LIBS}" = "" ; then
-							_LIBS=`echo $j|${SED} "s/\/libqt${QT_MT_SUFFIX}.*/\//"`
+							_LIBS=`echo $j|${SED} "s/\/libQtCore.*/\//"`
 						fi
 					done
 				fi
@@ -22650,19 +22493,19 @@ echo $ECHO_N "checking for libqt${QT_MT_SUFFIX}... $ECHO_C" >&6
 		fi
 
 		if test "${_LIBS}" = "" ; then
-			_TMP=`${FIND} /opt -name "libqt${QT_MT_SUFFIX}*" -print 2>/dev/null`
+			_TMP=`${FIND} /opt -name "libQtCore*" -print 2>/dev/null`
 			for j in ${_TMP} ; do
 				if test "${_LIBS}" = "" ; then
-					_LIBS=`echo $j|${SED} "s/\/libqt${QT_MT_SUFFIX}.*/\//"`
+					_LIBS=`echo $j|${SED} "s/\/libQtCore.*/\//"`
 				fi
 			done
 		fi
 
 		if test "${_LIBS}" = "" ; then
-			_TMP=`${FIND} /usr -name "libqt${QT_MT_SUFFIX}*" -print 2>/dev/null`
+			_TMP=`${FIND} /usr -name "libQtCore*" -print 2>/dev/null`
 			for j in ${_TMP} ; do
 				if test "${_LIBS}" = "" ; then
-					_LIBS=`echo $j|${SED} "s/\/libqt${QT_MT_SUFFIX}.*/\//"`
+					_LIBS=`echo $j|${SED} "s/\/libQtCore.*/\//"`
 				fi
 			done
 		fi
@@ -22678,20 +22521,12 @@ echo $ECHO_N "checking for libqt${QT_MT_SUFFIX}... $ECHO_C" >&6
 echo "${ECHO_T}(not found!)" >&6
 		echo "$as_me:$LINENO: result: " >&5
 echo "${ECHO_T}" >&6
-		echo "$as_me:$LINENO: result: The QT library could not be found. Please specify the path to libqt" >&5
-echo "${ECHO_T}The QT library could not be found. Please specify the path to libqt" >&6
+		echo "$as_me:$LINENO: result: The Qt4 libraries could not be found. Please specify the path to libQtCore" >&5
+echo "${ECHO_T}The Qt4 libraries could not be found. Please specify the path to libQtCore" >&6
  		echo "$as_me:$LINENO: result: by passing the option --with-qt-libs=DIR to configure." >&5
 echo "${ECHO_T}by passing the option --with-qt-libs=DIR to configure." >&6
-		echo "$as_me:$LINENO: result: You may also set the environment variable QTDIR to the correct" >&5
-echo "${ECHO_T}You may also set the environment variable QTDIR to the correct" >&6
-		echo "$as_me:$LINENO: result: path - configure will recognize this, too." >&5
-echo "${ECHO_T}path - configure will recognize this, too." >&6
-		echo "$as_me:$LINENO: result: If the QT library was built with thread support enabled (libqt-mt" >&5
-echo "${ECHO_T}If the QT library was built with thread support enabled (libqt-mt" >&6
-		echo "$as_me:$LINENO: result: instead of libqt), please specify the option --with-threadsafe-qt." >&5
-echo "${ECHO_T}instead of libqt), please specify the option --with-threadsafe-qt." >&6
-		echo "$as_me:$LINENO: result: The QT package can be found under the following URL:" >&5
-echo "${ECHO_T}The QT package can be found under the following URL:" >&6
+		echo "$as_me:$LINENO: result: The Qt package can be found under the following URL:" >&5
+echo "${ECHO_T}The Qt package can be found under the following URL:" >&6
 		echo "$as_me:$LINENO: result: http://www.troll.no/qt" >&5
 echo "${ECHO_T}http://www.troll.no/qt" >&6
 
@@ -22729,99 +22564,29 @@ echo "$as_me: error: Aborted." >&2;}
 echo "${ECHO_T}(${QT_LIBPATH})" >&6
 	fi
 
-
-				QT_VERSION=`${GREP} "#define QT_VERSION[^_]" ${QT_INCPATH}/qglobal.h | ${TR} '\011' ' ' | ${TR} -s ' ' | ${CUT} -d\  -f3`
-	QT_VERSION_STR=`${GREP} "#define QT_VERSION_STR" ${QT_INCPATH}/qglobal.h | ${TR} '\011' ' ' | ${TR} -s ' ' | ${CUT} -d\  -f3 | ${TR} -d '\042'`
-	echo "$as_me:$LINENO: checking for QT version number in qglobal.h" >&5
-echo $ECHO_N "checking for QT version number in qglobal.h... $ECHO_C" >&6
-	if test "${QT_VERSION}" = "" ; then
-		echo "$as_me:$LINENO: result: <unknown>" >&5
-echo "${ECHO_T}<unknown>" >&6
-		echo "$as_me:$LINENO: result: " >&5
+  echo "$as_me:$LINENO: checking for libQtGui" >&5
+echo $ECHO_N "checking for libQtGui... $ECHO_C" >&6
+  if test "${QT_LIBPATH}" != "" ; then
+    if test -a "${QT_LIBPATH}/libQtGui.so" ; then
+      echo "$as_me:$LINENO: result: yes" >&5
+echo "${ECHO_T}yes" >&6
+  	else
+    	echo "$as_me:$LINENO: result: (not found!)" >&5
+echo "${ECHO_T}(not found!)" >&6
+	    echo "$as_me:$LINENO: result: " >&5
 echo "${ECHO_T}" >&6
-		echo "$as_me:$LINENO: result:   Could not determine version number of QT library -- please" >&5
-echo "${ECHO_T}  Could not determine version number of QT library -- please" >&6
-		echo "$as_me:$LINENO: result:   check config.log for details." >&5
-echo "${ECHO_T}  check config.log for details." >&6
-		echo "$as_me:$LINENO: result:   You might have a problem with your (DY)LD_LIBRARY_PATH." >&5
-echo "${ECHO_T}  You might have a problem with your (DY)LD_LIBRARY_PATH." >&6
-		echo "$as_me:$LINENO: result:   Please check the settings of QTDIR as well or specify" >&5
-echo "${ECHO_T}  Please check the settings of QTDIR as well or specify" >&6
-		echo "$as_me:$LINENO: result:   the path to the library/headers with" >&5
-echo "${ECHO_T}  the path to the library/headers with" >&6
-		echo "$as_me:$LINENO: result:     --with-qt-libs=<DIR> / --with-qt-incl=<DIR>" >&5
-echo "${ECHO_T}    --with-qt-libs=<DIR> / --with-qt-incl=<DIR>" >&6
-
-	echo "$as_me:$LINENO: result: " >&5
+	    echo "$as_me:$LINENO: result: The QtGui library could not be found. Please specify the path to libqt" >&5
+echo "${ECHO_T}The QtGui library could not be found. Please specify the path to libqt" >&6
+	    echo "$as_me:$LINENO: result: by passing the option --with-qt-libs=DIR to configure." >&5
+echo "${ECHO_T}by passing the option --with-qt-libs=DIR to configure." >&6
+	    echo "$as_me:$LINENO: result: The QT package can be found under the following URL:" >&5
+echo "${ECHO_T}The QT package can be found under the following URL:" >&6
+	    echo "$as_me:$LINENO: result: http://www.troll.no/qt" >&5
+echo "${ECHO_T}http://www.troll.no/qt" >&6
+	    echo "$as_me:$LINENO: result: " >&5
 echo "${ECHO_T}" >&6
-	echo "$as_me:$LINENO: result: Configure failed. If you cannot solve your problem with the aid" >&5
-echo "${ECHO_T}Configure failed. If you cannot solve your problem with the aid" >&6
-	echo "$as_me:$LINENO: result: of the above error message, please contact the OPENMS mailing list" >&5
-echo "${ECHO_T}of the above error message, please contact the OPENMS mailing list" >&6
-	echo "$as_me:$LINENO: result: or the OPENMS developers. Please enclose the file 'conf.diag.tar'" >&5
-echo "${ECHO_T}or the OPENMS developers. Please enclose the file 'conf.diag.tar'" >&6
-	echo "$as_me:$LINENO: result: which has been created in OPENMS/source. It contains the relevant" >&5
-echo "${ECHO_T}which has been created in OPENMS/source. It contains the relevant" >&6
-	echo "$as_me:$LINENO: result: files from this configure run. In most cases, the information" >&5
-echo "${ECHO_T}files from this configure run. In most cases, the information" >&6
-	echo "$as_me:$LINENO: result: is necessary to diagnose what went wrong. This file contains" >&5
-echo "${ECHO_T}is necessary to diagnose what went wrong. This file contains" >&6
-	echo "$as_me:$LINENO: result: information about your system setup and versions of compilers" >&5
-echo "${ECHO_T}information about your system setup and versions of compilers" >&6
-	echo "$as_me:$LINENO: result: and other tools installed in your system." >&5
-echo "${ECHO_T}and other tools installed in your system." >&6
-	echo "$as_me:$LINENO: result: " >&5
-echo "${ECHO_T}" >&6
-	TARFILE=conf.diag.tar
-	if test -f $TARFILE ; then
-		${RM} $TARFILE ;
-	fi
-  tar cf $TARFILE configure configure.ac aclocal.m4 config.log
-	{ { echo "$as_me:$LINENO: error: Aborted." >&5
-echo "$as_me: error: Aborted." >&2;}
-   { (exit 1); exit 1; }; }
-
-	else
-		echo "$as_me:$LINENO: result: ${QT_VERSION} (${QT_VERSION_STR})" >&5
-echo "${ECHO_T}${QT_VERSION} (${QT_VERSION_STR})" >&6
-		cat >>confdefs.h <<_ACEOF
-#define OpenMS_QT_VERSION ${QT_VERSION}
-_ACEOF
-
-		cat >>confdefs.h <<_ACEOF
-#define OpenMS_QT_VERSION_STR ${QT_VERSION_STR}
-_ACEOF
-
-		if test "${QT_MT_SUFFIX}" = "-mt" ; then
-			cat >>confdefs.h <<\_ACEOF
-#define OpenMS_QT_HAS_THREADS
-_ACEOF
-
-		fi
-	fi
-
-				if test `echo ${QT_VERSION} | ${CUT} -c1-2` != "0x" ; then
-		if test "${QT_VERSION}" -lt ${QT_MIN_VERSION} -o "${QT_VERSION}" -gt ${QT_MAX_VERSION} ; then
-			echo "$as_me:$LINENO: result: " >&5
-echo "${ECHO_T}" >&6
-			echo "$as_me:$LINENO: result: QT version ${QT_RECOMMENDED_VERSION} is recommended for OpenMS. Please update" >&5
-echo "${ECHO_T}QT version ${QT_RECOMMENDED_VERSION} is recommended for OpenMS. Please update" >&6
-			echo "$as_me:$LINENO: result: to a suitable version or specify the path to a more" >&5
-echo "${ECHO_T}to a suitable version or specify the path to a more" >&6
-			echo "$as_me:$LINENO: result: suitable version of libqt* by passing the option --with-qt-libs=DIR" >&5
-echo "${ECHO_T}suitable version of libqt* by passing the option --with-qt-libs=DIR" >&6
-			echo "$as_me:$LINENO: result: to configure." >&5
-echo "${ECHO_T}to configure." >&6
-			echo "$as_me:$LINENO: result: You may also set the environment variable QTDIR to the correct" >&5
-echo "${ECHO_T}You may also set the environment variable QTDIR to the correct" >&6
-			echo "$as_me:$LINENO: result: path - configure will recognize this, too." >&5
-echo "${ECHO_T}path - configure will recognize this, too." >&6
-			echo "$as_me:$LINENO: result: " >&5
-echo "${ECHO_T}" >&6
-			echo "$as_me:$LINENO: result: The complete QT package can be found under the following URL:" >&5
-echo "${ECHO_T}The complete QT package can be found under the following URL:" >&6
-			echo "$as_me:$LINENO: result:   http://www.troll.no/qt" >&5
-echo "${ECHO_T}  http://www.troll.no/qt" >&6
+	    echo "$as_me:$LINENO: result: Note: OpenMS requires QT 4.x! QT3 is no longer supported." >&5
+echo "${ECHO_T}Note: OpenMS requires QT 4.x! QT3 is no longer supported." >&6
 
 	echo "$as_me:$LINENO: result: " >&5
 echo "${ECHO_T}" >&6
@@ -22853,7 +22618,120 @@ echo "$as_me: error: Aborted." >&2;}
    { (exit 1); exit 1; }; }
 
 		fi
+  fi
+
+  echo "$as_me:$LINENO: checking for libQtOpenGL" >&5
+echo $ECHO_N "checking for libQtOpenGL... $ECHO_C" >&6
+  if test "${QT_LIBPATH}" != "" ; then
+    if test -a "${QT_LIBPATH}/libQtOpenGL.so" ; then
+      echo "$as_me:$LINENO: result: yes" >&5
+echo "${ECHO_T}yes" >&6
+    else
+      echo "$as_me:$LINENO: result: (not found!)" >&5
+echo "${ECHO_T}(not found!)" >&6
+      echo "$as_me:$LINENO: result: " >&5
+echo "${ECHO_T}" >&6
+      echo "$as_me:$LINENO: result: The QtOpenGL library could not be found. Please specify the path to libqt" >&5
+echo "${ECHO_T}The QtOpenGL library could not be found. Please specify the path to libqt" >&6
+      echo "$as_me:$LINENO: result: by passing the option --with-qt-libs=DIR to configure." >&5
+echo "${ECHO_T}by passing the option --with-qt-libs=DIR to configure." >&6
+      echo "$as_me:$LINENO: result: The QT package can be found under the following URL:" >&5
+echo "${ECHO_T}The QT package can be found under the following URL:" >&6
+      echo "$as_me:$LINENO: result: http://www.troll.no/qt" >&5
+echo "${ECHO_T}http://www.troll.no/qt" >&6
+      echo "$as_me:$LINENO: result: " >&5
+echo "${ECHO_T}" >&6
+      echo "$as_me:$LINENO: result: Note: OpenMS requires QT 4.x! QT3 is no longer supported." >&5
+echo "${ECHO_T}Note: OpenMS requires QT 4.x! QT3 is no longer supported." >&6
+
+	echo "$as_me:$LINENO: result: " >&5
+echo "${ECHO_T}" >&6
+	echo "$as_me:$LINENO: result: Configure failed. If you cannot solve your problem with the aid" >&5
+echo "${ECHO_T}Configure failed. If you cannot solve your problem with the aid" >&6
+	echo "$as_me:$LINENO: result: of the above error message, please contact the OPENMS mailing list" >&5
+echo "${ECHO_T}of the above error message, please contact the OPENMS mailing list" >&6
+	echo "$as_me:$LINENO: result: or the OPENMS developers. Please enclose the file 'conf.diag.tar'" >&5
+echo "${ECHO_T}or the OPENMS developers. Please enclose the file 'conf.diag.tar'" >&6
+	echo "$as_me:$LINENO: result: which has been created in OPENMS/source. It contains the relevant" >&5
+echo "${ECHO_T}which has been created in OPENMS/source. It contains the relevant" >&6
+	echo "$as_me:$LINENO: result: files from this configure run. In most cases, the information" >&5
+echo "${ECHO_T}files from this configure run. In most cases, the information" >&6
+	echo "$as_me:$LINENO: result: is necessary to diagnose what went wrong. This file contains" >&5
+echo "${ECHO_T}is necessary to diagnose what went wrong. This file contains" >&6
+	echo "$as_me:$LINENO: result: information about your system setup and versions of compilers" >&5
+echo "${ECHO_T}information about your system setup and versions of compilers" >&6
+	echo "$as_me:$LINENO: result: and other tools installed in your system." >&5
+echo "${ECHO_T}and other tools installed in your system." >&6
+	echo "$as_me:$LINENO: result: " >&5
+echo "${ECHO_T}" >&6
+	TARFILE=conf.diag.tar
+	if test -f $TARFILE ; then
+		${RM} $TARFILE ;
 	fi
+  tar cf $TARFILE configure configure.ac aclocal.m4 config.log
+	{ { echo "$as_me:$LINENO: error: Aborted." >&5
+echo "$as_me: error: Aborted." >&2;}
+   { (exit 1); exit 1; }; }
+
+    fi
+  fi
+
+  echo "$as_me:$LINENO: checking for libQtSql" >&5
+echo $ECHO_N "checking for libQtSql... $ECHO_C" >&6
+  if test "${QT_LIBPATH}" != "" ; then
+    if test -a "${QT_LIBPATH}/libQtSql.so" ; then
+      echo "$as_me:$LINENO: result: yes" >&5
+echo "${ECHO_T}yes" >&6
+    else
+      echo "$as_me:$LINENO: result: (not found!)" >&5
+echo "${ECHO_T}(not found!)" >&6
+      echo "$as_me:$LINENO: result: " >&5
+echo "${ECHO_T}" >&6
+      echo "$as_me:$LINENO: result: The QtSql library could not be found. Please specify the path to libqt" >&5
+echo "${ECHO_T}The QtSql library could not be found. Please specify the path to libqt" >&6
+      echo "$as_me:$LINENO: result: by passing the option --with-qt-libs=DIR to configure." >&5
+echo "${ECHO_T}by passing the option --with-qt-libs=DIR to configure." >&6
+      echo "$as_me:$LINENO: result: The QT package can be found under the following URL:" >&5
+echo "${ECHO_T}The QT package can be found under the following URL:" >&6
+      echo "$as_me:$LINENO: result: http://www.troll.no/qt" >&5
+echo "${ECHO_T}http://www.troll.no/qt" >&6
+      echo "$as_me:$LINENO: result: " >&5
+echo "${ECHO_T}" >&6
+      echo "$as_me:$LINENO: result: Note: OpenMS requires QT 4.x! QT3 is no longer supported." >&5
+echo "${ECHO_T}Note: OpenMS requires QT 4.x! QT3 is no longer supported." >&6
+
+	echo "$as_me:$LINENO: result: " >&5
+echo "${ECHO_T}" >&6
+	echo "$as_me:$LINENO: result: Configure failed. If you cannot solve your problem with the aid" >&5
+echo "${ECHO_T}Configure failed. If you cannot solve your problem with the aid" >&6
+	echo "$as_me:$LINENO: result: of the above error message, please contact the OPENMS mailing list" >&5
+echo "${ECHO_T}of the above error message, please contact the OPENMS mailing list" >&6
+	echo "$as_me:$LINENO: result: or the OPENMS developers. Please enclose the file 'conf.diag.tar'" >&5
+echo "${ECHO_T}or the OPENMS developers. Please enclose the file 'conf.diag.tar'" >&6
+	echo "$as_me:$LINENO: result: which has been created in OPENMS/source. It contains the relevant" >&5
+echo "${ECHO_T}which has been created in OPENMS/source. It contains the relevant" >&6
+	echo "$as_me:$LINENO: result: files from this configure run. In most cases, the information" >&5
+echo "${ECHO_T}files from this configure run. In most cases, the information" >&6
+	echo "$as_me:$LINENO: result: is necessary to diagnose what went wrong. This file contains" >&5
+echo "${ECHO_T}is necessary to diagnose what went wrong. This file contains" >&6
+	echo "$as_me:$LINENO: result: information about your system setup and versions of compilers" >&5
+echo "${ECHO_T}information about your system setup and versions of compilers" >&6
+	echo "$as_me:$LINENO: result: and other tools installed in your system." >&5
+echo "${ECHO_T}and other tools installed in your system." >&6
+	echo "$as_me:$LINENO: result: " >&5
+echo "${ECHO_T}" >&6
+	TARFILE=conf.diag.tar
+	if test -f $TARFILE ; then
+		${RM} $TARFILE ;
+	fi
+  tar cf $TARFILE configure configure.ac aclocal.m4 config.log
+	{ { echo "$as_me:$LINENO: error: Aborted." >&5
+echo "$as_me: error: Aborted." >&2;}
+   { (exit 1); exit 1; }; }
+
+    fi
+  fi
+
 
 				if test "${QT_INCPATH}" != /usr/include && test "${QT_INCPATH}" != "" ; then
 		GUI_INCLUDES="${GUI_INCLUDES} -I${QT_INCPATH}"
@@ -23507,31 +23385,31 @@ echo "${ECHO_T}yes" >&6
 
 
 		X=`pwd`
-		echo "$as_me:$LINENO: checking linking against QT libraries" >&5
-echo $ECHO_N "checking linking against QT libraries... $ECHO_C" >&6
+		echo "$as_me:$LINENO: checking linking against QtCore lib" >&5
+echo $ECHO_N "checking linking against QtCore lib... $ECHO_C" >&6
 
 		if test "${QT_LIBPATH}" != "/usr/lib" ; then
-			QTQGL_LIBOPTS="-L${QT_LIBPATH} -lqgl -lqt${QT_MT_SUFFIX}"
-			QT_LIBOPTS="-L${QT_LIBPATH} -lqt${QT_MT_SUFFIX}"
+			QT_LIBOPTS="-L${QT_LIBPATH} -lQtCore -lQtSql -lQtGui -lQtOpenGL"
 		else
 			QT_LIBPATH=""
-			QTQGL_LIBOPTS="-lqgl -lqt${QT_MT_SUFFIX}"
-			QT_LIBOPTS="-lqt${QT_MT_SUFFIX}"
+			QT_LIBOPTS="-lQtCore -lQtSql -lQtGui -lQtOpenGL"
 		fi
 
-		SAVE_LIBS=${LIBS}
-		LIBS="${QTQGL_LIBOPTS} ${OPENGL_LIBOPTS} ${X11_LIBOPTS} ${LIBS} ${GUI_INCLUDES}"
+								SAVE_LIBS=${LIBS}
+		LIBS="-L${QT_LIBPATH} -lQtCore ${X11_LIBOPTS} ${LIBS} ${GUI_INCLUDES}"
+
+		QT_LINKING_OK=0
 		cat >conftest.$ac_ext <<_ACEOF
 /* confdefs.h.  */
 _ACEOF
 cat confdefs.h >>conftest.$ac_ext
 cat >>conftest.$ac_ext <<_ACEOF
 /* end confdefs.h.  */
-#include <qgl.h>
+#include <QtCore/QDir>
 int
 main ()
 {
-QGLWidget widget;
+QDir dir;
   ;
   return 0;
 }
@@ -23566,128 +23444,22 @@ sed 's/^/| /' conftest.$ac_ext >&5
 fi
 rm -f conftest.err conftest.$ac_objext \
       conftest$ac_exeext conftest.$ac_ext
-		LIBS=${SAVE_LIBS}
 
-		if test "${QT_LINKING_OK+set}" != set ; then
-			SAVE_LIBS=${LIBS}
-			LIBS="${QT_LIBOPTS} ${OPENGL_LIBOPTS} ${X11_LIBOPTS} ${LIBS} ${GUI_INCLUDES}"
-			cat >conftest.$ac_ext <<_ACEOF
-/* confdefs.h.  */
-_ACEOF
-cat confdefs.h >>conftest.$ac_ext
-cat >>conftest.$ac_ext <<_ACEOF
-/* end confdefs.h.  */
-#include <qgl.h>
-int
-main ()
-{
-QGLWidget wid;
-  ;
-  return 0;
-}
-_ACEOF
-rm -f conftest.$ac_objext conftest$ac_exeext
-if { (eval echo "$as_me:$LINENO: \"$ac_link\"") >&5
-  (eval $ac_link) 2>conftest.er1
-  ac_status=$?
-  grep -v '^ *+' conftest.er1 >conftest.err
-  rm -f conftest.er1
-  cat conftest.err >&5
-  echo "$as_me:$LINENO: \$? = $ac_status" >&5
-  (exit $ac_status); } &&
-	 { ac_try='test -z "$ac_cxx_werror_flag"
-			 || test ! -s conftest.err'
-  { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
-  (eval $ac_try) 2>&5
-  ac_status=$?
-  echo "$as_me:$LINENO: \$? = $ac_status" >&5
-  (exit $ac_status); }; } &&
-	 { ac_try='test -s conftest$ac_exeext'
-  { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
-  (eval $ac_try) 2>&5
-  ac_status=$?
-  echo "$as_me:$LINENO: \$? = $ac_status" >&5
-  (exit $ac_status); }; }; then
-  QT_LINKING_OK=1
-else
-  echo "$as_me: failed program was:" >&5
-sed 's/^/| /' conftest.$ac_ext >&5
-
-fi
-rm -f conftest.err conftest.$ac_objext \
-      conftest$ac_exeext conftest.$ac_ext
-			LIBS=${SAVE_LIBS}
-		else
-						QT_LIBOPTS="${QTQGL_LIBOPTS}"
-		fi
-
-		if test "${QT_LINKING_OK+set}" != set ; then
-			SAVE_LIBS=${LIBS}
-			X11_LIBOPTS="-lXrender -lfreetype ${X11_LIBOPTS}"
-			LIBS="${QT_LIBOPTS} ${OPENGL_LIBOPTS} ${X11_LIBOPTS} ${LIBS} ${GUI_INCLUDES}"
-			cat >conftest.$ac_ext <<_ACEOF
-/* confdefs.h.  */
-_ACEOF
-cat confdefs.h >>conftest.$ac_ext
-cat >>conftest.$ac_ext <<_ACEOF
-/* end confdefs.h.  */
-#include <qgl.h>
-int
-main ()
-{
-QGLWidget wid;
-  ;
-  return 0;
-}
-_ACEOF
-rm -f conftest.$ac_objext conftest$ac_exeext
-if { (eval echo "$as_me:$LINENO: \"$ac_link\"") >&5
-  (eval $ac_link) 2>conftest.er1
-  ac_status=$?
-  grep -v '^ *+' conftest.er1 >conftest.err
-  rm -f conftest.er1
-  cat conftest.err >&5
-  echo "$as_me:$LINENO: \$? = $ac_status" >&5
-  (exit $ac_status); } &&
-	 { ac_try='test -z "$ac_cxx_werror_flag"
-			 || test ! -s conftest.err'
-  { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
-  (eval $ac_try) 2>&5
-  ac_status=$?
-  echo "$as_me:$LINENO: \$? = $ac_status" >&5
-  (exit $ac_status); }; } &&
-	 { ac_try='test -s conftest$ac_exeext'
-  { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
-  (eval $ac_try) 2>&5
-  ac_status=$?
-  echo "$as_me:$LINENO: \$? = $ac_status" >&5
-  (exit $ac_status); }; }; then
-  QT_LINKING_OK=1
-else
-  echo "$as_me: failed program was:" >&5
-sed 's/^/| /' conftest.$ac_ext >&5
-
-fi
-rm -f conftest.err conftest.$ac_objext \
-      conftest$ac_exeext conftest.$ac_ext
-			LIBS=${SAVE_LIBS}
-		fi
-
-	if test "${QT_LINKING_OK+set}" != set ; then
-		echo "$as_me:$LINENO: result: no" >&5
+	  if test "${QT_LINKING_OK+set}" != set ; then
+  	  echo "$as_me:$LINENO: result: no" >&5
 echo "${ECHO_T}no" >&6
-		echo "$as_me:$LINENO: result: " >&5
+    	echo "$as_me:$LINENO: result: " >&5
 echo "${ECHO_T}" >&6
-		echo "$as_me:$LINENO: result: Cannot link against libqt!" >&5
-echo "${ECHO_T}Cannot link against libqt!" >&6
-		echo "$as_me:$LINENO: result: If QT is installed, please specify the path to the library" >&5
-echo "${ECHO_T}If QT is installed, please specify the path to the library" >&6
-		echo "$as_me:$LINENO: result: using the option --with-qt-libs=DIR or the environment variable QTDIR." >&5
-echo "${ECHO_T}using the option --with-qt-libs=DIR or the environment variable QTDIR." >&6
-		echo "$as_me:$LINENO: result: " >&5
+    	echo "$as_me:$LINENO: result: Cannot link against Qt!" >&5
+echo "${ECHO_T}Cannot link against Qt!" >&6
+    	echo "$as_me:$LINENO: result: If Qt4 is installed, please specify the path to the library" >&5
+echo "${ECHO_T}If Qt4 is installed, please specify the path to the library" >&6
+    	echo "$as_me:$LINENO: result: using the option --with-qt-libs=DIR" >&5
+echo "${ECHO_T}using the option --with-qt-libs=DIR" >&6
+    	echo "$as_me:$LINENO: result: " >&5
 echo "${ECHO_T}" >&6
-		echo "$as_me:$LINENO: result: Another possible reason is threading support. Have a look at  the OpenMS installation documentation!" >&5
-echo "${ECHO_T}Another possible reason is threading support. Have a look at  the OpenMS installation documentation!" >&6
+    	echo "$as_me:$LINENO: result: Another possible reason is threading support. Have a look at the OpenMS installation documentation!" >&5
+echo "${ECHO_T}Another possible reason is threading support. Have a look at the OpenMS installation documentation!" >&6
 
 	echo "$as_me:$LINENO: result: " >&5
 echo "${ECHO_T}" >&6
@@ -23718,24 +23490,335 @@ echo "${ECHO_T}" >&6
 echo "$as_me: error: Aborted." >&2;}
    { (exit 1); exit 1; }; }
 
-	else
-		echo "$as_me:$LINENO: result: yes" >&5
-echo "${ECHO_T}yes" >&6
-
-								echo "$as_me:$LINENO: checking QT library version" >&5
-echo $ECHO_N "checking QT library version... $ECHO_C" >&6
-		SAVE_LIBS=${LIBS}
-		LIBS="${QT_LIBOPTS} ${OPENGL_LIBOPTS} ${X11_LIBOPTS} ${LIBS}"
-		if test "${OS}" = "Darwin" ; then
-			DYLD_LIBRARY_PATH="${QT_LIBPATH}:${X11_LIBPATH}:${OPENGL_LIBPATH}:${DYLD_LIBRARY_PATH}"
-			export DYLD_LIBRARY_PATH
-			echo "DYLD_LIBRARY_PATH = ${DYLD_LIBRARY_PATH}" 1>&5
 		else
-			LD_LIBRARY_PATH="${QT_LIBPATH}:${X11_LIBPATH}:${OPENGL_LIBPATH}:${LD_LIBRARY_PATH}"
-			export LD_LIBRARY_PATH
-			echo "LD_LIBRARY_PATH = ${LD_LIBRARY_PATH}" 1>&5
+			echo "$as_me:$LINENO: result: yes" >&5
+echo "${ECHO_T}yes" >&6
 		fi
-		if test "$cross_compiling" = yes; then
+
+								echo "$as_me:$LINENO: checking linking against QtGui lib" >&5
+echo $ECHO_N "checking linking against QtGui lib... $ECHO_C" >&6
+
+		LIBS="-L${QT_LIBPATH} -lQtCore -lQtGui ${X11_LIBOPTS} ${LIBS} ${GUI_INCLUDES}"
+
+		QT_LINKING_OK=0
+    cat >conftest.$ac_ext <<_ACEOF
+/* confdefs.h.  */
+_ACEOF
+cat confdefs.h >>conftest.$ac_ext
+cat >>conftest.$ac_ext <<_ACEOF
+/* end confdefs.h.  */
+#include <QtGui/QWidget>
+int
+main ()
+{
+QWidget widget;
+  ;
+  return 0;
+}
+_ACEOF
+rm -f conftest.$ac_objext conftest$ac_exeext
+if { (eval echo "$as_me:$LINENO: \"$ac_link\"") >&5
+  (eval $ac_link) 2>conftest.er1
+  ac_status=$?
+  grep -v '^ *+' conftest.er1 >conftest.err
+  rm -f conftest.er1
+  cat conftest.err >&5
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); } &&
+	 { ac_try='test -z "$ac_cxx_werror_flag"
+			 || test ! -s conftest.err'
+  { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
+  (eval $ac_try) 2>&5
+  ac_status=$?
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); }; } &&
+	 { ac_try='test -s conftest$ac_exeext'
+  { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
+  (eval $ac_try) 2>&5
+  ac_status=$?
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); }; }; then
+  QT_LINKING_OK=1
+else
+  echo "$as_me: failed program was:" >&5
+sed 's/^/| /' conftest.$ac_ext >&5
+
+fi
+rm -f conftest.err conftest.$ac_objext \
+      conftest$ac_exeext conftest.$ac_ext
+
+    if test "${QT_LINKING_OK+set}" != set ; then
+      echo "$as_me:$LINENO: result: no" >&5
+echo "${ECHO_T}no" >&6
+      echo "$as_me:$LINENO: result: " >&5
+echo "${ECHO_T}" >&6
+      echo "$as_me:$LINENO: result: Cannot link against QtGui!" >&5
+echo "${ECHO_T}Cannot link against QtGui!" >&6
+      echo "$as_me:$LINENO: result: If Qt4 is installed, please specify the path to the library" >&5
+echo "${ECHO_T}If Qt4 is installed, please specify the path to the library" >&6
+      echo "$as_me:$LINENO: result: using the option --with-qt-libs=DIR" >&5
+echo "${ECHO_T}using the option --with-qt-libs=DIR" >&6
+      echo "$as_me:$LINENO: result: " >&5
+echo "${ECHO_T}" >&6
+      echo "$as_me:$LINENO: result: Another possible reason is threading support. Have a look at the OpenMS installation documentation!" >&5
+echo "${ECHO_T}Another possible reason is threading support. Have a look at the OpenMS installation documentation!" >&6
+
+	echo "$as_me:$LINENO: result: " >&5
+echo "${ECHO_T}" >&6
+	echo "$as_me:$LINENO: result: Configure failed. If you cannot solve your problem with the aid" >&5
+echo "${ECHO_T}Configure failed. If you cannot solve your problem with the aid" >&6
+	echo "$as_me:$LINENO: result: of the above error message, please contact the OPENMS mailing list" >&5
+echo "${ECHO_T}of the above error message, please contact the OPENMS mailing list" >&6
+	echo "$as_me:$LINENO: result: or the OPENMS developers. Please enclose the file 'conf.diag.tar'" >&5
+echo "${ECHO_T}or the OPENMS developers. Please enclose the file 'conf.diag.tar'" >&6
+	echo "$as_me:$LINENO: result: which has been created in OPENMS/source. It contains the relevant" >&5
+echo "${ECHO_T}which has been created in OPENMS/source. It contains the relevant" >&6
+	echo "$as_me:$LINENO: result: files from this configure run. In most cases, the information" >&5
+echo "${ECHO_T}files from this configure run. In most cases, the information" >&6
+	echo "$as_me:$LINENO: result: is necessary to diagnose what went wrong. This file contains" >&5
+echo "${ECHO_T}is necessary to diagnose what went wrong. This file contains" >&6
+	echo "$as_me:$LINENO: result: information about your system setup and versions of compilers" >&5
+echo "${ECHO_T}information about your system setup and versions of compilers" >&6
+	echo "$as_me:$LINENO: result: and other tools installed in your system." >&5
+echo "${ECHO_T}and other tools installed in your system." >&6
+	echo "$as_me:$LINENO: result: " >&5
+echo "${ECHO_T}" >&6
+	TARFILE=conf.diag.tar
+	if test -f $TARFILE ; then
+		${RM} $TARFILE ;
+	fi
+  tar cf $TARFILE configure configure.ac aclocal.m4 config.log
+	{ { echo "$as_me:$LINENO: error: Aborted." >&5
+echo "$as_me: error: Aborted." >&2;}
+   { (exit 1); exit 1; }; }
+
+    else
+      echo "$as_me:$LINENO: result: yes" >&5
+echo "${ECHO_T}yes" >&6
+    fi
+
+
+								echo "$as_me:$LINENO: checking linking against QtOpenGL lib" >&5
+echo $ECHO_N "checking linking against QtOpenGL lib... $ECHO_C" >&6
+
+		LIBS="L${QT_LIBPATH} -lQtCore -ltGui -lQtOpenGL ${X11_LIBOPTS} ${LIBS} ${GUI_INCLUDES}"
+
+		QT_LINKING_OK=0
+		cat >conftest.$ac_ext <<_ACEOF
+/* confdefs.h.  */
+_ACEOF
+cat confdefs.h >>conftest.$ac_ext
+cat >>conftest.$ac_ext <<_ACEOF
+/* end confdefs.h.  */
+#include <QtOpenGL/QGLWidget>
+int
+main ()
+{
+QGlWidget widget;
+  ;
+  return 0;
+}
+_ACEOF
+rm -f conftest.$ac_objext conftest$ac_exeext
+if { (eval echo "$as_me:$LINENO: \"$ac_link\"") >&5
+  (eval $ac_link) 2>conftest.er1
+  ac_status=$?
+  grep -v '^ *+' conftest.er1 >conftest.err
+  rm -f conftest.er1
+  cat conftest.err >&5
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); } &&
+	 { ac_try='test -z "$ac_cxx_werror_flag"
+			 || test ! -s conftest.err'
+  { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
+  (eval $ac_try) 2>&5
+  ac_status=$?
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); }; } &&
+	 { ac_try='test -s conftest$ac_exeext'
+  { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
+  (eval $ac_try) 2>&5
+  ac_status=$?
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); }; }; then
+  QT_LINKING_OK=1
+else
+  echo "$as_me: failed program was:" >&5
+sed 's/^/| /' conftest.$ac_ext >&5
+
+fi
+rm -f conftest.err conftest.$ac_objext \
+      conftest$ac_exeext conftest.$ac_ext
+
+    if test "${QT_LINKING_OK+set}" != set ; then
+      echo "$as_me:$LINENO: result: no" >&5
+echo "${ECHO_T}no" >&6
+      echo "$as_me:$LINENO: result: " >&5
+echo "${ECHO_T}" >&6
+      echo "$as_me:$LINENO: result: Cannot link against QtOpenGL!" >&5
+echo "${ECHO_T}Cannot link against QtOpenGL!" >&6
+      echo "$as_me:$LINENO: result: If Qt4 is installed, please specify the path to the library" >&5
+echo "${ECHO_T}If Qt4 is installed, please specify the path to the library" >&6
+      echo "$as_me:$LINENO: result: using the option --with-qt-libs=DIR" >&5
+echo "${ECHO_T}using the option --with-qt-libs=DIR" >&6
+      echo "$as_me:$LINENO: result: " >&5
+echo "${ECHO_T}" >&6
+      echo "$as_me:$LINENO: result: Another possible reason is threading support. Have a look at the OpenMS installation documentation!" >&5
+echo "${ECHO_T}Another possible reason is threading support. Have a look at the OpenMS installation documentation!" >&6
+
+	echo "$as_me:$LINENO: result: " >&5
+echo "${ECHO_T}" >&6
+	echo "$as_me:$LINENO: result: Configure failed. If you cannot solve your problem with the aid" >&5
+echo "${ECHO_T}Configure failed. If you cannot solve your problem with the aid" >&6
+	echo "$as_me:$LINENO: result: of the above error message, please contact the OPENMS mailing list" >&5
+echo "${ECHO_T}of the above error message, please contact the OPENMS mailing list" >&6
+	echo "$as_me:$LINENO: result: or the OPENMS developers. Please enclose the file 'conf.diag.tar'" >&5
+echo "${ECHO_T}or the OPENMS developers. Please enclose the file 'conf.diag.tar'" >&6
+	echo "$as_me:$LINENO: result: which has been created in OPENMS/source. It contains the relevant" >&5
+echo "${ECHO_T}which has been created in OPENMS/source. It contains the relevant" >&6
+	echo "$as_me:$LINENO: result: files from this configure run. In most cases, the information" >&5
+echo "${ECHO_T}files from this configure run. In most cases, the information" >&6
+	echo "$as_me:$LINENO: result: is necessary to diagnose what went wrong. This file contains" >&5
+echo "${ECHO_T}is necessary to diagnose what went wrong. This file contains" >&6
+	echo "$as_me:$LINENO: result: information about your system setup and versions of compilers" >&5
+echo "${ECHO_T}information about your system setup and versions of compilers" >&6
+	echo "$as_me:$LINENO: result: and other tools installed in your system." >&5
+echo "${ECHO_T}and other tools installed in your system." >&6
+	echo "$as_me:$LINENO: result: " >&5
+echo "${ECHO_T}" >&6
+	TARFILE=conf.diag.tar
+	if test -f $TARFILE ; then
+		${RM} $TARFILE ;
+	fi
+  tar cf $TARFILE configure configure.ac aclocal.m4 config.log
+	{ { echo "$as_me:$LINENO: error: Aborted." >&5
+echo "$as_me: error: Aborted." >&2;}
+   { (exit 1); exit 1; }; }
+
+    else
+      echo "$as_me:$LINENO: result: yes" >&5
+echo "${ECHO_T}yes" >&6
+    fi
+
+
+								echo "$as_me:$LINENO: checking linking against QtSql lib" >&5
+echo $ECHO_N "checking linking against QtSql lib... $ECHO_C" >&6
+
+		LIBS="L${QT_LIBPATH} -lQtCore -lQtSql ${X11_LIBOPTS} ${LIBS} ${GUI_INCLUDES}"
+
+		QT_LINKING_OK=0
+		cat >conftest.$ac_ext <<_ACEOF
+/* confdefs.h.  */
+_ACEOF
+cat confdefs.h >>conftest.$ac_ext
+cat >>conftest.$ac_ext <<_ACEOF
+/* end confdefs.h.  */
+#include <QtSql/QSqlDatabase>
+int
+main ()
+{
+QSqlDatabase db;
+  ;
+  return 0;
+}
+_ACEOF
+rm -f conftest.$ac_objext conftest$ac_exeext
+if { (eval echo "$as_me:$LINENO: \"$ac_link\"") >&5
+  (eval $ac_link) 2>conftest.er1
+  ac_status=$?
+  grep -v '^ *+' conftest.er1 >conftest.err
+  rm -f conftest.er1
+  cat conftest.err >&5
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); } &&
+	 { ac_try='test -z "$ac_cxx_werror_flag"
+			 || test ! -s conftest.err'
+  { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
+  (eval $ac_try) 2>&5
+  ac_status=$?
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); }; } &&
+	 { ac_try='test -s conftest$ac_exeext'
+  { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
+  (eval $ac_try) 2>&5
+  ac_status=$?
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); }; }; then
+  QT_LINKING_OK=1
+else
+  echo "$as_me: failed program was:" >&5
+sed 's/^/| /' conftest.$ac_ext >&5
+
+fi
+rm -f conftest.err conftest.$ac_objext \
+      conftest$ac_exeext conftest.$ac_ext
+
+    if test "${QT_LINKING_OK+set}" != set ; then
+      echo "$as_me:$LINENO: result: no" >&5
+echo "${ECHO_T}no" >&6
+      echo "$as_me:$LINENO: result: " >&5
+echo "${ECHO_T}" >&6
+      echo "$as_me:$LINENO: result: Cannot link against QtSql!" >&5
+echo "${ECHO_T}Cannot link against QtSql!" >&6
+      echo "$as_me:$LINENO: result: If Qt4 is installed, please specify the path to the library" >&5
+echo "${ECHO_T}If Qt4 is installed, please specify the path to the library" >&6
+      echo "$as_me:$LINENO: result: using the option --with-qt-libs=DIR" >&5
+echo "${ECHO_T}using the option --with-qt-libs=DIR" >&6
+      echo "$as_me:$LINENO: result: " >&5
+echo "${ECHO_T}" >&6
+      echo "$as_me:$LINENO: result: Another possible reason is threading support. Have a look at the OpenMS installation documentation!" >&5
+echo "${ECHO_T}Another possible reason is threading support. Have a look at the OpenMS installation documentation!" >&6
+
+	echo "$as_me:$LINENO: result: " >&5
+echo "${ECHO_T}" >&6
+	echo "$as_me:$LINENO: result: Configure failed. If you cannot solve your problem with the aid" >&5
+echo "${ECHO_T}Configure failed. If you cannot solve your problem with the aid" >&6
+	echo "$as_me:$LINENO: result: of the above error message, please contact the OPENMS mailing list" >&5
+echo "${ECHO_T}of the above error message, please contact the OPENMS mailing list" >&6
+	echo "$as_me:$LINENO: result: or the OPENMS developers. Please enclose the file 'conf.diag.tar'" >&5
+echo "${ECHO_T}or the OPENMS developers. Please enclose the file 'conf.diag.tar'" >&6
+	echo "$as_me:$LINENO: result: which has been created in OPENMS/source. It contains the relevant" >&5
+echo "${ECHO_T}which has been created in OPENMS/source. It contains the relevant" >&6
+	echo "$as_me:$LINENO: result: files from this configure run. In most cases, the information" >&5
+echo "${ECHO_T}files from this configure run. In most cases, the information" >&6
+	echo "$as_me:$LINENO: result: is necessary to diagnose what went wrong. This file contains" >&5
+echo "${ECHO_T}is necessary to diagnose what went wrong. This file contains" >&6
+	echo "$as_me:$LINENO: result: information about your system setup and versions of compilers" >&5
+echo "${ECHO_T}information about your system setup and versions of compilers" >&6
+	echo "$as_me:$LINENO: result: and other tools installed in your system." >&5
+echo "${ECHO_T}and other tools installed in your system." >&6
+	echo "$as_me:$LINENO: result: " >&5
+echo "${ECHO_T}" >&6
+	TARFILE=conf.diag.tar
+	if test -f $TARFILE ; then
+		${RM} $TARFILE ;
+	fi
+  tar cf $TARFILE configure configure.ac aclocal.m4 config.log
+	{ { echo "$as_me:$LINENO: error: Aborted." >&5
+echo "$as_me: error: Aborted." >&2;}
+   { (exit 1); exit 1; }; }
+
+    else
+      echo "$as_me:$LINENO: result: yes" >&5
+echo "${ECHO_T}yes" >&6
+    fi
+
+		LIBS=${SAVE_LIBS}
+
+                echo "$as_me:$LINENO: checking QT library version" >&5
+echo $ECHO_N "checking QT library version... $ECHO_C" >&6
+    SAVE_LIBS=${LIBS}
+    LIBS="${QT_LIBOPTS} ${OPENGL_LIBOPTS} ${X11_LIBOPTS} ${LIBS}"
+    if test "${OS}" = "Darwin" ; then
+      DYLD_LIBRARY_PATH="${QT_LIBPATH}:${X11_LIBPATH}:${OPENGL_LIBPATH}:${GLEW_LIBPATH}:${DYLD_LIBRARY_PATH}"
+      export DYLD_LIBRARY_PATH
+      echo "DYLD_LIBRARY_PATH = ${DYLD_LIBRARY_PATH}" 1>&5
+    else
+      LD_LIBRARY_PATH="${QT_LIBPATH}:${X11_LIBPATH}:${OPENGL_LIBPATH}:${GLEW_LIBPATH}:${LD_LIBRARY_PATH}"
+      export LD_LIBRARY_PATH
+      echo "LD_LIBRARY_PATH = ${LD_LIBRARY_PATH}" 1>&5
+    fi
+    if test "$cross_compiling" = yes; then
   DUMMY=0
 
 else
@@ -23746,15 +23829,15 @@ cat confdefs.h >>conftest.$ac_ext
 cat >>conftest.$ac_ext <<_ACEOF
 /* end confdefs.h.  */
 
-				#include <stdio.h>
-				const char* qVersion();
-				int main()
-				{
-					FILE* f = fopen("qt.version", "w");
-					fprintf(f, "%s\n", qVersion());
-					fclose(f);
-					return 0;
-				}
+        #include <stdio.h>
+        const char* qVersion();
+        int main()
+        {
+          FILE* f = fopen("qt.version", "w");
+          fprintf(f, "%s\n", qVersion());
+          fclose(f);
+          return 0;
+        }
 
 _ACEOF
 rm -f conftest$ac_exeext
@@ -23779,24 +23862,24 @@ DUMMY=0
 fi
 rm -f core *.core gmon.out bb.out conftest$ac_exeext conftest.$ac_objext conftest.$ac_ext
 fi
-		LIBS=${SAVE_LIBS}
+    LIBS=${SAVE_LIBS}
 
-										if test "${QT_VERSION_OK+set}" != set; then
-			echo "$as_me:$LINENO: result: no" >&5
+                    if test "${QT_VERSION_OK+set}" != set; then
+      echo "$as_me:$LINENO: result: no" >&5
 echo "${ECHO_T}no" >&6
-			echo "$as_me:$LINENO: result: " >&5
+      echo "$as_me:$LINENO: result: " >&5
 echo "${ECHO_T}" >&6
-			echo "$as_me:$LINENO: result: The execution of a program linked against the QT" >&5
+      echo "$as_me:$LINENO: result: The execution of a program linked against the QT" >&5
 echo "${ECHO_T}The execution of a program linked against the QT" >&6
-			echo "$as_me:$LINENO: result: library failed. Please have a look at config.log" >&5
+      echo "$as_me:$LINENO: result: library failed. Please have a look at config.log" >&5
 echo "${ECHO_T}library failed. Please have a look at config.log" >&6
-			echo "$as_me:$LINENO: result: (the last few lines) to find out what happened." >&5
+      echo "$as_me:$LINENO: result: (the last few lines) to find out what happened." >&5
 echo "${ECHO_T}(the last few lines) to find out what happened." >&6
-			echo "$as_me:$LINENO: result: Perhaps you specified the wrong library or the" >&5
+      echo "$as_me:$LINENO: result: Perhaps you specified the wrong library or the" >&5
 echo "${ECHO_T}Perhaps you specified the wrong library or the" >&6
-			echo "$as_me:$LINENO: result: X11 libraries are in conflict with any other library." >&5
+      echo "$as_me:$LINENO: result: X11 libraries are in conflict with any other library." >&5
 echo "${ECHO_T}X11 libraries are in conflict with any other library." >&6
-			echo "$as_me:$LINENO: result: You might also want to check your LD_LIBRARY_PATH." >&5
+      echo "$as_me:$LINENO: result: You might also want to check your LD_LIBRARY_PATH." >&5
 echo "${ECHO_T}You might also want to check your LD_LIBRARY_PATH." >&6
 
 	echo "$as_me:$LINENO: result: " >&5
@@ -23828,26 +23911,31 @@ echo "${ECHO_T}" >&6
 echo "$as_me: error: Aborted." >&2;}
    { (exit 1); exit 1; }; }
 
-		else
-			QT_VERSION_STRING=`cat qt.version`
-			echo "$as_me:$LINENO: result: ${QT_VERSION_STRING}" >&5
-echo "${ECHO_T}${QT_VERSION_STRING}" >&6
+    else
+      QT_VERSION_STR=`cat qt.version | ${SED} "s/-.*//"`
+			${RM} qt.version 2>/dev/null
+      echo "$as_me:$LINENO: result: ${QT_VERSION_STR}" >&5
+echo "${ECHO_T}${QT_VERSION_STR}" >&6
 
-												${RM} qt.version 2>/dev/null
-			QT_MAJOR=`echo ${QT_VERSION_STRING} | ${CUT} -d. -f1`
-			if test "${QT_MAJOR}" -lt 3 ; then
-				echo "$as_me:$LINENO: result: " >&5
+                        if test `echo ${QT_VERSION_STR} | ${CUT} -c1-2 | ${SED} "s/-.*//"` != "0x" ; then
+        QT_VERSION=`echo ${QT_VERSION_STR} | ${TR} -d "." `
+        if test "${QT_VERSION}" -lt "${QT_MIN_VERSION}" -o "${QT_VERSION}" -gt "${QT_MAX_VERSION}" ; then
+          echo "$as_me:$LINENO: result: " >&5
 echo "${ECHO_T}" >&6
-				echo "$as_me:$LINENO: result: QT version 3.x is required." >&5
-echo "${ECHO_T}QT version 3.x is required." >&6
-				echo "$as_me:$LINENO: result: Please install version QT Version 3 (at least 3.0.6)" >&5
-echo "${ECHO_T}Please install version QT Version 3 (at least 3.0.6)" >&6
-				echo "$as_me:$LINENO: result: which can be obtained from" >&5
-echo "${ECHO_T}which can be obtained from" >&6
-				echo "$as_me:$LINENO: result: " >&5
+          echo "$as_me:$LINENO: result: QT version ${QT_RECOMMENDED_VERSION} is recommended for OpenMS. Please update" >&5
+echo "${ECHO_T}QT version ${QT_RECOMMENDED_VERSION} is recommended for OpenMS. Please update" >&6
+          echo "$as_me:$LINENO: result: to a suitable version or specify the path to a more" >&5
+echo "${ECHO_T}to a suitable version or specify the path to a more" >&6
+          echo "$as_me:$LINENO: result: suitable version of libqt* by passing the option --with-qt-libs=DIR" >&5
+echo "${ECHO_T}suitable version of libqt* by passing the option --with-qt-libs=DIR" >&6
+          echo "$as_me:$LINENO: result: to configure." >&5
+echo "${ECHO_T}to configure." >&6
+          echo "$as_me:$LINENO: result: " >&5
 echo "${ECHO_T}" >&6
-				echo "$as_me:$LINENO: result: www.troll.no/qt" >&5
-echo "${ECHO_T}www.troll.no/qt" >&6
+          echo "$as_me:$LINENO: result: The complete QT package can be found under the following URL:" >&5
+echo "${ECHO_T}The complete QT package can be found under the following URL:" >&6
+          echo "$as_me:$LINENO: result:   http://www.troll.no/qt" >&5
+echo "${ECHO_T}  http://www.troll.no/qt" >&6
 
 	echo "$as_me:$LINENO: result: " >&5
 echo "${ECHO_T}" >&6
@@ -23878,9 +23966,10 @@ echo "${ECHO_T}" >&6
 echo "$as_me: error: Aborted." >&2;}
    { (exit 1); exit 1; }; }
 
-			fi
-		fi
-	fi
+        fi
+      fi
+    fi
+
 
 
 
@@ -23934,8 +24023,8 @@ fi
 		if test "${MOC}" = moc ; then
 			echo "$as_me:$LINENO: result: " >&5
 echo "${ECHO_T}" >&6
-			echo "$as_me:$LINENO: result: Could not find the QT Meta Object Compiler (moc)!" >&5
-echo "${ECHO_T}Could not find the QT Meta Object Compiler (moc)!" >&6
+			echo "$as_me:$LINENO: result: Could not find the Qt Meta Object Compiler (moc)!" >&5
+echo "${ECHO_T}Could not find the Qt Meta Object Compiler (moc)!" >&6
 			echo "$as_me:$LINENO: result: You might run into trouble if you want to compile MolGUI." >&5
 echo "${ECHO_T}You might run into trouble if you want to compile MolGUI." >&6
 			echo "$as_me:$LINENO: result: Please include the correct path to moc into your" >&5
@@ -23980,8 +24069,8 @@ echo $ECHO_N "checking whether we can run moc... $ECHO_C" >&6
     if test ! -x "${MOC}" ; then
 			echo "$as_me:$LINENO: result: " >&5
 echo "${ECHO_T}" >&6
-			echo "$as_me:$LINENO: result: The QT Meta Object Compiler (moc) found in " >&5
-echo "${ECHO_T}The QT Meta Object Compiler (moc) found in " >&6
+			echo "$as_me:$LINENO: result: The Qt Meta Object Compiler (moc) found in " >&5
+echo "${ECHO_T}The Qt Meta Object Compiler (moc) found in " >&6
       echo "$as_me:$LINENO: result: \"  ${MOC}\"" >&5
 echo "${ECHO_T}\"  ${MOC}\"" >&6
       echo "$as_me:$LINENO: result: seems not to be an executable!" >&5
@@ -24034,10 +24123,10 @@ echo "${ECHO_T}${MOC_VERSION}" >&6
 			if test "${MOC_VERSION}" != "${QT_VERSION_STR}" ; then
 				echo "$as_me:$LINENO: result: " >&5
 echo "${ECHO_T}" >&6
-				echo "$as_me:$LINENO: result: QT version (${QT_VERSION_STR}) is incompatible with moc version (${MOC_VERISON})!" >&5
-echo "${ECHO_T}QT version (${QT_VERSION_STR}) is incompatible with moc version (${MOC_VERISON})!" >&6
-				echo "$as_me:$LINENO: result: Please check your QTDIR environment variable, include the correct" >&5
-echo "${ECHO_T}Please check your QTDIR environment variable, include the correct" >&6
+				echo "$as_me:$LINENO: result: Qt version (${QT_VERSION_STR}) is incompatible with moc version (${MOC_VERSION})!" >&5
+echo "${ECHO_T}Qt version (${QT_VERSION_STR}) is incompatible with moc version (${MOC_VERSION})!" >&6
+				echo "$as_me:$LINENO: result: Please set the correct --with-qt=QTDIR option, include the correct " >&5
+echo "${ECHO_T}Please set the correct --with-qt=QTDIR option, include the correct " >&6
 				echo "$as_me:$LINENO: result: path to moc in your PATH environment variable, or specify the correct" >&5
 echo "${ECHO_T}path to moc in your PATH environment variable, or specify the correct" >&6
 				echo "$as_me:$LINENO: result: path to moc using the option --with-moc=PATH to rerun configure." >&5
@@ -24126,10 +24215,8 @@ fi
 		if test "${UIC}" = uic ; then
 			echo "$as_me:$LINENO: result: " >&5
 echo "${ECHO_T}" >&6
-			echo "$as_me:$LINENO: result: Could not find the QT User Interface Compiler (uic)!" >&5
-echo "${ECHO_T}Could not find the QT User Interface Compiler (uic)!" >&6
-			echo "$as_me:$LINENO: result: You might run into trouble if you want to compile MolGUI." >&5
-echo "${ECHO_T}You might run into trouble if you want to compile MolGUI." >&6
+			echo "$as_me:$LINENO: result: Could not find the Qt User Interface Compiler (uic)!" >&5
+echo "${ECHO_T}Could not find the Qt User Interface Compiler (uic)!" >&6
 			echo "$as_me:$LINENO: result: Please include the correct path to uic into your" >&5
 echo "${ECHO_T}Please include the correct path to uic into your" >&6
 			echo "$as_me:$LINENO: result: PATH environment variable or specify the path to uic" >&5
@@ -24173,8 +24260,8 @@ echo $ECHO_N "checking whether uic is executable... $ECHO_C" >&6
     if test ! -x "${UIC}" ; then
 			echo "$as_me:$LINENO: result: " >&5
 echo "${ECHO_T}" >&6
-			echo "$as_me:$LINENO: result: The QT User Interface Compiler (uic) found in " >&5
-echo "${ECHO_T}The QT User Interface Compiler (uic) found in " >&6
+			echo "$as_me:$LINENO: result: The Qt User Interface Compiler (uic) found in " >&5
+echo "${ECHO_T}The Qt User Interface Compiler (uic) found in " >&6
       echo "$as_me:$LINENO: result: \"   ${UIC}\"" >&5
 echo "${ECHO_T}\"   ${UIC}\"" >&6
       echo "$as_me:$LINENO: result: seems not to be an executable!" >&5
@@ -24227,8 +24314,8 @@ echo "${ECHO_T}${UIC_VERSION}" >&6
 			if test "${UIC_VERSION}" != "${QT_VERSION_STR}" ; then
 				echo "$as_me:$LINENO: result: " >&5
 echo "${ECHO_T}" >&6
-				echo "$as_me:$LINENO: result: QT version (${QT_VERSION_STR}) is incompatible with uic version (${UIC_VERISON})!" >&5
-echo "${ECHO_T}QT version (${QT_VERSION_STR}) is incompatible with uic version (${UIC_VERISON})!" >&6
+				echo "$as_me:$LINENO: result: Qt version (${QT_VERSION_STR}) is incompatible with uic version (${UIC_VERISON})!" >&5
+echo "${ECHO_T}Qt version (${QT_VERSION_STR}) is incompatible with uic version (${UIC_VERISON})!" >&6
 				echo "$as_me:$LINENO: result: Please check your QTDIR environment variable, include the correct" >&5
 echo "${ECHO_T}Please check your QTDIR environment variable, include the correct" >&6
 				echo "$as_me:$LINENO: result: path to uic in your PATH environment variable, or specify the correct" >&5

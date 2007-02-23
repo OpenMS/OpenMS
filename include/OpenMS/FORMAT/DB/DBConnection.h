@@ -30,7 +30,7 @@
 #include <OpenMS/config.h>
 
 //QT includes
-#include <qsqldatabase.h>
+#include <QtSql/QSqlDatabase>
 
 //OpenMS includes
 #include <OpenMS/CONCEPT/Exception.h>
@@ -209,7 +209,7 @@ namespace OpenMS
 			QSqlQuery& executeQuery_(const std::string& query) throw(InvalidQuery,NotConnected);
       
       /// The real database handle
-      QSqlDatabase* db_handle_;
+      QSqlDatabase db_handle_;
 
       /**
       	@brief A pointer to the result of the last query.

@@ -24,9 +24,6 @@
 // $Maintainer: Marc Sturm $
 // --------------------------------------------------------------------------
 
-// Qt
-#include <qaction.h>
-
 // OpenMS
 #include <OpenMS/VISUAL/Spectrum1DWidget.h>
 #include <OpenMS/VISUAL/AxisWidget.h>
@@ -40,16 +37,18 @@ namespace OpenMS
 	using namespace Internal;
 	using namespace Math;
 	
-	Spectrum1DWidget::Spectrum1DWidget(QWidget* parent, const char* name, WFlags f)
-		: SpectrumWidget(parent, name, f)
+	Spectrum1DWidget::Spectrum1DWidget(QWidget* parent)
+		: SpectrumWidget(parent)
 	{
 		//set the label mode for the axes  - side effect
-		setCanvas_(new Spectrum1DCanvas(this, "Spectrum1DCanvas"));
+		setCanvas_(new Spectrum1DCanvas(this));
 		connect(canvas(), SIGNAL(sendStatusMessage(std::string, OpenMS::UnsignedInt)), this, SIGNAL(sendStatusMessage(std::string, OpenMS::UnsignedInt)));
 		connect(canvas(), SIGNAL(sendCursorStatus(double,double,double)), this, SIGNAL(sendCursorStatus(double,double,double)));
 		
 		x_axis_->setLegend("m/z");
+		x_axis_->setAllowShortNumbers(false);
 		y_axis_->setLegend("Intensity");
+		y_axis_->setAllowShortNumbers(true);
 		y_axis_->setMinimumWidth(50);
 		addClient(canvas(),"Canvas",true);
 	}

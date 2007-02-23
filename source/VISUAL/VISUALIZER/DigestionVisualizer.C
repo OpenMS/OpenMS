@@ -23,46 +23,25 @@
 // --------------------------------------------------------------------------
 // $Maintainer: stefan_heess  $
 // --------------------------------------------------------------------------
-#include <OpenMS/DATASTRUCTURES/String.h>
-#include <OpenMS/METADATA/Sample.h>
+
 #include <OpenMS/VISUAL/VISUALIZER/DigestionVisualizer.h>
-#include <OpenMS/VISUAL/VISUALIZER/BaseVisualizer.h>
-#include <OpenMS/VISUAL/DataTable.h>
-#include <OpenMS/METADATA/Digestion.h>
 
 //QT
-#include <qlayout.h>
-#include <qwidget.h>
-#include <qaction.h>
-#include <qcombobox.h>
-#include <qfiledialog.h>
-#include <qlabel.h> 
-#include <qlineedit.h>
-#include <qmenubar.h>
-#include <qmessagebox.h>
-#include <qpopupmenu.h>
-#include <qsettings.h>
-#include <qstatusbar.h>
-#include <qapplication.h>
-#include <qlistview.h>
-#include <qtextedit.h>
-#include <qhbox.h>
-#include <qgroupbox.h>
-#include <qpushbutton.h>
-#include <qvalidator.h>
+#include <QtGui/QValidator>
+#include <QtGui/QLineEdit>
+#include <QtGui/QTextEdit>
 
 //STL
 #include <iostream>
-#include <vector>
 
-
-//using namespace std;
-using namespace OpenMS;
 using namespace std;
 
+namespace OpenMS
+{
+
 //Constructor
-DigestionVisualizer::DigestionVisualizer(bool editable, QWidget *parent, const char *name) 
-	: BaseVisualizer(editable, parent, name)
+DigestionVisualizer::DigestionVisualizer(bool editable, QWidget *parent) 
+	: BaseVisualizer(editable, parent)
 {
   type_="Digestion";
 	
@@ -96,13 +75,13 @@ void DigestionVisualizer::load(Digestion &d)
 	
 	//Copy of current object for restoring the original values
 	tempdig_=d;
-	treatmenttype_->setText(tempdig_.getType());
+	treatmenttype_->setText(tempdig_.getType().c_str());
 	treatmenttype_->setReadOnly(true);
-	treatmentcomment_->setText(tempdig_.getComment());
-  digestionenzyme_->setText(tempdig_.getEnzyme());
-	digestiontime_->setText(String(tempdig_.getDigestionTime()) );
-  digestiontemperature_->setText(String(tempdig_.getTemperature()));
-	digestionPH_->setText(String(tempdig_.getPh())); 
+	treatmentcomment_->setText(tempdig_.getComment().c_str());
+  digestionenzyme_->setText(tempdig_.getEnzyme().c_str());
+	digestiontime_->setText(String(tempdig_.getDigestionTime()).c_str() );
+  digestiontemperature_->setText(String(tempdig_.getTemperature()).c_str());
+	digestionPH_->setText(String(tempdig_.getPh()).c_str()); 
 	
 			
 }
@@ -111,11 +90,11 @@ void DigestionVisualizer::store()
 {
 	try
 	{		
-		(*ptr_).setComment(string((const char*) treatmentcomment_->text()));
-		(*ptr_).setEnzyme(string((const char*)digestionenzyme_->text()));
-		(*ptr_).setDigestionTime(String((const char*)digestiontime_->text()).toFloat() );
-		(*ptr_).setTemperature(String((const char*)digestiontime_->text()).toFloat() );
-		(*ptr_).setPh(String((const char*)digestiontime_->text()).toFloat() );
+		(*ptr_).setComment(treatmentcomment_->toPlainText().toStdString());
+		(*ptr_).setEnzyme(digestionenzyme_->text().toStdString());
+		(*ptr_).setDigestionTime(digestiontime_->text().toFloat());
+		(*ptr_).setTemperature(digestiontime_->text().toFloat());
+		(*ptr_).setPh(digestiontime_->text().toFloat());
 		
 		tempdig_ = (*ptr_);
 	}
@@ -135,4 +114,6 @@ void DigestionVisualizer::reject()
 	{
 		cout<<"Error while trying to restore original digestion data. "<<e.what()<<endl;
 	} 
+}
+
 }

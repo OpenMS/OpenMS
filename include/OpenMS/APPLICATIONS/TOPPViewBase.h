@@ -28,29 +28,28 @@
 #define OPENMS_APPLICATIONS_TOPPVIEWBASE_H
 
 //OpenGL
-#include <OpenMS/config.h>
 #include <OpenMS/VISUAL/PreferencesManager.h>
 #include <OpenMS/VISUAL/DIALOGS/OpenDialog.h>
 #include <OpenMS/VISUAL/SpectrumCanvas.h>
+#include <OpenMS/VISUAL/SpectrumWindow.h>
 #include <OpenMS/VISUAL/EnhancedTabBar.h>
 
 //STL
 #include <map>
 
 //QT
-#include <qmainwindow.h>
-#include <qworkspace.h>
+#include <QtGui/QMainWindow>
+#include <QtGui/QWorkspace>
+#include <QtCore/QStringList>
 
 class QAction;
 class QComboBox;
-class QToolButton;
-class QMenuBar;
 class QLabel;
-class QRadioButton;
-class QActionGroup;
-class QPopupMenu;
-class QListView;
-class QListViewItem;
+class QListWidget;
+class QListWidgetItem;
+class QDockWidget;
+class QToolButton;
+class QCloseEvent;
 
 namespace OpenMS
 {
@@ -58,25 +57,27 @@ namespace OpenMS
   class Spectrum1DWindow;
   class Spectrum2DWindow;
   class Spectrum3DWindow;
-  class SpectrumWindow;
 
   /**
   	@brief MDI window of TOPPView tool
   	
   	@todo Add preferences for layers (Marc)
-  	@todo Reimplement PreferenceDialogPages (Marc)
-  	@todo Use right mouse button for navigation in data (Marc)
-		@todo: Use log-scaled intensities intensity-cutoff plot (Marc)
-		
+  	@todo Use right mouse button and double-click for navigation in data (Marc)
+  	@todo Remove coordinate-data transformations (Marc)
+  	@todo Remove SpectrumWindow (Marc)
   */
-  class TOPPViewBase : public QMainWindow, public PreferencesManager
+  class TOPPViewBase 
+  	: public QMainWindow, 
+  		public PreferencesManager
   {
       Q_OBJECT
 
     public:
-      /// Access is possible only through this method as TOPPViewBase is a singleton
-      static TOPPViewBase* instance();
-
+      ///Constructor
+      TOPPViewBase(QWidget* parent=0);
+      ///Destructor
+      ~TOPPViewBase();
+      
       /**
       	@brief Opens and displays a spectrum form a file
       	
@@ -131,7 +132,6 @@ namespace OpenMS
         	}
         }
         maximizeActiveSpectrum();
-        tab_bar_->setCurrentTab(PointerSizeInt(&(*ws_->activeWindow())));
       }
       /// returns selected peaks of the active spectrum framed by \c layer_index_.begin() and the last peak BEFORE \c layer_index_.end();
       std::vector<MSExperiment<>::SpectrumType::Iterator> getActiveSpectrumSelectedPeaks();
@@ -168,8 +168,8 @@ namespace OpenMS
       void closeFile();
       /// saves the current view of the current layer
       void saveLayer();
-      /// updates the toolbar, when the active window changes
-      void updateToolbar(QWidget* widget);
+      /// updates the toolbar
+      void updateToolbar();
       /// adapts the layer bar to the active window
       void updateLayerbar();
       /// brings the tab corresponding to the active window in front
@@ -178,8 +178,8 @@ namespace OpenMS
       void tileVertical();
       /// tile the open windows horizontally
       void tileHorizontal();
-      /// Links or unlinks two spectra (for zooming)
-      void linkActiveTo(const QString&);
+      /// Links/unlinks two spectra (for zooming)
+      void linkActiveTo(int);
       /**
       	@brief Shows a status message in the status bar.
       	
@@ -202,24 +202,36 @@ namespace OpenMS
       void findFeaturesActiveSpectrum();
 			
     protected slots:
+      /** @name Layer manager slots
+      */
+      //@{  
     	/// slot for layer manager selection change
-    	void layerSelectionChange();
+    	void layerSelectionChange(int);
     	/// slot for layer manager context menu
-    	void layerContextMenu(QListViewItem* item, const QPoint& pos, int col);
+    	void layerContextMenu(const QPoint& pos);
     	/// signal for layer manager visibility change (check box)
-    	void layerVisibilityChange(QListViewItem* item, const QPoint& pnt, int col);
-    	
-      void closeFileByTab(OpenMS::SignedInt);
-      void focusSpectrumByAddress(int);
-      void removeWidgetFromBar(QObject*);
-      void openRecentFile(int i);
-
+    	void layerVisibilityChange(QListWidgetItem* item);
+      //@}
+      
+      /** @name Tabbar slots
+      */
+      //@{    	
+    	/// Closes the window corresponding to the data of the tab with index @p index
+      void closeByTab(int index);
+      /// Raises the window corresponding to the data of the tab with index @p index
+      void focusByTab(int index);
+      /// Removes the tab with data @p id
+      void removeTab(int id);
+      /// Opens a file from the recent files menu
+      void openRecentFile();
+      //@}
+      
       /** @name Toolbar slots
       */
       //@{
-      void setActionMode(QAction*);
-      void setDrawMode1D(QAction*);
-      void setIntensityMode(QAction* a);
+      void setActionMode(int);
+      void setDrawMode1D(int);
+      void setIntensityMode(int);
       void showGridLines(bool);
       void showPoints(bool);
       void showSurface(bool);
@@ -227,23 +239,13 @@ namespace OpenMS
       void resetZoom();
       //@}
 
-      ///use this event to do the cleanup
-      virtual void closeEvent(QCloseEvent * e);
-      /// Call whenever a window is closed
-      virtual void windowClosed();
-
     protected:
-      ///singleton instance
-      static TOPPViewBase* instance_;
-      ///not accessable as this class is a singleton
-      TOPPViewBase(QWidget* parent=0, const char* name="TOPPViewBase", WFlags f=0);
-      ///not accessable as this class is a singleton
-      ~TOPPViewBase();
-
       /// Adds a tab for the window in the tabbar
       void addTab_(SpectrumWindow*, const String&);
       /// connect the slots/signals for status messages and mode changes (paint or mouse mode)
       void connectWindowSignals_(SpectrumWindow* sw);
+      ///returns the window with id @p id
+      SpectrumWindow* window_(int id) const;
       ///returns a pointer to the active SpectrumWindow (0 if none is active)
       SpectrumWindow*  activeWindow_() const;
       ///returns a pointer to the active SpectrumCanvas (0 if none is active)
@@ -260,59 +262,42 @@ namespace OpenMS
       // Docu in base class
       virtual PreferencesDialogPage* createPreferences(QWidget* parent);
 
-      /// Layer mangment bar
-      QToolBar* layer_bar_;
       /// Layer mangment widget
-      QListView* layer_manager_;
+      QListWidget* layer_manager_;
 
       /// Creates the toolbars and connects the signals and slots
-      void createToolBar_();
+      void createToolBars_();
 
-      /** @name Toolbar members
+      /** @name Toolbar
       */
       //@{
       QToolBar* tool_bar_;
       //common actions
-      QActionGroup* action_modes_;
-      QAction* am_zoom_;
-      QAction* am_translate_;
-      QAction* am_select_;
-      QAction* am_measure_;
+      QButtonGroup* action_group_;
       //common intensity modes
-      QActionGroup* intensity_modes_;
-      QAction* im_none_;
-      QAction* im_log_;
-      QAction* im_percentage_;
-      QAction* im_snap_;
+      QButtonGroup* intensity_group_;
       //common buttons
-      QToolButton* reset_zoom_button_;
-      QToolButton* grid_button_;
-      QToolButton* print_button_;
+      QAction* grid_button_;
       //1D specific stuff
       QToolBar* tool_bar_1d_;
-      QActionGroup* draw_modes_;
-      QAction* dm_peaks_1d_;
-      QAction* dm_rawdata_1d_;
+      QButtonGroup* draw_group_1d_;
       QComboBox* link_box_;
       //2D specific stuff
       QToolBar* tool_bar_2d_;
-      QToolButton* dm_points_2d_;
-      QToolButton* dm_surface_2d_;
-      QToolButton* dm_contours_2d_;
-      QActionGroup* draw_modes_2d_;
-      QAction* dm2_points_2d_;
-      QAction* dm2_surface_2d_;
-      QAction* dm2_contours_2d_;
+      QAction* dm_points_2d_;
+      QAction* dm_surface_2d_;
+      QAction* dm_contours_2d_;
       //@}
 
       /// Main workspace
       QWorkspace* ws_;
 
-      ///Tab bar
+      ///Tab bar. The address of the corresponding window to a tab is stored as an int in tabData()
       EnhancedTabBar* tab_bar_;
-      ///map (maps int(&(*QWidget)) to SpectrumWindow*) used for toolbar and tabbar
-      std::map<PointerSizeInt,SpectrumWindow*> id_map_;
 
+      /** @name Status bar
+      */
+      //@{
       /// Label for messages in the status bar
       QLabel* message_label_;
       /// m/z label for messages in the status bar
@@ -321,33 +306,33 @@ namespace OpenMS
       QLabel* int_label_;
       /// RT label for messages in the status bar
       QLabel* rt_label_;
-
+			//@}
+			
       /**
-        @brief Map that stores linked pairs of 1D windows (uses int value of addresses to identify the widgets).
+        @brief Map that stores linked pairs of 1D windows.
       	
       	Each link is stored twice (both directions).
       */
       std::map<int,int> link_map_;
 
-      ///unlinks active spectrum (for zooming)
-      void unlinkActive_();
-
+      /** @name Recent files
+      */
+      //@{
       ///adds a Filename to the recent files
       void addRecentFile_(const String& filename);
-
       ///update the recent files menu
       void updateRecentMenu_();
+      /// list of the recently opened files
+      QStringList recent_files_;
+
+			/// list of the recently opened files actions (menu entries)
+			std::vector<QAction*> recent_actions_;
+			//@}
 
       /// check if all avaiable preferences get set by the .ini file. If there are some missing entries fill them with default values.
       void checkPreferences_();
-      /// list of the recently opened files
-      std::vector<String> recent_files_;
-
-      /// Pointer to "Tools" menu: so that derived classes can add stuff into it
-      QPopupMenu* tools_menu_;
-      /// pointer to the recent files menu
-      QPopupMenu* recent_menu_;
-
+      
+      void closeEvent(QCloseEvent* event); 
   }
   ; //class
 

@@ -26,10 +26,10 @@
 
 // OpenMS includes
 #include <OpenMS/VISUAL/DIALOGS/SmoothingDialog.h>
-#include <qlineedit.h>
-#include <qradiobutton.h>
-#include <qcheckbox.h>
-#include <qpushbutton.h>
+#include <QtGui/QLineEdit>
+#include <QtGui/QRadioButton>
+#include <QtGui/QCheckBox>
+#include <QtGui/QPushButton>
 
 #include <iostream> 
 using namespace std;
@@ -37,9 +37,11 @@ using namespace std;
 namespace OpenMS
 {
 
-	SmoothingDialog::SmoothingDialog(QWidget* parent, const char* name , WFlags fl )
-	    : SmoothingDialogTemplate(parent,name,fl)
+	SmoothingDialog::SmoothingDialog(QWidget* parent )
+	    : QDialog(parent)
 	{
+		setupUi(this);
+		
 	  sgolay_order_line_edit->setText(QString().setNum(4));
 	  kernel_widh_line_edit->setText(QString().setNum(1.0));
 	  spacing_line_edit->setText(QString().setNum(0.2));

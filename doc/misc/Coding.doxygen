@@ -275,6 +275,46 @@ access.  Prefer ``<code>++i</code>'' to ``<code>i++</code>'', because the preinc
 a copy constructor.  Use <code>const_iterators</code> where possible to help
 avoiding unwanted side effects.
 
+<H2 style="margin-top:20px; border-top:1px solid grey;">Includes</H2>
+
+Includes in header files should be avoided and replaced by forward declarations.<BR>
+Unnecessary includes cause longer compile times after changes in OpenMS header.
+<p>
+Reasons for includes in header files are:
+<UL>
+	<LI> Headers of base classes have to be included in the header of the derived classes.
+	<LI> If a class has members of type T (not T* or T&) the header has to be included.
+	<LI> Headers of template classes have to be included.
+</UL>
+
+An example class could look like this:
+@code
+#include <QtGui/QMainWindow>
+#include <QtGui/QPainter>
+
+// Forward declaration in main namespace
+class QLabel;
+
+namespace OpenMS
+{
+	// Forward declaration in OpenMS namespace
+ 	class Spectrum1DWindow;
+ 	
+  class Dummy 
+  	: public QMainWindow
+  {
+  	...
+  	
+  	protected:
+  		Spectrum1DWindow* parent_;
+  	  QLabel* label_;
+  	  QPainter painter_;
+  }
+}
+
+@endcode
+
+<b>Note:</b> Qt headers have to be included with the library prefix!
 
 <H1 style="margin-top:40px; border-top:4px solid grey; text-align:left;">Exception handling</H1>
 

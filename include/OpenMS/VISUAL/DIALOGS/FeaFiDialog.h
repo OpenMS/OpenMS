@@ -31,28 +31,31 @@
 #include <OpenMS/VISUAL/DIALOGS/UIC/FeaFiDialogTemplate.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinder.h>
 
-namespace OpenMS {
-
-/**
-	@brief Dialog for opening a FeaFi ini file
-
-	@ingroup Dialogs
-*/
-class FeaFiDialog: public FeaFiDialogTemplate
+namespace OpenMS 
 {
-	Q_OBJECT
-	
-	public:
-		FeaFiDialog( QWidget* parent = 0, const char* name = 0, WFlags fl = 0 );
-		~FeaFiDialog();    
-    FeatureFinder& getFeatureFinder();
 
-  public slots:
-    virtual void loadParamFile();
-    
-  protected:
-    FeatureFinder finder_;
-};
+	/**
+		@brief Dialog for opening a FeaFi ini file
+	
+		@ingroup Dialogs
+	*/
+	class FeaFiDialog
+		: public QDialog,
+  		public Ui::FeaFiDialogTemplate
+	{
+		Q_OBJECT
+		
+		public:
+			FeaFiDialog( QWidget* parent = 0 );
+			~FeaFiDialog();    
+	    FeatureFinder& getFeatureFinder();
+	
+	  public slots:
+	    virtual void loadParamFile();
+	    
+	  protected:
+	    FeatureFinder finder_;
+	};
 
 }
 #endif // OPENMS_VISUAL_DIALOGS_FEAFIDIALOG_H

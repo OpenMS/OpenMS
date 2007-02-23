@@ -29,6 +29,7 @@
 ///////////////////////////
 
 #include <OpenMS/VISUAL/MultiGradient.h>
+#include <QtGui/QColor>
 #include <OpenMS/CONCEPT/Types.h>
 ///////////////////////////
 

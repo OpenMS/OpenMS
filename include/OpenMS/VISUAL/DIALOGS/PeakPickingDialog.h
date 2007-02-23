@@ -38,12 +38,14 @@ namespace OpenMS
   	
   	@ingroup Dialogs
   */
-  class PeakPickingDialog: public PeakPickingDialogTemplate
+  class PeakPickingDialog
+  	: public QDialog,
+  		public Ui::PeakPickingDialogTemplate
   {
     Q_OBJECT
 
   public:
-    PeakPickingDialog(QWidget* parent = 0, const char* name = 0, WFlags fl = 0);
+    PeakPickingDialog(QWidget* parent = 0);
     ~PeakPickingDialog();
     void setPeakHeight(float h);
     float getPeakHeight();

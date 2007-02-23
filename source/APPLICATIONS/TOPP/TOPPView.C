@@ -89,8 +89,8 @@
 */
 
 //QT
-#include <qapplication.h>
-#include <qwindowsstyle.h>
+#include <QtGui/QApplication>
+#include <QtGui/QStyleFactory>
 
 //OpenMS
 #include <OpenMS/APPLICATIONS/TOPPViewBase.h>
@@ -159,13 +159,28 @@ int main( int argc, char ** argv )
 	{
 #endif
 	  QApplication a( argc, argv );
-	  TOPPViewBase* mw = TOPPViewBase::instance();
-	  a.setMainWidget(mw);
+	  
+	  //set plastique style unless windows / mac style is available
+	  QStringList styles = QStyleFactory::keys();
+	  
+	  if (styles.contains("windowsxp",Qt::CaseInsensitive))
+	  {
+			a.setStyle("windowsxp");
+	  }
+	  else if (styles.contains("macintosh",Qt::CaseInsensitive))
+	  {
+			a.setStyle("macintosh");
+	  }
+	  else if (styles.contains("plastique",Qt::CaseInsensitive))
+	  {
+			a.setStyle("plastique");
+	  }
+	  
+	  TOPPViewBase* mw = new TOPPViewBase();
 	  if (!param.getValue("ini").isEmpty())
 	  {
 	  	mw->loadPreferences((String)param.getValue("ini"));
 	  }
-	  mw->setCaption( "TOPPView" );
 	  mw->show();
 	  
 	  //load command line files
@@ -181,10 +196,10 @@ int main( int argc, char ** argv )
 	  }
 	  
 	  a.connect( &a, SIGNAL(lastWindowClosed()), &a, SLOT(quit()) );
-	
-	  int res = a.exec();
-		mw->savePreferences();
-	  return res;
+
+	  int result = a.exec();
+	  delete(mw);
+	  return result;
 #ifndef DEBUG_TOPP
 	}
 	//######################## ERROR HANDLING #################################
@@ -226,6 +241,6 @@ int main( int argc, char ** argv )
 	}
 #endif
 	
-	return 0;
+	return 1;
 }
 

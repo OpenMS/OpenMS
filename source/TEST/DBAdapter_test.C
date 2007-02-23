@@ -30,7 +30,7 @@
 #include <OpenMS/FORMAT/TextFile.h>
 #include <OpenMS/FORMAT/DB/DBAdapter.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
-#include <qapplication.h>
+#include <QtGui/QApplication>
 ///////////////////////////
 
 using namespace OpenMS;

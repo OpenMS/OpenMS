@@ -24,33 +24,21 @@
 // $Maintainer:  stefan_heess $
 // --------------------------------------------------------------------------s
 
-
 #include <OpenMS/VISUAL/VISUALIZER/IonSourceVisualizer.h>
-#include <OpenMS/VISUAL/VISUALIZER/BaseVisualizer.h>
-#include <OpenMS/DATASTRUCTURES/String.h>
-#include <OpenMS/METADATA/IonSource.h>
-
-
 
 //QT
-#include <qlayout.h>
-#include <qwidget.h>
-#include <qlabel.h> 
-#include <qlineedit.h>
-#include <qpushbutton.h>
-#include <qstring.h>
+#include <QtGui/QComboBox>
 
 //STL
 #include <iostream>
-#include <vector>
-#include <string>
 
-//using namespace std;
-using namespace OpenMS;
 using namespace std;
 
+namespace OpenMS
+{
+
 //Constructor
-IonSourceVisualizer::IonSourceVisualizer(bool editable, QWidget *parent, const char *name) : BaseVisualizer(editable, parent, name)
+IonSourceVisualizer::IonSourceVisualizer(bool editable, QWidget *parent) : BaseVisualizer(editable, parent)
 {
 	type_="IonSource";
   
@@ -81,9 +69,9 @@ void IonSourceVisualizer::load(IonSource &s)
 
 void IonSourceVisualizer::update_()
 {
-		ionsource_inlet_type_->setCurrentItem(tempionsource_.getInletType()); 
-		ionsource_ionization_method_->setCurrentItem(tempionsource_.getIonizationMethod()); 
-		ionsource_polarity_->setCurrentItem(tempionsource_.getPolarity()); 
+		ionsource_inlet_type_->setCurrentIndex(tempionsource_.getInletType()); 
+		ionsource_ionization_method_->setCurrentIndex(tempionsource_.getIonizationMethod()); 
+		ionsource_polarity_->setCurrentIndex(tempionsource_.getPolarity()); 
 }
 
 void IonSourceVisualizer::store()
@@ -91,9 +79,9 @@ void IonSourceVisualizer::store()
 	try
 	{
 	
-		(*ptr_).setInletType((IonSource::InletType)ionsource_inlet_type_->currentItem());		
-		(*ptr_).setIonizationMethod((IonSource::IonizationMethod)ionsource_ionization_method_->currentItem());		
-		(*ptr_).setPolarity((IonSource::Polarity)ionsource_polarity_->currentItem());		
+		(*ptr_).setInletType((IonSource::InletType)ionsource_inlet_type_->currentIndex());		
+		(*ptr_).setIonizationMethod((IonSource::IonizationMethod)ionsource_ionization_method_->currentIndex());		
+		(*ptr_).setPolarity((IonSource::Polarity)ionsource_polarity_->currentIndex());		
 		
 		tempionsource_=(*ptr_);
 	}
@@ -119,3 +107,4 @@ void IonSourceVisualizer::reject()
 	
 }
 
+}

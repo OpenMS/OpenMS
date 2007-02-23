@@ -27,11 +27,7 @@
 #ifndef OPENMS_VISUAL_SPECTRUM3DWINDOW_H
 #define OPENMS_VISUAL_SPECTRUM3DWINDOW_H
 
-#ifndef OPENMS_CONFIG_H
-#include <OpenMS/config.h>
-#endif
 #include <OpenMS/VISUAL/SpectrumWindow.h>
-#include <OpenMS/VISUAL/Spectrum3DWidget.h>
 
 namespace OpenMS
 {
@@ -44,13 +40,14 @@ namespace OpenMS
 		
 		@ingroup spectrum_widgets
 	*/
-	class Spectrum3DWindow : public SpectrumWindow
+	class Spectrum3DWindow 
+		: public SpectrumWindow
 	{
 		Q_OBJECT
 		
 		public:
 			/// Constructor
-			Spectrum3DWindow(QWidget* parent=0, const char* name="Spectrum3DWindow", WFlags f=0);
+			Spectrum3DWindow(QWidget* parent=0);
 			/// Destructor
 			virtual ~Spectrum3DWindow();
 			// Docu in base class

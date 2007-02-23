@@ -27,18 +27,16 @@
 #ifndef OPENMS_VISUAL_SPECTRUM2DWINDOW_H
 #define OPENMS_VISUAL_SPECTRUM2DWINDOW_H
 
-#include <OpenMS/config.h>
-
 // OpenMS
 #include <OpenMS/VISUAL/SpectrumWindow.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 
-class QPopupMenu;
+//QT
 class QGridLayout;
+class QPushButton;
 
 namespace OpenMS
 {
-	class AxisWidget;
 	class Spectrum1DWidget;
 	class Spectrum2DWidget;
 	
@@ -54,7 +52,7 @@ namespace OpenMS
 		Q_OBJECT
 	public:
 		/// Constructor
-		Spectrum2DWindow(QWidget* parent=0, const char* name="Spectrum2DWindow", WFlags f=0);
+		Spectrum2DWindow(QWidget* parent=0);
 		/// Destructor
 		~Spectrum2DWindow();
 		
@@ -82,6 +80,7 @@ namespace OpenMS
 		QGridLayout* grid_;
 		Spectrum1DWidget* projection_vert_;
 		Spectrum1DWidget* projection_horz_;
+		QPushButton* hide_button_;
 	
 	private slots:
 		void horizontalProjection(const MSExperiment<>&);

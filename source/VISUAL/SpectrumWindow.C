@@ -29,20 +29,21 @@
 #include <OpenMS/VISUAL/SpectrumWindow.h>
 #include <OpenMS/VISUAL/SpectrumWidget.h>
 
-#include <qpopupmenu.h>
-
 namespace OpenMS
 {
 
-	SpectrumWindow::SpectrumWindow(QWidget* parent, const char* name, WFlags f)  
-		: QMainWindow(parent,name,f),
-			PreferencesManager()
+	SpectrumWindow::SpectrumWindow(QWidget* parent)  
+		: QMainWindow(parent),
+			PreferencesManager(),
+			window_id(-1)
 	{
+		setAttribute(Qt::WA_DeleteOnClose);
 		setMinimumSize(300,300);	// prevents errors caused by too small width,height values
 	}
 	
 	SpectrumWindow::~SpectrumWindow()
 	{
+		emit aboutToBeDestroyed(window_id);
 	}
 	
 	void SpectrumWindow::setWidget_(SpectrumWidget* widget)

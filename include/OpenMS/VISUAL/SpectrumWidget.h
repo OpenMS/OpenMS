@@ -28,25 +28,18 @@
 #define OPENMS_VISUAL_SPECTRUMWIDGET_H
 
 //OpenMS
-#include <OpenMS/config.h>
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/MATH/STATISTICS/Histogram.h>
 #include <OpenMS/VISUAL/PreferencesManager.h>
-#include <OpenMS/VISUAL/AxisWidget.h>
 #include <OpenMS/VISUAL/SpectrumCanvas.h>
 
-//STL
-
-// QT
-class QPopupMenu;
-class QAction;
 class QGridLayout;
 class QScrollBar;
 
 namespace OpenMS
 {
+
 	class AxisWidget;
-	class SpectrumCanvas;
 	class SpectrumWindow;
 	
 	/**
@@ -63,7 +56,9 @@ namespace OpenMS
 		
 		@ingroup spectrum_widgets
 	*/
-	class SpectrumWidget : public QWidget, public PreferencesManager
+	class SpectrumWidget 
+		: public QWidget,
+			public PreferencesManager
 	{
 		Q_OBJECT
 	
@@ -208,7 +203,7 @@ namespace OpenMS
 		void updateVScrollbar(float min, float disp_min, float disp_max, float max);
 	protected:
 		/// Default constructor
-		SpectrumWidget(QWidget* parent = 0, const char* name="SpectrumWidget", WFlags f=0);
+		SpectrumWidget(QWidget* parent = 0);
 		/// Destructor
 		~SpectrumWidget();
 		/// Adds the canvas to the layout and connects some signals/slots

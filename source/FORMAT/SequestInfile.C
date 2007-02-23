@@ -274,9 +274,9 @@ namespace OpenMS
 	{
 		stringstream ss;
 		UnsignedInt i = 0;
-		UnsignedInt max_name_length = 0;
-		UnsignedInt max_cut_before_length = 0;
-		UnsignedInt max_doesnt_cut_after_length = 0;
+		String::size_type max_name_length = 0;
+		String::size_type max_cut_before_length = 0;
+		String::size_type max_doesnt_cut_after_length = 0;
 		ss << "[SEQUEST_ENZYME_INFO]" << endl;
 		for ( map< String, vector< String > >::const_iterator einfo_i = enzyme_info_.begin(); einfo_i != enzyme_info_.end(); ++einfo_i )
 		{

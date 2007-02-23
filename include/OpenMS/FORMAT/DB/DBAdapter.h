@@ -27,8 +27,6 @@
 #ifndef OPENMS_FORMAT_DB_DBADAPTER_H
 #define OPENMS_FORMAT_DB_DBADAPTER_H
 
-//#include <OpenMS/config.h>
-
 //OpenMS includes
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
@@ -39,8 +37,9 @@
 #include <OpenMS/FORMAT/PeakFileOptions.h>
 
 //QT includes
-#include <qsqlquery.h>
-#include <qdatetime.h>
+#include <QtSql/QSqlQuery>
+#include <QtCore/QVariant>
+#include <QtCore/QDate>
 
 //std and STL includes
 #include <string>
@@ -251,7 +250,7 @@ namespace OpenMS
 			query << "SELECT id FROM META_HPLC WHERE fid_MSExperiment='" << exp.getPersistenceId() << "'";
 			db_con_.executeQuery(query.str(),result);
 			result.first();
-			parent_id = result.value(0).asInt();
+			parent_id = result.value(0).toInt();
 			
 			query.str("");
 			query << "UPDATE META_HPLC SET ";
@@ -365,7 +364,7 @@ namespace OpenMS
 			query << "SELECT id FROM META_MSInstrument WHERE fid_MSExperiment='" << exp.getPersistenceId() << "'";
 			db_con_.executeQuery(query.str(),result);
 			result.first();
-			parent_id = result.value(0).asInt();
+			parent_id = result.value(0).toInt();
 			
 			query.str("");
 			query << "UPDATE META_MSInstrument SET ";
@@ -404,7 +403,7 @@ namespace OpenMS
 			query << "SELECT id FROM META_IonDetector WHERE fid_MSInstrument='" << parent_id << "'";
 			db_con_.executeQuery(query.str(),result);
 			result.first();
-			meta_parent_id = result.value(0).asInt();
+			meta_parent_id = result.value(0).toInt();
 			
 			query.str("");
 			query << "UPDATE META_IonDetector SET ";
@@ -449,7 +448,7 @@ namespace OpenMS
 			end = " WHERE fid_MSInstrument='" + String (parent_id) + "'";
 			
 			result.first();
-			meta_parent_id = result.value(0).asInt();
+			meta_parent_id = result.value(0).toInt();
 		}
 		
 		query << "InletType=" << (1u+source.getInletType());
@@ -567,7 +566,7 @@ namespace OpenMS
 				
 				if (result.size() > 0)
 				{
-					parent_id = result.value(0).asInt();
+					parent_id = result.value(0).toInt();
 					new_entry = false;
 					query << "UPDATE META_MetaInfoDescription SET ";
 					end  = " WHERE fid_Spectrum=" + String(exp_it->getPersistenceId());
@@ -615,7 +614,7 @@ namespace OpenMS
 					query << "SELECT id FROM DATA_Precursor WHERE fid_Spectrum='" << exp_it->getPersistenceId() << "'";
 					db_con_.executeQuery(query.str(),result);
 					result.first();
-					parent_id = result.value(0).asInt();
+					parent_id = result.value(0).toInt();
 					
 					query.str("");
 					query << "UPDATE DATA_Precursor SET ";
@@ -689,7 +688,7 @@ namespace OpenMS
 				query << "SELECT id FROM META_InstrumentSettings WHERE fid_Spectrum='" << exp_it->getPersistenceId() << "'";
 				db_con_.executeQuery(query.str(),result);
 				result.first();
-				parent_id = result.value(0).asInt();
+				parent_id = result.value(0).toInt();
 					
 				query.str("");
 				query << "UPDATE META_InstrumentSettings SET ";
@@ -725,7 +724,7 @@ namespace OpenMS
 				query << "SELECT id FROM META_AcquisitionInfo WHERE fid_Spectrum='" << exp_it->getPersistenceId() << "'";
 				db_con_.executeQuery(query.str(),result);
 				result.first();
-				acquisition_info_id = result.value(0).asInt();
+				acquisition_info_id = result.value(0).toInt();
 					
 				query.str("");
 				query << "UPDATE META_AcquisitionInfo SET ";
@@ -782,15 +781,15 @@ namespace OpenMS
 		result.first();
 		
 		//Experiment meta info
-		exp.setType((ExperimentalSettings::ExperimentType)(result.value(0).asInt()));
-		if (result.value(1).asDate().isValid())
+		exp.setType((ExperimentalSettings::ExperimentType)(result.value(0).toInt()));
+		if (result.value(1).toDate().isValid())
 		{
 			Date d;
-			d.set(result.value(1).asDate().toString(Qt::ISODate).ascii());
+			d.set(result.value(1).toDate().toString(Qt::ISODate).toAscii().data());
 			exp.setDate(d);
 		}
-		exp.setComment(result.value(3).asString().ascii());
-		loadMetaInfo_(result.value(2).asInt(),exp);
+		exp.setComment(result.value(3).toString().toAscii().data());
+		loadMetaInfo_(result.value(2).toInt(),exp);
 		
 		// Sample
 		Sample sample;
@@ -799,7 +798,7 @@ namespace OpenMS
 		query << "SELECT id FROM META_Sample WHERE fid_MSExperiment='" << id << "' AND fid_Sample IS NULL";
 		db_con_.executeQuery(query.str(),result);
 		result.first();
-		loadSample_ (result.value(0).asInt(), sample);
+		loadSample_ (result.value(0).toInt(), sample);
 		exp.setSample(sample);
 		
 		// ContactPerson
@@ -812,12 +811,12 @@ namespace OpenMS
 		result.first();
 		while(result.isValid())
 		{
-			contact.setFirstName(result.value(0).toString().ascii());
-			contact.setLastName(result.value(1).toString().ascii());
-			contact.setInstitution(result.value(2).toString().ascii());
-			contact.setEmail(result.value(3).toString().ascii());
-			contact.setContactInfo(result.value(4).toString().ascii());
-			loadMetaInfo_(result.value(5).asInt(),contact);
+			contact.setFirstName(result.value(0).toString().toAscii().data());
+			contact.setLastName(result.value(1).toString().toAscii().data());
+			contact.setInstitution(result.value(2).toString().toAscii().data());
+			contact.setEmail(result.value(3).toString().toAscii().data());
+			contact.setContactInfo(result.value(4).toString().toAscii().data());
+			loadMetaInfo_(result.value(5).toInt(),contact);
 			result.next();
 			exp.getContacts().push_back(contact);
 		}
@@ -828,13 +827,13 @@ namespace OpenMS
 		db_con_.executeQuery(query.str(),result);
 		result.first();
 		
-		parent_id=result.value(0).asInt();
-		exp.getHPLC().setInstrument(result.value(1).toString().ascii());
-		exp.getHPLC().setColumn(result.value(2).toString().ascii());
-		exp.getHPLC().setComment(result.value(3).toString().ascii());
-		exp.getHPLC().setFlux(result.value(4).asInt());
-		exp.getHPLC().setPressure(result.value(5).asInt());
-		exp.getHPLC().setTemperature(result.value(6).asInt());
+		parent_id=result.value(0).toInt();
+		exp.getHPLC().setInstrument(result.value(1).toString().toAscii().data());
+		exp.getHPLC().setColumn(result.value(2).toString().toAscii().data());
+		exp.getHPLC().setComment(result.value(3).toString().toAscii().data());
+		exp.getHPLC().setFlux(result.value(4).toInt());
+		exp.getHPLC().setPressure(result.value(5).toInt());
+		exp.getHPLC().setTemperature(result.value(6).toInt());
 		
 		// Gradient*
 		// I tried taking the big query apart in order to skip the double join, but this leads to
@@ -850,7 +849,7 @@ namespace OpenMS
 		result.first();
 		while(result.isValid())
 		{
-			exp.getHPLC().getGradient().addEluent(result.value(0).toString().ascii());
+			exp.getHPLC().getGradient().addEluent(result.value(0).toString().toAscii().data());
 			result.next();
 		}
 		
@@ -860,7 +859,7 @@ namespace OpenMS
 		result.first();
 		while(result.isValid())
 		{
-			exp.getHPLC().getGradient().addTimepoint(result.value(0).asInt());
+			exp.getHPLC().getGradient().addTimepoint(result.value(0).toInt());
 			result.next();
 		}
 		*/
@@ -871,26 +870,26 @@ namespace OpenMS
 		
 		if (result.isValid())
 		{
-			last_name = result.value(0).toString().ascii();
+			last_name = result.value(0).toString().toAscii().data();
 			exp.getHPLC().getGradient().addEluent(last_name);
 		}
 		
 		while(result.isValid())
 		{
-			if (result.value(0).toString().ascii() != last_name)
+			if (result.value(0).toString().toAscii().data() != last_name)
 			{
-				exp.getHPLC().getGradient().addEluent(result.value(0).toString().ascii());
+				exp.getHPLC().getGradient().addEluent(result.value(0).toString().toAscii().data());
 				timepoints_done = true;
 			}
 			
 			if (timepoints_done == false)
 			{
-				exp.getHPLC().getGradient().addTimepoint(result.value(1).asInt());
+				exp.getHPLC().getGradient().addTimepoint(result.value(1).toInt());
 			}
 			
-			exp.getHPLC().getGradient().setPercentage(result.value(0).toString().ascii(), result.value(1).asInt(), result.value(2).asInt());
+			exp.getHPLC().getGradient().setPercentage(result.value(0).toString().toAscii().data(), result.value(1).toInt(), result.value(2).toInt());
 			
-			last_name = result.value(0).toString().ascii();
+			last_name = result.value(0).toString().toAscii().data();
 			result.next();
 		}
 		
@@ -900,11 +899,11 @@ namespace OpenMS
 		db_con_.executeQuery(query.str(),result);
 		result.first();
 		
-		parent_id = result.value(0).asInt();
-		exp.getInstrument().setModel(result.value(1).toString().ascii());
-		exp.getInstrument().setVendor(result.value(2).toString().ascii());
-		exp.getInstrument().setCustomizations(result.value(3).toString().ascii());
-		loadMetaInfo_(result.value(4).asInt(),exp.getInstrument());
+		parent_id = result.value(0).toInt();
+		exp.getInstrument().setModel(result.value(1).toString().toAscii().data());
+		exp.getInstrument().setVendor(result.value(2).toString().toAscii().data());
+		exp.getInstrument().setCustomizations(result.value(3).toString().toAscii().data());
+		loadMetaInfo_(result.value(4).toInt(),exp.getInstrument());
 		
 		// IonDetector
 		query.str("");
@@ -912,11 +911,11 @@ namespace OpenMS
 		db_con_.executeQuery(query.str(),result);
 		result.first();
 		
-		exp.getInstrument().getIonDetector().setAcquisitionMode((IonDetector::AcquisitionMode) result.value(0).asInt());
-		exp.getInstrument().getIonDetector().setType((IonDetector::Type) result.value(1).asInt());
+		exp.getInstrument().getIonDetector().setAcquisitionMode((IonDetector::AcquisitionMode) result.value(0).toInt());
+		exp.getInstrument().getIonDetector().setType((IonDetector::Type) result.value(1).toInt());
 		exp.getInstrument().getIonDetector().setResolution(result.value(2).toDouble());
 		exp.getInstrument().getIonDetector().setADCSamplingFrequency(result.value(3).toDouble());
-		loadMetaInfo_(result.value(4).asInt(),exp.getInstrument().getIonDetector());
+		loadMetaInfo_(result.value(4).toInt(),exp.getInstrument().getIonDetector());
 		
 		// IonSource
 		query.str("");
@@ -924,10 +923,10 @@ namespace OpenMS
 		db_con_.executeQuery(query.str(),result);
 		result.first();
 		
-		exp.getInstrument().getIonSource().setInletType((IonSource::InletType) result.value(0).asInt());
-		exp.getInstrument().getIonSource().setIonizationMethod((IonSource::IonizationMethod) result.value(1).asInt());
+		exp.getInstrument().getIonSource().setInletType((IonSource::InletType) result.value(0).toInt());
+		exp.getInstrument().getIonSource().setIonizationMethod((IonSource::IonizationMethod) result.value(1).toInt());
 		exp.getInstrument().getIonSource().setPolarity((IonSource::Polarity) result.value(2).toDouble());
-		loadMetaInfo_(result.value(3).asInt(),exp.getInstrument().getIonSource());
+		loadMetaInfo_(result.value(3).toInt(),exp.getInstrument().getIonSource());
 		
 		// MassAnalyzers
 		MassAnalyzer analyzer;
@@ -940,22 +939,22 @@ namespace OpenMS
 		while(result.isValid())
 		{
 			analyzer.setAccuracy(result.value(0).toDouble());
-			analyzer.setFinalMSExponent(result.value(1).asInt());
+			analyzer.setFinalMSExponent(result.value(1).toInt());
 			analyzer.setIsolationWidth(result.value(2).toDouble());
 			analyzer.setMagneticFieldStrength(result.value(3).toDouble());
-			analyzer.setReflectronState((MassAnalyzer::ReflectronState) result.value(4).asInt());
+			analyzer.setReflectronState((MassAnalyzer::ReflectronState) result.value(4).toInt());
 			analyzer.setResolution(result.value(5).toDouble());
-			analyzer.setResolutionMethod((MassAnalyzer::ResolutionMethod) result.value(6).asInt());
-			analyzer.setResolutionType((MassAnalyzer::ResolutionType) result.value(7).asInt());
-			analyzer.setScanDirection((MassAnalyzer::ScanDirection) result.value(8).asInt());
-			analyzer.setScanFunction((MassAnalyzer::ScanFunction) result.value(9).asInt());
-			analyzer.setScanLaw((MassAnalyzer::ScanLaw) result.value(10).asInt());
+			analyzer.setResolutionMethod((MassAnalyzer::ResolutionMethod) result.value(6).toInt());
+			analyzer.setResolutionType((MassAnalyzer::ResolutionType) result.value(7).toInt());
+			analyzer.setScanDirection((MassAnalyzer::ScanDirection) result.value(8).toInt());
+			analyzer.setScanFunction((MassAnalyzer::ScanFunction) result.value(9).toInt());
+			analyzer.setScanLaw((MassAnalyzer::ScanLaw) result.value(10).toInt());
 			analyzer.setScanRate(result.value(11).toDouble());
 			analyzer.setScanTime(result.value(12).toDouble());
-			analyzer.setTandemScanMethod((MassAnalyzer::TandemScanningMethod) result.value(13).asInt());
+			analyzer.setTandemScanMethod((MassAnalyzer::TandemScanningMethod) result.value(13).toInt());
 			analyzer.setTOFTotalPathLength(result.value(14).toDouble());
-			analyzer.setType((MassAnalyzer::AnalyzerType) result.value(15).asInt());
-			loadMetaInfo_(result.value(16).asInt(), analyzer);
+			analyzer.setType((MassAnalyzer::AnalyzerType) result.value(15).toInt());
+			loadMetaInfo_(result.value(16).toInt(), analyzer);
 			
 			analyzers.push_back(analyzer);
 			result.next();
@@ -1000,7 +999,7 @@ namespace OpenMS
 		result.first();
 		while (result.isValid())
 		{
-			loadSpectrum(result.value(0).asInt(), exp[i], options);
+			loadSpectrum(result.value(0).toInt(), exp[i], options);
 			++i;
 			result.next();
 		}
@@ -1026,12 +1025,12 @@ namespace OpenMS
 		result.first();
 		
 		//Spectrum meta info
-		spec.setType((SpectrumSettings::SpectrumType)(result.value(0).asInt()));
+		spec.setType((SpectrumSettings::SpectrumType)(result.value(0).toInt()));
 		spec.setRetentionTime(result.value(1).toDouble());
-		spec.setMSLevel(result.value(2).asInt());
-		spec.setComment(result.value(3).asString().ascii());
-		loadMetaInfo_(result.value(4).asInt(),spec);
-		loadFile_(result.value(5).asInt(),spec.getSourceFile());
+		spec.setMSLevel(result.value(2).toInt());
+		spec.setComment(result.value(3).toString().toAscii().data());
+		loadMetaInfo_(result.value(4).toInt(),spec);
+		loadFile_(result.value(5).toInt(),spec.getSourceFile());
 		
 		// Instrument settings
 		query.str("");
@@ -1041,10 +1040,10 @@ namespace OpenMS
 		
 		settings.setMzRangeStart(result.value(0).toDouble());
 		settings.setMzRangeStop(result.value(1).toDouble());
-		settings.setPolarity((IonSource::Polarity) (result.value(2).asInt()));
-		settings.setScanMode((InstrumentSettings::ScanMode) (result.value(3).asInt()));
+		settings.setPolarity((IonSource::Polarity) (result.value(2).toInt()));
+		settings.setScanMode((InstrumentSettings::ScanMode) (result.value(3).toInt()));
 		spec.setInstrumentSettings(settings);
-		loadMetaInfo_(result.value(4).asInt(),spec.getInstrumentSettings());
+		loadMetaInfo_(result.value(4).toInt(),spec.getInstrumentSettings());
 
 		// AcquisitionInfo
 		query.str("");
@@ -1052,8 +1051,8 @@ namespace OpenMS
 		db_con_.executeQuery(query.str(),result);
 		result.first();
 		
-		spec.getAcquisitionInfo().setMethodOfCombination(result.value(1).asString().ascii());
-		parent_id = result.value(0).asInt();
+		spec.getAcquisitionInfo().setMethodOfCombination(result.value(1).toString().toAscii().data());
+		parent_id = result.value(0).toInt();
 		
 		// Acquisition
 		query.str("");
@@ -1065,7 +1064,7 @@ namespace OpenMS
 		result.first();
 		while(result.isValid())
 		{
-			acquisition.setNumber(result.value(0).asInt());
+			acquisition.setNumber(result.value(0).toInt());
 			loadMetaInfo_(result.value(1).toInt(), acquisition);
 			spec.getAcquisitionInfo().push_back(acquisition);
 			result.next();
@@ -1083,12 +1082,12 @@ namespace OpenMS
 		
 		while(result.isValid())
 		{
-			desc.setName(result.value(0).asString().ascii());
-			desc.setComment(result.value(1).asString().ascii());
-			loadMetaInfo_(result.value(2).asInt(), desc);
-			loadFile_(result.value(3).asInt(),desc.getSourceFile());
+			desc.setName(result.value(0).toString().toAscii().data());
+			desc.setComment(result.value(1).toString().toAscii().data());
+			loadMetaInfo_(result.value(2).toInt(), desc);
+			loadFile_(result.value(3).toInt(),desc.getSourceFile());
 			
-			descriptions[result.value(0).asString().ascii()] = desc;
+			descriptions[result.value(0).toString().toAscii().data()] = desc;
 			result.next();
 		}
 		spec.setMetaInfoDescriptions (descriptions);
@@ -1102,12 +1101,12 @@ namespace OpenMS
 			result.first();
 			spec.getPrecursorPeak().getPosition()[0] = (result.value(0).toDouble());
 			spec.getPrecursorPeak().setIntensity(result.value(1).toDouble());
-			spec.getPrecursorPeak().setCharge(result.value(2).asInt());
-			spec.getPrecursor().setActivationMethod((Precursor::ActivationMethod)(result.value(3).asInt()));
-			spec.getPrecursor().setActivationEnergyUnit((Precursor::EnergyUnits)(result.value(4).asInt()));
+			spec.getPrecursorPeak().setCharge(result.value(2).toInt());
+			spec.getPrecursor().setActivationMethod((Precursor::ActivationMethod)(result.value(3).toInt()));
+			spec.getPrecursor().setActivationEnergyUnit((Precursor::EnergyUnits)(result.value(4).toInt()));
 			spec.getPrecursor().setActivationEnergy(result.value(5).toDouble());
 			spec.getPrecursor().setWindowSize(result.value(6).toDouble());
-			loadMetaInfo_(result.value(7).asInt(),spec.getPrecursor());
+			loadMetaInfo_(result.value(7).toInt(),spec.getPrecursor());
 		}
 		
 		//Peaks

@@ -32,7 +32,10 @@
 #include <OpenMS/VISUAL/MultiGradient.h>
 
 //QT
-#include <qwidget.h>
+#include <QtGui/QWidget>
+class QPaintEvent;
+class QMouseEvent;
+class QKeyEvent;
 
 //std lib
 #include <vector>
@@ -49,12 +52,13 @@ namespace OpenMS
 		
 		@ingroup Visual
 	*/
-	class MultiGradientSelector: public QWidget
+	class MultiGradientSelector
+		: public QWidget
 	{
 		Q_OBJECT
 		public:
 			///Constructor
-			MultiGradientSelector( QWidget * parent = 0, const char * name = 0 );
+			MultiGradientSelector( QWidget* parent = 0);
 			///Desctructor
 			~MultiGradientSelector();
 			

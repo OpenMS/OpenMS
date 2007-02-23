@@ -29,7 +29,7 @@
 #define OPENMS_VISUAL_DIALOGS_PREFERENCESDIALOG_H
 
 // QT
-#include <qdialog.h>
+#include <QtGui/QDialog>
 
 // STL
 #include <string>
@@ -58,7 +58,7 @@ namespace OpenMS
 
 
 			/// add a new PreferencesDailogPage
-			void addPage(std::string name, PreferencesDialogPage* page, PreferencesManager* creator, PreferencesManager* parent=0);
+			void addPage(std::string name, PreferencesDialogPage* page, PreferencesManager* creator, bool highlight, PreferencesManager* parent = 0);
 
 		protected slots:
 			/// ok button pressed

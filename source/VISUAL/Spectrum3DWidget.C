@@ -31,28 +31,27 @@
 #include <OpenMS/VISUAL/DIALOGS/Spectrum3DWidgetPDP.h>
 #include <OpenMS/VISUAL/Spectrum3DCanvas.h>
 #include <OpenMS/VISUAL/Spectrum3DOpenGLCanvas.h>
+#include <OpenMS/VISUAL/AxisWidget.h>
 
 //QT
-#include <qlayout.h>
-#include <qimage.h>
+#include <QtGui/QPixmap>
+#include <QtGui/QGridLayout>
+#include <QtGui/QImage>
 
 namespace OpenMS
 {
 	using namespace Internal;
 	using namespace Math;
 	
-	Spectrum3DWidget::Spectrum3DWidget(QWidget* parent, const char* name, WFlags f)
-	  : SpectrumWidget(parent, name, f)		
+	Spectrum3DWidget::Spectrum3DWidget(QWidget* parent)
+	  : SpectrumWidget(parent)		
 	{
 		setCanvas_(new Spectrum3DCanvas(this));
 		
-		delete(grid_);
-		grid_ = new QGridLayout(this, 1,1);	
-		grid_->addWidget(canvas_, 1, 1);
+		x_axis_->hide();
+		y_axis_->hide();	
 		
-		
-		connect(canvas(), SIGNAL(sendStatusMessage(std::string, OpenMS::UnsignedInt)),
-		        this, SIGNAL(sendStatusMessage(std::string, OpenMS::UnsignedInt)));
+		connect(canvas(), SIGNAL(sendStatusMessage(std::string, OpenMS::UnsignedInt)),this, SIGNAL(sendStatusMessage(std::string, OpenMS::UnsignedInt)));
 		
 		connect(canvas(), SIGNAL(sendCursorStatus(double,double,double)),
 		this, SIGNAL(sendCursorStatus(double,double,double)));
@@ -93,6 +92,7 @@ namespace OpenMS
 		
 		return tmp;
 	}
+	
 	Spectrum3DCanvas * Spectrum3DWidget::canvas()
 	{
 	  return static_cast<Spectrum3DCanvas*>(canvas_);
@@ -100,10 +100,11 @@ namespace OpenMS
 	
 	QImage Spectrum3DWidget::getImage(UnsignedInt width, UnsignedInt height )
 	{	
-		QPixmap pix = canvas()->openglwidget()->renderPixmap(width,height,true).convertToImage();
-		QImage img = pix.convertToImage();
+		QPixmap pix = canvas()->openglwidget()->renderPixmap(width,height,true);
+		QImage img = pix.toImage();
 		return img;
 	}
+	
 	void Spectrum3DWidget::showLegend(int show)
 	{
 		legend_shown_ = (bool)show;

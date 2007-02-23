@@ -27,18 +27,21 @@
 // OpenMS includes
 #include <OpenMS/VISUAL/DIALOGS/FeaFiDialog.h>
 #include <sstream>
-#include <qfiledialog.h>
-#include <qpushbutton.h>
-#include <qlabel.h>
+#include <QtGui/QFileDialog>
+#include <QtGui/QPushButton>
+#include <QtGui/QLabel>
 
 using namespace std;
 
 namespace OpenMS
 {
 
-	FeaFiDialog::FeaFiDialog( QWidget * parent, const char * name, WFlags fl):
-		FeaFiDialogTemplate(parent,name,fl), finder_()
+	FeaFiDialog::FeaFiDialog( QWidget * parent)
+		: QDialog(parent), 
+			finder_()
 	{
+		setupUi(this);
+		
 		resize(sizeHint());
 		start_button->setEnabled(false);
 	}
@@ -57,21 +60,20 @@ namespace OpenMS
 	void FeaFiDialog::loadParamFile()
 	{
 		QString dir = QDir::current().path();
-		dir = dir.left(dir.find("OpenMS")).append("OpenMS/source/APPLICATIONS/FEATUREFINDER/");
-	 	QString file = QFileDialog::getOpenFileName(dir, "Parameters (*.ini)", this,
-																								"featurefinder dialog","Select file(s) to open");
+		dir = dir.left(dir.indexOf("OpenMS")).append("OpenMS/source/APPLICATIONS/FEATUREFINDER/");
+	 	QString file = QFileDialog::getOpenFileName(this, "Open file", dir, "Parameters (*.ini)");
 	
 		if (!file.isEmpty() && file!="")
 		{
 			Param param;
-			param.load(file.ascii());
+			param.load(file.toAscii().data());
 			bool isParamValid = finder_.setParam(param);
 			if (isParamValid)
 			{
 				std::ostringstream label;
 				label << finder_;
 				param_label->setText(label.str().c_str());
-				param_label->setAlignment( int( QLabel::AlignVCenter|QLabel::AlignLeft ) );
+				param_label->setAlignment( Qt::AlignVCenter|Qt::AlignLeft );
 				start_button->setEnabled(true);
 				start_button->setFocus();
 			}

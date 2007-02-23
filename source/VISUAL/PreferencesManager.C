@@ -29,13 +29,6 @@
 #include <OpenMS/VISUAL/DIALOGS/PreferencesDialog.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 
-#include <sstream>
-#include <iostream>
-
-#include <qdialog.h>
-#include <qpushbutton.h>
-#include <qlayout.h>
-
 using namespace std;
 
 namespace OpenMS
@@ -122,7 +115,9 @@ namespace OpenMS
 	
 	void PreferencesManager::createPreferences_(PreferencesDialog* dialog, const string& name)
 	{
-		dialog->addPage(name,createPreferences(dialog),this,getParent());
+		dialog->addPage(name,createPreferences(dialog),this,is_active_,getParent());
+		is_active_ = false;
+		
 		//client preferences
 		for (map<PreferencesManager*,string>::iterator it = clients_.begin();it!=clients_.end();++it)
 		{

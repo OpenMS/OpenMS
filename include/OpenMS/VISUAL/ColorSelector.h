@@ -28,7 +28,9 @@
 #define OPENMS_VISUAL_COLORSELECTOR_H
 
 //QT
-#include <qwidget.h>
+#include <QtGui/QWidget>
+class QPaintEvent;
+class QMouseEvent;
 
 namespace OpenMS 
 {
@@ -44,13 +46,14 @@ namespace OpenMS
 		
 		@ingroup Visual
 	*/
-	class ColorSelector: public QWidget
+	class ColorSelector
+		: public QWidget
 	{
 		Q_OBJECT
 		
 		public:
 			/// Constructor
-			ColorSelector( QWidget * parent = 0, const char * name = 0 );
+			ColorSelector( QWidget * parent = 0);
 			/// Destructor
 			~ColorSelector();
 			
@@ -58,7 +61,9 @@ namespace OpenMS
 			const QColor& getColor();
 			/// Sets the selected color
 			void setColor(const QColor&);
-		
+			
+			/// Qt size hint
+			QSize sizeHint () const;
 		protected:
 			void paintEvent(QPaintEvent * e);
 			void mousePressEvent(QMouseEvent* e);

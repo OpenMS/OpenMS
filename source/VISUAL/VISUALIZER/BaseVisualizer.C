@@ -23,43 +23,18 @@
 // --------------------------------------------------------------------------
 // $Maintainer: stefan_heess   $
 // --------------------------------------------------------------------------
-#include <OpenMS/DATASTRUCTURES/String.h>
 
 #include <OpenMS/VISUAL/VISUALIZER/BaseVisualizer.h>
-#include <OpenMS/VISUAL/DataTable.h>
-#include <OpenMS/VISUAL/MSMetaDataExplorer.h>
-#include <OpenMS/METADATA/Digestion.h>
 
-//QT
-#include <qlayout.h>
-#include <qwidget.h>
-#include <qaction.h>
-#include <qcombobox.h>
-#include <qfiledialog.h>
-#include <qlabel.h> 
-#include <qlineedit.h>
-#include <qmenubar.h>
-#include <qmessagebox.h>
-#include <qpopupmenu.h>
-#include <qsettings.h>
-#include <qstatusbar.h>
-#include <qapplication.h>
-#include <qlistview.h>
-#include <qtextedit.h>
-#include <qhbox.h>
-#include <qgroupbox.h>
-#include <qpushbutton.h>
-#include <iostream>
-#include <vector>
+#include <QtGui/QPushButton>
 
-
-//using namespace std;
-using namespace OpenMS;
 using namespace std;
 
-//Constructor
-BaseVisualizer::BaseVisualizer(bool editable, QWidget *parent, const char *name) 
-	: DataTable(editable, parent, name)
+namespace OpenMS
+{
+
+BaseVisualizer::BaseVisualizer(bool editable, QWidget *parent) 
+	: DataTable(editable, parent)
 {
   
 }
@@ -91,4 +66,4 @@ void BaseVisualizer::finishAdding_()
 	}
 }
 
-
+}

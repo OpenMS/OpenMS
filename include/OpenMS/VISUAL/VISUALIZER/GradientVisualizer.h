@@ -29,27 +29,15 @@
 #define OPENMS_VISUAL_VISUALIZER_GRADIENTVISUALIZER_H
 
 //OpenMS
-#include <OpenMS/config.h>
 #include <OpenMS/VISUAL/VISUALIZER/BaseVisualizer.h>
 #include <OpenMS/METADATA/Gradient.h>
 
-//QT
-#include <qtextedit.h>
-#include <qpushbutton.h>
-#include <qwidget.h>
-#include <qlayout.h>
-#include <qvalidator.h>
-
 //STL
-#include <iostream>
 #include <vector>
-#include <utility>
-
-
 
 class QLabel;
 class QLineEdit;
-
+class QIntValidator;
 
 namespace OpenMS {
 /**
@@ -63,7 +51,7 @@ Each HPLC objects contains a gradient object. A gradient objects contains a list
 
 	public: 
 	  /// Default constructor
-		GradientVisualizer(bool editable= FALSE, QWidget *parent =0, const char *name = 0);
+		GradientVisualizer(bool editable= FALSE, QWidget *parent =0);
 		/// Loads the meta data from the object to the viewer.
 		void load(Gradient &g);
 		

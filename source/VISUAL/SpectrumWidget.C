@@ -26,33 +26,28 @@
 
 #include <OpenMS/VISUAL/SpectrumWidget.h>
 #include <OpenMS/VISUAL/DIALOGS/HistogramDialog.h>
+#include <OpenMS/VISUAL/AxisWidget.h>
 
-#include <qaction.h>
-#include <qlayout.h>
-#include <qimage.h>
-#include <qscrollbar.h>
-
-#include <iostream>
+#include <QtGui/QGridLayout>
+#include <QtGui/QScrollBar>
 
 using namespace std;
 
 namespace OpenMS
 {
 	
-	SpectrumWidget::SpectrumWidget(QWidget* parent, const char* name, WFlags f)
-		: QWidget(parent,name,f),
+	SpectrumWidget::SpectrumWidget(QWidget* parent)
+		: QWidget(parent),
 			canvas_(0),
 			spectrum_window_(0)
 	{
-		grid_ = new QGridLayout(this, 3, 3);
+		grid_ = new QGridLayout(this);
 		
 		//add axes
 		y_axis_ = new AxisWidget(AxisWidget::LEFT, "",this);
 		x_axis_ = new AxisWidget(AxisWidget::BOTTOM, "",this);
 		grid_->addWidget(y_axis_,0,1);
 		grid_->addWidget(x_axis_,1,2);
-//	x_axis_->setBackgroundColor(Qt::green); //For debugging
-//	y_axis_->setBackgroundColor(Qt::green); //For debugging
 
 		//add scrollbars
 		x_scrollbar_ = new QScrollBar(Qt::Horizontal, this);
@@ -75,8 +70,8 @@ namespace OpenMS
 		//scrollbars
 		connect(canvas_, SIGNAL(updateHScrollbar(float,float,float,float)), this, SLOT(updateHScrollbar(float,float,float,float)));
 		connect(canvas_, SIGNAL(updateVScrollbar(float,float,float,float)), this, SLOT(updateVScrollbar(float,float,float,float)));
-		connect(x_scrollbar_, SIGNAL(sliderMoved(int)), canvas_, SLOT(horizontalScrollBarChange(int)));
-		connect(y_scrollbar_, SIGNAL(sliderMoved(int)), canvas_, SLOT(verticalScrollBarChange(int)));
+		connect(x_scrollbar_, SIGNAL(valueChanged(int)), canvas_, SLOT(horizontalScrollBarChange(int)));
+		connect(y_scrollbar_, SIGNAL(valueChanged(int)), canvas_, SLOT(verticalScrollBarChange(int)));
 		
 		canvas_->setSpectrumWidget(this);
 	}
@@ -188,19 +183,19 @@ namespace OpenMS
 			y_scrollbar_->hide();
 		}
 		
-		//store old background colors and size
-	 	QColor c_a = x_axis_->paletteBackgroundColor();
-	 	QColor c_o = y_axis_->paletteBackgroundColor();
-	 	QColor c_t = paletteBackgroundColor();
-		
+		//store old background color
+	 	QColor old_bg_color = palette().window().color();
+	 	//set bg color to white
+		QPalette new_palette;
+		new_palette.setColor(backgroundRole(), Qt::white);
+		setPalette(new_palette);
+
 		//set white background
-		y_axis_->setPaletteBackgroundColor(white);
-		x_axis_->setPaletteBackgroundColor(white);
-		setBackgroundColor(white);
+		y_axis_->setPalette(palette());
+		x_axis_->setPalette(palette());
 	
 		//set pen width
 		int pen = width/1024;
-		canvas()->setPenWidth(pen);
 		y_axis_->setPenWidth(pen);
 		x_axis_->setPenWidth(pen);
 		
@@ -212,15 +207,15 @@ namespace OpenMS
 		resize(width,height);		
 				
 		//take an image
-		QImage image = QPixmap::grabWidget(this).convertToImage();
+		QImage image = QPixmap::grabWidget(this).toImage();
 		
 		//resore background colors
-	 	y_axis_->setPaletteBackgroundColor(c_o);
-	 	x_axis_->setPaletteBackgroundColor(c_a);
-		setBackgroundColor(c_t);
+		new_palette.setColor(backgroundRole(), old_bg_color);
+		setPalette(new_palette);
+		y_axis_->setPalette(palette());
+		x_axis_->setPalette(palette());
 		
 		//restore pen withs
-		canvas()->setPenWidth(0);
 		y_axis_->setPenWidth(0);
 		x_axis_->setPenWidth(0);
 		
@@ -261,8 +256,8 @@ namespace OpenMS
 		else
 		{
 			x_scrollbar_->show();
-			x_scrollbar_->setMinValue(static_cast<int>(min));
-			x_scrollbar_->setMaxValue(static_cast<int>(max-disp_max+disp_min));
+			x_scrollbar_->setMinimum(static_cast<int>(min));
+			x_scrollbar_->setMaximum(static_cast<int>(max-disp_max+disp_min));
 			x_scrollbar_->setValue(static_cast<int>(disp_min));
 			x_scrollbar_->setPageStep(static_cast<int>(disp_max-disp_min));
 		}
@@ -279,8 +274,8 @@ namespace OpenMS
 			//cout << min << " " << disp_min << " " << disp_max << " " << max << endl;
 			//cout << min << " " << max-disp_max+disp_min << " " << max-disp_max+min << endl << endl;
 			y_scrollbar_->show();
-			y_scrollbar_->setMinValue(static_cast<int>(min));
-			y_scrollbar_->setMaxValue(static_cast<int>(max-disp_max+disp_min));
+			y_scrollbar_->setMinimum(static_cast<int>(min));
+			y_scrollbar_->setMaximum(static_cast<int>(max-disp_max+disp_min));
 			y_scrollbar_->setValue(static_cast<int>(max-disp_max+min));
 			y_scrollbar_->setPageStep(static_cast<int>(disp_max-disp_min));
 		}

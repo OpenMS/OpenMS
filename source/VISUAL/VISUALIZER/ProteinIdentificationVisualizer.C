@@ -26,53 +26,43 @@
 
 
 #include <OpenMS/VISUAL/VISUALIZER/ProteinIdentificationVisualizer.h>
-#include <OpenMS/VISUAL/VISUALIZER/BaseVisualizer.h>
-#include <OpenMS/DATASTRUCTURES/String.h>
-#include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/DATASTRUCTURES/DateTime.h>
+#include <OpenMS/VISUAL/MSMetaDataExplorer.h>
 
 //QT
-#include <qlayout.h>
-#include <qwidget.h>
-#include <qcombobox.h>
-#include <qlabel.h> 
-#include <qlineedit.h>
-#include <qlistview.h>
-#include <qtextedit.h>
-#include <qpushbutton.h>
-#include <qstring.h>
-#include <qvalidator.h>
+#include <QtGui/QLineEdit>
+#include <QtGui/QValidator>
+#include <QtGui/QPushButton>
 
+// STL
 #include <iostream>
-#include <vector>
-#include <string>
 
-//using namespace std;
-using namespace OpenMS;
 using namespace std;
 
-//Constructor
-ProteinIdentificationVisualizer::ProteinIdentificationVisualizer(bool editable, QWidget *parent, MSMetaDataExplorer *caller, const char *name) : BaseVisualizer(editable, parent, name)
+namespace OpenMS
 {
-	type_="ProteinIdentification";
-	pidv_caller_= caller;
+	//Constructor
+	ProteinIdentificationVisualizer::ProteinIdentificationVisualizer(bool editable, QWidget *parent, MSMetaDataExplorer *caller) : BaseVisualizer(editable, parent)
+	{
+		type_="ProteinIdentification";
+		pidv_caller_= caller;
 	
-	addLabel("Modify protein identification information.");	
-	addSeperator();        
-	addLineEdit(proteinidentification_date_, "Date of search" );
-	addLineEdit(proteinidentification_threshold_, "Protein significance threshold" );	
-	addSeperator();       
-	addLabel("Show protein hits with score equal or higher than current threshold.");
-	addButton(updatebutton_, "Show protein hits");
+		addLabel("Modify protein identification information.");	
+		addSeperator();        
+		addLineEdit(proteinidentification_date_, "Date of search" );
+		addLineEdit(proteinidentification_threshold_, "Protein significance threshold" );	
+		addSeperator();       
+		addLabel("Show protein hits with score equal or higher than current threshold.");
+		addButton(updatebutton_, "Show protein hits");
 	
-	finishAdding_();
+		finishAdding_();
 	
-	connect(updatebutton_, SIGNAL(clicked()), this, SLOT(updateTree()) );
+		connect(updatebutton_, SIGNAL(clicked()), this, SLOT(updateTree()) );
 		
-	// A validator to check the input for the protein significance threshold
-	QDoubleValidator *proteinidentification_threshold_vali_ = new QDoubleValidator(proteinidentification_threshold_);
-	proteinidentification_threshold_->setValidator(proteinidentification_threshold_vali_);	
-}
+		// A validator to check the input for the protein significance threshold
+		QDoubleValidator *proteinidentification_threshold_vali_ = new QDoubleValidator(proteinidentification_threshold_);
+		proteinidentification_threshold_->setValidator(proteinidentification_threshold_vali_);	
+	}
 
 
 void ProteinIdentificationVisualizer::load(ProteinIdentification &s, int tree_item_id)
@@ -88,15 +78,15 @@ void ProteinIdentificationVisualizer::load(ProteinIdentification &s, int tree_it
   
   String str;
   tempproteinidentification_.getDateTime().get(str);
-	proteinidentification_date_->setText(str); 
-	proteinidentification_threshold_->setText(String ( tempproteinidentification_.getProteinSignificanceThreshold() ) );			
+	proteinidentification_date_->setText(str.c_str()); 
+	proteinidentification_threshold_->setText(String ( tempproteinidentification_.getProteinSignificanceThreshold() ).c_str() );			
 }
 
 
 void ProteinIdentificationVisualizer::updateTree()
 {
-	String m((const char*) proteinidentification_threshold_->text()) ;
-	tempproteinidentification_.setProteinSignificanceThreshold(m.toFloat() );
+	String m(proteinidentification_threshold_->text().toStdString());
+	tempproteinidentification_.setProteinSignificanceThreshold(m.toFloat());
 	
 	pidv_caller_->updateProteinHits_(tempproteinidentification_, tree_id_);
 	
@@ -107,11 +97,11 @@ void ProteinIdentificationVisualizer::store()
 {
 	try
 	{
-		String m((const char*) proteinidentification_threshold_->text()) ;
+		String m(proteinidentification_threshold_->text().toStdString());
 		(*ptr_).setProteinSignificanceThreshold(m.toFloat() );
 		
 		DateTime date;
-		String n((const char*) proteinidentification_date_->text());
+		String n(proteinidentification_date_->text().toStdString());
 		date.set(n);
 		(*ptr_).setDateTime(date);
 				
@@ -139,3 +129,4 @@ void ProteinIdentificationVisualizer::reject()
 	
 }
 
+}

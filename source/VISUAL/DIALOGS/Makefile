@@ -40,7 +40,6 @@ THISLIB=$(LIBNAME)
 GUI_CPP_SOURCES=\
 	PreferencesDialog.C\
 	PreferencesDialogPage.C\
-	TOPPViewBasePDP.C\
 	Spectrum1DWidgetPDP.C\
 	Spectrum1DCanvasPDP.C\
 	Spectrum2DWidgetPDP.C\
@@ -48,7 +47,6 @@ GUI_CPP_SOURCES=\
 	Spectrum3DWidgetPDP.C\
   Spectrum3DCanvasPDP.C\
 	SaveImageDialog.C\
-	DBSpectrumSelectorDialog.C\
 	HistogramDialog.C\
 	Spectrum1DGoToDialog.C\
 	Spectrum2DGoToDialog.C\
@@ -56,9 +54,9 @@ GUI_CPP_SOURCES=\
 	PeakPickingDialog.C\
 	SmoothingDialog.C\
 	BaselineFilteringDialog.C\
-	FeaFiDialog.C
-	
-
+	FeaFiDialog.C\
+	DBSpectrumSelectorDialog.C\
+	TOPPViewBasePDP.C
 
 GUI_MOC_SOURCES=\
 	PreferencesDialog_moc.C\
@@ -72,31 +70,14 @@ GUI_MOC_SOURCES=\
 	SaveImageDialog_moc.C\
 	DBSpectrumSelectorDialog_moc.C\
 	HistogramDialog_moc.C\
-	Spectrum1DGoToDialogTemplate_moc.C\
 	Spectrum1DGoToDialog_moc.C\
-	Spectrum2DGoToDialogTemplate_moc.C\
 	Spectrum2DGoToDialog_moc.C\
-	OpenDialogTemplate_moc.C\
 	OpenDialog_moc.C\
-	PeakPickingDialogTemplate_moc.C\
 	PeakPickingDialog_moc.C\
-	SmoothingDialogTemplate_moc.C\
 	SmoothingDialog_moc.C\
-	BaselineFilteringDialogTemplate_moc.C\
 	BaselineFilteringDialog_moc.C\
-	FeaFiDialogTemplate_moc.C\
 	FeaFiDialog_moc.C\
 	TOPPViewBasePDP_moc.C
-	
-
-GUI_UIC_SOURCES=\
-	Spectrum1DGoToDialogTemplate.C\
-	Spectrum2DGoToDialogTemplate.C\
-	OpenDialogTemplate.C\
-	PeakPickingDialogTemplate.C\
-	SmoothingDialogTemplate.C\
-	BaselineFilteringDialogTemplate.C\
-	FeaFiDialogTemplate.C
 
 #conditional compiles QT
 ifeq ($(ENABLE_GUI),true)
@@ -104,30 +85,35 @@ ifeq ($(ENABLE_GUI),true)
 		$(GUI_CPP_SOURCES)
 	ADD_MOC_SOURCES=\
 		$(GUI_MOC_SOURCES)
-	UIC_SOURCES=\
-		$(GUI_UIC_SOURCES)
 endif
 
 ADD_INCLUDES=$(GUI_INCLUDES)
 
-SOURCES		= ${UIC_SOURCES} $(CPP_SOURCES) $(MOC_SOURCES) $(ADD_CPP_SOURCES) $(ADD_MOC_SOURCES) $(ANDI_SOURCES)
+SOURCES		= $(CPP_SOURCES) $(MOC_SOURCES) $(ADD_CPP_SOURCES) $(ADD_MOC_SOURCES) $(ANDI_SOURCES)
 OBJECTS 	= $(SOURCES:.C=.o)
 
 -include .Dependencies
 
 default: echodir $(OBJECTS)
 
-depend:	$(UIC_SOURCES) $(MOC_SOURCES) $(ADD_MOC_SOURCES)
+depend:	$(MOC_SOURCES) $(ADD_MOC_SOURCES)
 	@echo "creating dependencies for $(DIRECTORY)..."
 	@echo "" > .Dependencies
-	@$(CXX) -M  -fPIC -pedantic -Wno-long-long -Wno-deprecated  $(CPP_SOURCES) $(ADD_CPP_SOURCES) $(STD_CPP_INCLUDES) $(ADD_INCLUDES) $(OPENMS_INCLUDES)  >.Dependencies
+	@$(CXX) -M  -fPIC -pedantic -Wno-long-long -Wno-deprecated  $(CPP_SOURCES) $(ADD_CPP_SOURCES) $(ADD_MOC_SOURCES) $(STD_CPP_INCLUDES) $(ADD_INCLUDES) $(OPENMS_INCLUDES)  >.Dependencies
 
-uic_depend: $(UIC_SOURCES)
+uic_depend:
+	$(UIC) -o $(UIC_DIR)/Spectrum1DGoToDialogTemplate.h Spectrum1DGoToDialog.ui
+	$(UIC) -o $(UIC_DIR)/Spectrum2DGoToDialogTemplate.h Spectrum2DGoToDialog.ui
+	$(UIC) -o $(UIC_DIR)/OpenDialogTemplate.h OpenDialog.ui
+	$(UIC) -o $(UIC_DIR)/PeakPickingDialogTemplate.h PeakPickingDialog.ui
+	$(UIC) -o $(UIC_DIR)/SmoothingDialogTemplate.h SmoothingDialog.ui
+	$(UIC) -o $(UIC_DIR)/BaselineFilteringDialogTemplate.h BaselineFilteringDialog.ui
+	$(UIC) -o $(UIC_DIR)/FeaFiDialogTemplate.h FeaFiDialog.ui
+
 
 uic_clean:
 	@echo "Cleaning UIC files in $(UIC_DIR) and local direcory..."
 	@$(RM) -f $(UIC_DIR)/*.h
-	@$(RM) -f *Template.C
 
 default_clean: uic_clean
 	@-$(RM) -rf .Dependencies *~  core.* $(OBJECTS) $(MOC_SOURCES) $(ADD_MOC_SOURCES)

@@ -49,7 +49,7 @@ namespace OpenMS
 			
 			public:
 				/// Constructor
-				Spectrum2DCanvasPDP( Spectrum2DCanvas* manager, QWidget* parent = 0, const char* name = "Spectrum2DCanvasPDP", WFlags f = 0);
+				Spectrum2DCanvasPDP( Spectrum2DCanvas* manager, QWidget* parent = 0);
 				///  Destructor
 				virtual ~Spectrum2DCanvasPDP();
 				// Docu in base class

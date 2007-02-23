@@ -28,6 +28,7 @@
 #ifndef OPENMS_VISUAL_DIALOGS_SPECTRUM1DGOTODIALOG_H
 #define OPENMS_VISUAL_DIALOGS_SPECTRUM1DGOTODIALOG_H
 
+#include <QtGui/QDialog>
 #include <OpenMS/VISUAL/DIALOGS/UIC/Spectrum1DGoToDialogTemplate.h>
 
 namespace OpenMS 
@@ -38,23 +39,20 @@ namespace OpenMS
 		
 		@ingroup Dialogs
 	*/
-	class Spectrum1DGoToDialog: public Spectrum1DGoToDialogTemplate
+	class Spectrum1DGoToDialog
+		: public QDialog,
+			public Ui::Spectrum1DGoToDialogTemplate
+			
 	{
 		Q_OBJECT
 		
 		public:
-			Spectrum1DGoToDialog( QWidget* parent = 0, const char* name = 0, WFlags fl = 0 );
+			Spectrum1DGoToDialog( QWidget* parent = 0 );
 			~Spectrum1DGoToDialog();    
-	    void setMinPosition(float min);
-	    void setMaxPosition(float max);
-	    float getMinPosition();
-	    float getMaxPosition();
-	  public slots:
-	    virtual void gotoButton_clicked();
-	    virtual void setVisibleAreaButton_clicked();
-	    
-	  protected:
-	    float min_pos_, max_pos_, center_pos_;
+	    void setMin(double value);
+	    void setMax(double value);
+	    float getMin();
+	    float getMax();
 	};
 
 }

@@ -244,7 +244,7 @@ class TOPPSequestAdapter
 			vector< String > substrings;
 			composition.split(seperator, substrings); // get the single elements of the composition: e.g. 18O(-1) or C(3) or N
 			if ( substrings.empty() ) substrings.push_back(composition);
-			UnsignedInt pos, pos2;
+			SignedInt pos, pos2;
 			String isotope, symbol, occurences;
 			// for each element, get the isotope (if used), the symbol and the occurences
 			for ( vector< String >::const_iterator e_i = substrings.begin(); e_i != substrings.end(); ++e_i )
@@ -256,7 +256,7 @@ class TOPPSequestAdapter
 				isotope = e_i->substr(0, pos);
 				if ( isotope.empty() ) isotope = "0";
 				pos2 = e_i->find('(', pos);
-				if ( pos2 != string::npos ) // if the element occurs more than once, a bracket is found
+				if ( pos2 != String::NPOS ) // if the element occurs more than once, a bracket is found
 				{
 					symbol = e_i->substr(pos, pos2++ - pos);
 					occurences = e_i->substr(pos2, e_i->length() - pos2 - 1 );
@@ -472,7 +472,7 @@ class TOPPSequestAdapter
 				
 				// output the information
 				stringstream ptm_info;
-				UnsignedInt max_name_length, max_composition_length, max_amino_acids_length;
+				String::size_type max_name_length, max_composition_length, max_amino_acids_length;
 				max_name_length = max_composition_length = max_amino_acids_length = 0;
 				for ( map< String, pair< String, String > >::const_iterator mod_i = ptm_informations.begin(); mod_i != ptm_informations.end(); ++mod_i )
 				{

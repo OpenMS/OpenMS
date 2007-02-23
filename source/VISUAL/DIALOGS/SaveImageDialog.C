@@ -28,14 +28,16 @@
 #include <OpenMS/VISUAL/DIALOGS/SaveImageDialog.h>
 
 // Qt
-#include <qlayout.h>
-#include <qpushbutton.h>  
-#include <qcombobox.h>
-#include <qlabel.h>
-#include <qimage.h>
-#include <qapplication.h>
-#include <qvalidator.h>
-
+#include <QtGui/QLayout>
+#include <QtGui/QPushButton>  
+#include <QtGui/QComboBox>
+#include <QtGui/QLabel>
+#include <QtGui/QValidator>
+#include <QtGui/QGridLayout>
+#include <QtGui/QHBoxLayout>
+#include <QtGui/QImageWriter>
+#include <QtGui/QApplication>
+ 
 // STL
 #include <iostream>
 #include <math.h>
@@ -44,12 +46,12 @@ namespace OpenMS
 {
 
 
-	SaveImageDialog::SaveImageDialog( QWidget * parent, const char * name, bool modal, WFlags f ):
-	QDialog(parent,name,modal,f)
+	SaveImageDialog::SaveImageDialog( QWidget * parent ):
+	QDialog(parent)
 	{
 		size_ratio_=1;
 		//create dialog and layout (grid)
-		QGridLayout* grid=new QGridLayout(this,5,2,10,5);
+		QGridLayout* grid=new QGridLayout(this);
 		
 		//add accept/cancel buttons (and their layout)
 		QBoxLayout* box_layout = new QHBoxLayout();
@@ -69,30 +71,34 @@ namespace OpenMS
 		//add picture format selector
 		QLabel* label = new QLabel("Picture format:",this);
 		grid->addWidget(label,0,0);
-		format_ = new QComboBox(this,false);
-		format_->insertStrList(QImage::outputFormats());
+		format_ = new QComboBox(this);
+		QList<QByteArray> list = QImageWriter::supportedImageFormats();
+		for (int i = 0; i < list.size(); ++i)
+		{
+			format_->insertItem(i,list.at(i));
+		}
 		grid->addWidget(format_,0,1,Qt::AlignLeft);
 		//set format to PNG/JPEG if available
 		int png=-1;
 		int jpeg=-1;
 		for (int i=0;i<format_->count();i++)
 		{	
-			if (format_->text(i)=="PNG")
+			if (format_->itemText(i)=="PNG")
 			{
 				png=i;
 			}
-			if (format_->text(i)=="JPEG")
+			if (format_->itemText(i)=="JPEG")
 			{
 				jpeg=i;
 			}			
 		}
 		if (png!=-1)
 		{
-			format_->setCurrentItem(png);
+			format_->setCurrentIndex(png);
 		}
 		else if (jpeg!=-1)
 		{
-			format_->setCurrentItem(jpeg);
+			format_->setCurrentIndex(jpeg);
 		}
 		
 		//add size boxes and label (and their layout)

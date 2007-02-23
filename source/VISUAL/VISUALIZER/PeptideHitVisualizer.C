@@ -25,27 +25,22 @@
 // --------------------------------------------------------------------------
 
 //OpenMS
-#include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/VISUAL/VISUALIZER/PeptideHitVisualizer.h>
-#include <OpenMS/VISUAL/VISUALIZER/BaseVisualizer.h>
-//#include <OpenMS/VISUAL/DataTable.h>
 
 //QT
-#include <qwidget.h>
-#include <qlabel.h> 
-#include <qlineedit.h>
-#include <qtextedit.h>
-#include <qpushbutton.h>
-#include <iostream>
-#include <vector>
-#include <qvalidator.h>
+#include <QtGui/QLineEdit>
+#include <QtGui/QTextEdit>
 
-//using namespace std;
-using namespace OpenMS;
+// STL
+#include <iostream>
+
 using namespace std;
 
+namespace OpenMS
+{
+
 //Constructor
-PeptideHitVisualizer::PeptideHitVisualizer(bool editable, QWidget *parent, const char *name) : BaseVisualizer(editable, parent, name)
+PeptideHitVisualizer::PeptideHitVisualizer(bool editable, QWidget *parent) : BaseVisualizer(editable, parent)
 {
   
 	addLabel("Show PeptideHit information.");		
@@ -69,15 +64,15 @@ void PeptideHitVisualizer::load(PeptideHit &h)
 	
 	//Copy of current object for restoring the original values
 	tempPeptideHit_=h;
-  peptidehit_score_->setText(String(tempPeptideHit_.getScore()) );
+  peptidehit_score_->setText(String(tempPeptideHit_.getScore()).c_str() );
 	peptidehit_score_->setReadOnly(true);
-	peptidehit_score_type_->setText(tempPeptideHit_.getScoreType() );
+	peptidehit_score_type_->setText(tempPeptideHit_.getScoreType().c_str() );
 	peptidehit_score_type_->setReadOnly(true);
-	peptidehit_charge_->setText(String(tempPeptideHit_.getCharge()) );
+	peptidehit_charge_->setText(String(tempPeptideHit_.getCharge()).c_str() );
 	peptidehit_charge_->setReadOnly(true);
-  peptidehit_rank_->setText(String(tempPeptideHit_.getRank()));
+  peptidehit_rank_->setText(String(tempPeptideHit_.getRank()).c_str());
 	peptidehit_rank_->setReadOnly(true);
-	peptidehit_sequence_->setText(tempPeptideHit_.getSequence()); 
+	peptidehit_sequence_->setText(tempPeptideHit_.getSequence().c_str()); 
 	peptidehit_sequence_->setReadOnly(true);
 	
 			
@@ -107,4 +102,6 @@ void PeptideHitVisualizer::reject()
 	{
 		cout<<"Error while trying to restore original PeptideHit data. "<<e.what()<<endl;
 	} 
+}
+
 }

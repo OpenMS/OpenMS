@@ -30,10 +30,10 @@
 
 #include <OpenMS/config.h>
 
-#include<qdialog.h>
-#include<qcombobox.h>
-#include<qlineedit.h>
-#include<qcheckbox.h>
+#include <QtGui/QDialog>
+#include <QtGui/QComboBox>
+#include <QtGui/QLineEdit>
+#include <QtGui/QCheckBox>
 
 namespace OpenMS 
 {
@@ -50,7 +50,7 @@ namespace OpenMS
 		
 		public:
 			///Constructor
-			SaveImageDialog( QWidget * parent = 0, const char * name = 0, bool modal = FALSE, WFlags f = 0 );
+			SaveImageDialog( QWidget * parent = 0 );
 			///set size and size ratio
 			void setSize(int x, int y);
 			///accessors for the width

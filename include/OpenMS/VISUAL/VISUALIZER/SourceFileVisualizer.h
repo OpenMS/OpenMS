@@ -23,26 +23,17 @@
 // --------------------------------------------------------------------------
 // $Maintainer: stefan_heess $
 // --------------------------------------------------------------------------
-
  
 #ifndef OPENMS_VISUAL_VISUALIZER_SOURCEFILEVISUALIZER_H
 #define OPENMS_VISUAL_VISUALIZER_SOURCEFILEVISUALIZER_H
-
 
 //OpenMS
 #include <OpenMS/config.h>
 #include <OpenMS/METADATA/SourceFile.h>
 #include <OpenMS/VISUAL/VISUALIZER/BaseVisualizer.h>
 
-//QT
-#include <qpushbutton.h>
-#include <iostream>
-#include <qwidget.h>
-
-
 class QLabel;
 class QLineEdit;
-
 
 namespace OpenMS {
 /**
@@ -57,7 +48,7 @@ This class provides all functionality to view the meta information of an object 
 
 	public: 
          /// Default constructor
-	      SourceFileVisualizer(bool editable= FALSE, QWidget *parent =0, const char *name = 0);
+	      SourceFileVisualizer(bool editable= FALSE, QWidget *parent =0);
         /// Loads the meta data from the object to the viewer.
 	      void load(SourceFile &h);
 
