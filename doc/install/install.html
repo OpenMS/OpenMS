@@ -44,7 +44,6 @@
   <font color="red"><b>i386 architectures:</b></font>
   <ul>
     <li>OpenMS is tested with GCC 3.4.x (x&gt;=4), 4.0 and 4.1.</li>
-    <li>Before you choose your compiler, see the notes on Qt installation below.</li>
   </ul>
   
   <font color="red"><b>x86_64 architectures:</b></font>
@@ -150,16 +149,14 @@
   <a href="http://www.trolltech.com/download/index.html" target="blank">http://www.trolltech.com/download/index.html</a>.
   <BR>
   <b>Note:</b> Version 3.x is not supported any more! <br>
-	<b>Note:</b> If you want to use the preinstalled binaries, make sure that
-	the qt-devel package is installed.  
+	<b>Note:</b> If you want to use the preinstalled binaries, make sure that the qt-devel package is installed.
 
   <p>Run configure with the '-verbose' option. With that option a
   summary is shown before the you have to accept the licence. Make
-  sure that MySQL (or any other DB you want to use) and OpenGL are
-  support are enabled in the summary.</p>
+  sure that MySQL (or any other DB you want to use) and OpenGL support are enabled in the summary.</p>
 
-  <pre>
-&gt; ./configure -verbose (... see below)
+<pre>
+&gt; ./configure -verbose -fast -no-qt3support (... see below)
 &gt; make
 </pre>
 
@@ -169,6 +166,8 @@
   -plugin-sql-&lt;driver&gt; to enable database support. There is a
   QT driver for a lot of SQL database provided by QT. Check the QT
   manual for details.</p>
+  
+  <b>Note:</b> If you want to use preinstalled MySQL binaries, make sure that the mysql-devel package is installed.
   
   <a name="contrib" id="contrib"></a>
   <h3>Installing the other required libraries (using the contrib package)</h3>
