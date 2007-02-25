@@ -641,7 +641,7 @@ namespace OpenMS
 						std::cout << "Number of parms: " << nr_parameters << std::endl;
 						std::cout << "Delta: " << gsl_blas_dnrm2(fit->dx) << std::endl;
 #endif
-						if (isnan(gsl_blas_dnrm2(fit->dx)))
+						if (std::isnan(gsl_blas_dnrm2(fit->dx)))
 							break;
 	      
 						status = gsl_multifit_test_delta(fit->dx, fit->x, eps_abs_, eps_rel_);
