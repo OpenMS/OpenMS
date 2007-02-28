@@ -48,18 +48,10 @@ InstrumentSettingsVisualizer::InstrumentSettingsVisualizer(bool editable, QWidge
 	addSeperator();  
 	addComboBox(instrumentsettings_scan_mode_, "Scan mode");
 	addComboBox(instrumentsettings_polarity_, "Polarity");
-	addLineEdit(instrumentsettings_mz_range_start_, "Scan begin (in m/z dimension)");
-	addLineEdit(instrumentsettings_mz_range_stop_, "Scan stop (in m/z dimension)");
+	addDoubleLineEdit(instrumentsettings_mz_range_start_, "Scan begin (in m/z dimension)");
+	addDoubleLineEdit(instrumentsettings_mz_range_stop_, "Scan stop (in m/z dimension)");
 		
 	finishAdding_();
-	
-	// A validator to check the input for the mz_range_start_
-	QDoubleValidator *instrumentsettings_mz_range_start_vali_ = new QDoubleValidator(instrumentsettings_mz_range_start_);
-	instrumentsettings_mz_range_start_->setValidator(instrumentsettings_mz_range_start_vali_);
-	
-	// A validator to check the input for the mz_range_stop_
-	QDoubleValidator *instrumentsettings_mz_range_stop_vali_ = new QDoubleValidator(instrumentsettings_mz_range_stop_);
-	instrumentsettings_mz_range_stop_->setValidator(instrumentsettings_mz_range_stop_vali_);
 		
 }
 

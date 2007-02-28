@@ -50,11 +50,9 @@ GradientVisualizer::GradientVisualizer(bool editable, QWidget *parent)
 	//type_="Gradient";
 	nextrow_=0;
 	
-	viewlayout_ = new QGridLayout(this);
-	viewlayout_->setSpacing(6);
-  viewlayout_->setMargin(11);
-	mainlayout_->addLayout(viewlayout_, row_, row_, 0 ,2);
-	row_++;		
+	//viewlayout_ = new QGridLayout();
+	//mainlayout_->addLayout(viewlayout_, row_, 0, 1 ,3);
+	//row_++;		
 	
 }
 
@@ -68,7 +66,13 @@ void GradientVisualizer::load(Gradient &g)
 	
 	//Copy of current object for restoring the original values
 	tempgradient_=g;
-	  
+	 
+	addLabel("Modify Gradient information"); 
+	addSeperator();
+	
+	viewlayout_ = new QGridLayout();
+	mainlayout_->addLayout(viewlayout_, row_, 0, 1 ,3);
+	row_++;		
 	//Get the actuall eluent, timepoint and percentage values.
 	loadData_();
 			
@@ -83,7 +87,7 @@ void GradientVisualizer::load(Gradient &g)
 	addButton(removebutton_, "Remove");
 	
 	finishAdding_();
-	
+	addSeperator();
 	connect(add_timepoint_button_, SIGNAL(clicked()), this, SLOT(addTimepoint()) );	
 	connect(add_eluent_button_, SIGNAL(clicked()), this, SLOT(addEluent()) );	
   connect(removebutton_, SIGNAL(clicked()), this, SLOT(deleteData()) );	
@@ -117,10 +121,18 @@ void GradientVisualizer::addTimepoint()
 	String m(new_timepoint_->text().toStdString()) ;
 	int num_time = timepoints_.size();
 	
-	if(m.trim().length() !=0 && timepoints_[num_time-1] < m.toInt())
+	if(num_time==0 && m.trim().length() !=0)
 	{
 		tempgradient_.addTimepoint(m.toInt());
 		update_();
+	}
+	else
+	{
+		if( m.trim().length() !=0 && timepoints_[num_time-1] < m.toInt())
+		{
+			tempgradient_.addTimepoint(m.toInt());
+			update_();
+		}
 	}
 	
 }
@@ -152,48 +164,46 @@ void GradientVisualizer::store()
 {
 	try
 	{	
-	//Check, whether sum is 100
-        int time_size = timepoints_.size();
-        int elu_size = eluents_.size();
-        int count = 0;
-        int elu_count = 0;
-        int sum_check=0;
-        for(int i=0; i< time_size; ++i )
-        { 
-            elu_count=i;
-            for(int j=0; j< elu_size; ++j )
-            {
-              String value((gradientdata_[elu_count])->text().toStdString());
-              elu_count  = elu_count+ time_size;
-              sum_check= sum_check + value.toInt();
-              if(j== elu_size-1 && sum_check!=100)
-              {
-                cout<<"The sum does not add up to 100 !"<<endl;
-                cout<<"Please check your values."<<endl;
-                return;
-              }
-            }
-            sum_check = 0;
-        }
+		//Check, whether sum is 100
+		int time_size = timepoints_.size();
+		int elu_size = eluents_.size();
+		int count = 0;
+		int elu_count = 0;
+		int sum_check=0;
+		for(int i=0; i< time_size; ++i )
+		{ 
+			elu_count=i;
+			for(int j=0; j< elu_size; ++j )
+			{
+				String value((gradientdata_[elu_count])->text().toStdString());
+				elu_count  = elu_count+ time_size;
+				sum_check= sum_check + value.toInt();
+				if(j== elu_size-1 && sum_check!=100)
+				{
+					cout<<"The sum does not add up to 100 !"<<endl;
+					cout<<"Please check your values."<<endl;
+					return;
+				}
+			}
+			sum_check = 0;
+		}
 
        
         
-        //Store all values into the gradient object
-        for(UnsignedInt i=0; i< eluents_.size(); ++i )
-        {
-          for(UnsignedInt j=0; j< timepoints_.size(); ++j )
-          {
-            String value((gradientdata_[count+j])->text().toStdString());
-            tempgradient_.setPercentage(eluents_[i], timepoints_[j], value.toInt()  );      
-          }
-          count=count+time_size;
-          
-        }
+		//Store all values into the gradient object
+		for(UnsignedInt i=0; i< eluents_.size(); ++i )
+		{
+			for(UnsignedInt j=0; j< timepoints_.size(); ++j )
+			{
+				String value((gradientdata_[count+j])->text().toStdString());
+				tempgradient_.setPercentage(eluents_[i], timepoints_[j], value.toInt()  );      
+			}
+			count=count+time_size;
+			
+		}
 
-       
-
-        //copy temporary stored data into metainfo object
-	(*ptr_)=tempgradient_;		
+    //copy temporary stored data into metainfo object
+		(*ptr_)=tempgradient_;		
 		
 	}
 	catch(exception& e)
@@ -215,25 +225,10 @@ void GradientVisualizer::loadData_()
   timepoints_ = tempgradient_.getTimepoints();
  	UnsignedInt num_timepoints = tempgradient_.getTimepoints().size();	
 		
-	//Add a header
-	QLabel *header =new QLabel("Modify Gradient information", this);
-	viewlayout_->addWidget(header, 0, 0 ,0 , num_timepoints);
-	header->show();
-	nextrow_++;
-	gradientlabel_.push_back(header);
-	
-	//Add a seperator
-	QLabel* hline = new QLabel(this);
-	hline->setFrameShape(QFrame::HLine); 
-	viewlayout_->addWidget(hline, 1, 1, 0, num_timepoints);
-	hline->show();
-	nextrow_++;
-	gradientlabel_.push_back(hline);
-	
-	
+		
 	//Add labels to display eluent-timepoint-percentage-triplets.	
 	QLabel *label = new QLabel("Eluent names\\Timepoints", this);
-  viewlayout_->addWidget(label, 2, 0);
+  viewlayout_->addWidget(label, 0, 0, 1, num_timepoints);
 	label->show();
 	nextrow_++;
 	gradientlabel_.push_back(label);
@@ -245,7 +240,7 @@ void GradientVisualizer::loadData_()
 	{
 		//Add labels to display eluent-timepoint-percentage-triplets.	
 		QLabel* label1 = new QLabel(String(timepoints_[i]).c_str(), this);
-  	viewlayout_->addWidget(label1, 3, i+1);
+  	viewlayout_->addWidget(label1, 1, i+1);
 		label1->show();
 		gradientlabel_.push_back(label1);
 	}
@@ -286,10 +281,12 @@ void GradientVisualizer::removeData_()
 	{			
 				//Delete QLineEdit field from viewlayout_
 				viewlayout_->removeWidget((*iter2));
-				//Free memory of the pointer
-				delete (*iter2);
+				(*iter2)->hide();
 				//Set pointer to 0
 				(*iter2) =0;			
+				//Free memory of the pointer
+				delete (*iter2);
+				
   }
 	
 	//Remove QLabels
@@ -298,14 +295,16 @@ void GradientVisualizer::removeData_()
 	for(iter_label = gradientlabel_.begin(); iter_label < gradientlabel_.end(); iter_label++ ) 
 	{
 				viewlayout_->removeWidget((*iter_label));
+				(*iter_label)->hide();
+				(*iter_label) =0;	
 				delete (*iter_label);
-				(*iter_label) =0;			
+						
   }
 	
 	gradientdata_.clear();
 	gradientlabel_.clear();
 		
-  this->repaint();
+  //this->repaint();
 }
 
 void GradientVisualizer::update_()

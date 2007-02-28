@@ -49,16 +49,13 @@ ModificationVisualizer::ModificationVisualizer(bool editable, QWidget *parent) :
 	addLineEdit(treatmenttype_, "Treatment type" );
 	addTextEdit(treatmentcomment_, "Comment" );
 	addLineEdit(modificationname_, "Reagent name" );
-	addLineEdit(modificationmass_, "Mass change" );
+	addDoubleLineEdit(modificationmass_, "Mass change" );
 	 
 	addComboBox(modificationspecificity_, "Specificity Type");
 	addLineEdit(modificationAA_, "Affected Amino Acids" );
 	
 	finishAdding_();
 	
-	// A Validator to check the input for the mass
-	QDoubleValidator *massvali_ = new QDoubleValidator(modificationmass_);
-	modificationmass_->setValidator(massvali_);
 }
 
 

@@ -84,18 +84,20 @@ namespace OpenMS
 		//Create the tree for exploring data 
 		treeview_ = new QTreeWidget(this);
 		treeview_->setMinimumWidth(250);
-		treeview_->setColumnCount(1);
+		treeview_->setColumnCount(3);
 		treeview_->setHeaderLabel("Browse in Metadata tree");
 		treeview_->setRootIsDecorated(true);
 	 	basiclayout_->addWidget(treeview_, 0,0,5,3);
-		//basiclayout_->addWidget(treeview_, 0,0,6,3);
+		
 				  
 		//Create WidgetStack for managing visible metadata
-		ws_ = new QStackedWidget(this);
+		ws_ = new QStackedWidget(this);    
 		basiclayout_->addWidget(ws_, 0,3,3,3);
 				
 		if(isEditable())
 		{
+			QSpacerItem* spacer = new QSpacerItem( 0, 0, QSizePolicy::Expanding, QSizePolicy::Expanding );
+			basiclayout_->addItem(spacer, 5, 3);
 			saveallbutton_ = new QPushButton("OK", this);
 		 	cancelbutton_ = new QPushButton("Cancel", this);
 			basiclayout_->addWidget(saveallbutton_, 5, 4);
@@ -106,14 +108,16 @@ namespace OpenMS
 		else 
 		{
 			closebutton_ = new QPushButton("Close", this);
-			QSpacerItem* vspacer = new QSpacerItem( 0, 0, QSizePolicy::Expanding, QSizePolicy::Expanding );
-			basiclayout_->addItem(vspacer, 3,3,1,3);
+			QSpacerItem* row_spacer = new QSpacerItem( 0, 0, QSizePolicy::Expanding, QSizePolicy::Expanding );
+			QSpacerItem* spacer = new QSpacerItem( 0, 0, QSizePolicy::Expanding, QSizePolicy::Expanding );
+			basiclayout_->addItem(row_spacer, 3,3,1,3);
+			basiclayout_->addItem(spacer, 4, 3,1,2);
 			basiclayout_->addWidget(closebutton_,4 ,5);
 			connect(closebutton_, SIGNAL(clicked()), this, SLOT(reject())  );
 		}
 		
 	  connect(treeview_, SIGNAL(itemClicked(QTreeWidgetItem*,int)), this, SLOT(showDetails_(QTreeWidgetItem*,int))  );
-	  
+	   
 	}//end of constructor
 	
 	
@@ -144,7 +148,7 @@ namespace OpenMS
 			}
 			
 			//close dialog
-			this->accept();
+			accept();
 		}
 		catch(exception& e)
 		{
@@ -158,12 +162,18 @@ namespace OpenMS
 	
 	void MSMetaDataExplorer::updateProteinHits_(ProteinIdentification pid, int tree_item_id)
 	{
+	
 		float threshold = pid.getProteinSignificanceThreshold();
-		
+		cout<<"Threshold: "<<threshold<<endl;
 		// find item in tree belonging to ProteinIdentification object
-		QTreeWidgetItem* item = treeview_->findItems(QString::number(tree_item_id),Qt::MatchExactly, 1).first();	
+		int num=treeview_->columnCount();
+		cout<<"Number of columns: "<<num<<endl;
+		//QList<QTreeWidgetItem* > result=treeview_->findItems("test",Qt::MatchExactly, 0);
+		//QTreeWidgetItem* item = treeview_->findItems(QString::number(tree_item_id),Qt::MatchExactly, 1).first();	
+		//cout<<"Size of result list = "<<result.size()<<endl;
+		/*
 		item->sortChildren(2, Qt::AscendingOrder);
-		
+		cout<<"--3--"<<endl;
 		//set the items visible or not visible depending to their score and the current threshold
 		for(int i=0; i<item->childCount(); ++i)
 		{
@@ -176,7 +186,9 @@ namespace OpenMS
 			{
 				child->setHidden(false);
 			}
+			cout<<"--loop--"<<i<<endl;
 		}
+		*/
 	}
 	
 	
@@ -574,6 +586,8 @@ namespace OpenMS
 		{
 			visualize_(dynamic_cast<MetaInfoInterface&>(meta), item);
 		}
+		
+		
 	}
 	
 	//Visualizing Instrument object
@@ -688,7 +702,7 @@ namespace OpenMS
 		visualizer->load(meta);  
 		
     QStringList labels;
-    labels << "IonDetector" << QString::number(ws_->addWidget(visualizer));
+    labels << "MassAnalyzer" << QString::number(ws_->addWidget(visualizer));
     
     QTreeWidgetItem* item;
 		if(parent == 0)
@@ -807,17 +821,28 @@ namespace OpenMS
 		visualizer->load(meta);  
 		
 		String name = String("Prot ") + meta.getAccession() + " (" + meta.getScore() + ')';
+		QString qs_name( name.c_str() );
+		
     QStringList labels;
-    labels << "ProcessingMethod" << QString::number(ws_->addWidget(visualizer)) << QString::number(meta.getScore());
-    
+    //labels << "ProteinHit" << QString::number(ws_->addWidget(visualizer)) << QString::number(meta.getScore());
+    labels << qs_name << QString::number(ws_->addWidget(visualizer)) << QString::number(meta.getScore());
+		
     QTreeWidgetItem* item;
 		if(parent == 0)
 		{
-			item = new QTreeWidgetItem(treeview_, labels );
+			//item = new QTreeWidgetItem(treeview_, labels );
+			item = new QTreeWidgetItem(treeview_);
+			item->setText(0, "test");
+			item->setText(1,  QString::number(ws_->addWidget(visualizer)));
+			item->setText(2,  QString::number(meta.getScore()));
 		}
 		else
 		{
-			item = new QTreeWidgetItem(parent, labels );
+			//item = new QTreeWidgetItem(parent, labels );
+			item = new QTreeWidgetItem(parent);
+			item->setText(0, "test");
+			item->setText(1,  QString::number(ws_->addWidget(visualizer)) );
+			item->setText(2,  QString::number(meta.getScore()) );
 		} 
 	}
 	
@@ -828,8 +853,10 @@ namespace OpenMS
 		visualizer->load(meta);  
 		
 		String name = String("Pep ") + meta.getSequence() + " (" + meta.getScore() + ')';
-    QStringList labels;
-    labels << "ProcessingMethod" << QString::number(ws_->addWidget(visualizer)) << QString::number(meta.getScore());
+		QString qs_name( name.c_str() );
+    
+		QStringList labels;
+    labels << qs_name << QString::number(ws_->addWidget(visualizer)) << QString::number(meta.getScore());
     
     QTreeWidgetItem* item;
 		if(parent == 0)

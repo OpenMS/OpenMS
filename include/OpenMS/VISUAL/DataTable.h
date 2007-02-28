@@ -59,6 +59,10 @@ namespace OpenMS
 			void addLabel(const QString &label);
 		  /// Adds a line edit field with label to the grid layout.
 			void addLineEdit(QLineEdit* &ptr ,  const QString &label);
+			/// Adds a line edit field to the grid layout including a int validator
+			void addIntLineEdit(QLineEdit* &ptr ,  const QString &label);
+			/// Adds a line edit field to the grid layout including a double validator
+			void addDoubleLineEdit(QLineEdit* &ptr ,  const QString &label);
 			/// Adds a line edit field with label and button to the next free position in the grid.
 			void addLineEditButton(const QString &labelname, QLineEdit* &ptr1, QPushButton* &ptr2, const QString &buttonlabel);
 	

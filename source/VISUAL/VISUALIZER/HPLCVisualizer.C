@@ -47,22 +47,14 @@ HPLCVisualizer::HPLCVisualizer(bool editable, QWidget *parent)
 	addSeperator();
 	addLineEdit(hplcinstrument_, "Instrument" );
 	addLineEdit(hplccolumn_, "Column" );
-	addLineEdit(hplctemperature_, "Temperature (in °C)" );
-	addLineEdit(hplcpressure_, "Pressure (in bar)" );
-	addLineEdit(hplcflux_, "Flux (in µl/sec)" );
+	addIntLineEdit(hplctemperature_, "Temperature (in °C)" );
+	addIntLineEdit(hplcpressure_, "Pressure (in bar)" );
+	addIntLineEdit(hplcflux_, "Flux (in µl/sec)" );
 	addTextEdit(hplccomment_, "Comment");
 		
 	finishAdding_();
 	
-	// A validator to check the input for the temperature.
-	QIntValidator *hplc_temperature_vali_ = new QIntValidator(hplctemperature_);
-	hplctemperature_->setValidator(hplc_temperature_vali_);
-	// A validator to check the input for the pressure.
-	QIntValidator *hplc_pressure_vali_ = new QIntValidator(hplcpressure_);
-	hplcpressure_->setValidator(hplc_pressure_vali_); 
-	// A validator to check the input for the flux.
-	QIntValidator *hplc_flux_vali_ = new QIntValidator(hplcflux_);
-	hplcflux_->setValidator(hplc_flux_vali_);
+	
 	
 }
 

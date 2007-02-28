@@ -49,7 +49,7 @@ IdentificationVisualizer::IdentificationVisualizer(bool editable, QWidget *paren
 	addLabel("Modify identification information.");	
 	addSeperator();        
 	addLineEdit(identification_date_, "Date and Time of DB search" );
-	addLineEdit(identification_threshold_, "Peptide significance threshold" );	
+	addDoubleLineEdit(identification_threshold_, "Peptide significance threshold" );	
 	addSeperator();       
 	addLabel("Show peptide hits with score equal or higher than current threshold.");
 	addLabel("(To show all peptide hits set threshold to 0).");
@@ -71,9 +71,6 @@ IdentificationVisualizer::IdentificationVisualizer(bool editable, QWidget *paren
 	connect(updatebutton2_, SIGNAL(clicked()), this, SLOT(searchRefPeptides()) );
 	connect(updatebutton3_, SIGNAL(clicked()), this, SLOT(searchNonRefPeptides()) );
 		
-	// A validator to check the input for the protein significance threshold
-	QDoubleValidator *identification_threshold_vali_ = new QDoubleValidator(identification_threshold_);
-	identification_threshold_->setValidator(identification_threshold_vali_);	
 }
 
 

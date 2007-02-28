@@ -49,19 +49,10 @@ IonDetectorVisualizer::IonDetectorVisualizer(bool editable, QWidget *parent) : B
 	
 	addComboBox(iondetector_type_, "Type");
 	addComboBox(iondetector_ac_mode_, "Acquisition mode");
-	addLineEdit(iondetector_res_, "Resolution (in ns)" );
-	addLineEdit(iondetector_freq_, "ADC sampling frequency (in MHz)" );
+	addDoubleLineEdit(iondetector_res_, "Resolution (in ns)" );
+	addDoubleLineEdit(iondetector_freq_, "ADC sampling frequency (in MHz)" );
 	
-	finishAdding_();
-	
-	// A Validator to check the input for the resolution
-	QDoubleValidator *res_vali_ = new QDoubleValidator(iondetector_res_);
-	iondetector_res_->setValidator(res_vali_);
-	
-	// A Validator to check the input for the frequency
-	QDoubleValidator *freq_vali_ = new QDoubleValidator(iondetector_freq_);
-	iondetector_freq_->setValidator(freq_vali_);
-			
+	finishAdding_();			
 }
 
 

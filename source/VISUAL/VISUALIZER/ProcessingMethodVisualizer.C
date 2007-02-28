@@ -49,13 +49,10 @@ ProcessingMethodVisualizer::ProcessingMethodVisualizer(bool editable, QWidget *p
 	addComboBox(processingmethod_deisotoping_, "Deisotoping");
 	addComboBox(processingmethod_charge_deconvolution_, "Charge deconvolution");
 	addComboBox(processingmethod_method_, "Method");
-	addLineEdit(processingmethod_intensity_cutoff_, "Intensity cutoff");	
+	addDoubleLineEdit(processingmethod_intensity_cutoff_, "Intensity cutoff");	
 	
 	finishAdding_();
 	
-	// A validator to check the input for intensity cutoff
-	QDoubleValidator *processingmethod_intensity_cutoff_vali_ = new QDoubleValidator(processingmethod_intensity_cutoff_);
-	processingmethod_intensity_cutoff_->setValidator(processingmethod_intensity_cutoff_vali_);
 }
 
 

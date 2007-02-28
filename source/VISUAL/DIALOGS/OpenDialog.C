@@ -32,14 +32,36 @@
 #include <OpenMS/FORMAT/DB/DBConnection.h>
 #include <OpenMS/VISUAL/MSMetaDataExplorer.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/DATASTRUCTURES/Date.h>
+#include <OpenMS/DATASTRUCTURES/DateTime.h>
 
 
 //OpenMS meta data include
-#include <OpenMS/METADATA/Precursor.h>
 #include <OpenMS/METADATA/Sample.h>
 #include <OpenMS/METADATA/Digestion.h>
 #include <OpenMS/METADATA/Modification.h>
 #include <OpenMS/METADATA/Tagging.h>
+#include <OpenMS/METADATA/HPLC.h>
+#include <OpenMS/METADATA/Gradient.h>
+#include <OpenMS/METADATA/Software.h>
+#include <OpenMS/METADATA/SourceFile.h>
+#include <OpenMS/METADATA/ContactPerson.h>
+#include <OpenMS/METADATA/Instrument.h>
+#include <OpenMS/METADATA/IonSource.h>
+#include <OpenMS/METADATA/IonDetector.h>
+#include <OpenMS/METADATA/MassAnalyzer.h>
+#include <OpenMS/METADATA/ProcessingMethod.h>
+#include <OpenMS/METADATA/ProteinIdentification.h>
+#include <OpenMS/METADATA/Identification.h>
+#include <OpenMS/METADATA/ProteinHit.h>
+#include <OpenMS/METADATA/PeptideHit.h>
+#include <OpenMS/METADATA/ExperimentalSettings.h>
+#include <OpenMS/METADATA/Acquisition.h>
+#include <OpenMS/METADATA/AcquisitionInfo.h>
+#include <OpenMS/METADATA/MetaInfoDescription.h>
+#include <OpenMS/METADATA/Precursor.h>
+#include <OpenMS/METADATA/InstrumentSettings.h>
+#include <OpenMS/METADATA/SpectrumSettings.h>
 
 // QT includes
 #include <QtGui/QMessageBox>
@@ -179,110 +201,44 @@ namespace OpenMS
 			MSExperiment<> exp;
 			FileHandler().loadExperiment(names_[0],exp);
 			
-			//------------------------------------------------------------------
-			//		Test meta data objects
-			//------------------------------------------------------------------
-			Precursor pre;
-			pre.setActivationMethod(Precursor::PSD);
-			pre.setActivationEnergy(25.5);
-			pre.setActivationEnergyUnit(Precursor::PERCENT);			
-			
 			//------------------------------------------------------------------------------
-			//              Set Sample objects
+			//	             Set meta data object
 			//------------------------------------------------------------------------------
-			Sample s, s2, s3, s4;
-			std::vector<Sample> v;
-			std::vector<Sample> v2;
+			DateTime date;
+			date.now();
+			Date today;
+			today.today();
 			
-			s.setName("Test1");
-			s.setNumber("Sample4711");
-			s.setOrganism("Human");
-			s.setComment("Sample Description");
-			s.setState(Sample::LIQUID);
-			s.setMass(4711.2);
-			s.setVolume(4711.3);
-			s.setConcentration(4711.4);
-			for(UnsignedInt i=1; i<6; ++i)
-			{
-				std::string test="Test";
-				test=test+String(i);
-				s.setMetaValue(i, test);
-			}
+			ProteinIdentification pid;
+			pid.setProteinSignificanceThreshold(3.2);
+			pid.setDateTime(date);
 			
-			s2.setName("Test2");
-			s2.setNumber("Sample4asfad711");
-			s2.setOrganism("Human");
-			s2.setComment("Sample Description");
-			s2.setState(Sample::LIQUID);
-			s2.setMass(4711.2);
-			s2.setVolume(4711.3);
-			s2.setConcentration(4711.4);	
-			//mw->add(ptr2);
+			std::vector< ProteinHit > prot_hits;  
+			ProteinHit *phit1 = new ProteinHit();
+			ProteinHit *phit2 = new ProteinHit();
+			ProteinHit *phit3 = new ProteinHit();
+			ProteinHit *phit4 = new ProteinHit();
+			Real score1 =4.4;
+			Real score2 =6.4;
+			Real score3 =2.4;
+			Real score4 =9.4;
+			phit1->setScore(score1);
+			phit2->setScore(score2);
+			phit3->setScore(score3);
+			phit4->setScore(score4);
+			phit1->setAccession("1BNL");
+			phit2->setAccession("1BY0");
+			phit3->setAccession("ACC392");
+			phit4->setAccession("ACD392");
+			prot_hits.push_back(*phit1);
+			prot_hits.push_back(*phit2);
+			prot_hits.push_back(*phit3);
+			prot_hits.push_back(*phit4);
 			
-			s3.setName("Test3");
-			s3.setNumber("Sample4asfad711");
-			s3.setOrganism("Human");
-			s3.setComment("Sample Description");
-			s3.setState(Sample::LIQUID);
-			s3.setMass(4711.2);
-			s3.setVolume(4711.3);
-			s3.setConcentration(4711.4);	
+			pid.setProteinHits(prot_hits);
 			
-			
-			s4.setName("Test4");
-			s4.setNumber("Sample4asfad711");
-			s4.setOrganism("Human");
-			s4.setComment("Sample Description");
-			s4.setState(Sample::LIQUID);
-			s4.setMass(4711.2);
-			s4.setVolume(4711.3);
-			s4.setConcentration(4711.4);	
-			
-			//------------------------------------------------------------------------------
-			//                     build some treatments
-			//------------------------------------------------------------------------------
-			Digestion d;
-			Modification m;
-			Tagging t;
-			//different treatments
-			d.setEnzyme("D");
-			
-			for(UnsignedInt i=1; i<6; ++i)
-			{
-				std::string test="Test";
-				test=test+String(i);
-				d.setMetaValue(i, test);
-			}
-				
-			m.setReagentName("m");
-			m.setSpecificityType(Modification::NTERM);
-			
-			// Set some metavalues to test MetaInfoVisualizer
-			for(UnsignedInt i=1; i<6; ++i)
-			{
-				std::string test="Test";
-				test=test+String(i);
-				m.setMetaValue(i, test);
-			}
-			
-			t.setMassShift(5.0);
-			for(UnsignedInt i=1; i<6; ++i)
-			{
-				std::string test="Test";
-				test=test+String(i);
-				t.setMetaValue(i, test);
-			}
-			s.addTreatment(d);
-			s.addTreatment(m);
-			s.addTreatment(t);
-			
-			//v2.push_back(s3);
-			v2.push_back(s4);
-			s2.setSubsamples(v2);
-			
-			v.push_back(s2);
-			s.setSubsamples(v);
-		
+			std::vector<ProteinIdentification> protIDs;
+			protIDs.push_back(pid);
 	
 			//-------------------------------------------------------------------------
 			//		end of meta data testing
@@ -292,8 +248,8 @@ namespace OpenMS
 			MSMetaDataExplorer dlg(true, this);
 			dlg.setWindowTitle("Meta data");
 						
-			//dlg.add(&pre);
-			dlg.add(&s);
+			
+			dlg.add(&pid);
 			
 			//dlg.add(&exp);
 			

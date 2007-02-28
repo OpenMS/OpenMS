@@ -51,21 +51,17 @@ TaggingVisualizer::TaggingVisualizer(bool editable, QWidget *parent)
 	addLineEdit(treatmenttype_, "Treatment type" );
 	addTextEdit(treatmentcomment_, "Comment" );
 	addLineEdit(modificationname_, "Reagent name" );
-	addLineEdit(modificationmass_, "Mass" );
+	addDoubleLineEdit(modificationmass_, "Mass" );
 	 
 	addComboBox(modificationspecificity_, "Specificity Type");
 	addLineEdit(modificationAA_, "Affected Amino Acids" );
 	
-	addLineEdit(taggingmass_shift_, "Mass_Shift" );
+	addDoubleLineEdit(taggingmass_shift_, "Mass_Shift" );
 	addComboBox(taggingvariant_, "Variant");
 	
 	finishAdding_();
 	
-	massvali_ = new QDoubleValidator(modificationmass_);
-	modificationmass_->setValidator(massvali_);
 	
-	shiftvali_ = new QDoubleValidator(taggingmass_shift_);
-	taggingmass_shift_->setValidator(shiftvali_);
 }
 
 

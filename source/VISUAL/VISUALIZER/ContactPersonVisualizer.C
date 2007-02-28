@@ -47,7 +47,6 @@ ContactPersonVisualizer::ContactPersonVisualizer(bool editable, QWidget *parent)
 	addLineEdit(cp_institution_, "Institution" );
 	addLineEdit(cp_email_, "Email" );
 	addLineEdit(cp_contact_info_, "Contact info" );
-	
 	finishAdding_();
 	
 }
@@ -65,7 +64,15 @@ void ContactPersonVisualizer::load(ContactPerson &h)
   cp_email_->setText(h.getEmail().c_str() );
 	cp_contact_info_->setText(h.getContactInfo().c_str() );
 		
-			
+	cp_firstname_->adjustSize();		
+	cp_lastname_->adjustSize();		
+	cp_lastname_->adjustSize();		
+	cp_institution_->adjustSize();		
+	cp_email_->adjustSize();		
+	cp_email_->repaint();	
+	cp_email_->show();
+	cp_contact_info_->adjustSize();		
+	
 }
 
 void ContactPersonVisualizer::store()

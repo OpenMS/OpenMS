@@ -52,13 +52,11 @@ MetaInfoVisualizer::MetaInfoVisualizer(bool editable, QWidget *parent) : BaseVis
 	
 	buttongroup_ = new QButtonGroup();
 	nextrow_=0;
+	viewlayout_ = new QGridLayout();
 	
-	viewlayout_ = new QGridLayout(this);
-	viewlayout_->setSpacing(6);
-  viewlayout_->setMargin(11);
 	addLabel("Modify MetaData information.");
 	addSeperator();	
-	mainlayout_->addLayout(viewlayout_, row_, row_, 0 ,2);
+	mainlayout_->addLayout(viewlayout_, row_, 0, 1 ,3);
 	//increase row counter for mainlayout_.
 	row_++;
 		
@@ -98,7 +96,7 @@ void MetaInfoVisualizer::load(MetaInfoInterface &m)
 	
 	finishAdding_();
 		
-	connect(buttongroup_, SIGNAL(clicked(int)), this, SLOT(remove(int)));
+	connect(buttongroup_, SIGNAL(buttonClicked(int)), this, SLOT(remove(int)));
 	connect(addbutton_, SIGNAL(clicked()), this, SLOT(add()));
 	connect(clearbutton_, SIGNAL(clicked()), this, SLOT(clear()));
   
@@ -122,14 +120,15 @@ void MetaInfoVisualizer::remove(int index)
 	for(iter = metalabels_.begin(); iter < metalabels_.end(); iter++ ) 
 	{	 
      if( (*iter).first == id)
-		 {
-				viewlayout_->removeWidget((*iter).second);
-				delete (*iter).second;
+		 {	
+		 		viewlayout_->removeWidget((*iter).second);
+				(*iter).second->hide();
 				(*iter).second =0;
+				delete (*iter).second;
 				metalabels_.erase(iter);
 		 }
    }
-	 
+	
 	//Remove QLineEdit	
 	std::vector<std::pair<UnsignedInt,QLineEdit*> >::iterator iter2; 
 	for(iter2 = metainfoptr_.begin(); iter2 < metainfoptr_.end(); iter2++ ) 
@@ -137,14 +136,15 @@ void MetaInfoVisualizer::remove(int index)
      if( (*iter2).first == id)
 		 {
 				viewlayout_->removeWidget((*iter2).second);
-				delete (*iter2).second;
+				(*iter2).second->hide();
 				(*iter2).second =0;
+				delete (*iter2).second;
 				metainfoptr_.erase(iter2);
 		}	
 		
 		
    }
-	 
+	
 	//Remove QButton  
 	std::vector<std::pair<UnsignedInt,QAbstractButton*> >::iterator iter3; 
 	for(iter3 = metabuttons_.begin(); iter3 < metabuttons_.end(); iter3++ ) 
@@ -152,17 +152,17 @@ void MetaInfoVisualizer::remove(int index)
      if( (*iter3).first == id)
 		 {	
 				viewlayout_->removeWidget((*iter3).second);
-				delete (*iter3).second;
+				(*iter3).second->hide();
 				(*iter3).second =0;
+				delete (*iter3).second;
 				metabuttons_.erase(iter3);
 		 }
    }	
-		
+	
   //Remove entry from metainfointerface
 	tempmeta_.removeMetaValue(id);
 	tempmeta_.getKeys(keys_);
 		
-  this->repaint();
 }
 
 

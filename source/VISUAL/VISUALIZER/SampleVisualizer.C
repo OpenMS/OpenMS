@@ -56,21 +56,11 @@ SampleVisualizer::SampleVisualizer(bool editable, QWidget *parent)
 	addComboBox(samplestate_, "State");
 	
 		
-	addLineEdit(samplemass_,"Mass (in mg)");
-	addLineEdit(samplevolume_, "Volume (in ml)");
-	addLineEdit(sampleconcentration_, "Concentration (in mg/ml)");
-	 
-	finishAdding_();
+	addDoubleLineEdit(samplemass_,"Mass (in mg)");
+	addDoubleLineEdit(samplevolume_, "Volume (in ml)");
+	addDoubleLineEdit(sampleconcentration_, "Concentration (in mg/ml)");
 	
-	// A validator to check the input for the mass
-	QDoubleValidator *sample_massvali_ = new QDoubleValidator(samplemass_);
-	samplemass_->setValidator(sample_massvali_);
-	// A validator to check the input for the volume
-	QDoubleValidator *volumevali_ = new QDoubleValidator(samplevolume_);
-	samplevolume_->setValidator(volumevali_);
-	// A Validator to check the input for the concentration
-	QDoubleValidator *concentrationvali_ = new QDoubleValidator(sampleconcentration_);
-	sampleconcentration_->setValidator(concentrationvali_);
+	finishAdding_();
 	
 	
 }

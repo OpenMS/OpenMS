@@ -49,19 +49,11 @@ PrecursorVisualizer::PrecursorVisualizer(bool editable, QWidget *parent)
 	addSeperator();  
 	
 	addComboBox(precursor_activation_method_, "Activation method");
-	addLineEdit(precursor_activation_energy_, "Activation energy");
+	addDoubleLineEdit(precursor_activation_energy_, "Activation energy");
 	addComboBox(precursor_energy_units_, "Energy unit");
-	addLineEdit(precursor_window_size_, "Window size");	
+	addDoubleLineEdit(precursor_window_size_, "Window size");	
 	
 	finishAdding_();
-	
-	// A validator to check the input for the energy.
-	QDoubleValidator *precursor_energy_vali_ = new QDoubleValidator(precursor_activation_energy_);
-	precursor_activation_energy_->setValidator(precursor_energy_vali_);
-	
-	// A validator to check the input for window size
-	QDoubleValidator *precursor_window_size_vali_ = new QDoubleValidator(precursor_window_size_);
-	precursor_window_size_->setValidator(precursor_window_size_vali_);
 }
 
 

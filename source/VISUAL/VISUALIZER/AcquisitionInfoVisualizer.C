@@ -46,14 +46,9 @@ AcquisitionInfoVisualizer::AcquisitionInfoVisualizer(bool editable, QWidget *par
   
 	addLabel("Show AcquisitionInfo information");		
 	addSeperator();
-	addLineEdit(acquisitioninfo_method_, "Method of combination" );
+	addIntLineEdit(acquisitioninfo_method_, "Method of combination" );
 	
 	finishAdding_();
-	
-	// A validator to check the input for the temperature.
-	QIntValidator *acquisitioninfo_method_vali_ = new QIntValidator(acquisitioninfo_method_);
-	acquisitioninfo_method_->setValidator(acquisitioninfo_method_vali_);
-	
 }
 
 

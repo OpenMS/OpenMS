@@ -46,14 +46,10 @@ AcquisitionVisualizer::AcquisitionVisualizer(bool editable, QWidget *parent)
   
 	addLabel("Show Acquisition information");		
 	addSeperator();
-	addLineEdit(acquisitionnumber_, "Index/Number of the scan" );
+	addIntLineEdit(acquisitionnumber_, "Index/Number of the scan" );
 	acquisitionnumber_->setReadOnly(true);
 		
 	finishAdding_();
-	
-	// A validator to check the input for the temperature.
-	QIntValidator *acquisition_number_vali_ = new QIntValidator(acquisitionnumber_);
-	acquisitionnumber_->setValidator(acquisition_number_vali_);
 	
 }
 

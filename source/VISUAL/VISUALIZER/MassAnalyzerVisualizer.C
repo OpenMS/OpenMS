@@ -55,42 +55,18 @@ MassAnalyzerVisualizer::MassAnalyzerVisualizer(bool editable, QWidget *parent) :
 	addComboBox(massanalyzer_tandem_scan_method_, "Tandem scan maethod");
 	addComboBox(massanalyzer_reflectron_state_, "Reflectron state");
 		
-	addLineEdit(massanalyzer_res_, "Resolution" );
-	addLineEdit(massanalyzer_acc_, "Accuracy" );
-	addLineEdit(massanalyzer_scan_rate_, "Scan rate (in s)" );
-	addLineEdit(massanalyzer_scan_time_, "Scan time (in s)" );
-	addLineEdit(massanalyzer_TOF_, "TOF Total path length (in mm)" );
-	addLineEdit(massanalyzer_iso_, "Isolation width (in m/z)" );
-	addLineEdit(massanalyzer_final_MS_, "Final MS exponent" );
-	addLineEdit(massanalyzer_magnetic_fs_, "Magnetic field strength (in T)" );
+	addDoubleLineEdit(massanalyzer_res_, "Resolution" );
+	addDoubleLineEdit(massanalyzer_acc_, "Accuracy" );
+	addDoubleLineEdit(massanalyzer_scan_rate_, "Scan rate (in s)" );
+	addDoubleLineEdit(massanalyzer_scan_time_, "Scan time (in s)" );
+	addDoubleLineEdit(massanalyzer_TOF_, "TOF Total path length (in mm)" );
+	addDoubleLineEdit(massanalyzer_iso_, "Isolation width (in m/z)" );
+	addDoubleLineEdit(massanalyzer_final_MS_, "Final MS exponent" );
+	addDoubleLineEdit(massanalyzer_magnetic_fs_, "Magnetic field strength (in T)" );
 	
 	finishAdding_();
 	
 	
-	// A validator to check the input for the resolution
-	QDoubleValidator *massanalyzer_res_vali_= new QDoubleValidator(massanalyzer_res_);
-	massanalyzer_res_->setValidator(massanalyzer_res_vali_);
-	// A validator to check the input for the accuracy
-	QDoubleValidator *massanalyzer_acc_vali_ = new QDoubleValidator(massanalyzer_acc_);
-	massanalyzer_acc_->setValidator(massanalyzer_acc_vali_);
-	// A validator to check the input for the scan rate
-	QDoubleValidator *massanalyzer_sr_vali_= new QDoubleValidator(massanalyzer_scan_rate_);
-	massanalyzer_scan_rate_->setValidator(massanalyzer_sr_vali_);
-	// A validator to check the input for the scan time
-	QDoubleValidator *massanalyzer_st_vali_ = new QDoubleValidator(massanalyzer_scan_time_);
-	massanalyzer_scan_time_->setValidator(massanalyzer_st_vali_);
-	// A validator to check the input for the TOF total path length
-	QDoubleValidator *massanalyzer_TOF_vali_ = new QDoubleValidator(massanalyzer_TOF_);
-	massanalyzer_TOF_->setValidator(massanalyzer_TOF_vali_);
-	// A validator to check the input for the isolation width
-	QDoubleValidator *massanalyzer_iso_vali_ = new QDoubleValidator(massanalyzer_iso_);
-	massanalyzer_iso_->setValidator(massanalyzer_iso_vali_);
-	// A validator to check the input for the final MS exponent
-	QIntValidator *massanalyzer_final_vali_ = new QIntValidator(massanalyzer_final_MS_);
-	massanalyzer_final_MS_->setValidator(massanalyzer_final_vali_);
-	// A validator to check the input for the magnetic field strngth
-	QDoubleValidator *massanalyzer_fs_vali_ = new QDoubleValidator(massanalyzer_magnetic_fs_);
-	massanalyzer_magnetic_fs_->setValidator(massanalyzer_fs_vali_);
 			
 }
 

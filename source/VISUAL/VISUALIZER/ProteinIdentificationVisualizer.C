@@ -50,7 +50,7 @@ namespace OpenMS
 		addLabel("Modify protein identification information.");	
 		addSeperator();        
 		addLineEdit(proteinidentification_date_, "Date of search" );
-		addLineEdit(proteinidentification_threshold_, "Protein significance threshold" );	
+		addDoubleLineEdit(proteinidentification_threshold_, "Protein significance threshold" );	
 		addSeperator();       
 		addLabel("Show protein hits with score equal or higher than current threshold.");
 		addButton(updatebutton_, "Show protein hits");
@@ -59,9 +59,6 @@ namespace OpenMS
 	
 		connect(updatebutton_, SIGNAL(clicked()), this, SLOT(updateTree()) );
 		
-		// A validator to check the input for the protein significance threshold
-		QDoubleValidator *proteinidentification_threshold_vali_ = new QDoubleValidator(proteinidentification_threshold_);
-		proteinidentification_threshold_->setValidator(proteinidentification_threshold_vali_);	
 	}
 
 

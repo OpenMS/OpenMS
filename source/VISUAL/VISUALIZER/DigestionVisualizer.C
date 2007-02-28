@@ -50,22 +50,12 @@ DigestionVisualizer::DigestionVisualizer(bool editable, QWidget *parent)
 	addLineEdit(treatmenttype_, "Treatment type" );
 	addTextEdit(treatmentcomment_, "Comment" );
 	addLineEdit(digestionenzyme_, "Enzyme" );
-	addLineEdit(digestiontime_, "Digestion time (in minutes)" );
-	addLineEdit(digestiontemperature_, "Temperature (in °C)" );
-	addLineEdit(digestionPH_, "PH" );
+	addDoubleLineEdit(digestiontime_, "Digestion time (in minutes)" );
+	addDoubleLineEdit(digestiontemperature_, "Temperature (in °C)" );
+	addDoubleLineEdit(digestionPH_, "PH" );
 	
 	finishAdding_();
-	
-	// A validator to check the input for the time
-	QDoubleValidator *timevali_ = new QDoubleValidator(digestiontime_);
-	digestiontime_->setValidator(timevali_);
-	// A validator to check the input for the temperature
-	QDoubleValidator *tempvali_ = new QDoubleValidator(digestiontemperature_);
-	digestiontemperature_->setValidator(tempvali_);
-	// A validator to check the input for the ph value
-	QDoubleValidator *phvali_ = new QDoubleValidator(digestionPH_);
-	digestionPH_->setValidator(phvali_);
-	
+		
 }
 
 

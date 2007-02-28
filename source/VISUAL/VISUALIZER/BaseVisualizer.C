@@ -60,6 +60,7 @@ namespace OpenMS
 		
 		if(isEditable())
 		{	
+		
 			addSeperator();
 			addButton(undobutton_, "Undo");
 			connect(undobutton_, SIGNAL(clicked()), this, SLOT(reject()) );
