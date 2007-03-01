@@ -289,7 +289,7 @@ namespace OpenMS
 		MSSpectrum< Peak1D >::PrecursorPeakType precursor_peak;
 		DPosition< 1 >::CoordinateType precursor_position;
 		MSSpectrum< Peak1D >::ContainerType peaks;
-
+		
 		fputs ("\n--",fp);
 		fputs (boundary_.c_str(),fp);
 		fputs ("\nContent-Disposition: form-data; name=\"FILE\"; filename=\"",fp);
@@ -297,13 +297,10 @@ namespace OpenMS
 		fputs ("\"\n\n",fp);
 
 		for(unsigned int i = 0; i < experiment.size(); i++)
-		{		
-
+		{
 			peaks = experiment[i].getContainer();
-			precursor_peak = 
-				experiment[i].getPrecursorPeak();
-			precursor_position = 
-				experiment[i].getPrecursorPeak().getPos()[i];
+			precursor_peak = experiment[i].getPrecursorPeak();
+			precursor_position = experiment[i].getPrecursorPeak().getPos()[0];
 			
 			if (experiment[i].getMSLevel() == 2)
 			{
