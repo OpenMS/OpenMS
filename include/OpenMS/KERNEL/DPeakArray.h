@@ -28,6 +28,8 @@
 #define OPENMS_KERNEL_DPEAKARRAY_H
 
 #include <OpenMS/config.h>
+#include <OpenMS/KERNEL/Peak1D.h>
+#include <OpenMS/KERNEL/Peak2D.h>
 #include <OpenMS/KERNEL/DPeak.h>
 #include <OpenMS/KERNEL/ComparatorUtils.h>
 #include <OpenMS/FORMAT/PersistentObject.h>
