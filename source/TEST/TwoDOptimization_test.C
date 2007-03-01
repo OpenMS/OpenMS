@@ -119,9 +119,9 @@ CHECK(( template <typename InputSpectrumIterator,typename OutputPeakType>
 			 void twoDOptimize(InputSpectrumIterator& first,
 												 InputSpectrumIterator& last,
 												 MSExperiment< OutputPeakType >& ms_exp)   ))
-  MSSpectrum<DPickedPeak<1> > peaks;
+  MSSpectrum<PickedPeak1D > peaks;
 	
-	DPickedPeak<1> peak;
+	PickedPeak1D peak;
 	PeakShape peak_shape;
   peak.getMZ() = 500;
   peak.getLeftWidthParameter() = 2.5;
@@ -135,7 +135,7 @@ CHECK(( template <typename InputSpectrumIterator,typename OutputPeakType>
   peak_shape.height = 400;
   peak_shape.type = PeakShapeType::LORENTZ_PEAK;  
 	peaks.push_back(peak);
-	MSExperiment<DPickedPeak<1> > ms_exp;
+	MSExperiment<PickedPeak1D > ms_exp;
 	ms_exp.push_back(peaks);
 	ms_exp.begin()->setRetentionTime(100);
 			

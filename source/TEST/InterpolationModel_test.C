@@ -93,7 +93,7 @@ class TestModel : public InterpolationModel< >
 
 	void  fillIntensity(PeakType& peak) const
 	{
-		peak.setIntensity(getIntensity(peak.getPosition()));
+		peak.setIntensity(getIntensity(peak.getPos()));
 	}
 
 	void getSamples(SamplesType& /*cont*/) const
@@ -191,7 +191,7 @@ RESULT
 CHECK(void fillIntensity(PeakType& peak) const)
 	const TestModel t;
   TestModel::PeakType p;
-  p.getPosition()[0]=0.1;
+  p.getPos()[0]=0.1;
   p.getIntensity() = 0.1;
   t.fillIntensity(p);
   TEST_REAL_EQUAL(p.getIntensity(), 0.3)
@@ -203,7 +203,7 @@ CHECK(void  fillIntensities(PeakIterator beg, PeakIterator end) const)
   for (UnsignedInt i=0; i<4; ++i)
   {
 		vec[i].getIntensity() = -0.5;
-		vec[i].getPosition()[0] = i;
+		vec[i].getPos()[0] = i;
 	}
   t.fillIntensities(vec.begin()+1, vec.end()-1);
   TEST_EQUAL(vec[0].getIntensity(), -0.5)

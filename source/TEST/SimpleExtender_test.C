@@ -86,7 +86,7 @@ CHECK(nextSeed())
 	for (unsigned int i=0; i < num; i++)
 	{
 		Peak1D p;
-		p.getPosition()[0] = mzs[i];
+		p.getPos()[0] = mzs[i];
 		p.getIntensity() = its[i];
 		
 		spec.push_back(p);

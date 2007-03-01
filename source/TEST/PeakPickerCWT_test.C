@@ -128,11 +128,11 @@ CHECK((template<typename InputPeakContainer, typename OutputPeakContainer > void
 RESULT
 
 CHECK((template<typename InputPeakIterator, typename OutputPeakContainer  > void pick(InputPeakIterator first, InputPeakIterator last, OutputPeakContainer& picked_peak_container, int ms_level = 1)))
-  MSSpectrum<DPickedPeak<1> > peaks;
+  MSSpectrum<PickedPeak1D > peaks;
   PeakPickerCWT pp;
   
   pp.pick(exp_raw[0].begin(),exp_raw[0].end(),peaks,1);
-  MSSpectrum<DPickedPeak<1> >::const_iterator it = peaks.begin();
+  MSSpectrum<PickedPeak1D >::const_iterator it = peaks.begin();
   TEST_REAL_EQUAL(peaks.size() == pp.getPeakShapes().size(), true)   
   TEST_REAL_EQUAL(it->getMZ(),pp.getPeakShapes()[0].mz_position)
   TEST_REAL_EQUAL(it->getIntensity(),pp.getPeakShapes()[0].height)
@@ -146,7 +146,7 @@ CHECK((template<typename InputPeakIterator, typename OutputPeakContainer  > void
 RESULT
 
 CHECK((template<typename InputPeakType, typename OutputPeakType > void pickExperiment(const MSExperiment< InputPeakType >& ms_exp_raw, MSExperiment<OutputPeakType>& ms_exp_peaks)))
-  MSExperiment<DPickedPeak<1> > peaks;
+  MSExperiment<PickedPeak1D > peaks;
   PeakPickerCWT pp;
   pp.setPeakBound(1500);
    
@@ -158,7 +158,7 @@ CHECK((template<typename InputPeakType, typename OutputPeakType > void pickExper
 RESULT
 
 CHECK((template<typename InputSpectrumIterator, typename OutputPeakType > void pickExperiment(InputSpectrumIterator first, InputSpectrumIterator last, MSExperiment<OutputPeakType>& ms_exp_peaks)))
-  MSExperiment<DPickedPeak<1> > peaks;
+  MSExperiment<PickedPeak1D > peaks;
   PeakPickerCWT pp;
   pp.setPeakBound(1500);
    
