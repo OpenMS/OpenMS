@@ -889,7 +889,7 @@ namespace OpenMS
 				// m/z
 				float* tmp = decoder_[0].getFloatBuffer(spec.size());
 				for (UnsignedInt i=0; i<spec.size(); i++)
-					tmp[i] = spec.getContainer()[i].getPos()[i];
+					tmp[i] = spec.getContainer()[i].getPos()[0];
 				writeBinary_(os,spec.size(),"mzArrayBinary");
 
 				// intensity
