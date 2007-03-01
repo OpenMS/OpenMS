@@ -32,6 +32,7 @@
 #include <OpenMS/FILTERING/BASELINE/TopHatFilter.h>
 
 #include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/KERNEL/Peak2D.h>
 
 ///////////////////////////
 
@@ -96,7 +97,7 @@ CHECK((template<typename InputPeakIterator, typename OutputPeakContainer  > void
         {
           p.setIntensity(0);
         }
-      p.setPosition(pos);
+      p.setPos(pos);
       raw_data.push_back(p);
     }
 
@@ -130,7 +131,7 @@ CHECK((template<typename InputPeakIterator, typename OutputPeakContainer  > void
         {
           p.setIntensity(0);
         }
-      p.setPosition(pos);
+      p.setPos(pos);
       raw_data.push_back(p);
      }
 
@@ -159,7 +160,7 @@ CHECK((template<typename InputPeakType, typename OutputPeakType > void filterExp
     DPosition<2> pos;
     pos[0]=10.;
     pos[1]=i;
-    p.setPosition(pos);
+    p.setPos(pos);
 
     if ( (1<i) && (i<5))
     {
@@ -178,9 +179,9 @@ CHECK((template<typename InputPeakType, typename OutputPeakType > void filterExp
   
   tophat.filterExperiment(ms_exp_raw, ms_exp_filtered);
 
-  DPeakArray<2> dpeak_arra_filtered;
+  DPeakArray<2,Peak2D> dpeak_arra_filtered;
   ms_exp_filtered.get2DData(dpeak_arra_filtered);
-  DPeakArray<2>::iterator it = dpeak_arra_filtered.begin();
+  DPeakArray<2,Peak2D>::iterator it = dpeak_arra_filtered.begin();
   for (int i=0; i < 8; ++i)
   {
     TEST_REAL_EQUAL(it->getIntensity(), 0)
@@ -209,7 +210,7 @@ CHECK((template<typename InputSpectrumIterator, typename OutputPeakType > void f
         {
           p.setIntensity(0);
         }
-      p.setPosition(pos);
+      p.setPos(pos);
       raw_data.push_back(p);
     }
 
