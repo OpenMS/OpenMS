@@ -244,7 +244,7 @@ class TOPPSequestAdapter
 			vector< String > substrings;
 			composition.split(seperator, substrings); // get the single elements of the composition: e.g. 18O(-1) or C(3) or N
 			if ( substrings.empty() ) substrings.push_back(composition);
-			SignedInt pos, pos2;
+			String::size_type pos, pos2;
 			String isotope, symbol, occurences;
 			// for each element, get the isotope (if used), the symbol and the occurences
 			for ( vector< String >::const_iterator e_i = substrings.begin(); e_i != substrings.end(); ++e_i )
@@ -256,7 +256,7 @@ class TOPPSequestAdapter
 				isotope = e_i->substr(0, pos);
 				if ( isotope.empty() ) isotope = "0";
 				pos2 = e_i->find('(', pos);
-				if ( pos2 != String::NPOS ) // if the element occurs more than once, a bracket is found
+				if ( pos2 != String::npos ) // if the element occurs more than once, a bracket is found
 				{
 					symbol = e_i->substr(pos, pos2++ - pos);
 					occurences = e_i->substr(pos2, e_i->length() - pos2 - 1 );
