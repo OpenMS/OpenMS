@@ -75,7 +75,7 @@ namespace OpenMS
 				return 0;
 			}
 	    double tolerance = (double)param_.getValue("tolerance");
-	    double parentmass = spectrum.getPrecursorPeak().getPosition()[0];
+	    double parentmass = spectrum.getPrecursorPeak().getPos()[0];
 	    double result(0);
 		
 			spectrum.getContainer().sortByPosition();
@@ -84,7 +84,7 @@ namespace OpenMS
 	    uint j = spectrum.size() - 1;
 	    for (uint i = 0; i < spectrum.size() && i <= j; /*++i*/)
 	    {
-	      double sum = spectrum.getContainer()[i].getPosition()[0] + spectrum.getContainer()[j].getPosition()[0];
+	      double sum = spectrum.getContainer()[i].getPos()[0] + spectrum.getContainer()[j].getPos()[0];
 				
 	      if (std::fabs(sum - parentmass) < tolerance)
 	      {

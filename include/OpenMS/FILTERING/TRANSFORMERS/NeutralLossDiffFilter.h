@@ -78,7 +78,7 @@ namespace OpenMS
     	{
       	for (int j = 1; i - j >= 0; ++j)
       	{
-					double pos_diff = std::fabs(spectrum.getContainer()[i-j].getPosition()[0] - spectrum.getContainer()[i].getPosition()[0]);
+					double pos_diff = std::fabs(spectrum.getContainer()[i-j].getPos()[0] - spectrum.getContainer()[i].getPos()[0]);
         	if (std::fabs(pos_diff - 18) < tolerance || std::fabs(pos_diff - 17) < tolerance) // water and ammonium
         	{
           	isodiff += spectrum.getContainer()[i-j].getIntensity() + spectrum.getContainer()[i].getIntensity();

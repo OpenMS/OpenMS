@@ -88,16 +88,16 @@ namespace OpenMS
 			
     	for (uint i = 0; i < spectrum.size(); ++i)
     	{
-      	double mz = spectrum.getContainer()[i].getPosition()[0];
+      	double mz = spectrum.getContainer()[i].getPos()[0];
       	double intensity = spectrum.getContainer()[i].getIntensity();
       	uint j = i+1;
 
       	//std::vector<std::pair<double, double> > isotopes = SpectrumGenerator::instance()->isotopepeaks(mz, intensity);
 				IsotopeDistribution id;
 				id.estimateFromPeptideWeight(mz);
-      	while (j < spectrum.getContainer().size() && spectrum.getContainer()[j].getPosition()[0] <= mz + 3 + mzvariation)
+      	while (j < spectrum.getContainer().size() && spectrum.getContainer()[j].getPos()[0] <= mz + 3 + mzvariation)
       	{
-        	double curmz = spectrum.getContainer()[j].getPosition()[0];
+        	double curmz = spectrum.getContainer()[j].getPos()[0];
         	double curIntensity = spectrum.getContainer()[j].getIntensity();
         	uint iso = (uint)(curmz - mz + 0.499999);
         	if (iso > 0 && curmz - mz - iso > mzvariation)
