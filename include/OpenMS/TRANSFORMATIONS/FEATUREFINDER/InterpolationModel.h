@@ -147,7 +147,7 @@ namespace OpenMS
 				for (Size i=0; i<interpolation_.getData().size(); ++i)
 				{
 					peak.setIntensity( interpolation_.getData()[i] );
-					peak.getPosition()[0] = interpolation_.index2key(i);
+					peak.getPos()[0] = interpolation_.index2key(i);
 					cont.push_back(peak);
 				}
 			}

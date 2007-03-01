@@ -65,7 +65,7 @@ namespace OpenMS
      
      @ingroup MatchingAlgorithm
   */
-  template < typename MapT = DFeatureMap< 2, DFeature< 2, KernelTraits > > >
+  template < typename MapT = FeatureMap< > >
   class PoseClusteringPairwiseMapMatcher 
   	: public BasePairwiseMapMatcher<MapT>
   {
@@ -91,11 +91,10 @@ namespace OpenMS
 
     typedef typename Base::PointMapType PointMapType;
     typedef typename Base::ElementType ElementType;
-    typedef typename Base::TraitsType TraitsType;
     typedef typename Base::PositionType PositionType;
     typedef typename Base::CoordinateType CoordinateType;
 
-    typedef DLinearMapping<1, TraitsType> TransformationType;
+    typedef DLinearMapping<1> TransformationType;
 
     typedef DPeakConstReferenceArray< PointMapType > PeakConstReferenceMapType;
 
@@ -319,8 +318,8 @@ namespace OpenMS
 
       for (Size i = 0; i < scene_map.size(); ++i)
       {
-        CoordinateType x = scene_map[i].getPosition()[RT] - bounding_box_scene_map_.min()[RT];
-        CoordinateType y = scene_map[i].getPosition()[MZ] - bounding_box_scene_map_.min()[MZ];
+        CoordinateType x = scene_map[i].getRT() - bounding_box_scene_map_.min()[RT];
+        CoordinateType y = scene_map[i].getMZ() - bounding_box_scene_map_.min()[MZ];
 
         Size grid_index = (int)(x / box_size_[RT]) + (int)(y / box_size_[MZ]) * (int)(number_buckets_[RT]);
         scene_grid_maps[grid_index].push_back(scene_map[i]);

@@ -24,8 +24,8 @@
 // $Maintainer: Marc Sturm $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_DATASTRUCTURES_DCONVEXHULL_H
-#define OPENMS_DATASTRUCTURES_DCONVEXHULL_H
+#ifndef OPENMS_DATASTRUCTURES_CONVEXHULL2D_H
+#define OPENMS_DATASTRUCTURES_CONVEXHULL2D_H
 
 #include <OpenMS/config.h>
 #include <OpenMS/CONCEPT/Types.h>
@@ -44,33 +44,28 @@
 namespace OpenMS
 {
 	/**	
-		@brief A d-dimensional convex hull representation (conterclockwise)
+		@brief A 2-dimensional convex hull representation (conterclockwise)
 		
 		@note If OpenMS is compiled with CGAL, the convex hull is calculated using CGAL. 
 					Otherwise the gift-wrapping algorithm is used.
 		
 		@ingroup Datastructures
 	*/
-	template <Size D>
-	class DConvexHull
+	class ConvexHull2D
 	{
 		public:
-			typedef DPosition<D> PointType;
-			typedef std::vector< DPosition<D> > PointArrayType;
-			typedef typename PointArrayType::size_type SizeType;
-			typedef typename PointArrayType::const_iterator PointArrayTypeConstIterator;
+			typedef DPosition<2> PointType;
+			typedef std::vector< PointType > PointArrayType;
+			typedef PointArrayType::size_type SizeType;
+			typedef PointArrayType::const_iterator PointArrayTypeConstIterator;
 			/// default constructor
-			DConvexHull()
+			ConvexHull2D()
 				: points_()
 			{
-				if (D!=2)
-				{
-					throw Exception::NotImplemented(__FILE__,__LINE__,__PRETTY_FUNCTION__);
-				}
 			}
 			
 			/// assignment operator
-			DConvexHull& operator=(const DConvexHull& rhs)
+			ConvexHull2D& operator=(const ConvexHull2D& rhs)
 			{
 				if (&rhs == this) return *this;
 				
@@ -81,7 +76,7 @@ namespace OpenMS
 			
 
 			///constructor from a vector of points
-			DConvexHull& operator=(const PointArrayType& points)
+			ConvexHull2D& operator=(const PointArrayType& points)
 			{
 				//init
 				points_.clear();
@@ -108,7 +103,7 @@ namespace OpenMS
 			}
 
 			/// equality operator
-			bool operator==(const DConvexHull& rhs) const
+			bool operator==(const ConvexHull2D& rhs) const
 			{
 				// different size => return false
 				if (points_.size()!= rhs.points_.size()) return false;
@@ -137,9 +132,9 @@ namespace OpenMS
 			}
 			
 			/// returns the bounding box of the convex hull points
-			DBoundingBox<D> getBoundingBox() const
+			DBoundingBox<2> getBoundingBox() const
 			{
-				DBoundingBox<D> bb;
+				DBoundingBox<2> bb;
 				
 				for (PointArrayTypeConstIterator it = points_.begin(); it!=points_.end(); ++it)
 				{
@@ -236,7 +231,7 @@ namespace OpenMS
 			// keep track of already in hull included peaks to avoid unnecessary computations of triangle area
 			std::map<PointType, bool> is_included;
 			
-			typename PointType::CoordinateType min_mz = std::numeric_limits<typename PointType::CoordinateType>::max();
+			PointType::CoordinateType min_mz = std::numeric_limits<PointType::CoordinateType>::max();
 			PointArrayTypeConstIterator min = input.begin();
 			
 			// Find peak with minimal mz to start wrapping

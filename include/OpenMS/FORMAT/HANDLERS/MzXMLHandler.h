@@ -245,7 +245,7 @@ namespace OpenMS
 		{
 			if (spec_ != 0 && !options_.getMetadataOnly())
 			{
-				spec_->getPrecursorPeak().getPosition()[0] = asFloat_(xercesc::XMLString::transcode(chars));
+				spec_->getPrecursorPeak().getPos()[0] = asFloat_(xercesc::XMLString::transcode(chars));
 			}
 		}
 		else if (	is_parser_in_tag_[COMMENT])
@@ -977,6 +977,7 @@ namespace OpenMS
 			{
 				double* data = decoder_.decodeDoubleCorrected(char_rest_.c_str(), char_rest_.size());
 				char_rest_ = "";
+				PeakType peak;
 				//push_back the peaks into the container
 				for (Size n = 0 ; n < ( 2 * peak_count_) ; n += 2)
 				{
@@ -984,8 +985,7 @@ namespace OpenMS
 					if ((!options_.hasMZRange() || options_.getMZRange().encloses(DPosition<1>(data[n])))
 					 && (!options_.hasIntensityRange() || options_.getIntensityRange().encloses(DPosition<1>(data[n+1]))))
 					{
-						PeakType peak;
-						peak.getPosition()[0] = data[n];
+						peak.setPos(data[n]);
 						peak.setIntensity(data[n+1]);
 						spec_->push_back(peak);
 					}
@@ -995,14 +995,14 @@ namespace OpenMS
 			{
 				float* data = decoder_.decodeFloatCorrected(char_rest_.c_str(), char_rest_.size());
 				char_rest_ = "";
+				PeakType peak;
 				//push_back the peaks into the container
 				for (Size n = 0 ; n < (2 * peak_count_) ; n += 2)
 				{
 					if ((!options_.hasMZRange() || options_.getMZRange().encloses(DPosition<1>(data[n])))
 					 && (!options_.hasIntensityRange() || options_.getIntensityRange().encloses(DPosition<1>(data[n+1]))))
 					{
-						PeakType peak;
-						peak.getPosition()[0] = data[n];
+						peak.setPos(data[n]);
 						peak.setIntensity(data[n+1]);
 						spec_->push_back(peak);
 					}
@@ -1204,7 +1204,7 @@ namespace OpenMS
 				if (peak.getCharge()!=0)
 					os << "\" precursorCharge=\"" << peak.getCharge();
 				os << "\">"
-				 	 << peak.getPosition()[0] << "</precursorMz>\n";
+				 	 << peak.getPos()[0] << "</precursorMz>\n";
 			}
 
 			os << String(MSLevel+2,'\t') << "<peaks precision=\"32\""
@@ -1215,7 +1215,7 @@ namespace OpenMS
 			float* tmp = decoder_.getFloatBuffer(spec.size()*2);
 			for (UnsignedInt i=0; i<spec.size(); i++)
 			{
-				tmp[2*i]   = spec.getContainer()[i].getPosition()[0];
+				tmp[2*i]   = spec.getContainer()[i].getMZ();
 				tmp[2*i+1] = spec.getContainer()[i].getIntensity();
 			}
 			

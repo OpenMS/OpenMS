@@ -29,7 +29,7 @@
 #define OPENMS_ANALYSIS_MAPMATCHING_BASESUPERIMPOSER_H
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/DLinearMapping.h>
-#include <OpenMS/KERNEL/DFeatureMap.h>
+#include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/DimensionDescription.h>
 
 #include <utility>
@@ -42,7 +42,7 @@ namespace OpenMS
     @brief The base class of all superimposer algorithms.
 
      This class defines the basic interface for all superimposer
-     algorithms. It works on two element maps (DFeatureMap is the default map type, 
+     algorithms. It works on two element maps (FeatureMap is the default map type, 
      but you can also use a pointer map like DPeakConstReferenceArray) and 
      computes a transformation, that maps the elements of one map (scene map) 
      as near as possible to the elements in the other map (model map).
@@ -52,7 +52,7 @@ namespace OpenMS
      Policy for copy constructor and assignment: element_map_ is
      maintained as pointer and taken shallow copy. 
   */
-  template <typename MapT = DFeatureMap<2> >
+  template <typename MapT = FeatureMap<> >
   class BaseSuperimposer 
   	: public FactoryProduct
   {
@@ -79,20 +79,17 @@ namespace OpenMS
     /// Type of elements considered here
     typedef typename PointMapType::value_type PointType;
 
-    /// Traits type
-    typedef typename PointType::TraitsType TraitsType;
-
     /// Quality type
-    typedef typename TraitsType::QualityType QualityType;
+    typedef DoubleReal QualityType;
 
     /// Position type
-    typedef DPosition < 2, TraitsType > PositionType;
+    typedef DPosition < 2 > PositionType;
 
     //// Intensity type
-    typedef typename TraitsType::IntensityType IntensityType;
+    typedef DoubleReal IntensityType;
 
     /// Type of estimated transformation
-    typedef DLinearMapping< 1, TraitsType > TransformationType;
+    typedef DLinearMapping< 1 > TransformationType;
 
     /// Constructor
     BaseSuperimposer()

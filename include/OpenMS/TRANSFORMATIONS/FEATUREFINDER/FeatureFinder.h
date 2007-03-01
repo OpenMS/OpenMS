@@ -138,7 +138,7 @@ namespace OpenMS
 	    }
 		
 	    /// start feature finding
-	    const DFeatureMap<2>& run();
+	    const FeatureMap<>& run();
 	
 	    friend std::ostream& operator << (std::ostream& os, const FeatureFinder& finder);
 	

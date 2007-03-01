@@ -47,7 +47,7 @@ namespace OpenMS
   /**
     @brief Superimposer that uses a voting scheme to find a good affine transformation.
 
-  It works on two element maps (DFeatureMap is the default map type, 
+  It works on two element maps (FeatureMap is the default map type, 
   but you can also use a pointer map like DPeakConstReferenceArray) and 
   computes a affine transformation, that maps the elements of one map (scene map) 
   as near as possible to the elements in the other map (model map).
@@ -57,7 +57,7 @@ namespace OpenMS
   This superimposer hashs all possible affine transformations and defines the 
   transformation with the most votes as the best one.        
   */
-  template < typename MapT = DFeatureMap<2> >
+  template < typename MapT = FeatureMap<> >
   class PoseClusteringAffineSuperimposer
         : public BaseSuperimposer< MapT >
   {
@@ -95,13 +95,14 @@ namespace OpenMS
      We need this to make the intensity bounding box use the intensity type
      instead of the coordinate type.
      */
+/*
   struct IntensityBoundingBoxTraits : Base::TraitsType
     {
       typedef typename Base::TraitsType::IntensityType CoordinateType;
-    };
 
+    };
+*/
   public:
-    typedef typename Base::TraitsType TraitsType;
     typedef typename Base::QualityType QualityType;
     typedef typename Base::PositionType PositionType;
     typedef typename Base::IntensityType IntensityType;
@@ -109,9 +110,9 @@ namespace OpenMS
     typedef typename Base::PointMapType PointMapType;
     typedef typename PositionType::CoordinateType CoordinateType;
     typedef DPeakConstReferenceArray< PointMapType > PeakPointerArray;
-    typedef DBoundingBox<2,TraitsType>  PositionBoundingBoxType;
-    typedef DBoundingBox<1,IntensityBoundingBoxTraits> IntensityBoundingBoxType;
-    typedef DLinearMapping< 1, TraitsType > AffineTransformationType;
+    typedef DBoundingBox<2>  PositionBoundingBoxType;
+    typedef DBoundingBox<1> IntensityBoundingBoxType;
+    typedef DLinearMapping< 1 > AffineTransformationType;
     typedef std::pair<int,int> PairType;
     typedef std::map< PairType, QualityType> AffineTransformationMapType;
 
@@ -361,18 +362,18 @@ namespace OpenMS
       UnsignedInt n = model_map.size();
       for (UnsignedInt i = 0; i < n; ++i)
       {
-        typename TraitsType::RealType act_mz = model_map[i].getPosition()[MZ];
-        typename TraitsType::RealType min_mz = act_mz - mz_bucket_size_;
-        typename TraitsType::RealType max_mz = act_mz + mz_bucket_size_;
+        DoubleReal act_mz = model_map[i].getMZ();
+        DoubleReal min_mz = act_mz - mz_bucket_size_;
+        DoubleReal max_mz = act_mz + mz_bucket_size_;
 
-        typename TraitsType::CoordinateType act_rt = model_map[i].getPosition()[RT];
-        typename TraitsType::CoordinateType min_rt = act_rt - 1000;
-        typename TraitsType::CoordinateType max_rt = act_rt + 1000;
+        CoordinateType act_rt = model_map[i].getRT();
+        CoordinateType min_rt = act_rt - 1000;
+        CoordinateType max_rt = act_rt + 1000;
 
         std::vector< const PointType* > partners;
         // search for the left end of the intervall
-        while ((it_first >= scene_map.begin()) && (it_first != scene_map.end()) && (it_first->getPosition()[MZ] < min_mz)
-               && (it_first->getPosition()[MZ] < max_mz) && (it_first->getPosition()[MZ] < min_mz) )
+        while ((it_first >= scene_map.begin()) && (it_first != scene_map.end()) && (it_first->getMZ() < min_mz)
+               && (it_first->getMZ() < max_mz) && (it_first->getMZ() < min_mz) )
         {
           ++it_first;
         }
@@ -380,7 +381,7 @@ namespace OpenMS
         it_last = it_first;
 
         // search for the right end of the intervall
-        while ((it_last < scene_map.end()) && (it_last->getPosition()[MZ] < max_mz))
+        while ((it_last < scene_map.end()) && (it_last->getMZ() < max_mz))
         {
           ++it_last;
         }
@@ -391,7 +392,7 @@ namespace OpenMS
         for (typename PeakPointerArray::const_iterator it = it_first; it != it_last; ++it)
         {
           //           std::cout << *it << std::endl;
-          if ((it->getPosition()[RT] < max_rt) && (it->getPosition()[RT] > min_rt) )
+          if ((it->getRT() < max_rt) && (it->getRT() > min_rt) )
           {
             partners.push_back(&(*it));
             //             std::cout << *it << std::endl;
@@ -443,7 +444,7 @@ namespace OpenMS
         {
           // avoid cross mappings (i,j) -> (k,l) (e.g. i_rt < j_rt and k_rt > l_rt)
           // and point pairs with equal retention times (e.g. i_rt == j_rt)
-          PositionType diff = model_map_red_[i].getPosition() - model_map_red_[j].getPosition();
+          PositionType diff = model_map_red_[i].getPos() - model_map_red_[j].getPos();
           // and compute the affine transformation to all corresponding points pair in the scene map
           std::vector< const PointType* >& partners_i = scene_map_partners_[i];
           std::vector< const PointType* >& partners_j  = scene_map_partners_[j];
@@ -454,7 +455,7 @@ namespace OpenMS
           {
             for (UnsignedInt l = 0; l < p; ++l)
             {
-              PositionType diff_2 = (partners_j[l]->getPosition()[RT] - partners_i[k]->getPosition()[RT]);
+              PositionType diff_2 = (partners_j[l]->getRT() - partners_i[k]->getRT());
 
               // compute the transformation (i,j) -> (k,l)
               PositionType shift;
@@ -465,20 +466,20 @@ namespace OpenMS
 
               if ((fabs(diff[RT]) > 0.001) && (fabs(diff_2[RT]) > 0.001))
               {
-                scaling[RT] = (model_map_red_[j].getPosition()[RT] - model_map_red_[i].getPosition()[RT])
-                              /(partners_j[l]->getPosition()[RT] - partners_i[k]->getPosition()[RT]);
+                scaling[RT] = (model_map_red_[j].getRT() - model_map_red_[i].getRT())
+                              /(partners_j[l]->getRT() - partners_i[k]->getRT());
 
-                shift[RT] =  model_map_red_[i].getPosition()[RT] - partners_i[k]->getPosition()[RT]*scaling[RT];
+                shift[RT] =  model_map_red_[i].getRT() - partners_i[k]->getRT()*scaling[RT];
                 transformation_ok[RT] = true;
               }
 
 
               if ((fabs(diff[MZ]) > 0.001) && (fabs(diff_2[MZ]) > 0.001))
               {
-                scaling[MZ] = (model_map_red_[j].getPosition()[MZ] - model_map_red_[i].getPosition()[MZ])
-                              /(partners_j[l]->getPosition()[MZ] - partners_i[k]->getPosition()[MZ]);
+                scaling[MZ] = (model_map_red_[j].getMZ() - model_map_red_[i].getMZ())
+                              /(partners_j[l]->getMZ() - partners_i[k]->getMZ());
 
-                shift[MZ] =  model_map_red_[i].getPosition()[MZ] - partners_i[k]->getPosition()[MZ]*scaling[MZ];
+                shift[MZ] =  model_map_red_[i].getMZ() - partners_i[k]->getMZ()*scaling[MZ];
                 transformation_ok[MZ] = true;
               }
 

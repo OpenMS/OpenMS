@@ -45,7 +45,7 @@ namespace OpenMS
   /**
   @brief Superimposer that uses a voting scheme to find a good translation.
 
-     It works on two element maps (DFeatureMap is the default map type, 
+     It works on two element maps (FeatureMap is the default map type, 
      but you can also use a pointer map like DPeakConstReferenceArray) and 
      computes a translation, that maps the elements of one map (scene map) 
      as near as possible to the elements in the other map (model map).
@@ -55,12 +55,13 @@ namespace OpenMS
      This superimposer hashs all possible shifts and defines the 
      translation with the most votes as the best one.        
   */
-  template < typename MapT = DFeatureMap<2> >
+  template < typename MapT = FeatureMap<> >
   class PoseClusteringShiftSuperimposer
         : public BaseSuperimposer< MapT >
   {
   public:
     /// Defines the coordinates of peaks / elements.
+
     typedef DimensionDescription<LCMS_Tag> DimensionDescriptionType;
     enum DimensionId
     {
@@ -79,19 +80,24 @@ namespace OpenMS
 
     typedef BaseSuperimposer< MapT > Base;
 
-  protected:
+  //protected:
     /**
     @brief Intensity bounding box
 
     We need this to make the intensity bounding box use the intensity type
     instead of the coordinate type.
     */
+/*
   struct IntensityBoundingBoxTraits : Base::TraitsType
     {
       typedef typename Base::TraitsType::IntensityType CoordinateType;
     };
+*/
+  
 
   public:
+
+    typedef 
 
     /** @brief Nested class to represent a shift.
 
@@ -101,7 +107,8 @@ namespace OpenMS
     class Shift
     {
     public:
-
+			typedef DoubleReal QualityType;
+						
       Shift()
           : position_(0),
           quality_(0)
@@ -119,12 +126,11 @@ namespace OpenMS
         return *this;
       }
 
-      ~Shift()
+      virtual ~Shift()
       {}
 
-      typedef typename MapT::TraitsType TraitsType;
-      typedef DPosition<2,TraitsType> PositionType;
-      typedef typename TraitsType::QualityType QualityType;
+      typedef DPosition<2> PositionType;
+      // typedef typename TraitsType::QualityType QualityType;
 
       /// Non-mutable access to the data point position (multidimensional)
       const PositionType& getPosition() const
@@ -181,21 +187,20 @@ namespace OpenMS
       QualityType quality_;
     };
 
-    typedef typename Base::TraitsType TraitsType;
     typedef typename Base::QualityType QualityType;
     typedef typename Base::PositionType PositionType;
     typedef typename Base::IntensityType IntensityType;
     typedef typename Base::PointType PointType;
     typedef typename Base::PointMapType PointMapType;
     typedef typename PositionType::CoordinateType CoordinateType;
-    typedef DBoundingBox<2,TraitsType>  PositionBoundingBoxType;
-    typedef DBoundingBox<1,IntensityBoundingBoxTraits> IntensityBoundingBoxType;
+    typedef DBoundingBox<2>  PositionBoundingBoxType;
+    typedef DBoundingBox<1> IntensityBoundingBoxType;
     typedef std::vector <Size> ElementBucketType;
     typedef Matrix < ElementBucketType > ElementBucketMatrixType;
     typedef Shift ShiftType;
     typedef Matrix < typename ShiftType::QualityType > ShiftQualityMatrixType;
     typedef Matrix < ShiftType > ShiftMatrixType;
-    typedef DLinearMapping< 1, TraitsType > FinalShiftType;
+    typedef DLinearMapping< 1 > FinalShiftType;
 
     using Base::setParameters;
     using Base::getParameters;
@@ -371,7 +376,7 @@ namespace OpenMS
               ++fm_iter
             )
         {
-          fmpbb.enlarge(fm_iter->getPosition());
+          fmpbb.enlarge(fm_iter->getPos());
           fmibb.enlarge(fm_iter->getIntensity());
         }
         V_computeElementBuckets_("fmpbb: "<<fmpbb<<"fmibb: "<<fmibb);
@@ -424,7 +429,7 @@ namespace OpenMS
         PositionType const & fmpbbe_min = fmpbbe.min();
         for ( Size index= 0; index < fm.size(); ++index )
         {
-          PositionType position = fm[index].getPosition() - fmpbbe_min;
+          PositionType position = fm[index].getPos() - fmpbbe_min;
           fb ( Size(position[RT]/fbs[RT]), Size(position[MZ]/fbs[MZ]) ).push_back(index);
         }
 
@@ -445,7 +450,7 @@ namespace OpenMS
             dump_file << row_col.first << ' ' << row_col.second << " #bucket" << std::endl;
             for ( ElementBucketType::const_iterator viter = iter->begin(); viter != iter->end(); ++viter)
             {
-              dump_file << fm[*viter].getPosition()[RT] <<' '<<fm[*viter].getPosition()[MZ] << std::endl;
+              dump_file << fm[*viter].getRT() <<' '<<fm[*viter].getMZ() << std::endl;
             }
             dump_file << std::endl;
           }
@@ -604,12 +609,12 @@ namespace OpenMS
                   // Compute the shift corresponding to a pair of elements.
                   ShiftType shift = shift_( getElementMap(0)[*model_iter],
                                             getElementMap(1)[*scene_iter] );
-                  //                     V_computeShiftBuckets_enumeration("shift: "<< shift.getPosition());
+                  //                     V_computeShiftBuckets_enumeration("shift: "<< shift.getPos());
                   //                     V_computeShiftBuckets_enumeration("shift: "<< shift.getQuality());
 
                   PositionType tpwm = shift.getPosition();
                   tpwm -= tbbe_min;
-                  // V_computeShiftBuckets_enumeration("trans.pos wrt tbbe_min: "<< shift.getPosition());
+                  // V_computeShiftBuckets_enumeration("trans.pos wrt tbbe_min: "<< shift.getPos());
 
                   QualityType  const & tq = shift.getQuality();
 
@@ -763,7 +768,7 @@ namespace OpenMS
       }
       else
       {
-        // result.getPosition() is irrelevant anyway
+        // result.getPos() is irrelevant anyway
       }
 
       // Assign the result.
@@ -773,6 +778,7 @@ namespace OpenMS
         final_transformation_[dim].setParam( 1.0, shift.getPosition()[dim] );
         V_computeShift_("computeShift_() hat geklappt: " << shift.getPosition()[dim]);
       }
+
 
 #undef V_computeShift_
 
@@ -794,7 +800,7 @@ namespace OpenMS
     ShiftType shift_( PointType const & left, PointType const & right ) const
     {
       ShiftType shift;
-      shift.setPosition(right.getPosition() - left.getPosition());
+      shift.setPosition(right.getPos() - left.getPos());
       if ( right.getIntensity() == 0 )
         shift.setQuality(0);
       QualityType result = left.getIntensity() / right.getIntensity();

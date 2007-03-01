@@ -62,9 +62,9 @@ namespace OpenMS
      we have to transform the elements MZ position m into a new MZ position m'= m / (diff_intercept_RT/diff_intercept_MZ).
      E.g. given diff_intercept_RT=1 and diff_intercept_MZ=0.1 results in 1s difference in RT is similar to 0.1Th difference in MZ.
   */
-  template < typename ConsensusMapT = DFeatureMap< 2, DFeature< 2, KernelTraits > >, typename ElementMapT = DFeatureMap< 2, DFeature< 2, KernelTraits > > >
-  class DelaunayPairFinder 
-  	: public BasePairFinder<ConsensusMapT>
+  template < typename ConsensusMapT = FeatureMap< Feature >, typename ElementMapT = FeatureMap< > >
+  class DelaunayPairFinder
+        : public BasePairFinder<ConsensusMapT>
   {
   public:
     typedef DimensionDescription<LCMS_Tag> DimensionDescriptionType;
@@ -86,7 +86,6 @@ namespace OpenMS
     typedef BasePairFinder< ConsensusMapT > Base;
 
     // The base knows it all...
-    typedef typename Base::TraitsType             TraitsType;
     typedef typename Base::QualityType            QualityType;
     typedef typename Base::PositionType           PositionType;
     typedef typename Base::IntensityType          IntensityType;
@@ -104,8 +103,8 @@ namespace OpenMS
     DelaunayPairFinder()
         : Base()
     {
-			setName(getProductName());
-			
+      setName(getProductName());
+
       defaults_.setValue("similarity:max_pair_distance:RT",3);
       defaults_.setValue("similarity:max_pair_distance:MZ",1);
       defaults_.setValue("similarity:precision:RT",20);
@@ -120,7 +119,7 @@ namespace OpenMS
     DelaunayPairFinder(const DelaunayPairFinder& source)
         : Base(source)
     {
-			updateMembers_();
+      updateMembers_();
     }
 
     ///  Assignment operator
@@ -129,16 +128,15 @@ namespace OpenMS
       if (&source==this) return *this;
 
       Base::operator=(source);
-      
+
       updateMembers_();
-      	
+
       return *this;
     }
 
     /// Destructor
     virtual ~DelaunayPairFinder()
-  	{
-  	}
+  {}
 
     /// Returns an instance of this class
     static BasePairFinder<PointMapType>* create()
@@ -154,7 +152,7 @@ namespace OpenMS
 
     /// Nested class, which inherits from the cgal Point_2 class and additionally contains the a reference to
     /// the corresponding element and an unique key
-  	class Point : public CGAL::Point_2< CGAL::Cartesian<double> >
+  class Point : public CGAL::Point_2< CGAL::Cartesian<double> >
     {
     public:
 
@@ -214,7 +212,7 @@ namespace OpenMS
 
     /// To construct a delaunay triangulation with our Point class we have to write an own
     /// geometric traits class and the operator() (that generates a Point given a CGAL circle)
-  	class  GeometricTraits : public CGAL::Cartesian<double>
+  class  GeometricTraits : public CGAL::Cartesian<double>
     {
     public:
       typedef Point Point_2;
@@ -294,8 +292,8 @@ namespace OpenMS
       std::vector< Point > positions_reference_map;
       for (Size i = 0; i < n; ++i)
       {
-        positions_reference_map.push_back(Point(reference_map[i].getPosition()[RT],
-                                                reference_map[i].getPosition()[MZ] / (diff_intercept_[MZ] / diff_intercept_[RT]),reference_map[i],i));
+        positions_reference_map.push_back(Point(reference_map[i].getRT(),
+                                                reference_map[i].getMZ() / (diff_intercept_[MZ] / diff_intercept_[RT]),reference_map[i],i));
       }
 
       // compute the delaunay triangulation
@@ -313,10 +311,10 @@ namespace OpenMS
       for ( Size fi1 = 0; fi1 < transformed_map.size(); ++fi1 )
       {
         // compute the transformed iso-rectangle (upper_left,bottom_left,bottom_right,upper_right) for the range query
-        double rt_pos = transformed_map[fi1].getPosition()[RT];
-        double mz_pos = transformed_map[fi1].getPosition()[MZ];
+        double rt_pos = transformed_map[fi1].getRT();
+        double mz_pos = transformed_map[fi1].getMZ();
 
-        V_findElementPairs("Search for two nearest neighbours of " << rt_pos << ' ' << transformed_map[fi1].getPosition()[MZ] );
+        V_findElementPairs("Search for two nearest neighbours of " << rt_pos << ' ' << transformed_map[fi1].getMZ() );
         transformation_[RT].apply(rt_pos);
         transformation_[MZ].apply(mz_pos);
 
@@ -365,15 +363,14 @@ namespace OpenMS
         }
       }
 
+//       std::ofstream out("pairs.dat",std::ios::out);
       for (Size i = 0; i < n; ++i)
       {
         SignedInt pair_key = lookup_table[i];
         if ( pair_key > -1 )
         {
-//           std::cout << "Delaunay PUSH Pairs " << (*(all_element_pairs[pair_key].second)).getPosition()[RT] << ' '
-//           << (*(all_element_pairs[pair_key].second)).getPosition()[MZ] << " and "
-//           << (*(all_element_pairs[pair_key].first)).getPosition()[RT] << ' '
-//           << (*(all_element_pairs[pair_key].first)).getPosition()[MZ]  << std::endl;
+//           out << (*(all_element_pairs[pair_key].second)).getRT() << ' '
+//           << (*(all_element_pairs[pair_key].first)).getRT() <<  std::endl;
 
           element_pairs_->push_back(ElementPairType(*(all_element_pairs[pair_key].second),*(all_element_pairs[pair_key].first)));
         }
@@ -381,7 +378,6 @@ namespace OpenMS
 #undef V_findElementPairs
 
     } // findElementPairs_
-
     /// The actual algorithm for finding consensus consensus elements.
     /// Elements in the first_map are aligned to elements in the second_map, so the second_map contains the resulting consensus elements.
     template < typename ResultMapType >
@@ -395,8 +391,8 @@ namespace OpenMS
       Size n = first_map.size();
       for (Size i = 0; i < n; ++i)
       {
-        positions_reference_map.push_back(Point((double)(first_map[i].getPosition()[RT]),
-                                                (double)(first_map[i].getPosition()[MZ] / (diff_intercept_[MZ] / diff_intercept_[RT])),first_map[i],i));
+        positions_reference_map.push_back(Point((double)(first_map[i].getRT()),
+                                                (double)(first_map[i].getMZ() / (diff_intercept_[MZ] / diff_intercept_[RT])),first_map[i],i));
       }
       StopWatch timer;
       V_computeConsensusMap("Start delaunay triangulation for " << positions_reference_map.size() << " elements");
@@ -418,10 +414,10 @@ namespace OpenMS
       for ( Size fi1 = 0; fi1 < second_map.size(); ++fi1 )
       {
         // compute the transformed iso-rectangle (upper_left,bottom_left,bottom_right,upper_right) for the range query
-        double rt_pos = (double)(second_map[fi1].getPosition()[RT]);
-        double mz_pos = (double)(second_map[fi1].getPosition()[MZ] / (diff_intercept_[MZ]/diff_intercept_[RT]));
+        double rt_pos = (double)(second_map[fi1].getRT());
+        double mz_pos = (double)(second_map[fi1].getMZ() / (diff_intercept_[MZ]/diff_intercept_[RT]));
 
-        V_computeConsensusMap("Search for two nearest neighbours of " << rt_pos << ' ' << second_map[fi1].getPosition()[MZ] );
+        V_computeConsensusMap("Search for two nearest neighbours of " << rt_pos << ' ' << second_map[fi1].getMZ() );
         Point transformed_pos(rt_pos,mz_pos,second_map[fi1]);
 
         V_computeConsensusMap("Transformed Position is : " << transformed_pos );
@@ -468,35 +464,35 @@ namespace OpenMS
                 PointType& second_map_b = *(all_element_pairs[pair_key].second);
                 PointType& second_map_c = second_map[fi1];
 
-                V_computeConsensusMap("The element " << first_map_a.getPosition() << " has two element partners \n");
-                V_computeConsensusMap(second_map_b.getPosition() << "  and  " << second_map_c.getPosition());
+                V_computeConsensusMap("The element " << first_map_a.getPos() << " has two element partners \n");
+                V_computeConsensusMap(second_map_b.getPos() << "  and  " << second_map_c.getPos());
 
                 V_computeConsensusMap("Range " << second_map_b.getPositionRange() << "  and  " << second_map_c.getPositionRange());
 
-                if (second_map_c.getPositionRange().encloses(first_map_a.getPosition())
-                    && !second_map_b.getPositionRange().encloses(first_map_a.getPosition()))
+                if (second_map_c.getPositionRange().encloses(first_map_a.getPos())
+                    && !second_map_b.getPositionRange().encloses(first_map_a.getPos()))
                 {
                   lookup_table[element_key] = index_act_element_pair;
-                  V_computeConsensusMap(second_map_c.getPosition() << " and " << first_map_a.getPosition() << " are a pair");
+                  V_computeConsensusMap(second_map_c.getPos() << " and " << first_map_a.getPos() << " are a pair");
                 }
                 else
                 {
                   // if second_map_b and second_map_c do not enclose first_map_a
-                  if (!(second_map_b.getPositionRange().encloses(first_map_a.getPosition())
-                        && !second_map_c.getPositionRange().encloses(first_map_a.getPosition())))
+                  if (!(second_map_b.getPositionRange().encloses(first_map_a.getPos())
+                        && !second_map_c.getPositionRange().encloses(first_map_a.getPos())))
                   {
-                    V_computeConsensusMap(second_map_b.getPosition() << " and " << first_map_a.getPosition() << " are a pair, but check the distance between c and b");
+                    V_computeConsensusMap(second_map_b.getPos() << " and " << first_map_a.getPos() << " are a pair, but check the distance between c and b");
                     // check the distance between second_map_b and second_map_c
-                    if (fabs(second_map_b.getPosition()[MZ] / (diff_intercept_[MZ]/diff_intercept_[RT])
-                             - second_map_c.getPosition()[MZ] / (diff_intercept_[MZ]/diff_intercept_[RT]))
+                    if (fabs(second_map_b.getMZ() / (diff_intercept_[MZ]/diff_intercept_[RT])
+                             - second_map_c.getMZ() / (diff_intercept_[MZ]/diff_intercept_[RT]))
                         > max_pair_distance_[MZ])
                     {
                       V_computeConsensusMap("distance ok");
                       // and check which one of the elements lies closer to first_map_a
-                      if( sqrt(pow((first_map_a.getPosition()[RT] - second_map_b.getPosition()[RT]), 2)
-                               + pow((first_map_a.getPosition()[MZ] - second_map_b.getPosition()[RT]), 2))
-                          < sqrt(pow((first_map_a.getPosition()[RT] - second_map_c.getPosition()[RT]), 2)
-                                 + pow((first_map_a.getPosition()[MZ] - second_map_c.getPosition()[RT]), 2)))
+                      if( sqrt(pow((first_map_a.getRT() - second_map_b.getRT()), 2)
+                               + pow((first_map_a.getMZ() - second_map_b.getRT()), 2))
+                          < sqrt(pow((first_map_a.getRT() - second_map_c.getRT()), 2)
+                                 + pow((first_map_a.getMZ() - second_map_c.getRT()), 2)))
                       {
                         lookup_table[element_key] = index_act_element_pair;
                         V_computeConsensusMap("take a and c");

@@ -108,7 +108,7 @@ namespace OpenMS
     	{
       	if (spectrum.getContainer()[i].getIntensity() > maxint * threshold)
       	{
-        	maxmz = spectrum.getContainer()[i].getPosition()[0];
+        	maxmz = spectrum.getContainer()[i].getMZ();
         	break;
       	}
     	}

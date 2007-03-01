@@ -88,7 +88,7 @@ namespace OpenMS
 			for (ConstIterator it = spectrum.begin(); it != spectrum.end(); ++it)
 			{
 				ContainerType container;
-				for (ConstIterator it2 = it; (it2->getPosition()[0] - it->getPosition()[0] < windowsize); )
+				for (ConstIterator it2 = it; (it2->getPos() - it->getPos() < windowsize); )
 				{
 					container.push_back(*it2);
 					if (++it2 == spectrum.end())
@@ -104,7 +104,7 @@ namespace OpenMS
 				{
 					if (container.size() > i)
 					{
-						positions.insert(container[i].getPosition()[0]);
+						positions.insert(container[i].getMZ());
 					}
 				}
 
@@ -118,7 +118,7 @@ namespace OpenMS
 			ContainerType container;
 			for (ConstIterator it = spectrum.begin(); it != spectrum.end(); ++it)
 			{
-				if (positions.find(it->getPosition()[0]) != positions.end())
+				if (positions.find(it->getMZ()) != positions.end())
 				{
 					container.push_back(*it);
 				}

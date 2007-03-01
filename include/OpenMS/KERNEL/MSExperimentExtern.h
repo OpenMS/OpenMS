@@ -60,9 +60,9 @@ namespace OpenMS
 					
 		@ingroup Kernel
 	*/
-	template < typename PeakT = DPeak<1> >
+	template < typename PeakT = Peak1D >
 	class MSExperimentExtern
-		: public RangeManager<2, typename PeakT::TraitsType>
+		: public RangeManager<2>
 	{  
 		public:
 	
@@ -252,10 +252,9 @@ namespace OpenMS
 	    typedef typename PeakType::CoordinateType CoordinateType;
 	    typedef MSExperiment<PeakType> ExperimentType;
 	
-	    typedef typename PeakType::TraitsType TraitsType;
 	    /// Area type
-	    typedef DRange<2, TraitsType> AreaType;
-	    typedef RangeManager<2, TraitsType> RangeManagerType;
+	    typedef DRange<2> AreaType;
+	    typedef RangeManager<2> RangeManagerType;
 	
 	    typedef MSExperimentExternIterator<PeakType, SpectrumType, SpectrumType&, SpectrumType*> Iterator;
 	    typedef MSExperimentExternIterator<PeakType, SpectrumType, const SpectrumType&, const SpectrumType*> ConstIterator;
@@ -369,9 +368,6 @@ namespace OpenMS
 	    template <class Container>
 	    void get2DData(Container& cont) const
 	    {
-	       	const int MZ = DimensionDescription < LCMS_Tag >::MZ;
-	       	const int RT = DimensionDescription < LCMS_Tag >::RT;
-	
 					SpectrumType spec;
 					
 					for (UnsignedInt i=0; i<scan2buffer_.size(); ++i)
@@ -384,9 +380,9 @@ namespace OpenMS
 	            for (typename MSSpectrum<PeakT>::const_iterator it = spec.begin(); it!=spec.end(); ++it)
 	            {
 	              cont.insert(cont.end(), typename Container::value_type());
-	              cont.back().getPosition()[RT] = spec.getRetentionTime();
+	              cont.back().setRT(spec.getRetentionTime());
 	              cont.back().setIntensity(it->getIntensity());
-	              cont.back().getPosition()[MZ] = it->getPosition()[0];
+	              cont.back().setMZ(it->getPos()[0]);
 	            }
 	        }
 	    }
@@ -398,21 +394,18 @@ namespace OpenMS
 	        /// If the container is emptry, nothing will happen
 	        if (cont.size() == 0) return;
 	
-	        const int MZ = DimensionDescription < LCMS_Tag >::MZ;
-	        const int RT = DimensionDescription < LCMS_Tag >::RT;
-	
 	        typename PeakType::CoordinateType current_rt = -1.0*std::numeric_limits<typename PeakType::CoordinateType>::max();
 	
 	        for (typename Container::const_iterator iter = cont.begin(); iter != cont.end(); ++iter)
 	        {
 	          // check if retention time has changed
-	          if (current_rt != iter->getPosition()[RT] || spectrum == 0)
+	          if (current_rt != iter->getRT() || spectrum == 0)
 	          {
-	            if (current_rt > iter->getPosition()[RT])
+	            if (current_rt > iter->getRT())
 	            {
 	              throw Exception::Precondition(__FILE__, __LINE__, __PRETTY_FUNCTION__,"Input container is not sorted!");
 	            }
-	            current_rt =  iter->getPosition()[RT];
+	            current_rt =  iter->getRT();
 	            this->push_back(SpectrumType());
 							spectrum = &(this->back());
 	            spectrum->setRetentionTime(current_rt);
@@ -422,7 +415,7 @@ namespace OpenMS
 	          // create temporary peak and insert it into spectrum
 	          spectrum->insert(spectrum->end(), PeakType());
 	          spectrum->back().setIntensity(iter->getIntensity());
-	          spectrum->back().getPosition()[0] = iter->getPosition()[MZ];
+	          spectrum->back().getPos()[0] = iter->getMZ();
 	        }
 	    }
 	

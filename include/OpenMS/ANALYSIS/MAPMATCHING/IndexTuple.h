@@ -30,7 +30,7 @@
 #include <iostream>
 #include <vector>
 
-#include<OpenMS/KERNEL/DFeatureMap.h>
+#include<OpenMS/KERNEL/FeatureMap.h>
 
 
 namespace OpenMS
@@ -44,13 +44,12 @@ namespace OpenMS
             
   */
 
-  template < typename ContainerType = DFeatureMap<2, DFeature<2> > >
+  template < typename ContainerType = FeatureMap< Feature > >
   class IndexTuple
   {
     public:
       typedef typename ContainerType::value_type ElementType;
-      typedef typename ElementType::TraitsType TraitsType;
-      typedef DPosition<2, TraitsType> PositionType;
+      typedef DPosition<2> PositionType;
       
       /// Default constructor
       IndexTuple()
@@ -65,7 +64,7 @@ namespace OpenMS
         map_index_ = map_index;
         element_index_ = element_index;
         element_pointer_ = const_cast<ElementType*>(&element);
-        transformed_position_ = element_pointer_->getPosition();
+        transformed_position_ = element_pointer_->getPos();
       }
 
       /// Copy constructor

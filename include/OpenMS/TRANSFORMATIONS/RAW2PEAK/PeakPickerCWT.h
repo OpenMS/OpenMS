@@ -66,6 +66,8 @@ namespace OpenMS
      In an optional step these parameters can be optimized using a non-linear opimization method.
 
      @ingroup PeakPicking
+    
+    @todo fillPeak_ is a public function, not a protected (naming convention). Group common functions.
   */
 
   class PeakPickerCWT : public PeakPicker
@@ -73,7 +75,7 @@ namespace OpenMS
     public:
 
       /// Raw data point type
-      typedef DRawDataPoint<1> RawDataPointType;
+      typedef RawDataPoint1D RawDataPointType;
       /// Raw data container type using for the temporary storage of the input data
       typedef DPeakArray<1, RawDataPointType > RawDataArrayType;
       /// Raw data iterator type
@@ -268,11 +270,11 @@ namespace OpenMS
         resulting peaks to the picked_peak_container.
           The ms_level should be one if the spectrum is a normal mass spectrum, or two if it is a tandem mass spectrum.
           
-        @note This method assumes that the InputPeakIterator (e.g. of type MSSpectrum<DRawDataPoint<1> >::const_iterator)
-              points to a data point of type DRawDataPoint<1> or any other class derived from DRawDataPoint<1>.
+        @note This method assumes that the InputPeakIterator (e.g. of type MSSpectrum<RawDataPoint1D >::const_iterator)
+              points to a data point of type RawDataPoint1D or any other class derived from RawDataPoint1D.
           
              The resulting peaks in the picked_peak_container (e.g. of type MSSpectrum<DPickedPeak<1> >)
-             can be of type DRawDataPoint<1> or any other class derived from DRawDataPoint. 
+             can be of type RawDataPoint1D or any other class derived from DRawDataPoint. 
              We recommend to use the DPickedPeak<1> because it stores important information gained during
              the peak picking algorithm.
                 
@@ -315,8 +317,8 @@ namespace OpenMS
         for (unsigned int i = 0; i < n; ++i)
         {
           RawDataPointType raw_data_point;
-          raw_data_point.getIntensity() = (first + i)->getIntensity();
-          raw_data_point.getPosition() = (first + i)->getPosition();
+          raw_data_point.setIntensity((first + i)->getIntensity());
+          raw_data_point.setPos((first + i)->getPos());
           raw_peak_array[i] = raw_data_point;
         }
 
@@ -426,8 +428,8 @@ namespace OpenMS
 								else
 									{
 										peak_shapes_.push_back(shape);
-										peak_endpoints.push_back(area.left->getPos());
-										peak_endpoints.push_back(area.right->getPos());
+										peak_endpoints.push_back(area.left->getMZ());
+										peak_endpoints.push_back(area.right->getMZ());
 									}
                 ++number_of_peaks;
               }
@@ -484,16 +486,16 @@ namespace OpenMS
 
       /** @brief Applies the peak picking algorithm to a raw data point container.
           
-        Picks the peaks in the input container (e.g. of type MSSpectrum<DRawDataPoint<1> >) 
+        Picks the peaks in the input container (e.g. of type MSSpectrum<RawDataPoint1D >) 
         and writes the resulting peaks to the picked_peak_container (e.g. MSSpectrum<DPickedPeak<1> >).
 
           The ms_level should be one if the spectrum is a normal mass spectrum, or two if it is a tandem mass spectrum.
           
         @note This method assumes that the input_peak_container contains data points of type 
-             DRawDataPoint<1> or any other class derived from DRawDataPoint. 
+             RawDataPoint1D or any other class derived from DRawDataPoint. 
                 
              The resulting peaks in the picked_peak_container (e.g. of type MSSpectrum<DPickedPeak<1> >)
-             can be of type DRawDataPoint<1> or any other class derived from DRawDataPoint. 
+             can be of type RawDataPoint1D or any other class derived from DRawDataPoint. 
              We recommend to use the DPickedPeak<1> because it stores important information gained during
              the peak picking algorithm.
               
@@ -511,7 +513,7 @@ namespace OpenMS
         Picks the peaks successive in every scan in the intervall [first,last).
         The detected peaks are stored in a MSExperiment.
                 
-        @note The InputSpectrumIterator should point to a MSSpectrum. Elements of the input spectren should be of type DRawDataPoint<1> 
+        @note The InputSpectrumIterator should point to a MSSpectrum. Elements of the input spectren should be of type RawDataPoint1D 
                 or any other derived class of DRawDataPoint.
               For the resulting peaks we recommend to use the DPickedPeak<1> because it stores important information gained during
               the peak picking algorithm.  
@@ -576,7 +578,7 @@ namespace OpenMS
           Picks the peaks successive in every scan in the intervall [first,last).
           The detected peaks are stored in a MSExperiment.
                   
-          @note The InputSpectrumIterator should point to a MSSpectrum. Elements of the input spectren should be of type DRawDataPoint<1> 
+          @note The InputSpectrumIterator should point to a MSSpectrum. Elements of the input spectren should be of type RawDataPoint1D 
                    or any other derived class of DRawDataPoint.
                 For the resulting peaks we recommend to use the DPickedPeak<1> because it stores important information gained during
                 the peak picking algorithm.  
@@ -621,7 +623,7 @@ namespace OpenMS
         Picks the peaks on every scan in the MSExperiment.
         The detected peaks are stored in a MSExperiment.
                 
-        @note The input peaks should be of type DRawDataPoint<1> or any other derived class of DRawDataPoint.
+        @note The input peaks should be of type RawDataPoint1D or any other derived class of DRawDataPoint.
               For the resulting peaks we recommend to use the DPickedPeak<1> because it stores important information gained during
               the peak picking algorithm.   
       */
@@ -639,7 +641,7 @@ namespace OpenMS
           Picks the peaks on every scan in the MSExperiment.
           The detected peaks are stored in a MSExperiment.
                   
-          @note The input peaks should be of type DRawDataPoint<1> or any other derived class of DRawDataPoint.
+          @note The input peaks should be of type RawDataPoint1D or any other derived class of DRawDataPoint.
                 For the resulting peaks we recommend to use the DPickedPeak<1> because it stores important information gained during
                 the peak picking algorithm.   
          */

@@ -28,7 +28,7 @@
 #ifndef OPENMS_ANALYSIS_MAPMATCHING_DBASEMAPMATCHER_H
 #define OPENMS_ANALYSIS_MAPMATCHING_DBASEMAPMATCHER_H
 
-#include <OpenMS/KERNEL/DFeature.h>
+#include <OpenMS/KERNEL/Feature.h>
 #include <OpenMS/KERNEL/DimensionDescription.h>
 #include <OpenMS/DATASTRUCTURES/DRange.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/DFeaturePairVector.h>
@@ -51,7 +51,7 @@ namespace OpenMS
     describing the shift in retention time and m/z between
     the two maps.  
   */
-  template <typename ElementT = DFeature<2> >
+  template <typename ElementT = Feature >
   class DBaseMapMatcher
   {
     public:
@@ -63,14 +63,12 @@ namespace OpenMS
     };
       /// Element type
       typedef ElementT ElementType;
-      /// Traits type
-      typedef typename ElementType::TraitsType TraitsType;
       /// The grid is simply a vector of cells.
       typedef DGrid<2> Grid;
       /// The feature pairs are computed by the feature matching class
       typedef DFeaturePairVector< 2, ElementType > FeaturePairVector;
       /// Quality type
-      typedef typename TraitsType::QualityType QualityType;
+      typedef DoubleReal QualityType;
 
       /// Constructor
       DBaseMapMatcher() : min_quality_(-1)

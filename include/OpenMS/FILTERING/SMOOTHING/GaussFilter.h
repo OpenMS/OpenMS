@@ -186,11 +186,11 @@ namespace OpenMS
       Convolutes the filter and the raw data in the iterator intervall [first,last) and writes the
       resulting data to the smoothed_data_container.
 
-      @note This method assumes that the InputPeakIterator (e.g. of type MSSpectrum<DRawDataPoint<1> >::const_iterator)
-            points to a data point of type DRawDataPoint<1> or any other class derived from DRawDataPoint<1>.
+      @note This method assumes that the InputPeakIterator (e.g. of type MSSpectrum<RawDataPoint1D >::const_iterator)
+            points to a data point of type RawDataPoint1D or any other class derived from RawDataPoint1D.
 
-            The resulting peaks in the smoothed_data_container (e.g. of type MSSpectrum<DRawDataPoint<1> >)
-            can be of type DRawDataPoint<1> or any other class derived from DRawDataPoint. 
+            The resulting peaks in the smoothed_data_container (e.g. of type MSSpectrum<RawDataPoint1D >)
+            can be of type RawDataPoint1D or any other class derived from DRawDataPoint. 
        
             If you use MSSpectrum iterators you have to set the SpectrumSettings by your own.
        */
@@ -208,7 +208,7 @@ namespace OpenMS
         typename OutputPeakContainer::iterator out_it = smoothed_data_container.begin();
         while (help != last)
         {
-          out_it->setPosition(help->getPos());
+          out_it->setPos(help->getMZ());
           out_it->setIntensity(integrate_(help,first,last));
           ++out_it;
           ++help;
@@ -221,11 +221,11 @@ namespace OpenMS
          Convolutes the filter and the raw data in the input_peak_container and writes the
           resulting data to the smoothed_data_container.
 
-      @note This method assumes that the elements of the InputPeakContainer (e.g. of type MSSpectrum<DRawDataPoint<1> >)
-            are of type DRawDataPoint<1> or any other class derived from DRawDataPoint<1>.
+      @note This method assumes that the elements of the InputPeakContainer (e.g. of type MSSpectrum<RawDataPoint1D >)
+            are of type RawDataPoint1D or any other class derived from RawDataPoint1D.
 
-            The resulting peaks in the smoothed_data_container (e.g. of type MSSpectrum<DRawDataPoint<1> >)
-            can be of type DRawDataPoint<1> or any other class derived from DRawDataPoint. 
+            The resulting peaks in the smoothed_data_container (e.g. of type MSSpectrum<RawDataPoint1D >)
+            can be of type RawDataPoint1D or any other class derived from DRawDataPoint. 
        
             If you use MSSpectrum iterators you have to set the SpectrumSettings by your own.
          */
@@ -241,7 +241,7 @@ namespace OpenMS
       	Filters the data successive in every scan in the intervall [first,last).
       	The filtered data are stored in a MSExperiment.
       					
-      	@note The InputSpectrumIterator should point to a MSSpectrum. Elements of the input spectren should be of type DRawDataPoint<1> 
+      	@note The InputSpectrumIterator should point to a MSSpectrum. Elements of the input spectren should be of type RawDataPoint1D 
                 or any other derived class of DRawDataPoint.
 
           @note You have to copy the ExperimentalSettings of the raw data by your own. 	
@@ -284,7 +284,7 @@ namespace OpenMS
       	Filters the data successive in every scan in the intervall [first,last).
       	The filtered data are stored in a MSExperiment.
       					
-      	@note The InputSpectrumIterator should point to a MSSpectrum. Elements of the input spectren should be of type DRawDataPoint<1> 
+      	@note The InputSpectrumIterator should point to a MSSpectrum. Elements of the input spectren should be of type RawDataPoint1D 
                 or any other derived class of DRawDataPoint.
 
           @note You have to copy the ExperimentalSettings of the raw data by your own. 	
@@ -328,7 +328,7 @@ namespace OpenMS
       Filters the data every scan in the MSExperiment.
       The filtered data are stored in a MSExperiment.
       				
-      @note The InputPeakType as well as the OutputPeakType should be of type DRawDataPoint<1> 
+      @note The InputPeakType as well as the OutputPeakType should be of type RawDataPoint1D 
                or any other derived class of DRawDataPoint.
       */
       template <typename InputPeakType, typename OutputPeakType >
@@ -346,7 +346,7 @@ namespace OpenMS
       Filters the data every scan in the MSExperimentExtern.
       The filtered data are stored in a MSExperimentExtern.
       				
-      @note The InputPeakType as well as the OutputPeakType should be of type DRawDataPoint<1> 
+      @note The InputPeakType as well as the OutputPeakType should be of type RawDataPoint1D 
                or any other derived class of DRawDataPoint.
       */
       template <typename InputPeakType, typename OutputPeakType >
@@ -381,23 +381,23 @@ namespace OpenMS
         double norm = 0.;
         int middle = coeffs_.size();
 
-        double start_pos = ((x->getPos()-(middle*spacing_)) > first->getPos()) ? (x->getPos()-(middle*spacing_))
-                           : first->getPos();
-        double end_pos = ((x->getPos()+(middle*spacing_)) < (last-1)->getPos()) ? (x->getPos()+(middle*spacing_))
-                         : (last-1)->getPos();
+        double start_pos = ((x->getMZ()-(middle*spacing_)) > first->getMZ()) ? (x->getMZ()-(middle*spacing_))
+                           : first->getMZ();
+        double end_pos = ((x->getMZ()+(middle*spacing_)) < (last-1)->getMZ()) ? (x->getMZ()+(middle*spacing_))
+                         : (last-1)->getMZ();
 
 
         InputPeakIterator help = x;
 #ifdef DEBUG_FILTERING
 
-        std::cout << "integrate from middle to start_pos "<< help->getPos() << " until " << start_pos << std::endl;
+        std::cout << "integrate from middle to start_pos "<< help->getMZ() << " until " << start_pos << std::endl;
 #endif
 
         //integrate from middle to start_pos
-        while ((help != first) && ((help-1)->getPos() > start_pos))
+        while ((help != first) && ((help-1)->getMZ() > start_pos))
         {
           // search for the corresponding datapoint of help in the gaussian (take the left most adjacent point)
-          double distance_in_gaussian = fabs(x->getPos() - help->getPos());
+          double distance_in_gaussian = fabs(x->getMZ() - help->getMZ());
           unsigned int left_position = (unsigned int)floor(distance_in_gaussian / spacing_);
 
           // search for the true left adjacent data point (because of rounding errors)
@@ -434,7 +434,7 @@ namespace OpenMS
 
 
           // search for the corresponding datapoint for (help-1) in the gaussian (take the left most adjacent point)
-          distance_in_gaussian = fabs(x->getPos() - (help-1)->getPos());
+          distance_in_gaussian = fabs(x->getMZ() - (help-1)->getMZ());
           left_position = (unsigned int)floor(distance_in_gaussian / spacing_);
 
           // search for the true left adjacent data point (because of rounding errors)
@@ -460,21 +460,21 @@ namespace OpenMS
                               : coeffs_[left_position];
 #ifdef DEBUG_FILTERING
 
-          std::cout << " help-1 " << (help-1)->getPos() << " distance_in_gaussian " << distance_in_gaussian << std::endl;
+          std::cout << " help-1 " << (help-1)->getMZ() << " distance_in_gaussian " << distance_in_gaussian << std::endl;
           std::cout << " right_position " << right_position << std::endl;
           std::cout << " left_position " << left_position << std::endl;
           std::cout << "coeffs_ at left_position " <<  coeffs_[left_position]<<std::endl;
           std::cout << "coeffs_ at right_position " <<   coeffs_[right_position]<<std::endl;
           std::cout << "interpolated value right " << coeffs_left << std::endl;
 
-          std::cout << " intensity " << fabs((help-1)->getPos()-help->getPos()) / 2. << " * " << (help-1)->getIntensity() << " * " << coeffs_left <<" + " << (help)->getIntensity()<< "* " << coeffs_right
+          std::cout << " intensity " << fabs((help-1)->getMZ()-help->getMZ()) / 2. << " * " << (help-1)->getIntensity() << " * " << coeffs_left <<" + " << (help)->getIntensity()<< "* " << coeffs_right
           << std::endl;
 #endif
 
 
-          norm += fabs((help-1)->getPos()-help->getPos()) / 2. * (coeffs_left + coeffs_right);
+          norm += fabs((help-1)->getMZ()-help->getMZ()) / 2. * (coeffs_left + coeffs_right);
 
-          v+= fabs((help-1)->getPos()-help->getPos()) / 2. * ((help-1)->getIntensity()*coeffs_left + help->getIntensity()*coeffs_right);
+          v+= fabs((help-1)->getMZ()-help->getMZ()) / 2. * ((help-1)->getIntensity()*coeffs_left + help->getIntensity()*coeffs_right);
           --help;
         }
 
@@ -483,13 +483,13 @@ namespace OpenMS
         help = x;
 #ifdef DEBUG_FILTERING
 
-        std::cout << "integrate from middle to endpos "<< (help)->getPos() << " until " << end_pos << std::endl;
+        std::cout << "integrate from middle to endpos "<< (help)->getMZ() << " until " << end_pos << std::endl;
 #endif
 
-        while ((help != (last-1)) && ((help+1)->getPos() < end_pos))
+        while ((help != (last-1)) && ((help+1)->getMZ() < end_pos))
         {
           // search for the corresponding datapoint for help in the gaussian (take the left most adjacent point)
-          double distance_in_gaussian = fabs(x->getPos() - help->getPos());
+          double distance_in_gaussian = fabs(x->getMZ() - help->getMZ());
           int left_position = (unsigned int)floor(distance_in_gaussian / spacing_);
 
           // search for the true left adjacent data point (because of rounding errors)
@@ -515,7 +515,7 @@ namespace OpenMS
 
 #ifdef DEBUG_FILTERING
 
-          std::cout << " help " << (help)->getPos() << " distance_in_gaussian " << distance_in_gaussian << std::endl;
+          std::cout << " help " << (help)->getMZ() << " distance_in_gaussian " << distance_in_gaussian << std::endl;
           std::cout << " left_position " << left_position << std::endl;
           std::cout << "coeffs_ at right_position " <<  coeffs_[left_position]<<std::endl;
           std::cout << "coeffs_ at left_position " <<  coeffs_[right_position]<<std::endl;
@@ -523,7 +523,7 @@ namespace OpenMS
 #endif
 
           // search for the corresponding datapoint for (help+1) in the gaussian (take the left most adjacent point)
-          distance_in_gaussian = fabs(x->getPos() - (help+1)->getPos());
+          distance_in_gaussian = fabs(x->getMZ() - (help+1)->getMZ());
           left_position = (unsigned int)floor(distance_in_gaussian / spacing_);
 
           // search for the true left adjacent data point (because of rounding errors)
@@ -549,20 +549,20 @@ namespace OpenMS
                                 : coeffs_[left_position];
 #ifdef DEBUG_FILTERING
 
-          std::cout << " (help + 1) " << (help+1)->getPos() << " distance_in_gaussian " << distance_in_gaussian << std::endl;
+          std::cout << " (help + 1) " << (help+1)->getMZ() << " distance_in_gaussian " << distance_in_gaussian << std::endl;
           std::cout << " left_position " << left_position << std::endl;
           std::cout << "coeffs_ at right_position " <<   coeffs_[left_position]<<std::endl;
           std::cout << "coeffs_ at left_position " <<  coeffs_[right_position]<<std::endl;
           std::cout << "interpolated value right " << coeffs_right << std::endl;
 
-          std::cout << " intensity " <<  fabs(help->getPos() - (help+1)->getPos()) / 2.
+          std::cout << " intensity " <<  fabs(help->getMZ() - (help+1)->getMZ()) / 2.
           << " * " << help->getIntensity() << " * " << coeffs_left <<" + " << (help+1)->getIntensity()
           << "* " << coeffs_right
           << std::endl;
 #endif
-          norm += fabs(help->getPos() - (help+1)->getPos()) / 2. * (coeffs_left + coeffs_right);
+          norm += fabs(help->getMZ() - (help+1)->getMZ()) / 2. * (coeffs_left + coeffs_right);
 
-          v+= fabs(help->getPos() - (help+1)->getPos()) / 2. * (help->getIntensity()*coeffs_left + (help+1)->getIntensity()*coeffs_right);
+          v+= fabs(help->getMZ() - (help+1)->getMZ()) / 2. * (help->getIntensity()*coeffs_left + (help+1)->getIntensity()*coeffs_right);
           ++help;
         }
 

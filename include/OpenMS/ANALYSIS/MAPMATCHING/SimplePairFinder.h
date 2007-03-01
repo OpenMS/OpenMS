@@ -47,7 +47,7 @@ namespace OpenMS
      two element maps!
 
   */
-  template < typename MapT = DFeatureMap< 2, DFeature< 2, KernelTraits > > >
+  template < typename MapT = FeatureMap< > >
   class SimplePairFinder : public BasePairFinder< MapT >
   {
 	 public:
@@ -68,7 +68,7 @@ namespace OpenMS
 			};
 
     typedef BasePairFinder< MapT > Base;
-    typedef typename Base::TraitsType             TraitsType;
+    //typedef typename Base::TraitsType             TraitsType;
 
     typedef typename Base::QualityType QualityType;
     typedef typename Base::PositionType           PositionType;
@@ -202,7 +202,7 @@ namespace OpenMS
 
       for (Size i = 0; i < n; ++i)
       {
-				transformed_positions_second_map_[i] = (*element_map_[SCENE])[i].getPosition();
+				transformed_positions_second_map_[i] = (*element_map_[SCENE])[i].getPos();
       }
 
       V_findElementPairs("SimplePairFinder::run(): apply transformation");
@@ -363,7 +363,7 @@ namespace OpenMS
 				intensity_ratio = 1. / intensity_ratio;
 
       // if the right map is the transformed map, take the transformed right position
-      PositionType position_difference = left.getPosition() - new_position;
+      PositionType position_difference = left.getPos() - new_position;
 
       for ( Size dimension = 0; dimension < 2; ++dimension )
       {

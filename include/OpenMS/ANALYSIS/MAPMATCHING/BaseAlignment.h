@@ -28,7 +28,7 @@
 #ifndef OPENMS_ANALYSIS_MAPMATCHING_BASEALIGNMENT_H
 #define OPENMS_ANALYSIS_MAPMATCHING_BASEALIGNMENT_H
 
-#include <OpenMS/KERNEL/DFeatureMap.h>
+#include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/DimensionDescription.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/BasePairwiseMapMatcher.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/PoseClusteringPairwiseMapMatcher.h>
@@ -234,7 +234,7 @@ namespace OpenMS
       UnsignedInt n = map.size();
       for (UnsignedInt i=0; i < n; ++i)
       {
-        ConsensusElementType c(map[i].getPosition(),map[i].getIntensity());
+        ConsensusElementType c(map[i].getPos(),map[i].getIntensity());
         cons_map.push_back(c);
       }
     }

@@ -155,7 +155,7 @@ namespace OpenMS
 			Any peak comparator can begiven as template argument.
 			
 			<p> Thus your can e.g. write <code>peaks.sortByComparator <
-			DPeak<1>::IntensityLess > ()</code>, if peaks has type
+			Peak1D::IntensityLess > ()</code>, if peaks has type
 			<code>DPeakArray < 1, DPeak <1> ></code>.
 		*/
 		//@{

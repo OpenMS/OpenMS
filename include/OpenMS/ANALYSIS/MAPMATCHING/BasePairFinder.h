@@ -32,7 +32,7 @@
 #include <OpenMS/ANALYSIS/MAPMATCHING/DFeaturePairVector.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/DGrid.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/DLinearMapping.h>
-#include <OpenMS/KERNEL/DFeatureMap.h>
+#include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/DimensionDescription.h>
 #include <OpenMS/CONCEPT/FactoryProduct.h>
 
@@ -46,7 +46,7 @@ namespace OpenMS
      @brief The base class of all element pair finding algorithms.
 
      This class defines the basic interface for all element pair finding 
-     algorithms. It works on two element maps (DFeatureMap is the default map type, 
+     algorithms. It works on two element maps (FeatureMap is the default map type, 
      but you can also use a pointer map like DPeakConstReferenceArray),
      and a transformation defined for the second element map (if no
      transformation is given, the pairs are found in the two original maps).
@@ -58,7 +58,7 @@ namespace OpenMS
      But param_ is deep.
 
   */
-  template < typename MapT = DFeatureMap< 2, DFeature< 2, KernelTraits > > >
+  template < typename MapT = FeatureMap< > >
   class BasePairFinder 
   	: public FactoryProduct
   {
@@ -86,16 +86,19 @@ namespace OpenMS
     typedef typename PointMapType::value_type PointType;
 
     /// Traits type
-    typedef typename PointType::TraitsType TraitsType;
+    //typedef typename PointType::TraitsType TraitsType;
 
     /// Position
-    typedef DPosition < 2, TraitsType > PositionType;
+    typedef DPosition < 2 > PositionType;
 
     /// Quality
-    typedef typename TraitsType::QualityType QualityType;
+
+    //typedef typename TraitsType::QualityType QualityType;
+    typedef DoubleReal QualityType;
 
     //// Intensity
-    typedef typename TraitsType::IntensityType IntensityType;
+    //typedef typename TraitsType::IntensityType IntensityType;
+    typedef DoubleReal IntensityType;
 
     /// Type of element pairs
     typedef DFeaturePair < 2, PointType > ElementPairType;
@@ -104,7 +107,7 @@ namespace OpenMS
     typedef DFeaturePairVector < 2, PointType > ElementPairVectorType;
 
     /// Type of estimated transformation
-    typedef DLinearMapping< 1, TraitsType > TransformationType;
+    typedef DLinearMapping< 1 > TransformationType;
 
     /// Constructor
     BasePairFinder()
@@ -249,11 +252,11 @@ namespace OpenMS
     for ( Size fp = 0; fp < getElementPairs().size(); ++fp )
     {
       dump_file << fp << ' '
-      << getElementPairs()[fp].getFirst().getPosition()[RT] << ' '
-      << getElementPairs()[fp].getFirst().getPosition()[MZ] << ' '
+      << getElementPairs()[fp].getFirst().getRT() << ' '
+      << getElementPairs()[fp].getFirst().getMZ() << ' '
       << getElementPairs()[fp].getFirst().getIntensity() << ' '
-      << getElementPairs()[fp].getSecond().getPosition()[RT] << ' '
-      << getElementPairs()[fp].getSecond().getPosition()[MZ] << ' '
+      << getElementPairs()[fp].getSecond().getRT() << ' '
+      << getElementPairs()[fp].getSecond().getMZ() << ' '
       << getElementPairs()[fp].getSecond().getIntensity() << ' '
       << std::endl;
     }

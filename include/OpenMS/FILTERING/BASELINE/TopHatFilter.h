@@ -93,11 +93,11 @@ namespace OpenMS
         Removes the baseline in the given iterator intervall [first,last) and writes the
         resulting data to the baseline_filtered_container.
         
-        @note This method assumes that the InputPeakIterator (e.g. of type MSSpectrum<DRawDataPoint<1> >::const_iterator)
-              points to a data point of type DRawDataPoint<1> or any other class derived from DRawDataPoint<1>.
+        @note This method assumes that the InputPeakIterator (e.g. of type MSSpectrum<RawDataPoint1D >::const_iterator)
+              points to a data point of type RawDataPoint1D or any other class derived from RawDataPoint1D.
         
-              The resulting peaks in the baseline_filtered_container (e.g. of type MSSpectrum<DRawDataPoint<1> >)
-              can be of type DRawDataPoint<1> or any other class derived from DRawDataPoint. 
+              The resulting peaks in the baseline_filtered_container (e.g. of type MSSpectrum<RawDataPoint1D >)
+              can be of type RawDataPoint1D or any other class derived from DRawDataPoint. 
          
               If you use MSSpectrum iterators you have to set the SpectrumSettings by your own.
          */
@@ -108,7 +108,7 @@ namespace OpenMS
 
         // compute the number of data points of the structuring element given the spacing of the raw data
         // and the size (in Th) of the structuring element
-        float spacing= ((last-1)->getPos() - first->getPos()) / (distance(first,last)-1);
+        float spacing= ((last-1)->getMZ() - first->getMZ()) / (distance(first,last)-1);
         int struc_elem_number_of_points = (int) ceil(struc_size_ / spacing );
 
         // the number has to be odd
@@ -137,14 +137,14 @@ namespace OpenMS
 
       /** @brief Applies the baseline removal algorithm to to a raw data point container.
 
-        Removes the baseline in the the input container (e.g. of type MSSpectrum<DRawDataPoint<1> >) and writes the 
+        Removes the baseline in the the input container (e.g. of type MSSpectrum<RawDataPoint1D >) and writes the 
         resulting data to the baseline_filtered_container.
         
-        @note This method assumes that the InputPeakIterator (e.g. of type MSSpectrum<DRawDataPoint<1> >::const_iterator)
-              points to a data point of type DRawDataPoint<1> or any other class derived from DRawDataPoint<1>.
+        @note This method assumes that the InputPeakIterator (e.g. of type MSSpectrum<RawDataPoint1D >::const_iterator)
+              points to a data point of type RawDataPoint1D or any other class derived from RawDataPoint1D.
         
-              The resulting peaks in the baseline_filtered_container (e.g. of type MSSpectrum<DRawDataPoint<1> >)
-              can be of type DRawDataPoint<1> or any other class derived from DRawDataPoint. 
+              The resulting peaks in the baseline_filtered_container (e.g. of type MSSpectrum<RawDataPoint1D >)
+              can be of type RawDataPoint1D or any other class derived from DRawDataPoint. 
          
               If you use MSSpectrum iterators you have to set the SpectrumSettings by your own.
          */
@@ -160,7 +160,7 @@ namespace OpenMS
         Filters the data successive in every scan in the intervall [first,last).
         The filtered data are stored in a MSExperiment.
                 
-        @note The InputSpectrumIterator should point to a MSSpectrum. Elements of the input spectren should be of type DRawDataPoint<1> 
+        @note The InputSpectrumIterator should point to a MSSpectrum. Elements of the input spectren should be of type RawDataPoint1D 
                 or any other derived class of DRawDataPoint.
 
           @note You have to copy the ExperimentalSettings of the raw data by your own.  
@@ -176,7 +176,7 @@ namespace OpenMS
         {
           InputSpectrumIterator input_it(first+i);
           // if the scan contains enough raw data points filter the baseline
-          if ( struc_size_ < fabs((input_it->end()-1)->getPos()- input_it->begin()->getPos()))
+          if ( struc_size_ < fabs((input_it->end()-1)->getMZ()- input_it->begin()->getMZ()))
           {
             //std::cout << "filter " << input_it->getRetentionTime()<< std::endl;
             MSSpectrum< OutputPeakType > spectrum;
@@ -209,7 +209,7 @@ namespace OpenMS
           Filters the data successive in every scan in the intervall [first,last).
           The filtered data are stored in a MSExperiment.
                   
-          @note The InputSpectrumIterator should point to a MSSpectrum. Elements of the input spectren should be of type DRawDataPoint<1> 
+          @note The InputSpectrumIterator should point to a MSSpectrum. Elements of the input spectren should be of type RawDataPoint1D 
                    or any other derived class of DRawDataPoint.
 
          */
@@ -253,7 +253,7 @@ namespace OpenMS
       Filters the data every scan in the MSExperiment.
       The filtered data are stored in a MSExperiment.
               
-      @note The InputSpectrumIterator should point to a MSSpectrum. Elements of the input spectren should be of type DRawDataPoint<1> 
+      @note The InputSpectrumIterator should point to a MSSpectrum. Elements of the input spectren should be of type RawDataPoint1D 
                or any other derived class of DRawDataPoint.
       */
       template <typename InputPeakType, typename OutputPeakType >
@@ -271,7 +271,7 @@ namespace OpenMS
          Filters the data every scan in the MSExperiment.
          The filtered data are stored in a MSExperiment.
                 
-         @note The InputSpectrumIterator should point to a MSSpectrum. Elements of the input spectren should be of type DRawDataPoint<1> 
+         @note The InputSpectrumIterator should point to a MSSpectrum. Elements of the input spectren should be of type RawDataPoint1D 
                   or any other derived class of DRawDataPoint.
          */
       template <typename InputPeakType, typename OutputPeakType >

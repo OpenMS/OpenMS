@@ -53,7 +53,7 @@ namespace OpenMS
 
 	/** @brief XML Handler for a vector of grid cells including their transformations.
 	  
-	  	This is a simplified version of class DFeatureMapHandler. We explicitly allow
+	  	This is a simplified version of class FeatureMapHandler. We explicitly allow
 	  	several tagtypes even if just one type is used in this implementation (for
 	  	details see class member further below). Therefore this class can be extended
 	  	in the future in order to save meta information with the grid such as information

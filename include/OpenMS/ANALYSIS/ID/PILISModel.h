@@ -273,7 +273,7 @@ namespace OpenMS
 			bool valid_;
 
 			/// stores the peaks of a spectrum
-			HashMap<double, std::vector<Peak> > peaks_;
+			HashMap<double, std::vector<Peak1D> > peaks_;
 
 			/// the alignment algorithm used
 			SpectrumAlignment spectra_aligner_;

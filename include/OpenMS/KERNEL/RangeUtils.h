@@ -69,12 +69,12 @@ namespace OpenMS
 		
 		@code
 		//data
-		DSpectrum<1, DPeak<1> > spectrum;
+		DSpectrum<1, Peak1D > spectrum;
 		
 		//... peaks are added to the spectrum ...
 		
 		//range from 0.0 to 5000.0 intensity
-		IntensityRange< DPeak<1> >(0.0, 5000.0);
+		IntensityRange< Peak1D >(0.0, 5000.0);
 		
 		//remove the range
 		spectrum.erase(remove_if(spectrum.begin(), spectrum.end(), range), spectrum.end());
@@ -274,7 +274,7 @@ namespace OpenMS
 		
 			inline bool operator()(const PeakType& p) const
 			{
-				double tmp = p.getPosition()[0];
+				double tmp = p.getPos()[0];
 				if (reverse_)
 				{
 					return ( min_ > tmp || max_ < tmp ); 

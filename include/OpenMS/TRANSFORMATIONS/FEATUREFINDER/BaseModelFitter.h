@@ -28,7 +28,7 @@
 #define OPENMS_TRANSFORMATIONS_FEATUREFINDER_BASEMODELFITTER_H
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeaFiModule.h>
-#include <OpenMS/KERNEL/DFeature.h>
+#include <OpenMS/KERNEL/Feature.h>
 
 namespace OpenMS
 {
@@ -78,7 +78,7 @@ namespace OpenMS
 	       @param extension range of peaks that ought to be fitted 
 	       @return feature 
 	    */
-	    virtual DFeature<2> fit(const IndexSet& extension) throw(UnableToFit) =0;
+	    virtual Feature fit(const IndexSet& extension) throw(UnableToFit) =0;
 
   };
 }

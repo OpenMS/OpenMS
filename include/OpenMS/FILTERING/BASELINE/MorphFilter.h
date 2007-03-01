@@ -142,8 +142,8 @@ namespace OpenMS
       typename OutputPeakContainer::iterator it = result.begin();
       for (i = 0; i < middle; ++i)
       {
-        it->getIntensity() = g[i+middle];
-        it->getPosition() = first->getPos();
+        it->setIntensity(g[i+middle]);
+        it->setPos(first->getPos());
         ++first;
         ++it;
       }
@@ -263,8 +263,8 @@ namespace OpenMS
           n=0;
         }
 
-        it->getIntensity() = std::min(g[m],h[n]);
-        it->getPosition() = first->getPos();		
+        it->setIntensity(std::min(g[m],h[n]));
+        it->setPos(first->getPos());		
         ++it;
         ++first;
         ++m;

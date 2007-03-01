@@ -42,7 +42,7 @@
 #include <set>
 
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakShape.h>
-#include <OpenMS/KERNEL/DPickedPeak.h>
+#include <OpenMS/KERNEL/PickedPeak1D.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/KERNEL/DPeak.h>
@@ -76,12 +76,12 @@ namespace OpenMS
   {
   
     /// Raw data point type
-    typedef DRawDataPoint<1> RawDataPointType;
+    typedef RawDataPoint1D RawDataPointType;
     extern std::vector<std::pair<int,int> > signal2D; 
     extern std::multimap<double,IsotopeCluster>::iterator iso_map_iter;
     extern unsigned int total_nr_peaks;
-    extern std::map<int, std::vector<MSSpectrum<DPickedPeak<1> >::Iterator > > matching_peaks;
-    extern MSExperiment<DPickedPeak<1> >::Iterator picked_peaks_iter;
+    extern std::map<int, std::vector<MSSpectrum<PickedPeak1D>::Iterator > > matching_peaks;
+    extern MSExperiment<PickedPeak1D>::Iterator picked_peaks_iter;
     extern MSExperiment<RawDataPointType>::ConstIterator raw_data_first;
 
 
@@ -283,7 +283,7 @@ namespace OpenMS
 		double tolerance_mz_;
       
 		/// Indices of peaks in the adjacent scans matching peaks in the scan with no. ref_scan
-		std::map<int, std::vector<MSSpectrum<DPickedPeak<1> >::Iterator > > matching_peaks_;
+		std::map<int, std::vector<MSSpectrum<PickedPeak1D>::Iterator > > matching_peaks_;
       
 		/// Convergence Parameter: Maximal absolute error
 		double eps_abs_;
@@ -334,7 +334,7 @@ namespace OpenMS
 
 		/// Identify matching peak in a peak cluster
 		void findMatchingPeaks_(std::multimap<double, IsotopeCluster>::iterator& it,
-														MSExperiment< DPickedPeak<1> >& ms_exp);
+														MSExperiment<PickedPeak1D>& ms_exp);
       
 		//@}
 	};
@@ -400,14 +400,14 @@ namespace OpenMS
 							{
 		  
 								// store the m/z of the current peak
-								double curr_mz         = (peak_it+curr_peak)->getPos();
-								double dist2nextpeak = (peak_it+curr_peak+1)->getPos() - curr_mz;
+								double curr_mz         = (peak_it+curr_peak)->getMZ();
+								double dist2nextpeak = (peak_it+curr_peak+1)->getMZ() - curr_mz;
 		  
 								if (dist2nextpeak <= max_peak_distance_) // one single peak without neighbors isn't optimized
 									{
 #ifdef DEBUG_2D	      
 										std::cout << "Isotopic pattern found ! " << std::endl;
-										std::cout << "We are at: " << (peak_it+curr_peak)->getPos()  << " " << curr_mz << std::endl;
+										std::cout << "We are at: " << (peak_it+curr_peak)->getMZ()  << " " << curr_mz << std::endl;
 #endif      
 										if (iso_last_scan.size() > 0)  // Did we find any isotopic cluster in the last scan?
 											{
@@ -483,12 +483,12 @@ namespace OpenMS
 										++curr_peak;
 		      
 										cluster_iter->second.peaks_.insert(std::pair<UnsignedInt,UnsignedInt>(curr_scan,curr_peak));
-										iso_curr_scan.push_back((peak_it+curr_peak)->getPos());
+										iso_curr_scan.push_back((peak_it+curr_peak)->getMZ());
 										clusters_curr_scan.push_back(cluster_iter);
 		      
 										// check distance to next peak
 										if ( (curr_peak+1) >= nr_peaks_in_scan ) break;
-										dist2nextpeak = (peak_it+curr_peak+1)->getPos() -  (peak_it+curr_peak)->getPos();
+										dist2nextpeak = (peak_it+curr_peak+1)->getMZ() -  (peak_it+curr_peak)->getMZ();
 		      
 		
 										// loop until end of isotopic pattern in this scan
@@ -496,12 +496,12 @@ namespace OpenMS
 													 &&  curr_peak < (nr_peaks_in_scan-1) )
 											{
 												cluster_iter->second.peaks_.insert(std::pair<UnsignedInt,UnsignedInt>(curr_scan,curr_peak+1));				// save peak in cluster
-												iso_curr_scan.push_back((peak_it+curr_peak+1)->getPos());
+												iso_curr_scan.push_back((peak_it+curr_peak+1)->getMZ());
 												clusters_curr_scan.push_back(cluster_iter);
-												// std::cout << "new enter'd: "<<(peak_it+curr_peak+1)->getPos()<<" im while"<<std::endl;
+												// std::cout << "new enter'd: "<<(peak_it+curr_peak+1)->getMZ()<<" im while"<<std::endl;
 												++curr_peak;			
 												if(curr_peak >= nr_peaks_in_scan-1) break;
-												dist2nextpeak = (peak_it+curr_peak+1)->getPos() -  (peak_it+curr_peak)->getPos(); // get distance to next peak
+												dist2nextpeak = (peak_it+curr_peak+1)->getMZ() -  (peak_it+curr_peak)->getMZ(); // get distance to next peak
 
 			  
 											} // end while(...)
@@ -529,17 +529,17 @@ namespace OpenMS
     
 	template < >
 	void TwoDOptimization::
-	optimizeRegions_<MSExperiment<DRawDataPoint<1> >::const_iterator, DPickedPeak<1> >
+	optimizeRegions_<MSExperiment<DRawDataPoint<1> >::const_iterator, PickedPeak1D >
 	(MSExperiment<DRawDataPoint<1> >::const_iterator& first,
 	 MSExperiment<DRawDataPoint<1> >::const_iterator& last,
-	 MSExperiment<DPickedPeak<1> >& ms_exp);
+	 MSExperiment<PickedPeak1D >& ms_exp);
 
 	template < >
 	void TwoDOptimization::
-	optimizeRegionsScanwise_<MSExperiment<DRawDataPoint<1> >::const_iterator, DPickedPeak<1> >
+	optimizeRegionsScanwise_<MSExperiment<DRawDataPoint<1> >::const_iterator, PickedPeak1D >
 	(MSExperiment<DRawDataPoint<1> >::const_iterator& first,
 	 MSExperiment<DRawDataPoint<1> >::const_iterator& last,
-	 MSExperiment<DPickedPeak<1> >& ms_exp);
+	 MSExperiment<PickedPeak1D >& ms_exp);
     
 	template <typename InputSpectrumIterator,typename OutputPeakType>
 	void TwoDOptimization::optimizeRegions_(InputSpectrumIterator& /*first*/,
@@ -549,7 +549,7 @@ namespace OpenMS
 		throw Exception::IllegalArgument(__FILE__,
 																		 __LINE__,
 																		 __PRETTY_FUNCTION__,
-																		 "wrong input peak type, must be DPickedPeak<1>,");
+																		 "wrong input peak type, must be PickedPeak1D,");
       
       
 	}
@@ -562,7 +562,7 @@ namespace OpenMS
 		throw Exception::IllegalArgument(__FILE__,
 																		 __LINE__,
 																		 __PRETTY_FUNCTION__,
-																		 "wrong input peak type, must be DPickedPeak<1>,");
+																		 "wrong input peak type, must be PickedPeak1D,");
       
       
 	}
@@ -608,7 +608,7 @@ namespace OpenMS
 																												pair,IndexLess());
 				
 				// consider a bit more of the signal to the left
-				first_peak_mz = (exp_it->begin() + set_iter->second)->getPos() - 1;
+				first_peak_mz = (exp_it->begin() + set_iter->second)->getMZ() - 1;
 				
 				// find the last entry with this rt-value
 				++pair.first;
@@ -616,7 +616,7 @@ namespace OpenMS
 																												 iso_map_iter->second.peaks_.end(),
 																												 pair,IndexLess());
 				--set_iter2;
-				last_peak_mz = (exp_it->begin() + set_iter2->second)->getPos() + 1;
+				last_peak_mz = (exp_it->begin() + set_iter2->second)->getMZ() + 1;
 				
 				std::cout << "first peak mz "<<first_peak_mz << "\tlast peak mz "<<last_peak_mz <<std::endl;
 				peak.setPos(first_peak_mz);

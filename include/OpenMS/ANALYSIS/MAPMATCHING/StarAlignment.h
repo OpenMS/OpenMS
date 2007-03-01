@@ -63,7 +63,7 @@ namespace OpenMS
      
      @ingroup MapAlignment
   */
-  template < typename ConsensusElementT = ConsensusFeature< FeatureMap > >
+  template < typename ConsensusElementT = ConsensusFeature< FeatureMap < > > >
   class StarAlignment : public BaseAlignment< ConsensusElementT >
   {
   public:
@@ -94,17 +94,14 @@ namespace OpenMS
     /// Pointer vector
     typedef DPeakConstReferenceArray< ElementContainerType > PeakConstReferenceMapType;
 
-    /// Traits type
-    typedef typename ConsensusElementType::TraitsType TraitsType;
-
     /// Position
-    typedef DPosition < 2, TraitsType > PositionType;
+    typedef DPosition < 2 > PositionType;
 
     /// Quality
-    typedef typename TraitsType::QualityType QualityType;
+    typedef DoubleReal QualityType;
 
     //// Intensity
-    typedef typename TraitsType::IntensityType IntensityType;
+    typedef DoubleReal IntensityType;
 
     /// Type of element pairs
     typedef DFeaturePair < 2, ConsensusElementType > ElementPairType;
@@ -257,7 +254,7 @@ namespace OpenMS
       std::ofstream out("reference_map.dat", std::ios::out);
       for (UnsignedInt i = 0; i < cons_ref_map.size(); ++i)
       {
-        out << cons_ref_map[i].getPosition()[RT] << ' ' << cons_ref_map[i].getPosition()[MZ] << '\n';
+        out << cons_ref_map[i].getRT() << ' ' << cons_ref_map[i].getMZ() << '\n';
       }
       out.flush();
 
@@ -349,8 +346,8 @@ namespace OpenMS
             while ((grid_it != (transformations_[i]).end()))
             {
               IndexTuple< ElementContainerType > index_tuple(i,j,(*(element_map_vector_[i]))[j]);
-              PositionType pos = (*(element_map_vector_[i]))[j].getPosition();
-              if (grid_it->encloses(map[j].getPosition()))
+              PositionType pos = (*(element_map_vector_[i]))[j].getPos();
+              if (grid_it->encloses(map[j].getPos()))
               {
                 // apply transform for the singleton group element
                 if (grid_it->getMappings().size() != 0)
@@ -365,10 +362,10 @@ namespace OpenMS
                 index_tuple.setTransformedPosition(pos);
 #ifdef DEBUG_ALIGNMENT
 
-                out << map[j].getPosition()[RT] << ' ' << map[j].getPosition()[MZ] << ' ' << pos[RT] << ' ' << pos[MZ] << '\n';
+                out << map[j].getRT() << ' ' << map[j].getMZ() << ' ' << pos[RT] << ' ' << pos[MZ] << '\n';
 #endif
 
-                map[j].getPosition() = pos;
+                map[j].getPos() = pos;
                 map[j].insert(index_tuple);
                 break;
               }
@@ -405,15 +402,15 @@ namespace OpenMS
       for (UnsignedInt i = 0; i < final_consensus_map_.size(); ++i)
       {
         ConsensusElementType* c = &(final_consensus_map_[i]);
-        out_cons << c->getPosition()[RT] << ' '
-        << c->getPosition()[MZ] << ' '
+        out_cons << c->getRT() << ' '
+        << c->getMZ() << ' '
         << c->getIntensity() << ' ';
 
         for (typename ConsensusElementType::Group::const_iterator it = c->begin(); it != c->end(); ++it)
         {
-          out_cons << it->getElement().getPosition()[RT] << ' '
+          out_cons << it->getElement().getRT() << ' '
           << it->getTransformedPosition()[RT] << ' '
-          << it->getElement().getPosition()[MZ] << ' '
+          << it->getElement().getMZ() << ' '
           << it->getTransformedPosition()[MZ] << ' '
           << it->getElement().getIntensity() << ' ';
         }
@@ -464,7 +461,7 @@ namespace OpenMS
       std::ofstream out("reference_map.dat", std::ios::out);
       for (UnsignedInt i = 0; i < cons_ref_map.size(); ++i)
       {
-        out << cons_ref_map[i].getPosition()[RT] << ' ' << cons_ref_map[i].getPosition()[MZ] << '\n';
+        out << cons_ref_map[i].getRT() << ' ' << cons_ref_map[i].getMZ() << '\n';
       }
       out.flush();
 
@@ -557,14 +554,14 @@ namespace OpenMS
             typename GridType::iterator grid_it = (lin_regression.getGrid()).begin();
             while (grid_it != (lin_regression.getGrid()).end() )
             {
-              if (grid_it->encloses(map[j].getPosition()) )
+              if (grid_it->encloses(map[j].getPos()) )
               {
                 DLinearMapping<1>* mapping_rt = dynamic_cast<DLinearMapping<1>* >(grid_it->getMappings()[RT]);
                 DLinearMapping<1>* mapping_mz = dynamic_cast<DLinearMapping<1>* >(grid_it->getMappings()[MZ]);
 
                 // apply transform for the singleton group element
                 IndexTuple< ElementContainerType > index_tuple(i,j,(*(element_map_vector_[i]))[j]);
-                PositionType pos = (*(element_map_vector_[i]))[j].getPosition();
+                PositionType pos = (*(element_map_vector_[i]))[j].getPos();
 
                 mapping_rt->apply(pos[RT]);
                 mapping_mz->apply(pos[MZ]);
@@ -572,10 +569,10 @@ namespace OpenMS
 
 #ifdef DEBUG_ALIGNMENT
 
-                out << map[j].getPosition()[RT] << ' ' << map[j].getPosition()[MZ] << ' ' << pos[RT] << ' ' << pos[MZ] << '\n';
+                out << map[j].getRT() << ' ' << map[j].getMZ() << ' ' << pos[RT] << ' ' << pos[MZ] << '\n';
 #endif
 
-                map[j].getPosition() = pos;
+                map[j].getPos() = pos;
                 map[j].insert(index_tuple);
               }
               grid_it++;
@@ -607,15 +604,15 @@ namespace OpenMS
       for (UnsignedInt i = 0; i < final_consensus_map_.size(); ++i)
       {
         ConsensusElementType* c = &(final_consensus_map_[i]);
-        out_cons << c->getPosition()[RT] << ' '
-        << c->getPosition()[MZ] << ' '
+        out_cons << c->getRT() << ' '
+        << c->getMZ() << ' '
         << c->getIntensity() << ' ';
 
         for (typename ConsensusElementType::Group::const_iterator it = c->begin(); it != c->end(); ++it)
         {
-          out_cons << it->getElement().getPosition()[RT] << ' '
+          out_cons << it->getElement().getRT() << ' '
           << it->getTransformedPosition()[RT] << ' '
-          << it->getElement().getPosition()[MZ] << ' '
+          << it->getElement().getMZ() << ' '
           << it->getTransformedPosition()[MZ] << ' '
           << it->getElement().getIntensity() << ' ';
         }

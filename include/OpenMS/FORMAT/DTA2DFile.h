@@ -195,7 +195,7 @@ namespace OpenMS
 						double mz = strings[mz_dim].toDouble();
 						double intensity = strings[int_dim].toDouble();
 						p.setIntensity(intensity);
-						p.getPosition()[0] = mz;
+						p.setPos(mz);
 						rt = (strings[rt_dim].toDouble()) * (time_in_minutes ? 60.0 : 1.0);
 						
 						if ((options_.hasMZRange() && !options_.getMZRange().encloses(DPosition<1>(mz)))
@@ -252,7 +252,7 @@ namespace OpenMS
 					for (typename MapType::SpectrumType::ConstIterator it = spec->begin(); it != spec->end(); ++it)
 					{
 						// Write rt, m/z and intensity.
-						os 	<< spec->getRetentionTime() << " "<< it->getPosition()[0] << " "<< it->getIntensity() << std::endl;
+						os 	<< spec->getRetentionTime() << " "<< it->getPos() << " "<< it->getIntensity() << std::endl;
 					}
 					
 				}

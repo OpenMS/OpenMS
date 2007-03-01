@@ -88,7 +88,7 @@ namespace OpenMS
 
 			for (Iterator it = spectrum.begin(); it != spectrum.end(); )
 			{
- 				if (marks[it->getPosition()[0]] > 0)
+ 				if (marks[it->getMZ()] > 0)
 				{
 					++it;
 				}

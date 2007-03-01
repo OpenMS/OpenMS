@@ -642,7 +642,7 @@ namespace OpenMS
 				switch (ont)
 				{
 					case MZ_ONT:
-						spec_.getPrecursorPeak().getPosition()[0] = asFloat_(value);
+						spec_.getPrecursorPeak().getPos()[0] = asFloat_(value);
 						break;
 					case CHARGESTATE:
 						spec_.getPrecursorPeak().setCharge(asSignedInt_(value));
@@ -734,7 +734,7 @@ namespace OpenMS
 					{
 						spec_.insert(spec_.end(), PeakType());
 						spec_.back().getIntensity() = intensity;
-						spec_.back().getPosition()[0] = mz;
+						spec_.back().setPos(mz);
 						//read supplemental data for derived classes (do nothing for DPeak)
 						readPeakSupplementalData_(ptrs,spec_.back(),n);
 					}
@@ -832,7 +832,7 @@ namespace OpenMS
 					{
 						const PrecursorPeak& peak = spec.getPrecursorPeak();
 						os << "\t\t\t\t\t\t<ionSelection>\n";
-						writeCVS_(os, peak.getPosition()[0], "1000040", "MassToChargeRatio",7);
+						writeCVS_(os, peak.getPos()[0], "1000040", "MassToChargeRatio",7);
 						writeCVS_(os, peak.getCharge(), "1000041", "ChargeState",7);
 						writeCVS_(os, peak.getIntensity(), "1000042", "Intensity",7);
 						if (peak.metaValueExists("#IntensityUnits"))
@@ -889,7 +889,7 @@ namespace OpenMS
 				// m/z
 				float* tmp = decoder_[0].getFloatBuffer(spec.size());
 				for (UnsignedInt i=0; i<spec.size(); i++)
-					tmp[i] = spec.getContainer()[i].getPosition()[0];
+					tmp[i] = spec.getContainer()[i].getPos()[i];
 				writeBinary_(os,spec.size(),"mzArrayBinary");
 
 				// intensity

@@ -28,7 +28,8 @@
 #define OPENMS_KERNEL_STANDARDTYPES_H
 
 #include <OpenMS/KERNEL/MSExperiment.h>
-#include <OpenMS/KERNEL/DFeatureMap.h>
+#include <OpenMS/KERNEL/FeatureMap.h>
+#include <OpenMS/KERNEL/Peak1D.h>
 
 namespace OpenMS
 {
@@ -50,51 +51,24 @@ namespace OpenMS
 
 	//@{	
 	/**
-		 @brief One-dimensional raw data point
-	 */
-	typedef DRawDataPoint<1,KernelTraits> RawDataPoint;
-
-	/**
-		 @brief Two-dimensional raw data point
-	*/
-	typedef DRawDataPoint<2,KernelTraits> RawDataPoint2D;
-
-	/**
 		 @brief Spectrum consisting of raw data points, with meta information.
 
 		 Meta information includes retention time and MS-level.
 	*/
-	typedef MSSpectrum<RawDataPoint> RawSpectrum;
+	typedef MSSpectrum<RawDataPoint1D> RawSpectrum;
 	/**
 		 @brief Two-dimensional map of raw data points, with meta information about experimental settings.
 	*/
-	typedef MSExperiment<RawDataPoint> RawMap;
+	typedef MSExperiment<RawDataPoint1D> RawMap;
 
-	/**
-		 @brief One-dimensional peak
-	*/
-	typedef DPeak<1, KernelTraits> Peak;
-	/**
-		 @brief Two-dimensional peak
-	*/
-	typedef DPeak<2, KernelTraits> Peak2D;
 	/**
 		 @brief Spectrum consisting of peaks with meta information.
 	*/
-	typedef MSSpectrum<Peak> PeakSpectrum;
+	typedef MSSpectrum<Peak1D> PeakSpectrum;
 	/**
 		 @brief  Two-dimensional map of peaks, with meta information about experimental settings.
 	*/
-	typedef MSExperiment<Peak> PeakMap;
-
-	/**
-		 @brief Two-dimensional feature.
-	*/
-	typedef DFeature<2, KernelTraits> Feature;
-	/**
-		 @brief  Two-dimensional map of features, with meta information about experimental settings.
-	*/
-	typedef DFeatureMap<2, Feature> FeatureMap;
+	typedef MSExperiment<Peak1D> PeakMap;
 	//@}
 
 }

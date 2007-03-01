@@ -56,12 +56,12 @@ namespace OpenMS
     	++it2;
     	for (; it2!=end; ++it,++it2)
     	{
-    		min = std::min(min,it2->getPos()-it->getPos());
-    		if (max < it2->getPos()-it->getPos())
+    		min = std::min(min,it2->getMZ()-it->getMZ());
+    		if (max < it2->getMZ()-it->getMZ())
     		{
     			left = it->getIntensity();
     			right = it2->getIntensity();
-    			max = it2->getPos()-it->getPos();
+    			max = it2->getMZ()-it->getMZ();
     		}
     	}
 

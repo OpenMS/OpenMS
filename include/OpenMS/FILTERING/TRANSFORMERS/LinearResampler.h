@@ -106,19 +106,19 @@ namespace OpenMS
 	      Creates uniform data from the raw data given iterator intervall [first,last) and writes the 
 	      resulting data to the resampled_peak_container.
 	      
-	      @note This method assumes that the InputPeakIterator (e.g. of type MSSpectrum<DRawDataPoint<1> >::const_iterator)
-	            points to a data point of type DRawDataPoint<1> or any other class derived from DRawDataPoint<1>.
+	      @note This method assumes that the InputPeakIterator (e.g. of type MSSpectrum<RawDataPoint1D >::const_iterator)
+	            points to a data point of type RawDataPoint1D or any other class derived from RawDataPoint1D.
 	      
-	            The resulting raw data in the resampled_peak_container (e.g. of type MSSpectrum<DRawDataPoint<1> >)
-	            can be of type DRawDataPoint<1> or any other class derived from DRawDataPoint. 
+	            The resulting raw data in the resampled_peak_container (e.g. of type MSSpectrum<RawDataPoint1D >)
+	            can be of type RawDataPoint1D or any other class derived from RawDataPoint1D. 
 	       
 	            If you use MSSpectrum iterators you have to set the SpectrumSettings by your own.
 	    */
 	    template < typename InputPeakIterator, typename OutputPeakContainer >
 	    void raster(InputPeakIterator first, InputPeakIterator last, OutputPeakContainer& resampled_peak_container)
 	    {
-	        double end_pos = (last-1)->getPos();
-	        double start_pos = first->getPos();
+	        double end_pos = (last-1)->getMZ();
+	        double start_pos = first->getMZ();
 	        int number_raw_points = distance(first,last);
 	        int number_resampled_points = (int)(ceil((end_pos -start_pos) / spacing_ + 1));
 	
@@ -128,7 +128,7 @@ namespace OpenMS
 	        typename OutputPeakContainer::iterator it = resampled_peak_container.begin();
 	        for (int i=0; i < number_resampled_points; ++i)
 	        {
-	            it->getPos() = start_pos + i*spacing_;
+	            it->getMZ() = start_pos + i*spacing_;
 	            ++it;
 	        }
 	
@@ -142,7 +142,7 @@ namespace OpenMS
 	        it = resampled_peak_container.begin();
 	        for (int i=0; i < number_raw_points ; ++i)
 	        {
-	            left_index = (int)floor(((first+i)->getPos() - start_pos) / spacing_);
+	            left_index = (int)floor(((first+i)->getMZ() - start_pos) / spacing_);
 	           // std::cout << "Left index " << left_index << std::endl;
 	            right_index = left_index + 1;
 //							std::cout << "Right index " << right_index << std::endl;
@@ -152,10 +152,10 @@ namespace OpenMS
 //												<< " Start pos " << start_pos << " End position " << end_pos << std::endl;
 //	
 	            // compute the distance between x and the left adjacent resampled peak
-	            distance_left = fabs((first+i)->getPos() - (it + left_index)->getPos()) / spacing_;
+	            distance_left = fabs((first+i)->getMZ() - (it + left_index)->getMZ()) / spacing_;
 	           // std::cout << "Distance left " << distance_left << std::endl;
 	            // compute the distance between x and the right adjacent resampled peak
-	            distance_right = fabs((first+i)->getPos() - (it + right_index)->getPos());
+	            distance_right = fabs((first+i)->getMZ() - (it + right_index)->getMZ());
 	            //std::cout << "Distance right " << distance_right << std::endl;
 	
 	            // add the distance_right*h to the left resampled peak and distance_left*h to the right resampled peak
@@ -167,14 +167,14 @@ namespace OpenMS
 	
 	    /** @brief Applies the resampling algorithm to a raw data point container.
 	
-	      Creates uniform data from the raw data in the input container (e.g. of type MSSpectrum<DRawDataPoint<1> >) and writes the 
+	      Creates uniform data from the raw data in the input container (e.g. of type MSSpectrum<RawDataPoint1D >) and writes the 
 	      resulting data to the resampled_peak_container.
 	      
-	      @note This method assumes that the InputPeakIterator (e.g. of type MSSpectrum<DRawDataPoint<1> >::const_iterator)
-	            points to a data point of type DRawDataPoint<1> or any other class derived from DRawDataPoint<1>.
+	      @note This method assumes that the InputPeakIterator (e.g. of type MSSpectrum<RawDataPoint1D >::const_iterator)
+	            points to a data point of type RawDataPoint1D or any other class derived from RawDataPoint1D.
 	      
-	            The resulting raw data in the resampled_peak_container (e.g. of type MSSpectrum<DRawDataPoint<1> >)
-	            can be of type DRawDataPoint<1> or any other class derived from DRawDataPoint. 
+	            The resulting raw data in the resampled_peak_container (e.g. of type MSSpectrum<RawDataPoint1D >)
+	            can be of type RawDataPoint1D or any other class derived from RawDataPoint1D. 
 	       
 	            If you use MSSpectrum iterators you have to set the SpectrumSettings by your own.
 	       */
@@ -191,8 +191,8 @@ namespace OpenMS
 	    Rasters the raw data successive in every scan in the intervall [first,last).
 	    The resampled data are stored in a MSExperiment.
 	    		
-	    @note The InputSpectrumIterator should point to a MSSpectrum. Elements of the input spectren should be of type DRawDataPoint<1> 
-	           or any other derived class of DRawDataPoint.
+	    @note The InputSpectrumIterator should point to a MSSpectrum. Elements of the input spectren should be of type RawDataPoint1D 
+	           or any other derived class of RawDataPoint1D.
 	
 	     @note You have to copy the ExperimentalSettings of the raw data on your own. 	
 	    */
@@ -236,8 +236,8 @@ namespace OpenMS
 	    Rasters the raw data of every scan in the MSExperiment.
 	    The resampled data are stored in a MSExperiment.	
 	    				
-	    @note The InputSpectrumIterator should point to a MSSpectrum. Elements of the input spectren should be of type DRawDataPoint<1> 
-	             or any other derived class of DRawDataPoint.
+	    @note The InputSpectrumIterator should point to a MSSpectrum. Elements of the input spectren should be of type RawDataPoint1D 
+	             or any other derived class of RawDataPoint1D.
 	    */
 	    template <typename InputPeakType, typename OutputPeakType >
 	    void rasterExperiment(const MSExperiment< InputPeakType >& ms_exp_raw,

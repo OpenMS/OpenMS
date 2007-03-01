@@ -225,7 +225,7 @@ public:
       {
         for (UnsignedInt dim=0; dim<D; ++dim)
         {
-          peak.getPosition()[dim] = samples[dim][ i[dim] ].getPosition()[0];
+          peak.getPos()[dim] = samples[dim][ i[dim] ].getPos()[0];
         }
         fillIntensity(peak);
         cont.push_back(peak);

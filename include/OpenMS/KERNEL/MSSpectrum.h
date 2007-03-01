@@ -29,6 +29,7 @@
 
 #include <OpenMS/KERNEL/DSpectrum.h>
 #include <OpenMS/KERNEL/DPeakArray.h>
+#include <OpenMS/KERNEL/Peak1D.h>
 #include <OpenMS/METADATA/SpectrumSettings.h>
 #include <OpenMS/FORMAT/PersistentObject.h>
 
@@ -53,7 +54,7 @@ namespace OpenMS
 
 		 @ingroup Kernel
 	*/
-	template <typename PeakT = DPeak<1> >
+	template <typename PeakT = Peak1D >
 	class MSSpectrum
 		: public DSpectrum<1, DPeakArray<1, PeakT> >,
 			public SpectrumSettings,

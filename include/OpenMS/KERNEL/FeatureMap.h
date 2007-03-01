@@ -24,11 +24,11 @@
 // $Maintainer: Ole Schulz-Trieglaff $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_KERNEL_DFEATUREMAP_H
-#define OPENMS_KERNEL_DFEATUREMAP_H
+#ifndef OPENMS_KERNEL_FEATUREMAP_H
+#define OPENMS_KERNEL_FEATUREMAP_H
 
 #include <OpenMS/config.h>
-#include <OpenMS/KERNEL/DFeature.h>
+#include <OpenMS/KERNEL/Feature.h>
 #include <OpenMS/METADATA/ExperimentalSettings.h>
 #include <OpenMS/DATASTRUCTURES/RangeManager.h>
 
@@ -41,21 +41,19 @@ namespace OpenMS
 	/**	
 		@brief A container for (composite) features.
 		
-		A map is a container holding D-dimensional features,
+		A map is a container holding 2-dimensional features,
 		which in turn represent chemical entities (peptides, proteins, etc.) found
-		in a D-dimensional experiment.
+		in a 2-dimensional experiment.
 		Maps are implemented as vectors of features and have basically the same interface
 		as an STL vector has (model of Random Access Container and Back Insertion Sequence).
 		Maps are typically created from peak data of 2D runs through the FeatureFinder.
-				
-		@todo post-release: derive Dimension D from FeatureT and thus eliminate 1st template argument (Marcel)
-
+		
 		@ingroup Kernel, Serialization
 	*/
-	template <Size D, typename FeatureT = DFeature<D> >
-	class DFeatureMap
+	template <typename FeatureT = Feature >
+	class FeatureMap
 		: public std::vector<FeatureT>,
-			public RangeManager<D, typename FeatureT::TraitsType>,
+			public RangeManager<2>,
 			public ExperimentalSettings
 	{
 	 public:
@@ -63,9 +61,8 @@ namespace OpenMS
 				 @name Type definitions
 			*/
 			//@{
-			typedef typename FeatureT::TraitsType TraitsType;
 			typedef FeatureT FeatureType;
-			typedef RangeManager<D, TraitsType> RangeManagerType;
+			typedef RangeManager<2> RangeManagerType;
 			typedef std::vector<FeatureType> Base;
 			typedef typename Base::iterator Iterator;
 			typedef typename Base::const_iterator ConstIterator;
@@ -75,16 +72,13 @@ namespace OpenMS
 			typedef const FeatureType& ConstReference;
 	
 			//@}
-		
-    enum { DIMENSION = FeatureType::DIMENSION };
-		
 			/**	
 				 @name Constructors and Destructor
 			*/
 			//@{
 			
 			/// Default constructor
-			DFeatureMap()
+			FeatureMap()
 				: Base(),
 					RangeManagerType(),
 					ExperimentalSettings()
@@ -93,7 +87,7 @@ namespace OpenMS
 			}
 			
 			/// Copy constructor
-			DFeatureMap(const DFeatureMap& map) 
+			FeatureMap(const FeatureMap& map) 
 				: Base(map),
 					RangeManagerType(map),
 					ExperimentalSettings(map)
@@ -102,7 +96,7 @@ namespace OpenMS
 			}
 			
 			/// Destructor
-			virtual ~DFeatureMap()
+			virtual ~FeatureMap()
 			{
 				
 			}
@@ -110,7 +104,7 @@ namespace OpenMS
 			//@}
 				
 			/// Assignment operator
-			DFeatureMap& operator = (const DFeatureMap& rhs)
+			FeatureMap& operator = (const FeatureMap& rhs)
 			{
 				if (&rhs==this) return *this;
 					
@@ -122,7 +116,7 @@ namespace OpenMS
 			}
 	
 			/// Equality operator
-			bool operator == (const DFeatureMap& rhs) const
+			bool operator == (const FeatureMap& rhs) const
 			{
 				return
 					std::operator==(*this, rhs) &&
@@ -132,7 +126,7 @@ namespace OpenMS
 			}
 				
 			/// Equality operator
-			bool operator != (const DFeatureMap& rhs) const
+			bool operator != (const FeatureMap& rhs) const
 			{
 				return !(operator==(rhs));
 			}
@@ -140,14 +134,14 @@ namespace OpenMS
 			/** @brief Sort features by intensity. */
 			void sortByIntensity() 
 			{ 
-				typename DFeatureMap<D>::iterator beg = this->begin();
-				typename DFeatureMap<D>::iterator ed  = this->end();
+				typename FeatureMap::iterator beg = this->begin();
+				typename FeatureMap::iterator ed  = this->end();
 				std::sort(beg, ed, typename FeatureType::IntensityLess() ); 
 			}
 				
 			/** @brief Sort features by position.
 				
-				Lexicographical sorting from dimention 0 to dimension D is performed.			
+				Lexicographical sorting from dimention 0 to dimension 1 is performed.			
 			*/
 			void sortByPosition() 
 			{ 
@@ -162,8 +156,8 @@ namespace OpenMS
 				
 			void sortByOverallQuality()
 			{
-				typename DFeatureMap<D>::iterator beg = this->begin();
-				typename DFeatureMap<D>::iterator ed  = this->end();
+				typename FeatureMap::iterator beg = this->begin();
+				typename FeatureMap::iterator ed  = this->end();
 				std::sort(beg, ed, typename FeatureType::OverallQualityLess() ); 
 			}
 	
@@ -171,7 +165,7 @@ namespace OpenMS
 			template<class Archive>
 			void serialize(Archive & ar, const unsigned int /* version */ )
 			{
-				ar & boost::serialization::make_nvp("vector",boost::serialization::base_object<std::vector<FeatureT> >(*this));
+				ar & boost::serialization::make_nvp("vector",boost::serialization::base_object<std::vector<FeatureType> >(*this));
 				// TODO: serialization of base object ExperimentalSettings
 			}
 			/// Serialization
@@ -186,12 +180,12 @@ namespace OpenMS
 	};
 	
 	/// Print content of a feature map to a stream.
-	template <Size D, typename FeatureType >
-	std::ostream& operator << (std::ostream& os, const DFeatureMap<D, FeatureType>& map)
+	template <typename FeatureType >
+	std::ostream& operator << (std::ostream& os, const FeatureMap<FeatureType>& map)
 	{
 		os << "# -- DFEATUREMAP BEGIN --"<< std::endl;
 		os << "# POSITION \tINTENSITY\tOVERALLQUALITY\tCHARGE" << std::endl; 
-		for (typename DFeatureMap<D>::const_iterator iter = map.begin(); iter!=map.end(); iter++)
+		for (typename FeatureMap<FeatureType>::const_iterator iter = map.begin(); iter!=map.end(); iter++)
 		{
 			os << iter->getPosition() << '\t'
 				 << iter->getIntensity() << '\t'
@@ -203,10 +197,9 @@ namespace OpenMS
 		return os;
 	}
 	
-	template <Size D, typename FeatureType > 
-	void DFeatureMap<D,FeatureType>::sortByNthPosition(UnsignedInt i) throw (Exception::NotImplemented)
+	template <typename FeatureType > 
+	void FeatureMap<FeatureType>::sortByNthPosition(UnsignedInt i) throw (Exception::NotImplemented)
 	{ 
-		OPENMS_PRECONDITION(i < Index(D), "illegal dimension")
 		if (i==0)
 		{
 			std::sort(Base::begin(), Base::end(), typename FeatureType::template NthPositionLess<0>() );
@@ -214,10 +207,6 @@ namespace OpenMS
 		else if (i==1)
 		{
 			std::sort(Base::begin(), Base::end(), typename FeatureType::template NthPositionLess<1>() );
-		}
-		else if (i==2)
-		{
-			std::sort(Base::begin(), Base::end(), typename FeatureType::template NthPositionLess<2>() );
 		}
 		else
 		{

@@ -76,7 +76,7 @@ namespace OpenMS
 
 		private:
 			
-			Peak p_;
+			Peak1D p_;
 		};
 }
 

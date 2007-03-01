@@ -24,62 +24,70 @@
 // $Maintainer: Marc Sturm $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_KERNEL_DRAWDATAPOINT_H
-#define OPENMS_KERNEL_DRAWDATAPOINT_H
+#ifndef OPENMS_KERNEL_RAWDATAPOINT2D_H
+#define OPENMS_KERNEL_RAWDATAPOINT2D_H
 
+#include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/DATASTRUCTURES/DPosition.h>
 
-#include <sstream>
+#include <ostream>
+#include <functional>
 
 namespace OpenMS
 {
 
 	/**
-		@brief	D-dimensional raw data point.
+		@brief	2-dimensional raw data point.
 	 
-		This datastructure is intended for continous data.
-		If you want to handle picked data use DPeak or DPickedPeak.
+		This datastructure is intended for continuous data.
+		If you want to handle picked data use Peak2D or PickedPeak2D.
 
 		@ingroup Kernel, Serialization
 	*/
-	template <Size D, typename Traits = KernelTraits>
-	class DRawDataPoint 	
+	class RawDataPoint2D
 	{
 	 public:
 		
 		/** @name Type definitions
 		 */
 		//@{
-		/// Number of dimenstions
-		enum { DIMENSION = D };
-		/// Traits types
-		typedef Traits TraitsType;
-		/// Intensity type
-		typedef typename Traits::IntensityType IntensityType;
-		/// Coordinate type (of the position)
-		typedef typename Traits::CoordinateType CoordinateType;
+		/// Dimension
+    enum { DIMENSION = 2 };
+    /// Intensity type
+    typedef DoubleReal IntensityType;
+    /// Coordinate type (of the position)
+		typedef DoubleReal CoordinateType;
 		/// Position type
-		typedef DPosition<D, Traits> PositionType;
-		//@}
+		typedef DPosition<2> PositionType;
+    //@}
 
 		/** @name Constructors and Destructor
 		 */
 		//@{
 		/// Default constructor
-		DRawDataPoint() : position_(), intensity_(0) {}
+		RawDataPoint2D() 
+      : position_(), 
+        intensity_(0) 
+    {
+    }
 		/// Copy constructor
-		DRawDataPoint(const DRawDataPoint& p) 
-			: position_(p.position_), intensity_(p.intensity_)
-		{}
-		/**@brief Destructor
+		RawDataPoint2D(const RawDataPoint2D& p) 
+			: position_(p.position_), 
+        intensity_(p.intensity_)
+		{
+    }
+		
+    /**@brief Destructor
 
-		\note The destructor is non-virtual although many classes are derived from
-		  DRawDataPoint.  This is intentional, since otherwise we would "waste"
-		  space for a vtable pointer in each instance - but DRawDataPoints are
+		  @note The destructor is non-virtual although many classes are derived from
+		  RawDataPoint2D.  This is intentional, since otherwise we would "waste"
+		  space for a vtable pointer in each instance - but RawDataPoint2Ds are
 		  used in great amounts for storing raw data. Normally you should not derive other classes from
-		  DRawDataPoint (unless you know what you are doing, of course).
+		  RawDataPoint2D (unless you know what you are doing, of course).
 		*/
-		~DRawDataPoint() {}
+		~RawDataPoint2D()
+    {
+    }
 		//@}
 		
 		/**	
@@ -93,17 +101,48 @@ namespace OpenMS
 		/// Non-mutable access to the data point intensity (height)
 		void setIntensity(const IntensityType& intensity) { intensity_ = intensity; }
 
-		/// Non-mutable access to the data point position (multidimensional)
-		const PositionType& getPos() const { return position_; }
-		/// Mutable access to the data point position (multidimensional)
-		PositionType& getPos() { return position_; }
-		/// Mutable access to the data point position (multidimensional)
-		void setPos(PositionType const& position) { position_ = position; }
+		/// Non-mutable access to the position
+		PositionType const & getPos() const 
+    { 
+      return position_; 
+    }
+		/// Mutable access to the position
+		PositionType& getPos() 
+    {
+      return position_; 
+    }
+		/// Mutable access to the position
+		void setPos(const PositionType& position) 
+    { 
+      position_ = position; 
+    }
 
+    /// Returns the m/z coordinate (index 1)
+    CoordinateType const & getMZ() const 
+    { 
+      return position_[1]; 
+    }
+    /// Mutable access to the m/z coordinate (index 1)
+    void setMZ(const CoordinateType& coordinate) 
+    { 
+      position_[1] = coordinate; 
+    }
+
+    /// Returns the RT coordinate (index 0)
+    CoordinateType const & getRT() const 
+    { 
+      return position_[0]; 
+    }
+    /// Mutable access to the RT coordinate (index 0)
+    void setRT(const CoordinateType& coordinate) 
+    { 
+      position_[0] = coordinate; 
+    }
+    
 		//@}
 
 		/// Assignment operator
-		DRawDataPoint& operator = (const DRawDataPoint& rhs)
+		RawDataPoint2D& operator = (const RawDataPoint2D& rhs)
 		{
 			if (this==&rhs) return *this;
 			
@@ -114,13 +153,13 @@ namespace OpenMS
 		}
 		
 		/// Equality operator
-		bool operator == (const DRawDataPoint& rhs) const
+		bool operator == (const RawDataPoint2D& rhs) const
 		{
 			return  intensity_ == rhs.intensity_ && position_ == rhs.position_ ;
 		}
 
 		/// Equality operator
-		bool operator != (const DRawDataPoint& rhs) const
+		bool operator != (const RawDataPoint2D& rhs) const
 		{
 			return !( operator==(rhs) );
 		}
@@ -135,17 +174,17 @@ namespace OpenMS
 
 		/// Compare by getIntensity()
 		struct IntensityLess
-			: std::binary_function < DRawDataPoint, DRawDataPoint, bool >
+			: std::binary_function < RawDataPoint2D, RawDataPoint2D, bool >
 		{
-			inline bool operator () ( DRawDataPoint const & left, DRawDataPoint const & right ) const
+			inline bool operator () ( RawDataPoint2D const & left, RawDataPoint2D const & right ) const
 			{
 				return ( left.getIntensity() < right.getIntensity() );
 			}
-			inline bool operator () ( DRawDataPoint const & left, IntensityType const & right ) const
+			inline bool operator () ( RawDataPoint2D const & left, IntensityType const & right ) const
 			{
 				return ( left.getIntensity() < right );
 			}
-			inline bool operator () ( IntensityType const & left, DRawDataPoint const & right ) const
+			inline bool operator () ( IntensityType const & left, RawDataPoint2D const & right ) const
 			{
 				return ( left< right.getIntensity() );
 			}
@@ -156,28 +195,28 @@ namespace OpenMS
 		};
 		
 		/**
-			@brief Comparator for the i-th coordinate of the position.
+			@brief Comparator for the n-th coordinate of the position.
 		*/
 		template <UnsignedInt i>
 		struct NthPositionLess
-			: std::binary_function <DRawDataPoint, DRawDataPoint, bool>
+			: std::binary_function <RawDataPoint2D, RawDataPoint2D, bool>
 		{
 			enum { DIMENSION = i };
 			
-			/// comparison of two DRawDataPoints
-			inline bool operator () ( DRawDataPoint const & left, DRawDataPoint const & right ) const throw()
+			/// comparison of two RawDataPoint2Ds
+			inline bool operator () ( RawDataPoint2D const & left, RawDataPoint2D const & right ) const throw()
 			{
 				return (left.getPos()[i] < right.getPos()[i]);
 			}
 			
-			/// comparison of a DRawDataPoint with a CoordinateType
-			inline bool operator () ( DRawDataPoint const & left, CoordinateType const & right ) const throw()
+			/// comparison of a RawDataPoint2D with a CoordinateType
+			inline bool operator () ( RawDataPoint2D const & left, CoordinateType const & right ) const throw()
 			{
 				return (left.getPos()[i] < right );
 			}
 			
-			/// comparison of a CoordinateType with a DRawDataPoint
-			inline bool operator () ( CoordinateType const & left, DRawDataPoint const & right ) const throw()
+			/// comparison of a CoordinateType with a RawDataPoint2D
+			inline bool operator () ( CoordinateType const & left, RawDataPoint2D const & right ) const throw()
 			{
 				return (left < right.getPos()[i] );
 			}
@@ -201,9 +240,9 @@ namespace OpenMS
 			Lexicographical comparison from dimension 0 to dimension D-1 is done.
 		*/
 		struct PositionLess
-			: public std::binary_function <DRawDataPoint, DRawDataPoint, bool>
+			: public std::binary_function <RawDataPoint2D, RawDataPoint2D, bool>
 		{
-			inline bool operator () (const DRawDataPoint& a, const DRawDataPoint& b) const
+			inline bool operator () (const RawDataPoint2D& a, const RawDataPoint2D& b) const
 			{
 				return (a.getPos() < b.getPos());
 			}
@@ -236,13 +275,7 @@ namespace OpenMS
 	};
 
 	///Print the contents to a stream.
-	template <Size D, class Traits>
-	std::ostream& operator << (std::ostream& os, const DRawDataPoint<D, Traits>& point)
-	{
-		os << "POS: "<< point.getPos() << " INT: "<<point.getIntensity();
-		
-		return os;
-	}
+	std::ostream& operator << (std::ostream& os, const RawDataPoint2D& point);
 
 } // namespace OpenMS
 

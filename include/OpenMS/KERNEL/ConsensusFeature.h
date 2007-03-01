@@ -28,7 +28,7 @@
 #define OPENMS_KERNEL_CONSENSUSFEATURE_H
 
 #include <OpenMS/KERNEL/KernelTraits.h>
-#include <OpenMS/KERNEL/DFeatureMap.h>
+#include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/DATASTRUCTURES/DRange.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/Group.h>
 
@@ -42,26 +42,26 @@ namespace OpenMS
     
     @ingroup Kernel, Serialization
   */
-  template < typename ContainerT = DFeatureMap< 2, DFeature<2, KernelTraits > > >
-  class ConsensusFeature :  public DFeature< 2, KernelTraits >,
-        public Group< ContainerT >
+  template < typename ContainerT = FeatureMap< > >
+  class ConsensusFeature :  	
+    public Feature,
+    public Group< ContainerT >
   {
     public:
       /**
         @name Type definitions
       */
       //@{
-      typedef DFeature< 2, KernelTraits > BaseElementType;
+      typedef Feature BaseElementType;
       typedef ContainerT ElementContainerType;
       typedef typename ElementContainerType::value_type ElementType;
       typedef Group< ElementContainerType > Group;
 
-      typedef typename ElementType::TraitsType TraitsType;
-      typedef DPosition < 2, TraitsType > PositionType;
-      typedef typename TraitsType::IntensityType IntensityType;
+      typedef DPosition < 2> PositionType;
+      typedef DoubleReal IntensityType;
       typedef IndexTuple< ElementContainerType > IndexTuple;
-      typedef DRange<2, TraitsType> PositionBoundingBoxType;
-      typedef DRange<1, TraitsType> IntensityBoundingBoxType;
+      typedef DRange<2> PositionBoundingBoxType;
+      typedef DRange<1> IntensityBoundingBoxType;
       //@}
 
 
@@ -83,7 +83,7 @@ namespace OpenMS
           position_range_(),
           intensity_range_()
       {
-        this->getPosition() = pos;
+        this->getPos() = pos;
         this->getIntensity() = i;
       }
 
@@ -93,16 +93,16 @@ namespace OpenMS
         try
         {
           IndexTuple i(map_index,feature_index,feature);
-          i.setTransformedPosition(feature.getPosition());
+          i.setTransformedPosition(feature.getPos());
           this->insert(i);
         }
         catch(Exception::InvalidValue)
         {}
 
-        this->getPosition() = feature.getPosition();
+        this->getPos() = feature.getPos();
         this->getIntensity() = feature.getIntensity();
         
-        position_range_.setMinMax(feature.getPosition(),feature.getPosition());
+        position_range_.setMinMax(feature.getPos(),feature.getPos());
         intensity_range_.setMinMax(feature.getIntensity(),feature.getIntensity());
       }
 
@@ -113,10 +113,10 @@ namespace OpenMS
         try
         {
           IndexTuple i1(map_1_index,feature_index_1, feature_1);
-          i1.setTransformedPosition(feature_1.getPosition());
+          i1.setTransformedPosition(feature_1.getPos());
           this->insert(i1);
           IndexTuple i2(map_2_index,feature_index_2, feature_2);
-          i2.setTransformedPosition(feature_2.getPosition());
+          i2.setTransformedPosition(feature_2.getPos());
           this->insert(i2);
         }
         catch(Exception::InvalidValue)
@@ -130,7 +130,7 @@ namespace OpenMS
       {
         Group::operator=(c_feature);
         IndexTuple i(map_index,feature_index,feature);
-        i.setTransformedPosition(feature.getPosition());
+        i.setTransformedPosition(feature.getPos());
         this->insert(i);
 
         computeConsensus_();
@@ -295,7 +295,7 @@ namespace OpenMS
   std::ostream& operator << (std::ostream& os, const ConsensusFeature<ContainerT>& cons)
   {
     os << "---------- CONSENSUS ELEMENT BEGIN -----------------\n";
-    os << "Position: " << cons.getPosition()<< std::endl;
+    os << "Position: " << cons.getPos()<< std::endl;
     os << "Intensity " << cons.getIntensity() << std::endl;
     os << "Position range " << cons.getPositionRange() << std::endl;
     os << "Intensity range " << cons.getIntensityRange() << std::endl;

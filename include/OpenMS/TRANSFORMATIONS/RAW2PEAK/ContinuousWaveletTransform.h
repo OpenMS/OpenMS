@@ -28,7 +28,7 @@
 #define OPENMS_TRANSFORMATIONS_RAW2PEAK_CONTINUOUSWAVELETTRANSFORM_H
 
 #include <OpenMS/KERNEL/DPeakArray.h>
-#include <OpenMS/KERNEL/DRawDataPoint.h>
+#include <OpenMS/KERNEL/RawDataPoint1D.h>
 
 #include <vector>
 #include <iostream>
@@ -42,7 +42,7 @@ class ContinuousWaveletTransform
 {
 public:
     /// Raw data const iterator type
-    typedef std::vector<DRawDataPoint<1> >::const_iterator RawDataPointConstIterator;
+    typedef std::vector<RawDataPoint1D >::const_iterator RawDataPointConstIterator;
 
 
     /// Constructor
@@ -51,8 +51,7 @@ public:
             spacing_(0),
             signal_length_(0),
             end_left_padding_(0),
-            begin_right_padding_(0),
-            mz_dim_(0)
+            begin_right_padding_(0)
     {}
 
     /// Copy constructor
@@ -63,8 +62,7 @@ public:
             spacing_(cwt.spacing_),
             signal_length_(cwt.signal_length_),
             end_left_padding_(cwt.end_left_padding_),
-            begin_right_padding_(cwt.begin_right_padding_),
-            mz_dim_(cwt.mz_dim_)
+            begin_right_padding_(cwt.begin_right_padding_)
     {}
 
     /// Destructor.
@@ -87,23 +85,22 @@ public:
         signal_length_=cwt.signal_length_;
         end_left_padding_=cwt.end_left_padding_;
         begin_right_padding_=cwt.begin_right_padding_;
-        mz_dim_ = cwt.mz_dim_;
 
         return *this;
     }
 
     /// Non-mutable access to the wavelet transform of the signal
-    inline const DPeakArray<1, DRawDataPoint<1> >& getSignal() const
+    inline const DPeakArray<1, RawDataPoint1D >& getSignal() const
     {
         return signal_;
     }
     /// Mutable access to the wavelet transform of the signal
-    inline DPeakArray<1, DRawDataPoint<1> >& getSignal()
+    inline DPeakArray<1, RawDataPoint1D >& getSignal()
     {
         return signal_;
     }
     /// Mutable access to the wavelet transform of the signal
-    inline void setSignal(const DPeakArray<1, DRawDataPoint<1> >& signal)
+    inline void setSignal(const DPeakArray<1, RawDataPoint1D >& signal)
     {
         signal_ = signal;
     }
@@ -232,8 +229,8 @@ public:
 		double getInterpolatedValue_(double x, InputPeakIterator it_left)
 		{
     	// Interpolate between the point to the left and the point to the right.
-    	double left_position = it_left->getPosition()[mz_dim_];
-    	double right_position = (it_left+1)->getPosition()[mz_dim_];
+    	double left_position = it_left->getMZ();
+    	double right_position = (it_left+1)->getMZ();
     	double d=(x-left_position)/(right_position-left_position);
 
     	return ((it_left+1)->getIntensity()*d+it_left->getIntensity()*(1-d));
@@ -243,7 +240,7 @@ public:
 
 protected:
     /// The transformed signal
-    DPeakArray<1, DRawDataPoint<1> > signal_;
+    DPeakArray<1, RawDataPoint1D > signal_;
 
     /// The pretabulated wavelet used for the transform
     std::vector<double> wavelet_;
@@ -258,9 +255,6 @@ protected:
     /// have to store their positions.
     int end_left_padding_;
     int begin_right_padding_;
-
-    /// The index of the mass to charge dimension
-    unsigned int mz_dim_;
 
     /// Computes the interpolated value at position x (mz) given the iterator it_left, which points
     /// to the left neighbour raw data point of x in the original data

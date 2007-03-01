@@ -29,7 +29,7 @@
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/DFeaturePairVector.h>
 #include <OpenMS/KERNEL/DimensionDescription.h>
-#include <OpenMS/KERNEL/DFeatureMap.h>
+#include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/KernelTraits.h>
 #include <OpenMS/CONCEPT/FactoryProduct.h>
 #include <OpenMS/DATASTRUCTURES/QuadTree.h>
@@ -69,8 +69,8 @@ namespace OpenMS
 			*/
 			//@{	
 			///
-			typedef DFeature<2> FeatureType;
-			typedef DFeatureMap<2> FeatureMapType;
+			typedef Feature FeatureType;
+			typedef FeatureMap<> FeatureMapType;
 			typedef DFeaturePair<2> PairType;
 			typedef DFeaturePairVector<2> PairVectorType;
 			typedef QuadTree< KernelTraits, FeatureType > QuadTreeType;

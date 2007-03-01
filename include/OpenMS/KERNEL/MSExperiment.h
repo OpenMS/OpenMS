@@ -54,10 +54,10 @@ namespace OpenMS
 				
 		@ingroup Kernel
 	*/
-	template <typename PeakT = DPeak<1> >
+	template <typename PeakT = Peak1D >
 	class MSExperiment
 	  : public std::vector<MSSpectrum<PeakT> >,
-			public RangeManager<2, typename PeakT::TraitsType>,
+			public RangeManager<2>,
 			public ExperimentalSettings,
 			public PersistentObject
 	{
@@ -78,16 +78,14 @@ namespace OpenMS
 	
 	    /// Peak type
 	    typedef PeakT PeakType;
-	    /// Traits types
-	    typedef typename PeakType::TraitsType TraitsType;
 	    /// Area type
-	    typedef DRange<2, TraitsType> AreaType;
+	    typedef DRange<2> AreaType;
 	    /// Coordinate type of peak positions
-	    typedef typename TraitsType::CoordinateType CoordinateType;
+	    typedef DoubleReal CoordinateType;
 	    /// Intenstiy type of peaks
-	    typedef typename TraitsType::IntensityType IntensityType;
+	    typedef DoubleReal IntensityType;
 	    /// RangeManager type
-	    typedef RangeManager<2, TraitsType> RangeManagerType;
+	    typedef RangeManager<2> RangeManagerType;
 			/// const peak reference type
 			typedef typename SpectrumType::const_reference ConstPeakReference;
 			/// peak reference type
@@ -153,15 +151,12 @@ namespace OpenMS
 	    /**
 	    	@brief Reads out a 2D Spectrum
 	      	
-	      	Container is a DPeakArray<2> or a STL container of DPeak<2> 
+	      	Container is a DPeakArray<2> or a STL container of Peak2D 
 	      	or DRawDataPoint<2> which supports insert(), end() and back()
 	    */
 	    template <class Container>
 	    void get2DData(Container& cont) const
 	    {
-        const int MZ = DimensionDescription < LCMS_Tag >::MZ;
-        const int RT = DimensionDescription < LCMS_Tag >::RT;
-
         for (typename Base_::const_iterator spec = Base_::begin(); spec != Base_::end(); ++spec)
         {
           if (spec->getMSLevel()!=1)
@@ -174,9 +169,9 @@ namespace OpenMS
             ++it)
           {
             cont.insert(cont.end(), typename Container::value_type());
-            cont.back().getPosition()[RT] = spec->getRetentionTime();
+            cont.back().setRT(spec->getRetentionTime());
             cont.back().setIntensity(it->getIntensity());
-            cont.back().getPosition()[MZ] = it->getPosition()[0];
+            cont.back().setMZ(it->getMZ());
           }
         }
 	    }
@@ -184,7 +179,7 @@ namespace OpenMS
 	    /**
 	    	@brief Assignment of a 2D spectrum to MSExperiment
 	    	  	
-	    	Container is a DPeakArray<2> or a STL container of DPeak<2> or DRawDataPoint<2>
+	    	Container is a DPeakArray<2> or a STL container of Peak2D or DRawDataPoint<2>
 	    	
 	    	@note The container has to be sorted according to retention time. Otherwise a Precondition exception is thrown.
 	    */
@@ -195,21 +190,18 @@ namespace OpenMS
 				// If the container is empty, nothing will happen
 				if (cont.size() == 0) return;
 	
-				const int MZ = DimensionDescription < LCMS_Tag >::MZ;
-				const int RT = DimensionDescription < LCMS_Tag >::RT;
-	
 				typename PeakType::CoordinateType current_rt = - std::numeric_limits<typename PeakType::CoordinateType>::max();
 	
 				for (typename Container::const_iterator iter = cont.begin(); iter != cont.end(); ++iter)
 				{
 					// check if the retention time time has changed
-					if (current_rt != iter->getPosition()[RT] || spectrum == 0)
+					if (current_rt != iter->getRT() || spectrum == 0)
 					{
-						if (current_rt > iter->getPosition()[RT])
+						if (current_rt > iter->getRT())
 						{
 							throw Exception::Precondition(__FILE__, __LINE__, __PRETTY_FUNCTION__,"Input container is not sorted!");
 						}
-						current_rt =  iter->getPosition()[RT];
+						current_rt =  iter->getRT();
 						Base_::insert(Base_::end(),SpectrumType());
 						spectrum = &(Base_::back());
 						spectrum->setRetentionTime(current_rt);
@@ -219,7 +211,7 @@ namespace OpenMS
 					// create temporary peak and insert it into spectrum
 					spectrum->insert(spectrum->end(), PeakType());
 					spectrum->back().setIntensity(iter->getIntensity());
-					spectrum->back().getPosition()[0] = iter->getPosition()[MZ];
+					spectrum->back().setPos(iter->getMZ());
 				}
 	    }
 

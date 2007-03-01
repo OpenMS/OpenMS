@@ -45,7 +45,7 @@ namespace OpenMS
     If you for example want to sort the elements of a constant container, you have to copy the whole container.
     To avoid copy actions this class only holds pointer to the constant elements of a container. 
     It behaves like a DPeakArray. You can insert new elements, but it is not possible to change existing ones.
-    (E.g. generating a DPeakConstReferenceArray pointer_array of a DFeatureMap feature_map is done by:
+    (E.g. generating a DPeakConstReferenceArray pointer_array of a FeatureMap feature_map is done by:
     pointer_array(feature_map.begin(),feature_map.end()))
     
     @ingroup Kernel, Serialization
@@ -349,7 +349,6 @@ namespace OpenMS
     typedef MapT BaseMapType;
     typedef typename BaseMapType::value_type PeakType;
     enum { DIMENSION=PeakType::DIMENSION };
-    typedef typename PeakType::TraitsType TraitsType;
     typedef DPeakConstReferenceArrayIterator<const PeakType> Iterator;
     typedef DPeakConstReferenceArrayConstIterator<const PeakType> ConstIterator;
     typedef std::reverse_iterator<Iterator> ReverseIterator;

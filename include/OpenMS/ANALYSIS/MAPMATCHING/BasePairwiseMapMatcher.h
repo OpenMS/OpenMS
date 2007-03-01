@@ -30,7 +30,7 @@
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/DFeaturePairVector.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/DGrid.h>
-#include <OpenMS/KERNEL/DFeatureMap.h>
+#include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/DimensionDescription.h>
 #include <OpenMS/DATASTRUCTURES/DBoundingBox.h>
 #include <OpenMS/CONCEPT/FactoryProduct.h>
@@ -65,7 +65,7 @@ namespace OpenMS
 		
 		@ingroup Analysis
   */
-  template < typename MapT = DFeatureMap< 2, DFeature< 2, KernelTraits > > >
+  template < typename MapT = FeatureMap< > >
   class BasePairwiseMapMatcher 
   	: public FactoryProduct
   {
@@ -85,9 +85,6 @@ namespace OpenMS
     /// Type of elements considered here
     typedef typename PointMapType::value_type ElementType;
 
-    /// Traits type
-    typedef typename ElementType::TraitsType TraitsType;
-
     /// Type of element pairs
     typedef DFeaturePair < 2, ElementType > ElementPairType;
 
@@ -98,13 +95,13 @@ namespace OpenMS
     typedef DGrid<2> GridType;
 
     /// Position
-    typedef DPosition < 2, TraitsType > PositionType;
+    typedef DPosition < 2 > PositionType;
 
     ///
-    typedef DBoundingBox< 2, TraitsType>  PositionBoundingBoxType;
+    typedef DBoundingBox< 2>  PositionBoundingBoxType;
 
     /// Coordinate
-    typedef typename TraitsType::CoordinateType CoordinateType;
+    typedef DoubleReal CoordinateType;
 
 
     /// Constructor
@@ -214,7 +211,7 @@ namespace OpenMS
             ++fm_iter
           )
       {
-        bounding_box_scene_map_.enlarge(fm_iter->getPosition());
+        bounding_box_scene_map_.enlarge(fm_iter->getPos());
       }
 
       // compute the grid sizes in each dimension
@@ -237,7 +234,7 @@ namespace OpenMS
           CoordinateType y_min = (bounding_box_scene_map_.min())[MZ] + box_size_[MZ]*y_index;
           CoordinateType y_max = (bounding_box_scene_map_.min())[MZ] + box_size_[MZ]*(y_index+1);
 
-          grid_.push_back(DGridCell<2,TraitsType>(x_min, y_min, x_max, y_max));
+          grid_.push_back(DGridCell<2>(x_min, y_min, x_max, y_max));
         }
       }
     } // initGridTransformation_
@@ -290,12 +287,12 @@ namespace OpenMS
   //     {
   //       dump_file << fp << ' '
   //       << getElementPairs()[fp].getQuality() << ' '
-  //       << getElementPairs()[fp].getFirst().getPosition()[RT] << ' '
-  //       << getElementPairs()[fp].getFirst().getPosition()[MZ] << ' '
+  //       << getElementPairs()[fp].getFirst().getRT() << ' '
+  //       << getElementPairs()[fp].getFirst().getMZ() << ' '
   //       << getElementPairs()[fp].getFirst().getIntensity() << ' '
   //       << getElementPairs()[fp].getFirst().getOverallQuality() << ' '
-  //       << getElementPairs()[fp].getSecond().getPosition()[RT] << ' '
-  //       << getElementPairs()[fp].getSecond().getPosition()[MZ] << ' '
+  //       << getElementPairs()[fp].getSecond().getRT() << ' '
+  //       << getElementPairs()[fp].getSecond().getMZ() << ' '
   //       << getElementPairs()[fp].getSecond().getIntensity() << ' '
   //       << getElementPairs()[fp].getSecond().getOverallQuality() << ' '
   //       << std::endl;

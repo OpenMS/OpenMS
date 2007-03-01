@@ -27,7 +27,7 @@
 #ifndef OPENMS_FORMAT_HANDLERS_DFEATUREPAIRSHANDLER_H
 #define OPENMS_FORMAT_HANDLERS_DFEATUREPAIRSHANDLER_H
 
-#include <OpenMS/KERNEL/DFeature.h>
+#include <OpenMS/KERNEL/Feature.h>
 #include <OpenMS/DATASTRUCTURES/DPosition.h>
 #include <OpenMS/FORMAT/UniqueIdGenerator.h>
 #include <OpenMS/FORMAT/HANDLERS/SchemaHandler.h>
@@ -53,7 +53,7 @@ namespace OpenMS
 
 	/** @brief XML Handler for a DFeaturePairVector
 	 */
-  template <Size D, typename FeatureT = DFeature<D> >
+  template <Size D, typename FeatureT = Feature >
   class DFeaturePairsHandler
 		: public SchemaHandler
   {
@@ -66,7 +66,6 @@ namespace OpenMS
 			typedef FeatureType& Reference;
 			typedef const FeatureType& ConstReference;
 			typedef typename FeatureType::ConvexHullVector ConvexHullVector;
-			typedef typename FeatureType::ConvexHullType ConvexHullType;
 
 			// STL compatibility
 			typedef FeatureType value_type;
@@ -119,7 +118,7 @@ namespace OpenMS
 
 		protected:
 
-		/** @brief indices for tags used by DFeatureMapFile
+		/** @brief indices for tags used by FeatureMapFile
 
 			Used to access is_parser_in_tag_.
 			If you add tags, also add them to XMLSchemes.h.
@@ -130,14 +129,14 @@ namespace OpenMS
 								OVERALLQUALITY, CHARGE, FEATMODEL, PARAM, CONVEXHULL,
 								HULLPOINT, HPOSITION, TAG_NUM};
 
-		/** @brief indices for attributes used by DFeatureMapFile
+		/** @brief indices for attributes used by FeatureMapFile
 
 			If you add tags, also add them to XMLSchemes.h.
 			Add no elements to the enum after TAG_NUM.
 		*/
 		enum Attributes { ATTNULL, DIM, NAME, VALUE, ATT_NUM};
 
-		/** @brief indices for enum2str-maps used by DFeatureMapFile
+		/** @brief indices for enum2str-maps used by FeatureMapFile
 
 			Used to access enum2str_().
 			If you add maps, also add them to XMLSchemes.h.
@@ -163,7 +162,7 @@ namespace OpenMS
 		FeatureType* feature_;
 		ModelDescription<D>* model_desc_;
 		Param* param_;
-		ConvexHullType* current_chull_;
+		ConvexHull2D* current_chull_;
 		DPosition<D>* hull_position_;
 
 		void writeFeature_(std::ostream& os, FeatureType dfeat);
@@ -180,7 +179,7 @@ namespace OpenMS
 		String tmp_str;
 		switch(tag)
 		{
-			case FEATURE:	 feature_        = new DFeature<D>(); break;
+			case FEATURE:	 feature_        = new Feature(); break;
 			case PAIR:			 pair_	         = new DFeaturePair<D>(); break;
 			case QUALITY:
 				tmp_str = getAttributeAsString_(DIM);
@@ -190,7 +189,7 @@ namespace OpenMS
 				tmp_str = getAttributeAsString_(DIM);
 				current_pcoord_ = asUnsignedInt_(tmp_str);
 				break;
-		case CONVEXHULL: current_chull_  = new ConvexHullType(); break;
+		case CONVEXHULL: current_chull_  = new ConvexHull2D(); break;
 		case HULLPOINT:  hull_position_  = new DPosition<D>(); break;
 		case HPOSITION:
 				tmp_str = getAttributeAsString_(DIM);
@@ -258,7 +257,7 @@ namespace OpenMS
 				switch(i)
 				{
 					case FEATINTENSITY:		feature_->setIntensity(asDouble_(xercesc::XMLString::transcode(chars))); break;
-					case POSITION:        feature_->getPosition()[current_pcoord_] = asDouble_(xercesc::XMLString::transcode(chars)); break;
+					case POSITION:        feature_->getPos()[current_pcoord_] = asDouble_(xercesc::XMLString::transcode(chars)); break;
 					case QUALITY:         feature_->getQuality(current_qcoord_) = asDouble_(xercesc::XMLString::transcode(chars)); break;
 					case OVERALLQUALITY:  feature_->getOverallQuality() = asDouble_(xercesc::XMLString::transcode(chars)); break;
 					case CHARGE:          feature_->setCharge(asSignedInt_(xercesc::XMLString::transcode(chars))); break;
@@ -314,7 +313,7 @@ namespace OpenMS
 	{
 		os << "\t<feature id=\"" << id_generator_.getUID() << "\">" << std::endl;
 
-		DPosition<D> pos = dfeat.getPosition();
+		DPosition<D> pos = dfeat.getPos();
 		UnsignedInt dpos_size = pos.size();
 
 		for (UnsignedInt i=0; i<dpos_size;i++)
@@ -346,8 +345,8 @@ namespace OpenMS
 		os << "\t\t</model>" << std::endl;
 
 		// write convex hull
-		DFeature<2>::ConvexHullVector hulls = dfeat.getConvexHulls();
-		DFeature<2>::ConvexHullVector::iterator citer = hulls.begin();
+		Feature::ConvexHullVector hulls = dfeat.getConvexHulls();
+		Feature::ConvexHullVector::iterator citer = hulls.begin();
 
 		UnsignedInt hulls_count = hulls.size();
 
@@ -355,7 +354,7 @@ namespace OpenMS
 		{
 			os << "\t\t<convexhull nr=\"" << i << "\">" << std:: endl;
 
-			ConvexHullType current_hull = hulls[i];
+			ConvexHull2D current_hull = hulls[i];
 			UnsignedInt hull_size = current_hull.getPoints().size();
 
 			for (UnsignedInt j=0;j<hull_size;j++)

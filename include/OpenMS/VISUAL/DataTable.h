@@ -57,6 +57,10 @@ namespace OpenMS
 			DataTable(bool editable, QWidget *parent =0);
 			/// Adds a label to the grid layout.
 			void addLabel(const QString &label);
+		  /// @todo document (Stefan Heess)
+			void addIntLineEdit(QLineEdit*&, const QString&);
+		  /// @todo document (Stefan Heess)
+			void addDoubleLineEdit(QLineEdit*&, const QString&);
 		  /// Adds a line edit field with label to the grid layout.
 			void addLineEdit(QLineEdit* &ptr ,  const QString &label);
 			/// Adds a line edit field to the grid layout including a int validator

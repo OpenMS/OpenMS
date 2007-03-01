@@ -28,7 +28,7 @@
 #ifndef OPENMS_ANALYSIS_MAPMATCHING_DFEATUREPAIR_H
 #define OPENMS_ANALYSIS_MAPMATCHING_DFEATUREPAIR_H
 
-#include<OpenMS/KERNEL/DFeature.h>
+#include<OpenMS/KERNEL/Feature.h>
 
 #include <OpenMS/CONCEPT/Types.h>
 
@@ -45,16 +45,17 @@ namespace OpenMS
    specified range onto each other and to execute this transform
    (dewarping).
 */
-template <Size D, typename FeatureT = DFeature<D> >
+template <Size D, typename FeatureT = Feature >
 class DFeaturePair : public std::pair<FeatureT,FeatureT>
 {
 public:
 
-    enum { DIMENSION = D };
+    //enum { DIMENSION = D };
     typedef FeatureT FeatureType;
     typedef std::pair<FeatureType,FeatureType> Base;
     // CHANGED
-    typedef	 typename FeatureType::TraitsType::QualityType QualityType;
+    //typedef	 typename FeatureType::TraitsType::QualityType QualityType;
+	typedef DoubleReal QualityType;
 
     /** @name Constructors and Destructor
      */

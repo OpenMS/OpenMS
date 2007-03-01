@@ -56,12 +56,11 @@ namespace OpenMS
       typedef ContainerT ElementContainerType;
       typedef Group< ElementContainerType > Group;
 
-      typedef typename ElementType::TraitsType TraitsType;
-      typedef DPosition < 2, TraitsType > PositionType;
-      typedef typename TraitsType::IntensityType IntensityType;
+      typedef DPosition < 2 > PositionType;
+      typedef DoubleReal IntensityType;
       typedef IndexTuple< ElementContainerType > IndexTuple;
-      typedef DRange<2, TraitsType> PositionBoundingBoxType;
-      typedef DRange<1, TraitsType> IntensityBoundingBoxType;
+      typedef DRange<2> PositionBoundingBoxType;
+      typedef DRange<1> IntensityBoundingBoxType;
       //@}
 
 
@@ -83,7 +82,7 @@ namespace OpenMS
           position_range_(),
           intensity_range_()
       {
-        this->getPosition() = pos;
+        this->setPos(pos);
         this->getIntensity() = i;
       }
 
@@ -93,17 +92,17 @@ namespace OpenMS
         try
         {
           IndexTuple i(map_index,peak_index,peak);
-          i.setTransformedPosition(peak.getPosition());
+          i.setTransformedPosition(peak.getPos());
           this->insert(IndexTuple(map_index,peak_index,peak));
         }
         catch(Exception::InvalidValue)
         {}
 
-        this->getPosition() = peak.getPosition();
+        this->getPos() = peak.getPos();
         this->getIntensity() = peak.getIntensity();
 
-        position_range_.setMinMax(peak.getPosition()
-                                  ,peak.getPosition());
+        position_range_.setMinMax(peak.getPos()
+                                  ,peak.getPos());
         intensity_range_.setMinMax(peak.getIntensity(),peak.getIntensity());
       }
 
@@ -114,10 +113,10 @@ namespace OpenMS
         try
         {
           IndexTuple i1(map_1_index,peak_index_1, peak_1);
-          i1.setTransformedPosition(peak_1.getPosition());
+          i1.setTransformedPosition(peak_1.getPos());
           this->insert(i1);
           IndexTuple i2(map_2_index,peak_index_2, peak_2);
-          i2.setTransformedPosition(peak_2.getPosition());
+          i2.setTransformedPosition(peak_2.getPos());
           this->insert(i2);
         }
         catch(Exception::InvalidValue)
@@ -131,7 +130,7 @@ namespace OpenMS
       {
         Group::operator=(c_peak);
         IndexTuple i(map_index,peak_index,peak);
-        i.setTransformedPosition(peak.getPosition());
+        i.setTransformedPosition(peak.getPos());
         this->insert(IndexTuple(map_index,peak_index,peak));
 
         computeConsensus_();
@@ -296,7 +295,7 @@ namespace OpenMS
   std::ostream& operator << (std::ostream& os, const ConsensusPeak<ContainerT>& cons)
   {
     os << "---------- CONSENSUS ELEMENT BEGIN -----------------\n";
-    os << "Position: " << cons.getPosition()<< std::endl;
+    os << "Position: " << cons.getPos()<< std::endl;
     os << "Intensity " << cons.getIntensity() << std::endl;
     os << "Position range " << cons.getPositionRange() << std::endl;
     os << "Intensity range " << cons.getIntensityRange() << std::endl;

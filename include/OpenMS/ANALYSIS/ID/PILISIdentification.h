@@ -118,7 +118,7 @@ namespace OpenMS
 			PeakSpectrumCompareFunctor* scorer_;
 
 			/// a peaks, just to not instantiate it over and over again
-			Peak p_;
+			Peak1D p_;
 
 			/// flag whether the istance has a internal sequence db
 			bool own_sequence_db_;

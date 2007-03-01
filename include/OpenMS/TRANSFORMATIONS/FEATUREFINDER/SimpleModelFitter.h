@@ -105,8 +105,8 @@ namespace OpenMS
 					MZ = DimensionDescription < LCMS_Tag >::MZ
 				};
 			
-			typedef DFeature<2>::CoordinateType CoordinateType;
-			typedef DFeature<2>::PositionType PositionType2D;
+			typedef Feature::CoordinateType CoordinateType;
+			typedef Feature::PositionType PositionType2D;
 	
 			enum RtFitting{ RTGAUSS=0, BIGAUSS=1};
 			enum MzFitting{ MZGAUSS=0, CHARGE1=1, CHARGE2=2, CHARGE3=3, CHARGE4=4	};
@@ -124,7 +124,7 @@ namespace OpenMS
 	    SimpleModelFitter& operator= (const SimpleModelFitter& rhs);
 	
 	    /// return next seed
-	    DFeature<2> fit(const IndexSet& range) throw (UnableToFit);
+	    Feature fit(const IndexSet& range) throw (UnableToFit);
 	
 	    static BaseModelFitter* create()
 	    {

@@ -43,7 +43,7 @@ namespace OpenMS
     
     @ingroup Kernel
   */
-  template < typename ConsensusElementT = ConsensusFeature < FeatureMap > >
+  template < typename ConsensusElementT = ConsensusFeature < FeatureMap< > > >
 class ConsensusMap : public DPeakArray< 2, ConsensusElementT >
   {
   public:

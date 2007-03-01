@@ -36,7 +36,7 @@ namespace OpenMS
 
 	/** @brief Data structure containing pairs of features (as e.g. produced by DMapMatcherRegression)
 	 */	
-	template <Size D, typename FeatureT = DFeature<D> >
+	template <Size D, typename FeatureT = Feature >
 	class DFeaturePairVector
 		: public std::vector< DFeaturePair<D, FeatureT > >
 	{

@@ -61,7 +61,7 @@ namespace OpenMS
 	template <Size D, typename ContainerT = DPeakArray<D> >
 	class DSpectrum
 		: public MetaInfoInterface,
-			public RangeManager<D, typename ContainerT::PeakType::TraitsType>
+			public RangeManager<D>
 	{
 		public:
 
@@ -76,7 +76,7 @@ namespace OpenMS
 			/// Precursor peak type
 			typedef DPickedPeak<D> PrecursorPeakType;
 			/// Rangemanger type
-			typedef RangeManager<D, typename ContainerT::PeakType::TraitsType> RangeManagerType;
+			typedef RangeManager<D> RangeManagerType;
 			//@}
 
 
@@ -500,7 +500,7 @@ namespace OpenMS
 			Iterator MZBegin(double mz)
 			{
 				PeakType p;
-				p.getPosition()[0] = mz;
+				p.setPos(mz);
 				return lower_bound(container_.begin(), container_.end(), p, typename PeakType::PositionLess());
 			}
 	
@@ -512,7 +512,7 @@ namespace OpenMS
 			Iterator MZEnd(double mz)
 			{
 				PeakType p;
-				p.getPosition()[0] = mz;
+				p.setPos(mz);
 				return upper_bound(container_.begin(), container_.end(), p, typename PeakType::PositionLess());
 			}
 	
@@ -524,7 +524,7 @@ namespace OpenMS
 			ConstIterator MZBegin(double mz) const
 			{
 				PeakType p;
-				p.getPosition()[0] = mz;
+				p.setPos(mz);
 				return lower_bound(container_.begin(), container_.end(), p, typename PeakType::PositionLess());
 			}
 	
@@ -536,7 +536,7 @@ namespace OpenMS
 			ConstIterator MZEnd(double mz) const
 			{
 				PeakType p;
-				p.getPosition()[0] = mz;
+				p.setPos(mz);
 				return upper_bound(container_.begin(), container_.end(), p, typename PeakType::PositionLess());
 			}
 

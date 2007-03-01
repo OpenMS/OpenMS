@@ -54,11 +54,11 @@ namespace OpenMS
 			~MascotInfile();
 
 			/// stores the peak list in a MascotInfile that can be used as input for MASCOT shell execution
-			void store(const std::string& filename, const DPeakArray<1>& spec, double mz , double retention_time, std::string search_title);		
+			void store(const std::string& filename, const DPeakArray<1,Peak1D>& spec, double mz , double retention_time, std::string search_title);		
 
 			/// stores the experiment data in a MascotInfile that can be used as input for MASCOT shell execution
 			void store(const std::string& filename,
-								 const MSExperiment< DPeak<1> >& experiment, 
+								 const MSExperiment< Peak1D >& experiment, 
 								 std::string search_title);
 														
 			/// returns the boundary used for the MIME format
@@ -200,12 +200,12 @@ namespace OpenMS
 			/// writes the spectrum
 			void writeSpectrum_(FILE* fp,
 													const std::string& filename,
-													const DPeakArray<1>& peaks);
+													const DPeakArray<1,Peak1D>& peaks);
 						
 			/// writes the MSExperiment
 			void writeMSExperiment_(FILE* fp, 
 															const std::string& filename, 
-															const MSExperiment< DPeak<1> >& experiment);
+															const MSExperiment< Peak1D >& experiment);
 
   };
 

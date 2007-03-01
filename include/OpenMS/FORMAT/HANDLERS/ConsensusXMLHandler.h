@@ -30,7 +30,7 @@
 
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/StarAlignment.h>
-#include <OpenMS/FORMAT/DFeatureMapFile.h>
+#include <OpenMS/FORMAT/FeatureMapFile.h>
 #include <OpenMS/FORMAT/HANDLERS/SchemaHandler.h>
 #include <OpenMS/FORMAT/HANDLERS/XMLSchemes.h>
 #include <OpenMS/FORMAT/Param.h>
@@ -75,12 +75,11 @@ namespace OpenMS
         typedef typename AlignmentT::ElementType ElementType;
         typedef typename AlignmentT::ConsensusMapType ConsensusMapType;
         typedef typename AlignmentT::ConsensusElementType ConsensusElementType;
-        typedef typename ConsensusElementType::TraitsType TraitsType;
 
         typedef DGrid<2> GridType;
         typedef DGridCell<2> GridCellType;
         typedef typename GridCellType::MappingVector MappingVector;
-        typedef DPosition<2,TraitsType> PositionType;
+        typedef DPosition<2> PositionType;
 
       /// Constructor
         ConsensusXMLHandler(ConsensusMap<ConsensusElementType>& consensus_map , const String& filename)
@@ -157,7 +156,7 @@ namespace OpenMS
         */
         enum Attributes { ATTNULL, COUNT, NAME, ID, RT_ATT, MZ_ATT, IT, RTMIN, RTMAX, MZMIN, MZMAX, ITMIN, ITMAX, MAP_ATT, ATT_NUM};
 
-        /** @brief indices for enum2str-maps used by DFeatureMapFile
+        /** @brief indices for enum2str-maps used by FeatureMapFile
 
           Used to access enum2str_().
           If you add maps, also add them to XMLSchemes.h.
@@ -433,7 +432,7 @@ namespace OpenMS
               act_index_tuple.setTransformedPosition(pos);
               act_index_tuple.setElement(((consensus_map_->getMapVector())[map_index])[element_index]);
               act_cons_element_.insert(act_index_tuple);
-              act_cons_element_.getPosition() = pos_;
+              act_cons_element_.getPos() = pos_;
               act_cons_element_.getPositionRange() = pos_range_;
               act_cons_element_.getIntensity() = it_;
               act_cons_element_.getIntensityRange() = it_range_;
@@ -495,8 +494,8 @@ namespace OpenMS
       for (UnsignedInt i = 0; i < n; ++i)
       {
         os << "\t\t<consensusElement id=\""<< i << "\">\n";
-        os << "\t\t\t<centroid rt=\"" << final_consensus_map[i].getPosition()[0]
-        << "\" mz=\"" << final_consensus_map[i].getPosition()[1]
+        os << "\t\t\t<centroid rt=\"" << final_consensus_map[i].getRT()
+        << "\" mz=\"" << final_consensus_map[i].getMZ()
         << "\" it=\"" << final_consensus_map[i].getIntensity() <<"\"/>\n";
         os << "\t\t\t<range rtMin=\"" << final_consensus_map[i].getPositionRange().min()[0]
         << "\" rtMax=\"" << final_consensus_map[i].getPositionRange().max()[0]
@@ -524,17 +523,17 @@ namespace OpenMS
     /// Load the peaks
     template <>
     template <>
-    void ConsensusXMLHandler< StarAlignment< ConsensusFeature< FeatureMap > > >::loadFile_< ConsensusFeature< FeatureMap > >(const String& file_name, UnsignedInt id, const ConsensusFeature< FeatureMap >& /* c */ ) throw (Exception::FileNotFound, Exception::ParseError);
+    void ConsensusXMLHandler< StarAlignment< ConsensusFeature< FeatureMap< > > > >::loadFile_< ConsensusFeature< FeatureMap< > > >(const String& file_name, UnsignedInt id, const ConsensusFeature< FeatureMap< > >& /* c */ ) throw (Exception::FileNotFound, Exception::ParseError);
 
     // load MzData
     template <>
     template <>
-    void ConsensusXMLHandler< StarAlignment< ConsensusPeak< DPeakArray<2,Peak> > > >::loadFile_< ConsensusPeak< DPeakArray<2,Peak> > >( const String& file_name, UnsignedInt id, const ConsensusPeak< DPeakArray<2,Peak> >& /* c */) throw (Exception::FileNotFound, Exception::ParseError);
+    void ConsensusXMLHandler< StarAlignment< ConsensusPeak< DPeakArray<2,Peak2D> > > >::loadFile_< ConsensusPeak< DPeakArray<2,Peak2D> > >( const String& file_name, UnsignedInt id, const ConsensusPeak< DPeakArray<2,Peak2D> >& /* c */) throw (Exception::FileNotFound, Exception::ParseError);
 
     // load consensusXML
     template <>
     template <>
-    void ConsensusXMLHandler< StarAlignment< ConsensusFeature< ConsensusMap< ConsensusFeature< FeatureMap > > > > >::loadFile_<ConsensusFeature< ConsensusMap< ConsensusFeature< FeatureMap > > > >(const String& file_name, UnsignedInt id, const ConsensusFeature< ConsensusMap< ConsensusFeature< FeatureMap > > >& /* c */) throw (Exception::FileNotFound, Exception::ParseError);
+    void ConsensusXMLHandler< StarAlignment< ConsensusFeature< ConsensusMap< ConsensusFeature< FeatureMap< > > > > > >::loadFile_<ConsensusFeature< ConsensusMap< ConsensusFeature< FeatureMap< > > > > >(const String& file_name, UnsignedInt id, const ConsensusFeature< ConsensusMap< ConsensusFeature< FeatureMap< > > > >& /* c */) throw (Exception::FileNotFound, Exception::ParseError);
 
   } // namespace Internal
 } // namespace OpenMS

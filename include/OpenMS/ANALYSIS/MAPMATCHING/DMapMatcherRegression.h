@@ -28,7 +28,7 @@
 #ifndef OPENMS_ANALYSIS_MAPMATCHING_DMAPMATCHERREGRESSION_H
 #define OPENMS_ANALYSIS_MAPMATCHING_DMAPMATCHERREGRESSION_H
 
-#include <OpenMS/KERNEL/DFeature.h>
+#include <OpenMS/KERNEL/Feature.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/DLinearMapping.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/DBaseMapMatcher.h>
 
@@ -46,7 +46,7 @@ namespace OpenMS
   /**
 		 @brief Map matching using linear regression.
 	*/
-  template <typename ElementT = DFeature<2> >
+  template <typename ElementT = Feature >
   class DMapMatcherRegression
 		: public DBaseMapMatcher<ElementT>
   {
@@ -113,13 +113,13 @@ namespace OpenMS
 				{
 					// check whether the current feature is contained in the cell
 					// and fulfills our quality requirement.
-					if (grid_iter->encloses(pair_iter->getFirst().getPosition())
+					if (grid_iter->encloses(pair_iter->getFirst().getPos())
 							&& pair_iter->getQuality() > this->min_quality_ )
 					{
 						selection.push_back(*pair_iter);
 
 #ifdef DEBUG_MAPMATCHING
-						std::cout << "Pair " << pair_iter->first.getPosition() << " " << pair_iter->second.getPosition() << std::endl;
+						std::cout << "Pair " << pair_iter->first.getPos() << " " << pair_iter->second.getPos() << std::endl;
 #endif
 
 					}
@@ -141,8 +141,8 @@ namespace OpenMS
 
 						for (int i=0; i<num;i++)
 						{
-							x[i] = selection[i].getFirst().getPosition()[d];
-							y[i] = selection[i].getSecond().getPosition()[d];
+							x[i] = selection[i].getFirst().getPos()[d];
+							y[i] = selection[i].getSecond().getPos()[d];
 						}
 
 						// estimate the transform for this dimension

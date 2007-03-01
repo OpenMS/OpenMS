@@ -80,7 +80,7 @@ namespace OpenMS
 			}
 
     	//get precursor peak position precursorpeak
-    	double pre_pos = spectrum.getPrecursorPeak().getPosition()[0];
+    	double pre_pos = spectrum.getPrecursorPeak().getPos()[0];
 		
 			if (pre_pos == 0)
 			{
@@ -147,7 +147,7 @@ namespace OpenMS
 			{
 				for (std::vector<DRange<1> >::const_iterator rit = ranges.begin(); rit != ranges.end(); ++rit)
 				{
-					if (rit->encloses(it->getPosition()[0]))
+					if (rit->encloses(it->getPos()))
 					{
 						if (reduce_by_factor)
 						{

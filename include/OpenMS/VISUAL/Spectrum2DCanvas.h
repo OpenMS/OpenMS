@@ -252,7 +252,7 @@ namespace OpenMS
       	@param hulls Reference to convex hull vector.
       	@param p The QPainter to paint on.
       */
-      void paintConvexHulls_(const DFeature<2>::ConvexHullVector& hulls, QPainter& p);
+      void paintConvexHulls_(const Feature::ConvexHullVector& hulls, QPainter& p);
 
       /**
       	@brief Paints feature pair connections.
@@ -305,10 +305,10 @@ namespace OpenMS
       AreaType getOriginCell_(UnsignedInt layer_index);
 
       /// Highlights a single peak
-      void highlightPeak_(QPainter& p, DFeature<2>* peak);
+      void highlightPeak_(QPainter& p, Feature* peak);
 
       /// Returns the nearest peak to position @p pos
-      DFeature<2>* findNearestPeak_(const QPoint& pos);
+      Feature* findNearestPeak_(const QPoint& pos);
 
       /// marching squares matrices for the layers
       std::vector< std::vector< std::vector<float> > > marching_squares_matrices_;
@@ -323,13 +323,13 @@ namespace OpenMS
       std::vector<bool> show_dots_;
 
       /// the nearest peak/feature to the mouse cursor (DFeature to be able to store the convex hull too)
-      DFeature<2>* selected_peak_;
+      Feature* selected_peak_;
       /// start peak/feature of measuring mode
-      DFeature<2>* measurement_start_;
+      Feature* measurement_start_;
       /// end peak/feature of measuring mode
-      DFeature<2>* measurement_stop_;
+      Feature* measurement_stop_;
       /// temporary peak/feature for findNearestPeak_
-      DFeature<2> tmp_peak_;
+      Feature tmp_peak_;
 
       /// Gradient for dots
       MultiGradient dot_gradient_;

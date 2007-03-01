@@ -30,7 +30,7 @@
 #include <OpenMS/FORMAT/SchemaFile.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/DFeaturePairVector.h>
 #include <OpenMS/FORMAT/HANDLERS/DFeaturePairsHandler.h>
-#include <OpenMS/KERNEL/DFeatureMap.h>
+#include <OpenMS/KERNEL/FeatureMap.h>
 
 namespace OpenMS
 {
@@ -79,7 +79,7 @@ namespace OpenMS
 				@brief Convert pair vector into feature map
 
 			*/
-			static void pairsToFeatures(const DFeaturePairVector<2>& pairs, DFeatureMap<2>& map);
+			static void pairsToFeatures(const DFeaturePairVector<2>& pairs, FeatureMap<>& map);
 
 			//@}
 	};

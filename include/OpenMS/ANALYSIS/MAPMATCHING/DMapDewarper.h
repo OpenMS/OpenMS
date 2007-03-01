@@ -30,7 +30,7 @@
 #include<OpenMS/ANALYSIS/MAPMATCHING/DBaseMapping.h>
 #include<OpenMS/ANALYSIS/MAPMATCHING/DGrid.h>
 
-#include<OpenMS/KERNEL/DFeatureMap.h>
+#include<OpenMS/KERNEL/FeatureMap.h>
 
 #include<vector>
 
@@ -42,7 +42,7 @@ namespace OpenMS
     class DBaseMapMatcher to a set of features.
         
   */
-  template < typename MapT = DFeatureMap<2, DFeature<2> > >
+  template < typename MapT = FeatureMap< Feature > >
   class DMapDewarper
   {
     public:
@@ -114,9 +114,9 @@ namespace OpenMS
           typename Grid::iterator grid_iter = grid_.begin();
           while (grid_iter != grid_.end() )
           {
-            if (grid_iter->encloses(feat_iter->getPosition() ) )
+            if (grid_iter->encloses(feat_iter->getPos() ) )
             {
-              DPosition<2> pos         = feat_iter->getPosition();
+              DPosition<2> pos         = feat_iter->getPos();
               // apply transform for every coordinate
               for (unsigned int i=0; i<2; i++)
               {
@@ -126,7 +126,7 @@ namespace OpenMS
                 grid_iter->getMappings().at(i)->apply(temp);
                 pos[i] = temp[0];
               }
-              feat_iter->setPosition(pos);
+              feat_iter->setPos(pos);
             }
             grid_iter++;
 

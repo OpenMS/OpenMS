@@ -53,9 +53,9 @@ namespace OpenMS
 				};
 			
 			///
-			typedef DFeature<2>::CoordinateType FeatureCoordinateType;
+			typedef Feature::CoordinateType FeatureCoordinateType;
 			///
-			typedef DFeature<2>::PositionType PositionType2D;
+			typedef Feature::PositionType PositionType2D;
 			///
 			typedef FeaFiTraits::CoordinateType CoordinateType;
 			///
@@ -74,7 +74,7 @@ namespace OpenMS
 	    PeakFitter& operator= (const PeakFitter& rhs);
 	
 	    /// return next seed
-	    DFeature<2> fit(const IndexSet& range) throw (UnableToFit);
+	    Feature fit(const IndexSet& range) throw (UnableToFit);
 	
 	    static BaseModelFitter* create()
 	    {

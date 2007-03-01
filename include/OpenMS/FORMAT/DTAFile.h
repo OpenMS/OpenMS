@@ -101,11 +101,11 @@ namespace OpenMS
 					SignedInt charge = strings[1].toInt();
 					if (charge != 0)
 					{
-						spectrum.getPrecursorPeak().getPosition()[0] = (mh_mass - 1.0) / charge + 1.0;
+						spectrum.getPrecursorPeak().setPos( (mh_mass - 1.0) / charge + 1.0);
 					}
 					else
 					{
-						spectrum.getPrecursorPeak().getPosition()[0] = mh_mass;
+						spectrum.getPrecursorPeak().setPos( mh_mass );
 					}
 					spectrum.getPrecursorPeak().setCharge(charge);
 				}
@@ -138,7 +138,7 @@ namespace OpenMS
 						}				
 						
 						//fill peak
-						p.setPosition(strings[0].toDouble());
+						p.setPos(strings[0].toDouble());
 						p.setIntensity(strings[1].toDouble());
 					} 
 					catch ( Exception::Base & e )
@@ -170,12 +170,12 @@ namespace OpenMS
 				if (spectrum.getPrecursorPeak().getCharge()==0)
 				{
 					//unknown charge
-					os << spectrum.getPrecursorPeak().getPosition()[0];
+					os << spectrum.getPrecursorPeak().getPos()[0];
 				}
 				else
 				{
 					//known charge
-					os << ((spectrum.getPrecursorPeak().getPosition()[0] - 1.0) * spectrum.getPrecursorPeak().getCharge() +1.0);
+					os << ((spectrum.getPrecursorPeak().getPos()[0] - 1.0) * spectrum.getPrecursorPeak().getCharge() +1.0);
 				}
 				 
 				//charge
@@ -187,7 +187,7 @@ namespace OpenMS
 				for (; it != spectrum.end(); ++it)
 				{
 					// Write m/z and intensity.
-					os << it->getPosition()[0] << " " << it->getIntensity() << std::endl;
+					os << it->getPos() << " " << it->getIntensity() << std::endl;
 				}
 		
 				// Done.

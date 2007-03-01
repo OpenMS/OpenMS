@@ -28,7 +28,7 @@
 #define OPENMS_VISUAL_LAYERDATA_H
 
 #include <OpenMS/KERNEL/MSExperiment.h>
-#include <OpenMS/KERNEL/DFeatureMap.h>
+#include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 
 namespace OpenMS 
@@ -53,7 +53,7 @@ namespace OpenMS
 		/// Main data type (experiment)
 		typedef MSExperiment<> ExperimentType;
 		/// Main data type (features)
-		typedef DFeatureMap<2> FeatureMapType;	
+		typedef FeatureMap<> FeatureMapType;	
 		//@}
 		
 		/// Equality operator

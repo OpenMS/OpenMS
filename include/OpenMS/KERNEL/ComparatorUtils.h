@@ -42,9 +42,9 @@ namespace OpenMS
 		This works by dereferencing the arguments (unary operator*) before
    	comparing them.
 		<br> E.g. you can use
-   	<code>PointerComparator<DPeak<1>::IntensityLess></code> to compare
-   	<code>DPeak<1>*</code> in the same way as
-   	<code>DPeak<1>::IntensityLess</code> works for <code>DPeak<1></code> .
+   	<code>PointerComparator<Peak1D::IntensityLess></code> to compare
+   	<code>Peak1D*</code> in the same way as
+   	<code>Peak1D::IntensityLess</code> works for <code>Peak1D</code> .
   */
   template < class Cmp >
 	struct PointerComparator

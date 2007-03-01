@@ -34,24 +34,22 @@ namespace OpenMS
 	/**	
 		@brief Handles the managment of a position and intensity range.
 		
-		This is needed for all peak and feature container like DSpectrum, MSExperiment and DFeatureMap.
+		This is needed for all peak and feature container like DSpectrum, MSExperiment and FeatureMap.
 	*/
-	template <Size D, typename TraitsT = KernelTraits>
+	template <Size D>
 	class RangeManager
 	{
 		public:
 			/// Dimension of the position range
 			enum { DIMENSION = D };
-			/// Traits types
-			typedef TraitsT TraitsType;
 			/// Position range type			
-			typedef DRange<D, TraitsType> PositionRangeType;
+			typedef DRange<D> PositionRangeType;
 			/// Position Type
-			typedef typename PositionRangeType::PositionType PositionType;
+			typedef DPosition<D> PositionType;
 			/// Intensity range type			
-			typedef DRange<1, TraitsType> IntensityRangeType;
+			typedef DRange<1> IntensityRangeType;
 			/// Intensity Type
-			typedef typename TraitsType::IntensityType IntensityType;
+			typedef DoubleReal IntensityType;
 			
 			/// Default constructor
 			RangeManager()
@@ -135,7 +133,7 @@ namespace OpenMS
 				@brief Updates minimum and maximum position/intensity.
 				
 				This method is usually implemented by calling clearRanges() and
-				updateRanges_(const PeakIteratorType&, const PeakIteratorType&).
+				updateRanges_() or updateRanges1D_().
 			*/
 			virtual void updateRanges() = 0;
 
@@ -154,57 +152,57 @@ namespace OpenMS
 			/// Position range (D-dimensional)
 			PositionRangeType pos_range_;
 			
-			/// Updates the range with the peaks in iterator range
+			/// Updates the range using DPeak or 2D-dimensional data points in the iterator range
 			template <class PeakIteratorType>
 			void updateRanges_(const PeakIteratorType& begin, const PeakIteratorType& end)
-			{
-			  PositionType min,max;
-				IntensityType it_min, it_max;
-				double tmp;
+      {
+         PositionType min,max;
+         IntensityType it_min, it_max;
+         DoubleReal tmp;
+     
+         min = pos_range_.min();
+         max = pos_range_.max();
+     
+         it_min = int_range_.min()[0];
+         it_max = int_range_.max()[0];
+     
+         for (PeakIteratorType it = begin; it != end; ++it)
+         {
+           //update position
+           for (Position i = 0; i < D; ++i)
+           {
+             tmp = it->getPos()[i];
+             if (tmp < min[i])
+             {
+               min[i] = tmp;
+             }
+             if (tmp > max[i])
+             {
+               max[i] = tmp;
+             }
+           }
+           
+           //update intensity
+           tmp = it->getIntensity();
+           if (tmp < it_min)
+           {
+             it_min = tmp;
+           }
+           if (tmp > it_max)
+           {
+             it_max = tmp;
+           }
+         }
+         
+         pos_range_.setMin(min);
+         pos_range_.setMax(max);
+     
+         int_range_.setMinX(it_min);
+         int_range_.setMaxX(it_max);
+      }
+      
+	};  // class
+  
+}  // namespace OpenMS
 
-				min = pos_range_.min();
-				max = pos_range_.max();
-
-				it_min = int_range_.min()[0];
-				it_max = int_range_.max()[0];
-
-				for (PeakIteratorType it = begin; it != end; ++it)
-				{
-					//update position
-					for (Position i = 0; i < D; ++i)
-					{
-						tmp = it->getPosition()[i];
-						if (tmp < min[i])
-						{
-							min[i] = tmp;
-						}
-						if (tmp > max[i])
-						{
-							max[i] = tmp;
-						}
-					}
-					
-					//update intensity
-					tmp = it->getIntensity();
-					if (tmp < it_min)
-					{
-						it_min = tmp;
-					}
-					if (tmp > it_max)
-					{
-						it_max = tmp;
-					}
-				}
-				
-				pos_range_.setMin(min);
-				pos_range_.setMax(max);
-
-				int_range_.setMinX(it_min);
-				int_range_.setMaxX(it_max);
-			}
-	
-	}; // class
-	
-} // namespace OpenMS
-
-#endif // OPENMS_KERNEL_DRANGE_H
+#endif  // OPENMS_KERNEL_DRANGE_H

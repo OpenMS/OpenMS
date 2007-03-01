@@ -62,7 +62,6 @@ namespace OpenMS
     using ContinuousWaveletTransform::end_left_padding_;
     using ContinuousWaveletTransform::begin_right_padding_;
     using ContinuousWaveletTransform::signal_length_;
-    using ContinuousWaveletTransform::mz_dim_;
 
 
     /// Constructor
@@ -113,7 +112,7 @@ namespace OpenMS
     {
 
 #ifdef DEBUG_PEAK_PICKING
-      std::cout << "ContinuousWaveletTransformNumIntegration::transform: start " << begin_input->getPos() << " until " << (end_input-1)->getPos() << std::endl;
+      std::cout << "ContinuousWaveletTransformNumIntegration::transform: start " << begin_input->getMZ() << " until " << (end_input-1)->getMZ() << std::endl;
 #endif
       if (fabs(resolution-1) < 0.0001)
       {
@@ -133,7 +132,7 @@ namespace OpenMS
         InputPeakIterator help = begin_input;
         for (i=0; i < n; ++i)
         {
-          signal_[i].getPos() = help->getPos();
+          signal_[i].getMZ() = help->getMZ();
           signal_[i].getIntensity()=integrate_(help,begin_input,end_input);
           ++help;
         }
@@ -147,8 +146,8 @@ namespace OpenMS
       else
       {
 				unsigned int n = (unsigned int) resolution * distance(begin_input, end_input);
-        double origin  = begin_input->getPosition()[mz_dim_];
-        double spacing = ((end_input-1)->getPosition()[mz_dim_]-origin)/(n-1);
+        double origin  = begin_input->getMZ();
+        double spacing = ((end_input-1)->getMZ()-origin)/(n-1);
 				
 				// zero-padding at the ends?
 				if(zeros > 0)
@@ -164,7 +163,7 @@ namespace OpenMS
         InputPeakIterator it_help = begin_input;
         if(zeros >0)
 					{
-						processed_input[0]=it_help->getPosition()[mz_dim_] - zeros*spacing;
+						processed_input[0]=it_help->getMZ() - zeros*spacing;
 						for(unsigned int i = 0; i < zeros; ++i) processed_input[i]=0;
 					}
 				else processed_input[0]=it_help->getIntensity();
@@ -174,7 +173,7 @@ namespace OpenMS
         {
           x = origin + k*spacing;
           // go to the real data point next to x
-          while (((it_help+1) < end_input) && ((it_help+1)->getPosition()[mz_dim_] < x))
+          while (((it_help+1) < end_input) && ((it_help+1)->getMZ() < x))
           {
             ++it_help;
           }
@@ -188,7 +187,7 @@ namespace OpenMS
         // TODO avoid to compute the cwt for the zeros in signal
         for (unsigned int i=0; i < n; ++i)
         {
-          signal_[i].getPos() = origin + i*spacing;
+          signal_[i].getMZ() = origin + i*spacing;
           signal_[i].getIntensity() = integrate_(processed_input,spacing,i);
         }
 
@@ -231,22 +230,22 @@ namespace OpenMS
       double v=0.;
       int middle = wavelet_.size();
 
-      double start_pos = ((x->getPosition()[mz_dim_]-(middle*spacing_)) > first->getPosition()[mz_dim_]) ? (x->getPosition()[mz_dim_]-(middle*spacing_))
-                         : first->getPosition()[mz_dim_];
-      double end_pos = ((x->getPosition()[mz_dim_]+(middle*spacing_)) < (last-1)->getPosition()[mz_dim_]) ? (x->getPosition()[mz_dim_]+(middle*spacing_))
-                       : (last-1)->getPosition()[mz_dim_];
+      double start_pos = ((x->getMZ()-(middle*spacing_)) > first->getMZ()) ? (x->getMZ()-(middle*spacing_))
+                         : first->getMZ();
+      double end_pos = ((x->getMZ()+(middle*spacing_)) < (last-1)->getMZ()) ? (x->getMZ()+(middle*spacing_))
+                       : (last-1)->getMZ();
 
       InputPeakIterator help = x;
 
 #ifdef DEBUG_PEAK_PICKING
-      std::cout << "integrate from middle to start_pos "<< help->getPosition()[mz_dim_] << " until " << start_pos << std::endl;
+      std::cout << "integrate from middle to start_pos "<< help->getMZ() << " until " << start_pos << std::endl;
 #endif
 
       //integrate from middle to start_pos
-      while ((help != first) && ((help-1)->getPosition()[mz_dim_] > start_pos))
+      while ((help != first) && ((help-1)->getMZ() > start_pos))
       {
         // search for the corresponding datapoint of help in the wavelet (take the left most adjacent point)
-        double distance = fabs(x->getPosition()[mz_dim_] - help->getPosition()[mz_dim_]);
+        double distance = fabs(x->getMZ() - help->getMZ());
         int index_w_r = (int)round(distance / spacing_);
         double wavelet_right =  wavelet_[index_w_r];
 
@@ -257,22 +256,22 @@ namespace OpenMS
 #endif
 
         // search for the corresponding datapoint for (help-1) in the wavelet (take the left most adjacent point)
-        distance = fabs(x->getPosition()[mz_dim_] - (help-1)->getPosition()[mz_dim_]);
+        distance = fabs(x->getMZ() - (help-1)->getMZ());
         int index_w_l = (int)round(distance / spacing_);
         double wavelet_left =  wavelet_[index_w_l];
 
         // start the interpolation for the true value in the wavelet
 
 #ifdef DEBUG_PEAK_PICKING
-        std::cout << " help-1 " << (help-1)->getPosition()[mz_dim_] << " distance x, help-1" << distance << std::endl;
+        std::cout << " help-1 " << (help-1)->getMZ() << " distance x, help-1" << distance << std::endl;
         std::cout << "distance in wavelet_ " << index_w_l*spacing_ << std::endl;
         std::cout << "wavelet_ at left " <<   wavelet_left << std::endl;
 
-        std::cout << " intensity " << fabs((help-1)->getPosition()[mz_dim_]-help->getPosition()[mz_dim_]) / 2. << " * " << (help-1)->getIntensity() << " * " << wavelet_left <<" + " << (help)->getIntensity()<< "* " << wavelet_right
+        std::cout << " intensity " << fabs((help-1)->getMZ()-help->getMZ()) / 2. << " * " << (help-1)->getIntensity() << " * " << wavelet_left <<" + " << (help)->getIntensity()<< "* " << wavelet_right
         << std::endl;
 #endif
 
-        v+= fabs((help-1)->getPosition()[mz_dim_]-help->getPosition()[mz_dim_]) / 2. * ((help-1)->getIntensity()*wavelet_left + help->getIntensity()*wavelet_right);
+        v+= fabs((help-1)->getMZ()-help->getMZ()) / 2. * ((help-1)->getIntensity()*wavelet_left + help->getIntensity()*wavelet_right);
         --help;
       }
 
@@ -280,33 +279,33 @@ namespace OpenMS
       //integrate from middle to end_pos
       help = x;
 #ifdef DEBUG_PEAK_PICKING
-      std::cout << "integrate from middle to endpos "<< (help)->getPosition()[mz_dim_] << " until " << end_pos << std::endl;
+      std::cout << "integrate from middle to endpos "<< (help)->getMZ() << " until " << end_pos << std::endl;
 #endif
-      while ((help != (last-1)) && ((help+1)->getPosition()[mz_dim_] < end_pos))
+      while ((help != (last-1)) && ((help+1)->getMZ() < end_pos))
       {
         // search for the corresponding datapoint for help in the wavelet (take the left most adjacent point)
-        double distance = fabs(x->getPosition()[mz_dim_] - help->getPosition()[mz_dim_]);
+        double distance = fabs(x->getMZ() - help->getMZ());
         int index_w_l = (int)round(distance / spacing_);
         double wavelet_left =  wavelet_[index_w_l];
 
 #ifdef DEBUG_PEAK_PICKING
-        std::cout << " help " << (help)->getPosition()[mz_dim_] << " distance x, help" << distance << std::endl;
+        std::cout << " help " << (help)->getMZ() << " distance x, help" << distance << std::endl;
         std::cout << "distance in wavelet_ " << index_w_l*spacing_ << std::endl;
         std::cout << "wavelet_ at left " <<   wavelet_left << std::endl;
 #endif
 
         // search for the corresponding datapoint for (help+1) in the wavelet (take the left most adjacent point)
-        distance = fabs(x->getPosition()[mz_dim_] - (help+1)->getPosition()[mz_dim_]);
+        distance = fabs(x->getMZ() - (help+1)->getMZ());
         int index_w_r = (int)round(distance / spacing_);
         double wavelet_right =  wavelet_[index_w_r];
 
 #ifdef DEBUG_PEAK_PICKING
-        std::cout << " help+1 " << (help+1)->getPosition()[mz_dim_] << " distance x, help+1" << distance << std::endl;
+        std::cout << " help+1 " << (help+1)->getMZ() << " distance x, help+1" << distance << std::endl;
         std::cout << "distance in wavelet_ " << index_w_r*spacing_ << std::endl;
         std::cout << "wavelet_ at right " <<   wavelet_right << std::endl;
 #endif
 
-        v+= fabs(help->getPosition()[mz_dim_] - (help+1)->getPosition()[mz_dim_]) / 2. * (help->getIntensity()*wavelet_left + (help+1)->getIntensity()*wavelet_right);
+        v+= fabs(help->getMZ() - (help+1)->getMZ()) / 2. * (help->getIntensity()*wavelet_left + (help+1)->getIntensity()*wavelet_right);
         ++help;
       }
 

@@ -28,7 +28,7 @@
 #ifndef OPENMS_TRANSFORMATIONS_FEATUREFINDER_FEAFITRAITS_H
 #define OPENMS_TRANSFORMATIONS_FEATUREFINDER_FEAFITRAITS_H
 
-#include <OpenMS/KERNEL/DFeatureMap.h>
+#include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/MSExperimentExtern.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeaFiModule.h>
@@ -69,7 +69,7 @@ namespace OpenMS
 	    enum Flag { UNUSED, SEED, INSIDE_FEATURE };
 			
 			/// Internal map type
-	    typedef MSExperimentExtern< DPeak<1> > MapType;
+	    typedef MSExperimentExtern< Peak1D > MapType;
 			/// Intensity type of the map
 	    typedef MapType::IntensityType IntensityType;
 	    /// Coordinate type of the map
@@ -149,7 +149,7 @@ namespace OpenMS
 	    /// access m/z of peak with index @p index .
 	    inline const CoordinateType& getPeakMz(const IDX& index) const
 	    { 
-	    	return map_[index.first][index.second].getPos(); 
+	    	return map_[index.first][index.second].getMZ(); 
 	    }
 	    /// access retention time of peak with index @p index.
 	    inline const CoordinateType& getPeakRt(const IDX& index) const
@@ -160,7 +160,7 @@ namespace OpenMS
 	    /// returns the 2D coordinates of a peak (needed for models)
 	    inline PositionType2D getPeakPos(const IDX& index) const
 			{ 
-				return PositionType2D(map_[index.first].getRetentionTime(),map_[index.first][index.second].getPos());
+				return PositionType2D(map_[index.first].getRetentionTime(),map_[index.first][index.second].getMZ());
 			}
 	
 	    /// fills @p index with the index of next peak in m/z dimension
@@ -202,10 +202,10 @@ namespace OpenMS
 			void getPrevRt(IDX& index) throw (NoSuccessor, Exception::Precondition);
 			
 			//Calculates the convex hull of a index set and adds it to the feature
-			void addConvexHull(const IndexSet& set, DFeature<2>& f) const;
+			void addConvexHull(const IndexSet& set, Feature& f) const;
 	
 	    /// run main loop
-	    const DFeatureMap<2>& run(const std::vector<BaseSeeder*>& seeders,
+	    const FeatureMap<>& run(const std::vector<BaseSeeder*>& seeders,
 	                              const std::vector<BaseExtender*>& extenders,
 	                              const std::vector<BaseModelFitter*>& fitters);
 	
@@ -220,7 +220,7 @@ namespace OpenMS
 	    std::vector< std::vector<Flag> > flags_;
 	
 	    /// The found features in the LC/MS map
-	    DFeatureMap<2> features_;
+	    FeatureMap<> features_;
 	};
 
 namespace Internal
