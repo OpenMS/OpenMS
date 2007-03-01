@@ -81,9 +81,9 @@ CHECK((LinearResampler& operator= (const LinearResampler& source)))
 RESULT
 
 CHECK((template<typename InputSpectrumIterator, typename OutputPeakType > void rasterExperiment(InputSpectrumIterator first, InputSpectrumIterator last, MSExperiment<OutputPeakType>& ms_exp_filtered)))
-  MSExperiment< DRawDataPoint <1> > raw;
+  MSExperiment< RawDataPoint1D > raw;
   raw.resize(1);
-  MSExperiment< DRawDataPoint <1> > resampled;
+  MSExperiment< RawDataPoint1D > resampled;
   MSSpectrum< RawDataPoint1D > spec;
   spec.getContainer().resize(5);
   spec.getContainer()[0].getMZ() = 0;
@@ -114,9 +114,9 @@ CHECK((template<typename InputSpectrumIterator, typename OutputPeakType > void r
 RESULT
 
 CHECK((template<typename InputPeakType, typename OutputPeakType > void rasterExperiment(const MSExperiment< InputPeakType >& ms_exp_raw, MSExperiment<OutputPeakType>& ms_exp_filtered)))
-  MSExperiment< DRawDataPoint <1> > raw;
+  MSExperiment< RawDataPoint1D > raw;
   raw.resize(1);
-  MSExperiment< DRawDataPoint <1> > resampled;
+  MSExperiment< RawDataPoint1D > resampled;
   MSSpectrum< RawDataPoint1D > spec;
   spec.getContainer().resize(5);
   spec.getContainer()[0].getMZ() = 0;
