@@ -79,12 +79,12 @@ CHECK((DMapDewarper(const DMapDewarper& source)))
 	
 	Feature feat1, feat2, feat3;
 	
-	feat1.getMZ() = 1.0;
-	feat1.getRT() = 2.0;
-	feat2.getMZ() = 2.0;
-	feat2.getRT() = 5.0;
-	feat3.getMZ() = 2.0;
-	feat3.getRT() = 4.0;
+	feat1.setMZ(1.0);
+	feat1.setRT(2.0);
+	feat2.setMZ(2.0);
+	feat2.setRT(5.0);
+	feat3.setMZ(2.0);
+	feat3.setRT(4.0);
 	
 	DGridCell<2> cell1(0,0,20,20);
 	Grid the_grid;
@@ -110,12 +110,12 @@ CHECK((DMapDewarper& operator = (const DMapDewarper& source)))
 
 	Feature feat1, feat2, feat3;
 	
-	feat1.getMZ() = 1.0;
-	feat1.getRT() = 2.0;
-	feat2.getMZ() = 2.0;
-	feat2.getRT() = 5.0;
-	feat3.getMZ() = 2.0;
-	feat3.getRT() = 4.0;
+	feat1.setMZ(1.0);
+	feat1.setRT(2.0);
+	feat2.setMZ(2.0);
+	feat2.setRT(5.0);
+	feat3.setMZ(2.0);
+	feat3.setRT(4.0);
 	
 	DGridCell<2> cell1(0,0,20,20);
 	Grid the_grid;
@@ -142,12 +142,12 @@ CHECK((bool operator == (const DMapDewarper& rhs)))
 	
 	Feature feat1, feat2, feat3;
 	
-	feat1.getMZ() = 1.0;
-	feat1.getRT() = 2.0;
-	feat2.getMZ() = 2.0;
-	feat2.getRT() = 5.0;
-	feat3.getMZ() = 2.0;
-	feat3.getRT() = 4.0;
+	feat1.setMZ(1.0);
+	feat1.setRT(2.0);
+	feat2.setMZ(2.0);
+	feat2.setRT(5.0);
+	feat3.setMZ(2.0);
+	feat3.setRT(4.0);
 	
 	DGridCell<2> cell1(0,0,20,20);
 	Grid the_grid;
@@ -177,10 +177,10 @@ CHECK((void dewarp()))
 	DFeaturePair<2> pair1;
 	Feature feat1, feat2;
 	
-	feat1.getMZ() = 1.0;
-	feat1.getRT() = 2.0;
-	feat2.getMZ() =  2.0;
-	feat2.getRT() = 5.0;
+	feat1.setMZ(1.0);
+	feat1.setRT(2.0);
+	feat2.setMZ(2.0);
+	feat2.setRT(5.0);
 	
 	pair1.setFirst(feat1);
 	pair1.setSecond(feat2);
@@ -190,10 +190,10 @@ CHECK((void dewarp()))
 	DFeaturePair<2> pair2;
 	Feature feat3, feat4;
 	
-	feat3.getMZ() = 2.0;
-	feat3.getRT() = 4.0;
-	feat4.getMZ() = 4.0;
-	feat4.getRT() = 9.0;
+	feat3.setMZ(2.0);
+	feat3.setRT(4.0);
+	feat4.setMZ(4.0);
+	feat4.setRT(9.0);
 	
 	pair2.setFirst(feat3);
 	pair2.setSecond(feat4);
@@ -203,10 +203,10 @@ CHECK((void dewarp()))
 	DFeaturePair<2> pair3;
 	Feature feat5, feat6;
 	
-	feat5.getMZ() = 3.0;
-	feat5.getRT() = 6.0;
-	feat6.getMZ() = 6.0;
-	feat6.getRT() = 13.0;
+	feat5.setMZ(3.0);
+	feat5.setRT(6.0);
+	feat6.setMZ(6.0);
+	feat6.setRT(13.0);
 	
 	pair3.setFirst(feat5);
 	pair3.setSecond(feat6);
@@ -243,16 +243,16 @@ CHECK((void dewarp()))
 	
 	FeatureMap<> dewarped = dewarper.getMap();
 	FeatureMap<>::const_iterator map_iter = dewarped.begin();
-	TEST_REAL_EQUAL(map_iter->getPosition()[0],5.0);
-	TEST_REAL_EQUAL(map_iter->getPosition()[1],2.0);
+	TEST_REAL_EQUAL(map_iter->getRT(),5.0);
+	TEST_REAL_EQUAL(map_iter->getMZ(),2.0);
 	
 	map_iter++;
-	TEST_REAL_EQUAL(map_iter->getPosition()[0],9.0);
-	TEST_REAL_EQUAL(map_iter->getPosition()[1],4.0);
+	TEST_REAL_EQUAL(map_iter->getRT(),9.0);
+	TEST_REAL_EQUAL(map_iter->getMZ(),4.0);
 	
 	map_iter++;
-	TEST_REAL_EQUAL(map_iter->getPosition()[0],13.0);
-	TEST_REAL_EQUAL(map_iter->getPosition()[1],6.0);	
+	TEST_REAL_EQUAL(map_iter->getRT(),13.0);
+	TEST_REAL_EQUAL(map_iter->getMZ(),6.0);	
 		
 RESULT
 
