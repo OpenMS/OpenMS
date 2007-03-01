@@ -80,10 +80,10 @@ CHECK((DMapMatcherRegression(const DMapMatcherRegression& source)))
 	DFeaturePair<2> pair1;
 	Feature feat1, feat2;
 	
-	feat1.getMZ() = 1.0;
-	feat1.getRT() = 2.0;
-	feat2.getMZ() =  2.0;
-	feat2.getRT() = 5.0;
+	feat1.setMZ(1.0);
+	feat1.setRT(2.0);
+	feat2.setMZ(2.0);
+	feat2.setRT(5.0);
 	
 	pair1.setFirst(feat1);
 	pair1.setSecond(feat2);
@@ -93,10 +93,10 @@ CHECK((DMapMatcherRegression(const DMapMatcherRegression& source)))
 	DFeaturePair<2> pair2;
 	Feature feat3, feat4;
 	
-	feat3.getMZ() = 2.0;
-	feat3.getRT() = 4.0;
-	feat4.getMZ() = 4.0;
-	feat4.getRT() = 9.0;
+	feat3.setMZ(2.0);
+	feat3.setRT(4.0);
+	feat4.setMZ(4.0);
+	feat4.setRT(9.0);
 	
 	pair2.setFirst(feat3);
 	pair2.setSecond(feat4);
@@ -130,10 +130,10 @@ CHECK((DMapMatcherRegression& operator = (const DMapMatcherRegression& source)))
 	DFeaturePair<2> pair1;
 	Feature feat1, feat2;
 	
-	feat1.getMZ() = 1.0;
-	feat1.getRT() = 2.0;
-	feat2.getMZ() =  2.0;
-	feat2.getRT() = 5.0;
+	feat1.setMZ(1.0);
+	feat1.setRT(2.0);
+	feat2.setMZ(2.0);
+	feat2.setRT(5.0);
 	
 	pair1.setFirst(feat1);
 	pair1.setSecond(feat2);
@@ -143,10 +143,10 @@ CHECK((DMapMatcherRegression& operator = (const DMapMatcherRegression& source)))
 	DFeaturePair<2> pair2;
 	Feature feat3, feat4;
 	
-	feat3.getMZ() = 2.0;
-	feat3.getRT() = 4.0;
-	feat4.getMZ() = 4.0;
-	feat4.getRT() = 9.0;
+	feat3.setMZ(2.0);
+	feat3.setRT(4.0);
+	feat4.setMZ(4.0);
+	feat4.setRT(9.0);
 	
 	pair2.setFirst(feat3);
 	pair2.setSecond(feat4);
@@ -181,10 +181,10 @@ CHECK((bool operator == (const DMapMatcherRegression& rhs)))
 	DFeaturePair<2> pair1;
 	Feature feat1, feat2;
 	
-	feat1.getMZ() = 1.0;
-	feat1.getRT() = 2.0;
-	feat2.getMZ() =  2.0;
-	feat2.getRT() = 5.0;
+	feat1.setMZ(1.0);
+	feat1.setRT(2.0);
+	feat2.setMZ(2.0);
+	feat2.setRT(5.0);
 	
 	pair1.setFirst(feat1);
 	pair1.setSecond(feat2);
@@ -194,10 +194,10 @@ CHECK((bool operator == (const DMapMatcherRegression& rhs)))
 	DFeaturePair<2> pair2;
 	Feature feat3, feat4;
 	
-	feat3.getMZ() = 2.0;
-	feat3.getRT() = 4.0;
-	feat4.getMZ() = 4.0;
-	feat4.getRT() = 9.0;
+	feat3.setMZ(2.0);
+	feat3.setRT(4.0);
+	feat4.setMZ(4.0);
+	feat4.setRT(9.0);
 	
 	pair2.setFirst(feat3);
 	pair2.setSecond(feat4);
@@ -232,10 +232,10 @@ CHECK((void estimateTransform()))
 	DFeaturePair<2> pair1;
 	Feature feat1, feat2;
 	
-	feat1.getMZ() = 1.0;
-	feat1.getRT() = 2.0;
-	feat2.getMZ() =  2.0;
-	feat2.getRT() = 5.0;
+	feat1.setMZ(1.0);
+	feat1.setRT(2.0);
+	feat2.setMZ(2.0);
+	feat2.setRT(5.0);
 	
 	pair1.setFirst(feat1);
 	pair1.setSecond(feat2);
@@ -245,10 +245,10 @@ CHECK((void estimateTransform()))
 	DFeaturePair<2> pair2;
 	Feature feat3, feat4;
 	
-	feat3.getMZ() = 2.0;
-	feat3.getRT() = 4.0;
-	feat4.getMZ() = 4.0;
-	feat4.getRT() = 9.0;
+	feat3.setMZ(2.0);
+	feat3.setRT(4.0);
+	feat4.setMZ(4.0);
+	feat4.setRT(9.0);
 	
 	pair2.setFirst(feat3);
 	pair2.setSecond(feat4);
@@ -258,10 +258,10 @@ CHECK((void estimateTransform()))
 	DFeaturePair<2> pair3;
 	Feature feat5, feat6;
 	
-	feat5.getMZ() = 3.0;
-	feat5.getRT() = 6.0;
-	feat6.getMZ() = 6.0;
-	feat6.getRT() = 13.0;
+	feat5.setMZ(3.0);
+	feat5.setRT(6.0);
+	feat6.setMZ(6.0);
+	feat6.setRT(13.0);
 	
 	pair3.setFirst(feat5);
 	pair3.setSecond(feat6);
