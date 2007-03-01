@@ -201,57 +201,13 @@ namespace OpenMS
 			MSExperiment<> exp;
 			FileHandler().loadExperiment(names_[0],exp);
 			
-			//------------------------------------------------------------------------------
-			//	             Set meta data object
-			//------------------------------------------------------------------------------
-			DateTime date;
-			date.now();
-			Date today;
-			today.today();
-			
-			ProteinIdentification pid;
-			pid.setProteinSignificanceThreshold(3.2);
-			pid.setDateTime(date);
-			
-			std::vector< ProteinHit > prot_hits;  
-			ProteinHit *phit1 = new ProteinHit();
-			ProteinHit *phit2 = new ProteinHit();
-			ProteinHit *phit3 = new ProteinHit();
-			ProteinHit *phit4 = new ProteinHit();
-			Real score1 =4.4;
-			Real score2 =6.4;
-			Real score3 =2.4;
-			Real score4 =9.4;
-			phit1->setScore(score1);
-			phit2->setScore(score2);
-			phit3->setScore(score3);
-			phit4->setScore(score4);
-			phit1->setAccession("1BNL");
-			phit2->setAccession("1BY0");
-			phit3->setAccession("ACC392");
-			phit4->setAccession("ACD392");
-			prot_hits.push_back(*phit1);
-			prot_hits.push_back(*phit2);
-			prot_hits.push_back(*phit3);
-			prot_hits.push_back(*phit4);
-			
-			pid.setProteinHits(prot_hits);
-			
-			std::vector<ProteinIdentification> protIDs;
-			protIDs.push_back(pid);
-	
-			//-------------------------------------------------------------------------
-			//		end of meta data testing
-			//-------------------------------------------------------------------------
+			//Define if meta data should be editable
+			//If yes, set flag to true.
 						
 			//MSMetaDataExplorer dlg(false, this);
 			MSMetaDataExplorer dlg(true, this);
 			dlg.setWindowTitle("Meta data");
-						
-			
-			dlg.add(&pid);
-			
-			//dlg.add(&exp);
+			dlg.add(&exp);
 			
      	dlg.exec();
 		}
