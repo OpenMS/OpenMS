@@ -156,7 +156,7 @@ namespace OpenMS
 		{
 			for (Size j = j_left; j != s2.getContainer().size(); ++j)
 			{
-				double pos1(s1.getContainer()[i].getPosition()[0]), pos2(s2.getContainer()[j].getPosition()[0]);
+				double pos1(s1.getContainer()[i].getMZ()), pos2(s2.getContainer()[j].getMZ());
 				if (abs(pos1 - pos2) <= 2 * epsilon)
 				{
 					sum += sqrt(s1.getContainer()[i].getIntensity() * s2.getContainer()[j].getIntensity());

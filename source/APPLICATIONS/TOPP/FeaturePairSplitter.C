@@ -25,7 +25,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/DFeaturePairsFile.h>
-#include <OpenMS/FORMAT/DFeatureMapFile.h>
+#include <OpenMS/FORMAT/FeatureMapFile.h>
 #include <OpenMS/DATASTRUCTURES/Date.h>
 #include <OpenMS/KERNEL/DimensionDescription.h>
 
@@ -57,7 +57,7 @@ using namespace std;
   The input file is parsed by DFeaturePairsFile; a typical file name extension
   would be ".pairs.xml".
 
-  The two output files are written by DFeatureMapFile; a typical file name
+  The two output files are written by FeatureMapFile; a typical file name
   extension would be '.feat.xml'.
 
 	The qualities are written one per line; a typical file name extension would be '.txt'.
@@ -110,7 +110,7 @@ class TOPPFeaturePairSplitter
 		feature_pairs_file.load(in,feature_pairs);
 
 		// store the data
-		DFeatureMap<2> first_feature_map, second_feature_map;
+		FeatureMap<> first_feature_map, second_feature_map;
 		vector<double> qualities_vector;
 		for ( DFeaturePairVector<2>::ConstIterator iter = feature_pairs.begin();
 					iter != feature_pairs.end();
@@ -123,15 +123,15 @@ class TOPPFeaturePairSplitter
 		}
 
 		// write the data to files
-		DFeatureMapFile f;
+		FeatureMapFile f;
 		if ( write_out1 )
 		{
-			DFeatureMapFile f;
+			FeatureMapFile f;
 			f.store(out1,first_feature_map);
 		}
 		if ( write_out2 )
 		{
-			DFeatureMapFile f;
+			FeatureMapFile f;
 			f.store(out2,second_feature_map);
 		}
 		if ( write_qual )
@@ -161,11 +161,11 @@ class TOPPFeaturePairSplitter
 			{
 				dump_file
 					<< iter - feature_pairs.begin() << ' '
-					<< iter -> getFirst() . getPosition()[RT] << ' '
-					<< iter -> getFirst() . getPosition()[MZ] << ' '
+					<< iter -> getFirst() . getRT() << ' '
+					<< iter -> getFirst() . getMZ() << ' '
 					<< iter -> getFirst() . getIntensity() << "  "
-					<< iter -> getSecond() . getPosition()[RT] << ' '
-					<< iter -> getSecond() . getPosition()[MZ] << ' '
+					<< iter -> getSecond() . getRT() << ' '
+					<< iter -> getSecond() . getMZ() << ' '
 					<< iter -> getSecond() . getIntensity() << "  "
 					<< iter -> getQuality() << '\n';
 			}

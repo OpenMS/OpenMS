@@ -199,7 +199,7 @@ namespace OpenMS
 				Size j(0);
 				for (IsotopeDistribution::ConstIterator it=dist.begin(); it!=dist.end(); ++it, ++j)
 				{
-					p_.setPosition(pos+j/charge);
+					p_.setMZ(pos+j/charge);
 					p_.setIntensity(intensity * it->second);
 					if (add_metainfo && j == 0)
 					{
@@ -210,7 +210,7 @@ namespace OpenMS
 			}
 			else
 			{
-				p_.setPosition(pos);
+				p_.setMZ(pos);
 				p_.setIntensity(intensity);
 				if (add_metainfo)
 				{
@@ -239,7 +239,7 @@ namespace OpenMS
 						Size j(0);
 						for (IsotopeDistribution::ConstIterator iso=dist.begin(); iso!=dist.end(); ++iso)
 						{
-							p_.setPosition(loss_pos + j / charge);
+							p_.setMZ(loss_pos + j / charge);
 							p_.setIntensity(intensity * rel_loss_intensity * iso->second);
 							if (add_metainfo && j == 0)
 							{
@@ -250,7 +250,7 @@ namespace OpenMS
 					}
 					else
 					{
-						p_.setPosition(loss_pos);
+						p_.setMZ(loss_pos);
 						if (add_metainfo)
 						{
 							p_.setMetaValue("IonName", ion_name + "-" + loss_name);
@@ -288,7 +288,7 @@ namespace OpenMS
 		else
 		{
 			// precursor peak
-			p_.setPosition(peptide.getAverageWeight(Residue::Full, charge)/double(charge));
+			p_.setMZ(peptide.getAverageWeight(Residue::Full, charge)/double(charge));
 			p_.setIntensity(pre_int);
 			if (add_metainfo)
 			{
@@ -303,7 +303,7 @@ namespace OpenMS
 			spec.getContainer().push_back(p_);
 
 			// loss peaks of the precursor
-			p_.setPosition((peptide.getAverageWeight(Residue::Full, charge) - Formulas::H2O.getAverageWeight())/double(charge));
+			p_.setMZ((peptide.getAverageWeight(Residue::Full, charge) - Formulas::H2O.getAverageWeight())/double(charge));
 			p_.setIntensity(pre_int_H2O);
 			
 			if (add_metainfo)
@@ -317,7 +317,7 @@ namespace OpenMS
 			}
 			spec.getContainer().push_back(p_);
 
-      p_.setPosition((peptide.getAverageWeight(Residue::Full, charge) - Formulas::NH3.getAverageWeight())/double(charge));
+      p_.setMZ((peptide.getAverageWeight(Residue::Full, charge) - Formulas::NH3.getAverageWeight())/double(charge));
       p_.setIntensity(pre_int_NH3);
 
       if (add_metainfo)

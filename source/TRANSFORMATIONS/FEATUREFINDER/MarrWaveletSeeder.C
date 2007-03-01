@@ -172,7 +172,7 @@ namespace OpenMS
 			ofstream peakfile( fname.c_str() );
 			for(unsigned k = 0; k<current_scan.size();++k)
 			{
-				peakfile << current_scan[k].getPos() << " " << current_scan[k].getIntensity() << endl;
+				peakfile << current_scan[k].getMZ() << " " << current_scan[k].getIntensity() << endl;
 			}
 			peakfile.close();
 #endif
@@ -191,7 +191,7 @@ namespace OpenMS
 			ofstream gpfile( fname.c_str() );
 			for (int i=0;i<cwt_.getSize(); ++i)
 			{
-				gpfile << (current_scan.begin() + i)->getPos() << "  " << cwt_[i] << endl;
+				gpfile << (current_scan.begin() + i)->getMZ() << "  " << cwt_[i] << endl;
 			}
 			gpfile.close();
 #endif
@@ -226,8 +226,8 @@ namespace OpenMS
 			for (int z = 0; z< ( nr_maxima - 2); ++z)
 			{
 				// store the m/z of the current peak
-				CoordinateType curr_mz = current_scan[ local_maxima[z] ].getPos();
-				CoordinateType dist2nextpeak = (current_scan[ local_maxima[ (z + 1) ] ].getPos() - curr_mz);
+				CoordinateType curr_mz = current_scan[ local_maxima[z] ].getMZ();
+				CoordinateType dist2nextpeak = (current_scan[ local_maxima[ (z + 1) ] ].getMZ() - curr_mz);
 	
 				// test for different charge states
 				current_charge = distanceToCharge_(dist2nextpeak);
@@ -350,7 +350,7 @@ namespace OpenMS
 					// check distance to next peak
 					if ( (z+1) >= nr_maxima) break;
 	
-					dist2nextpeak = ( current_scan[ local_maxima[z+1] ].getPos()  -   current_scan[ local_maxima[z] ].getPos() );
+					dist2nextpeak = ( current_scan[ local_maxima[z+1] ].getMZ()  -   current_scan[ local_maxima[z] ].getMZ() );
 	
 					if (distanceToCharge_(dist2nextpeak) != current_charge)
 					{
@@ -371,7 +371,7 @@ namespace OpenMS
 	
 					if ( (z+1) >= nr_maxima) break;
 	
-					CoordinateType monoiso_mass = current_scan[ local_maxima[z+1] ].getPos();
+					CoordinateType monoiso_mass = current_scan[ local_maxima[z+1] ].getMZ();
 					CoordinateType mass_diff		 = 0.0;
 	
 					// loop until end of isotopic pattern in this scan
@@ -394,8 +394,8 @@ namespace OpenMS
 							}
 						}
 	
-						dist2nextpeak = (current_scan[ local_maxima[z+1] ].getPos() -  current_scan[ local_maxima[z] ].getPos() ); // get distance to next peak
-						mass_diff	   = ( current_scan[ local_maxima[z+1] ].getPos() - monoiso_mass);
+						dist2nextpeak = (current_scan[ local_maxima[z+1] ].getMZ() -  current_scan[ local_maxima[z] ].getMZ() ); // get distance to next peak
+						mass_diff	   = ( current_scan[ local_maxima[z+1] ].getMZ() - monoiso_mass);
 					} // end while(...)
 	
 				} // end of if (charge > 0)
@@ -416,7 +416,7 @@ namespace OpenMS
 					// in the next scan again....
 // 					cout << "High peak in cwt !!" << endl;
 					UnsignedInt this_peak =  local_maxima[z];
-					CoordinateType this_mass	 = current_scan[ this_peak ].getPos();
+					CoordinateType this_mass	 = current_scan[ this_peak ].getMZ();
 					
 					// hash entry to write in
 					TableType::iterator entry_to_insert;		
@@ -502,7 +502,7 @@ namespace OpenMS
 					CoordinateType this_intensity = current_scan[ this_peak ].getIntensity();
 					CoordinateType next_mass	 = this_mass;
 					CoordinateType next_intensity = this_intensity;
-					iso_curr_scan.push_back( current_scan[ local_maxima[z] ].getPos() );
+					iso_curr_scan.push_back( current_scan[ local_maxima[z] ].getMZ() );
 					entry_to_insert->second.peaks_.insert(make_pair(currscan_index, this_peak));
 					traits_->getPeakFlag(make_pair(currscan_index, this_peak)) = FeaFiTraits::SEED;
 	
@@ -513,7 +513,7 @@ namespace OpenMS
 						entry_to_insert->second.peaks_.insert(make_pair(currscan_index, this_peak));
 						traits_->getPeakFlag(make_pair(currscan_index, this_peak)) = FeaFiTraits::SEED;
 	
-						next_mass	 = current_scan[ this_peak ].getPos(); 
+						next_mass	 = current_scan[ this_peak ].getMZ(); 
 						next_intensity = current_scan[ this_peak ].getIntensity();
 					}
 	
@@ -526,7 +526,7 @@ namespace OpenMS
 						entry_to_insert->second.peaks_.insert(make_pair(currscan_index, this_peak));
 						traits_->getPeakFlag(make_pair(currscan_index, this_peak)) = FeaFiTraits::SEED;
 	
-						next_mass	 = current_scan[ this_peak ].getPos(); 
+						next_mass	 = current_scan[ this_peak ].getMZ(); 
 						next_intensity = current_scan[ this_peak ].getIntensity();
 					}
 				}
@@ -599,7 +599,7 @@ namespace OpenMS
 #ifdef DEBUG_FEATUREFINDER
 				String fname = String("cwt_localmax_") + current_rt;
 				ofstream gpfile( fname.c_str(), ios_base::app);
-				gpfile << (first + i)->getPos()  << "  " << cwt_[i] << endl;
+				gpfile << (first + i)->getMZ()  << "  " << cwt_[i] << endl;
 				gpfile.close();
 #endif
 				max_value=(first +  i)->getIntensity();
@@ -649,9 +649,9 @@ namespace OpenMS
 		for (UnsignedInt k=0; k<neighbour.size(); ++k)
 		{
 			PeakType p			   = neighbour[k];
-			CoordinateType mass = p.getPos();
+			CoordinateType mass = p.getMZ();
 	
-			while (scan[index_newscan].getPos() < mass && index_newscan < scan.size())
+			while (scan[index_newscan].getMZ() < mass && index_newscan < scan.size())
 				++index_newscan;
 	
 			// This seems to happen more frequently than expected -> quit the loop
@@ -659,8 +659,8 @@ namespace OpenMS
 	
 			if (index_newscan > 0)
 			{
-				double left_diff   = fabs(scan[index_newscan-1].getPos() - mass);
-				double right_diff = fabs(scan[index_newscan].getPos() - mass);
+				double left_diff   = fabs(scan[index_newscan-1].getMZ() - mass);
+				double right_diff = fabs(scan[index_newscan].getMZ() - mass);
 				// 					cout << "Checking neighbours: " << left_diff << " " << right_diff << endl;
 	
 				// check which neighbour is closer
@@ -679,7 +679,7 @@ namespace OpenMS
 			}
 			else // no left neighbour available
 			{
-				double right_diff = fabs(scan[index_newscan].getPos() - mass);
+				double right_diff = fabs(scan[index_newscan].getMZ() - mass);
 				if (right_diff < mass_tolerance)
 				{
 					scan[index_newscan].getIntensity() += p.getIntensity();

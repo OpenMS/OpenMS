@@ -147,7 +147,7 @@ class TOPPPeakPicker
     // loading input
     //-------------------------------------------------------------
     MzDataFile mz_data_file;
-    MSExperiment<DRawDataPoint<1> > ms_exp_raw;
+    MSExperiment<RawDataPoint1D > ms_exp_raw;
     mz_data_file.load(in,ms_exp_raw);
 		
 		//check for peak type (raw data required)
@@ -164,7 +164,7 @@ class TOPPPeakPicker
     // pick
     //-------------------------------------------------------------
 
-    MSExperiment<DPickedPeak<1> > ms_exp_peaks;
+    MSExperiment<PickedPeak1D> ms_exp_peaks;
     peak_picker.pickExperiment(ms_exp_raw,ms_exp_peaks);
   
 		//-------------------------------------------------------------

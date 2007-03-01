@@ -27,7 +27,7 @@
 #include <OpenMS/config.h>
 
 #include <OpenMS/FORMAT/FileHandler.h>
-#include <OpenMS/FORMAT/DFeatureMapFile.h>
+#include <OpenMS/FORMAT/FeatureMapFile.h>
 #include <OpenMS/FORMAT/PeakTypeEstimator.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 
@@ -112,8 +112,8 @@ class TOPPFileInfo
 					 << "file name: " << in << endl
 					 << "file type: " <<  fh.typeToName(in_type) << endl;
 			
-			MSExperiment< DPeak<1> > exp;
-			DFeatureMap<2> feat;
+			MSExperiment< Peak1D > exp;
+			FeatureMap<> feat;
 			ExperimentalSettings* exp_set;
 			//-------------------------------------------------------------
 			// MSExperiment
@@ -155,7 +155,7 @@ class TOPPFileInfo
 		
 				//count how many spectra per MS level there are
 				vector<UnsignedInt> counts(5);
-				for (MSExperiment< DPeak<1> >::iterator it = exp.begin(); it!=exp.end(); ++it)
+				for (MSExperiment< Peak1D >::iterator it = exp.begin(); it!=exp.end(); ++it)
 				{
 					counts[it->getMSLevel()]++;	
 				}
@@ -176,7 +176,7 @@ class TOPPFileInfo
 			//-------------------------------------------------------------
 			else
 			{
-				DFeatureMapFile().load(in,feat);
+				FeatureMapFile().load(in,feat);
 				feat.updateRanges();
 				
 				UnsignedInt mz_dim = DimensionDescription< LCMS_Tag >::MZ;

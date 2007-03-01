@@ -26,7 +26,7 @@
 
 // OpenMS
 #include <OpenMS/VISUAL/Spectrum2DCanvas.h>
-#include <OpenMS/KERNEL/DFeature.h>
+#include <OpenMS/KERNEL/Feature.h>
 #include <OpenMS/VISUAL/DIALOGS/Spectrum2DCanvasPDP.h>
 #include <OpenMS/CONCEPT/TimeStamp.h>
 
@@ -114,23 +114,23 @@ namespace OpenMS
 		return show_dots_[current_layer_];
 	}
 	
-	void Spectrum2DCanvas::highlightPeak_(QPainter& painter, DFeature<2>* peak)
+	void Spectrum2DCanvas::highlightPeak_(QPainter& painter, Feature* peak)
 	{
 		if (!peak) return;
 		painter.save();
 		painter.setPen(QPen(Qt::red, 2));
 		QPoint pos;
-		dataToWidget_(peak->getPosition(),pos);
+		dataToWidget_(peak->getMZ(),pos);
 		painter.drawEllipse(pos.x() - 5, pos.y() - 5, 10, 10);
 		painter.restore();
 	}
 	
-	DFeature<2>* Spectrum2DCanvas::findNearestPeak_(const QPoint& pos)
+	Feature* Spectrum2DCanvas::findNearestPeak_(const QPoint& pos)
 	{
 		//Constructing the area corrects swapped mapping of RT and m/z
 		AreaType area (widgetToData_(pos - QPoint(5,5)),widgetToData_(pos + QPoint(5,5)));
 
-		DFeature<2>* max_peak = 0;
+		Feature* max_peak = 0;
 		float max_int = -1 * numeric_limits<float>::max();
 		
 		//cout << "findNearestPeak_: Int range -- " << getCurrentLayer().min_int << " "  << getCurrentLayer().max_int << endl;
@@ -143,12 +143,12 @@ namespace OpenMS
 			{
 				if (i->getIntensity() > max_int && i->getIntensity()>=getCurrentLayer().min_int && i->getIntensity()<=getCurrentLayer().max_int)
 				{
-					//cout << "new max: " << i.getRetentionTime() << " " << i->getPos() << endl;
+					//cout << "new max: " << i.getRetentionTime() << " " << i->getMZ() << endl;
 					max_int = i->getIntensity();
 					
 					tmp_peak_.setIntensity(i->getIntensity());
-					tmp_peak_.getPosition()[0] = i->getPos();
-					tmp_peak_.getPosition()[1] = i.getRetentionTime();
+					tmp_peak_.getPos()[0] = i->getMZ();
+					tmp_peak_.getPos()[1] = i.getRetentionTime();
 					
 					max_peak = &tmp_peak_;
 				}
@@ -160,10 +160,10 @@ namespace OpenMS
 				   i != getCurrentLayer().features.end();
 				   ++i)
 			{
-				if ( i->getPosition()[RT] >= area.min()[1] &&
-						 i->getPosition()[RT] <= area.max()[1] &&
-						 i->getPosition()[MZ] >= area.min()[0] &&
-						 i->getPosition()[MZ] <= area.max()[0] &&
+				if ( i->getRT() >= area.min()[1] &&
+						 i->getRT() <= area.max()[1] &&
+						 i->getMZ() >= area.min()[0] &&
+						 i->getMZ() <= area.max()[0] &&
 						 i->getIntensity()    >= getCurrentLayer().min_int &&
 						 i->getIntensity()    <= getCurrentLayer().max_int )
 				{
@@ -172,8 +172,8 @@ namespace OpenMS
 						max_int = i->getIntensity();
 						
 						tmp_peak_.setIntensity(i->getIntensity());
-						tmp_peak_.getPosition()[0] = i->getPosition()[1];
-						tmp_peak_.getPosition()[1] = i->getPosition()[0];
+						tmp_peak_.getPos()[0] = i->getPos()[1];
+						tmp_peak_.getPos()[1] = i->getPos()[0];
 						tmp_peak_.getConvexHulls() = i->getConvexHulls();
 						
 						max_peak = &tmp_peak_;
@@ -183,7 +183,7 @@ namespace OpenMS
 		}
 //		if (max_peak!=0)
 //		{
-//			cout << "MAX PEAK: " << max_peak->getPosition() << endl;
+//			cout << "MAX PEAK: " << max_peak->getMZ() << endl;
 //		}
 		return max_peak;
 	}
@@ -326,7 +326,7 @@ namespace OpenMS
 					{
 						painter.setPen(heightColor_(i->getIntensity(), dot_gradient_));
 					}
-					dataToWidget_(i->getPos(), i.getRetentionTime(),pos);
+					dataToWidget_(i->getMZ(), i.getRetentionTime(),pos);
 					painter.drawLine(pos.x(),pos.y()-1,pos.x(),pos.y()+1);
 					painter.drawLine(pos.x()-1,pos.y(),pos.x()+1,pos.y());
 				}
@@ -338,10 +338,10 @@ namespace OpenMS
 				   i != getLayer(layer_index).features.end();
 				   ++i)
 			{
-				if ( i->getPosition()[RT] >= visible_area_.min()[1] &&
-						 i->getPosition()[RT] <= visible_area_.max()[1] &&
-						 i->getPosition()[MZ] >= visible_area_.min()[0] &&
-						 i->getPosition()[MZ] <= visible_area_.max()[0] &&
+				if ( i->getRT() >= visible_area_.min()[1] &&
+						 i->getRT() <= visible_area_.max()[1] &&
+						 i->getMZ() >= visible_area_.min()[0] &&
+						 i->getMZ() <= visible_area_.max()[0] &&
 						 i->getIntensity()>=min_int &&
 						 i->getIntensity()<=max_int)
 				{
@@ -349,7 +349,7 @@ namespace OpenMS
 					{
 						painter.setPen(heightColor_(i->getIntensity(), dot_gradient_));
 					}
-					dataToWidget_(i->getPosition()[MZ],i->getPosition()[RT],pos);
+					dataToWidget_(i->getMZ(),i->getRT(),pos);
 					painter.drawLine(pos.x(),pos.y()-1,pos.x(),pos.y()+1);
 					painter.drawLine(pos.x()-1,pos.y(),pos.x()+1,pos.y());
 				}
@@ -372,10 +372,10 @@ namespace OpenMS
 			   i != getLayer(layer_index).features.end();
 			   ++i)
 		{
-			if ( i->getPosition()[RT] >= visible_area_.min()[1] &&
-					 i->getPosition()[RT] <= visible_area_.max()[1] &&
-					 i->getPosition()[MZ] >= visible_area_.min()[0] &&
-					 i->getPosition()[MZ] <= visible_area_.max()[0] &&
+			if ( i->getRT() >= visible_area_.min()[1] &&
+					 i->getRT() <= visible_area_.max()[1] &&
+					 i->getMZ() >= visible_area_.min()[0] &&
+					 i->getMZ() <= visible_area_.max()[0] &&
 					 i->getIntensity()>=min_int &&
 					 i->getIntensity()<=max_int)
 			{
@@ -401,28 +401,28 @@ namespace OpenMS
 			//get second feature
 			i2 = i1 + 1;
 			
-			if ( i1->getPosition()[RT] >= visible_area_.min()[1] &&
-					 i1->getPosition()[RT] <= visible_area_.max()[1] &&
-					 i1->getPosition()[MZ] >= visible_area_.min()[0] &&
-					 i1->getPosition()[MZ] <= visible_area_.max()[0] &&
+			if ( i1->getRT() >= visible_area_.min()[1] &&
+					 i1->getRT() <= visible_area_.max()[1] &&
+					 i1->getMZ() >= visible_area_.min()[0] &&
+					 i1->getMZ() <= visible_area_.max()[0] &&
 					 i1->getIntensity()>=min_int &&
 					 i1->getIntensity()<=max_int &&
-					 i2->getPosition()[RT] >= visible_area_.min()[1] &&
-					 i2->getPosition()[RT] <= visible_area_.max()[1] &&
-					 i2->getPosition()[MZ] >= visible_area_.min()[0] &&
-					 i2->getPosition()[MZ] <= visible_area_.max()[0] &&
+					 i2->getRT() >= visible_area_.min()[1] &&
+					 i2->getRT() <= visible_area_.max()[1] &&
+					 i2->getMZ() >= visible_area_.min()[0] &&
+					 i2->getMZ() <= visible_area_.max()[0] &&
 					 i2->getIntensity()>=min_int &&
 					 i2->getIntensity()<=max_int
 					 )
 			{
-				dataToWidget_(i1->getPosition()[MZ],i1->getPosition()[RT], line_begin);
-				dataToWidget_(i2->getPosition()[MZ],i2->getPosition()[RT], line_end);
+				dataToWidget_(i1->getMZ(),i1->getRT(), line_begin);
+				dataToWidget_(i2->getMZ(),i2->getRT(), line_end);
 				painter.drawLine(line_begin, line_end);
 			}
 		}
 	}      
 
-  void Spectrum2DCanvas::paintConvexHulls_(const DFeature<2>::ConvexHullVector& hulls, QPainter& painter)
+  void Spectrum2DCanvas::paintConvexHulls_(const Feature::ConvexHullVector& hulls, QPainter& painter)
   {
 		QPolygon points;
 		
@@ -433,7 +433,7 @@ namespace OpenMS
 			UnsignedInt index=0;
 			QPoint pos;
 			//iterate over hull points
-			for(DFeature<2>::ConvexHullType::PointArrayType::const_iterator it=hulls[hull].getPoints().begin(); it!=hulls[hull].getPoints().end(); ++it, ++index)
+			for(ConvexHull2D::PointArrayType::const_iterator it=hulls[hull].getPoints().begin(); it!=hulls[hull].getPoints().end(); ++it, ++index)
 			{
 				dataToWidget_(it->Y(), it->X(),pos);
 				points.setPoint(index, pos);
@@ -855,7 +855,7 @@ namespace OpenMS
 		{
 			if (i->getIntensity()>=getCurrentLayer().min_int && i->getIntensity()<=getCurrentLayer().max_int)
 			{
-				mz[i->getPos()] += i->getIntensity();
+				mz[i->getMZ()] += i->getIntensity();
 				rt[i.getRetentionTime()] += i->getIntensity();
 			}
 		}
@@ -866,20 +866,20 @@ namespace OpenMS
 		
 		//resize and add boundary peaks		
 		cont_mz.resize(mz.size()+2);
-		cont_mz[0].setPos(mz_l);
+		cont_mz[0].setMZ(mz_l);
 		cont_mz[0].setIntensity(0.0);
-		cont_mz[1].setPos(mz_h);
+		cont_mz[1].setMZ(mz_h);
 		cont_mz[1].setIntensity(0.0);
 		cont_rt.resize(rt.size()+2);
-		cont_rt[0].setPos(rt_l);
+		cont_rt[0].setMZ(rt_l);
 		cont_rt[0].setIntensity(0.0);
-		cont_rt[1].setPos(rt_h);
+		cont_rt[1].setMZ(rt_h);
 		cont_rt[1].setIntensity(0.0);
 		
 		UnsignedInt i = 2;
 		for (map<float, float>::iterator it = mz.begin(); it != mz.end(); ++it)
 		{
-			cont_mz[i].setPos(it->first);
+			cont_mz[i].setMZ(it->first);
 			cont_mz[i].setIntensity(it->second);
 			++i;
 		}
@@ -887,7 +887,7 @@ namespace OpenMS
 		i = 2;
 		for (map<float, float>::iterator it = rt.begin(); it != rt.end(); ++it)
 		{
-			cont_rt[i].setPos(it->first);
+			cont_rt[i].setMZ(it->first);
 			cont_rt[i].setIntensity(it->second);
 			++i;
 		}
@@ -1104,10 +1104,10 @@ namespace OpenMS
 							   it != getLayer(i).features.end();
 							   ++it)
 						{
-							if ( it->getPosition()[RT] >= visible_area_.min()[1] &&
-									 it->getPosition()[RT] <= visible_area_.max()[1] &&
-									 it->getPosition()[MZ] >= visible_area_.min()[0] &&
-									 it->getPosition()[MZ] <= visible_area_.max()[0] &&
+							if ( it->getRT() >= visible_area_.min()[1] &&
+									 it->getRT() <= visible_area_.max()[1] &&
+									 it->getMZ() >= visible_area_.min()[0] &&
+									 it->getMZ() <= visible_area_.max()[0] &&
 									 it->getIntensity()>=getLayer(i).min_int && 
 									 it->getIntensity()<=getLayer(i).max_int &&
 									 it->getIntensity() > local_max)
@@ -1279,7 +1279,7 @@ namespace OpenMS
 			
 			if (measurement_stop_)
 			{
-				 dataToWidget_(measurement_stop_->getPosition(), line_end);
+				 dataToWidget_(measurement_stop_->getMZ(), line_end);
 				//cout << "Line end: " << line_end << endl;
 			}
 			else
@@ -1287,7 +1287,7 @@ namespace OpenMS
 				line_end = last_mouse_pos_;
 				//cout << "Ende: " << line_end.x() << " " << line_end.y() << endl;
 			}
-			dataToWidget_(measurement_start_->getPosition(), line_begin);
+			dataToWidget_(measurement_start_->getMZ(), line_begin);
 			painter.drawLine(line_begin, line_end);
 		}
 		highlightPeak_(painter, measurement_start_);
@@ -1331,7 +1331,7 @@ namespace OpenMS
 					if (selected_peak_)
 					{
 						delete(measurement_start_);
-						measurement_start_ = new DFeature<2>(*selected_peak_);
+						measurement_start_ = new Feature(*selected_peak_);
 					}
 					else
 					{
@@ -1374,12 +1374,12 @@ namespace OpenMS
 				if (e->buttons() == Qt::NoButton)
 				{
 					
-					DFeature<2>* max_peak = findNearestPeak_(pos);
+					Feature* max_peak = findNearestPeak_(pos);
 					
 					if (max_peak)
 					{
 						// show Peak Coordinates (with intensity)
-						emit sendCursorStatus(max_peak->getPosition()[0], max_peak->getIntensity(), max_peak->getPosition()[1]);
+						emit sendCursorStatus(max_peak->getPos()[0], max_peak->getIntensity(), max_peak->getPos()[1]);
 						//show lable
 						string meta = max_peak->getMetaValue(3).toString();
 						if (meta!="") sendStatusMessage(meta, 0);
@@ -1417,12 +1417,12 @@ namespace OpenMS
 				// highlight nearest peak
 				if (e->buttons() == Qt::NoButton)
 				{
-					DFeature<2>* max_peak = findNearestPeak_(pos);
+					Feature* max_peak = findNearestPeak_(pos);
 					
 					if (max_peak && max_peak != selected_peak_ && !measurement_start_)
 					{
 						//show Peak Coordinates
-						emit sendCursorStatus(max_peak->getPosition()[RT], max_peak->getIntensity(), max_peak->getPosition()[MZ]);
+						emit sendCursorStatus(max_peak->getRT(), max_peak->getIntensity(), max_peak->getMZ());
 						string meta = max_peak->getMetaValue(3).toString();
 						if (meta!="")
 							sendStatusMessage(meta, 0);
@@ -1439,13 +1439,13 @@ namespace OpenMS
 				
 					if (measurement_stop_)
 					{
-						emit sendCursorStatus(measurement_stop_->getPosition()[RT] - measurement_start_->getPosition()[RT],
+						emit sendCursorStatus(measurement_stop_->getRT() - measurement_start_->getRT(),
 						                      measurement_stop_->getIntensity() / measurement_start_->getIntensity(),
-						                      measurement_stop_->getPosition()[MZ] - measurement_start_->getPosition()[MZ]);
+						                      measurement_stop_->getMZ() - measurement_start_->getMZ());
 					}
 					else
 					{
-						emit sendCursorStatus(measurement_start_->getPosition()[RT], measurement_start_->getIntensity(), measurement_start_->getPosition()[MZ]);
+						emit sendCursorStatus(measurement_start_->getRT(), measurement_start_->getIntensity(), measurement_start_->getMZ());
 					}
 				}
 				break;
@@ -1543,7 +1543,7 @@ namespace OpenMS
 					}
 					else
 					{
-						measurement_stop_ = new DFeature<2>(*measurement_stop_);
+						measurement_stop_ = new Feature(*measurement_stop_);
 					}
 					
 					update();
@@ -1551,9 +1551,9 @@ namespace OpenMS
 					if (measurement_start_)
 					{
 						emit sendStatusMessage(QString("Measured: dRT = %1, dMZ = %3, Intensity ratio = %2")
-																	.arg(measurement_stop_->getPosition()[MZ] - measurement_start_->getPosition()[MZ])
+																	.arg(measurement_stop_->getMZ() - measurement_start_->getMZ())
 																	.arg(measurement_stop_->getIntensity() / measurement_start_->getIntensity())
-																	.arg(measurement_stop_->getPosition()[RT] - measurement_start_->getPosition()[RT]).toAscii().data(), 0);
+																	.arg(measurement_stop_->getRT() - measurement_start_->getRT()).toAscii().data(), 0);
 					}
 				}
 				break;

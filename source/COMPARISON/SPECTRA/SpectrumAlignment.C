@@ -94,13 +94,13 @@ namespace OpenMS
 			{
 				bool off_band(false);
 				// find min of the three possible directions
-				double pos1(s1.getContainer()[i - 1].getPosition()[0]), pos2(s2.getContainer()[j - 1].getPosition()[0]);
+				double pos1(s1.getContainer()[i - 1].getMZ()), pos2(s2.getContainer()[j - 1].getMZ());
 				double diff_align = fabs(pos1 - pos2);
 
 				// running off the right border of the band?
 				if (pos2 > pos1 && diff_align > epsilon)
 				{
-					if (i < s1.size() && j < s2.size() && s1.getContainer()[i].getPosition()[0] < pos2 && abs(s1.getContainer()[i].getPosition()[0] - pos2))
+					if (i < s1.size() && j < s2.size() && s1.getContainer()[i].getMZ() < pos2 && abs(s1.getContainer()[i].getMZ() - pos2))
 					{
 						off_band = true;
 					}

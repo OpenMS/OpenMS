@@ -239,7 +239,7 @@ class TOPPMascotAdapter
 			String temp_string;
 			String mascotXML_file_name = "";
 			MzDataFile mzdata_infile;
-			MSExperiment< DPeak<1> > experiment;
+			MSExperiment< Peak1D > experiment;
 			IDSpectrumMapper annotator;
 			IDFilter filter;
 			MascotXMLFile mascotXML_file;

@@ -198,7 +198,7 @@ CHECK((DPickedPeak(DPickedPeak const& p)))
   p.getPeakShape() = PeakShapeType::LORENTZ_PEAK;
 	p.getIntensity() = 123.456;
 	p.getCharge() = 1234;
-	p.getPosition() = pos;
+	p.getPos() = pos;
 	p.setMetaValue("cluster_id",4711);
 	
 	DPickedPeak<3>::RValueType rv2;
@@ -217,7 +217,7 @@ CHECK((DPickedPeak(DPickedPeak const& p)))
   sn2 = copy_of_p.getSN();
   type2 = copy_of_p.getPeakShape();
 	i2 = copy_of_p.getIntensity();
-	pos2 = copy_of_p.getPosition();
+	pos2 = copy_of_p.getPos();
 	left_w2 = copy_of_p.getLeftWidthParameter();
   right_w2 = copy_of_p.getRightWidthParameter();
 
@@ -252,7 +252,7 @@ DPickedPeak<3>::PositionType pos, pos2;
   p.getPeakShape() = PeakShapeType::SECH_PEAK;
 	p.getIntensity() = 123.456;
 	p.getCharge() = 1234;
-	p.getPosition() = pos;
+	p.getPos() = pos;
 	p.getLeftWidthParameter() = w;
   p.getRightWidthParameter() = w;
 	p.setMetaValue("cluster_id",4712);
@@ -275,7 +275,7 @@ DPickedPeak<3>::PositionType pos, pos2;
   sn2 = copy_of_p.getSN();
   type2 = copy_of_p.getPeakShape();
 	i2 = copy_of_p.getIntensity();
-	pos2 = copy_of_p.getPosition();
+	pos2 = copy_of_p.getPos();
 	left_w2 = copy_of_p.getLeftWidthParameter();
   right_w2 = copy_of_p.getRightWidthParameter();
 
@@ -335,9 +335,9 @@ CHECK((bool operator == (const DPickedPeak& rhs) const))
 	p2.getCharge()=5;
 	TEST_REAL_EQUAL(p1==p2, true)
 	
-	p1.getPosition()[0]=5;
+	p1.getPos()[0]=5;
 	TEST_REAL_EQUAL(p1==p2, false)
-	p2.getPosition()[0]=5;
+	p2.getPos()[0]=5;
 	TEST_REAL_EQUAL(p1==p2, true)
 	
 	p1.getLeftWidthParameter()=5;
@@ -391,9 +391,9 @@ CHECK((bool operator != (const DPickedPeak& rhs) const))
 	p2.getCharge()=5;
 	TEST_REAL_EQUAL(p1!=p2, false)
 	
-	p1.getPosition()[0]=5;
+	p1.getPos()[0]=5;
 	TEST_REAL_EQUAL(p1!=p2, true)
-	p2.getPosition()[0]=5;
+	p2.getPos()[0]=5;
 	TEST_REAL_EQUAL(p1!=p2, false)
 	
 	p1.getLeftWidthParameter()=5;

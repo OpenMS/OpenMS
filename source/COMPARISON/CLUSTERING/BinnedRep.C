@@ -146,21 +146,21 @@ namespace OpenMS
     //set information from PeakSpectrum TODO
     binrep.id_ = spectrum.getPersistenceId();
     binrep.retention_ = spectrum.getRetentionTime();
-    binrep.parent_m_z_ = spectrum.getPrecursorPeak().getPosition()[0];
+    binrep.parent_m_z_ = spectrum.getPrecursorPeak().getPos()[0];
     binrep.precursorpeakcharge_ = spectrum.getPrecursorPeak().getCharge();
     
     if (spectrum.getContainer().size())
     {
       //calculate size of needed container 
-      binrep.begin_ = ((int)(spectrum.begin()->getPosition()[0]/binrep.binsize_)) * binrep.binsize_;
-      binrep.end_ =((int)((spectrum.end()-1)->getPosition()[0]/binrep.binsize_)) * binrep.binsize_;
+      binrep.begin_ = ((int)(spectrum.begin()->getMZ()/binrep.binsize_)) * binrep.binsize_;
+      binrep.end_ =((int)((spectrum.end()-1)->getMZ()/binrep.binsize_)) * binrep.binsize_;
       int size = (int) ((binrep.end_ - binrep.begin_) / binrep.binsize_ + 3 ); // +3 is safety distance for rounding errors
       binrep.bins_.resize(size);
       
       //iterate over Peaks and throw them into bins
       for (PeakSpectrum::ConstIterator cit = spectrum.begin(); cit != spectrum.end(); ++cit)
       {
-        uint position = (uint) ((cit->getPosition()[0]-binrep.begin_) / binrep.binsize_);
+        uint position = (uint) ((cit->getMZ()-binrep.begin_) / binrep.binsize_);
         try 
 				{
           binrep.bins_[position] =  binrep.bins_.at(position) + cit->getIntensity();

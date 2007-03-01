@@ -296,7 +296,7 @@ CHECK((void setProteins(const std::vector< std::pair<String, String> >& proteins
 RESULT
 
 CHECK((template<class PeakT> void filterIdentificationsByProteins(MSExperiment< PeakT >& experiment, std::vector< std::pair<String, String> >proteins)))
-	MSExperiment< DPeak<1> > experiment;
+	MSExperiment< Peak1D > experiment;
   vector< pair<String, String> > proteins;
   vector< Identification > ids;
 	Identification identification2;
@@ -310,7 +310,7 @@ CHECK((template<class PeakT> void filterIdentificationsByProteins(MSExperiment< 
 	
 	for(UnsignedInt i = 0; i < 5; ++i)
 	{
-		experiment.push_back(MSSpectrum< DPeak<1> >());
+		experiment.push_back(MSSpectrum< Peak1D >());
 	}
 	experiment[3].setMSLevel(2);
 	experiment[3].setIdentifications(ids);
@@ -333,7 +333,7 @@ CHECK((template<class PeakT> void filterIdentificationsByProteins(MSExperiment< 
 RESULT
 
 CHECK((template<class PeakT> void filterIdentificationsByThresholds(MSExperiment< PeakT >& experiment, double peptide_threshold_fraction, double protein_threshold_fraction)))
-	MSExperiment< DPeak<1> > experiment;
+	MSExperiment< Peak1D > experiment;
   vector< Identification > ids;
 	Identification identification2;
 	vector<PeptideHit> peptide_hits;
@@ -343,7 +343,7 @@ CHECK((template<class PeakT> void filterIdentificationsByThresholds(MSExperiment
 	
 	for(UnsignedInt i = 0; i < 5; ++i)
 	{
-		experiment.push_back(MSSpectrum< DPeak<1> >());
+		experiment.push_back(MSSpectrum< Peak1D >());
 	}
 	experiment[3].setMSLevel(2);
 	experiment[3].setIdentifications(ids);

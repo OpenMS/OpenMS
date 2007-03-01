@@ -41,7 +41,7 @@ START_TEST(SmoothFilter<D>, "$Id$")
 using namespace OpenMS;
 
 
-typedef DPeakArray<1,DRawDataPoint<1> > RawDataArray1D;
+typedef DPeakArray<1,RawDataPoint1D > RawDataArray1D;
 typedef RawDataArray1D::Iterator RawDataIterator1D;
 typedef RawDataArray1D::ConstIterator RawDataConstIterator1D;
 
@@ -133,13 +133,13 @@ CHECK((template<typename InputPeakIterator, typename OutputPeakContainer  > void
 RESULT
 
 CHECK((template<typename InputSpectrumIterator, typename OutputPeakType > void filterExperiment(InputSpectrumIterator first, InputSpectrumIterator last, MSExperiment<OutputPeakType>& ms_exp_filtered)))
-	MSExperiment< DRawDataPoint<1> > raw_exp;
-	MSExperiment< DRawDataPoint<1> > filtered_exp;
-	MSSpectrum< DRawDataPoint<1> > raw_spectrum;
+	MSExperiment< RawDataPoint1D > raw_exp;
+	MSExperiment< RawDataPoint1D > filtered_exp;
+	MSSpectrum< RawDataPoint1D > raw_spectrum;
 	raw_spectrum.resize(5);
 	
   
-  MSSpectrum< DRawDataPoint<1> >::iterator it=raw_spectrum.begin();
+  MSSpectrum< RawDataPoint1D >::iterator it=raw_spectrum.begin();
   for (int i=0; i<5; ++i, ++it)
   {
     if (i==2)
@@ -191,13 +191,13 @@ CHECK((void setCoeffs(std::vector<double>& coeffs)))
 RESULT
 
 CHECK((template<typename InputPeakType, typename OutputPeakType > void filterExperiment(const MSExperiment< InputPeakType >& ms_exp_raw, MSExperiment<OutputPeakType>& ms_exp_filtered)))
-	MSExperiment< DRawDataPoint<1> > raw_exp;
-	MSExperiment< DRawDataPoint<1> > filtered_exp;
-	MSSpectrum< DRawDataPoint<1> > raw_spectrum;
+	MSExperiment< RawDataPoint1D > raw_exp;
+	MSExperiment< RawDataPoint1D > filtered_exp;
+	MSSpectrum< RawDataPoint1D > raw_spectrum;
 	raw_spectrum.resize(5);
 	
   
-  MSSpectrum< DRawDataPoint<1> >::iterator it=raw_spectrum.begin();
+  MSSpectrum< RawDataPoint1D >::iterator it=raw_spectrum.begin();
   for (int i=0; i<5; ++i, ++it)
   {
     if (i==2)

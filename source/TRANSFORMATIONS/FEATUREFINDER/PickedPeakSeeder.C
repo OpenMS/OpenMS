@@ -154,7 +154,7 @@ namespace OpenMS
 			for (UnsignedInt j=0; j < traits_->getData()[i].size()-1; ++j)
 			{
 				// test for different charge states
-				current_charge = distanceToCharge_(scan[j+1].getPos() - scan[j].getPos());
+				current_charge = distanceToCharge_(scan[j+1].getMZ() - scan[j].getMZ());
 				
 				//remove false positives by looking at the intensity ratio of the peaks
 				if ( fabs( scan[j].getIntensity()/scan[j+1].getIntensity() - 1.0) < 0.1)
@@ -167,7 +167,7 @@ namespace OpenMS
 				{
 #ifdef DEBUG_FEATUREFINDER
 					cout << "Isotopic pattern found ! " << endl;
-					cout << "We are at: " << scan.getRetentionTime() << " " << scan[j].getPos() << endl;
+					cout << "We are at: " << scan.getRetentionTime() << " " << scan[j].getMZ() << endl;
 #endif
 					// hash entry to write in
 					TableType::iterator entry_to_insert;			
@@ -175,8 +175,8 @@ namespace OpenMS
 					if (iso_last_scan.size() > 0)  // Did we find any isotopic cluster in the last scan?
 					{
 						// there were some isotopic clustures in the last scan...
-						std::vector<double>::iterator it = searchInScan_(iso_last_scan.begin(),iso_last_scan.end(),scan[j].getPos());
-						double delta_mz = fabs(*it - scan[j].getPos());
+						std::vector<double>::iterator it = searchInScan_(iso_last_scan.begin(),iso_last_scan.end(),scan[j].getMZ());
+						double delta_mz = fabs(*it - scan[j].getMZ());
 						
 						// check if first peak of last cluster is close enough -> create new isotopic cluster
 						if ( delta_mz > tolerance_mz)
@@ -185,7 +185,7 @@ namespace OpenMS
 							cout << "Last peak cluster too far, creating new cluster" << endl;
 	#endif
 	
-							mz_in_hash = scan[j].getPos(); // update current hash key
+							mz_in_hash = scan[j].getMZ(); // update current hash key
 			
 							IsotopeCluster isoclust;
 							isoclust.charge_ = current_charge;
@@ -233,9 +233,9 @@ namespace OpenMS
 					{
 	#ifdef DEBUG_FEATUREFINDER
 						cout << "Last scan was empty => creating new cluster." << endl;
-						cout << "Creating new cluster at m/z: " << scan[j].getPos() << endl;
+						cout << "Creating new cluster at m/z: " << scan[j].getMZ() << endl;
 	#endif
-						mz_in_hash = scan[j].getPos(); // update current hash key
+						mz_in_hash = scan[j].getMZ(); // update current hash key
 										
 						IsotopeCluster isoclust;
 						isoclust.charge_ = current_charge;
@@ -256,14 +256,14 @@ namespace OpenMS
 								
 					// if distance to next peak does not correspond to a isotopic spacing, just add one more peak 
 					// and continue
-					if (distanceToCharge_(scan[j+1].getPos() - scan[j].getPos()) != current_charge)
+					if (distanceToCharge_(scan[j+1].getMZ() - scan[j].getMZ()) != current_charge)
 					{
 						entry_to_insert->second.peaks_.insert(std::make_pair(i,j+1));
 						continue;
 					}
 		
 					// loop until end of isotopic pattern in this scan
-					while (j+1!=scan.size() && distanceToCharge_(scan[j+1].getPos() - scan[j].getPos()) == current_charge )
+					while (j+1!=scan.size() && distanceToCharge_(scan[j+1].getMZ() - scan[j].getMZ()) == current_charge )
 					{
 						++j;
 						entry_to_insert->second.peaks_.insert(std::make_pair(i,j));				// save peak in cluster

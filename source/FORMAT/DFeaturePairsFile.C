@@ -41,7 +41,7 @@ namespace OpenMS {
 		
 	}
 	
-	void DFeaturePairsFile::pairsToFeatures(const DFeaturePairVector<2>& pairs, DFeatureMap<2>& map)
+	void DFeaturePairsFile::pairsToFeatures(const DFeaturePairVector<2>& pairs, FeatureMap<>& map)
 	{
 		map.clear();
 

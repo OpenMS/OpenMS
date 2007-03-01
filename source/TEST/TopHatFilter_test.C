@@ -82,11 +82,11 @@ RESULT
 
 
 CHECK((template<typename InputPeakIterator, typename OutputPeakContainer  > void filter(InputPeakIterator first, InputPeakIterator last, OutputPeakContainer& baseline_filtered_container)))
-    DPeakArray<1,DRawDataPoint<1> > raw_data;
+    DPeakArray<1,RawDataPoint1D > raw_data;
     int i;
     for (i=0; i < 24; ++i)
     {
-      DRawDataPoint<1> p;
+      RawDataPoint1D p;
       DPosition<1> pos = i;
       if ((1<i) && (i<5))
         {
@@ -100,12 +100,12 @@ CHECK((template<typename InputPeakIterator, typename OutputPeakContainer  > void
       raw_data.push_back(p);
     }
 
-    DPeakArray<1,DRawDataPoint<1> > tophat_data;
+    DPeakArray<1,RawDataPoint1D > tophat_data;
     TopHatFilter tophat;
     tophat.setStrucElemSize(3);
     tophat.filter(raw_data,tophat_data);
 
-    DPeakArray<1,DRawDataPoint<1> >::ConstIterator it=tophat_data.begin();
+    DPeakArray<1,RawDataPoint1D >::ConstIterator it=tophat_data.begin();
     for (int i=0; i<24; ++i)
     {
       TEST_REAL_EQUAL(it->getIntensity(), 0)
@@ -114,11 +114,11 @@ RESULT
 
 
 CHECK((template<typename InputPeakIterator, typename OutputPeakContainer  > void filter(InputPeakIterator first, InputPeakIterator last, OutputPeakContainer& baseline_filtered_container)))
-    DPeakArray<1,DRawDataPoint<1> > raw_data;
+    DPeakArray<1,RawDataPoint1D > raw_data;
     int i;
     for (i=0; i<8; ++i)
     {
-      DRawDataPoint<1> p;
+      RawDataPoint1D p;
       DPosition<1> pos;
       pos=i;
 
@@ -134,13 +134,13 @@ CHECK((template<typename InputPeakIterator, typename OutputPeakContainer  > void
       raw_data.push_back(p);
      }
 
-     DPeakArray<1,DRawDataPoint<1> > tophat_data;
+     DPeakArray<1,RawDataPoint1D > tophat_data;
 
      TopHatFilter tophat;
      tophat.setStrucElemSize(3);
      tophat.filter(raw_data.begin(),raw_data.end(),tophat_data);
 
-     DPeakArray<1,DRawDataPoint<1> >::ConstIterator it=tophat_data.begin();
+     DPeakArray<1,RawDataPoint1D >::ConstIterator it=tophat_data.begin();
      for (int i=0; i < 8; ++i)
        {
          TEST_REAL_EQUAL(it->getIntensity(), 0)
@@ -148,14 +148,14 @@ CHECK((template<typename InputPeakIterator, typename OutputPeakContainer  > void
 RESULT
 
 CHECK((template<typename InputPeakType, typename OutputPeakType > void filterExperiment(const MSExperiment< InputPeakType >& ms_exp_raw, MSExperiment<OutputPeakType>& ms_exp_filtered)))
-  MSExperiment< DRawDataPoint<1> > ms_exp_raw;
-  MSExperiment< DRawDataPoint<1> > ms_exp_filtered;
+  MSExperiment< RawDataPoint1D > ms_exp_raw;
+  MSExperiment< RawDataPoint1D > ms_exp_filtered;
 
-  DPeakArray<2,DRawDataPoint<2> > raw_data;
+  DPeakArray<2,RawDataPoint2D > raw_data;
   int i;
   for (i=0; i < 8; ++i)
   {
-    DRawDataPoint<2> p;
+    RawDataPoint2D p;
     DPosition<2> pos;
     pos[0]=10.;
     pos[1]=i;
@@ -188,16 +188,16 @@ CHECK((template<typename InputPeakType, typename OutputPeakType > void filterExp
 RESULT
 
 CHECK((template<typename InputSpectrumIterator, typename OutputPeakType > void filterExperiment(InputSpectrumIterator first, InputSpectrumIterator last, MSExperiment<OutputPeakType>& ms_exp_filtered)))
-  MSExperiment<DRawDataPoint<1> > ms_exp_raw;
-  MSExperiment<DRawDataPoint<1> > ms_exp_filtered;
+  MSExperiment<RawDataPoint1D > ms_exp_raw;
+  MSExperiment<RawDataPoint1D > ms_exp_filtered;
 
-  DPeakArray<2,DRawDataPoint<2> > raw_data;
-  DPeakArray<2,DRawDataPoint<2> > filtered_data;
+  DPeakArray<2,RawDataPoint2D > raw_data;
+  DPeakArray<2,RawDataPoint2D > filtered_data;
 
     int i;
     for (i=0; i<8; ++i)
     {
-      DRawDataPoint<2> p;
+      RawDataPoint2D p;
       DPosition<2> pos;
       pos[0]=10.;
       pos[1]=i;
@@ -220,7 +220,7 @@ CHECK((template<typename InputSpectrumIterator, typename OutputPeakType > void f
     tophat.filterExperiment(ms_exp_raw.begin(),ms_exp_raw.end(), ms_exp_filtered);
 
     ms_exp_filtered.get2DData(filtered_data);
-    DPeakArray<2,DRawDataPoint<2> >::iterator it = filtered_data.begin();
+    DPeakArray<2,RawDataPoint2D >::iterator it = filtered_data.begin();
     for (int i=0; i<8; ++i)
        {
          TEST_REAL_EQUAL(it->getIntensity(), 0)

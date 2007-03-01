@@ -29,7 +29,8 @@
 ///////////////////////////
 
 #include <OpenMS/KERNEL/MSExperimentExtern.h>
-#include <OpenMS/KERNEL/DPeak.h>
+#include <OpenMS/KERNEL/Peak2D.h>
+#include <OpenMS/KERNEL/RawDataPoint2D.h>
 
 ///////////////////////////
 
@@ -40,9 +41,6 @@ START_TEST(MSExperimentExtern, "$Id$")
 
 using namespace OpenMS;
 using namespace std;
-
-const int MZ = DimensionDescription < LCMS_Tag >::MZ;
-const int RT = DimensionDescription < LCMS_Tag >::RT;
 
 MSExperimentExtern<>* ptr = 0;
 CHECK(MSExperimentExternExtern())
@@ -74,10 +72,10 @@ CHECK(MSExperimentExtern& operator= (const MSExperimentExtern& source))
   tmp.setBufferSize(1);
   tmp.updateBuffer();
   MSSpectrum<> spec;
-  DPeak<1> p;
-  p.setPos(5.0);
+  Peak1D p;
+  p.setMZ(5.0);
   spec.push_back(p);
-  p.setPos(10.0);
+  p.setMZ(10.0);
   spec.push_back(p);
   tmp.push_back(spec);
   tmp.updateRanges();
@@ -131,13 +129,13 @@ CHECK(template<class Container> void get2DData(Container& cont) const)
 	// first spectrum (MS)
 	spec.setRetentionTime(11.1);
 	spec.setMSLevel(1);
-	peak.getPosition()[0] = 5;
+	peak.getPos()[0] = 5;
 	peak.setIntensity(47.11);
 	spec.getContainer().push_back(peak);
-	peak.getPosition()[0] = 10;
+	peak.getPos()[0] = 10;
 	peak.setIntensity(48.11);
 	spec.getContainer().push_back(peak);
-	peak.getPosition()[0] = 15;
+	peak.getPos()[0] = 15;
 	spec.getContainer().push_back(peak);
 	exp.push_back(spec);
 
@@ -145,9 +143,9 @@ CHECK(template<class Container> void get2DData(Container& cont) const)
 	spec.getContainer().clear();
 	spec.setRetentionTime(11.5);
 	spec.setMSLevel(2);
-	peak.getPosition()[0] = 6;
+	peak.getPos()[0] = 6;
 	spec.getContainer().push_back(peak);
-	peak.getPosition()[0] = 11;
+	peak.getPos()[0] = 11;
 	spec.getContainer().push_back(peak);
 	exp.push_back(spec);	
 
@@ -155,9 +153,9 @@ CHECK(template<class Container> void get2DData(Container& cont) const)
 	spec.getContainer().clear();
 	spec.setRetentionTime(12.2);
 	spec.setMSLevel(1);
-	peak.getPosition()[0] = 20;
+	peak.getPos()[0] = 20;
 	spec.getContainer().push_back(peak);
-	peak.getPosition()[0] = 25;
+	peak.getPos()[0] = 25;
 	spec.getContainer().push_back(peak);
 	exp.push_back(spec);	
 
@@ -165,86 +163,86 @@ CHECK(template<class Container> void get2DData(Container& cont) const)
 	spec.getContainer().clear();
 	spec.setRetentionTime(12.5);
 	spec.setMSLevel(2);
-	peak.getPosition()[0] = 21;
+	peak.getPos()[0] = 21;
 	spec.getContainer().push_back(peak);
-	peak.getPosition()[0] = 26;
+	peak.getPos()[0] = 26;
 	spec.getContainer().push_back(peak);
-	peak.getPosition()[0] = 31;
+	peak.getPos()[0] = 31;
 	spec.getContainer().push_back(peak);
 	exp.push_back(spec);	
 	
 	//Convert
-	DPeakArray<2, DRawDataPoint<2> > a;
+	DPeakArray<2, RawDataPoint2D > a;
 	exp.get2DData(a);
 
 	//Tests
 	TEST_REAL_EQUAL(a.size(),5);
-	TEST_REAL_EQUAL(a[0].getPosition()[RT],11.1);
-	TEST_REAL_EQUAL(a[0].getPosition()[MZ],5);
+	TEST_REAL_EQUAL(a[0].getRT(),11.1);
+	TEST_REAL_EQUAL(a[0].getMZ(),5);
 	TEST_REAL_EQUAL(a[0].getIntensity(),47.11);
-	TEST_REAL_EQUAL(a[1].getPosition()[RT],11.1);
-	TEST_REAL_EQUAL(a[1].getPosition()[MZ],10);
+	TEST_REAL_EQUAL(a[1].getRT(),11.1);
+	TEST_REAL_EQUAL(a[1].getMZ(),10);
 	TEST_REAL_EQUAL(a[1].getIntensity(),48.11);
-	TEST_REAL_EQUAL(a[2].getPosition()[RT],11.1);
-	TEST_REAL_EQUAL(a[2].getPosition()[MZ],15);
-	TEST_REAL_EQUAL(a[3].getPosition()[RT],12.2);
-	TEST_REAL_EQUAL(a[3].getPosition()[MZ],20);
-	TEST_REAL_EQUAL(a[4].getPosition()[RT],12.2);
-	TEST_REAL_EQUAL(a[4].getPosition()[MZ],25);
+	TEST_REAL_EQUAL(a[2].getRT(),11.1);
+	TEST_REAL_EQUAL(a[2].getMZ(),15);
+	TEST_REAL_EQUAL(a[3].getRT(),12.2);
+	TEST_REAL_EQUAL(a[3].getMZ(),20);
+	TEST_REAL_EQUAL(a[4].getRT(),12.2);
+	TEST_REAL_EQUAL(a[4].getMZ(),25);
 
 	//Convert
-	DPeakArray<2> list;
+	DPeakArray<2, Peak2D> list;
 	exp.get2DData(list);
 
 	//Tests
 	TEST_REAL_EQUAL(list.size(),5);
-	DPeakArray<2>::const_iterator it = list.begin();
-	TEST_REAL_EQUAL(it->getPosition()[RT],11.1);
-	TEST_REAL_EQUAL(it->getPosition()[MZ],5);
+	DPeakArray<2, Peak2D>::const_iterator it = list.begin();
+	TEST_REAL_EQUAL(it->getRT(),11.1);
+	TEST_REAL_EQUAL(it->getMZ(),5);
 	TEST_REAL_EQUAL(it->getIntensity(),47.11);
 	++it;
-	TEST_REAL_EQUAL(it->getPosition()[RT],11.1);
-	TEST_REAL_EQUAL(it->getPosition()[MZ],10);
+	TEST_REAL_EQUAL(it->getRT(),11.1);
+	TEST_REAL_EQUAL(it->getMZ(),10);
 	TEST_REAL_EQUAL(it->getIntensity(),48.11);
 	++it;
-	TEST_REAL_EQUAL(it->getPosition()[RT],11.1);
-	TEST_REAL_EQUAL(it->getPosition()[MZ],15);
+	TEST_REAL_EQUAL(it->getRT(),11.1);
+	TEST_REAL_EQUAL(it->getMZ(),15);
 	++it;
-	TEST_REAL_EQUAL(it->getPosition()[RT],12.2);
-	TEST_REAL_EQUAL(it->getPosition()[MZ],20);
+	TEST_REAL_EQUAL(it->getRT(),12.2);
+	TEST_REAL_EQUAL(it->getMZ(),20);
 	++it;
-	TEST_REAL_EQUAL(it->getPosition()[RT],12.2);
-	TEST_REAL_EQUAL(it->getPosition()[MZ],25);
+	TEST_REAL_EQUAL(it->getRT(),12.2);
+	TEST_REAL_EQUAL(it->getMZ(),25);
 RESULT
 
 CHECK(template<class Container> void set2DData(Container& cont))
 	MSExperimentExtern<> exp;
 	
 	// create sample data
-	DPeakArray<2> input;
+	DPeakArray<2, Peak2D> input;
 	
-	DPeak<2> p1;
-	p1.getIntensity()    = 1.0;
-	p1.getPosition()[RT] = 2.0;
-	p1.getPosition()[MZ] = 3.0;
+	Peak2D p1;
+	p1.setIntensity(1.0);
+	p1.setRT(2.0);
+	p1.setMZ(3.0);
 	input.push_back(p1);
 	
-	DPeak<2> p2;
-	p2.getIntensity()    = 4.0;
-	p2.getPosition()[RT] = 5.0;
-	p2.getPosition()[MZ] = 6.0;
+	Peak2D p2;
+	p2.setIntensity(4.0);
+	p2.setRT(5.0);
+	p2.setMZ(6.0);
 	input.push_back(p2);
 	
-	DPeak<2> p3;
-	p3.getIntensity()    = 7.5;
-	p3.getPosition()[RT] = 8.5;
-	p3.getPosition()[MZ] = 9.5;
+	Peak2D p3;
+	p3.setIntensity(7.5);
+	p3.setRT(8.5);
+	p3.setMZ(9.5);
 	input.push_back(p3);
 	
 	exp.set2DData(input);
 	
 	// retrieve data again and check for changes
-	DPeakArray<2> output;
+	DPeakArray<2, Peak2D> output;
 	
 	exp.get2DData(output);
 	TEST_EQUAL(output==input,true);
@@ -252,11 +250,11 @@ RESULT
 
 
 CHECK(UnsignedInt getSize() const)
-	MSExperimentExtern<DRawDataPoint<1> > tmp;
+	MSExperimentExtern<RawDataPoint1D > tmp;
 	TEST_EQUAL(tmp.getSize(),0);
 	
-	DRawDataPoint<1> p1;
-	MSSpectrum<DRawDataPoint<1> > spec;
+	RawDataPoint1D p1;
+	MSSpectrum<RawDataPoint1D > spec;
 	spec.push_back(p1);
 	spec.push_back(p1);
 	spec.push_back(p1);

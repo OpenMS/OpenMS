@@ -583,17 +583,17 @@ namespace OpenMS
 		peak_ints.pre_NH3 = 0;
   	for (PeakSpectrum::ConstIterator it = train_spec.begin(); it != train_spec.end(); ++it)
     {
-	    if (fabs(it->getPosition()[0] - peptide_weight) < pre_error)
+	    if (fabs(it->getMZ() - peptide_weight) < pre_error)
 	    {
 	      peak_ints.pre += it->getIntensity();
   	  }
 
-      if (fabs(it->getPosition()[0] - (peptide_weight - H2O_weight / double(charge))) < pre_error)
+      if (fabs(it->getMZ() - (peptide_weight - H2O_weight / double(charge))) < pre_error)
       {
       	peak_ints.pre_H2O += it->getIntensity();
       }
 
-      if (fabs(it->getPosition()[0] - (peptide_weight - NH3_weight / double(charge))) < pre_error)
+      if (fabs(it->getMZ() - (peptide_weight - NH3_weight / double(charge))) < pre_error)
       {
        	peak_ints.pre_NH3 += it->getIntensity();
       }
@@ -607,14 +607,14 @@ namespace OpenMS
 		TheoreticalSpectrumGenerator tsg;
     tsg_.addPeaks(y_theo_spec, peptide, Residue::YIon, z);
     
-		DPeak<1> p;
+		Peak1D p;
 		p.setIntensity(1);
     for (PeakSpectrum::ConstIterator it = y_theo_spec.begin(); it != y_theo_spec.end(); ++it)
     {
-      p.setPosition(it->getPosition() - Formulas::H2O.getMonoWeight() / (double)z);
+      p.setPos(it->getPos() - Formulas::H2O.getMonoWeight() / (double)z);
       y_H2O_theo_spec.getContainer().push_back(p);
 
-      p.setPosition(it->getPosition() - Formulas::NH3.getMonoWeight() / (double)z);
+      p.setPos(it->getPos() - Formulas::NH3.getMonoWeight() / (double)z);
       y_NH3_theo_spec.getContainer().push_back(p);
     }
 
@@ -641,9 +641,9 @@ namespace OpenMS
     tsg.addPeaks(b_theo_spec, peptide, Residue::BIon, z);
     for (PeakSpectrum::ConstIterator it = b_theo_spec.begin(); it != b_theo_spec.end(); ++it)
     {
-      p.setPosition(it->getPosition() - Formulas::H2O.getMonoWeight() / (double)z);
+      p.setPos(it->getPos() - Formulas::H2O.getMonoWeight() / (double)z);
       b_H2O_theo_spec.getContainer().push_back(p);
-      p.setPosition(it->getPosition() - Formulas::NH3.getMonoWeight() / (double)z);
+      p.setPos(it->getPos() - Formulas::NH3.getMonoWeight() / (double)z);
       b_NH3_theo_spec.getContainer().push_back(p);
     }
 
@@ -962,13 +962,13 @@ namespace OpenMS
 		Size last_j(0);
 		for (Size i = 0; i != a1.size(); ++i)
 		{
-			float pos1 = a1[i].getPosition()[0];
+			float pos1 = a1[i].getPos();
 			float error = pos1 * rel_error;
 			//float error = 0.3;
 			float diff = numeric_limits<float>::max();
 			for (Size j = last_j; j != a2.size(); ++j)
 			{
-				float pos2 = a2[j].getPosition()[0];
+				float pos2 = a2[j].getPos();
 				if (abs(pos1 - pos2) < error && abs(pos1 - pos2) < diff)
 				{
 					diff = abs(pos1-pos2);
@@ -988,7 +988,7 @@ namespace OpenMS
 		#ifdef ALIGMENT_DEBUG
 		for (HashMap<Size, Size>::ConstIterator it = peak_map.begin(); it != peak_map.end(); ++it)
 		{
-			cerr << it->first << " " << a1[it->first].getPosition()[0] << " <> " << a2[it->second].getPosition()[0] << " " << a2[it->second].getIntensity() << endl;
+			cerr << it->first << " " << a1[it->first].getPos() << " <> " << a2[it->second].getPos() << " " << a2[it->second].getIntensity() << endl;
 		}
 		#endif
 		//cerr << peak_map.size() << endl;
@@ -1243,7 +1243,7 @@ namespace OpenMS
 		IsotopeDistribution id(2);
 	
 		// register name
-		DPeak<1> p;
+		Peak1D p;
 		p.metaRegistry().registerName("IonName", "Name of the ion");
 		
 		for (Size i = 0; i != prefixes.size(); ++i)
@@ -1387,7 +1387,7 @@ namespace OpenMS
 		// now build the spectrum with the peaks
 		//Peak p;
 		double intensity_max(0);
-		for (HashMap<double, vector<Peak> >::ConstIterator it = peaks_.begin(); it != peaks_.end(); ++it)
+		for (HashMap<double, vector<Peak1D> >::ConstIterator it = peaks_.begin(); it != peaks_.end(); ++it)
 		{
 			if (it->second.size() == 1/* && it->second.begin()->getIntensity() != 0*/)
 			{
@@ -1401,7 +1401,7 @@ namespace OpenMS
 			{
 				double int_sum(0);
 				p = *it->second.begin();
-				for (vector<Peak>::const_iterator pit = it->second.begin(); pit != it->second.end(); ++pit)
+				for (vector<Peak1D>::const_iterator pit = it->second.begin(); pit != it->second.end(); ++pit)
 				{
 					int_sum += pit->getIntensity();
 					if (pit->getMetaValue("IonName") != "")
@@ -1415,7 +1415,7 @@ namespace OpenMS
 					//p = *it->second.begin();
 					p.setIntensity(int_sum);
 
-					//p.setPosition(pit->first);
+					//p.setPos(pit->first);
 				//}
 				spec.getContainer().push_back(p);
 				if (intensity_max < int_sum)
@@ -1604,12 +1604,12 @@ namespace OpenMS
 
 	void PILISModel::addPeaks_(double mz, int charge, double offset, double intensity, PeakSpectrum& /*spectrum*/, const IsotopeDistribution& id, const String& name)
 	{
-		static DPeak<1> p;
+		static Peak1D p;
 		Size i = 0;
 		for (IsotopeDistribution::ConstIterator it = id.begin(); it != id.end(); ++it, ++i)
 		{
 			double pos = (mz + i + charge + offset) / (double)charge;
-			p.setPosition(pos);
+			p.setPos(pos);
 			if (it == id.begin())
 			{
 				p.setMetaValue("IonName", string(name.c_str()));
@@ -1619,7 +1619,7 @@ namespace OpenMS
 			{
 				p.setIntensity(intensity * it->second);
 				//spectrum.getContainer().push_back(p);
-				peaks_[p.getPosition()[0]].push_back(p);
+				peaks_[p.getMZ()].push_back(p);
 			}
 
 			if (it == id.begin())

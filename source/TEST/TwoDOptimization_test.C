@@ -123,7 +123,7 @@ CHECK(( template <typename InputSpectrumIterator,typename OutputPeakType>
 	
 	DPickedPeak<1> peak;
 	PeakShape peak_shape;
-  peak.getPos() = 500;
+  peak.getMZ() = 500;
   peak.getLeftWidthParameter() = 2.5;
   peak.getRightWidthParameter() = 2.6;
   peak.getArea() = 100;
@@ -142,15 +142,15 @@ CHECK(( template <typename InputSpectrumIterator,typename OutputPeakType>
   float origin = 499;
   float spacing = 0.1;
 
-	MSSpectrum<DRawDataPoint<1> >	 raw_spec;
+	MSSpectrum<RawDataPoint1D >	 raw_spec;
   for (unsigned int i = 0; i < 20 ;++i)
   {
-		DRawDataPoint<1> data_point;
-		data_point.setPos(origin +i*spacing);
+		RawDataPoint1D data_point;
+		data_point.setMZ(origin +i*spacing);
 		data_point.setIntensity(peak_shape(origin +i*spacing));
     raw_spec.push_back(data_point);
   }
-  MSExperiment<DRawDataPoint<1> > raw_exp;
+  MSExperiment<RawDataPoint1D > raw_exp;
   raw_exp.push_back(raw_spec);
 	raw_exp.begin()->setRetentionTime(100);
   String file = "data/TwoDOptimization.xml";	
@@ -158,7 +158,7 @@ CHECK(( template <typename InputSpectrumIterator,typename OutputPeakType>
 	param.load(file);
 
  	TwoDOptimization opt_2d(param);
-  MSExperiment<DRawDataPoint<1> >::const_iterator first,last;
+  MSExperiment<RawDataPoint1D >::const_iterator first,last;
   first = raw_exp.begin();
   last = raw_exp.end();
  	opt_2d.twoDOptimize(first,last,ms_exp);

@@ -66,7 +66,7 @@ namespace OpenMS
     double min = 1e258;
     double max = 0;
     uint count = 0;
-    for (MSSpectrum<DPeak<1> >::const_iterator dit = cspec.getSpec().begin(); dit != cspec.getSpec().end(); ++dit)
+    for (MSSpectrum<Peak1D >::const_iterator dit = cspec.getSpec().begin(); dit != cspec.getSpec().end(); ++dit)
     {
       //min = std::min(min,log(dit->getIntensity()));
       //max = std::max(max,log(dit->getIntensity()));
@@ -77,7 +77,7 @@ namespace OpenMS
 
     vector<double> result = vector<double>(bins);
     
-    for (MSSpectrum<DPeak<1> >::const_iterator dit = cspec.getSpec().begin(); dit != cspec.getSpec().end(); ++dit)
+    for (MSSpectrum<Peak1D >::const_iterator dit = cspec.getSpec().begin(); dit != cspec.getSpec().end(); ++dit)
     {
       //uint bin = ( ( max - log(dit->getIntensity()) )/ (max-min) )  * bins ;
       uint bin = (uint)((max - dit->getIntensity()) / (max-min)) * bins ;

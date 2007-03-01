@@ -35,7 +35,7 @@
 using namespace OpenMS;
 using namespace std;
 
-typedef DPeakArray< 1, Peak > PeakArrayType;
+typedef DPeakArray< 1, Peak1D > PeakArrayType;
 typedef DPeakArray< 2, Peak2D > PeakArray2DType;
 
 START_TEST(DPeakConstReferenceArray, "$Id$")
@@ -55,8 +55,8 @@ RESULT
 
 CHECK(DPeakConstReferenceArray(const DPeakConstReferenceArray& p))
   DPeakConstReferenceArray<PeakArrayType> pl;
-  Peak peak1;
-  Peak peak2;
+  Peak1D peak1;
+  Peak1D peak2;
   peak1.getIntensity() = 1.0;
   pl.push_back(peak1);
   peak2.getIntensity() = 2.0;
@@ -70,8 +70,8 @@ RESULT
 
 CHECK(DPeakConstReferenceArray& operator = (const DPeakConstReferenceArray& p))
   DPeakConstReferenceArray<PeakArrayType> pl;
-  Peak peak1;
-  Peak peak2;
+  Peak1D peak1;
+  Peak1D peak2;
   peak1.getIntensity() = 1.0;
   pl.push_back(peak1);
   peak2.getIntensity() = 2.0;
@@ -90,16 +90,16 @@ CHECK( empty() const)
   TEST_EQUAL(pl.empty(), true)
 RESULT
 
-Peak peak1;
-peak1.getPosition() = 2.0;
+Peak1D peak1;
+peak1.getPos() = 2.0;
 peak1.getIntensity() = 1.0;
 
-Peak peak2;
-peak2.getPosition() = 0.0;
+Peak1D peak2;
+peak2.getPos() = 0.0;
 peak2.getIntensity() = 0.5;
 
-Peak peak3;
-peak3.getPosition() = 10.5;
+Peak1D peak3;
+peak3.getPos() = 10.5;
 peak3.getIntensity() = 0.01;
 
 CHECK( size() const)
@@ -124,7 +124,7 @@ CHECK([EXTRA] ConstIterator begin() const)
   TEST_EQUAL(c_pl.size(), 3)
   ABORT_IF(c_pl.size() != 3)
   TEST_REAL_EQUAL(c_pl.begin()->getIntensity(), peak1.getIntensity())
-  TEST_REAL_EQUAL(c_pl.begin()->getPosition()[0], peak1.getPosition()[0])
+  TEST_REAL_EQUAL(c_pl.begin()->getPos()[0], peak1.getPos()[0])
 RESULT
 
 CHECK([EXTRA] ConstIterator end() const)
@@ -136,18 +136,18 @@ CHECK([EXTRA] ConstIterator end() const)
   const DPeakConstReferenceArray<PeakArrayType> empty;
   result = (empty.begin() == empty.end());
   TEST_EQUAL(result, true)
-  std::vector<Peak> v(c_pl.size());
+  std::vector<Peak1D> v(c_pl.size());
   std::copy(c_pl.begin(), c_pl.end(), v.begin());
   TEST_EQUAL(v.size(), 3)
   ABORT_IF(v.size() != 3)
   TEST_REAL_EQUAL(v[0].getIntensity(), peak1.getIntensity())
-  TEST_REAL_EQUAL(v[0].getPosition()[0], peak1.getPosition()[0])
+  TEST_REAL_EQUAL(v[0].getPos()[0], peak1.getPos()[0])
 
   TEST_REAL_EQUAL(v[1].getIntensity(), peak2.getIntensity())
-  TEST_REAL_EQUAL(v[1].getPosition()[0], peak2.getPosition()[0])
+  TEST_REAL_EQUAL(v[1].getPos()[0], peak2.getPos()[0])
 
   TEST_REAL_EQUAL(v[2].getIntensity(), peak3.getIntensity())
-  TEST_REAL_EQUAL(v[2].getPosition()[0], peak3.getPosition()[0])
+  TEST_REAL_EQUAL(v[2].getPos()[0], peak3.getPos()[0])
 RESULT
 
 CHECK(void sortByIntensity())
@@ -155,38 +155,38 @@ CHECK(void sortByIntensity())
   pl2.sortByIntensity();
   TEST_EQUAL(pl2.size(), 3)
   
-  std::vector<Peak> v(pl2.size());
+  std::vector<Peak1D> v(pl2.size());
   std::copy(pl2.begin(), pl2.end(), v.begin());
   TEST_EQUAL(v.size(), 3)
   ABORT_IF(v.size() != 3)
   TEST_REAL_EQUAL(v[2].getIntensity(), peak1.getIntensity())
-  TEST_REAL_EQUAL(v[2].getPosition()[0], peak1.getPosition()[0])
+  TEST_REAL_EQUAL(v[2].getPos()[0], peak1.getPos()[0])
 
   TEST_REAL_EQUAL(v[1].getIntensity(), peak2.getIntensity())
-  TEST_REAL_EQUAL(v[1].getPosition()[0], peak2.getPosition()[0])
+  TEST_REAL_EQUAL(v[1].getPos()[0], peak2.getPos()[0])
 
   TEST_REAL_EQUAL(v[0].getIntensity(), peak3.getIntensity())
-  TEST_REAL_EQUAL(v[0].getPosition()[0], peak3.getPosition()[0])
+  TEST_REAL_EQUAL(v[0].getPos()[0], peak3.getPos()[0])
 RESULT
 
 
 DPeakConstReferenceArray<PeakArray2DType> pl2;
 
 Peak2D peak4;
-peak4.getPosition()[0] = 2.0;
-peak4.getPosition()[1] = 3.0;
+peak4.getPos()[0] = 2.0;
+peak4.getPos()[1] = 3.0;
 peak4.getIntensity() = 1.0;
 pl2.push_back(peak4);
 
 Peak2D peak5;
-peak5.getPosition()[0] = 0.0;
-peak5.getPosition()[1] = 2.5;
+peak5.getPos()[0] = 0.0;
+peak5.getPos()[1] = 2.5;
 peak5.getIntensity() = 0.5;
 pl2.push_back(peak5);
 
 Peak2D peak6;
-peak6.getPosition()[0] = 10.5;
-peak6.getPosition()[1] = 0.0;
+peak6.getPos()[0] = 10.5;
+peak6.getPos()[1] = 0.0;
 peak6.getIntensity() = 0.01;
 pl2.push_back(peak6);
 
@@ -199,16 +199,16 @@ CHECK(void sortByNthPosition(UnsignedInt i) throw (Exception::NotImplemented))
   TEST_EQUAL(v.size(), 3)
   ABORT_IF(v.size() != 3)
   TEST_REAL_EQUAL(v[1].getIntensity(), peak4.getIntensity())
-  TEST_REAL_EQUAL(v[1].getPosition()[0], peak4.getPosition()[0])
-  TEST_REAL_EQUAL(v[1].getPosition()[1], peak4.getPosition()[1])
+  TEST_REAL_EQUAL(v[1].getPos()[0], peak4.getPos()[0])
+  TEST_REAL_EQUAL(v[1].getPos()[1], peak4.getPos()[1])
 
   TEST_REAL_EQUAL(v[0].getIntensity(), peak5.getIntensity())
-  TEST_REAL_EQUAL(v[0].getPosition()[0], peak5.getPosition()[0])
-  TEST_REAL_EQUAL(v[0].getPosition()[1], peak5.getPosition()[1])
+  TEST_REAL_EQUAL(v[0].getPos()[0], peak5.getPos()[0])
+  TEST_REAL_EQUAL(v[0].getPos()[1], peak5.getPos()[1])
 
   TEST_REAL_EQUAL(v[2].getIntensity(), peak6.getIntensity())
-  TEST_REAL_EQUAL(v[2].getPosition()[0], peak6.getPosition()[0])
-  TEST_REAL_EQUAL(v[2].getPosition()[1], peak6.getPosition()[1])
+  TEST_REAL_EQUAL(v[2].getPos()[0], peak6.getPos()[0])
+  TEST_REAL_EQUAL(v[2].getPos()[1], peak6.getPos()[1])
 
   pl2.sortByNthPosition(1);
   TEST_EQUAL(pl2.size(), 3)
@@ -217,16 +217,16 @@ CHECK(void sortByNthPosition(UnsignedInt i) throw (Exception::NotImplemented))
   TEST_EQUAL(v.size(), 3)
   ABORT_IF(v.size() != 3)
   TEST_REAL_EQUAL(v[2].getIntensity(), peak4.getIntensity())
-  TEST_REAL_EQUAL(v[2].getPosition()[0], peak4.getPosition()[0])
-  TEST_REAL_EQUAL(v[2].getPosition()[1], peak4.getPosition()[1])
+  TEST_REAL_EQUAL(v[2].getPos()[0], peak4.getPos()[0])
+  TEST_REAL_EQUAL(v[2].getPos()[1], peak4.getPos()[1])
 
   TEST_REAL_EQUAL(v[1].getIntensity(), peak5.getIntensity())
-  TEST_REAL_EQUAL(v[1].getPosition()[0], peak5.getPosition()[0])
-  TEST_REAL_EQUAL(v[1].getPosition()[1], peak5.getPosition()[1])
+  TEST_REAL_EQUAL(v[1].getPos()[0], peak5.getPos()[0])
+  TEST_REAL_EQUAL(v[1].getPos()[1], peak5.getPos()[1])
 
   TEST_REAL_EQUAL(v[0].getIntensity(), peak6.getIntensity())
-  TEST_REAL_EQUAL(v[0].getPosition()[0], peak6.getPosition()[0])
-  TEST_REAL_EQUAL(v[0].getPosition()[1], peak6.getPosition()[1])
+  TEST_REAL_EQUAL(v[0].getPos()[0], peak6.getPos()[0])
+  TEST_REAL_EQUAL(v[0].getPos()[1], peak6.getPos()[1])
 RESULT
 
 CHECK(template < typename ComparatorType > void sortByComparator ())
@@ -234,16 +234,16 @@ CHECK(template < typename ComparatorType > void sortByComparator ())
   TEST_EQUAL(pl2.size(), 3)
   
   TEST_REAL_EQUAL(pl2[1].getIntensity(), peak4.getIntensity())
-  TEST_REAL_EQUAL(pl2[1].getPosition()[0], peak4.getPosition()[0])
-  TEST_REAL_EQUAL(pl2[1].getPosition()[1], peak4.getPosition()[1])
+  TEST_REAL_EQUAL(pl2[1].getPos()[0], peak4.getPos()[0])
+  TEST_REAL_EQUAL(pl2[1].getPos()[1], peak4.getPos()[1])
 
   TEST_REAL_EQUAL(pl2[0].getIntensity(), peak5.getIntensity())
-  TEST_REAL_EQUAL(pl2[0].getPosition()[0], peak5.getPosition()[0])
-  TEST_REAL_EQUAL(pl2[0].getPosition()[1], peak5.getPosition()[1])
+  TEST_REAL_EQUAL(pl2[0].getPos()[0], peak5.getPos()[0])
+  TEST_REAL_EQUAL(pl2[0].getPos()[1], peak5.getPos()[1])
 
   TEST_REAL_EQUAL(pl2[2].getIntensity(), peak6.getIntensity())
-  TEST_REAL_EQUAL(pl2[2].getPosition()[0], peak6.getPosition()[0])
-  TEST_REAL_EQUAL(pl2[2].getPosition()[1], peak6.getPosition()[1])
+  TEST_REAL_EQUAL(pl2[2].getPos()[0], peak6.getPos()[0])
+  TEST_REAL_EQUAL(pl2[2].getPos()[1], peak6.getPos()[1])
 RESULT
 
 CHECK(template < typename ComparatorType > void sortByComparator ())
@@ -251,65 +251,65 @@ CHECK(template < typename ComparatorType > void sortByComparator ())
   TEST_EQUAL(pl2.size(), 3)
   
   TEST_REAL_EQUAL(pl2[1].getIntensity(), peak5.getIntensity())
-  TEST_REAL_EQUAL(pl2[1].getPosition()[0], peak5.getPosition()[0])
-  TEST_REAL_EQUAL(pl2[1].getPosition()[1], peak5.getPosition()[1])
+  TEST_REAL_EQUAL(pl2[1].getPos()[0], peak5.getPos()[0])
+  TEST_REAL_EQUAL(pl2[1].getPos()[1], peak5.getPos()[1])
 
   TEST_REAL_EQUAL(pl2[0].getIntensity(), peak6.getIntensity())
-  TEST_REAL_EQUAL(pl2[0].getPosition()[0], peak6.getPosition()[0])
-  TEST_REAL_EQUAL(pl2[0].getPosition()[1], peak6.getPosition()[1])
+  TEST_REAL_EQUAL(pl2[0].getPos()[0], peak6.getPos()[0])
+  TEST_REAL_EQUAL(pl2[0].getPos()[1], peak6.getPos()[1])
 
   TEST_REAL_EQUAL(pl2[2].getIntensity(), peak4.getIntensity())
-  TEST_REAL_EQUAL(pl2[2].getPosition()[0], peak4.getPosition()[0])
-  TEST_REAL_EQUAL(pl2[2].getPosition()[1], peak4.getPosition()[1])
+  TEST_REAL_EQUAL(pl2[2].getPos()[0], peak4.getPos()[0])
+  TEST_REAL_EQUAL(pl2[2].getPos()[1], peak4.getPos()[1])
 RESULT
 
 CHECK(Iterator begin())
   DPeakConstReferenceArray<PeakArrayType>::Iterator it = pl.begin();
   TEST_REAL_EQUAL(it->getIntensity(), 1.0)
-  TEST_REAL_EQUAL(it->getPosition()[0], 2.0)
+  TEST_REAL_EQUAL(it->getPos()[0], 2.0)
 RESULT
 
 CHECK(Iterator end())
   DPeakConstReferenceArray<PeakArrayType>::Iterator it = pl.end()-1;
   TEST_REAL_EQUAL(it->getIntensity(), 0.01)
-  TEST_REAL_EQUAL(it->getPosition()[0], 10.5)
+  TEST_REAL_EQUAL(it->getPos()[0], 10.5)
 RESULT
 
 CHECK(ConstIterator begin())
   DPeakConstReferenceArray<PeakArrayType>::ConstIterator it = pl.begin();
   TEST_REAL_EQUAL(it->getIntensity(), 1.0)
-  TEST_REAL_EQUAL(it->getPosition()[0], 2.0)
+  TEST_REAL_EQUAL(it->getPos()[0], 2.0)
 RESULT
 
 CHECK(ConstIterator end())
   DPeakConstReferenceArray<PeakArrayType>::ConstIterator it = pl.end();
   --it;
   TEST_REAL_EQUAL(it->getIntensity(), 0.01)
-  TEST_REAL_EQUAL(it->getPosition()[0], 10.5)
+  TEST_REAL_EQUAL(it->getPos()[0], 10.5)
 RESULT
 
 CHECK(ReverseIterator rbegin())
   DPeakConstReferenceArray<PeakArrayType>::ReverseIterator it = pl.rbegin();
   TEST_REAL_EQUAL(it->getIntensity(), 0.01)
-  TEST_REAL_EQUAL(it->getPosition()[0], 10.5)
+  TEST_REAL_EQUAL(it->getPos()[0], 10.5)
 RESULT
 
 CHECK(ReverseIterator rend())
   DPeakConstReferenceArray<PeakArrayType>::ReverseIterator it = pl.rend()-1;
   TEST_REAL_EQUAL(it->getIntensity(), 1.0)
-  TEST_REAL_EQUAL(it->getPosition()[0], 2.0)
+  TEST_REAL_EQUAL(it->getPos()[0], 2.0)
 RESULT
 
 CHECK(ConstReverseIterator rbegin() const)
   DPeakConstReferenceArray<PeakArrayType>::ConstReverseIterator it = pl.rbegin();
   TEST_REAL_EQUAL(it->getIntensity(), 0.01)
-  TEST_REAL_EQUAL(it->getPosition()[0], 10.5)
+  TEST_REAL_EQUAL(it->getPos()[0], 10.5)
 RESULT
 
 CHECK(ConstReverseIterator rend() const)
   DPeakConstReferenceArray<PeakArrayType>::ConstReverseIterator it = pl.rend()-1;
   TEST_REAL_EQUAL(it->getIntensity(), 1.0)
-  TEST_REAL_EQUAL(it->getPosition()[0], 2.0)
+  TEST_REAL_EQUAL(it->getPos()[0], 2.0)
 RESULT
 
 CHECK(size_type capacity() const)
@@ -317,8 +317,8 @@ CHECK(size_type capacity() const)
   TEST_EQUAL(pl.size(), 3)
 RESULT
 
-Peak peak7;
-peak7.getPosition()[0] = 1.1;
+Peak1D peak7;
+peak7.getPos()[0] = 1.1;
 peak7.getIntensity() = 1.1;
 
 CHECK(void reserve(size_type))
@@ -334,10 +334,10 @@ RESULT
 
 CHECK(DPeakConstReferenceArray<PeakArrayType>& operator[] const)
   TEST_REAL_EQUAL(pl[2].getIntensity(), 0.01)
-  TEST_REAL_EQUAL(pl[2].getPosition()[0], 10.5)
+  TEST_REAL_EQUAL(pl[2].getPos()[0], 10.5)
     
   TEST_REAL_EQUAL(pl[3].getIntensity(), 1.1)
-  TEST_REAL_EQUAL(pl[3].getPosition()[0], 1.1)
+  TEST_REAL_EQUAL(pl[3].getPos()[0], 1.1)
 RESULT
 
 CHECK(DPeakConstReferenceArray<PeakArrayType>(size_type n))
@@ -348,7 +348,7 @@ RESULT
 
 CHECK(DPeakConstReferenceArray<PeakArrayType>(size_type n, const PeakType& peak))
   Peak2D peak;
-  peak.getPosition()[0] = 1.1;
+  peak.getPos()[0] = 1.1;
   peak.getIntensity() = 5.1;
   DPeakConstReferenceArray<PeakArray2DType> pl2(3, peak);
   TEST_REAL_EQUAL(pl2.size(), 3)
@@ -358,19 +358,19 @@ CHECK(DPeakConstReferenceArray<PeakArrayType>(size_type n, const PeakType& peak)
 RESULT
 
 CHECK(reference front() const)
-  Peak peak;
+  Peak1D peak;
   peak = pl.front();
  
   TEST_REAL_EQUAL(peak.getIntensity(), 1.0)
-  TEST_REAL_EQUAL(peak.getPosition()[0], 2) 
+  TEST_REAL_EQUAL(peak.getPos()[0], 2) 
 RESULT
 
 CHECK(reference back() const)
- 	Peak peak;
+ 	Peak1D peak;
 	peak = pl.back();
     
   TEST_REAL_EQUAL(peak.getIntensity(), 1.1)
-  TEST_REAL_EQUAL(peak.getPosition()[0], 1.1)
+  TEST_REAL_EQUAL(peak.getPos()[0], 1.1)
 RESULT
 
 CHECK(void pop_back())
@@ -382,12 +382,12 @@ CHECK(void pop_back())
   TEST_REAL_EQUAL(pl[2].getIntensity(), 0.01)
 RESULT
 
-Peak peak8;
-peak8.getPosition()[0] = 2.0;
+Peak1D peak8;
+peak8.getPos()[0] = 2.0;
 peak8.getIntensity() = 1.0;
 
-Peak peak9;
-peak9.getPosition()[0] = 0.0;
+Peak1D peak9;
+peak9.getPos()[0] = 0.0;
 peak9.getIntensity() = 2.5;
 
 CHECK(void swap(DPeakConstReferenceArray<PeakArrayType>))
@@ -422,9 +422,9 @@ CHECK(void swap(DPeakConstReferenceArray<PeakArrayType>))
   TEST_REAL_EQUAL(pl2[1].getIntensity(), 2.5)
 RESULT
 
-Peak peak10;
+Peak1D peak10;
 peak10.getIntensity() = 4712.0;
-CHECK(iterator insert(iterator pos, const Peak&))
+CHECK(iterator insert(iterator pos, const Peak1D&))
   TEST_REAL_EQUAL(pl.size(), 3)
   pl.insert(pl.end(),peak10);
   
@@ -445,7 +445,7 @@ CHECK(iterator erase(iterator pos))
   TEST_REAL_EQUAL(pl[2].getIntensity(), 0.01)
 RESULT
 
-CHECK(iterator insert(iterator pos, size_type n, const Peak&))
+CHECK(iterator insert(iterator pos, size_type n, const Peak1D&))
   peak10.getIntensity() = 4714.0;
   TEST_REAL_EQUAL(pl.size(), 3)
   pl.insert(pl.begin(),3,peak10);
@@ -504,7 +504,7 @@ RESULT
 CHECK(operator < (const DPeakConstReferenceArray<PeakArrayType>&))
   DPeakConstReferenceArray<PeakArrayType> pl2(pl);
   TEST_EQUAL(pl < pl2, false)
-  pl2.push_back(Peak());
+  pl2.push_back(Peak1D());
   TEST_EQUAL(pl < pl2 , true)
 RESULT
 
@@ -518,7 +518,7 @@ RESULT
 CHECK(operator <= (const DPeakConstReferenceArray<PeakArrayType>&))
   DPeakConstReferenceArray<PeakArrayType> pl2(pl);
   TEST_EQUAL(pl <= pl2, true)
-  pl2.push_back(Peak());
+  pl2.push_back(Peak1D());
   TEST_EQUAL(pl <= pl2 , true)
   pl2.erase(pl2.begin()+1,pl2.end()-2);
   TEST_EQUAL(pl <= pl2 , false)
@@ -558,7 +558,7 @@ CHECK(resize() (expand))
   TEST_REAL_EQUAL(pl.size(), 2)
 RESULT
 
-Peak peak11;
+Peak1D peak11;
 peak11.getIntensity()=4713.0; 
 CHECK(resize() (expand)) 
   TEST_REAL_EQUAL(pl.size(), 2)
@@ -583,7 +583,7 @@ CHECK( template <class InputIterator> void assign(InputIterator f , InputIterato
   TEST_REAL_EQUAL(pl[2].getIntensity(), 0.01)
 RESULT
 
-CHECK( void assign(size_type n , const Peak& x) )
+CHECK( void assign(size_type n , const Peak1D& x) )
   pl.assign(5,peak3);
   TEST_EQUAL(pl.size(), 5)
   TEST_REAL_EQUAL(pl[0].getIntensity(), 0.01)
@@ -602,14 +602,14 @@ CHECK(void sortByPosition())
 	Peak2D p3(peak6);
 	p3.getIntensity()=3;
 	Peak2D p4;
-	p4.getPosition()[0]=4.3;
-	p4.getPosition()[1]=4711;
+	p4.getPos()[0]=4.3;
+	p4.getPos()[1]=4711;
 	p4.getIntensity()=4;
 	Peak2D p5;
-	p5.getPosition()[1]=4711;
+	p5.getPos()[1]=4711;
 	p5.getIntensity()=5;
 	Peak2D p6;
-	p6.getPosition()[1]=4711;
+	p6.getPos()[1]=4711;
 	p6.getIntensity()=6;
 	dpa2.push_back(p1);
 	dpa2.push_back(p2);

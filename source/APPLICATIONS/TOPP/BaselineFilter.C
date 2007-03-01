@@ -93,8 +93,8 @@ class TOPPBaselineFilter
 		//-------------------------------------------------------------
 
 		MzDataFile mz_data_file;
-		MSExperiment<DRawDataPoint<1> > ms_exp_raw;
-		MSExperiment<DRawDataPoint<1> > ms_exp_filtered;
+		MSExperiment<RawDataPoint1D > ms_exp_raw;
+		MSExperiment<RawDataPoint1D > ms_exp_filtered;
 		mz_data_file.load(in,ms_exp_raw);
 
 		//check for peak type (raw data required)
@@ -131,10 +131,10 @@ class TOPPBaselineFilter
 			for (unsigned int i = 0; i < n; ++i)
 			{
 				// temporary container for the resampled data
-				MSSpectrum< DRawDataPoint<1> > resampled_data;
+				MSSpectrum< RawDataPoint1D > resampled_data;
 				lin_resampler.raster(ms_exp_raw[i],resampled_data);
 
-				MSSpectrum< DRawDataPoint<1> > spectrum;
+				MSSpectrum< RawDataPoint1D > spectrum;
 				tophat.filter(resampled_data, spectrum);
 
 				// if any peaks are found copy the spectrum settings

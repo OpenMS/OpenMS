@@ -63,14 +63,14 @@ namespace OpenMS
 			out[out_spec].setRetentionTime(spec_it->getRetentionTime());
 			out[out_spec].setMSLevel(spec_it->getMSLevel()); 	
 			
-			distance  = std::max(((spec_it->end()-1)->getPos()- spec_it->begin()->getPos()) * reduction,0.01);
+			distance  = std::max(((spec_it->end()-1)->getMZ()- spec_it->begin()->getMZ()) * reduction,0.01);
 			begin  = spec_it->begin();
 			end  = begin;
 			sum = 0.0;
 			
 			while (end != spec_it->end())
 			{
-				while (end != spec_it->end() && end->getPos() <= begin->getPos()+distance )
+				while (end != spec_it->end() && end->getMZ() <= begin->getMZ()+distance )
 				{
 					++end;
 				}

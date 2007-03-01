@@ -252,10 +252,10 @@ namespace OpenMS
 			}
 		};
 
-		const UnsignedInt DFeatureMap_num = 1;
+		const UnsignedInt FeatureMap_num = 1;
 
-		const String DFeatureMap[][3] = {
-			///---------------- DFeatureMap 1.0 --------------------------
+		const String FeatureMap[][3] = {
+			///---------------- FeatureMap 1.0 --------------------------
 			{
 				// name of scheme
 				"1.0",

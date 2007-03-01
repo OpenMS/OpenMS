@@ -60,22 +60,22 @@ exp[0].setRetentionTime(1.1);
 exp[1].setMSLevel(1);
 exp[1].setRetentionTime(2.2);
 
-DPeak<1> p;
+Peak1D p;
 
-p.setPos(500.0);
+p.setMZ(500.0);
 p.setIntensity(501.0);
 exp[0].push_back(p);
-p.setPos(700.0);
+p.setMZ(700.0);
 p.setIntensity(701.0);
 exp[0].push_back(p);
-p.setPos(900.0);
+p.setMZ(900.0);
 p.setIntensity(901.0);
 exp[0].push_back(p);
 
-p.setPos(600.0);
+p.setMZ(600.0);
 p.setIntensity(601.0);
 exp[1].push_back(p);
-p.setPos(1000.0);
+p.setMZ(1000.0);
 p.setIntensity(1001.0);
 exp[1].push_back(p);
 
@@ -92,15 +92,15 @@ CHECK(template <class SpectrumIteratorType> void setData(const SpectrumIteratorT
 	TEST_EQUAL(t.getData().size(),2)
 	TEST_EQUAL(t.getData()[0].size(),3)
 	TEST_EQUAL(t.getData()[1].size(),2)
-	TEST_REAL_EQUAL(t.getData()[0][0].getPos(),500.0)
+	TEST_REAL_EQUAL(t.getData()[0][0].getMZ(),500.0)
 	TEST_REAL_EQUAL(t.getData()[0][0].getIntensity(),501.0)
-	TEST_REAL_EQUAL(t.getData()[0][1].getPos(),700.0)
+	TEST_REAL_EQUAL(t.getData()[0][1].getMZ(),700.0)
 	TEST_REAL_EQUAL(t.getData()[0][1].getIntensity(),701.0)
-	TEST_REAL_EQUAL(t.getData()[0][2].getPos(),900.0)
+	TEST_REAL_EQUAL(t.getData()[0][2].getMZ(),900.0)
 	TEST_REAL_EQUAL(t.getData()[0][2].getIntensity(),901.0)
-	TEST_REAL_EQUAL(t.getData()[1][0].getPos(),600.0)
+	TEST_REAL_EQUAL(t.getData()[1][0].getMZ(),600.0)
 	TEST_REAL_EQUAL(t.getData()[1][0].getIntensity(),601.0)
-	TEST_REAL_EQUAL(t.getData()[1][1].getPos(),1000.0)
+	TEST_REAL_EQUAL(t.getData()[1][1].getMZ(),1000.0)
 	TEST_REAL_EQUAL(t.getData()[1][1].getIntensity(),1001.0)
 RESULT
 
@@ -228,11 +228,11 @@ CHECK(void getNextRt(IDX& index) throw (NoSuccessor))
 	MSExperiment<> exp2 = exp;
 	exp2.resize(3);
 	exp2[2].resize(1);
-	exp2[2][0].setPos(800.0);
+	exp2[2][0].setMZ(800.0);
 	exp2[0].resize(5);
-	exp2[0][2].setPos(799.0);
-	exp2[0][3].setPos(801.0);
-	exp2[0][4].setPos(900.0);
+	exp2[0][2].setMZ(799.0);
+	exp2[0][3].setMZ(801.0);
+	exp2[0][4].setMZ(900.0);
 	
 	t.setData(exp2.begin(),exp2.end(),2);
 	FeaFiTraits::IDX i;
@@ -300,10 +300,10 @@ CHECK(void getPrevRt(IDX& index) throw (NoSuccessor))
 	FeaFiTraits t;
 	MSExperiment<> exp2 = exp;
 	exp2[1].resize(4);
-	exp2[1][0].setPos(599.0);
-	exp2[1][1].setPos(799.0);
-	exp2[1][2].setPos(801.0);
-	exp2[1][3].setPos(1000.0);
+	exp2[1][0].setMZ(599.0);
+	exp2[1][1].setMZ(799.0);
+	exp2[1][2].setMZ(801.0);
+	exp2[1][3].setMZ(1000.0);
 	t.setData(exp2.begin(),exp2.end(),2);
 	FeaFiTraits::IDX i;
 	
@@ -344,9 +344,9 @@ CHECK(void getPrevRt(IDX& index) throw (NoSuccessor))
 #endif
 RESULT
 
-CHECK(void addConvexHull(const IndexSet& set, DFeature<2>& f) const)
+CHECK(void addConvexHull(const IndexSet& set, Feature& f) const)
 	FeaFiTraits t;
-	DPeak<2> p;
+	Peak2D p;
 	DPeakArray<2> peak_array;
 	p.getPosition()[0] = 1240.54;   p.getPosition()[1] = 687.6;     peak_array.push_back(p);
 	p.getPosition()[0] = 1241.81;   p.getPosition()[1] = 687.6;     peak_array.push_back(p);
@@ -378,7 +378,7 @@ CHECK(void addConvexHull(const IndexSet& set, DFeature<2>& f) const)
 	p.getPosition()[0] = 1237.93;   p.getPosition()[1] = 688.4;     peak_array.push_back(p);
 	
 	peak_array.sortByPosition();
-	MSExperimentExtern<DPeak<1> > exp;
+	MSExperimentExtern<Peak1D > exp;
 	exp.set2DData(peak_array);
 	t.setData(exp.begin(), exp.end(),100);
 	
@@ -391,7 +391,7 @@ CHECK(void addConvexHull(const IndexSet& set, DFeature<2>& f) const)
 		}
 	}
 	
-	DFeature<2> f;
+	Feature f;
 	t.addConvexHull(set,f);
 	DConvexHull<2>& hull = f.getConvexHulls()[0];
 	TEST_REAL_EQUAL(hull.getPoints().size(), 9);

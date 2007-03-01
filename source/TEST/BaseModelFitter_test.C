@@ -50,9 +50,9 @@ class TestFitter : public BaseModelFitter
 		check_defaults_ = false;
 	}
 
-	DFeature<2> fit(const IndexSet& /*extension*/) throw(UnableToFit)
+	Feature fit(const IndexSet& /*extension*/) throw(UnableToFit)
 	{
-		DFeature<2> f;
+		Feature f;
 		return f;	
 	}
 	
@@ -95,12 +95,12 @@ CHECK(TestFitter(const TestFitter& source))
 	TEST_EQUAL(fp2, fp3)
 RESULT
 
-CHECK(DFeature<2> fit(const IndexSet& /*extension*/) throw(UnableToFit))
+CHECK(Feature fit(const IndexSet& /*extension*/) throw(UnableToFit))
 	TestFitter ft;
 	FeaFiModule::IndexSet  inds;
 	inds.insert(std::make_pair(7,7));
-	DFeature<2> result = ft.fit(inds);
-	DFeature<2> empty;
+	Feature result = ft.fit(inds);
+	Feature empty;
   TEST_EQUAL(result==empty,true)
 RESULT
 	

@@ -90,19 +90,19 @@ int main() {
 	DPeakArray<2> dpeak_array;
 	
 	Feature feature;
- 	feature.setPos(0,178);
- 	feature.setPos(1,39);
+ 	feature.setMZ(0,178);
+ 	feature.setMZ(1,39);
 	feature.setIntensity(353535);
 	feature.setCharge(2);
 	feature.setOverallQuality(38);
  	dpeak_array.push_back(feature);
 	
 	dpeak_array.push_back(Peak2D());
-	dpeak_array.back().setPos(0,100);
-	dpeak_array.back().setPos(1,1000);
+	dpeak_array.back().setMZ(0,100);
+	dpeak_array.back().setMZ(1,1000);
  	
-	feature.setPos(0,8);
- 	feature.setPos(1,9);
+	feature.setMZ(0,8);
+ 	feature.setMZ(1,9);
 	feature.setIntensity(6635);
 	feature.setCharge(1);
 	feature.setOverallQuality(399);

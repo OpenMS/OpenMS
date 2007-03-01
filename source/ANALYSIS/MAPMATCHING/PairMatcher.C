@@ -93,7 +93,7 @@ namespace OpenMS
 			{
 				try
 				{
-					tree.insert(features_[i].getPosition(), &features_[i] );
+					tree.insert(features_[i].getMZ(), &features_[i] );
 				}
 				catch(Exception::IllegalTreeOperation e)
 				{
@@ -112,14 +112,14 @@ namespace OpenMS
 			DRange<2> local;
 			for (FeatureMapType::const_iterator it=features_.begin(); it!=features_.end(); ++it)
 			{
-				//cout << "Testing feature " << it->getPosition()[0] << " " << it->getPosition()[1] << endl;
+				//cout << "Testing feature " << it->getMZ()[0] << " " << it->getPosition()[1] << endl;
 				// set up local area to search for feature partner
 				int charge = it->getCharge();
 				double mz_opt = mz_pair_dist/charge;
-				local.setMinX(it->getPosition()[0]-rt_max);
-				local.setMaxX(it->getPosition()[0]-rt_min);
-				local.setMinY(it->getPosition()[1]+mz_opt-mz_diff);
-				local.setMaxY(it->getPosition()[1]+mz_opt+mz_diff);
+				local.setMinX(it->getPos()[0]-rt_max);
+				local.setMaxX(it->getPos()[0]-rt_min);
+				local.setMinY(it->getPos()[1]+mz_opt-mz_diff);
+				local.setMaxY(it->getPos()[1]+mz_opt+mz_diff);
 				
 				//cout << local << endl;
 				
@@ -131,8 +131,8 @@ namespace OpenMS
 						//cout << "    charge ok" << endl;
 						// calculate score
 						double diff[2];
-						diff[MZ] = fabs( it->getPosition()[MZ] - check->second->getPosition()[MZ] );
-						diff[RT] = it->getPosition()[RT] - check->second->getPosition()[RT];
+						diff[MZ] = fabs( it->getMZ() - check->second->getMZ() );
+						diff[RT] = it->getRT() - check->second->getRT();
 
 						double score =  PValue_(diff[MZ], mz_opt, mz_stdev, mz_stdev)
 													* PValue_(diff[RT],rt_pair_dist, rt_stdev_low, rt_stdev_high)
@@ -196,12 +196,12 @@ namespace OpenMS
 					<< "\tRatio\tCharge\tDiff[RT]\tDiff[MZ]\n";
 			for (Size i=0; i<pairs.size(); ++i)
 			{
-				DPosition<2> diff = pairs[i].getFirst().getPosition()-pairs[i].getSecond().getPosition();
+				DPosition<2> diff = pairs[i].getFirst().getMZ()-pairs[i].getSecond().getMZ();
 				out << setiosflags(ios::fixed) << setprecision(2)
-						<< pairs[i].getQuality() << "\t" << pairs[i].getFirst().getPosition()[0] << "\t" 
-						<< pairs[i].getFirst().getPosition()[1] << "\t" << pairs[i].getFirst().getIntensity() << "\t" 
-						<< pairs[i].getFirst().getOverallQuality() << "\t" << pairs[i].getSecond().getPosition()[0] << "\t"
-						<< pairs[i].getSecond().getPosition()[1] << "\t" << pairs[i].getSecond().getIntensity() << "\t"
+						<< pairs[i].getQuality() << "\t" << pairs[i].getFirst().getPos()[0] << "\t" 
+						<< pairs[i].getFirst().getPos()[1] << "\t" << pairs[i].getFirst().getIntensity() << "\t" 
+						<< pairs[i].getFirst().getOverallQuality() << "\t" << pairs[i].getSecond().getPos()[0] << "\t"
+						<< pairs[i].getSecond().getPos()[1] << "\t" << pairs[i].getSecond().getIntensity() << "\t"
 						<< pairs[i].getSecond().getOverallQuality() << "\t" << pairs[i].getFirst().getIntensity()/pairs[i].getSecond().getIntensity() << "\t"
 						<< pairs[i].getFirst().getCharge() << "\t" << diff[RT] << "\t"
 						<< diff[MZ] << endl;

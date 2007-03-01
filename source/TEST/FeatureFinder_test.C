@@ -29,7 +29,7 @@
 ///////////////////////////
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinder.h>
 
-#include <OpenMS/KERNEL/DFeatureMap.h>
+#include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/DPeak.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 
@@ -103,7 +103,7 @@ CHECK(const FeatureVector& run())
 	
 	TEST_EQUAL(feafi.setParam(p),true);
 	
-	DFeatureMap<2> features = feafi.run();
+	FeatureMap<> features = feafi.run();
 	
 	TEST_EQUAL(features.size(),0);
 	
@@ -115,7 +115,7 @@ CHECK((template<class ConstPeakIterator> void setData(ConstPeakIterator begin, C
 	
 	for (int i=0; i<10;++i)
 	{
-		DPeak<2> p1;
+		Peak2D p1;
 		p1.getPosition()[0] = i;
 		p1.getPosition()[1] = i*5;
 		p1.getIntensity()    = i*10;
@@ -125,7 +125,7 @@ CHECK((template<class ConstPeakIterator> void setData(ConstPeakIterator begin, C
 	
 	FeatureFinder ff;
 	
-	MSExperimentExtern<DPeak<1> > exp;
+	MSExperimentExtern<Peak1D > exp;
 	exp.set2DData(parray);
 	ff.setData(exp.begin(), exp.end(),100);
 	
@@ -133,14 +133,14 @@ CHECK((template<class ConstPeakIterator> void setData(ConstPeakIterator begin, C
 	
 RESULT
 
-CHECK(void setData(MSExperiment<DPeak<1> >& exp))
+CHECK(void setData(MSExperiment<Peak1D >& exp))
 
-	MSExperiment<DPeak<1> > exp;	
+	MSExperiment<Peak1D > exp;	
 	
 	for (int i=0; i<10; ++i)
 	{
 		
-		DPeak<1> p1;
+		Peak1D p1;
 		p1.getPosition()[0]  = i;
 		p1.getIntensity()     = i*10;
 		

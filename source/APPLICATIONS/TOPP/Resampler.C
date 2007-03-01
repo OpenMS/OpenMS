@@ -155,7 +155,7 @@ class TOPPResampler
 		writeDebug_("mz lower/upper bound: " + String(mz_l) + " / " + String(mz_u),1);	
 
 		//load needed data
-		typedef MSExperiment< DPeak<1> > MSExperimentType;
+		typedef MSExperiment< Peak1D > MSExperimentType;
 		typedef MSExperimentType::SpectrumType SpectrumType;
 		MSExperimentType exp;
 		MzDataFile f;
@@ -219,7 +219,7 @@ class TOPPResampler
 							++peak1_iter
 						)
 				{
-					bilip.addValue(rt,peak1_iter->getPos(),peak1_iter->getIntensity());
+					bilip.addValue(rt,peak1_iter->getMZ(),peak1_iter->getIntensity());
 				}
 			}
 		}
@@ -240,7 +240,7 @@ class TOPPResampler
 							++peak1_iter
 						)
 				{
-					bilip.addValue(peak1_iter->getPos(),rt,peak1_iter->getIntensity());
+					bilip.addValue(peak1_iter->getMZ(),rt,peak1_iter->getIntensity());
 				}
 			}
 
@@ -290,7 +290,7 @@ class TOPPResampler
 					PeakType & peak = spectrum[col_index];
 
 					peak.setIntensity( bilip.getData()(row_index,col_index) );
-					peak.setPos( bilip.index2key_1( col_index ) );
+					peak.setMZ( bilip.index2key_1( col_index ) );
 
 				} // col_index
 

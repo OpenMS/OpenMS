@@ -60,7 +60,7 @@ namespace OpenMS
   }
 
 /*
-  map<double,bool> IsotopeMarker::operator()(MSSpectrum< DPeak<1> >& spec)const
+  map<double,bool> IsotopeMarker::operator()(MSSpectrum< Peak1D >& spec)const
   {
     double mzvariation = (double)param_.getValue("mz_variation");
     double invariation = (double)param_.getValue("in_variation");

@@ -25,10 +25,10 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/DFeaturePairsFile.h>
-#include <OpenMS/FORMAT/DFeatureMapFile.h>
+#include <OpenMS/FORMAT/FeatureMapFile.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/PairMatcher.h>
 #include <OpenMS/KERNEL/ComparatorUtils.h>
-#include <OpenMS/KERNEL/DFeatureMap.h>
+#include <OpenMS/KERNEL/FeatureMap.h>
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 
@@ -111,8 +111,8 @@ class TOPPLabeledMatcher
 	    //-------------------------------------------------------------
 	
 	
-	    DFeatureMap<2> features;
-	    DFeatureMapFile().load(inputfile,features);
+	    FeatureMap<> features;
+	    FeatureMapFile().load(inputfile,features);
 	
 	    // sort input file
 	    enum DimensionId
@@ -121,8 +121,8 @@ class TOPPLabeledMatcher
 	      MZ = DimensionDescription < LCMS_Tag >::MZ
 	    };
 	
-	    typedef DFeature<2>::NthPositionLess< RT > RTless;
-	    typedef DFeature<2>::NthPositionLess<MZ> MZless;
+	    typedef Feature::NthPositionLess< RT > RTless;
+	    typedef Feature::NthPositionLess<MZ> MZless;
 	    sort(features.begin(),features.end(), LexicographicComparator<RTless,MZless>());
 	
 	    PairMatcher pm(features);

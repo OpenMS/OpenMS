@@ -44,18 +44,18 @@ using namespace std;
 
 DPeak<2> dp2_1;
 dp2_1.setIntensity(1);
-dp2_1.getPosition()[0] = 2;
-dp2_1.getPosition()[1] = 3;
+dp2_1.getPos()[0] = 2;
+dp2_1.getPos()[1] = 3;
 
 DPeak<2> dp2_2;
 dp2_2.setIntensity(2);
-dp2_2.getPosition()[0] = 10;
-dp2_2.getPosition()[1] = 12;
+dp2_2.getPos()[0] = 10;
+dp2_2.getPos()[1] = 12;
 
 DPeak<2> dp2_3;
 dp2_3.setIntensity(3);
-dp2_3.getPosition()[0] = 30;
-dp2_3.getPosition()[1] = 32;
+dp2_3.getPos()[0] = 30;
+dp2_3.getPos()[1] = 32;
 
 DSpectrum<3>* ptr = 0;
 CHECK((DSpectrum()))
@@ -114,10 +114,10 @@ RESULT
 
 DPeak<1> p;
 p.setIntensity(0.0);
-p.getPosition()[0] = 500.0;
+p.getPos()[0] = 500.0;
 DPeak<1> p2;
 p2.setIntensity(100.0);
-p2.getPosition()[0] = 1300.0;
+p2.getPos()[0] = 1300.0;
 
 CHECK((DSpectrum(const DSpectrum<D>& rhs)))
 	DSpectrum<1> s;
@@ -208,7 +208,7 @@ CHECK((bool operator == (const DSpectrum& rhs) const))
 	TEST_EQUAL(empty==edit, false);
 
 	edit = empty;
-	edit.getPrecursorPeak().getPosition()[0] = 1.5;
+	edit.getPrecursorPeak().getPos()[0] = 1.5;
 	TEST_EQUAL(empty==edit, false);
 	
 	//name is not checked => no change
@@ -245,7 +245,7 @@ CHECK((bool operator != (const DSpectrum& rhs) const))
 	TEST_EQUAL(empty!=edit, true);
 
 	edit = empty;
-	edit.getPrecursorPeak().getPosition()[0] = 1.5;
+	edit.getPrecursorPeak().getPos()[0] = 1.5;
 	TEST_EQUAL(empty!=edit, true);
 	
 	edit.setMetaValue("label",String("DSpectrum"));
@@ -313,10 +313,10 @@ CHECK((ContainerType& getContainer()))
 	TEST_EQUAL(ds.size(), 0)
 
 	DPeak<4> p;
-	p.getPosition()[0] = 0.0;
-	p.getPosition()[1] = 1.1;
-	p.getPosition()[2] = 2.2;
-	p.getPosition()[3] = 3.3;
+	p.getPos()[0] = 0.0;
+	p.getPos()[1] = 1.1;
+	p.getPos()[2] = 2.2;
+	p.getPos()[3] = 3.3;
 	p.getIntensity() = 15.0;
 	ds.getContainer().push_back(p);
 	TEST_EQUAL(ds.getContainer().empty(), false)
@@ -325,10 +325,10 @@ CHECK((ContainerType& getContainer()))
 	TEST_EQUAL(ds.size(), 1)
 
 	DPeak<4> q;
-	q.getPosition()[0] = 0.0;
-	q.getPosition()[1] = 1.1;
-	q.getPosition()[2] = 2.2;
-	q.getPosition()[3] = 3.3;
+	q.getPos()[0] = 0.0;
+	q.getPos()[1] = 1.1;
+	q.getPos()[2] = 2.2;
+	q.getPos()[3] = 3.3;
 	q.getIntensity() = 15.0;
 	ds.getContainer().push_back(q);
 	TEST_EQUAL(ds.getContainer().empty(), false)
@@ -721,7 +721,7 @@ RESULT
 
 CHECK((const PrecursorPeakType& getPrecursorPeak() const))
   DSpectrum<1> sdi;
-   DPeak<1> p1;
+  DPeak<1> p1;
   DPeak<1> p2= sdi.getPrecursorPeak();
   TEST_EQUAL(p1==p2,true)
 RESULT
@@ -765,113 +765,113 @@ RESULT
 CHECK((Iterator MZEnd(double mz)))
 	DSpectrum<1> tmp;
 	DSpectrum<1>::PeakType rdp;
-	rdp.getPosition()[0] = 1.0;
+	rdp.getPos()[0] = 1.0;
 	tmp.getContainer().push_back(rdp);
-	rdp.getPosition()[0] = 2.0;
+	rdp.getPos()[0] = 2.0;
 	tmp.getContainer().push_back(rdp);
-	rdp.getPosition()[0] = 3.0;
+	rdp.getPos()[0] = 3.0;
 	tmp.getContainer().push_back(rdp);
-	rdp.getPosition()[0] = 4.0;
+	rdp.getPos()[0] = 4.0;
 	tmp.getContainer().push_back(rdp);
-	rdp.getPosition()[0] = 5.0;
+	rdp.getPos()[0] = 5.0;
 	tmp.getContainer().push_back(rdp);
-	rdp.getPosition()[0] = 6.0;
+	rdp.getPos()[0] = 6.0;
 	tmp.getContainer().push_back(rdp);
-	rdp.getPosition()[0] = 7.0;
+	rdp.getPos()[0] = 7.0;
 	tmp.getContainer().push_back(rdp);
 	
 	DSpectrum<1>::Iterator it;
 	
 	it = tmp.MZBegin(4.5);
-	TEST_EQUAL(it->getPosition()[0],5.0)
+	TEST_EQUAL(it->getPos()[0],5.0)
 	it = tmp.MZBegin(5.0);
-	TEST_EQUAL(it->getPosition()[0],5.0)
+	TEST_EQUAL(it->getPos()[0],5.0)
 	it = tmp.MZBegin(5.5);
-	TEST_EQUAL(it->getPosition()[0],6.0)
+	TEST_EQUAL(it->getPos()[0],6.0)
 RESULT
 
 CHECK((Iterator MZBegin(double mz)))
 	DSpectrum<1> tmp;
 	DSpectrum<1>::PeakType rdp;
-	rdp.getPosition()[0] = 1.0;
+	rdp.getPos()[0] = 1.0;
 	tmp.getContainer().push_back(rdp);
-	rdp.getPosition()[0] = 2.0;
+	rdp.getPos()[0] = 2.0;
 	tmp.getContainer().push_back(rdp);
-	rdp.getPosition()[0] = 3.0;
+	rdp.getPos()[0] = 3.0;
 	tmp.getContainer().push_back(rdp);
-	rdp.getPosition()[0] = 4.0;
+	rdp.getPos()[0] = 4.0;
 	tmp.getContainer().push_back(rdp);
-	rdp.getPosition()[0] = 5.0;
+	rdp.getPos()[0] = 5.0;
 	tmp.getContainer().push_back(rdp);
-	rdp.getPosition()[0] = 6.0;
+	rdp.getPos()[0] = 6.0;
 	tmp.getContainer().push_back(rdp);
-	rdp.getPosition()[0] = 7.0;
+	rdp.getPos()[0] = 7.0;
 	tmp.getContainer().push_back(rdp);
 	
 	DSpectrum<1>::Iterator it;
 	
 	it = tmp.MZEnd(4.5);
-	TEST_EQUAL(it->getPosition()[0],5.0)
+	TEST_EQUAL(it->getPos()[0],5.0)
 	it = tmp.MZEnd(5.0);
-	TEST_EQUAL(it->getPosition()[0],6.0)
+	TEST_EQUAL(it->getPos()[0],6.0)
 	it = tmp.MZEnd(5.5);
-	TEST_EQUAL(it->getPosition()[0],6.0)
+	TEST_EQUAL(it->getPos()[0],6.0)
 RESULT
 
 CHECK((ConstIterator MZEnd(double mz) const))
 	DSpectrum<1> tmp;
 	DSpectrum<1>::PeakType rdp;
-	rdp.getPosition()[0] = 1.0;
+	rdp.getPos()[0] = 1.0;
 	tmp.getContainer().push_back(rdp);
-	rdp.getPosition()[0] = 2.0;
+	rdp.getPos()[0] = 2.0;
 	tmp.getContainer().push_back(rdp);
-	rdp.getPosition()[0] = 3.0;
+	rdp.getPos()[0] = 3.0;
 	tmp.getContainer().push_back(rdp);
-	rdp.getPosition()[0] = 4.0;
+	rdp.getPos()[0] = 4.0;
 	tmp.getContainer().push_back(rdp);
-	rdp.getPosition()[0] = 5.0;
+	rdp.getPos()[0] = 5.0;
 	tmp.getContainer().push_back(rdp);
-	rdp.getPosition()[0] = 6.0;
+	rdp.getPos()[0] = 6.0;
 	tmp.getContainer().push_back(rdp);
-	rdp.getPosition()[0] = 7.0;
+	rdp.getPos()[0] = 7.0;
 	tmp.getContainer().push_back(rdp);
 	
 	DSpectrum<1>::ConstIterator it;
 	
 	it = tmp.MZBegin(4.5);
-	TEST_EQUAL(it->getPosition()[0],5.0)
+	TEST_EQUAL(it->getPos()[0],5.0)
 	it = tmp.MZBegin(5.0);
-	TEST_EQUAL(it->getPosition()[0],5.0)
+	TEST_EQUAL(it->getPos()[0],5.0)
 	it = tmp.MZBegin(5.5);
-	TEST_EQUAL(it->getPosition()[0],6.0)
+	TEST_EQUAL(it->getPos()[0],6.0)
 RESULT
 
 CHECK((ConstIterator MZBegin(double mz) const))
 	DSpectrum<1> tmp;
 	DSpectrum<1>::PeakType rdp;
-	rdp.getPosition()[0] = 1.0;
+	rdp.getPos()[0] = 1.0;
 	tmp.getContainer().push_back(rdp);
-	rdp.getPosition()[0] = 2.0;
+	rdp.getPos()[0] = 2.0;
 	tmp.getContainer().push_back(rdp);
-	rdp.getPosition()[0] = 3.0;
+	rdp.getPos()[0] = 3.0;
 	tmp.getContainer().push_back(rdp);
-	rdp.getPosition()[0] = 4.0;
+	rdp.getPos()[0] = 4.0;
 	tmp.getContainer().push_back(rdp);
-	rdp.getPosition()[0] = 5.0;
+	rdp.getPos()[0] = 5.0;
 	tmp.getContainer().push_back(rdp);
-	rdp.getPosition()[0] = 6.0;
+	rdp.getPos()[0] = 6.0;
 	tmp.getContainer().push_back(rdp);
-	rdp.getPosition()[0] = 7.0;
+	rdp.getPos()[0] = 7.0;
 	tmp.getContainer().push_back(rdp);
 	
 	DSpectrum<1>::ConstIterator it;
 	
 	it = tmp.MZEnd(4.5);
-	TEST_EQUAL(it->getPosition()[0],5.0)
+	TEST_EQUAL(it->getPos()[0],5.0)
 	it = tmp.MZEnd(5.0);
-	TEST_EQUAL(it->getPosition()[0],6.0)
+	TEST_EQUAL(it->getPos()[0],6.0)
 	it = tmp.MZEnd(5.5);
-	TEST_EQUAL(it->getPosition()[0],6.0)
+	TEST_EQUAL(it->getPos()[0],6.0)
 RESULT
 
 

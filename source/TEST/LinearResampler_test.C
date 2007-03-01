@@ -84,17 +84,17 @@ CHECK((template<typename InputSpectrumIterator, typename OutputPeakType > void r
   MSExperiment< DRawDataPoint <1> > raw;
   raw.resize(1);
   MSExperiment< DRawDataPoint <1> > resampled;
-  MSSpectrum< DRawDataPoint<1> > spec;
+  MSSpectrum< RawDataPoint1D > spec;
   spec.getContainer().resize(5);
-  spec.getContainer()[0].getPos() = 0;
+  spec.getContainer()[0].getMZ() = 0;
   spec.getContainer()[0].getIntensity() = 3;
-  spec.getContainer()[1].getPos() = 0.5;
+  spec.getContainer()[1].getMZ() = 0.5;
   spec.getContainer()[1].getIntensity() = 6;
-  spec.getContainer()[2].getPos() = 1.;
+  spec.getContainer()[2].getMZ() = 1.;
   spec.getContainer()[2].getIntensity() = 8;
-  spec.getContainer()[3].getPos() = 1.6;
+  spec.getContainer()[3].getMZ() = 1.6;
   spec.getContainer()[3].getIntensity() = 2;
-  spec.getContainer()[4].getPos() = 1.8;
+  spec.getContainer()[4].getMZ() = 1.8;
   spec.getContainer()[4].getIntensity() = 1;
   raw[0] = spec;
 
@@ -103,7 +103,7 @@ CHECK((template<typename InputSpectrumIterator, typename OutputPeakType > void r
   lr.rasterExperiment(raw.begin(),raw.end(),resampled);
 
   double sum = 0.;
-  MSSpectrum< DRawDataPoint<1> >::const_iterator it = resampled[0].begin();
+  MSSpectrum< RawDataPoint1D >::const_iterator it = resampled[0].begin();
   while(it != resampled[0].end())
   {
     sum += it->getIntensity();
@@ -117,17 +117,17 @@ CHECK((template<typename InputPeakType, typename OutputPeakType > void rasterExp
   MSExperiment< DRawDataPoint <1> > raw;
   raw.resize(1);
   MSExperiment< DRawDataPoint <1> > resampled;
-  MSSpectrum< DRawDataPoint<1> > spec;
+  MSSpectrum< RawDataPoint1D > spec;
   spec.getContainer().resize(5);
-  spec.getContainer()[0].getPos() = 0;
+  spec.getContainer()[0].getMZ() = 0;
   spec.getContainer()[0].getIntensity() = 3;
-  spec.getContainer()[1].getPos() = 0.5;
+  spec.getContainer()[1].getMZ() = 0.5;
   spec.getContainer()[1].getIntensity() = 6;
-  spec.getContainer()[2].getPos() = 1.;
+  spec.getContainer()[2].getMZ() = 1.;
   spec.getContainer()[2].getIntensity() = 8;
-  spec.getContainer()[3].getPos() = 1.6;
+  spec.getContainer()[3].getMZ() = 1.6;
   spec.getContainer()[3].getIntensity() = 2;
-  spec.getContainer()[4].getPos() = 1.8;
+  spec.getContainer()[4].getMZ() = 1.8;
   spec.getContainer()[4].getIntensity() = 1;
   raw[0] = spec;
 
@@ -136,7 +136,7 @@ CHECK((template<typename InputPeakType, typename OutputPeakType > void rasterExp
   lr.rasterExperiment(raw,resampled);
 
   double sum = 0.;
-  MSSpectrum< DRawDataPoint<1> >::const_iterator it = resampled[0].begin();
+  MSSpectrum< RawDataPoint1D >::const_iterator it = resampled[0].begin();
   while(it != resampled[0].end())
   {
     sum += it->getIntensity();
@@ -177,27 +177,27 @@ CHECK((void setParam(const Param& param)))
 RESULT
 
 CHECK((template< typename InputPeakIterator, typename OutputPeakContainer > void raster(InputPeakIterator first, InputPeakIterator last, OutputPeakContainer& resampled_peak_container)))
-  MSSpectrum< DRawDataPoint<1> > spec;
+  MSSpectrum< RawDataPoint1D > spec;
   spec.getContainer().resize(5);
-  spec.getContainer()[0].getPos() = 0;
+  spec.getContainer()[0].getMZ() = 0;
   spec.getContainer()[0].getIntensity() = 3;
-  spec.getContainer()[1].getPos() = 0.5;
+  spec.getContainer()[1].getMZ() = 0.5;
   spec.getContainer()[1].getIntensity() = 6;
-  spec.getContainer()[2].getPos() = 1.;
+  spec.getContainer()[2].getMZ() = 1.;
   spec.getContainer()[2].getIntensity() = 8;
-  spec.getContainer()[3].getPos() = 1.6;
+  spec.getContainer()[3].getMZ() = 1.6;
   spec.getContainer()[3].getIntensity() = 2;
-  spec.getContainer()[4].getPos() = 1.8;
+  spec.getContainer()[4].getMZ() = 1.8;
   spec.getContainer()[4].getIntensity() = 1;
 
   LinearResampler lr;
   lr.setSpacing(0.5);
 
-  MSSpectrum< DRawDataPoint<1> > spec_resampled;
+  MSSpectrum< RawDataPoint1D > spec_resampled;
   lr.raster(spec.begin(),spec.end(),spec_resampled);
 
   double sum = 0.;
-  MSSpectrum< DRawDataPoint<1> >::const_iterator it = spec_resampled.begin();
+  MSSpectrum< RawDataPoint1D >::const_iterator it = spec_resampled.begin();
   while(it != spec_resampled.end())
   {
     sum += it->getIntensity();
@@ -215,27 +215,27 @@ CHECK((void setSpacing(const double& spacing)))
 RESULT
 
 CHECK((template<typename InputPeakContainer, typename OutputPeakContainer > void raster(const InputPeakContainer& input_peak_container, OutputPeakContainer& baseline_filtered_container)))
-  MSSpectrum< DRawDataPoint<1> > spec;
+  MSSpectrum< RawDataPoint1D > spec;
   spec.getContainer().resize(5);
-  spec.getContainer()[0].getPos() = 0;
+  spec.getContainer()[0].getMZ() = 0;
   spec.getContainer()[0].getIntensity() = 3;
-  spec.getContainer()[1].getPos() = 0.5;
+  spec.getContainer()[1].getMZ() = 0.5;
   spec.getContainer()[1].getIntensity() = 6;
-  spec.getContainer()[2].getPos() = 1.;
+  spec.getContainer()[2].getMZ() = 1.;
   spec.getContainer()[2].getIntensity() = 8;
-  spec.getContainer()[3].getPos() = 1.6;
+  spec.getContainer()[3].getMZ() = 1.6;
   spec.getContainer()[3].getIntensity() = 2;
-  spec.getContainer()[4].getPos() = 1.8;
+  spec.getContainer()[4].getMZ() = 1.8;
   spec.getContainer()[4].getIntensity() = 1;
 
   LinearResampler lr;
   lr.setSpacing(0.5);
 
-  MSSpectrum< DRawDataPoint<1> > spec_resampled;
+  MSSpectrum< RawDataPoint1D > spec_resampled;
   lr.raster(spec,spec_resampled);
 
   double sum = 0.;
-  MSSpectrum< DRawDataPoint<1> >::const_iterator it = spec_resampled.begin();
+  MSSpectrum< RawDataPoint1D >::const_iterator it = spec_resampled.begin();
   while(it != spec_resampled.end())
   {
     sum += it->getIntensity();

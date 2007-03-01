@@ -572,13 +572,13 @@ namespace OpenMS
 							}
 							glVertex3d(-corner_+(GLfloat)scaledRT(it.getRetentionTime()), 
 												 -corner_,
-												 -near_-2*corner_-(GLfloat)scaledMZ(it->getPos()));
+												 -near_-2*corner_-(GLfloat)scaledMZ(it->getMZ()));
 						}
 						else
 						{	
 							glVertex3d(-corner_+(GLfloat)scaledRT(it.getRetentionTime()), 
 												 -corner_,
-												 -near_-2*corner_-(GLfloat)scaledMZ(it->getPos()));
+												 -near_-2*corner_-(GLfloat)scaledMZ(it->getMZ()));
 						}
 						glEnd();		
 					}
@@ -640,11 +640,11 @@ namespace OpenMS
 								qglColor( gradient_.precalculatedColorAt(0));
 								glVertex3d(-corner_+(GLfloat)scaledRT(it.getRetentionTime()), 
 													 -corner_,
-													 -near_-2*corner_-(GLfloat)scaledMZ(it->getPos()));
+													 -near_-2*corner_-(GLfloat)scaledMZ(it->getMZ()));
 								qglColor( gradient_.precalculatedColorAt(intensity ));
 								glVertex3d(-corner_+(GLfloat)scaledRT(it.getRetentionTime()),
 													 -corner_+(GLfloat)scaledIntensity(it->getIntensity(),i),
-													 -near_-2*corner_-(GLfloat)scaledMZ(it->getPos()));
+													 -near_-2*corner_-(GLfloat)scaledMZ(it->getMZ()));
 									break;
 							
 							case SpectrumCanvas::IM_NONE:
@@ -652,11 +652,11 @@ namespace OpenMS
 								qglColor( gradient_.precalculatedColorAt(canvas_3d_.overall_data_range_.min_[2]));
 								glVertex3d(-corner_+(GLfloat)scaledRT(it.getRetentionTime()), 
 													 -corner_,
-													 -near_-2*corner_-(GLfloat)scaledMZ(it->getPos()));
+													 -near_-2*corner_-(GLfloat)scaledMZ(it->getMZ()));
 								qglColor( gradient_.precalculatedColorAt(it->getIntensity()));
 								glVertex3d(-corner_+(GLfloat)scaledRT(it.getRetentionTime()),
 													 -corner_+(GLfloat)scaledIntensity(it->getIntensity(),i),
-													 -near_-2*corner_-(GLfloat)scaledMZ(it->getPos()));
+													 -near_-2*corner_-(GLfloat)scaledMZ(it->getMZ()));
 								break;
 							
 							case SpectrumCanvas::IM_SNAP:
@@ -664,11 +664,11 @@ namespace OpenMS
 								qglColor(gradient_.precalculatedColorAt(int_scale_.min_[0]));
 								glVertex3d(-corner_+(GLfloat)scaledRT(it.getRetentionTime()), 
 													 -corner_,
-													 -near_-2*corner_-(GLfloat)scaledMZ(it->getPos()));
+													 -near_-2*corner_-(GLfloat)scaledMZ(it->getMZ()));
 								qglColor(gradient_.precalculatedColorAt(it->getIntensity()));
 								glVertex3d(-corner_+(GLfloat)scaledRT(it.getRetentionTime()),
 													 -corner_+(GLfloat)scaledIntensity(it->getIntensity(),i),
-													 -near_-2*corner_-(GLfloat)scaledMZ(it->getPos()));
+													 -near_-2*corner_-(GLfloat)scaledMZ(it->getMZ()));
 								
 								break;
 							
@@ -676,11 +676,11 @@ namespace OpenMS
 								qglColor(gradient_.precalculatedColorAt(log10(canvas_3d_.overall_data_range_.min_[2])));
 								glVertex3d(-corner_+(GLfloat)scaledRT(it.getRetentionTime()), 
 													 -corner_,
-													 -near_-2*corner_-(GLfloat)scaledMZ(it->getPos()));
+													 -near_-2*corner_-(GLfloat)scaledMZ(it->getMZ()));
 								qglColor(gradient_.precalculatedColorAt(log10(it->getIntensity())));
 								glVertex3d(-corner_+(GLfloat)scaledRT(it.getRetentionTime()),
 													 -corner_+(GLfloat)scaledIntensity(log10(it->getIntensity()),i),
-													 -near_-2*corner_-(GLfloat)scaledMZ(it->getPos()));
+													 -near_-2*corner_-(GLfloat)scaledMZ(it->getMZ()));
 								break;
 								
 							}
@@ -691,19 +691,19 @@ namespace OpenMS
 								{
 										glVertex3d(-corner_+(GLfloat)scaledRT(it.getRetentionTime()), 
 															 -corner_,
-															 -near_-2*corner_-(GLfloat)scaledMZ(it->getPos()));
+															 -near_-2*corner_-(GLfloat)scaledMZ(it->getMZ()));
 										glVertex3d(-corner_+(GLfloat)scaledRT(it.getRetentionTime()),
 															 -corner_+(GLfloat)scaledIntensity(log10(it->getIntensity()),i),
-															 -near_-2*corner_-(GLfloat)scaledMZ(it->getPos()));
+															 -near_-2*corner_-(GLfloat)scaledMZ(it->getMZ()));
 								}
 							else
 								{
 									glVertex3d(-corner_+(GLfloat)scaledRT(it.getRetentionTime()), 
 														 -corner_,
-														 -near_-2*corner_-(GLfloat)scaledMZ(it->getPos()));
+														 -near_-2*corner_-(GLfloat)scaledMZ(it->getMZ()));
 									glVertex3d(-corner_+(GLfloat)scaledRT(it.getRetentionTime()),
 														 -corner_+(GLfloat)scaledIntensity(it->getIntensity(),i),
-														 -near_-2*corner_-(GLfloat)scaledMZ(it->getPos()));
+														 -near_-2*corner_-(GLfloat)scaledMZ(it->getMZ()));
 							}
 						}
 						glEnd();

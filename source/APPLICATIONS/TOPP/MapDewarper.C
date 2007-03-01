@@ -27,8 +27,8 @@
 #include <OpenMS/ANALYSIS/MAPMATCHING/DMapDewarper.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/DGrid.h>
 #include <OpenMS/FORMAT/DGridFile.h>
-#include <OpenMS/FORMAT/DFeatureMapFile.h>
-#include <OpenMS/KERNEL/DFeatureMap.h>
+#include <OpenMS/FORMAT/FeatureMapFile.h>
+#include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 
 using namespace OpenMS;
@@ -92,8 +92,8 @@ protected:
     DGrid<2> the_grid;
     DGridFile().load(gridfile,the_grid);
 
-    DFeatureMapFile fmap_file;
-    DFeatureMap<2> feature_map;
+    FeatureMapFile fmap_file;
+    FeatureMap<> feature_map;
     fmap_file.load(features_file,feature_map);
 
     //-------------------------------------------------------------

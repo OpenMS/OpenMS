@@ -82,7 +82,7 @@ namespace OpenMS
 
 	
 /*
-  void MarkerMower::operator()(MSSpectrum< DPeak<1> >& spec) const
+  void MarkerMower::operator()(MSSpectrum< Peak1D >& spec) const
   {
     map<double,int> marks;
     for ( vector<PeakMarker*>::const_iterator cvit = markers_.begin(); cvit != markers_.end(); ++cvit )
@@ -93,7 +93,7 @@ namespace OpenMS
         if ( cmit->second ) marks[cmit->first]++;
       }
     }
-    for (MSSpectrum< DPeak<1> >::iterator it = spec.begin(); it != spec.end(); )
+    for (MSSpectrum< Peak1D >::iterator it = spec.begin(); it != spec.end(); )
     {
       if ( marks[it->getPosition()[0]] > 0 )
       {

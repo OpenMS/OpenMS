@@ -134,7 +134,7 @@ CHECK((void setDaltonPerSplit(const float& dalton_per_split)))
 RESULT
 
 CHECK((template< typename InputPeakIterator > void splitScan(InputPeakIterator it_begin, InputPeakIterator it_end, double noise_level, std::vector<InputPeakIterator>& splitted_array)))
-  typedef DPeakArray<1,DRawDataPoint<1> > RawData;
+  typedef DPeakArray<1,RawDataPoint1D > RawData;
   ExtractSignalRegions esr;
   esr.setDaltonPerSplit(2);
   RawData raw;
@@ -185,8 +185,8 @@ CHECK((template< typename InputPeakIterator > void splitScan(InputPeakIterator i
   esr.splitScan(raw.begin(),raw.end(),2,split_vector);
 
   TEST_EQUAL(split_vector.size(),2);
-  TEST_REAL_EQUAL(split_vector[0]->getPos(),2.5);
-  TEST_REAL_EQUAL((split_vector[1]-1)->getPos(),9.5);
+  TEST_REAL_EQUAL(split_vector[0]->getMZ(),2.5);
+  TEST_REAL_EQUAL((split_vector[1]-1)->getMZ(),9.5);
 RESULT
 
 /////////////////////////////////////////////////////////////

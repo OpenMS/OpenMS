@@ -31,6 +31,7 @@
 #include <OpenMS/FORMAT/DTA2DFile.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
+#include <OpenMS/KERNEL/Peak2D.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -86,168 +87,168 @@ CHECK((template<typename MapType> void load(const String& filename, MapType& map
 	ABORT_IF(e.size() != 9)
 
 	MSExperiment<>::const_iterator it(e.begin());
-	TEST_REAL_EQUAL(it->getContainer()[0].getPosition()[0], 230.02)
+	TEST_REAL_EQUAL(it->getContainer()[0].getPos()[0], 230.02)
 	TEST_REAL_EQUAL(it->getRetentionTime(), 4711.1)
 	TEST_REAL_EQUAL(it->getContainer()[0].getIntensity(), 47218.89)
 	++it;
 
-	TEST_REAL_EQUAL(it->getContainer()[0].getPosition()[0], 231.51)
+	TEST_REAL_EQUAL(it->getContainer()[0].getPos()[0], 231.51)
 	TEST_REAL_EQUAL(it->getRetentionTime(), 4711.2)
 	TEST_REAL_EQUAL(it->getContainer()[0].getIntensity(), 89935.22)
 	++it;
 		
-	TEST_REAL_EQUAL(it->getContainer()[0].getPosition()[0], 139.42)
+	TEST_REAL_EQUAL(it->getContainer()[0].getPos()[0], 139.42)
 	TEST_REAL_EQUAL(it->getRetentionTime(), 4711.3)
 	TEST_REAL_EQUAL(it->getContainer()[0].getIntensity(), 318.52)
 	++it;
 
-	TEST_REAL_EQUAL(it->getContainer()[0].getPosition()[0], 149.93)
+	TEST_REAL_EQUAL(it->getContainer()[0].getPos()[0], 149.93)
 	TEST_REAL_EQUAL(it->getRetentionTime(), 4711.4)
 	TEST_REAL_EQUAL(it->getContainer()[0].getIntensity(), 61870.99)
 	++it;
 		
-	TEST_REAL_EQUAL(it->getContainer()[0].getPosition()[0], 169.65)
+	TEST_REAL_EQUAL(it->getContainer()[0].getPos()[0], 169.65)
 	TEST_REAL_EQUAL(it->getRetentionTime(), 4711.5)
 	TEST_REAL_EQUAL(it->getContainer()[0].getIntensity(), 62074.22)
 	++it;
 		
-	TEST_REAL_EQUAL(it->getContainer()[0].getPosition()[0], 189.30)
+	TEST_REAL_EQUAL(it->getContainer()[0].getPos()[0], 189.30)
 	TEST_REAL_EQUAL(it->getRetentionTime(), 4711.6)
 	TEST_REAL_EQUAL(it->getContainer()[0].getIntensity(), 53737.85)
 	++it;
 
-	TEST_REAL_EQUAL(it->getContainer()[0].getPosition()[0], 202.28)
+	TEST_REAL_EQUAL(it->getContainer()[0].getPos()[0], 202.28)
 	TEST_REAL_EQUAL(it->getRetentionTime(), 4711.7)
 	TEST_REAL_EQUAL(it->getContainer()[0].getIntensity(), 49410.25)
 	++it;
 		
-	TEST_REAL_EQUAL(it->getContainer()[0].getPosition()[0], 207.82)
+	TEST_REAL_EQUAL(it->getContainer()[0].getPos()[0], 207.82)
 	TEST_REAL_EQUAL(it->getRetentionTime(), 4711.8)
 	TEST_REAL_EQUAL(it->getContainer()[0].getIntensity(), 17038.71)
 	++it;
 		
-	TEST_REAL_EQUAL(it->getContainer()[0].getPosition()[0], 219.72)
+	TEST_REAL_EQUAL(it->getContainer()[0].getPos()[0], 219.72)
 	TEST_REAL_EQUAL(it->getRetentionTime(), 4711.9)
 	TEST_REAL_EQUAL(it->getContainer()[0].getIntensity(), 73629.98)
 
 
 	dta.load("data/DTA2DFile_test_2.dta2d",e);
-	DPeakArray<2> array;
+	DPeakArray<2, Peak2D> array;
 	e.get2DData(array);
 	TEST_EQUAL(array.size(), 11);
 	ABORT_IF(array.size() != 11)
 
-	DPeakArray<2>::ConstIterator it2 = array.begin();
+	DPeakArray<2, Peak2D>::ConstIterator it2 = array.begin();
 
-	TEST_REAL_EQUAL(it2->getPosition()[Dims::MZ], 230.02)
-	TEST_REAL_EQUAL(it2->getPosition()[Dims::RT], 4711.1)
+	TEST_REAL_EQUAL(it2->getPos()[Dims::MZ], 230.02)
+	TEST_REAL_EQUAL(it2->getPos()[Dims::RT], 4711.1)
 	TEST_REAL_EQUAL(it2->getIntensity(), 47218.89)
 	++it2;
 
-	TEST_REAL_EQUAL(it2->getPosition()[Dims::MZ], 430.02)
-	TEST_REAL_EQUAL(it2->getPosition()[Dims::RT], 4711.1)
+	TEST_REAL_EQUAL(it2->getPos()[Dims::MZ], 430.02)
+	TEST_REAL_EQUAL(it2->getPos()[Dims::RT], 4711.1)
 	TEST_REAL_EQUAL(it2->getIntensity(), 47219.89)
 	++it2;
 
-	TEST_REAL_EQUAL(it2->getPosition()[Dims::MZ], 630.02)
-	TEST_REAL_EQUAL(it2->getPosition()[Dims::RT], 4711.1)
+	TEST_REAL_EQUAL(it2->getPos()[Dims::MZ], 630.02)
+	TEST_REAL_EQUAL(it2->getPos()[Dims::RT], 4711.1)
 	TEST_REAL_EQUAL(it2->getIntensity(), 47210.89)
 	++it2;
 
-	TEST_REAL_EQUAL(it2->getPosition()[Dims::MZ], 231.51)
-	TEST_REAL_EQUAL(it2->getPosition()[Dims::RT], 4711.2)
+	TEST_REAL_EQUAL(it2->getPos()[Dims::MZ], 231.51)
+	TEST_REAL_EQUAL(it2->getPos()[Dims::RT], 4711.2)
 	TEST_REAL_EQUAL(it2->getIntensity(), 89935.22)
 	++it2;
 
-	TEST_REAL_EQUAL(it2->getPosition()[Dims::MZ], 139.42)
-	TEST_REAL_EQUAL(it2->getPosition()[Dims::RT], 4711.3)
+	TEST_REAL_EQUAL(it2->getPos()[Dims::MZ], 139.42)
+	TEST_REAL_EQUAL(it2->getPos()[Dims::RT], 4711.3)
 	TEST_REAL_EQUAL(it2->getIntensity(), 318.52)
 	++it2;
 
-	TEST_REAL_EQUAL(it2->getPosition()[Dims::MZ], 149.93)
-	TEST_REAL_EQUAL(it2->getPosition()[Dims::RT], 4711.4)
+	TEST_REAL_EQUAL(it2->getPos()[Dims::MZ], 149.93)
+	TEST_REAL_EQUAL(it2->getPos()[Dims::RT], 4711.4)
 	TEST_REAL_EQUAL(it2->getIntensity(), 61870.99)
 	++it2;
 
-	TEST_REAL_EQUAL(it2->getPosition()[Dims::MZ], 169.65)
-	TEST_REAL_EQUAL(it2->getPosition()[Dims::RT], 4711.5)
+	TEST_REAL_EQUAL(it2->getPos()[Dims::MZ], 169.65)
+	TEST_REAL_EQUAL(it2->getPos()[Dims::RT], 4711.5)
 	TEST_REAL_EQUAL(it2->getIntensity(), 62074.22)
 	++it2;
 
-	TEST_REAL_EQUAL(it2->getPosition()[Dims::MZ], 189.30)
-	TEST_REAL_EQUAL(it2->getPosition()[Dims::RT], 4711.6)
+	TEST_REAL_EQUAL(it2->getPos()[Dims::MZ], 189.30)
+	TEST_REAL_EQUAL(it2->getPos()[Dims::RT], 4711.6)
 	TEST_REAL_EQUAL(it2->getIntensity(), 53737.85)
 	++it2;
 
-	TEST_REAL_EQUAL(it2->getPosition()[Dims::MZ], 202.28)
-	TEST_REAL_EQUAL(it2->getPosition()[Dims::RT], 4711.7)
+	TEST_REAL_EQUAL(it2->getPos()[Dims::MZ], 202.28)
+	TEST_REAL_EQUAL(it2->getPos()[Dims::RT], 4711.7)
 	TEST_REAL_EQUAL(it2->getIntensity(), 49410.25)
 	++it2;
 
-	TEST_REAL_EQUAL(it2->getPosition()[Dims::MZ], 207.82)
-	TEST_REAL_EQUAL(it2->getPosition()[Dims::RT], 4711.8)
+	TEST_REAL_EQUAL(it2->getPos()[Dims::MZ], 207.82)
+	TEST_REAL_EQUAL(it2->getPos()[Dims::RT], 4711.8)
 	TEST_REAL_EQUAL(it2->getIntensity(), 17038.71)
 	++it2;
 
-	TEST_REAL_EQUAL(it2->getPosition()[Dims::MZ], 219.72)
-	TEST_REAL_EQUAL(it2->getPosition()[Dims::RT], 4711.9)
+	TEST_REAL_EQUAL(it2->getPos()[Dims::MZ], 219.72)
+	TEST_REAL_EQUAL(it2->getPos()[Dims::RT], 4711.9)
 	TEST_REAL_EQUAL(it2->getIntensity(), 73629.98)
 
 	// Test with DRawDataPoint 
 
-	MSExperiment<DRawDataPoint<1> > e3;
+	MSExperiment<RawDataPoint1D > e3;
 	dta.load("data/DTA2DFile_test_1.dta2d",e3);
 	TEST_EQUAL(e3.size(), 9);
 	ABORT_IF(e3.size() != 9)
 
-	MSExperiment<DRawDataPoint<1> >::const_iterator it3(e3.begin());
+	MSExperiment<RawDataPoint1D >::const_iterator it3(e3.begin());
 	TEST_EQUAL(it3->size(), 3);
 	ABORT_IF(it3->size() != 3)
 	TEST_REAL_EQUAL(it3->getRetentionTime(), 4711.1)
-	TEST_REAL_EQUAL(it3->getContainer()[0].getPosition()[0], 230.02)
+	TEST_REAL_EQUAL(it3->getContainer()[0].getPos()[0], 230.02)
 	TEST_REAL_EQUAL(it3->getContainer()[0].getIntensity(), 47218.89)
-	TEST_REAL_EQUAL(it3->getContainer()[1].getPosition()[0], 430.02)
+	TEST_REAL_EQUAL(it3->getContainer()[1].getPos()[0], 430.02)
 	TEST_REAL_EQUAL(it3->getContainer()[1].getIntensity(), 47219.89)
-	TEST_REAL_EQUAL(it3->getContainer()[2].getPosition()[0], 630.02)
+	TEST_REAL_EQUAL(it3->getContainer()[2].getPos()[0], 630.02)
 	TEST_REAL_EQUAL(it3->getContainer()[2].getIntensity(), 47210.89)
 	++it3;
 
-	TEST_REAL_EQUAL(it3->getContainer()[0].getPosition()[0], 231.51)
+	TEST_REAL_EQUAL(it3->getContainer()[0].getPos()[0], 231.51)
 	TEST_REAL_EQUAL(it3->getRetentionTime(), 4711.2)
 	TEST_REAL_EQUAL(it3->getContainer()[0].getIntensity(), 89935.22)
 	++it3;
 		
-	TEST_REAL_EQUAL(it3->getContainer()[0].getPosition()[0], 139.42)
+	TEST_REAL_EQUAL(it3->getContainer()[0].getPos()[0], 139.42)
 	TEST_REAL_EQUAL(it3->getRetentionTime(), 4711.3)
 	TEST_REAL_EQUAL(it3->getContainer()[0].getIntensity(), 318.52)
 	++it3;
 
-	TEST_REAL_EQUAL(it3->getContainer()[0].getPosition()[0], 149.93)
+	TEST_REAL_EQUAL(it3->getContainer()[0].getPos()[0], 149.93)
 	TEST_REAL_EQUAL(it3->getRetentionTime(), 4711.4)
 	TEST_REAL_EQUAL(it3->getContainer()[0].getIntensity(), 61870.99)
 	++it3;
 		
-	TEST_REAL_EQUAL(it3->getContainer()[0].getPosition()[0], 169.65)
+	TEST_REAL_EQUAL(it3->getContainer()[0].getPos()[0], 169.65)
 	TEST_REAL_EQUAL(it3->getRetentionTime(), 4711.5)
 	TEST_REAL_EQUAL(it3->getContainer()[0].getIntensity(), 62074.22)
 	++it3;
 		
-	TEST_REAL_EQUAL(it3->getContainer()[0].getPosition()[0], 189.30)
+	TEST_REAL_EQUAL(it3->getContainer()[0].getPos()[0], 189.30)
 	TEST_REAL_EQUAL(it3->getRetentionTime(), 4711.6)
 	TEST_REAL_EQUAL(it3->getContainer()[0].getIntensity(), 53737.85)
 	++it3;
 
-	TEST_REAL_EQUAL(it3->getContainer()[0].getPosition()[0], 202.28)
+	TEST_REAL_EQUAL(it3->getContainer()[0].getPos()[0], 202.28)
 	TEST_REAL_EQUAL(it3->getRetentionTime(), 4711.7)
 	TEST_REAL_EQUAL(it3->getContainer()[0].getIntensity(), 49410.25)
 	++it3;
 		
-	TEST_REAL_EQUAL(it3->getContainer()[0].getPosition()[0], 207.82)
+	TEST_REAL_EQUAL(it3->getContainer()[0].getPos()[0], 207.82)
 	TEST_REAL_EQUAL(it3->getRetentionTime(), 4711.8)
 	TEST_REAL_EQUAL(it3->getContainer()[0].getIntensity(), 17038.71)
 	++it3;
 		
-	TEST_REAL_EQUAL(it3->getContainer()[0].getPosition()[0], 219.72)
+	TEST_REAL_EQUAL(it3->getContainer()[0].getPos()[0], 219.72)
 	TEST_REAL_EQUAL(it3->getRetentionTime(), 4711.9)
 	TEST_REAL_EQUAL(it3->getContainer()[0].getIntensity(), 73629.98)
 
@@ -276,128 +277,128 @@ CHECK((template<typename MapType> void store(const String& filename, const MapTy
 
 	MSExperiment<> e2;
 	f.load(tmp_filename,e2);
-	DPeakArray<2> array;
+	DPeakArray<2, Peak2D> array;
 	e2.get2DData(array);
 	TEST_EQUAL(array.size(), 11);
 	ABORT_IF(array.size() != 11)
 
-	DPeakArray<2>::ConstIterator it2 = array.begin();
+	DPeakArray<2, Peak2D>::ConstIterator it2 = array.begin();
 
-	TEST_REAL_EQUAL(it2->getPosition()[Dims::MZ], 230.02)
-	TEST_REAL_EQUAL(it2->getPosition()[Dims::RT], 4711.1)
+	TEST_REAL_EQUAL(it2->getPos()[Dims::MZ], 230.02)
+	TEST_REAL_EQUAL(it2->getPos()[Dims::RT], 4711.1)
 	TEST_REAL_EQUAL(it2->getIntensity(), 47218.89)
 	++it2;
 
-	TEST_REAL_EQUAL(it2->getPosition()[Dims::MZ], 430.02)
-	TEST_REAL_EQUAL(it2->getPosition()[Dims::RT], 4711.1)
+	TEST_REAL_EQUAL(it2->getPos()[Dims::MZ], 430.02)
+	TEST_REAL_EQUAL(it2->getPos()[Dims::RT], 4711.1)
 	TEST_REAL_EQUAL(it2->getIntensity(), 47219.89)
 	++it2;
 
-	TEST_REAL_EQUAL(it2->getPosition()[Dims::MZ], 630.02)
-	TEST_REAL_EQUAL(it2->getPosition()[Dims::RT], 4711.1)
+	TEST_REAL_EQUAL(it2->getPos()[Dims::MZ], 630.02)
+	TEST_REAL_EQUAL(it2->getPos()[Dims::RT], 4711.1)
 	TEST_REAL_EQUAL(it2->getIntensity(), 47210.89)
 	++it2;
 
-	TEST_REAL_EQUAL(it2->getPosition()[Dims::MZ], 231.51)
-	TEST_REAL_EQUAL(it2->getPosition()[Dims::RT], 4711.2)
+	TEST_REAL_EQUAL(it2->getPos()[Dims::MZ], 231.51)
+	TEST_REAL_EQUAL(it2->getPos()[Dims::RT], 4711.2)
 	TEST_REAL_EQUAL(it2->getIntensity(), 89935.22)
 	++it2;
 
-	TEST_REAL_EQUAL(it2->getPosition()[Dims::MZ], 139.42)
-	TEST_REAL_EQUAL(it2->getPosition()[Dims::RT], 4711.3)
+	TEST_REAL_EQUAL(it2->getPos()[Dims::MZ], 139.42)
+	TEST_REAL_EQUAL(it2->getPos()[Dims::RT], 4711.3)
 	TEST_REAL_EQUAL(it2->getIntensity(), 318.52)
 	++it2;
 
-	TEST_REAL_EQUAL(it2->getPosition()[Dims::MZ], 149.93)
-	TEST_REAL_EQUAL(it2->getPosition()[Dims::RT], 4711.4)
+	TEST_REAL_EQUAL(it2->getPos()[Dims::MZ], 149.93)
+	TEST_REAL_EQUAL(it2->getPos()[Dims::RT], 4711.4)
 	TEST_REAL_EQUAL(it2->getIntensity(), 61870.99)
 	++it2;
 
-	TEST_REAL_EQUAL(it2->getPosition()[Dims::MZ], 169.65)
-	TEST_REAL_EQUAL(it2->getPosition()[Dims::RT], 4711.5)
+	TEST_REAL_EQUAL(it2->getPos()[Dims::MZ], 169.65)
+	TEST_REAL_EQUAL(it2->getPos()[Dims::RT], 4711.5)
 	TEST_REAL_EQUAL(it2->getIntensity(), 62074.22)
 	++it2;
 
-	TEST_REAL_EQUAL(it2->getPosition()[Dims::MZ], 189.30)
-	TEST_REAL_EQUAL(it2->getPosition()[Dims::RT], 4711.6)
+	TEST_REAL_EQUAL(it2->getPos()[Dims::MZ], 189.30)
+	TEST_REAL_EQUAL(it2->getPos()[Dims::RT], 4711.6)
 	TEST_REAL_EQUAL(it2->getIntensity(), 53737.85)
 	++it2;
 
-	TEST_REAL_EQUAL(it2->getPosition()[Dims::MZ], 202.28)
-	TEST_REAL_EQUAL(it2->getPosition()[Dims::RT], 4711.7)
+	TEST_REAL_EQUAL(it2->getPos()[Dims::MZ], 202.28)
+	TEST_REAL_EQUAL(it2->getPos()[Dims::RT], 4711.7)
 	TEST_REAL_EQUAL(it2->getIntensity(), 49410.25)
 	++it2;
 
-	TEST_REAL_EQUAL(it2->getPosition()[Dims::MZ], 207.82)
-	TEST_REAL_EQUAL(it2->getPosition()[Dims::RT], 4711.8)
+	TEST_REAL_EQUAL(it2->getPos()[Dims::MZ], 207.82)
+	TEST_REAL_EQUAL(it2->getPos()[Dims::RT], 4711.8)
 	TEST_REAL_EQUAL(it2->getIntensity(), 17038.71)
 	++it2;
 
-	TEST_REAL_EQUAL(it2->getPosition()[Dims::MZ], 219.72)
-	TEST_REAL_EQUAL(it2->getPosition()[Dims::RT], 4711.9)
+	TEST_REAL_EQUAL(it2->getPos()[Dims::MZ], 219.72)
+	TEST_REAL_EQUAL(it2->getPos()[Dims::RT], 4711.9)
 	TEST_REAL_EQUAL(it2->getIntensity(), 73629.98)
 
-	MSExperiment< DRawDataPoint<1> > e3;
+	MSExperiment< RawDataPoint1D > e3;
 	f.load(tmp_filename,e3);
-	DPeakArray<2,DRawDataPoint<2> > array2;
+	DPeakArray<2,RawDataPoint2D > array2;
 	e2.get2DData(array2);
 	TEST_EQUAL(array2.size(), 11);
 	ABORT_IF(array2.size() != 11)
 
-	DPeakArray<2,DRawDataPoint<2> >::ConstIterator it3 = array2.begin();
+	DPeakArray<2,RawDataPoint2D >::ConstIterator it3 = array2.begin();
 
-	TEST_REAL_EQUAL(it3->getPosition()[Dims::MZ], 230.02)
-	TEST_REAL_EQUAL(it3->getPosition()[Dims::RT], 4711.1)
+	TEST_REAL_EQUAL(it3->getPos()[Dims::MZ], 230.02)
+	TEST_REAL_EQUAL(it3->getPos()[Dims::RT], 4711.1)
 	TEST_REAL_EQUAL(it3->getIntensity(), 47218.89)
 	++it3;
 
-	TEST_REAL_EQUAL(it3->getPosition()[Dims::MZ], 430.02)
-	TEST_REAL_EQUAL(it3->getPosition()[Dims::RT], 4711.1)
+	TEST_REAL_EQUAL(it3->getPos()[Dims::MZ], 430.02)
+	TEST_REAL_EQUAL(it3->getPos()[Dims::RT], 4711.1)
 	TEST_REAL_EQUAL(it3->getIntensity(), 47219.89)
 	++it3;
 
-	TEST_REAL_EQUAL(it3->getPosition()[Dims::MZ], 630.02)
-	TEST_REAL_EQUAL(it3->getPosition()[Dims::RT], 4711.1)
+	TEST_REAL_EQUAL(it3->getPos()[Dims::MZ], 630.02)
+	TEST_REAL_EQUAL(it3->getPos()[Dims::RT], 4711.1)
 	TEST_REAL_EQUAL(it3->getIntensity(), 47210.89)
 	++it3;
 
-	TEST_REAL_EQUAL(it3->getPosition()[Dims::MZ], 231.51)
-	TEST_REAL_EQUAL(it3->getPosition()[Dims::RT], 4711.2)
+	TEST_REAL_EQUAL(it3->getPos()[Dims::MZ], 231.51)
+	TEST_REAL_EQUAL(it3->getPos()[Dims::RT], 4711.2)
 	TEST_REAL_EQUAL(it3->getIntensity(), 89935.22)
 	++it3;
 
-	TEST_REAL_EQUAL(it3->getPosition()[Dims::MZ], 139.42)
-	TEST_REAL_EQUAL(it3->getPosition()[Dims::RT], 4711.3)
+	TEST_REAL_EQUAL(it3->getPos()[Dims::MZ], 139.42)
+	TEST_REAL_EQUAL(it3->getPos()[Dims::RT], 4711.3)
 	TEST_REAL_EQUAL(it3->getIntensity(), 318.52)
 	++it3;
 
-	TEST_REAL_EQUAL(it3->getPosition()[Dims::MZ], 149.93)
-	TEST_REAL_EQUAL(it3->getPosition()[Dims::RT], 4711.4)
+	TEST_REAL_EQUAL(it3->getPos()[Dims::MZ], 149.93)
+	TEST_REAL_EQUAL(it3->getPos()[Dims::RT], 4711.4)
 	TEST_REAL_EQUAL(it3->getIntensity(), 61870.99)
 	++it3;
 
-	TEST_REAL_EQUAL(it3->getPosition()[Dims::MZ], 169.65)
-	TEST_REAL_EQUAL(it3->getPosition()[Dims::RT], 4711.5)
+	TEST_REAL_EQUAL(it3->getPos()[Dims::MZ], 169.65)
+	TEST_REAL_EQUAL(it3->getPos()[Dims::RT], 4711.5)
 	TEST_REAL_EQUAL(it3->getIntensity(), 62074.22)
 	++it3;
 
-	TEST_REAL_EQUAL(it3->getPosition()[Dims::MZ], 189.30)
-	TEST_REAL_EQUAL(it3->getPosition()[Dims::RT], 4711.6)
+	TEST_REAL_EQUAL(it3->getPos()[Dims::MZ], 189.30)
+	TEST_REAL_EQUAL(it3->getPos()[Dims::RT], 4711.6)
 	TEST_REAL_EQUAL(it3->getIntensity(), 53737.85)
 	++it3;
 
-	TEST_REAL_EQUAL(it3->getPosition()[Dims::MZ], 202.28)
-	TEST_REAL_EQUAL(it3->getPosition()[Dims::RT], 4711.7)
+	TEST_REAL_EQUAL(it3->getPos()[Dims::MZ], 202.28)
+	TEST_REAL_EQUAL(it3->getPos()[Dims::RT], 4711.7)
 	TEST_REAL_EQUAL(it3->getIntensity(), 49410.25)
 	++it3;
 
-	TEST_REAL_EQUAL(it3->getPosition()[Dims::MZ], 207.82)
-	TEST_REAL_EQUAL(it3->getPosition()[Dims::RT], 4711.8)
+	TEST_REAL_EQUAL(it3->getPos()[Dims::MZ], 207.82)
+	TEST_REAL_EQUAL(it3->getPos()[Dims::RT], 4711.8)
 	TEST_REAL_EQUAL(it3->getIntensity(), 17038.71)
 	++it3;
 
-	TEST_REAL_EQUAL(it3->getPosition()[Dims::MZ], 219.72)
-	TEST_REAL_EQUAL(it3->getPosition()[Dims::RT], 4711.9)
+	TEST_REAL_EQUAL(it3->getPos()[Dims::MZ], 219.72)
+	TEST_REAL_EQUAL(it3->getPos()[Dims::RT], 4711.9)
 	TEST_REAL_EQUAL(it3->getIntensity(), 73629.98)
 
 
@@ -426,19 +427,19 @@ CHECK(([EXTRA] load with MZ range))
 	dta.load("data/DTA2DFile_test_1.dta2d",e);
 
 	MSExperiment<>::const_iterator it(e.begin());
-	TEST_REAL_EQUAL(it->getContainer()[0].getPosition()[0], 169.65)
+	TEST_REAL_EQUAL(it->getContainer()[0].getPos()[0], 169.65)
 	++it;
 
-	TEST_REAL_EQUAL(it->getContainer()[0].getPosition()[0], 189.30)
+	TEST_REAL_EQUAL(it->getContainer()[0].getPos()[0], 189.30)
 	++it;
 
-	TEST_REAL_EQUAL(it->getContainer()[0].getPosition()[0], 202.28)
+	TEST_REAL_EQUAL(it->getContainer()[0].getPos()[0], 202.28)
 	++it;
 
-	TEST_REAL_EQUAL(it->getContainer()[0].getPosition()[0], 207.82)
+	TEST_REAL_EQUAL(it->getContainer()[0].getPos()[0], 207.82)
 	++it;
 
-	TEST_REAL_EQUAL(it->getContainer()[0].getPosition()[0], 219.72)
+	TEST_REAL_EQUAL(it->getContainer()[0].getPos()[0], 219.72)
 RESULT
 
 CHECK(([EXTRA] load with intensity range))

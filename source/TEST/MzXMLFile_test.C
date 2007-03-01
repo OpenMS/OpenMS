@@ -72,7 +72,7 @@ RESULT
 CHECK((template<typename MapType> void load(const String& filename, MapType& map) throw(Exception::FileNotFound, Exception::ParseError)))
 	PRECISION(0.01)
 
-	MSExperiment< DRawDataPoint<1> > e;
+	MSExperiment< RawDataPoint1D > e;
 	MzXMLFile mzxml;
 
 	//test exception
@@ -93,23 +93,23 @@ CHECK((template<typename MapType> void load(const String& filename, MapType& map
 	TEST_REAL_EQUAL(e[1].getContainer().size(), 3)
 	TEST_REAL_EQUAL(e[2].getContainer().size(), 5)
 
-	TEST_REAL_EQUAL(e[0].getContainer()[0].getPosition()[0], 120)
+	TEST_REAL_EQUAL(e[0].getContainer()[0].getPos()[0], 120)
 	TEST_REAL_EQUAL(e[0].getContainer()[0].getIntensity(), 100)
-	TEST_REAL_EQUAL(e[1].getContainer()[0].getPosition()[0], 110)
+	TEST_REAL_EQUAL(e[1].getContainer()[0].getPos()[0], 110)
 	TEST_REAL_EQUAL(e[1].getContainer()[0].getIntensity(), 100)
-	TEST_REAL_EQUAL(e[1].getContainer()[1].getPosition()[0], 120)
+	TEST_REAL_EQUAL(e[1].getContainer()[1].getPos()[0], 120)
 	TEST_REAL_EQUAL(e[1].getContainer()[1].getIntensity(), 200)
-	TEST_REAL_EQUAL(e[1].getContainer()[2].getPosition()[0], 130)
+	TEST_REAL_EQUAL(e[1].getContainer()[2].getPos()[0], 130)
 	TEST_REAL_EQUAL(e[1].getContainer()[2].getIntensity(), 100)
-	TEST_REAL_EQUAL(e[2].getContainer()[0].getPosition()[0], 100)
+	TEST_REAL_EQUAL(e[2].getContainer()[0].getPos()[0], 100)
 	TEST_REAL_EQUAL(e[2].getContainer()[0].getIntensity(), 100)
-	TEST_REAL_EQUAL(e[2].getContainer()[1].getPosition()[0], 110)
+	TEST_REAL_EQUAL(e[2].getContainer()[1].getPos()[0], 110)
 	TEST_REAL_EQUAL(e[2].getContainer()[1].getIntensity(), 200)
-	TEST_REAL_EQUAL(e[2].getContainer()[2].getPosition()[0], 120)
+	TEST_REAL_EQUAL(e[2].getContainer()[2].getPos()[0], 120)
 	TEST_REAL_EQUAL(e[2].getContainer()[2].getIntensity(), 300)
-	TEST_REAL_EQUAL(e[2].getContainer()[3].getPosition()[0], 130)
+	TEST_REAL_EQUAL(e[2].getContainer()[3].getPos()[0], 130)
 	TEST_REAL_EQUAL(e[2].getContainer()[3].getIntensity(), 200)
-	TEST_REAL_EQUAL(e[2].getContainer()[4].getPosition()[0], 140)
+	TEST_REAL_EQUAL(e[2].getContainer()[4].getPos()[0], 140)
 	TEST_REAL_EQUAL(e[2].getContainer()[4].getIntensity(), 100)
 
 	TEST_EQUAL(e[0].getMetaValue("URL1"), "www.open-ms.de")
@@ -191,7 +191,7 @@ CHECK((template<typename MapType> void load(const String& filename, MapType& map
 
 	// test reading different scheme and 64 bit data
 
-	MSExperiment< DRawDataPoint<1> > e2;
+	MSExperiment< RawDataPoint1D > e2;
 	mzxml.load("data/MzXMLFile_test_3.mzXML",e2);
 
   TEST_EQUAL(e2.size(), 3)
@@ -205,23 +205,23 @@ CHECK((template<typename MapType> void load(const String& filename, MapType& map
 	TEST_REAL_EQUAL(e2[1].getContainer().size(), 3)
 	TEST_REAL_EQUAL(e2[2].getContainer().size(), 5)
 
-	TEST_REAL_EQUAL(e2[0].getContainer()[0].getPosition()[0], 120)
+	TEST_REAL_EQUAL(e2[0].getContainer()[0].getPos()[0], 120)
 	TEST_REAL_EQUAL(e2[0].getContainer()[0].getIntensity(), 100)
-	TEST_REAL_EQUAL(e2[1].getContainer()[0].getPosition()[0], 110)
+	TEST_REAL_EQUAL(e2[1].getContainer()[0].getPos()[0], 110)
 	TEST_REAL_EQUAL(e2[1].getContainer()[0].getIntensity(), 100)
-	TEST_REAL_EQUAL(e2[1].getContainer()[1].getPosition()[0], 120)
+	TEST_REAL_EQUAL(e2[1].getContainer()[1].getPos()[0], 120)
 	TEST_REAL_EQUAL(e2[1].getContainer()[1].getIntensity(), 200)
-	TEST_REAL_EQUAL(e2[1].getContainer()[2].getPosition()[0], 130)
+	TEST_REAL_EQUAL(e2[1].getContainer()[2].getPos()[0], 130)
 	TEST_REAL_EQUAL(e2[1].getContainer()[2].getIntensity(), 100)
-	TEST_REAL_EQUAL(e2[2].getContainer()[0].getPosition()[0], 100)
+	TEST_REAL_EQUAL(e2[2].getContainer()[0].getPos()[0], 100)
 	TEST_REAL_EQUAL(e2[2].getContainer()[0].getIntensity(), 100)
-	TEST_REAL_EQUAL(e2[2].getContainer()[1].getPosition()[0], 110)
+	TEST_REAL_EQUAL(e2[2].getContainer()[1].getPos()[0], 110)
 	TEST_REAL_EQUAL(e2[2].getContainer()[1].getIntensity(), 200)
-	TEST_REAL_EQUAL(e2[2].getContainer()[2].getPosition()[0], 120)
+	TEST_REAL_EQUAL(e2[2].getContainer()[2].getPos()[0], 120)
 	TEST_REAL_EQUAL(e2[2].getContainer()[2].getIntensity(), 300)
-	TEST_REAL_EQUAL(e2[2].getContainer()[3].getPosition()[0], 130)
+	TEST_REAL_EQUAL(e2[2].getContainer()[3].getPos()[0], 130)
 	TEST_REAL_EQUAL(e2[2].getContainer()[3].getIntensity(), 200)
-	TEST_REAL_EQUAL(e2[2].getContainer()[4].getPosition()[0], 140)
+	TEST_REAL_EQUAL(e2[2].getContainer()[4].getPos()[0], 140)
 	TEST_REAL_EQUAL(e2[2].getContainer()[4].getIntensity(), 100)
 
 
@@ -261,23 +261,23 @@ CHECK([EXTRA] load with MSExperimentExtern)
 	TEST_REAL_EQUAL(e[1].getContainer().size(), 3)
 	TEST_REAL_EQUAL(e[2].getContainer().size(), 5)
 
-	TEST_REAL_EQUAL(e[0].getContainer()[0].getPosition()[0], 120)
+	TEST_REAL_EQUAL(e[0].getContainer()[0].getPos()[0], 120)
 	TEST_REAL_EQUAL(e[0].getContainer()[0].getIntensity(), 100)
-	TEST_REAL_EQUAL(e[1].getContainer()[0].getPosition()[0], 110)
+	TEST_REAL_EQUAL(e[1].getContainer()[0].getPos()[0], 110)
 	TEST_REAL_EQUAL(e[1].getContainer()[0].getIntensity(), 100)
-	TEST_REAL_EQUAL(e[1].getContainer()[1].getPosition()[0], 120)
+	TEST_REAL_EQUAL(e[1].getContainer()[1].getPos()[0], 120)
 	TEST_REAL_EQUAL(e[1].getContainer()[1].getIntensity(), 200)
-	TEST_REAL_EQUAL(e[1].getContainer()[2].getPosition()[0], 130)
+	TEST_REAL_EQUAL(e[1].getContainer()[2].getPos()[0], 130)
 	TEST_REAL_EQUAL(e[1].getContainer()[2].getIntensity(), 100)
-	TEST_REAL_EQUAL(e[2].getContainer()[0].getPosition()[0], 100)
+	TEST_REAL_EQUAL(e[2].getContainer()[0].getPos()[0], 100)
 	TEST_REAL_EQUAL(e[2].getContainer()[0].getIntensity(), 100)
-	TEST_REAL_EQUAL(e[2].getContainer()[1].getPosition()[0], 110)
+	TEST_REAL_EQUAL(e[2].getContainer()[1].getPos()[0], 110)
 	TEST_REAL_EQUAL(e[2].getContainer()[1].getIntensity(), 200)
-	TEST_REAL_EQUAL(e[2].getContainer()[2].getPosition()[0], 120)
+	TEST_REAL_EQUAL(e[2].getContainer()[2].getPos()[0], 120)
 	TEST_REAL_EQUAL(e[2].getContainer()[2].getIntensity(), 300)
-	TEST_REAL_EQUAL(e[2].getContainer()[3].getPosition()[0], 130)
+	TEST_REAL_EQUAL(e[2].getContainer()[3].getPos()[0], 130)
 	TEST_REAL_EQUAL(e[2].getContainer()[3].getIntensity(), 200)
-	TEST_REAL_EQUAL(e[2].getContainer()[4].getPosition()[0], 140)
+	TEST_REAL_EQUAL(e[2].getContainer()[4].getPos()[0], 140)
 	TEST_REAL_EQUAL(e[2].getContainer()[4].getIntensity(), 100)
 
 	TEST_EQUAL(e[0].getMetaValue("URL1"), "www.open-ms.de")
@@ -359,7 +359,7 @@ CHECK([EXTRA] load with MSExperimentExtern)
 
 	// test reading different scheme and 64 bit data
 
-	MSExperiment< DRawDataPoint<1> > e2;
+	MSExperiment< RawDataPoint1D > e2;
 	mzxml.load("data/MzXMLFile_test_3.mzXML",e2);
 
   TEST_EQUAL(e2.size(), 3)
@@ -373,23 +373,23 @@ CHECK([EXTRA] load with MSExperimentExtern)
 	TEST_REAL_EQUAL(e2[1].getContainer().size(), 3)
 	TEST_REAL_EQUAL(e2[2].getContainer().size(), 5)
 
-	TEST_REAL_EQUAL(e2[0].getContainer()[0].getPosition()[0], 120)
+	TEST_REAL_EQUAL(e2[0].getContainer()[0].getPos()[0], 120)
 	TEST_REAL_EQUAL(e2[0].getContainer()[0].getIntensity(), 100)
-	TEST_REAL_EQUAL(e2[1].getContainer()[0].getPosition()[0], 110)
+	TEST_REAL_EQUAL(e2[1].getContainer()[0].getPos()[0], 110)
 	TEST_REAL_EQUAL(e2[1].getContainer()[0].getIntensity(), 100)
-	TEST_REAL_EQUAL(e2[1].getContainer()[1].getPosition()[0], 120)
+	TEST_REAL_EQUAL(e2[1].getContainer()[1].getPos()[0], 120)
 	TEST_REAL_EQUAL(e2[1].getContainer()[1].getIntensity(), 200)
-	TEST_REAL_EQUAL(e2[1].getContainer()[2].getPosition()[0], 130)
+	TEST_REAL_EQUAL(e2[1].getContainer()[2].getPos()[0], 130)
 	TEST_REAL_EQUAL(e2[1].getContainer()[2].getIntensity(), 100)
-	TEST_REAL_EQUAL(e2[2].getContainer()[0].getPosition()[0], 100)
+	TEST_REAL_EQUAL(e2[2].getContainer()[0].getPos()[0], 100)
 	TEST_REAL_EQUAL(e2[2].getContainer()[0].getIntensity(), 100)
-	TEST_REAL_EQUAL(e2[2].getContainer()[1].getPosition()[0], 110)
+	TEST_REAL_EQUAL(e2[2].getContainer()[1].getPos()[0], 110)
 	TEST_REAL_EQUAL(e2[2].getContainer()[1].getIntensity(), 200)
-	TEST_REAL_EQUAL(e2[2].getContainer()[2].getPosition()[0], 120)
+	TEST_REAL_EQUAL(e2[2].getContainer()[2].getPos()[0], 120)
 	TEST_REAL_EQUAL(e2[2].getContainer()[2].getIntensity(), 300)
-	TEST_REAL_EQUAL(e2[2].getContainer()[3].getPosition()[0], 130)
+	TEST_REAL_EQUAL(e2[2].getContainer()[3].getPos()[0], 130)
 	TEST_REAL_EQUAL(e2[2].getContainer()[3].getIntensity(), 200)
-	TEST_REAL_EQUAL(e2[2].getContainer()[4].getPosition()[0], 140)
+	TEST_REAL_EQUAL(e2[2].getContainer()[4].getPos()[0], 140)
 	TEST_REAL_EQUAL(e2[2].getContainer()[4].getIntensity(), 100)
 
 
@@ -410,7 +410,7 @@ RESULT
 
 CHECK((template<typename MapType> void store(const String& filename, const MapType& map) const throw(Exception::UnableToCreateFile)))
 	std::string tmp_filename;
-  MSExperiment< DRawDataPoint<1> > e1, e2;
+  MSExperiment< RawDataPoint1D > e1, e2;
   MzXMLFile f;
 
   NEW_TMP_FILE(tmp_filename);
@@ -433,7 +433,7 @@ CHECK(([EXTRA] load/store for Float Kernel Traits))
 	std::string tmp_filename;
 	NEW_TMP_FILE(tmp_filename);
 	
-  MSExperiment< DRawDataPoint<1, FloatKernelTraits> > e1, e2;
+  MSExperiment< RawDataPoint1D > e1, e2;
   MzXMLFile f;
 	
 	f.load("data/MzXMLFile_test_2.mzXML",e1);
@@ -463,7 +463,7 @@ RESULT
 CHECK(([EXTRA] load with optional attributes))
 	PRECISION(0.01)
 
-	MSExperiment< DRawDataPoint<1> > e;
+	MSExperiment< RawDataPoint1D > e;
 	MzXMLFile mzxml;
 	
 	// real test
@@ -508,7 +508,7 @@ RESULT
 CHECK(([EXTRA] load with metadata only flag))
 	PRECISION(0.01)
 
-	MSExperiment< DRawDataPoint<1> > e;
+	MSExperiment< RawDataPoint1D > e;
 	MzXMLFile mzxml;
 	mzxml.getOptions().setMetadataOnly(true);
 
@@ -592,7 +592,7 @@ RESULT
 CHECK(([EXTRA] load with selected MS levels))
 	PRECISION(0.01)
 
-	MSExperiment< DRawDataPoint<1> > e;
+	MSExperiment< RawDataPoint1D > e;
 	MzXMLFile mzxml;
 	
 	// load only MS level 1
@@ -617,7 +617,7 @@ RESULT
 CHECK(([EXTRA] load with selected MZ range))
 	PRECISION(0.01)
 
-	MSExperiment< DRawDataPoint<1> > e;
+	MSExperiment< RawDataPoint1D > e;
 	MzXMLFile mzxml;
 
 	mzxml.getOptions().setMZRange(makeRange(115,135));
@@ -632,22 +632,22 @@ CHECK(([EXTRA] load with selected MZ range))
 	TEST_REAL_EQUAL(e[1].getContainer().size(), 2)
 	TEST_REAL_EQUAL(e[2].getContainer().size(), 2)
 
-	TEST_REAL_EQUAL(e[0].getContainer()[0].getPosition()[0], 120)
+	TEST_REAL_EQUAL(e[0].getContainer()[0].getPos()[0], 120)
 	TEST_REAL_EQUAL(e[0].getContainer()[0].getIntensity(), 100)
-	TEST_REAL_EQUAL(e[1].getContainer()[0].getPosition()[0], 120)
+	TEST_REAL_EQUAL(e[1].getContainer()[0].getPos()[0], 120)
 	TEST_REAL_EQUAL(e[1].getContainer()[0].getIntensity(), 200)
-	TEST_REAL_EQUAL(e[1].getContainer()[1].getPosition()[0], 130)
+	TEST_REAL_EQUAL(e[1].getContainer()[1].getPos()[0], 130)
 	TEST_REAL_EQUAL(e[1].getContainer()[1].getIntensity(), 100)
-	TEST_REAL_EQUAL(e[2].getContainer()[0].getPosition()[0], 120)
+	TEST_REAL_EQUAL(e[2].getContainer()[0].getPos()[0], 120)
 	TEST_REAL_EQUAL(e[2].getContainer()[0].getIntensity(), 300)
-	TEST_REAL_EQUAL(e[2].getContainer()[1].getPosition()[0], 130)
+	TEST_REAL_EQUAL(e[2].getContainer()[1].getPos()[0], 130)
 	TEST_REAL_EQUAL(e[2].getContainer()[1].getIntensity(), 200)
 RESULT
 
 CHECK(([EXTRA] load with RT range))
 	PRECISION(0.01)
 
-	MSExperiment< DRawDataPoint<1> > e;
+	MSExperiment< RawDataPoint1D > e;
 	MzXMLFile mzxml;
 	mzxml.getOptions().setRTRange(makeRange(100, 200));
 	mzxml.load("data/MzXMLFile_test_1.mzXML",e);
@@ -658,28 +658,28 @@ CHECK(([EXTRA] load with RT range))
 // 	TEST_REAL_EQUAL(e[0].getContainer().size(), 3)
 // 	TEST_REAL_EQUAL(e[1].getContainer().size(), 5)
 
-/*	TEST_REAL_EQUAL(e[0].getContainer()[0].getPosition()[0], 110)
+/*	TEST_REAL_EQUAL(e[0].getContainer()[0].getPos()[0], 110)
 	TEST_REAL_EQUAL(e[0].getContainer()[0].getIntensity(), 100)
-	TEST_REAL_EQUAL(e[0].getContainer()[1].getPosition()[0], 120)
+	TEST_REAL_EQUAL(e[0].getContainer()[1].getPos()[0], 120)
 	TEST_REAL_EQUAL(e[0].getContainer()[1].getIntensity(), 200)
-	TEST_REAL_EQUAL(e[0].getContainer()[2].getPosition()[0], 130)
+	TEST_REAL_EQUAL(e[0].getContainer()[2].getPos()[0], 130)
 	TEST_REAL_EQUAL(e[0].getContainer()[2].getIntensity(), 100)
-	TEST_REAL_EQUAL(e[1].getContainer()[0].getPosition()[0], 100)
+	TEST_REAL_EQUAL(e[1].getContainer()[0].getPos()[0], 100)
 	TEST_REAL_EQUAL(e[1].getContainer()[0].getIntensity(), 100)
-	TEST_REAL_EQUAL(e[1].getContainer()[1].getPosition()[0], 110)
+	TEST_REAL_EQUAL(e[1].getContainer()[1].getPos()[0], 110)
 	TEST_REAL_EQUAL(e[1].getContainer()[1].getIntensity(), 200)
-	TEST_REAL_EQUAL(e[1].getContainer()[2].getPosition()[0], 120)
+	TEST_REAL_EQUAL(e[1].getContainer()[2].getPos()[0], 120)
 	TEST_REAL_EQUAL(e[1].getContainer()[2].getIntensity(), 300)
-	TEST_REAL_EQUAL(e[1].getContainer()[3].getPosition()[0], 130)
+	TEST_REAL_EQUAL(e[1].getContainer()[3].getPos()[0], 130)
 	TEST_REAL_EQUAL(e[1].getContainer()[3].getIntensity(), 200)
-	TEST_REAL_EQUAL(e[1].getContainer()[4].getPosition()[0], 140)
+	TEST_REAL_EQUAL(e[1].getContainer()[4].getPos()[0], 140)
 	TEST_REAL_EQUAL(e[1].getContainer()[4].getIntensity(), 100)*/
 RESULT
 
 CHECK(([EXTRA] load with intensity range))
 	PRECISION(0.01)
 
-	MSExperiment< DRawDataPoint<1> > e;
+	MSExperiment< RawDataPoint1D > e;
 	MzXMLFile mzxml;
 	mzxml.getOptions().setIntensityRange(makeRange(150, 350));
 	mzxml.load("data/MzXMLFile_test_1.mzXML",e);
@@ -692,13 +692,13 @@ CHECK(([EXTRA] load with intensity range))
 	TEST_REAL_EQUAL(e[1].getContainer().size(), 1)
 	TEST_REAL_EQUAL(e[2].getContainer().size(), 3)
 
-	TEST_REAL_EQUAL(e[1].getContainer()[0].getPosition()[0], 120)
+	TEST_REAL_EQUAL(e[1].getContainer()[0].getPos()[0], 120)
 	TEST_REAL_EQUAL(e[1].getContainer()[0].getIntensity(), 200)
-	TEST_REAL_EQUAL(e[2].getContainer()[0].getPosition()[0], 110)
+	TEST_REAL_EQUAL(e[2].getContainer()[0].getPos()[0], 110)
 	TEST_REAL_EQUAL(e[2].getContainer()[0].getIntensity(), 200)
-	TEST_REAL_EQUAL(e[2].getContainer()[1].getPosition()[0], 120)
+	TEST_REAL_EQUAL(e[2].getContainer()[1].getPos()[0], 120)
 	TEST_REAL_EQUAL(e[2].getContainer()[1].getIntensity(), 300)
-	TEST_REAL_EQUAL(e[2].getContainer()[2].getPosition()[0], 130)
+	TEST_REAL_EQUAL(e[2].getContainer()[2].getPos()[0], 130)
 	TEST_REAL_EQUAL(e[2].getContainer()[2].getIntensity(), 200)
 RESULT
 

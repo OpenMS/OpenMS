@@ -138,9 +138,9 @@ RESULT
 
 CHECK(void init(PeakIterator it_begin, PeakIterator it_end))
 
-  DPeakArray<1,DRawDataPoint<1> > raw_data(2);
+  DPeakArray<1,RawDataPoint1D > raw_data(2);
 
-  DSignalToNoiseEstimatorMeanIterative<1,  DPeakArray<1,DRawDataPoint<1> >::const_iterator > sne;
+  DSignalToNoiseEstimatorMeanIterative<1,  DPeakArray<1,RawDataPoint1D >::const_iterator > sne;
   sne.init(raw_data.begin(),raw_data.end());
 
   TEST_EQUAL((sne.getFirstDataPoint() == raw_data.begin()),true);
@@ -225,7 +225,7 @@ CHECK(double getSignalToNoise(PeakIterator data_point))
   sne.setNoiseForEmtpyWindow(2);
   sne.init(raw_data.begin(),raw_data.end());
 
-  DPeakArray<1,DRawDataPoint<1> >::const_iterator first = raw_data.begin() + 1;
+  DPeakArray<1,RawDataPoint1D >::const_iterator first = raw_data.begin() + 1;
   TEST_REAL_EQUAL(sne.getSignalToNoise(first), 0.858956);
 
   first = raw_data.begin() + 15;
@@ -338,27 +338,27 @@ RESULT
 /// overwritten base-members
 
 CHECK(void setFirstDataPoint(const PeakIterator& first))
-  DPeakArray<1,DRawDataPoint<1> > raw_data;
-  DRawDataPoint<1> p;
+  DPeakArray<1,RawDataPoint1D > raw_data;
+  RawDataPoint1D p;
   DPosition<1> pos = 130;
   p.setIntensity(100);
   p.setPosition(pos);
   raw_data.push_back(p);
 
-  DSignalToNoiseEstimatorMeanIterative<1,  DPeakArray<1,DRawDataPoint<1> >::const_iterator > sne;
+  DSignalToNoiseEstimatorMeanIterative<1,  DPeakArray<1,RawDataPoint1D >::const_iterator > sne;
   sne.setFirstDataPoint(raw_data.begin());
   //TEST_EQUAL(sne.getFirstDataPoint(), raw_data.begin());
 RESULT
 
 CHECK(void setLastDataPoint(const PeakIterator& last))
-  DPeakArray<1,DRawDataPoint<1> > raw_data;
-  DRawDataPoint<1> p;
+  DPeakArray<1,RawDataPoint1D > raw_data;
+  RawDataPoint1D p;
   DPosition<1> pos = 130;
   p.setIntensity(100);
   p.setPosition(pos);
   raw_data.push_back(p);
 
-  DSignalToNoiseEstimatorMeanIterative<1,  DPeakArray<1,DRawDataPoint<1> >::const_iterator > sne;
+  DSignalToNoiseEstimatorMeanIterative<1,  DPeakArray<1,RawDataPoint1D >::const_iterator > sne;
   sne.setLastDataPoint(raw_data.end());
   //TEST_EQUAL(sne.getLastDataPoint(), raw_data.end());
 RESULT

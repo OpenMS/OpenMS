@@ -144,7 +144,7 @@ namespace OpenMS
 		profile_ = (string)param_.getValue("rt:profile");
 	}
 
-	DFeature<2> ExtendedModelFitter::fit(const IndexSet& set) throw (UnableToFit)
+	Feature ExtendedModelFitter::fit(const IndexSet& set) throw (UnableToFit)
 	{
 		// not enough peaks to fit
 		if (set.size() < (UnsignedInt)(param_.getValue("min_num_peaks:extended")))
@@ -307,11 +307,11 @@ namespace OpenMS
 		// The feature coordinate in rt dimension is given
 		// by the centroid of the rt model whereas the coordinate
 		// in mz dimension is equal to the monoisotopic peak.
-		DFeature<2> f;
+		Feature f;
 		f.setModelDescription( ModelDescription<2>(final) );
 		f.setOverallQuality(max_quality);
-		f.getPosition()[RT] = dynamic_cast<InterpolationModel<>*>(final->getModel(RT))->getCenter();
-		f.getPosition()[MZ] = dynamic_cast<InterpolationModel<>*>(final->getModel(MZ))->getCenter();
+		f.setRT(dynamic_cast<InterpolationModel<>*>(final->getModel(RT))->getCenter());
+		f.setMZ(dynamic_cast<InterpolationModel<>*>(final->getModel(MZ))->getCenter());
 		if (final->getModel(MZ)->getName() == "IsotopeModel")
 		{
 			f.setCharge(dynamic_cast<IsotopeModel*>(final->getModel(MZ))->getCharge());
@@ -348,8 +348,8 @@ namespace OpenMS
 		traits_->addConvexHull(model_set, f);
 
 		std::cout << Date::now() << " Feature " << counter_
-							<< ": (" << f.getPosition()[RT]
-							<< "," << f.getPosition()[MZ] << ") Qual.:"
+							<< ": (" << f.getRT()
+							<< "," << f.getMZ() << ") Qual.:"
 							<< max_quality << "\n";
 
 
@@ -364,8 +364,8 @@ namespace OpenMS
 
 		#ifdef DEBUG_FEATUREFINDER
 		// write debug output
-		CoordinateType rt = f.getPosition()[RT];
-		CoordinateType mz = f.getPosition()[MZ];
+		CoordinateType rt = f.getRT();
+		CoordinateType mz = f.getMZ();
 		
 		// write feature model 
 		String fname = String("model")+ counter_ + "_" + rt + "_" + mz;

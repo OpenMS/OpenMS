@@ -46,8 +46,8 @@ CPP_SOURCES=\
 	DateTime.C\
 	QuadTree.C\
 	RangeManager.C\
-	DConvexHull.C\
-	DefaultParamHandler.C
+	ConvexHull2D.C\
+  DefaultParamHandler.C
 
 include ../common.mak
 -include .Dependencies

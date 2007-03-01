@@ -47,8 +47,8 @@ ClusterSpectrum* cspec;
 
 DTAFile dtafile;
 
-MSSpectrum< DPeak<1> >* spec = new MSSpectrum< DPeak<1> >();
-MSSpectrum< DPeak<1> >* spec2 = new MSSpectrum< DPeak<1> >();
+MSSpectrum< Peak1D >* spec = new MSSpectrum< Peak1D >();
+MSSpectrum< Peak1D >* spec2 = new MSSpectrum< Peak1D >();
 dtafile.load("data/Transformers_tests.dta",*spec);
 dtafile.load("data/Transformers_tests.dta",*spec2);
 
@@ -65,7 +65,7 @@ CHECK(ClusterSpectrum::~ClusterSpectrum())
   delete cspec;
 RESULT
 
-CHECK(ClusterSpectrum::ClusterSpectrum(MSSpectrum< DPeak<1> >*))
+CHECK(ClusterSpectrum::ClusterSpectrum(MSSpectrum< Peak1D >*))
   cspec = new ClusterSpectrum(spec,0.5,2);
   TEST_NOT_EQUAL(cspec,0)
 RESULT
@@ -92,7 +92,7 @@ CHECK(ClusterSpectrum::getParentionCharge())
 RESULT
 
 CHECK(ClusterSpectrum::getParentMass())
-  TEST_EQUAL(cspec->getParentMass(),spec2->getPrecursorPeak().getPosition()[0])
+  TEST_EQUAL(cspec->getParentMass(),spec2->getPrecursorPeak().getPos()[0])
 RESULT
 
 CHECK(ClusterSpectrum::getTophit())

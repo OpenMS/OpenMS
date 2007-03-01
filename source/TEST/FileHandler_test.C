@@ -80,7 +80,7 @@ RESULT
 CHECK(Type getTypeByContent(const String& filename) throw(Exception::FileNotFound))
 	FileHandler tmp;
 	TEST_EQUAL(tmp.getTypeByContent("data/MzDataFile_test_1.mzData"), FileHandler::MZDATA)
-	TEST_EQUAL(tmp.getTypeByContent("data/DFeatureMapFile.xml"), FileHandler::FEATURE)
+	TEST_EQUAL(tmp.getTypeByContent("data/FeatureMapFile.xml"), FileHandler::FEATURE)
 	TEST_EQUAL(tmp.getTypeByContent("data/DFeaturePairsFile.xml"), FileHandler::FEATURE_PAIRS)
 	TEST_EQUAL(tmp.getTypeByContent("data/MzXMLFile_test_1.mzXML"), FileHandler::MZXML)
 	TEST_EQUAL(tmp.getTypeByContent("data/DTAFile_test.dta"), FileHandler::DTA)

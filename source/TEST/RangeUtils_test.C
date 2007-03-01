@@ -139,9 +139,9 @@ RESULT
 
 //MZRange
 
-MzRange<DPeak<1> >* ptr3 = 0;
+MzRange<Peak1D >* ptr3 = 0;
 CHECK((MzRange(double min, double max, bool reverse = false)))
-	ptr3 = new MzRange<DPeak<1> >(5.0,10.0,false);
+	ptr3 = new MzRange<Peak1D >(5.0,10.0,false);
 	TEST_NOT_EQUAL(ptr3, 0)
 RESULT
 
@@ -150,31 +150,31 @@ CHECK(([EXTRA]~MzRange()))
 RESULT
 
 CHECK((bool operator()(const PeakType& p) const))
-	MzRange<DPeak<1> > r(5.0,10.0,false);
-	MzRange<DPeak<1> > r2(5.0,10.0,true);
-	DPeak<1> p;
-	p.getPosition()[0] = 4.9;
+	MzRange<Peak1D > r(5.0,10.0,false);
+	MzRange<Peak1D > r2(5.0,10.0,true);
+	Peak1D p;
+	p.getPos()[0] = 4.9;
 	TEST_EQUAL(r(p), false);
 	TEST_EQUAL(r2(p), true);
-	p.getPosition()[0] = 5.0;
+	p.getPos()[0] = 5.0;
 	TEST_EQUAL(r(p), true);
 	TEST_EQUAL(r2(p), false);
-	p.getPosition()[0] = 7.5;
+	p.getPos()[0] = 7.5;
 	TEST_EQUAL(r(p), true);
 	TEST_EQUAL(r2(p), false);
-	p.getPosition()[0] = 10.0;
+	p.getPos()[0] = 10.0;
 	TEST_EQUAL(r(p), true);
 	TEST_EQUAL(r2(p), false);
-	p.getPosition()[0] = 10.1;
+	p.getPos()[0] = 10.1;
 	TEST_EQUAL(r(p), false);
 	TEST_EQUAL(r2(p), true);	
 RESULT
 
 //IntensityRange
 
-IntensityRange<DPeak<1> >* ptr4 = 0;
+IntensityRange<Peak1D >* ptr4 = 0;
 CHECK((IntensityRange(double min, double max, bool reverse = false)))
-	ptr4 = new IntensityRange<DPeak<1> >(5.0,10.0,false);
+	ptr4 = new IntensityRange<Peak1D >(5.0,10.0,false);
 	TEST_NOT_EQUAL(ptr4, 0)
 RESULT
 
@@ -183,9 +183,9 @@ CHECK(([EXTRA]~IntensityRange()))
 RESULT
 
 CHECK((bool operator()(const PeakType& p) const))
-	IntensityRange<DPeak<1> > r(5.0,10.0,false);
-	IntensityRange<DPeak<1> > r2(5.0,10.0,true);
-	DPeak<1> p;
+	IntensityRange<Peak1D > r(5.0,10.0,false);
+	IntensityRange<Peak1D > r2(5.0,10.0,true);
+	Peak1D p;
 	p.setIntensity(4.9);
 	TEST_EQUAL(r(p), false);
 	TEST_EQUAL(r2(p), true);

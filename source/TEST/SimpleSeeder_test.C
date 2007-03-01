@@ -74,23 +74,23 @@ MSExperiment<>::PeakType p;
 MSExperiment<>::SpectrumType s1;
 s1.setRetentionTime(1.0);
 
-p.setPos(500.0);
+p.setMZ(500.0);
 p.setIntensity(10.0);
 s1.push_back(p);
 
-p.setPos(600.0);
+p.setMZ(600.0);
 p.setIntensity(20.0);
 s1.push_back(p);
 
-p.setPos(800.0);
+p.setMZ(800.0);
 p.setIntensity(30.0);
 s1.push_back(p);
 
-p.setPos(1000.0);
+p.setMZ(1000.0);
 p.setIntensity(40.0);
 s1.push_back(p);
 
-p.setPos(1200.0);
+p.setMZ(1200.0);
 p.setIntensity(110.0);
 s1.push_back(p);
 
@@ -98,23 +98,23 @@ s1.push_back(p);
 MSExperiment<>::SpectrumType s2;
 s2.setRetentionTime(2.0);
 
-p.setPos(500.0);
+p.setMZ(500.0);
 p.setIntensity(100.0);
 s2.push_back(p);
 
-p.setPos(600.0);
+p.setMZ(600.0);
 p.setIntensity(80.0);
 s2.push_back(p);
 
-p.setPos(800.0);
+p.setMZ(800.0);
 p.setIntensity(30.0);
 s2.push_back(p);
 
-p.setPos(1000.0);
+p.setMZ(1000.0);
 p.setIntensity(10.0);
 s2.push_back(p);
 
-p.setPos(1200.0);
+p.setMZ(1200.0);
 p.setIntensity(110.0);
 s2.push_back(p);
 

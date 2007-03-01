@@ -25,7 +25,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/MzDataFile.h>
-#include <OpenMS/FORMAT/DFeatureMapFile.h>
+#include <OpenMS/FORMAT/FeatureMapFile.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinder.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 
@@ -142,20 +142,20 @@ class TOPPFeatureFinder
 		//New scope => exp is deleted as soon as the FeatureFinder has made a copy
 		writeLog_(String("Reading input file ") + in);
 		{
-			MSExperiment<DPeak<1> > exp;
+			MSExperiment<Peak1D > exp;
 			MzDataFile().load(in,exp);
 			ff.setData(exp.begin(),exp.end(),getIntOption_("buffer_size"));
 		}
 		writeLog_("Running FeatureFinder...");
 		
-		DFeatureMap<2> features = ff.run();
+		FeatureMap<> features = ff.run();
 	
 		//-------------------------------------------------------------
 		// writing files
 		//-------------------------------------------------------------
 	
 		writeLog_(String("Writing results to ") + out);
-		DFeatureMapFile map_file;
+		FeatureMapFile map_file;
 		map_file.store(out,features);			
 			
 		return EXECUTION_OK;

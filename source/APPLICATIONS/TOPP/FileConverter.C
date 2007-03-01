@@ -27,7 +27,7 @@
 #include <OpenMS/config.h>
 
 #include <OpenMS/FORMAT/FileHandler.h>
-#include <OpenMS/FORMAT/DFeatureMapFile.h>
+#include <OpenMS/FORMAT/FeatureMapFile.h>
 
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
@@ -134,23 +134,23 @@ class TOPPFileConverter
 		//-------------------------------------------------------------
 		// reading input
 		//-------------------------------------------------------------
-		typedef MSExperiment< DPeak<1> > MSExperimentType;
+		typedef MSExperiment< Peak1D > MSExperimentType;
 		MSExperimentType exp;
 		
 		typedef MSExperimentType::SpectrumType SpectrumType;
 
-		typedef DFeatureMap<2> FeatureMapType;
+		typedef FeatureMap<> FeatureMapType;
 
 		writeDebug_(String("Loading input file"), 1);
 			
 		if (in_type == FileHandler::FEATURE)
 		{
-			// This works because DFeature<DIM> is derived from DPeak<DIM>.
+			// This works because Feature is derived from Peak2D.
 			// However you will lose information and waste memory.
 			// Enough reasons to issue a warning!
 			writeLog_("Warning: Converting features to peaks. You will lose information!");	
 			FeatureMapType fm;
-			DFeatureMapFile().load(in,fm);
+			FeatureMapFile().load(in,fm);
 			fm.sortByPosition();
 			exp.set2DData(fm);
 		}
@@ -179,7 +179,7 @@ class TOPPFileConverter
 		}
 		else if (out_type == FileHandler::FEATURE)
 		{
-			// This works because DFeature<DIM> is derived from DPeak<DIM>.
+			// This works because Feature is derived from Peak2D.
 			// However the feature specific information is only defaulted.
 			// Enough reasons to issue a warning!
 			writeLog_("Warning: Converting peaks into features.  This is only a hack - use at your own risk!");	
@@ -196,21 +196,19 @@ class TOPPFileConverter
 						++spec_iter
 					)
 			{
-				feature.setPos( DimensionDescription<LCMS_Tag>::RT,
-												spec_iter->getRetentionTime() );
+				feature.setRT(spec_iter->getRetentionTime());
 				for ( SpectrumType::ConstIterator peak1_iter = spec_iter->begin();
 							peak1_iter != spec_iter->end();
 							++peak1_iter
 						)
 				{
-					feature.setPos( DimensionDescription<LCMS_Tag>::MZ,
-												  peak1_iter->getPos() );
+					feature.setMZ(peak1_iter->getMZ());
 					feature.setIntensity(peak1_iter->getIntensity());
 					feature_map.push_back(feature);
 				}
 			}
 			feature_map.updateRanges();
-			DFeatureMapFile().store(out,feature_map);
+			FeatureMapFile().store(out,feature_map);
 		}
 		else
 		{

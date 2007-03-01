@@ -100,7 +100,7 @@ namespace OpenMS
       //look for each peakdifference that is in range of aa residuemasses (56/187), if it could be a aa (aamass)
       for (uint j = i; i+j < cspec.getSpec().size(); ++j)
       {
-        double diff =  cspec.getSpec().getContainer()[i+j].getPosition()[0] - cspec.getSpec().getContainer()[i].getPosition()[0];
+        double diff =  cspec.getSpec().getContainer()[i+j].getMZ() - cspec.getSpec().getContainer()[i].getMZ();
         total += cspec.getSpec().getContainer()[i+j].getIntensity() + cspec.getSpec().getContainer()[i].getIntensity();
         map<double,int>::const_iterator cmit = mask_.upper_bound(diff);
         if (cmit == mask_.begin() || cmit == mask_.end())

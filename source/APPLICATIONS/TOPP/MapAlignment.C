@@ -29,14 +29,14 @@
 #include <OpenMS/KERNEL/ConsensusFeature.h>
 #include <OpenMS/KERNEL/ConsensusPeak.h>
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
-#include <OpenMS/FORMAT/DFeatureMapFile.h>
+#include <OpenMS/FORMAT/FeatureMapFile.h>
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 
 using namespace OpenMS;
 using namespace std;
 
-typedef DFeatureMap< 2, Feature > FeatureMapType;
+typedef FeatureMap< Feature > FeatureMapType;
 typedef DPeakArray< 2, Peak2D > PeakArrayType;
 typedef ConsensusFeature< FeatureMapType > ConsensusFeatureType;
 typedef ConsensusPeak< PeakArrayType > ConsensusPeakType;
@@ -128,7 +128,7 @@ class TOPPMapAlignment
       {
         StarAlignment< ConsensusFeatureType > alignment;
         alignment.setParam(mapali_param);
-        DFeatureMapFile feature_file;
+        FeatureMapFile feature_file;
         std::vector< String > file_names;
         // Vector for the feature maps
         std::vector< FeatureMapType > feature_maps(distance(pit,files_param.end()));

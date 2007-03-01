@@ -38,7 +38,7 @@ CPP_SOURCES=\
 	MzXMLHandler.C\
 	ANDIHandler.C\
 	ParamXMLHandler.C\
-	DFeatureMapHandler.C\
+	FeatureMapHandler.C\
 	AnalysisXMLHandler.C\
 	DFeaturePairsHandler.C\
 	DGridHandler.C\

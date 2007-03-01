@@ -53,7 +53,7 @@ CPP_SOURCES=\
 	Param.C\
 	MzDataFile.C\
 	AnalysisXMLFile.C\
-	DFeatureMapFile.C\
+	FeatureMapFile.C\
 	DFeaturePairsFile.C\
 	MascotXMLFile.C\
 	DGridFile.C\

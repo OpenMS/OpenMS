@@ -59,16 +59,16 @@ CHECK((template<Size D> void load(String filename, DFeaturePairVector<D>& pairs)
   pfile.load("data/DFeaturePairsFile.xml",pvector);
   DFeaturePair<2> pair = pvector.back();
   
-  DFeature<2> first  = pair.getFirst();
-  DFeature<2> second = pair.getSecond();
+  Feature first  = pair.getFirst();
+  Feature second = pair.getSecond();
 	
 	TEST_EQUAL(first.getIntensity(),5);
-	TEST_EQUAL(first.getPosition()[0],0);
-	TEST_EQUAL(first.getPosition()[1],0);
+	TEST_EQUAL(first.getPos()[0],0);
+	TEST_EQUAL(first.getPos()[1],0);
 	
 	TEST_EQUAL(second.getIntensity(),0);
-	TEST_EQUAL(second.getPosition()[0],1.4);
-	TEST_EQUAL(second.getPosition()[1],2.5);
+	TEST_EQUAL(second.getPos()[0],1.4);
+	TEST_EQUAL(second.getPos()[1],2.5);
 	
 RESULT
 

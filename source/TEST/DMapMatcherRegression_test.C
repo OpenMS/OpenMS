@@ -34,8 +34,8 @@
 #include<OpenMS/ANALYSIS/MAPMATCHING/DFeaturePairVector.h>
 #include<OpenMS/ANALYSIS/MAPMATCHING/DBaseMapping.h>
 
-#include<OpenMS/KERNEL/DFeatureMap.h>
-#include<OpenMS/KERNEL/DFeature.h>
+#include<OpenMS/KERNEL/FeatureMap.h>
+#include<OpenMS/KERNEL/Feature.h>
 #include<string>
 
 ///////////////////////////
@@ -78,12 +78,12 @@ CHECK((DMapMatcherRegression(const DMapMatcherRegression& source)))
 
 	// first pair
 	DFeaturePair<2> pair1;
-	DFeature<2> feat1, feat2;
+	Feature feat1, feat2;
 	
-	feat1.getPosition()[MZ] = 1.0;
-	feat1.getPosition()[RT] = 2.0;
-	feat2.getPosition()[MZ] =  2.0;
-	feat2.getPosition()[RT] = 5.0;
+	feat1.getMZ() = 1.0;
+	feat1.getRT() = 2.0;
+	feat2.getMZ() =  2.0;
+	feat2.getRT() = 5.0;
 	
 	pair1.setFirst(feat1);
 	pair1.setSecond(feat2);
@@ -91,12 +91,12 @@ CHECK((DMapMatcherRegression(const DMapMatcherRegression& source)))
 	
 	// second pair
 	DFeaturePair<2> pair2;
-	DFeature<2> feat3, feat4;
+	Feature feat3, feat4;
 	
-	feat3.getPosition()[MZ] = 2.0;
-	feat3.getPosition()[RT] = 4.0;
-	feat4.getPosition()[MZ] = 4.0;
-	feat4.getPosition()[RT] = 9.0;
+	feat3.getMZ() = 2.0;
+	feat3.getRT() = 4.0;
+	feat4.getMZ() = 4.0;
+	feat4.getRT() = 9.0;
 	
 	pair2.setFirst(feat3);
 	pair2.setSecond(feat4);
@@ -128,12 +128,12 @@ CHECK((DMapMatcherRegression& operator = (const DMapMatcherRegression& source)))
 
 	// first pair
 	DFeaturePair<2> pair1;
-	DFeature<2> feat1, feat2;
+	Feature feat1, feat2;
 	
-	feat1.getPosition()[MZ] = 1.0;
-	feat1.getPosition()[RT] = 2.0;
-	feat2.getPosition()[MZ] =  2.0;
-	feat2.getPosition()[RT] = 5.0;
+	feat1.getMZ() = 1.0;
+	feat1.getRT() = 2.0;
+	feat2.getMZ() =  2.0;
+	feat2.getRT() = 5.0;
 	
 	pair1.setFirst(feat1);
 	pair1.setSecond(feat2);
@@ -141,12 +141,12 @@ CHECK((DMapMatcherRegression& operator = (const DMapMatcherRegression& source)))
 	
 	// second pair
 	DFeaturePair<2> pair2;
-	DFeature<2> feat3, feat4;
+	Feature feat3, feat4;
 	
-	feat3.getPosition()[MZ] = 2.0;
-	feat3.getPosition()[RT] = 4.0;
-	feat4.getPosition()[MZ] = 4.0;
-	feat4.getPosition()[RT] = 9.0;
+	feat3.getMZ() = 2.0;
+	feat3.getRT() = 4.0;
+	feat4.getMZ() = 4.0;
+	feat4.getRT() = 9.0;
 	
 	pair2.setFirst(feat3);
 	pair2.setSecond(feat4);
@@ -179,12 +179,12 @@ CHECK((bool operator == (const DMapMatcherRegression& rhs)))
 	
 	// first pair
 	DFeaturePair<2> pair1;
-	DFeature<2> feat1, feat2;
+	Feature feat1, feat2;
 	
-	feat1.getPosition()[MZ] = 1.0;
-	feat1.getPosition()[RT] = 2.0;
-	feat2.getPosition()[MZ] =  2.0;
-	feat2.getPosition()[RT] = 5.0;
+	feat1.getMZ() = 1.0;
+	feat1.getRT() = 2.0;
+	feat2.getMZ() =  2.0;
+	feat2.getRT() = 5.0;
 	
 	pair1.setFirst(feat1);
 	pair1.setSecond(feat2);
@@ -192,12 +192,12 @@ CHECK((bool operator == (const DMapMatcherRegression& rhs)))
 	
 	// second pair
 	DFeaturePair<2> pair2;
-	DFeature<2> feat3, feat4;
+	Feature feat3, feat4;
 	
-	feat3.getPosition()[MZ] = 2.0;
-	feat3.getPosition()[RT] = 4.0;
-	feat4.getPosition()[MZ] = 4.0;
-	feat4.getPosition()[RT] = 9.0;
+	feat3.getMZ() = 2.0;
+	feat3.getRT() = 4.0;
+	feat4.getMZ() = 4.0;
+	feat4.getRT() = 9.0;
 	
 	pair2.setFirst(feat3);
 	pair2.setSecond(feat4);
@@ -230,12 +230,12 @@ CHECK((void estimateTransform()))
 
 	// first pair
 	DFeaturePair<2> pair1;
-	DFeature<2> feat1, feat2;
+	Feature feat1, feat2;
 	
-	feat1.getPosition()[MZ] = 1.0;
-	feat1.getPosition()[RT] = 2.0;
-	feat2.getPosition()[MZ] =  2.0;
-	feat2.getPosition()[RT] = 5.0;
+	feat1.getMZ() = 1.0;
+	feat1.getRT() = 2.0;
+	feat2.getMZ() =  2.0;
+	feat2.getRT() = 5.0;
 	
 	pair1.setFirst(feat1);
 	pair1.setSecond(feat2);
@@ -243,12 +243,12 @@ CHECK((void estimateTransform()))
 	
 	// second pair
 	DFeaturePair<2> pair2;
-	DFeature<2> feat3, feat4;
+	Feature feat3, feat4;
 	
-	feat3.getPosition()[MZ] = 2.0;
-	feat3.getPosition()[RT] = 4.0;
-	feat4.getPosition()[MZ] = 4.0;
-	feat4.getPosition()[RT] = 9.0;
+	feat3.getMZ() = 2.0;
+	feat3.getRT() = 4.0;
+	feat4.getMZ() = 4.0;
+	feat4.getRT() = 9.0;
 	
 	pair2.setFirst(feat3);
 	pair2.setSecond(feat4);
@@ -256,12 +256,12 @@ CHECK((void estimateTransform()))
 	
 	// third pair
 	DFeaturePair<2> pair3;
-	DFeature<2> feat5, feat6;
+	Feature feat5, feat6;
 	
-	feat5.getPosition()[MZ] = 3.0;
-	feat5.getPosition()[RT] = 6.0;
-	feat6.getPosition()[MZ] = 6.0;
-	feat6.getPosition()[RT] = 13.0;
+	feat5.getMZ() = 3.0;
+	feat5.getRT() = 6.0;
+	feat6.getMZ() = 6.0;
+	feat6.getRT() = 13.0;
 	
 	pair3.setFirst(feat5);
 	pair3.setSecond(feat6);

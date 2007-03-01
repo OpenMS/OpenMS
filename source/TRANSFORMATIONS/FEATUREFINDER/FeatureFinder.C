@@ -159,7 +159,7 @@ namespace OpenMS
 	}
 	
 	
-	const DFeatureMap<2>& FeatureFinder::run()
+	const FeatureMap<>& FeatureFinder::run()
 	{
 		if (!traits_)
 		{

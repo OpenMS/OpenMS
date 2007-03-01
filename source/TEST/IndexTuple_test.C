@@ -33,7 +33,7 @@
 using namespace OpenMS;
 using namespace std;
 
-typedef DFeatureMap<2, DFeature<2, KernelTraits> > ContainerType;
+typedef FeatureMap< DFeature<2, KernelTraits> > ContainerType;
 typedef ContainerType::value_type ElementType;
 typedef ElementType::TraitsType TraitsType;
 typedef DPosition<2, TraitsType> PositionType;

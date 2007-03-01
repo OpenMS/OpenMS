@@ -35,8 +35,8 @@
 #include<OpenMS/ANALYSIS/MAPMATCHING/DFeaturePairVector.h>
 #include<OpenMS/ANALYSIS/MAPMATCHING/DBaseMapping.h>
 
-#include<OpenMS/KERNEL/DFeatureMap.h>
-#include<OpenMS/KERNEL/DFeature.h>
+#include<OpenMS/KERNEL/FeatureMap.h>
+#include<OpenMS/KERNEL/Feature.h>
 #include<string>
 
 ///////////////////////////
@@ -77,20 +77,20 @@ RESULT
 
 CHECK((DMapDewarper(const DMapDewarper& source)))
 	
-	DFeature<2> feat1, feat2, feat3;
+	Feature feat1, feat2, feat3;
 	
-	feat1.getPosition()[MZ] = 1.0;
-	feat1.getPosition()[RT] = 2.0;
-	feat2.getPosition()[MZ] = 2.0;
-	feat2.getPosition()[RT] = 5.0;
-	feat3.getPosition()[MZ] = 2.0;
-	feat3.getPosition()[RT] = 4.0;
+	feat1.getMZ() = 1.0;
+	feat1.getRT() = 2.0;
+	feat2.getMZ() = 2.0;
+	feat2.getRT() = 5.0;
+	feat3.getMZ() = 2.0;
+	feat3.getRT() = 4.0;
 	
 	DGridCell<2> cell1(0,0,20,20);
 	Grid the_grid;
 	the_grid.push_back(cell1);
 		
-	DFeatureMap<2> feat_map;
+	FeatureMap<> feat_map;
 	feat_map.push_back(feat1);
 	feat_map.push_back(feat2);
 	feat_map.push_back(feat3);
@@ -108,20 +108,20 @@ RESULT
 
 CHECK((DMapDewarper& operator = (const DMapDewarper& source)))
 
-	DFeature<2> feat1, feat2, feat3;
+	Feature feat1, feat2, feat3;
 	
-	feat1.getPosition()[MZ] = 1.0;
-	feat1.getPosition()[RT] = 2.0;
-	feat2.getPosition()[MZ] = 2.0;
-	feat2.getPosition()[RT] = 5.0;
-	feat3.getPosition()[MZ] = 2.0;
-	feat3.getPosition()[RT] = 4.0;
+	feat1.getMZ() = 1.0;
+	feat1.getRT() = 2.0;
+	feat2.getMZ() = 2.0;
+	feat2.getRT() = 5.0;
+	feat3.getMZ() = 2.0;
+	feat3.getRT() = 4.0;
 	
 	DGridCell<2> cell1(0,0,20,20);
 	Grid the_grid;
 	the_grid.push_back(cell1);
 		
-	DFeatureMap<2> feat_map;
+	FeatureMap<> feat_map;
 	feat_map.push_back(feat1);
 	feat_map.push_back(feat2);
 	feat_map.push_back(feat3);
@@ -140,20 +140,20 @@ RESULT
 
 CHECK((bool operator == (const DMapDewarper& rhs)))
 	
-	DFeature<2> feat1, feat2, feat3;
+	Feature feat1, feat2, feat3;
 	
-	feat1.getPosition()[MZ] = 1.0;
-	feat1.getPosition()[RT] = 2.0;
-	feat2.getPosition()[MZ] = 2.0;
-	feat2.getPosition()[RT] = 5.0;
-	feat3.getPosition()[MZ] = 2.0;
-	feat3.getPosition()[RT] = 4.0;
+	feat1.getMZ() = 1.0;
+	feat1.getRT() = 2.0;
+	feat2.getMZ() = 2.0;
+	feat2.getRT() = 5.0;
+	feat3.getMZ() = 2.0;
+	feat3.getRT() = 4.0;
 	
 	DGridCell<2> cell1(0,0,20,20);
 	Grid the_grid;
 	the_grid.push_back(cell1);
 		
-	DFeatureMap<2> feat_map;
+	FeatureMap<> feat_map;
 	feat_map.push_back(feat1);
 	feat_map.push_back(feat2);
 	feat_map.push_back(feat3);
@@ -175,12 +175,12 @@ CHECK((void dewarp()))
 	
 	// first pair
 	DFeaturePair<2> pair1;
-	DFeature<2> feat1, feat2;
+	Feature feat1, feat2;
 	
-	feat1.getPosition()[MZ] = 1.0;
-	feat1.getPosition()[RT] = 2.0;
-	feat2.getPosition()[MZ] =  2.0;
-	feat2.getPosition()[RT] = 5.0;
+	feat1.getMZ() = 1.0;
+	feat1.getRT() = 2.0;
+	feat2.getMZ() =  2.0;
+	feat2.getRT() = 5.0;
 	
 	pair1.setFirst(feat1);
 	pair1.setSecond(feat2);
@@ -188,12 +188,12 @@ CHECK((void dewarp()))
 	
 	// second pair
 	DFeaturePair<2> pair2;
-	DFeature<2> feat3, feat4;
+	Feature feat3, feat4;
 	
-	feat3.getPosition()[MZ] = 2.0;
-	feat3.getPosition()[RT] = 4.0;
-	feat4.getPosition()[MZ] = 4.0;
-	feat4.getPosition()[RT] = 9.0;
+	feat3.getMZ() = 2.0;
+	feat3.getRT() = 4.0;
+	feat4.getMZ() = 4.0;
+	feat4.getRT() = 9.0;
 	
 	pair2.setFirst(feat3);
 	pair2.setSecond(feat4);
@@ -201,12 +201,12 @@ CHECK((void dewarp()))
 	
 	// third pair
 	DFeaturePair<2> pair3;
-	DFeature<2> feat5, feat6;
+	Feature feat5, feat6;
 	
-	feat5.getPosition()[MZ] = 3.0;
-	feat5.getPosition()[RT] = 6.0;
-	feat6.getPosition()[MZ] = 6.0;
-	feat6.getPosition()[RT] = 13.0;
+	feat5.getMZ() = 3.0;
+	feat5.getRT() = 6.0;
+	feat6.getMZ() = 6.0;
+	feat6.getRT() = 13.0;
 	
 	pair3.setFirst(feat5);
 	pair3.setSecond(feat6);
@@ -230,7 +230,7 @@ CHECK((void dewarp()))
 	mmatcher.estimateTransform();
 		
 	// now we apply these mappings and check the results
-	DFeatureMap<2> feat_map;
+	FeatureMap<> feat_map;
 	feat_map.push_back(feat1);
 	feat_map.push_back(feat3);
 	feat_map.push_back(feat5);
@@ -241,8 +241,8 @@ CHECK((void dewarp()))
 	dewarper.setGrid(grid2);
 	dewarper.dewarp();
 	
-	DFeatureMap<2> dewarped = dewarper.getMap();
-	DFeatureMap<2>::const_iterator map_iter = dewarped.begin();
+	FeatureMap<> dewarped = dewarper.getMap();
+	FeatureMap<>::const_iterator map_iter = dewarped.begin();
 	TEST_REAL_EQUAL(map_iter->getPosition()[0],5.0);
 	TEST_REAL_EQUAL(map_iter->getPosition()[1],2.0);
 	
@@ -285,7 +285,7 @@ CHECK((void setGrid(Grid& g)))
 RESULT
 
 CHECK((MapType& getMap()))
-	DFeatureMap<2> map;
+	FeatureMap<> map;
 	DMapDewarper<> dewarper;
 	dewarper.setMap(map);	
 		
@@ -294,7 +294,7 @@ CHECK((MapType& getMap()))
 RESULT
 
 CHECK((void setMap(MapType& elem)))
-	DFeatureMap<2> map;
+	FeatureMap<> map;
 	DMapDewarper<> dewarper;
 	dewarper.setMap(map);	
 		
@@ -303,10 +303,10 @@ CHECK((void setMap(MapType& elem)))
 RESULT
 
 CHECK((const MapType& getMap() const))
-	DFeatureMap<2> map;
+	FeatureMap<> map;
 	DMapDewarper<> dewarper;
 	dewarper.setMap(map);		
-	const  DFeatureMap<2> map2 = dewarper.getMap();
+	const  FeatureMap<> map2 = dewarper.getMap();
 	
 	TEST_EQUAL( map==map2, true )
 	

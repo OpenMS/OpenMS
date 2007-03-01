@@ -29,7 +29,7 @@
 ///////////////////////////
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/DFeaturePair.h>
-#include <OpenMS/KERNEL/DFeature.h>
+#include <OpenMS/KERNEL/Feature.h>
 
 ///////////////////////////
 
@@ -61,8 +61,8 @@ CHECK( DFeaturePair(const DFeaturePair& fp) )
 RESULT
 
 CHECK( DFeaturePair(FeatureType const & first, FeatureType const & second, QualityType const & quality = QualityType(0)) )
-	DFeature<2> f1;
-	DFeature<2> f2;
+	Feature f1;
+	Feature f2;
 	
 	DFeaturePair<2> pair(f1,f2);
 	
@@ -82,10 +82,10 @@ RESULT
 CHECK(bool operator == (const DFeaturePair& rhs) const)
 
 	DFeaturePair<2> p1;
-	DFeature<2> f1;
+	Feature f1;
 	f1.getPosition()[0] = 1.0;
 	f1.getPosition()[1] = 2.0;
-	DFeature<2> f2;
+	Feature f2;
 	f2.getPosition()[0] = 3.0;
 	f2.getPosition()[1] = 4.0;
 	
@@ -94,10 +94,10 @@ CHECK(bool operator == (const DFeaturePair& rhs) const)
 	p1.setQuality(5.0);
 		
 	DFeaturePair<2> p2;
-	DFeature<2> f3;
+	Feature f3;
 	f3.getPosition()[0] = 1.0;
 	f3.getPosition()[1] = 2.0;
-	DFeature<2> f4;
+	Feature f4;
 	f4.getPosition()[0] = 3.0;
 	f4.getPosition()[1] = 4.0;
 	
@@ -111,10 +111,10 @@ RESULT
 CHECK(bool operator != (const DFeaturePair& rhs) const)
 
 	DFeaturePair<2> p1;
-	DFeature<2> f1;
+	Feature f1;
 	f1.getPosition()[0] = 2.0;
 	f1.getPosition()[1] = 2.0;
-	DFeature<2> f2;
+	Feature f2;
 	f2.getPosition()[0] = 2.0;
 	f2.getPosition()[1] = 2.0;
 	
@@ -122,10 +122,10 @@ CHECK(bool operator != (const DFeaturePair& rhs) const)
 	p1.setSecond(f2);
 	
 	DFeaturePair<2> p2;
-	DFeature<2> f3;
+	Feature f3;
 	f3.getPosition()[0] = 1.0;
 	f3.getPosition()[1] = 1.0;
-	DFeature<2> f4;
+	Feature f4;
 	f4.getPosition()[0] = 1.0;
 	f4.getPosition()[1] = 1.0;
 	
@@ -161,12 +161,12 @@ RESULT
 CHECK(FeatureType& getFirst())
 	DFeaturePair<2> p;
 	
-	DFeature<2> f1;
+	Feature f1;
 	f1.getPosition()[0] = 1.0;
 	f1.getPosition()[1] = 2.0;
 	p.setFirst(f1);
 
-	DFeature<2> f2;
+	Feature f2;
 	f2 = p.getFirst();
 
 	TEST_EQUAL(f1,f2)
@@ -176,12 +176,12 @@ RESULT
 CHECK(FeatureType& getSecond())
 	DFeaturePair<2> p;
 	
-	DFeature<2> f1;
+	Feature f1;
 	f1.getPosition()[0] = 1.0;
 	f1.getPosition()[1] = 2.0;
 	p.setSecond(f1);
 
-	DFeature<2> f2;
+	Feature f2;
 	f2 = p.getSecond();
 
 	TEST_EQUAL(f1,f2)
@@ -191,12 +191,12 @@ RESULT
 CHECK(const FeatureType& getFirst() const)
 	DFeaturePair<2> p;
 	
-	DFeature<2> f1;
+	Feature f1;
 	f1.getPosition()[0] = 1.0;
 	f1.getPosition()[1] = 2.0;
 	p.setFirst(f1);
 
-	const DFeature<2> f2 = p.getFirst();
+	const Feature f2 = p.getFirst();
 	TEST_EQUAL(f1,f2)
 
 RESULT
@@ -204,12 +204,12 @@ RESULT
 CHECK(const FeatureType& getSecond() const)
 	DFeaturePair<2> p;
 	
-	DFeature<2> f1;
+	Feature f1;
 	f1.getPosition()[0] = 1.0;
 	f1.getPosition()[1] = 2.0;
 	p.setSecond(f1);
 
-	const DFeature<2> f2 = p.getSecond();
+	const Feature f2 = p.getSecond();
 	TEST_EQUAL(f1,f2)
 	
 RESULT
@@ -225,7 +225,7 @@ RESULT
 
 CHECK( void setFirst(const FeatureType& frt) )
 	DFeaturePair<2> p;
-	const DFeature<2> f;
+	const Feature f;
 	p.setFirst(f);
 	
 	TEST_EQUAL( f, p.getFirst() )
@@ -241,7 +241,7 @@ RESULT
 
 CHECK( void setSecond(const FeatureType& sec) )
 	DFeaturePair<2> p;
-	const DFeature<2> f;
+	const Feature f;
 	p.setSecond(f);
 	
 	TEST_EQUAL( f, p.getSecond() )

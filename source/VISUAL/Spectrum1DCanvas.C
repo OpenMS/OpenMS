@@ -81,7 +81,7 @@ namespace OpenMS
 	
 	void Spectrum1DCanvas::dataToWidget_(const PeakType& peak, QPoint& point)
 	{
-		SpectrumCanvas::dataToWidget_(peak.getPos(), snap_factor_*percentage_factor_*peak.getIntensity(), point);
+		SpectrumCanvas::dataToWidget_(peak.getMZ(), snap_factor_*percentage_factor_*peak.getIntensity(), point);
 	}
 	
 	//////////////////////////////////////////////////////////////////////////////////
@@ -194,7 +194,7 @@ namespace OpenMS
 						selected_peaks_.push_back(selected_peak_);
 	
 						ostringstream msg;
-						msg << "Selected peak at position " << selected_peak_->getPos()  << " (" << (selected_peaks_.size()-1);
+						msg << "Selected peak at position " << selected_peak_->getMZ()  << " (" << (selected_peaks_.size()-1);
 						msg << " peaks selected altogether.)";
 						emit sendStatusMessage(msg.str(), 5000);
 					}
@@ -208,7 +208,7 @@ namespace OpenMS
 							selected_peaks_.erase(it_tmp);
 	
 							ostringstream msg;
-							msg << "Deselected peak at position " << selected_peak_->getPos()  << " (" << (selected_peaks_.size()-1);
+							msg << "Deselected peak at position " << selected_peak_->getMZ()  << " (" << (selected_peaks_.size()-1);
 							msg << " peaks selected altogether.)";
 							emit sendStatusMessage(msg.str(), 5000);
 						}
@@ -332,11 +332,11 @@ namespace OpenMS
 	
 		// get iterator on first peak with higher position than interval_start
 		PeakType temp;
-		temp.getPos() = min(lt.X(),rb.X());
+		temp.getMZ() = min(lt.X(),rb.X());
 		SpectrumIteratorType left_it = lower_bound(spectrum.begin(), spectrum.end(), temp, PeakType::PositionLess());
 	
 		// get iterator on first peak with higher position than interval_end
-		temp.getPos() = max(lt.X(),rb.X());
+		temp.getMZ() = max(lt.X(),rb.X());
 		SpectrumIteratorType	right_it = lower_bound(left_it, spectrum.end(), temp, PeakType::PositionLess());
 	
 	
@@ -553,13 +553,13 @@ namespace OpenMS
 								{
 									if (intensity_mode_==IM_LOG)
 									{
-										SpectrumCanvas::dataToWidget_(it->getPos(), log(it->getIntensity()+1)*log_factor,end);
+										SpectrumCanvas::dataToWidget_(it->getMZ(), log(it->getIntensity()+1)*log_factor,end);
 									}
 									else
 									{
 										dataToWidget_(*it,end);
 									}
-									SpectrumCanvas::dataToWidget_(it->getPos(), 0.0f, begin);
+									SpectrumCanvas::dataToWidget_(it->getMZ(), 0.0f, begin);
 									
 									// draw peak
 									custom_color = it->metaValueExists(5);
@@ -597,7 +597,7 @@ namespace OpenMS
 								{
 									if (intensity_mode_==IM_LOG)
 									{
-										SpectrumCanvas::dataToWidget_(it->getPos(), log(it->getIntensity()+1)*log_factor,begin);
+										SpectrumCanvas::dataToWidget_(it->getMZ(), log(it->getIntensity()+1)*log_factor,begin);
 									}
 									else
 									{
@@ -671,13 +671,13 @@ namespace OpenMS
 				if (intensity_mode_==IM_LOG)
 				{
 					log_factor = getCurrentPeakData().getMaxInt()/log(getCurrentPeakData().getMaxInt());
-					SpectrumCanvas::dataToWidget_(selected_peak_->getPos(), log(selected_peak_->getIntensity()+1)*log_factor,end);
+					SpectrumCanvas::dataToWidget_(selected_peak_->getMZ(), log(selected_peak_->getIntensity()+1)*log_factor,end);
 				}
 				else
 				{
 					dataToWidget_(*selected_peak_,end);
 				}
-				SpectrumCanvas::dataToWidget_(selected_peak_->getPos(), 0.0f, begin);
+				SpectrumCanvas::dataToWidget_(selected_peak_->getMZ(), 0.0f, begin);
 				painter.drawLine(begin, end);
 			}
 			else if (getDrawMode() == DM_CONNECTEDLINES)
@@ -685,7 +685,7 @@ namespace OpenMS
 				if (intensity_mode_==IM_LOG)
 				{
 					log_factor = getCurrentPeakData().getMaxInt()/log(getCurrentPeakData().getMaxInt());
-					SpectrumCanvas::dataToWidget_(selected_peak_->getPos(), log(selected_peak_->getIntensity()+1)*log_factor,begin);
+					SpectrumCanvas::dataToWidget_(selected_peak_->getMZ(), log(selected_peak_->getIntensity()+1)*log_factor,begin);
 				}
 				else
 				{
@@ -695,7 +695,7 @@ namespace OpenMS
 				painter.drawLine(begin.x()-4, begin.y(), begin.x()+4, begin.y());
 			}
 			painter.restore();
-			emit sendCursorStatus( selected_peak_->getPos(), selected_peak_->getIntensity());
+			emit sendCursorStatus( selected_peak_->getMZ(), selected_peak_->getIntensity());
 		}
 		
 		painter.end();

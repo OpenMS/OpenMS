@@ -32,7 +32,7 @@
 
 #include <OpenMS/ANALYSIS/ID/IDFeatureMapper.h>
 #include <OpenMS/FORMAT/AnalysisXMLFile.h>
-#include <OpenMS/FORMAT/DFeatureMapFile.h>
+#include <OpenMS/FORMAT/FeatureMapFile.h>
 
 ///////////////////////////
 
@@ -55,7 +55,7 @@ CHECK(([EXTRA]~IDFeatureMapper()))
 	delete ptr;
 RESULT
 
-CHECK((void annotate(DFeatureMap<2>& fm, const std::vector<IdentificationData>& ids, const std::vector<ProteinIdentification>& protein_ids) throw(Exception::Precondition)))
+CHECK((void annotate(FeatureMap<>& fm, const std::vector<IdentificationData>& ids, const std::vector<ProteinIdentification>& protein_ids) throw(Exception::Precondition)))
 
 //load id data
 vector<IdentificationData> identifications; 
@@ -63,8 +63,8 @@ vector<ProteinIdentification> protein_identifications;
 AnalysisXMLFile().load("data/IDFeatureMapper_test.analysisXML", protein_identifications, identifications);
 
 //load feature data
-DFeatureMap<2> fm;
-DFeatureMapFile().load("data/IDFeatureMapper_test.feat", fm);
+FeatureMap<> fm;
+FeatureMapFile().load("data/IDFeatureMapper_test.feat", fm);
 
 //map
 IDFeatureMapper().annotate(fm,identifications,protein_identifications);

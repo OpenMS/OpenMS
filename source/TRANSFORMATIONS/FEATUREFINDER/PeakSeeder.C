@@ -121,7 +121,7 @@ namespace OpenMS
 			ofstream peakfile( fname.c_str() );
 			for (SpectrumType::const_iterator it = current_scan.begin(); it != current_scan.end(); ++it)			
 			{
-				peakfile << it->getPos() << " " << it->getIntensity() << endl;
+				peakfile << it->getMZ() << " " << it->getIntensity() << endl;
 			}
 			peakfile.close();
 			#endif
@@ -141,7 +141,7 @@ namespace OpenMS
 			for (int z = 0; z< nr_maxima; ++z)
 			{
 				// store the m/z of the current peak
-				CoordinateType curr_mz = current_scan[ local_maxima[z] ].getPos();
+				CoordinateType curr_mz = current_scan[ local_maxima[z] ].getMZ();
 				
 				#ifdef DEBUG_FEATUREFINDER
 				cout << "Peak found ! " << endl;
@@ -162,7 +162,7 @@ namespace OpenMS
 				if (z < (nr_maxima - 1) ) 
 				{
 					// there are more local max, check how far away they are
-					CoordinateType dist2nextpeak = (current_scan[ local_maxima[ (z+1) ]  ].getPos() - curr_mz);
+					CoordinateType dist2nextpeak = (current_scan[ local_maxima[ (z+1) ]  ].getMZ() - curr_mz);
 				
 					// collect all local maxima which are not too far away
 					// and insert them into the same peak cluster (hash entry)
@@ -176,7 +176,7 @@ namespace OpenMS
 						}
 						
 						// store next local max in hash and set flag accordingly						
-						curr_mz = current_scan[ local_maxima[z] ].getPos();
+						curr_mz = current_scan[ local_maxima[z] ].getMZ();
 						entry_to_insert->second.peaks_.insert(make_pair(currscan_index, local_maxima[z] ));	
 						traits_->getPeakFlag( make_pair(currscan_index, local_maxima[z] ) ) = FeaFiTraits::SEED;
 											
@@ -193,7 +193,7 @@ namespace OpenMS
 							}
 						}
 						// get next distance
-						dist2nextpeak = (current_scan[ local_maxima[ (z+1) ]  ].getPos() - curr_mz);			
+						dist2nextpeak = (current_scan[ local_maxima[ (z+1) ]  ].getMZ() - curr_mz);			
 						++z;				
 						
 					} // end of if (distance2nextpek < max_dist)

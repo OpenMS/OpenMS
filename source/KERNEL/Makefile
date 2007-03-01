@@ -33,22 +33,27 @@ THISLIB=$(LIBNAME)
 
 CPP_SOURCES= \
 	KernelTraits.C\
-	DSpectrum.C\
-	DFeature.C\
-	DimensionDescription.C\
+  DimensionDescription.C\
+  DRawDataPoint.C\
+  RawDataPoint1D.C\
+  RawDataPoint2D.C\
 	DPeak.C\
+  Peak1D.C\
+  Peak2D.C\
 	DPickedPeak.C\
-	DPeakArray.C\
-	DRawDataPoint.C\
-	StandardTypes.C\
-	DFeatureMap.C\
-	MSSpectrum.C\
+  PickedPeak1D.C\
+	Feature.C\
+  DPeakArray.C\
+	DPeakConstReferenceArray.C\
+  StandardTypes.C\
+	FeatureMap.C\
+	DSpectrum.C\
+  MSSpectrum.C\
+  AreaIterator.C\
 	MSExperiment.C\
 	MSExperimentExtern.C\
-	DPeakConstReferenceArray.C\
 	ConsensusFeature.C\
-	ConsensusPeak.C\
-	AreaIterator.C
+	ConsensusPeak.C
 
 include ../common.mak
 -include .Dependencies

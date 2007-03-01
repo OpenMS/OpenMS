@@ -108,7 +108,7 @@ class TOPPNoiseFilter
       //-------------------------------------------------------------
 
       MzDataFile mz_data_file;
-      MSExperiment<DRawDataPoint<1> > ms_exp_raw;
+      MSExperiment<RawDataPoint1D > ms_exp_raw;
       mz_data_file.load(in,ms_exp_raw);
 
 			//check for peak type (raw data required)
@@ -124,7 +124,7 @@ class TOPPNoiseFilter
       //-------------------------------------------------------------
       // calculations
       //-------------------------------------------------------------
-      MSExperiment<DRawDataPoint<1> > ms_exp_filtered;
+      MSExperiment<RawDataPoint1D > ms_exp_filtered;
 
       if (filter_type == "sgolay")
       {	
@@ -152,11 +152,11 @@ class TOPPNoiseFilter
           for (unsigned int i = 0; i < n; ++i)
           {
             // temporary container for the resampled data
-            MSSpectrum< DRawDataPoint<1> > resampled_data;
+            MSSpectrum< RawDataPoint1D > resampled_data;
             lin_resampler.raster(ms_exp_raw[i],resampled_data);
 
 					
-            MSSpectrum< DRawDataPoint<1> > spectrum;
+            MSSpectrum< RawDataPoint1D > spectrum;
 						
 						if (resampled_data.size() == 1)
 						{

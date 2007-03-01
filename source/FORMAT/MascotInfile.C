@@ -56,7 +56,7 @@ namespace OpenMS
 	}
 	
 	void MascotInfile::store(const std::string& filename,
-													const DPeakArray<1>& spec, 
+													const DPeakArray<1,Peak1D>& spec, 
 													double mz ,
 													double retention_time, 
 													std::string search_title)		
@@ -86,7 +86,7 @@ namespace OpenMS
 	}
 	
 	void MascotInfile::store(const std::string& filename,
-													const MSExperiment< DPeak<1> >& experiment, 
+													const MSExperiment< Peak1D >& experiment, 
 													std::string search_title)
 	{
 		FILE* fp = fopen (filename.c_str(),"wt");
@@ -226,7 +226,7 @@ namespace OpenMS
 	
 	void MascotInfile::writeSpectrum_(FILE* fp, 
 																		const std::string& filename,
-																		const DPeakArray<1>& peaks)
+																		const DPeakArray<1,Peak1D>& peaks)
 	{
 		stringstream ss;
 
@@ -263,11 +263,11 @@ namespace OpenMS
 			ss << retention_time_;
 			fputs(String("RTINSECONDS=" + ss.str() + "\n").c_str(),fp);				
 			
-			for (DPeakArray<1>::const_iterator it = peaks.begin() ; it != peaks.end();++it)
+			for (DPeakArray<1,Peak1D>::const_iterator it = peaks.begin() ; it != peaks.end();++it)
 			{
 				//mass
 				ss.str("");
-				ss << it->getPosition()[0];
+				ss << it->getMZ();
 				fputs (ss.str().c_str(),fp);
 				fputs (" ",fp);
 				//intensity
@@ -282,13 +282,13 @@ namespace OpenMS
 
 	void MascotInfile::writeMSExperiment_(FILE* fp, 
 																				const std::string& filename, 
-																				const MSExperiment< DPeak<1> >& experiment)
+																				const MSExperiment< Peak1D >& experiment)
 	{
 		String temp_string;
 		stringstream ss;
-		MSSpectrum< DPeak< 1 > >::PrecursorPeakType precursor_peak;
+		MSSpectrum< Peak1D >::PrecursorPeakType precursor_peak;
 		DPosition< 1 >::CoordinateType precursor_position;
-		MSSpectrum< DPeak< 1 > >::ContainerType peaks;
+		MSSpectrum< Peak1D >::ContainerType peaks;
 
 		fputs ("\n--",fp);
 		fputs (boundary_.c_str(),fp);
@@ -303,7 +303,7 @@ namespace OpenMS
 			precursor_peak = 
 				experiment[i].getPrecursorPeak();
 			precursor_position = 
-				experiment[i].getPrecursorPeak().getPosition()[0];
+				experiment[i].getPrecursorPeak().getPos()[i];
 			
 			if (experiment[i].getMSLevel() == 2)
 			{
@@ -334,13 +334,13 @@ namespace OpenMS
 					fputs(String("RTINSECONDS=" + ss.str() + "\n").c_str(),fp);		
 					fputs("\n",fp);
 							
-					for (DPeakArray<1>::iterator it = peaks.begin(); 
+					for (DPeakArray<1,Peak1D>::iterator it = peaks.begin(); 
 							 it != peaks.end();
 							 ++it)
 					{
 						//mass
 						ss.str("");
-						ss << it->getPosition()[0];
+						ss << it->getMZ();
 						fputs (ss.str().c_str(),fp);
 						fputs (" ",fp);
 						//intensity

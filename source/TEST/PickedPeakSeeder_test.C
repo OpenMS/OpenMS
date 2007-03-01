@@ -71,7 +71,7 @@ CHECK(nextSeed())
   PickedPeakSeeder seeder;
   FeaFiTraits* traits = new FeaFiTraits();
  
-	MSExperiment<DPeak<1> > exp;
+	MSExperiment<Peak1D > exp;
 	MzDataFile().load("data/PickedPeakTestData.mzData",exp);
 	
 	traits->setData(exp.begin(), exp.end(),100);

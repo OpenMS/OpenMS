@@ -59,7 +59,7 @@ EXECUTABLES_DATASTRUCTURES = \
 	QuadTree_test\
 	RangeManager_test\
 	Matrix_test\
-	DConvexHull_test\
+	ConvexHull2D_test\
 	DefaultParamHandler_test
 
 #METADATA
@@ -105,16 +105,21 @@ EXECUTABLES_SYSTEM = \
 
 EXECUTABLES_KERNEL =\
 	KernelTraits_test\
+	RawDataPoint1D_test\
+	RawDataPoint2D_test\
 	DRawDataPoint_test\
 	DPeak_test\
+	Peak1D_test\
+	Peak2D_test\
 	DPickedPeak_test\
+  PickedPeak1D_test\
 	DPeakArray_test\
 	DPeakConstReferenceArray_test\
 	DSpectrum_test\
 	ComparatorUtils_test\
 	StandardTypes_test\
-	DFeature_test\
-	DFeatureMap_test\
+	Feature_test\
+	FeatureMap_test\
 	RangeUtils_test\
 	MSSpectrum_test\
 	MSExperiment_test\
@@ -173,7 +178,7 @@ EXECUTABLES_FORMAT = \
 	MzXMLFile_test\
 	MzDataFile_test\
 	Param_test\
-	DFeatureMapFile_test\
+	FeatureMapFile_test\
 	DFeaturePairsFile_test\
 	AnalysisXMLFile_test\
 	MascotXMLFile_test\

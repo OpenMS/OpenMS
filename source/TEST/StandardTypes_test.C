@@ -61,18 +61,10 @@ RESULT
 }
 
 
-CHECK_A_TYPEDEF(RawDataPoint)
-CHECK_A_TYPEDEF(RawDataPoint2D)
 CHECK_A_TYPEDEF(RawSpectrum)
 CHECK_A_TYPEDEF(RawMap)
-CHECK_A_TYPEDEF(Peak)
-CHECK_A_TYPEDEF(Peak2D)
 CHECK_A_TYPEDEF(PeakSpectrum)
 CHECK_A_TYPEDEF(PeakMap)
-CHECK_A_TYPEDEF(Feature)
-CHECK_A_TYPEDEF(FeatureMap)
-
-
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

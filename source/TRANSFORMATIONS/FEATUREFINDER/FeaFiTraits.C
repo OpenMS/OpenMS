@@ -60,7 +60,7 @@ namespace OpenMS
 		}
 		
 		// perform binary search to find the neighbour in rt dimension
-		CoordinateType mz_pos = map_[index.first][index.second].getPos();	// mz value we want to find
+		CoordinateType mz_pos = map_[index.first][index.second].getMZ();	// mz value we want to find
 		++index.first;
 		MapType::SpectrumType::ConstIterator it = lower_bound(map_[index.first].begin(), map_[index.first].end(), map_[index.first-1][index.second], MapType::SpectrumType::PeakType::PositionLess());	
 		
@@ -82,7 +82,7 @@ namespace OpenMS
 		else 
 		{	
 			// peak to the right is closer (in m/z dimension)
-			if (it->getPos() - mz_pos < mz_pos - (it-1)->getPos() )
+			if (it->getMZ() - mz_pos < mz_pos - (it-1)->getMZ() )
 			{				
 				index.second = it - map_[index.first].begin(); 
 			}
@@ -107,7 +107,7 @@ namespace OpenMS
 		}
 		
 		// perform binary search to find the neighbour in rt dimension
-		CoordinateType mz_pos = map_[index.first][index.second].getPos();
+		CoordinateType mz_pos = map_[index.first][index.second].getMZ();
 		--index.first;
 		MapType::SpectrumType::ConstIterator it = lower_bound(map_[index.first].begin(), map_[index.first].end(), map_[index.first+1][index.second], MapType::SpectrumType::PeakType::PositionLess());	
 		
@@ -129,7 +129,7 @@ namespace OpenMS
 		else 
 		{	
 			// peak to the right is closer (in m/z dimension)
-			if (it->getPos() - mz_pos < mz_pos - (it-1)->getPos() )
+			if (it->getMZ() - mz_pos < mz_pos - (it-1)->getMZ() )
 			{
 				index.second = it - map_[index.first].begin(); 
 			}
@@ -141,14 +141,14 @@ namespace OpenMS
   }
 	
 	//Calculates the convex hull of a index set and adds it to the feature
-	void FeaFiTraits::addConvexHull(const IndexSet& set, DFeature<2>& f) const
+	void FeaFiTraits::addConvexHull(const IndexSet& set, Feature& f) const
 	{
 		vector< DPosition<2> > points;
 		points.reserve(set.size());
 		PositionType2D tmp;
 		for (IndexSet::const_iterator it=set.begin(); it!=set.end(); ++it)
     {
-    	tmp[MZ] = map_[it->first][it->second].getPos();
+    	tmp[MZ] = map_[it->first][it->second].getMZ();
     	tmp[RT] = map_[it->first].getRetentionTime();
     	points.push_back(tmp);
     }
@@ -156,7 +156,7 @@ namespace OpenMS
 		f.getConvexHulls()[f.getConvexHulls().size()-1] = points;	
 	}
 
-  const DFeatureMap<2>& FeaFiTraits::run(const vector<BaseSeeder*>& seeders, const vector<BaseExtender*>& extenders, const vector<BaseModelFitter*>& fitters)
+  const FeatureMap<>& FeaFiTraits::run(const vector<BaseSeeder*>& seeders, const vector<BaseExtender*>& extenders, const vector<BaseModelFitter*>& fitters)
   {
     // Visualize seeds and extension in TOPPView:
     // get all Seeds and save corresponding peaks as "features"
@@ -215,7 +215,7 @@ namespace OpenMS
           writeGnuPlotFile_(peaks,false,nr_feat++);
 #endif
           // gather information for fitting summary
-          const DFeature<2>& f = features_.back();
+          const Feature& f = features_.back();
 
           float corr = f.getOverallQuality();
           corr_mean += corr;

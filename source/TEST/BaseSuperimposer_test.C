@@ -35,7 +35,7 @@ using namespace std;
 
 typedef DLinearMapping< 1, KernelTraits > TransformationType;
 typedef DFeature<2, KernelTraits> ElementType;
-typedef DFeatureMap<2, ElementType> ElementMapType;
+typedef FeatureMap< ElementType> ElementMapType;
 
 class TestSuperimposer : public BaseSuperimposer<ElementMapType>
 {

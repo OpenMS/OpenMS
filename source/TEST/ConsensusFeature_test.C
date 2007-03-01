@@ -49,10 +49,10 @@ CHECK(~ConsensusFeature())
 RESULT
 
 CHECK(ConsensusFeature& operator=(const ConsensusFeature& source))
-  DPosition<2> pos(1,2);
+  Feature::PositionType pos(1,2);
   ConsensusFeature<> cons(pos,200);
-  DFeature<2> feat;
-  feat.setPosition(pos);
+  Feature feat;
+  feat.setPos(pos);
   feat.setIntensity(200);
   
   IndexTuple<> ind(1,3,feat);
@@ -61,8 +61,8 @@ CHECK(ConsensusFeature& operator=(const ConsensusFeature& source))
   ConsensusFeature<> cons_copy;
   cons_copy = cons;
   
-  TEST_REAL_EQUAL(cons_copy.getPosition()[0],1)
-  TEST_REAL_EQUAL(cons_copy.getPosition()[1],2)
+  TEST_REAL_EQUAL(cons_copy.getRT(),1)
+  TEST_REAL_EQUAL(cons_copy.getMZ(),2)
   TEST_REAL_EQUAL(cons_copy.getIntensity(),200)
   TEST_EQUAL(cons_copy.getPositionRange() == cons.getPositionRange(), true)
   TEST_EQUAL(cons_copy.getIntensityRange() == cons.getIntensityRange(), true)
@@ -72,10 +72,10 @@ CHECK(ConsensusFeature& operator=(const ConsensusFeature& source))
 RESULT
 
 CHECK((ConsensusFeature(const ConsensusFeature& c_feature_1, const ConsensusFeature& c_feature_2)))
-  DPosition<2> pos(1,2);
+  Feature::PositionType pos(1,2);
   ConsensusFeature<> cons1(pos,200);
-  DFeature<2> feat1;
-  feat1.setPosition(pos);
+  Feature feat1;
+  feat1.setPos(pos);
   feat1.setIntensity(200);
   IndexTuple<> ind1(1,3,feat1);
   cons1.insert(ind1);
@@ -83,8 +83,8 @@ CHECK((ConsensusFeature(const ConsensusFeature& c_feature_1, const ConsensusFeat
   pos[0]=2;
   pos[1]=3;
   ConsensusFeature<> cons2(pos,200);
-  DFeature<2> feat2;
-  feat2.setPosition(pos);
+  Feature feat2;
+  feat2.setPos(pos);
   feat2.setIntensity(200);
   IndexTuple<> ind2(2,3,feat2);
   cons2.insert(ind2);
@@ -93,8 +93,8 @@ CHECK((ConsensusFeature(const ConsensusFeature& c_feature_1, const ConsensusFeat
   DRange<2> pos_range(1,2,2,3);
   DRange<1> int_range(200,200);
     
-  TEST_REAL_EQUAL(cons3.getPosition()[0],1.5)
-  TEST_REAL_EQUAL(cons3.getPosition()[1],2.5)
+  TEST_REAL_EQUAL(cons3.getRT(),1.5)
+  TEST_REAL_EQUAL(cons3.getMZ(),2.5)
   TEST_REAL_EQUAL(cons3.getIntensity(),200)
   TEST_EQUAL(cons3.getPositionRange() == pos_range, true)
   TEST_EQUAL(cons3.getIntensityRange() == int_range, true)
@@ -109,17 +109,17 @@ CHECK((ConsensusFeature(const ConsensusFeature& c_feature_1, const ConsensusFeat
 RESULT
 
 CHECK(ConsensusFeature(const ConsensusFeature& source))
-  DPosition<2> pos(1,2);
+  Feature::PositionType pos(1,2);
   ConsensusFeature<> cons(pos,200);
-  DFeature<2> feat;
-  feat.setPosition(pos);
+  Feature feat;
+  feat.setPos(pos);
   feat.setIntensity(200);
   IndexTuple<> ind(1,3,feat);
   cons.insert(ind);
   ConsensusFeature<> cons_copy(cons);
   
-  TEST_REAL_EQUAL(cons_copy.getPosition()[0],1)
-  TEST_REAL_EQUAL(cons_copy.getPosition()[1],2)
+  TEST_REAL_EQUAL(cons_copy.getRT(),1)
+  TEST_REAL_EQUAL(cons_copy.getMZ(),2)
   TEST_REAL_EQUAL(cons_copy.getIntensity(),200)
   TEST_EQUAL(cons_copy.getPositionRange() == cons.getPositionRange(), true)
   TEST_EQUAL(cons_copy.getIntensityRange() == cons.getIntensityRange(), true)
@@ -129,13 +129,13 @@ CHECK(ConsensusFeature(const ConsensusFeature& source))
 RESULT
 
 CHECK((ConsensusFeature(const PositionType& pos, const IntensityType& i)))
-  DPosition<2> pos(1,2);
+  Feature::PositionType pos(1,2);
   ConsensusFeature<> cons(pos,200);
     
   DRange<2> pos_range;
   DRange<1> int_range;
-  TEST_REAL_EQUAL(cons.getPosition()[0],1)
-  TEST_REAL_EQUAL(cons.getPosition()[1],2)
+  TEST_REAL_EQUAL(cons.getRT(),1)
+  TEST_REAL_EQUAL(cons.getMZ(),2)
   TEST_REAL_EQUAL(cons.getIntensity(),200)
   TEST_EQUAL(cons.getPositionRange() == pos_range, true)
   TEST_EQUAL(cons.getIntensityRange() == int_range, true)
@@ -143,23 +143,23 @@ CHECK((ConsensusFeature(const PositionType& pos, const IntensityType& i)))
 RESULT
 
 CHECK((ConsensusFeature(const UnsignedInt& map_1_index, const UnsignedInt& feature_index_1, const ElementType& feature_1, const UnsignedInt& map_2_index, const UnsignedInt& feature_index_2, const ElementType& feature_2)))
-  DPosition<2> pos(1,2);
-  DFeature<2> feat1;
-  feat1.setPosition(pos);
+  Feature::PositionType pos(1,2);
+  Feature feat1;
+  feat1.setPos(pos);
   feat1.setIntensity(200);
   
   pos[0]=2;
   pos[1]=3;
-  DFeature<2> feat2;
-  feat2.setPosition(pos);
+  Feature feat2;
+  feat2.setPos(pos);
   feat2.setIntensity(200);
   
   ConsensusFeature<> cons3(1,3,feat1,2,3,feat2);
   DRange<2> pos_range(1,2,2,3);
   DRange<1> int_range(200,200);
     
-  TEST_REAL_EQUAL(cons3.getPosition()[0],1.5)
-  TEST_REAL_EQUAL(cons3.getPosition()[1],2.5)
+  TEST_REAL_EQUAL(cons3.getRT(),1.5)
+  TEST_REAL_EQUAL(cons3.getMZ(),2.5)
   TEST_REAL_EQUAL(cons3.getIntensity(),200)
   //std::cout << "cons3.getPositionRange() " << cons3.getPositionRange() << std::endl;
   //std::cout << "pos_range " << pos_range << std::endl;
@@ -176,17 +176,17 @@ CHECK((ConsensusFeature(const UnsignedInt& map_1_index, const UnsignedInt& featu
 RESULT
 
 CHECK((ConsensusFeature(const UnsignedInt& map_index, const UnsignedInt& feature_index, const ElementType& feature)))
-  DPosition<2> pos(1,2);
-  DFeature<2> feat1;
-  feat1.setPosition(pos);
+  Feature::PositionType pos(1,2);
+  Feature feat1;
+  feat1.setPos(pos);
   feat1.setIntensity(200);
   
  	ConsensusFeature<> cons(1,3,feat1);
   DRange<2> pos_range(1,2,1,2);
   DRange<1> int_range(200,200);
     
-  TEST_REAL_EQUAL(cons.getPosition()[0],1)
-  TEST_REAL_EQUAL(cons.getPosition()[1],2)
+  TEST_REAL_EQUAL(cons.getRT(),1)
+  TEST_REAL_EQUAL(cons.getMZ(),2)
   TEST_REAL_EQUAL(cons.getIntensity(),200)
   TEST_EQUAL(cons.getPositionRange() == pos_range, true)
   TEST_EQUAL(cons.getIntensityRange() == int_range, true)
@@ -197,16 +197,16 @@ CHECK((ConsensusFeature(const UnsignedInt& map_index, const UnsignedInt& feature
 RESULT
 
 CHECK((ConsensusFeature(const UnsignedInt& map_index, const UnsignedInt& feature_index, const ElementType& feature, const ConsensusFeature& c_feature)))
-  DPosition<2> pos(1,2);
-  DFeature<2> feat1;
-  feat1.setPosition(pos);
+  Feature::PositionType pos(1,2);
+  Feature feat1;
+  feat1.setPos(pos);
   feat1.setIntensity(200);
     
   pos[0]=2;
   pos[1]=3;
   ConsensusFeature<> cons2(pos,200);
-  DFeature<2> feat2;
-  feat2.setPosition(pos);
+  Feature feat2;
+  feat2.setPos(pos);
   feat2.setIntensity(200);
   IndexTuple<> ind2(2,3,feat2);
   cons2.insert(ind2);
@@ -215,8 +215,8 @@ CHECK((ConsensusFeature(const UnsignedInt& map_index, const UnsignedInt& feature
   DRange<2> pos_range(1,2,2,3);
   DRange<1> int_range(200,200);
     
-  TEST_REAL_EQUAL(cons3.getPosition()[0],1.5)
-  TEST_REAL_EQUAL(cons3.getPosition()[1],2.5)
+  TEST_REAL_EQUAL(cons3.getRT(),1.5)
+  TEST_REAL_EQUAL(cons3.getMZ(),2.5)
   TEST_REAL_EQUAL(cons3.getIntensity(),200)
   TEST_EQUAL(cons3.getPositionRange() == pos_range, true)
   TEST_EQUAL(cons3.getIntensityRange() == int_range, true)
@@ -231,9 +231,9 @@ CHECK((ConsensusFeature(const UnsignedInt& map_index, const UnsignedInt& feature
 RESULT
 
 CHECK(Group& getFeatures())
-	DPosition<2> pos(1,2);
-  DFeature<2> feat1;
-  feat1.setPosition(pos);
+	Feature::PositionType pos(1,2);
+  Feature feat1;
+  feat1.setPos(pos);
   feat1.setIntensity(200);
   IndexTuple<> ind(2,3,feat1);
   
@@ -266,9 +266,9 @@ CHECK(PositionBoundingBoxType& getPositionRange())
 RESULT
 
 CHECK(const Group& getFeatures() const)
-  DPosition<2> pos(1,2);
-  DFeature<2> feat1;
-  feat1.setPosition(pos);
+  Feature::PositionType pos(1,2);
+  Feature feat1;
+  feat1.setPos(pos);
   feat1.setIntensity(200);
   IndexTuple<> ind(2,3,feat1);
   ConsensusFeature<> cons;
@@ -298,9 +298,9 @@ CHECK(const PositionBoundingBoxType& getPositionRange() const)
 RESULT
 
 CHECK(void insert(const IndexTuple& tuple))
-  DPosition<2> pos(1,2);
-  DFeature<2> feat1;
-  feat1.setPosition(pos);
+  Feature::PositionType pos(1,2);
+  Feature feat1;
+  feat1.setPos(pos);
   feat1.setIntensity(200);
   IndexTuple<> ind(2,3,feat1);
   
@@ -314,9 +314,9 @@ CHECK(void insert(const IndexTuple& tuple))
 RESULT
 
 CHECK(void setFeatures(const Group& g))
-  DPosition<2> pos(1,2);
-  DFeature<2> feat1;
-  feat1.setPosition(pos);
+  Feature::PositionType pos(1,2);
+  Feature feat1;
+  feat1.setPos(pos);
   feat1.setIntensity(200);
   IndexTuple<> ind(2,3,feat1);
   

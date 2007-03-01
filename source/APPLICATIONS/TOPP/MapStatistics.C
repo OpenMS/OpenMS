@@ -24,9 +24,9 @@
 // $Maintainer: Ole Schulz-Trieglaff$
 // --------------------------------------------------------------------------
 
-#include <OpenMS/FORMAT/DFeatureMapFile.h>
+#include <OpenMS/FORMAT/FeatureMapFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
-#include <OpenMS/KERNEL/DFeatureMap.h>
+#include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 
@@ -123,13 +123,13 @@ protected:
 
 		if (in_type == FileHandler::FEATURE)
 		{
-			DFeatureMap<2> map;
-			DFeatureMapFile().load(in,map);
+			FeatureMap<> map;
+			FeatureMapFile().load(in,map);
 
 			unsigned int size = map.size();
 
-			typedef DFeatureMap<2>::FeatureType::IntensityType IntensityType;
-			typedef DFeatureMap<2>::FeatureType::QualityType QualityType;
+			typedef FeatureMap<>::FeatureType::IntensityType IntensityType;
+			typedef FeatureMap<>::FeatureType::QualityType QualityType;
 
 			IntensityType * intensities = new IntensityType[ size ];
 			QualityType * qualities	 = new QualityType[ size ];
@@ -210,7 +210,7 @@ protected:
 			//copy intensities of  MS-level 1 peaks
 			exp.updateRanges(1);
 			unsigned int size = exp.getSize();
-			DPeak<1>::IntensityType * intensities = new  DPeak<1>::IntensityType[ size ];
+			Peak1D::IntensityType * intensities = new  Peak1D::IntensityType[ size ];
 			UnsignedInt i = 0;
       for (RawMap::const_iterator spec = exp.begin(); spec != exp.end(); ++spec)
       {

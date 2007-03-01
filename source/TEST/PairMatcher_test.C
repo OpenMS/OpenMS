@@ -50,14 +50,14 @@ typedef PairMatcher::PairVectorType Pairs;
 
 Features features;
 features.resize(4);
-features[0].getPosition()[MZ] = 0.0f;
-features[0].getPosition()[RT] = 0.1f;
-features[1].getPosition()[MZ] = 4.0f;
-features[1].getPosition()[RT] = 0.0f;
-features[2].getPosition()[MZ] = 5.0f;
-features[2].getPosition()[RT] = 0.9f;
-features[3].getPosition()[MZ] = 4.0f;
-features[3].getPosition()[RT] = 0.2f;
+features[0].getMZ() = 0.0f;
+features[0].getRT() = 0.1f;
+features[1].getMZ() = 4.0f;
+features[1].getRT() = 0.0f;
+features[2].getMZ() = 5.0f;
+features[2].getRT() = 0.9f;
+features[3].getMZ() = 4.0f;
+features[3].getRT() = 0.2f;
 
 features[0].getIntensity() = 1.0f;
 features[1].getIntensity() = 2.0f;
@@ -123,14 +123,14 @@ CHECK((const PairVectorType& run()))
 	TEST_EQUAL(pairs.size(),2)
 	ABORT_IF(pairs.size()!=2)
 
-	TEST_REAL_EQUAL(pairs[0].getFirst().getPosition()[MZ],0.0f);
-	TEST_REAL_EQUAL(pairs[0].getFirst().getPosition()[RT],0.1f);
-	TEST_REAL_EQUAL(pairs[0].getSecond().getPosition()[MZ],4.0f);
-	TEST_REAL_EQUAL(pairs[0].getSecond().getPosition()[RT],0.2f);
-	TEST_REAL_EQUAL(pairs[1].getFirst().getPosition()[MZ],0.0f);
-	TEST_REAL_EQUAL(pairs[1].getFirst().getPosition()[RT],0.1f);
-	TEST_REAL_EQUAL(pairs[1].getSecond().getPosition()[MZ],4.0f);
-	TEST_REAL_EQUAL(pairs[1].getSecond().getPosition()[RT],0.0f);
+	TEST_REAL_EQUAL(pairs[0].getFirst().getMZ(),0.0f);
+	TEST_REAL_EQUAL(pairs[0].getFirst().getRT(),0.1f);
+	TEST_REAL_EQUAL(pairs[0].getSecond().getMZ(),4.0f);
+	TEST_REAL_EQUAL(pairs[0].getSecond().getRT(),0.2f);
+	TEST_REAL_EQUAL(pairs[1].getFirst().getMZ(),0.0f);
+	TEST_REAL_EQUAL(pairs[1].getFirst().getRT(),0.1f);
+	TEST_REAL_EQUAL(pairs[1].getSecond().getMZ(),4.0f);
+	TEST_REAL_EQUAL(pairs[1].getSecond().getRT(),0.0f);
 RESULT
 
 
@@ -140,10 +140,10 @@ CHECK((const PairVectorType& getBestPairs()))
 	const Pairs& pairs = pm.getBestPairs();
 	TEST_EQUAL(pairs.size(),1);
 	ABORT_IF(pairs.size()!=1)
-	TEST_REAL_EQUAL(pairs[0].getFirst().getPosition()[MZ],0.0f);
-	TEST_REAL_EQUAL(pairs[0].getFirst().getPosition()[RT],0.1f);
-	TEST_REAL_EQUAL(pairs[0].getSecond().getPosition()[MZ],4.0f);
-	TEST_REAL_EQUAL(pairs[0].getSecond().getPosition()[RT],0.0f);
+	TEST_REAL_EQUAL(pairs[0].getFirst().getMZ(),0.0f);
+	TEST_REAL_EQUAL(pairs[0].getFirst().getRT(),0.1f);
+	TEST_REAL_EQUAL(pairs[0].getSecond().getMZ(),4.0f);
+	TEST_REAL_EQUAL(pairs[0].getSecond().getRT(),0.0f);
 RESULT
 
 CHECK((static void printInfo(std::ostream& out, const PairVectorType& pairs)))

@@ -28,7 +28,7 @@
 #include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/DFeaturePairVector.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/DFeaturePair.h>
-#include <OpenMS/KERNEL/DFeature.h>
+#include <OpenMS/KERNEL/Feature.h>
 
 #include <string>
 
@@ -61,11 +61,11 @@ CHECK( DFeaturePairVector& operator = (const DFeaturePairVector& rhs) )
 	
 	DFeaturePairVector<2> pvec;
 		
-	DFeature<2> f1;
+	Feature f1;
 	f1.getPosition()[0] = 2.0;
 	f1.getPosition()[1] = 4.0;
 	
-	DFeature<2> f2;
+	Feature f2;
 	f2.getPosition()[0] = 3.0;
 	f2.getPosition()[1] = 6.0;
 	
@@ -74,11 +74,11 @@ CHECK( DFeaturePairVector& operator = (const DFeaturePairVector& rhs) )
 	pair1.setSecond(f2);
 	pvec.push_back(pair1);
 	
-	DFeature<2> f3;
+	Feature f3;
 	f3.getPosition()[0] = 4.0;
 	f3.getPosition()[1] = 8.0;
 	
-	DFeature<2> f4;
+	Feature f4;
 	f4.getPosition()[0] = 5.0;
 	f4.getPosition()[1] = 10.0;
 	
@@ -105,11 +105,11 @@ CHECK(DFeaturePairVector(const DFeaturePairVector& vec))
 	
 	DFeaturePairVector<2> pvec;
 		
-	DFeature<2> f1;
+	Feature f1;
 	f1.getPosition()[0] = 2.0;
 	f1.getPosition()[1] = 4.0;
 	
-	DFeature<2> f2;
+	Feature f2;
 	f2.getPosition()[0] = 3.0;
 	f2.getPosition()[1] = 6.0;
 	
@@ -118,11 +118,11 @@ CHECK(DFeaturePairVector(const DFeaturePairVector& vec))
 	pair1.setSecond(f2);
 	pvec.push_back(pair1);
 	
-	DFeature<2> f3;
+	Feature f3;
 	f3.getPosition()[0] = 4.0;
 	f3.getPosition()[1] = 8.0;
 	
-	DFeature<2> f4;
+	Feature f4;
 	f4.getPosition()[0] = 5.0;
 	f4.getPosition()[1] = 10.0;
 	
@@ -148,11 +148,11 @@ RESULT
 
 CHECK( bool operator == (const DFeaturePairVector& rhs) const )
 		
-	DFeature<2> f1;
+	Feature f1;
 	f1.getPosition()[0] = 2.0;
 	f1.getPosition()[1] = 4.0;
 	
-	DFeature<2> f2;
+	Feature f2;
 	f2.getPosition()[0] = 3.0;
 	f2.getPosition()[1] = 6.0;
 	
@@ -160,11 +160,11 @@ CHECK( bool operator == (const DFeaturePairVector& rhs) const )
 	pair1.setFirst(f1);
 	pair1.setSecond(f2);
 		
-	DFeature<2> f3;
+	Feature f3;
 	f3.getPosition()[0] = 4.0;
 	f3.getPosition()[1] = 8.0;
 	
-	DFeature<2> f4;
+	Feature f4;
 	f4.getPosition()[0] = 5.0;
 	f4.getPosition()[1] = 10.0;
 	
@@ -185,11 +185,11 @@ CHECK( bool operator == (const DFeaturePairVector& rhs) const )
 RESULT
 
 CHECK( bool operator != (const DFeaturePairVector& rhs) const )
-	DFeature<2> f1;
+	Feature f1;
 	f1.getPosition()[0] = 2.0;
 	f1.getPosition()[1] = 4.0;
 	
-	DFeature<2> f2;
+	Feature f2;
 	f2.getPosition()[0] = 3.0;
 	f2.getPosition()[1] = 6.0;
 	
@@ -197,11 +197,11 @@ CHECK( bool operator != (const DFeaturePairVector& rhs) const )
 	pair1.setFirst(f1);
 	pair1.setSecond(f2);
 		
-	DFeature<2> f3;
+	Feature f3;
 	f3.getPosition()[0] = 4.0;
 	f3.getPosition()[1] = 8.0;
 	
-	DFeature<2> f4;
+	Feature f4;
 	f4.getPosition()[0] = 5.0;
 	f4.getPosition()[1] = 10.0;
 	

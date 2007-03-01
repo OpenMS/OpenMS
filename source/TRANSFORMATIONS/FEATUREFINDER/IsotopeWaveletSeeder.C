@@ -139,7 +139,7 @@ namespace OpenMS
 				std::ofstream outfile(filename.c_str());
 				for (UnsignedInt k=0; k<current_scan.size();++k)
 				{
-					outfile << current_scan[k].getPos() << " " << current_scan[k].getIntensity() << std::endl;
+					outfile << current_scan[k].getMZ() << " " << current_scan[k].getIntensity() << std::endl;
 				}
 				outfile.close();
 #endif
@@ -229,16 +229,16 @@ namespace OpenMS
 					break;
 				}			
 				
-				SpectrumType::ConstIterator insert_iter = std::lower_bound(traits_->getData()[current_scan].begin(),traits_->getData()[current_scan].end(),mass_to_find,PeakType::NthPositionLess<0>());	
+				SpectrumType::ConstIterator insert_iter = std::lower_bound(traits_->getData()[current_scan].begin(),traits_->getData()[current_scan].end(),mass_to_find,PeakType::PositionLess());	
 				
-				CoordinateType miso_mass = insert_iter->getPos();
+				CoordinateType miso_mass = insert_iter->getMZ();
 			
 				// The isotope wavelet operates on mass bins and not actual masses in the spectrum
 				// We therefore need to check a couple of surrounding peaks in order to find the monoisotopic one
 				// walk to the left
 				for (UnsignedInt p=0; p<=10; ++p)
 				{
-					if ( miso_mass - (insert_iter - p)->getPos() < mass_tolerance_right_  )
+					if ( miso_mass - (insert_iter - p)->getMZ() < mass_tolerance_right_  )
 					{
 				 		region.insert( make_pair(current_scan,insert_iter - traits_->getData()[current_scan].begin()) );
 					}
@@ -255,7 +255,7 @@ namespace OpenMS
 			{
 				++insert_iter;
 				region.insert( make_pair(current_scan,insert_iter - traits_->getData()[current_scan].begin()) );
-				mass_distance = ((insert_iter + 1)->getPos() - miso_mass);
+				mass_distance = ((insert_iter + 1)->getMZ() - miso_mass);
 			} 
 													
 		}		// for (std::list...)
@@ -279,7 +279,7 @@ namespace OpenMS
 			
 			for (SpectrumType::ConstIterator it2 = it->begin() + 1; it2 != it->end(); ++it2)
 			{
-				current_spacing = it2->getPos() - (it2-1)->getPos();
+				current_spacing = it2->getMZ() - (it2-1)->getMZ();
 				if (current_spacing < min_spacing_)
 				{
 					min_spacing_ = current_spacing;
@@ -339,7 +339,7 @@ namespace OpenMS
 				cumSpacing=0;
 				w_sum=0;
 				w_s_sum=0;
-				realMass = signal[i].getPos() * (*charge_iter);
+				realMass = signal[i].getMZ() * (*charge_iter);
 	
 				lambda = getLambda (realMass); 	//Lambda determines the distribution (the shape) of the wavelet
 				 max_w_monoi_intens=0.25/(*charge_iter);
@@ -350,7 +350,7 @@ namespace OpenMS
 	
 				while (cumSpacing < max_w_monoi_intens)
 				{
-					cSpacing = signal[(i+j+1)%signal_size].getPos() - signal[(i+j)%signal_size].getPos();
+					cSpacing = signal[(i+j+1)%signal_size].getMZ() - signal[(i+j)%signal_size].getMZ();
 					last=cumSpacing;
 					
 					if (cSpacing <= 0)
@@ -359,7 +359,7 @@ namespace OpenMS
 					}
 					else //The "normal" case
 					{
-						cumSpacing += signal[(i+j+1)%signal_size].getPos() - signal[(i+j)%signal_size].getPos();
+						cumSpacing += signal[(i+j+1)%signal_size].getMZ() - signal[(i+j)%signal_size].getMZ();
 					}					
 					++j;
 				}
@@ -370,8 +370,8 @@ namespace OpenMS
 	
 				for (UnsignedInt j=0; j<waveletLength_; ++j)
 				{
-					tmp_pos = signal[(i+j)%signal_size].getPos();
-					tmp_pos1 = signal[(i+j+1)%signal_size].getPos();
+					tmp_pos = signal[(i+j)%signal_size].getMZ();
+					tmp_pos1 = signal[(i+j+1)%signal_size].getMZ();
 	
 					realMass = tmp_pos1 * (*charge_iter);
 					lambda = getLambda (realMass); //Lambda determines the distribution (the shape) of the wavelet
@@ -448,7 +448,7 @@ namespace OpenMS
 		//to estimate the mean and the sd of the pattern candidate.
 		//That region is defined by the position of the heighest amplitude +/- waveletLength_.
 	
-		typedef MSSpectrum<DRawDataPoint<2> >::ContainerType containerType;
+		typedef MSSpectrum<RawDataPoint2D >::ContainerType containerType;
 		containerType::iterator iter;
 		unsigned int start_index, end_index, c_index, i_iter; //Helping variables
 		double seed_mz, c_check_point, c_val, c_av_intens;
@@ -466,11 +466,11 @@ namespace OpenMS
 			//Ugly, but do not how to do this in a better (and easy) way
 			for (unsigned int i=0; i<candidates[c].size(); ++i)
 			{
-				c_candidate[i].setPosition(DPosition<2>( candidates[c][i].getPos(),i));
+				c_candidate[i].setPos(DPosition<2>( candidates[c][i].getPos()[1],i));
 				c_candidate[i].setIntensity( candidates[c][i].getIntensity() );
 			}
 	
-			sort (c_candidate.begin(), c_candidate.end(), 	ReverseComparator< DRawDataPoint<2>::IntensityLess>() );
+			sort (c_candidate.begin(), c_candidate.end(), 	ReverseComparator< RawDataPoint2D::IntensityLess>() );
 			c_av_intens = getAbsMean (candidates[c], 0, candidates[c].size());
 					
 			for (iter=c_candidate.begin(); iter != c_candidate.end(); ++iter)
@@ -490,7 +490,7 @@ namespace OpenMS
 			containerType::iterator write_iter;
 			for (write_iter=c_candidate.begin(); write_iter != c_candidate.end(); ++write_iter)
 			{
-				outfile << write_iter->getPos() << " " << write_iter->getIntensity() << std::endl;
+				outfile << write_iter->getMZ() << " " << write_iter->getIntensity() << std::endl;
 			}
 			outfile.close();
 #endif
@@ -501,13 +501,13 @@ namespace OpenMS
 			for (iter=c_candidate.begin(); iter != c_candidate.end(); ++iter, ++i_iter)
 			{
 				// Retrieve index
-				c_index = (int) (iter->getPosition().Y());
+				c_index = (int) (iter->getPos()[1]);
 	
 				if (processed[c_index]) continue;			   
 	
 				start_index = c_index-waveletLength_-1;
 				end_index = c_index+waveletLength_+1;
-				seed_mz=iter->getPosition().X();
+				seed_mz=iter->getPos()[0];
 	
 				//Catch impossible cases
 				if (end_index >= candidates[c].size() || start_index > end_index)  continue;
@@ -525,9 +525,9 @@ namespace OpenMS
 									
 					if (c_between.first < 0 || c_between.second < 0) break;
 					
-					c_val = getInterpolatedValue (candidates[c][c_between.first].getPos(),
+					c_val = getInterpolatedValue (candidates[c][c_between.first].getMZ(),
 													  						c_check_point,
-													  						candidates[c][c_between.second].getPos(),
+													  						candidates[c][c_between.second].getMZ(),
 													  						candidates[c][c_between.first].getIntensity(),
 													  						candidates[c][c_between.second].getIntensity());
 					
@@ -610,7 +610,7 @@ namespace OpenMS
 			}
 		   
 			// generate hash key 
-			c_hash_key = (UnsignedInt) ((traits_->getData()[scan].getContainer()[positions[0]-1].getPos() - traits_->getData().getMin().Y()) / avMZSpacing_);
+			c_hash_key = (UnsignedInt) ((traits_->getData()[scan].getContainer()[positions[0]-1].getMZ() - traits_->getData().getMin().Y()) / avMZSpacing_);
 	
 			allZero=true;
 			for (iter_cl=charge_scores.begin(); iter_cl!=charge_scores.end(); ++iter_cl)
@@ -762,9 +762,9 @@ namespace OpenMS
 		for (UnsignedInt k=0; k<neighbour.size(); ++k)
 		{
 			PeakType p			   = neighbour[k];
-			CoordinateType mass = p.getPos();
+			CoordinateType mass = p.getMZ();
 	
-			while (scan[index_newscan].getPos() < mass && index_newscan < scan.size())
+			while (scan[index_newscan].getMZ() < mass && index_newscan < scan.size())
 				++index_newscan;
 	
 			// This seems to happen more frequently than expected -> quit the loop
@@ -772,8 +772,8 @@ namespace OpenMS
 	
 			if (index_newscan > 0)
 			{
-				double left_diff   = fabs(scan[index_newscan-1].getPos() - mass);
-				double right_diff = fabs(scan[index_newscan].getPos() - mass);
+				double left_diff   = fabs(scan[index_newscan-1].getMZ() - mass);
+				double right_diff = fabs(scan[index_newscan].getMZ() - mass);
 				// 					cout << "Checking neighbours: " << left_diff << " " << right_diff << endl;
 	
 				// check which neighbour is closer
@@ -792,7 +792,7 @@ namespace OpenMS
 			}
 			else // no left neighbour available
 			{
-				double right_diff = fabs(scan[index_newscan].getPos() - mass);
+				double right_diff = fabs(scan[index_newscan].getMZ() - mass);
 				if (right_diff < mass_tolerance)
 				{
 					scan[index_newscan].getIntensity() += p.getIntensity();

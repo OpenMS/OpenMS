@@ -113,7 +113,7 @@ namespace OpenMS
 		quality_ = Factory<BaseQuality>::create(param_.getValue("quality:type"));
 	}
 
-  DFeature<2> SimpleModelFitter::fit(const IndexSet& set) throw (UnableToFit)
+  Feature SimpleModelFitter::fit(const IndexSet& set) throw (UnableToFit)
 	{
 		
 		// not enough peaks to fit
@@ -263,11 +263,11 @@ namespace OpenMS
 		// The feature coordinate in rt dimension is given
 		// by the centroid of the rt model whereas the coordinate
 		// in mz dimension is equal to the monoisotopic peak.
-		DFeature<2> f;
+		Feature f;
 		f.setModelDescription( ModelDescription<2>(final) );
 		f.setOverallQuality(max_quality);
-		f.getPosition()[RT] = static_cast<InterpolationModel<>*>(final->getModel(RT))->getCenter();
-		f.getPosition()[MZ] = static_cast<InterpolationModel<>*>(final->getModel(MZ))->getCenter();
+		f.setRT(static_cast<InterpolationModel<>*>(final->getModel(RT))->getCenter());
+		f.setMZ(static_cast<InterpolationModel<>*>(final->getModel(MZ))->getCenter());
 		
 		// set feature charge												
 		if (final->getModel(MZ)->getName() == "IsotopeModel")
@@ -305,8 +305,8 @@ namespace OpenMS
 		f.setIntensity(feature_intensity);
 		traits_->addConvexHull(model_set, f);
 		
-		std::cout << Date::now() << " Feature " << counter_ << ": (" << f.getPosition()[RT]
-							<< "," << f.getPosition()[MZ] << ") Qual.:" << max_quality << "\n";
+		std::cout << Date::now() << " Feature " << counter_ << ": (" << f.getRT()
+							<< "," << f.getMZ() << ") Qual.:" << max_quality << "\n";
 		
 		f.getQuality(RT) = quality_->evaluate(model_set, *final->getModel(RT), RT );
 		f.getQuality(MZ) = quality_->evaluate(model_set, *(static_cast<InterpolationModel<>*>(final->getModel(MZ)) ),MZ );
@@ -319,8 +319,8 @@ namespace OpenMS
 		
 		#ifdef DEBUG_FEATUREFINDER
 		// write debug output
-		CoordinateType rt = f.getPosition()[RT];
-		CoordinateType mz = f.getPosition()[MZ];
+		CoordinateType rt = f.getRT();
+		CoordinateType mz = f.getMZ();
 		
 		// write feature model 
 		String fname = String("model") + counter_ + "_" + rt + "_" + mz;

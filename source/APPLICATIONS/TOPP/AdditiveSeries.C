@@ -24,8 +24,8 @@
 // $Maintainer: Ole Schulz-Trieglaff$
 // --------------------------------------------------------------------------
 
-#include <OpenMS/FORMAT/DFeatureMapFile.h>
-#include <OpenMS/KERNEL/DFeatureMap.h>
+#include <OpenMS/FORMAT/FeatureMapFile.h>
+#include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/DimensionDescription.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/MATH/STATISTICS/LinearRegression.h>
@@ -39,8 +39,8 @@ using namespace OpenMS;
 using namespace Math;
 using namespace std;
 
-typedef DFeature<2>::CoordinateType CoordinateType;
-typedef DFeature<2>::IntensityType IntensityType;
+typedef Feature::CoordinateType CoordinateType;
+typedef Feature::IntensityType IntensityType;
 
 /// Defines the coordinates of peaks / features.
 enum DimensionId
@@ -155,26 +155,26 @@ class AdditiveSeries
                       CoordinateType tol_mz, CoordinateType tol_rt,
                       DPosition<2> fpos1, DPosition<2> fpos2)
     {
-        DFeatureMapFile map_file;
-        DFeatureMap<2> map;
+        FeatureMapFile map_file;
+        FeatureMap<> map;
         map_file.load(filename,map);
 
-        DFeature<2>* feat1 = 0;
-        DFeature<2>* feat2 = 0;
+        Feature* feat1 = 0;
+        Feature* feat2 = 0;
 
-        DFeatureMap<2>::iterator iter = map.begin();
+        FeatureMap<>::iterator iter = map.begin();
         while (iter!= map.end() )
         {
 
 			//cout << "Read: " << *iter << endl;
 			
-            if ( (iter->getPosition()[RT] <  fpos1[RT] + tol_rt) &&
-                    (iter->getPosition()[RT] >  fpos1[RT] - tol_rt) &&
-                    (iter->getPosition()[MZ] <  fpos1[MZ] + tol_mz) &&
-                    (iter->getPosition()[MZ] >  fpos1[MZ] - tol_mz) )
+            if ( (iter->getRT() <  fpos1[RT] + tol_rt) &&
+                    (iter->getRT() >  fpos1[RT] - tol_rt) &&
+                    (iter->getMZ() <  fpos1[MZ] + tol_mz) &&
+                    (iter->getMZ() >  fpos1[MZ] - tol_mz) )
             {
 				//cout << "Found feature1 at " << endl;
-				//cout << iter->getPosition()[RT] << " " << iter->getPosition()[MZ]  << " " << iter->getIntensity() <<  endl;
+				//cout << iter->getRT() << " " << iter->getMZ()  << " " << iter->getIntensity() <<  endl;
                 // feature at correct position found, save intensity
                 if (!feat1)
 				{
@@ -188,13 +188,13 @@ class AdditiveSeries
 
             }
 
-            if ( (iter->getPosition()[RT] <  fpos2[RT] + tol_rt) &&
-                    (iter->getPosition()[RT] >  fpos2[RT] - tol_rt) &&
-                    (iter->getPosition()[MZ] <  fpos2[MZ] + tol_mz) &&
-                    (iter->getPosition()[MZ] >  fpos2[MZ] - tol_mz) )
+            if ( (iter->getRT() <  fpos2[RT] + tol_rt) &&
+                    (iter->getRT() >  fpos2[RT] - tol_rt) &&
+                    (iter->getMZ() <  fpos2[MZ] + tol_mz) &&
+                    (iter->getMZ() >  fpos2[MZ] - tol_mz) )
             {
 				//cout << "Found feature2 at " << endl;
-				//cout << iter->getPosition()[RT] << " " << iter->getPosition()[MZ] << " " << iter->getIntensity() <<  endl;
+				//cout << iter->getRT() << " " << iter->getMZ() << " " << iter->getIntensity() <<  endl;
                 // same as above
                  if (!feat2)
 				{

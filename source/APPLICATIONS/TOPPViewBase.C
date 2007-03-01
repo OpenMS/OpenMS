@@ -46,7 +46,7 @@
 #include <OpenMS/VISUAL/Spectrum1DWidget.h>
 #include <OpenMS/VISUAL/Spectrum2DWidget.h>
 #include <OpenMS/FORMAT/FileHandler.h>
-#include <OpenMS/FORMAT/DFeatureMapFile.h>
+#include <OpenMS/FORMAT/FeatureMapFile.h>
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerCWT.h>
 #include <OpenMS/VISUAL/DIALOGS/PeakPickingDialog.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/LinearResampler.h>
@@ -545,10 +545,10 @@ namespace OpenMS
     //try to read the data from file
     if (force_type==FileHandler::FEATURE) //features
     {
-      DFeatureMap<2> map;
+      FeatureMap<> map;
       try
       {
-        DFeatureMapFile().load(filename,map);
+        FeatureMapFile().load(filename,map);
       }
       catch(Exception::Base& e)
       {
@@ -573,7 +573,7 @@ namespace OpenMS
       }
       
       //convert to features
-      DFeatureMap<2> map;
+      FeatureMap<> map;
       DFeaturePairsFile::pairsToFeatures(pairs,map);
       w->widget()->canvas()->addLayer(map,true);
       w->widget()->canvas()->setCurrentLayerName(caption);
@@ -907,10 +907,10 @@ namespace OpenMS
     		{
 					if ( it->getIntensity() >= layer.min_int && 
 							 it->getIntensity() <= layer.max_int &&
-							 it->getPosition()[RT] >= area.min()[1] &&
-							 it->getPosition()[RT] <= area.max()[1] &&
-							 it->getPosition()[MZ] >= area.min()[0] &&
-							 it->getPosition()[MZ] <= area.max()[0]
+							 it->getRT() >= area.min()[1] &&
+							 it->getRT() <= area.max()[1] &&
+							 it->getMZ() >= area.min()[0] &&
+							 it->getMZ() <= area.max()[0]
 						 )
 					{
 						out.push_back(*it);
@@ -928,7 +928,7 @@ namespace OpenMS
 					                    "features files (*.feat)" );
 					if (!file_name.isEmpty())
 					{
-					  DFeatureMapFile().store(file_name.toAscii().data(),out);
+					  FeatureMapFile().store(file_name.toAscii().data(),out);
 					}
     		}
 			}
@@ -1581,15 +1581,15 @@ namespace OpenMS
       {
         if (it == peaks.begin())
         {
-          peaklist << "First Peak in Spectrum: Position " << (**it).getPosition()[0] << ", Intensity " << (**it).getIntensity() << endl;
+          peaklist << "First Peak in Spectrum: Position " << (**it).getMZ() << ", Intensity " << (**it).getIntensity() << endl;
         }
         else if (*it == *(peaks.rbegin()))
         {
-          peaklist << "Last Peak in Spectrum: Position " << (**it).getPosition()[0] << ", Intensity " << (**it).getIntensity();
+          peaklist << "Last Peak in Spectrum: Position " << (**it).getMZ() << ", Intensity " << (**it).getIntensity();
         }
         else
         {
-          peaklist << "Selected Peak: Position " << (**it).getPosition()[0] << ", Intensity " << (**it).getIntensity() << endl;
+          peaklist << "Selected Peak: Position " << (**it).getMZ() << ", Intensity " << (**it).getIntensity() << endl;
         }
       }
       QMessageBox::information(this, QString("Peaklist"), QString(peaklist.str().c_str()));
@@ -1655,7 +1655,7 @@ namespace OpenMS
 		        else
 		        {
 		        	// else compute the spacing of data
-			        float s =  ((exp_raw[0].end()-1)->getPos() - exp_raw[0].begin()->getPos()) / (exp_raw[0].size() + 1);
+			        float s =  ((exp_raw[0].end()-1)->getMZ() - exp_raw[0].begin()->getMZ()) / (exp_raw[0].size() + 1);
 			        
 			        // and determine the number of kernel coefficients
 			        int frame_size = (int) ceil(kernel_width / s + 1);
@@ -1762,7 +1762,7 @@ namespace OpenMS
 	          	else
 	          	{
 	          		// else compute the spacing of data
-				        float s =  ((exp_raw[0].end()-1)->getPos() - exp_raw[0].begin()->getPos()) / (exp_raw[0].size() + 1);
+				        float s =  ((exp_raw[0].end()-1)->getMZ() - exp_raw[0].begin()->getMZ()) / (exp_raw[0].size() + 1);
 				        
 				        // and determine the number of kernel coefficients
 				        int frame_size = (int) ceil(kernel_width / s + 1);
@@ -2216,7 +2216,7 @@ namespace OpenMS
         FeatureFinder& finder = dialog.getFeatureFinder();
         
         finder.setData(w->widget()->canvas()->getCurrentPeakData().begin(),w->widget()->canvas()->getCurrentPeakData().end(),1500);
-        DFeatureMap<2> map = finder.run();
+        FeatureMap<> map = finder.run();
 
         //display features
         w->widget()->canvas()->addLayer(map,false);

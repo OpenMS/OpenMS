@@ -68,14 +68,14 @@ namespace OpenMS
     //double filterfactor = filter(csa,csb);
     double score = 0;
     double window = (double)param_.getValue("window");
-    //const MSSpectrum< DPeak<1> >& x = csa.getSpec();
-    //const MSSpectrum< DPeak<1> >& y = csb.getSpec();
+    //const MSSpectrum< Peak1D >& x = csa.getSpec();
+    //const MSSpectrum< Peak1D >& y = csb.getSpec();
     
-    if (fabs (x.getPrecursorPeak().getPosition()[0] - y.getPrecursorPeak().getPosition()[0]) > window) 
+    if (fabs (x.getPrecursorPeak().getPos()[0] - y.getPrecursorPeak().getPos()[0]) > window) 
 		{
 			return 0;
 		}
-    score = window - fabs(x.getPrecursorPeak().getPosition()[0] - y.getPrecursorPeak().getPosition()[0]);
+    score = window - fabs(x.getPrecursorPeak().getPos()[0] - y.getPrecursorPeak().getPos()[0]);
     return score;
   }
 

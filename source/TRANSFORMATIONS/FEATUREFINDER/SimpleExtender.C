@@ -286,7 +286,7 @@ namespace OpenMS
 	{
 		return traits_->getData()[index.first][index.second].getIntensity() *
  			score_distribution_rt_.value(traits_->getData()[index.first].getRetentionTime()-last_pos_extracted_[RT]) *
-			score_distribution_mz_.value(traits_->getData()[index.first][index.second].getPos()-last_pos_extracted_[MZ]);
+			score_distribution_mz_.value(traits_->getData()[index.first][index.second].getMZ()-last_pos_extracted_[MZ]);
 	}
 
 	void SimpleExtender::checkNeighbour_(const IDX& index)

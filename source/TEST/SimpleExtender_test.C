@@ -74,8 +74,8 @@ CHECK(nextSeed())
 
 	SimpleExtender extender;
   FeaFiTraits* traits = new FeaFiTraits();
-  MSExperiment<DPeak<1> > exp;
-	MSExperiment<DPeak<1> >::SpectrumType spec;
+  MSExperiment<Peak1D > exp;
+	MSExperiment<Peak1D >::SpectrumType spec;
 	spec.setRetentionTime(1260);
   
   double mzs[] = {675, 675.5, 676, 676.5, 677};
@@ -85,7 +85,7 @@ CHECK(nextSeed())
 	
 	for (unsigned int i=0; i < num; i++)
 	{
-		DPeak<1> p;
+		Peak1D p;
 		p.getPosition()[0] = mzs[i];
 		p.getIntensity() = its[i];
 		

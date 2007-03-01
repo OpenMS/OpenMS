@@ -44,14 +44,14 @@ START_TEST(MascotInfile, "$Id$")
 /////////////////////////////////////////////////////////////
 
 //DPeakArray (dummy for spectrum)
-DPeakArray<1> spec;
-DPeak<1> tmp;
+DPeakArray<1, Peak1D> spec;
+Peak1D tmp;
 vector<SignedInt> charges;
 charges.push_back(2);
 for (UnsignedInt i=1;i<10;i+=1)
 {
-	tmp.setPosition(DPosition<1>(i));
-	tmp.setIntensity(i*i);
+	tmp.setPos(DPosition<1>(i));
+	tmp.setIntensity(i * i);
 	spec.push_back(tmp);	
 }
 
@@ -227,7 +227,7 @@ CHECK((const std::string& getCharges()))
 	TEST_EQUAL(file.getCharges(), "1+, 2+ and 3+")
 RESULT
 
-CHECK((void store(const std::string& filename, const MSExperiment< DPeak<1> >& experiment, std::string search_title)))
+CHECK((void store(const std::string& filename, const MSExperiment< Peak1D >& experiment, std::string search_title)))
 	MSExperiment<> exp;
 	MSExperiment<>::SpectrumType spec;
 	MSExperiment<>::PeakType peak;
@@ -235,24 +235,24 @@ CHECK((void store(const std::string& filename, const MSExperiment< DPeak<1> >& e
 	// first spectrum (MS)
 	spec.setRetentionTime(11.1);
 	spec.setMSLevel(1);
-	peak.getPosition()[0] = 5;
+	peak.getPos()[0] = 5;
 	peak.setIntensity(47.11);
 	spec.getContainer().push_back(peak);
-	peak.getPosition()[0] = 10;
+	peak.getPos()[0] = 10;
 	peak.setIntensity(48.11);
 	spec.getContainer().push_back(peak);
-	peak.getPosition()[0] = 15;
+	peak.getPos()[0] = 15;
 	spec.getContainer().push_back(peak);
 	exp.push_back(spec);
 
 	// second spectrum (MS/MS)
 	spec.getContainer().clear();
 	spec.setRetentionTime(11.5);
-	spec.getPrecursorPeak().getPosition()[0] = 11.4;
+	spec.getPrecursorPeak().getPos()[0] = 11.4;
 	spec.setMSLevel(2);
-	peak.getPosition()[0] = 6;
+	peak.getPos()[0] = 6;
 	spec.getContainer().push_back(peak);
-	peak.getPosition()[0] = 11;
+	peak.getPos()[0] = 11;
 	spec.getContainer().push_back(peak);
 	exp.push_back(spec);	
 
@@ -260,22 +260,22 @@ CHECK((void store(const std::string& filename, const MSExperiment< DPeak<1> >& e
 	spec.getContainer().clear();
 	spec.setRetentionTime(12.2);
 	spec.setMSLevel(1);
-	peak.getPosition()[0] = 20;
+	peak.getPos()[0] = 20;
 	spec.getContainer().push_back(peak);
-	peak.getPosition()[0] = 25;
+	peak.getPos()[0] = 25;
 	spec.getContainer().push_back(peak);
 	exp.push_back(spec);	
 
 	// forth spectrum (MS/MS)
 	spec.getContainer().clear();
 	spec.setRetentionTime(12.5);
-	spec.getPrecursorPeak().getPosition()[0] = 21.4;
+	spec.getPrecursorPeak().getPos()[0] = 21.4;
 	spec.setMSLevel(2);
-	peak.getPosition()[0] = 21;
+	peak.getPos()[0] = 21;
 	spec.getContainer().push_back(peak);
-	peak.getPosition()[0] = 26;
+	peak.getPos()[0] = 26;
 	spec.getContainer().push_back(peak);
-	peak.getPosition()[0] = 31;
+	peak.getPos()[0] = 31;
 	spec.getContainer().push_back(peak);
 	exp.push_back(spec);	
 

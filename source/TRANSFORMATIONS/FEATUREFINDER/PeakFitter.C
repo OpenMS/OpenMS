@@ -71,7 +71,7 @@ namespace OpenMS
     return *this;
   }
 
-  DFeature<2> PeakFitter::fit(const IndexSet& set) throw (UnableToFit)
+  Feature PeakFitter::fit(const IndexSet& set) throw (UnableToFit)
 	{		
 		// not enough peaks to fit
 		if (set.size() < static_cast<Size>(param_.getValue("min_num_peaks:extended")))
@@ -84,7 +84,7 @@ namespace OpenMS
 		// The feature coordinate in rt dimension is given
 		// by the centroid of the rt model whereas the coordinate
 		// in mz dimension is equal to the monoisotopic peak.
-		DFeature<2> f;
+		Feature f;
 		f.setOverallQuality(1.0);
 		f.setCharge(0);		
 		
@@ -117,13 +117,13 @@ namespace OpenMS
 			f.setIntensity(max_intensity);
 		}
 		
-		f.getPosition()[RT] = traits_->getPeakRt(max_intensity_index);
-		f.getPosition()[MZ] = traits_->getPeakMz(max_intensity_index);
+		f.setRT(traits_->getPeakRt(max_intensity_index));
+		f.setMZ(traits_->getPeakMz(max_intensity_index));
 		
 		traits_->addConvexHull(set, f);
 		
-		std::cout << Date::now() << " Feature " << counter_ << ": (" << f.getPosition()[RT];
-		std::cout	<< "," << f.getPosition()[MZ] << ") Qual.:" << f.getOverallQuality() << "\n";
+		std::cout << Date::now() << " Feature " << counter_ << ": (" << f.getRT();
+		std::cout	<< "," << f.getMZ() << ") Qual.:" << f.getOverallQuality() << "\n";
 		
 		// save meta data in feature for TOPPView
 		stringstream s;
@@ -133,8 +133,8 @@ namespace OpenMS
 		
 		#ifdef DEBUG_FEATUREFINDER
 		// write debug output
-		CoordinateType rt = f.getPosition()[RT];
-		CoordinateType mz = f.getPosition()[MZ];
+		CoordinateType rt = f.getRT();
+		CoordinateType mz = f.getMZ();
 				
 		// wrote peaks remaining after model fit
 		String fname = String("feature") + counter_ + "_" + rt + "_" + mz;

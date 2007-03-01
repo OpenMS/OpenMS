@@ -25,7 +25,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/ClassTest.h>
-#include <OpenMS/FORMAT/DFeatureMapFile.h>
+#include <OpenMS/FORMAT/FeatureMapFile.h>
 
 ///////////////////////////
 #include <OpenMS/ANALYSIS/MAPMATCHING/StarAlignment.h>
@@ -133,7 +133,7 @@ CHECK(const UnsignedInt& getReferenceMapIndex() const)
 RESULT
 
 CHECK(void run() throw(Exception::InvalidValue))
-  DFeatureMapFile feature_file;
+  FeatureMapFile feature_file;
   StarAlignment< ConsensusFeature<FeatureMap> > alignment;
   vector<String> name_vector(2);
   String file_name = "data/MapAlignmentFeatureMap1.xml";

@@ -57,23 +57,23 @@ RESULT
 
 CHECK((template<class PeakT> UnsignedInt annotate(MSExperiment< PeakT >& experiment, const std::vector<IdentificationData>& identifications, float precision = 0.01f)))
 	vector<IdentificationData> identifications2; 
-	MSExperiment< DPeak<1> > experiment;
-	MSSpectrum< DPeak<1> > spectrum;
+	MSExperiment< Peak1D > experiment;
+	MSSpectrum< Peak1D > spectrum;
 	DSpectrum< 1 >::PrecursorPeakType peak;
 	AnalysisXMLFile().load("data/IDSpectrumMapper_test.analysisXML",
 								protein_identifications, 
 					   		identifications);
 	
 	peak = spectrum.getPrecursorPeak();
-	peak.setPosition(0);
+	peak.setPos(0);
 	spectrum.setRetentionTime(60);
 	experiment.push_back(spectrum);							
 	experiment[0].setPrecursorPeak(peak);
-	peak.setPosition(20);
+	peak.setPos(20);
 	spectrum.setRetentionTime(181);
 	experiment.push_back(spectrum);							
 	experiment[1].setPrecursorPeak(peak);
-	peak.setPosition(11);
+	peak.setPos(11);
 	spectrum.setRetentionTime(120.0001);
 	experiment.push_back(spectrum);							
 	experiment[2].setPrecursorPeak(peak);
@@ -91,23 +91,23 @@ RESULT
 
 CHECK((template<class PeakT> void getAnnotations(const MSExperiment< PeakT >& experiment, std::vector<IdentificationData>& identifications)))
 	vector<IdentificationData> identifications2; 
-	MSExperiment< DPeak<1> > experiment;
-	MSSpectrum< DPeak<1> > spectrum;
+	MSExperiment< Peak1D > experiment;
+	MSSpectrum< Peak1D > spectrum;
 	DSpectrum< 1 >::PrecursorPeakType peak;
 	AnalysisXMLFile().load("data/IDSpectrumMapper_test.analysisXML",
 								protein_identifications, 
 					   		identifications);
 	
 	peak = spectrum.getPrecursorPeak();
-	peak.setPosition(0);
+	peak.setPos(0);
 	spectrum.setRetentionTime(60);
 	experiment.push_back(spectrum);							
 	experiment[0].setPrecursorPeak(peak);
-	peak.setPosition(11);
+	peak.setPos(11);
 	spectrum.setRetentionTime(120);
 	experiment.push_back(spectrum);							
 	experiment[1].setPrecursorPeak(peak);
-	peak.setPosition(20);
+	peak.setPos(20);
 	spectrum.setRetentionTime(180);
 	experiment.push_back(spectrum);							
 	experiment[2].setPrecursorPeak(peak);

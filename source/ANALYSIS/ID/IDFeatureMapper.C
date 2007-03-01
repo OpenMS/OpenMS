@@ -36,7 +36,7 @@ namespace OpenMS
     
   }
   
-  void IDFeatureMapper::annotate(DFeatureMap<2>& fm, const vector<IdentificationData>& ids, const vector<ProteinIdentification>& protein_ids)
+  void IDFeatureMapper::annotate(FeatureMap<>& fm, const vector<IdentificationData>& ids, const vector<ProteinIdentification>& protein_ids)
   	throw (Exception::Precondition)
 	{		
 		//assign protein identifications
@@ -50,11 +50,11 @@ namespace OpenMS
     };
 		
 		//iterate over the features
-		for(DFeatureMap<2>::Iterator f_it = fm.begin(); f_it!=fm.end(); ++f_it)
+		for(FeatureMap<>::Iterator f_it = fm.begin(); f_it!=fm.end(); ++f_it)
 		{
-			//cout << endl << "* Feature (rt/mz): " << f_it->getPosition()[RT] << " " << f_it->getPosition()[MZ] << endl;
+			//cout << endl << "* Feature (rt/mz): " << f_it->getRT() << " " << f_it->getMZ() << endl;
 			DBoundingBox<2> bb = f_it->getBoundingBox();
-			const DFeature<2>::ConvexHullVector& ch_vec = f_it->getConvexHulls();
+			const Feature::ConvexHullVector& ch_vec = f_it->getConvexHulls();
 			
 			//iterate over the IDs
 			for (UnsignedInt i=0; i<ids.size(); ++i)
@@ -68,7 +68,7 @@ namespace OpenMS
 					//cout << "  * outside BB " << endl;
 					continue;
 				}
-				for(DFeature<2>::ConvexHullVector::const_iterator ch_it = ch_vec.begin(); ch_it!=ch_vec.end(); ++ch_it)
+				for(Feature::ConvexHullVector::const_iterator ch_it = ch_vec.begin(); ch_it!=ch_vec.end(); ++ch_it)
 				{
 					//cout << "    * Convex Hull" << endl;
 					if (ch_it->encloses(id_pos))

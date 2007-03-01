@@ -114,16 +114,16 @@ CHECK((PeakPickerCWT(const PeakPickerCWT& pp)))
 RESULT
 
 MzDataFile mz_data_file;
-MSExperiment<DRawDataPoint<1> > exp_raw;
+MSExperiment<RawDataPoint1D > exp_raw;
 mz_data_file.load("data/PeakPicker_test.mzData",exp_raw);
 CHECK((template<typename InputPeakContainer, typename OutputPeakContainer > void pick(const InputPeakContainer& input_peak_container, OutputPeakContainer& picked_peaks_container, int ms_level = 1)))
-  MSSpectrum<DPeak<1> > peaks;
+  MSSpectrum<Peak1D > peaks;
   PeakPickerCWT pp;
     
   pp.pick(exp_raw[0],peaks);
-  MSSpectrum<DPeak<1> >::const_iterator it = peaks.begin();
+  MSSpectrum<Peak1D >::const_iterator it = peaks.begin();
   TEST_REAL_EQUAL(peaks.size() == pp.getPeakShapes().size(), true)  
-  TEST_REAL_EQUAL(it->getPos(),pp.getPeakShapes()[0].mz_position)
+  TEST_REAL_EQUAL(it->getMZ(),pp.getPeakShapes()[0].mz_position)
   TEST_REAL_EQUAL(it->getIntensity(),pp.getPeakShapes()[0].height)
 RESULT
 
@@ -134,7 +134,7 @@ CHECK((template<typename InputPeakIterator, typename OutputPeakContainer  > void
   pp.pick(exp_raw[0].begin(),exp_raw[0].end(),peaks,1);
   MSSpectrum<DPickedPeak<1> >::const_iterator it = peaks.begin();
   TEST_REAL_EQUAL(peaks.size() == pp.getPeakShapes().size(), true)   
-  TEST_REAL_EQUAL(it->getPos(),pp.getPeakShapes()[0].mz_position)
+  TEST_REAL_EQUAL(it->getMZ(),pp.getPeakShapes()[0].mz_position)
   TEST_REAL_EQUAL(it->getIntensity(),pp.getPeakShapes()[0].height)
   TEST_REAL_EQUAL(it->getRValue(),pp.getPeakShapes()[0].r_value)
   TEST_REAL_EQUAL(it->getArea(),pp.getPeakShapes()[0].area)

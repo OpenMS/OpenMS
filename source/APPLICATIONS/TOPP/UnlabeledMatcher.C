@@ -25,7 +25,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/PoseClusteringPairwiseMapMatcher.h>
-#include <OpenMS/FORMAT/DFeatureMapFile.h>
+#include <OpenMS/FORMAT/FeatureMapFile.h>
 #include <OpenMS/FORMAT/DFeaturePairsFile.h>
 #include <OpenMS/FORMAT/DGridFile.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
@@ -36,9 +36,6 @@
 using namespace OpenMS;
 using namespace std;
 
-typedef DFeature<2,KernelTraits> Feature;
-typedef DFeatureMap<2,Feature> FeatureMap;
-typedef DFeatureMapFile FeatureMapFile;
 typedef DFeaturePair<2,Feature> FeaturePair;
 typedef DFeaturePairVector<2,Feature> FeaturePairVector;
 typedef DFeaturePairsFile FeaturePairVectorFile;
@@ -114,7 +111,7 @@ class TOPPUnlabeledMatcher
 
       // read input files
       FeatureMapFile feature_file[2];
-      FeatureMap feature_map[2];
+      FeatureMap< > feature_map[2];
 
       /// determine names of input files
       for ( Size index = 0; index < 2; ++index )

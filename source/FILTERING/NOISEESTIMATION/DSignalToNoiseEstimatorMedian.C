@@ -31,6 +31,5 @@ namespace OpenMS
 {
 	/// @cond DOXYGEN_IGNORES_THIS
   DSignalToNoiseEstimatorMedian<> default_sn_median1;
-  DSignalToNoiseEstimatorMedian<2, DPeakArray<2,DRawDataPoint<2> >::const_iterator > default_sn_median2;
 	/// @endcond
 }
