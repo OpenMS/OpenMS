@@ -96,12 +96,12 @@ CHECK((template<typename ElementT> void load(const String& filename, ConsensusMa
   ConsensusMap< ConsensusFeature<FeatureMap<> > > cons_map;
   ConsensusXMLFile cons_file;
   cons_file.load("data/ConsensusXMLFile.xml", cons_map);
-  TEST_EQUAL(cons_map.getFilenames()[0] == "data/MapAlignmentFeatureMap<> 1.xml", true)
-  TEST_EQUAL(cons_map.getFilenames()[1] == "data/MapAlignmentFeatureMap<> 2.xml", true)
+  TEST_EQUAL(cons_map.getFilenames()[0] == "data/MapAlignmentFeatureMap1.xml", true)
+  TEST_EQUAL(cons_map.getFilenames()[1] == "data/MapAlignmentFeatureMap2.xml", true)
 
   ConsensusFeature<FeatureMap<> > cons_feature = cons_map[0];
-  TEST_REAL_EQUAL(cons_feature.getPosition()[0],1273.27)  
-  TEST_REAL_EQUAL(cons_feature.getPosition()[1],904.47)
+  TEST_REAL_EQUAL(cons_feature.getPos()[0],1273.27)  
+  TEST_REAL_EQUAL(cons_feature.getPos()[1],904.47)
   TEST_REAL_EQUAL(cons_feature.getIntensity(),3.12539e+07)
   TEST_REAL_EQUAL(cons_feature.getPositionRange().min()[0],1273.27)
   TEST_REAL_EQUAL(cons_feature.getPositionRange().max()[0],1273.27)
@@ -110,13 +110,13 @@ CHECK((template<typename ElementT> void load(const String& filename, ConsensusMa
   TEST_REAL_EQUAL(cons_feature.getIntensityRange().min()[0],3.12539e+07)
   TEST_REAL_EQUAL(cons_feature.getIntensityRange().max()[0],3.12539e+07)
   ConsensusFeature<FeatureMap<> >::Group::const_iterator it = cons_feature.begin();
-  TEST_REAL_EQUAL(it->getElement().getPosition()[0],1273.27)  
-  TEST_REAL_EQUAL(it->getElement().getPosition()[1],904.47)
+  TEST_REAL_EQUAL(it->getElement().getPos()[0],1273.27)  
+  TEST_REAL_EQUAL(it->getElement().getPos()[1],904.47)
   TEST_REAL_EQUAL(it->getElement().getIntensity(),3.12539e+07)
     
   cons_feature = cons_map[5];
-  TEST_REAL_EQUAL(cons_feature.getPosition()[0],1194.82)  
-  TEST_REAL_EQUAL(cons_feature.getPosition()[1],777.101)
+  TEST_REAL_EQUAL(cons_feature.getPos()[0],1194.82)  
+  TEST_REAL_EQUAL(cons_feature.getPos()[1],777.101)
   TEST_REAL_EQUAL(cons_feature.getIntensity(),1.78215e+07)
   TEST_REAL_EQUAL(cons_feature.getPositionRange().min()[0],1194.82)
   TEST_REAL_EQUAL(cons_feature.getPositionRange().max()[0],1194.82)
@@ -125,12 +125,12 @@ CHECK((template<typename ElementT> void load(const String& filename, ConsensusMa
   TEST_REAL_EQUAL(cons_feature.getIntensityRange().min()[0],1.78215e+07)
   TEST_REAL_EQUAL(cons_feature.getIntensityRange().max()[0],1.78215e+07)
   it = cons_feature.begin();
-  TEST_REAL_EQUAL(it->getElement().getPosition()[0],1194.82)  
-  TEST_REAL_EQUAL(it->getElement().getPosition()[1],777.101)
+  TEST_REAL_EQUAL(it->getElement().getPos()[0],1194.82)  
+  TEST_REAL_EQUAL(it->getElement().getPos()[1],777.101)
   TEST_REAL_EQUAL(it->getElement().getIntensity(),1.78215e+07)
   ++it;
-  TEST_REAL_EQUAL(it->getElement().getPosition()[0],2401.64)  
-  TEST_REAL_EQUAL(it->getElement().getPosition()[1],777.201)
+  TEST_REAL_EQUAL(it->getElement().getPos()[0],2401.64)  
+  TEST_REAL_EQUAL(it->getElement().getPos()[1],777.201)
   TEST_REAL_EQUAL(it->getElement().getIntensity(),1.78215e+07)
 RESULT
 
