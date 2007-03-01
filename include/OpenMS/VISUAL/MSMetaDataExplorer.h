@@ -167,6 +167,8 @@ namespace OpenMS
 			/// Calls visualizer class for class type Identification
 			void visualize_(Identification& meta, QTreeWidgetItem* parent=0);
 			
+			
+			
 			/** 
 			@brief Update visible protein hits.
 				

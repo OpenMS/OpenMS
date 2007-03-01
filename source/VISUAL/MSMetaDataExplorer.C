@@ -83,10 +83,12 @@ namespace OpenMS
 		
 		//Create the tree for exploring data 
 		treeview_ = new QTreeWidget(this);
-		treeview_->setMinimumWidth(250);
 		treeview_->setColumnCount(3);
 		treeview_->setHeaderLabel("Browse in Metadata tree");
 		treeview_->setRootIsDecorated(true);
+		treeview_->setColumnHidden(1,true);
+		treeview_->setColumnHidden(2,true);
+		
 	 	basiclayout_->addWidget(treeview_, 0,0,5,3);
 		
 				  
@@ -134,7 +136,7 @@ namespace OpenMS
 	}
 	
 	
-	
+		
 	//Save all changes
 	void MSMetaDataExplorer::saveAll_()
 	{
@@ -164,16 +166,12 @@ namespace OpenMS
 	{
 	
 		float threshold = pid.getProteinSignificanceThreshold();
-		cout<<"Threshold: "<<threshold<<endl;
+		
 		// find item in tree belonging to ProteinIdentification object
-		int num=treeview_->columnCount();
-		cout<<"Number of columns: "<<num<<endl;
-		//QList<QTreeWidgetItem* > result=treeview_->findItems("test",Qt::MatchExactly, 0);
-		//QTreeWidgetItem* item = treeview_->findItems(QString::number(tree_item_id),Qt::MatchExactly, 1).first();	
-		//cout<<"Size of result list = "<<result.size()<<endl;
-		/*
+		QTreeWidgetItem* item = treeview_->findItems(QString::number(tree_item_id),Qt::MatchExactly, 1).first();	
 		item->sortChildren(2, Qt::AscendingOrder);
-		cout<<"--3--"<<endl;
+		item->setExpanded(true);
+		
 		//set the items visible or not visible depending to their score and the current threshold
 		for(int i=0; i<item->childCount(); ++i)
 		{
@@ -184,11 +182,14 @@ namespace OpenMS
 			}
 			else
 			{
-				child->setHidden(false);
+				if(child->isHidden() )
+				{
+					child->setHidden(false);
+				}	
 			}
-			cout<<"--loop--"<<i<<endl;
 		}
-		*/
+		
+		
 	}
 	
 	
@@ -748,7 +749,7 @@ namespace OpenMS
 	//Visualizing ProteinIdentification object
 	void MSMetaDataExplorer::visualize_(ProteinIdentification& meta, QTreeWidgetItem* parent)
 	{
-		ProteinIdentificationVisualizer *visualizer = new ProteinIdentificationVisualizer(splitvert_, this); 
+		ProteinIdentificationVisualizer *visualizer = new ProteinIdentificationVisualizer(isEditable(), this, this); 
 		
     QStringList labels;
     int id = ws_->addWidget(visualizer);
@@ -767,21 +768,20 @@ namespace OpenMS
 		}
 
 		//check for proteinhits objects
-		meta.sort();
+		//meta.sort();
 		vector< ProteinHit > v= meta.getProteinHits();  
-		if(v.size() != 0)
+		for(UnsignedInt i=0; i<v.size(); ++i)    
 		{
-			for(UnsignedInt i=0; i<v.size(); ++i)    
-			{
-				visualize_(v[i], item);
-			}
+			visualize_(v[i], item);
 		}
+		
+
 	}
 	
 	//Visualizing Identification object
 	void MSMetaDataExplorer::visualize_(Identification& meta, QTreeWidgetItem* parent)
 	{
-		IdentificationVisualizer *visualizer = new IdentificationVisualizer(splitvert_, this); 
+		IdentificationVisualizer *visualizer = new IdentificationVisualizer(isEditable(), this, this); 
 		
     QStringList labels;
     int id = ws_->addWidget(visualizer);
@@ -832,7 +832,7 @@ namespace OpenMS
 		{
 			//item = new QTreeWidgetItem(treeview_, labels );
 			item = new QTreeWidgetItem(treeview_);
-			item->setText(0, "test");
+			item->setText(0, qs_name);
 			item->setText(1,  QString::number(ws_->addWidget(visualizer)));
 			item->setText(2,  QString::number(meta.getScore()));
 		}
@@ -840,7 +840,7 @@ namespace OpenMS
 		{
 			//item = new QTreeWidgetItem(parent, labels );
 			item = new QTreeWidgetItem(parent);
-			item->setText(0, "test");
+			item->setText(0, qs_name);
 			item->setText(1,  QString::number(ws_->addWidget(visualizer)) );
 			item->setText(2,  QString::number(meta.getScore()) );
 		} 

@@ -201,13 +201,112 @@ namespace OpenMS
 			MSExperiment<> exp;
 			FileHandler().loadExperiment(names_[0],exp);
 			
-			//Define if meta data should be editable
-			//If yes, set flag to true.
+			//------------------------------------------------------------------------------
+			//	             Set meta data object
+			//------------------------------------------------------------------------------
+			DateTime date;
+			date.now();
+			Date today;
+			today.today();
+			
+			Sample s;
+			s.setName("Test1");
+			s.setNumber("Sample4711");
+			s.setOrganism("Human");
+			s.setComment("Sample Description");
+			s.setState(Sample::LIQUID);
+			s.setMass(4711.2);
+			s.setVolume(4711.3);
+			s.setConcentration(4711.4);
+			for(UnsignedInt i=1; i<6; ++i)
+			{
+				std::string test="Test";
+				test=test+String(i);
+				s.setMetaValue(i, test);
+			}
+	
+			//------------------------------------------------------------------------------
+			//	             Set ProteinIdentification object
+			//------------------------------------------------------------------------------
+			ProteinIdentification pid;
+			pid.setProteinSignificanceThreshold(3.2);
+			pid.setDateTime(date);
+			
+			std::vector< ProteinHit > prot_hits;  
+			ProteinHit *phit1 = new ProteinHit();
+			ProteinHit *phit2 = new ProteinHit();
+			ProteinHit *phit3 = new ProteinHit();
+			ProteinHit *phit4 = new ProteinHit();
+			Real score1 =4.4;
+			Real score2 =6.4;
+			Real score3 =2.4;
+			Real score4 =9.4;
+			phit1->setScore(score1);
+			phit2->setScore(score2);
+			phit3->setScore(score3);
+			phit4->setScore(score4);
+			phit1->setAccession("1BNL");
+			phit2->setAccession("1BY0");
+			phit3->setAccession("ACC392");
+			phit4->setAccession("ACD392");
+			prot_hits.push_back(*phit1);
+			prot_hits.push_back(*phit2);
+			prot_hits.push_back(*phit3);
+			prot_hits.push_back(*phit4);
+			
+			pid.setProteinHits(prot_hits);
+			
+			std::vector<ProteinIdentification> protIDs;
+			protIDs.push_back(pid);
+			//------------------------------------------------------------------------------
+			//	             Set Acquisition objects
+			//------------------------------------------------------------------------------
+			Acquisition a1;
+			Acquisition a2;
+			Acquisition a3;
+			AcquisitionInfo ai;
+			
+			a1.setNumber(178);
+			for(UnsignedInt i=1; i<6; ++i)
+			{
+				std::string test="AquisitionTest";
+				test=test+String(i);
+				a1.setMetaValue(i, test);
+			}
+			a2.setNumber(248);
+			for(UnsignedInt i=1; i<6; ++i)
+			{
+				std::string test="AquisitionTest";
+				test=test+String(i);
+				a2.setMetaValue(i, test);
+			}
+			a3.setNumber(598);
+			for(UnsignedInt i=1; i<6; ++i)
+			{
+				std::string test="AquisitionTest";
+				test=test+String(i);
+				a3.setMetaValue(i, test);
+			}
+			
+			//------------------------------------------------------------------------------
+			//	             Set AquisitionInfo object
+			//------------------------------------------------------------------------------
+			ai.push_back(a1);
+			ai.push_back(a2);
+			ai.push_back(a3);
+			ai.setMethodOfCombination ("Your prefered method");
+	
+			//-------------------------------------------------------------------------
+			//		end of meta data testing
+			//-------------------------------------------------------------------------
 						
 			//MSMetaDataExplorer dlg(false, this);
 			MSMetaDataExplorer dlg(true, this);
 			dlg.setWindowTitle("Meta data");
-			dlg.add(&exp);
+			//dlg.add(&ai);
+			dlg.add(&pid);
+			
+			//dlg.add(&exp);
 			
      	dlg.exec();
 		}
