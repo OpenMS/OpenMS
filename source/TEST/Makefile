@@ -183,7 +183,6 @@ EXECUTABLES_FORMAT = \
 	AnalysisXMLFile_test\
 	MascotXMLFile_test\
 	DGridFile_test\
-	MzDataFile_test\
 	PeakFileOptions_test\
 	PeakTypeEstimator_test\
 	InspectInfile_test\
