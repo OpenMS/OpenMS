@@ -171,7 +171,7 @@ class TOPPInspectAdapter
 			vector< String > substrings;
 			composition.split(seperator, substrings); // get the single elements of the composition: e.g. 18O(-1) or C(3) or N
 			if ( substrings.empty() ) substrings.push_back(composition);
-			SignedInt pos, pos2;
+			String::size_type pos, pos2;
 			String isotope, symbol, occurences;
 			// for each element, get the isotope (if used), the symbol and the occurences
 			for ( vector< String >::const_iterator e_i = substrings.begin(); e_i != substrings.end(); ++e_i )
@@ -183,7 +183,7 @@ class TOPPInspectAdapter
 				isotope = e_i->substr(0, pos);
 				if ( isotope.empty() ) isotope = "0";
 				pos2 = e_i->find('(', pos);
-				if ( pos2 != String::NPOS ) // if the element occurs more than once, a bracket is found
+				if ( pos2 != String::npos ) // if the element occurs more than once, a bracket is found
 				{
 					symbol = e_i->substr(pos, pos2++ - pos);
 					occurences = e_i->substr(pos2, e_i->length() - pos2 - 1 );
@@ -641,7 +641,7 @@ class TOPPInspectAdapter
 								if ( substrings2.size() > 1 )
 								{
 									// if it's not a legal type
-									if ( types.find(substrings2[1]) == string::npos )
+									if ( types.find(substrings2[1]) == String::npos )
 									{
 										writeLog_("The given type (" + substrings2[1] + ") is neither opt, fix, cterminal nor nterminal. Aborting!");
 										return ILLEGAL_PARAMETERS;
@@ -667,7 +667,7 @@ class TOPPInspectAdapter
 								if ( substrings2.size() > 2 )
 								{
 									// if it's not a legal type
-									if ( types.find(substrings2[2]) == string::npos )
+									if ( types.find(substrings2[2]) == String::npos )
 									{
 										writeLog_("The given type (" + substrings2[2] + ") is neither opt, fix, cterminal nor nterminal. Aborting!");
 										return ILLEGAL_PARAMETERS;
@@ -977,7 +977,7 @@ class TOPPInspectAdapter
 			// running inspect and generating a second database from the results and running inspect in blind mode on this new database
 			if ( blind && inspect_in && inspect_out )
 			{
-				writeDebug_("Searching and generating minimised database for blind mode ...", 1);
+				writeLog_("Searching and generating minimised database for blind mode ...");
 				writeDebug_("The Inspect process created the following output:", 1);
 				String call;
 				call.append(inspect_directory);
@@ -990,7 +990,7 @@ class TOPPInspectAdapter
 				// writing the inspect output to a temporary file
 				call.append(" -e ");
 				call.append(inspect_logfile);
-
+				
 				int status = system(call.c_str());
 
 				if (status != 0)
@@ -1024,7 +1024,7 @@ class TOPPInspectAdapter
 			// writing the output of inspect into an analysisXML file
 			if ( inspect_in && inspect_out )
 			{
-				writeDebug_("Searching ...", 1);
+				writeLog_("Searching ...");
 				writeDebug_("The Inspect process created the following output:", 1);
 				String call;
 				call.append(inspect_directory);
