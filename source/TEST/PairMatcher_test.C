@@ -39,25 +39,19 @@ START_TEST(PairMatcher, "$Id PairMatcher_test.C 139 2006-07-14 10:08:39Z jjoachi
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-enum DimensionId
-{
-	RT = DimensionDescription < LCMS_Tag >::RT,
-	MZ = DimensionDescription < LCMS_Tag >::MZ
-};
-
 typedef PairMatcher::FeatureMapType Features;
 typedef PairMatcher::PairVectorType Pairs;
 
 Features features;
 features.resize(4);
-features[0].getMZ() = 0.0f;
-features[0].getRT() = 0.1f;
-features[1].getMZ() = 4.0f;
-features[1].getRT() = 0.0f;
-features[2].getMZ() = 5.0f;
-features[2].getRT() = 0.9f;
-features[3].getMZ() = 4.0f;
-features[3].getRT() = 0.2f;
+features[0].setMZ(0.0f);
+features[0].setRT(0.1f);
+features[1].setMZ(4.0f);
+features[1].setRT(0.0f);
+features[2].setMZ(5.0f);
+features[2].setRT(0.9f);
+features[3].setMZ(4.0f);
+features[3].setRT(0.2f);
 
 features[0].getIntensity() = 1.0f;
 features[1].getIntensity() = 2.0f;
