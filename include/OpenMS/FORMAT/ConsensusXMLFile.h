@@ -28,7 +28,6 @@
 #define OPENMS_FORMAT_CONSENSUSXMLFILE_H
 
 #include <OpenMS/FORMAT/SchemaFile.h>
-//#include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/FORMAT/HANDLERS/ConsensusXMLHandler.h>
 
 namespace OpenMS

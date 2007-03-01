@@ -51,7 +51,7 @@ RESULT
 
 CHECK((template<typename AlignmentT> void store(const String& filename, const AlignmentT& alignment) const throw(Exception::UnableToCreateFile)))
   std::string tmp_filename;
-  ConsensusMap< ConsensusFeature<FeatureMap> > cons_map;
+  ConsensusMap< ConsensusFeature<FeatureMap<> > > cons_map;
   ConsensusXMLFile cons_file;
  
   cons_file.load("data/ConsensusXMLFile.xml",cons_map);
@@ -68,7 +68,7 @@ CHECK((template<typename AlignmentT> void store(const String& filename, const Al
   std::vector< DGrid<2> > grid_vector(2);
   grid_vector[1] = grid; 
   
-  StarAlignment< ConsensusFeature<FeatureMap> > alignment;
+  StarAlignment< ConsensusFeature<FeatureMap<> > > alignment;
   Param param;
   param.setValue("matching_algorithm:type","poseclustering_pairwise");
   alignment.setParam(param);
@@ -77,9 +77,9 @@ CHECK((template<typename AlignmentT> void store(const String& filename, const Al
   alignment.setFileNames(cons_map.getFilenames());
   alignment.setMapType("feature_map");
   alignment.setReferenceMapIndex(0);
-  vector<FeatureMap> map_vector = cons_map.getMapVector();
+  vector<FeatureMap<> > map_vector = cons_map.getMapVector();
   unsigned int n = map_vector.size();
-  vector<FeatureMap*> map_pointer_vector(n);
+  vector<FeatureMap<> *> map_pointer_vector(n);
   for (unsigned int i = 0; i < n; ++i)
   {
     map_pointer_vector[i] = &(map_vector[i]); 
@@ -93,13 +93,13 @@ CHECK((template<typename AlignmentT> void store(const String& filename, const Al
 RESULT
 
 CHECK((template<typename ElementT> void load(const String& filename, ConsensusMap<ElementT>& map) throw(Exception::FileNotFound, Exception::ParseError)))
-  ConsensusMap< ConsensusFeature<FeatureMap> > cons_map;
+  ConsensusMap< ConsensusFeature<FeatureMap<> > > cons_map;
   ConsensusXMLFile cons_file;
   cons_file.load("data/ConsensusXMLFile.xml", cons_map);
-  TEST_EQUAL(cons_map.getFilenames()[0] == "data/MapAlignmentFeatureMap1.xml", true)
-  TEST_EQUAL(cons_map.getFilenames()[1] == "data/MapAlignmentFeatureMap2.xml", true)
+  TEST_EQUAL(cons_map.getFilenames()[0] == "data/MapAlignmentFeatureMap<> 1.xml", true)
+  TEST_EQUAL(cons_map.getFilenames()[1] == "data/MapAlignmentFeatureMap<> 2.xml", true)
 
-  ConsensusFeature<FeatureMap> cons_feature = cons_map[0];
+  ConsensusFeature<FeatureMap<> > cons_feature = cons_map[0];
   TEST_REAL_EQUAL(cons_feature.getPosition()[0],1273.27)  
   TEST_REAL_EQUAL(cons_feature.getPosition()[1],904.47)
   TEST_REAL_EQUAL(cons_feature.getIntensity(),3.12539e+07)
@@ -109,7 +109,7 @@ CHECK((template<typename ElementT> void load(const String& filename, ConsensusMa
   TEST_REAL_EQUAL(cons_feature.getPositionRange().max()[1],904.47)
   TEST_REAL_EQUAL(cons_feature.getIntensityRange().min()[0],3.12539e+07)
   TEST_REAL_EQUAL(cons_feature.getIntensityRange().max()[0],3.12539e+07)
-  ConsensusFeature<FeatureMap>::Group::const_iterator it = cons_feature.begin();
+  ConsensusFeature<FeatureMap<> >::Group::const_iterator it = cons_feature.begin();
   TEST_REAL_EQUAL(it->getElement().getPosition()[0],1273.27)  
   TEST_REAL_EQUAL(it->getElement().getPosition()[1],904.47)
   TEST_REAL_EQUAL(it->getElement().getIntensity(),3.12539e+07)

@@ -295,8 +295,6 @@ endif
 EXECUTABLES_ANALYSIS_MAPMATCHING = \
 	IndexTuple_test\
 	Group_test\
-	DFeaturePair_test\
-	DFeaturePairVector_test\
 	DGridCell_test\
 	DGrid_test\
 	DBaseMapping_test\
@@ -313,6 +311,8 @@ EXECUTABLES_ANALYSIS_MAPMATCHING = \
 	BasePairwiseMapMatcher_test\
 	PoseClusteringPairwiseMapMatcher_test
 
+#	DFeaturePair_test\
+#	DFeaturePairVector_test\
 
 ifeq ($(CGAL_SUPPORT),true)
 EXECUTABLES_ANALYSIS_MAPMATCHING_CGAL=\

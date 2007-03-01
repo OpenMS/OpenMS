@@ -33,10 +33,9 @@
 using namespace OpenMS;
 using namespace std;
 
-typedef FeatureMap< DFeature<2, KernelTraits> > ContainerType;
+typedef FeatureMap< Feature > ContainerType;
 typedef ContainerType::value_type ElementType;
-typedef ElementType::TraitsType TraitsType;
-typedef DPosition<2, TraitsType> PositionType;
+typedef Feature::PositionType PositionType;
 
 START_TEST(Group, "$Id$")
 

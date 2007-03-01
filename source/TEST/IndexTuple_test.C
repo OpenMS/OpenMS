@@ -33,10 +33,9 @@
 using namespace OpenMS;
 using namespace std;
 
-typedef FeatureMap< DFeature<2, KernelTraits> > ContainerType;
+typedef FeatureMap< Feature > ContainerType;
 typedef ContainerType::value_type ElementType;
-typedef ElementType::TraitsType TraitsType;
-typedef DPosition<2, TraitsType> PositionType;
+typedef Feature::PositionType PositionType;
 
 START_TEST(IndexTuple, "$Id$")
 
@@ -85,7 +84,7 @@ CHECK((IndexTuple(const UnsignedInt& map_index, const UnsignedInt& element_index
   TEST_EQUAL(it.getElementIndex() == 2, true)  
   TEST_EQUAL(it.getMapIndex() == 1, true)  
   TEST_EQUAL(&(it.getElement()) == &e, true)  
-  TEST_EQUAL(it.getTransformedPosition() == e.getPosition(), true)  
+  TEST_EQUAL(it.getTransformedPosition() == e.getPos(), true)  
 RESULT
 
 CHECK(bool operator != (const IndexTuple& i) const)
@@ -115,7 +114,7 @@ CHECK(const PositionType& getTransformedPosition() const)
   ElementType e;
   IndexTuple<ContainerType> it(1,2,e);
 
-  TEST_EQUAL(it.getTransformedPosition() == e.getPosition(), true)  
+  TEST_EQUAL(it.getTransformedPosition() == e.getPos(), true)  
 RESULT
 
 CHECK(const UnsignedInt& getElementIndex() const)
@@ -159,7 +158,7 @@ CHECK(void setTransformedPosition(const PositionType& p))
   IndexTuple<ContainerType> it;
   it.setElementIndex(2);
 
-  TEST_EQUAL(it.getTransformedPosition() == e.getPosition(), true)  
+  TEST_EQUAL(it.getTransformedPosition() == e.getPos(), true)  
 RESULT
 
 /////////////////////////////////////////////////////////////
