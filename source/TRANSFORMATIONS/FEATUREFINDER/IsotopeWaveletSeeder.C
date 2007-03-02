@@ -338,8 +338,6 @@ namespace OpenMS
 		UnsignedInt k=0; //helping variables
 		double max=0;
 
-		std::cout << "fastMultiCorrelate(...) " << std::endl;
-			
 		for (UnsignedInt i=0; i<signal_size; ++i)
 		{
 	
@@ -450,9 +448,6 @@ namespace OpenMS
 	
 	void IsotopeWaveletSeeder::identifyCharge (const std::vector<DPeakArray<1, PeakType > >& candidates, std::vector<double>* wt_thresholds, UnsignedInt scan)
 	{
-	
-		std::cout << "identifyCharge(...) " << std::endl;
-		
 		std::vector<double> int_mins (candidates[0].size(),INT_MIN), zeros (candidates[0].size(),0);
 		WaveletCollection scoresC (candidates.size(), zeros);
 			
@@ -476,17 +471,13 @@ namespace OpenMS
 			processed = std::vector<bool> (candidates[0].size(), false); 				//Reset
 			containerType c_candidate(candidates[c].size());
 			
-			std::cout << "Filling intensities..." << std::endl;
-			
 			//Ugly, but do not how to do this in a better (and easy) way
 			for (UnsignedInt i=0; i<candidates[c].size(); ++i)
 			{
 				c_candidate[i].setPos(DPosition<2>( candidates[c][i].getMZ(),i));
 				c_candidate[i].setIntensity( candidates[c][i].getIntensity() );
 			}
-	
-			std::cout << "Sorting intensities..." << std::endl;
-			
+				
 			sort (c_candidate.begin(), c_candidate.end(), 	ReverseComparator< RawDataPoint2D::IntensityLess>() );
 			c_av_intens = getAbsMean (candidates[c], 0, candidates[c].size());
 					
@@ -518,19 +509,19 @@ namespace OpenMS
 			for (iter=c_candidate.begin(); iter != c_candidate.end(); ++iter, ++i_iter)
 			{
 				// Retrieve index
-				c_index = (int) (iter->getMZ());	// int) (iter->getPos()[1]);
+				c_index = (int) (iter->getMZ());	
 	
 				if (processed[c_index]) continue;			   
 	
 				start_index = c_index-waveletLength_-1;
 				end_index = c_index+waveletLength_+1;
-				seed_mz=iter->getPos()[0];
+				seed_mz=iter->getMZ();
 	
 				//Catch impossible cases
 				if (end_index >= candidates[c].size() || start_index > end_index)  continue;
 				   
 				//Mark as processed
-				for (unsigned int z=start_index; z<=end_index; ++z) processed[z] = true;				
+				for (UnsignedInt z=start_index; z<=end_index; ++z) processed[z] = true;				
 	
 				start=(-2*(peak_cut_off_ - 1))+1, end=(2*(peak_cut_off_ - 1))-1;
 				goto_left = c_index - waveletLength_ - 1;
@@ -791,20 +782,15 @@ namespace OpenMS
 			{
 				double left_diff   = fabs(scan[index_newscan-1].getMZ() - mass);
 				double right_diff = fabs(scan[index_newscan].getMZ() - mass);
-				// 					cout << "Checking neighbours: " << left_diff << " " << right_diff << endl;
 	
 				// check which neighbour is closer
 				if (left_diff < right_diff && (left_diff < mass_tolerance) )
 				{
-					// 						cout << "Left. Old intensity: " << scan[ (index_newscan-1) ].getIntensity() << endl;
 					scan[ (index_newscan-1) ].setIntensity( scan[ (index_newscan-1) ].getIntensity() + p.getIntensity() );
-					// 						cout << "Left. New intensity: " << scan[ (index_newscan-1) ].getIntensity() << endl;
 				}
 				else if (right_diff < mass_tolerance)
 				{
-					// 						cout << "Right. Old intensity: " << scan[ (index_newscan) ].getIntensity() << endl;
 					scan[ (index_newscan) ].setIntensity( scan[ (index_newscan) ].getIntensity() + p.getIntensity() );
-					// 						cout << "Right. New intensity: " << scan[ (index_newscan) ].getIntensity() << endl;
 				}
 			}
 			else // no left neighbour available

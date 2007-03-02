@@ -79,7 +79,7 @@ CHECK(nextSeed())
 	for (unsigned int i=0; i < num; i++)
 	{
 		Peak1D p;
-		p.getPos()[0] = mzs[i];
+		p.setMZ(mzs[i]);
 		p.setIntensity(its[i]);
 		
 		spec.push_back(p);
@@ -89,6 +89,9 @@ CHECK(nextSeed())
 	
 	traits->setData(exp.begin(), exp.end(),100);
 	
+	traits->getPeakFlag(make_pair(0,2)) = FeaFiTraits::INSIDE_FEATURE;
+	traits->getPeakFlag(make_pair(0,4)) = FeaFiTraits::INSIDE_FEATURE;
+		
 	extender.setTraits(traits);
  	
 	FeaFiModule::IndexSet  set;
@@ -97,9 +100,30 @@ CHECK(nextSeed())
 		set.insert(std::make_pair(0,i));
 	}
   FeaFiModule::IndexSet  region = extender.extend(set);
-  
+	
   TEST_NOT_EQUAL(region.size(),0);
   
+	FeaFiModule::IndexSet::const_iterator citer = region.begin(); 	
+	
+	TEST_EQUAL(traits->getPeakIntensity(*citer),5.0);
+	TEST_EQUAL(traits->getPeakMz(*citer),675.0);
+	TEST_EQUAL(traits->getPeakRt(*citer),1260.0);
+	
+	++citer;	
+	TEST_EQUAL(traits->getPeakIntensity(*citer),10.0);
+	TEST_EQUAL(traits->getPeakMz(*citer), 675.5);
+	TEST_EQUAL(traits->getPeakRt(*citer),1260.0);
+	
+	// next peak should be skipped because of inside_feature flag
+	++citer;	
+	TEST_EQUAL(traits->getPeakIntensity(*citer),3.0);
+	TEST_EQUAL(traits->getPeakMz(*citer), 676.5);
+	TEST_EQUAL(traits->getPeakRt(*citer),1260.0);
+	
+	++citer; 
+	
+	// last peak should be skipped as well
+	TEST_EQUAL(citer==region.end(),true)
     
 RESULT
 

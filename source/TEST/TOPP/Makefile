@@ -295,6 +295,13 @@ FeatureFinder_test: $(NUMERICDIFF)
 	-in FeatureFinder_1_input.mzData \
 	-out FeatureFinder_1_output.tmp)
 	@$(call TEST_FILE_EQUAL,FeatureFinder_1_output.xml)
+	
+	@$(ECHO) "- Test 2 (picked data):"
+	@$(call RUN_PROG_OPT,FeatureFinder,\
+	-ini FeatureFinder_2_parameters.ini \
+	-in FeatureFinder_2_input.mzData \
+	-out FeatureFinder_2_output.tmp)
+	@$(call TEST_FILE_EQUAL,FeatureFinder_2_output.xml)
 
 
 FeaturePairSplitter_test: $(NUMERICDIFF)

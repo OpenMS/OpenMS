@@ -59,7 +59,7 @@ CPP_SOURCES=\
 	FeatureFinder.C\
 	PeakSeeder.C\
 	PeakExtender.C\
-	PeakFitter.C
+	DummyFitter.C
 
 ADD_CPP_SOURCES = $(CGAL_SOURCES)
 

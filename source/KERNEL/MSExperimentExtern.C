@@ -30,7 +30,6 @@ namespace OpenMS
 {
 	/// @cond DOXYGEN_IGNORES_THIS
 	MSExperimentExtern<> default_msexp_extern_d1;
-	MSExperimentExtern<DPickedPeak<1> > msexp_extern_pp_d1;
 	/// @endcond
 }
 

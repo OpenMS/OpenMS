@@ -306,7 +306,7 @@ namespace OpenMS
 							ms_levels_(source.ms_levels_)
 	    {
 	        // genarete new temp file and copy the old one
-					std::remove( file_name_ .c_str());
+					File::remove( file_name_ .c_str());
 	        file_name_ = String("msexp_") + std::rand();
 	        copyTmpFile_(source.file_name_);
 	    }
