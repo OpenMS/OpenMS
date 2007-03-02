@@ -294,6 +294,114 @@ CHECK([EXTRA] struct IntensityLess)
 	TEST_REAL_EQUAL(v[2].getIntensity(), 3.5)
 RESULT
 
+CHECK(enum value RawDataPoint2D::RT)
+{
+	TEST_EQUAL(RawDataPoint2D::RT,0);
+}
+RESULT
+
+CHECK(enum value RawDataPoint2D::MZ)
+{
+	TEST_EQUAL(RawDataPoint2D::MZ,1);
+}
+RESULT
+
+CHECK(enum value RawDataPoint2D::DIMENSION)
+{
+	TEST_EQUAL(RawDataPoint2D::DIMENSION,2);
+}
+RESULT
+
+CHECK(enum RawDataPoint2D::DimensionId)
+{
+	RawDataPoint2D::DimensionId dim;
+	dim = RawDataPoint2D::RT;
+	TEST_EQUAL(dim,RawDataPoint2D::RT);
+	dim = RawDataPoint2D::MZ;
+	TEST_EQUAL(dim,RawDataPoint2D::MZ);
+	dim = RawDataPoint2D::DIMENSION;
+	TEST_EQUAL(dim,RawDataPoint2D::DIMENSION);
+}
+RESULT
+
+CHECK(static char const * const shortDimensionName(DimensionId const dim))
+{
+	TEST_STRING_EQUAL(RawDataPoint2D::shortDimensionName(RawDataPoint2D::RT),"RT");
+	TEST_STRING_EQUAL(RawDataPoint2D::shortDimensionName(RawDataPoint2D::MZ),"MZ");
+}
+RESULT
+
+CHECK(static char const * const shortDimensionNameRT())
+{
+	TEST_STRING_EQUAL(RawDataPoint2D::shortDimensionNameRT(),"RT");
+}
+RESULT
+
+CHECK(static char const * const shortDimensionNameMZ())
+{
+	TEST_STRING_EQUAL(RawDataPoint2D::shortDimensionNameMZ(),"MZ");
+}
+RESULT
+
+CHECK(static char const * const fullDimensionName(DimensionId const dim))
+{
+	TEST_STRING_EQUAL(RawDataPoint2D::fullDimensionName(RawDataPoint2D::RT),"retention time");
+	TEST_STRING_EQUAL(RawDataPoint2D::fullDimensionName(RawDataPoint2D::MZ),"mass-to-charge");
+}
+RESULT
+
+CHECK(static char const * const fullDimensionNameRT())
+{
+	TEST_STRING_EQUAL(RawDataPoint2D::fullDimensionNameRT(),"retention time");
+}
+RESULT
+
+CHECK(static char const * const fullDimensionNameMZ())
+{
+	TEST_STRING_EQUAL(RawDataPoint2D::fullDimensionNameMZ(),"mass-to-charge");
+}
+RESULT
+
+CHECK(static char const * const shortDimensionUnit(DimensionId const dim))
+{
+	TEST_STRING_EQUAL(RawDataPoint2D::shortDimensionUnit(RawDataPoint2D::RT),"sec");
+	TEST_STRING_EQUAL(RawDataPoint2D::shortDimensionUnit(RawDataPoint2D::MZ),"Th");
+}
+RESULT
+
+CHECK(static char const * const shortDimensionUnitRT())
+{
+	TEST_STRING_EQUAL(RawDataPoint2D::shortDimensionUnitRT(),"sec");
+}
+RESULT
+
+CHECK(static char const * const shortDimensionUnitMZ())
+{
+	TEST_STRING_EQUAL(RawDataPoint2D::shortDimensionUnitMZ(),"Th");
+}
+RESULT
+
+CHECK(static char const * const fullDimensionUnit(DimensionId const dim))
+{
+	TEST_STRING_EQUAL(RawDataPoint2D::fullDimensionUnit(RawDataPoint2D::RT),"Seconds");
+	TEST_STRING_EQUAL(RawDataPoint2D::fullDimensionUnit(RawDataPoint2D::MZ),"Thomson");
+}
+RESULT
+
+CHECK(static char const * const fullDimensionUnitRT())
+{
+	TEST_STRING_EQUAL(RawDataPoint2D::fullDimensionUnitRT(),"Seconds");
+}
+RESULT
+
+CHECK(static char const * const fullDimensionUnitMZ())
+{
+	TEST_STRING_EQUAL(RawDataPoint2D::fullDimensionUnitMZ(),"Thomson");
+}
+RESULT
+
+
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST
