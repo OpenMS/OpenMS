@@ -48,13 +48,6 @@ START_TEST(PickedPeakSeeder, "$Id$")
 using namespace OpenMS;
 using namespace std;
 
-enum DimensionId
-{
-	RT = DimensionDescription < LCMS_Tag >::RT,
-	MZ = DimensionDescription < LCMS_Tag >::MZ
-};
-
-
 // default ctor
 PickedPeakSeeder* ptr = 0;
 CHECK(PickedPeakSeeder())
