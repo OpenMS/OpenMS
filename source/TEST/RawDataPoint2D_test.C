@@ -314,7 +314,7 @@ RESULT
 
 CHECK(enum RawDataPoint2D::DimensionId)
 {
-	RawDataPoint2D::DimensionId dim;
+	RawDataPoint2D::DimensionDescription dim;
 	dim = RawDataPoint2D::RT;
 	TEST_EQUAL(dim,RawDataPoint2D::RT);
 	dim = RawDataPoint2D::MZ;

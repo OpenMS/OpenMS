@@ -179,14 +179,11 @@ class TOPPFileInfo
 				FeatureMapFile().load(in,feat);
 				feat.updateRanges();
 				
-				UnsignedInt mz_dim = DimensionDescription< LCMS_Tag >::MZ;
-				UnsignedInt rt_dim = DimensionDescription< LCMS_Tag >::RT;	
-				
 				cout 
 						 << "Number of features: " << feat.size() << endl
 						 << endl
-						 << "retention time range: " << feat.getMin()[rt_dim] << " / " << feat.getMax()[rt_dim] << endl
-						 << "m/z range: " << feat.getMin()[mz_dim] << " / " << feat.getMax()[mz_dim] << endl
+						 << "retention time range: " << feat.getMin()[RawDataPoint2D::RT] << " / " << feat.getMax()[RawDataPoint2D::RT] << endl
+						 << "m/z range: " << feat.getMin()[RawDataPoint2D::MZ] << " / " << feat.getMax()[RawDataPoint2D::MZ] << endl
 						 << "intensity range: " << feat.getMinInt() << " / " << feat.getMaxInt() << endl
 						 << endl; 
 		 
