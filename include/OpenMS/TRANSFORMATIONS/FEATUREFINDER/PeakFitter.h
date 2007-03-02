@@ -46,12 +46,6 @@ namespace OpenMS
   {
   	public:
 			
-			enum DimensionId
-				{
-					RT = DimensionDescription < LCMS_Tag >::RT,
-					MZ = DimensionDescription < LCMS_Tag >::MZ
-				};
-			
 			///
 			typedef Feature::CoordinateType FeatureCoordinateType;
 			///

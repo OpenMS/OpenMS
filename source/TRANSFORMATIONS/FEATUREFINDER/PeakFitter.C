@@ -134,7 +134,7 @@ namespace OpenMS
 		// save meta data in feature for TOPPView
 		stringstream s;
 		s <<  "Feature #" << counter_ << ", +" << f.getCharge() << ", " << set.size() << "->" << set.size() 
-			<< ", Corr: (" << f.getOverallQuality() << "," << f.getQuality(RT) << "," << f.getQuality(MZ) << ")";
+			<< ", Corr: (" << f.getOverallQuality() << "," << f.getQuality(RawDataPoint2D::RT) << "," << f.getQuality(RawDataPoint2D::MZ) << ")";
 		f.setMetaValue(3,s.str());
 		
 		#ifdef DEBUG_FEATUREFINDER
