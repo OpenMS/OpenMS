@@ -52,12 +52,6 @@ namespace OpenMS
 
   public:
   
-  	enum DimensionId
-    {
-      RT = DimensionDescription < LCMS_Tag >::RT,
-      MZ = DimensionDescription < LCMS_Tag >::MZ
-    };
-
     typedef FeaFiTraits::IntensityType IntensityType;
     typedef FeaFiTraits::CoordinateType CoordinateType;
     typedef DoubleReal ProbabilityType;
