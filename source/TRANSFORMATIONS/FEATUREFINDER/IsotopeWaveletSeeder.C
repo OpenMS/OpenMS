@@ -167,7 +167,7 @@ namespace OpenMS
 			// the following lines print the masses of all detected peak clusters
 			// it takes some time if many clusters were found, so we skip it.
 #ifdef DEBUG_FEATUREFINDER
-//		 CoordinateType min_mass = traits_->getData().getMin().Y();
+//		 CoordinateType min_mass = traits_->getData().getMin().getY();
 // 
 //		 for (SweepLineHash::const_iterator citer = hash_.begin();
 //				 citer != hash_.end();
@@ -212,7 +212,7 @@ namespace OpenMS
 		 	}	
 			
 			// compute mass we are searching for
-			CoordinateType min_mass = traits_->getData().getMin().Y();
+			CoordinateType min_mass = traits_->getData().getMin().getY();
 			CoordinateType mass_to_find = min_mass + (hash_iter_->first-1)*avMZSpacing_;
 			IndexSet region;		
 				
@@ -627,7 +627,7 @@ namespace OpenMS
 			}
 		   
 			// generate hash key 
-			c_hash_key = (UnsignedInt) ((traits_->getData()[scan].getContainer()[positions[0]-1].getMZ() - traits_->getData().getMin().Y()) / avMZSpacing_);
+			c_hash_key = (UnsignedInt) ((traits_->getData()[scan].getContainer()[positions[0]-1].getMZ() - traits_->getData().getMin().getY()) / avMZSpacing_);
 	
 			allZero=true;
 			for (iter_cl=charge_scores.begin(); iter_cl!=charge_scores.end(); ++iter_cl)

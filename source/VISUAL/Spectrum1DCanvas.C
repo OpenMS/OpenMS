@@ -138,11 +138,11 @@ namespace OpenMS
 				}
 				if (e->modifiers() & Qt::ShiftModifier)
 				{
-					emit sendCursorStatus( pos.X(), pos.Y());
+					emit sendCursorStatus( pos.getX(), pos.getY());
 				}
 				else
 				{
-					emit sendCursorStatus( pos.X() );
+					emit sendCursorStatus( pos.getX() );
 				}
 				break;
 			}
@@ -152,7 +152,7 @@ namespace OpenMS
 				if(e->buttons() & Qt::LeftButton)
 				{
 					// translation in data metric
-					double shift = widgetToData_(last_mouse_pos_).X() - widgetToData_(p).X();
+					double shift = widgetToData_(last_mouse_pos_).getX() - widgetToData_(p).getX();
 					double newLo = visible_area_.minX() + shift;
 					double newHi = visible_area_.maxX() + shift;
 					// check if we are falling out of bounds
@@ -306,7 +306,7 @@ namespace OpenMS
 			case AM_ZOOM:
 				if (e->delta() > 0) // forward rotation -> zoom in
 				{
-					double position = widgetToData_(e->pos()).X();
+					double position = widgetToData_(e->pos()).getX();
 					double delta = (visible_area_.maxX()-visible_area_.minX())/2.5;
 					changeVisibleArea_(position - delta, position + delta, true);
 				}
@@ -332,11 +332,11 @@ namespace OpenMS
 	
 		// get iterator on first peak with higher position than interval_start
 		PeakType temp;
-		temp.getMZ() = min(lt.X(),rb.X());
+		temp.getMZ() = min(lt.getX(),rb.getX());
 		SpectrumIteratorType left_it = lower_bound(spectrum.begin(), spectrum.end(), temp, PeakType::PositionLess());
 	
 		// get iterator on first peak with higher position than interval_end
-		temp.getMZ() = max(lt.X(),rb.X());
+		temp.getMZ() = max(lt.getX(),rb.getX());
 		SpectrumIteratorType	right_it = lower_bound(left_it, spectrum.end(), temp, PeakType::PositionLess());
 	
 	

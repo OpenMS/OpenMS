@@ -435,7 +435,7 @@ namespace OpenMS
 			//iterate over hull points
 			for(ConvexHull2D::PointArrayType::const_iterator it=hulls[hull].getPoints().begin(); it!=hulls[hull].getPoints().end(); ++it, ++index)
 			{
-				dataToWidget_(it->Y(), it->X(),pos);
+				dataToWidget_(it->getY(), it->getX(),pos);
 				points.setPoint(index, pos);
 			}	
 			//cout << "Hull: " << hull << " Points: " << points.size()<<endl;
@@ -1471,7 +1471,7 @@ namespace OpenMS
 					PointType old_data = widgetToData_(last_mouse_pos_);
 					PointType new_data = widgetToData_(pos);
 					//calculate x shift
-					double shift = old_data.X() - new_data.X();
+					double shift = old_data.getX() - new_data.getX();
 					double newLoX = visible_area_.minX() + shift;
 					double newHiX = visible_area_.maxX() + shift;
 					// check if we are falling out of bounds
@@ -1486,7 +1486,7 @@ namespace OpenMS
 						newLoX = newHiX - visible_area_.width();
 					}
 					//calculate y shift
-					shift = old_data.Y() - new_data.Y();
+					shift = old_data.getY() - new_data.getY();
 					double newLoY = visible_area_.minY() + shift;
 					double newHiY = visible_area_.maxY() + shift;
 					// check if we are falling out of bounds
@@ -1609,13 +1609,13 @@ namespace OpenMS
 			
 					float half_width = new_width / 2.0f;
 					float half_height = new_height / 2.0f;	
-					if (new_pos.X() < overall_data_range_.minX() + half_width)   new_pos.setX(overall_data_range_.minX() + half_width);
-					if (new_pos.Y() < overall_data_range_.minY() + half_height)  new_pos.setY(overall_data_range_.minY() + half_height);
-					if (new_pos.X() > overall_data_range_.maxX() - half_width)   new_pos.setX(overall_data_range_.maxX() - half_width);
-					if (new_pos.Y() > overall_data_range_.maxY() - half_height)  new_pos.setY(overall_data_range_.maxY() - half_height);
+					if (new_pos.getX() < overall_data_range_.minX() + half_width)   new_pos.setX(overall_data_range_.minX() + half_width);
+					if (new_pos.getY() < overall_data_range_.minY() + half_height)  new_pos.setY(overall_data_range_.minY() + half_height);
+					if (new_pos.getX() > overall_data_range_.maxX() - half_width)   new_pos.setX(overall_data_range_.maxX() - half_width);
+					if (new_pos.getY() > overall_data_range_.maxY() - half_height)  new_pos.setY(overall_data_range_.maxY() - half_height);
 			
 					// set visible area accordingly and redraw
-					changeVisibleArea_(AreaType(new_pos.X() - half_width, new_pos.Y() - half_height, new_pos.X() + half_width, new_pos.Y() + half_height), true);
+					changeVisibleArea_(AreaType(new_pos.getX() - half_width, new_pos.getY() - half_height, new_pos.getX() + half_width, new_pos.getY() + half_height), true);
 				}
 				else // backward rotation -> zoom out
 				{

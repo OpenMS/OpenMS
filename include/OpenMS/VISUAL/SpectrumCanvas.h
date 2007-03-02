@@ -627,7 +627,7 @@ namespace OpenMS
 		/// Calls dataToWidget_(float x, float y, QPoint& point) with x and y position of @p pos
 		inline void dataToWidget_(const PointType& pos, QPoint& point)
 		{
-			dataToWidget_(pos.X(), pos.Y(),point);
+			dataToWidget_(pos.getX(), pos.getY(),point);
 		}
 		
 		/**

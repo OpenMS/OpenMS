@@ -590,8 +590,8 @@ namespace OpenMS
 template<typename Traits, typename Data>
 inline bool OpenMS::Internal::QuadNode<Traits, Data>::isInf()
 {
-	return data.first.X() == std::numeric_limits<typename Traits::CoordinateType>::infinity()
-	    && data.first.Y() == std::numeric_limits<typename Traits::CoordinateType>::infinity();
+	return data.first.getX() == std::numeric_limits<typename Traits::CoordinateType>::infinity()
+	    && data.first.getY() == std::numeric_limits<typename Traits::CoordinateType>::infinity();
 }
 
 template<typename Traits, typename Data>
@@ -918,9 +918,9 @@ void OpenMS::QuadTree<Traits, Data>::insert_(NodePointer node, const AreaType& a
 	{
 		// check which child node to follow (or create)
 		// (I'm sure this can be optimized by size)
-		if (position.Y() < mid_y)
+		if (position.getY() < mid_y)
 		{
-			if (position.X() < mid_x)
+			if (position.getX() < mid_x)
 			{
 				// left-top child (node->getChildren()[0])
 				if (!node->getChildren()[0].isNil())
@@ -952,7 +952,7 @@ void OpenMS::QuadTree<Traits, Data>::insert_(NodePointer node, const AreaType& a
 		}
 		else
 		{
-			if (position.X() > mid_x)
+			if (position.getX() > mid_x)
 			{
 				// right-bottom child (node->getChildren()[2])
 				if (!node->getChildren()[2].isNil())

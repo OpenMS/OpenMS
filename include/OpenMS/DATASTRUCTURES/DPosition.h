@@ -80,7 +80,7 @@ namespace OpenMS
 		DPosition() { clear();	}
 		
 		/// Destructor
-		~DPosition() {}
+		virtual ~DPosition() {}
 
 		/// Constructor that fills all dimensions with the value @p x
 		DPosition(const CoordinateType& x)
@@ -121,23 +121,23 @@ namespace OpenMS
 		}
 		
 		///Name accessor for the first dimension. Only for DPosition<2>, for visualization.
-		CoordinateType X() const
+		CoordinateType getX() const
     {
-    	OPENMS_PRECONDITION(D == 2, "DPosition<D>:Y(): index overflow!");
+    	OPENMS_PRECONDITION(D == 2, "DPosition<D>:getX(): index overflow!");
 			return coordinate_[0];
     }
 		
 		///Name accessor for the second dimension. Only for DPosition<2>, for visualization.
-		CoordinateType Y() const
+		CoordinateType getY() const
     {
-    	OPENMS_PRECONDITION(D == 2, "DPosition<D>:Y(): index overflow!");
+    	OPENMS_PRECONDITION(D == 2, "DPosition<D>:getY(): index overflow!");
 			return coordinate_[1];
     }
 		
 		///Name mutator for the first dimension. Only for DPosition<2>, for visualization.
 		void setX(const CoordinateType& c) 
     {
-    	OPENMS_PRECONDITION(D == 2, "DPosition<D>:Y(): index overflow!");
+    	OPENMS_PRECONDITION(D == 2, "DPosition<D>:setX(): index overflow!");
 			coordinate_[0] = c;
     }
 		

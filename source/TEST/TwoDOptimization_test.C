@@ -51,10 +51,10 @@ CHECK((TwoDOptimization& operator=(const TwoDOptimization& opt)))
   PRECISION(0.0001)
   TwoDOptimization opt_2d;
   struct OptimizationFunctions::PenaltyFactorsInt penalties;
-  opt_2d.getPenalties() = penalties;
-  opt_2d.getMaxIterations() = 10;
-  opt_2d.getMaxAbsError() = 0.01;
-  opt_2d.getMaxRelError() = 0.001;
+  opt_2d.setPenalties(penalties);
+  opt_2d.setMaxIterations(10);
+  opt_2d.setMaxAbsError(0.01);
+  opt_2d.setMaxRelError(0.001);
   
   TwoDOptimization opt_2d_copy;
   opt_2d_copy = opt_2d;
@@ -76,10 +76,10 @@ CHECK((TwoDOptimization(const TwoDOptimization& opt)))
   PRECISION(0.0001)
   TwoDOptimization opt_2d;
   struct OptimizationFunctions::PenaltyFactorsInt penalties;
-  opt_2d.getPenalties() = penalties;
-  opt_2d.getMaxIterations() = 10;
-  opt_2d.getMaxAbsError() = 0.01;
-  opt_2d.getMaxRelError() = 0.001;
+  opt_2d.setPenalties(penalties);
+  opt_2d.setMaxIterations(10);
+  opt_2d.setMaxAbsError(0.01);
+  opt_2d.setMaxRelError(0.001);
   
   TwoDOptimization opt_2d_copy(opt_2d);
   struct OptimizationFunctions::PenaltyFactorsInt penalties_copy = opt_2d_copy.getPenalties();
@@ -123,11 +123,11 @@ CHECK(( template <typename InputSpectrumIterator,typename OutputPeakType>
 	
 	PickedPeak1D peak;
 	PeakShape peak_shape;
-  peak.getMZ() = 500;
-  peak.getLeftWidthParameter() = 2.5;
-  peak.getRightWidthParameter() = 2.6;
-  peak.getArea() = 100;
-  peak.getIntensity() = 400;
+  peak.setMZ(500);
+  peak.setLeftWidthParameter(2.5);
+  peak.setRightWidthParameter(2.6);
+  peak.setArea(100);
+  peak.setIntensity(400);
   peak_shape.mz_position = 500;
   peak_shape.left_width = 2.5;
   peak_shape.right_width = 2.5;

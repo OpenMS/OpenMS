@@ -340,12 +340,12 @@ RESULT
 
 CHECK(CoordinateType X() const)
 	DPosition<2> p1(11.0f,12.1f);
-	TEST_REAL_EQUAL(p1.X(),11.0f);
+	TEST_REAL_EQUAL(p1.getX(),11.0f);
 RESULT
 
 CHECK(CoordinateType Y() const)
 	DPosition<2> p1(11.0f,12.1f);
-	TEST_REAL_EQUAL(p1.Y(),12.1f);
+	TEST_REAL_EQUAL(p1.getY(),12.1f);
 RESULT
 
 CHECK(void setX(const CoordinateType& c))
