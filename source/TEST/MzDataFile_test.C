@@ -124,7 +124,7 @@ CHECK((template<typename MapType> void load(const String& filename, MapType& map
   //---------------------------------------------------------------------------
   // test with DPickedPeak
   //---------------------------------------------------------------------------
-	MSExperiment< DPickedPeak<1> > e;
+	MSExperiment< PickedPeak1D > e;
 
 	// real test
 	mzdata.load("data/MzDataFile_test_1.mzData",e);
@@ -754,7 +754,7 @@ CHECK(([EXTRA] load with intensity range))
 RESULT
 
 CHECK((template<typename MapType> void store(const String& filename, const MapType& map) const throw(Exception::UnableToCreateFile)))
-  MSExperiment< DPickedPeak<1> > e1, e2;
+  MSExperiment< PickedPeak1D > e1, e2;
   MzDataFile f;
   f.load("data/MzDataFile_test_1.mzData",e1);
 	TEST_EQUAL(e1.size(), 3)
@@ -777,7 +777,7 @@ RESULT
 CHECK([EXTRA] load with 64 bit )
 	PRECISION(0.01)
 
-	MSExperiment< DPickedPeak<1> > e;
+	MSExperiment< PickedPeak1D > e;
 	MzDataFile mzdata;
 
 	// real test
