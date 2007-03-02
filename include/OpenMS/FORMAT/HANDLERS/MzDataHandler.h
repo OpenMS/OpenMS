@@ -36,6 +36,7 @@
 #include <OpenMS/FORMAT/Base64.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/DPeak.h>
+#include <OpenMS/KERNEL/PickedPeak1D.h>
 
 #include <xercesc/sax2/SAX2XMLReader.hpp>
 #include <xercesc/framework/MemBufInputSource.hpp>
@@ -916,7 +917,7 @@ namespace OpenMS
 		*/
 		template <>
 		template <>
-		void MzDataHandler <MSExperiment<DPickedPeak<1> > >::writeDerivedPeakSupplementalData_ < DPeakArray<1, DPickedPeak<1> > >( std::ostream& os, DPeakArray<1, DPickedPeak<1> > const & container);
+		void MzDataHandler <MSExperiment<PickedPeak1D > >::writeDerivedPeakSupplementalData_ < DPeakArray<1, PickedPeak1D > >( std::ostream& os, DPeakArray<1, PickedPeak1D > const & container);
 
 		/**
 			 @brief Partial specialization that reads supplemental data for picked peaks.
@@ -925,7 +926,7 @@ namespace OpenMS
 		*/
 		template <>
 		template <>
-		void MzDataHandler <MSExperiment<DPickedPeak<1> > >::readPeakSupplementalData_ < DPickedPeak<1> >( std::vector<void*>& data, DPickedPeak<1>& peak, Size n);
+		void MzDataHandler <MSExperiment<PickedPeak1D > >::readPeakSupplementalData_ < PickedPeak1D >( std::vector<void*>& data, PickedPeak1D& peak, Size n);
 
 
 	} // namespace Internal
