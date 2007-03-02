@@ -64,14 +64,20 @@ namespace OpenMS
     {
       public:
 
+        /// Defines the coordinates of peaks / features.
+        enum DimensionId
+        {
+          RT = DimensionDescription < LCMS_Tag >::RT,
+          MZ = DimensionDescription < LCMS_Tag >::MZ
+        };
+
         typedef typename AlignmentT::ElementContainerType ElementContainerType;
         typedef typename AlignmentT::ElementType ElementType;
         typedef typename AlignmentT::ConsensusMapType ConsensusMapType;
         typedef typename AlignmentT::ConsensusElementType ConsensusElementType;
 
-        typedef DGrid<2> GridType;
-        typedef DGridCell<2> GridCellType;
-        typedef typename GridCellType::MappingVector MappingVector;
+      
+        typedef typename GridCell::MappingVector MappingVector;
         typedef DPosition<2> PositionType;
 
       /// Constructor
@@ -165,12 +171,12 @@ namespace OpenMS
           std::cout << "Read no file " << std::endl;
         }
 
-        void writeCellList_(std::ostream& os, const GridType& grid)
+        void writeCellList_(std::ostream& os, const Grid& grid)
         {
           // write features with their attributes
           for (UnsignedInt s=0; s < grid.size(); s++)
           {
-            const GridCellType& cell = grid[s];
+            const GridCell& cell = grid[s];
 
             os << "\t\t<cell nr=\"" << s << "\">" << std::endl;
             os << "\t\t\t\t<range rtMin=\"" << cell.min()[0] << "\" rtMax=\"" << cell.max()[0]
@@ -466,7 +472,7 @@ namespace OpenMS
 
       os << "\t<transformationList>\n";
       os << "\t\t<transformation id=\"0\" name =\"IdentityTransformation\"/>\n";
-      const std::vector< GridType >& transformation_vector = calignment_->getTransformationVector();
+      const std::vector< Grid >& transformation_vector = calignment_->getTransformationVector();
       n = transformation_vector.size();
       UnsignedInt j=0;
       for (UnsignedInt s=0; s < n; ++s)
