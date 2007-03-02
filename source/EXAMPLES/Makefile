@@ -28,8 +28,7 @@ DIRECTORY=EXAMPLES
 
 CPP_SOURCES= \
 	Serialization_example_GPS.C \
-	Serialization_example_KERNEL_1.C \
-	FeatureMapping.C \
+	Serialization_example_KERNEL_1.C 
 
 ### Apparently this one doesn't compile with g++ version 4.1.0.
 ### It used to compile with an earlier version...
