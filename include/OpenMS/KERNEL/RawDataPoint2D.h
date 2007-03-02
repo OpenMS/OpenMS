@@ -51,8 +51,7 @@ namespace OpenMS
 		/** @name Type definitions
 		 */
 		//@{
-		/// Dimension
-    enum { DIMENSION = 2 };
+    
     /// Intensity type
     typedef DoubleReal IntensityType;
     /// Coordinate type (of the position)
@@ -60,6 +59,62 @@ namespace OpenMS
 		/// Position type
 		typedef DPosition<2> PositionType;
     //@}
+
+		/// Dimensions
+		//@{
+		
+		/// This enum maps the ymbolic names of the dimensions to numbers.
+    enum DimensionId
+      {
+				RT = 0, ///< Mass-to-charge dimension id (0 if used as a const int)
+				MZ = 1, ///< Retention time dimension id (1 if used as a const int)
+				DIMENSION = 2 ///< Number of dimensions
+      };
+
+    /// Short name of the dimension (abbreviated form)
+    static char const * const shortDimensionName(DimensionId const dim);
+    /// Short name of the dimension (abbreviated form)
+    static char const * const shortDimensionNameRT();
+    /// Short name of the dimension (abbreviated form)
+    static char const * const shortDimensionNameMZ();
+
+    /// Full name of the dimension (self-explanatory form)
+    static char const * const fullDimensionName(DimensionId const dim);
+    /// Full name of the dimension (self-explanatory form)
+    static char const * const fullDimensionNameRT();
+    /// Full name of the dimension (self-explanatory form)
+    static char const * const fullDimensionNameMZ();
+
+    /// Unit of measurement (abbreviated form)
+		static char const * const shortDimensionUnit(DimensionId const dim);
+    /// Unit of measurement (abbreviated form)
+		static char const * const shortDimensionUnitRT();
+    /// Unit of measurement (abbreviated form)
+		static char const * const shortDimensionUnitMZ();
+
+    /// Unit of measurement (self-explanatory form)
+		static char const * const fullDimensionUnit(DimensionId const dim);
+    /// Unit of measurement (self-explanatory form)
+		static char const * const fullDimensionUnitRT();
+    /// Unit of measurement (self-explanatory form)
+		static char const * const fullDimensionUnitMZ();
+
+	 protected:
+    /// Short name of the dimension (abbreviated form)
+		static char const * const dimension_name_short [DIMENSION];
+		
+    /// Full name of the dimension (self-explanatory form)
+    static char const * const dimension_name_full  [DIMENSION];
+		
+    /// Unit of measurement (abbreviated form)
+    static char const * const dimension_unit_short [DIMENSION];
+		
+    /// Unit of measurement (self-explanatory form)
+    static char const * const dimension_unit_full  [DIMENSION];
+    
+		//@}
+
+	 public:
 
 		/** @name Constructors and Destructor
 		 */
