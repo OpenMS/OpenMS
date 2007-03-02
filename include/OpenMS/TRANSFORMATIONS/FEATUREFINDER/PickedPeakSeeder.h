@@ -1,4 +1,4 @@
-// -*- C++: make; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -21,7 +21,7 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Ole Schulz-Trieglaff$
+// $Maintainer: Ole Schulz-Trieglaff $
 // --------------------------------------------------------------------------
 
 #ifndef OPENMS_TRANSFORMATIONS_FEATUREFINDER_PICKEDPEAKSEEDER_H
@@ -57,12 +57,6 @@ namespace OpenMS
 		  typedef DoubleReal ProbabilityType;
 			typedef std::multimap<CoordinateType,IsotopeCluster> TableType;
 		
-		  enum DimensionId
-		  {
-	      RT = DimensionDescription < LCMS_Tag >::RT,
-	      MZ = DimensionDescription < LCMS_Tag >::MZ
-		  };
-	
 	    /// Default constructor
 	    PickedPeakSeeder();
 	
