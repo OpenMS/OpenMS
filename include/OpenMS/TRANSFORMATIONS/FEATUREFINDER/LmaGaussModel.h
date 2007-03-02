@@ -42,13 +42,13 @@ namespace OpenMS
 		@todo Remove setParam method and use setParameters instead (Clemens, Marcel)
 	*/
 	class LmaGaussModel
-		: public InterpolationModel<>
+		: public InterpolationModel
 	{
 
 	 public:
-		typedef InterpolationModel<>::CoordinateType CoordinateType;
+		typedef InterpolationModel::CoordinateType CoordinateType;
 		typedef Math::BasicStatistics<CoordinateType > BasicStatistics;
-		typedef InterpolationModel<> InterpolationModel;
+		typedef InterpolationModel InterpolationModel;
 
 		/// Default constructor
 		LmaGaussModel();

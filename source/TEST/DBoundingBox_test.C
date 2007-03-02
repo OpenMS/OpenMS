@@ -42,13 +42,13 @@ START_TEST(DBoundingBox, "$Id$")
 using namespace OpenMS;
 using namespace std;
 
-DBoundingBox<1,FloatKernelTraits>* ptr1 = 0;
-CHECK(DBoundingBox<1;FloatKernelTraits>())
-	ptr1 = new DBoundingBox<1,FloatKernelTraits>;
+DBoundingBox<1>* ptr1 = 0;
+CHECK(DBoundingBox<1>())
+	ptr1 = new DBoundingBox<1>;
 	TEST_NOT_EQUAL(ptr1, 0)
 RESULT
 
-CHECK(~DBoundingBox<1;FloatKernelTraits>())
+CHECK(~DBoundingBox<1>())
 	delete ptr1;
 RESULT
 
@@ -63,7 +63,7 @@ CHECK(~DBoundingBox<2>())
 RESULT
 
 // Misc stuff for testing
-typedef DBoundingBox<1,FloatKernelTraits> BB1;
+typedef DBoundingBox<1> BB1;
 typedef DBoundingBox<2> BB2;
 BB1 bb1;
 BB2 bb2;

@@ -34,7 +34,7 @@
 namespace OpenMS
 {
     IsotopeModel::IsotopeModel()
-		: InterpolationModel<>(),
+		: InterpolationModel(),
 			monoisotopic_mz_(0.0)
 		{
 			setName(getProductName());
@@ -55,7 +55,7 @@ namespace OpenMS
 		}
 
   	IsotopeModel::IsotopeModel(const IsotopeModel& source)
-		: InterpolationModel<>(source)
+		: InterpolationModel(source)
 		{
 			setParam(source.mean_, source.charge_, source.isotope_stdev_);
 			updateMembers_();
@@ -69,7 +69,7 @@ namespace OpenMS
 		{
 			if (&source == this) return *this;
 			
-			InterpolationModel<>::operator = (source);
+			InterpolationModel::operator = (source);
 			setParam(source.mean_, source.charge_, source.isotope_stdev_);
 			updateMembers_();
 			
@@ -206,7 +206,7 @@ namespace OpenMS
 			mean_ += diff;
 			monoisotopic_mz_ += diff;
 
-			InterpolationModel<>::setOffset(offset);
+			InterpolationModel::setOffset(offset);
 
 			param_.setValue("statistics:mean", mean_);
 		}
@@ -228,7 +228,7 @@ namespace OpenMS
 
 		void IsotopeModel::updateMembers_()
 		{
-			InterpolationModel<>::updateMembers_();
+			InterpolationModel::updateMembers_();
 
 			charge_ = param_.getValue("charge");
 			isotope_stdev_ = param_.getValue("isotope:stdev");

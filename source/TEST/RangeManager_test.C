@@ -29,7 +29,7 @@
 ///////////////////////////
 
 #include <OpenMS/KERNEL/Peak2D.h>
-#include <OpenMS/DATASTRUCTURES/RangeManager.h>
+#include <OpenMS/KERNEL/RangeManager.h>
 
 ///////////////////////////
 

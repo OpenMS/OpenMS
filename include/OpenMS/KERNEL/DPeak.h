@@ -28,7 +28,6 @@
 #define OPENMS_KERNEL_DPEAK_H
 
 #include <OpenMS/CONCEPT/Types.h>
-#include <OpenMS/KERNEL/KernelTraits.h>
 #include <OpenMS/KERNEL/DRawDataPoint.h>
 #include <OpenMS/METADATA/MetaInfoInterface.h>
 
@@ -50,9 +49,9 @@ namespace OpenMS
 	
 		@ingroup Kernel, Serialization
 	*/
-	template <Size D, typename Traits = KernelTraits>
+	template <Size D>
 	class DPeak 
-		: public DRawDataPoint < D, Traits >, 
+		: public DRawDataPoint <D>, 
 			public MetaInfoInterface
 	{
 		public:
@@ -61,10 +60,9 @@ namespace OpenMS
 		*/
 		//@{	
 		enum { DIMENSION = D };
-		typedef Traits TraitsType;
-		typedef DPosition<D, TraitsType>				 PositionType;
-		typedef typename Traits::CoordinateType  CoordinateType;
-		typedef typename Traits::IntensityType   IntensityType;
+		typedef DPosition<D> PositionType;
+		typedef DoubleReal CoordinateType;
+		typedef DoubleReal IntensityType;
 		//@}
 
 		/** @name Constructors and Destructor
@@ -72,7 +70,7 @@ namespace OpenMS
 		//@{
 		/// Default constructor
 		DPeak() 
-			: DRawDataPoint<D,Traits>(),
+			: DRawDataPoint<D>(),
 				MetaInfoInterface()
 		{
 			
@@ -80,7 +78,7 @@ namespace OpenMS
 		
 		/// Copy constructor
 		inline DPeak(DPeak const& p) 
-			: DRawDataPoint<D,Traits>(p),
+			: DRawDataPoint<D>(p),
 				MetaInfoInterface(p)
 		{
 		}
@@ -96,7 +94,7 @@ namespace OpenMS
 		{
 			if (this==&rhs) return *this;
 			
-			DRawDataPoint<D,Traits>::operator = (rhs);
+			DRawDataPoint<D>::operator = (rhs);
 			MetaInfoInterface::operator = (rhs);
 			
 			return *this;
@@ -106,7 +104,7 @@ namespace OpenMS
 		bool operator == (const DPeak& rhs) const
 		{
 			return 
-				DRawDataPoint<D,Traits>::operator == (rhs) &&
+				DRawDataPoint<D>::operator == (rhs) &&
 				MetaInfoInterface::operator == (rhs)
 			;
 		}
@@ -126,7 +124,7 @@ namespace OpenMS
 		template<class Archive>
 		void serialize(Archive & ar, const unsigned int /* version */ )
 		{
-			ar & boost::serialization::make_nvp("rdp",boost::serialization::base_object<DRawDataPoint<D,Traits> >(*this));
+			ar & boost::serialization::make_nvp("rdp",boost::serialization::base_object<DRawDataPoint<D> >(*this));
 			ar & boost::serialization::make_nvp("mii",boost::serialization::base_object<MetaInfoInterface>(*this));
 		}
 		//@}
@@ -137,10 +135,10 @@ namespace OpenMS
 	};
 
 	///Print the contents to a stream.
-	template <Size D, typename Traits>
-	std::ostream& operator << (std::ostream& os, const DPeak<D, Traits>& peak)
+	template <Size D>
+	std::ostream& operator << (std::ostream& os, const DPeak<D>& peak)
 	{
-		os <<(DRawDataPoint<D, Traits>)peak;
+		os <<(DRawDataPoint<D>)peak;
 		return os;
 	}
 

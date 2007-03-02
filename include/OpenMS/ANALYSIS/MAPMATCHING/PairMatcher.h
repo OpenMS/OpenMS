@@ -30,7 +30,6 @@
 #include <OpenMS/ANALYSIS/MAPMATCHING/DFeaturePairVector.h>
 #include <OpenMS/KERNEL/DimensionDescription.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
-#include <OpenMS/KERNEL/KernelTraits.h>
 #include <OpenMS/CONCEPT/FactoryProduct.h>
 #include <OpenMS/DATASTRUCTURES/QuadTree.h>
 
@@ -73,7 +72,7 @@ namespace OpenMS
 			typedef FeatureMap<> FeatureMapType;
 			typedef DFeaturePair<2> PairType;
 			typedef DFeaturePairVector<2> PairVectorType;
-			typedef QuadTree< KernelTraits, FeatureType > QuadTreeType;
+			typedef QuadTree< FeatureType > QuadTreeType;
 			//@}
 	
 		  /// Defines the coordinates of peaks / features.

@@ -30,7 +30,7 @@
 namespace OpenMS
 {
     BiGaussModel::BiGaussModel()
-		: InterpolationModel<>(), statistics1_(), statistics2_()
+		: InterpolationModel(), statistics1_(), statistics2_()
 		{
 			setName(getProductName());
 			
@@ -44,7 +44,7 @@ namespace OpenMS
 		}
 
   	BiGaussModel::BiGaussModel(const BiGaussModel& source)
-		: InterpolationModel<>(source)
+		: InterpolationModel(source)
 		{
 			setParam(source.statistics1_.mean(), source.statistics1_.variance(),
 							 source.statistics2_.variance(),source.min_, source.max_);
@@ -59,7 +59,7 @@ namespace OpenMS
 		{
 			if (&source == this) return *this;
 			
-			InterpolationModel<>::operator = (source);
+			InterpolationModel::operator = (source);
 			setParam(source.statistics1_.mean(), source.statistics1_.variance(),
 							 source.statistics2_.variance(),source.min_, source.max_);
 			updateMembers_();
@@ -116,7 +116,7 @@ namespace OpenMS
 
 		void BiGaussModel::updateMembers_()
 		{
-			InterpolationModel<>::updateMembers_();
+			InterpolationModel::updateMembers_();
 			
 			min_ = param_.getValue("bounding_box:min");
 			max_ = param_.getValue("bounding_box:max");
@@ -136,7 +136,7 @@ namespace OpenMS
 			statistics1_.setMean(statistics1_.mean()+diff);
 			statistics2_.setMean(statistics2_.mean()+diff);
 			
-			InterpolationModel<>::setOffset(offset);
+			InterpolationModel::setOffset(offset);
 
 			param_.setValue("bounding_box:min", min_);
 			param_.setValue("bounding_box:max", max_);

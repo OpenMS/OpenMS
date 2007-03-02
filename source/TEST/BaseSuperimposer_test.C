@@ -33,8 +33,8 @@
 using namespace OpenMS;
 using namespace std;
 
-typedef DLinearMapping< 1, KernelTraits > TransformationType;
-typedef DFeature<2, KernelTraits> ElementType;
+typedef DLinearMapping<1> TransformationType;
+typedef Feature ElementType;
 typedef FeatureMap< ElementType> ElementMapType;
 
 class TestSuperimposer : public BaseSuperimposer<ElementMapType>

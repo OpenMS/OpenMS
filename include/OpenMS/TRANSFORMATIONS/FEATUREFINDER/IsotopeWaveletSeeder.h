@@ -60,7 +60,7 @@ namespace OpenMS
 
     typedef FeaFiTraits::IntensityType IntensityType;
     typedef FeaFiTraits::CoordinateType CoordinateType;
-    typedef KernelTraits::ProbabilityType ProbabilityType;
+    typedef DoubleReal ProbabilityType;
 		typedef FeaFiTraits::MapType MapType;
 		typedef MapType::PeakType PeakType;
 		typedef MapType::SpectrumType SpectrumType;

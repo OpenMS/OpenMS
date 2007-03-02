@@ -70,7 +70,7 @@ START_TEST(QuadTree<>, "$Id$")
 
 using namespace OpenMS;
 
-typedef QuadTree<FloatKernelTraits, int> Tree;
+typedef QuadTree<int> Tree;
 typedef Tree::AreaType Area;
 typedef Tree::PointType Point;
 Tree* quadtree_ptr;

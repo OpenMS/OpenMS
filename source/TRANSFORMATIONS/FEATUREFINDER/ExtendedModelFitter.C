@@ -315,8 +315,8 @@ namespace OpenMS
 		Feature f;
 		f.setModelDescription( ModelDescription<2>(final) );
 		f.setOverallQuality(max_quality);
-		f.setRT(dynamic_cast<InterpolationModel<>*>(final->getModel(RT))->getCenter());
-		f.setMZ(dynamic_cast<InterpolationModel<>*>(final->getModel(MZ))->getCenter());
+		f.setRT(dynamic_cast<InterpolationModel*>(final->getModel(RT))->getCenter());
+		f.setMZ(dynamic_cast<InterpolationModel*>(final->getModel(MZ))->getCenter());
 		if (final->getModel(MZ)->getName() == "IsotopeModel")
 		{
 			f.setCharge(dynamic_cast<IsotopeModel*>(final->getModel(MZ))->getCharge());
@@ -359,7 +359,7 @@ namespace OpenMS
 
 
 		f.getQuality(RT) = quality_->evaluate(model_set, *final->getModel(RT), RT );
-		f.getQuality(MZ) = quality_->evaluate(model_set, *(dynamic_cast<InterpolationModel<>*>(final->getModel(MZ)) ), MZ );
+		f.getQuality(MZ) = quality_->evaluate(model_set, *(dynamic_cast<InterpolationModel*>(final->getModel(MZ)) ), MZ );
 
 		// save meta data in feature for TOPPView
 		stringstream meta ;
@@ -413,7 +413,7 @@ namespace OpenMS
 		const Coordinate interpolation_step_rt = param_.getValue("rt:interpolation_step");
 
 		// Build Models
-		InterpolationModel<>* mz_model;
+		InterpolationModel* mz_model;
 		if (mz_fit==MZGAUSS)
 		{
 			mz_model = new GaussModel();
@@ -430,7 +430,7 @@ namespace OpenMS
 			mz_model->setInterpolationStep(interpolation_step_mz);
 			dynamic_cast<IsotopeModel*>(mz_model)->setParam(mz_stat_.mean(), mz_fit, isotope_stdev);
 		}
-		InterpolationModel<>* rt_model;
+		InterpolationModel* rt_model;
 		if (rt_fit==RTGAUSS)
 		{
 			rt_model = new GaussModel();
@@ -475,7 +475,7 @@ namespace OpenMS
 	}
 
 
-	double ExtendedModelFitter::fitOffset_(	InterpolationModel<>* model,
+	double ExtendedModelFitter::fitOffset_(	InterpolationModel* model,
 																					const IndexSet& set, const double stdev1,  const double stdev2,
 																					const Coordinate offset_step)
 	{

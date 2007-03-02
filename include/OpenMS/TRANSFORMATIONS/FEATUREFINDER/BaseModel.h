@@ -28,7 +28,6 @@
 #define OPENMS_TRANSFORMATIONS_FEATUREFINDER_BASEMODEL_H
 
 #include <OpenMS/CONCEPT/FactoryProduct.h>
-#include <OpenMS/KERNEL/KernelTraits.h>
 #include <OpenMS/KERNEL/DPeakArray.h>
 
 namespace OpenMS
@@ -41,7 +40,7 @@ namespace OpenMS
 		
 		@ingroup FeatureFinder
    */
-  template <UnsignedInt D, typename Traits = KernelTraits>
+  template <UnsignedInt D>
     class BaseModel
     : public FactoryProduct
     {
@@ -50,11 +49,11 @@ namespace OpenMS
 	      typedef int Flag;
 	      typedef std::vector<Flag> Flags;
 	
-	      typedef typename DPeak<D,Traits>::IntensityType IntensityType;
-		  	typedef typename DPeak<D,Traits>::CoordinateType CoordinateType;
-	      typedef DPosition<D,Traits> PositionType;
-	      typedef DPeak<D,Traits> PeakType;
-		  	typedef DPeakArray<D, DPeak<D,Traits> > SamplesType;
+	      typedef typename DPeak<D>::IntensityType IntensityType;
+		  	typedef typename DPeak<D>::CoordinateType CoordinateType;
+	      typedef DPosition<D> PositionType;
+	      typedef DPeak<D> PeakType;
+		  	typedef DPeakArray<D, DPeak<D> > SamplesType;
 	
 	
 	      /// Default constructor. 

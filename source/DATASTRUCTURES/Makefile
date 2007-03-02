@@ -44,7 +44,6 @@ CPP_SOURCES=\
 	BinnedSparseVector.C\
 	DateTime.C\
 	QuadTree.C\
-	RangeManager.C\
 	ConvexHull2D.C\
   DefaultParamHandler.C
 

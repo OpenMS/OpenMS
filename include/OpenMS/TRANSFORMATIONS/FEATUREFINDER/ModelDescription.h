@@ -44,7 +44,7 @@ namespace OpenMS
 		
 		@ingroup FeatureFinder		
 	*/  
-  template <UnsignedInt D, typename Traits = KernelTraits>
+  template <UnsignedInt D>
 	class ModelDescription
 	{
 		public:
@@ -64,7 +64,7 @@ namespace OpenMS
 		}
 
 		/// constructor provided for convenience
-		ModelDescription(const BaseModel<D,Traits>* model)
+		ModelDescription(const BaseModel<D>* model)
 			: name_(model->getName()),
 				parameters_(model->getParameters())
 		{
@@ -88,10 +88,10 @@ namespace OpenMS
 		
 		/// creates model from the parameters defined in this class
 		/// returns 0 if no description is set. 
-		BaseModel<D,Traits>* createModel()
+		BaseModel<D>* createModel()
 		{
 			if (name_ == "") return 0;				
-			BaseModel<D,Traits>* model = Factory< BaseModel<D,Traits> >::create(name_);
+			BaseModel<D>* model = Factory< BaseModel<D> >::create(name_);
 			model->setParameters(parameters_);
 			return model;
 		}
@@ -142,8 +142,8 @@ namespace OpenMS
 		Param parameters_;
 	};
 
-	template <UnsignedInt D, typename Traits>
-	bool ModelDescription<D, Traits>::operator == (const ModelDescription<D, Traits>& rhs) const
+	template <UnsignedInt D>
+	bool ModelDescription<D>::operator == (const ModelDescription<D>& rhs) const
 	{
 		std::stringstream stream1;
 		stream1 << parameters_;
@@ -152,8 +152,8 @@ namespace OpenMS
 		return ((name_ == rhs.name_) && (stream1.str() == stream2.str()));
 	}
 
-	template <UnsignedInt D, typename Traits>
-	bool  ModelDescription<D, Traits>::operator != (const  ModelDescription<D, Traits>& rhs) const
+	template <UnsignedInt D>
+	bool  ModelDescription<D>::operator != (const  ModelDescription<D>& rhs) const
 	{
 		return !(operator == (rhs));
 	}

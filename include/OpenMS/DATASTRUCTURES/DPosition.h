@@ -30,7 +30,6 @@
 #include <OpenMS/config.h>
 #include <OpenMS/CONCEPT/Macros.h>
 #include <OpenMS/FORMAT/Serialization.h>
-#include <OpenMS/KERNEL/KernelTraits.h>
 
 #include <algorithm>
 #include <limits>
@@ -42,19 +41,17 @@ namespace OpenMS
 		
 		 @ingroup Datastructures		
 	*/
-	template <Size D, typename Traits = KernelTraits>
+	template <Size D>
 	class DPosition
 	{
 	 public:
 
-		/// Traits type
-		typedef Traits																	TraitsType;
 		/// Coordinate type
-		typedef typename TraitsType::CoordinateType			CoordinateType;
+		typedef DoubleReal CoordinateType;
 		/// Mutable iterator
-		typedef typename TraitsType::CoordinateType*		Iterator;
+		typedef CoordinateType* Iterator;
 		/// Non-mutable iterator
-		typedef const typename Traits::CoordinateType*	ConstIterator;
+		typedef const CoordinateType*	ConstIterator;
 		/// Dimensions
 		enum { DIMENSION = D };
 		/**	
@@ -255,7 +252,7 @@ namespace OpenMS
     /// Negation (a bit inefficient)
     DPosition operator - () const throw()
     {
-      DPosition<D, TraitsType> result(*this);
+      DPosition<D> result(*this);
       for (Position i=0; i < D; result.coordinate_[i] = -result.coordinate_[i] ,i++);
       return result;      
     }
@@ -341,40 +338,40 @@ namespace OpenMS
 	};  // DPosition
 
 	/// Scalar multiplication (a bit inefficient)
-	template <Size D, typename Traits>
-	DPosition<D,Traits> operator * (DPosition<D,Traits> position, typename DPosition<D,Traits>::CoordinateType scalar) throw()
+	template <Size D>
+	DPosition<D> operator * (DPosition<D> position, typename DPosition<D>::CoordinateType scalar) throw()
 	{
 		for (Size i = 0; i < D; position[i] *= scalar,++i) ;
 		return position;
 	}
 	
 	/// Scalar multiplication (a bit inefficient)
-	template <Size D, typename Traits>
-	DPosition<D,Traits> operator * (typename DPosition<D,Traits>::CoordinateType scalar, DPosition<D,Traits> position) throw()
+	template <Size D>
+	DPosition<D> operator * (typename DPosition<D>::CoordinateType scalar, DPosition<D> position) throw()
 	{
 		for (Size i = 0; i < D; position[i] *= scalar,++i) ;
 		return position;
 	}
 
-	template <Size D, typename TraitsType>
-	const DPosition<D, TraitsType> DPosition<D, TraitsType>::zero 
-	= DPosition<D, TraitsType>(0);
+	template <Size D>
+	const DPosition<D> DPosition<D>::zero 
+	= DPosition<D>(0);
 
-	template <Size D, typename TraitsType>
-	const DPosition<D, TraitsType> DPosition<D, TraitsType>::min 
-	= DPosition<D, TraitsType>(std::numeric_limits<typename DPosition<D, TraitsType>::CoordinateType>::min());
+	template <Size D>
+	const DPosition<D> DPosition<D>::min 
+	= DPosition<D>(std::numeric_limits<typename DPosition<D>::CoordinateType>::min());
 
-	template <Size D, typename TraitsType>
-	const DPosition<D, TraitsType> DPosition<D, TraitsType>::max 
-	= DPosition<D, TraitsType>(std::numeric_limits<typename DPosition<D, TraitsType>::CoordinateType>::max());
+	template <Size D>
+	const DPosition<D> DPosition<D>::max 
+	= DPosition<D>(std::numeric_limits<typename DPosition<D>::CoordinateType>::max());
 
-	template <Size D, typename TraitsType>
-	const DPosition<D, TraitsType> DPosition<D, TraitsType>::min_negative
-	= DPosition<D, TraitsType>(-std::numeric_limits<typename DPosition<D, TraitsType>::CoordinateType>::max());
+	template <Size D>
+	const DPosition<D> DPosition<D>::min_negative
+	= DPosition<D>(-std::numeric_limits<typename DPosition<D>::CoordinateType>::max());
 
 	///Print the contents to a stream.
-	template <Size D, typename Traits>
-	std::ostream& operator << (std::ostream& os, const DPosition<D, Traits>& pos)
+	template <Size D>
+	std::ostream& operator << (std::ostream& os, const DPosition<D>& pos)
 	{
 		os << pos[0];
 		for (Size i=1; i < D; ++i)

@@ -27,7 +27,6 @@
 #ifndef OPENMS_KERNEL_CONSENSUSFEATURE_H
 #define OPENMS_KERNEL_CONSENSUSFEATURE_H
 
-#include <OpenMS/KERNEL/KernelTraits.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/DATASTRUCTURES/DRange.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/Group.h>
@@ -248,11 +247,11 @@ namespace OpenMS
       {
         unsigned int n = Group::size();
         DPosition<2> sum_position;
-        DPosition<2> pos_min(std::numeric_limits< typename DPeak<2,KernelTraits>::CoordinateType>::max());
-        DPosition<2> pos_max(std::numeric_limits< typename DPeak<2,KernelTraits>::CoordinateType>::min());
+        DPosition<2> pos_min(std::numeric_limits<DoubleReal>::max());
+        DPosition<2> pos_max(std::numeric_limits<DoubleReal>::min());
         DPosition<1> sum_intensities = 0;
-        DPosition<1> int_min(std::numeric_limits< typename DPeak<2,KernelTraits>::IntensityType>::max());
-        DPosition<1> int_max(std::numeric_limits< typename DPeak<2,KernelTraits>::IntensityType>::min());
+        DPosition<1> int_min(std::numeric_limits<DoubleReal>::max());
+        DPosition<1> int_max(std::numeric_limits<DoubleReal>::min());
         for (typename Group::const_iterator it = Group::begin(); it != Group::end(); ++it)
         {
           DPosition<1> act_int = (it->getElement()).getIntensity();

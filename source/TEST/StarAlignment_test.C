@@ -34,8 +34,8 @@
 using namespace OpenMS;
 using namespace std;
 
-typedef ConsensusFeature<FeatureMap> ConsensusFeatureType;
-typedef DPosition < 2, KernelTraits > PositionType;
+typedef ConsensusFeature<FeatureMap<> > ConsensusFeatureType;
+typedef DPosition <2> PositionType;
 
 START_TEST(StarAlignment, "$Id$")
 
@@ -53,13 +53,13 @@ CHECK(~StarAlignment())
 RESULT
 
 CHECK(StarAlignment& operator = (StarAlignment source))
-  StarAlignment< ConsensusFeature<FeatureMap> > alignment;
+  StarAlignment< ConsensusFeature<FeatureMap<> > > alignment;
   Param param;
   param.setValue("matching_algorithm:type","poseclustering_pairwise");
   alignment.setParam(param);
    
-  vector<FeatureMap*> map_vector;
-  FeatureMap map;
+  vector<FeatureMap<>*> map_vector;
+  FeatureMap<>map;
   map_vector.push_back(&map);
   alignment.setElementMapVector(map_vector);
   
@@ -69,7 +69,7 @@ CHECK(StarAlignment& operator = (StarAlignment source))
   alignment.setMapType("feature_map");
   alignment.setReferenceMapIndex(0);
   
-  StarAlignment< ConsensusFeature<FeatureMap> > alignment_copy;
+  StarAlignment< ConsensusFeature<FeatureMap<> > > alignment_copy;
   alignment_copy = alignment;
 
   TEST_EQUAL(alignment.getParam() == alignment_copy.getParam(),true)
@@ -80,12 +80,12 @@ CHECK(StarAlignment& operator = (StarAlignment source))
 RESULT
 
 CHECK(StarAlignment(const StarAlignment& source))
-  StarAlignment< ConsensusFeature<FeatureMap> > alignment;
+  StarAlignment< ConsensusFeature<FeatureMap<> > > alignment;
   Param param;
   param.setValue("matching_algorithm:type","poseclustering_pairwise");
   alignment.setParam(param);
-  vector<FeatureMap*> map_vector;
-  FeatureMap map;
+  vector<FeatureMap<>*> map_vector;
+  FeatureMap<>map;
   map_vector.push_back(&map);
   alignment.setElementMapVector(map_vector);
   
@@ -95,7 +95,7 @@ CHECK(StarAlignment(const StarAlignment& source))
   alignment.setMapType("feature_map");
   alignment.setReferenceMapIndex(0);
     
-  StarAlignment< ConsensusFeature<FeatureMap> > alignment_copy(alignment);
+  StarAlignment< ConsensusFeature<FeatureMap<> > > alignment_copy(alignment);
 
   TEST_EQUAL(alignment.getParam() == alignment_copy.getParam(),true)
   TEST_EQUAL(alignment_copy.getElementMapVector().size() == 1, true)
@@ -106,14 +106,14 @@ CHECK(StarAlignment(const StarAlignment& source))
 RESULT
 
 CHECK(String getAlignmentTree() const)
-  StarAlignment< ConsensusFeature<FeatureMap> > alignment;
-  vector<FeatureMap*> map_vector;
-  FeatureMap map1;
-  FeatureMap map2;
-  FeatureMap map3;
-  FeatureMap map4;
-  FeatureMap map5;
-  FeatureMap map6;
+  StarAlignment< ConsensusFeature<FeatureMap<> > > alignment;
+  vector<FeatureMap<>*> map_vector;
+  FeatureMap<>map1;
+  FeatureMap<>map2;
+  FeatureMap<>map3;
+  FeatureMap<>map4;
+  FeatureMap<>map5;
+  FeatureMap<>map6;
   map_vector.push_back(&map1);
   map_vector.push_back(&map2);
   map_vector.push_back(&map3);
@@ -127,24 +127,24 @@ CHECK(String getAlignmentTree() const)
 RESULT
 
 CHECK(const UnsignedInt& getReferenceMapIndex() const)
-  StarAlignment< ConsensusFeature<FeatureMap> > alignment;
+  StarAlignment< ConsensusFeature<FeatureMap<> > > alignment;
   
   TEST_REAL_EQUAL(alignment.getReferenceMapIndex(),0)
 RESULT
 
 CHECK(void run() throw(Exception::InvalidValue))
   FeatureMapFile feature_file;
-  StarAlignment< ConsensusFeature<FeatureMap> > alignment;
+  StarAlignment< ConsensusFeature<FeatureMap<> > > alignment;
   vector<String> name_vector(2);
   String file_name = "data/MapAlignmentFeatureMap1.xml";
-  FeatureMap map1;
+  FeatureMap<>map1;
   feature_file.load(file_name,map1);
   name_vector[0] = file_name;
   file_name = "data/MapAlignmentFeatureMap2.xml";
-  FeatureMap map2;
+  FeatureMap<>map2;
   feature_file.load(file_name,map2);
   name_vector[1] = file_name;
-  vector<FeatureMap*> map_vector(2);
+  vector<FeatureMap<>*> map_vector(2);
   map_vector[0] = &map1;
   map_vector[1] = &map2;
   alignment.setElementMapVector(map_vector);
@@ -159,9 +159,9 @@ CHECK(void run() throw(Exception::InvalidValue))
   alignment.run();
   
   PRECISION(0.01)
-  ConsensusFeature<FeatureMap> cons_feature = alignment.getFinalConsensusMap()[0];
-  TEST_REAL_EQUAL(cons_feature.getPosition()[0],1273.27)  
-  TEST_REAL_EQUAL(cons_feature.getPosition()[1],904.47)
+  ConsensusFeature<FeatureMap<> > cons_feature = alignment.getFinalConsensusMap()[0];
+  TEST_REAL_EQUAL(cons_feature.getPos()[0],1273.27)  
+  TEST_REAL_EQUAL(cons_feature.getPos()[1],904.47)
   TEST_REAL_EQUAL(cons_feature.getIntensity(),3.12539e+07)
   TEST_REAL_EQUAL(cons_feature.getPositionRange().min()[0],1273.27)
   TEST_REAL_EQUAL(cons_feature.getPositionRange().max()[0],1273.27)
@@ -169,14 +169,14 @@ CHECK(void run() throw(Exception::InvalidValue))
   TEST_REAL_EQUAL(cons_feature.getPositionRange().max()[1],904.47)
   TEST_REAL_EQUAL(cons_feature.getIntensityRange().min()[0],3.12539e+07)
   TEST_REAL_EQUAL(cons_feature.getIntensityRange().max()[0],3.12539e+07)
-  ConsensusFeature<FeatureMap>::Group::const_iterator it = cons_feature.begin();
-  TEST_REAL_EQUAL(it->getElement().getPosition()[0],1273.27)  
-  TEST_REAL_EQUAL(it->getElement().getPosition()[1],904.47)
+  ConsensusFeature<FeatureMap<> >::Group::const_iterator it = cons_feature.begin();
+  TEST_REAL_EQUAL(it->getElement().getPos()[0],1273.27)  
+  TEST_REAL_EQUAL(it->getElement().getPos()[1],904.47)
   TEST_REAL_EQUAL(it->getElement().getIntensity(),3.12539e+07)
     
   cons_feature = alignment.getFinalConsensusMap()[5];
-  TEST_REAL_EQUAL(cons_feature.getPosition()[0],1194.82)  
-  TEST_REAL_EQUAL(cons_feature.getPosition()[1],777.101)
+  TEST_REAL_EQUAL(cons_feature.getPos()[0],1194.82)  
+  TEST_REAL_EQUAL(cons_feature.getPos()[1],777.101)
   TEST_REAL_EQUAL(cons_feature.getIntensity(),1.78215e+07)
   TEST_REAL_EQUAL(cons_feature.getPositionRange().min()[0],1194.82)
   TEST_REAL_EQUAL(cons_feature.getPositionRange().max()[0],1194.82)
@@ -185,20 +185,20 @@ CHECK(void run() throw(Exception::InvalidValue))
   TEST_REAL_EQUAL(cons_feature.getIntensityRange().min()[0],1.78215e+07)
   TEST_REAL_EQUAL(cons_feature.getIntensityRange().max()[0],1.78215e+07)
   it = cons_feature.begin();
-  TEST_REAL_EQUAL(it->getElement().getPosition()[0],1194.82)  
-  TEST_REAL_EQUAL(it->getElement().getPosition()[1],777.101)
+  TEST_REAL_EQUAL(it->getElement().getPos()[0],1194.82)  
+  TEST_REAL_EQUAL(it->getElement().getPos()[1],777.101)
   TEST_REAL_EQUAL(it->getElement().getIntensity(),1.78215e+07)
   ++it;
-  TEST_REAL_EQUAL(it->getElement().getPosition()[0],2401.64)  
-  TEST_REAL_EQUAL(it->getElement().getPosition()[1],777.201)
+  TEST_REAL_EQUAL(it->getElement().getPos()[0],2401.64)  
+  TEST_REAL_EQUAL(it->getElement().getPos()[1],777.201)
   TEST_REAL_EQUAL(it->getElement().getIntensity(),1.78215e+07)
 RESULT
 
 CHECK(void setReferenceMapIndex(UnsignedInt index) throw(Exception::InvalidValue))
-  StarAlignment< ConsensusFeature<FeatureMap> > alignment;
-  vector<FeatureMap*> map_vector;
-  FeatureMap map1;
-  FeatureMap map2;
+  StarAlignment< ConsensusFeature<FeatureMap<> > > alignment;
+  vector<FeatureMap<>*> map_vector;
+  FeatureMap<>map1;
+  FeatureMap<>map2;
   map_vector.push_back(&map1);
   map_vector.push_back(&map2);
   alignment.setElementMapVector(map_vector);

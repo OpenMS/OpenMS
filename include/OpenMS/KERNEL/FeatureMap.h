@@ -30,7 +30,7 @@
 #include <OpenMS/config.h>
 #include <OpenMS/KERNEL/Feature.h>
 #include <OpenMS/METADATA/ExperimentalSettings.h>
-#include <OpenMS/DATASTRUCTURES/RangeManager.h>
+#include <OpenMS/KERNEL/RangeManager.h>
 
 #include <algorithm>
 #include <vector>

@@ -47,9 +47,9 @@ namespace OpenMS
 		
 		@ingroup Datastructures
 	*/
-	template <Size D, typename Traits = KernelTraits>
+	template <Size D>
 	class DRange
-		:	public Internal::DIntervalBase<D, Traits>
+		:	public Internal::DIntervalBase<D>
 	{
 	 public:
 
@@ -60,9 +60,7 @@ namespace OpenMS
 		/// Dimensions
 		enum { DIMENSION = D };
 		/// Base class type
-		typedef Internal::DIntervalBase<D, Traits> Base; 
-		/// Traits types
-		typedef typename Base::TraitsType TraitsType;
+		typedef Internal::DIntervalBase<D> Base; 
 		/// Position type
 		typedef typename Base::PositionType PositionType;
 		/// Coordinate type of the positions
@@ -274,8 +272,8 @@ namespace OpenMS
 	};
 
 	///Print the contents to a stream.
-	template <Size D, typename Traits>
-	std::ostream& operator << (std::ostream& os, const DRange<D,Traits>& area)
+	template <Size D>
+	std::ostream& operator << (std::ostream& os, const DRange<D>& area)
 	{
 		os << "--DRANGE BEGIN--"<<std::endl;
 		os << "MIN --> " << area.min_ << std::endl;

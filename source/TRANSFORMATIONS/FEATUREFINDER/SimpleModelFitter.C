@@ -271,8 +271,8 @@ namespace OpenMS
 		Feature f;
 		f.setModelDescription( ModelDescription<2>(final) );
 		f.setOverallQuality(max_quality);
-		f.setRT(static_cast<InterpolationModel<>*>(final->getModel(RT))->getCenter());
-		f.setMZ(static_cast<InterpolationModel<>*>(final->getModel(MZ))->getCenter());
+		f.setRT(static_cast<InterpolationModel*>(final->getModel(RT))->getCenter());
+		f.setMZ(static_cast<InterpolationModel*>(final->getModel(MZ))->getCenter());
 		
 		// set feature charge												
 		if (final->getModel(MZ)->getName() == "IsotopeModel")
@@ -314,7 +314,7 @@ namespace OpenMS
 							<< "," << f.getMZ() << ") Qual.:" << max_quality << "\n";
 		
 		f.getQuality(RT) = quality_->evaluate(model_set, *final->getModel(RT), RT );
-		f.getQuality(MZ) = quality_->evaluate(model_set, *(static_cast<InterpolationModel<>*>(final->getModel(MZ)) ),MZ );
+		f.getQuality(MZ) = quality_->evaluate(model_set, *(static_cast<InterpolationModel*>(final->getModel(MZ)) ),MZ );
 
 		// save meta data in feature for TOPPView
 		stringstream s;
@@ -364,7 +364,7 @@ namespace OpenMS
 		const Coordinate interpolation_step_rt = param_.getValue("rt:interpolation_step");
 
 		// Build Models
-		InterpolationModel<>* mz_model;
+		InterpolationModel* mz_model;
 		if (mz_fit==MZGAUSS)
 		{
 			mz_model = new GaussModel();
@@ -380,7 +380,7 @@ namespace OpenMS
 			mz_model->setInterpolationStep(interpolation_step_mz);
 			static_cast<IsotopeModel*>(mz_model)->setParam(mz_stat_.mean(), mz_fit, isotope_stdev);
 		}
-		InterpolationModel<>* rt_model;
+		InterpolationModel* rt_model;
 		if (rt_fit==RTGAUSS)
 		{
 			rt_model = new GaussModel();
@@ -402,7 +402,7 @@ namespace OpenMS
 	}
 
 
-	double SimpleModelFitter::fitOffset_(	InterpolationModel<>* model, const IndexSet& set, const double stdev1,  const double stdev2, const Coordinate offset_step)
+	double SimpleModelFitter::fitOffset_(	InterpolationModel* model, const IndexSet& set, const double stdev1,  const double stdev2, const Coordinate offset_step)
 	{
 		const Coordinate offset_min = model->getInterpolation().supportMin() - stdev1;
 		const Coordinate offset_max = model->getInterpolation().supportMin() + stdev2;

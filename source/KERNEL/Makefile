@@ -32,7 +32,6 @@ ADD_CXXFLAGS=-D_FILE_OFFSET_BITS=64
 THISLIB=$(LIBNAME)
 
 CPP_SOURCES= \
-	KernelTraits.C\
   DimensionDescription.C\
   DRawDataPoint.C\
   RawDataPoint1D.C\
@@ -46,6 +45,7 @@ CPP_SOURCES= \
   DPeakArray.C\
 	DPeakConstReferenceArray.C\
   StandardTypes.C\
+	RangeManager.C\
 	FeatureMap.C\
 	DSpectrum.C\
   MSSpectrum.C\

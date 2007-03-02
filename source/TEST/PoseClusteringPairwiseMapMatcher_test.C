@@ -33,11 +33,11 @@
 using namespace OpenMS;
 using namespace std;
 
-typedef DFeature<2, KernelTraits> ElementType;
+typedef Feature ElementType;
 typedef FeatureMap< ElementType> ElementMapType;
 typedef DFeaturePair < 2, ElementType > ElementPairType;
 typedef DFeaturePairVector < 2, ElementType > ElementPairVectorType;
-typedef DPosition < 2, KernelTraits > PositionType;
+typedef DPosition <2> PositionType;
 
 START_TEST(PoseClusteringPairwiseMapMatcher<ElementMapType>, "$Id$")
 
@@ -110,9 +110,9 @@ CHECK((void run()))
   ElementType feat2;
   PositionType pos1(0,0);
   PositionType pos2(200,300);
-  feat1.setPosition(pos1);
+  feat1.setPos(pos1);
   feat1.setIntensity(100);
-  feat2.setPosition(pos2);
+  feat2.setPos(pos2);
   feat2.setIntensity(300);
   scene.push_back(feat1);
   scene.push_back(feat2);
@@ -122,9 +122,9 @@ CHECK((void run()))
   ElementType feat4;
   PositionType pos3(2,5);
   PositionType pos4(20,30);
-  feat3.setPosition(pos3);
+  feat3.setPos(pos3);
   feat3.setIntensity(100);
-  feat4.setPosition(pos4);
+  feat4.setPos(pos4);
   feat4.setIntensity(300);
   scene.push_back(feat3);
   modell.push_back(feat4);

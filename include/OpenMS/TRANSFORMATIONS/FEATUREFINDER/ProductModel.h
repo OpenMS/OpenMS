@@ -51,20 +51,19 @@ namespace OpenMS
 	
 	@ingroup FeatureFinder
 */
-template <UnsignedInt D, typename Traits = KernelTraits,
-typename DimensionTags = LCMS_Tag>
+template <UnsignedInt D, typename DimensionTags = LCMS_Tag>
 class ProductModel
-            : public BaseModel<D,Traits>
+            : public BaseModel<D>
 {
 
 public:
-    typedef typename DPeak<D,Traits>::IntensityType IntensityType;
-    typedef DPosition<D,Traits> PositionType;
-    typedef DPeakArray<D, DPeak<D,Traits> > SamplesType;
+    typedef typename DPeak<D>::IntensityType IntensityType;
+    typedef DPosition<D> PositionType;
+    typedef DPeakArray<D, DPeak<D> > SamplesType;
 
     /// Default constructor
     ProductModel()
-	    : BaseModel<D,Traits>(),
+	    : BaseModel<D>(),
 	    	distributions_(D,0)
     {
     	this->setName(this->getProductName());
@@ -84,7 +83,7 @@ public:
 
     /// copy constructor
     ProductModel(const ProductModel& source)
-	    : BaseModel<D,Traits>(source),
+	    : BaseModel<D>(source),
 	    	distributions_(D,0),
 	    	scale_(source.scale_)
     {
@@ -114,7 +113,7 @@ public:
     {
     	if (&source == this) return *this;
     	
-        BaseModel<D,Traits>::operator = (source);
+        BaseModel<D>::operator = (source);
 				scale_ = source.scale_;
 				
         for (UnsignedInt dim=0; dim<D; ++dim)
@@ -147,9 +146,9 @@ public:
     }
 
     /// create new ProductModel object (needed by Factory)
-    static BaseModel<D,Traits>* create()
+    static BaseModel<D>* create()
     {
-        return new ProductModel<D,Traits>();
+        return new ProductModel<D>();
     }
 
     /// Returns the name of the model
@@ -165,7 +164,7 @@ public:
     		For that reason no model @p dist should be assigned to multiple ProductModels.<br>
     		ProductModel parameters are set when calling ProductModel::getParameters().
     */
-    ProductModel& setModel(const Position dim, BaseModel<1,Traits>* dist)
+    ProductModel& setModel(const Position dim, BaseModel<1>* dist)
     {
       OPENMS_PRECONDITION(dim<D, "ProductModel<D>:getModel(Position): index overflow!")
       if (dist==0 || dist==distributions_[dim])
@@ -185,7 +184,7 @@ public:
       return *this;
     }
 
-    BaseModel<1,Traits>* getModel(const Position dim) const
+    BaseModel<1>* getModel(const Position dim) const
     {
       OPENMS_PRECONDITION(dim<D, "ProductModel<D>:getModel(Position): index overflow!")
       return distributions_[dim];
@@ -210,7 +209,7 @@ public:
     void getSamples(SamplesType& cont) const
     {
       cont = SamplesType();
-      typedef typename BaseModel<1,Traits>::SamplesType Samples1D;
+      typedef typename BaseModel<1>::SamplesType Samples1D;
       std::vector<Samples1D> samples(D);
       // get samples for each dimension
       for (UnsignedInt dim=0; dim<D; ++dim)
@@ -218,7 +217,7 @@ public:
       	distributions_[dim]->getSamples(samples[dim]);
       }
 
-      typename BaseModel<D,Traits>::PeakType peak;
+      typename BaseModel<D>::PeakType peak;
       std::vector<Size> i(D,0);  // index vector
 
       while(i[D-1]<samples[D-1].size())
@@ -245,7 +244,7 @@ public:
 	protected:
 		void updateMembers_()
 		{
-			BaseModel<D,Traits>::updateMembers_();
+			BaseModel<D>::updateMembers_();
 			scale_ = (double)(this->param_.getValue("intensity_scaling"));
 	    for (UnsignedInt dim=0; dim<D; ++dim)
       {
@@ -254,13 +253,13 @@ public:
         if (d!=DataValue::EMPTY)
         {
          	delete distributions_[dim];
-          distributions_[dim] = Factory< BaseModel<1,Traits> >::create(d);
+          distributions_[dim] = Factory< BaseModel<1> >::create(d);
           distributions_[dim]->setParameters( this->param_.copy(name+":",true) );
         }
       }
 		}
 
-    std::vector< BaseModel<1,Traits>* > distributions_;
+    std::vector< BaseModel<1>* > distributions_;
     IntensityType scale_;
 };
 }

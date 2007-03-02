@@ -27,7 +27,6 @@
 #ifndef OPENMS_ANALYSIS_MAPMATCHING_DBASEMAPPING_H
 #define OPENMS_ANALYSIS_MAPMATCHING_DBASEMAPPING_H
 
-#include <OpenMS/KERNEL/KernelTraits.h>
 #include <OpenMS/DATASTRUCTURES/DPosition.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 
@@ -40,7 +39,7 @@ namespace OpenMS
 		 that can be applied to a DPosition. 
 	  
 	*/
-	template <UnsignedInt D, typename Traits = KernelTraits>		
+	template <UnsignedInt D>		
 	class DBaseMapping
 	{
 	 public:
@@ -87,7 +86,7 @@ namespace OpenMS
 		virtual void apply(DPosition<D>& ) const = 0;
 
 		/// Apply the transformation
-		virtual void apply( typename Traits::RealType & pos) const = 0;
+		virtual void apply(DoubleReal& pos) const = 0;
 	
 		/// Return the name of this transformation
 		virtual const String getName() = 0;
@@ -98,8 +97,8 @@ namespace OpenMS
 	}; // end of DBaseMapping
 	
 	///Print the contents to a stream.
-	template <Size D, typename Traits>
-	std::ostream& operator << (std::ostream& os, const DBaseMapping<D, Traits>& mapping)
+	template <Size D>
+	std::ostream& operator << (std::ostream& os, const DBaseMapping<D>& mapping)
 	{
 		os << mapping.getParam();
 		return os;

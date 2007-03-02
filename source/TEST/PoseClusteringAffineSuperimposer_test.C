@@ -34,16 +34,16 @@
 using namespace OpenMS;
 using namespace std;
 
-typedef DPosition < 2, KernelTraits > PositionType;
+typedef DPosition <2> PositionType;
 
 START_TEST(PoseClusteringAffineSuperimposer, "$Id$")
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-PoseClusteringAffineSuperimposer<FeatureMap>* ptr = 0;
+PoseClusteringAffineSuperimposer<FeatureMap<> >* ptr = 0;
 CHECK((PoseClusteringAffineSuperimposer()))
-	ptr = new PoseClusteringAffineSuperimposer<FeatureMap>();
+	ptr = new PoseClusteringAffineSuperimposer<FeatureMap<> >();
 	TEST_NOT_EQUAL(ptr, 0)
 RESULT
 
@@ -52,7 +52,7 @@ CHECK((~PoseClusteringAffineSuperimposer()))
 RESULT
 
 CHECK((PoseClusteringAffineSuperimposer& operator = (const PoseClusteringAffineSuperimposer& source)))
-  PoseClusteringAffineSuperimposer<FeatureMap> pcat;
+  PoseClusteringAffineSuperimposer<FeatureMap<> > pcat;
   
   pcat.setMzBucketSize(0.3);
   pcat.setShiftBucketSize(0,0.3);
@@ -64,7 +64,7 @@ CHECK((PoseClusteringAffineSuperimposer& operator = (const PoseClusteringAffineS
   pcat.setBucketWindowScaling(0,6);
   pcat.setBucketWindowScaling(1,6);
   
-  PoseClusteringAffineSuperimposer<FeatureMap> pcat_copy;
+  PoseClusteringAffineSuperimposer<FeatureMap<> > pcat_copy;
   pcat_copy = pcat;
   
   TEST_REAL_EQUAL(pcat_copy.getMzBucketSize(),0.3)
@@ -79,7 +79,7 @@ CHECK((PoseClusteringAffineSuperimposer& operator = (const PoseClusteringAffineS
 RESULT
 
 CHECK((PoseClusteringAffineSuperimposer(const PoseClusteringAffineSuperimposer& source)))
-  PoseClusteringAffineSuperimposer<FeatureMap> pcat;
+  PoseClusteringAffineSuperimposer<FeatureMap<> > pcat;
   
   pcat.setMzBucketSize(0.3);
   pcat.setShiftBucketSize(0,0.3);
@@ -91,7 +91,7 @@ CHECK((PoseClusteringAffineSuperimposer(const PoseClusteringAffineSuperimposer& 
   pcat.setBucketWindowScaling(0,6);
   pcat.setBucketWindowScaling(1,6);
   
-  PoseClusteringAffineSuperimposer<FeatureMap> pcat_copy(pcat);
+  PoseClusteringAffineSuperimposer<FeatureMap<> > pcat_copy(pcat);
   
   TEST_REAL_EQUAL(pcat_copy.getMzBucketSize(),0.3)
   TEST_REAL_EQUAL(pcat_copy.getShiftBucketSize(0),0.3)
@@ -109,37 +109,37 @@ CHECK((static BaseSuperimposer<PointMapType>* create()))
 RESULT
 
 CHECK((static const String getName()))
-  PoseClusteringAffineSuperimposer<FeatureMap> pcat;
+  PoseClusteringAffineSuperimposer<FeatureMap<> > pcat;
   
   TEST_EQUAL(pcat.getName() == "poseclustering_affine",true)
 RESULT
 
 CHECK((void run()))
-  FeatureMap scene;
+  FeatureMap<> scene;
   Feature feat1;
   Feature feat2;
   PositionType pos1(1,1);
   PositionType pos2(5,5);
-  feat1.setPosition(pos1);
+  feat1.setPos(pos1);
   feat1.setIntensity(100);
-  feat2.setPosition(pos2);
+  feat2.setPos(pos2);
   feat2.setIntensity(100);
   scene.push_back(feat1);
   scene.push_back(feat2);
   
-  FeatureMap modell;
+  FeatureMap<> modell;
   Feature feat3;
   Feature feat4;
   PositionType pos3(2.4,1.02);
   PositionType pos4(10.4,5.02);
-  feat3.setPosition(pos3);
+  feat3.setPos(pos3);
   feat3.setIntensity(100);
-  feat4.setPosition(pos4);
+  feat4.setPos(pos4);
   feat4.setIntensity(100);
   modell.push_back(feat3);
   modell.push_back(feat4);
   
-  PoseClusteringAffineSuperimposer<FeatureMap> pcat;
+  PoseClusteringAffineSuperimposer<FeatureMap<> > pcat;
   pcat.setElementMap(0,modell);
   pcat.setElementMap(1,scene);
   pcat.setScalingBucketSize(0,1);
@@ -158,41 +158,41 @@ CHECK((void run()))
 RESULT
 
 CHECK((UnsignedInt getBucketWindowScaling(UnsignedInt dim) const))
-  PoseClusteringAffineSuperimposer<FeatureMap> pcat_copy;
+  PoseClusteringAffineSuperimposer<FeatureMap<> > pcat_copy;
   
   TEST_REAL_EQUAL(pcat_copy.getBucketWindowScaling(0),1)
   TEST_REAL_EQUAL(pcat_copy.getBucketWindowScaling(1),1)
 RESULT
 
 CHECK((UnsignedInt getBucketWindowShift(UnsignedInt dim) const))
-  PoseClusteringAffineSuperimposer<FeatureMap> pcat_copy;
+  PoseClusteringAffineSuperimposer<FeatureMap<> > pcat_copy;
   
   TEST_REAL_EQUAL(pcat_copy.getBucketWindowShift(0),1)
   TEST_REAL_EQUAL(pcat_copy.getBucketWindowShift(1),1)
 RESULT
 
 CHECK((double getMzBucketSize() const))
-  PoseClusteringAffineSuperimposer<FeatureMap> pcat_copy;
+  PoseClusteringAffineSuperimposer<FeatureMap<> > pcat_copy;
   
   TEST_REAL_EQUAL(pcat_copy.getMzBucketSize(),1)
 RESULT
 
 CHECK((double getScalingBucketSize(UnsignedInt dim) const))
-  PoseClusteringAffineSuperimposer<FeatureMap> pcat_copy;
+  PoseClusteringAffineSuperimposer<FeatureMap<> > pcat_copy;
   
   TEST_REAL_EQUAL(pcat_copy.getScalingBucketSize(0),0.5)
   TEST_REAL_EQUAL(pcat_copy.getScalingBucketSize(1),0.1)
 RESULT
 
 CHECK((double getShiftBucketSize(UnsignedInt dim) const))
-  PoseClusteringAffineSuperimposer<FeatureMap> pcat_copy;
+  PoseClusteringAffineSuperimposer<FeatureMap<> > pcat_copy;
   
   TEST_REAL_EQUAL(pcat_copy.getShiftBucketSize(0),1)
   TEST_REAL_EQUAL(pcat_copy.getShiftBucketSize(1),0.1)
 RESULT
 
 CHECK((void setBucketWindowScaling(UnsignedInt dim, UnsignedInt bucket_window_scaling)))
-  PoseClusteringAffineSuperimposer<FeatureMap> pcat;
+  PoseClusteringAffineSuperimposer<FeatureMap<> > pcat;
   
   pcat.setBucketWindowScaling(0,6);
   pcat.setBucketWindowScaling(1,6);
@@ -202,7 +202,7 @@ CHECK((void setBucketWindowScaling(UnsignedInt dim, UnsignedInt bucket_window_sc
 RESULT
 
 CHECK((void setBucketWindowShift(UnsignedInt dim, UnsignedInt bucket_window_shift)))
-  PoseClusteringAffineSuperimposer<FeatureMap> pcat;
+  PoseClusteringAffineSuperimposer<FeatureMap<> > pcat;
   
   pcat.setBucketWindowShift(0,2);
   pcat.setBucketWindowShift(1,4);
@@ -212,7 +212,7 @@ CHECK((void setBucketWindowShift(UnsignedInt dim, UnsignedInt bucket_window_shif
 RESULT
 
 CHECK((void setMzBucketSize(double mz_bucket_size)))
-  PoseClusteringAffineSuperimposer<FeatureMap> pcat;
+  PoseClusteringAffineSuperimposer<FeatureMap<> > pcat;
   
   pcat.setMzBucketSize(0.3);
   
@@ -220,7 +220,7 @@ CHECK((void setMzBucketSize(double mz_bucket_size)))
 RESULT
 
 CHECK((void setScalingBucketSize(UnsignedInt dim, double scaling_bucket_size)))
-  PoseClusteringAffineSuperimposer<FeatureMap> pcat;
+  PoseClusteringAffineSuperimposer<FeatureMap<> > pcat;
   
   pcat.setScalingBucketSize(0,2.4);
   pcat.setScalingBucketSize(1,5.4);
@@ -230,7 +230,7 @@ CHECK((void setScalingBucketSize(UnsignedInt dim, double scaling_bucket_size)))
 RESULT
 
 CHECK((void setShiftBucketSize(UnsignedInt dim, double shift_bucket_size)))
-  PoseClusteringAffineSuperimposer<FeatureMap> pcat;
+  PoseClusteringAffineSuperimposer<FeatureMap<> > pcat;
   
   pcat.setShiftBucketSize(0,0.3);
   pcat.setShiftBucketSize(1,1.4);

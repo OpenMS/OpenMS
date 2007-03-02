@@ -140,7 +140,7 @@ namespace OpenMS
 			virtual void updateMembers_();
 			
 			/// fit offset by maximizing of quality
-			double fitOffset_(	InterpolationModel<>* model, const IndexSet& set, const double stdev1, const double stdev2, const Coordinate offset_step);
+			double fitOffset_(	InterpolationModel* model, const IndexSet& set, const double stdev1, const double stdev2, const Coordinate offset_step);
 	
 			double fit_(	const IndexSet& set, MzFitting mz_fit, RtFitting rt_fit, Coordinate isotope_stdev=0.1);
 	

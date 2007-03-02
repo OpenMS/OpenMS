@@ -35,8 +35,8 @@
 using namespace OpenMS;
 using namespace std;
 
-typedef ConsensusFeature<FeatureMap> ConsensusFeatureType;
-typedef DPosition < 2, KernelTraits > PositionType;
+typedef ConsensusFeature<FeatureMap<> > ConsensusFeatureType;
+typedef DPosition <2> PositionType;
 
 class TestAlignment : public BaseAlignment<ConsensusFeatureType>
 {
@@ -78,8 +78,8 @@ CHECK((BaseAlignment& operator = (const BaseAlignment& source)))
   Param param;
   param.setValue("consensus_algorithm","delaunay");
   al.setParam(param);
-  vector<FeatureMap*> map_vector;
-  FeatureMap map;
+  vector<FeatureMap<>*> map_vector;
+  FeatureMap<> map;
   map_vector.push_back(&map);
   al.setElementMapVector(map_vector);
   String name="blub";
@@ -116,8 +116,8 @@ CHECK((BaseAlignment(const BaseAlignment& source)))
   Param param;
   param.setValue("consensus_algorithm","delaunay");
   al.setParam(param);
-  vector<FeatureMap*> map_vector;
-  FeatureMap map;
+  vector<FeatureMap<>*> map_vector;
+  FeatureMap<> map;
   map_vector.push_back(&map);
   al.setElementMapVector(map_vector);
   String name="blub";
@@ -176,8 +176,8 @@ RESULT
 
 CHECK((const std::vector< ElementContainerType* >& getElementMapVector() const))
   TestAlignment al;
-  vector<FeatureMap*> map_vector;
-  FeatureMap map;
+  vector<FeatureMap<>*> map_vector;
+  FeatureMap<> map;
   map_vector.push_back(&map);
   al.setElementMapVector(map_vector);
 
@@ -207,8 +207,8 @@ RESULT
 
 CHECK((void setElementMapVector(const std::vector< ElementContainerType* >& element_map_vector)))
   TestAlignment al;
-  vector<FeatureMap*> map_vector;
-  FeatureMap map;
+  vector<FeatureMap<>*> map_vector;
+  FeatureMap<> map;
   map_vector.push_back(&map);
   al.setElementMapVector(map_vector);
 
@@ -218,8 +218,8 @@ RESULT
 
 CHECK((std::vector< ElementContainerType* >& getElementMapVector()))
   TestAlignment al;
-  vector<FeatureMap*> map_vector;
-  FeatureMap map;
+  vector<FeatureMap<>*> map_vector;
+  FeatureMap<> map;
   map_vector.push_back(&map);
   al.getElementMapVector() = map_vector;
 

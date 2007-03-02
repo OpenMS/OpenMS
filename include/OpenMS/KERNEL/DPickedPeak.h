@@ -45,9 +45,9 @@ namespace OpenMS
   	
   	@ingroup Kernel, Serialization
   */
-  template <Size D, typename Traits = KernelTraits>
+  template <Size D>
   class DPickedPeak
-        : public DPeak < D, Traits >
+        : public DPeak <D>
   {
   public:
 
@@ -56,31 +56,29 @@ namespace OpenMS
     //@{
     /// Dimension description
     enum { DIMENSION = D };
-    /// Traits type
-    typedef Traits TraitsType;
     /// Position type
-    typedef DPosition<D, TraitsType>				      PositionType;
+    typedef DPosition<D> PositionType;
     /// Coordinate type
-    typedef typename Traits::CoordinateType       CoordinateType;
+    typedef DoubleReal CoordinateType;
     /// Intensity type 
-    typedef typename Traits::IntensityType        IntensityType;
+    typedef DoubleReal IntensityType;
     /// Type of correlation coefficient
-    typedef typename Traits::RValueType           RValueType;
+    typedef DoubleReal RValueType;
     /// Area type
-    typedef typename Traits::AreaType             AreaType;
+    typedef DoubleReal AreaType;
     /// Full width at half maximum type
-    typedef typename Traits::FullWidthHalfMaxType FullWidthHalfMaxType;
+    typedef DoubleReal FullWidthHalfMaxType;
     /// Width parameter type
-    typedef typename Traits::WidthType            WidthType;
+    typedef DoubleReal WidthType;
     /// Charge type
-    typedef typename Traits::ChargeType           ChargeType;
+    typedef SignedInt ChargeType;
     /// Signal to noise value type
-    typedef typename Traits::SignalToNoiseType    SignalToNoiseType;
+    typedef DoubleReal SignalToNoiseType;
     //@}
 
     /// Default constructor
     DPickedPeak():
-        DPeak<D,Traits>(),
+        DPeak<D>(),
         r_value_(0),
         area_(0),
         fwhm_(0),
@@ -93,7 +91,7 @@ namespace OpenMS
 
     /// Copy sontructor
     inline DPickedPeak(DPickedPeak const& p):
-        DPeak<D,Traits>(p),
+        DPeak<D>(p),
         r_value_(p.r_value_),
         area_(p.area_),
         fwhm_(p.fwhm_),
@@ -169,7 +167,7 @@ namespace OpenMS
     {
       if (this==&rhs) return *this;
 
-      DPeak<D,Traits>::operator = (rhs);
+      DPeak<D>::operator = (rhs);
       r_value_             = rhs.r_value_;
       area_                = rhs.area_;
       fwhm_                = rhs.fwhm_;
@@ -193,7 +191,7 @@ namespace OpenMS
     				 left_width_paramter_ == rhs.left_width_paramter_ && 
     				 right_width_paramter_ == rhs.right_width_paramter_ && 
     				 signal_to_noise_ == rhs.signal_to_noise_ && 
-    				 DPeak<D,Traits>::operator==(rhs);
+    				 DPeak<D>::operator==(rhs);
     }
 
     /// Equality operator
@@ -227,17 +225,17 @@ namespace OpenMS
       switch (type_)
       {
       case PeakShapeType::LORENTZ_PEAK:
-        if (x <= DRawDataPoint<D,Traits>::getPosition()[mz_dimension])
-          value = DRawDataPoint<D,Traits>::getIntensity()/(1.+pow(left_width_paramter_*(x - DRawDataPoint<D,Traits>::getPosition()[mz_dimension]), 2));
+        if (x <= DRawDataPoint<D>::getPosition()[mz_dimension])
+          value = DRawDataPoint<D>::getIntensity()/(1.+pow(left_width_paramter_*(x - DRawDataPoint<D>::getPosition()[mz_dimension]), 2));
         else
-          value = DRawDataPoint<D,Traits>::getIntensity()/(1.+pow(right_width_paramter_*(x - DRawDataPoint<D,Traits>::getPosition()[mz_dimension]), 2));
+          value = DRawDataPoint<D>::getIntensity()/(1.+pow(right_width_paramter_*(x - DRawDataPoint<D>::getPosition()[mz_dimension]), 2));
         break;
 
       case PeakShapeType::SECH_PEAK:
-        if ( x <= DRawDataPoint<D,Traits>::getPosition()[mz_dimension])
-          value = DRawDataPoint<D,Traits>::getIntensity()/pow(cosh(left_width_paramter_*(x-DRawDataPoint<D,Traits>::getPosition()[mz_dimension])), 2);
+        if ( x <= DRawDataPoint<D>::getPosition()[mz_dimension])
+          value = DRawDataPoint<D>::getIntensity()/pow(cosh(left_width_paramter_*(x-DRawDataPoint<D>::getPosition()[mz_dimension])), 2);
         else
-          value = DRawDataPoint<D,Traits>::getIntensity()/pow(cosh(right_width_paramter_*(x-DRawDataPoint<D,Traits>::getPosition()[mz_dimension])), 2);
+          value = DRawDataPoint<D>::getIntensity()/pow(cosh(right_width_paramter_*(x-DRawDataPoint<D>::getPosition()[mz_dimension])), 2);
         break;
 
       default:
@@ -354,7 +352,7 @@ namespace OpenMS
     template<class Archive>
     void serialize(Archive & ar, const unsigned int /* version */ )
     {
-      ar & boost::serialization::make_nvp("dpeak",boost::serialization::base_object<DPeak<D,Traits> >(*this));
+      ar & boost::serialization::make_nvp("dpeak",boost::serialization::base_object<DPeak<D> >(*this));
       ar & boost::serialization::make_nvp("r_value",r_value_);
       ar & boost::serialization::make_nvp("area",area_);
       ar & boost::serialization::make_nvp("fwhm",fwhm_);

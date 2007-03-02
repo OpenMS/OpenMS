@@ -103,7 +103,6 @@ EXECUTABLES_SYSTEM = \
 #KERNEL
 
 EXECUTABLES_KERNEL =\
-	KernelTraits_test\
 	RawDataPoint1D_test\
 	RawDataPoint2D_test\
 	DRawDataPoint_test\

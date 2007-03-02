@@ -42,11 +42,11 @@ START_TEST(InterpolationModel , "$Id$")
 using namespace OpenMS;
 using std::stringstream;
 
-class TestModel : public InterpolationModel< >
+class TestModel : public InterpolationModel
 {
   public:
 	TestModel()
-		: InterpolationModel< >()
+		: InterpolationModel()
 	{
 		setName(getProductName());
 		
@@ -57,7 +57,7 @@ class TestModel : public InterpolationModel< >
 
 
 	TestModel(const TestModel& source)
-		: InterpolationModel< >(source)
+		: InterpolationModel(source)
 	{
 		updateMembers_();
 	}
@@ -70,7 +70,7 @@ class TestModel : public InterpolationModel< >
 	{
 		if (&source == this) return *this;
 		
-		InterpolationModel< >::operator = (source);
+		InterpolationModel::operator = (source);
 		updateMembers_();
 		
 		return *this;
@@ -78,7 +78,7 @@ class TestModel : public InterpolationModel< >
 	
 	void updateMembers_()
 	{
-		 InterpolationModel< >::updateMembers_();
+		 InterpolationModel::updateMembers_();
 	}
 
 	IntensityType getIntensity(const PositionType& pos) const

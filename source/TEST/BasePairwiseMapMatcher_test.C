@@ -33,12 +33,12 @@
 using namespace OpenMS;
 using namespace std;
 
-typedef DFeature<2, KernelTraits> ElementType;
+typedef Feature ElementType;
 typedef FeatureMap< ElementType> ElementMapType;
 typedef DFeaturePair < 2, ElementType > ElementPairType;
 typedef DFeaturePairVector < 2, ElementType > ElementPairVectorType;
 typedef DGrid<2> GridType;
-typedef DPosition < 2, KernelTraits > PositionType;
+typedef DPosition <2> PositionType;
 
 class TestPairwiseMapMatcher : public BasePairwiseMapMatcher<ElementMapType>
 {
@@ -171,9 +171,9 @@ CHECK((void initGridTransformation(const PointMapType& scene_map)))
   ElementType feat2;
   PositionType pos1(0,0);
   PositionType pos2(2,3);
-  feat1.setPosition(pos1);
+  feat1.setPos(pos1);
   feat1.setIntensity(100);
-  feat2.setPosition(pos2);
+  feat2.setPos(pos2);
   feat1.setIntensity(300);
   scene.push_back(feat1);
   scene.push_back(feat2);

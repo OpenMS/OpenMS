@@ -30,7 +30,6 @@
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/BaseModel.h>
 #include <OpenMS/MATH/MISC/LinearInterpolation.h>
-#include <OpenMS/KERNEL/KernelTraits.h>
 
 namespace OpenMS
 {
@@ -53,22 +52,21 @@ namespace OpenMS
 			@ingroup FeatureFinder
 			
 	*/
-  template < typename Traits = KernelTraits >
     class InterpolationModel
-    : public BaseModel<1,Traits>
+    : public BaseModel<1>
     {
 
       public:
-			typedef typename DPeak<1,Traits>::IntensityType IntensityType;
-      typedef DPosition<1,Traits> PositionType;
-			typedef typename PositionType::CoordinateType CoordinateType;
+			typedef DPeak<1>::IntensityType IntensityType;
+      typedef DPosition<1> PositionType;
+			typedef PositionType::CoordinateType CoordinateType;
 			typedef Math::LinearInterpolation<CoordinateType,IntensityType> LinearInterpolation;
-			typedef typename LinearInterpolation::container_type ContainerType;
-			typedef DPeakArray<1, DPeak<1,Traits> > SamplesType;
+			typedef LinearInterpolation::container_type ContainerType;
+			typedef DPeakArray<1, DPeak<1> > SamplesType;
 
       /// Default constructor
       InterpolationModel()
-				: BaseModel<1,Traits>(),
+				: BaseModel<1>(),
 					interpolation_()
 			{
 				this->defaults_.setValue("interpolation_step",0.1);
@@ -77,7 +75,7 @@ namespace OpenMS
 
       /// copy constructor
       InterpolationModel(const InterpolationModel& source)
-				: BaseModel<1,Traits>(source),
+				: BaseModel<1>(source),
 					interpolation_(source.interpolation_),
 					interpolation_step_(source.interpolation_step_),
 					scaling_(source.scaling_)
@@ -94,7 +92,7 @@ namespace OpenMS
 			{
 				if (&source ==this) return *this;
 				
-				BaseModel<1,Traits>::operator = (source);
+				BaseModel<1>::operator = (source);
 				interpolation_step_ = source.interpolation_step_;
 				interpolation_ = source.interpolation_;
 				scaling_ = source.scaling_;
@@ -143,7 +141,7 @@ namespace OpenMS
 			void getSamples(SamplesType& cont) const
 			{
 				cont = SamplesType();
-				DPeak<1,Traits> peak;
+				DPeak<1> peak;
 				for (Size i=0; i<interpolation_.getData().size(); ++i)
 				{
 					peak.setIntensity( interpolation_.getData()[i] );
@@ -182,7 +180,7 @@ namespace OpenMS
 
 			void updateMembers_()
 			{
-				BaseModel<1,Traits>::updateMembers_();
+				BaseModel<1>::updateMembers_();
 				interpolation_step_ = this->param_.getValue("interpolation_step");
 				scaling_ = this->param_.getValue("intensity_scaling");
 			}

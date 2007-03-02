@@ -823,38 +823,6 @@ CHECK([EXTRA] load with 64 bit )
 	TEST_EQUAL(e[0].getContainer()[2].getPeakShape(), 100)
 RESULT
 
-// check for Float Kernel traits
-CHECK(([EXTRA] load/store for Float Kernel Traits))
-	std::string tmp_filename;
-	NEW_TMP_FILE(tmp_filename);
-
-  	MzDataFile f;
-	MSExperiment< DRawDataPoint<1, FloatKernelTraits> > e1, e2;
-
-	f.load("data/MzDataFile_test_2.mzData",e1);
-	f.store(tmp_filename,e1);
-	f.load(tmp_filename,e2);
-	TEST_EQUAL(e1==e2, true);
-RESULT
-
-// check for Float Kernel traits
-CHECK(([EXTRA]  load/store for empty scans))
-	std::string tmp_filename;
-	NEW_TMP_FILE(tmp_filename);
-
-  	MzDataFile f;
-	MSExperiment<> e2;
-	e2.resize(5);
-
-	f.store(tmp_filename,e2);
-	f.load(tmp_filename,e2);
-	
-	e2.updateRanges();
-	
-	TEST_EQUAL(e2.size(),5);
-	TEST_EQUAL(e2.getSize(),0);
-RESULT
-
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST

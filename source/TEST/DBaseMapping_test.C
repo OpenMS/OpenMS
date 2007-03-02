@@ -46,7 +46,7 @@ class TestMapping : public DBaseMapping<2>
     
    virtual void apply(DPosition<2>& ) const {}
 
-   virtual void apply(KernelTraits::RealType& ) const {};
+   virtual void apply(DoubleReal& ) const {};
   
    virtual const String getName() { return "";}
 };

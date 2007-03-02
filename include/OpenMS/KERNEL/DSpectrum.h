@@ -30,7 +30,7 @@
 #include <OpenMS/KERNEL/DPeakArray.h>
 #include <OpenMS/METADATA/MetaInfoInterface.h>
 #include <OpenMS/KERNEL/DPickedPeak.h>
-#include <OpenMS/DATASTRUCTURES/RangeManager.h>
+#include <OpenMS/KERNEL/RangeManager.h>
 
 #include <gsl/gsl_randist.h>
 

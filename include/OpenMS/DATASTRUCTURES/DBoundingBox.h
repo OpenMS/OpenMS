@@ -39,9 +39,9 @@ namespace OpenMS
 		
 		@ingroup Datastructures
 	*/
-	template <Size D, typename Traits = KernelTraits>
+	template <Size D>
 	class DBoundingBox
-		:	public Internal::DIntervalBase<D, Traits>
+		:	public Internal::DIntervalBase<D>
 	{
 		
 	 public:
@@ -53,9 +53,7 @@ namespace OpenMS
 		/// Dimensions
 		enum { DIMENSION = D };
 		/// Base class type
-		typedef Internal::DIntervalBase<D, Traits> Base; 
-		/// Traits types
-		typedef typename Base::TraitsType TraitsType;
+		typedef Internal::DIntervalBase<D> Base; 
 		/// Position type
 		typedef typename Base::PositionType PositionType;
 		/// Coordinate type of the positions
@@ -197,8 +195,8 @@ namespace OpenMS
 
 	@relatesalso DBoundingBox
 	*/
-	template <Size D, typename Traits>
-	std::ostream& operator << (std::ostream& os, const DBoundingBox<D,Traits>& bounding_box)
+	template <Size D>
+	std::ostream& operator << (std::ostream& os, const DBoundingBox<D>& bounding_box)
 	{
 		os << "--DBOUNDINGBOX BEGIN--"<<std::endl;
 		os << "MIN --> " << bounding_box.min() << std::endl;

@@ -100,7 +100,7 @@ namespace OpenMS
 		/// Coordinates of a point (m/z and rt)
   	typedef FeaFiTraits::CoordinateType CoordinateType;
 		/// Priority of a point (see below)
-  	typedef KernelTraits::ProbabilityType ProbabilityType;
+  	typedef DoubleReal ProbabilityType;
 		/// Position of a point
 		typedef  FeaFiTraits::PositionType2D PositionType2D;
   	

@@ -66,12 +66,12 @@ namespace OpenMS
 		@ingroup FeatureFinder
 	*/
 	class IsotopeModel
-  : public InterpolationModel<>
+  : public InterpolationModel
   {
 
 		public:
-		typedef InterpolationModel<>::CoordinateType CoordinateType;
-		typedef InterpolationModel<>::CoordinateType IntensityType;
+		typedef InterpolationModel::CoordinateType CoordinateType;
+		typedef InterpolationModel::CoordinateType IntensityType;
 
 		enum Averagines{C=0,H,N,O,S,AVERAGINE_NUM};
 

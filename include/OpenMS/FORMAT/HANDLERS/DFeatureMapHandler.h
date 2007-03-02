@@ -64,7 +64,7 @@ namespace OpenMS
 		inspired by mzData (see funtion writeTo(stream& os)
 		for details. 
 	*/
-  template <Size D, typename TraitsT = KernelTraits, typename FeatureT = DFeature<D> >
+  template <Size D, typename FeatureT = DFeature<D> >
   class DFeatureMapHandler
 		: public SchemaHandler
   {
@@ -73,7 +73,6 @@ namespace OpenMS
 				@name Type definitions
 			*/
 			//@{
-			typedef TraitsT TraitsType;
 			typedef FeatureT FeatureType;
 			typedef std::vector<FeatureType> ContainerType;
 			typedef typename ContainerType::iterator Iterator;
@@ -201,8 +200,8 @@ namespace OpenMS
 
 	//--------------------------------------------------------------------------------
 
-  template <Size D, typename TraitsT, typename FeatureT>
-  void DFeatureMapHandler<D,TraitsT,FeatureT>::endElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname)
+  template <Size D, typename FeatureT>
+  void DFeatureMapHandler<D,FeatureT>::endElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname)
 	{
 		if (is_parser_in_tag_[DESCRIPTION])	// collect Experimental Settings
 		{
@@ -259,8 +258,8 @@ namespace OpenMS
 		}
   }
 
-  template <Size D, typename TraitsT, typename FeatureT>
-  void DFeatureMapHandler<D,TraitsT,FeatureT>::startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const xercesc::Attributes& attributes)
+  template <Size D, typename FeatureT>
+  void DFeatureMapHandler<D,FeatureT>::startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const xercesc::Attributes& attributes)
 	{
 		if (is_parser_in_tag_[DESCRIPTION])	// collect Experimental Settings
 		{
@@ -323,8 +322,8 @@ namespace OpenMS
 		}
 	}
 
-	template <Size D, typename TraitsT, typename FeatureT>
-  void DFeatureMapHandler<D,TraitsT,FeatureT>::characters(const XMLCh* const chars, const unsigned int /*length*/)
+	template <Size D, typename FeatureT>
+  void DFeatureMapHandler<D,FeatureT>::characters(const XMLCh* const chars, const unsigned int /*length*/)
   {
 		if (is_parser_in_tag_[DESCRIPTION])	// collect Experimental Settings
 		{
@@ -365,8 +364,8 @@ namespace OpenMS
   }
 
 
-	template <Size D, typename TraitsT, typename FeatureT>
- 	void DFeatureMapHandler<D,TraitsT,FeatureT>::writeTo(std::ostream& os)
+	template <Size D, typename FeatureT>
+ 	void DFeatureMapHandler<D,FeatureT>::writeTo(std::ostream& os)
 	{
 		UniqueIdGenerator id_generator = UniqueIdGenerator::instance();
 

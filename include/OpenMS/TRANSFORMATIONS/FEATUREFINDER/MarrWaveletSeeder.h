@@ -52,7 +52,7 @@ namespace OpenMS
   	public:	
 			typedef FeaFiTraits::IntensityType IntensityType;
 		  typedef FeaFiTraits::CoordinateType CoordinateType;
-		  typedef KernelTraits::ProbabilityType ProbabilityType;	
+		  typedef DoubleReal ProbabilityType;	
 	
 	    enum DimensionId
 	    {

@@ -42,10 +42,10 @@ using namespace OpenMS::Internal;
 using namespace std;
 	
 //1D check
-DIntervalBase<1,FloatKernelTraits>* ptr1 = 0;
+DIntervalBase<1>* ptr1 = 0;
 
 CHECK((DIntervalBase()))
-	ptr1 = new DIntervalBase<1,FloatKernelTraits>;
+	ptr1 = new DIntervalBase<1>;
 	TEST_NOT_EQUAL(ptr1, 0)
 RESULT
 

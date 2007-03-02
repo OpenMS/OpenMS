@@ -42,7 +42,7 @@ namespace OpenMS
 
 		@ingroup Kernel, Serialization
 	*/
-	template <Size D, typename Traits = KernelTraits>
+	template <Size D>
 	class DRawDataPoint 	
 	{
 	 public:
@@ -52,14 +52,12 @@ namespace OpenMS
 		//@{
 		/// Number of dimenstions
 		enum { DIMENSION = D };
-		/// Traits types
-		typedef Traits TraitsType;
 		/// Intensity type
-		typedef typename Traits::IntensityType IntensityType;
+		typedef DoubleReal IntensityType;
 		/// Coordinate type (of the position)
-		typedef typename Traits::CoordinateType CoordinateType;
+		typedef DoubleReal CoordinateType;
 		/// Position type
-		typedef DPosition<D, Traits> PositionType;
+		typedef DPosition<D> PositionType;
 		//@}
 
 		/** @name Constructors and Destructor
@@ -236,8 +234,8 @@ namespace OpenMS
 	};
 
 	///Print the contents to a stream.
-	template <Size D, class Traits>
-	std::ostream& operator << (std::ostream& os, const DRawDataPoint<D, Traits>& point)
+	template <Size D>
+	std::ostream& operator << (std::ostream& os, const DRawDataPoint<D>& point)
 	{
 		os << "POS: "<< point.getPos() << " INT: "<<point.getIntensity();
 		

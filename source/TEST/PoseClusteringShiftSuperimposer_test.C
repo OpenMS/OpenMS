@@ -34,16 +34,16 @@
 using namespace OpenMS;
 using namespace std;
 
-typedef DPosition < 2, KernelTraits > PositionType;
+typedef DPosition <2> PositionType;
 
 START_TEST(PoseClusteringShiftSuperimposer, "$Id$")
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-PoseClusteringShiftSuperimposer<FeatureMap>* ptr = 0;
+PoseClusteringShiftSuperimposer<FeatureMap<> >* ptr = 0;
 CHECK(PoseClusteringShiftSuperimposer())
-	ptr = new PoseClusteringShiftSuperimposer<FeatureMap>();
+	ptr = new PoseClusteringShiftSuperimposer<FeatureMap<> >();
 	TEST_NOT_EQUAL(ptr, 0)
 RESULT
 
@@ -51,9 +51,9 @@ CHECK(~PoseClusteringShiftSuperimposer())
 	delete ptr;
 RESULT
 
-PoseClusteringShiftSuperimposer<FeatureMap>::Shift* ptr2;
+PoseClusteringShiftSuperimposer<FeatureMap<> >::Shift* ptr2;
 CHECK(Shift())
-  ptr2 = new PoseClusteringShiftSuperimposer<FeatureMap>::Shift();
+  ptr2 = new PoseClusteringShiftSuperimposer<FeatureMap<> >::Shift();
   TEST_NOT_EQUAL(ptr2, 0)
 RESULT
 
@@ -62,12 +62,12 @@ CHECK(~Shift())
 RESULT
 
 CHECK(Shift& operator= (Shift const & source))
-  PoseClusteringShiftSuperimposer<FeatureMap>::Shift shift;
+  PoseClusteringShiftSuperimposer<FeatureMap<> >::Shift shift;
   shift.setQuality(0.1);
   shift.getPosition()[0] = 0.2;
   shift.getPosition()[1] = 0.4;
   
-  PoseClusteringShiftSuperimposer<FeatureMap>::Shift shift_copy;
+  PoseClusteringShiftSuperimposer<FeatureMap<> >::Shift shift_copy;
   shift_copy = shift;
   
   TEST_REAL_EQUAL(shift_copy.getQuality(), 0.1)
@@ -76,12 +76,12 @@ CHECK(Shift& operator= (Shift const & source))
 RESULT
 
 CHECK(Shift(Shift const & source))
-  PoseClusteringShiftSuperimposer<FeatureMap>::Shift shift;
+  PoseClusteringShiftSuperimposer<FeatureMap<> >::Shift shift;
   shift.setQuality(0.1);
   shift.getPosition()[0] = 0.2;
   shift.getPosition()[1] = 0.4;
   
-  PoseClusteringShiftSuperimposer<FeatureMap>::Shift shift_copy(shift);
+  PoseClusteringShiftSuperimposer<FeatureMap<> >::Shift shift_copy(shift);
   
   TEST_REAL_EQUAL(shift_copy.getQuality(), 0.1)
   TEST_REAL_EQUAL(shift_copy.getPosition()[0], 0.2)
@@ -89,7 +89,7 @@ CHECK(Shift(Shift const & source))
 RESULT
 
 CHECK(QualityType& getQuality())
-  PoseClusteringShiftSuperimposer<FeatureMap>::Shift shift;
+  PoseClusteringShiftSuperimposer<FeatureMap<> >::Shift shift;
   shift.setQuality(0.1);
   
   TEST_REAL_EQUAL(shift.getQuality(), 0.1)
@@ -97,7 +97,7 @@ RESULT
 
 
 CHECK(PositionType& getPosition())
-  PoseClusteringShiftSuperimposer<FeatureMap>::Shift shift;
+  PoseClusteringShiftSuperimposer<FeatureMap<> >::Shift shift;
   PositionType pos;
   pos[0] = 0.2;
   pos[1] = 0.4;
@@ -108,20 +108,20 @@ CHECK(PositionType& getPosition())
 RESULT
 
 CHECK(const PositionType& getPosition() const)
-  PoseClusteringShiftSuperimposer<FeatureMap>::Shift shift;
+  PoseClusteringShiftSuperimposer<FeatureMap<> >::Shift shift;
   
   TEST_REAL_EQUAL(shift.getPosition()[0], 0)
   TEST_REAL_EQUAL(shift.getPosition()[1], 0)
 RESULT
 
 CHECK(const QualityType& getQuality() const)
-  PoseClusteringShiftSuperimposer<FeatureMap>::Shift shift;
+  PoseClusteringShiftSuperimposer<FeatureMap<> >::Shift shift;
   
   TEST_REAL_EQUAL(shift.getQuality(), 0)
 RESULT
 
-CHECK(void setPosition(const PositionType& position))
-  PoseClusteringShiftSuperimposer<FeatureMap>::Shift shift;
+CHECK(void setPos(const PositionType& position))
+  PoseClusteringShiftSuperimposer<FeatureMap<> >::Shift shift;
   PositionType pos;
   pos[0] = 0.2;
   pos[1] = 0.4;
@@ -132,14 +132,14 @@ CHECK(void setPosition(const PositionType& position))
 RESULT
 
 CHECK(void setQuality(const QualityType& quality))
-  PoseClusteringShiftSuperimposer<FeatureMap>::Shift shift;
+  PoseClusteringShiftSuperimposer<FeatureMap<> >::Shift shift;
   shift.setQuality(0.1);
   
   TEST_REAL_EQUAL(shift.getQuality(), 0.1)
 RESULT
 
 CHECK(PoseClusteringShiftSuperimposer(const PoseClusteringShiftSuperimposer& source))
-  PoseClusteringShiftSuperimposer<FeatureMap> pcsi;
+  PoseClusteringShiftSuperimposer<FeatureMap<> > pcsi;
   pcsi.setShiftBucketSize(0,1.9);
   pcsi.setShiftBucketSize(1,2.9);
   pcsi.setElementBucketWindow(0,3);
@@ -149,7 +149,7 @@ CHECK(PoseClusteringShiftSuperimposer(const PoseClusteringShiftSuperimposer& sou
   
   cout << pcsi.getParameters() << endl;
   
-  PoseClusteringShiftSuperimposer<FeatureMap> pcsi_copy(pcsi);
+  PoseClusteringShiftSuperimposer<FeatureMap<> > pcsi_copy(pcsi);
   
    cout << pcsi_copy.getParameters() << endl;
     
@@ -162,7 +162,7 @@ CHECK(PoseClusteringShiftSuperimposer(const PoseClusteringShiftSuperimposer& sou
 RESULT
 
 CHECK(PoseClusteringAffineSuperimposer& operator = (const PoseClusteringAffineSuperimposer& source))
-  PoseClusteringShiftSuperimposer<FeatureMap> pcsi;
+  PoseClusteringShiftSuperimposer<FeatureMap<> > pcsi;
   pcsi.setShiftBucketSize(0,1.9);
   pcsi.setShiftBucketSize(1,2.9);
   pcsi.setElementBucketWindow(0,3);
@@ -172,7 +172,7 @@ CHECK(PoseClusteringAffineSuperimposer& operator = (const PoseClusteringAffineSu
 
   cout << pcsi.getParameters() << endl;
   
-  PoseClusteringShiftSuperimposer<FeatureMap> pcsi_copy;
+  PoseClusteringShiftSuperimposer<FeatureMap<> > pcsi_copy;
   pcsi_copy = pcsi;
   
   cout << pcsi_copy.getParameters() << endl;
@@ -186,21 +186,21 @@ CHECK(PoseClusteringAffineSuperimposer& operator = (const PoseClusteringAffineSu
 RESULT
 
 CHECK(Size getElementBucketWindow(UnsignedInt dim) const)
-  PoseClusteringShiftSuperimposer<FeatureMap> pcsi;
+  PoseClusteringShiftSuperimposer<FeatureMap<> > pcsi;
     
   TEST_REAL_EQUAL(pcsi.getElementBucketWindow(0),2)
   TEST_REAL_EQUAL(pcsi.getElementBucketWindow(1),1)
 RESULT
 
 CHECK(Size getShiftBucketWindow(UnsignedInt dim) const)
-  PoseClusteringShiftSuperimposer<FeatureMap> pcsi;
+  PoseClusteringShiftSuperimposer<FeatureMap<> > pcsi;
       
   TEST_REAL_EQUAL(pcsi.getShiftBucketWindow(0),2)
   TEST_REAL_EQUAL(pcsi.getShiftBucketWindow(1),1)  
 RESULT
 
 CHECK(double getShiftBucketSize(UnsignedInt dim) const)
-  PoseClusteringShiftSuperimposer<FeatureMap> pcsi;
+  PoseClusteringShiftSuperimposer<FeatureMap<> > pcsi;
     
   TEST_REAL_EQUAL(pcsi.getShiftBucketSize(0),5.0)
   TEST_REAL_EQUAL(pcsi.getShiftBucketSize(1),0.1)
@@ -211,37 +211,37 @@ CHECK(static BaseSuperimposer<PointMapType>* create())
 RESULT
 
 CHECK(static const String getName())
-  PoseClusteringShiftSuperimposer<FeatureMap> pcsi;
+  PoseClusteringShiftSuperimposer<FeatureMap<> > pcsi;
   
   TEST_EQUAL(pcsi.getName() == "poseclustering_shift",true)
 RESULT
 
 CHECK(void run())
-  FeatureMap scene;
+  FeatureMap<> scene;
   Feature feat1;
   Feature feat2;
   PositionType pos1(1,1);
   PositionType pos2(5,5);
-  feat1.setPosition(pos1);
+  feat1.setPos(pos1);
   feat1.setIntensity(100);
-  feat2.setPosition(pos2);
+  feat2.setPos(pos2);
   feat2.setIntensity(100);
   scene.push_back(feat1);
   scene.push_back(feat2);
   
-  FeatureMap modell;
+  FeatureMap<> modell;
   Feature feat3;
   Feature feat4;
   PositionType pos3(21.4,1.02);
   PositionType pos4(25.4,5.02);
-  feat3.setPosition(pos3);
+  feat3.setPos(pos3);
   feat3.setIntensity(100);
-  feat4.setPosition(pos4);
+  feat4.setPos(pos4);
   feat4.setIntensity(100);
   modell.push_back(feat3);
   modell.push_back(feat4);
   
-  PoseClusteringShiftSuperimposer<FeatureMap> pcat;
+  PoseClusteringShiftSuperimposer<FeatureMap<> > pcat;
   pcat.setElementMap(0,modell);
   pcat.setElementMap(1,scene);
   pcat.run();
@@ -256,7 +256,7 @@ CHECK(void run())
 RESULT
 
 CHECK((void setElementBucketWindow(UnsignedInt dim, Size element_bucket_window)))
-  PoseClusteringShiftSuperimposer<FeatureMap> pcsi;
+  PoseClusteringShiftSuperimposer<FeatureMap<> > pcsi;
   pcsi.setElementBucketWindow(0,3);
   pcsi.setElementBucketWindow(1,4);
     
@@ -265,7 +265,7 @@ CHECK((void setElementBucketWindow(UnsignedInt dim, Size element_bucket_window))
 RESULT
 
 CHECK((void setShiftBucketSize(UnsignedInt dim, double shift_bucket_size)))
-  PoseClusteringShiftSuperimposer<FeatureMap> pcsi;
+  PoseClusteringShiftSuperimposer<FeatureMap<> > pcsi;
   pcsi.setShiftBucketSize(0,1.9);
   pcsi.setShiftBucketSize(1,2.9);
     
@@ -274,7 +274,7 @@ CHECK((void setShiftBucketSize(UnsignedInt dim, double shift_bucket_size)))
 RESULT
 
 CHECK((void setShiftBucketWindow(UnsignedInt dim, Size shift_bucket_window)))
-  PoseClusteringShiftSuperimposer<FeatureMap> pcsi;
+  PoseClusteringShiftSuperimposer<FeatureMap<> > pcsi;
   pcsi.setShiftBucketWindow(0,4);
   pcsi.setShiftBucketWindow(1,5);
   

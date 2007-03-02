@@ -27,8 +27,6 @@
 #ifndef OPENMS_ANALYSIS_MAPMATCHING_DLINEARMAPPING_H
 #define OPENMS_ANALYSIS_MAPMATCHING_DLINEARMAPPING_H
 
-#include <OpenMS/KERNEL/KernelTraits.h>
-
 #include <OpenMS/ANALYSIS/MAPMATCHING/DBaseMapping.h>
 
 namespace OpenMS
@@ -45,22 +43,22 @@ namespace OpenMS
 		 in class MapDewarper.
 	  
 	*/
-	template <UnsignedInt D, typename Traits = KernelTraits>
+	template <UnsignedInt D>
 	class DLinearMapping
-		: public DBaseMapping<D, Traits>
+		: public DBaseMapping<D>
 	{
 	 public:
-		typedef typename Traits::RealType SlopeType;
-		typedef typename Traits::RealType InterceptType;
+		typedef DoubleReal SlopeType;
+		typedef DoubleReal InterceptType;
 				
 		/// Constructor
 		DLinearMapping() 
-			: DBaseMapping<D, Traits>(),
+			: DBaseMapping<D>(),
 				slope_(0), intercept_(0) {}
 			
 		/// Easy Constructor
 		DLinearMapping(SlopeType sl, InterceptType in) 
-			: DBaseMapping<D, Traits>(),
+			: DBaseMapping<D>(),
 				slope_(sl), intercept_(in)
 		{
 			this->param_.setValue("DLinearMapping:slope", (float) sl);
@@ -72,7 +70,7 @@ namespace OpenMS
 			
 		/// Copy constructor 
 		DLinearMapping(const DLinearMapping& source) 
-			: DBaseMapping<D, Traits>(source),
+			: DBaseMapping<D>(source),
 				slope_(source.slope_), 
 				intercept_(source.intercept_)
 		{
@@ -83,7 +81,7 @@ namespace OpenMS
 		{
 			if (this==&source) return *this;
 			
-			DBaseMapping<D, Traits>::operator = (source);
+			DBaseMapping<D>::operator = (source);
 			slope_     = source.slope_;
 			intercept_ = source.intercept_;
 			return *this;
@@ -92,7 +90,7 @@ namespace OpenMS
 		/// equality operator
 		bool operator == (const DLinearMapping& rhs)
 		{
-			return (DBaseMapping<D, Traits>::operator == (rhs) 
+			return (DBaseMapping<D>::operator == (rhs) 
 							&& slope_     == rhs.slope_ 
 							&& intercept_ == rhs.intercept_);
 			
@@ -130,7 +128,7 @@ namespace OpenMS
 			}
 		}
 			
-		void apply( typename Traits::RealType & pos) const
+		void apply(DoubleReal& pos) const
 		{
 			pos *= slope_;
 			pos += intercept_;

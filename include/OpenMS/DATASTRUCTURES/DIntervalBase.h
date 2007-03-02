@@ -43,7 +43,7 @@ namespace OpenMS
 			@invariant All methods maintain the invariant that min() is geometrically less or equal max() 
 			           i.e. min()[x] <= max()[x].
 		*/
-		template <Size D, typename Traits = KernelTraits>
+		template <Size D>
 		class DIntervalBase
 		{
 			public:
@@ -54,10 +54,8 @@ namespace OpenMS
 				//@{
 				/// Dimensions
 				enum { DIMENSION = D };
-				/// Traits types
-				typedef Traits																TraitsType;
 				/// Position type
-				typedef DPosition<D, TraitsType>							PositionType;
+				typedef DPosition<D>							PositionType;
 				/// Coordinate type of the positions
 				typedef typename PositionType::CoordinateType CoordinateType;
 				//@}
@@ -329,18 +327,18 @@ namespace OpenMS
 		
 			};
 		
-			template <Size D, typename TraitsType>
-			DIntervalBase<D, TraitsType> const DIntervalBase<D, TraitsType>::zero
-			= DIntervalBase<D, TraitsType>( DIntervalBase<D, TraitsType>::PositionType::zero,
-																		 DIntervalBase<D, TraitsType>::PositionType::zero );
+			template <Size D>
+			DIntervalBase<D> const DIntervalBase<D>::zero
+			= DIntervalBase<D>( DIntervalBase<D>::PositionType::zero,
+																		 DIntervalBase<D>::PositionType::zero );
 			
-			template <Size D, typename TraitsType>
-			DIntervalBase<D, TraitsType> const DIntervalBase<D, TraitsType>::empty
-				= DIntervalBase<D, TraitsType>(std::make_pair(DIntervalBase<D, TraitsType>::PositionType::max, DIntervalBase<D, TraitsType>::PositionType::min_negative));
+			template <Size D>
+			DIntervalBase<D> const DIntervalBase<D>::empty
+				= DIntervalBase<D>(std::make_pair(DIntervalBase<D>::PositionType::max, DIntervalBase<D>::PositionType::min_negative));
 			
 			///Print the contents to a stream.
-			template <Size D, typename Traits>
-			std::ostream& operator << (std::ostream& os, const DIntervalBase<D,Traits>& rhs)
+			template <Size D>
+			std::ostream& operator << (std::ostream& os, const DIntervalBase<D>& rhs)
 			{
 				os << "--DIntervalBase BEGIN--"<<std::endl;
 				os << "MIN --> " << rhs.min() << std::endl;

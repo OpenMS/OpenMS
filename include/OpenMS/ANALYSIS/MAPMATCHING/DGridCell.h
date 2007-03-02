@@ -26,7 +26,6 @@
 #ifndef OPENMS_ANALYSIS_MAPMATCHING_DGRIDCELL_H
 #define OPENMS_ANALYSIS_MAPMATCHING_DGRIDCELL_H
 
-#include <OpenMS/KERNEL/KernelTraits.h>
 #include <OpenMS/DATASTRUCTURES/DPosition.h>
 #include <OpenMS/DATASTRUCTURES/DRange.h>
 
@@ -39,15 +38,14 @@ namespace OpenMS
 	
 	/** @brief D-dimensional grid cell over a map.
 	 */
-	template <Size D, typename Traits = KernelTraits>
-	class DGridCell : public DRange<D, Traits>
+	template <Size D>
+	class DGridCell : public DRange<D>
 	{
 		public:
 		enum { DIMENSION = D };
-		typedef Traits TraitsType;
-		typedef typename Traits::CoordinateType  CoordinateType;
-		typedef DPosition<D,Traits> PositionType;
-		typedef DBaseMapping<1,Traits> MappingType;
+		typedef DoubleReal  CoordinateType;
+		typedef DPosition<D> PositionType;
+		typedef DBaseMapping<1> MappingType;
 		typedef std::vector<MappingType*> MappingVector;
 		
 		/** @name Constructors and Destructor
@@ -55,20 +53,20 @@ namespace OpenMS
 		//@{
 		/// Default constructor		
 		DGridCell() : 
-			DRange<D,TraitsType>(),
+			DRange<D>(),
 			mappings_()			
 			{	}
 
 		/// "Convenience contructor"
 		DGridCell(CoordinateType i, CoordinateType j, 
 							CoordinateType k, CoordinateType l) : 
-			DRange<D,TraitsType>(i, j, k, l),	
+			DRange<D>(i, j, k, l),	
 			mappings_()
 			{	}  
 
 		/// Copy constructor
 		DGridCell(const DGridCell& gc) 
-			: DRange<D,TraitsType>(gc)
+			: DRange<D>(gc)
 		{
 			setMappings(gc.mappings_);
 		}		
@@ -83,7 +81,7 @@ namespace OpenMS
     DGridCell& operator = (const DGridCell& rhs)
 		{
 			if (&rhs==this) return *this;			
-			DRange<D,TraitsType>::operator = (rhs);
+			DRange<D>::operator = (rhs);
 			mappings_ = rhs.mappings_;
 			return *this;
 		}
@@ -91,7 +89,7 @@ namespace OpenMS
 		/// Test for equality
    	bool operator == (const DGridCell& rhs) const
 		{
-			return (DRange<D,TraitsType>::operator == (rhs) 
+			return (DRange<D>::operator == (rhs) 
 							&& mappings_ == rhs.mappings_);			
 		}
 		

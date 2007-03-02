@@ -45,15 +45,15 @@ namespace OpenMS
 	namespace Internal
 	{
 		///Node of a QuadTree (internal use only)	
-		template<typename Traits, typename Data>
+		template<typename Data>
 		class QuadNode
 		{
 		private:
 			inline bool isInf();
 			
 		public:
-			typedef DPosition<2,Traits> PointType;
-			typedef DRange<2,Traits> AreaType;
+			typedef DPosition<2> PointType;
+			typedef DRange<2> AreaType;
 			typedef std::pair<PointType, Data*> ValueType;
 
 			inline QuadNode();
@@ -161,11 +161,8 @@ namespace OpenMS
 
 	public:
 	
-		/// the default traits
-		typedef typename Type::first_type::TraitsType Traits;
-		
 		/// the default area type
-		typedef DRange<2,Traits> AreaType;
+		typedef DRange<2> AreaType;
 		/**
 			Refers to an AreaIterator using non-const semantics.
 			Used for STL-Compliance.
@@ -266,7 +263,7 @@ namespace OpenMS
 		typedef pointer Pointer;
 
 	private:
-		typedef Internal::QuadNode<Traits, Data>* NodePointer;
+		typedef Internal::QuadNode<Data>* NodePointer;
 
 	public:
 		/**
@@ -384,7 +381,7 @@ namespace OpenMS
 		
 		@ingroup Datastructures
 	*/
-	template<typename Traits, typename Data>
+	template<typename Data>
 	class QuadTree
 	{
 	private:
@@ -392,17 +389,17 @@ namespace OpenMS
 
 	public:
 		///the default point type	
-		typedef DPosition<2,Traits> PointType;
+		typedef DPosition<2> PointType;
 
 		///the default area type	
-		typedef DRange<2,Traits> AreaType;
+		typedef DRange<2> AreaType;
 		
 		/**
 			This is the standard interface to the Type template
 			parameter. It is used by most STL algorithms.
 			@sa reference, pointer, ValueType
 		*/
-		typedef typename Internal::QuadNode<Traits, Data>::ValueType value_type;
+		typedef typename Internal::QuadNode<Data>::ValueType value_type;
 
 		/**
 			This is the standard interface to the Ref template
@@ -478,7 +475,7 @@ namespace OpenMS
 		///Comparator for QuadTree (internal use only)	
 		struct Cmp
 		{
-			typedef typename QuadTree<Traits, Data>::value_type Param;
+			typedef typename QuadTree<Data>::value_type Param;
 
 			inline bool operator()(const Param& a, const Param& b)
 			{
@@ -486,7 +483,7 @@ namespace OpenMS
 			}
 		};
 
-		typedef Internal::QuadNode<Traits, Data>* NodePointer;
+		typedef Internal::QuadNode<Data>* NodePointer;
 
 	public:
 		/**
@@ -574,7 +571,7 @@ namespace OpenMS
 	private:
 		void insert_(NodePointer node, const AreaType& area, const PointType& position, /*const */Data* data) throw (Exception::IllegalTreeOperation);
 
-		Internal::Alloc<Internal::QuadNode<Traits, Data> > alloc_;
+		Internal::Alloc<Internal::QuadNode<Data> > alloc_;
 		NodePointer root_;
 		AreaType area_;
 	};
@@ -587,47 +584,47 @@ namespace OpenMS
 
 // OpenMS::Internal::QuadNode
 
-template<typename Traits, typename Data>
-inline bool OpenMS::Internal::QuadNode<Traits, Data>::isInf()
+template<typename Data>
+inline bool OpenMS::Internal::QuadNode<Data>::isInf()
 {
-	return data.first.getX() == std::numeric_limits<typename Traits::CoordinateType>::infinity()
-	    && data.first.getY() == std::numeric_limits<typename Traits::CoordinateType>::infinity();
+	return data.first.getX() == std::numeric_limits<DoubleReal>::infinity()
+	    && data.first.getY() == std::numeric_limits<DoubleReal>::infinity();
 }
 
-template<typename Traits, typename Data>
-inline OpenMS::Internal::QuadNode<Traits, Data>::QuadNode()
-	: data(ValueType(PointType(std::numeric_limits<typename Traits::CoordinateType>::infinity(), std::numeric_limits<typename Traits::CoordinateType>::infinity()), 0))
+template<typename Data>
+inline OpenMS::Internal::QuadNode<Data>::QuadNode()
+	: data(ValueType(PointType(std::numeric_limits<DoubleReal>::infinity(), std::numeric_limits<DoubleReal>::infinity()), 0))
 {
 
 }
 
-template<typename Traits, typename Data>
-inline OpenMS::Internal::QuadNode<Traits, Data>::QuadNode(PointType pos, Data* data)
+template<typename Data>
+inline OpenMS::Internal::QuadNode<Data>::QuadNode(PointType pos, Data* data)
 	: data(ValueType(pos, data))
 {
 
 }
 
-template<typename Traits, typename Data>
-inline bool OpenMS::Internal::QuadNode<Traits, Data>::isLeaf()
+template<typename Data>
+inline bool OpenMS::Internal::QuadNode<Data>::isLeaf()
 {
 	return !isInf() && data.second;
 }
 
-template<typename Traits, typename Data>
-inline bool OpenMS::Internal::QuadNode<Traits, Data>::isInner()
+template<typename Data>
+inline bool OpenMS::Internal::QuadNode<Data>::isInner()
 {
 	return isInf() && data.second;
 }
 
-template<typename Traits, typename Data>
-inline bool OpenMS::Internal::QuadNode<Traits, Data>::isNil()
+template<typename Data>
+inline bool OpenMS::Internal::QuadNode<Data>::isNil()
 {
 	return isInf() && !data.second;
 }
 
-template<typename Traits, typename Data>
-inline bool OpenMS::Internal::QuadNode<Traits, Data>::isEmpty()
+template<typename Data>
+inline bool OpenMS::Internal::QuadNode<Data>::isEmpty()
 {
 	for (int i = 0; i != 4; i++)
 	{
@@ -636,22 +633,22 @@ inline bool OpenMS::Internal::QuadNode<Traits, Data>::isEmpty()
 	return true;
 }
 
-template<typename Traits, typename Data>
-inline OpenMS::Internal::QuadNode<Traits, Data>* OpenMS::Internal::QuadNode<Traits, Data>::getChildren()
+template<typename Data>
+inline OpenMS::Internal::QuadNode<Data>* OpenMS::Internal::QuadNode<Data>::getChildren()
 {
 	return reinterpret_cast<QuadNode*>(data.second);
 }
 
-template<typename Traits, typename Data>
-inline Data* OpenMS::Internal::QuadNode<Traits, Data>::getData()
+template<typename Data>
+inline Data* OpenMS::Internal::QuadNode<Data>::getData()
 {
 	return data.second;
 }
 
-template<typename Traits , typename Data>
-inline void OpenMS::Internal::QuadNode<Traits, Data>::resetPosition()
+template<typename Data>
+inline void OpenMS::Internal::QuadNode<Data>::resetPosition()
 {
-	data.first = PointType(std::numeric_limits<typename Traits::CoordinateType>::infinity(), std::numeric_limits<typename Traits::CoordinateType>::infinity());
+	data.first = PointType(std::numeric_limits<DoubleReal>::infinity(), std::numeric_limits<DoubleReal>::infinity());
 }
 
 // OpenMS::Internal::Chunk
@@ -737,7 +734,7 @@ inline OpenMS::AreaIterator<Type, Ref, Ptr>::AreaIterator()
 }
 
 template<class Type, class Ref, class Ptr>
-inline OpenMS::AreaIterator<Type, Ref, Ptr>::AreaIterator(const DRange<2,AreaIterator<Type, Ref, Ptr>::Traits>& tree_area, const DRange<2,AreaIterator<Type, Ref, Ptr>::Traits>& area, NodePointer root_node)
+inline OpenMS::AreaIterator<Type, Ref, Ptr>::AreaIterator(const DRange<2>& tree_area, const DRange<2>& area, NodePointer root_node)
 {
 	findNodes(area, root_node, tree_area);
 	current_ = nodes_.begin();
@@ -781,8 +778,8 @@ inline void OpenMS::AreaIterator<Type, Ref, Ptr>::findNodes(const AreaType& area
 	
 	if (node->isInner())
 	{
-		typename Traits::CoordinateType mid_x = (nodeArea.minX() + nodeArea.maxX()) / 2.0;
-		typename Traits::CoordinateType mid_y = (nodeArea.minY() + nodeArea.maxY()) / 2.0;
+		DoubleReal mid_x = (nodeArea.minX() + nodeArea.maxX()) / 2.0;
+		DoubleReal mid_y = (nodeArea.minY() + nodeArea.maxY()) / 2.0;
 		
 		findNodes(area, node->getChildren() + 0, AreaType(nodeArea.minX(), nodeArea.minY(), mid_x, mid_y));
 		findNodes(area, node->getChildren() + 1, AreaType(mid_x, nodeArea.minY(), nodeArea.maxX(), mid_y));
@@ -820,78 +817,78 @@ inline bool OpenMS::AreaIterator<Type, Ref, Ptr>::operator!=(const AreaIterator&
 
 // OpenMS::QuadTree
 
-template<typename Traits, typename Data>
-inline OpenMS::QuadTree<Traits, Data>::QuadTree(const AreaType& area)
+template<typename Data>
+inline OpenMS::QuadTree<Data>::QuadTree(const AreaType& area)
 	: area_(area)
 {
-	root_ = new Internal::QuadNode<Traits, Data>();
+	root_ = new Internal::QuadNode<Data>();
 	root_->data.second = reinterpret_cast<Data*>(alloc_.getNodes());
 }
 
-template<typename Traits, typename Data>
-inline OpenMS::QuadTree<Traits, Data>::~QuadTree()
+template<typename Data>
+inline OpenMS::QuadTree<Data>::~QuadTree()
 {
 	delete root_;
 }
 
-template<typename Traits, typename Data>
-inline void OpenMS::QuadTree<Traits, Data>::insert(const OpenMS::QuadTree<Traits, Data>::PointType& position, /*const */Data* data) throw (Exception::IllegalTreeOperation)
+template<typename Data>
+inline void OpenMS::QuadTree<Data>::insert(const OpenMS::QuadTree<Data>::PointType& position, /*const */Data* data) throw (Exception::IllegalTreeOperation)
 {
 	insert_(root_, area_, position, data);
 }
 
-template<typename Traits, typename Data>
-inline typename OpenMS::QuadTree<Traits, Data>::Iterator OpenMS::QuadTree<Traits, Data>::begin(const AreaType& area)
+template<typename Data>
+inline typename OpenMS::QuadTree<Data>::Iterator OpenMS::QuadTree<Data>::begin(const AreaType& area)
 {
 	if (root_->isEmpty()) return Iterator();
 	return Iterator(area_, area, root_);
 }
 
-template<typename Traits, typename Data>
-inline typename OpenMS::QuadTree<Traits, Data>::Iterator OpenMS::QuadTree<Traits, Data>::begin()
+template<typename Data>
+inline typename OpenMS::QuadTree<Data>::Iterator OpenMS::QuadTree<Data>::begin()
 {
 	if (root_->isEmpty()) return Iterator();
 	return Iterator(area_, area_, root_);
 }
 
-template<typename Traits, typename Data>
-inline typename OpenMS::QuadTree<Traits, Data>::Iterator OpenMS::QuadTree<Traits, Data>::end()
+template<typename Data>
+inline typename OpenMS::QuadTree<Data>::Iterator OpenMS::QuadTree<Data>::end()
 {
 	return Iterator();
 }
 
-template<typename Traits, typename Data>
-inline typename OpenMS::QuadTree<Traits, Data>::ConstIterator OpenMS::QuadTree<Traits, Data>::begin(const AreaType& area) const
+template<typename Data>
+inline typename OpenMS::QuadTree<Data>::ConstIterator OpenMS::QuadTree<Data>::begin(const AreaType& area) const
 {
 	if (root_->isEmpty()) return ConstIterator();
 	return ConstIterator(area_, area, root_);
 }
 
-template<typename Traits, typename Data>
-inline typename OpenMS::QuadTree<Traits, Data>::ConstIterator OpenMS::QuadTree<Traits, Data>::begin() const
+template<typename Data>
+inline typename OpenMS::QuadTree<Data>::ConstIterator OpenMS::QuadTree<Data>::begin() const
 {
 	if (root_->isEmpty()) return ConstIterator();
 	return ConstIterator(area_, area_, root_);
 }
 
-template<typename Traits, typename Data>
-inline typename OpenMS::QuadTree<Traits, Data>::ConstIterator OpenMS::QuadTree<Traits, Data>::end() const
+template<typename Data>
+inline typename OpenMS::QuadTree<Data>::ConstIterator OpenMS::QuadTree<Data>::end() const
 {
 	return ConstIterator();
 }
 
-template<typename Traits, typename Data>
-inline const typename OpenMS::QuadTree<Traits, Data>::AreaType& OpenMS::QuadTree<Traits, Data>::getArea() const
+template<typename Data>
+inline const typename OpenMS::QuadTree<Data>::AreaType& OpenMS::QuadTree<Data>::getArea() const
 {
 	return area_;
 }
 
-template<typename Traits, typename Data>
-void OpenMS::QuadTree<Traits, Data>::insert_(NodePointer node, const AreaType& area, const PointType& position, /*const */Data* data) throw (Exception::IllegalTreeOperation)
+template<typename Data>
+void OpenMS::QuadTree<Data>::insert_(NodePointer node, const AreaType& area, const PointType& position, /*const */Data* data) throw (Exception::IllegalTreeOperation)
 {
 	// calculate the current node's mass point
-	typename Traits::CoordinateType mid_x = (area.minX() + area.maxX()) / 2.0;
-	typename Traits::CoordinateType mid_y = (area.minY() + area.maxY()) / 2.0;
+	DoubleReal mid_x = (area.minX() + area.maxX()) / 2.0;
+	DoubleReal mid_y = (area.minY() + area.maxY()) / 2.0;
   
 	if (node->isLeaf())              
 	{

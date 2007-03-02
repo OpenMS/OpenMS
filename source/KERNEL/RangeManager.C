@@ -24,9 +24,9 @@
 // $Maintainer: Marc Sturm $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/DATASTRUCTURES/RangeManager.h>
+#include <OpenMS/KERNEL/RangeManager.h>
 
 namespace OpenMS
 {
-
+	// No default instance because it hast a pure virtual method
 }

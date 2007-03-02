@@ -56,13 +56,13 @@ namespace OpenMS
 	@ingroup FeatureFinder
 */
 class GaussModel
-	: public InterpolationModel<>
+	: public InterpolationModel
 {
 
 public:
-    typedef InterpolationModel<>::CoordinateType CoordinateType;
+    typedef InterpolationModel::CoordinateType CoordinateType;
     typedef Math::BasicStatistics<CoordinateType > BasicStatistics;
-    typedef InterpolationModel<> InterpolationModel;
+    typedef InterpolationModel InterpolationModel;
 
     /// Default constructor
     GaussModel();

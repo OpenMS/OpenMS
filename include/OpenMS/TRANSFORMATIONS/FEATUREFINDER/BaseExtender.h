@@ -28,7 +28,6 @@
 #define OPENMS_TRANSFORMATIONS_FEATUREFINDER_BASEEXTENDER_H
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeaFiModule.h>
-#include <OpenMS/KERNEL/KernelTraits.h>
 
 namespace OpenMS
 {
