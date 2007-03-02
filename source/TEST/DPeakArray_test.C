@@ -315,7 +315,7 @@ CHECK(bool operator == (const DPeakArray& array) const)
 	DPeakArray<2, DPickedPeak<2> > pl2(pl);
 	TEST_EQUAL(pl.size(), pl2.size())
 	TEST_EQUAL(pl == pl2 , true)
-	pl2[0].getIntensity()=4.345;
+	pl2[0].setIntensity(4.345);
 	TEST_EQUAL(pl == pl2 , false)
 RESULT
 
@@ -323,7 +323,7 @@ CHECK(bool operator !=(const DPeakArray& array) const)
 	DPeakArray<2, DPickedPeak<2> > pl2(pl);
 	TEST_EQUAL(pl.size(), pl2.size())
 	TEST_EQUAL(pl != pl2 , false)
-	pl2[0].getIntensity()=4.345;
+	pl2[0].setIntensity(4.345);
 	TEST_EQUAL(pl != pl2 , true)
 RESULT
 
@@ -362,20 +362,20 @@ RESULT
 CHECK(void sortByPosition())
 DPeakArray<2, DPickedPeak<2> > dpa2;
 DPickedPeak<2> p1(peak1);
-p1.getIntensity()=1;
+p1.setIntensity(1);
 DPickedPeak<2> p2(peak2);
-p2.getIntensity()=2;
+p2.setIntensity(2);
 DPickedPeak<2> p3(peak3);
-p3.getIntensity()=3;
+p3.setIntensity(3);
 DPickedPeak<2> p4(peak1);
 p4.getPos()[1]=4711;
-p4.getIntensity()=4;
+p4.setIntensity(4);
 DPickedPeak<2> p5(peak2);
 p5.getPos()[1]=4711;
-p5.getIntensity()=5;
+p5.setIntensity(5);
 DPickedPeak<2> p6(peak3);
 p6.getPos()[1]=4711;
-p6.getIntensity()=6;
+p6.setIntensity(6);
 dpa2.push_back(p1);
 dpa2.push_back(p2);
 dpa2.push_back(p3);

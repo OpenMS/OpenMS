@@ -119,11 +119,11 @@ RESULT
 CHECK(IntensityType& getIntensity())
 	DRawDataPoint<3> p;
 	TEST_REAL_EQUAL(p.getIntensity(), 0.0)
-	p.getIntensity() = 123.456;
+	p.setIntensity(123.456);
 	TEST_REAL_EQUAL(p.getIntensity(), 123.456)
-	p.getIntensity() = -0.12345;
+	p.setIntensity(-0.12345);
 	TEST_REAL_EQUAL(p.getIntensity(), -0.12345)
-	p.getIntensity() = 0.0;
+	p.setIntensity(0.0);
 	TEST_REAL_EQUAL(p.getIntensity(), 0.0)
 RESULT
 
@@ -144,7 +144,7 @@ CHECK(PositionType& getPos())
 	pos[0] = 1.0;
 	pos[1] = 2.0;
 	pos[2] = 3.0;
-	p.getPos() = pos;
+	p.setPos(pos);
 	DRawDataPoint<3>::PositionType pos2(p.getPos());
 	TEST_REAL_EQUAL(pos2[0], 1.0)
 	TEST_REAL_EQUAL(pos2[1], 2.0)
@@ -157,8 +157,8 @@ CHECK(DRawDataPoint(const DRawDataPoint& p))
 	pos[1] = 22.22;
 	pos[2] = 23.23;
 	DRawDataPoint<3> p;
-	p.getIntensity() = 123.456;
-	p.getPos() = pos;
+	p.setIntensity(123.456);
+	p.setPos(pos);
 	DRawDataPoint<3>::PositionType pos2;
 	DRawDataPoint<3>::IntensityType i2;
 
@@ -179,8 +179,8 @@ CHECK(DRawDataPoint& operator = (const DRawDataPoint& rhs))
 	pos[1] = 22.22;
 	pos[2] = 23.23;
 	DRawDataPoint<3> p;
-	p.getIntensity() = 123.456;
-	p.getPos() = pos;
+	p.setIntensity(123.456);
+	p.setPos(pos);
 	DRawDataPoint<3>::PositionType pos2;
 	DRawDataPoint<3>::IntensityType i2;
 
@@ -201,9 +201,9 @@ CHECK(bool operator == (const DRawDataPoint& rhs) const)
 	DRawDataPoint<1> p2(p1);
 	TEST_REAL_EQUAL(p1==p2, true)
 	
-	p1.getIntensity()=5;
+	p1.setIntensity(5);
 	TEST_REAL_EQUAL(p1==p2, false)
-	p2.getIntensity()=5;
+	p2.setIntensity(5);
 	TEST_REAL_EQUAL(p1==p2, true)
 	
 	p1.getPos()[0]=5;
@@ -217,9 +217,9 @@ CHECK(bool operator != (const DRawDataPoint& rhs) const)
 	DRawDataPoint<1> p2(p1);
 	TEST_REAL_EQUAL(p1!=p2, false)
 	
-	p1.getIntensity()=5;
+	p1.setIntensity(5);
 	TEST_REAL_EQUAL(p1!=p2, true)
-	p2.getIntensity()=5;
+	p2.setIntensity(5);
 	TEST_REAL_EQUAL(p1!=p2, false)
 	
 	p1.getPos()[0]=5;
@@ -295,13 +295,13 @@ CHECK([EXTRA] struct IntensityLess)
 	std::vector<DRawDataPoint<2> > v;
 	DRawDataPoint<2> p;
 	
-	p.getIntensity()=2.5;
+	p.setIntensity(2.5);
 	v.push_back(p);
 
-	p.getIntensity()=3.5;
+	p.setIntensity(3.5);
 	v.push_back(p);
 
-	p.getIntensity()=1.5;
+	p.setIntensity(1.5);
 	v.push_back(p);
 	
 	std::sort(v.begin(), v.end(), DRawDataPoint<2>::IntensityLess());

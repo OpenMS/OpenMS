@@ -57,9 +57,9 @@ CHECK(DPeakConstReferenceArray(const DPeakConstReferenceArray& p))
   DPeakConstReferenceArray<PeakArrayType> pl;
   Peak1D peak1;
   Peak1D peak2;
-  peak1.getIntensity() = 1.0;
+  peak1.setIntensity(1.0);
   pl.push_back(peak1);
-  peak2.getIntensity() = 2.0;
+  peak2.setIntensity(2.0);
   pl.push_back(peak2);
   
   DPeakConstReferenceArray<PeakArrayType> pl2(pl);
@@ -72,9 +72,9 @@ CHECK(DPeakConstReferenceArray& operator = (const DPeakConstReferenceArray& p))
   DPeakConstReferenceArray<PeakArrayType> pl;
   Peak1D peak1;
   Peak1D peak2;
-  peak1.getIntensity() = 1.0;
+  peak1.setIntensity(1.0);
   pl.push_back(peak1);
-  peak2.getIntensity() = 2.0;
+  peak2.setIntensity(2.0);
   pl.push_back(peak2);
   
   DPeakConstReferenceArray<PeakArrayType> pl2;
@@ -91,16 +91,16 @@ CHECK( empty() const)
 RESULT
 
 Peak1D peak1;
-peak1.getPos() = 2.0;
-peak1.getIntensity() = 1.0;
+peak1.setPos(2.0);
+peak1.setIntensity(1.0);
 
 Peak1D peak2;
-peak2.getPos() = 0.0;
-peak2.getIntensity() = 0.5;
+peak2.setPos(0.0);
+peak2.setIntensity(0.5);
 
 Peak1D peak3;
-peak3.getPos() = 10.5;
-peak3.getIntensity() = 0.01;
+peak3.setPos(10.5);
+peak3.setIntensity(0.01);
 
 CHECK( size() const)
   TEST_EQUAL(pl.size(), 0)
@@ -175,19 +175,19 @@ DPeakConstReferenceArray<PeakArray2DType> pl2;
 Peak2D peak4;
 peak4.getPos()[0] = 2.0;
 peak4.getPos()[1] = 3.0;
-peak4.getIntensity() = 1.0;
+peak4.setIntensity(1.0);
 pl2.push_back(peak4);
 
 Peak2D peak5;
 peak5.getPos()[0] = 0.0;
 peak5.getPos()[1] = 2.5;
-peak5.getIntensity() = 0.5;
+peak5.setIntensity(0.5);
 pl2.push_back(peak5);
 
 Peak2D peak6;
 peak6.getPos()[0] = 10.5;
 peak6.getPos()[1] = 0.0;
-peak6.getIntensity() = 0.01;
+peak6.setIntensity(0.01);
 pl2.push_back(peak6);
 
 CHECK(void sortByNthPosition(UnsignedInt i) throw (Exception::NotImplemented))
@@ -319,7 +319,7 @@ RESULT
 
 Peak1D peak7;
 peak7.getPos()[0] = 1.1;
-peak7.getIntensity() = 1.1;
+peak7.setIntensity(1.1);
 
 CHECK(void reserve(size_type))
   pl.reserve(4);
@@ -349,7 +349,7 @@ RESULT
 CHECK(DPeakConstReferenceArray<PeakArrayType>(size_type n, const PeakType& peak))
   Peak2D peak;
   peak.getPos()[0] = 1.1;
-  peak.getIntensity() = 5.1;
+  peak.setIntensity(5.1);
   DPeakConstReferenceArray<PeakArray2DType> pl2(3, peak);
   TEST_REAL_EQUAL(pl2.size(), 3)
   TEST_REAL_EQUAL(pl2[0].getIntensity(), 5.1)
@@ -384,11 +384,11 @@ RESULT
 
 Peak1D peak8;
 peak8.getPos()[0] = 2.0;
-peak8.getIntensity() = 1.0;
+peak8.setIntensity(1.0);
 
 Peak1D peak9;
 peak9.getPos()[0] = 0.0;
-peak9.getIntensity() = 2.5;
+peak9.setIntensity(2.5);
 
 CHECK(void swap(DPeakConstReferenceArray<PeakArrayType>))
   DPeakConstReferenceArray<PeakArrayType> pl2;
@@ -423,7 +423,7 @@ CHECK(void swap(DPeakConstReferenceArray<PeakArrayType>))
 RESULT
 
 Peak1D peak10;
-peak10.getIntensity() = 4712.0;
+peak10.setIntensity(4712.0);
 CHECK(iterator insert(iterator pos, const Peak1D&))
   TEST_REAL_EQUAL(pl.size(), 3)
   pl.insert(pl.end(),peak10);
@@ -446,7 +446,7 @@ CHECK(iterator erase(iterator pos))
 RESULT
 
 CHECK(iterator insert(iterator pos, size_type n, const Peak1D&))
-  peak10.getIntensity() = 4714.0;
+  peak10.setIntensity(4714.0);
   TEST_REAL_EQUAL(pl.size(), 3)
   pl.insert(pl.begin(),3,peak10);
   
@@ -559,7 +559,7 @@ CHECK(resize() (expand))
 RESULT
 
 Peak1D peak11;
-peak11.getIntensity()=4713.0; 
+peak11.setIntensity(4713.0); 
 CHECK(resize() (expand)) 
   TEST_REAL_EQUAL(pl.size(), 2)
   
@@ -596,21 +596,21 @@ RESULT
 CHECK(void sortByPosition())
 	DPeakConstReferenceArray<PeakArray2DType> dpa2;
 	Peak2D p1(peak4);
-	p1.getIntensity()=1;
+	p1.setIntensity(1);
 	Peak2D p2(peak5);
-	p2.getIntensity()=2;
+	p2.setIntensity(2);
 	Peak2D p3(peak6);
-	p3.getIntensity()=3;
+	p3.setIntensity(3);
 	Peak2D p4;
 	p4.getPos()[0]=4.3;
 	p4.getPos()[1]=4711;
-	p4.getIntensity()=4;
+	p4.setIntensity(4);
 	Peak2D p5;
 	p5.getPos()[1]=4711;
-	p5.getIntensity()=5;
+	p5.setIntensity(5);
 	Peak2D p6;
 	p6.getPos()[1]=4711;
-	p6.getIntensity()=6;
+	p6.setIntensity(6);
 	dpa2.push_back(p1);
 	dpa2.push_back(p2);
 	dpa2.push_back(p3);

@@ -76,9 +76,9 @@ CHECK((bool operator == (const DPeak& rhs) const))
 	DPeak<1> p1, p2;
 	TEST_REAL_EQUAL(p1==p2, true)
 	
-	p1.getIntensity()=5;
+	p1.setIntensity(5);
 	TEST_REAL_EQUAL(p1==p2, false)
-	p2.getIntensity()=5;
+	p2.setIntensity(5);
 	TEST_REAL_EQUAL(p1==p2, true)
 
 	p1.setMetaValue("cluster_id",4711);
@@ -91,9 +91,9 @@ CHECK((bool operator != (const DPeak& rhs) const))
 	DPeak<1> p1, p2;
 	TEST_REAL_EQUAL(p1!=p2, false)
 	
-	p1.getIntensity()=5;
+	p1.setIntensity(5);
 	TEST_REAL_EQUAL(p1!=p2, true)
-	p2.getIntensity()=5;
+	p2.setIntensity(5);
 	TEST_REAL_EQUAL(p1!=p2, false)
 
 	p1.setMetaValue("cluster_id",4711);

@@ -237,50 +237,50 @@ RESULT
 
 CHECK(double& getWinLen())
   DSignalToNoiseEstimatorMeanIterative<1> sne;
-  sne.getWinLen() = 31;
+  sne.setWinLen(31);
   TEST_REAL_EQUAL(sne.getWinLen(), 31);
 RESULT
 
 CHECK(int& getBinCount())
   DSignalToNoiseEstimatorMeanIterative<1> sne;
-  sne.getBinCount() = 50;
+  sne.setBinCount(50);
   TEST_EQUAL(sne.getBinCount(), 50);
 RESULT
 
 CHECK(double& getSTDEVMultiplier())
   DSignalToNoiseEstimatorMeanIterative<1> sne;
-  sne.getSTDEVMultiplier() = 3.5;
+	sne.setSTDEVMultiplier(3.5);
   TEST_REAL_EQUAL(sne.getSTDEVMultiplier(), 3.5);
 RESULT
 
 CHECK(double& getMaxIntensity())
   DSignalToNoiseEstimatorMeanIterative<1> sne;
-  sne.getMaxIntensity() = 110.5;
+  sne.setMaxIntensity(110.5);
   TEST_REAL_EQUAL(sne.getMaxIntensity(), 110.5);
 RESULT
 
 CHECK(double& getAutoMaxIntensity())
   DSignalToNoiseEstimatorMeanIterative<1> sne;
-  sne.getAutoMaxIntensity() = 3.35;
+  sne.setAutoMaxIntensity(3.35);
   TEST_REAL_EQUAL(sne.getAutoMaxIntensity(), 3.35);
 RESULT
 
 CHECK(int& getAutoMode())
   DSignalToNoiseEstimatorMeanIterative<1> sne;
-  sne.getAutoMode() = DSignalToNoiseEstimatorMeanIterative<>::AUTOMAXBYPERCENT;
+  sne.setAutoMode(DSignalToNoiseEstimatorMeanIterative<>::AUTOMAXBYPERCENT);
   TEST_EQUAL(sne.getAutoMode(), DSignalToNoiseEstimatorMeanIterative<>::AUTOMAXBYPERCENT);
 RESULT
 
 CHECK(int& getMinReqElements())
   DSignalToNoiseEstimatorMeanIterative<1> sne;
-  sne.getMinReqElements() = 11;
+  sne.setMinReqElements(11);
   TEST_EQUAL(sne.getMinReqElements(), 11);
 RESULT
 
 
 CHECK(double& getNoiseForEmtpyWindow())
   DSignalToNoiseEstimatorMeanIterative<1> sne;
-  sne.getNoiseForEmtpyWindow() = 2.5;
+  sne.setNoiseForEmtpyWindow(2.5);
   TEST_EQUAL(sne.getNoiseForEmtpyWindow(), 2.5);
 RESULT
 

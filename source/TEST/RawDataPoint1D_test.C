@@ -130,9 +130,9 @@ CHECK(bool operator == (const RawDataPoint1D& rhs) const)
 	RawDataPoint1D p2(p1);
 	TEST_REAL_EQUAL(p1==p2, true)
 	
-	p1.getIntensity()=5;
+	p1.setIntensity(5);
 	TEST_REAL_EQUAL(p1==p2, false)
-	p2.getIntensity()=5;
+	p2.setIntensity(5);
 	TEST_REAL_EQUAL(p1==p2, true)
 	
 	p1.getPos()[0]=5;

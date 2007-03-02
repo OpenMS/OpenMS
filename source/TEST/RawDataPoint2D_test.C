@@ -272,13 +272,13 @@ CHECK([EXTRA] struct IntensityLess)
 	std::vector<RawDataPoint2D > v;
 	RawDataPoint2D p;
 	
-	p.getIntensity()=2.5;
+	p.setIntensity(2.5);
 	v.push_back(p);
 
-	p.getIntensity()=3.5;
+	p.setIntensity(3.5);
 	v.push_back(p);
 
-	p.getIntensity()=1.5;
+	p.setIntensity(1.5);
 	v.push_back(p);
 	
 	std::sort(v.begin(), v.end(), RawDataPoint2D::IntensityLess());

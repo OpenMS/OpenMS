@@ -58,11 +58,11 @@ RESULT
 CHECK(QualityType& getOverallQuality())
 	Feature p;
 	TEST_REAL_EQUAL(p.getOverallQuality(), 0.0)
-	p.getOverallQuality() = 123.456;
+	p.setOverallQuality(123.456);
 	TEST_REAL_EQUAL(p.getOverallQuality(), 123.456)
-	p.getOverallQuality() = -0.12345;
+	p.setOverallQuality(-0.12345);
 	TEST_REAL_EQUAL(p.getOverallQuality(), -0.12345)
-	p.getOverallQuality() = 0.0;
+	p.setOverallQuality(0.0);
 	TEST_REAL_EQUAL(p.getOverallQuality(), 0.0)
 RESULT
 
@@ -89,11 +89,11 @@ RESULT
 CHECK(QualityType& getQuality(Position))
 	Feature p;
 	TEST_REAL_EQUAL(p.getQuality(0), 0.0)
-	p.getQuality(0) = 123.456;
+	p.setQuality(0, 123.456);
 	TEST_REAL_EQUAL(p.getQuality(0), 123.456)
-	p.getQuality(0) = -0.12345;
+	p.setQuality(0, -0.12345);
 	TEST_REAL_EQUAL(p.getQuality(0), -0.12345)
-	p.getQuality(0) = 0.0;
+	p.setQuality(0, 0.0);
 	TEST_REAL_EQUAL(p.getQuality(0), 0.0)
 	TEST_REAL_EQUAL(p.getQuality(1), 0.0)
 #ifdef OPENMS_DEBUG
@@ -125,9 +125,9 @@ RESULT
 CHECK(QualityType& getModelDescription())
 	Feature p;
 	TEST_EQUAL(p.getModelDescription().getName(), "")
-	p.getModelDescription().getName() = "gauss";
+	p.getModelDescription().setName("gauss");
 	TEST_EQUAL(p.getModelDescription().getName(), "gauss")
-	p.getModelDescription().getName() = "";
+	p.getModelDescription().setName("");
   TEST_EQUAL(p.getModelDescription().getName(), "")
 RESULT
 
@@ -171,7 +171,7 @@ CHECK(PositionType& getPos())
 	TEST_REAL_EQUAL(pos[1], 0.0)
 	pos[0] = 1.0;
 	pos[1] = 2.0;
-	p.getPos() = pos;
+	p.setPos(pos);
 	Feature::PositionType pos2(p.getPos());
 	TEST_REAL_EQUAL(pos2[0], 1.0)
 	TEST_REAL_EQUAL(pos2[1], 2.0)
@@ -182,10 +182,10 @@ CHECK(Feature(const Feature& p))
 	pos[0] = 21.21;
 	pos[1] = 22.22;
 	Feature p;
-	p.getIntensity() = 123.456;
+	p.setIntensity(123.456);
 	p.setPos(pos);
 	p.setMetaValue("cluster_id",4711);
-  p.getOverallQuality() = 0.9;
+  p.setOverallQuality(0.9);
   p.setQuality(0, 0.1);
   p.setQuality(1, 0.2);
   ModelDescription<2> desc;
@@ -221,9 +221,9 @@ CHECK(Feature& operator = (const Feature& rhs))
 	pos[0] = 21.21;
 	pos[1] = 22.22;
 	Feature p;
-	p.getIntensity() = 123.456;
+	p.setIntensity(123.456);
 	p.setPos(pos);
-  p.getOverallQuality() = 0.9;
+  p.setOverallQuality(0.9);
   p.setQuality(0, 0.1);
   p.setQuality(1, 0.2);
   ModelDescription<2> desc;
@@ -262,13 +262,13 @@ CHECK(Feature& operator == (const Feature& rhs))
 	Feature p2(p1);
 	TEST_REAL_EQUAL(p1==p2, true)
 	
-	p1.getIntensity()=5;
-  p1.getOverallQuality() = 0.9;
+	p1.setIntensity(5);
+  p1.setOverallQuality(0.9);
   p1.setQuality(0, 0.1);
   p1.setModelDescription(desc);
 	TEST_REAL_EQUAL(p1==p2, false)
-	p2.getIntensity()=5;
-  p2.getOverallQuality() = 0.9;
+	p2.setIntensity(5);
+  p2.setOverallQuality(0.9);
   p2.setQuality(0, 0.1);
   p2.setModelDescription(desc);
 	TEST_REAL_EQUAL(p1==p2, true)
@@ -284,9 +284,9 @@ CHECK(Feature& operator != (const Feature& rhs))
 	Feature p2(p1);
 	TEST_REAL_EQUAL(p1!=p2, false)
 	
-	p1.getIntensity()=5;
+	p1.setIntensity(5);
 	TEST_REAL_EQUAL(p1!=p2, true)
-	p2.getIntensity()=5;
+	p2.setIntensity(5);
 	TEST_REAL_EQUAL(p1!=p2, false)
 		
 	p1.getPos()[0]=5;
@@ -358,7 +358,7 @@ RESULT
 
 CHECK(ConvexHullVector& getConvexHulls())
 	Feature tmp;
-	tmp.getConvexHulls() = hulls;
+	tmp.setConvexHulls(hulls);
 	TEST_EQUAL(tmp.getConvexHulls().size(),2)
 	TEST_REAL_EQUAL(tmp.getConvexHulls()[0].getPoints()[0][0],1.0)
 	TEST_REAL_EQUAL(tmp.getConvexHulls()[0].getPoints()[0][1],2.0)
