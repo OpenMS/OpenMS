@@ -529,16 +529,16 @@ namespace OpenMS
     
 	template < >
 	void TwoDOptimization::
-	optimizeRegions_<MSExperiment<DRawDataPoint<1> >::const_iterator, PickedPeak1D >
-	(MSExperiment<DRawDataPoint<1> >::const_iterator& first,
-	 MSExperiment<DRawDataPoint<1> >::const_iterator& last,
+	optimizeRegions_<MSExperiment<RawDataPoint1D >::const_iterator, PickedPeak1D >
+	(MSExperiment<RawDataPoint1D >::const_iterator& first,
+	 MSExperiment<RawDataPoint1D >::const_iterator& last,
 	 MSExperiment<PickedPeak1D >& ms_exp);
 
 	template < >
 	void TwoDOptimization::
-	optimizeRegionsScanwise_<MSExperiment<DRawDataPoint<1> >::const_iterator, PickedPeak1D >
-	(MSExperiment<DRawDataPoint<1> >::const_iterator& first,
-	 MSExperiment<DRawDataPoint<1> >::const_iterator& last,
+	optimizeRegionsScanwise_<MSExperiment<RawDataPoint1D >::const_iterator, PickedPeak1D >
+	(MSExperiment<RawDataPoint1D >::const_iterator& first,
+	 MSExperiment<RawDataPoint1D >::const_iterator& last,
 	 MSExperiment<PickedPeak1D >& ms_exp);
     
 	template <typename InputSpectrumIterator,typename OutputPeakType>
