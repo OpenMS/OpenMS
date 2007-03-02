@@ -41,7 +41,6 @@ CPP_SOURCES=\
 	RunningAveragePosition.C\
 	Date.C\
 	Matrix.C\
-	SparseVector.C\
 	BinnedSparseVector.C\
 	DateTime.C\
 	QuadTree.C\
