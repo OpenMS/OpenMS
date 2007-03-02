@@ -47,13 +47,6 @@ START_TEST(IsotopeWaveletSeeder, "$Id$")
 using namespace OpenMS;
 using namespace std;
 
-enum DimensionId
-{
-	RT = DimensionDescription < LCMS_Tag >::RT,
-	MZ = DimensionDescription < LCMS_Tag >::MZ
-};
-
-
 // default ctor
 IsotopeWaveletSeeder* ptr = 0;
 CHECK((IsotopeWaveletSeeder()))
