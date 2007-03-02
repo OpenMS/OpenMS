@@ -45,10 +45,10 @@ START_TEST(SimpleModelFitter, "$Id$")
 using namespace OpenMS;
 using std::stringstream;
 
-enum DimensionId
+enum
 {
-	RT = DimensionDescription < LCMS_Tag >::RT,
-	MZ = DimensionDescription < LCMS_Tag >::MZ
+	RT = RawDataPoint2D::RT,
+	MZ = RawDataPoint2D::MZ
 };
 
 // default ctor
