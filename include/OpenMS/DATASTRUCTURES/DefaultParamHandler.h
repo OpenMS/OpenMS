@@ -58,6 +58,8 @@ namespace OpenMS
 		- If you need mutable access to the extra member variables, provide a set-method and make sure to set
 		  the corresponding value in param_ as well!
 
+		Remove param_ and defaults_ from derivated classes!!!
+
 		@ingroup Datastructures
 	*/
 	class DefaultParamHandler
