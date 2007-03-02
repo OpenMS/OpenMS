@@ -289,6 +289,13 @@ namespace OpenMS
 
 		};
 
+		/// Comparator with respect to retention time
+		typedef NthPositionLess < RT > LessRT;
+		
+		/// Comparator with respect to mass-to-charge
+		typedef NthPositionLess < MZ > LessMZ;
+		
+
 		/**
 			@brief Comparator for the position.
 			

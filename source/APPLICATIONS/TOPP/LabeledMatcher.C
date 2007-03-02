@@ -114,16 +114,7 @@ class TOPPLabeledMatcher
 	    FeatureMap<> features;
 	    FeatureMapFile().load(inputfile,features);
 	
-	    // sort input file
-	    enum DimensionId
-	    {
-	      RT = DimensionDescription < LCMS_Tag >::RT,
-	      MZ = DimensionDescription < LCMS_Tag >::MZ
-	    };
-	
-	    typedef Feature::NthPositionLess< RT > RTless;
-	    typedef Feature::NthPositionLess<MZ> MZless;
-	    sort(features.begin(),features.end(), LexicographicComparator<RTless,MZless>());
+	    sort(features.begin(),features.end(), LexicographicComparator<Feature::LessRT,Feature::LessMZ>());
 	
 	    PairMatcher pm(features);
 	

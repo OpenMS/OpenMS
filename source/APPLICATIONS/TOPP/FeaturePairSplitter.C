@@ -141,12 +141,6 @@ class TOPPFeaturePairSplitter
 		}
 		if ( write_dump )
 		{
-			enum DimensionId
-			{
-				RT = DimensionDescription < LCMS_Tag >::RT,
-				MZ = DimensionDescription < LCMS_Tag >::MZ
-			};
-
 			ofstream dump_file(dump.c_str());
 			std::string dump_gp = dump + ".gp";
 
