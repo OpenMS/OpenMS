@@ -42,13 +42,6 @@ namespace OpenMS
 		//assign protein identifications
 		fm.setProteinIdentifications(protein_ids);
 		
-		//Dimensions
-    enum DimensionId
-    {
-      RT = DimensionDescription < LCMS_Tag >::RT,
-      MZ = DimensionDescription < LCMS_Tag >::MZ
-    };
-		
 		//iterate over the features
 		for(FeatureMap<>::Iterator f_it = fm.begin(); f_it!=fm.end(); ++f_it)
 		{
