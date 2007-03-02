@@ -64,12 +64,6 @@ namespace OpenMS
 		typedef FeaFiTraits::IntensityType IntensityType;
 		typedef FeaFiTraits::MapType MapType;
 				
-		/* enum DimensionId */
-    /* { */
-    /*     RT = DimensionDescription < LCMS_Tag >::RT, */
-    /*     MZ = DimensionDescription < LCMS_Tag >::MZ */
-    /* }; */
-
   public:
 		///Functor that allows to compare the indizes of two peaks by their intensity.
   	class IntensityLess 
