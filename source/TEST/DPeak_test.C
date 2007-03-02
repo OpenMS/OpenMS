@@ -51,7 +51,7 @@ RESULT
 
 CHECK((DPeak(DPeak const& p)))
 	DPeak<3> p;
-	p.getIntensity() = 123.456;
+	p.setIntensity(123.456);
 	p.setMetaValue("cluster_id",4711);
 	
 	DPeak<3> copy_of_p(p);
@@ -62,7 +62,7 @@ RESULT
 
 CHECK((DPeak& operator = (const DPeak& rhs)))
 	DPeak<3> p;
-	p.getIntensity() = 123.456;
+	p.setIntensity(123.456);
 	p.setMetaValue("cluster_id",4711);
 	
 	DPeak<3> copy_of_p;

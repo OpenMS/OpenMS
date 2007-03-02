@@ -91,9 +91,9 @@ CHECK((bool operator != (const Peak2D& rhs) const))
 	Peak2D p1, p2;
 	TEST_REAL_EQUAL(p1!=p2, false)
 	
-	p1.getIntensity()=5;
+	p1.setIntensity(5);
 	TEST_REAL_EQUAL(p1!=p2, true)
-	p2.getIntensity()=5;
+	p2.setIntensity(5);
 	TEST_REAL_EQUAL(p1!=p2, false)
 
 	p1.setMetaValue("cluster_id",4711);

@@ -63,7 +63,7 @@ RESULT
 
 CHECK((ExtractSignalRegions(const ExtractSignalRegions& e)))
   ExtractSignalRegions esr;
-  esr.getDaltonPerSplit()=10;
+  esr.setDaltonPerSplit(10);
 
   ExtractSignalRegions esr_copy(esr);
   TEST_EQUAL(esr_copy.getDaltonPerSplit(),10)
@@ -71,7 +71,7 @@ RESULT
 
 CHECK((ExtractSignalRegions& operator=(const ExtractSignalRegions& e)))
   ExtractSignalRegions esr;
-  esr.getDaltonPerSplit() = 10;
+  esr.setDaltonPerSplit(10);
 
   ExtractSignalRegions esr_copy;
   esr_copy = esr;
@@ -110,9 +110,9 @@ RESULT
 CHECK((const float& getDaltonPerSplit() const))
   ExtractSignalRegions esr;
   TEST_REAL_EQUAL(esr.getDaltonPerSplit(), 10)
-  esr.getDaltonPerSplit() = 123;
+  esr.setDaltonPerSplit(123);
   TEST_REAL_EQUAL(esr.getDaltonPerSplit(), 123)
-  esr.getDaltonPerSplit() = 0;
+  esr.setDaltonPerSplit(0);
   TEST_REAL_EQUAL(esr.getDaltonPerSplit(), 0)
 RESULT
 

@@ -155,11 +155,11 @@ RESULT
 CHECK(IntensityType& getIntensity())
 	Feature p;
 	TEST_REAL_EQUAL(p.getIntensity(), 0.0)
-	p.getIntensity() = 123.456;
+	p.setIntensity(123.456);
 	TEST_REAL_EQUAL(p.getIntensity(), 123.456)
-	p.getIntensity() = -0.12345;
+	p.setIntensity(-0.12345);
 	TEST_REAL_EQUAL(p.getIntensity(), -0.12345)
-	p.getIntensity() = 0.0;
+	p.setIntensity(0.0);
 	TEST_REAL_EQUAL(p.getIntensity(), 0.0)
 RESULT
 

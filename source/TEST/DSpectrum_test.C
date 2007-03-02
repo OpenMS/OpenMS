@@ -317,7 +317,7 @@ CHECK((ContainerType& getContainer()))
 	p.getPos()[1] = 1.1;
 	p.getPos()[2] = 2.2;
 	p.getPos()[3] = 3.3;
-	p.getIntensity() = 15.0;
+	p.setIntensity(15.0);
 	ds.getContainer().push_back(p);
 	TEST_EQUAL(ds.getContainer().empty(), false)
 	TEST_EQUAL(ds.getContainer().size(), 1)
@@ -329,7 +329,7 @@ CHECK((ContainerType& getContainer()))
 	q.getPos()[1] = 1.1;
 	q.getPos()[2] = 2.2;
 	q.getPos()[3] = 3.3;
-	q.getIntensity() = 15.0;
+	q.setIntensity(15.0);
 	ds.getContainer().push_back(q);
 	TEST_EQUAL(ds.getContainer().empty(), false)
 	TEST_EQUAL(ds.getContainer().size(), 2)

@@ -63,17 +63,17 @@ RESULT
 Feature feature1;
 feature1.getPos()[0] = 2.0;
 feature1.getPos()[1] = 3.0;
-feature1.getIntensity() = 1.0;
+feature1.setIntensity(1.0);
 
 Feature feature2;
 feature2.getPos()[0] = 0.0;
 feature2.getPos()[1] = 2.5;
-feature2.getIntensity() = 0.5;
+feature2.setIntensity(0.5);
 
 Feature feature3;
 feature3.getPos()[0] = 10.5;
 feature3.getPos()[1] = 0.0;
-feature3.getIntensity() = 0.01;
+feature3.setIntensity(0.01);
 
 CHECK((updateRanges_(this->begin(), this->end())))
   FeatureMap<> s;
