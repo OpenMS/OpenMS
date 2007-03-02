@@ -58,13 +58,6 @@ namespace OpenMS
 			/// Index set
 			typedef std::set<IDX> IndexSet;
 	
-	    /// Defines the coordinates of peaks / features.
-	    enum DimensionId
-	    {
-        RT = DimensionDescription < LCMS_Tag >::RT,
-        MZ = DimensionDescription < LCMS_Tag >::MZ
-	    };
-	
 	    /// Flag for each data point
 	    enum Flag { UNUSED, SEED, INSIDE_FEATURE };
 			

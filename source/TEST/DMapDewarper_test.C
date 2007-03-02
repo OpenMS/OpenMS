@@ -49,12 +49,6 @@ typedef DFeaturePairVector<2> FeaturePairVector;
 typedef DBaseMapping<1> MappingType;
 typedef std::vector<MappingType*> MappingVector;
 
-enum DimensionId
-		{
-			RT = DimensionDescription < LCMS_Tag >::RT,
-			MZ = DimensionDescription < LCMS_Tag >::MZ
-		};	
-
 ///////////////////////////
 
 /////////////////////////////////////////////////////////////
