@@ -96,15 +96,15 @@ namespace OpenMS
   class SimpleModelFitter
     : public BaseModelFitter
   {
-  	public:
-			typedef FeaFiTraits::CoordinateType Coordinate;
+	 public:
+		typedef FeaFiTraits::CoordinateType Coordinate;
 	
-			enum DimensionId
-				{
-					RT = DimensionDescription < LCMS_Tag >::RT,
-					MZ = DimensionDescription < LCMS_Tag >::MZ
-				};
-			
+		enum 
+			{
+				RT = RawDataPoint2D::RT,
+				MZ = RawDataPoint2D::MZ
+			};
+		
 			typedef Feature::CoordinateType CoordinateType;
 			typedef Feature::PositionType PositionType2D;
 	

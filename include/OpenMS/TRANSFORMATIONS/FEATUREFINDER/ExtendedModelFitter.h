@@ -112,18 +112,17 @@ namespace OpenMS
 		typedef IndexSet::const_iterator IndexSetIter;
 		typedef FeaFiTraits::CoordinateType Coordinate;
 
-		enum DimensionId
-			{
-				RT = DimensionDescription < LCMS_Tag >::RT,
-				MZ = DimensionDescription < LCMS_Tag >::MZ
-			};
-
 		typedef Feature::CoordinateType CoordinateType;
 		typedef Feature::PositionType PositionType2D;
 
 		enum RtFitting{ RTGAUSS=0, LMAGAUSS=1, EMGAUSS=2, BIGAUSS=3, LOGNORMAL=4 };
 		enum MzFitting{ MZGAUSS=0, CHARGE1=1, CHARGE2=2, CHARGE3=3, CHARGE4=4	};
 
+		enum 
+			{
+				RT = RawDataPoint2D::RT,
+				MZ = RawDataPoint2D::MZ
+			};
 
     /// Default constructor
     ExtendedModelFitter();

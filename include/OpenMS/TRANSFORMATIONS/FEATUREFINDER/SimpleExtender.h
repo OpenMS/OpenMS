@@ -103,6 +103,7 @@ namespace OpenMS
   	typedef DoubleReal ProbabilityType;
 		/// Position of a point
 		typedef  FeaFiTraits::PositionType2D PositionType2D;
+
   	/// Default constructor
     SimpleExtender();
 
