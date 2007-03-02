@@ -1,4 +1,4 @@
-// -*- C++: make; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -64,11 +64,11 @@ namespace OpenMS
 		typedef FeaFiTraits::IntensityType IntensityType;
 		typedef FeaFiTraits::MapType MapType;
 				
-		enum DimensionId
-    {
-        RT = DimensionDescription < LCMS_Tag >::RT,
-        MZ = DimensionDescription < LCMS_Tag >::MZ
-    };
+		/* enum DimensionId */
+    /* { */
+    /*     RT = DimensionDescription < LCMS_Tag >::RT, */
+    /*     MZ = DimensionDescription < LCMS_Tag >::MZ */
+    /* }; */
 
   public:
 		///Functor that allows to compare the indizes of two peaks by their intensity.
