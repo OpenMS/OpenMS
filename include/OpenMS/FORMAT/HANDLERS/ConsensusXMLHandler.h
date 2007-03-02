@@ -64,13 +64,6 @@ namespace OpenMS
     {
       public:
 
-        /// Defines the coordinates of peaks / features.
-        enum DimensionId
-        {
-          RT = DimensionDescription < LCMS_Tag >::RT,
-          MZ = DimensionDescription < LCMS_Tag >::MZ
-      };
-
         typedef typename AlignmentT::ElementContainerType ElementContainerType;
         typedef typename AlignmentT::ElementType ElementType;
         typedef typename AlignmentT::ConsensusMapType ConsensusMapType;
@@ -351,13 +344,13 @@ namespace OpenMS
           tmp_str = getAttributeAsString_(RT_ATT);
           if (tmp_str != "")
           {
-            pos_[RT] = asDouble_(tmp_str);
+            pos_[Peak2D::RT] = asDouble_(tmp_str);
           }
 
           tmp_str = getAttributeAsString_(MZ_ATT);
           if (tmp_str != "")
           {
-            pos_[MZ] = asDouble_(tmp_str);
+            pos_[Peak2D::MZ] = asDouble_(tmp_str);
           }
 
           tmp_str = getAttributeAsString_(IT);
