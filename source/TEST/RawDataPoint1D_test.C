@@ -62,11 +62,11 @@ RESULT
 CHECK(IntensityType& getIntensity())
 	RawDataPoint1D p;
 	TEST_REAL_EQUAL(p.getIntensity(), 0.0)
-	p.getIntensity() = 123.456;
+	p.setIntensity(123.456);
 	TEST_REAL_EQUAL(p.getIntensity(), 123.456)
-	p.getIntensity() = -0.12345;
+	p.setIntensity(-0.12345);
 	TEST_REAL_EQUAL(p.getIntensity(), -0.12345)
-	p.getIntensity() = 0.0;
+	p.setIntensity(0.0);
 	TEST_REAL_EQUAL(p.getIntensity(), 0.0)
 RESULT
 
@@ -83,7 +83,7 @@ CHECK(PositionType& getPos())
 	pos = p.getPos();
 	TEST_REAL_EQUAL(pos[0], 0.0)
 	pos[0] = 1.0;
-	p.getPos() = pos;
+	p.setPos(pos);
 	RawDataPoint1D::PositionType pos2(p.getPos());
 	TEST_REAL_EQUAL(pos2[0], 1.0)
 RESULT
@@ -92,8 +92,8 @@ CHECK(RawDataPoint1D(const RawDataPoint1D& p))
 	RawDataPoint1D::PositionType pos;
 	pos[0] = 21.21;
 	RawDataPoint1D p;
-	p.getIntensity() = 123.456;
-	p.getPos() = pos;
+	p.setIntensity(123.456);
+	p.setPos(pos);
 	RawDataPoint1D::PositionType pos2;
 	RawDataPoint1D::IntensityType i2;
 
@@ -110,8 +110,8 @@ CHECK(RawDataPoint1D& operator = (const RawDataPoint1D& rhs))
 	RawDataPoint1D::PositionType pos;
 	pos[0] = 21.21;
 	RawDataPoint1D p;
-	p.getIntensity() = 123.456;
-	p.getPos() = pos;
+	p.setIntensity(123.456);
+	p.setPos(pos);
 	RawDataPoint1D::PositionType pos2;
 	RawDataPoint1D::IntensityType i2;
 
@@ -146,9 +146,9 @@ CHECK(bool operator != (const RawDataPoint1D& rhs) const)
 	RawDataPoint1D p2(p1);
 	TEST_REAL_EQUAL(p1!=p2, false)
 	
-	p1.getIntensity()=5;
+	p1.setIntensity(5);
 	TEST_REAL_EQUAL(p1!=p2, true)
-	p2.getIntensity()=5;
+	p2.setIntensity(5);
 	TEST_REAL_EQUAL(p1!=p2, false)
 	
 	p1.getPos()[0]=5;
@@ -180,13 +180,13 @@ CHECK([EXTRA] struct IntensityLess)
 	std::vector<RawDataPoint1D > v;
 	RawDataPoint1D p;
 	
-	p.getIntensity()=2.5;
+	p.setIntensity(2.5);
 	v.push_back(p);
 
-	p.getIntensity()=3.5;
+	p.setIntensity(3.5);
 	v.push_back(p);
 
-	p.getIntensity()=1.5;
+	p.setIntensity(1.5);
 	v.push_back(p);
 	
 	std::sort(v.begin(), v.end(), RawDataPoint1D::IntensityLess());

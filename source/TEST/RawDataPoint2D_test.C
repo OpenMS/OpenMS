@@ -107,11 +107,11 @@ RESULT
 CHECK(IntensityType& getIntensity())
 	RawDataPoint2D p;
 	TEST_REAL_EQUAL(p.getIntensity(), 0.0)
-	p.getIntensity() = 123.456;
+	p.setIntensity(123.456);
 	TEST_REAL_EQUAL(p.getIntensity(), 123.456)
-	p.getIntensity() = -0.12345;
+	p.setIntensity(-0.12345);
 	TEST_REAL_EQUAL(p.getIntensity(), -0.12345)
-	p.getIntensity() = 0.0;
+	p.setIntensity(0.0);
 	TEST_REAL_EQUAL(p.getIntensity(), 0.0)
 RESULT
 
@@ -130,7 +130,7 @@ CHECK(PositionType& getPos())
 	TEST_REAL_EQUAL(pos[1], 0.0)
 	pos[0] = 1.0;
 	pos[1] = 2.0;
-	p.getPos() = pos;
+	p.setPos(pos);
 	RawDataPoint2D::PositionType pos2(p.getPos());
 	TEST_REAL_EQUAL(pos2[0], 1.0)
 	TEST_REAL_EQUAL(pos2[1], 2.0)
@@ -141,8 +141,8 @@ CHECK(RawDataPoint2D(const DRawDataPoint& p))
 	pos[0] = 21.21;
 	pos[1] = 22.22;
 	RawDataPoint2D p;
-	p.getIntensity() = 123.456;
-	p.getPos() = pos;
+	p.setIntensity(123.456);
+	p.setPos(pos);
 	RawDataPoint2D::PositionType pos2;
 	RawDataPoint2D::IntensityType i2;
 
@@ -161,8 +161,8 @@ CHECK(RawDataPoint2D& operator = (const DRawDataPoint& rhs))
 	pos[0] = 21.21;
 	pos[1] = 22.22;
 	RawDataPoint2D p;
-	p.getIntensity() = 123.456;
-	p.getPos() = pos;
+	p.setIntensity(123.456);
+	p.setPos(pos);
 	RawDataPoint2D::PositionType pos2;
 	RawDataPoint2D::IntensityType i2;
 
@@ -182,9 +182,9 @@ CHECK(bool operator == (const RawDataPoint2D& rhs) const)
 	RawDataPoint2D p2(p1);
 	TEST_REAL_EQUAL(p1==p2, true)
 	
-	p1.getIntensity()=5;
+	p1.setIntensity(5);
 	TEST_REAL_EQUAL(p1==p2, false)
-	p2.getIntensity()=5;
+	p2.setIntensity(5);
 	TEST_REAL_EQUAL(p1==p2, true)
 	
 	p1.getPos()[0]=5;
@@ -198,9 +198,9 @@ CHECK(bool operator != (const RawDataPoint2D& rhs) const)
 	RawDataPoint2D p2(p1);
 	TEST_REAL_EQUAL(p1!=p2, false)
 	
-	p1.getIntensity()=5;
+	p1.setIntensity(5);
 	TEST_REAL_EQUAL(p1!=p2, true)
-	p2.getIntensity()=5;
+	p2.setIntensity(5);
 	TEST_REAL_EQUAL(p1!=p2, false)
 	
 	p1.getPos()[0]=5;
