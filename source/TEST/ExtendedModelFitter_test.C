@@ -45,10 +45,10 @@ START_TEST(ExtendedModelFitter, "$Id: ExtendedModelFitter_test.C")
 using namespace OpenMS;
 using namespace std;
 
-enum DimensionId
+enum
 {
-	RT = DimensionDescription < LCMS_Tag >::RT,
-	MZ = DimensionDescription < LCMS_Tag >::MZ
+	RT = RawDataPoint2D::RT,
+	MZ = RawDataPoint2D::MZ
 };
 
 // default ctor
