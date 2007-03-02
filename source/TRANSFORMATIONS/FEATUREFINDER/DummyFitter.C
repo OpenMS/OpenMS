@@ -24,7 +24,7 @@
 // $Maintainer: Ole Schulz-Trieglaff $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/PeakFitter.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/DummyFitter.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/GaussModel.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/BiGaussModel.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/IsotopeModel.h>
@@ -42,7 +42,7 @@ namespace OpenMS
 {
 	using namespace Internal;
 
-	PeakFitter::PeakFitter()
+	DummyFitter::DummyFitter()
 	: BaseModelFitter(),
 		counter_(0)
 	{
@@ -54,15 +54,15 @@ namespace OpenMS
 		
 	}
 
-	PeakFitter::~PeakFitter()  { }
+	DummyFitter::~DummyFitter()  { }
 
 
-  PeakFitter::PeakFitter(const PeakFitter& rhs)
+  DummyFitter::DummyFitter(const DummyFitter& rhs)
     : BaseModelFitter(rhs)
   {
   }
   
-  PeakFitter& PeakFitter::operator= (const PeakFitter& rhs)
+  DummyFitter& DummyFitter::operator= (const DummyFitter& rhs)
   {
     if (&rhs == this) return *this;
     
@@ -71,7 +71,7 @@ namespace OpenMS
     return *this;
   }
 
-  Feature PeakFitter::fit(const IndexSet& set) throw (UnableToFit)
+  Feature DummyFitter::fit(const IndexSet& set) throw (UnableToFit)
 	{		
 		// not enough peaks to fit
 		if (set.size() < static_cast<Size>(param_.getValue("min_num_peaks:extended")))
@@ -134,7 +134,7 @@ namespace OpenMS
 		// save meta data in feature for TOPPView
 		stringstream s;
 		s <<  "Feature #" << counter_ << ", +" << f.getCharge() << ", " << set.size() << "->" << set.size() 
-			<< ", Corr: (" << f.getOverallQuality() << "," << f.getQuality(RawDataPoint2D::RT) << "," << f.getQuality(RawDataPoint2D::MZ) << ")";
+			<< ", Corr: (" << f.getOverallQuality() << "," << f.getQuality(1) << "," << f.getQuality(0) << ")";
 		f.setMetaValue(3,s.str());
 		
 		#ifdef DEBUG_FEATUREFINDER
@@ -148,7 +148,7 @@ namespace OpenMS
 		for (IndexSet::const_iterator it=set.begin(); it!=set.end(); ++it) 
 		{
 			FeaFiTraits::PositionType2D p = traits_->getPeakPos(*it);
-			file2 << p[RT] << " " << p[MZ] << " " << traits_->getPeakIntensity(*it) << "\n";						
+			file2 << p[1] << " " << p[0] << " " << traits_->getPeakIntensity(*it) << "\n";						
 		}
 		file2.close();
 		#endif

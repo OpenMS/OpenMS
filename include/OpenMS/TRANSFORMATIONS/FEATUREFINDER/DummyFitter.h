@@ -41,10 +41,11 @@ namespace OpenMS
 		 @ingroup FeatureFinder
 		
   */
-  class PeakFitter
+  class DummyFitter
     : public BaseModelFitter
   {
   	public:
+						
 			///
 			typedef Feature::CoordinateType FeatureCoordinateType;
 			///
@@ -55,28 +56,28 @@ namespace OpenMS
 			typedef FeaFiTraits::IntensityType IntensityType;
 			
 	    /// Default constructor
-	    PeakFitter();
+	    DummyFitter();
 	
 	    /// destructor
-	    virtual ~PeakFitter();
+	    virtual ~DummyFitter();
 
 	    /// Copy constructor
-	    PeakFitter(const PeakFitter& rhs);
+	    DummyFitter(const DummyFitter& rhs);
 	    
 	    /// Assignment operator
-	    PeakFitter& operator= (const PeakFitter& rhs);
+	    DummyFitter& operator= (const DummyFitter& rhs);
 	
 	    /// return next seed
 	    Feature fit(const IndexSet& range) throw (UnableToFit);
 	
 	    static BaseModelFitter* create()
 	    {
-	      return new PeakFitter();
+	      return new DummyFitter();
 	    }
 	
 	    static const String getProductName()
 	    {
-	      return "PeakFitter";
+	      return "DummyFitter";
 	    }
 			
 			protected:
