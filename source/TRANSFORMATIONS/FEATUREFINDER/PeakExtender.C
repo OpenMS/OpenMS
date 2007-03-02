@@ -101,8 +101,8 @@ namespace OpenMS
     }
   
 		// remember last extracted point (in this case the seed !)
-		seed_pos_[RT] = traits_->getPeakRt(seed);
-		seed_pos_[MZ] = traits_->getPeakMz(seed);
+		seed_pos_[RawDataPoint2D::RT] = traits_->getPeakRt(seed);
+		seed_pos_[RawDataPoint2D::MZ] = traits_->getPeakMz(seed);
 		// and insert it to the boundary
 		boundary_.push(seed);
 
@@ -163,10 +163,10 @@ namespace OpenMS
   	OPENMS_PRECONDITION(index.first<traits_->getData().size(), "Scan index outside of map!");
     OPENMS_PRECONDITION(index.second<traits_->getData()[index.first].size() , "Peak index outside of scan!");
 
-    if ( traits_->getPeakMz(index) > seed_pos_[MZ] + dist_mz_up_   ||
-				 traits_->getPeakMz(index) < seed_pos_[MZ] - dist_mz_down_ ||
-				 traits_->getPeakRt(index) >  seed_pos_[RT] + dist_rt_up_   ||
-				 traits_->getPeakRt(index) <  seed_pos_[RT] - dist_rt_down_ )
+    if ( traits_->getPeakMz(index) > seed_pos_[RawDataPoint2D::MZ] + dist_mz_up_   ||
+				 traits_->getPeakMz(index) < seed_pos_[RawDataPoint2D::MZ] - dist_mz_down_ ||
+				 traits_->getPeakRt(index) >  seed_pos_[RawDataPoint2D::RT] + dist_rt_up_   ||
+				 traits_->getPeakRt(index) <  seed_pos_[RawDataPoint2D::RT] - dist_rt_down_ )
     {
     	//too far
 			return true;

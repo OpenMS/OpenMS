@@ -45,7 +45,6 @@ namespace OpenMS
     : public BaseModelFitter
   {
   	public:
-			
 			///
 			typedef Feature::CoordinateType FeatureCoordinateType;
 			///
