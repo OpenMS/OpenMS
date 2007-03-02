@@ -169,7 +169,7 @@ namespace OpenMS
 	}    	
 	
   // sets the score of the protein hit 
-  void ProteinHit::setScore(const DoubleReal& score) 
+  void ProteinHit::setScore(DoubleReal score) 
   {
   	score_ = score;
   }

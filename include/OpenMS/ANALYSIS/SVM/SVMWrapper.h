@@ -92,20 +92,20 @@ namespace OpenMS
 	     
 	         C:            the C parameter of the svm	     
 			*/	     
-	    void setParameter(SVM_parameter_type type, int value);
+	    void setParameter(SVM_parameter_type type, SignedInt value);
 	
 		  /**
 		    @brief sets the double parameters of the svm
 		    
 			*/
-	    void setParameter(SVM_parameter_type type, double value);
+	    void setParameter(SVM_parameter_type type, DoubleReal value);
 		
 		  /**
 		    @brief	trains the svm 
 
 	      The svm is trained with the data stored in the 'svm_problem' structure.
 			*/
-	    int  train(struct svm_problem* problem);
+	    SignedInt  train(struct svm_problem* problem);
 	
 		  /**
 		    @brief	saves the svm model 
@@ -144,7 +144,7 @@ namespace OpenMS
 	     
 	         SVM_TYPE:     the SVm type of the svm: can be NU_SVR or EPSILON_SVR
 		  */	     
-	    int getIntParameter(SVM_parameter_type type);
+	    SignedInt getIntParameter(SVM_parameter_type type);
 	
 		  /**
 		    @brief You can get the actual double- parameters of the svm
@@ -155,7 +155,7 @@ namespace OpenMS
 	   		NU:           the nu parameter in nu-SVR
 	   		GAMMA:				for POLY, RBF and SIGMOID		    
 		  */
-	    double getDoubleParameter(SVM_parameter_type type); 
+	    DoubleReal getDoubleParameter(SVM_parameter_type type); 
 
 		  /**
 		    @brief You can create 'number' equally sized random partitions 
@@ -198,7 +198,7 @@ namespace OpenMS
 		    The model parameter sigma is returned by this method.	If no model was fitted during 
 		    training zero is returned. 
 		  */
-			double getSVRProbability();																			 					
+			DoubleReal getSVRProbability();																			 					
 
 		  /**
 		    @brief calculates the oligo kernel value for the encoded sequences 'x' and 'y'

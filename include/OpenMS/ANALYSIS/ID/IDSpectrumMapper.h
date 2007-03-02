@@ -56,18 +56,18 @@ namespace OpenMS
 				identification belongs. The Identification is then added to the spectrum      					
       */
       template <class PeakT>				
-      UnsignedInt annotate(MSExperiment< PeakT >& experiment, const std::vector<IdentificationData>& identifications, float precision = 0.01f)
+      UnsignedInt annotate(MSExperiment< PeakT >& experiment, const std::vector<IdentificationData>& identifications, DoubleReal precision = 0.01f)
   		{
-				std::multimap<float, UnsignedInt> experiment_precursors;
-				std::multimap<float, UnsignedInt> identifications_precursors;
-				std::multimap<float, UnsignedInt>::iterator experiment_iterator;
-				std::multimap<float, UnsignedInt>::iterator identifications_iterator;
-				float temp_experiment_value;
-				float temp_identification_value;
-				DPosition< 1 >::CoordinateType experiment_precursor_position;
-				DPosition< 1 >::CoordinateType identifications_precursor_position;
-				float temp;
-				float actual_retention_time = 0;
+				std::multimap<DoubleReal, UnsignedInt> experiment_precursors;
+				std::multimap<DoubleReal, UnsignedInt> identifications_precursors;
+				std::multimap<DoubleReal, UnsignedInt>::iterator experiment_iterator;
+				std::multimap<DoubleReal, UnsignedInt>::iterator identifications_iterator;
+				DoubleReal temp_experiment_value;
+				DoubleReal temp_identification_value;
+				DoubleReal experiment_precursor_position;
+				DoubleReal identifications_precursor_position;
+				DoubleReal temp;
+				DoubleReal actual_retention_time = 0;
 				UnsignedInt counter = 0;
 					
 				for(UnsignedInt i = 0; i < experiment.size(); i++)

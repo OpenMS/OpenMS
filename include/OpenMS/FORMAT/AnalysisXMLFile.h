@@ -63,7 +63,7 @@ namespace OpenMS
 				the predicted retention times and the predicted sigma that can be
 				used to filter the peptides via the TOPP tool RTPredict.
       */
-      void load(const String& filename, std::vector<ProteinIdentification>& protein_identifications, std::vector<IdentificationData>& id_data, std::map<String, double>& predicted_retention_times, DoubleReal& predicted_sigma)  	const throw (Exception::FileNotFound, Exception::ParseError);
+      void load(const String& filename, std::vector<ProteinIdentification>& protein_identifications, std::vector<IdentificationData>& id_data, std::map<String, DoubleReal>& predicted_retention_times, DoubleReal& predicted_sigma)  	const throw (Exception::FileNotFound, Exception::ParseError);
       					 
 			/**
       	@brief Stores the data in an AnalysisXML file
@@ -77,7 +77,7 @@ namespace OpenMS
 
 				The data is read in and stored in the file 'filename'.
       */
-      void store(String filename, const std::vector<ProteinIdentification>& protein_identifications, const std::vector<IdentificationData>& id_data, const std::map<String, double>& predicted_retention_times, DoubleReal predicted_sigma) 
+      void store(String filename, const std::vector<ProteinIdentification>& protein_identifications, const std::vector<IdentificationData>& id_data, const std::map<String, DoubleReal>& predicted_retention_times, DoubleReal predicted_sigma) 
       	const throw (Exception::UnableToCreateFile); 
 
   };

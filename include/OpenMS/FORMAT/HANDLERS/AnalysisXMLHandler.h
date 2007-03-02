@@ -51,11 +51,11 @@ namespace OpenMS
       /// Constructor for loading
       AnalysisXMLHandler(std::vector<ProteinIdentification>& protein_identifications, std::vector<IdentificationData>& id_data, const String& filename);
       /// Constructor for loading
-      AnalysisXMLHandler(std::vector<ProteinIdentification>& protein_identifications, std::vector<IdentificationData>& id_data, std::map<String, double>& predicted_retention_times, DoubleReal& predicted_sigma, const String& filename);
+      AnalysisXMLHandler(std::vector<ProteinIdentification>& protein_identifications, std::vector<IdentificationData>& id_data, std::map<String, DoubleReal>& predicted_retention_times, DoubleReal& predicted_sigma, const String& filename);
       /// Constructor for storing
       AnalysisXMLHandler(const std::vector<ProteinIdentification>& protein_identifications, const std::vector<IdentificationData>& id_data, const String& filename);
       /// Constructor for storing
-      AnalysisXMLHandler(const std::vector<ProteinIdentification>& protein_identifications, const std::vector<IdentificationData>& id_data, const std::map<String, double>& predicted_retention_times, DoubleReal predicted_sigma,  const String& filename);
+      AnalysisXMLHandler(const std::vector<ProteinIdentification>& protein_identifications, const std::vector<IdentificationData>& id_data, const std::map<String, DoubleReal>& predicted_retention_times, DoubleReal predicted_sigma,  const String& filename);
       
       /// Destructor
       ~AnalysisXMLHandler();
@@ -85,13 +85,13 @@ namespace OpenMS
 			bool inside_peptide_;   	
       const std::vector<ProteinIdentification> const_protein_identifications_;
       const std::vector<IdentificationData> const_id_data_;
-			const std::map<String, double> const_predicted_retention_times_;
+			const std::map<String, DoubleReal> const_predicted_retention_times_;
 			String tag_;      	
 			UnsignedInt charge_identification_index_;
 			bool inside_protein_;
 			bool inside_global_protein_;
 			std::vector<UnsignedInt> actual_peptide_indices_;
-			std::map<String, double>* predicted_retention_times_;
+			std::map<String, DoubleReal>* predicted_retention_times_;
 			DoubleReal* predicted_sigma_;
 			DoubleReal const_predicted_sigma_;
 			std::vector< String > date_times_temp_;

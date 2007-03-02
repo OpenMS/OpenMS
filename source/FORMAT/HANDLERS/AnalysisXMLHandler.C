@@ -70,7 +70,7 @@ namespace OpenMS
 
   AnalysisXMLHandler::AnalysisXMLHandler(vector<ProteinIdentification>& protein_identifications, 
       									 std::vector<IdentificationData>& id_data,
-      									 map<String, double>& predicted_retention_times,
+      									 map<String, DoubleReal>& predicted_retention_times,
       									 DoubleReal& predicted_sigma,
    									 		 const String& filename) :
     XMLHandler(filename),
@@ -130,7 +130,7 @@ namespace OpenMS
       									 	      									 	  
   AnalysisXMLHandler::AnalysisXMLHandler(const vector<ProteinIdentification>& protein_identifications, 
       									 const std::vector<IdentificationData>& id_data,
-      									 const map<String, double>& const_predicted_retention_times,
+      									 const map<String, DoubleReal>& const_predicted_retention_times,
       									 DoubleReal predicted_sigma,
    									 const String& filename) :
     XMLHandler(filename),
@@ -516,7 +516,7 @@ namespace OpenMS
 			}
 			else if (attribute_value == "number_of_protein_identifications")
 			{
-				for(int i = 0; i < ((String) XMLString::transcode(attributes.getValue(1u))).toInt(); i++)
+				for(SignedInt i = 0; i < ((String) XMLString::transcode(attributes.getValue(1u))).toInt(); i++)
 				{
 					ProteinIdentification temp_protein_identification;
 					protein_identifications_->push_back(temp_protein_identification);
@@ -742,7 +742,7 @@ namespace OpenMS
   {
   	String 																temp_peptide_sequence 		= "";
 		Real 																	predicted_retention_time 	= -1;
-  	map<String, double>::const_iterator 	predictions_iterator;
+  	map<String, DoubleReal>::const_iterator 	predictions_iterator;
 		UnsignedInt 													date_group_index					= 0;
 		
 		// determining the predicted retention time (default: -1)

@@ -56,12 +56,12 @@ namespace OpenMS {
   	return protein_hits_;
   }
 
-  float ProteinIdentification::getProteinSignificanceThreshold() const
+  Real ProteinIdentification::getProteinSignificanceThreshold() const
   { 
   	return protein_significance_threshold_;
   }
 
-	void ProteinIdentification::setProteinSignificanceThreshold(float value) 
+	void ProteinIdentification::setProteinSignificanceThreshold(Real value) 
 	{ 
 		protein_significance_threshold_ = value;
 	}

@@ -77,10 +77,10 @@ namespace OpenMS
     void insertProteinHit(const ProteinHit& input);
 
 		/// retrival of the protein significance threshold value
-    float getProteinSignificanceThreshold() const;
+    Real getProteinSignificanceThreshold() const;
 
 		/// setting of the protein significance threshold value
-		void setProteinSignificanceThreshold(float value);
+		void setProteinSignificanceThreshold(Real value);
 
 		/// assigns ranks to the stored protein hits according to their score
     void assignRanks();
@@ -129,7 +129,7 @@ namespace OpenMS
    
     DateTime date_;																		///< the date when the search was performed
     std::vector<ProteinHit> protein_hits_;						///< a list containing the protein hits
-    float protein_significance_threshold_;						///< the protein significance threshold
+    Real protein_significance_threshold_;						///< the protein significance threshold
   };
 } //namespace OpenMS
 #endif //OPENMS_METADATA_PROTEINIDENTIFICATION_H

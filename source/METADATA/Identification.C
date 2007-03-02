@@ -66,13 +66,13 @@ namespace OpenMS {
  	}
 
 	// retrival of the peptide significance threshold value
-  float Identification::getPeptideSignificanceThreshold() const 
+  Real Identification::getPeptideSignificanceThreshold() const 
   { 
   	return peptide_significance_threshold_;
   }
 
 	// setting of the peptide significance threshold value
-	void Identification::setPeptideSignificanceThreshold(float value) 
+	void Identification::setPeptideSignificanceThreshold(Real value) 
 	{ 
 		peptide_significance_threshold_ = value;
 	}

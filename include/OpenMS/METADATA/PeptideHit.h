@@ -53,9 +53,9 @@ namespace OpenMS
     PeptideHit();
     
 		/// values constructor
-    PeptideHit(double score, 
+    PeptideHit(DoubleReal score, 
     					 std::string score_type, 
-    					 uint rank, 
+    					 UnsignedInt rank, 
 							 SignedInt charge,
     					 String sequence);
 
@@ -77,7 +77,7 @@ namespace OpenMS
 		//@{
 		
     /// returns the score of the peptide hit 
-    float getScore() const;
+    Real getScore() const;
     
 		/// returns the type of the score
     const std::string& getScoreType() const;
@@ -105,7 +105,7 @@ namespace OpenMS
 	  void setProteinIndices(const std::vector< std::pair<String, String> >& indices);
     
 		/// sets the score of the peptide hit 
-    void setScore(const double& score);
+    void setScore(DoubleReal score);
     
 		/// sets the type of the score
     void setScoreType(const std::string& score_type);
@@ -138,7 +138,7 @@ namespace OpenMS
 		/// clears all information of the peptide hit
     void clear();
   protected:
-    float score_;									///< the score of the peptide hit
+    Real score_;									///< the score of the peptide hit
     std::string score_type_;    	///< the score type of the peptide hit 
 		UnsignedInt rank_;    				///< the position(rank) where the hit 
 																	///< appeared in the hit list

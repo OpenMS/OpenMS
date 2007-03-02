@@ -53,7 +53,7 @@ namespace OpenMS
 		UnsignedInt number_of_queries = 0;
 		map<UnsignedInt, UnsignedInt> indices;
 		map<UnsignedInt, UnsignedInt>::iterator indices_iterator;
-		int temp_int;
+		SignedInt temp_int;
 		IdentificationData temp_identification;
 		vector<SignedInt> charges;
 		SignedInt temp_charge = 0;
@@ -330,7 +330,7 @@ namespace OpenMS
 	  	{
 				ProteinHit protein_hit;
 				String temp_peptide_sequence;
-				int peptide_index = -1;
+				SignedInt peptide_index = -1;
 	
 				protein_hit.setAccession(it->suffix('=').prefix(','));
 				protein_hit.setAccessionType("SwissProt");
@@ -352,7 +352,7 @@ namespace OpenMS
 					it->suffix('=').split(',',parts);
 					temp_peptide_sequence = parts[6];
 					
-					for(uint index = 0; index < peptide_hits.size(); index++)
+					for(UnsignedInt index = 0; index < peptide_hits.size(); index++)
 					{
 						if (peptide_hits[index].getSequence() == temp_peptide_sequence)
 						{

@@ -83,10 +83,10 @@ namespace OpenMS
     															const std::vector<ProteinHit>& protein_hits);
 
 		/// retrival of the peptide significance threshold value
-    float getPeptideSignificanceThreshold() const;
+    Real getPeptideSignificanceThreshold() const;
 
 		/// setting of the peptide significance threshold value
-		void setPeptideSignificanceThreshold(float value);
+		void setPeptideSignificanceThreshold(Real value);
 
 		/// clears all information of this instance
     void clear();
@@ -165,14 +165,14 @@ namespace OpenMS
   protected:
 
     std::vector<PeptideHit> peptide_hits_;						///< a list containing the peptide hits
-    float peptide_significance_threshold_;						///< the peptide significance threshold
+    Real peptide_significance_threshold_;						///< the peptide significance threshold
   };
 
 	///Struct that contains an Identification and its corresponding RT and m/z value
 	struct IdentificationData
 	{
-		double rt;
-		double mz;
+		DoubleReal rt;
+		DoubleReal mz;
 		Identification id;
 	
 		bool operator==(const IdentificationData& rhs) const

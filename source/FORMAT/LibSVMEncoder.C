@@ -363,7 +363,7 @@ namespace OpenMS
 				residue_values.insert(make_pair(allowed_characters[i], counter));
 				++counter;
 			}
-		  for(int k = k_mer_length - 1; k >= 0; k--)
+		  for(SignedInt k = k_mer_length - 1; k >= 0; k--)
 		  {
 				oligo_value += factor * residue_values[sequence[k]];
 				factor *= number_of_residues;
@@ -388,13 +388,13 @@ namespace OpenMS
 		  
 		  if (k_mer_length > 1)
 		  {
-			  for(int k = k_mer_length; k > 0; k--)
+			  for(SignedInt k = k_mer_length; k > 0; k--)
 			  {
 					oligo_value += factor * residue_values[sequence[sequence_length - k]];
 					factor *= number_of_residues;
 				}
 			  factor /= number_of_residues;
-			  values.first = ((SignedInt) (oligo_value + 2));
+			  values.first = ((SignedInt ) (oligo_value + 2));
 			  values.second = 1;
 			  ordered_tree.insert(values);
 			

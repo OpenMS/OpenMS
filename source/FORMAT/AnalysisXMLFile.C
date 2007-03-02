@@ -98,7 +98,7 @@ namespace OpenMS
   void AnalysisXMLFile::load(const String& filename, 
   					 								 vector<ProteinIdentification>& protein_identifications,
   													 std::vector<IdentificationData>& id_data,
-      											 std::map<String, double>& predicted_retention_times,
+      											 std::map<String, DoubleReal>& predicted_retention_times,
       											 DoubleReal& predicted_sigma)
   	const throw (Exception::FileNotFound, Exception::ParseError)
   {
@@ -175,7 +175,7 @@ namespace OpenMS
   void AnalysisXMLFile::store(String filename, 
   					 									const vector<ProteinIdentification>& protein_identifications,
   					 									const std::vector<IdentificationData>& id_data,
-  					 									const map<String, double>& predicted_retention_times,
+  					 									const map<String, DoubleReal>& predicted_retention_times,
   					 									DoubleReal predicted_sigma) 
   	const throw (Exception::UnableToCreateFile)
   {

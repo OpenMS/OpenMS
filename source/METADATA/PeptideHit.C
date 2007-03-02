@@ -43,9 +43,9 @@ namespace OpenMS
   }
   
 	// values constructor
-  PeptideHit::PeptideHit(double score, 
+  PeptideHit::PeptideHit(DoubleReal score, 
   											 std::string score_type, 
-  											 uint rank, 
+  											 UnsignedInt rank, 
 												 SignedInt charge,
   											 String sequence)
     	: score_(score), 
@@ -145,7 +145,7 @@ namespace OpenMS
 	}
 
   // returns the score of the peptide hit 
-  float PeptideHit::getScore() const 
+  Real PeptideHit::getScore() const 
   {
   	return score_;
   }
@@ -197,7 +197,7 @@ namespace OpenMS
 	}
 
   // sets the score of the peptide hit 
-  void PeptideHit::setScore(const double& score) 
+  void PeptideHit::setScore(DoubleReal score) 
   {
   	score_ = score;
   }
@@ -209,7 +209,7 @@ namespace OpenMS
   }
 
 	// sets the rank
-  void PeptideHit::setRank(uint newrank) 
+  void PeptideHit::setRank(UnsignedInt newrank) 
   {
   	rank_ = newrank;
   }

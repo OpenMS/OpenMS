@@ -57,8 +57,8 @@ namespace OpenMS
 	
 	void MascotInfile::store(const std::string& filename,
 													const DPeakArray<1,Peak1D>& spec, 
-													double mz ,
-													double retention_time, 
+													DoubleReal mz ,
+													DoubleReal retention_time, 
 													std::string search_title)		
 	{
 		FILE* fp = fopen (filename.c_str(),"wt");
@@ -296,7 +296,7 @@ namespace OpenMS
 		fputs (filename.c_str(),fp);
 		fputs ("\"\n\n",fp);
 
-		for(unsigned int i = 0; i < experiment.size(); i++)
+		for(UnsignedInt i = 0; i < experiment.size(); i++)
 		{
 			peaks = experiment[i].getContainer();
 			precursor_peak = experiment[i].getPrecursorPeak();
@@ -460,23 +460,23 @@ namespace OpenMS
   }
 
 
-  float MascotInfile::getPrecursorMassTolerance()
+  Real MascotInfile::getPrecursorMassTolerance()
   {
     return precursor_mass_tolerance_;
   }
 
-  void MascotInfile::setPrecursorMassTolerance(float precursor_mass_tolerance)
+  void MascotInfile::setPrecursorMassTolerance(Real precursor_mass_tolerance)
   {
     precursor_mass_tolerance_ = precursor_mass_tolerance;
   }
 
 
-  float MascotInfile::getPeakMassTolerance()
+  Real MascotInfile::getPeakMassTolerance()
   {
     return ion_mass_tolerance_;
   }
 
-  void MascotInfile::setPeakMassTolerance(float ion_mass_tolerance)
+  void MascotInfile::setPeakMassTolerance(Real ion_mass_tolerance)
   {
     ion_mass_tolerance_ = ion_mass_tolerance;
   }

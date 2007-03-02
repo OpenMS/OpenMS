@@ -67,22 +67,22 @@ namespace OpenMS
     return *this;
   }
 
-  const double& IDFilter::getPeptideThresholdFraction() const
+  DoubleReal IDFilter::getPeptideThresholdFraction() const
   {
     return peptide_threshold_fraction_;
   }
  
-  void IDFilter::setPeptideThresholdFraction(const double& peptide_threshold_fraction)
+  void IDFilter::setPeptideThresholdFraction(DoubleReal peptide_threshold_fraction)
   {
     peptide_threshold_fraction_ = peptide_threshold_fraction;
   }
   
-  const double& IDFilter::getProteinThresholdFraction() const
+  DoubleReal IDFilter::getProteinThresholdFraction() const
   {
     return protein_threshold_fraction_;
   }
  
-  void IDFilter::setProteinThresholdFraction(const double& protein_threshold_fraction)
+  void IDFilter::setProteinThresholdFraction(DoubleReal protein_threshold_fraction)
   {
     protein_threshold_fraction_ = protein_threshold_fraction;
   }
@@ -98,8 +98,8 @@ namespace OpenMS
   }
 	
 	void IDFilter::filterIdentificationsByThresholds(const Identification& 	identification,
-																									const double& 					peptide_threshold_fraction,
-																									const double& 					protein_threshold_fraction,
+																									DoubleReal 					peptide_threshold_fraction,
+																									DoubleReal 					protein_threshold_fraction,
 																									Identification& 				filtered_identification)
 	{
 		peptide_threshold_fraction_ = peptide_threshold_fraction;
@@ -118,8 +118,8 @@ namespace OpenMS
 		vector<ProteinHit> temp_protein_hits;
 		vector<ProteinHit> filtered_protein_hits;
 		ProteinHit temp_protein_hit;
-		float max_value = 0;
-		float temp_score = 0;
+		Real max_value = 0;
+		Real temp_score = 0;
 		vector< UnsignedInt > new_peptide_indices;		
 		vector< UnsignedInt > new_protein_indices;		
 		DateTime date;
@@ -373,21 +373,21 @@ namespace OpenMS
 	}
 	
 	void IDFilter::filterIdentificationsByRetentionTimes(const Identification& identification,
-																											const map<String, double>& predicted_retention_times,
-																											double measured_retention_time,
-																											double predicted_sigma,
-																											double allowed_deviation_factor,
-																											double total_gradient_time,
+																											const map<String, DoubleReal>& predicted_retention_times,
+																											DoubleReal measured_retention_time,
+																											DoubleReal predicted_sigma,
+																											DoubleReal allowed_deviation_factor,
+																											DoubleReal total_gradient_time,
 																											Identification& filtered_identification)
 	{
 		vector<PeptideHit> temp_peptide_hits;
 		vector<PeptideHit>::iterator it;
 		PeptideHit temp_peptide_hit;
 		String temp_sequence;
-		double temp_retention_time = 0;
-		map<String, double>::const_iterator const_it;
-		double difference = 0;
-		double allowed_deviation = 0;
+		DoubleReal temp_retention_time = 0;
+		map<String, DoubleReal>::const_iterator const_it;
+		DoubleReal difference = 0;
+		DoubleReal allowed_deviation = 0;
 		DateTime date;		
 		
 		filtered_identification.clear();

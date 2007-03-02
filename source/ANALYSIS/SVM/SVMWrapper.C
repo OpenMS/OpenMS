@@ -62,7 +62,7 @@ namespace OpenMS
 	  } 
 	}
 	
-	void SVMWrapper::setParameter(SVM_parameter_type type, int value)
+	void SVMWrapper::setParameter(SVM_parameter_type type, SignedInt value)
 	{
 	
 	  switch(type)
@@ -121,7 +121,7 @@ namespace OpenMS
 	  }
 	}
 	
-	int SVMWrapper::getIntParameter(SVM_parameter_type type)
+	SignedInt SVMWrapper::getIntParameter(SVM_parameter_type type)
 	{
 	
 	    switch(type)
@@ -155,7 +155,7 @@ namespace OpenMS
 	    }
 	}
 	
-	void SVMWrapper::setParameter(SVM_parameter_type type, double value)
+	void SVMWrapper::setParameter(SVM_parameter_type type, DoubleReal value)
 	{
 	    switch(type)
 	    {
@@ -186,7 +186,7 @@ namespace OpenMS
 	    }
 	}
 	
-	double SVMWrapper::getDoubleParameter(SVM_parameter_type type)
+	DoubleReal SVMWrapper::getDoubleParameter(SVM_parameter_type type)
 	{
     switch(type)
     {
@@ -216,7 +216,7 @@ namespace OpenMS
   	training_set_ = training_sample;		
 	}
 	
-	int SVMWrapper::train(struct svm_problem* problem)
+	SignedInt SVMWrapper::train(struct svm_problem* problem)
 	{
 	  if (problem != NULL 
 				&& param_ != NULL 
@@ -266,7 +266,7 @@ namespace OpenMS
 	
 	void SVMWrapper::saveModel(string model_filename) const throw (Exception::UnableToCreateFile)
 	{
-		SignedInt status = 0;
+		SignedInt  status = 0;
 		
 	  if (model_ != NULL)
 	  {
@@ -355,7 +355,7 @@ namespace OpenMS
    		problem = computeKernelMatrix(problem, training_set_);
 		}
    
-    for(int i = 0; i < problem->l; i++)
+    for(SignedInt i = 0; i < problem->l; i++)
     {
 			label = svm_predict(model_, problem->x[i]);
 			results->push_back(label);
@@ -392,7 +392,7 @@ namespace OpenMS
 			}
 			
 			// Creating indices
-			for(SignedInt i = 0; i < problem->l; i++)
+			for(SignedInt  i = 0; i < problem->l; i++)
 			{
 				indices.push_back(i);
 			}
@@ -463,7 +463,7 @@ namespace OpenMS
 			{
 				if (i != except)
 				{
-					for(SignedInt j = 0; j < (*problems)[i]->l; j++)
+					for(SignedInt  j = 0; j < (*problems)[i]->l; j++)
 					{
 						merged_problem->x[actual_index] = (*problems)[i]->x[j];
 						merged_problem->y[actual_index] = (*problems)[i]->y[j];
@@ -982,7 +982,7 @@ namespace OpenMS
     return results;
 	}
 	
-	double SVMWrapper::getSVRProbability()
+	DoubleReal SVMWrapper::getSVRProbability()
 	{
 		if (model_ != NULL)
 		{
@@ -1020,10 +1020,10 @@ namespace OpenMS
 																		 DoubleReal 								sigma_square,
 												  					 UnsignedInt 								max_distance)
   {
-    double kernel = 0;
-    int    i1     = 0;
-    int    i2     = 0;
-    int    c1     = 0;
+    DoubleReal kernel = 0;
+    SignedInt    i1     = 0;
+    SignedInt    i2     = 0;
+    SignedInt    c1     = 0;
 
     while(x[i1].index != -1
 	&& y[i2].index != -1)
@@ -1173,7 +1173,7 @@ namespace OpenMS
 	
 	void SVMWrapper::destroyProblem(svm_problem* problem)
 	{
-		for(SignedInt i = 0; i < problem->l; i++)
+		for(SignedInt  i = 0; i < problem->l; i++)
 		{
 			free(problem->x[i]);
 		}
@@ -1310,7 +1310,7 @@ namespace OpenMS
 		decision_values.clear();
 		if (model_ != NULL)
 		{
-			for(SignedInt i = 0; i < data->l; ++i)
+			for(SignedInt  i = 0; i < data->l; ++i)
 			{
 				temp_value = 0;						
 				svm_predict_values(model_, data->x[i], &temp_value);
@@ -1319,15 +1319,15 @@ namespace OpenMS
 		}
 	}																		  			
 	
-	void SVMWrapper::scaleData(svm_problem* data, SignedInt max_scale_value)
+	void SVMWrapper::scaleData(svm_problem* data, SignedInt  max_scale_value)
 	{
 		vector<DoubleReal> max_values;
 		vector<DoubleReal> min_values;
 		vector<DoubleReal> sums;
-		SignedInt max_index = 0;
-		SignedInt j = 0;
+		SignedInt  max_index = 0;
+		SignedInt  j = 0;
 		
-		for(SignedInt i = 0; i < data->l; ++i)
+		for(SignedInt  i = 0; i < data->l; ++i)
 		{
 			j = 0;
 			while(data->x[i][j].index != -1)
@@ -1344,7 +1344,7 @@ namespace OpenMS
 		min_values.resize(max_index, 0);
 		sums.resize(max_index, 0);
 		
-		for(SignedInt i = 0; i < data->l; ++i)
+		for(SignedInt  i = 0; i < data->l; ++i)
 		{
 			j = 0;
 			while(data->x[i][j].index != -1)
@@ -1362,7 +1362,7 @@ namespace OpenMS
 				++j;
 			}
 		}
-		for(SignedInt i = 0; i < data->l; ++i)
+		for(SignedInt  i = 0; i < data->l; ++i)
 		{
 			j = 0;
 			while(data->x[i][j].index != -1)				

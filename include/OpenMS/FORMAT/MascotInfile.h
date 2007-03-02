@@ -54,7 +54,7 @@ namespace OpenMS
 			~MascotInfile();
 
 			/// stores the peak list in a MascotInfile that can be used as input for MASCOT shell execution
-			void store(const std::string& filename, const DPeakArray<1,Peak1D>& spec, double mz , double retention_time, std::string search_title);		
+			void store(const std::string& filename, const DPeakArray<1,Peak1D>& spec, DoubleReal mz , DoubleReal retention_time, std::string search_title);		
 
 			/// stores the experiment data in a MascotInfile that can be used as input for MASCOT shell execution
 			void store(const std::string& filename,
@@ -112,14 +112,14 @@ namespace OpenMS
 		  void setMissedCleavages(UnsignedInt missed_cleavages);
 
 			/// returns the precursor mass tolerance
-		  float getPrecursorMassTolerance();
+		  Real getPrecursorMassTolerance();
 		  /// sets the precursor mass tolerance in Da (default: 2.0)
-		  void setPrecursorMassTolerance(float precursor_mass_tolerance);
+		  void setPrecursorMassTolerance(Real precursor_mass_tolerance);
 
 			/// returns the peak mass tolerance in Da
-		  float getPeakMassTolerance();
+		  Real getPeakMassTolerance();
 		  /// sets the peak mass tolerance in Da (default: 1.0)
-		  void setPeakMassTolerance(float ion_mass_tolerance);
+		  void setPeakMassTolerance(Real ion_mass_tolerance);
 
 			/// returns the taxonomy
 		  const std::string& getTaxonomy();
@@ -138,7 +138,7 @@ namespace OpenMS
 
     protected:
 			/// parent mass
-			double mz_;
+			DoubleReal mz_;
 
 			/// charge states to use
 			String charges_;
@@ -174,10 +174,10 @@ namespace OpenMS
 			UnsignedInt missed_cleavages_;
 
 			/// precursor mass toerance in Da
-			float precursor_mass_tolerance_;
+			Real precursor_mass_tolerance_;
 
 			/// m/z tolerance of ions  in Da
-			float ion_mass_tolerance_;
+			Real ion_mass_tolerance_;
 
 			/// taxonomy
 			std::string taxonomy_;
@@ -189,7 +189,7 @@ namespace OpenMS
 			std::string boundary_;
 
 			/// the retention time
-			double retention_time_;
+			DoubleReal retention_time_;
 
 			/// writes a parameter header
 			void writeParameterHeader_(const std::string& name, FILE* fp, bool line_break = true);

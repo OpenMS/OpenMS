@@ -62,16 +62,16 @@ namespace OpenMS
       IDFilter& operator = (const IDFilter& source);
       
       /// returns a const reference to the peptide threshold fraction
-      const double& getPeptideThresholdFraction() const;
+      DoubleReal getPeptideThresholdFraction() const;
 
       /// sets the peptide threshold fraction
-      void setPeptideThresholdFraction(const double& peptide_threshold_fraction);
+      void setPeptideThresholdFraction(DoubleReal peptide_threshold_fraction);
 
       /// returns a const reference to the protein threshold fraction
-      const double& getProteinThresholdFraction() const;
+      DoubleReal getProteinThresholdFraction() const;
 
       /// sets the protein threshold fraction
-      void setProteinThresholdFraction(const double& protein_threshold_fraction);
+      void setProteinThresholdFraction(DoubleReal protein_threshold_fraction);
 
       /// returns a const reference to the protein sequences used for filtering
       const std::vector< std::pair<String, String> >& getProteins() const;
@@ -80,7 +80,7 @@ namespace OpenMS
       void setProteins(const std::vector< std::pair<String, String> >& proteins);
 
       /// filters an identification corresponding to the threshold_fractions
-			void filterIdentificationsByThresholds(const Identification& identification, const double& peptide_threshold_fraction, const double& protein_threshold_fraction, Identification& filtered_identification);
+			void filterIdentificationsByThresholds(const Identification& identification, DoubleReal peptide_threshold_fraction, DoubleReal protein_threshold_fraction, Identification& filtered_identification);
 
       /// filters an identification corresponding to the threshold_fractions
 			void filterIdentificationsByThresholds(const Identification& identification, Identification& filtered_identification);
@@ -99,7 +99,7 @@ namespace OpenMS
                                            ProteinIdentification&           filtered_identification);
         
       /// filters the peptides of a identification corresponding to the retention times
-			void filterIdentificationsByRetentionTimes(const Identification& identification, const std::map<String, double>& predicted_retention_times, double measured_retention_time, double predicted_sigma, double allowed_deviation, double total_gradient_time, Identification& filtered_identification);
+			void filterIdentificationsByRetentionTimes(const Identification& identification, const std::map<String, DoubleReal>& predicted_retention_times, DoubleReal measured_retention_time, DoubleReal predicted_sigma, DoubleReal allowed_deviation, DoubleReal total_gradient_time, Identification& filtered_identification);
 																														
 			/// removes all peptide hits having a sequence equal to a element in <code>peptides</code>
 			void filterIdentificationsByExclusionPeptides(const Identification& identification, std::vector<String> peptides, Identification& filtered_identification);
@@ -108,8 +108,8 @@ namespace OpenMS
       /// filters an MS/MS experiment corresponding to the threshold_fractions
 			template <class PeakT>
 			void filterIdentificationsByThresholds(MSExperiment< PeakT >& experiment,
-																						 double peptide_threshold_fraction,
-																						 double protein_threshold_fraction)
+																						 DoubleReal peptide_threshold_fraction,
+																						 DoubleReal protein_threshold_fraction)
 			{
 				std::vector<Identification> temp_identifications;
 				std::vector<Identification> filtered_identifications;
@@ -118,7 +118,7 @@ namespace OpenMS
 				peptide_threshold_fraction_ = peptide_threshold_fraction;
 				protein_threshold_fraction_ = protein_threshold_fraction;		
 				
-				for(unsigned int i = 0; i < experiment.size(); i++)
+				for(UnsignedInt i = 0; i < experiment.size(); i++)
 				{		
 					
 					if (experiment[i].getMSLevel() == 2)
@@ -152,7 +152,7 @@ namespace OpenMS
 				
 				setProteins(proteins);
 		
-				for(unsigned int i = 0; i < experiment.size(); i++)
+				for(UnsignedInt i = 0; i < experiment.size(); i++)
 				{		
 					
 					if (experiment[i].getMSLevel() == 2)
@@ -176,8 +176,8 @@ namespace OpenMS
 			}
 			
     protected:
-      double peptide_threshold_fraction_;			/// the fraction of the significance threshold a score should have to be kept
-      double protein_threshold_fraction_;			/// the fraction of the significance threshold a score should have to be kept
+      DoubleReal peptide_threshold_fraction_;			/// the fraction of the significance threshold a score should have to be kept
+      DoubleReal protein_threshold_fraction_;			/// the fraction of the significance threshold a score should have to be kept
       std::vector< std::pair <String, String> > proteins_; /// the proteins (restriction of result space) 
   };
  

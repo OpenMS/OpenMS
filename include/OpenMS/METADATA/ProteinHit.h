@@ -87,7 +87,7 @@ namespace OpenMS
 		const std::string& getAccessionType() const;   	
 
     /// sets the score of the protein hit 
-    void setScore(const DoubleReal& score);
+    void setScore(DoubleReal score);
     /// sets the type of the score
     void setScoreType(const std::string& score_type);
 		/// sets the rank
