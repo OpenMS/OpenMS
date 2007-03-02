@@ -30,7 +30,6 @@
 
 // OpenMS
 #include <OpenMS/VISUAL/SpectrumCanvas.h>
-#include <OpenMS/KERNEL/DimensionDescription.h>
 #include <OpenMS/VISUAL/MultiGradient.h>
 
 // QT
@@ -70,14 +69,6 @@ namespace OpenMS
       Q_OBJECT
 
     public:
-      /**	@name Type definitions */
-      //@{
-      ///Dimensions of the peak/feature data
-      enum DimensionId
-      {
-        MZ = DimensionDescription < LCMS_Tag >::MZ,
-        RT = DimensionDescription < LCMS_Tag >::RT
-    	};
 
       ///View modes for 2D dots.
       enum DotModes

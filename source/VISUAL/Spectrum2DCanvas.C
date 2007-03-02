@@ -1454,7 +1454,7 @@ namespace OpenMS
 			{
 				//show Peak Coordinates
 				PointType pnt = widgetToData_(pos);
-				emit sendCursorStatus( pnt[RT], -1.0, pnt[MZ]);
+				emit sendCursorStatus( pnt[RawDataPoint2D::RT], -1.0, pnt[RawDataPoint2D::MZ]);
 				
 				if (e->buttons() & Qt::LeftButton)
 				{
