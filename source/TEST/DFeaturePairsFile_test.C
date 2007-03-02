@@ -28,8 +28,7 @@
 ///////////////////////////
 
 #include <OpenMS/FORMAT/DFeaturePairsFile.h>
-#include <OpenMS/ANALYSIS/MAPMATCHING/DFeaturePairVector.h>
-#include <OpenMS/ANALYSIS/MAPMATCHING/DFeaturePair.h>
+#include <OpenMS/ANALYSIS/MAPMATCHING/ElementPair.h>
 ///////////////////////////
 
 START_TEST(DFeaturePairsFile, "$Id$")

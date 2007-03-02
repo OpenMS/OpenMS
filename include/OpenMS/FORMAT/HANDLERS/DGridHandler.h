@@ -21,23 +21,23 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Ole Schulz-Trieglaff $
+// $Maintainer: Eva Lange $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_FORMAT_HANDLERS_DGRIDHANDLER_H
-#define OPENMS_FORMAT_HANDLERS_DGRIDHANDLER_H
+#ifndef OPENMS_FORMAT_HANDLERS_GRIDHANDLER_H
+#define OPENMS_FORMAT_HANDLERS_GRIDHANDLER_H
 
 #include <OpenMS/DATASTRUCTURES/DPosition.h>
 #include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
 #include <OpenMS/FORMAT/Param.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
-#include <OpenMS/ANALYSIS/MAPMATCHING/DGrid.h>
-#include <OpenMS/ANALYSIS/MAPMATCHING/DGridCell.h>
-#include <OpenMS/ANALYSIS/MAPMATCHING/DBaseMapping.h>
+#include <OpenMS/ANALYSIS/MAPMATCHING/Grid.h>
+#include <OpenMS/ANALYSIS/MAPMATCHING/GridCell.h>
+#include <OpenMS/ANALYSIS/MAPMATCHING/BaseMapping.h>
 
-// all implementations of class DBaseMapping must be
+// all implementations of class BaseMapping must be
 // included here 
-#include <OpenMS/ANALYSIS/MAPMATCHING/DLinearMapping.h>
+#include <OpenMS/ANALYSIS/MAPMATCHING/LinearMapping.h>
 
 // STL includes
 #include <iostream>
@@ -64,22 +64,17 @@ namespace OpenMS
 	  	linear one, you must register this class with the handler. For details, have a look
 	  	at registerMappings_() .
 	 */
-  template <Size D>
-  class DGridHandler
+  class GridHandler
 		: public XMLHandler
   {
     public:
-    	/**	
-				@name Type definitions
-			*/
-			//@{
-			typedef typename DGridCell<D>::MappingVector MappingVector;
-			//@}
+    	
+			typedef typename GridCells::MappingVector MappingVector;
     							
       /**@name Constructors and destructor */
       //@{
       ///
-      DGridHandler(DGrid<D>& grid, const String& filename) 
+      GridHandler(Grid& grid, const String& filename) 
       : XMLHandler(filename),
       	grid_(&grid), 
       	cgrid_(0), 
@@ -95,7 +90,7 @@ namespace OpenMS
 			}
       
       ///
-      DGridHandler(const DGrid<D>& grid, const String& filename)
+      GridHandler(const Grid& grid, const String& filename)
       : XMLHandler(filename),
       	grid_(0), 
       	cgrid_(&grid),
@@ -108,7 +103,7 @@ namespace OpenMS
 				registerMappings_();
 			}
       ///
-      virtual ~DGridHandler()  
+      virtual ~GridHandler()  
       {
       }     
       //@}
@@ -125,7 +120,7 @@ namespace OpenMS
 				
 				switch(tag) 
 				{
-					case CELL: 				cell_           = new DGridCell<D>(); break;
+					case CELL: 				cell_           = new GridCell(); break;
 					case FPOSITION:		current_fcoord_ = asUnsignedInt_(xercesc::XMLString::transcode(attributes.getValue(xercesc::XMLString::transcode("dim")))); break;
 					case SPOSITION:   current_scoord_ = asUnsignedInt_(xercesc::XMLString::transcode(attributes.getValue(xercesc::XMLString::transcode("dim")))); break;
 		  		case PARAM:
@@ -163,7 +158,7 @@ namespace OpenMS
       	{
 						if (in_tag_[i])
 						{
-							typename DGridCell<D>::PositionType tmp;
+							typename GridCell::PositionType tmp;
 							switch(i) 
 							{
 								case FPOSITION:
@@ -211,7 +206,7 @@ namespace OpenMS
 				// write features with their attributes				
 				for (UnsignedInt s=0; s<cgrid_->size(); s++)
 				{
-					const DGridCell<D>& cell = (*cgrid_)[s];
+					const GridCell& cell = (*cgrid_)[s];
 					
 					os << "<cell nr=\"" << s << "\">" << std::endl;
 					os << "\t<first>" << std::endl;
@@ -274,9 +269,9 @@ namespace OpenMS
 		Map maps[MAP_NUM];
 		
 		/// Vector of grid cell to be read
-		DGrid<D>* grid_;
+		Grid* grid_;
 		/// Vector of pairs to be written
-		const DGrid<D>* cgrid_;
+		const Grid* cgrid_;
 		
 		/// The tags we expect to encounter
 		enum Tags { CELLLIST, CELL, FIRSTPOSITION, SECONDPOSITION, 
@@ -288,7 +283,7 @@ namespace OpenMS
 		bool in_tag_[TAG_NUM];
 
 		// temporary datastructures to hold parsed data
-		DGridCell<D>* cell_;
+		GridCell* cell_;
 		DBaseMapping<1>* mapping_;
 		Param* param_;
 
@@ -361,7 +356,7 @@ namespace OpenMS
 			for (int i=0; i<nr;i++)	vec.push_back(contents[i]);					
 		}
 				 		
-  }; // end of class DGridHandler
+  }; // end of class GridHandler
 
 	} // namespace Internal
 } // namespace OpenMS

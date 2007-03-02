@@ -31,7 +31,7 @@
 #include <OpenMS/KERNEL/Feature.h>
 #include <OpenMS/KERNEL/DimensionDescription.h>
 #include <OpenMS/DATASTRUCTURES/DRange.h>
-#include <OpenMS/ANALYSIS/MAPMATCHING/DFeaturePairVector.h>
+#include <OpenMS/ANALYSIS/MAPMATCHING/ElementPair.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/DGrid.h>
 
 #include <utility>
@@ -66,7 +66,7 @@ namespace OpenMS
       /// The grid is simply a vector of cells.
       typedef DGrid<2> Grid;
       /// The feature pairs are computed by the feature matching class
-      typedef DFeaturePairVector< 2, ElementType > FeaturePairVector;
+      typedef std::vector< ElementPair < ElementType > > FeaturePairVector;
       /// Quality type
       typedef DoubleReal QualityType;
 

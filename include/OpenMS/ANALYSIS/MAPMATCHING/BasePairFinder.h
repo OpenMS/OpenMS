@@ -28,10 +28,9 @@
 #ifndef OPENMS_ANALYSIS_MAPMATCHING_BASEPAIRFINDER_H
 #define OPENMS_ANALYSIS_MAPMATCHING_BASEPAIRFINDER_H
 
-#include <OpenMS/ANALYSIS/MAPMATCHING/DFeaturePair.h>
-#include <OpenMS/ANALYSIS/MAPMATCHING/DFeaturePairVector.h>
-#include <OpenMS/ANALYSIS/MAPMATCHING/DGrid.h>
-#include <OpenMS/ANALYSIS/MAPMATCHING/DLinearMapping.h>
+#include <OpenMS/ANALYSIS/MAPMATCHING/ElementPair.h>
+#include <OpenMS/ANALYSIS/MAPMATCHING/Grid.h>
+#include <OpenMS/ANALYSIS/MAPMATCHING/LinearMapping.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/DimensionDescription.h>
 #include <OpenMS/CONCEPT/FactoryProduct.h>
@@ -101,13 +100,13 @@ namespace OpenMS
     typedef DoubleReal IntensityType;
 
     /// Type of element pairs
-    typedef DFeaturePair < 2, PointType > ElementPairType;
+    typedef ElementPair < PointType > ElementPairType;
 
     /// Container for generated element pairs
-    typedef DFeaturePairVector < 2, PointType > ElementPairVectorType;
+    typedef std::vector < ElementPairType > ElementPairVectorType;
 
     /// Type of estimated transformation
-    typedef DLinearMapping< 1 > TransformationType;
+    typedef LinearMapping TransformationType;
 
     /// Constructor
     BasePairFinder()
@@ -219,10 +218,10 @@ namespace OpenMS
 
 
     /// Given a position element positoon this method computes the grid cell that covers this point.
-    SignedInt computeGridCellIndex_(const PositionType& pos, const DGrid<2>& grid) throw (Exception::InvalidValue)
+    SignedInt computeGridCellIndex_(const PositionType& pos, const Grid& grid) throw (Exception::InvalidValue)
     {
       UnsignedInt index = 0;
-      typename DGrid<2>::ConstIterator it = grid.begin();
+      Grid::ConstIterator it = grid.begin();
       while ( it != grid.end() )
       {
         if (it->encloses(pos))

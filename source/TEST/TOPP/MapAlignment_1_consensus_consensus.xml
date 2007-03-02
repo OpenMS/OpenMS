@@ -16,13 +16,13 @@
 			<cell nr="0">
 				<range rtMin="902.001" rtMax="1548.15" mzMin="603.349" mzMax="1002.25"/>
 				<mappinglist>
-					<rtMapping name="DLinearMapping">
-						<param name="DLinearMapping:intercept" value="30.9969"/>
-						<param name="DLinearMapping:slope" value="2"/>
+					<rtMapping name="LinearMapping">
+						<param name="LinearMapping:intercept" value="30.9969"/>
+						<param name="LinearMapping:slope" value="2"/>
 					</rtMapping>
-					<mzMapping name="DLinearMapping">
-						<param name="DLinearMapping:intercept" value="0.5"/>
-						<param name="DLinearMapping:slope" value="1"/>
+					<mzMapping name="LinearMapping">
+						<param name="LinearMapping:intercept" value="0.5"/>
+						<param name="LinearMapping:slope" value="1"/>
 					</mzMapping>
 				</mappinglist>
 			</cell>

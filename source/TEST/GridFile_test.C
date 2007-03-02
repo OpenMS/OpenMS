@@ -1,0 +1,92 @@
+// -*- Mode: C++; tab-width: 2; -*-
+// vi: set ts=2:
+//
+// --------------------------------------------------------------------------
+//                   OpenMS Mass Spectrometry Framework 
+// --------------------------------------------------------------------------
+//  Copyright (C) 2003-2007 -- Oliver Kohlbacher, Knut Reinert
+//
+//  This library is free software; you can redistribute it and/or
+//  modify it under the terms of the GNU Lesser General Public
+//  License as published by the Free Software Foundation; either
+//  version 2.1 of the License, or (at your option) any later version.
+//
+//  This library is distributed in the hope that it will be useful,
+//  but WITHOUT ANY WARRANTY; without even the implied warranty of
+//  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+//  Lesser General Public License for more details.
+//
+//  You should have received a copy of the GNU Lesser General Public
+//  License along with this library; if not, write to the Free Software
+//  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+//
+// --------------------------------------------------------------------------
+// $Maintainer: Eva Lange $
+// --------------------------------------------------------------------------
+
+#include <OpenMS/CONCEPT/ClassTest.h>
+///////////////////////////
+
+#include<OpenMS/FORMAT/GridFile.h>
+
+#include<OpenMS/ANALYSIS/MAPMATCHING/Grid.h>
+#include<OpenMS/ANALYSIS/MAPMATCHING/GridCell.h>
+#include<OpenMS/ANALYSIS/MAPMATCHING/LinearMapping.h>
+
+#include<vector>
+
+///////////////////////////
+
+START_TEST(GridFile_test, "$Id: GridFile_test.C 1586 2007-03-01 17:59:10Z elange $")
+
+/////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////
+
+using namespace OpenMS;
+using namespace std;
+
+GridFile* ptr = 0;
+CHECK((GridFile()))
+	ptr = new GridFile();
+	TEST_NOT_EQUAL(ptr, 0)
+RESULT
+
+CHECK((~GridFile()))
+	delete ptr;
+RESULT
+
+CHECK((void load(String filename, DGrid<D>& grid) throw(Exception::FileNotFound, Exception::ParseError)))
+	PRECISION(0.01)
+	
+	Grid grid;
+	GridFile gfile;
+		   
+  gfile.load("data/GridFile.xml",grid);
+  GridCell cell = grid.back();
+  	
+	TEST_EQUAL(cell.minX(),0);
+	TEST_EQUAL(cell.minY(),0);
+	TEST_EQUAL(cell.maxX(),10);
+	TEST_EQUAL(cell.maxY(),10);
+	
+	GridCell::MappingVector mappings = cell.getMappings();
+	
+	TEST_EQUAL(mappings.size(),2);	
+RESULT
+
+CHECK((void store(String filename, const DGrid<D>& grid) const throw(Exception::UnableToCreateFile)))
+	
+	std::string tmp_filename;
+  Grid grid;
+	GridFile gfile;
+  
+  NEW_TMP_FILE(tmp_filename);
+  gfile.load("data/GridFile.xml",grid);
+	gfile.store(tmp_filename,grid);
+	
+	TEST_FILE(tmp_filename.c_str(),"data/GridFile.xml");
+RESULT
+
+/////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////
+END_TEST

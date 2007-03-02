@@ -33,11 +33,11 @@
 using namespace OpenMS;
 using namespace std;
 
-typedef DLinearMapping<1> TransformationType;
+typedef LinearMapping TransformationType;
 typedef Feature ElementType;
 typedef FeatureMap< ElementType> ElementMapType;
-typedef DFeaturePair < 2, ElementType > ElementPairType;
-typedef DFeaturePairVector < 2, ElementType > ElementPairVectorType;
+typedef ElementPair < Feature > ElementPairType;
+typedef vector< ElementPairType >  ElementPairVectorType;
 
 class TestPairFinder 
 	: public BasePairFinder<ElementMapType>

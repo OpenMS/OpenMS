@@ -181,7 +181,7 @@ CHECK((void findElementPairs()))
   SimplePairFinder<FeatureMap<> > dpf;
   dpf.setElementMap(0,modell);
   dpf.setElementMap(1,scene);
-  DFeaturePairVector < 2, Feature > pairs;
+  vector< ElementPair < Feature > >  pairs;
   dpf.setElementPairs(pairs);
   dpf.findElementPairs();
     

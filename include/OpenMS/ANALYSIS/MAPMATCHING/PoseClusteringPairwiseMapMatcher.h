@@ -94,7 +94,7 @@ namespace OpenMS
     typedef typename Base::PositionType PositionType;
     typedef typename Base::CoordinateType CoordinateType;
 
-    typedef DLinearMapping<1> TransformationType;
+    typedef LinearMapping TransformationType;
 
     typedef DPeakConstReferenceArray< PointMapType > PeakConstReferenceMapType;
 

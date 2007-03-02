@@ -35,7 +35,7 @@
 using namespace OpenMS;
 using namespace std;
 
-typedef DPosition <2> PositionType;
+typedef DPosition<2> PositionType;
 
 START_TEST(DelaunayPairFinder, "$Id$")
 
@@ -220,7 +220,7 @@ CHECK((void findElementPairs()))
   dpf.setDiffIntercept(1,1.0);
   dpf.setElementMap(0,model);
   dpf.setElementMap(1,scene);
-  DFeaturePairVector < 2, Feature > pairs;
+  vector< ElementPair < Feature > > pairs;
   dpf.setElementPairs(pairs);
   dpf.findElementPairs();
   
@@ -342,7 +342,7 @@ RESULT
 //   dpf.setDiffIntercept(1,1.0);
 //   dpf.setElementMap(0,model);
 //   dpf.setElementMap(1,scene);
-//   DFeaturePairVector < 2, Feature > pairs;
+//   vector< ElementPair < Feature > >  pairs;
 //   dpf.setElementPairs(pairs);
 //   dpf.findElementPairs();
 //   

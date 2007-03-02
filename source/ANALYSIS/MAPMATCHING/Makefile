@@ -38,25 +38,24 @@ CGAL_SOURCES=\
 endif
 
 CPP_SOURCES=\
-  DBaseMapMatcher.C\
-	DBaseMapping.C\
-	DFeaturePair.C\
-	DFeaturePairVector.C\
-	DGridCell.C\
-	DGrid.C\
-	DMapDewarper.C\
-	DLinearMapping.C\
-	PairMatcher.C\
-	BasePairwiseMapMatcher.C\
-	PoseClusteringPairwiseMapMatcher.C\
+	IndexTuple.C\
+	Group.C\
+	ElementPair.C\
+	GridCell.C\
+	Grid.C\
+	BaseMapping.C\
+	LinearMapping.C\
 	BaseSuperimposer.C\
 	PoseClusteringShiftSuperimposer.C\
 	PoseClusteringAffineSuperimposer.C\
 	BasePairFinder.C\
 	SimplePairFinder.C\
-	Group.C\
-	IndexTuple.C\
-	DMapMatcherRegression.C
+  BaseMapMatcher.C\
+	MapMatcherRegression.C\
+	MapDewarper.C\
+	BasePairwiseMapMatcher.C\
+	PoseClusteringPairwiseMapMatcher.C\
+	PairMatcher.C
 
 ADD_CPP_SOURCES = $(CGAL_SOURCES)
 

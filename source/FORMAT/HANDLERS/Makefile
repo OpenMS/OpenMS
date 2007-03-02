@@ -40,8 +40,8 @@ CPP_SOURCES=\
 	ParamXMLHandler.C\
 	FeatureMapHandler.C\
 	AnalysisXMLHandler.C\
-	DFeaturePairsHandler.C\
-	DGridHandler.C\
+	FeaturePairsHandler.C\
+	GridHandler.C\
 	MzDataExpSettHandler.C\
 	MascotXMLHandler.C\
 	XMLSchemes.C\

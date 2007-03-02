@@ -28,8 +28,8 @@
 #ifndef OPENMS_ANALYSIS_MAPMATCHING_BASEPAIRWISEMAPMATCHER_H
 #define OPENMS_ANALYSIS_MAPMATCHING_BASEPAIRWISEMAPMATCHER_H
 
-#include <OpenMS/ANALYSIS/MAPMATCHING/DFeaturePairVector.h>
-#include <OpenMS/ANALYSIS/MAPMATCHING/DGrid.h>
+#include <OpenMS/ANALYSIS/MAPMATCHING/ElementPair.h>
+#include <OpenMS/ANALYSIS/MAPMATCHING/Grid.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/DimensionDescription.h>
 #include <OpenMS/DATASTRUCTURES/DBoundingBox.h>
@@ -86,13 +86,10 @@ namespace OpenMS
     typedef typename PointMapType::value_type ElementType;
 
     /// Type of element pairs
-    typedef DFeaturePair < 2, ElementType > ElementPairType;
+    typedef ElementPair < ElementType > ElementPairType;
 
     /// Container for generated element pairs
-    typedef DFeaturePairVector < 2, ElementType > ElementPairVectorType;
-
-    /// Grid
-    typedef DGrid<2> GridType;
+    typedef std::vector < ElementPairType > ElementPairVectorType;
 
     /// Position
     typedef DPosition < 2 > PositionType;
@@ -173,7 +170,7 @@ namespace OpenMS
     }
 
     /// Get grid
-    const GridType& getGrid() const
+    const Grid& getGrid() const
     {
       return grid_;
     }
@@ -234,7 +231,7 @@ namespace OpenMS
           CoordinateType y_min = (bounding_box_scene_map_.min())[MZ] + box_size_[MZ]*y_index;
           CoordinateType y_max = (bounding_box_scene_map_.min())[MZ] + box_size_[MZ]*(y_index+1);
 
-          grid_.push_back(DGridCell<2>(x_min, y_min, x_max, y_max));
+          grid_.push_back(GridCell(x_min, y_min, x_max, y_max));
         }
       }
     } // initGridTransformation_
@@ -259,7 +256,7 @@ namespace OpenMS
     ElementPairVectorType all_element_pairs_;
 
     /// The estimated transformation between the two element maps
-    GridType grid_;
+    Grid grid_;
 
     /// Bounding box of the second map
     PositionBoundingBoxType bounding_box_scene_map_;

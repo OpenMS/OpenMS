@@ -28,7 +28,7 @@
 #ifndef OPENMS_ANALYSIS_MAPMATCHING_BASESUPERIMPOSER_H
 #define OPENMS_ANALYSIS_MAPMATCHING_BASESUPERIMPOSER_H
 
-#include <OpenMS/ANALYSIS/MAPMATCHING/DLinearMapping.h>
+#include <OpenMS/ANALYSIS/MAPMATCHING/LinearMapping.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/DimensionDescription.h>
 
@@ -57,11 +57,13 @@ namespace OpenMS
   	: public FactoryProduct
   {
   public:
-    /// Defines the coordinates of elements.
-    enum DimensionId
+    
+    /** Symbolic names for indices for the two dimensions of LC-MS
+    */
+    enum LCMS
     {
-      RT = DimensionDescription < LCMS_Tag >::RT,
-      MZ = DimensionDescription < LCMS_Tag >::MZ
+      RT = 0,
+      MZ = 1
     };
 
     /** Symbolic names for indices of element maps etc.
@@ -89,7 +91,7 @@ namespace OpenMS
     typedef DoubleReal IntensityType;
 
     /// Type of estimated transformation
-    typedef DLinearMapping< 1 > TransformationType;
+    typedef LinearMapping TransformationType;
 
     /// Constructor
     BaseSuperimposer()

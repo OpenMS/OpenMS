@@ -21,19 +21,17 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Clemens Groepl $
-// Initial version by Ole Schulz-Trieglaff
+// $Maintainer: Eva Lange $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/Param.h>
 
 #include <OpenMS/CONCEPT/VersionInfo.h>
-#include <OpenMS/ANALYSIS/MAPMATCHING/DMapMatcherRegression.h>
-#include <OpenMS/ANALYSIS/MAPMATCHING/DFeaturePair.h>
-#include <OpenMS/ANALYSIS/MAPMATCHING/DFeaturePairVector.h>
-#include <OpenMS/ANALYSIS/MAPMATCHING/DGrid.h>
-#include <OpenMS/FORMAT/DGridFile.h>
-#include <OpenMS/FORMAT/DFeaturePairsFile.h>
+#include <OpenMS/ANALYSIS/MAPMATCHING/MapMatcherRegression.h>
+#include <OpenMS/ANALYSIS/MAPMATCHING/ElementPair.h>
+#include <OpenMS/ANALYSIS/MAPMATCHING/Grid.h>
+#include <OpenMS/FORMAT/GridFile.h>
+#include <OpenMS/FORMAT/FeaturePairsFile.h>
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 
@@ -108,21 +106,21 @@ class TOPPMapMatcher
 		// reading input
 		//-------------------------------------------------------------
 
-		DGridFile grid_file;
-		DGrid<2> grid;
+		GridFile grid_file;
+		Grid grid;
 		writeLog_("Reading grid file " + grid_filename );
 		grid_file.load(grid_filename, grid);
 
-		DFeaturePairsFile pairs_file;
-		DFeaturePairVector<2> pairs_vector;
+		FeaturePairsFile pairs_file;
+    std::vector< ElementPair < Feature > > pairs_vector;
 		writeLog_("Reading pairs file " + pairs_filename );
 		pairs_file.load(pairs_filename, pairs_vector);
 
 		//-------------------------------------------------------------
 		// calculations
 		//-------------------------------------------------------------
-		DMapMatcherRegression<> map_matcher;
-		map_matcher.setFeaturePairs(pairs_vector);
+		MapMatcherRegression<> map_matcher;
+		map_matcher.setElementPairs(pairs_vector);
 		map_matcher.setGrid(grid);
 		map_matcher.setMinQuality(min_quality);
 
@@ -133,7 +131,7 @@ class TOPPMapMatcher
 		// writing output
 		//-------------------------------------------------------------
 
-		DGrid<2> const & grid_with_transform = map_matcher.getGrid();
+		Grid const & grid_with_transform = map_matcher.getGrid();
 
 		grid_file.store(out_filename, grid_with_transform);
 

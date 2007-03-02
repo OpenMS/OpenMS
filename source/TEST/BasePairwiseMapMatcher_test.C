@@ -33,12 +33,9 @@
 using namespace OpenMS;
 using namespace std;
 
-typedef Feature ElementType;
-typedef FeatureMap< ElementType> ElementMapType;
-typedef DFeaturePair < 2, ElementType > ElementPairType;
-typedef DFeaturePairVector < 2, ElementType > ElementPairVectorType;
-typedef DGrid<2> GridType;
-typedef DPosition <2> PositionType;
+typedef FeatureMap< Feature> ElementMapType;
+typedef ElementPair < Feature > ElementPairType;
+typedef vector < Feature > ElementPairVectorType;
 
 class TestPairwiseMapMatcher : public BasePairwiseMapMatcher<ElementMapType>
 {
@@ -125,8 +122,8 @@ CHECK((const ElementPairVectorType& getElementPairs() const))
 RESULT
 
 
-CHECK((const GridType& getGrid() const))
-  GridType grid;
+CHECK((const Grid& getGrid() const))
+  Grid grid;
   TestPairwiseMapMatcher bpmm;
     
   TEST_EQUAL(bpmm.getGrid() == grid,true) 
@@ -167,10 +164,10 @@ RESULT
 
 CHECK((void initGridTransformation(const PointMapType& scene_map)))
   ElementMapType scene;
-  ElementType feat1;
-  ElementType feat2;
-  PositionType pos1(0,0);
-  PositionType pos2(2,3);
+  Feature feat1;
+  Feature feat2;
+  Feature::PositionType pos1(0,0);
+  Feature::PositionType pos2(2,3);
   feat1.setPos(pos1);
   feat1.setIntensity(100);
   feat2.setPos(pos2);

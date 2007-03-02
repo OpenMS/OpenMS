@@ -77,8 +77,6 @@ namespace OpenMS
     typedef typename ConsensusElementType::ElementContainerType ElementContainerType;
     /// Consensus map type
     typedef std::vector< ConsensusElementType > ConsensusMapType;
-    /// Type of estimated transformation
-    typedef DGrid< 2 > GridType;
 
     /// Constructor
     BaseAlignment()
@@ -144,12 +142,12 @@ namespace OpenMS
     }
 
     /// Mutable access to the transformations
-    void setTransformationVector(const std::vector< GridType >& transformations)
+    void setTransformationVector(const std::vector< Grid >& transformations)
     {
       transformations_ = transformations;
     }
     /// Non-mutable access to the transformations
-    const std::vector< GridType >& getTransformationVector() const
+    const std::vector< Grid >& getTransformationVector() const
     {
       return transformations_;
     }
@@ -204,7 +202,7 @@ namespace OpenMS
     std::vector < ConsensusElementType > final_consensus_map_;
 
     /// The transformation vector
-    std::vector< GridType > transformations_;
+    std::vector< Grid > transformations_;
 
     /// File names of the maps to be aligned
     std::vector< String > file_names_;

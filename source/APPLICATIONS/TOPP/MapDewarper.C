@@ -24,9 +24,9 @@
 // $Maintainer: Ole Schulz-Trieglaff$
 // --------------------------------------------------------------------------
 
-#include <OpenMS/ANALYSIS/MAPMATCHING/DMapDewarper.h>
-#include <OpenMS/ANALYSIS/MAPMATCHING/DGrid.h>
-#include <OpenMS/FORMAT/DGridFile.h>
+#include <OpenMS/ANALYSIS/MAPMATCHING/MapDewarper.h>
+#include <OpenMS/ANALYSIS/MAPMATCHING/Grid.h>
+#include <OpenMS/FORMAT/GridFile.h>
 #include <OpenMS/FORMAT/FeatureMapFile.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
@@ -89,8 +89,8 @@ protected:
     // reading input
     //-------------------------------------------------------------
 		
-    DGrid<2> the_grid;
-    DGridFile().load(gridfile,the_grid);
+    Grid the_grid;
+    GridFile().load(gridfile,the_grid);
 
     FeatureMapFile fmap_file;
     FeatureMap<> feature_map;
@@ -99,7 +99,7 @@ protected:
     //-------------------------------------------------------------
     // calculations
     //-------------------------------------------------------------
-    DMapDewarper<> map_dewarper;
+    MapDewarper<> map_dewarper;
     map_dewarper.setMap(feature_map);
     map_dewarper.setGrid(the_grid);
     map_dewarper.dewarp();

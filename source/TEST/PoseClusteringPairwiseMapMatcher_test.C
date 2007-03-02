@@ -33,10 +33,9 @@
 using namespace OpenMS;
 using namespace std;
 
-typedef Feature ElementType;
-typedef FeatureMap< ElementType> ElementMapType;
-typedef DFeaturePair < 2, ElementType > ElementPairType;
-typedef DFeaturePairVector < 2, ElementType > ElementPairVectorType;
+typedef FeatureMap< Feature> ElementMapType;
+typedef ElementPair< Feature > ElementPairType;
+typedef vector < ElementPairType > ElementPairVectorType;
 typedef DPosition <2> PositionType;
 
 START_TEST(PoseClusteringPairwiseMapMatcher<ElementMapType>, "$Id$")
@@ -106,8 +105,8 @@ CHECK((void run()))
   param.setValue("superimposer","poseclustering_shift");
   param.setValue("pair_finder","simple");
   ElementMapType scene;
-  ElementType feat1;
-  ElementType feat2;
+  Feature feat1;
+  Feature feat2;
   PositionType pos1(0,0);
   PositionType pos2(200,300);
   feat1.setPos(pos1);
@@ -118,8 +117,8 @@ CHECK((void run()))
   scene.push_back(feat2);
   ElementMapType modell = scene;
   
-  ElementType feat3;
-  ElementType feat4;
+  Feature feat3;
+  Feature feat4;
   PositionType pos3(2,5);
   PositionType pos4(20,30);
   feat3.setPos(pos3);

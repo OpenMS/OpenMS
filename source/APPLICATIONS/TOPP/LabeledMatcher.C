@@ -24,7 +24,7 @@
 // $Maintainer: Marc Sturm $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/FORMAT/DFeaturePairsFile.h>
+#include <OpenMS/FORMAT/FeaturePairsFile.h>
 #include <OpenMS/FORMAT/FeatureMapFile.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/PairMatcher.h>
 #include <OpenMS/KERNEL/ComparatorUtils.h>
@@ -124,19 +124,19 @@ class TOPPLabeledMatcher
 	
 	    writeDebug_(" Running LabeledMatcher...",1);
 	
-	    const DFeaturePairVector<2>* pairs = &pm.run();
+      const std::vector < ElementPair < Feature > >* pairs = &pm.run();
 	
 	    //-------------------------------------------------------------
 	    // writing files
 	    //-------------------------------------------------------------
 	
 	    writeDebug_(String(" Writing results to ") + outputfile, 1 );
-	    DFeaturePairsFile().store(outputfile,*pairs);
+	    FeaturePairsFile().store(outputfile,*pairs);
 			
 			writeDebug_(String(" Writing results to ") + best_outputfile, 1 );
 			if (best_outputfile!="")
 	    {
-	    	DFeaturePairsFile().store(best_outputfile,pm.getBestPairs());
+	    	FeaturePairsFile().store(best_outputfile,pm.getBestPairs());
 	    }
 			
 	    return EXECUTION_OK;

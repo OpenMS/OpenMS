@@ -55,7 +55,7 @@
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/VISUAL/MSMetaDataExplorer.h>
-#include <OpenMS/FORMAT/DFeaturePairsFile.h>
+#include <OpenMS/FORMAT/FeaturePairsFile.h>
 
 //Qt
 #include <QtGui/QToolBar>
@@ -558,10 +558,10 @@ namespace OpenMS
     else if (force_type==FileHandler::FEATURE_PAIRS) //feature pairs
     {
     	//load pairs
-      DFeaturePairVector<2> pairs;
+      std::vector< ElementPair < Feature > >  pairs;
       try
       {
-        DFeaturePairsFile().load(filename,pairs);
+        FeaturePairsFile().load(filename,pairs);
       }
       catch(Exception::Base& e)
       {
@@ -571,7 +571,7 @@ namespace OpenMS
       
       //convert to features
       FeatureMap<> map;
-      DFeaturePairsFile::pairsToFeatures(pairs,map);
+      FeaturePairsFile::pairsToFeatures(pairs,map);
       w->widget()->canvas()->addLayer(map,true);
       w->widget()->canvas()->setCurrentLayerName(caption);
     }

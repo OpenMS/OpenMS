@@ -32,7 +32,7 @@
 #include <OpenMS/DATASTRUCTURES/DBoundingBox.h>
 #include <OpenMS/DATASTRUCTURES/Matrix.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
-#include <OpenMS/ANALYSIS/MAPMATCHING/DLinearMapping.h>
+#include <OpenMS/ANALYSIS/MAPMATCHING/LinearMapping.h>
 
 
 #include <fstream>
@@ -200,7 +200,7 @@ namespace OpenMS
     typedef Shift ShiftType;
     typedef Matrix < typename ShiftType::QualityType > ShiftQualityMatrixType;
     typedef Matrix < ShiftType > ShiftMatrixType;
-    typedef DLinearMapping< 1 > FinalShiftType;
+    typedef LinearMapping FinalShiftType;
 
     using Base::setParameters;
     using Base::getParameters;

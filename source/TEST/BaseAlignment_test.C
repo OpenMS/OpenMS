@@ -86,17 +86,17 @@ CHECK((BaseAlignment& operator = (const BaseAlignment& source)))
   vector<String> name_vector(1,name);
   al.setFileNames(name_vector);
   al.setMapType("feature_map");
-  DLinearMapping<1> trafo_rt(0.5,-5.99959);
-  DLinearMapping<1> trafo_mz(0.999999,-0.0990517);
-  DBaseMapping<1>* bm_rt = &trafo_rt;
-  DBaseMapping<1>* bm_mz = &trafo_mz;
-  DGrid<2> grid;
-  grid.push_back(DGridCell<2>(1816,603.449,3108.3,1002.35));
-  std::vector<DBaseMapping<1>*> mapping(2);
+  LinearMapping trafo_rt(0.5,-5.99959);
+  LinearMapping trafo_mz(0.999999,-0.0990517);
+  BaseMapping* bm_rt = &trafo_rt;
+  BaseMapping* bm_mz = &trafo_mz;
+  Grid grid;
+  grid.push_back(GridCell(1816,603.449,3108.3,1002.35));
+  std::vector<BaseMapping*> mapping(2);
   mapping[0] = bm_rt;
   mapping[1] = bm_mz;
   grid[0].setMappings(mapping);
-  std::vector< DGrid<2> > grid_vector(2);
+  std::vector< Grid > grid_vector(2);
   grid_vector[1] = grid; 
   al.setTransformationVector(grid_vector);
 
@@ -124,17 +124,17 @@ CHECK((BaseAlignment(const BaseAlignment& source)))
   vector<String> name_vector(1,name);
   al.setFileNames(name_vector);
   al.setMapType("feature_map");
-  DLinearMapping<1> trafo_rt(0.5,-5.99959);
-  DLinearMapping<1> trafo_mz(0.999999,-0.0990517);
-  DBaseMapping<1>* bm_rt = &trafo_rt;
-  DBaseMapping<1>* bm_mz = &trafo_mz;
-  DGrid<2> grid;
-  grid.push_back(DGridCell<2>(1816,603.449,3108.3,1002.35));
-  std::vector<DBaseMapping<1>*> mapping(2);
+  LinearMapping trafo_rt(0.5,-5.99959);
+  LinearMapping trafo_mz(0.999999,-0.0990517);
+  BaseMapping* bm_rt = &trafo_rt;
+  BaseMapping* bm_mz = &trafo_mz;
+  Grid grid;
+  grid.push_back(GridCell(1816,603.449,3108.3,1002.35));
+  std::vector<BaseMapping*> mapping(2);
   mapping[0] = bm_rt;
   mapping[1] = bm_mz;
   grid[0].setMappings(mapping);
-  std::vector< DGrid<2> > grid_vector(2);
+  std::vector< Grid > grid_vector(2);
   grid_vector[1] = grid; 
   al.setTransformationVector(grid_vector);
 
@@ -263,7 +263,7 @@ RESULT
 
 CHECK((void setTransformationVector(const std::vector< GridType >& transformations)))
   TestAlignment alignment;
-  std::vector< DGrid<2> > grid_vector(2);
+  std::vector< Grid > grid_vector(2);
   alignment.setTransformationVector(grid_vector);
 
   TEST_EQUAL(alignment.getTransformationVector().size() == 2, true)

@@ -29,8 +29,8 @@
 #define OPENMS_ANALYSIS_MAPMATCHING_STARALIGNMENT_H
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/BaseAlignment.h>
-#include <OpenMS/ANALYSIS/MAPMATCHING/DFeaturePair.h>
-#include <OpenMS/ANALYSIS/MAPMATCHING/DMapMatcherRegression.h>
+#include <OpenMS/ANALYSIS/MAPMATCHING/ElementPair.h>
+#include <OpenMS/ANALYSIS/MAPMATCHING/MapMatcherRegression.h>
 #include <OpenMS/KERNEL/DPeakConstReferenceArray.h>
 #include <OpenMS/KERNEL/ConsensusFeature.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
@@ -89,7 +89,6 @@ namespace OpenMS
     typedef typename Base::ElementType ElementType;
     typedef typename Base::ElementContainerType ElementContainerType;
     typedef typename Base::ConsensusMapType ConsensusMapType;
-    typedef typename Base::GridType GridType;
 
     /// Pointer vector
     typedef DPeakConstReferenceArray< ElementContainerType > PeakConstReferenceMapType;
@@ -104,13 +103,13 @@ namespace OpenMS
     typedef DoubleReal IntensityType;
 
     /// Type of element pairs
-    typedef DFeaturePair < 2, ConsensusElementType > ElementPairType;
+    typedef ElementPair < ConsensusElementType > ElementPairType;
 
     /// Container for generated consensus element pairs
-    typedef DFeaturePairVector < 2, ConsensusElementType > ConsensusElementPairVectorType;
+    typedef std::vector < ConsensusElementType > ConsensusElementPairVectorType;
 
     /// Container for generated element pairs
-    typedef DFeaturePairVector < 2, ElementType > ElementPairVectorType;
+    typedef std::vector < ElementType > ElementPairVectorType;
 
     using Base::element_map_vector_;
     using Base::param_;
@@ -280,7 +279,7 @@ namespace OpenMS
       
       pairwise_matcher_->setElementMap(MODEL,cons_ref_map);
 
-      DMapMatcherRegression<ConsensusElementType> lin_regression;
+      MapMatcherRegression<ConsensusElementType> lin_regression;
       UnsignedInt number_maps = element_map_vector_.size();
       transformations_.resize(number_maps);
 #ifdef DEBUG_ALIGNMENT
@@ -319,7 +318,7 @@ namespace OpenMS
           if (pairwise_matcher_->getElementPairs().size() > 2)
           {
             // estimate for each grid cell a better transformation using the element pairs
-            lin_regression.setFeaturePairs(pairwise_matcher_->getElementPairs());
+            lin_regression.setElementPairs(pairwise_matcher_->getElementPairs());
             lin_regression.setGrid(pairwise_matcher_->getGrid());
             lin_regression.setMinQuality(-1.);
             lin_regression.estimateTransform();
@@ -342,7 +341,7 @@ namespace OpenMS
             //             std::cout << "insert " << map[j] << std::endl;
             // Test in which cell this element is included
             // and apply the corresponding transformation
-            typename GridType::iterator grid_it = transformations_[i].begin();
+            typename Grid::iterator grid_it = transformations_[i].begin();
             while ((grid_it != (transformations_[i]).end()))
             {
               IndexTuple< ElementContainerType > index_tuple(i,j,(*(element_map_vector_[i]))[j]);
@@ -352,8 +351,8 @@ namespace OpenMS
                 // apply transform for the singleton group element
                 if (grid_it->getMappings().size() != 0)
                 {
-                  DLinearMapping<1>* mapping_rt = dynamic_cast<DLinearMapping<1>* >(grid_it->getMappings()[RT]);
-                  DLinearMapping<1>* mapping_mz = dynamic_cast<DLinearMapping<1>* >(grid_it->getMappings()[MZ]);
+                  LinearMapping* mapping_rt = dynamic_cast<LinearMapping* >(grid_it->getMappings()[RT]);
+                  LinearMapping* mapping_mz = dynamic_cast<LinearMapping* >(grid_it->getMappings()[MZ]);
 
                   mapping_rt->apply(pos[RT]);
                   mapping_mz->apply(pos[MZ]);
@@ -492,7 +491,7 @@ namespace OpenMS
       }
       pairwise_matcher_->setElementMap(MODEL,reference_most_intense);
 
-      DMapMatcherRegression< ElementType > lin_regression;
+      MapMatcherRegression< ElementType > lin_regression;
       UnsignedInt number_maps = element_map_vector_.size();
       transformations_.resize(number_maps);
 #ifdef DEBUG_ALIGNMENT
@@ -533,7 +532,7 @@ namespace OpenMS
           std::cout << "*** Estimate for each grid cell a better transformation using the element pairs. number of pairs: " << pairwise_matcher_->getElementPairs().size() << " ***" << std::endl;
 #endif
           // estimate for each grid cell a better transformation using the element pairs
-          lin_regression.setFeaturePairs(pairwise_matcher_->getElementPairs());
+          lin_regression.setElementPairs(pairwise_matcher_->getElementPairs());
           lin_regression.setGrid(pairwise_matcher_->getGrid());
           lin_regression.setMinQuality(-1.);
           lin_regression.estimateTransform();
@@ -551,13 +550,13 @@ namespace OpenMS
           {
             // Test in which cell this element is included
             // and apply the corresponding transformation
-            typename GridType::iterator grid_it = (lin_regression.getGrid()).begin();
+            typename Grid::iterator grid_it = (lin_regression.getGrid()).begin();
             while (grid_it != (lin_regression.getGrid()).end() )
             {
               if (grid_it->encloses(map[j].getPos()) )
               {
-                DLinearMapping<1>* mapping_rt = dynamic_cast<DLinearMapping<1>* >(grid_it->getMappings()[RT]);
-                DLinearMapping<1>* mapping_mz = dynamic_cast<DLinearMapping<1>* >(grid_it->getMappings()[MZ]);
+                LinearMapping* mapping_rt = dynamic_cast<LinearMapping* >(grid_it->getMappings()[RT]);
+                LinearMapping* mapping_mz = dynamic_cast<LinearMapping* >(grid_it->getMappings()[MZ]);
 
                 // apply transform for the singleton group element
                 IndexTuple< ElementContainerType > index_tuple(i,j,(*(element_map_vector_[i]))[j]);

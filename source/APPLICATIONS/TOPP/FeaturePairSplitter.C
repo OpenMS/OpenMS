@@ -24,7 +24,7 @@
 // $Maintainer: Clemens Groepl $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/FORMAT/DFeaturePairsFile.h>
+#include <OpenMS/FORMAT/FeaturePairsFile.h>
 #include <OpenMS/FORMAT/FeatureMapFile.h>
 #include <OpenMS/DATASTRUCTURES/Date.h>
 #include <OpenMS/KERNEL/DimensionDescription.h>
@@ -78,6 +78,8 @@ class TOPPFeaturePairSplitter
   }
 
  protected:
+  typedef std::vector < ElementPair < Feature > > FeaturePairVector;
+  
   void registerOptionsAndFlags_()
   {
     registerStringOption_("in","<file>","","input file");
@@ -105,14 +107,14 @@ class TOPPFeaturePairSplitter
 		bool const write_dump = !dump.empty();
 
 		// load data from input file.
-		DFeaturePairVector<2> feature_pairs;
-		DFeaturePairsFile feature_pairs_file;
+    FeaturePairVector feature_pairs;
+		FeaturePairsFile feature_pairs_file;
 		feature_pairs_file.load(in,feature_pairs);
 
 		// store the data
 		FeatureMap<> first_feature_map, second_feature_map;
 		vector<double> qualities_vector;
-		for ( DFeaturePairVector<2>::ConstIterator iter = feature_pairs.begin();
+		for ( FeaturePairVector::const_iterator iter = feature_pairs.begin();
 					iter != feature_pairs.end();
 					++iter
 				)
@@ -148,7 +150,7 @@ class TOPPFeaturePairSplitter
 				"# " << dump << " generated " << Date::now() << ".\n"
 				"# Use 'gnuplot " << dump_gp << "' to view.\n"
 				"# num  rt1 mz1 it1  rt2 mz2 it2  qual\n";
-			for ( DFeaturePairVector<2>::ConstIterator iter = feature_pairs.begin();
+			for ( FeaturePairVector::const_iterator iter = feature_pairs.begin();
 						iter != feature_pairs.end();
 						++iter
 					)

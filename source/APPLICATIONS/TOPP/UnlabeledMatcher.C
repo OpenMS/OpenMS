@@ -26,8 +26,8 @@
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/PoseClusteringPairwiseMapMatcher.h>
 #include <OpenMS/FORMAT/FeatureMapFile.h>
-#include <OpenMS/FORMAT/DFeaturePairsFile.h>
-#include <OpenMS/FORMAT/DGridFile.h>
+#include <OpenMS/FORMAT/FeaturePairsFile.h>
+#include <OpenMS/FORMAT/GridFile.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 
 #include <sstream>
@@ -36,10 +36,9 @@
 using namespace OpenMS;
 using namespace std;
 
-typedef DFeaturePair<2,Feature> FeaturePair;
-typedef DFeaturePairVector<2,Feature> FeaturePairVector;
-typedef DFeaturePairsFile FeaturePairVectorFile;
-typedef DGrid<2> GridType;
+typedef ElementPair<Feature> FeaturePair;
+typedef std::vector<FeaturePair> FeaturePairVector;
+typedef FeaturePairsFile FeaturePairVectorFile;
 
 
 //-------------------------------------------------------------
@@ -153,7 +152,7 @@ class TOPPUnlabeledMatcher
 
       writeDebug_(String("Writing grid file `") + gridfilename + "'.",1);
 
-      DGridFile grid_file;
+      GridFile grid_file;
       grid_file.store(gridfilename,poseclust_feature_matcher.getGrid());
 
       writeDebug_("Running UnlabeledMatcher...done.",1);

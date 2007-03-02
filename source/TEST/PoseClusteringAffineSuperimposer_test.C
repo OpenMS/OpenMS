@@ -148,8 +148,8 @@ CHECK((void run()))
   pcat.setShiftBucketSize(1,0.01);
   pcat.run();
     
-  DLinearMapping<1> rt_mapping = pcat.getTransformation(0);
-  DLinearMapping<1> mz_mapping = pcat.getTransformation(1);
+  LinearMapping rt_mapping = pcat.getTransformation(0);
+  LinearMapping mz_mapping = pcat.getTransformation(1);
   
   TEST_REAL_EQUAL(rt_mapping.getSlope(),2)
   TEST_REAL_EQUAL(rt_mapping.getIntercept(),0.4)

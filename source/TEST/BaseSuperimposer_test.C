@@ -33,7 +33,7 @@
 using namespace OpenMS;
 using namespace std;
 
-typedef DLinearMapping<1> TransformationType;
+typedef LinearMapping TransformationType;
 typedef Feature ElementType;
 typedef FeatureMap< ElementType> ElementMapType;
 

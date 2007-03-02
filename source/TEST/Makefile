@@ -177,10 +177,10 @@ EXECUTABLES_FORMAT = \
 	MzDataFile_test\
 	Param_test\
 	FeatureMapFile_test\
-	DFeaturePairsFile_test\
+	FeaturePairsFile_test\
 	AnalysisXMLFile_test\
 	MascotXMLFile_test\
-	DGridFile_test\
+	GridFile_test\
 	PeakFileOptions_test\
 	PeakTypeEstimator_test\
 	InspectInfile_test\
@@ -292,14 +292,15 @@ endif
 EXECUTABLES_ANALYSIS_MAPMATCHING = \
 	IndexTuple_test\
 	Group_test\
-	DGridCell_test\
-	DGrid_test\
-	DBaseMapping_test\
-	DLinearMapping_test\
+	GridCell_test\
+	Grid_test\
+	BaseMapping_test\
+	LinearMapping_test\
+	ElementPair_test\
 	PairMatcher_test\
-	DBaseMapMatcher_test\
-	DMapMatcherRegression_test\
-	DMapDewarper_test\
+	BaseMapMatcher_test\
+	MapMatcherRegression_test\
+	MapDewarper_test\
 	BasePairFinder_test\
 	SimplePairFinder_test\
 	BaseSuperimposer_test\
@@ -307,9 +308,6 @@ EXECUTABLES_ANALYSIS_MAPMATCHING = \
 	PoseClusteringShiftSuperimposer_test\
 	BasePairwiseMapMatcher_test\
 	PoseClusteringPairwiseMapMatcher_test
-
-#	DFeaturePair_test\
-#	DFeaturePairVector_test\
 
 ifeq ($(CGAL_SUPPORT),true)
 EXECUTABLES_ANALYSIS_MAPMATCHING_CGAL=\

@@ -93,7 +93,7 @@ namespace OpenMS
 			{
 				try
 				{
-					tree.insert(features_[i].getMZ(), &features_[i] );
+					tree.insert(features_[i].getPos(), &features_[i] );
 				}
 				catch(Exception::IllegalTreeOperation e)
 				{
@@ -196,7 +196,7 @@ namespace OpenMS
 					<< "\tRatio\tCharge\tDiff[RT]\tDiff[MZ]\n";
 			for (Size i=0; i<pairs.size(); ++i)
 			{
-				DPosition<2> diff = pairs[i].getFirst().getMZ()-pairs[i].getSecond().getMZ();
+				DPosition<2> diff = pairs[i].getFirst().getPos()-pairs[i].getSecond().getPos();
 				out << setiosflags(ios::fixed) << setprecision(2)
 						<< pairs[i].getQuality() << "\t" << pairs[i].getFirst().getPos()[0] << "\t" 
 						<< pairs[i].getFirst().getPos()[1] << "\t" << pairs[i].getFirst().getIntensity() << "\t" 

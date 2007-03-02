@@ -54,9 +54,9 @@ CPP_SOURCES=\
 	MzDataFile.C\
 	AnalysisXMLFile.C\
 	FeatureMapFile.C\
-	DFeaturePairsFile.C\
+	FeaturePairsFile.C\
 	MascotXMLFile.C\
-	DGridFile.C\
+	GridFile.C\
 	SchemaFile.C\
 	PeakFileOptions.C\
 	PeakTypeEstimator.C\

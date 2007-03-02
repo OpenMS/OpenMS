@@ -27,7 +27,7 @@
 #ifndef OPENMS_ANALYSIS_MAPMATCHING_PAIRMATCHER_H
 #define OPENMS_ANALYSIS_MAPMATCHING_PAIRMATCHER_H
 
-#include <OpenMS/ANALYSIS/MAPMATCHING/DFeaturePairVector.h>
+#include <OpenMS/ANALYSIS/MAPMATCHING/ElementPair.h>
 #include <OpenMS/KERNEL/DimensionDescription.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/CONCEPT/FactoryProduct.h>
@@ -70,8 +70,8 @@ namespace OpenMS
 			///
 			typedef Feature FeatureType;
 			typedef FeatureMap<> FeatureMapType;
-			typedef DFeaturePair<2> PairType;
-			typedef DFeaturePairVector<2> PairVectorType;
+			typedef ElementPair<> PairType;
+      typedef std::vector< PairType > PairVectorType;
 			typedef QuadTree< FeatureType > QuadTreeType;
 			//@}
 	

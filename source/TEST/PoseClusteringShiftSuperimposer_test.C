@@ -246,8 +246,8 @@ CHECK(void run())
   pcat.setElementMap(1,scene);
   pcat.run();
     
-  DLinearMapping<1> rt_mapping = pcat.getTransformation(0);
-  DLinearMapping<1> mz_mapping = pcat.getTransformation(1);
+  LinearMapping rt_mapping = pcat.getTransformation(0);
+  LinearMapping mz_mapping = pcat.getTransformation(1);
   
   TEST_REAL_EQUAL(rt_mapping.getSlope(),1)
   TEST_REAL_EQUAL(rt_mapping.getIntercept(),20.4)

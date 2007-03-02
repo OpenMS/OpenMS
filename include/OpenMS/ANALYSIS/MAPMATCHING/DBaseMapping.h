@@ -24,8 +24,8 @@
 // $Maintainer: Eva Lange $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_MAPMATCHING_DBASEMAPPING_H
-#define OPENMS_ANALYSIS_MAPMATCHING_DBASEMAPPING_H
+#ifndef OPENMS_ANALYSIS_MAPMATCHING_BASEMAPPING_H
+#define OPENMS_ANALYSIS_MAPMATCHING_BASEMAPPING_H
 
 #include <OpenMS/DATASTRUCTURES/DPosition.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
@@ -39,25 +39,24 @@ namespace OpenMS
 		 that can be applied to a DPosition. 
 	  
 	*/
-	template <UnsignedInt D>		
-	class DBaseMapping
+	class BaseMapping
 	{
 	 public:
 		
 		/// Constructor
-		DBaseMapping() {}
+		BaseMapping() {}
 		
 		/// Destructor
-		virtual ~DBaseMapping() {}
+		virtual ~BaseMapping() {}
 			
 		/// Copy constructor 
-		DBaseMapping(const DBaseMapping& source)
+		BaseMapping(const BaseMapping& source)
 		{
 			setParam(source.param_);
 		}
 			
 		/// Assignment operator
-		DBaseMapping& operator = (const DBaseMapping& rhs)
+		BaseMapping& operator = (const BaseMapping& rhs)
 		{
 			if (this==&rhs) return *this;
 			
@@ -66,13 +65,13 @@ namespace OpenMS
 		}		
 		
 		/// Equality operator
-		bool operator == (const DBaseMapping& rhs)
+		bool operator == (const BaseMapping& rhs)
 		{
 			return (param_ == rhs.param_);
 		}	
 		
 		/// Inequality operator
-		bool operator != (const DBaseMapping& rhs)
+		bool operator != (const BaseMapping& rhs)
 		{
 			return !(param_ == rhs.param_);
 		}	
@@ -83,10 +82,10 @@ namespace OpenMS
 		virtual const Param& getParam() const { return param_; }
 						
 		/// Apply the transform to a feature
-		virtual void apply(DPosition<D>& ) const = 0;
+		virtual void apply(DPosition<2>& ) const = 0;
 
 		/// Apply the transformation
-		virtual void apply(DoubleReal& pos) const = 0;
+		virtual void apply( DoubleReal& pos) const = 0;
 	
 		/// Return the name of this transformation
 		virtual const String getName() = 0;
@@ -94,11 +93,11 @@ namespace OpenMS
 	 protected:		
 		/// Parameters defining the transformation
 		Param param_;				
-	}; // end of DBaseMapping
+	}; // end of BaseMapping
 	
 	///Print the contents to a stream.
-	template <Size D>
-	std::ostream& operator << (std::ostream& os, const DBaseMapping<D>& mapping)
+	template <Size D, typename Traits>
+	std::ostream& operator << (std::ostream& os, const BaseMapping<D, Traits>& mapping)
 	{
 		os << mapping.getParam();
 		return os;

@@ -98,6 +98,18 @@ namespace OpenMS
 			coordinate_[0]=x;
 			coordinate_[1]=y;
 		}
+    
+    /// Assignment operator
+    DPosition& operator = (const DPosition& source)
+    {
+      if (&source==this)
+        return *this;
+
+      std::copy(&(source.coordinate_[0]), &(source.coordinate_[D]), &(coordinate_[0]));
+
+      return *this;
+    }
+
 		//@}
 
 		/**	@name Accessors */

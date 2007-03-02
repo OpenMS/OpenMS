@@ -31,7 +31,7 @@
 #include <OpenMS/KERNEL/DPeakConstReferenceArray.h>
 #include <OpenMS/DATASTRUCTURES/DBoundingBox.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
-#include <OpenMS/ANALYSIS/MAPMATCHING/DLinearMapping.h>
+#include <OpenMS/ANALYSIS/MAPMATCHING/LinearMapping.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/BaseSuperimposer.h>
 
 #include <fstream>
@@ -112,7 +112,7 @@ namespace OpenMS
     typedef DPeakConstReferenceArray< PointMapType > PeakPointerArray;
     typedef DBoundingBox<2>  PositionBoundingBoxType;
     typedef DBoundingBox<1> IntensityBoundingBoxType;
-    typedef DLinearMapping< 1 > AffineTransformationType;
+    typedef LinearMapping AffineTransformationType;
     typedef std::pair<int,int> PairType;
     typedef std::map< PairType, QualityType> AffineTransformationMapType;
 
