@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<featurePairs>
+<pair nr="0">
+	<pairquality>0</pairquality>
+	<first>
+	<feature id="0">
+		<position dim="0">0</position>
+		<position dim="1">0</position>
+		<intensity>5</intensity>
+		<quality dim="0">0</quality>
+		<quality dim="1">0</quality>
+		<overallquality>0</overallquality>
+		<charge>0</charge>
+		<model name="">
+		</model>
+	</feature>
+	</first>
+	<second>
+	<feature id="1">
+		<position dim="0">1.4</position>
+		<position dim="1">2.5</position>
+		<intensity>0</intensity>
+		<quality dim="0">0</quality>
+		<quality dim="1">0</quality>
+		<overallquality>0</overallquality>
+		<charge>0</charge>
+		<model name="">
+		</model>
+	</feature>
+	</second>
+</pair>
+</featurePairs>
+<!-- Local Variables: -->
+<!-- mode: nxml -->
+<!-- tab-width: 2 -->
+<!-- End: -->
