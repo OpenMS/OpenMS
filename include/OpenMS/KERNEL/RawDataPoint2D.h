@@ -63,37 +63,37 @@ namespace OpenMS
 		/// Dimensions
 		//@{
 		
-		/// This enum maps the ymbolic names of the dimensions to numbers.
-    enum DimensionId
-      {
+		/// This enum maps the symbolic names of the dimensions to numbers
+		enum DimensionDescription
+			{
 				RT = 0, ///< Mass-to-charge dimension id (0 if used as a const int)
 				MZ = 1, ///< Retention time dimension id (1 if used as a const int)
 				DIMENSION = 2 ///< Number of dimensions
-      };
-
+			};
+		
     /// Short name of the dimension (abbreviated form)
-    static char const * const shortDimensionName(DimensionId const dim);
+    static char const * const shortDimensionName(DimensionDescription const dim);
     /// Short name of the dimension (abbreviated form)
     static char const * const shortDimensionNameRT();
     /// Short name of the dimension (abbreviated form)
     static char const * const shortDimensionNameMZ();
 
     /// Full name of the dimension (self-explanatory form)
-    static char const * const fullDimensionName(DimensionId const dim);
+    static char const * const fullDimensionName(DimensionDescription const dim);
     /// Full name of the dimension (self-explanatory form)
     static char const * const fullDimensionNameRT();
     /// Full name of the dimension (self-explanatory form)
     static char const * const fullDimensionNameMZ();
 
     /// Unit of measurement (abbreviated form)
-		static char const * const shortDimensionUnit(DimensionId const dim);
+		static char const * const shortDimensionUnit(DimensionDescription const dim);
     /// Unit of measurement (abbreviated form)
 		static char const * const shortDimensionUnitRT();
     /// Unit of measurement (abbreviated form)
 		static char const * const shortDimensionUnitMZ();
 
     /// Unit of measurement (self-explanatory form)
-		static char const * const fullDimensionUnit(DimensionId const dim);
+		static char const * const fullDimensionUnit(DimensionDescription const dim);
     /// Unit of measurement (self-explanatory form)
 		static char const * const fullDimensionUnitRT();
     /// Unit of measurement (self-explanatory form)
