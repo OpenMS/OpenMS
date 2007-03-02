@@ -51,7 +51,7 @@ RESULT
 
 CHECK((Peak1D(DPeak const& p)))
 	Peak1D p;
-	p.getIntensity() = 123.456;
+	p.setIntensity(123.456);
 	p.setMetaValue("cluster_id",4711);
 	
 	Peak1D copy_of_p(p);
@@ -62,7 +62,7 @@ RESULT
 
 CHECK((Peak1D& operator = (const DPeak& rhs)))
 	Peak1D p;
-	p.getIntensity() = 123.456;
+	p.setIntensity(123.456);
 	p.setMetaValue("cluster_id",4711);
 	
 	Peak1D copy_of_p;
@@ -76,9 +76,9 @@ CHECK((bool operator == (const Peak1D& rhs) const))
 	Peak1D p1, p2;
 	TEST_REAL_EQUAL(p1==p2, true)
 	
-	p1.getIntensity()=5;
+	p1.setIntensity(5);
 	TEST_REAL_EQUAL(p1==p2, false)
-	p2.getIntensity()=5;
+	p2.setIntensity(5);
 	TEST_REAL_EQUAL(p1==p2, true)
 
 	p1.setMetaValue("cluster_id",4711);
@@ -91,9 +91,9 @@ CHECK((bool operator != (const Peak1D& rhs) const))
 	Peak1D p1, p2;
 	TEST_REAL_EQUAL(p1!=p2, false)
 	
-	p1.getIntensity()=5;
+	p1.setIntensity(5);
 	TEST_REAL_EQUAL(p1!=p2, true)
-	p2.getIntensity()=5;
+	p2.setIntensity(5);
 	TEST_REAL_EQUAL(p1!=p2, false)
 
 	p1.setMetaValue("cluster_id",4711);

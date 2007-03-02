@@ -97,86 +97,86 @@ RESULT
 CHECK((DoubleReal& getRValue()))
 	PickedPeak1D p;
 	TEST_REAL_EQUAL(p.getRValue(), 0.0)
-	p.getRValue() = 0.456;
+	p.setRValue(0.456);
 	TEST_REAL_EQUAL(p.getRValue(), 0.456)
-	p.getRValue() = -0.12345;
+	p.setRValue(-0.12345);
 	TEST_REAL_EQUAL(p.getRValue(), -0.12345)
-	p.getRValue() = 0.0;
+	p.setRValue(0.0);
 	TEST_REAL_EQUAL(p.getRValue(), 0.0)
 RESULT
 
 CHECK((DoubleReal& getArea()))
 	PickedPeak1D p;
 	TEST_REAL_EQUAL(p.getArea(), 0.0)
-	p.getArea() = 123.456;
+	p.setArea(123.456);
 	TEST_REAL_EQUAL(p.getArea(), 123.456)
-	p.getArea() = -0.12345;
+	p.setArea(-0.12345);
 	TEST_REAL_EQUAL(p.getArea(), -0.12345)
-	p.getArea() = 0.0;
+	p.setArea(0.0);
 	TEST_REAL_EQUAL(p.getArea(), 0.0)
 RESULT
 
 CHECK((DoubleReal& getFWHM()))
 	PickedPeak1D p;
 	TEST_REAL_EQUAL(p.getFWHM(), 0.0)
-	p.getFWHM() = 123.456;
+	p.setFWHM(123.456);
 	TEST_REAL_EQUAL(p.getFWHM(), 123.456)
-	p.getFWHM() = -0.12345;
+	p.setFWHM(-0.12345);
 	TEST_REAL_EQUAL(p.getFWHM(), -0.12345)
-	p.getFWHM() = 0.0;
+	p.setFWHM(0.0);
 	TEST_REAL_EQUAL(p.getFWHM(), 0.0)
 RESULT
 
 CHECK((DoubleReal& getLeftWidthParameter()))
 	PickedPeak1D p;
 	TEST_REAL_EQUAL(p.getLeftWidthParameter(), 0.0)
-	p.getLeftWidthParameter() = 123.456;
+	p.setLeftWidthParameter(123.456);
 	TEST_REAL_EQUAL(p.getLeftWidthParameter(), 123.456)
-	p.getLeftWidthParameter() = -0.12345;
+	p.setLeftWidthParameter(-0.12345);
 	TEST_REAL_EQUAL(p.getLeftWidthParameter(), -0.12345)
-	p.getLeftWidthParameter() = 0.0;
+	p.setLeftWidthParameter(0.0);
 	TEST_REAL_EQUAL(p.getLeftWidthParameter(), 0.0)
 RESULT
 
 CHECK((DoubleReal& getRightWidthParameter()))
 	PickedPeak1D p;
 	TEST_REAL_EQUAL(p.getRightWidthParameter(), 0.0)
-	p.getRightWidthParameter() = 123.456;
+	p.setRightWidthParameter(123.456);
 	TEST_REAL_EQUAL(p.getRightWidthParameter(), 123.456)
-	p.getRightWidthParameter() = -0.12345;
+	p.setRightWidthParameter(-0.12345);
 	TEST_REAL_EQUAL(p.getRightWidthParameter(), -0.12345)
-	p.getRightWidthParameter() = 0.0;
+	p.setRightWidthParameter(0.0);
 	TEST_REAL_EQUAL(p.getRightWidthParameter(), 0.0)
 RESULT
 
 CHECK((PeakShapeType::Enum& getPeakShape()))
 	PickedPeak1D p;
 	TEST_EQUAL(p.getPeakShape(), PeakShapeType::UNDEFINED)
-	p.getPeakShape() = PeakShapeType::LORENTZ_PEAK;
+	p.setPeakShape(PeakShapeType::LORENTZ_PEAK);
 	TEST_EQUAL(p.getPeakShape(), PeakShapeType::LORENTZ_PEAK)
-	p.getPeakShape() = PeakShapeType::SECH_PEAK;
+	p.setPeakShape(PeakShapeType::SECH_PEAK);
 	TEST_EQUAL(p.getPeakShape(), PeakShapeType::SECH_PEAK)
 RESULT
 
 CHECK((DoubleReal& getSN()))
 	PickedPeak1D p;
 	TEST_REAL_EQUAL(p.getSN(), 0.0)
-	p.getSN() = 123.456;
+	p.setSN(123.456);
 	TEST_REAL_EQUAL(p.getSN(), 123.456)
-	p.getSN() = -0.12345;
+	p.setSN(-0.12345);
 	TEST_REAL_EQUAL(p.getSN(), -0.12345)
-	p.getSN() = 0.0;
+	p.setSN(0.0);
 	TEST_REAL_EQUAL(p.getSN(), 0.0)
 RESULT
 
 CHECK((SignedInt& getCharge()))
 	PickedPeak1D p;
 	TEST_EQUAL(p.getCharge(), 0.0)
-	p.getCharge() = 12;
+	p.setCharge(12);
 	TEST_EQUAL(p.getCharge(), 12)
-	p.getCharge() = -3;
+	p.setCharge(-3);
 	TEST_EQUAL(p.getCharge(), -3)
-	p.getCharge() = 0;
+	p.setCharge(0);
 	TEST_EQUAL(p.getCharge(), 0)
 RESULT
 
@@ -186,16 +186,16 @@ CHECK((PickedPeak1D(PickedPeak1D const& p)))
 
 	pos[0] = 21.21;
 	PickedPeak1D p;
-	p.getRValue() = 0.523;
-	p.getArea() = 10.234;
-	p.getFWHM() = 23.543;
-  p.getSN() = 12.212;
-  p.getLeftWidthParameter() = 2.35;
-  p.getRightWidthParameter() = p.getLeftWidthParameter();
-  p.getPeakShape() = PeakShapeType::LORENTZ_PEAK;
-	p.getIntensity() = 123.456;
-	p.getCharge() = 1234;
-	p.getPos() = pos;
+	p.setRValue(0.523);
+	p.setArea(10.234);
+	p.setFWHM(23.543);
+  p.setSN(12.212);
+  p.setLeftWidthParameter(2.35);
+  p.setRightWidthParameter(p.getLeftWidthParameter());
+  p.setPeakShape(PeakShapeType::LORENTZ_PEAK);
+	p.setIntensity(123.456);
+	p.setCharge(1234);
+	p.setPos(pos);
 	p.setMetaValue("cluster_id",4711);
 	
 	DoubleReal rv2;
@@ -239,16 +239,16 @@ CHECK((PickedPeak1D& operator = (const PickedPeak1D& rhs)))
 	pos[0] = 21.21;
 	
   PickedPeak1D p;
-	p.getRValue() = 0.523;
-	p.getArea() = 10.234;
-	p.getFWHM() = 23.543;
-  p.getSN() = 23.523;
-  p.getPeakShape() = PeakShapeType::SECH_PEAK;
-	p.getIntensity() = 123.456;
-	p.getCharge() = 1234;
-	p.getPos() = pos;
-	p.getLeftWidthParameter() = w;
-  p.getRightWidthParameter() = w;
+	p.setRValue(0.523);
+	p.setArea(10.234);
+	p.setFWHM(23.543);
+  p.setSN(23.523);
+  p.setPeakShape(PeakShapeType::SECH_PEAK);
+	p.setIntensity(123.456);
+	p.setCharge(1234);
+	p.setPos(pos);
+	p.setLeftWidthParameter(w);
+  p.setRightWidthParameter(w);
 	p.setMetaValue("cluster_id",4712);
 	
   DoubleReal rv2;
@@ -292,39 +292,39 @@ CHECK((bool operator == (const PickedPeak1D& rhs) const))
 	PickedPeak1D p2(p1);
 	TEST_REAL_EQUAL(p1==p2, true)
 
-	p1.getRValue()=5;
+	p1.setRValue(5);
 	TEST_REAL_EQUAL(p1==p2, false)
-	p2.getRValue()=5;
+	p2.setRValue(5);
 	TEST_REAL_EQUAL(p1==p2, true)
 	
-	p1.getArea()=5;
+	p1.setArea(5);
 	TEST_REAL_EQUAL(p1==p2, false)
-	p2.getArea()=5;
+	p2.setArea(5);
 	TEST_REAL_EQUAL(p1==p2, true)
 	
-	p1.getFWHM()=5;
+	p1.setFWHM(5);
 	TEST_REAL_EQUAL(p1==p2, false)
-	p2.getFWHM()=5;
+	p2.setFWHM(5);
 	TEST_REAL_EQUAL(p1==p2, true)	
 
-	p1.getSN()=5;
+	p1.setSN(5);
 	TEST_REAL_EQUAL(p1==p2, false)
-	p2.getSN()=5;
+	p2.setSN(5);
 	TEST_REAL_EQUAL(p1==p2, true)
 
-	p1.getPeakShape()=PeakShapeType::SECH_PEAK;
+	p1.setPeakShape(PeakShapeType::SECH_PEAK);
 	TEST_REAL_EQUAL(p1==p2, false)
-	p2.getPeakShape()=PeakShapeType::SECH_PEAK;
+	p2.setPeakShape(PeakShapeType::SECH_PEAK);
 	TEST_REAL_EQUAL(p1==p2, true)
 	
-	p1.getIntensity()=5;
+	p1.setIntensity(5);
 	TEST_REAL_EQUAL(p1==p2, false)
-	p2.getIntensity()=5;
+	p2.setIntensity(5);
 	TEST_REAL_EQUAL(p1==p2, true)
 	
-	p1.getCharge()=5;
+	p1.setCharge(5);
 	TEST_REAL_EQUAL(p1==p2, false)
-	p2.getCharge()=5;
+	p2.setCharge(5);
 	TEST_REAL_EQUAL(p1==p2, true)
 	
 	p1.getPos()[0]=5;
@@ -332,14 +332,14 @@ CHECK((bool operator == (const PickedPeak1D& rhs) const))
 	p2.getPos()[0]=5;
 	TEST_REAL_EQUAL(p1==p2, true)
 	
-	p1.getLeftWidthParameter()=5;
+	p1.setLeftWidthParameter(5);
 	TEST_REAL_EQUAL(p1==p2, false)
-	p2.getLeftWidthParameter()=5;
+	p2.setLeftWidthParameter(5);
 	TEST_REAL_EQUAL(p1==p2, true)		
 
-	p1.getRightWidthParameter()=5;
+	p1.setRightWidthParameter(5);
 	TEST_REAL_EQUAL(p1==p2, false)
-	p2.getRightWidthParameter()=5;
+	p2.setRightWidthParameter(5);
 	TEST_REAL_EQUAL(p1==p2, true)	
 RESULT
 
@@ -348,39 +348,39 @@ CHECK((bool operator != (const PickedPeak1D& rhs) const))
 	PickedPeak1D p2(p1);
 	TEST_REAL_EQUAL(p1!=p2, false)
 	
-	p1.getRValue()=5;
+	p1.setRValue(5);
 	TEST_REAL_EQUAL(p1!=p2, true)
-	p2.getRValue()=5;
+	p2.setRValue(5);
 	TEST_REAL_EQUAL(p1!=p2, false)
 	
-	p1.getArea()=5;
+	p1.setArea(5);
 	TEST_REAL_EQUAL(p1!=p2, true)
-	p2.getArea()=5;
+	p2.setArea(5);
 	TEST_REAL_EQUAL(p1!=p2, false)
 	
-	p1.getFWHM()=5;
+	p1.setFWHM(5);
 	TEST_REAL_EQUAL(p1!=p2, true)
-	p2.getFWHM()=5;
+	p2.setFWHM(5);
 	TEST_REAL_EQUAL(p1!=p2, false)
 
-	p1.getSN()=5;
+	p1.setSN(5);
 	TEST_REAL_EQUAL(p1!=p2, true)
-	p2.getSN()=5;
+	p2.setSN(5);
 	TEST_REAL_EQUAL(p1!=p2, false)
 
-	p1.getPeakShape()=PeakShapeType::SECH_PEAK;
+	p1.setPeakShape(PeakShapeType::SECH_PEAK);
 	TEST_REAL_EQUAL(p1!=p2, true)
-	p2.getPeakShape()=PeakShapeType::SECH_PEAK;
+	p2.setPeakShape(PeakShapeType::SECH_PEAK);
   TEST_REAL_EQUAL(p1!=p2, false) 
 
-	p1.getIntensity()=5;
+	p1.setIntensity(5);
 	TEST_REAL_EQUAL(p1!=p2, true)
-	p2.getIntensity()=5;
+	p2.setIntensity(5);
 	TEST_REAL_EQUAL(p1!=p2, false)
 	
-	p1.getCharge()=5;
+	p1.setCharge(5);
 	TEST_REAL_EQUAL(p1!=p2, true)
-	p2.getCharge()=5;
+	p2.setCharge(5);
 	TEST_REAL_EQUAL(p1!=p2, false)
 	
 	p1.getPos()[0]=5;
@@ -388,14 +388,14 @@ CHECK((bool operator != (const PickedPeak1D& rhs) const))
 	p2.getPos()[0]=5;
 	TEST_REAL_EQUAL(p1!=p2, false)
 	
-	p1.getLeftWidthParameter()=5;
+	p1.setLeftWidthParameter(5);
 	TEST_REAL_EQUAL(p1!=p2, true)
-	p2.getLeftWidthParameter()=5;
+	p2.setLeftWidthParameter(5);
 	TEST_REAL_EQUAL(p1!=p2, false)	
 
-	p1.getRightWidthParameter()=5;
+	p1.setRightWidthParameter(5);
 	TEST_REAL_EQUAL(p1!=p2, true)
-	p2.getRightWidthParameter()=5;
+	p2.setRightWidthParameter(5);
 	TEST_REAL_EQUAL(p1!=p2, false)	
 RESULT
 
