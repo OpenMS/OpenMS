@@ -53,7 +53,7 @@ namespace OpenMS
       "Thomson"
     };
   
-	char const * const RawDataPoint2D::shortDimensionName(DimensionId const dim)
+	char const * const RawDataPoint2D::shortDimensionName(DimensionDescription const dim)
 	{
 		return dimension_name_short[dim];
 	}
@@ -68,7 +68,7 @@ namespace OpenMS
 		return dimension_name_short[MZ];
 	}
 
-	char const * const RawDataPoint2D::fullDimensionName(DimensionId const dim)
+	char const * const RawDataPoint2D::fullDimensionName(DimensionDescription const dim)
 	{
 		return dimension_name_full[dim];
 	}
@@ -83,7 +83,7 @@ namespace OpenMS
 		return dimension_name_full[MZ];
 	}
 
-	char const * const RawDataPoint2D::shortDimensionUnit(DimensionId const dim)
+	char const * const RawDataPoint2D::shortDimensionUnit(DimensionDescription const dim)
 	{
 		return dimension_unit_short[dim];
 	}
@@ -98,7 +98,7 @@ namespace OpenMS
 		return dimension_unit_short[MZ];
 	}
 
-	char const * const RawDataPoint2D::fullDimensionUnit(DimensionId const dim)
+	char const * const RawDataPoint2D::fullDimensionUnit(DimensionDescription const dim)
 	{
 		return dimension_unit_full[dim];
 	}
