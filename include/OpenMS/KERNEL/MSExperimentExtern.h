@@ -27,11 +27,13 @@
 #ifndef OPENMS_KERNEL_MSEXPERIMENTEXTERN_H
 #define OPENMS_KERNEL_MSEXPERIMENTEXTERN_H
 
-#define _FILE_OFFSET_BITS 64
+// This does not work. 
+//#define _FILE_OFFSET_BITS 64
 
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/SYSTEM/File.h>
 
 #include<vector>
 #include<algorithm>
@@ -41,8 +43,6 @@
 #include <fstream>
 
 #include <stdio.h>
-// #include <sys/mman.h>
-// #include <sys/types.h>
 #include <sys/errno.h>
 
 namespace OpenMS
@@ -315,7 +315,7 @@ namespace OpenMS
 	    virtual ~MSExperimentExtern()
 	    {
 	        // delete temporary file
-	        std::remove( file_name_ .c_str());
+					File::remove( file_name_ );
 	    }
 	
 	    /// Assignment operator
@@ -336,7 +336,7 @@ namespace OpenMS
 					ms_levels_         = source.ms_levels_;
 	
 	        // generate new name for temp file
-	        std::remove( file_name_ .c_str());
+	        File::remove( file_name_  );
 	        file_name_ = String("msexp_") + std::rand();
 	        // and copy the old one
 	        copyTmpFile_(source.file_name_);
@@ -918,8 +918,6 @@ namespace OpenMS
 					
 					if (pos > 0)
 					{
-						//std::cout << "Setting stream to position : " << pos << std::endl;
-						//fseeko(pFile_, pos,SEEK_SET);
 						if ( fseeko(pFile_,pos,SEEK_SET) != 0)
 	        	{
 	            std::cout << "MSExperimentExtern:: Error determining reading position!" << std::endl;
@@ -947,8 +945,8 @@ namespace OpenMS
 	        // check if buffer is full
 	        if (buffer_index_ < buffer_size_)
 	        {
-	            //             std::cout << "buffer is not full, inserting scan at " << buffer_index_ << std::endl;
-	            // 			std::cout << scan2buffer_.size() << "  " << buffer2scan_.size() << std::endl;
+	            // 	std::cout << "buffer is not full, inserting scan at " << buffer_index_ << std::endl;
+	            // 	std::cout << scan2buffer_.size() << "  " << buffer2scan_.size() << std::endl;
 	
 	            // test if we already wrote at this buffer position
 	            if (current_scan_ > buffer_size_)
@@ -963,7 +961,7 @@ namespace OpenMS
 	        }
 	        else
 	        {
-	            // 			std::cout << "buffer is full, inserting scan at first position " << std::endl;
+	            //	std::cout << "buffer is full, inserting scan at first position " << std::endl;
 	            // buffer is full, therefore we overwrite the first entry
 	            buffer_index_ = 0;
 	
@@ -985,27 +983,8 @@ namespace OpenMS
 	    /// write spectrum to file
 	    void writeScan_(const size_type& index, const SpectrumType& spec) const
 	    {
-					//std::cout << "Writing scan " << index << std::endl;
-	// 				pFile_ = fopen(file_name_.c_str(),"a");
 	        CoordinateType rt  = spec.getRetentionTime();
 					UnsignedInt  mslvl = spec.getMSLevel();
-					
-	//         off_t pos = 0.0;
-	        // determine position in file and store it
-	//         if ( ( pos = ftello(pFile_) ) < 0)
-	//         {
-	//             std::cout << "MSExperimentExtern:: Error determining writing position!" << std::endl;
-	//             std::cout << "Error code: " << errno << std::endl;
-	//             if (errno == EOVERFLOW)
-	//             {
-	//                 std::cout << "An overflow of the position index was encountered." << std::endl;
-	//                 std::cout << "Try re-compiling this class using -D_FILE_OFFSET_BITS=64"  << std::endl;
-	//                 std::cout << "e.g. you might need to enable large file support for OpenMS since the temporary" << std::endl;
-	//                 std::cout << "file became too large." << std::endl;
-	//                 throw Exception::IndexOverflow(__FILE__, __LINE__,"MSExperimentExtern::writeScan_()",pos,sizeof(off_t));
-	//             }
-	// 
-	//         }
 	
 	        // test if this scan was already written and store its offset
 	        if (index >= scan_sizes_.size() )
@@ -1023,7 +1002,6 @@ namespace OpenMS
 	               // std::cout << "Size has not changed. Overwriting" << std::endl;
 									off_t pos = scan_location_[index];
 									openFile_(pos,"rb+");
-	                //fseeko(pFile_,pos,SEEK_SET);
 	            }
 	            else
 	            {
@@ -1031,46 +1009,25 @@ namespace OpenMS
 								//	std::cout << "Size has changed. Old "  << scan_sizes_[index] << " new " << spec.size() << std::endl;
 									scan_location_[index] = openFile_(0,"a");
 									scan_sizes_[index] = spec.getContainer().size();	// update scan size
-	//                 scan_location_[index] = pos;
 	            }
 	
 	        }
-	
-	       // std::cout << "writeScan_: writing scan " << index << " at " << ftello(pFile_) << std::endl;
-				//	std::cout << "Writing rt: " << rt << " and mslvl " << mslvl << std::endl;
+
 					// store retention time and ms level first
-	//         fwrite(&rt,sizeof(CoordinateType),1,pFile_);
 					if ( fwrite(&rt,sizeof(rt),1,pFile_) == 0 )
 					{
 					  std::cout << "Error writing retention time" << std::endl;
 						throw Exception::IndexOverflow(__FILE__, __LINE__,"MSExperimentExtern::readScan_()",1,sizeof(off_t));
 					}
-					//fwrite(&mslvl,sizeof(UnsignedInt),1,pFile_);
 					if (fwrite(&mslvl,sizeof(mslvl),1,pFile_) == 0)
 					{
 						std::cout << "Error writing ms level" << std::endl;
 						throw Exception::IndexOverflow(__FILE__, __LINE__,"MSExperimentExtern::readScan_()",1,sizeof(off_t));
 					}			
 					
-	//         size_t sizeof_peak =  sizeof(PeakType);
-	//				std::cout << "Writing " << spec.getContainer().size() << " peaks." << std::endl;
-	// 				std::cout << "Peak size: " << sizeof_peak << std::endl;
-	//         for (typename ContainerType::const_iterator cit = spec.getContainer().begin();
-	//                 cit != spec.getContainer().end(); ++cit)
-	//         {
-	// // 						std::cout << "Writing peak: "  << *cit << std::endl;
-	//             if ( fwrite(&(*cit),sizeof_peak,1,pFile_) != sizeof_peak )
-	// 						{
-	// 							std::cout << "Error writing peak data" << std::endl;
-	// 							throw Exception::IndexOverflow(__FILE__, __LINE__,"MSExperimentExtern::readScan_()",1,sizeof(off_t));
-	// 						}
-	//         }
-					
 					for (UnsignedInt i = 0; i < spec.getContainer().size();++i)
 	        {
 							PeakType p = spec.getContainer()[i];
-	// 						std::cout << "Writing peak: "  << *cit << std::endl;
-	//             if ( fwrite(&(spec.getContainer()[i]),sizeof(spec.getContainer()[i]),1,pFile_) != sizeof(spec.getContainer()[i]) )
 							if ( fwrite(&p,sizeof(p),1,pFile_) != 1 )
 							{
 								std::cout << "Error writing peak data" << std::endl;
@@ -1079,46 +1036,17 @@ namespace OpenMS
 	        }
 	
 	        fclose(pFile_);
-	
-	        // test if this scan was already written and store its size
-	//         if (index >= scan_sizes_.size() )
-	//         {
-	//             scan_sizes_.push_back(spec.getContainer().size());
-	//         }
-	//         else
-	//         {
-	//             scan_sizes_[index] = spec.getContainer().size();
-	//         }
-	
-	    } // end of write(spectrum)
+	    
+			} // end of write(spectrum)
 	
 	    /// Reads a spectrum from the temporary file
 	    void readScan_(const size_type& index, SpectrumType& spec)  const
 	    {
-	        //pFile_ = fopen(file_name_.c_str(),"r");
-					        
+  
 					// set stream to starting point of last writing action
-	// 				std::cout << "Reading from " << file_name_ << std::endl;
-	// 				std::cout << "Retrieving reading offset: " << scan_location_.size() << " " << index << std::endl;
 	        off_t pos = scan_location_[index];
 					
-					/*off_t p2 =*/ openFile_(pos,"rb");
-					
-	//				std::cout << "readScan_: reading scan " << index << " from " << p2 << std::endl;
-	//         if ( fseeko(pFile_,pos,SEEK_SET) != 0)
-	//         {
-	//             std::cout << "MSExperimentExtern:: Error determining reading position!" << std::endl;
-	//             std::cout << "Error code: " << errno << std::endl;
-	//             if (errno == EOVERFLOW)
-	//             {
-	//                 std::cout << "An overflow of the position index was encountered." << std::endl;
-	//                 std::cout << "Try re-compiling this class using -D_FILE_OFFSET_BITS=64"  << std::endl;
-	//                 std::cout << "e.g. you might need to enable large file support for OpenMS since the temporary" << std::endl;
-	//                 std::cout << "file became too large." << std::endl;
-	//                 throw Exception::IndexOverflow(__FILE__, __LINE__,"MSExperimentExtern::readScan_()",pos,sizeof(off_t));
-	//             }
-	//         }
-	
+					openFile_(pos,"rb");
 	        
 	        // read retention time
 	        CoordinateType rt = 0;
@@ -1131,9 +1059,6 @@ namespace OpenMS
 	        spec.setRetentionTime(rt);
 					spec.setMSLevel(mslvl);
 					unsigned int nr_peaks = scan_sizes_[index];
-	   //     std::cout << "Reading peaks: " << nr_peaks << std::endl;
-		//			std::cout << "Stream position: " << p2 << std::endl;
-		//			std::cout << "Desired position: " << pos << std::endl;
 	        spec.getContainer().clear();
 	        spec.resize(nr_peaks);
 	

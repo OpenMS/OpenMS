@@ -130,7 +130,7 @@ CHECK(ContainerType const& getData() const throw())
 	v.push_back(-.1);
 	lifd.setData(v);
 	TEST_EQUAL(lifd.getData().size(),v.size());
-	for ( int i = 0; i < v.size(); ++i )
+	for ( UnsignedInt i = 0; i < v.size(); ++i )
 		TEST_EQUAL(lifd.getData()[i],v[i]);
 }
 RESULT
@@ -146,7 +146,7 @@ CHECK(ContainerType& getData() throw())
 	lifd.setData(v);
 	LIFD const & lifd_cr = lifd;
 	TEST_EQUAL(lifd_cr.getData().size(),v.size());
-	for ( int i = 0; i < v.size(); ++i )
+	for ( UnsignedInt i = 0; i < v.size(); ++i )
 		TEST_EQUAL(lifd_cr.getData()[i],v[i]);
 }
 RESULT
@@ -253,7 +253,7 @@ CHECK(LinearInterpolation( LinearInterpolation const & arg ))
 	TEST_REAL_EQUAL(lifd2.getScale(), 10);
 	TEST_REAL_EQUAL(lifd2.getInsideReferencePoint(), 13);
 	TEST_REAL_EQUAL(lifd2.getOutsideReferencePoint(), 130);
-	for ( int i = 0; i < v.size(); ++i )
+	for ( UnsignedInt i = 0; i < v.size(); ++i )
 		TEST_EQUAL(lifd2.getData()[i],v[i]);
 }
 RESULT
@@ -274,7 +274,7 @@ CHECK(LinearInterpolation& operator= ( LinearInterpolation const & arg ))
 	TEST_REAL_EQUAL(lifd2.getScale(), 10);
 	TEST_REAL_EQUAL(lifd2.getInsideReferencePoint(), 13);
 	TEST_REAL_EQUAL(lifd2.getOutsideReferencePoint(), 130);
-	for ( int i = 0; i < v.size(); ++i )
+	for ( UnsignedInt i = 0; i < v.size(); ++i )
 		TEST_EQUAL(lifd2.getData()[i],v[i]);
 
 }

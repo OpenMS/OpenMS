@@ -152,7 +152,7 @@ namespace OpenMS
 			/// returns true if the peptide contains the given peptide
 			bool hasSubsequence(const AASequence& peptide) const;
 
-			// returns true if the peptide contains the given peptide
+			/// returns true if the peptide contains the given peptide
 			bool hasSubsequence(const String& peptide) const throw(Exception::ParseError);
 			
 			/// returns true if the peptide has the given prefix

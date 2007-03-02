@@ -119,6 +119,11 @@ namespace OpenMS
 		// not enough peaks to fit
 		if (set.size() < static_cast<Size>(param_.getValue("min_num_peaks:extended")))
 		{
+			for (IndexSet::const_iterator it=set.begin(); it!=set.end(); ++it) 
+			{
+				traits_->getPeakFlag(*it) = FeaFiTraits::UNUSED;
+			}
+			
 			String mess = String("Skipping feature, IndexSet size too small: ") + set.size();
 			throw UnableToFit(__FILE__, __LINE__,__PRETTY_FUNCTION__, "UnableToFit-IndexSet", mess.c_str());
 		}

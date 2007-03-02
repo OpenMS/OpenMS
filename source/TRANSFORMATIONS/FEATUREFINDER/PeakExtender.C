@@ -45,7 +45,7 @@ namespace OpenMS
     
     defaults_.setValue("intensity_factor",0.03f);
 		
-		defaults_.setValue("min_intensity_contribution",0.01f);
+		defaults_.setValue("min_intensity_contribution",0.1f);
 
     defaultsToParam_();
 	}
@@ -97,11 +97,14 @@ namespace OpenMS
         max_intensity = traits_->getPeakIntensity(seed);						
 			}
 			region_.insert(*citer);
+// 			boundary_.push(*citer);
     }
   
 		// remember last extracted point (in this case the seed !)
 		seed_pos_[RT] = traits_->getPeakRt(seed);
 		seed_pos_[MZ] = traits_->getPeakMz(seed);
+		// and insert it to the boundary
+		boundary_.push(seed);
 
 		cout << "Extending from " << traits_->getPeakRt(seed) << "/" << traits_->getPeakMz(seed); 
 		cout << " (" << seed.first << "/" << seed.second << ")" << endl;
@@ -134,7 +137,7 @@ namespace OpenMS
 			moveRtDown_(current_index);
 
 			// check flags (if data point is already inside a feature region or used as seed, we discard it)
-			if (traits_->getPeakFlag(current_index) == FeaFiTraits::SEED || traits_->getPeakFlag(current_index) == FeaFiTraits::UNUSED)
+			if (traits_->getPeakFlag(current_index) == FeaFiTraits::UNUSED)
 			{
 				traits_->getPeakFlag(current_index) = FeaFiTraits::INSIDE_FEATURE;
 				region_.insert(current_index);
@@ -183,7 +186,7 @@ namespace OpenMS
 				traits_->getNextMz(tmp);
 				if (isTooFarFromSeed_(tmp)) break;
 				
-				if (traits_->getPeakFlag(index) != FeaFiTraits::INSIDE_FEATURE)
+				if (traits_->getPeakFlag(index) == FeaFiTraits::UNUSED)
 				{
 					boundary_.push(tmp);
 				}
@@ -204,7 +207,7 @@ namespace OpenMS
 				traits_->getPrevMz(tmp);
 				if (isTooFarFromSeed_(tmp))	break;
 				
-				if (traits_->getPeakFlag(index) != FeaFiTraits::INSIDE_FEATURE)
+				if (traits_->getPeakFlag(index) == FeaFiTraits::UNUSED)
 				{
 					boundary_.push(tmp);
 				}
@@ -227,7 +230,7 @@ namespace OpenMS
 				traits_->getNextRt(tmp);
 				if (isTooFarFromSeed_(tmp)) break;
 				
-				if (traits_->getPeakFlag(index) != FeaFiTraits::INSIDE_FEATURE)
+				if (traits_->getPeakFlag(index) == FeaFiTraits::UNUSED)
 				{
 					boundary_.push(tmp);
 				}
@@ -249,7 +252,7 @@ namespace OpenMS
 				traits_->getPrevRt(tmp);
 				if (isTooFarFromSeed_(tmp)) break;
 				
-				if (traits_->getPeakFlag(index) != FeaFiTraits::INSIDE_FEATURE)
+				if (traits_->getPeakFlag(index) == FeaFiTraits::UNUSED)
 				{
 					boundary_.push(tmp);
 				}

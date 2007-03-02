@@ -57,7 +57,7 @@ namespace OpenMS
 		
 		// determines width of feature box
 		defaults_.setValue("mass_tolerance_right",2.5);
-		defaults_.setValue("mass_tolerance_left",6.0);
+		defaults_.setValue("mass_tolerance_left",3.0);
 		
 		// number of scans used for alignment
     defaults_.setValue("scans_to_sumup",5);
@@ -92,12 +92,12 @@ namespace OpenMS
 
 	void IsotopeWaveletSeeder::updateMembers_()
 	{
-		rt_votes_cutoff_ = param_.getValue("rtvotes_cutoff");
-		intensity_factor_ = param_.getValue("intensity_factor");
-		avg_intensity_factor_ = param_.getValue("avg_intensity_factor");
+		rt_votes_cutoff_          = param_.getValue("rtvotes_cutoff");
+		intensity_factor_         = param_.getValue("intensity_factor");
+		avg_intensity_factor_   = param_.getValue("avg_intensity_factor");
 		mass_tolerance_right_ = param_.getValue("mass_tolerance_right");
-		mass_tolerance_left_ = param_.getValue("mass_tolerance_left");
-		tolerance_scansum_ = param_.getValue("tolerance_scansum");
+		mass_tolerance_left_   = param_.getValue("mass_tolerance_left");
+		tolerance_scansum_    = param_.getValue("tolerance_scansum");
 		
     // store charge states
     for (UnsignedInt i=(UnsignedInt)param_.getValue("min_charge"); i<=(UnsignedInt)param_.getValue("max_charge"); ++i)
@@ -235,11 +235,12 @@ namespace OpenMS
 			
 				// The isotope wavelet operates on mass bins and not actual masses in the spectrum
 				// We therefore need to check a couple of surrounding peaks in order to find the monoisotopic one
-				// walk to the left
+				// walk to the left for at most 10 data points
 				for (UnsignedInt p=0; p<=10; ++p)
 				{
 					if ( miso_mass - (insert_iter - p)->getMZ() < mass_tolerance_right_  )
 					{
+						traits_->getPeakFlag(  make_pair(current_scan,insert_iter - traits_->getData()[current_scan].begin() )  ) = FeaFiTraits::SEED;
 				 		region.insert( make_pair(current_scan,insert_iter - traits_->getData()[current_scan].begin()) );
 					}
 					//abort when the left border is reached
@@ -251,10 +252,17 @@ namespace OpenMS
 	
 			CoordinateType mass_distance = 0;
 			// walk to the right
-			while (mass_distance < mass_tolerance_left_ && insert_iter != (traits_->getData()[current_scan].begin()-1) )
+			while (mass_distance < mass_tolerance_left_ && insert_iter != (traits_->getData()[current_scan].end()-1) )
 			{
 				++insert_iter;
-				region.insert( make_pair(current_scan,insert_iter - traits_->getData()[current_scan].begin()) );
+				
+				// test if point is not included in any other region
+				if ( traits_->getPeakFlag(  make_pair(current_scan,insert_iter - traits_->getData()[current_scan].begin() )  ) == FeaFiTraits::UNUSED )
+				{
+					traits_->getPeakFlag(  make_pair(current_scan,insert_iter - traits_->getData()[current_scan].begin() )  ) = FeaFiTraits::SEED;
+					region.insert( make_pair(current_scan,insert_iter - traits_->getData()[current_scan].begin()) );
+				}
+				
 				mass_distance = ((insert_iter + 1)->getMZ() - miso_mass);
 			} 
 													
@@ -329,7 +337,9 @@ namespace OpenMS
 		std::list<UnsignedInt>::const_iterator charge_iter;
 		UnsignedInt k=0; //helping variables
 		double max=0;
-	
+
+		std::cout << "fastMultiCorrelate(...) " << std::endl;
+			
 		for (UnsignedInt i=0; i<signal_size; ++i)
 		{
 	
@@ -342,7 +352,7 @@ namespace OpenMS
 				realMass = signal[i].getMZ() * (*charge_iter);
 	
 				lambda = getLambda (realMass); 	//Lambda determines the distribution (the shape) of the wavelet
-				 max_w_monoi_intens=0.25/(*charge_iter);
+				max_w_monoi_intens=0.25/(*charge_iter);
 	
 				//Align the maximum monoisotopic peak of the wavelet with some signal point
 				UnsignedInt j=0;
@@ -409,7 +419,7 @@ namespace OpenMS
 			std::vector<double> sums (charges_.size());
 			k=0;
 	
-					//Since all wavelet functions have the same length, we can simply use phis[0].size()
+			//Since all wavelet functions have the same length, we can simply use phis[0].size()
 			for (UnsignedInt j=i; j<signal_size && k<phis[0].size(); ++j, ++k)
 			{	
 				for (UnsignedInt m=0; m<charges_.size(); ++m)
@@ -440,13 +450,16 @@ namespace OpenMS
 	
 	void IsotopeWaveletSeeder::identifyCharge (const std::vector<DPeakArray<1, PeakType > >& candidates, std::vector<double>* wt_thresholds, UnsignedInt scan)
 	{
+	
+		std::cout << "identifyCharge(...) " << std::endl;
+		
 		std::vector<double> int_mins (candidates[0].size(),INT_MIN), zeros (candidates[0].size(),0);
 		WaveletCollection scoresC (candidates.size(), zeros);
 			
 		std::vector<unsigned int> start_indices, end_indices;
 		//In order to determine the start and end indices, we first need to know the width of the region one should consider
 		//to estimate the mean and the sd of the pattern candidate.
-		//That region is defined by the position of the heighest amplitude +/- waveletLength_.
+		//That region is defined by the position of the highest amplitude +/- waveletLength_.
 	
 		typedef MSSpectrum<RawDataPoint2D >::ContainerType containerType;
 		containerType::iterator iter;
@@ -458,18 +471,22 @@ namespace OpenMS
 	
 		ChargeVector::const_iterator charge_iter = charges_.begin();
 	
-		for (unsigned int c=0; c<candidates.size(); ++c)
+		for (UnsignedInt c=0; c<candidates.size(); ++c)
 		{		
 			processed = std::vector<bool> (candidates[0].size(), false); 				//Reset
 			containerType c_candidate(candidates[c].size());
 			
+			std::cout << "Filling intensities..." << std::endl;
+			
 			//Ugly, but do not how to do this in a better (and easy) way
-			for (unsigned int i=0; i<candidates[c].size(); ++i)
+			for (UnsignedInt i=0; i<candidates[c].size(); ++i)
 			{
-				c_candidate[i].setPos(DPosition<2>( candidates[c][i].getPos()[1],i));
+				c_candidate[i].setPos(DPosition<2>( candidates[c][i].getMZ(),i));
 				c_candidate[i].setIntensity( candidates[c][i].getIntensity() );
 			}
 	
+			std::cout << "Sorting intensities..." << std::endl;
+			
 			sort (c_candidate.begin(), c_candidate.end(), 	ReverseComparator< RawDataPoint2D::IntensityLess>() );
 			c_av_intens = getAbsMean (candidates[c], 0, candidates[c].size());
 					
@@ -501,7 +518,7 @@ namespace OpenMS
 			for (iter=c_candidate.begin(); iter != c_candidate.end(); ++iter, ++i_iter)
 			{
 				// Retrieve index
-				c_index = (int) (iter->getPos()[1]);
+				c_index = (int) (iter->getMZ());	// int) (iter->getPos()[1]);
 	
 				if (processed[c_index]) continue;			   
 	
