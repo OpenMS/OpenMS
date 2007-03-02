@@ -29,9 +29,7 @@
 #define OPENMS_ANALYSIS_MAPMATCHING_BASEPAIRFINDER_REGISTERCHILDREN_H
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/BasePairFinder.h>
-#ifdef CGAL_DEF
-#  include <OpenMS/ANALYSIS/MAPMATCHING/DelaunayPairFinder.h>
-#endif
+#include <OpenMS/ANALYSIS/MAPMATCHING/DelaunayPairFinder.h>
 
 namespace OpenMS
 {
@@ -40,10 +38,7 @@ namespace OpenMS
   {
     Factory< BasePairFinder<PointMapType> >::registerProduct(SimplePairFinder<PointMapType>::getProductName(), &SimplePairFinder<PointMapType>::create);
 
-#if CGAL_DEF
     Factory< BasePairFinder<PointMapType> >::registerProduct(DelaunayPairFinder<PointMapType>::getProductName(), &DelaunayPairFinder<PointMapType>::create);
-#endif
-
   }
 
 } // namespace OpenMS

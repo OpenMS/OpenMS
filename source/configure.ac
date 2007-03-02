@@ -43,7 +43,6 @@ AC_ARG_WITH(moc,               [  --with-moc=MOC          use MOC as the absolut
 AC_ARG_WITH(uic,               [  --with-uic=UIC          use UIC as the absolute path to the QT user interface compiler (uic)])
 AC_ARG_WITH(opengl-incl,       [  --with-opengl-incl=DIR  OpenGL/Mesa header files are in DIR/GL])
 AC_ARG_WITH(opengl-libs,       [  --with-opengl-libs=DIR  OpenGL/Mesa libraries are in DIR/GL])
-AC_ARG_ENABLE(cgal,            [  --disable-cgal          disable the use of CGAL (for advanced d-dimensional geometry)])
 AC_ARG_WITH(cgal-incl,         [  --with-cgal-incl=DIR    CGAL header files are in DIR])
 AC_ARG_WITH(cgal-libs,         [  --with-cgal-libs=DIR    CGAL libraries are in DIR])
 AC_ARG_WITH(mesa,              [  --with-mesa             use MESA instead of OpenGL])
@@ -208,12 +207,8 @@ else
   GSL_LIBPATH=$DEFAULT_LIB_PATH
 fi
 
-if test "$with_cgal" = "no" -o "$enable_cgal" = "no"; then
-  CGAL_SUPPORT=false
-else
-  CGAL_SUPPORT=true
-  AC_DEFINE(CGAL_DEF)
-fi
+CGAL_SUPPORT=true
+AC_DEFINE(CGAL_DEF)
 
 if test "$with_cgal_incl" != "" ; then
   CGAL_INCPATH="${with_cgal_incl}"

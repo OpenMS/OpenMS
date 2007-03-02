@@ -31,11 +31,8 @@
 #include <OpenMS/FORMAT/DB/DBAdapter.h>
 #endif
 
-#ifdef CGAL_DEF
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinder.h>
 #include <OpenMS/VISUAL/DIALOGS/FeaFiDialog.h>
-#endif
-
 #include <OpenMS/VISUAL/DIALOGS/SaveImageDialog.h>
 #include <OpenMS/VISUAL/DIALOGS/TOPPViewBasePDP.h>
 #include <OpenMS/VISUAL/Spectrum1DCanvas.h>
@@ -2205,7 +2202,6 @@ namespace OpenMS
 
   void TOPPViewBase::findFeaturesActiveSpectrum()
   {
-#ifdef CGAL_DEF
     Spectrum2DWindow* w = active2DWindow_();
     if (w!=0)
     {
@@ -2224,7 +2220,6 @@ namespace OpenMS
         updateLayerbar();
       }
     }
-#endif
   }
 
   void TOPPViewBase::openSpectrumDialog()

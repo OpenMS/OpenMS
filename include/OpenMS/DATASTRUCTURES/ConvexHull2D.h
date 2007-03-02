@@ -36,10 +36,8 @@
 #include <map>
 #include <math.h>
 
-#ifdef CGAL_DEF
-	#include <CGAL/Cartesian.h>
-	#include <CGAL/convex_hull_2.h>
-#endif
+#include <CGAL/Cartesian.h>
+#include <CGAL/convex_hull_2.h>
 
 namespace OpenMS
 {
@@ -81,7 +79,6 @@ namespace OpenMS
 				//init
 				points_.clear();
 				if (points.size()==0) return *this;
-#ifdef CGAL_DEF				
 				//convert input to cgal
 				std::vector<Point_2> cgal_points;
 				for (PointArrayTypeConstIterator it = points.begin(); it!=points.end(); ++it)
@@ -96,9 +93,6 @@ namespace OpenMS
 				{
 					points_.push_back( PointType(cit->x(),cit->y()) );			
 				} 	
-#else
-				giftWrapping_(points,points_);
-#endif
 				return *this;
 			}
 
@@ -162,7 +156,6 @@ namespace OpenMS
 				{
 					return false;
 				}
-#ifdef CGAL_DEF				
 				//convert input to cgal
 				std::vector<Point_2> cgal_points;
 				for (PointArrayTypeConstIterator it = points_.begin(); it!=points_.end(); ++it)
@@ -186,139 +179,12 @@ namespace OpenMS
 						return false;
 					}
 				}
-#else
-			PointArrayType tmp = points_,new_hull;
-			tmp.push_back(point);
-			giftWrapping_(tmp,new_hull);
-			
-			//point added => return false
-			if (new_hull.size()!=points_.size()) return false;
-			
-			//different points now => return false
-			for (PointArrayTypeConstIterator it = new_hull.begin(); it !=	new_hull.end(); ++it)
-			{
-				if (find(points_.begin(),points_.end(),*it)==points_.end())
-				{
-					return false;
-				}
-			}
-#endif
 	      return true;
 			}
 			
 		protected:
 			PointArrayType points_;
-#ifdef CGAL_DEF
 			typedef CGAL::Cartesian<double>::Point_2 Point_2;
-#endif
-		
-		/// fallback implementation if CGAL is not present
-		void giftWrapping_(const PointArrayType& input, PointArrayType& output) const
-		{
-			//nothing to do for one or two points
-			if (input.size()<3)
-			{
-				output = input;
-				return;
-			}
-			else
-			{
-				output.clear();
-			}
-			//Precision for double comparisons
-			const double PRECISION = 0.0001;
-			
-			// keep track of already in hull included peaks to avoid unnecessary computations of triangle area
-			std::map<PointType, bool> is_included;
-			
-			PointType::CoordinateType min_mz = std::numeric_limits<PointType::CoordinateType>::max();
-			PointArrayTypeConstIterator min = input.begin();
-			
-			// Find peak with minimal mz to start wrapping
-			for (PointArrayTypeConstIterator it = input.begin(); it!=input.end(); ++it)
-			{
-				if ((*it)[1] < min_mz)
-				{
-				   min_mz = (*it)[1];
-				   min = it;
-				}
-				is_included[*it] = false;
-			}
-			output.push_back(*min);
-			
-			// Hull peaks denoting current hull line
-			PointArrayTypeConstIterator hull_peak1 = min;
-			PointArrayTypeConstIterator start = input.begin();
-			if (start==min)
-			++start;  // don't start at "min" because of while-condition
-			PointArrayTypeConstIterator hull_peak2 = start;
-			
-			while (hull_peak2!=min)
-			{
-				bool found_any = false;
-				for (PointArrayTypeConstIterator it = input.begin(); it!=input.end(); ++it)
-				{
-					// skip if already used
-					if (is_included[*it] || it==hull_peak1 || it==hull_peak2)
-					   continue;
-					
-					found_any = true;
-					// "it" lies to the right of the line [hull_peak1,hull_peak2]
-					
-					// triangle area via determinant: x0*y1+x1*y2+x2*y0-x2*y1-x1*y0-x0*y2
-					double area = (*hull_peak1)[1]*(*hull_peak2)[0] + (*hull_peak2)[1]*(*it)[0] + (*it)[1]*(*hull_peak1)[0] - (*it)[1]*(*hull_peak2)[0] - (*hull_peak2)[1]*(*hull_peak1)[0] - (*hull_peak1)[1]*(*it)[0];
-
-					if (area>-PRECISION)
-					{
-						// area almost 0 -> collinear input
-						// -> avoid consecutive peaks with equal mz or rt coordinate
-						if (fabs(area)<PRECISION)
-						{
-						   double mz1 = (*hull_peak1)[1];
-						   double mz2 = (*hull_peak2)[1];
-						   double mz3 = (*it)[1];
-						   double rt1 = (*hull_peak1)[0];
-						   double rt2 = (*hull_peak2)[0];
-						   double rt3 = (*it)[0];
-						   if ( 
-						   			(fabs(mz2-mz3)<PRECISION && fabs(rt2-rt1) > fabs(rt3-rt1)) 
-						   			|| 
-						   			(fabs(rt2-rt3)<PRECISION && fabs(mz2-mz1) > fabs(mz3-mz1))
-						   			)
-						   {
-						       is_included[*it] = true;
-						       continue;
-						   }
-						}
-						hull_peak2 = it;  // "it" becomes new hull peak
-			  	}
-				}
-				
-				if (!found_any)
-				{
-				   hull_peak2 = min; // no available peaks anymore
-				   continue;
-				}
-				
-				if (hull_peak2 == min)
-				{
-					continue;  // finish loop
-				}
-				is_included[*hull_peak2] = true;
-				
-				// continue wrapping
-				hull_peak1 = hull_peak2;
-				// hull_peak2 satisfies the contition: all peaks lie to the left of [hull_peak1,hull_peak2]
-				output.push_back(*hull_peak2);
-				
-				start = input.begin();
-				if (start==min)
-				{
-				   ++start;  // don't start at "min" because of while-condition
-				}
-				hull_peak2 = start;
-			}
-		}
 	};
 } // namespace OPENMS
 

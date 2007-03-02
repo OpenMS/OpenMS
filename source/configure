@@ -853,7 +853,6 @@ Optional Features:
   --disable-pedantic      removes the '-pedantic' flag when using gcc
   --disable-db            disable support for database connectivity
   --with-db-plugin        set the Qt SQL DB plugin to use (default: QMYSQL)
-  --disable-cgal          disable the use of CGAL (for advanced d-dimensional geometry)
   --disable-netcdf        disable the use of NetCDF (a library for a data format)
   --disable-andims        disable the use of ANDI/MS (a library for a data format based on NetCDF)
   --disable-boost         disable the use of the Boost library (used for persitence)
@@ -1567,11 +1566,6 @@ if test "${with_opengl_libs+set}" = set; then
   withval="$with_opengl_libs"
 
 fi;
-# Check whether --enable-cgal or --disable-cgal was given.
-if test "${enable_cgal+set}" = set; then
-  enableval="$enable_cgal"
-
-fi;
 
 # Check whether --with-cgal-incl or --without-cgal-incl was given.
 if test "${with_cgal_incl+set}" = set; then
@@ -1825,15 +1819,11 @@ else
   GSL_LIBPATH=$DEFAULT_LIB_PATH
 fi
 
-if test "$with_cgal" = "no" -o "$enable_cgal" = "no"; then
-  CGAL_SUPPORT=false
-else
-  CGAL_SUPPORT=true
-  cat >>confdefs.h <<\_ACEOF
+CGAL_SUPPORT=true
+cat >>confdefs.h <<\_ACEOF
 #define CGAL_DEF 1
 _ACEOF
 
-fi
 
 if test "$with_cgal_incl" != "" ; then
   CGAL_INCPATH="${with_cgal_incl}"

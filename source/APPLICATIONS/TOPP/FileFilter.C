@@ -158,18 +158,18 @@ class TOPPFileFilter
 			//-------------------------------------------------------------
 			
 			//remove ms level first (might be a large amount of spectra)
-			exp.erase(remove_if(exp.begin(), exp.end(), MSLevelRange<MSExperiment< >::SpectrumType>(levels, true)), exp.end());
+			exp.erase(remove_if(exp.begin(), exp.end(), InMSLevelRange<MSExperiment< >::SpectrumType>(levels, true)), exp.end());
 			
 			//remove zoom scan mode (might be a lot of spectra)
 			bool rem_zoom = getFlag_("remove_zoom");
 			writeDebug_(String("Remove zoom: ") + String(rem_zoom),3);
 			if (rem_zoom)
 			{
-				exp.erase(remove_if(exp.begin(), exp.end(), ScanModePredicate<MSExperiment< >::SpectrumType>(InstrumentSettings::SELECTEDIONDETECTION)), exp.end());
+				exp.erase(remove_if(exp.begin(), exp.end(), HasScanMode<MSExperiment< >::SpectrumType>(InstrumentSettings::SELECTEDIONDETECTION)), exp.end());
 			}
 				
 			//remove empty scans
-			exp.erase(remove_if(exp.begin(), exp.end(), SpectrumEmptyPredicate<MSExperiment< >::SpectrumType>()), exp.end());
+			exp.erase(remove_if(exp.begin(), exp.end(), IsEmptySpectrum<MSExperiment< >::SpectrumType>()), exp.end());
 			
 			//-------------------------------------------------------------
 			// writing output

@@ -29,10 +29,8 @@
 
 #include <OpenMS/config.h>
 
-#ifdef CGAL_DEF
-  #include <CGAL/Cartesian.h>
-  #include <CGAL/Polygon_2.h>
-#endif
+#include <CGAL/Cartesian.h>
+#include <CGAL/Polygon_2.h>
 
 #include <list>
 #include <vector>
@@ -88,10 +86,8 @@ namespace OpenMS
 	
 	  private:
 
-    	#ifdef CGAL_DEF
       typedef CGAL::Point_2<CGAL::Cartesian<double> > Point;
       typedef CGAL::Polygon_2<CGAL::Cartesian<double> > Polygon;
-    	#endif
 
       /// predicate for sort()
       class simsortdec

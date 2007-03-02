@@ -90,7 +90,7 @@ namespace OpenMS
 		@ingroup RangeUtils
 	*/
 	template <class SpectrumType>
-	class RTRange
+	class InRTRange
 		: std::unary_function<SpectrumType, bool>
 	{
 		public:
@@ -101,7 +101,7 @@ namespace OpenMS
 				@param max upper boundary
 				@param reverse if @p reverse is true, operator() return true if the spectrum lies outside the range
 			*/
-			RTRange(double min, double max, bool reverse = false)
+			InRTRange(double min, double max, bool reverse = false)
 				: 
 				min_(min),
 				max_(max),
@@ -133,7 +133,7 @@ namespace OpenMS
 		@ingroup RangeUtils
 	*/	
 	template <class SpectrumType>
-	class MSLevelRange
+	class InMSLevelRange
 		: std::unary_function<SpectrumType, bool>
 	{
 		public:
@@ -143,7 +143,7 @@ namespace OpenMS
 				@param levels an array of MS levels
 				@param reverse if @p reverse is true, operator() return true if the spectrum lies outside the set
 			*/
-			MSLevelRange(const std::vector<UnsignedInt>& levels, bool reverse = false)
+			InMSLevelRange(const std::vector<UnsignedInt>& levels, bool reverse = false)
 				: 
 				levels_(levels),
 				reverse_(reverse)
@@ -174,7 +174,7 @@ namespace OpenMS
 		@ingroup RangeUtils
 	*/	
 	template <class SpectrumType>
-	class ScanModePredicate
+	class HasScanMode
 		: std::unary_function<SpectrumType, bool>
 	{
 		public:
@@ -184,7 +184,7 @@ namespace OpenMS
 				@param mode scan mode
 				@param reverse if @p reverse is true, operator() return true if the spectrum has a different scan mode
 			*/
-			ScanModePredicate(SignedInt mode, bool reverse = false)
+			HasScanMode(SignedInt mode, bool reverse = false)
 				: 
 				mode_(mode),
 				reverse_(reverse)
@@ -214,7 +214,7 @@ namespace OpenMS
 		@ingroup RangeUtils
 	*/	
 	template <class SpectrumType>
-	class SpectrumEmptyPredicate
+	class IsEmptySpectrum
 		: std::unary_function<SpectrumType, bool>
 	{
 		public:
@@ -223,7 +223,7 @@ namespace OpenMS
 				
 				@param reverse if @p reverse is true, operator() return true if the spectrum is not empty
 			*/
-			SpectrumEmptyPredicate(bool reverse = false)
+			IsEmptySpectrum(bool reverse = false)
 				: reverse_(reverse)
 			{
 				
@@ -252,7 +252,7 @@ namespace OpenMS
 		@ingroup RangeUtils
 	*/		
 	template <class PeakType>
-	class MzRange
+	class InMzRange
 		: std::unary_function<PeakType, bool>
 	{
 		public:
@@ -263,7 +263,7 @@ namespace OpenMS
 				@param max upper boundary
 				@param reverse if @p reverse is true, operator() return true if the peak lies outside the set
 			*/
-			MzRange(double min, double max, bool reverse = false)
+			InMzRange(double min, double max, bool reverse = false)
 				: 
 				min_(min),
 				max_(max),
@@ -295,7 +295,7 @@ namespace OpenMS
 		@ingroup RangeUtils
 	*/	
 	template <class PeakType>
-	class IntensityRange
+	class InIntensityRange
 		: std::unary_function<PeakType, bool>
 	{
 		public:
@@ -306,7 +306,7 @@ namespace OpenMS
 				@param max upper boundary
 				@param reverse if @p reverse is true, operator() return true if the peak lies outside the set
 			*/
-			IntensityRange(double min, double max, bool reverse = false)
+			InIntensityRange(double min, double max, bool reverse = false)
 				: 
 				min_(min),
 				max_(max),
