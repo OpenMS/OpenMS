@@ -119,8 +119,8 @@ namespace OpenMS
     traits_->getPeakFlag(seed) = FeaFiTraits::SEED;
     		
 		// remember last extracted point (in this case the seed !)
-		last_pos_extracted_[RT] = traits_->getPeakRt(seed);
-		last_pos_extracted_[MZ] = traits_->getPeakMz(seed);
+		last_pos_extracted_[RawDataPoint2D::RT] = traits_->getPeakRt(seed);
+		last_pos_extracted_[RawDataPoint2D::MZ] = traits_->getPeakMz(seed);
 		
 		// Add peaks in the region to boundary
     for (IndexSet::const_iterator citer = seed_region.begin(); citer != seed_region.end(); ++citer)
@@ -157,8 +157,8 @@ namespace OpenMS
 			}
 			
 			// remember last extracted peak
-			last_pos_extracted_[RT] = traits_->getPeakRt(current_index);
-			last_pos_extracted_[MZ] = traits_->getPeakMz(current_index);
+			last_pos_extracted_[RawDataPoint2D::RT] = traits_->getPeakRt(current_index);
+			last_pos_extracted_[RawDataPoint2D::MZ] = traits_->getPeakMz(current_index);
 
 			// Now we explore the neighbourhood of the current peak. Peaks in this area are included
 			// into the boundary if their intensity is not too low and they are not too
@@ -200,10 +200,10 @@ namespace OpenMS
 
      const FeaFiTraits::PositionType2D& curr_mean = running_avg_.getPosition();
 
-    if ( traits_->getPeakMz(index) > curr_mean[MZ] + dist_mz_up_   ||
-				 traits_->getPeakMz(index) < curr_mean[MZ] - dist_mz_down_ ||
-				 traits_->getPeakRt(index) > curr_mean[RT] + dist_rt_up_   ||
-				 traits_->getPeakRt(index) < curr_mean[RT] - dist_rt_down_ )
+    if ( traits_->getPeakMz(index) > curr_mean[RawDataPoint2D::MZ] + dist_mz_up_   ||
+				 traits_->getPeakMz(index) < curr_mean[RawDataPoint2D::MZ] - dist_mz_down_ ||
+				 traits_->getPeakRt(index) > curr_mean[RawDataPoint2D::RT] + dist_rt_up_   ||
+				 traits_->getPeakRt(index) < curr_mean[RawDataPoint2D::RT] - dist_rt_down_ )
     {
     	//too far
 			return true;
@@ -285,8 +285,8 @@ namespace OpenMS
 	SimpleExtender::ProbabilityType SimpleExtender::computePeakPriority_(const IDX& index)
 	{
 		return traits_->getData()[index.first][index.second].getIntensity() *
- 			score_distribution_rt_.value(traits_->getData()[index.first].getRetentionTime()-last_pos_extracted_[RT]) *
-			score_distribution_mz_.value(traits_->getData()[index.first][index.second].getMZ()-last_pos_extracted_[MZ]);
+ 			score_distribution_rt_.value(traits_->getData()[index.first].getRetentionTime()-last_pos_extracted_[RawDataPoint2D::RT]) *
+			score_distribution_mz_.value(traits_->getData()[index.first][index.second].getMZ()-last_pos_extracted_[RawDataPoint2D::MZ]);
 	}
 
 	void SimpleExtender::checkNeighbour_(const IDX& index)

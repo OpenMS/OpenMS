@@ -63,13 +63,6 @@ namespace OpenMS
   	typedef DoubleReal ProbabilityType;
 		/// Position of a point
 		typedef  FeaFiTraits::PositionType2D PositionType2D;
-  	
-  	enum DimensionId
-			{ 
-				RT = DimensionDescription < LCMS_Tag >::RT,
-				MZ = DimensionDescription < LCMS_Tag >::MZ
-			};
-  
   	/// Default constructor
     PeakExtender();
 
