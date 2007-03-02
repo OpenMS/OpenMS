@@ -130,13 +130,6 @@ namespace OpenMS
       using DSignalToNoiseEstimator<D, PeakIterator>::rt_dim_;
       using DSignalToNoiseEstimator<D, PeakIterator>::mz_dim_;
 
-      enum DimensionID
-      {
-        RT = DimensionDescription < LCMS_Tag >::RT,
-        MZ = DimensionDescription < LCMS_Tag >::MZ
-    };
-
-
       /// (default) constructor
       /// accepts up to 5 parameters (for a description see above)
       /// This constructor does not accept a "max_intensity" parameter, so the algorithm will

@@ -30,7 +30,6 @@
 
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/FORMAT/Param.h>
-#include <OpenMS/KERNEL/DimensionDescription.h>
 
 #include <iostream>
 #include <vector>
@@ -47,7 +46,10 @@ namespace OpenMS
   class DSignalToNoiseEstimator
   {
   public:
-    typedef DimensionDescription < LCMS_Tag > DimensionDescription;
+
+		// ????, TODO
+		/// @todo krasser Hack, unbedingt entfernen!!! (Chris Bielow)
+		struct DimensionDescription { enum { RT = 0, MZ = 1 }; };
 
     /// Constructor
     inline DSignalToNoiseEstimator()
