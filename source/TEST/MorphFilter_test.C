@@ -103,24 +103,24 @@ RESULT
 
 CHECK(float& getStrucElemSize())
   MorphFilter m;
-  m.getStrucElemSize() = 3.5;
+  m.setStrucElemSize(3.5);
   
   TEST_REAL_EQUAL(m.getStrucElemSize(),3.5)
 RESULT
 
 CHECK((template< typename InputPeakIterator, typename OutputPeakContainer > void dilatation(InputPeakIterator first, InputPeakIterator last, OutputPeakContainer& result, int l)))
   DPeakArray<1, RawDataPoint1D > raw(5);
-  raw[0].getIntensity() = 0;
-  raw[1].getIntensity() = 1;
-  raw[2].getIntensity() = 1;
-  raw[3].getIntensity() = 1;
-  raw[4].getIntensity() = 0;
+  raw[0].setIntensity(0);
+  raw[1].setIntensity(1);
+  raw[2].setIntensity(1);
+  raw[3].setIntensity(1);
+  raw[4].setIntensity(0);
 
-  raw[0].getMZ() = 0;
-  raw[1].getMZ() = 1;
-  raw[2].getMZ() = 2;
-  raw[3].getMZ() = 3;
-  raw[4].getMZ() = 4;
+  raw[0].setMZ(0);
+  raw[1].setMZ(1);
+  raw[2].setMZ(2);
+  raw[3].setMZ(3);
+  raw[4].setMZ(4);
   
   DPeakArray< 1,RawDataPoint1D > filtered;
   
@@ -138,17 +138,17 @@ RESULT
 
 CHECK((template< typename InputPeakIterator, typename OutputPeakContainer > void erosion(InputPeakIterator first, InputPeakIterator last, OutputPeakContainer& result, int l)))
   DPeakArray<1, RawDataPoint1D > raw(5);
-  raw[0].getIntensity() = 0;
-  raw[1].getIntensity() = 1;
-  raw[2].getIntensity() = 1;
-  raw[3].getIntensity() = 1;
-  raw[4].getIntensity() = 0;
+  raw[0].setIntensity(0);
+  raw[1].setIntensity(1);
+  raw[2].setIntensity(1);
+  raw[3].setIntensity(1);
+  raw[4].setIntensity(0);
 
-  raw[0].getMZ() = 0;
-  raw[1].getMZ() = 1;
-  raw[2].getMZ() = 2;
-  raw[3].getMZ() = 3;
-  raw[4].getMZ() = 4;
+  raw[0].setMZ(0);
+  raw[1].setMZ(1);
+  raw[2].setMZ(2);
+  raw[3].setMZ(3);
+  raw[4].setMZ(4);
   
   DPeakArray< 1,RawDataPoint1D > filtered;
   

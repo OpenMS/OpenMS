@@ -192,7 +192,7 @@ CHECK(void fillIntensity(PeakType& peak) const)
 	const TestModel t;
   TestModel::PeakType p;
   p.getPos()[0]=0.1;
-  p.getIntensity() = 0.1;
+  p.setIntensity(0.1);
   t.fillIntensity(p);
   TEST_REAL_EQUAL(p.getIntensity(), 0.3)
 RESULT
@@ -202,7 +202,7 @@ CHECK(void  fillIntensities(PeakIterator beg, PeakIterator end) const)
   std::vector< TestModel::PeakType > vec(4);
   for (UnsignedInt i=0; i<4; ++i)
   {
-		vec[i].getIntensity() = -0.5;
+		vec[i].setIntensity(-0.5);
 		vec[i].getPos()[0] = i;
 	}
   t.fillIntensities(vec.begin()+1, vec.end()-1);

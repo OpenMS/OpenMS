@@ -63,7 +63,7 @@ RESULT
 
 CHECK(Shift& operator= (Shift const & source))
   PoseClusteringShiftSuperimposer<FeatureMap>::Shift shift;
-  shift.getQuality() = 0.1;
+  shift.setQuality(0.1);
   shift.getPosition()[0] = 0.2;
   shift.getPosition()[1] = 0.4;
   
@@ -77,7 +77,7 @@ RESULT
 
 CHECK(Shift(Shift const & source))
   PoseClusteringShiftSuperimposer<FeatureMap>::Shift shift;
-  shift.getQuality() = 0.1;
+  shift.setQuality(0.1);
   shift.getPosition()[0] = 0.2;
   shift.getPosition()[1] = 0.4;
   
@@ -90,7 +90,7 @@ RESULT
 
 CHECK(QualityType& getQuality())
   PoseClusteringShiftSuperimposer<FeatureMap>::Shift shift;
-  shift.getQuality() = 0.1;
+  shift.setQuality(0.1);
   
   TEST_REAL_EQUAL(shift.getQuality(), 0.1)
 RESULT
@@ -101,7 +101,7 @@ CHECK(PositionType& getPosition())
   PositionType pos;
   pos[0] = 0.2;
   pos[1] = 0.4;
-  shift.getPosition() = pos;
+  shift.setPosition(pos);
   
   TEST_REAL_EQUAL(shift.getPosition()[0], 0.2)
   TEST_REAL_EQUAL(shift.getPosition()[1], 0.4)

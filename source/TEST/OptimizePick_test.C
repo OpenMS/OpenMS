@@ -52,10 +52,10 @@ CHECK((OptimizePick& operator=(const OptimizePick& opt)))
 	PRECISION(0.0001)
   OptimizePick opt_pick;
   struct OptimizationFunctions::PenaltyFactors penalties;
-  opt_pick.getPenalties() = penalties;
-  opt_pick.getNumberIterations() = 10;
-  opt_pick.getMaxAbsError() = 0.01;
-  opt_pick.getMaxRelError() = 0.001;
+  opt_pick.setPenalties(penalties);
+  opt_pick.setNumberIterations(10);
+  opt_pick.setMaxAbsError(0.01);
+  opt_pick.setMaxRelError(0.001);
   
   OptimizePick opt_pick_copy;
   opt_pick_copy = opt_pick;
@@ -79,10 +79,10 @@ CHECK((OptimizePick(const OptimizePick& opt)))
   PRECISION(0.0001)
   OptimizePick opt_pick;
   struct OptimizationFunctions::PenaltyFactors penalties;
-  opt_pick.getPenalties() = penalties;
-  opt_pick.getNumberIterations() = 10;
-  opt_pick.getMaxAbsError() = 0.01;
-  opt_pick.getMaxRelError() = 0.001;
+  opt_pick.setPenalties(penalties);
+  opt_pick.setNumberIterations(10);
+  opt_pick.setMaxAbsError(0.01);
+  opt_pick.setMaxRelError(0.001);
   
   OptimizePick opt_pick_copy(opt_pick);
   struct OptimizationFunctions::PenaltyFactors penalties_copy = opt_pick_copy.getPenalties();

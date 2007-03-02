@@ -53,11 +53,11 @@ CHECK((OptimizePeakDeconvolution& operator=(const OptimizePeakDeconvolution& opt
   PRECISION(0.0001)
   OptimizePeakDeconvolution opt_deconv;
   struct OptimizationFunctions::PenaltyFactorsInt penalties;
-  opt_deconv.getPenalties() = penalties;
-  opt_deconv.getNumberIterations() = 10;
-  opt_deconv.getMaxAbsError() = 0.01;
-  opt_deconv.getMaxRelError() = 0.001;
-  opt_deconv.getCharge() = 2;
+  opt_deconv.setPenalties(penalties);
+  opt_deconv.setNumberIterations(10);
+  opt_deconv.setMaxAbsError(0.01);
+  opt_deconv.setMaxRelError(0.001);
+  opt_deconv.setCharge(2);
   
   OptimizePeakDeconvolution opt_deconv_copy;
   opt_deconv_copy = opt_deconv;
@@ -94,11 +94,11 @@ CHECK((OptimizePeakDeconvolution(const OptimizePeakDeconvolution& opt)))
   PRECISION(0.0001)
   OptimizePeakDeconvolution opt_deconv;
   struct OptimizationFunctions::PenaltyFactorsInt penalties;
-  opt_deconv.getPenalties() = penalties;
-  opt_deconv.getNumberIterations() = 10;
-  opt_deconv.getMaxAbsError() = 0.01;
-  opt_deconv.getMaxRelError() = 0.001;
-  opt_deconv.getCharge() = 2;
+  opt_deconv.setPenalties(penalties);
+  opt_deconv.setNumberIterations(10);
+  opt_deconv.setMaxAbsError(0.01);
+  opt_deconv.setMaxRelError(0.001);
+  opt_deconv.setCharge(2);
   
   OptimizePeakDeconvolution opt_deconv_copy(opt_deconv);
   struct OptimizationFunctions::PenaltyFactorsInt penalties_copy = opt_deconv_copy.getPenalties();

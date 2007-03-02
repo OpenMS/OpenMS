@@ -53,10 +53,10 @@ features[2].setRT(0.9f);
 features[3].setMZ(4.0f);
 features[3].setRT(0.2f);
 
-features[0].getIntensity() = 1.0f;
-features[1].getIntensity() = 2.0f;
-features[2].getIntensity() = 3.0f;
-features[3].getIntensity() = 4.0f;
+features[0].setIntensity(1.0f);
+features[1].setIntensity(2.0f);
+features[2].setIntensity(3.0f);
+features[3].setIntensity(4.0f);
 
 features[0].setCharge(1);
 features[1].setCharge(1);
