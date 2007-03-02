@@ -28,7 +28,7 @@
 #define OPENMS_TRANSFORMATIONS_RAW2PEAK_PEAKPICKERCWT_H
 
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPicker.h>
-#include <OpenMS/KERNEL/DPickedPeak.h>
+#include <OpenMS/KERNEL/PickedPeak1D.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/MSExperimentExtern.h>
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakShape.h>
@@ -403,9 +403,9 @@ namespace OpenMS
             {
 #ifdef DEBUG_PEAK_PICKING
               std::cout << "The endpoints are "
-              << area.left->getPosition()
+              << area.left->getPos()
               << " and "
-              << area.right->getPosition()
+              << area.right->getPos()
               << std::endl;
 #endif
               // determine the best fitting lorezian or sech2 function
@@ -474,9 +474,11 @@ namespace OpenMS
           {
             OutputPeakType picked_peak;
 
-            picked_peak.getIntensity() = peak_shapes_[i].height;
-            picked_peak.getPos() = peak_shapes_[i].mz_position;
-
+            picked_peak.setIntensity(peak_shapes_[i].height);
+            picked_peak.setMZ(peak_shapes_[i].mz_position);
+						
+						
+						
             fillPeak_(peak_shapes_[i],picked_peak);
             picked_peak_container.push_back(picked_peak);
           }
@@ -847,7 +849,7 @@ namespace OpenMS
 
   /// Fills the members of a DPickedPeak given an PeakShape
   template <>
-  void PeakPickerCWT::fillPeak_< DPickedPeak<1> >(const PeakShape& peak_shape, DPickedPeak<1>& picked_peak);
+  void PeakPickerCWT::fillPeak_< PickedPeak1D >(const PeakShape& peak_shape, PickedPeak1D& picked_peak);
 
 
 }// namespace OpenMS

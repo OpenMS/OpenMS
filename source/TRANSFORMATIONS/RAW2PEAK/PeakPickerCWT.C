@@ -193,7 +193,7 @@ namespace OpenMS
 						max_pos = (direction > 0) ? (i - distance_from_scan_border)  : i;
 #ifdef DEBUG_PEAK_PICKING
 
-						std::cout << "MAX in CWT at " << (first + max_pos)->getPos()[1]<< " with " << wt[i]
+						std::cout << "MAX in CWT at " << (first + max_pos)->getMZ()<< " with " << wt[i]
 											<< std::endl;
 #endif
 
@@ -222,7 +222,7 @@ namespace OpenMS
 								area.max = first + max_pos;
 #ifdef DEBUG_PEAK_PICKING
 
-								std::cout << "_________Max in data at__________ " << area.max->getPos()[1]
+								std::cout << "_________Max in data at__________ " << area.max->getMZ()
 													<< std::endl;
 #endif
 
@@ -278,7 +278,7 @@ namespace OpenMS
 						--it_help;
 
 #ifdef DEBUG_PEAK_PICKING
-						std::cout << "it_help " << it_help->getPos()[1] << std::endl;
+						std::cout << "it_help " << it_help->getMZ() << std::endl;
 #endif
 
 					}
@@ -307,7 +307,7 @@ namespace OpenMS
 
 						// compute the position of the corresponding point in the cwt
 						cwt_pos = distance(first, it_help);
-						vec_pos = it_help->getPos()[1];
+						vec_pos = it_help->getMZ();
 
 						// since the cwt is pretty smooth usually, we consider the point as noise
 						// if the cwt is monotonous in this region
@@ -331,9 +331,9 @@ namespace OpenMS
 									{
 										// different slopes at the sides => stop here
 #ifdef DEBUG_PEAK_PICKING            
-										std::cout << "monoton test " << wt_.getSignal()[start-1].getPos()[1] 
-															<< " " <<  wt_.getSignal()[start].getPos()[1]
-															<< " " <<  wt_.getSignal()[start+1].getPos()[1] << std::endl;
+										std::cout << "monoton test " << wt_.getSignal()[start-1].getMZ() 
+															<< " " <<  wt_.getSignal()[start].getMZ()
+															<< " " <<  wt_.getSignal()[start+1].getMZ() << std::endl;
 #endif            						
 										monoton=false;
 										break;
@@ -361,7 +361,7 @@ namespace OpenMS
 					{
 						++it_help;
 #ifdef DEBUG_PEAK_PICKING        
-						std::cout << "it_help " << it_help->getPos()[1] << std::endl;
+						std::cout << "it_help " << it_help->getMZ() << std::endl;
 #endif         	
 					}
 				// if the values are _rising_, we have to check the cwt
@@ -388,7 +388,7 @@ namespace OpenMS
 						// compute the position of the corresponding point in the cwt
 						cwt_pos = distance(first, it_help);
 						//cwt_pos = distance(first, it_help);
-						vec_pos=it_help->getPos()[1];
+						vec_pos=it_help->getMZ();
 
 						// since the cwt is pretty smooth usually, we consider the point as noise
 						// if the cwt is monotonous in this region
@@ -412,9 +412,9 @@ namespace OpenMS
 									{
 										// different slopes at the sides => stop here
 #ifdef DEBUG_PEAK_PICKING            
-										std::cout << "monoton test " << wt_.getSignal()[start-1].getPos()[1] 
-															<< " " <<  wt_.getSignal()[start].getPos()[1]
-															<< " " <<  wt_.getSignal()[start+1].getPos()[1] << std::endl;
+										std::cout << "monoton test " << wt_.getSignal()[start-1].getMZ() 
+															<< " " <<  wt_.getSignal()[start].getMZ()
+															<< " " <<  wt_.getSignal()[start+1].getMZ() << std::endl;
 #endif            						
 										monoton=false;
 										break;
@@ -438,9 +438,9 @@ namespace OpenMS
 			{
 #ifdef DEBUG_PEAK_PICKING
 				std::cout << "OK !!!! The endpoints are "
-									<< area.left->getPosition()
+									<< area.left->getMZ()
 									<< " and "
-									<< area.right->getPosition()
+									<< area.right->getMZ()
 									<< std::endl;
 #endif
 
@@ -448,9 +448,9 @@ namespace OpenMS
 			}
 #ifdef DEBUG_PEAK_PICKING
     std::cout << "NO!!! The endpoints are "
-							<< area.left->getPosition()
+							<< area.left->getMZ()
 							<< " and "
-							<< area.right->getPosition()
+							<< area.right->getMZ()
 							<< std::endl;
 #endif
 
@@ -463,14 +463,14 @@ namespace OpenMS
     double max_intensity=area.max->getIntensity();
     double rel_peak_height=max_intensity*0.6;
     double sum=0., w=0.;
-    area.centroid_position=area.max->getPos()[1];
+    area.centroid_position=area.max->getMZ();
 
     // compute the centroid position (use weighted mean)
     while ((left_it >= area.left) && (left_it->getIntensity() >=rel_peak_height) )
 			{
 				if (left_it->getIntensity() >=rel_peak_height)
 					{
-						w+=left_it->getIntensity()*left_it->getPos()[1];
+						w+=left_it->getIntensity()*left_it->getMZ();
 						sum+=left_it->getIntensity();
 						--left_it;
 					}
@@ -480,7 +480,7 @@ namespace OpenMS
 			{
 				if (right_it->getIntensity() >=rel_peak_height)
 					{
-						w+=right_it->getIntensity()*right_it->getPos()[1];
+						w+=right_it->getIntensity()*right_it->getMZ();
 						sum+=right_it->getIntensity();
 						++right_it;
 					}
@@ -576,21 +576,21 @@ namespace OpenMS
 
   void PeakPickerCWT::getPeakArea_(const PeakPickerCWT::PeakArea_& area, double& area_left, double& area_right)
   {
-    area_left += area.left->getIntensity() * ((area.left+1)->getPos()[1] - area.left->getPos()[1]) * 0.5;
-    area_left += area.max->getIntensity() *  (area.max->getPos()[1] - (area.max-1)->getPos()[1]) * 0.5;
+    area_left += area.left->getIntensity() * ((area.left+1)->getMZ() - area.left->getMZ()) * 0.5;
+    area_left += area.max->getIntensity() *  (area.max->getMZ() - (area.max-1)->getMZ()) * 0.5;
 
     for (RawDataPointIterator pi=area.left+1; pi<area.max; pi++)
 			{
-				double step = ((pi)->getPos()[1] - (pi-1)->getPos()[1]);
+				double step = ((pi)->getMZ() - (pi-1)->getMZ());
 				area_left += step * pi->getIntensity();
 			}
 
-    area_right += area.right->getIntensity() * ((area.right)->getPos()[1] - (area.right-1)->getPos()[1]) * 0.5;
-    area_right += (area.max+1)->getIntensity() *  ((area.max+2)->getPos()[1] - (area.max+1)->getPos()[1]) * 0.5;
+    area_right += area.right->getIntensity() * ((area.right)->getMZ() - (area.right-1)->getMZ()) * 0.5;
+    area_right += (area.max+1)->getIntensity() *  ((area.max+2)->getMZ() - (area.max+1)->getMZ()) * 0.5;
 
     for (RawDataPointIterator pi=area.max+2; pi<area.right; pi++)
 			{
-				double step = ((pi)->getPos()[1] - (pi-1)->getPos()[1]);
+				double step = ((pi)->getMZ() - (pi-1)->getMZ());
 				area_right += step * pi->getIntensity();
 			}
   }
@@ -601,7 +601,7 @@ namespace OpenMS
   {
 
 #ifdef DEBUG_PEAK_PICKING
-    std::cout << "Left end point: " << area.left->getPos()[1] << std::endl;
+    std::cout << "Left end point: " << area.left->getMZ() << std::endl;
 #endif
 
     double max_intensity   =   area.max->getIntensity();
@@ -616,8 +616,8 @@ namespace OpenMS
 
 				//avoid zero width
 				float minimal_endpoint_centroid_distance=0.01;
-				if (  (fabs( area.left->getPos()[1]-area.centroid_position[0]) < minimal_endpoint_centroid_distance)
-							||(fabs(area.right->getPos()[1]-area.centroid_position[0]) < minimal_endpoint_centroid_distance) )
+				if (  (fabs( area.left->getMZ()-area.centroid_position[0]) < minimal_endpoint_centroid_distance)
+							||(fabs(area.right->getMZ()-area.centroid_position[0]) < minimal_endpoint_centroid_distance) )
 					{
 #ifdef DEBUG_PEAK_PICKING
 						std::cout << "The distance between centroid and the endpoints is too small!" << std::endl;
@@ -631,11 +631,11 @@ namespace OpenMS
 
 #ifdef DEBUG_PEAK_PICKING
 
-				std::cout << "Left end point: "         << area.left->getPos()[1]
+				std::cout << "Left end point: "         << area.left->getMZ()
 									<< " centroid: "              << area.centroid_position
-									<< " right end point: "       << area.right->getPos()[1]
+									<< " right end point: "       << area.right->getMZ()
 									<< std::endl;
-				std::cout << " point left of centroid:" << (area.left_behind_centroid)->getPos()[1]
+				std::cout << " point left of centroid:" << (area.left_behind_centroid)->getMZ()
 									<< std::endl;
 #endif
 
@@ -648,14 +648,14 @@ namespace OpenMS
 				int n=0;
 				while(left_it-1 >= area.left)
 					{
-						double x1=left_it->getPos()[1];
-						double x2=(left_it-1)->getPos()[1];
+						double x1=left_it->getMZ();
+						double x2=(left_it-1)->getMZ();
 						double c=(left_it-1)->getIntensity()/left_it->getIntensity();
 						l_sqrd+=(1-c)/(c*(pow((x2-x0),2))-pow((x1-x0),2));
 						--left_it;
 						++n;
 					}
-				double left_heigth=area.left_behind_centroid->getIntensity()/(1+l_sqrd*pow(area.left_behind_centroid->getPos()[1]-area.centroid_position[0],2));
+				double left_heigth=area.left_behind_centroid->getIntensity()/(1+l_sqrd*pow(area.left_behind_centroid->getMZ()-area.centroid_position[0],2));
 
 				// estimate the width parameter of the right peak side
 				RawDataPointIterator right_it=area.left_behind_centroid+1;
@@ -663,8 +663,8 @@ namespace OpenMS
 				n=0;
 				while(right_it+1 <= area.right)
 					{
-						double x1=right_it->getPos()[1];
-						double x2=(right_it+1)->getPos()[1];
+						double x1=right_it->getMZ();
+						double x2=(right_it+1)->getMZ();
 						double c=(right_it+1)->getIntensity()/right_it->getIntensity();
 						l_sqrd+=(1-c)/(c*(pow((x1-x0),2))-pow((x2-x0),2));
 						++right_it;
@@ -672,30 +672,30 @@ namespace OpenMS
 					}
 
 				//estimate the heigth
-				double right_heigth=(area.left_behind_centroid+1)->getIntensity()/(1+l_sqrd*pow((area.left_behind_centroid+1)->getPos()[1]-area.centroid_position[0],2));
+				double right_heigth=(area.left_behind_centroid+1)->getIntensity()/(1+l_sqrd*pow((area.left_behind_centroid+1)->getMZ()-area.centroid_position[0],2));
 
 				double height=std::min(left_heigth,right_heigth);
 
 				// compute the left and right area
 				double peak_area_left = 0.;
-				peak_area_left += area.left->getIntensity() * (  (area.left+1)->getPos()[1]
-																												 -    area.left->getPos()[1]  ) * 0.5;
-				peak_area_left += height * (area.centroid_position[0]-area.left_behind_centroid->getPos()[1]) * 0.5;
+				peak_area_left += area.left->getIntensity() * (  (area.left+1)->getMZ()
+																												 -    area.left->getMZ()  ) * 0.5;
+				peak_area_left += height * (area.centroid_position[0]-area.left_behind_centroid->getMZ()) * 0.5;
 
 				for (RawDataPointIterator pi=area.left+1; pi <= area.left_behind_centroid; pi++)
 					{
-						double step = ((pi)->getPos()[1] - (pi-1)->getPos()[1]);
+						double step = ((pi)->getMZ() - (pi-1)->getMZ());
 						peak_area_left += step * pi->getIntensity();
 					}
 
 				double peak_area_right = 0.;
-				peak_area_right += area.right->getIntensity() * ((area.right)->getPos()[1]
-																												 - (area.right-1)->getPos()[1]  ) * 0.5;
-				peak_area_right += height * ( (area.left_behind_centroid+1)->getPos()[1]-area.centroid_position[0]) * 0.5;
+				peak_area_right += area.right->getIntensity() * ((area.right)->getMZ()
+																												 - (area.right-1)->getMZ()  ) * 0.5;
+				peak_area_right += height * ( (area.left_behind_centroid+1)->getMZ()-area.centroid_position[0]) * 0.5;
 
 				for (RawDataPointIterator pi=area.left_behind_centroid+1; pi < area.right; pi++)
 					{
-						double step = ((pi)->getPos()[1] - (pi-1)->getPos()[1]);
+						double step = ((pi)->getMZ() - (pi-1)->getMZ());
 						peak_area_right += step * pi->getIntensity();
 					}
 
@@ -728,22 +728,22 @@ namespace OpenMS
 #endif
 				// determine the left half of the area of the PeakArea_...
 				double peak_area_left = 0.;
-				peak_area_left += area.left->getIntensity() * ((area.left+1)->getPos()[1] - area.left->getPos()[1]) * 0.5;
-				peak_area_left += area.max->getIntensity() *  (area.max->getPos()[1] - (area.max-1)->getPos()[1]) * 0.5;
+				peak_area_left += area.left->getIntensity() * ((area.left+1)->getMZ() - area.left->getMZ()) * 0.5;
+				peak_area_left += area.max->getIntensity() *  (area.max->getMZ() - (area.max-1)->getMZ()) * 0.5;
 
 				for (RawDataPointIterator pi=area.left+1; pi<area.max; pi++)
 					{
-						double step = ((pi)->getPos()[1] - (pi-1)->getPos()[1]);
+						double step = ((pi)->getMZ() - (pi-1)->getMZ());
 						peak_area_left += step * pi->getIntensity();
 					}
 
 				double peak_area_right = 0.;
-				peak_area_right += area.right->getIntensity() * ((area.right)->getPos()[1] - (area.right-1)->getPos()[1]) * 0.5;
-				peak_area_right += area.max->getIntensity() *  ((area.max+1)->getPos()[1] - (area.max)->getPos()[1]) * 0.5;
+				peak_area_right += area.right->getIntensity() * ((area.right)->getMZ() - (area.right-1)->getMZ()) * 0.5;
+				peak_area_right += area.max->getIntensity() *  ((area.max+1)->getMZ() - (area.max)->getMZ()) * 0.5;
 
 				for (RawDataPointIterator pi=area.max+1; pi<area.right; pi++)
 					{
-						double step = ((pi)->getPos()[1] - (pi-1)->getPos()[1]);
+						double step = ((pi)->getMZ() - (pi-1)->getMZ());
 						peak_area_right += step * pi->getIntensity();
 					}
 
@@ -754,7 +754,7 @@ namespace OpenMS
 
 
 
-				PeakShape lorentz(max_intensity, area.max->getPos()[1],
+				PeakShape lorentz(max_intensity, area.max->getMZ(),
 													left_width, right_width, peak_area_left + peak_area_right,
 													PeakShapeType::LORENTZ_PEAK);
 
@@ -765,7 +765,7 @@ namespace OpenMS
 				right_width  = max_intensity /peak_area_right * sqrt(1. - right_intensity / max_intensity);
 
 
-				PeakShape sech(max_intensity, area.max->getPos()[1],
+				PeakShape sech(max_intensity, area.max->getMZ(),
 											 left_width, right_width,
 											 peak_area_left + peak_area_right,
 											 PeakShapeType::SECH_PEAK);
@@ -807,7 +807,7 @@ namespace OpenMS
 
 
 #ifdef DEBUG_DECONV
-		std::cout << "------------------\n---------------------\nconvoluted area begin "<<area.left->getPos()[1]<<"\tend "<<area.right->getPos()[1]<<std::endl;
+		std::cout << "------------------\n---------------------\nconvoluted area begin "<<area.left->getMZ()<<"\tend "<<area.right->getMZ()<<std::endl;
 #endif
 		
 		
@@ -917,18 +917,18 @@ namespace OpenMS
 				OptimizationFunctions::peaks_DC_.clear();
 
 				// enter zero-intensity at the left margin
-				OptimizationFunctions::positions_DC_.push_back((area.left)->getPos()[1]-0.2);
+				OptimizationFunctions::positions_DC_.push_back((area.left)->getMZ()-0.2);
 				OptimizationFunctions::signal_DC_.push_back(0);	
 				
 				for (unsigned int i = 0; area.left+i != area.right ;++i)
 					{
-						OptimizationFunctions::positions_DC_.push_back((area.left+i)->getPos()[1]);
+						OptimizationFunctions::positions_DC_.push_back((area.left+i)->getMZ());
 						OptimizationFunctions::signal_DC_.push_back((area.left+i)->getIntensity());	
 					}
-				OptimizationFunctions::positions_DC_.push_back((area.right)->getPos()[1]);
+				OptimizationFunctions::positions_DC_.push_back((area.right)->getMZ());
 				OptimizationFunctions::signal_DC_.push_back((area.right)->getIntensity());	
 
-				OptimizationFunctions::positions_DC_.push_back((area.right)->getPos()[1]+0.2);
+				OptimizationFunctions::positions_DC_.push_back((area.right)->getMZ()+0.2);
 				OptimizationFunctions::signal_DC_.push_back(0);	
 				
 				
@@ -1033,8 +1033,8 @@ namespace OpenMS
 		else
 			{
 				peak_shapes_.push_back(shape);
-				peak_endpoints.push_back(area.left->getPos()[1]);
-				peak_endpoints.push_back(area.right->getPos()[1]);
+				peak_endpoints.push_back(area.left->getMZ());
+				peak_endpoints.push_back(area.right->getMZ());
 			}
 
 		
@@ -1045,7 +1045,7 @@ namespace OpenMS
 	{
 		// just enter a peak using equally spaced peak positions
 
-		double peak_width = area.right->getPos()[1] - area.left->getPos()[1];
+		double peak_width = area.right->getMZ() - area.left->getMZ();
 		int num_peaks = peaks_DC.size()+1;
 
 		double dist = peak_width / (num_peaks+1);
@@ -1056,7 +1056,7 @@ namespace OpenMS
 		// adjust the positions and get their initial intensities from the raw data
 		for(int i=0; i < num_peaks; ++i)
 			{
-				peaks_DC[i].mz_position = area.left->getPos()[1] + dist/2 + i*dist;
+				peaks_DC[i].mz_position = area.left->getMZ() + dist/2 + i*dist;
 
 				std::vector<double>::iterator it_help = lower_bound(OptimizationFunctions::positions_DC_.begin(),
 																														OptimizationFunctions::positions_DC_.end(),
@@ -1099,7 +1099,7 @@ namespace OpenMS
 #ifdef DEBUG_DECONV
     std::cout<<"noise_level = "<<noise_level<<";\tnoise_level_cwt = "<<noise_level_cwt<<";\n";
 		std::cout << "resoltuion "<<resolution <<"\n";
-		std::cout <<"first und last "<< first->getPos()[1] << "\t"<<last->getPos()[1] << std::endl;
+		std::cout <<"first und last "<< first->getMZ() << "\t"<<last->getMZ() << std::endl;
 				
 #endif
 
@@ -1118,10 +1118,10 @@ namespace OpenMS
     int k=0;
 
     std::vector<double>::iterator checker;
-		while(wt.getSignal()[start+1].getPos()[1] <= first->getPos()[1])     ++start;
+		while(wt.getSignal()[start+1].getMZ() <= first->getMZ())     ++start;
 		//k=i;
 		int offset = start;
-		while(wt.getSignal()[end].getPos()[1] > last->getPos()[1])     --end;
+		while(wt.getSignal()[end].getMZ() > last->getMZ())     --end;
 		for(i=start; i!=end; i+=direction,k+=direction) 
 			{
 
@@ -1147,7 +1147,7 @@ namespace OpenMS
 								std::cout << "_________REAL Max in CWT at__________ " << (first+max_pos)->getPosition()[0] << "\n";
 #endif
 								peak_values.push_back((first+max_pos)->getIntensity());
-								peak_values.push_back((first+max_pos)->getPos()[1]);
+								peak_values.push_back((first+max_pos)->getMZ());
 								
 								++found;
 							}
@@ -1216,7 +1216,7 @@ namespace OpenMS
     for (RawDataPointIterator pi = corr_begin; pi<=corr_end; pi++)
 			{
 				double data_val = pi->getIntensity();
-				double peak_val = peak(pi->getPos()[1]);
+				double peak_val = peak(pi->getMZ());
 
 				data_average += data_val;
 				fit_average  += peak_val;
@@ -1243,7 +1243,7 @@ namespace OpenMS
   }
 
   template <>
-  void PeakPickerCWT::fillPeak_< DPickedPeak<1> >(const PeakShape& peak_shape, DPickedPeak<1>& picked_peak)
+  void PeakPickerCWT::fillPeak_< PickedPeak1D >(const PeakShape& peak_shape, PickedPeak1D& picked_peak)
   {
     picked_peak.getRValue() = peak_shape.r_value;
     picked_peak.getArea() = peak_shape.area;
