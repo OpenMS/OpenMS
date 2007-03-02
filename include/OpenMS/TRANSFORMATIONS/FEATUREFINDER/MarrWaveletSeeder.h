@@ -54,12 +54,6 @@ namespace OpenMS
 		  typedef FeaFiTraits::CoordinateType CoordinateType;
 		  typedef DoubleReal ProbabilityType;	
 	
-	    enum DimensionId
-	    {
-	        RT = DimensionDescription < LCMS_Tag >::RT,
-	        MZ = DimensionDescription < LCMS_Tag >::MZ
-	    };
-	
 			typedef FeaFiTraits::MapType MapType;
 			typedef MapType::SpectrumType SpectrumType;
 			typedef	MapType::PeakType PeakType;
