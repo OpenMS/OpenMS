@@ -95,6 +95,8 @@ namespace OpenMS
     
     
     @todo use DefaultParamHandler (Chris)
+
+		@todo fix dimension numbers at compile time, see RawDataPoint2D::DimensionDescription (Chris)
     
     @ingroup SignalToNoiseEstimators
     
@@ -135,13 +137,6 @@ namespace OpenMS
     using DSignalToNoiseEstimator<D, PeakIterator>::rt_dim_;
     using DSignalToNoiseEstimator<D, PeakIterator>::mz_dim_;
 
-    enum DimensionID
-    {
-      RT = DimensionDescription < LCMS_Tag >::RT,
-      MZ = DimensionDescription < LCMS_Tag >::MZ
-    };
-
-    
     /// (default) constructor
     /// accepts up to 4 parameters (for a description see above)
     /// This constructor does not accept a "max_intensity" parameter, so the algorithm will
