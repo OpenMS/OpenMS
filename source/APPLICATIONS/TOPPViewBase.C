@@ -891,12 +891,6 @@ namespace OpenMS
 			}
 			else //feature data
 			{
-		    enum DimensionId
-		    {
-	        RT = DimensionDescription < LCMS_Tag >::RT,
-	        MZ = DimensionDescription < LCMS_Tag >::MZ
-		    };
-	    
     		//Extract selected visible data to out
     		LayerData::FeatureMapType out;
     		out.ExperimentalSettings::operator=(layer.features);
