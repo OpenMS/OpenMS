@@ -30,7 +30,7 @@
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/BaseModel.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/ModelDescription.h>
-#include <OpenMS/KERNEL/DimensionDescription.h>
+#include <OpenMS/KERNEL/RawDataPoint2D.h>
 
 namespace OpenMS
 {
@@ -51,12 +51,12 @@ namespace OpenMS
 	
 	@ingroup FeatureFinder
 */
-template <UnsignedInt D, typename DimensionTags = LCMS_Tag>
-class ProductModel
-            : public BaseModel<D>
+	template <UnsignedInt D>
+	class ProductModel
+	: public BaseModel<D>
 {
 
-public:
+ public:
     typedef typename DPeak<D>::IntensityType IntensityType;
     typedef DPosition<D> PositionType;
     typedef DPeakArray<D, DPeak<D> > SamplesType;
@@ -71,7 +71,7 @@ public:
     	//Register model info
       for (UnsignedInt dim=0; dim<D; ++dim)
       {
-      	String name = DimensionDescription<DimensionTags>::dimension_name_short[dim];
+      	String name = RawDataPoint2D::shortDimensionName(dim);
     		this->subsections_.push_back(name);
     		this->defaults_.setValue(name,"GaussModel");
     	}
@@ -176,7 +176,7 @@ public:
       distributions_[dim] = dist;
 
 			// Update model info
-	    String name = DimensionDescription<DimensionTags>::dimension_name_short[dim];
+			String name = RawDataPoint2D::shortDimensionName(dim);
 	    this->param_.remove(name.c_str());
 	    this->param_.insert(name.c_str(),distributions_[dim]->getParameters());
 	    this->param_.setValue(name.c_str(), distributions_[dim]->getName());
@@ -248,7 +248,7 @@ public:
 			scale_ = (double)(this->param_.getValue("intensity_scaling"));
 	    for (UnsignedInt dim=0; dim<D; ++dim)
       {
-        String name = DimensionDescription<DimensionTags>::dimension_name_short[dim];
+      	String name = RawDataPoint2D::shortDimensionName(dim);
         DataValue d = this->param_.getValue(name);
         if (d!=DataValue::EMPTY)
         {

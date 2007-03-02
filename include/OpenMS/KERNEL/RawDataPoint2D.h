@@ -72,28 +72,28 @@ namespace OpenMS
 			};
 		
     /// Short name of the dimension (abbreviated form)
-    static char const * const shortDimensionName(DimensionDescription const dim);
+    static char const * const shortDimensionName(UnsignedInt const dim);
     /// Short name of the dimension (abbreviated form)
     static char const * const shortDimensionNameRT();
     /// Short name of the dimension (abbreviated form)
     static char const * const shortDimensionNameMZ();
 
     /// Full name of the dimension (self-explanatory form)
-    static char const * const fullDimensionName(DimensionDescription const dim);
+    static char const * const fullDimensionName(UnsignedInt const dim);
     /// Full name of the dimension (self-explanatory form)
     static char const * const fullDimensionNameRT();
     /// Full name of the dimension (self-explanatory form)
     static char const * const fullDimensionNameMZ();
 
     /// Unit of measurement (abbreviated form)
-		static char const * const shortDimensionUnit(DimensionDescription const dim);
+		static char const * const shortDimensionUnit(UnsignedInt const dim);
     /// Unit of measurement (abbreviated form)
 		static char const * const shortDimensionUnitRT();
     /// Unit of measurement (abbreviated form)
 		static char const * const shortDimensionUnitMZ();
 
     /// Unit of measurement (self-explanatory form)
-		static char const * const fullDimensionUnit(DimensionDescription const dim);
+		static char const * const fullDimensionUnit(UnsignedInt const dim);
     /// Unit of measurement (self-explanatory form)
 		static char const * const fullDimensionUnitRT();
     /// Unit of measurement (self-explanatory form)
