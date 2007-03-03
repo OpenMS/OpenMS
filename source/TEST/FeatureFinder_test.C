@@ -118,7 +118,7 @@ CHECK((template<class ConstPeakIterator> void setData(ConstPeakIterator begin, C
 		Peak2D p1;
 		p1.getPos()[0] = i;
 		p1.getPos()[1] = i*5;
-		p1.getIntensity()    = i*10;
+		p1.setIntensity(i*10);
 		
 		parray.push_back(p1);
 	}
@@ -142,7 +142,7 @@ CHECK(void setData(MSExperiment<Peak1D >& exp))
 		
 		Peak1D p1;
 		p1.getPos()[0]  = i;
-		p1.getIntensity()     = i*10;
+		p1.setIntensity(i*10);
 		
 		MSSpectrum<> spec;
 		spec.push_back(p1);

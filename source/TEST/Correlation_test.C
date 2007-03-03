@@ -75,31 +75,31 @@ CHECK((double evaluate(const IndexSet& set, const BaseModel<1>& model, UnsignedI
 	Peak2D p1;
 	p1.getPos()[0] = 1;
 	p1.getPos()[1] = 1;
-	p1.getIntensity()    = 0;
+	p1.setIntensity(0);
 	peak_array.push_back(p1);
 	
 	Peak2D p2;
 	p2.getPos()[0] = 2;
 	p2.getPos()[1] = 2;
-	p2.getIntensity()    = 3;
+	p2.setIntensity(3);
 	peak_array.push_back(p2);
 	
 	Peak2D p3;
 	p3.getPos()[0] = 3;
 	p3.getPos()[1] = 3;
-	p3.getIntensity()    = 5;
+	p3.setIntensity(5);
 	peak_array.push_back(p3);
 	
 	Peak2D p4;
 	p4.getPos()[0] = 4;
 	p4.getPos()[1] = 4;
-	p4.getIntensity()    = 3;
+	p4.setIntensity(3);
 	peak_array.push_back(p4);
 	
 	Peak2D p5;
 	p5.getPos()[0] = 5;
 	p5.getPos()[1] = 5;
-	p5.getIntensity()    = 0;
+	p5.setIntensity(0);
 	peak_array.push_back(p5);
 	
 	MSExperimentExtern<Peak1D > exp;
@@ -151,31 +151,31 @@ CHECK((double evaluate(const IndexSet& set, const BaseModel<2>& model)))
 	Peak2D p1;
 	p1.getPos()[0] = 1;
 	p1.getPos()[1] = 1;
-	p1.getIntensity()    = 0;
+	p1.setIntensity(0);
 	peak_array.push_back(p1);
 	
 	Peak2D p2;
 	p2.getPos()[0] = 2;
 	p2.getPos()[1] = 2;
-	p2.getIntensity()    = 3;
+	p2.setIntensity(3);
 	peak_array.push_back(p2);
 	
 	Peak2D p3;
 	p3.getPos()[0] = 3;
 	p3.getPos()[1] = 3;
-	p3.getIntensity()    = 5;
+	p3.setIntensity(5);
 	peak_array.push_back(p3);
 	
 	Peak2D p4;
 	p4.getPos()[0] = 4;
 	p4.getPos()[1] = 4;
-	p4.getIntensity()    = 3;
+	p4.setIntensity(3);
 	peak_array.push_back(p4);
 	
 	Peak2D p5;
 	p5.getPos()[0] = 5;
 	p5.getPos()[1] = 5;
-	p5.getIntensity()    = 0;
+	p5.setIntensity(0);
 	peak_array.push_back(p5);
 	
 	MSExperimentExtern<Peak1D > exp;

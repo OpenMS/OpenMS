@@ -682,7 +682,7 @@ namespace OpenMS
 				double right_diff = fabs(scan[index_newscan].getMZ() - mass);
 				if (right_diff < mass_tolerance)
 				{
-					scan[index_newscan].getIntensity() += p.getIntensity();
+					scan[index_newscan].setIntensity( scan[index_newscan].getIntensity() + p.getIntensity() );
 				}
 			}
 		} // end for (all peaks in neighbouring scan)

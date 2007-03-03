@@ -40,7 +40,7 @@ namespace OpenMS
 	void FeatureMapFile::load(String filename, FeatureMap<>& feature_map) throw (Exception::FileNotFound, Exception::ParseError)
 	{
 		feature_map.clear();
-		Internal::FeatureMapHandler<2> handler(feature_map,filename);
+		Internal::FeatureMapHandler handler(feature_map,filename);
 		handler.setOptions(options_);
 		parse_(filename, &handler);
 	}
@@ -48,7 +48,7 @@ namespace OpenMS
 	void FeatureMapFile::store(String filename, const FeatureMap<>& feature_map) const throw (Exception::UnableToCreateFile)
 	{
 		if (feature_map.empty()) return;
-		Internal::FeatureMapHandler<2> handler(feature_map,filename);
+		Internal::FeatureMapHandler handler(feature_map,filename);
 		save_(filename, &handler);
 	}
 }

@@ -313,8 +313,8 @@ namespace OpenMS
 		std::cout << Date::now() << " Feature " << counter_ << ": (" << f.getRT()
 							<< "," << f.getMZ() << ") Qual.:" << max_quality << "\n";
 		
-		f.getQuality(RT) = quality_->evaluate(model_set, *final->getModel(RT), RT );
-		f.getQuality(MZ) = quality_->evaluate(model_set, *(static_cast<InterpolationModel*>(final->getModel(MZ)) ),MZ );
+		f.setQuality(RT, quality_->evaluate(model_set, *final->getModel(RT), RT ));
+		f.setQuality(MZ, quality_->evaluate(model_set, *(static_cast<InterpolationModel*>(final->getModel(MZ)) ),MZ ));
 
 		// save meta data in feature for TOPPView
 		stringstream s;

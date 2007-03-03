@@ -132,8 +132,8 @@ namespace OpenMS
         InputPeakIterator help = begin_input;
         for (i=0; i < n; ++i)
         {
-          signal_[i].getMZ() = help->getMZ();
-          signal_[i].getIntensity()=integrate_(help,begin_input,end_input);
+          signal_[i].setMZ(help->getMZ());
+          signal_[i].setIntensity(integrate_(help,begin_input,end_input));
           ++help;
         }
 #ifdef DEBUG_PEAK_PICKING
@@ -187,8 +187,8 @@ namespace OpenMS
         // TODO avoid to compute the cwt for the zeros in signal
         for (unsigned int i=0; i < n; ++i)
         {
-          signal_[i].getMZ() = origin + i*spacing;
-          signal_[i].getIntensity() = integrate_(processed_input,spacing,i);
+          signal_[i].setMZ(origin + i*spacing);
+          signal_[i].setIntensity(integrate_(processed_input,spacing,i));
         }
 
         if(zeros == 0)

@@ -125,7 +125,7 @@ CHECK((template< typename InputPeakIterator > void transform(InputPeakIterator b
   
   transformer.init(scale,spacing);
   std::vector<RawDataPoint1D > raw_data(9);
-  raw_data[4].getIntensity() = 1;
+  raw_data[4].setIntensity(1);
   transformer.transform(raw_data.begin(),raw_data.end(),1.);
   TEST_REAL_EQUAL(transformer[4],0)
   TEST_REAL_EQUAL(transformer.getWavelet()[0],1.)

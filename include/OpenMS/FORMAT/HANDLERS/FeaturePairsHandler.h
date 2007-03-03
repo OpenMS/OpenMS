@@ -56,22 +56,6 @@ namespace OpenMS
 		: public SchemaHandler
   {
     public:
-	/**
-				@name Type definitions
-			*/
-			//@{
-			typedef Feature& Reference;
-			typedef const Feature& ConstReference;
-			typedef Feature::ConvexHullVector ConvexHullVector;
-
-			// STL compatibility
-			typedef Feature value_type;
-			typedef Feature* pointer;
-			typedef const Feature* const_pointer;
-			typedef Reference reference;
-			typedef ConstReference const_reference;
-			//@}
-
       /**@name Constructors and destructor */
       //@{
       ///
@@ -172,11 +156,3 @@ namespace OpenMS
 } // namespace OpenMS
 
 #endif
-
-
-// Please leave the page-feed character (Ctrl-L) in the following line,
-// otherwise emacs will not select c++ mode when opening this file.
-
-// Thanks!
-
-// EOF

@@ -425,7 +425,7 @@ namespace OpenMS
               act_cons_element_.insert(act_index_tuple);
               act_cons_element_.getPos() = pos_;
               act_cons_element_.getPositionRange() = pos_range_;
-              act_cons_element_.getIntensity() = it_;
+              act_cons_element_.setIntensity(it_);
               act_cons_element_.getIntensityRange() = it_range_;
             }
           }

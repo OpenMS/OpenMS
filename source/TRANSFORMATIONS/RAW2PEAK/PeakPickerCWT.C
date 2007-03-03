@@ -1245,12 +1245,12 @@ namespace OpenMS
   template <>
   void PeakPickerCWT::fillPeak_< PickedPeak1D >(const PeakShape& peak_shape, PickedPeak1D& picked_peak)
   {
-    picked_peak.getRValue() = peak_shape.r_value;
-    picked_peak.getArea() = peak_shape.area;
-    picked_peak.getFWHM() = peak_shape.getFWHM();
-    picked_peak.getLeftWidthParameter() = peak_shape.left_width;
-    picked_peak.getRightWidthParameter() = peak_shape.right_width;
-    picked_peak.getPeakShape() = peak_shape.type;
-    picked_peak.getSN() = peak_shape.signal_to_noise;
+    picked_peak.setRValue(peak_shape.r_value);
+    picked_peak.setArea(peak_shape.area);
+    picked_peak.setFWHM(peak_shape.getFWHM());
+    picked_peak.setLeftWidthParameter(peak_shape.left_width);
+    picked_peak.setRightWidthParameter(peak_shape.right_width);
+    picked_peak.setPeakShape(peak_shape.type);
+    picked_peak.setSN(peak_shape.signal_to_noise);
   }
 }

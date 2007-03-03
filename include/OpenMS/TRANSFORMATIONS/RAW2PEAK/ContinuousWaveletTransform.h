@@ -215,12 +215,12 @@ public:
 
 
     /// Yields the signal (intensity) at position i
-    inline double& operator [] (const unsigned int i)
+    inline double operator [] (const unsigned int i)
     {
         return signal_[i].getIntensity();
     }
 
-    inline const double& operator [] (const unsigned int i) const
+    inline double operator [] (const unsigned int i) const
     {
         return signal_[i].getIntensity();
     }

@@ -76,6 +76,8 @@
 	      </ul>
 		</UL>
 
+	    <li><b>How can i speed up the compile process?</b><br>
+	      For g++ you can use the wrapper <tt>ccache</tt>.
 
 	<H2 style="border-top:2px solid grey;">Common problems</H2>
 		<UL>
