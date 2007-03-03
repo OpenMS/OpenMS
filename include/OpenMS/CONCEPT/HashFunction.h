@@ -48,7 +48,7 @@ namespace OpenMS
   {
     public:
 		
-		HashIndex operator () (const T& t) const throw()
+		UnsignedInt operator () (const T& t) const throw()
     {
       return Hash(t);
 		}
@@ -60,38 +60,38 @@ namespace OpenMS
 	
 	/**
 	*/
-  extern HashIndex hashPointer(void *const ptr) throw();
+  extern UnsignedInt hashPointer(void *const ptr) throw();
 
 	/**
 	*/
-  extern HashIndex hashString(const char* str) throw();
+  extern UnsignedInt hashString(const char* str) throw();
 
 	/**
 	*/
-  extern HashIndex hashPJWString(const char* str) throw();
+  extern UnsignedInt hashPJWString(const char* str) throw();
 
 	/**
 	*/
-  extern HashIndex hashElfString(const char* str) throw();
+  extern UnsignedInt hashElfString(const char* str) throw();
 
 	/** General default hash function.
-			This method converts a given key to a  HashIndex by calling <tt>(HashIndex)key</tt>.
-			If the key type <tt>T</tt> is not convertible to HashIndex by
-			default, a converter should be defined (<tt>operator HashIndex</tt>).
+			This method converts a given key to a  UnsignedInt by calling <tt>(UnsignedInt)key</tt>.
+			If the key type <tt>T</tt> is not convertible to UnsignedInt by
+			default, a converter should be defined (<tt>operator UnsignedInt</tt>).
 			@param	key the key to be hashed
-			@return	HashIndex the hash index
+			@return	UnsignedInt the hash index
 	*/
 	template <typename T>
-	inline HashIndex Hash(const T& key) throw()
+	inline UnsignedInt Hash(const T& key) throw()
 	{
-		return static_cast<HashIndex>((OPENMS_POINTERSIZEINT_TYPE)key);
+		return static_cast<UnsignedInt>((OPENMS_POINTERSIZEINT_TYPE)key);
 	}
 
 	/** String hash function.
 			This method is optimized for the hashing of OpenMS Strings.
 			In fact, it is only an inline wrapper around hashString.
 	*/
-	inline HashIndex Hash(const String& s) throw()
+	inline UnsignedInt Hash(const String& s) throw()
 	{
 		return hashString(s.c_str());
 	}
@@ -100,7 +100,7 @@ namespace OpenMS
 	  	This method is optimized for the hashing of STL strings.
 	  	In fact, it is only an inline wrapper aound hashString.
 	*/
-	inline HashIndex Hash(const std::string& s) throw()
+	inline UnsignedInt Hash(const std::string& s) throw()
 	{
 		return hashString(s.c_str());
 	}
@@ -108,7 +108,7 @@ namespace OpenMS
 	/** Pointer hash function.
 			Use this function to hash pointers to objects.
 	*/
-	inline HashIndex Hash(void* const& ptr) throw()
+	inline UnsignedInt Hash(void* const& ptr) throw()
 	{
 		return hashPointer(ptr);
 	}
@@ -121,7 +121,7 @@ namespace OpenMS
 			greater or equal to the number given as the argument.
 			Only odd prime numbers are returned, the lowest number returned is 3.
 	*/
-	HashIndex getNextPrime(HashIndex l) throw();
+	UnsignedInt getNextPrime(UnsignedInt l) throw();
 
 	//@}
 

@@ -161,7 +161,7 @@ namespace OpenMS
 		*/
 		bool encloses(const PositionType& position) const
 		{
-      for(Position i = 0; i != D; i++)
+      for(UnsignedInt i = 0; i != D; i++)
       {
         if (position[i]<min_[i]) return false;
         if (position[i]>=max_[i]) return false;
@@ -190,7 +190,7 @@ namespace OpenMS
 		  if (encloses(range.min_))
 		  {
 		  	//check if r.max_ in this area => Inside / Intersects
-	      for(Position i = 0; i != D; i++)
+	      for(UnsignedInt i = 0; i != D; i++)
 	      {
 	        if (range.max_[i]>max_[i])
 	        {
@@ -201,7 +201,7 @@ namespace OpenMS
 		  }
 		  // => r.min_ is not inside this area
 	  	//check if any r.min_ >= max_ => Disjoint
-      for(Position i = 0; i != D; i++)
+      for(UnsignedInt i = 0; i != D; i++)
       {
         if (range.min_[i]>=max_[i])
         {
@@ -210,7 +210,7 @@ namespace OpenMS
       }
       // => some coordinate of r.min_ has to be smaller than the one of min_
   		//check if all coords of r are smaller than the those of the range
-      for(Position i = 0; i != D; i++)
+      for(UnsignedInt i = 0; i != D; i++)
       {
         if (range.max_[i]<=min_[i])
         {
@@ -236,7 +236,7 @@ namespace OpenMS
 		  
 		  // => r.min_ is not inside this area
 	  	//check if any r.min_ >= max_ => Disjoint
-      for(Position i = 0; i != D; i++)
+      for(UnsignedInt i = 0; i != D; i++)
       {
         if (range.min_[i]>=max_[i])
         {
@@ -245,7 +245,7 @@ namespace OpenMS
       }
       // => some coordinate of r.min_ has to be smaller than the one of min_
   		//check if all coords of r are smaller than the those of the range
-      for(Position i = 0; i != D; i++)
+      for(UnsignedInt i = 0; i != D; i++)
       {
         if (range.max_[i]<=min_[i])
         {
@@ -258,7 +258,7 @@ namespace OpenMS
 		/// Checks if the range is empty
 		bool isEmpty() const 
 		{ 
-      for(Position i = 0; i != D; i++)
+      for(UnsignedInt i = 0; i != D; i++)
       {
         if (max_[i]<=min_[i])
         {

@@ -190,9 +190,9 @@ namespace OpenMS
 
  		// both quality and position might consist of several dimensions
  		// here we store the dimension that is currently parsed.
- 		Position current_pcoord_;				// current coordinate of the feature position
- 		Position current_qcoord_;				// coordinate of the feature quality
- 		Position current_hcoord_;				// coordinate of the current point in the hull
+ 		UnsignedInt current_pcoord_;				// current coordinate of the feature position
+ 		UnsignedInt current_qcoord_;				// coordinate of the feature quality
+ 		UnsignedInt current_hcoord_;				// coordinate of the current point in the hull
 
 	};
 

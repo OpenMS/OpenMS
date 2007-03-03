@@ -153,7 +153,7 @@ namespace OpenMS
 
         if (position_ == 0)
         {
-					for (++bucket_;  bucket_ < (Position)bound_->bucket_.size();  ++bucket_)
+					for (++bucket_;  bucket_ < (UnsignedInt)bound_->bucket_.size();  ++bucket_)
 					{
 						position_ = bound_->bucket_[bucket_];
 
@@ -201,7 +201,7 @@ namespace OpenMS
 
 			protected:
 			Node* position_;
-			Position bucket_;
+			UnsignedInt bucket_;
 			HashMap* bound_;
 		};	
 
@@ -287,7 +287,7 @@ namespace OpenMS
 
         if (position_ == 0)
         {
-					for (++bucket_;  bucket_ < (Position)bound_->bucket_.size();  ++bucket_)
+					for (++bucket_;  bucket_ < (UnsignedInt)bound_->bucket_.size();  ++bucket_)
 					{
 						position_ = bound_->bucket_[bucket_];
 
@@ -358,7 +358,7 @@ namespace OpenMS
 
 			protected:
 			Node* position_;
-			Position bucket_;
+			UnsignedInt bucket_;
 			const HashMap* bound_;
 		};
 
@@ -505,7 +505,7 @@ namespace OpenMS
 		Iterator find(const Key& key) throw()
 		{
 			Iterator it = end();
-			HashIndex bucket = hash_(key);
+			UnsignedInt bucket = hash_(key);
 			Node*	node_ptr = bucket_[hash_(key)];
 			
 			for (; node_ptr != 0; node_ptr = node_ptr->next)
@@ -526,7 +526,7 @@ namespace OpenMS
 		ConstIterator find(const Key& key) const throw()
 		{
 			ConstIterator it = end();
-			HashIndex bucket = hash_(key);
+			UnsignedInt bucket = hash_(key);
 			Node*	node_ptr = bucket_[hash_(key)];
 			
 			for (; node_ptr != 0; node_ptr = node_ptr->next)
@@ -631,19 +631,19 @@ namespace OpenMS
 
 		virtual void deleteNode_(Node* node) const throw();
 	
-		virtual HashIndex hash(const Key& key) const throw();
+		virtual UnsignedInt hash(const Key& key) const throw();
 
 		virtual bool needRehashing_() const throw();
 
 		virtual void rehash() throw();
 
-		PointerType find_(const Key& key, HashIndex& index) throw();
+		PointerType find_(const Key& key, UnsignedInt& index) throw();
 			
-		PointerType find_(const Key& key, HashIndex& index) const throw();
+		PointerType find_(const Key& key, UnsignedInt& index) const throw();
 
 		void deleteBuckets_() throw();
 
-		HashIndex hash_(const Key& key) const throw();
+		UnsignedInt hash_(const Key& key) const throw();
 
 		void rehash_() throw();
 
@@ -673,7 +673,7 @@ namespace OpenMS
 			capacity_(initial_capacity),
 			bucket_(number_of_buckets)
 	{
-		for (Position bucket = 0; bucket < (Position)bucket_.size(); ++bucket)
+		for (UnsignedInt bucket = 0; bucket < (UnsignedInt)bucket_.size(); ++bucket)
 		{
 			bucket_[bucket] = 0;
 		}
@@ -689,7 +689,7 @@ namespace OpenMS
 	{
 		Node* node = 0;
 		
-		for (Position bucket = 0; bucket < (Position)bucket_.size(); ++bucket)
+		for (UnsignedInt bucket = 0; bucket < (UnsignedInt)bucket_.size(); ++bucket)
 		{
 			bucket_[bucket] = 0;
 
@@ -707,7 +707,7 @@ namespace OpenMS
 		Node* node = 0;
 		Node* next_node = 0;
 		
-		for (Position bucket = 0; bucket < (Position)bucket_.size(); ++bucket)
+		for (UnsignedInt bucket = 0; bucket < (UnsignedInt)bucket_.size(); ++bucket)
 		{
 			for (node = bucket_[bucket]; node != 0; node = next_node)
 			{
@@ -747,7 +747,7 @@ namespace OpenMS
 
 		Node* node = 0;
 		
-		for (Position bucket = 0; bucket < (Position)bucket_.size(); ++bucket)
+		for (UnsignedInt bucket = 0; bucket < (UnsignedInt)bucket_.size(); ++bucket)
 		{
 			bucket_[bucket] = 0;
 
@@ -861,7 +861,7 @@ namespace OpenMS
 				rehash_();
 			}
 			
-			HashIndex bucket = hash_(item.first);
+			UnsignedInt bucket = hash_(item.first);
 			
 			Node* node_ptr = bucket_[bucket];
 			bucket_[bucket] = newNode_(item, node_ptr);
@@ -894,7 +894,7 @@ namespace OpenMS
 		throw()
 	{
 		Node*	previous = 0;
-		HashIndex bucket = hash_(key);
+		UnsignedInt bucket = hash_(key);
 		Node*	node_ptr = bucket_[bucket];
 
 		while (node_ptr != 0 && node_ptr->value.first != key)
@@ -967,10 +967,10 @@ namespace OpenMS
 			return;
 		}
 
-		Position last_bucket = l.bucket_;
+		UnsignedInt last_bucket = l.bucket_;
 		if (l == end())
 		{
-			last_bucket = (Position)bucket_.size() - 1;
+			last_bucket = (UnsignedInt)bucket_.size() - 1;
 		}
 
 		if (f.bucket_ > last_bucket)
@@ -982,7 +982,7 @@ namespace OpenMS
 		// count the deleted entries to correct the set size
 		Size no_deletions = 0;
 
-		Position bucket = f.bucket_;
+		UnsignedInt bucket = f.bucket_;
 		for (; bucket <= last_bucket; bucket++)
 		{
 			if (bucket_[bucket] == 0)
@@ -1112,7 +1112,7 @@ namespace OpenMS
 	}
 
 	template <class Key, class T>
-	inline HashIndex HashMap<Key, T>::hash(const Key& key) const
+	inline UnsignedInt HashMap<Key, T>::hash(const Key& key) const
 		throw()
 	{
 		return Hash(key);
@@ -1132,7 +1132,7 @@ namespace OpenMS
 	{
 		Node*	node = 0;
 		Node*	next_node = 0;
-		for (Position i = 0; i < (Position)bucket_.size(); i++)
+		for (UnsignedInt i = 0; i < (UnsignedInt)bucket_.size(); i++)
 		{
 			node = bucket_[i];
 			while (node != 0)
@@ -1169,10 +1169,10 @@ namespace OpenMS
 
 
 	template <class Key, class T>
-	inline HashIndex HashMap<Key, T>::hash_(const Key& key) const
+	inline UnsignedInt HashMap<Key, T>::hash_(const Key& key) const
 		throw()
 	{
-		return (HashIndex)(hash(key) % bucket_.size());
+		return (UnsignedInt)(hash(key) % bucket_.size());
 	}
  
 	template <class Key, class T>
@@ -1188,7 +1188,7 @@ namespace OpenMS
 		// resize the bucket vector and initialize it with zero
 		bucket_.clear();
 		bucket_.resize(capacity_);
-		Position i;
+		UnsignedInt i;
 		for (i = 0; i < capacity_; i++)
 		{
 			bucket_[i] = 0;
@@ -1197,12 +1197,12 @@ namespace OpenMS
 		// rehash the old contents into the new buckets
 		Node*	node;
 		Node* next_node;
-		for (Position i = 0; i < (Position)old_buckets.size(); ++i)
+		for (UnsignedInt i = 0; i < (UnsignedInt)old_buckets.size(); ++i)
 		{
 			for (node = old_buckets[i]; node != 0; node = next_node)
 			{
 				next_node = node->next;
-				Position new_bucket = (Position)hash_(node->value.first);
+				UnsignedInt new_bucket = (UnsignedInt)hash_(node->value.first);
 				node->next = bucket_[new_bucket];
 				bucket_[new_bucket] = node; 
 			}

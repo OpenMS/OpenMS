@@ -193,6 +193,12 @@ pointer to a base class will fail badly.
 
 <H1 style="margin-top:40px; border-top:4px solid grey; text-align:left;">General rules</H1>
 
+
+<H2 style="margin-top:20px; border-top:1px solid grey;">Primitive types</H2>
+
+OpenMS uses its own type names for primitive types. Use only the types defined in
+<TT>OpenMS/include/OpenMS/CONCEPT/Types.h</TT>!
+
 <H2 style="margin-top:20px; border-top:1px solid grey;">Namespaces and the 'using' directive</H2>
 
 The main OpenMS classes are implemented in the namespace <TT>OpenMS</TT>.
@@ -568,7 +574,7 @@ Instructive programming examples can be provided in the
 
 <H2 style="margin-top:20px; border-top:1px solid grey;">Revision control</H2>
 
-OpenMS uses the Subversion to manage different
+OpenMS uses Subversion to manage different
 versions of the source files. For easier identification of the responsible person
 each OpenMS file contains the <TT>$Maintainer:$</TT> string in the
 preamble.

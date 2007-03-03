@@ -164,7 +164,7 @@ namespace OpenMS
     		For that reason no model @p dist should be assigned to multiple ProductModels.<br>
     		ProductModel parameters are set when calling ProductModel::getParameters().
     */
-    ProductModel& setModel(const Position dim, BaseModel<1>* dist)
+    ProductModel& setModel(const UnsignedInt dim, BaseModel<1>* dist)
     {
       OPENMS_PRECONDITION(dim<D, "ProductModel<D>:getModel(Position): index overflow!")
       if (dist==0 || dist==distributions_[dim])
@@ -184,7 +184,7 @@ namespace OpenMS
       return *this;
     }
 
-    BaseModel<1>* getModel(const Position dim) const
+    BaseModel<1>* getModel(const UnsignedInt dim) const
     {
       OPENMS_PRECONDITION(dim<D, "ProductModel<D>:getModel(Position): index overflow!")
       return distributions_[dim];

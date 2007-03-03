@@ -125,8 +125,8 @@ namespace OpenMS
       BaseMapping* mapping_;
       Param* param_;
 
-      Position current_fcoord_;
-      Position current_scoord_;
+      UnsignedInt current_fcoord_;
+      UnsignedInt current_scoord_;
 
       std::map<String,BaseMapping* > mapping_instances;
 

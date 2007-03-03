@@ -252,7 +252,7 @@ namespace OpenMS
 		{
 			return true;
 		}
-		for (Position i=0;i!=size();++i)
+		for (UnsignedInt i=0;i!=size();++i)
 		{
 			if (compare(i, string.size(), string) == 0)
 			{
@@ -264,7 +264,7 @@ namespace OpenMS
 
 	bool String::has(Byte byte) const
 	{
-		for (Position i=0;i!=size();++i)
+		for (UnsignedInt i=0;i!=size();++i)
 		{
 			if ((*this)[i] == byte)
 			{
@@ -435,7 +435,7 @@ namespace OpenMS
 		srand(time(0));
 		String tmp(length, '.');
 		Size random;
-		for (Position i = 0 ; i < length; ++i)
+		for (UnsignedInt i = 0 ; i < length; ++i)
 		{
 			random = (SizeType)floor(((double)rand()/(double(RAND_MAX)+1)) * 62.0);
 			if (random < 10)
@@ -457,7 +457,7 @@ namespace OpenMS
 	String& String::reverse()
 	{
 		String tmp = *this;
-		for (Position i=0;i!=size();++i)
+		for (UnsignedInt i=0;i!=size();++i)
 		{
 			(*this)[i] = tmp[size()-1-i];
 		}

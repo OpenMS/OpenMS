@@ -119,23 +119,23 @@ namespace OpenMS
 		inline void setOverallQuality(const QualityType& q) { overall_quality_ = q; }
 
 		/// Non-mutable access to the quality in dimension c
-		inline const QualityType& getQuality(const Position& index) const
+		inline const QualityType& getQuality(const UnsignedInt& index) const
 		{
-			OPENMS_PRECONDITION(index < 2, "Feature<2>:getQuality(Position): index overflow!")
+			OPENMS_PRECONDITION(index < 2, "Feature<2>:getQuality(UnsignedInt): index overflow!")
 			return qualities_[index]; 
 		}
 
 		/// Mutable access to the quality in dimension c
-		inline QualityType& getQuality(const Position& index)
+		inline QualityType& getQuality(const UnsignedInt& index)
 		{
-			OPENMS_PRECONDITION(index < 2, "Feature<2>:getQuality(Position): index overflow!")
+			OPENMS_PRECONDITION(index < 2, "Feature<2>:getQuality(UnsignedInt): index overflow!")
 			return qualities_[index]; 
 		}
 
 		/// Set the quality in dimension c
-		inline void setQuality(const Position& index, const QualityType& q)
+		inline void setQuality(const UnsignedInt& index, const QualityType& q)
 		{
-			OPENMS_PRECONDITION(index < 2, "Feature<2>:setQuality(Position): index overflow!")
+			OPENMS_PRECONDITION(index < 2, "Feature<2>:setQuality(UnsignedInt): index overflow!")
 			qualities_[index] = q; 
 		}
 		

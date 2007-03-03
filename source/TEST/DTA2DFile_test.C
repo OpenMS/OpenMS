@@ -138,58 +138,58 @@ CHECK((template<typename MapType> void load(const String& filename, MapType& map
 
 	DPeakArray<2, Peak2D>::ConstIterator it2 = array.begin();
 
-	TEST_REAL_EQUAL(it2->getPos()[Peak2D::MZ], 230.02)
-	TEST_REAL_EQUAL(it2->getPos()[Peak2D::RT], 4711.1)
+	TEST_REAL_EQUAL(it2->getMZ(), 230.02)
+	TEST_REAL_EQUAL(it2->getRT(), 4711.1)
 	TEST_REAL_EQUAL(it2->getIntensity(), 47218.89)
 	++it2;
 
-	TEST_REAL_EQUAL(it2->getPos()[Peak2D::MZ], 430.02)
-	TEST_REAL_EQUAL(it2->getPos()[Peak2D::RT], 4711.1)
+	TEST_REAL_EQUAL(it2->getMZ(), 430.02)
+	TEST_REAL_EQUAL(it2->getRT(), 4711.1)
 	TEST_REAL_EQUAL(it2->getIntensity(), 47219.89)
 	++it2;
 
-	TEST_REAL_EQUAL(it2->getPos()[Peak2D::MZ], 630.02)
-	TEST_REAL_EQUAL(it2->getPos()[Peak2D::RT], 4711.1)
+	TEST_REAL_EQUAL(it2->getMZ(), 630.02)
+	TEST_REAL_EQUAL(it2->getRT(), 4711.1)
 	TEST_REAL_EQUAL(it2->getIntensity(), 47210.89)
 	++it2;
 
-	TEST_REAL_EQUAL(it2->getPos()[Peak2D::MZ], 231.51)
-	TEST_REAL_EQUAL(it2->getPos()[Peak2D::RT], 4711.2)
+	TEST_REAL_EQUAL(it2->getMZ(), 231.51)
+	TEST_REAL_EQUAL(it2->getRT(), 4711.2)
 	TEST_REAL_EQUAL(it2->getIntensity(), 89935.22)
 	++it2;
 
-	TEST_REAL_EQUAL(it2->getPos()[Peak2D::MZ], 139.42)
-	TEST_REAL_EQUAL(it2->getPos()[Peak2D::RT], 4711.3)
+	TEST_REAL_EQUAL(it2->getMZ(), 139.42)
+	TEST_REAL_EQUAL(it2->getRT(), 4711.3)
 	TEST_REAL_EQUAL(it2->getIntensity(), 318.52)
 	++it2;
 
-	TEST_REAL_EQUAL(it2->getPos()[Peak2D::MZ], 149.93)
-	TEST_REAL_EQUAL(it2->getPos()[Peak2D::RT], 4711.4)
+	TEST_REAL_EQUAL(it2->getMZ(), 149.93)
+	TEST_REAL_EQUAL(it2->getRT(), 4711.4)
 	TEST_REAL_EQUAL(it2->getIntensity(), 61870.99)
 	++it2;
 
-	TEST_REAL_EQUAL(it2->getPos()[Peak2D::MZ], 169.65)
-	TEST_REAL_EQUAL(it2->getPos()[Peak2D::RT], 4711.5)
+	TEST_REAL_EQUAL(it2->getMZ(), 169.65)
+	TEST_REAL_EQUAL(it2->getRT(), 4711.5)
 	TEST_REAL_EQUAL(it2->getIntensity(), 62074.22)
 	++it2;
 
-	TEST_REAL_EQUAL(it2->getPos()[Peak2D::MZ], 189.30)
-	TEST_REAL_EQUAL(it2->getPos()[Peak2D::RT], 4711.6)
+	TEST_REAL_EQUAL(it2->getMZ(), 189.30)
+	TEST_REAL_EQUAL(it2->getRT(), 4711.6)
 	TEST_REAL_EQUAL(it2->getIntensity(), 53737.85)
 	++it2;
 
-	TEST_REAL_EQUAL(it2->getPos()[Peak2D::MZ], 202.28)
-	TEST_REAL_EQUAL(it2->getPos()[Peak2D::RT], 4711.7)
+	TEST_REAL_EQUAL(it2->getMZ(), 202.28)
+	TEST_REAL_EQUAL(it2->getRT(), 4711.7)
 	TEST_REAL_EQUAL(it2->getIntensity(), 49410.25)
 	++it2;
 
-	TEST_REAL_EQUAL(it2->getPos()[Peak2D::MZ], 207.82)
-	TEST_REAL_EQUAL(it2->getPos()[Peak2D::RT], 4711.8)
+	TEST_REAL_EQUAL(it2->getMZ(), 207.82)
+	TEST_REAL_EQUAL(it2->getRT(), 4711.8)
 	TEST_REAL_EQUAL(it2->getIntensity(), 17038.71)
 	++it2;
 
-	TEST_REAL_EQUAL(it2->getPos()[Peak2D::MZ], 219.72)
-	TEST_REAL_EQUAL(it2->getPos()[Peak2D::RT], 4711.9)
+	TEST_REAL_EQUAL(it2->getMZ(), 219.72)
+	TEST_REAL_EQUAL(it2->getRT(), 4711.9)
 	TEST_REAL_EQUAL(it2->getIntensity(), 73629.98)
 
 	// Test with DRawDataPoint 
@@ -282,58 +282,58 @@ CHECK((template<typename MapType> void store(const String& filename, const MapTy
 
 	DPeakArray<2, Peak2D>::ConstIterator it2 = array.begin();
 
-	TEST_REAL_EQUAL(it2->getPos()[Peak2D::MZ], 230.02)
-	TEST_REAL_EQUAL(it2->getPos()[Peak2D::RT], 4711.1)
+	TEST_REAL_EQUAL(it2->getMZ(), 230.02)
+	TEST_REAL_EQUAL(it2->getRT(), 4711.1)
 	TEST_REAL_EQUAL(it2->getIntensity(), 47218.89)
 	++it2;
 
-	TEST_REAL_EQUAL(it2->getPos()[Peak2D::MZ], 430.02)
-	TEST_REAL_EQUAL(it2->getPos()[Peak2D::RT], 4711.1)
+	TEST_REAL_EQUAL(it2->getMZ(), 430.02)
+	TEST_REAL_EQUAL(it2->getRT(), 4711.1)
 	TEST_REAL_EQUAL(it2->getIntensity(), 47219.89)
 	++it2;
 
-	TEST_REAL_EQUAL(it2->getPos()[Peak2D::MZ], 630.02)
-	TEST_REAL_EQUAL(it2->getPos()[Peak2D::RT], 4711.1)
+	TEST_REAL_EQUAL(it2->getMZ(), 630.02)
+	TEST_REAL_EQUAL(it2->getRT(), 4711.1)
 	TEST_REAL_EQUAL(it2->getIntensity(), 47210.89)
 	++it2;
 
-	TEST_REAL_EQUAL(it2->getPos()[Peak2D::MZ], 231.51)
-	TEST_REAL_EQUAL(it2->getPos()[Peak2D::RT], 4711.2)
+	TEST_REAL_EQUAL(it2->getMZ(), 231.51)
+	TEST_REAL_EQUAL(it2->getRT(), 4711.2)
 	TEST_REAL_EQUAL(it2->getIntensity(), 89935.22)
 	++it2;
 
-	TEST_REAL_EQUAL(it2->getPos()[Peak2D::MZ], 139.42)
-	TEST_REAL_EQUAL(it2->getPos()[Peak2D::RT], 4711.3)
+	TEST_REAL_EQUAL(it2->getMZ(), 139.42)
+	TEST_REAL_EQUAL(it2->getRT(), 4711.3)
 	TEST_REAL_EQUAL(it2->getIntensity(), 318.52)
 	++it2;
 
-	TEST_REAL_EQUAL(it2->getPos()[Peak2D::MZ], 149.93)
-	TEST_REAL_EQUAL(it2->getPos()[Peak2D::RT], 4711.4)
+	TEST_REAL_EQUAL(it2->getMZ(), 149.93)
+	TEST_REAL_EQUAL(it2->getRT(), 4711.4)
 	TEST_REAL_EQUAL(it2->getIntensity(), 61870.99)
 	++it2;
 
-	TEST_REAL_EQUAL(it2->getPos()[Peak2D::MZ], 169.65)
-	TEST_REAL_EQUAL(it2->getPos()[Peak2D::RT], 4711.5)
+	TEST_REAL_EQUAL(it2->getMZ(), 169.65)
+	TEST_REAL_EQUAL(it2->getRT(), 4711.5)
 	TEST_REAL_EQUAL(it2->getIntensity(), 62074.22)
 	++it2;
 
-	TEST_REAL_EQUAL(it2->getPos()[Peak2D::MZ], 189.30)
-	TEST_REAL_EQUAL(it2->getPos()[Peak2D::RT], 4711.6)
+	TEST_REAL_EQUAL(it2->getMZ(), 189.30)
+	TEST_REAL_EQUAL(it2->getRT(), 4711.6)
 	TEST_REAL_EQUAL(it2->getIntensity(), 53737.85)
 	++it2;
 
-	TEST_REAL_EQUAL(it2->getPos()[Peak2D::MZ], 202.28)
-	TEST_REAL_EQUAL(it2->getPos()[Peak2D::RT], 4711.7)
+	TEST_REAL_EQUAL(it2->getMZ(), 202.28)
+	TEST_REAL_EQUAL(it2->getRT(), 4711.7)
 	TEST_REAL_EQUAL(it2->getIntensity(), 49410.25)
 	++it2;
 
-	TEST_REAL_EQUAL(it2->getPos()[Peak2D::MZ], 207.82)
-	TEST_REAL_EQUAL(it2->getPos()[Peak2D::RT], 4711.8)
+	TEST_REAL_EQUAL(it2->getMZ(), 207.82)
+	TEST_REAL_EQUAL(it2->getRT(), 4711.8)
 	TEST_REAL_EQUAL(it2->getIntensity(), 17038.71)
 	++it2;
 
-	TEST_REAL_EQUAL(it2->getPos()[Peak2D::MZ], 219.72)
-	TEST_REAL_EQUAL(it2->getPos()[Peak2D::RT], 4711.9)
+	TEST_REAL_EQUAL(it2->getMZ(), 219.72)
+	TEST_REAL_EQUAL(it2->getRT(), 4711.9)
 	TEST_REAL_EQUAL(it2->getIntensity(), 73629.98)
 
 	MSExperiment< RawDataPoint1D > e3;
@@ -345,58 +345,58 @@ CHECK((template<typename MapType> void store(const String& filename, const MapTy
 
 	DPeakArray<2,RawDataPoint2D >::ConstIterator it3 = array2.begin();
 
-	TEST_REAL_EQUAL(it3->getPos()[Peak2D::MZ], 230.02)
-	TEST_REAL_EQUAL(it3->getPos()[Peak2D::RT], 4711.1)
+	TEST_REAL_EQUAL(it3->getMZ(), 230.02)
+	TEST_REAL_EQUAL(it3->getRT(), 4711.1)
 	TEST_REAL_EQUAL(it3->getIntensity(), 47218.89)
 	++it3;
 
-	TEST_REAL_EQUAL(it3->getPos()[Peak2D::MZ], 430.02)
-	TEST_REAL_EQUAL(it3->getPos()[Peak2D::RT], 4711.1)
+	TEST_REAL_EQUAL(it3->getMZ(), 430.02)
+	TEST_REAL_EQUAL(it3->getRT(), 4711.1)
 	TEST_REAL_EQUAL(it3->getIntensity(), 47219.89)
 	++it3;
 
-	TEST_REAL_EQUAL(it3->getPos()[Peak2D::MZ], 630.02)
-	TEST_REAL_EQUAL(it3->getPos()[Peak2D::RT], 4711.1)
+	TEST_REAL_EQUAL(it3->getMZ(), 630.02)
+	TEST_REAL_EQUAL(it3->getRT(), 4711.1)
 	TEST_REAL_EQUAL(it3->getIntensity(), 47210.89)
 	++it3;
 
-	TEST_REAL_EQUAL(it3->getPos()[Peak2D::MZ], 231.51)
-	TEST_REAL_EQUAL(it3->getPos()[Peak2D::RT], 4711.2)
+	TEST_REAL_EQUAL(it3->getMZ(), 231.51)
+	TEST_REAL_EQUAL(it3->getRT(), 4711.2)
 	TEST_REAL_EQUAL(it3->getIntensity(), 89935.22)
 	++it3;
 
-	TEST_REAL_EQUAL(it3->getPos()[Peak2D::MZ], 139.42)
-	TEST_REAL_EQUAL(it3->getPos()[Peak2D::RT], 4711.3)
+	TEST_REAL_EQUAL(it3->getMZ(), 139.42)
+	TEST_REAL_EQUAL(it3->getRT(), 4711.3)
 	TEST_REAL_EQUAL(it3->getIntensity(), 318.52)
 	++it3;
 
-	TEST_REAL_EQUAL(it3->getPos()[Peak2D::MZ], 149.93)
-	TEST_REAL_EQUAL(it3->getPos()[Peak2D::RT], 4711.4)
+	TEST_REAL_EQUAL(it3->getMZ(), 149.93)
+	TEST_REAL_EQUAL(it3->getRT(), 4711.4)
 	TEST_REAL_EQUAL(it3->getIntensity(), 61870.99)
 	++it3;
 
-	TEST_REAL_EQUAL(it3->getPos()[Peak2D::MZ], 169.65)
-	TEST_REAL_EQUAL(it3->getPos()[Peak2D::RT], 4711.5)
+	TEST_REAL_EQUAL(it3->getMZ(), 169.65)
+	TEST_REAL_EQUAL(it3->getRT(), 4711.5)
 	TEST_REAL_EQUAL(it3->getIntensity(), 62074.22)
 	++it3;
 
-	TEST_REAL_EQUAL(it3->getPos()[Peak2D::MZ], 189.30)
-	TEST_REAL_EQUAL(it3->getPos()[Peak2D::RT], 4711.6)
+	TEST_REAL_EQUAL(it3->getMZ(), 189.30)
+	TEST_REAL_EQUAL(it3->getRT(), 4711.6)
 	TEST_REAL_EQUAL(it3->getIntensity(), 53737.85)
 	++it3;
 
-	TEST_REAL_EQUAL(it3->getPos()[Peak2D::MZ], 202.28)
-	TEST_REAL_EQUAL(it3->getPos()[Peak2D::RT], 4711.7)
+	TEST_REAL_EQUAL(it3->getMZ(), 202.28)
+	TEST_REAL_EQUAL(it3->getRT(), 4711.7)
 	TEST_REAL_EQUAL(it3->getIntensity(), 49410.25)
 	++it3;
 
-	TEST_REAL_EQUAL(it3->getPos()[Peak2D::MZ], 207.82)
-	TEST_REAL_EQUAL(it3->getPos()[Peak2D::RT], 4711.8)
+	TEST_REAL_EQUAL(it3->getMZ(), 207.82)
+	TEST_REAL_EQUAL(it3->getRT(), 4711.8)
 	TEST_REAL_EQUAL(it3->getIntensity(), 17038.71)
 	++it3;
 
-	TEST_REAL_EQUAL(it3->getPos()[Peak2D::MZ], 219.72)
-	TEST_REAL_EQUAL(it3->getPos()[Peak2D::RT], 4711.9)
+	TEST_REAL_EQUAL(it3->getMZ(), 219.72)
+	TEST_REAL_EQUAL(it3->getRT(), 4711.9)
 	TEST_REAL_EQUAL(it3->getIntensity(), 73629.98)
 
 

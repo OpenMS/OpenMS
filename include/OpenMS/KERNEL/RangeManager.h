@@ -169,7 +169,7 @@ namespace OpenMS
          for (PeakIteratorType it = begin; it != end; ++it)
          {
            //update position
-           for (Position i = 0; i < D; ++i)
+           for (UnsignedInt i = 0; i < D; ++i)
            {
              tmp = it->getPos()[i];
              if (tmp < min[i])

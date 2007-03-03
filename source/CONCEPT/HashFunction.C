@@ -35,7 +35,7 @@ namespace OpenMS
 	 * The result of the hash function is a number in the range 
 	 * [0..(number_of_slots-1)].
 	 */
-	HashIndex hashPointer(void *const void_ptr)
+	UnsignedInt hashPointer(void *const void_ptr)
 		throw()
 	{
 		double d = ((double)((unsigned long)void_ptr)) * 0.6180339887;
@@ -49,12 +49,12 @@ namespace OpenMS
 	 * [0..255]. This algorithm was published by P. K. Pearson,
 	 * Comm. ACM, 33:6(1990), 677
 	 */
-	HashIndex hashString(const char *s)
+	UnsignedInt hashString(const char *s)
 		throw()
 	{
 		if (s == 0)
 		{
-			return (HashIndex)0;
+			return (UnsignedInt)0;
 		}
 
 		static const unsigned char pseudo_random_permuted_key[256] = 
@@ -83,7 +83,7 @@ namespace OpenMS
 			hash = pseudo_random_permuted_key[hash ^ *s];
 		}
 
-		return (HashIndex)hash;
+		return (UnsignedInt)hash;
 	}
 
 	/* Summary: A portable adaptation of Peter Weinberger's (PJW) (AT&T Bell Labs) 
@@ -91,7 +91,7 @@ namespace OpenMS
 	 * to a string to be hashed.
 	 * Taken from: Dr. Dobb's Journal, April 1996, p.26
 	 */
-	HashIndex hashPJWString(const char *s)
+	UnsignedInt hashPJWString(const char *s)
 	 throw()
 	{
 		Index index = 0;
@@ -124,7 +124,7 @@ namespace OpenMS
 	 * Assumes a long pointer to have 4 bytes of 8 bits.
 	 * Taken from: Dr. Dobb's Journal, April 1996, p.26
 	 */
-	HashIndex hashElfString(const char *s)
+	UnsignedInt hashElfString(const char *s)
 	 throw()
 	{
 		unsigned long l = 0;
@@ -144,7 +144,7 @@ namespace OpenMS
 	}
 
 
-  HashIndex getNextPrime(HashIndex l)
+  UnsignedInt getNextPrime(UnsignedInt l)
 	 throw()
   {
     if (l <= 3)
@@ -157,8 +157,8 @@ namespace OpenMS
       l++;
 		}
 
-    HashIndex sqr = (HashIndex)std::sqrt((double)l) + 1;
-    HashIndex div = 0;
+    UnsignedInt sqr = (UnsignedInt)std::sqrt((double)l) + 1;
+    UnsignedInt div = 0;
 
     for (;;)
     {
