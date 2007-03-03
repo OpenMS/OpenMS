@@ -28,7 +28,6 @@
 #define OPENMS_DATASTRUCTURES_DATAVALUE_H
 
 #include <OpenMS/CONCEPT/Exception.h>
-#include <OpenMS/FORMAT/Serialization.h>
 
 namespace OpenMS
 {
@@ -41,7 +40,7 @@ namespace OpenMS
 		<LI> Automatic conversion is supported and throws Exceptions in case of invalid ones.
 		<LI> An empty objects is created with the default constructor.
 		</UL>
-		@ingroup Datastructures, Serialization
+		@ingroup Datastructures
 	*/
 	class DataValue
 	{
@@ -153,88 +152,6 @@ namespace OpenMS
 				std::string* str_;			
 			} 
 			data_;
-
-		///@name Serialization
-		//@{
-	 private:
-
-		/// Serialization interface
-		template<class Archive>
-		void save(Archive & ar, const unsigned int /* version */ ) const
-		{
-			ar & boost::serialization::make_nvp("typ",value_type_);
-			switch (value_type_)
-			{
-			case INTVALUE:
-				ar & boost::serialization::make_nvp("int",data_.int_);
-				break;
-			case FLOVALUE:
-				ar & boost::serialization::make_nvp("flo",data_.flo_);
-				break;
-			case DOUVALUE:
-				ar & boost::serialization::make_nvp("dou",data_.dou_);
-				break;
-			case SHOVALUE:
-				ar & boost::serialization::make_nvp("sho",data_.sho_);
-				break;
-			case LONVALUE:
-				ar & boost::serialization::make_nvp("lon",data_.lon_);
-				break;
-			case STRVALUE:
-				{
-					const std::string & data_str_(*data_.str_);
-					ar & boost::serialization::make_nvp("str",data_str_);
-				}
-				break;
-			case EMPTYVALUE:
-			default:
-				break;
-			}
-		}
-
-		/// Serialization interface
-		template<class Archive>
-		void load(Archive & ar, const unsigned int /* version */ )
-		{
-			ar & boost::serialization::make_nvp("typ",value_type_);
-			switch (value_type_)
-			{
-			case INTVALUE:
-				ar & boost::serialization::make_nvp("int",data_.int_);
-				break;
-			case FLOVALUE:
-				ar & boost::serialization::make_nvp("flo",data_.flo_);
-				break;
-			case DOUVALUE:
-				ar & boost::serialization::make_nvp("dou",data_.dou_);
-				break;
-			case SHOVALUE:
-				ar & boost::serialization::make_nvp("sho",data_.sho_);
-				break;
-			case LONVALUE:
-				ar & boost::serialization::make_nvp("lon",data_.lon_);
-				break;
-			case STRVALUE:
-				{
-					// TODO: avoid copying of string content
-					std::string data_str_;
-					ar & boost::serialization::make_nvp("str",data_str_);
-					*this = DataValue(data_str_);
-				}
-				break;
-			case EMPTYVALUE:
-			default:
-				break;
-			}
-		}
-
-		BOOST_SERIALIZATION_SPLIT_MEMBER()
-
-		//@}
-
-		/// Serialization
-		friend class boost::serialization::access;
-		
 	};
 }
 
