@@ -48,9 +48,12 @@ CHECK((~TwoDOptimization()))
 RESULT
 
 CHECK((TwoDOptimization& operator=(const TwoDOptimization& opt)))
-  PRECISION(0.0001)
   TwoDOptimization opt_2d;
   struct OptimizationFunctions::PenaltyFactorsInt penalties;
+  penalties.pos = 2;
+  penalties.height = 3;
+  penalties.lWidth = 4;
+  penalties.rWidth = 5;
   opt_2d.setPenalties(penalties);
   opt_2d.setMaxIterations(10);
   opt_2d.setMaxAbsError(0.01);
@@ -104,7 +107,7 @@ CHECK((TwoDOptimization(const Param& param)))
 
 
   TwoDOptimization opt_2d(param);
-  TEST_REAL_EQUAL(10,opt_2d.getPenalties().pos)
+  TEST_REAL_EQUAL(opt_2d.getPenalties().pos,10)
   TEST_REAL_EQUAL(opt_2d.getPenalties().lWidth,0)
 	TEST_REAL_EQUAL(opt_2d.getPenalties().rWidth,0)
   TEST_REAL_EQUAL(opt_2d.getPenalties().height,1)		

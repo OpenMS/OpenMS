@@ -49,6 +49,7 @@
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/FORMAT/Param.h>
 #include <OpenMS/DATASTRUCTURES/IsotopeCluster.h>
+#include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 
 #ifndef OPENMS_SYSTEM_STOPWATCH_H
 # include <OpenMS/SYSTEM/StopWatch.h>
@@ -72,7 +73,7 @@ namespace OpenMS
 		 @brief Namespace for all functions and classes needed for 2D optimization.
 	
 	*/
-  namespace TwoDOptimizationFunctions
+  namespace OptimizationFunctions
   {
   
     /// Raw data point type
@@ -112,7 +113,7 @@ namespace OpenMS
 			
 		 @todo use DefaultParamHandler (Alexandra)
 	*/
-	class TwoDOptimization
+	class TwoDOptimization : public DefaultParamHandler
 	{
 	public:
 
@@ -127,137 +128,89 @@ namespace OpenMS
 		};
       
 		/// Constructor
-		TwoDOptimization()
-		{
-			// 2D optimization parameters
-			param_.setValue("2D_optimization:penalties:position",0.0);
-			param_.setValue("2D_optimization:penalties:height",1.0);
-			param_.setValue("2D_optimization:penalties:left_width",0.0);
-			param_.setValue("2D_optimization:penalties:right_width",0.0);
-			param_.setValue("2D_optimization:thresholds:tolerance_mz",0.2);
-			param_.setValue("2D_optimization:thresholds:max_peak_distance",1.0);
-			param_.setValue("2D_optimization:skip_optimization","yes");
-			param_.setValue("2D_optimization:delta_abs_error",1e-05f);
-			param_.setValue("2D_optimization:delta_rel_error",1e-05f);
-			param_.setValue("2D_optimization:iterations",10);
-			param_.setValue("2D_optimization:real_2D","yes");
-		}
+		TwoDOptimization();
 
 		/// Constructor using a Param-object
-		TwoDOptimization(const Param& param) 
-		{
-			param_ = param;
-	
-	
-			DataValue dv = param_.getValue("2D_optimization:thresholds:tolerance_mz");
-			if (dv.isEmpty() || dv.toString() == "") tolerance_mz_ = 0.1;
-			else tolerance_mz_ = (float)dv;
-	
-			dv = param_.getValue("2D_optimization:thresholds:max_peak_distance");
-			if (dv.isEmpty() || dv.toString() == "") max_peak_distance_ = 1;
-			else max_peak_distance_ = (float)dv;
-	
-			dv = param_.getValue("2D_optimization:delta_abs_error");
-			if (dv.isEmpty() || dv.toString() == "") eps_abs_ = 0.00000001;
-			else eps_abs_ = (float)dv;
-
-			dv = param_.getValue("2D_optimization:delta_rel_error");
-			if (dv.isEmpty() || dv.toString() == "") eps_rel_ = 0.00000001;
-			else eps_rel_ = (float)dv;
-	
-			dv = param_.getValue("2D_optimization:iterations");
-			if (dv.isEmpty() || dv.toString() == "") max_iteration_ = 15;
-			else max_iteration_ = (unsigned int)dv;
-
-
-
-			penalties_ = OptimizationFunctions::PenaltyFactorsInt();
-			dv = param_.getValue("2D_optimization:penalties:height");
-			if (dv.isEmpty() || dv.toString() == "") penalties_.height = 2;
-			else penalties_.height = (float)dv;
-
-			dv = param_.getValue("2D_optimization:penalties:left_width");
-			if (dv.isEmpty() || dv.toString() == "") penalties_.lWidth = 1;
-			else penalties_.lWidth = (float)dv;
-	
-			dv = param_.getValue("2D_optimization:penalties:right_width");
-			if (dv.isEmpty() || dv.toString() == "") penalties_.rWidth = 1;
-			else penalties_.rWidth = (float)dv;
-
-			dv = param_.getValue("2D_optimization:penalties:position");
-			if (dv.isEmpty() || dv.toString() == "") penalties_.pos = 2;
-			else penalties_.pos = (float)dv;
-		}
+		TwoDOptimization(const Param& param);
 
 		/// Copy constructor
-		TwoDOptimization(const TwoDOptimization& opt)
-			:tolerance_mz_(opt.tolerance_mz_),
-			 eps_abs_(opt.eps_abs_),
-			 eps_rel_(opt.eps_rel_),
-			 max_iteration_(opt.max_iteration_)
-		{
-			param_ = opt.param_;
-			penalties_ = opt.penalties_;
-		}
+		TwoDOptimization(const TwoDOptimization& opt);
 
 		/// Destructor
 		virtual ~TwoDOptimization(){}
 
 		/// Assignment operator
-		TwoDOptimization& operator=(const TwoDOptimization& opt)
-		{
-			if(&opt == this) return *this; 
-	
-			tolerance_mz_ = opt.tolerance_mz_;
-			eps_abs_ = opt.eps_abs_;
-			eps_rel_ = opt.eps_rel_;
-			max_iteration_ = opt.max_iteration_;
-			param_ = opt.param_;
-			penalties_ = opt.penalties_;
-			return *this;
-		}
+		TwoDOptimization& operator=(const TwoDOptimization& opt);
+
 			
 		///Non-mutable access to the matching epsilon
 		inline const double& getMZTolerance() const {return tolerance_mz_;}
 		///Mutable access to the matching epsilon
 		inline double& getMZTolerance() {return tolerance_mz_;}
 		///Mutable access to the matching epsilon
-		inline void setMZTolerance(double tolerance_mz) { tolerance_mz_ = tolerance_mz;}
+		inline void setMZTolerance(double tolerance_mz)
+		{
+			tolerance_mz_ = tolerance_mz;
+			param_.setValue("2D_optimization:thresholds:tolerance_mz",tolerance_mz);
+		}
 
 		///Non-mutable access to the maximal peak distance in a cluster
 		inline const double& getMaxPeakDistance() const {return max_peak_distance_;}
 		///Mutable access to the maximal peak distance in a cluster
 		inline double& getMaxPeakDistance() {return max_peak_distance_;}
 		///Mutable access to the maximal peak distance in a cluster
-		inline void setMaxPeakDistance(double max_peak_distance) { max_peak_distance_ = max_peak_distance;}
+		inline void setMaxPeakDistance(double max_peak_distance)
+		{
+			max_peak_distance_ = max_peak_distance;
+			param_.setValue("2D_optimization:thresholds:max_peak_distance",max_peak_distance);
+		}
 
 		///Non-mutable access to the maximal absolute error
 		inline const double& getMaxAbsError() const {return eps_abs_;}
 		///Mutable access to the  maximal absolute error
 		inline double& getMaxAbsError() {return eps_abs_;}
 		///Mutable access to the  maximal absolute error
-		inline void setMaxAbsError(double eps_abs) { eps_abs_ = eps_abs;}
+		inline void setMaxAbsError(double eps_abs)
+		{
+			eps_abs_ = eps_abs;
+			param_.setValue("2D_optimization:delta_abs_error",eps_abs);
+		}
       
 		///Non-mutable access to the maximal relative error
 		inline const double& getMaxRelError() const {return eps_rel_;}
 		///Mutable access to the maximal relative error
 		inline double& getMaxRelError() {return eps_rel_;}
 		///Mutable access to the maximal relative error
-		inline void setMaxRelError(double eps_rel) { eps_rel_ = eps_rel;}
+		inline void setMaxRelError(double eps_rel)
+		{
+			eps_rel_ = eps_rel;
+			param_.setValue("2D_optimization:delta_rel_error",eps_rel);
+		}
 
 		///Non-mutable access to the maximal number of iterations
 		inline const int& getMaxIterations() const {return max_iteration_;}
 		///Mutable access to the  maximal number of iterations
 		inline int& getMaxIterations() {return max_iteration_;}
 		///Mutable access to the  maximal number of iterations
-		inline void setMaxIterations(int max_iteration) { max_iteration_ = max_iteration;}
+		inline void setMaxIterations(int max_iteration)
+		{
+			max_iteration_ = max_iteration;
+			param_.setValue("2D_optimization:iterations",max_iteration);
+		}
 
 		///Non-mutable access to the minimal number of adjacent scans
 		inline const OptimizationFunctions::PenaltyFactorsInt& getPenalties() const {return penalties_;}
 		///Mutable access to the minimal number of adjacent scans
 		inline OptimizationFunctions::PenaltyFactorsInt& getPenalties() {return penalties_;}
 		///Mutable access to the minimal number of adjacent scans
-		inline void setPenalties(OptimizationFunctions::PenaltyFactorsInt& penalties) { penalties_ = penalties;}
+		inline void setPenalties(OptimizationFunctions::PenaltyFactorsInt& penalties)
+		{
+			penalties_ = penalties;
+			param_.setValue("2D_optimization:penalties:position",penalties.pos);
+			param_.setValue("2D_optimization:penalties:height",penalties.height);
+			param_.setValue("2D_optimization:penalties:left_width",penalties.lWidth);
+			param_.setValue("2D_optimization:penalties:right_width",penalties.rWidth);
+		}
 
 
 
@@ -297,9 +250,7 @@ namespace OpenMS
 		/// Optimization considering all scans of a cluster or optimization of each scan separately
 		bool real_2D_;
 
-		/// Parameter object 
-		Param param_;
-      
+    
 		/// Penalty factors for some parameters in the optimization
 		OptimizationFunctions::PenaltyFactorsInt penalties_;
       
@@ -337,6 +288,9 @@ namespace OpenMS
 														MSExperiment<PickedPeak1D>& ms_exp);
       
 		//@}
+
+		/// update members method from DefaultParamHandler to update the members 
+		void updateMembers_();
 	};
 
 
@@ -575,7 +529,7 @@ namespace OpenMS
 																						 unsigned int iso_map_idx,
 																						 double noise_level)
 	{
-		TwoDOptimizationFunctions::signal2D.clear();
+		OptimizationFunctions::signal2D.clear();
 		typedef typename InputSpectrumIterator::value_type InputExperimentType;
 		typedef typename InputExperimentType::value_type InputPeakType;
 		typedef std::multimap<double,IsotopeCluster> MapType;
@@ -655,8 +609,8 @@ namespace OpenMS
 				right.first = left.first;
 				right.second = distance(iter->begin(),raw_data_iter);
 				// region endpoints are stored in global vector
-				TwoDOptimizationFunctions::signal2D.push_back(left);
-				TwoDOptimizationFunctions::signal2D.push_back(right);
+				OptimizationFunctions::signal2D.push_back(left);
+				OptimizationFunctions::signal2D.push_back(right);
 
 			}
 
