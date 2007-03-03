@@ -53,7 +53,7 @@ namespace OpenMS
 		MetaInfoInterface, instead of simply adding MetaInfo as member. MetaInfoInterface implements
 		a full interface to a MetaInfo member.
 		
-		@ingroup Metadata, Serialization
+		@ingroup Metadata
 	*/
 	class MetaInfo
 	{
@@ -127,22 +127,6 @@ namespace OpenMS
 		static MetaInfoRegistry registry_;
 		/// the actual mapping of index to the DataValue
 		std::map<UnsignedInt,DataValue> index_to_value_;
-
-		///@name Serialization
-		//@{
-	 private:
-		/// Serialization interface
-		template<class Archive>
-		void serialize(Archive & ar, const unsigned int /* version */ )
-		{
-      ar & boost::serialization::make_nvp("metainfo_registry",registry_);
-      ar & boost::serialization::make_nvp("index_to_value",index_to_value_);
-		}
-		//@}
-
-		/// Serialization
-		friend class boost::serialization::access;
-
 
 	};
 

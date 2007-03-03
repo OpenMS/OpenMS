@@ -39,7 +39,7 @@ namespace OpenMS
     
     A consensus feature represents corresponding features in multiple featuremaps.
     
-    @ingroup Kernel, Serialization
+    @ingroup Kernel
   */
   template < typename ContainerT = FeatureMap< > >
   class ConsensusFeature :  	

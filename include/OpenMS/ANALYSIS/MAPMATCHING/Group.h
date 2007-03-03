@@ -126,19 +126,6 @@ namespace OpenMS
       {
         return !(std::operator==(group,*this));
       }
-
-    public:
-      /// Serialization interface
-      //     template<class Archive>
-      //     void serialize(Archive & ar, const unsigned int /* version */ )
-      //     {
-      //       ar & boost::serialization::make_nvp("group",boost::serialization::base_object<Group<ElementContainerType> >(*this));
-      //     }
-      //@}
-
-      /// Serialization
-      //     friend class boost::serialization::access;
-
     };
 
   ///Print the contents to a stream.

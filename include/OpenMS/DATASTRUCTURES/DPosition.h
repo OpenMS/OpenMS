@@ -29,7 +29,6 @@
 
 #include <OpenMS/config.h>
 #include <OpenMS/CONCEPT/Macros.h>
-#include <OpenMS/FORMAT/Serialization.h>
 
 #include <algorithm>
 #include <limits>
@@ -324,28 +323,6 @@ namespace OpenMS
 
 	 protected:
 		CoordinateType coordinate_[D];
-
-		///@name Boost Serialization
-		//@{
-	 private:
-		friend class boost::serialization::access;
-		/// interface
-		template<class Archive>
-		void serialize(Archive & ar, const unsigned int /* version */ )
-		{
-#if 1 // name the dimensions my own way
-			char dimname[] = "dim#";
-			for ( Size i = 0; i < D; ++i )
-			{
-				dimname[sizeof(dimname)-2] = '0'+i; // replace # with digit i, assumes i <= 9
-				ar & boost::serialization::make_nvp(dimname,coordinate_[i]);
-			}
-#else // use built-in support for array types
-			ar & boost::serialization::make_nvp("pos",coordinate_);
-#endif
-		}
-		//@}
-
 
 	};  // DPosition
 

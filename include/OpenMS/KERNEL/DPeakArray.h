@@ -53,7 +53,7 @@ namespace OpenMS
 		that are derived from DPeak and DPeaks at a time. See DPeakArray
 		for a container that can handle mixed object types.
 	
-		@ingroup Kernel, Serialization
+		@ingroup Kernel
 	*/
 	template <Size D, typename PeakT = DPeak<D> >
 	class DPeakArray
@@ -215,21 +215,6 @@ namespace OpenMS
 	    {
 	    	//TODO Persistence
 	    };
-
-		///@name Serialization
-		//@{
-	 private:
-		/// Serialization interface
-		template<class Archive>
-		void serialize(Archive & ar, const unsigned int /* version */ )
-		{
-			ar & boost::serialization::make_nvp("vector",boost::serialization::base_object<Base>(*this));
-		}
-		//@}
-
-		/// Serialization
-		friend class boost::serialization::access;
-			
 	};
 
 	///Print the contents to a stream.

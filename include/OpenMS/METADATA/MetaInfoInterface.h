@@ -118,19 +118,6 @@ namespace OpenMS
 			inline void createIfNotExists_();
 			/// pointer to the MetaInfo object. 0 by default
 			MetaInfo* meta_;
-
-		///@name Boost Serialization
-		//@{
-	 private:
-		friend class boost::serialization::access;
-		/// interface
-		template<class Archive>
-		void serialize(Archive & ar, const unsigned int /* version */ )
-		{
-			ar & boost::serialization::make_nvp("metainfo",meta_);
-		}
-		//@}
-
 	};
 
 } // namespace OpenMS

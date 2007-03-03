@@ -48,7 +48,7 @@ namespace OpenMS
 		as an STL vector has (model of Random Access Container and Back Insertion Sequence).
 		Maps are typically created from peak data of 2D runs through the FeatureFinder.
 		
-		@ingroup Kernel, Serialization
+		@ingroup Kernel
 	*/
 	template <typename FeatureT = Feature >
 	class FeatureMap
@@ -160,16 +160,6 @@ namespace OpenMS
 				typename FeatureMap::iterator ed  = this->end();
 				std::sort(beg, ed, typename FeatureType::OverallQualityLess() ); 
 			}
-	
-			/// Serialization interface
-			template<class Archive>
-			void serialize(Archive & ar, const unsigned int /* version */ )
-			{
-				ar & boost::serialization::make_nvp("vector",boost::serialization::base_object<std::vector<FeatureType> >(*this));
-				// TODO: serialization of base object ExperimentalSettings
-			}
-			/// Serialization
-			friend class boost::serialization::access;
 			
 			// Docu in base class
 			void updateRanges()

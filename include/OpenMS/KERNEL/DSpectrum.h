@@ -559,26 +559,7 @@ namespace OpenMS
 			UnsignedInt ms_level_;
 			
 			/// Name
-			std::string name_;
-
-		///@name Boost Serialization
-		//@{
-	 private:
-		friend class boost::serialization::access;
-		/// interface
-		template<class Archive>
-		void serialize(Archive & ar, const unsigned int /* version */ )
-		{
-			ar & boost::serialization::make_nvp("mii",boost::serialization::base_object<MetaInfoInterface>(*this));
-      ar & boost::serialization::make_nvp("container",container_);
-			// ar & boost::serialization::make_nvp("info",info_); // todo
-      ar & boost::serialization::make_nvp("min",RangeManagerType::getMinInt());
-      ar & boost::serialization::make_nvp("max",RangeManagerType::getMaxInt());
-      ar & boost::serialization::make_nvp("it_min",RangeManagerType::getMin());
-      ar & boost::serialization::make_nvp("it_max",RangeManagerType::getMax());
-		}
-		//@}
-	
+			std::string name_;	
 	};
 
 	///Print the contents to a stream.

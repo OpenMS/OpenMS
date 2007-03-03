@@ -29,7 +29,6 @@
 
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/DATASTRUCTURES/DPosition.h>
-#include <OpenMS/FORMAT/Serialization.h>
 
 #include <ostream>
 #include <functional>
@@ -43,7 +42,7 @@ namespace OpenMS
 		This datastructure is intended for continuous data.
 		If you want to handle picked data use Peak1D or PickedPeak1D.
 
-		@ingroup Kernel, Serialization
+		@ingroup Kernel
 	*/
 	class RawDataPoint1D 	
 	{
@@ -233,23 +232,6 @@ namespace OpenMS
 		PositionType	position_;
 		/// The data point intensity
 		IntensityType intensity_;
-
-
-		///@name Serialization
-		//@{
-	 private:
-		/// Serialization interface
-		template<class Archive>
-		void serialize(Archive & ar, const unsigned int /* version */ )
-		{
-			ar & boost::serialization::make_nvp("pos",this->position_);
-			ar & boost::serialization::make_nvp("it",this->intensity_);
-		}
-		//@}
-
-		/// Serialization
-		friend class boost::serialization::access;
-
 	};
 
 	///Print the contents to a stream.

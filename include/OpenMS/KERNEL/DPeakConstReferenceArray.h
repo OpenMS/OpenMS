@@ -31,7 +31,6 @@
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/KERNEL/ComparatorUtils.h>
-#include <OpenMS/FORMAT/Serialization.h>
 #include <OpenMS/CONCEPT/Macros.h>
 
 #include <vector>
@@ -48,7 +47,7 @@ namespace OpenMS
     (E.g. generating a DPeakConstReferenceArray pointer_array of a FeatureMap feature_map is done by:
     pointer_array(feature_map.begin(),feature_map.end()))
     
-    @ingroup Kernel, Serialization
+    @ingroup Kernel
   */
   template <typename MapT>
   class DPeakConstReferenceArray
@@ -812,22 +811,6 @@ namespace OpenMS
     size_type capacity_;
     /// Pointer to the base container
     BaseMapType* base_container_ptr_;
-
-    ///@name Serialization
-    //@{
-  private:
-    /// Serialization interface
-    template<class Archive>
-    void serialize(Archive & ar, const unsigned int /* version */ )
-    {
-      ar & boost::serialization::make_nvp("vector",vector_);
-      ar & boost::serialization::make_nvp("capacity",capacity_);
-    }
-    //@}
-
-    /// Serialization
-    friend class boost::serialization::access;
-
   };
 
   ///Print the contents to a stream.

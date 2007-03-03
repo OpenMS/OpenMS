@@ -61,7 +61,7 @@ namespace OpenMS
 		dimension.  The intensity of a feature is (proportional to) its total ion
 		count.
 		
-		@ingroup Kernel Serialization
+		@ingroup Kernel 
 	*/
 	class Feature 
 		: public Peak2D
@@ -221,29 +221,6 @@ namespace OpenMS
 		ChargeType charge_;
 		/// Peptide Identifications belonging to the feature
 	  std::vector<Identification> identifications_;
-
-
-
-		/**@name Serialization
-		 */		
-		//@{
-	 public:
-		/// Serialization interface
-		template<class Archive>
-		void serialize(Archive & ar, const unsigned int /* version */ )
-		{
-			ar & boost::serialization::make_nvp("dpeak",boost::serialization::base_object<Peak2D>(*this));
-      ar & boost::serialization::make_nvp("overall_quality",overall_quality_);
-      ar & boost::serialization::make_nvp("qualities",qualities_);
-			// TODO: serialization of model_desc_
-			// TODO: serialization of convex_hulls_
-      ar & boost::serialization::make_nvp("charge",charge_);
-		}
-		//@}
-
-		/// Serialization
-		friend class boost::serialization::access;
-
 	};
 	
 } // namespace OpenMS

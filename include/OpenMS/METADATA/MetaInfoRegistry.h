@@ -32,7 +32,6 @@
 
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/Types.h>
-#include <OpenMS/FORMAT/Serialization.h>
 
 namespace OpenMS
 {
@@ -48,7 +47,7 @@ namespace OpenMS
 		4 - icon<BR>
 		5 - color<BR>
 		
-		@ingroup Metadata, Serialization
+		@ingroup Metadata
 	*/
 	class MetaInfoRegistry
 	{
@@ -99,23 +98,6 @@ namespace OpenMS
 			std::map<UnsignedInt,std::string> index_to_description_;
 			/// map from index to unit
 			std::map<UnsignedInt,std::string> index_to_unit_;
-
-		///@name Serialization
-		//@{
-	 private:
-		/// Serialization interface
-		template<class Archive>
-		void serialize(Archive & ar, const unsigned int /* version */ )
-		{ 
-			ar & boost::serialization::make_nvp("name_to_index_",name_to_index_);
-			ar & boost::serialization::make_nvp("index_to_name_",index_to_name_);
-			ar & boost::serialization::make_nvp("index_to_description_",index_to_description_);
-			ar & boost::serialization::make_nvp("index_to_unit_",index_to_unit_);
-    }
-		//@}
-
-		/// Serialization
-		friend class boost::serialization::access;
 
 	};
 

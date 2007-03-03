@@ -38,7 +38,7 @@ namespace OpenMS
 
   /**
     @brief This class applies a transformation as computed by
-    class DBaseMapMatcher to a set of features.
+    class BaseMapMatcher to a set of features.
         
   */
   template < typename MapType = FeatureMap< Feature > >

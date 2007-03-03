@@ -40,7 +40,7 @@ namespace OpenMS
     
     A consensus peak represents corresponding peaks in multiple peakmaps.
     
-    @ingroup Kernel, Serialization
+    @ingroup Kernel
   */
   template < typename ContainerT = DPeakArray< 2, Peak2D > >
   class ConsensusPeak :  public Peak2D,
