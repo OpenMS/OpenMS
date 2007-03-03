@@ -65,13 +65,13 @@ namespace OpenMS
 		 */
 		//@{
 		/// Default constructor
-		RawDataPoint1D() 
+		inline RawDataPoint1D() 
       : position_(), 
         intensity_(0) 
     {
     }
 		/// Copy constructor
-		RawDataPoint1D(const RawDataPoint1D& p) 
+		inline RawDataPoint1D(const RawDataPoint1D& p) 
 			: position_(p.position_),
         intensity_(p.intensity_)
 		{
@@ -94,45 +94,45 @@ namespace OpenMS
 		*/
 		//@{
 		/// Non-mutable access to the data point intensity (height)
-		const IntensityType& getIntensity() const { return intensity_; }
+		inline const IntensityType& getIntensity() const { return intensity_; }
 		/// Mutable access to the data point intensity (height)
-		IntensityType& getIntensity() { return intensity_; }
+		inline IntensityType& getIntensity() { return intensity_; }
 		/// Non-mutable access to the data point intensity (height)
-		void setIntensity(const IntensityType& intensity) { intensity_ = intensity; }
+		inline void setIntensity(const IntensityType& intensity) { intensity_ = intensity; }
 
 		/// Non-mutable access to m/z
-		CoordinateType const & getMZ() const
+		inline CoordinateType const & getMZ() const
 		{
 			// static int dimension_must_be_one_ [2-DIMENSION];
 			return position_[0];
 		}
 		/// Mutable access to m/z
-		CoordinateType & getMZ()
+		inline CoordinateType & getMZ()
 		{
 			// static int dimension_must_be_one_  [2-DIMENSION];
 			return position_[0];
 		}
 		/// Mutable access to m/z
-		void setMZ(const CoordinateType& mz)
+		inline void setMZ(const CoordinateType& mz)
 		{
 			// static int dimension_must_be_one_ [2-DIMENSION];
 			position_[0] = mz;
 		}
 
     /// Non-mutable access to the position
-    PositionType const & getPos() const
+    inline PositionType const & getPos() const
     {
       // static int dimension_must_be_one_ [2-DIMENSION];
       return position_;
     }
     /// Mutable access to the position
-    PositionType & getPos()
+    inline PositionType & getPos()
     {
       // static int dimension_must_be_one_  [2-DIMENSION];
       return position_;
     }
     /// Mutable access to the position
-    void setPos(PositionType const& position)
+    inline void setPos(PositionType const& position)
     {
       // static int dimension_must_be_one_ [2-DIMENSION];
       position_ = position;
@@ -140,24 +140,24 @@ namespace OpenMS
     //@}
 
 		/// Assignment operator
-		RawDataPoint1D& operator = (const RawDataPoint1D& rhs)
+		inline RawDataPoint1D& operator = (const RawDataPoint1D& rhs)
 		{
 			if (this==&rhs) return *this;
-			
+		
 			intensity_ = rhs.intensity_;
 			position_ = rhs.position_;
-		
+	
 			return *this;
 		}
 		
 		/// Equality operator
-		bool operator == (const RawDataPoint1D& rhs) const
+		inline bool operator == (const RawDataPoint1D& rhs) const
 		{
 			return  intensity_ == rhs.intensity_ && position_ == rhs.position_ ;
 		}
 
 		/// Equality operator
-		bool operator != (const RawDataPoint1D& rhs) const
+		inline bool operator != (const RawDataPoint1D& rhs) const
 		{
 			return !( operator==(rhs) );
 		}

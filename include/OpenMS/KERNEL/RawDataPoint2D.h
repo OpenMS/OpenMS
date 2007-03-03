@@ -120,13 +120,13 @@ namespace OpenMS
 		 */
 		//@{
 		/// Default constructor
-		RawDataPoint2D() 
+		inline RawDataPoint2D() 
       : position_(), 
         intensity_(0) 
     {
     }
 		/// Copy constructor
-		RawDataPoint2D(const RawDataPoint2D& p) 
+		inline RawDataPoint2D(const RawDataPoint2D& p) 
 			: position_(p.position_), 
         intensity_(p.intensity_)
 		{
@@ -150,46 +150,46 @@ namespace OpenMS
 		 */
 		//@{
 		/// Non-mutable access to the data point intensity (height)
-		const IntensityType& getIntensity() const { return intensity_; }
+		inline const IntensityType& getIntensity() const { return intensity_; }
 		/// Mutable access to the data point intensity (height)
-		IntensityType& getIntensity() { return intensity_; }
+		inline IntensityType& getIntensity() { return intensity_; }
 		/// Non-mutable access to the data point intensity (height)
-		void setIntensity(const IntensityType& intensity) { intensity_ = intensity; }
+		inline void setIntensity(const IntensityType& intensity) { intensity_ = intensity; }
 
 		/// Non-mutable access to the position
-		PositionType const & getPos() const 
+		inline PositionType const & getPos() const 
     { 
       return position_; 
     }
 		/// Mutable access to the position
-		PositionType& getPos() 
+		inline PositionType& getPos() 
     {
       return position_; 
     }
 		/// Mutable access to the position
-		void setPos(const PositionType& position) 
+		inline void setPos(const PositionType& position) 
     { 
       position_ = position; 
     }
 
     /// Returns the m/z coordinate (index 1)
-    CoordinateType const & getMZ() const 
+    inline CoordinateType const & getMZ() const 
     { 
       return position_[1]; 
     }
     /// Mutable access to the m/z coordinate (index 1)
-    void setMZ(const CoordinateType& coordinate) 
+    inline void setMZ(const CoordinateType& coordinate) 
     { 
       position_[1] = coordinate; 
     }
 
     /// Returns the RT coordinate (index 0)
-    CoordinateType const & getRT() const 
+    inline CoordinateType const & getRT() const 
     { 
       return position_[0]; 
     }
     /// Mutable access to the RT coordinate (index 0)
-    void setRT(const CoordinateType& coordinate) 
+    inline void setRT(const CoordinateType& coordinate) 
     { 
       position_[0] = coordinate; 
     }
@@ -197,24 +197,24 @@ namespace OpenMS
 		//@}
 
 		/// Assignment operator
-		RawDataPoint2D& operator = (const RawDataPoint2D& rhs)
+		inline RawDataPoint2D& operator = (const RawDataPoint2D& rhs)
 		{
 			if (this==&rhs) return *this;
-			
+		
 			intensity_ = rhs.intensity_;
 			position_ = rhs.position_;
-		
+	
 			return *this;
 		}
-		
+				
 		/// Equality operator
-		bool operator == (const RawDataPoint2D& rhs) const
+		inline bool operator == (const RawDataPoint2D& rhs) const
 		{
 			return  intensity_ == rhs.intensity_ && position_ == rhs.position_ ;
 		}
 
 		/// Equality operator
-		bool operator != (const RawDataPoint2D& rhs) const
+		inline bool operator != (const RawDataPoint2D& rhs) const
 		{
 			return !( operator==(rhs) );
 		}

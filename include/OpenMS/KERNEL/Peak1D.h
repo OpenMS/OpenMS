@@ -52,7 +52,7 @@ namespace OpenMS
 		public:
 		
     /// Default constructor
-		Peak1D() 
+		inline Peak1D() 
 			: RawDataPoint1D(),
 				MetaInfoInterface()
 		{	
@@ -71,7 +71,7 @@ namespace OpenMS
 		}
 
 		/// Assignment operator
-		Peak1D& operator = (const Peak1D& rhs)
+		inline Peak1D& operator = (const Peak1D& rhs)
 		{
 			if (this==&rhs) return *this;
 			
@@ -82,7 +82,7 @@ namespace OpenMS
 		}
 
 		/// Equality operator
-		bool operator == (const Peak1D& rhs) const
+		inline bool operator == (const Peak1D& rhs) const
 		{
 			return RawDataPoint1D::operator == (rhs) &&
 				     MetaInfoInterface::operator == (rhs)
@@ -90,7 +90,7 @@ namespace OpenMS
 		}
 
 		/// Equality operator
-		bool operator != (const Peak1D& rhs) const
+		inline bool operator != (const Peak1D& rhs) const
 		{
 			return !(operator == (rhs));
 		}	

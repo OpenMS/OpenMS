@@ -82,7 +82,7 @@ namespace OpenMS
 		*/
 		//@{
 		/// Default constructor 
-		Feature() 
+		inline Feature() 
 			: Peak2D(),
 				overall_quality_(),
 				convex_hulls_(),
@@ -190,19 +190,19 @@ namespace OpenMS
 		};
 
     /// returns a const reference to the Identification vector
-    const std::vector<Identification>& getIdentifications() const
+    inline const std::vector<Identification>& getIdentifications() const
     {
     	return identifications_;
     };
         	
     /// returns a mutable reference to the Identification vector
-    std::vector<Identification>& getIdentifications()
+    inline std::vector<Identification>& getIdentifications()
     {
     	return identifications_;
     };
     
     /// sets the Identification vector
-    void setIdentifications(const std::vector<Identification>& identifications)
+    inline void setIdentifications(const std::vector<Identification>& identifications)
     {
     	identifications_ = identifications;
     };

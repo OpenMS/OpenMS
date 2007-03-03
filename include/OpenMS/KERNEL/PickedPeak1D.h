@@ -50,7 +50,7 @@ namespace OpenMS
   public:
 
     /// Default constructor
-    PickedPeak1D():
+    inline PickedPeak1D():
         Peak1D(),
         r_value_(0),
         area_(0),
@@ -140,7 +140,7 @@ namespace OpenMS
     inline void setSN(const DoubleReal& signal_to_noise) { signal_to_noise_ = signal_to_noise; }
     
     /// Assignment operator
-    PickedPeak1D& operator = (const PickedPeak1D& rhs)
+    inline PickedPeak1D& operator = (const PickedPeak1D& rhs)
     {
       if (this==&rhs) return *this;
 
@@ -158,7 +158,7 @@ namespace OpenMS
     }
 
     /// Equality operator
-    bool operator == (const PickedPeak1D& rhs) const
+    inline bool operator == (const PickedPeak1D& rhs) const
     {
     	return r_value_ == rhs.r_value_ && 
     				 area_ == rhs.area_ &&	
@@ -172,7 +172,7 @@ namespace OpenMS
     }
 
     /// Equality operator
-    bool operator != (const PickedPeak1D& rhs) const
+    inline bool operator != (const PickedPeak1D& rhs) const
     {
       return !(operator == (rhs));
     }
@@ -180,7 +180,7 @@ namespace OpenMS
     /**
     	 @brief Returns the symmetry s of a peak with: (asymmetric peaks) 0 < s <= 1 (symmetric peaks).
     */
-    double getSymmetricMeasure() const
+    inline double getSymmetricMeasure() const
     {
       double value=0.;
 
@@ -195,7 +195,7 @@ namespace OpenMS
     /**
     	 @brief Returns the value of the peak shape function at position x.
     */
-    double operator () (const double& x) const
+    inline double operator () (const double& x) const
     {
       double value;
 

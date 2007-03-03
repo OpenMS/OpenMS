@@ -72,7 +72,7 @@ namespace OpenMS
 		}
     
 		/// Assignment operator
-		Peak2D& operator = (const Peak2D& rhs)
+		inline Peak2D& operator = (const Peak2D& rhs)
 		{
 			if (this==&rhs) return *this;
 			
@@ -83,7 +83,7 @@ namespace OpenMS
 		}
 
 		/// Equality operator
-		bool operator == (const Peak2D& rhs) const
+		inline bool operator == (const Peak2D& rhs) const
 		{
 			return 
 				RawDataPoint2D::operator == (rhs) &&
@@ -92,7 +92,7 @@ namespace OpenMS
 		}
 
 		/// Equality operator
-		bool operator != (const Peak2D& rhs) const
+		inline bool operator != (const Peak2D& rhs) const
 		{
 			return !(operator == (rhs));
 		}
