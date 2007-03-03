@@ -243,7 +243,7 @@ class Test
 @endcode
 
 <H2 style="margin-top:20px; border-top:1px solid grey;">Pass-by-value versus pass-by-reference</H2>
-Except of primitive types all method arguments should be passed as non-mutable references.
+Except of primitive types (int, double, float, ....) all method arguments should be passed as non-mutable references.
 <p>
 Return types of methods should be non-mutable references as well.
 Sometimes you cannot use references as the retuned value is constructed in the method.

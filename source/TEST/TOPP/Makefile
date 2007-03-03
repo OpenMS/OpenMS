@@ -74,7 +74,8 @@ TOPP_TOOL_TESTS = ${UNCONDITIONAL_TESTS} ${LIBSVM_TESTS} ${CGAL_TESTS}
 # Tests for processing pipelines using several tools
 
 UNCONDITIONAL_PIPELINE_TESTS = \
-	MyoQuant_test
+
+#	MyoQuant_test
 
 ifeq ($(CGAL_SUPPORT),true)
 CGAL_PIPELINE_TESTS = \

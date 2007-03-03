@@ -1,0 +1,4 @@
+Changes from OpenMS 0.95 to 1.0
+----------------------------------------------------
+- Kernel redesign
+- Removed Boost dependencies

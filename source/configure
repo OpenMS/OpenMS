@@ -311,7 +311,7 @@ ac_includes_default="\
 #endif"
 
 ac_default_prefix=`cd ..; pwd`
-ac_subst_vars='SHELL PATH_SEPARATOR PACKAGE_NAME PACKAGE_TARNAME PACKAGE_VERSION PACKAGE_STRING PACKAGE_BUGREPORT exec_prefix prefix program_transform_name bindir sbindir libexecdir datadir sysconfdir sharedstatedir localstatedir libdir includedir oldincludedir infodir mandir build_alias host_alias target_alias DEFS ECHO_C ECHO_N ECHO_T LIBS PAGER ENABLE_DB LN_S UNAME CUT TR AR CP RM MV LN SED FIND DIFF TAIL GREP EGREP CAT ECHO_COMMAND ECHO ifGNUmake MAKE OSMAJOR OS OSREV BINFMT BINFMT_PATH ARCHITECTURE SHARED_LIB_SUFFIX CXXPATH CXX CXXFLAGS LDFLAGS CPPFLAGS ac_ct_CXX EXEEXT OBJEXT CXXCPP OPENMS_HAS_XDR LEX LEXLIB LEX_OUTPUT_ROOT YACC OPENMS_HAS_FLEX_YACC NETCDF_SUPPORT NETCDF_INCLUDES NETCDF_LIBS ANDIMS_SUPPORT ANDIMS_INCLUDES ANDIMS_LIBS BOOST_SUPPORT BOOST_INCLUDES BOOST_LIBS GSL_SUPPORT GSL_INCLUDES GSL_LIBS CGAL_SUPPORT CGAL_INCLUDES CGAL_LIBS FFTW_SUPPORT FFTW_INCLUDES FFTW_LIBS OpenMS_HAS_FFTW OpenMS_HAS_FFTW_H OpenMS_HAS_FFTW_FLOAT OpenMS_HAS_FFTW_DOUBLE OpenMS_HAS_FFTW_LONG_DOUBLE LIBSVM_SUPPORT LIBSVM_OBJECT XERCES_SUPPORT XERCES_OBJECT GUI_INCLUDES MOC UIC SIP SIP_LIB SIP_INCLUDES PYTHON_INCLUDES PYTHON_SUPPORT PYTHON_LIBS PYTHON_EXECUTABLE VALGRIND VALGRIND_OPTS OPENMS_PATH OPENMS_INCLUDES OPENMS_LIBS CXX_MAKEDEPEND MAKEDEP_CXX_OPTS MAKEDEP_CXX_SUFFIX DEPENDENCY_GREPS CC ADD_CXXFLAGS LIB_CXXFLAGS NONLIB_CXXFLAGS HAS_GPLUSPLUS STD_CPP_INCLUDES MAKEDEP_OPTS OPENMS_TYPENAME GUI_LIBS DEFINES CXXFLAGS_D CXXFLAGS_O CPP_MODE_FLAGS CPP_MODE_FLAGS_NO_OPTIMIZATION AROPTS DYNAR DYNAROPTS ADDITIONAL_COMMENTS TEMPLATE_DIR SUBDIRS GUI_STATIC_LIB GUISUBDIRS LIBOBJS LTLIBOBJS'
+ac_subst_vars='SHELL PATH_SEPARATOR PACKAGE_NAME PACKAGE_TARNAME PACKAGE_VERSION PACKAGE_STRING PACKAGE_BUGREPORT exec_prefix prefix program_transform_name bindir sbindir libexecdir datadir sysconfdir sharedstatedir localstatedir libdir includedir oldincludedir infodir mandir build_alias host_alias target_alias DEFS ECHO_C ECHO_N ECHO_T LIBS PAGER ENABLE_DB LN_S UNAME CUT TR AR CP RM MV LN SED FIND DIFF TAIL GREP EGREP CAT ECHO_COMMAND ECHO ifGNUmake MAKE OSMAJOR OS OSREV BINFMT BINFMT_PATH ARCHITECTURE SHARED_LIB_SUFFIX CXXPATH CXX CXXFLAGS LDFLAGS CPPFLAGS ac_ct_CXX EXEEXT OBJEXT CXXCPP OPENMS_HAS_XDR LEX LEXLIB LEX_OUTPUT_ROOT YACC OPENMS_HAS_FLEX_YACC NETCDF_SUPPORT NETCDF_INCLUDES NETCDF_LIBS ANDIMS_SUPPORT ANDIMS_INCLUDES ANDIMS_LIBS GSL_SUPPORT GSL_INCLUDES GSL_LIBS CGAL_SUPPORT CGAL_INCLUDES CGAL_LIBS FFTW_SUPPORT FFTW_INCLUDES FFTW_LIBS OpenMS_HAS_FFTW OpenMS_HAS_FFTW_H OpenMS_HAS_FFTW_FLOAT OpenMS_HAS_FFTW_DOUBLE OpenMS_HAS_FFTW_LONG_DOUBLE LIBSVM_SUPPORT LIBSVM_OBJECT XERCES_SUPPORT XERCES_OBJECT GUI_INCLUDES MOC UIC SIP SIP_LIB SIP_INCLUDES PYTHON_INCLUDES PYTHON_SUPPORT PYTHON_LIBS PYTHON_EXECUTABLE VALGRIND VALGRIND_OPTS OPENMS_PATH OPENMS_INCLUDES OPENMS_LIBS CXX_MAKEDEPEND MAKEDEP_CXX_OPTS MAKEDEP_CXX_SUFFIX DEPENDENCY_GREPS CC ADD_CXXFLAGS LIB_CXXFLAGS NONLIB_CXXFLAGS HAS_GPLUSPLUS STD_CPP_INCLUDES MAKEDEP_OPTS OPENMS_TYPENAME GUI_LIBS DEFINES CXXFLAGS_D CXXFLAGS_O CPP_MODE_FLAGS CPP_MODE_FLAGS_NO_OPTIMIZATION AROPTS DYNAR DYNAROPTS ADDITIONAL_COMMENTS TEMPLATE_DIR SUBDIRS GUI_STATIC_LIB GUISUBDIRS LIBOBJS LTLIBOBJS'
 ac_subst_files=''
 
 # Initialize some variables set by options.
@@ -855,7 +855,6 @@ Optional Features:
   --with-db-plugin        set the Qt SQL DB plugin to use (default: QMYSQL)
   --disable-netcdf        disable the use of NetCDF (a library for a data format)
   --disable-andims        disable the use of ANDI/MS (a library for a data format based on NetCDF)
-  --disable-boost         disable the use of the Boost library (used for persitence)
   --disable-libsvm        disable the use of libSVM (needed for rentention time prediction)
 
 Optional Packages:
@@ -883,8 +882,6 @@ Optional Packages:
   --with-andims-libs=DIR  specify the location of the ANDI/MS archive file "ms10lib.a"
   --with-gsl-incl=DIR     specify the location of the directory containing "gsl/gsl_version.h"
   --with-gsl-libs=DIR     specify the location of the GSL library files "libgsl.so" and "libgslcblas.so"
-  --with-boost-incl=DIR   specify the location of the directory containing "boost/version.hpp"
-  --with-boost-libs=DIR   specify the location of the Boost library files e.g. "libboost_serialization-gcc.a"
   --with-libsvm-incl=DIR  specify the location of the libSVM directory containing "svm.h"
   --with-libsvm-libs=DIR  specify the location of the libSVM directory containing "svm.o"
   --with-xerces-incl=DIR  specify the location of the XERCES include directory containing "xercesc/util/Base64.hpp"
@@ -1630,23 +1627,6 @@ if test "${with_gsl_libs+set}" = set; then
   withval="$with_gsl_libs"
 
 fi;
-# Check whether --enable-boost or --disable-boost was given.
-if test "${enable_boost+set}" = set; then
-  enableval="$enable_boost"
-
-fi;
-
-# Check whether --with-boost-incl or --without-boost-incl was given.
-if test "${with_boost_incl+set}" = set; then
-  withval="$with_boost_incl"
-
-fi;
-
-# Check whether --with-boost-libs or --without-boost-libs was given.
-if test "${with_boost_libs+set}" = set; then
-  withval="$with_boost_libs"
-
-fi;
 # Check whether --enable-libsvm or --disable-libsvm was given.
 if test "${enable_libsvm+set}" = set; then
   enableval="$enable_libsvm"
@@ -1776,28 +1756,6 @@ if test "$with_andims_libs" != "" ; then
   ANDIMS_LIBPATH="${with_andims_libs}"
 else
   ANDIMS_LIBPATH=$DEFAULT_LIB_PATH
-fi
-
-if test "$with_boost" = "no" -o "$enable_boost" = "no"; then
-  BOOST_SUPPORT=false
-else
-  BOOST_SUPPORT=true
-  cat >>confdefs.h <<\_ACEOF
-#define BOOST_DEF 1
-_ACEOF
-
-fi
-
-if test "$with_boost_incl" != "" ; then
-  BOOST_INCPATH="${with_boost_incl}"
-else
-  BOOST_INCPATH=$DEFAULT_INCL_PATH
-fi
-
-if test "$with_boost_libs" != "" ; then
-  BOOST_LIBPATH="${with_boost_libs}"
-else
-  BOOST_LIBPATH=$DEFAULT_LIB_PATH
 fi
 
 #GSL is always on
@@ -18027,511 +17985,6 @@ echo "${ECHO_T}disabled" >&6
 
 
 
-	echo "$as_me:$LINENO: checking Checking for BOOST support" >&5
-echo $ECHO_N "checking Checking for BOOST support... $ECHO_C" >&6
-
-
-
-
-				if test "${BOOST_SUPPORT}" = "true" ; then
-		echo "$as_me:$LINENO: result: enabled" >&5
-echo "${ECHO_T}enabled" >&6
-
-		cat >>confdefs.h <<\_ACEOF
-#define OPENMS_HAS_BOOST 1
-_ACEOF
-
-		cat >>confdefs.h <<\_ACEOF
-#define OPENMS_HAS_BOOST_H 1
-_ACEOF
-
-
-		echo "$as_me:$LINENO: checking for BOOST header files" >&5
-echo $ECHO_N "checking for BOOST header files... $ECHO_C" >&6
-		if test "${BOOST_INCPATH}" = "" ; then
-			echo "$as_me:$LINENO: result: Please specify the path to <boost/version.hpp>" >&5
-echo "${ECHO_T}Please specify the path to <boost/version.hpp>" >&6
-		  echo "$as_me:$LINENO: result: by passing the option --with-boost-incl=DIR to configure." >&5
-echo "${ECHO_T}by passing the option --with-boost-incl=DIR to configure." >&6
-		  echo "$as_me:$LINENO: result: " >&5
-echo "${ECHO_T}" >&6
-		  echo "$as_me:$LINENO: result: BOOST is needed for serialization." >&5
-echo "${ECHO_T}BOOST is needed for serialization." >&6
-		  echo "$as_me:$LINENO: result: Please install the library on your system, or disable it with --disable-boost." >&5
-echo "${ECHO_T}Please install the library on your system, or disable it with --disable-boost." >&6
-		  echo "$as_me:$LINENO: result: " >&5
-echo "${ECHO_T}" >&6
-
-	echo "$as_me:$LINENO: result: " >&5
-echo "${ECHO_T}" >&6
-	echo "$as_me:$LINENO: result: Configure failed. If you cannot solve your problem with the aid" >&5
-echo "${ECHO_T}Configure failed. If you cannot solve your problem with the aid" >&6
-	echo "$as_me:$LINENO: result: of the above error message, please contact the OPENMS mailing list" >&5
-echo "${ECHO_T}of the above error message, please contact the OPENMS mailing list" >&6
-	echo "$as_me:$LINENO: result: or the OPENMS developers. Please enclose the file 'conf.diag.tar'" >&5
-echo "${ECHO_T}or the OPENMS developers. Please enclose the file 'conf.diag.tar'" >&6
-	echo "$as_me:$LINENO: result: which has been created in OPENMS/source. It contains the relevant" >&5
-echo "${ECHO_T}which has been created in OPENMS/source. It contains the relevant" >&6
-	echo "$as_me:$LINENO: result: files from this configure run. In most cases, the information" >&5
-echo "${ECHO_T}files from this configure run. In most cases, the information" >&6
-	echo "$as_me:$LINENO: result: is necessary to diagnose what went wrong. This file contains" >&5
-echo "${ECHO_T}is necessary to diagnose what went wrong. This file contains" >&6
-	echo "$as_me:$LINENO: result: information about your system setup and versions of compilers" >&5
-echo "${ECHO_T}information about your system setup and versions of compilers" >&6
-	echo "$as_me:$LINENO: result: and other tools installed in your system." >&5
-echo "${ECHO_T}and other tools installed in your system." >&6
-	echo "$as_me:$LINENO: result: " >&5
-echo "${ECHO_T}" >&6
-	TARFILE=conf.diag.tar
-	if test -f $TARFILE ; then
-		${RM} $TARFILE ;
-	fi
-  tar cf $TARFILE configure configure.ac aclocal.m4 config.log
-	{ { echo "$as_me:$LINENO: error: Aborted." >&5
-echo "$as_me: error: Aborted." >&2;}
-   { (exit 1); exit 1; }; }
-
-		fi
-
-
-	_INCLUDES=
-
-		if test "${BOOST_INCDIR}" != "" ; then
-		_INCLUDES=${BOOST_INCDIR}
-	fi
-
-	if test "${_INCLUDES}" = "" ; then
-		for i in ${BOOST_INCPATH} /usr/include /opt/include ; do
-			if test -f "$i/boost/version.hpp" -a "${_INCLUDES}" = ""; then
-				_INCLUDES="$i"
-			fi
-		done
-	fi
-
-	if test "${_INCLUDES}" = "" ; then
-		for i in /usr/*/include /opt/*/include ; do
-			if test -f "$i/boost/version.hpp" -a "${_INCLUDES}" = ""; then
-				_INCLUDES="$i"
-			fi
-		done
-	fi
-
-	if test "${_INCLUDES}" = "" ; then
-		for i in /opt/*/*/include /usr/*/*/include /usr/local/*/*/include ; do
-			if test -f "$i/boost/version.hpp" -a "${_INCLUDES}" = ""; then
-				_INCLUDES="$i"
-			fi
-		done
-	fi
-
-	if test "${_INCLUDES}" = "" -a "${FIND}" != "-" ; then
-		if test "${FIND_KNOWS_PATH}" = false ; then
-			FIND_OPT="-name"
-			_TMP_FIND_NAME="boost/version.hpp"
-			while test _`${EGREP} / $_TMP_FIND_NAME`_ != __ ; do
-				_TMP_FIND_NAME=`echo ${_TMP_FIND_NAME}|${CUT} -d/ -f2-`
-			done
-
-			FIND_ARG="\*${_TMP_FIND_NAME}\*"
-		else
-			FIND_OPT="-path"
-			FIND_ARG="\*boost/version.hpp\*"
-		fi
-
-		_TMP=`${FIND} /usr ${FIND_OPT} ${FIND_ARG} -print 2>/dev/null`
-		for j in ${_TMP} ; do
-			if test "${_INCLUDES}" = "" ; then
-				_INCLUDES=`echo $j|${SED} "s/include\/.\*\$/include/"`
-			fi
-		done
-
-		if test "${_INCLUDES}" = "" ; then
-			_TMP=`${FIND} /opt ${FIND_OPT} ${FIND_ARG} -print 2>/dev/null`
-			for j in ${_TMP} ; do
-				if test "${_INCLUDES}" = "" ; then
-					_INCLUDES=`echo $j|${SED} "s/include\/.\*\$/include/"`
-				fi
-			done
-		fi
-
-		if test "${_INCLUDES}" = "" -a "${BOOST_INCPATH}" != ""; then
-			for i in ${BOOST_INCPATH} /dev/null ; do
-				_TMP=`${FIND} $i ${FIND_OPT} ${FIND_ARG} -print 2>/dev/null`
-				for j in ${_TMP} ; do
-					if test "${_INCLUDES}" = "" ; then
-						_INCLUDES=`echo $j|${SED} "s/include\/.\*\$/include/"`
-					fi
-				done
-			done
-		fi
-	fi
-
-	BOOST_INCDIR="${_INCLUDES}"
-
-		if test "${BOOST_INCDIR}" = "" ; then
-      echo "$as_me:$LINENO: result: (not found!)" >&5
-echo "${ECHO_T}(not found!)" >&6
-		  echo "$as_me:$LINENO: result: " >&5
-echo "${ECHO_T}" >&6
-		  echo "$as_me:$LINENO: result: The BOOST headers could not be found. Please specify the path to <boost/version.hpp>" >&5
-echo "${ECHO_T}The BOOST headers could not be found. Please specify the path to <boost/version.hpp>" >&6
-		  echo "$as_me:$LINENO: result: by passing the option --with-boost-incl=DIR to configure." >&5
-echo "${ECHO_T}by passing the option --with-boost-incl=DIR to configure." >&6
-		  echo "$as_me:$LINENO: result: " >&5
-echo "${ECHO_T}" >&6
-		  echo "$as_me:$LINENO: result: BOOST is needed for serialization." >&5
-echo "${ECHO_T}BOOST is needed for serialization." >&6
-		  echo "$as_me:$LINENO: result: Please install the library on your system, or disable it with --disable-boost." >&5
-echo "${ECHO_T}Please install the library on your system, or disable it with --disable-boost." >&6
-		  echo "$as_me:$LINENO: result: " >&5
-echo "${ECHO_T}" >&6
-
-	echo "$as_me:$LINENO: result: " >&5
-echo "${ECHO_T}" >&6
-	echo "$as_me:$LINENO: result: Configure failed. If you cannot solve your problem with the aid" >&5
-echo "${ECHO_T}Configure failed. If you cannot solve your problem with the aid" >&6
-	echo "$as_me:$LINENO: result: of the above error message, please contact the OPENMS mailing list" >&5
-echo "${ECHO_T}of the above error message, please contact the OPENMS mailing list" >&6
-	echo "$as_me:$LINENO: result: or the OPENMS developers. Please enclose the file 'conf.diag.tar'" >&5
-echo "${ECHO_T}or the OPENMS developers. Please enclose the file 'conf.diag.tar'" >&6
-	echo "$as_me:$LINENO: result: which has been created in OPENMS/source. It contains the relevant" >&5
-echo "${ECHO_T}which has been created in OPENMS/source. It contains the relevant" >&6
-	echo "$as_me:$LINENO: result: files from this configure run. In most cases, the information" >&5
-echo "${ECHO_T}files from this configure run. In most cases, the information" >&6
-	echo "$as_me:$LINENO: result: is necessary to diagnose what went wrong. This file contains" >&5
-echo "${ECHO_T}is necessary to diagnose what went wrong. This file contains" >&6
-	echo "$as_me:$LINENO: result: information about your system setup and versions of compilers" >&5
-echo "${ECHO_T}information about your system setup and versions of compilers" >&6
-	echo "$as_me:$LINENO: result: and other tools installed in your system." >&5
-echo "${ECHO_T}and other tools installed in your system." >&6
-	echo "$as_me:$LINENO: result: " >&5
-echo "${ECHO_T}" >&6
-	TARFILE=conf.diag.tar
-	if test -f $TARFILE ; then
-		${RM} $TARFILE ;
-	fi
-  tar cf $TARFILE configure configure.ac aclocal.m4 config.log
-	{ { echo "$as_me:$LINENO: error: Aborted." >&5
-echo "$as_me: error: Aborted." >&2;}
-   { (exit 1); exit 1; }; }
-
-
-	echo "$as_me:$LINENO: result: " >&5
-echo "${ECHO_T}" >&6
-	echo "$as_me:$LINENO: result: Configure failed. If you cannot solve your problem with the aid" >&5
-echo "${ECHO_T}Configure failed. If you cannot solve your problem with the aid" >&6
-	echo "$as_me:$LINENO: result: of the above error message, please contact the OPENMS mailing list" >&5
-echo "${ECHO_T}of the above error message, please contact the OPENMS mailing list" >&6
-	echo "$as_me:$LINENO: result: or the OPENMS developers. Please enclose the file 'conf.diag.tar'" >&5
-echo "${ECHO_T}or the OPENMS developers. Please enclose the file 'conf.diag.tar'" >&6
-	echo "$as_me:$LINENO: result: which has been created in OPENMS/source. It contains the relevant" >&5
-echo "${ECHO_T}which has been created in OPENMS/source. It contains the relevant" >&6
-	echo "$as_me:$LINENO: result: files from this configure run. In most cases, the information" >&5
-echo "${ECHO_T}files from this configure run. In most cases, the information" >&6
-	echo "$as_me:$LINENO: result: is necessary to diagnose what went wrong. This file contains" >&5
-echo "${ECHO_T}is necessary to diagnose what went wrong. This file contains" >&6
-	echo "$as_me:$LINENO: result: information about your system setup and versions of compilers" >&5
-echo "${ECHO_T}information about your system setup and versions of compilers" >&6
-	echo "$as_me:$LINENO: result: and other tools installed in your system." >&5
-echo "${ECHO_T}and other tools installed in your system." >&6
-	echo "$as_me:$LINENO: result: " >&5
-echo "${ECHO_T}" >&6
-	TARFILE=conf.diag.tar
-	if test -f $TARFILE ; then
-		${RM} $TARFILE ;
-	fi
-  tar cf $TARFILE configure configure.ac aclocal.m4 config.log
-	{ { echo "$as_me:$LINENO: error: Aborted." >&5
-echo "$as_me: error: Aborted." >&2;}
-   { (exit 1); exit 1; }; }
-
-	  else
-  		echo "$as_me:$LINENO: result: (${BOOST_INCDIR})" >&5
-echo "${ECHO_T}(${BOOST_INCDIR})" >&6
-  		OPENMS_INCLUDES="${OPENMS_INCLUDES} -I${BOOST_INCDIR}"
-  	fi
-
-
-	  echo "$as_me:$LINENO: checking for libboost_serialization-<toolset>.a" >&5
-echo $ECHO_N "checking for libboost_serialization-<toolset>.a... $ECHO_C" >&6
-  	if test "${BOOST_LIB_DIR}" != "" ; then
-      if test -a "${BOOST_LIB_DIR}/libboost_serialization-*.a" ; then
-		  	BOOST_LIBDIR="${BOOST_LIB_DIR}/"
-  		fi
-  	fi
-
-	_LIBS=
-
-		if test "${BOOST_LIBDIR}" != "" ; then
-		_LIBS=${BOOST_LIBDIR}
-	fi
-
-	if test "${_LIBS}" = "" ; then
-		for i in ${BOOST_LIBPATH} /usr/lib /opt/lib ; do
-			for j in $i/libboost_serialization-*.* ; do
-				if test -f "$j" -a "${_LIBS}" = ""; then
-					_LIBS="$i"
-				fi
-			done
-		done
-	fi
-
-	if test "${_LIBS}" = "" ; then
-		for i in /usr/*/lib /opt/*/lib ; do
-			for j in $i/libboost_serialization-*.* ; do
-				if test -f "$j" -a "${_LIBS}" = ""; then
-					_LIBS="$i"
-				fi
-			done
-		done
-	fi
-
-	if test "${_LIBS}" = "" ; then
-		for i in /opt/*/*/lib /usr/*/*/lib /usr/local/*/*/lib ; do
-			for j in $i/libboost_serialization-*.* ; do
-				if test -f "$j" -a "${_LIBS}" = ""; then
-					_LIBS="$i"
-				fi
-			done
-		done
-	fi
-
-	if test "${_LIBS}" = "" -a "${FIND}" != "-" ; then
-		if test "${_LIBS}" = "" -a "${BOOST_LIBPATH}" != ""; then
-			for i in ${BOOST_LIBPATH} /dev/null; do
-				if test "${_LIBS}" = "" ; then
-					_TMP=`${FIND} $i -name "libboost_serialization-**" -print 2>/dev/null`
-					for j in ${_TMP} ; do
-						if test "${_LIBS}" = "" ; then
-							_LIBS=`echo $j|${SED} "s/\/libboost_serialization-*.*/\//"`
-						fi
-					done
-				fi
-			done
-		fi
-
-		if test "${_LIBS}" = "" ; then
-			_TMP=`${FIND} /opt -name "libboost_serialization-**" -print 2>/dev/null`
-			for j in ${_TMP} ; do
-				if test "${_LIBS}" = "" ; then
-					_LIBS=`echo $j|${SED} "s/\/libboost_serialization-*.*/\//"`
-				fi
-			done
-		fi
-
-		if test "${_LIBS}" = "" ; then
-			_TMP=`${FIND} /usr -name "libboost_serialization-**" -print 2>/dev/null`
-			for j in ${_TMP} ; do
-				if test "${_LIBS}" = "" ; then
-					_LIBS=`echo $j|${SED} "s/\/libboost_serialization-*.*/\//"`
-				fi
-			done
-		fi
-
-	fi
-
-	BOOST_LIBDIR="${_LIBS}"
-
-
-  	if test "${BOOST_LIBDIR}" = "" ; then
-      echo "$as_me:$LINENO: result: (not found!)" >&5
-echo "${ECHO_T}(not found!)" >&6
-		  echo "$as_me:$LINENO: result: " >&5
-echo "${ECHO_T}" >&6
-		  echo "$as_me:$LINENO: result: The BOOST serialization library could not be found. Please specify the path to <libboost_serialization-gcc.a>" >&5
-echo "${ECHO_T}The BOOST serialization library could not be found. Please specify the path to <libboost_serialization-gcc.a>" >&6
-		  echo "$as_me:$LINENO: result: by passing the option --with-boost-libs=DIR to configure." >&5
-echo "${ECHO_T}by passing the option --with-boost-libs=DIR to configure." >&6
-		  echo "$as_me:$LINENO: result: You may also set the environment variable BOOST_LIB_DIR to the correct" >&5
-echo "${ECHO_T}You may also set the environment variable BOOST_LIB_DIR to the correct" >&6
-		  echo "$as_me:$LINENO: result: path - configure will recognize this, too." >&5
-echo "${ECHO_T}path - configure will recognize this, too." >&6
-		  echo "$as_me:$LINENO: result: " >&5
-echo "${ECHO_T}" >&6
-		  echo "$as_me:$LINENO: result: BOOST is needed for serialization." >&5
-echo "${ECHO_T}BOOST is needed for serialization." >&6
-		  echo "$as_me:$LINENO: result: Please install the library on your system, or disable it with --disable-boost." >&5
-echo "${ECHO_T}Please install the library on your system, or disable it with --disable-boost." >&6
-		  echo "$as_me:$LINENO: result: " >&5
-echo "${ECHO_T}" >&6
-
-	echo "$as_me:$LINENO: result: " >&5
-echo "${ECHO_T}" >&6
-	echo "$as_me:$LINENO: result: Configure failed. If you cannot solve your problem with the aid" >&5
-echo "${ECHO_T}Configure failed. If you cannot solve your problem with the aid" >&6
-	echo "$as_me:$LINENO: result: of the above error message, please contact the OPENMS mailing list" >&5
-echo "${ECHO_T}of the above error message, please contact the OPENMS mailing list" >&6
-	echo "$as_me:$LINENO: result: or the OPENMS developers. Please enclose the file 'conf.diag.tar'" >&5
-echo "${ECHO_T}or the OPENMS developers. Please enclose the file 'conf.diag.tar'" >&6
-	echo "$as_me:$LINENO: result: which has been created in OPENMS/source. It contains the relevant" >&5
-echo "${ECHO_T}which has been created in OPENMS/source. It contains the relevant" >&6
-	echo "$as_me:$LINENO: result: files from this configure run. In most cases, the information" >&5
-echo "${ECHO_T}files from this configure run. In most cases, the information" >&6
-	echo "$as_me:$LINENO: result: is necessary to diagnose what went wrong. This file contains" >&5
-echo "${ECHO_T}is necessary to diagnose what went wrong. This file contains" >&6
-	echo "$as_me:$LINENO: result: information about your system setup and versions of compilers" >&5
-echo "${ECHO_T}information about your system setup and versions of compilers" >&6
-	echo "$as_me:$LINENO: result: and other tools installed in your system." >&5
-echo "${ECHO_T}and other tools installed in your system." >&6
-	echo "$as_me:$LINENO: result: " >&5
-echo "${ECHO_T}" >&6
-	TARFILE=conf.diag.tar
-	if test -f $TARFILE ; then
-		${RM} $TARFILE ;
-	fi
-  tar cf $TARFILE configure configure.ac aclocal.m4 config.log
-	{ { echo "$as_me:$LINENO: error: Aborted." >&5
-echo "$as_me: error: Aborted." >&2;}
-   { (exit 1); exit 1; }; }
-
-
-	echo "$as_me:$LINENO: result: " >&5
-echo "${ECHO_T}" >&6
-	echo "$as_me:$LINENO: result: Configure failed. If you cannot solve your problem with the aid" >&5
-echo "${ECHO_T}Configure failed. If you cannot solve your problem with the aid" >&6
-	echo "$as_me:$LINENO: result: of the above error message, please contact the OPENMS mailing list" >&5
-echo "${ECHO_T}of the above error message, please contact the OPENMS mailing list" >&6
-	echo "$as_me:$LINENO: result: or the OPENMS developers. Please enclose the file 'conf.diag.tar'" >&5
-echo "${ECHO_T}or the OPENMS developers. Please enclose the file 'conf.diag.tar'" >&6
-	echo "$as_me:$LINENO: result: which has been created in OPENMS/source. It contains the relevant" >&5
-echo "${ECHO_T}which has been created in OPENMS/source. It contains the relevant" >&6
-	echo "$as_me:$LINENO: result: files from this configure run. In most cases, the information" >&5
-echo "${ECHO_T}files from this configure run. In most cases, the information" >&6
-	echo "$as_me:$LINENO: result: is necessary to diagnose what went wrong. This file contains" >&5
-echo "${ECHO_T}is necessary to diagnose what went wrong. This file contains" >&6
-	echo "$as_me:$LINENO: result: information about your system setup and versions of compilers" >&5
-echo "${ECHO_T}information about your system setup and versions of compilers" >&6
-	echo "$as_me:$LINENO: result: and other tools installed in your system." >&5
-echo "${ECHO_T}and other tools installed in your system." >&6
-	echo "$as_me:$LINENO: result: " >&5
-echo "${ECHO_T}" >&6
-	TARFILE=conf.diag.tar
-	if test -f $TARFILE ; then
-		${RM} $TARFILE ;
-	fi
-  tar cf $TARFILE configure configure.ac aclocal.m4 config.log
-	{ { echo "$as_me:$LINENO: error: Aborted." >&5
-echo "$as_me: error: Aborted." >&2;}
-   { (exit 1); exit 1; }; }
-
-	  else
-  		echo "$as_me:$LINENO: result: (${BOOST_LIBDIR})" >&5
-echo "${ECHO_T}(${BOOST_LIBDIR})" >&6
-  		OPENMS_LIBS="${OPENMS_LIBS} ${BOOST_LIBDIR}/libboost_serialization-gcc.a"
-  	fi
-
-
-
-		echo "$as_me:$LINENO: checking linking against BOOST" >&5
-echo $ECHO_N "checking linking against BOOST... $ECHO_C" >&6
-		SAVE_LIBS=${LIBS}
-		SAVE_LDFLAGS=${LDFLAGS}
-		LIBS=" ${BOOST_LIBDIR}/libboost_date_time-gcc.a "
-		LDFLAGS=" -I${BOOST_INCDIR} "
-		BOOST_LINKING_OK=0
-		cat >conftest.$ac_ext <<_ACEOF
-/* confdefs.h.  */
-_ACEOF
-cat confdefs.h >>conftest.$ac_ext
-cat >>conftest.$ac_ext <<_ACEOF
-/* end confdefs.h.  */
-
-									#include <boost/date_time/gregorian/greg_date.hpp>
-
-int
-main ()
-{
-
-							    boost::gregorian::date d;
-
-  ;
-  return 0;
-}
-_ACEOF
-rm -f conftest.$ac_objext conftest$ac_exeext
-if { (eval echo "$as_me:$LINENO: \"$ac_link\"") >&5
-  (eval $ac_link) 2>conftest.er1
-  ac_status=$?
-  grep -v '^ *+' conftest.er1 >conftest.err
-  rm -f conftest.er1
-  cat conftest.err >&5
-  echo "$as_me:$LINENO: \$? = $ac_status" >&5
-  (exit $ac_status); } &&
-	 { ac_try='test -z "$ac_cxx_werror_flag"
-			 || test ! -s conftest.err'
-  { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
-  (eval $ac_try) 2>&5
-  ac_status=$?
-  echo "$as_me:$LINENO: \$? = $ac_status" >&5
-  (exit $ac_status); }; } &&
-	 { ac_try='test -s conftest$ac_exeext'
-  { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
-  (eval $ac_try) 2>&5
-  ac_status=$?
-  echo "$as_me:$LINENO: \$? = $ac_status" >&5
-  (exit $ac_status); }; }; then
-  BOOST_LINKING_OK=1
-else
-  echo "$as_me: failed program was:" >&5
-sed 's/^/| /' conftest.$ac_ext >&5
-
-fi
-rm -f conftest.err conftest.$ac_objext \
-      conftest$ac_exeext conftest.$ac_ext
-		LIBS=${SAVE_LIBS}
-		LDFLAGS=${SAVE_LDFLAGS}
-		if test "${BOOST_LINKING_OK}" != "1" ; then
-			echo "$as_me:$LINENO: result: no" >&5
-echo "${ECHO_T}no" >&6
-			echo "$as_me:$LINENO: result: " >&5
-echo "${ECHO_T}" >&6
-			echo "$as_me:$LINENO: result: Cannot link against libboost_serialization-gcc.a . Please check config.log and" >&5
-echo "${ECHO_T}Cannot link against libboost_serialization-gcc.a . Please check config.log and" >&6
-			echo "$as_me:$LINENO: result: specify appropriate options to configure (e.g. --with-boost-lib/incl)." >&5
-echo "${ECHO_T}specify appropriate options to configure (e.g. --with-boost-lib/incl)." >&6
-
-	echo "$as_me:$LINENO: result: " >&5
-echo "${ECHO_T}" >&6
-	echo "$as_me:$LINENO: result: Configure failed. If you cannot solve your problem with the aid" >&5
-echo "${ECHO_T}Configure failed. If you cannot solve your problem with the aid" >&6
-	echo "$as_me:$LINENO: result: of the above error message, please contact the OPENMS mailing list" >&5
-echo "${ECHO_T}of the above error message, please contact the OPENMS mailing list" >&6
-	echo "$as_me:$LINENO: result: or the OPENMS developers. Please enclose the file 'conf.diag.tar'" >&5
-echo "${ECHO_T}or the OPENMS developers. Please enclose the file 'conf.diag.tar'" >&6
-	echo "$as_me:$LINENO: result: which has been created in OPENMS/source. It contains the relevant" >&5
-echo "${ECHO_T}which has been created in OPENMS/source. It contains the relevant" >&6
-	echo "$as_me:$LINENO: result: files from this configure run. In most cases, the information" >&5
-echo "${ECHO_T}files from this configure run. In most cases, the information" >&6
-	echo "$as_me:$LINENO: result: is necessary to diagnose what went wrong. This file contains" >&5
-echo "${ECHO_T}is necessary to diagnose what went wrong. This file contains" >&6
-	echo "$as_me:$LINENO: result: information about your system setup and versions of compilers" >&5
-echo "${ECHO_T}information about your system setup and versions of compilers" >&6
-	echo "$as_me:$LINENO: result: and other tools installed in your system." >&5
-echo "${ECHO_T}and other tools installed in your system." >&6
-	echo "$as_me:$LINENO: result: " >&5
-echo "${ECHO_T}" >&6
-	TARFILE=conf.diag.tar
-	if test -f $TARFILE ; then
-		${RM} $TARFILE ;
-	fi
-  tar cf $TARFILE configure configure.ac aclocal.m4 config.log
-	{ { echo "$as_me:$LINENO: error: Aborted." >&5
-echo "$as_me: error: Aborted." >&2;}
-   { (exit 1); exit 1; }; }
-
-		else
-			echo "$as_me:$LINENO: result: yes" >&5
-echo "${ECHO_T}yes" >&6
-		fi
-
-	else
-		echo "$as_me:$LINENO: result: disabled" >&5
-echo "${ECHO_T}disabled" >&6
-	fi
-
-
-
-
 	echo "$as_me:$LINENO: checking Checking for GSL support" >&5
 echo $ECHO_N "checking Checking for GSL support... $ECHO_C" >&6
 
@@ -21433,7 +20886,7 @@ ac_x_header_dirs='
 /usr/openwin/share/include'
 
 if test "$ac_x_includes" = no; then
-  # Guess where to find include files, by looking for Intrinsic.h.
+  # Guess where to find include files, by looking for Xlib.h.
   # First, try using that file with no special directory specified.
   cat >conftest.$ac_ext <<_ACEOF
 /* confdefs.h.  */
@@ -21441,7 +20894,7 @@ _ACEOF
 cat confdefs.h >>conftest.$ac_ext
 cat >>conftest.$ac_ext <<_ACEOF
 /* end confdefs.h.  */
-#include <X11/Intrinsic.h>
+#include <X11/Xlib.h>
 _ACEOF
 if { (eval echo "$as_me:$LINENO: \"$ac_cpp conftest.$ac_ext\"") >&5
   (eval $ac_cpp conftest.$ac_ext) 2>conftest.er1
@@ -21468,7 +20921,7 @@ else
 sed 's/^/| /' conftest.$ac_ext >&5
 
   for ac_dir in $ac_x_header_dirs; do
-  if test -r "$ac_dir/X11/Intrinsic.h"; then
+  if test -r "$ac_dir/X11/Xlib.h"; then
     ac_x_includes=$ac_dir
     break
   fi
@@ -21482,18 +20935,18 @@ if test "$ac_x_libraries" = no; then
   # See if we find them without any special options.
   # Don't add to $LIBS permanently.
   ac_save_LIBS=$LIBS
-  LIBS="-lXt $LIBS"
+  LIBS="-lX11 $LIBS"
   cat >conftest.$ac_ext <<_ACEOF
 /* confdefs.h.  */
 _ACEOF
 cat confdefs.h >>conftest.$ac_ext
 cat >>conftest.$ac_ext <<_ACEOF
 /* end confdefs.h.  */
-#include <X11/Intrinsic.h>
+#include <X11/Xlib.h>
 int
 main ()
 {
-XtMalloc (0)
+XrmInitialize ()
   ;
   return 0;
 }
@@ -26174,9 +25627,6 @@ s,@NETCDF_LIBS@,$NETCDF_LIBS,;t t
 s,@ANDIMS_SUPPORT@,$ANDIMS_SUPPORT,;t t
 s,@ANDIMS_INCLUDES@,$ANDIMS_INCLUDES,;t t
 s,@ANDIMS_LIBS@,$ANDIMS_LIBS,;t t
-s,@BOOST_SUPPORT@,$BOOST_SUPPORT,;t t
-s,@BOOST_INCLUDES@,$BOOST_INCLUDES,;t t
-s,@BOOST_LIBS@,$BOOST_LIBS,;t t
 s,@GSL_SUPPORT@,$GSL_SUPPORT,;t t
 s,@GSL_INCLUDES@,$GSL_INCLUDES,;t t
 s,@GSL_LIBS@,$GSL_LIBS,;t t

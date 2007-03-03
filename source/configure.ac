@@ -54,9 +54,6 @@ AC_ARG_WITH(andims-incl,       [  --with-andims-incl=DIR  specify the location o
 AC_ARG_WITH(andims-libs,       [  --with-andims-libs=DIR  specify the location of the ANDI/MS archive file "ms10lib.a"])
 AC_ARG_WITH(gsl-incl,          [  --with-gsl-incl=DIR     specify the location of the directory containing "gsl/gsl_version.h"])
 AC_ARG_WITH(gsl-libs,          [  --with-gsl-libs=DIR     specify the location of the GSL library files "libgsl.so" and "libgslcblas.so"])
-AC_ARG_ENABLE(boost,           [  --disable-boost         disable the use of the Boost library (used for persitence)])
-AC_ARG_WITH(boost-incl,        [  --with-boost-incl=DIR   specify the location of the directory containing "boost/version.hpp"])
-AC_ARG_WITH(boost-libs,        [  --with-boost-libs=DIR   specify the location of the Boost library files e.g. "libboost_serialization-gcc.a"])
 AC_ARG_ENABLE(libsvm,          [  --disable-libsvm        disable the use of libSVM (needed for rentention time prediction)])
 AC_ARG_WITH(libsvm-incl,       [  --with-libsvm-incl=DIR  specify the location of the libSVM directory containing "svm.h"])
 AC_ARG_WITH(libsvm-libs,       [  --with-libsvm-libs=DIR  specify the location of the libSVM directory containing "svm.o"])
@@ -170,25 +167,6 @@ if test "$with_andims_libs" != "" ; then
   ANDIMS_LIBPATH="${with_andims_libs}"
 else
   ANDIMS_LIBPATH=$DEFAULT_LIB_PATH
-fi
-
-if test "$with_boost" = "no" -o "$enable_boost" = "no"; then
-  BOOST_SUPPORT=false
-else
-  BOOST_SUPPORT=true
-  AC_DEFINE(BOOST_DEF)
-fi
-
-if test "$with_boost_incl" != "" ; then
-  BOOST_INCPATH="${with_boost_incl}"
-else
-  BOOST_INCPATH=$DEFAULT_INCL_PATH
-fi
-
-if test "$with_boost_libs" != "" ; then
-  BOOST_LIBPATH="${with_boost_libs}"
-else
-  BOOST_LIBPATH=$DEFAULT_LIB_PATH
 fi
 
 #GSL is always on
@@ -594,11 +572,6 @@ dnl
 dnl Check for ANDI/MS (a library for a data format based on NetCDF)
 dnl
 CF_ANDIMS
-
-dnl
-dnl Check for Boost (a library used for serialization)
-dnl
-CF_BOOST
 
 dnl
 dnl Check for GSL (a scientific library)
