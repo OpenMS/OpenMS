@@ -51,7 +51,7 @@ class TestMapping : public BaseMapping
    virtual const String getName() { return "";}
 };
 
-START_TEST(BaseMapping, "$Id: BaseMapping_test.C 1586 2007-03-01 17:59:10Z elange $")
+START_TEST(BaseMapping, "$Id$")
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

@@ -31,7 +31,7 @@
 #include <OpenMS/ANALYSIS/MAPMATCHING/ElementPair.h>
 ///////////////////////////
 
-START_TEST(FeaturePairsFile, "$Id: FeaturePairsFile_test.C 1586 2007-03-01 17:59:10Z elange $")
+START_TEST(FeaturePairsFile, "$Id$")
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

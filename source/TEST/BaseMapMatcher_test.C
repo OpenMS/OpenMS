@@ -48,7 +48,7 @@ class TestMapMatcher : public BaseMapMatcher<Feature>
 };
 
 
-START_TEST(BaseMapMatcher, "$Id: BaseMapMatcher_test.C 1586 2007-03-01 17:59:10Z elange $")
+START_TEST(BaseMapMatcher, "$Id$")
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
