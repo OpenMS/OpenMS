@@ -128,7 +128,7 @@ namespace OpenMS
 	        typename OutputPeakContainer::iterator it = resampled_peak_container.begin();
 	        for (int i=0; i < number_resampled_points; ++i)
 	        {
-	            it->getMZ() = start_pos + i*spacing_;
+	            it->setMZ( start_pos + i*spacing_);
 	            ++it;
 	        }
 	

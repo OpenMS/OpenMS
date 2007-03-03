@@ -253,7 +253,7 @@ namespace OpenMS
       if ( trace[i][j] == 5 ) 
       {
         Peak1D consensuspeak;
-        consensuspeak.getMZ() = ( y.getContainer()[ystart + j-1].getMZ()*(1-factor_)+x.getContainer()[xstart + i-1].getMZ()*factor_);
+        consensuspeak.setMZ(( y.getContainer()[ystart + j-1].getMZ()*(1-factor_)+x.getContainer()[xstart + i-1].getMZ()*factor_));
         consensuspeak.setIntensity(( y.getContainer()[ystart + j-1].getIntensity()*(1-factor_) + x.getContainer()[xstart + i-1].getIntensity()*factor_ ));
         lastconsensus_.getContainer().push_back(consensuspeak);
 				if (!peak_map_.has(xstart + i-1))

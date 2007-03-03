@@ -105,12 +105,6 @@ namespace OpenMS
 			return position_[0];
 		}
 		/// Mutable access to m/z
-		inline CoordinateType & getMZ()
-		{
-			// static int dimension_must_be_one_  [2-DIMENSION];
-			return position_[0];
-		}
-		/// Mutable access to m/z
 		inline void setMZ(const CoordinateType& mz)
 		{
 			// static int dimension_must_be_one_ [2-DIMENSION];

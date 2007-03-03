@@ -84,7 +84,7 @@ endif
 TOPP_PIPELINE_TESTS = ${UNCONDITIONAL_PIPELINE_TESTS} ${CGAL_PIPELINE_TESTS}
 
 # Files to remove
-CLEANUP = ${RM} -f *.tmp *.log core.* *.TMP region* feature* model* plot.gp *.output
+CLEANUP = ${RM} -f *.tmp *.log core.* *.TMP region* feature* model* plot.gp
 
 # Shortcut to TOPP bin path.
 TOPP = ${OPENMS_PATH}/bin/
@@ -109,6 +109,7 @@ default:  help $(TOPP_TOOL_TESTS) $(TOPP_PIPELINE_TESTS)
 
 clean:
 	@$(CLEANUP)
+	@${RM} -f *.output //output files are needed for checker so they are not deleted in CLEANUP
 
 #######################################################################
 # HELP TARGET

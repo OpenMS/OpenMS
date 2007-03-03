@@ -332,11 +332,11 @@ namespace OpenMS
 	
 		// get iterator on first peak with higher position than interval_start
 		PeakType temp;
-		temp.getMZ() = min(lt.getX(),rb.getX());
+		temp.setMZ(min(lt.getX(),rb.getX()));
 		SpectrumIteratorType left_it = lower_bound(spectrum.begin(), spectrum.end(), temp, PeakType::PositionLess());
 	
 		// get iterator on first peak with higher position than interval_end
-		temp.getMZ() = max(lt.getX(),rb.getX());
+		temp.setMZ(max(lt.getX(),rb.getX()));
 		SpectrumIteratorType	right_it = lower_bound(left_it, spectrum.end(), temp, PeakType::PositionLess());
 	
 	
