@@ -29,8 +29,8 @@
 
 #include<OpenMS/ANALYSIS/MAPMATCHING/MapMatcherRegression.h>
 #include<OpenMS/ANALYSIS/MAPMATCHING/ElementPair.h>
-#include<OpenMS/ANALYSIS/MAPMATCHING/DGridCell.h>
-#include<OpenMS/ANALYSIS/MAPMATCHING/DBaseMapping.h>
+#include<OpenMS/ANALYSIS/MAPMATCHING/GridCell.h>
+#include<OpenMS/ANALYSIS/MAPMATCHING/BaseMapping.h>
 
 #include<OpenMS/KERNEL/FeatureMap.h>
 #include<OpenMS/KERNEL/Feature.h>
@@ -172,7 +172,7 @@ CHECK((bool operator == (const MapMatcherRegression& rhs)))
 	ElementPairType pair1;
 	Feature feat1, feat2;
 	
-   feat1.setMZ(1.0);
+  feat1.setMZ(1.0);
   feat1.setRT(2.0);
   feat2.setMZ(2.0);
   feat2.setRT(5.0);
