@@ -143,7 +143,7 @@ CHECK((std::vector< typename ConsensusElementType::ElementContainerType >& getMa
   Feature feat;
   feat.setRT(1);
   feat.setMZ(4);
-  feat.getIntensity() = 23;
+  feat.setIntensity(23);
   feat_map.push_back(feat);
   cons_map.getMapVector()[0] = feat_map;
   
@@ -170,7 +170,7 @@ CHECK((void setMapVector(const std::vector < typename ConsensusElementType::Elem
   Feature feat;
   feat.setRT(1);
   feat.setMZ(4);
-  feat.getIntensity() = 23;
+  feat.setIntensity(23);
   feat_map.push_back(feat);
   map_vector[0] = feat_map;
   cons_map.setMapVector(map_vector);

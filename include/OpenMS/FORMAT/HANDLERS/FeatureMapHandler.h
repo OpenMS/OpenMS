@@ -345,10 +345,10 @@ namespace OpenMS
 						feature_->getPos()[current_pcoord_] = asDouble_(xercesc::XMLString::transcode(chars));
 						break;
 					case QUALITY:       
-						feature_->getQuality(current_qcoord_) = asDouble_(xercesc::XMLString::transcode(chars));
+						feature_->setQuality(current_qcoord_,asDouble_(xercesc::XMLString::transcode(chars)));
 							break;
 					case OVERALLQUALITY:  
-						feature_->getOverallQuality() = asDouble_(xercesc::XMLString::transcode(chars)); break;
+						feature_->setOverallQuality(asDouble_(xercesc::XMLString::transcode(chars))); break;
 					case CHARGE:          
 						feature_->setCharge(asSignedInt_(xercesc::XMLString::transcode(chars)));
 						break;

@@ -177,7 +177,7 @@ namespace OpenMS
           n=0;
         }
 
-        it->getIntensity() = std::max(g[m],h[n]);
+        it->setIntensity(std::max(g[m],h[n]));
         it->getPos() = first->getPos();	
         ++it;
         ++first;
@@ -188,7 +188,7 @@ namespace OpenMS
 			double last_int = (first-1)->getIntensity();
 			for (i=0; i<middle; ++i)
       {
-        it->getIntensity() = last_int;
+        it->setIntensity(last_int);
         it->getPos() = first->getPos();
         ++it;
         ++first;
@@ -228,7 +228,7 @@ namespace OpenMS
       typename OutputPeakContainer::iterator it = result.begin();
       for (i=0; i<middle; ++i)
       {
-        it->getIntensity() = 0;
+        it->setIntensity(0);
         it->getPos() = first->getPos();
         ++it;
         ++first;
@@ -273,7 +273,7 @@ namespace OpenMS
 
       for (i=0; i<middle; ++i)
       {
-        it->getIntensity() = 0;
+        it->setIntensity(0);
         it->getPos() = first->getPos();
         ++it;
         ++first;
@@ -301,7 +301,7 @@ namespace OpenMS
       typename OutputPeakContainer::iterator it = result.begin();
       while (first != last)
       {
-        it->getIntensity() = first->getIntensity() - it->getIntensity();
+        it->setIntensity(first->getIntensity() - it->getIntensity());
         ++first;
         ++it;
       }

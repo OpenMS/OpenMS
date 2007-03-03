@@ -28,6 +28,7 @@
 
 namespace OpenMS
 {
+	
 	///Print the contents to a stream.
 	std::ostream& operator << (std::ostream& os, const RawDataPoint1D& point)
 	{

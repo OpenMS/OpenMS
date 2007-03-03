@@ -391,7 +391,8 @@ CHECK((ConstIterator begin() const))
   s.push_back(dp2_1);
   s.push_back(dp2_2);
 	TEST_REAL_EQUAL(s.begin()->getIntensity(),1)
-	TEST_REAL_EQUAL(++(s.begin())->getIntensity(),2)
+	DoubleReal intensity = (s.begin())->getIntensity();
+	TEST_REAL_EQUAL(++intensity,2)
 RESULT
 
 CHECK((ConstIterator end() const))

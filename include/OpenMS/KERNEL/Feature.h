@@ -113,8 +113,6 @@ namespace OpenMS
 
 		/// Non-mutable access to the overall quality
 		inline const QualityType& getOverallQuality() const { return overall_quality_; }
-		/// Mutable access to the overall quality
-		inline QualityType& getOverallQuality() { return overall_quality_; }
 		/// Set the overall quality
 		inline void setOverallQuality(const QualityType& q) { overall_quality_ = q; }
 
@@ -124,14 +122,6 @@ namespace OpenMS
 			OPENMS_PRECONDITION(index < 2, "Feature<2>:getQuality(UnsignedInt): index overflow!")
 			return qualities_[index]; 
 		}
-
-		/// Mutable access to the quality in dimension c
-		inline QualityType& getQuality(const UnsignedInt& index)
-		{
-			OPENMS_PRECONDITION(index < 2, "Feature<2>:getQuality(UnsignedInt): index overflow!")
-			return qualities_[index]; 
-		}
-
 		/// Set the quality in dimension c
 		inline void setQuality(const UnsignedInt& index, const QualityType& q)
 		{
@@ -141,8 +131,6 @@ namespace OpenMS
 		
 		/// Non-mutable access to charge state
 		inline const ChargeType& getCharge() const { return charge_; }
-		/// Mutable access to charge state
-		inline ChargeType& getCharge() { return charge_; }
 		/// Set charge state
 		inline void setCharge(const ChargeType& ch) { charge_ = ch; }
 

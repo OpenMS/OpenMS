@@ -58,9 +58,9 @@ RESULT
 CHECK(DPeakArray(const DPeakArray& p))
 	DPeakArray<4 ,DPickedPeak<4> > pl;
 	DPickedPeak<4> peak;
-	peak.getIntensity() = 1.0;
+	peak.setIntensity(1.0);
   pl.push_back(peak);
-	peak.getIntensity() = 2.0;
+	peak.setIntensity(2.0);
   pl.push_back(peak);
   
   DPeakArray<4 ,DPickedPeak<4> > pl2(pl);
@@ -95,17 +95,17 @@ RESULT
 DPickedPeak<2> peak1;
 peak1.getPos()[0] = 2.0;
 peak1.getPos()[1] = 3.0;
-peak1.getIntensity() = 1.0;
+peak1.setIntensity(1.0);
 
 DPickedPeak<2> peak2;
 peak2.getPos()[0] = 0.0;
 peak2.getPos()[1] = 2.5;
-peak2.getIntensity() = 0.5;
+peak2.setIntensity(0.5);
 
 DPickedPeak<2> peak3;
 peak3.getPos()[0] = 10.5;
 peak3.getPos()[1] = 0.0;
-peak3.getIntensity() = 0.01;
+peak3.setIntensity(0.01);
 
 DPeakArray<2, DPickedPeak<2> > pl;
 pl.push_back(peak1);
@@ -303,7 +303,7 @@ RESULT
 CHECK(DPeakArray(typename std::vector<PeakType>::size_type n, const PeakType& peak))
 	DPickedPeak<2> peak5;
 	peak5.getPos()[0] = 1.1;
-	peak5.getIntensity() = 5.1;
+	peak5.setIntensity(5.1);
 	DPeakArray<2, DPickedPeak<2> > pl2(3, peak5);
 	TEST_REAL_EQUAL(pl2.size(), 3)
 	TEST_REAL_EQUAL(pl2[0].getIntensity(), 5.1)

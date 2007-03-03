@@ -86,56 +86,40 @@ namespace OpenMS
     /// Non-mutable access to the correlation coefficient between raw data and the peak model
     inline const DoubleReal& getRValue() const { return r_value_; }
     /// Mutable access to the peak correlation coefficient between raw data and the peak model
-    inline DoubleReal& getRValue() { return r_value_; }
-    /// Mutable access to the peak correlation coefficient between raw data and the peak model
     inline void setRValue(const DoubleReal& r_value) { r_value_ = r_value; }
 
     /// Non-mutable access to the peak area
     inline const DoubleReal& getArea() const { return area_; }
-    /// Mutable access to the peak area
-    inline DoubleReal& getArea() { return area_; }
     /// Mutable access to the peak area
     inline void setArea(const DoubleReal& area) { area_ = area; }
 
     /// Non-mutable access to the peak FWHM
     inline const DoubleReal& getFWHM() const { return fwhm_; }
     /// Mutable access to the peak FWHM
-    inline DoubleReal& getFWHM() { return fwhm_; }
-    /// Mutable access to the peak FWHM
     inline void setFWHM(const DoubleReal& fwhm) { fwhm_ = fwhm; }
 
     /// Non-mutable access to the width parameter of the left peak side
     inline const DoubleReal& getLeftWidthParameter() const { return left_width_paramter_; }
-    /// Mutable access to the width parameter of the left peak side
-    inline DoubleReal& getLeftWidthParameter() { return left_width_paramter_; }
     /// Mutable access to the width parameter of the left peak side
     inline void setLeftWidthParameter(const DoubleReal& left_width_paramter) { left_width_paramter_ = left_width_paramter; }
 
     /// Non-mutable access to the width parameter of the right peak side
     inline const DoubleReal& getRightWidthParameter() const { return right_width_paramter_; }
     /// Mutable access to the width parameter of the right peak side
-    inline DoubleReal& getRightWidthParameter() { return right_width_paramter_; }
-    /// Mutable access to the width parameter of the right peak side
     inline void setRightWidthParameter(const DoubleReal& right_width_paramter) { right_width_paramter_ = right_width_paramter; }
 
     /// Non-mutable access to the peak shape
     inline const PeakShapeType::Enum& getPeakShape() const { return type_; }
-    /// Mutable access to the peak shape
-    inline PeakShapeType::Enum& getPeakShape() { return type_; }
     /// Mutable access to the peak shape
     inline void setPeakShape(const PeakShapeType::Enum& type) { type_ = type; }
 
     /// Non-mutable access to the peak charge
     inline const SignedInt& getCharge() const { return charge_; }
     /// Mutable access to the peak charge (Set to 0 if unknown)
-    inline SignedInt& getCharge() { return charge_; }
-    /// Mutable access to the peak charge (Set to 0 if unknown)
     inline void setCharge(const SignedInt& charge) { charge_ = charge; }
 
     /// Non-mutable access to the signal to noise value
     inline const DoubleReal& getSN() const { return signal_to_noise_; }
-    /// Mutable access to the the signal to noise value
-    inline DoubleReal& getSN() { return signal_to_noise_; }
     /// Mutable access to the the signal to noise value
     inline void setSN(const DoubleReal& signal_to_noise) { signal_to_noise_ = signal_to_noise; }
     

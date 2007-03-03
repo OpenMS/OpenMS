@@ -95,8 +95,6 @@ namespace OpenMS
 		//@{
 		/// Non-mutable access to the data point intensity (height)
 		inline const IntensityType& getIntensity() const { return intensity_; }
-		/// Mutable access to the data point intensity (height)
-		inline IntensityType& getIntensity() { return intensity_; }
 		/// Non-mutable access to the data point intensity (height)
 		inline void setIntensity(const IntensityType& intensity) { intensity_ = intensity; }
 

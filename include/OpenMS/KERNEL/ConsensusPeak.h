@@ -82,7 +82,7 @@ namespace OpenMS
           intensity_range_()
       {
         this->setPos(pos);
-        this->getIntensity() = i;
+        this->setIntensity(i);
       }
 
       /// Constructor for a singleton consensus peak
@@ -98,7 +98,7 @@ namespace OpenMS
         {}
 
         this->getPos() = peak.getPos();
-        this->getIntensity() = peak.getIntensity();
+        this->setIntensity(peak.getIntensity());
 
         position_range_.setMinMax(peak.getPos()
                                   ,peak.getPos());

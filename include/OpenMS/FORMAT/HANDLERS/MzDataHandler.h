@@ -649,7 +649,7 @@ namespace OpenMS
 						spec_.getPrecursorPeak().setCharge(asSignedInt_(value));
 						break;
 					case INTENSITY:
-						spec_.getPrecursorPeak().getIntensity() = asFloat_(value);
+						spec_.getPrecursorPeak().setIntensity(asFloat_(value));
 						break;
 					case IUNITS:
 						setAddInfo_(spec_.getPrecursorPeak(),"#IntensityUnits", value, "Precursor.IonSelection.IntensityUnits");
@@ -734,7 +734,7 @@ namespace OpenMS
 					 && (!options_.hasIntensityRange() || options_.getIntensityRange().encloses(DPosition<1>(intensity))))
 					{
 						spec_.insert(spec_.end(), PeakType());
-						spec_.back().getIntensity() = intensity;
+						spec_.back().setIntensity(intensity);
 						spec_.back().setPos(mz);
 						//read supplemental data for derived classes (do nothing for DPeak)
 						readPeakSupplementalData_(ptrs,spec_.back(),n);

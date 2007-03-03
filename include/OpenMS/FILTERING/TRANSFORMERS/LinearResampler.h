@@ -159,8 +159,12 @@ namespace OpenMS
 	            //std::cout << "Distance right " << distance_right << std::endl;
 	
 	            // add the distance_right*h to the left resampled peak and distance_left*h to the right resampled peak
-	            (it + left_index)->getIntensity() += (first+i)->getIntensity()*distance_right / spacing_;
-	            (it + right_index)->getIntensity() += (first+i)->getIntensity()*distance_left;
+	            DoubleReal intensity = (it + left_index)->getIntensity();
+	            intensity += (first+i)->getIntensity()*distance_right / spacing_;
+	            (it + left_index)->setIntensity(intensity);
+	            intensity = (it + right_index)->getIntensity();
+	            intensity += (first+i)->getIntensity()*distance_left;
+	            (it + right_index)->setIntensity(intensity);
 	        }
 	    }
 	

@@ -109,56 +109,40 @@ namespace OpenMS
     /// Non-mutable access to the correlation coefficient between raw data and the peak model
     inline const RValueType& getRValue() const { return r_value_; }
     /// Mutable access to the peak correlation coefficient between raw data and the peak model
-    inline RValueType& getRValue() { return r_value_; }
-    /// Mutable access to the peak correlation coefficient between raw data and the peak model
     inline void setRValue(const RValueType& r_value) { r_value_ = r_value; }
 
     /// Non-mutable access to the peak area
     inline const AreaType& getArea() const { return area_; }
-    /// Mutable access to the peak area
-    inline AreaType& getArea() { return area_; }
     /// Mutable access to the peak area
     inline void setArea(const AreaType& area) { area_ = area; }
 
     /// Non-mutable access to the peak FWHM
     inline const FullWidthHalfMaxType& getFWHM() const { return fwhm_; }
     /// Mutable access to the peak FWHM
-    inline FullWidthHalfMaxType& getFWHM() { return fwhm_; }
-    /// Mutable access to the peak FWHM
     inline void setFWHM(const FullWidthHalfMaxType& fwhm) { fwhm_ = fwhm; }
 
     /// Non-mutable access to the width parameter of the left peak side
     inline const WidthType& getLeftWidthParameter() const { return left_width_paramter_; }
-    /// Mutable access to the width parameter of the left peak side
-    inline WidthType& getLeftWidthParameter() { return left_width_paramter_; }
     /// Mutable access to the width parameter of the left peak side
     inline void setLeftWidthParameter(const WidthType& left_width_paramter) { left_width_paramter_ = left_width_paramter; }
 
     /// Non-mutable access to the width parameter of the right peak side
     inline const WidthType& getRightWidthParameter() const { return right_width_paramter_; }
     /// Mutable access to the width parameter of the right peak side
-    inline WidthType& getRightWidthParameter() { return right_width_paramter_; }
-    /// Mutable access to the width parameter of the right peak side
     inline void setRightWidthParameter(const WidthType& right_width_paramter) { right_width_paramter_ = right_width_paramter; }
 
     /// Non-mutable access to the peak shape
     inline const PeakShapeType::Enum& getPeakShape() const { return type_; }
-    /// Mutable access to the peak shape
-    inline PeakShapeType::Enum& getPeakShape() { return type_; }
     /// Mutable access to the peak shape
     inline void setPeakShape(const PeakShapeType::Enum& type) { type_ = type; }
 
     /// Non-mutable access to the peak charge
     inline const ChargeType& getCharge() const { return charge_; }
     /// Mutable access to the peak charge (Set to 0 if unknown)
-    inline ChargeType& getCharge() { return charge_; }
-    /// Mutable access to the peak charge (Set to 0 if unknown)
     inline void setCharge(const ChargeType& charge) { charge_ = charge; }
 
     /// Non-mutable access to the signal to noise value
     inline const SignalToNoiseType& getSN() const { return signal_to_noise_; }
-    /// Mutable access to the the signal to noise value
-    inline SignalToNoiseType& getSN() { return signal_to_noise_; }
     /// Mutable access to the the signal to noise value
     inline void setSN(const SignalToNoiseType& signal_to_noise) { signal_to_noise_ = signal_to_noise; }
     

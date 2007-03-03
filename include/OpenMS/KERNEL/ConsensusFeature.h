@@ -83,7 +83,7 @@ namespace OpenMS
           intensity_range_()
       {
         this->getPos() = pos;
-        this->getIntensity() = i;
+        this->setIntensity(i);
       }
 
       /// Constructor for a singleton consensus feature
@@ -99,7 +99,7 @@ namespace OpenMS
         {}
 
         this->getPos() = feature.getPos();
-        this->getIntensity() = feature.getIntensity();
+        this->setIntensity(feature.getIntensity());
         
         position_range_.setMinMax(feature.getPos(),feature.getPos());
         intensity_range_.setMinMax(feature.getIntensity(),feature.getIntensity());
