@@ -131,11 +131,11 @@ namespace OpenMS
 						//cout << "    charge ok" << endl;
 						// calculate score
 						double diff[2];
-						diff[MZ] = fabs( it->getMZ() - check->second->getMZ() );
-						diff[RT] = it->getRT() - check->second->getRT();
+						diff[RawDataPoint2D::MZ] = fabs( it->getMZ() - check->second->getMZ() );
+						diff[RawDataPoint2D::RT] = it->getRT() - check->second->getRT();
 
-						double score =  PValue_(diff[MZ], mz_opt, mz_stdev, mz_stdev)
-													* PValue_(diff[RT],rt_pair_dist, rt_stdev_low, rt_stdev_high)
+						double score =  PValue_(diff[RawDataPoint2D::MZ], mz_opt, mz_stdev, mz_stdev)
+													* PValue_(diff[RawDataPoint2D::RT],rt_pair_dist, rt_stdev_low, rt_stdev_high)
 													* check->second->getOverallQuality()
 													* it->getOverallQuality();
 
@@ -203,8 +203,8 @@ namespace OpenMS
 						<< pairs[i].getFirst().getOverallQuality() << "\t" << pairs[i].getSecond().getPos()[0] << "\t"
 						<< pairs[i].getSecond().getPos()[1] << "\t" << pairs[i].getSecond().getIntensity() << "\t"
 						<< pairs[i].getSecond().getOverallQuality() << "\t" << pairs[i].getFirst().getIntensity()/pairs[i].getSecond().getIntensity() << "\t"
-						<< pairs[i].getFirst().getCharge() << "\t" << diff[RT] << "\t"
-						<< diff[MZ] << endl;
+						<< pairs[i].getFirst().getCharge() << "\t" << diff[RawDataPoint2D::RT] << "\t"
+						<< diff[RawDataPoint2D::MZ] << endl;
 			}
 		}
 	}

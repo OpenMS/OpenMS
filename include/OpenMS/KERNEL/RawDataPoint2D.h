@@ -24,8 +24,8 @@
 // $Maintainer: Marc Sturm $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_KERNEL_RAWDATAPOINT2D_H
-#define OPENMS_KERNEL_RAWDATAPOINT2D_H
+#ifndef OPENMS_KERNEL_RawDataPoint2D_H
+#define OPENMS_KERNEL_RawDataPoint2D_H
 
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/DATASTRUCTURES/DPosition.h>

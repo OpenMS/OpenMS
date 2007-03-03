@@ -29,7 +29,6 @@
 #define OPENMS_ANALYSIS_MAPMATCHING_DBASEMAPMATCHER_H
 
 #include <OpenMS/KERNEL/Feature.h>
-#include <OpenMS/KERNEL/DimensionDescription.h>
 #include <OpenMS/DATASTRUCTURES/DRange.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/ElementPair.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/DGrid.h>
@@ -55,12 +54,6 @@ namespace OpenMS
   class DBaseMapMatcher
   {
     public:
-      /// Defines the coordinates of peaks / features.
-      enum DimensionId
-      {
-        RT = DimensionDescription < LCMS_Tag >::RT,
-        MZ = DimensionDescription < LCMS_Tag >::MZ
-    };
       /// Element type
       typedef ElementT ElementType;
       /// The grid is simply a vector of cells.

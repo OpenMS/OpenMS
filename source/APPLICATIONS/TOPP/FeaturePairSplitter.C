@@ -27,7 +27,6 @@
 #include <OpenMS/FORMAT/FeaturePairsFile.h>
 #include <OpenMS/FORMAT/FeatureMapFile.h>
 #include <OpenMS/DATASTRUCTURES/Date.h>
-#include <OpenMS/KERNEL/DimensionDescription.h>
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 

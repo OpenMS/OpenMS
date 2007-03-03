@@ -26,7 +26,6 @@
 
 #include <OpenMS/CONCEPT/ClassTest.h>
 
-#include <OpenMS/KERNEL/DimensionDescription.h>
 
 #include <OpenMS/FILTERING/TRANSFORMERS/LinearResampler.h>
 

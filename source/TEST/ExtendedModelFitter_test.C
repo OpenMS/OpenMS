@@ -33,7 +33,6 @@
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeaFiTraits.h>
 #include <OpenMS/CONCEPT/Exception.h>
 
-#include <OpenMS/KERNEL/DimensionDescription.h>
 
 ///////////////////////////
 

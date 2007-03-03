@@ -70,13 +70,6 @@ namespace OpenMS
   	: public BasePairwiseMapMatcher<MapT>
   {
   public:
-    typedef DimensionDescription<LCMS_Tag> DimensionDescriptionType;
-    /// Defines the coordinates of elements
-    enum DimensionId
-    {
-      RT = DimensionDescription < LCMS_Tag >::RT,
-      MZ = DimensionDescription < LCMS_Tag >::MZ
-    };
     /** Symbolic names for indices of element maps etc.
           This should make things more understandable and maintainable.
            */
@@ -318,10 +311,10 @@ namespace OpenMS
 
       for (Size i = 0; i < scene_map.size(); ++i)
       {
-        CoordinateType x = scene_map[i].getRT() - bounding_box_scene_map_.min()[RT];
-        CoordinateType y = scene_map[i].getMZ() - bounding_box_scene_map_.min()[MZ];
+        CoordinateType x = scene_map[i].getRT() - bounding_box_scene_map_.min()[RawDataPoint2D::RT];
+        CoordinateType y = scene_map[i].getMZ() - bounding_box_scene_map_.min()[RawDataPoint2D::MZ];
 
-        Size grid_index = (int)(x / box_size_[RT]) + (int)(y / box_size_[MZ]) * (int)(number_buckets_[RT]);
+        Size grid_index = (int)(x / box_size_[RawDataPoint2D::RT]) + (int)(y / box_size_[RawDataPoint2D::MZ]) * (int)(number_buckets_[RawDataPoint2D::RT]);
         scene_grid_maps[grid_index].push_back(scene_map[i]);
       }
 

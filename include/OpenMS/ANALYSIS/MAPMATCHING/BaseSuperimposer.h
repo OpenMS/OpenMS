@@ -30,7 +30,6 @@
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/LinearMapping.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
-#include <OpenMS/KERNEL/DimensionDescription.h>
 
 #include <utility>
 #include <fstream>

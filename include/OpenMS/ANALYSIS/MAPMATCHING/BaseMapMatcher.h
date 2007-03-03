@@ -29,7 +29,6 @@
 #define OPENMS_ANALYSIS_MAPMATCHING_BASEMAPMATCHER_H
 
 #include <OpenMS/KERNEL/Feature.h>
-#include <OpenMS/KERNEL/DimensionDescription.h>
 #include <OpenMS/DATASTRUCTURES/DRange.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/ElementPair.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/Grid.h>

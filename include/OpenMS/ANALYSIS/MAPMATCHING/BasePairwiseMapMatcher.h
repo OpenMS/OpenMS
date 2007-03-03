@@ -31,7 +31,6 @@
 #include <OpenMS/ANALYSIS/MAPMATCHING/ElementPair.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/Grid.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
-#include <OpenMS/KERNEL/DimensionDescription.h>
 #include <OpenMS/DATASTRUCTURES/DBoundingBox.h>
 #include <OpenMS/CONCEPT/FactoryProduct.h>
 
@@ -70,15 +69,6 @@ namespace OpenMS
   	: public FactoryProduct
   {
   public:
-    typedef DimensionDescription<LCMS_Tag> DimensionDescriptionType;
-
-    /// Defines the coordinates of elements
-    enum DimensionId
-    {
-      RT = DimensionDescription < LCMS_Tag >::RT,
-      MZ = DimensionDescription < LCMS_Tag >::MZ
-    };
-
     /// Container for input elements
     typedef MapT PointMapType;
 
@@ -179,7 +169,7 @@ namespace OpenMS
     void setNumberBuckets(Size dim, UnsignedInt number)
     {
       number_buckets_[dim] = number;
-			param_.setValue(String("number_buckets:") + DimensionDescriptionType::dimension_name_short[dim], (SignedInt)number);
+			param_.setValue(String("number_buckets:") + RawDataPoint2D::shortDimensionName(dim), (SignedInt)number);
     }
 
     /// Get number of buckets in dimension index
@@ -222,14 +212,14 @@ namespace OpenMS
       }
 
       // initialize the grid cells of the grid_
-      for (Size x_index = 0; x_index < number_buckets_[RT]; ++x_index)
+      for (Size x_index = 0; x_index < number_buckets_[RawDataPoint2D::RT]; ++x_index)
       {
-        for (Size y_index = 0; y_index < number_buckets_[MZ]; ++y_index)
+        for (Size y_index = 0; y_index < number_buckets_[RawDataPoint2D::MZ]; ++y_index)
         {
-          CoordinateType x_min = (bounding_box_scene_map_.min())[RT] + box_size_[RT]*x_index;
-          CoordinateType x_max = (bounding_box_scene_map_.min())[RT] + box_size_[RT]*(x_index+1);
-          CoordinateType y_min = (bounding_box_scene_map_.min())[MZ] + box_size_[MZ]*y_index;
-          CoordinateType y_max = (bounding_box_scene_map_.min())[MZ] + box_size_[MZ]*(y_index+1);
+          CoordinateType x_min = (bounding_box_scene_map_.min())[RawDataPoint2D::RT] + box_size_[RawDataPoint2D::RT]*x_index;
+          CoordinateType x_max = (bounding_box_scene_map_.min())[RawDataPoint2D::RT] + box_size_[RawDataPoint2D::RT]*(x_index+1);
+          CoordinateType y_min = (bounding_box_scene_map_.min())[RawDataPoint2D::MZ] + box_size_[RawDataPoint2D::MZ]*y_index;
+          CoordinateType y_max = (bounding_box_scene_map_.min())[RawDataPoint2D::MZ] + box_size_[RawDataPoint2D::MZ]*(y_index+1);
 
           grid_.push_back(GridCell(x_min, y_min, x_max, y_max));
         }
@@ -245,7 +235,7 @@ namespace OpenMS
   	{
       for ( Size dim = 0; dim < 2; ++dim)
       {
-				number_buckets_[dim] = param_.getValue(String("number_buckets:") + DimensionDescriptionType::dimension_name_short[dim]);
+				number_buckets_[dim] = param_.getValue(String("number_buckets:") + RawDataPoint2D::shortDimensionName(dim));
       }
   	}
   	

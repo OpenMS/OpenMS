@@ -51,13 +51,6 @@ namespace OpenMS
   class SimplePairFinder : public BasePairFinder< MapT >
   {
 	 public:
-    typedef DimensionDescription<LCMS_Tag> DimensionDescriptionType;
-    enum DimensionId
-			{
-				RT = DimensionDescriptionType::RT,
-				MZ = DimensionDescriptionType::MZ
-			};
-
     /** Symbolic names for indices of element maps etc.
 				This should make things more understandable and maintainable.
 		*/
@@ -107,10 +100,10 @@ namespace OpenMS
 				pair_min_quality_(source.pair_min_quality_),
 				transformed_positions_second_map_(source.transformed_positions_second_map_)
     {
-      diff_intercept_[RT] = source.diff_intercept_[RT];
-      diff_intercept_[MZ] = source.diff_intercept_[MZ];
-      diff_exponent_[RT] = source.diff_exponent_[RT];
-      diff_exponent_[MZ] = source.diff_exponent_[MZ];
+      diff_intercept_[RawDataPoint2D::RT] = source.diff_intercept_[RawDataPoint2D::RT];
+      diff_intercept_[RawDataPoint2D::MZ] = source.diff_intercept_[RawDataPoint2D::MZ];
+      diff_exponent_[RawDataPoint2D::RT] = source.diff_exponent_[RawDataPoint2D::RT];
+      diff_exponent_[RawDataPoint2D::MZ] = source.diff_exponent_[RawDataPoint2D::MZ];
 
 			updateMembers_();
     }
@@ -157,7 +150,7 @@ namespace OpenMS
     {
       diff_exponent_[dim] = exponent;
       String param_name_prefix = "similarity:diff_exponent:";
-      String param_name = param_name_prefix + DimensionDescriptionType::dimension_name_short[dim];
+      String param_name = param_name_prefix + RawDataPoint2D::shortDimensionName(dim);
       param_.setValue(param_name, exponent);
     }
 
@@ -171,7 +164,7 @@ namespace OpenMS
     void setDiffIntercept(const UnsignedInt& dim, const double& intercept)
     {
       diff_intercept_[dim] = intercept;
-      param_.setValue(String("similarity:diff_intercept:") + DimensionDescriptionType::dimension_name_short[dim], intercept);
+      param_.setValue(String("similarity:diff_intercept:") + RawDataPoint2D::shortDimensionName(dim), intercept);
     }
 
     /// Get pair min quality
@@ -306,10 +299,10 @@ namespace OpenMS
 	 protected:
     virtual void updateMembers_()
     {
-      diff_intercept_[RT] = (QualityType)param_.getValue("similarity:diff_intercept:RT");
-      diff_intercept_[MZ] = (QualityType)param_.getValue("similarity:diff_intercept:MZ");
-      diff_exponent_[RT] = (QualityType)param_.getValue("similarity:diff_exponent:RT");
-      diff_exponent_[MZ] = (QualityType)param_.getValue("similarity:diff_exponent:MZ");
+      diff_intercept_[RawDataPoint2D::RT] = (QualityType)param_.getValue("similarity:diff_intercept:RT");
+      diff_intercept_[RawDataPoint2D::MZ] = (QualityType)param_.getValue("similarity:diff_intercept:MZ");
+      diff_exponent_[RawDataPoint2D::RT] = (QualityType)param_.getValue("similarity:diff_exponent:RT");
+      diff_exponent_[RawDataPoint2D::MZ] = (QualityType)param_.getValue("similarity:diff_exponent:MZ");
       pair_min_quality_ = (QualityType)param_.getValue("similarity:pair_min_quality");
     }
 
@@ -379,7 +372,7 @@ namespace OpenMS
 				position_difference[dimension] += diff_intercept_[dimension];
       }
 
-      return intensity_ratio / position_difference[RT] / position_difference[MZ];
+      return intensity_ratio / position_difference[RawDataPoint2D::RT] / position_difference[RawDataPoint2D::MZ];
     }
 
   }

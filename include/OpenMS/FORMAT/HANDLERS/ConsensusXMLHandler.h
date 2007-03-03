@@ -63,14 +63,6 @@ namespace OpenMS
           : public SchemaHandler
     {
       public:
-
-        /// Defines the coordinates of peaks / features.
-        enum DimensionId
-        {
-          RT = DimensionDescription < LCMS_Tag >::RT,
-          MZ = DimensionDescription < LCMS_Tag >::MZ
-        };
-
         typedef typename AlignmentT::ElementContainerType ElementContainerType;
         typedef typename AlignmentT::ElementType ElementType;
         typedef typename AlignmentT::ConsensusMapType ConsensusMapType;

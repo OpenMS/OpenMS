@@ -32,7 +32,6 @@
 #include <OpenMS/ANALYSIS/MAPMATCHING/Grid.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/LinearMapping.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
-#include <OpenMS/KERNEL/DimensionDescription.h>
 #include <OpenMS/CONCEPT/FactoryProduct.h>
 
 #include <utility>
@@ -62,12 +61,6 @@ namespace OpenMS
   	: public FactoryProduct
   {
   public:
-    /// Defines the coordinates of elements.
-    enum DimensionId
-    {
-      RT = DimensionDescription < LCMS_Tag >::RT,
-      MZ = DimensionDescription < LCMS_Tag >::MZ
-    };
 
     /** Symbolic names for indices of element maps etc.
           This should make things more understandable and maintainable.
@@ -115,10 +108,10 @@ namespace OpenMS
     {
       element_map_[MODEL] = 0;
       element_map_[SCENE] = 0;
-      transformation_[RT].setSlope(1);
-      transformation_[RT].setIntercept(0);
-      transformation_[MZ].setSlope(1);
-      transformation_[MZ].setIntercept(0);
+      transformation_[RawDataPoint2D::RT].setSlope(1);
+      transformation_[RawDataPoint2D::RT].setIntercept(0);
+      transformation_[RawDataPoint2D::MZ].setSlope(1);
+      transformation_[RawDataPoint2D::MZ].setIntercept(0);
     }
 
     /// Copy constructor
@@ -128,8 +121,8 @@ namespace OpenMS
     {
       element_map_[MODEL] = source.element_map_[MODEL];
       element_map_[SCENE] = source.element_map_[SCENE];
-      transformation_[RT] = source.transformation_[RT];
-      transformation_[MZ] = source.transformation_[MZ];
+      transformation_[RawDataPoint2D::RT] = source.transformation_[RawDataPoint2D::RT];
+      transformation_[RawDataPoint2D::MZ] = source.transformation_[RawDataPoint2D::MZ];
     }
 
     ///  Assignment operator
@@ -142,8 +135,8 @@ namespace OpenMS
       element_map_[MODEL] = source.element_map_[MODEL];
       element_map_[SCENE] = source.element_map_[SCENE];
       element_pairs_ = source.element_pairs_;
-      transformation_[RT] = source.transformation_[RT];
-      transformation_[MZ] = source.transformation_[MZ];
+      transformation_[RawDataPoint2D::RT] = source.transformation_[RawDataPoint2D::RT];
+      transformation_[RawDataPoint2D::MZ] = source.transformation_[RawDataPoint2D::MZ];
       
       return *this;
     }

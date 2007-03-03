@@ -67,13 +67,6 @@ namespace OpenMS
   class StarAlignment : public BaseAlignment< ConsensusElementT >
   {
   public:
-    /// Defines the coordinates of peaks / features.
-    enum DimensionId
-    {
-      RT = DimensionDescription < LCMS_Tag >::RT,
-      MZ = DimensionDescription < LCMS_Tag >::MZ
-    };
-
     /** Symbolic names for indices of feature maps etc.
       This should make things more understandable and maintainable. 
       */
@@ -351,17 +344,17 @@ namespace OpenMS
                 // apply transform for the singleton group element
                 if (grid_it->getMappings().size() != 0)
                 {
-                  LinearMapping* mapping_rt = dynamic_cast<LinearMapping* >(grid_it->getMappings()[RT]);
-                  LinearMapping* mapping_mz = dynamic_cast<LinearMapping* >(grid_it->getMappings()[MZ]);
+                  LinearMapping* mapping_rt = dynamic_cast<LinearMapping* >(grid_it->getMappings()[RawDataPoint2D::RT]);
+                  LinearMapping* mapping_mz = dynamic_cast<LinearMapping* >(grid_it->getMappings()[RawDataPoint2D::MZ]);
 
-                  mapping_rt->apply(pos[RT]);
-                  mapping_mz->apply(pos[MZ]);
+                  mapping_rt->apply(pos[RawDataPoint2D::RT]);
+                  mapping_mz->apply(pos[RawDataPoint2D::MZ]);
                 }
 
                 index_tuple.setTransformedPosition(pos);
 #ifdef DEBUG_ALIGNMENT
 
-                out << map[j].getRT() << ' ' << map[j].getMZ() << ' ' << pos[RT] << ' ' << pos[MZ] << '\n';
+                out << map[j].getRT() << ' ' << map[j].getMZ() << ' ' << pos[RawDataPoint2D::RT] << ' ' << pos[RawDataPoint2D::MZ] << '\n';
 #endif
 
                 map[j].getPos() = pos;
@@ -408,9 +401,9 @@ namespace OpenMS
         for (typename ConsensusElementType::Group::const_iterator it = c->begin(); it != c->end(); ++it)
         {
           out_cons << it->getElement().getRT() << ' '
-          << it->getTransformedPosition()[RT] << ' '
+          << it->getTransformedPosition()[RawDataPoint2D::RT] << ' '
           << it->getElement().getMZ() << ' '
-          << it->getTransformedPosition()[MZ] << ' '
+          << it->getTransformedPosition()[RawDataPoint2D::MZ] << ' '
           << it->getElement().getIntensity() << ' ';
         }
         out_cons << std::endl;
@@ -555,20 +548,20 @@ namespace OpenMS
             {
               if (grid_it->encloses(map[j].getPos()) )
               {
-                LinearMapping* mapping_rt = dynamic_cast<LinearMapping* >(grid_it->getMappings()[RT]);
-                LinearMapping* mapping_mz = dynamic_cast<LinearMapping* >(grid_it->getMappings()[MZ]);
+                LinearMapping* mapping_rt = dynamic_cast<LinearMapping* >(grid_it->getMappings()[RawDataPoint2D::RT]);
+                LinearMapping* mapping_mz = dynamic_cast<LinearMapping* >(grid_it->getMappings()[RawDataPoint2D::MZ]);
 
                 // apply transform for the singleton group element
                 IndexTuple< ElementContainerType > index_tuple(i,j,(*(element_map_vector_[i]))[j]);
                 PositionType pos = (*(element_map_vector_[i]))[j].getPos();
 
-                mapping_rt->apply(pos[RT]);
-                mapping_mz->apply(pos[MZ]);
+                mapping_rt->apply(pos[RawDataPoint2D::RT]);
+                mapping_mz->apply(pos[RawDataPoint2D::MZ]);
                 index_tuple.setTransformedPosition(pos);
 
 #ifdef DEBUG_ALIGNMENT
 
-                out << map[j].getRT() << ' ' << map[j].getMZ() << ' ' << pos[RT] << ' ' << pos[MZ] << '\n';
+                out << map[j].getRT() << ' ' << map[j].getMZ() << ' ' << pos[RawDataPoint2D::RT] << ' ' << pos[RawDataPoint2D::MZ] << '\n';
 #endif
 
                 map[j].getPos() = pos;
@@ -610,9 +603,9 @@ namespace OpenMS
         for (typename ConsensusElementType::Group::const_iterator it = c->begin(); it != c->end(); ++it)
         {
           out_cons << it->getElement().getRT() << ' '
-          << it->getTransformedPosition()[RT] << ' '
+          << it->getTransformedPosition()[RawDataPoint2D::RT] << ' '
           << it->getElement().getMZ() << ' '
-          << it->getTransformedPosition()[MZ] << ' '
+          << it->getTransformedPosition()[RawDataPoint2D::MZ] << ' '
           << it->getElement().getIntensity() << ' ';
         }
         out_cons << std::endl;

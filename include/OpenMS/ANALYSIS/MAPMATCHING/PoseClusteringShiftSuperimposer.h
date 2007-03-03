@@ -60,14 +60,6 @@ namespace OpenMS
         : public BaseSuperimposer< MapT >
   {
   public:
-    /// Defines the coordinates of peaks / elements.
-
-    typedef DimensionDescription<LCMS_Tag> DimensionDescriptionType;
-    enum DimensionId
-    {
-      RT = DimensionDescriptionType::RT,
-      MZ = DimensionDescriptionType::MZ
-    };
 
     /** Symbolic names for indices of element maps etc.
         This should make things more understandable and maintainable.
@@ -270,8 +262,8 @@ namespace OpenMS
     virtual void run()
     {
       // clear the member
-      element_bucket_[RT].clear();
-      element_bucket_[MZ].clear();
+      element_bucket_[RawDataPoint2D::RT].clear();
+      element_bucket_[RawDataPoint2D::MZ].clear();
       shift_bucket_.clear();
 
       if ( !this->element_map_[MODEL]->empty() && !this->element_map_[SCENE]->empty() )
@@ -302,7 +294,7 @@ namespace OpenMS
     void setShiftBucketSize(UnsignedInt dim, double shift_bucket_size)
     {
       shift_bucket_size_[dim] = shift_bucket_size;
-      param_.setValue( String("transformation_space:shift_bucket_size:") + DimensionDescriptionType::dimension_name_short[dim], (float)shift_bucket_size);
+      param_.setValue( String("transformation_space:shift_bucket_size:") + RawDataPoint2D::shortDimensionName(dim), (float)shift_bucket_size);
     }
 
     /// Get size of shift buckets (in dimension dim)
@@ -315,7 +307,7 @@ namespace OpenMS
     void setElementBucketWindow(UnsignedInt dim, Size element_bucket_window)
     {
       element_bucket_window_[dim] = element_bucket_window;
-      param_.setValue(String("feature_map:bucket_window:") + DimensionDescriptionType::dimension_name_short[dim], (int)element_bucket_window);
+      param_.setValue(String("feature_map:bucket_window:") + RawDataPoint2D::shortDimensionName(dim), (int)element_bucket_window);
     }
 
     /// Get number of neighbouring shift buckets to be considered for the calculation of the final transformation (in dimension dim)
@@ -328,7 +320,7 @@ namespace OpenMS
     void setShiftBucketWindow(UnsignedInt dim, Size shift_bucket_window)
     {
       shift_bucket_window_[dim] = shift_bucket_window;
-      param_.setValue(String("transformation_space:bucket_window_shift:") + DimensionDescriptionType::dimension_name_short[dim], (int)shift_bucket_window);
+      param_.setValue(String("transformation_space:bucket_window_shift:") + RawDataPoint2D::shortDimensionName(dim), (int)shift_bucket_window);
     }
 
     /// Get number of neighbouring shift buckets to be considered for the calculation of the final transformation (in dimension dim)
@@ -406,7 +398,7 @@ namespace OpenMS
           num_buckets[dimension] = int(1.1 + diagonal[dimension]/fbs[dimension]);
           diagonal_enlarged[dimension] = fbs[dimension] * num_buckets[dimension];
         }
-        V_computeElementBuckets_("num_buckets: "<<num_buckets[RT]<<' '<<num_buckets[MZ]);
+        V_computeElementBuckets_("num_buckets: "<<num_buckets[RawDataPoint2D::RT]<<' '<<num_buckets[RawDataPoint2D::MZ]);
         V_computeElementBuckets_("diagonal_enlarged: "<<diagonal_enlarged);
 
         // The extra margin.
@@ -421,7 +413,7 @@ namespace OpenMS
         V_computeElementBuckets_("fmpbbe: "<<fmpbbe);
 
         // Resize element_bucket_[map_index] accordingly.
-        fb.resize(num_buckets[RT],num_buckets[MZ]);
+        fb.resize(num_buckets[RawDataPoint2D::RT],num_buckets[RawDataPoint2D::MZ]);
         V_computeElementBuckets_("rows: "<<fb.rows()<<"  cols: "<<fb.cols());
 
         // Now, finally, we store the indices of the elements in their
@@ -430,7 +422,7 @@ namespace OpenMS
         for ( Size index= 0; index < fm.size(); ++index )
         {
           PositionType position = fm[index].getPos() - fmpbbe_min;
-          fb ( Size(position[RT]/fbs[RT]), Size(position[MZ]/fbs[MZ]) ).push_back(index);
+          fb ( Size(position[RawDataPoint2D::RT]/fbs[RawDataPoint2D::RT]), Size(position[RawDataPoint2D::MZ]/fbs[RawDataPoint2D::MZ]) ).push_back(index);
         }
 
         // Optionally, write debug output as specified in param.
@@ -522,21 +514,21 @@ namespace OpenMS
       V_computeShiftBuckets_("tbs: "<<tbs);
 
       // Resize shift_bucket_ accordingly.
-      tb.resize(num_buckets[RT]+1,num_buckets[MZ]+1);
+      tb.resize(num_buckets[RawDataPoint2D::RT]+1,num_buckets[RawDataPoint2D::MZ]+1);
       V_computeShiftBuckets_("rows: "<<tb.rows()<<"  cols: "<<tb.cols());
 
       // Clear the shift buckets.
       std::fill(tb.begin(),tb.end(),QualityType(0));
 
 
-      // Resize shift_matrix_ according to element_bucket_[MZ]
-      //         tm.resize(element_bucket_[MZ].sizePair());
+      // Resize shift_matrix_ according to element_bucket_[RawDataPoint2D::MZ]
+      //         tm.resize(element_bucket_[RawDataPoint2D::MZ].sizePair());
 
       // Now we store the shifts for all relevant element pairs in their
       // corresponding buckets.  Each shift is distributed among its
       // four neighboring "buckets", with weights according to the distances
       // from these corner points.  Note that the outer two loops (over i and
-      // j) enumerate the "image" (element_bucket_[MZ]), then we search for
+      // j) enumerate the "image" (element_bucket_[RawDataPoint2D::MZ]), then we search for
       // "pre-images" (element_bucket_[0}) in the two inner loops (over k and
       // l).  (And of course, finally, we enumerate all element pairs.)  This
       // way we can associate the shifts vectors to buckets of the
@@ -555,8 +547,8 @@ namespace OpenMS
       PositionType const fmpbbe_min_offset =
         element_map_position_bounding_box_enlarged_[SCENE].min() -
         element_map_position_bounding_box_enlarged_[MODEL].min();
-      int const element_buckets_index_offset_RT = int ( fmpbbe_min_offset[RT] / element_bucket_size_[RT] );
-      int const element_buckets_index_offset_MZ = int ( fmpbbe_min_offset[MZ] / element_bucket_size_[MZ] );
+      int const element_buckets_index_offset_RT = int ( fmpbbe_min_offset[RawDataPoint2D::RT] / element_bucket_size_[RawDataPoint2D::RT] );
+      int const element_buckets_index_offset_MZ = int ( fmpbbe_min_offset[RawDataPoint2D::MZ] / element_bucket_size_[RawDataPoint2D::MZ] );
 
       // iterate over buckets of scene
       for ( Size scene_bucket_index_RT = 0;
@@ -576,16 +568,16 @@ namespace OpenMS
 
           // iterate over buckets of model
           for ( int model_bucket_index_RT
-                =  std::max<int>( model_bucket_index_center_RT - fbw[RT], 0 );
+                =  std::max<int>( model_bucket_index_center_RT - fbw[RawDataPoint2D::RT], 0 );
                 model_bucket_index_RT
-                <= std::min<int>( model_bucket_index_center_RT + fbw[RT], element_bucket_[MODEL].rows()-1 );
+                <= std::min<int>( model_bucket_index_center_RT + fbw[RawDataPoint2D::RT], element_bucket_[MODEL].rows()-1 );
                 ++model_bucket_index_RT
               )
           {
             for ( int model_bucket_index_MZ
-                  =  std::max<int>( model_bucket_index_center_MZ - fbw[MZ], 0 );
+                  =  std::max<int>( model_bucket_index_center_MZ - fbw[RawDataPoint2D::MZ], 0 );
                   model_bucket_index_MZ
-                  <= std::min<int>( model_bucket_index_center_MZ + fbw[MZ], element_bucket_[MODEL].cols()-1 );
+                  <= std::min<int>( model_bucket_index_center_MZ + fbw[RawDataPoint2D::MZ], element_bucket_[MODEL].cols()-1 );
                   ++model_bucket_index_MZ
                 )
             {
@@ -635,17 +627,17 @@ namespace OpenMS
                   // Distribute the quality of the shift among the four neighboring buckets.
                   QualityType factor;
 
-                  factor = bucket_fraction_complement[RT] * bucket_fraction_complement[MZ];
-                  tb( bucket_index[RT], bucket_index[MZ] ) += tq * factor;
+                  factor = bucket_fraction_complement[RawDataPoint2D::RT] * bucket_fraction_complement[RawDataPoint2D::MZ];
+                  tb( bucket_index[RawDataPoint2D::RT], bucket_index[RawDataPoint2D::MZ] ) += tq * factor;
 
-                  factor = bucket_fraction_complement[RT] * bucket_fraction[MZ];
-                  tb( bucket_index[RT], bucket_index[MZ] + 1 ) += tq * factor;
+                  factor = bucket_fraction_complement[RawDataPoint2D::RT] * bucket_fraction[RawDataPoint2D::MZ];
+                  tb( bucket_index[RawDataPoint2D::RT], bucket_index[RawDataPoint2D::MZ] + 1 ) += tq * factor;
 
-                  factor = bucket_fraction[RT] * bucket_fraction_complement[MZ];
-                  tb( bucket_index[RT] + 1, bucket_index[MZ] ) += tq * factor;
+                  factor = bucket_fraction[RawDataPoint2D::RT] * bucket_fraction_complement[RawDataPoint2D::MZ];
+                  tb( bucket_index[RawDataPoint2D::RT] + 1, bucket_index[RawDataPoint2D::MZ] ) += tq * factor;
 
-                  factor = bucket_fraction[RT] * bucket_fraction[MZ];
-                  tb( bucket_index[RT] + 1, bucket_index[MZ] + 1 ) += tq * factor;
+                  factor = bucket_fraction[RawDataPoint2D::RT] * bucket_fraction[RawDataPoint2D::MZ];
+                  tb( bucket_index[RawDataPoint2D::RT] + 1, bucket_index[RawDataPoint2D::MZ] + 1 ) += tq * factor;
 
                   ++number_of_considered_element_pairs_for_this_pair_of_buckets;
 
@@ -694,8 +686,8 @@ namespace OpenMS
           std::pair<Size,Size> row_col = tb.indexPair(iter-tb.begin());
           if ( *iter )
           {
-            dump_file << tbbe_min[RT] + tbs[RT] * row_col.first << ' '
-            << tbbe_min[MZ] + tbs[MZ] * row_col.second << ' '
+            dump_file << tbbe_min[RawDataPoint2D::RT] + tbs[RawDataPoint2D::RT] * row_col.first << ' '
+            << tbbe_min[RawDataPoint2D::MZ] + tbs[RawDataPoint2D::MZ] * row_col.second << ' '
             << *iter << ' '
             << row_col.first << ' '
             << row_col.second
@@ -730,23 +722,23 @@ namespace OpenMS
       // Find the transformation bucket with highest impact (quality).
       Size tb_max_element_index = std::max_element(tb.begin(),tb.end()) - tb.begin();
       Size tb_max_indices[2];
-      tb_max_indices[RT] = tb.rowIndex(tb_max_element_index);
-      tb_max_indices[MZ] = tb.colIndex(tb_max_element_index);
-      V_computeShift_("tb_max: "<<tb_max_indices[RT]<<' '<<tb_max_indices[MZ]<<" quality="<<tb(tb_max_indices[RT],tb_max_indices[MZ]));
+      tb_max_indices[RawDataPoint2D::RT] = tb.rowIndex(tb_max_element_index);
+      tb_max_indices[RawDataPoint2D::MZ] = tb.colIndex(tb_max_element_index);
+      V_computeShift_("tb_max: "<<tb_max_indices[RawDataPoint2D::RT]<<' '<<tb_max_indices[RawDataPoint2D::MZ]<<" quality="<<tb(tb_max_indices[RawDataPoint2D::RT],tb_max_indices[RawDataPoint2D::MZ]));
 
       // Compute a weighted average of the shifts nearby the tb_max_element.
       //ShiftType result; // initially zero
 
       PositionType const& tbbe_min = shift_bounding_box_enlarged_.min();
       int tb_run_indices[2];
-      for ( tb_run_indices[RT]  = std::max ( int (tb_max_indices[RT] - tbw[RT]), 0 );
-            tb_run_indices[RT] <= std::min ( int (tb_max_indices[RT] + tbw[RT]), int (tb.rows()) - 1 );
-            ++tb_run_indices[RT]
+      for ( tb_run_indices[RawDataPoint2D::RT]  = std::max ( int (tb_max_indices[RawDataPoint2D::RT] - tbw[RawDataPoint2D::RT]), 0 );
+            tb_run_indices[RawDataPoint2D::RT] <= std::min ( int (tb_max_indices[RawDataPoint2D::RT] + tbw[RawDataPoint2D::RT]), int (tb.rows()) - 1 );
+            ++tb_run_indices[RawDataPoint2D::RT]
           )
       {
-        for ( tb_run_indices[MZ]  = std::max ( int (tb_max_indices[MZ] - tbw[MZ]), 0 );
-              tb_run_indices[MZ] <= std::min ( int (tb_max_indices[MZ] + tbw[MZ]), int (tb.cols()) - 1 );
-              ++tb_run_indices[MZ]
+        for ( tb_run_indices[RawDataPoint2D::MZ]  = std::max ( int (tb_max_indices[RawDataPoint2D::MZ] - tbw[RawDataPoint2D::MZ]), 0 );
+              tb_run_indices[RawDataPoint2D::MZ] <= std::min ( int (tb_max_indices[RawDataPoint2D::MZ] + tbw[RawDataPoint2D::MZ]), int (tb.cols()) - 1 );
+              ++tb_run_indices[RawDataPoint2D::MZ]
             )
         {
           PositionType contribution_position(tbs);
@@ -755,7 +747,7 @@ namespace OpenMS
             contribution_position[dimension] *= tb_run_indices[dimension];
           }
           contribution_position += tbbe_min;
-          QualityType contribution_quality = tb( tb_run_indices[RT], tb_run_indices[MZ] );
+          QualityType contribution_quality = tb( tb_run_indices[RawDataPoint2D::RT], tb_run_indices[RawDataPoint2D::MZ] );
           shift.getQuality() += contribution_quality;
           contribution_position *= contribution_quality;
           shift.getPosition() += contribution_position;

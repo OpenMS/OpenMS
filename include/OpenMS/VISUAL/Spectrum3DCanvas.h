@@ -29,7 +29,6 @@
 
 // OpenMS
 #include <OpenMS/VISUAL/SpectrumCanvas.h>
-#include <OpenMS/KERNEL/DimensionDescription.h>
 
 class QPainter;
 class QGLWidget;

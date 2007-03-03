@@ -31,7 +31,6 @@
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/ProductModel.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/GaussModel.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/ModelDescription.h>
-#include <OpenMS/KERNEL/DimensionDescription.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <sstream>
 

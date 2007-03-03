@@ -34,7 +34,6 @@
 
 #include <OpenMS/CONCEPT/Exception.h>
 
-#include <OpenMS/KERNEL/DimensionDescription.h>
 
 #include <OpenMS/KERNEL/DPeakArray.h>
 #include <OpenMS/KERNEL/MSExperimentExtern.h>

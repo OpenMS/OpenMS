@@ -62,13 +62,6 @@ namespace OpenMS
         : public BaseSuperimposer< MapT >
   {
   public:
-    /// Defines the coordinates of elements.
-    typedef DimensionDescription<LCMS_Tag> DimensionDescriptionType;
-    enum DimensionId
-    {
-      RT = DimensionDescriptionType::RT,
-      MZ = DimensionDescriptionType::MZ
-    };
 
     enum HashMap
     {
@@ -255,7 +248,7 @@ namespace OpenMS
     void setShiftBucketSize(UnsignedInt dim, double shift_bucket_size)
     {
       shift_bucket_size_[dim] = shift_bucket_size;
-      param_.setValue(String("transformation_space:shift_bucket_size:") + DimensionDescriptionType::dimension_name_short[dim], shift_bucket_size);
+      param_.setValue(String("transformation_space:shift_bucket_size:") + RawDataPoint2D::shortDimensionName(dim), shift_bucket_size);
     }
 
     /// Get size of shift buckets (in dimension dim)
@@ -268,7 +261,7 @@ namespace OpenMS
     void setScalingBucketSize(UnsignedInt dim, double scaling_bucket_size)
     {
       scaling_bucket_size_[dim] = scaling_bucket_size;
-      param_.setValue(String("transformation_space:scaling_bucket_size:") + DimensionDescriptionType::dimension_name_short[dim], scaling_bucket_size);
+      param_.setValue(String("transformation_space:scaling_bucket_size:") + RawDataPoint2D::shortDimensionName(dim), scaling_bucket_size);
     }
 
     /// Get size of scaling buckets (in dimension dim)
@@ -281,7 +274,7 @@ namespace OpenMS
     void setBucketWindowShift(UnsignedInt dim, UnsignedInt bucket_window_shift)
     {
       bucket_window_shift_[dim] = bucket_window_shift;
-      param_.setValue(String("transformation_space:bucket_window_shift:") + DimensionDescriptionType::dimension_name_short[dim], (int)bucket_window_shift);
+      param_.setValue(String("transformation_space:bucket_window_shift:") + RawDataPoint2D::shortDimensionName(dim), (int)bucket_window_shift);
     }
 
     /// Get number of neighbouring shift buckets to be considered for the calculation of the final transformation (in dimension dim)
@@ -294,7 +287,7 @@ namespace OpenMS
     void setBucketWindowScaling(UnsignedInt dim, UnsignedInt bucket_window_scaling)
     {
       bucket_window_scaling_[dim] = bucket_window_scaling;
-      param_.setValue(String("transformation_space:bucket_window_scaling:") + DimensionDescriptionType::dimension_name_short[dim], (int)bucket_window_scaling);
+      param_.setValue(String("transformation_space:bucket_window_scaling:") + RawDataPoint2D::shortDimensionName(dim), (int)bucket_window_scaling);
     }
 
     /// Get number of neighbouring scaling buckets to be considered for the calculation of the final transformation (in dimension dim)
@@ -319,18 +312,18 @@ namespace OpenMS
 
       PositionType min;
       PositionType max;
-      min[RT] = (CoordinateType)param_.getValue("transformation_space:min_shift:RT");
-      min[MZ] = (CoordinateType)param_.getValue("transformation_space:min_shift:MZ");
-      max[RT] = (CoordinateType)param_.getValue("transformation_space:max_shift:RT");
-      max[MZ] = (CoordinateType)param_.getValue("transformation_space:max_shift:MZ");
+      min[RawDataPoint2D::RT] = (CoordinateType)param_.getValue("transformation_space:min_shift:RT");
+      min[RawDataPoint2D::MZ] = (CoordinateType)param_.getValue("transformation_space:min_shift:MZ");
+      max[RawDataPoint2D::RT] = (CoordinateType)param_.getValue("transformation_space:max_shift:RT");
+      max[RawDataPoint2D::MZ] = (CoordinateType)param_.getValue("transformation_space:max_shift:MZ");
 
       shift_bounding_box_.enlarge(min);
       shift_bounding_box_.enlarge(max);
 
-      min[RT] = (CoordinateType)param_.getValue("transformation_space:min_scaling:RT");
-      min[MZ] = (CoordinateType)param_.getValue("transformation_space:min_scaling:MZ");
-      max[RT] = (CoordinateType)param_.getValue("transformation_space:max_scaling:RT");
-      max[MZ] = (CoordinateType)param_.getValue("transformation_space:max_scaling:MZ");
+      min[RawDataPoint2D::RT] = (CoordinateType)param_.getValue("transformation_space:min_scaling:RT");
+      min[RawDataPoint2D::MZ] = (CoordinateType)param_.getValue("transformation_space:min_scaling:MZ");
+      max[RawDataPoint2D::RT] = (CoordinateType)param_.getValue("transformation_space:max_scaling:RT");
+      max[RawDataPoint2D::MZ] = (CoordinateType)param_.getValue("transformation_space:max_scaling:MZ");
 
       scaling_bounding_box_.enlarge(min);
       scaling_bounding_box_.enlarge(max);
@@ -353,8 +346,8 @@ namespace OpenMS
       // for each element (rt_m,mz_m) of the model map
       // search for corresponding elements (rt_i,mz_i) in the scene map
       // which lie in a predefined mz intervall (mz_i in [mz_m-eps,mz_m+eps))
-      model_map.sortByNthPosition(MZ);
-      scene_map.sortByNthPosition(MZ);
+      model_map.sortByNthPosition(RawDataPoint2D::MZ);
+      scene_map.sortByNthPosition(RawDataPoint2D::MZ);
 
       // take only elements of the model map which have partners in the scene map
       typename PeakPointerArray::const_iterator it_first = scene_map.begin();
@@ -421,7 +414,7 @@ namespace OpenMS
         shift_bucket_size_[dimension] = diagonal_shift[dimension] / (CoordinateType)num_buckets_shift_[dimension];
         scaling_bucket_size_[dimension] = diagonal_scaling[dimension] / (CoordinateType)num_buckets_scaling_[dimension];
       }
-      V_preprocessSceneMap("shift bucket size : " << shift_bucket_size_[RT] << ' ' << shift_bucket_size_[MZ]);
+      V_preprocessSceneMap("shift bucket size : " << shift_bucket_size_[RawDataPoint2D::RT] << ' ' << shift_bucket_size_[RawDataPoint2D::MZ]);
       V_preprocessSceneMap("scaling bucket size : " << scaling_bucket_size_);
       V_preprocessSceneMap("shift number_buckets: " << num_buckets_shift_[0] << ' ' << num_buckets_shift_[1]);
       V_preprocessSceneMap("scaling number_buckets : " << num_buckets_scaling_[0] << ' ' << num_buckets_scaling_[1]);
@@ -464,23 +457,23 @@ namespace OpenMS
               transformation_ok[0] = false;
               transformation_ok[1] = false;
 
-              if ((fabs(diff[RT]) > 0.001) && (fabs(diff_2[RT]) > 0.001))
+              if ((fabs(diff[RawDataPoint2D::RT]) > 0.001) && (fabs(diff_2[RawDataPoint2D::RT]) > 0.001))
               {
-                scaling[RT] = (model_map_red_[j].getRT() - model_map_red_[i].getRT())
+                scaling[RawDataPoint2D::RT] = (model_map_red_[j].getRT() - model_map_red_[i].getRT())
                               /(partners_j[l]->getRT() - partners_i[k]->getRT());
 
-                shift[RT] =  model_map_red_[i].getRT() - partners_i[k]->getRT()*scaling[RT];
-                transformation_ok[RT] = true;
+                shift[RawDataPoint2D::RT] =  model_map_red_[i].getRT() - partners_i[k]->getRT()*scaling[RawDataPoint2D::RT];
+                transformation_ok[RawDataPoint2D::RT] = true;
               }
 
 
-              if ((fabs(diff[MZ]) > 0.001) && (fabs(diff_2[MZ]) > 0.001))
+              if ((fabs(diff[RawDataPoint2D::MZ]) > 0.001) && (fabs(diff_2[RawDataPoint2D::MZ]) > 0.001))
               {
-                scaling[MZ] = (model_map_red_[j].getMZ() - model_map_red_[i].getMZ())
+                scaling[RawDataPoint2D::MZ] = (model_map_red_[j].getMZ() - model_map_red_[i].getMZ())
                               /(partners_j[l]->getMZ() - partners_i[k]->getMZ());
 
-                shift[MZ] =  model_map_red_[i].getMZ() - partners_i[k]->getMZ()*scaling[MZ];
-                transformation_ok[MZ] = true;
+                shift[RawDataPoint2D::MZ] =  model_map_red_[i].getMZ() - partners_i[k]->getMZ()*scaling[RawDataPoint2D::MZ];
+                transformation_ok[RawDataPoint2D::MZ] = true;
               }
 
               // compute the hash indices
@@ -498,22 +491,22 @@ namespace OpenMS
               QualityType int_similarity =  int_similarity_ik + int_similarity_jl;
 
               // check if the transformation paramerters lie in the hash map
-              if ( transformation_ok[RT] && (scaling_bounding_box_.min()[RT] < scaling[RT]) && (scaling_bounding_box_.max()[RT] > scaling[RT])
-                   && (shift_bounding_box_.min()[RT] < shift[RT]) && (shift_bounding_box_.max()[RT] > shift[RT]))
+              if ( transformation_ok[RawDataPoint2D::RT] && (scaling_bounding_box_.min()[RawDataPoint2D::RT] < scaling[RawDataPoint2D::RT]) && (scaling_bounding_box_.max()[RawDataPoint2D::RT] > scaling[RawDataPoint2D::RT])
+                   && (shift_bounding_box_.min()[RawDataPoint2D::RT] < shift[RawDataPoint2D::RT]) && (shift_bounding_box_.max()[RawDataPoint2D::RT] > shift[RawDataPoint2D::RT]))
               {
-                bucket_fraction_shift = (shift[RT] - shift_bounding_box_.min()[RT]) / shift_bucket_size_[RT];  // floating point division
-                bucket_fraction_scaling = (scaling[RT] - scaling_bounding_box_.min()[RT]) / scaling_bucket_size_[RT];  // floating point division
+                bucket_fraction_shift = (shift[RawDataPoint2D::RT] - shift_bounding_box_.min()[RawDataPoint2D::RT]) / shift_bucket_size_[RawDataPoint2D::RT];  // floating point division
+                bucket_fraction_scaling = (scaling[RawDataPoint2D::RT] - scaling_bounding_box_.min()[RawDataPoint2D::RT]) / scaling_bucket_size_[RawDataPoint2D::RT];  // floating point division
                 bucket_shift_index    = (int) bucket_fraction_shift; // round down (yes we are >= 0)
-                //                       std::cout << "bucket_shift_index " <<  bucket_shift_index[RT] << std::endl;
+                //                       std::cout << "bucket_shift_index " <<  bucket_shift_index[RawDataPoint2D::RT] << std::endl;
                 bucket_scaling_index    = (int) bucket_fraction_scaling; // round down (yes we are >= 0)
-                //                       std::cout << "bucket_scaling_index " << bucket_shift_index[RT] << std::endl;
+                //                       std::cout << "bucket_scaling_index " << bucket_shift_index[RawDataPoint2D::RT] << std::endl;
                 bucket_fraction_shift -= bucket_shift_index;          // fractional part
-                //                       std::cout << "bucket_fraction_shift " << bucket_fraction_shift[RT]<< std::endl;
+                //                       std::cout << "bucket_fraction_shift " << bucket_fraction_shift[RawDataPoint2D::RT]<< std::endl;
                 bucket_fraction_scaling -= bucket_scaling_index;          // fractional part
-                //                       std::cout << "bucket_fraction_scaling" << bucket_fraction_scaling[RT]<< std::endl;
+                //                       std::cout << "bucket_fraction_scaling" << bucket_fraction_scaling[RawDataPoint2D::RT]<< std::endl;
 
-                //                     std::cout << "Buckets rt (" << bucket_shift_index[RT] << ',' << bucket_scaling_index[RT] << ')' << std::endl;
-                //                     std::cout << "Buckets mz (" << bucket_shift_index[MZ] << ',' << bucket_scaling_index[MZ] << ')' << std::endl;
+                //                     std::cout << "Buckets rt (" << bucket_shift_index[RawDataPoint2D::RT] << ',' << bucket_scaling_index[RawDataPoint2D::RT] << ')' << std::endl;
+                //                     std::cout << "Buckets mz (" << bucket_shift_index[RawDataPoint2D::MZ] << ',' << bucket_scaling_index[RawDataPoint2D::MZ] << ')' << std::endl;
 
                 // hash the transformation if possible
                 CoordinateType bucket_fraction_complement_shift = 1.;
@@ -527,12 +520,12 @@ namespace OpenMS
                 factor = bucket_fraction_complement_shift * bucket_fraction_complement_scaling * int_similarity;
                 rt_hash_[PairType(bucket_shift_index, bucket_scaling_index)] += factor;
                 //                     std::cout << "hash shift " << bucket_shift_index*shift_bucket_size_ + shift_bounding_box_.min() << std::endl;
-                //                     std::cout << "hash scaling " << bucket_scaling_index*scaling_bucket_size_ + scaling_bounding_box_.min()[RT] << std::endl;
+                //                     std::cout << "hash scaling " << bucket_scaling_index*scaling_bucket_size_ + scaling_bounding_box_.min()[RawDataPoint2D::RT] << std::endl;
                 //                     std::cout << "factor" << factor << std::endl;
 
                 factor = bucket_fraction_complement_shift * bucket_fraction_scaling * int_similarity;
                 rt_hash_[PairType(bucket_shift_index, bucket_scaling_index + 1 )] += factor;
-                //                     std::cout << "hash shift " << bucket_shift_index*shift_bucket_size_ + shift_bounding_box_.min()[RT] << std::endl;
+                //                     std::cout << "hash shift " << bucket_shift_index*shift_bucket_size_ + shift_bounding_box_.min()[RawDataPoint2D::RT] << std::endl;
                 //                     std::cout << "hash scaling " << (bucket_scaling_index+1)*scaling_bucket_size_ + scaling_bounding_box_.min() << std::endl;
 
                 factor = bucket_fraction_shift * bucket_fraction_complement_scaling * int_similarity;
@@ -542,22 +535,22 @@ namespace OpenMS
                 rt_hash_[PairType( bucket_shift_index + 1, bucket_scaling_index + 1 )] += factor;
               }
 
-              if ( transformation_ok[MZ] && (scaling_bounding_box_.min()[MZ] < scaling[MZ]) && (scaling_bounding_box_.max()[MZ] > scaling[MZ])
-                   && (shift_bounding_box_.min()[MZ] < shift[MZ]) && (shift_bounding_box_.max()[MZ] > shift[MZ]))
+              if ( transformation_ok[RawDataPoint2D::MZ] && (scaling_bounding_box_.min()[RawDataPoint2D::MZ] < scaling[RawDataPoint2D::MZ]) && (scaling_bounding_box_.max()[RawDataPoint2D::MZ] > scaling[RawDataPoint2D::MZ])
+                   && (shift_bounding_box_.min()[RawDataPoint2D::MZ] < shift[RawDataPoint2D::MZ]) && (shift_bounding_box_.max()[RawDataPoint2D::MZ] > shift[RawDataPoint2D::MZ]))
               {
-                bucket_fraction_shift = (shift[MZ] - shift_bounding_box_.min()[MZ]) / shift_bucket_size_[MZ];  // floating point division
-                bucket_fraction_scaling = (scaling[MZ] - scaling_bounding_box_.min()[MZ]) / scaling_bucket_size_[MZ];  // floating point division
+                bucket_fraction_shift = (shift[RawDataPoint2D::MZ] - shift_bounding_box_.min()[RawDataPoint2D::MZ]) / shift_bucket_size_[RawDataPoint2D::MZ];  // floating point division
+                bucket_fraction_scaling = (scaling[RawDataPoint2D::MZ] - scaling_bounding_box_.min()[RawDataPoint2D::MZ]) / scaling_bucket_size_[RawDataPoint2D::MZ];  // floating point division
                 bucket_shift_index    = (int) bucket_fraction_shift; // round down (yes we are >= 0)
-                //                       std::cout << "bucket_shift_index " <<  bucket_shift_index[MZ] << std::endl;
+                //                       std::cout << "bucket_shift_index " <<  bucket_shift_index[RawDataPoint2D::MZ] << std::endl;
                 bucket_scaling_index    = (int) bucket_fraction_scaling; // round down (yes we are >= 0)
-                //                       std::cout << "bucket_scaling_index " << bucket_shift_index[MZ] << std::endl;
+                //                       std::cout << "bucket_scaling_index " << bucket_shift_index[RawDataPoint2D::MZ] << std::endl;
                 bucket_fraction_shift -= bucket_shift_index;          // fractional part
-                //                       std::cout << "bucket_fraction_shift " << bucket_fraction_shift[MZ]<< std::endl;
+                //                       std::cout << "bucket_fraction_shift " << bucket_fraction_shift[RawDataPoint2D::MZ]<< std::endl;
                 bucket_fraction_scaling -= bucket_scaling_index;          // fractional part
-                //                       std::cout << "bucket_fraction_scaling" << bucket_fraction_scaling[MZ]<< std::endl;
+                //                       std::cout << "bucket_fraction_scaling" << bucket_fraction_scaling[RawDataPoint2D::MZ]<< std::endl;
 
-                //                     std::cout << "Buckets rt (" << bucket_shift_index[MZ] << ',' << bucket_scaling_index[MZ] << ')' << std::endl;
-                //                     std::cout << "Buckets mz (" << bucket_shift_index[MZ] << ',' << bucket_scaling_index[MZ] << ')' << std::endl;
+                //                     std::cout << "Buckets rt (" << bucket_shift_index[RawDataPoint2D::MZ] << ',' << bucket_scaling_index[RawDataPoint2D::MZ] << ')' << std::endl;
+                //                     std::cout << "Buckets mz (" << bucket_shift_index[RawDataPoint2D::MZ] << ',' << bucket_scaling_index[RawDataPoint2D::MZ] << ')' << std::endl;
 
                 // hash the transformation if possible
                 CoordinateType bucket_fraction_complement_shift = 1.;
@@ -572,12 +565,12 @@ namespace OpenMS
                 factor = bucket_fraction_complement_shift * bucket_fraction_complement_scaling * int_similarity;
                 mz_hash_[PairType(bucket_shift_index, bucket_scaling_index)] += factor;
                 //                     std::cout << "hash shift " << bucket_shift_index*shift_bucket_size_ + shift_bounding_box_.min() << std::endl;
-                //                     std::cout << "hash scaling " << bucket_scaling_index*scaling_bucket_size_ + scaling_bounding_box_.min()[MZ] << std::endl;
+                //                     std::cout << "hash scaling " << bucket_scaling_index*scaling_bucket_size_ + scaling_bounding_box_.min()[RawDataPoint2D::MZ] << std::endl;
                 //                     std::cout << "factor" << factor << std::endl;
 
                 factor = bucket_fraction_complement_shift * bucket_fraction_scaling * int_similarity;
                 mz_hash_[PairType(bucket_shift_index, bucket_scaling_index + 1 )] += factor;
-                //                     std::cout << "hash shift " << bucket_shift_index*shift_bucket_size_ + shift_bounding_box_.min()[MZ] << std::endl;
+                //                     std::cout << "hash shift " << bucket_shift_index*shift_bucket_size_ + shift_bounding_box_.min()[RawDataPoint2D::MZ] << std::endl;
                 //                     std::cout << "hash scaling " << (bucket_scaling_index+1)*scaling_bucket_size_ + scaling_bounding_box_.min() << std::endl;
 
                 factor = bucket_fraction_shift * bucket_fraction_complement_scaling * int_similarity;
@@ -599,8 +592,8 @@ namespace OpenMS
       //       typename AffineTransformationMapType::const_iterator it = rt_hash_.begin();
       //       while (it != rt_hash_.end())
       //       {
-      //         rt_os << ((it->first).first)*shift_bucket_size_[RT] + shift_bounding_box_.min()[RT] << ' '
-      //         << ((it->first).second)*scaling_bucket_size_[RT] + scaling_bounding_box_.min()[RT] << ' '
+      //         rt_os << ((it->first).first)*shift_bucket_size_[RawDataPoint2D::RT] + shift_bounding_box_.min()[RawDataPoint2D::RT] << ' '
+      //         << ((it->first).second)*scaling_bucket_size_[RawDataPoint2D::RT] + scaling_bounding_box_.min()[RawDataPoint2D::RT] << ' '
       //         << it->second << '\n';
       //         ++it;
       //       }
@@ -608,8 +601,8 @@ namespace OpenMS
       //       it = mz_hash_.begin();
       //       while (it != mz_hash_.end())
       //       {
-      //         mz_os << ((it->first).first)*shift_bucket_size_[MZ] + shift_bounding_box_.min()[MZ] << ' '
-      //         << ((it->first).second)*scaling_bucket_size_[MZ] + scaling_bounding_box_.min()[MZ] << ' '
+      //         mz_os << ((it->first).first)*shift_bucket_size_[RawDataPoint2D::MZ] + shift_bounding_box_.min()[RawDataPoint2D::MZ] << ' '
+      //         << ((it->first).second)*scaling_bucket_size_[RawDataPoint2D::MZ] + scaling_bounding_box_.min()[RawDataPoint2D::MZ] << ' '
       //         << it->second << '\n';
       //         ++it;
       //       }
@@ -641,27 +634,27 @@ namespace OpenMS
 
       V_estimateFinalAffineTransformation_("Max element in rt: Indizes: "<< max_element_index_rt.first << ' ' << max_element_index_rt.second
                                            << " Votes: " << act_max_rt
-                                           << " shift: "  << max_element_index_rt.first*shift_bucket_size_[RT] + shift_bounding_box_.min()[RT]
-                                           << " scaling: " << max_element_index_rt.second*scaling_bucket_size_[RT] + scaling_bounding_box_.min()[RT]);
+                                           << " shift: "  << max_element_index_rt.first*shift_bucket_size_[RawDataPoint2D::RT] + shift_bounding_box_.min()[RawDataPoint2D::RT]
+                                           << " scaling: " << max_element_index_rt.second*scaling_bucket_size_[RawDataPoint2D::RT] + scaling_bounding_box_.min()[RawDataPoint2D::RT]);
 
 
       // Compute a weighted average of the transformation parameters nearby the max_element_index.
       PositionType rt_trafo;
-      PositionType rt_bounding_box_min(shift_bounding_box_.min()[RT],scaling_bounding_box_.min()[RT]);
+      PositionType rt_bounding_box_min(shift_bounding_box_.min()[RawDataPoint2D::RT],scaling_bounding_box_.min()[RawDataPoint2D::RT]);
       int rt_run_indices[2];
       QualityType quality = 0;
-      PositionType rt_window(bucket_window_shift_[RT],bucket_window_scaling_[RT]);
+      PositionType rt_window(bucket_window_shift_[RawDataPoint2D::RT],bucket_window_scaling_[RawDataPoint2D::RT]);
       //         std::cout << "rt_window " << rt_window << std::endl;
       for ( rt_run_indices[SHIFT]  = std::max ( int (max_element_index_rt.first - rt_window[SHIFT]), 0 );
-            rt_run_indices[SHIFT] <= std::min ( int (max_element_index_rt.first + rt_window[SHIFT]), num_buckets_shift_[RT] );
+            rt_run_indices[SHIFT] <= std::min ( int (max_element_index_rt.first + rt_window[SHIFT]), num_buckets_shift_[RawDataPoint2D::RT] );
             ++rt_run_indices[SHIFT])
       {
         for ( rt_run_indices[SCALING]  = std::max ( int (max_element_index_rt.second - rt_window[SCALING]), 0 );
-              rt_run_indices[SCALING] <= std::min ( int (max_element_index_rt.second + rt_window[SCALING]), num_buckets_scaling_[RT] );
+              rt_run_indices[SCALING] <= std::min ( int (max_element_index_rt.second + rt_window[SCALING]), num_buckets_scaling_[RawDataPoint2D::RT] );
               ++rt_run_indices[SCALING])
 
         {
-          PositionType contribution_position(shift_bucket_size_[RT],scaling_bucket_size_[RT]);
+          PositionType contribution_position(shift_bucket_size_[RawDataPoint2D::RT],scaling_bucket_size_[RawDataPoint2D::RT]);
           // is the neighbouring bucket in the map?
           typename AffineTransformationMapType::const_iterator it = rt_hash_.find(PairType(rt_run_indices[SHIFT], rt_run_indices[SCALING]));
           if ( it != rt_hash_.end())
@@ -691,7 +684,7 @@ namespace OpenMS
 
       // Assign the result.
       // set slope and intercept
-      final_transformation_[RT].setParam( rt_trafo[SCALING], rt_trafo[SHIFT] );
+      final_transformation_[RawDataPoint2D::RT].setParam( rt_trafo[SCALING], rt_trafo[SHIFT] );
       V_estimateFinalAffineTransformation_("estimateFinalAffineTransformation_() hat geklappt rt: " << rt_trafo);
 
 
@@ -709,23 +702,23 @@ namespace OpenMS
 
       V_estimateFinalAffineTransformation_("Max element in mz: Indizes: "<< max_element_index_mz.first << ' ' << max_element_index_mz.second
                                            << " Votes: " << act_max_mz
-                                           << " shift: "  << max_element_index_mz.first*shift_bucket_size_[MZ] + shift_bounding_box_.min()[MZ]
-                                           << " scaling: " << max_element_index_mz.second*scaling_bucket_size_[MZ] + scaling_bounding_box_.min()[MZ]);
+                                           << " shift: "  << max_element_index_mz.first*shift_bucket_size_[RawDataPoint2D::MZ] + shift_bounding_box_.min()[RawDataPoint2D::MZ]
+                                           << " scaling: " << max_element_index_mz.second*scaling_bucket_size_[RawDataPoint2D::MZ] + scaling_bounding_box_.min()[RawDataPoint2D::MZ]);
 
       PositionType mz_trafo;
-      PositionType mz_bounding_box_min(shift_bounding_box_.min()[MZ],scaling_bounding_box_.min()[MZ]);
+      PositionType mz_bounding_box_min(shift_bounding_box_.min()[RawDataPoint2D::MZ],scaling_bounding_box_.min()[RawDataPoint2D::MZ]);
       int mz_run_indices[2];
       quality=0;
-      PositionType mz_window(bucket_window_shift_[MZ],bucket_window_scaling_[MZ]);
+      PositionType mz_window(bucket_window_shift_[RawDataPoint2D::MZ],bucket_window_scaling_[RawDataPoint2D::MZ]);
       for ( mz_run_indices[SHIFT]  = std::max ( int (max_element_index_mz.first - mz_window[SHIFT]), 0 );
-            mz_run_indices[SHIFT] <= std::min ( int (max_element_index_mz.first + mz_window[SHIFT]), num_buckets_shift_[MZ] );
+            mz_run_indices[SHIFT] <= std::min ( int (max_element_index_mz.first + mz_window[SHIFT]), num_buckets_shift_[RawDataPoint2D::MZ] );
             ++mz_run_indices[SHIFT])
       {
         for ( mz_run_indices[SCALING]  = std::max ( int (max_element_index_mz.second - mz_window[SCALING]), 0 );
-              mz_run_indices[SCALING] <= std::min ( int (max_element_index_mz.second + mz_window[SCALING]), num_buckets_scaling_[MZ] );
+              mz_run_indices[SCALING] <= std::min ( int (max_element_index_mz.second + mz_window[SCALING]), num_buckets_scaling_[RawDataPoint2D::MZ] );
               ++mz_run_indices[SCALING])
         {
-          PositionType contribution_position(shift_bucket_size_[MZ],scaling_bucket_size_[MZ]);
+          PositionType contribution_position(shift_bucket_size_[RawDataPoint2D::MZ],scaling_bucket_size_[RawDataPoint2D::MZ]);
           // is the neighbouring bucket in the map?
           typename AffineTransformationMapType::const_iterator it = mz_hash_.find(PairType(mz_run_indices[SHIFT], mz_run_indices[SCALING]));
           if ( it != mz_hash_.end())
@@ -752,7 +745,7 @@ namespace OpenMS
         mz_trafo /= quality;
       }
       // set slope and intercept
-      final_transformation_[MZ].setParam( mz_trafo[SCALING], mz_trafo[SHIFT] );
+      final_transformation_[RawDataPoint2D::MZ].setParam( mz_trafo[SCALING], mz_trafo[SHIFT] );
       V_estimateFinalAffineTransformation_("estimateFinalAffineTransformation_() hat geklappt mz: " << mz_trafo);
 
       //         std::ofstream rt_os("rt_matrix.pgm", std::ios::out);
@@ -761,8 +754,8 @@ namespace OpenMS
       //         typename AffineTransformationMapType::const_iterator it = rt_hash_.begin();
       //         while (it != rt_hash_.end())
       //         {
-      //           rt_os << (it->first).first*shift_bucket_size_[RT] + shift_bounding_box_.min()[RT]
-      //           << ' ' << (it->first).second*scaling_bucket_size_[RT] + scaling_bounding_box_.min()[RT] << '\n';
+      //           rt_os << (it->first).first*shift_bucket_size_[RawDataPoint2D::RT] + shift_bounding_box_.min()[RawDataPoint2D::RT]
+      //           << ' ' << (it->first).second*scaling_bucket_size_[RawDataPoint2D::RT] + scaling_bounding_box_.min()[RawDataPoint2D::RT] << '\n';
       //           ++it;
       //         }
       //         rt_os.flush();

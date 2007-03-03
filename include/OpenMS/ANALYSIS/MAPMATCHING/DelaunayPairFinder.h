@@ -67,12 +67,6 @@ namespace OpenMS
         : public BasePairFinder<ConsensusMapT>
   {
   public:
-    typedef DimensionDescription<LCMS_Tag> DimensionDescriptionType;
-    enum DimensionId
-    {
-      RT = DimensionDescriptionType::RT,
-      MZ = DimensionDescriptionType::MZ
-    };
 
     /** Symbolic names for indices of element maps etc.
         This should make things more understandable and maintainable.
@@ -246,7 +240,7 @@ namespace OpenMS
     void setDiffIntercept(const UnsignedInt& dim, const double& intercept)
     {
       diff_intercept_[dim] = intercept;
-      param_.setValue(String("similarity:diff_intercept:") + DimensionDescriptionType::dimension_name_short[dim], intercept);
+      param_.setValue(String("similarity:diff_intercept:") + RawDataPoint2D::shortDimensionName(dim), intercept);
     }
 
     /// Get max_pair_distance_
@@ -259,7 +253,7 @@ namespace OpenMS
     void setMaxPairDistance(const UnsignedInt& dim, const float& max_pair_distance)
     {
       max_pair_distance_[dim] = max_pair_distance;
-      param_.setValue(String("similarity:max_pair_distance:") + DimensionDescriptionType::dimension_name_short[dim], max_pair_distance);
+      param_.setValue(String("similarity:max_pair_distance:") + RawDataPoint2D::shortDimensionName(dim), max_pair_distance);
     }
 
     /// Get precision
@@ -272,7 +266,7 @@ namespace OpenMS
     void setPrecision(const UnsignedInt& dim, const float& precision)
     {
       precision_[dim] = precision;
-      param_.setValue(String("similarity:precision:") + DimensionDescriptionType::dimension_name_short[dim], precision);
+      param_.setValue(String("similarity:precision:") + RawDataPoint2D::shortDimensionName(dim), precision);
     }
 
     /// The actual algorithm for finding element pairs.
@@ -288,19 +282,19 @@ namespace OpenMS
       Size n = reference_map.size();
 
       // Vector to fill the point set for triangulation
-      // Penalize a deviation in mz more than in rt: deviation(diff_intercept_[RT]) ~ deviation(diff_intercept_[MZ])
+      // Penalize a deviation in mz more than in rt: deviation(diff_intercept_[RawDataPoint2D::RT]) ~ deviation(diff_intercept_[RawDataPoint2D::MZ])
       std::vector< Point > positions_reference_map;
       for (Size i = 0; i < n; ++i)
       {
         positions_reference_map.push_back(Point(reference_map[i].getRT(),
-                                                reference_map[i].getMZ() / (diff_intercept_[MZ] / diff_intercept_[RT]),reference_map[i],i));
+                                                reference_map[i].getMZ() / (diff_intercept_[RawDataPoint2D::MZ] / diff_intercept_[RawDataPoint2D::RT]),reference_map[i],i));
       }
 
       // compute the delaunay triangulation
       Point_set_2 p_set(positions_reference_map.begin(),positions_reference_map.end());
 
-      V_findElementPairs("Translation rt " << transformation_[RT].getParam());
-      V_findElementPairs("Translation mz " << transformation_[MZ].getParam());
+      V_findElementPairs("Translation rt " << transformation_[RawDataPoint2D::RT].getParam());
+      V_findElementPairs("Translation mz " << transformation_[RawDataPoint2D::MZ].getParam());
 
       // Initialize a hash map for the elements of reference_map to avoid that elements of the reference map occur in several element pairs
       std::vector< SignedInt > lookup_table(n,-1);
@@ -315,10 +309,10 @@ namespace OpenMS
         double mz_pos = transformed_map[fi1].getMZ();
 
         V_findElementPairs("Search for two nearest neighbours of " << rt_pos << ' ' << transformed_map[fi1].getMZ() );
-        transformation_[RT].apply(rt_pos);
-        transformation_[MZ].apply(mz_pos);
+        transformation_[RawDataPoint2D::RT].apply(rt_pos);
+        transformation_[RawDataPoint2D::MZ].apply(mz_pos);
 
-        mz_pos /= (diff_intercept_[MZ] / diff_intercept_[RT]);
+        mz_pos /= (diff_intercept_[RawDataPoint2D::MZ] / diff_intercept_[RawDataPoint2D::RT]);
         Point transformed_pos(rt_pos,mz_pos);
 
         V_findElementPairs("Transformed Position is : " << transformed_pos );
@@ -337,10 +331,10 @@ namespace OpenMS
         Point nearest = resulting_range[0]->point();
         Point second_nearest = resulting_range[1]->point();
 
-        if (((fabs(transformed_pos[RT] - nearest.hx())  < precision_[RT])
-             &&  (fabs(transformed_pos[MZ] - nearest.hy())  < precision_[MZ]))
-            && ((fabs(second_nearest.hx() - nearest.hx())  > max_pair_distance_[RT])
-                || (fabs(second_nearest.hy() - nearest.hy())  > max_pair_distance_[MZ])))
+        if (((fabs(transformed_pos[RawDataPoint2D::RT] - nearest.hx())  < precision_[RawDataPoint2D::RT])
+             &&  (fabs(transformed_pos[RawDataPoint2D::MZ] - nearest.hy())  < precision_[RawDataPoint2D::MZ]))
+            && ((fabs(second_nearest.hx() - nearest.hx())  > max_pair_distance_[RawDataPoint2D::RT])
+                || (fabs(second_nearest.hy() - nearest.hy())  > max_pair_distance_[RawDataPoint2D::MZ])))
         {
           all_element_pairs.push_back(std::pair<const PointType*,const PointType*>(nearest.element,&transformed_map[fi1]));
 
@@ -392,7 +386,7 @@ namespace OpenMS
       for (Size i = 0; i < n; ++i)
       {
         positions_reference_map.push_back(Point((double)(first_map[i].getRT()),
-                                                (double)(first_map[i].getMZ() / (diff_intercept_[MZ] / diff_intercept_[RT])),first_map[i],i));
+                                                (double)(first_map[i].getMZ() / (diff_intercept_[RawDataPoint2D::MZ] / diff_intercept_[RawDataPoint2D::RT])),first_map[i],i));
       }
       StopWatch timer;
       V_computeConsensusMap("Start delaunay triangulation for " << positions_reference_map.size() << " elements");
@@ -415,7 +409,7 @@ namespace OpenMS
       {
         // compute the transformed iso-rectangle (upper_left,bottom_left,bottom_right,upper_right) for the range query
         double rt_pos = (double)(second_map[fi1].getRT());
-        double mz_pos = (double)(second_map[fi1].getMZ() / (diff_intercept_[MZ]/diff_intercept_[RT]));
+        double mz_pos = (double)(second_map[fi1].getMZ() / (diff_intercept_[RawDataPoint2D::MZ]/diff_intercept_[RawDataPoint2D::RT]));
 
         V_computeConsensusMap("Search for two nearest neighbours of " << rt_pos << ' ' << second_map[fi1].getMZ() );
         Point transformed_pos(rt_pos,mz_pos,second_map[fi1]);
@@ -429,8 +423,8 @@ namespace OpenMS
         if (resulting_range.size() == 1)
         {
           nearest = resulting_range[0]->point();
-          if ((fabs(transformed_pos[RT] - nearest.hx())  < precision_[RT])
-              &&  (fabs(transformed_pos[MZ] - nearest.hy())  < precision_[MZ]))
+          if ((fabs(transformed_pos[RawDataPoint2D::RT] - nearest.hx())  < precision_[RawDataPoint2D::RT])
+              &&  (fabs(transformed_pos[RawDataPoint2D::MZ] - nearest.hy())  < precision_[RawDataPoint2D::MZ]))
           {
             all_element_pairs.push_back(std::pair<const PointType*,PointType*>(nearest.element,&(second_map[fi1])));
           }
@@ -441,10 +435,10 @@ namespace OpenMS
             nearest = resulting_range[0]->point();
             second_nearest = resulting_range[1]->point();
 
-            if (((fabs(transformed_pos[RT] - nearest.hx())  < precision_[RT])
-                 &&  (fabs(transformed_pos[MZ] - nearest.hy())  < precision_[MZ]))
-                && ((fabs(second_nearest.hx() - nearest.hx())  > max_pair_distance_[RT])
-                    || (fabs(second_nearest.hy() - nearest.hy())  > max_pair_distance_[MZ])))
+            if (((fabs(transformed_pos[RawDataPoint2D::RT] - nearest.hx())  < precision_[RawDataPoint2D::RT])
+                 &&  (fabs(transformed_pos[RawDataPoint2D::MZ] - nearest.hy())  < precision_[RawDataPoint2D::MZ]))
+                && ((fabs(second_nearest.hx() - nearest.hx())  > max_pair_distance_[RawDataPoint2D::RT])
+                    || (fabs(second_nearest.hy() - nearest.hy())  > max_pair_distance_[RawDataPoint2D::MZ])))
             {
               all_element_pairs.push_back(std::pair<const PointType*,PointType*>(nearest.element,&(second_map[fi1])));
               V_computeConsensusMap("Push first: " << *(nearest.element))
@@ -483,9 +477,9 @@ namespace OpenMS
                   {
                     V_computeConsensusMap(second_map_b.getPos() << " and " << first_map_a.getPos() << " are a pair, but check the distance between c and b");
                     // check the distance between second_map_b and second_map_c
-                    if (fabs(second_map_b.getMZ() / (diff_intercept_[MZ]/diff_intercept_[RT])
-                             - second_map_c.getMZ() / (diff_intercept_[MZ]/diff_intercept_[RT]))
-                        > max_pair_distance_[MZ])
+                    if (fabs(second_map_b.getMZ() / (diff_intercept_[RawDataPoint2D::MZ]/diff_intercept_[RawDataPoint2D::RT])
+                             - second_map_c.getMZ() / (diff_intercept_[RawDataPoint2D::MZ]/diff_intercept_[RawDataPoint2D::RT]))
+                        > max_pair_distance_[RawDataPoint2D::MZ])
                     {
                       V_computeConsensusMap("distance ok");
                       // and check which one of the elements lies closer to first_map_a
@@ -564,14 +558,14 @@ namespace OpenMS
   protected:
     virtual void updateMembers_()
     {
-      max_pair_distance_[RT] = (float)param_.getValue("similarity:max_pair_distance:RT");
-      max_pair_distance_[MZ] = (float)param_.getValue("similarity:max_pair_distance:MZ");
+      max_pair_distance_[RawDataPoint2D::RT] = (float)param_.getValue("similarity:max_pair_distance:RT");
+      max_pair_distance_[RawDataPoint2D::MZ] = (float)param_.getValue("similarity:max_pair_distance:MZ");
 
-      precision_[RT] = (float)param_.getValue("similarity:precision:RT");
-      precision_[MZ] = (float)param_.getValue("similarity:precision:MZ");
+      precision_[RawDataPoint2D::RT] = (float)param_.getValue("similarity:precision:RT");
+      precision_[RawDataPoint2D::MZ] = (float)param_.getValue("similarity:precision:MZ");
 
-      diff_intercept_[RT] = (double)param_.getValue("similarity:diff_intercept:RT");
-      diff_intercept_[MZ] = (double)param_.getValue("similarity:diff_intercept:MZ");
+      diff_intercept_[RawDataPoint2D::RT] = (double)param_.getValue("similarity:diff_intercept:RT");
+      diff_intercept_[RawDataPoint2D::MZ] = (double)param_.getValue("similarity:diff_intercept:MZ");
     }
 
     /// A parameter for similarity_().

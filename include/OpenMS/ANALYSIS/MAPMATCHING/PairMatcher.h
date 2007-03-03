@@ -28,7 +28,6 @@
 #define OPENMS_ANALYSIS_MAPMATCHING_PAIRMATCHER_H
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/ElementPair.h>
-#include <OpenMS/KERNEL/DimensionDescription.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/CONCEPT/FactoryProduct.h>
 #include <OpenMS/DATASTRUCTURES/QuadTree.h>
@@ -74,13 +73,6 @@ namespace OpenMS
       typedef std::vector< PairType > PairVectorType;
 			typedef QuadTree< FeatureType > QuadTreeType;
 			//@}
-	
-		  /// Defines the coordinates of peaks / features.
-			enum DimensionId
-			{
-				RT = DimensionDescription < LCMS_Tag >::RT,
-				MZ = DimensionDescription < LCMS_Tag >::MZ
-			};
 			
 			/// Constructor
 			PairMatcher(FeatureMapType& features);

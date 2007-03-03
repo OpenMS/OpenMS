@@ -29,7 +29,6 @@
 #define OPENMS_ANALYSIS_MAPMATCHING_BASEALIGNMENT_H
 
 #include <OpenMS/KERNEL/FeatureMap.h>
-#include <OpenMS/KERNEL/DimensionDescription.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/BasePairwiseMapMatcher.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/PoseClusteringPairwiseMapMatcher.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/BasePairwiseMapMatcher_registerChildren.h>
@@ -61,13 +60,6 @@ namespace OpenMS
   class BaseAlignment
   {
   public:
-    /// Defines the coordinates of peaks / features.
-    enum DimensionId
-    {
-      RT = DimensionDescription < LCMS_Tag >::RT,
-      MZ = DimensionDescription < LCMS_Tag >::MZ
-    };
-
     /// Consensus element type
     typedef ConsensusElementT ConsensusElementType;
 

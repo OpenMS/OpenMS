@@ -25,7 +25,6 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/ID/IDFeatureMapper.h>
-#include <OpenMS/KERNEL/DimensionDescription.h>
 
 using namespace std;
 

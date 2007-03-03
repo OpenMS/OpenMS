@@ -34,7 +34,6 @@
 
 #include <OpenMS/CONCEPT/Exception.h>
 
-#include <OpenMS/KERNEL/DimensionDescription.h>
 #include <OpenMS/KERNEL/MSExperimentExtern.h>
 
 #include <OpenMS/FORMAT/MzDataFile.h>

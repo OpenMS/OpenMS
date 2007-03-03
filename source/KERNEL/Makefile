@@ -32,7 +32,6 @@ ADD_CXXFLAGS=-D_FILE_OFFSET_BITS=64
 THISLIB=$(LIBNAME)
 
 CPP_SOURCES= \
-  DimensionDescription.C\
   DRawDataPoint.C\
   RawDataPoint1D.C\
   RawDataPoint2D.C\

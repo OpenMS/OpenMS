@@ -26,7 +26,6 @@
 
 #include <OpenMS/FORMAT/FeatureMapFile.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
-#include <OpenMS/KERNEL/DimensionDescription.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/MATH/STATISTICS/LinearRegression.h>
 
