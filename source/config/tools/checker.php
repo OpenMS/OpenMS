@@ -30,6 +30,7 @@
 	include "common_functions.php";
 	
 	#TODO: add check for self assignment
+	#TODO: add check for Coding Convention: member and method names
 	
 	######################## helper functions ###############################
 	function printUsage()
@@ -79,6 +80,7 @@
 															"tab"            => "check tab settings for editors",
 															"maintainers"    => "check if maintainers are consistent in header, source and test file",
 															"missing_tests"  => "check for missing tests",
+															"old_files"  => "check for unneeded .C files",
 															"brief"          => "check for doxygen tag @brief",
 															"doxygen_errors" => "check for errors in dogygen-error.log",
 															"check_test"     => "check the class test for completeness",
@@ -528,7 +530,48 @@
 				}
 			}
 		}
-		
+
+		########################### guards ######################################
+		if ($test == "all" || $test == "old_files")
+		{
+			$ignore = array(
+				"SampleTreatment_test.C",
+				"Exception_Base_test.C",
+				"NumericDiff.C"
+			);
+			
+			if (!in_array($basename,$ignore)  && !beginsWith($f,"source/APPLICATIONS/TOPP/")  && !beginsWith($f,"source/BENCHMARKS/"))
+			{
+				if (endsWith($f,"_test.C"))
+				{
+					$hits = array();
+					foreach($file as $line)
+					{
+						if (isIncludeLine($line,$include) && strpos($line,substr($basename,0,-7))!==FALSE )
+						{
+							$hits[] = "include/".$include;
+						}
+					}
+					if (count($hits)==1)
+					{
+						//print "$f -> $hits[0]\n";
+						if (!file_exists($path."/".$hits[0]))
+						{
+							realOutput("Outdated test file '$f'",$user,$verbose,$f);
+						}
+					}
+				}
+				//source file -> look for header
+				else if (endsWith($f,".C"))
+				{
+					if (!file_exists($path."/include/OpenMS/".substr($f,7,-2).".h"))
+					{
+						realOutput("Outdated source file '$f'",$user,$verbose,$f);
+					}
+				}
+			}
+		}
+
 		########################### @brief  #####################################
 		if ($test == "all" || $test == "brief")
 		{
