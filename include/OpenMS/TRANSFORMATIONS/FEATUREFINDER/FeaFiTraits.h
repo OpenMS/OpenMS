@@ -59,7 +59,7 @@ namespace OpenMS
 			typedef std::set<IDX> IndexSet;
 	
 	    /// Flag for each data point
-	    enum Flag { UNUSED, SEED, INSIDE_FEATURE };
+	    enum Flag { UNUSED, SEED, INSIDE_BOUNDARY, INSIDE_FEATURE };
 			
 			/// Internal map type
 	    typedef MSExperimentExtern< Peak1D > MapType;
@@ -212,7 +212,7 @@ namespace OpenMS
 	    /// Flags indicating whether a peak is unused, a seed or inside a feature region
 	    std::vector< std::vector<Flag> > flags_;
 	
-	    /// The found features in the LC/MS map
+	    /// The features found in the LC/MS map
 	    FeatureMap<> features_;
 	};
 

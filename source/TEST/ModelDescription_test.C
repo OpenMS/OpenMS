@@ -79,7 +79,6 @@ CHECK(ModelDescription<2>(const ModelDescription<2>& source))
   ModelDescription<2> fp3;
   fp3.setName("halligalli2000");
 
-//   fp1 = ModelDescription<2>();
 	TEST_EQUAL(fp2==fp3,true)
 RESULT
 

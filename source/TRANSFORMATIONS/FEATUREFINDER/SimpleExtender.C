@@ -39,13 +39,18 @@ namespace OpenMS
     
     defaults_.setValue("tolerance_rt",2.0f);
     defaults_.setValue("tolerance_mz",0.5f);
+		
     defaults_.setValue("dist_mz_up",6.0f);
     defaults_.setValue("dist_mz_down",2.0f);
     defaults_.setValue("dist_rt_up",5.0f);
     defaults_.setValue("dist_rt_down",5.0f);
-    defaults_.setValue("priority_thr",0.0f);
-    defaults_.setValue("intensity_factor",0.03f);
-		defaults_.setValue("min_intensity_contribution",0.01f);
+    
+		// priority check is per default switched off
+		// these values were used for the Myoglobin quantification project
+		// DON'T REMOVE THIS
+		defaults_.setValue("priority_thr",-0.1f);
+    
+		defaults_.setValue("intensity_factor",0.03f);
 
     defaultsToParam_();
 	}
@@ -122,45 +127,36 @@ namespace OpenMS
 		last_pos_extracted_[RawDataPoint2D::RT] = traits_->getPeakRt(seed);
 		last_pos_extracted_[RawDataPoint2D::MZ] = traits_->getPeakMz(seed);
 		
-		// Add peaks in the region to boundary
+		// Add peaks received from seeder directly to boundary
     for (IndexSet::const_iterator citer = seed_region.begin(); citer != seed_region.end(); ++citer)
     {	
     	ProbabilityType priority = computePeakPriority_(*citer);
     	priorities_[*citer] = priority;
+			traits_->getPeakFlag(*citer) = FeaFiTraits::INSIDE_BOUNDARY;
 			boundary_.push(IndexWithPriority(*citer,priority));
     }
 		
 		cout << "Extending from " << traits_->getPeakRt(seed) << "/" << traits_->getPeakMz(seed); 
 		cout << " (" << seed.first << "/" << seed.second << ")" << endl;
 		
-		//compute intensity threshold and sum
+		//compute intensity threshold 
 		intensity_threshold_ = (double)param_.getValue("intensity_factor") * traits_->getPeakIntensity(seed);
-		IntensityType intensity_sum = 0.0;
-		IntensityType min_intensity_contribution = param_.getValue("min_intensity_contribution");
 				
     while (!boundary_.empty())
     {
 			// remove peak with highest priority
 			const IDX  current_index = boundary_.top().index;
 			boundary_.pop();
-			
+						
     	//Corrupt index
     	OPENMS_PRECONDITION(current_index.first<traits_->getData().size(), "Scan index outside of map!");
       OPENMS_PRECONDITION(current_index.second<traits_->getData()[current_index.first].size(), "Peak index outside of scan!");
-			
-			// Here one could also devide the intensity_sum by max((IntensityType)region_.size(),1.0))
-			if (traits_->getPeakIntensity(current_index) < intensity_sum  *  min_intensity_contribution )
-			{
- 				//cout << "Skipping point because of low intensity contribution. " << endl;
- 				//cout << current_peak.getIntensity() << " " << (intensity_sum * min_intensity_contribution) << endl;
-				continue;			 
-			}
-			
+
 			// remember last extracted peak
 			last_pos_extracted_[RawDataPoint2D::RT] = traits_->getPeakRt(current_index);
 			last_pos_extracted_[RawDataPoint2D::MZ] = traits_->getPeakMz(current_index);
 
-			// Now we explore the neighbourhood of the current peak. Peaks in this area are included
+			// Now we explore the neighbourhood of the current peak. Points in this area are included
 			// into the boundary if their intensity is not too low and they are not too
 			// far away from the seed.
 			
@@ -174,13 +170,12 @@ namespace OpenMS
 			moveRtDown_(current_index);
 
 			// check peak flags (if data point is already inside a feature region or used as seed, we discard it)
-			if (traits_->getPeakFlag(current_index) == FeaFiTraits::UNUSED)
+			if (traits_->getPeakFlag(current_index) == FeaFiTraits::INSIDE_BOUNDARY)
 			{
 				traits_->getPeakFlag(current_index) = FeaFiTraits::INSIDE_FEATURE;
 				region_.insert(current_index);
-				intensity_sum += traits_->getPeakIntensity(current_index);
-	 			//cout << "Added point to region. Intensity sum is now: " << intensity_sum << endl;
-	 			//cout << "Intensity of the added point is : " << current_peak.getIntensity() << endl;
+// 				cout << "Adding " << traits_->getPeakRt(current_index) << " " << traits_->getPeakMz(current_index) << " to region." << endl;
+// 	 			cout << "Intensity of the added point is : " << traits_->getPeakIntensity(current_index) << endl;
 			}
     } // end of while ( !boundary_.empty() )
 
@@ -199,7 +194,7 @@ namespace OpenMS
     OPENMS_PRECONDITION(index.second<traits_->getData()[index.first].size() , "Peak index outside of scan!");
 
      const FeaFiTraits::PositionType2D& curr_mean = running_avg_.getPosition();
-
+		 
     if ( traits_->getPeakMz(index) > curr_mean[RawDataPoint2D::MZ] + dist_mz_up_   ||
 				 traits_->getPeakMz(index) < curr_mean[RawDataPoint2D::MZ] - dist_mz_down_ ||
 				 traits_->getPeakRt(index) > curr_mean[RawDataPoint2D::RT] + dist_rt_up_   ||
@@ -296,8 +291,10 @@ namespace OpenMS
     OPENMS_PRECONDITION(index.second<traits_->getData()[index.first].size(), "Peak index outside of scan!");
 		
     // skip this point if its intensity is too low
-    if (traits_->getPeakIntensity(index) <= intensity_threshold_) 	return;
-
+    if (traits_->getPeakIntensity(index) <= intensity_threshold_)
+		{
+		 return;
+		}
     if (traits_->getPeakFlag(index) == FeaFiTraits::UNUSED)
     {
 			double pr_new = computePeakPriority_(index);
@@ -305,13 +302,11 @@ namespace OpenMS
 			if (pr_new > priority_threshold_)
 			{
 				map<IDX, double>::iterator piter = priorities_.find(index);
-				if (piter == priorities_.end()) // not yet in boundary
-				{
-					priorities_[index] = pr_new;
-					boundary_.push(IndexWithPriority(index,pr_new));
-				}
+				traits_->getPeakFlag(index) = FeaFiTraits::INSIDE_BOUNDARY;
+				priorities_[index] = pr_new;
+				boundary_.push(IndexWithPriority(index,pr_new));
 			}
-			
+		
 			// Note that Clemens used to update priorities in his FF algo version...
 			// I don't think that this is necessary. 
 			

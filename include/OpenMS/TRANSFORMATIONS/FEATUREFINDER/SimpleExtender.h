@@ -83,10 +83,6 @@ namespace OpenMS
 					(default value is 0.03) .</td></tr>
 			</table>
 		
-		@todo Test on different data types (peak, raw, low/high intensity) (Ole)
-		@todo Use priorities or remove them (Ole)
-		@todo Try to divide intensity_sum by region_.size() (Ole)
-		
 		@ingroup FeatureFinder
 	*/
   class SimpleExtender 

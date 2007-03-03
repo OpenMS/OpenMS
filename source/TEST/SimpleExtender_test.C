@@ -2,7 +2,7 @@
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
-//                   OpenMS Mass Spectrometry Framework 
+//                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
 //  Copyright (C) 2003-2007 -- Oliver Kohlbacher, Knut Reinert
 //
@@ -39,6 +39,7 @@
 #include <OpenMS/KERNEL/DPeak.h>
 
 #include <OpenMS/FORMAT/Param.h>
+#include <OpenMS/FORMAT/MzDataFile.h>
 
 ///////////////////////////
 
@@ -53,81 +54,272 @@ using namespace std;
 // default ctor
 SimpleExtender* ptr = 0;
 CHECK(Simple())
-	ptr = new SimpleExtender();
-  TEST_EQUAL(ptr->getName(), "SimpleExtender")
-	TEST_NOT_EQUAL(ptr, 0)
+ptr = new SimpleExtender();
+TEST_EQUAL(ptr->getName(), "SimpleExtender")
+TEST_NOT_EQUAL(ptr, 0)
 RESULT
 
 CHECK(~SimpleExtender())
-	delete ptr;
+delete ptr;
 RESULT
 
 CHECK(nextSeed())
 
-	SimpleExtender extender;
-  FeaFiTraits* traits = new FeaFiTraits();
-  MSExperiment<Peak1D > exp;
-	MSExperiment<Peak1D >::SpectrumType spec;
-	spec.setRetentionTime(1260);
-  
-  double mzs[] = {675, 675.5, 676, 676.5, 677};
-	double its[] = {5, 10, 7, 3, 15};
-	
-	const Size num = 5;
-	
-	for (unsigned int i=0; i < num; i++)
-	{
-		Peak1D p;
-		p.setMZ(mzs[i]);
-		p.setIntensity(its[i]);
-		
-		spec.push_back(p);
-	}
-	
-	exp.push_back(spec);
-	
-	traits->setData(exp.begin(), exp.end(),100);
-	
-	traits->getPeakFlag(make_pair(0,2)) = FeaFiTraits::INSIDE_FEATURE;
-	traits->getPeakFlag(make_pair(0,4)) = FeaFiTraits::INSIDE_FEATURE;
-		
-	extender.setTraits(traits);
- 	
-	FeaFiModule::IndexSet  set;
-	for (UnsignedInt i=0; i< 5; ++i)
-	{
-		set.insert(std::make_pair(0,i));
-	}
-  FeaFiModule::IndexSet  region = extender.extend(set);
-	
-  TEST_NOT_EQUAL(region.size(),0);
-  
-	FeaFiModule::IndexSet::const_iterator citer = region.begin(); 	
-	
-	TEST_EQUAL(traits->getPeakIntensity(*citer),5.0);
-	TEST_EQUAL(traits->getPeakMz(*citer),675.0);
-	TEST_EQUAL(traits->getPeakRt(*citer),1260.0);
-	
-	++citer;	
-	TEST_EQUAL(traits->getPeakIntensity(*citer),10.0);
-	TEST_EQUAL(traits->getPeakMz(*citer), 675.5);
-	TEST_EQUAL(traits->getPeakRt(*citer),1260.0);
-	
-	// next peak should be skipped because of inside_feature flag
-	++citer;	
-	TEST_EQUAL(traits->getPeakIntensity(*citer),3.0);
-	TEST_EQUAL(traits->getPeakMz(*citer), 676.5);
-	TEST_EQUAL(traits->getPeakRt(*citer),1260.0);
-	
-	++citer; 
-	
-	// last peak should be skipped as well
-	TEST_EQUAL(citer==region.end(),true)
-    
+// this test checks the regions returned by SimpleExtender
+// on one artificial data set and a picked (centroided) data set
+// The test of the corresponding TOPP module performs further tests.
+
+SimpleExtender extender;
+FeaFiTraits* traits = new FeaFiTraits();
+MSExperiment<Peak1D > exp;
+
+MSExperiment<Peak1D >::SpectrumType spec;
+spec.setRetentionTime(1);
+
+double mzs[] = {1, 2, 3, 4, 5};
+double its1[] = {1000, 1500,2000, 1500, 1000};
+
+const UnsignedInt num = 5;
+
+for (UnsignedInt i=0; i < num; i++)
+{
+    Peak1D p;
+    p.setMZ(mzs[i]);
+    p.setIntensity(its1[i]);
+
+    spec.push_back(p);
+}
+exp.push_back(spec);
+
+spec.clear();
+spec.setRetentionTime(2);
+
+double its2[] = {1000, 1500,2000, 1500, 1000};
+
+for (UnsignedInt i=0; i < num; i++)
+{
+    Peak1D p;
+    p.setMZ(mzs[i]);
+    p.setIntensity(its2[i]);
+
+    spec.push_back(p);
+}
+exp.push_back(spec);
+
+spec.clear();
+spec.setRetentionTime(3);
+
+double its3[] = {1000, 1500,5000, 1500, 1000};
+
+for (UnsignedInt i=0; i < num; i++)
+{
+    Peak1D p;
+    p.setMZ(mzs[i]);
+    p.setIntensity(its3[i]);
+
+    spec.push_back(p);
+}
+exp.push_back(spec);
+
+spec.clear();
+spec.setRetentionTime(4);
+
+// the last two data points should not be included (see param intensity_factor)
+double its4[] = {1000, 1500,2000, 0.1, 0.1};
+
+for (UnsignedInt i=0; i < num; i++)
+{
+    Peak1D p;
+    p.setMZ(mzs[i]);
+    p.setIntensity(its4[i]);
+
+    spec.push_back(p);
+}
+exp.push_back(spec);
+
+traits->setData(exp.begin(), exp.end(),100);
+
+// first two points are already in some other feature region
+// => check if points included in other features are ignored
+traits->getPeakFlag(make_pair(0,0)) = FeaFiTraits::INSIDE_FEATURE;
+traits->getPeakFlag(make_pair(0,1)) = FeaFiTraits::INSIDE_FEATURE;
+
+extender.setTraits(traits);
+
+FeaFiModule::IndexSet  set;
+
+set.insert( std::make_pair(2,2) );		// start extension with point of highest intensity
+
+FeaFiModule::IndexSet region = extender.extend(set);
+
+// 20 points in total, 2 in another feature, 2 with too little intensity => region should be of size 16
+TEST_EQUAL(region.size(),16);
+
+FeaFiModule::IndexSet::const_iterator citer = region.begin();
+
+// first scan
+TEST_EQUAL(traits->getPeakIntensity(*citer),2000.0);
+TEST_EQUAL(traits->getPeakMz(*citer),3.0);
+TEST_EQUAL(traits->getPeakRt(*citer),1.0);
+
+++citer;
+TEST_EQUAL(traits->getPeakIntensity(*citer),1500.0);
+TEST_EQUAL(traits->getPeakMz(*citer),4.0);
+TEST_EQUAL(traits->getPeakRt(*citer),1.0);
+
+++citer;
+TEST_EQUAL(traits->getPeakIntensity(*citer),1000.0);
+TEST_EQUAL(traits->getPeakMz(*citer),5.0);
+TEST_EQUAL(traits->getPeakRt(*citer),1.0);
+
+// second scan
+++citer;
+TEST_EQUAL(traits->getPeakIntensity(*citer),1000.0);
+TEST_EQUAL(traits->getPeakMz(*citer),1.0);
+TEST_EQUAL(traits->getPeakRt(*citer),2.0);
+
+++citer;
+TEST_EQUAL(traits->getPeakIntensity(*citer),1500.0);
+TEST_EQUAL(traits->getPeakMz(*citer),2.0);
+TEST_EQUAL(traits->getPeakRt(*citer),2.0);
+
+++citer;
+TEST_EQUAL(traits->getPeakIntensity(*citer),2000.0);
+TEST_EQUAL(traits->getPeakMz(*citer),3.0);
+TEST_EQUAL(traits->getPeakRt(*citer),2.0);
+
+++citer;
+TEST_EQUAL(traits->getPeakIntensity(*citer),1500.0);
+TEST_EQUAL(traits->getPeakMz(*citer),4.0);
+TEST_EQUAL(traits->getPeakRt(*citer),2.0);
+
+++citer;
+TEST_EQUAL(traits->getPeakIntensity(*citer),1000.0);
+TEST_EQUAL(traits->getPeakMz(*citer),5.0);
+TEST_EQUAL(traits->getPeakRt(*citer),2.0);
+
+
+// third scan
+++citer;
+TEST_EQUAL(traits->getPeakIntensity(*citer),1000.0);
+TEST_EQUAL(traits->getPeakMz(*citer),1.0);
+TEST_EQUAL(traits->getPeakRt(*citer),3.0);
+
+++citer;
+TEST_EQUAL(traits->getPeakIntensity(*citer),1500.0);
+TEST_EQUAL(traits->getPeakMz(*citer),2.0);
+TEST_EQUAL(traits->getPeakRt(*citer),3.0);
+
+++citer;
+TEST_EQUAL(traits->getPeakIntensity(*citer),5000.0);
+TEST_EQUAL(traits->getPeakMz(*citer),3.0);
+TEST_EQUAL(traits->getPeakRt(*citer),3.0);
+
+++citer;
+TEST_EQUAL(traits->getPeakIntensity(*citer),1500.0);
+TEST_EQUAL(traits->getPeakMz(*citer),4.0);
+TEST_EQUAL(traits->getPeakRt(*citer),3.0);
+
+++citer;
+TEST_EQUAL(traits->getPeakIntensity(*citer),1000.0);
+TEST_EQUAL(traits->getPeakMz(*citer),5.0);
+TEST_EQUAL(traits->getPeakRt(*citer),3.0);
+
+
+// fourth scan
+++citer;
+TEST_EQUAL(traits->getPeakIntensity(*citer),1000.0);
+TEST_EQUAL(traits->getPeakMz(*citer),1.0);
+TEST_EQUAL(traits->getPeakRt(*citer),4.0);
+
+++citer;
+TEST_EQUAL(traits->getPeakIntensity(*citer),1500.0);
+TEST_EQUAL(traits->getPeakMz(*citer),2.0);
+TEST_EQUAL(traits->getPeakRt(*citer),4.0);
+
+++citer;
+TEST_EQUAL(traits->getPeakIntensity(*citer),2000.0);
+TEST_EQUAL(traits->getPeakMz(*citer),3.0);
+TEST_EQUAL(traits->getPeakRt(*citer),4.0);
+
+// last two points have too little intensity
+++ citer;
+
+TEST_EQUAL(citer==region.end(),true)
+
+RESULT
+
+CHECK(([EXTRA] Extension on picked data))
+
+SimpleExtender extender;
+FeaFiTraits* traits = new FeaFiTraits();
+MSExperiment<Peak1D > exp;
+
+MzDataFile().load("data/SimpleExtender_test.mzData",exp);
+traits->setData(exp.begin(),exp.end(),100);
+
+extender.setTraits(traits);
+
+// set very restrictive settings for extension
+Param param;
+param.setValue("dist_rt_up",2);
+param.setValue("dist_rt_down",2);
+param.setValue("dist_mz_up",2);
+param.setValue("dist_mz_down",2);
+param.setValue("priority_thr",0.01);
+
+param.setValue("tolerance_rt",3.0);
+param.setValue("tolerance_mz",3.0);
+
+extender.setParameters(param);
+
+FeaFiModule::IndexSet  set;
+
+set.insert( std::make_pair(1,4) );		// start extension in the middle of first feature
+
+FeaFiModule::IndexSet region = extender.extend(set);
+FeaFiModule::IndexSet::const_iterator citer = region.begin();
+
+TEST_EQUAL(region.size(),6);
+
+PRECISION(0.01)
+
+TEST_EQUAL(traits->getPeakIntensity(*citer),34065);
+TEST_REAL_EQUAL(traits->getPeakMz(*citer),633.816);
+TEST_REAL_EQUAL(traits->getPeakRt(*citer),1985.43);
+
+++citer;
+TEST_REAL_EQUAL(traits->getPeakIntensity(*citer),23139);
+TEST_REAL_EQUAL(traits->getPeakMz(*citer),634.314);
+TEST_REAL_EQUAL(traits->getPeakRt(*citer),1985.43);
+
+++citer;
+TEST_REAL_EQUAL(traits->getPeakIntensity(*citer),9137);
+TEST_REAL_EQUAL(traits->getPeakMz(*citer),634.813);
+TEST_REAL_EQUAL(traits->getPeakRt(*citer),1985.43);
+
+++citer;
+TEST_REAL_EQUAL(traits->getPeakIntensity(*citer),20582);
+TEST_REAL_EQUAL(traits->getPeakMz(*citer),635.301);
+TEST_REAL_EQUAL(traits->getPeakRt(*citer),1985.43);
+
+++citer;
+TEST_REAL_EQUAL(traits->getPeakIntensity(*citer),12002);
+TEST_REAL_EQUAL(traits->getPeakMz(*citer),635.806);
+TEST_REAL_EQUAL(traits->getPeakRt(*citer),1985.43);
+
+++citer;
+TEST_REAL_EQUAL(traits->getPeakIntensity(*citer),5991);
+TEST_REAL_EQUAL(traits->getPeakMz(*citer),636.312);
+TEST_REAL_EQUAL(traits->getPeakRt(*citer),1985.43);
+
+++ citer;
+
+TEST_REAL_EQUAL(citer==region.end(),true)
+
 RESULT
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST
-
 

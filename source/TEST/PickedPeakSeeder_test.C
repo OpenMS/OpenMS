@@ -80,6 +80,7 @@ CHECK(nextSeed())
 	
 	region = seeder.nextSeed();
 	peak =  *(region.begin());
+	// CHECK for positions as well
 	TEST_EQUAL(traits->getPeakIntensity(peak),18084);	
 	
 	region = seeder.nextSeed();
