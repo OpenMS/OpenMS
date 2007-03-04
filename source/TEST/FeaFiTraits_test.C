@@ -85,7 +85,7 @@ CHECK(inline const MapType& getData() const)
 	TEST_EQUAL(t.getData()==FeaFiTraits::MapType(),true)
 RESULT
 
-CHECK(template <class SpectrumIteratorType> void setData(const SpectrumIteratorType& begin, const SpectrumIteratorType& end, UnsignedInt buffer_size))
+CHECK(template <class SpectrumIteratorType> void setData(const SpectrumIteratorType& begin, const SpectrumIteratorType& end, UInt buffer_size))
 	FeaFiTraits t;
 	t.setData(exp.begin(),exp.end(),2);
 	TEST_EQUAL(t.getData().getSize(),5)
@@ -383,9 +383,9 @@ CHECK(void addConvexHull(const IndexSet& set, Feature& f) const)
 	t.setData(exp.begin(), exp.end(),100);
 	
 	FeaFiTraits::IndexSet set;
-	for (UnsignedInt i=0; i<exp.size(); ++i) 
+	for (UInt i=0; i<exp.size(); ++i) 
 	{
-		for (UnsignedInt j=0; j<exp[i].size(); ++j) 
+		for (UInt j=0; j<exp[i].size(); ++j) 
 		{
 			set.insert(std::make_pair(i,j));
 		}

@@ -56,11 +56,11 @@ namespace OpenMS
 			ranks_data.push_back( traits_->getPeakIntensity(*it));
 		}
 		
-// 		for (UnsignedInt i=0; i< ranks_data.size(); ++i)
+// 		for (UInt i=0; i< ranks_data.size(); ++i)
 // 		{
 // 			std::cout << "Intensity data: " << ranks_data[i] << std::endl;
 // 		}
-// 		for (UnsignedInt i=0; i< ranks_model.size(); ++i)
+// 		for (UInt i=0; i< ranks_model.size(); ++i)
 // 		{
 // 			std::cout << "Intensity model: " << ranks_model[i] << std::endl;
 // 		}		
@@ -74,11 +74,11 @@ namespace OpenMS
 		
 		int mu = (ranks_data.size() + 1) / 2; // mean of ranks
 
-// 		for (UnsignedInt i=0; i< ranks_data.size(); ++i)
+// 		for (UInt i=0; i< ranks_data.size(); ++i)
 // 		{
 // 			std::cout << "Rank data: " << ranks_data[i] << std::endl;
 // 		}
-// 		for (UnsignedInt i=0; i< ranks_model.size(); ++i)
+// 		for (UInt i=0; i< ranks_model.size(); ++i)
 // 		{
 // 			std::cout << "Rank model: " << ranks_model[i] << std::endl;
 // 		}		
@@ -102,7 +102,7 @@ namespace OpenMS
 		
 		double corr = sum_model_data / (  sqrt(sqsum_data) * sqrt(sqsum_model) ); 
 		
-		UnsignedInt df = set.size()-1;
+		UInt df = set.size()-1;
 		double t_stat = sqrt(df) * corr; 
 		
 		// t_stat follows Normal Gaussian distribution 
@@ -111,7 +111,7 @@ namespace OpenMS
 		return ( fabs(corr));
 	}
 	
-	double RankCorrelation::evaluate(const IndexSet& set, const BaseModel<1>& model, UnsignedInt dim)
+	double RankCorrelation::evaluate(const IndexSet& set, const BaseModel<1>& model, UInt dim)
 	{
 		if (!traits_) throw Exception::NullPointer(__FILE__, __LINE__, __PRETTY_FUNCTION__);
 				
@@ -129,11 +129,11 @@ namespace OpenMS
 		}
 		
 // 		std::cout << "Size of ranks set: " << ranks_data.size() << std::endl;
-// 		for (UnsignedInt i=0; i< ranks_data.size(); ++i)
+// 		for (UInt i=0; i< ranks_data.size(); ++i)
 // 		{
 // 			std::cout << "Intensity data: " << ranks_data[i] << std::endl;
 // 		}
-// 		for (UnsignedInt i=0; i< ranks_model.size(); ++i)
+// 		for (UInt i=0; i< ranks_model.size(); ++i)
 // 		{
 // 			std::cout << "Intensity model: " << ranks_model[i] << std::endl;
 // 		}		
@@ -147,11 +147,11 @@ namespace OpenMS
 		
 		int mu = (ranks_data.size() + 1) / 2; // mean of ranks
 		
-	/*	for (UnsignedInt i=0; i< ranks_data.size(); ++i)
+	/*	for (UInt i=0; i< ranks_data.size(); ++i)
 		{
 			std::cout << "Rank data: " << ranks_data[i] << std::endl;
 		}
-		for (UnsignedInt i=0; i< ranks_model.size(); ++i)
+		for (UInt i=0; i< ranks_model.size(); ++i)
 		{
 			std::cout << "Rank model: " << ranks_model[i] << std::endl;
 		}		*/		

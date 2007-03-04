@@ -335,7 +335,7 @@ namespace OpenMS
 		}
 		
 		//offset of the descriptions
-		UnsignedInt offset = 6 + max_size;
+		UInt offset = 6 + max_size;
 		
 		for( vector<ParameterInformation>::const_iterator it = parameters_.begin(); it != parameters_.end(); ++it)
 		{
@@ -412,7 +412,7 @@ namespace OpenMS
 	}
 	
 
-	void TOPPBase::registerIntOption_(const String& name, const String& argument, SignedInt default_value, const String& description, bool required)
+	void TOPPBase::registerIntOption_(const String& name, const String& argument, Int default_value, const String& description, bool required)
 	{
 		parameters_.push_back(ParameterInformation(name, ParameterInformation::INT, argument, String(default_value), description, required));
 	}
@@ -482,14 +482,14 @@ namespace OpenMS
 		return tmp;
 	}
 	
-	SignedInt TOPPBase::getIntOption_(const String& name) const throw (Exception::UnregisteredParameter, Exception::RequiredParameterNotGiven, Exception::WrongParameterType )
+	Int TOPPBase::getIntOption_(const String& name) const throw (Exception::UnregisteredParameter, Exception::RequiredParameterNotGiven, Exception::WrongParameterType )
 	{
 		const ParameterInformation& p = findEntry_(name);
 		if (p.type != ParameterInformation::INT)
 		{
 			throw Exception::WrongParameterType(__FILE__,__LINE__,__PRETTY_FUNCTION__, name);
 		}
-		SignedInt tmp = getParamAsInt_(name, String(p.default_value).toInt());
+		Int tmp = getParamAsInt_(name, String(p.default_value).toInt());
 		writeDebug_(String("Value of string option '") + name + "': " + String(tmp), 1);
 
 		if (p.required && (tmp==String(p.default_value).toInt()) )
@@ -519,9 +519,9 @@ namespace OpenMS
 		log_ << Date::now() << ' ' << getIniLocation_() << ": " << text<< endl;
 	}
 	
-	void TOPPBase::writeDebug_(const String& text, UnsignedInt min_level) const
+	void TOPPBase::writeDebug_(const String& text, UInt min_level) const
 	{
-		if (debug_level_>=(SignedInt)min_level)
+		if (debug_level_>=(Int)min_level)
 		{
 			cout << text << endl;
 			enableLogging_();
@@ -529,9 +529,9 @@ namespace OpenMS
 		}
 	}
 
-	void TOPPBase::writeDebug_(const String& text, const Param& param, UnsignedInt min_level) const
+	void TOPPBase::writeDebug_(const String& text, const Param& param, UInt min_level) const
 	{
-		if (debug_level_>=(SignedInt)min_level)
+		if (debug_level_>=(Int)min_level)
 		{
 			cout 	<< " - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - " << endl
 						<< Date::now() << ' ' << getIniLocation_() << " " << text<< endl
@@ -558,12 +558,12 @@ namespace OpenMS
 		}
 	}
 
-	SignedInt TOPPBase::getParamAsInt_(const String& key, SignedInt default_value) const
+	Int TOPPBase::getParamAsInt_(const String& key, Int default_value) const
 	{
 		const DataValue& tmp = getParam_(key);
 		if (!tmp.isEmpty())
 		{
-			return (SignedInt)(tmp);
+			return (Int)(tmp);
 		}
 		else
 		{
@@ -607,7 +607,7 @@ namespace OpenMS
 			case DataValue::SHOVALUE:
 			case DataValue::LONVALUE:
 				{
-					SignedInt tmp2 = (SignedInt)(tmp);
+					Int tmp2 = (Int)(tmp);
 					if (tmp2==0)
 					{
 						return false;
@@ -787,7 +787,7 @@ namespace OpenMS
 							case DataValue::LONVALUE:
 							case DataValue::INTVALUE:
 								{
-									SignedInt tmp = it->second;
+									Int tmp = it->second;
 									if (tmp!=1 && tmp!=0) 
 									{
 										writeLog_("Warning: Unrecognized value for '" + location + it->first + "' in '" + filename + "'. It should be '0' or '1'!");

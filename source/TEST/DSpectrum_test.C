@@ -72,12 +72,12 @@ CHECK((~DSpectrum()))
 	delete ptr;
 RESULT
 
-CHECK((UnsignedInt getMSLevel() const))
+CHECK((UInt getMSLevel() const))
 	DSpectrum<2> ds;
 	TEST_EQUAL(ds.getMSLevel(),1)
 RESULT
 
-CHECK((void setMSLevel(UnsignedInt ms_level)))
+CHECK((void setMSLevel(UInt ms_level)))
 	DSpectrum<2> ds;
 	ds.setMSLevel(17);
 	TEST_EQUAL(ds.getMSLevel(),17)
@@ -356,7 +356,7 @@ CHECK((void setContainer(const ContainerType& container)))
 	TEST_REAL_EQUAL(s.getContainer()[1].getIntensity(),1);
 RESULT
 
-CHECK((UnsignedInt size() const))
+CHECK((UInt size() const))
 	DSpectrum<2> s;
 	TEST_EQUAL(s.size(), 0)
 RESULT

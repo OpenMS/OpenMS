@@ -111,45 +111,45 @@ CHECK(bool operator != (const String&) const throw(Exception::ParseError))
   TEST_EQUAL(seq != "ADCEF", true)
 RESULT
 
-CHECK((const Residue* getResidue(SignedInt index) const throw(Exception::IndexUnderflow, Exception::IndexOverflow)))
+CHECK((const Residue* getResidue(Int index) const throw(Exception::IndexUnderflow, Exception::IndexOverflow)))
 	AASequence seq(String("ACDEF"));
-	SignedInt sint(2);
+	Int sint(2);
 	TEST_EQUAL(seq.getResidue(sint)->getOneLetterCode(), "D")
 	TEST_EXCEPTION(Exception::IndexUnderflow, seq.getResidue(-3))
 	TEST_EXCEPTION(Exception::IndexOverflow, seq.getResidue(1000))
 RESULT
 
-CHECK(const Residue* getResidue(UnsignedInt index) const throw(Exception::IndexOverflow))
+CHECK(const Residue* getResidue(UInt index) const throw(Exception::IndexOverflow))
 	AASequence seq("ACDEF");
-	UnsignedInt unsignedint(2);
+	UInt unsignedint(2);
 	TEST_EQUAL(seq.getResidue(unsignedint)->getOneLetterCode(), "D")
 	TEST_EXCEPTION(Exception::IndexOverflow, seq.getResidue(1000))
 RESULT
 
-CHECK(EmpiricalFormula getFormula(Residue::ResidueType type = Residue::Full, SignedInt charge = 0) const)
+CHECK(EmpiricalFormula getFormula(Residue::ResidueType type = Residue::Full, Int charge = 0) const)
 	AASequence seq("ACDEF");
 	TEST_EQUAL(seq.getFormula(), "SC26O12N5H35")
 	TEST_EQUAL(seq.getFormula(Residue::Full, 1), "SC26O12N5H36")
 	TEST_EQUAL(seq.getFormula(Residue::BIon, 0), "SC26O11N5H33")
 RESULT
 
-CHECK(Real getAverageWeight(Residue::ResidueType type = Residue::Full, SignedInt charge = 0) const)
+CHECK(Real getAverageWeight(Residue::ResidueType type = Residue::Full, Int charge = 0) const)
 
 RESULT
 
-CHECK(Real getMonoWeight(Residue::ResidueType type = Residue::Full, SignedInt charge = 0) const)
+CHECK(Real getMonoWeight(Residue::ResidueType type = Residue::Full, Int charge = 0) const)
 
 RESULT
 
-CHECK((HashMap<const EmpiricalFormula*, UnsignedInt> getNeutralLosses() const))
+CHECK((HashMap<const EmpiricalFormula*, UInt> getNeutralLosses() const))
 
 RESULT
 
-CHECK(const Residue* operator [] (SignedInt index) const throw(Exception::IndexUnderflow, Exception::IndexOverflow))
+CHECK(const Residue* operator [] (Int index) const throw(Exception::IndexUnderflow, Exception::IndexOverflow))
 
 RESULT
 
-CHECK(const Residue* operator [] (UnsignedInt index) const throw(Exception::IndexOverflow))
+CHECK(const Residue* operator [] (UInt index) const throw(Exception::IndexOverflow))
 
 RESULT
 
@@ -173,19 +173,19 @@ CHECK(void setResidueDB(ResidueDB* res_db = 0))
 	// TODO
 RESULT
 
-CHECK(UnsignedInt size() const)
+CHECK(UInt size() const)
 
 RESULT
 
-CHECK(AASequence getPrefix(UnsignedInt index) const throw(Exception::IndexOverflow))
+CHECK(AASequence getPrefix(UInt index) const throw(Exception::IndexOverflow))
 
 RESULT
 
-CHECK(AASequence getSuffix(UnsignedInt index) const throw(Exception::IndexOverflow))
+CHECK(AASequence getSuffix(UInt index) const throw(Exception::IndexOverflow))
 
 RESULT
 
-CHECK(AASequence getSubsequence(UnsignedInt index, UnsignedInt number) const throw(Exception::IndexOverflow))
+CHECK(AASequence getSubsequence(UInt index, UInt number) const throw(Exception::IndexOverflow))
 
 RESULT
 

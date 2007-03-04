@@ -48,7 +48,7 @@ std::string score_type = "XCorr";
 uint rank = 3;
 String sequence = "ARRAY";
 std::string sequence2 = "  ARRAY  ";
-SignedInt charge;
+Int charge;
 
 PeptideHit* ptr1 = 0;
 
@@ -66,7 +66,7 @@ CHECK((~PeptideHit()))
 	delete ptr1;
 RESULT
 
-CHECK((PeptideHit(double score, std::string score_type, uint rank, SignedInt charge, String sequence)))
+CHECK((PeptideHit(double score, std::string score_type, uint rank, Int charge, String sequence)))
 	ptr1 = new PeptideHit(score, score_type, rank, charge, sequence);
 	TEST_EQUAL(ptr1->getScore(), score)
 	TEST_EQUAL(ptr1->getScoreType(), score_type)
@@ -151,7 +151,7 @@ CHECK((const std::string& getScoreType() const))
 	TEST_EQUAL(ptr1->getScoreType(), score_type)
 RESULT
 
-CHECK((UnsignedInt getRank() const))
+CHECK((UInt getRank() const))
 	ptr1 = new PeptideHit(score, score_type, rank, charge, sequence);
 	TEST_EQUAL(ptr1->getRank(), rank)
 RESULT
@@ -170,7 +170,7 @@ CHECK((void clear()))
 	TEST_EQUAL(ptr1->getSequence(), "")
 RESULT
 
-CHECK((void setRank(UnsignedInt newrank)))
+CHECK((void setRank(UInt newrank)))
 	ptr1 = new PeptideHit();
 	ptr1->setRank(rank);
 	TEST_EQUAL(ptr1->getRank(), rank)
@@ -286,14 +286,14 @@ CHECK((const std::vector< std::pair<String, String>& getProteinIndices() const))
 
 RESULT
 
-CHECK(SignedInt getCharge() const)
+CHECK(Int getCharge() const)
 	PeptideHit hit;
 	
 	hit.setCharge(-43);
 	TEST_EQUAL(-43, hit.getCharge())
 RESULT
 
-CHECK(void setCharge(SignedInt charge))
+CHECK(void setCharge(Int charge))
 	PeptideHit hit;
 	
 	hit.setCharge(-43);

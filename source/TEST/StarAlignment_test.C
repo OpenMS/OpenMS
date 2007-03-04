@@ -126,7 +126,7 @@ CHECK(String getAlignmentTree() const)
   TEST_EQUAL(alignment.getAlignmentTree() == "((3:0,0:1):0,(3:0,1:2):0,(3:0,2:3):0,(3:0,4:5):0,(3:0,5:6):0)", true)
 RESULT
 
-CHECK(UnsignedInt getReferenceMapIndex() const)
+CHECK(UInt getReferenceMapIndex() const)
   StarAlignment< ConsensusFeature<FeatureMap<> > > alignment;
   
   TEST_REAL_EQUAL(alignment.getReferenceMapIndex(),0)
@@ -194,7 +194,7 @@ CHECK(void run() throw(Exception::InvalidValue))
   TEST_REAL_EQUAL(it->getElement().getIntensity(),1.78215e+07)
 RESULT
 
-CHECK(void setReferenceMapIndex(UnsignedInt index) throw(Exception::InvalidValue))
+CHECK(void setReferenceMapIndex(UInt index) throw(Exception::InvalidValue))
   StarAlignment< ConsensusFeature<FeatureMap<> > > alignment;
   vector<FeatureMap<>*> map_vector;
   FeatureMap<>map1;

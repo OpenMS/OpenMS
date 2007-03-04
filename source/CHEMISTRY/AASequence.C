@@ -67,10 +67,10 @@ namespace OpenMS
 		return *this;
 	}
 	
-	const Residue* AASequence::getResidue(SignedInt index) const
+	const Residue* AASequence::getResidue(Int index) const
 		throw(Exception::IndexUnderflow, Exception::IndexOverflow)
 	{
-		if (index >= 0 && UnsignedInt(index) >= peptide_.size())
+		if (index >= 0 && UInt(index) >= peptide_.size())
 		{
 			throw Exception::IndexOverflow(__FILE__, __LINE__, __PRETTY_FUNCTION__, index, peptide_.size());
 		}
@@ -81,7 +81,7 @@ namespace OpenMS
 		return peptide_[index];
 	}
 
-	const Residue* AASequence::getResidue(UnsignedInt index) const
+	const Residue* AASequence::getResidue(UInt index) const
 		throw(Exception::IndexOverflow)
 	{
 		if (index >= peptide_.size())
@@ -91,10 +91,10 @@ namespace OpenMS
 		return peptide_[index];
 	}
 	
-	EmpiricalFormula AASequence::getFormula(Residue::ResidueType type, SignedInt charge) const
+	EmpiricalFormula AASequence::getFormula(Residue::ResidueType type, Int charge) const
 	{
 		EmpiricalFormula ef;
-		for (SignedInt i=0; i<charge; ++i)
+		for (Int i=0; i<charge; ++i)
 		{
 			ef += Formulas::H;
 		}
@@ -107,7 +107,7 @@ namespace OpenMS
 			}
 			else
 			{
-				for (UnsignedInt i=0;i!=peptide_.size();++i)
+				for (UInt i=0;i!=peptide_.size();++i)
 				{
 					ef += peptide_[i]->getFormula(Residue::Internal);
 				}
@@ -143,17 +143,17 @@ namespace OpenMS
 		return ef;
 	}
 	
-	Real AASequence::getAverageWeight(Residue::ResidueType type, SignedInt charge) const
+	Real AASequence::getAverageWeight(Residue::ResidueType type, Int charge) const
 	{
 		return getFormula(type, charge).getAverageWeight();
 	}
 
-	Real AASequence::getMonoWeight(Residue::ResidueType type, SignedInt charge) const
+	Real AASequence::getMonoWeight(Residue::ResidueType type, Int charge) const
 	{
 		return getFormula(type, charge).getMonoWeight();
 	}
 
-	HashMap<const EmpiricalFormula*, UnsignedInt> AASequence::getNeutralLosses() const
+	HashMap<const EmpiricalFormula*, UInt> AASequence::getNeutralLosses() const
 	{
 		// the following losses are from the Zhang paper (AC, 76, 14, 2004)
 		// charge directed
@@ -164,8 +164,8 @@ namespace OpenMS
 		static const EmpiricalFormula R_60("N2H4CO"); // combination of NH=C=NH + C-terminal H2O
 		static const EmpiricalFormula H2O("H2O"); // loss from the C-terminus
 		static const EmpiricalFormula NH3("NH3");
-		HashMap<const EmpiricalFormula*, UnsignedInt> losses;
-		for (UnsignedInt i=0;i!=peptide_.size();++i)
+		HashMap<const EmpiricalFormula*, UInt> losses;
+		for (UInt i=0;i!=peptide_.size();++i)
 		{
 			if (peptide_[i]->hasNeutralLoss())
 			{
@@ -194,7 +194,7 @@ namespace OpenMS
 		return losses;
 	}
 
-	const Residue* AASequence::operator [] (SignedInt index) const
+	const Residue* AASequence::operator [] (Int index) const
 		throw(Exception::IndexUnderflow, Exception::IndexOverflow)
 	{
 		if (index < 0)
@@ -203,15 +203,15 @@ namespace OpenMS
 		}
 		else
 		{
-			if (UnsignedInt(index) >= size())
+			if (UInt(index) >= size())
 			{
 				throw Exception::IndexOverflow(__FILE__, __LINE__, __PRETTY_FUNCTION__, index, size());
 			}
 		}
-		return peptide_[UnsignedInt(index)];
+		return peptide_[UInt(index)];
 	}
 	
-	const Residue* AASequence::operator [] (UnsignedInt index) const
+	const Residue* AASequence::operator [] (UInt index) const
 		throw(Exception::IndexOverflow)
 	{
 		if (index >= size())
@@ -225,7 +225,7 @@ namespace OpenMS
 	{
 		AASequence seq;
 		seq.peptide_ = peptide_;
-		for (UnsignedInt i=0;i!=sequence.peptide_.size();++i)
+		for (UInt i=0;i!=sequence.peptide_.size();++i)
 		{
 			seq.peptide_.push_back(sequence.peptide_[i]);
 		}
@@ -239,7 +239,7 @@ namespace OpenMS
 		seq.peptide_ = peptide_;
 		vector<const Residue*> vec;
 		parseString_(vec, peptide);
-		for (UnsignedInt i=0;i!=vec.size();++i)
+		for (UInt i=0;i!=vec.size();++i)
 		{
 			seq.peptide_.push_back(vec[i]);
 		}
@@ -248,7 +248,7 @@ namespace OpenMS
 	
 	AASequence& AASequence::operator += (const AASequence& sequence)
 	{
-		for (UnsignedInt i=0;i!=sequence.peptide_.size();++i)
+		for (UInt i=0;i!=sequence.peptide_.size();++i)
 		{
 			peptide_.push_back(sequence.peptide_[i]);
 		}
@@ -260,7 +260,7 @@ namespace OpenMS
 	{
 		vector<const Residue*> vec;
 		parseString_(vec, peptide);
-		for (UnsignedInt i=0;i!=vec.size();++i)
+		for (UInt i=0;i!=vec.size();++i)
 		{
 			peptide_.push_back(vec[i]);
 		}
@@ -272,12 +272,12 @@ namespace OpenMS
 		custom_res_db_ = res_db;
 	}
 
-	UnsignedInt AASequence::size() const
+	UInt AASequence::size() const
 	{
 		return peptide_.size();
 	}
 
-	AASequence AASequence::getPrefix(UnsignedInt index) const
+	AASequence AASequence::getPrefix(UInt index) const
 		throw(Exception::IndexOverflow)
 	{
 		if (index > size())
@@ -285,14 +285,14 @@ namespace OpenMS
 			throw Exception::IndexOverflow(__FILE__, __LINE__, __PRETTY_FUNCTION__, index, size());
 		}
 		AASequence seq;
-		for (UnsignedInt i=0;i<index;++i)
+		for (UInt i=0;i<index;++i)
 		{
 			seq.peptide_.push_back(peptide_[i]);
 		}
 		return seq;
 	}
 
-	AASequence AASequence::getSuffix(UnsignedInt index) const
+	AASequence AASequence::getSuffix(UInt index) const
 		throw(Exception::IndexOverflow)
 	{
 		if (index > size())
@@ -300,14 +300,14 @@ namespace OpenMS
 			throw Exception::IndexOverflow(__FILE__, __LINE__, __PRETTY_FUNCTION__, index, size());
 		}
 		AASequence seq;
-		for (UnsignedInt i=size()-index;i!=size();++i)
+		for (UInt i=size()-index;i!=size();++i)
 		{
 			seq.peptide_.push_back(peptide_[i]);
 		}
 		return seq;
 	}
 
-	AASequence AASequence::getSubsequence(UnsignedInt index, UnsignedInt num) const
+	AASequence AASequence::getSubsequence(UInt index, UInt num) const
 		throw(Exception::IndexOverflow)
 	{
 		if (index > size())
@@ -319,7 +319,7 @@ namespace OpenMS
 			throw Exception::IndexOverflow(__FILE__, __LINE__, __PRETTY_FUNCTION__, index+num, size());
 		}
 		AASequence seq;
-		for (UnsignedInt i=index;i!=num;++i)
+		for (UInt i=index;i!=num;++i)
 		{
 			seq.peptide_.push_back(peptide_[i]);
 		}
@@ -328,7 +328,7 @@ namespace OpenMS
 	
 	bool AASequence::has(const Residue* residue) const 
 	{
-		for (UnsignedInt i=0;i!=peptide_.size();++i)
+		for (UInt i=0;i!=peptide_.size();++i)
 		{
 			if (peptide_[i] == residue)
 			{
@@ -358,11 +358,11 @@ namespace OpenMS
 		{
 			if (sequence.size() <= peptide_.size())
 			{
-				for (UnsignedInt i=0;i!=peptide_.size();++i)
+				for (UInt i=0;i!=peptide_.size();++i)
 				{
 					if (peptide_[i] == sequence.peptide_[0])
 					{
-						UnsignedInt j=0;
+						UInt j=0;
 						for (;j+i!=peptide_.size() && j!=sequence.peptide_.size();++j)
 						{
 							if (peptide_[j+i] == sequence.peptide_[j])
@@ -397,9 +397,9 @@ namespace OpenMS
 		{
 			if (seq.size() <= peptide_.size())
 			{
-				for (UnsignedInt i=0;i!=peptide_.size();++i)
+				for (UInt i=0;i!=peptide_.size();++i)
 				{
-					UnsignedInt j=0;
+					UInt j=0;
 					for (;j+i!=peptide_.size() && j!=seq.size();++j)
 					{
 						if (peptide_[j+i] == seq[j])
@@ -430,7 +430,7 @@ namespace OpenMS
 		{
 			return false;
 		}
-		for (UnsignedInt i=0;i!=sequence.size();++i)
+		for (UInt i=0;i!=sequence.size();++i)
 		{
 			if (sequence.peptide_[i] != peptide_[i])
 			{
@@ -457,7 +457,7 @@ namespace OpenMS
 		{
 			return false;
 		}
-		for (UnsignedInt i=0;i!=sequence.size();++i)
+		for (UInt i=0;i!=sequence.size();++i)
 		{
 			if (sequence.peptide_[sequence.size()-1-i] != peptide_[size()-1-i])
 			{
@@ -480,7 +480,7 @@ namespace OpenMS
 		{
 			return false;
 		}
-		for (UnsignedInt i=0;i!=size();++i)
+		for (UInt i=0;i!=size();++i)
 		{
 			if (peptide_[i] != peptide.peptide_[i])
 			{
@@ -499,7 +499,7 @@ namespace OpenMS
 		{
 			return false;
 		}
-		for (UnsignedInt i=0;i!=size();++i)
+		for (UInt i=0;i!=size();++i)
 		{
 			if (peptide_[i] != sequence[i])
 			{
@@ -522,7 +522,7 @@ namespace OpenMS
 
 	ostream& operator << (ostream& os, const AASequence& peptide)
 	{
-		for (UnsignedInt i=0;i!=peptide.size();++i)
+		for (UInt i=0;i!=peptide.size();++i)
 		{
 			if (peptide.peptide_[i]->isModified())
 			{
@@ -580,13 +580,13 @@ namespace OpenMS
 			}
 			else
 			{
-				UnsignedInt pos(0);
+				UInt pos(0);
 				bool mod_open(false), tag_open(false);
 				if (peptide[0] == '[')
 				{
 					tag_open = true;
 				}
-				for (UnsignedInt i=1;i!=peptide.size();++i)
+				for (UInt i=1;i!=peptide.size();++i)
 				{
 					if (isalpha(peptide[i]) && isupper(peptide[i]) && !mod_open ||
 							peptide[i] == '[' && !mod_open)
@@ -622,13 +622,13 @@ namespace OpenMS
 			}
 
 			// parse the residues
-			for (UnsignedInt i=0;i!=split.size();++i)
+			for (UInt i=0;i!=split.size();++i)
 			{
 				String res = split[i];
 				String name;
 				String mod;
 				String tag;
-				for (UnsignedInt j=0;j!=res.size();++j)
+				for (UInt j=0;j!=res.size();++j)
 				{
 					if (isalpha(res[j]))
 					{
@@ -638,7 +638,7 @@ namespace OpenMS
 					{
 						if (res[j] == '(')
 						{
-							for (UnsignedInt k = j + 1; res[k] != ')';++k)
+							for (UInt k = j + 1; res[k] != ')';++k)
 							{
 								if (k == res.size())
 								{
@@ -652,7 +652,7 @@ namespace OpenMS
 						{
 							if (res[j] == '[')
 							{
-								for (UnsignedInt k = j + 1; res[k] != ']'; ++k)
+								for (UInt k = j + 1; res[k] != ']'; ++k)
 								{
 									if (k == res.size())
 									{
@@ -678,7 +678,7 @@ namespace OpenMS
 				}
 				if (mod != "")
 				{
-					UnsignedInt seq_size = sequence.size();
+					UInt seq_size = sequence.size();
 					set<const Residue*> mod_res = getResidueDB_()->getResidues(mod);
 					for (set<const Residue*>::const_iterator it=mod_res.begin();it!=mod_res.end();++it)
 					{

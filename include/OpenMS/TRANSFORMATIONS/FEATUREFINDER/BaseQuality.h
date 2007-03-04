@@ -65,7 +65,7 @@ namespace OpenMS
 	    virtual double evaluate(const IndexSet& set, const BaseModel<2>& model)=0;
 	    
 	    /// Computes the goodness of fit between model @p model and peaks @p set along dimension @p dim.
-	    virtual double evaluate(const IndexSet& set, const BaseModel<1>& model, UnsignedInt dim)=0;
+	    virtual double evaluate(const IndexSet& set, const BaseModel<1>& model, UInt dim)=0;
 			
 			/// Returns the significance of the last fit (if applicable, otherwise -1
 			double getPvalue()

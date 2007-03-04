@@ -105,7 +105,7 @@ namespace OpenMS
 
       	@param mode The new dot mode.
       */
-      void setDotMode(SignedInt mode);
+      void setDotMode(Int mode);
 
       /**
       	@brief Retunrs the mode for 2D dots.
@@ -115,7 +115,7 @@ namespace OpenMS
 
       	@returns The current dot mode.
       */
-      SignedInt getDotMode();
+      Int getDotMode();
 
       /**
       	@brief Sets the 2D dot gradient.
@@ -174,7 +174,7 @@ namespace OpenMS
       // Docu in base class
       void removeLayer(int layer_index);
       // Docu in base class
-      SignedInt finishAdding(float low_intensity_cutoff = 0);
+      Int finishAdding(float low_intensity_cutoff = 0);
       // Docu in base class
       virtual void horizontalScrollBarChange(int value);
       // Docu in base class
@@ -203,7 +203,7 @@ namespace OpenMS
       	@param layer_index The index of the layer.
       	@param p The QPainter to paint on.
       */
-      void paintDots_(UnsignedInt layer_index, QPainter& p);
+      void paintDots_(UInt layer_index, QPainter& p);
 
       /**
       	@brief Paints data as a height map.
@@ -215,7 +215,7 @@ namespace OpenMS
       	@param layer_index The index of the layer.
       	@param p The QPainter to paint on.
       */
-      void paintContours_(UnsignedInt layer_index, QPainter& p);
+      void paintContours_(UInt layer_index, QPainter& p);
 
       /**
       	@brief Paints data as a colored surface gradient.
@@ -227,15 +227,15 @@ namespace OpenMS
       	@param layer_index The index of the layer.
       	@param p The QPainter to paint on.
       */
-      void paintSurface_(UnsignedInt layer_index, QPainter& p);
+      void paintSurface_(UInt layer_index, QPainter& p);
 
       /**
       	@brief Paints all feature convex hulls for a feature layer.
       	
-      	@param layer_index SignedInt of the layer.
+      	@param layer_index Int of the layer.
       	@param p The QPainter to paint on.
       */
-      void paintConvexHulls_(UnsignedInt layer_index, QPainter& p);
+      void paintConvexHulls_(UInt layer_index, QPainter& p);
 
       /**
       	@brief Paints feature convex hulls.
@@ -248,10 +248,10 @@ namespace OpenMS
       /**
       	@brief Paints feature pair connections.
       	
-      	@param layer_index SignedInt of the layer.
+      	@param layer_index Int of the layer.
       	@param p The QPainter to paint on.
       */
-			void paintFeaturePairConnections_(UnsignedInt layer_index, QPainter& p);
+			void paintFeaturePairConnections_(UInt layer_index, QPainter& p);
 			
       // Docu in base class
       virtual void intensityModeChange_();
@@ -291,9 +291,9 @@ namespace OpenMS
       const QColor& heightColor_(float val, const MultiGradient& gradient);
 
       /// Performs the marching squares calculations for a layer and stores the matrix in marching_squares_matrices_
-      void calculateMarchingSquareMatrix_(UnsignedInt layer_index);
+      void calculateMarchingSquareMatrix_(UInt layer_index);
       /// Returns the marching square cell with the smallest data coordinates
-      AreaType getOriginCell_(UnsignedInt layer_index);
+      AreaType getOriginCell_(UInt layer_index);
 
       /// Highlights a single peak
       void highlightPeak_(QPainter& p, Feature* peak);

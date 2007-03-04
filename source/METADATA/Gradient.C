@@ -90,7 +90,7 @@ namespace OpenMS
 		
 		eluents_.push_back(eluent);
 		// add zero values to percentages
-		percentages_.push_back( vector < UnsignedInt >( times_.size(), 0 ) );
+		percentages_.push_back( vector < UInt >( times_.size(), 0 ) );
 	}
 
 	void Gradient::clearEluents()
@@ -103,7 +103,7 @@ namespace OpenMS
 		return eluents_;
 	}
 
-	void Gradient::addTimepoint(SignedInt timepoint) throw (Exception::OutOfRange)
+	void Gradient::addTimepoint(Int timepoint) throw (Exception::OutOfRange)
 	{
 		if ((times_.size()>0) && (timepoint <= times_[times_.size()-1])) 
 		{
@@ -112,7 +112,7 @@ namespace OpenMS
 		times_.push_back(timepoint);
 		
 		// add zero values to percentages
-		for (UnsignedInt i = 0 ;  i < eluents_.size(); ++i)
+		for (UInt i = 0 ;  i < eluents_.size(); ++i)
 		{
 			percentages_[i].push_back(0);
 		}
@@ -123,12 +123,12 @@ namespace OpenMS
 		times_.clear();
 	}
 
-	const std::vector<SignedInt>& Gradient::getTimepoints() const
+	const std::vector<Int>& Gradient::getTimepoints() const
 	{
 		return times_;
 	}
 
-	void Gradient::setPercentage(const String& eluent, SignedInt timepoint, UnsignedInt percentage) throw (Exception::InvalidValue)
+	void Gradient::setPercentage(const String& eluent, Int timepoint, UInt percentage) throw (Exception::InvalidValue)
 	{
 		// (1) validity check
 		
@@ -140,7 +140,7 @@ namespace OpenMS
 		}
 
 		//check if the timepoint is valid
-		std::vector<SignedInt>::iterator time_it = find(times_.begin(),times_.end(),timepoint);
+		std::vector<Int>::iterator time_it = find(times_.begin(),times_.end(),timepoint);
 		if (time_it == times_.end())
 		{
 			throw Exception::InvalidValue(__FILE__,__LINE__,__PRETTY_FUNCTION__, "The given timepoint does not exist in the list of timepoints!",String(timepoint));
@@ -154,7 +154,7 @@ namespace OpenMS
 		
 		// (2) Look up indices
 		
-		UnsignedInt elu_index(0),time_index(0);
+		UInt elu_index(0),time_index(0);
 		//look up eluents index
 		for (std::vector<String>::iterator it = eluents_.begin(); it != eluents_.end(); ++it)
 		{
@@ -162,7 +162,7 @@ namespace OpenMS
 			++elu_index;
 		}
 		//look up timepoint index
-		for (std::vector<SignedInt>::iterator it = times_.begin(); it != times_.end(); ++it)
+		for (std::vector<Int>::iterator it = times_.begin(); it != times_.end(); ++it)
 		{
 			if (*it == timepoint) break;
 			++time_index;
@@ -172,12 +172,12 @@ namespace OpenMS
 		percentages_[elu_index][time_index] = percentage;
 	}
 
-	const std::vector< std::vector< UnsignedInt > >& Gradient::getPercentages() const
+	const std::vector< std::vector< UInt > >& Gradient::getPercentages() const
 	{
 		return percentages_;
 	}
 
-	UnsignedInt Gradient::getPercentage(const String& eluent, SignedInt timepoint) const throw (Exception::InvalidValue)
+	UInt Gradient::getPercentage(const String& eluent, Int timepoint) const throw (Exception::InvalidValue)
 	{
 		// (1) validity check
 		
@@ -189,7 +189,7 @@ namespace OpenMS
 		}
 
 		//check if the timepoint is valid
-		std::vector<SignedInt>::const_iterator time_it = find(times_.begin(),times_.end(),timepoint);
+		std::vector<Int>::const_iterator time_it = find(times_.begin(),times_.end(),timepoint);
 		if (time_it == times_.end())
 		{
 			throw Exception::InvalidValue(__FILE__,__LINE__,__PRETTY_FUNCTION__, "The given timepoint does not exist in the list of timepoints!",String(timepoint));
@@ -197,7 +197,7 @@ namespace OpenMS
 		
 		// (2) Look up indices
 		
-		UnsignedInt elu_index(0),time_index(0);
+		UInt elu_index(0),time_index(0);
 		//look up eluents index
 		for (std::vector<String>::const_iterator it = eluents_.begin(); it != eluents_.end(); ++it)
 		{
@@ -205,7 +205,7 @@ namespace OpenMS
 			++elu_index;
 		}
 		//look up timepoint index
-		for (std::vector<SignedInt>::const_iterator it = times_.begin(); it != times_.end(); ++it)
+		for (std::vector<Int>::const_iterator it = times_.begin(); it != times_.end(); ++it)
 		{
 			if (*it == timepoint) break;
 			++time_index;
@@ -219,15 +219,15 @@ namespace OpenMS
 	{
 		percentages_.clear();
 		// fill all precentages with 0
-		percentages_.insert(percentages_.begin(), eluents_.size(), vector < UnsignedInt>( times_.size(), 0 ) );
+		percentages_.insert(percentages_.begin(), eluents_.size(), vector < UInt>( times_.size(), 0 ) );
 	}
 	
 	bool Gradient::isValid() const
 	{
-		for (UnsignedInt j = 0 ;  j < times_.size(); ++j)
+		for (UInt j = 0 ;  j < times_.size(); ++j)
 		{
-			SignedInt sum =0;
-			for (UnsignedInt i = 0 ;  i < eluents_.size(); ++i)
+			Int sum =0;
+			for (UInt i = 0 ;  i < eluents_.size(); ++i)
 			{
 				sum += percentages_[i][j];
 			}

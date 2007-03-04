@@ -48,12 +48,12 @@ CHECK(~Acquisition())
 	delete ptr;
 RESULT
 
-CHECK(SignedInt getNumber() const)
+CHECK(Int getNumber() const)
   Acquisition tmp;
   TEST_EQUAL(tmp.getNumber(), -1);
 RESULT
 
-CHECK(void setNumber(SignedInt number))
+CHECK(void setNumber(Int number))
 	Acquisition tmp;
 	tmp.setNumber(5);
   TEST_EQUAL(tmp.getNumber(), 5);

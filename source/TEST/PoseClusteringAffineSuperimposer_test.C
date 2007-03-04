@@ -157,14 +157,14 @@ CHECK((void run()))
   TEST_REAL_EQUAL(mz_mapping.getIntercept(),0.02)
 RESULT
 
-CHECK((UnsignedInt getBucketWindowScaling(UnsignedInt dim) const))
+CHECK((UInt getBucketWindowScaling(UInt dim) const))
   PoseClusteringAffineSuperimposer<FeatureMap<> > pcat_copy;
   
   TEST_REAL_EQUAL(pcat_copy.getBucketWindowScaling(0),1)
   TEST_REAL_EQUAL(pcat_copy.getBucketWindowScaling(1),1)
 RESULT
 
-CHECK((UnsignedInt getBucketWindowShift(UnsignedInt dim) const))
+CHECK((UInt getBucketWindowShift(UInt dim) const))
   PoseClusteringAffineSuperimposer<FeatureMap<> > pcat_copy;
   
   TEST_REAL_EQUAL(pcat_copy.getBucketWindowShift(0),1)
@@ -177,21 +177,21 @@ CHECK((double getMzBucketSize() const))
   TEST_REAL_EQUAL(pcat_copy.getMzBucketSize(),1)
 RESULT
 
-CHECK((double getScalingBucketSize(UnsignedInt dim) const))
+CHECK((double getScalingBucketSize(UInt dim) const))
   PoseClusteringAffineSuperimposer<FeatureMap<> > pcat_copy;
   
   TEST_REAL_EQUAL(pcat_copy.getScalingBucketSize(0),0.5)
   TEST_REAL_EQUAL(pcat_copy.getScalingBucketSize(1),0.1)
 RESULT
 
-CHECK((double getShiftBucketSize(UnsignedInt dim) const))
+CHECK((double getShiftBucketSize(UInt dim) const))
   PoseClusteringAffineSuperimposer<FeatureMap<> > pcat_copy;
   
   TEST_REAL_EQUAL(pcat_copy.getShiftBucketSize(0),1)
   TEST_REAL_EQUAL(pcat_copy.getShiftBucketSize(1),0.1)
 RESULT
 
-CHECK((void setBucketWindowScaling(UnsignedInt dim, UnsignedInt bucket_window_scaling)))
+CHECK((void setBucketWindowScaling(UInt dim, UInt bucket_window_scaling)))
   PoseClusteringAffineSuperimposer<FeatureMap<> > pcat;
   
   pcat.setBucketWindowScaling(0,6);
@@ -201,7 +201,7 @@ CHECK((void setBucketWindowScaling(UnsignedInt dim, UnsignedInt bucket_window_sc
   TEST_REAL_EQUAL(pcat.getBucketWindowScaling(1),6)
 RESULT
 
-CHECK((void setBucketWindowShift(UnsignedInt dim, UnsignedInt bucket_window_shift)))
+CHECK((void setBucketWindowShift(UInt dim, UInt bucket_window_shift)))
   PoseClusteringAffineSuperimposer<FeatureMap<> > pcat;
   
   pcat.setBucketWindowShift(0,2);
@@ -219,7 +219,7 @@ CHECK((void setMzBucketSize(double mz_bucket_size)))
   TEST_REAL_EQUAL(pcat.getMzBucketSize(),0.3)
 RESULT
 
-CHECK((void setScalingBucketSize(UnsignedInt dim, double scaling_bucket_size)))
+CHECK((void setScalingBucketSize(UInt dim, double scaling_bucket_size)))
   PoseClusteringAffineSuperimposer<FeatureMap<> > pcat;
   
   pcat.setScalingBucketSize(0,2.4);
@@ -229,7 +229,7 @@ CHECK((void setScalingBucketSize(UnsignedInt dim, double scaling_bucket_size)))
   TEST_REAL_EQUAL(pcat.getScalingBucketSize(1),5.4)
 RESULT
 
-CHECK((void setShiftBucketSize(UnsignedInt dim, double shift_bucket_size)))
+CHECK((void setShiftBucketSize(UInt dim, double shift_bucket_size)))
   PoseClusteringAffineSuperimposer<FeatureMap<> > pcat;
   
   pcat.setShiftBucketSize(0,0.3);

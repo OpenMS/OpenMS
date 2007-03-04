@@ -72,28 +72,28 @@ namespace OpenMS
 			};
 		
     /// Short name of the dimension (abbreviated form)
-    static char const * const shortDimensionName(UnsignedInt const dim);
+    static char const * const shortDimensionName(UInt const dim);
     /// Short name of the dimension (abbreviated form)
     static char const * const shortDimensionNameRT();
     /// Short name of the dimension (abbreviated form)
     static char const * const shortDimensionNameMZ();
 
     /// Full name of the dimension (self-explanatory form)
-    static char const * const fullDimensionName(UnsignedInt const dim);
+    static char const * const fullDimensionName(UInt const dim);
     /// Full name of the dimension (self-explanatory form)
     static char const * const fullDimensionNameRT();
     /// Full name of the dimension (self-explanatory form)
     static char const * const fullDimensionNameMZ();
 
     /// Unit of measurement (abbreviated form)
-		static char const * const shortDimensionUnit(UnsignedInt const dim);
+		static char const * const shortDimensionUnit(UInt const dim);
     /// Unit of measurement (abbreviated form)
 		static char const * const shortDimensionUnitRT();
     /// Unit of measurement (abbreviated form)
 		static char const * const shortDimensionUnitMZ();
 
     /// Unit of measurement (self-explanatory form)
-		static char const * const fullDimensionUnit(UnsignedInt const dim);
+		static char const * const fullDimensionUnit(UInt const dim);
     /// Unit of measurement (self-explanatory form)
 		static char const * const fullDimensionUnitRT();
     /// Unit of measurement (self-explanatory form)
@@ -250,7 +250,7 @@ namespace OpenMS
 		/**
 			@brief Comparator for the n-th coordinate of the position.
 		*/
-		template <UnsignedInt i>
+		template <UInt i>
 		struct NthPositionLess
 			: std::binary_function <RawDataPoint2D, RawDataPoint2D, bool>
 		{

@@ -49,7 +49,7 @@ CHECK([EXTRA] ~EnzymaticDigestion())
 	delete e_ptr;
 RESULT
 
-CHECK(UnsignedInt getMissedCleavages() const)
+CHECK(UInt getMissedCleavages() const)
 	TEST_EQUAL(EnzymaticDigestion().getMissedCleavages(),0)
 RESULT
 
@@ -57,7 +57,7 @@ CHECK(Enzyme getEnzyme() const)
 	TEST_EQUAL(EnzymaticDigestion().getEnzyme(),EnzymaticDigestion::TRYPSIN)
 RESULT
 
-CHECK(void setMissedCleavages(UnsignedInt missed_cleavages))
+CHECK(void setMissedCleavages(UInt missed_cleavages))
 	EnzymaticDigestion ed;
 	ed.setMissedCleavages(5);
 	TEST_EQUAL(ed.getMissedCleavages(),5)
@@ -67,9 +67,9 @@ CHECK(void setEnzyme(Enzyme enzyme))
 	///TODO ?????? as soon as there is a second enzyme
 RESULT
 
-CHECK(UnsignedInt peptideCount(const AASequence& protein))
+CHECK(UInt peptideCount(const AASequence& protein))
 	EnzymaticDigestion ed;
-	UnsignedInt tmp = ed.peptideCount(String("ACDE"));
+	UInt tmp = ed.peptideCount(String("ACDE"));
 	TEST_EQUAL(tmp,1)
 	tmp = ed.peptideCount(String("ACKDE"));
 	TEST_EQUAL(tmp,2)

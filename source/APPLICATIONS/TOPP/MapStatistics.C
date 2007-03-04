@@ -211,7 +211,7 @@ protected:
 			exp.updateRanges(1);
 			unsigned int size = exp.getSize();
 			Peak1D::IntensityType * intensities = new  Peak1D::IntensityType[ size ];
-			UnsignedInt i = 0;
+			UInt i = 0;
       for (RawMap::const_iterator spec = exp.begin(); spec != exp.end(); ++spec)
       {
 	      if (spec->getMSLevel()!=1)

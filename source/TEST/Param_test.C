@@ -62,10 +62,10 @@ CHECK((void setValue(const std::string& key, const std::string& value)))
 	TEST_EQUAL(p.getValue("key"), "value")
 RESULT
 
-CHECK((void setValue(const std::string& key, SignedInt value)))
+CHECK((void setValue(const std::string& key, Int value)))
 	Param p;
 	p.setValue("key",17);
-	TEST_EQUAL(SignedInt(p.getValue("key")), 17)
+	TEST_EQUAL(Int(p.getValue("key")), 17)
 RESULT
 
 CHECK((void setValue(const std::string& key, float value)))
@@ -94,7 +94,7 @@ CHECK((void clear()))
 	TEST_EQUAL(p.empty(), true)
 RESULT
 
-CHECK((UnsignedInt size() const))
+CHECK((UInt size() const))
 	Param p;
 	TEST_EQUAL(p.size(), 0)
 	p.setValue("key",17.4f);
@@ -115,10 +115,10 @@ CHECK((Param(const Param& rhs)))
 	Param p2(p);
 	TEST_REAL_EQUAL(float(p2.getValue("test:float")), 17.4)
 	TEST_EQUAL(p2.getValue("test:string"), "test,test,test")
-	TEST_EQUAL(SignedInt(p2.getValue("test:int")), 17)
+	TEST_EQUAL(Int(p2.getValue("test:int")), 17)
 	TEST_REAL_EQUAL(float(p2.getValue("test2:float")), 17.5)
 	TEST_EQUAL(p2.getValue("test2:string"), "test2")
-	TEST_EQUAL(SignedInt(p2.getValue("test2:int")), 18)
+	TEST_EQUAL(Int(p2.getValue("test2:int")), 18)
 RESULT
 
 CHECK((Param& operator = (const Param& rhs)))
@@ -126,10 +126,10 @@ CHECK((Param& operator = (const Param& rhs)))
 	p2=p;
 	TEST_REAL_EQUAL(float(p2.getValue("test:float")), 17.4)
 	TEST_EQUAL(p2.getValue("test:string"), "test,test,test")
-	TEST_EQUAL(SignedInt(p2.getValue("test:int")), 17)
+	TEST_EQUAL(Int(p2.getValue("test:int")), 17)
 	TEST_REAL_EQUAL(float(p2.getValue("test2:float")), 17.5)
 	TEST_EQUAL(p2.getValue("test2:string"), "test2")
-	TEST_EQUAL(SignedInt(p2.getValue("test2:int")), 18)
+	TEST_EQUAL(Int(p2.getValue("test2:int")), 18)
 RESULT
 
 
@@ -139,10 +139,10 @@ CHECK((void remove(const std::string& prefix)))
 	p2.remove("test:float");
 	TEST_EQUAL(p2.getValue("test:float"), p2.getValue("novaluehere"))
 	TEST_EQUAL(p2.getValue("test:string"), "test,test,test")
-	TEST_EQUAL(SignedInt(p2.getValue("test:int")), 17)
+	TEST_EQUAL(Int(p2.getValue("test:int")), 17)
 	TEST_REAL_EQUAL(float(p2.getValue("test2:float")), 17.5)
 	TEST_EQUAL(p2.getValue("test2:string"), "test2")
-	TEST_EQUAL(SignedInt(p2.getValue("test2:int")), 18)
+	TEST_EQUAL(Int(p2.getValue("test2:int")), 18)
 
 	p2.remove("test:");
 	TEST_EQUAL(p2.getValue("test:float"), p2.getValue("novaluehere"))
@@ -150,7 +150,7 @@ CHECK((void remove(const std::string& prefix)))
 	TEST_EQUAL(p2.getValue("test:int"), p2.getValue("novaluehere"))
 	TEST_REAL_EQUAL(float(p2.getValue("test2:float")), 17.5)
 	TEST_EQUAL(p2.getValue("test2:string"), "test2")
-	TEST_EQUAL(SignedInt(p2.getValue("test2:int")), 18)
+	TEST_EQUAL(Int(p2.getValue("test2:int")), 18)
 
 	p2.remove("test");
 	TEST_EQUAL(p2.getValue("test:float"), p2.getValue("novaluehere"))
@@ -206,17 +206,17 @@ CHECK((void insert(String prefix, const Param& para)))
 	p2.insert("test3",p);
 	TEST_REAL_EQUAL(float(p2.getValue("test3:test:float")), 17.4)
 	TEST_EQUAL(p2.getValue("test3:test:string"), "test,test,test")
-	TEST_EQUAL(SignedInt(p2.getValue("test3:test:int")), 17)
+	TEST_EQUAL(Int(p2.getValue("test3:test:int")), 17)
 	TEST_REAL_EQUAL(float(p2.getValue("test3:test2:float")), 17.5)
 	TEST_EQUAL(p2.getValue("test3:test2:string"), "test2")
-	TEST_EQUAL(SignedInt(p2.getValue("test3:test2:int")), 18)
+	TEST_EQUAL(Int(p2.getValue("test3:test2:int")), 18)
 	p2.insert("",p);
 	TEST_REAL_EQUAL(float(p2.getValue("test:float")), 17.4)
 	TEST_EQUAL(p2.getValue("test:string"), "test,test,test")
-	TEST_EQUAL(SignedInt(p2.getValue("test:int")), 17)
+	TEST_EQUAL(Int(p2.getValue("test:int")), 17)
 	TEST_REAL_EQUAL(float(p2.getValue("test2:float")), 17.5)
 	TEST_EQUAL(p2.getValue("test2:string"), "test2")
-	TEST_EQUAL(SignedInt(p2.getValue("test2:int")), 18)	
+	TEST_EQUAL(Int(p2.getValue("test2:int")), 18)	
 RESULT
 
 CHECK((Param copy(const std::string& prefix, bool remove_prefix=false, String new_prefix="") const))
@@ -228,7 +228,7 @@ CHECK((Param copy(const std::string& prefix, bool remove_prefix=false, String ne
 	p2 = p.copy("test:");
 	TEST_REAL_EQUAL(float(p2.getValue("test:float")), 17.4)
 	TEST_EQUAL(p2.getValue("test:string"), "test,test,test")
-	TEST_EQUAL(SignedInt(p2.getValue("test:int")), 17)
+	TEST_EQUAL(Int(p2.getValue("test:int")), 17)
 	TEST_EQUAL(p2.getValue("test2:float"), p2.getValue("novaluehere"))
 	TEST_EQUAL(p2.getValue("test2:string"), p2.getValue("novaluehere"))
 	TEST_EQUAL(p2.getValue("test2:int"), p2.getValue("novaluehere"))
@@ -248,10 +248,10 @@ CHECK((Param copy(const std::string& prefix, bool remove_prefix=false, String ne
 	p2 = p.copy("test");
 	TEST_REAL_EQUAL(float(p2.getValue("test:float")), 17.4)
 	TEST_EQUAL(p2.getValue("test:string"), "test,test,test")
-	TEST_EQUAL(SignedInt(p2.getValue("test:int")), 17)
+	TEST_EQUAL(Int(p2.getValue("test:int")), 17)
 	TEST_REAL_EQUAL(float(p2.getValue("test2:float")), 17.5)
 	TEST_EQUAL(p2.getValue("test2:string"), "test2")
-	TEST_EQUAL(SignedInt(p2.getValue("test2:int")), 18)
+	TEST_EQUAL(Int(p2.getValue("test2:int")), 18)
 RESULT
 
 CHECK((Param copyWithInherit(const std::string& old_prefix, const std::string& new_prefix="") const))

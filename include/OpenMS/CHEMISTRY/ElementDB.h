@@ -81,7 +81,7 @@ namespace OpenMS
 			const HashMap<String, const Element*>& getSymbols() const;
 
 			/// returns a hashmap that contains atomic numbers mapped to pointers of the elements
-			const HashMap<UnsignedInt, const Element*>& getAtomicNumbers() const;
+			const HashMap<UInt, const Element*>& getAtomicNumbers() const;
 
 			/** returns a pointer to the element with name or symbol given in parameter name;
 				*	if no element exists with that name or symbol 0 is returned
@@ -90,7 +90,7 @@ namespace OpenMS
 			const Element* getElement(const String& name) const;
 
 			/// returns a pointer to the element of atomic number; if no element is found 0 is returned
-			const Element* getElement(UnsignedInt atomic_number) const;
+			const Element* getElement(UInt atomic_number) const;
 			//@}
 			
 			/** @name Predicates
@@ -100,14 +100,14 @@ namespace OpenMS
 			bool hasElement(const String& name) const;
 
 			/// returns true if the db contains an element with the given atomic_number
-			bool hasElement(UnsignedInt atomic_number) const;
+			bool hasElement(UInt atomic_number) const;
 			//@}
 
 		protected:
 	
 			/*_ parses a Histogram given as a OpenMS String and return the distribution
 			 */
-			IsotopeDistribution parseIsotopeDistribution_(const HashMap<UnsignedInt, double>& distribution) 
+			IsotopeDistribution parseIsotopeDistribution_(const HashMap<UInt, double>& distribution) 
 				throw(Exception::ParseError);
 
 			/*_ read elements from a XML file, formated as a Param file.
@@ -122,7 +122,7 @@ namespace OpenMS
 
 			HashMap<String, const Element*> symbols_;
 
-			HashMap<UnsignedInt, const Element*> atomic_numbers_;
+			HashMap<UInt, const Element*> atomic_numbers_;
 
 		private:
 

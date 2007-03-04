@@ -259,7 +259,7 @@ namespace OpenMS
 																				IteratorType2 begin_b, const IteratorType2 end_b
 																			)
 			{
-				SignedInt count = 0;
+				Int count = 0;
 				RealType error = 0;
 				IteratorType1 & it_a = begin_a;
 				IteratorType2 & it_b = begin_b;
@@ -287,7 +287,7 @@ namespace OpenMS
 																						IteratorType2 begin_b, const IteratorType2 end_b
 																					)
 			{
-				SignedInt count = 0;
+				Int count = 0;
 				RealType error = 0;
 				IteratorType1 & it_a = begin_a;
 				IteratorType2 & it_b = begin_b;
@@ -324,7 +324,7 @@ namespace OpenMS
 																											const IteratorType2 begin_b, const IteratorType2 end_b
 																										)
 			{
-				SignedInt count = 0;
+				Int count = 0;
 				RealType sum_a = 0;
 				RealType sum_b = 0;
 				RealType mean_a = 0;

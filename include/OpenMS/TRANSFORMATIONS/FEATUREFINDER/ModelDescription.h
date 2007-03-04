@@ -44,7 +44,7 @@ namespace OpenMS
 		
 		@ingroup FeatureFinder		
 	*/  
-  template <UnsignedInt D>
+  template <UInt D>
 	class ModelDescription
 	{
 		public:
@@ -142,7 +142,7 @@ namespace OpenMS
 		Param parameters_;
 	};
 
-	template <UnsignedInt D>
+	template <UInt D>
 	bool ModelDescription<D>::operator == (const ModelDescription<D>& rhs) const
 	{
 		std::stringstream stream1;
@@ -152,7 +152,7 @@ namespace OpenMS
 		return ((name_ == rhs.name_) && (stream1.str() == stream2.str()));
 	}
 
-	template <UnsignedInt D>
+	template <UInt D>
 	bool  ModelDescription<D>::operator != (const  ModelDescription<D>& rhs) const
 	{
 		return !(operator == (rhs));

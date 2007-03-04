@@ -92,7 +92,7 @@ namespace OpenMS
 		painter.drawRect(margin_,margin_,width()-2*margin_,height()-2*margin_-lever_area_height_);
 	
 		//draw gradient
-		for (SignedInt i=0;i<=gradient_area_width_;++i)
+		for (Int i=0;i<=gradient_area_width_;++i)
 		{
 			painter.setPen(gradient_.interpolatedColorAt(i,0,gradient_area_width_));
 			painter.drawLine(margin_+1+i,margin_+1,margin_+1+i,height()-margin_-lever_area_height_-1);		
@@ -100,16 +100,16 @@ namespace OpenMS
 		
 		//levers
 		painter.setPen(QColor(0,0,0));
-		for (UnsignedInt i=0;i<gradient_.size();++i)
+		for (UInt i=0;i<gradient_.size();++i)
 		{
-			SignedInt pos = SignedInt(float(gradient_.position(i))/100.0*gradient_area_width_+margin_+1);
+			Int pos = Int(float(gradient_.position(i))/100.0*gradient_area_width_+margin_+1);
 			painter.drawRect(pos-4,height()-margin_-lever_area_height_+5,9,9);
 			painter.drawLine(pos-4,height()-margin_-lever_area_height_+5,pos,height()-margin_-lever_area_height_);
 			painter.drawLine(pos,height()-margin_-lever_area_height_,pos+4,height()-margin_-lever_area_height_+5);
 			painter.fillRect(pos-3,height()-margin_-lever_area_height_+6,8,8,gradient_.color(i));
 			
 			//selected lever
-			if (SignedInt(gradient_.position(i)) == selected_)
+			if (Int(gradient_.position(i)) == selected_)
 			{
 				painter.fillRect(pos-2,height()-margin_-lever_area_height_+3,6,3,QColor(0,0,0));
 				painter.fillRect(pos-1,height()-margin_-lever_area_height_+1,4,3,QColor(0,0,0));
@@ -131,9 +131,9 @@ namespace OpenMS
 		left_button_pressed_=true;
 		
 		//select lever
-		for (UnsignedInt i=0;i<gradient_.size();++i)
+		for (UInt i=0;i<gradient_.size();++i)
 		{
-			SignedInt pos = SignedInt(float(gradient_.position(i))/100.0*gradient_area_width_+margin_+1);
+			Int pos = Int(float(gradient_.position(i))/100.0*gradient_area_width_+margin_+1);
 			if (e->x() >= pos-3 && e->x() <= pos+4 && e->y() >= height()-margin_-lever_area_height_+8 && e->y() <= height()-margin_-lever_area_height_+15)
 			{
 				selected_=gradient_.position(i);
@@ -146,7 +146,7 @@ namespace OpenMS
 		//create new lever
 		if (e->x() >= margin_ && e->x() <= width()-margin_ && e->y() >= height()-margin_-lever_area_height_ && e->y() <= height()-margin_)
 		{
-			SignedInt pos = SignedInt(100*(e->x()-margin_)/float(gradient_area_width_));
+			Int pos = Int(100*(e->x()-margin_)/float(gradient_area_width_));
 			gradient_.insert(pos,selected_color_);
 			selected_ = pos;
 			repaint();
@@ -173,7 +173,7 @@ namespace OpenMS
 				//inside lever area
 				if (e->x() >= margin_ && e->x() <= width()-margin_ && e->y() >= height()-margin_-lever_area_height_ && e->y() <= height()-margin_)
 				{
-					SignedInt pos = SignedInt(100*(e->x()-margin_)/float(gradient_area_width_));
+					Int pos = Int(100*(e->x()-margin_)/float(gradient_area_width_));
 					//be careful not to remove other levers...
 					if (pos!=selected_ && !gradient_.exists(pos))
 					{
@@ -198,13 +198,13 @@ namespace OpenMS
 	
 	void MultiGradientSelector::mouseDoubleClickEvent ( QMouseEvent * e )
 	{
-		for (UnsignedInt i=0;i<gradient_.size();++i)
+		for (UInt i=0;i<gradient_.size();++i)
 		{
-			SignedInt pos = SignedInt(float(gradient_.position(i))/100.0*gradient_area_width_+margin_+1);
+			Int pos = Int(float(gradient_.position(i))/100.0*gradient_area_width_+margin_+1);
 			if (e->x() >= pos-3 && e->x() <= pos+4 && e->y() >= height()-margin_-lever_area_height_+8 && e->y() <= height()-margin_-lever_area_height_+15)
 			{
 				gradient_.insert(gradient_.position(i),QColorDialog::getColor(gradient_.color(i),this));
-				if (SignedInt(gradient_.position(i))==selected_)
+				if (Int(gradient_.position(i))==selected_)
 				{
 					selected_color_=gradient_.color(i);
 				}
@@ -245,7 +245,7 @@ namespace OpenMS
 		gradient_.setInterpolationMode(mode);
 	}
 	
-	UnsignedInt MultiGradientSelector::getInterpolationMode() const
+	UInt MultiGradientSelector::getInterpolationMode() const
 	{
 		return gradient_.getInterpolationMode();
 	}

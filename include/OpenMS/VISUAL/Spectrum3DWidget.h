@@ -56,9 +56,9 @@ namespace OpenMS
 			// Docu in base class
 			virtual void recalculateAxes_();
 			// Docu in base class
-			virtual Math::Histogram<UnsignedInt, float> createIntensityDistribution_();   
+			virtual Math::Histogram<UInt, float> createIntensityDistribution_();   
 			// Docu in base class
-			virtual QImage getImage(UnsignedInt width, UnsignedInt height);
+			virtual QImage getImage(UInt width, UInt height);
 	
 			bool isLegendShown() ;
 		

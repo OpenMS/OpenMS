@@ -142,7 +142,7 @@ namespace OpenMS
 			{
 				cont = SamplesType();
 				DPeak<1> peak;
-				for (UnsignedInt i=0; i<interpolation_.getData().size(); ++i)
+				for (UInt i=0; i<interpolation_.getData().size(); ++i)
 				{
 					peak.setIntensity( interpolation_.getData()[i] );
 					peak.getPosition()[0] = interpolation_.index2key(i);

@@ -308,7 +308,7 @@ CHECK((template<class PeakT> void filterIdentificationsByProteins(MSExperiment< 
   proteins.push_back(pair<String, String>("Q824A5", "LHASGITVTEIPVTATNFK"));
   proteins.push_back(pair<String, String>("Q872T5", "THPYGHAIVAGIERYPSK"));
 	
-	for(UnsignedInt i = 0; i < 5; ++i)
+	for(UInt i = 0; i < 5; ++i)
 	{
 		experiment.push_back(MSSpectrum< Peak1D >());
 	}
@@ -341,7 +341,7 @@ CHECK((template<class PeakT> void filterIdentificationsByThresholds(MSExperiment
   
   ids.push_back(identification);
 	
-	for(UnsignedInt i = 0; i < 5; ++i)
+	for(UInt i = 0; i < 5; ++i)
 	{
 		experiment.push_back(MSSpectrum< Peak1D >());
 	}

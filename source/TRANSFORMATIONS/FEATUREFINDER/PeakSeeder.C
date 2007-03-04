@@ -103,7 +103,7 @@ namespace OpenMS
 		// max. distance to nighbouring peaks
 		CoordinateType max_dist_mz = param_.getValue("max_peak_distance");
 			
-		for (UnsignedInt currscan_index = 0; currscan_index < traits_->getData().size(); ++currscan_index)
+		for (UInt currscan_index = 0; currscan_index < traits_->getData().size(); ++currscan_index)
 		{
 			SpectrumType current_scan = traits_->getData()[currscan_index];
 			current_rt = current_scan.getRetentionTime();
@@ -212,8 +212,8 @@ namespace OpenMS
 	
 		cout << iso_map_.size() << " isotopic clusters were found." << endl;
 	
-		UnsignedInt min_number_scans = param_.getValue("min_number_scans");
-		UnsignedInt min_number_peaks = param_.getValue("min_number_peaks");
+		UInt min_number_scans = param_.getValue("min_number_scans");
+		UInt min_number_peaks = param_.getValue("min_number_peaks");
 	
 		// Remove cluster containing too few scans or peaks
 		for (HashIterator iter = iso_map_.begin(); iter != iso_map_.end(); ++iter)
@@ -239,7 +239,7 @@ namespace OpenMS
 	PeakSeeder::TableType::iterator PeakSeeder::retrieveHashIter_(CoordinateType curr_mz, 
 																																															CoordinateType& mz_in_hash, 
 																																															const std::vector<CoordinateType>& iso_last_scan,
-																																								 							UnsignedInt currscan_index  )
+																																								 							UInt currscan_index  )
 	{
 		// hash entry to write in
 		TableType::iterator entry_to_insert;		
@@ -278,7 +278,7 @@ namespace OpenMS
 					if (range.first != range.second)		// several peak cluster at this m/z found
 					{
 						// we want to find the previous scan
-						UnsignedInt scan_wanted = (currscan_index - 1);
+						UInt scan_wanted = (currscan_index - 1);
 						for (TableType::iterator iter = range.first; iter != range.second; ++iter)
 						{
 							// check if last scan of this cluster is the previous scan
@@ -327,7 +327,7 @@ namespace OpenMS
 	void PeakSeeder::filterAndComputeLocalMax_(const SpectrumType & vec, 
 														 						 															std::vector<int>& localmax
 																																			#ifdef DEBUG_FEATUREFINDER
-																																			, UnsignedInt currscan_index
+																																			, UInt currscan_index
 																																			#endif
 																																			)
 	{

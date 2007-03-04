@@ -43,7 +43,7 @@ namespace OpenMS
 			@invariant All methods maintain the invariant that min() is geometrically less or equal max() 
 			           i.e. min()[x] <= max()[x].
 		*/
-		template <UnsignedInt D>
+		template <UInt D>
 		class DIntervalBase
 		{
 			public:
@@ -133,7 +133,7 @@ namespace OpenMS
 				void setMin(PositionType const & position)
 				{
 					min_ = position;
-					for ( UnsignedInt i = 0; i < DIMENSION; ++i )
+					for ( UInt i = 0; i < DIMENSION; ++i )
 					{
 						if (min_[i]>max_[i]) max_[i] = min_[i];
 					}
@@ -148,7 +148,7 @@ namespace OpenMS
 				void setMax(PositionType const & position)
 				{
 					max_ = position;
-					for ( UnsignedInt i = 0; i < DIMENSION; ++i )
+					for ( UInt i = 0; i < DIMENSION; ++i )
 					{
 						if (min_[i]>max_[i]) min_[i] = max_[i];
 					}
@@ -169,10 +169,10 @@ namespace OpenMS
 					
 					Only the dimensions 0 upto min(D,D2)-1 are copied.
 				*/
-				template <UnsignedInt D2>
+				template <UInt D2>
 				void assign(const DIntervalBase<D2> rhs)
 				{
-					for (UnsignedInt i=0; i<std::min(D,D2); ++i)
+					for (UInt i=0; i<std::min(D,D2); ++i)
 					{
 						min_[i] = rhs.min()[i];
 						max_[i] = rhs.max()[i];
@@ -308,7 +308,7 @@ namespace OpenMS
 				/// normalization to keep all dimensions in the right geometrical order (min_[X] < max_[X])
 				void normalize_()
 				{
-					for ( UnsignedInt i = 0; i < DIMENSION; ++i )
+					for ( UInt i = 0; i < DIMENSION; ++i )
 					{
 						if (min_[i]>max_[i]) 
 						{
@@ -327,17 +327,17 @@ namespace OpenMS
 		
 			};
 		
-			template <UnsignedInt D>
+			template <UInt D>
 			DIntervalBase<D> const DIntervalBase<D>::zero
 			= DIntervalBase<D>( DIntervalBase<D>::PositionType::zero,
 																		 DIntervalBase<D>::PositionType::zero );
 			
-			template <UnsignedInt D>
+			template <UInt D>
 			DIntervalBase<D> const DIntervalBase<D>::empty
 				= DIntervalBase<D>(std::make_pair(DIntervalBase<D>::PositionType::max, DIntervalBase<D>::PositionType::min_negative));
 			
 			///Print the contents to a stream.
-			template <UnsignedInt D>
+			template <UInt D>
 			std::ostream& operator << (std::ostream& os, const DIntervalBase<D>& rhs)
 			{
 				os << "--DIntervalBase BEGIN--"<<std::endl;

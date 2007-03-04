@@ -90,7 +90,7 @@ class TOPPRTPredict
 			SVMWrapper svm;
 			LibSVMEncoder encoder;
 			String allowed_amino_acid_characters = "ACDEFGHIKLMNPQRSTVWY";
-			vector< vector< pair<SignedInt, DoubleReal> > >* encoded_composition_vectors;
+			vector< vector< pair<Int, DoubleReal> > >* encoded_composition_vectors;
 			vector<svm_node*>* encoded_LibSVM_vectors;
 			vector<DoubleReal>* predicted_retention_times;
 			map< String, DoubleReal > predicted_data;
@@ -117,10 +117,10 @@ class TOPPRTPredict
 			// calculations
 			//-------------------------------------------------------------
 		
-			for(UnsignedInt i = 0; i < identifications.size(); i++)
+			for(UInt i = 0; i < identifications.size(); i++)
 			{
 				temp_peptide_hits = identifications[i].id.getPeptideHits();
-				for(UnsignedInt j = 0; j < temp_peptide_hits.size(); j++)
+				for(UInt j = 0; j < temp_peptide_hits.size(); j++)
 				{
 					peptides.push_back(temp_peptide_hits[j].getSequence());
 				}
@@ -135,7 +135,7 @@ class TOPPRTPredict
 			delete encoded_composition_vectors;
 			delete encoded_LibSVM_vectors;
 		
-			for(UnsignedInt i = 0; i < peptides.size(); i++)
+			for(UInt i = 0; i < peptides.size(); i++)
 			{
 				predicted_data.insert(make_pair(peptides[i], ((*predicted_retention_times)[i] * total_gradient_time)));
 			}

@@ -68,10 +68,10 @@ namespace OpenMS
 	#ifndef OPENMS_HAS_STDINT_H
 
 	/// Signed integer type
-	typedef OPENMS_INDEX_TYPE SignedInt;
+	typedef OPENMS_INDEX_TYPE Int;
 
 	/// Unsigned integer type
-	typedef OPENMS_SIZE_TYPE UnsignedInt;
+	typedef OPENMS_SIZE_TYPE UInt;
 
 	/**	
 		@brief Time type
@@ -129,10 +129,10 @@ namespace OpenMS
 
 	#else
    	// the ISO C99 definitions
-		typedef int32_t SignedInt; 
-		typedef uint32_t UnsignedInt;
+		typedef int32_t Int; 
+		typedef uint32_t UInt;
 		typedef time_t	Time;
-   	typedef Position UnsignedInt;
+   	typedef Position UInt;
 		typedef float Real;
 		typedef double DoubleReal;
 		typedef	uint8_t Byte;

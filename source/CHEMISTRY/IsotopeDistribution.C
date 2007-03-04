@@ -37,13 +37,13 @@ namespace OpenMS
 	IsotopeDistribution::IsotopeDistribution()
 		:	max_isotope_(0)
 	{
-		distribution_.push_back(make_pair<UnsignedInt, double>(0, 1));
+		distribution_.push_back(make_pair<UInt, double>(0, 1));
 	}
 
-	IsotopeDistribution::IsotopeDistribution(UnsignedInt max_isotope)
+	IsotopeDistribution::IsotopeDistribution(UInt max_isotope)
 		:	max_isotope_(max_isotope)
 	{
-		distribution_.push_back(make_pair<UnsignedInt, double>(0, 1));
+		distribution_.push_back(make_pair<UInt, double>(0, 1));
 	}
 
 	IsotopeDistribution::IsotopeDistribution(const IsotopeDistribution& isotope_distribution)
@@ -56,12 +56,12 @@ namespace OpenMS
 	{
 	}
 
-	void IsotopeDistribution::setMaxIsotope(UnsignedInt max_isotope)
+	void IsotopeDistribution::setMaxIsotope(UInt max_isotope)
 	{
 		max_isotope_ = max_isotope;
 	}
 
-	UnsignedInt IsotopeDistribution::getMaxIsotope() const
+	UInt IsotopeDistribution::getMaxIsotope() const
 	{
 		return max_isotope_;
 	}
@@ -94,7 +94,7 @@ namespace OpenMS
 		return *this;
 	}
 
-	IsotopeDistribution::IsotopeDistribution& IsotopeDistribution::operator *= (UnsignedInt factor)
+	IsotopeDistribution::IsotopeDistribution& IsotopeDistribution::operator *= (UInt factor)
 	{
 		ContainerType result;
 		convolvePow_(result, distribution_, factor);
@@ -102,7 +102,7 @@ namespace OpenMS
 		return *this;
 	}
 
-	IsotopeDistribution::IsotopeDistribution IsotopeDistribution::operator * (UnsignedInt factor) const
+	IsotopeDistribution::IsotopeDistribution IsotopeDistribution::operator * (UInt factor) const
 	{
 		ContainerType result;
 		convolvePow_(result, distribution_, factor);
@@ -122,7 +122,7 @@ namespace OpenMS
 		return distribution_;
 	}
 
-	UnsignedInt IsotopeDistribution::getMax() const
+	UInt IsotopeDistribution::getMax() const
 	{
 		if (distribution_.size() == 0)
 		{
@@ -131,7 +131,7 @@ namespace OpenMS
 		return distribution_[distribution_.size()-1].first;
 	}
 
-	UnsignedInt IsotopeDistribution::getMin() const
+	UInt IsotopeDistribution::getMin() const
 	{
 		if (distribution_.size() == 0)
 		{
@@ -140,7 +140,7 @@ namespace OpenMS
 		return distribution_[0].first;
 	}
 
-	UnsignedInt IsotopeDistribution::size() const
+	UInt IsotopeDistribution::size() const
 	{
 		return distribution_.size();
 	}
@@ -156,10 +156,10 @@ namespace OpenMS
 		// - there are 5.45 Carbons per Residue (average, assuming equal occuring frenquencies)
 		// - about 53.6% of the monoisotopic weight of a peptide is from Carbon (average...)
 		ContainerType C_dist;
-		C_dist.push_back(make_pair<UnsignedInt, double>(12, 0.9893));
-		C_dist.push_back(make_pair<UnsignedInt, double>(13, 0.0107));
+		C_dist.push_back(make_pair<UInt, double>(12, 0.9893));
+		C_dist.push_back(make_pair<UInt, double>(13, 0.0107));
 
-		convolvePow_(distribution_, C_dist, UnsignedInt((weight*0.464)/12.0));
+		convolvePow_(distribution_, C_dist, UInt((weight*0.464)/12.0));
 	}
 
 	bool IsotopeDistribution::operator == (const IsotopeDistribution& isotope_distribution) const
@@ -186,7 +186,7 @@ namespace OpenMS
 		result.resize(r_max);
     for (int i = 0; i != r_max; ++i)
     {
-      result[i] = make_pair<UnsignedInt, double>(left[0].first + right[0].first + i, 0);
+      result[i] = make_pair<UInt, double>(left[0].first + right[0].first + i, 0);
     }
 
 		// we loop backwards because then the small products tend to come first
@@ -200,13 +200,13 @@ namespace OpenMS
 		}
 	}
 
-	void IsotopeDistribution::convolvePow_(ContainerType& result, const ContainerType& input, UnsignedInt n) const
+	void IsotopeDistribution::convolvePow_(ContainerType& result, const ContainerType& input, UInt n) const
 	{
 		/*	
 		// my code 
 		ContainerType tmp, tmp_result;
-		tmp.push_back(make_pair<UnsignedInt, double>(0, 1));
-		for (UnsignedInt i=0; i!=n; ++i)
+		tmp.push_back(make_pair<UInt, double>(0, 1));
+		for (UInt i=0; i!=n; ++i)
 		{
 			convolve(tmp_result, input, tmp);
 			swap(tmp_result, tmp);
@@ -223,7 +223,7 @@ namespace OpenMS
 		}
 
     // find binary logarithm of n
-    UnsignedInt log2n = 0;
+    UInt log2n = 0;
     for (; (1U << log2n) < n; ++log2n);
 
 	  // get started
@@ -234,7 +234,7 @@ namespace OpenMS
     else 
 		{
       result.clear();
-      result.push_back(make_pair<UnsignedInt, double>(0, 1.0));
+      result.push_back(make_pair<UInt, double>(0, 1.0));
     }
 
     ContainerType intermediate;
@@ -243,7 +243,7 @@ namespace OpenMS
     // somewhere in the middle
     ContainerType convolution_power;
     convolveSquare_(convolution_power, input);
-    for (UnsignedInt i = 1; ; ++i)
+    for (UInt i = 1; ; ++i)
     {
       if (n & (1 << i))
       {
@@ -267,7 +267,7 @@ namespace OpenMS
     result.resize(r_max);
 		for (int i = 0; i != r_max; ++i)
 		{
-			result[i] = make_pair<UnsignedInt, double>(2 * input[0].first + i, 0);
+			result[i] = make_pair<UInt, double>(2 * input[0].first + i, 0);
 		}
 
     // we loop backwards because then the small products tend to come first

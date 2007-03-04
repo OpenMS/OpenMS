@@ -147,7 +147,7 @@ namespace OpenMS
 	Feature ExtendedModelFitter::fit(const IndexSet& set) throw (UnableToFit)
 	{
 		// not enough peaks to fit
-		if (set.size() < (UnsignedInt)(param_.getValue("min_num_peaks:extended")))
+		if (set.size() < (UInt)(param_.getValue("min_num_peaks:extended")))
 		{
 			for (IndexSet::const_iterator it=set.begin(); it!=set.end(); ++it) 
 			{
@@ -267,7 +267,7 @@ namespace OpenMS
 		std::cout << " Selected " << model_set.size() << " from " << set.size() << " peaks.\n";
 
 		// not enough peaks left for feature
-		if (model_set.size() < (UnsignedInt)(param_.getValue("min_num_peaks:final")))
+		if (model_set.size() < (UInt)(param_.getValue("min_num_peaks:final")))
 		{
 			delete final;
 			throw UnableToFit(__FILE__, __LINE__,__PRETTY_FUNCTION__,

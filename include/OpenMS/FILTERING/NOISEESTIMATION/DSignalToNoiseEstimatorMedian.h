@@ -103,7 +103,7 @@ namespace OpenMS
   */
   
   
-  template <UnsignedInt D = 1 , typename PeakIterator = MSSpectrum<RawDataPoint1D >::const_iterator >
+  template <UInt D = 1 , typename PeakIterator = MSSpectrum<RawDataPoint1D >::const_iterator >
      class DSignalToNoiseEstimatorMedian : public DSignalToNoiseEstimator<D, PeakIterator>
   {
 
@@ -285,11 +285,11 @@ namespace OpenMS
     inline void setWinLen(DoubleReal win_len) { win_len_ = win_len; updateParam();}
      
     /// Non-mutable access to the number of bins used for the histogram (the more bins, the better the approximation, but longer runtime)
-    inline SignedInt getBinCount() const { return bin_count_; }
+    inline Int getBinCount() const { return bin_count_; }
     /// Mutable access to the number of bins used for the histogram
     inline int& getBinCount() { return bin_count_; }
     /// Mutable access to the number of bins used for the histogram
-    inline void setBinCount(SignedInt bin_count) { bin_count_ = bin_count; updateParam();}
+    inline void setBinCount(Int bin_count) { bin_count_ = bin_count; updateParam();}
 
     /// Non-mutable access to the maximal intensity that is included in the histogram (higher values get discarded)
     inline DoubleReal getMaxIntensity() const { return max_intensity_; }
@@ -306,18 +306,18 @@ namespace OpenMS
     inline void setAutoMaxIntensity(DoubleReal auto_max_intensity) { auto_max_intensity_ = auto_max_intensity; updateParam();}
     
     /// Non-mutable access to AutoMode, which determines the heuristic to find MaxIntensity. See Class description.
-    inline SignedInt getAutoMode() const { return auto_mode_; }
+    inline Int getAutoMode() const { return auto_mode_; }
     /// Mutable access to AutoMode, which determines the heuristic to find MaxIntensity. See Class description.
     inline int& getAutoMode() { return auto_mode_; }
     /// Mutable access to AutoMode, which determines the heuristic to find MaxIntensity. See Class description.
-    inline void setAutoMode(SignedInt auto_mode) { auto_mode_ = auto_mode; updateParam();}
+    inline void setAutoMode(Int auto_mode) { auto_mode_ = auto_mode; updateParam();}
     
     /// Non-mutable access to the minimum required elements in a window, to be evaluated.
-    inline SignedInt getMinReqElements() const { return min_required_elements_; }
+    inline Int getMinReqElements() const { return min_required_elements_; }
     /// Mutable access to the minimum required elements in a window, to be evaluated.
     inline int& getMinReqElements() { return min_required_elements_; }
     /// Mutable access to the minimum required elements in a window, to be evaluated.
-    inline void setMinReqElements(SignedInt min_required_elements) { min_required_elements_ = min_required_elements; updateParam();}
+    inline void setMinReqElements(Int min_required_elements) { min_required_elements_ = min_required_elements; updateParam();}
     
     /// Non-mutable access to the noise value that is used if a window contains not enough elements 
     inline DoubleReal getNoiseForEmtpyWindow() const { return noise_for_empty_window_; }
@@ -330,9 +330,9 @@ namespace OpenMS
     /* overridden members */
 
     /// Mutable access to the mz dimension
-    inline void setMZdim(SignedInt mz_dim) { DSignalToNoiseEstimator<D, PeakIterator>::setMZdim(mz_dim); is_result_valid_ = false;}
+    inline void setMZdim(Int mz_dim) { DSignalToNoiseEstimator<D, PeakIterator>::setMZdim(mz_dim); is_result_valid_ = false;}
     /// Mutable access to the rt dimension
-    inline void setRTdim(SignedInt rt_dim) { DSignalToNoiseEstimator<D, PeakIterator>::setRTdim(rt_dim); is_result_valid_ = false;}
+    inline void setRTdim(Int rt_dim) { DSignalToNoiseEstimator<D, PeakIterator>::setRTdim(rt_dim); is_result_valid_ = false;}
     /// Mutable access to the first raw data point
     inline void setFirstDataPoint(const PeakIterator& first) { DSignalToNoiseEstimator<D, PeakIterator>::setFirstDataPoint(first); is_result_valid_ = false;}
     /// Mutable access to the last raw data point

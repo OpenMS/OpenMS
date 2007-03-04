@@ -120,8 +120,8 @@ namespace OpenMS
 		ProteinHit temp_protein_hit;
 		Real max_value = 0;
 		Real temp_score = 0;
-		vector< UnsignedInt > new_peptide_indices;		
-		vector< UnsignedInt > new_protein_indices;		
+		vector< UInt > new_peptide_indices;		
+		vector< UInt > new_protein_indices;		
 		DateTime date;
 
 		filtered_identification.clear();		
@@ -136,7 +136,7 @@ namespace OpenMS
 			new_peptide_indices.push_back(0);
 			
 			/// searching for peptide(s) with maximal score			
-			for(UnsignedInt i = 1; i < temp_peptide_hits.size(); i++)
+			for(UInt i = 1; i < temp_peptide_hits.size(); i++)
 			{
 				temp_score = temp_peptide_hits[i].getScore();
 				if (temp_score > max_value)
@@ -152,7 +152,7 @@ namespace OpenMS
 			}						
 			if (!strict || new_peptide_indices.size() == 1)
 			{
-				for(UnsignedInt i = 0; i < new_peptide_indices.size(); i++)
+				for(UInt i = 0; i < new_peptide_indices.size(); i++)
 				{
 					filtered_peptide_hits.push_back(temp_peptide_hits[new_peptide_indices[i]]);
 				}
@@ -165,7 +165,7 @@ namespace OpenMS
 			new_protein_indices.push_back(0);
 
 			/// searching for protein(s) with maximal score			
-			for(UnsignedInt i = 1; i < temp_protein_hits.size(); i++)
+			for(UInt i = 1; i < temp_protein_hits.size(); i++)
 			{
 				temp_score = temp_protein_hits[i].getScore();
 				if (temp_score > max_value)
@@ -181,7 +181,7 @@ namespace OpenMS
 			}						
 			if (!strict || new_protein_indices.size() == 1)
 			{
-				for(UnsignedInt i = 0; i < new_protein_indices.size(); i++)
+				for(UInt i = 0; i < new_protein_indices.size(); i++)
 				{
  					filtered_protein_hits.push_back(temp_protein_hits[new_protein_indices[i]]);
  				}
@@ -269,8 +269,8 @@ namespace OpenMS
 	{
 		String protein_sequences;
 		String accession_sequences;
-		vector< UnsignedInt > new_peptide_indices;		
-		vector< UnsignedInt > new_protein_indices;
+		vector< UInt > new_peptide_indices;		
+		vector< UInt > new_protein_indices;
 		vector<PeptideHit> temp_peptide_hits;
 		vector<PeptideHit> filtered_peptide_hits;
 		vector<ProteinHit> temp_protein_hits;
@@ -283,14 +283,14 @@ namespace OpenMS
 		date = identification.getDateTime();
 		temp_peptide_hits = identification.getPeptideHits();
 		temp_protein_hits = identification.getProteinHits();
-		for(UnsignedInt i = 0; i < proteins_.size(); i++)
+		for(UInt i = 0; i < proteins_.size(); i++)
 		{
 			accession_sequences.append("*" + proteins_[i].first);
 			protein_sequences.append("*" + proteins_[i].second);
 		}
 		accession_sequences.append("*");
 		
-		for(UnsignedInt i = 0; i < temp_peptide_hits.size(); i++)
+		for(UInt i = 0; i < temp_peptide_hits.size(); i++)
 		{
 	  	if (protein_sequences.find(temp_peptide_hits[i].getSequence().c_str()) 
 	  			!= string::npos)
@@ -298,7 +298,7 @@ namespace OpenMS
 	  		new_peptide_indices.push_back(i);
 	  	}
 		}
-		for(UnsignedInt i = 0; i < temp_protein_hits.size(); i++)
+		for(UInt i = 0; i < temp_protein_hits.size(); i++)
 		{
 	  	if (accession_sequences.find("*" 
 	  			+ temp_protein_hits[i].getAccession() 
@@ -307,13 +307,13 @@ namespace OpenMS
 	  		new_protein_indices.push_back(i);
 	  	}
 		}
-		for(UnsignedInt i = 0; i < new_peptide_indices.size(); i++)
+		for(UInt i = 0; i < new_peptide_indices.size(); i++)
 		{
 			temp_peptide_hit = PeptideHit(temp_peptide_hits[new_peptide_indices[i]]);
 			temp_peptide_hit.setRank((i + 1));
 			filtered_peptide_hits.push_back(temp_peptide_hit);
 		}
-		for(UnsignedInt i = 0; i < new_protein_indices.size(); i++)
+		for(UInt i = 0; i < new_protein_indices.size(); i++)
 		{
 			temp_protein_hit = ProteinHit(temp_protein_hits[new_protein_indices[i]]);
 			temp_protein_hit.setRank((i + 1));
@@ -334,7 +334,7 @@ namespace OpenMS
 	{
 		String protein_sequences;
 		String accession_sequences;
-		vector< UnsignedInt > new_protein_indices;
+		vector< UInt > new_protein_indices;
 		vector<ProteinHit> temp_protein_hits;
 		vector<ProteinHit> filtered_protein_hits;
 		ProteinHit temp_protein_hit;
@@ -343,13 +343,13 @@ namespace OpenMS
 		filtered_identification.clear();
 		date = identification.getDateTime();
 		temp_protein_hits = identification.getProteinHits();
-		for(UnsignedInt i = 0; i < proteins_.size(); i++)
+		for(UInt i = 0; i < proteins_.size(); i++)
 		{
 			accession_sequences.append("*" + proteins_[i].first);
 		}
 		accession_sequences.append("*");
 		
-		for(UnsignedInt i = 0; i < temp_protein_hits.size(); i++)
+		for(UInt i = 0; i < temp_protein_hits.size(); i++)
 		{
 	  	if (accession_sequences.find("*" 
 	  			+ temp_protein_hits[i].getAccession() 
@@ -358,7 +358,7 @@ namespace OpenMS
 	  		new_protein_indices.push_back(i);
 	  	}
 		}
-		for(UnsignedInt i = 0; i < new_protein_indices.size(); i++)
+		for(UInt i = 0; i < new_protein_indices.size(); i++)
 		{
 			temp_protein_hit = ProteinHit(temp_protein_hits[new_protein_indices[i]]);
 			temp_protein_hit.setRank((i + 1));
@@ -431,8 +431,8 @@ namespace OpenMS
 	{
 		String protein_sequences;
 		String accession_sequences;
-		vector< UnsignedInt > new_peptide_indices;		
-		vector< UnsignedInt > new_protein_indices;
+		vector< UInt > new_peptide_indices;		
+		vector< UInt > new_protein_indices;
 		vector<PeptideHit> temp_peptide_hits;
 		vector<PeptideHit> filtered_peptide_hits;
 		PeptideHit temp_peptide_hit;
@@ -442,7 +442,7 @@ namespace OpenMS
 		temp_peptide_hits = identification.getPeptideHits();
 		date = identification.getDateTime();
 		
-		for(UnsignedInt i = 0; i < temp_peptide_hits.size(); i++)
+		for(UInt i = 0; i < temp_peptide_hits.size(); i++)
 		{
 	  	if (find(peptides.begin(), peptides.end(), 
 	  			temp_peptide_hits[i].getSequence().c_str()) 
@@ -451,7 +451,7 @@ namespace OpenMS
 	  		new_peptide_indices.push_back(i);
 	  	}
 		}
-		for(UnsignedInt i = 0; i < new_peptide_indices.size(); i++)
+		for(UInt i = 0; i < new_peptide_indices.size(); i++)
 		{
 			temp_peptide_hit = PeptideHit(temp_peptide_hits[new_peptide_indices[i]]);
 			temp_peptide_hit.setRank((i + 1));

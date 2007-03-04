@@ -120,7 +120,7 @@ namespace OpenMS
 		return widget()->createPreferences(parent);
 	}
 	
-	SignedInt Spectrum2DWindow::getDotMode()
+	Int Spectrum2DWindow::getDotMode()
 	{
 		return widget()->canvas()->getDotMode();
 	}

@@ -65,13 +65,13 @@ namespace OpenMS
 			 */
 			//@{
 			/// returns a spectrum with b and y peaks
-			void getSpectrum(PeakSpectrum& spec, const AASequence& peptide, SignedInt charge = 1);
+			void getSpectrum(PeakSpectrum& spec, const AASequence& peptide, Int charge = 1);
 
 			/// adds peaks to a spectrum of the given ion-type, peptide, charge, and intensity
-			void addPeaks(PeakSpectrum& spectrum, const AASequence& peptide, Residue::ResidueType res_type, SignedInt charge = 1);
+			void addPeaks(PeakSpectrum& spectrum, const AASequence& peptide, Residue::ResidueType res_type, Int charge = 1);
 
 			/// adds the precursor peaks to the spectrum
-			void addPrecursorPeaks(PeakSpectrum& spec, const AASequence& peptide, SignedInt charge = 1);
+			void addPrecursorPeaks(PeakSpectrum& spec, const AASequence& peptide, Int charge = 1);
 			//@}
 
 		private:

@@ -188,7 +188,7 @@ namespace OpenMS
 		}
 
 		///Non-mutable access to the maximal number of iterations
-		inline SignedInt getMaxIterations() const {return max_iteration_;}
+		inline Int getMaxIterations() const {return max_iteration_;}
 		///Mutable access to the  maximal number of iterations
 		inline int& getMaxIterations() {return max_iteration_;}
 		///Mutable access to the  maximal number of iterations
@@ -319,7 +319,7 @@ namespace OpenMS
 		max_peak_distance_ = param_.getValue("2D_optimization:thresholds:max_peak_distance");
 		double tolerance_mz = param_.getValue("2D_optimization:thresholds:tolerance_mz");
 	
-		UnsignedInt current_charge     = 0;			// charge state of the current isotopic cluster
+		UInt current_charge     = 0;			// charge state of the current isotopic cluster
 		double mz_in_hash   = 0;			// used as reference to the current isotopic peak			
 	
 		// sweep through scans
@@ -430,13 +430,13 @@ namespace OpenMS
 
 
 		      
-										cluster_iter->second.peaks_.insert(std::pair<UnsignedInt,UnsignedInt>(curr_scan,curr_peak));
+										cluster_iter->second.peaks_.insert(std::pair<UInt,UInt>(curr_scan,curr_peak));
 		      
 										iso_curr_scan.push_back(  mz_in_hash );
 										clusters_curr_scan.push_back(cluster_iter);
 										++curr_peak;
 		      
-										cluster_iter->second.peaks_.insert(std::pair<UnsignedInt,UnsignedInt>(curr_scan,curr_peak));
+										cluster_iter->second.peaks_.insert(std::pair<UInt,UInt>(curr_scan,curr_peak));
 										iso_curr_scan.push_back((peak_it+curr_peak)->getMZ());
 										clusters_curr_scan.push_back(cluster_iter);
 		      
@@ -449,7 +449,7 @@ namespace OpenMS
 										while (dist2nextpeak <= max_peak_distance_
 													 &&  curr_peak < (nr_peaks_in_scan-1) )
 											{
-												cluster_iter->second.peaks_.insert(std::pair<UnsignedInt,UnsignedInt>(curr_scan,curr_peak+1));				// save peak in cluster
+												cluster_iter->second.peaks_.insert(std::pair<UInt,UInt>(curr_scan,curr_peak+1));				// save peak in cluster
 												iso_curr_scan.push_back((peak_it+curr_peak+1)->getMZ());
 												clusters_curr_scan.push_back(cluster_iter);
 												// std::cout << "new enter'd: "<<(peak_it+curr_peak+1)->getMZ()<<" im while"<<std::endl;

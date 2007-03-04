@@ -189,15 +189,15 @@ namespace OpenMS
       {
         // compute total intensities of both maps for normalisation
         IntensityType total_int_model_map = 0;
-        UnsignedInt n = element_map_[MODEL]->size();
-        for (UnsignedInt i = 0; i < n; ++i)
+        UInt n = element_map_[MODEL]->size();
+        for (UInt i = 0; i < n; ++i)
         {
           total_int_model_map += (*element_map_[MODEL])[i].getIntensity();
         }
 
         IntensityType total_int_scene_map = 0;
         n = element_map_[SCENE]->size();
-        for (UnsignedInt i = 0; i < n; ++i)
+        for (UInt i = 0; i < n; ++i)
         {
           total_int_scene_map += (*element_map_[SCENE])[i].getIntensity();
         }
@@ -238,53 +238,53 @@ namespace OpenMS
     }
 
     /// Set size of shift buckets (in dimension dim)
-    void setShiftBucketSize(UnsignedInt dim, double shift_bucket_size)
+    void setShiftBucketSize(UInt dim, double shift_bucket_size)
     {
       shift_bucket_size_[dim] = shift_bucket_size;
       param_.setValue(String("transformation_space:shift_bucket_size:") + RawDataPoint2D::shortDimensionName(dim), shift_bucket_size);
     }
 
     /// Get size of shift buckets (in dimension dim)
-    double getShiftBucketSize(UnsignedInt dim) const
+    double getShiftBucketSize(UInt dim) const
     {
       return shift_bucket_size_[dim];
     }
 
     /// Set size of scaling buckets (in dimension dim)
-    void setScalingBucketSize(UnsignedInt dim, double scaling_bucket_size)
+    void setScalingBucketSize(UInt dim, double scaling_bucket_size)
     {
       scaling_bucket_size_[dim] = scaling_bucket_size;
       param_.setValue(String("transformation_space:scaling_bucket_size:") + RawDataPoint2D::shortDimensionName(dim), scaling_bucket_size);
     }
 
     /// Get size of scaling buckets (in dimension dim)
-    double getScalingBucketSize(UnsignedInt dim) const
+    double getScalingBucketSize(UInt dim) const
     {
       return scaling_bucket_size_[dim];
     }
 
     /// Set number of neighbouring shift buckets to be considered for the calculation of the final transformation (in dimension dim)
-    void setBucketWindowShift(UnsignedInt dim, UnsignedInt bucket_window_shift)
+    void setBucketWindowShift(UInt dim, UInt bucket_window_shift)
     {
       bucket_window_shift_[dim] = bucket_window_shift;
       param_.setValue(String("transformation_space:bucket_window_shift:") + RawDataPoint2D::shortDimensionName(dim), (int)bucket_window_shift);
     }
 
     /// Get number of neighbouring shift buckets to be considered for the calculation of the final transformation (in dimension dim)
-    UnsignedInt getBucketWindowShift(UnsignedInt dim) const
+    UInt getBucketWindowShift(UInt dim) const
     {
       return bucket_window_shift_[dim];
     }
 
     /// Set number of neighbouring scaling buckets to be considered for the calculation of the final transformation (in dimension dim)
-    void setBucketWindowScaling(UnsignedInt dim, UnsignedInt bucket_window_scaling)
+    void setBucketWindowScaling(UInt dim, UInt bucket_window_scaling)
     {
       bucket_window_scaling_[dim] = bucket_window_scaling;
       param_.setValue(String("transformation_space:bucket_window_scaling:") + RawDataPoint2D::shortDimensionName(dim), (int)bucket_window_scaling);
     }
 
     /// Get number of neighbouring scaling buckets to be considered for the calculation of the final transformation (in dimension dim)
-    UnsignedInt getBucketWindowScaling(UnsignedInt dim) const
+    UInt getBucketWindowScaling(UInt dim) const
     {
       return bucket_window_scaling_[dim];
     }
@@ -298,10 +298,10 @@ namespace OpenMS
       shift_bucket_size_[1] = (CoordinateType)param_.getValue("transformation_space:shift_bucket_size:MZ");
       scaling_bucket_size_[0] = (CoordinateType)param_.getValue("transformation_space:scaling_bucket_size:RT");
       scaling_bucket_size_[1] = (CoordinateType)param_.getValue("transformation_space:scaling_bucket_size:MZ");
-      bucket_window_shift_[0]  = (UnsignedInt)param_.getValue("transformation_space:bucket_window_shift:RT");
-      bucket_window_shift_[1]  = (UnsignedInt)param_.getValue("transformation_space:bucket_window_shift:MZ");
-      bucket_window_scaling_[0] = (UnsignedInt)param_.getValue("transformation_space:bucket_window_scaling:RT");
-      bucket_window_scaling_[1] = (UnsignedInt)param_.getValue("transformation_space:bucket_window_scaling:MZ");
+      bucket_window_shift_[0]  = (UInt)param_.getValue("transformation_space:bucket_window_shift:RT");
+      bucket_window_shift_[1]  = (UInt)param_.getValue("transformation_space:bucket_window_shift:MZ");
+      bucket_window_scaling_[0] = (UInt)param_.getValue("transformation_space:bucket_window_scaling:RT");
+      bucket_window_scaling_[1] = (UInt)param_.getValue("transformation_space:bucket_window_scaling:MZ");
 
       PositionType min;
       PositionType max;
@@ -345,8 +345,8 @@ namespace OpenMS
       // take only elements of the model map which have partners in the scene map
       typename PeakPointerArray::const_iterator it_first = scene_map.begin();
       typename PeakPointerArray::const_iterator it_last = it_first;
-      UnsignedInt n = model_map.size();
-      for (UnsignedInt i = 0; i < n; ++i)
+      UInt n = model_map.size();
+      for (UInt i = 0; i < n; ++i)
       {
         DoubleReal act_mz = model_map[i].getMZ();
         DoubleReal min_mz = act_mz - mz_bucket_size_;
@@ -400,7 +400,7 @@ namespace OpenMS
       V_preprocessSceneMap("diagonal shift: " << diagonal_shift);
       V_preprocessSceneMap("diagonal scaling: " << diagonal_scaling);
 
-      for ( UnsignedInt dimension = 0; dimension < 2; ++dimension)
+      for ( UInt dimension = 0; dimension < 2; ++dimension)
       {
         num_buckets_shift_[dimension] = (int)(ceil(diagonal_shift[dimension]/shift_bucket_size_[dimension]));
         num_buckets_scaling_[dimension] = (int)(ceil(diagonal_scaling[dimension]/scaling_bucket_size_[dimension]));
@@ -421,12 +421,12 @@ namespace OpenMS
     {
 #define V_hashAffineTransformations_(bla) V_PoseClusteringAffineSuperimposer(bla)
       // take each point pair in the model map
-      UnsignedInt n = model_map_red_.size();
-      for (UnsignedInt i = 0; i < n; ++i)
+      UInt n = model_map_red_.size();
+      for (UInt i = 0; i < n; ++i)
       {
         // take only the next 10 neighbours in m/z as partner in the model map
-        UnsignedInt k=((i+10)> n) ? n : (i+10);
-        for (UnsignedInt j = i+1; j < k; ++j)
+        UInt k=((i+10)> n) ? n : (i+10);
+        for (UInt j = i+1; j < k; ++j)
         {
           // avoid cross mappings (i,j) -> (k,l) (e.g. i_rt < j_rt and k_rt > l_rt)
           // and point pairs with equal retention times (e.g. i_rt == j_rt)
@@ -434,12 +434,12 @@ namespace OpenMS
           // and compute the affine transformation to all corresponding points pair in the scene map
           std::vector< const PointType* >& partners_i = scene_map_partners_[i];
           std::vector< const PointType* >& partners_j  = scene_map_partners_[j];
-          UnsignedInt m = partners_i.size();
-          UnsignedInt p = partners_j.size();
+          UInt m = partners_i.size();
+          UInt p = partners_j.size();
 
-          for (UnsignedInt k = 0; k < m; ++k)
+          for (UInt k = 0; k < m; ++k)
           {
-            for (UnsignedInt l = 0; l < p; ++l)
+            for (UInt l = 0; l < p; ++l)
             {
               PositionType diff_2 = (partners_j[l]->getRT() - partners_i[k]->getRT());
 
@@ -652,7 +652,7 @@ namespace OpenMS
           typename AffineTransformationMapType::const_iterator it = rt_hash_.find(PairType(rt_run_indices[SHIFT], rt_run_indices[SCALING]));
           if ( it != rt_hash_.end())
           {
-            for ( UnsignedInt dimension = 0; dimension < 2; ++dimension)
+            for ( UInt dimension = 0; dimension < 2; ++dimension)
             {
               contribution_position[dimension] *= rt_run_indices[dimension];
             }
@@ -716,7 +716,7 @@ namespace OpenMS
           typename AffineTransformationMapType::const_iterator it = mz_hash_.find(PairType(mz_run_indices[SHIFT], mz_run_indices[SCALING]));
           if ( it != mz_hash_.end())
           {
-            for ( UnsignedInt dimension = 0; dimension < 2; ++dimension)
+            for ( UInt dimension = 0; dimension < 2; ++dimension)
             {
               contribution_position[dimension] *= mz_run_indices[dimension];
             }
@@ -787,10 +787,10 @@ namespace OpenMS
     int num_buckets_scaling_[2];
 
     /// Number of neighbouring shift buckets to be considered computing the final transformations
-    UnsignedInt bucket_window_shift_[2];
+    UInt bucket_window_shift_[2];
 
     /// Number of neighbouring scaling buckets to be considered computing the final transformations
-    UnsignedInt bucket_window_scaling_[2];
+    UInt bucket_window_scaling_[2];
 
     /// Maximum deviation in mz of two partner points
     CoordinateType mz_bucket_size_;

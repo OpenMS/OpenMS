@@ -114,7 +114,7 @@ namespace OpenMS
 			void filterAndComputeLocalMax_(const SpectrumType & vec, 
 														 						 							std::vector<int>& localmax
 																											#ifdef DEBUG_FEATUREFINDER
-														 													,UnsignedInt currscan_index
+														 													,UInt currscan_index
 																											#endif
 														 													);
 																											
@@ -122,7 +122,7 @@ namespace OpenMS
 			TableType::iterator retrieveHashIter_(CoordinateType curr_mz, 
 																													 CoordinateType& mz_in_hash, 
 																													 const std::vector<CoordinateType>& iso_last_scan,
-																													 UnsignedInt currscan_index );
+																													 UInt currscan_index );
 	
 		  /// Sweeps through scans and detects isotopic patterns
 		  void sweep_();

@@ -151,7 +151,7 @@ namespace OpenMS
 		if (tag_ == "NumQueries")
 		{
 			id_data_.resize(((String) XMLString::transcode(chars)).trim().toInt());
-			for(UnsignedInt i = 0; i < id_data_.size(); i++)
+			for(UInt i = 0; i < id_data_.size(); i++)
 			{
 				id_data_[i].id.setDateTime(date_);
 			}

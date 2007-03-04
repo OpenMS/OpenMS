@@ -283,12 +283,12 @@ namespace OpenMS
 	  isolation_width_ = isolation_width; 
 	}
 	
-	SignedInt MassAnalyzer::getFinalMSExponent() const 
+	Int MassAnalyzer::getFinalMSExponent() const 
 	{
 	  return final_MS_exponent_; 
 	}
 	
-	void MassAnalyzer::setFinalMSExponent(SignedInt final_MS_exponent)
+	void MassAnalyzer::setFinalMSExponent(Int final_MS_exponent)
 	{
 	  final_MS_exponent_ = final_MS_exponent; 
 	}

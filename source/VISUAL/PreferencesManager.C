@@ -88,7 +88,7 @@ namespace OpenMS
 		} 
 	}
 	
-	SignedInt PreferencesManager::showPreferencesDialog()
+	Int PreferencesManager::showPreferencesDialog()
 	{
 		if (parent_!=0)
 		{
@@ -150,7 +150,7 @@ namespace OpenMS
 		prefs_.setValue(name, value);
 	}
 	
-	void PreferencesManager::setPref(const String& name,SignedInt value)
+	void PreferencesManager::setPref(const String& name,Int value)
 	{
 		prefs_.setValue(name, value);
 	}
@@ -165,11 +165,11 @@ namespace OpenMS
 		return prefs_.remove(name);
 	}
 	
-	///returns the preference entry @p name as SignedInt
-	SignedInt PreferencesManager::getPrefAsInt(const String& name) const
+	///returns the preference entry @p name as Int
+	Int PreferencesManager::getPrefAsInt(const String& name) const
 	{
 		//cout << name << ": " << (string)prefs_.getValue(name) << endl;
-		return (SignedInt)(prefs_.getValue(name));
+		return (Int)(prefs_.getValue(name));
 	}
 	
 	///returns the preference entry @p name as String

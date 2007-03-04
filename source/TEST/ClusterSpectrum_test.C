@@ -88,7 +88,7 @@ CHECK(ClusterSpectrum::ClusterSpectrum::operator=(const ClusterSpectrum& source)
 RESULT
 
 CHECK(ClusterSpectrum::getParentionCharge())
-  TEST_EQUAL(cspec->getParentionCharge(),UnsignedInt(spec2->getPrecursorPeak().getCharge()))
+  TEST_EQUAL(cspec->getParentionCharge(),UInt(spec2->getPrecursorPeak().getCharge()))
 RESULT
 
 CHECK(ClusterSpectrum::getParentMass())

@@ -55,11 +55,11 @@ CHECK((~LibSVMEncoder()))
 	delete ptr;
 RESULT
 
-CHECK((std::vector< std::pair<SignedInt, DoubleReal>* encodeCompositionVector(const String& sequence, const String& allowed_characters = "ACDEFGHIKLMNPQRSTVWY")))
+CHECK((std::vector< std::pair<Int, DoubleReal>* encodeCompositionVector(const String& sequence, const String& allowed_characters = "ACDEFGHIKLMNPQRSTVWY")))
 	String sequence = "ACCGGGTTTT";
 	String allowed_characters = "ACNGT";
-	vector< pair<SignedInt, DoubleReal> >* encoded_sequence;
-	std::vector< std::pair<SignedInt, DoubleReal> >::iterator it;
+	vector< pair<Int, DoubleReal> >* encoded_sequence;
+	std::vector< std::pair<Int, DoubleReal> >::iterator it;
 			
 	encoded_sequence = encoder.encodeCompositionVector(sequence, allowed_characters);
 	it = encoded_sequence->begin(); 
@@ -82,11 +82,11 @@ CHECK((std::vector< std::pair<SignedInt, DoubleReal>* encodeCompositionVector(co
 	delete encoded_sequence;
 RESULT
 
-CHECK((std::vector< std::vector< std::pair<SignedInt, DoubleReal>* encodeCompositionVectors(const std::vector<String>& sequences, const String& allowed_characters)))
+CHECK((std::vector< std::vector< std::pair<Int, DoubleReal>* encodeCompositionVectors(const std::vector<String>& sequences, const String& allowed_characters)))
 	vector<String> sequences;
 	String allowed_characters = "ACNGT";
-	vector< vector< pair<SignedInt, DoubleReal> > >* encoded_sequences;
-	vector< pair<SignedInt, DoubleReal> >::iterator it;
+	vector< vector< pair<Int, DoubleReal> > >* encoded_sequences;
+	vector< pair<Int, DoubleReal> >::iterator it;
 	sequences.push_back(String("ACCGGGTTTT"));			
 	sequences.push_back(String("ACCA"));			
 			
@@ -121,10 +121,10 @@ CHECK((std::vector< std::vector< std::pair<SignedInt, DoubleReal>* encodeComposi
 	delete encoded_sequences;
 RESULT
 
-CHECK((std::vector<svm_node*>* encodeLibSVMVectors( const std::vector< std::vector< std::pair<SignedInt, DoubleReal> > >& feature_vectors)))
+CHECK((std::vector<svm_node*>* encodeLibSVMVectors( const std::vector< std::vector< std::pair<Int, DoubleReal> > >& feature_vectors)))
 	vector<String> sequences;
 	String allowed_characters = "ACNGT";
-	vector<vector< pair<SignedInt, DoubleReal> > >* encoded_sequences;
+	vector<vector< pair<Int, DoubleReal> > >* encoded_sequences;
 	vector<svm_node*>* libsvm_sequences;
 	svm_node* nodes;
 	vector<svm_node*>::iterator it;
@@ -156,10 +156,10 @@ CHECK((std::vector<svm_node*>* encodeLibSVMVectors( const std::vector< std::vect
 	
 RESULT
 
-CHECK((svm_node* encodeLibSVMVector( const std::vector< std::pair<SignedInt, DoubleReal> >& feature_vector)))
+CHECK((svm_node* encodeLibSVMVector( const std::vector< std::pair<Int, DoubleReal> >& feature_vector)))
 	vector<String> sequences;
 	String allowed_characters = "ACNGT";
-	vector< pair<SignedInt, DoubleReal> >* encoded_sequence;
+	vector< pair<Int, DoubleReal> >* encoded_sequence;
 	svm_node* nodes;
 	vector<svm_node*>::iterator it;
 	
@@ -186,7 +186,7 @@ RESULT
 CHECK((svm_problem* encodeLibSVMProblem(const std::vector<svm_node*>& vectors, std::vector<DoubleReal>* labels)))
 	vector<String> sequences;
 	String allowed_characters = "ACNGT";
-	vector<vector< pair<SignedInt, DoubleReal> > >* encoded_sequences;
+	vector<vector< pair<Int, DoubleReal> > >* encoded_sequences;
 	vector<svm_node*>* libsvm_sequences;
 	svm_node* nodes;
 	vector<svm_node*>::iterator it;
@@ -227,7 +227,7 @@ CHECK((svm_problem* encodeLibSVMProblem(const std::vector<svm_node*>& vectors, s
 
 RESULT
 
-CHECK((svm_problem* encodeLibSVMProblemWithCompositionAndLengthVectors(const std::vector<String>& sequences, std::vector<DoubleReal>* labels, const String& allowed_characters, UnsignedInt maximum_sequence_length)))
+CHECK((svm_problem* encodeLibSVMProblemWithCompositionAndLengthVectors(const std::vector<String>& sequences, std::vector<DoubleReal>* labels, const String& allowed_characters, UInt maximum_sequence_length)))
 	vector<String> sequences;
 	String allowed_characters = "ACNGT";
 	svm_node* nodes;
@@ -338,12 +338,12 @@ CHECK(svm_problem* loadLibSVMProblem(const String& filename))
 
 RESULT
 
-CHECK((void encodeOligoBorders(String sequence, UnsignedInt k_mer_length, const String& allowed_characters, UnsignedInt border_length, std::vector< std::pair<SignedInt, DoubleReal> >& libsvm_vector, bool strict = false, bool length_encoding = false)))
+CHECK((void encodeOligoBorders(String sequence, UInt k_mer_length, const String& allowed_characters, UInt border_length, std::vector< std::pair<Int, DoubleReal> >& libsvm_vector, bool strict = false, bool length_encoding = false)))
 	String sequence = "ACNNGTATCA";
 	String allowed_characters = "ACNGT";
 	String output;
-	UnsignedInt border_length = 3;
-	vector< pair<SignedInt, DoubleReal> > encoded_sequence;
+	UInt border_length = 3;
+	vector< pair<Int, DoubleReal> > encoded_sequence;
 	
 	encoder.encodeOligoBorders(sequence, 1, allowed_characters, border_length, encoded_sequence);
 	encoder.libSVMVectorToString(encoder.encodeLibSVMVector(encoded_sequence), output);
@@ -353,12 +353,12 @@ CHECK((void encodeOligoBorders(String sequence, UnsignedInt k_mer_length, const 
 	TEST_EQUAL(output, "(3, 1) (3, 1) (9, 2) (11, 2) (14, 3) (22, 3) ")
 RESULT
 
-CHECK((svm_problem* encodeLibSVMProblemWithOligoBorderVectors(const std::vector<String>& sequences, std::vector<DoubleReal>* labels, UnsignedInt k_mer_length, const String& allowed_characters, UnsignedInt border_length, bool strict = false, bool length_encoding = false)))
+CHECK((svm_problem* encodeLibSVMProblemWithOligoBorderVectors(const std::vector<String>& sequences, std::vector<DoubleReal>* labels, UInt k_mer_length, const String& allowed_characters, UInt border_length, bool strict = false, bool length_encoding = false)))
 	vector<String> sequences;
 	String allowed_characters = "ACNGT";
 	String output;
-	UnsignedInt border_length = 3;
-	vector< pair<SignedInt, DoubleReal> > encoded_sequence;
+	UInt border_length = 3;
+	vector< pair<Int, DoubleReal> > encoded_sequence;
   vector<DoubleReal> labels;
   struct svm_problem* data;
 
@@ -376,7 +376,7 @@ RESULT
 CHECK((void libSVMVectorToString(svm_node* vector, String& output)))
 	vector<String> sequences;
 	String allowed_characters = "ACNGT";
-	vector< pair<SignedInt, DoubleReal> >* encoded_sequence;
+	vector< pair<Int, DoubleReal> >* encoded_sequence;
 	svm_node* nodes;
 	vector<svm_node*>::iterator it;
 	String output;	

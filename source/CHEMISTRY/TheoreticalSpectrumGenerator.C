@@ -84,9 +84,9 @@ namespace OpenMS
 	{
 	}
 
-	void TheoreticalSpectrumGenerator::getSpectrum(PeakSpectrum& spec, const AASequence& peptide, SignedInt charge)
+	void TheoreticalSpectrumGenerator::getSpectrum(PeakSpectrum& spec, const AASequence& peptide, Int charge)
 	{
-		for (SignedInt z = 1; z <= charge; ++z)
+		for (Int z = 1; z <= charge; ++z)
 		{
 			addPeaks(spec, peptide, Residue::BIon, z);
 			addPeaks(spec, peptide, Residue::YIon, z);
@@ -100,7 +100,7 @@ namespace OpenMS
 		return;
 	}
 
-	void TheoreticalSpectrumGenerator::addPeaks(PeakSpectrum& spectrum, const AASequence& peptide, Residue::ResidueType res_type, SignedInt charge)
+	void TheoreticalSpectrumGenerator::addPeaks(PeakSpectrum& spectrum, const AASequence& peptide, Residue::ResidueType res_type, Int charge)
 	{
 		HashMap<float, AASequence> ions;
 		HashMap<float, String> names;
@@ -111,7 +111,7 @@ namespace OpenMS
 		switch(res_type)
 		{
 			case Residue::AIon:
-				for (UnsignedInt i = 1; i != peptide.size(); ++i)
+				for (UInt i = 1; i != peptide.size(); ++i)
 				{
 					ion = peptide.getPrefix(i);
 					double pos = ion.getMonoWeight(Residue::AIon, charge) / charge;
@@ -122,7 +122,7 @@ namespace OpenMS
 				break;
 				
 			case Residue::BIon:
-				for (UnsignedInt i = 1; i != peptide.size(); ++i)
+				for (UInt i = 1; i != peptide.size(); ++i)
 				{
 					ion = peptide.getPrefix(i);
 					double pos = ion.getMonoWeight(Residue::BIon, charge) / charge;
@@ -133,7 +133,7 @@ namespace OpenMS
 				break;
 				
 			case Residue::CIon:
-				for (UnsignedInt i = 1; i != peptide.size(); ++i)
+				for (UInt i = 1; i != peptide.size(); ++i)
 				{
 					ion = peptide.getPrefix(i);
 					double pos = ion.getMonoWeight(Residue::CIon, charge) / charge;
@@ -144,7 +144,7 @@ namespace OpenMS
 				break;
 				
 			case Residue::XIon:
-				for (UnsignedInt i = 1; i != peptide.size(); ++i)
+				for (UInt i = 1; i != peptide.size(); ++i)
 				{
 					ion = peptide.getSuffix(i);
 					double pos = ion.getMonoWeight(Residue::XIon, charge) / charge;
@@ -155,7 +155,7 @@ namespace OpenMS
 				break;
 				
 			case Residue::YIon:
-				for (UnsignedInt i = 1; i != peptide.size(); ++i)
+				for (UInt i = 1; i != peptide.size(); ++i)
 				{
 					ion = peptide.getSuffix(i);
 					double pos = ion.getMonoWeight(Residue::YIon, charge) / charge;
@@ -166,7 +166,7 @@ namespace OpenMS
 				break;
 				
 			case Residue::ZIon:
-				for (UnsignedInt i = 1; i != peptide.size(); ++i)
+				for (UInt i = 1; i != peptide.size(); ++i)
 				{
 					ion = peptide.getSuffix(i);
 					double pos = ion.getMonoWeight(Residue::ZIon, charge) / charge;
@@ -196,7 +196,7 @@ namespace OpenMS
 			if (add_isotopes)
 			{
 				IsotopeDistribution dist = ion.getFormula(res_type, charge).getIsotopeDistribution(max_isotope);
-				UnsignedInt j(0);
+				UInt j(0);
 				for (IsotopeDistribution::ConstIterator it=dist.begin(); it!=dist.end(); ++it, ++j)
 				{
 					p_.setMZ(pos+j/charge);
@@ -221,13 +221,13 @@ namespace OpenMS
 			
 			if (add_losses)
 			{
-				HashMap<const EmpiricalFormula*, UnsignedInt> losses = ion.getNeutralLosses();
+				HashMap<const EmpiricalFormula*, UInt> losses = ion.getNeutralLosses();
 				if (!add_isotopes)
 				{
 					p_.setIntensity(intensity * rel_loss_intensity);
 				}
 				
-				for (HashMap<const EmpiricalFormula*, UnsignedInt>::ConstIterator it=losses.begin(); it!=losses.end(); ++it)
+				for (HashMap<const EmpiricalFormula*, UInt>::ConstIterator it=losses.begin(); it!=losses.end(); ++it)
 				{
 					EmpiricalFormula loss_ion = ion.getFormula(res_type, charge) - *it->first;
 					double loss_pos = loss_ion.getMonoWeight() / charge;
@@ -236,7 +236,7 @@ namespace OpenMS
 					if (add_isotopes)
 					{
 						IsotopeDistribution dist = loss_ion.getIsotopeDistribution(max_isotope);
-						UnsignedInt j(0);
+						UInt j(0);
 						for (IsotopeDistribution::ConstIterator iso=dist.begin(); iso!=dist.end(); ++iso)
 						{
 							p_.setMZ(loss_pos + j / charge);
@@ -272,7 +272,7 @@ namespace OpenMS
 	}
 
 
-	void TheoreticalSpectrumGenerator::addPrecursorPeaks(PeakSpectrum& spec, const AASequence& peptide, SignedInt charge)
+	void TheoreticalSpectrumGenerator::addPrecursorPeaks(PeakSpectrum& spec, const AASequence& peptide, Int charge)
 	{
 		bool add_metainfo((int)param_.getValue("add_metainfo"));
 		double pre_int((double)param_.getValue("precursor_intensity"));

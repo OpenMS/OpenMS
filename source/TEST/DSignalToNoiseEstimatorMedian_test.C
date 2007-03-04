@@ -166,7 +166,7 @@ CHECK(DoubleReal getWinLen() const)
   TEST_EQUAL(sne.getWinLen(), DSignalToNoiseEstimatorMedian<>::DEFAULT_WINLEN);
 RESULT
 
-CHECK(SignedInt getBinCount() const)
+CHECK(Int getBinCount() const)
   const DSignalToNoiseEstimatorMedian<1> sne;
   TEST_EQUAL(sne.getBinCount(), DSignalToNoiseEstimatorMedian<>::DEFAULT_BINCOUNT);
 RESULT
@@ -181,12 +181,12 @@ CHECK(DoubleReal getAutoMaxIntensity() const)
   TEST_EQUAL(sne.getAutoMaxIntensity(), DSignalToNoiseEstimatorMedian<>::DEFAULT_MAXINTENSITY_BYSTDEV);
 RESULT
 
-CHECK(SignedInt getAutoMode() const)
+CHECK(Int getAutoMode() const)
   const DSignalToNoiseEstimatorMedian<1> sne;
   TEST_EQUAL(sne.getAutoMode(), DSignalToNoiseEstimatorMedian<>::AUTOMAXBYSTDEV);
 RESULT
 
-CHECK(SignedInt getMinReqElements() const)
+CHECK(Int getMinReqElements() const)
   const DSignalToNoiseEstimatorMedian<1> sne;
   TEST_EQUAL(sne.getMinReqElements(), DSignalToNoiseEstimatorMedian<>::DEFAULT_MIN_REQUIRED_ELEMENTS);
 RESULT
@@ -273,7 +273,7 @@ CHECK(void setWinLen(DoubleReal win_len))
   TEST_REAL_EQUAL(sne.getWinLen(), 31);
 RESULT
 
-CHECK(void setBinCount(SignedInt bin_count))
+CHECK(void setBinCount(Int bin_count))
   DSignalToNoiseEstimatorMedian<1> sne;
   sne.setBinCount(50);
   TEST_EQUAL(sne.getBinCount(), 50);
@@ -291,13 +291,13 @@ CHECK(void setAutoMaxIntensity(DoubleReal auto_max_intensity))
   TEST_REAL_EQUAL(sne.getAutoMaxIntensity(), 3.35);
 RESULT
 
-CHECK(void setAutoMode(SignedInt auto_mode))
+CHECK(void setAutoMode(Int auto_mode))
   DSignalToNoiseEstimatorMedian<1> sne;
   sne.setAutoMode(DSignalToNoiseEstimatorMedian<>::AUTOMAXBYPERCENT);
   TEST_EQUAL(sne.getAutoMode(), DSignalToNoiseEstimatorMedian<>::AUTOMAXBYPERCENT);
 RESULT
 
-CHECK(void setMinReqElements(SignedInt min_required_elements))
+CHECK(void setMinReqElements(Int min_required_elements))
   DSignalToNoiseEstimatorMedian<1> sne;
   sne.setMinReqElements(11);
   TEST_EQUAL(sne.getMinReqElements(), 11);
@@ -338,13 +338,13 @@ CHECK(void setLastDataPoint(const PeakIterator& last))
   //TEST_EQUAL(sne.getLastDataPoint(), raw_data.end());
 RESULT
 
-CHECK(void setMZdim(SignedInt mz_dim))
+CHECK(void setMZdim(Int mz_dim))
   DSignalToNoiseEstimatorMedian<1> sne;
   sne.setMZdim(1);
   TEST_EQUAL(sne.getMZdim(), 1);
 RESULT
 
-CHECK(void setRTdim(SignedInt rt_dim))
+CHECK(void setRTdim(Int rt_dim))
   DSignalToNoiseEstimatorMedian<1> sne;
   sne.setRTdim(-1);
   TEST_EQUAL(sne.getRTdim(), -1);

@@ -81,7 +81,7 @@ namespace OpenMS
 		
 	}
 	
-	SignedInt SpectrumWidget::getActionMode() const 
+	Int SpectrumWidget::getActionMode() const 
 	{
 		return canvas_->getActionMode(); 
 	}
@@ -169,7 +169,7 @@ namespace OpenMS
 		
 	}
 
-	QImage SpectrumWidget::getImage(UnsignedInt width, UnsignedInt height)
+	QImage SpectrumWidget::getImage(UInt width, UInt height)
 	{		
 		//hide scrollbars if necessary
 		bool x_sc_on = x_scrollbar_->isVisible();

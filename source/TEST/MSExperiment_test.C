@@ -275,7 +275,7 @@ CHECK((CoordinateType getMaxRT() const))
 	TEST_REAL_EQUAL(tmp.getMaxRT(),-numeric_limits<DPosition<2>::CoordinateType>::max())
 RESULT
 
-CHECK((const std::vector<UnsignedInt>& getMSLevels() const))
+CHECK((const std::vector<UInt>& getMSLevels() const))
 	MSExperiment<RawDataPoint1D > tmp;
 	TEST_EQUAL(tmp.getMSLevels().size(),0)
 	TEST_REAL_EQUAL(tmp.getDataRange().min()[1],numeric_limits<DPosition<2>::CoordinateType>::max())
@@ -284,7 +284,7 @@ CHECK((const std::vector<UnsignedInt>& getMSLevels() const))
 	TEST_REAL_EQUAL(tmp.getDataRange().max()[0],-numeric_limits<DPosition<2>::CoordinateType>::max())
 RESULT
 
-CHECK((UnsignedInt getSize() const))
+CHECK((UInt getSize() const))
 	MSExperiment<RawDataPoint1D > tmp;
 	TEST_EQUAL(tmp.getSize(),0)
 RESULT
@@ -419,7 +419,7 @@ CHECK((virtual void updateRanges()))
 	
 RESULT
 
-CHECK((void updateRanges(SignedInt ms_level)))
+CHECK((void updateRanges(Int ms_level)))
 	MSExperiment< RawDataPoint1D > tmp;
 	MSSpectrum< RawDataPoint1D > s;
 	RawDataPoint1D p;

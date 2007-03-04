@@ -141,7 +141,7 @@ CHECK((String(long long unsigned int i)))
 	TEST_EQUAL(s,"12345678")
 RESULT
 
-CHECK((String(double d, UnsignedInt size)))
+CHECK((String(double d, UInt size)))
 	String s;
 	s = String(12345678.9123,11);
 	TEST_EQUAL(s,"12345678.91")
@@ -201,16 +201,16 @@ CHECK((bool has(Byte byte) const))
 	TEST_EQUAL(s.has('O'), false);
 RESULT
 
-CHECK((String prefix(SignedInt length) const throw(Exception::IndexUnderflow, Exception::IndexOverflow)))
-	TEST_EQUAL(s.prefix((SignedInt)4), "ACDE");
-	TEST_EQUAL(s.prefix((SignedInt)0), "");
+CHECK((String prefix(Int length) const throw(Exception::IndexUnderflow, Exception::IndexOverflow)))
+	TEST_EQUAL(s.prefix((Int)4), "ACDE");
+	TEST_EQUAL(s.prefix((Int)0), "");
 	TEST_EXCEPTION(Exception::IndexOverflow, s.prefix(s.size()+1));
 	TEST_EXCEPTION(Exception::IndexUnderflow, s.prefix(-1));
 RESULT
 
-CHECK((String suffix(SignedInt length) const throw(Exception::IndexUnderflow, Exception::IndexOverflow)))
-	TEST_EQUAL(s.suffix((SignedInt)4), "TVWY");
-	TEST_EQUAL(s.suffix((SignedInt)0), "");
+CHECK((String suffix(Int length) const throw(Exception::IndexUnderflow, Exception::IndexOverflow)))
+	TEST_EQUAL(s.suffix((Int)4), "TVWY");
+	TEST_EQUAL(s.suffix((Int)0), "");
 	TEST_EXCEPTION(Exception::IndexOverflow, s.suffix(s.size()+1));
 	TEST_EXCEPTION(Exception::IndexUnderflow, s.suffix(-1));
 RESULT
@@ -239,7 +239,7 @@ CHECK((String suffix(char delim) const throw (Exception::ElementNotFound)))
 	TEST_EXCEPTION(Exception::ElementNotFound<char>, s.suffix('Z'));
 RESULT
 
-CHECK((String substr(SignedInt start=0, SignedInt n=NPOS) const))
+CHECK((String substr(Int start=0, Int n=NPOS) const))
 	String s("abcdef");
 	//std::string functionality
 	TEST_EQUAL(s.substr(0),"abcdef");
@@ -298,7 +298,7 @@ CHECK((String& trim()))
 	TEST_EQUAL(s,"");
 RESULT
 
-CHECK((String& fillLeft(char c, UnsignedInt size)))
+CHECK((String& fillLeft(char c, UInt size)))
 	String s("TEST");
 	s.fillLeft('x',4);
 	TEST_EQUAL(s,"TEST")
@@ -308,7 +308,7 @@ CHECK((String& fillLeft(char c, UnsignedInt size)))
 	TEST_EQUAL(s,"zzyTEST")
 RESULT
 
-CHECK((String& fillRight(char c, UnsignedInt size)))
+CHECK((String& fillRight(char c, UInt size)))
 	String s("TEST");
 	s.fillRight('x',4);
 	TEST_EQUAL(s,"TEST")
@@ -362,7 +362,7 @@ CHECK((double toDouble() const throw(Exception::ConversionError)))
 	TEST_EQUAL(String(s.toDouble()),"47218.89");
 RESULT
 
-CHECK((String random(UnsignedInt length)))
+CHECK((String random(UInt length)))
 	String s;
 	String s2 = s.random(10);
 	TEST_EQUAL(s2.size(),10);

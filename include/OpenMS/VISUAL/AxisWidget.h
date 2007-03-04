@@ -61,15 +61,15 @@ namespace OpenMS
 	
 	
 			/// constructor
-			AxisWidget(UnsignedInt alignment, const char* legend="", QWidget* parent = 0);
+			AxisWidget(UInt alignment, const char* legend="", QWidget* parent = 0);
 			/// destructor
 			virtual ~AxisWidget();
 	
 			/// sets the margin on the top/right side (default is 0)
-			void setMargin(UnsignedInt size);
+			void setMargin(UInt size);
 	
 			/// returns the margin
-			UnsignedInt margin();
+			UInt margin();
 	
 			/// enable the display of the legend (default true)
 			void showLegend(bool show_legend);
@@ -124,7 +124,7 @@ namespace OpenMS
 			void setAxisBounds(double min, double max);
 			
 			/// set maximum number of tick levels (1 <= level <= 3)
-			void setTickLevel(UnsignedInt level);
+			void setTickLevel(UInt level);
 	
 		protected:
 			/// Vector that defines the position of the ticks/gridlines and the shown values on axis
@@ -135,19 +135,19 @@ namespace OpenMS
 			/// display of legend enabled or not
 			bool show_legend_;
 			/// Position of the axis (right, left, top, down as defined in ALIGNMENT_ENUM)
-			UnsignedInt alignment_;
+			UInt alignment_;
 			/// true if axis label are displayed in inverse order (left to right or bottom to top)
 			bool inverse_orientation_;
 			/// margin of axis
-			UnsignedInt margin_;
+			UInt margin_;
 			// interval of values on axis
 			double min_, max_;
 			/// text/unit on axis
 			std::string legend_;
 			/// maximum number of tick levels (default=3)
-			UnsignedInt tick_level_;
+			UInt tick_level_;
 			/// drawing thicker lines (e.g. in printing) leads to better results
-			UnsignedInt pen_width_;
+			UInt pen_width_;
 
 			/// see QWidget
 			void paintEvent( QPaintEvent * );

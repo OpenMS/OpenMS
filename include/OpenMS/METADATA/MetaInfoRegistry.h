@@ -68,36 +68,36 @@ namespace OpenMS
 				Registers a string, stores it's description and unit, and returns the corresponding index.
 				If the string is already registered, it retuns the index of the string.
 			*/
-			UnsignedInt registerName(const std::string& name, const std::string& description, const std::string& unit="");
+			UInt registerName(const std::string& name, const std::string& description, const std::string& unit="");
 	
 			///Returns the corresponding integer to a string
-			UnsignedInt getIndex(const std::string& name) const throw(Exception::InvalidValue);
+			UInt getIndex(const std::string& name) const throw(Exception::InvalidValue);
 	
 			///Returns the corresponding name to an index
-			std::string getName(UnsignedInt index) const throw(Exception::InvalidValue);
+			std::string getName(UInt index) const throw(Exception::InvalidValue);
 	
 	
 			/// retuns the description of an index
-			std::string getDescription(UnsignedInt index) const throw(Exception::InvalidValue);
+			std::string getDescription(UInt index) const throw(Exception::InvalidValue);
 			/// retuns the description of a name
 			std::string getDescription(const std::string& name) const throw(Exception::InvalidValue);
 	
 			/// retuns the unit of an index
-			std::string getUnit(UnsignedInt index) const throw(Exception::InvalidValue);
+			std::string getUnit(UInt index) const throw(Exception::InvalidValue);
 			/// retuns the unit of a name
 			std::string getUnit(const std::string& name) const throw(Exception::InvalidValue);
 
 		private:
 			/// internal counter, that stores the next index to assign
-			UnsignedInt next_index_;
+			UInt next_index_;
 			/// map from name to index
-			std::map<std::string,UnsignedInt> name_to_index_;
+			std::map<std::string,UInt> name_to_index_;
 			/// map from index to name
-			std::map<UnsignedInt,std::string> index_to_name_;
+			std::map<UInt,std::string> index_to_name_;
 			/// map from index to description
-			std::map<UnsignedInt,std::string> index_to_description_;
+			std::map<UInt,std::string> index_to_description_;
 			/// map from index to unit
-			std::map<UnsignedInt,std::string> index_to_unit_;
+			std::map<UInt,std::string> index_to_unit_;
 
 	};
 

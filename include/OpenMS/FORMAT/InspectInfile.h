@@ -98,7 +98,7 @@ namespace OpenMS
 			void addMod(const std::vector< String >& mod);
 			
 			/// Number of PTMs permitted in a single peptide. Defaults to 2.
-			const int getMods() const;
+			Int getMods() const;
 			void setMods(int mods);
 			
 			/**
@@ -142,7 +142,7 @@ namespace OpenMS
 			void setInstrument(const String& instrument);
 			
 			/// Number of tags to generate.
-			const int getTagCount() const;
+			Int getTagCount() const;
 			void setTagCount(int TagCount);
 			
 		private:

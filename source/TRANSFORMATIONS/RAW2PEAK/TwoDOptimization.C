@@ -60,7 +60,7 @@ namespace OpenMS
       int count =0;
       int counter_posf=0;
       unsigned int num_scans = OptimizationFunctions::signal2D.size()/2;
-      std::set<std::pair<UnsignedInt,UnsignedInt> >::iterator peak_iter = iso_map_iter->second.peaks_.begin();
+      std::set<std::pair<UInt,UInt> >::iterator peak_iter = iso_map_iter->second.peaks_.begin();
       gsl_vector_set_zero(f);
 
       //iterate over all scans
@@ -247,7 +247,7 @@ namespace OpenMS
       int counter_posf=0;
       unsigned int num_scans = OptimizationFunctions::signal2D.size()/2;
       std::vector<double> ov_weight(matching_peaks.size(),0);
-      std::set<std::pair<UnsignedInt,UnsignedInt> >::iterator peak_iter = iso_map_iter->second.peaks_.begin();
+      std::set<std::pair<UInt,UInt> >::iterator peak_iter = iso_map_iter->second.peaks_.begin();
 
       //iterate over all scans
       for (size_t current_scan = 0; current_scan < num_scans; ++current_scan)

@@ -118,15 +118,15 @@ namespace OpenMS
 		  void setSubsamples(const std::vector<Sample>& subsamples);
 			
 			///adds a sample treatment before the given postion (default is the end of the list). Sample treatments are ordered in the order of application to the sample. If before_position is smaller than 0, the sample treatment is appended to the list.
-			void addTreatment(const SampleTreatment& treatment,SignedInt before_position=-1) throw (Exception::IndexOverflow);
+			void addTreatment(const SampleTreatment& treatment,Int before_position=-1) throw (Exception::IndexOverflow);
 			/// returns a mutable reference to the sample treatment at the given position
-			SampleTreatment& getTreatment(UnsignedInt position) throw (Exception::IndexOverflow);
+			SampleTreatment& getTreatment(UInt position) throw (Exception::IndexOverflow);
 			/// returns a const reference to the sample treatment at the given position
-			const SampleTreatment& getTreatment(UnsignedInt position) const throw (Exception::IndexOverflow);
+			const SampleTreatment& getTreatment(UInt position) const throw (Exception::IndexOverflow);
 			/// removes the sample treatment at the given position
-			void removeTreatment(UnsignedInt position) throw (Exception::IndexOverflow);
+			void removeTreatment(UInt position) throw (Exception::IndexOverflow);
 			/// returns the number of sample treatments
-			SignedInt countTreatments() const;
+			Int countTreatments() const;
 			
     protected:
 		String name_;

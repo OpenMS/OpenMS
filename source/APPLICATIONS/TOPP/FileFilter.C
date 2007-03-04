@@ -86,7 +86,7 @@ class TOPPFileFilter
 			//ranges
 			String mz, rt, it, level, tmp;
 			double mz_l, mz_u, rt_l, rt_u, it_l, it_u;
-			vector<UnsignedInt> levels;		
+			vector<UInt> levels;		
 			//initialize ranges
 			mz_l = rt_l = it_l = -1 * numeric_limits<double>::max();
 			mz_u = rt_u = it_u = numeric_limits<double>::max();
@@ -129,7 +129,7 @@ class TOPPFileFilter
 				
 				String tmp3("MS levels: ");
 				tmp3 = tmp3 + *(levels.begin());
-				for (vector<UnsignedInt>::iterator it = ++levels.begin(); it != levels.end(); ++it)
+				for (vector<UInt>::iterator it = ++levels.begin(); it != levels.end(); ++it)
 				{
 					tmp3 = tmp3 + ", " + *it;
 				}

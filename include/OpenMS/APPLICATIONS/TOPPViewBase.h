@@ -98,7 +98,7 @@ namespace OpenMS
       	@param maximize If the window the new file was added to should be displayed maximized
       	@param use_mower If a mower should be used to suppress noise in the data
       */
-      void addDBSpectrum(UnsignedInt db_id, bool as_new_window=true, bool maps_as_2d=true, bool maximize=false, OpenDialog::Mower use_mower=OpenDialog::NO_MOWER);
+      void addDBSpectrum(UInt db_id, bool as_new_window=true, bool maps_as_2d=true, bool maximize=false, OpenDialog::Mower use_mower=OpenDialog::NO_MOWER);
 
       /// maximizes the size of the active window
       void maximizeActiveSpectrum();
@@ -186,7 +186,7 @@ namespace OpenMS
       	If time is 0 the status message is displayed until showStatusMessage is called with an empty message or a new message.
       	Otherwise the message is displayed for @p time ms.
       */
-      void showStatusMessage(std::string msg, OpenMS::UnsignedInt time);
+      void showStatusMessage(std::string msg, OpenMS::UInt time);
       /// shows m/z, intensity and rt in the status bar
       void showCursorStatus(double mz, double intensity, double rt);
 

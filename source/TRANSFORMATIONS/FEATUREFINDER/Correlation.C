@@ -89,7 +89,7 @@ namespace OpenMS
 		if ( ! data_square_sum || ! model_square_sum ) return 0;
 		double corr = cross_product_sum / sqrt(data_square_sum * model_square_sum);
 				
-		UnsignedInt df = set.size()-2;
+		UInt df = set.size()-2;
 		double t_stat = sqrt(df) * (corr / sqrt(1 - corr*corr)); 
 		
 		// t_stat follows t-distributoin with n-2 degrees of freedom
@@ -98,7 +98,7 @@ namespace OpenMS
 		return (fabs(corr));
 	}
 	
-	double Correlation::evaluate(const IndexSet& set, const BaseModel<1>& model, UnsignedInt dim)
+	double Correlation::evaluate(const IndexSet& set, const BaseModel<1>& model, UInt dim)
 	{
 		if (!traits_) throw Exception::NullPointer(__FILE__, __LINE__, __PRETTY_FUNCTION__);
 		typedef BaseModel<2>::IntensityType Intensity;

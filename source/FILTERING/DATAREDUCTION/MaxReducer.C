@@ -45,14 +45,14 @@ namespace OpenMS
   
  	void MaxReducer::applyReduction(const ExperimentType& in, ExperimentType& out)
  	{
-		UnsignedInt peaks_per_bin = (UnsignedInt)(param_.getValue("Peaksperstep"));
+		UInt peaks_per_bin = (UInt)(param_.getValue("Peaksperstep"));
  		
 		out.resize(in.size());
-		UnsignedInt out_spec = 0;
+		UInt out_spec = 0;
 
 		//variables
-	// 	UnsignedInt peaks_per_bin;
-		UnsignedInt counter;
+	// 	UInt peaks_per_bin;
+		UInt counter;
 		SpectrumType::ConstIterator begin;
 		SpectrumType::ConstIterator end;
 		SpectrumType::ConstIterator max;	

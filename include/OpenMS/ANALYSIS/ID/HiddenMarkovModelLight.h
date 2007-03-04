@@ -59,17 +59,17 @@ namespace OpenMS
 			HMMStateLight(const HMMStateLight& state);
 
 			/// detailed constructor with id and visibility
-			HMMStateLight(UnsignedInt identifier, bool hidden = true);
+			HMMStateLight(UInt identifier, bool hidden = true);
 
 			/// destructor
 			virtual ~HMMStateLight();
 			//@}
 		
 			///
-			void setIdentifier(UnsignedInt id);
+			void setIdentifier(UInt id);
 			
 			///
-			UnsignedInt getIdentifier() const;
+			UInt getIdentifier() const;
 
 			///
 			HMMStateLight& operator = (const HMMStateLight&);
@@ -102,7 +102,7 @@ namespace OpenMS
 			
 			bool hidden_;
 			
-			UnsignedInt id_;
+			UInt id_;
 
 			std::set<HMMStateLight*> pre_states_;
 
@@ -150,22 +150,22 @@ namespace OpenMS
 			double getTransitionProbability(HMMStateLight*, HMMStateLight*) const;
 
 			///
-			double getTransitionProbability(UnsignedInt id1, UnsignedInt id2) const;
+			double getTransitionProbability(UInt id1, UInt id2) const;
 
 			///
 			void setTransitionProbability(HMMStateLight* s1, HMMStateLight* s2, double prob);
 
 			///
-			void setTransitionProbability(UnsignedInt id1, UnsignedInt id2, double prob);
+			void setTransitionProbability(UInt id1, UInt id2, double prob);
 			
 			///
-			UnsignedInt getNumberOfStates() const;
+			UInt getNumberOfStates() const;
 	
 			///
 			void addNewState(HMMStateLight* state);
 
 			///
-			void addSynonymTransition(UnsignedInt name1, UnsignedInt name2, UnsignedInt synonym1, UnsignedInt synonym2);
+			void addSynonymTransition(UInt name1, UInt name2, UInt synonym1, UInt synonym2);
 
 			///
 			HiddenMarkovModelLight& operator = (const HiddenMarkovModelLight&);
@@ -180,7 +180,7 @@ namespace OpenMS
 			void setInitialTransitionProbability(HMMStateLight* state, double prob);
 
 			///
-			void setInitialTransitionProbability(UnsignedInt id, double prob);
+			void setInitialTransitionProbability(UInt id, double prob);
 
 			///
 			void clearInitialTransitionProbabilities();
@@ -189,7 +189,7 @@ namespace OpenMS
 			void setTrainingEmissionProbability(HMMStateLight* state, double prob);
 
 			///
-			void setTrainingEmissionProbability(UnsignedInt id, double prob);
+			void setTrainingEmissionProbability(UInt id, double prob);
 
 			///
 			void clearTrainingEmissionProbabilities();
@@ -198,13 +198,13 @@ namespace OpenMS
 			void enableTransition(HMMStateLight* s1, HMMStateLight* s2);
 
 			///
-			void enableTransition(UnsignedInt id1, UnsignedInt id2);
+			void enableTransition(UInt id1, UInt id2);
 
 			///
 			void disableTransition(HMMStateLight* s1, HMMStateLight* s2);
 
 			///
-			void disableTransition(UnsignedInt id1, UnsignedInt id2);
+			void disableTransition(UInt id1, UInt id2);
 
 			///
 			void disableTransitions();
@@ -225,13 +225,13 @@ namespace OpenMS
 			void estimateUntrainedTransitions();
 
 			///
-			HMMStateLight* getState(UnsignedInt id1);
+			HMMStateLight* getState(UInt id1);
 
 			///
-			const HMMStateLight* getState(UnsignedInt id1) const;
+			const HMMStateLight* getState(UInt id1) const;
 
 			///
-			void addIdToName(UnsignedInt id, const String& name);
+			void addIdToName(UInt id, const String& name);
 
 		protected:
 			
@@ -251,13 +251,13 @@ namespace OpenMS
 
 			HashMap<HMMStateLight*, HashMap<HMMStateLight*, double> > train_count_trans_;
 
-			HashMap<HMMStateLight*, HashMap<HMMStateLight*, UnsignedInt> > training_steps_count_;
+			HashMap<HMMStateLight*, HashMap<HMMStateLight*, UInt> > training_steps_count_;
 
 			HashMap<HMMStateLight*, double> forward_;
 
 			HashMap<HMMStateLight*, double> backward_;
 
-			HashMap<UnsignedInt, HMMStateLight*> id_to_state_;
+			HashMap<UInt, HMMStateLight*> id_to_state_;
 
 			HashMap<HMMStateLight*, double> train_emission_prob_;
 
@@ -267,13 +267,13 @@ namespace OpenMS
 
 			std::set<std::pair<HMMStateLight*, HMMStateLight*> > trained_trans_;
 
-			HashMap<UnsignedInt, HashMap<UnsignedInt, std::pair<UnsignedInt, UnsignedInt> > > synonym_trans_names_;
+			HashMap<UInt, HashMap<UInt, std::pair<UInt, UInt> > > synonym_trans_names_;
 
 			HashMap<HMMStateLight*, HashMap<HMMStateLight*, std::pair<HMMStateLight*, HMMStateLight*> > > synonym_trans_;
 
 			HashMap<HMMStateLight*, std::set<HMMStateLight*> > enabled_trans_;
 
-			HashMap<UnsignedInt, String> id_to_name_;
+			HashMap<UInt, String> id_to_name_;
 	};
 }
 #endif

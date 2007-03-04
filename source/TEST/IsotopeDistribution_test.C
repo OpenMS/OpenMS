@@ -54,15 +54,15 @@ using namespace std;
 CHECK(IsotopeDistribution())
 	IsotopeDistribution* ptr = 0;
 	ptr = new IsotopeDistribution();
-	UnsignedInt max_isotope = ptr->getMaxIsotope();
+	UInt max_isotope = ptr->getMaxIsotope();
   TEST_EQUAL(max_isotope, 0)
 	TEST_NOT_EQUAL(ptr, 0)
 	delete ptr;
 RESULT
 
-CHECK(IsotopeDistribution(UnsignedInt max_isotope))
+CHECK(IsotopeDistribution(UInt max_isotope))
 	IsotopeDistribution* ptr = new IsotopeDistribution(117);
-	UnsignedInt max_isotope = ptr->getMaxIsotope();
+	UInt max_isotope = ptr->getMaxIsotope();
   TEST_EQUAL(max_isotope, 117)
 	TEST_NOT_EQUAL(ptr, 0)
 	delete ptr;
@@ -73,7 +73,7 @@ IsotopeDistribution* iso = new IsotopeDistribution();
 CHECK(IsotopeDistribution(const IsotopeDistribution& isotope_distribution))
 	IsotopeDistribution copy;
 	copy = *iso;
-  for (UnsignedInt i = 0; i != copy.getContainer().size(); ++i)
+  for (UInt i = 0; i != copy.getContainer().size(); ++i)
   {
     TEST_EQUAL(copy.getContainer()[i].first, iso->getContainer()[i].first)
     TEST_EQUAL(copy.getContainer()[i].second, iso->getContainer()[i].second)
@@ -92,7 +92,7 @@ RESULT
 CHECK(IsotopeDistribution& operator = (const IsotopeDistribution& isotope_distribution))
 	IsotopeDistribution copy;
 	copy = *iso;
-	for (UnsignedInt i = 0; i != copy.getContainer().size(); ++i)
+	for (UInt i = 0; i != copy.getContainer().size(); ++i)
 	{
 		TEST_EQUAL(copy.getContainer()[i].first, iso->getContainer()[i].first)
 		TEST_EQUAL(copy.getContainer()[i].second, iso->getContainer()[i].second)
@@ -103,7 +103,7 @@ CHECK(IsotopeDistribution& operator = (const IsotopeDistribution& isotope_distri
 	TEST_EQUAL(copy.getMaxIsotope(), iso->getMaxIsotope())
 RESULT
 
-CHECK(void setMaxIsotope(UnsignedInt max_isotope))
+CHECK(void setMaxIsotope(UInt max_isotope))
 	iso->setMaxIsotope(117);
 	TEST_EQUAL(iso->getMaxIsotope(), 117)
 RESULT
@@ -117,23 +117,23 @@ CHECK(IsotopeDistribution operator + (const IsotopeDistribution& isotope_distrib
 	TEST_EQUAL(container[0].second, 1)
 RESULT
 
-CHECK(IsotopeDistribution& operator *= (UnsignedInt factor))
+CHECK(IsotopeDistribution& operator *= (UInt factor))
 	EmpiricalFormula ef("C222N190O110");
 	IsotopeDistribution id = ef.getIsotopeDistribution(11);
 	IsotopeDistribution::ContainerType container;
-	container.push_back(make_pair<UnsignedInt, double>(7084, 0.0349429));
-	container.push_back(make_pair<UnsignedInt, double>(7085, 0.109888));
-	container.push_back(make_pair<UnsignedInt, double>(7086, 0.180185));
-	container.push_back(make_pair<UnsignedInt, double>(7087, 0.204395));
-	container.push_back(make_pair<UnsignedInt, double>(7088, 0.179765));
-	container.push_back(make_pair<UnsignedInt, double>(7089, 0.130358));
-	container.push_back(make_pair<UnsignedInt, double>(7090, 0.0809864));
-	container.push_back(make_pair<UnsignedInt, double>(7091, 0.0442441));
-	container.push_back(make_pair<UnsignedInt, double>(7092, 0.0216593));
-	container.push_back(make_pair<UnsignedInt, double>(7093, 0.00963707));
-	container.push_back(make_pair<UnsignedInt, double>(7094, 0.0039406));
+	container.push_back(make_pair<UInt, double>(7084, 0.0349429));
+	container.push_back(make_pair<UInt, double>(7085, 0.109888));
+	container.push_back(make_pair<UInt, double>(7086, 0.180185));
+	container.push_back(make_pair<UInt, double>(7087, 0.204395));
+	container.push_back(make_pair<UInt, double>(7088, 0.179765));
+	container.push_back(make_pair<UInt, double>(7089, 0.130358));
+	container.push_back(make_pair<UInt, double>(7090, 0.0809864));
+	container.push_back(make_pair<UInt, double>(7091, 0.0442441));
+	container.push_back(make_pair<UInt, double>(7092, 0.0216593));
+	container.push_back(make_pair<UInt, double>(7093, 0.00963707));
+	container.push_back(make_pair<UInt, double>(7094, 0.0039406));
 
-	for (UnsignedInt i = 0; i != id.size(); ++i)
+	for (UInt i = 0; i != id.size(); ++i)
 	{
 		TEST_EQUAL(id.getContainer()[i].first, container[i].first)
 		TEST_REAL_EQUAL(id.getContainer()[i].second, container[i].second)
@@ -150,7 +150,7 @@ CHECK(ConstIterator end() const)
 
 RESULT
 
-CHECK(IsotopeDistribution operator * (UnsignedInt factor) const)
+CHECK(IsotopeDistribution operator * (UInt factor) const)
 
 RESULT
 
@@ -166,19 +166,19 @@ CHECK(Iterator end())
 
 RESULT
 
-CHECK(UnsignedInt getMaxIsotope() const)
+CHECK(UInt getMaxIsotope() const)
 
 RESULT
 
-CHECK(UnsignedInt size() const)
+CHECK(UInt size() const)
 
 RESULT
 
-CHECK(UnsignedInt getMax() const)
+CHECK(UInt getMax() const)
 
 RESULT
 
-CHECK(UnsignedInt getMin() const)
+CHECK(UInt getMin() const)
 
 RESULT
 

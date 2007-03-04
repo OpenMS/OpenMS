@@ -191,9 +191,9 @@ void GradientVisualizer::store()
        
         
 		//Store all values into the gradient object
-		for(UnsignedInt i=0; i< eluents_.size(); ++i )
+		for(UInt i=0; i< eluents_.size(); ++i )
 		{
-			for(UnsignedInt j=0; j< timepoints_.size(); ++j )
+			for(UInt j=0; j< timepoints_.size(); ++j )
 			{
 				String value((gradientdata_[count+j])->text().toStdString());
 				tempgradient_.setPercentage(eluents_[i], timepoints_[j], value.toInt()  );      
@@ -223,7 +223,7 @@ void GradientVisualizer::loadData_()
 	
 	eluents_ =    tempgradient_.getEluents();
   timepoints_ = tempgradient_.getTimepoints();
- 	UnsignedInt num_timepoints = tempgradient_.getTimepoints().size();	
+ 	UInt num_timepoints = tempgradient_.getTimepoints().size();	
 		
 		
 	//Add labels to display eluent-timepoint-percentage-triplets.	
@@ -236,7 +236,7 @@ void GradientVisualizer::loadData_()
 	//----------------------------------------------------------------------
 	//			Actual data
 	//----------------------------------------------------------------------
-	for(UnsignedInt i=0; i<timepoints_.size(); ++i )
+	for(UInt i=0; i<timepoints_.size(); ++i )
 	{
 		//Add labels to display eluent-timepoint-percentage-triplets.	
 		QLabel* label1 = new QLabel(String(timepoints_[i]).c_str(), this);
@@ -248,7 +248,7 @@ void GradientVisualizer::loadData_()
 	nextrow_++;
 	
 	//Add the percentage values for the eluents and their timepoint.	
-	for(UnsignedInt i=0; i<eluents_.size(); ++i)
+	for(UInt i=0; i<eluents_.size(); ++i)
 	{
 	
 	QLabel* eluent = new QLabel(eluents_[i].c_str(), this);
@@ -256,7 +256,7 @@ void GradientVisualizer::loadData_()
 	eluent->show();
 	gradientlabel_.push_back(eluent);
 	
-	  for(UnsignedInt j=0; j<timepoints_.size(); ++j)
+	  for(UInt j=0; j<timepoints_.size(); ++j)
 		{
 		  percentage_ = new QLineEdit(this);
 			percentage_->setText( String(  tempgradient_.getPercentage( eluents_[i], timepoints_[j]) ).c_str()  );

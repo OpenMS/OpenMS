@@ -147,7 +147,7 @@ namespace OpenMS {
   
   void Identification::assignRanks()
   {
-    UnsignedInt rank = 1;
+    UInt rank = 1;
     sort();
     for ( vector<PeptideHit>::iterator lit = peptide_hits_.begin(); lit != peptide_hits_.end(); ++lit )
     {
@@ -182,11 +182,11 @@ namespace OpenMS {
   	vector<PeptideHit>* found_hits = new vector<PeptideHit>();
   	
   	// for every peptide hit
-		for(UnsignedInt i = 0; i < peptide_hits_.size(); i++)
+		for(UInt i = 0; i < peptide_hits_.size(); i++)
 		{
 			const vector< pair<String, String> >& references = peptide_hits_[i].getProteinIndices();
 			//for every reference of the peptide hit
-			for(UnsignedInt j = 0; j < references.size(); j++)
+			for(UInt j = 0; j < references.size(); j++)
 			{
 				if (references[j].first == date_time && references[j].second == accession)
 				{

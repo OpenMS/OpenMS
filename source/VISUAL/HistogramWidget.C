@@ -44,7 +44,7 @@ namespace OpenMS
 {
 	using namespace Math;
 	
-	HistogramWidget::HistogramWidget(const Histogram<UnsignedInt,float>& distribution, QWidget* parent)
+	HistogramWidget::HistogramWidget(const Histogram<UInt,float>& distribution, QWidget* parent)
 	  : QWidget(parent),
 		dist_(distribution),
 		show_splitters_(false),
@@ -108,7 +108,7 @@ namespace OpenMS
 		if (show_splitters_ && e->button()==Qt::LeftButton)
 		{
 			//left
-			SignedInt p = margin_ + UnsignedInt(((left_splitter_-dist_.min())/(dist_.max()-dist_.min()))*(width()-2*margin_));
+			Int p = margin_ + UInt(((left_splitter_-dist_.min())/(dist_.max()-dist_.min()))*(width()-2*margin_));
 			//cout << "Mouse: " << e->x() << " p: " << p << " splitter: " << left_splitter_ << endl;
 			if (e->x()>=p && e->x()<=p+5)
 			{
@@ -116,7 +116,7 @@ namespace OpenMS
 			}
 			
 			//right
-			p = margin_ + UnsignedInt(((right_splitter_-dist_.min())/(dist_.max()-dist_.min()))*(width()-2*margin_));
+			p = margin_ + UInt(((right_splitter_-dist_.min())/(dist_.max()-dist_.min()))*(width()-2*margin_));
 			if (e->x()<=p && e->x()>=p-5)
 			{
 				moving_splitter_=2;
@@ -135,7 +135,7 @@ namespace OpenMS
 			//left
 			if (moving_splitter_==1)
 			{
-				left_splitter_ = float(SignedInt(e->x())-SignedInt(margin_))/(width()-2*margin_)*(dist_.max()-dist_.min())+dist_.min();
+				left_splitter_ = float(Int(e->x())-Int(margin_))/(width()-2*margin_)*(dist_.max()-dist_.min())+dist_.min();
 				//upper bound
 				if (left_splitter_>right_splitter_-(dist_.max()-dist_.min())/50.0)
 				{
@@ -153,7 +153,7 @@ namespace OpenMS
 			if (moving_splitter_==2)
 			{
 				
-				right_splitter_ = float(SignedInt(e->x())-SignedInt(margin_))/(width()-2*margin_+2)*(dist_.max()-dist_.min())+dist_.min();
+				right_splitter_ = float(Int(e->x())-Int(margin_))/(width()-2*margin_+2)*(dist_.max()-dist_.min())+dist_.min();
 				//upper bound
 				if (right_splitter_<left_splitter_+(dist_.max()-dist_.min())/50.0)
 				{
@@ -200,14 +200,14 @@ namespace OpenMS
 			//cout << "Right splitter: " << right_splitter_<< " dist: " << dist_.max() << endl;
 	
 			//left
-			UnsignedInt p =  UnsignedInt(((left_splitter_-dist_.min())/(dist_.max()-dist_.min()))*(width()-2*margin_))+margin_;
+			UInt p =  UInt(((left_splitter_-dist_.min())/(dist_.max()-dist_.min()))*(width()-2*margin_))+margin_;
 			//cout << "Left splitter position: " << p << endl;
 			painter.drawLine(p,margin_-8,p,height()-bottom_axis_->height());
 			painter.drawLine(p,margin_-8,p+5,margin_-8);
 			painter.drawLine(p+5,margin_-8,p,margin_-3);
 	
 			//right
-			p = UnsignedInt(((right_splitter_-dist_.min())/(dist_.max()-dist_.min()))*(width()-2*margin_))+margin_;
+			p = UInt(((right_splitter_-dist_.min())/(dist_.max()-dist_.min()))*(width()-2*margin_))+margin_;
 			painter.drawLine(p,margin_-8,p,height()-bottom_axis_->height());
 			painter.drawLine(p,margin_-8,p-5,margin_-8);
 			painter.drawLine(p-5,margin_-8,p,margin_-3);
@@ -225,25 +225,25 @@ namespace OpenMS
 	{
 		QPainter painter(&buffer_);
 		buffer_.fill(palette().window().color());
-		UnsignedInt w = buffer_.width();
-		UnsignedInt h = buffer_.height();
+		UInt w = buffer_.width();
+		UInt h = buffer_.height();
 	
 		//draw distribution	
 		QPen pen;
-		pen.setWidth(UnsignedInt(rint(float(w)/(dist_.size()*2)))); //reconfigure pen width
+		pen.setWidth(UInt(rint(float(w)/(dist_.size()*2)))); //reconfigure pen width
 		pen.setColor(QColor(100,125,175));
 		painter.setPen(pen);
 		
-		for (UnsignedInt i=0; i<dist_.size();++i)
+		for (UInt i=0; i<dist_.size();++i)
 		{
-			UnsignedInt p = UnsignedInt((float(i)/(dist_.size()-1))*(w-margin_));
-			UnsignedInt top = UnsignedInt(((dist_[i] / scaling_factor_)/(dist_.maxValue() / scaling_factor_))*(h-margin_));
+			UInt p = UInt((float(i)/(dist_.size()-1))*(w-margin_));
+			UInt top = UInt(((dist_[i] / scaling_factor_)/(dist_.maxValue() / scaling_factor_))*(h-margin_));
 			painter.drawLine(p+1,h,p+1,h-top);
 		}
 	
 		//calculate total intensity
 		float total_sum=0;
-		for (UnsignedInt i=0; i<dist_.size();++i)
+		for (UInt i=0; i<dist_.size();++i)
 		{
 			total_sum += (dist_[i] / scaling_factor_);
 		}	
@@ -253,11 +253,11 @@ namespace OpenMS
 		QPoint last_point(1,h);
 		QPoint point;
 		float int_sum=0;
-		for (UnsignedInt i=0; i<dist_.size();++i)
+		for (UInt i=0; i<dist_.size();++i)
 		{
 			int_sum += (dist_[i] / scaling_factor_);
-			point.setX(UnsignedInt((float(i)/(dist_.size()-1))*(w-margin_)));
-			point.setY(UnsignedInt((1-(int_sum / total_sum))*(h-margin_)+margin_));
+			point.setX(UInt((float(i)/(dist_.size()-1))*(w-margin_)));
+			point.setY(UInt((1-(int_sum / total_sum))*(h-margin_)+margin_));
 			painter.drawLine(last_point,point);
 			last_point=point;
 		}	

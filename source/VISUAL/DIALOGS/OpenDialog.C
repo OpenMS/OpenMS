@@ -164,7 +164,7 @@ namespace OpenMS
 				{
 					//cout <<"Name:'"<< getPref_("Preferences:DB:Name") <<"' Login:'"<<getPref_("Preferences:DB:Login")<<"' PW:'"<<prefs_.getValue("DBPassword")<<"' Host:'"<<getPref_("Preferences:DB:Host")<<"' Port:'"<<getPref_("Preferences:DB:Port")<<"'"<<endl;
 					db.connect(getPref_("Preferences:DB:Name"), getPref_("Preferences:DB:Login"),getPref_("DBPassword"),getPref_("Preferences:DB:Host"),getPrefAsInt_("Preferences:DB:Port"));
-					vector<UnsignedInt> result;
+					vector<UInt> result;
 		
 					DBSpectrumSelectorDialog dialog(db,result,this);
 					if (dialog.exec() && result.size()!=0)
@@ -173,7 +173,7 @@ namespace OpenMS
 						names_.clear();
 						name_label->setText( "" );
 						QString convert;
-						for (vector<UnsignedInt>::iterator it = result.begin();it!=result.end();++it)
+						for (vector<UInt>::iterator it = result.begin();it!=result.end();++it)
 						{
 							names_.push_back(String(*it));
 							
@@ -218,7 +218,7 @@ namespace OpenMS
 			s.setMass(4711.2);
 			s.setVolume(4711.3);
 			s.setConcentration(4711.4);
-			for(UnsignedInt i=1; i<6; ++i)
+			for(UInt i=1; i<6; ++i)
 			{
 				std::string test="Test";
 				test=test+String(i);
@@ -267,21 +267,21 @@ namespace OpenMS
 			AcquisitionInfo ai;
 			
 			a1.setNumber(178);
-			for(UnsignedInt i=1; i<6; ++i)
+			for(UInt i=1; i<6; ++i)
 			{
 				std::string test="AquisitionTest";
 				test=test+String(i);
 				a1.setMetaValue(i, test);
 			}
 			a2.setNumber(248);
-			for(UnsignedInt i=1; i<6; ++i)
+			for(UInt i=1; i<6; ++i)
 			{
 				std::string test="AquisitionTest";
 				test=test+String(i);
 				a2.setMetaValue(i, test);
 			}
 			a3.setNumber(598);
-			for(UnsignedInt i=1; i<6; ++i)
+			for(UInt i=1; i<6; ++i)
 			{
 				std::string test="AquisitionTest";
 				test=test+String(i);
@@ -332,9 +332,9 @@ namespace OpenMS
 		return prefs_.getValue(name);
 	}
 	
-	SignedInt OpenDialog::getPrefAsInt_(const String& name) const
+	Int OpenDialog::getPrefAsInt_(const String& name) const
 	{
-		return (SignedInt)(prefs_.getValue(name));
+		return (Int)(prefs_.getValue(name));
 	}
 	
 	bool OpenDialog::isViewMaps2D() const

@@ -89,7 +89,7 @@ namespace OpenMS
 
 	protected:
 		// Docu in base class
-		virtual Math::Histogram<UnsignedInt,float> createIntensityDistribution_();
+		virtual Math::Histogram<UInt,float> createIntensityDistribution_();
 	};
 }
 

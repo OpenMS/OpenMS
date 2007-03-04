@@ -146,13 +146,13 @@ namespace OpenMS
 		{
 		}
 
-    void setElementMap(UnsignedInt const index, const PointMapType& element_map)
+    void setElementMap(UInt const index, const PointMapType& element_map)
     {
       element_map_[index] = &element_map;
     }
 
     /// Get element maps by arg (non-mutable)
-    const PointMapType& getElementMap(UnsignedInt index) const
+    const PointMapType& getElementMap(UInt index) const
     {
       return *element_map_[index];
     }
@@ -170,13 +170,13 @@ namespace OpenMS
     }
 
     /// Set transformation
-    void setTransformation(UnsignedInt dim, const TransformationType& trafo)
+    void setTransformation(UInt dim, const TransformationType& trafo)
     {
       transformation_[dim] = trafo;
     }
 
     /// Get transformation
-    const TransformationType& getTransformation(UnsignedInt dim) const
+    const TransformationType& getTransformation(UInt dim) const
     {
       return transformation_[dim];
     }
@@ -211,9 +211,9 @@ namespace OpenMS
 
 
     /// Given a position element positoon this method computes the grid cell that covers this point.
-    SignedInt computeGridCellIndex_(const PositionType& pos, const Grid& grid) throw (Exception::InvalidValue)
+    Int computeGridCellIndex_(const PositionType& pos, const Grid& grid) throw (Exception::InvalidValue)
     {
-      UnsignedInt index = 0;
+      UInt index = 0;
       Grid::ConstIterator it = grid.begin();
       while ( it != grid.end() )
       {
@@ -241,7 +241,7 @@ namespace OpenMS
     std::ofstream dump_file(filename.c_str());
     dump_file << "# " << filename<< " generated " << Date::now() << std::endl;
     dump_file << "# 1:number 2:quality 3:firstRT 4:firstMZ 5:firstIT 6:firstQual 7:secondRT 8:secondMZ 9:secondIT 10:secondQual\n";
-    for ( UnsignedInt fp = 0; fp < getElementPairs().size(); ++fp )
+    for ( UInt fp = 0; fp < getElementPairs().size(); ++fp )
     {
       dump_file << fp << ' '
       << getElementPairs()[fp].getFirst().getRT() << ' '

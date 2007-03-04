@@ -38,7 +38,7 @@ namespace OpenMS
 		defaultsToParam_();
   }
 
-	NLargest::NLargest(UnsignedInt n)
+	NLargest::NLargest(UInt n)
 		: PreprocessingFunctor()
 	{
 		setName(NLargest::getProductName());

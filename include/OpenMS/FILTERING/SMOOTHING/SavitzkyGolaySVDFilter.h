@@ -136,21 +136,21 @@ namespace OpenMS
 
       
       /// Non-mutable access to the order
-      inline UnsignedInt getOrder() const
+      inline UInt getOrder() const
       {
         return order_;
       }
       
       /// Mutable access to the order
-      void setOrder(UnsignedInt order);
+      void setOrder(UInt order);
 
       /// Non-mutable access to length of the smoothing window
-      inline UnsignedInt getWindowSize() const
+      inline UInt getWindowSize() const
       {
         return frame_size_;
       }
       /// Mutable access to the length of the window
-      void setWindowSize(UnsignedInt frame_size);
+      void setWindowSize(UInt frame_size);
 
       /// Sets the parameters through a Param
       void setParam(Param param) throw (Exception::InvalidValue);
@@ -389,7 +389,7 @@ namespace OpenMS
     protected:
       /// parameter defaults
       Param defaults_;
-      /// UnsignedInt of the filter kernel (number of pre-tabulated coefficients)
+      /// UInt of the filter kernel (number of pre-tabulated coefficients)
       unsigned int frame_size_;
       /// The order of the smoothing polynomial.
       unsigned int order_;

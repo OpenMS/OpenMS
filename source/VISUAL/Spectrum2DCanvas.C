@@ -216,9 +216,9 @@ namespace OpenMS
 		}
 	}
 		
-	void Spectrum2DCanvas::calculateMarchingSquareMatrix_(UnsignedInt layer_index)
+	void Spectrum2DCanvas::calculateMarchingSquareMatrix_(UInt layer_index)
 	{
-		SignedInt steps = getPrefAsInt("Preferences:2D:MarchingSquaresSteps");
+		Int steps = getPrefAsInt("Preferences:2D:MarchingSquaresSteps");
 		const double cell_width = visible_area_.width() / steps;
 		const double cell_height = visible_area_.height() / steps;
 		const double half_width = cell_width / 2.0f;
@@ -265,7 +265,7 @@ namespace OpenMS
 	
 
 	
-	void Spectrum2DCanvas::paintDots_(UnsignedInt layer_index, QPainter& painter)
+	void Spectrum2DCanvas::paintDots_(UInt layer_index, QPainter& painter)
 	{
 #ifdef TIMING_TOPPVIEW
 		QTime timer;
@@ -310,7 +310,7 @@ namespace OpenMS
 		
 		double min_int = getLayer(layer_index).min_int;
 		double max_int = getLayer(layer_index).max_int;
-		SignedInt mode = getDotMode();
+		Int mode = getDotMode();
 		
 		painter.setPen(Qt::black);
 
@@ -361,7 +361,7 @@ namespace OpenMS
 #endif	
 	}
 
-	void Spectrum2DCanvas::paintConvexHulls_(UnsignedInt layer_index, QPainter& painter)
+	void Spectrum2DCanvas::paintConvexHulls_(UInt layer_index, QPainter& painter)
 	{
 		painter.setPen(Qt::black);
 
@@ -384,7 +384,7 @@ namespace OpenMS
 		}
 	}            
 
-	void Spectrum2DCanvas::paintFeaturePairConnections_(UnsignedInt layer_index, QPainter& painter)
+	void Spectrum2DCanvas::paintFeaturePairConnections_(UInt layer_index, QPainter& painter)
 	{
 		painter.setPen(Qt::black);
 
@@ -427,10 +427,10 @@ namespace OpenMS
 		QPolygon points;
 		
 		//iterate over all convex hulls
-		for (UnsignedInt hull=0; hull<hulls.size(); ++hull)
+		for (UInt hull=0; hull<hulls.size(); ++hull)
 		{
 			points.resize(hulls[hull].getPoints().size());
-			UnsignedInt index=0;
+			UInt index=0;
 			QPoint pos;
 			//iterate over hull points
 			for(ConvexHull2D::PointArrayType::const_iterator it=hulls[hull].getPoints().begin(); it!=hulls[hull].getPoints().end(); ++it, ++index)
@@ -443,7 +443,7 @@ namespace OpenMS
 		}
   }
 
-	void Spectrum2DCanvas::paintContours_(UnsignedInt layer_index, QPainter& painter)
+	void Spectrum2DCanvas::paintContours_(UInt layer_index, QPainter& painter)
 	{
 		if (max_values_[layer_index] == 0) return;
 		
@@ -453,9 +453,9 @@ namespace OpenMS
 		float intensity_step = max_values_[layer_index] / getPrefAsInt("Preferences:2D:Contour:Lines");
 		
 		//calculate data/pixel width and height or a cell
-		SignedInt steps = getPrefAsInt("Preferences:2D:MarchingSquaresSteps");
-		SignedInt pixel_width = width() / steps;
-		SignedInt pixel_height = height() / steps;
+		Int steps = getPrefAsInt("Preferences:2D:MarchingSquaresSteps");
+		Int pixel_width = width() / steps;
+		Int pixel_height = height() / steps;
 		float data_width = visible_area_.width() / steps;
 		float data_height = visible_area_.height() / steps;
 		
@@ -641,7 +641,7 @@ namespace OpenMS
 		}
 	}
 	
-	void Spectrum2DCanvas::paintSurface_(UnsignedInt layer_index, QPainter& painter)
+	void Spectrum2DCanvas::paintSurface_(UInt layer_index, QPainter& painter)
 	{
 		if (max_values_[layer_index] == 0) return;
 		
@@ -650,9 +650,9 @@ namespace OpenMS
 		const uint image_line_diff = reinterpret_cast<QRgb*>(image.scanLine(1)) - image_start;
 
 		//calculate data/pixel width and height or a cell
-		SignedInt steps = getPrefAsInt("Preferences:2D:MarchingSquaresSteps");
-		SignedInt pixel_width = width() / steps;
-		SignedInt pixel_height = height() / steps;
+		Int steps = getPrefAsInt("Preferences:2D:MarchingSquaresSteps");
+		Int pixel_width = width() / steps;
+		Int pixel_height = height() / steps;
 		float data_width = visible_area_.width() / steps;
 		float data_height = visible_area_.height() / steps;
 		
@@ -662,10 +662,10 @@ namespace OpenMS
 		//construct color matrix
 		vector<vector<const QColor*> > color_matrix;
 		//cout << "color matrix for layer " << layer_index << ": " << endl;
-		for (SignedInt i = 0; i <= steps; i++)
+		for (Int i = 0; i <= steps; i++)
 		{
 			color_matrix.insert(color_matrix.end(), vector<const QColor*>() );
-			for (SignedInt j = 0; j <= steps; j++)
+			for (Int j = 0; j <= steps; j++)
 			{
 				color_matrix.back().push_back(&heightColor_(marching_squares_matrices_[layer_index][i][j] / max_values_[layer_index] * overall_data_range_.max()[2], surface_gradient_));
 				//cout << 255.0 - color_matrix.back().back()->red() << " ";
@@ -876,7 +876,7 @@ namespace OpenMS
 		cont_rt[1].setMZ(rt_h);
 		cont_rt[1].setIntensity(0.0);
 		
-		UnsignedInt i = 2;
+		UInt i = 2;
 		for (map<float, float>::iterator it = mz.begin(); it != mz.end(); ++it)
 		{
 			cont_mz[i].setMZ(it->first);
@@ -910,19 +910,19 @@ namespace OpenMS
 		return new Spectrum2DCanvasPDP(this, parent);
 	}
 	
-	void Spectrum2DCanvas::setDotMode(SignedInt mode)
+	void Spectrum2DCanvas::setDotMode(Int mode)
 	{
 		prefs_.setValue("Preferences:2D:Dot:Mode", mode);
 	}
 	
-	SignedInt Spectrum2DCanvas::getDotMode()
+	Int Spectrum2DCanvas::getDotMode()
 	{
 		if (prefs_.getValue("Preferences:2D:Dot:Mode").isEmpty())
 		{
 			return 0;
 		}
 		
-		return SignedInt(prefs_.getValue("Preferences:2D:Dot:Mode"));
+		return Int(prefs_.getValue("Preferences:2D:Dot:Mode"));
 	}
 	
 	void Spectrum2DCanvas::setDotGradient(const string& gradient)
@@ -953,7 +953,7 @@ namespace OpenMS
 		}
 	}
 	
-	SignedInt Spectrum2DCanvas::finishAdding(float low_intensity_cutoff)
+	Int Spectrum2DCanvas::finishAdding(float low_intensity_cutoff)
 	{
 		current_layer_ = getLayerCount()-1;
 
@@ -1082,7 +1082,7 @@ namespace OpenMS
 		if (intensity_mode_ == IM_SNAP) 
 		{
 			double local_max  = -numeric_limits<double>::max();
-			for (UnsignedInt i=0; i<getLayerCount(); i++)
+			for (UInt i=0; i<getLayerCount(); i++)
 			{
 				if (getLayer(i).visible)
 				{
@@ -1205,7 +1205,7 @@ namespace OpenMS
 			marching_squares_matrices_.resize(getLayerCount());
 			max_values_.clear();
 			max_values_.resize(getLayerCount());
-			for (UnsignedInt i=0; i<getLayerCount(); i++)
+			for (UInt i=0; i<getLayerCount(); i++)
 			{
 				if ( getLayer(i).type == LayerData::DT_PEAK && getLayer(i).visible && (show_surface_[i] || show_contours_[i]))
 				{
@@ -1220,7 +1220,7 @@ namespace OpenMS
 			//QImage image(buffer_.width(),buffer_.height(),QImage::Format_ARGB32_Premultiplied);
 			buffer_.fill(QColor(getPrefAsString("Preferences:2D:BackgroundColor").c_str()).rgb());
 			painter.begin(&buffer_);
-			for (UnsignedInt i=0; i<getLayerCount(); i++)
+			for (UInt i=0; i<getLayerCount(); i++)
 			{
 				if (getLayer(i).visible)
 				{

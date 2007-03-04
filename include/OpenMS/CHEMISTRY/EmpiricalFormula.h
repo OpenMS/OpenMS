@@ -63,8 +63,8 @@ namespace OpenMS
 			*/
 			//@{
 			/// Iterators
-			typedef HashMap<const Element*, UnsignedInt>::ConstIterator ConstIterator;
-			typedef HashMap<const Element*, UnsignedInt>::ConstIterator const_iterator;
+			typedef HashMap<const Element*, UInt>::ConstIterator ConstIterator;
+			typedef HashMap<const Element*, UInt>::ConstIterator const_iterator;
 
 			/** @name Constructors and Destructors
 			*/
@@ -79,7 +79,7 @@ namespace OpenMS
 			EmpiricalFormula(const String& rhs) throw(Exception::ParseError);
 
 			/// constructor with element pointer and number
-			EmpiricalFormula(UnsignedInt number, const Element* element, SignedInt charge = 0);
+			EmpiricalFormula(UInt number, const Element* element, Int charge = 0);
 			
 			/// destructor
 			virtual ~EmpiricalFormula();
@@ -99,7 +99,7 @@ namespace OpenMS
 				* are described in the doc to the IsotopeDistribution class.
 				*	@param max_depth: this parameter gives the max isotope which is considered, if 0 all are reported
 				*/
-			IsotopeDistribution getIsotopeDistribution(UnsignedInt max_depth = 20) const;
+			IsotopeDistribution getIsotopeDistribution(UInt max_depth = 20) const;
 		
 			/// sets the element db, the elements are read from the given file
 			void setElementDB(const String& file_name) throw(Exception::FileNotFound, Exception::ParseError);
@@ -108,28 +108,28 @@ namespace OpenMS
 			const Element* getElement(const String& name) const;
 
 			/// returns a pointer to the element with given atomic number or 0 if none if found
-			const Element* getElement(UnsignedInt atomic_number) const;
+			const Element* getElement(UInt atomic_number) const;
 			
 			/// returns a pointer to the element db which is used with this class
 			const ElementDB* getElementDB() const;
 
 			/// returns the number of atoms with the given atomic_number
-			UnsignedInt getNumberOf(UnsignedInt atomic_number) const;
+			UInt getNumberOf(UInt atomic_number) const;
 
 			/// returns the number of atoms with the given name
-			UnsignedInt getNumberOf(const String& name) const;
+			UInt getNumberOf(const String& name) const;
 
 			/// returns the number of atoms 
-			UnsignedInt getNumberOf(const Element* element) const;
+			UInt getNumberOf(const Element* element) const;
 
 			/// returns the atoms total
-			UnsignedInt getNumberOfAtoms() const;
+			UInt getNumberOfAtoms() const;
 
 			/// returns the charge
-			SignedInt getCharge() const;
+			Int getCharge() const;
 
 			/// sets the charge
-			void setCharge(SignedInt charge);
+			void setCharge(Int charge);
 
 			/// returns the formula as a string
 			String getString() const;
@@ -185,7 +185,7 @@ namespace OpenMS
 			bool hasElement(const String& name) const;
 
 			/// returns true if the formula contains the element with the given atomic number
-			bool hasElement(UnsignedInt atomic_number) const;
+			bool hasElement(UInt atomic_number) const;
 			
 			/// returns true if the formulas contain equal elements in equal quantities
 			bool operator == (const EmpiricalFormula& rhs) const;
@@ -213,13 +213,13 @@ namespace OpenMS
 		
 		protected:
 		
-			HashMap<const Element*, UnsignedInt> formula_;
+			HashMap<const Element*, UInt> formula_;
 
-			SignedInt charge_;
+			Int charge_;
 
 			void readElementsFromFile_(const String& file_name) throw(Exception::FileNotFound, Exception::ParseError);
 
-			SignedInt parseFormula_(HashMap<const Element*, UnsignedInt>& ef,const String& formula) const throw(Exception::ParseError);
+			Int parseFormula_(HashMap<const Element*, UInt>& ef,const String& formula) const throw(Exception::ParseError);
 			
 			const ElementDB* element_db_;
 	};

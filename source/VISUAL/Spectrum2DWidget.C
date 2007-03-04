@@ -41,8 +41,8 @@ namespace OpenMS
 		: SpectrumWidget(parent)
 	{
 		setCanvas_(new Spectrum2DCanvas(this));
-		connect(canvas(), SIGNAL(sendStatusMessage(std::string, OpenMS::UnsignedInt)),
-		        this, SIGNAL(sendStatusMessage(std::string, OpenMS::UnsignedInt)));
+		connect(canvas(), SIGNAL(sendStatusMessage(std::string, OpenMS::UInt)),
+		        this, SIGNAL(sendStatusMessage(std::string, OpenMS::UInt)));
 		connect(canvas(), SIGNAL(sendCursorStatus(double,double,double)),
 		        this, SIGNAL(sendCursorStatus(double,double,double)));
 	
@@ -80,9 +80,9 @@ namespace OpenMS
 		}
 	}
 	
-	Histogram<UnsignedInt,float> Spectrum2DWidget::createIntensityDistribution_()
+	Histogram<UInt,float> Spectrum2DWidget::createIntensityDistribution_()
 	{
-		Histogram<UnsignedInt,float> tmp(canvas()->getCurrentMinIntensity(),canvas()->getCurrentMaxIntensity(),(canvas()->getCurrentMaxIntensity() - canvas()->getCurrentMinIntensity())/500.0);
+		Histogram<UInt,float> tmp(canvas()->getCurrentMinIntensity(),canvas()->getCurrentMaxIntensity(),(canvas()->getCurrentMaxIntensity() - canvas()->getCurrentMinIntensity())/500.0);
 		
 		if (canvas()->getCurrentLayer().type==LayerData::DT_PEAK)
 		{

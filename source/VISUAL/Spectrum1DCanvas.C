@@ -188,9 +188,9 @@ namespace OpenMS
 				// Peak selection
 				if (e->button() == Qt::LeftButton && selected_peak_ != currentPeakData_()[0].end())
 				{
-					if (!selected_peak_->metaValueExists(4) || (UnsignedInt)(selected_peak_->getMetaValue(4)) == PeakIcon::IT_NOICON)
+					if (!selected_peak_->metaValueExists(4) || (UInt)(selected_peak_->getMetaValue(4)) == PeakIcon::IT_NOICON)
 					{
-						selected_peak_->setMetaValue(4, SignedInt(PeakIcon::IT_ELLIPSE));
+						selected_peak_->setMetaValue(4, Int(PeakIcon::IT_ELLIPSE));
 						selected_peaks_.push_back(selected_peak_);
 	
 						ostringstream msg;
@@ -200,7 +200,7 @@ namespace OpenMS
 					}
 					else
 					{
-						selected_peak_->setMetaValue(4,SignedInt(PeakIcon::IT_NOICON));
+						selected_peak_->setMetaValue(4,Int(PeakIcon::IT_NOICON));
 						vector<SpectrumIteratorType>::iterator it_tmp = std::find(selected_peaks_.begin(), selected_peaks_.end(), selected_peak_);
 	
 						if(it_tmp != selected_peaks_.end())
@@ -521,7 +521,7 @@ namespace OpenMS
 			
 			SpectrumIteratorType vbegin, vend;
 								
-			for (UnsignedInt i=0; i< getLayerCount();++i)
+			for (UInt i=0; i< getLayerCount();++i)
 			{
 				if (getLayer(i).visible)
 				{
@@ -579,7 +579,7 @@ namespace OpenMS
 									{
 										painter.save();
 										painter.setPen(icon_pen);	
-										PeakIcon::drawIcon((PeakIcon::Icon)(UnsignedInt)(it->getMetaValue(4)),painter,QRect(end.x() - 5, end.y() - 5, 10, 10));
+										PeakIcon::drawIcon((PeakIcon::Icon)(UInt)(it->getMetaValue(4)),painter,QRect(end.x() - 5, end.y() - 5, 10, 10));
 										painter.restore();
 									}
 								}
@@ -620,7 +620,7 @@ namespace OpenMS
 									{
 										painter.save();
 										painter.setPen(icon_pen);											
-										PeakIcon::drawIcon((PeakIcon::Icon)(UnsignedInt)(it->getMetaValue(4)),painter,QRect(begin.x() - 5, begin.y() - 5, 10, 10));
+										PeakIcon::drawIcon((PeakIcon::Icon)(UInt)(it->getMetaValue(4)),painter,QRect(begin.x() - 5, begin.y() - 5, 10, 10));
 										painter.restore();
 									}
 								}
@@ -758,7 +758,7 @@ namespace OpenMS
 		return new Spectrum1DCanvasPDP(this, parent);
 	}
 
-	SignedInt Spectrum1DCanvas::finishAdding(float low_intensity_cutoff)
+	Int Spectrum1DCanvas::finishAdding(float low_intensity_cutoff)
 	{
 #ifdef DEBUG_TOPPVIEW
 		cout << "BEGIN " << __PRETTY_FUNCTION__ << endl;
@@ -818,7 +818,7 @@ namespace OpenMS
   	if (intensity_mode_ == IM_SNAP) 
 		{
 			double local_max  = -numeric_limits<double>::max();
-			for (UnsignedInt i=0; i<getLayerCount();++i)
+			for (UInt i=0; i<getLayerCount();++i)
 			{
 				SpectrumIteratorType tmp  = max_element(getPeakData_(i)[0].MZBegin(visible_area_.minX()), getPeakData_(i)[0].MZEnd(visible_area_.maxX()), PeakType::IntensityLess());
 				if (tmp->getIntensity() > local_max) 

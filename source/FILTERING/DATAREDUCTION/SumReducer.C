@@ -56,7 +56,7 @@ namespace OpenMS
 		
 		//experiment size
 		out.resize(in.size());
-		UnsignedInt out_spec = 0;
+		UInt out_spec = 0;
 		
 		for(ExperimentType::ConstIterator spec_it = in.begin(); spec_it !=in.end(); ++spec_it)
 		{

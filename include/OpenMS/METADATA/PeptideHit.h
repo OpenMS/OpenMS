@@ -55,8 +55,8 @@ namespace OpenMS
 		/// values constructor
     PeptideHit(DoubleReal score, 
     					 std::string score_type, 
-    					 UnsignedInt rank, 
-							 SignedInt charge,
+    					 UInt rank, 
+							 Int charge,
     					 String sequence);
 
 		/// copy constructor
@@ -83,13 +83,13 @@ namespace OpenMS
     const std::string& getScoreType() const;
 		
 		/// returns the rank of the peptide hit
-    UnsignedInt getRank() const;
+    UInt getRank() const;
 		
 		/// returns the peptide sequence without trailing or following spaces
   	String getSequence() const;
 		
 		/// returns the carge of the peptide
-		SignedInt getCharge() const;
+		Int getCharge() const;
 		
 		/// returns the corresponding protein indices
 		const std::vector< std::pair<String, String> >& getProteinIndices() const;
@@ -111,13 +111,13 @@ namespace OpenMS
     void setScoreType(const std::string& score_type);
 
 		/// sets the rank
-    void setRank(UnsignedInt newrank);
+    void setRank(UInt newrank);
     
 		/// sets the peptide sequence
 		void setSequence(const String& sequence);
 
 		/// sets the charge of the peptide
-		void setCharge(SignedInt charge);
+		void setCharge(Int charge);
 		
 		/**
 			@brief Adds a references to a protein hit of this peptide hit
@@ -140,11 +140,11 @@ namespace OpenMS
   protected:
     Real score_;									///< the score of the peptide hit
     std::string score_type_;    	///< the score type of the peptide hit 
-		UnsignedInt rank_;    				///< the position(rank) where the hit 
+		UInt rank_;    				///< the position(rank) where the hit 
 																	///< appeared in the hit list
 
 		/// the charge of the peptide
-		SignedInt charge_;
+		Int charge_;
 		
     String sequence_;							///< the amino acid sequence of the 
     															///< peptide hit

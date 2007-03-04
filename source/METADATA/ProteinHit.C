@@ -45,7 +45,7 @@ namespace OpenMS
 	// values constructor
   ProteinHit::ProteinHit(DoubleReal score, 
   											 std::string score_type, 
-  											 UnsignedInt rank, 
+  											 UInt rank, 
   											 String accession, 
   											 std::string accession_type, 
   											 String sequence)
@@ -145,7 +145,7 @@ namespace OpenMS
   }
 	
 	// returns the rank of the protein hit
-  UnsignedInt ProteinHit::getRank() const 
+  UInt ProteinHit::getRank() const 
   {
   	return rank_;
   }
@@ -181,7 +181,7 @@ namespace OpenMS
   }
   
 	// sets the rank
-  void ProteinHit::setRank(UnsignedInt newrank) 
+  void ProteinHit::setRank(UInt newrank) 
   {
   	rank_ = newrank;
   }

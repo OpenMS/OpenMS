@@ -46,9 +46,9 @@ START_TEST(MascotInfile, "$Id$")
 //DPeakArray (dummy for spectrum)
 DPeakArray<1, Peak1D> spec;
 Peak1D tmp;
-vector<SignedInt> charges;
+vector<Int> charges;
 charges.push_back(2);
-for (UnsignedInt i=1;i<10;i+=1)
+for (UInt i=1;i<10;i+=1)
 {
 	tmp.setPosition(DPosition<1>(i));
 	tmp.setIntensity(i * i);
@@ -139,12 +139,12 @@ CHECK((const std::string& getInstrument()))
 	TEST_EQUAL(file.getInstrument() , "Instrument_TEST")
 RESULT
 
-CHECK((void setMissedCleavages(UnsignedInt missed_cleavages)))
+CHECK((void setMissedCleavages(UInt missed_cleavages)))
 	file.setMissedCleavages(4711);
 	TEST_EQUAL(file.getMissedCleavages() , 4711)
 RESULT
 
-CHECK((UnsignedInt getMissedCleavages()))
+CHECK((UInt getMissedCleavages()))
 	TEST_EQUAL(file.getMissedCleavages() , 4711)
 RESULT
 
@@ -216,7 +216,7 @@ CHECK([EXTRA] void store(const std::string& filename, const DPeakArray<1>& spec,
 	remove("MascotInfile_test.txt");
 RESULT
 
-CHECK((void setCharges(std::vector<SignedInt>& charges)))
+CHECK((void setCharges(std::vector<Int>& charges)))
 	charges.push_back(3);
 	charges.push_back(1);
 	file.setCharges(charges);

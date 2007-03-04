@@ -138,7 +138,7 @@ namespace OpenMS
 		output.resize(list.size());
 		
 		//fill output
-		UnsignedInt i = 0;
+		UInt i = 0;
 		for ( QStringList::const_iterator it = list.constBegin(); it != list.constEnd(); ++it )
 		{
 			output[i++] = (*it).toAscii().data();

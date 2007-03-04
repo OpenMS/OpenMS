@@ -95,14 +95,14 @@ CHECK((void get(String& date) const))
 
 RESULT
 
-CHECK((void get(UnsignedInt& month, UnsignedInt& day, UnsignedInt& year, UnsignedInt& hour, UnsignedInt& minute, UnsignedInt& second) const))
+CHECK((void get(UInt& month, UInt& day, UInt& year, UInt& hour, UInt& minute, UInt& second) const))
 	DateTime date;
-	UnsignedInt month;
-	UnsignedInt day;
-	UnsignedInt year;
-	UnsignedInt hour; 
-	UnsignedInt minute; 
-	UnsignedInt second;
+	UInt month;
+	UInt day;
+	UInt year;
+	UInt hour; 
+	UInt minute; 
+	UInt second;
 	
 	date.set("2006-12-14 11:59:58");
 	date.get(month, day, year, hour, minute, second);
@@ -114,11 +114,11 @@ CHECK((void get(UnsignedInt& month, UnsignedInt& day, UnsignedInt& year, Unsigne
 	TEST_EQUAL(second, 58)		
 RESULT
 
-CHECK((void getDate(UnsignedInt& month, UnsignedInt& day, UnsignedInt& year) const))
+CHECK((void getDate(UInt& month, UInt& day, UInt& year) const))
 	DateTime date;
-	UnsignedInt month;
-	UnsignedInt day;
-	UnsignedInt year;
+	UInt month;
+	UInt day;
+	UInt year;
 	
 	date.set("2006-12-14");
 
@@ -139,11 +139,11 @@ CHECK((void getDate(String& date) const))
 
 RESULT
 
-CHECK((void getTime(UnsignedInt& hour, UnsignedInt& minute, UnsignedInt& second) const))
+CHECK((void getTime(UInt& hour, UInt& minute, UInt& second) const))
 	DateTime date;
-	UnsignedInt hour; 
-	UnsignedInt minute; 
-	UnsignedInt second;
+	UInt hour; 
+	UInt minute; 
+	UInt second;
 	
 	date.set("2006-12-14 11:59:58");
 
@@ -165,14 +165,14 @@ CHECK((void getTime(String& time) const))
 
 RESULT
 
-CHECK((void set(UnsignedInt month, UnsignedInt day, UnsignedInt year, UnsignedInt hour, UnsignedInt minute, UnsignedInt second) throw(Exception::ParseError)))
+CHECK((void set(UInt month, UInt day, UInt year, UInt hour, UInt minute, UInt second) throw(Exception::ParseError)))
 	DateTime date;
-	UnsignedInt month = 12;
-	UnsignedInt day = 14;
-	UnsignedInt year = 2006;
-	UnsignedInt hour = 11; 
-	UnsignedInt minute = 59; 
-	UnsignedInt second = 58;
+	UInt month = 12;
+	UInt day = 14;
+	UInt year = 2006;
+	UInt hour = 11; 
+	UInt minute = 59; 
+	UInt second = 58;
 	
 	date.set(month, day, year, hour, minute, second);
 	date.get(month, day, year, hour, minute, second);
@@ -195,11 +195,11 @@ CHECK((void set(const String& date) throw(Exception::ParseError)))
 	TEST_EQUAL(date_time_string, output)
 RESULT
 
-CHECK((void setDate(UnsignedInt month, UnsignedInt day, UnsignedInt year) throw(Exception::ParseError)))
+CHECK((void setDate(UInt month, UInt day, UInt year) throw(Exception::ParseError)))
 	DateTime date;
-	UnsignedInt month = 12;
-	UnsignedInt day = 14;
-	UnsignedInt year = 2006;
+	UInt month = 12;
+	UInt day = 14;
+	UInt year = 2006;
 
 	date.setDate(month, day, year);
 
@@ -212,9 +212,9 @@ RESULT
 
 CHECK((void setDate(const String& date) throw(Exception::ParseError)))
 	DateTime date;
-	UnsignedInt month;
-	UnsignedInt day;
-	UnsignedInt year;
+	UInt month;
+	UInt day;
+	UInt year;
 	
 	date.set("2006-12-14 11:59:58");
 
@@ -225,11 +225,11 @@ CHECK((void setDate(const String& date) throw(Exception::ParseError)))
 
 RESULT
 
-CHECK((void setTime(UnsignedInt hour, UnsignedInt minute, UnsignedInt second) throw(Exception::ParseError)))
+CHECK((void setTime(UInt hour, UInt minute, UInt second) throw(Exception::ParseError)))
 	DateTime date;
-	UnsignedInt hour; 
-	UnsignedInt minute; 
-	UnsignedInt second;
+	UInt hour; 
+	UInt minute; 
+	UInt second;
 	
 	date.setTime(11, 59, 58);
 
@@ -242,9 +242,9 @@ RESULT
 
 CHECK((void setTime(const String& date) throw(Exception::ParseError)))
 	DateTime date;
-	UnsignedInt hour; 
-	UnsignedInt minute; 
-	UnsignedInt second;
+	UInt hour; 
+	UInt minute; 
+	UInt second;
 	
 	date.setTime("11:59:58");
 

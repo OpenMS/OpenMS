@@ -141,7 +141,7 @@ namespace OpenMS
   {}
 
     /// Mutable access to the index of the reference map
-    void setReferenceMapIndex(UnsignedInt index) throw (Exception::InvalidValue)
+    void setReferenceMapIndex(UInt index) throw (Exception::InvalidValue)
     {
       if (index > element_map_vector_.size())
       {
@@ -153,7 +153,7 @@ namespace OpenMS
       }
     }
     /// Non-mutable access to the index of the reference map
-    UnsignedInt getReferenceMapIndex() const
+    UInt getReferenceMapIndex() const
     {
       return reference_map_index_;
     }
@@ -187,10 +187,10 @@ namespace OpenMS
     virtual String getAlignmentTree() const
     {
       String tree;
-      UnsignedInt n = element_map_vector_.size();
+      UInt n = element_map_vector_.size();
       tree = '(';
-      UnsignedInt j = 0;
-      for (UnsignedInt i = 0; i < n; ++i)
+      UInt j = 0;
+      for (UInt i = 0; i < n; ++i)
       {
         if (i != reference_map_index_)
         {
@@ -209,18 +209,18 @@ namespace OpenMS
     }
 
   protected:
-    /// SignedInt of the reference map
-    UnsignedInt reference_map_index_;
+    /// Int of the reference map
+    UInt reference_map_index_;
 
 
     /// Define the map with the most elements as the reference map
     void assignReferenceMap_()
     {
-      UnsignedInt n = element_map_vector_.size();
-      UnsignedInt ref_index = 0;
-      UnsignedInt max_number = element_map_vector_[ref_index]->size();
+      UInt n = element_map_vector_.size();
+      UInt ref_index = 0;
+      UInt max_number = element_map_vector_[ref_index]->size();
 
-      for (UnsignedInt i = 1; i < n; ++i)
+      for (UInt i = 1; i < n; ++i)
       {
         if (n > max_number)
         {
@@ -244,7 +244,7 @@ namespace OpenMS
 
 #ifdef DEBUG_ALIGNMENT
       std::ofstream out("reference_map.dat", std::ios::out);
-      for (UnsignedInt i = 0; i < cons_ref_map.size(); ++i)
+      for (UInt i = 0; i < cons_ref_map.size(); ++i)
       {
         out << cons_ref_map[i].getRT() << ' ' << cons_ref_map[i].getMZ() << '\n';
       }
@@ -273,14 +273,14 @@ namespace OpenMS
       pairwise_matcher_->setElementMap(MODEL,cons_ref_map);
 
       MapMatcherRegression<ConsensusElementType> lin_regression;
-      UnsignedInt number_maps = element_map_vector_.size();
+      UInt number_maps = element_map_vector_.size();
       transformations_.resize(number_maps);
 #ifdef DEBUG_ALIGNMENT
 
-      UnsignedInt number_alignments = 0;
+      UInt number_alignments = 0;
 #endif
 
-      for (UnsignedInt i = 0; i < number_maps; ++i)
+      for (UInt i = 0; i < number_maps; ++i)
       {
         std::cout.precision(10);
         if (i != reference_map_index_)
@@ -328,8 +328,8 @@ namespace OpenMS
           std::ofstream out(name.c_str(), std::ios::out);
 #endif
           // iterate over all Elements...
-          UnsignedInt n = map.size();
-          for (UnsignedInt j = 0; j < n; ++j)
+          UInt n = map.size();
+          for (UInt j = 0; j < n; ++j)
           {
             //             std::cout << "insert " << map[j] << std::endl;
             // Test in which cell this element is included
@@ -379,7 +379,7 @@ namespace OpenMS
           std::cout << "*** DONE!! number of consensus elements " << final_consensus_map_.size() << " ***"<< std::endl;
           ++number_alignments;
           std::ofstream out_cons("ConsensusMap",std::ios::out);
-          for (UnsignedInt i = 0; i < final_consensus_map_.size(); ++i)
+          for (UInt i = 0; i < final_consensus_map_.size(); ++i)
           {
             out_cons << final_consensus_map_[i] << std::endl;
           }
@@ -391,7 +391,7 @@ namespace OpenMS
       std::cout << "=========== Final Consensus Map =========" << std::endl;
       std::ofstream out_cons("Consensus.dat",std::ios::out);
       out_cons << "cons_rt cons_mz cons_int rt_map1 rt_transf_map1 mz_map1 mz_transf_map1 int_map1 rt_map2 rt_transf_map1 mz_map2 mz_transf_map2 int_map2 ... rt_mapn rt_transf_mapn mz_mapn mz_transf_mapn int_mapn\n";
-      for (UnsignedInt i = 0; i < final_consensus_map_.size(); ++i)
+      for (UInt i = 0; i < final_consensus_map_.size(); ++i)
       {
         ConsensusElementType* c = &(final_consensus_map_[i]);
         out_cons << c->getRT() << ' '
@@ -410,16 +410,16 @@ namespace OpenMS
       }
 
       std::ofstream out_gp("Consensus.gp",std::ios::out);
-      UnsignedInt first=5;
-      UnsignedInt second=7;
+      UInt first=5;
+      UInt second=7;
       out_gp << "plot \"reference_map.dat\" using 1:2 title \"reference_map\"  w points pointtype 20 lt 1\n"
       << "replot \"Consensus.dat\" using 1:2:($" << first << "-$1):($" << second << "-$2)  w vectors lt 3 nohead title \"pairs\"\n"
       << "replot \"Consensus.dat\" using 1:2 title \"consensus\"  w points pointtype 20 lt 2\n"
       << "replot \"Consensus.dat\" using " << first << ':' << second << " title \"\" w points pointtype 20 lt 1\n";
-      UnsignedInt n=element_map_vector_.size();
+      UInt n=element_map_vector_.size();
       first +=5;
       second +=5;
-      for (UnsignedInt i=0; i < (n-1); ++i)
+      for (UInt i=0; i < (n-1); ++i)
       {
         String map = "map_" + (String)i + ".dat";
         out_gp << "replot \"Consensus.dat\" using 1:2:($" << first << "-$1):($" << second << "-$2)  w vectors lt 3 nohead title \"\"\n"
@@ -451,7 +451,7 @@ namespace OpenMS
 #ifdef DEBUG_ALIGNMENT
 
       std::ofstream out("reference_map.dat", std::ios::out);
-      for (UnsignedInt i = 0; i < cons_ref_map.size(); ++i)
+      for (UInt i = 0; i < cons_ref_map.size(); ++i)
       {
         out << cons_ref_map[i].getRT() << ' ' << cons_ref_map[i].getMZ() << '\n';
       }
@@ -463,10 +463,10 @@ namespace OpenMS
       Param param_matcher = param_.copy("matching_algorithm:",true);
       
       // take the n-th most intensive Peaks of the reference map
-      UnsignedInt n = 50;
+      UInt n = 50;
       PeakConstReferenceMapType reference_pointer_map((element_map_vector_[reference_map_index_])->begin(), (element_map_vector_[reference_map_index_])->end());
       reference_pointer_map.sortByIntensity();
-      UnsignedInt number = (reference_pointer_map.size() > n) ? n : reference_pointer_map.size();
+      UInt number = (reference_pointer_map.size() > n) ? n : reference_pointer_map.size();
       PeakConstReferenceMapType reference_most_intense(reference_pointer_map.end() - number, reference_pointer_map.end());
 
       BasePairwiseMapMatcher< PeakConstReferenceMapType >* pairwise_matcher_;
@@ -485,14 +485,14 @@ namespace OpenMS
       pairwise_matcher_->setElementMap(MODEL,reference_most_intense);
 
       MapMatcherRegression< ElementType > lin_regression;
-      UnsignedInt number_maps = element_map_vector_.size();
+      UInt number_maps = element_map_vector_.size();
       transformations_.resize(number_maps);
 #ifdef DEBUG_ALIGNMENT
 
-      UnsignedInt number_alignments = 0;
+      UInt number_alignments = 0;
 #endif
 
-      for (UnsignedInt i = 0; i < number_maps; ++i)
+      for (UInt i = 0; i < number_maps; ++i)
       {
         std::cout.precision(10);
         if (i != reference_map_index_)
@@ -508,7 +508,7 @@ namespace OpenMS
           pairwise_matcher_->clearGrid();
           pairwise_matcher_->initGridTransformation(pointer_map);
           /* pointer_map.sortByIntensity();
-           UnsignedInt number = (pointer_map.size() > n) ? n : pointer_map.size();
+           UInt number = (pointer_map.size() > n) ? n : pointer_map.size();
            PeakConstReferenceMapType most_intense(pointer_map.end() - number, pointer_map.end());
            */
 
@@ -538,8 +538,8 @@ namespace OpenMS
           std::ofstream out(name.c_str(), std::ios::out);
 #endif
           // iterate over all Elements...
-          UnsignedInt n = map.size();
-          for (UnsignedInt j = 0; j < n; ++j)
+          UInt n = map.size();
+          for (UInt j = 0; j < n; ++j)
           {
             // Test in which cell this element is included
             // and apply the corresponding transformation
@@ -593,7 +593,7 @@ namespace OpenMS
       std::cout << "=========== Final Consensus Map =========" << std::endl;
       std::ofstream out_cons("Consensus.dat",std::ios::out);
       out_cons << "cons_rt cons_mz cons_int rt_map1 rt_transf_map1 mz_map1 mz_transf_map1 int_map1 rt_map2 rt_transf_map1 mz_map2 mz_transf_map2 int_map2 ... rt_mapn rt_transf_mapn mz_mapn mz_transf_mapn int_mapn\n";
-      for (UnsignedInt i = 0; i < final_consensus_map_.size(); ++i)
+      for (UInt i = 0; i < final_consensus_map_.size(); ++i)
       {
         ConsensusElementType* c = &(final_consensus_map_[i]);
         out_cons << c->getRT() << ' '
@@ -612,13 +612,13 @@ namespace OpenMS
       }
 
       std::ofstream out_gp("Consensus.gp",std::ios::out);
-      UnsignedInt first=5;
-      UnsignedInt second=7;
+      UInt first=5;
+      UInt second=7;
       out_gp << "plot \"reference_map.dat\" using 1:2 title \"reference_map\"  w points pointtype 20 lt 1\n"
       << "replot \"Consensus.dat\" using 1:2 title \"consensus\"  w points pointtype 20 lt 2\n"
       << "replot \"Consensus.dat\" using " << first << ':' << second << " title \"\" w points pointtype 20 lt 1\n";
       n = element_map_vector_.size();
-      for (UnsignedInt i=0; i < n; ++i)
+      for (UInt i=0; i < n; ++i)
       {
         if (i != reference_map_index_)
         {

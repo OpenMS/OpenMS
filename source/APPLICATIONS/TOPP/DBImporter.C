@@ -79,7 +79,7 @@ class TOPPDBImporter
 			
 			//varaibles
 			String db,user,password,host,in;
-			SignedInt port;
+			Int port;
 			
 			bool init = getFlag_("init");
 			

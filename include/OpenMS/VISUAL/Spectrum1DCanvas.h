@@ -80,7 +80,7 @@ namespace OpenMS
 		/// Function to mark a peak with an icon
 		inline void setPeakIcon(unsigned int index, unsigned int icon) 
 		{ 
-			currentPeakData_()[0].getContainer()[index].setMetaValue(UnsignedInt(4),SignedInt(icon)); 
+			currentPeakData_()[0].getContainer()[index].setMetaValue(UInt(4),Int(icon)); 
 		}
 
 		/**
@@ -108,7 +108,7 @@ namespace OpenMS
 		// Docu in base class
 		void removeLayer(int layer_index);
 		// Docu in base class
-		SignedInt finishAdding(float low_intensity_cutoff = 0);
+		Int finishAdding(float low_intensity_cutoff = 0);
 		
 		/**
 			@brief Sets the visible area.

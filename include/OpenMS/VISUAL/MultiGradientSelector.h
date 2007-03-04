@@ -70,7 +70,7 @@ namespace OpenMS
 			/// sets the interploation mode
 			void setInterpolationMode(MultiGradient::InterpolationMode mode);
 			/// returns the interpolaion mode
-			UnsignedInt getInterpolationMode() const;
+			UInt getInterpolationMode() const;
 		
 			public slots:
 			/// sets what interpolation mode is used
@@ -88,14 +88,14 @@ namespace OpenMS
 			MultiGradient gradient_;
 			
 			// border margin
-			SignedInt margin_;
+			Int margin_;
 			// height of the gradient area
-			SignedInt gradient_area_width_;
+			Int gradient_area_width_;
 			// heigth of the lever area
-			SignedInt lever_area_height_;
+			Int lever_area_height_;
 			
 			//position (0-100) in the vector of the selected lever
-			SignedInt selected_;
+			Int selected_;
 			//color of the selected lever
 			QColor selected_color_;  
 			

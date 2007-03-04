@@ -62,11 +62,11 @@ namespace OpenMS
 		/// The mother wavelets (one for each charge state)
 		typedef std::vector<std::vector<double> > WaveletCollection; 
 		/// The Hash entry, stores pairs of scan number and list of charge scores
-		typedef std::pair<std::list<UnsignedInt>, std::list<double> > DoubleList;
+		typedef std::pair<std::list<UInt>, std::list<double> > DoubleList;
 		/// The Hash. Maps mass bins to scans and charge scores
-		typedef hash_multimap<UnsignedInt, DoubleList> SweepLineHash;
+		typedef hash_multimap<UInt, DoubleList> SweepLineHash;
 		/// Stores the charge states examined
-		typedef std::list<UnsignedInt> ChargeVector;
+		typedef std::list<UInt> ChargeVector;
 
     /// Default constructor
     IsotopeWaveletSeeder();
@@ -146,7 +146,7 @@ namespace OpenMS
 		}
 		
 		/// Assigns scores to each charge state of a isotopic pattern
-		void identifyCharge(const std::vector<DPeakArray<1, PeakType > >& candidates, std::vector<double>* wt_thresholds, UnsignedInt scan);
+		void identifyCharge(const std::vector<DPeakArray<1, PeakType > >& candidates, std::vector<double>* wt_thresholds, UInt scan);
 		
 		/// Returns the interpolated value 
 		inline double getInterpolatedValue (double x0, double x, double x1, double f0, double f1) const throw ()
@@ -155,7 +155,7 @@ namespace OpenMS
 		}
 
 		/// Returns a bucket containing the mass/charge @p mz
-		inline std::pair<int, int> getNearBys(UnsignedInt scan, double mz, UnsignedInt start=0)
+		inline std::pair<int, int> getNearBys(UInt scan, double mz, UInt start=0)
 		{
 			for (unsigned int i=start; i<traits_->getData()[scan].getContainer().size(); ++i)
 			{
@@ -171,14 +171,14 @@ namespace OpenMS
 		
 		/// Returns the absolute mean of the intensities in @p signal
 		double getAbsMean (const DPeakArray<1, PeakType >& signal,
-																	UnsignedInt startIndex, 
-																	UnsignedInt endIndex) const;
+																	UInt startIndex, 
+																	UInt endIndex) const;
 		
 		/// Removes entries from hash occuring in less then rt_votes_cutoff_ scans
 		void filterHashByRTVotes ();
 		
 	  /// Sums the intensities in adjacent scans
-	  void sumUp_(SpectrumType& scan, UnsignedInt current_scan_index);
+	  void sumUp_(SpectrumType& scan, UInt current_scan_index);
 		
 		///Aligns the two scans and increases intensities of peaks in @p scan if those peaks are present in @p neighbour
 		void AlignAndSum_(SpectrumType& scan, const SpectrumType& neighbour);
@@ -186,21 +186,21 @@ namespace OpenMS
 		/// Does not need much explanation.
 		bool is_initialized_;
 		/// Number of isotopic peaks a wavelet should contain		
-		UnsignedInt peak_cut_off_;
+		UInt peak_cut_off_;
 		/// Length of the mother wavelet
-		UnsignedInt waveletLength_;
+		UInt waveletLength_;
 		/// Average spacing in a MS scan
 		CoordinateType avMZSpacing_;
 		/// Minium spacing
 		CoordinateType min_spacing_;
 		/// Minimum number of scans in which an isotopic pattern has to occur 
-		UnsignedInt rt_votes_cutoff_;
+		UInt rt_votes_cutoff_;
 		/// Charge states being tested
 		ChargeVector charges_;
 		//// Hash storing the detected regions
 		SweepLineHash hash_;
 		/// Stores the Gamme function
-		HashMap<UnsignedInt, double> preComputedGamma_;
+		HashMap<UInt, double> preComputedGamma_;
 		/// Iterator pointing at the next region
 		SweepLineHash::const_iterator hash_iter_;
 		/// Determines threshold for the minimum score of a peak

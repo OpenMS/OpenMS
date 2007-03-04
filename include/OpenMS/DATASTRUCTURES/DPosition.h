@@ -40,7 +40,7 @@ namespace OpenMS
 		
 		 @ingroup Datastructures		
 	*/
-	template <UnsignedInt D>
+	template <UInt D>
 	class DPosition
 	{
 	 public:
@@ -115,14 +115,14 @@ namespace OpenMS
 		//@{
 		
 		///Const accessor for the dimensions
-		CoordinateType operator [] (UnsignedInt index) const
+		CoordinateType operator [] (UInt index) const
 		{
 			OPENMS_PRECONDITION(index < D, "DPosition<D>:operator [] (Position): index overflow!");
 			return coordinate_[index];
 		}
 
 		///Accessor for the dimensions
-		CoordinateType& operator [] (UnsignedInt index)
+		CoordinateType& operator [] (UInt index)
 		{
 			OPENMS_PRECONDITION(index < D, "DPosition<D>:operator [] (Position): index overflow!");
 			return coordinate_[index];
@@ -159,7 +159,7 @@ namespace OpenMS
 		/// Equality operator
 		bool operator == (const DPosition& point) const throw()
 		{
-			for (UnsignedInt i = 0; i < D; i++)
+			for (UInt i = 0; i < D; i++)
 			{
 				if (coordinate_[i] != point.coordinate_[i]) return false;
 			}
@@ -179,7 +179,7 @@ namespace OpenMS
 		*/
 		bool operator < (const DPosition& point) const throw()
 		{
-			for (UnsignedInt i = 0; i < D; i++)
+			for (UInt i = 0; i < D; i++)
 			{
 				if (coordinate_[i] < point.coordinate_[i]) return true;
 				if (coordinate_[i] > point.coordinate_[i]) return false;
@@ -190,7 +190,7 @@ namespace OpenMS
 		/// Lexicographical greater less or equal operator.	
 		bool operator <= (const DPosition& point) const throw()
 		{
-			for (UnsignedInt i = 0; i < D; i++)
+			for (UInt i = 0; i < D; i++)
 			{
 				if (coordinate_[i] < point.coordinate_[i]) return true;
 				if (coordinate_[i] > point.coordinate_[i]) return false;
@@ -201,7 +201,7 @@ namespace OpenMS
 		/// Spatially (geometrically) less or equal operator.	 All coordinates must be "<=".
 		bool spatiallyLessEqual(const DPosition& point) const throw()
 		{
-			for (UnsignedInt i = 0; i < D; i++)
+			for (UInt i = 0; i < D; i++)
 			{
 				if (coordinate_[i] > point.coordinate_[i]) return false;
 			}
@@ -211,7 +211,7 @@ namespace OpenMS
 		/// Spatially (geometrically) greater or equal operator. All coordinates must be ">=".
 		bool spatiallyGreaterEqual(const DPosition& point) const throw()
 		{
-			for (UnsignedInt i = 0; i < D; i++)
+			for (UInt i = 0; i < D; i++)
 			{
 				if (coordinate_[i] < point.coordinate_[i]) return false;
 			}
@@ -234,14 +234,14 @@ namespace OpenMS
 		DPosition operator + (const DPosition& point) const throw()
 		{
       DPosition result(*this);
-      for (UnsignedInt i = 0; i < D; result.coordinate_[i] += point.coordinate_[i], i++);
+      for (UInt i = 0; i < D; result.coordinate_[i] += point.coordinate_[i], i++);
       return result;
 		}
 		
     /// Addition
 		DPosition & operator += (const DPosition& point) throw()
 		{
-      for (UnsignedInt i = 0; i < D; coordinate_[i] += point.coordinate_[i], i++);
+      for (UInt i = 0; i < D; coordinate_[i] += point.coordinate_[i], i++);
       return *this;
 		}
 		
@@ -249,14 +249,14 @@ namespace OpenMS
 		DPosition operator - (const DPosition& point) const throw()
 		{
       DPosition result(*this);
-      for (UnsignedInt i = 0; i < D; result.coordinate_[i] -= point.coordinate_[i], i++);
+      for (UInt i = 0; i < D; result.coordinate_[i] -= point.coordinate_[i], i++);
       return result;
 		}
 
     /// Subtraction
 		DPosition & operator -= (const DPosition& point) throw()
 		{
-      for (UnsignedInt i = 0; i < D; coordinate_[i] -= point.coordinate_[i], i++);
+      for (UInt i = 0; i < D; coordinate_[i] -= point.coordinate_[i], i++);
       return *this;
 		}
 		
@@ -264,7 +264,7 @@ namespace OpenMS
     DPosition operator - () const throw()
     {
       DPosition<D> result(*this);
-      for (UnsignedInt i=0; i < D; result.coordinate_[i] = -result.coordinate_[i] ,i++);
+      for (UInt i=0; i < D; result.coordinate_[i] = -result.coordinate_[i] ,i++);
       return result;      
     }
           
@@ -272,29 +272,29 @@ namespace OpenMS
 		CoordinateType operator * (const DPosition& point) const throw()
 		{
 			CoordinateType prod(0);
-			for (UnsignedInt i = 0; i < D; prod += (point.coordinate_[i] * coordinate_[i]), i++);
+			for (UInt i = 0; i < D; prod += (point.coordinate_[i] * coordinate_[i]), i++);
 			return prod;
 		}
 		
     /// Scalar multiplication
 		DPosition & operator *= (CoordinateType scalar) throw()
 		{
-      for (UnsignedInt i = 0; i < D; coordinate_[i] *= scalar, i++);
+      for (UInt i = 0; i < D; coordinate_[i] *= scalar, i++);
       return *this;
 		}
 
     /// Scalar division
 		DPosition & operator /= (CoordinateType scalar) throw()
 		{
-      for (UnsignedInt i = 0; i < D; coordinate_[i] /= scalar, i++);
+      for (UInt i = 0; i < D; coordinate_[i] /= scalar, i++);
       return *this;
 		}
 
 		/// Returns the number of dimensions
-		static UnsignedInt size() { return D; }
+		static UInt size() { return D; }
 				
 		/// Set all dimensions to zero
-		void clear() { for (UnsignedInt i = 0; i < D; coordinate_[i++] = (CoordinateType)0); }
+		void clear() { for (UInt i = 0; i < D; coordinate_[i++] = (CoordinateType)0); }
 		//@}
 
 		/**	@name Static default instances */
@@ -327,43 +327,43 @@ namespace OpenMS
 	};  // DPosition
 
 	/// Scalar multiplication (a bit inefficient)
-	template <UnsignedInt D>
+	template <UInt D>
 	DPosition<D> operator * (DPosition<D> position, typename DPosition<D>::CoordinateType scalar) throw()
 	{
-		for (UnsignedInt i = 0; i < D; position[i] *= scalar,++i) ;
+		for (UInt i = 0; i < D; position[i] *= scalar,++i) ;
 		return position;
 	}
 	
 	/// Scalar multiplication (a bit inefficient)
-	template <UnsignedInt D>
+	template <UInt D>
 	DPosition<D> operator * (typename DPosition<D>::CoordinateType scalar, DPosition<D> position) throw()
 	{
-		for (UnsignedInt i = 0; i < D; position[i] *= scalar,++i) ;
+		for (UInt i = 0; i < D; position[i] *= scalar,++i) ;
 		return position;
 	}
 
-	template <UnsignedInt D>
+	template <UInt D>
 	const DPosition<D> DPosition<D>::zero 
 	= DPosition<D>(0);
 
-	template <UnsignedInt D>
+	template <UInt D>
 	const DPosition<D> DPosition<D>::min 
 	= DPosition<D>(std::numeric_limits<typename DPosition<D>::CoordinateType>::min());
 
-	template <UnsignedInt D>
+	template <UInt D>
 	const DPosition<D> DPosition<D>::max 
 	= DPosition<D>(std::numeric_limits<typename DPosition<D>::CoordinateType>::max());
 
-	template <UnsignedInt D>
+	template <UInt D>
 	const DPosition<D> DPosition<D>::min_negative
 	= DPosition<D>(-std::numeric_limits<typename DPosition<D>::CoordinateType>::max());
 
 	///Print the contents to a stream.
-	template <UnsignedInt D>
+	template <UInt D>
 	std::ostream& operator << (std::ostream& os, const DPosition<D>& pos)
 	{
 		os << pos[0];
-		for (UnsignedInt i=1; i < D; ++i)
+		for (UInt i=1; i < D; ++i)
 		{
 			os << ' ' << pos[i];
 		}

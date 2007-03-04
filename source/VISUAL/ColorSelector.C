@@ -58,7 +58,7 @@ namespace OpenMS
 	
 	void ColorSelector::paintEvent(QPaintEvent* /*e*/)
 	{
-		SignedInt size=std::min(width(),height());
+		Int size=std::min(width(),height());
 		QPainter painter(this);
 		painter.setPen(QColor(0,0,0));
 		painter.drawRect(0,0,size-1,size-1);

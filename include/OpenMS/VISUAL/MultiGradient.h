@@ -68,15 +68,15 @@ namespace OpenMS
 		~MultiGradient();
 	
 		/// sets or replaces the color at position @p position
-		void insert (SignedInt position, const QColor& color);
+		void insert (Int position, const QColor& color);
 		/// removes the color at position @p position. Colors at positions 0 and 100 cannot be removed.
-		bool remove (SignedInt position);
+		bool remove (Int position);
 		/// returns if a value for position @p position exists
-		bool exists (SignedInt position);
+		bool exists (Int position);
 		/// returns the position of the @p index -th point
-		UnsignedInt position(UnsignedInt index) throw (Exception::IndexUnderflow,Exception::IndexOverflow);
+		UInt position(UInt index) throw (Exception::IndexUnderflow,Exception::IndexOverflow);
 		/// returns the color of the @p index -th point
-		const QColor& color(UnsignedInt index) throw (Exception::IndexUnderflow,Exception::IndexOverflow);
+		const QColor& color(UInt index) throw (Exception::IndexUnderflow,Exception::IndexOverflow);
 	
 	
 		/** 
@@ -95,7 +95,7 @@ namespace OpenMS
 		QColor interpolatedColorAt(double position, double min, double max) const;
 	
 		/// activates the precalculation of values (only approximate results are given)
-		void activatePrecalculationMode(double min, double max, UnsignedInt steps);
+		void activatePrecalculationMode(double min, double max, UInt steps);
 		/// deactivates the precalculation of values ( and deletes the precalculated values)
 		void deactivatePrecalculationMode();
 		/** 
@@ -108,12 +108,12 @@ namespace OpenMS
 		const QColor& precalculatedColorAt(double position) const throw (Exception::OutOfSpecifiedRange);
 	
 		///return the number of color points
-		UnsignedInt size() const;
+		UInt size() const;
 	
 		/// sets the interploation mode (default or stairs). Default is linear
-		void setInterpolationMode(UnsignedInt mode);
+		void setInterpolationMode(UInt mode);
 		/// returns the interpolaion mode
-		UnsignedInt getInterpolationMode() const;
+		UInt getInterpolationMode() const;
 	
 		///convert to string representation
 		std::string toString() const;
@@ -136,17 +136,17 @@ namespace OpenMS
 	
 		protected:
 		/// Map of index and color
-		std::map<UnsignedInt,QColor> pos_col_;
+		std::map<UInt,QColor> pos_col_;
 		/// Current interpolation mode
-		UnsignedInt interpolation_mode_;
+		UInt interpolation_mode_;
 		/// Precalculated colors
 		std::vector<QColor> pre_;
 		/// Minimum of the precalculated color range
 		double pre_min_;
-		/// UnsignedInt of the precalculated color range
+		/// UInt of the precalculated color range
 		double pre_size_;
 		/// Steps of the precalculated color range
-		SignedInt pre_steps_;
+		Int pre_steps_;
 	
 	};
 	

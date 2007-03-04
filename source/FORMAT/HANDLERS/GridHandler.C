@@ -39,8 +39,8 @@ namespace OpenMS
         mapping_(),
         param_()
     {
-      for (SignedInt i=0; i<TAG_NUM; i++) in_tag_[i] = false;
-      for (SignedInt i=0; i<MAP_NUM; i++) maps[i] = Map();
+      for (Int i=0; i<TAG_NUM; i++) in_tag_[i] = false;
+      for (Int i=0; i<MAP_NUM; i++) maps[i] = Map();
       setConstants_();
       fillMaps_();
       registerMappings_();
@@ -70,8 +70,8 @@ namespace OpenMS
       switch(tag)
       {
       case CELL:        cell_           = new GridCell(); break;
-      case FPOSITION:   current_fcoord_ = asUnsignedInt_(xercesc::XMLString::transcode(attributes.getValue(xercesc::XMLString::transcode("dim")))); break;
-      case SPOSITION:   current_scoord_ = asUnsignedInt_(xercesc::XMLString::transcode(attributes.getValue(xercesc::XMLString::transcode("dim")))); break;
+      case FPOSITION:   current_fcoord_ = asUInt_(xercesc::XMLString::transcode(attributes.getValue(xercesc::XMLString::transcode("dim")))); break;
+      case SPOSITION:   current_scoord_ = asUInt_(xercesc::XMLString::transcode(attributes.getValue(xercesc::XMLString::transcode("dim")))); break;
       case PARAM:
         if (!(attributes.getIndex(xml_name)==-1) && !(attributes.getIndex(xml_value)==-1) )
         {
@@ -103,7 +103,7 @@ namespace OpenMS
     // Docu in base class
     void GridHandler::characters(const XMLCh* const chars, unsigned int /*length*/)
     {
-      for (SignedInt i=0; i<TAG_NUM; i++)
+      for (Int i=0; i<TAG_NUM; i++)
       {
         if (in_tag_[i])
         {
@@ -152,16 +152,16 @@ namespace OpenMS
       os << "<celllist>" << std::endl;
 
       // write features with their attributes
-      for (UnsignedInt s=0; s<cgrid_->size(); s++)
+      for (UInt s=0; s<cgrid_->size(); s++)
       {
         const GridCell& cell = (*cgrid_)[s];
 
         os << "<cell nr=\"" << s << "\">" << std::endl;
         os << "\t<first>" << std::endl;
         DPosition<2> pos = cell.min();
-        UnsignedInt dpos_size = pos.size();
+        UInt dpos_size = pos.size();
 
-        for (UnsignedInt i=0; i<dpos_size;i++)
+        for (UInt i=0; i<dpos_size;i++)
         {
           os << "\t\t<fposition dim=\"" << i << "\">" << pos[i] << "</fposition>" <<  std::endl;
         }
@@ -171,7 +171,7 @@ namespace OpenMS
         pos = cell.max();
         dpos_size = pos.size();
 
-        for (UnsignedInt i=0; i<dpos_size;i++)
+        for (UInt i=0; i<dpos_size;i++)
         {
           os << "\t\t<sposition dim=\"" << i << "\">" << pos[i] << "</sposition>" <<  std::endl;
         }

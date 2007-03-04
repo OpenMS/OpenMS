@@ -370,7 +370,7 @@ namespace OpenMS
 	    {
 					SpectrumType spec;
 					
-					for (UnsignedInt i=0; i<scan2buffer_.size(); ++i)
+					for (UInt i=0; i<scan2buffer_.size(); ++i)
 	        {
 							spec = (*this)[i];
 	            if (spec.getMSLevel()!=1)
@@ -430,7 +430,7 @@ namespace OpenMS
 	    	
 	    	@param ms_level MS level to consider for m/z range , RT range and intensity range (All MS levels if negative)
 	    */
-	    void updateRanges(SignedInt ms_level)
+	    void updateRanges(Int ms_level)
 	    {
 				//clear MS levels
 	      ms_levels_.clear();
@@ -447,11 +447,11 @@ namespace OpenMS
 	      }
 	
 	      //update
-	      for (UnsignedInt i=0;i<scan2buffer_.size();++i)
+	      for (UInt i=0;i<scan2buffer_.size();++i)
 	      {
 					SpectrumType spec_temp = (*this)[i];
 					
-	        if (ms_level < SignedInt(0) || SignedInt(spec_temp.getMSLevel())==ms_level)
+	        if (ms_level < Int(0) || Int(spec_temp.getMSLevel())==ms_level)
 	        {  
 		        //ms levels
 		        if (std::find(ms_levels_.begin(),ms_levels_.end(),spec_temp.getMSLevel())==ms_levels_.end())
@@ -615,7 +615,7 @@ namespace OpenMS
 	    {
 	//         std::cout << "operator[" << n << "]" << std::endl;
 	        // test if current scan is in buffer
-	        UnsignedInt b = scan2buffer_[n];
+	        UInt b = scan2buffer_[n];
 	        if (buffer2scan_[b] != n)
 					{	
 	// 						std::cout << "scan not in buffer." << std::endl;
@@ -630,7 +630,7 @@ namespace OpenMS
 	    {
 	// 				std::cout << "operator[" << n << "] const" << std::endl;
 	        // test if current scan is in buffer
-	        UnsignedInt b = scan2buffer_[n];
+	        UInt b = scan2buffer_[n];
 	        if (buffer2scan_[b] != n)
 	        {
 	//             std::cout << "scan not in buffer." << std::endl;
@@ -645,7 +645,7 @@ namespace OpenMS
 	    {
 	//         std::cout << "at(" << n << ")" << std::endl;
 	        // test if current scan is in buffer
-	        UnsignedInt b = scan2buffer_[n];
+	        UInt b = scan2buffer_[n];
 	        if (buffer2scan_[b] != n) 
 					{
 	// 					std::cout << "scan not in buffer." << std::endl;
@@ -660,7 +660,7 @@ namespace OpenMS
 	    {
 	//         std::cout << "at(" << n << ") const" << std::endl;
 	        // test if current scan is in buffer
-	        UnsignedInt b = scan2buffer_[n];
+	        UInt b = scan2buffer_[n];
 	        if (buffer2scan_[b] != n)
 	        {    
 	// 					std::cout << "scan not in buffer." << std::endl;
@@ -671,11 +671,11 @@ namespace OpenMS
 	    }
 	
 	    /// Sets buffer size
-	    void setBufferSize(UnsignedInt sz) {  buffer_size_ = sz; }
+	    void setBufferSize(UInt sz) {  buffer_size_ = sz; }
 	    /// Returns the buffer size (mutable)
-	    UnsignedInt& getBufferSize() { return buffer_size_; }
+	    UInt& getBufferSize() { return buffer_size_; }
 	    /// Returns the buffer size (not mutable)
-	    UnsignedInt getBufferSize() const { return buffer_size_; }
+	    UInt getBufferSize() const { return buffer_size_; }
 	
 	    /// Changes the size of the internal buffer
 	    void updateBuffer()
@@ -707,10 +707,10 @@ namespace OpenMS
 	    }
 	
 	    /// Returns the number of data points in the buffer (not scans)
-	    UnsignedInt getSize() const { return nr_dpoints_; }
+	    UInt getSize() const { return nr_dpoints_; }
 	
 	    /// Same effect as updateBuffer()
-	    void resize(UnsignedInt new_size) 
+	    void resize(UInt new_size) 
 			{ 
 					exp_.resize(new_size);
 	        buffer2scan_.resize(buffer_size_);
@@ -820,16 +820,16 @@ namespace OpenMS
 	
 	protected:
 	    /// size of the internal buffer
-	    UnsignedInt buffer_size_;
+	    UInt buffer_size_;
 	
 	    /// stores the offset of each scan on the hard disk
 	    mutable std::vector<off_t> scan_location_;
 	
 	    /// number of scans added so far
-	    mutable UnsignedInt current_scan_;
+	    mutable UInt current_scan_;
 	
 	    /// index in buffer
-	    mutable UnsignedInt buffer_index_;
+	    mutable UInt buffer_index_;
 	
 	    /// Maps scan index to index in buffer
 	    mutable std::vector<size_type> scan2buffer_;
@@ -837,7 +837,7 @@ namespace OpenMS
 	    /// Maps buffer index to scan number
 	    mutable std::vector<size_type> buffer2scan_;
 	
-	    /// UnsignedInt of all scans
+	    /// UInt of all scans
 	    mutable std::vector<size_type> scan_sizes_;
 	
 	    /// Name of the temporary file to store the peak data
@@ -850,10 +850,10 @@ namespace OpenMS
 	    mutable FILE * pFile_;
 	
 	    /// The number of data points (peaks) in spectra of all MS levels (!)
-	    UnsignedInt nr_dpoints_;
+	    UInt nr_dpoints_;
 			
 			/// MS levels of the data
-	    std::vector<UnsignedInt> ms_levels_;
+	    std::vector<UInt> ms_levels_;
 			
 	    /// reads a scan from the temp file and stores it in the buffer
 	    void storeInBuffer_(const size_type& n)
@@ -984,7 +984,7 @@ namespace OpenMS
 	    void writeScan_(const size_type& index, const SpectrumType& spec) const
 	    {
 	        CoordinateType rt  = spec.getRetentionTime();
-					UnsignedInt  mslvl = spec.getMSLevel();
+					UInt  mslvl = spec.getMSLevel();
 	
 	        // test if this scan was already written and store its offset
 	        if (index >= scan_sizes_.size() )
@@ -1025,7 +1025,7 @@ namespace OpenMS
 						throw Exception::IndexOverflow(__FILE__, __LINE__,"MSExperimentExtern::readScan_()",1,sizeof(off_t));
 					}			
 					
-					for (UnsignedInt i = 0; i < spec.getContainer().size();++i)
+					for (UInt i = 0; i < spec.getContainer().size();++i)
 	        {
 							PeakType p = spec.getContainer()[i];
 							if ( fwrite(&p,sizeof(p),1,pFile_) != 1 )
@@ -1050,10 +1050,10 @@ namespace OpenMS
 	        
 	        // read retention time
 	        CoordinateType rt = 0;
-					UnsignedInt mslvl = 0;
+					UInt mslvl = 0;
 	        fread(&rt,sizeof(CoordinateType),1,pFile_);
 		//			std::cout << "Reading rt: " << rt << std::endl;
-					fread(&mslvl,sizeof(UnsignedInt),1,pFile_);
+					fread(&mslvl,sizeof(UInt),1,pFile_);
 		//			std::cout << "Reading ms level: " << mslvl << std::endl;
 		
 	        spec.setRetentionTime(rt);

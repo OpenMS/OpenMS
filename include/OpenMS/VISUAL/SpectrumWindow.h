@@ -85,7 +85,7 @@ namespace OpenMS
 			
 		signals:
 			/// Display a status message. See TOPPViewBase::showStatusMessage .
-			void sendStatusMessage(std::string,OpenMS::UnsignedInt);
+			void sendStatusMessage(std::string,OpenMS::UInt);
 			/// Display coordinates (mz, rt, intensity)
 			void sendCursorStatus(double mz=-1.0, double intens=-1.0, double rt=-1.0);
 		  ///signals that draw or display mode changed (e.g. used to update the tool bar)
@@ -97,7 +97,7 @@ namespace OpenMS
 			
 		public slots:
 			/// Displays a status message. See TOPPViewBase::showStatusMessage .
-			void showStatusMessage(std::string,OpenMS::UnsignedInt);
+			void showStatusMessage(std::string,OpenMS::UInt);
 			/// Displays coordinates (mz, rt, intensity)
 			void showCursorStatus(double mz, double intens, double rt);
 			/// Emits the modesChanged signal

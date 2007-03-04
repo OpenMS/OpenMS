@@ -47,7 +47,7 @@ namespace OpenMS
 		
 		public:
 			/// Constructor
-			HistogramDialog(const Math::Histogram<UnsignedInt,float>& distribution, QWidget* parent=0);
+			HistogramDialog(const Math::Histogram<UInt,float>& distribution, QWidget* parent=0);
 			/// Destructor
 			~HistogramDialog();
 			

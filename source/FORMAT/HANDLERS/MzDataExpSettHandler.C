@@ -66,7 +66,7 @@ namespace OpenMS
   void MzDataExpSettHandler::characters(const XMLCh* const chars, unsigned int /*length*/)
   {
 		// find the tag that the parser is in right now
- 		for (UnsignedInt i=0; i<is_parser_in_tag_.size(); i++)
+ 		for (UInt i=0; i<is_parser_in_tag_.size(); i++)
 			if (is_parser_in_tag_[i]){
 				switch(i) {
 					// Do something with the characters depending on the tag
@@ -254,7 +254,7 @@ namespace OpenMS
 			case TOFLENGTH:   analyzer_->setTOFTotalPathLength( asFloat_(XMLString::transcode(value)) ); break;
 			case ISOWIDTH:    analyzer_->setIsolationWidth( asFloat_(XMLString::transcode(value)) ); break;
 			case MAGSTRENGTH: analyzer_->setMagneticFieldStrength( asFloat_(XMLString::transcode(value)) ); break;
-			case FINALMSEXP:	analyzer_->setFinalMSExponent( asSignedInt_(XMLString::transcode(value)) ); break;
+			case FINALMSEXP:	analyzer_->setFinalMSExponent( asInt_(XMLString::transcode(value)) ); break;
 			case RESMETHOD:
 				analyzer_->setResolutionMethod( (MA::ResolutionMethod)str2enum_(RESMETHODMAP,XMLString::transcode(value)));
 				break;
@@ -348,7 +348,7 @@ namespace OpenMS
 				os << "\t\t\t</sourceFile>\n";
 			}
 
-			for (UnsignedInt i=0; i < cexp_->getContacts().size(); ++i)
+			for (UInt i=0; i < cexp_->getContacts().size(); ++i)
 			{
 				os << "\t\t\t<contact>\n"
 					 << "\t\t\t\t<name>" << cexp_->getContacts()[i].getFirstName() << " " << cexp_->getContacts()[i].getLastName() << "</name>\n"
@@ -370,7 +370,7 @@ namespace OpenMS
 
 			os << "\t\t\t</source>\n"
 				 << "\t\t\t<analyzerList count=\"" << inst.getMassAnalyzers().size() << "\">\n";
-			for (UnsignedInt i=0; i<inst.getMassAnalyzers().size(); ++i)
+			for (UInt i=0; i<inst.getMassAnalyzers().size(); ++i)
 			{
 				os << "\t\t\t\t<analyzer>\n";
 				const MassAnalyzer& ana = inst.getMassAnalyzers()[i];

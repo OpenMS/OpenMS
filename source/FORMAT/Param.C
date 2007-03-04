@@ -69,7 +69,7 @@ namespace OpenMS
 	
 	
 	// get/set the values
-	void Param::setValue(const string& key, SignedInt value)
+	void Param::setValue(const string& key, Int value)
 	{
 		values_[key] = value;
 	}
@@ -223,7 +223,7 @@ namespace OpenMS
 	void Param::store(const string& filename) const throw (Exception::UnableToCreateFile)
 	{
 		string up, down ,key, key_without_prefix, new_prefix ,type, prefix = "";
-		UnsignedInt common, level=1;
+		UInt common, level=1;
 		
 		ofstream os;
 		os.open (filename.c_str(), ofstream::out);
@@ -251,7 +251,7 @@ namespace OpenMS
 			} 
 			//common prefix
 			common=0;
-			for (UnsignedInt i=0;i<min(key.size(),prefix.size());++i)
+			for (UInt i=0;i<min(key.size(),prefix.size());++i)
 			{
 				if (prefix[i]!=key[i])
 				{
@@ -271,7 +271,7 @@ namespace OpenMS
 			if (down!="")
 			{
 //					cout << "  <-  : "<<down<<endl;
-				for (UnsignedInt i = 0; i < down.size();++i)
+				for (UInt i = 0; i < down.size();++i)
 				{
 					if (down[i]==':')
 					{
@@ -290,7 +290,7 @@ namespace OpenMS
 //					cout << "  ->  : "<<up<<endl;
 				while (up != "")
 				{
-					UnsignedInt pos = up.find(":");
+					UInt pos = up.find(":");
 					string tmp = string (2*level,' ');
 					os << tmp.c_str();
 					tmp = "<NODE name=\""+up.substr(0,pos)+"\" >\n";
@@ -333,7 +333,7 @@ namespace OpenMS
 		if (down!="")
 		{
 //				cout << "  <-  : "<<down<<endl;
-			for (UnsignedInt i = 0; i < down.size();++i)
+			for (UInt i = 0; i < down.size();++i)
 			{
 				if (down[i]==':')
 				{
@@ -520,7 +520,7 @@ namespace OpenMS
 		return os;
 	}
 
-	UnsignedInt Param::size() const
+	UInt Param::size() const
 	{
 		return values_.size();
 	}

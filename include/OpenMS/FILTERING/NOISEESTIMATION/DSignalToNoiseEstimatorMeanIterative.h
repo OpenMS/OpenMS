@@ -95,7 +95,7 @@ namespace OpenMS
     
   */
 
-  template <UnsignedInt D = 1 , typename PeakIterator = MSSpectrum<RawDataPoint1D >::const_iterator >
+  template <UInt D = 1 , typename PeakIterator = MSSpectrum<RawDataPoint1D >::const_iterator >
   class DSignalToNoiseEstimatorMeanIterative : public DSignalToNoiseEstimator<D, PeakIterator>
   {
 
@@ -290,7 +290,7 @@ namespace OpenMS
       }
 
       /// Non-mutable access to the number of bins used for the histogram (the more bins, the better the approximation, but longer runtime)
-      inline SignedInt getBinCount() const
+      inline Int getBinCount() const
       {
         return bin_count_;
       }
@@ -300,7 +300,7 @@ namespace OpenMS
         return bin_count_;
       }
       /// Mutable access to the number of bins used for the histogram
-      inline void setBinCount(SignedInt bin_count)
+      inline void setBinCount(Int bin_count)
       {
         bin_count_ = bin_count;
         updateParam();
@@ -358,7 +358,7 @@ namespace OpenMS
       }
 
       /// Non-mutable access to AutoMode, which determines the heuristic to find MaxIntensity. See Class description.
-      inline SignedInt getAutoMode() const
+      inline Int getAutoMode() const
       {
         return auto_mode_;
       }
@@ -368,14 +368,14 @@ namespace OpenMS
         return auto_mode_;
       }
       /// Mutable access to AutoMode, which determines the heuristic to find MaxIntensity. See Class description.
-      inline void setAutoMode(SignedInt auto_mode)
+      inline void setAutoMode(Int auto_mode)
       {
         auto_mode_ = auto_mode;
         updateParam();
       }
 
       /// Non-mutable access to the minimum required elements in a window, to be evaluated.
-      inline SignedInt getMinReqElements() const
+      inline Int getMinReqElements() const
       {
         return min_required_elements_;
       }
@@ -385,7 +385,7 @@ namespace OpenMS
         return min_required_elements_;
       }
       /// Mutable access to the minimum required elements in a window, to be evaluated.
-      inline void setMinReqElements(SignedInt min_required_elements)
+      inline void setMinReqElements(Int min_required_elements)
       {
         min_required_elements_ = min_required_elements;
         updateParam();
@@ -412,13 +412,13 @@ namespace OpenMS
       /* overridden members */
 
       /// Mutable access to the mz dimension
-      inline void setMZdim(SignedInt mz_dim)
+      inline void setMZdim(Int mz_dim)
       {
         DSignalToNoiseEstimator<D, PeakIterator>::setMZdim(mz_dim);
         is_result_valid_ = false;
       }
       /// Mutable access to the rt dimension
-      inline void setRTdim(SignedInt rt_dim)
+      inline void setRTdim(Int rt_dim)
       {
         DSignalToNoiseEstimator<D, PeakIterator>::setRTdim(rt_dim);
         is_result_valid_ = false;

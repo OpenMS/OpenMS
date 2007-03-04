@@ -51,7 +51,7 @@ CHECK((~Date()))
 	delete s_ptr;
 RESULT
 
-CHECK((bool isLeapYear(UnsignedInt year) const))
+CHECK((bool isLeapYear(UInt year) const))
   Date d;
   TEST_EQUAL(d.isLeapYear(1999),false);
   TEST_EQUAL(d.isLeapYear(2000),true);
@@ -62,18 +62,18 @@ CHECK((bool isLeapYear(UnsignedInt year) const))
   TEST_EQUAL(d.isLeapYear(2400),true);
 RESULT
 
-CHECK((void get(UnsignedInt& month, UnsignedInt& day, UnsignedInt& year) const))
+CHECK((void get(UInt& month, UInt& day, UInt& year) const))
   Date date;
-  UnsignedInt d,m,y;
+  UInt d,m,y;
   date.get(m,d,y);
   TEST_EQUAL(m,0);
   TEST_EQUAL(d,0);
   TEST_EQUAL(y,0);
 RESULT
 
-CHECK((void set(UnsignedInt month, UnsignedInt day, UnsignedInt year) throw(Exception::ParseError)))
+CHECK((void set(UInt month, UInt day, UInt year) throw(Exception::ParseError)))
   Date date;
-  UnsignedInt d,m,y;
+  UInt d,m,y;
   date.set(12,1,1977);
   date.get(m,d,y);
   TEST_EQUAL(m,12);
@@ -125,7 +125,7 @@ CHECK((void set(const String& date) throw(Exception::ParseError)))
   Date date;
   //german
   date.set("01.12.1977");
-  UnsignedInt d,m,y;
+  UInt d,m,y;
   date.get(m,d,y);
   TEST_EQUAL(m,12);
   TEST_EQUAL(d,1);

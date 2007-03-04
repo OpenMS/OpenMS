@@ -310,7 +310,7 @@ namespace OpenMS
 	    	
 	    	@param ms_level MS level to consider for m/z range , RT range and intensity range (All MS levels if negative)
 	    */
-	    void updateRanges(SignedInt ms_level)
+	    void updateRanges(Int ms_level)
 	    {
 	      //clear MS levels
 	      ms_levels_.clear();
@@ -332,7 +332,7 @@ namespace OpenMS
 	        it!=this->end();
 	        ++it)
 	      {
-	        if (ms_level < SignedInt(0) || SignedInt(it->getMSLevel())==ms_level)
+	        if (ms_level < Int(0) || Int(it->getMSLevel())==ms_level)
 	        {  
 		        //ms levels
 		        if (std::find(ms_levels_.begin(),ms_levels_.end(),it->getMSLevel())==ms_levels_.end())
@@ -400,10 +400,10 @@ namespace OpenMS
 	    }
 	
 	    /// returns the total number of peaks
-	    UnsignedInt getSize() const { return nr_dpoints_; }
+	    UInt getSize() const { return nr_dpoints_; }
 	
 	    /// returns an array of MS levels
-	    const std::vector<UnsignedInt>& getMSLevels() const { return ms_levels_; }
+	    const std::vector<UInt>& getMSLevels() const { return ms_levels_; }
 	    //@}
 	
 	    /**
@@ -450,9 +450,9 @@ namespace OpenMS
 	    typedef typename std::vector<MSSpectrum<PeakT> > Base_;
 	
 	    /// MS levels of the data
-	    std::vector<UnsignedInt> ms_levels_;
+	    std::vector<UInt> ms_levels_;
 	    /// Number of all data points
-	    UnsignedInt nr_dpoints_;
+	    UInt nr_dpoints_;
 	};
 	
 	///Print the contents to a stream.

@@ -52,7 +52,7 @@ namespace OpenMS
 	
 	Element::Element( const String& name,
 										const String& symbol,
-										UnsignedInt atomic_number,
+										UInt atomic_number,
 										Real average_weight,
 										Real mono_weight,
 										const IsotopeDistribution& isotopes)
@@ -69,12 +69,12 @@ namespace OpenMS
 	{
 	}
 
-	void Element::setAtomicNumber(UnsignedInt atomic_number)
+	void Element::setAtomicNumber(UInt atomic_number)
 	{
 		atomic_number_ = atomic_number;
 	}	
 	
-	UnsignedInt Element::getAtomicNumber() const
+	UInt Element::getAtomicNumber() const
 	{
 		return atomic_number_;
 	}

@@ -41,12 +41,12 @@ namespace OpenMS
 		
 	}
 	
-	UnsignedInt EnzymaticDigestion::getMissedCleavages() const
+	UInt EnzymaticDigestion::getMissedCleavages() const
 	{
 		return missed_cleavages_;
 	}
 
-	void EnzymaticDigestion::setMissedCleavages(UnsignedInt missed_cleavages)
+	void EnzymaticDigestion::setMissedCleavages(UInt missed_cleavages)
 	{
 		missed_cleavages_ = missed_cleavages;
 	}
@@ -84,9 +84,9 @@ namespace OpenMS
 		};
 	}
 	
-	UnsignedInt EnzymaticDigestion::peptideCount(const AASequence& protein)
+	UInt EnzymaticDigestion::peptideCount(const AASequence& protein)
 	{
-		UnsignedInt count = 1;
+		UInt count = 1;
 		AASequence::ConstIterator iterator = protein.begin();
 		while(nextCleavageSite_(protein,iterator), iterator != protein.end())
 		{
@@ -94,8 +94,8 @@ namespace OpenMS
 		}
 		
 		//missed cleavages
-		UnsignedInt sum = count;
-		for (UnsignedInt i=1 ; ((i<=missed_cleavages_) && (count > i)); ++i)
+		UInt sum = count;
+		for (UInt i=1 ; ((i<=missed_cleavages_) && (count > i)); ++i)
 		{
 			sum += count - i;
 		}
@@ -106,7 +106,7 @@ namespace OpenMS
 	void EnzymaticDigestion::digest(const AASequence& protein, std::vector<AASequence>& output)
 	{
 		//initialization
-		UnsignedInt count = 1;
+		UInt count = 1;
 		output.clear();
 		
 		//missed cleavage iterators
@@ -129,8 +129,8 @@ namespace OpenMS
 		if (mc_iterators.size()>2) //there is at least one cleavage site!
 		{
 			//resize to number of fragments
-			UnsignedInt sum = count;
-			for (UnsignedInt i=1 ; ((i<=missed_cleavages_) && (count > i)); ++i)
+			UInt sum = count;
+			for (UInt i=1 ; ((i<=missed_cleavages_) && (count > i)); ++i)
 			{
 				sum += count - i;
 			}
@@ -138,8 +138,8 @@ namespace OpenMS
 			output.resize(sum);
 			
 			//generate fragments with missed cleavages
-			UnsignedInt pos = count;
-			for (UnsignedInt i=1 ; ((i<=missed_cleavages_) && (count > i)) ; ++i)
+			UInt pos = count;
+			for (UInt i=1 ; ((i<=missed_cleavages_) && (count > i)) ; ++i)
 			{
 				vector<AASequence::ConstIterator>::const_iterator b = mc_iterators.begin();
 				vector<AASequence::ConstIterator>::const_iterator e = b+(i+1);

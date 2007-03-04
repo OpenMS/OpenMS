@@ -56,11 +56,11 @@ namespace OpenMS
 		vector< String > substrings;
 		
 		// map the protein hits according to their accession number in the result file
-		map< String, UnsignedInt > ac_position_map;
+		map< String, UInt > ac_position_map;
 		
 		// get the protein hits that have already been found in another out-file
 		vector< ProteinHit > protein_hits = protein_identification.getProteinHits();
-		// and insert them SignedInto the map
+		// and insert them Into the map
 		for ( vector< ProteinHit >::const_iterator phit_i = protein_hits.begin(); phit_i != protein_hits.end(); ++phit_i )
 		{
 			ac_position_map.insert(make_pair(phit_i->getAccession(), ac_position_map.size()));
@@ -73,14 +73,14 @@ namespace OpenMS
 		
 		DateTime datetime;
 		Real precursor_mz_value;
-		UnsignedInt
+		UInt
 			precursor_mass_type,
 			ion_mass_type,
 			number_of_columns,
 			displayed_peptides,
 			proteins_per_peptide;
 			
-		SignedInt
+		Int
 			charge,
 			number_column,
 			rank_sp_column,
@@ -104,7 +104,7 @@ namespace OpenMS
 			throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, result_filename);
 		}
 		
-		UnsignedInt line_number = 1; // used to report in which line an error occured
+		UInt line_number = 1; // used to report in which line an error occured
 		while ( getline(result_file, line) ) // skip all lines until the one with '---'
 		{
 			if ( !line.empty() && (line[line.length()-1] < 33) ) line.resize(line.length()-1);
@@ -130,7 +130,7 @@ namespace OpenMS
 		if ( no_pvalues ) pvalues.insert(pvalues.end(), displayed_peptides, 0.0);
 		vector< Real >::const_iterator p_value = pvalues.begin();
 		
-		for ( UnsignedInt i = 0; i < displayed_peptides; ++i, ++p_value )
+		for ( UInt i = 0; i < displayed_peptides; ++i, ++p_value )
 		{
 			++line_number;
 			// if less peptides were found than may be displayed, break
@@ -185,7 +185,7 @@ namespace OpenMS
 				
 				peptide_hit.addProteinIndex(datetime, accession);
 				
-				for ( UnsignedInt i = 0; i < proteins_per_peptide; ++i )
+				for ( UInt i = 0; i < proteins_per_peptide; ++i )
 				{
 					getline(result_file, line);
 					if ( !line.empty() && (line[line.length()-1] < 33) ) line.resize(line.length()-1);
@@ -219,7 +219,7 @@ namespace OpenMS
 			}
 			else
 			{
-				for ( UnsignedInt i = 0; i < proteins_per_peptide; ++i ) getline(result_file, line);
+				for ( UInt i = 0; i < proteins_per_peptide; ++i ) getline(result_file, line);
 			}
 		}
 		result_file.close();
@@ -227,8 +227,8 @@ namespace OpenMS
 		
 		// get the sequences of the protein
 //		vector< String > sequences;
-//		map< String, UnsignedInt > not_found;
-//		vector< pair< String, UnsignedInt > > found;
+//		map< String, UInt > not_found;
+//		vector< pair< String, UInt > > found;
 //		for ( vector< String >::const_iterator db_i = databases.begin(); db_i != databases.end(); ++db_i )
 //		{
 //			getSequences(*db_i, ac_position_map, sequences, found, not_found);
@@ -237,7 +237,7 @@ namespace OpenMS
 //		}
 //
 //		vector< String >::const_iterator seq_i = sequences.begin();
-//		for ( vector< pair< String, UnsignedInt > >::const_iterator protein_i = found.begin(); protein_i != found.end(); ++protein_i, ++seq_i)
+//		for ( vector< pair< String, UInt > >::const_iterator protein_i = found.begin(); protein_i != found.end(); ++protein_i, ++seq_i)
 //		{
 //			protein_hits[protein_i->second].setSequence(*seq_i);
 //		}
@@ -277,8 +277,8 @@ namespace OpenMS
 	SequestOutfile::getColumns(
 		const String& line,
 		vector< String >& substrings,
-		UnsignedInt number_of_columns,
-		UnsignedInt reference_column)
+		UInt number_of_columns,
+		UInt reference_column)
 	{
 		String buffer;
 
@@ -316,7 +316,7 @@ namespace OpenMS
 				else if ( (*(s_i+1))[0] == '+' )
 				{
 					bool is_digit = true;
-					for ( UnsignedInt i = 1; i < (s_i+1)->length(); ++i ) is_digit &= (bool) isdigit((*(s_i+1))[i]);
+					for ( UInt i = 1; i < (s_i+1)->length(); ++i ) is_digit &= (bool) isdigit((*(s_i+1))[i]);
 					if ( is_digit && ((s_i+1)->length()-1) )
 					{
 						s_i->append(*(s_i+1));
@@ -344,10 +344,10 @@ namespace OpenMS
 	void
 	SequestOutfile::getSequences(
 		const String& database_filename,
-		const map< String, UnsignedInt >& ac_position_map,
+		const map< String, UInt >& ac_position_map,
 		vector< String >& sequences,
-		vector< pair< String, UnsignedInt > >& found,
-		map< String, UnsignedInt >& not_found)
+		vector< pair< String, UInt > >& found,
+		map< String, UInt >& not_found)
 	throw (
 		Exception::FileNotFound)
 	{
@@ -359,7 +359,7 @@ namespace OpenMS
 		
 		String line, accession, accession_type, sequence;
 		not_found = ac_position_map;
-		map< String, UnsignedInt >::iterator nf_i = not_found.end();
+		map< String, UInt >::iterator nf_i = not_found.end();
 		while ( getline(database_file, line) && !not_found.empty() )
 		{
 			if ( !line.empty() && (line[line.length()-1] < 33) ) line.resize(line.length()-1);
@@ -566,24 +566,24 @@ namespace OpenMS
 		const string& result_filename,
 		DateTime& datetime,
 		Real& precursor_mz_value,
-		SignedInt& charge,
-		UnsignedInt& precursor_mass_type,
-		UnsignedInt& ion_mass_type,
-		SignedInt& number_column,
-		SignedInt& rank_sp_column,
-		SignedInt& id_column,
-		SignedInt& mh_column,
-		SignedInt& delta_cn_column,
-		SignedInt& xcorr_column,
-		SignedInt& sp_column,
-		SignedInt& sf_column,
-//		SignedInt& P_column,
-		SignedInt& ions_column,
-		SignedInt& reference_column,
-		SignedInt& peptide_column,
-		SignedInt& score_column,
-		UnsignedInt& number_of_columns,
-		UnsignedInt& displayed_peptides)
+		Int& charge,
+		UInt& precursor_mass_type,
+		UInt& ion_mass_type,
+		Int& number_column,
+		Int& rank_sp_column,
+		Int& id_column,
+		Int& mh_column,
+		Int& delta_cn_column,
+		Int& xcorr_column,
+		Int& sp_column,
+		Int& sf_column,
+//		Int& P_column,
+		Int& ions_column,
+		Int& reference_column,
+		Int& peptide_column,
+		Int& score_column,
+		UInt& number_of_columns,
+		UInt& displayed_peptides)
 	throw(
 		Exception::FileNotFound,
 		Exception::ParseError)
@@ -616,7 +616,7 @@ namespace OpenMS
 				buffer.trim();
 				buffer.split(' ', substrings);
 				// 12:00 = 12:00 PM; 24:00 = 12:00 AM
-				SignedInt hour = atoi(substrings[0].substr(0,2).c_str());
+				Int hour = atoi(substrings[0].substr(0,2).c_str());
 				if ( (hour == 12) && (substrings[1] == "AM") ) substrings[0].replace(0, 2, "00");
 				else if ( (hour != 12) && (substrings[1] == "PM") )
 				{
@@ -809,13 +809,13 @@ namespace OpenMS
 		Real
 			precursor_mz_value(0),
 			last_delta_cn(0);
-			UnsignedInt
+			UInt
 			precursor_mass_type(0),
 			ion_mass_type(0),
 			number_of_columns(0),
 			displayed_peptides(0);
 		
-		SignedInt
+		Int
 			charge(0),
 			number_column(0),
 			rank_sp_column(0),
@@ -845,7 +845,7 @@ namespace OpenMS
 		String line, line_buffer, peptide;
 		stringstream line_ss;
 		vector< String > substrings;
-		UnsignedInt line_number = 0;
+		UInt line_number = 0;
 		while ( getline(out_file, line) ) // skip all lines until the one with '---'
 		{
 			if ( !line.empty() && (line[line.length()-1] < 33) ) line.resize(line.length()-1);
@@ -854,8 +854,8 @@ namespace OpenMS
 			if ( line.hasPrefix("---") ) break;
 		}
 		
-		UnsignedInt proteins_per_peptide;
-		UnsignedInt i = 0;
+		UInt proteins_per_peptide;
+		UInt i = 0;
 		for ( ; i < displayed_peptides; )
 		{
 			if ( !getline(out_file, line) )
@@ -904,7 +904,7 @@ namespace OpenMS
 			
 			line_buffer = line_ss.str();
 			
-			for ( UnsignedInt prot = 0; prot < proteins_per_peptide; ++prot )
+			for ( UInt prot = 0; prot < proteins_per_peptide; ++prot )
 			{
 				getline(out_file, line);
 			}

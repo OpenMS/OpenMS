@@ -72,12 +72,12 @@ void MetaInfoVisualizer::load(MetaInfoInterface &m)
 	tempmeta_=m;
 	  
 		
-	//keys_ is a vector of indices of type UnsignedInt
+	//keys_ is a vector of indices of type UInt
 	tempmeta_.getKeys(keys_);
 		
 		
 	//Load actual metaInfo Data into viewLayout_
-	for(UnsignedInt i=0; i< keys_.size(); ++i)
+	for(UInt i=0; i< keys_.size(); ++i)
 	{ 
 	  loadData_(keys_[i]);
 	}
@@ -112,11 +112,11 @@ void MetaInfoVisualizer::load(MetaInfoInterface &m)
 
 void MetaInfoVisualizer::remove(int index)
 {	
-  UnsignedInt id=(UnsignedInt)index;
+  UInt id=(UInt)index;
 	
 	
 	//Remove label
-	std::vector<std::pair<UnsignedInt,QLabel*> >::iterator iter;
+	std::vector<std::pair<UInt,QLabel*> >::iterator iter;
 	for(iter = metalabels_.begin(); iter < metalabels_.end(); iter++ ) 
 	{	 
      if( (*iter).first == id)
@@ -130,7 +130,7 @@ void MetaInfoVisualizer::remove(int index)
    }
 	
 	//Remove QLineEdit	
-	std::vector<std::pair<UnsignedInt,QLineEdit*> >::iterator iter2; 
+	std::vector<std::pair<UInt,QLineEdit*> >::iterator iter2; 
 	for(iter2 = metainfoptr_.begin(); iter2 < metainfoptr_.end(); iter2++ ) 
 	{
      if( (*iter2).first == id)
@@ -146,7 +146,7 @@ void MetaInfoVisualizer::remove(int index)
    }
 	
 	//Remove QButton  
-	std::vector<std::pair<UnsignedInt,QAbstractButton*> >::iterator iter3; 
+	std::vector<std::pair<UInt,QAbstractButton*> >::iterator iter3; 
 	for(iter3 = metabuttons_.begin(); iter3 < metabuttons_.end(); iter3++ ) 
 	{
      if( (*iter3).first == id)
@@ -166,7 +166,7 @@ void MetaInfoVisualizer::remove(int index)
 }
 
 
-void MetaInfoVisualizer::loadData_(UnsignedInt index)
+void MetaInfoVisualizer::loadData_(UInt index)
 {
   //----------------------------------------------------------------------------	
   //  All metainfo goes into the viewlayout_ 
@@ -223,7 +223,7 @@ void MetaInfoVisualizer::add()
 	}
 	
 	//Register new entry and update metainfointerface object
-	UnsignedInt newindex = tempmeta_.metaRegistry().registerName(name, description, "");
+	UInt newindex = tempmeta_.metaRegistry().registerName(name, description, "");
 	
 	//Store new data in temporary metainfo object
 	tempmeta_.setMetaValue(newindex, value);
@@ -266,10 +266,10 @@ void MetaInfoVisualizer::store()
 	{	
 		
 		//Store QLineEdit information
-		std::vector<std::pair<UnsignedInt,QLineEdit*> >::iterator iter2; 
+		std::vector<std::pair<UInt,QLineEdit*> >::iterator iter2; 
 		for(iter2 = metainfoptr_.begin(); iter2 < metainfoptr_.end(); iter2++ ) 
 		{
-			UnsignedInt index = (*iter2).first;
+			UInt index = (*iter2).first;
 			String value(((*iter2).second)->text().toStdString());
 			tempmeta_.setMetaValue(index, value);
 		}
@@ -289,9 +289,9 @@ void MetaInfoVisualizer::reject()
 	{
 		//Delete all data in GUI		
 		//Need a temporary container, because function remove(int index) modifies container keys_.
-		std::vector<UnsignedInt> keys_temp= keys_;
+		std::vector<UInt> keys_temp= keys_;
 		
-		for(UnsignedInt i =0; i< keys_temp.size(); ++i)
+		for(UInt i =0; i< keys_temp.size(); ++i)
 		{	
 					remove(keys_temp[i]);
 		}
@@ -306,7 +306,7 @@ void MetaInfoVisualizer::reject()
 		nextrow_=0;
 		keys_.clear();
 		ptr_->getKeys(keys_);
-		for(UnsignedInt i =0; i< keys_.size(); ++i)
+		for(UInt i =0; i< keys_.size(); ++i)
 		{	
 			loadData_(keys_[i]);
 		}

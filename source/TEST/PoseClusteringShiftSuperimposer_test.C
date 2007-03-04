@@ -185,21 +185,21 @@ CHECK(PoseClusteringAffineSuperimposer& operator = (const PoseClusteringAffineSu
   TEST_REAL_EQUAL(pcsi_copy.getShiftBucketWindow(1),5)  
 RESULT
 
-CHECK(UnsignedInt getElementBucketWindow(UnsignedInt dim) const)
+CHECK(UInt getElementBucketWindow(UInt dim) const)
   PoseClusteringShiftSuperimposer<FeatureMap<> > pcsi;
     
   TEST_REAL_EQUAL(pcsi.getElementBucketWindow(0),2)
   TEST_REAL_EQUAL(pcsi.getElementBucketWindow(1),1)
 RESULT
 
-CHECK(UnsignedInt getShiftBucketWindow(UnsignedInt dim) const)
+CHECK(UInt getShiftBucketWindow(UInt dim) const)
   PoseClusteringShiftSuperimposer<FeatureMap<> > pcsi;
       
   TEST_REAL_EQUAL(pcsi.getShiftBucketWindow(0),2)
   TEST_REAL_EQUAL(pcsi.getShiftBucketWindow(1),1)  
 RESULT
 
-CHECK(double getShiftBucketSize(UnsignedInt dim) const)
+CHECK(double getShiftBucketSize(UInt dim) const)
   PoseClusteringShiftSuperimposer<FeatureMap<> > pcsi;
     
   TEST_REAL_EQUAL(pcsi.getShiftBucketSize(0),5.0)
@@ -255,7 +255,7 @@ CHECK(void run())
   TEST_REAL_EQUAL(mz_mapping.getIntercept(),0.02)
 RESULT
 
-CHECK((void setElementBucketWindow(UnsignedInt dim, UnsignedInt element_bucket_window)))
+CHECK((void setElementBucketWindow(UInt dim, UInt element_bucket_window)))
   PoseClusteringShiftSuperimposer<FeatureMap<> > pcsi;
   pcsi.setElementBucketWindow(0,3);
   pcsi.setElementBucketWindow(1,4);
@@ -264,7 +264,7 @@ CHECK((void setElementBucketWindow(UnsignedInt dim, UnsignedInt element_bucket_w
   TEST_REAL_EQUAL(pcsi.getElementBucketWindow(1),4)
 RESULT
 
-CHECK((void setShiftBucketSize(UnsignedInt dim, double shift_bucket_size)))
+CHECK((void setShiftBucketSize(UInt dim, double shift_bucket_size)))
   PoseClusteringShiftSuperimposer<FeatureMap<> > pcsi;
   pcsi.setShiftBucketSize(0,1.9);
   pcsi.setShiftBucketSize(1,2.9);
@@ -273,7 +273,7 @@ CHECK((void setShiftBucketSize(UnsignedInt dim, double shift_bucket_size)))
   TEST_REAL_EQUAL(pcsi.getShiftBucketSize(1),2.9)
 RESULT
 
-CHECK((void setShiftBucketWindow(UnsignedInt dim, UnsignedInt shift_bucket_window)))
+CHECK((void setShiftBucketWindow(UInt dim, UInt shift_bucket_window)))
   PoseClusteringShiftSuperimposer<FeatureMap<> > pcsi;
   pcsi.setShiftBucketWindow(0,4);
   pcsi.setShiftBucketWindow(1,5);

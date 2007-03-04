@@ -111,7 +111,7 @@ namespace OpenMS
 		return meta_->getValue(name); 
 	}
 
-	const DataValue& MetaInfoInterface::getMetaValue(UnsignedInt index) const throw (Exception::InvalidValue)
+	const DataValue& MetaInfoInterface::getMetaValue(UInt index) const throw (Exception::InvalidValue)
 	{
 		if (meta_==0)
 		{
@@ -128,7 +128,7 @@ namespace OpenMS
 		}
 		return meta_->exists(name);
 	}
-	bool MetaInfoInterface::metaValueExists(UnsignedInt index) const
+	bool MetaInfoInterface::metaValueExists(UInt index) const
 	{
 		if (meta_==0)
 		{
@@ -143,19 +143,19 @@ namespace OpenMS
 		meta_->setValue(name,value);
 	}
 
-	void MetaInfoInterface::setMetaValue(UnsignedInt index, const std::string& value)
+	void MetaInfoInterface::setMetaValue(UInt index, const std::string& value)
 	{
 		createIfNotExists_();
 		meta_->setValue(index,value);			
 	}
 
-	void MetaInfoInterface::setMetaValue(const std::string& name, SignedInt value)
+	void MetaInfoInterface::setMetaValue(const std::string& name, Int value)
 	{
 		createIfNotExists_();
 		meta_->setValue(name,value);			
 	}
 
-	void MetaInfoInterface::setMetaValue(UnsignedInt index, SignedInt value)
+	void MetaInfoInterface::setMetaValue(UInt index, Int value)
 	{
 		createIfNotExists_();
 		meta_->setValue(index,value);				
@@ -167,7 +167,7 @@ namespace OpenMS
 		meta_->setValue(name,value);			
 	}
 
-	void MetaInfoInterface::setMetaValue(UnsignedInt index, double value)
+	void MetaInfoInterface::setMetaValue(UInt index, double value)
 	{
 		createIfNotExists_();
 		meta_->setValue(index,value);				
@@ -179,7 +179,7 @@ namespace OpenMS
 		meta_->setValue(name,value);
 	}
 	
-	void MetaInfoInterface::setMetaValue(UnsignedInt index, const DataValue& value)
+	void MetaInfoInterface::setMetaValue(UInt index, const DataValue& value)
 	{
 		createIfNotExists_();
 		meta_->setValue(index,value);
@@ -206,7 +206,7 @@ namespace OpenMS
 		}
   }
 
-	void MetaInfoInterface::getKeys(std::vector<UnsignedInt>& keys) const
+	void MetaInfoInterface::getKeys(std::vector<UInt>& keys) const
   {
 		if (meta_!=0)
 		{
@@ -237,7 +237,7 @@ namespace OpenMS
 		}
 	}
 
-	void MetaInfoInterface::removeMetaValue(UnsignedInt index)
+	void MetaInfoInterface::removeMetaValue(UInt index)
 	{
 		if (meta_!=0)
 		{

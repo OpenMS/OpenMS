@@ -107,9 +107,9 @@ namespace OpenMS
 		  void setInstrument(const std::string& instrument);
 
 			/// returns the number of allowed missed cleavages
-		  UnsignedInt getMissedCleavages();
+		  UInt getMissedCleavages();
 		  /// sets the number of allowed missed cleavages (default: 1)
-		  void setMissedCleavages(UnsignedInt missed_cleavages);
+		  void setMissedCleavages(UInt missed_cleavages);
 
 			/// returns the precursor mass tolerance
 		  Real getPrecursorMassTolerance();
@@ -134,7 +134,7 @@ namespace OpenMS
 		  /// returns the charges
 			const std::string& getCharges();
 		  /// sets the charges (default: 1+, 2+ and 3+)
-		  void setCharges(std::vector<SignedInt>& charges);
+		  void setCharges(std::vector<Int>& charges);
 
     protected:
 			/// parent mass
@@ -171,7 +171,7 @@ namespace OpenMS
 			std::string instrument_;
 
 			/// number of missed cleavages
-			UnsignedInt missed_cleavages_;
+			UInt missed_cleavages_;
 
 			/// precursor mass toerance in Da
 			Real precursor_mass_tolerance_;

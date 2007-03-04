@@ -51,7 +51,7 @@ namespace OpenMS
 		x_axis_->hide();
 		y_axis_->hide();	
 		
-		connect(canvas(), SIGNAL(sendStatusMessage(std::string, OpenMS::UnsignedInt)),this, SIGNAL(sendStatusMessage(std::string, OpenMS::UnsignedInt)));
+		connect(canvas(), SIGNAL(sendStatusMessage(std::string, OpenMS::UInt)),this, SIGNAL(sendStatusMessage(std::string, OpenMS::UInt)));
 		
 		connect(canvas(), SIGNAL(sendCursorStatus(double,double,double)),
 		this, SIGNAL(sendCursorStatus(double,double,double)));
@@ -74,9 +74,9 @@ namespace OpenMS
 	{
 	}
 	
-	Histogram<UnsignedInt,float> Spectrum3DWidget::createIntensityDistribution_()
+	Histogram<UInt,float> Spectrum3DWidget::createIntensityDistribution_()
 	{
-		Histogram<UnsignedInt,float> tmp(canvas()->getCurrentMinIntensity(),canvas()->getCurrentMaxIntensity(),(canvas()->getCurrentMaxIntensity() - canvas()->getCurrentMinIntensity())/500.0);
+		Histogram<UInt,float> tmp(canvas()->getCurrentMinIntensity(),canvas()->getCurrentMaxIntensity(),(canvas()->getCurrentMaxIntensity() - canvas()->getCurrentMinIntensity())/500.0);
 
 		for (Spectrum3DCanvas::ExperimentType::ConstIterator spec_it = canvas()->getCurrentPeakData().begin(); spec_it != canvas()->getCurrentPeakData().end(); ++spec_it)
 		{
@@ -98,7 +98,7 @@ namespace OpenMS
 	  return static_cast<Spectrum3DCanvas*>(canvas_);
 	}
 	
-	QImage Spectrum3DWidget::getImage(UnsignedInt width, UnsignedInt height )
+	QImage Spectrum3DWidget::getImage(UInt width, UInt height )
 	{	
 		QPixmap pix = canvas()->openglwidget()->renderPixmap(width,height,true);
 		QImage img = pix.toImage();

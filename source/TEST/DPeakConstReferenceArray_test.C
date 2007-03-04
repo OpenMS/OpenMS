@@ -190,7 +190,7 @@ peak6.getPosition()[1] = 0.0;
 peak6.setIntensity(0.01);
 pl2.push_back(peak6);
 
-CHECK(void sortByNthPosition(UnsignedInt i) throw (Exception::NotImplemented))
+CHECK(void sortByNthPosition(UInt i) throw (Exception::NotImplemented))
   pl2.sortByNthPosition(0);
   TEST_EQUAL(pl2.size(), 3)
   

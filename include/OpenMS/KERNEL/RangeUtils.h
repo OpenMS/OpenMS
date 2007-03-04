@@ -143,7 +143,7 @@ namespace OpenMS
 				@param levels an array of MS levels
 				@param reverse if @p reverse is true, operator() return true if the spectrum lies outside the set
 			*/
-			InMSLevelRange(const std::vector<UnsignedInt>& levels, bool reverse = false)
+			InMSLevelRange(const std::vector<UInt>& levels, bool reverse = false)
 				: 
 				levels_(levels),
 				reverse_(reverse)
@@ -153,7 +153,7 @@ namespace OpenMS
 		
 			inline bool operator()(const SpectrumType& s) const
 			{
-				UnsignedInt tmp = s.getMSLevel();
+				UInt tmp = s.getMSLevel();
 				if (reverse_)
 				{
 					return ( std::find(levels_.begin(), levels_.end(), tmp) == levels_.end() ); 
@@ -162,7 +162,7 @@ namespace OpenMS
 			}
 		
 		protected:
-			std::vector<UnsignedInt> levels_;
+			std::vector<UInt> levels_;
 			bool reverse_;
 	};
 
@@ -184,7 +184,7 @@ namespace OpenMS
 				@param mode scan mode
 				@param reverse if @p reverse is true, operator() return true if the spectrum has a different scan mode
 			*/
-			HasScanMode(SignedInt mode, bool reverse = false)
+			HasScanMode(Int mode, bool reverse = false)
 				: 
 				mode_(mode),
 				reverse_(reverse)
@@ -202,7 +202,7 @@ namespace OpenMS
 			}
 		
 		protected:
-			SignedInt mode_;
+			Int mode_;
 			bool reverse_;
 	};
 

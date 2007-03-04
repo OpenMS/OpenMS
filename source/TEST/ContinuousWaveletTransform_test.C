@@ -123,19 +123,19 @@ CHECK((DoubleReal operator [] (unsigned int i) const))
   TEST_REAL_EQUAL(cwt_const[0],0)
 RESULT
 
-CHECK((SignedInt getLeftPaddingIndex() const))
+CHECK((Int getLeftPaddingIndex() const))
   ContinuousWaveletTransform cwt;
   
   TEST_REAL_EQUAL(cwt.getLeftPaddingIndex(), 0)
 RESULT
 
-CHECK((SignedInt getRightPaddingIndex() const))
+CHECK((Int getRightPaddingIndex() const))
   ContinuousWaveletTransform cwt;
   
   TEST_REAL_EQUAL(cwt.getRightPaddingIndex(), 0)
 RESULT
 
-CHECK((SignedInt getSignalLength() const))
+CHECK((Int getSignalLength() const))
   ContinuousWaveletTransform cwt;
   
   TEST_REAL_EQUAL(cwt.getSignalLength(), 0)

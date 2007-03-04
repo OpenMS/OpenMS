@@ -47,7 +47,7 @@ namespace OpenMS
 		
 		@ingroup Datastructures
 	*/
-	template <UnsignedInt D>
+	template <UInt D>
 	class DRange
 		:	public Internal::DIntervalBase<D>
 	{
@@ -161,7 +161,7 @@ namespace OpenMS
 		*/
 		bool encloses(const PositionType& position) const
 		{
-      for(UnsignedInt i = 0; i != D; i++)
+      for(UInt i = 0; i != D; i++)
       {
         if (position[i]<min_[i]) return false;
         if (position[i]>=max_[i]) return false;
@@ -190,7 +190,7 @@ namespace OpenMS
 		  if (encloses(range.min_))
 		  {
 		  	//check if r.max_ in this area => Inside / Intersects
-	      for(UnsignedInt i = 0; i != D; i++)
+	      for(UInt i = 0; i != D; i++)
 	      {
 	        if (range.max_[i]>max_[i])
 	        {
@@ -201,7 +201,7 @@ namespace OpenMS
 		  }
 		  // => r.min_ is not inside this area
 	  	//check if any r.min_ >= max_ => Disjoint
-      for(UnsignedInt i = 0; i != D; i++)
+      for(UInt i = 0; i != D; i++)
       {
         if (range.min_[i]>=max_[i])
         {
@@ -210,7 +210,7 @@ namespace OpenMS
       }
       // => some coordinate of r.min_ has to be smaller than the one of min_
   		//check if all coords of r are smaller than the those of the range
-      for(UnsignedInt i = 0; i != D; i++)
+      for(UInt i = 0; i != D; i++)
       {
         if (range.max_[i]<=min_[i])
         {
@@ -236,7 +236,7 @@ namespace OpenMS
 		  
 		  // => r.min_ is not inside this area
 	  	//check if any r.min_ >= max_ => Disjoint
-      for(UnsignedInt i = 0; i != D; i++)
+      for(UInt i = 0; i != D; i++)
       {
         if (range.min_[i]>=max_[i])
         {
@@ -245,7 +245,7 @@ namespace OpenMS
       }
       // => some coordinate of r.min_ has to be smaller than the one of min_
   		//check if all coords of r are smaller than the those of the range
-      for(UnsignedInt i = 0; i != D; i++)
+      for(UInt i = 0; i != D; i++)
       {
         if (range.max_[i]<=min_[i])
         {
@@ -258,7 +258,7 @@ namespace OpenMS
 		/// Checks if the range is empty
 		bool isEmpty() const 
 		{ 
-      for(UnsignedInt i = 0; i != D; i++)
+      for(UInt i = 0; i != D; i++)
       {
         if (max_[i]<=min_[i])
         {
@@ -272,7 +272,7 @@ namespace OpenMS
 	};
 
 	///Print the contents to a stream.
-	template <UnsignedInt D>
+	template <UInt D>
 	std::ostream& operator << (std::ostream& os, const DRange<D>& area)
 	{
 		os << "--DRANGE BEGIN--"<<std::endl;

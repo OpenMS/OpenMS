@@ -278,8 +278,8 @@ namespace OpenMS
 		
 		const Gradient& gradient = exp.getHPLC().getGradient();
 		const std::vector <String>& eluents = gradient.getEluents();
-		const std::vector <SignedInt>& time = gradient.getTimepoints();
-		const std::vector< std::vector< UnsignedInt > >& percentages = gradient.getPercentages();
+		const std::vector <Int>& time = gradient.getTimepoints();
+		const std::vector< std::vector< UInt > >& percentages = gradient.getPercentages();
 		std::stringstream query_eluents, query_time, query_percentages;
 		UID eluents_id, time_id;
 		
@@ -310,7 +310,7 @@ namespace OpenMS
 		{
 			query_time.str("");
 			query_time << "INSERT INTO META_GradientTime (fid_HPLC, Time) VALUES ";
-			for (std::vector<SignedInt>::const_iterator time_it = time.begin(); time_it != time.end(); time_it++)
+			for (std::vector<Int>::const_iterator time_it = time.begin(); time_it != time.end(); time_it++)
 			{
 				query_time << "(";
 				query_time << parent_id;
@@ -327,11 +327,11 @@ namespace OpenMS
 			query_percentages << "INSERT INTO META_GradientPercentage (fid_GradientEluent, fid_GradientTime, Percentage) VALUES ";
 			int i = 0;
 			// iterate over eluents
-			for (std::vector< std::vector< UnsignedInt> >::const_iterator percent_outer_it = percentages.begin(); percent_outer_it != percentages.end(); percent_outer_it++)
+			for (std::vector< std::vector< UInt> >::const_iterator percent_outer_it = percentages.begin(); percent_outer_it != percentages.end(); percent_outer_it++)
 			{
 				int j = 0;
 				// iterate over timepoints
-				for (std::vector< UnsignedInt>::const_iterator percent_inner_it = (*percent_outer_it).begin(); percent_inner_it != (*percent_outer_it).end(); percent_inner_it++)
+				for (std::vector< UInt>::const_iterator percent_inner_it = (*percent_outer_it).begin(); percent_inner_it != (*percent_outer_it).end(); percent_inner_it++)
 				{
 					query_percentages << "(";
 					query_percentages << eluents_id + i;
@@ -995,7 +995,7 @@ namespace OpenMS
 		
 		db_con_.executeQuery(query.str(),result);
 		exp.resize(result.size());
-		UnsignedInt i = 0;
+		UInt i = 0;
 		result.first();
 		while (result.isValid())
 		{

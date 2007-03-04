@@ -142,7 +142,7 @@ CHECK((ConsensusFeature(const PositionType& pos, IntensityType i)))
   TEST_EQUAL(cons.isEmpty(), true)
 RESULT
 
-CHECK((ConsensusFeature(UnsignedInt map_1_index, UnsignedInt feature_index_1, const ElementType& feature_1, UnsignedInt map_2_index, UnsignedInt feature_index_2, const ElementType& feature_2)))
+CHECK((ConsensusFeature(UInt map_1_index, UInt feature_index_1, const ElementType& feature_1, UInt map_2_index, UInt feature_index_2, const ElementType& feature_2)))
   Feature::PositionType pos(1,2);
   Feature feat1;
   feat1.setPosition(pos);
@@ -175,7 +175,7 @@ CHECK((ConsensusFeature(UnsignedInt map_1_index, UnsignedInt feature_index_1, co
   TEST_REAL_EQUAL(it->getElement().getIntensity(),200)
 RESULT
 
-CHECK((ConsensusFeature(UnsignedInt map_index, UnsignedInt feature_index, const ElementType& feature)))
+CHECK((ConsensusFeature(UInt map_index, UInt feature_index, const ElementType& feature)))
   Feature::PositionType pos(1,2);
   Feature feat1;
   feat1.setPosition(pos);
@@ -196,7 +196,7 @@ CHECK((ConsensusFeature(UnsignedInt map_index, UnsignedInt feature_index, const 
   TEST_REAL_EQUAL(it->getElement().getIntensity(),200)
 RESULT
 
-CHECK((ConsensusFeature(UnsignedInt map_index, UnsignedInt feature_index, const ElementType& feature, const ConsensusFeature& c_feature)))
+CHECK((ConsensusFeature(UInt map_index, UInt feature_index, const ElementType& feature, const ConsensusFeature& c_feature)))
   Feature::PositionType pos(1,2);
   Feature feat1;
   feat1.setPosition(pos);

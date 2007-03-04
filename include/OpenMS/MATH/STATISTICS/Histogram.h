@@ -51,7 +51,7 @@ namespace OpenMS
 			
 			@ingroup Math
 		*/
-		template < typename ValueType = UnsignedInt, typename BinSizeType = float>
+		template < typename ValueType = UInt, typename BinSizeType = float>
 		class Histogram
 		{
 		 public:
@@ -94,7 +94,7 @@ namespace OpenMS
 					// if max_ == min_ there is only one bin
 					if (max_ != min_)
 					{
-						bins_ = std::vector<ValueType>(UnsignedInt(ceil((double(max_)-double(min_))/double(bin_size_))),0);
+						bins_ = std::vector<ValueType>(UInt(ceil((double(max_)-double(min_))/double(bin_size_))),0);
 					}
 					else
 					{
@@ -143,13 +143,13 @@ namespace OpenMS
 			}
 	
 			///returns the number of bins
-			UnsignedInt size() const
+			UInt size() const
 			{
 				return bins_.size();
 			}
 			
 			///returns the value of bin @p index
-			ValueType operator [] (UnsignedInt index) const throw(Exception::IndexOverflow)
+			ValueType operator [] (UInt index) const throw(Exception::IndexOverflow)
 			{
 				if (index >= bins_.size())
 				{
@@ -184,7 +184,7 @@ namespace OpenMS
 					bin_size_ = bin_size;
 					
 					bins_.clear();
-					bins_.resize(UnsignedInt(ceil((max_-min_)/bin_size_)),0);
+					bins_.resize(UInt(ceil((max_-min_)/bin_size_)),0);
 				}
 			}
 			//@}
@@ -252,7 +252,7 @@ namespace OpenMS
 			/// Vector of bins
 			std::vector<ValueType> bins_;
 			///
-			UnsignedInt valToBin_(BinSizeType val) const throw (Exception::OutOfRange)
+			UInt valToBin_(BinSizeType val) const throw (Exception::OutOfRange)
 			{
 				if (val < min_ || val > max_)
 				{
@@ -264,7 +264,7 @@ namespace OpenMS
 				}
 				else
 				{
-					return (UnsignedInt) floor ( (double(val)-double(min_)) / (double(max_)-double(min_)) * bins_.size() );
+					return (UInt) floor ( (double(val)-double(min_)) / (double(max_)-double(min_)) * bins_.size() );
 				}				
 			}
 		};

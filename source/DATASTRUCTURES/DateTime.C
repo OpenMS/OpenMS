@@ -108,8 +108,8 @@ namespace OpenMS
 		}
 	}
 	
-	void DateTime::set(UnsignedInt month, UnsignedInt day, UnsignedInt year,
-							 			 UnsignedInt hour, UnsignedInt minute, UnsignedInt second) throw (Exception::ParseError)
+	void DateTime::set(UInt month, UInt day, UInt year,
+							 			 UInt hour, UInt minute, UInt second) throw (Exception::ParseError)
 	{
 		Date::set(month, day, year);
 
@@ -160,8 +160,8 @@ namespace OpenMS
 		date = date + String(second_);
 	}
 	
-	void DateTime::get(UnsignedInt& month, UnsignedInt& day, UnsignedInt& year,
-										UnsignedInt& hour, UnsignedInt& minute, UnsignedInt& second) const
+	void DateTime::get(UInt& month, UInt& day, UInt& year,
+										UInt& hour, UInt& minute, UInt& second) const
 	{
 		Date::get(month, day, year);
 		hour = hour_;
@@ -187,7 +187,7 @@ namespace OpenMS
 	{
 		vector<String> split;
 		String h, m, s;
-		UnsignedInt hour, minute, second;
+		UInt hour, minute, second;
 		stringstream ss;	
 		
 		date.split(':', split);
@@ -224,19 +224,19 @@ namespace OpenMS
    	setTime(hour, minute, second); 		
 	}
 				
-	void DateTime::setDate(UnsignedInt month, UnsignedInt day, UnsignedInt year) throw (Exception::ParseError)
+	void DateTime::setDate(UInt month, UInt day, UInt year) throw (Exception::ParseError)
 	{
 		Date::set(month, day, year);
 	}
 		
-	void DateTime::setTime(UnsignedInt hour, UnsignedInt minute, UnsignedInt second) throw (Exception::ParseError)
+	void DateTime::setTime(UInt hour, UInt minute, UInt second) throw (Exception::ParseError)
 	{
 		hour_ = hour;
 		minute_ = minute;
 		second_ = second;
 	}
 	
-	void DateTime::getDate(UnsignedInt& month, UnsignedInt& day, UnsignedInt& year) const
+	void DateTime::getDate(UInt& month, UInt& day, UInt& year) const
 	{
 		month = month_;
 		day = day_;
@@ -248,7 +248,7 @@ namespace OpenMS
 		Date::get(date);
 	}
 
-	void DateTime::getTime(UnsignedInt& hour, UnsignedInt& minute, UnsignedInt& second) const
+	void DateTime::getTime(UInt& hour, UInt& minute, UInt& second) const
 	{
 		hour = hour_;
 		minute = minute_;

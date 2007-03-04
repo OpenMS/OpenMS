@@ -196,7 +196,7 @@ class TOPPInspectAdapter
 				// check whether this really is a chemical symbol (only characters, max length 2)
 				if ( symbol.length() > 2 || (isalpha(symbol[0]) == 0) || (isalpha(symbol[symbol.length() - 1]) == 0) ) return (composition);
 				// then check whether isotope and occurences are numbers
-				SignedInt i_iso, i_occ;
+				Int i_iso, i_occ;
 				try
 				{
 					i_iso = isotope.toInt();
@@ -565,7 +565,7 @@ class TOPPInspectAdapter
 						map< String, vector< pair< DoubleReal, DoubleReal > > > isotopes_mass_and_probability;
 						map< String, DoubleReal > isotope_masses;
 						
-						UnsignedInt comp_mass_name_given;
+						UInt comp_mass_name_given;
 						String types = "opt#fix#cterminal#nterminal";
 						
 						for ( vector< String >::const_iterator mod_i = substrings.begin(); mod_i != substrings.end(); ++mod_i )
@@ -748,7 +748,7 @@ class TOPPInspectAdapter
 									{
 										for ( vector< pair< DoubleReal, DoubleReal > >::const_iterator iso_i = isotopes_mass_and_probability[(*comp_i)[1]].begin(); iso_i != isotopes_mass_and_probability[(*comp_i)[1]].end(); ++iso_i )
 										{
-											if ( ((SignedInt) (iso_i->first + 0.5)) == (*comp_i)[0].toDouble() ) // round the mass
+											if ( ((Int) (iso_i->first + 0.5)) == (*comp_i)[0].toDouble() ) // round the mass
 											{
 												mass += iso_i->first * (*comp_i)[2].toDouble();
 												break;
@@ -956,7 +956,7 @@ class TOPPInspectAdapter
 				{
 					// merging the trie databases (all but the first databases are appended)
 					vector< String >::const_iterator idx_i = idx.begin();
-					vector< UnsignedInt > v;
+					vector< UInt > v;
 					for ( vector< String >::const_iterator db_i = accessable_db.begin(); db_i != accessable_db.end(); ++db_i, ++idx_i )
 					{
 						inspect_outfile.compressTrieDB(*db_i, *idx_i, v, db_filename,  idx_filename, (db_i != accessable_db.begin()) );
@@ -1001,7 +1001,7 @@ class TOPPInspectAdapter
 					return EXTERNAL_PROGRAM_ERROR;
 				}
 				
-				vector< UnsignedInt > wanted_records = inspect_outfile.getWantedRecords(inspect_output_filename, p_value_threshold);
+				vector< UInt > wanted_records = inspect_outfile.getWantedRecords(inspect_output_filename, p_value_threshold);
 				
 				if ( wanted_records.empty() )
 				{
@@ -1060,7 +1060,7 @@ class TOPPInspectAdapter
 					
 					try
 					{
-						vector< UnsignedInt > corrupted_lines = inspect_outfile.load(inspect_output_filename, identifications, protein_identification, p_value_threshold);
+						vector< UInt > corrupted_lines = inspect_outfile.load(inspect_output_filename, identifications, protein_identification, p_value_threshold);
 					}
 					catch( Exception::ParseError pe )
 					{

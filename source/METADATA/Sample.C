@@ -231,9 +231,9 @@ namespace OpenMS
 	}
 	
 	
-	void Sample::addTreatment(const SampleTreatment& treatment,SignedInt before_position) throw (Exception::IndexOverflow)
+	void Sample::addTreatment(const SampleTreatment& treatment,Int before_position) throw (Exception::IndexOverflow)
 	{
-		if (before_position > SignedInt(treatments_.size()))
+		if (before_position > Int(treatments_.size()))
 		{
 			throw Exception::IndexOverflow(__FILE__, __LINE__, __PRETTY_FUNCTION__,before_position,treatments_.size());
 		}
@@ -241,7 +241,7 @@ namespace OpenMS
 		if (before_position>=0)
 		{
 			it = treatments_.begin();
-			for (SignedInt i=0; i<before_position; ++i)
+			for (Int i=0; i<before_position; ++i)
 			{
 				++it;
 			}
@@ -254,42 +254,42 @@ namespace OpenMS
 		treatments_.insert(it,tmp);
 	}
 	
-	const SampleTreatment& Sample::getTreatment(UnsignedInt position) const throw (Exception::IndexOverflow)
+	const SampleTreatment& Sample::getTreatment(UInt position) const throw (Exception::IndexOverflow)
 	{
 		if (position >= treatments_.size())
 		{
 			throw Exception::IndexOverflow(__FILE__, __LINE__, __PRETTY_FUNCTION__,position,treatments_.size());
 		}
 		list<SampleTreatment*>::const_iterator it = treatments_.begin();
-		for (UnsignedInt i=0; i<position; ++i)
+		for (UInt i=0; i<position; ++i)
 		{
 			++it;
 		}
 		return **it;
 	}
 	
-	SampleTreatment& Sample::getTreatment(UnsignedInt position) throw (Exception::IndexOverflow)
+	SampleTreatment& Sample::getTreatment(UInt position) throw (Exception::IndexOverflow)
 	{
 		if (position >= treatments_.size())
 		{
 			throw Exception::IndexOverflow(__FILE__, __LINE__, __PRETTY_FUNCTION__,position,treatments_.size());
 		}
 		list<SampleTreatment*>::const_iterator it = treatments_.begin();
-		for (UnsignedInt i=0; i<position; ++i)
+		for (UInt i=0; i<position; ++i)
 		{
 			++it;
 		}
 		return **it;
 	}
 		
-	void Sample::removeTreatment(UnsignedInt position) throw (Exception::IndexOverflow)
+	void Sample::removeTreatment(UInt position) throw (Exception::IndexOverflow)
 	{
 		if (position >= treatments_.size())
 		{
 			throw Exception::IndexOverflow(__FILE__, __LINE__, __PRETTY_FUNCTION__,position,treatments_.size());
 		}
 		list<SampleTreatment*>::iterator it = treatments_.begin();
-		for (UnsignedInt i=0; i<position; ++i)
+		for (UInt i=0; i<position; ++i)
 		{
 			++it;
 		}
@@ -298,7 +298,7 @@ namespace OpenMS
 	}
 	
 	
-	SignedInt Sample::countTreatments() const
+	Int Sample::countTreatments() const
 	{
 		return treatments_.size();
 	}

@@ -152,13 +152,13 @@ namespace OpenMS
 	
 	void InspectInfile::addMod(const vector< String >& mod) {mod_.push_back(mod);}
 
-	SignedInt InspectInfile::getMods() const {return mods_;}
+	Int InspectInfile::getMods() const {return mods_;}
 
-	void InspectInfile::setMods(SignedInt mods) {mods_ = mods;}
+	void InspectInfile::setMods(Int mods) {mods_ = mods;}
 
-	UnsignedInt InspectInfile::getBlind() const {return blind_;}
+	UInt InspectInfile::getBlind() const {return blind_;}
 
-	void InspectInfile::setBlind(UnsignedInt blind) {blind_ = blind;}
+	void InspectInfile::setBlind(UInt blind) {blind_ = blind;}
 
 	DoubleReal InspectInfile::getMaxPTMsize() const {return maxptmsize_;}
 
@@ -172,15 +172,15 @@ namespace OpenMS
 
 	void InspectInfile::setIonTolerance(DoubleReal ion_tolerance) {ion_tolerance_ = ion_tolerance;}
 
-	UnsignedInt InspectInfile::getMulticharge() const {return multicharge_;}
+	UInt InspectInfile::getMulticharge() const {return multicharge_;}
 
-	void InspectInfile::setMulticharge(UnsignedInt multicharge) {multicharge_ = multicharge;}
+	void InspectInfile::setMulticharge(UInt multicharge) {multicharge_ = multicharge;}
 
 	const String& InspectInfile::getInstrument() const {return instrument_;}
 
 	void InspectInfile::setInstrument(const String& instrument) {instrument_ = instrument;}
 
-	SignedInt InspectInfile::getTagCount() const {return tag_count_;}
+	Int InspectInfile::getTagCount() const {return tag_count_;}
 
-	void InspectInfile::setTagCount(SignedInt tag_count) {tag_count_ = tag_count;}
+	void InspectInfile::setTagCount(Int tag_count) {tag_count_ = tag_count;}
 } // namespace OpenMS

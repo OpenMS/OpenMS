@@ -40,7 +40,7 @@ namespace OpenMS
 		
 		@ingroup FeatureFinder
    */
-  template <UnsignedInt D>
+  template <UInt D>
     class BaseModel
     : public FactoryProduct
     {

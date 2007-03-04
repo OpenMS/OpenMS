@@ -132,7 +132,7 @@ namespace OpenMS
 	
 	    /// Sets data using instance of MSExperimentExtern.
 	    template <class SpectrumIteratorType>
-	    void setData(const SpectrumIteratorType& begin, const SpectrumIteratorType& end, UnsignedInt buffer_size)
+	    void setData(const SpectrumIteratorType& begin, const SpectrumIteratorType& end, UInt buffer_size)
 		  { 
 	    	traits_->setData(begin, end, buffer_size); 
 	    }

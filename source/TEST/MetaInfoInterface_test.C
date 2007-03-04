@@ -60,7 +60,7 @@ CHECK((MetaInfoRegistry& metaRegistry()))
 	TEST_EQUAL(mi.metaRegistry().getIndex("testname"),1024);
 RESULT
 
-CHECK((void setMetaValue(UnsignedInt index, const std::string& value)))
+CHECK((void setMetaValue(UInt index, const std::string& value)))
 	string tmp;
 	mi.setMetaValue(1024,string("testtesttest"));
 RESULT
@@ -70,7 +70,7 @@ CHECK((void setMetaValue(const std::string& name, const std::string& value)))
 	mi.setMetaValue("testname",string("testtesttest2"));
 RESULT
 
-CHECK((const DataValue& getMetaValue(UnsignedInt index) const throw(Exception::InvalidValue)))
+CHECK((const DataValue& getMetaValue(UInt index) const throw(Exception::InvalidValue)))
 	string tmp;
 	mi.setMetaValue(1024,string("testtesttest"));
 	tmp = string(mi.getMetaValue(1024));
@@ -84,10 +84,10 @@ CHECK((const DataValue& getMetaValue(const std::string& name) const throw(Except
 	TEST_EQUAL("testtesttest2",tmp)
 RESULT
 
-CHECK((void setMetaValue(const std::string& name, SignedInt value)))
-	SignedInt tmp;
+CHECK((void setMetaValue(const std::string& name, Int value)))
+	Int tmp;
 	mi.setMetaValue("cluster_id",4711);
-	tmp = SignedInt(mi.getMetaValue("cluster_id"));
+	tmp = Int(mi.getMetaValue("cluster_id"));
 	TEST_EQUAL(tmp,4711)
 RESULT
 
@@ -98,14 +98,14 @@ CHECK((void setMetaValue(const std::string& name, double value)))
 	TEST_REAL_EQUAL(tmp,4711.1234)
 RESULT
 
-CHECK((void setMetaValue(UnsignedInt index, SignedInt value)))
-	SignedInt tmp;
+CHECK((void setMetaValue(UInt index, Int value)))
+	Int tmp;
 	mi.setMetaValue(2,4712);
-	tmp = SignedInt(mi.getMetaValue("cluster_id"));
+	tmp = Int(mi.getMetaValue("cluster_id"));
 	TEST_EQUAL(tmp,4712)
 RESULT
 
-CHECK((void setMetaValue(UnsignedInt index, double value)))
+CHECK((void setMetaValue(UInt index, double value)))
 	double tmp;
 	mi.setMetaValue(2,4712.1234);
 	tmp = double(mi.getMetaValue("cluster_id"));
@@ -157,7 +157,7 @@ CHECK((void setMetaValue(const std::string& name, const DataValue& value)))
 	TEST_EQUAL("testtesttest3",tmp)
 RESULT
 
-CHECK((void setMetaValue(UnsignedInt index, const DataValue& value)))
+CHECK((void setMetaValue(UInt index, const DataValue& value)))
 	DataValue tmp("testtesttest3");
 	mi.setMetaValue(2,tmp);
 	tmp = string(mi.getMetaValue(2));
@@ -201,11 +201,11 @@ CHECK((void getKeys(std::vector<std::string>& keys) const))
 	TEST_EQUAL(tmp2[4],tmp[4])
 RESULT
 
-CHECK(void getKeys(std::vector< UnsignedInt > &keys) const)
+CHECK(void getKeys(std::vector< UInt > &keys) const)
 	MetaInfoInterface mi;
 	mi.setMetaValue("label",String("tag"));
 	mi.setMetaValue("icon",String("kreis"));
-	vector<UnsignedInt> vec;
+	vector<UInt> vec;
 	mi.getKeys(vec);
 	TEST_EQUAL(vec.size(),2)
 	TEST_EQUAL(vec[0],3)
@@ -234,7 +234,7 @@ CHECK((bool metaValueExists(const std::string& name) const))
 	TEST_EQUAL(mi4.metaValueExists("cluster_id"),true)
 RESULT
 
-CHECK((bool metaValueExists(UnsignedInt index) const))
+CHECK((bool metaValueExists(UInt index) const))
 	MetaInfoInterface mi4;
 	TEST_EQUAL(mi4.metaValueExists(2),false)
 	mi4.setMetaValue("cluster_id",4712.1234);
@@ -282,7 +282,7 @@ CHECK((bool operator!= (const MetaInfoInterface& rhs) const))
 	TEST_EQUAL(i2!=i,false)
 RESULT
 
-CHECK((void removeMetaValue(UnsignedInt index)))
+CHECK((void removeMetaValue(UInt index)))
 	MetaInfoInterface i,i2;
 	
 	i.setMetaValue(1,String("bla"));

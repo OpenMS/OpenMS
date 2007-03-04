@@ -72,12 +72,12 @@ namespace OpenMS
   	return !(operator==(rhs));
  	}
 	
-	SignedInt Acquisition::getNumber() const 
+	Int Acquisition::getNumber() const 
 	{
 	  return number_; 
 	}
 	
-	void Acquisition::setNumber(SignedInt number)
+	void Acquisition::setNumber(Int number)
 	{
 	  number_ = number; 
 	}

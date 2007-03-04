@@ -53,9 +53,9 @@ namespace OpenMS
 	class FeaFiTraits
 	{
 		public:
-			/// SignedInt in a MSExperiment ( first index denotes rt, second m/z )
-			typedef std::pair<UnsignedInt,UnsignedInt> IDX;
-			/// SignedInt set
+			/// Int in a MSExperiment ( first index denotes rt, second m/z )
+			typedef std::pair<UInt,UInt> IDX;
+			/// Int set
 			typedef std::set<IDX> IndexSet;
 	
 	    /// Flag for each data point
@@ -86,7 +86,7 @@ namespace OpenMS
 				@p buffer_size is the size of the ring buffer used in the internal MSExperimentExtern
 			*/
 			template <class SpectrumIteratorType>
-	    void setData(const SpectrumIteratorType& begin, const SpectrumIteratorType& end, UnsignedInt buffer_size)
+	    void setData(const SpectrumIteratorType& begin, const SpectrumIteratorType& end, UInt buffer_size)
 		  {
 		  	map_.setBufferSize( buffer_size );
 				map_.updateBuffer();
@@ -110,7 +110,7 @@ namespace OpenMS
 		
 		    // resize internal data structures
 		    flags_.resize(map_.size());
-				for (UnsignedInt i=0; i<map_.size(); ++i)
+				for (UInt i=0; i<map_.size(); ++i)
 				{
 					flags_[i].assign(map_[i].size(),FeaFiTraits::UNUSED);
 				}

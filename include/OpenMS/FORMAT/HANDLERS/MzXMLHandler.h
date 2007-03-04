@@ -166,14 +166,14 @@ namespace OpenMS
 		MetaInfoDescription* meta_;
 		String meta_id_;
 		Base64 decoder_;
-		UnsignedInt peak_count_;
+		UInt peak_count_;
 		Precision precision_;
 		String char_rest_;
 
 		//@}
 
 		/// spectrum counter (spectra without peaks are not written)
-		UnsignedInt spec_write_counter_;
+		UInt spec_write_counter_;
 		
 		/// Add name, value and description to a given MetaInfo object
 		void setAddInfo_(MetaInfoInterface& info, const String& name, const String& value, const String& description)
@@ -297,7 +297,7 @@ namespace OpenMS
 					tmp_str = getAttributeAsString_(SCANCOUNT);
 					if (tmp_str!="") // optional attribute
 					{  
-						exp_->reserve( asUnsignedInt_(tmp_str) );
+						exp_->reserve( asUInt_(tmp_str) );
 					}
 				}
 				
@@ -310,14 +310,14 @@ namespace OpenMS
 					//std::cout << "SCHEMA: " << tmp_str << std::endl;
 					if (tmp_str!="")
 					{
-						for (UnsignedInt index=0; index<Schemes::MzXML_num; ++index)
+						for (UInt index=0; index<Schemes::MzXML_num; ++index)
 						{
 							if (tmp_str.hasSubstring(Schemes::MzXML[index][0]))
 							{
 								schema_ = index;
 								// refill maps with older schema
-								for (UnsignedInt i=0; i<str2enum_array_.size(); i++)	str2enum_array_[i].clear();
-								for (UnsignedInt i=0; i<enum2str_array_.size(); i++)	enum2str_array_[i].clear();
+								for (UInt i=0; i<str2enum_array_.size(); i++)	str2enum_array_[i].clear();
+								for (UInt i=0; i<enum2str_array_.size(); i++)	enum2str_array_[i].clear();
 								fillMaps_(Schemes::MzXML[schema_]);
 								break;
 							}
@@ -487,7 +487,7 @@ namespace OpenMS
 					tmp_str = getAttributeAsString_(PRECURSOR_CHARGE);
 					if (tmp_str != "") // optional attribute
 					{
-						peak.setCharge(asSignedInt_(tmp_str));
+						peak.setCharge(asInt_(tmp_str));
 					}
 					
 					tmp_str = getAttributeAsString_(PRECURSOR_SCANNUM);
@@ -554,7 +554,7 @@ namespace OpenMS
 						error("'scan' tag misses required attribute 'num'");
 						break;
 					}
-					if (asUnsignedInt_(tmp_str) != exp_->size() + 1)
+					if (asUInt_(tmp_str) != exp_->size() + 1)
 					{
 						// num tag starts from 1 and must be consecutive
 						error("non-consecutive numbers in 'scan' tags");
@@ -567,7 +567,7 @@ namespace OpenMS
 					tmp_str = getAttributeAsString_(MSLEVEL);
 					if (tmp_str != "")
 					{
-						spec.setMSLevel(asSignedInt_(tmp_str));
+						spec.setMSLevel(asInt_(tmp_str));
 					}
 					else
 					{
@@ -578,7 +578,7 @@ namespace OpenMS
 					tmp_str = getAttributeAsString_(PEAKSCOUNT);
 					if (tmp_str != "")
 					{
-						peak_count_ = asSignedInt_(tmp_str);
+						peak_count_ = asInt_(tmp_str);
 					}
 					else
 					{
@@ -586,7 +586,7 @@ namespace OpenMS
 					}
 
 					// optional attributes
-					for (UnsignedInt i=0; i<attributes.getLength(); i++)
+					for (UInt i=0; i<attributes.getLength(); i++)
 					{
 						int att = str2enum_(ATTMAP,xercesc::XMLString::transcode(attributes.getQName(i)),"scan attribute");
 						String value = xercesc::XMLString::transcode(attributes.getValue(i));
@@ -868,7 +868,7 @@ namespace OpenMS
 				break;
 			case DATAPROCESSING:
 					// optional attributes
-					for (UnsignedInt i=0; i<attributes.getLength(); i++)
+					for (UInt i=0; i<attributes.getLength(); i++)
 					{
 						int att = str2enum_(ATTMAP,xercesc::XMLString::transcode(attributes.getQName(i)),"dataprocessing attribute");
 						String value = xercesc::XMLString::transcode(attributes.getValue(i));
@@ -979,7 +979,7 @@ namespace OpenMS
 				char_rest_ = "";
 				PeakType peak;
 				//push_back the peaks into the container
-				for (UnsignedInt n = 0 ; n < ( 2 * peak_count_) ; n += 2)
+				for (UInt n = 0 ; n < ( 2 * peak_count_) ; n += 2)
 				{
 					// check if peak in in the specified range
 					if ((!options_.hasMZRange() || options_.getMZRange().encloses(DPosition<1>(data[n])))
@@ -997,7 +997,7 @@ namespace OpenMS
 				char_rest_ = "";
 				PeakType peak;
 				//push_back the peaks into the container
-				for (UnsignedInt n = 0 ; n < (2 * peak_count_) ; n += 2)
+				for (UInt n = 0 ; n < (2 * peak_count_) ; n += 2)
 				{
 					if ((!options_.hasMZRange() || options_.getMZRange().encloses(DPosition<1>(data[n])))
 					 && (!options_.hasIntensityRange() || options_.getIntensityRange().encloses(DPosition<1>(data[n+1]))))
@@ -1016,8 +1016,8 @@ namespace OpenMS
 	void MzXMLHandler<MapType>::writeTo(std::ostream& os)
 	{
 		//determine how many spectra there are (count only those with peaks)
-		UnsignedInt count_tmp_  = 0;
-		for (UnsignedInt s=0; s<cexp_->size(); s++)
+		UInt count_tmp_  = 0;
+		for (UInt s=0; s<cexp_->size(); s++)
 		{
 			const SpectrumType& spec = (*cexp_)[s];
 			if (spec.size()!=0) ++count_tmp_;
@@ -1100,7 +1100,7 @@ namespace OpenMS
 				std::string::size_type uri = info.find("URI:");
 				if (phone != std::string::npos)
 				{
-					UnsignedInt end = uri != std::string::npos ? uri : info.size();
+					UInt end = uri != std::string::npos ? uri : info.size();
 					os << "\" phone=\"" << info.substr(phone + 6, end - phone + 6);
 				}
 				
@@ -1111,7 +1111,7 @@ namespace OpenMS
 				
 				if (uri != std::string::npos)
 				{
-					UnsignedInt uri = info.find("URI:");
+					UInt uri = info.find("URI:");
 					os << "\" URI=\"" << info.substr(uri+4).trim();
 				}
 				
@@ -1170,7 +1170,7 @@ namespace OpenMS
 		int min_ms_level = std::numeric_limits<int>::max();
 		
 		// write scans
-		for (UnsignedInt s=0; s<cexp_->size(); s++)
+		for (UInt s=0; s<cexp_->size(); s++)
 		{
 			const SpectrumType& spec = (*cexp_)[s];
 						
@@ -1213,7 +1213,7 @@ namespace OpenMS
 			
 			//std::cout << "Writing scan" << std::endl;
 			float* tmp = decoder_.getFloatBuffer(spec.size()*2);
-			for (UnsignedInt i=0; i<spec.size(); i++)
+			for (UInt i=0; i<spec.size(); i++)
 			{
 				tmp[2*i]   = spec.getContainer()[i].getMZ();
 				tmp[2*i+1] = spec.getContainer()[i].getIntensity();
@@ -1234,7 +1234,7 @@ namespace OpenMS
 			//std::cout << "scan: " << s << " this: " << MSLevel << " next: " << next_MSLevel << std::endl;
 			if (next_MSLevel <= MSLevel)
 			{
-				for (SignedInt i = 0; i<= MSLevel-next_MSLevel; ++i)
+				for (Int i = 0; i<= MSLevel-next_MSLevel; ++i)
 				{
 					os << String(MSLevel-i+1,'\t') << "</scan>\n";
 				}

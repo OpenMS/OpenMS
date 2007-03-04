@@ -50,13 +50,13 @@ namespace OpenMS
 		
 	}
 
-	UnsignedInt MultiGradient::size() const
+	UInt MultiGradient::size() const
 	{
 		return pos_col_.size();
 	}
 	
 
-	void MultiGradient::insert (SignedInt position, const QColor& color)
+	void MultiGradient::insert (Int position, const QColor& color)
 	{
 		if (position >= 0 || position <=100 )
 		{
@@ -64,14 +64,14 @@ namespace OpenMS
 		}
 	}
 
-	bool MultiGradient::remove (SignedInt position)
+	bool MultiGradient::remove (Int position)
 	{
 		if (position < 1 || position > 99 )
 		{
 			return false;
 		}
 		
-		map<UnsignedInt,QColor>::iterator it = pos_col_.find(position);
+		map<UInt,QColor>::iterator it = pos_col_.find(position);
 		if (it != pos_col_.end())
 		{
 			pos_col_.erase(it);
@@ -81,30 +81,30 @@ namespace OpenMS
 	}
 
 
-	UnsignedInt MultiGradient::position(UnsignedInt index) throw(IndexUnderflow,IndexOverflow)
+	UInt MultiGradient::position(UInt index) throw(IndexUnderflow,IndexOverflow)
 	{
 		if (index>size()-1)
 		{
 			throw IndexOverflow(__FILE__, __LINE__, __PRETTY_FUNCTION__);
 		}
 
-		map<UnsignedInt,QColor>::iterator it = pos_col_.begin();
-		for (UnsignedInt i=0; i<index; ++i)
+		map<UInt,QColor>::iterator it = pos_col_.begin();
+		for (UInt i=0; i<index; ++i)
 		{
 			++it;
 		}		
 		return it->first;
 	}
 	
-	const QColor& MultiGradient::color(UnsignedInt index) throw(IndexUnderflow,IndexOverflow)
+	const QColor& MultiGradient::color(UInt index) throw(IndexUnderflow,IndexOverflow)
 	{
 		if (index>size()-1)
 		{
 			throw IndexOverflow(__FILE__, __LINE__, __PRETTY_FUNCTION__);
 		}
 		
-		map<UnsignedInt,QColor>::iterator it = pos_col_.begin();
-		for (UnsignedInt i=0; i<index; ++i)
+		map<UInt,QColor>::iterator it = pos_col_.begin();
+		for (UInt i=0; i<index; ++i)
 		{
 			++it;
 		}
@@ -126,25 +126,25 @@ namespace OpenMS
 		//linear
 		if (interpolation_mode_==IM_LINEAR)
 		{
-			map<UnsignedInt,QColor>::const_iterator it1 = pos_col_.lower_bound(SignedInt(position));
-			if (it1->first == UnsignedInt(position))
+			map<UInt,QColor>::const_iterator it1 = pos_col_.lower_bound(Int(position));
+			if (it1->first == UInt(position))
 			{
 				return it1->second;
 			}
 			else
 			{
-				map<UnsignedInt,QColor>::const_iterator it0 = it1;
+				map<UInt,QColor>::const_iterator it0 = it1;
 				--it0;
 				double factor = (position-it0->first)/(it1->first-it0->first);
-				return QColor(SignedInt(factor*it1->second.red()+(1-factor)*it0->second.red()+0.001) 
-				            , SignedInt(factor*it1->second.green()+(1-factor)*it0->second.green()+0.001) 
-				            , SignedInt(factor*it1->second.blue()+(1-factor)*it0->second.blue()+0.001)  );
+				return QColor(Int(factor*it1->second.red()+(1-factor)*it0->second.red()+0.001) 
+				            , Int(factor*it1->second.green()+(1-factor)*it0->second.green()+0.001) 
+				            , Int(factor*it1->second.blue()+(1-factor)*it0->second.blue()+0.001)  );
 			}
 		}
 		//stairs
 		else
 		{
-			map<UnsignedInt,QColor>::const_iterator it = pos_col_.upper_bound(SignedInt(position));
+			map<UInt,QColor>::const_iterator it = pos_col_.upper_bound(Int(position));
 			--it;
 			return it->second;
 		}
@@ -157,7 +157,7 @@ namespace OpenMS
 		return interpolatedColorAt((position-min)/(max-min)*100.0);
 	}
 
-	void MultiGradient::setInterpolationMode(UnsignedInt mode)
+	void MultiGradient::setInterpolationMode(UInt mode)
 	{
 		if (mode == IM_LINEAR || mode == IM_STAIRS)
 		{
@@ -165,7 +165,7 @@ namespace OpenMS
 		}
 	}
 
-	UnsignedInt MultiGradient::getInterpolationMode() const
+	UInt MultiGradient::getInterpolationMode() const
 	{
 		return interpolation_mode_;
 	}
@@ -185,7 +185,7 @@ namespace OpenMS
 			out << "Stairs|";
 		}		
 		
-		for (map<UnsignedInt,QColor>::const_iterator it = pos_col_.begin(); it!=pos_col_.end(); ++it )
+		for (map<UInt,QColor>::const_iterator it = pos_col_.begin(); it!=pos_col_.end(); ++it )
 		{
 			if (it!=pos_col_.begin())
 			{
@@ -209,7 +209,7 @@ namespace OpenMS
 
 		string g(gradient);
 		string::iterator tmp(g.begin());
-		UnsignedInt tmp_pos=0;
+		UInt tmp_pos=0;
 		for (string::iterator it = g.begin(); it!=(g.end()+1);++it)
 		{
 			if (*it == '|')
@@ -237,14 +237,14 @@ namespace OpenMS
 		}
 	}
 	
-	void MultiGradient::activatePrecalculationMode(double min, double max, UnsignedInt steps)
+	void MultiGradient::activatePrecalculationMode(double min, double max, UInt steps)
 	{
 		pre_min_ = std::min(min,max);
 		pre_size_ = fabs(max-min);
 		pre_steps_ = steps - 1;
 		pre_.clear();
 		pre_.reserve(steps);
-		for (UnsignedInt step = 0; step < steps; ++step)
+		for (UInt step = 0; step < steps; ++step)
 		{
 			pre_.push_back(interpolatedColorAt(step,0,pre_steps_));
 			//cout << pre_.back().red() << " " << pre_.back().green() << " " << pre_.back().blue() << endl;
@@ -262,13 +262,13 @@ namespace OpenMS
 		{
 			throw OutOfSpecifiedRange(__FILE__, __LINE__, __PRETTY_FUNCTION__, position,0,0);
 		}
-		SignedInt tmp = static_cast<SignedInt>(pre_steps_ * (position - pre_min_) / pre_size_);
+		Int tmp = static_cast<Int>(pre_steps_ * (position - pre_min_) / pre_size_);
 		if (tmp <= 0.0) return pre_[0];
 		if (tmp >= pre_steps_) return pre_[pre_steps_];
 		return pre_[tmp];	
 	}
 
-	bool MultiGradient::exists (SignedInt position)
+	bool MultiGradient::exists (Int position)
 	{
 		return pos_col_.find(position)!=pos_col_.end();
 	}

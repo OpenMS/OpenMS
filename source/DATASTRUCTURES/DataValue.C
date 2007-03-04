@@ -248,7 +248,7 @@ namespace OpenMS
 		  throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__,"Could not convert DataValue to unsigned int");
 		}
 
-		return UnsignedInt( abs(data_.int_));
+		return UInt( abs(data_.int_));
 	}
 
 	DataValue::operator long() const throw(Exception::ConversionError)

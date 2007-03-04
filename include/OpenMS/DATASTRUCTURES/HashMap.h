@@ -93,7 +93,7 @@ namespace OpenMS
 			
 			public:
 			typedef ValueType value_type;
-			typedef SignedInt difference_type;
+			typedef Int difference_type;
 			typedef std::forward_iterator_tag iterator_category;
 			typedef value_type& reference;
 			typedef value_type* pointer;
@@ -153,7 +153,7 @@ namespace OpenMS
 
         if (position_ == 0)
         {
-					for (++bucket_;  bucket_ < (UnsignedInt)bound_->bucket_.size();  ++bucket_)
+					for (++bucket_;  bucket_ < (UInt)bound_->bucket_.size();  ++bucket_)
 					{
 						position_ = bound_->bucket_[bucket_];
 
@@ -201,7 +201,7 @@ namespace OpenMS
 
 			protected:
 			Node* position_;
-			UnsignedInt bucket_;
+			UInt bucket_;
 			HashMap* bound_;
 		};	
 
@@ -217,7 +217,7 @@ namespace OpenMS
 			
 			public:
 			typedef ValueType value_type;
-			typedef SignedInt difference_type;
+			typedef Int difference_type;
 			typedef const ValueType& reference;
 			typedef const ValueType* pointer;
 			typedef std::forward_iterator_tag iterator_category;
@@ -287,7 +287,7 @@ namespace OpenMS
 
         if (position_ == 0)
         {
-					for (++bucket_;  bucket_ < (UnsignedInt)bound_->bucket_.size();  ++bucket_)
+					for (++bucket_;  bucket_ < (UInt)bound_->bucket_.size();  ++bucket_)
 					{
 						position_ = bound_->bucket_[bucket_];
 
@@ -358,7 +358,7 @@ namespace OpenMS
 
 			protected:
 			Node* position_;
-			UnsignedInt bucket_;
+			UInt bucket_;
 			const HashMap* bound_;
 		};
 
@@ -371,8 +371,8 @@ namespace OpenMS
 		//@{
 		///
 		typedef ValueType value_type;
-		typedef UnsignedInt size_type;
-		typedef SignedInt difference_type;
+		typedef UInt size_type;
+		typedef Int difference_type;
 		///
 		typedef ValueType& reference;
 		typedef const ValueType& const_reference;
@@ -426,7 +426,7 @@ namespace OpenMS
 				@param initial_capacity the capacity of the hash map
 				@param number_of_buckets the number of buckets to create
 		*/
-		HashMap(UnsignedInt initial_capacity = INITIAL_CAPACITY, UnsignedInt number_of_buckets = INITIAL_NUMBER_OF_BUCKETS)
+		HashMap(UInt initial_capacity = INITIAL_CAPACITY, UInt number_of_buckets = INITIAL_NUMBER_OF_BUCKETS)
 			throw();
 			
 		/**	Copy Constructor.
@@ -486,26 +486,26 @@ namespace OpenMS
 
 		/**	Return the number of buckets
 		*/
-		UnsignedInt getBucketSize() const throw();
+		UInt getBucketSize() const throw();
 
 		/** Return the capcacity of the hash map.
 		*/
-		UnsignedInt getCapacity() const throw();
+		UInt getCapacity() const throw();
 
 		/**	Return the number of entries in the map.
 		*/
-		UnsignedInt getSize() const throw();
+		UInt getSize() const throw();
 			
 		/**	Return the number of entries in the map.
 		*/
-		UnsignedInt size() const throw();
+		UInt size() const throw();
 
 		/** Find the element whose key is <tt>key</tt>.
 		*/
 		Iterator find(const Key& key) throw()
 		{
 			Iterator it = end();
-			UnsignedInt bucket = hash_(key);
+			UInt bucket = hash_(key);
 			Node*	node_ptr = bucket_[hash_(key)];
 			
 			for (; node_ptr != 0; node_ptr = node_ptr->next)
@@ -526,7 +526,7 @@ namespace OpenMS
 		ConstIterator find(const Key& key) const throw()
 		{
 			ConstIterator it = end();
-			UnsignedInt bucket = hash_(key);
+			UInt bucket = hash_(key);
 			Node*	node_ptr = bucket_[hash_(key)];
 			
 			for (; node_ptr != 0; node_ptr = node_ptr->next)
@@ -565,9 +565,9 @@ namespace OpenMS
 		Iterator insert(Iterator pos, const ValueType& entry) throw();
 
 		/**	Erase element with key <tt>key</tt>.
-				@return UnsignedInt the number of elements erased (0 or 1)
+				@return UInt the number of elements erased (0 or 1)
 		*/
-		UnsignedInt erase(const Key& key) throw();
+		UInt erase(const Key& key) throw();
 
 		/**	Erase element at a given position.
 				@param pos an iterator pointing to the element to delete
@@ -631,19 +631,19 @@ namespace OpenMS
 
 		virtual void deleteNode_(Node* node) const throw();
 	
-		virtual UnsignedInt hash(const Key& key) const throw();
+		virtual UInt hash(const Key& key) const throw();
 
 		virtual bool needRehashing_() const throw();
 
 		virtual void rehash() throw();
 
-		PointerType find_(const Key& key, UnsignedInt& index) throw();
+		PointerType find_(const Key& key, UInt& index) throw();
 			
-		PointerType find_(const Key& key, UnsignedInt& index) const throw();
+		PointerType find_(const Key& key, UInt& index) const throw();
 
 		void deleteBuckets_() throw();
 
-		UnsignedInt hash_(const Key& key) const throw();
+		UInt hash_(const Key& key) const throw();
 
 		void rehash_() throw();
 
@@ -653,10 +653,10 @@ namespace OpenMS
 
 		/**	The number of entries in the map
 		*/
-		UnsignedInt size_;
+		UInt size_;
 		/**	The maximum number of entries before a resize operation is required
 		*/
-		UnsignedInt capacity_;
+		UInt capacity_;
 
 		/**	Buckets are stored as a vector of linked lists of Nodes 
 		*/
@@ -667,13 +667,13 @@ namespace OpenMS
 
 	template <class Key, class T>
 	inline
-	HashMap<Key, T>::HashMap(UnsignedInt initial_capacity, UnsignedInt number_of_buckets)
+	HashMap<Key, T>::HashMap(UInt initial_capacity, UInt number_of_buckets)
 		throw()
 		:	size_(0),
 			capacity_(initial_capacity),
 			bucket_(number_of_buckets)
 	{
-		for (UnsignedInt bucket = 0; bucket < (UnsignedInt)bucket_.size(); ++bucket)
+		for (UInt bucket = 0; bucket < (UInt)bucket_.size(); ++bucket)
 		{
 			bucket_[bucket] = 0;
 		}
@@ -685,11 +685,11 @@ namespace OpenMS
 		throw()
 		:	size_(hash_map.size_),
 			capacity_(hash_map.capacity_),
-			bucket_((UnsignedInt)hash_map.bucket_.size())
+			bucket_((UInt)hash_map.bucket_.size())
 	{
 		Node* node = 0;
 		
-		for (UnsignedInt bucket = 0; bucket < (UnsignedInt)bucket_.size(); ++bucket)
+		for (UInt bucket = 0; bucket < (UInt)bucket_.size(); ++bucket)
 		{
 			bucket_[bucket] = 0;
 
@@ -707,7 +707,7 @@ namespace OpenMS
 		Node* node = 0;
 		Node* next_node = 0;
 		
-		for (UnsignedInt bucket = 0; bucket < (UnsignedInt)bucket_.size(); ++bucket)
+		for (UInt bucket = 0; bucket < (UInt)bucket_.size(); ++bucket)
 		{
 			for (node = bucket_[bucket]; node != 0; node = next_node)
 			{
@@ -747,7 +747,7 @@ namespace OpenMS
 
 		Node* node = 0;
 		
-		for (UnsignedInt bucket = 0; bucket < (UnsignedInt)bucket_.size(); ++bucket)
+		for (UInt bucket = 0; bucket < (UInt)bucket_.size(); ++bucket)
 		{
 			bucket_[bucket] = 0;
 
@@ -787,15 +787,15 @@ namespace OpenMS
 
 	template <class Key, class T>
 	inline 
-	UnsignedInt HashMap<Key, T>::getBucketSize() const
+	UInt HashMap<Key, T>::getBucketSize() const
 		throw()
 	{
-		return (UnsignedInt)bucket_.size();
+		return (UInt)bucket_.size();
 	}
 
 	template <class Key, class T>
 	inline 
-	UnsignedInt HashMap<Key, T>::getCapacity() const
+	UInt HashMap<Key, T>::getCapacity() const
 		throw()
 	{
 		return capacity_;
@@ -803,7 +803,7 @@ namespace OpenMS
 
 	template <class Key, class T>
 	inline 
-	UnsignedInt HashMap<Key, T>::getSize() const
+	UInt HashMap<Key, T>::getSize() const
 		throw()
 	{
 		return size_;
@@ -811,7 +811,7 @@ namespace OpenMS
 
 	template <class Key, class T>
 	inline 
-	UnsignedInt HashMap<Key, T>::size() const
+	UInt HashMap<Key, T>::size() const
 		throw()
 	{
 		return size_;
@@ -861,7 +861,7 @@ namespace OpenMS
 				rehash_();
 			}
 			
-			UnsignedInt bucket = hash_(item.first);
+			UInt bucket = hash_(item.first);
 			
 			Node* node_ptr = bucket_[bucket];
 			bucket_[bucket] = newNode_(item, node_ptr);
@@ -890,11 +890,11 @@ namespace OpenMS
 	}
 
 	template <class Key, class T>
-	UnsignedInt HashMap<Key, T>::erase(const Key& key)
+	UInt HashMap<Key, T>::erase(const Key& key)
 		throw()
 	{
 		Node*	previous = 0;
-		UnsignedInt bucket = hash_(key);
+		UInt bucket = hash_(key);
 		Node*	node_ptr = bucket_[bucket];
 
 		while (node_ptr != 0 && node_ptr->value.first != key)
@@ -967,10 +967,10 @@ namespace OpenMS
 			return;
 		}
 
-		UnsignedInt last_bucket = l.bucket_;
+		UInt last_bucket = l.bucket_;
 		if (l == end())
 		{
-			last_bucket = (UnsignedInt)bucket_.size() - 1;
+			last_bucket = (UInt)bucket_.size() - 1;
 		}
 
 		if (f.bucket_ > last_bucket)
@@ -980,9 +980,9 @@ namespace OpenMS
 		}
 
 		// count the deleted entries to correct the set size
-		UnsignedInt no_deletions = 0;
+		UInt no_deletions = 0;
 
-		UnsignedInt bucket = f.bucket_;
+		UInt bucket = f.bucket_;
 		for (; bucket <= last_bucket; bucket++)
 		{
 			if (bucket_[bucket] == 0)
@@ -1112,7 +1112,7 @@ namespace OpenMS
 	}
 
 	template <class Key, class T>
-	inline UnsignedInt HashMap<Key, T>::hash(const Key& key) const
+	inline UInt HashMap<Key, T>::hash(const Key& key) const
 		throw()
 	{
 		return Hash(key);
@@ -1122,7 +1122,7 @@ namespace OpenMS
 	inline void HashMap<Key, T>::rehash()
 		throw()
 	{
-		capacity_ = (UnsignedInt)getNextPrime((UnsignedInt)bucket_.size() * 2);
+		capacity_ = (UInt)getNextPrime((UInt)bucket_.size() * 2);
 	}
 
 
@@ -1132,7 +1132,7 @@ namespace OpenMS
 	{
 		Node*	node = 0;
 		Node*	next_node = 0;
-		for (UnsignedInt i = 0; i < (UnsignedInt)bucket_.size(); i++)
+		for (UInt i = 0; i < (UInt)bucket_.size(); i++)
 		{
 			node = bucket_[i];
 			while (node != 0)
@@ -1169,10 +1169,10 @@ namespace OpenMS
 
 
 	template <class Key, class T>
-	inline UnsignedInt HashMap<Key, T>::hash_(const Key& key) const
+	inline UInt HashMap<Key, T>::hash_(const Key& key) const
 		throw()
 	{
-		return (UnsignedInt)(hash(key) % bucket_.size());
+		return (UInt)(hash(key) % bucket_.size());
 	}
  
 	template <class Key, class T>
@@ -1188,7 +1188,7 @@ namespace OpenMS
 		// resize the bucket vector and initialize it with zero
 		bucket_.clear();
 		bucket_.resize(capacity_);
-		UnsignedInt i;
+		UInt i;
 		for (i = 0; i < capacity_; i++)
 		{
 			bucket_[i] = 0;
@@ -1197,12 +1197,12 @@ namespace OpenMS
 		// rehash the old contents into the new buckets
 		Node*	node;
 		Node* next_node;
-		for (UnsignedInt i = 0; i < (UnsignedInt)old_buckets.size(); ++i)
+		for (UInt i = 0; i < (UInt)old_buckets.size(); ++i)
 		{
 			for (node = old_buckets[i]; node != 0; node = next_node)
 			{
 				next_node = node->next;
-				UnsignedInt new_bucket = (UnsignedInt)hash_(node->value.first);
+				UInt new_bucket = (UInt)hash_(node->value.first);
 				node->next = bucket_[new_bucket];
 				bucket_[new_bucket] = node; 
 			}

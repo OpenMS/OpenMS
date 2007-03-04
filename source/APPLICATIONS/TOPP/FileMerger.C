@@ -205,7 +205,7 @@ class TOPPFileMerger
 					{
 						writeLog_(String("Warning: cannot guess retention time from filename as it does not contain 'rt'"));
 					}
-					for (UnsignedInt i = 0; i < filename.size(); ++i)
+					for (UInt i = 0; i < filename.size(); ++i)
 					{
 						if (filename[i] == 'r' && ++i != filename.size() && filename[i] == 't' && ++i != filename.size() && isdigit(filename[i]))
 						{

@@ -92,35 +92,35 @@ namespace OpenMS
 			String file_;
 			
 			/// Conversion of a String to an integer value
-			inline SignedInt asSignedInt_(const String& in)
+			inline Int asInt_(const String& in)
 			{
-				SignedInt res = 0;
+				Int res = 0;
 				try
 				{
 					res = in.toInt();
 				}
 				catch (Exception::ConversionError)
 				{
-					error(String("SignedInt conversion error of \"") + in + "\"");
+					error(String("Int conversion error of \"") + in + "\"");
 				}
 				return res;
 			}
 			/// Conversion of a String to an unsigned integer value
-			inline UnsignedInt asUnsignedInt_(const String& in)
+			inline UInt asUInt_(const String& in)
 			{
-				UnsignedInt res = 0;
+				UInt res = 0;
 				try
 				{
-					SignedInt tmp = in.toInt();
+					Int tmp = in.toInt();
 					if (tmp<0)
 					{
 						Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__,"");
 					}
-					res = UnsignedInt(tmp);
+					res = UInt(tmp);
 				}
 				catch (Exception::ConversionError)
 				{
-					error(String("UnsignedInt conversion error of \"") + in + "\"");
+					error(String("UInt conversion error of \"") + in + "\"");
 				}
 				return res;
 			}

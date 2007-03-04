@@ -58,7 +58,7 @@ namespace OpenMS
 
 		@ingroup Kernel
 	*/
-	template <UnsignedInt D, typename ContainerT = DPeakArray<D> >
+	template <UInt D, typename ContainerT = DPeakArray<D> >
 	class DSpectrum
 		: public MetaInfoInterface,
 			public RangeManager<D>
@@ -239,7 +239,7 @@ namespace OpenMS
 				return container_.max_size(); 
 			}	
 			/// returns the size (the number of peaks)
-			inline UnsignedInt size() const 
+			inline UInt size() const 
 			{ 
 				return container_.size(); 
 			}
@@ -467,13 +467,13 @@ namespace OpenMS
 				
 				For survey scans this is 1, for MS/MS scans 2, ...
 			*/
-			UnsignedInt getMSLevel() const
+			UInt getMSLevel() const
 			{
 				 return ms_level_; 
 			}
 			
 			///Sets the MS level.
-			void setMSLevel(UnsignedInt ms_level)
+			void setMSLevel(UInt ms_level)
 			{
 				ms_level_ = ms_level;
 			}
@@ -556,14 +556,14 @@ namespace OpenMS
 	    CoordinateType retention_stop_;
 			
 			/// MS level
-			UnsignedInt ms_level_;
+			UInt ms_level_;
 			
 			/// Name
 			std::string name_;	
 	};
 
 	///Print the contents to a stream.
-	template <UnsignedInt D, typename Container>
+	template <UInt D, typename Container>
 	std::ostream& operator << (std::ostream& os, const DSpectrum<D, Container>& dds)
 	{
 		os << "-- DSpectrum BEGIN --"<<std::endl;

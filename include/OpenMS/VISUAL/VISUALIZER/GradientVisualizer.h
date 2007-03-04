@@ -92,7 +92,7 @@ Each HPLC objects contains a gradient object. A gradient objects contains a list
 		*/
 		//@{
 		std::vector< String > eluents_;
-		std::vector< SignedInt > timepoints_;
+		std::vector< Int > timepoints_;
 		//@}
 		
 	

@@ -289,20 +289,20 @@ namespace OpenMS
 		prefs_ = prefs;
 	}
 	
-	UnsignedInt SpectrumCanvas::activeLayerIndex() const
+	UInt SpectrumCanvas::activeLayerIndex() const
 	{
 		return current_layer_;	
 	}
 
 	SpectrumCanvas::ExperimentType& SpectrumCanvas::addEmptyPeakLayer()
 	{
-		UnsignedInt newcount = getLayerCount()+1;
+		UInt newcount = getLayerCount()+1;
 		layers_.resize(newcount);
 		layers_.back().type = LayerData::DT_PEAK;
 		return layers_[newcount-1].peaks;
 	}
 
-	SignedInt SpectrumCanvas::addLayer(const ExperimentType& in)
+	Int SpectrumCanvas::addLayer(const ExperimentType& in)
 	{	
 		layers_.resize(getLayerCount()+1);
 		layers_.back().peaks = in;
@@ -310,7 +310,7 @@ namespace OpenMS
 		return finishAdding();
 	}
 
-	SignedInt SpectrumCanvas::addLayer(const FeatureMapType& map, bool pairs)
+	Int SpectrumCanvas::addLayer(const FeatureMapType& map, bool pairs)
 	{
 		layers_.resize(layers_.size()+1);
 		layers_.back().features = map;
@@ -341,7 +341,7 @@ namespace OpenMS
   	return overall_data_range_;
   }
 
-	void SpectrumCanvas::updateRanges_(UnsignedInt layer_index, UnsignedInt mz_dim, UnsignedInt rt_dim, UnsignedInt it_dim)
+	void SpectrumCanvas::updateRanges_(UInt layer_index, UInt mz_dim, UInt rt_dim, UInt it_dim)
 	{
 		if (layer_index >= getLayerCount())
 		{
@@ -393,11 +393,11 @@ namespace OpenMS
 		//cout << "Updated range: " << overall_data_range_ << endl;
 	}
 	
-	void SpectrumCanvas::recalculateRanges_(UnsignedInt mz_dim, UnsignedInt rt_dim, UnsignedInt it_dim)
+	void SpectrumCanvas::recalculateRanges_(UInt mz_dim, UInt rt_dim, UInt it_dim)
 	{
 		overall_data_range_ = DRange<3>::empty;
 		
-		for (UnsignedInt i=0; i< getLayerCount(); ++i)
+		for (UInt i=0; i< getLayerCount(); ++i)
 		{
 			updateRanges_(i, mz_dim, rt_dim, it_dim);
 		}

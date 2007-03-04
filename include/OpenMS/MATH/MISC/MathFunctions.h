@@ -114,7 +114,7 @@ namespace OpenMS
 		
 			@ingroup Math
 		*/
-		inline bool isOdd(UnsignedInt x)
+		inline bool isOdd(UInt x)
 		{
 			return ((x & 1)!=0);
 		}

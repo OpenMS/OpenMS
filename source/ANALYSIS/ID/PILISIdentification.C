@@ -238,7 +238,7 @@ namespace OpenMS
 	void PILISIdentification::getFinalIdentification_(Identification& id, const PeakSpectrum& spec, const Identification& pre_id)
 	{
 		unsigned int max_candidates = (unsigned int)param_.getValue("max_candidates");
-		for (UnsignedInt i = 0; i < pre_id.getPeptideHits().size() && i < max_candidates; ++i)
+		for (UInt i = 0; i < pre_id.getPeptideHits().size() && i < max_candidates; ++i)
     {
       String sequence = pre_id.getPeptideHits()[i].getSequence();
       AASequence peptide_sequence(sequence);
@@ -286,7 +286,7 @@ namespace OpenMS
 		double b_pos(0);
 		double y_pos(18);
 		bool b_H2O_loss(false), b_NH3_loss(false), y_H2O_loss(false), y_NH3_loss(false);
-		for (UnsignedInt i = 0; i != sequence.size(); ++i)
+		for (UInt i = 0; i != sequence.size(); ++i)
 		{
 			char aa(sequence[i]);
 			b_pos += aa_weight_[aa];

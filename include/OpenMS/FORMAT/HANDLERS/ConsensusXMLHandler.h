@@ -158,7 +158,7 @@ namespace OpenMS
 
         /// This function fills the members of a picked peak of type OutputPeakType.
         template <typename ConsensusElementT >
-        void loadFile_(const String& /* file_name */, UnsignedInt /* id */, const ConsensusElementT& /* c */) throw (Exception::FileNotFound, Exception::ParseError)
+        void loadFile_(const String& /* file_name */, UInt /* id */, const ConsensusElementT& /* c */) throw (Exception::FileNotFound, Exception::ParseError)
         {
           std::cout << "Read no file " << std::endl;
         }
@@ -166,7 +166,7 @@ namespace OpenMS
         void writeCellList_(std::ostream& os, const Grid& grid)
         {
           // write features with their attributes
-          for (UnsignedInt s=0; s < grid.size(); s++)
+          for (UInt s=0; s < grid.size(); s++)
           {
             const GridCell& cell = grid[s];
 
@@ -178,7 +178,7 @@ namespace OpenMS
             MappingVector mappings = cell.getMappings();
 
             typename MappingVector::const_iterator citer = mappings.begin();
-            UnsignedInt i = 0;
+            UInt i = 0;
             while (citer != mappings.end() )
             {
 
@@ -284,7 +284,7 @@ namespace OpenMS
           tmp_str = getAttributeAsString_(COUNT);
           if (tmp_str != "")
           {
-            UnsignedInt count = asUnsignedInt_(tmp_str);
+            UInt count = asUInt_(tmp_str);
             consensus_map_->getMapVector().resize(count);
             consensus_map_->getFilenames().resize(count);
           }
@@ -311,7 +311,7 @@ namespace OpenMS
           tmp_str = getAttributeAsString_(ID);
           if (tmp_str != "")
           {
-            UnsignedInt id = asUnsignedInt_(tmp_str);
+            UInt id = asUInt_(tmp_str);
             tmp_str = getAttributeAsString_(NAME);
 
             // load FeatureMapXML
@@ -404,12 +404,12 @@ namespace OpenMS
           tmp_str = getAttributeAsString_(MAP_ATT);
           if (tmp_str != "")
           {
-            UnsignedInt map_index = asUnsignedInt_(tmp_str);
+            UInt map_index = asUInt_(tmp_str);
             tmp_str = getAttributeAsString_(ID);
 
             if (tmp_str != "")
             {
-              UnsignedInt element_index = asUnsignedInt_(tmp_str);
+              UInt element_index = asUInt_(tmp_str);
 
               act_index_tuple.setMapIndex(map_index);
               act_index_tuple.setElementIndex(element_index);
@@ -447,8 +447,8 @@ namespace OpenMS
       os << "\t<mapType name=\"" << calignment_->getMapType() << "\"/>\n";
 
       // write aligned maps (mapList)
-      UnsignedInt n = map_vector.size();
-      for (UnsignedInt s=0; s < n; s++)
+      UInt n = map_vector.size();
+      for (UInt s=0; s < n; s++)
       {
         os << "\t\t<map id=\"" << s << "\" name =\"" << name_vector[s] << "\" count=\"" << map_vector[s]->size() << " \"/>\n";
       } // end for ( mapList)
@@ -459,15 +459,15 @@ namespace OpenMS
       os << "\t\t<consensusAlgorithm name=\"delaunay\"/>\n";
       os << "\t</alignmentMethod>\n";
 
-      UnsignedInt ref_index = calignment_->getReferenceMapIndex();
+      UInt ref_index = calignment_->getReferenceMapIndex();
       os << "\t<alignmentNewickTree> " << calignment_->getAlignmentTree() << "</alignmentNewickTree>\n";
 
       os << "\t<transformationList>\n";
       os << "\t\t<transformation id=\"0\" name =\"IdentityTransformation\"/>\n";
       const std::vector< Grid >& transformation_vector = calignment_->getTransformationVector();
       n = transformation_vector.size();
-      UnsignedInt j=0;
-      for (UnsignedInt s=0; s < n; ++s)
+      UInt j=0;
+      for (UInt s=0; s < n; ++s)
       {
         if (s != ref_index)
         {
@@ -482,7 +482,7 @@ namespace OpenMS
       const std::vector < ConsensusElementType >& final_consensus_map = calignment_->getFinalConsensusMap();
       n=final_consensus_map.size();
       os << "\t<consensusElementList>\n";
-      for (UnsignedInt i = 0; i < n; ++i)
+      for (UInt i = 0; i < n; ++i)
       {
         os << "\t\t<consensusElement id=\""<< i << "\">\n";
         os << "\t\t\t<centroid rt=\"" << final_consensus_map[i].getRT()
@@ -514,17 +514,17 @@ namespace OpenMS
     /// Load the peaks
     template <>
     template <>
-    void ConsensusXMLHandler< StarAlignment< ConsensusFeature< FeatureMap< > > > >::loadFile_< ConsensusFeature< FeatureMap< > > >(const String& file_name, UnsignedInt id, const ConsensusFeature< FeatureMap< > >& /* c */ ) throw (Exception::FileNotFound, Exception::ParseError);
+    void ConsensusXMLHandler< StarAlignment< ConsensusFeature< FeatureMap< > > > >::loadFile_< ConsensusFeature< FeatureMap< > > >(const String& file_name, UInt id, const ConsensusFeature< FeatureMap< > >& /* c */ ) throw (Exception::FileNotFound, Exception::ParseError);
 
     // load MzData
     template <>
     template <>
-    void ConsensusXMLHandler< StarAlignment< ConsensusPeak< DPeakArray<2,Peak2D> > > >::loadFile_< ConsensusPeak< DPeakArray<2,Peak2D> > >( const String& file_name, UnsignedInt id, const ConsensusPeak< DPeakArray<2,Peak2D> >& /* c */) throw (Exception::FileNotFound, Exception::ParseError);
+    void ConsensusXMLHandler< StarAlignment< ConsensusPeak< DPeakArray<2,Peak2D> > > >::loadFile_< ConsensusPeak< DPeakArray<2,Peak2D> > >( const String& file_name, UInt id, const ConsensusPeak< DPeakArray<2,Peak2D> >& /* c */) throw (Exception::FileNotFound, Exception::ParseError);
 
     // load consensusXML
     template <>
     template <>
-    void ConsensusXMLHandler< StarAlignment< ConsensusFeature< ConsensusMap< ConsensusFeature< FeatureMap< > > > > > >::loadFile_<ConsensusFeature< ConsensusMap< ConsensusFeature< FeatureMap< > > > > >(const String& file_name, UnsignedInt id, const ConsensusFeature< ConsensusMap< ConsensusFeature< FeatureMap< > > > >& /* c */) throw (Exception::FileNotFound, Exception::ParseError);
+    void ConsensusXMLHandler< StarAlignment< ConsensusFeature< ConsensusMap< ConsensusFeature< FeatureMap< > > > > > >::loadFile_<ConsensusFeature< ConsensusMap< ConsensusFeature< FeatureMap< > > > > >(const String& file_name, UInt id, const ConsensusFeature< ConsensusMap< ConsensusFeature< FeatureMap< > > > >& /* c */) throw (Exception::FileNotFound, Exception::ParseError);
 
   } // namespace Internal
 } // namespace OpenMS

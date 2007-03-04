@@ -403,7 +403,7 @@ namespace OpenMS
 	}
 */
 	
-	UnsignedInt HiddenMarkovModel::getNumberOfStates() const
+	UInt HiddenMarkovModel::getNumberOfStates() const
 	{
 		return states_.size();
 	}
@@ -831,9 +831,9 @@ namespace OpenMS
 	{
 		#ifdef HIDDEN_MARKOV_MODEL_DEBUG
 		cerr << "Transition training stats" << endl;
-		for (HashMap<HMMState*, HashMap<HMMState*, UnsignedInt> >::ConstIterator it = training_steps_count_.begin(); it != training_steps_count_.end(); ++it)
+		for (HashMap<HMMState*, HashMap<HMMState*, UInt> >::ConstIterator it = training_steps_count_.begin(); it != training_steps_count_.end(); ++it)
 		{
-			for (HashMap<HMMState*, UnsignedInt>::ConstIterator it1 = it->second.begin(); it1 != it->second.end(); ++it1)
+			for (HashMap<HMMState*, UInt>::ConstIterator it1 = it->second.begin(); it1 != it->second.end(); ++it1)
 			{
 				cerr << it->first->getName() << " " << it1->first->getName() << " " << it1->second << endl;
 			}
@@ -846,28 +846,28 @@ namespace OpenMS
 		vector<String> suffixe;
 		HMMState* s2 = name_to_state_["bxyz"];
 		HMMState* end_state = name_to_state_["end"];
-		for (UnsignedInt i = 0; i != residues.size(); ++i)
+		for (UInt i = 0; i != residues.size(); ++i)
 		{
 			s2 = name_to_state_["bxyz"];
-			for (UnsignedInt j = 0; j != residues.size(); ++j)
+			for (UInt j = 0; j != residues.size(); ++j)
 			{
 				String aa1(residues[i]), aa2(residues[j]);
 				if (training_steps_count_[name_to_state_[aa1 + aa2 + "bxyz"]][s2] == 0)
 				{
-					UnsignedInt count(0);
+					UInt count(0);
 					double sum(0);
-					for (UnsignedInt k = 0; k != residues.size(); ++k)
+					for (UInt k = 0; k != residues.size(); ++k)
 					{
-						UnsignedInt tmp = training_steps_count_[name_to_state_[aa1 + residues[k] + "bxyz"]][s2];
+						UInt tmp = training_steps_count_[name_to_state_[aa1 + residues[k] + "bxyz"]][s2];
 						if (tmp != 0)
 						{
 							sum += trans_[name_to_state_[aa1 + residues[k] + "bxyz"]][s2];
 							count++;
 						}
 					}
-					for (UnsignedInt k = 0; k != residues.size(); ++k)
+					for (UInt k = 0; k != residues.size(); ++k)
 					{
-						UnsignedInt tmp = training_steps_count_[name_to_state_[residues[k] + aa2 +"bxyz"]][s2];
+						UInt tmp = training_steps_count_[name_to_state_[residues[k] + aa2 +"bxyz"]][s2];
 						if (tmp != 0)
 						{
 							sum += trans_[name_to_state_[residues[k] + aa2 +"bxyz"]][s2];
@@ -887,25 +887,25 @@ namespace OpenMS
 			}
 
 			s2 = name_to_state_["axyz"];
-      for (UnsignedInt j = 0; j != residues.size(); ++j)
+      for (UInt j = 0; j != residues.size(); ++j)
       {
         String aa1(residues[i]), aa2(residues[j]);
         if (training_steps_count_[name_to_state_[aa1 + aa2 + "axyz"]][s2] == 0)
         {
-          UnsignedInt count(0);
+          UInt count(0);
           double sum(0);
-          for (UnsignedInt k = 0; k != residues.size(); ++k)
+          for (UInt k = 0; k != residues.size(); ++k)
           {
-            UnsignedInt tmp = training_steps_count_[name_to_state_[aa1 + residues[k] + "axyz"]][s2];
+            UInt tmp = training_steps_count_[name_to_state_[aa1 + residues[k] + "axyz"]][s2];
             if (tmp != 0)
             {
               sum += trans_[name_to_state_[aa1 + residues[k] + "axyz"]][s2];
               count++;
             }
           }
-          for (UnsignedInt k = 0; k != residues.size(); ++k)
+          for (UInt k = 0; k != residues.size(); ++k)
           {
-            UnsignedInt tmp = training_steps_count_[name_to_state_[residues[k] + aa2 +"axyz"]][s2];
+            UInt tmp = training_steps_count_[name_to_state_[residues[k] + aa2 +"axyz"]][s2];
             if (tmp != 0)
             {
               sum += trans_[name_to_state_[residues[k] + aa2 +"axyz"]][s2];
@@ -926,18 +926,18 @@ namespace OpenMS
 			// sc and cr
 			String sc_residues("HKDE");
 		
-			for (UnsignedInt j = 0; j != sc_residues.size(); ++j)
+			for (UInt j = 0; j != sc_residues.size(); ++j)
 			{
 				String aa1(residues[i]), sc_res(sc_residues[j]);
 				s2 = name_to_state_[sc_res];
 				if (training_steps_count_[name_to_state_[aa1 + sc_res]][s2] == 0)
 				{
-					UnsignedInt count(0);
+					UInt count(0);
 					double sum(0);
-					for (UnsignedInt k = 0; k != residues.size(); ++k)
+					for (UInt k = 0; k != residues.size(); ++k)
 					{
 						HMMState* s1 = name_to_state_[residues[k] + sc_res];
-						UnsignedInt tmp = training_steps_count_[s1][s2];
+						UInt tmp = training_steps_count_[s1][s2];
 						if (tmp != 0)
 						{
 							sum += trans_[s1][s2];
@@ -958,12 +958,12 @@ namespace OpenMS
 
       if (training_steps_count_[name_to_state_[aa1 + sc_res]][s2] == 0)
       {
-        UnsignedInt count(0);
+        UInt count(0);
         double sum(0);
-        for (UnsignedInt k = 0; k != residues.size(); ++k)
+        for (UInt k = 0; k != residues.size(); ++k)
         {
 					HMMState* s1 = name_to_state_[residues[k] + sc_res];
-          UnsignedInt tmp = training_steps_count_[s1][s2];
+          UInt tmp = training_steps_count_[s1][s2];
           if (tmp != 0)
           {
             sum += trans_[s1][s2];

@@ -68,7 +68,7 @@ namespace OpenMS
 		typedef reverse_iterator	ReverseIterator;
 		/// Const reverse Iterator
 		typedef const_reverse_iterator	ConstReverseIterator;
-		/// UnsignedInt type
+		/// UInt type
 		typedef size_type	SizeType;
 
 		//@}		
@@ -77,7 +77,7 @@ namespace OpenMS
 		*/
 		//@{	
 		/// Handle that is used for an undefined position
-		static const SignedInt NPOS;
+		static const Int NPOS;
 		//@}	
 		
 		/**	@name Constructors
@@ -127,7 +127,7 @@ namespace OpenMS
 		
 		 If @p d is larger, scientific notation is used.
 		*/
-		String(double d, UnsignedInt size);
+		String(double d, UInt size);
 		/// Constructor from DataValue (casted to String)
 		String(const DataValue& d);
 
@@ -162,11 +162,11 @@ namespace OpenMS
 			throw(Exception::IndexOverflow);
 
 		/// returns the prefix of length @p length
-		String prefix(SignedInt length) const 
+		String prefix(Int length) const 
 			throw(Exception::IndexUnderflow, Exception::IndexOverflow);
 		
 		/// returns the suffix of length @p length
-		String suffix(SignedInt length) const 
+		String suffix(Int length) const 
 			throw(Exception::IndexUnderflow, Exception::IndexOverflow);
 		
 		/// returns the prefix up to char @p delim
@@ -186,7 +186,7 @@ namespace OpenMS
 			         If a negative length is given, then that many characters will be omitted from the end of string.<br>
 			         If NPOS is given, the end is the last character.<br>
 		*/
-		String substr(SignedInt start = 0, SignedInt n = NPOS) const;
+		String substr(Int start = 0, Int n = NPOS) const;
 		
 		//@}
 		
@@ -204,10 +204,10 @@ namespace OpenMS
 		String& trim();
 		
 		///Adds @p c on the left side until the size of the string is @p size
-		String& fillLeft(char c, UnsignedInt size);
+		String& fillLeft(char c, UInt size);
 		
 		///Adds @p c on the right side until the size of the string is @p size
-		String& fillRight(char c, UnsignedInt size);
+		String& fillRight(char c, UInt size);
 
 		///Converts the string to uppercase
 		String& toUpper();
@@ -289,7 +289,7 @@ namespace OpenMS
 
 
 		///returns a random string of the given length. It consists of [0-9a-zA-Z]
-		static String random(UnsignedInt length);
+		static String random(UInt length);
 		
 		/**
 			@brief splits a string into @p substrings using @p splitter as delimiter

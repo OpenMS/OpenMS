@@ -80,40 +80,40 @@ namespace OpenMS
       std::vector<ProteinHit> actual_protein_hits_;
       PeptideHit actual_peptide_hit_;
       std::vector<PeptideHit> actual_peptide_hits_;
-			UnsignedInt peptide_identification_index_;
-			UnsignedInt protein_identification_index_;
+			UInt peptide_identification_index_;
+			UInt protein_identification_index_;
 			bool inside_peptide_;   	
       const std::vector<ProteinIdentification> const_protein_identifications_;
       const std::vector<IdentificationData> const_id_data_;
 			const std::map<String, DoubleReal> const_predicted_retention_times_;
 			String tag_;      	
-			UnsignedInt charge_identification_index_;
+			UInt charge_identification_index_;
 			bool inside_protein_;
 			bool inside_global_protein_;
-			std::vector<UnsignedInt> actual_peptide_indices_;
+			std::vector<UInt> actual_peptide_indices_;
 			std::map<String, DoubleReal>* predicted_retention_times_;
 			DoubleReal* predicted_sigma_;
 			DoubleReal const_predicted_sigma_;
 			std::vector< String > date_times_temp_;
-			UnsignedInt date_times_counter_;
+			UInt date_times_counter_;
 			String actual_date_time_;
 			
 		private:
 				/// determines the date group index
-		    UnsignedInt getDateGroupIndex(DateTime 												date_time,
-			  															std::map< String , UnsignedInt> date_times);
+		    UInt getDateGroupIndex(DateTime 												date_time,
+			  															std::map< String , UInt> date_times);
 			  																
 				/// writes a peptide to the ostream 'os'			  																
 				void writePeptideHit(std::ostream& os, 
 		 													String shift,
 		 													PeptideHit hit,
 		 													Real significance_threshold,
-		 													UnsignedInt identification_index,
-		 													SignedInt charge, 
+		 													UInt identification_index,
+		 													Int charge, 
 		 													Real precursor_retention_time,
 		 													Real precursor_mz,
 		 													DateTime date_time,
-					  									std::map< String , UnsignedInt> date_times);
+					  									std::map< String , UInt> date_times);
 
 
   };

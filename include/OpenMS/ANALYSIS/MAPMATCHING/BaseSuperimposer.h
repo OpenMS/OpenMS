@@ -132,31 +132,31 @@ namespace OpenMS
   	}
 
     /// Set element map
-    void setElementMap(UnsignedInt const index, const PointMapType& element_map)
+    void setElementMap(UInt const index, const PointMapType& element_map)
     {
       element_map_[index] = &element_map;
     }
 
     /// Get element map
-    const PointMapType& getElementMap(UnsignedInt index)
+    const PointMapType& getElementMap(UInt index)
     {
       return *element_map_[index];
     }
 
     /// Get element maps (non-mutable)
-    const PointMapType& getElementMap(UnsignedInt index) const
+    const PointMapType& getElementMap(UInt index) const
     {
       return *element_map_[index];
     }
 
     /// Set transformation
-    void setTransformation(UnsignedInt dim, const TransformationType& trafo)
+    void setTransformation(UInt dim, const TransformationType& trafo)
     {
       final_transformation_[dim] = trafo;
     }
 
     /// Get transformation
-    const TransformationType& getTransformation(UnsignedInt dim) const
+    const TransformationType& getTransformation(UInt dim) const
     {
       return final_transformation_[dim];
     }

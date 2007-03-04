@@ -138,7 +138,7 @@ class ConsensusMap : public DPeakArray< 2, ConsensusElementT >
   template < typename ConsensusElementT >
   std::ostream& operator << (std::ostream& os, const ConsensusMap<ConsensusElementT>& cons_map)
   {
-    for (UnsignedInt i = 0; i < cons_map.size(); ++i)
+    for (UInt i = 0; i < cons_map.size(); ++i)
     {
       os << cons_map[i] << std::endl;
     }

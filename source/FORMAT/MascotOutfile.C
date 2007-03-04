@@ -50,20 +50,20 @@ namespace OpenMS
   	vector<PeptideHit> peptide_hits;
   	vector<ProteinHit> protein_hits;
 		vector<String> parts;
-		UnsignedInt number_of_queries = 0;
-		map<UnsignedInt, UnsignedInt> indices;
-		map<UnsignedInt, UnsignedInt>::iterator indices_iterator;
-		SignedInt temp_int;
+		UInt number_of_queries = 0;
+		map<UInt, UInt> indices;
+		map<UInt, UInt>::iterator indices_iterator;
+		Int temp_int;
 		IdentificationData temp_identification;
-		vector<SignedInt> charges;
-		SignedInt temp_charge = 0;
+		vector<Int> charges;
+		Int temp_charge = 0;
 		String temp_identifier = "";
 		vector<Real> temp_scores;
 		map<String, vector<Real> > protein_map;
 		Real temp_score = 0;
 		Real temp_value = 0;
 		Real temp_significance_threshold = 0;
-		UnsignedInt index = 0;
+		UInt index = 0;
 		String::SizeType tag_start;
 		String::SizeType tag_end;
 
@@ -117,7 +117,7 @@ namespace OpenMS
 		// (1.0.2) Searching for query indices for which peptides are present
 		if (number_of_queries > 1)
 		{
-			for(UnsignedInt i = 1; i <= number_of_queries; i++)
+			for(UInt i = 1; i <= number_of_queries; i++)
 			{
 	  		it = f.search(it, "q" + String(i) + "_p1=");
 	 		 	if (it!=f.end())
@@ -234,7 +234,7 @@ namespace OpenMS
 		  		{
 		  			temp_identifier = (*it).substr(tag_start + 1, tag_end - tag_start - 1);
 						temp_scores.clear();
-						for(UnsignedInt k = 0; k < 3; k++)
+						for(UInt k = 0; k < 3; k++)
 						{
 							temp_scores.push_back(0);
 						}
@@ -253,8 +253,8 @@ namespace OpenMS
 			}							
 		}
 
-	  UnsignedInt i = 1; // first index of the peptidehits
-	  UnsignedInt j = 1; // second index of the peptidehits
+	  UInt i = 1; // first index of the peptidehits
+	  UInt j = 1; // second index of the peptidehits
   	// (2.2) parse for PeptideHit information
 		for(indices_iterator = indices.begin(); 
 				indices_iterator != indices.end();
@@ -262,7 +262,7 @@ namespace OpenMS
 		{
 			i = indices_iterator->first;
 			j = 1;
-			UnsignedInt counter = 1; //counter of the peptidehits
+			UInt counter = 1; //counter of the peptidehits
 	  	it = f.search(String("q")+String(i)+"_p" + String(j) + "=");
 	  	while(it != f.end())
 	  	{
@@ -330,7 +330,7 @@ namespace OpenMS
 	  	{
 				ProteinHit protein_hit;
 				String temp_peptide_sequence;
-				SignedInt peptide_index = -1;
+				Int peptide_index = -1;
 	
 				protein_hit.setAccession(it->suffix('=').prefix(','));
 				protein_hit.setAccessionType("SwissProt");
@@ -352,7 +352,7 @@ namespace OpenMS
 					it->suffix('=').split(',',parts);
 					temp_peptide_sequence = parts[6];
 					
-					for(UnsignedInt index = 0; index < peptide_hits.size(); index++)
+					for(UInt index = 0; index < peptide_hits.size(); index++)
 					{
 						if (peptide_hits[index].getSequence() == temp_peptide_sequence)
 						{
@@ -379,7 +379,7 @@ namespace OpenMS
 		}
 		
 		
-		UnsignedInt count = 0;
+		UInt count = 0;
 		for(indices_iterator = indices.begin(); 
 				indices_iterator != indices.end();
 				indices_iterator++)

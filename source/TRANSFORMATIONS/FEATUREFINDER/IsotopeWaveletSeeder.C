@@ -100,7 +100,7 @@ namespace OpenMS
 		tolerance_scansum_    = param_.getValue("tolerance_scansum");
 		
     // store charge states
-    for (UnsignedInt i=(UnsignedInt)param_.getValue("min_charge"); i<=(UnsignedInt)param_.getValue("max_charge"); ++i)
+    for (UInt i=(UInt)param_.getValue("min_charge"); i<=(UInt)param_.getValue("max_charge"); ++i)
     {
     	charges_.push_back(i);           
 		}
@@ -124,10 +124,10 @@ namespace OpenMS
 			std::vector<DPeakArray<1, PeakType > >* pwts = NULL;
 			std::vector<double>* wt_thresholds = NULL;
 	
-			UnsignedInt nr_scans = traits_->getData().size();
+			UInt nr_scans = traits_->getData().size();
 			StopWatch watch;
 			watch.start();
-			for (UnsignedInt i=0; i<nr_scans; ++i)
+			for (UInt i=0; i<nr_scans; ++i)
 			{
 				CoordinateType current_rt = traits_->getData()[i].getRetentionTime();
 	
@@ -137,7 +137,7 @@ namespace OpenMS
 #ifdef DEBUG_FEATUREFINDER
 				String filename =  String("scan_") + traits_->getData()[i].getRetentionTime();
 				std::ofstream outfile(filename.c_str());
-				for (UnsignedInt k=0; k<current_scan.size();++k)
+				for (UInt k=0; k<current_scan.size();++k)
 				{
 					outfile << current_scan[k].getMZ() << " " << current_scan[k].getIntensity() << std::endl;
 				}
@@ -178,7 +178,7 @@ namespace OpenMS
 //			 std::cout << (min_mass + (citer->first-1)*avMZSpacing_) << " ";
 //			 std::cout << (min_mass+ (citer->first)*avMZSpacing_) << " " << std::endl;
 // 												
-//			 for (std::list<UnsignedInt>::const_iterator iter_cl2 = citer->second.first.begin();
+//			 for (std::list<UInt>::const_iterator iter_cl2 = citer->second.first.begin();
 //				   iter_cl2 != citer->second.first.end();
 //				   ++iter_cl2)
 //			 {
@@ -217,11 +217,11 @@ namespace OpenMS
 			IndexSet region;		
 				
 			// check all scans that support this isotopic pattern
-			for (std::list<UnsignedInt>::const_iterator iter_cl2 = hash_iter_->second.first.begin(); 
+			for (std::list<UInt>::const_iterator iter_cl2 = hash_iter_->second.first.begin(); 
 			  		iter_cl2 != hash_iter_->second.first.end(); 
 			   		++iter_cl2)
 			{
-				UnsignedInt current_scan = *iter_cl2;
+				UInt current_scan = *iter_cl2;
 				
 				if (current_scan >= (traits_->getData().size() ) )
 				{
@@ -236,7 +236,7 @@ namespace OpenMS
 				// The isotope wavelet operates on mass bins and not actual masses in the spectrum
 				// We therefore need to check a couple of surrounding peaks in order to find the monoisotopic one
 				// walk to the left for at most 10 data points
-				for (UnsignedInt p=0; p<=10; ++p)
+				for (UInt p=0; p<=10; ++p)
 				{
 					if ( miso_mass - (insert_iter - p)->getMZ() < mass_tolerance_right_  )
 					{
@@ -268,7 +268,7 @@ namespace OpenMS
 													
 		}		// for (std::list...)
 		
-		std::cout << "Done. UnsignedInt of region: " << region.size() << std::endl;	
+		std::cout << "Done. UInt of region: " << region.size() << std::endl;	
 		
 		++hash_iter_;
 		
@@ -312,8 +312,8 @@ namespace OpenMS
 		preComputedGamma_.clear();
 	
 		double query = 0;
-		UnsignedInt counter=0;
-		UnsignedInt max_charge = param_.getValue("max_charge");
+		UInt counter=0;
+		UInt max_charge = param_.getValue("max_charge");
 			
 		while (query <= (max_charge*peak_cut_off_ +1) )
 		{
@@ -334,11 +334,11 @@ namespace OpenMS
 		//helping variables
 		double cumSpacing=0, cSpacing=0, realMass=0, lambda=0, w_sum=0, w_s_sum=0, max_w_monoi_intens=0.25, align_offset, tmp_pos, tmp_pos1;
 	
-		std::list<UnsignedInt>::const_iterator charge_iter;
-		UnsignedInt k=0; //helping variables
+		std::list<UInt>::const_iterator charge_iter;
+		UInt k=0; //helping variables
 		double max=0;
 
-		for (UnsignedInt i=0; i<signal_size; ++i)
+		for (UInt i=0; i<signal_size; ++i)
 		{
 	
 			//Now, let's sample the wavelets
@@ -353,7 +353,7 @@ namespace OpenMS
 				max_w_monoi_intens=0.25/(*charge_iter);
 	
 				//Align the maximum monoisotopic peak of the wavelet with some signal point
-				UnsignedInt j=0;
+				UInt j=0;
 				double last=0;
 	
 				while (cumSpacing < max_w_monoi_intens)
@@ -376,7 +376,7 @@ namespace OpenMS
 	
 				cumSpacing=align_offset;
 	
-				for (UnsignedInt j=0; j<waveletLength_; ++j)
+				for (UInt j=0; j<waveletLength_; ++j)
 				{
 					tmp_pos = signal[(i+j)%signal_size].getMZ();
 					tmp_pos1 = signal[(i+j+1)%signal_size].getMZ();
@@ -402,13 +402,13 @@ namespace OpenMS
 					}
 				}
 				max=-INT_MAX;
-				for (UnsignedInt j=0; j<waveletLength_; ++j)
+				for (UInt j=0; j<waveletLength_; ++j)
 				{
 					phis[k][j] -= (w_sum/(double)waveletLength_);
 					if (phis[k][j] > max)
 						max = phis[k][j];
 				}
-				for (UnsignedInt j=0; j<waveletLength_; ++j)
+				for (UInt j=0; j<waveletLength_; ++j)
 					phis[k][j] /= max;
 	
 				(*wt_thresholds)[k] = w_s_sum;
@@ -418,25 +418,25 @@ namespace OpenMS
 			k=0;
 	
 			//Since all wavelet functions have the same length, we can simply use phis[0].size()
-			for (UnsignedInt j=i; j<signal_size && k<phis[0].size(); ++j, ++k)
+			for (UInt j=i; j<signal_size && k<phis[0].size(); ++j, ++k)
 			{	
-				for (UnsignedInt m=0; m<charges_.size(); ++m)
+				for (UInt m=0; m<charges_.size(); ++m)
 				{
 					sums[m] += signal[j].getIntensity()*phis[m][k];
 				}
 			}
 	
-			for (UnsignedInt l=0; l<i && k<phis[0].size(); ++l, ++k)
+			for (UInt l=0; l<i && k<phis[0].size(); ++l, ++k)
 			{
 	
-				for (UnsignedInt m=0; m<charges_.size(); ++m)
+				for (UInt m=0; m<charges_.size(); ++m)
 				{
 					sums[m] += signal[l].getIntensity()*phis[m][k];
 				}
 			}
 	
 			//Store the convolution result
-			for (UnsignedInt m=0; m<charges_.size(); ++m)
+			for (UInt m=0; m<charges_.size(); ++m)
 			{
 				(*res)[m][i].setIntensity(sums[m]);
 			}
@@ -446,7 +446,7 @@ namespace OpenMS
 	} // end of fastMultiCorrelate(...)
 	
 	
-	void IsotopeWaveletSeeder::identifyCharge (const std::vector<DPeakArray<1, PeakType > >& candidates, std::vector<double>* wt_thresholds, UnsignedInt scan)
+	void IsotopeWaveletSeeder::identifyCharge (const std::vector<DPeakArray<1, PeakType > >& candidates, std::vector<double>* wt_thresholds, UInt scan)
 	{
 		std::vector<double> int_mins (candidates[0].size(),INT_MIN), zeros (candidates[0].size(),0);
 		WaveletCollection scoresC (candidates.size(), zeros);
@@ -466,13 +466,13 @@ namespace OpenMS
 	
 		ChargeVector::const_iterator charge_iter = charges_.begin();
 	
-		for (UnsignedInt c=0; c<candidates.size(); ++c)
+		for (UInt c=0; c<candidates.size(); ++c)
 		{		
 			processed = std::vector<bool> (candidates[0].size(), false); 				//Reset
 			containerType c_candidate(candidates[c].size());
 			
 			//Ugly, but do not how to do this in a better (and easy) way
-			for (UnsignedInt i=0; i<candidates[c].size(); ++i)
+			for (UInt i=0; i<candidates[c].size(); ++i)
 			{
 				c_candidate[i].setPosition(DPosition<2>( candidates[c][i].getMZ(),i));
 				c_candidate[i].setIntensity( candidates[c][i].getIntensity() );
@@ -521,7 +521,7 @@ namespace OpenMS
 				if (end_index >= candidates[c].size() || start_index > end_index)  continue;
 				   
 				//Mark as processed
-				for (UnsignedInt z=start_index; z<=end_index; ++z) processed[z] = true;				
+				for (UInt z=start_index; z<=end_index; ++z) processed[z] = true;				
 	
 				start=(-2*(peak_cut_off_ - 1))+1, end=(2*(peak_cut_off_ - 1))-1;
 				goto_left = c_index - waveletLength_ - 1;
@@ -564,18 +564,18 @@ namespace OpenMS
 			
 			
 		//Now, since we computed all scores, we can hash all mz positions
-		UnsignedInt numOfCharges = candidates.size(), numOfMZPositions = candidates[0].size();
+		UInt numOfCharges = candidates.size(), numOfMZPositions = candidates[0].size();
 		//This is a vector telling us the next mz position in charge i we have to hash
-		std::vector<UnsignedInt> positions (numOfCharges, 0);
+		std::vector<UInt> positions (numOfCharges, 0);
 			
-		UnsignedInt c_hash_key, count_finished_charges=0;
+		UInt c_hash_key, count_finished_charges=0;
 		bool allZero;
 		DoubleList c_pair;
 	
 		// c_list is now charge_scores
 		// c_fill_list is scans
 		std::list<double> charge_scores;
-		std::list<UnsignedInt> scans;
+		std::list<UInt> scans;
 			
 		std::list<double>::iterator iter_cl, iter_cl_hash;
 		std::pair<SweepLineHash::iterator, SweepLineHash::iterator> iter_hash;
@@ -618,7 +618,7 @@ namespace OpenMS
 			}
 		   
 			// generate hash key 
-			c_hash_key = (UnsignedInt) ((traits_->getData()[scan].getContainer()[positions[0]-1].getMZ() - traits_->getData().getMin().getY()) / avMZSpacing_);
+			c_hash_key = (UInt) ((traits_->getData()[scan].getContainer()[positions[0]-1].getMZ() - traits_->getData().getMin().getY()) / avMZSpacing_);
 	
 			allZero=true;
 			for (iter_cl=charge_scores.begin(); iter_cl!=charge_scores.end(); ++iter_cl)
@@ -714,7 +714,7 @@ namespace OpenMS
 		return;
 	}
 
-	double IsotopeWaveletSeeder::getAbsMean (const DPeakArray<1, PeakType >& signal, UnsignedInt startIndex, UnsignedInt endIndex) const
+	double IsotopeWaveletSeeder::getAbsMean (const DPeakArray<1, PeakType >& signal, UInt startIndex, UInt endIndex) const
 	{
 	  double res=0;
 	  for (unsigned int i=startIndex; i<endIndex; ++i)
@@ -748,11 +748,11 @@ namespace OpenMS
 		std::cout << "Hash size after filtering: " << hash_.size() << std::endl << std::endl;
 	}
 
-	void IsotopeWaveletSeeder::sumUp_(SpectrumType& scan, UnsignedInt current_scan_index)
+	void IsotopeWaveletSeeder::sumUp_(SpectrumType& scan, UInt current_scan_index)
 	{
 		//Sum up those following scans that exist
-		for ( UnsignedInt i=current_scan_index + 1
-					; i < current_scan_index + 1 + (UnsignedInt)(param_.getValue("scans_to_sumup")) && i < traits_->getData().size()
+		for ( UInt i=current_scan_index + 1
+					; i < current_scan_index + 1 + (UInt)(param_.getValue("scans_to_sumup")) && i < traits_->getData().size()
 				 	; ++i
 				)
 		{
@@ -766,8 +766,8 @@ namespace OpenMS
 	
 		double mass_tolerance = 0.1;
 	
-		UnsignedInt index_newscan = 0;
-		for (UnsignedInt k=0; k<neighbour.size(); ++k)
+		UInt index_newscan = 0;
+		for (UInt k=0; k<neighbour.size(); ++k)
 		{
 			PeakType p			   = neighbour[k];
 			CoordinateType mass = p.getMZ();

@@ -59,7 +59,7 @@ namespace OpenMS
 		return (0 - sqrt(sum_diff));
 	}
 	
-	double EuclideanDistance::evaluate(const IndexSet& set, const BaseModel<1>& model, UnsignedInt dim)
+	double EuclideanDistance::evaluate(const IndexSet& set, const BaseModel<1>& model, UInt dim)
 	{
 		if (!traits_) throw Exception::NullPointer(__FILE__, __LINE__, __PRETTY_FUNCTION__);
 		

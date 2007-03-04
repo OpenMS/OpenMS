@@ -54,9 +54,9 @@ namespace OpenMS
 	{
 		if (String("ITEM") == XMLString::transcode(qname))
 		{
-			SignedInt type_index = attributes.getIndex(XMLString::transcode("type"));
-			SignedInt name_index = attributes.getIndex(XMLString::transcode("name"));
-			SignedInt value_index = attributes.getIndex(XMLString::transcode("value"));
+			Int type_index = attributes.getIndex(XMLString::transcode("type"));
+			Int name_index = attributes.getIndex(XMLString::transcode("name"));
+			Int value_index = attributes.getIndex(XMLString::transcode("value"));
 			
 			//check if attributes are present
 			if (type_index==-1 || name_index==-1)
@@ -79,7 +79,7 @@ namespace OpenMS
 			
 			if (type == "int")
 			{
-				values_[path_+XMLString::transcode(attributes.getValue(name_index))]=DataValue(asSignedInt_(value));
+				values_[path_+XMLString::transcode(attributes.getValue(name_index))]=DataValue(asInt_(value));
 			}
 			else if (type == "string")
 			{
@@ -102,7 +102,7 @@ namespace OpenMS
 		if (String("NODE") == XMLString::transcode(qname))
 		{
 			String tmp;
-			for(UnsignedInt n = 0 ; n < attributes.getLength() ; n++ )
+			for(UInt n = 0 ; n < attributes.getLength() ; n++ )
 			{
 			  String attributesValue = XMLString::transcode(attributes.getValue(n));
 			  String attributesName = XMLString::transcode(attributes.getQName(n));

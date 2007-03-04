@@ -79,20 +79,20 @@ namespace OpenMS
 		class Chunk
 		{
 		public:
-			inline Chunk(UnsignedInt size);
+			inline Chunk(UInt size);
 			inline ~Chunk();
 
-			inline T* get(UnsignedInt num);
+			inline T* get(UInt num);
 
 			inline void setNext(Chunk<T>* next);
 
-			inline UnsignedInt size();
+			inline UInt size();
 
 		private:
 			Chunk<T>* next_;
 			T* data_;
 			T* current_;
-			UnsignedInt size_;
+			UInt size_;
 		};
 
 		///Allocator for the QuadTree (internal use only)			
@@ -654,7 +654,7 @@ inline void OpenMS::Internal::QuadNode<Data>::resetPosition()
 // OpenMS::Internal::Chunk
 
 template<class T>
-inline OpenMS::Internal::Chunk<T>::Chunk(UnsignedInt size)
+inline OpenMS::Internal::Chunk<T>::Chunk(UInt size)
 	: next_(0), size_(size)
 {
 	data_ = current_ = reinterpret_cast<T*>(std::malloc(size_ * sizeof(T)));
@@ -669,11 +669,11 @@ inline OpenMS::Internal::Chunk<T>::~Chunk()
 }
 
 template<class T>
-inline T* OpenMS::Internal::Chunk<T>::get(UnsignedInt num)
+inline T* OpenMS::Internal::Chunk<T>::get(UInt num)
 {
 	if ((current_ - data_) + num <= size_)
 	{
-		for (UnsignedInt i = 0; i != num; i++)
+		for (UInt i = 0; i != num; i++)
 		{
 			new(current_++) T();
 		}
@@ -690,7 +690,7 @@ inline void OpenMS::Internal::Chunk<T>::setNext(Chunk<T>* next)
 }
 
 template<class T>
-inline OpenMS::UnsignedInt OpenMS::Internal::Chunk<T>::size()
+inline OpenMS::UInt OpenMS::Internal::Chunk<T>::size()
 {
 	return size_;
 }

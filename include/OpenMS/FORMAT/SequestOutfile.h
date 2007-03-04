@@ -81,10 +81,10 @@ namespace OpenMS
 			std::map< String, std::vector< Real > > getPeptidePValues(const std::string& out_dir, const std::string& prob_filename) throw (Exception::FileNotFound);
 			
 			/// retrieve columns from a Sequest outfile line
-			bool getColumns(const String& line, std::vector< String >& substrings, UnsignedInt number_of_columns, UnsignedInt reference_column);
+			bool getColumns(const String& line, std::vector< String >& substrings, UInt number_of_columns, UInt reference_column);
 			
 			/// retrieve sequences from a FASTA database
-			void getSequences(const String& database_filename, const std::map< String, UnsignedInt >& ac_position_map, std::vector< String >& sequences, std::vector< std::pair< String, UnsignedInt > >& found, std::map< String, UnsignedInt >& not_found) throw (Exception::FileNotFound);
+			void getSequences(const String& database_filename, const std::map< String, UInt >& ac_position_map, std::vector< String >& sequences, std::vector< std::pair< String, UInt > >& found, std::map< String, UInt >& not_found) throw (Exception::FileNotFound);
 				
 			/// retrieve the accession type and accession number from a protein description line
 			/// (e.g. from FASTA line: >gi|5524211|gb|AAD44166.1| cytochrome b [Elephas maximus maximus], get ac:AAD44166.1 ac type: GenBank)
@@ -93,10 +93,10 @@ namespace OpenMS
 			/// either insert the new peptide hit or update it's protein indices
 			bool updatePeptideHits(PeptideHit& peptide_hit, std::vector< PeptideHit >& peptide_hits);
 
-			void readOutHeader(const std::string& result_filename, DateTime& datetime, Real& precursor_mz_value, SignedInt& charge, UnsignedInt& precursor_mass_type, UnsignedInt& ion_mass_type, SignedInt& number_column, SignedInt& rank_sp_column, SignedInt& id_column, SignedInt& mh_column, SignedInt& delta_cn_column, SignedInt& xcorr_column, SignedInt& sp_column, SignedInt& sf_column, SignedInt& ions_column, SignedInt& reference_column, SignedInt& peptide_column, SignedInt& score_column, UnsignedInt& number_of_columns, UnsignedInt& displayed_peptides) throw(Exception::FileNotFound, Exception::ParseError);
+			void readOutHeader(const std::string& result_filename, DateTime& datetime, Real& precursor_mz_value, Int& charge, UInt& precursor_mass_type, UInt& ion_mass_type, Int& number_column, Int& rank_sp_column, Int& id_column, Int& mh_column, Int& delta_cn_column, Int& xcorr_column, Int& sp_column, Int& sf_column, Int& ions_column, Int& reference_column, Int& peptide_column, Int& score_column, UInt& number_of_columns, UInt& displayed_peptides) throw(Exception::FileNotFound, Exception::ParseError);
 			
 		private:
-			UnsignedInt out2summary_number;
+			UInt out2summary_number;
    };
 	
 } //namespace OpenMS

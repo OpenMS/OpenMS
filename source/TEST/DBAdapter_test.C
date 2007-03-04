@@ -374,7 +374,7 @@ CHECK((template <class SpectrumType> void loadSpectrum(UID id, SpectrumType &spe
 			TEST_EQUAL( spec.getSourceFile().getNameOfFile(), "westberlin" )
 			TEST_EQUAL( spec.getSourceFile().getPathToFile(), "/osten/" )
 			
-			for (UnsignedInt i=0; i<3; ++i)
+			for (UInt i=0; i<3; ++i)
 			{
 				TEST_REAL_EQUAL( spec.getContainer()[i].getIntensity() , exp_original.begin()->getContainer()[i].getIntensity() )
 				TEST_REAL_EQUAL( spec.getContainer()[i].getPosition()[0] , exp_original.begin()->getContainer()[i].getPosition()[0] )
@@ -501,7 +501,7 @@ CHECK((template <class ExperimentType> void loadExperiment(UID id, ExperimentTyp
 		  TEST_EQUAL( itn->getRetentionTime() , ito->getRetentionTime() )
 			TEST_EQUAL( itn->getMSLevel() , ito->getMSLevel() )
 			TEST_EQUAL( itn->size() , ito->size() )
-			for (UnsignedInt i=0; i<3; ++i)
+			for (UInt i=0; i<3; ++i)
 			{
 				TEST_REAL_EQUAL( itn->getContainer()[i].getIntensity() , ito->getContainer()[i].getIntensity() )
 				TEST_REAL_EQUAL( itn->getContainer()[i].getPosition()[0] , ito->getContainer()[i].getPosition()[0] )
@@ -521,7 +521,7 @@ CHECK((template <class ExperimentType> void loadExperiment(UID id, ExperimentTyp
 	
 			TEST_EQUAL( itn->getComment() , "bla" )
 			TEST_EQUAL( itn->size() , ito->size() )
-			for (UnsignedInt i=0; i<3; ++i)
+			for (UInt i=0; i<3; ++i)
 			{
 				TEST_REAL_EQUAL( itn->getContainer()[i].getIntensity() , ito->getContainer()[i].getIntensity() )
 				TEST_REAL_EQUAL( itn->getContainer()[i].getPosition()[0] , ito->getContainer()[i].getPosition()[0] )
@@ -636,7 +636,7 @@ CHECK((template <class ExperimentType> void loadExperiment(UID id, ExperimentTyp
 			TEST_EQUAL( itn->getAcquisitionInfo()[0].getMetaValue("icon"), "one more icon");
 			TEST_EQUAL( itn->getAcquisitionInfo()[1].getNumber(), 2);
 			TEST_EQUAL( itn->getAcquisitionInfo()[1].getMetaValue("label"), "yet another label");
-			for (UnsignedInt i=0; i<3; ++i)
+			for (UInt i=0; i<3; ++i)
 			{
 				TEST_REAL_EQUAL( itn->getContainer()[i].getIntensity() , ito->getContainer()[i].getIntensity() )
 				TEST_REAL_EQUAL( itn->getContainer()[i].getPosition()[0] , ito->getContainer()[i].getPosition()[0] )
@@ -654,7 +654,7 @@ CHECK((template <class ExperimentType> void loadExperiment(UID id, ExperimentTyp
 			TEST_EQUAL( itn->getPrecursor().getMetaValue("icon") , "NewPrecursor" )
 			TEST_EQUAL( itn->getComment() , "bla" )
 			TEST_EQUAL( itn->size() , ito->size() )
-			for (UnsignedInt i=0; i<3; ++i)
+			for (UInt i=0; i<3; ++i)
 			{
 				TEST_REAL_EQUAL( itn->getContainer()[i].getIntensity() , ito->getContainer()[i].getIntensity() )
 				TEST_REAL_EQUAL( itn->getContainer()[i].getPosition()[0] , ito->getContainer()[i].getPosition()[0] )

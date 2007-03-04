@@ -273,7 +273,7 @@ namespace OpenMS
 	const String SequestInfile::getEnzymeInfoAsString() const
 	{
 		stringstream ss;
-		UnsignedInt i = 0;
+		UInt i = 0;
 		String::size_type max_name_length = 0;
 		String::size_type max_cut_before_length = 0;
 		String::size_type max_doesnt_cut_after_length = 0;
@@ -372,14 +372,14 @@ namespace OpenMS
 	void SequestInfile::setStatCTermProtMod(Real mass){stat_c_term_prot_mod_ = mass;}
 	
 	
-	SignedInt SequestInfile::getPeptideMassUnit() const {return peptide_mass_unit_;}
-	void SequestInfile::setPeptideMassUnit(SignedInt value){peptide_mass_unit_ = value;}
+	Int SequestInfile::getPeptideMassUnit() const {return peptide_mass_unit_;}
+	void SequestInfile::setPeptideMassUnit(Int value){peptide_mass_unit_ = value;}
 	
-	SignedInt SequestInfile::getOutputLines() const {return output_lines_;}
-	void SequestInfile::setOutputLines(SignedInt value){output_lines_ = value;}
+	Int SequestInfile::getOutputLines() const {return output_lines_;}
+	void SequestInfile::setOutputLines(Int value){output_lines_ = value;}
 	
-	SignedInt SequestInfile::getEnzymeNumber() const {return enzyme_number_;}
-	SignedInt SequestInfile::setEnzyme(String enzyme_name)
+	Int SequestInfile::getEnzymeNumber() const {return enzyme_number_;}
+	Int SequestInfile::setEnzyme(String enzyme_name)
 	{
 		enzyme_number_ = 0;
 		std::map< String, std::vector< String > >::const_iterator einfo_i;
@@ -390,23 +390,23 @@ namespace OpenMS
 		return ( einfo_i == enzyme_info_.end() ) ? enzyme_info_.size() : 0;
 	}
 	
-	SignedInt SequestInfile::getMaxAAPerModPerPeptide() const {return max_AA_per_mod_per_peptide_;}
-	void SequestInfile::setMaxAAPerModPerPeptide(SignedInt value){max_AA_per_mod_per_peptide_ = value;}
+	Int SequestInfile::getMaxAAPerModPerPeptide() const {return max_AA_per_mod_per_peptide_;}
+	void SequestInfile::setMaxAAPerModPerPeptide(Int value){max_AA_per_mod_per_peptide_ = value;}
 	
-	SignedInt SequestInfile::getMaxModsPerPeptide() const {return max_mods_per_peptide_;}
-	void SequestInfile::setMaxModsPerPeptide(SignedInt value){max_mods_per_peptide_ = value;}
+	Int SequestInfile::getMaxModsPerPeptide() const {return max_mods_per_peptide_;}
+	void SequestInfile::setMaxModsPerPeptide(Int value){max_mods_per_peptide_ = value;}
 	
-	SignedInt SequestInfile::getNucleotideReadingFrame() const {return nucleotide_reading_frame_;}
-	void SequestInfile::setNucleotideReadingFrame(SignedInt value){nucleotide_reading_frame_ = value;}
+	Int SequestInfile::getNucleotideReadingFrame() const {return nucleotide_reading_frame_;}
+	void SequestInfile::setNucleotideReadingFrame(Int value){nucleotide_reading_frame_ = value;}
 	
-	SignedInt SequestInfile::getMaxInternalCleavageSites() const {return max_internal_cleavage_sites_;}
-	void SequestInfile::setMaxInternalCleavageSites(SignedInt value){max_internal_cleavage_sites_ = value;}
+	Int SequestInfile::getMaxInternalCleavageSites() const {return max_internal_cleavage_sites_;}
+	void SequestInfile::setMaxInternalCleavageSites(Int value){max_internal_cleavage_sites_ = value;}
 	
-	SignedInt SequestInfile::getMatchPeakCount() const {return match_peak_count_;}
-	void SequestInfile::setMatchPeakCount(SignedInt value){match_peak_count_ = value;}
+	Int SequestInfile::getMatchPeakCount() const {return match_peak_count_;}
+	void SequestInfile::setMatchPeakCount(Int value){match_peak_count_ = value;}
 	
-	SignedInt SequestInfile::getMatchPeakAllowedError() const {return match_peak_allowed_error_;}
-	void SequestInfile::setMatchPeakAllowedError(SignedInt value){match_peak_allowed_error_ = value;}
+	Int SequestInfile::getMatchPeakAllowedError() const {return match_peak_allowed_error_;}
+	void SequestInfile::setMatchPeakAllowedError(Int value){match_peak_allowed_error_ = value;}
 	
 	
 	bool SequestInfile::getShowFragmentIons() const {return show_fragment_ions_;}

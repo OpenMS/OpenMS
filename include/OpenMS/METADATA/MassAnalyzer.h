@@ -173,9 +173,9 @@ namespace OpenMS
       void setIsolationWidth(float isolation_width);
 			
 			/// returns the final MS exponent
-      SignedInt getFinalMSExponent() const;
+      Int getFinalMSExponent() const;
       /// sets the final MS exponent
-      void setFinalMSExponent(SignedInt final_MS_exponent);
+      void setFinalMSExponent(Int final_MS_exponent);
 			
 			/// returns the strength of the magnetic field (in T)
       float getMagneticFieldStrength() const;
@@ -197,7 +197,7 @@ namespace OpenMS
 			float scan_time_;
 			float TOF_total_path_length_;
 			float isolation_width_;
-			SignedInt final_MS_exponent_;
+			Int final_MS_exponent_;
 			float magnetic_field_strength_;
 	};
 } // namespace OpenMS

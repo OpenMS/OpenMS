@@ -89,7 +89,7 @@ namespace OpenMS
 
 			// fill tree
 			QuadTreeType tree(DRange<2>(features_.getMin()[0], features_.getMax()[0], features_.getMin()[1], features_.getMax()[1]));
-			for (UnsignedInt i=0; i<features_.size(); ++i)
+			for (UInt i=0; i<features_.size(); ++i)
 			{
 				try
 				{
@@ -194,7 +194,7 @@ namespace OpenMS
 					<< "Quality\tFirst[RT]\tFirst[MZ]\tFirst[Int]\tFirst[Corr]"
 					<< "\tSecond[RT]\tSecond[MZ]\tSecond[Int]\tSecond[Corr]"
 					<< "\tRatio\tCharge\tDiff[RT]\tDiff[MZ]\n";
-			for (UnsignedInt i=0; i<pairs.size(); ++i)
+			for (UInt i=0; i<pairs.size(); ++i)
 			{
 				DPosition<2> diff = pairs[i].getFirst().getPosition()-pairs[i].getSecond().getPosition();
 				out << setiosflags(ios::fixed) << setprecision(2)

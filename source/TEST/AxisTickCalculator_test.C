@@ -39,7 +39,7 @@ START_TEST(AxisTickCalculator, "$Id$")
 /////////////////////////////////////////////////////////////
 
 
-CHECK((static void calcGridLines(double x1, double x2, int levels, GridVector& grid, UnsignedInt max_num_big, UnsignedInt max_num_small, double& grid_line_dist)))
+CHECK((static void calcGridLines(double x1, double x2, int levels, GridVector& grid, UInt max_num_big, UInt max_num_small, double& grid_line_dist)))
 	std::vector<std::vector<double> > vector1;
   double dist ;
 	AxisTickCalculator::calcGridLines(1.0,4.0,3,vector1,7,5,dist);

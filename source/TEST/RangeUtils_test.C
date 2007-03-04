@@ -78,8 +78,8 @@ RESULT
 //MSLevelRange
 
 InMSLevelRange<DSpectrum<1> >* ptr2 = 0;
-CHECK((MSLevelRange(const std::vector<UnsignedInt>& levels, bool reverse = false)))
-	vector<UnsignedInt> tmp;
+CHECK((MSLevelRange(const std::vector<UInt>& levels, bool reverse = false)))
+	vector<UInt> tmp;
 	ptr2 = new InMSLevelRange<DSpectrum<1> >(tmp,false);
 	TEST_NOT_EQUAL(ptr2, 0)
 RESULT
@@ -89,7 +89,7 @@ CHECK(([EXTRA]~InMSLevelRange()))
 RESULT
 
 CHECK((bool operator()(const SpectrumType& s) const))
-	vector<UnsignedInt> tmp;
+	vector<UInt> tmp;
 	tmp.push_back(2);
 	tmp.push_back(3);
 	tmp.push_back(4);
@@ -116,7 +116,7 @@ RESULT
 //HasScanMode
 
 HasScanMode<MSSpectrum<> >* ptr2_1 = 0;
-CHECK((HasScanMode(SignedInt mode, bool reverse = false)))
+CHECK((HasScanMode(Int mode, bool reverse = false)))
 	ptr2_1 = new HasScanMode<MSSpectrum<> >(1,false);
 	TEST_NOT_EQUAL(ptr2, 0)
 RESULT

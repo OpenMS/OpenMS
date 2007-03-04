@@ -142,12 +142,12 @@ namespace OpenMS
 				}
 			}
 			data_reduction_->setCurrentIndex(data_reduction_->findText(man->getPrefAsString("Preferences:3D:Reduction:Mode").c_str()));	
-			reduction_diplay_peaks_->setValue(UnsignedInt(man->getPrefAsInt("Preferences:3D:DisplayedPeaks")));
+			reduction_diplay_peaks_->setValue(UInt(man->getPrefAsInt("Preferences:3D:DisplayedPeaks")));
 		
 			background_color_->setColor(QColor(man->getPrefAsString("Preferences:3D:BackgroundColor").c_str()));
 			dot_gradient_->gradient().fromString(man->getPref("Preferences:3D:Dot:Gradient"));
-			dot_interpolation_steps_->setValue(UnsignedInt(man->getPref("Preferences:3D:Dot:InterpolationSteps")));
-			dot_line_width_->setValue(UnsignedInt(man->getPref("Preferences:3D:Dot:LineWidth")));
+			dot_interpolation_steps_->setValue(UInt(man->getPref("Preferences:3D:Dot:InterpolationSteps")));
+			dot_line_width_->setValue(UInt(man->getPref("Preferences:3D:Dot:LineWidth")));
 			axes_color_->setColor(QColor(man->getPrefAsString("Preferences:3D:AxesColor").c_str()));
 		}
 		

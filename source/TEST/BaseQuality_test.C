@@ -62,7 +62,7 @@ class TestQuality : public BaseQuality
 		return 5.0;
 	}
   
-  double evaluate(const IndexSet& /*set*/, const BaseModel<1>& /*model*/, UnsignedInt /*dim*/)
+  double evaluate(const IndexSet& /*set*/, const BaseModel<1>& /*model*/, UInt /*dim*/)
 	{
 		return 3.0;
 	}
@@ -137,7 +137,7 @@ CHECK(double evaluate(const IndexSet& /*set*/, const BaseModel<2>& /*model*/))
 	TEST_REAL_EQUAL(ft.evaluate(inds,pm1),5.0);
 RESULT
 
-CHECK(double evaluate(const IndexSet& /*set*/, const BaseModel<1>& /*model*/, UnsignedInt dim))
+CHECK(double evaluate(const IndexSet& /*set*/, const BaseModel<1>& /*model*/, UInt dim))
 	TestQuality ft;
 	FeaFiModule::IndexSet  inds;
 	inds.insert(std::make_pair(7,7));

@@ -758,7 +758,7 @@ namespace OpenMS
 
       It is only sorted according to dimentsion @p i .
     */
-    void sortByNthPosition(UnsignedInt i) throw (Exception::NotImplemented);
+    void sortByNthPosition(UInt i) throw (Exception::NotImplemented);
 
     //@}
 
@@ -834,10 +834,10 @@ namespace OpenMS
   //---------------------------------------------------------------
 
   template <typename MapT>
-  void DPeakConstReferenceArray<MapT>::sortByNthPosition(UnsignedInt i)
+  void DPeakConstReferenceArray<MapT>::sortByNthPosition(UInt i)
   throw (Exception::NotImplemented)
   {
-    OPENMS_PRECONDITION(i < SignedInt(PeakType::DIMENSION), "illegal dimension")
+    OPENMS_PRECONDITION(i < Int(PeakType::DIMENSION), "illegal dimension")
     if (i==0)
     {
       std::sort(vector_.begin(), vector_.end(), PointerComparator< typename PeakType::template NthPositionLess<0> >() );

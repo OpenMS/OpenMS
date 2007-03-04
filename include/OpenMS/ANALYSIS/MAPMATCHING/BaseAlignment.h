@@ -206,11 +206,11 @@ namespace OpenMS
     String map_type_;
 
     /// Build a consensus map of the map with index map_index (the set of grouped elements contains the element itself).
-    void buildConsensusMapTypeInsertInGroup_(UnsignedInt map_index, std::vector< ConsensusElementType >& cons_map)
+    void buildConsensusMapTypeInsertInGroup_(UInt map_index, std::vector< ConsensusElementType >& cons_map)
     {
       const ElementContainerType& map = *(element_map_vector_[map_index]);
-      UnsignedInt n = map.size();
-      for (UnsignedInt i=0; i < n; ++i)
+      UInt n = map.size();
+      for (UInt i=0; i < n; ++i)
       {
         ConsensusElementType c(map_index,i,map[i]);
         cons_map.push_back(c);
@@ -218,11 +218,11 @@ namespace OpenMS
     }
 
     /// Build a consensus map of the map with index map_index (the set of grouped elements doesn't contain the element itself).
-    void buildConsensusMapType_(UnsignedInt map_index, std::vector< ConsensusElementType >& cons_map)
+    void buildConsensusMapType_(UInt map_index, std::vector< ConsensusElementType >& cons_map)
     {
       const ElementContainerType& map = *(element_map_vector_[map_index]);
-      UnsignedInt n = map.size();
-      for (UnsignedInt i=0; i < n; ++i)
+      UInt n = map.size();
+      for (UInt i=0; i < n; ++i)
       {
         ConsensusElementType c(map[i].getPosition(),map[i].getIntensity());
         cons_map.push_back(c);

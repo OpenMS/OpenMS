@@ -69,34 +69,34 @@ CHECK(const Gradient& getGradient() const)
   TEST_EQUAL(tmp.getGradient().getEluents()[0],"A");
 RESULT
 
-CHECK(UnsignedInt getFlux() const)
+CHECK(UInt getFlux() const)
   HPLC tmp;
   TEST_EQUAL(tmp.getFlux(),0);  
 RESULT
 
-CHECK(void setFlux(UnsignedInt flux))
+CHECK(void setFlux(UInt flux))
   HPLC tmp;
   tmp.setFlux(5);
   TEST_EQUAL(tmp.getFlux(),5);  
 RESULT
 
-CHECK(UnsignedInt getPressure() const)
+CHECK(UInt getPressure() const)
   HPLC tmp;
   TEST_EQUAL(tmp.getPressure(),0);  
 RESULT
 
-CHECK(void setPressure(UnsignedInt pressure))
+CHECK(void setPressure(UInt pressure))
   HPLC tmp;
   tmp.setPressure(5);
   TEST_EQUAL(tmp.getPressure(),5);  
 RESULT
 
-CHECK(SignedInt getTemperature() const)
+CHECK(Int getTemperature() const)
   HPLC tmp;
   TEST_EQUAL(tmp.getTemperature(),21);  
 RESULT
 
-CHECK(void setTemperature(SignedInt temperature))
+CHECK(void setTemperature(Int temperature))
   HPLC tmp;
   tmp.setTemperature(5);
   TEST_EQUAL(tmp.getTemperature(),5);  

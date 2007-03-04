@@ -83,7 +83,7 @@ namespace OpenMS
 	    Spectrum3DOpenGLCanvas* openglwidget();
 
 			// Docu in base class
-	    SignedInt finishAdding(float low_intensity_cutoff = 0);
+	    Int finishAdding(float low_intensity_cutoff = 0);
 		  // Docu in base class
 	    virtual void actionModeChange_();
 		  // Docu in base class
@@ -102,12 +102,12 @@ namespace OpenMS
 			virtual void changeVisibleArea_(const AreaType& new_area, bool add_to_stack = false);
 
 	    ///preferences
-	    SignedInt getDotMode();
-			SignedInt getDataMode();
+	    Int getDotMode();
+			Int getDataMode();
 			void setDataMode();
 	    void setDotGradient(const std::string& gradient);
-	    SignedInt getShadeMode();
-	    UnsignedInt getDotInterpolationSteps();
+	    Int getShadeMode();
+	    UInt getDotInterpolationSteps();
 	    void repaintAll();
 	    //resizeEvent
 	    void resizeEvent(QResizeEvent * e);

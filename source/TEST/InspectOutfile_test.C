@@ -51,7 +51,7 @@ RESULT
 
 InspectOutfile file;
 
-CHECK(vector< UnsignedInt > load(const string& result_filename, vector< IdentificationData >&	identifications, ProteinIdentification&	protein_identification, DoubleReal p_value_threshold, const string& database_filename) throw (Exception::FileNotFound, Exception::ParseError, Exception::IllegalArgument))
+CHECK(vector< UInt > load(const string& result_filename, vector< IdentificationData >&	identifications, ProteinIdentification&	protein_identification, DoubleReal p_value_threshold, const string& database_filename) throw (Exception::FileNotFound, Exception::ParseError, Exception::IllegalArgument))
 	vector< IdentificationData > identifications;
 	ProteinIdentification protein_identification;
 	file.load("data/InspectOutfile.out", identifications, protein_identification, 0.001);
@@ -92,8 +92,8 @@ CHECK(void generateTrieDB(const std::string& source_database_filename, const std
 	remove("InspectOutfile_test.index");
 RESULT
 
-CHECK(void compressTrieDB(const std::string& database_filename, const std::string& index_filename, const std::vector< UnsignedInt >& wanted_records, const std::string& snd_database_filename, const std::string& snd_index_filename, bool append = false) throw (Exception::FileNotFound, Exception::ParseError, Exception::UnableToCreateFile))
-	vector< UnsignedInt > wanted_records(1, 0);
+CHECK(void compressTrieDB(const std::string& database_filename, const std::string& index_filename, const std::vector< UInt >& wanted_records, const std::string& snd_database_filename, const std::string& snd_index_filename, bool append = false) throw (Exception::FileNotFound, Exception::ParseError, Exception::UnableToCreateFile))
+	vector< UInt > wanted_records(1, 0);
 	file.compressTrieDB("data/Inspect_test.trie", "data/Inspect_test.index", wanted_records, "InspectOutfile_test.trie", "InspectOutfile_test.index", true);
 
 	bool append = true;
@@ -120,8 +120,8 @@ CHECK(void compressTrieDB(const std::string& database_filename, const std::strin
 RESULT
 
 
-CHECK(void getSequences(const String& database_filename, const map< Unsigned, UnsignedInt >& rt_position_map, vector< String >& sequences) throw (Exception::FileNotFound, Exception::ParseError))
-	map< UnsignedInt, UnsignedInt > rn_position_map;
+CHECK(void getSequences(const String& database_filename, const map< Unsigned, UInt >& rt_position_map, vector< String >& sequences) throw (Exception::FileNotFound, Exception::ParseError))
+	map< UInt, UInt > rn_position_map;
 	rn_position_map[0] = 0;
 	rn_position_map[1] = 1;
 	vector< String > sequences, found_sequences;
@@ -193,10 +193,10 @@ CHECK(void getACAndACType(String line, string& accession, string& accession_type
 	TEST_EQUAL(accession_type, "SwissProt")
 RESULT
 
-CHECK(void getPrecursorRTandMZ(const vector< pair< String, vector< UnsignedInt > > >& files_and_scan_numbers, std::vector< IdentificationData >& ids))
-	vector< pair< String, vector< UnsignedInt > > > files_and_scan_numbers;
-	files_and_scan_numbers.push_back(make_pair("data/InspectOutfile_test_1.mzXML", vector< UnsignedInt >(1, 4)));
-	files_and_scan_numbers.push_back(make_pair("data/InspectOutfile_test_2.mzXML", vector< UnsignedInt >(1, 4)));
+CHECK(void getPrecursorRTandMZ(const vector< pair< String, vector< UInt > > >& files_and_scan_numbers, std::vector< IdentificationData >& ids))
+	vector< pair< String, vector< UInt > > > files_and_scan_numbers;
+	files_and_scan_numbers.push_back(make_pair("data/InspectOutfile_test_1.mzXML", vector< UInt >(1, 4)));
+	files_and_scan_numbers.push_back(make_pair("data/InspectOutfile_test_2.mzXML", vector< UInt >(1, 4)));
 	
 	vector< IdentificationData > ids, ids_found;
 	ids_found.push_back(IdentificationData());
@@ -227,8 +227,8 @@ CHECK(void getLabels(const string& source_database_filename, string& ac_label, s
 	TEST_EQUAL(species_label, ">")
 RESULT
 
-CHECK(vector< UnsignedInt > getWantedRecords(const string& result_filename, Real p_value_threshold) throw (Exception::FileNotFound, Exception::ParseError, Exception::IllegalArgument))
-	vector< UnsignedInt > wanted_records = file.getWantedRecords("data/InspectOutfile.out", 0.01);
+CHECK(vector< UInt > getWantedRecords(const string& result_filename, Real p_value_threshold) throw (Exception::FileNotFound, Exception::ParseError, Exception::IllegalArgument))
+	vector< UInt > wanted_records = file.getWantedRecords("data/InspectOutfile.out", 0.01);
 	TEST_EQUAL (wanted_records.size(), 1)
 	if ( !wanted_records.empty() ) TEST_EQUAL (wanted_records.front(), 0)
 RESULT

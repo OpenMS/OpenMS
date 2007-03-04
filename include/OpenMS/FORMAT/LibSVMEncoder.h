@@ -57,11 +57,11 @@ namespace OpenMS
  				
  				The allowed characters given by 'allowed_characters' are counted in the sequence 'sequence'
  				and the relative frequency of the letters are sored in the composition vector. 
- 				The first entry of the vector (<UnsignedInt, DoubleReal>) corresponds to the first letter of 
+ 				The first entry of the vector (<UInt, DoubleReal>) corresponds to the first letter of 
  				'allowed_characters' that has a non zero frequency in 'sequence' and its corresponding 
  				relative frequency...
 			*/ 				
-      std::vector< std::pair<SignedInt, DoubleReal> >* encodeCompositionVector(const String& sequence, 
+      std::vector< std::pair<Int, DoubleReal> >* encodeCompositionVector(const String& sequence, 
 																												 								 			   const String& allowed_characters = "ACDEFGHIKLMNPQRSTVWY");      
 																																		  
       /**
@@ -69,19 +69,19 @@ namespace OpenMS
  				
  				The allowed characters given by 'allowed_characters' are counted in the sequences 'sequences'
  				and the relative frequency of the letters are sored in the composition vectors. 
- 				The first entry of the first vector (<UnsignedInt, DoubleReal>) corresponds to the first letter of 
+ 				The first entry of the first vector (<UInt, DoubleReal>) corresponds to the first letter of 
  				'allowed_characters' that has a non zero frequency in the first 'sequence' and its corresponding 
  				relative frequency...
 			*/ 				
-      std::vector< std::vector< std::pair<SignedInt, DoubleReal> > >* encodeCompositionVectors(const std::vector<String>& sequences, 
+      std::vector< std::vector< std::pair<Int, DoubleReal> > >* encodeCompositionVectors(const std::vector<String>& sequences, 
 																												 								 			   						const String& allowed_characters);      
 			/// encodes the feature vector in LibSVM compliant format																																		  
       svm_node* encodeLibSVMVector(
-      	const std::vector< std::pair<SignedInt, DoubleReal> >& feature_vector);
+      	const std::vector< std::pair<Int, DoubleReal> >& feature_vector);
       
 			/// encodes the feature vectors in LibSVM compliant format																																		  
       std::vector<svm_node*>* encodeLibSVMVectors(
-      	const std::vector< std::vector< std::pair<SignedInt, DoubleReal> > >& feature_vectors);
+      	const std::vector< std::vector< std::pair<Int, DoubleReal> > >& feature_vectors);
       
 			/// encodes the LibSVM compliant vectors into a LibSVM compliant structure																																		  
       svm_problem* encodeLibSVMProblem(const std::vector<svm_node*>&  vectors, 
@@ -96,7 +96,7 @@ namespace OpenMS
 			svm_problem* encodeLibSVMProblemWithCompositionAndLengthVectors(const std::vector<String>& sequences,
 																																			std::vector<DoubleReal>*   labels,
 																																			const String&              allowed_characters,
-																																			UnsignedInt                maximum_sequence_length);      
+																																			UInt                maximum_sequence_length);      
     	
     	/// stores the LibSVM-encoded data in a text file that can be used by the LibSVM applications (svm-scale, svm-train,...)
 			bool storeLibSVMProblem(const String& filename, const svm_problem* problem) const;
@@ -106,19 +106,19 @@ namespace OpenMS
 
     	/// encodes the borders of the sequence as k_mer oligos and stores them in 'libsvm_vector'
 			void encodeOligoBorders(String 																						 sequence,
-															UnsignedInt 																			 k_mer_length,
+															UInt 																			 k_mer_length,
 															const String& 																		 allowed_characters,
-															UnsignedInt                                        border_length,
-															std::vector< std::pair<SignedInt, DoubleReal> >& libsvm_vector,
+															UInt                                        border_length,
+															std::vector< std::pair<Int, DoubleReal> >& libsvm_vector,
 															bool 																							 strict = false,
 															bool 																							 length_encoding = false);
 
       /// creates oligo border vectors vectors for 'sequences' and stores them in LibSVM compliant format
 			svm_problem* encodeLibSVMProblemWithOligoBorderVectors(const std::vector<String>&     sequences,
 																														 std::vector<DoubleReal>*  			labels,
-																														 UnsignedInt 										k_mer_length,
+																														 UInt 										k_mer_length,
 																														 const String& 	 				  			allowed_characters,
-																														 UnsignedInt 										border_length,
+																														 UInt 										border_length,
 																											 			 bool 													strict = false,
 																											 			 bool 													length_encoding = false);
 

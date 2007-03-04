@@ -257,85 +257,85 @@ CHECK(Real getStatCTermProtMod())
 RESULT
 
 
-CHECK(void setPeptideMassUnit(SignedInt value))
+CHECK(void setPeptideMassUnit(Int value))
 	file.setPeptideMassUnit(0);
 	TEST_EQUAL(file.getPeptideMassUnit() , 0)
 RESULT
 
-CHECK(SignedInt getPeptideMassUnit())
+CHECK(Int getPeptideMassUnit())
 	TEST_EQUAL(file.getPeptideMassUnit() , 0)
 RESULT
 
-CHECK(void setOutputLines(SignedInt value))
+CHECK(void setOutputLines(Int value))
 	file.setOutputLines(10);
 	TEST_EQUAL(file.getOutputLines() , 10)
 RESULT
 
-CHECK(SignedInt getOutputLines())
+CHECK(Int getOutputLines())
 	TEST_EQUAL(file.getOutputLines() , 10)
 RESULT
 
-CHECK(SignedInt setEnzymeNumber(SignedInt value))
+CHECK(Int setEnzymeNumber(Int value))
 	TEST_EQUAL(file.setEnzyme("i_dont_exist_enzyme"), 18)
 	TEST_EQUAL(file.setEnzyme("Trypsin"), 0)
 	TEST_EQUAL(file.getEnzymeNumber() , 14)
 RESULT
 
-CHECK(SignedInt getEnzymeNumber())
+CHECK(Int getEnzymeNumber())
 	TEST_EQUAL(file.getEnzymeNumber() , 14)
 RESULT
 
-CHECK(void setMaxAAPerModPerPeptide(SignedInt value))
+CHECK(void setMaxAAPerModPerPeptide(Int value))
 	file.setMaxAAPerModPerPeptide(4);
 	TEST_EQUAL(file.getMaxAAPerModPerPeptide() , 4)
 RESULT
 
-CHECK(SignedInt getMaxAAPerModPerPeptide())
+CHECK(Int getMaxAAPerModPerPeptide())
 	TEST_EQUAL(file.getMaxAAPerModPerPeptide() , 4)
 RESULT
 
-CHECK(void setMaxModsPerPeptide(SignedInt value))
+CHECK(void setMaxModsPerPeptide(Int value))
 	file.setMaxModsPerPeptide(3);
 	TEST_EQUAL(file.getMaxModsPerPeptide() , 3)
 RESULT
 
-CHECK(SignedInt getMaxModsPerPeptide())
+CHECK(Int getMaxModsPerPeptide())
 	TEST_EQUAL(file.getMaxModsPerPeptide() , 3)
 RESULT
 
-CHECK(void setNucleotideReadingFrame(SignedInt value))
+CHECK(void setNucleotideReadingFrame(Int value))
 	file.setNucleotideReadingFrame(0);
 	TEST_EQUAL(file.getNucleotideReadingFrame() , 0)
 RESULT
 
-CHECK(SignedInt getNucleotideReadingFrame())
+CHECK(Int getNucleotideReadingFrame())
 	TEST_EQUAL(file.getNucleotideReadingFrame() , 0)
 RESULT
 
-CHECK(void setMaxInternalCleavageSites(SignedInt value))
+CHECK(void setMaxInternalCleavageSites(Int value))
 	file.setMaxInternalCleavageSites(2);
 	TEST_EQUAL(file.getMaxInternalCleavageSites() , 2)
 RESULT
 
-CHECK(SignedInt getMaxInternalCleavageSites())
+CHECK(Int getMaxInternalCleavageSites())
 	TEST_EQUAL(file.getMaxInternalCleavageSites() , 2)
 RESULT
 
-CHECK(void setMatchPeakCount(SignedInt value))
+CHECK(void setMatchPeakCount(Int value))
 	file.setMatchPeakCount(5);
 	TEST_EQUAL(file.getMatchPeakCount() , 5)
 RESULT
 
-CHECK(SignedInt getMatchPeakCount())
+CHECK(Int getMatchPeakCount())
 	TEST_EQUAL(file.getMatchPeakCount() , 5)
 RESULT
 
-CHECK(void setMatchPeakAllowedError(SignedInt value))
+CHECK(void setMatchPeakAllowedError(Int value))
 	file.setMatchPeakAllowedError(4);
 	TEST_EQUAL(file.getMatchPeakAllowedError() , 4)
 RESULT
 
-CHECK(SignedInt getMatchPeakAllowedError())
+CHECK(Int getMatchPeakAllowedError())
 	TEST_EQUAL(file.getMatchPeakAllowedError() , 4)
 RESULT
 

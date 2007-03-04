@@ -69,7 +69,7 @@ namespace OpenMS
 	
 	const DataValue& MetaInfo::getValue(const std::string& name) const
 	{
-		map<UnsignedInt,DataValue>::const_iterator it = index_to_value_.find(registry_.getIndex(name));
+		map<UInt,DataValue>::const_iterator it = index_to_value_.find(registry_.getIndex(name));
 		if (it != index_to_value_.end())
 		{
 			return it->second;
@@ -77,9 +77,9 @@ namespace OpenMS
 		return DataValue::EMPTY;		
 	}
 	
-	const DataValue& MetaInfo::getValue(UnsignedInt index) const
+	const DataValue& MetaInfo::getValue(UInt index) const
 	{
-		map<UnsignedInt,DataValue>::const_iterator it = index_to_value_.find(index);
+		map<UInt,DataValue>::const_iterator it = index_to_value_.find(index);
 		if (it != index_to_value_.end())
 		{
 			return it->second;
@@ -93,17 +93,17 @@ namespace OpenMS
 		index_to_value_[registry_.getIndex(name)] = DataValue(value);
 	}
 
-	void MetaInfo::setValue(UnsignedInt index, const std::string& value)
+	void MetaInfo::setValue(UInt index, const std::string& value)
 	{
 		index_to_value_[index] = DataValue(value);
 	}
 
-	void MetaInfo::setValue(const std::string& name, SignedInt value)
+	void MetaInfo::setValue(const std::string& name, Int value)
 	{
 		index_to_value_[registry_.getIndex(name)] = DataValue(value);
 	}
 
-	void MetaInfo::setValue(UnsignedInt index, SignedInt value)
+	void MetaInfo::setValue(UInt index, Int value)
 	{
 		index_to_value_[index] = DataValue(value);
 	}
@@ -113,7 +113,7 @@ namespace OpenMS
 		index_to_value_[registry_.getIndex(name)] = DataValue(value);
 	}
 
-	void MetaInfo::setValue(UnsignedInt index, double value)
+	void MetaInfo::setValue(UInt index, double value)
 	{
 		index_to_value_[index] = DataValue(value);
 	}
@@ -123,7 +123,7 @@ namespace OpenMS
 		index_to_value_[registry_.getIndex(name)] = value;
 	}
 	
-	void MetaInfo::setValue(UnsignedInt index, const DataValue& value)
+	void MetaInfo::setValue(UInt index, const DataValue& value)
 	{
 		index_to_value_[index] = value;
 	}	
@@ -149,7 +149,7 @@ namespace OpenMS
 		return true;		
 	}
 	
-	bool MetaInfo::exists(UnsignedInt index) const
+	bool MetaInfo::exists(UInt index) const
 	{
 		if (index_to_value_.find(index)==index_to_value_.end())
 		{
@@ -160,16 +160,16 @@ namespace OpenMS
 
 	void MetaInfo::removeValue(const std::string& name)
 	{
-		map<UnsignedInt,DataValue>::iterator it = index_to_value_.find(registry_.getIndex(name));
+		map<UInt,DataValue>::iterator it = index_to_value_.find(registry_.getIndex(name));
 		if (it != index_to_value_.end())
 		{
 			index_to_value_.erase(it);
 		}
 	}
 
-	void MetaInfo::removeValue(UnsignedInt index)
+	void MetaInfo::removeValue(UInt index)
 	{
-		map<UnsignedInt,DataValue>::iterator it = index_to_value_.find(index);
+		map<UInt,DataValue>::iterator it = index_to_value_.find(index);
 		if (it != index_to_value_.end())
 		{
 			index_to_value_.erase(it);
@@ -179,18 +179,18 @@ namespace OpenMS
   void MetaInfo::getKeys(vector<string>& keys) const
   {
     keys.resize(index_to_value_.size());
-    UnsignedInt i =0;
-		for (map<UnsignedInt,DataValue>::const_iterator it = index_to_value_.begin(); it != index_to_value_.end(); ++it)
+    UInt i =0;
+		for (map<UInt,DataValue>::const_iterator it = index_to_value_.begin(); it != index_to_value_.end(); ++it)
 		{
 			keys[i++]=registry_.getName(it->first);
 		}
   }
 
-	void MetaInfo::getKeys(vector<UnsignedInt>& keys) const
+	void MetaInfo::getKeys(vector<UInt>& keys) const
   {
     keys.resize(index_to_value_.size());
-    UnsignedInt i =0;
-		for (map<UnsignedInt,DataValue>::const_iterator it = index_to_value_.begin(); it != index_to_value_.end(); ++it)
+    UInt i =0;
+		for (map<UInt,DataValue>::const_iterator it = index_to_value_.begin(); it != index_to_value_.end(); ++it)
 		{
 			keys[i++]=it->first;
 		}

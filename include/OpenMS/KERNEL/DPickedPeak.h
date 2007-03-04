@@ -45,7 +45,7 @@ namespace OpenMS
   	
   	@ingroup Kernel
   */
-  template <UnsignedInt D>
+  template <UInt D>
   class DPickedPeak
         : public DPeak <D>
   {
@@ -71,7 +71,7 @@ namespace OpenMS
     /// Width parameter type
     typedef DoubleReal WidthType;
     /// Charge type
-    typedef SignedInt ChargeType;
+    typedef Int ChargeType;
     /// Signal to noise value type
     typedef DoubleReal SignalToNoiseType;
     //@}

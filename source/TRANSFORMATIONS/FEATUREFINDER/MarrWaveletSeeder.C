@@ -147,11 +147,11 @@ namespace OpenMS
 		/// S/N threshold for single peaks in the cwt
 		IntensityType high_peak_intensity_factor = param_.getValue("high_peak_intensity_factor");		
 	
-		UnsignedInt current_charge = 0; // charge state of the current isotopic cluster
+		UInt current_charge = 0; // charge state of the current isotopic cluster
 		CoordinateType mz_in_hash = 0; // used as reference to the current isotopic peak
 		CoordinateType current_rt = 0; // retention time of current scan
 	
-		for (UnsignedInt currscan_index = 0; currscan_index < traits_->getData().size(); ++currscan_index)
+		for (UInt currscan_index = 0; currscan_index < traits_->getData().size(); ++currscan_index)
 		{
 			//make a copy of the scan. This is necessary as the peak intensities have to be modified in the 
 			//sumUp_ method
@@ -276,7 +276,7 @@ namespace OpenMS
 						if (range.first != range.second)		// several peak cluster at this m/z found
 						{
 							// we want to find the previous scan
-							UnsignedInt scan_wanted = (currscan_index - 1);
+							UInt scan_wanted = (currscan_index - 1);
 																								
 							for (TableType::iterator iter = range.first; iter != range.second; ++iter)
 							{
@@ -415,7 +415,7 @@ namespace OpenMS
 					// so we collect some surrounding data points and see if we meet this point
 					// in the next scan again....
 // 					cout << "High peak in cwt !!" << endl;
-					UnsignedInt this_peak =  local_maxima[z];
+					UInt this_peak =  local_maxima[z];
 					CoordinateType this_mass	 = current_scan[ this_peak ].getMZ();
 					
 					// hash entry to write in
@@ -454,7 +454,7 @@ namespace OpenMS
 							if (range.first != range.second)		// several peak cluster at this m/z found
 							{
 								// we want to find the previous scan
-								UnsignedInt scan_wanted = (currscan_index - 1);
+								UInt scan_wanted = (currscan_index - 1);
 																							
 								for (TableType::iterator iter = range.first; iter != range.second; ++iter)
 								{
@@ -541,8 +541,8 @@ namespace OpenMS
 	
 		cout << iso_map_.size() << " isotopic clusters were found." << endl;
 	
-		UnsignedInt min_number_scans = param_.getValue("min_number_scans");
-		UnsignedInt min_number_peaks = param_.getValue("min_number_peaks");
+		UInt min_number_scans = param_.getValue("min_number_scans");
+		UInt min_number_peaks = param_.getValue("min_number_peaks");
 	
 		// Remove cluster containing too few scans or peaks
 		for (HashIterator iter = iso_map_.begin(); iter != iso_map_.end(); ++iter)
@@ -582,7 +582,7 @@ namespace OpenMS
 		SpectrumType::const_iterator it_max_pos;
 			
 		IntensityType max_value = 0.0;	// intensity of the signal peak
-		UnsignedInt max_index   = 0;		// index of the signal peak (counted from the very first data point)
+		UInt max_index   = 0;		// index of the signal peak (counted from the very first data point)
 	
 		// Given direction, start the search from left or right
 		int start = zeros_left_index + 2;
@@ -627,11 +627,11 @@ namespace OpenMS
 		}
 	}
 	
-	void MarrWaveletSeeder::sumUp_(SpectrumType& scan, UnsignedInt current_scan_index)
+	void MarrWaveletSeeder::sumUp_(SpectrumType& scan, UInt current_scan_index)
 	{
 		//Sum up those following scans that exist
-		for ( UnsignedInt i=current_scan_index + 1
-					; i < current_scan_index + 1 + (UnsignedInt)(param_.getValue("scans_to_sumup")) && i < traits_->getData().size()
+		for ( UInt i=current_scan_index + 1
+					; i < current_scan_index + 1 + (UInt)(param_.getValue("scans_to_sumup")) && i < traits_->getData().size()
 				 	; ++i
 				)
 		{
@@ -645,8 +645,8 @@ namespace OpenMS
 	
 		double mass_tolerance = 0.1;
 	
-		UnsignedInt index_newscan = 0;
-		for (UnsignedInt k=0; k<neighbour.size(); ++k)
+		UInt index_newscan = 0;
+		for (UInt k=0; k<neighbour.size(); ++k)
 		{
 			PeakType p			   = neighbour[k];
 			CoordinateType mass = p.getMZ();
@@ -688,7 +688,7 @@ namespace OpenMS
 		} // end for (all peaks in neighbouring scan)
 	}
 	
-	UnsignedInt MarrWaveletSeeder::distanceToCharge_(CoordinateType dist)
+	UInt MarrWaveletSeeder::distanceToCharge_(CoordinateType dist)
 	{
 		if (dist < charge1_ub_ && dist > charge1_lb_)
 		{

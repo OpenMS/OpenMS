@@ -291,51 +291,51 @@ namespace OpenMS
 			axis_mapping_->setCurrentIndex(axis_mapping_->findText(manager_->getPrefAsString("Preferences:1D:Mapping:MappingOfMzTo").c_str()));
 
 			//2D
-			if (UnsignedInt(manager_->getPref("Preferences:2D:Dot:Mode"))==Spectrum2DCanvas::DOT_GRADIENT)
+			if (UInt(manager_->getPref("Preferences:2D:Dot:Mode"))==Spectrum2DCanvas::DOT_GRADIENT)
 			{
 				dot_mode_gradient_->setChecked(true);
 			}
-			else if (UnsignedInt(manager_->getPref("Preferences:2D:Dot:Mode"))==Spectrum2DCanvas::DOT_BLACK)
+			else if (UInt(manager_->getPref("Preferences:2D:Dot:Mode"))==Spectrum2DCanvas::DOT_BLACK)
 			{
 				dot_mode_black_->setChecked(true);
 			}
 			
-			marching_squares_steps_->setValue(UnsignedInt(manager_->getPref("Preferences:2D:MarchingSquaresSteps")));
-			contour_steps_->setValue(UnsignedInt(manager_->getPref("Preferences:2D:Contour:Lines")));
+			marching_squares_steps_->setValue(UInt(manager_->getPref("Preferences:2D:MarchingSquaresSteps")));
+			contour_steps_->setValue(UInt(manager_->getPref("Preferences:2D:Contour:Lines")));
 			dot_gradient_->gradient().fromString(manager_->getPrefAsString("Preferences:2D:Dot:Gradient"));
-			interpolation_steps_->setValue(UnsignedInt(manager_->getPref("Preferences:2D:InterpolationSteps")));
+			interpolation_steps_->setValue(UInt(manager_->getPref("Preferences:2D:InterpolationSteps")));
 			surface_gradient_->gradient().fromString(manager_->getPrefAsString("Preferences:2D:Surface:Gradient"));
 			back_color_2D_->setColor(QColor(manager_->getPrefAsString("Preferences:2D:BackgroundColor").c_str()));
 			axis_mapping_2d_->setCurrentIndex(axis_mapping_2d_->findText(manager_->getPrefAsString("Preferences:2D:Mapping:MappingOfMzTo").c_str()));
 	
 			//3d
 		
-			if (UnsignedInt(manager_->getPref("Preferences:3D:Dot:Mode"))==Spectrum3DCanvas::DOT_GRADIENT)
+			if (UInt(manager_->getPref("Preferences:3D:Dot:Mode"))==Spectrum3DCanvas::DOT_GRADIENT)
 			{
 				dot_mode_gradient_3d_->setChecked(true);
 
-				if (UnsignedInt(manager_->getPref("Preferences:3D:Shade:Mode"))==Spectrum3DCanvas::SHADE_FLAT)
+				if (UInt(manager_->getPref("Preferences:3D:Shade:Mode"))==Spectrum3DCanvas::SHADE_FLAT)
 				{
 					shade_mode_flat_3d_->setChecked(true);
 				}
-				else if (UnsignedInt(manager_->getPref("Preferences:3D:Shade:Mode"))==Spectrum3DCanvas::SHADE_SMOOTH)
+				else if (UInt(manager_->getPref("Preferences:3D:Shade:Mode"))==Spectrum3DCanvas::SHADE_SMOOTH)
 				{
 					shade_mode_smooth_3d_->setChecked(true);
 				}
 			}
-			else if (UnsignedInt(manager_->getPref("Preferences:3D:Dot:Mode"))==Spectrum3DCanvas::DOT_BLACK)
+			else if (UInt(manager_->getPref("Preferences:3D:Dot:Mode"))==Spectrum3DCanvas::DOT_BLACK)
 			{
 				dot_mode_black_3d_->setChecked(true);
 			}
 			
 			data_reduction_3d_->setCurrentIndex(data_reduction_3d_->findText(manager_->getPrefAsString("Preferences:3D:Reduction:Mode").c_str()));	
-			reduction_diplay_peaks_3d_->setValue(UnsignedInt(manager_->getPrefAsInt("Preferences:3D:DisplayedPeaks")));
+			reduction_diplay_peaks_3d_->setValue(UInt(manager_->getPrefAsInt("Preferences:3D:DisplayedPeaks")));
 		
-			dot_interpolation_steps_3d_->setValue(UnsignedInt(manager_->getPref("Preferences:3D:Dot:InterpolationSteps")));
+			dot_interpolation_steps_3d_->setValue(UInt(manager_->getPref("Preferences:3D:Dot:InterpolationSteps")));
 			back_color_3d_->setColor(QColor(manager_->getPrefAsString("Preferences:3D:BackgroundColor").c_str()));
 			dot_gradient_3d_->gradient().fromString(manager_->getPrefAsString("Preferences:3D:Dot:Gradient"));
 			axes_color_3d_->setColor(QColor(manager_->getPrefAsString("Preferences:3D:AxesColor").c_str()));
-			dot_line_width_->setValue(UnsignedInt(manager_->getPref("Preferences:3D:Dot:LineWidth")));
+			dot_line_width_->setValue(UInt(manager_->getPref("Preferences:3D:Dot:LineWidth")));
 		
 		}
 		

@@ -77,7 +77,7 @@ namespace OpenMS
 				
 				Give the numbers in the following order: month, day and year.
 			*/
-			void set(UnsignedInt month, UnsignedInt day, UnsignedInt year) throw (Exception::ParseError);
+			void set(UInt month, UInt day, UInt year) throw (Exception::ParseError);
 		
 			/// sets to date to today
 			void today();
@@ -97,18 +97,18 @@ namespace OpenMS
 			 	
 			 	Give the numbers in the following order: month, day and year.
 			*/
-			void get(UnsignedInt& month, UnsignedInt& day, UnsignedInt& year) const;
+			void get(UInt& month, UInt& day, UInt& year) const;
 			
 			///Sets the undefined date: 00/00/0000
 			void clear();
 			
 			/// return true if the given year @p year is a leap year
-			bool isLeapYear(UnsignedInt year) const;
+			bool isLeapYear(UInt year) const;
 			
 		protected:
-			UnsignedInt day_;
-			UnsignedInt month_;
-			UnsignedInt year_;
+			UInt day_;
+			UInt month_;
+			UInt year_;
 	};
 } // namespace OPENMS
 

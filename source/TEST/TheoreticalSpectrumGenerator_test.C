@@ -68,7 +68,7 @@ CHECK(TheoreticalSpectrumGenerator& operator = (const TheoreticalSpectrumGenerat
 	TEST_EQUAL(copy.getParameters(), ptr->getParameters())
 RESULT
 
-CHECK(void addPeaks(PeakSpectrum& spectrum, const AASequence& peptide, Residue::ResidueType res_type, SignedInt charge = 1))
+CHECK(void addPeaks(PeakSpectrum& spectrum, const AASequence& peptide, Residue::ResidueType res_type, Int charge = 1))
 	PeakSpectrum y_spec, b_spec, a_spec;
 	ptr->addPeaks(y_spec, peptide, Residue::YIon, 1);
 	ptr->addPeaks(b_spec, peptide, Residue::BIon, 1);
@@ -100,7 +100,7 @@ CHECK(void addPeaks(PeakSpectrum& spectrum, const AASequence& peptide, Residue::
 	}
 RESULT
 
-CHECK(void addPrecursorPeaks(PeakSpectrum& spec, const AASequence& peptide, SignedInt charge = 1))
+CHECK(void addPrecursorPeaks(PeakSpectrum& spec, const AASequence& peptide, Int charge = 1))
 	PeakSpectrum spec;
 	ptr->addPrecursorPeaks(spec, peptide, 1);
 	double result[] = {778.916, 760.901, 761.885};
@@ -130,7 +130,7 @@ CHECK(void setParameters(const Param& param))
 	TEST_EQUAL(ptr->getParameters().getValue("value_to_test"), "true")
 RESULT
 
-CHECK(void getSpectrum(PeakSpectrum& spec, const AASequence& peptide, SignedInt charge = 1))
+CHECK(void getSpectrum(PeakSpectrum& spec, const AASequence& peptide, Int charge = 1))
 	// TODO
 RESULT
 

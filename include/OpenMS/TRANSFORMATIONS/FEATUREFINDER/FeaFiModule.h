@@ -45,9 +45,9 @@ namespace OpenMS
     : public FactoryProduct
   {	
   	public:
-			/// SignedInt in a MSExperiment
-			typedef std::pair<UnsignedInt,UnsignedInt> IDX;
-			/// SignedInt set
+			/// Int in a MSExperiment
+			typedef std::pair<UInt,UInt> IDX;
+			/// Int set
 			typedef std::set<IDX> IndexSet;
 		
 			/** 

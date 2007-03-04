@@ -79,9 +79,9 @@ spec.setRetentionTime(1);
 double mzs[] = {1, 2, 3, 4, 5};
 double its1[] = {1000, 1500,2000, 1500, 1000};
 
-const UnsignedInt num = 5;
+const UInt num = 5;
 
-for (UnsignedInt i=0; i < num; i++)
+for (UInt i=0; i < num; i++)
 {
     Peak1D p;
     p.setMZ(mzs[i]);
@@ -96,7 +96,7 @@ spec.setRetentionTime(2);
 
 double its2[] = {1000, 1500,2000, 1500, 1000};
 
-for (UnsignedInt i=0; i < num; i++)
+for (UInt i=0; i < num; i++)
 {
     Peak1D p;
     p.setMZ(mzs[i]);
@@ -111,7 +111,7 @@ spec.setRetentionTime(3);
 
 double its3[] = {1000, 1500,5000, 1500, 1000};
 
-for (UnsignedInt i=0; i < num; i++)
+for (UInt i=0; i < num; i++)
 {
     Peak1D p;
     p.setMZ(mzs[i]);
@@ -127,7 +127,7 @@ spec.setRetentionTime(4);
 // the last two data points should not be included (see param intensity_factor)
 double its4[] = {1000, 1500,2000, 0.1, 0.1};
 
-for (UnsignedInt i=0; i < num; i++)
+for (UInt i=0; i < num; i++)
 {
     Peak1D p;
     p.setMZ(mzs[i]);

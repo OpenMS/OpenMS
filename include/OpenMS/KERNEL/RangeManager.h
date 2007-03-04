@@ -36,7 +36,7 @@ namespace OpenMS
 		
 		This is needed for all peak and feature container like DSpectrum, MSExperiment and FeatureMap.
 	*/
-	template <UnsignedInt D>
+	template <UInt D>
 	class RangeManager
 	{
 		public:
@@ -169,7 +169,7 @@ namespace OpenMS
          for (PeakIteratorType it = begin; it != end; ++it)
          {
            //update position
-           for (UnsignedInt i = 0; i < D; ++i)
+           for (UInt i = 0; i < D; ++i)
            {
              tmp = it->getPosition()[i];
              if (tmp < min[i])

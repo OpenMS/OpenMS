@@ -40,7 +40,7 @@ namespace OpenMS
 {
 	using namespace Math;
 	
-	void AxisTickCalculator::calcGridLines(double x1, double x2, int levels, GridVector& grid, UnsignedInt max_num_big, UnsignedInt max_num_small, double& grid_line_dist)
+	void AxisTickCalculator::calcGridLines(double x1, double x2, int levels, GridVector& grid, UInt max_num_big, UInt max_num_small, double& grid_line_dist)
 	{		
 		grid.clear();
 
@@ -63,7 +63,7 @@ namespace OpenMS
 		double sDec = pow(10.0,sDecPow);
 		grid_line_dist = sDec;
 		std::vector<double> big;
-		double currGL = ceil_decimal(x1, (UnsignedInt)sDecPow);
+		double currGL = ceil_decimal(x1, (UInt)sDecPow);
 		while (currGL < (x2+epsilon) )
 		{
 			
@@ -137,7 +137,7 @@ namespace OpenMS
 			}
 		grid.push_back(big);
 		std::vector<double> small;
-		for(UnsignedInt i = 0;i!=grid[0].size();++i)
+		for(UInt i = 0;i!=grid[0].size();++i)
 		{
 			double currGL =grid[0][i];
 			for(int j = 0;j!=8;++j)

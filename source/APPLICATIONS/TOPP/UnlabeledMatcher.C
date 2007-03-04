@@ -113,7 +113,7 @@ class TOPPUnlabeledMatcher
       FeatureMap< > feature_map[2];
 
       /// determine names of input files
-      for ( UnsignedInt index = 0; index < 2; ++index )
+      for ( UInt index = 0; index < 2; ++index )
       {
         inputfile[index] = getStringOption_(String("in") + (index+1));
         writeLog_(String("Reading input file ") + (index+1) + ", `" + inputfile[index] + '\'');
@@ -133,7 +133,7 @@ class TOPPUnlabeledMatcher
 
       poseclust_feature_matcher.setParameters(param_alg);
 
-      for ( UnsignedInt index = 0; index < 2; ++index )
+      for ( UInt index = 0; index < 2; ++index )
       {
         poseclust_feature_matcher.setElementMap(index,feature_map[index]);
       }

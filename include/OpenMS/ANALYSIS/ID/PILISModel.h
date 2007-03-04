@@ -78,7 +78,7 @@ namespace OpenMS
 			*/
 			//@{
 			/// performs a training step; needs as parameters a spectrum with annotated sequence and charge
-			void train(const PeakSpectrum&, const AASequence& peptide, UnsignedInt charge);
+			void train(const PeakSpectrum&, const AASequence& peptide, UInt charge);
 
 			/** reads the model parameters from the given files
 			    @param filename filename of the model
@@ -94,10 +94,10 @@ namespace OpenMS
 			void writeToFile(const String& filename);
 
 			/// greedy specturm aligner, should be replaced by a better algorithm
-			//void getSpectrumAlignment(HashMap<UnsignedInt, UnsignedInt>& peak_map, const PeakSpectrum& spec1, const PeakSpectrum& spec2);
+			//void getSpectrumAlignment(HashMap<UInt, UInt>& peak_map, const PeakSpectrum& spec1, const PeakSpectrum& spec2);
 
 			/// simulates a spectrum with the model of the given peptide and charge and writes it to the given PeakSpectrum
-			void getSpectrum(PeakSpectrum& spec, const AASequence& peptide, UnsignedInt charge);
+			void getSpectrum(PeakSpectrum& spec, const AASequence& peptide, UInt charge);
 
 			/// this method evaluates the model after training; it should be called after all training steps with train
 			void evaluate();
@@ -202,10 +202,10 @@ namespace OpenMS
 
 			
 			/// extracts the precursor and related intensities of a training spectrum
-			void getPrecursorIntensitiesFromSpectrum_(const PeakSpectrum& train_spec, PrecursorPeaks_& pre_ints, double peptide_weight, UnsignedInt charge);
+			void getPrecursorIntensitiesFromSpectrum_(const PeakSpectrum& train_spec, PrecursorPeaks_& pre_ints, double peptide_weight, UInt charge);
 
 			/// extracts the ions intensities of a training spectrum
-			double getIntensitiesFromSpectrum_(const PeakSpectrum& train_spec, IonPeaks_& ion_ints, const AASequence& peptide, UnsignedInt charge);
+			double getIntensitiesFromSpectrum_(const PeakSpectrum& train_spec, IonPeaks_& ion_ints, const AASequence& peptide, UInt charge);
 
 			/// aligns two spectra a writes the intensities from the first which matches the second to the vector
 			double getIntensitiesFromComparison_(const PeakSpectrum& train_spec, const PeakSpectrum& theo_spec, std::vector<double>& intensities);
@@ -232,8 +232,8 @@ namespace OpenMS
 			bool getInitialTransitionProbabilities_(std::vector<double>& bb_init, 
 																							std::vector<double>& cr_init, 
 																							std::vector<double>& sc_init, 
-																							const HashMap<UnsignedInt, double>& bb_charges,
-																							const HashMap<UnsignedInt, double>& sc_charges,
+																							const HashMap<UInt, double>& bb_charges,
+																							const HashMap<UInt, double>& sc_charges,
 																							const AASequence& peptide);
 
 			/// add peaks to spectrum

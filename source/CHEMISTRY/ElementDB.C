@@ -55,7 +55,7 @@ namespace OpenMS
 		return symbols_;
 	}
 
-	const HashMap<UnsignedInt, const Element*>& ElementDB::getAtomicNumbers() const
+	const HashMap<UInt, const Element*>& ElementDB::getAtomicNumbers() const
 	{
 		return atomic_numbers_;
 	}
@@ -76,7 +76,7 @@ namespace OpenMS
 		return 0;
 	}
 
-	const Element* ElementDB::getElement(UnsignedInt atomic_number) const
+	const Element* ElementDB::getElement(UInt atomic_number) const
 	{
 		if (atomic_numbers_.has(atomic_number))
 		{
@@ -90,7 +90,7 @@ namespace OpenMS
 		return (names_.has(name) || symbols_.has(name));
 	}
 
-	bool ElementDB::hasElement(UnsignedInt atomic_number) const
+	bool ElementDB::hasElement(UInt atomic_number) const
 	{
 		return (atomic_numbers_.has(atomic_number));
 	}
@@ -100,7 +100,7 @@ namespace OpenMS
 		Param param;
 		param.load(file_name);
 
-		UnsignedInt an(0);
+		UInt an(0);
 		float avg_weight(0), mono_weight(0);
 		String name, symbol;
 		
@@ -108,12 +108,12 @@ namespace OpenMS
 		vector<String> split;
 		String(param.begin()->first).split(':',split);
 		String prefix("");
-		for (UnsignedInt i=0;i<split.size()-1;++i)
+		for (UInt i=0;i<split.size()-1;++i)
 		{
 			prefix += split[i]+":";
 		}
 		
-		HashMap<UnsignedInt, double> distribution;
+		HashMap<UInt, double> distribution;
 		
 		for (Param::ConstIterator it=param.begin(); it!=param.end(); ++it)
 		{
@@ -122,7 +122,7 @@ namespace OpenMS
 				// update prefix
 				String(it->first).split(':',split);
 				prefix = "";
-				for (UnsignedInt i=0;i<split.size()-1;++i)
+				for (UInt i=0;i<split.size()-1;++i)
 				{
 					prefix += split[i]+":";
 				}
@@ -145,7 +145,7 @@ namespace OpenMS
 
 			if (key == "AtomicNumber")
 			{
-				an = (UnsignedInt)value.toInt();
+				an = (UInt)value.toInt();
 			}
 			else
 			{
@@ -157,7 +157,7 @@ namespace OpenMS
 				{
 					if (key == "Isotopes")
 					{
-						distribution[UnsignedInt(split[3].toInt())] = double(value.toFloat()/100);
+						distribution[UInt(split[3].toInt())] = double(value.toFloat()/100);
 					}
 					else
 					{
@@ -196,13 +196,13 @@ namespace OpenMS
 		atomic_numbers_[an] = e;
 	}
 
-	IsotopeDistribution ElementDB::parseIsotopeDistribution_(const HashMap<UnsignedInt, double>& distribution) 
+	IsotopeDistribution ElementDB::parseIsotopeDistribution_(const HashMap<UInt, double>& distribution) 
 		throw(Exception::ParseError)
 	{
 		IsotopeDistribution::ContainerType dist;
-		for (HashMap<UnsignedInt, double>::ConstIterator it=distribution.begin(); it!=distribution.end(); ++it)
+		for (HashMap<UInt, double>::ConstIterator it=distribution.begin(); it!=distribution.end(); ++it)
 		{
-			dist.push_back(make_pair<UnsignedInt, double>(it->first, it->second));
+			dist.push_back(make_pair<UInt, double>(it->first, it->second));
 		}
 	
 		// TODO sorting!

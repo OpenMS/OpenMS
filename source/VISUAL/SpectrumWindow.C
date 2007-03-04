@@ -52,7 +52,7 @@ namespace OpenMS
 		widget_->setSpectrumWindow(this);
 	}
 	
-	void SpectrumWindow::showStatusMessage(std::string msg,OpenMS::UnsignedInt time)
+	void SpectrumWindow::showStatusMessage(std::string msg,OpenMS::UInt time)
 	{
 		emit sendStatusMessage(msg,time);
 	}
@@ -74,7 +74,7 @@ namespace OpenMS
 	
 	void SpectrumWindow::connectWidgetSignals(SpectrumWidget* sw)
 	{
-		connect(sw,SIGNAL(sendStatusMessage(std::string,OpenMS::UnsignedInt)),this,SLOT(showStatusMessage(std::string,OpenMS::UnsignedInt)));
+		connect(sw,SIGNAL(sendStatusMessage(std::string,OpenMS::UInt)),this,SLOT(showStatusMessage(std::string,OpenMS::UInt)));
 		connect(sw,SIGNAL(sendCursorStatus(double,double,double)),this,SLOT(showCursorStatus(double,double,double)));
 		connect(sw,SIGNAL(modesChanged(QWidget*)),this,SLOT(modesChangedSlot(QWidget*)));
 	}

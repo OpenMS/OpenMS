@@ -30,7 +30,7 @@ namespace OpenMS
 {
 	namespace Schemes
 	{
-		const UnsignedInt MzXML_num = 2;
+		const UInt MzXML_num = 2;
 
 		const String MzXML[][11] = {
 			///---------------- MzXML Version 2.1 --------------------------
@@ -132,7 +132,7 @@ namespace OpenMS
 			}
 		};
 
-		const UnsignedInt MzData_num = 1;
+		const UInt MzData_num = 1;
 
 		const String MzData[][10] = {
 			///---------------- MzData Version 1.05 --------------------------
@@ -176,7 +176,7 @@ namespace OpenMS
 			}
 		};
 
-		const UnsignedInt MzDataExpSett_num = 1;
+		const UInt MzDataExpSett_num = 1;
 
 		const String MzDataExpSett[][18] = {
 			///---------------- MzData Version 1.05 --------------------------
@@ -252,7 +252,7 @@ namespace OpenMS
 			}
 		};
 
-		const UnsignedInt FeatureMap_num = 1;
+		const UInt FeatureMap_num = 1;
 
 		const String FeatureMap[][3] = {
 			///---------------- FeatureMap 1.0 --------------------------
@@ -269,7 +269,7 @@ namespace OpenMS
 			}
 		};
 
-		const UnsignedInt DFeaturePairs_num = 1;
+		const UInt DFeaturePairs_num = 1;
 
 		const String DFeaturePairs[][3] = {
 			///---------------- DFeaturePairs 1.0 --------------------------
@@ -286,7 +286,7 @@ namespace OpenMS
 			}
 		};
 
-		const UnsignedInt ConsensusXML_num = 1;
+		const UInt ConsensusXML_num = 1;
 
 		const String ConsensusXML[][3] =
 			{

@@ -172,18 +172,18 @@ namespace OpenMS
   	vector<PeptideHit>* 									referencing_peptide_hits;
   	vector<PeptideHit>* 									non_referencing_peptide_hits;
   	vector<PeptideHit>  									all_peptide_hits;
-  	vector<UnsignedInt> 									indices;
+  	vector<UInt> 									indices;
   	multimap< String, ProteinHit > 				all_protein_hits;
   	
   	bool 																	protein_hits_present = false;
   	String 																temp_peptide_sequence;
-  	map< String , UnsignedInt>						date_times;
-  	UnsignedInt 													date_times_counter = 0;
+  	map< String , UInt>						date_times;
+  	UInt 													date_times_counter = 0;
   	String 																date_time_string;
   	DateTime															date_time;
   	String																actual_date_time_;
-  	map< String , UnsignedInt>::iterator	date_times_iterator;
-		UnsignedInt 													group_count = 0;
+  	map< String , UInt>::iterator	date_times_iterator;
+		UInt 													group_count = 0;
 		
 		date_time.now();
 		date_time.get(actual_date_time_);
@@ -266,7 +266,7 @@ namespace OpenMS
 		if (const_protein_identifications_.size() > 0)
 		{
 			group_count = 0;
-			for(UnsignedInt j = 0; j < const_protein_identifications_.size(); j++)
+			for(UInt j = 0; j < const_protein_identifications_.size(); j++)
 			{
 				date_time = const_protein_identifications_[j].getDateTime();
 				date_time.get(date_time_string);
@@ -294,7 +294,7 @@ namespace OpenMS
 						os << protein_hits_it->getAccession();
 					}
 					os << "</dbID>\n";
-					for(UnsignedInt i = 0; i < const_id_data_.size(); i++)
+					for(UInt i = 0; i < const_id_data_.size(); i++)
 					{
 						referencing_peptide_hits = const_id_data_[i].id.getReferencingHits(date_time_string, 
 																																	 								  protein_hits_it->getAccession());
@@ -331,7 +331,7 @@ namespace OpenMS
 			} // protein identifications
 		}
 
-		for(UnsignedInt i = 0; i < const_id_data_.size(); i++)
+		for(UInt i = 0; i < const_id_data_.size(); i++)
 		{
 			if (const_id_data_[i].id.getProteinHits().size() > 0)
 			{
@@ -342,7 +342,7 @@ namespace OpenMS
 		if (protein_hits_present)
 		{
 			os << "\t\t<proteinGroup count=\"" << group_count << "\">\n";
-			for(UnsignedInt j = 0; j < const_id_data_.size(); j++)
+			for(UInt j = 0; j < const_id_data_.size(); j++)
 			{
 				date_time = const_id_data_[j].id.getDateTime();
 				date_time.get(date_time_string);
@@ -369,7 +369,7 @@ namespace OpenMS
 						os << protein_hits_it->getAccession();
 					}
 					os << "</dbID>\n";
-					for(UnsignedInt i = 0; i < const_id_data_.size(); i++)
+					for(UInt i = 0; i < const_id_data_.size(); i++)
 					{
 						referencing_peptide_hits = const_id_data_[i].id.getReferencingHits(date_time_string, 
 																																						 protein_hits_it->getAccession());
@@ -409,7 +409,7 @@ namespace OpenMS
 		// All protein hits with the corresponding date and time are stored.
 		// They are used afterwards to determine the peptide hits that do
 		// not reference any protein hits.
-		for(UnsignedInt i = 0; i < const_id_data_.size(); i++)
+		for(UInt i = 0; i < const_id_data_.size(); i++)
 		{
 			const_id_data_[i].id.getDateTime().get(date_time_string);
   		if (date_time_string == "0000-00-00 00:00:00")
@@ -424,7 +424,7 @@ namespace OpenMS
 				all_protein_hits.insert(make_pair(date_time_string, *it));				
 			}
 		}
-		for(UnsignedInt i = 0; i < const_protein_identifications_.size(); i++)
+		for(UInt i = 0; i < const_protein_identifications_.size(); i++)
 		{
 			const_protein_identifications_[i].getDateTime().get(date_time_string);
   		if (date_time_string == "0000-00-00 00:00:00")
@@ -439,7 +439,7 @@ namespace OpenMS
 				all_protein_hits.insert(make_pair(date_time_string, *it));				
 			}
 		}
-		for(UnsignedInt i = 0; i < const_id_data_.size(); i++)
+		for(UInt i = 0; i < const_id_data_.size(); i++)
 		{
 			non_referencing_peptide_hits = 
 				const_id_data_[i].id.getNonReferencingHits(all_protein_hits);
@@ -516,7 +516,7 @@ namespace OpenMS
 			}
 			else if (attribute_value == "number_of_protein_identifications")
 			{
-				for(SignedInt i = 0; i < ((String) XMLString::transcode(attributes.getValue(1u))).toInt(); i++)
+				for(Int i = 0; i < ((String) XMLString::transcode(attributes.getValue(1u))).toInt(); i++)
 				{
 					ProteinIdentification temp_protein_identification;
 					protein_identifications_->push_back(temp_protein_identification);
@@ -580,7 +580,7 @@ namespace OpenMS
 			}
 			else if (attribute_value == "date_group_index")
 			{		
-				UnsignedInt index = ((String) XMLString::transcode(attributes.getValue(1u))).toInt();
+				UInt index = ((String) XMLString::transcode(attributes.getValue(1u))).toInt();
 				
 				if (index>=date_times_temp_.size())
 				{
@@ -702,12 +702,12 @@ namespace OpenMS
 		}
   }
   
-  UnsignedInt AnalysisXMLHandler::getDateGroupIndex(DateTime 											date_time,
-			  																						map< String , UnsignedInt> 		date_times)
+  UInt AnalysisXMLHandler::getDateGroupIndex(DateTime 											date_time,
+			  																						map< String , UInt> 		date_times)
 	{
 		String 																date_time_string 					= "";
-		UnsignedInt 													date_group_index					= 0;
-		map< String , UnsignedInt>::iterator 	date_times_iterator;
+		UInt 													date_group_index					= 0;
+		map< String , UInt>::iterator 	date_times_iterator;
 		
 		// determining the date group
 		date_time.get(date_time_string);
@@ -733,17 +733,17 @@ namespace OpenMS
   																				String shift,
 			  																	PeptideHit hit,
 			  																	Real significance_threshold,
-			  																	UnsignedInt identification_index,
-			  																	SignedInt charge, 
+			  																	UInt identification_index,
+			  																	Int charge, 
 			  																	Real precursor_retention_time,
 			  																	Real precursor_mz,
 			  																	DateTime date_time,
-			  																	map< String , UnsignedInt> date_times)
+			  																	map< String , UInt> date_times)
   {
   	String 																temp_peptide_sequence 		= "";
 		Real 																	predicted_retention_time 	= -1;
   	map<String, DoubleReal>::const_iterator 	predictions_iterator;
-		UnsignedInt 													date_group_index					= 0;
+		UInt 													date_group_index					= 0;
 		
 		// determining the predicted retention time (default: -1)
 		if (const_predicted_retention_times_.size() > 0)

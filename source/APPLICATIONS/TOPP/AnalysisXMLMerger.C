@@ -75,7 +75,7 @@ class TOPPAnalysisXMLMerger
 		vector<IdentificationData> 					identifications;
 		vector<ProteinIdentification> 	additional_protein_identifications;
 		vector<IdentificationData> 					additional_identifications;
-		UnsignedInt											counter = 0;
+		UInt											counter = 0;
 		String 													out_file = "";
 		String 													file_list	= "";
 
@@ -101,7 +101,7 @@ class TOPPAnalysisXMLMerger
 		// testing whether input and output files are accessible
 		//-------------------------------------------------------------
 
-		for(UnsignedInt i = 0; i < file_names.size(); ++i)
+		for(UInt i = 0; i < file_names.size(); ++i)
 		{
 			inputFileReadable_(file_names[i]);
 		}

@@ -189,7 +189,7 @@ namespace OpenMS
 		return;
 	}
 
-	void PILISModel::train(const PeakSpectrum& in_spec, const AASequence& peptide, UnsignedInt charge)
+	void PILISModel::train(const PeakSpectrum& in_spec, const AASequence& peptide, UInt charge)
 	{
 		if (!valid_)
 		{
@@ -214,7 +214,7 @@ namespace OpenMS
 		// get the ions intensities, y and b ions and losses H2O, NH3 respectively
 		
 		IonPeaks_ ints_1, ints_2;
-		//for (UnsignedInt z = 1; z <= charge; ++z)
+		//for (UInt z = 1; z <= charge; ++z)
 		//{
 			// TODO
 			double sum1 = getIntensitiesFromSpectrum_(train_spec, ints_1, peptide, 1);
@@ -275,8 +275,8 @@ namespace OpenMS
 			return;
 		}
 
-		HashMap<UnsignedInt, double> bb_charge_full;
-		HashMap<UnsignedInt, double> sc_charge_full;
+		HashMap<UInt, double> bb_charge_full;
+		HashMap<UInt, double> sc_charge_full;
 		prot_dist_.getProtonDistribution(bb_charge_full, sc_charge_full, peptide, charge, Residue::YIon);
 		prot_dist_.setPeptideProtonDistribution(bb_charge_full, sc_charge_full);
 	
@@ -292,13 +292,13 @@ namespace OpenMS
 		vector<AASequence> prefixes, suffixes;
 		
 		// for each site: 1. set proton distribution, 2. initial training intensities, 3. train the model
-		for (UnsignedInt i = 0; i != peptide.size() - 1; ++i)
+		for (UInt i = 0; i != peptide.size() - 1; ++i)
 		{
 			//cerr << i << " " << peptide << endl;
 			String pos_name, y_name1, b_name1, a_name1, y_name, b_name;
 			String y_name2, b_name2, a_name2, prefix_size(i + 1), suffix_size(peptide.size() - 1 - i);
 
-			UnsignedInt suffix_pos(peptide.size() - i  - 1);
+			UInt suffix_pos(peptide.size() - i  - 1);
 			
 			if (i < floor(peptide.size()/2))
 			{
@@ -546,7 +546,7 @@ namespace OpenMS
 		if (is_charge_remote || peptide[0]->getOneLetterCode() == "Q")
 		{
 			double bb_avg(0);
-			for (UnsignedInt i = 1; i != bb_charge_full.size(); ++i)
+			for (UInt i = 1; i != bb_charge_full.size(); ++i)
 			{
 				bb_avg += bb_charge_full[i];
 			}
@@ -573,7 +573,7 @@ namespace OpenMS
 		return;
 	}
 
-	void PILISModel::getPrecursorIntensitiesFromSpectrum_(const PeakSpectrum& train_spec, PrecursorPeaks_& peak_ints, double peptide_weight, UnsignedInt charge)
+	void PILISModel::getPrecursorIntensitiesFromSpectrum_(const PeakSpectrum& train_spec, PrecursorPeaks_& peak_ints, double peptide_weight, UInt charge)
 	{
 		static double H2O_weight = Formulas::H2O.getMonoWeight();
 		static double NH3_weight = Formulas::NH3.getMonoWeight();
@@ -600,7 +600,7 @@ namespace OpenMS
 		}
 	}
 	
-	double PILISModel::getIntensitiesFromSpectrum_(const PeakSpectrum& train_spec, IonPeaks_& ion_ints, const AASequence& peptide, UnsignedInt z)
+	double PILISModel::getIntensitiesFromSpectrum_(const PeakSpectrum& train_spec, IonPeaks_& ion_ints, const AASequence& peptide, UInt z)
 	{
 		double sum(0);
     PeakSpectrum y_theo_spec, y_H2O_theo_spec, y_NH3_theo_spec;
@@ -665,10 +665,10 @@ namespace OpenMS
 	double PILISModel::getIntensitiesFromComparison_(const PeakSpectrum& train_spec, const PeakSpectrum& theo_spec, vector<double>& intensities)
 	{
 		double sum(0);
-		vector<pair<UnsignedInt, UnsignedInt> > peak_map;
+		vector<pair<UInt, UInt> > peak_map;
 		spectra_aligner_.getSpectrumAlignment(peak_map, train_spec, theo_spec);
 
-    for (vector<pair<UnsignedInt, UnsignedInt> >::const_iterator it = peak_map.begin(); it != peak_map.end(); ++it)
+    for (vector<pair<UInt, UInt> >::const_iterator it = peak_map.begin(); it != peak_map.end(); ++it)
     {
 			intensities[it->second] = train_spec.getContainer()[it->first].getIntensity();
 			sum += train_spec.getContainer()[it->first].getIntensity();
@@ -947,9 +947,9 @@ namespace OpenMS
 	}
 
 /*
-	void PILISModel::getSpectrumAlignment(HashMap<UnsignedInt, UnsignedInt>& peak_map, const PeakSpectrum& spec1, const PeakSpectrum& spec2)
+	void PILISModel::getSpectrumAlignment(HashMap<UInt, UInt>& peak_map, const PeakSpectrum& spec1, const PeakSpectrum& spec2)
 	{
-		//cerr << "HashMap<UnsignedInt, UnsignedInt> HMMModel2::getSpectrumAlignment(const PeakSpectrum& spec1, const PeakSpectrum& spec2)" << endl;
+		//cerr << "HashMap<UInt, UInt> HMMModel2::getSpectrumAlignment(const PeakSpectrum& spec1, const PeakSpectrum& spec2)" << endl;
 		// spec1 should be the fixed (theo spec)
 		// "threaded" algorithm
 	
@@ -959,14 +959,14 @@ namespace OpenMS
 		const PeakSpectrum::ContainerType& a1 = spec1.getContainer();
 		const PeakSpectrum::ContainerType& a2 = spec2.getContainer();
 		
-		UnsignedInt last_j(0);
-		for (UnsignedInt i = 0; i != a1.size(); ++i)
+		UInt last_j(0);
+		for (UInt i = 0; i != a1.size(); ++i)
 		{
 			float pos1 = a1[i].getPosition();
 			float error = pos1 * rel_error;
 			//float error = 0.3;
 			float diff = numeric_limits<float>::max();
-			for (UnsignedInt j = last_j; j != a2.size(); ++j)
+			for (UInt j = last_j; j != a2.size(); ++j)
 			{
 				float pos2 = a2[j].getPosition();
 				if (abs(pos1 - pos2) < error && abs(pos1 - pos2) < diff)
@@ -986,7 +986,7 @@ namespace OpenMS
 			}
 		}
 		#ifdef ALIGMENT_DEBUG
-		for (HashMap<UnsignedInt, UnsignedInt>::ConstIterator it = peak_map.begin(); it != peak_map.end(); ++it)
+		for (HashMap<UInt, UInt>::ConstIterator it = peak_map.begin(); it != peak_map.end(); ++it)
 		{
 			cerr << it->first << " " << a1[it->first].getPosition() << " <> " << a2[it->second].getPosition() << " " << a2[it->second].getIntensity() << endl;
 		}
@@ -996,7 +996,7 @@ namespace OpenMS
 
 	*/
 
-	void PILISModel::getSpectrum(PeakSpectrum& spec, const AASequence& peptide, UnsignedInt charge)
+	void PILISModel::getSpectrum(PeakSpectrum& spec, const AASequence& peptide, UInt charge)
 	{
 		if (!valid_)
 		{
@@ -1004,7 +1004,7 @@ namespace OpenMS
 		}
 		
 		// calc proton distribution
-		HashMap<UnsignedInt, double> sc_charge_full, bb_charge_full;
+		HashMap<UInt, double> sc_charge_full, bb_charge_full;
 		prot_dist_.getProtonDistribution(bb_charge_full, sc_charge_full, peptide, charge, Residue::YIon);
 		prot_dist_.setPeptideProtonDistribution(bb_charge_full, sc_charge_full);
 
@@ -1021,7 +1021,7 @@ namespace OpenMS
 		vector<String> suffix_names1, suffix_names2, prefix_names1, prefix_names2, a_names1, a_names2;
 		
 		// get the paths
-		for (UnsignedInt i = 0; i != peptide.size() - 1; ++i)
+		for (UInt i = 0; i != peptide.size() - 1; ++i)
 		{
 
       String pos_name, y_name1, b_name1, a_name1, y_name, b_name;
@@ -1217,7 +1217,7 @@ namespace OpenMS
 		// losses
 		vector<HashMap<NeutralLossType_, double> > prefix_losses, suffix_losses;
 		vector<double> prefix_ints1, prefix_ints2, suffix_ints1, suffix_ints2;
-		for (UnsignedInt i = 0; i != prefixes.size(); ++i)
+		for (UInt i = 0; i != prefixes.size(); ++i)
 		{
 			HashMap<NeutralLossType_, double> prefix_loss;
 			double prefix_int1 = tmp[hmm_.getState(prefix_names1[i])];
@@ -1246,14 +1246,14 @@ namespace OpenMS
 		Peak1D p;
 		p.metaRegistry().registerName("IonName", "Name of the ion");
 		
-		for (UnsignedInt i = 0; i != prefixes.size(); ++i)
+		for (UInt i = 0; i != prefixes.size(); ++i)
 		{
 			// prefix
 			double weight = prefixes[i].getMonoWeight(Residue::BIon);
 			id.estimateFromPeptideWeight(weight);
 			
 			//cerr << weight + 1.0 << " " << prefix_ints1[i] << " " << id.getContainer()[0].first << " ";
-			//for (vector<pair<UnsignedInt, double> >::const_iterator it = id.getContainer().begin(); it != id.getContainer().end(); ++it)
+			//for (vector<pair<UInt, double> >::const_iterator it = id.getContainer().begin(); it != id.getContainer().end(); ++it)
 			//{
 			//	cerr << "(" << it->first << "|" << it->second << ") ";
 			//}
@@ -1355,7 +1355,7 @@ namespace OpenMS
 		{
 			// get bb_avg
 			double bb_avg(0);
-      for (UnsignedInt i = 1; i != bb_charge_full.size(); ++i)
+      for (UInt i = 1; i != bb_charge_full.size(); ++i)
       {
         bb_avg += bb_charge_full[i];
       }
@@ -1527,8 +1527,8 @@ namespace OpenMS
 	bool PILISModel::getInitialTransitionProbabilities_(std::vector<double>& bb_init, 
 																												std::vector<double>& cr_init, 
 																												std::vector<double>& sc_init, 
-																												const HashMap<UnsignedInt, double>& bb_charges, 
-																												const HashMap<UnsignedInt, double>& sc_charges, 
+																												const HashMap<UInt, double>& bb_charges, 
+																												const HashMap<UInt, double>& sc_charges, 
 																												const AASequence& peptide)
 	{
 		bool is_charge_remote(false);
@@ -1536,7 +1536,7 @@ namespace OpenMS
 		double charge_dir_tmp(bb_charges[0]);
 
     double bb_sum(0);
-    for (UnsignedInt i = 0; i != bb_charges.size(); ++i)
+    for (UInt i = 0; i != bb_charges.size(); ++i)
     {
       bb_sum += bb_charges[i];
     }
@@ -1551,7 +1551,7 @@ namespace OpenMS
     double bb_avg = (bb_sum - bb_charges[0]) / (double)(bb_charges.size() - 1);
 
 					
-		for (UnsignedInt i = 0; i != peptide.size() - 1; ++i)
+		for (UInt i = 0; i != peptide.size() - 1; ++i)
     {
       bb_init.push_back(bb_charges[i+1] * charge_dir_tmp * (double)param_.getValue("charge_directed_factor")/*CHARGE_DIRECTED_FACTOR*/);
       String aa(peptide[i]->getOneLetterCode());
@@ -1583,7 +1583,7 @@ namespace OpenMS
 
 		// normalize the initial probability values
 		double init_prob_sum(0);
-		for (UnsignedInt i = 0; i != bb_init.size(); ++i)
+		for (UInt i = 0; i != bb_init.size(); ++i)
 		{
 			init_prob_sum += bb_init[i] + sc_init[i] + cr_init[i];
 		}
@@ -1592,7 +1592,7 @@ namespace OpenMS
 		{
 			init_prob_sum += sc_charges[peptide.size() - 1];
 		}
-		for (UnsignedInt i = 0; i != bb_init.size(); ++i)
+		for (UInt i = 0; i != bb_init.size(); ++i)
 		{
 			bb_init[i] /= init_prob_sum;
 			sc_init[i] /= init_prob_sum;
@@ -1605,7 +1605,7 @@ namespace OpenMS
 	void PILISModel::addPeaks_(double mz, int charge, double offset, double intensity, PeakSpectrum& /*spectrum*/, const IsotopeDistribution& id, const String& name)
 	{
 		static Peak1D p;
-		UnsignedInt i = 0;
+		UInt i = 0;
 		for (IsotopeDistribution::ConstIterator it = id.begin(); it != id.end(); ++it, ++i)
 		{
 			double pos = (mz + i + charge + offset) / (double)charge;
@@ -1661,7 +1661,7 @@ namespace OpenMS
 		const String residues("ACDEFGHIKMNPQRSTVWY");
 	
 		// create the residue states states
-		for (UnsignedInt ii = 0; ii != residues.size(); ++ii)
+		for (UInt ii = 0; ii != residues.size(); ++ii)
     {
       String first;
       first += residues[ii];
@@ -1672,7 +1672,7 @@ namespace OpenMS
 			hmm_.addNewState(new HMMState(first+"H"));
 			hmm_.addNewState(new HMMState(first+"RSC"));
 			
-      for (UnsignedInt j = 0; j != residues.size(); ++j)
+      for (UInt j = 0; j != residues.size(); ++j)
       {
         String second;
         second += residues[j];
@@ -1681,7 +1681,7 @@ namespace OpenMS
       }
     }
 
-		for (UnsignedInt i = 1; i <= VISIBLE_MODEL_DEPTH; ++i)
+		for (UInt i = 1; i <= VISIBLE_MODEL_DEPTH; ++i)
 		{
 			// these states are really created
 			// charge states
@@ -1741,7 +1741,7 @@ namespace OpenMS
 			hmm_.addNewState(new HMMState("Rk-"+String(i)));
 
 			// map the residue states
-			for (UnsignedInt ii = 0; ii != residues.size(); ++ii)
+			for (UInt ii = 0; ii != residues.size(); ++ii)
 			{
 				String first;
 				first += residues[ii];
@@ -1760,7 +1760,7 @@ namespace OpenMS
 				hmm_.addNewState(new HMMState(first+"RSC"+String(i)));
         hmm_.addNewState(new HMMState(first+"RSCk-"+String(i)));
 				
-				for (UnsignedInt j = 0; j != residues.size(); ++j)
+				for (UInt j = 0; j != residues.size(); ++j)
 				{
 					String second;
 					second += residues[j];
@@ -1778,7 +1778,7 @@ namespace OpenMS
 		hmm_.setTransitionProbability("AABase1", "AABase2", 1);
 
 		// set the initial transitions
-		for (UnsignedInt i = 1; i <= VISIBLE_MODEL_DEPTH; ++i)
+		for (UInt i = 1; i <= VISIBLE_MODEL_DEPTH; ++i)
 		{
 			if (i <= MODEL_DEPTH)
 			{
@@ -1828,7 +1828,7 @@ namespace OpenMS
         hmm_.setTransitionProbability("SCcenter", "ASCcenter", 0.5);
 			}
 			
-			for (UnsignedInt ii = 0; ii != residues.size(); ++ii)
+			for (UInt ii = 0; ii != residues.size(); ++ii)
 			{
 				String first;
 				first += residues[ii];
@@ -1894,7 +1894,7 @@ namespace OpenMS
         hmm_.setTransitionProbability(first+"RSC", "end", 0.5);
 				
 
-				for (UnsignedInt j = 0; j != residues.size(); ++j)
+				for (UInt j = 0; j != residues.size(); ++j)
 				{
 					String second;
 					second += residues[j];

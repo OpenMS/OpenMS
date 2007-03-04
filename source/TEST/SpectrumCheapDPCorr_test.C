@@ -98,7 +98,7 @@ CHECK(const PeakSpectrum& lastconsensus() const)
 	TEST_EQUAL(e_ptr->lastconsensus().size(), 121)
 RESULT
 
-CHECK((HashMap<UnsignedInt, UnsignedInt> getPeakMap() const))
+CHECK((HashMap<UInt, UInt> getPeakMap() const))
 	TEST_EQUAL(e_ptr->getPeakMap().size(), 121)
 RESULT
 

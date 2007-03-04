@@ -89,7 +89,7 @@ for (TextFile::iterator it = credentials.begin(); it!= credentials.end(); ++it)
 
 if (do_tests)
 {
-	CHECK((void connect(const std::string& db, const std::string& user, const std::string& password, const std::string& host = "localhost", UnsignedInt port=3306, const std::string& QTDBDriver = DB_PLUGIN ) throw(InvalidQuery)))
+	CHECK((void connect(const std::string& db, const std::string& user, const std::string& password, const std::string& host = "localhost", UInt port=3306, const std::string& QTDBDriver = DB_PLUGIN ) throw(InvalidQuery)))
 	  DBConnection con;
 	  con.connect(db,user,password,host, port.toInt());
 	  TEST_EXCEPTION(DBConnection::InvalidQuery,con.connect("doesnotexist",user,password,host, port.toInt()))
@@ -136,7 +136,7 @@ if (do_tests)
 		//TODO test ConversionError 
 	RESULT
 
-	CHECK((SignedInt getIntValue(const std::string& table, const std::string& column, const std::string& id) throw(InvalidQuery, NotConnected, Exception::ConversionError)))
+	CHECK((Int getIntValue(const std::string& table, const std::string& column, const std::string& id) throw(InvalidQuery, NotConnected, Exception::ConversionError)))
 		DBConnection con;
 	  con.connect(db,user,password,host, port.toInt());
 		TEST_EQUAL(5,con.getIntValue("Dummy","id","5"));
@@ -154,7 +154,7 @@ if (do_tests)
 		//TODO test ConversionError 
 	RESULT
 
-	CHECK((UnsignedInt getId(const std::string& table, const std::string& column, const std::string& value) throw(InvalidQuery, NotConnected)))
+	CHECK((UInt getId(const std::string& table, const std::string& column, const std::string& value) throw(InvalidQuery, NotConnected)))
 		DBConnection con;
 	  con.connect(db,user,password,host, port.toInt());
 		TEST_EQUAL(5,con.getId("Dummy","text","bla"));
@@ -201,7 +201,7 @@ if (do_tests)
 	  con.executeQuery("DROP TABLE IF EXISTS Dummy",result);
 	RESULT
 
-	CHECK(UnsignedInt getAutoId())
+	CHECK(UInt getAutoId())
 		DBConnection con;
 	  con.connect(db,user,password,host, port.toInt());
 		QSqlQuery result;

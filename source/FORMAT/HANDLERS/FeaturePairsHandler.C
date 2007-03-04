@@ -43,17 +43,17 @@ namespace OpenMS
       case PAIR:     pair_           = new ElementPair <Feature> (); break;
       case QUALITY:
         tmp_str = getAttributeAsString_(DIM);
-        current_qcoord_ = asUnsignedInt_(tmp_str);
+        current_qcoord_ = asUInt_(tmp_str);
         break;
       case POSITION:
         tmp_str = getAttributeAsString_(DIM);
-        current_pcoord_ = asUnsignedInt_(tmp_str);
+        current_pcoord_ = asUInt_(tmp_str);
         break;
       case CONVEXHULL: current_chull_  = new ConvexHull2D(); break;
       case HULLPOINT:  hull_position_  = new Feature::PositionType(); break;
       case HPOSITION:
         tmp_str = getAttributeAsString_(DIM);
-        current_hcoord_ = asUnsignedInt_(tmp_str);
+        current_hcoord_ = asUInt_(tmp_str);
         break;
       case FEATMODEL:
         model_desc_ = new ModelDescription<2>();
@@ -109,7 +109,7 @@ namespace OpenMS
 
     void FeaturePairsHandler::characters(const XMLCh* const chars, unsigned int /*length*/)
     {
-      for (UnsignedInt i=0; i<is_parser_in_tag_.size(); i++)
+      for (UInt i=0; i<is_parser_in_tag_.size(); i++)
       {
         if (is_parser_in_tag_[i])
         {
@@ -119,7 +119,7 @@ namespace OpenMS
           case POSITION:        feature_->getPosition()[current_pcoord_] = asDouble_(xercesc::XMLString::transcode(chars)); break;
           case QUALITY:         feature_->setQuality(current_qcoord_,asDouble_(xercesc::XMLString::transcode(chars))); break;
           case OVERALLQUALITY:  feature_->setOverallQuality(asDouble_(xercesc::XMLString::transcode(chars))); break;
-          case CHARGE:          feature_->setCharge(asSignedInt_(xercesc::XMLString::transcode(chars))); break;
+          case CHARGE:          feature_->setCharge(asInt_(xercesc::XMLString::transcode(chars))); break;
           case HPOSITION:       (*hull_position_)[current_hcoord_] = asDouble_(xercesc::XMLString::transcode(chars)); break;
           case PAIRQUALITY:     pair_->setQuality(asDouble_(xercesc::XMLString::transcode(chars)));
           }
@@ -134,7 +134,7 @@ namespace OpenMS
       os << "<featurePairs>" << std::endl;
 
       // write features with their attributes
-      for (UnsignedInt s=0; s<cpairs_->size(); s++)
+      for (UInt s=0; s<cpairs_->size(); s++)
       {
         const ElementPair< Feature >& pair = (*cpairs_)[s];
 
@@ -169,16 +169,16 @@ namespace OpenMS
       os << "\t<feature id=\"" << id_generator_.getUID() << "\">" << std::endl;
 
       Feature::PositionType pos = dfeat.getPosition();
-      UnsignedInt dpos_size = pos.size();
+      UInt dpos_size = pos.size();
 
-      for (UnsignedInt i=0; i<dpos_size;i++)
+      for (UInt i=0; i<dpos_size;i++)
       {
         os << "\t\t<position dim=\"" << i << "\">" << pos[i] << "</position>" <<  std::endl;
       }
 
       os << "\t\t<intensity>" << dfeat.getIntensity() << "</intensity>" << std::endl;
 
-      for (UnsignedInt i=0; i<dpos_size;i++)
+      for (UInt i=0; i<dpos_size;i++)
       {
         os << "\t\t<quality dim=\"" << i << "\">" << dfeat.getQuality(i) << "</quality>" << std:: endl;
       }
@@ -203,22 +203,22 @@ namespace OpenMS
       Feature::ConvexHullVector hulls = dfeat.getConvexHulls();
       Feature::ConvexHullVector::iterator citer = hulls.begin();
 
-      UnsignedInt hulls_count = hulls.size();
+      UInt hulls_count = hulls.size();
 
-      for (UnsignedInt i=0;i<hulls_count; i++)
+      for (UInt i=0;i<hulls_count; i++)
       {
         os << "\t\t<convexhull nr=\"" << i << "\">" << std:: endl;
 
         ConvexHull2D current_hull = hulls[i];
-        UnsignedInt hull_size = current_hull.getPoints().size();
+        UInt hull_size = current_hull.getPoints().size();
 
-        for (UnsignedInt j=0;j<hull_size;j++)
+        for (UInt j=0;j<hull_size;j++)
         {
           os << "\t\t\t<hullpoint>" << std::endl;
 
           Feature::PositionType pos = current_hull.getPoints()[j];
-          UnsignedInt pos_size = pos.size();
-          for (UnsignedInt k=0; k<pos_size; k++)
+          UInt pos_size = pos.size();
+          for (UInt k=0; k<pos_size; k++)
           {
             os << "\t\t\t\t<hposition dim=\"" << k << "\">" << pos[k] << "</hposition>" << std::endl;
           }

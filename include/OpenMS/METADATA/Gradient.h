@@ -79,24 +79,24 @@ namespace OpenMS
 				The new timpoint has to be after the last timepoint.
 				Otherwise a OutOfRange exception is thrown.
 			*/
-			void addTimepoint(SignedInt timepoint) throw (Exception::OutOfRange);
+			void addTimepoint(Int timepoint) throw (Exception::OutOfRange);
 			/// removes all timepoints
 			void clearTimepoints();
 			/// returns a const reference to the list of timepoints
-			const std::vector<SignedInt>& getTimepoints() const;		
+			const std::vector<Int>& getTimepoints() const;		
 
 			/// sets the percentage of eluent @p eluent at timepoint @p timepoint
-			void setPercentage(const String& eluent, SignedInt timepoint, UnsignedInt percentage) throw (Exception::InvalidValue);
+			void setPercentage(const String& eluent, Int timepoint, UInt percentage) throw (Exception::InvalidValue);
 			
 			/**
 				@brief returns a const reference to the percentages
 				
 				First dimension of the vector is the eluents, second dimension is the timepoints.
 			*/
-			const std::vector< std::vector< UnsignedInt > >& getPercentages() const;
+			const std::vector< std::vector< UInt > >& getPercentages() const;
 			
 			/// returns the percentage of an @p eluent at a @p timepoint
-			UnsignedInt getPercentage(const String& eluent, SignedInt timepoint) const throw (Exception::InvalidValue);
+			UInt getPercentage(const String& eluent, Int timepoint) const throw (Exception::InvalidValue);
 			
 			/// sets all precentage values to 0
 			void clearPercentages();
@@ -106,9 +106,9 @@ namespace OpenMS
 			
     protected:
       std::vector<String> eluents_;
-      std::vector<SignedInt> times_;
+      std::vector<Int> times_;
       // first dimension is eluents, second is times
-      std::vector< std::vector< UnsignedInt > > percentages_;
+      std::vector< std::vector< UInt > > percentages_;
   };
  
 } // namespace OpenMS

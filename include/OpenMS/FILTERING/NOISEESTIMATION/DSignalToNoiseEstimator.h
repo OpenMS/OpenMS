@@ -42,7 +42,7 @@ namespace OpenMS
     A signal to noise estimator should provide the signal to noise ratio of all raw data points
     in a given intervall [first_,last_).
   */
-  template <UnsignedInt D = 1 , typename PeakIterator = MSSpectrum<DRawDataPoint<1> >::const_iterator >
+  template <UInt D = 1 , typename PeakIterator = MSSpectrum<DRawDataPoint<1> >::const_iterator >
   class DSignalToNoiseEstimator
   {
   public:
@@ -121,18 +121,18 @@ namespace OpenMS
     }
 
     /// Non-mutable access to mz dimension
-    inline SignedInt getMZdim() const { return mz_dim_; }
+    inline Int getMZdim() const { return mz_dim_; }
     /// Mutable access to the mz dimensin
     inline int& getMZdim() { return mz_dim_; }
     /// Mutable access to the mz dimensin
-    inline void setMZdim(SignedInt mz_dim) { mz_dim_ = mz_dim; }
+    inline void setMZdim(Int mz_dim) { mz_dim_ = mz_dim; }
 
     /// Non-mutable access to the rt dimension
     inline const int getRTdim() const { return rt_dim_; }
     /// Mutable access to the rt dimensin
     inline int& getRTdim() { return rt_dim_; }
     /// Mutable access to the rt dimensin
-    inline void setRTdim(SignedInt rt_dim) { rt_dim_ = rt_dim; }
+    inline void setRTdim(Int rt_dim) { rt_dim_ = rt_dim; }
 
     /// Non-mutable access to the first raw data point
     inline const PeakIterator& getFirstDataPoint() const { return first_; }

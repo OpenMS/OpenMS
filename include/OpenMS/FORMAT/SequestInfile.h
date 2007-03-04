@@ -157,32 +157,32 @@ namespace OpenMS
 
 
 			/// returns the peptide mass unit
-			SignedInt getPeptideMassUnit() const;
+			Int getPeptideMassUnit() const;
 			/// sets the peptide mass unit
-			void setPeptideMassUnit(SignedInt value);
+			void setPeptideMassUnit(Int value);
 
 			/// return the number of peptides to be displayed
-			SignedInt getOutputLines() const;
+			Int getOutputLines() const;
 			/// sets the number of peptides to be displayed
-			void setOutputLines(SignedInt value);
+			void setOutputLines(Int value);
 
 			/// returns the enzyme used for cleavage (by means of the number from a list of enzymes)
-			SignedInt getEnzymeNumber() const;
+			Int getEnzymeNumber() const;
 			/// sets the enzyme used for cleavage (by means of the number from a list of enzymes)
-			SignedInt setEnzyme(String value);
+			Int setEnzyme(String value);
 
 			/// returns the maximum number of amino acids containing the same modification in a peptide
-			SignedInt getMaxAAPerModPerPeptide() const;
+			Int getMaxAAPerModPerPeptide() const;
 			/// sets the maximum number of amino acids containing the same modification in a peptide
-			void setMaxAAPerModPerPeptide(SignedInt value);
+			void setMaxAAPerModPerPeptide(Int value);
 
 			/// returns the maximum number of modifications that are allowed in a peptide
-			SignedInt getMaxModsPerPeptide() const;
+			Int getMaxModsPerPeptide() const;
 			/// set the maximum number of modifications that are allowed in a peptide
-			void setMaxModsPerPeptide(SignedInt value);
+			void setMaxModsPerPeptide(Int value);
 
 			/// returns the nucleotide reading frame
-			SignedInt getNucleotideReadingFrame() const;
+			Int getNucleotideReadingFrame() const;
 			/// sets the nucleotide reading frame:
 			///		0 	The FASTA file contains amino acid codes. No translation is needed. This is the best and fastest case.
 			///		1 	The DNA sequence is scanned left to right (forward direction). The amino acid code starts with the first DNA code.
@@ -194,22 +194,22 @@ namespace OpenMS
 			///		7 	Use each of the DNA translations of the codes 1, 2, 3.
 			///		8 	Use each of the DNA translations of the codes 4, 5, 6.
 			///		9 	Use each of the DNA translations of the codes 1, 2, 3, 4, 5, 6.
-			void setNucleotideReadingFrame(SignedInt value);
+			void setNucleotideReadingFrame(Int value);
 
 			/// returns the maximum number of internal cleavage sites
-			SignedInt getMaxInternalCleavageSites() const;
+			Int getMaxInternalCleavageSites() const;
 			/// sets the maximum number of internal cleavage sites
-			void setMaxInternalCleavageSites(SignedInt value);
+			void setMaxInternalCleavageSites(Int value);
 
 			/// returns the number of top abundant peaks to match with theoretical ones
-			SignedInt getMatchPeakCount() const;
+			Int getMatchPeakCount() const;
 			/// sets the number of top abundant peaks to with theoretical ones
-			void setMatchPeakCount(SignedInt value);
+			void setMatchPeakCount(Int value);
 
 			/// returns the number of top abundant peaks that are allowed not to match with a theoretical peak
-			SignedInt getMatchPeakAllowedError() const;
+			Int getMatchPeakAllowedError() const;
 			/// sets the number of top abundant peaks that are allowed not to match with a theoretical peak
-			void setMatchPeakAllowedError(SignedInt value);
+			void setMatchPeakAllowedError(Int value);
 
 
 			/// returns whether fragment ions shall be displayed
@@ -293,12 +293,12 @@ namespace OpenMS
 			Real stat_c_term_prot_mod_;///< static modifications for the C-terminal of a protein
 			
 			
-			SignedInt peptide_mass_unit_;///< peptide mass unit (0 = amu; 1 = mmu; 2 = ppm)
-			SignedInt output_lines_;///< number of peptides to be displayed
-			SignedInt enzyme_number_;///< number of the enzyme used for cleavage
-			SignedInt max_AA_per_mod_per_peptide_;///< maximum number of amino acids containing the same modification in a peptide
-			SignedInt max_mods_per_peptide_;///< maximum number of modifications per peptide
-			SignedInt nucleotide_reading_frame_;///< nucleotide reading frame:
+			Int peptide_mass_unit_;///< peptide mass unit (0 = amu; 1 = mmu; 2 = ppm)
+			Int output_lines_;///< number of peptides to be displayed
+			Int enzyme_number_;///< number of the enzyme used for cleavage
+			Int max_AA_per_mod_per_peptide_;///< maximum number of amino acids containing the same modification in a peptide
+			Int max_mods_per_peptide_;///< maximum number of modifications per peptide
+			Int nucleotide_reading_frame_;///< nucleotide reading frame:
 					/// 0 	The FASTA file contains amino acid codes. No translation is needed. This is the best and fastest case.
 					/// 1 	The DNA sequence is scanned left to right (forward direction). The amino acid code starts with the first DNA code.
 					/// 2 	The DNA sequence is scanned left to right (forward direction). The amino acid code starts with the second DNA code.
@@ -309,9 +309,9 @@ namespace OpenMS
 					/// 7 	Use each of the DNA translations of the codes 1; 2; 3.
 					/// 8 	Use each of the DNA translations of the codes 4; 5; 6.
 					/// 9 	Use each of the DNA translations of the codes 1; 2; 3; 4; 5; 6.
-			SignedInt max_internal_cleavage_sites_;///< maximum number of internal cleavage sites
-			SignedInt match_peak_count_;///< number of the top abundant peaks to match with theoretical one
-			SignedInt match_peak_allowed_error_;///< number of peaks that may lack this test
+			Int max_internal_cleavage_sites_;///< maximum number of internal cleavage sites
+			Int match_peak_count_;///< number of the top abundant peaks to match with theoretical one
+			Int match_peak_allowed_error_;///< number of peaks that may lack this test
 			
 			
 			bool show_fragment_ions_;///< wether to display fragment ions

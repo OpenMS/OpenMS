@@ -147,7 +147,7 @@ CHECK((const Param& getParameters() const))
   TEST_EQUAL(bpf_copy.getParameters() == param,true)
 RESULT
 
-CHECK((const PointMapType& getElementMap(UnsignedInt index) const))
+CHECK((const PointMapType& getElementMap(UInt index) const))
   ElementMapType map;
   TestPairFinder bpf;
   bpf.setElementMap(0,map);
@@ -163,7 +163,7 @@ CHECK((void findElementPairs()))
   
 RESULT
 
-CHECK((void setElementMap(UnsignedInt const index, const PointMapType& element_map)))
+CHECK((void setElementMap(UInt const index, const PointMapType& element_map)))
   ElementMapType map;
   TestPairFinder bpf;
   bpf.setElementMap(0,map);
@@ -188,7 +188,7 @@ CHECK((void setParameters(const Param& param)))
   TEST_EQUAL(bpf_copy.getParameters() == param,true)
 RESULT
 
-CHECK((void setTransformation(UnsignedInt dim, const TransformationType& trafo)))
+CHECK((void setTransformation(UInt dim, const TransformationType& trafo)))
   TransformationType trafo(1.,2.);
   TestPairFinder bpf;
   bpf.setTransformation(0,trafo);
@@ -197,7 +197,7 @@ CHECK((void setTransformation(UnsignedInt dim, const TransformationType& trafo))
   TEST_REAL_EQUAL((bpf.getTransformation(0)).getIntercept(),trafo.getIntercept())
 RESULT
 
-CHECK((const TransformationType& getTransformation(UnsignedInt dim) const))
+CHECK((const TransformationType& getTransformation(UInt dim) const))
   TransformationType trafo(1.,2.);
   TestPairFinder bpf;
   bpf.setTransformation(0,trafo);

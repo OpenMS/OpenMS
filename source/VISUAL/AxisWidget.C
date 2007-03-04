@@ -43,7 +43,7 @@ namespace OpenMS
 {
 	using namespace Math;
 	
-	AxisWidget::AxisWidget(UnsignedInt alignment, const char* legend, QWidget* parent)
+	AxisWidget::AxisWidget(UInt alignment, const char* legend, QWidget* parent)
 		: QWidget( parent),
 		is_log_(false),
 		show_legend_(false),
@@ -153,32 +153,32 @@ namespace OpenMS
 			switch(j)
 			{
 				case 0:	// style settings for big intervals 
-					painter.setFont(QFont("courier", static_cast<UnsignedInt>(3*grid_scaling))); 
-					tick_size = static_cast<UnsignedInt>( grid_scaling );
+					painter.setFont(QFont("courier", static_cast<UInt>(3*grid_scaling))); 
+					tick_size = static_cast<UInt>( grid_scaling );
 					text_color = QColor(0, 0, 0);				
 				break;
 				case 1:	// style settings for small intervals
-					painter.setFont(QFont("courier",static_cast<UnsignedInt>(2.4*grid_scaling))); 
+					painter.setFont(QFont("courier",static_cast<UInt>(2.4*grid_scaling))); 
 					tick_size = static_cast<int>( grid_scaling*2/3 );
 					text_color = QColor(20, 20, 20);
 				break;
 				case 2: // style settings for smalles intervals
-					painter.setFont(QFont("courier",static_cast<UnsignedInt>(2.0*grid_scaling))); 
-					tick_size = static_cast<UnsignedInt>( grid_scaling/2);
+					painter.setFont(QFont("courier",static_cast<UInt>(2.0*grid_scaling))); 
+					tick_size = static_cast<UInt>( grid_scaling/2);
 					text_color = QColor(40, 40, 40);
 				break;
 				default:
 					std::cerr << "empty grid line vector error! in Line: " << __LINE__ << " File: " << __FILE__ << std::endl;
-					painter.setFont(QFont("courier", static_cast<UnsignedInt>(3*grid_scaling))); 
-					tick_size = static_cast<UnsignedInt>( grid_scaling);
+					painter.setFont(QFont("courier", static_cast<UInt>(3*grid_scaling))); 
+					tick_size = static_cast<UInt>( grid_scaling);
 					text_color = QColor(0, 0, 0);				
 				break;
 			}
 	
 			// drawing
 			int x;
-			UnsignedInt i_beg = (isXAxis)? 0 : h;
-			UnsignedInt i_end = (isXAxis)? w : 0;
+			UInt i_beg = (isXAxis)? 0 : h;
+			UInt i_end = (isXAxis)? w : 0;
 	
 			for (std::vector<double>::const_iterator it = grid_line_[j].begin(); it != grid_line_[j].end(); it++) 
 			{
@@ -210,19 +210,19 @@ namespace OpenMS
 				QRect textbound = QFontMetrics(painter.font()).boundingRect(text);
 	
 				// Calculate text position
-				UnsignedInt posx = 0, posy = 0;
+				UInt posx = 0, posy = 0;
 				switch (alignment_)	
 				{
-				  case BOTTOM: case TOP:	posx = x - static_cast<UnsignedInt>( textbound.width()/2 ); break;  // Center text around tick
-			  	case LEFT: posx = w - static_cast<UnsignedInt>(1.5*grid_scaling) - textbound.width(); break;
-				  case RIGHT: posx = static_cast<UnsignedInt>(1.5*grid_scaling); break; // Leave space for tick (longest one = grid_scaling)
+				  case BOTTOM: case TOP:	posx = x - static_cast<UInt>( textbound.width()/2 ); break;  // Center text around tick
+			  	case LEFT: posx = w - static_cast<UInt>(1.5*grid_scaling) - textbound.width(); break;
+				  case RIGHT: posx = static_cast<UInt>(1.5*grid_scaling); break; // Leave space for tick (longest one = grid_scaling)
 				}	
 	
 				switch (alignment_)	
 				{
-				  case BOTTOM: posy = static_cast<UnsignedInt>(1.5*grid_scaling) + static_cast<UnsignedInt>(textbound.height()/2.0); break;
-				  case TOP:	posy = h-static_cast<UnsignedInt>(1.5*grid_scaling); break;
-				  case LEFT: case RIGHT: posy = x + margin_ + static_cast<UnsignedInt>(textbound.height()/4.0);  break;
+				  case BOTTOM: posy = static_cast<UInt>(1.5*grid_scaling) + static_cast<UInt>(textbound.height()/2.0); break;
+				  case TOP:	posy = h-static_cast<UInt>(1.5*grid_scaling); break;
+				  case LEFT: case RIGHT: posy = x + margin_ + static_cast<UInt>(textbound.height()/4.0);  break;
 				}	
 				painter.drawText(posx, posy, text);
 			}		
@@ -236,7 +236,7 @@ namespace OpenMS
 		if (show_legend_ && legend_!="") 
 		{	
 			// style settings
-			painter.setFont(QFont("courier", legend_font_size));//static_cast<UnsignedInt>(2.4*grid_scaling)));
+			painter.setFont(QFont("courier", legend_font_size));//static_cast<UInt>(2.4*grid_scaling)));
 			painter.setPen(QPen(Qt::black,pen_width_));
 	
 			switch (alignment_)	
@@ -281,8 +281,8 @@ namespace OpenMS
 			if (min_==min && max_==max) return;
 			min_ = min; 
 			max_ = max;
-			UnsignedInt max_num_big = (alignment_==BOTTOM || alignment_==TOP)? 7: 5;
-			UnsignedInt max_num_small = (alignment_==BOTTOM || alignment_==TOP)? 5: 3;
+			UInt max_num_big = (alignment_==BOTTOM || alignment_==TOP)? 7: 5;
+			UInt max_num_small = (alignment_==BOTTOM || alignment_==TOP)? 5: 3;
 			AxisTickCalculator::calcGridLines(min_, max_,tick_level_,grid_line_,max_num_big, max_num_small,grid_line_dist_);
 		}
 		update();
@@ -311,12 +311,12 @@ namespace OpenMS
 		return is_log_;
 	}
 	
-	UnsignedInt AxisWidget::margin()
+	UInt AxisWidget::margin()
 	{
 		return margin_;
 	}
 	
-	void AxisWidget::setMargin(UnsignedInt margin)
+	void AxisWidget::setMargin(UInt margin)
 	{
 	  if (margin_ != margin){
 	    margin_ = margin;
@@ -378,7 +378,7 @@ namespace OpenMS
   	}
 	}
 	
-	void AxisWidget::setTickLevel(UnsignedInt level)
+	void AxisWidget::setTickLevel(UInt level)
 	{
 		if (level>=1 && level<=3)
 		{

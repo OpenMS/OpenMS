@@ -51,34 +51,34 @@ CHECK((~MultiGradient()))
 	delete d10_ptr;
 RESULT
 
-CHECK((UnsignedInt getInterpolationMode() const))
+CHECK((UInt getInterpolationMode() const))
 	TEST_EQUAL(MultiGradient().getInterpolationMode(),MultiGradient::IM_LINEAR)
 RESULT
 
-CHECK((void setInterpolationMode(UnsignedInt mode)))
+CHECK((void setInterpolationMode(UInt mode)))
 	MultiGradient mg;
 	mg.setInterpolationMode(MultiGradient::IM_STAIRS);
 	TEST_EQUAL(mg.getInterpolationMode(),MultiGradient::IM_STAIRS)
 RESULT
 
-CHECK((UnsignedInt size() const))
+CHECK((UInt size() const))
 	MultiGradient mg;
 	TEST_EQUAL(mg.size(),2);
 RESULT
 
-CHECK((UnsignedInt position(UnsignedInt index) throw(Exception::IndexUnderflow, Exception::IndexOverflow)))
+CHECK((UInt position(UInt index) throw(Exception::IndexUnderflow, Exception::IndexOverflow)))
 	MultiGradient mg;
 	TEST_EQUAL(mg.position(0),0);
 	TEST_EQUAL(mg.position(1),100);
 RESULT
 
-CHECK((const QColor& color(UnsignedInt index) throw(Exception::IndexUnderflow, Exception::IndexOverflow)))
+CHECK((const QColor& color(UInt index) throw(Exception::IndexUnderflow, Exception::IndexOverflow)))
 	MultiGradient mg;
 	TEST_EQUAL(mg.color(0)==Qt::white,true);
 	TEST_EQUAL(mg.color(1)==Qt::black,true);
 RESULT
 
-CHECK((void insert(SignedInt position, const QColor& color)))
+CHECK((void insert(Int position, const QColor& color)))
 	MultiGradient mg;
 	mg.insert(50,Qt::red);
 	TEST_EQUAL(mg.size(),3);
@@ -125,7 +125,7 @@ CHECK((void insert(SignedInt position, const QColor& color)))
 	TEST_EQUAL(mg.color(5)==Qt::black,true);
 RESULT
 
-CHECK((bool remove(SignedInt position)))
+CHECK((bool remove(Int position)))
 	MultiGradient mg;
 	mg.insert(25,Qt::green);
 	mg.insert(50,Qt::red);
@@ -156,7 +156,7 @@ CHECK((bool remove(SignedInt position)))
 	TEST_EQUAL(mg.color(1)==Qt::black,true);
 RESULT
 
-CHECK((bool exists(SignedInt position)))
+CHECK((bool exists(Int position)))
 	MultiGradient mg;
 	mg.insert(25,Qt::green);
 	mg.insert(50,Qt::red);
@@ -232,7 +232,7 @@ CHECK((QColor interpolatedColorAt(double position, double min, double max) const
 	TEST_EQUAL(mg2.interpolatedColorAt(100)==Qt::black,true);	
 RESULT
 
-CHECK((void activatePrecalculationMode(double min, double max, UnsignedInt steps)))
+CHECK((void activatePrecalculationMode(double min, double max, UInt steps)))
 	MultiGradient mg;
 	mg.activatePrecalculationMode(-50,50,100);
 RESULT

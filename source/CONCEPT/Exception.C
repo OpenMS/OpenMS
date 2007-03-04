@@ -166,7 +166,7 @@ namespace OpenMS
 				globalHandler.setMessage(what_);
 			}
 
-			IndexUnderflow::IndexUnderflow(const char* file, int line, const char* function, SignedInt index, UnsignedInt size)
+			IndexUnderflow::IndexUnderflow(const char* file, int line, const char* function, Int index, UInt size)
 				throw()
 				: Base(file, line, function,"IndexUnderflow", ""),
 					size_(size),
@@ -186,7 +186,7 @@ namespace OpenMS
 				globalHandler.setMessage(what_);
 			}
 
-			IndexOverflow::IndexOverflow(const char* file, int line, const char* function, SignedInt index, UnsignedInt size)
+			IndexOverflow::IndexOverflow(const char* file, int line, const char* function, Int index, UInt size)
 				throw()
 				:	Base(file, line, function, "IndexOverflow", "an index was too large"),
 					size_(size),
@@ -206,7 +206,7 @@ namespace OpenMS
 				globalHandler.setMessage(what_);
 			}
 
-			OutOfMemory::OutOfMemory(const char* file, int line, const char* function, UnsignedInt size)
+			OutOfMemory::OutOfMemory(const char* file, int line, const char* function, UInt size)
 				throw()
 				:	Base(file, line, function, "OutOfMemory", "a memory allocation failed"),
 					size_(size)
@@ -226,7 +226,7 @@ namespace OpenMS
 			{
 			}
 
-			SizeUnderflow::SizeUnderflow(const char* file, int line, const char* function, UnsignedInt size)
+			SizeUnderflow::SizeUnderflow(const char* file, int line, const char* function, UInt size)
 				throw()
 				:	Base(file, line, function, "SizeUnderflow", ""),
 					size_(size)
@@ -239,7 +239,7 @@ namespace OpenMS
 				globalHandler.setMessage(what_);
 			}
 
-			InvalidSize::InvalidSize(const char* file, int line, const char* function, UnsignedInt size)
+			InvalidSize::InvalidSize(const char* file, int line, const char* function, UInt size)
 				throw()
 				:	Base(file, line, function, "InvalidSize", ""),
 					size_(size)

@@ -87,7 +87,7 @@ namespace OpenMS
       }
 
       /// Constructor for a singleton consensus feature
-      ConsensusFeature(UnsignedInt map_index,  UnsignedInt feature_index, const ElementType& feature)
+      ConsensusFeature(UInt map_index,  UInt feature_index, const ElementType& feature)
       {
         try
         {
@@ -106,8 +106,8 @@ namespace OpenMS
       }
 
       /// Constructor
-      ConsensusFeature(UnsignedInt map_1_index, UnsignedInt feature_index_1, const ElementType& feature_1,
-                       UnsignedInt map_2_index, UnsignedInt feature_index_2, const ElementType& feature_2)
+      ConsensusFeature(UInt map_1_index, UInt feature_index_1, const ElementType& feature_1,
+                       UInt map_2_index, UInt feature_index_2, const ElementType& feature_2)
       {
         try
         {
@@ -125,7 +125,7 @@ namespace OpenMS
       }
 
       /// Constructor
-      ConsensusFeature(UnsignedInt map_index, UnsignedInt feature_index, const ElementType& feature, const ConsensusFeature& c_feature)
+      ConsensusFeature(UInt map_index, UInt feature_index, const ElementType& feature, const ConsensusFeature& c_feature)
       {
         Group::operator=(c_feature);
         IndexTuple i(map_index,feature_index,feature);
@@ -266,7 +266,7 @@ namespace OpenMS
             int_max = act_int;
           }
 
-          for (UnsignedInt dim=0; dim < 2; ++dim)
+          for (UInt dim=0; dim < 2; ++dim)
           {
             if (act_pos[dim] > pos_max[dim])
               pos_max[dim] = act_pos[dim];
@@ -278,7 +278,7 @@ namespace OpenMS
           sum_position += act_pos;
         }
 
-        for (UnsignedInt dim = 0; dim< 2 ; ++dim)
+        for (UInt dim = 0; dim< 2 ; ++dim)
         {
           this->position_[dim] = sum_position[dim] / n;
         }

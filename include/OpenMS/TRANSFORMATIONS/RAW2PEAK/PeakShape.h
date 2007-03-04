@@ -119,7 +119,7 @@ namespace OpenMS
     {
     public:
 
-      PositionLess(SignedInt i) : dimension_(i) {}
+      PositionLess(Int i) : dimension_(i) {}
       PositionLess() : dimension_(-1) {}
       ~PositionLess() {}
 
@@ -129,7 +129,7 @@ namespace OpenMS
       }
 
     protected:
-      SignedInt dimension_;
+      Int dimension_;
     };
 
   };

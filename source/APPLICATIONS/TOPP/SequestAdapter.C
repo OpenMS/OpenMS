@@ -107,8 +107,8 @@ class TOPPSequestAdapter
 		}
 	
 	protected:
-		static const SignedInt max_peptide_mass_units = 2;
-		static const UnsignedInt max_dtas_per_run = 1000; // sequest has a problem when there are too many dtas, so they have to be splitted, 1000 seemed to work very good
+		static const Int max_peptide_mass_units = 2;
+		static const UInt max_dtas_per_run = 1000; // sequest has a problem when there are too many dtas, so they have to be splitted, 1000 seemed to work very good
 		PointerSizeUInt dtas;
 
 		void registerOptionsAndFlags_()
@@ -269,7 +269,7 @@ class TOPPSequestAdapter
 				// check whether this really is a chemical symbol (only characters, max length 2)
 				if ( symbol.length() > 2 || (isalpha(symbol[0]) == 0) || (isalpha(symbol[symbol.length() - 1]) == 0) ) return (composition);
 				// then check whether isotope and occurences are numbers
-				SignedInt i_iso, i_occ;
+				Int i_iso, i_occ;
 				try
 				{
 					i_iso = isotope.toInt();
@@ -317,9 +317,9 @@ class TOPPSequestAdapter
 			return false;
 		}
 
-		bool correctNetworkPath(String& network_path, UnsignedInt backslashes = 2)
+		bool correctNetworkPath(String& network_path, UInt backslashes = 2)
 		{
-			UnsignedInt pos = 0;
+			UInt pos = 0;
 			while ( (pos < network_path.length()) && (network_path[pos] == '\\') ) ++pos;
 			if ( pos < backslashes ) network_path.insert(network_path.begin(), backslashes-pos, '\\');
 			else network_path.erase(0, pos-backslashes);
@@ -328,19 +328,19 @@ class TOPPSequestAdapter
 			return true;
 		}
 
-		UnsignedInt
+		UInt
 		MSExperiment2DTAs(
 			MSExperiment<>& msexperiment,
 			const String& common_name,
-			const vector< SignedInt >& charges,
+			const vector< Int >& charges,
 			map< String, DoubleReal >& filenames_and_precursor_retention_times,
 			bool make_dtas = true)
 		throw (Exception::UnableToCreateFile)
 		{
 			DTAFile dtafile;
 			String filename;
-			UnsignedInt scan_number = 0;
-			UnsignedInt msms_spectra = 0;
+			UInt scan_number = 0;
+			UInt msms_spectra = 0;
 			
 			for ( MSExperiment<>::Iterator spec_i = msexperiment.begin(); spec_i != msexperiment.end(); ++spec_i )
 			{
@@ -361,7 +361,7 @@ class TOPPSequestAdapter
 					}
 					else
 					{
-						for ( vector< SignedInt >::const_iterator i = charges.begin(); i != charges.end(); ++i )
+						for ( vector< Int >::const_iterator i = charges.begin(); i != charges.end(); ++i )
 						{
 							filename = common_name + "." + String(scan_number) + "." + *i + ".dta_" + String( (PointerSizeUInt) (dtas / max_dtas_per_run) );
 							if ( make_dtas )
@@ -425,7 +425,7 @@ class TOPPSequestAdapter
 				substrings2,
 				spectra;
 			
-			vector< SignedInt > charges;
+			vector< Int > charges;
 			
 			char char_buffer;
 			
@@ -433,7 +433,7 @@ class TOPPSequestAdapter
 				DoubleReal_buffer,
 				DoubleReal_buffer2;
 			
-			SignedInt int_buffer;
+			Int int_buffer;
 			
 			Real p_value = 0.05;
 			
@@ -517,7 +517,7 @@ class TOPPSequestAdapter
 			}
 			else
 			{
-				SignedInt range_start, range_end;
+				Int range_start, range_end;
 				string_buffer.split(',', substrings);
 				if ( substrings.empty() ) substrings.push_back(string_buffer);
 
@@ -546,7 +546,7 @@ class TOPPSequestAdapter
 							if ( substrings2[1][substrings2[1].length()-1] == '-' ) range_end = -1 * substrings2[1].toInt();
 							else range_end = substrings2[1].toInt();
 
-							for ( SignedInt i = min(range_start, range_end); i <= max(range_start, range_end); ++i )
+							for ( Int i = min(range_start, range_end); i <= max(range_start, range_end); ++i )
 							{
 								if ( i ) charges.push_back(i);
 							}
@@ -562,7 +562,7 @@ class TOPPSequestAdapter
 					return ILLEGAL_PARAMETERS;
 				}
 				sort(charges.begin(), charges.end());
-				for ( vector< SignedInt >::iterator i = charges.begin(); i != --charges.end(); )
+				for ( vector< Int >::iterator i = charges.begin(); i != --charges.end(); )
 				{
 					if ( (*i) == (*(i+1)) ) charges.erase(i+1);
 					else ++i;
@@ -852,7 +852,7 @@ class TOPPSequestAdapter
 				else
 				{
 					substrings.clear();
-					SignedInt highest_enzyme_number = sequest_infile.setEnzyme(getStringOption_("cleavage"));
+					Int highest_enzyme_number = sequest_infile.setEnzyme(getStringOption_("cleavage"));
 					if ( highest_enzyme_number )
 					{
 						writeLog_("Chosen enzym is not in list. Aborting!");
@@ -998,7 +998,7 @@ class TOPPSequestAdapter
 					map< char, DoubleReal > stat_mods, dyn_mods;
 					map< String, DoubleReal > terminal_mods;
 
-					UnsignedInt comp_mass_name_given;
+					UInt comp_mass_name_given;
 					String types = "dyn#stat#cterminal#nterminal#cterminal_dyn#nterminal_dyn#cterminal_prot#nterminal_prot#";
 
 					for ( vector< String >::const_iterator mod_i = substrings.begin(); mod_i != substrings.end(); ++mod_i )
@@ -1197,7 +1197,7 @@ class TOPPSequestAdapter
 								{
 									for ( vector< pair< DoubleReal, DoubleReal > >::const_iterator iso_i = isotopes_mass_and_probability[(*comp_i)[1]].begin(); iso_i != isotopes_mass_and_probability[(*comp_i)[1]].end(); ++iso_i )
 									{
-										if ( ((SignedInt) (iso_i->first + 0.5)) == (*comp_i)[0].toDouble() ) // round the mass
+										if ( ((Int) (iso_i->first + 0.5)) == (*comp_i)[0].toDouble() ) // round the mass
 										{
 											mass += iso_i->first * (*comp_i)[2].toDouble();
 											break;
@@ -1376,8 +1376,8 @@ class TOPPSequestAdapter
 			}
 			
 			MSExperiment<> msexperiment;
-			UnsignedInt msms_spectra_in_file;
-			UnsignedInt msms_spectra_altogether = 0;
+			UInt msms_spectra_in_file;
+			UInt msms_spectra_altogether = 0;
 			if ( make_dtas ) writeLog_("creating dta files");
 			dtas = 0;
 			String basename, dta_files_common_name;
@@ -1548,7 +1548,7 @@ class TOPPSequestAdapter
 				SequestOutfile sequest_outfile;
 				vector< IdentificationData > identifications;
 				ProteinIdentification protein_identification;
-				UnsignedInt identification_size = identifications.size();
+				UInt identification_size = identifications.size();
 
 				vector<String> out_files;
 				if (!File::fileList(out_directory, String("*.out"), out_files))
@@ -1585,7 +1585,7 @@ class TOPPSequestAdapter
 					call.append(" 1> ");
 					call.append(peptide_prophet_output);
 					writeLog_(call.substr(0, call.find(" 2> ")));
-					SignedInt status = system(call.c_str());
+					Int status = system(call.c_str());
 					if ( status != 0 )
 					{
 						writeLog_("Problems with Peptide Prophet. Using all peptides!");

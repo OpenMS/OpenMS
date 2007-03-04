@@ -61,12 +61,12 @@ namespace OpenMS
 			InspectOutfile();
 			
 			/// load the results of an Inspect search
-			std::vector< UnsignedInt > load(const std::string& result_filename, std::vector< IdentificationData >& identifications, ProteinIdentification& protein_identification, Real p_value_threshold) throw (Exception::FileNotFound, Exception::ParseError, Exception::IllegalArgument);
+			std::vector< UInt > load(const std::string& result_filename, std::vector< IdentificationData >& identifications, ProteinIdentification& protein_identification, Real p_value_threshold) throw (Exception::FileNotFound, Exception::ParseError, Exception::IllegalArgument);
 			
-			std::vector< UnsignedInt > getWantedRecords(const std::string& result_filename, Real p_value_threshold) throw (Exception::FileNotFound, Exception::ParseError, Exception::IllegalArgument);
+			std::vector< UInt > getWantedRecords(const std::string& result_filename, Real p_value_threshold) throw (Exception::FileNotFound, Exception::ParseError, Exception::IllegalArgument);
 
 			/// generates a trie database from another one, using the wanted records only
-			void compressTrieDB(const std::string& database_filename, const std::string& index_filename, std::vector< UnsignedInt >& wanted_records, const std::string& snd_database_filename, const std::string& snd_index_filename, bool append = false) throw (Exception::FileNotFound, Exception::ParseError, Exception::UnableToCreateFile);
+			void compressTrieDB(const std::string& database_filename, const std::string& index_filename, std::vector< UInt >& wanted_records, const std::string& snd_database_filename, const std::string& snd_index_filename, bool append = false) throw (Exception::FileNotFound, Exception::ParseError, Exception::UnableToCreateFile);
 
 			/// generates a trie database from a given one (the type of database is determined by getLabels)
 			void generateTrieDB(const std::string& source_database_filename, const std::string& database_filename, const std::string& index_filename, bool append = false, const std::string species = "") throw (Exception::FileNotFound, Exception::ParseError, Exception::UnableToCreateFile);
@@ -80,13 +80,13 @@ namespace OpenMS
 			bool updatePeptideHits(PeptideHit& peptide_hit, std::vector< PeptideHit >& peptide_hits);
 
 			/// retvrieve the precursor retention time and mz value
-			void getPrecursorRTandMZ(const std::vector< std::pair< String, std::vector< UnsignedInt > > >& files_and_scan_numbers, std::vector< IdentificationData >& ids) throw(Exception::ParseError);
+			void getPrecursorRTandMZ(const std::vector< std::pair< String, std::vector< UInt > > >& files_and_scan_numbers, std::vector< IdentificationData >& ids) throw(Exception::ParseError);
 
 			/// retrieve the labes of a given database (at the moment FASTA and Swissprot)
 			void getLabels(const std::string& source_database_filename, std::string& ac_label, std::string& sequence_start_label, std::string& sequence_end_label, std::string& comment_label, std::string& species_label) throw (Exception::FileNotFound, Exception::ParseError);
 
 			/// retrieve sequences from a trie database
-			std::vector< UnsignedInt > getSequences(const std::string& database_filename, const std::map< UnsignedInt, UnsignedInt >& wanted_records, std::vector< String >& sequences) throw (Exception::FileNotFound);
+			std::vector< UInt > getSequences(const std::string& database_filename, const std::map< UInt, UInt >& wanted_records, std::vector< String >& sequences) throw (Exception::FileNotFound);
 
 			template< typename PeakT > void getExperiment(MSExperiment< PeakT >& exp, String& type, const String& in_filename) throw(Exception::ParseError);
 
@@ -95,10 +95,10 @@ namespace OpenMS
 			/// 1) the protein's position in the original database
 			/// 2) the proteins's position in the trie database
 			/// 3) the name of the protein (the line with the accession identifier)
-			static const UnsignedInt db_pos_length_; ///< length of 1)
-			static const UnsignedInt trie_db_pos_length_; ///< length of 2)
-			static const UnsignedInt protein_name_length_; ///< length of 3)
-			static const UnsignedInt record_length_; ///< length of the whole record
+			static const UInt db_pos_length_; ///< length of 1)
+			static const UInt trie_db_pos_length_; ///< length of 2)
+			static const UInt protein_name_length_; ///< length of 3)
+			static const UInt record_length_; ///< length of the whole record
 			static const char trie_delimiter_; ///< the sequences in the trie database are delimited by this character
 			static const std::string score_type_;///< type of score
 	};

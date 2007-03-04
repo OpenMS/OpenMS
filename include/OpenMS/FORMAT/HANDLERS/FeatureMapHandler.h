@@ -164,9 +164,9 @@ namespace OpenMS
 
  		// both quality and position might consist of several dimensions
  		// here we store the dimension that is currently parsed.
- 		UnsignedInt current_pcoord_;				// current coordinate of the feature position
- 		UnsignedInt current_qcoord_;				// coordinate of the feature quality
- 		UnsignedInt current_hcoord_;				// coordinate of the current point in the hull
+ 		UInt current_pcoord_;				// current coordinate of the feature position
+ 		UInt current_qcoord_;				// coordinate of the feature quality
+ 		UInt current_hcoord_;				// coordinate of the current point in the hull
 
 	};
 	} // namespace Internal

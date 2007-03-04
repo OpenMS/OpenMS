@@ -60,12 +60,12 @@ CHECK((static MetaInfoRegistry& registry()))
 	TEST_EQUAL (mi.registry().getIndex("testname"),1024);
 RESULT
 
-CHECK((void setValue(UnsignedInt index, const std::string& value)))
+CHECK((void setValue(UInt index, const std::string& value)))
 	string tmp;
 	mi.setValue(1024,string("testtesttest"));
 RESULT
 
-CHECK((const DataValue& getValue(UnsignedInt index) const))
+CHECK((const DataValue& getValue(UInt index) const))
 	string tmp;
 	mi.setValue(1024,string("testtesttest"));
 	tmp = string(mi.getValue(1024));
@@ -84,10 +84,10 @@ CHECK((const DataValue& getValue(const std::string& name) const))
 	TEST_EQUAL("testtesttest2",tmp)
 RESULT
 
-CHECK((void setValue(const std::string& name, SignedInt value)))
-	SignedInt tmp;
+CHECK((void setValue(const std::string& name, Int value)))
+	Int tmp;
 	mi.setValue("cluster_id",4711);
-	tmp = SignedInt(mi.getValue("cluster_id"));
+	tmp = Int(mi.getValue("cluster_id"));
 	TEST_EQUAL(tmp,4711)
 RESULT
 
@@ -98,14 +98,14 @@ CHECK((void setValue(const std::string& name, double value)))
 	TEST_REAL_EQUAL(tmp,4711.1234)
 RESULT
 
-CHECK((void setValue(UnsignedInt index, SignedInt value)))
-	SignedInt tmp;
+CHECK((void setValue(UInt index, Int value)))
+	Int tmp;
 	mi.setValue(2,4712);
-	tmp = SignedInt(mi.getValue("cluster_id"));
+	tmp = Int(mi.getValue("cluster_id"));
 	TEST_EQUAL(tmp,4712)
 RESULT
 
-CHECK((void setValue(UnsignedInt index, double value)))
+CHECK((void setValue(UInt index, double value)))
 	double tmp;
 	mi.setValue(2,4712.1234);
 	tmp = double(mi.getValue("cluster_id"));
@@ -139,7 +139,7 @@ CHECK((void setValue(const std::string& name, const DataValue& value)))
 	TEST_EQUAL("testtesttest3",tmp)
 RESULT
 
-CHECK((void setValue(UnsignedInt index, const DataValue& value)))
+CHECK((void setValue(UInt index, const DataValue& value)))
 	DataValue tmp("testtesttest3");
 	mi.setValue(2,tmp);
 	tmp = string(mi.getValue(2));
@@ -183,11 +183,11 @@ CHECK((void getKeys(std::vector<std::string>& keys) const))
 	TEST_EQUAL(tmp2[4],tmp[4])
 RESULT
 
-CHECK(void getKeys(std::vector< UnsignedInt > &keys) const)
+CHECK(void getKeys(std::vector< UInt > &keys) const)
 	MetaInfo mi;
 	mi.setValue("label",String("tag"));
 	mi.setValue("icon",String("kreis"));
-	vector<UnsignedInt> vec;
+	vector<UInt> vec;
 	mi.getKeys(vec);
 	TEST_EQUAL(vec.size(),2)
 	TEST_EQUAL(vec[0],3)
@@ -216,7 +216,7 @@ CHECK((bool exists(const std::string& name) const))
 	TEST_EQUAL(mi4.exists("cluster_id"),true)
 RESULT
 
-CHECK((bool exists(UnsignedInt index) const))
+CHECK((bool exists(UInt index) const))
 	MetaInfo mi4;
 	TEST_EQUAL(mi4.exists(2),false)
 	mi4.setValue("cluster_id",4712.1234);
@@ -256,7 +256,7 @@ CHECK((bool operator!= (const MetaInfo& rhs) const))
 	TEST_EQUAL(i2!=i,false)
 RESULT
 
-CHECK((void removeValue(UnsignedInt index)))
+CHECK((void removeValue(UInt index)))
 	MetaInfo i,i2;
 	
 	i.setValue(1,String("bla"));

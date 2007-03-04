@@ -69,34 +69,34 @@ namespace OpenMS
 			/// returns the value corresponding to a  string
 			const DataValue& getMetaValue(const std::string& name) const throw (Exception::InvalidValue);
 			/// returns the value corresponding to an index
-			const DataValue& getMetaValue(UnsignedInt index) const throw (Exception::InvalidValue);
+			const DataValue& getMetaValue(UInt index) const throw (Exception::InvalidValue);
 	
 			/// returns if this MetaInfo is set
 			bool metaValueExists(const std::string& name) const;
 			/// returns if this MetaInfo is set
-			bool metaValueExists(UnsignedInt index) const;
+			bool metaValueExists(UInt index) const;
 	
 			/// sets the value (string) corresponding to a name
 			void setMetaValue(const std::string& name, const std::string& value);
 			/// sets the value (string) corresponding to an index
-			void setMetaValue(UnsignedInt index, const std::string& value);
+			void setMetaValue(UInt index, const std::string& value);
 			/// sets the value (integer) corresponding to a name
-			void setMetaValue(const std::string& name, SignedInt value);
+			void setMetaValue(const std::string& name, Int value);
 			/// sets the value (integer) corresponding to an index
-			void setMetaValue(UnsignedInt index, SignedInt value);
+			void setMetaValue(UInt index, Int value);
 			/// sets the value (double) corresponding to a name
 			void setMetaValue(const std::string& name, double value);
 			/// sets the value (double) corresponding to an index
-			void setMetaValue(UnsignedInt index, double value);
+			void setMetaValue(UInt index, double value);
 			/// sets the DataValue corresponding to a name
 			void setMetaValue(const std::string& name, const DataValue& value);
 			///  sets the DataValue corresponding to an index
-			void setMetaValue(UnsignedInt index, const DataValue& value);
+			void setMetaValue(UInt index, const DataValue& value);
 			
 			/// Removes the DataValue corresponding to @p name if it exists
 			void removeMetaValue(const std::string& name);
 			/// Removes the DataValue corresponding to @p index if it exists
-			void removeMetaValue(UnsignedInt index);		
+			void removeMetaValue(UInt index);		
 			
 			/// retuns a reference to the MetaInfoRegistry
 			MetaInfoRegistry& metaRegistry();
@@ -105,7 +105,7 @@ namespace OpenMS
 	    void getKeys(std::vector<std::string>& keys) const;
 
 	    /// fills the given vector with a list of all keys for which a value is set
-	    void getKeys(std::vector<UnsignedInt>& keys) const;
+	    void getKeys(std::vector<UInt>& keys) const;
 	    
 	    /// returns if the MetaInfo is empty
 	    bool isMetaEmpty() const;

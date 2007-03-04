@@ -296,7 +296,7 @@ namespace OpenMS
 		fputs (filename.c_str(),fp);
 		fputs ("\"\n\n",fp);
 
-		for(UnsignedInt i = 0; i < experiment.size(); i++)
+		for(UInt i = 0; i < experiment.size(); i++)
 		{
 			peaks = experiment[i].getContainer();
 			precursor_peak = experiment[i].getPrecursorPeak();
@@ -449,12 +449,12 @@ namespace OpenMS
   }
 
 
-  UnsignedInt MascotInfile::getMissedCleavages()
+  UInt MascotInfile::getMissedCleavages()
   {
     return missed_cleavages_;
   }
 
-  void MascotInfile::setMissedCleavages(UnsignedInt missed_cleavages)
+  void MascotInfile::setMissedCleavages(UInt missed_cleavages)
   {
     missed_cleavages_ = missed_cleavages;
   }
@@ -508,13 +508,13 @@ namespace OpenMS
 		return charges_;
 	}
 
-  void MascotInfile::setCharges(std::vector<SignedInt>& charges)
+  void MascotInfile::setCharges(std::vector<Int>& charges)
   {
 		stringstream ss;
 		
 		sort(charges.begin(), charges.end());
 		  	
-		for(UnsignedInt i = 0; i < charges.size(); i++)
+		for(UInt i = 0; i < charges.size(); i++)
 		{
 			if (i == 0)
 			{				

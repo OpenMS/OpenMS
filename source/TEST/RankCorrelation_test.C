@@ -58,7 +58,7 @@ CHECK((~RankCorrelation()))
 	delete ptr;
 RESULT
 
-CHECK((double evaluate(const IndexSet& set, const BaseModel<1>& model, UnsignedInt dim)))
+CHECK((double evaluate(const IndexSet& set, const BaseModel<1>& model, UInt dim)))
 	
 	RankCorrelation corr;
 	GaussModel gm1;
@@ -109,7 +109,7 @@ CHECK((double evaluate(const IndexSet& set, const BaseModel<1>& model, UnsignedI
 	corr.setTraits(&traits);
 	
 	FeaFiModule::IndexSet set;
-	for (UnsignedInt i=0; i<=4; ++i)
+	for (UInt i=0; i<=4; ++i)
 	{
 		set.insert(std::make_pair(i,0));
 	}
@@ -186,7 +186,7 @@ CHECK((double evaluate(const IndexSet& set, const BaseModel<2>& model)))
 	corr.setTraits(&traits);
 	
 	FeaFiModule::IndexSet  set;
-	for (UnsignedInt i=0; i<=4; ++i)
+	for (UInt i=0; i<=4; ++i)
 	{
 		set.insert(std::make_pair(i,0));
 	}

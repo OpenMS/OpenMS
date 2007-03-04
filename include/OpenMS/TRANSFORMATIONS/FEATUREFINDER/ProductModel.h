@@ -51,7 +51,7 @@ namespace OpenMS
 	
 	@ingroup FeatureFinder
 */
-	template <UnsignedInt D>
+	template <UInt D>
 	class ProductModel
 	: public BaseModel<D>
 {
@@ -69,7 +69,7 @@ namespace OpenMS
     	this->setName(this->getProductName());
     	
     	//Register model info
-      for (UnsignedInt dim=0; dim<D; ++dim)
+      for (UInt dim=0; dim<D; ++dim)
       {
       	String name = RawDataPoint2D::shortDimensionName(dim);
     		this->subsections_.push_back(name);
@@ -87,7 +87,7 @@ namespace OpenMS
 	    	distributions_(D,0),
 	    	scale_(source.scale_)
     {
-      for (UnsignedInt dim=0; dim<D; ++dim)
+      for (UInt dim=0; dim<D; ++dim)
       {
         // clone source model
         if (source.distributions_[dim])
@@ -102,7 +102,7 @@ namespace OpenMS
     /// destructor
     virtual ~ProductModel()
     {
-      for (UnsignedInt dim=0; dim<D; ++dim)
+      for (UInt dim=0; dim<D; ++dim)
       {
       	delete distributions_[dim];
   		}
@@ -116,7 +116,7 @@ namespace OpenMS
         BaseModel<D>::operator = (source);
 				scale_ = source.scale_;
 				
-        for (UnsignedInt dim=0; dim<D; ++dim)
+        for (UInt dim=0; dim<D; ++dim)
         {
           if (source.distributions_[dim])
           {
@@ -134,7 +134,7 @@ namespace OpenMS
     IntensityType getIntensity(const PositionType& pos) const
     {
       IntensityType intens(scale_);
-      for (UnsignedInt dim=0; dim<D; ++dim)
+      for (UInt dim=0; dim<D; ++dim)
       {
         if (distributions_[dim]==0)
         {
@@ -164,7 +164,7 @@ namespace OpenMS
     		For that reason no model @p dist should be assigned to multiple ProductModels.<br>
     		ProductModel parameters are set when calling ProductModel::getParameters().
     */
-    ProductModel& setModel(UnsignedInt dim, BaseModel<1>* dist)
+    ProductModel& setModel(UInt dim, BaseModel<1>* dist)
     {
       OPENMS_PRECONDITION(dim<D, "ProductModel<D>:getModel(Position): index overflow!")
       if (dist==0 || dist==distributions_[dim])
@@ -184,7 +184,7 @@ namespace OpenMS
       return *this;
     }
 
-    BaseModel<1>* getModel(UnsignedInt dim) const
+    BaseModel<1>* getModel(UInt dim) const
     {
       OPENMS_PRECONDITION(dim<D, "ProductModel<D>:getModel(Position): index overflow!")
       return distributions_[dim];
@@ -212,17 +212,17 @@ namespace OpenMS
       typedef typename BaseModel<1>::SamplesType Samples1D;
       std::vector<Samples1D> samples(D);
       // get samples for each dimension
-      for (UnsignedInt dim=0; dim<D; ++dim)
+      for (UInt dim=0; dim<D; ++dim)
       {
       	distributions_[dim]->getSamples(samples[dim]);
       }
 
       typename BaseModel<D>::PeakType peak;
-      std::vector<UnsignedInt> i(D,0);  // index vector
+      std::vector<UInt> i(D,0);  // index vector
 
       while(i[D-1]<samples[D-1].size())
       {
-        for (UnsignedInt dim=0; dim<D; ++dim)
+        for (UInt dim=0; dim<D; ++dim)
         {
           peak.getPosition()[dim] = samples[dim][ i[dim] ].getPosition()[0];
         }
@@ -230,7 +230,7 @@ namespace OpenMS
         cont.push_back(peak);
 
         ++i[0];
-        for (UnsignedInt dim=0; dim<D-1; ++dim)
+        for (UInt dim=0; dim<D-1; ++dim)
         {
           if (i[dim]>=samples[dim].size())
           {
@@ -246,7 +246,7 @@ namespace OpenMS
 		{
 			BaseModel<D>::updateMembers_();
 			scale_ = (double)(this->param_.getValue("intensity_scaling"));
-	    for (UnsignedInt dim=0; dim<D; ++dim)
+	    for (UInt dim=0; dim<D; ++dim)
       {
       	String name = RawDataPoint2D::shortDimensionName(dim);
         DataValue d = this->param_.getValue(name);

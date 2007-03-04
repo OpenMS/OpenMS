@@ -87,28 +87,28 @@ namespace OpenMS
 			*/
 			//@{
 			/// returns a pointer to the residue, which is at position index
-			const Residue* getResidue(SignedInt index) const throw(Exception::IndexUnderflow, Exception::IndexOverflow);
+			const Residue* getResidue(Int index) const throw(Exception::IndexUnderflow, Exception::IndexOverflow);
 			
 			/// returns a pointer to the residue, which is at position index
-			const Residue* getResidue(UnsignedInt index) const throw(Exception::IndexOverflow);
+			const Residue* getResidue(UInt index) const throw(Exception::IndexOverflow);
 			
 			/// returns the formula of the peptide
-			EmpiricalFormula getFormula(Residue::ResidueType type = Residue::Full, SignedInt charge = 0) const;
+			EmpiricalFormula getFormula(Residue::ResidueType type = Residue::Full, Int charge = 0) const;
 
 			/// returns the average weight of the peptide
-			Real getAverageWeight(Residue::ResidueType type = Residue::Full, SignedInt charge = 0) const;
+			Real getAverageWeight(Residue::ResidueType type = Residue::Full, Int charge = 0) const;
 
 			/// returns the mono isotopic weight of the peptide
-			Real getMonoWeight(Residue::ResidueType type = Residue::Full, SignedInt charge = 0) const;
+			Real getMonoWeight(Residue::ResidueType type = Residue::Full, Int charge = 0) const;
 
 			/// fills in the map the neutral loss formulas associated with their occuring frequency
-			HashMap<const EmpiricalFormula*, UnsignedInt> getNeutralLosses() const;
+			HashMap<const EmpiricalFormula*, UInt> getNeutralLosses() const;
 
 			/// returns a pointer to the residue at given position
-			const Residue* operator [] (SignedInt index) const throw(Exception::IndexUnderflow, Exception::IndexOverflow);
+			const Residue* operator [] (Int index) const throw(Exception::IndexUnderflow, Exception::IndexOverflow);
 			
 			/// returns a pointer to the residue at given position
-			const Residue* operator [] (UnsignedInt index) const throw(Exception::IndexOverflow);
+			const Residue* operator [] (UInt index) const throw(Exception::IndexOverflow);
 			
 			/// adds the residues of the peptide
 			AASequence operator + (const AASequence& peptide) const;
@@ -128,16 +128,16 @@ namespace OpenMS
 			void setResidueDB(ResidueDB* res_db = 0);
 
 			/// returns the number of residues
-			UnsignedInt size() const;
+			UInt size() const;
 
 			/// returns a peptide sequence of the first index residues
-			AASequence getPrefix(UnsignedInt index) const throw(Exception::IndexOverflow);
+			AASequence getPrefix(UInt index) const throw(Exception::IndexOverflow);
 
 			/// returns a peptide sequence of the last index residues
-			AASequence getSuffix(UnsignedInt index) const throw(Exception::IndexOverflow);
+			AASequence getSuffix(UInt index) const throw(Exception::IndexOverflow);
 
 			/// returns a peptide sequence of number residues, beginning at position index
-			AASequence getSubsequence(UnsignedInt index, UnsignedInt number) const throw(Exception::IndexOverflow);
+			AASequence getSubsequence(UInt index, UInt number) const throw(Exception::IndexOverflow);
 			//@}
 
 			/** @name Predicates

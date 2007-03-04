@@ -98,7 +98,7 @@ namespace OpenMS
 						throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, std::string("Bad data line: \"")+line+"\"" ,filename);
 					}
 					double mh_mass = strings[0].toDouble();
-					SignedInt charge = strings[1].toInt();
+					Int charge = strings[1].toInt();
 					if (charge != 0)
 					{
 						spectrum.getPrecursorPeak().setPosition( (mh_mass - 1.0) / charge + 1.0);

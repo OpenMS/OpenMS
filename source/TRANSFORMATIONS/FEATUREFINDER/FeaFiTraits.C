@@ -265,7 +265,7 @@ namespace OpenMS
     }
 
     // Print summary:
-    UnsignedInt size = features_.size();
+    UInt size = features_.size();
 
     cout << size << " features were found. " << endl;
 

@@ -88,10 +88,10 @@ namespace OpenMS
 				return;
 			}
 
-			UnsignedInt pre_charge = spectrum.getPrecursorPeak().getCharge();
+			UInt pre_charge = spectrum.getPrecursorPeak().getCharge();
 			if (pre_charge == 0)
 			{
-				UnsignedInt default_charge = (unsigned int)param_.getValue("default_charge");
+				UInt default_charge = (unsigned int)param_.getValue("default_charge");
 				std::cerr << "ParentPeakMower: Warning, Precursor charge not set, assuming default charge (" << default_charge << ")" << std::endl;
 				pre_charge = default_charge;
 			}
@@ -109,7 +109,7 @@ namespace OpenMS
 		
 			// identify the ranges which are to be considered
 			std::vector<DRange<1> > ranges;
-			for (UnsignedInt z = 1; z <= pre_charge; ++z)
+			for (UInt z = 1; z <= pre_charge; ++z)
 			{
 				if (clean_all_charge_states || z == pre_charge)
 				{

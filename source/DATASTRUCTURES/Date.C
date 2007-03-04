@@ -79,7 +79,7 @@ namespace OpenMS
 		std::vector<String> split;
 		stringstream ss;
 		String d, m, y;
-		UnsignedInt day, month, year;
+		UInt day, month, year;
 		
 		//check for format (german/english)
 		if (date.has('.'))
@@ -153,10 +153,10 @@ namespace OpenMS
 		set(month,day,year);
 	}
 	
-	void Date::set(UnsignedInt month, UnsignedInt day, UnsignedInt year) throw (Exception::ParseError)
+	void Date::set(UInt month, UInt day, UInt year) throw (Exception::ParseError)
 	{
 		//set month lengths
-		UnsignedInt month_length[13] = { 0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 };
+		UInt month_length[13] = { 0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 };
     if ( isLeapYear(year) )
     {
     	month_length[2] = 29;
@@ -203,7 +203,7 @@ namespace OpenMS
 		date = String(year_).fillLeft('0',4)+"-"+String(month_).fillLeft('0',2)+"-"+String(day_).fillLeft('0',2);
 	}
 	
-	void Date::get(UnsignedInt& month, UnsignedInt& day, UnsignedInt& year) const
+	void Date::get(UInt& month, UInt& day, UInt& year) const
 	{
 		day = day_;
 		month = month_;
@@ -217,7 +217,7 @@ namespace OpenMS
 		year_ = 0;
 	}
 	
-	bool Date::isLeapYear(UnsignedInt year) const
+	bool Date::isLeapYear(UInt year) const
 	{
  		if ( (year%4) != 0 ) return false;
 		if ( (year%400) == 0 ) return true;

@@ -118,7 +118,7 @@ namespace OpenMS
 				peptide_threshold_fraction_ = peptide_threshold_fraction;
 				protein_threshold_fraction_ = protein_threshold_fraction;		
 				
-				for(UnsignedInt i = 0; i < experiment.size(); i++)
+				for(UInt i = 0; i < experiment.size(); i++)
 				{		
 					
 					if (experiment[i].getMSLevel() == 2)
@@ -126,7 +126,7 @@ namespace OpenMS
 						temp_identifications = experiment[i].getIdentifications();
 						if (temp_identifications.size() > 0)
 						{
-							for(UnsignedInt j = 0; j < temp_identifications.size(); j++)
+							for(UInt j = 0; j < temp_identifications.size(); j++)
 							{
 								filterIdentificationsByThresholds(temp_identifications[j], temp_identification);
 								if (!temp_identification.empty())
@@ -152,7 +152,7 @@ namespace OpenMS
 				
 				setProteins(proteins);
 		
-				for(UnsignedInt i = 0; i < experiment.size(); i++)
+				for(UInt i = 0; i < experiment.size(); i++)
 				{		
 					
 					if (experiment[i].getMSLevel() == 2)
@@ -160,7 +160,7 @@ namespace OpenMS
 						temp_identifications = experiment[i].getIdentifications();
 						if (temp_identifications.size() > 0)
 						{
-							for(UnsignedInt j = 0; j < temp_identifications.size(); j++)
+							for(UInt j = 0; j < temp_identifications.size(); j++)
 							{
 								filterIdentificationsByProteins(temp_identifications[j], temp_identification);
 								if (!temp_identification.empty())

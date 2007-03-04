@@ -101,9 +101,9 @@ namespace OpenMS
 			char delimiter;
 
 			// default dimension of the data
-			UnsignedInt rt_dim = 0;
-			UnsignedInt mz_dim = 1;
-			UnsignedInt int_dim = 2;
+			UInt rt_dim = 0;
+			UInt mz_dim = 1;
+			UInt int_dim = 2;
 
 			//RT unit (default is seconds)
 			bool time_in_minutes = false;
@@ -139,7 +139,7 @@ namespace OpenMS
 					bool int_set = false;
 
 					//assign new order
-					for (UnsignedInt i = 0 ; i<3;++i)
+					for (UInt i = 0 ; i<3;++i)
 					{
 						if ( strings[i]=="RT" || strings[i]=="RETENTION_TIME" || strings[i]=="MASS-TO-CHARGE" || strings[i]=="IT" || strings[i]=="INTENSITY")
 						{

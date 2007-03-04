@@ -55,7 +55,7 @@ DataTable::DataTable(bool editable, QWidget *parent)
 
 
 //protected member functions.
-void DataTable::addLabel_(const QString &labelName, UnsignedInt row)
+void DataTable::addLabel_(const QString &labelName, UInt row)
 {
 	QLabel *label = new QLabel(labelName, this);
 	mainlayout_->addWidget(label, row, 0);

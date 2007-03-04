@@ -216,7 +216,7 @@ namespace OpenMS
 			Base::resize(rows_*cols_, value);
 		}
 
-		void resize(std::pair<UnsignedInt,UnsignedInt> const & size_pair, value_type value = value_type())
+		void resize(std::pair<UInt,UInt> const & size_pair, value_type value = value_type())
 		{
 			rows_ = size_pair.first;
 			cols_ = size_pair.second;
@@ -235,9 +235,9 @@ namespace OpenMS
 			return cols_;
 		}
 
-		std::pair<UnsignedInt,UnsignedInt> sizePair() const
+		std::pair<UInt,UInt> sizePair() const
 		{
-			return std::pair<UnsignedInt,UnsignedInt>(rows_,cols_);
+			return std::pair<UInt,UInt>(rows_,cols_);
 		}
 
 		/**@brief Calculate the index into the underlying vector from row and
@@ -257,7 +257,7 @@ namespace OpenMS
 			 vector.  Note that Matrix uses the (row,column) lexicographic ordering
 			 for indexing.
 		*/
-		std::pair<UnsignedInt,UnsignedInt> const indexPair(UnsignedInt index) const
+		std::pair<UInt,UInt> const indexPair(UInt index) const
 		{
 #ifdef OPENMS_DEBUG
 			if ( index >= size() ) throw Exception::IndexOverflow(__FILE__,__LINE__,__PRETTY_FUNCTION__,index,size()-1);
@@ -429,7 +429,7 @@ namespace OpenMS
 				{																																		\
 					os << "# row " << i << '\n';																			\
 				}																																		\
-				for ( UnsignedInt j = 0, count = 0; ; )																		\
+				for ( UInt j = 0, count = 0; ; )																		\
 				{																																		\
 					/* output gray value, rounded to nearest int */										\
 					int gray = int( *iter * scale + 0.5 );														\

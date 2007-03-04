@@ -56,26 +56,26 @@ namespace OpenMS
 				identification belongs. The Identification is then added to the spectrum      					
       */
       template <class PeakT>				
-      UnsignedInt annotate(MSExperiment< PeakT >& experiment, const std::vector<IdentificationData>& identifications, DoubleReal precision = 0.01f)
+      UInt annotate(MSExperiment< PeakT >& experiment, const std::vector<IdentificationData>& identifications, DoubleReal precision = 0.01f)
   		{
-				std::multimap<DoubleReal, UnsignedInt> experiment_precursors;
-				std::multimap<DoubleReal, UnsignedInt> identifications_precursors;
-				std::multimap<DoubleReal, UnsignedInt>::iterator experiment_iterator;
-				std::multimap<DoubleReal, UnsignedInt>::iterator identifications_iterator;
+				std::multimap<DoubleReal, UInt> experiment_precursors;
+				std::multimap<DoubleReal, UInt> identifications_precursors;
+				std::multimap<DoubleReal, UInt>::iterator experiment_iterator;
+				std::multimap<DoubleReal, UInt>::iterator identifications_iterator;
 				DoubleReal temp_experiment_value;
 				DoubleReal temp_identification_value;
 				DoubleReal experiment_precursor_position;
 				DoubleReal identifications_precursor_position;
 				DoubleReal temp;
 				DoubleReal actual_retention_time = 0;
-				UnsignedInt counter = 0;
+				UInt counter = 0;
 					
-				for(UnsignedInt i = 0; i < experiment.size(); i++)
+				for(UInt i = 0; i < experiment.size(); i++)
 				{
 					actual_retention_time = experiment[i].getRetentionTime();
 					experiment_precursors.insert(std::make_pair(actual_retention_time, i));
 				}
-				for(UnsignedInt i = 0; i < identifications.size(); i++)
+				for(UInt i = 0; i < identifications.size(); i++)
 				{
 					identifications_precursors.insert(std::make_pair(identifications[i].rt, i));
 				}
@@ -126,14 +126,14 @@ namespace OpenMS
 				identifications.clear();
 				std::vector<Identification> temp_identifications;
 				IdentificationData tmp_id;
-				for(UnsignedInt i = 0; i < experiment.size(); i++)
+				for(UInt i = 0; i < experiment.size(); i++)
 				{
 					temp_identifications = experiment[i].getIdentifications();
 					if (temp_identifications.size() > 0)
 					{
 						tmp_id.rt = experiment[i].getRetentionTime();				
 						tmp_id.mz = experiment[i].getPrecursorPeak().getPosition()[0];
-						for(UnsignedInt j = 0; j < temp_identifications.size(); j++)
+						for(UInt j = 0; j < temp_identifications.size(); j++)
 						{
 							if (!temp_identifications[j].empty())
 							{

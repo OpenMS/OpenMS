@@ -56,7 +56,7 @@ namespace OpenMS
 				
 				An external DB connection is used by handing over @p adapter.
 			*/
-			DBSpectrumSelectorDialog(DBConnection& adapter, std::vector<UnsignedInt>& result,QWidget* parent=0);
+			DBSpectrumSelectorDialog(DBConnection& adapter, std::vector<UInt>& result,QWidget* parent=0);
 			/// Destructor
 			~DBSpectrumSelectorDialog();
 
@@ -70,7 +70,7 @@ namespace OpenMS
 			/// DB connection
 			DBConnection& adapter_;
 			/// reference to the result vector
-			std::vector<UnsignedInt>& result_;
+			std::vector<UInt>& result_;
 			/// pointer to the search string lineedit
 			QLineEdit* search_string_;
 			/// pointer to the table for displaying the overview

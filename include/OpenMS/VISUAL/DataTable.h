@@ -93,10 +93,10 @@ namespace OpenMS
 			QGridLayout* mainlayout_;	
 			
 			/// Counter for the grid row.
-			UnsignedInt row_;
+			UInt row_;
 						
 			/// Adds a label. Helper class to make label adding more convenient.
-			void addLabel_(const QString &labelName, UnsignedInt row );
+			void addLabel_(const QString &labelName, UInt row );
 
 		private:
 			/// Edit flag

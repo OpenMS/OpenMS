@@ -196,7 +196,7 @@ namespace OpenMS
 		String const tool_description_;
 
 		///Instance number
-		SignedInt const instance_number_;
+		Int const instance_number_;
 
 		///Location in the ini file where to look for parameters.
 		String const ini_location_;
@@ -208,7 +208,7 @@ namespace OpenMS
 		TOPPBase(const TOPPBase&);
 			
 		/// Debug level
-		SignedInt debug_level_;
+		Int debug_level_;
 
 		/// All parameters relevant to this invocation of the program.
 		Param param_;
@@ -270,7 +270,7 @@ namespace OpenMS
 				
 			 @note See getParam_(const String&) const for the order in which parameters are searched.
 		*/
-		SignedInt getParamAsInt_(const String& key, SignedInt default_value=0) const;
+		Int getParamAsInt_(const String& key, Int default_value=0) const;
 
 		/**
 			 @brief Return the value of parameter @p key as a double or @p default_value if this value is not set.
@@ -371,7 +371,7 @@ namespace OpenMS
 			@param description Description of the parameter. Indentation of newline is done automatically.
 			@param required If the user has to provide a value i.e. if the value has to differ from the default (checked in get-method)
 		*/
-		void registerIntOption_(const String& name, const String& argument, SignedInt default_value, const String& description, bool required = true);
+		void registerIntOption_(const String& name, const String& argument, Int default_value, const String& description, bool required = true);
 		
 		/// Registers a flag
 		void registerFlag_(const String& name, const String& description);
@@ -398,7 +398,7 @@ namespace OpenMS
 		double getDoubleOption_(const String& name) const throw (Exception::UnregisteredParameter, Exception::RequiredParameterNotGiven, Exception::WrongParameterType);
 		
 		///Returns the value of a previously registered integer option
-		SignedInt getIntOption_(const String& name) const throw (Exception::UnregisteredParameter, Exception::RequiredParameterNotGiven, Exception::WrongParameterType);
+		Int getIntOption_(const String& name) const throw (Exception::UnregisteredParameter, Exception::RequiredParameterNotGiven, Exception::WrongParameterType);
 		
 		///Returns the value of a previously registered flag
 		bool getFlag_(const String& name) const throw (Exception::UnregisteredParameter, Exception::WrongParameterType);
@@ -442,10 +442,10 @@ namespace OpenMS
 		void writeLog_(const String& text) const;
 		
 		/// Writes a @p text to the log file and to std::cout if the debug level is at least @p min_level
-		void writeDebug_(const String& text, UnsignedInt min_level) const;
+		void writeDebug_(const String& text, UInt min_level) const;
 
 		/// Writes a String followed by a Param to the log file and to std::cout if the debug level is at least @p min_level
-		void writeDebug_(const String& text, const Param& param, UnsignedInt min_level) const;
+		void writeDebug_(const String& text, const Param& param, UInt min_level) const;
 		//@}
 
 

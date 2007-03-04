@@ -176,7 +176,7 @@ CHECK(DoubleReal getWinLen() const)
   TEST_EQUAL(sne.getWinLen(), DSignalToNoiseEstimatorMeanIterative<>::DEFAULT_WINLEN);
 RESULT
 
-CHECK(SignedInt getBinCount() const)
+CHECK(Int getBinCount() const)
   const DSignalToNoiseEstimatorMeanIterative<1> sne;
   TEST_EQUAL(sne.getBinCount(), DSignalToNoiseEstimatorMeanIterative<>::DEFAULT_BINCOUNT);
 RESULT
@@ -196,12 +196,12 @@ CHECK(DoubleReal getAutoMaxIntensity() const)
   TEST_EQUAL(sne.getAutoMaxIntensity(), DSignalToNoiseEstimatorMeanIterative<>::DEFAULT_MAXINTENSITY_BYSTDEV);
 RESULT
 
-CHECK(SignedInt getAutoMode() const)
+CHECK(Int getAutoMode() const)
   const DSignalToNoiseEstimatorMeanIterative<1> sne;
   TEST_EQUAL(sne.getAutoMode(), DSignalToNoiseEstimatorMeanIterative<>::AUTOMAXBYSTDEV);
 RESULT
 
-CHECK(SignedInt getMinReqElements() const)
+CHECK(Int getMinReqElements() const)
   const DSignalToNoiseEstimatorMeanIterative<1> sne;
   TEST_EQUAL(sne.getMinReqElements(), DSignalToNoiseEstimatorMeanIterative<>::DEFAULT_MIN_REQUIRED_ELEMENTS);
 RESULT
@@ -292,7 +292,7 @@ CHECK(void setWinLen(DoubleReal win_len))
   TEST_REAL_EQUAL(sne.getWinLen(), 31);
 RESULT
 
-CHECK(void setBinCount(SignedInt bin_count))
+CHECK(void setBinCount(Int bin_count))
   DSignalToNoiseEstimatorMeanIterative<1> sne;
   sne.setBinCount(50);
   TEST_EQUAL(sne.getBinCount(), 50);
@@ -316,13 +316,13 @@ CHECK(void setAutoMaxIntensity(DoubleReal auto_max_intensity))
   TEST_REAL_EQUAL(sne.getAutoMaxIntensity(), 3.35);
 RESULT
 
-CHECK(void setAutoMode(SignedInt auto_mode))
+CHECK(void setAutoMode(Int auto_mode))
   DSignalToNoiseEstimatorMeanIterative<1> sne;
   sne.setAutoMode(DSignalToNoiseEstimatorMeanIterative<>::AUTOMAXBYPERCENT);
   TEST_EQUAL(sne.getAutoMode(), DSignalToNoiseEstimatorMeanIterative<>::AUTOMAXBYPERCENT);
 RESULT
 
-CHECK(void setMinReqElements(SignedInt min_required_elements))
+CHECK(void setMinReqElements(Int min_required_elements))
   DSignalToNoiseEstimatorMeanIterative<1> sne;
   sne.setMinReqElements(11);
   TEST_EQUAL(sne.getMinReqElements(), 11);
@@ -363,13 +363,13 @@ CHECK(void setLastDataPoint(const PeakIterator& last))
   //TEST_EQUAL(sne.getLastDataPoint(), raw_data.end());
 RESULT
 
-CHECK(void setMZdim(SignedInt mz_dim))
+CHECK(void setMZdim(Int mz_dim))
   DSignalToNoiseEstimatorMeanIterative<1> sne;
   sne.setMZdim(1);
   TEST_EQUAL(sne.getMZdim(), 1);
 RESULT
 
-CHECK(void setRTdim(SignedInt rt_dim))
+CHECK(void setRTdim(Int rt_dim))
   DSignalToNoiseEstimatorMeanIterative<1> sne;
   sne.setRTdim(-1);
   TEST_EQUAL(sne.getRTdim(), -1);

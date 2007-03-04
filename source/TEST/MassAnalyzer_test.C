@@ -83,7 +83,7 @@ CHECK(ScanLaw getScanLaw() const)
   TEST_EQUAL(tmp.getScanLaw(),MassAnalyzer::SCANLAWNULL);
 RESULT
 
-CHECK(SignedInt getFinalMSExponent() const)
+CHECK(Int getFinalMSExponent() const)
   MassAnalyzer tmp;
   TEST_EQUAL(tmp.getFinalMSExponent(),0);
 RESULT
@@ -140,7 +140,7 @@ CHECK(void setAccuracy(float accuracy))
   TEST_REAL_EQUAL(tmp.getAccuracy(),47.11);
 RESULT
 
-CHECK(void setFinalMSExponent(SignedInt final_MS_exponent))
+CHECK(void setFinalMSExponent(Int final_MS_exponent))
   MassAnalyzer tmp;
   tmp.setFinalMSExponent(47);
   TEST_EQUAL(tmp.getFinalMSExponent(),47);

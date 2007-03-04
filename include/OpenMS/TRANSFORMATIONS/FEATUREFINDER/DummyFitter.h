@@ -81,7 +81,7 @@ namespace OpenMS
 	    }
 			
 			protected:
-				UnsignedInt counter_;
+				UInt counter_;
 	
   };
 }

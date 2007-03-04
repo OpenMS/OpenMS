@@ -179,12 +179,12 @@ class TOPPRTModel
 			map<SVM_parameter_type, DoubleReal> start_values;
 			map<SVM_parameter_type, DoubleReal> step_sizes;
 			map<SVM_parameter_type, DoubleReal> end_values;
-			UnsignedInt number_of_partitions;
-			UnsignedInt number_of_runs;
+			UInt number_of_partitions;
+			UInt number_of_runs;
 			DoubleReal cv_quality;
 			map<SVM_parameter_type, DoubleReal>* optimized_parameters;
 			map<SVM_parameter_type, DoubleReal>::iterator parameters_iterator;
-			UnsignedInt maximum_sequence_length = 50;
+			UInt maximum_sequence_length = 50;
 	
 			//-------------------------------------------------------------
 			// parsing parameters
@@ -248,9 +248,9 @@ class TOPPRTModel
 			}
 			
 			//grid search parameters
-			UnsignedInt degree_start = getIntOption_("degree_start");
-			UnsignedInt degree_step_size = getIntOption_("degree_step_size");
-			UnsignedInt degree_stop = getIntOption_("degree_stop");
+			UInt degree_start = getIntOption_("degree_start");
+			UInt degree_step_size = getIntOption_("degree_step_size");
+			UInt degree_stop = getIntOption_("degree_stop");
 			if (degree_start != 0 && degree_step_size != 0 && degree_stop != 0)
 			{
 				start_values.insert(make_pair(DEGREE, degree_start));
@@ -301,9 +301,9 @@ class TOPPRTModel
 			// calculations
 			//-------------------------------------------------------------
 
-			for(UnsignedInt i = 0; i < identifications.size(); i++)
+			for(UInt i = 0; i < identifications.size(); i++)
 			{
-				UnsignedInt temp_size = identifications[i].id.getPeptideHits().size();
+				UInt temp_size = identifications[i].id.getPeptideHits().size();
 				if (temp_size > 0)
 				{
 					if (temp_size == 1)
@@ -328,7 +328,7 @@ class TOPPRTModel
 				}				
 			}
 
-			for(UnsignedInt i = 0; i < training_retention_times.size(); i++)
+			for(UInt i = 0; i < training_retention_times.size(); i++)
 			{
 				training_retention_times[i] = training_retention_times[i] / total_gradient_time;
 			}

@@ -60,7 +60,7 @@ namespace OpenMS
 		Spectrum2DWidget* widget();
 
 		/// returns the mode for 2D dots   
-		SignedInt getDotMode();
+		Int getDotMode();
     
 		// Docu in base class
 		virtual PreferencesDialogPage* createPreferences(QWidget* parent);

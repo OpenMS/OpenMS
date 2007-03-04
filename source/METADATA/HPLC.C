@@ -116,34 +116,34 @@ namespace OpenMS
   }
  
  
-  SignedInt HPLC::getTemperature() const
+  Int HPLC::getTemperature() const
   {
     return temperature_;
   }
  
-  void HPLC::setTemperature(SignedInt temperature)
+  void HPLC::setTemperature(Int temperature)
   {
     temperature_ = temperature;
   }
  
  
-  UnsignedInt HPLC::getPressure() const
+  UInt HPLC::getPressure() const
   {
     return pressure_;
   }
  
-  void HPLC::setPressure(UnsignedInt pressure)
+  void HPLC::setPressure(UInt pressure)
   {
     pressure_ = pressure;
   }
  
  
-  UnsignedInt HPLC::getFlux() const
+  UInt HPLC::getFlux() const
   {
     return flux_;
   }
  
-  void HPLC::setFlux(UnsignedInt flux)
+  void HPLC::setFlux(UInt flux)
   {
     flux_ = flux;
   }

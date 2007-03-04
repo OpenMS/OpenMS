@@ -57,7 +57,7 @@ namespace OpenMS
     
   void LinearMapping::apply(DPosition<1>& pos) const
   {
-    for (UnsignedInt i=0; i < 2; ++i)
+    for (UInt i=0; i < 2; ++i)
     {
       pos[i] = intercept_ + slope_ * pos[i];
     }

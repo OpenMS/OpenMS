@@ -37,37 +37,37 @@ namespace OpenMS
 		{
 			// default: write data in 32Bit -> fill float array
 			float* tmp = decoder_[0].getFloatBuffer(container.size());
-			UnsignedInt container_size = container.size();
+			UInt container_size = container.size();
 			// area
-			for (UnsignedInt i=0; i<container_size; i++) tmp[i] = container[i].getArea();
+			for (UInt i=0; i<container_size; i++) tmp[i] = container[i].getArea();
 			writeBinary_(os,container_size,"supDataArrayBinary","area",1);
 			// FWHM
-			for (UnsignedInt i=0; i<container_size; i++) tmp[i] = container[i].getFWHM();
+			for (UInt i=0; i<container_size; i++) tmp[i] = container[i].getFWHM();
 			writeBinary_(os,container_size,"supDataArrayBinary","fwhm",2);
 			// LeftWidthParameter
-			for (UnsignedInt i=0; i<container_size; i++) tmp[i] = container[i].getLeftWidthParameter();
+			for (UInt i=0; i<container_size; i++) tmp[i] = container[i].getLeftWidthParameter();
 			writeBinary_(os,container_size,"supDataArrayBinary","leftWidth",3);
 			// RightWidthParameter
-			for (UnsignedInt i=0; i<container_size; i++) tmp[i] = container[i].getRightWidthParameter();
+			for (UInt i=0; i<container_size; i++) tmp[i] = container[i].getRightWidthParameter();
 			writeBinary_(os,container_size,"supDataArrayBinary","rightWidth",4);
 			// charge
-			for (UnsignedInt i=0; i<container_size; i++) tmp[i] = container[i].getCharge();
+			for (UInt i=0; i<container_size; i++) tmp[i] = container[i].getCharge();
 			writeBinary_(os,container_size,"supDataArrayBinary","charge",5);
 			// signal to noise
-			for (UnsignedInt i=0; i<container_size; i++) tmp[i] = container[i].getSN();
+			for (UInt i=0; i<container_size; i++) tmp[i] = container[i].getSN();
 			writeBinary_(os,container_size,"supDataArrayBinary","signalToNoise",6);
 			// rValue
-			for (UnsignedInt i=0; i<container_size; i++) tmp[i] = container[i].getRValue();
+			for (UInt i=0; i<container_size; i++) tmp[i] = container[i].getRValue();
 			writeBinary_(os,container_size,"supDataArrayBinary","rValue",7);
 			// peakShape
-			for (UnsignedInt i=0; i<container_size; i++) tmp[i] = container[i].getPeakShape();
+			for (UInt i=0; i<container_size; i++) tmp[i] = container[i].getPeakShape();
 			writeBinary_(os,container_size,"supDataArrayBinary","peakShape",8);
 	
 		}
 
 		template <>
 		template <>
-		void MzDataHandler <MSExperiment<PickedPeak1D > >::readPeakSupplementalData_ < PickedPeak1D >( std::vector<void*>& data, PickedPeak1D& peak, UnsignedInt n)
+		void MzDataHandler <MSExperiment<PickedPeak1D > >::readPeakSupplementalData_ < PickedPeak1D >( std::vector<void*>& data, PickedPeak1D& peak, UInt n)
 		{
 			enum PickedPeakMembers {AREA = 2, FWHM, LEFT, RIGHT, CHARGE, SN, RVALUE, SHAPE};
 
@@ -75,7 +75,7 @@ namespace OpenMS
 			peak.setFWHM( getDatum_(data,FWHM,n));
 			peak.setLeftWidthParameter( getDatum_(data,LEFT,n));
 			peak.setRightWidthParameter( getDatum_(data,RIGHT,n));
-			peak.setCharge(static_cast<SignedInt>(getDatum_(data,CHARGE,n)));
+			peak.setCharge(static_cast<Int>(getDatum_(data,CHARGE,n)));
 			peak.setSN( getDatum_(data,SN,n));
 			peak.setRValue( getDatum_(data,RVALUE,n));
 			peak.setPeakShape(PeakShapeType::Enum(int(getDatum_(data,SHAPE,n))));

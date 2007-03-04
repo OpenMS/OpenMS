@@ -78,34 +78,34 @@ namespace OpenMS
 		/// returns the value corresponding to a string
 		const DataValue& getValue(const std::string& name) const;
 		/// returns the value corresponding to an index
-		const DataValue& getValue(UnsignedInt index) const;
+		const DataValue& getValue(UInt index) const;
 
 		/// returns if this MetaInfo is set
 		bool exists(const std::string& name) const;
 		/// returns if this MetaInfo is set
-		bool exists(UnsignedInt index) const;
+		bool exists(UInt index) const;
 
 		/// sets the value (string) corresponding to a name
 		void setValue(const std::string& name, const std::string& value);
 		/// sets the value (string) corresponding to an index
-		void setValue(UnsignedInt index, const std::string& value);
+		void setValue(UInt index, const std::string& value);
 		/// sets the value (integer) corresponding to a name
-		void setValue(const std::string& name, SignedInt value);
+		void setValue(const std::string& name, Int value);
 		/// sets the value (integer) corresponding to an index
-		void setValue(UnsignedInt index, SignedInt value);
+		void setValue(UInt index, Int value);
 		/// sets the value (double) corresponding to a name
 		void setValue(const std::string& name, double value);
 		/// sets the value (double) corresponding to an index
-		void setValue(UnsignedInt index, double value);
+		void setValue(UInt index, double value);
 		/// sets the DataValue corresponding to a name
 		void setValue(const std::string& name, const DataValue& value);
 		///  sets the DataValue corresponding to an index
-		void setValue(UnsignedInt index, const DataValue& value);
+		void setValue(UInt index, const DataValue& value);
 		
 		/// Removes the DataValue corresponding to @p name if it exists
 		void removeValue(const std::string& name);
 		/// Removes the DataValue corresponding to @p index if it exists
-		void removeValue(UnsignedInt index);		
+		void removeValue(UInt index);		
 		
 		/// retuns a reference to the MetaInfoRegistry
 		static MetaInfoRegistry& registry();
@@ -114,7 +114,7 @@ namespace OpenMS
     void getKeys(std::vector<std::string>& keys) const;
 
 		/// fills the given vector with a list of all keys for which a value is set
-    void getKeys(std::vector<UnsignedInt>& keys) const;
+    void getKeys(std::vector<UInt>& keys) const;
 
     /// returns if the MetaInfo is empty
     bool empty() const;
@@ -126,7 +126,7 @@ namespace OpenMS
 		/// static MetaInfoRegistry
 		static MetaInfoRegistry registry_;
 		/// the actual mapping of index to the DataValue
-		std::map<UnsignedInt,DataValue> index_to_value_;
+		std::map<UInt,DataValue> index_to_value_;
 
 	};
 

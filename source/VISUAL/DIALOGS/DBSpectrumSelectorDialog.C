@@ -43,7 +43,7 @@ using namespace std;
 
 namespace OpenMS
 {
-	DBSpectrumSelectorDialog::DBSpectrumSelectorDialog(DBConnection& adapter, vector<UnsignedInt>& result,QWidget* parent) 
+	DBSpectrumSelectorDialog::DBSpectrumSelectorDialog(DBConnection& adapter, vector<UInt>& result,QWidget* parent) 
 	 : QDialog(parent), 
 	 	 adapter_(adapter), 
 	 	 result_(result)
@@ -104,7 +104,7 @@ namespace OpenMS
 	
 	void DBSpectrumSelectorDialog::ok()
 	{ 	
-		for (SignedInt col=0;col<table_->rowCount();++col)
+		for (Int col=0;col<table_->rowCount();++col)
 		{
 			if(table_->item(col,0)->checkState()==Qt::Checked)
 			{
@@ -126,7 +126,7 @@ namespace OpenMS
 		QSqlQuery result;
 		adapter_.executeQuery(query.str(),result);
 		table_->setRowCount(result.size());
-	 	UnsignedInt row=0;
+	 	UInt row=0;
 	 	while(result.isValid())
 		{
 			//id, description

@@ -81,14 +81,14 @@ namespace OpenMS
 		return *this;
 	}
 	
-	void ProtonDistributionModel::setPeptideProtonDistribution(const HashMap<UnsignedInt, double>& bb_charge, const HashMap<UnsignedInt, double>& sc_charge)
+	void ProtonDistributionModel::setPeptideProtonDistribution(const HashMap<UInt, double>& bb_charge, const HashMap<UInt, double>& sc_charge)
 	{
 		bb_charge_full_ = bb_charge;
 		sc_charge_full_ = sc_charge;
 	}
 
-	void ProtonDistributionModel::getProtonDistribution( HashMap<UnsignedInt, double>& bb_charges,
-															HashMap<UnsignedInt, double>& sc_charges,
+	void ProtonDistributionModel::getProtonDistribution( HashMap<UInt, double>& bb_charges,
+															HashMap<UInt, double>& sc_charges,
 															const AASequence& peptide,
 															int charge,
 															Residue::ResidueType res_type)
@@ -179,13 +179,13 @@ namespace OpenMS
 	void ProtonDistributionModel::calculateProtonDistribution_(const AASequence& peptide, 
 																								int charge, Residue::ResidueType res_type, 
 																								bool fixed_proton, 
-																								UnsignedInt cleavage_site,
+																								UInt cleavage_site,
 																								bool use_most_basic_site)
 	{
 
 	//cerr << "calculateProtonDistribution_(" << peptide << ", " << charge << ", " << res_type << ", " << fixed_proton << ", " << cleavage_site << ", " << use_most_basic_site << ")" << endl;
 
-	UnsignedInt most_basic_site(0);
+	UInt most_basic_site(0);
 	bool most_basic_site_sc(false);
 
 	if (!use_most_basic_site)
@@ -197,7 +197,7 @@ namespace OpenMS
 	{
 		// find the most basic site
 		double max_prob(0);
-		for (UnsignedInt i = 0; i != bb_charge_.size(); ++i)
+		for (UInt i = 0; i != bb_charge_.size(); ++i)
 		{
 			if (bb_charge_[i] > max_prob)
 			{
@@ -205,7 +205,7 @@ namespace OpenMS
 				most_basic_site = i;
 			}
 		}
-		for (UnsignedInt i = 0; i != sc_charge_.size(); ++i)
+		for (UInt i = 0; i != sc_charge_.size(); ++i)
 		{
 			if (sc_charge_[i] > max_prob)
 			{
@@ -219,7 +219,7 @@ namespace OpenMS
 		sc_charge_.clear();
 	}
 
-	UnsignedInt fixed_site(0);
+	UInt fixed_site(0);
 	if (fixed_proton)
 	{
 		fixed_site = cleavage_site;
@@ -234,10 +234,10 @@ namespace OpenMS
 
 	const double T(500.0);
 	
-	//HashMap<UnsignedInt, double> sc_charge; // side chain charges
-	//HashMap<UnsignedInt, double> bb_charge; // back bone charges
+	//HashMap<UInt, double> sc_charge; // side chain charges
+	//HashMap<UInt, double> bb_charge; // back bone charges
 
-	for (UnsignedInt i = 0; i != peptide.size(); ++i)
+	for (UInt i = 0; i != peptide.size(); ++i)
 	{
 		sc_charge_[i] = 0;
 		bb_charge_[i] = 0;
@@ -248,7 +248,7 @@ namespace OpenMS
 	double q(0), sum_E(0), sum_E_n_term(0), sum_E_c_term(0); // Zustandsumme
 	if (charge == 1)
 	{
-		for (UnsignedInt i = 0; i != peptide.size(); ++i)
+		for (UInt i = 0; i != peptide.size(); ++i)
 		{
 			String aa(peptide[i]->getOneLetterCode());
 			
@@ -305,7 +305,7 @@ namespace OpenMS
 		//cerr << "E: " << sum_E << endl;
 
 		// calculate the availabilities
-		for (UnsignedInt i = 0; i != peptide.size(); ++i)
+		for (UInt i = 0; i != peptide.size(); ++i)
 		{
 			String aa(peptide[i]->getOneLetterCode());
 			// backbone
@@ -394,7 +394,7 @@ namespace OpenMS
 			gb_j = gb_sc_[peptide[fixed_site]->getOneLetterCode()];
 		}
 		
-		for (UnsignedInt i = 0; i <= peptide.size(); ++i)
+		for (UInt i = 0; i <= peptide.size(); ++i)
 		{
 			double gb_i(0);
       // proton 1 at N-terminus
@@ -480,7 +480,7 @@ namespace OpenMS
 		}
 
 		// calculate availablities
-		for (UnsignedInt i = 0; i <= peptide.size(); ++i)
+		for (UInt i = 0; i <= peptide.size(); ++i)
 		{
 			double gb_i(0);
 			if (i == 0 || (i == cleavage_site && use_most_basic_site))
@@ -628,9 +628,9 @@ namespace OpenMS
 	{
 		// calculate sum
 		int count(0);
-		for (UnsignedInt i = 0; i <= peptide.size(); ++i)
+		for (UInt i = 0; i <= peptide.size(); ++i)
 		{
-			for (UnsignedInt j = i; j <= peptide.size(); ++j)
+			for (UInt j = i; j <= peptide.size(); ++j)
 			{
 				double gb_i(0), gb_j(0);
 				// proton 1 at N-terminus
@@ -759,9 +759,9 @@ namespace OpenMS
 		cout << "Q=" << q << ", #microstates=" << count << endl;
 		#endif
 		// calculate availabilities
-		for (UnsignedInt i = 0; i <= peptide.size(); ++i)
+		for (UInt i = 0; i <= peptide.size(); ++i)
 		{
-			for (UnsignedInt j = i; j <= peptide.size(); ++j)
+			for (UInt j = i; j <= peptide.size(); ++j)
 			{
 				double gb_i(0), gb_j(0);
 				// calculate the backbone proton gb's
@@ -953,7 +953,7 @@ namespace OpenMS
 		double sum(0);
 		if (res_type == Residue::AIon || res_type == Residue::BIon || res_type == Residue::CIon)
 		{
-			for (UnsignedInt i = 1; i <= peptide.size(); ++i)
+			for (UInt i = 1; i <= peptide.size(); ++i)
 			{
 				sum += bb_charge_[i];
 				if (sc_charge_.has(i-1))
@@ -967,7 +967,7 @@ namespace OpenMS
 		{
 			if (res_type == Residue::XIon || res_type == Residue::YIon || res_type == Residue::ZIon)
 			{
-				for (UnsignedInt i = bb_charge_.size() - peptide.size() - 1; i != bb_charge_.size(); ++i)
+				for (UInt i = bb_charge_.size() - peptide.size() - 1; i != bb_charge_.size(); ++i)
 				{
 					sum += bb_charge_[i];
 					if (sc_charge_.has(i))
@@ -1060,7 +1060,7 @@ namespace OpenMS
 				calculateProtonDistribution_(peptide, 2, Residue::Full, false, n_term_ion.size(), true);
 
 				double singly_charged(0);
-				for (UnsignedInt i = 0; i != n_term_ion.size(); ++i)
+				for (UInt i = 0; i != n_term_ion.size(); ++i)
 				{
 					n_term2 += bb_charge_[i] * p_n;
 					singly_charged += bb_charge_[i] * p_c;
@@ -1071,7 +1071,7 @@ namespace OpenMS
 					}
 				}
 
-				for (UnsignedInt i = n_term_ion.size(); i <= peptide.size(); ++i)
+				for (UInt i = n_term_ion.size(); i <= peptide.size(); ++i)
 				{
 					c_term2 += bb_charge_[i] * p_c;
 					singly_charged += bb_charge_[i] * p_n;
@@ -1103,12 +1103,12 @@ namespace OpenMS
 				{
 					// TODO ranges correct? Missing some sites of the peptide
 					double n_term_sum(0), c_term_sum(0);
-					for (UnsignedInt i = 0; i != n_term_ion.size(); ++i)
+					for (UInt i = 0; i != n_term_ion.size(); ++i)
 					{
 						n_term_sum += bb_charge_full_[i];
 						n_term_sum += sc_charge_full_[i];
 					}
-					for (UnsignedInt i = n_term_ion.size(); i != peptide.size(); ++i)
+					for (UInt i = n_term_ion.size(); i != peptide.size(); ++i)
 					{
 						c_term_sum += bb_charge_full_[i];
 						c_term_sum += sc_charge_full_[i];
@@ -1162,7 +1162,7 @@ namespace OpenMS
 		double sum(0);
 		if (res_type == Residue::YIon || res_type == Residue::XIon || res_type == Residue::ZIon)
 		{
-			for (UnsignedInt i = peptide.size() - ion.size(); i != peptide.size(); ++i)
+			for (UInt i = peptide.size() - ion.size(); i != peptide.size(); ++i)
 			{
 				sum += bb_charge_[i+1];
 				if (sc_charge_.has(i))
@@ -1173,7 +1173,7 @@ namespace OpenMS
 		}
 		else
 		{
-			for (UnsignedInt i = 0; i <= ion.size(); ++i)
+			for (UInt i = 0; i <= ion.size(); ++i)
 			{
 				sum += bb_charge_[i];
 				if (sc_charge_.has(i))

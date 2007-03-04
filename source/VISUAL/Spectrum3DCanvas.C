@@ -65,7 +65,7 @@ namespace OpenMS
 		update_(__PRETTY_FUNCTION__);
 	}
 	
-	SignedInt Spectrum3DCanvas::finishAdding(float low_intensity_cutoff)
+	Int Spectrum3DCanvas::finishAdding(float low_intensity_cutoff)
 	{
 		if (layers_.back().type!=LayerData::DT_PEAK)
 		{
@@ -183,7 +183,7 @@ namespace OpenMS
 			}
 			if(show_reduced_)
 			{
-				for(UnsignedInt i = 0; i<layers_.size();i++)
+				for(UInt i = 0; i<layers_.size();i++)
 				{
 					/// @todo added fix for segfault for release (Cornelia)
 					if (datareducer_ != 0)
@@ -281,13 +281,13 @@ namespace OpenMS
 		
 		////preferences////////////////////
 		  
-		SignedInt Spectrum3DCanvas::getDataMode()
+		Int Spectrum3DCanvas::getDataMode()
 		{
 			if(prefs_.getValue("Preferences:3D:Data:Mode").isEmpty())
 			{
 				return 0;
 			}
-			return SignedInt(prefs_.getValue("Preferences:3D:Data:Mode"));
+			return Int(prefs_.getValue("Preferences:3D:Data:Mode"));
 		}
 		
 		void Spectrum3DCanvas::setDataMode()
@@ -301,13 +301,13 @@ namespace OpenMS
 			update_(__PRETTY_FUNCTION__);
 		}
 		
-		SignedInt Spectrum3DCanvas::getDotMode()
+		Int Spectrum3DCanvas::getDotMode()
 		{
 			if (prefs_.getValue("Preferences:3D:Dot:Mode").isEmpty())
 			{
 				return 0;
 			}
-			return SignedInt(prefs_.getValue("Preferences:3D:Dot:Mode"));
+			return Int(prefs_.getValue("Preferences:3D:Dot:Mode"));
 		}
 		
 		void Spectrum3DCanvas::setDotGradient(const std::string& gradient)
@@ -315,22 +315,22 @@ namespace OpenMS
 			openglcanvas_->setDotGradient(gradient);
 		}
 		
-		SignedInt Spectrum3DCanvas::getShadeMode()
+		Int Spectrum3DCanvas::getShadeMode()
 		{
 			if(prefs_.getValue("Preferences:3D:Shade:Mode").isEmpty())
 			{
 				return 0;
 			}
-			return SignedInt(prefs_.getValue("Preferences:3D:Shade:Mode"));
+			return Int(prefs_.getValue("Preferences:3D:Shade:Mode"));
 		}
 		
-		UnsignedInt Spectrum3DCanvas::getDotInterpolationSteps()
+		UInt Spectrum3DCanvas::getDotInterpolationSteps()
 		{
 			if(prefs_.getValue("Preferences:3D:InterpolationSteps").isEmpty())
 			{
 				return 0;
 			}
-			return UnsignedInt(prefs_.getValue("Preferences:3D:InterpolationSteps"));
+			return UInt(prefs_.getValue("Preferences:3D:InterpolationSteps"));
 		}
 	
 		void Spectrum3DCanvas::update_(const char*

@@ -63,34 +63,34 @@ namespace OpenMS
     return *this;
   }
 
-	void SpectrumAlignment::getSpectrumAlignment(vector<pair<UnsignedInt, UnsignedInt> >& alignment, const PeakSpectrum& s1, const PeakSpectrum& s2) const
+	void SpectrumAlignment::getSpectrumAlignment(vector<pair<UInt, UInt> >& alignment, const PeakSpectrum& s1, const PeakSpectrum& s2) const
 	{
 		double epsilon = (double)param_.getValue("epsilon");
-		//HashMap<UnsignedInt, HashMap<UnsignedInt, pair<UnsignedInt, UnsignedInt> > > traceback;
-		//HashMap<UnsignedInt, HashMap<UnsignedInt, double> > matrix;
-		map<UnsignedInt, map<UnsignedInt, pair<UnsignedInt, UnsignedInt> > > traceback;
-		map<UnsignedInt, map<UnsignedInt, double> > matrix;
+		//HashMap<UInt, HashMap<UInt, pair<UInt, UInt> > > traceback;
+		//HashMap<UInt, HashMap<UInt, double> > matrix;
+		map<UInt, map<UInt, pair<UInt, UInt> > > traceback;
+		map<UInt, map<UInt, double> > matrix;
 		
 		// init the matrix with "gap costs" epsilon
 		matrix[0][0] = 0;
-		for (UnsignedInt i = 1; i <= s1.size(); ++i)
+		for (UInt i = 1; i <= s1.size(); ++i)
 		{
 			matrix[i][0] = i * epsilon;
 			traceback[i][0]  = make_pair(i - 1, 0);
 		}
-		for (UnsignedInt j = 1; j <= s2.size(); ++j)
+		for (UInt j = 1; j <= s2.size(); ++j)
 		{
 			matrix[0][j] = j * epsilon;
 			traceback[0][j] = make_pair(0, j - 1);
 		}
 		
 		// fill in the matrix
-		UnsignedInt left_ptr(1);
-		UnsignedInt last_i(0), last_j(0);
+		UInt left_ptr(1);
+		UInt last_i(0), last_j(0);
 		//Size off_band_counter(0);
-		for (UnsignedInt i = 1; i <= s1.size(); ++i)
+		for (UInt i = 1; i <= s1.size(); ++i)
 		{
-			for (UnsignedInt j = left_ptr; j <= s2.size(); ++j)
+			for (UInt j = left_ptr; j <= s2.size(); ++j)
 			{
 				bool off_band(false);
 				// find min of the three possible directions
@@ -183,12 +183,12 @@ namespace OpenMS
 #ifdef ALIGNMENT_DEBUG
 #if 0
 		cerr << "TheMatrix: " << endl << " \t  \t";
-		for (UnsignedInt j = 0; j != s2.size(); ++j)
+		for (UInt j = 0; j != s2.size(); ++j)
 		{
 			cerr << s2.getContainer()[j].getPosition()[0] << " \t";
 		}
 		cerr << endl;
-		for (UnsignedInt i = 0; i <= s1.size(); ++i)
+		for (UInt i = 0; i <= s1.size(); ++i)
 		{
 			if (i != 0)
 			{
@@ -198,7 +198,7 @@ namespace OpenMS
 			{
 				cerr << " \t";
 			}
-			for (UnsignedInt j = 0; j <= s2.size(); ++j)
+			for (UInt j = 0; j <= s2.size(); ++j)
 			{
 				if (matrix.has(i) && matrix[i].has(j))
 				{
@@ -231,8 +231,8 @@ namespace OpenMS
 #endif
 
 		// do traceback
-		UnsignedInt i = last_i;
-		UnsignedInt j = last_j;
+		UInt i = last_i;
+		UInt j = last_j;
 
 		while (i > 1 && j > 1)
 		{
@@ -240,8 +240,8 @@ namespace OpenMS
 			{
 				alignment.push_back(make_pair(i - 1, j - 1));
 			}
-			UnsignedInt new_i = traceback[i][j].first;
-			UnsignedInt new_j = traceback[i][j].second;
+			UInt new_i = traceback[i][j].first;
+			UInt new_j = traceback[i][j].second;
 
 			i = new_i;
 			j = new_j;
@@ -254,8 +254,8 @@ namespace OpenMS
 		// print alignment
 		cerr << "Alignment (size=" << alignment.size() << "): " << endl;
 		
-		UnsignedInt i_s1(0), i_s2(0);
-		for (vector<pair<UnsignedInt, UnsignedInt> >::const_reverse_iterator it = alignment.rbegin(); it != alignment.rend(); ++it, ++i_s1, ++i_s2)
+		UInt i_s1(0), i_s2(0);
+		for (vector<pair<UInt, UInt> >::const_reverse_iterator it = alignment.rbegin(); it != alignment.rend(); ++it, ++i_s1, ++i_s2)
 		{
 			while (i_s1 < it->first - 1)
 			{

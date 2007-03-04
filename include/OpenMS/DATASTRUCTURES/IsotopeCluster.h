@@ -37,7 +37,7 @@ namespace OpenMS
   struct IsotopeCluster
   {
   	//An index in an MSExperiment
-  	typedef std::pair<UnsignedInt,UnsignedInt> IDX;
+  	typedef std::pair<UInt,UInt> IDX;
   	
     IsotopeCluster()
       : charge_(0), 
@@ -47,13 +47,13 @@ namespace OpenMS
     }
     
     /// predicted charge state of this peptide
-    UnsignedInt charge_;
+    UInt charge_;
     
     /// peaks in this cluster
     std::set<IDX> peaks_;
     
     /// the scans of this cluster
-    std::vector<UnsignedInt> scans_;
+    std::vector<UInt> scans_;
   };
 
 } // namespace OPENMS

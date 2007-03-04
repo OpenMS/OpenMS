@@ -140,7 +140,7 @@ class TOPPIDFilter
 		vector<IdentificationData> identifications_exclusion;
 		vector<IdentificationData> filtered_identifications;
 		Identification filtered_identification;
-		vector<UnsignedInt> charges;
+		vector<UInt> charges;
 		vector< pair< String, String > > sequences;
 		map<String, double> predicted_retention_times;
 		DoubleReal predicted_sigma;
@@ -204,7 +204,7 @@ class TOPPIDFilter
 			analysisXML_file.load(exclusion_peptides_file_name, 
 													  protein_identifications, 
 													 	identifications_exclusion);
-			for(UnsignedInt i = 0; i < identifications_exclusion.size(); i++)
+			for(UInt i = 0; i < identifications_exclusion.size(); i++)
 			{
 				for(vector<PeptideHit>::const_iterator it = identifications_exclusion[i].id.getPeptideHits().begin();
 						it != identifications_exclusion[i].id.getPeptideHits().end();
@@ -220,7 +220,7 @@ class TOPPIDFilter
 		//-------------------------------------------------------------
 						
 		/// Filtering identifications	by thresholds
-		for(UnsignedInt i = 0; i < identifications.size(); i++)
+		for(UInt i = 0; i < identifications.size(); i++)
 		{       
 			filter.filterIdentificationsByThresholds(identifications[i].id, 
 																							 peptide_significance_threshold_fraction, 

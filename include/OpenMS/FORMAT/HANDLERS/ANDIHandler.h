@@ -93,7 +93,7 @@ namespace OpenMS
 
 		/**@name temporary datastructures to hold parsed data */
 		//@{
-		UnsignedInt peak_count_;
+		UInt peak_count_;
 		typename MapType::SpectrumType::PeakType peak_;
 		typename MapType::SpectrumType* spec_;
 		IonSource::Polarity pol_;

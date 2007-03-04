@@ -53,7 +53,7 @@ namespace OpenMS
     ProteinHit();
     
 		/// values constructor
-    ProteinHit(DoubleReal score, std::string score_type, UnsignedInt rank, String accession, std::string accession_type, String sequence);
+    ProteinHit(DoubleReal score, std::string score_type, UInt rank, String accession, std::string accession_type, String sequence);
 
 		/// copy constructor
     ProteinHit(const ProteinHit& source);
@@ -78,7 +78,7 @@ namespace OpenMS
     /// returns the type of the score
     const std::string& getScoreType() const;
 		/// returns the rank of the protein hit
-    UnsignedInt getRank() const;
+    UInt getRank() const;
 		/// returns the protein sequence
 		const String& getSequence() const;
 		/// returns the accession of the protein
@@ -91,7 +91,7 @@ namespace OpenMS
     /// sets the type of the score
     void setScoreType(const std::string& score_type);
 		/// sets the rank
-    void setRank(UnsignedInt newrank);
+    void setRank(UInt newrank);
 		/// sets the protein sequence
 		void setSequence(const String& sequence);
 		/// sets the accession of the protein
@@ -106,7 +106,7 @@ namespace OpenMS
   protected:
     Real score_;									///< the score of the protein hit
     std::string score_type_;    	///< the score type of the protein hit 
-		UnsignedInt rank_;    				///< the position(rank) where the hit 
+		UInt rank_;    				///< the position(rank) where the hit 
 																	///< appeared in the hit list
     String accession_;						///< the protein identifier
     std::string accession_type_;	///< the type of the accession

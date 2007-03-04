@@ -86,7 +86,7 @@ class TOPPDBExporter
 			
 			//varaibles
 			String db,user,password,host,query,out;
-			UnsignedInt port;
+			UInt port;
 			UID id;
 			
 			out = getStringOption_("out");			

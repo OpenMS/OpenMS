@@ -135,11 +135,11 @@ namespace OpenMS
 	
 		CoordinateType tolerance_mz = param_.getValue("tolerance_mz");
 	
-		UnsignedInt current_charge	 = 0;			// charge state of the current isotopic cluster
+		UInt current_charge	 = 0;			// charge state of the current isotopic cluster
 		CoordinateType mz_in_hash   = 0;			// used as reference to the current isotopic peak
 	
 		// sweep through scans
-		for (UnsignedInt i=0; i < traits_->getData().size(); ++i)
+		for (UInt i=0; i < traits_->getData().size(); ++i)
 		{
 			const FeaFiTraits::MapType::SpectrumType& scan = traits_->getData()[i];
 			
@@ -151,7 +151,7 @@ namespace OpenMS
 			iso_last_scan = iso_curr_scan;
 			iso_curr_scan.clear();
 			
-			for (UnsignedInt j=0; j < traits_->getData()[i].size()-1; ++j)
+			for (UInt j=0; j < traits_->getData()[i].size()-1; ++j)
 			{
 				// test for different charge states
 				current_charge = distanceToCharge_(scan[j+1].getMZ() - scan[j].getMZ());
@@ -205,7 +205,7 @@ namespace OpenMS
 							if (range.first != range.second)		// several peak cluster at this m/z found
 							{
 								// we want to find the previous scan
-								UnsignedInt scan_wanted = (i - 1);
+								UInt scan_wanted = (i - 1);
 																									
 								for (TableType::iterator iter = range.first; iter != range.second; ++iter)
 								{
@@ -279,8 +279,8 @@ namespace OpenMS
 	
 		cout << iso_map_.size() << " isotopic clusters were found." << endl;
 			
-		UnsignedInt min_number_scans = param_.getValue("min_number_scans");
-		UnsignedInt min_number_peaks = param_.getValue("min_number_peaks");
+		UInt min_number_scans = param_.getValue("min_number_scans");
+		UInt min_number_peaks = param_.getValue("min_number_peaks");
 	
 		// remove cluster having less than 6 peaks or less than 3 scans
 		for (TableType::iterator iter = iso_map_.begin(); iter != iso_map_.end(); ++iter)
@@ -302,7 +302,7 @@ namespace OpenMS
 	} // end of void sweep_()
 	
 	
-	UnsignedInt PickedPeakSeeder::distanceToCharge_(CoordinateType dist)
+	UInt PickedPeakSeeder::distanceToCharge_(CoordinateType dist)
 	{
     if (dist < charge1_ub_ && dist > charge1_lb_)
     {

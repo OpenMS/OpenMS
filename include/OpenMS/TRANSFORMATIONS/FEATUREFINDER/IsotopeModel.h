@@ -87,9 +87,9 @@ namespace OpenMS
     /// assignment operator 
     virtual IsotopeModel& operator = (const IsotopeModel& source);
 
-		void setParam(CoordinateType mean, UnsignedInt charge, CoordinateType isotope_stdev);
+		void setParam(CoordinateType mean, UInt charge, CoordinateType isotope_stdev);
 
-		UnsignedInt getCharge();
+		UInt getCharge();
 
 		/// create new IsotopeModel object (needed by Factory)
 		static BaseModel<1>* create()
@@ -125,7 +125,7 @@ namespace OpenMS
 
 		protected:
 			CoordinateType isotope_stdev_;
-			UnsignedInt charge_;
+			UInt charge_;
 			CoordinateType mean_;
 			CoordinateType monoisotopic_mz_;
 			double averagine_[AVERAGINE_NUM];

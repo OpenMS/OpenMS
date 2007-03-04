@@ -120,7 +120,7 @@ CHECK((Point(Base::RT hx, Base::RT hy)))
   TEST_REAL_EQUAL(p_copy.hy(),2)
 RESULT
 
-CHECK((Point(Base::RT hx, Base::RT hy, const PointType& f, UnsignedInt k=0)))
+CHECK((Point(Base::RT hx, Base::RT hy, const PointType& f, UInt k=0)))
   DelaunayPairFinder<FeatureMap<> >::Point p(1,2);
   DelaunayPairFinder<FeatureMap<> >::Point p_copy;
   p_copy = p;
@@ -149,21 +149,21 @@ CHECK((Point_2 operator()(const Circle_2& c) const))
   //
 RESULT
 
-CHECK((double getDiffIntercept(UnsignedInt dim)))
+CHECK((double getDiffIntercept(UInt dim)))
   DelaunayPairFinder<FeatureMap<> > dpf;
   
   TEST_REAL_EQUAL(dpf.getDiffIntercept(0),1)
   TEST_REAL_EQUAL(dpf.getDiffIntercept(1),0.1)
 RESULT
 
-CHECK((float getMaxPairDistance(UnsignedInt dim)))
+CHECK((float getMaxPairDistance(UInt dim)))
   DelaunayPairFinder<FeatureMap<> > dpf;
   
   TEST_REAL_EQUAL(dpf.getMaxPairDistance(0),3)
   TEST_REAL_EQUAL(dpf.getMaxPairDistance(1),1)
 RESULT
 
-CHECK((float getPrecision(UnsignedInt dim)))
+CHECK((float getPrecision(UInt dim)))
   DelaunayPairFinder<FeatureMap<> > dpf;
   
   TEST_REAL_EQUAL(dpf.getPrecision(0),20)
@@ -354,7 +354,7 @@ RESULT
 //   TEST_EQUAL((pairs.begin()+2)->second == feat6,true)
 // RESULT
 
-CHECK((void setDiffIntercept(UnsignedInt dim, DoubleReal intercept)))
+CHECK((void setDiffIntercept(UInt dim, DoubleReal intercept)))
   DelaunayPairFinder<FeatureMap<> > dpf;
   dpf.setDiffIntercept(0,2);
   dpf.setDiffIntercept(1,2);
@@ -363,7 +363,7 @@ CHECK((void setDiffIntercept(UnsignedInt dim, DoubleReal intercept)))
   TEST_REAL_EQUAL(dpf.getDiffIntercept(1),2)
 RESULT
 
-CHECK((void setMaxPairDistance(UnsignedInt dim, Real max_pair_distance)))
+CHECK((void setMaxPairDistance(UInt dim, Real max_pair_distance)))
   DelaunayPairFinder<FeatureMap<> > dpf;
   dpf.setMaxPairDistance(0,2);
   dpf.setMaxPairDistance(1,2);
@@ -372,7 +372,7 @@ CHECK((void setMaxPairDistance(UnsignedInt dim, Real max_pair_distance)))
   TEST_REAL_EQUAL(dpf.getMaxPairDistance(1),2)
 RESULT
 
-CHECK((void setPrecision(UnsignedInt dim, Real precision)))
+CHECK((void setPrecision(UInt dim, Real precision)))
   DelaunayPairFinder<FeatureMap<> > dpf;
   dpf.setPrecision(0,2);
   dpf.setPrecision(1,2);

@@ -49,7 +49,7 @@ namespace OpenMS
 			const Feature::ConvexHullVector& ch_vec = f_it->getConvexHulls();
 			
 			//iterate over the IDs
-			for (UnsignedInt i=0; i<ids.size(); ++i)
+			for (UInt i=0; i<ids.size(); ++i)
 			{
 				//cout << "  * ID (rt/mz): " << ids[i].rt << " " << ids[i].mz << endl;
 				DPosition<2> id_pos(ids[i].rt,ids[i].mz);

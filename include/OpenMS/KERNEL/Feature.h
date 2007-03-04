@@ -75,7 +75,7 @@ namespace OpenMS
 		enum { DIMENSION = 2 };
 		typedef std::vector<ConvexHull2D> ConvexHullVector;			
 		typedef	 DoubleReal QualityType;
-		typedef	 SignedInt ChargeType;
+		typedef	 Int ChargeType;
 		//@}
 
 		/** @name Constructors and Destructor
@@ -117,15 +117,15 @@ namespace OpenMS
 		inline void setOverallQuality(QualityType q) { overall_quality_ = q; }
 
 		/// Non-mutable access to the quality in dimension c
-		inline QualityType getQuality(UnsignedInt index) const
+		inline QualityType getQuality(UInt index) const
 		{
-			OPENMS_PRECONDITION(index < 2, "Feature<2>:getQuality(UnsignedInt): index overflow!")
+			OPENMS_PRECONDITION(index < 2, "Feature<2>:getQuality(UInt): index overflow!")
 			return qualities_[index]; 
 		}
 		/// Set the quality in dimension c
-		inline void setQuality(UnsignedInt index, QualityType q)
+		inline void setQuality(UInt index, QualityType q)
 		{
-			OPENMS_PRECONDITION(index < 2, "Feature<2>:setQuality(UnsignedInt): index overflow!")
+			OPENMS_PRECONDITION(index < 2, "Feature<2>:setQuality(UInt): index overflow!")
 			qualities_[index] = q; 
 		}
 		

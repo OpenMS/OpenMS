@@ -143,7 +143,7 @@ namespace OpenMS
 			Returns the current action mode of type ActionModes
 			@return the current action mode
 		*/
-		inline SignedInt getActionMode() const 
+		inline Int getActionMode() const 
 		{ 
 			return action_mode_;
 		}
@@ -185,7 +185,7 @@ namespace OpenMS
 			
 			@return the current intensity mode
 		*/
-		inline SignedInt getIntensityMode() const 
+		inline Int getIntensityMode() const 
 		{ 
 			return intensity_mode_; 
 		}
@@ -215,7 +215,7 @@ namespace OpenMS
 			return show_grid_; 
 		}
 		/// returns the layer data with index @p index
-		inline const LayerData& getLayer(UnsignedInt index) const
+		inline const LayerData& getLayer(UInt index) const
 		{
 			OPENMS_PRECONDITION(index < layers_.size(), "SpectrumCanvas::getLayer() index overflow");
 			return layers_[index];
@@ -269,12 +269,12 @@ namespace OpenMS
 		*/
 		//@{
 		/// Returns the number of layers
-		inline UnsignedInt getLayerCount() const
+		inline UInt getLayerCount() const
 		{
 			return layers_.size();
 		}
 		/// Returns the peak data (reduced or normal) of the @p index'th layer (not mutable)
-		inline const ExperimentType& getPeakData(UnsignedInt index) const 
+		inline const ExperimentType& getPeakData(UInt index) const 
 		{
 			if(show_reduced_)
 			{
@@ -293,7 +293,7 @@ namespace OpenMS
 		}
 			
 		/// Returns the index of the active layer
-		UnsignedInt activeLayerIndex() const;
+		UInt activeLayerIndex() const;
 		///change the active layer (the one that is used for selecting and so on)
 		virtual void activateLayer(int layer_index)=0;
 		///removes the layer with index @p layer_index
@@ -314,13 +314,13 @@ namespace OpenMS
 		
 			@return the index of the new layer
 		*/
-		virtual SignedInt finishAdding(float low_intensity_cutoff = 0) = 0;
+		virtual Int finishAdding(float low_intensity_cutoff = 0) = 0;
 		/**
 			@brief Add a peak data layer (data is copied)
 		
 			@return the index of the new layer. -1 if no new layer was created.
 		*/
-		SignedInt addLayer(const ExperimentType&);
+		Int addLayer(const ExperimentType&);
 
 		/**
 			@brief Add a feature data layer (data is copied)
@@ -330,7 +330,7 @@ namespace OpenMS
 			
 			@return the index of the new layer. -1 if no new layer was created.
 		*/
-		SignedInt addLayer(const FeatureMapType& map, bool pairs);
+		Int addLayer(const FeatureMapType& map, bool pairs);
 		
 		//@}
 		
@@ -361,7 +361,7 @@ namespace OpenMS
 		}
 
 		/// Returns the minimum intensity of the layer with index @p index
-		inline double getMinIntensity(UnsignedInt index) const 
+		inline double getMinIntensity(UInt index) const 
 		{ 
 			if (getLayer(index).type==LayerData::DT_PEAK)
 			{
@@ -380,7 +380,7 @@ namespace OpenMS
 		}
 
 		/// Returns the maximum intensity of the active layer
-		inline double getMaxIntensity(UnsignedInt index) const 
+		inline double getMaxIntensity(UInt index) const 
 		{ 
 			if (getLayer(index).type==LayerData::DT_PEAK)
 			{
@@ -476,7 +476,7 @@ namespace OpenMS
 		void sendCursorStatus(double pos=-1.0, double intens=-1.0, double rt=-1.0);
 
 		/// Displays a status message. See TOPPViewBase::showStatusMessage .
-		void sendStatusMessage(std::string, OpenMS::UnsignedInt);
+		void sendStatusMessage(std::string, OpenMS::UInt);
 			
 		/// Forces recalculation of axis ticks in the connected widget.
 		void recalculateAxes();
@@ -488,7 +488,7 @@ namespace OpenMS
 		void updateHScrollbar(float,float,float,float);
 	protected:
 
-		inline LayerData& getLayer_(UnsignedInt index)
+		inline LayerData& getLayer_(UInt index)
 		{
 			OPENMS_PRECONDITION(index < layers_.size(), "SpectrumCanvas::getLayer() index overflow");
 			return layers_[index];
@@ -501,7 +501,7 @@ namespace OpenMS
 		}
 
 		/// Returns the @p index'th layer (mutable)
-		inline ExperimentType& getPeakData_(UnsignedInt index)
+		inline ExperimentType& getPeakData_(UInt index)
 		{
 			if(show_reduced_)
 			{
@@ -656,29 +656,29 @@ namespace OpenMS
 			@brief Updates data and intensity range with the values of layer @p layer_index
 			
 			@param layer_index layer index
-			@param mz_dim SignedInt of m/z in overall_data_range_
-			@param rt_dim SignedInt of RT in overall_data_range_			
-			@param it_dim SignedInt of intensity in overall_data_range_	
+			@param mz_dim Int of m/z in overall_data_range_
+			@param rt_dim Int of RT in overall_data_range_			
+			@param it_dim Int of intensity in overall_data_range_	
 			
 			@see overall_data_range_
 			
 			@note Make sure the updateRanges() of the layers has been called before this method is called
 		*/
-		void updateRanges_(UnsignedInt layer_index, UnsignedInt mz_dim, UnsignedInt rt_dim, UnsignedInt it_dim);
+		void updateRanges_(UInt layer_index, UInt mz_dim, UInt rt_dim, UInt it_dim);
 		
 		/**
 			@brief Recalculates the data range.
 			
-			This method resets overall_data_range_ and calls updateRanges_(UnsignedInt,UnsignedInt,UnsignedInt,UnsignedInt)
+			This method resets overall_data_range_ and calls updateRanges_(UInt,UInt,UInt,UInt)
 			for all layers.
 	
-			@param mz_dim SignedInt of m/z in overall_data_range_
-			@param rt_dim SignedInt of RT in overall_data_range_		
-			@param it_dim SignedInt of intensity in overall_data_range_	
+			@param mz_dim Int of m/z in overall_data_range_
+			@param rt_dim Int of RT in overall_data_range_		
+			@param it_dim Int of intensity in overall_data_range_	
 			
 			@see overall_data_range_
 		*/
-		void recalculateRanges_(UnsignedInt mz_dim, UnsignedInt rt_dim, UnsignedInt it_dim);
+		void recalculateRanges_(UInt mz_dim, UInt rt_dim, UInt it_dim);
 		
 		/// Stores the data range (m/z, RT and intensity) of all layers
 		DRange<3> overall_data_range_;
@@ -713,7 +713,7 @@ namespace OpenMS
 		QCursor cursor_translate_in_progress_;
 
 		/// Stores the index of the currently active layer.
-		UnsignedInt current_layer_;
+		UInt current_layer_;
 
 		/// Changes the size of the paint buffer to the currently required size
 		void adjustBuffer_();

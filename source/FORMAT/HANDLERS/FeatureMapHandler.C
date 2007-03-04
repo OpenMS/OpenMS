@@ -93,8 +93,8 @@ namespace OpenMS
 			if (is_parser_in_tag_[DESCRIPTION])	// collect Experimental Settings
 			{
 				exp_sett_ << '<' << xercesc::XMLString::transcode(qname);
-				UnsignedInt n=attributes.getLength();
-				for (UnsignedInt i=0; i<n; ++i)
+				UInt n=attributes.getLength();
+				for (UInt i=0; i<n; ++i)
 				{
 					exp_sett_ << ' ' << xercesc::XMLString::transcode(attributes.getQName(i)) << "=\""	<< xercesc::XMLString::transcode(attributes.getValue(i)) << '\"';
 				}
@@ -115,11 +115,11 @@ namespace OpenMS
 	   			break;
 				case QUALITY:
 					tmp_str = getAttributeAsString_(DIM);
-					current_qcoord_ = asUnsignedInt_(tmp_str); 
+					current_qcoord_ = asUInt_(tmp_str); 
 					break;
 				case POSITION:
 					tmp_str = getAttributeAsString_(DIM);
-					current_pcoord_ = asUnsignedInt_(tmp_str); 
+					current_pcoord_ = asUInt_(tmp_str); 
 					break;
 				case CONVEXHULL: 
 					current_chull_  = new ConvexHullType(); 
@@ -129,7 +129,7 @@ namespace OpenMS
 					break;
 				case HPOSITION:  
 					tmp_str = getAttributeAsString_(DIM);
-					current_hcoord_ = asUnsignedInt_(tmp_str); 
+					current_hcoord_ = asUInt_(tmp_str); 
 					break;
 				case FEATMODEL:
 					model_desc_ = new ModelDescription<2>();
@@ -160,7 +160,7 @@ namespace OpenMS
 			}
 	
 			// find the tag that the parser is in right now
-	 		for (UnsignedInt i=0; i<is_parser_in_tag_.size(); i++)
+	 		for (UInt i=0; i<is_parser_in_tag_.size(); i++)
 	 		{
 				if (is_parser_in_tag_[i])
 				{
@@ -178,7 +178,7 @@ namespace OpenMS
 						case OVERALLQUALITY:  
 							feature_->setOverallQuality(asDouble_(xercesc::XMLString::transcode(chars))); break;
 						case CHARGE:          
-							feature_->setCharge(asSignedInt_(xercesc::XMLString::transcode(chars)));
+							feature_->setCharge(asInt_(xercesc::XMLString::transcode(chars)));
 							break;
 						case HPOSITION:       
 							(*hull_position_)[current_hcoord_] = asDouble_(xercesc::XMLString::transcode(chars)); 
@@ -206,18 +206,18 @@ namespace OpenMS
 			os << "\t<featureList count=\"" << cmap_->size() << "\">\n";
 	
 			// write features with their corresponding attributes
-			for (UnsignedInt s=0; s<cmap_->size(); s++)
+			for (UInt s=0; s<cmap_->size(); s++)
 			{
 				const Feature& feat = (*cmap_)[s];
 	
 				os << "\t\t<feature id=\"" << id_generator.getUID() << "\">" << std::endl;
 	
-				for (UnsignedInt i=0; i<2;i++)
+				for (UInt i=0; i<2;i++)
 					os <<	"\t\t\t<position dim=\"" << i << "\">" << feat.getPosition()[i] << "</position>" << 	std::endl;
 	
 				os << "\t\t\t<intensity>" << feat.getIntensity() << "</intensity>" << std::endl;
 	
-				for (UnsignedInt i=0; i<2;i++)
+				for (UInt i=0; i<2;i++)
 				os << "\t\t\t<quality dim=\"" << i << "\">" << feat.getQuality(i) << "</quality>" << std:: endl;
 	
 				if(feat.getMetaValue(3)!=DataValue::EMPTY)
@@ -243,22 +243,22 @@ namespace OpenMS
 				ConvexHullVector hulls = feat.getConvexHulls();
 				ConvexHullVector::iterator citer = hulls.begin();
 	
-				UnsignedInt hulls_count = hulls.size();
+				UInt hulls_count = hulls.size();
 	
-				for (UnsignedInt i=0;i<hulls_count; i++)
+				for (UInt i=0;i<hulls_count; i++)
 				{
 					os << "\t\t\t<convexhull nr=\"" << i << "\">" << std:: endl;
 	
 					ConvexHullType current_hull = hulls[i];
-					UnsignedInt hull_size       = current_hull.getPoints().size();
+					UInt hull_size       = current_hull.getPoints().size();
 	
-					for (UnsignedInt j=0;j<hull_size;j++)
+					for (UInt j=0;j<hull_size;j++)
 					{
 						os << "\t\t\t\t<hullpoint>" << std::endl;
 	
 						DPosition<2> pos = current_hull.getPoints()[j];
-						UnsignedInt pos_size = pos.size();
-						for (UnsignedInt k=0; k<pos_size; k++)
+						UInt pos_size = pos.size();
+						for (UInt k=0; k<pos_size; k++)
 						{
 							os << "\t\t\t\t\t<hposition dim=\"" << k << "\">" << pos[k] << "</hposition>" << std::endl;
 						}

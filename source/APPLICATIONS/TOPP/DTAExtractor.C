@@ -85,7 +85,7 @@ class TOPPDTAExtractor
 			//ranges
 			String mz, rt, tmp;
 			double mz_l, mz_u, rt_l, rt_u;
-			vector<UnsignedInt> levels;			
+			vector<UInt> levels;			
 			//initialize ranges
 			mz_l = rt_l = -1 * numeric_limits<double>::max();
 			mz_u = rt_u = numeric_limits<double>::max();
@@ -123,7 +123,7 @@ class TOPPDTAExtractor
 				
 				String tmp3("MS levels: ");
 				tmp3 = tmp3 + *(levels.begin());
-				for (vector<UnsignedInt>::iterator it = ++levels.begin(); it != levels.end(); ++it)
+				for (vector<UInt>::iterator it = ++levels.begin(); it != levels.end(); ++it)
 				{
 					tmp3 = tmp3 + ", " + *it;
 				}
@@ -155,7 +155,7 @@ class TOPPDTAExtractor
 			{
 				//check for MS-level
 				bool in_level_range = false;
-				for (vector<UnsignedInt>::iterator it2 = levels.begin(); it2 != levels.end(); ++it2)
+				for (vector<UInt>::iterator it2 = levels.begin(); it2 != levels.end(); ++it2)
 				{
 					if (it->getMSLevel()==*it2)
 					{

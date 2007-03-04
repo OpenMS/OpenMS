@@ -122,7 +122,7 @@ namespace OpenMS {
 
   void ProteinIdentification::assignRanks()
   {
-  	UnsignedInt rank = 1;
+  	UInt rank = 1;
   	
   	sort();
     for ( vector<ProteinHit>::iterator lit = protein_hits_.begin(); lit != protein_hits_.end(); ++lit )

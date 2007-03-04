@@ -130,7 +130,7 @@ CHECK(ContainerType const& getData() const throw())
 	v.push_back(-.1);
 	lifd.setData(v);
 	TEST_EQUAL(lifd.getData().size(),v.size());
-	for ( UnsignedInt i = 0; i < v.size(); ++i )
+	for ( UInt i = 0; i < v.size(); ++i )
 		TEST_EQUAL(lifd.getData()[i],v[i]);
 }
 RESULT
@@ -146,7 +146,7 @@ CHECK(ContainerType& getData() throw())
 	lifd.setData(v);
 	LIFD const & lifd_cr = lifd;
 	TEST_EQUAL(lifd_cr.getData().size(),v.size());
-	for ( UnsignedInt i = 0; i < v.size(); ++i )
+	for ( UInt i = 0; i < v.size(); ++i )
 		TEST_EQUAL(lifd_cr.getData()[i],v[i]);
 }
 RESULT
@@ -253,7 +253,7 @@ CHECK(LinearInterpolation( LinearInterpolation const & arg ))
 	TEST_REAL_EQUAL(lifd2.getScale(), 10);
 	TEST_REAL_EQUAL(lifd2.getInsideReferencePoint(), 13);
 	TEST_REAL_EQUAL(lifd2.getOutsideReferencePoint(), 130);
-	for ( UnsignedInt i = 0; i < v.size(); ++i )
+	for ( UInt i = 0; i < v.size(); ++i )
 		TEST_EQUAL(lifd2.getData()[i],v[i]);
 }
 RESULT
@@ -274,7 +274,7 @@ CHECK(LinearInterpolation& operator= ( LinearInterpolation const & arg ))
 	TEST_REAL_EQUAL(lifd2.getScale(), 10);
 	TEST_REAL_EQUAL(lifd2.getInsideReferencePoint(), 13);
 	TEST_REAL_EQUAL(lifd2.getOutsideReferencePoint(), 130);
-	for ( UnsignedInt i = 0; i < v.size(); ++i )
+	for ( UInt i = 0; i < v.size(); ++i )
 		TEST_EQUAL(lifd2.getData()[i],v[i]);
 
 }
@@ -469,7 +469,7 @@ CHECK((void addValue( KeyType arg_pos, ValueType arg_value ) throw()))
 
 		lininterpol.getData().resize(5);
 		lininterpol.addValue(2.3,10);
-		for ( UnsignedInt i = 0; i != lininterpol.getData().size(); ++i )
+		for ( UInt i = 0; i != lininterpol.getData().size(); ++i )
 		{
 			STATUS(i << ": " << lininterpol.getData()[i]);
 		}
@@ -482,7 +482,7 @@ CHECK((void addValue( KeyType arg_pos, ValueType arg_value ) throw()))
 
 		lininterpol.getData().resize(5);
 		lininterpol.addValue(0.3,10);
-		for ( UnsignedInt i = 0; i != lininterpol.getData().size(); ++i )
+		for ( UInt i = 0; i != lininterpol.getData().size(); ++i )
 		{
 			STATUS(i << ": " << lininterpol.getData()[i]);
 		}
@@ -495,7 +495,7 @@ CHECK((void addValue( KeyType arg_pos, ValueType arg_value ) throw()))
 
 		lininterpol.getData().resize(5);
 		lininterpol.addValue(-0.7,10);
-		for ( UnsignedInt i = 0; i != lininterpol.getData().size(); ++i )
+		for ( UInt i = 0; i != lininterpol.getData().size(); ++i )
 		{
 			STATUS(i << ": " << lininterpol.getData()[i]);
 		}
@@ -507,7 +507,7 @@ CHECK((void addValue( KeyType arg_pos, ValueType arg_value ) throw()))
 
 		lininterpol.getData().resize(5);
 		lininterpol.addValue(-1.7,10);
-		for ( UnsignedInt i = 0; i != lininterpol.getData().size(); ++i )
+		for ( UInt i = 0; i != lininterpol.getData().size(); ++i )
 		{
 			STATUS(i << ": " << lininterpol.getData()[i]);
 		}
@@ -519,7 +519,7 @@ CHECK((void addValue( KeyType arg_pos, ValueType arg_value ) throw()))
 
 		lininterpol.getData().resize(5);
 		lininterpol.addValue(3.3,10);
-		for ( UnsignedInt i = 0; i != lininterpol.getData().size(); ++i )
+		for ( UInt i = 0; i != lininterpol.getData().size(); ++i )
 		{
 			STATUS(i << ": " << lininterpol.getData()[i])
 				}
@@ -532,7 +532,7 @@ CHECK((void addValue( KeyType arg_pos, ValueType arg_value ) throw()))
 
 		lininterpol.getData().resize(5);
 		lininterpol.addValue(4.3,10);
-		for ( UnsignedInt i = 0; i != lininterpol.getData().size(); ++i )
+		for ( UInt i = 0; i != lininterpol.getData().size(); ++i )
 		{
 			STATUS(i << ": " << lininterpol.getData()[i]);
 		}
@@ -544,7 +544,7 @@ CHECK((void addValue( KeyType arg_pos, ValueType arg_value ) throw()))
 
 		lininterpol.getData().resize(5);
 		lininterpol.addValue(5.3,10);
-		for ( UnsignedInt i = 0; i != lininterpol.getData().size(); ++i )
+		for ( UInt i = 0; i != lininterpol.getData().size(); ++i )
 		{
 			STATUS(i << ": " << lininterpol.getData()[i]);
 		}

@@ -152,7 +152,7 @@ namespace OpenMS
     QMenu* recent_menu = new QMenu("Recent files", this);
     //create the max mumber of recent files actions
   	recent_actions_.resize(20);
-		for (UnsignedInt i = 0; i<20; ++i)
+		for (UInt i = 0; i<20; ++i)
 		{
 			recent_actions_[i] = recent_menu->addAction("",this,SLOT(openRecentFile()));
 			recent_actions_[i]->setVisible(false);
@@ -242,7 +242,7 @@ namespace OpenMS
 		}
   }
 
-  void TOPPViewBase::addDBSpectrum(UnsignedInt db_id, bool as_new_window, bool maps_as_2d, bool maximize, OpenDialog::Mower use_mower)
+  void TOPPViewBase::addDBSpectrum(UInt db_id, bool as_new_window, bool maps_as_2d, bool maximize, OpenDialog::Mower use_mower)
   {
 #ifdef DB_DEF
     //DBConnection for all DB queries
@@ -409,12 +409,12 @@ namespace OpenMS
   float TOPPViewBase::estimateNoise_(const SpectrumCanvas::ExperimentType& exp)
   {
     float noise = 0.0;
-    UnsignedInt count = 0;
+    UInt count = 0;
     srand(time(0));
     //cout << "size: " << exp.size() << endl;
     while (count<10)
     {
-      UnsignedInt scan = (UnsignedInt)( (double)rand() / ((double)(RAND_MAX)+1.0f) * (double)(exp.size()-1) );
+      UInt scan = (UInt)( (double)rand() / ((double)(RAND_MAX)+1.0f) * (double)(exp.size()-1) );
 
       if (scan < exp.size() && exp[scan].getMSLevel()==1)
       {
@@ -427,8 +427,8 @@ namespace OpenMS
           tmp.push_back(it->getIntensity());
         }
         std::sort(tmp.begin(),tmp.end());
-        //cout << "scan: "<< scan <<" Groesse: " << tmp.size() << " Index: " << (UnsignedInt)ceil((float)(tmp.size()-1)/1.25f) << " Wert: "<< tmp[(UnsignedInt)ceil((float)(tmp.size()-1)/1.25f)] << endl;
-        noise += tmp[(UnsignedInt)ceil((float)(tmp.size()-1)/1.25f)];
+        //cout << "scan: "<< scan <<" Groesse: " << tmp.size() << " Index: " << (UInt)ceil((float)(tmp.size()-1)/1.25f) << " Wert: "<< tmp[(UInt)ceil((float)(tmp.size()-1)/1.25f)] << endl;
+        noise += tmp[(UInt)ceil((float)(tmp.size()-1)/1.25f)];
 
         ++count;
       }
@@ -642,8 +642,8 @@ namespace OpenMS
 		recent_files_.prepend(tmp.c_str());
 		
 		//remove those files exceeding the defined number
-		UnsignedInt number_of_recent_files = UnsignedInt(prefs_.getValue("Preferences:NumberOfRecentFiles"));
-		while ((UnsignedInt)recent_files_.size() > number_of_recent_files)
+		UInt number_of_recent_files = UInt(prefs_.getValue("Preferences:NumberOfRecentFiles"));
+		while ((UInt)recent_files_.size() > number_of_recent_files)
 		{
 			recent_files_.removeLast();
 		}
@@ -654,16 +654,16 @@ namespace OpenMS
   void TOPPViewBase::updateRecentMenu_()
   {
     //get/correct number of recent files
-		UnsignedInt number_of_recent_files = UnsignedInt(prefs_.getValue("Preferences:NumberOfRecentFiles"));
+		UInt number_of_recent_files = UInt(prefs_.getValue("Preferences:NumberOfRecentFiles"));
 		if (number_of_recent_files>20)
 		{
 			number_of_recent_files = 20;
 			prefs_.setValue("Preferences:NumberOfRecentFiles",20);
 		}
 		
-		for (UnsignedInt i = 0; i < 20; ++i)
+		for (UInt i = 0; i < 20; ++i)
 		{
-			if (i < (UnsignedInt)(recent_files_.size()))
+			if (i < (UInt)(recent_files_.size()))
 			{
 				QString text = tr("&%1 %2").arg(i).arg(recent_files_[i]);
 				recent_actions_[i]->setText(text);
@@ -846,7 +846,7 @@ namespace OpenMS
     		}
     		out.resize(end-begin);
 				
-				UnsignedInt i = 0;
+				UInt i = 0;
     		for (LayerData::ExperimentType::ConstIterator it=begin; it!=end; ++it)
     		{
   				out[i].SpectrumSettings::operator=(*it);
@@ -1191,7 +1191,7 @@ namespace OpenMS
 		}    
   }
 
-  void TOPPViewBase::showStatusMessage(string msg, OpenMS::UnsignedInt time)
+  void TOPPViewBase::showStatusMessage(string msg, OpenMS::UInt time)
   {
     if (time==0)
     {
@@ -1389,7 +1389,7 @@ namespace OpenMS
       return;
     }
 		QListWidgetItem* item = 0;
-    for (UnsignedInt i = 0; i<cc->getLayerCount(); ++i)
+    for (UInt i = 0; i<cc->getLayerCount(); ++i)
     {
     	//add item
     	item = new QListWidgetItem( layer_manager_ );
@@ -1526,7 +1526,7 @@ namespace OpenMS
   void TOPPViewBase::connectWindowSignals_(SpectrumWindow* sw)
   {
     connect(sw->widget()->canvas(),SIGNAL(layerActivated(QWidget*)),this,SLOT(updateToolbar()));
-    connect(sw,SIGNAL(sendStatusMessage(std::string,OpenMS::UnsignedInt)),this,SLOT(showStatusMessage(std::string,OpenMS::UnsignedInt)));
+    connect(sw,SIGNAL(sendStatusMessage(std::string,OpenMS::UInt)),this,SLOT(showStatusMessage(std::string,OpenMS::UInt)));
     connect(sw,SIGNAL(sendCursorStatus(double,double,double)),this,SLOT(showCursorStatus(double,double,double)));
     connect(sw,SIGNAL(modesChanged(QWidget*)),this,SLOT(updateToolbar()));
   
@@ -1680,7 +1680,7 @@ namespace OpenMS
         //color smoothed data
         for (Spectrum1DCanvas::ExperimentType::SpectrumType::Iterator it = exp_smoothed[0].begin(); it!= exp_smoothed[0].end(); ++it)
         {
-          it->setMetaValue(UnsignedInt(5),string("#FF00FF"));
+          it->setMetaValue(UInt(5),string("#FF00FF"));
         }
 
         w->widget()->canvas()->finishAdding();
@@ -1842,7 +1842,7 @@ namespace OpenMS
         //color smoothed data
         for (Spectrum1DCanvas::ExperimentType::SpectrumType::Iterator it = exp_filtered[0].begin(); it!= exp_filtered[0].end(); ++it)
         {
-          it->setMetaValue(UnsignedInt(5),string("#FF00FF"));
+          it->setMetaValue(UInt(5),string("#FF00FF"));
         }
 
         w->widget()->canvas()->finishAdding();
@@ -1961,7 +1961,7 @@ namespace OpenMS
         //color picked peaks
         for (Spectrum1DCanvas::ExperimentType::SpectrumType::Iterator it = exp[0].begin(); it!= exp[0].end(); ++it)
         {
-          it->setMetaValue(UnsignedInt(5),string("#FF00FF"));
+          it->setMetaValue(UInt(5),string("#FF00FF"));
         }
 
         w->widget()->canvas()->finishAdding();

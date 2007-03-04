@@ -114,9 +114,9 @@ namespace OpenMS
     inline void setPeakShape(const PeakShapeType::Enum& type) { type_ = type; }
 
     /// Non-mutable access to the peak charge
-    inline SignedInt getCharge() const { return charge_; }
+    inline Int getCharge() const { return charge_; }
     /// Mutable access to the peak charge (Set to 0 if unknown)
-    inline void setCharge(SignedInt charge) { charge_ = charge; }
+    inline void setCharge(Int charge) { charge_ = charge; }
 
     /// Non-mutable access to the signal to noise value
     inline DoubleReal getSN() const { return signal_to_noise_; }
@@ -301,7 +301,7 @@ namespace OpenMS
     /// The function that was used for fitting the peak shape
     PeakShapeType::Enum type_;
     /// The peak charge
-    SignedInt charge_;
+    Int charge_;
     /// The signal to noise value of the peak
     DoubleReal signal_to_noise_;
 

@@ -55,7 +55,7 @@ namespace OpenMS
 	
 		@ingroup Kernel
 	*/
-	template <UnsignedInt D, typename PeakT = DPeak<D> >
+	template <UInt D, typename PeakT = DPeak<D> >
 	class DPeakArray
 		:	public std::vector<PeakT>, 
 			public PersistentObject
@@ -150,7 +150,7 @@ namespace OpenMS
 			
 			It is only sorted according to dimentsion @p i . 
 		*/
-		void sortByNthPosition(UnsignedInt i) throw (Exception::NotImplemented);
+		void sortByNthPosition(UInt i) throw (Exception::NotImplemented);
 		
 		/** 
 			@name Generic sorting function templates.
@@ -218,7 +218,7 @@ namespace OpenMS
 	};
 
 	///Print the contents to a stream.
-	template <UnsignedInt D, typename Peak>
+	template <UInt D, typename Peak>
 	std::ostream& operator << (std::ostream& os, const DPeakArray<D, Peak>& array)
 	{
 		os << "-- DPEAKARRAY-NONPOLYMORPHIC BEGIN --"<<std::endl;
@@ -234,10 +234,10 @@ namespace OpenMS
 //  Implementation of the inline / template functions
 //---------------------------------------------------------------
 
-	template <UnsignedInt D, typename PeakT > 
-	void DPeakArray<D,PeakT>::sortByNthPosition(UnsignedInt i) throw (Exception::NotImplemented)
+	template <UInt D, typename PeakT > 
+	void DPeakArray<D,PeakT>::sortByNthPosition(UInt i) throw (Exception::NotImplemented)
 	{ 
-		OPENMS_PRECONDITION(i < SignedInt(D), "illegal dimension")
+		OPENMS_PRECONDITION(i < Int(D), "illegal dimension")
 		if (i==0)
 		{
 			std::sort(Base::begin(), Base::end(), typename PeakType::template NthPositionLess<0>() );

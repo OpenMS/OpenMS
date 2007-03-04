@@ -48,7 +48,7 @@ CHECK((NLargest()))
 	TEST_NOT_EQUAL(e_ptr, 0)
 RESULT
 
-CHECK(NLargest(UnsignedInt n))
+CHECK(NLargest(UInt n))
 	NLargest filter(10);
 	TEST_EQUAL((unsigned int)filter.getParameters().getValue("n"), 10)
 RESULT

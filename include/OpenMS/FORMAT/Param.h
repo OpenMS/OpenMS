@@ -82,8 +82,8 @@ namespace OpenMS
     /// Equality operator
     bool operator == (const Param& rhs) const;
 
-    /// Set a SignedInt value.
-    void setValue(const std::string& key, SignedInt value);
+    /// Set a Int value.
+    void setValue(const std::string& key, Int value);
     /// Set a float value.
     void setValue(const std::string& key, float value);
     /// Set a double value.
@@ -99,7 +99,7 @@ namespace OpenMS
     const DataValue& getValue(const std::string& key) const;
 
     ///Returns the number of entries (leafs).
-    UnsignedInt size() const;
+    UInt size() const;
     ///Returns if there are no entries.
     bool empty() const;
     /// Deletes all entries

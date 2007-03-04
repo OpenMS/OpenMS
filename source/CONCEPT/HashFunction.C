@@ -35,11 +35,11 @@ namespace OpenMS
 	 * The result of the hash function is a number in the range 
 	 * [0..(number_of_slots-1)].
 	 */
-	UnsignedInt hashPointer(void *const void_ptr)
+	UInt hashPointer(void *const void_ptr)
 		throw()
 	{
 		double d = ((double)((unsigned long)void_ptr)) * 0.6180339887;
-		SignedInt index = (SignedInt)(5832641097.37287 * (d - (double)((unsigned long)d)));
+		Int index = (Int)(5832641097.37287 * (d - (double)((unsigned long)d)));
 
 		return ((index < 0) ? -index : index);
 	}
@@ -49,12 +49,12 @@ namespace OpenMS
 	 * [0..255]. This algorithm was published by P. K. Pearson,
 	 * Comm. ACM, 33:6(1990), 677
 	 */
-	UnsignedInt hashString(const char *s)
+	UInt hashString(const char *s)
 		throw()
 	{
 		if (s == 0)
 		{
-			return (UnsignedInt)0;
+			return (UInt)0;
 		}
 
 		static const unsigned char pseudo_random_permuted_key[256] = 
@@ -83,7 +83,7 @@ namespace OpenMS
 			hash = pseudo_random_permuted_key[hash ^ *s];
 		}
 
-		return (UnsignedInt)hash;
+		return (UInt)hash;
 	}
 
 	/* Summary: A portable adaptation of Peter Weinberger's (PJW) (AT&T Bell Labs) 
@@ -91,16 +91,16 @@ namespace OpenMS
 	 * to a string to be hashed.
 	 * Taken from: Dr. Dobb's Journal, April 1996, p.26
 	 */
-	UnsignedInt hashPJWString(const char *s)
+	UInt hashPJWString(const char *s)
 	 throw()
 	{
-		SignedInt index = 0;
-		SignedInt temp_index;
+		Int index = 0;
+		Int temp_index;
 
-#		define OPENMS_BITS_IN_HASHVALUE_   (sizeof(SignedInt) * CHAR_BIT)
-#		define OPENMS_THREE_QUARTERS_      ((SignedInt)((OPENMS_BITS_IN_HASHVALUE_ * 3) / 4))
-#		define OPENMS_ONE_EIGHTH_          ((SignedInt)(OPENMS_BITS_IN_HASHVALUE_ / 8))
-#		define OPENMS_HIGH_BITS_           (~((SignedInt)(~0) >> OPENMS_ONE_EIGHTH_))
+#		define OPENMS_BITS_IN_HASHVALUE_   (sizeof(Int) * CHAR_BIT)
+#		define OPENMS_THREE_QUARTERS_      ((Int)((OPENMS_BITS_IN_HASHVALUE_ * 3) / 4))
+#		define OPENMS_ONE_EIGHTH_          ((Int)(OPENMS_BITS_IN_HASHVALUE_ / 8))
+#		define OPENMS_HIGH_BITS_           (~((Int)(~0) >> OPENMS_ONE_EIGHTH_))
 
 		for (; *s; s++)
 		{
@@ -124,7 +124,7 @@ namespace OpenMS
 	 * Assumes a long pointer to have 4 bytes of 8 bits.
 	 * Taken from: Dr. Dobb's Journal, April 1996, p.26
 	 */
-	UnsignedInt hashElfString(const char *s)
+	UInt hashElfString(const char *s)
 	 throw()
 	{
 		unsigned long l = 0;
@@ -140,11 +140,11 @@ namespace OpenMS
 			l &= ~temp;
 		}
 
-		return (SignedInt)l;
+		return (Int)l;
 	}
 
 
-  UnsignedInt getNextPrime(UnsignedInt l)
+  UInt getNextPrime(UInt l)
 	 throw()
   {
     if (l <= 3)
@@ -157,8 +157,8 @@ namespace OpenMS
       l++;
 		}
 
-    UnsignedInt sqr = (UnsignedInt)std::sqrt((double)l) + 1;
-    UnsignedInt div = 0;
+    UInt sqr = (UInt)std::sqrt((double)l) + 1;
+    UInt div = 0;
 
     for (;;)
     {

@@ -84,7 +84,7 @@ CHECK((DoubleReal getSN() const))
 	TEST_REAL_EQUAL(p.getSN(), 0.0)
 RESULT
 
-CHECK((SignedInt getCharge() const))
+CHECK((Int getCharge() const))
 	const PickedPeak1D	p;
 	TEST_EQUAL(p.getCharge(), 0)
 RESULT
@@ -169,7 +169,7 @@ CHECK((DoubleReal& getSN()))
 	TEST_REAL_EQUAL(p.getSN(), 0.0)
 RESULT
 
-CHECK((SignedInt& getCharge()))
+CHECK((Int& getCharge()))
 	PickedPeak1D p;
 	TEST_EQUAL(p.getCharge(), 0.0)
 	p.setCharge(12);

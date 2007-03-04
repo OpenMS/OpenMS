@@ -84,35 +84,35 @@ namespace OpenMS
 				
 				Give the numbers in the following order: month, day and year.
 			*/
-			void setDate(UnsignedInt month, UnsignedInt day, UnsignedInt year) throw (Exception::ParseError);
+			void setDate(UInt month, UInt day, UInt year) throw (Exception::ParseError);
 		
 			/**
 				@brief sets time from three integers
 				
 				Give the numbers in the following order: hour, minute and second.
 			*/
-			void setTime(UnsignedInt hour, UnsignedInt minute, UnsignedInt second) throw (Exception::ParseError);
+			void setTime(UInt hour, UInt minute, UInt second) throw (Exception::ParseError);
 		
 			/**
 				@brief sets data from six integers
 				
 				Give the numbers in the following order: month, day, year, hour, minute, second.
 			*/
-			void set(UnsignedInt month, UnsignedInt day, UnsignedInt year, UnsignedInt hour, UnsignedInt minute, UnsignedInt second) throw (Exception::ParseError);
+			void set(UInt month, UInt day, UInt year, UInt hour, UInt minute, UInt second) throw (Exception::ParseError);
 		
 			/**
 				@brief Fills the arguments with the date and the time
 			 	
 			 	Give the numbers in the following order: month, day and year, hour minute, second.
 			*/
-			void get(UnsignedInt& month, UnsignedInt& day, UnsignedInt& year, UnsignedInt& hour, UnsignedInt& minute, UnsignedInt& second) const;
+			void get(UInt& month, UInt& day, UInt& year, UInt& hour, UInt& minute, UInt& second) const;
 
 			/**
 				@brief Fills the arguments with the date
 			 	
 			 	Give the numbers in the following order: month, day and year.
 			*/
-			void getDate(UnsignedInt& month, UnsignedInt& day, UnsignedInt& year) const;
+			void getDate(UInt& month, UInt& day, UInt& year) const;
 
 			/**
 				@brief Fills the arguments with the date
@@ -124,9 +124,9 @@ namespace OpenMS
 			/**
 				@brief Fills the arguments with the time
 			 	
-				The arguments are all UnsignedInts and the order is hour minute second
+				The arguments are all UInts and the order is hour minute second
 			*/
-			void getTime(UnsignedInt& hour, UnsignedInt& minute, UnsignedInt& second) const;
+			void getTime(UInt& hour, UInt& minute, UInt& second) const;
 			
 			/**
 				@brief Fills the arguments with the time
@@ -156,9 +156,9 @@ namespace OpenMS
 			void set(const String& date) throw (Exception::ParseError);
 			
 		protected:
-			UnsignedInt hour_;
-			UnsignedInt minute_; 
-			UnsignedInt second_;
+			UInt hour_;
+			UInt minute_; 
+			UInt second_;
 	};
 	
 } // namespace OPENMS

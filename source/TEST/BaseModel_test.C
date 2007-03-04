@@ -188,7 +188,7 @@ RESULT
 CHECK(void  fillIntensities(PeakIterator beg, PeakIterator end) const)
 	const TestModel t;
   std::vector< TestModel::PeakType > vec(4);
-  for (UnsignedInt i=0; i<4; ++i)
+  for (UInt i=0; i<4; ++i)
   {
 		vec[i].setIntensity(-0.5);
 		vec[i].getPosition()[0] = i;

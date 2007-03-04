@@ -92,7 +92,7 @@ namespace OpenMS
 	     
 	         C:            the C parameter of the svm	     
 			*/	     
-	    void setParameter(SVM_parameter_type type, SignedInt value);
+	    void setParameter(SVM_parameter_type type, Int value);
 	
 		  /**
 		    @brief sets the double parameters of the svm
@@ -105,7 +105,7 @@ namespace OpenMS
 
 	      The svm is trained with the data stored in the 'svm_problem' structure.
 			*/
-	    SignedInt  train(struct svm_problem* problem);
+	    Int  train(struct svm_problem* problem);
 	
 		  /**
 		    @brief	saves the svm model 
@@ -144,7 +144,7 @@ namespace OpenMS
 	     
 	         SVM_TYPE:     the SVm type of the svm: can be NU_SVR or EPSILON_SVR
 		  */	     
-	    SignedInt getIntParameter(SVM_parameter_type type);
+	    Int getIntParameter(SVM_parameter_type type);
 	
 		  /**
 		    @brief You can get the actual double- parameters of the svm
@@ -161,13 +161,13 @@ namespace OpenMS
 		    @brief You can create 'number' equally sized random partitions 
 		    
 		  */
-			static std::vector<svm_problem*>* createRandomPartitions(svm_problem* problem, UnsignedInt number);
+			static std::vector<svm_problem*>* createRandomPartitions(svm_problem* problem, UInt number);
 	
 		  /**
 		    @brief You can merge partitions excuding the partition with index 'except' 
 		    
 		  */
-	    static svm_problem* mergePartitions(const std::vector<svm_problem*>* const problems,UnsignedInt except);
+	    static svm_problem* mergePartitions(const std::vector<svm_problem*>* const problems,UInt except);
 																	 				
 		  /**
 		    @brief predicts the labels using the trained model
@@ -187,7 +187,7 @@ namespace OpenMS
 		    @brief Returns the stored labels of the encoded SVM data 
 		    
 		  */
-			std::map<SVM_parameter_type, DoubleReal>* performCrossValidation(svm_problem* problem, std::map<SVM_parameter_type, DoubleReal>& start_values, std::map<SVM_parameter_type, DoubleReal>& step_sizes, std::map<SVM_parameter_type, DoubleReal>& end_values, DoubleReal* cv_quality, UnsignedInt number_of_partitions, UnsignedInt number_of_runs, bool additive_step_size = true, bool output = false, String performances_file_name = "performances.txt");
+			std::map<SVM_parameter_type, DoubleReal>* performCrossValidation(svm_problem* problem, std::map<SVM_parameter_type, DoubleReal>& start_values, std::map<SVM_parameter_type, DoubleReal>& step_sizes, std::map<SVM_parameter_type, DoubleReal>& end_values, DoubleReal* cv_quality, UInt number_of_partitions, UInt number_of_runs, bool additive_step_size = true, bool output = false, String performances_file_name = "performances.txt");
 																 					
 		  /**
 		    @brief Returns the probability parameter sigma of the fitted laplace model.		      
@@ -207,13 +207,13 @@ namespace OpenMS
 		    the sequences 'x' and 'y' that had been encoded by the encodeOligoBorder... function
 		    of the LibSVMEncoder class. 	      		    
 		  */
-			static DoubleReal kernelOligo(const svm_node*	x, const svm_node* y, const std::vector<DoubleReal>&	gauss_table, DoubleReal sigma_square = 0,	UnsignedInt	max_distance = 50);
+			static DoubleReal kernelOligo(const svm_node*	x, const svm_node* y, const std::vector<DoubleReal>&	gauss_table, DoubleReal sigma_square = 0,	UInt	max_distance = 50);
 
 		  /**
 		    @brief calculates the significance borders of the error model and stores them in 'borders'	      
 		    
 		  */
-			void getSignificanceBorders(svm_problem* data, std::pair<DoubleReal, DoubleReal>& borders, DoubleReal confidence = 0.95, UnsignedInt number_of_runs = 10, UnsignedInt number_of_partitions = 5, DoubleReal step_size = 0.01, UnsignedInt max_iterations = 1000000);
+			void getSignificanceBorders(svm_problem* data, std::pair<DoubleReal, DoubleReal>& borders, DoubleReal confidence = 0.95, UInt number_of_runs = 10, UInt number_of_partitions = 5, DoubleReal step_size = 0.01, UInt max_iterations = 1000000);
 
 		  /**
 		    @brief calculates a p-value for a given data point using the model parameters
@@ -239,9 +239,9 @@ namespace OpenMS
 		    Scales the x[][].value values of the svm_problem* structure. If the second 
 		    parameter is omitted, the data is scaled to [-1, 1]. Otherwise the data is scaled to [0, max_scale_value]
 		  */
-			void scaleData(svm_problem* data, SignedInt max_scale_value = -1);
+			void scaleData(svm_problem* data, Int max_scale_value = -1);
 
-			static void calculateGaussTable(UnsignedInt border_length, DoubleReal sigma, std::vector<DoubleReal>&	gauss_table);
+			static void calculateGaussTable(UInt border_length, DoubleReal sigma, std::vector<DoubleReal>&	gauss_table);
 
 		  /**
 		    @brief computes the kernel matrix using the actual svm parameters	and the given data
@@ -260,7 +260,7 @@ namespace OpenMS
 			void destroyProblem(svm_problem* problem);
 																	 				
 	 private:
-			UnsignedInt getNumberOfEnclosedPoints(DoubleReal m1, DoubleReal m2, const std::vector<std::pair<DoubleReal, DoubleReal> >& 	points);
+			UInt getNumberOfEnclosedPoints(DoubleReal m1, DoubleReal m2, const std::vector<std::pair<DoubleReal, DoubleReal> >& 	points);
 	
 		  /**
 		    @brief Initializes the svm with standard parameters
@@ -274,8 +274,8 @@ namespace OpenMS
 			std::vector<DoubleReal>								sigmas_;							// for the combined oligo kernel (amount of positional smearing) 
 			std::vector<DoubleReal>								gauss_table_;					// lookup table for fast computation of the oligo kernel
 			std::vector<std::vector<DoubleReal>	> gauss_tables_;				// lookup table for fast computation of the combined oligo kernel
-			UnsignedInt			 											kernel_type_;					// the actual kernel type	
-			UnsignedInt			 											border_length_;				// the actual kernel type				
+			UInt			 											kernel_type_;					// the actual kernel type	
+			UInt			 											border_length_;				// the actual kernel type				
 			svm_problem*													training_set_;				// the training set
 			svm_problem*													training_problem_;		// the training set
 

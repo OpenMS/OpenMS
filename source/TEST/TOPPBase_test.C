@@ -70,7 +70,7 @@ class TOPPBaseTest
 			return getDoubleOption_(name);
 		}
 
-		SignedInt getIntOption(const String& name) const
+		Int getIntOption(const String& name) const
 		{
 			return getIntOption_(name);
 		}
@@ -142,7 +142,7 @@ class TOPPBaseTestNOP
 			return getDoubleOption_(name);
 		}
 
-		SignedInt getIntOption(const String& name) const
+		Int getIntOption(const String& name) const
 		{
 			return getIntOption_(name);
 		}

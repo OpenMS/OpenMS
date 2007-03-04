@@ -70,7 +70,7 @@ namespace OpenMS
             : public Exception::Base
       {
         public:
-          InvalidQuery(const char* file, SignedInt line, const char*  function, std::string sql_query, std::string sql_error) throw();
+          InvalidQuery(const char* file, Int line, const char*  function, std::string sql_query, std::string sql_error) throw();
           ~InvalidQuery() throw();
       };
 
@@ -85,7 +85,7 @@ namespace OpenMS
             : public Exception::Base
       {
         public:
-          NotConnected(const char* file, SignedInt line, const char*  function) throw();
+          NotConnected(const char* file, Int line, const char*  function) throw();
           ~NotConnected() throw();
       };
       
@@ -107,7 +107,7 @@ namespace OpenMS
 	      @param port the port where the server is listening (default: 3306)
 	      @param QTDBDriver the QT database driver used for the connection (default: "QMYSQL3", unless you canged it in configure. See "OpenMS/include/OpenMS/config.h")
       */
-      void connect(const std::string& db, const std::string& user, const std::string& password, const std::string& host = "localhost", UnsignedInt port=3306, const std::string& QTDBDriver = DB_PLUGIN ) throw(InvalidQuery);
+      void connect(const std::string& db, const std::string& user, const std::string& password, const std::string& host = "localhost", UInt port=3306, const std::string& QTDBDriver = DB_PLUGIN ) throw(InvalidQuery);
 			
 			/// returns if a connection is established.
 			bool isConnected() const;
@@ -134,7 +134,7 @@ namespace OpenMS
 				@param column The column of the table
 				@param id The id of the dataset
 			*/
-			SignedInt getIntValue(const std::string& table, const std::string& column, const std::string& id) throw (InvalidQuery,NotConnected,Exception::ConversionError);
+			Int getIntValue(const std::string& table, const std::string& column, const std::string& id) throw (InvalidQuery,NotConnected,Exception::ConversionError);
 
 			/**
 				@brief Returns a single field of a table as a double
@@ -167,10 +167,10 @@ namespace OpenMS
 				@param column The column of the table
 				@param value The value the selected @p column has
 			*/
-			UnsignedInt getId(const std::string& table, const std::string& column, const std::string& value) throw (InvalidQuery,NotConnected);
+			UInt getId(const std::string& table, const std::string& column, const std::string& value) throw (InvalidQuery,NotConnected);
 			
 			/// Returns the last auto_increment ID of the SQL database
-			UnsignedInt getAutoId();
+			UInt getAutoId();
 			
 			/// Returns the name of the connected DB
       std::string DBName() const;

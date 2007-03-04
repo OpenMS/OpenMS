@@ -52,37 +52,37 @@ namespace OpenMS
 	namespace Schemes
 	{
 		/// Number of available MzXML schemata
-		extern const UnsignedInt MzXML_num;
+		extern const UInt MzXML_num;
 
 		///Schemata for MzXML
 		extern const String MzXML[][11];
 
 		/// Number of available MzData schemata
-		extern const UnsignedInt MzData_num;
+		extern const UInt MzData_num;
 
 		///Schemata for MzData
 		extern const String MzData[][10];
 
 		/// Number of available ExperimentalSettings schemata for MzData
-		extern const UnsignedInt MzDataExpSett_num;
+		extern const UInt MzDataExpSett_num;
 
 		///Schemata for the ExperimentalSettings of MzData
 		extern const String MzDataExpSett[][18];
 
 		/// Number of available FeatureMap schemata
-		extern const UnsignedInt FeatureMap_num;
+		extern const UInt FeatureMap_num;
 
 		///Schemata for the FeatureMap
 		extern const String FeatureMap[][3];
 
 		/// Number of available DFeaturePairs schemata
-		extern const UnsignedInt DFeaturePairs_num;
+		extern const UInt DFeaturePairs_num;
 
 		///Schemata for the FeatureMap
 		extern const String DFeaturePairs[][3];
 
 		/// Number of available consensusXML schemata
-		extern const UnsignedInt ConsensusXML_num;
+		extern const UInt ConsensusXML_num;
 
 		///Schemata for the consensusXML
 		extern const String ConsensusXML[][3];

@@ -135,7 +135,7 @@ class TOPPFileInfo
 		
 				//basic info
 				exp.updateRanges();
-				vector<UnsignedInt> levels = exp.getMSLevels();
+				vector<UInt> levels = exp.getMSLevels();
 										
 				cout << "Number of peaks: " << exp.getSize() << endl 
 						 << endl
@@ -146,7 +146,7 @@ class TOPPFileInfo
 			  if (levels.size()!=0)
 			  {
 			  	cout  << *(levels.begin());
-					for (vector<UnsignedInt>::iterator it = ++levels.begin(); it != levels.end(); ++it)
+					for (vector<UInt>::iterator it = ++levels.begin(); it != levels.end(); ++it)
 					{
 						cout << ", " << *it;
 					}
@@ -154,13 +154,13 @@ class TOPPFileInfo
 				cout << endl << endl; 	
 		
 				//count how many spectra per MS level there are
-				vector<UnsignedInt> counts(5);
+				vector<UInt> counts(5);
 				for (MSExperiment< Peak1D >::iterator it = exp.begin(); it!=exp.end(); ++it)
 				{
 					counts[it->getMSLevel()]++;	
 				}
 				//output
-				for (UnsignedInt i = 0; i!=5; ++i)
+				for (UInt i = 0; i!=5; ++i)
 				{
 					if (counts[i]!=0)
 					{
@@ -220,14 +220,14 @@ class TOPPFileInfo
 				     << "  Detector         : " << IonDetector::NamesOfType[exp_set->getInstrument().getIonDetector().getType()]  << endl
 						 << "  Mass Analyzer(s) : ";
 				
-				for (UnsignedInt i=0; i< exp_set->getInstrument().getMassAnalyzers().size(); ++i)
+				for (UInt i=0; i< exp_set->getInstrument().getMassAnalyzers().size(); ++i)
 				{
 					cout  << MassAnalyzer::NamesOfAnalyzerType[exp_set->getInstrument().getMassAnalyzers()[i].getType()] << ", ";
 				}
 				cout << endl << endl;
 				
 				//contact persons
-				for (UnsignedInt i=0; i< exp_set->getContacts().size(); ++i)
+				for (UInt i=0; i< exp_set->getContacts().size(); ++i)
 				{
 					cout << "Contact Person" << endl
 					     << "  First Name       : " << exp_set->getContacts()[i].getFirstName() << endl

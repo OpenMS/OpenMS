@@ -71,7 +71,7 @@ Meta information is an array of Type-Name-Value tupels. Classes that have a Meta
 
 	private: 
 	  /// Loads all Type-Value pairs one after another. 
-		void loadData_(UnsignedInt index);	
+		void loadData_(UInt index);	
 			
 	  /** @name Edit fields for new Type-Value pair.
 		*/
@@ -84,9 +84,9 @@ Meta information is an array of Type-Name-Value tupels. Classes that have a Meta
 		/** @name Arrays of pointers to objects for temporary metaInfo data
 		*/
 		//@{
-		std::vector< std::pair<UnsignedInt,QLineEdit*> > metainfoptr_;
-		std::vector< std::pair<UnsignedInt,QLabel*> > metalabels_;
-		std::vector< std::pair<UnsignedInt,QAbstractButton*> > metabuttons_;
+		std::vector< std::pair<UInt,QLineEdit*> > metainfoptr_;
+		std::vector< std::pair<UInt,QLabel*> > metalabels_;
+		std::vector< std::pair<UInt,QAbstractButton*> > metabuttons_;
 		//@}		
 		
 		/** @name Some buttons.
@@ -111,7 +111,7 @@ Meta information is an array of Type-Name-Value tupels. Classes that have a Meta
 		MetaInfoInterface tempmeta_;
 		
 		/// Container for metainfo data.
-		std::vector<UnsignedInt> keys_;
+		std::vector<UInt> keys_;
 		
 	};
 

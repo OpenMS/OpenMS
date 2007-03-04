@@ -72,7 +72,7 @@ CHECK((BinSizeType binSize() const))
 	TEST_REAL_EQUAL(d.binSize(), 1)
 RESULT
 
-CHECK((UnsignedInt size() const))
+CHECK((UInt size() const))
 	TEST_EQUAL(d.size(), 10)
 RESULT
 
@@ -91,7 +91,7 @@ CHECK((ValueType maxValue() const))
 	TEST_REAL_EQUAL(d.maxValue(), 0.0)
 RESULT
 
-CHECK((ValueType operator [] (UnsignedInt index) const throw(Exception::IndexOverflow)))
+CHECK((ValueType operator [] (UInt index) const throw(Exception::IndexOverflow)))
 	d.set(4, 14, 2);
 	TEST_EQUAL(d.size(),5);
 	TEST_REAL_EQUAL(d[0],0.0);

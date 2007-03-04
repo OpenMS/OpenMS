@@ -220,7 +220,7 @@ CHECK((Real getWaveletScale() const))
   TEST_REAL_EQUAL(pp.getWaveletScale(),0.15)
 RESULT
 
-CHECK((UnsignedInt getSearchRadius() const))
+CHECK((UInt getSearchRadius() const))
   PeakPickerCWT pp;
   
   TEST_REAL_EQUAL(pp.getSearchRadius(),3)

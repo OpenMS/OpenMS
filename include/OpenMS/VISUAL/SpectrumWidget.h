@@ -72,7 +72,7 @@ namespace OpenMS
 			@param height The image's height.
 			@returns The created image.
 		*/
-		virtual QImage getImage(UnsignedInt width, UnsignedInt height);
+		virtual QImage getImage(UInt width, UInt height);
 		
 		/**
 			@brief Returns a pointer to canvas object
@@ -145,7 +145,7 @@ namespace OpenMS
 		inline SpectrumWindow* getSpectrumWindow() const { return spectrum_window_; }
 		
 		///Get the mouse action mode
-		SignedInt getActionMode() const;
+		Int getActionMode() const;
 
 		/// SpectrumWidgetActionModes
 		void setActionMode(SpectrumCanvas::ActionModes mode);
@@ -172,7 +172,7 @@ namespace OpenMS
 		/// Signals that draw mode or display mode changed (e.g. used to update the tool bar)
 		void modesChanged(QWidget*);
 		/// Displays a status message. See TOPPViewBase::showStatusMessage .
-		void sendStatusMessage(std::string, OpenMS::UnsignedInt);
+		void sendStatusMessage(std::string, OpenMS::UInt);
 		/// Displays peak information in the status bar (m/z, RT, intensity)
 		void sendCursorStatus(double,double,double);
 		
@@ -211,7 +211,7 @@ namespace OpenMS
   	/// Switch between different intensitiy modes
   	virtual void intensityModeChange_();
 		/// creates the intensity distribution of the widget
-		virtual Math::Histogram<UnsignedInt,float> createIntensityDistribution_() = 0;
+		virtual Math::Histogram<UInt,float> createIntensityDistribution_() = 0;
 		/// recalculates the Axis ticks
 		virtual void recalculateAxes_() = 0;
 		

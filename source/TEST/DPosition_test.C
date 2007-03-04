@@ -52,7 +52,7 @@ CHECK((virtual ~DPosition()))
 	delete d10_ptr;
 RESULT
 
-CHECK((CoordinateType operator[](UnsignedInt index) const))
+CHECK((CoordinateType operator[](UInt index) const))
   const DPosition<3> i;
   TEST_EQUAL(i[0], 0.0)
   TEST_EQUAL(i[1], 0.0)
@@ -62,7 +62,7 @@ CHECK((CoordinateType operator[](UnsignedInt index) const))
 #endif
 RESULT
 
-CHECK((CoordinateType& operator[](UnsignedInt index)))
+CHECK((CoordinateType& operator[](UInt index)))
   DPosition<3> i;
   const DPosition<3>& c_i(i);
   i[0] = 1.0;
@@ -187,7 +187,7 @@ CHECK((Iterator end()))
   TEST_REAL_EQUAL(v[9], 10.0)
 RESULT
 
-CHECK((static UnsignedInt size()))
+CHECK((static UInt size()))
 	TEST_EQUAL(DPosition<777>::size(), 777)
 	DPosition<3> p3;
 	TEST_EQUAL(p3.size(), 3)

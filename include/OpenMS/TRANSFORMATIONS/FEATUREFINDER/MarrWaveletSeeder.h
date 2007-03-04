@@ -124,13 +124,13 @@ namespace OpenMS
 														 );
 		 
 		  /// Sums the intensities in adjacent scans
-		  void sumUp_(SpectrumType& scan, UnsignedInt current_scan_index);
+		  void sumUp_(SpectrumType& scan, UInt current_scan_index);
 			
 			///Aligns the two scans and increases intensities of peaks in @p scan if those peaks are present in @p neighbour
 			void AlignAndSum_(SpectrumType& scan, const SpectrumType& neighbour);
 		 	
 	    /// Find out which charge state belongs to this distance
-	    UnsignedInt distanceToCharge_(CoordinateType dist);
+	    UInt distanceToCharge_(CoordinateType dist);
 		
 		  /// Sweeps through scans and detects isotopic patterns
 		  void sweep_();

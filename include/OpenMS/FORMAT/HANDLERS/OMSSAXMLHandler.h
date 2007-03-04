@@ -68,11 +68,11 @@ namespace OpenMS
       std::vector<IdentificationData>& id_data_;
       ProteinHit actual_protein_hit_;												
       PeptideHit actual_peptide_hit_;
-			//UnsignedInt peptide_identification_index_;
+			//UInt peptide_identification_index_;
 			String tag_;
 			//DateTime date_;
 			//String date_time_string_;
-			//UnsignedInt actual_query_;
+			//UInt actual_query_;
   };
 
 	} // namespace Internal

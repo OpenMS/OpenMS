@@ -145,15 +145,15 @@ namespace OpenMS
       }
 
       /// Non-mutable access to the search radius for the peak maximum
-      inline UnsignedInt getSearchRadius() const
+      inline UInt getSearchRadius() const
       {
         return radius_;
       }
       /// Mutable access to the search radius for the peak maximum
-      inline void setSearchRadius(UnsignedInt radius)
+      inline void setSearchRadius(UInt radius)
       {
         radius_ = radius;
-      	param_.setValue("thresholds:search_radius",(SignedInt)radius);      	
+      	param_.setValue("thresholds:search_radius",(Int)radius);      	
       }
 
       /// Non-mutable access to the scale of the wavelet transform

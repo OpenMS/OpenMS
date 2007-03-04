@@ -62,7 +62,7 @@ namespace OpenMS
 	  } 
 	}
 	
-	void SVMWrapper::setParameter(SVM_parameter_type type, SignedInt value)
+	void SVMWrapper::setParameter(SVM_parameter_type type, Int value)
 	{
 	
 	  switch(type)
@@ -121,7 +121,7 @@ namespace OpenMS
 	  }
 	}
 	
-	SignedInt SVMWrapper::getIntParameter(SVM_parameter_type type)
+	Int SVMWrapper::getIntParameter(SVM_parameter_type type)
 	{
 	
 	    switch(type)
@@ -216,7 +216,7 @@ namespace OpenMS
   	training_set_ = training_sample;		
 	}
 	
-	SignedInt SVMWrapper::train(struct svm_problem* problem)
+	Int SVMWrapper::train(struct svm_problem* problem)
 	{
 	  if (problem != NULL 
 				&& param_ != NULL 
@@ -266,7 +266,7 @@ namespace OpenMS
 	
 	void SVMWrapper::saveModel(string model_filename) const throw (Exception::UnableToCreateFile)
 	{
-		SignedInt  status = 0;
+		Int  status = 0;
 		
 	  if (model_ != NULL)
 	  {
@@ -355,7 +355,7 @@ namespace OpenMS
    		problem = computeKernelMatrix(problem, training_set_);
 		}
    
-    for(SignedInt i = 0; i < problem->l; i++)
+    for(Int i = 0; i < problem->l; i++)
     {
 			label = svm_predict(model_, problem->x[i]);
 			results->push_back(label);
@@ -370,13 +370,13 @@ namespace OpenMS
 	}
 	
 	vector<svm_problem*>* SVMWrapper::createRandomPartitions(svm_problem* problem,
-																													 UnsignedInt  number)
+																													 UInt  number)
 	{
 		vector<svm_problem*>* problems = new vector<svm_problem*>();
-		vector<UnsignedInt> indices;
-		UnsignedInt partition_count = 0;
-		UnsignedInt actual_partition_size = 0; 
-		vector<UnsignedInt>::iterator indices_iterator;
+		vector<UInt> indices;
+		UInt partition_count = 0;
+		UInt actual_partition_size = 0; 
+		vector<UInt>::iterator indices_iterator;
 			
 		if (number == 1)
 		{
@@ -386,13 +386,13 @@ namespace OpenMS
 		if (number > 1)
 		{
 			// Creating the particular partition instances
-			for(UnsignedInt i = 0; i < number; i++)
+			for(UInt i = 0; i < number; i++)
 			{
 				problems->push_back(new svm_problem());
 			}
 			
 			// Creating indices
-			for(SignedInt  i = 0; i < problem->l; i++)
+			for(Int  i = 0; i < problem->l; i++)
 			{
 				indices.push_back(i);
 			}
@@ -401,7 +401,7 @@ namespace OpenMS
 			
 			indices_iterator = indices.begin();
 			
-			for(UnsignedInt partition_index = 0; 
+			for(UInt partition_index = 0; 
 					partition_index < number; 
 					partition_index++)
 			{
@@ -435,11 +435,11 @@ namespace OpenMS
 	}
 	
 	svm_problem* SVMWrapper::mergePartitions(const vector<svm_problem*>* const problems,
-								 															UnsignedInt 											except)
+								 															UInt 											except)
 	{
 		svm_problem* merged_problem = NULL;
-		UnsignedInt count = 0;
-		UnsignedInt actual_index = 0;
+		UInt count = 0;
+		UInt actual_index = 0;
 		
 		if (problems->size() == 1 && except == 0)
 		{
@@ -449,7 +449,7 @@ namespace OpenMS
 		if (problems->size() > 0)
 		{
 			merged_problem = new svm_problem();
-			for(UnsignedInt i = 0; i < problems->size(); i++)
+			for(UInt i = 0; i < problems->size(); i++)
 			{
 				if (i != except)
 				{
@@ -459,11 +459,11 @@ namespace OpenMS
 			merged_problem->l = count;
 			merged_problem->x = new svm_node*[count];
 			merged_problem->y = new DoubleReal[count];
-			for(UnsignedInt i = 0; i < problems->size(); i++)
+			for(UInt i = 0; i < problems->size(); i++)
 			{
 				if (i != except)
 				{
-					for(SignedInt  j = 0; j < (*problems)[i]->l; j++)
+					for(Int  j = 0; j < (*problems)[i]->l; j++)
 					{
 						merged_problem->x[actual_index] = (*problems)[i]->x[j];
 						merged_problem->y[actual_index] = (*problems)[i]->y[j];
@@ -477,7 +477,7 @@ namespace OpenMS
 	
 	vector<DoubleReal>* SVMWrapper::getLabels(svm_problem* problem)
 	{
-		UnsignedInt count = 0;
+		UInt count = 0;
 		vector<DoubleReal>* labels = new vector<DoubleReal>();
 		
 		if (problem == NULL)
@@ -486,7 +486,7 @@ namespace OpenMS
 		}
 		
 		count = problem->l;
-		for(UnsignedInt i = 0; i < count; i++)
+		for(UInt i = 0; i < count; i++)
 		{
 			labels->push_back(problem->y[i]);
 		}
@@ -498,8 +498,8 @@ namespace OpenMS
 																 									map<SVM_parameter_type, DoubleReal>&   step_sizes_map,
 																 									map<SVM_parameter_type, DoubleReal>&   end_values_map,
 																 									DoubleReal* 												   cv_quality,
-																 									UnsignedInt 												   number_of_partitions,
-																 									UnsignedInt 												   number_of_runs,
+																 									UInt 												   number_of_partitions,
+																 									UInt 												   number_of_runs,
 																 									bool																	 additive_step_sizes,
 																 									bool				 												   output,
 																 									String																 performances_file_name)
@@ -508,9 +508,9 @@ namespace OpenMS
 		map<SVM_parameter_type, DoubleReal>::iterator step_sizes_iterator;
 		map<SVM_parameter_type, DoubleReal>::iterator end_values_iterator;
 		map<SVM_parameter_type, DoubleReal>* best_parameters;	
-		vector<pair<DoubleReal, UnsignedInt> > combined_parameters;
+		vector<pair<DoubleReal, UInt> > combined_parameters;
 		combined_parameters.push_back(make_pair(1, 25));
-		for(UnsignedInt i = 1; i < gauss_tables_.size(); ++i)
+		for(UInt i = 1; i < gauss_tables_.size(); ++i)
 		{
 			combined_parameters.push_back(make_pair(1, 25));
 		}
@@ -522,17 +522,17 @@ namespace OpenMS
 		DoubleReal* step_sizes = new DoubleReal[start_values_map.size()]();
 		DoubleReal* end_values = new DoubleReal[start_values_map.size()]();
 		SVM_parameter_type* actual_types = new SVM_parameter_type[start_values_map.size()]();
-		UnsignedInt actual_index = 0;
+		UInt actual_index = 0;
 		bool condition = false;
 		bool found = false;
-		UnsignedInt counter = 0;
+		UInt counter = 0;
 		vector<svm_problem*>* partitions;
 		svm_problem** training_data;
 		DoubleReal temp_performance = 0;
 		vector<DoubleReal>* predicted_labels;
 		vector<DoubleReal>* real_labels;
 		vector<DoubleReal> performances;
-		UnsignedInt max_index = 0;
+		UInt max_index = 0;
 		DoubleReal max = 0;
 		ofstream performances_file;
 		ofstream run_performances_file;
@@ -580,9 +580,9 @@ namespace OpenMS
 		}
 
 		// for every 
-		for(UnsignedInt i = 0; i < number_of_runs; i++)
+		for(UInt i = 0; i < number_of_runs; i++)
 		{
-			for(UnsignedInt index = 0; index < start_values_map.size(); ++index)
+			for(UInt index = 0; index < start_values_map.size(); ++index)
 			{
 				best_values[index] = 0;
 			}
@@ -593,7 +593,7 @@ namespace OpenMS
 			found = true;
 
 			training_data = new svm_problem*[number_of_partitions];
-			for(UnsignedInt j = 0; j < number_of_partitions; j++)
+			for(UInt j = 0; j < number_of_partitions; j++)
 			{
 				training_data[j] = SVMWrapper::mergePartitions(partitions, j);
 			}
@@ -623,7 +623,7 @@ namespace OpenMS
 
 				// evaluation of parameter performance
 				temp_performance = 0;
-				for(UnsignedInt j = 0; j < number_of_partitions; j++)
+				for(UInt j = 0; j < number_of_partitions; j++)
 				{
 					if (train(training_data[j]))
 					{
@@ -656,7 +656,7 @@ namespace OpenMS
 						if (output && j == number_of_partitions - 1)
 						{
 							performances_file << temp_performance / (j + 1) << " ";
-							for(UnsignedInt k = 0; k < start_values_map.size(); k++)
+							for(UInt k = 0; k < start_values_map.size(); k++)
 							{
 								switch(actual_types[k])
 								{
@@ -703,7 +703,7 @@ namespace OpenMS
 				if (temp_performance > max_performance)
 				{
 					max_performance = temp_performance;
-					for(UnsignedInt index = 0; index < start_values_map.size(); ++index)
+					for(UInt index = 0; index < start_values_map.size(); ++index)
 					{
 						best_values[index] = actual_values[index];
 					}		
@@ -759,7 +759,7 @@ namespace OpenMS
 				}
 			}
 			
-			for(UnsignedInt k = 0; k < number_of_partitions; k++)
+			for(UInt k = 0; k < number_of_partitions; k++)
 			{
 				free(training_data[k]->x);
 				free(training_data[k]->y);
@@ -772,7 +772,7 @@ namespace OpenMS
 					<< " mean performance is: " << *(max_element(performances.begin(), performances.end())) / (i + 1) 
 					<< endl << "performance of this run is: " << max_performance << " with parameters: ";
 				run_performances_file << max_performance << " ";
-				for(UnsignedInt k = 0; k < start_values_map.size(); k++)
+				for(UInt k = 0; k < start_values_map.size(); k++)
 				{
 					switch(actual_types[k])
 					{
@@ -819,7 +819,7 @@ namespace OpenMS
 		}
 		
 		// Determining the index for the maximum performance
-		for(UnsignedInt i = 0; i < performances.size(); i++)
+		for(UInt i = 0; i < performances.size(); i++)
 		{
 			if (performances[i] > max)
 			{
@@ -893,7 +893,7 @@ namespace OpenMS
 					actual_index++;
 				}
 				performances_file	<< performances[counter]  / number_of_runs << ": ";
-				for(UnsignedInt k = 0; k < start_values_map.size(); k++)
+				for(UInt k = 0; k < start_values_map.size(); k++)
 				{
 					switch(actual_types[k])
 					{
@@ -973,7 +973,7 @@ namespace OpenMS
 			return results;
     }
    
-    for(UnsignedInt i = 0; i < vectors.size(); i++)
+    for(UInt i = 0; i < vectors.size(); i++)
     {
 			label = svm_predict(model_, vectors[i]);
 			results->push_back(label);
@@ -1018,19 +1018,19 @@ namespace OpenMS
 																		 const svm_node*						y,
 																		 const vector<DoubleReal>& 	gauss_table,
 																		 DoubleReal 								sigma_square,
-												  					 UnsignedInt 								max_distance)
+												  					 UInt 								max_distance)
   {
     DoubleReal kernel = 0;
-    SignedInt    i1     = 0;
-    SignedInt    i2     = 0;
-    SignedInt    c1     = 0;
+    Int    i1     = 0;
+    Int    i2     = 0;
+    Int    c1     = 0;
 
     while(x[i1].index != -1
 	&& y[i2].index != -1)
     {
       if (x[i1].index == y[i2].index)
       {
-  	if (((UnsignedInt) abs(x[i1].value - y[i2].value)) <= max_distance)
+  	if (((UInt) abs(x[i1].value - y[i2].value)) <= max_distance)
     	{
           if (sigma_square == 0)
           {
@@ -1124,7 +1124,7 @@ namespace OpenMS
 		{
 			return NULL;
 		}	
-		UnsignedInt number_of_sequences = 0;
+		UInt number_of_sequences = 0;
 
 		number_of_sequences = problem1->l;		
 		kernel_matrix = new svm_problem;
@@ -1132,7 +1132,7 @@ namespace OpenMS
 		kernel_matrix->x = new svm_node*[number_of_sequences];
 		kernel_matrix->y = new DoubleReal[number_of_sequences];
 		
-		for(UnsignedInt i = 0; i < number_of_sequences; i++)
+		for(UInt i = 0; i < number_of_sequences; i++)
 		{
 			kernel_matrix->x[i] = new svm_node[problem2->l + 2];
 			kernel_matrix->x[i][0].index = 0;
@@ -1143,9 +1143,9 @@ namespace OpenMS
 
 		if (problem1 == problem2)
 		{
-			for(UnsignedInt i = 0; i < number_of_sequences; i++)
+			for(UInt i = 0; i < number_of_sequences; i++)
 			{			
-				for(UnsignedInt j = i; j < number_of_sequences; j++)
+				for(UInt j = i; j < number_of_sequences; j++)
 				{
 					temp = SVMWrapper::kernelOligo(problem1->x[i], problem2->x[j], gauss_table_);
 					kernel_matrix->x[i][j + 1].index = j + 1;
@@ -1157,9 +1157,9 @@ namespace OpenMS
 		}
 		else
 		{
-			for(UnsignedInt i = 0; i < number_of_sequences; i++)
+			for(UInt i = 0; i < number_of_sequences; i++)
 			{			
-				for(UnsignedInt j = 0; j < (UnsignedInt) problem2->l; j++)
+				for(UInt j = 0; j < (UInt) problem2->l; j++)
 				{
 					temp = SVMWrapper::kernelOligo(problem1->x[i], problem2->x[j], gauss_table_);
 
@@ -1173,7 +1173,7 @@ namespace OpenMS
 	
 	void SVMWrapper::destroyProblem(svm_problem* problem)
 	{
-		for(SignedInt  i = 0; i < problem->l; i++)
+		for(Int  i = 0; i < problem->l; i++)
 		{
 			free(problem->x[i]);
 		}
@@ -1185,10 +1185,10 @@ namespace OpenMS
 	void SVMWrapper::getSignificanceBorders(svm_problem* data, 
 																					pair<DoubleReal, DoubleReal>& sigmas,
 																					DoubleReal confidence,
-																					UnsignedInt number_of_runs,
-																					UnsignedInt number_of_partitions,
+																					UInt number_of_runs,
+																					UInt number_of_partitions,
 																					DoubleReal step_size,
-																					UnsignedInt max_iterations)
+																					UInt max_iterations)
 	{
 		vector<pair<DoubleReal, DoubleReal> > points;
 		vector<DoubleReal> 										differences;
@@ -1196,8 +1196,8 @@ namespace OpenMS
 		svm_problem*													training_data;
 		vector<DoubleReal>*										predicted_labels;
 		vector<DoubleReal>*										real_labels;
-		UnsignedInt														counter = 0;
-		UnsignedInt														target = 0;
+		UInt														counter = 0;
+		UInt														target = 0;
 		ofstream															file("points.txt");
 		DoubleReal 														mean;
 		DoubleReal														sigma1 = 0;
@@ -1205,11 +1205,11 @@ namespace OpenMS
 			
 		
 		// creation of points (measured rt, predicted rt)
-		for(UnsignedInt i = 0; i < number_of_runs; ++i)
+		for(UInt i = 0; i < number_of_runs; ++i)
 		{
 			partitions = createRandomPartitions(data, number_of_partitions);
 			
-			for (UnsignedInt j = 0; j < number_of_partitions; ++j)
+			for (UInt j = 0; j < number_of_partitions; ++j)
 			{
 				training_data = SVMWrapper::mergePartitions(partitions, j);
 				if (train(training_data))
@@ -1235,7 +1235,7 @@ namespace OpenMS
 		file << flush;
 								
 		// trying to find the two line parameters
-		target = (UnsignedInt) round(confidence * points.size());
+		target = (UInt) round(confidence * points.size());
 		
 		mean = accumulate(differences.begin(), differences.end(), 0.0) / differences.size();
 		sigma1 = mean;
@@ -1259,11 +1259,11 @@ namespace OpenMS
 			<< " % of points" << endl;			
 	}
 	
-	UnsignedInt SVMWrapper::getNumberOfEnclosedPoints(DoubleReal sigma1, 
+	UInt SVMWrapper::getNumberOfEnclosedPoints(DoubleReal sigma1, 
 																										DoubleReal sigma2, 
 																										const vector<pair<DoubleReal, DoubleReal> >& points)
 	{
-		UnsignedInt counter = 0;
+		UInt counter = 0;
 		DoubleReal 	sigma		= 0;
 		
 		for(vector<pair<DoubleReal, DoubleReal> >::const_iterator it = points.begin();
@@ -1310,7 +1310,7 @@ namespace OpenMS
 		decision_values.clear();
 		if (model_ != NULL)
 		{
-			for(SignedInt  i = 0; i < data->l; ++i)
+			for(Int  i = 0; i < data->l; ++i)
 			{
 				temp_value = 0;						
 				svm_predict_values(model_, data->x[i], &temp_value);
@@ -1319,15 +1319,15 @@ namespace OpenMS
 		}
 	}																		  			
 	
-	void SVMWrapper::scaleData(svm_problem* data, SignedInt  max_scale_value)
+	void SVMWrapper::scaleData(svm_problem* data, Int  max_scale_value)
 	{
 		vector<DoubleReal> max_values;
 		vector<DoubleReal> min_values;
 		vector<DoubleReal> sums;
-		SignedInt  max_index = 0;
-		SignedInt  j = 0;
+		Int  max_index = 0;
+		Int  j = 0;
 		
-		for(SignedInt  i = 0; i < data->l; ++i)
+		for(Int  i = 0; i < data->l; ++i)
 		{
 			j = 0;
 			while(data->x[i][j].index != -1)
@@ -1344,7 +1344,7 @@ namespace OpenMS
 		min_values.resize(max_index, 0);
 		sums.resize(max_index, 0);
 		
-		for(SignedInt  i = 0; i < data->l; ++i)
+		for(Int  i = 0; i < data->l; ++i)
 		{
 			j = 0;
 			while(data->x[i][j].index != -1)
@@ -1362,7 +1362,7 @@ namespace OpenMS
 				++j;
 			}
 		}
-		for(SignedInt  i = 0; i < data->l; ++i)
+		for(Int  i = 0; i < data->l; ++i)
 		{
 			j = 0;
 			while(data->x[i][j].index != -1)				
@@ -1382,7 +1382,7 @@ namespace OpenMS
 		}
 	}																		  																										
 
-	void SVMWrapper::calculateGaussTable(UnsignedInt border_length, 
+	void SVMWrapper::calculateGaussTable(UInt border_length, 
 																			 DoubleReal sigma, 
 																			 vector<DoubleReal>&	gauss_table)
 	{
@@ -1391,7 +1391,7 @@ namespace OpenMS
 			gauss_table.resize(border_length, 0);
 		}		
 		gauss_table[0] = 1;
-	 	for(UnsignedInt i = 1; i < border_length; ++i)
+	 	for(UInt i = 1; i < border_length; ++i)
 	 	{
 	  	gauss_table[i] = exp((-1 / 4.0 /
 					 						     (sigma * sigma)) *

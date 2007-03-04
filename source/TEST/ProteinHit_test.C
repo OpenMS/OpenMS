@@ -46,7 +46,7 @@ using namespace std;
 ProteinHit* ptr1 = 0;
 Real score = 4.4;
 std::string score_type = "XCorr";
-UnsignedInt rank = 3;
+UInt rank = 3;
 String sequence = "ARRAY";
 String accession = "PROOE34";
 std::string accession_type = "SWISSPROT";
@@ -85,7 +85,7 @@ CHECK(ProteinHit(const ProteinHit& source))
 	TEST_EQUAL(ptr1->getSequence(), source.getSequence())		  
 RESULT
 
-CHECK((ProteinHit(DoubleReal score, std::string score_type, UnsignedInt rank, String accession, std::string accession_type, String sequence)))
+CHECK((ProteinHit(DoubleReal score, std::string score_type, UInt rank, String accession, std::string accession_type, String sequence)))
 	ptr1 = new ProteinHit(score, score_type, rank, accession, accession_type, sequence);
 	TEST_EQUAL(ptr1->getScore(), score)
 	TEST_EQUAL(ptr1->getScoreType(), score_type)
@@ -185,7 +185,7 @@ CHECK(const std::string& getScoreType() const)
 	TEST_EQUAL(ptr1->getScoreType(), score_type)
 RESULT
 
-CHECK(UnsignedInt getRank() const)
+CHECK(UInt getRank() const)
 	ptr1 = new ProteinHit(score, score_type, rank, accession, accession_type, sequence);
 	TEST_EQUAL(ptr1->getRank(), rank)
 RESULT
@@ -202,7 +202,7 @@ CHECK(void clear())
   TEST_EQUAL(hit==*ptr1,true);
 RESULT
 
-CHECK(void setRank(UnsignedInt newrank))
+CHECK(void setRank(UInt newrank))
 	ptr1 = new ProteinHit();
 	ptr1->setRank(rank);
 	TEST_EQUAL(ptr1->getRank(), rank)	

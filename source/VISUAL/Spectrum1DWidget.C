@@ -42,7 +42,7 @@ namespace OpenMS
 	{
 		//set the label mode for the axes  - side effect
 		setCanvas_(new Spectrum1DCanvas(this));
-		connect(canvas(), SIGNAL(sendStatusMessage(std::string, OpenMS::UnsignedInt)), this, SIGNAL(sendStatusMessage(std::string, OpenMS::UnsignedInt)));
+		connect(canvas(), SIGNAL(sendStatusMessage(std::string, OpenMS::UInt)), this, SIGNAL(sendStatusMessage(std::string, OpenMS::UInt)));
 		connect(canvas(), SIGNAL(sendCursorStatus(double,double,double)), this, SIGNAL(sendCursorStatus(double,double,double)));
 		
 		x_axis_->setLegend("m/z");
@@ -98,9 +98,9 @@ namespace OpenMS
 		}
 	}
 	
-	Histogram<UnsignedInt,float> Spectrum1DWidget::createIntensityDistribution_()
+	Histogram<UInt,float> Spectrum1DWidget::createIntensityDistribution_()
 	{
-		Histogram<UnsignedInt,float> tmp(canvas()->getCurrentMinIntensity(),canvas()->getCurrentMaxIntensity(),(canvas()->getCurrentMaxIntensity() - canvas()->getCurrentMinIntensity())/500.0);
+		Histogram<UInt,float> tmp(canvas()->getCurrentMinIntensity(),canvas()->getCurrentMaxIntensity(),(canvas()->getCurrentMaxIntensity() - canvas()->getCurrentMinIntensity())/500.0);
 	
 		for (Spectrum1DCanvas::ExperimentType::SpectrumType::ConstIterator it = canvas()->getCurrentPeakData()[0].begin(); it != canvas()->getCurrentPeakData()[0].end(); ++it)
 		{

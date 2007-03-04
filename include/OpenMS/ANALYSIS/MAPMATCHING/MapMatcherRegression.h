@@ -135,7 +135,7 @@ namespace OpenMS
 					grid_iter->getMappings().clear();
 
 					// loop over all dimensions
-					for (UnsignedInt d=0; d<2;d++)
+					for (UInt d=0; d<2;d++)
 					{
 
 						for (int i=0; i<num;i++)

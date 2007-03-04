@@ -125,8 +125,8 @@ namespace OpenMS
       BaseMapping* mapping_;
       Param* param_;
 
-      UnsignedInt current_fcoord_;
-      UnsignedInt current_scoord_;
+      UInt current_fcoord_;
+      UInt current_scoord_;
 
       std::map<String,BaseMapping* > mapping_instances;
 
@@ -174,7 +174,7 @@ namespace OpenMS
       ///  @brief Create map from the given set of strings
       inline void fillMap_(Map& dict, std::vector<String> array)
       {
-        for (UnsignedInt i=0; i<array.size(); i++)
+        for (UInt i=0; i<array.size(); i++)
         {
           dict[ std::string(array[i]) ] = i;
         }

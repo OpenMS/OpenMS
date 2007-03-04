@@ -294,7 +294,7 @@ namespace OpenMS
  		return lastconsensus_;
 	}
 
-	HashMap<UnsignedInt, UnsignedInt> SpectrumCheapDPCorr::getPeakMap() const
+	HashMap<UInt, UInt> SpectrumCheapDPCorr::getPeakMap() const
 	{
 		return peak_map_;
 	}

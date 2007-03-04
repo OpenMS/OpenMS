@@ -250,7 +250,7 @@ class TOPPMascotAdapter
 			vector<String> variable_mods;
 			ProteinIdentification protein_identification;
 			vector<IdentificationData> identifications;
-			vector<SignedInt> charges;
+			vector<Int> charges;
 			vector<String> parts;
 			DoubleReal precursor_mass_tolerance(0);
 			DoubleReal peak_mass_tolerance(0);
@@ -260,7 +260,7 @@ class TOPPMascotAdapter
 			string db;
 			string hits;
 			string cleavage;
-			UnsignedInt missed_cleavages;
+			UInt missed_cleavages;
 			string mass_type;
 			int status = 0;
 			bool mascot_in = false;
@@ -369,7 +369,7 @@ class TOPPMascotAdapter
 				}									
 				else if (temp_string != "")
 				{
-					for(UnsignedInt i = 0; i < parts.size(); i++)
+					for(UInt i = 0; i < parts.size(); i++)
 					{
 						temp_charge = parts[i];
 						if (temp_charge[temp_charge.size() - 1] == '-' || temp_charge[0] == '-')

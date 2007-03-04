@@ -110,9 +110,9 @@ namespace OpenMS
 			dot_gradient_->gradient().fromString(man->getPrefAsString("Preferences:2D:Dot:Gradient"));
 			surface_gradient_->gradient().fromString(man->getPrefAsString("Preferences:2D:Surface:Gradient"));
 			background_color_->setColor(QColor(man->getPrefAsString("Preferences:2D:BackgroundColor").c_str()));
-			marching_squares_steps_->setValue(UnsignedInt(man->getPref("Preferences:2D:MarchingSquaresSteps")));
-			interpolation_steps_->setValue(UnsignedInt(man->getPref("Preferences:2D:InterpolationSteps")));
-			contour_steps_->setValue(UnsignedInt(man->getPref("Preferences:2D:Contour:Lines")));
+			marching_squares_steps_->setValue(UInt(man->getPref("Preferences:2D:MarchingSquaresSteps")));
+			interpolation_steps_->setValue(UInt(man->getPref("Preferences:2D:InterpolationSteps")));
+			contour_steps_->setValue(UInt(man->getPref("Preferences:2D:Contour:Lines")));
 		}
 		
 		void Spectrum2DCanvasPDP::save()

@@ -253,7 +253,7 @@ namespace OpenMS
 		font.setPixelSize(10);
 		if(grid_rt_.size()>0)
 		{
-			for(UnsignedInt i = 0;i<grid_rt_[0].size();i++)
+			for(UInt i = 0;i<grid_rt_[0].size();i++)
 				{
 					result = QString("%1").arg(grid_rt_[0][i]);
 					renderText (-corner_-result.length()+scaledRT(grid_rt_[0][i]), 
@@ -265,7 +265,7 @@ namespace OpenMS
 		}
 		if(zoom_<3.0 && grid_rt_.size()>=2)
 			{
-				for(UnsignedInt i = 0;i<grid_rt_[1].size();i++)
+				for(UInt i = 0;i<grid_rt_[1].size();i++)
 					{
 						result = QString("%1").arg(grid_rt_[1][i]);
 						renderText (-corner_-result.length()+scaledRT(grid_rt_[1][i]), 
@@ -277,7 +277,7 @@ namespace OpenMS
 			}
 		if(zoom_<2.0 && grid_rt_.size()>=3)
 			{
-				for(UnsignedInt i = 0;i<grid_rt_[2].size();i++)
+				for(UInt i = 0;i<grid_rt_[2].size();i++)
 					{
 						result = QString("%1").arg(grid_rt_[2][i]);
 						renderText (-corner_-result.length()+scaledRT(grid_rt_[2][i]), 
@@ -297,7 +297,7 @@ namespace OpenMS
 		font.setPixelSize(10);
 		if(grid_mz_.size()>0)
 		{
-			for(UnsignedInt i = 0;i<grid_mz_[0].size();i++)
+			for(UInt i = 0;i<grid_mz_[0].size();i++)
 			{
 				result = QString("%1").arg(grid_mz_[0][i]);
 				renderText (-corner_-15.0, 
@@ -310,7 +310,7 @@ namespace OpenMS
 		if(zoom_<3.0 && grid_mz_.size()>=2)
 			{
 				
-				for(UnsignedInt i = 0;i<grid_mz_[1].size();i++)
+				for(UInt i = 0;i<grid_mz_[1].size();i++)
 					{
 						result = QString("%1").arg(grid_mz_[1][i]);
 						renderText (-corner_-15.0, 
@@ -322,7 +322,7 @@ namespace OpenMS
 			}
 		if(zoom_<2.0 && grid_mz_.size()>=3)
 			{
-				for(UnsignedInt i = 0;i<grid_mz_[2].size();i++)
+				for(UInt i = 0;i<grid_mz_[2].size();i++)
 					{
 						result = QString("%1").arg(grid_mz_[2][i]);
 						renderText (-corner_-15.0, 
@@ -347,7 +347,7 @@ namespace OpenMS
 						font.setPixelSize(10);
 						if(zoom_<3 && grid_intensity_.size()>=1)
 							{
-								for(UnsignedInt i = 0;i<grid_intensity_log_[0].size();i++)
+								for(UInt i = 0;i<grid_intensity_log_[0].size();i++)
 									{
 										result = QString("%1").arg(grid_intensity_log_[0][i]);
 										renderText (-corner_-result.length()-3.0, 
@@ -367,7 +367,7 @@ namespace OpenMS
 												result,
 												font);
 						font.setPixelSize(10);
-						for(UnsignedInt i = 0;i<grid_intensity_[0].size();i++)
+						for(UInt i = 0;i<grid_intensity_[0].size();i++)
 							{ 
 								result = QString("%1").arg(grid_intensity_[0][i]);
 								renderText (-corner_-result.length()-width_/200.0-5.0, 
@@ -410,7 +410,7 @@ namespace OpenMS
 						font.setPixelSize(10);
 						if(zoom_<3.0 && grid_intensity_.size()>=2)
 							{
-								for(UnsignedInt i = 0;i<grid_intensity_[0].size();i++)
+								for(UInt i = 0;i<grid_intensity_[0].size();i++)
 									{ 
 										double intensity = (double)grid_intensity_[0][i]/pow(10,expo);
 										result = QString("%1").arg(intensity,0,'f',1);
@@ -420,7 +420,7 @@ namespace OpenMS
 																result,
 																font);
 									}
-								for(UnsignedInt i = 0;i<grid_intensity_[1].size();i++)
+								for(UInt i = 0;i<grid_intensity_[1].size();i++)
 									{
 										double intensity = (double)grid_intensity_[1][i]/pow(10,expo);
 										result = QString("%1").arg(intensity,0,'f',1);
@@ -433,7 +433,7 @@ namespace OpenMS
 							}
 						if(width_>800 && heigth_>600&& zoom_<2.0 && grid_intensity_.size()>=3)
 							{
-								for(UnsignedInt i = 0;i<grid_intensity_[2].size();i++)
+								for(UInt i = 0;i<grid_intensity_[2].size();i++)
 									{
 										double intensity = (double)grid_intensity_[2][i]/pow(10,expo);
 										result = QString("%1").arg(intensity,0,'f',1);
@@ -513,7 +513,7 @@ namespace OpenMS
 	
 	GLuint Spectrum3DOpenGLCanvas::makeDataAsTopView()
 	{
-		SignedInt mode = canvas_3d_.getPref("Preferences:3D:Dot:Mode");
+		Int mode = canvas_3d_.getPref("Preferences:3D:Dot:Mode");
 		
 		GLuint list = glGenLists(1);
 		glNewList(list,GL_COMPILE);
@@ -530,7 +530,7 @@ namespace OpenMS
 		//if mode it black, we need to set this only once
 		qglColor(Qt::black);		
 	
-		for(UnsignedInt i =0;i<canvas_3d_.getLayerCount();i++)
+		for(UInt i =0;i<canvas_3d_.getLayerCount();i++)
 		{	
 			//cout << "Layer: " << i << endl;
 			if(canvas_3d_.getLayer(i).visible)
@@ -591,7 +591,7 @@ namespace OpenMS
 	
 	GLuint Spectrum3DOpenGLCanvas::makeDataAsStick()
 	{
-		SignedInt mode = canvas_3d_.getPref("Preferences:3D:Dot:Mode");
+		Int mode = canvas_3d_.getPref("Preferences:3D:Dot:Mode");
 					
 		GLuint list = glGenLists(1);
 		glNewList(list,GL_COMPILE);
@@ -608,7 +608,7 @@ namespace OpenMS
 		//if mode it black, we need to set this only once
 		qglColor(Qt::black);		
 	
-		for(UnsignedInt i =0;i<canvas_3d_.getLayerCount();i++)
+		for(UInt i =0;i<canvas_3d_.getLayerCount();i++)
 		{	
 			//cout << "Layer: " << i << endl;
 			if(canvas_3d_.getLayer(i).visible)
@@ -727,7 +727,7 @@ namespace OpenMS
 		//rt
 		if(grid_rt_.size()>=1)
 			{
-		for(UnsignedInt i = 0;i<grid_rt_[0].size();i++)
+		for(UInt i = 0;i<grid_rt_[0].size();i++)
 		{
 			glVertex3d(-corner_+scaledRT(grid_rt_[0][i]), 
 								 -corner_,
@@ -739,7 +739,7 @@ namespace OpenMS
 			}
 		if(grid_rt_.size()>=2)
 			{
-				for(UnsignedInt i = 0;i<grid_rt_[1].size();i++)
+				for(UInt i = 0;i<grid_rt_[1].size();i++)
 					{	
 						glVertex3d(-corner_+scaledRT(grid_rt_[1][i]), 
 											 -corner_,
@@ -752,7 +752,7 @@ namespace OpenMS
 			}
 		if(grid_rt_.size()>=3)
 			{
-				for(UnsignedInt i = 0;i<grid_rt_[2].size();i++)
+				for(UInt i = 0;i<grid_rt_[2].size();i++)
 					{	
 						glVertex3d(-corner_+scaledRT(grid_rt_[2][i]), 
 											 -corner_,
@@ -765,7 +765,7 @@ namespace OpenMS
 		//mz
 		if(grid_mz_.size()>=1)
 			{
-				for(UnsignedInt i = 0;i<grid_mz_[0].size();i++)
+				for(UInt i = 0;i<grid_mz_[0].size();i++)
 					{
 						glVertex3d(-corner_, 
 											 -corner_,
@@ -777,7 +777,7 @@ namespace OpenMS
 			}
 		if(grid_mz_.size()>=2)
 		{
-			for(UnsignedInt i = 0;i<grid_mz_[1].size();i++)
+			for(UInt i = 0;i<grid_mz_[1].size();i++)
 			{
 				glVertex3d( -corner_, 
 										-corner_,
@@ -789,7 +789,7 @@ namespace OpenMS
 		}
 		if(grid_mz_.size()>=3)
 		{
-			for(UnsignedInt i = 0;i<grid_mz_[2].size();i++)
+			for(UInt i = 0;i<grid_mz_[2].size();i++)
 			{
 				glVertex3d( -corner_, 
 										-corner_,
@@ -818,7 +818,7 @@ namespace OpenMS
 		//RT
 		if(grid_rt_.size()>=1)
 		{
-			for(UnsignedInt i = 0;i<grid_rt_[0].size();i++)
+			for(UInt i = 0;i<grid_rt_[0].size();i++)
 			{
 				glVertex3d(-corner_+scaledRT(grid_rt_[0][i]), 
 									 -corner_,
@@ -830,7 +830,7 @@ namespace OpenMS
 		}
 		if(grid_rt_.size()>=2)
 		{
-			for(UnsignedInt i = 0;i<grid_rt_[1].size();i++)
+			for(UInt i = 0;i<grid_rt_[1].size();i++)
 			{
 			glVertex3d(-corner_+scaledRT(grid_rt_[1][i]), 
 								 -corner_,
@@ -842,7 +842,7 @@ namespace OpenMS
 		}
 		if(grid_rt_.size()>=3)
 		{
-			for(UnsignedInt i = 0;i<grid_rt_[2].size();i++)
+			for(UInt i = 0;i<grid_rt_[2].size();i++)
 			{
 				glVertex3d(-corner_+scaledRT(grid_rt_[2][i]), 
 									 -corner_,
@@ -856,7 +856,7 @@ namespace OpenMS
 		//MZ	
 		if(grid_mz_.size()>=1)
 		{
-			for(UnsignedInt i = 0;i<grid_mz_[0].size();i++)
+			for(UInt i = 0;i<grid_mz_[0].size();i++)
 				{
 					glVertex3d(-corner_, 
 										 -corner_,
@@ -868,7 +868,7 @@ namespace OpenMS
 		}
 		if(grid_mz_.size()>=2)
 		{
-				for(UnsignedInt i = 0;i<grid_mz_[1].size();i++)
+				for(UInt i = 0;i<grid_mz_[1].size();i++)
 			{
 				glVertex3d(-corner_, 
 									 -corner_,
@@ -880,7 +880,7 @@ namespace OpenMS
 		}	
 		if(grid_mz_.size()>=3)
 		{
-			for(UnsignedInt i = 0;i<grid_mz_[2].size();i++)
+			for(UInt i = 0;i<grid_mz_[2].size();i++)
 			{
 				glVertex3d(-corner_, 
 									 -corner_,
@@ -896,7 +896,7 @@ namespace OpenMS
 			case SpectrumCanvas::IM_LOG:
 				if(grid_intensity_.size()>=1)
 					{
-						for(UnsignedInt i = 0;i<grid_intensity_log_[0].size();i++)
+						for(UInt i = 0;i<grid_intensity_log_[0].size();i++)
 							{	
 								glVertex3d(-corner_, 
 													 -corner_+scaledIntensity(grid_intensity_log_[0][i],canvas_3d_.current_layer_),
@@ -905,7 +905,7 @@ namespace OpenMS
 														-corner_+scaledIntensity(grid_intensity_log_[0][i],canvas_3d_.current_layer_),
 														-near_-2*corner_-3.0);
 							}
-						for(UnsignedInt i = 0;i<grid_intensity_log_[1].size();i++)
+						for(UInt i = 0;i<grid_intensity_log_[1].size();i++)
 							{
 								glVertex3d(-corner_, 
 													 -corner_+scaledIntensity(grid_intensity_log_[1][i],canvas_3d_.current_layer_),
@@ -920,7 +920,7 @@ namespace OpenMS
 			case SpectrumCanvas::IM_PERCENTAGE:
 				if(grid_intensity_.size()>=1)
 					{
-						for(UnsignedInt i = 0;i<grid_intensity_[0].size();i++)
+						for(UInt i = 0;i<grid_intensity_[0].size();i++)
 							{	
 								glVertex3d(-corner_, 
 													 -corner_+(2.0 *grid_intensity_[0][i]),
@@ -936,7 +936,7 @@ namespace OpenMS
 			case SpectrumCanvas::IM_SNAP:
 				if(grid_intensity_.size()>=1)
 					{
-						for(UnsignedInt i = 0;i<grid_intensity_[0].size();i++)
+						for(UInt i = 0;i<grid_intensity_[0].size();i++)
 							{	
 								glVertex3d(-corner_, 
 													 -corner_+scaledIntensity(grid_intensity_[0][i],canvas_3d_.current_layer_),
@@ -948,7 +948,7 @@ namespace OpenMS
 					}
 				if(grid_intensity_.size()>=2)
 					{
-						for(UnsignedInt i = 0;i<grid_intensity_[1].size();i++)
+						for(UInt i = 0;i<grid_intensity_[1].size();i++)
 									{
 										glVertex3d(-corner_, 
 															 -corner_+scaledIntensity(grid_intensity_[1][i],canvas_3d_.current_layer_),
@@ -960,7 +960,7 @@ namespace OpenMS
 					}
 				if(grid_intensity_.size()>=3)
 					{
-						for(UnsignedInt i = 0;i<grid_intensity_[2].size();i++)
+						for(UInt i = 0;i<grid_intensity_[2].size();i++)
 							{ 
 								glVertex3d(-corner_, 
 													 -corner_+scaledIntensity(grid_intensity_[2][i],canvas_3d_.current_layer_),
@@ -1218,7 +1218,7 @@ namespace OpenMS
 		int_scale_.min_[0]= canvas_3d_.overall_data_range_.max_[2];
 		int_scale_.max_[0]= canvas_3d_.overall_data_range_.min_[2];
 		
-		for(UnsignedInt i =0;i<canvas_3d_.getLayerCount();i++)
+		for(UInt i =0;i<canvas_3d_.getLayerCount();i++)
 		{
 			for (SpectrumCanvas::ExperimentType::ConstIterator spec_it = canvas_3d_.getPeakData(i).RTBegin(canvas_3d_.visible_area_.min_[0]); 
 					 spec_it != canvas_3d_.getPeakData(i).RTEnd(canvas_3d_.visible_area_.max_[0]); 
@@ -1253,12 +1253,12 @@ namespace OpenMS
 			case SpectrumCanvas::IM_SNAP:
 				gradient_.activatePrecalculationMode(int_scale_.min_[0],
 																						 int_scale_.max_[0], 
-																						 UnsignedInt(canvas_3d_.getPref("Preferences:3D:Dot:InterpolationSteps")));
+																						 UInt(canvas_3d_.getPref("Preferences:3D:Dot:InterpolationSteps")));
 				break;
 			case SpectrumCanvas::IM_NONE:
 				gradient_.activatePrecalculationMode(canvas_3d_.overall_data_range_.min_[2],
 																						 canvas_3d_.overall_data_range_.max_[2], 
-																						 UnsignedInt(canvas_3d_.getPref("Preferences:3D:Dot:InterpolationSteps")));
+																						 UInt(canvas_3d_.getPref("Preferences:3D:Dot:InterpolationSteps")));
 				break;
 			case SpectrumCanvas::IM_LOG:
 				double log_min;
@@ -1272,13 +1272,13 @@ namespace OpenMS
 				}
 				gradient_.activatePrecalculationMode(log_min,
 																						 log10(canvas_3d_.overall_data_range_.max_[2]), 
-																						 UnsignedInt(canvas_3d_.getPref("Preferences:3D:Dot:InterpolationSteps")));
+																						 UInt(canvas_3d_.getPref("Preferences:3D:Dot:InterpolationSteps")));
 				
 				break;
 			case SpectrumCanvas::IM_PERCENTAGE:
 				gradient_.activatePrecalculationMode(0.0,
 																						 100.0,
-																						 UnsignedInt(canvas_3d_.getPref("Preferences:3D:Dot:InterpolationSteps")));
+																						 UInt(canvas_3d_.getPref("Preferences:3D:Dot:InterpolationSteps")));
 				break;
 		}
 	}

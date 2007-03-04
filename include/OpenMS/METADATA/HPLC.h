@@ -69,19 +69,19 @@ namespace OpenMS
       void setColumn(const String& column);
 
       /// returns the temperature (in °C)
-      SignedInt getTemperature() const;
+      Int getTemperature() const;
       /// sets the temperature (in °C)
-      void setTemperature(SignedInt temperature);
+      void setTemperature(Int temperature);
 
       /// returns the pressure (in bar)
-      UnsignedInt getPressure() const;
+      UInt getPressure() const;
       /// sets the pressure (in bar)
-      void setPressure(UnsignedInt pressure);
+      void setPressure(UInt pressure);
 
       /// returns the flux (in µl/sec)
-      UnsignedInt getFlux() const;
+      UInt getFlux() const;
       /// sets the flux (in µl/sec)
-      void setFlux(UnsignedInt flux);
+      void setFlux(UInt flux);
 
       /// returns the comments
       String getComment() const;
@@ -98,9 +98,9 @@ namespace OpenMS
     protected:
     	String instrument_;
       String column_;
-      SignedInt temperature_;
-      SignedInt pressure_;
-      SignedInt flux_;
+      Int temperature_;
+      Int pressure_;
+      Int flux_;
       String comment_;
       Gradient gradient_;
   };

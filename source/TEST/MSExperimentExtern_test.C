@@ -249,7 +249,7 @@ CHECK(template<class Container> void set2DData(Container& cont))
 RESULT
 
 
-CHECK(UnsignedInt getSize() const)
+CHECK(UInt getSize() const)
 	MSExperimentExtern<RawDataPoint1D > tmp;
 	TEST_EQUAL(tmp.getSize(),0);
 	

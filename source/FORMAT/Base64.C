@@ -53,12 +53,12 @@ namespace OpenMS
 		delete [] in_buffer_;
 	}
 
-	UnsignedInt Base64::getOutputBufferSize()
+	UInt Base64::getOutputBufferSize()
 	{
 		return out_length_;
 	}
 
-	void Base64::setOutputBufferSize(UnsignedInt s)
+	void Base64::setOutputBufferSize(UInt s)
 	{
 		//cout << "adpting output buffer " << out_length_ << " -> " << s << endl;
 		delete [] out_buffer_;
@@ -74,12 +74,12 @@ namespace OpenMS
 		}
 	}
 
-	float* Base64::decodeFloatCorrected(const char* src, UnsignedInt size)
+	float* Base64::decodeFloatCorrected(const char* src, UInt size)
 	{
 		decode(src,size);
 
 		u_int32_t tmp;
-		for (UnsignedInt i=0; i<out_length_/4; i++)
+		for (UInt i=0; i<out_length_/4; i++)
 		{
 			//byte order correction
 			tmp = ntohl( (u_int32_t) ((u_int32_t *)out_buffer_)[i]);
@@ -88,19 +88,19 @@ namespace OpenMS
 		return (float*) out_buffer_;
 	}
 
-	float* Base64::decodeFloat(const char* src, UnsignedInt size)
+	float* Base64::decodeFloat(const char* src, UInt size)
 	{
 		return (float*) decode(src,size);
 	}
 
-	float* Base64::getFloatBuffer(UnsignedInt size)
+	float* Base64::getFloatBuffer(UInt size)
 	{
 		in_length_ = 4*size;
 		adaptInputBuffer_();
 		return (float*)in_buffer_;
 	}
 
-	double* Base64::getDoubleBuffer(UnsignedInt size)
+	double* Base64::getDoubleBuffer(UInt size)
 	{
 		in_length_ = 8*size;
 		adaptInputBuffer_();
@@ -132,7 +132,7 @@ namespace OpenMS
 	{
 		u_int32_t tmp;
 
-		for (UnsignedInt i=0; i<in_length_/4; i++)
+		for (UInt i=0; i<in_length_/4; i++)
 		{
 			//byte order correction
 			tmp = htonl( (u_int32_t) ((u_int32_t *)in_buffer_)[i]);
@@ -147,12 +147,12 @@ namespace OpenMS
 		return encode(in_buffer_,in_length_);
 	}
 
-	double* Base64::decodeDoubleCorrected(const char* src, UnsignedInt size)
+	double* Base64::decodeDoubleCorrected(const char* src, UInt size)
 	{
 		decode(src,size*2);
 
 		u_int32_t tmp1, tmp2;
-		for (UnsignedInt i=0; i<out_length_/8; i++)
+		for (UInt i=0; i<out_length_/8; i++)
 		{
 			//byte order correction
 			tmp1 = ntohl( (u_int32_t) ((u_int32_t *)out_buffer_)[2*i]);
@@ -163,7 +163,7 @@ namespace OpenMS
 		return (double*) out_buffer_;
 	}
 
-	double* Base64::decodeDouble(const char* src, UnsignedInt size)
+	double* Base64::decodeDouble(const char* src, UInt size)
 	{
 		return (double*) decode(src,size);
 	}
@@ -173,7 +173,7 @@ namespace OpenMS
 		u_int32_t tmp1;
 		u_int32_t tmp2;
 
-		for (UnsignedInt i=0; i<in_length_/8; i++)
+		for (UInt i=0; i<in_length_/8; i++)
 		{
 			//byte order correction
 			tmp1 = htonl( (u_int32_t) ((u_int32_t *)in_buffer_)[2*i]);
@@ -189,13 +189,13 @@ namespace OpenMS
 		return encode(in_buffer_,in_length_);
 	}
 
-	char* Base64::encode(const char* src, UnsignedInt size)
+	char* Base64::encode(const char* src, UInt size)
 	{
-		UnsignedInt padding = 0;
+		UInt padding = 0;
 		if (size%3 == 2) padding=1; 
 		if (size%3 == 1) padding=2;
 		
-		UnsignedInt dest_size = (size+padding)/3*4;
+		UInt dest_size = (size+padding)/3*4;
 		if (dest_size > out_length_) setOutputBufferSize(dest_size);
 
 		if (size<3)
@@ -208,8 +208,8 @@ namespace OpenMS
 		register unsigned char a;
 		register unsigned char b;
 
-		UnsignedInt j = 0;
-		UnsignedInt i = 0;
+		UInt j = 0;
+		UInt i = 0;
 		for (i=0; i<size-3; i+=3)  
 		{
 			// encode 3 Byte to 4 Base64-Chars
@@ -254,9 +254,9 @@ namespace OpenMS
 		return out_buffer_;
 	}
 
-	char* Base64::decode(const char* src, UnsignedInt size)
+	char* Base64::decode(const char* src, UInt size)
 	{
-		UnsignedInt src_size = size;
+		UInt src_size = size;
 		// remove last one or two '=' if contained
 		int padding = 0;
 		if (src[src_size-1] == '=') padding++;
@@ -264,14 +264,14 @@ namespace OpenMS
 		src_size -= padding;
 
 		// increase buffer if necessary			
-		UnsignedInt dest_size = int(ceil(src_size/4.0))*3;
+		UInt dest_size = int(ceil(src_size/4.0))*3;
 		if (dest_size > out_length_) setOutputBufferSize(dest_size);
 
-		register UnsignedInt a;
-		register UnsignedInt b;
+		register UInt a;
+		register UInt b;
 
-		UnsignedInt j = 0;
-		for (UnsignedInt i=0; i<src_size; i+=4)
+		UInt j = 0;
+		for (UInt i=0; i<src_size; i+=4)
 		{
 			// decode 4 Base64-Chars to 3 Byte
 			a = decoder_[(int)src[i]-43]-62;

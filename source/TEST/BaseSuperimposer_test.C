@@ -129,11 +129,11 @@ CHECK(const Param& getParameters() const)
   TEST_EQUAL(bsi_copy.getParameters() == param,true)
 RESULT
 
-CHECK(const PointMapType& getElementMap(UnsignedInt index))
+CHECK(const PointMapType& getElementMap(UInt index))
   
 RESULT
 
-CHECK(const PointMapType& getElementMap(UnsignedInt index) const)
+CHECK(const PointMapType& getElementMap(UInt index) const)
   ElementMapType map;
   TestSuperimposer bpf;
   bpf.setElementMap(0,map);
@@ -141,7 +141,7 @@ CHECK(const PointMapType& getElementMap(UnsignedInt index) const)
   TEST_EQUAL(&(bpf_copy.getElementMap(0)) == &map,true)
 RESULT
 
-CHECK(const TransformationType& getTransformation(UnsignedInt dim) const)
+CHECK(const TransformationType& getTransformation(UInt dim) const)
   TransformationType trafo(1.,2.);
   TestSuperimposer bsi;
   bsi.setTransformation(0,trafo);
@@ -155,7 +155,7 @@ CHECK(void run())
   
 RESULT
 
-CHECK((void setElementMap(UnsignedInt const index, const PointMapType& Element_map)))
+CHECK((void setElementMap(UInt const index, const PointMapType& Element_map)))
   ElementMapType map;
   TestSuperimposer bsi;
   bsi.setElementMap(0,map);
@@ -171,7 +171,7 @@ CHECK(void setParameters(const Param& param))
   TEST_EQUAL(bsi_copy.getParameters() == param,true)
 RESULT
 
-CHECK((void setTransformation(UnsignedInt dim, const TransformationType& trafo)))
+CHECK((void setTransformation(UInt dim, const TransformationType& trafo)))
   TransformationType trafo(1.,2.);
   TestSuperimposer bsi;
   bsi.setTransformation(0,trafo);

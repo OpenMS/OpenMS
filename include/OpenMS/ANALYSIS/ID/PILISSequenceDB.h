@@ -82,7 +82,7 @@ namespace OpenMS
 			void addPeptidesFromFile(const String& filename);
 
 			///
-			void digestProteinsTryptic(UnsignedInt missed_cleavages = 0);
+			void digestProteinsTryptic(UInt missed_cleavages = 0);
 
 			/// deletes all proteins
 			void clearProteins();
@@ -118,14 +118,14 @@ namespace OpenMS
 		protected:
 
 			/// performs a tryptic digest
-			void digestTryptic_(const String& seq, std::vector<String>& peptides, UnsignedInt missedcleavages);
+			void digestTryptic_(const String& seq, std::vector<String>& peptides, UInt missedcleavages);
 
 			/// adds a peptide into the database if not already contained
 			void addPeptide_(const String& peptide);
 			
 			std::vector<std::pair<String, String> > proteins_;
 
-			HashMap<UnsignedInt, std::vector<PepStruct> > peptides_;
+			HashMap<UInt, std::vector<PepStruct> > peptides_;
 
 			double factor_;
 

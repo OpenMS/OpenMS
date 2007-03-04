@@ -119,7 +119,7 @@ namespace OpenMS
   	std::vector<IDX>::const_iterator current_peak_;
   	
   	/// counts the number of seeds that we returned so far
-  	UnsignedInt nr_seeds_;
+  	UInt nr_seeds_;
   };
 }
 #endif // OPENMS_TRANSFORMATIONS_FEATUREFINDER_SIMPLESEEDER_H

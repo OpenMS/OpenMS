@@ -164,7 +164,7 @@ namespace OpenMS
         key = 0;
       }
 
-      inline Point(Base::RT hx, Base::RT hy, const PointType& f, UnsignedInt k=0)
+      inline Point(Base::RT hx, Base::RT hy, const PointType& f, UInt k=0)
           : Base(hx,hy)
       {
         element = &f;
@@ -201,7 +201,7 @@ namespace OpenMS
       }
 
       const PointType* element;
-      UnsignedInt key;
+      UInt key;
     };
 
     /// To construct a delaunay triangulation with our Point class we have to write an own
@@ -231,39 +231,39 @@ namespace OpenMS
     typedef typename Point_set_2::Vertex_handle Vertex_handle;
 
     /// Get diff intercept
-    double getDiffIntercept(UnsignedInt dim)
+    double getDiffIntercept(UInt dim)
     {
       return diff_intercept_[dim];
     }
 
     /// Set diff intercept
-    void setDiffIntercept(UnsignedInt dim, DoubleReal intercept)
+    void setDiffIntercept(UInt dim, DoubleReal intercept)
     {
       diff_intercept_[dim] = intercept;
       param_.setValue(String("similarity:diff_intercept:") + RawDataPoint2D::shortDimensionName(dim), intercept);
     }
 
     /// Get max_pair_distance_
-    float getMaxPairDistance(UnsignedInt dim)
+    float getMaxPairDistance(UInt dim)
     {
       return max_pair_distance_[dim];
     }
 
     /// Set max_pair_distance_
-    void setMaxPairDistance(UnsignedInt dim, Real max_pair_distance)
+    void setMaxPairDistance(UInt dim, Real max_pair_distance)
     {
       max_pair_distance_[dim] = max_pair_distance;
       param_.setValue(String("similarity:max_pair_distance:") + RawDataPoint2D::shortDimensionName(dim), max_pair_distance);
     }
 
     /// Get precision
-    float getPrecision(UnsignedInt dim)
+    float getPrecision(UInt dim)
     {
       return precision_[dim];
     }
 
     /// Set precision
-    void setPrecision(UnsignedInt dim, Real precision)
+    void setPrecision(UInt dim, Real precision)
     {
       precision_[dim] = precision;
       param_.setValue(String("similarity:precision:") + RawDataPoint2D::shortDimensionName(dim), precision);
@@ -279,12 +279,12 @@ namespace OpenMS
 
       V_findElementPairs("@@@ findElementPairs_()");
 
-      UnsignedInt n = reference_map.size();
+      UInt n = reference_map.size();
 
       // Vector to fill the point set for triangulation
       // Penalize a deviation in mz more than in rt: deviation(diff_intercept_[RawDataPoint2D::RT]) ~ deviation(diff_intercept_[RawDataPoint2D::MZ])
       std::vector< Point > positions_reference_map;
-      for (UnsignedInt i = 0; i < n; ++i)
+      for (UInt i = 0; i < n; ++i)
       {
         positions_reference_map.push_back(Point(reference_map[i].getRT(),
                                                 reference_map[i].getMZ() / (diff_intercept_[RawDataPoint2D::MZ] / diff_intercept_[RawDataPoint2D::RT]),reference_map[i],i));
@@ -297,12 +297,12 @@ namespace OpenMS
       V_findElementPairs("Translation mz " << transformation_[RawDataPoint2D::MZ].getParam());
 
       // Initialize a hash map for the elements of reference_map to avoid that elements of the reference map occur in several element pairs
-      std::vector< SignedInt > lookup_table(n,-1);
+      std::vector< Int > lookup_table(n,-1);
       std::vector< std::pair< const PointType*,const PointType*> > all_element_pairs;
 
-      UnsignedInt index_act_element_pair = 0;
+      UInt index_act_element_pair = 0;
       // take each point in the first data map and search for its neighbours in the second element map (within a given (transformed) range)
-      for ( UnsignedInt fi1 = 0; fi1 < transformed_map.size(); ++fi1 )
+      for ( UInt fi1 = 0; fi1 < transformed_map.size(); ++fi1 )
       {
         // compute the transformed iso-rectangle (upper_left,bottom_left,bottom_right,upper_right) for the range query
         double rt_pos = transformed_map[fi1].getRT();
@@ -338,7 +338,7 @@ namespace OpenMS
         {
           all_element_pairs.push_back(std::pair<const PointType*,const PointType*>(nearest.element,&transformed_map[fi1]));
 
-          SignedInt element_key = resulting_range[0]->point().key;
+          Int element_key = resulting_range[0]->point().key;
           // if the element already part of a ElementPair the value in the lookup_table becomes -2
           if ( lookup_table[element_key] > -1)
           {
@@ -358,9 +358,9 @@ namespace OpenMS
       }
 
 //       std::ofstream out("pairs.dat",std::ios::out);
-      for (UnsignedInt i = 0; i < n; ++i)
+      for (UInt i = 0; i < n; ++i)
       {
-        SignedInt pair_key = lookup_table[i];
+        Int pair_key = lookup_table[i];
         if ( pair_key > -1 )
         {
 //           out << (*(all_element_pairs[pair_key].second)).getRT() << ' '
@@ -382,8 +382,8 @@ namespace OpenMS
 
       // Vector to fill the point set for triangulation
       std::vector< Point > positions_reference_map;
-      UnsignedInt n = first_map.size();
-      for (UnsignedInt i = 0; i < n; ++i)
+      UInt n = first_map.size();
+      for (UInt i = 0; i < n; ++i)
       {
         positions_reference_map.push_back(Point((double)(first_map[i].getRT()),
                                                 (double)(first_map[i].getMZ() / (diff_intercept_[RawDataPoint2D::MZ] / diff_intercept_[RawDataPoint2D::RT])),first_map[i],i));
@@ -397,15 +397,15 @@ namespace OpenMS
       V_computeConsensusMap("End delaunay triangulation after " << timer.getCPUTime() << "s");
 
       // Initialize a hash map for the elements of reference_map to avoid that elements of the reference map occur in several element pairs
-      std::vector< SignedInt > lookup_table(n,-1);
+      std::vector< Int > lookup_table(n,-1);
       std::vector< std::pair< const PointType*, PointType*> > all_element_pairs;
 
-      UnsignedInt trans_single = 0;
-      UnsignedInt ref_single = 0;
-      UnsignedInt pairs = 0;
-      UnsignedInt index_act_element_pair = 0;
+      UInt trans_single = 0;
+      UInt ref_single = 0;
+      UInt pairs = 0;
+      UInt index_act_element_pair = 0;
       // take each point in the first data map and search for its neighbours in the second element map (within a given (transformed) range)
-      for ( UnsignedInt fi1 = 0; fi1 < second_map.size(); ++fi1 )
+      for ( UInt fi1 = 0; fi1 < second_map.size(); ++fi1 )
       {
         // compute the transformed iso-rectangle (upper_left,bottom_left,bottom_right,upper_right) for the range query
         double rt_pos = (double)(second_map[fi1].getRT());
@@ -444,7 +444,7 @@ namespace OpenMS
               V_computeConsensusMap("Push first: " << *(nearest.element))
               V_computeConsensusMap("Push second: " << second_map[fi1])
 
-              SignedInt element_key = resulting_range[0]->point().key;
+              Int element_key = resulting_range[0]->point().key;
 
               // if the element a is already part of a ElementPair (a,b) do:
               //    if (the element c closer to a than b to a) and (the distance between c and b is > a given threshold) do:
@@ -453,7 +453,7 @@ namespace OpenMS
               //    --> the value in the lookup_table becomes -2 because the mapping is not unique
               if ( lookup_table[element_key] > -1)
               {
-                SignedInt pair_key = lookup_table[element_key];
+                Int pair_key = lookup_table[element_key];
                 const PointType& first_map_a = *(all_element_pairs[pair_key].first);
                 PointType& second_map_b = *(all_element_pairs[pair_key].second);
                 PointType& second_map_c = second_map[fi1];
@@ -521,9 +521,9 @@ namespace OpenMS
       }
       V_computeConsensusMap("Insert elements ");
       std::vector< const PointType* > single_elements_first_map;
-      for (UnsignedInt i = 0; i < n; ++i)
+      for (UInt i = 0; i < n; ++i)
       {
-        SignedInt pair_key = lookup_table[i];
+        Int pair_key = lookup_table[i];
         if ( pair_key > -1 )
         {
           IndexTuple< ElementMapT > index_tuple(*((all_element_pairs[pair_key].first)->begin()));
@@ -540,8 +540,8 @@ namespace OpenMS
         }
       }
 
-      UnsignedInt length = single_elements_first_map.size();
-      for (UnsignedInt i = 0; i < length; ++i)
+      UInt length = single_elements_first_map.size();
+      for (UInt i = 0; i < length; ++i)
       {
         second_map.push_back(*(single_elements_first_map[i]));
       }

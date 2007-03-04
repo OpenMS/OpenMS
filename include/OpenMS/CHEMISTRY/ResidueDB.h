@@ -83,10 +83,10 @@ namespace OpenMS
 			*/
 			//@{
 			/// returns the number of residues stored
-			UnsignedInt getNumberOfResidues() const;
+			UInt getNumberOfResidues() const;
 			
 			/// returns the number of modifications stored in this residue db
-			UnsignedInt getNumberOfModifications() const;
+			UInt getNumberOfModifications() const;
 
 			/// resturns a pointer to modification with name name, if non is found 0 is returned
 			const Residue::Modification* getModification(const String& name) const;

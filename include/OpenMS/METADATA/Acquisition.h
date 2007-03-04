@@ -60,12 +60,12 @@ namespace OpenMS
       bool operator!= (const Acquisition& rhs) const;
 			
 		/// return the index/number of the scan (number is -1 by default)
-      SignedInt getNumber() const;
+      Int getNumber() const;
       /// sets the index/number of the scan
-      void setNumber(SignedInt number);
+      void setNumber(Int number);
 
     protected:
-      SignedInt number_;
+      Int number_;
       
   };
 } // namespace OpenMS

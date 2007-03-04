@@ -152,7 +152,7 @@ namespace OpenMS
 				
 			   Features are only sorted by position @p i.		
 			*/
-			void sortByNthPosition(UnsignedInt i) throw (Exception::NotImplemented);
+			void sortByNthPosition(UInt i) throw (Exception::NotImplemented);
 				
 			void sortByOverallQuality()
 			{
@@ -188,7 +188,7 @@ namespace OpenMS
 	}
 	
 	template <typename FeatureType > 
-	void FeatureMap<FeatureType>::sortByNthPosition(UnsignedInt i) throw (Exception::NotImplemented)
+	void FeatureMap<FeatureType>::sortByNthPosition(UInt i) throw (Exception::NotImplemented)
 	{ 
 		if (i==0)
 		{

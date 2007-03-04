@@ -76,25 +76,25 @@ CHECK((SavitzkyGolaySVDFilter(const SavitzkyGolaySVDFilter& s)))
   TEST_EQUAL(sgolay_copy.getWindowSize(),sgolay.getWindowSize())
 RESULT
 
-CHECK((UnsignedInt getOrder() const))
+CHECK((UInt getOrder() const))
   SavitzkyGolaySVDFilter sgolay;
 
   TEST_EQUAL(sgolay.getOrder(),4);
 RESULT
 
-CHECK((UnsignedInt getWindowSize() const))
+CHECK((UInt getWindowSize() const))
   SavitzkyGolaySVDFilter sgolay;
 
   TEST_EQUAL(sgolay.getWindowSize(),17);
 RESULT
 
-CHECK((UnsignedInt getOrder() const))
+CHECK((UInt getOrder() const))
   SavitzkyGolaySVDFilter sgolay;
 
   TEST_EQUAL(sgolay.getOrder(),4);
 RESULT
 
-CHECK((void setOrder(UnsignedInt order)))
+CHECK((void setOrder(UInt order)))
   SavitzkyGolaySVDFilter sgolay;
   sgolay.setOrder(3);
 
@@ -112,7 +112,7 @@ CHECK((void setParam(Param param) throw(Exception::InvalidValue)))
   TEST_REAL_EQUAL(sgolay.getWindowSize(),3);
 RESULT
 
-CHECK((void setWindowSize(UnsignedInt frame_size)))
+CHECK((void setWindowSize(UInt frame_size)))
   SavitzkyGolaySVDFilter sgolay;
   sgolay.setWindowSize(7);
 

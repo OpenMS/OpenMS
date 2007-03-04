@@ -56,7 +56,7 @@ namespace OpenMS
 		
 		public:
 			/// Constructor
-			HistogramWidget(const Math::Histogram<UnsignedInt,float>& distribution, QWidget* parent = 0);
+			HistogramWidget(const Math::Histogram<UInt,float>& distribution, QWidget* parent = 0);
 			/// Destructor
 			virtual ~HistogramWidget();
 			
@@ -76,14 +76,14 @@ namespace OpenMS
 			void setLeftSplitter(float pos);
 
 		protected:
-			Math::Histogram<UnsignedInt,float> dist_;
+			Math::Histogram<UInt,float> dist_;
 			bool show_splitters_;
 			float left_splitter_;
 			float right_splitter_;
 			/// the splitter that is currently dragged (0=none, 1=left, 2=right)
-			UnsignedInt moving_splitter_;
+			UInt moving_splitter_;
 			AxisWidget *bottom_axis_;
-			UnsignedInt margin_;
+			UInt margin_;
 			/// internal buffer for the double buffering
 			QPixmap buffer_;
 			/// repaints the contents to the buffer and calls update()

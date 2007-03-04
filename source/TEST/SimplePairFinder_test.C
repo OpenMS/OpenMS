@@ -88,14 +88,14 @@ CHECK((SimplePairFinder(const SimplePairFinder& source)))
   TEST_REAL_EQUAL(spf_copy.getPairMinQuality(),0.9)
 RESULT
 
-CHECK((double getDiffExponent(UnsignedInt dim)))
+CHECK((double getDiffExponent(UInt dim)))
   SimplePairFinder<FeatureMap<> > spf;
   
   TEST_REAL_EQUAL(spf.getDiffExponent(0),2)
   TEST_REAL_EQUAL(spf.getDiffExponent(1),1)
 RESULT
 
-CHECK((double getDiffIntercept(UnsignedInt dim)))
+CHECK((double getDiffIntercept(UInt dim)))
   SimplePairFinder<FeatureMap<> > spf;
   
   TEST_REAL_EQUAL(spf.getDiffIntercept(0),1)
@@ -108,7 +108,7 @@ CHECK((double getPairMinQuality()))
   TEST_REAL_EQUAL(spf.getPairMinQuality(),0.01)
 RESULT
 
-CHECK((void setDiffExponent(UnsignedInt dim, DoubleReal exponent)))
+CHECK((void setDiffExponent(UInt dim, DoubleReal exponent)))
   SimplePairFinder<FeatureMap<> > spf;
   spf.setDiffExponent(0,20);
   spf.setDiffExponent(1,25);
@@ -117,7 +117,7 @@ CHECK((void setDiffExponent(UnsignedInt dim, DoubleReal exponent)))
   TEST_REAL_EQUAL(spf.getDiffExponent(1),25)
 RESULT
 
-CHECK((void setDiffIntercept(UnsignedInt dim, DoubleReal intercept)))
+CHECK((void setDiffIntercept(UInt dim, DoubleReal intercept)))
   SimplePairFinder<FeatureMap<> > spf;
   spf.setDiffIntercept(0,10);
   spf.setDiffIntercept(1,15);

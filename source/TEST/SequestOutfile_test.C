@@ -93,7 +93,7 @@ CHECK(void load(const string& result_filename, vector< IdentificationData >&	ide
 	TEST_EQUAL(identifications[0].id.getPeptideHits()[1].getRank(), 2)
 RESULT
 
-CHECK(bool getColumns(const String& line, vector< String >& substrings, UnsignedInt number_of_columns, UnsignedInt reference_column))
+CHECK(bool getColumns(const String& line, vector< String >& substrings, UInt number_of_columns, UInt reference_column))
 	String line = "  1.   1/80          0 1967.0013  0.0000  1.5789   310.3 0.05    0 18/64 gi|544379|sp|P35574|GDE RABIT   +2   C.ETQAWSIATILETLYDL.-";
 	vector< String > substrings, columns;
 	columns.push_back("1.");
@@ -122,8 +122,8 @@ CHECK(bool getColumns(const String& line, vector< String >& substrings, Unsigned
 	TEST_EQUAL((columns == substrings), true)
 RESULT
 
-CHECK(void getSequences(const String& database_filename, const map< String, UnsignedInt >& ac_position_map, vector< String >& sequences, vector< pair< String, UnsignedInt > >& found, map< String, UnsignedInt >& not_found) throw (Exception::FileNotFound))
-	map< String, UnsignedInt > ac_position_map, not_found;
+CHECK(void getSequences(const String& database_filename, const map< String, UInt >& ac_position_map, vector< String >& sequences, vector< pair< String, UInt > >& found, map< String, UInt >& not_found) throw (Exception::FileNotFound))
+	map< String, UInt > ac_position_map, not_found;
 	ac_position_map["P02666"] = 0;
 	ac_position_map["Q9CQV8"] = 1;
 	ac_position_map["Q5EEQ7"] = 2;
@@ -133,14 +133,14 @@ CHECK(void getSequences(const String& database_filename, const map< String, Unsi
 	sequences.push_back("TMDKSELVQKAKLAEQAERYDDMAAAMKAVTEQGHELSNEERNLLSVAYKNVVGARRSSWRVISSIEQKTERNEKKQQMGKEYREKIEAELQDICNDVLELLDKYLILNATQAESKVFYLKMKGDYFRYLSEVASGENKQTTVSNSQQAYQEAFEISKKEMQPTHPIRLGLALNFSVFYYEILNSPEKACSLAKTAFDEAIAELDTLNEESYKDSTLIMQLLRDNLTLWTSENQGDEGDAGEGEN");
 	sequences.push_back("SAPPSLLVLYFGKKELRAMKVLILACLVALALARELEELNVPGEIVESLSSSEESITRINKKIEKFQSEEQQQTEDELQDKIHPFAQTQSLVYPFPGPIPNSLPQNIPPLTQTPVVVPP");
 	sequences.push_back("GDREQLLQRARLAEQAERYDDMASAMKAVTELNEPLSNEDRNLLSVAYKNVVGARRSSWRVISSIEQKTMADGNEKKLEKVKAYREKIEKELETVCNDVLALLDKFLIKNCNDFQYESKVFYLKMKGDYYRYLAEVASGEKKNSVVEASEAAYKEAFEISKEHMQPTHPIRLGLALNFSVFYYEIQNAPEQACLLAKQAFDDAIAELDTLNEDSYKDSTLIMQLLRDNLTLWTSDQQDEEAGEGN");
-	vector< pair< String, UnsignedInt > > found;
+	vector< pair< String, UInt > > found;
 	
 	file.getSequences("data/Sequest_test.fasta", ac_position_map, found_sequences, found, not_found);
 	TEST_EQUAL(found.size(), 2)
 	TEST_EQUAL(not_found.size(), 2)
 	if ( found.size() == 2 && not_found.size() == 2 )
 	{
-		map< String, UnsignedInt >::const_iterator i = ++ac_position_map.begin();
+		map< String, UInt >::const_iterator i = ++ac_position_map.begin();
 		TEST_EQUAL(i->first, found[0].first)
 		TEST_EQUAL(i->second, found[0].second)
 

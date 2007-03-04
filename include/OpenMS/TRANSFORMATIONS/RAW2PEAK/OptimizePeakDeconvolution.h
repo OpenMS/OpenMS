@@ -162,7 +162,7 @@ namespace OpenMS
     inline void setPenalties(const OptimizationFunctions::PenaltyFactorsInt& penalties) { penalties_ = penalties; }
     
     /// Non-mutable access to the number of iterations
-    inline SignedInt getNumberIterations() const { return max_iteration_; }
+    inline Int getNumberIterations() const { return max_iteration_; }
     /// Mutable access to the number of iterations
     inline int& getNumberIterations() { return max_iteration_; }
     /// Mutable access to the number of iterations
@@ -183,7 +183,7 @@ namespace OpenMS
     inline void setMaxRelError(double eps_rel) { eps_rel_ = eps_rel; }
 
     /// Non-mutable access to the charge state
-    inline SignedInt getCharge() const { return charge_; }
+    inline Int getCharge() const { return charge_; }
     /// Mutable access to the charge state
     inline int& getCharge() { return charge_; }
     /// Mutable access to the charge

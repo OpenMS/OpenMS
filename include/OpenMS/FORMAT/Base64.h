@@ -59,7 +59,7 @@ namespace OpenMS
     virtual ~Base64();
 
 		/// Return size of output buffer
-		UnsignedInt getOutputBufferSize();
+		UInt getOutputBufferSize();
 
 		/** 
 			@brief Set size of output buffer.
@@ -69,26 +69,26 @@ namespace OpenMS
 			Use this function if you know the maximal used buffer size in advance
 			to avoid successive buffer allocation.
 		*/
-		void setOutputBufferSize(UnsignedInt s);
+		void setOutputBufferSize(UInt s);
 
 
     /// Decode given Base64-String of size @p size
-		char* decode(const char* src, UnsignedInt size);
+		char* decode(const char* src, UInt size);
 		
     /// Dncode given Base64-String of size @p size
-		char* encode(const char* src, UnsignedInt size);
+		char* encode(const char* src, UInt size);
 
 		/**@name Handling of 32 bit real type */
     //@{
 
     /// Decode given Base64-String of size @p size to array of floats, each float corrected from network to host byte order
-		float* decodeFloatCorrected(const char* src, UnsignedInt size);
+		float* decodeFloatCorrected(const char* src, UInt size);
 
     /// decode given Base64-String of size @p size to array of floats
-		float* decodeFloat(const char* src, UnsignedInt size);
+		float* decodeFloat(const char* src, UInt size);
 
     /// return internal input buffer to fill with @p size floats
-		float* getFloatBuffer(UnsignedInt size);
+		float* getFloatBuffer(UInt size);
 
     /// encode internal input buffer (fill with getFloatBuffer()) to Base64-String after conversion to network byte order
 		char* encodeFloatCorrected();
@@ -102,13 +102,13 @@ namespace OpenMS
     //@{
 
     /// decode given Base64-String of size @p size to array of doubles, each double corrected from network to host byte order
-		double* decodeDoubleCorrected(const char* src, UnsignedInt size);
+		double* decodeDoubleCorrected(const char* src, UInt size);
 
     /// decode given Base64-String of size @p size to array of doubles
-		double* decodeDouble(const char* src, UnsignedInt size);
+		double* decodeDouble(const char* src, UInt size);
 
     /// return internal input buffer to fill with @p size doubles
-		double* getDoubleBuffer(UnsignedInt size);
+		double* getDoubleBuffer(UInt size);
 
     /// encode internal input buffer (fill with getDoubleBuffer()) to Base64-String after conversion to network byte order
 		char* encodeDoubleCorrected();
@@ -123,11 +123,11 @@ namespace OpenMS
 		/// output buffer
 		char* out_buffer_;
 		/// Length of input buffer
-		UnsignedInt in_length_;
+		UInt in_length_;
 		/// Length of output buffer
-		UnsignedInt out_length_;
+		UInt out_length_;
 		/// Length of input buffer
-		UnsignedInt ibuffer_size_;
+		UInt ibuffer_size_;
 		
 		/// Adapts input buffer size to new value of in_length_.
 		void adaptInputBuffer_();

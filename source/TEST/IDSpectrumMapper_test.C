@@ -55,7 +55,7 @@ CHECK((IDSpectrumMapper()))
 	TEST_NOT_EQUAL(ptr, 0)
 RESULT
 
-CHECK((template<class PeakT> UnsignedInt annotate(MSExperiment< PeakT >& experiment, const std::vector<IdentificationData>& identifications, float precision = 0.01f)))
+CHECK((template<class PeakT> UInt annotate(MSExperiment< PeakT >& experiment, const std::vector<IdentificationData>& identifications, float precision = 0.01f)))
 	vector<IdentificationData> identifications2; 
 	MSExperiment< Peak1D > experiment;
 	MSSpectrum< Peak1D > spectrum;

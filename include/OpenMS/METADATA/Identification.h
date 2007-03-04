@@ -122,12 +122,12 @@ namespace OpenMS
 	  	String 										accession 	= "";
 	  			
 	  	// for every peptide hit
-			for(UnsignedInt i = 0; i < peptide_hits_.size(); i++)
+			for(UInt i = 0; i < peptide_hits_.size(); i++)
 			{
 				const std::vector< std::pair<String, String> >& references = 
 						peptide_hits_[i].getProteinIndices();
 				//for every reference
-				for(UnsignedInt j = 0; j < references.size(); j++)
+				for(UInt j = 0; j < references.size(); j++)
 				{
 					// for every protein hit
 					for(iteratorT protein_it = protein_hits_begin;

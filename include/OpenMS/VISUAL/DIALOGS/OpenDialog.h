@@ -100,8 +100,8 @@ namespace OpenMS
 			
 			///returns the preference entry @p name (for convenience only)
 			const DataValue& getPref_(const String& name) const;
-			///returns the preference entry @p name as SignedInt (for convenience only)
-			SignedInt getPrefAsInt_(const String& name) const;
+			///returns the preference entry @p name as Int (for convenience only)
+			Int getPrefAsInt_(const String& name) const;
 
 	};
 

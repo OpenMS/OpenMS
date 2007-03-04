@@ -40,7 +40,7 @@ START_TEST(HashMap, "$Id$")
 /////////////////////////////////////////////////////////////
 
 HashMap<int, int>* map_ptr;
-CHECK(HashMap(UnsignedInt initial_capacity = INITIAL_CAPACITY, UnsignedInt number_of_buckets = INITIAL_NUMBER_OF_BUCKETS) throw())
+CHECK(HashMap(UInt initial_capacity = INITIAL_CAPACITY, UInt number_of_buckets = INITIAL_NUMBER_OF_BUCKETS) throw())
 	map_ptr = new HashMap<int, int>;
 	TEST_NOT_EQUAL(map_ptr, 0)
 RESULT
@@ -49,22 +49,22 @@ CHECK(~HashMap() throw())
 	delete map_ptr;
 RESULT
 
-CHECK(UnsignedInt size() const throw())
+CHECK(UInt size() const throw())
 	HashMap<int, int> hm;
 	TEST_EQUAL(hm.size(), 0)
 RESULT
 
-CHECK(UnsignedInt getSize() const throw())
+CHECK(UInt getSize() const throw())
 	HashMap<int, int> hm;
 	TEST_EQUAL(hm.getSize(), 0)
 RESULT
 
-CHECK(UnsignedInt getBucketSize() const throw())
+CHECK(UInt getBucketSize() const throw())
 	HashMap<int, int> hm;
 	TEST_EQUAL(hm.getBucketSize(), 50)
 RESULT
 
-CHECK(UnsignedInt getCapacity() const throw())
+CHECK(UInt getCapacity() const throw())
 	HashMap<int, int> hm;
 	TEST_EQUAL(hm.getCapacity(), 100)
 RESULT
@@ -119,7 +119,7 @@ CHECK(ConstIterator find(const Key& key) const throw())
 	TEST_EQUAL((hm.find(-2) == hm.end()), true)
 RESULT
 
-CHECK(UnsignedInt erase(const Key& key) throw())
+CHECK(UInt erase(const Key& key) throw())
 	HashMap<int, int> hm;
 	TEST_EQUAL(hm.getSize(), 0)
 	hm.insert(HashMap<int, int>::ValueType(0, 0));

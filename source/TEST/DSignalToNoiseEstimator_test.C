@@ -144,7 +144,7 @@ CHECK((const int getRTdim() const))
   TEST_REAL_EQUAL(sne.getRTdim(),-1)
 RESULT
 
-CHECK((SignedInt getMZdim() const))
+CHECK((Int getMZdim() const))
   TestSignalToNoiseEstimator sne;
   
   TEST_REAL_EQUAL(sne.getMZdim(),0)
@@ -192,7 +192,7 @@ CHECK((void setLastDataPoint(const PeakIterator& last)))
   TEST_EQUAL(sne.getLastDataPoint() == spec.end(), true)
 RESULT
 
-CHECK((void setMZdim(SignedInt mz_dim)))
+CHECK((void setMZdim(Int mz_dim)))
   TestSignalToNoiseEstimator sne;
   sne.setMZdim(-1);
   
@@ -208,7 +208,7 @@ CHECK((void setParam(const Param& param)))
   TEST_EQUAL(sne.getParam() == param, true)
 RESULT
 
-CHECK((void setRTdim(SignedInt rt_dim)))
+CHECK((void setRTdim(Int rt_dim)))
   TestSignalToNoiseEstimator sne;
   sne.setRTdim(0);
   

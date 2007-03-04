@@ -216,7 +216,7 @@ namespace OpenMS
 		{
 			QTreeWidgetItem* child = item->child(i);
 			
-			for(UnsignedInt i=0; i<hits->size(); ++i)
+			for(UInt i=0; i<hits->size(); ++i)
 			{
 				String seq = (*hits)[i].getSequence();
 				String name = String("Pep ") + seq + " (" + (*hits)[i].getScore() + ")";
@@ -278,7 +278,7 @@ namespace OpenMS
 		//search all peptide hits
 		vector< PeptideHit >& peps= id.getPeptideHits();
 		bool hit = false;
-		for(UnsignedInt i=0; i<peps.size(); ++i)
+		for(UInt i=0; i<peps.size(); ++i)
 		{
 			vector<pair<String, String> >& protlist = peps[i].getProteinIndices();
 			
@@ -339,7 +339,7 @@ namespace OpenMS
 		//check for treatments
 		if(meta.countTreatments() != 0)
 		{	
-			for(SignedInt i=0; i<meta.countTreatments(); ++i)
+			for(Int i=0; i<meta.countTreatments(); ++i)
 			{
 				if(meta.getTreatment(i).getType()=="Digestion")
 				{
@@ -363,7 +363,7 @@ namespace OpenMS
 		
 		if(v.size() != 0)
 		{
-			for(UnsignedInt i=0; i<v.size(); ++i)    
+			for(UInt i=0; i<v.size(); ++i)    
 			{
 				visualize_(v[i], item);
 			}
@@ -639,7 +639,7 @@ namespace OpenMS
 		vector<MassAnalyzer>& v= meta.getMassAnalyzers();  
 		if(v.size() != 0)
 		{
-			for(UnsignedInt i=0; i<v.size(); ++i)    
+			for(UInt i=0; i<v.size(); ++i)    
 			{
 				visualize_(v[i], item);
 			}
@@ -770,7 +770,7 @@ namespace OpenMS
 		//check for proteinhits objects
 		//meta.sort();
 		vector< ProteinHit > v= meta.getProteinHits();  
-		for(UnsignedInt i=0; i<v.size(); ++i)    
+		for(UInt i=0; i<v.size(); ++i)    
 		{
 			visualize_(v[i], item);
 		}
@@ -807,7 +807,7 @@ namespace OpenMS
 		//list all peptides hits in the tree
 		if(peps.size() != 0)
 		{
-			for(UnsignedInt i=0; i<peps.size(); ++i)    
+			for(UInt i=0; i<peps.size(); ++i)    
 			{
 				visualize_(peps[i], item, &prots);
 			}
@@ -913,7 +913,7 @@ namespace OpenMS
 			visualize_(meta.getSample(), item);
 			
 			//check for ProteinIdentification
-			for(UnsignedInt i=0; i<meta.getProteinIdentifications().size(); ++i)    
+			for(UInt i=0; i<meta.getProteinIdentifications().size(); ++i)    
 			{
 				visualize_(meta.getProteinIdentifications()[i], item);
 			}
@@ -928,7 +928,7 @@ namespace OpenMS
 			visualize_(meta.getSourceFile(), item);
 			
 			//check for ContactPersons
-			for(UnsignedInt i=0; i<meta.getContacts().size(); ++i)    
+			for(UInt i=0; i<meta.getContacts().size(); ++i)    
 			{
 				visualize_(meta.getContacts()[i], item);
 			}
@@ -977,7 +977,7 @@ namespace OpenMS
 			visualize_(meta.getInstrumentSettings(), item);
 			
 			//check for Identification
-			for(UnsignedInt i=0; i<meta.getIdentifications().size(); ++i)    
+			for(UInt i=0; i<meta.getIdentifications().size(); ++i)    
 			{
 				visualize_(meta.getIdentifications()[i], item);
 			}
@@ -1072,7 +1072,7 @@ namespace OpenMS
 		}
 			
 		//Get Aquisition objects
-		for(UnsignedInt i=0; i< meta.size(); ++i)
+		for(UInt i=0; i< meta.size(); ++i)
 		{ 
 			visualize_(meta[i], item);
 		}

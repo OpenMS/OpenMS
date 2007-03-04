@@ -42,7 +42,7 @@ namespace OpenMS
 
 		@ingroup Kernel
 	*/
-	template <UnsignedInt D>
+	template <UInt D>
 	class DRawDataPoint 	
 	{
 	 public:
@@ -155,7 +155,7 @@ namespace OpenMS
 		/**
 			@brief Comparator for the i-th coordinate of the position.
 		*/
-		template <UnsignedInt i>
+		template <UInt i>
 		struct NthPositionLess
 			: std::binary_function <DRawDataPoint, DRawDataPoint, bool>
 		{
@@ -216,7 +216,7 @@ namespace OpenMS
 	};
 
 	///Print the contents to a stream.
-	template <UnsignedInt D>
+	template <UInt D>
 	std::ostream& operator << (std::ostream& os, const DRawDataPoint<D>& point)
 	{
 		os << "POS: "<< point.getPosition() << " INT: "<<point.getIntensity();

@@ -70,17 +70,17 @@ namespace OpenMS
 				@param map_num number of maps
 				@param filename the file name to handle
 			*/
-      SchemaHandler(UnsignedInt tag_num, UnsignedInt map_num,const String& filename);
+      SchemaHandler(UInt tag_num, UInt map_num,const String& filename);
       ///
       virtual ~SchemaHandler();
       //@}
 
 			/// Finalizes members after handling a tag. Call this in your endElement() reimplementation.
-			UnsignedInt leaveTag(const XMLCh* const qname);
+			UInt leaveTag(const XMLCh* const qname);
 			
 			/// Sets up members for handling the current tag. Call this in your startElement() reimplementation.
 			/// @returns a numerical value representing the tag.
-			UnsignedInt enterTag(const XMLCh* const qname, const xercesc::Attributes& attributes);
+			UInt enterTag(const XMLCh* const qname, const xercesc::Attributes& attributes);
 
 			/// Writes the contents to a stream
 			virtual void writeTo(std::ostream& os) = 0;
@@ -107,7 +107,7 @@ namespace OpenMS
 			std::vector<Enum2StringMap> enum2str_array_;
 
 			/// index of schema from XMLSchemes.h used for Handler
-			UnsignedInt schema_;
+			UInt schema_;
 
 			/// pointer to attributes of current tag
 			const xercesc::Attributes* atts_;
@@ -116,14 +116,14 @@ namespace OpenMS
 			void skipTag_();
 
 			/// Find the enum-value that corresponds to the string @p value in map with index @p index
-			UnsignedInt str2enum_(UnsignedInt index, const String& value, const char* message="");
+			UInt str2enum_(UInt index, const String& value, const char* message="");
 
 			/** @brief Find the string that corresponds to the enum-value @p value
 					in map with index @p index
 
 					Just for convenience, in consistency with str2enum_().
 			*/
-			const String& enum2str_(UnsignedInt index, UnsignedInt value);
+			const String& enum2str_(UInt index, UInt value);
 
 			/// Fill all str2enum-maps with strings from schema @p schema
 			void fillMaps_(const String* schema);
@@ -186,16 +186,16 @@ namespace OpenMS
 			void writeUserParam_(std::ostream& os, const MetaInfoInterface& meta, int indent=4);
 	
 			/// check if value of attribute equals the required value, otherwise throw error
-			void checkAttribute_(UnsignedInt attribute, const String& required, const String& required_alt="");
+			void checkAttribute_(UInt attribute, const String& required, const String& required_alt="");
 	
 			/// return value of attribute as String
-			String getAttributeAsString_(UnsignedInt attribute);
+			String getAttributeAsString_(UInt attribute);
 			
 			
-			void setMaps_(UnsignedInt tagmap, UnsignedInt attmap);
+			void setMaps_(UInt tagmap, UInt attmap);
 			
 		private:
-			UnsignedInt tag_map_, att_map_;
+			UInt tag_map_, att_map_;
   	
   	};
 

@@ -134,9 +134,9 @@ namespace OpenMS
 		UniqueIdGenerator id_generator_;
 
 		/// The current coordinates
-		UnsignedInt current_pcoord_;
-		UnsignedInt current_qcoord_;
-		UnsignedInt current_hcoord_;
+		UInt current_pcoord_;
+		UInt current_qcoord_;
+		UInt current_hcoord_;
 
 		// temporary datastructures to hold parsed data
 		ElementPair < Feature >* pair_;

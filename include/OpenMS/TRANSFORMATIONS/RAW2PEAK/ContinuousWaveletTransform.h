@@ -154,7 +154,7 @@ public:
     }
 
     /// Non-mutable access to the position where the signal starts (in the intervall [0,end_left_padding_) are the padded zeros)
-    inline SignedInt getLeftPaddingIndex() const
+    inline Int getLeftPaddingIndex() const
     {
         return end_left_padding_;
     }
@@ -170,7 +170,7 @@ public:
     }
 
     /// Non-mutable access to the position where the signal ends (in the intervall (begin_right_padding_,end] are the padded zeros)
-    inline SignedInt getRightPaddingIndex() const
+    inline Int getRightPaddingIndex() const
     {
         return begin_right_padding_;
     }
@@ -186,7 +186,7 @@ public:
     }
 
     /// Non-mutable access to signal length [end_left_padding,begin_right_padding]
-    inline SignedInt getSignalLength() const
+    inline Int getSignalLength() const
     {
         return signal_length_;
     }

@@ -87,7 +87,7 @@ CHECK((template<typename SpectrumType> void filterSpectrum(SpectrumType& spectru
 
 	e_ptr->filterSpectrum(spec);
 	double pre_1_pos(spec.getPrecursorPeak().getPosition()[0] * spec.getPrecursorPeak().getCharge());
-	for (SignedInt z = 1; z != spec.getPrecursorPeak().getCharge(); ++z)
+	for (Int z = 1; z != spec.getPrecursorPeak().getCharge(); ++z)
 	{
 		for (PeakSpectrum::ConstIterator it = spec.begin(); it != spec.end(); ++it)
 		{	
@@ -146,7 +146,7 @@ CHECK((void filterPeakMap(PeakMap& exp)))
 
   e_ptr->filterPeakMap(pm);
   double pre_1_pos(pm.begin()->getPrecursorPeak().getPosition()[0] * pm.begin()->getPrecursorPeak().getCharge());
-  for (SignedInt z = 1; z != pm.begin()->getPrecursorPeak().getCharge(); ++z)
+  for (Int z = 1; z != pm.begin()->getPrecursorPeak().getCharge(); ++z)
   {
     for (PeakSpectrum::ConstIterator it = pm.begin()->begin(); it != pm.begin()->end(); ++it)
     {
@@ -191,7 +191,7 @@ CHECK((void filterPeakSpectrum(PeakSpectrum& spectrum)))
 
   e_ptr->filterPeakSpectrum(spec);
   double pre_1_pos(spec.getPrecursorPeak().getPosition()[0] * spec.getPrecursorPeak().getCharge());
-  for (SignedInt z = 1; z != spec.getPrecursorPeak().getCharge(); ++z)
+  for (Int z = 1; z != spec.getPrecursorPeak().getCharge(); ++z)
   {
     for (PeakSpectrum::ConstIterator it = spec.begin(); it != spec.end(); ++it)
     {

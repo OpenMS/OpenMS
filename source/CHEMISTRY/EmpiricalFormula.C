@@ -54,7 +54,7 @@ namespace OpenMS
 		charge_ = parseFormula_(formula_, formula);
 	}
 
-	EmpiricalFormula::EmpiricalFormula(UnsignedInt number, const Element* element, SignedInt charge)
+	EmpiricalFormula::EmpiricalFormula(UInt number, const Element* element, Int charge)
 	{
 		formula_[element] = number;
 		charge_ = charge;
@@ -67,7 +67,7 @@ namespace OpenMS
 	Real EmpiricalFormula::getMonoWeight() const
 	{
 		Real weight(0);
-		HashMap<const Element*, UnsignedInt>::ConstIterator it=formula_.begin();
+		HashMap<const Element*, UInt>::ConstIterator it=formula_.begin();
 		for (; it != formula_.end(); ++it)
 		{
 			weight += it->first->getMonoWeight() * it->second;
@@ -78,7 +78,7 @@ namespace OpenMS
 	Real EmpiricalFormula::getAverageWeight() const 
 	{
 		Real weight(0);
-		HashMap<const Element*, UnsignedInt>::ConstIterator it=formula_.begin();
+		HashMap<const Element*, UInt>::ConstIterator it=formula_.begin();
 		for (; it != formula_.end(); ++it)
 		{
 			weight += it->first->getAverageWeight() * it->second;
@@ -86,10 +86,10 @@ namespace OpenMS
 		return weight;
 	}
 
-	IsotopeDistribution EmpiricalFormula::getIsotopeDistribution(UnsignedInt max_depth) const
+	IsotopeDistribution EmpiricalFormula::getIsotopeDistribution(UInt max_depth) const
 	{
 		IsotopeDistribution result(max_depth);
-		HashMap<const Element*, UnsignedInt>::ConstIterator it=formula_.begin();
+		HashMap<const Element*, UInt>::ConstIterator it=formula_.begin();
 		for (; it!=formula_.end(); ++it)
 		{
 			IsotopeDistribution tmp = it->first->getIsotopeDistribution(); 
@@ -105,7 +105,7 @@ namespace OpenMS
 		return element_db_->getElement(name);
 	}
 
-	const Element* EmpiricalFormula::getElement(UnsignedInt atomic_number) const
+	const Element* EmpiricalFormula::getElement(UInt atomic_number) const
 	{
 		return element_db_->getElement(atomic_number);
 	}
@@ -115,7 +115,7 @@ namespace OpenMS
 		return element_db_;
 	}
 
-	UnsignedInt EmpiricalFormula::getNumberOf(UnsignedInt atomic_number) const
+	UInt EmpiricalFormula::getNumberOf(UInt atomic_number) const
 	{
 		if (element_db_->hasElement(atomic_number))
 		{
@@ -127,7 +127,7 @@ namespace OpenMS
 		return 0;
 	}
 
-	UnsignedInt EmpiricalFormula::getNumberOf(const String& name) const
+	UInt EmpiricalFormula::getNumberOf(const String& name) const
 	{
 		if (element_db_->hasElement(name))
 		{
@@ -139,7 +139,7 @@ namespace OpenMS
 		return 0;
 	}
 
-	UnsignedInt EmpiricalFormula::getNumberOf(const Element* element) const
+	UInt EmpiricalFormula::getNumberOf(const Element* element) const
 	{
 		if (formula_.has(element))
 		{
@@ -148,10 +148,10 @@ namespace OpenMS
 		return 0;
 	}
 	
-	UnsignedInt EmpiricalFormula::getNumberOfAtoms() const
+	UInt EmpiricalFormula::getNumberOfAtoms() const
 	{
-		UnsignedInt num_atoms(0);
-		HashMap<const Element*, UnsignedInt>::ConstIterator it = formula_.begin();
+		UInt num_atoms(0);
+		HashMap<const Element*, UInt>::ConstIterator it = formula_.begin();
 		for (; it!=formula_.end(); ++it)
 		{
 			num_atoms += it->second;
@@ -159,12 +159,12 @@ namespace OpenMS
 		return num_atoms;
 	}
 	
-	void EmpiricalFormula::setCharge(SignedInt charge)
+	void EmpiricalFormula::setCharge(Int charge)
 	{
 		charge_ = charge;
 	}
 	
-	SignedInt EmpiricalFormula::getCharge() const
+	Int EmpiricalFormula::getCharge() const
 	{
 		return charge_;
 	}
@@ -172,7 +172,7 @@ namespace OpenMS
 	String EmpiricalFormula::getString() const
 	{
 		String formula;
-		HashMap<const Element*, UnsignedInt>::ConstIterator it = formula_.begin();
+		HashMap<const Element*, UInt>::ConstIterator it = formula_.begin();
 		for (; it!=formula_.end(); ++it)
 		{
 			formula += it->first->getSymbol() + String(it->second);
@@ -203,7 +203,7 @@ namespace OpenMS
 	{
 		EmpiricalFormula ef;
 		ef.formula_ = formula.formula_;
-		HashMap<const Element*, UnsignedInt>::ConstIterator it=formula_.begin();
+		HashMap<const Element*, UInt>::ConstIterator it=formula_.begin();
 		for (;it!=formula_.end();++it)
 		{
 			if (ef.formula_.has(it->first))
@@ -223,8 +223,8 @@ namespace OpenMS
 		throw(Exception::ParseError)
 	{
 		EmpiricalFormula ef;
-		SignedInt charge = parseFormula_(ef.formula_, formula);
-		HashMap<const Element*, UnsignedInt>::ConstIterator it=formula_.begin();
+		Int charge = parseFormula_(ef.formula_, formula);
+		HashMap<const Element*, UInt>::ConstIterator it=formula_.begin();
 		for (;it!=formula_.end();++it)
 		{
 			if (ef.formula_.has(it->first))
@@ -242,7 +242,7 @@ namespace OpenMS
 	
 	EmpiricalFormula::EmpiricalFormula& EmpiricalFormula::operator += (const EmpiricalFormula& formula)
 	{
-		HashMap<const Element*, UnsignedInt>::ConstIterator it=formula.formula_.begin();
+		HashMap<const Element*, UInt>::ConstIterator it=formula.formula_.begin();
 		for (;it!=formula.formula_.end();++it)
 		{
 			if (formula_.has(it->first))
@@ -261,10 +261,10 @@ namespace OpenMS
 	EmpiricalFormula::EmpiricalFormula& EmpiricalFormula::operator += (const String& formula) 
 		throw(Exception::ParseError)
 	{
-		HashMap<const Element*, UnsignedInt> str_formula;
-		SignedInt charge = parseFormula_(str_formula, formula);
+		HashMap<const Element*, UInt> str_formula;
+		Int charge = parseFormula_(str_formula, formula);
 		charge_ += charge;
-		HashMap<const Element*, UnsignedInt>::ConstIterator it;
+		HashMap<const Element*, UInt>::ConstIterator it;
 		for (it=str_formula.begin(); it!=str_formula.end(); ++it)
 		{
 			if (formula_.has(it->first))
@@ -283,11 +283,11 @@ namespace OpenMS
 		throw(Exception::SizeUnderflow)
 	{
 		EmpiricalFormula ef;
-		HashMap<const Element*, UnsignedInt>::ConstIterator it=formula.formula_.begin();
+		HashMap<const Element*, UInt>::ConstIterator it=formula.formula_.begin();
 		for (; it!=formula.formula_.end(); ++it)
 		{
 			const Element * e = it->first;
-			UnsignedInt num = it->second;
+			UInt num = it->second;
 			if (formula_.has(e) && formula_[e] >= num) 
 			{
 				if (formula_[e] - num > 0)
@@ -317,14 +317,14 @@ namespace OpenMS
 		throw(Exception::ParseError, Exception::SizeUnderflow)
 	{
 		EmpiricalFormula ef;
-		HashMap<const Element*, UnsignedInt> str_formula;
-		SignedInt charge = parseFormula_(str_formula, formula);
+		HashMap<const Element*, UInt> str_formula;
+		Int charge = parseFormula_(str_formula, formula);
 		ef.charge_ = charge_ - charge;
-		HashMap<const Element*, UnsignedInt>::ConstIterator it=str_formula.begin();
+		HashMap<const Element*, UInt>::ConstIterator it=str_formula.begin();
 		for (; it!=str_formula.end(); ++it)
 		{
 			const Element * e = it->first;
-			UnsignedInt num = it->second;
+			UInt num = it->second;
 			if (formula_.has(e) && formula_[e] >= num)
 			{
 				if (formula_[e] - num > 0)
@@ -352,7 +352,7 @@ namespace OpenMS
 	EmpiricalFormula::EmpiricalFormula& EmpiricalFormula::operator -= (const EmpiricalFormula& formula) 
 		throw(Exception::SizeUnderflow)
 	{
-		HashMap<const Element*, UnsignedInt>::ConstIterator it=formula.formula_.begin();
+		HashMap<const Element*, UInt>::ConstIterator it=formula.formula_.begin();
 		for (; it!=formula.formula_.end(); ++it)
 		{
 			if (formula_.has(it->first) && formula_[it->first] >= it->second)
@@ -378,10 +378,10 @@ namespace OpenMS
 	EmpiricalFormula::EmpiricalFormula& EmpiricalFormula::operator -= (const String& formula) 
 		throw(Exception::ParseError, Exception::SizeUnderflow)
 	{
-		HashMap<const Element*, UnsignedInt> str_formula;
-		SignedInt charge = parseFormula_(str_formula, formula);
+		HashMap<const Element*, UInt> str_formula;
+		Int charge = parseFormula_(str_formula, formula);
 		charge_ -= charge;
-		HashMap<const Element*, UnsignedInt>::ConstIterator it = str_formula.begin();
+		HashMap<const Element*, UInt>::ConstIterator it = str_formula.begin();
 		for (; it!=str_formula.end(); ++it)
 		{
 			if (formula_.has(it->first) && formula_[it->first] >= it->second)
@@ -434,7 +434,7 @@ namespace OpenMS
 		return false;
 	}
 
-	bool EmpiricalFormula::hasElement(UnsignedInt atomic_number) const
+	bool EmpiricalFormula::hasElement(UInt atomic_number) const
 	{
 		if (!element_db_->hasElement(atomic_number))
 		{
@@ -458,8 +458,8 @@ namespace OpenMS
 	bool EmpiricalFormula::operator == (const String& formula) const
 		throw(Exception::ParseError)
 	{
-		HashMap<const Element*, UnsignedInt> str_formula;
-		SignedInt charge = parseFormula_(str_formula, formula);
+		HashMap<const Element*, UInt> str_formula;
+		Int charge = parseFormula_(str_formula, formula);
 		return (formula_ == str_formula && charge_ == charge);
 	}
 	
@@ -471,14 +471,14 @@ namespace OpenMS
 	bool EmpiricalFormula::operator != (const String& formula) const
 		throw(Exception::ParseError)
 	{
-		HashMap<const Element *, UnsignedInt> str_formula;
-		SignedInt charge = parseFormula_(str_formula, formula);
+		HashMap<const Element *, UInt> str_formula;
+		Int charge = parseFormula_(str_formula, formula);
 		return (formula_ != str_formula || charge_ != charge);
 	}
 	
 	ostream& operator << (ostream& os, const EmpiricalFormula& formula)
 	{
-		HashMap<const Element*, UnsignedInt>::ConstIterator it=formula.formula_.begin();
+		HashMap<const Element*, UInt>::ConstIterator it=formula.formula_.begin();
 		for (;it!=formula.formula_.end();++it)
 		{
 			os << it->first->getSymbol();
@@ -515,10 +515,10 @@ namespace OpenMS
 		return os;
 	}
 
-	SignedInt EmpiricalFormula::parseFormula_(HashMap<const Element*, UnsignedInt>& ef, const String& formula) const 
+	Int EmpiricalFormula::parseFormula_(HashMap<const Element*, UInt>& ef, const String& formula) const 
 		throw(Exception::ParseError)
 	{
-		SignedInt charge = 0;
+		Int charge = 0;
 		
 		String symbol;
 		String number;
@@ -530,7 +530,7 @@ namespace OpenMS
 			if (!isdigit(formula[0]))
 			{
 				String split;
-				for (UnsignedInt i=0; i<formula.size(); ++i)
+				for (UInt i=0; i<formula.size(); ++i)
 				{
 					if (isupper(formula[i]) || formula[i] == '+' || formula[i] == '-')
 					{
@@ -549,17 +549,17 @@ namespace OpenMS
 			}
 			else
 			{
-				throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, formula, UnsignedInt(0));
+				throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, formula, UInt(0));
 			}
 		}
 
 		// add up the elements and charge
-		for (UnsignedInt i=0;i!=splitter.size();++i)
+		for (UInt i=0;i!=splitter.size();++i)
 		{
 			String split = splitter[i];
 			String number;
 			String symbol;
-			for (SignedInt j=split.size()-1;j>=0;--j)
+			for (Int j=split.size()-1;j>=0;--j)
 			{
 				if (isdigit(split[j]))
 				{
@@ -571,10 +571,10 @@ namespace OpenMS
 				}
 			}
 
-			UnsignedInt num(1);
+			UInt num(1);
 			if (number != "")
 			{
-				num = UnsignedInt(number.toInt());
+				num = UInt(number.toInt());
 			}
 			
 			if (element_db_->hasElement(symbol))

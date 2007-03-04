@@ -41,7 +41,7 @@ namespace OpenMS
 
 	}
 
-	SchemaHandler::SchemaHandler(UnsignedInt tag_num, UnsignedInt map_num, const String& filename)
+	SchemaHandler::SchemaHandler(UInt tag_num, UInt map_num, const String& filename)
   : XMLHandler(filename),
   	is_parser_in_tag_(tag_num,false),
 		str2enum_array_(map_num), 
@@ -62,7 +62,7 @@ namespace OpenMS
 		skip_tag_.push(true);
 	}
 	
-	UnsignedInt SchemaHandler::leaveTag(const XMLCh* const qname)
+	UInt SchemaHandler::leaveTag(const XMLCh* const qname)
 	{
 		int tag = str2enum_(tag_map_, xercesc::XMLString::transcode(qname),"closing tag"); // index of current tag
 		is_parser_in_tag_[tag] = false;
@@ -73,7 +73,7 @@ namespace OpenMS
 		return tag;
 	}
 	
-	UnsignedInt SchemaHandler::enterTag(const XMLCh* const qname, const xercesc::Attributes& attributes)
+	UInt SchemaHandler::enterTag(const XMLCh* const qname, const xercesc::Attributes& attributes)
 	{
 		String tmp_str;
 		int tag = str2enum_(tag_map_, xercesc::XMLString::transcode(qname),"opening tag");	// index of current tag
@@ -88,7 +88,7 @@ namespace OpenMS
 		return tag;
 	}
 	
-	UnsignedInt SchemaHandler::str2enum_(UnsignedInt index, const String& value, const char* message)
+	UInt SchemaHandler::str2enum_(UInt index, const String& value, const char* message)
 	{
 		String2EnumMap::const_iterator it =  str2enum_array_[index].find(value);
 		if (it == str2enum_array_[index].end()) // no enum-value for string defined
@@ -104,14 +104,14 @@ namespace OpenMS
 		return 0;
 	}
 
-	const String& SchemaHandler::enum2str_(UnsignedInt index, UnsignedInt value)
+	const String& SchemaHandler::enum2str_(UInt index, UInt value)
 	{
 		return enum2str_array_[index][value];
 	}
 
 	void SchemaHandler::fillMaps_(const String* schema)
 	{
-		for (UnsignedInt i= 0; i<str2enum_array_.size(); i++)
+		for (UInt i= 0; i<str2enum_array_.size(); i++)
 		{
 			//i=0 contains scheme name -> i+1
 			schema[i+1].split(';',enum2str_array_[i]);
@@ -121,7 +121,7 @@ namespace OpenMS
 
 	void SchemaHandler::fillMap_(String2EnumMap& str2enum, const Enum2StringMap& enum2str)
 	{
-		for (UnsignedInt i=0; i<enum2str.size(); i++)
+		for (UInt i=0; i<enum2str.size(); i++)
 		{
 			str2enum[ enum2str[i] ] = i;
 		}
@@ -167,7 +167,7 @@ namespace OpenMS
 						<< meta.getMetaValue(*it) << "\"/>\n";
 	}
 
-	void SchemaHandler::checkAttribute_(UnsignedInt attribute, const String& required, const String& required_alt)
+	void SchemaHandler::checkAttribute_(UInt attribute, const String& required, const String& required_alt)
 	{
 		//TODO improve performace
 		const XMLCh* tmp = xercesc::XMLString::transcode(enum2str_(att_map_, attribute).c_str());
@@ -180,7 +180,7 @@ namespace OpenMS
 		}
 	}
 
-	String SchemaHandler::getAttributeAsString_(UnsignedInt attribute)
+	String SchemaHandler::getAttributeAsString_(UInt attribute)
 	{
 		//TODO improve performace
 		const XMLCh* tmp = xercesc::XMLString::transcode(enum2str_(att_map_, attribute).c_str());
@@ -191,7 +191,7 @@ namespace OpenMS
 		return xercesc::XMLString::transcode(atts_->getValue(tmp));
 	}
 	
-	void SchemaHandler::setMaps_(UnsignedInt tagmap, UnsignedInt attmap)
+	void SchemaHandler::setMaps_(UInt tagmap, UInt attmap)
 	{
 		tag_map_ = tagmap;
 		att_map_ = attmap;

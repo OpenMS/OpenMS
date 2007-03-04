@@ -166,7 +166,7 @@ namespace OpenMS
     inline void setPenalties(const struct OptimizationFunctions::PenaltyFactors& penalties) { penalties_ = penalties; }
 
     /// Non-mutable access to the number of iterations
-    inline UnsignedInt getNumberIterations() const { return max_iteration_; }
+    inline UInt getNumberIterations() const { return max_iteration_; }
     /// Mutable access to the number of iterations
     inline unsigned int& getNumberIterations() { return max_iteration_; }
     /// Mutable access to the number of iterations

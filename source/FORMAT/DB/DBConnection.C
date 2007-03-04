@@ -55,7 +55,7 @@ namespace OpenMS
 		QSqlDatabase::removeDatabase(QSqlDatabase::defaultConnection);
 	}
 	
-	void DBConnection::connect(const string& db, const string& user, const string& password, const string& host,UnsignedInt port,const string& QTDBDriver) throw(InvalidQuery)
+	void DBConnection::connect(const string& db, const string& user, const string& password, const string& host,UInt port,const string& QTDBDriver) throw(InvalidQuery)
 	{
 		db_handle_ = QSqlDatabase::addDatabase(QTDBDriver.c_str(),QSqlDatabase::defaultConnection);
 		db_handle_.setHostName(host.c_str());
@@ -106,7 +106,7 @@ namespace OpenMS
 		result.first();
 	}
 	
-	UnsignedInt DBConnection::getId(const std::string& table, const std::string& column, const std::string& value) throw(InvalidQuery,NotConnected)
+	UInt DBConnection::getId(const std::string& table, const std::string& column, const std::string& value) throw(InvalidQuery,NotConnected)
 	{
 		if (!db_handle_.isOpen())
 		{
@@ -152,12 +152,12 @@ namespace OpenMS
 	 	//if res is still empty, do nothing
 	 	if (result.size()!=0)
 	 	{
-	 		SignedInt col_count = result.record().count();
+	 		Int col_count = result.record().count();
 	 		
 	 		out << line_begin;
 	 		
 	 		//render field names
-	 		for (SignedInt i = 0; i < col_count; i++) 
+	 		for (Int i = 0; i < col_count; i++) 
 	 		{
 	    	if (i!=0)
 	    	{
@@ -175,7 +175,7 @@ namespace OpenMS
 	 		while(result.isValid())
 	 		{
 	 			out << line_begin;
-		 		for (SignedInt j = 0; j < col_count; j++) 
+		 		for (Int j = 0; j < col_count; j++) 
 		 		{ 
 		      if (j!=0)
 	    		{
@@ -189,7 +189,7 @@ namespace OpenMS
 	 	}
 	}
 
-	SignedInt DBConnection::getIntValue(const std::string& table, const std::string& column, const std::string& id) throw (InvalidQuery,NotConnected,Exception::ConversionError)
+	Int DBConnection::getIntValue(const std::string& table, const std::string& column, const std::string& id) throw (InvalidQuery,NotConnected,Exception::ConversionError)
 	{
 		if (!db_handle_.isOpen())
 		{
@@ -261,7 +261,7 @@ namespace OpenMS
 		return lir_->value(0).toString().toAscii().data();
 	}
 	
-	UnsignedInt DBConnection::getAutoId()
+	UInt DBConnection::getAutoId()
 	{
 		executeQuery_("SELECT LAST_INSERT_ID()");
 		lir_->first();
@@ -279,7 +279,7 @@ namespace OpenMS
 	//
 	// ---------------------------------------------------------------
 	
-	DBConnection::InvalidQuery::InvalidQuery(const char* file, SignedInt line, const char* function, string sql_query, string sql_error) throw()
+	DBConnection::InvalidQuery::InvalidQuery(const char* file, Int line, const char* function, string sql_query, string sql_error) throw()
 		:	Base(file, line, function, "Invalid Query", "an SQL query failed")
 	{
 		what_ = String("Query '")+sql_query +"' failed: '"+sql_error+"'";
@@ -290,7 +290,7 @@ namespace OpenMS
 	{
 	}
 	
-	DBConnection::NotConnected::NotConnected(const char* file, SignedInt line, const char* function) throw()
+	DBConnection::NotConnected::NotConnected(const char* file, Int line, const char* function) throw()
 		:	Base(file, line, function, "Not Connected", "the DBConnection was accessed but it is not connected to a SQL database")
 	{
 	}

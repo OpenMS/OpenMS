@@ -142,13 +142,13 @@ namespace OpenMS
   	}
 		
     /// Set element map
-    void setElementMap(UnsignedInt const index, const PointMapType& element_map)
+    void setElementMap(UInt const index, const PointMapType& element_map)
     {
       element_map_[index] = &element_map;
     }
 
     /// Get element map
-    const PointMapType& getElementMap(UnsignedInt index) const
+    const PointMapType& getElementMap(UInt index) const
     {
       return *element_map_[index];
     }
@@ -166,14 +166,14 @@ namespace OpenMS
     }
 
     /// Set @p number of buckets in dimension @p dim
-    void setNumberBuckets(UnsignedInt dim, UnsignedInt number)
+    void setNumberBuckets(UInt dim, UInt number)
     {
       number_buckets_[dim] = number;
-			param_.setValue(String("number_buckets:") + RawDataPoint2D::shortDimensionName(dim), (SignedInt)number);
+			param_.setValue(String("number_buckets:") + RawDataPoint2D::shortDimensionName(dim), (Int)number);
     }
 
     /// Get number of buckets in dimension index
-    UnsignedInt getNumberBuckets(UnsignedInt index) const
+    UInt getNumberBuckets(UInt index) const
     {
       return number_buckets_[index];
     }
@@ -204,7 +204,7 @@ namespace OpenMS
       // compute the grid sizes in each dimension
       // ???? I added the "-0.01" adjustment because otherwise this will almost certainly crash when the right margin point comes by!!  Clemens
       // TODO: find a better way that does not use such a magic constant. As is, the bounding box reported in the output is incorrect!
-      for (UnsignedInt i = 0; i < 2; ++i)
+      for (UInt i = 0; i < 2; ++i)
       {
         box_size_[i] =
           (bounding_box_scene_map_.max()[i] - bounding_box_scene_map_.min()[i]) /
@@ -212,9 +212,9 @@ namespace OpenMS
       }
 
       // initialize the grid cells of the grid_
-      for (UnsignedInt x_index = 0; x_index < number_buckets_[RawDataPoint2D::RT]; ++x_index)
+      for (UInt x_index = 0; x_index < number_buckets_[RawDataPoint2D::RT]; ++x_index)
       {
-        for (UnsignedInt y_index = 0; y_index < number_buckets_[RawDataPoint2D::MZ]; ++y_index)
+        for (UInt y_index = 0; y_index < number_buckets_[RawDataPoint2D::MZ]; ++y_index)
         {
           CoordinateType x_min = (bounding_box_scene_map_.min())[RawDataPoint2D::RT] + box_size_[RawDataPoint2D::RT]*x_index;
           CoordinateType x_max = (bounding_box_scene_map_.min())[RawDataPoint2D::RT] + box_size_[RawDataPoint2D::RT]*(x_index+1);
@@ -233,7 +233,7 @@ namespace OpenMS
   protected:
   	virtual void updateMembers_()
   	{
-      for ( UnsignedInt dim = 0; dim < 2; ++dim)
+      for ( UInt dim = 0; dim < 2; ++dim)
       {
 				number_buckets_[dim] = param_.getValue(String("number_buckets:") + RawDataPoint2D::shortDimensionName(dim));
       }
@@ -251,11 +251,11 @@ namespace OpenMS
     /// Bounding box of the second map
     PositionBoundingBoxType bounding_box_scene_map_;
 
-    /// UnsignedInt of the grid cells
+    /// UInt of the grid cells
     PositionType box_size_;
 
     /// Number of buckets in each dimension
-    UnsignedInt number_buckets_[2];
+    UInt number_buckets_[2];
   }
   ; // BasePairwiseMapMatcher
 
@@ -270,7 +270,7 @@ namespace OpenMS
   //     std::ofstream dump_file(filename.c_str());
   //     dump_file << "# " << filename<< " generated " << Date::now() << std::endl;
   //     dump_file << "# 1:number 2:quality 3:firstRT 4:firstMZ 5:firstIT 6:firstQual 7:secondRT 8:secondMZ 9:secondIT 10:secondQual\n";
-  //     for ( UnsignedInt fp = 0; fp < getElementPairs().size(); ++fp )
+  //     for ( UInt fp = 0; fp < getElementPairs().size(); ++fp )
   //     {
   //       dump_file << fp << ' '
   //       << getElementPairs()[fp].getQuality() << ' '

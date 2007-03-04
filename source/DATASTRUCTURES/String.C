@@ -39,7 +39,7 @@ namespace OpenMS
 {
 	const String String::EMPTY;
 	
-	const SignedInt String::NPOS(std::numeric_limits<SignedInt>::min());
+	const Int String::NPOS(std::numeric_limits<Int>::min());
 
 	String::String()
 		:	string()
@@ -159,16 +159,16 @@ namespace OpenMS
 		string::operator=(s.str());
 	}
 	
-	String::String(double d, UnsignedInt size)
+	String::String(double d, UInt size)
 		: string()
 	{
 		stringstream s;
 		//reserve one space for the minus sign
-		SignedInt sign=0;
+		Int sign=0;
 		if (d<0) sign=1;
 		d = fabs(d);
 		
-		if (d<pow(10.0,SignedInt(size-sign-2)))
+		if (d<pow(10.0,Int(size-sign-2)))
 		{
 			s.precision(10);
 			if (sign==1) s << "-";
@@ -176,13 +176,13 @@ namespace OpenMS
 		}
 		else
 		{
-			UnsignedInt exp=0;
-			while(d>pow(10.0,SignedInt(size-sign-4)))
+			UInt exp=0;
+			while(d>pow(10.0,Int(size-sign-4)))
 			{
 				d/=10;
 				++exp;
 			}
-			d = SignedInt(d)/10.0;
+			d = Int(d)/10.0;
 			exp+=1;
 			if (sign==1) s << "-";
 			s << d<<"e";
@@ -192,7 +192,7 @@ namespace OpenMS
 		string::operator=(s.str().substr(0,size));		
 	}
 
-	String& String::fillLeft(char c, UnsignedInt size)
+	String& String::fillLeft(char c, UInt size)
 	{
 		if (string::size()<size)
 		{
@@ -201,7 +201,7 @@ namespace OpenMS
 		return *this;
 	}
 
-	String& String::fillRight(char c, UnsignedInt size)
+	String& String::fillRight(char c, UInt size)
 	{
 		if (string::size()<size)
 		{
@@ -252,7 +252,7 @@ namespace OpenMS
 		{
 			return true;
 		}
-		for (UnsignedInt i=0;i!=size();++i)
+		for (UInt i=0;i!=size();++i)
 		{
 			if (compare(i, string.size(), string) == 0)
 			{
@@ -264,7 +264,7 @@ namespace OpenMS
 
 	bool String::has(Byte byte) const
 	{
-		for (UnsignedInt i=0;i!=size();++i)
+		for (UInt i=0;i!=size();++i)
 		{
 			if ((*this)[i] == byte)
 			{
@@ -294,28 +294,28 @@ namespace OpenMS
 		return substr(size()-length, length);
 	}
 
-	String String::prefix(SignedInt length) const
+	String String::prefix(Int length) const
 		throw(Exception::IndexUnderflow, Exception::IndexOverflow)
 	{
 		if (length < 0)
 		{
 			throw(Exception::IndexUnderflow(__FILE__, __LINE__, __PRETTY_FUNCTION__, length,0));
 		}
-		if (length > SignedInt(size()))
+		if (length > Int(size()))
 		{
 			throw(Exception::IndexOverflow(__FILE__, __LINE__, __PRETTY_FUNCTION__, length, size()));
 		}
 		return substr(0, length);
 	}
 
-	String String::suffix(SignedInt length) const
+	String String::suffix(Int length) const
 		throw(Exception::IndexUnderflow, Exception::IndexOverflow)
 	{
 		if (length < 0)
 		{
 			throw(Exception::IndexUnderflow(__FILE__, __LINE__, __PRETTY_FUNCTION__, length,0));
 		}
-		if (length > SignedInt(size()))
+		if (length > Int(size()))
 		{
 			throw(Exception::IndexOverflow(__FILE__, __LINE__, __PRETTY_FUNCTION__, length, size()));
 		}
@@ -356,7 +356,7 @@ namespace OpenMS
 		return String(it, end());
 	}
 
-	String String::substr(SignedInt start, SignedInt n) const
+	String String::substr(Int start, Int n) const
 	{
 		if (start>=0 && (n>=0 || n==NPOS))
 		{
@@ -430,12 +430,12 @@ namespace OpenMS
 		return *this;
 	}
 
-	String String::random(UnsignedInt length)
+	String String::random(UInt length)
 	{
 		srand(time(0));
 		String tmp(length, '.');
-		UnsignedInt random;
-		for (UnsignedInt i = 0 ; i < length; ++i)
+		UInt random;
+		for (UInt i = 0 ; i < length; ++i)
 		{
 			random = (SizeType)floor(((double)rand()/(double(RAND_MAX)+1)) * 62.0);
 			if (random < 10)
@@ -457,7 +457,7 @@ namespace OpenMS
 	String& String::reverse()
 	{
 		String tmp = *this;
-		for (UnsignedInt i=0;i!=size();++i)
+		for (UInt i=0;i!=size();++i)
 		{
 			(*this)[i] = tmp[size()-1-i];
 		}
@@ -466,7 +466,7 @@ namespace OpenMS
 
 	bool String::split(char splitter, std::vector<String>& substrings) const
 	{
-		SignedInt parts = count(this->begin(),this->end(),splitter);
+		Int parts = count(this->begin(),this->end(),splitter);
 		
 		// no splitter found
 		if (parts == 0)

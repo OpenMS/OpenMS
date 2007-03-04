@@ -144,7 +144,7 @@ namespace OpenMS
 				
 				For return values see QDialog::exec() return values.
 			*/
-			SignedInt showPreferencesDialog();
+			Int showPreferencesDialog();
 
 			/**
 				@brief Creates a PreferencesDialogPage with the preferences settings on it.
@@ -179,11 +179,11 @@ namespace OpenMS
 				
 				This method is mainly used to set preferences from the preferences dialog.
 			*/
-			void setPref(const String& name, SignedInt value);
+			void setPref(const String& name, Int value);
 			///returns the preference entry @p name
 			const DataValue& getPref(const String& name) const;
-			///returns the preference entry @p name as SignedInt
-			SignedInt getPrefAsInt(const String& name) const;
+			///returns the preference entry @p name as Int
+			Int getPrefAsInt(const String& name) const;
 			///returns the preference entry @p name as String
 			String getPrefAsString(const String& name) const;
 			///removes the preference entry @p name

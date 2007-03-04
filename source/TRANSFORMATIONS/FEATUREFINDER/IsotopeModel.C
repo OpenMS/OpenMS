@@ -187,13 +187,13 @@ namespace OpenMS
 			}
 		}
 
-		void IsotopeModel::setParam(CoordinateType mean, UnsignedInt charge, CoordinateType isotope_stdev)
+		void IsotopeModel::setParam(CoordinateType mean, UInt charge, CoordinateType isotope_stdev)
 		{
 			charge_ = charge;
 			isotope_stdev_ = isotope_stdev;
 			mean_ = mean;
 
-			param_.setValue("charge", static_cast<SignedInt>(charge_));
+			param_.setValue("charge", static_cast<Int>(charge_));
 			param_.setValue("isotope:stdev",isotope_stdev_);
 			param_.setValue("statistics:mean", mean_);
 			
@@ -216,7 +216,7 @@ namespace OpenMS
 			return getInterpolation().getOffset();
 		}
 
-		UnsignedInt IsotopeModel::getCharge()
+		UInt IsotopeModel::getCharge()
 		{
 			return charge_;
 		}
