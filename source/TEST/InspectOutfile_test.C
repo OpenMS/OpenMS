@@ -51,7 +51,7 @@ RESULT
 
 InspectOutfile file;
 
-CHECK(vector< UnsignedInt > load(const string& result_filename, vector< IdentificationData >&	identifications, ProteinIdentification&	protein_identification, const DoubleReal& p_value_threshold, const string& database_filename) throw (Exception::FileNotFound, Exception::ParseError, Exception::IllegalArgument))
+CHECK(vector< UnsignedInt > load(const string& result_filename, vector< IdentificationData >&	identifications, ProteinIdentification&	protein_identification, DoubleReal p_value_threshold, const string& database_filename) throw (Exception::FileNotFound, Exception::ParseError, Exception::IllegalArgument))
 	vector< IdentificationData > identifications;
 	ProteinIdentification protein_identification;
 	file.load("data/InspectOutfile.out", identifications, protein_identification, 0.001);

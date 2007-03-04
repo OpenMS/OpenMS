@@ -302,7 +302,7 @@ namespace OpenMS
 	} // end of void sweep_()
 	
 	
-	UnsignedInt PickedPeakSeeder::distanceToCharge_(const CoordinateType& dist)
+	UnsignedInt PickedPeakSeeder::distanceToCharge_(CoordinateType dist)
 	{
     if (dist < charge1_ub_ && dist > charge1_lb_)
     {

@@ -135,17 +135,17 @@ namespace OpenMS
 	    }
 		
 	    /// access intensity of peak with index @p index.
-	    inline const IntensityType& getPeakIntensity(const IDX& index) const
+	    inline IntensityType getPeakIntensity(const IDX& index) const
 	    { 
 	    	return map_[index.first][index.second].getIntensity(); 
 	    }
 	    /// access m/z of peak with index @p index .
-	    inline const CoordinateType& getPeakMz(const IDX& index) const
+	    inline CoordinateType getPeakMz(const IDX& index) const
 	    { 
 	    	return map_[index.first][index.second].getMZ(); 
 	    }
 	    /// access retention time of peak with index @p index.
-	    inline const CoordinateType& getPeakRt(const IDX& index) const
+	    inline CoordinateType getPeakRt(const IDX& index) const
 	    { 
 	    	return map_[index.first].getRetentionTime();
 	    }

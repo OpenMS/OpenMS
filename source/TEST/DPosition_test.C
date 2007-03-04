@@ -52,7 +52,7 @@ CHECK((virtual ~DPosition()))
 	delete d10_ptr;
 RESULT
 
-CHECK((const CoordinateType& operator[](UnsignedInt index) const))
+CHECK((CoordinateType operator[](UnsignedInt index) const))
   const DPosition<3> i;
   TEST_EQUAL(i[0], 0.0)
   TEST_EQUAL(i[1], 0.0)
@@ -107,7 +107,7 @@ CHECK((DPosition& operator=(const DPosition &source)))
 	TEST_EQUAL(copy_of_p.size(), p.size())
 RESULT
 
-CHECK((DPosition(const CoordinateType& x)))
+CHECK((DPosition(CoordinateType x)))
   DPosition<3> p(12.34);
   TEST_REAL_EQUAL(p[0], 12.34)
   TEST_REAL_EQUAL(p[1], 12.34)
@@ -140,7 +140,6 @@ i[9] = 10.0;
 CHECK((ConstIterator begin() const))
   const DPosition<10>& c_i(i);
   TEST_EQUAL(*c_i.begin(), 1.0)
-  TEST_EQUAL(c_i.begin(), &(c_i[0]))
 RESULT
 
 CHECK((ConstIterator end() const))
@@ -342,7 +341,7 @@ CHECK((DPosition operator+(const DPosition &point) const))
   TEST_REAL_EQUAL((p1 + p2) ==  p3, true);
 RESULT
 
-CHECK((DPosition(const CoordinateType& x, const CoordinateType& y)))
+CHECK((DPosition(CoordinateType x, CoordinateType y)))
 	DPosition<2> p1(11.0f,12.1f);
 	TEST_REAL_EQUAL(p1[0],11.0f);
 	TEST_REAL_EQUAL(p1[1],12.1f);
@@ -361,21 +360,21 @@ CHECK((CoordinateType getY() const))
 	TEST_REAL_EQUAL(p1.getY(),12.1f);
 RESULT
 
-CHECK((void setX(const CoordinateType& c)))
+CHECK((void setX(CoordinateType c)))
 	DPosition<2> p1(11.0f,12.1f);
 	p1.setX(5.0f);
 	TEST_REAL_EQUAL(p1[0],5.0f);
 	TEST_REAL_EQUAL(p1[1],12.1f);
 RESULT
 
-CHECK((void setY(const CoordinateType& c)))
+CHECK((void setY(CoordinateType c)))
 	DPosition<2> p1(11.0f,12.1f);
 	p1.setY(5.0f);
 	TEST_REAL_EQUAL(p1[0],11.0f);
 	TEST_REAL_EQUAL(p1[1],5.0f);	
 RESULT
 
-CHECK((DPosition& operator *=(const CoordinateType &scalar)))
+CHECK((DPosition& operator *=(CoordinateTypescalar)))
 	DPosition<2> p1(3,4);
   p1 *= 5;
   DPosition<2> const p2(15,20);
@@ -401,7 +400,7 @@ CHECK((DPosition& operator-=(const DPosition &point)))
   TEST_REAL_EQUAL(p1[1],p3[1]);
 RESULT
 
-CHECK((DPosition& operator/=(const CoordinateType &scalar)))
+CHECK((DPosition& operator/=(CoordinateTypescalar)))
   DPosition<2> p1(15,20);
   p1 /= 5;
 	DPosition<2> const p2(3,4);

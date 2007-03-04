@@ -172,7 +172,7 @@ CHECK(( template <typename InputSpectrumIterator,typename OutputPeakType>
  	TEST_REAL_EQUAL(peak_shape.height,400)
 RESULT
 
-CHECK((void setMaxAbsError(const double eps_abs)))
+CHECK((void setMaxAbsError(double eps_abs)))
   PRECISION(0.0001)
   double abs_err = 0.01;
    

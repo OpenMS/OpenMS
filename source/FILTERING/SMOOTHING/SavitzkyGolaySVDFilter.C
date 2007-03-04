@@ -67,7 +67,7 @@ namespace OpenMS
     computeCoeffs_();
   }
 
-  void SavitzkyGolaySVDFilter::setWindowSize(const unsigned int& frame_size)
+  void SavitzkyGolaySVDFilter::setWindowSize(UnsignedInt frame_size)
   {
     frame_size_=frame_size;
     coeffs_.clear();
@@ -75,7 +75,7 @@ namespace OpenMS
     computeCoeffs_();
   }
 
-  void SavitzkyGolaySVDFilter::setOrder(const unsigned int& order)
+  void SavitzkyGolaySVDFilter::setOrder(UnsignedInt order)
   {
     order_=order;
     computeCoeffs_();

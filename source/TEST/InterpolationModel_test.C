@@ -104,7 +104,7 @@ class TestModel : public InterpolationModel
 	{
 	}
 	
-	const CoordinateType getCenter() const
+	CoordinateType getCenter() const
 	{
 		return 10.0;
 	}

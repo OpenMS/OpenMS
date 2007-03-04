@@ -198,7 +198,7 @@ namespace OpenMS
 		*/
  	} 
 
-  void OMSSAXMLHandler::characters(const XMLCh* const chars, const unsigned int /*length*/)
+  void OMSSAXMLHandler::characters(const XMLCh* const chars, unsigned int /*length*/)
   {
 		//cerr << tag_ << " '" << XMLString::transcode(chars) << "'" << endl;
 		// MSPepHit section

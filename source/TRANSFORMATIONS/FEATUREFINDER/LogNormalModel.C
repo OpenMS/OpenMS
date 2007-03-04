@@ -131,7 +131,7 @@ namespace OpenMS
 		param_.setValue("statistics:mean", statistics_.mean());
 	}
 
-	const LogNormalModel::CoordinateType LogNormalModel::getCenter() const
+	LogNormalModel::CoordinateType LogNormalModel::getCenter() const
 	{
 		return statistics_.mean();
 	}

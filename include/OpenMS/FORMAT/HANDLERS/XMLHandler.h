@@ -73,7 +73,7 @@ namespace OpenMS
 			void warning(const String& msg);
 			
 			/// Parsing method for character data
-		  virtual void characters(const XMLCh* const chars, const unsigned int length);
+		  virtual void characters(const XMLCh* const chars, unsigned int length);
 			/// Parsing method for opening tags
       virtual void startElement(const XMLCh* const uri, const XMLCh* const localname, const XMLCh* const qname, const xercesc::Attributes& attrs);
 			/// Parsing method for closing tags

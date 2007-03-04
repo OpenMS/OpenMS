@@ -118,9 +118,9 @@ namespace OpenMS
 		 		Since isotope patterns depend on mass, the wavelet has to adapt its shape. 
 		 		For more insights look at the formula of the wavelet function. 
 		*/
-		inline CoordinateType getLambda (const CoordinateType realMass) const 
+		inline CoordinateType getLambda (CoordinateType real_mass) const 
 		{	
-			return (0.035 + 0.000678*realMass); 
+			return (0.035 + 0.000678*real_mass); 
 		}																	
 		
 		/// The wavelet (mother) function. 

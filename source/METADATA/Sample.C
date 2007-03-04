@@ -298,7 +298,7 @@ namespace OpenMS
 	}
 	
 	
-	const SignedInt Sample::countTreatments() const
+	SignedInt Sample::countTreatments() const
 	{
 		return treatments_.size();
 	}

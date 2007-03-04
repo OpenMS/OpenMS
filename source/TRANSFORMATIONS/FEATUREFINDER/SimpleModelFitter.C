@@ -402,7 +402,7 @@ namespace OpenMS
 	}
 
 
-	double SimpleModelFitter::fitOffset_(	InterpolationModel* model, const IndexSet& set, const double stdev1,  const double stdev2, const Coordinate offset_step)
+	double SimpleModelFitter::fitOffset_(	InterpolationModel* model, const IndexSet& set, double stdev1, double stdev2, Coordinate offset_step)
 	{
 		const Coordinate offset_min = model->getInterpolation().supportMin() - stdev1;
 		const Coordinate offset_max = model->getInterpolation().supportMin() + stdev2;

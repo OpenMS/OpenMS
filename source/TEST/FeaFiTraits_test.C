@@ -125,7 +125,7 @@ CHECK(inline Flag& getPeakFlag(const IDX& index))
 	TEST_EQUAL(t.getPeakFlag(make_pair(1,1)), FeaFiTraits::UNUSED)
 RESULT
 
-CHECK(inline const IntensityType& getPeakIntensity(const IDX& index) const)
+CHECK(inline IntensityType getPeakIntensity(const IDX& index) const)
 	FeaFiTraits t;
 	t.setData(exp.begin(),exp.end(),2);
 	TEST_REAL_EQUAL(t.getPeakIntensity(make_pair(0,0)), 501.0)
@@ -135,7 +135,7 @@ CHECK(inline const IntensityType& getPeakIntensity(const IDX& index) const)
 	TEST_REAL_EQUAL(t.getPeakIntensity(make_pair(1,1)), 1001.0)
 RESULT
 
-CHECK(inline const CoordinateType& getPeakMz(const IDX& index) const)
+CHECK(inline CoordinateType getPeakMz(const IDX& index) const)
 	FeaFiTraits t;
 	t.setData(exp.begin(),exp.end(),2);
 	TEST_REAL_EQUAL(t.getPeakMz(make_pair(0,0)), 500.0)
@@ -145,7 +145,7 @@ CHECK(inline const CoordinateType& getPeakMz(const IDX& index) const)
 	TEST_REAL_EQUAL(t.getPeakMz(make_pair(1,1)), 1000.0)
 RESULT
 
-CHECK(inline const CoordinateType& getPeakRt(const IDX& index) const)
+CHECK(inline CoordinateType getPeakRt(const IDX& index) const)
 	FeaFiTraits t;
 	t.setData(exp.begin(),exp.end(),2);
 	TEST_REAL_EQUAL(t.getPeakRt(make_pair(0,0)), 1.1)

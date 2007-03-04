@@ -70,7 +70,7 @@ namespace OpenMS
     computeCoeffs_();
   }
 
-  void SavitzkyGolayQRFilter::setWindowSize(const unsigned int& frame_size)
+  void SavitzkyGolayQRFilter::setWindowSize(UnsignedInt frame_size)
   {
     frame_size_=frame_size;
     
@@ -79,7 +79,7 @@ namespace OpenMS
     computeCoeffs_();
   }
 
-  void SavitzkyGolayQRFilter::setOrder(const unsigned int& order)
+  void SavitzkyGolayQRFilter::setOrder(UnsignedInt order)
   {
     order_=order;
     computeCoeffs_();

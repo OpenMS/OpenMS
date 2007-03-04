@@ -164,7 +164,7 @@ namespace OpenMS
     		For that reason no model @p dist should be assigned to multiple ProductModels.<br>
     		ProductModel parameters are set when calling ProductModel::getParameters().
     */
-    ProductModel& setModel(const UnsignedInt dim, BaseModel<1>* dist)
+    ProductModel& setModel(UnsignedInt dim, BaseModel<1>* dist)
     {
       OPENMS_PRECONDITION(dim<D, "ProductModel<D>:getModel(Position): index overflow!")
       if (dist==0 || dist==distributions_[dim])
@@ -184,20 +184,20 @@ namespace OpenMS
       return *this;
     }
 
-    BaseModel<1>* getModel(const UnsignedInt dim) const
+    BaseModel<1>* getModel(UnsignedInt dim) const
     {
       OPENMS_PRECONDITION(dim<D, "ProductModel<D>:getModel(Position): index overflow!")
       return distributions_[dim];
     }
 
     /// return the intensity scaling factor
-    const IntensityType& getScale() const
+    IntensityType getScale() const
     {
         return scale_;
     }
 
     /// set the intensity scaling factor
-    void setScale(const IntensityType& scale)
+    void setScale(IntensityType scale)
     {
       this->setCutOff( this->getCutOff()/scale_ );	// remove scaling from cutoff
       scale_ = scale;

@@ -113,7 +113,7 @@ namespace OpenMS
 		}
 
 		///Convenient constructor for DRange<2>
-		DRange(const CoordinateType& minx,const CoordinateType& miny, const CoordinateType& maxx,const CoordinateType& maxy)
+		DRange(CoordinateType minx,CoordinateType miny, CoordinateType maxx,CoordinateType maxy)
 		{
 			OPENMS_PRECONDITION(D == 2, "DRange<D>:DRange(minx, miny, maxx, maxy): index overflow!");
 			min_[0]=minx;
@@ -170,7 +170,7 @@ namespace OpenMS
 		}
 
 		///@brief 2D-version of encloses for convenience only
-		bool encloses(const CoordinateType& x, const CoordinateType& y) const
+		bool encloses(CoordinateType x, CoordinateType y) const
 		{
       if (x<min_[0]) return false;
       if (x>=max_[0]) return false;

@@ -199,7 +199,7 @@ RESULT
 
 // checked by other check-methods 
 // It is not necessarily to test the methods again.
-CHECK(const CoordinateType getCenter() const)
+CHECK(CoordinateType getCenter() const)
 RESULT
 
 CHECK(static BaseModel<1>* create())

@@ -79,7 +79,7 @@ namespace OpenMS
 		virtual ~DPosition() {}
 
 		/// Constructor that fills all dimensions with the value @p x
-		DPosition(const CoordinateType& x)
+		DPosition(CoordinateType x)
 		{
 			std::fill(&(coordinate_[0]), &(coordinate_[D]), x);
 		}
@@ -91,7 +91,7 @@ namespace OpenMS
 		}
 		
 		/// Constructor only for DPosition<2> that takes two Coordiantes.
-		DPosition(const CoordinateType& x, const CoordinateType& y)
+		DPosition(CoordinateType x, CoordinateType y)
 		{
 			OPENMS_PRECONDITION(D == 2, "DPosition<D>:DPosition(x,y): index overflow!");
 			coordinate_[0]=x;
@@ -115,7 +115,7 @@ namespace OpenMS
 		//@{
 		
 		///Const accessor for the dimensions
-		const CoordinateType& operator [] (UnsignedInt index) const
+		CoordinateType operator [] (UnsignedInt index) const
 		{
 			OPENMS_PRECONDITION(index < D, "DPosition<D>:operator [] (Position): index overflow!");
 			return coordinate_[index];
@@ -143,14 +143,14 @@ namespace OpenMS
     }
 		
 		///Name mutator for the first dimension. Only for DPosition<2>, for visualization.
-		void setX(const CoordinateType& c) 
+		void setX(CoordinateType c) 
     {
     	OPENMS_PRECONDITION(D == 2, "DPosition<D>:setX(): index overflow!");
 			coordinate_[0] = c;
     }
 		
 		///Name mutator for the second dimension. Only for DPosition<2>, for visualization.
-		void setY(const CoordinateType& c) 
+		void setY(CoordinateType c) 
     {
     	OPENMS_PRECONDITION(D == 2, "DPosition<D>:setY(): index overflow!");
 			coordinate_[1] = c;
@@ -277,14 +277,14 @@ namespace OpenMS
 		}
 		
     /// Scalar multiplication
-		DPosition & operator *= (const CoordinateType& scalar) throw()
+		DPosition & operator *= (CoordinateType scalar) throw()
 		{
       for (UnsignedInt i = 0; i < D; coordinate_[i] *= scalar, i++);
       return *this;
 		}
 
     /// Scalar division
-		DPosition & operator /= (const CoordinateType& scalar) throw()
+		DPosition & operator /= (CoordinateType scalar) throw()
 		{
       for (UnsignedInt i = 0; i < D; coordinate_[i] /= scalar, i++);
       return *this;

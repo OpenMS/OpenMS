@@ -93,43 +93,43 @@ CHECK((LinearRegression( LinearRegression const & arg )))
 RESULT
 
 
-CHECK((const double& getChiSquared() const))
+CHECK((DoubleReal getChiSquared() const))
   TEST_REAL_EQUAL(linreg_ptr->getChiSquared(),0)
 RESULT
 
-CHECK((const double& getIntercept() const))
+CHECK((DoubleReal getIntercept() const))
   TEST_REAL_EQUAL(linreg_ptr->getIntercept(),4.0)
 RESULT
 
-CHECK((const double& getLower() const))
+CHECK((DoubleReal getLower() const))
   TEST_REAL_EQUAL(linreg_ptr->getLower(),-2.0)
 RESULT
 
-CHECK((const double& getUpper() const))
+CHECK((DoubleReal getUpper() const))
   TEST_REAL_EQUAL(linreg_ptr->getUpper(),-2.0)
 RESULT
 
-CHECK((const double& getSlope() const))
+CHECK((DoubleReal getSlope() const))
   TEST_REAL_EQUAL(linreg_ptr->getSlope(),2.0)
 RESULT
 
-CHECK((const double& getStandDevRes() const))
+CHECK((DoubleReal getStandDevRes() const))
   TEST_REAL_EQUAL(linreg_ptr->getStandDevRes(),0.0)
 RESULT
 
-CHECK((const double& getStandErrSlope() const))
+CHECK((DoubleReal getStandErrSlope() const))
   TEST_REAL_EQUAL(linreg_ptr->getStandErrSlope(),0.0)
 RESULT
 
-CHECK((const double& getRSquared() const))
+CHECK((DoubleReal getRSquared() const))
   TEST_REAL_EQUAL(linreg_ptr->getRSquared(),1.0)
 RESULT
 
-CHECK((const double& getTValue() const))
+CHECK((DoubleReal getTValue() const))
   TEST_REAL_EQUAL(linreg_ptr->getTValue(),2.306)
 RESULT
 
-CHECK((const double& getXIntercept() const))
+CHECK((DoubleReal getXIntercept() const))
   TEST_REAL_EQUAL(linreg_ptr->getXIntercept(),-2.0)
 RESULT
 

@@ -171,42 +171,42 @@ CHECK(DSignalToNoiseEstimatorMeanIterative& operator=(const DSignalToNoiseEstima
   TEST_REAL_EQUAL(sne2.getNoiseForEmtpyWindow(), 2);
 RESULT
 
-CHECK(const double& getWinLen() const)
+CHECK(DoubleReal getWinLen() const)
   const DSignalToNoiseEstimatorMeanIterative<1> sne;
   TEST_EQUAL(sne.getWinLen(), DSignalToNoiseEstimatorMeanIterative<>::DEFAULT_WINLEN);
 RESULT
 
-CHECK(const int& getBinCount() const)
+CHECK(SignedInt getBinCount() const)
   const DSignalToNoiseEstimatorMeanIterative<1> sne;
   TEST_EQUAL(sne.getBinCount(), DSignalToNoiseEstimatorMeanIterative<>::DEFAULT_BINCOUNT);
 RESULT
 
-CHECK(const double& getSTDEVMultiplier() const)
+CHECK(DoubleReal getSTDEVMultiplier() const)
   const DSignalToNoiseEstimatorMeanIterative<1> sne;
   TEST_EQUAL(sne.getSTDEVMultiplier(), DSignalToNoiseEstimatorMeanIterative<>::DEFAULT_STDEV);
 RESULT
 
-CHECK(const double& getMaxIntensity() const)
+CHECK(DoubleReal getMaxIntensity() const)
   const DSignalToNoiseEstimatorMeanIterative<1> sne;
   TEST_EQUAL(sne.getMaxIntensity(), -1);
 RESULT
 
-CHECK(const double& getAutoMaxIntensity() const)
+CHECK(DoubleReal getAutoMaxIntensity() const)
   const DSignalToNoiseEstimatorMeanIterative<1> sne;
   TEST_EQUAL(sne.getAutoMaxIntensity(), DSignalToNoiseEstimatorMeanIterative<>::DEFAULT_MAXINTENSITY_BYSTDEV);
 RESULT
 
-CHECK(const int& getAutoMode() const)
+CHECK(SignedInt getAutoMode() const)
   const DSignalToNoiseEstimatorMeanIterative<1> sne;
   TEST_EQUAL(sne.getAutoMode(), DSignalToNoiseEstimatorMeanIterative<>::AUTOMAXBYSTDEV);
 RESULT
 
-CHECK(const int& getMinReqElements() const)
+CHECK(SignedInt getMinReqElements() const)
   const DSignalToNoiseEstimatorMeanIterative<1> sne;
   TEST_EQUAL(sne.getMinReqElements(), DSignalToNoiseEstimatorMeanIterative<>::DEFAULT_MIN_REQUIRED_ELEMENTS);
 RESULT
 
-CHECK(const double& getNoiseForEmtpyWindow() const)
+CHECK(DoubleReal getNoiseForEmtpyWindow() const)
   const DSignalToNoiseEstimatorMeanIterative<1> sne;
   TEST_EQUAL(sne.getNoiseForEmtpyWindow(), DSignalToNoiseEstimatorMeanIterative<>::DEFAULT_NOISE_ON_EMTPY_WINDOW);
 RESULT
@@ -286,50 +286,50 @@ RESULT
 
 // SET METHODS
 
-CHECK(void setWinLen(const double& win_len))
+CHECK(void setWinLen(DoubleReal win_len))
   DSignalToNoiseEstimatorMeanIterative<1> sne;
   sne.setWinLen(31);
   TEST_REAL_EQUAL(sne.getWinLen(), 31);
 RESULT
 
-CHECK(void setBinCount(const int& bin_count))
+CHECK(void setBinCount(SignedInt bin_count))
   DSignalToNoiseEstimatorMeanIterative<1> sne;
   sne.setBinCount(50);
   TEST_EQUAL(sne.getBinCount(), 50);
 RESULT
 
-CHECK(void setSTDEVMultiplier(const double& stdev))
+CHECK(void setSTDEVMultiplier(DoubleReal stdev))
   DSignalToNoiseEstimatorMeanIterative<1> sne;
   sne.setSTDEVMultiplier(3.5);
   TEST_REAL_EQUAL(sne.getSTDEVMultiplier(), 3.5);
 RESULT
 
-CHECK(void setMaxIntensity(const double& max_intensity))
+CHECK(void setMaxIntensity(DoubleReal max_intensity))
   DSignalToNoiseEstimatorMeanIterative<1> sne;
   sne.setMaxIntensity(110.5);
   TEST_REAL_EQUAL(sne.getMaxIntensity(), 110.5);
 RESULT
 
-CHECK(void setAutoMaxIntensity(const double& auto_max_intensity))
+CHECK(void setAutoMaxIntensity(DoubleReal auto_max_intensity))
   DSignalToNoiseEstimatorMeanIterative<1> sne;
   sne.setAutoMaxIntensity(3.35);
   TEST_REAL_EQUAL(sne.getAutoMaxIntensity(), 3.35);
 RESULT
 
-CHECK(void setAutoMode(const int& auto_mode))
+CHECK(void setAutoMode(SignedInt auto_mode))
   DSignalToNoiseEstimatorMeanIterative<1> sne;
   sne.setAutoMode(DSignalToNoiseEstimatorMeanIterative<>::AUTOMAXBYPERCENT);
   TEST_EQUAL(sne.getAutoMode(), DSignalToNoiseEstimatorMeanIterative<>::AUTOMAXBYPERCENT);
 RESULT
 
-CHECK(void setMinReqElements(const int& min_required_elements))
+CHECK(void setMinReqElements(SignedInt min_required_elements))
   DSignalToNoiseEstimatorMeanIterative<1> sne;
   sne.setMinReqElements(11);
   TEST_EQUAL(sne.getMinReqElements(), 11);
 RESULT
 
 
-CHECK(void setNoiseForEmtpyWindow(const double& noise_for_empty_window))
+CHECK(void setNoiseForEmtpyWindow(DoubleReal noise_for_empty_window))
   DSignalToNoiseEstimatorMeanIterative<1> sne;
   sne.setNoiseForEmtpyWindow(2.5);
   TEST_EQUAL(sne.getNoiseForEmtpyWindow(), 2.5);
@@ -363,13 +363,13 @@ CHECK(void setLastDataPoint(const PeakIterator& last))
   //TEST_EQUAL(sne.getLastDataPoint(), raw_data.end());
 RESULT
 
-CHECK(void setMZdim(const int& mz_dim))
+CHECK(void setMZdim(SignedInt mz_dim))
   DSignalToNoiseEstimatorMeanIterative<1> sne;
   sne.setMZdim(1);
   TEST_EQUAL(sne.getMZdim(), 1);
 RESULT
 
-CHECK(void setRTdim(const int& rt_dim))
+CHECK(void setRTdim(SignedInt rt_dim))
   DSignalToNoiseEstimatorMeanIterative<1> sne;
   sne.setRTdim(-1);
   TEST_EQUAL(sne.getRTdim(), -1);

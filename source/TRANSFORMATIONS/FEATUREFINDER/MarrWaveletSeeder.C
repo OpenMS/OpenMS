@@ -688,7 +688,7 @@ namespace OpenMS
 		} // end for (all peaks in neighbouring scan)
 	}
 	
-	UnsignedInt MarrWaveletSeeder::distanceToCharge_(const CoordinateType& dist)
+	UnsignedInt MarrWaveletSeeder::distanceToCharge_(CoordinateType dist)
 	{
 		if (dist < charge1_ub_ && dist > charge1_lb_)
 		{

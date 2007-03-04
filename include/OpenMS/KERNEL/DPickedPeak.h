@@ -202,7 +202,7 @@ namespace OpenMS
     /**
     	 @brief Returns the value of the peak shape function at position x.
     */
-    double operator () (const double x, const unsigned int mz_dimension) const
+    double operator () (double x, unsigned int mz_dimension) const
     {
       double value;
 
@@ -304,7 +304,7 @@ namespace OpenMS
       	 Sometimes we need a way to find out which way the CoordinateType is
       	 sorted and adding this overload seems to be the best way to achieve that goal.
       */
-      inline bool operator () ( CoordinateType const & left, CoordinateType const & right ) const throw()
+      inline bool operator () ( CoordinateType left, CoordinateType right ) const throw()
       {
         return (left < right );
       }

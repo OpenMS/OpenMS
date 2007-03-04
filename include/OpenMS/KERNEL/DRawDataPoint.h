@@ -85,10 +85,10 @@ namespace OpenMS
 		 */
 		//@{
 		/// Non-mutable access to the data point intensity (height)
-		const IntensityType& getIntensity() const { return intensity_; }
+		IntensityType getIntensity() const { return intensity_; }
 		
 		/// Non-mutable access to the data point intensity (height)
-		void setIntensity(const IntensityType& intensity) { intensity_ = intensity; }
+		void setIntensity(IntensityType intensity) { intensity_ = intensity; }
 
 		/// Non-mutable access to the data point position (multidimensional)
 		const PositionType& getPosition() const { return position_; }
@@ -168,13 +168,13 @@ namespace OpenMS
 			}
 			
 			/// comparison of a DRawDataPoint with a CoordinateType
-			inline bool operator () ( DRawDataPoint const & left, CoordinateType const & right ) const throw()
+			inline bool operator () ( DRawDataPoint const & left, CoordinateType right ) const throw()
 			{
 				return (left.getPosition()[i] < right );
 			}
 			
 			/// comparison of a CoordinateType with a DRawDataPoint
-			inline bool operator () ( CoordinateType const & left, DRawDataPoint const & right ) const throw()
+			inline bool operator () ( CoordinateType left, DRawDataPoint const & right ) const throw()
 			{
 				return (left < right.getPosition()[i] );
 			}
@@ -185,7 +185,7 @@ namespace OpenMS
 				Sometimes we need a way to find out which way the CoordinateType is
 				sorted and adding this overload seems to be the best way to achieve that goal.
 			*/
-			inline bool operator () ( CoordinateType const & left, CoordinateType const & right ) const throw()
+			inline bool operator () ( CoordinateType left, CoordinateType right ) const throw()
 			{
 				return (left < right );
 			}

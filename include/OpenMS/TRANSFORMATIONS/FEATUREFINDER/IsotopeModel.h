@@ -112,7 +112,7 @@ namespace OpenMS
 		*/
 		void setOffset(CoordinateType offset);
 
-		const CoordinateType& getOffset();
+		CoordinateType getOffset();
 
 		/// set sample/supporting points of interpolation
 		void setSamples();
@@ -121,7 +121,7 @@ namespace OpenMS
 
 			 This is a m/z-value not necessarily the monoisotopic mass.
 		*/
-		const CoordinateType getCenter() const;
+		CoordinateType getCenter() const;
 
 		protected:
 			CoordinateType isotope_stdev_;

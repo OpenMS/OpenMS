@@ -143,7 +143,7 @@ namespace OpenMS
 			param_.setValue("statistics:mean", statistics1_.mean());
 		}
 
-		const BiGaussModel::CoordinateType BiGaussModel::getCenter() const
+		BiGaussModel::CoordinateType BiGaussModel::getCenter() const
 		{
 			return statistics2_.mean();
 		}

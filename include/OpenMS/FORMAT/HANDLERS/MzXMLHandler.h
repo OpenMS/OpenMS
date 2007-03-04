@@ -221,7 +221,7 @@ namespace OpenMS
 
 
 	template <typename MapType>
-  void MzXMLHandler<MapType>::characters(const XMLCh* const chars, const unsigned int /*length*/)
+  void MzXMLHandler<MapType>::characters(const XMLCh* const chars, unsigned int /*length*/)
   {
     if (skip_tag_.top()) return;
     

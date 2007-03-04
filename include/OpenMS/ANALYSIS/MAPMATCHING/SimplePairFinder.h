@@ -140,13 +140,13 @@ namespace OpenMS
     }
 
     /// Get diff exponent. See @sa similarity_().
-    double getDiffExponent(const UnsignedInt& dim)
+    double getDiffExponent(UnsignedInt dim)
     {
       return diff_exponent_[dim];
     }
 
     /// Set diff exponent. See @sa similarity_().
-    void setDiffExponent(const UnsignedInt& dim, const double& exponent)
+    void setDiffExponent(UnsignedInt dim, DoubleReal exponent)
     {
       diff_exponent_[dim] = exponent;
       String param_name_prefix = "similarity:diff_exponent:";
@@ -155,13 +155,13 @@ namespace OpenMS
     }
 
     /// Get diff intercept. See @sa similarity_().
-    double getDiffIntercept(const UnsignedInt& dim)
+    double getDiffIntercept(UnsignedInt dim)
     {
       return diff_intercept_[dim];
     }
 
     /// Set diff intercept. See @sa similarity_().
-    void setDiffIntercept(const UnsignedInt& dim, const double& intercept)
+    void setDiffIntercept(UnsignedInt dim, DoubleReal intercept)
     {
       diff_intercept_[dim] = intercept;
       param_.setValue(String("similarity:diff_intercept:") + RawDataPoint2D::shortDimensionName(dim), intercept);
@@ -174,7 +174,7 @@ namespace OpenMS
     }
 
     /// Set pair min quality
-    void setPairMinQuality(const double& quality)
+    void setPairMinQuality(DoubleReal quality)
     {
       pair_min_quality_ = quality;
       param_.setValue("similarity:pair_min_quality", quality);

@@ -278,61 +278,61 @@ namespace OpenMS
     /* new accessors */
 
     /// Non-mutable access to the window length (in Thomson)
-    inline const double& getWinLen() const { return win_len_; }
+    inline DoubleReal getWinLen() const { return win_len_; }
     /// Mutable access to the window length (in Thomson)
     inline double& getWinLen() { return win_len_; }
     /// Mutable access to the window length (in Thomson)
-    inline void setWinLen(const double& win_len) { win_len_ = win_len; updateParam();}
+    inline void setWinLen(DoubleReal win_len) { win_len_ = win_len; updateParam();}
      
     /// Non-mutable access to the number of bins used for the histogram (the more bins, the better the approximation, but longer runtime)
-    inline const int& getBinCount() const { return bin_count_; }
+    inline SignedInt getBinCount() const { return bin_count_; }
     /// Mutable access to the number of bins used for the histogram
     inline int& getBinCount() { return bin_count_; }
     /// Mutable access to the number of bins used for the histogram
-    inline void setBinCount(const int& bin_count) { bin_count_ = bin_count; updateParam();}
+    inline void setBinCount(SignedInt bin_count) { bin_count_ = bin_count; updateParam();}
 
     /// Non-mutable access to the maximal intensity that is included in the histogram (higher values get discarded)
-    inline const double& getMaxIntensity() const { return max_intensity_; }
+    inline DoubleReal getMaxIntensity() const { return max_intensity_; }
     /// Mutable access to the maximal intensity that is included in the histogram (higher values get discarded)
     inline double& getMaxIntensity() { return max_intensity_; }
     /// Mutable access to the maximal intensity that is included in the histogram (higher values get discarded)
-    inline void setMaxIntensity(const double& max_intensity) { max_intensity_ = max_intensity; updateParam();}
+    inline void setMaxIntensity(DoubleReal max_intensity) { max_intensity_ = max_intensity; updateParam();}
     
     /// Non-mutable access to the AutoMaxIntensity-Param, which holds either a percentile or a stdev-multiplier (depending on AutoMode)
-    inline const double& getAutoMaxIntensity() const { return auto_max_intensity_; }
+    inline DoubleReal getAutoMaxIntensity() const { return auto_max_intensity_; }
     /// Mutable access to the AutoMaxIntensity-Param, which holds either a percentile or a stdev-multiplier (depending on AutoMode)
     inline double& getAutoMaxIntensity() { return auto_max_intensity_; }
     /// Mutable access to the AutoMaxIntensity-Param, which holds either a percentile or a stdev-multiplier (depending on AutoMode)
-    inline void setAutoMaxIntensity(const double& auto_max_intensity) { auto_max_intensity_ = auto_max_intensity; updateParam();}
+    inline void setAutoMaxIntensity(DoubleReal auto_max_intensity) { auto_max_intensity_ = auto_max_intensity; updateParam();}
     
     /// Non-mutable access to AutoMode, which determines the heuristic to find MaxIntensity. See Class description.
-    inline const int& getAutoMode() const { return auto_mode_; }
+    inline SignedInt getAutoMode() const { return auto_mode_; }
     /// Mutable access to AutoMode, which determines the heuristic to find MaxIntensity. See Class description.
     inline int& getAutoMode() { return auto_mode_; }
     /// Mutable access to AutoMode, which determines the heuristic to find MaxIntensity. See Class description.
-    inline void setAutoMode(const int& auto_mode) { auto_mode_ = auto_mode; updateParam();}
+    inline void setAutoMode(SignedInt auto_mode) { auto_mode_ = auto_mode; updateParam();}
     
     /// Non-mutable access to the minimum required elements in a window, to be evaluated.
-    inline const int& getMinReqElements() const { return min_required_elements_; }
+    inline SignedInt getMinReqElements() const { return min_required_elements_; }
     /// Mutable access to the minimum required elements in a window, to be evaluated.
     inline int& getMinReqElements() { return min_required_elements_; }
     /// Mutable access to the minimum required elements in a window, to be evaluated.
-    inline void setMinReqElements(const int& min_required_elements) { min_required_elements_ = min_required_elements; updateParam();}
+    inline void setMinReqElements(SignedInt min_required_elements) { min_required_elements_ = min_required_elements; updateParam();}
     
     /// Non-mutable access to the noise value that is used if a window contains not enough elements 
-    inline const double& getNoiseForEmtpyWindow() const { return noise_for_empty_window_; }
+    inline DoubleReal getNoiseForEmtpyWindow() const { return noise_for_empty_window_; }
     /// Mutable access to the noise value that is used if a window contains not enough elements
     inline double& getNoiseForEmtpyWindow() { return noise_for_empty_window_; }
     /// Mutable access to the noise value that is used if a window contains not enough elements
-    inline void setNoiseForEmtpyWindow(const double& noise_for_empty_window) { noise_for_empty_window_ = noise_for_empty_window; updateParam();}
+    inline void setNoiseForEmtpyWindow(DoubleReal noise_for_empty_window) { noise_for_empty_window_ = noise_for_empty_window; updateParam();}
 
 
     /* overridden members */
 
     /// Mutable access to the mz dimension
-    inline void setMZdim(const int& mz_dim) { DSignalToNoiseEstimator<D, PeakIterator>::setMZdim(mz_dim); is_result_valid_ = false;}
+    inline void setMZdim(SignedInt mz_dim) { DSignalToNoiseEstimator<D, PeakIterator>::setMZdim(mz_dim); is_result_valid_ = false;}
     /// Mutable access to the rt dimension
-    inline void setRTdim(const int& rt_dim) { DSignalToNoiseEstimator<D, PeakIterator>::setRTdim(rt_dim); is_result_valid_ = false;}
+    inline void setRTdim(SignedInt rt_dim) { DSignalToNoiseEstimator<D, PeakIterator>::setRTdim(rt_dim); is_result_valid_ = false;}
     /// Mutable access to the first raw data point
     inline void setFirstDataPoint(const PeakIterator& first) { DSignalToNoiseEstimator<D, PeakIterator>::setFirstDataPoint(first); is_result_valid_ = false;}
     /// Mutable access to the last raw data point

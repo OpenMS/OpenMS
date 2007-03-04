@@ -145,65 +145,65 @@ namespace OpenMS
       }
 
       /// Non-mutable access to the search radius for the peak maximum
-      inline const unsigned int& getSearchRadius() const
+      inline UnsignedInt getSearchRadius() const
       {
         return radius_;
       }
       /// Mutable access to the search radius for the peak maximum
-      inline void setSearchRadius(const unsigned int& radius)
+      inline void setSearchRadius(UnsignedInt radius)
       {
         radius_ = radius;
       	param_.setValue("thresholds:search_radius",(SignedInt)radius);      	
       }
 
       /// Non-mutable access to the scale of the wavelet transform
-      inline const float& getWaveletScale() const
+      inline Real getWaveletScale() const
       {
         return scale_;
       }
       /// Mutable access to the scale of the wavelet transform
-      inline void setWaveletScale(const float& scale)
+      inline void setWaveletScale(Real scale)
       {
         scale_ = scale;
 				param_.setValue("wavelet_transform:scale",scale);
       }
 
       /// Non-mutable access to the threshold of the height
-      inline const float& getPeakBound() const
+      inline Real getPeakBound() const
       {
         return peak_bound_;
       }
 
       /// Non-mutable access to the peak bound in the wavelet transform for the MS 1 level
-      inline const float& getPeakBoundCWT() const
+      inline Real getPeakBoundCWT() const
       {
         return peak_bound_cwt_;
       }
       /// Non-mutable access to the peak bound in the wavelet transform for the MS 2 level
-      inline const float& getPeakBoundMs2LevelCWT() const
+      inline Real getPeakBoundMs2LevelCWT() const
       {
         return peak_bound_ms2_level_cwt_;
       }
 
       /// Non-mutable access to the minimum peak correlation coefficient
-      inline const float& getPeakCorrBound() const
+      inline Real getPeakCorrBound() const
       {
         return peak_corr_bound_;
       }
       /// Mutable access to the minimum peak correlation coefficient
-      inline void setPeakCorrBound(const float& peak_corr_bound)
+      inline void setPeakCorrBound(Real peak_corr_bound)
       {
         peak_corr_bound_ = peak_corr_bound;
 				param_.setValue("thresholds:correlation",peak_corr_bound);
       }
 
       /// Non-mutable access to the noise level
-      inline const float& getNoiseLevel() const
+      inline Real getNoiseLevel() const
       {
         return noise_level_;
       }
       /// Mutable access to the noise level
-      inline void setNoiseLevel(const float& noise_level)
+      inline void setNoiseLevel(Real noise_level)
       {
         noise_level_ = noise_level;
         param_.setValue("thresholds:noise_level",noise_level);

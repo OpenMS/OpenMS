@@ -273,7 +273,7 @@ namespace OpenMS
       /* new accessors */
 
       /// Non-mutable access to the window length (in Thomson)
-      inline const double& getWinLen() const
+      inline DoubleReal getWinLen() const
       {
         return win_len_;
       }
@@ -283,14 +283,14 @@ namespace OpenMS
         return win_len_;
       }
       /// Mutable access to the window length (in Thomson)
-      inline void setWinLen(const double& win_len)
+      inline void setWinLen(DoubleReal win_len)
       {
         win_len_ = win_len;
         updateParam();
       }
 
       /// Non-mutable access to the number of bins used for the histogram (the more bins, the better the approximation, but longer runtime)
-      inline const int& getBinCount() const
+      inline SignedInt getBinCount() const
       {
         return bin_count_;
       }
@@ -300,14 +300,14 @@ namespace OpenMS
         return bin_count_;
       }
       /// Mutable access to the number of bins used for the histogram
-      inline void setBinCount(const int& bin_count)
+      inline void setBinCount(SignedInt bin_count)
       {
         bin_count_ = bin_count;
         updateParam();
       }
 
       /// Non-mutable access to the multiplier of the stdev used during iterative threshold calculation
-      inline const double& getSTDEVMultiplier() const
+      inline DoubleReal getSTDEVMultiplier() const
       {
         return stdev_;
       }
@@ -317,14 +317,14 @@ namespace OpenMS
         return stdev_;
       }
       /// Mutable access to the multiplier of the stdev used during iterative threshold calculation
-      inline void setSTDEVMultiplier(const double& stdev)
+      inline void setSTDEVMultiplier(DoubleReal stdev)
       {
         stdev_ = stdev;
         updateParam();
       }
 
       /// Non-mutable access to the maximal intensity that is included in the histogram (higher values get discarded)
-      inline const double& getMaxIntensity() const
+      inline DoubleReal getMaxIntensity() const
       {
         return max_intensity_;
       }
@@ -334,14 +334,14 @@ namespace OpenMS
         return max_intensity_;
       }
       /// Mutable access to the maximal intensity that is included in the histogram (higher values get discarded)
-      inline void setMaxIntensity(const double& max_intensity)
+      inline void setMaxIntensity(DoubleReal max_intensity)
       {
         max_intensity_ = max_intensity;
         updateParam();
       }
 
       /// Non-mutable access to the AutoMaxIntensity-Param, which holds either a percentile or a stdev-multiplier (depending on AutoMode)
-      inline const double& getAutoMaxIntensity() const
+      inline DoubleReal getAutoMaxIntensity() const
       {
         return auto_max_intensity_;
       }
@@ -351,14 +351,14 @@ namespace OpenMS
         return auto_max_intensity_;
       }
       /// Mutable access to the AutoMaxIntensity-Param, which holds either a percentile or a stdev-multiplier (depending on AutoMode)
-      inline void setAutoMaxIntensity(const double& auto_max_intensity)
+      inline void setAutoMaxIntensity(DoubleReal auto_max_intensity)
       {
         auto_max_intensity_ = auto_max_intensity;
         updateParam();
       }
 
       /// Non-mutable access to AutoMode, which determines the heuristic to find MaxIntensity. See Class description.
-      inline const int& getAutoMode() const
+      inline SignedInt getAutoMode() const
       {
         return auto_mode_;
       }
@@ -368,14 +368,14 @@ namespace OpenMS
         return auto_mode_;
       }
       /// Mutable access to AutoMode, which determines the heuristic to find MaxIntensity. See Class description.
-      inline void setAutoMode(const int& auto_mode)
+      inline void setAutoMode(SignedInt auto_mode)
       {
         auto_mode_ = auto_mode;
         updateParam();
       }
 
       /// Non-mutable access to the minimum required elements in a window, to be evaluated.
-      inline const int& getMinReqElements() const
+      inline SignedInt getMinReqElements() const
       {
         return min_required_elements_;
       }
@@ -385,14 +385,14 @@ namespace OpenMS
         return min_required_elements_;
       }
       /// Mutable access to the minimum required elements in a window, to be evaluated.
-      inline void setMinReqElements(const int& min_required_elements)
+      inline void setMinReqElements(SignedInt min_required_elements)
       {
         min_required_elements_ = min_required_elements;
         updateParam();
       }
 
       /// Non-mutable access to the noise value that is used if a window contains not enough elements
-      inline const double& getNoiseForEmtpyWindow() const
+      inline DoubleReal getNoiseForEmtpyWindow() const
       {
         return noise_for_empty_window_;
       }
@@ -402,7 +402,7 @@ namespace OpenMS
         return noise_for_empty_window_;
       }
       /// Mutable access to the noise value that is used if a window contains not enough elements
-      inline void setNoiseForEmtpyWindow(const double& noise_for_empty_window)
+      inline void setNoiseForEmtpyWindow(DoubleReal noise_for_empty_window)
       {
         noise_for_empty_window_ = noise_for_empty_window;
         updateParam();
@@ -412,13 +412,13 @@ namespace OpenMS
       /* overridden members */
 
       /// Mutable access to the mz dimension
-      inline void setMZdim(const int& mz_dim)
+      inline void setMZdim(SignedInt mz_dim)
       {
         DSignalToNoiseEstimator<D, PeakIterator>::setMZdim(mz_dim);
         is_result_valid_ = false;
       }
       /// Mutable access to the rt dimension
-      inline void setRTdim(const int& rt_dim)
+      inline void setRTdim(SignedInt rt_dim)
       {
         DSignalToNoiseEstimator<D, PeakIterator>::setRTdim(rt_dim);
         is_result_valid_ = false;

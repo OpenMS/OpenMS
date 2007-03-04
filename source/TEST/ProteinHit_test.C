@@ -208,7 +208,7 @@ CHECK(void setRank(UnsignedInt newrank))
 	TEST_EQUAL(ptr1->getRank(), rank)	
 RESULT
 
-CHECK(void setScore(const DoubleReal& score))
+CHECK(void setScore(DoubleReal score))
 	ptr1->setScore(score);
 	TEST_EQUAL(ptr1->getScore(), score);
 RESULT

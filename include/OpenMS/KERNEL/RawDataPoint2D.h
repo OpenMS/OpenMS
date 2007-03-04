@@ -150,9 +150,9 @@ namespace OpenMS
 		 */
 		//@{
 		/// Non-mutable access to the data point intensity (height)
-		inline const IntensityType& getIntensity() const { return intensity_; }
+		inline IntensityType getIntensity() const { return intensity_; }
 		/// Non-mutable access to the data point intensity (height)
-		inline void setIntensity(const IntensityType& intensity) { intensity_ = intensity; }
+		inline void setIntensity(IntensityType intensity) { intensity_ = intensity; }
 
 		/// Non-mutable access to the position
 		inline PositionType const & getPosition() const 
@@ -171,23 +171,23 @@ namespace OpenMS
     }
 
     /// Returns the m/z coordinate (index 1)
-    inline CoordinateType const & getMZ() const 
+    inline CoordinateType getMZ() const 
     { 
       return position_[1]; 
     }
     /// Mutable access to the m/z coordinate (index 1)
-    inline void setMZ(const CoordinateType& coordinate) 
+    inline void setMZ(CoordinateType coordinate) 
     { 
       position_[1] = coordinate; 
     }
 
     /// Returns the RT coordinate (index 0)
-    inline CoordinateType const & getRT() const 
+    inline CoordinateType getRT() const 
     { 
       return position_[0]; 
     }
     /// Mutable access to the RT coordinate (index 0)
-    inline void setRT(const CoordinateType& coordinate) 
+    inline void setRT(CoordinateType coordinate) 
     { 
       position_[0] = coordinate; 
     }
@@ -263,13 +263,13 @@ namespace OpenMS
 			}
 			
 			/// comparison of a RawDataPoint2D with a CoordinateType
-			inline bool operator () ( RawDataPoint2D const & left, CoordinateType const & right ) const throw()
+			inline bool operator () ( RawDataPoint2D const & left, CoordinateType right ) const throw()
 			{
 				return (left.getPosition()[i] < right );
 			}
 			
 			/// comparison of a CoordinateType with a RawDataPoint2D
-			inline bool operator () ( CoordinateType const & left, RawDataPoint2D const & right ) const throw()
+			inline bool operator () ( CoordinateType left, RawDataPoint2D const & right ) const throw()
 			{
 				return (left < right.getPosition()[i] );
 			}
@@ -280,7 +280,7 @@ namespace OpenMS
 				Sometimes we need a way to find out which way the CoordinateType is
 				sorted and adding this overload seems to be the best way to achieve that goal.
 			*/
-			inline bool operator () ( CoordinateType const & left, CoordinateType const & right ) const throw()
+			inline bool operator () ( CoordinateType left, CoordinateType right ) const throw()
 			{
 				return (left < right );
 			}

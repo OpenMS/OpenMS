@@ -49,27 +49,27 @@ CHECK((~PickedPeak1D()))
 	delete d10_ptr;
 RESULT
 
-CHECK((const DoubleReal& getRValue() const))
+CHECK((DoubleReal getRValue() const))
 	const PickedPeak1D p;
 	TEST_REAL_EQUAL(p.getRValue(), 0.0)
 RESULT
 
-CHECK((const DoubleReal& getArea() const))
+CHECK((DoubleReal getArea() const))
 	const PickedPeak1D p;
 	TEST_REAL_EQUAL(p.getArea(), 0.0)
 RESULT
 
-CHECK((const DoubleReal& getFWHM() const))
+CHECK((DoubleReal getFWHM() const))
 	const PickedPeak1D p;
 	TEST_REAL_EQUAL(p.getFWHM(), 0.0)
 RESULT
 
-CHECK((const DoubleReal& getLeftWidthParameter() const))
+CHECK((DoubleReal getLeftWidthParameter() const))
 	const PickedPeak1D p;
 	TEST_REAL_EQUAL(p.getLeftWidthParameter(), 0.0)
 RESULT
 
-CHECK((const DoubleReal& getRightWidthParameter() const))
+CHECK((DoubleReal getRightWidthParameter() const))
 	const PickedPeak1D p;
 	TEST_REAL_EQUAL(p.getRightWidthParameter(), 0.0)
 RESULT
@@ -79,17 +79,17 @@ CHECK((const PeakShapeType::Enum& getPeakShape() const))
 	TEST_EQUAL(p.getPeakShape(), PeakShapeType::UNDEFINED)
 RESULT
 
-CHECK((const DoubleReal& getSN() const))
+CHECK((DoubleReal getSN() const))
 	const PickedPeak1D p;
 	TEST_REAL_EQUAL(p.getSN(), 0.0)
 RESULT
 
-CHECK((const SignedInt& getCharge() const))
+CHECK((SignedInt getCharge() const))
 	const PickedPeak1D	p;
 	TEST_EQUAL(p.getCharge(), 0)
 RESULT
 
-CHECK((const DoubleReal& getRValue() const))
+CHECK((DoubleReal getRValue() const))
 	PickedPeak1D	p;
 	TEST_EQUAL(p.getRValue(), 0)
 RESULT

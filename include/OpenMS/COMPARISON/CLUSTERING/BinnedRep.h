@@ -64,7 +64,7 @@ namespace OpenMS
     BinnedRep();
 
     /// detailed constructor with declaration of bin dimensions
-    BinnedRep(const double, const uint = 0);
+    BinnedRep(double, uint = 0);
 
 		/// detailed constructor with PeakSpectrum and bin settings
 		BinnedRep(const PeakSpectrum& spec, double binsize = 1.0, uint binspread = 0);

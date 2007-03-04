@@ -97,7 +97,7 @@ namespace OpenMS
 			appendLocation_(loc, error_message_);
 		}
 		
-		void XMLHandler::characters(const XMLCh* const /*chars*/, const unsigned int /*length*/)
+		void XMLHandler::characters(const XMLCh* const /*chars*/, unsigned int /*length*/)
 		{
 		}
 		

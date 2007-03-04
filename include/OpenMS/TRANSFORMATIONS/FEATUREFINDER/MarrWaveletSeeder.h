@@ -130,7 +130,7 @@ namespace OpenMS
 			void AlignAndSum_(SpectrumType& scan, const SpectrumType& neighbour);
 		 	
 	    /// Find out which charge state belongs to this distance
-	    UnsignedInt distanceToCharge_(const CoordinateType& dist);
+	    UnsignedInt distanceToCharge_(CoordinateType dist);
 		
 		  /// Sweeps through scans and detects isotopic patterns
 		  void sweep_();

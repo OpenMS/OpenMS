@@ -168,7 +168,7 @@ namespace OpenMS
 				}
 	
 				/// returns the retention time of the current scan
-				const CoordinateType& getRetentionTime() const
+				CoordinateType getRetentionTime() const
 				{
 					return current_scan_->getRetentionTime();
 				}

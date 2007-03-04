@@ -130,7 +130,7 @@ namespace OpenMS
     }
 
     /// Set quality
-    void setMinQuality(const QualityType& qu)
+    void setMinQuality(QualityType qu)
     {
       min_quality_ = qu;
     }
@@ -140,7 +140,7 @@ namespace OpenMS
       return min_quality_;
     }
     /// Get quality
-    const QualityType& getMinQuality() const
+    QualityType getMinQuality() const
     {
       return min_quality_;
     }

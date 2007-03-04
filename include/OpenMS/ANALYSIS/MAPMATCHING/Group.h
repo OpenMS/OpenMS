@@ -87,7 +87,7 @@ namespace OpenMS
     {}
 
       /// Returns the number of elements
-      inline const unsigned int count() const
+      inline unsigned int count() const
       {
         return this->size();
       }

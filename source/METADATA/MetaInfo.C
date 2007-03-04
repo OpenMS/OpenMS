@@ -103,7 +103,7 @@ namespace OpenMS
 		index_to_value_[registry_.getIndex(name)] = DataValue(value);
 	}
 
-	void MetaInfo::setValue(UnsignedInt index, const SignedInt value)
+	void MetaInfo::setValue(UnsignedInt index, SignedInt value)
 	{
 		index_to_value_[index] = DataValue(value);
 	}

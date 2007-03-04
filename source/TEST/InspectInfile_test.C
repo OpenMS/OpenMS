@@ -136,7 +136,7 @@ CHECK(void setBlind(unsigned int blind))
 	TEST_EQUAL(file.getBlind(), 1)
 RESULT
 
-CHECK(const unsigned int getBlind() const)
+CHECK(unsigned int getBlind() const)
 	TEST_EQUAL(file.getBlind(), 1)
 RESULT
 
@@ -146,7 +146,7 @@ CHECK(void setMaxPTMsize(DoubleReal maxptmsize))
 	TEST_EQUAL(file.getMaxPTMsize(), 250)
 RESULT
 
-CHECK(const DoubleReal getMaxPTMsize() const)
+CHECK(DoubleReal getMaxPTMsize() const)
 	TEST_EQUAL(file.getMaxPTMsize(), 250)
 RESULT
 
@@ -156,7 +156,7 @@ CHECK(void setPMTolerance(DoubleReal PM_tolerance))
 	TEST_EQUAL(file.getPMTolerance(), 1.3)
 RESULT
 
-CHECK(const DoubleReal getPMTolerance() const)
+CHECK(DoubleReal getPMTolerance() const)
 	TEST_EQUAL(file.getPMTolerance(), 1.3)
 RESULT
 
@@ -166,7 +166,7 @@ CHECK(void setIonTolerance(DoubleReal ion_tolerance))
 	TEST_EQUAL(file.getIonTolerance(), 0.3)
 RESULT
 
-CHECK(const DoubleReal getIonTolerance() const)
+CHECK(DoubleReal getIonTolerance() const)
 	TEST_EQUAL(file.getIonTolerance(), 0.3)
 RESULT
 
@@ -176,7 +176,7 @@ CHECK(void setMulticharge(unsigned int multicharge))
 	TEST_EQUAL(file.getMulticharge(), 1)
 RESULT
 
-CHECK(const unsigned int getMulticharge() const)
+CHECK(unsigned int getMulticharge() const)
 	TEST_EQUAL(file.getMulticharge(), 1)
 RESULT
 

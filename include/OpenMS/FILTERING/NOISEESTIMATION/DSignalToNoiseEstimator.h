@@ -121,18 +121,18 @@ namespace OpenMS
     }
 
     /// Non-mutable access to mz dimension
-    inline const int& getMZdim() const { return mz_dim_; }
+    inline SignedInt getMZdim() const { return mz_dim_; }
     /// Mutable access to the mz dimensin
     inline int& getMZdim() { return mz_dim_; }
     /// Mutable access to the mz dimensin
-    inline void setMZdim(const int& mz_dim) { mz_dim_ = mz_dim; }
+    inline void setMZdim(SignedInt mz_dim) { mz_dim_ = mz_dim; }
 
     /// Non-mutable access to the rt dimension
     inline const int getRTdim() const { return rt_dim_; }
     /// Mutable access to the rt dimensin
     inline int& getRTdim() { return rt_dim_; }
     /// Mutable access to the rt dimensin
-    inline void setRTdim(const int& rt_dim) { rt_dim_ = rt_dim; }
+    inline void setRTdim(SignedInt rt_dim) { rt_dim_ = rt_dim; }
 
     /// Non-mutable access to the first raw data point
     inline const PeakIterator& getFirstDataPoint() const { return first_; }

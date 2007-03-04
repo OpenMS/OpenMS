@@ -231,39 +231,39 @@ namespace OpenMS
     typedef typename Point_set_2::Vertex_handle Vertex_handle;
 
     /// Get diff intercept
-    double getDiffIntercept(const UnsignedInt& dim)
+    double getDiffIntercept(UnsignedInt dim)
     {
       return diff_intercept_[dim];
     }
 
     /// Set diff intercept
-    void setDiffIntercept(const UnsignedInt& dim, const double& intercept)
+    void setDiffIntercept(UnsignedInt dim, DoubleReal intercept)
     {
       diff_intercept_[dim] = intercept;
       param_.setValue(String("similarity:diff_intercept:") + RawDataPoint2D::shortDimensionName(dim), intercept);
     }
 
     /// Get max_pair_distance_
-    float getMaxPairDistance(const UnsignedInt& dim)
+    float getMaxPairDistance(UnsignedInt dim)
     {
       return max_pair_distance_[dim];
     }
 
     /// Set max_pair_distance_
-    void setMaxPairDistance(const UnsignedInt& dim, const float& max_pair_distance)
+    void setMaxPairDistance(UnsignedInt dim, Real max_pair_distance)
     {
       max_pair_distance_[dim] = max_pair_distance;
       param_.setValue(String("similarity:max_pair_distance:") + RawDataPoint2D::shortDimensionName(dim), max_pair_distance);
     }
 
     /// Get precision
-    float getPrecision(const UnsignedInt& dim)
+    float getPrecision(UnsignedInt dim)
     {
       return precision_[dim];
     }
 
     /// Set precision
-    void setPrecision(const UnsignedInt& dim, const float& precision)
+    void setPrecision(UnsignedInt dim, Real precision)
     {
       precision_[dim] = precision;
       param_.setValue(String("similarity:precision:") + RawDataPoint2D::shortDimensionName(dim), precision);

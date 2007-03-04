@@ -236,10 +236,10 @@ namespace OpenMS
 	} // end of void sweep_()
 	
 	
-	PeakSeeder::TableType::iterator PeakSeeder::retrieveHashIter_(const CoordinateType& curr_mz, 
+	PeakSeeder::TableType::iterator PeakSeeder::retrieveHashIter_(CoordinateType curr_mz, 
 																																															CoordinateType& mz_in_hash, 
 																																															const std::vector<CoordinateType>& iso_last_scan,
-																																								 							const UnsignedInt& currscan_index  )
+																																								 							UnsignedInt currscan_index  )
 	{
 		// hash entry to write in
 		TableType::iterator entry_to_insert;		
@@ -327,7 +327,7 @@ namespace OpenMS
 	void PeakSeeder::filterAndComputeLocalMax_(const SpectrumType & vec, 
 														 						 															std::vector<int>& localmax
 																																			#ifdef DEBUG_FEATUREFINDER
-																																			, const UnsignedInt& currscan_index
+																																			, UnsignedInt currscan_index
 																																			#endif
 																																			)
 	{

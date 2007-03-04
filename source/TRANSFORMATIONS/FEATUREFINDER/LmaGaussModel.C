@@ -128,7 +128,7 @@ namespace OpenMS
 		param_.setValue("statistics:mean", statistics_.mean());
 	}
 
-	const LmaGaussModel::CoordinateType LmaGaussModel::getCenter() const
+	LmaGaussModel::CoordinateType LmaGaussModel::getCenter() const
 	{
 		return statistics_.mean();
 	}

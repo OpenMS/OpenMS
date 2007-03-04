@@ -94,28 +94,28 @@ namespace OpenMS
 		*/
 		//@{
 		/// Non-mutable access to the data point intensity (height)
-		inline const IntensityType& getIntensity() const { return intensity_; }
+		inline IntensityType getIntensity() const { return intensity_; }
 		/// Mutable access to the data point intensity (height)
-		inline void setIntensity(const IntensityType& intensity) { intensity_ = intensity; }
+		inline void setIntensity(IntensityType intensity) { intensity_ = intensity; }
 
 		/// Non-mutable access to m/z
-		inline CoordinateType const & getMZ() const
+		inline CoordinateType getMZ() const
 		{
 			return position_[0];
 		}
 		/// Mutable access to m/z
-		inline void setMZ(const CoordinateType& mz)
+		inline void setMZ(CoordinateType mz)
 		{
 			position_[0] = mz;
 		}
 
 		/// Alias for getMZ()
-		inline CoordinateType const & getPos() const
+		inline CoordinateType getPos() const
 		{
 			return position_[0];
 		}
 		/// Alias for setMZ()
-		inline void setPos(const CoordinateType& pos)
+		inline void setPos(CoordinateType pos)
 		{
 			position_[0] = pos;
 		}
@@ -200,13 +200,13 @@ namespace OpenMS
 			}
 		
 			/// comparison of a RawDataPoint2D with a CoordinateType
-			inline bool operator () ( RawDataPoint1D const & left, CoordinateType const & right ) const throw()
+			inline bool operator () ( RawDataPoint1D const & left, CoordinateType right ) const throw()
 			{
 				return (left.getMZ() < right );
 			}
 			
 			/// comparison of a CoordinateType with a RawDataPoint2D
-			inline bool operator () ( CoordinateType const & left, RawDataPoint1D const & right ) const throw()
+			inline bool operator () ( CoordinateType left, RawDataPoint1D const & right ) const throw()
 			{
 				return (left < right.getMZ() );
 			}
@@ -217,7 +217,7 @@ namespace OpenMS
 				Sometimes we need a way to find out which way the CoordinateType is
 				sorted and adding this overload seems to be the best way to achieve that goal.
 			*/
-			inline bool operator () ( CoordinateType const & left, CoordinateType const & right ) const throw()
+			inline bool operator () ( CoordinateType left, CoordinateType right ) const throw()
 			{
 				return (left < right );
 			}

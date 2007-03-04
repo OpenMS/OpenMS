@@ -107,7 +107,7 @@ namespace OpenMS
 			}
 			
 			/// access model predicted intensity at position @p pos
-      IntensityType getIntensity(const CoordinateType& coord) const
+      IntensityType getIntensity(CoordinateType coord) const
 			{
 				return interpolation_.value(coord);
 			}
@@ -122,7 +122,7 @@ namespace OpenMS
 				A scaling factor of @p scaling means that the area under the model equals
 				@p scaling. Default is 1.
 			*/
-			const CoordinateType& getScalingFactor() const
+			CoordinateType getScalingFactor() const
 			{
 				return scaling_;
 			}
@@ -151,7 +151,7 @@ namespace OpenMS
 			}
 
 			/// "center" of the model, particular definition (depends on the derived model)
-			virtual const CoordinateType getCenter() const=0;
+			virtual CoordinateType getCenter() const=0;
 
 			/// set sample/supporting points of interpolation wrt params.
 			virtual void setSamples() =0;
@@ -161,13 +161,13 @@ namespace OpenMS
 				
 				For setting to take affect, call setSamples().
 			*/
-			void setInterpolationStep(const CoordinateType& interpolation_step)
+			void setInterpolationStep(CoordinateType interpolation_step)
 			{
 				interpolation_step_ = interpolation_step;
 				this->param_.setValue("interpolation_step",interpolation_step_);
 			}
 
-			void setScalingFactor(const CoordinateType& scaling)
+			void setScalingFactor(CoordinateType scaling)
 			{
 			  scaling_ = scaling;
 				this->param_.setValue("intensity_scaling",scaling_);

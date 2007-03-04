@@ -112,18 +112,18 @@ namespace OpenMS
 		DBoundingBox<2> getBoundingBox() const;
 
 		/// Non-mutable access to the overall quality
-		inline const QualityType& getOverallQuality() const { return overall_quality_; }
+		inline QualityType getOverallQuality() const { return overall_quality_; }
 		/// Set the overall quality
-		inline void setOverallQuality(const QualityType& q) { overall_quality_ = q; }
+		inline void setOverallQuality(QualityType q) { overall_quality_ = q; }
 
 		/// Non-mutable access to the quality in dimension c
-		inline const QualityType& getQuality(const UnsignedInt& index) const
+		inline QualityType getQuality(UnsignedInt index) const
 		{
 			OPENMS_PRECONDITION(index < 2, "Feature<2>:getQuality(UnsignedInt): index overflow!")
 			return qualities_[index]; 
 		}
 		/// Set the quality in dimension c
-		inline void setQuality(const UnsignedInt& index, const QualityType& q)
+		inline void setQuality(UnsignedInt index, QualityType q)
 		{
 			OPENMS_PRECONDITION(index < 2, "Feature<2>:setQuality(UnsignedInt): index overflow!")
 			qualities_[index] = q; 
@@ -163,15 +163,15 @@ namespace OpenMS
 			{
 				return ( left.getOverallQuality() < right.getOverallQuality() );
 			}
-			inline bool operator () ( Feature const & left, QualityType const & right ) const
+			inline bool operator () ( Feature const & left, QualityType right ) const
 			{
 				return ( left.getOverallQuality() < right );
 			}
-			inline bool operator () ( QualityType const & left, Feature const & right ) const
+			inline bool operator () ( QualityType left, Feature const & right ) const
 			{
 				return ( left < right.getOverallQuality() );
 			}
-			inline bool operator () ( QualityType const & left, QualityType const & right ) const
+			inline bool operator () ( QualityType left, QualityType right ) const
 			{
 				return ( left < right );
 			}

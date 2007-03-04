@@ -185,7 +185,7 @@ CHECK((void filterIdentificationsByThresholds(const Identification& identificati
 	
 RESULT
 
-CHECK((void filterIdentificationsByThresholds(const Identification& identification, const double& peptide_threshold_fraction, const double& protein_threshold_fraction, Identification& filtered_identification)))
+CHECK((void filterIdentificationsByThresholds(const Identification& identification, DoubleReal peptide_threshold_fraction, DoubleReal protein_threshold_fraction, Identification& filtered_identification)))
 	Identification identification2;
 	vector<PeptideHit> peptide_hits;
 	vector<ProteinHit> protein_hits;
@@ -247,14 +247,14 @@ CHECK((void filterIdentificationsByExclusionPeptides(const Identification& ident
 
 RESULT
 
-CHECK(const double& getPeptideThresholdFraction() const)
+CHECK(DoubleReal getPeptideThresholdFraction() const)
 	ptr1 = new IDFilter();
   
   ptr1->setPeptideThresholdFraction(0.6);
   TEST_EQUAL(ptr1->getPeptideThresholdFraction(), 0.6);
 RESULT
 
-CHECK(const double& getProteinThresholdFraction() const)
+CHECK(DoubleReal getProteinThresholdFraction() const)
 	ptr1 = new IDFilter();
   
   ptr1->setProteinThresholdFraction(0.6);
@@ -271,14 +271,14 @@ CHECK((const std::vector< std::pair<String, String>& getProteins() const))
 	TEST_EQUAL(ptr1->getProteins() == proteins, true)
 RESULT
 
-CHECK(void setPeptideThresholdFraction(const double& peptide_threshold_fraction))
+CHECK(void setPeptideThresholdFraction(DoubleReal peptide_threshold_fraction))
 	ptr1 = new IDFilter();
   
   ptr1->setPeptideThresholdFraction(0.6);
   TEST_EQUAL(ptr1->getPeptideThresholdFraction(), 0.6);
 RESULT
 
-CHECK(void setProteinThresholdFraction(const double& protein_threshold_fraction))
+CHECK(void setProteinThresholdFraction(DoubleReal protein_threshold_fraction))
 	ptr1 = new IDFilter();
   
   ptr1->setProteinThresholdFraction(0.6);

@@ -49,12 +49,12 @@ CHECK((~DRawDataPoint()))
 	delete d10_ptr;
 RESULT
 
-CHECK((const IntensityType& getIntensity() const))
+CHECK((IntensityType getIntensity() const))
 	const DRawDataPoint<10> p;
 	TEST_REAL_EQUAL(p.getIntensity(), 0.0)
 RESULT
 
-CHECK((void setIntensity(const IntensityType &intensity)))
+CHECK((void setIntensity(IntensityTypeintensity)))
 	DRawDataPoint<3> p;
 	TEST_REAL_EQUAL(p.getIntensity(), 0.0)
 	p.setIntensity(123.456);

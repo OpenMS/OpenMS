@@ -265,13 +265,13 @@ namespace OpenMS
     return parentioncharge_;
   }
   
-  const double& ClusterSpectrum::getParentMass() const
+  DoubleReal ClusterSpectrum::getParentMass() const
   {
     if ( !cached_ ) updatecache_();
     return parent_mass_;
   }
 
-  const double& ClusterSpectrum::getRetention() const
+  DoubleReal ClusterSpectrum::getRetention() const
   {
     if ( !cached_ ) updatecache_();
     return retention_;

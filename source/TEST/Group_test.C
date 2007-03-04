@@ -111,7 +111,7 @@ CHECK(bool operator == (const Group& group) const)
   TEST_EQUAL(group1 == group2, true) 
 RESULT
 
-CHECK(const unsigned int count() const)
+CHECK(unsigned int count() const)
   ElementType e;
   IndexTuple<ContainerType> it(1,2,e);
   Group<ContainerType> group;

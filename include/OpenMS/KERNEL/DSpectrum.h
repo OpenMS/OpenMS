@@ -434,19 +434,19 @@ namespace OpenMS
 	    }
 			
 			/// returns the absolute retention time (unit is seconds)
-	    const CoordinateType& getRetentionTime() const 
+	    CoordinateType getRetentionTime() const 
 	    { 
 	    	return retention_time_; 
 	    }
 
 			/// returns the retention time interval start (unit is seconds)
-	    const CoordinateType& getRetentionTimeStart() const 
+	    CoordinateType getRetentionTimeStart() const 
 	    { 
 	    	return retention_start_; 
 	    }
 
 			/// returns the retention time interval stop (unit is seconds)
-	    const CoordinateType& getRetentionTimeStop() const 
+	    CoordinateType getRetentionTimeStop() const 
 	    { 
 	    	return retention_stop_; 
 	    }

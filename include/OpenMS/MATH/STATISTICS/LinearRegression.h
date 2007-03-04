@@ -28,6 +28,8 @@
 #ifndef OPENMS_MATH_STATISTICS_LINEARREGRESSION_H
 #define OPENMS_MATH_STATISTICS_LINEARREGRESSION_H
 
+#include<OpenMS/CONCEPT/Types.h>
+
 #include<iostream>
 #include<vector>
 #include<gsl/gsl_fit.h>
@@ -159,52 +161,52 @@ namespace OpenMS
 
 
         /// Non-mutable access to the y-intercept of the straight line
-        inline const double& getIntercept() const
+        inline DoubleReal getIntercept() const
         {
           return intercept_;
         }
         /// Non-mutable access to the slope of the straight line
-        inline const double& getSlope() const
+        inline DoubleReal getSlope() const
         {
           return slope_;
         }
         /// Non-mutable access to the x-intercept of the straight line
-        inline const double& getXIntercept() const
+        inline DoubleReal getXIntercept() const
         {
           return x_intercept_;
         }
         /// Non-mutable access to the lower border of confidence interval
-        inline const double& getLower() const
+        inline DoubleReal getLower() const
         {
           return lower_;
         }
         /// Non-mutable access to the upper border of confidence interval
-        inline const double& getUpper() const
+        inline DoubleReal getUpper() const
         {
           return upper_;
         }
         /// Non-mutable access to the value of the t-distribution
-        inline const double& getTValue() const
+        inline DoubleReal getTValue() const
         {
           return t_star_;
         }
         /// Non-mutable access to the squared pearson coefficient
-        inline const double& getRSquared() const
+        inline DoubleReal getRSquared() const
         {
           return r_squared_;
         }
         /// Non-mutable access to the standard deviation of the residuals
-        inline const double& getStandDevRes() const
+        inline DoubleReal getStandDevRes() const
         {
           return stand_dev_residuals_;
         }
         /// Non-mutable access to the standard error of the slope
-        inline const double& getStandErrSlope() const
+        inline DoubleReal getStandErrSlope() const
         {
           return stand_error_slope_;
         }
         /// Non-mutable access to the chi squared value
-        inline const double& getChiSquared() const
+        inline DoubleReal getChiSquared() const
         {
           return chi_squared_;
         }

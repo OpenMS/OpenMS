@@ -59,8 +59,8 @@ namespace OpenMS
       /// Equality operator
       bool operator!= (const Acquisition& rhs) const;
 			
-			/// return the index/number of the scan (number is -1 by default)
-      const SignedInt getNumber() const;
+		/// return the index/number of the scan (number is -1 by default)
+      SignedInt getNumber() const;
       /// sets the index/number of the scan
       void setNumber(const SignedInt number);
 

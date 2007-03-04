@@ -45,7 +45,7 @@ RESULT
 
 SequestOutfile file;
 
-CHECK(void load(const string& result_filename, vector< IdentificationData >&	identifications, ProteinIdentification&	protein_identification, const DoubleReal& p_value_threshold, const vector< Real >& pvalues, const string& database = "", const string& snd_database = "") throw (Exception::FileNotFound, Exception::ParseError))
+CHECK(void load(const string& result_filename, vector< IdentificationData >&	identifications, ProteinIdentification&	protein_identification, DoubleReal p_value_threshold, const vector< Real >& pvalues, const string& database = "", const string& snd_database = "") throw (Exception::FileNotFound, Exception::ParseError))
 	vector< IdentificationData > identifications;
 	ProteinIdentification protein_identification;
 	vector< Real > pvalues;

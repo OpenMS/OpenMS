@@ -123,16 +123,16 @@ namespace OpenMS
     int id() const;
 
 		/// returns the retention time of the spectrum
-    const double& getRetention() const;
+    DoubleReal getRetention() const;
 
 		/// returns the parent mass of the parent ion
-    const double& getParentMass() const;
+    DoubleReal getParentMass() const;
 
 		/// returns the charge of the parent ion
     const uint& getParentionCharge() const;
 
 		/// returns the binning size of the binned spectrum
-    const double& getBinSize() const {return binsize_;}
+    DoubleReal getBinSize() const {return binsize_;}
 
 		/// returns the spreading of the binned spectrum
     const uint& getBinSpread() const { return binspread_;}

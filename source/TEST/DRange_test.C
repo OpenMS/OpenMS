@@ -116,7 +116,7 @@ CHECK(DRange& operator=(const DRange& rhs))
 	TEST_REAL_EQUAL(r2.max()[1],4.0f);
 RESULT
 
-CHECK(DRange(const CoordinateType& minx, const CoordinateType& miny, const CoordinateType& maxx, const CoordinateType& maxy))
+CHECK(DRange(CoordinateType minx, CoordinateType miny, CoordinateType maxx, CoordinateType maxy))
 	DRange<2> r2(1.0f,2.0f,3.0f,4.0f);
 	TEST_REAL_EQUAL(r2.min()[0],1.0f);
 	TEST_REAL_EQUAL(r2.min()[1],2.0f);
@@ -372,7 +372,7 @@ CHECK(bool isIntersected(const DRange& range) const)
 	TEST_EQUAL(r2.isIntersected(r3),true)		
 RESULT
 
-CHECK(bool encloses(const CoordinateType& x, const CoordinateType& y) const)
+CHECK(bool encloses(CoordinateType x, CoordinateType y) const)
 	DRange<2> r2(p1,p2);
 	TEST_EQUAL(r2.encloses(0.0f,0.0f),true);
 	TEST_EQUAL(r2.encloses(-3.0f,-3.0f),false);

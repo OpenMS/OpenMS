@@ -162,28 +162,28 @@ namespace OpenMS
     inline void setPenalties(const OptimizationFunctions::PenaltyFactorsInt& penalties) { penalties_ = penalties; }
     
     /// Non-mutable access to the number of iterations
-    inline const int& getNumberIterations() const { return max_iteration_; }
+    inline SignedInt getNumberIterations() const { return max_iteration_; }
     /// Mutable access to the number of iterations
     inline int& getNumberIterations() { return max_iteration_; }
     /// Mutable access to the number of iterations
     inline void setNumberIterations(const int max_iteration) { max_iteration_ = max_iteration; }
 
     /// Non-mutable access to the maximum absolute error
-    inline const double& getMaxAbsError() const { return eps_abs_; }
+    inline DoubleReal getMaxAbsError() const { return eps_abs_; }
     /// Mutable access to the maximum absolute error
     inline double& getMaxAbsError() { return eps_abs_; }
     /// Mutable access to the maximum absolute error
-    inline void setMaxAbsError(const double eps_abs) { eps_abs_ = eps_abs; }
+    inline void setMaxAbsError(double eps_abs) { eps_abs_ = eps_abs; }
 
     /// Non-mutable access to the maximum relative error
-    inline const double& getMaxRelError() const { return eps_rel_; }
+    inline DoubleReal getMaxRelError() const { return eps_rel_; }
     /// Mutable access to the maximum relative error
     inline double& getMaxRelError() { return eps_rel_; }
     /// Mutable access to the maximum relative error
-    inline void setMaxRelError(const double eps_rel) { eps_rel_ = eps_rel; }
+    inline void setMaxRelError(double eps_rel) { eps_rel_ = eps_rel; }
 
     /// Non-mutable access to the charge state
-    inline const int& getCharge() const { return charge_; }
+    inline SignedInt getCharge() const { return charge_; }
     /// Mutable access to the charge state
     inline int& getCharge() { return charge_; }
     /// Mutable access to the charge

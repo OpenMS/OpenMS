@@ -144,7 +144,7 @@ namespace OpenMS
 
 			
 		///Non-mutable access to the matching epsilon
-		inline const double& getMZTolerance() const {return tolerance_mz_;}
+		inline DoubleReal getMZTolerance() const {return tolerance_mz_;}
 		///Mutable access to the matching epsilon
 		inline double& getMZTolerance() {return tolerance_mz_;}
 		///Mutable access to the matching epsilon
@@ -155,7 +155,7 @@ namespace OpenMS
 		}
 
 		///Non-mutable access to the maximal peak distance in a cluster
-		inline const double& getMaxPeakDistance() const {return max_peak_distance_;}
+		inline DoubleReal getMaxPeakDistance() const {return max_peak_distance_;}
 		///Mutable access to the maximal peak distance in a cluster
 		inline double& getMaxPeakDistance() {return max_peak_distance_;}
 		///Mutable access to the maximal peak distance in a cluster
@@ -166,7 +166,7 @@ namespace OpenMS
 		}
 
 		///Non-mutable access to the maximal absolute error
-		inline const double& getMaxAbsError() const {return eps_abs_;}
+		inline DoubleReal getMaxAbsError() const {return eps_abs_;}
 		///Mutable access to the  maximal absolute error
 		inline double& getMaxAbsError() {return eps_abs_;}
 		///Mutable access to the  maximal absolute error
@@ -177,7 +177,7 @@ namespace OpenMS
 		}
       
 		///Non-mutable access to the maximal relative error
-		inline const double& getMaxRelError() const {return eps_rel_;}
+		inline DoubleReal getMaxRelError() const {return eps_rel_;}
 		///Mutable access to the maximal relative error
 		inline double& getMaxRelError() {return eps_rel_;}
 		///Mutable access to the maximal relative error
@@ -188,7 +188,7 @@ namespace OpenMS
 		}
 
 		///Non-mutable access to the maximal number of iterations
-		inline const int& getMaxIterations() const {return max_iteration_;}
+		inline SignedInt getMaxIterations() const {return max_iteration_;}
 		///Mutable access to the  maximal number of iterations
 		inline int& getMaxIterations() {return max_iteration_;}
 		///Mutable access to the  maximal number of iterations

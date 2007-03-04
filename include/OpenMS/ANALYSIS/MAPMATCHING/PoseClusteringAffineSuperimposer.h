@@ -88,13 +88,6 @@ namespace OpenMS
      We need this to make the intensity bounding box use the intensity type
      instead of the coordinate type.
      */
-/*
-  struct IntensityBoundingBoxTraits : Base::TraitsType
-    {
-      typedef typename Base::TraitsType::IntensityType CoordinateType;
-
-    };
-*/
   public:
     typedef typename Base::QualityType QualityType;
     typedef typename Base::PositionType PositionType;
@@ -424,7 +417,7 @@ namespace OpenMS
 
     /// Compute the transformations between each point pair in the model map and each point pair in the scene map
     /// and hash the affine transformation.
-    void hashAffineTransformations_(const IntensityType& total_int_model_map, const IntensityType& total_int_scene_map )
+    void hashAffineTransformations_(IntensityType total_int_model_map, IntensityType total_int_scene_map )
     {
 #define V_hashAffineTransformations_(bla) V_PoseClusteringAffineSuperimposer(bla)
       // take each point pair in the model map

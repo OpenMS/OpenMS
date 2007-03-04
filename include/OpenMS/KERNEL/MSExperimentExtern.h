@@ -675,7 +675,7 @@ namespace OpenMS
 	    /// Returns the buffer size (mutable)
 	    UnsignedInt& getBufferSize() { return buffer_size_; }
 	    /// Returns the buffer size (not mutable)
-	    const UnsignedInt& getBufferSize() const { return buffer_size_; }
+	    UnsignedInt getBufferSize() const { return buffer_size_; }
 	
 	    /// Changes the size of the internal buffer
 	    void updateBuffer()

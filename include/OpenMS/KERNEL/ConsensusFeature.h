@@ -76,7 +76,7 @@ namespace OpenMS
       {}
 
       ///
-      ConsensusFeature(const PositionType& pos, const IntensityType& i)
+      ConsensusFeature(const PositionType& pos, IntensityType i)
           : BaseElementType(),
           Group(),
           position_range_(),
@@ -87,7 +87,7 @@ namespace OpenMS
       }
 
       /// Constructor for a singleton consensus feature
-      ConsensusFeature(const UnsignedInt& map_index,  const UnsignedInt& feature_index, const ElementType& feature)
+      ConsensusFeature(UnsignedInt map_index,  UnsignedInt feature_index, const ElementType& feature)
       {
         try
         {
@@ -106,8 +106,8 @@ namespace OpenMS
       }
 
       /// Constructor
-      ConsensusFeature(const UnsignedInt& map_1_index, const UnsignedInt& feature_index_1, const ElementType& feature_1,
-                       const UnsignedInt& map_2_index, const UnsignedInt& feature_index_2, const ElementType& feature_2)
+      ConsensusFeature(UnsignedInt map_1_index, UnsignedInt feature_index_1, const ElementType& feature_1,
+                       UnsignedInt map_2_index, UnsignedInt feature_index_2, const ElementType& feature_2)
       {
         try
         {
@@ -125,7 +125,7 @@ namespace OpenMS
       }
 
       /// Constructor
-      ConsensusFeature(const UnsignedInt& map_index, const UnsignedInt& feature_index, const ElementType& feature, const ConsensusFeature& c_feature)
+      ConsensusFeature(UnsignedInt map_index, UnsignedInt feature_index, const ElementType& feature, const ConsensusFeature& c_feature)
       {
         Group::operator=(c_feature);
         IndexTuple i(map_index,feature_index,feature);

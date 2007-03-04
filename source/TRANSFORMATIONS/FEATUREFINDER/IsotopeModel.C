@@ -211,7 +211,7 @@ namespace OpenMS
 			param_.setValue("statistics:mean", mean_);
 		}
 
-		const IsotopeModel::CoordinateType& IsotopeModel::getOffset()
+		IsotopeModel::CoordinateType IsotopeModel::getOffset()
 		{
 			return getInterpolation().getOffset();
 		}
@@ -221,7 +221,7 @@ namespace OpenMS
 			return charge_;
 		}
 
-		const IsotopeModel::CoordinateType IsotopeModel::getCenter() const
+		IsotopeModel::CoordinateType IsotopeModel::getCenter() const
 		{
 			return monoisotopic_mz_;
 		}

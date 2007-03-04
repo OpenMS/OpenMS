@@ -276,7 +276,7 @@ namespace OpenMS
 	    }
 	
 	    /// Non-mutable access to spacing
-	    inline const double& getSpacing() const
+	    inline DoubleReal getSpacing() const
 	    {
 	        return spacing_;
 	    }
@@ -288,7 +288,7 @@ namespace OpenMS
 	    }
 	
 	    /// Mutable access to the spacing
-	    inline void setSpacing(const double& spacing)
+	    inline void setSpacing(DoubleReal spacing)
 	    {
 	        spacing_ = spacing;
 	    }

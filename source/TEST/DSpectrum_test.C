@@ -736,17 +736,17 @@ CHECK((void setPrecursorPeak(const PrecursorPeakType& peak)))
   TEST_REAL_EQUAL(sdi.getPrecursorPeak().getIntensity(),47.11)
 RESULT
 
-CHECK((const CoordinateType& getRetentionTimeStart() const))
+CHECK((CoordinateType getRetentionTimeStart() const))
   DSpectrum<1> sdi;
   TEST_REAL_EQUAL(sdi.getRetentionTimeStart(),0.0)
 RESULT
 
-CHECK((const CoordinateType& getRetentionTimeStop() const))
+CHECK((CoordinateType getRetentionTimeStop() const))
   DSpectrum<1> sdi;
   TEST_REAL_EQUAL(sdi.getRetentionTimeStop(),0.0)
 RESULT
 
-CHECK((const CoordinateType& getRetentionTime() const))
+CHECK((CoordinateType getRetentionTime() const))
   DSpectrum<1> sdi;
   TEST_REAL_EQUAL(sdi.getRetentionTime(),-1)
 RESULT

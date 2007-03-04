@@ -186,7 +186,7 @@ CHECK((~MzDataExpSettHandler()))
 	// implicitly tested in the test above
 RESULT
 
-CHECK((void characters(const XMLCh* const chars, const unsigned int length)))
+CHECK((void characters(const XMLCh* const chars, unsigned int length)))
 	// implicitly tested in the test above
 RESULT
 

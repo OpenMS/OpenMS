@@ -103,7 +103,7 @@ namespace OpenMS
 		void setSamples();
 
 		/// get the center of the BiGaussian model i.e. the position of the maximum
-		const CoordinateType getCenter() const;
+		CoordinateType getCenter() const;
 
 		protected:
 			CoordinateType min_;

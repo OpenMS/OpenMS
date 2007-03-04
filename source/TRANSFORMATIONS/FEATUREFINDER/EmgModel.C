@@ -135,7 +135,7 @@ namespace OpenMS
 		param_.setValue("statistics:mean", statistics_.mean());
 	}
 
-	const EmgModel::CoordinateType EmgModel::getCenter() const
+	EmgModel::CoordinateType EmgModel::getCenter() const
 	{
 		return statistics_.mean();
 	}

@@ -143,7 +143,7 @@ namespace OpenMS
       }
 
       /// Non-mutable access to the quality
-      const QualityType& getQuality() const
+      QualityType getQuality() const
       {
         return quality_;
       }
@@ -155,7 +155,7 @@ namespace OpenMS
       }
 
       /// Mutable access to the quality
-      void setQuality(const QualityType& quality)
+      void setQuality(QualityType quality)
       {
         quality_ = quality;
       }

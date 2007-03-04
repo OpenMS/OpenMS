@@ -122,7 +122,7 @@ public:
     }
 
     // Non-mutable access to the scale of the wavelet
-    inline const double& getScale() const
+    inline DoubleReal getScale() const
     {
         return scale_;
     }
@@ -132,13 +132,13 @@ public:
         return scale_;
     }
     /// Mutable access to the spacing of raw data
-    inline void setScale(const double& scale)
+    inline void setScale(DoubleReal scale)
     {
         scale_ = scale;
     }
 
     // Non-mutable access to the spacing of raw data
-    inline const double& getSpacing() const
+    inline DoubleReal getSpacing() const
     {
         return spacing_;
     }
@@ -148,13 +148,13 @@ public:
         return spacing_;
     }
     /// Mutable access to the spacing of raw data
-    inline void setSpacing(const double spacing)
+    inline void setSpacing(double spacing)
     {
         spacing_ = spacing;
     }
 
     /// Non-mutable access to the position where the signal starts (in the intervall [0,end_left_padding_) are the padded zeros)
-    inline const int& getLeftPaddingIndex() const
+    inline SignedInt getLeftPaddingIndex() const
     {
         return end_left_padding_;
     }
@@ -170,7 +170,7 @@ public:
     }
 
     /// Non-mutable access to the position where the signal ends (in the intervall (begin_right_padding_,end] are the padded zeros)
-    inline const int& getRightPaddingIndex() const
+    inline SignedInt getRightPaddingIndex() const
     {
         return begin_right_padding_;
     }
@@ -186,7 +186,7 @@ public:
     }
 
     /// Non-mutable access to signal length [end_left_padding,begin_right_padding]
-    inline const int& getSignalLength() const
+    inline SignedInt getSignalLength() const
     {
         return signal_length_;
     }
@@ -215,12 +215,12 @@ public:
 
 
     /// Yields the signal (intensity) at position i
-    inline double operator [] (const unsigned int i)
+    inline double operator [] (unsigned int i)
     {
         return signal_[i].getIntensity();
     }
 
-    inline double operator [] (const unsigned int i) const
+    inline double operator [] (unsigned int i) const
     {
         return signal_[i].getIntensity();
     }

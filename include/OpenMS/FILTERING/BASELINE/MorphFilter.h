@@ -96,11 +96,11 @@ namespace OpenMS
     }
 
     /// Non-mutable access to length of the structuring element
-    inline const float& getStrucElemSize() const { return struc_size_; }
+    inline Real getStrucElemSize() const { return struc_size_; }
     /// Mutable access to length of the structuring element
     inline float& getStrucElemSize() { return struc_size_; }
     /// Mutable access to the length of the structuring element
-    inline void setStrucElemSize(const float& struc_size) { struc_size_=struc_size; }
+    inline void setStrucElemSize(Real struc_size) { struc_size_=struc_size; }
 
     /// Non-mutable access to the parameter object
     inline const Param& getParam() const { return param_; }

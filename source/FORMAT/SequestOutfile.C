@@ -40,7 +40,7 @@ namespace OpenMS
 		const string& result_filename,
 		vector< IdentificationData >&	identifications,
 		ProteinIdentification&	protein_identification,
-		const Real& p_value_threshold,
+		Real p_value_threshold,
 		vector< Real >& pvalues,
 		const string& database)
 	throw(

@@ -132,7 +132,7 @@ CHECK((double getSymmetricMeasure() const))
     TEST_REAL_EQUAL(sym_value,3.0/9.0)
 RESULT
 
-CHECK((double operator() (const double x) const))
+CHECK((double operator() (double x) const))
     double height = 100.0;
     double mz_position = 0.0;
     double left_width = 4.0;

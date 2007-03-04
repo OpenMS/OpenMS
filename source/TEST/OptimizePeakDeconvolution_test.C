@@ -117,7 +117,7 @@ CHECK((OptimizePeakDeconvolution(const OptimizePeakDeconvolution& opt)))
  	TEST_REAL_EQUAL(rel_err, 0.001)
 RESULT
 
-CHECK((OptimizePeakDeconvolution(const struct OptimizationFunctions::PenaltyFactorsInt& penalties, const int max_iteration, const double eps_abs, const double eps_rel, const int charge)))
+CHECK((OptimizePeakDeconvolution(const struct OptimizationFunctions::PenaltyFactorsInt& penalties, const int max_iteration, double eps_abs, double eps_rel, int charge)))
   PRECISION(0.0001)
   struct OptimizationFunctions::PenaltyFactorsInt penalties;
   penalties.pos = 0;
@@ -180,7 +180,7 @@ std::cout << "opt finished"<<std::endl;
  	TEST_REAL_EQUAL(peak_shape.height,400)
 RESULT
 
-CHECK((void setMaxAbsError(const double eps_abs)))
+CHECK((void setMaxAbsError(double eps_abs)))
   PRECISION(0.0001)
   double abs_err = 0.01;
    
@@ -190,7 +190,7 @@ CHECK((void setMaxAbsError(const double eps_abs)))
  	TEST_REAL_EQUAL(abs_err, opt_deconv.getMaxAbsError())
 RESULT
 
-CHECK((void setMaxRelError(const double eps_rel)))
+CHECK((void setMaxRelError(double eps_rel)))
   PRECISION(0.0001)
   double rel_err = 0.01;
    

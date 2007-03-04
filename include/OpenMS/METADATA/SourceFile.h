@@ -66,9 +66,9 @@ namespace OpenMS
       void setPathToFile(const String& path_path_to_file);
 			
       /// returns the file size in MB
-      const float& getFileSize() const;
+      Real getFileSize() const;
       /// sets the file size in MB
-      void setFileSize(const float& file_size);
+      void setFileSize(Real file_size);
 
  			/// returns the file type
       const String& getFileType() const;

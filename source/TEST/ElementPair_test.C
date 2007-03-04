@@ -146,7 +146,7 @@ CHECK(QualityType& getQuality())
 	TEST_REAL_EQUAL(p.getQuality(), 0.0)
 RESULT
 
-CHECK(void setQuality(const QualityType& ql))
+CHECK(void setQuality(QualityType ql))
 	ElementPair<> p;
 	p.setQuality(123.456);
 	TEST_REAL_EQUAL(p.getQuality(), 123.456)
@@ -213,7 +213,7 @@ CHECK(const FeatureType& getSecond() const)
 	
 RESULT
 
-CHECK( const QualityType& getQuality() const )
+CHECK( QualityType getQuality() const )
 	ElementPair<> p;
 	p.setQuality(3.0);
 	const ElementPair<>::QualityType q = p.getQuality();
@@ -230,7 +230,7 @@ CHECK( void setFirst(const FeatureType& frt) )
 	TEST_EQUAL( f, p.getFirst() )
 RESULT
 
-CHECK( void setQuality(const QualityType& ql) )
+CHECK( void setQuality(QualityType ql) )
 	ElementPair<> p;
 	const ElementPair<>::QualityType q = 10.0;
 	p.setQuality(q);

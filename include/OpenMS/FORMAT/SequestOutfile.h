@@ -70,7 +70,7 @@ namespace OpenMS
 				This class serves to read in a Sequest outfile. The information can be
 				retrieved via the load function.
 			*/
-			void load(const std::string& result_filename, std::vector< IdentificationData >& identifications, ProteinIdentification& protein_identification, const Real& p_value_threshold, std::vector< Real >& pvalues, const std::string& database = "") throw (Exception::FileNotFound, Exception::ParseError);
+			void load(const std::string& result_filename, std::vector< IdentificationData >& identifications, ProteinIdentification& protein_identification, Real p_value_threshold, std::vector< Real >& pvalues, const std::string& database = "") throw (Exception::FileNotFound, Exception::ParseError);
 
 			
 			void finishSummaryHtml(const std::string& summary_filename) throw (Exception::UnableToCreateFile);

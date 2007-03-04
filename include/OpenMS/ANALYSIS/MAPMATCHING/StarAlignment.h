@@ -153,7 +153,7 @@ namespace OpenMS
       }
     }
     /// Non-mutable access to the index of the reference map
-    const UnsignedInt& getReferenceMapIndex() const
+    UnsignedInt getReferenceMapIndex() const
     {
       return reference_map_index_;
     }

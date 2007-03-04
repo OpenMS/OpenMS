@@ -174,7 +174,7 @@ RESULT
 
 //treatments
 
-CHECK((const SignedInt countTreatments() const))
+CHECK((SignedInt countTreatments() const))
 	Sample s;
 	TEST_EQUAL(s.countTreatments(),0)
 	Digestion d;

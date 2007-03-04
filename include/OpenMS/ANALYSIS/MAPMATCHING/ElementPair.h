@@ -132,7 +132,7 @@ public:
     }
 
     /// Non-mutable access to the quality of the pair
-    const QualityType& getQuality() const
+    QualityType getQuality() const
     {
         return quality_;
     }
@@ -142,7 +142,7 @@ public:
         return quality_;
     }
     /// Mutable access to the quality of the pair
-    void setQuality(const QualityType& ql)
+    void setQuality(QualityType ql)
     {
         quality_ = ql;
     }

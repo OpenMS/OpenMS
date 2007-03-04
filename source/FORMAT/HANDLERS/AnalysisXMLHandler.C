@@ -678,7 +678,7 @@ namespace OpenMS
 		tag_ = "";
  	} 
 
-  void AnalysisXMLHandler::characters(const XMLCh* const chars, const unsigned int /*length*/)
+  void AnalysisXMLHandler::characters(const XMLCh* const chars, unsigned int /*length*/)
   {
 		if (tag_ == "dbName")
 		{

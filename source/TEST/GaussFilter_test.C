@@ -79,13 +79,13 @@ CHECK((GaussFilter(const GaussFilter& g)))
   TEST_REAL_EQUAL(gauss_copy.getSpacing(),0.01)
 RESULT
 
-CHECK((const double& getSigma() const))
+CHECK((DoubleReal getSigma() const))
   const GaussFilter gaussian;
 
   TEST_REAL_EQUAL(gaussian.getSigma(),.1);
 RESULT
 
-CHECK((const double& getSpacing() const))
+CHECK((DoubleReal getSpacing() const))
   const GaussFilter gaussian;
 
   TEST_REAL_EQUAL(gaussian.getSpacing(),0.01);
@@ -106,7 +106,7 @@ CHECK((void init(float sigma, float spacing)))
   TEST_REAL_EQUAL(gaussian.getKernelWidth(),1.6);
 RESULT
 
-CHECK((void setKernelWidth(const double& kernel_width)))
+CHECK((void setKernelWidth(DoubleReal kernel_width)))
   GaussFilter gaussian;
   gaussian.setKernelWidth(1.6);
 
@@ -123,21 +123,21 @@ CHECK((void setParam(Param param) throw(Exception::InvalidValue)))
   TEST_REAL_EQUAL(gaussian.getKernelWidth(),1.6);
 RESULT
 
-CHECK((void setSigma(const double& sigma)))
+CHECK((void setSigma(DoubleReal sigma)))
   GaussFilter gauss;
   gauss.setSigma(2.434);
   
   TEST_REAL_EQUAL(gauss.getSigma(), 2.434)
 RESULT
 
-CHECK((void setSpacing(const double& spacing)))
+CHECK((void setSpacing(DoubleReal spacing)))
   GaussFilter gaussian;
   gaussian.setSpacing(0.0001);
 
   TEST_REAL_EQUAL(gaussian.getSpacing(),0.0001);
 RESULT
 
-CHECK((void setKernelWidth(const double& kernel_width)))
+CHECK((void setKernelWidth(DoubleReal kernel_width)))
   GaussFilter gauss;
   gauss.setSigma(0.2);
 

@@ -126,19 +126,19 @@ namespace OpenMS
 			/// removes the sample treatment at the given position
 			void removeTreatment(UnsignedInt position) throw (Exception::IndexOverflow);
 			/// returns the number of sample treatments
-			const SignedInt countTreatments() const;
+			SignedInt countTreatments() const;
 			
     protected:
-	    String name_;
-	    String number_;
-	    String comment_;
-	    String organism_;
-	    SampleState state_;
-			float mass_;
-			float volume_;
-			float concentration_;
-			std::vector<Sample> subsamples_;
-			std::list<SampleTreatment*> treatments_; 
+		String name_;
+		String number_;
+		String comment_;
+		String organism_;
+		SampleState state_;
+		float mass_;
+		float volume_;
+		float concentration_;
+		std::vector<Sample> subsamples_;
+		std::list<SampleTreatment*> treatments_; 
 
   };
 } // namespace OpenMS

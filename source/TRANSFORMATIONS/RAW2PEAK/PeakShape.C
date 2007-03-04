@@ -73,7 +73,7 @@ namespace OpenMS
     return *this;
   }
 
-  double PeakShape::operator () (const double x) const
+  double PeakShape::operator () (double x) const
   {
     double value;
 

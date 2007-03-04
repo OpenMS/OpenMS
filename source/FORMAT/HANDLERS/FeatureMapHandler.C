@@ -151,7 +151,7 @@ namespace OpenMS
 			}
 		}
 	
-	  void FeatureMapHandler::characters(const XMLCh* const chars, const unsigned int /*length*/)
+	  void FeatureMapHandler::characters(const XMLCh* const chars, unsigned int /*length*/)
 	  {
 			if (is_parser_in_tag_[DESCRIPTION])	// collect Experimental Settings
 			{

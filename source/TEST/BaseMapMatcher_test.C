@@ -145,7 +145,7 @@ CHECK(const Grid& getGrid() const)
   TEST_EQUAL(tmm.getGrid() == grid,true)
 RESULT
 
-CHECK(const QualityType& getMinQuality() const)
+CHECK(QualityType getMinQuality() const)
   TestMapMatcher tmm;
   
   TEST_REAL_EQUAL(tmm.getMinQuality(),-1)
@@ -176,7 +176,7 @@ CHECK(void setGrid(const Grid& g))
   TEST_EQUAL(tmm.getGrid() == grid,true)
 RESULT
 
-CHECK(void setMinQuality(const QualityType& qu))
+CHECK(void setMinQuality(QualityType qu))
   TestMapMatcher tmm;
   tmm.setMinQuality(0.1);
   

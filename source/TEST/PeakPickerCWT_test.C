@@ -192,35 +192,35 @@ CHECK((const bool& get2DOptimizationFlag() const))
 RESULT
 
 	
-CHECK((const float& getNoiseLevel() const))
+CHECK((Real getNoiseLevel() const))
   PeakPickerCWT pp;
   
   TEST_REAL_EQUAL(pp.getNoiseLevel(),0.1)
 RESULT
 
-CHECK((const float& getPeakBoundCWT() const))
+CHECK((Real getPeakBoundCWT() const))
   PeakPickerCWT pp;
   TEST_REAL_EQUAL(pp.getPeakBoundCWT(),0.0)
 RESULT
 
-CHECK((const float& getPeakBoundMs2LevelCWT() const))
+CHECK((Real getPeakBoundMs2LevelCWT() const))
   PeakPickerCWT pp;
   TEST_REAL_EQUAL(pp.getPeakBoundMs2LevelCWT(),0.0)
 RESULT
 
-CHECK((const float& getPeakCorrBound() const))
+CHECK((Real getPeakCorrBound() const))
   PeakPickerCWT pp;
   
   TEST_REAL_EQUAL(pp.getPeakCorrBound(),0.5)
 RESULT
 
-CHECK((const float& getWaveletScale() const))
+CHECK((Real getWaveletScale() const))
   PeakPickerCWT pp;
   
   TEST_REAL_EQUAL(pp.getWaveletScale(),0.15)
 RESULT
 
-CHECK((const unsigned int& getSearchRadius() const))
+CHECK((UnsignedInt getSearchRadius() const))
   PeakPickerCWT pp;
   
   TEST_REAL_EQUAL(pp.getSearchRadius(),3)
@@ -232,7 +232,7 @@ CHECK((const std::vector<PeakShape>& getPeakShapes() const))
   TEST_REAL_EQUAL(pp.getPeakShapes().size(),0)
 RESULT
 
-CHECK((void setNoiseLevel(const float& noise_level)))
+CHECK((void setNoiseLevel(Real noise_level)))
   PeakPickerCWT pp;
   
   pp.setNoiseLevel(12);
@@ -261,7 +261,7 @@ CHECK((void set2DOptimizationFlag(const bool& twod_optimization)))
 RESULT
 	
 	
-CHECK((void setWaveletScale(const float& scale)))
+CHECK((void setWaveletScale(Real scale)))
   PeakPickerCWT pp;
   
   pp.setWaveletScale(0.1);

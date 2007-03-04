@@ -64,12 +64,12 @@ CHECK((bool isFileEmpty() const))
   TEST_EQUAL(tmp->isFileEmpty(),false);
 RESULT
 
-CHECK((const float& getFileSize() const))
+CHECK((Real getFileSize() const))
   SourceFile tmp;
   TEST_EQUAL(tmp.getFileSize(),0);
 RESULT
 
-CHECK((void setFileSize(const float& file_size)))
+CHECK((void setFileSize(Real file_size)))
   SourceFile tmp;
 	tmp.setFileSize(1.667);
   TEST_REAL_EQUAL(tmp.getFileSize(),1.667);

@@ -50,7 +50,7 @@ CHECK(~Feature())
 	delete d_ptr;
 RESULT
 
-CHECK(const QualityType& getOverallQuality() const)
+CHECK(QualityType getOverallQuality() const)
 	const Feature p;
 	TEST_REAL_EQUAL(p.getOverallQuality(), 0.0)
 RESULT
@@ -77,7 +77,7 @@ CHECK(setOverallQuality(QualityType))
 RESULT
 
 
-CHECK(const QualityType& getQuality(Position) const)
+CHECK(QualityType getQuality(Position) const)
 	const Feature p;
 	TEST_REAL_EQUAL(p.getQuality(0), 0.0)
 	TEST_REAL_EQUAL(p.getQuality(1), 0.0)
@@ -116,7 +116,7 @@ CHECK(setQuality(QualityType,Position))
 RESULT
 
 
-CHECK(const QualityType& getModelDescription() const)
+CHECK(QualityType getModelDescription() const)
 	const Feature p;
 	TEST_EQUAL(p.getModelDescription().getName(), "")
 	TEST_EQUAL(p.getModelDescription().getParam().empty(), true)
@@ -141,7 +141,7 @@ CHECK(setModelDescription(const ModelDescription&))
 	TEST_EQUAL(p.getModelDescription().getName(), "")
 RESULT
 
-CHECK(const IntensityType& getIntensity() const)
+CHECK(IntensityType getIntensity() const)
 	const Feature p;
 	TEST_REAL_EQUAL(p.getIntensity(), 0.0)
 RESULT

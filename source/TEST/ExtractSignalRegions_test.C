@@ -94,7 +94,7 @@ CHECK((const Param& getParam() const))
   TEST_REAL_EQUAL(esr.getParam() == param, true)
 RESULT
 
-CHECK((const float& getDaltonPerSplit() const))
+CHECK((Real getDaltonPerSplit() const))
   const ExtractSignalRegions esr;
   TEST_REAL_EQUAL(esr.getDaltonPerSplit(), 10)
 RESULT
@@ -107,7 +107,7 @@ CHECK((Param& getParam()))
   TEST_REAL_EQUAL(esr.getParam() == param, true)
 RESULT
 
-CHECK((const float& getDaltonPerSplit() const))
+CHECK((Real getDaltonPerSplit() const))
   ExtractSignalRegions esr;
   TEST_REAL_EQUAL(esr.getDaltonPerSplit(), 10)
   esr.setDaltonPerSplit(123);
@@ -125,7 +125,7 @@ CHECK((void setParam(const Param& param)))
   TEST_REAL_EQUAL(esr.getParam() == param, true)
 RESULT
 
-CHECK((void setDaltonPerSplit(const float& dalton_per_split)))
+CHECK((void setDaltonPerSplit(Real dalton_per_split)))
   ExtractSignalRegions esr;
   TEST_REAL_EQUAL(esr.getDaltonPerSplit(), 10)
   esr.setDaltonPerSplit(123);

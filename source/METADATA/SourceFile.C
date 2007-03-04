@@ -106,12 +106,12 @@ namespace OpenMS
 	  path_to_file_ = path_to_file; 
 	}
 
-	const float& SourceFile::getFileSize() const
+	Real SourceFile::getFileSize() const
 	{
 		return file_size_;
 	}
 
-	void SourceFile::setFileSize(const float& file_size)
+	void SourceFile::setFileSize(Real file_size)
 	{
 		file_size_ = file_size;
 	}

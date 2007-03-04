@@ -126,7 +126,7 @@ CHECK(String getAlignmentTree() const)
   TEST_EQUAL(alignment.getAlignmentTree() == "((3:0,0:1):0,(3:0,1:2):0,(3:0,2:3):0,(3:0,4:5):0,(3:0,5:6):0)", true)
 RESULT
 
-CHECK(const UnsignedInt& getReferenceMapIndex() const)
+CHECK(UnsignedInt getReferenceMapIndex() const)
   StarAlignment< ConsensusFeature<FeatureMap<> > > alignment;
   
   TEST_REAL_EQUAL(alignment.getReferenceMapIndex(),0)

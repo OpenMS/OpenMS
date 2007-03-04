@@ -60,7 +60,7 @@ CHECK(BinnedRep())
 	TEST_NOT_EQUAL(brp, 0)
 RESULT
 
-CHECK(BinnedRep(const double, const uint = 0))
+CHECK(BinnedRep(double, uint = 0))
 	BinnedRep br(2.5, 1);
 	TEST_REAL_EQUAL(br.getBinSize(), 2.5)
 	TEST_EQUAL(br.getBinSpread(), 1)

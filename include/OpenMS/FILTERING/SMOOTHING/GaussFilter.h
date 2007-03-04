@@ -111,12 +111,12 @@ namespace OpenMS
       }
 
       /// Non-mutable access to the sigma
-      inline const double& getSigma() const
+      inline DoubleReal getSigma() const
       {
         return sigma_;
       }
       /// Mutable access to the sigma
-      inline void setSigma(const double& sigma)
+      inline void setSigma(DoubleReal sigma)
       {
         sigma_ = sigma;
         spacing_ = 4*sigma_ / 50;
@@ -129,19 +129,19 @@ namespace OpenMS
         return (sigma_ * 8.);
       }
       /// Mutable access to the kernel width
-      inline void setKernelWidth(const double& kernel_width)
+      inline void setKernelWidth(DoubleReal kernel_width)
       {
         sigma_ = kernel_width / 8.;
         init(sigma_,spacing_);
       }
       
       /// Non-mutable access to the spacing
-      inline const double& getSpacing() const
+      inline DoubleReal getSpacing() const
       {
         return spacing_;
       }
       /// Mutable access to the spacing
-      inline void setSpacing(const double& spacing)
+      inline void setSpacing(DoubleReal spacing)
       {
         spacing_=spacing;
         OPENMS_PRECONDITION((4*sigma_ > spacing), "You have to choose a smaller spacing for the kernel coefficients!" );

@@ -153,7 +153,7 @@ CHECK((const Param& getParam() const))
   TEST_EQUAL(tmp.getParam(),p);
 RESULT
 
-CHECK((const double& getSpacing() const))
+CHECK((DoubleReal getSpacing() const))
   const LinearResampler tmp;
 
   TEST_EQUAL(tmp.getSpacing(),0.05);
@@ -206,7 +206,7 @@ CHECK((template< typename InputPeakIterator, typename OutputPeakContainer > void
   TEST_REAL_EQUAL(sum, 20);
 RESULT
 
-CHECK((void setSpacing(const double& spacing)))
+CHECK((void setSpacing(DoubleReal spacing)))
   LinearResampler tmp;
   tmp.setSpacing(0.1);
 

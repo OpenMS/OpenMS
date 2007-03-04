@@ -77,7 +77,7 @@ CHECK(IndexTuple(const IndexTuple& source))
   TEST_EQUAL(it.getTransformedPosition() == it_copy.getTransformedPosition(), true)  
 RESULT
 
-CHECK((IndexTuple(const UnsignedInt& map_index, const UnsignedInt& element_index, const ElementType& element)))
+CHECK((IndexTuple(UnsignedInt map_index, UnsignedInt element_index, const ElementType& element)))
   ElementType e;
   IndexTuple<ContainerType> it(1,2,e);
 
@@ -117,14 +117,14 @@ CHECK(const PositionType& getTransformedPosition() const)
   TEST_EQUAL(it.getTransformedPosition() == e.getPosition(), true)  
 RESULT
 
-CHECK(const UnsignedInt& getElementIndex() const)
+CHECK(UnsignedInt getElementIndex() const)
   ElementType e;
   IndexTuple<ContainerType> it(1,2,e);
 
   TEST_EQUAL(it.getElementIndex() == 2, true)  
 RESULT
 
-CHECK(const UnsignedInt& getMapIndex() const)
+CHECK(UnsignedInt getMapIndex() const)
   ElementType e;
   IndexTuple<ContainerType> it(1,2,e);
 
@@ -139,14 +139,14 @@ CHECK(void setElement(const ElementType& e))
   TEST_EQUAL(&(it.getElement()) == &e, true)   
 RESULT
 
-CHECK(void setElementIndex(const UnsignedInt& e))
+CHECK(void setElementIndex(UnsignedInt e))
   IndexTuple<ContainerType> it;
   it.setElementIndex(2);
 
   TEST_EQUAL(it.getElementIndex() == 2, true)  
 RESULT
 
-CHECK(void setMapIndex(const UnsignedInt& c))
+CHECK(void setMapIndex(UnsignedInt c))
   IndexTuple<ContainerType> it;
   it.setMapIndex(2);
 

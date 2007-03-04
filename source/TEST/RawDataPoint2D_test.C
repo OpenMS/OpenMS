@@ -49,7 +49,7 @@ CHECK((~RawDataPoint2D()))
 	delete d10_ptr;
 RESULT
 
-CHECK((const IntensityType& getIntensity() const))
+CHECK((IntensityType getIntensity() const))
 	TEST_REAL_EQUAL(RawDataPoint2D().getIntensity(), 0.0)
 RESULT
 
@@ -59,21 +59,21 @@ CHECK((PositionType const& getPosition() const))
 	TEST_REAL_EQUAL(p.getPosition()[1], 0.0)
 RESULT
 
-CHECK((CoordinateType const& getRT() const))
+CHECK((CoordinateType getRT() const))
 	TEST_REAL_EQUAL(RawDataPoint2D().getRT(), 0.0)
 RESULT
 
-CHECK((CoordinateType const& getMZ() const))
+CHECK((CoordinateType getMZ() const))
 	TEST_REAL_EQUAL(RawDataPoint2D().getMZ(), 0.0)
 RESULT
 
-CHECK((void setRT(const CoordinateType &coordinate)))
+CHECK((void setRT(CoordinateTypecoordinate)))
 	RawDataPoint2D p0;
   	p0.setRT(12345.0);
 	TEST_REAL_EQUAL(p0.getRT(), 12345.0)
 RESULT
 
-CHECK((void setMZ(const CoordinateType &coordinate)))
+CHECK((void setMZ(CoordinateTypecoordinate)))
 	RawDataPoint2D p0;
   	p0.setMZ(12345.0);
 	TEST_REAL_EQUAL(p0.getMZ(), 12345.0)
@@ -99,7 +99,7 @@ CHECK((PositionType& getPosition()))
 	TEST_REAL_EQUAL(p1.getPosition()[1], 12345.0)
 RESULT
 
-CHECK((void setIntensity(const IntensityType& intensity)))
+CHECK((void setIntensity(IntensityType intensity)))
 	RawDataPoint2D p;
   p.setIntensity(17.8);
   TEST_REAL_EQUAL(p.getIntensity(), 17.8)

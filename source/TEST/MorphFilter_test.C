@@ -95,7 +95,7 @@ CHECK(const Param& getParam() const)
   TEST_EQUAL(p == m.getParam(), true)
 RESULT
 
-CHECK(const float& getStrucElemSize() const)
+CHECK(Real getStrucElemSize() const)
   MorphFilter m;
   
   TEST_REAL_EQUAL(m.getStrucElemSize(),3)
@@ -173,7 +173,7 @@ CHECK(void setParam(const Param& param))
   TEST_EQUAL(p == m.getParam(), true)
 RESULT
 
-CHECK(void setStrucElemSize(const float& struc_size))
+CHECK(void setStrucElemSize(Real struc_size))
   MorphFilter m;
   m.setStrucElemSize(3.5);
   

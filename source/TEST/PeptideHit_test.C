@@ -176,7 +176,7 @@ CHECK((void setRank(UnsignedInt newrank)))
 	TEST_EQUAL(ptr1->getRank(), rank)
 RESULT
 
-CHECK((void setScore(const double& score)))
+CHECK((void setScore(DoubleReal score)))
 	ptr1 = new PeptideHit();
 	ptr1->setScore(score);
 	TEST_EQUAL(ptr1->getScore(), score)

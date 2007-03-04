@@ -102,7 +102,7 @@ public:
     }
 
     /// Non-mutable access to the decomposition length
-    inline const float& getDaltonPerSplit() const
+    inline Real getDaltonPerSplit() const
     {
         return dalton_per_split_;
     }
@@ -112,7 +112,7 @@ public:
         return dalton_per_split_;
     }
     /// Mutable access to the decomposition length
-    inline void setDaltonPerSplit(const float& dalton_per_split)
+    inline void setDaltonPerSplit(Real dalton_per_split)
     {
         dalton_per_split_ = dalton_per_split;
     }

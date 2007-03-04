@@ -156,23 +156,23 @@ namespace OpenMS
 
 	void InspectInfile::setMods(SignedInt mods) {mods_ = mods;}
 
-	const UnsignedInt InspectInfile::getBlind() const {return blind_;}
+	UnsignedInt InspectInfile::getBlind() const {return blind_;}
 
 	void InspectInfile::setBlind(UnsignedInt blind) {blind_ = blind;}
 
-	const DoubleReal InspectInfile::getMaxPTMsize() const {return maxptmsize_;}
+	DoubleReal InspectInfile::getMaxPTMsize() const {return maxptmsize_;}
 
 	void InspectInfile::setMaxPTMsize(DoubleReal maxptmsize) {maxptmsize_ = maxptmsize;}
 
-	const DoubleReal InspectInfile::getPMTolerance() const {return PM_tolerance_;}
+	DoubleReal InspectInfile::getPMTolerance() const {return PM_tolerance_;}
 
 	void InspectInfile::setPMTolerance(DoubleReal PM_tolerance) {PM_tolerance_ = PM_tolerance;}
 
-	const DoubleReal InspectInfile::getIonTolerance() const {return ion_tolerance_;}
+	DoubleReal InspectInfile::getIonTolerance() const {return ion_tolerance_;}
 
 	void InspectInfile::setIonTolerance(DoubleReal ion_tolerance) {ion_tolerance_ = ion_tolerance;}
 
-	const UnsignedInt InspectInfile::getMulticharge() const {return multicharge_;}
+	UnsignedInt InspectInfile::getMulticharge() const {return multicharge_;}
 
 	void InspectInfile::setMulticharge(UnsignedInt multicharge) {multicharge_ = multicharge;}
 

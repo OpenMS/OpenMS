@@ -91,7 +91,7 @@ namespace OpenMS
 			open_tag_ = false;
 		}
 
-		void IsotopeXMLHandler::characters(const XMLCh* const chars, const unsigned int /*length*/)
+		void IsotopeXMLHandler::characters(const XMLCh* const chars, unsigned int /*length*/)
 		{
 			if ( open_tag_ )
 			{

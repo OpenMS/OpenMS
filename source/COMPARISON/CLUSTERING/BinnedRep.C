@@ -46,7 +46,7 @@ namespace OpenMS
   {
   }
 
-  BinnedRep::BinnedRep(const double binsize,const uint spread ) 
+  BinnedRep::BinnedRep(double binsize,uint spread ) 
     :bins_(),binsize_(binsize),spread_(spread),begin_(0),end_(0),id_(0),retention_(0),parent_m_z_(0),precursorpeakcharge_(0)
   {
     if (binsize_ <= 0) 

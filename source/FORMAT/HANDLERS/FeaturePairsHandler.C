@@ -107,7 +107,7 @@ namespace OpenMS
       }
     }
 
-    void FeaturePairsHandler::characters(const XMLCh* const chars, const unsigned int /*length*/)
+    void FeaturePairsHandler::characters(const XMLCh* const chars, unsigned int /*length*/)
     {
       for (UnsignedInt i=0; i<is_parser_in_tag_.size(); i++)
       {

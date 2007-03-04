@@ -71,7 +71,7 @@ namespace OpenMS
     PeakShape& operator = (const PeakShape& peakshape);
 
     /// Compute the intensity of the peaks shape at position x
-    double operator() (const double x) const;
+    double operator() (double x) const;
     /// Computes symmetry measure of the peak shape, which is corresponds to th ratio of the left and right width parameters.
     double getSymmetricMeasure() const;
     /// Estimates the full width at half maximum.

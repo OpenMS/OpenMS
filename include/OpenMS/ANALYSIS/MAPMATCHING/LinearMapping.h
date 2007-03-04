@@ -87,14 +87,14 @@ namespace OpenMS
 		}
 		
 		/// Non-mutable access to slope
-		inline const DoubleReal& getSlope() const { return slope_; }
+		inline DoubleReal getSlope() const { return slope_; }
 		/// Set slope
-		inline void setSlope(const DoubleReal& sl) { slope_ = sl; }
+		inline void setSlope(DoubleReal sl) { slope_ = sl; }
 		
 		/// Non-mutable access to slope
-		inline const DoubleReal& getIntercept() const { return intercept_; }
+		inline DoubleReal getIntercept() const { return intercept_; }
 		/// Set slope
-		inline void setIntercept(const DoubleReal& in) { intercept_ = in; }
+		inline void setIntercept(DoubleReal in) { intercept_ = in; }
 			
 	 protected:		
 		/// slope of the transform

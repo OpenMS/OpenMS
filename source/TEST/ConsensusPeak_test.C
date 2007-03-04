@@ -128,7 +128,7 @@ CHECK(ConsensusPeak(const ConsensusPeak& source))
   TEST_REAL_EQUAL((cons_copy.begin())->getElement().getIntensity(),200)
 RESULT
 
-CHECK((ConsensusPeak(const PositionType& pos, const IntensityType& i)))
+CHECK((ConsensusPeak(const PositionType& pos, IntensityType i)))
   DPosition<2> pos(1,2);
   ConsensusPeak<> cons(pos,200);
     
@@ -142,7 +142,7 @@ CHECK((ConsensusPeak(const PositionType& pos, const IntensityType& i)))
   TEST_EQUAL(cons.isEmpty(), true)
 RESULT
 
-CHECK((ConsensusPeak(const UnsignedInt& map_1_index, const UnsignedInt& peak_index_1, const ElementType& peak_1, const UnsignedInt& map_2_index, const UnsignedInt& peak_index_2, const ElementType& peak_2)))
+CHECK((ConsensusPeak(UnsignedInt map_1_index, UnsignedInt peak_index_1, const ElementType& peak_1, UnsignedInt map_2_index, UnsignedInt peak_index_2, const ElementType& peak_2)))
   DPosition<2> pos(1,2);
   Peak2D feat1;
   feat1.setPosition(pos);
@@ -173,7 +173,7 @@ CHECK((ConsensusPeak(const UnsignedInt& map_1_index, const UnsignedInt& peak_ind
   TEST_REAL_EQUAL(it->getElement().getIntensity(),200)
 RESULT
 
-CHECK((ConsensusPeak(const UnsignedInt& map_index, const UnsignedInt& peak_index, const ElementType& peak)))
+CHECK((ConsensusPeak(UnsignedInt map_index, UnsignedInt peak_index, const ElementType& peak)))
   DPosition<2> pos(1,2);
   Peak2D feat1;
   feat1.setPosition(pos);
@@ -194,7 +194,7 @@ CHECK((ConsensusPeak(const UnsignedInt& map_index, const UnsignedInt& peak_index
   TEST_REAL_EQUAL(it->getElement().getIntensity(),200)
 RESULT
 
-CHECK((ConsensusPeak(const UnsignedInt& map_index, const UnsignedInt& peak_index, const ElementType& peak, const ConsensusPeak& c_peak)))
+CHECK((ConsensusPeak(UnsignedInt map_index, UnsignedInt peak_index, const ElementType& peak, const ConsensusPeak& c_peak)))
   DPosition<2> pos(1,2);
   Peak2D feat1;
   feat1.setPosition(pos);

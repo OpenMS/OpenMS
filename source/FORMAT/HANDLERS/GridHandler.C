@@ -101,7 +101,7 @@ namespace OpenMS
     }
 
     // Docu in base class
-    void GridHandler::characters(const XMLCh* const chars, const unsigned int /*length*/)
+    void GridHandler::characters(const XMLCh* const chars, unsigned int /*length*/)
     {
       for (SignedInt i=0; i<TAG_NUM; i++)
       {

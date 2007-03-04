@@ -88,7 +88,7 @@ namespace OpenMS
       virtual void startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const xercesc::Attributes& attributes);
 
       // Docu in base class
-      virtual void characters(const XMLCh* const chars, const unsigned int /*length*/);
+      virtual void characters(const XMLCh* const chars, unsigned int /*length*/);
 
       // Docu in base class
       virtual void endElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname);

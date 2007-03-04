@@ -146,7 +146,7 @@ CHECK((void optimize(std::vector<PeakShape>& peaks)))
  	TEST_REAL_EQUAL(peak_shape.height,400)
 RESULT
 
-CHECK((void setMaxAbsError(const double eps_abs)))
+CHECK((void setMaxAbsError(double eps_abs)))
   PRECISION(0.0001)
   double abs_err = 0.01;
    
@@ -156,7 +156,7 @@ CHECK((void setMaxAbsError(const double eps_abs)))
  	TEST_REAL_EQUAL(abs_err, opt_pick.getMaxAbsError())
 RESULT
 
-CHECK((void setMaxRelError(const double eps_rel)))
+CHECK((void setMaxRelError(double eps_rel)))
   PRECISION(0.0001)
   double rel_err = 0.01;
    

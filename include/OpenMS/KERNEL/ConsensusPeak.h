@@ -75,7 +75,7 @@ namespace OpenMS
       {}
 
       ///
-      ConsensusPeak(const PositionType& pos, const IntensityType& i)
+      ConsensusPeak(const PositionType& pos, IntensityType i)
           : ElementType(),
           Group(),
           position_range_(),
@@ -86,7 +86,7 @@ namespace OpenMS
       }
 
       /// Constructor for a singleton consensus peak
-      ConsensusPeak(const UnsignedInt& map_index,  const UnsignedInt& peak_index, const ElementType& peak)
+      ConsensusPeak(UnsignedInt map_index,  UnsignedInt peak_index, const ElementType& peak)
       {
         try
         {
@@ -106,8 +106,8 @@ namespace OpenMS
       }
 
       /// Constructor
-      ConsensusPeak(const UnsignedInt& map_1_index, const UnsignedInt& peak_index_1, const ElementType& peak_1,
-                    const UnsignedInt& map_2_index, const UnsignedInt& peak_index_2, const ElementType& peak_2)
+      ConsensusPeak(UnsignedInt map_1_index, UnsignedInt peak_index_1, const ElementType& peak_1,
+                    UnsignedInt map_2_index, UnsignedInt peak_index_2, const ElementType& peak_2)
       {
         try
         {
@@ -125,7 +125,7 @@ namespace OpenMS
       }
 
       /// Constructor
-      ConsensusPeak(const UnsignedInt& map_index, const UnsignedInt& peak_index, const ElementType& peak, const ConsensusPeak& c_peak)
+      ConsensusPeak(UnsignedInt map_index, UnsignedInt peak_index, const ElementType& peak, const ConsensusPeak& c_peak)
       {
         Group::operator=(c_peak);
         IndexTuple i(map_index,peak_index,peak);

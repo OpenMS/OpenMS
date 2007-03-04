@@ -59,7 +59,7 @@ namespace OpenMS
       {}
 
       /// Constructor
-      inline IndexTuple(const UnsignedInt& map_index, const UnsignedInt& element_index, const ElementType& element)
+      inline IndexTuple(UnsignedInt map_index, UnsignedInt element_index, const ElementType& element)
       {
         map_index_ = map_index;
         element_index_ = element_index;
@@ -94,25 +94,25 @@ namespace OpenMS
       {}
       
       /// Non-mutable access to the container index
-      inline const UnsignedInt& getMapIndex() const
+      inline UnsignedInt getMapIndex() const
       {
         return map_index_;
       }
       
       /// Set the container index
-      inline void setMapIndex(const UnsignedInt& c)
+      inline void setMapIndex(UnsignedInt c)
       {
         map_index_ = c;
       }
 
       /// Non-mutable access to the element index
-      inline const UnsignedInt& getElementIndex() const
+      inline UnsignedInt getElementIndex() const
       {
         return element_index_;
       }
       
       /// Set the element index
-      inline void setElementIndex(const UnsignedInt& e)
+      inline void setElementIndex(UnsignedInt e)
       {
         element_index_= e;
       }
