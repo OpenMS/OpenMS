@@ -62,7 +62,7 @@ namespace OpenMS
 		/// return the index/number of the scan (number is -1 by default)
       SignedInt getNumber() const;
       /// sets the index/number of the scan
-      void setNumber(const SignedInt number);
+      void setNumber(SignedInt number);
 
     protected:
       SignedInt number_;

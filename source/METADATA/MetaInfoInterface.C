@@ -155,7 +155,7 @@ namespace OpenMS
 		meta_->setValue(name,value);			
 	}
 
-	void MetaInfoInterface::setMetaValue(UnsignedInt index, const SignedInt value)
+	void MetaInfoInterface::setMetaValue(UnsignedInt index, SignedInt value)
 	{
 		createIfNotExists_();
 		meta_->setValue(index,value);				

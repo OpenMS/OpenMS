@@ -30,7 +30,6 @@
 	include "common_functions.php";
 	
 	#TODO: add check for self assignment
-	#TODO: add check for Coding Convention: member and method names
 	
 	######################## helper functions ###############################
 	function printUsage()
@@ -47,6 +46,7 @@
 		print "\n";
 		print "options:\n";
 		print "  -v         verbose mode\n";
+		print "  -x         do not rebuilt doxygen xml output\n";
 		print "  -d <level> debug mode\n";
 		print "  --help     shows this help\n";
 	}
@@ -92,7 +92,7 @@
 	
 	$options = array("-u","-t","-d");
 	
-	$flags = array("-v");
+	$flags = array("-v", "-x");
 	
 	######################## parameter handling ###############################
 	
@@ -177,12 +177,33 @@
 		}
 	}
 	
+	#doxygen XML output
+	$rebuilt_xml = true;
+	if (in_array("-x",$argv))
+	{
+		$rebuilt_xml = false;
+	}
+	
 	if ($verbose)
 	{
-		print "Path : '$path'\n";
-		print "User : '$user'\n";
-		print "Test : '$test'\n";
-		print "Debug: '$debug'\n";
+		print "Path   : '$path'\n";
+		print "User   : '$user'\n";
+		print "Test   : '$test'\n";
+		print "Debug  : '$debug'\n";
+		print "Doxygen: '$rebuilt_xml'\n";
+	}
+	######################## doxygen XML output ############################
+	if ($rebuilt_xml)
+	{
+		if ($debug>0)
+		{
+			print "Rebuilding doxygen XML output\n";
+		}
+		exec("cd $path/doc/ && rm -rf html xml && make idoc");
+		if ($debug>0)
+		{
+			print "Done\n";
+		}
 	}
 
 	########################### NEEDED FILES ###############################

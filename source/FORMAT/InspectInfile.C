@@ -152,7 +152,7 @@ namespace OpenMS
 	
 	void InspectInfile::addMod(const vector< String >& mod) {mod_.push_back(mod);}
 
-	const SignedInt InspectInfile::getMods() const {return mods_;}
+	SignedInt InspectInfile::getMods() const {return mods_;}
 
 	void InspectInfile::setMods(SignedInt mods) {mods_ = mods;}
 
@@ -180,7 +180,7 @@ namespace OpenMS
 
 	void InspectInfile::setInstrument(const String& instrument) {instrument_ = instrument;}
 
-	const SignedInt InspectInfile::getTagCount() const {return tag_count_;}
+	SignedInt InspectInfile::getTagCount() const {return tag_count_;}
 
 	void InspectInfile::setTagCount(SignedInt tag_count) {tag_count_ = tag_count;}
 } // namespace OpenMS
