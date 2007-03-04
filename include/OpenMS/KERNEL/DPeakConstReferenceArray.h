@@ -837,7 +837,7 @@ namespace OpenMS
   void DPeakConstReferenceArray<MapT>::sortByNthPosition(UnsignedInt i)
   throw (Exception::NotImplemented)
   {
-    OPENMS_PRECONDITION(i < Index(PeakType::DIMENSION), "illegal dimension")
+    OPENMS_PRECONDITION(i < SignedInt(PeakType::DIMENSION), "illegal dimension")
     if (i==0)
     {
       std::sort(vector_.begin(), vector_.end(), PointerComparator< typename PeakType::template NthPositionLess<0> >() );

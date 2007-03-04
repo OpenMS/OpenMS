@@ -268,7 +268,7 @@ namespace OpenMS
 													
 		}		// for (std::list...)
 		
-		std::cout << "Done. Size of region: " << region.size() << std::endl;	
+		std::cout << "Done. UnsignedInt of region: " << region.size() << std::endl;	
 		
 		++hash_iter_;
 		
@@ -474,7 +474,7 @@ namespace OpenMS
 			//Ugly, but do not how to do this in a better (and easy) way
 			for (UnsignedInt i=0; i<candidates[c].size(); ++i)
 			{
-				c_candidate[i].setPos(DPosition<2>( candidates[c][i].getMZ(),i));
+				c_candidate[i].setPosition(DPosition<2>( candidates[c][i].getMZ(),i));
 				c_candidate[i].setIntensity( candidates[c][i].getIntensity() );
 			}
 				

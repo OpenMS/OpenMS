@@ -86,11 +86,11 @@ namespace OpenMS
     }
 
 /*
-		Size i_left(0);
-		for (Size i = 0; i != s1.getContainer().size(); ++i)
+		UnsignedInt i_left(0);
+		for (UnsignedInt i = 0; i != s1.getContainer().size(); ++i)
 		{
 			sum1 += s1.getContainer()[i].getIntensity();
-			for (Size j = i_left; j != s1.getContainer().size(); ++j)
+			for (UnsignedInt j = i_left; j != s1.getContainer().size(); ++j)
 			{
 				double pos1(s1.getContainer()[i].getPosition()[0]), pos2(s1.getContainer()[j].getPosition()[0]);
 				if (abs(pos1 - pos2) <= 2 * epsilon)
@@ -113,10 +113,10 @@ namespace OpenMS
 
 /*
     i_left = 0;
-    for (Size i = 0; i != s2.getContainer().size(); ++i)
+    for (UnsignedInt i = 0; i != s2.getContainer().size(); ++i)
     {
       sum2 += s2.getContainer()[i].getIntensity();
-      for (Size j = i_left; j != s2.getContainer().size(); ++j)
+      for (UnsignedInt j = i_left; j != s2.getContainer().size(); ++j)
       {
         double pos1(s2.getContainer()[i].getPosition()[0]), pos2(s2.getContainer()[j].getPosition()[0]);
         if (abs(pos1 - pos2) <= 2 * epsilon)
@@ -151,10 +151,10 @@ namespace OpenMS
 			*/
     }
 
-		Size j_left(0);
-		for (Size i = 0; i != s1.getContainer().size(); ++i)
+		UnsignedInt j_left(0);
+		for (UnsignedInt i = 0; i != s1.getContainer().size(); ++i)
 		{
-			for (Size j = j_left; j != s2.getContainer().size(); ++j)
+			for (UnsignedInt j = j_left; j != s2.getContainer().size(); ++j)
 			{
 				double pos1(s1.getContainer()[i].getMZ()), pos2(s2.getContainer()[j].getMZ());
 				if (abs(pos1 - pos2) <= 2 * epsilon)

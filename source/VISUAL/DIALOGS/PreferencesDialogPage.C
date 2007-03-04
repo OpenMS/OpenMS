@@ -73,7 +73,7 @@ namespace OpenMS
 		
 	}
 
-	QGroupBox* PreferencesDialogPage::addBox(QGridLayout* grid, int row, int col, const QString& label, int row_span, int col_span)
+	QGroupBox* PreferencesDialogPage::addBox_(QGridLayout* grid, int row, int col, const QString& label, int row_span, int col_span)
 	{
 		QGroupBox* box = new QGroupBox(label);
 		box->setLayout(new QGridLayout(box));
@@ -81,7 +81,7 @@ namespace OpenMS
 		return box;
 	}
 	
-	void PreferencesDialogPage::addWidget(QLayout* grid, int row, const QString& label, QWidget* widget) const
+	void PreferencesDialogPage::addWidget_(QLayout* grid, int row, const QString& label, QWidget* widget) const
 	{
 		QGridLayout* grid2 = qobject_cast<QGridLayout*>(grid);
 		if (grid2!=0)
@@ -96,7 +96,7 @@ namespace OpenMS
 		}
 	}
 
-	void PreferencesDialogPage::addLayout(QLayout* grid, int row, const QString& label, QLayout* layout) const
+	void PreferencesDialogPage::addLayout_(QLayout* grid, int row, const QString& label, QLayout* layout) const
 	{
 		QGridLayout* grid2 = qobject_cast<QGridLayout*>(grid);
 		if (grid2!=0)
@@ -111,7 +111,7 @@ namespace OpenMS
 		}
 	}
 
-	void PreferencesDialogPage::finish(QLayout* grid, int stretch) const
+	void PreferencesDialogPage::finish_(QLayout* grid, int stretch) const
 	{
 		QGridLayout* grid2 = qobject_cast<QGridLayout*>(grid);
 		if (grid2!=0)
@@ -125,7 +125,7 @@ namespace OpenMS
 		}
 	}
 
-	QSpinBox* PreferencesDialogPage::addSpinBox(QWidget* parent, int min, int max, int step) const
+	QSpinBox* PreferencesDialogPage::addSpinBox_(QWidget* parent, int min, int max, int step) const
 	{
 		QSpinBox* box = new QSpinBox(parent);
 		box->setRange(min,max);

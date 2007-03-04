@@ -153,19 +153,19 @@ CHECK((bool operator()(const PeakType& p) const))
 	InMzRange<Peak1D > r(5.0,10.0,false);
 	InMzRange<Peak1D > r2(5.0,10.0,true);
 	Peak1D p;
-	p.getPos()[0] = 4.9;
+	p.getPosition()[0] = 4.9;
 	TEST_EQUAL(r(p), false);
 	TEST_EQUAL(r2(p), true);
-	p.getPos()[0] = 5.0;
+	p.getPosition()[0] = 5.0;
 	TEST_EQUAL(r(p), true);
 	TEST_EQUAL(r2(p), false);
-	p.getPos()[0] = 7.5;
+	p.getPosition()[0] = 7.5;
 	TEST_EQUAL(r(p), true);
 	TEST_EQUAL(r2(p), false);
-	p.getPos()[0] = 10.0;
+	p.getPosition()[0] = 10.0;
 	TEST_EQUAL(r(p), true);
 	TEST_EQUAL(r2(p), false);
-	p.getPos()[0] = 10.1;
+	p.getPosition()[0] = 10.1;
 	TEST_EQUAL(r(p), false);
 	TEST_EQUAL(r2(p), true);	
 RESULT

@@ -89,11 +89,11 @@ namespace OpenMS
 
 			// fill tree
 			QuadTreeType tree(DRange<2>(features_.getMin()[0], features_.getMax()[0], features_.getMin()[1], features_.getMax()[1]));
-			for (Size i=0; i<features_.size(); ++i)
+			for (UnsignedInt i=0; i<features_.size(); ++i)
 			{
 				try
 				{
-					tree.insert(features_[i].getPos(), &features_[i] );
+					tree.insert(features_[i].getPosition(), &features_[i] );
 				}
 				catch(Exception::IllegalTreeOperation e)
 				{
@@ -116,10 +116,10 @@ namespace OpenMS
 				// set up local area to search for feature partner
 				int charge = it->getCharge();
 				double mz_opt = mz_pair_dist/charge;
-				local.setMinX(it->getPos()[0]-rt_max);
-				local.setMaxX(it->getPos()[0]-rt_min);
-				local.setMinY(it->getPos()[1]+mz_opt-mz_diff);
-				local.setMaxY(it->getPos()[1]+mz_opt+mz_diff);
+				local.setMinX(it->getPosition()[0]-rt_max);
+				local.setMaxX(it->getPosition()[0]-rt_min);
+				local.setMinY(it->getPosition()[1]+mz_opt-mz_diff);
+				local.setMaxY(it->getPosition()[1]+mz_opt+mz_diff);
 				
 				//cout << local << endl;
 				
@@ -194,14 +194,14 @@ namespace OpenMS
 					<< "Quality\tFirst[RT]\tFirst[MZ]\tFirst[Int]\tFirst[Corr]"
 					<< "\tSecond[RT]\tSecond[MZ]\tSecond[Int]\tSecond[Corr]"
 					<< "\tRatio\tCharge\tDiff[RT]\tDiff[MZ]\n";
-			for (Size i=0; i<pairs.size(); ++i)
+			for (UnsignedInt i=0; i<pairs.size(); ++i)
 			{
-				DPosition<2> diff = pairs[i].getFirst().getPos()-pairs[i].getSecond().getPos();
+				DPosition<2> diff = pairs[i].getFirst().getPosition()-pairs[i].getSecond().getPosition();
 				out << setiosflags(ios::fixed) << setprecision(2)
-						<< pairs[i].getQuality() << "\t" << pairs[i].getFirst().getPos()[0] << "\t" 
-						<< pairs[i].getFirst().getPos()[1] << "\t" << pairs[i].getFirst().getIntensity() << "\t" 
-						<< pairs[i].getFirst().getOverallQuality() << "\t" << pairs[i].getSecond().getPos()[0] << "\t"
-						<< pairs[i].getSecond().getPos()[1] << "\t" << pairs[i].getSecond().getIntensity() << "\t"
+						<< pairs[i].getQuality() << "\t" << pairs[i].getFirst().getPosition()[0] << "\t" 
+						<< pairs[i].getFirst().getPosition()[1] << "\t" << pairs[i].getFirst().getIntensity() << "\t" 
+						<< pairs[i].getFirst().getOverallQuality() << "\t" << pairs[i].getSecond().getPosition()[0] << "\t"
+						<< pairs[i].getSecond().getPosition()[1] << "\t" << pairs[i].getSecond().getIntensity() << "\t"
 						<< pairs[i].getSecond().getOverallQuality() << "\t" << pairs[i].getFirst().getIntensity()/pairs[i].getSecond().getIntensity() << "\t"
 						<< pairs[i].getFirst().getCharge() << "\t" << diff[RawDataPoint2D::RT] << "\t"
 						<< diff[RawDataPoint2D::MZ] << endl;

@@ -110,8 +110,8 @@ class TOPPPILISModel
 			vector<IdentificationData> peptide_ids;
 			id_in_file.load(id_in, prot_ids, peptide_ids);
 
-			HashMap<String, HashMap<Size, HashMap<Size, PeptideHit> > > ids; // [peptide][charge][index]
-			for (Size i = 0; i != peptide_ids.size(); ++i)
+			HashMap<String, HashMap<UnsignedInt, HashMap<UnsignedInt, PeptideHit> > > ids; // [peptide][charge][index]
+			for (UnsignedInt i = 0; i != peptide_ids.size(); ++i)
 			{
 				if (peptide_ids[i].id.getPeptideHits().size() > 0)
 				{
@@ -120,16 +120,16 @@ class TOPPPILISModel
 				}
 			}
 
-			HashMap<Size, PeptideHit> ids_to_train;
-			for (HashMap<String, HashMap<Size, HashMap<Size, PeptideHit> > >::ConstIterator it1 = ids.begin(); it1 != ids.end(); ++it1)
+			HashMap<UnsignedInt, PeptideHit> ids_to_train;
+			for (HashMap<String, HashMap<UnsignedInt, HashMap<UnsignedInt, PeptideHit> > >::ConstIterator it1 = ids.begin(); it1 != ids.end(); ++it1)
 			{
-				for (HashMap<Size, HashMap<Size, PeptideHit> >::ConstIterator it2 = it1->second.begin(); it2 != it1->second.end(); ++it2)
+				for (HashMap<UnsignedInt, HashMap<UnsignedInt, PeptideHit> >::ConstIterator it2 = it1->second.begin(); it2 != it1->second.end(); ++it2)
 				{
 					double score(0);
-					Size max_idx(0);
+					UnsignedInt max_idx(0);
 					PeptideHit max_hit;
 					double has_max(false);
-					for (HashMap<Size, PeptideHit>::ConstIterator it3 = it2->second.begin(); it3 != it2->second.end(); ++it3)
+					for (HashMap<UnsignedInt, PeptideHit>::ConstIterator it3 = it2->second.begin(); it3 != it2->second.end(); ++it3)
 					{
 						if (it3->second.getScore() > score)
 						{
@@ -153,7 +153,7 @@ class TOPPPILISModel
 
 			PeakMap::ConstIterator map_it = exp.begin();
 			//for (vector<IdentificationData>::const_iterator it = peptide_ids.begin(); it != peptide_ids.end(); ++it, ++map_it)
-			for (HashMap<Size, PeptideHit>::ConstIterator it = ids_to_train.begin(); it != ids_to_train.end(); ++it)
+			for (HashMap<UnsignedInt, PeptideHit>::ConstIterator it = ids_to_train.begin(); it != ids_to_train.end(); ++it)
 			{
 				//if (it->id.getPeptideHits().size() > 0 && it->id.getPeptideHits().begin()->getScore() > 0.8)
 				if (it->second.getScore() > threshold)

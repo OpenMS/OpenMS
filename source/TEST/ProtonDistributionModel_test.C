@@ -67,26 +67,26 @@ CHECK(ProtonDistributionModel& operator = (const ProtonDistributionModel& pdm))
 	// nothing to do
 RESULT
 
-CHECK(void getProtonDistribution(HashMap<Size, double>& bb_charges, HashMap<Size, double>& sc_charges, const AASequence& peptide, int charge, Residue::ResidueType res_type = Residue::YIon))
-	HashMap<Size, double> bb_charges, sc_charges;
+CHECK(void getProtonDistribution(HashMap<UnsignedInt, double>& bb_charges, HashMap<UnsignedInt, double>& sc_charges, const AASequence& peptide, int charge, Residue::ResidueType res_type = Residue::YIon))
+	HashMap<UnsignedInt, double> bb_charges, sc_charges;
 	double bb_tmp[] = {1.76496e-09, 2.9459e-13, 6.3724e-12, 2.96724e-13, 0.69332e-13, 6.56286e-13, 4.82365e-13, 3.51139e-13, 5.82514e-23, 1.35049e-12};
 	AASequence peptide("DFPIANGER");
 	ptr->getProtonDistribution(bb_charges, sc_charges, peptide, 1);
-	for (Size i = 0; i <= peptide.size(); ++i)
+	for (UnsignedInt i = 0; i <= peptide.size(); ++i)
 	{
 		TEST_REAL_EQUAL(bb_charges[i], bb_tmp[i])
 	}
 
 	double sc_tmp[] = {2.7239e-23, 0, 0, 0, 0, 7.77547e-15, 0, 1.15343e-22, 1};
-	for (Size i = 0; i != peptide.size(); ++i)
+	for (UnsignedInt i = 0; i != peptide.size(); ++i)
 	{
 		TEST_REAL_EQUAL(sc_charges[i], sc_tmp[i])
 	}
 
 RESULT
 
-CHECK(void setPeptideProtonDistribution(const HashMap<Size, double>& bb_charge, const HashMap<Size, double>& sc_charge))
-	HashMap<Size, double> bb_charges, sc_charges;
+CHECK(void setPeptideProtonDistribution(const HashMap<UnsignedInt, double>& bb_charge, const HashMap<UnsignedInt, double>& sc_charge))
+	HashMap<UnsignedInt, double> bb_charges, sc_charges;
 	AASequence peptide("DFPIANGER");
 	ptr->getProtonDistribution(bb_charges, sc_charges, peptide, 1);
 
@@ -94,7 +94,7 @@ CHECK(void setPeptideProtonDistribution(const HashMap<Size, double>& bb_charge, 
 RESULT
 
 CHECK(void getChargeStateIntensities(const AASequence& peptide, const AASequence& n_term_ion, const AASequence& c_term_ion, int charge, Residue::ResidueType n_term_type, double& n_term1, double& c_term1, double& n_term2, double& c_term2, FragmentationType type))
-	HashMap<Size, double> bb_charges, sc_charges;
+	HashMap<UnsignedInt, double> bb_charges, sc_charges;
 	AASequence peptide("DFPIANGER");
 	ptr->getProtonDistribution(bb_charges, sc_charges, peptide, 1);
 	

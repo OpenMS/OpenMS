@@ -188,21 +188,21 @@ namespace OpenMS
     virtual void findElementPairs()
     {
 #define V_findElementPairs(bla) V_SimplePairFinder(bla)
-      Size n = element_map_[SCENE]->size();
+      UnsignedInt n = element_map_[SCENE]->size();
 
       transformed_positions_second_map_.clear();
       transformed_positions_second_map_.resize(n);
 
-      for (Size i = 0; i < n; ++i)
+      for (UnsignedInt i = 0; i < n; ++i)
       {
-				transformed_positions_second_map_[i] = (*element_map_[SCENE])[i].getPos();
+				transformed_positions_second_map_[i] = (*element_map_[SCENE])[i].getPosition();
       }
 
       V_findElementPairs("SimplePairFinder::run(): apply transformation");
 
-      for ( Size dim = 0; dim < 2; ++dim )
+      for ( UnsignedInt dim = 0; dim < 2; ++dim )
       {
-				for (Size i = 0; i < n; ++i)
+				for (UnsignedInt i = 0; i < n; ++i)
 				{
 					transformation_[dim].apply( transformed_positions_second_map_[i][dim] );
 				}
@@ -217,12 +217,12 @@ namespace OpenMS
       int number_of_considered_element_pairs = 0;
 
       // For each element in map 0, find his/her best friend in map 1
-      std::vector<Size>        best_companion_index_0(element_map_[MODEL]->size(),Size(-1));
+      std::vector<UnsignedInt>        best_companion_index_0(element_map_[MODEL]->size(),UnsignedInt(-1));
       std::vector<QualityType> best_companion_quality_0(element_map_[MODEL]->size(),0);
-      for ( Size fi0 = 0; fi0 < element_map_[MODEL]->size(); ++fi0 )
+      for ( UnsignedInt fi0 = 0; fi0 < element_map_[MODEL]->size(); ++fi0 )
       {
 				QualityType best_quality = -std::numeric_limits<QualityType>::max();
-				for ( Size fi1 = 0; fi1 < element_map_[SCENE]->size(); ++ fi1 )
+				for ( UnsignedInt fi1 = 0; fi1 < element_map_[SCENE]->size(); ++ fi1 )
 				{
 					QualityType quality = similarity_( (*element_map_[MODEL])[fi0], (*element_map_[SCENE])[fi1], transformed_positions_second_map_[fi1]);
 					if ( quality > best_quality )
@@ -244,12 +244,12 @@ namespace OpenMS
       }
 
       // For each element in map 1, find his/her best friend in map 0
-      std::vector<Size>        best_companion_index_1(element_map_[SCENE]->size(),Size(-1));
+      std::vector<UnsignedInt>        best_companion_index_1(element_map_[SCENE]->size(),UnsignedInt(-1));
       std::vector<QualityType> best_companion_quality_1(element_map_[SCENE]->size(),0);
-      for ( Size fi1 = 0; fi1 < element_map_[SCENE]->size(); ++fi1 )
+      for ( UnsignedInt fi1 = 0; fi1 < element_map_[SCENE]->size(); ++fi1 )
       {
 				QualityType best_quality = -std::numeric_limits<QualityType>::max();
-				for ( Size fi0 = 0; fi0 < element_map_[MODEL]->size(); ++ fi0 )
+				for ( UnsignedInt fi0 = 0; fi0 < element_map_[MODEL]->size(); ++ fi0 )
 				{
 					QualityType quality = similarity_( (*element_map_[MODEL])[fi0], (*element_map_[SCENE])[fi1], transformed_positions_second_map_[fi1]);
 					if ( quality > best_quality )
@@ -272,13 +272,13 @@ namespace OpenMS
 
       // And if both like each other, they become a pair.
       // element_pairs_->clear();
-      for ( Size fi0 = 0; fi0 < element_map_[MODEL]->size(); ++fi0 )
+      for ( UnsignedInt fi0 = 0; fi0 < element_map_[MODEL]->size(); ++fi0 )
       {
 				// fi0 likes someone ...
 				if ( best_companion_quality_0[fi0] > pair_min_quality_ )
 				{
 					// ... who likes him too ...
-					Size best_companion_of_fi0 = best_companion_index_0[fi0];
+					UnsignedInt best_companion_of_fi0 = best_companion_index_0[fi0];
 					if ( best_companion_index_1[best_companion_of_fi0] == fi0 &&
 							 best_companion_quality_1[best_companion_of_fi0] > pair_min_quality_
 						 )
@@ -356,9 +356,9 @@ namespace OpenMS
 				intensity_ratio = 1. / intensity_ratio;
 
       // if the right map is the transformed map, take the transformed right position
-      PositionType position_difference = left.getPos() - new_position;
+      PositionType position_difference = left.getPosition() - new_position;
 
-      for ( Size dimension = 0; dimension < 2; ++dimension )
+      for ( UnsignedInt dimension = 0; dimension < 2; ++dimension )
       {
 				// Take the absolute value
 				if ( position_difference[dimension] < 0 )

@@ -74,31 +74,31 @@ namespace OpenMS
 			
 			//default path
 			main_default_path_ = new QLineEdit(tab);
-			addWidget(grid,0,"Default path:",main_default_path_);
+			addWidget_(grid,0,"Default path:",main_default_path_);
 			main_default_path_->setMinimumWidth(fontMetrics().width('W') * 25);
 			QPushButton* tmp = new QPushButton("Browse",tab);
 			grid->addWidget(tmp,0,2);
 			connect(tmp,SIGNAL(clicked()),this,SLOT(browseDefaultPath_()));
 			//recent files
-			recent_files_ = addSpinBox(tab,1,20,1);
-			addWidget(grid,1,"Number of recent files:",recent_files_);
+			recent_files_ = addSpinBox_(tab,1,20,1);
+			addWidget_(grid,1,"Number of recent files:",recent_files_);
 			//default map view
 			default_map_view_ = new QComboBox( tab);
 			default_map_view_->insertItem(0,"2D");
 			default_map_view_->insertItem(1,"3D");
-			addWidget(grid,2,"Default map visualization:",default_map_view_);
+			addWidget_(grid,2,"Default map visualization:",default_map_view_);
 			//legend
 			show_legend_ = new QComboBox( tab);
 			show_legend_->insertItem(0,"Show");
 			show_legend_->insertItem(1,"Hide");
-			addWidget(grid,3,"Axis legend:",show_legend_);
+			addWidget_(grid,3,"Axis legend:",show_legend_);
 			//legend
 			intensity_cutoff_ = new QComboBox( tab);
 			intensity_cutoff_->insertItem(0,"None");
 			intensity_cutoff_->insertItem(1,"Noise Estimator");
-			addWidget(grid,4,"Map intensity cutoff:",intensity_cutoff_);
+			addWidget_(grid,4,"Map intensity cutoff:",intensity_cutoff_);
 			
-			finish(grid);
+			finish_(grid);
 			
 			tab_widget->addTab(tab,"General");
 		
@@ -108,19 +108,19 @@ namespace OpenMS
 		
 			db_host_ = new QLineEdit(tab);
 			db_host_->setMaximumWidth(fontMetrics().width('W') * 15);
-			addWidget(grid,0,"Host:",db_host_);
+			addWidget_(grid,0,"Host:",db_host_);
 		
 			db_port_ = new QLineEdit(tab);
 			db_port_->setMaximumWidth(fontMetrics().width('W') * 5);
-			addWidget(grid,1,"Port:",db_port_);
+			addWidget_(grid,1,"Port:",db_port_);
 		
 			db_name_ = new QLineEdit(tab);
-			addWidget(grid,2,"Database name:",db_name_);
+			addWidget_(grid,2,"Database name:",db_name_);
 		
 			db_login_ = new QLineEdit(tab);
-			addWidget(grid,3,"Login:",db_login_);
+			addWidget_(grid,3,"Login:",db_login_);
 			
-			finish(grid);
+			finish_(grid);
 			
 			tab_widget->addTab(tab,"DB");
 		
@@ -129,24 +129,24 @@ namespace OpenMS
 			grid = new QGridLayout(tab);
 			
 			//color box
-			box = addBox(grid,0,0,"Colors");
+			box =	addBox_(grid,0,0,"Colors");
 			peak_color_ = new ColorSelector(box);
-			addWidget(box->layout(),0,"Peak color:",peak_color_);
+			addWidget_(box->layout(),0,"Peak color:",peak_color_);
 			icon_color_ = new ColorSelector(box);
-			addWidget(box->layout(),1,"Icon color:",icon_color_);
+			addWidget_(box->layout(),1,"Icon color:",icon_color_);
 			high_color_ = new ColorSelector(box);
-			addWidget(box->layout(),2,"Highlighted peak color:",high_color_);
+			addWidget_(box->layout(),2,"Highlighted peak color:",high_color_);
 			back_color_1D_ = new ColorSelector(box);
-			addWidget(box->layout(),3,"Background color:",back_color_1D_);						
+			addWidget_(box->layout(),3,"Background color:",back_color_1D_);						
 
 			//mapping box
-			box = addBox(grid,1,0,"Mapping");		
+			box =	addBox_(grid,1,0,"Mapping");		
 			axis_mapping_ = new QComboBox( box);
 			axis_mapping_->insertItem(0,"X-Axis");
 			axis_mapping_->insertItem(1,"Y-Axis");
-			addWidget(box->layout(),0,"Map m/z to: ",axis_mapping_);
+			addWidget_(box->layout(),0,"Map m/z to: ",axis_mapping_);
 			
-			finish(grid);
+			finish_(grid);
 			
 			tab_widget->addTab(tab,"1D View");
 		
@@ -155,47 +155,47 @@ namespace OpenMS
 			grid = new QGridLayout(tab);
 
 			//colors
-			box = addBox(grid,0,0,"Colors");
+			box =	addBox_(grid,0,0,"Colors");
 			back_color_2D_ = new ColorSelector(box);
-			addWidget(box->layout(),0,"Background color:",back_color_2D_);
-			interpolation_steps_ = addSpinBox(box,10,1000,1);
-			addWidget(box->layout(),1,"Interpolation steps:",interpolation_steps_);
-			finish(box->layout());
+			addWidget_(box->layout(),0,"Background color:",back_color_2D_);
+			interpolation_steps_ = addSpinBox_(box,10,1000,1);
+			addWidget_(box->layout(),1,"Interpolation steps:",interpolation_steps_);
+			finish_(box->layout());
 			
 			//mapping
-			box = addBox(grid,1,0,"Mapping");
+			box =	addBox_(grid,1,0,"Mapping");
 			axis_mapping_2d_ = new QComboBox( box);
 			axis_mapping_2d_->insertItem(0,"X-Axis");
 			axis_mapping_2d_->insertItem(1,"Y-Axis");
-			addWidget(box->layout(),0,"Map m/z to:",axis_mapping_2d_);
-			finish(box->layout());			
+			addWidget_(box->layout(),0,"Map m/z to:",axis_mapping_2d_);
+			finish_(box->layout());			
 						
 			//dot mode
-			box = addBox(grid,0,1,"Dot Colors");
+			box =	addBox_(grid,0,1,"Dot Colors");
 			QVBoxLayout* tmp2 = new QVBoxLayout();
 			dot_mode_black_ = new QRadioButton("Black",tab);
 			tmp2->addWidget(dot_mode_black_);
 			dot_mode_gradient_ = new QRadioButton("Gradient",tab);
 			tmp2->addWidget(dot_mode_gradient_);
-			addLayout(box->layout(),0,"Mode:",tmp2);
+			addLayout_(box->layout(),0,"Mode:",tmp2);
 	
 			dot_gradient_ = new MultiGradientSelector(box);
-			addWidget(box->layout(),1,"Gradient:",dot_gradient_);
-			finish(box->layout());
+			addWidget_(box->layout(),1,"Gradient:",dot_gradient_);
+			finish_(box->layout());
 					
 			//surface mode
-			box = addBox(grid,1,1,"Surface/contour settings");
+			box =	addBox_(grid,1,1,"Surface/contour settings");
 			surface_gradient_ = new MultiGradientSelector(box);
-			addWidget(box->layout(),0,"Gradient:",surface_gradient_);			
+			addWidget_(box->layout(),0,"Gradient:",surface_gradient_);			
 
-			marching_squares_steps_ = addSpinBox(box,10,100,1);
-			addWidget(box->layout(),1,"Squares per axis:",marching_squares_steps_);
+			marching_squares_steps_ = addSpinBox_(box,10,100,1);
+			addWidget_(box->layout(),1,"Squares per axis:",marching_squares_steps_);
 			
-			contour_steps_ = addSpinBox(box,3,30,1);
-			addWidget(box->layout(),2,"Contour lines:",contour_steps_);
-			finish(box->layout());
+			contour_steps_ = addSpinBox_(box,3,30,1);
+			addWidget_(box->layout(),2,"Contour lines:",contour_steps_);
+			finish_(box->layout());
 			
-			finish(grid);
+			finish_(grid);
 			
 			tab_widget->addTab(tab,"2D View");
 	
@@ -204,21 +204,21 @@ namespace OpenMS
 			grid = new QGridLayout(tab);
 			
 			//peak color box
-			box = addBox(grid,0,0,"Peak colors",1,2);
+			box =	addBox_(grid,0,0,"Peak colors",1,2);
 
 			tmp2 = new QVBoxLayout();
 			dot_mode_black_3d_ = new QRadioButton("Black",tab);
 			tmp2->addWidget(dot_mode_black_3d_);
 			dot_mode_gradient_3d_ = new QRadioButton("Gradient",tab);
 			tmp2->addWidget(dot_mode_gradient_3d_);
-			addLayout(box->layout(),0,"Mode:",tmp2);
+			addLayout_(box->layout(),0,"Mode:",tmp2);
 
 			dot_gradient_3d_ = new MultiGradientSelector(box);
-			addWidget(box->layout(),1,"Gradient:",dot_gradient_3d_);
+			addWidget_(box->layout(),1,"Gradient:",dot_gradient_3d_);
 
-			dot_interpolation_steps_3d_ = addSpinBox(box,10,1000,1);
-			addWidget(box->layout(),2,"Interpolation steps:",dot_interpolation_steps_3d_);
-			finish(box->layout());
+			dot_interpolation_steps_3d_ = addSpinBox_(box,10,1000,1);
+			addWidget_(box->layout(),2,"Interpolation steps:",dot_interpolation_steps_3d_);
+			finish_(box->layout());
 			
 			tmp2 = new QVBoxLayout();
 			QButtonGroup* tmp3 = new QButtonGroup(tab);
@@ -228,34 +228,34 @@ namespace OpenMS
 			shade_mode_smooth_3d_ = new QRadioButton("Smooth",tab);
 			tmp2->addWidget(shade_mode_smooth_3d_);
 			tmp3->addButton(shade_mode_smooth_3d_);
-			addLayout(box->layout(),3,"Shade mode:",tmp2);
-			finish(box->layout());
+			addLayout_(box->layout(),3,"Shade mode:",tmp2);
+			finish_(box->layout());
 			
 			//misc box
-			box = addBox(grid,1,0,"Misc");
+			box =	addBox_(grid,1,0,"Misc");
 			
-			dot_line_width_ = addSpinBox(box,1,10,1);
-			addWidget(box->layout(),0,"Line width:",dot_line_width_);
+			dot_line_width_ = addSpinBox_(box,1,10,1);
+			addWidget_(box->layout(),0,"Line width:",dot_line_width_);
 			
 			back_color_3d_ = new ColorSelector(box);
-			addWidget(box->layout(),1,"Background color:",back_color_3d_);
+			addWidget_(box->layout(),1,"Background color:",back_color_3d_);
 			axes_color_3d_ = new ColorSelector(box);
-			addWidget(box->layout(),2,"Axis color:",axes_color_3d_);
-			finish(box->layout());
+			addWidget_(box->layout(),2,"Axis color:",axes_color_3d_);
+			finish_(box->layout());
 
 			//data reduction box
-		 	box = addBox(grid,1,1,"Data reduction");
+		 	box =	addBox_(grid,1,1,"Data reduction");
 			data_reduction_3d_ = new QComboBox( box);
 			data_reduction_3d_->insertItem(0,"Reduction OFF");
 			data_reduction_3d_->insertItem(1,"MaxReduction");
 			data_reduction_3d_->insertItem(2,"SumReduction");
-			addWidget(box->layout(),0,"Mode:",data_reduction_3d_);
+			addWidget_(box->layout(),0,"Mode:",data_reduction_3d_);
 
-			reduction_diplay_peaks_3d_ = addSpinBox(box,5000,200000,5000);
-			addWidget(box->layout(),1,"Displayed Peaks:",reduction_diplay_peaks_3d_);
-			finish(box->layout());
+			reduction_diplay_peaks_3d_ = addSpinBox_(box,5000,200000,5000);
+			addWidget_(box->layout(),1,"Displayed Peaks:",reduction_diplay_peaks_3d_);
+			finish_(box->layout());
 			
-			finish(grid);
+			finish_(grid);
 						
 			tab_widget->addTab(tab,"3D View");
 	

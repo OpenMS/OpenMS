@@ -326,6 +326,7 @@ namespace OpenMS
 			@brief Add a feature data layer (data is copied)
 			
 			@param pairs Flag that indicates that a feature pair file was read.
+			@param map Feature map
 			
 			@return the index of the new layer. -1 if no new layer was created.
 		*/
@@ -630,13 +631,7 @@ namespace OpenMS
 			dataToWidget_(pos.getX(), pos.getY(),point);
 		}
 		
-		/**
-			@brief Paints grid lines
-			
-			Helper function to paint grid lines
-			
-			@param p the QPainter to paint the grid lines on
-		*/
+		///Helper function to paint grid lines
 		void paintGridLines_(QPainter& painter);
 		
 		/// Buffer that stores the actual peak information
@@ -661,9 +656,9 @@ namespace OpenMS
 			@brief Updates data and intensity range with the values of layer @p layer_index
 			
 			@param layer_index layer index
-			@param mz_dim Index of m/z in overall_data_range_
-			@param rt_dim Index of RT in overall_data_range_			
-			@param it_dim Index of intensity in overall_data_range_	
+			@param mz_dim SignedInt of m/z in overall_data_range_
+			@param rt_dim SignedInt of RT in overall_data_range_			
+			@param it_dim SignedInt of intensity in overall_data_range_	
 			
 			@see overall_data_range_
 			
@@ -677,9 +672,9 @@ namespace OpenMS
 			This method resets overall_data_range_ and calls updateRanges_(UnsignedInt,UnsignedInt,UnsignedInt,UnsignedInt)
 			for all layers.
 	
-			@param mz_dim Index of m/z in overall_data_range_
-			@param rt_dim Index of RT in overall_data_range_		
-			@param it_dim Index of intensity in overall_data_range_	
+			@param mz_dim SignedInt of m/z in overall_data_range_
+			@param rt_dim SignedInt of RT in overall_data_range_		
+			@param it_dim SignedInt of intensity in overall_data_range_	
 			
 			@see overall_data_range_
 		*/

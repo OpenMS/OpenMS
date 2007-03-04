@@ -147,8 +147,8 @@ namespace OpenMS
 					max_int = i->getIntensity();
 					
 					tmp_peak_.setIntensity(i->getIntensity());
-					tmp_peak_.getPos()[0] = i->getMZ();
-					tmp_peak_.getPos()[1] = i.getRetentionTime();
+					tmp_peak_.getPosition()[0] = i->getMZ();
+					tmp_peak_.getPosition()[1] = i.getRetentionTime();
 					
 					max_peak = &tmp_peak_;
 				}
@@ -172,8 +172,8 @@ namespace OpenMS
 						max_int = i->getIntensity();
 						
 						tmp_peak_.setIntensity(i->getIntensity());
-						tmp_peak_.getPos()[0] = i->getPos()[1];
-						tmp_peak_.getPos()[1] = i->getPos()[0];
+						tmp_peak_.getPosition()[0] = i->getPosition()[1];
+						tmp_peak_.getPosition()[1] = i->getPosition()[0];
 						tmp_peak_.getConvexHulls() = i->getConvexHulls();
 						
 						max_peak = &tmp_peak_;
@@ -1379,7 +1379,7 @@ namespace OpenMS
 					if (max_peak)
 					{
 						// show Peak Coordinates (with intensity)
-						emit sendCursorStatus(max_peak->getPos()[0], max_peak->getIntensity(), max_peak->getPos()[1]);
+						emit sendCursorStatus(max_peak->getPosition()[0], max_peak->getIntensity(), max_peak->getPosition()[1]);
 						//show lable
 						string meta = max_peak->getMetaValue(3).toString();
 						if (meta!="") sendStatusMessage(meta, 0);

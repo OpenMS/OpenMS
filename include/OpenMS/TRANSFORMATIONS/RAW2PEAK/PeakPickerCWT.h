@@ -318,7 +318,7 @@ namespace OpenMS
         {
           RawDataPointType raw_data_point;
           raw_data_point.setIntensity((first + i)->getIntensity());
-          raw_data_point.setPos((first + i)->getPos());
+          raw_data_point.setPosition((first + i)->getPosition());
           raw_peak_array[i] = raw_data_point;
         }
 
@@ -403,9 +403,9 @@ namespace OpenMS
             {
 #ifdef DEBUG_PEAK_PICKING
               std::cout << "The endpoints are "
-              << area.left->getPos()
+              << area.left->getPosition()
               << " and "
-              << area.right->getPos()
+              << area.right->getPosition()
               << std::endl;
 #endif
               // determine the best fitting lorezian or sech2 function

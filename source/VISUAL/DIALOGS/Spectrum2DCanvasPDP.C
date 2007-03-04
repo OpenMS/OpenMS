@@ -55,37 +55,37 @@ namespace OpenMS
 			QGridLayout* grid = new QGridLayout(this);
 			
 			//colors
-			QGroupBox* box = addBox(grid,0,0,"Colors",2,1);
+			QGroupBox* box =	addBox_(grid,0,0,"Colors",2,1);
 			background_color_ = new ColorSelector(box);
-			addWidget(box->layout(),0,"Background color:",background_color_);
-			interpolation_steps_ = addSpinBox(box,10,1000,1);
-			addWidget(box->layout(),1,"Interpolation steps:",interpolation_steps_);
-			finish(box->layout());		
+			addWidget_(box->layout(),0,"Background color:",background_color_);
+			interpolation_steps_ = addSpinBox_(box,10,1000,1);
+			addWidget_(box->layout(),1,"Interpolation steps:",interpolation_steps_);
+			finish_(box->layout());		
 						
 			//dot mode
-			box = addBox(grid,0,1,"Dot Colors");
+			box =	addBox_(grid,0,1,"Dot Colors");
 			QVBoxLayout* tmp2 = new QVBoxLayout();
 			dot_mode_black_ = new QRadioButton("Black",this);
 			tmp2->addWidget(dot_mode_black_);
 			dot_mode_gradient_ = new QRadioButton("Gradient",this);
 			tmp2->addWidget(dot_mode_gradient_);
-			addLayout(box->layout(),0,"Mode:",tmp2);
+			addLayout_(box->layout(),0,"Mode:",tmp2);
 	
 			dot_gradient_ = new MultiGradientSelector(box);
-			addWidget(box->layout(),1,"Gradient:",dot_gradient_);
-			finish(box->layout());
+			addWidget_(box->layout(),1,"Gradient:",dot_gradient_);
+			finish_(box->layout());
 					
 			//surface mode
-			box = addBox(grid,1,1,"Surface/contour settings");
+			box =	addBox_(grid,1,1,"Surface/contour settings");
 			surface_gradient_ = new MultiGradientSelector(box);
-			addWidget(box->layout(),0,"Gradient:",surface_gradient_);			
+			addWidget_(box->layout(),0,"Gradient:",surface_gradient_);			
 
-			marching_squares_steps_ = addSpinBox(box,10,100,1);
-			addWidget(box->layout(),1,"Squares per axis:",marching_squares_steps_);
+			marching_squares_steps_ = addSpinBox_(box,10,100,1);
+			addWidget_(box->layout(),1,"Squares per axis:",marching_squares_steps_);
 			
-			contour_steps_ = addSpinBox(box,3,30,1);
-			addWidget(box->layout(),2,"Contour lines:",contour_steps_);
-			finish(box->layout());
+			contour_steps_ = addSpinBox_(box,3,30,1);
+			addWidget_(box->layout(),2,"Contour lines:",contour_steps_);
+			finish_(box->layout());
 
 			load();
 		}

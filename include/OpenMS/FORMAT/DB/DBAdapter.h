@@ -623,7 +623,7 @@ namespace OpenMS
 				//Intensity
 				query << "Intensity='" << exp_it->getPrecursorPeak().getIntensity() << "'";
 				//mz
-				query << ",mz='" << exp_it->getPrecursorPeak().getPos()[0] << "'";
+				query << ",mz='" << exp_it->getPrecursorPeak().getPosition()[0] << "'";
 				//charge
 				query << ",Charge='" << exp_it->getPrecursorPeak().getCharge() << "'";
 				//activation method
@@ -657,7 +657,7 @@ namespace OpenMS
 				//Intensity
 				query << spec_it->getIntensity() << "','";
 				//mz
-				query << spec_it->getPos() << "'),";
+				query << spec_it->getPosition() << "'),";
 			}
 			db_con_.executeQuery(String(query.str()).substr(0,-1),result);
 			
@@ -1099,7 +1099,7 @@ namespace OpenMS
 			query << "SELECT mz,Intensity,Charge,ActivationMethod-1,ActivationEnergyUnit-1,ActivationEnergy,WindowSize,fid_MetaInfo FROM DATA_Precursor WHERE fid_Spectrum='" << id << "'";
 			db_con_.executeQuery(query.str(),result);
 			result.first();
-			spec.getPrecursorPeak().getPos()[0] = (result.value(0).toDouble());
+			spec.getPrecursorPeak().getPosition()[0] = (result.value(0).toDouble());
 			spec.getPrecursorPeak().setIntensity(result.value(1).toDouble());
 			spec.getPrecursorPeak().setCharge(result.value(2).toInt());
 			spec.getPrecursor().setActivationMethod((Precursor::ActivationMethod)(result.value(3).toInt()));
@@ -1127,7 +1127,7 @@ namespace OpenMS
 		result.first();
 		while(result.isValid())
 		{
-			p.setPos(result.value(0).toDouble());
+			p.setPosition(result.value(0).toDouble());
 			p.setIntensity(result.value(1).toDouble());
 			loadMetaInfo_(result.value(2).toInt(), p);
 			spec.push_back(p);

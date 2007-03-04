@@ -430,11 +430,11 @@ namespace OpenMS
 		return *this;
 	}
 
-	String String::random(Size length)
+	String String::random(UnsignedInt length)
 	{
 		srand(time(0));
 		String tmp(length, '.');
-		Size random;
+		UnsignedInt random;
 		for (UnsignedInt i = 0 ; i < length; ++i)
 		{
 			random = (SizeType)floor(((double)rand()/(double(RAND_MAX)+1)) * 62.0);

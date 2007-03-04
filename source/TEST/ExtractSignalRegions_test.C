@@ -147,7 +147,7 @@ CHECK((template< typename InputPeakIterator > void splitScan(InputPeakIterator i
   {
     DPosition<1> pos;
     pos=i*0.5;
-    raw[i].setPos(pos);
+    raw[i].setPosition(pos);
     raw[i].setIntensity(1);
   }
 
@@ -155,7 +155,7 @@ CHECK((template< typename InputPeakIterator > void splitScan(InputPeakIterator i
   {
     DPosition<1> pos;
     pos=i*0.5;
-    raw[i].setPos(pos);
+    raw[i].setPosition(pos);
 
     if ((i==6) || (i==8) || (i==13))
       {
@@ -179,7 +179,7 @@ CHECK((template< typename InputPeakIterator > void splitScan(InputPeakIterator i
   {
     DPosition<1> pos;
     pos=i*0.5;
-    raw[i].setPos(pos);
+    raw[i].setPosition(pos);
     raw[i].setIntensity(1);
   }
 

@@ -41,7 +41,7 @@ namespace OpenMS
 
 	}
 
-	SchemaHandler::SchemaHandler(Size tag_num, Size map_num, const String& filename)
+	SchemaHandler::SchemaHandler(UnsignedInt tag_num, UnsignedInt map_num, const String& filename)
   : XMLHandler(filename),
   	is_parser_in_tag_(tag_num,false),
 		str2enum_array_(map_num), 
@@ -111,7 +111,7 @@ namespace OpenMS
 
 	void SchemaHandler::fillMaps_(const String* schema)
 	{
-		for (Size i= 0; i<str2enum_array_.size(); i++)
+		for (UnsignedInt i= 0; i<str2enum_array_.size(); i++)
 		{
 			//i=0 contains scheme name -> i+1
 			schema[i+1].split(';',enum2str_array_[i]);
@@ -121,7 +121,7 @@ namespace OpenMS
 
 	void SchemaHandler::fillMap_(String2EnumMap& str2enum, const Enum2StringMap& enum2str)
 	{
-		for (Size i=0; i<enum2str.size(); i++)
+		for (UnsignedInt i=0; i<enum2str.size(); i++)
 		{
 			str2enum[ enum2str[i] ] = i;
 		}

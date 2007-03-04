@@ -47,7 +47,7 @@ namespace OpenMS
 	{
 	}
 
-	HMMStateLight::HMMStateLight(Size id, bool hidden)
+	HMMStateLight::HMMStateLight(UnsignedInt id, bool hidden)
 		: hidden_(hidden),
 			id_(id)
 	{
@@ -65,12 +65,12 @@ namespace OpenMS
 	{
 	}
 	
-	void HMMStateLight::setIdentifier(Size id)
+	void HMMStateLight::setIdentifier(UnsignedInt id)
 	{
 		id_ = id;
 	}
 
-	Size HMMStateLight::getIdentifier() const
+	UnsignedInt HMMStateLight::getIdentifier() const
 	{
 		return id_;
 	}
@@ -147,12 +147,12 @@ namespace OpenMS
 		return *this;
 	}
 
-	HMMStateLight* HiddenMarkovModelLight::getState(Size id)
+	HMMStateLight* HiddenMarkovModelLight::getState(UnsignedInt id)
 	{
 		return id_to_state_[id];
 	}
 
-	const HMMStateLight* HiddenMarkovModelLight::getState(Size id) const
+	const HMMStateLight* HiddenMarkovModelLight::getState(UnsignedInt id) const
 	{
 		return id_to_state_[id];
 	}
@@ -245,8 +245,8 @@ namespace OpenMS
 		ifstream in(filename.c_str());
 		char buf[10000];
 		HMMStateLight* s = 0;
-		HashMap<HMMStateLight*, vector<Size> > pre_states;
-		HashMap<HMMStateLight*, vector<Size> > succ_states;
+		HashMap<HMMStateLight*, vector<UnsignedInt> > pre_states;
+		HashMap<HMMStateLight*, vector<UnsignedInt> > succ_states;
 		while (in.getline(buf, 10000, '\n'))
 		{
 			//cerr << ">> " << buf << endl;
@@ -272,7 +272,7 @@ namespace OpenMS
 			}
 			if (split_0 == String("name_:"))
 			{
-				s = new HMMStateLight((Size)split[1].toInt());
+				s = new HMMStateLight((UnsignedInt)split[1].toInt());
 			}
 			if (split_0 == "hidden_:")
 			{
@@ -311,7 +311,7 @@ namespace OpenMS
 			line.trim();
 			vector<String> split;
 			line.split(' ', split);
-			synonym_trans_names_[split[0].toInt()][split[1].toInt()] = make_pair<Size, Size>(split[2].toInt(), split[3].toInt());
+			synonym_trans_names_[split[0].toInt()][split[1].toInt()] = make_pair<UnsignedInt, UnsignedInt>(split[2].toInt(), split[3].toInt());
 		}
 
 		#ifdef HIDDEN_MARKOV_MODEL_DEBUG
@@ -325,7 +325,7 @@ namespace OpenMS
 		#endif
 	}
 	
-	Size HiddenMarkovModelLight::getNumberOfStates() const
+	UnsignedInt HiddenMarkovModelLight::getNumberOfStates() const
 	{
 		return states_.size();
 	}
@@ -343,9 +343,9 @@ namespace OpenMS
 		}
 	}
 
-	void HiddenMarkovModelLight::addSynonymTransition(Size name1, Size name2, Size synonym1, Size synonym2)
+	void HiddenMarkovModelLight::addSynonymTransition(UnsignedInt name1, UnsignedInt name2, UnsignedInt synonym1, UnsignedInt synonym2)
 	{
-		synonym_trans_names_[synonym1][synonym2] = make_pair<Size, Size>(name1, name2);
+		synonym_trans_names_[synonym1][synonym2] = make_pair<UnsignedInt, UnsignedInt>(name1, name2);
 	}
 
 	void HiddenMarkovModelLight::setTransitionProbability(HMMStateLight * s1, HMMStateLight * s2, double trans_prob)
@@ -357,7 +357,7 @@ namespace OpenMS
 		training_steps_count_[s1][s2] = 0;
 	}
 
-	void HiddenMarkovModelLight::setTransitionProbability(Size s1, Size s2, double trans_prob)
+	void HiddenMarkovModelLight::setTransitionProbability(UnsignedInt s1, UnsignedInt s2, double trans_prob)
 	{
 		trans_[id_to_state_[s1]][id_to_state_[s2]] = trans_prob;
 		id_to_state_[s1]->addSuccessorState(id_to_state_[s2]);
@@ -366,15 +366,15 @@ namespace OpenMS
 		training_steps_count_[id_to_state_[s1]][id_to_state_[s2]] = 0;
 	}
 
-  double HiddenMarkovModelLight::getTransitionProbability(Size s1, Size s2) const
+  double HiddenMarkovModelLight::getTransitionProbability(UnsignedInt s1, UnsignedInt s2) const
   {
     if (!id_to_state_.has(s1))
     {
-      throw Exception::ElementNotFound<Size>(__FILE__, __LINE__, __PRETTY_FUNCTION__, s1);
+      throw Exception::ElementNotFound<UnsignedInt>(__FILE__, __LINE__, __PRETTY_FUNCTION__, s1);
     }
     if (!id_to_state_.has(s2))
     {
-      throw Exception::ElementNotFound<Size>(__FILE__, __LINE__, __PRETTY_FUNCTION__, s2);
+      throw Exception::ElementNotFound<UnsignedInt>(__FILE__, __LINE__, __PRETTY_FUNCTION__, s2);
     }
     return getTransitionProbability(id_to_state_[s1], id_to_state_[s2]);
   }
@@ -599,7 +599,7 @@ namespace OpenMS
 		}
 	}
 
-	void HiddenMarkovModelLight::setInitialTransitionProbability(Size state, double prob)
+	void HiddenMarkovModelLight::setInitialTransitionProbability(UnsignedInt state, double prob)
 	{
 		init_train_prob_[id_to_state_[state]] = prob;
 	}
@@ -609,7 +609,7 @@ namespace OpenMS
 		init_train_prob_.clear();
 	}
 
-	void HiddenMarkovModelLight::setTrainingEmissionProbability(Size state, double prob)
+	void HiddenMarkovModelLight::setTrainingEmissionProbability(UnsignedInt state, double prob)
 	{
 		train_emission_prob_[id_to_state_[state]] = prob;
 	}
@@ -619,7 +619,7 @@ namespace OpenMS
 		train_emission_prob_.clear();
 	}
 
-	void HiddenMarkovModelLight::enableTransition(Size s1, Size s2)
+	void HiddenMarkovModelLight::enableTransition(UnsignedInt s1, UnsignedInt s2)
 	{
 		enableTransition(id_to_state_[s1], id_to_state_[s2]);
 	}
@@ -631,7 +631,7 @@ namespace OpenMS
 		enabled_trans_[s1].insert(s2);
 	}
 
-	void HiddenMarkovModelLight::disableTransition(Size s1, Size s2)
+	void HiddenMarkovModelLight::disableTransition(UnsignedInt s1, UnsignedInt s2)
 	{
 		disableTransition(id_to_state_[s1], id_to_state_[s2]);
 	}
@@ -729,9 +729,9 @@ namespace OpenMS
 
 	void HiddenMarkovModelLight::buildSynonyms()
 	{
-		for (HashMap<Size, HashMap<Size, std::pair<Size,  Size> > >::ConstIterator it = synonym_trans_names_.begin(); it != synonym_trans_names_.end(); ++it)
+		for (HashMap<UnsignedInt, HashMap<UnsignedInt, std::pair<UnsignedInt,  UnsignedInt> > >::ConstIterator it = synonym_trans_names_.begin(); it != synonym_trans_names_.end(); ++it)
 		{
-			for (HashMap<Size, pair<Size, Size> >::ConstIterator it2 = it->second.begin(); it2 != it->second.end(); ++it2)
+			for (HashMap<UnsignedInt, pair<UnsignedInt, UnsignedInt> >::ConstIterator it2 = it->second.begin(); it2 != it->second.end(); ++it2)
 			{
 				synonym_trans_[id_to_state_[it->first]][id_to_state_[it2->first]] = 
 						make_pair<HMMStateLight*, HMMStateLight*>(id_to_state_[it2->second.first], id_to_state_[it2->second.second]);
@@ -743,9 +743,9 @@ namespace OpenMS
 	{
 		throw Exception::NotImplemented(__FILE__, __LINE__, __PRETTY_FUNCTION__);
 		/*
-		for (HashMap<HMMStateLight*, HashMap<HMMStateLight*, Size> >::ConstIterator it = training_steps_count_.begin(); it != training_steps_count_.end(); ++it)
+		for (HashMap<HMMStateLight*, HashMap<HMMStateLight*, UnsignedInt> >::ConstIterator it = training_steps_count_.begin(); it != training_steps_count_.end(); ++it)
 		{
-			for (HashMap<HMMStateLight*, Size>::ConstIterator it1 = it->second.begin(); it1 != it->second.end(); ++it1)
+			for (HashMap<HMMStateLight*, UnsignedInt>::ConstIterator it1 = it->second.begin(); it1 != it->second.end(); ++it1)
 			{
 				cerr << it->first->getIdentifier() << " " << it1->first->getIdentifier() << " " << it1->second << endl;
 			}
@@ -757,28 +757,28 @@ namespace OpenMS
 		vector<String> suffixe;
 		HMMStateLight* s2 = id_to_state_["bxyz"];
 		HMMStateLight* end_state = id_to_state_["end"];
-		for (Size i = 0; i != residues.size(); ++i)
+		for (UnsignedInt i = 0; i != residues.size(); ++i)
 		{
 			s2 = id_to_state_["bxyz"];
-			for (Size j = 0; j != residues.size(); ++j)
+			for (UnsignedInt j = 0; j != residues.size(); ++j)
 			{
 				String aa1(residues[i]), aa2(residues[j]);
 				if (training_steps_count_[id_to_state_[aa1 + aa2 + "bxyz"]][s2] == 0)
 				{
-					Size count(0);
+					UnsignedInt count(0);
 					double sum(0);
-					for (Size k = 0; k != residues.size(); ++k)
+					for (UnsignedInt k = 0; k != residues.size(); ++k)
 					{
-						Size tmp = training_steps_count_[id_to_state_[aa1 + residues[k] + "bxyz"]][s2];
+						UnsignedInt tmp = training_steps_count_[id_to_state_[aa1 + residues[k] + "bxyz"]][s2];
 						if (tmp != 0)
 						{
 							sum += trans_[id_to_state_[aa1 + residues[k] + "bxyz"]][s2];
 							count++;
 						}
 					}
-					for (Size k = 0; k != residues.size(); ++k)
+					for (UnsignedInt k = 0; k != residues.size(); ++k)
 					{
-						Size tmp = training_steps_count_[id_to_state_[residues[k] + aa2 +"bxyz"]][s2];
+						UnsignedInt tmp = training_steps_count_[id_to_state_[residues[k] + aa2 +"bxyz"]][s2];
 						if (tmp != 0)
 						{
 							sum += trans_[id_to_state_[residues[k] + aa2 +"bxyz"]][s2];
@@ -796,25 +796,25 @@ namespace OpenMS
 			}
 
 			s2 = id_to_state_["axyz"];
-      for (Size j = 0; j != residues.size(); ++j)
+      for (UnsignedInt j = 0; j != residues.size(); ++j)
       {
         String aa1(residues[i]), aa2(residues[j]);
         if (training_steps_count_[id_to_state_[aa1 + aa2 + "axyz"]][s2] == 0)
         {
-          Size count(0);
+          UnsignedInt count(0);
           double sum(0);
-          for (Size k = 0; k != residues.size(); ++k)
+          for (UnsignedInt k = 0; k != residues.size(); ++k)
           {
-            Size tmp = training_steps_count_[id_to_state_[aa1 + residues[k] + "axyz"]][s2];
+            UnsignedInt tmp = training_steps_count_[id_to_state_[aa1 + residues[k] + "axyz"]][s2];
             if (tmp != 0)
             {
               sum += trans_[id_to_state_[aa1 + residues[k] + "axyz"]][s2];
               count++;
             }
           }
-          for (Size k = 0; k != residues.size(); ++k)
+          for (UnsignedInt k = 0; k != residues.size(); ++k)
           {
-            Size tmp = training_steps_count_[id_to_state_[residues[k] + aa2 +"axyz"]][s2];
+            UnsignedInt tmp = training_steps_count_[id_to_state_[residues[k] + aa2 +"axyz"]][s2];
             if (tmp != 0)
             {
               sum += trans_[id_to_state_[residues[k] + aa2 +"axyz"]][s2];
@@ -833,18 +833,18 @@ namespace OpenMS
 			// sc and cr
 			String sc_residues("HKDE");
 		
-			for (Size j = 0; j != sc_residues.size(); ++j)
+			for (UnsignedInt j = 0; j != sc_residues.size(); ++j)
 			{
 				String aa1(residues[i]), sc_res(sc_residues[j]);
 				s2 = id_to_state_[sc_res];
 				if (training_steps_count_[id_to_state_[aa1 + sc_res]][s2] == 0)
 				{
-					Size count(0);
+					UnsignedInt count(0);
 					double sum(0);
-					for (Size k = 0; k != residues.size(); ++k)
+					for (UnsignedInt k = 0; k != residues.size(); ++k)
 					{
 						HMMStateLight* s1 = id_to_state_[residues[k] + sc_res];
-						Size tmp = training_steps_count_[s1][s2];
+						UnsignedInt tmp = training_steps_count_[s1][s2];
 						if (tmp != 0)
 						{
 							sum += trans_[s1][s2];
@@ -865,12 +865,12 @@ namespace OpenMS
 
       if (training_steps_count_[id_to_state_[aa1 + sc_res]][s2] == 0)
       {
-        Size count(0);
+        UnsignedInt count(0);
         double sum(0);
-        for (Size k = 0; k != residues.size(); ++k)
+        for (UnsignedInt k = 0; k != residues.size(); ++k)
         {
 					HMMStateLight* s1 = id_to_state_[residues[k] + sc_res];
-          Size tmp = training_steps_count_[s1][s2];
+          UnsignedInt tmp = training_steps_count_[s1][s2];
           if (tmp != 0)
           {
             sum += trans_[s1][s2];
@@ -887,7 +887,7 @@ namespace OpenMS
 		*/
 	}
 
-	void HiddenMarkovModelLight::addIdToName(Size id, const String& name)
+	void HiddenMarkovModelLight::addIdToName(UnsignedInt id, const String& name)
 	{
 		id_to_name_[id] = name;
 	}

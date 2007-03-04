@@ -50,7 +50,7 @@ namespace OpenMS
     NLargest();
 
 		/// detailed constructor
-		NLargest(Size n);
+		NLargest(UnsignedInt n);
 
     /// copy constructor 
     NLargest(const NLargest& source);

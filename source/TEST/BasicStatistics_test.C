@@ -165,7 +165,7 @@ CHECK( normalApproximation )
 			0.000708684
 		};
 
-	for ( Size i = 0; i < probs.size(); ++i )
+	for ( UnsignedInt i = 0; i < probs.size(); ++i )
 	{
 		// STATUS( std::showpoint << "i:" << i << "  probs[i]:" << probs[i] << '\n');
 		TEST_REAL_EQUAL( probs[i], good_probs[i] );
@@ -179,12 +179,12 @@ CHECK( normalApproximation )
 
 	double magic1 = 200, magic2 = 100;
 
-	std::vector < double > data ( (Size) magic1 );
+	std::vector < double > data ( (UnsignedInt) magic1 );
 	std::copy ( &*dvector_data, dvector_data + num_numbers, std::back_inserter ( data ) );
 
   BasicStatistics <> stats ( data.begin(), data.end() );
 	std::vector < double > fit;
-	stats.normalApproximation ( fit, Size ( data.size() + magic1 ) );
+	stats.normalApproximation ( fit, UnsignedInt ( data.size() + magic1 ) );
 	BasicStatistics <> stats2 ( fit.begin(), fit.end() );
 	STATUS( stats );
 	STATUS( stats2 );

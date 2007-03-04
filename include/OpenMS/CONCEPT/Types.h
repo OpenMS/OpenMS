@@ -67,11 +67,6 @@ namespace OpenMS
 	
 	#ifndef OPENMS_HAS_STDINT_H
 
-
-	typedef OPENMS_INDEX_TYPE	Index;
-	typedef OPENMS_SIZE_TYPE 	Size;
-
-
 	/// Signed integer type
 	typedef OPENMS_INDEX_TYPE SignedInt;
 
@@ -133,10 +128,7 @@ namespace OpenMS
 
 
 	#else
-   	typedef int32_t Index;
-		typedef uint32_t	Size;
-
-		// the ISO C99 definitions
+   	// the ISO C99 definitions
 		typedef int32_t SignedInt; 
 		typedef uint32_t UnsignedInt;
 		typedef time_t	Time;
@@ -171,16 +163,6 @@ namespace OpenMS
 		ASCII__QUESTION_MARK    = '?',
 		ASCII__SEMICOLON        = ';'
 	};
-
-	static const Index INVALID_INDEX = -1;
-	static const Index INDEX_MIN = 0;
-	static const Index INDEX_MAX = INT_MAX;
-
-#	undef SIZE_MAX
-	static const Size INVALID_SIZE = INT_MAX;
-	static const Size SIZE_MIN = 0;
-	static const Size SIZE_MAX = INT_MAX - 1;
-	
 	
 } // namespace OpenMS
 

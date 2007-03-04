@@ -94,7 +94,7 @@ namespace OpenMS
 						/// testing whether the retention times are within the precision threshold
 						if (((temp < precision) && temp >= 0) || (((-1 * temp) < precision) && temp < 0))
 						{
-							experiment_precursor_position = experiment[experiment_iterator->second].getPrecursorPeak().getPos()[0];
+							experiment_precursor_position = experiment[experiment_iterator->second].getPrecursorPeak().getPosition()[0];
 							identifications_precursor_position = identifications[identifications_iterator->second].mz;				
 							temp = identifications_precursor_position - experiment_precursor_position;
 							if (((temp < precision) && temp >= 0) || ((-1 * temp < precision) && temp < 0))
@@ -132,7 +132,7 @@ namespace OpenMS
 					if (temp_identifications.size() > 0)
 					{
 						tmp_id.rt = experiment[i].getRetentionTime();				
-						tmp_id.mz = experiment[i].getPrecursorPeak().getPos()[0];
+						tmp_id.mz = experiment[i].getPrecursorPeak().getPosition()[0];
 						for(UnsignedInt j = 0; j < temp_identifications.size(); j++)
 						{
 							if (!temp_identifications[j].empty())

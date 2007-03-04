@@ -232,7 +232,7 @@ namespace OpenMS
       /**
       	@brief Paints all feature convex hulls for a feature layer.
       	
-      	@param layer_index Index of the layer.
+      	@param layer_index SignedInt of the layer.
       	@param p The QPainter to paint on.
       */
       void paintConvexHulls_(UnsignedInt layer_index, QPainter& p);
@@ -248,7 +248,7 @@ namespace OpenMS
       /**
       	@brief Paints feature pair connections.
       	
-      	@param layer_index Index of the layer.
+      	@param layer_index SignedInt of the layer.
       	@param p The QPainter to paint on.
       */
 			void paintFeaturePairConnections_(UnsignedInt layer_index, QPainter& p);

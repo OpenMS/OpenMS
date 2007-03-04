@@ -50,19 +50,19 @@ namespace OpenMS
 		
 			QGridLayout* grid = new QGridLayout(this);
 			
-			QGroupBox* box = addBox(grid,0,0,"Colors:");
+			QGroupBox* box =	addBox_(grid,0,0,"Colors:");
 
 			peak_color_ = new ColorSelector(box);
-			addWidget(box->layout(),0,"Peak color:", peak_color_);
+			addWidget_(box->layout(),0,"Peak color:", peak_color_);
 
 			icon_color_ = new ColorSelector(box);
-			addWidget(box->layout(),1,"Icon color:", icon_color_);
+			addWidget_(box->layout(),1,"Icon color:", icon_color_);
 			
 			high_color_ = new ColorSelector(box);
-			addWidget(box->layout(),2,"Highlighted peak color:", high_color_);
+			addWidget_(box->layout(),2,"Highlighted peak color:", high_color_);
 			
 			back_color_ = new ColorSelector(box);
-			addWidget(box->layout(),3,"Background color:", back_color_);
+			addWidget_(box->layout(),3,"Background color:", back_color_);
 		
 			load();
 		}

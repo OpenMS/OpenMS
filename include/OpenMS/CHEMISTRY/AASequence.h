@@ -102,7 +102,7 @@ namespace OpenMS
 			Real getMonoWeight(Residue::ResidueType type = Residue::Full, SignedInt charge = 0) const;
 
 			/// fills in the map the neutral loss formulas associated with their occuring frequency
-			HashMap<const EmpiricalFormula*, Size> getNeutralLosses() const;
+			HashMap<const EmpiricalFormula*, UnsignedInt> getNeutralLosses() const;
 
 			/// returns a pointer to the residue at given position
 			const Residue* operator [] (SignedInt index) const throw(Exception::IndexUnderflow, Exception::IndexOverflow);
@@ -128,16 +128,16 @@ namespace OpenMS
 			void setResidueDB(ResidueDB* res_db = 0);
 
 			/// returns the number of residues
-			Size size() const;
+			UnsignedInt size() const;
 
 			/// returns a peptide sequence of the first index residues
-			AASequence getPrefix(Size index) const throw(Exception::IndexOverflow);
+			AASequence getPrefix(UnsignedInt index) const throw(Exception::IndexOverflow);
 
 			/// returns a peptide sequence of the last index residues
-			AASequence getSuffix(Size index) const throw(Exception::IndexOverflow);
+			AASequence getSuffix(UnsignedInt index) const throw(Exception::IndexOverflow);
 
 			/// returns a peptide sequence of number residues, beginning at position index
-			AASequence getSubsequence(Size index, Size number) const throw(Exception::IndexOverflow);
+			AASequence getSubsequence(UnsignedInt index, UnsignedInt number) const throw(Exception::IndexOverflow);
 			//@}
 
 			/** @name Predicates

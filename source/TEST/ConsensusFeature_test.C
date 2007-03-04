@@ -52,7 +52,7 @@ CHECK(ConsensusFeature& operator=(const ConsensusFeature& source))
   Feature::PositionType pos(1,2);
   ConsensusFeature<> cons(pos,200);
   Feature feat;
-  feat.setPos(pos);
+  feat.setPosition(pos);
   feat.setIntensity(200);
   
   IndexTuple<> ind(1,3,feat);
@@ -75,7 +75,7 @@ CHECK((ConsensusFeature(const ConsensusFeature& c_feature_1, const ConsensusFeat
   Feature::PositionType pos(1,2);
   ConsensusFeature<> cons1(pos,200);
   Feature feat1;
-  feat1.setPos(pos);
+  feat1.setPosition(pos);
   feat1.setIntensity(200);
   IndexTuple<> ind1(1,3,feat1);
   cons1.insert(ind1);
@@ -84,7 +84,7 @@ CHECK((ConsensusFeature(const ConsensusFeature& c_feature_1, const ConsensusFeat
   pos[1]=3;
   ConsensusFeature<> cons2(pos,200);
   Feature feat2;
-  feat2.setPos(pos);
+  feat2.setPosition(pos);
   feat2.setIntensity(200);
   IndexTuple<> ind2(2,3,feat2);
   cons2.insert(ind2);
@@ -112,7 +112,7 @@ CHECK(ConsensusFeature(const ConsensusFeature& source))
   Feature::PositionType pos(1,2);
   ConsensusFeature<> cons(pos,200);
   Feature feat;
-  feat.setPos(pos);
+  feat.setPosition(pos);
   feat.setIntensity(200);
   IndexTuple<> ind(1,3,feat);
   cons.insert(ind);
@@ -145,13 +145,13 @@ RESULT
 CHECK((ConsensusFeature(const UnsignedInt& map_1_index, const UnsignedInt& feature_index_1, const ElementType& feature_1, const UnsignedInt& map_2_index, const UnsignedInt& feature_index_2, const ElementType& feature_2)))
   Feature::PositionType pos(1,2);
   Feature feat1;
-  feat1.setPos(pos);
+  feat1.setPosition(pos);
   feat1.setIntensity(200);
   
   pos[0]=2;
   pos[1]=3;
   Feature feat2;
-  feat2.setPos(pos);
+  feat2.setPosition(pos);
   feat2.setIntensity(200);
   
   ConsensusFeature<> cons3(1,3,feat1,2,3,feat2);
@@ -178,7 +178,7 @@ RESULT
 CHECK((ConsensusFeature(const UnsignedInt& map_index, const UnsignedInt& feature_index, const ElementType& feature)))
   Feature::PositionType pos(1,2);
   Feature feat1;
-  feat1.setPos(pos);
+  feat1.setPosition(pos);
   feat1.setIntensity(200);
   
  	ConsensusFeature<> cons(1,3,feat1);
@@ -199,14 +199,14 @@ RESULT
 CHECK((ConsensusFeature(const UnsignedInt& map_index, const UnsignedInt& feature_index, const ElementType& feature, const ConsensusFeature& c_feature)))
   Feature::PositionType pos(1,2);
   Feature feat1;
-  feat1.setPos(pos);
+  feat1.setPosition(pos);
   feat1.setIntensity(200);
     
   pos[0]=2;
   pos[1]=3;
   ConsensusFeature<> cons2(pos,200);
   Feature feat2;
-  feat2.setPos(pos);
+  feat2.setPosition(pos);
   feat2.setIntensity(200);
   IndexTuple<> ind2(2,3,feat2);
   cons2.insert(ind2);
@@ -233,7 +233,7 @@ RESULT
 CHECK(Group& getFeatures())
 	Feature::PositionType pos(1,2);
   Feature feat1;
-  feat1.setPos(pos);
+  feat1.setPosition(pos);
   feat1.setIntensity(200);
   IndexTuple<> ind(2,3,feat1);
   
@@ -268,7 +268,7 @@ RESULT
 CHECK(const Group& getFeatures() const)
   Feature::PositionType pos(1,2);
   Feature feat1;
-  feat1.setPos(pos);
+  feat1.setPosition(pos);
   feat1.setIntensity(200);
   IndexTuple<> ind(2,3,feat1);
   ConsensusFeature<> cons;
@@ -300,7 +300,7 @@ RESULT
 CHECK(void insert(const IndexTuple& tuple))
   Feature::PositionType pos(1,2);
   Feature feat1;
-  feat1.setPos(pos);
+  feat1.setPosition(pos);
   feat1.setIntensity(200);
   IndexTuple<> ind(2,3,feat1);
   
@@ -316,7 +316,7 @@ RESULT
 CHECK(void setFeatures(const Group& g))
   Feature::PositionType pos(1,2);
   Feature feat1;
-  feat1.setPos(pos);
+  feat1.setPosition(pos);
   feat1.setIntensity(200);
   IndexTuple<> ind(2,3,feat1);
   

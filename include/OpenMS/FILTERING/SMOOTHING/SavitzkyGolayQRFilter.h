@@ -197,7 +197,7 @@ namespace OpenMS
           }
 
 
-          out_it->setPos(first->getPos());
+          out_it->setPosition(first->getPosition());
           out_it->setIntensity(help);
           ++out_it;
           ++first;
@@ -217,7 +217,7 @@ namespace OpenMS
           }
 
 
-          out_it->setPos(first->getPos());
+          out_it->setPosition(first->getPosition());
           out_it->setIntensity(help);
           ++out_it;
           ++first;
@@ -235,7 +235,7 @@ namespace OpenMS
             ++it_forward;
           }
 
-          out_it->setPos(first->getPos());
+          out_it->setPosition(first->getPosition());
           out_it->setIntensity(help);
           ++out_it;
           ++first;
@@ -330,7 +330,7 @@ namespace OpenMS
     protected:
       /// Parameter object
       Param defaults_;
-      /// Size of the filter kernel (number of pre-tabulated coefficients)
+      /// UnsignedInt of the filter kernel (number of pre-tabulated coefficients)
       unsigned int frame_size_;
       /// The order of the smoothing polynomial.
       unsigned int order_;

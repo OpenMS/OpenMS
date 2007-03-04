@@ -43,16 +43,16 @@ std::cout.precision(20);
 std::cerr.precision(20);
 
 DPosition<10>* d10_ptr = 0;
-CHECK(DPosition())
+CHECK((DPosition()))
 	d10_ptr = new DPosition<10>;
 	TEST_NOT_EQUAL(d10_ptr, 0)
 RESULT
 
-CHECK(~DPosition())
+CHECK((virtual ~DPosition()))
 	delete d10_ptr;
 RESULT
 
-CHECK(const CoordinateType& operator [] (Position index) const)
+CHECK((const CoordinateType& operator[](UnsignedInt index) const))
   const DPosition<3> i;
   TEST_EQUAL(i[0], 0.0)
   TEST_EQUAL(i[1], 0.0)
@@ -62,7 +62,7 @@ CHECK(const CoordinateType& operator [] (Position index) const)
 #endif
 RESULT
 
-CHECK(CoordinateType& operator [] (Position index))
+CHECK((CoordinateType& operator[](UnsignedInt index)))
   DPosition<3> i;
   const DPosition<3>& c_i(i);
   i[0] = 1.0;
@@ -82,7 +82,7 @@ CHECK(CoordinateType& operator [] (Position index))
 #endif
 RESULT
 
-CHECK(DPosition(const DPosition& pos))
+CHECK((DPosition(const DPosition& pos)))
   DPosition<3> p;
   p[0] = 12.3;
   p[1] = 23.4;
@@ -94,14 +94,27 @@ CHECK(DPosition(const DPosition& pos))
 	TEST_EQUAL(copy_of_p.size(), p.size())
 RESULT
 
-CHECK(DPosition(const CoordinateType& x))
+CHECK((DPosition& operator=(const DPosition &source)))
+  DPosition<3> p;
+  p[0] = 12.3;
+  p[1] = 23.4;
+  p[2] = 34.5;
+  DPosition<3> copy_of_p;
+  copy_of_p = p;
+  TEST_EQUAL(copy_of_p[0], p[0])
+  TEST_EQUAL(copy_of_p[1], p[1])
+  TEST_EQUAL(copy_of_p[2], p[2])
+	TEST_EQUAL(copy_of_p.size(), p.size())
+RESULT
+
+CHECK((DPosition(const CoordinateType& x)))
   DPosition<3> p(12.34);
   TEST_REAL_EQUAL(p[0], 12.34)
   TEST_REAL_EQUAL(p[1], 12.34)
   TEST_REAL_EQUAL(p[2], 12.34)
 RESULT
 
-CHECK(CoordinateType operator * (const DPosition& point) const throw())
+CHECK((CoordinateType operator *(const DPosition &point) const))
 	DPosition<3> i;
 	i[0] = 2.0;
 	i[1] = 3.0;
@@ -124,13 +137,13 @@ i[6] = 7.0;
 i[7] = 8.0;
 i[8] = 9.0;
 i[9] = 10.0;
-CHECK(ConstIterator begin() const throw())
+CHECK((ConstIterator begin() const))
   const DPosition<10>& c_i(i);
   TEST_EQUAL(*c_i.begin(), 1.0)
   TEST_EQUAL(c_i.begin(), &(c_i[0]))
 RESULT
 
-CHECK(ConstIterator end() const throw())
+CHECK((ConstIterator end() const))
   const DPosition<10>& c_i(i);
   TEST_NOT_EQUAL(c_i.end(), c_i.begin())
   std::vector<double> v;
@@ -149,14 +162,14 @@ CHECK(ConstIterator end() const throw())
   TEST_REAL_EQUAL(v[9], 10.0)
 RESULT
 
-CHECK(Iterator begin() throw())
+CHECK((Iterator begin()))
   TEST_EQUAL(*i.begin(), 1.0)
   TEST_EQUAL(i.begin(), &(i[0]))
   *i.begin() = 11.0;
   TEST_EQUAL(i[0], 11.0)
 RESULT
 
-CHECK(Iterator end() throw())
+CHECK((Iterator end()))
   const DPosition<10>& c_i(i);
   TEST_NOT_EQUAL(c_i.end(), c_i.begin())
   std::vector<double> v;
@@ -175,7 +188,7 @@ CHECK(Iterator end() throw())
   TEST_REAL_EQUAL(v[9], 10.0)
 RESULT
 
-CHECK(static Size size())
+CHECK((static UnsignedInt size()))
 	TEST_EQUAL(DPosition<777>::size(), 777)
 	DPosition<3> p3;
 	TEST_EQUAL(p3.size(), 3)
@@ -185,7 +198,7 @@ CHECK(static Size size())
 	TEST_EQUAL(p123.size(), 123)
 RESULT
 
-CHECK(void clear())
+CHECK((void clear()))
 	DPosition<3> p;
 	p[0] = 1.2;
 	p[1] = 2.3;
@@ -199,7 +212,7 @@ CHECK(void clear())
 	TEST_REAL_EQUAL(p[2], 0.0)
 RESULT
 
-CHECK(bool operator == (const DPosition& point) const throw())
+CHECK((bool operator==(const DPosition &point) const))
 	DPosition<3> p1,p2;
 	TEST_REAL_EQUAL(p1==p2, true)
 	
@@ -219,7 +232,7 @@ CHECK(bool operator == (const DPosition& point) const throw())
 	TEST_REAL_EQUAL(p1==p2, true)	
 RESULT
 
-CHECK(bool operator != (const DPosition& point) const throw())
+CHECK((bool operator!=(const DPosition &point) const))
 	DPosition<3> p1,p2;
 	TEST_REAL_EQUAL(p1!=p2, false)
 	
@@ -239,7 +252,7 @@ CHECK(bool operator != (const DPosition& point) const throw())
 	TEST_REAL_EQUAL(p1!=p2, false)	
 RESULT
 
-CHECK(bool operator < (const DPosition& point) const throw())
+CHECK((bool operator<(const DPosition &point) const))
 	DPosition<3> p1,p2;
 	TEST_REAL_EQUAL(p1<p2, false)
 	
@@ -262,7 +275,7 @@ CHECK(bool operator < (const DPosition& point) const throw())
 	p2[2]=p1[2];
 RESULT
 
-CHECK(bool operator > (const DPosition& point) const throw())
+CHECK((bool operator>(const DPosition &point) const))
 	DPosition<3> p1,p2;
 	TEST_REAL_EQUAL(p1>p2, false)
 	
@@ -273,7 +286,7 @@ CHECK(bool operator > (const DPosition& point) const throw())
 	p2[0]=p1[0];
 RESULT
 
-CHECK(bool operator >= (const DPosition& point) const throw())
+CHECK((bool operator>=(const DPosition &point) const))
 	DPosition<3> p1,p2;
 	TEST_REAL_EQUAL(p1>=p2, true)
 	
@@ -284,7 +297,7 @@ CHECK(bool operator >= (const DPosition& point) const throw())
 	p2[0]=p1[0];
 RESULT
 
-CHECK(bool operator <= (const DPosition& point) const throw())
+CHECK((bool operator<=(const DPosition &point) const))
 	DPosition<3> p1,p2;
 	TEST_REAL_EQUAL(p1<=p2, true)
 	
@@ -294,7 +307,7 @@ CHECK(bool operator <= (const DPosition& point) const throw())
 	TEST_REAL_EQUAL(p1<=p2, false)
 RESULT
 
-CHECK(DPosition operator - () const throw())
+CHECK((DPosition operator-() const))
   DPosition<3> p1, p2;
   p1[0] = 5.0;
 	p2 = -p1;  
@@ -303,7 +316,7 @@ CHECK(DPosition operator - () const throw())
 	TEST_REAL_EQUAL(p1==p2, true);
 RESULT
 
-CHECK(DPosition operator - (const DPosition& point) const throw())
+CHECK((DPosition operator-(const DPosition &point) const))
   DPosition<3> p1, p2, p3;
   p1[0] = 1.234;
   p1[1] = 2.234;
@@ -318,7 +331,7 @@ CHECK(DPosition operator - (const DPosition& point) const throw())
   TEST_REAL_EQUAL((p2 - p1) == -p3, true);
 RESULT
 
-CHECK(DPosition operator + (const DPosition& point) const throw())
+CHECK((DPosition operator+(const DPosition &point) const))
   DPosition<3> p1, p2, p3;
   p1[0] = -1.0;
   p1[1] = -2.0;
@@ -329,7 +342,7 @@ CHECK(DPosition operator + (const DPosition& point) const throw())
   TEST_REAL_EQUAL((p1 + p2) ==  p3, true);
 RESULT
 
-CHECK(DPosition(const CoordinateType& x, const CoordinateType& y))
+CHECK((DPosition(const CoordinateType& x, const CoordinateType& y)))
 	DPosition<2> p1(11.0f,12.1f);
 	TEST_REAL_EQUAL(p1[0],11.0f);
 	TEST_REAL_EQUAL(p1[1],12.1f);
@@ -338,31 +351,31 @@ CHECK(DPosition(const CoordinateType& x, const CoordinateType& y))
   TEST_REAL_EQUAL(p[1], 56.78)
 RESULT
 
-CHECK(CoordinateType X() const)
+CHECK((CoordinateType getX() const))
 	DPosition<2> p1(11.0f,12.1f);
 	TEST_REAL_EQUAL(p1.getX(),11.0f);
 RESULT
 
-CHECK(CoordinateType Y() const)
+CHECK((CoordinateType getY() const))
 	DPosition<2> p1(11.0f,12.1f);
 	TEST_REAL_EQUAL(p1.getY(),12.1f);
 RESULT
 
-CHECK(void setX(const CoordinateType& c))
+CHECK((void setX(const CoordinateType& c)))
 	DPosition<2> p1(11.0f,12.1f);
 	p1.setX(5.0f);
 	TEST_REAL_EQUAL(p1[0],5.0f);
 	TEST_REAL_EQUAL(p1[1],12.1f);
 RESULT
 
-CHECK(void setY(const CoordinateType& c))
+CHECK((void setY(const CoordinateType& c)))
 	DPosition<2> p1(11.0f,12.1f);
 	p1.setY(5.0f);
 	TEST_REAL_EQUAL(p1[0],11.0f);
 	TEST_REAL_EQUAL(p1[1],5.0f);	
 RESULT
 
-CHECK(DPosition& operator *= (const CoordinateType& scalar) throw())
+CHECK((DPosition& operator *=(const CoordinateType &scalar)))
 	DPosition<2> p1(3,4);
   p1 *= 5;
   DPosition<2> const p2(15,20);
@@ -370,7 +383,7 @@ CHECK(DPosition& operator *= (const CoordinateType& scalar) throw())
   TEST_REAL_EQUAL(p1[1],p2[1]);
 RESULT
 
-CHECK(DPosition& operator += (const DPosition& point) throw())
+CHECK((DPosition& operator+=(const DPosition &point)))
 	DPosition<2> p1(3,4);
   DPosition<2> const p2(15,20);
   p1 += p2;
@@ -379,7 +392,7 @@ CHECK(DPosition& operator += (const DPosition& point) throw())
   TEST_REAL_EQUAL(p1[1],p3[1]);
 RESULT
 
-CHECK(DPosition& operator -= (const DPosition& point) throw())
+CHECK((DPosition& operator-=(const DPosition &point)))
 	DPosition<2> p1(3,4);
   DPosition<2> const p2(18,24);
   p1 -= p2;
@@ -388,7 +401,7 @@ CHECK(DPosition& operator -= (const DPosition& point) throw())
   TEST_REAL_EQUAL(p1[1],p3[1]);
 RESULT
 
-CHECK(DPosition& operator /= (const CoordinateType& scalar) throw())
+CHECK((DPosition& operator/=(const CoordinateType &scalar)))
   DPosition<2> p1(15,20);
   p1 /= 5;
 	DPosition<2> const p2(3,4);
@@ -396,7 +409,7 @@ CHECK(DPosition& operator /= (const CoordinateType& scalar) throw())
   TEST_REAL_EQUAL(p1[1],p2[1]);
 RESULT
 
-CHECK(bool spatiallyGreaterEqual(const DPosition& point) const throw())
+CHECK((bool spatiallyGreaterEqual(const DPosition &point) const))
 	DPosition<2> const p00(0,0), p01(0,1), p10(1,0), p11(1,1);
 	TEST_EQUAL(p00.spatiallyGreaterEqual(p00), true )
 	TEST_EQUAL(p00.spatiallyGreaterEqual(p01), false)
@@ -419,7 +432,7 @@ CHECK(bool spatiallyGreaterEqual(const DPosition& point) const throw())
 	TEST_EQUAL(p11.spatiallyGreaterEqual(p11), true )
 RESULT
 
-CHECK(bool spatiallyLessEqual(const DPosition& point) const throw())
+CHECK((bool spatiallyLessEqual(const DPosition &point) const))
 	DPosition<2> const p00(0,0), p01(0,1), p10(1,0), p11(1,1);
 	TEST_EQUAL(p00.spatiallyLessEqual(p00), true )
 	TEST_EQUAL(p00.spatiallyLessEqual(p01), true )

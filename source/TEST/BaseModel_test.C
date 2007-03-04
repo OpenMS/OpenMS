@@ -92,7 +92,7 @@ class TestModel : public BaseModel<3>
 
 	void  fillIntensity(PeakType& peak) const
 	{
-		peak.setIntensity(getIntensity(peak.getPos()));
+		peak.setIntensity(getIntensity(peak.getPosition()));
 	}
 
 	void getSamples(SamplesType& /*cont*/) const
@@ -177,9 +177,9 @@ RESULT
 CHECK(void fillIntensity(PeakType& peak) const)
 	const TestModel t;
   TestModel::PeakType p;
-  p.getPos()[0]=0.1;
-  p.getPos()[1]=0.2;
-  p.getPos()[2]=0.3;
+  p.getPosition()[0]=0.1;
+  p.getPosition()[1]=0.2;
+  p.getPosition()[2]=0.3;
   p.setIntensity(0.1);
   t.fillIntensity(p);
   TEST_REAL_EQUAL(p.getIntensity(), 0.6)
@@ -191,7 +191,7 @@ CHECK(void  fillIntensities(PeakIterator beg, PeakIterator end) const)
   for (UnsignedInt i=0; i<4; ++i)
   {
 		vec[i].setIntensity(-0.5);
-		vec[i].getPos()[0] = i;
+		vec[i].getPosition()[0] = i;
 	}
   t.fillIntensities(vec.begin()+1, vec.end()-1);
   TEST_EQUAL(vec[0].getIntensity(), -0.5)

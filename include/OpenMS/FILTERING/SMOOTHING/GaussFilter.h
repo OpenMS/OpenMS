@@ -208,7 +208,7 @@ namespace OpenMS
         typename OutputPeakContainer::iterator out_it = smoothed_data_container.begin();
         while (help != last)
         {
-          out_it->setPos(help->getMZ());
+          out_it->setPosition(help->getMZ());
           out_it->setIntensity(integrate_(help,first,last));
           ++out_it;
           ++help;

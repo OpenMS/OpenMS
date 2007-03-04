@@ -81,8 +81,8 @@ namespace OpenMS
     	{
       	for (uint j = 1; i + j < spectrum.size(); ++j)
       	{
-					double pos_ij = spectrum.getContainer()[i+j].getPos()[0];
-					double pos_i = spectrum.getContainer()[i].getPos()[0];
+					double pos_ij = spectrum.getContainer()[i+j].getPosition()[0];
+					double pos_i = spectrum.getContainer()[i].getPosition()[0];
         	if (std::fabs(pos_ij - pos_i + 1) < tolerance /* &&
 							spectrum.getContainer()[i-j].getIntensity() < spectrum.getContainer()[i].getIntensity() */) /// @todo what does this cond. do? (andreas)
         	{
@@ -90,7 +90,7 @@ namespace OpenMS
         	}
         	else 
 					{
-						if (std::fabs(spectrum.getContainer()[i+j].getPos()[0] - spectrum.getContainer()[i].getPos()[0]) > 1 + tolerance)
+						if (std::fabs(spectrum.getContainer()[i+j].getPosition()[0] - spectrum.getContainer()[i].getPosition()[0]) > 1 + tolerance)
         		{
          			break;
         		}

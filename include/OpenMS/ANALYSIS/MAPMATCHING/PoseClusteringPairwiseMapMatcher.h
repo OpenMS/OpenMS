@@ -168,7 +168,7 @@ namespace OpenMS
 
       // assign each element of the scene map to the grid cells and build a pointer map for each grid cell
       PeakConstReferenceMapType scene_pointer_map(element_map_[SCENE]->begin(), element_map_[SCENE]->end());
-      Size number_grid_cells = grid_.size();
+      UnsignedInt number_grid_cells = grid_.size();
       std::vector<PeakConstReferenceMapType> scene_grid_maps(number_grid_cells);
       buildGrid_(scene_pointer_map,scene_grid_maps);
 
@@ -262,7 +262,7 @@ namespace OpenMS
       String element_buckets_file = param_.getValue("debug:feature_buckets_file");
 
       // iterate over all grid cells of the scene map
-      for (Size i = 0; i < scene_grid_maps.size(); ++i)
+      for (UnsignedInt i = 0; i < scene_grid_maps.size(); ++i)
       {
         if (scene_grid_maps[i].size() > 0)
         {
@@ -274,7 +274,7 @@ namespace OpenMS
             superimposer_->run();
             // ???? copy array to vector -- but the old Grid class will be replaced anyway
             grid_[i].getMappings().resize(2,0);
-            for ( Size dim = 0; dim < 2; ++dim )
+            for ( UnsignedInt dim = 0; dim < 2; ++dim )
             {
               TransformationType const& trafo = superimposer_->getTransformation(dim);
               if ( !grid_[i].getMappings()[dim] )
@@ -309,20 +309,20 @@ namespace OpenMS
 #define V_buildGrid_(bla) V_PoseClusteringPairwiseMapMatcher(bla)
       V_buildGrid_("PoseClusteringPairwiseMapMatcher: buildGrid_(): starting...");
 
-      for (Size i = 0; i < scene_map.size(); ++i)
+      for (UnsignedInt i = 0; i < scene_map.size(); ++i)
       {
         CoordinateType x = scene_map[i].getRT() - bounding_box_scene_map_.min()[RawDataPoint2D::RT];
         CoordinateType y = scene_map[i].getMZ() - bounding_box_scene_map_.min()[RawDataPoint2D::MZ];
 
-        Size grid_index = (int)(x / box_size_[RawDataPoint2D::RT]) + (int)(y / box_size_[RawDataPoint2D::MZ]) * (int)(number_buckets_[RawDataPoint2D::RT]);
+        UnsignedInt grid_index = (int)(x / box_size_[RawDataPoint2D::RT]) + (int)(y / box_size_[RawDataPoint2D::MZ]) * (int)(number_buckets_[RawDataPoint2D::RT]);
         scene_grid_maps[grid_index].push_back(scene_map[i]);
       }
 
-      //       for (Size i = 0; i < scene_grid_maps.size(); ++i)
+      //       for (UnsignedInt i = 0; i < scene_grid_maps.size(); ++i)
       //       {
       //         V_buildGrid_("scene_grid_maps["<<i<<"].size(): "<<scene_grid_maps[i].size()<<'\n');
       //
-      //         for (Size j = 0; j < scene_grid_maps[i].size(); ++j)
+      //         for (UnsignedInt j = 0; j < scene_grid_maps[i].size(); ++j)
       //         {
       //           V_buildGrid_(((scene_grid_maps[i])[j]).getPosition());
       //         }

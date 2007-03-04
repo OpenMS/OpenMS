@@ -61,7 +61,7 @@ namespace OpenMS
 			/// detailed constructor
 			Element(const String& name,
 							const String& symbol,
-							Size atomic_number,
+							UnsignedInt atomic_number,
 							Real average_weight,
 							Real mono_weight,
 							const IsotopeDistribution& isotopes);
@@ -74,10 +74,10 @@ namespace OpenMS
 			*/
 			//@{
 			/// sets unique atomic number
-			void setAtomicNumber(Size atomic_number);
+			void setAtomicNumber(UnsignedInt atomic_number);
 
 			/// returns the unique atomic number
-			Size getAtomicNumber() const;
+			UnsignedInt getAtomicNumber() const;
 			
 			/// sets the average weight of the element
 			void setAverageWeight(Real weight);
@@ -139,7 +139,7 @@ namespace OpenMS
 			String symbol_;
 
 			/// atomic number of the element
-			Size atomic_number_;
+			UnsignedInt atomic_number_;
 
 			/// average weight over all isotopes
 			Real average_weight_;

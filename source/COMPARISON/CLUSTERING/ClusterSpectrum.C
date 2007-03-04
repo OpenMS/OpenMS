@@ -282,7 +282,7 @@ namespace OpenMS
     if (specp_)
     {
       retention_ = specp_->getRetentionTime();
-      parent_mass_ = specp_->getPrecursorPeak().getPos()[0];
+      parent_mass_ = specp_->getPrecursorPeak().getPosition()[0];
       parentioncharge_ = specp_->getPrecursorPeak().getCharge();
       cached_ = 1;     
     }

@@ -81,7 +81,7 @@ CHECK((template<typename SpectrumType> void filterSpectrum(SpectrumType& spectru
 	spec.getContainer().sortByIntensity();
 	TEST_REAL_EQUAL(spec.begin()->getIntensity(), 96)
 	TEST_REAL_EQUAL((spec.end()-1)->getIntensity(), 121)
-	TEST_REAL_EQUAL((spec.end()-1)->getPos()[0], 136.077)
+	TEST_REAL_EQUAL((spec.end()-1)->getPosition()[0], 136.077)
 	
 RESULT
 
@@ -108,7 +108,7 @@ CHECK((void filterPeakMap(PeakMap& exp)))
   pm.begin()->getContainer().sortByIntensity();
   TEST_REAL_EQUAL(pm.begin()->begin()->getIntensity(), 96)
   TEST_REAL_EQUAL((pm.begin()->end()-1)->getIntensity(), 121)
-  TEST_REAL_EQUAL((pm.begin()->end()-1)->getPos()[0], 136.077)
+  TEST_REAL_EQUAL((pm.begin()->end()-1)->getPosition()[0], 136.077)
 
 RESULT
 
@@ -124,7 +124,7 @@ CHECK((void filterPeakSpectrum(PeakSpectrum& spectrum)))
   spec.getContainer().sortByIntensity();
   TEST_REAL_EQUAL(spec.begin()->getIntensity(), 96)
   TEST_REAL_EQUAL((spec.end()-1)->getIntensity(), 121)
-  TEST_REAL_EQUAL((spec.end()-1)->getPos()[0], 136.077)
+  TEST_REAL_EQUAL((spec.end()-1)->getPosition()[0], 136.077)
 RESULT
 
 delete e_ptr;

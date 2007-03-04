@@ -47,7 +47,7 @@ namespace OpenMS
 		
 		@ingroup Datastructures
 	*/
-	template <Size D>
+	template <UnsignedInt D>
 	class DRange
 		:	public Internal::DIntervalBase<D>
 	{
@@ -272,7 +272,7 @@ namespace OpenMS
 	};
 
 	///Print the contents to a stream.
-	template <Size D>
+	template <UnsignedInt D>
 	std::ostream& operator << (std::ostream& os, const DRange<D>& area)
 	{
 		os << "--DRANGE BEGIN--"<<std::endl;

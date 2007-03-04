@@ -317,7 +317,7 @@ CHECK(void setFirstDataPoint(const PeakIterator& first))
   RawDataPoint1D p;
   DPosition<1> pos = 130;
   p.setIntensity(100);
-  p.setPos(pos);
+  p.setPosition(pos);
   raw_data.push_back(p);
 
   DSignalToNoiseEstimatorMedian<1,  DPeakArray<1,RawDataPoint1D >::const_iterator > sne;
@@ -330,7 +330,7 @@ CHECK(void setLastDataPoint(const PeakIterator& last))
   RawDataPoint1D p;
   DPosition<1> pos = 130;
   p.setIntensity(100);
-  p.setPos(pos);
+  p.setPosition(pos);
   raw_data.push_back(p);
 
   DSignalToNoiseEstimatorMedian<1,  DPeakArray<1,RawDataPoint1D >::const_iterator > sne;

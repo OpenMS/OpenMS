@@ -218,13 +218,13 @@ namespace OpenMS
       }
 
       typename BaseModel<D>::PeakType peak;
-      std::vector<Size> i(D,0);  // index vector
+      std::vector<UnsignedInt> i(D,0);  // index vector
 
       while(i[D-1]<samples[D-1].size())
       {
         for (UnsignedInt dim=0; dim<D; ++dim)
         {
-          peak.getPos()[dim] = samples[dim][ i[dim] ].getPos()[0];
+          peak.getPosition()[dim] = samples[dim][ i[dim] ].getPosition()[0];
         }
         fillIntensity(peak);
         cont.push_back(peak);

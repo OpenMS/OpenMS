@@ -93,7 +93,7 @@ namespace OpenMS
 			
 			public:
 			typedef ValueType value_type;
-			typedef Index difference_type;
+			typedef SignedInt difference_type;
 			typedef std::forward_iterator_tag iterator_category;
 			typedef value_type& reference;
 			typedef value_type* pointer;
@@ -217,7 +217,7 @@ namespace OpenMS
 			
 			public:
 			typedef ValueType value_type;
-			typedef Index difference_type;
+			typedef SignedInt difference_type;
 			typedef const ValueType& reference;
 			typedef const ValueType* pointer;
 			typedef std::forward_iterator_tag iterator_category;
@@ -371,8 +371,8 @@ namespace OpenMS
 		//@{
 		///
 		typedef ValueType value_type;
-		typedef Size size_type;
-		typedef Index difference_type;
+		typedef UnsignedInt size_type;
+		typedef SignedInt difference_type;
 		///
 		typedef ValueType& reference;
 		typedef const ValueType& const_reference;
@@ -426,7 +426,7 @@ namespace OpenMS
 				@param initial_capacity the capacity of the hash map
 				@param number_of_buckets the number of buckets to create
 		*/
-		HashMap(Size initial_capacity = INITIAL_CAPACITY, Size number_of_buckets = INITIAL_NUMBER_OF_BUCKETS)
+		HashMap(UnsignedInt initial_capacity = INITIAL_CAPACITY, UnsignedInt number_of_buckets = INITIAL_NUMBER_OF_BUCKETS)
 			throw();
 			
 		/**	Copy Constructor.
@@ -486,19 +486,19 @@ namespace OpenMS
 
 		/**	Return the number of buckets
 		*/
-		Size getBucketSize() const throw();
+		UnsignedInt getBucketSize() const throw();
 
 		/** Return the capcacity of the hash map.
 		*/
-		Size getCapacity() const throw();
+		UnsignedInt getCapacity() const throw();
 
 		/**	Return the number of entries in the map.
 		*/
-		Size getSize() const throw();
+		UnsignedInt getSize() const throw();
 			
 		/**	Return the number of entries in the map.
 		*/
-		Size size() const throw();
+		UnsignedInt size() const throw();
 
 		/** Find the element whose key is <tt>key</tt>.
 		*/
@@ -565,9 +565,9 @@ namespace OpenMS
 		Iterator insert(Iterator pos, const ValueType& entry) throw();
 
 		/**	Erase element with key <tt>key</tt>.
-				@return Size the number of elements erased (0 or 1)
+				@return UnsignedInt the number of elements erased (0 or 1)
 		*/
-		Size erase(const Key& key) throw();
+		UnsignedInt erase(const Key& key) throw();
 
 		/**	Erase element at a given position.
 				@param pos an iterator pointing to the element to delete
@@ -653,10 +653,10 @@ namespace OpenMS
 
 		/**	The number of entries in the map
 		*/
-		Size size_;
+		UnsignedInt size_;
 		/**	The maximum number of entries before a resize operation is required
 		*/
-		Size capacity_;
+		UnsignedInt capacity_;
 
 		/**	Buckets are stored as a vector of linked lists of Nodes 
 		*/
@@ -667,7 +667,7 @@ namespace OpenMS
 
 	template <class Key, class T>
 	inline
-	HashMap<Key, T>::HashMap(Size initial_capacity, Size number_of_buckets)
+	HashMap<Key, T>::HashMap(UnsignedInt initial_capacity, UnsignedInt number_of_buckets)
 		throw()
 		:	size_(0),
 			capacity_(initial_capacity),
@@ -685,7 +685,7 @@ namespace OpenMS
 		throw()
 		:	size_(hash_map.size_),
 			capacity_(hash_map.capacity_),
-			bucket_((Size)hash_map.bucket_.size())
+			bucket_((UnsignedInt)hash_map.bucket_.size())
 	{
 		Node* node = 0;
 		
@@ -787,15 +787,15 @@ namespace OpenMS
 
 	template <class Key, class T>
 	inline 
-	Size HashMap<Key, T>::getBucketSize() const
+	UnsignedInt HashMap<Key, T>::getBucketSize() const
 		throw()
 	{
-		return (Size)bucket_.size();
+		return (UnsignedInt)bucket_.size();
 	}
 
 	template <class Key, class T>
 	inline 
-	Size HashMap<Key, T>::getCapacity() const
+	UnsignedInt HashMap<Key, T>::getCapacity() const
 		throw()
 	{
 		return capacity_;
@@ -803,7 +803,7 @@ namespace OpenMS
 
 	template <class Key, class T>
 	inline 
-	Size HashMap<Key, T>::getSize() const
+	UnsignedInt HashMap<Key, T>::getSize() const
 		throw()
 	{
 		return size_;
@@ -811,7 +811,7 @@ namespace OpenMS
 
 	template <class Key, class T>
 	inline 
-	Size HashMap<Key, T>::size() const
+	UnsignedInt HashMap<Key, T>::size() const
 		throw()
 	{
 		return size_;
@@ -890,7 +890,7 @@ namespace OpenMS
 	}
 
 	template <class Key, class T>
-	Size HashMap<Key, T>::erase(const Key& key)
+	UnsignedInt HashMap<Key, T>::erase(const Key& key)
 		throw()
 	{
 		Node*	previous = 0;
@@ -980,7 +980,7 @@ namespace OpenMS
 		}
 
 		// count the deleted entries to correct the set size
-		Size no_deletions = 0;
+		UnsignedInt no_deletions = 0;
 
 		UnsignedInt bucket = f.bucket_;
 		for (; bucket <= last_bucket; bucket++)
@@ -1122,7 +1122,7 @@ namespace OpenMS
 	inline void HashMap<Key, T>::rehash()
 		throw()
 	{
-		capacity_ = (Size)getNextPrime((Size)bucket_.size() * 2);
+		capacity_ = (UnsignedInt)getNextPrime((UnsignedInt)bucket_.size() * 2);
 	}
 
 

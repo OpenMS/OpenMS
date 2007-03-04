@@ -305,10 +305,10 @@ namespace OpenMS
       shift_bucket_size_[1] = (CoordinateType)param_.getValue("transformation_space:shift_bucket_size:MZ");
       scaling_bucket_size_[0] = (CoordinateType)param_.getValue("transformation_space:scaling_bucket_size:RT");
       scaling_bucket_size_[1] = (CoordinateType)param_.getValue("transformation_space:scaling_bucket_size:MZ");
-      bucket_window_shift_[0]  = (Size)param_.getValue("transformation_space:bucket_window_shift:RT");
-      bucket_window_shift_[1]  = (Size)param_.getValue("transformation_space:bucket_window_shift:MZ");
-      bucket_window_scaling_[0] = (Size)param_.getValue("transformation_space:bucket_window_scaling:RT");
-      bucket_window_scaling_[1] = (Size)param_.getValue("transformation_space:bucket_window_scaling:MZ");
+      bucket_window_shift_[0]  = (UnsignedInt)param_.getValue("transformation_space:bucket_window_shift:RT");
+      bucket_window_shift_[1]  = (UnsignedInt)param_.getValue("transformation_space:bucket_window_shift:MZ");
+      bucket_window_scaling_[0] = (UnsignedInt)param_.getValue("transformation_space:bucket_window_scaling:RT");
+      bucket_window_scaling_[1] = (UnsignedInt)param_.getValue("transformation_space:bucket_window_scaling:MZ");
 
       PositionType min;
       PositionType max;
@@ -407,7 +407,7 @@ namespace OpenMS
       V_preprocessSceneMap("diagonal shift: " << diagonal_shift);
       V_preprocessSceneMap("diagonal scaling: " << diagonal_scaling);
 
-      for ( Size dimension = 0; dimension < 2; ++dimension)
+      for ( UnsignedInt dimension = 0; dimension < 2; ++dimension)
       {
         num_buckets_shift_[dimension] = (int)(ceil(diagonal_shift[dimension]/shift_bucket_size_[dimension]));
         num_buckets_scaling_[dimension] = (int)(ceil(diagonal_scaling[dimension]/scaling_bucket_size_[dimension]));
@@ -437,7 +437,7 @@ namespace OpenMS
         {
           // avoid cross mappings (i,j) -> (k,l) (e.g. i_rt < j_rt and k_rt > l_rt)
           // and point pairs with equal retention times (e.g. i_rt == j_rt)
-          PositionType diff = model_map_red_[i].getPos() - model_map_red_[j].getPos();
+          PositionType diff = model_map_red_[i].getPosition() - model_map_red_[j].getPosition();
           // and compute the affine transformation to all corresponding points pair in the scene map
           std::vector< const PointType* >& partners_i = scene_map_partners_[i];
           std::vector< const PointType* >& partners_j  = scene_map_partners_[j];
@@ -659,7 +659,7 @@ namespace OpenMS
           typename AffineTransformationMapType::const_iterator it = rt_hash_.find(PairType(rt_run_indices[SHIFT], rt_run_indices[SCALING]));
           if ( it != rt_hash_.end())
           {
-            for ( Size dimension = 0; dimension < 2; ++dimension)
+            for ( UnsignedInt dimension = 0; dimension < 2; ++dimension)
             {
               contribution_position[dimension] *= rt_run_indices[dimension];
             }
@@ -723,7 +723,7 @@ namespace OpenMS
           typename AffineTransformationMapType::const_iterator it = mz_hash_.find(PairType(mz_run_indices[SHIFT], mz_run_indices[SCALING]));
           if ( it != mz_hash_.end())
           {
-            for ( Size dimension = 0; dimension < 2; ++dimension)
+            for ( UnsignedInt dimension = 0; dimension < 2; ++dimension)
             {
               contribution_position[dimension] *= mz_run_indices[dimension];
             }

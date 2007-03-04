@@ -143,7 +143,7 @@ namespace OpenMS
       for (i = 0; i < middle; ++i)
       {
         it->setIntensity(g[i+middle]);
-        it->setPos(first->getPos());
+        it->setPosition(first->getPosition());
         ++first;
         ++it;
       }
@@ -178,7 +178,7 @@ namespace OpenMS
         }
 
         it->setIntensity(std::max(g[m],h[n]));
-        it->getPos() = first->getPos();	
+        it->getPosition() = first->getPosition();	
         ++it;
         ++first;
         ++m;
@@ -189,7 +189,7 @@ namespace OpenMS
 			for (i=0; i<middle; ++i)
       {
         it->setIntensity(last_int);
-        it->getPos() = first->getPos();
+        it->getPosition() = first->getPosition();
         ++it;
         ++first;
       }
@@ -229,7 +229,7 @@ namespace OpenMS
       for (i=0; i<middle; ++i)
       {
         it->setIntensity(0);
-        it->getPos() = first->getPos();
+        it->getPosition() = first->getPosition();
         ++it;
         ++first;
       }
@@ -264,7 +264,7 @@ namespace OpenMS
         }
 
         it->setIntensity(std::min(g[m],h[n]));
-        it->setPos(first->getPos());		
+        it->setPosition(first->getPosition());		
         ++it;
         ++first;
         ++m;
@@ -274,7 +274,7 @@ namespace OpenMS
       for (i=0; i<middle; ++i)
       {
         it->setIntensity(0);
-        it->getPos() = first->getPos();
+        it->getPosition() = first->getPosition();
         ++it;
         ++first;
       }

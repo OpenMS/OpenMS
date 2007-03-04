@@ -127,7 +127,7 @@ CHECK((bool operator==(const ConvexHull2D& rhs) const))
 	TEST_EQUAL(tmp==tmp2,true)
 RESULT
 
-CHECK((DBoundingBox<D> getBoundingBox() const))
+CHECK((DBoundingBox<2> getBoundingBox() const))
 	//empty
 	ConvexHull2D tmp2;
 	tmp2 = vec;

@@ -77,7 +77,7 @@ namespace OpenMS
 		ContainerType& data = interpolation_.getData();
 		data.clear();
 		if (max_==min_) return;
-		data.reserve( Size ( (max_-min_) / interpolation_step_ + 1 ) );
+		data.reserve( UnsignedInt ( (max_-min_) / interpolation_step_ + 1 ) );
 		CoordinateType pos = min_;
 
 		double sqrt_2pi = sqrt(2*M_PI);
@@ -86,7 +86,7 @@ namespace OpenMS
 		double part2    = (width_*width_)/(2*symmetry_*symmetry_);
 		double part3    = width_/symmetry_;
 
-		for ( Size i = 0; pos< max_; ++i)
+		for ( UnsignedInt i = 0; pos< max_; ++i)
 		{
 			pos = min_ + i * interpolation_step_;
 

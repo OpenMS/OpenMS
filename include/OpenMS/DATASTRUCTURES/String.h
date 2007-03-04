@@ -68,7 +68,7 @@ namespace OpenMS
 		typedef reverse_iterator	ReverseIterator;
 		/// Const reverse Iterator
 		typedef const_reverse_iterator	ConstReverseIterator;
-		/// Size type
+		/// UnsignedInt type
 		typedef size_type	SizeType;
 
 		//@}		
@@ -289,7 +289,7 @@ namespace OpenMS
 
 
 		///returns a random string of the given length. It consists of [0-9a-zA-Z]
-		static String random(Size length);
+		static String random(UnsignedInt length);
 		
 		/**
 			@brief splits a string into @p substrings using @p splitter as delimiter

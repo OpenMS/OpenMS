@@ -98,7 +98,7 @@ namespace OpenMS
 					@param charge the charge
 					@param res_type the type of the ion given in peptide. Peptides are handled as y-ions, i.e. Residue::YIon
 			*/
-			void getProtonDistribution(HashMap<Size, double>& bb_charges, HashMap<Size, double>& sc_charges, const AASequence& peptide, int charge,	Residue::ResidueType res_type = Residue::YIon);
+			void getProtonDistribution(HashMap<UnsignedInt, double>& bb_charges, HashMap<UnsignedInt, double>& sc_charges, const AASequence& peptide, int charge,	Residue::ResidueType res_type = Residue::YIon);
 
 			/** @brief calculates the charge state intensities of different charge states of the same ion
 					
@@ -116,12 +116,12 @@ namespace OpenMS
 			void getChargeStateIntensities(const AASequence& peptide, const AASequence& n_term_ion, const AASequence& c_term_ion, int charge, Residue::ResidueType n_term_type, double& n_term1,  double& c_term1, double& n_term2, double& c_term2, FragmentationType type);
 
 			/// sets the proton distributions of the whole peptide, they are needed for the getChargeStateIntensities_ method and need to be recalculated each time if not given
-			void setPeptideProtonDistribution(const HashMap<Size, double>& bb_charge, const HashMap<Size, double>& sc_charge);
+			void setPeptideProtonDistribution(const HashMap<UnsignedInt, double>& bb_charge, const HashMap<UnsignedInt, double>& sc_charge);
 
 			protected:
 
 			// calculates the proton distribtion
-			void calculateProtonDistribution_(const AASequence& peptide, int charge, Residue::ResidueType res_type = Residue::YIon, bool fixed_proton = false, Size cleavage_site = 0, bool use_most_basic_site = false);
+			void calculateProtonDistribution_(const AASequence& peptide, int charge, Residue::ResidueType res_type = Residue::YIon, bool fixed_proton = false, UnsignedInt cleavage_site = 0, bool use_most_basic_site = false);
 	
 			// returns the proton affinity of the peptide with the given charge and ion type
 			double getProtonAffinity_(const AASequence& ion, int charge, Residue::ResidueType res_type);
@@ -134,10 +134,10 @@ namespace OpenMS
 			// initializes the parameters needed for the calculation
 			void init_();
 
-			HashMap<Size, double> sc_charge_;
-			HashMap<Size, double> bb_charge_;
-			HashMap<Size, double> sc_charge_full_;
-			HashMap<Size, double> bb_charge_full_;
+			HashMap<UnsignedInt, double> sc_charge_;
+			HashMap<UnsignedInt, double> bb_charge_;
+			HashMap<UnsignedInt, double> sc_charge_full_;
+			HashMap<UnsignedInt, double> bb_charge_full_;
 
 			// contains the side chain proton affinities
 			HashMap<String, double> gb_sc_;

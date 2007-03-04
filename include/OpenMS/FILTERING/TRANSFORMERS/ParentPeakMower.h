@@ -80,7 +80,7 @@ namespace OpenMS
 			}
 
     	//get precursor peak position precursorpeak
-    	double pre_pos = spectrum.getPrecursorPeak().getPos()[0];
+    	double pre_pos = spectrum.getPrecursorPeak().getPosition()[0];
 		
 			if (pre_pos == 0)
 			{
@@ -88,10 +88,10 @@ namespace OpenMS
 				return;
 			}
 
-			Size pre_charge = spectrum.getPrecursorPeak().getCharge();
+			UnsignedInt pre_charge = spectrum.getPrecursorPeak().getCharge();
 			if (pre_charge == 0)
 			{
-				Size default_charge = (unsigned int)param_.getValue("default_charge");
+				UnsignedInt default_charge = (unsigned int)param_.getValue("default_charge");
 				std::cerr << "ParentPeakMower: Warning, Precursor charge not set, assuming default charge (" << default_charge << ")" << std::endl;
 				pre_charge = default_charge;
 			}
@@ -109,7 +109,7 @@ namespace OpenMS
 		
 			// identify the ranges which are to be considered
 			std::vector<DRange<1> > ranges;
-			for (Size z = 1; z <= pre_charge; ++z)
+			for (UnsignedInt z = 1; z <= pre_charge; ++z)
 			{
 				if (clean_all_charge_states || z == pre_charge)
 				{
@@ -147,7 +147,7 @@ namespace OpenMS
 			{
 				for (std::vector<DRange<1> >::const_iterator rit = ranges.begin(); rit != ranges.end(); ++rit)
 				{
-					if (rit->encloses(it->getPos()))
+					if (rit->encloses(it->getPosition()))
 					{
 						if (reduce_by_factor)
 						{

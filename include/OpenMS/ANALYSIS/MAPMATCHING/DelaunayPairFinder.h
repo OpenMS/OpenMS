@@ -279,12 +279,12 @@ namespace OpenMS
 
       V_findElementPairs("@@@ findElementPairs_()");
 
-      Size n = reference_map.size();
+      UnsignedInt n = reference_map.size();
 
       // Vector to fill the point set for triangulation
       // Penalize a deviation in mz more than in rt: deviation(diff_intercept_[RawDataPoint2D::RT]) ~ deviation(diff_intercept_[RawDataPoint2D::MZ])
       std::vector< Point > positions_reference_map;
-      for (Size i = 0; i < n; ++i)
+      for (UnsignedInt i = 0; i < n; ++i)
       {
         positions_reference_map.push_back(Point(reference_map[i].getRT(),
                                                 reference_map[i].getMZ() / (diff_intercept_[RawDataPoint2D::MZ] / diff_intercept_[RawDataPoint2D::RT]),reference_map[i],i));
@@ -302,7 +302,7 @@ namespace OpenMS
 
       UnsignedInt index_act_element_pair = 0;
       // take each point in the first data map and search for its neighbours in the second element map (within a given (transformed) range)
-      for ( Size fi1 = 0; fi1 < transformed_map.size(); ++fi1 )
+      for ( UnsignedInt fi1 = 0; fi1 < transformed_map.size(); ++fi1 )
       {
         // compute the transformed iso-rectangle (upper_left,bottom_left,bottom_right,upper_right) for the range query
         double rt_pos = transformed_map[fi1].getRT();
@@ -358,7 +358,7 @@ namespace OpenMS
       }
 
 //       std::ofstream out("pairs.dat",std::ios::out);
-      for (Size i = 0; i < n; ++i)
+      for (UnsignedInt i = 0; i < n; ++i)
       {
         SignedInt pair_key = lookup_table[i];
         if ( pair_key > -1 )
@@ -382,8 +382,8 @@ namespace OpenMS
 
       // Vector to fill the point set for triangulation
       std::vector< Point > positions_reference_map;
-      Size n = first_map.size();
-      for (Size i = 0; i < n; ++i)
+      UnsignedInt n = first_map.size();
+      for (UnsignedInt i = 0; i < n; ++i)
       {
         positions_reference_map.push_back(Point((double)(first_map[i].getRT()),
                                                 (double)(first_map[i].getMZ() / (diff_intercept_[RawDataPoint2D::MZ] / diff_intercept_[RawDataPoint2D::RT])),first_map[i],i));
@@ -405,7 +405,7 @@ namespace OpenMS
       UnsignedInt pairs = 0;
       UnsignedInt index_act_element_pair = 0;
       // take each point in the first data map and search for its neighbours in the second element map (within a given (transformed) range)
-      for ( Size fi1 = 0; fi1 < second_map.size(); ++fi1 )
+      for ( UnsignedInt fi1 = 0; fi1 < second_map.size(); ++fi1 )
       {
         // compute the transformed iso-rectangle (upper_left,bottom_left,bottom_right,upper_right) for the range query
         double rt_pos = (double)(second_map[fi1].getRT());
@@ -458,24 +458,24 @@ namespace OpenMS
                 PointType& second_map_b = *(all_element_pairs[pair_key].second);
                 PointType& second_map_c = second_map[fi1];
 
-                V_computeConsensusMap("The element " << first_map_a.getPos() << " has two element partners \n");
-                V_computeConsensusMap(second_map_b.getPos() << "  and  " << second_map_c.getPos());
+                V_computeConsensusMap("The element " << first_map_a.getPosition() << " has two element partners \n");
+                V_computeConsensusMap(second_map_b.getPosition() << "  and  " << second_map_c.getPosition());
 
                 V_computeConsensusMap("Range " << second_map_b.getPositionRange() << "  and  " << second_map_c.getPositionRange());
 
-                if (second_map_c.getPositionRange().encloses(first_map_a.getPos())
-                    && !second_map_b.getPositionRange().encloses(first_map_a.getPos()))
+                if (second_map_c.getPositionRange().encloses(first_map_a.getPosition())
+                    && !second_map_b.getPositionRange().encloses(first_map_a.getPosition()))
                 {
                   lookup_table[element_key] = index_act_element_pair;
-                  V_computeConsensusMap(second_map_c.getPos() << " and " << first_map_a.getPos() << " are a pair");
+                  V_computeConsensusMap(second_map_c.getPosition() << " and " << first_map_a.getPosition() << " are a pair");
                 }
                 else
                 {
                   // if second_map_b and second_map_c do not enclose first_map_a
-                  if (!(second_map_b.getPositionRange().encloses(first_map_a.getPos())
-                        && !second_map_c.getPositionRange().encloses(first_map_a.getPos())))
+                  if (!(second_map_b.getPositionRange().encloses(first_map_a.getPosition())
+                        && !second_map_c.getPositionRange().encloses(first_map_a.getPosition())))
                   {
-                    V_computeConsensusMap(second_map_b.getPos() << " and " << first_map_a.getPos() << " are a pair, but check the distance between c and b");
+                    V_computeConsensusMap(second_map_b.getPosition() << " and " << first_map_a.getPosition() << " are a pair, but check the distance between c and b");
                     // check the distance between second_map_b and second_map_c
                     if (fabs(second_map_b.getMZ() / (diff_intercept_[RawDataPoint2D::MZ]/diff_intercept_[RawDataPoint2D::RT])
                              - second_map_c.getMZ() / (diff_intercept_[RawDataPoint2D::MZ]/diff_intercept_[RawDataPoint2D::RT]))
@@ -521,7 +521,7 @@ namespace OpenMS
       }
       V_computeConsensusMap("Insert elements ");
       std::vector< const PointType* > single_elements_first_map;
-      for (Size i = 0; i < n; ++i)
+      for (UnsignedInt i = 0; i < n; ++i)
       {
         SignedInt pair_key = lookup_table[i];
         if ( pair_key > -1 )

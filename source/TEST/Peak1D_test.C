@@ -49,7 +49,7 @@ CHECK((~Peak1D()))
 	delete d10_ptr;
 RESULT
 
-CHECK((Peak1D(DPeak const& p)))
+CHECK((Peak1D(const Peak1D &p)))
 	Peak1D p;
 	p.setIntensity(123.456);
 	p.setMetaValue("cluster_id",4711);
@@ -60,7 +60,7 @@ CHECK((Peak1D(DPeak const& p)))
 	TEST_EQUAL(copy_of_p.getMetaValue("cluster_id"),DataValue(4711));
 RESULT
 
-CHECK((Peak1D& operator = (const DPeak& rhs)))
+CHECK((Peak1D& operator=(const Peak1D &rhs)))
 	Peak1D p;
 	p.setIntensity(123.456);
 	p.setMetaValue("cluster_id",4711);

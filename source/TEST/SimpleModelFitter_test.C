@@ -103,10 +103,10 @@ CHECK( Feature fit(const IndexSet& set) throw (UnableToFit))
 
 	FeaFiTraits traits;
 	double mzs[] = {675, 675.5, 676, 676.5, 677, 677.5, 678};
-	const Size mz_num = 7;
+	const UnsignedInt mz_num = 7;
 	double rts[] = { 1260, 1260.5, 1261, 1261.5, 1262, 1262.5,
 											1263, 1263.5, 1264, 1264.5, 1265};
-	const Size rt_num = 11;
+	const UnsignedInt rt_num = 11;
 
 	// Samples of Gaussian distribution N(mean,stdev) with scaling factor 20000
 	double mean[2];	mean[MZ] = 676.5; mean[RT] = 1262.5;
@@ -128,9 +128,9 @@ CHECK( Feature fit(const IndexSet& set) throw (UnableToFit))
 
 	Peak2D p;
 	DPeakArray<2, Peak2D> peak_array;
-	for (Size mz=0; mz<mz_num; mz++) 
+	for (UnsignedInt mz=0; mz<mz_num; mz++) 
 	{
-		for (Size rt=0; rt<rt_num; rt++)
+		for (UnsignedInt rt=0; rt<rt_num; rt++)
 		{
 			p.setMZ(mzs[mz]);
 			p.setRT(rts[rt]);
@@ -151,9 +151,9 @@ CHECK( Feature fit(const IndexSet& set) throw (UnableToFit))
 	param.setValue("intensity_cutoff_factor",0.0f);
 	fitter.setParameters(param);
 	FeaFiModule::IndexSet  set;
-	for (Size mz=0; mz<mz_num; mz++) 
+	for (UnsignedInt mz=0; mz<mz_num; mz++) 
 	{
-		for (Size rt=0; rt<rt_num; rt++)
+		for (UnsignedInt rt=0; rt<rt_num; rt++)
 		{
 			set.insert(std::make_pair(rt,mz));
 		}
@@ -185,7 +185,7 @@ CHECK( Feature fit(const IndexSet& set) throw (UnableToFit))
 
 	// test predicted intensities
 	DPosition<2> pos;
-	for (Size mz=0; mz<mz_num; mz++) for (Size rt=0; rt<rt_num; rt++)
+	for (UnsignedInt mz=0; mz<mz_num; mz++) for (UnsignedInt rt=0; rt<rt_num; rt++)
 	{
 	 	pos[MZ] = mzs[mz];
 		pos[RT] = rts[rt];
@@ -204,9 +204,9 @@ CHECK( Feature fit(const IndexSet& set) throw (UnableToFit))
 	double mzs[] = {338, 338.1, 338.2, 338.3,	338.4, 338.5, 338.6, 338.7, 338.8,
 		338.9, 339, 339.1, 339.2, 339.3, 339.4,	339.5, 339.6, 339.7, 339.8, 339.9,
 		340, 340.1, 340.2, 340.3, 340.4 };
-	const Size mz_num = 25;
+	const UnsignedInt mz_num = 25;
 	double rts[] = { 1261.6, 1261.8, 1262, 1262.2, 1262.4, 1262.6, 1262.8, 1263};
-	const Size rt_num = 8;
+	const UnsignedInt rt_num = 8;
 
 	// Samples of theoretical isotope distribution in mz (charge=2, monoMass=mean[MZ], stdev[2])
 	// asymmetrical retention profile (bigaussian with stdev[0] and stdev[1]
@@ -218,7 +218,7 @@ CHECK( Feature fit(const IndexSet& set) throw (UnableToFit))
 
 	Peak2D p;
 	DPeakArray<2, Peak2D> peak_array;
-	for (Size rt=0; rt<rt_num; rt++) for (Size mz=0; mz<mz_num; mz++)
+	for (UnsignedInt rt=0; rt<rt_num; rt++) for (UnsignedInt mz=0; mz<mz_num; mz++)
 	{
 		p.setMZ(mzs[mz]);
 		p.setRT(rts[rt]);
@@ -274,8 +274,8 @@ CHECK( Feature fit(const IndexSet& set) throw (UnableToFit))
 
 	// test predicted intensities
 	DPosition<2> pos;
-	for (Size rt=0; rt<rt_num; rt++)
-		for (Size mz=0; mz<mz_num; mz++)
+	for (UnsignedInt rt=0; rt<rt_num; rt++)
+		for (UnsignedInt mz=0; mz<mz_num; mz++)
 			if(intens[rt*mz_num+mz]>1000.0)
 	{
 	 	pos[MZ] = mzs[mz];

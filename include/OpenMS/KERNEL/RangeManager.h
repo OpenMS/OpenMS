@@ -24,8 +24,8 @@
 // $Maintainer: Marc Sturm $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_DATASTRUCTURES_RANGEMANAGER_H
-#define OPENMS_DATASTRUCTURES_RANGEMANAGER_H
+#ifndef OPENMS_KERNEL_RANGEMANAGER_H
+#define OPENMS_KERNEL_RANGEMANAGER_H
 
 #include <OpenMS/DATASTRUCTURES/DRange.h>
 
@@ -36,7 +36,7 @@ namespace OpenMS
 		
 		This is needed for all peak and feature container like DSpectrum, MSExperiment and FeatureMap.
 	*/
-	template <Size D>
+	template <UnsignedInt D>
 	class RangeManager
 	{
 		public:
@@ -171,7 +171,7 @@ namespace OpenMS
            //update position
            for (UnsignedInt i = 0; i < D; ++i)
            {
-             tmp = it->getPos()[i];
+             tmp = it->getPosition()[i];
              if (tmp < min[i])
              {
                min[i] = tmp;

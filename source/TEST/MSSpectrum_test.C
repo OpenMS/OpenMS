@@ -52,20 +52,20 @@ CHECK((MSSpectrum(const MSSpectrum& source)))
   MSSpectrum<> tmp;
   tmp.getInstrumentSettings().setMzRangeStart(5.1);
 	MSSpectrum<>::PeakType peak;
-	peak.getPos()[0] = 47.11;
+	peak.getPosition()[0] = 47.11;
 	tmp.getContainer().push_back(peak);
 	
 	MSSpectrum<> tmp2(tmp);
 	TEST_REAL_EQUAL(tmp2.getInstrumentSettings().getMzRangeStart(),5.1);
 	TEST_EQUAL(tmp2.size(),1);
-	TEST_REAL_EQUAL(tmp2.getContainer()[0].getPos()[0],47.11);
+	TEST_REAL_EQUAL(tmp2.getContainer()[0].getPosition()[0],47.11);
 RESULT
 
 CHECK((MSSpectrum& operator= (const MSSpectrum& source)))
   MSSpectrum<> tmp;
   tmp.getInstrumentSettings().setMzRangeStart(5.1);
 	MSSpectrum<>::PeakType peak;
-	peak.getPos()[0] = 47.11;
+	peak.getPosition()[0] = 47.11;
 	tmp.getContainer().push_back(peak);
 	
 	//normal assignment
@@ -73,7 +73,7 @@ CHECK((MSSpectrum& operator= (const MSSpectrum& source)))
 	tmp2 = tmp;
 	TEST_REAL_EQUAL(tmp2.getInstrumentSettings().getMzRangeStart(),5.1);
 	TEST_EQUAL(tmp2.size(),1);
-	TEST_REAL_EQUAL(tmp2.getContainer()[0].getPos()[0],47.11);
+	TEST_REAL_EQUAL(tmp2.getContainer()[0].getPosition()[0],47.11);
 	
 	//Assignment of empty object
 	//normal assignment
@@ -92,7 +92,7 @@ CHECK((bool operator== (const MSSpectrum& rhs) const))
 	
 	edit = empty;
 	MSSpectrum<>::PeakType peak;
-	peak.getPos()[0] = 47.11;
+	peak.getPosition()[0] = 47.11;
 	edit.getContainer().push_back(peak);
 	TEST_EQUAL(edit==empty,false);
 RESULT
@@ -107,7 +107,7 @@ CHECK((bool operator!= (const MSSpectrum& rhs) const))
 	
 	edit = empty;
 	MSSpectrum<>::PeakType peak;
-	peak.getPos()[0] = 47.11;
+	peak.getPosition()[0] = 47.11;
 	edit.getContainer().push_back(peak);
 	TEST_EQUAL(edit!=empty,true);
 RESULT
@@ -115,10 +115,10 @@ RESULT
 CHECK(([EXTRA] MSSpectrum<RawDataPoint1D >))
 	MSSpectrum<RawDataPoint1D > tmp;
 	MSSpectrum<RawDataPoint1D >::PeakType rdp;
-	rdp.getPos()[0] = 47.11;
+	rdp.getPosition()[0] = 47.11;
 	tmp.getContainer().push_back(rdp);
 	TEST_EQUAL(tmp.size(),1);
-	TEST_REAL_EQUAL(tmp.getContainer()[0].getPos()[0],47.11);	
+	TEST_REAL_EQUAL(tmp.getContainer()[0].getPosition()[0],47.11);	
 RESULT
 
 /////////////////////////////////////////////////////////////

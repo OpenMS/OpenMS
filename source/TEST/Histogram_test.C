@@ -44,54 +44,54 @@ START_TEST(Histogram, "$Id$")
 
 Histogram<float,float>* dis_ptr = 0;
 
-CHECK(Histogram())
+CHECK((Histogram()))
 	dis_ptr = new Histogram<float,float>();
 	TEST_NOT_EQUAL(dis_ptr, 0)
 RESULT
 
-CHECK(~Histogram())
+CHECK((~Histogram()))
 	delete dis_ptr;
 RESULT
 
 Histogram<float,float> d(0, 10, 1);
 
-CHECK(Histogram(const Histogram& histogram))
+CHECK((Histogram(const Histogram& histogram)))
 	Histogram<float, float> d2(d);
 	TEST_EQUAL(d == d2, true)
 RESULT
 
-CHECK(BinSizeType min() const)
+CHECK((BinSizeType min() const))
 	TEST_REAL_EQUAL(d.min(), 0.0)
 RESULT
 
-CHECK(BinSizeType max() const)
+CHECK((BinSizeType max() const))
 	TEST_REAL_EQUAL(d.max(), 10.0)
 RESULT
 
-CHECK(BinSizeType binSize() const)
+CHECK((BinSizeType binSize() const))
 	TEST_REAL_EQUAL(d.binSize(), 1)
 RESULT
 
-CHECK(Size size() const)
+CHECK((UnsignedInt size() const))
 	TEST_EQUAL(d.size(), 10)
 RESULT
 
-CHECK(Histogram(BinSizeType min, BinSizeType max, BinSizeType bin_size) throw(Exception::OutOfRange))
+CHECK((Histogram(BinSizeType min, BinSizeType max, BinSizeType bin_size) throw(Exception::OutOfRange)))
 	Histogram<float, float> d3(5.5, 7.7, 0.2);
 	TEST_REAL_EQUAL(d3.min(), 5.5)
 	TEST_REAL_EQUAL(d3.max(), 7.7)
 	TEST_REAL_EQUAL(d3.binSize(), 0.2)
 RESULT
 
-CHECK(ValueType minValue() const)
+CHECK((ValueType minValue() const))
 	TEST_REAL_EQUAL(d.minValue(), 0.0)
 RESULT
 
-CHECK(ValueType maxValue() const)
+CHECK((ValueType maxValue() const))
 	TEST_REAL_EQUAL(d.maxValue(), 0.0)
 RESULT
 
-CHECK(ValueType operator [] (UnsignedInt index) const throw(Exception::IndexOverflow))
+CHECK((ValueType operator [] (UnsignedInt index) const throw(Exception::IndexOverflow)))
 	d.set(4, 14, 2);
 	TEST_EQUAL(d.size(),5);
 	TEST_REAL_EQUAL(d[0],0.0);
@@ -102,7 +102,7 @@ CHECK(ValueType operator [] (UnsignedInt index) const throw(Exception::IndexOver
 	TEST_EXCEPTION(Exception::IndexOverflow, d[5])
 RESULT
 
-CHECK(void inc(BinSizeType val, ValueType increment=1) throw(Exception::OutOfRange))
+CHECK((void inc(BinSizeType val, ValueType increment=1) throw(Exception::OutOfRange)))
 	TEST_EXCEPTION(Exception::OutOfRange, d.inc(3.9, 250.3))
 	TEST_EXCEPTION(Exception::OutOfRange, d.inc(14.1, 250.3))
 	d.inc(4, 1.0);
@@ -134,12 +134,12 @@ CHECK(void inc(BinSizeType val, ValueType increment=1) throw(Exception::OutOfRan
 	TEST_REAL_EQUAL(d[4],6.0);
 RESULT
 
-CHECK(ConstIterator begin() const)
+CHECK((ConstIterator begin() const))
 	Histogram<float,float>::ConstIterator it = d.begin();
 	TEST_REAL_EQUAL(*it, 2.0)
 RESULT
 
-CHECK(ConstIterator end() const)
+CHECK((ConstIterator end() const))
 	Histogram<float,float>::ConstIterator it = d.begin();
 	TEST_REAL_EQUAL(*it,2.0);
 	++it;
@@ -154,7 +154,7 @@ CHECK(ConstIterator end() const)
 	TEST_EQUAL(it==d.end(),true);
 RESULT
 
-CHECK(ValueType binValue(BinSizeType val) const throw(Exception::OutOfRange))
+CHECK((ValueType binValue(BinSizeType val) const throw(Exception::OutOfRange)))
 	TEST_EXCEPTION(Exception::OutOfRange, d.binValue(3.9))
 	TEST_REAL_EQUAL(d.binValue(4.0),2.0);
 	TEST_REAL_EQUAL(d.binValue(5.9),2.0);
@@ -169,7 +169,7 @@ CHECK(ValueType binValue(BinSizeType val) const throw(Exception::OutOfRange))
 	TEST_EXCEPTION(Exception::OutOfRange, d.binValue(14.1))
 RESULT
 	
-CHECK(void set(BinSizeType min, BinSizeType max, BinSizeType bin_size) throw(Exception::OutOfRange))
+CHECK((void set(BinSizeType min, BinSizeType max, BinSizeType bin_size) throw(Exception::OutOfRange)))
 	d.set(1, 11, 2);
 	TEST_REAL_EQUAL(d.min(), 1)
 	TEST_REAL_EQUAL(d.max(), 11)
@@ -177,20 +177,36 @@ CHECK(void set(BinSizeType min, BinSizeType max, BinSizeType bin_size) throw(Exc
 	TEST_REAL_EQUAL(d.binSize(), 2)
 RESULT
 
-CHECK(bool operator == (const Histogram& histogram) const)
+CHECK((bool operator == (const Histogram& histogram) const))
 	Histogram<float, float> dist(1, 11, 2);
 	TEST_EQUAL(d == dist, true)
 RESULT
 
-CHECK(bool operator != (const Histogram& histogram) const)
+CHECK((bool operator != (const Histogram& histogram) const))
 	Histogram<float, float> dist(1, 12, 2);
 	TEST_EQUAL(d != dist, true)
 RESULT
 
-CHECK(Histogram& operator = (const Histogram& histogram))
+CHECK((Histogram& operator = (const Histogram& histogram)))
 	Histogram<float, float> dist;
 	dist = d;
 	TEST_EQUAL(d == dist, true)
+RESULT
+
+CHECK((void applyLogTransformation(float multiplier)))
+	PRECISION(0.01)
+	Histogram<float, float> dist(0,5,1);
+	dist.inc(0.5,1);
+	dist.inc(1.5,10);
+	dist.inc(2.5,100);
+	dist.inc(3.5,1000);
+	dist.inc(4.5,10000);
+	dist.applyLogTransformation(1.0);
+	TEST_REAL_EQUAL(dist.binValue(0.5),0.6931);
+	TEST_REAL_EQUAL(dist.binValue(1.5),2.3979);
+	TEST_REAL_EQUAL(dist.binValue(2.5),4.61512);
+	TEST_REAL_EQUAL(dist.binValue(3.5),6.90875);
+	TEST_REAL_EQUAL(dist.binValue(4.5),9.21044);
 RESULT
 
 /////////////////////////////////////////////////////////////

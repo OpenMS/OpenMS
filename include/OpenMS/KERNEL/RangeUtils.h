@@ -274,7 +274,7 @@ namespace OpenMS
 		
 			inline bool operator()(const PeakType& p) const
 			{
-				double tmp = p.getPos()[0];
+				double tmp = p.getPosition()[0];
 				if (reverse_)
 				{
 					return ( min_ > tmp || max_ < tmp ); 

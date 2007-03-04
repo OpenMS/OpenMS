@@ -65,7 +65,7 @@ CHECK((PILISSequenceDB(const PILISSequenceDB&)))
 	copy.getPeptides(peptides1);
 	ptr->getPeptides(peptides2);
 	TEST_EQUAL(peptides1.size(), peptides2.size());
-	for (Size i = 0; i != peptides1.size(); ++i)
+	for (UnsignedInt i = 0; i != peptides1.size(); ++i)
 	{
 		TEST_EQUAL(peptides1[i].peptide, peptides2[i].peptide)
 	}
@@ -81,7 +81,7 @@ CHECK((PILISSequenceDB& operator = (const PILISSequenceDB& rhs)))
   copy.getPeptides(peptides1);
   ptr->getPeptides(peptides2);
   TEST_EQUAL(peptides1.size(), peptides2.size());
-  for (Size i = 0; i != peptides1.size(); ++i)
+  for (UnsignedInt i = 0; i != peptides1.size(); ++i)
   {
     TEST_EQUAL(peptides1[i].peptide, peptides2[i].peptide)
   }
@@ -134,7 +134,7 @@ CHECK((double getFactor() const))
 	TEST_REAL_EQUAL(ptr->getFactor(), 10.0)
 RESULT
 
-CHECK((void digestProteinsTryptic(Size missed_cleavages = 0)))
+CHECK((void digestProteinsTryptic(UnsignedInt missed_cleavages = 0)))
 	ptr->digestProteinsTryptic();
 	// TODO
 RESULT

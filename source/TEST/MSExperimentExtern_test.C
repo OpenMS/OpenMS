@@ -129,13 +129,13 @@ CHECK(template<class Container> void get2DData(Container& cont) const)
 	// first spectrum (MS)
 	spec.setRetentionTime(11.1);
 	spec.setMSLevel(1);
-	peak.getPos()[0] = 5;
+	peak.getPosition()[0] = 5;
 	peak.setIntensity(47.11);
 	spec.getContainer().push_back(peak);
-	peak.getPos()[0] = 10;
+	peak.getPosition()[0] = 10;
 	peak.setIntensity(48.11);
 	spec.getContainer().push_back(peak);
-	peak.getPos()[0] = 15;
+	peak.getPosition()[0] = 15;
 	spec.getContainer().push_back(peak);
 	exp.push_back(spec);
 
@@ -143,9 +143,9 @@ CHECK(template<class Container> void get2DData(Container& cont) const)
 	spec.getContainer().clear();
 	spec.setRetentionTime(11.5);
 	spec.setMSLevel(2);
-	peak.getPos()[0] = 6;
+	peak.getPosition()[0] = 6;
 	spec.getContainer().push_back(peak);
-	peak.getPos()[0] = 11;
+	peak.getPosition()[0] = 11;
 	spec.getContainer().push_back(peak);
 	exp.push_back(spec);	
 
@@ -153,9 +153,9 @@ CHECK(template<class Container> void get2DData(Container& cont) const)
 	spec.getContainer().clear();
 	spec.setRetentionTime(12.2);
 	spec.setMSLevel(1);
-	peak.getPos()[0] = 20;
+	peak.getPosition()[0] = 20;
 	spec.getContainer().push_back(peak);
-	peak.getPos()[0] = 25;
+	peak.getPosition()[0] = 25;
 	spec.getContainer().push_back(peak);
 	exp.push_back(spec);	
 
@@ -163,11 +163,11 @@ CHECK(template<class Container> void get2DData(Container& cont) const)
 	spec.getContainer().clear();
 	spec.setRetentionTime(12.5);
 	spec.setMSLevel(2);
-	peak.getPos()[0] = 21;
+	peak.getPosition()[0] = 21;
 	spec.getContainer().push_back(peak);
-	peak.getPos()[0] = 26;
+	peak.getPosition()[0] = 26;
 	spec.getContainer().push_back(peak);
-	peak.getPos()[0] = 31;
+	peak.getPosition()[0] = 31;
 	spec.getContainer().push_back(peak);
 	exp.push_back(spec);	
 	

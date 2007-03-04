@@ -98,23 +98,23 @@ if (do_tests)
 	
 	DBAdapter* ptr = 0;
 
-	CHECK((DBAdapter(DBConnection& db_con)))
+CHECK((DBAdapter(DBConnection& db_con)))
 		ptr = new DBAdapter(con);
 		TEST_NOT_EQUAL(ptr, 0)
 	RESULT
 		
-	CHECK((~DBAdapter()))
+CHECK((~DBAdapter()))
 		delete ptr;
 	RESULT
 
-	CHECK((void createDB()))
+CHECK((void createDB()))
   	DBAdapter a(con);
 		a.createDB();
 	RESULT
 
 	//check if the DB is up-to-date
 	bool db_up_to_date;
-	CHECK((bool checkDBVersion(bool warning)))
+CHECK((bool checkDBVersion(bool warning)))
 		DBAdapter a(con);
 		db_up_to_date = a.checkDBVersion(true);
 		TEST_EQUAL(db_up_to_date,true)
@@ -232,15 +232,15 @@ if (do_tests)
 		MSExperiment<>::SpectrumType spec;
 		MSExperiment<>::SpectrumType::PeakType p;
 		p.setIntensity(565);
-		p.getPos()[0] = 600.1;
+		p.getPosition()[0] = 600.1;
 		p.setMetaValue("label", String("peaklabel"));
 		spec.getContainer().push_back(p);
 		p.setIntensity(620);
-		p.getPos()[0] = 700.1;
+		p.getPosition()[0] = 700.1;
 		p.removeMetaValue("label");
 		spec.getContainer().push_back(p);
 		p.setIntensity(701);
-		p.getPos()[0] = 800.1;
+		p.getPosition()[0] = 800.1;
 		spec.getContainer().push_back(p);
 		spec.setRetentionTime(1.98);
 		spec.setMSLevel(1);	
@@ -294,17 +294,17 @@ if (do_tests)
 		//MSMS spectrum
 		spec.getContainer().clear();
 		p.setIntensity(210);
-		p.getPos()[0] = 100.155;
+		p.getPosition()[0] = 100.155;
 		spec.getContainer().push_back(p);
 		p.setIntensity(101);
-		p.getPos()[0] = 150.25;
+		p.getPosition()[0] = 150.25;
 		spec.getContainer().push_back(p);
 		p.setIntensity(90);
-		p.getPos()[0] = 300.5;
+		p.getPosition()[0] = 300.5;
 		spec.getContainer().push_back(p);
 		spec.setRetentionTime(3.96);
 		spec.setMSLevel(2);
-		spec.getPrecursorPeak().getPos()[0] = 600.1;
+		spec.getPrecursorPeak().getPosition()[0] = 600.1;
 		spec.getPrecursorPeak().setIntensity(4711);
 		spec.getPrecursorPeak().setCharge(2);
 		spec.getPrecursor().setMetaValue("icon",String("Precursor"));
@@ -331,7 +331,7 @@ if (do_tests)
 		
 		// save newly created experiment - should be added to database.
 		// success is implicitly checked later when loading from database.
-		CHECK((template<class ExperimentType> void storeExperiment(ExperimentType& exp)))
+CHECK((template<class ExperimentType> void storeExperiment(ExperimentType& exp)))
 		  DBAdapter a(con);
 		  a.storeExperiment(exp_original);
 			tmp_id = exp_original.getPersistenceId();
@@ -339,7 +339,7 @@ if (do_tests)
 		RESULT		
 	
 		// check if first spectrum of saved experiment can be loaded correctly
-		CHECK((template<class SpectrumType> void loadSpectrum(UID id, SpectrumType& spec)))
+CHECK((template <class SpectrumType> void loadSpectrum(UID id, SpectrumType &spec, PeakFileOptions options=PeakFileOptions())))
 	  	DBAdapter a(con);
 		  
 			MSSpectrum<> spec;
@@ -377,7 +377,7 @@ if (do_tests)
 			for (UnsignedInt i=0; i<3; ++i)
 			{
 				TEST_REAL_EQUAL( spec.getContainer()[i].getIntensity() , exp_original.begin()->getContainer()[i].getIntensity() )
-				TEST_REAL_EQUAL( spec.getContainer()[i].getPos()[0] , exp_original.begin()->getContainer()[i].getPos()[0] )
+				TEST_REAL_EQUAL( spec.getContainer()[i].getPosition()[0] , exp_original.begin()->getContainer()[i].getPosition()[0] )
 			}
 
 			PeakFileOptions options;
@@ -393,13 +393,13 @@ if (do_tests)
 			a.loadSpectrum(spec_tmp_id, spec, options);
 
 			// check if the MZ restriction worked - first peak (600.1) should have been skipped
-			TEST_REAL_EQUAL( spec[0].getPos()[0] , 700.1 )
-			TEST_REAL_EQUAL( spec[1].getPos()[0] , 800.1 )
+			TEST_REAL_EQUAL( spec[0].getPosition()[0] , 700.1 )
+			TEST_REAL_EQUAL( spec[1].getPosition()[0] , 800.1 )
 		RESULT
 		
 	  // load experiment from database
 		// (this implicitly checks if the new experiment was stored correctly)
-		CHECK((template<class ExperimentType> void loadExperiment(UID id, ExperimentType& exp)))
+CHECK((template <class ExperimentType> void loadExperiment(UID id, ExperimentType &exp, PeakFileOptions options=PeakFileOptions())))
 		  DBAdapter a(con);
 		  MSExperiment<> exp_new;
 		  std::map<String, MetaInfoDescription> descriptions;
@@ -504,7 +504,7 @@ if (do_tests)
 			for (UnsignedInt i=0; i<3; ++i)
 			{
 				TEST_REAL_EQUAL( itn->getContainer()[i].getIntensity() , ito->getContainer()[i].getIntensity() )
-				TEST_REAL_EQUAL( itn->getContainer()[i].getPos()[0] , ito->getContainer()[i].getPos()[0] )
+				TEST_REAL_EQUAL( itn->getContainer()[i].getPosition()[0] , ito->getContainer()[i].getPosition()[0] )
 			}
 		
 			//SPECTRUM 2
@@ -513,7 +513,7 @@ if (do_tests)
 				
 		  TEST_EQUAL( itn->getRetentionTime() , ito->getRetentionTime() )
 			TEST_EQUAL( itn->getMSLevel() , ito->getMSLevel() )
-			TEST_EQUAL( itn->getPrecursorPeak().getPos()[0] , ito->getPrecursorPeak().getPos()[0] )
+			TEST_EQUAL( itn->getPrecursorPeak().getPosition()[0] , ito->getPrecursorPeak().getPosition()[0] )
 			TEST_EQUAL( itn->getPrecursorPeak().getIntensity() , ito->getPrecursorPeak().getIntensity() )
 			TEST_EQUAL( itn->getPrecursorPeak().getCharge() , ito->getPrecursorPeak().getCharge() )
 			TEST_EQUAL( itn->getPrecursor().getMetaValue("icon") , "Precursor" )
@@ -524,7 +524,7 @@ if (do_tests)
 			for (UnsignedInt i=0; i<3; ++i)
 			{
 				TEST_REAL_EQUAL( itn->getContainer()[i].getIntensity() , ito->getContainer()[i].getIntensity() )
-				TEST_REAL_EQUAL( itn->getContainer()[i].getPos()[0] , ito->getContainer()[i].getPos()[0] )
+				TEST_REAL_EQUAL( itn->getContainer()[i].getPosition()[0] , ito->getContainer()[i].getPosition()[0] )
 			}
 			
 			//META INFO
@@ -541,7 +541,7 @@ if (do_tests)
 			a.loadExperiment(tmp_id, exp_new, options);
 
 			// check if the RT restriction worked - first spectrum should have been skipped
-			TEST_REAL_EQUAL( exp_new[0][0].getPos()[0] , 100.155 )
+			TEST_REAL_EQUAL( exp_new[0][0].getPosition()[0] , 100.155 )
 
 			exp_new = MSExperiment<>();
 			options = PeakFileOptions();
@@ -551,7 +551,7 @@ if (do_tests)
 			a.loadExperiment(tmp_id, exp_new, options);
 
 			// check if the MSLevel restriction worked - first spectrum should have been skipped
-			TEST_REAL_EQUAL( exp_new[0][0].getPos()[0] , 100.155 )
+			TEST_REAL_EQUAL( exp_new[0][0].getPosition()[0] , 100.155 )
 		RESULT
 	
 		// save modified version of already existing experiment - old records should be updated.
@@ -562,11 +562,11 @@ if (do_tests)
 			// modify first spectrum
 			MSExperiment<>::SpectrumType & modified_spec = exp_original[0];
 			modified_spec[0].setIntensity(566);
-			modified_spec[0].getPos()[0] = 612.1;
+			modified_spec[0].getPosition()[0] = 612.1;
 			modified_spec[1].setIntensity(620);
-			modified_spec[1].getPos()[0] = 712.1;
+			modified_spec[1].getPosition()[0] = 712.1;
 			modified_spec[2].setIntensity(701);
-			modified_spec[2].getPos()[0] = 812.1;
+			modified_spec[2].getPosition()[0] = 812.1;
 			modified_spec.setRetentionTime(1.88);
 			modified_spec.setMSLevel(1);
 			modified_spec.getInstrumentSettings().setMzRangeStart(3.567);
@@ -639,7 +639,7 @@ if (do_tests)
 			for (UnsignedInt i=0; i<3; ++i)
 			{
 				TEST_REAL_EQUAL( itn->getContainer()[i].getIntensity() , ito->getContainer()[i].getIntensity() )
-				TEST_REAL_EQUAL( itn->getContainer()[i].getPos()[0] , ito->getContainer()[i].getPos()[0] )
+				TEST_REAL_EQUAL( itn->getContainer()[i].getPosition()[0] , ito->getContainer()[i].getPosition()[0] )
 			}
 		
 			//SPECTRUM 2
@@ -648,7 +648,7 @@ if (do_tests)
 				
 		  TEST_EQUAL( itn->getRetentionTime() , ito->getRetentionTime() )
 			TEST_EQUAL( itn->getMSLevel() , ito->getMSLevel() )
-			TEST_EQUAL( itn->getPrecursorPeak().getPos()[0] , ito->getPrecursorPeak().getPos()[0] )
+			TEST_EQUAL( itn->getPrecursorPeak().getPosition()[0] , ito->getPrecursorPeak().getPosition()[0] )
 			TEST_EQUAL( itn->getPrecursorPeak().getIntensity() , ito->getPrecursorPeak().getIntensity() )
 			TEST_EQUAL( itn->getPrecursorPeak().getCharge() , ito->getPrecursorPeak().getCharge() )
 			TEST_EQUAL( itn->getPrecursor().getMetaValue("icon") , "NewPrecursor" )
@@ -657,7 +657,7 @@ if (do_tests)
 			for (UnsignedInt i=0; i<3; ++i)
 			{
 				TEST_REAL_EQUAL( itn->getContainer()[i].getIntensity() , ito->getContainer()[i].getIntensity() )
-				TEST_REAL_EQUAL( itn->getContainer()[i].getPos()[0] , ito->getContainer()[i].getPos()[0] )
+				TEST_REAL_EQUAL( itn->getContainer()[i].getPosition()[0] , ito->getContainer()[i].getPosition()[0] )
 			}
 			
 			//META INFO

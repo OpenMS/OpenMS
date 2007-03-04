@@ -74,7 +74,7 @@ namespace OpenMS
 		p.setValue("epsilon", epsilon);
 		aligner.setParameters(p);
 
-		vector<pair<Size, Size> > alignment;
+		vector<pair<UnsignedInt, UnsignedInt> > alignment;
 		aligner.getSpectrumAlignment(alignment, s1, s2);
 		unique(alignment.begin(), alignment.end());
 
@@ -89,7 +89,7 @@ namespace OpenMS
 			sum2 += it1->getIntensity() * it1->getIntensity();
 		}
 		
-		for (vector<pair<Size, Size> >::const_iterator it = alignment.begin(); it != alignment.end(); ++it)
+		for (vector<pair<UnsignedInt, UnsignedInt> >::const_iterator it = alignment.begin(); it != alignment.end(); ++it)
 		{
 			sum += pow(s1.getContainer()[it->first].getIntensity() * s2.getContainer()[it->second].getIntensity(), exponent);
 		}

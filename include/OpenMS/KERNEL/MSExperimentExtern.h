@@ -382,7 +382,7 @@ namespace OpenMS
 	              cont.insert(cont.end(), typename Container::value_type());
 	              cont.back().setRT(spec.getRetentionTime());
 	              cont.back().setIntensity(it->getIntensity());
-	              cont.back().setMZ(it->getPos()[0]);
+	              cont.back().setMZ(it->getPosition()[0]);
 	            }
 	        }
 	    }
@@ -415,7 +415,7 @@ namespace OpenMS
 	          // create temporary peak and insert it into spectrum
 	          spectrum->insert(spectrum->end(), PeakType());
 	          spectrum->back().setIntensity(iter->getIntensity());
-	          spectrum->back().getPos()[0] = iter->getMZ();
+	          spectrum->back().getPosition()[0] = iter->getMZ();
 	        }
 	    }
 	
@@ -837,7 +837,7 @@ namespace OpenMS
 	    /// Maps buffer index to scan number
 	    mutable std::vector<size_type> buffer2scan_;
 	
-	    /// Size of all scans
+	    /// UnsignedInt of all scans
 	    mutable std::vector<size_type> scan_sizes_;
 	
 	    /// Name of the temporary file to store the peak data

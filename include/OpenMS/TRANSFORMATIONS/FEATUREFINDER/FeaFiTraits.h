@@ -53,9 +53,9 @@ namespace OpenMS
 	class FeaFiTraits
 	{
 		public:
-			/// Index in a MSExperiment ( first index denotes rt, second m/z )
+			/// SignedInt in a MSExperiment ( first index denotes rt, second m/z )
 			typedef std::pair<UnsignedInt,UnsignedInt> IDX;
-			/// Index set
+			/// SignedInt set
 			typedef std::set<IDX> IndexSet;
 	
 	    /// Flag for each data point

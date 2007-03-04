@@ -70,9 +70,9 @@ namespace OpenMS
 			ContainerType& data = interpolation_.getData();
 			data.clear();
 			if (max_==min_) return;
-			data.reserve( Size ( (max_-min_) / interpolation_step_ + 1 ) );
+			data.reserve( UnsignedInt ( (max_-min_) / interpolation_step_ + 1 ) );
 			CoordinateType pos = min_;
-			for ( Size i = 0; pos< max_; ++i)	// old Version: pos<=max_ -> dangerous '==' with double
+			for ( UnsignedInt i = 0; pos< max_; ++i)	// old Version: pos<=max_ -> dangerous '==' with double
 			{
 				pos = min_ + i * interpolation_step_;
 				data.push_back( statistics_.normalDensity_sqrt2pi(pos) );

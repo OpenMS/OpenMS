@@ -75,13 +75,13 @@ namespace OpenMS
 		ContainerType& data = interpolation_.getData();
 		data.clear();
 		if (max_==min_) return;
-		data.reserve( Size ( (max_-min_) / interpolation_step_ + 1 ) );
+		data.reserve( UnsignedInt ( (max_-min_) / interpolation_step_ + 1 ) );
 		CoordinateType pos = min_;
 
 		double part1 = 1/(sqrt(2*M_PI)*standard_deviation_);
 		double part2 = (2*standard_deviation_*standard_deviation_);
 
-		for ( Size i = 0; pos< max_; ++i)
+		for ( UnsignedInt i = 0; pos< max_; ++i)
 		{
 			pos = min_ + i * interpolation_step_;
 

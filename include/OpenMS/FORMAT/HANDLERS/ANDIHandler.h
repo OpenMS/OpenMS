@@ -93,7 +93,7 @@ namespace OpenMS
 
 		/**@name temporary datastructures to hold parsed data */
 		//@{
-		Size peak_count_;
+		UnsignedInt peak_count_;
 		typename MapType::SpectrumType::PeakType peak_;
 		typename MapType::SpectrumType* spec_;
 		IonSource::Polarity pol_;
@@ -456,7 +456,7 @@ namespace OpenMS
 
 			// Build 1D peak
 			spec_->getContainer()[i].setIntensity(intensity);
-			spec_->getContainer()[i].setPos(masses);
+			spec_->getContainer()[i].setPosition(masses);
 		}
 
 		// unused MS_Raw_Data_Global fields:	mass_axis_global_min, mass_axis_global_max, time_axis_global_min,

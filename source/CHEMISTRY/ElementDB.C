@@ -55,7 +55,7 @@ namespace OpenMS
 		return symbols_;
 	}
 
-	const HashMap<Size, const Element*>& ElementDB::getAtomicNumbers() const
+	const HashMap<UnsignedInt, const Element*>& ElementDB::getAtomicNumbers() const
 	{
 		return atomic_numbers_;
 	}
@@ -76,7 +76,7 @@ namespace OpenMS
 		return 0;
 	}
 
-	const Element* ElementDB::getElement(Size atomic_number) const
+	const Element* ElementDB::getElement(UnsignedInt atomic_number) const
 	{
 		if (atomic_numbers_.has(atomic_number))
 		{
@@ -90,7 +90,7 @@ namespace OpenMS
 		return (names_.has(name) || symbols_.has(name));
 	}
 
-	bool ElementDB::hasElement(Size atomic_number) const
+	bool ElementDB::hasElement(UnsignedInt atomic_number) const
 	{
 		return (atomic_numbers_.has(atomic_number));
 	}
@@ -100,7 +100,7 @@ namespace OpenMS
 		Param param;
 		param.load(file_name);
 
-		Size an(0);
+		UnsignedInt an(0);
 		float avg_weight(0), mono_weight(0);
 		String name, symbol;
 		
@@ -108,7 +108,7 @@ namespace OpenMS
 		vector<String> split;
 		String(param.begin()->first).split(':',split);
 		String prefix("");
-		for (Size i=0;i<split.size()-1;++i)
+		for (UnsignedInt i=0;i<split.size()-1;++i)
 		{
 			prefix += split[i]+":";
 		}
@@ -122,7 +122,7 @@ namespace OpenMS
 				// update prefix
 				String(it->first).split(':',split);
 				prefix = "";
-				for (Size i=0;i<split.size()-1;++i)
+				for (UnsignedInt i=0;i<split.size()-1;++i)
 				{
 					prefix += split[i]+":";
 				}
@@ -145,7 +145,7 @@ namespace OpenMS
 
 			if (key == "AtomicNumber")
 			{
-				an = (Size)value.toInt();
+				an = (UnsignedInt)value.toInt();
 			}
 			else
 			{

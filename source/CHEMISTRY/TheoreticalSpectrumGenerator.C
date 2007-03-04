@@ -111,7 +111,7 @@ namespace OpenMS
 		switch(res_type)
 		{
 			case Residue::AIon:
-				for (Size i = 1; i != peptide.size(); ++i)
+				for (UnsignedInt i = 1; i != peptide.size(); ++i)
 				{
 					ion = peptide.getPrefix(i);
 					double pos = ion.getMonoWeight(Residue::AIon, charge) / charge;
@@ -122,7 +122,7 @@ namespace OpenMS
 				break;
 				
 			case Residue::BIon:
-				for (Size i = 1; i != peptide.size(); ++i)
+				for (UnsignedInt i = 1; i != peptide.size(); ++i)
 				{
 					ion = peptide.getPrefix(i);
 					double pos = ion.getMonoWeight(Residue::BIon, charge) / charge;
@@ -133,7 +133,7 @@ namespace OpenMS
 				break;
 				
 			case Residue::CIon:
-				for (Size i = 1; i != peptide.size(); ++i)
+				for (UnsignedInt i = 1; i != peptide.size(); ++i)
 				{
 					ion = peptide.getPrefix(i);
 					double pos = ion.getMonoWeight(Residue::CIon, charge) / charge;
@@ -144,7 +144,7 @@ namespace OpenMS
 				break;
 				
 			case Residue::XIon:
-				for (Size i = 1; i != peptide.size(); ++i)
+				for (UnsignedInt i = 1; i != peptide.size(); ++i)
 				{
 					ion = peptide.getSuffix(i);
 					double pos = ion.getMonoWeight(Residue::XIon, charge) / charge;
@@ -155,7 +155,7 @@ namespace OpenMS
 				break;
 				
 			case Residue::YIon:
-				for (Size i = 1; i != peptide.size(); ++i)
+				for (UnsignedInt i = 1; i != peptide.size(); ++i)
 				{
 					ion = peptide.getSuffix(i);
 					double pos = ion.getMonoWeight(Residue::YIon, charge) / charge;
@@ -166,7 +166,7 @@ namespace OpenMS
 				break;
 				
 			case Residue::ZIon:
-				for (Size i = 1; i != peptide.size(); ++i)
+				for (UnsignedInt i = 1; i != peptide.size(); ++i)
 				{
 					ion = peptide.getSuffix(i);
 					double pos = ion.getMonoWeight(Residue::ZIon, charge) / charge;
@@ -196,7 +196,7 @@ namespace OpenMS
 			if (add_isotopes)
 			{
 				IsotopeDistribution dist = ion.getFormula(res_type, charge).getIsotopeDistribution(max_isotope);
-				Size j(0);
+				UnsignedInt j(0);
 				for (IsotopeDistribution::ConstIterator it=dist.begin(); it!=dist.end(); ++it, ++j)
 				{
 					p_.setMZ(pos+j/charge);
@@ -221,13 +221,13 @@ namespace OpenMS
 			
 			if (add_losses)
 			{
-				HashMap<const EmpiricalFormula*, Size> losses = ion.getNeutralLosses();
+				HashMap<const EmpiricalFormula*, UnsignedInt> losses = ion.getNeutralLosses();
 				if (!add_isotopes)
 				{
 					p_.setIntensity(intensity * rel_loss_intensity);
 				}
 				
-				for (HashMap<const EmpiricalFormula*, Size>::ConstIterator it=losses.begin(); it!=losses.end(); ++it)
+				for (HashMap<const EmpiricalFormula*, UnsignedInt>::ConstIterator it=losses.begin(); it!=losses.end(); ++it)
 				{
 					EmpiricalFormula loss_ion = ion.getFormula(res_type, charge) - *it->first;
 					double loss_pos = loss_ion.getMonoWeight() / charge;
@@ -236,7 +236,7 @@ namespace OpenMS
 					if (add_isotopes)
 					{
 						IsotopeDistribution dist = loss_ion.getIsotopeDistribution(max_isotope);
-						Size j(0);
+						UnsignedInt j(0);
 						for (IsotopeDistribution::ConstIterator iso=dist.begin(); iso!=dist.end(); ++iso)
 						{
 							p_.setMZ(loss_pos + j / charge);

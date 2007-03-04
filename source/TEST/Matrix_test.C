@@ -197,9 +197,9 @@ CHECK(SizeType rowIndex(SizeType index) const)
   TEST_EQUAL(mf.rowIndex(30),4)
 RESULT
 
-CHECK((std::pair<Size,Size> const indexPair(Size index) const))
+CHECK((std::pair<UnsignedInt,UnsignedInt> const indexPair(UnsignedInt index) const))
 {
-	std::pair<Size,Size> result = mf.indexPair(30);
+	std::pair<UnsignedInt,UnsignedInt> result = mf.indexPair(30);
   TEST_EQUAL(result.first,4);
 	TEST_EQUAL(result.second,2);
 }

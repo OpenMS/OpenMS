@@ -109,14 +109,14 @@ namespace OpenMS
 
     void FeaturePairsHandler::characters(const XMLCh* const chars, const unsigned int /*length*/)
     {
-      for (Size i=0; i<is_parser_in_tag_.size(); i++)
+      for (UnsignedInt i=0; i<is_parser_in_tag_.size(); i++)
       {
         if (is_parser_in_tag_[i])
         {
           switch(i)
           {
           case FEATINTENSITY:   feature_->setIntensity(asDouble_(xercesc::XMLString::transcode(chars))); break;
-          case POSITION:        feature_->getPos()[current_pcoord_] = asDouble_(xercesc::XMLString::transcode(chars)); break;
+          case POSITION:        feature_->getPosition()[current_pcoord_] = asDouble_(xercesc::XMLString::transcode(chars)); break;
           case QUALITY:         feature_->setQuality(current_qcoord_,asDouble_(xercesc::XMLString::transcode(chars))); break;
           case OVERALLQUALITY:  feature_->setOverallQuality(asDouble_(xercesc::XMLString::transcode(chars))); break;
           case CHARGE:          feature_->setCharge(asSignedInt_(xercesc::XMLString::transcode(chars))); break;
@@ -168,7 +168,7 @@ namespace OpenMS
     {
       os << "\t<feature id=\"" << id_generator_.getUID() << "\">" << std::endl;
 
-      Feature::PositionType pos = dfeat.getPos();
+      Feature::PositionType pos = dfeat.getPosition();
       UnsignedInt dpos_size = pos.size();
 
       for (UnsignedInt i=0; i<dpos_size;i++)

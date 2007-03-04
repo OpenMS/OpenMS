@@ -116,9 +116,9 @@ CHECK([EXTRA] DefaultParamHandler::setParameters(...))
 	PRECISION(0.0001)
 	TEST_EQUAL(dpa1.size(),dpa2.size())
 	ABORT_IF(dpa1.size()!=dpa2.size());
-	for (Size i=0; i<dpa1.size(); ++i)
+	for (UnsignedInt i=0; i<dpa1.size(); ++i)
 	{
-		TEST_REAL_EQUAL(dpa1[i].getPos()[0],dpa2[i].getPos()[0])
+		TEST_REAL_EQUAL(dpa1[i].getPosition()[0],dpa2[i].getPosition()[0])
 		TEST_REAL_EQUAL(dpa1[i].getIntensity(),dpa2[i].getIntensity())
 	}
 RESULT
@@ -193,9 +193,9 @@ CHECK(void setOffset(double offset))
 	PRECISION(0.001)
 	TEST_EQUAL(dpa1.size(),dpa2.size())
 	ABORT_IF(dpa1.size()!=dpa2.size());
-	for (Size i=0; i<dpa1.size(); ++i)
+	for (UnsignedInt i=0; i<dpa1.size(); ++i)
 	{
-		TEST_REAL_EQUAL(dpa1[i].getPos()[0],dpa2[i].getPos()[0])
+		TEST_REAL_EQUAL(dpa1[i].getPosition()[0],dpa2[i].getPosition()[0])
 		TEST_REAL_EQUAL(dpa1[i].getIntensity(),dpa2[i].getIntensity())
 	}
 

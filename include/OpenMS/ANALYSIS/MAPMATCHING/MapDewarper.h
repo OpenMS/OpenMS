@@ -137,9 +137,9 @@ namespace OpenMS
       typename Grid::iterator grid_iter = grid_.begin();
       while (grid_iter != grid_.end() )
       {
-        if (grid_iter->encloses(feat_iter->getPos() ) )
+        if (grid_iter->encloses(feat_iter->getPosition() ) )
         {
-          DPosition<2> pos = feat_iter->getPos();
+          DPosition<2> pos = feat_iter->getPosition();
           // apply transform for every coordinate
           for (unsigned int i=0; i < 2; i++)
           {
@@ -149,7 +149,7 @@ namespace OpenMS
             grid_iter->getMappings().at(i)->apply(temp);
             pos[i] = temp;
           }
-          feat_iter->setPos(pos);
+          feat_iter->setPosition(pos);
         }
         grid_iter++;
 

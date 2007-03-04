@@ -39,8 +39,8 @@ namespace OpenMS
         mapping_(),
         param_()
     {
-      for (Index i=0; i<TAG_NUM; i++) in_tag_[i] = false;
-      for (Index i=0; i<MAP_NUM; i++) maps[i] = Map();
+      for (SignedInt i=0; i<TAG_NUM; i++) in_tag_[i] = false;
+      for (SignedInt i=0; i<MAP_NUM; i++) maps[i] = Map();
       setConstants_();
       fillMaps_();
       registerMappings_();
@@ -103,7 +103,7 @@ namespace OpenMS
     // Docu in base class
     void GridHandler::characters(const XMLCh* const chars, const unsigned int /*length*/)
     {
-      for (Index i=0; i<TAG_NUM; i++)
+      for (SignedInt i=0; i<TAG_NUM; i++)
       {
         if (in_tag_[i])
         {

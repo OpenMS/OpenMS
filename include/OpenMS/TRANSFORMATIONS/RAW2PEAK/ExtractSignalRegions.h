@@ -179,8 +179,8 @@ public:
         while(new_end != (last-1))
         {
 #ifdef DEBUG_PEAK_PICKING
-            std::cout << "while : first " << first->getPos() << " while : new_end " << new_end->getPos()
-            <<  " " << ((new_end+1)->getPos() - new_end->getPos())<< std::endl;
+            std::cout << "while : first " << first->getPosition() << " while : new_end " << new_end->getPosition()
+            <<  " " << ((new_end+1)->getPosition() - new_end->getPosition())<< std::endl;
 #endif
 
             if (new_end->getIntensity() > noise_level)
@@ -189,10 +189,10 @@ public:
             }
 
             // is there a gap between new_end and the next data point, which is greater than one dalton?
-            if (((new_end+1)->getPos() - new_end->getPos()) > 1)
+            if (((new_end+1)->getPosition() - new_end->getPosition()) > 1)
             {
 #ifdef DEBUG_PEAK_PICKING
-                std::cout << "gap " << new_end->getPos() << " und first " << first->getPos() << " dist: " << distance(first,new_end)<<std::endl;
+                std::cout << "gap " << new_end->getPosition() << " und first " << first->getPosition() << " dist: " << distance(first,new_end)<<std::endl;
 #endif
                 // and are there enough datapoints between first and new_end?
                 if ((distance(first,(new_end+1)) > 3) && (greater_noise != it_end))
@@ -203,8 +203,8 @@ public:
 #ifdef DEBUG_PEAK_PICKING
 
                     std::cout << " find the end x da away: " <<  std::endl
-                    << " push first " << first->getPos()
-                    << " push last " << (new_end)->getPos()
+                    << " push first " << first->getPosition()
+                    << " push last " << (new_end)->getPosition()
                     << " distance " << distance(first,(new_end+1))
                     << std::endl;
 #endif
@@ -217,17 +217,17 @@ public:
                 ++new_end;
 #ifdef DEBUG_PEAK_PICKING
 
-                std::cout << "after gap: first " << first->getPos() << std::endl;
+                std::cout << "after gap: first " << first->getPosition() << std::endl;
 #endif
 
                 continue;
             }
 
             // if the split has already  a length of dalton_per_split_ search for a minimum and cut
-            if (((new_end)->getPos() - first->getPos()) > dalton_per_split_)
+            if (((new_end)->getPosition() - first->getPosition()) > dalton_per_split_)
             {
 #ifdef DEBUG_PEAK_PICKING
-                std::cout << "dalton_per_split_ reached " << first->getPos()  << " " << (new_end)->getPos() << std::endl;
+                std::cout << "dalton_per_split_ reached " << first->getPosition()  << " " << (new_end)->getPosition() << std::endl;
 #endif
 
                 int  search_radius = 5;
@@ -261,8 +261,8 @@ public:
 #ifdef DEBUG_PEAK_PICKING
 
                             std::cout << "minimum found " << std::endl
-                            << " push " << first->getPos()
-                            << " and " << (left_temp-1)->getPos() << std::endl;
+                            << " push " << first->getPosition()
+                            << " and " << (left_temp-1)->getPosition() << std::endl;
 #endif
 
                             new_end = left_temp;
@@ -281,8 +281,8 @@ public:
         if ((distance(first, new_end) > 3) && (greater_noise != it_end))
         {
 #ifdef DEBUG_PEAK_PICKING
-            std::cout << " push the last split: first " << first->getPos() << std::endl
-            << "push last " << (new_end)->getPos()
+            std::cout << " push the last split: first " << first->getPosition() << std::endl
+            << "push last " << (new_end)->getPosition()
             << "distance " << distance(first,(new_end+2)) << std::endl;
 #endif
 

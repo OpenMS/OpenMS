@@ -159,7 +159,7 @@ namespace OpenMS
 		{
 			for (unsigned int i=start; i<traits_->getData()[scan].getContainer().size(); ++i)
 			{
-				if (traits_->getData()[scan].getContainer()[i].getPos() > mz)
+				if (traits_->getData()[scan].getContainer()[i].getPosition() > mz)
 				{
 					return std::make_pair(i-1, i);
 				}

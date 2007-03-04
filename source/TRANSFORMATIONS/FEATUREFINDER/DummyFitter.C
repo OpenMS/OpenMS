@@ -74,7 +74,7 @@ namespace OpenMS
   Feature DummyFitter::fit(const IndexSet& set) throw (UnableToFit)
 	{		
 		// not enough peaks to fit
-		if (set.size() < static_cast<Size>(param_.getValue("min_num_peaks:extended")))
+		if (set.size() < static_cast<UnsignedInt>(param_.getValue("min_num_peaks:extended")))
 		{
 			for (IndexSet::const_iterator it=set.begin(); it!=set.end(); ++it) 
 			{

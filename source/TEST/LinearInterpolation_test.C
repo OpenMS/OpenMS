@@ -469,7 +469,7 @@ CHECK((void addValue( KeyType arg_pos, ValueType arg_value ) throw()))
 
 		lininterpol.getData().resize(5);
 		lininterpol.addValue(2.3,10);
-		for ( Size i = 0; i != lininterpol.getData().size(); ++i )
+		for ( UnsignedInt i = 0; i != lininterpol.getData().size(); ++i )
 		{
 			STATUS(i << ": " << lininterpol.getData()[i]);
 		}
@@ -482,7 +482,7 @@ CHECK((void addValue( KeyType arg_pos, ValueType arg_value ) throw()))
 
 		lininterpol.getData().resize(5);
 		lininterpol.addValue(0.3,10);
-		for ( Size i = 0; i != lininterpol.getData().size(); ++i )
+		for ( UnsignedInt i = 0; i != lininterpol.getData().size(); ++i )
 		{
 			STATUS(i << ": " << lininterpol.getData()[i]);
 		}
@@ -495,7 +495,7 @@ CHECK((void addValue( KeyType arg_pos, ValueType arg_value ) throw()))
 
 		lininterpol.getData().resize(5);
 		lininterpol.addValue(-0.7,10);
-		for ( Size i = 0; i != lininterpol.getData().size(); ++i )
+		for ( UnsignedInt i = 0; i != lininterpol.getData().size(); ++i )
 		{
 			STATUS(i << ": " << lininterpol.getData()[i]);
 		}
@@ -507,7 +507,7 @@ CHECK((void addValue( KeyType arg_pos, ValueType arg_value ) throw()))
 
 		lininterpol.getData().resize(5);
 		lininterpol.addValue(-1.7,10);
-		for ( Size i = 0; i != lininterpol.getData().size(); ++i )
+		for ( UnsignedInt i = 0; i != lininterpol.getData().size(); ++i )
 		{
 			STATUS(i << ": " << lininterpol.getData()[i]);
 		}
@@ -519,7 +519,7 @@ CHECK((void addValue( KeyType arg_pos, ValueType arg_value ) throw()))
 
 		lininterpol.getData().resize(5);
 		lininterpol.addValue(3.3,10);
-		for ( Size i = 0; i != lininterpol.getData().size(); ++i )
+		for ( UnsignedInt i = 0; i != lininterpol.getData().size(); ++i )
 		{
 			STATUS(i << ": " << lininterpol.getData()[i])
 				}
@@ -532,7 +532,7 @@ CHECK((void addValue( KeyType arg_pos, ValueType arg_value ) throw()))
 
 		lininterpol.getData().resize(5);
 		lininterpol.addValue(4.3,10);
-		for ( Size i = 0; i != lininterpol.getData().size(); ++i )
+		for ( UnsignedInt i = 0; i != lininterpol.getData().size(); ++i )
 		{
 			STATUS(i << ": " << lininterpol.getData()[i]);
 		}
@@ -544,7 +544,7 @@ CHECK((void addValue( KeyType arg_pos, ValueType arg_value ) throw()))
 
 		lininterpol.getData().resize(5);
 		lininterpol.addValue(5.3,10);
-		for ( Size i = 0; i != lininterpol.getData().size(); ++i )
+		for ( UnsignedInt i = 0; i != lininterpol.getData().size(); ++i )
 		{
 			STATUS(i << ": " << lininterpol.getData()[i]);
 		}

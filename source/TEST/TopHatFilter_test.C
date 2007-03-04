@@ -97,7 +97,7 @@ CHECK((template<typename InputPeakIterator, typename OutputPeakContainer  > void
         {
           p.setIntensity(0);
         }
-      p.setPos(pos);
+      p.setPosition(pos);
       raw_data.push_back(p);
     }
 
@@ -131,7 +131,7 @@ CHECK((template<typename InputPeakIterator, typename OutputPeakContainer  > void
         {
           p.setIntensity(0);
         }
-      p.setPos(pos);
+      p.setPosition(pos);
       raw_data.push_back(p);
      }
 
@@ -160,7 +160,7 @@ CHECK((template<typename InputPeakType, typename OutputPeakType > void filterExp
     DPosition<2> pos;
     pos[0]=10.;
     pos[1]=i;
-    p.setPos(pos);
+    p.setPosition(pos);
 
     if ( (1<i) && (i<5))
     {
@@ -210,7 +210,7 @@ CHECK((template<typename InputSpectrumIterator, typename OutputPeakType > void f
         {
           p.setIntensity(0);
         }
-      p.setPos(pos);
+      p.setPosition(pos);
       raw_data.push_back(p);
     }
 

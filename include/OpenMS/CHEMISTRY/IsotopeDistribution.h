@@ -59,12 +59,12 @@ namespace OpenMS
 			/// @name Constructors and Destructors
 			//@{
 			/** Default constructor, note max_isotope must be set later 
-					@see setMaxIsotope(Size max_isotope)
+					@see setMaxIsotope(UnsignedInt max_isotope)
 			*/
 			IsotopeDistribution();
 
 			/// Detailed constructor which sets the @p max_isotope
-			IsotopeDistribution(Size max_isotope);
+			IsotopeDistribution(UnsignedInt max_isotope);
 
 			/// Copy constructor
 			IsotopeDistribution(const IsotopeDistribution& isotope_distribution);
@@ -81,10 +81,10 @@ namespace OpenMS
 					and used to limit the calculations. This is useful as distributions
 					with numerous isotopes tend to have a lot of numerical zeros at the end
 			*/
-			void setMaxIsotope(Size max_isotope);
+			void setMaxIsotope(UnsignedInt max_isotope);
 			
 			/// returns the currently set maximum isotope
-			Size getMaxIsotope() const;
+			UnsignedInt getMaxIsotope() const;
 			
 			/// Retrieve threshold for isotope probabilities 
 			double getTrimRightCutoff()  { return trim_right_cutoff_; }
@@ -105,7 +105,7 @@ namespace OpenMS
 			UnsignedInt getMin() const;
 
 			/// returns the size of the distribtion which is the number of isotopes in the distribution
-			Size size() const;
+			UnsignedInt size() const;
 
 			/// clears the distribution and resets max isotope to 0
 			void clear();
@@ -171,13 +171,13 @@ namespace OpenMS
 			void convolve_(ContainerType& result, const ContainerType& left, const ContainerType& right) const;
 
 			/// convolves the distribution @p input @p factor times and stores the result in @p result
-			void convolvePow_(ContainerType& result, const ContainerType& input, Size factor) const;
+			void convolvePow_(ContainerType& result, const ContainerType& input, UnsignedInt factor) const;
 
 			/// convolves the distribution @p input with itself and stores the result in @p result
 			void convolveSquare_(ContainerType& result, const ContainerType& input) const;
 
 			/// maximal isotopes which is used to calculate the distribution
-			Size max_isotope_;
+			UnsignedInt max_isotope_;
 
 			/// stores the isotope distribution
 			ContainerType distribution_;

@@ -176,7 +176,7 @@ namespace OpenMS
 			/**@name temporary datastructures to hold parsed data */
 			//@{
 				
-			Size peak_count_;
+			UnsignedInt peak_count_;
 			SpectrumType spec_;
 			Precursor* prec_;
 			Acquisition* acq_;
@@ -216,7 +216,7 @@ namespace OpenMS
 			void userParam_(const String& name, const String& value);
 
 			/// write binary data to stream using the first decoder_ (previously filled)
-			inline void writeBinary_(std::ostream& os, Size size, const String& tag, const String& desc="", int id=-1)
+			inline void writeBinary_(std::ostream& os, UnsignedInt size, const String& tag, const String& desc="", int id=-1)
 			{
 				os 	<< "\t\t\t<" << tag;
 				if (id>=0)
@@ -260,7 +260,7 @@ namespace OpenMS
 				 picked peaks.  Default is to do nothing.
 			*/
 			template <typename PeakType>
-			void readPeakSupplementalData_( std::vector<void*>& /*data*/, PeakType& /*peak*/, Size /*n*/)
+			void readPeakSupplementalData_( std::vector<void*>& /*data*/, PeakType& /*peak*/, UnsignedInt /*n*/)
 			{
 			}
 
@@ -278,7 +278,7 @@ namespace OpenMS
 			}
 
 			// find the tag that the parser is in right now
- 			for (Size i=0; i<is_parser_in_tag_.size(); i++)
+ 			for (UnsignedInt i=0; i<is_parser_in_tag_.size(); i++)
  			{
 				if (is_parser_in_tag_[i])
 				{
@@ -352,8 +352,8 @@ namespace OpenMS
 			if (is_parser_in_tag_[DESCRIPTION])	// collect Experimental Settings
 			{
 				exp_sett_ << '<' << xercesc::XMLString::transcode(qname);
-				Size n=attributes.getLength();
-				for (Size i=0; i<n; ++i)
+				UnsignedInt n=attributes.getLength();
+				for (UnsignedInt i=0; i<n; ++i)
 				{
 					exp_sett_ << ' ' << xercesc::XMLString::transcode(attributes.getQName(i)) << "=\""	<< xercesc::XMLString::transcode(attributes.getValue(i)) << '\"';
 				}
@@ -493,8 +493,8 @@ namespace OpenMS
 							{
 								schema_ = index;
 								// refill maps with older schema
-								for (Size i=0; i<str2enum_array_.size(); i++)	str2enum_array_[i].clear();
-								for (Size i=0; i<enum2str_array_.size(); i++)	enum2str_array_[i].clear();
+								for (UnsignedInt i=0; i<str2enum_array_.size(); i++)	str2enum_array_[i].clear();
+								for (UnsignedInt i=0; i<enum2str_array_.size(); i++)	enum2str_array_[i].clear();
 								fillMaps_(Schemes::MzData[schema_]);
 							}
 						}
@@ -643,7 +643,7 @@ namespace OpenMS
 				switch (ont)
 				{
 					case MZ_ONT:
-						spec_.getPrecursorPeak().getPos()[0] = asFloat_(value);
+						spec_.getPrecursorPeak().getPosition()[0] = asFloat_(value);
 						break;
 					case CHARGESTATE:
 						spec_.getPrecursorPeak().setCharge(asSignedInt_(value));
@@ -694,7 +694,7 @@ namespace OpenMS
 				decoder_.resize(data_.size());
 
 			std::vector<void*> ptrs(data_.size(),0);		//pointers to data of each decoder
-			for (Size i=0; i<data_.size(); i++)
+			for (UnsignedInt i=0; i<data_.size(); i++)
 			{
 				if (precisions_[i]==DOUBLE)	// precision 64 Bit
 				{
@@ -726,7 +726,7 @@ namespace OpenMS
 			// this works only if MapType::PeakType is at leat DRawDataPoint
 			{
 				//push_back the peaks into the container
-				for (Size n = 0 ; n < peak_count_ ; n++)
+				for (UnsignedInt n = 0 ; n < peak_count_ ; n++)
 				{
 					double mz = getDatum_(ptrs,MZ,n);
 					double intensity = getDatum_(ptrs,INTENS,n);
@@ -735,7 +735,7 @@ namespace OpenMS
 					{
 						spec_.insert(spec_.end(), PeakType());
 						spec_.back().setIntensity(intensity);
-						spec_.back().setPos(mz);
+						spec_.back().setPosition(mz);
 						//read supplemental data for derived classes (do nothing for DPeak)
 						readPeakSupplementalData_(ptrs,spec_.back(),n);
 					}
@@ -789,7 +789,7 @@ namespace OpenMS
 					os << "\" methodOfCombination=\""
 						 << spec.getAcquisitionInfo().getMethodOfCombination() << "\" count=\""
 						 << spec.getAcquisitionInfo().size() << "\">\n";
-					for (Size i=0; i<spec.getAcquisitionInfo().size(); ++i)
+					for (UnsignedInt i=0; i<spec.getAcquisitionInfo().size(); ++i)
 					{
 						const Acquisition& ac = spec.getAcquisitionInfo()[i];
 						os << "\t\t\t\t\t\t<acquisition acqNumber=\"" << ac.getNumber() << "\">\n";
@@ -833,7 +833,7 @@ namespace OpenMS
 					{
 						const PrecursorPeak& peak = spec.getPrecursorPeak();
 						os << "\t\t\t\t\t\t<ionSelection>\n";
-						writeCVS_(os, peak.getPos()[0], "1000040", "MassToChargeRatio",7);
+						writeCVS_(os, peak.getPosition()[0], "1000040", "MassToChargeRatio",7);
 						writeCVS_(os, peak.getCharge(), "1000041", "ChargeState",7);
 						writeCVS_(os, peak.getIntensity(), "1000042", "Intensity",7);
 						if (peak.metaValueExists("#IntensityUnits"))
@@ -890,7 +890,7 @@ namespace OpenMS
 				// m/z
 				float* tmp = decoder_[0].getFloatBuffer(spec.size());
 				for (UnsignedInt i=0; i<spec.size(); i++)
-					tmp[i] = spec.getContainer()[i].getPos()[0];
+					tmp[i] = spec.getContainer()[i].getPosition()[0];
 				writeBinary_(os,spec.size(),"mzArrayBinary");
 
 				// intensity
@@ -926,7 +926,7 @@ namespace OpenMS
 		*/
 		template <>
 		template <>
-		void MzDataHandler <MSExperiment<PickedPeak1D > >::readPeakSupplementalData_ < PickedPeak1D >( std::vector<void*>& data, PickedPeak1D& peak, Size n);
+		void MzDataHandler <MSExperiment<PickedPeak1D > >::readPeakSupplementalData_ < PickedPeak1D >( std::vector<void*>& data, PickedPeak1D& peak, UnsignedInt n);
 
 
 	} // namespace Internal

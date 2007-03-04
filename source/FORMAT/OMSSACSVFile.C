@@ -56,7 +56,7 @@ namespace OpenMS
 		}
 		
 		// ignore first line
-		Size actual_spectrum_number(0);
+		UnsignedInt actual_spectrum_number(0);
 		while (getline(is, line, '\n'))
 		{
 			// Spectrum number, Filename/id, Peptide, E-value, Mass, gi, Accession, Start, Stop, Defline, Mods, Charge, Theo Mass, P-value
@@ -65,7 +65,7 @@ namespace OpenMS
 
 			// replace ',' in protein name 
 			String::ConstIterator it = find(line.begin(), line.end(), '"');
-			Size offset(0);
+			UnsignedInt offset(0);
 			if (it != line.end())
 			{
 				while (*(++it) != '"')
@@ -88,11 +88,11 @@ namespace OpenMS
 			p.setCharge(split[11+offset].trim().toInt());
 			p.setScoreType("OMSSA");
 
-			if  (actual_spectrum_number != (Size)split[0].trim().toInt())
+			if  (actual_spectrum_number != (UnsignedInt)split[0].trim().toInt())
 			{
 				// new id
 				id_data.push_back(IdentificationData());
-				actual_spectrum_number = (Size)split[0].trim().toInt();
+				actual_spectrum_number = (UnsignedInt)split[0].trim().toInt();
 			}
 
 			id_data.back().id.getPeptideHits().push_back(p);

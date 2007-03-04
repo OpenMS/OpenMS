@@ -74,7 +74,7 @@ namespace OpenMS
 		inline CoordinateType const & getWeight() const throw() { return weight_sum_; }
 
 		/** Dimensionality of the underlying position type, might be useful in a polymorphic context.*/
-		static Size const getDimension() { return DIMENSION; }
+		static UnsignedInt const getDimension() { return DIMENSION; }
 
 		/** Reset everything.  (Note that \c update() will cause a division by zero after that.) */
 		void clear ()
@@ -87,7 +87,7 @@ namespace OpenMS
 		/** Add a position. */
 		void add ( PositionType const & position, CoordinateType const weight = 1 )
 		{
-			for ( Size i = 0; i < DIMENSION; ++i )
+			for ( UnsignedInt i = 0; i < DIMENSION; ++i )
 			{
 				position_weight_sum_[i] += position[i] * weight;
 			}
@@ -100,7 +100,7 @@ namespace OpenMS
 		*/
 		void subtract ( PositionType const & position, CoordinateType const weight = 1 )
 		{
-			for ( Size i = 0; i < DIMENSION; ++i )
+			for ( UnsignedInt i = 0; i < DIMENSION; ++i )
 			{
 				position_weight_sum_[i] -= position[i] * weight;
 			}
@@ -122,7 +122,7 @@ namespace OpenMS
 			// coordinates to zero as well
 			if (weight_sum_ == 0)
 			{
-				for ( Size i = 0; i < DIMENSION; ++i )
+				for ( UnsignedInt i = 0; i < DIMENSION; ++i )
 				{
 					position_[i] = 0;
 				}
@@ -130,7 +130,7 @@ namespace OpenMS
 			else 
 			{
 				// if not, proceed as usual.
-				for ( Size i = 0; i < DIMENSION; ++i )
+				for ( UnsignedInt i = 0; i < DIMENSION; ++i )
 				{
 					position_[i] = position_weight_sum_[i] / weight_sum_;
 				}

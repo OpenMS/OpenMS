@@ -117,7 +117,7 @@ namespace OpenMS
 	{
 		
 		// not enough peaks to fit
-		if (set.size() < static_cast<Size>(param_.getValue("min_num_peaks:extended")))
+		if (set.size() < static_cast<UnsignedInt>(param_.getValue("min_num_peaks:extended")))
 		{
 			for (IndexSet::const_iterator it=set.begin(); it!=set.end(); ++it) 
 			{
@@ -223,7 +223,7 @@ namespace OpenMS
 		std::cout << " Selected " << model_set.size() << " from " << set.size() << " peaks.\n";
 	
 		// not enough peaks left for feature
-		if (model_set.size() < static_cast<Size>(param_.getValue("min_num_peaks:final")))
+		if (model_set.size() < static_cast<UnsignedInt>(param_.getValue("min_num_peaks:final")))
 		{
 			delete final;
 			throw UnableToFit(__FILE__, __LINE__,__PRETTY_FUNCTION__,

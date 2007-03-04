@@ -78,14 +78,14 @@ RESULT
 state_ptr = 0;
 
 
-CHECK(HMMStateLight(Size identifier, bool hidden = true))
+CHECK(HMMStateLight(UnsignedInt identifier, bool hidden = true))
 	state_ptr = new HMMStateLight(27, true);
 	TEST_NOT_EQUAL(state_ptr, 0)
 	state_ptr2 = new HMMStateLight(123, false);
 	TEST_NOT_EQUAL(state_ptr2, 0)
 RESULT
 
-CHECK(Size getIdentifier() const)
+CHECK(UnsignedInt getIdentifier() const)
 	TEST_EQUAL(state_ptr->getIdentifier(), 27);
 	TEST_EQUAL(state_ptr2->getIdentifier(), 123);
 RESULT
@@ -95,7 +95,7 @@ CHECK(bool isHidden() const)
 	TEST_EQUAL(state_ptr2->isHidden(), false)
 RESULT
 
-CHECK(void setIdentifier(Size id))
+CHECK(void setIdentifier(UnsignedInt id))
 	state_ptr->setIdentifier(1234);
 	TEST_EQUAL(state_ptr->getIdentifier(), 1234)
 	state_ptr->setIdentifier(27);
@@ -162,7 +162,7 @@ RESULT
 
 ptr = new HiddenMarkovModelLight();
 
-CHECK(Size getNumberOfStates() const)
+CHECK(UnsignedInt getNumberOfStates() const)
   TEST_EQUAL(ptr->getNumberOfStates(), 0)
 RESULT
 
@@ -173,11 +173,11 @@ CHECK(void addNewState(HMMStateLight* state))
   ptr->addNewState(state_ptr3);
 RESULT
 
-CHECK(HMMStateLight* getState(Size id1))
+CHECK(HMMStateLight* getState(UnsignedInt id1))
   TEST_EQUAL(ptr->getState(27), state_ptr)
 RESULT
 
-CHECK(const HMMStateLight* getState(Size id1) const)
+CHECK(const HMMStateLight* getState(UnsignedInt id1) const)
 	TEST_EQUAL(ptr->getState(27), state_ptr)
 RESULT
 
@@ -185,11 +185,11 @@ CHECK(double getTransitionProbability(HMMStateLight*, HMMStateLight*) const)
   TEST_REAL_EQUAL(ptr->getTransitionProbability(27, 123), 0.0)
 RESULT
 
-CHECK(double getTransitionProbability(Size id1, Size id2) const)
+CHECK(double getTransitionProbability(UnsignedInt id1, UnsignedInt id2) const)
   TEST_REAL_EQUAL(ptr->getTransitionProbability(state_ptr, state_ptr2), 0.0)
 RESULT
 
-CHECK(void setTransitionProbability(Size id1, Size id2, double prob))
+CHECK(void setTransitionProbability(UnsignedInt id1, UnsignedInt id2, double prob))
   ptr->setTransitionProbability(27, 123, 0.3);
   TEST_REAL_EQUAL(ptr->getTransitionProbability(27, 123), 0.3)
 RESULT
@@ -199,7 +199,7 @@ CHECK(void setTransitionProbability(HMMStateLight* s1, HMMStateLight* s2, double
   TEST_REAL_EQUAL(ptr->getTransitionProbability(state_ptr, state_ptr2), 0.4)
 RESULT
 
-CHECK(void addSynonymTransition(Size name1, Size name2, Size synonym1, Size synonym2))
+CHECK(void addSynonymTransition(UnsignedInt name1, UnsignedInt name2, UnsignedInt synonym1, UnsignedInt synonym2))
   HMMStateLight* s1 = new HMMStateLight(28);
   HMMStateLight* s2 = new HMMStateLight(124);
   ptr->addNewState(s1);
@@ -212,7 +212,7 @@ CHECK(void buildSynonyms())
   TEST_REAL_EQUAL(ptr->getTransitionProbability(28, 124), 0.4)
 RESULT
 
-CHECK(void setInitialTransitionProbability(Size id, double prob))
+CHECK(void setInitialTransitionProbability(UnsignedInt id, double prob))
 	// TODO
 RESULT
 
@@ -220,7 +220,7 @@ CHECK(void setInitialTransitionProbability(HMMStateLight* state, double prob))
 	// TODO
 RESULT
 
-CHECK(void setTrainingEmissionProbability(Size id, double prob))
+CHECK(void setTrainingEmissionProbability(UnsignedInt id, double prob))
 	// TODO
 RESULT
 
@@ -232,7 +232,7 @@ CHECK(void enableTransition(HMMStateLight* s1, HMMStateLight* s2))
 	// TODO
 RESULT
 
-CHECK(void enableTransition(Size id1, Size id2))
+CHECK(void enableTransition(UnsignedInt id1, UnsignedInt id2))
 	// TODO
 RESULT
 
@@ -240,7 +240,7 @@ CHECK(void disableTransition(HMMStateLight* s1, HMMStateLight* s2))
 	// TODO
 RESULT
 
-CHECK(void disableTransition(Size id1, Size id2))
+CHECK(void disableTransition(UnsignedInt id1, UnsignedInt id2))
 	// TODO
 RESULT
 
@@ -272,7 +272,7 @@ CHECK(void clearTrainingEmissionProbabilities())
 	// TODO
 RESULT
 
-CHECK(void addIdToName(Size id, const String& name))
+CHECK(void addIdToName(UnsignedInt id, const String& name))
 	// TODO
 RESULT
 

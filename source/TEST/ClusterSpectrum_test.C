@@ -92,7 +92,7 @@ CHECK(ClusterSpectrum::getParentionCharge())
 RESULT
 
 CHECK(ClusterSpectrum::getParentMass())
-  TEST_EQUAL(cspec->getParentMass(),spec2->getPrecursorPeak().getPos()[0])
+  TEST_EQUAL(cspec->getParentMass(),spec2->getPrecursorPeak().getPosition()[0])
 RESULT
 
 CHECK(ClusterSpectrum::getTophit())

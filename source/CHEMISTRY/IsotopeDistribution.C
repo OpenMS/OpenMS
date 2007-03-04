@@ -40,7 +40,7 @@ namespace OpenMS
 		distribution_.push_back(make_pair<UnsignedInt, double>(0, 1));
 	}
 
-	IsotopeDistribution::IsotopeDistribution(Size max_isotope)
+	IsotopeDistribution::IsotopeDistribution(UnsignedInt max_isotope)
 		:	max_isotope_(max_isotope)
 	{
 		distribution_.push_back(make_pair<UnsignedInt, double>(0, 1));
@@ -56,12 +56,12 @@ namespace OpenMS
 	{
 	}
 
-	void IsotopeDistribution::setMaxIsotope(Size max_isotope)
+	void IsotopeDistribution::setMaxIsotope(UnsignedInt max_isotope)
 	{
 		max_isotope_ = max_isotope;
 	}
 
-	Size IsotopeDistribution::getMaxIsotope() const
+	UnsignedInt IsotopeDistribution::getMaxIsotope() const
 	{
 		return max_isotope_;
 	}
@@ -159,7 +159,7 @@ namespace OpenMS
 		C_dist.push_back(make_pair<UnsignedInt, double>(12, 0.9893));
 		C_dist.push_back(make_pair<UnsignedInt, double>(13, 0.0107));
 
-		convolvePow_(distribution_, C_dist, Size((weight*0.464)/12.0));
+		convolvePow_(distribution_, C_dist, UnsignedInt((weight*0.464)/12.0));
 	}
 
 	bool IsotopeDistribution::operator == (const IsotopeDistribution& isotope_distribution) const
@@ -200,13 +200,13 @@ namespace OpenMS
 		}
 	}
 
-	void IsotopeDistribution::convolvePow_(ContainerType& result, const ContainerType& input, Size n) const
+	void IsotopeDistribution::convolvePow_(ContainerType& result, const ContainerType& input, UnsignedInt n) const
 	{
 		/*	
 		// my code 
 		ContainerType tmp, tmp_result;
 		tmp.push_back(make_pair<UnsignedInt, double>(0, 1));
-		for (Size i=0; i!=n; ++i)
+		for (UnsignedInt i=0; i!=n; ++i)
 		{
 			convolve(tmp_result, input, tmp);
 			swap(tmp_result, tmp);
@@ -223,7 +223,7 @@ namespace OpenMS
 		}
 
     // find binary logarithm of n
-    Size log2n = 0;
+    UnsignedInt log2n = 0;
     for (; (1U << log2n) < n; ++log2n);
 
 	  // get started
@@ -243,7 +243,7 @@ namespace OpenMS
     // somewhere in the middle
     ContainerType convolution_power;
     convolveSquare_(convolution_power, input);
-    for (Size i = 1; ; ++i)
+    for (UnsignedInt i = 1; ; ++i)
     {
       if (n & (1 << i))
       {

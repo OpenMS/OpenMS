@@ -143,7 +143,7 @@ namespace OpenMS
 		std::vector<QColor> pre_;
 		/// Minimum of the precalculated color range
 		double pre_min_;
-		/// Size of the precalculated color range
+		/// UnsignedInt of the precalculated color range
 		double pre_size_;
 		/// Steps of the precalculated color range
 		SignedInt pre_steps_;

@@ -48,7 +48,7 @@ CHECK((MSExperiment()))
 	TEST_NOT_EQUAL(ptr, 0)
 RESULT
 
-CHECK((~MSExperiment()))
+CHECK(([EXTRA]~MSExperiment()))
 	delete ptr;
 RESULT
 
@@ -64,7 +64,7 @@ CHECK((MSExperiment(const MSExperiment& source)))
   TEST_EQUAL(tmp2.size(),1);
 RESULT
 
-CHECK((MSExperiment& operator= (const MSExperiment& source)))
+CHECK(MSExperiment& operator= (const MSExperiment& source))
   MSExperiment<> tmp;
   tmp.getContacts().resize(1);
   tmp.getContacts()[0].setFirstName("Name");
@@ -123,13 +123,13 @@ CHECK((template<class Container> void get2DData(Container& cont) const))
 	// first spectrum (MS)
 	spec.setRetentionTime(11.1);
 	spec.setMSLevel(1);
-	peak.getPos()[0] = 5;
+	peak.getPosition()[0] = 5;
 	peak.setIntensity(47.11);
 	spec.getContainer().push_back(peak);
-	peak.getPos()[0] = 10;
+	peak.getPosition()[0] = 10;
 	peak.setIntensity(48.11);
 	spec.getContainer().push_back(peak);
-	peak.getPos()[0] = 15;
+	peak.getPosition()[0] = 15;
 	spec.getContainer().push_back(peak);
 	exp.push_back(spec);
 
@@ -137,9 +137,9 @@ CHECK((template<class Container> void get2DData(Container& cont) const))
 	spec.getContainer().clear();
 	spec.setRetentionTime(11.5);
 	spec.setMSLevel(2);
-	peak.getPos()[0] = 6;
+	peak.getPosition()[0] = 6;
 	spec.getContainer().push_back(peak);
-	peak.getPos()[0] = 11;
+	peak.getPosition()[0] = 11;
 	spec.getContainer().push_back(peak);
 	exp.push_back(spec);	
 
@@ -147,9 +147,9 @@ CHECK((template<class Container> void get2DData(Container& cont) const))
 	spec.getContainer().clear();
 	spec.setRetentionTime(12.2);
 	spec.setMSLevel(1);
-	peak.getPos()[0] = 20;
+	peak.getPosition()[0] = 20;
 	spec.getContainer().push_back(peak);
-	peak.getPos()[0] = 25;
+	peak.getPosition()[0] = 25;
 	spec.getContainer().push_back(peak);
 	exp.push_back(spec);	
 
@@ -157,11 +157,11 @@ CHECK((template<class Container> void get2DData(Container& cont) const))
 	spec.getContainer().clear();
 	spec.setRetentionTime(12.5);
 	spec.setMSLevel(2);
-	peak.getPos()[0] = 21;
+	peak.getPosition()[0] = 21;
 	spec.getContainer().push_back(peak);
-	peak.getPos()[0] = 26;
+	peak.getPosition()[0] = 26;
 	spec.getContainer().push_back(peak);
-	peak.getPos()[0] = 31;
+	peak.getPosition()[0] = 31;
 	spec.getContainer().push_back(peak);
 	exp.push_back(spec);	
 	
@@ -251,8 +251,8 @@ CHECK(([EXTRA] MSExperiment<RawDataPoint1D >()))
 	MSExperiment<RawDataPoint1D > tmp;
 	tmp.resize(1);
 	tmp[0].getContainer().resize(1);
-	tmp[0].getContainer()[0].getPos()[0] = 47.11;
-	TEST_REAL_EQUAL(tmp[0].getContainer()[0].getPos()[0],47.11)
+	tmp[0].getContainer()[0].getPosition()[0] = 47.11;
+	TEST_REAL_EQUAL(tmp[0].getContainer()[0].getPosition()[0],47.11)
 RESULT
 
 CHECK((CoordinateType getMinMZ() const))
@@ -304,7 +304,7 @@ CHECK((virtual void updateRanges()))
 	
 	s.setMSLevel(1);
 	s.setRetentionTime(30.0);
-	p.getPos()[0] = 5.0;
+	p.getPosition()[0] = 5.0;
 	p.setIntensity(-5.0);
 	s.getContainer().push_back(p);
 	tmp.push_back(s);
@@ -312,7 +312,7 @@ CHECK((virtual void updateRanges()))
 	s.getContainer().clear();
 	s.setMSLevel(1);
 	s.setRetentionTime(40.0);
-	p.getPos()[0] = 7.0;
+	p.getPosition()[0] = 7.0;
 	p.setIntensity(-7.0);
 	s.getContainer().push_back(p);
 	tmp.push_back(s);	
@@ -320,7 +320,7 @@ CHECK((virtual void updateRanges()))
 	s.getContainer().clear();
 	s.setMSLevel(3);
 	s.setRetentionTime(45.0);
-	p.getPos()[0] = 9.0;
+	p.getPosition()[0] = 9.0;
 	p.setIntensity(-10.0);
 	s.getContainer().push_back(p);
 	tmp.push_back(s);	
@@ -328,7 +328,7 @@ CHECK((virtual void updateRanges()))
 	s.getContainer().clear();
 	s.setMSLevel(3);
 	s.setRetentionTime(50.0);
-	p.getPos()[0] = 10.0;
+	p.getPosition()[0] = 10.0;
 	p.setIntensity(-9.0);
 	s.getContainer().push_back(p);
 	tmp.push_back(s);	
@@ -396,7 +396,7 @@ CHECK((virtual void updateRanges()))
 	RawDataPoint1D p2;
 	
 	s2.setRetentionTime(30.0);
-	p2.getPos()[0] = 5.0;
+	p2.getPosition()[0] = 5.0;
 	p2.setIntensity(-5.0);
 	s2.getContainer().push_back(p2);
 	tmp2.push_back(s2);
@@ -426,7 +426,7 @@ CHECK((void updateRanges(SignedInt ms_level)))
 	
 	s.setMSLevel(1);
 	s.setRetentionTime(30.0);
-	p.getPos()[0] = 5.0;
+	p.getPosition()[0] = 5.0;
 	p.setIntensity(-5.0);
 	s.getContainer().push_back(p);
 	tmp.push_back(s);
@@ -434,7 +434,7 @@ CHECK((void updateRanges(SignedInt ms_level)))
 	s.getContainer().clear();
 	s.setMSLevel(1);
 	s.setRetentionTime(40.0);
-	p.getPos()[0] = 7.0;
+	p.getPosition()[0] = 7.0;
 	p.setIntensity(-7.0);
 	s.getContainer().push_back(p);
 	tmp.push_back(s);	
@@ -442,7 +442,7 @@ CHECK((void updateRanges(SignedInt ms_level)))
 	s.getContainer().clear();
 	s.setMSLevel(3);
 	s.setRetentionTime(45.0);
-	p.getPos()[0] = 9.0;
+	p.getPosition()[0] = 9.0;
 	p.setIntensity(-10.0);
 	s.getContainer().push_back(p);
 	tmp.push_back(s);	
@@ -450,7 +450,7 @@ CHECK((void updateRanges(SignedInt ms_level)))
 	s.getContainer().clear();
 	s.setMSLevel(3);
 	s.setRetentionTime(50.0);
-	p.getPos()[0] = 10.0;
+	p.getPosition()[0] = 10.0;
 	p.setIntensity(-9.0);
 	s.getContainer().push_back(p);
 	tmp.push_back(s);	
@@ -486,7 +486,7 @@ CHECK((void updateRanges(SignedInt ms_level)))
 	RawDataPoint1D p2;
 	
 	s2.setRetentionTime(30.0);
-	p2.getPos()[0] = 5.0;
+	p2.getPosition()[0] = 5.0;
 	p2.setIntensity(-5.0);
 	s2.getContainer().push_back(p2);
 	tmp2.push_back(s2);
@@ -501,25 +501,25 @@ CHECK((void updateRanges(SignedInt ms_level)))
 	
 RESULT
 
-CHECK(ConstAreaIterator areaEndConst() const)
+CHECK((ConstAreaIterator areaEndConst() const))
   //Implicitly tested in next test
 RESULT
 
-CHECK( ConstAreaIterator areaBeginConst(CoordinateType min_rt, CoordinateType max_rt, CoordinateType min_mz, CoordinateType max_mz) const )
+CHECK((ConstAreaIterator areaBeginConst(CoordinateType min_rt, CoordinateType max_rt, CoordinateType min_mz, CoordinateType max_mz) const))
 	DPeakArray<2, Peak2D> plist;
 	
 	Peak2D p1;
-	p1.getPos()[0] = 1.0;
-	p1.getPos()[1] = 2.0;
+	p1.getPosition()[0] = 1.0;
+	p1.getPosition()[1] = 2.0;
 	plist.push_back(p1);
-	p1.getPos()[0] = 1.0;
-	p1.getPos()[1] = 3.0;
+	p1.getPosition()[0] = 1.0;
+	p1.getPosition()[1] = 3.0;
 	plist.push_back(p1);
-	p1.getPos()[0] = 2.0;
-	p1.getPos()[1] = 10.0;
+	p1.getPosition()[0] = 2.0;
+	p1.getPosition()[1] = 10.0;
 	plist.push_back(p1);
-	p1.getPos()[0] = 2.0;
-	p1.getPos()[1] = 11.0;
+	p1.getPosition()[0] = 2.0;
+	p1.getPosition()[1] = 11.0;
 	plist.push_back(p1);
 	
 	MSExperiment<> exp;
@@ -527,36 +527,36 @@ CHECK( ConstAreaIterator areaBeginConst(CoordinateType min_rt, CoordinateType ma
 
 	MSExperiment<>::ConstAreaIterator it = exp.areaBeginConst(0,15,0,15);
 	
-	TEST_EQUAL(it->getPos()[0],2.0);
+	TEST_EQUAL(it->getPosition()[0],2.0);
 	it++;
-	TEST_EQUAL(it->getPos()[0],3.0);
+	TEST_EQUAL(it->getPosition()[0],3.0);
 	it++;
-	TEST_EQUAL(it->getPos()[0],10.0);
+	TEST_EQUAL(it->getPosition()[0],10.0);
 	it++;
-	TEST_EQUAL(it->getPos()[0],11.0);
+	TEST_EQUAL(it->getPosition()[0],11.0);
 	it++;
 	TEST_EQUAL(it==exp.areaEndConst(),true);
 RESULT
 
-CHECK(AreaIterator areaEnd())
+CHECK((AreaIterator areaEnd()))
   //Implicitly tested in next test
 RESULT
 
-CHECK( AreaIterator areaBegin(CoordinateType min_rt, CoordinateType max_rt, CoordinateType min_mz, CoordinateType max_mz) )
+CHECK((AreaIterator areaBegin(CoordinateType min_rt, CoordinateType max_rt, CoordinateType min_mz, CoordinateType max_mz)))
 	DPeakArray<2, Peak2D> plist;
 	
 	Peak2D p1;
-	p1.getPos()[0] = 1.0;
-	p1.getPos()[1] = 2.0;
+	p1.getPosition()[0] = 1.0;
+	p1.getPosition()[1] = 2.0;
 	plist.push_back(p1);
-	p1.getPos()[0] = 1.0;
-	p1.getPos()[1] = 3.0;
+	p1.getPosition()[0] = 1.0;
+	p1.getPosition()[1] = 3.0;
 	plist.push_back(p1);
-	p1.getPos()[0] = 2.0;
-	p1.getPos()[1] = 10.0;
+	p1.getPosition()[0] = 2.0;
+	p1.getPosition()[1] = 10.0;
 	plist.push_back(p1);
-	p1.getPos()[0] = 2.0;
-	p1.getPos()[1] = 11.0;
+	p1.getPosition()[0] = 2.0;
+	p1.getPosition()[1] = 11.0;
 	plist.push_back(p1);
 	
 	MSExperiment<> exp;
@@ -564,15 +564,15 @@ CHECK( AreaIterator areaBegin(CoordinateType min_rt, CoordinateType max_rt, Coor
 
 	MSExperiment<>::AreaIterator it = exp.areaBegin(0,15,0,15);
 	
-	TEST_EQUAL(it->getPos()[0],2.0);
-	it->getPos()[0] = 4711.0;
-	TEST_EQUAL(it->getPos()[0],4711.0);
+	TEST_EQUAL(it->getPosition()[0],2.0);
+	it->getPosition()[0] = 4711.0;
+	TEST_EQUAL(it->getPosition()[0],4711.0);
 	it++;
-	TEST_EQUAL(it->getPos()[0],3.0);
+	TEST_EQUAL(it->getPosition()[0],3.0);
 	it++;
-	TEST_EQUAL(it->getPos()[0],10.0);
+	TEST_EQUAL(it->getPosition()[0],10.0);
 	it++;
-	TEST_EQUAL(it->getPos()[0],11.0);
+	TEST_EQUAL(it->getPosition()[0],11.0);
 	it++;
 	TEST_EQUAL(it==exp.areaEnd(),true);
 RESULT
@@ -681,23 +681,23 @@ CHECK((void sortSpectra(bool sort_mz = true)))
 	DPeakArray<2, Peak2D> plist;
 	
 	Peak2D p1;
-	p1.getPos()[0] = 1.0;
-	p1.getPos()[1] = 5.0;
+	p1.getPosition()[0] = 1.0;
+	p1.getPosition()[1] = 5.0;
 	plist.push_back(p1);
 		
 	Peak2D p2;
-	p2.getPos()[0] = 1.0;
-	p2.getPos()[1] = 3.0;
+	p2.getPosition()[0] = 1.0;
+	p2.getPosition()[1] = 3.0;
 	plist.push_back(p2);
 		
 	Peak2D p3;
-	p3.getPos()[0] = 2.0;
-	p3.getPos()[1] = 14.0;
+	p3.getPosition()[0] = 2.0;
+	p3.getPosition()[1] = 14.0;
 	plist.push_back(p3);
 	
 	Peak2D p4;
-	p4.getPos()[0] = 2.0;
-	p4.getPos()[1] = 11.0;
+	p4.getPosition()[0] = 2.0;
+	p4.getPosition()[1] = 11.0;
 	plist.push_back(p4);
 	
 	MSExperiment<> exp;
@@ -715,11 +715,11 @@ CHECK((void reset()))
 	DPeakArray<2, Peak2D> plist;
 	
 	Peak2D p;
-	p.getPos()[0] = 1.0;
-	p.getPos()[1] = 5.0;
+	p.getPosition()[0] = 1.0;
+	p.getPosition()[1] = 5.0;
 	plist.push_back(p);
-	p.getPos()[0] = 2.0;
-	p.getPos()[1] = 3.0;
+	p.getPosition()[0] = 2.0;
+	p.getPosition()[1] = 3.0;
 	plist.push_back(p);
 		
 	MSExperiment<> exp;
@@ -731,10 +731,23 @@ CHECK((void reset()))
 	TEST_EQUAL(exp==MSExperiment<>(),true);
 RESULT
 
-CHECK((const ExperimentalSettings& getExperimentalSettings() const))
+CHECK(const ExperimentalSettings& getExperimentalSettings() const)
 	MSExperiment<> exp;
 	exp.setComment("test");
 	TEST_EQUAL(exp.getExperimentalSettings().getComment(),"test");
+RESULT
+
+CHECK(ExperimentalSettings& getExperimentalSettings())
+	MSExperiment<> exp;
+	exp.getExperimentalSettings().setComment("test");
+	TEST_EQUAL(exp.getExperimentalSettings().getComment(),"test");
+RESULT
+
+CHECK(MSExperiment& operator=(const ExperimentalSettings &source))
+	MSExperiment<> exp,exp2;
+	exp.getExperimentalSettings().setComment("test");
+	exp2 = exp.getExperimentalSettings();
+	TEST_EQUAL(exp2.getExperimentalSettings().getComment(),"test");
 RESULT
 
 /////////////////////////////////////////////////////////////

@@ -53,12 +53,12 @@ namespace OpenMS
 		delete [] in_buffer_;
 	}
 
-	Size Base64::getOutputBufferSize()
+	UnsignedInt Base64::getOutputBufferSize()
 	{
 		return out_length_;
 	}
 
-	void Base64::setOutputBufferSize(Size s)
+	void Base64::setOutputBufferSize(UnsignedInt s)
 	{
 		//cout << "adpting output buffer " << out_length_ << " -> " << s << endl;
 		delete [] out_buffer_;
@@ -74,7 +74,7 @@ namespace OpenMS
 		}
 	}
 
-	float* Base64::decodeFloatCorrected(const char* src, Size size)
+	float* Base64::decodeFloatCorrected(const char* src, UnsignedInt size)
 	{
 		decode(src,size);
 
@@ -88,19 +88,19 @@ namespace OpenMS
 		return (float*) out_buffer_;
 	}
 
-	float* Base64::decodeFloat(const char* src, Size size)
+	float* Base64::decodeFloat(const char* src, UnsignedInt size)
 	{
 		return (float*) decode(src,size);
 	}
 
-	float* Base64::getFloatBuffer(Size size)
+	float* Base64::getFloatBuffer(UnsignedInt size)
 	{
 		in_length_ = 4*size;
 		adaptInputBuffer_();
 		return (float*)in_buffer_;
 	}
 
-	double* Base64::getDoubleBuffer(Size size)
+	double* Base64::getDoubleBuffer(UnsignedInt size)
 	{
 		in_length_ = 8*size;
 		adaptInputBuffer_();
@@ -147,7 +147,7 @@ namespace OpenMS
 		return encode(in_buffer_,in_length_);
 	}
 
-	double* Base64::decodeDoubleCorrected(const char* src, Size size)
+	double* Base64::decodeDoubleCorrected(const char* src, UnsignedInt size)
 	{
 		decode(src,size*2);
 
@@ -163,7 +163,7 @@ namespace OpenMS
 		return (double*) out_buffer_;
 	}
 
-	double* Base64::decodeDouble(const char* src, Size size)
+	double* Base64::decodeDouble(const char* src, UnsignedInt size)
 	{
 		return (double*) decode(src,size);
 	}
@@ -189,13 +189,13 @@ namespace OpenMS
 		return encode(in_buffer_,in_length_);
 	}
 
-	char* Base64::encode(const char* src, Size size)
+	char* Base64::encode(const char* src, UnsignedInt size)
 	{
 		UnsignedInt padding = 0;
 		if (size%3 == 2) padding=1; 
 		if (size%3 == 1) padding=2;
 		
-		Size dest_size = (size+padding)/3*4;
+		UnsignedInt dest_size = (size+padding)/3*4;
 		if (dest_size > out_length_) setOutputBufferSize(dest_size);
 
 		if (size<3)
@@ -254,9 +254,9 @@ namespace OpenMS
 		return out_buffer_;
 	}
 
-	char* Base64::decode(const char* src, Size size)
+	char* Base64::decode(const char* src, UnsignedInt size)
 	{
-		Size src_size = size;
+		UnsignedInt src_size = size;
 		// remove last one or two '=' if contained
 		int padding = 0;
 		if (src[src_size-1] == '=') padding++;
@@ -264,7 +264,7 @@ namespace OpenMS
 		src_size -= padding;
 
 		// increase buffer if necessary			
-		Size dest_size = int(ceil(src_size/4.0))*3;
+		UnsignedInt dest_size = int(ceil(src_size/4.0))*3;
 		if (dest_size > out_length_) setOutputBufferSize(dest_size);
 
 		register UnsignedInt a;

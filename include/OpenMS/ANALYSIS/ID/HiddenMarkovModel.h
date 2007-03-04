@@ -170,7 +170,7 @@ namespace OpenMS
 			void setTransitionProbability(const String& s1, const String& s2, double prob);
 			
 			/// return the number of states
-			Size getNumberOfStates() const;
+			UnsignedInt getNumberOfStates() const;
 
 			/// registers a new state to the HMM
 			void addNewState(HMMState* state);
@@ -268,7 +268,7 @@ namespace OpenMS
 			HashMap<HMMState*, HashMap<HMMState*, double> > train_count_trans_;
 
 			// number of training steps of the transitions
-			HashMap<HMMState*, HashMap<HMMState*, Size> > training_steps_count_;
+			HashMap<HMMState*, HashMap<HMMState*, UnsignedInt> > training_steps_count_;
 
 			// forward variables
 			HashMap<HMMState*, double> forward_;

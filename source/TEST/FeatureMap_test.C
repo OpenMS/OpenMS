@@ -61,18 +61,18 @@ CHECK((~FeatureMap()))
 RESULT
 
 Feature feature1;
-feature1.getPos()[0] = 2.0;
-feature1.getPos()[1] = 3.0;
+feature1.getPosition()[0] = 2.0;
+feature1.getPosition()[1] = 3.0;
 feature1.setIntensity(1.0);
 
 Feature feature2;
-feature2.getPos()[0] = 0.0;
-feature2.getPos()[1] = 2.5;
+feature2.getPosition()[0] = 0.0;
+feature2.getPosition()[1] = 2.5;
 feature2.setIntensity(0.5);
 
 Feature feature3;
-feature3.getPos()[0] = 10.5;
-feature3.getPos()[1] = 0.0;
+feature3.getPosition()[0] = 10.5;
+feature3.getPosition()[1] = 0.0;
 feature3.setIntensity(0.01);
 
 CHECK((updateRanges_(this->begin(), this->end())))
@@ -202,22 +202,22 @@ CHECK((void sortByPosition()))
 	FeatureMap<> to_be_sorted;
 	
 	Feature f1;
-	f1.getPos()[0] = 10;
+	f1.getPosition()[0] = 10;
 	to_be_sorted.push_back(f1);
 	
 	Feature f2;
-	f2.getPos()[0] = 5;
+	f2.getPosition()[0] = 5;
 	to_be_sorted.push_back(f2);
 	
 	Feature f3;
-	f3.getPos()[0] = 3;
+	f3.getPosition()[0] = 3;
 	to_be_sorted.push_back(f3);
 	
 	to_be_sorted.sortByPosition();
 	
-	TEST_EQUAL(to_be_sorted[0].getPos()[0],3);
-	TEST_EQUAL(to_be_sorted[1].getPos()[0],5);
-	TEST_EQUAL(to_be_sorted[2].getPos()[0],10);
+	TEST_EQUAL(to_be_sorted[0].getPosition()[0],3);
+	TEST_EQUAL(to_be_sorted[1].getPosition()[0],5);
+	TEST_EQUAL(to_be_sorted[2].getPosition()[0],10);
 	
 RESULT
 
@@ -226,31 +226,31 @@ CHECK((void sortByNthPosition(UnsignedInt i) throw(Exception::NotImplemented)))
 	FeatureMap<> to_be_sorted;
 	
 	Feature f1;
-	f1.getPos()[0] = 10;
-	f1.getPos()[1] = 25;
+	f1.getPosition()[0] = 10;
+	f1.getPosition()[1] = 25;
 	to_be_sorted.push_back(f1);
 	
 	Feature f2;
-	f2.getPos()[0] = 5;
-	f2.getPos()[1] = 15;
+	f2.getPosition()[0] = 5;
+	f2.getPosition()[1] = 15;
 	to_be_sorted.push_back(f2);
 	
 	Feature f3;
-	f3.getPos()[0] = 3;
-	f3.getPos()[1] = 10;
+	f3.getPosition()[0] = 3;
+	f3.getPosition()[1] = 10;
 	to_be_sorted.push_back(f3);
 	
 	to_be_sorted.sortByNthPosition(0);
 	
-	TEST_EQUAL(to_be_sorted[0].getPos()[0],3);
-	TEST_EQUAL(to_be_sorted[1].getPos()[0],5);
-	TEST_EQUAL(to_be_sorted[2].getPos()[0],10);
+	TEST_EQUAL(to_be_sorted[0].getPosition()[0],3);
+	TEST_EQUAL(to_be_sorted[1].getPosition()[0],5);
+	TEST_EQUAL(to_be_sorted[2].getPosition()[0],10);
 	
 	to_be_sorted.sortByNthPosition(1);
 	
-	TEST_EQUAL(to_be_sorted[0].getPos()[1],10);
-	TEST_EQUAL(to_be_sorted[1].getPos()[1],15);
-	TEST_EQUAL(to_be_sorted[2].getPos()[1],25);
+	TEST_EQUAL(to_be_sorted[0].getPosition()[1],10);
+	TEST_EQUAL(to_be_sorted[1].getPosition()[1],15);
+	TEST_EQUAL(to_be_sorted[2].getPosition()[1],25);
 	
 RESULT
 

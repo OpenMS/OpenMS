@@ -423,7 +423,7 @@ namespace OpenMS
               act_index_tuple.setTransformedPosition(pos);
               act_index_tuple.setElement(((consensus_map_->getMapVector())[map_index])[element_index]);
               act_cons_element_.insert(act_index_tuple);
-              act_cons_element_.getPos() = pos_;
+              act_cons_element_.getPosition() = pos_;
               act_cons_element_.getPositionRange() = pos_range_;
               act_cons_element_.setIntensity(it_);
               act_cons_element_.getIntensityRange() = it_range_;

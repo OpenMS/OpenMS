@@ -198,7 +198,7 @@ namespace OpenMS
 
 
 		/**	
-			@brief Index underflow exception.
+			@brief SignedInt underflow exception.
 				
 			Throw this exception to indicate an index that was smaller than
 			allowed.  The constructor has two additional arguments, the values
@@ -215,18 +215,18 @@ namespace OpenMS
 		{
 			public:
 
-			IndexUnderflow(const char* file, int line, const char* function, Index index = 0, Size size = 0)
+			IndexUnderflow(const char* file, int line, const char* function, SignedInt index = 0, UnsignedInt size = 0)
 				throw();
 
 
 			protected:
 
-			Size size_;
-			Index index_;
+			UnsignedInt size_;
+			SignedInt index_;
 		};
 
 		/**	
-			@brief Size underflow exception.
+			@brief UnsignedInt underflow exception.
 
 			Throw this exception to indicate a size was smaller than allowed.
 			The constructor has an additional argument: the value of of the
@@ -242,15 +242,15 @@ namespace OpenMS
 		{
 			public:
 
-			SizeUnderflow(const char* file, int line, const char* function, Size size = 0)
+			SizeUnderflow(const char* file, int line, const char* function, UnsignedInt size = 0)
 				throw();
 
 			protected:
-			Size size_;
+			UnsignedInt size_;
 		};
 
 		/**	
-			@brief Index overflow exception.
+			@brief SignedInt overflow exception.
 			
 			Throw this exception to indicate an index that was larger than
 			allowed.  The constructor has two additional arguments, the values
@@ -265,13 +265,13 @@ namespace OpenMS
 			: public Base
 		{
 			public:
-			IndexOverflow(const char* file, int line, const char* function, Index index = 0, Size size = 0)
+			IndexOverflow(const char* file, int line, const char* function, SignedInt index = 0, UnsignedInt size = 0)
 				throw();
 
 			protected:
 
-			Size size_;
-			Index index_;
+			UnsignedInt size_;
+			SignedInt index_;
 		};
 
 		/**	
@@ -291,7 +291,7 @@ namespace OpenMS
 
 
 		/**	
-			@brief Invalid Size exception.
+			@brief Invalid UnsignedInt exception.
 				
 			Throw this exception to indicate that a size was unexpected.
 			The constructor has an additional argument: the value of of the
@@ -305,11 +305,11 @@ namespace OpenMS
 		{
 			public:
 
-			InvalidSize(const char* file, int line, const char* function, Size size = 0)
+			InvalidSize(const char* file, int line, const char* function, UnsignedInt size = 0)
 				throw();
 
 			protected:
-			Size size_;
+			UnsignedInt size_;
 		};
 
 
@@ -492,14 +492,14 @@ namespace OpenMS
 			: public Base, public std::bad_alloc
 		{
 			public:
-			OutOfMemory(const char* file, int line, const char* function, Size size = 0)
+			OutOfMemory(const char* file, int line, const char* function, UnsignedInt size = 0)
 				throw();
 			
 			virtual ~OutOfMemory() 
 				throw();
 
 			protected:
-			Size size_;
+			UnsignedInt size_;
 		};
 
 		/**	

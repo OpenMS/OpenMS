@@ -81,7 +81,7 @@ namespace OpenMS
       	//look for each peakdifference that is in range of aa residuemasses (56/187), if it could be a aa (aamass)
       	for (uint j = i; i+j < spectrum.size(); ++j)
       	{
-        	double diff =  spectrum.getContainer()[i+j].getPos()[0] - spectrum.getContainer()[i].getPos()[0];
+        	double diff =  spectrum.getContainer()[i+j].getPosition()[0] - spectrum.getContainer()[i].getPosition()[0];
         	if (diff < 56)
         	{
 						continue;

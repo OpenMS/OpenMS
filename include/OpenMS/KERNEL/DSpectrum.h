@@ -58,7 +58,7 @@ namespace OpenMS
 
 		@ingroup Kernel
 	*/
-	template <Size D, typename ContainerT = DPeakArray<D> >
+	template <UnsignedInt D, typename ContainerT = DPeakArray<D> >
 	class DSpectrum
 		: public MetaInfoInterface,
 			public RangeManager<D>
@@ -239,7 +239,7 @@ namespace OpenMS
 				return container_.max_size(); 
 			}	
 			/// returns the size (the number of peaks)
-			inline Size size() const 
+			inline UnsignedInt size() const 
 			{ 
 				return container_.size(); 
 			}
@@ -500,7 +500,7 @@ namespace OpenMS
 			Iterator MZBegin(double mz)
 			{
 				PeakType p;
-				p.setPos(mz);
+				p.setPosition(mz);
 				return lower_bound(container_.begin(), container_.end(), p, typename PeakType::PositionLess());
 			}
 	
@@ -512,7 +512,7 @@ namespace OpenMS
 			Iterator MZEnd(double mz)
 			{
 				PeakType p;
-				p.setPos(mz);
+				p.setPosition(mz);
 				return upper_bound(container_.begin(), container_.end(), p, typename PeakType::PositionLess());
 			}
 	
@@ -524,7 +524,7 @@ namespace OpenMS
 			ConstIterator MZBegin(double mz) const
 			{
 				PeakType p;
-				p.setPos(mz);
+				p.setPosition(mz);
 				return lower_bound(container_.begin(), container_.end(), p, typename PeakType::PositionLess());
 			}
 	
@@ -536,7 +536,7 @@ namespace OpenMS
 			ConstIterator MZEnd(double mz) const
 			{
 				PeakType p;
-				p.setPos(mz);
+				p.setPosition(mz);
 				return upper_bound(container_.begin(), container_.end(), p, typename PeakType::PositionLess());
 			}
 
@@ -563,7 +563,7 @@ namespace OpenMS
 	};
 
 	///Print the contents to a stream.
-	template <Size D, typename Container>
+	template <UnsignedInt D, typename Container>
 	std::ostream& operator << (std::ostream& os, const DSpectrum<D, Container>& dds)
 	{
 		os << "-- DSpectrum BEGIN --"<<std::endl;

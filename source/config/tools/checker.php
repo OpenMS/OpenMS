@@ -374,6 +374,7 @@
 		
 		######################### load class info ################################
 		$dont_load = array(
+			"IsotopeCluster.h",
 			"RangeUtils.h",
 			"ComparatorUtils.h",
 			"KernelTraits.h",
@@ -504,6 +505,7 @@
 				"DataReducer.h",
 				"SchemaFile.h",
 				"Serialization.h",
+				"IsotopeCluster.h",
 				);
 
 			if (endsWith($f,".h") )

@@ -84,7 +84,7 @@ namespace OpenMS
 		return 0;
 	}
 
-	Size ResidueDB::getNumberOfResidues() const
+	UnsignedInt ResidueDB::getNumberOfResidues() const
 	{
 		return residues_.size();
 	}
@@ -169,7 +169,7 @@ namespace OpenMS
 		return const_residues_;
 	}
 
-	Size ResidueDB::getNumberOfModifications() const
+	UnsignedInt ResidueDB::getNumberOfModifications() const
 	{
 		return modifications_.size();
 	}

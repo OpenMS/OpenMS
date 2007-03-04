@@ -146,10 +146,10 @@ CHECK(const IntensityType& getIntensity() const)
 	TEST_REAL_EQUAL(p.getIntensity(), 0.0)
 RESULT
 
-CHECK(const PositionType& getPos() const)
+CHECK(const PositionType& getPosition() const)
 	const Feature	p;
-	TEST_REAL_EQUAL(p.getPos()[0], 0.0)
-	TEST_REAL_EQUAL(p.getPos()[1], 0.0)
+	TEST_REAL_EQUAL(p.getPosition()[0], 0.0)
+	TEST_REAL_EQUAL(p.getPosition()[1], 0.0)
 RESULT
 
 CHECK(IntensityType& getIntensity())
@@ -163,16 +163,16 @@ CHECK(IntensityType& getIntensity())
 	TEST_REAL_EQUAL(p.getIntensity(), 0.0)
 RESULT
 
-CHECK(PositionType& getPos())
+CHECK(PositionType& getPosition())
 	Feature::PositionType pos;
 	Feature p;
-	pos = p.getPos();
+	pos = p.getPosition();
 	TEST_REAL_EQUAL(pos[0], 0.0)
 	TEST_REAL_EQUAL(pos[1], 0.0)
 	pos[0] = 1.0;
 	pos[1] = 2.0;
-	p.setPos(pos);
-	Feature::PositionType pos2(p.getPos());
+	p.setPosition(pos);
+	Feature::PositionType pos2(p.getPosition());
 	TEST_REAL_EQUAL(pos2[0], 1.0)
 	TEST_REAL_EQUAL(pos2[1], 2.0)
 RESULT
@@ -183,7 +183,7 @@ CHECK(Feature(const Feature& p))
 	pos[1] = 22.22;
 	Feature p;
 	p.setIntensity(123.456);
-	p.setPos(pos);
+	p.setPosition(pos);
 	p.setMetaValue("cluster_id",4711);
   p.setOverallQuality(0.9);
   p.setQuality(0, 0.1);
@@ -197,7 +197,7 @@ CHECK(Feature(const Feature& p))
 
 	Feature copy_of_p(p);
 	i2 = copy_of_p.getIntensity();
-	pos2 = copy_of_p.getPos();
+	pos2 = copy_of_p.getPosition();
 
 	TEST_REAL_EQUAL(i2, 123.456)
 
@@ -222,7 +222,7 @@ CHECK(Feature& operator = (const Feature& rhs))
 	pos[1] = 22.22;
 	Feature p;
 	p.setIntensity(123.456);
-	p.setPos(pos);
+	p.setPosition(pos);
   p.setOverallQuality(0.9);
   p.setQuality(0, 0.1);
   p.setQuality(1, 0.2);
@@ -238,7 +238,7 @@ CHECK(Feature& operator = (const Feature& rhs))
 	copy_of_p = p;
 		
 	i2 = copy_of_p.getIntensity();
-	pos2 = copy_of_p.getPos();
+	pos2 = copy_of_p.getPosition();
 
   Feature::QualityType q2;
 
@@ -273,9 +273,9 @@ CHECK(Feature& operator == (const Feature& rhs))
   p2.setModelDescription(desc);
 	TEST_REAL_EQUAL(p1==p2, true)
 		
-	p1.getPos()[0]=5;
+	p1.getPosition()[0]=5;
 	TEST_REAL_EQUAL(p1==p2, false)
-	p2.getPos()[0]=5;
+	p2.getPosition()[0]=5;
 	TEST_REAL_EQUAL(p1==p2, true)	
 RESULT
 
@@ -289,9 +289,9 @@ CHECK(Feature& operator != (const Feature& rhs))
 	p2.setIntensity(5);
 	TEST_REAL_EQUAL(p1!=p2, false)
 		
-	p1.getPos()[0]=5;
+	p1.getPosition()[0]=5;
 	TEST_REAL_EQUAL(p1!=p2, true)
-	p2.getPos()[0]=5;
+	p2.getPosition()[0]=5;
 	TEST_REAL_EQUAL(p1!=p2, false)	
 RESULT
 

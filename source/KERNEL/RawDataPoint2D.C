@@ -29,25 +29,25 @@
 namespace OpenMS
 {
 
-	char const * const RawDataPoint2D::dimension_name_short [] =
+	char const * const RawDataPoint2D::dimension_name_short_[] =
     {
       "RT",
       "MZ"
     };
 	
-  char const * const RawDataPoint2D::dimension_name_full [] =
+  char const * const RawDataPoint2D::dimension_name_full_[] =
     {
       "retention time",
       "mass-to-charge"
     };
   
-  char const * const RawDataPoint2D::dimension_unit_short [] =
+  char const * const RawDataPoint2D::dimension_unit_short_[] =
     {
       "sec",
       "Th"
     };
   
-  char const * const RawDataPoint2D::dimension_unit_full [] =
+  char const * const RawDataPoint2D::dimension_unit_full_[] =
     {
       "Seconds",
       "Thomson"
@@ -55,65 +55,64 @@ namespace OpenMS
   
 	char const * const RawDataPoint2D::shortDimensionName(UnsignedInt const dim)
 	{
-		return dimension_name_short[dim];
+		return dimension_name_short_[dim];
 	}
 
 	char const * const RawDataPoint2D::shortDimensionNameRT()
 	{
-		return dimension_name_short[RT];
+		return dimension_name_short_[RT];
 	}
 
 	char const * const RawDataPoint2D::shortDimensionNameMZ()
 	{
-		return dimension_name_short[MZ];
+		return dimension_name_short_[MZ];
 	}
 
 	char const * const RawDataPoint2D::fullDimensionName(UnsignedInt const dim)
 	{
-		return dimension_name_full[dim];
+		return dimension_name_full_[dim];
 	}
 
 	char const * const RawDataPoint2D::fullDimensionNameRT()
 	{
-		return dimension_name_full[RT];
+		return dimension_name_full_[RT];
 	}
 
 	char const * const RawDataPoint2D::fullDimensionNameMZ()
 	{
-		return dimension_name_full[MZ];
+		return dimension_name_full_[MZ];
 	}
 
 	char const * const RawDataPoint2D::shortDimensionUnit(UnsignedInt const dim)
 	{
-		return dimension_unit_short[dim];
+		return dimension_unit_short_[dim];
 	}
 
 	char const * const RawDataPoint2D::shortDimensionUnitRT()
 	{
-		return dimension_unit_short[RT];
+		return dimension_unit_short_[RT];
 	}
 
 	char const * const RawDataPoint2D::shortDimensionUnitMZ()
 	{
-		return dimension_unit_short[MZ];
+		return dimension_unit_short_[MZ];
 	}
 
 	char const * const RawDataPoint2D::fullDimensionUnit(UnsignedInt const dim)
 	{
-		return dimension_unit_full[dim];
+		return dimension_unit_full_[dim];
 	}
 
 	char const * const RawDataPoint2D::fullDimensionUnitRT()
 	{
-		return dimension_unit_full[RT];
+		return dimension_unit_full_[RT];
 	}
 
 	char const * const RawDataPoint2D::fullDimensionUnitMZ()
 	{
-		return dimension_unit_full[MZ];
+		return dimension_unit_full_[MZ];
 	}
-
-	///Print the contents to a stream.
+	
 	std::ostream& operator << (std::ostream& os, const RawDataPoint2D& point)
 	{
 		os << "POS: "<< point.getMZ() << " INT: "<<point.getIntensity();

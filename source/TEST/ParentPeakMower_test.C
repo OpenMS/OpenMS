@@ -86,23 +86,23 @@ CHECK((template<typename SpectrumType> void filterSpectrum(SpectrumType& spectru
 	e_ptr->setParameters(p);
 
 	e_ptr->filterSpectrum(spec);
-	double pre_1_pos(spec.getPrecursorPeak().getPos()[0] * spec.getPrecursorPeak().getCharge());
+	double pre_1_pos(spec.getPrecursorPeak().getPosition()[0] * spec.getPrecursorPeak().getCharge());
 	for (SignedInt z = 1; z != spec.getPrecursorPeak().getCharge(); ++z)
 	{
 		for (PeakSpectrum::ConstIterator it = spec.begin(); it != spec.end(); ++it)
 		{	
-			if (fabs(it->getPos()[0] - pre_1_pos / double(z)) <= window_size)
+			if (fabs(it->getPosition()[0] - pre_1_pos / double(z)) <= window_size)
 			{
 				TEST_REAL_EQUAL(it->getIntensity(), 0.0);
 			}
 
 			// test if NH3 loss is correct removed
-			if (fabs(it->getPos()[0] - (pre_1_pos - 17.0) / double(z)) <= window_size)
+			if (fabs(it->getPosition()[0] - (pre_1_pos - 17.0) / double(z)) <= window_size)
 			{
 				TEST_REAL_EQUAL(it->getIntensity(), 0.0);
 			}
 
-			if (fabs(it->getPos()[0] - (pre_1_pos - 18.0) / double(z)) <= window_size)
+			if (fabs(it->getPosition()[0] - (pre_1_pos - 18.0) / double(z)) <= window_size)
 			{
 				TEST_REAL_EQUAL(it->getIntensity(), 0.0);
 			}
@@ -145,23 +145,23 @@ CHECK((void filterPeakMap(PeakMap& exp)))
 	e_ptr->setParameters(p);
 
   e_ptr->filterPeakMap(pm);
-  double pre_1_pos(pm.begin()->getPrecursorPeak().getPos()[0] * pm.begin()->getPrecursorPeak().getCharge());
+  double pre_1_pos(pm.begin()->getPrecursorPeak().getPosition()[0] * pm.begin()->getPrecursorPeak().getCharge());
   for (SignedInt z = 1; z != pm.begin()->getPrecursorPeak().getCharge(); ++z)
   {
     for (PeakSpectrum::ConstIterator it = pm.begin()->begin(); it != pm.begin()->end(); ++it)
     {
-      if (fabs(it->getPos()[0] - pre_1_pos / double(z)) <= window_size)
+      if (fabs(it->getPosition()[0] - pre_1_pos / double(z)) <= window_size)
       {
         TEST_REAL_EQUAL(it->getIntensity(), 0.0);
       }
 
       // test if NH3 loss is correct removed
-      if (fabs(it->getPos()[0] - (pre_1_pos - 17.0) / double(z)) <= window_size)
+      if (fabs(it->getPosition()[0] - (pre_1_pos - 17.0) / double(z)) <= window_size)
       {
         TEST_REAL_EQUAL(it->getIntensity(), 0.0);
       }
 
-      if (fabs(it->getPos()[0] - (pre_1_pos - 18.0) / double(z)) <= window_size)
+      if (fabs(it->getPosition()[0] - (pre_1_pos - 18.0) / double(z)) <= window_size)
       {
         TEST_REAL_EQUAL(it->getIntensity(), 0.0);
       }
@@ -190,23 +190,23 @@ CHECK((void filterPeakSpectrum(PeakSpectrum& spectrum)))
 	e_ptr->setParameters(p);
 
   e_ptr->filterPeakSpectrum(spec);
-  double pre_1_pos(spec.getPrecursorPeak().getPos()[0] * spec.getPrecursorPeak().getCharge());
+  double pre_1_pos(spec.getPrecursorPeak().getPosition()[0] * spec.getPrecursorPeak().getCharge());
   for (SignedInt z = 1; z != spec.getPrecursorPeak().getCharge(); ++z)
   {
     for (PeakSpectrum::ConstIterator it = spec.begin(); it != spec.end(); ++it)
     {
-      if (fabs(it->getPos()[0] - pre_1_pos / double(z)) <= window_size)
+      if (fabs(it->getPosition()[0] - pre_1_pos / double(z)) <= window_size)
       {
         TEST_REAL_EQUAL(it->getIntensity(), 0.0);
       }
 
       // test if NH3 loss is correct removed
-      if (fabs(it->getPos()[0] - (pre_1_pos - 17.0) / double(z)) <= window_size)
+      if (fabs(it->getPosition()[0] - (pre_1_pos - 17.0) / double(z)) <= window_size)
       {
         TEST_REAL_EQUAL(it->getIntensity(), 0.0);
       }
 
-      if (fabs(it->getPos()[0] - (pre_1_pos - 18.0) / double(z)) <= window_size)
+      if (fabs(it->getPosition()[0] - (pre_1_pos - 18.0) / double(z)) <= window_size)
       {
         TEST_REAL_EQUAL(it->getIntensity(), 0.0);
       }

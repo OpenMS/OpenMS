@@ -120,9 +120,9 @@ CHECK((void run()))
   Feature feat2;
   PositionType pos1(1,1);
   PositionType pos2(5,5);
-  feat1.setPos(pos1);
+  feat1.setPosition(pos1);
   feat1.setIntensity(100);
-  feat2.setPos(pos2);
+  feat2.setPosition(pos2);
   feat2.setIntensity(100);
   scene.push_back(feat1);
   scene.push_back(feat2);
@@ -132,9 +132,9 @@ CHECK((void run()))
   Feature feat4;
   PositionType pos3(2.4,1.02);
   PositionType pos4(10.4,5.02);
-  feat3.setPos(pos3);
+  feat3.setPosition(pos3);
   feat3.setIntensity(100);
-  feat4.setPos(pos4);
+  feat4.setPosition(pos4);
   feat4.setIntensity(100);
   modell.push_back(feat3);
   modell.push_back(feat4);

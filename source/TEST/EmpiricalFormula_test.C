@@ -62,13 +62,13 @@ CHECK(EmpiricalFormula(const EmpiricalFormula& rhs))
 	TEST_EQUAL(ef == *e_ptr, true)
 RESULT
 
-CHECK(EmpiricalFormula(Size number, const Element* element, SignedInt charge = 0))
+CHECK(EmpiricalFormula(UnsignedInt number, const Element* element, SignedInt charge = 0))
 	EmpiricalFormula ef(4, e_ptr->getElement("C"));
 	TEST_EQUAL(ef == *e_ptr, true)
 	TEST_EQUAL(ef.getCharge(), 0)
 RESULT
 
-CHECK(const Element* getElement(Size atomic_number) const)
+CHECK(const Element* getElement(UnsignedInt atomic_number) const)
 	const Element* e = e_ptr->getElement(6);
 	TEST_EQUAL(e->getSymbol(), "C")
 RESULT
@@ -78,24 +78,24 @@ CHECK(const Element* getElement(const String& name) const)
 	TEST_EQUAL(e->getSymbol(), "C")
 RESULT
 
-CHECK(Size getNumberOf(Size atomic_number) const)
-	Size num1 = e_ptr->getNumberOf(6);
+CHECK(UnsignedInt getNumberOf(UnsignedInt atomic_number) const)
+	UnsignedInt num1 = e_ptr->getNumberOf(6);
 	TEST_EQUAL(num1, 4);
 RESULT
 
-CHECK(Size getNumberOf(const String& name) const)
-	Size num2 = e_ptr->getNumberOf("C");
+CHECK(UnsignedInt getNumberOf(const String& name) const)
+	UnsignedInt num2 = e_ptr->getNumberOf("C");
 	TEST_EQUAL(num2, 4);
 RESULT
 
-CHECK(Size getNumberOf(const Element* element) const)
+CHECK(UnsignedInt getNumberOf(const Element* element) const)
 	const Element* e = e_ptr->getElement(6);
-	Size num3 = e_ptr->getNumberOf(e);
+	UnsignedInt num3 = e_ptr->getNumberOf(e);
 	TEST_EQUAL(num3, 4);
 RESULT
 
-CHECK(Size getNumberOfAtoms() const)
-	Size num4 = e_ptr->getNumberOfAtoms();
+CHECK(UnsignedInt getNumberOfAtoms() const)
+	UnsignedInt num4 = e_ptr->getNumberOfAtoms();
 	TEST_EQUAL(num4, 4);
 RESULT
 
@@ -180,7 +180,7 @@ CHECK(bool hasElement(const String& name) const)
 	TEST_EQUAL(e_ptr->hasElement("N"), false)
 RESULT
 
-CHECK(bool hasElement(Size atomic_number) const)
+CHECK(bool hasElement(UnsignedInt atomic_number) const)
 	TEST_EQUAL(e_ptr->hasElement(6), true)
 	TEST_EQUAL(e_ptr->hasElement(7), false)
 RESULT
@@ -280,7 +280,7 @@ CHECK(ConstIterator end() const)
  // TODO
 RESULT
 
-CHECK(IsotopeDistribution getIsotopeDistribution(Size max_depth = 20) const)
+CHECK(IsotopeDistribution getIsotopeDistribution(UnsignedInt max_depth = 20) const)
 	// TODO
 RESULT
 

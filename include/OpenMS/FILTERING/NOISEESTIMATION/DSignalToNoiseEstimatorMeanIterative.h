@@ -95,7 +95,7 @@ namespace OpenMS
     
   */
 
-  template <Size D = 1 , typename PeakIterator = MSSpectrum<RawDataPoint1D >::const_iterator >
+  template <UnsignedInt D = 1 , typename PeakIterator = MSSpectrum<RawDataPoint1D >::const_iterator >
   class DSignalToNoiseEstimatorMeanIterative : public DSignalToNoiseEstimator<D, PeakIterator>
   {
 
@@ -520,9 +520,9 @@ namespace OpenMS
             while (scan_end != last_)
             {
               scan_count++;
-              rt = (*scan_end).getPos()[0];
+              rt = (*scan_end).getPosition()[0];
               // find end of scan
-              while (scan_end != last_ && rt == (*scan_end).getPos()[0])
+              while (scan_end != last_ && rt == (*scan_end).getPosition()[0])
               {
                 ++scan_end;
               }
@@ -695,7 +695,7 @@ namespace OpenMS
         {
 
           // erase all elements from histogram that will leave the window on the LEFT side
-          while ( (*window_pos_borderleft).getPos() <  (*window_pos_center).getPos() - window_half_size )
+          while ( (*window_pos_borderleft).getPosition() <  (*window_pos_center).getPosition() - window_half_size )
           {
             to_bin = (int) (((*window_pos_borderleft).getIntensity()) / bin_size);
             if (to_bin < bin_count_)
@@ -708,7 +708,7 @@ namespace OpenMS
 
           // add all elements to histogram that will enter the window on the RIGHT side
           while (     (window_pos_borderright != scan_last_)
-                      && ((*window_pos_borderright).getPos() <= (*window_pos_center).getPos() + window_half_size )                     )
+                      && ((*window_pos_borderright).getPosition() <= (*window_pos_center).getPosition() + window_half_size )                     )
           {
             to_bin = (int) (((*window_pos_borderright).getIntensity()) / bin_size);
             if (to_bin < bin_count_)

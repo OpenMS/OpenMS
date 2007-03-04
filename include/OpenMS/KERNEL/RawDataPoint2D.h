@@ -24,8 +24,8 @@
 // $Maintainer: Marc Sturm $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_KERNEL_RawDataPoint2D_H
-#define OPENMS_KERNEL_RawDataPoint2D_H
+#ifndef OPENMS_KERNEL_RAWDATAPOINT2D_H
+#define OPENMS_KERNEL_RAWDATAPOINT2D_H
 
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/DATASTRUCTURES/DPosition.h>
@@ -101,16 +101,16 @@ namespace OpenMS
 
 	 protected:
     /// Short name of the dimension (abbreviated form)
-		static char const * const dimension_name_short [DIMENSION];
+		static char const * const dimension_name_short_[DIMENSION];
 		
     /// Full name of the dimension (self-explanatory form)
-    static char const * const dimension_name_full  [DIMENSION];
+    static char const * const dimension_name_full_[DIMENSION];
 		
     /// Unit of measurement (abbreviated form)
-    static char const * const dimension_unit_short [DIMENSION];
+    static char const * const dimension_unit_short_[DIMENSION];
 		
     /// Unit of measurement (self-explanatory form)
-    static char const * const dimension_unit_full  [DIMENSION];
+    static char const * const dimension_unit_full_[DIMENSION];
     
 		//@}
 
@@ -155,17 +155,17 @@ namespace OpenMS
 		inline void setIntensity(const IntensityType& intensity) { intensity_ = intensity; }
 
 		/// Non-mutable access to the position
-		inline PositionType const & getPos() const 
+		inline PositionType const & getPosition() const 
     { 
       return position_; 
     }
 		/// Mutable access to the position
-		inline PositionType& getPos() 
+		inline PositionType& getPosition() 
     {
       return position_; 
     }
 		/// Mutable access to the position
-		inline void setPos(const PositionType& position) 
+		inline void setPosition(const PositionType& position) 
     { 
       position_ = position; 
     }
@@ -259,19 +259,19 @@ namespace OpenMS
 			/// comparison of two RawDataPoint2Ds
 			inline bool operator () ( RawDataPoint2D const & left, RawDataPoint2D const & right ) const throw()
 			{
-				return (left.getPos()[i] < right.getPos()[i]);
+				return (left.getPosition()[i] < right.getPosition()[i]);
 			}
 			
 			/// comparison of a RawDataPoint2D with a CoordinateType
 			inline bool operator () ( RawDataPoint2D const & left, CoordinateType const & right ) const throw()
 			{
-				return (left.getPos()[i] < right );
+				return (left.getPosition()[i] < right );
 			}
 			
 			/// comparison of a CoordinateType with a RawDataPoint2D
 			inline bool operator () ( CoordinateType const & left, RawDataPoint2D const & right ) const throw()
 			{
-				return (left < right.getPos()[i] );
+				return (left < right.getPosition()[i] );
 			}
 
 			/**
@@ -304,7 +304,7 @@ namespace OpenMS
 		{
 			inline bool operator () (const RawDataPoint2D& a, const RawDataPoint2D& b) const
 			{
-				return (a.getPos() < b.getPos());
+				return (a.getPosition() < b.getPosition());
 			}
 		};
 		
@@ -322,4 +322,4 @@ namespace OpenMS
 
 } // namespace OpenMS
 
-#endif // OPENMS_KERNEL_DRAWDATAPOINT_H
+#endif // OPENMS_KERNEL_RAWDATAPOINT2D_H

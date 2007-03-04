@@ -141,7 +141,7 @@ CHECK(Real getMonoWeight(Residue::ResidueType type = Residue::Full, SignedInt ch
 
 RESULT
 
-CHECK((HashMap<const EmpiricalFormula*, Size> getNeutralLosses() const))
+CHECK((HashMap<const EmpiricalFormula*, UnsignedInt> getNeutralLosses() const))
 
 RESULT
 
@@ -173,19 +173,19 @@ CHECK(void setResidueDB(ResidueDB* res_db = 0))
 	// TODO
 RESULT
 
-CHECK(Size size() const)
+CHECK(UnsignedInt size() const)
 
 RESULT
 
-CHECK(AASequence getPrefix(Size index) const throw(Exception::IndexOverflow))
+CHECK(AASequence getPrefix(UnsignedInt index) const throw(Exception::IndexOverflow))
 
 RESULT
 
-CHECK(AASequence getSuffix(Size index) const throw(Exception::IndexOverflow))
+CHECK(AASequence getSuffix(UnsignedInt index) const throw(Exception::IndexOverflow))
 
 RESULT
 
-CHECK(AASequence getSubsequence(Size index, Size number) const throw(Exception::IndexOverflow))
+CHECK(AASequence getSubsequence(UnsignedInt index, UnsignedInt number) const throw(Exception::IndexOverflow))
 
 RESULT
 

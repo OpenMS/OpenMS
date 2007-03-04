@@ -39,7 +39,7 @@ namespace OpenMS
 		
 		@ingroup Datastructures
 	*/
-	template <Size D>
+	template <UnsignedInt D>
 	class DBoundingBox
 		:	public Internal::DIntervalBase<D>
 	{
@@ -114,7 +114,7 @@ namespace OpenMS
 		/// Enlarges the bounding box such that it contains a position.
 		void enlarge(PositionType const & p)
 		{
-			for ( Size i = 0; i < DIMENSION; ++i )
+			for ( UnsignedInt i = 0; i < DIMENSION; ++i )
 			{
 				if ( p[i] < min_[i] ) min_[i] = p[i];
 				if ( p[i] > max_[i] ) max_[i] = p[i];
@@ -151,7 +151,7 @@ namespace OpenMS
 		*/
 		bool encloses(PositionType const& position) const
 		{
-			for ( Size i = 0; i < DIMENSION; ++i )
+			for ( UnsignedInt i = 0; i < DIMENSION; ++i )
 			{
 				if ( position[i] < min_[i] || position[i] > max_[i] )
 				{
@@ -172,7 +172,7 @@ namespace OpenMS
 		*/	
 		bool intersects(DBoundingBox const & bounding_box) const
 		{
-			for ( Size i = 0; i < DIMENSION; ++i )
+			for ( UnsignedInt i = 0; i < DIMENSION; ++i )
 			{
 				if ( bounding_box .min_[i] > max_[i] ) return false; 
 				if ( bounding_box.max_[i] <  min_[i] ) return false; 
@@ -195,7 +195,7 @@ namespace OpenMS
 
 	@relatesalso DBoundingBox
 	*/
-	template <Size D>
+	template <UnsignedInt D>
 	std::ostream& operator << (std::ostream& os, const DBoundingBox<D>& bounding_box)
 	{
 		os << "--DBOUNDINGBOX BEGIN--"<<std::endl;

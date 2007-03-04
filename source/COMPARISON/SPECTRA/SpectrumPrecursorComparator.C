@@ -71,11 +71,11 @@ namespace OpenMS
     //const MSSpectrum< Peak1D >& x = csa.getSpec();
     //const MSSpectrum< Peak1D >& y = csb.getSpec();
     
-    if (fabs (x.getPrecursorPeak().getPos()[0] - y.getPrecursorPeak().getPos()[0]) > window) 
+    if (fabs (x.getPrecursorPeak().getPosition()[0] - y.getPrecursorPeak().getPosition()[0]) > window) 
 		{
 			return 0;
 		}
-    score = window - fabs(x.getPrecursorPeak().getPos()[0] - y.getPrecursorPeak().getPos()[0]);
+    score = window - fabs(x.getPrecursorPeak().getPosition()[0] - y.getPrecursorPeak().getPosition()[0]);
     return score;
   }
 

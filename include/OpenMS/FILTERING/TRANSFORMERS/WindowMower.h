@@ -77,7 +77,7 @@ namespace OpenMS
 			typedef typename SpectrumType::ContainerType ContainerType;
 			
 			double windowsize = (double)param_.getValue("windowsize");
-    	Size peakcount = (int)param_.getValue("peakcount");
+    	UnsignedInt peakcount = (int)param_.getValue("peakcount");
 
 			std::set<double> positions; // store the indices that are the most intense ones in an interval
 			
@@ -88,7 +88,7 @@ namespace OpenMS
 			for (ConstIterator it = spectrum.begin(); it != spectrum.end(); ++it)
 			{
 				ContainerType container;
-				for (ConstIterator it2 = it; (it2->getPos() - it->getPos() < windowsize); )
+				for (ConstIterator it2 = it; (it2->getPosition() - it->getPosition() < windowsize); )
 				{
 					container.push_back(*it2);
 					if (++it2 == spectrum.end())
@@ -100,7 +100,7 @@ namespace OpenMS
 
 				container.sortByIntensity(true);
 				
-				for (Size i = 0; i < peakcount; ++i)
+				for (UnsignedInt i = 0; i < peakcount; ++i)
 				{
 					if (container.size() > i)
 					{

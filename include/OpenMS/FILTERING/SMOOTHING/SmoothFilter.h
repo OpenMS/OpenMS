@@ -126,7 +126,7 @@ namespace OpenMS
             ++m;
           }
 
-          out_it->setPos(first->getPos());
+          out_it->setPosition(first->getPosition());
           out_it->setIntensity(help);
           ++out_it;
           ++first;
@@ -144,7 +144,7 @@ namespace OpenMS
             --it_back;
           }
 
-          out_it->setPos(first->getPos());
+          out_it->setPosition(first->getPosition());
           out_it->setIntensity(help);
           ++out_it;
           ++first;

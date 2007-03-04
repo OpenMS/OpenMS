@@ -55,13 +55,13 @@ namespace OpenMS
 			grid->addWidget(colors_,0,0);
 			
 			//mapping
-			QGroupBox* box = addBox(grid,1,0,"Mapping");
+			QGroupBox* box =	addBox_(grid,1,0,"Mapping");
 			axis_mapping_ = new QComboBox( box);
 			axis_mapping_->insertItem(0,"X-Axis");
 			axis_mapping_->insertItem(1,"Y-Axis");  
-			addWidget(box->layout(),0,"Map m/z to:",axis_mapping_);
+			addWidget_(box->layout(),0,"Map m/z to:",axis_mapping_);
 			
-			finish(grid);
+			finish_(grid);
 			
 			load();
 		}

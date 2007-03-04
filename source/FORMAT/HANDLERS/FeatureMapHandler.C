@@ -93,8 +93,8 @@ namespace OpenMS
 			if (is_parser_in_tag_[DESCRIPTION])	// collect Experimental Settings
 			{
 				exp_sett_ << '<' << xercesc::XMLString::transcode(qname);
-				Size n=attributes.getLength();
-				for (Size i=0; i<n; ++i)
+				UnsignedInt n=attributes.getLength();
+				for (UnsignedInt i=0; i<n; ++i)
 				{
 					exp_sett_ << ' ' << xercesc::XMLString::transcode(attributes.getQName(i)) << "=\""	<< xercesc::XMLString::transcode(attributes.getValue(i)) << '\"';
 				}
@@ -160,7 +160,7 @@ namespace OpenMS
 			}
 	
 			// find the tag that the parser is in right now
-	 		for (Size i=0; i<is_parser_in_tag_.size(); i++)
+	 		for (UnsignedInt i=0; i<is_parser_in_tag_.size(); i++)
 	 		{
 				if (is_parser_in_tag_[i])
 				{
@@ -170,7 +170,7 @@ namespace OpenMS
 							feature_->setIntensity(asDouble_(xercesc::XMLString::transcode(chars))); 
 							break;
 						case POSITION:
-							feature_->getPos()[current_pcoord_] = asDouble_(xercesc::XMLString::transcode(chars));
+							feature_->getPosition()[current_pcoord_] = asDouble_(xercesc::XMLString::transcode(chars));
 							break;
 						case QUALITY:       
 							feature_->setQuality(current_qcoord_, asDouble_(xercesc::XMLString::transcode(chars)));
@@ -213,7 +213,7 @@ namespace OpenMS
 				os << "\t\t<feature id=\"" << id_generator.getUID() << "\">" << std::endl;
 	
 				for (UnsignedInt i=0; i<2;i++)
-					os <<	"\t\t\t<position dim=\"" << i << "\">" << feat.getPos()[i] << "</position>" << 	std::endl;
+					os <<	"\t\t\t<position dim=\"" << i << "\">" << feat.getPosition()[i] << "</position>" << 	std::endl;
 	
 				os << "\t\t\t<intensity>" << feat.getIntensity() << "</intensity>" << std::endl;
 	

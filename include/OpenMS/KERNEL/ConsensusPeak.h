@@ -81,7 +81,7 @@ namespace OpenMS
           position_range_(),
           intensity_range_()
       {
-        this->setPos(pos);
+        this->setPosition(pos);
         this->setIntensity(i);
       }
 
@@ -91,17 +91,17 @@ namespace OpenMS
         try
         {
           IndexTuple i(map_index,peak_index,peak);
-          i.setTransformedPosition(peak.getPos());
+          i.setTransformedPosition(peak.getPosition());
           this->insert(IndexTuple(map_index,peak_index,peak));
         }
         catch(Exception::InvalidValue)
         {}
 
-        this->getPos() = peak.getPos();
+        this->getPosition() = peak.getPosition();
         this->setIntensity(peak.getIntensity());
 
-        position_range_.setMinMax(peak.getPos()
-                                  ,peak.getPos());
+        position_range_.setMinMax(peak.getPosition()
+                                  ,peak.getPosition());
         intensity_range_.setMinMax(peak.getIntensity(),peak.getIntensity());
       }
 
@@ -112,10 +112,10 @@ namespace OpenMS
         try
         {
           IndexTuple i1(map_1_index,peak_index_1, peak_1);
-          i1.setTransformedPosition(peak_1.getPos());
+          i1.setTransformedPosition(peak_1.getPosition());
           this->insert(i1);
           IndexTuple i2(map_2_index,peak_index_2, peak_2);
-          i2.setTransformedPosition(peak_2.getPos());
+          i2.setTransformedPosition(peak_2.getPosition());
           this->insert(i2);
         }
         catch(Exception::InvalidValue)
@@ -129,7 +129,7 @@ namespace OpenMS
       {
         Group::operator=(c_peak);
         IndexTuple i(map_index,peak_index,peak);
-        i.setTransformedPosition(peak.getPos());
+        i.setTransformedPosition(peak.getPosition());
         this->insert(IndexTuple(map_index,peak_index,peak));
 
         computeConsensus_();
@@ -294,7 +294,7 @@ namespace OpenMS
   std::ostream& operator << (std::ostream& os, const ConsensusPeak<ContainerT>& cons)
   {
     os << "---------- CONSENSUS ELEMENT BEGIN -----------------\n";
-    os << "Position: " << cons.getPos()<< std::endl;
+    os << "Position: " << cons.getPosition()<< std::endl;
     os << "Intensity " << cons.getIntensity() << std::endl;
     os << "Position range " << cons.getPositionRange() << std::endl;
     os << "Intensity range " << cons.getIntensityRange() << std::endl;

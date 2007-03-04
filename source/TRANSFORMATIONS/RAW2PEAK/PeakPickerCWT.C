@@ -539,9 +539,9 @@ namespace OpenMS
 			{
 				DPosition<1> p;
 				p = i*spacing + start;
-				lorentz_peak[i].setPos(p);
+				lorentz_peak[i].setPosition(p);
 				lorentz_peak[i].setIntensity(lorentz_(peak_bound_,lambda,0,i*spacing + start));
-				lorentz_peak2[i].setPos(p);
+				lorentz_peak2[i].setPosition(p);
 				lorentz_peak2[i].setIntensity(lorentz_(peak_bound_ms2_level_,lambda,0,i*spacing + start));
 			}
 

@@ -573,7 +573,7 @@ namespace OpenMS
 				last_peak_mz = (exp_it->begin() + set_iter2->second)->getMZ() + 1;
 				
 				std::cout << "first peak mz "<<first_peak_mz << "\tlast peak mz "<<last_peak_mz <<std::endl;
-				peak.setPos(first_peak_mz);
+				peak.setPosition(first_peak_mz);
 				typename MSSpectrum<InputPeakType>::const_iterator raw_data_iter
 					= lower_bound(iter->begin(), iter->end(), peak, typename InputPeakType::PositionLess());
 				if(raw_data_iter != iter->begin())
@@ -594,7 +594,7 @@ namespace OpenMS
 				left.second = distance(iter->begin(),raw_data_iter);
 
 				// consider a bit more of the signal to the right
-				peak.setPos(last_peak_mz + 1);
+				peak.setPosition(last_peak_mz + 1);
 				raw_data_iter
 					= upper_bound(iter->begin(), iter->end(), peak, typename InputPeakType::PositionLess());
 				if(raw_data_iter == iter->end()) --raw_data_iter;

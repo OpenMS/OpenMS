@@ -70,7 +70,7 @@ namespace OpenMS
 				@param map_num number of maps
 				@param filename the file name to handle
 			*/
-      SchemaHandler(Size tag_num, Size map_num,const String& filename);
+      SchemaHandler(UnsignedInt tag_num, UnsignedInt map_num,const String& filename);
       ///
       virtual ~SchemaHandler();
       //@}

@@ -53,7 +53,7 @@ CHECK((~Base64()))
 	delete ptr;
 RESULT
 
-CHECK((Size getOutputBufferSize()))
+CHECK((UnsignedInt getOutputBufferSize()))
 	Base64 b64;
   string src = "SGFsbG8gV29ybA==";  //"Hallo Worl"
 	b64.decode(src.c_str(), src.size());
@@ -80,7 +80,7 @@ CHECK((Size getOutputBufferSize()))
   TEST_EQUAL(b64.getOutputBufferSize(), 18)
 RESULT
 
-CHECK((void setOutputBufferSize(Size s)))
+CHECK((void setOutputBufferSize(UnsignedInt s)))
 	Base64 b64;
   b64.setOutputBufferSize(22);
   string src = "SGFsbG8gV29ybGQ=";  //"Hallo World"
@@ -88,7 +88,7 @@ CHECK((void setOutputBufferSize(Size s)))
   TEST_EQUAL(b64.getOutputBufferSize(), 24)
 RESULT
 
-CHECK((char* decode(const char* src, Size size)))
+CHECK((char* decode(const char* src, UnsignedInt size)))
 	Base64 b64;
 	string src = "SGFsbG8gV29ybGQ=";
 	string dest = b64.decode(src.c_str(), src.size());
@@ -102,7 +102,7 @@ CHECK((char* decode(const char* src, Size size)))
   TEST_EQUAL(dest, "This is one test")
 RESULT
 
-CHECK((float* decodeFloat(const char* src, Size size)))
+CHECK((float* decodeFloat(const char* src, UnsignedInt size)))
   PRECISION(0.001)
 	Base64 b64;
 	string src = "JhOWQ8b/l0PMTJhD";
@@ -119,7 +119,7 @@ CHECK((float* decodeFloat(const char* src, Size size)))
 RESULT
 
 
-CHECK((float* decodeFloatCorrected(const char* src, Size size)))
+CHECK((float* decodeFloatCorrected(const char* src, UnsignedInt size)))
   PRECISION(0.001)
 	Base64 b64;
 	string src = "Q+vIuEec9YBD7TgoR/HTgEPt23hHA8UA";
@@ -137,7 +137,7 @@ CHECK((float* decodeFloatCorrected(const char* src, Size size)))
 	TEST_REAL_EQUAL(res[1], 100)
 RESULT
 
-CHECK((char* encode(const char* src, Size size)))
+CHECK((char* encode(const char* src, UnsignedInt size)))
 	Base64 b64;
 	string src = "Hallo World";
 	string dest = b64.encode(src.c_str(), src.size());
@@ -162,7 +162,7 @@ CHECK((char* encode(const char* src, Size size)))
 	TEST_EQUAL(dest, src)
 RESULT
 
-CHECK((float* getFloatBuffer(Size size)))
+CHECK((float* getFloatBuffer(UnsignedInt size)))
 	Base64 b64;
   float* data = b64.getFloatBuffer(3);
 	TEST_NOT_EQUAL(data,0);
@@ -210,7 +210,7 @@ CHECK((char* encodeFloatCorrected()))
 	TEST_REAL_EQUAL(res[2], 304.6)
 RESULT
 
-CHECK((double* getDoubleBuffer(Size size)))
+CHECK((double* getDoubleBuffer(UnsignedInt size)))
 	Base64 b64;
   double* data = b64.getDoubleBuffer(3);
 	TEST_NOT_EQUAL(data,0);

@@ -75,10 +75,10 @@ namespace OpenMS
 			return "SpectrumAlignment";
 		}
 
-		//template <typename SpectrumType> void getSpectrumAlignment(std::vector<std::pair<Size, Size> >& alignment, const SpectrumType& s1, const SpectrumType& s2) const;
+		//template <typename SpectrumType> void getSpectrumAlignment(std::vector<std::pair<UnsignedInt, UnsignedInt> >& alignment, const SpectrumType& s1, const SpectrumType& s2) const;
 
 		// TODO code from this method into template method above and this method should simply call the method above
-		void getSpectrumAlignment(std::vector<std::pair<Size, Size> >& alignment, const PeakSpectrum& s1, const PeakSpectrum& s2) const;
+		void getSpectrumAlignment(std::vector<std::pair<UnsignedInt, UnsignedInt> >& alignment, const PeakSpectrum& s1, const PeakSpectrum& s2) const;
 		// @}
 
   };

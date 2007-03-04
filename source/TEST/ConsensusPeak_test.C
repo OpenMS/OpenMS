@@ -52,7 +52,7 @@ CHECK(ConsensusPeak& operator=(const ConsensusPeak& source))
   DPosition<2> pos(1,2);
   ConsensusPeak<> cons(pos,200);
   Peak2D feat;
-  feat.setPos(pos);
+  feat.setPosition(pos);
   feat.setIntensity(200);
   
   IndexTuple<DPeakArray<2, Peak2D> > ind(1,3,feat);
@@ -61,8 +61,8 @@ CHECK(ConsensusPeak& operator=(const ConsensusPeak& source))
   ConsensusPeak<> cons_copy;
   cons_copy = cons;
   
-  TEST_REAL_EQUAL(cons_copy.getPos()[0],1)
-  TEST_REAL_EQUAL(cons_copy.getPos()[1],2)
+  TEST_REAL_EQUAL(cons_copy.getPosition()[0],1)
+  TEST_REAL_EQUAL(cons_copy.getPosition()[1],2)
   TEST_REAL_EQUAL(cons_copy.getIntensity(),200)
   TEST_EQUAL(cons_copy.getPositionRange() == cons.getPositionRange(), true)
   TEST_EQUAL(cons_copy.getIntensityRange() == cons.getIntensityRange(), true)
@@ -75,7 +75,7 @@ CHECK((ConsensusPeak(const ConsensusPeak& c_peak_1, const ConsensusPeak& c_peak_
   DPosition<2> pos(1,2);
   ConsensusPeak<> cons1(pos,200);
   Peak2D feat1;
-  feat1.setPos(pos);
+  feat1.setPosition(pos);
   feat1.setIntensity(200);
   IndexTuple<DPeakArray<2, Peak2D> > ind1(1,3,feat1);
   cons1.insert(ind1);
@@ -84,7 +84,7 @@ CHECK((ConsensusPeak(const ConsensusPeak& c_peak_1, const ConsensusPeak& c_peak_
   pos[1]=3;
   ConsensusPeak<> cons2(pos,200);
   Peak2D feat2;
-  feat2.setPos(pos);
+  feat2.setPosition(pos);
   feat2.setIntensity(200);
   IndexTuple<DPeakArray<2, Peak2D> > ind2(2,3,feat2);
   cons2.insert(ind2);
@@ -93,8 +93,8 @@ CHECK((ConsensusPeak(const ConsensusPeak& c_peak_1, const ConsensusPeak& c_peak_
   DRange<2> pos_range(1,2,2,3);
   DRange<1> int_range(200,200);
     
-  TEST_REAL_EQUAL(cons3.getPos()[0],1.5)
-  TEST_REAL_EQUAL(cons3.getPos()[1],2.5)
+  TEST_REAL_EQUAL(cons3.getPosition()[0],1.5)
+  TEST_REAL_EQUAL(cons3.getPosition()[1],2.5)
   TEST_REAL_EQUAL(cons3.getIntensity(),200)
   TEST_EQUAL(cons3.getPositionRange() == pos_range, true)
   TEST_EQUAL(cons3.getIntensityRange() == int_range, true)
@@ -112,14 +112,14 @@ CHECK(ConsensusPeak(const ConsensusPeak& source))
   DPosition<2> pos(1,2);
   ConsensusPeak<> cons(pos,200);
   Peak2D feat;
-  feat.setPos(pos);
+  feat.setPosition(pos);
   feat.setIntensity(200);
   IndexTuple<DPeakArray<2, Peak2D> > ind(1,3,feat);
   cons.insert(ind);
   ConsensusPeak<> cons_copy(cons);
   
-  TEST_REAL_EQUAL(cons_copy.getPos()[0],1)
-  TEST_REAL_EQUAL(cons_copy.getPos()[1],2)
+  TEST_REAL_EQUAL(cons_copy.getPosition()[0],1)
+  TEST_REAL_EQUAL(cons_copy.getPosition()[1],2)
   TEST_REAL_EQUAL(cons_copy.getIntensity(),200)
   TEST_EQUAL(cons_copy.getPositionRange() == cons.getPositionRange(), true)
   TEST_EQUAL(cons_copy.getIntensityRange() == cons.getIntensityRange(), true)
@@ -134,8 +134,8 @@ CHECK((ConsensusPeak(const PositionType& pos, const IntensityType& i)))
     
   DRange<2> pos_range;
   DRange<1> int_range;
-  TEST_REAL_EQUAL(cons.getPos()[0],1)
-  TEST_REAL_EQUAL(cons.getPos()[1],2)
+  TEST_REAL_EQUAL(cons.getPosition()[0],1)
+  TEST_REAL_EQUAL(cons.getPosition()[1],2)
   TEST_REAL_EQUAL(cons.getIntensity(),200)
   TEST_EQUAL(cons.getPositionRange() == pos_range, true)
   TEST_EQUAL(cons.getIntensityRange() == int_range, true)
@@ -145,21 +145,21 @@ RESULT
 CHECK((ConsensusPeak(const UnsignedInt& map_1_index, const UnsignedInt& peak_index_1, const ElementType& peak_1, const UnsignedInt& map_2_index, const UnsignedInt& peak_index_2, const ElementType& peak_2)))
   DPosition<2> pos(1,2);
   Peak2D feat1;
-  feat1.setPos(pos);
+  feat1.setPosition(pos);
   feat1.setIntensity(200);
   
   pos[0]=2;
   pos[1]=3;
   Peak2D feat2;
-  feat2.setPos(pos);
+  feat2.setPosition(pos);
   feat2.setIntensity(200);
   
   ConsensusPeak<> cons3(1,3,feat1,2,3,feat2);
   DRange<2> pos_range(1,2,2,3);
   DRange<1> int_range(200,200);
     
-  TEST_REAL_EQUAL(cons3.getPos()[0],1.5)
-  TEST_REAL_EQUAL(cons3.getPos()[1],2.5)
+  TEST_REAL_EQUAL(cons3.getPosition()[0],1.5)
+  TEST_REAL_EQUAL(cons3.getPosition()[1],2.5)
   TEST_REAL_EQUAL(cons3.getIntensity(),200)
   TEST_EQUAL(cons3.getPositionRange() == pos_range, true)
   TEST_EQUAL(cons3.getIntensityRange() == int_range, true)
@@ -176,15 +176,15 @@ RESULT
 CHECK((ConsensusPeak(const UnsignedInt& map_index, const UnsignedInt& peak_index, const ElementType& peak)))
   DPosition<2> pos(1,2);
   Peak2D feat1;
-  feat1.setPos(pos);
+  feat1.setPosition(pos);
   feat1.setIntensity(200);
   
  	ConsensusPeak<> cons(1,3,feat1);
   DRange<2> pos_range(1,2,1,2);
   DRange<1> int_range(200,200);
     
-  TEST_REAL_EQUAL(cons.getPos()[0],1)
-  TEST_REAL_EQUAL(cons.getPos()[1],2)
+  TEST_REAL_EQUAL(cons.getPosition()[0],1)
+  TEST_REAL_EQUAL(cons.getPosition()[1],2)
   TEST_REAL_EQUAL(cons.getIntensity(),200)
   TEST_EQUAL(cons.getPositionRange() == pos_range, true)
   TEST_EQUAL(cons.getIntensityRange() == int_range, true)
@@ -197,14 +197,14 @@ RESULT
 CHECK((ConsensusPeak(const UnsignedInt& map_index, const UnsignedInt& peak_index, const ElementType& peak, const ConsensusPeak& c_peak)))
   DPosition<2> pos(1,2);
   Peak2D feat1;
-  feat1.setPos(pos);
+  feat1.setPosition(pos);
   feat1.setIntensity(200);
     
   pos[0]=2;
   pos[1]=3;
   ConsensusPeak<> cons2(pos,200);
   Peak2D feat2;
-  feat2.setPos(pos);
+  feat2.setPosition(pos);
   feat2.setIntensity(200);
   IndexTuple<DPeakArray<2, Peak2D> > ind2(2,3,feat2);
   cons2.insert(ind2);
@@ -213,8 +213,8 @@ CHECK((ConsensusPeak(const UnsignedInt& map_index, const UnsignedInt& peak_index
   DRange<2> pos_range(1,2,2,3);
   DRange<1> int_range(200,200);
     
-  TEST_REAL_EQUAL(cons3.getPos()[0],1.5)
-  TEST_REAL_EQUAL(cons3.getPos()[1],2.5)
+  TEST_REAL_EQUAL(cons3.getPosition()[0],1.5)
+  TEST_REAL_EQUAL(cons3.getPosition()[1],2.5)
   TEST_REAL_EQUAL(cons3.getIntensity(),200)
   TEST_EQUAL(cons3.getPositionRange() == pos_range, true)
   TEST_EQUAL(cons3.getIntensityRange() == int_range, true)
@@ -231,7 +231,7 @@ RESULT
 CHECK(Group& getPeaks())
   DPosition<2> pos(1,2);
   Peak2D feat1;
-  feat1.setPos(pos);
+  feat1.setPosition(pos);
   feat1.setIntensity(200);
   IndexTuple<DPeakArray<2, Peak2D> > ind(2,3,feat1);
   
@@ -266,7 +266,7 @@ RESULT
 CHECK(const Group& getPeaks() const)
   DPosition<2> pos(1,2);
   Peak2D feat1;
-  feat1.setPos(pos);
+  feat1.setPosition(pos);
   feat1.setIntensity(200);
   IndexTuple<DPeakArray<2, Peak2D> > ind(2,3,feat1);
   ConsensusPeak<> cons;
@@ -298,7 +298,7 @@ RESULT
 CHECK(void insert(const IndexTuple& tuple))
   DPosition<2> pos(1,2);
   Peak2D feat1;
-  feat1.setPos(pos);
+  feat1.setPosition(pos);
   feat1.setIntensity(200);
   IndexTuple<DPeakArray<2, Peak2D> > ind(2,3,feat1);
   
@@ -314,7 +314,7 @@ RESULT
 CHECK(void setIntensityRange(const IntensityBoundingBoxType& i))
   DPosition<2> pos(1,2);
   Peak2D feat1;
-  feat1.setPos(pos);
+  feat1.setPosition(pos);
   feat1.setIntensity(200);
   IndexTuple<DPeakArray<2, Peak2D> > ind(2,3,feat1);
   

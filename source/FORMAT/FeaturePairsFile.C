@@ -44,7 +44,7 @@ namespace OpenMS
   {
     map.clear();
 
-    for (Size i=0; i<pairs.size(); ++i)
+    for (UnsignedInt i=0; i<pairs.size(); ++i)
     {
       map.push_back(pairs[i].getFirst());
       map.push_back(pairs[i].getSecond());

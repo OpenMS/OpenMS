@@ -146,13 +146,13 @@ namespace OpenMS
 		{
 		}
 
-    void setElementMap(Size const index, const PointMapType& element_map)
+    void setElementMap(UnsignedInt const index, const PointMapType& element_map)
     {
       element_map_[index] = &element_map;
     }
 
     /// Get element maps by arg (non-mutable)
-    const PointMapType& getElementMap(Size index) const
+    const PointMapType& getElementMap(UnsignedInt index) const
     {
       return *element_map_[index];
     }
@@ -170,13 +170,13 @@ namespace OpenMS
     }
 
     /// Set transformation
-    void setTransformation(Size dim, const TransformationType& trafo)
+    void setTransformation(UnsignedInt dim, const TransformationType& trafo)
     {
       transformation_[dim] = trafo;
     }
 
     /// Get transformation
-    const TransformationType& getTransformation(Size dim) const
+    const TransformationType& getTransformation(UnsignedInt dim) const
     {
       return transformation_[dim];
     }
@@ -241,7 +241,7 @@ namespace OpenMS
     std::ofstream dump_file(filename.c_str());
     dump_file << "# " << filename<< " generated " << Date::now() << std::endl;
     dump_file << "# 1:number 2:quality 3:firstRT 4:firstMZ 5:firstIT 6:firstQual 7:secondRT 8:secondMZ 9:secondIT 10:secondQual\n";
-    for ( Size fp = 0; fp < getElementPairs().size(); ++fp )
+    for ( UnsignedInt fp = 0; fp < getElementPairs().size(); ++fp )
     {
       dump_file << fp << ' '
       << getElementPairs()[fp].getFirst().getRT() << ' '

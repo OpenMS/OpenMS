@@ -53,14 +53,14 @@ namespace OpenMS
 		/** @name Accessors */
 		//@{
 		/// loads the file with name @p filename into @p map. General case is not implemented!
-		template<Size D> 
+		template<UnsignedInt D> 
 		void load(String filename, FeatureMap<>& map) throw (Exception::FileNotFound);
 		
 		/// loads the file with name @p filename into @p map.
 		void load(String filename, FeatureMap<>& feature_map) throw (Exception::FileNotFound, Exception::ParseError);
 
 		/// stores the map @p map in file with name @p filename. General case is not implemented!
-		template<Size D> 
+		template<UnsignedInt D> 
 		void store(String filename, const FeatureMap<>& map) const throw (Exception::UnableToCreateFile);
 					
 		/// stores the map @p feature_map in file with name @p filename.

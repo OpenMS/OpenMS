@@ -49,7 +49,7 @@ namespace OpenMS
 	
 		@ingroup Kernel
 	*/
-	template <Size D>
+	template <UnsignedInt D>
 	class DPeak 
 		: public DRawDataPoint <D>, 
 			public MetaInfoInterface
@@ -117,7 +117,7 @@ namespace OpenMS
 	};
 
 	///Print the contents to a stream.
-	template <Size D>
+	template <UnsignedInt D>
 	std::ostream& operator << (std::ostream& os, const DPeak<D>& peak)
 	{
 		os <<(DRawDataPoint<D>)peak;

@@ -37,7 +37,7 @@ namespace OpenMS
 		{
 			// default: write data in 32Bit -> fill float array
 			float* tmp = decoder_[0].getFloatBuffer(container.size());
-			Size container_size = container.size();
+			UnsignedInt container_size = container.size();
 			// area
 			for (UnsignedInt i=0; i<container_size; i++) tmp[i] = container[i].getArea();
 			writeBinary_(os,container_size,"supDataArrayBinary","area",1);
@@ -67,7 +67,7 @@ namespace OpenMS
 
 		template <>
 		template <>
-		void MzDataHandler <MSExperiment<PickedPeak1D > >::readPeakSupplementalData_ < PickedPeak1D >( std::vector<void*>& data, PickedPeak1D& peak, Size n)
+		void MzDataHandler <MSExperiment<PickedPeak1D > >::readPeakSupplementalData_ < PickedPeak1D >( std::vector<void*>& data, PickedPeak1D& peak, UnsignedInt n)
 		{
 			enum PickedPeakMembers {AREA = 2, FWHM, LEFT, RIGHT, CHARGE, SN, RVALUE, SHAPE};
 

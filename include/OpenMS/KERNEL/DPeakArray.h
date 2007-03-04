@@ -55,7 +55,7 @@ namespace OpenMS
 	
 		@ingroup Kernel
 	*/
-	template <Size D, typename PeakT = DPeak<D> >
+	template <UnsignedInt D, typename PeakT = DPeak<D> >
 	class DPeakArray
 		:	public std::vector<PeakT>, 
 			public PersistentObject
@@ -218,7 +218,7 @@ namespace OpenMS
 	};
 
 	///Print the contents to a stream.
-	template <Size D, typename Peak>
+	template <UnsignedInt D, typename Peak>
 	std::ostream& operator << (std::ostream& os, const DPeakArray<D, Peak>& array)
 	{
 		os << "-- DPEAKARRAY-NONPOLYMORPHIC BEGIN --"<<std::endl;
@@ -234,10 +234,10 @@ namespace OpenMS
 //  Implementation of the inline / template functions
 //---------------------------------------------------------------
 
-	template <Size D, typename PeakT > 
+	template <UnsignedInt D, typename PeakT > 
 	void DPeakArray<D,PeakT>::sortByNthPosition(UnsignedInt i) throw (Exception::NotImplemented)
 	{ 
-		OPENMS_PRECONDITION(i < Index(D), "illegal dimension")
+		OPENMS_PRECONDITION(i < SignedInt(D), "illegal dimension")
 		if (i==0)
 		{
 			std::sort(Base::begin(), Base::end(), typename PeakType::template NthPositionLess<0>() );

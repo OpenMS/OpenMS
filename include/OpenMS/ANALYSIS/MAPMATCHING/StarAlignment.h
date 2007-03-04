@@ -209,7 +209,7 @@ namespace OpenMS
     }
 
   protected:
-    /// Index of the reference map
+    /// SignedInt of the reference map
     UnsignedInt reference_map_index_;
 
 
@@ -338,8 +338,8 @@ namespace OpenMS
             while ((grid_it != (transformations_[i]).end()))
             {
               IndexTuple< ElementContainerType > index_tuple(i,j,(*(element_map_vector_[i]))[j]);
-              PositionType pos = (*(element_map_vector_[i]))[j].getPos();
-              if (grid_it->encloses(map[j].getPos()))
+              PositionType pos = (*(element_map_vector_[i]))[j].getPosition();
+              if (grid_it->encloses(map[j].getPosition()))
               {
                 // apply transform for the singleton group element
                 if (grid_it->getMappings().size() != 0)
@@ -357,7 +357,7 @@ namespace OpenMS
                 out << map[j].getRT() << ' ' << map[j].getMZ() << ' ' << pos[RawDataPoint2D::RT] << ' ' << pos[RawDataPoint2D::MZ] << '\n';
 #endif
 
-                map[j].getPos() = pos;
+                map[j].getPosition() = pos;
                 map[j].insert(index_tuple);
                 break;
               }
@@ -463,10 +463,10 @@ namespace OpenMS
       Param param_matcher = param_.copy("matching_algorithm:",true);
       
       // take the n-th most intensive Peaks of the reference map
-      Size n = 50;
+      UnsignedInt n = 50;
       PeakConstReferenceMapType reference_pointer_map((element_map_vector_[reference_map_index_])->begin(), (element_map_vector_[reference_map_index_])->end());
       reference_pointer_map.sortByIntensity();
-      Size number = (reference_pointer_map.size() > n) ? n : reference_pointer_map.size();
+      UnsignedInt number = (reference_pointer_map.size() > n) ? n : reference_pointer_map.size();
       PeakConstReferenceMapType reference_most_intense(reference_pointer_map.end() - number, reference_pointer_map.end());
 
       BasePairwiseMapMatcher< PeakConstReferenceMapType >* pairwise_matcher_;
@@ -508,7 +508,7 @@ namespace OpenMS
           pairwise_matcher_->clearGrid();
           pairwise_matcher_->initGridTransformation(pointer_map);
           /* pointer_map.sortByIntensity();
-           Size number = (pointer_map.size() > n) ? n : pointer_map.size();
+           UnsignedInt number = (pointer_map.size() > n) ? n : pointer_map.size();
            PeakConstReferenceMapType most_intense(pointer_map.end() - number, pointer_map.end());
            */
 
@@ -546,14 +546,14 @@ namespace OpenMS
             typename Grid::iterator grid_it = (lin_regression.getGrid()).begin();
             while (grid_it != (lin_regression.getGrid()).end() )
             {
-              if (grid_it->encloses(map[j].getPos()) )
+              if (grid_it->encloses(map[j].getPosition()) )
               {
                 LinearMapping* mapping_rt = dynamic_cast<LinearMapping* >(grid_it->getMappings()[RawDataPoint2D::RT]);
                 LinearMapping* mapping_mz = dynamic_cast<LinearMapping* >(grid_it->getMappings()[RawDataPoint2D::MZ]);
 
                 // apply transform for the singleton group element
                 IndexTuple< ElementContainerType > index_tuple(i,j,(*(element_map_vector_[i]))[j]);
-                PositionType pos = (*(element_map_vector_[i]))[j].getPos();
+                PositionType pos = (*(element_map_vector_[i]))[j].getPosition();
 
                 mapping_rt->apply(pos[RawDataPoint2D::RT]);
                 mapping_mz->apply(pos[RawDataPoint2D::MZ]);
@@ -564,7 +564,7 @@ namespace OpenMS
                 out << map[j].getRT() << ' ' << map[j].getMZ() << ' ' << pos[RawDataPoint2D::RT] << ' ' << pos[RawDataPoint2D::MZ] << '\n';
 #endif
 
-                map[j].getPos() = pos;
+                map[j].getPosition() = pos;
                 map[j].insert(index_tuple);
               }
               grid_it++;

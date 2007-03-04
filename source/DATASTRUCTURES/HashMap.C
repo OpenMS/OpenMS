@@ -30,6 +30,6 @@
 namespace OpenMS
 {
 	/// @cond DOXYGEN_IGNORES_THIS
-	HashMap<String, Size> default_hashmap;
+	HashMap<String, UnsignedInt> default_hashmap;
 	/// @endcond
 }

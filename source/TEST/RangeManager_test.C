@@ -78,18 +78,18 @@ class RM
 			std::vector<Peak2D > vec;
 			Peak2D tmp;
 			
-			tmp.getPos()[0] = 2.0;
-			tmp.getPos()[1] = 500.0;
+			tmp.getPosition()[0] = 2.0;
+			tmp.getPosition()[1] = 500.0;
 			tmp.setIntensity(1.0);
 			vec.push_back(tmp);
 			
-			tmp.getPos()[0] = 100.0;
-			tmp.getPos()[1] = 1300.0;
+			tmp.getPosition()[0] = 100.0;
+			tmp.getPosition()[1] = 1300.0;
 			tmp.setIntensity(47110.0);
 			vec.push_back(tmp);
 
-			tmp.getPos()[0] = 2.0;
-			tmp.getPos()[1] = 500.0;
+			tmp.getPosition()[0] = 2.0;
+			tmp.getPosition()[1] = 500.0;
 			tmp.setIntensity(1.0);
 			vec.push_back(tmp);
 			
@@ -102,8 +102,8 @@ class RM
 			std::vector<Peak2D > vec;
 			Peak2D tmp;
 			
-			tmp.getPos()[0] = 2.0;
-			tmp.getPos()[1] = 500.0;
+			tmp.getPosition()[0] = 2.0;
+			tmp.getPosition()[1] = 500.0;
 			tmp.setIntensity(1.0);
 			vec.push_back(tmp);
 			

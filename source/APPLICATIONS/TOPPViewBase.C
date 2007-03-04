@@ -152,7 +152,7 @@ namespace OpenMS
     QMenu* recent_menu = new QMenu("Recent files", this);
     //create the max mumber of recent files actions
   	recent_actions_.resize(20);
-		for (Size i = 0; i<20; ++i)
+		for (UnsignedInt i = 0; i<20; ++i)
 		{
 			recent_actions_[i] = recent_menu->addAction("",this,SLOT(openRecentFile()));
 			recent_actions_[i]->setVisible(false);
@@ -643,7 +643,7 @@ namespace OpenMS
 		
 		//remove those files exceeding the defined number
 		UnsignedInt number_of_recent_files = UnsignedInt(prefs_.getValue("Preferences:NumberOfRecentFiles"));
-		while ((Size)recent_files_.size() > number_of_recent_files)
+		while ((UnsignedInt)recent_files_.size() > number_of_recent_files)
 		{
 			recent_files_.removeLast();
 		}

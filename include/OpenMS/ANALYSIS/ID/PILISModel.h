@@ -94,7 +94,7 @@ namespace OpenMS
 			void writeToFile(const String& filename);
 
 			/// greedy specturm aligner, should be replaced by a better algorithm
-			//void getSpectrumAlignment(HashMap<Size, Size>& peak_map, const PeakSpectrum& spec1, const PeakSpectrum& spec2);
+			//void getSpectrumAlignment(HashMap<UnsignedInt, UnsignedInt>& peak_map, const PeakSpectrum& spec1, const PeakSpectrum& spec2);
 
 			/// simulates a spectrum with the model of the given peptide and charge and writes it to the given PeakSpectrum
 			void getSpectrum(PeakSpectrum& spec, const AASequence& peptide, UnsignedInt charge);
@@ -232,8 +232,8 @@ namespace OpenMS
 			bool getInitialTransitionProbabilities_(std::vector<double>& bb_init, 
 																							std::vector<double>& cr_init, 
 																							std::vector<double>& sc_init, 
-																							const HashMap<Size, double>& bb_charges,
-																							const HashMap<Size, double>& sc_charges,
+																							const HashMap<UnsignedInt, double>& bb_charges,
+																							const HashMap<UnsignedInt, double>& sc_charges,
 																							const AASequence& peptide);
 
 			/// add peaks to spectrum

@@ -64,7 +64,7 @@ namespace OpenMS
         map_index_ = map_index;
         element_index_ = element_index;
         element_pointer_ = const_cast<ElementType*>(&element);
-        transformed_position_ = element_pointer_->getPos();
+        transformed_position_ = element_pointer_->getPosition();
       }
 
       /// Copy constructor
@@ -166,9 +166,9 @@ namespace OpenMS
     protected:
       /// Transformed element position
       PositionType transformed_position_;
-      /// Index of the element's container
+      /// SignedInt of the element's container
       UnsignedInt map_index_;
-      /// Index of the element within element's container
+      /// SignedInt of the element within element's container
       UnsignedInt element_index_;
       /// Pointer to the element itself
       const ElementType* element_pointer_;

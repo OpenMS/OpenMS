@@ -76,7 +76,7 @@ namespace OpenMS
           computed_signal   = 0.;
           current_position  = ((raw_data_first 
                                 + OptimizationFunctions::signal2D[2*current_scan].first)->getContainer().begin() 
-                                + OptimizationFunctions::signal2D[2*current_scan].second+current_point)->getPos()[1];
+                                + OptimizationFunctions::signal2D[2*current_scan].second+current_point)->getPosition()[1];
           experimental_signal = ((raw_data_first 
                                 + OptimizationFunctions::signal2D[2*current_scan].first)->getContainer().begin()
                                 + OptimizationFunctions::signal2D[2*current_scan].second+current_point)->getIntensity();
@@ -86,7 +86,7 @@ namespace OpenMS
                 + OptimizationFunctions::signal2D[2*current_scan].first)->getRetentionTime()
                 << "\tmz " << ((raw_data_first 
                 + OptimizationFunctions::signal2D[2*current_scan].first)->getContainer().begin()
-                + OptimizationFunctions::signal2D[2*current_scan].second+current_point)->getPos()[1]
+                + OptimizationFunctions::signal2D[2*current_scan].second+current_point)->getPosition()[1]
                 << "\tint " << ((raw_data_first 
                 + OptimizationFunctions::signal2D[2*current_scan].first)->getContainer().begin()
                 + OptimizationFunctions::signal2D[2*current_scan].second+current_point)->getIntensity()<<std::endl;
@@ -101,7 +101,7 @@ namespace OpenMS
             int peak_idx = distance(iso_map_iter->second.peaks_.begin(),peak_iter);
             MSSpectrum<PickedPeak1D >::Iterator p_peak_iter =
               (picked_peaks_iter + peak_iter->first)->begin() + peak_iter->second;
-            double mz_in_hash = p_peak_iter->getPos()[1] * 5;
+            double mz_in_hash = p_peak_iter->getPosition()[1] * 5;
             std::map<int,std::vector<MSSpectrum<PickedPeak1D >::Iterator> >::iterator  m_spec_iter =
               matching_peaks.begin();
             int map_idx=0;
@@ -186,7 +186,7 @@ namespace OpenMS
         {
           old_height = (*vec_iter)->getIntensity();
           weight += old_height;
-          old_position += (*vec_iter)->getPos()[1] * old_height;
+          old_position += (*vec_iter)->getPosition()[1] * old_height;
           old_width_l += (*vec_iter)->getLeftWidthParameter() * old_height;
           old_width_r += (*vec_iter)->getRightWidthParameter() * old_height;
 
@@ -262,7 +262,7 @@ namespace OpenMS
           computed_signal   = 0.;
           current_position  = ((raw_data_first 
                                 + OptimizationFunctions::signal2D[2*current_scan].first)->getContainer().begin() 
-                                + OptimizationFunctions::signal2D[2*current_scan].second+current_point)->getPos()[1];
+                                + OptimizationFunctions::signal2D[2*current_scan].second+current_point)->getPosition()[1];
           experimental_signal = ((raw_data_first + OptimizationFunctions::signal2D[2*current_scan].first)->getContainer().begin()
                                  + OptimizationFunctions::signal2D[2*current_scan].second+current_point)->getIntensity();
 
@@ -271,7 +271,7 @@ namespace OpenMS
                         + OptimizationFunctions::signal2D[2*current_scan].first)->getRetentionTime()
                     << "\tmz " << ((raw_data_first 
                         + OptimizationFunctions::signal2D[2*current_scan].first)->getContainer().begin()
-                        + OptimizationFunctions::signal2D[2*current_scan].second+current_point)->getPos()[1]
+                        + OptimizationFunctions::signal2D[2*current_scan].second+current_point)->getPosition()[1]
                     << "\tint " << ((raw_data_first 
                         + OptimizationFunctions::signal2D[2*current_scan].first)->getContainer().begin()
                         + OptimizationFunctions::signal2D[2*current_scan].second+current_point)->getIntensity()<<std::endl;
@@ -286,7 +286,7 @@ namespace OpenMS
             int peak_idx = distance(iso_map_iter->second.peaks_.begin(),peak_iter);
             MSSpectrum<PickedPeak1D >::Iterator p_peak_iter =
               (picked_peaks_iter + peak_iter->first)->begin() + peak_iter->second;
-            double mz_in_hash = p_peak_iter->getPos()[1] * 5;
+            double mz_in_hash = p_peak_iter->getPosition()[1] * 5;
             std::map<int,std::vector<MSSpectrum<PickedPeak1D >::Iterator> >::iterator  m_spec_iter =
               matching_peaks.begin();
             int map_idx=0;
@@ -413,7 +413,7 @@ namespace OpenMS
         {
           old_height = (*vec_iter)->getIntensity();
           weight += old_height;
-          old_position += (*vec_iter)->getPos()[1] * old_height;
+          old_position += (*vec_iter)->getPosition()[1] * old_height;
           old_width_l += (*vec_iter)->getLeftWidthParameter() * old_height;
           old_width_r += (*vec_iter)->getRightWidthParameter() * old_height;
 
@@ -551,7 +551,7 @@ namespace OpenMS
     for(; iter != it->second.peaks_.end(); ++iter)
     {
 
-      double mz = (ms_exp[iter->first][iter->second]).getPos()[1];
+      double mz = (ms_exp[iter->first][iter->second]).getPosition()[1];
       mz *= 5;
       matching_peaks_[(int)(mz+0.5)].push_back(ms_exp[iter->first].begin()+iter->second);
     }
@@ -561,7 +561,7 @@ namespace OpenMS
     for(;it2 != matching_peaks_.end();++it2)
     {
       std::cout << it2->first << " has "<<it2->second.size()<<" elements:"<<std::endl;
-      for(unsigned int i=0;i<it2->second.size();++i) std::cout << it2->second[i]->getPos()[1]<<"\t";
+      for(unsigned int i=0;i<it2->second.size();++i) std::cout << it2->second[i]->getPosition()[1]<<"\t";
       std::cout<<std::endl;
     }
 #endif
@@ -631,7 +631,7 @@ namespace OpenMS
         {
           height = (*iter_iter)->getIntensity();
           avr_height += height;
-          av_mz += (*iter_iter)->getPos()[1] * height;
+          av_mz += (*iter_iter)->getPosition()[1] * height;
           av_lw += (*iter_iter)->getLeftWidthParameter() * height;
           av_rw += (*iter_iter)->getRightWidthParameter() * height;
           gsl_vector_set(start_value,peak_counter,height);
@@ -739,13 +739,13 @@ namespace OpenMS
         {
 
 #ifdef DEBUG_2D
-          std::cout << "pos: "<<it->second[j]->getPos()[1]<<"\nint: "<<it->second[j]->getIntensity()
+          std::cout << "pos: "<<it->second[j]->getPosition()[1]<<"\nint: "<<it->second[j]->getIntensity()
           <<"\nlw: "<<it->second[j]->getLeftWidthParameter()
           <<"\nrw: "<<it->second[j]->getRightWidthParameter() << "\n";
 
 #endif
 
-          it->second[j]->getPos()[1] = (gsl_vector_get(fit->x,OptimizationFunctions::total_nr_peaks+3*i));
+          it->second[j]->getPosition()[1] = (gsl_vector_get(fit->x,OptimizationFunctions::total_nr_peaks+3*i));
 
           it->second[j]->setIntensity(gsl_vector_get(fit->x,peak_idx));
 
@@ -754,7 +754,7 @@ namespace OpenMS
           it->second[j]->setRightWidthParameter(gsl_vector_get(fit->x,OptimizationFunctions::total_nr_peaks+3*i+2));
 
 #ifdef DEBUG_2D
-          std::cout << "pos: "<<it->second[j]->getPos()[1]<<"\nint: "<<it->second[j]->getIntensity()
+          std::cout << "pos: "<<it->second[j]->getPosition()[1]<<"\nint: "<<it->second[j]->getIntensity()
           <<"\nlw: "<<it->second[j]->getLeftWidthParameter()
           <<"\nrw: "<<it->second[j]->getRightWidthParameter() << "\n";
 
@@ -868,7 +868,7 @@ namespace OpenMS
 
         while(ms_it != (OptimizationFunctions::raw_data_first + OptimizationFunctions::signal2D[2*i].first)->begin()+OptimizationFunctions::signal2D[2*i+1].second)
         {
-          OpenMS::OptimizationFunctions::positions_.push_back(ms_it->getPos()[1]);
+          OpenMS::OptimizationFunctions::positions_.push_back(ms_it->getPosition()[1]);
           OpenMS::OptimizationFunctions::signal_.push_back(ms_it->getIntensity());
           ++ms_it;
         }
@@ -892,7 +892,7 @@ namespace OpenMS
         {
           PickedPeak1D peak = *(ms_exp[set_iter->first].begin()+set_iter->second);
           PeakShape shape(peak.getIntensity(),
-                          peak.getPos()[1],
+                          peak.getPosition()[1],
                           peak.getLeftWidthParameter(),
                           peak.getRightWidthParameter(),
                           peak.getArea(),
@@ -928,7 +928,7 @@ namespace OpenMS
         unsigned int i=0;
         while(i < peak_shapes.size())
         {
-          (ms_exp[set_iter->first][set_iter->second]).getPos()[1] = (peak_shapes[i].mz_position);
+          (ms_exp[set_iter->first][set_iter->second]).getPosition()[1] = (peak_shapes[i].mz_position);
 
           (ms_exp[set_iter->first][set_iter->second]).setIntensity(peak_shapes[i].height);
 

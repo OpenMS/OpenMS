@@ -73,32 +73,32 @@ CHECK((double evaluate(const IndexSet& set, const BaseModel<1>& model, UnsignedI
 	DPeakArray<2, Peak2D> peak_array;
 	
 	Peak2D p1;
-	p1.getPos()[0] = 1;
-	p1.getPos()[1] = 1;
+	p1.getPosition()[0] = 1;
+	p1.getPosition()[1] = 1;
 	p1.setIntensity(0);
 	peak_array.push_back(p1);
 	
 	Peak2D p2;
-	p2.getPos()[0] = 2;
-	p2.getPos()[1] = 2;
+	p2.getPosition()[0] = 2;
+	p2.getPosition()[1] = 2;
 	p2.setIntensity(2.5);
 	peak_array.push_back(p2);
 	
 	Peak2D p3;
-	p3.getPos()[0] = 3;
-	p3.getPos()[1] = 3;
+	p3.getPosition()[0] = 3;
+	p3.getPosition()[1] = 3;
 	p3.setIntensity(5);
 	peak_array.push_back(p3);
 	
 	Peak2D p4;
-	p4.getPos()[0] = 4;
-	p4.getPos()[1] = 4;
+	p4.getPosition()[0] = 4;
+	p4.getPosition()[1] = 4;
 	p4.setIntensity(2.5);
 	peak_array.push_back(p4);
 	
 	Peak2D p5;
-	p5.getPos()[0] = 5;
-	p5.getPos()[1] = 5;
+	p5.getPosition()[0] = 5;
+	p5.getPosition()[1] = 5;
 	p5.setIntensity(0);
 	peak_array.push_back(p5);
 	
@@ -150,32 +150,32 @@ CHECK((double evaluate(const IndexSet& set, const BaseModel<2>& model)))
 	DPeakArray<2, Peak2D> peak_array;
 	
 	Peak2D p1;
-	p1.getPos()[0] = 1;
-	p1.getPos()[1] = 1;
+	p1.getPosition()[0] = 1;
+	p1.getPosition()[1] = 1;
 	p1.setIntensity(0);
 	peak_array.push_back(p1);
 	
 	Peak2D p2;
-	p2.getPos()[0] = 2;
-	p2.getPos()[1] = 2;
+	p2.getPosition()[0] = 2;
+	p2.getPosition()[1] = 2;
 	p2.setIntensity(2.5);
 	peak_array.push_back(p2);
 	
 	Peak2D p3;
-	p3.getPos()[0] = 3;
-	p3.getPos()[1] = 3;
+	p3.getPosition()[0] = 3;
+	p3.getPosition()[1] = 3;
 	p3.setIntensity(5);
 	peak_array.push_back(p3);
 	
 	Peak2D p4;
-	p4.getPos()[0] = 4;
-	p4.getPos()[1] = 4;
+	p4.getPosition()[0] = 4;
+	p4.getPosition()[1] = 4;
 	p4.setIntensity(2.5);
 	peak_array.push_back(p4);
 	
 	Peak2D p5;
-	p5.getPos()[0] = 5;
-	p5.getPos()[1] = 5;
+	p5.getPosition()[0] = 5;
+	p5.getPosition()[1] = 5;
 	p5.setIntensity(0);
 	peak_array.push_back(p5);
 	

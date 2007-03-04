@@ -224,7 +224,7 @@ namespace OpenMS
       UnsignedInt n = map.size();
       for (UnsignedInt i=0; i < n; ++i)
       {
-        ConsensusElementType c(map[i].getPos(),map[i].getIntensity());
+        ConsensusElementType c(map[i].getPosition(),map[i].getIntensity());
         cons_map.push_back(c);
       }
     }

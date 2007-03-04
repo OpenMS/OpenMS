@@ -362,7 +362,7 @@ CHECK((double toDouble() const throw(Exception::ConversionError)))
 	TEST_EQUAL(String(s.toDouble()),"47218.89");
 RESULT
 
-CHECK((String random(Size length)))
+CHECK((String random(UnsignedInt length)))
 	String s;
 	String s2 = s.random(10);
 	TEST_EQUAL(s2.size(),10);

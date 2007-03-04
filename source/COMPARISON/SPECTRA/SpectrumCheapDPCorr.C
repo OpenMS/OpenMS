@@ -102,7 +102,7 @@ namespace OpenMS
     bool keeppeaks_ = (int)param_.getValue("keeppeaks");
     
     lastconsensus_ = PeakSpectrum();
-    lastconsensus_.getPrecursorPeak().setPos((x.getPrecursorPeak().getPos()[0] + y.getPrecursorPeak().getPos()[0]) / 2);
+    lastconsensus_.getPrecursorPeak().setPosition((x.getPrecursorPeak().getPosition()[0] + y.getPrecursorPeak().getPosition()[0]) / 2);
     lastconsensus_.getPrecursorPeak().setCharge(x.getPrecursorPeak().getCharge());
 		peak_map_.clear();
     
@@ -294,7 +294,7 @@ namespace OpenMS
  		return lastconsensus_;
 	}
 
-	HashMap<Size, Size> SpectrumCheapDPCorr::getPeakMap() const
+	HashMap<UnsignedInt, UnsignedInt> SpectrumCheapDPCorr::getPeakMap() const
 	{
 		return peak_map_;
 	}

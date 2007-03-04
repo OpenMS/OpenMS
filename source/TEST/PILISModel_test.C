@@ -110,16 +110,16 @@ CHECK(void getSpectrum(PeakSpectrum& spec, const AASequence& peptide, UnsignedIn
 RESULT
 
 /*
-CHECK(void getSpectrumAlignment(HashMap<Size, Size>& peak_map, const PeakSpectrum& spec1, const PeakSpectrum& spec2))
+CHECK(void getSpectrumAlignment(HashMap<UnsignedInt, UnsignedInt>& peak_map, const PeakSpectrum& spec1, const PeakSpectrum& spec2))
 	PeakSpectrum sim, exp;
 	ptr->getSpectrum(sim, peptide, 1);
 	DTAFile().load("data/PILISSequenceDB_DFPIANGER_1.dta", exp);
 	sim.getContainer().sortByPosition();
 	
-	HashMap<Size, Size> peak_map;
+	HashMap<UnsignedInt, UnsignedInt> peak_map;
 	ptr->getSpectrumAlignment(peak_map, sim, exp);
 	TEST_EQUAL(peak_map.size(), 73);
-	for (HashMap<Size, Size>::ConstIterator it = peak_map.begin(); it != peak_map.end(); ++it)
+	for (HashMap<UnsignedInt, UnsignedInt>::ConstIterator it = peak_map.begin(); it != peak_map.end(); ++it)
 	{
 		bool in_error_range(false);
 		double diff(sim.getContainer()[it->first].getPosition()[0] - exp.getContainer()[it->second].getPosition()[0]);

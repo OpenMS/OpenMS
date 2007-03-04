@@ -62,8 +62,8 @@ CHECK((const HashMap<String, const Element*>& getSymbols() const))
 	TEST_NOT_EQUAL(e, 0)
 RESULT
 
-CHECK((const HashMap<Size, const Element*>& getAtomicNumbers() const))
-	HashMap<Size, const Element*> atomic_numbers = e_ptr->getAtomicNumbers();
+CHECK((const HashMap<UnsignedInt, const Element*>& getAtomicNumbers() const))
+	HashMap<UnsignedInt, const Element*> atomic_numbers = e_ptr->getAtomicNumbers();
 	const Element * e = e_ptr->getElement("Carbon");
 	TEST_EQUAL(e, atomic_numbers[6])
 	TEST_NOT_EQUAL(e, 0)
@@ -76,7 +76,7 @@ CHECK(const Element* getElement(const String& name) const)
 	TEST_NOT_EQUAL(e1, 0);
 RESULT
 
-CHECK(const Element* getElement(Size atomic_number) const)
+CHECK(const Element* getElement(UnsignedInt atomic_number) const)
 	const Element * e1 = e_ptr->getElement("Carbon");
 	const Element * e2 = e_ptr->getElement(6);
 	TEST_EQUAL(e1, e2)
@@ -87,7 +87,7 @@ CHECK(bool hasElement(const String& name) const)
 	TEST_EQUAL(e_ptr->hasElement("Carbon"), true)
 RESULT
 
-CHECK(bool hasElement(Size atomic_number) const)
+CHECK(bool hasElement(UnsignedInt atomic_number) const)
 	TEST_EQUAL(e_ptr->hasElement(6), true)
 RESULT
 

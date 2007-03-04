@@ -101,7 +101,7 @@ namespace OpenMS
 	      /// set DPeaks intensity to model predicted intensity.
 	      virtual void  fillIntensity(PeakType& peak) const
 				{
-					peak.setIntensity( getIntensity(peak.getPos()) );
+					peak.setIntensity( getIntensity(peak.getPosition()) );
 				}
 	
 	      //// set DPeaks intensity to model predicted intensity.

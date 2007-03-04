@@ -54,15 +54,15 @@ using namespace std;
 CHECK(IsotopeDistribution())
 	IsotopeDistribution* ptr = 0;
 	ptr = new IsotopeDistribution();
-	Size max_isotope = ptr->getMaxIsotope();
+	UnsignedInt max_isotope = ptr->getMaxIsotope();
   TEST_EQUAL(max_isotope, 0)
 	TEST_NOT_EQUAL(ptr, 0)
 	delete ptr;
 RESULT
 
-CHECK(IsotopeDistribution(Size max_isotope))
+CHECK(IsotopeDistribution(UnsignedInt max_isotope))
 	IsotopeDistribution* ptr = new IsotopeDistribution(117);
-	Size max_isotope = ptr->getMaxIsotope();
+	UnsignedInt max_isotope = ptr->getMaxIsotope();
   TEST_EQUAL(max_isotope, 117)
 	TEST_NOT_EQUAL(ptr, 0)
 	delete ptr;
@@ -73,7 +73,7 @@ IsotopeDistribution* iso = new IsotopeDistribution();
 CHECK(IsotopeDistribution(const IsotopeDistribution& isotope_distribution))
 	IsotopeDistribution copy;
 	copy = *iso;
-  for (Size i = 0; i != copy.getContainer().size(); ++i)
+  for (UnsignedInt i = 0; i != copy.getContainer().size(); ++i)
   {
     TEST_EQUAL(copy.getContainer()[i].first, iso->getContainer()[i].first)
     TEST_EQUAL(copy.getContainer()[i].second, iso->getContainer()[i].second)
@@ -92,7 +92,7 @@ RESULT
 CHECK(IsotopeDistribution& operator = (const IsotopeDistribution& isotope_distribution))
 	IsotopeDistribution copy;
 	copy = *iso;
-	for (Size i = 0; i != copy.getContainer().size(); ++i)
+	for (UnsignedInt i = 0; i != copy.getContainer().size(); ++i)
 	{
 		TEST_EQUAL(copy.getContainer()[i].first, iso->getContainer()[i].first)
 		TEST_EQUAL(copy.getContainer()[i].second, iso->getContainer()[i].second)
@@ -103,7 +103,7 @@ CHECK(IsotopeDistribution& operator = (const IsotopeDistribution& isotope_distri
 	TEST_EQUAL(copy.getMaxIsotope(), iso->getMaxIsotope())
 RESULT
 
-CHECK(void setMaxIsotope(Size max_isotope))
+CHECK(void setMaxIsotope(UnsignedInt max_isotope))
 	iso->setMaxIsotope(117);
 	TEST_EQUAL(iso->getMaxIsotope(), 117)
 RESULT
@@ -133,7 +133,7 @@ CHECK(IsotopeDistribution& operator *= (UnsignedInt factor))
 	container.push_back(make_pair<UnsignedInt, double>(7093, 0.00963707));
 	container.push_back(make_pair<UnsignedInt, double>(7094, 0.0039406));
 
-	for (Size i = 0; i != id.size(); ++i)
+	for (UnsignedInt i = 0; i != id.size(); ++i)
 	{
 		TEST_EQUAL(id.getContainer()[i].first, container[i].first)
 		TEST_REAL_EQUAL(id.getContainer()[i].second, container[i].second)
@@ -166,11 +166,11 @@ CHECK(Iterator end())
 
 RESULT
 
-CHECK(Size getMaxIsotope() const)
+CHECK(UnsignedInt getMaxIsotope() const)
 
 RESULT
 
-CHECK(Size size() const)
+CHECK(UnsignedInt size() const)
 
 RESULT
 

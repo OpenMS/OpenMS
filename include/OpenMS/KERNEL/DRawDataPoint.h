@@ -42,7 +42,7 @@ namespace OpenMS
 
 		@ingroup Kernel
 	*/
-	template <Size D>
+	template <UnsignedInt D>
 	class DRawDataPoint 	
 	{
 	 public:
@@ -91,11 +91,11 @@ namespace OpenMS
 		void setIntensity(const IntensityType& intensity) { intensity_ = intensity; }
 
 		/// Non-mutable access to the data point position (multidimensional)
-		const PositionType& getPos() const { return position_; }
+		const PositionType& getPosition() const { return position_; }
 		/// Mutable access to the data point position (multidimensional)
-		PositionType& getPos() { return position_; }
+		PositionType& getPosition() { return position_; }
 		/// Mutable access to the data point position (multidimensional)
-		void setPos(PositionType const& position) { position_ = position; }
+		void setPosition(PositionType const& position) { position_ = position; }
 
 		//@}
 
@@ -164,19 +164,19 @@ namespace OpenMS
 			/// comparison of two DRawDataPoints
 			inline bool operator () ( DRawDataPoint const & left, DRawDataPoint const & right ) const throw()
 			{
-				return (left.getPos()[i] < right.getPos()[i]);
+				return (left.getPosition()[i] < right.getPosition()[i]);
 			}
 			
 			/// comparison of a DRawDataPoint with a CoordinateType
 			inline bool operator () ( DRawDataPoint const & left, CoordinateType const & right ) const throw()
 			{
-				return (left.getPos()[i] < right );
+				return (left.getPosition()[i] < right );
 			}
 			
 			/// comparison of a CoordinateType with a DRawDataPoint
 			inline bool operator () ( CoordinateType const & left, DRawDataPoint const & right ) const throw()
 			{
-				return (left < right.getPos()[i] );
+				return (left < right.getPosition()[i] );
 			}
 
 			/**
@@ -202,7 +202,7 @@ namespace OpenMS
 		{
 			inline bool operator () (const DRawDataPoint& a, const DRawDataPoint& b) const
 			{
-				return (a.getPos() < b.getPos());
+				return (a.getPosition() < b.getPosition());
 			}
 		};
 		
@@ -216,10 +216,10 @@ namespace OpenMS
 	};
 
 	///Print the contents to a stream.
-	template <Size D>
+	template <UnsignedInt D>
 	std::ostream& operator << (std::ostream& os, const DRawDataPoint<D>& point)
 	{
-		os << "POS: "<< point.getPos() << " INT: "<<point.getIntensity();
+		os << "POS: "<< point.getPosition() << " INT: "<<point.getIntensity();
 		
 		return os;
 	}

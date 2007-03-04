@@ -43,7 +43,7 @@ namespace OpenMS
 			@invariant All methods maintain the invariant that min() is geometrically less or equal max() 
 			           i.e. min()[x] <= max()[x].
 		*/
-		template <Size D>
+		template <UnsignedInt D>
 		class DIntervalBase
 		{
 			public:
@@ -133,7 +133,7 @@ namespace OpenMS
 				void setMin(PositionType const & position)
 				{
 					min_ = position;
-					for ( Size i = 0; i < DIMENSION; ++i )
+					for ( UnsignedInt i = 0; i < DIMENSION; ++i )
 					{
 						if (min_[i]>max_[i]) max_[i] = min_[i];
 					}
@@ -148,7 +148,7 @@ namespace OpenMS
 				void setMax(PositionType const & position)
 				{
 					max_ = position;
-					for ( Size i = 0; i < DIMENSION; ++i )
+					for ( UnsignedInt i = 0; i < DIMENSION; ++i )
 					{
 						if (min_[i]>max_[i]) min_[i] = max_[i];
 					}
@@ -169,7 +169,7 @@ namespace OpenMS
 					
 					Only the dimensions 0 upto min(D,D2)-1 are copied.
 				*/
-				template <Size D2>
+				template <UnsignedInt D2>
 				void assign(const DIntervalBase<D2> rhs)
 				{
 					for (UnsignedInt i=0; i<std::min(D,D2); ++i)
@@ -308,7 +308,7 @@ namespace OpenMS
 				/// normalization to keep all dimensions in the right geometrical order (min_[X] < max_[X])
 				void normalize_()
 				{
-					for ( Size i = 0; i < DIMENSION; ++i )
+					for ( UnsignedInt i = 0; i < DIMENSION; ++i )
 					{
 						if (min_[i]>max_[i]) 
 						{
@@ -327,17 +327,17 @@ namespace OpenMS
 		
 			};
 		
-			template <Size D>
+			template <UnsignedInt D>
 			DIntervalBase<D> const DIntervalBase<D>::zero
 			= DIntervalBase<D>( DIntervalBase<D>::PositionType::zero,
 																		 DIntervalBase<D>::PositionType::zero );
 			
-			template <Size D>
+			template <UnsignedInt D>
 			DIntervalBase<D> const DIntervalBase<D>::empty
 				= DIntervalBase<D>(std::make_pair(DIntervalBase<D>::PositionType::max, DIntervalBase<D>::PositionType::min_negative));
 			
 			///Print the contents to a stream.
-			template <Size D>
+			template <UnsignedInt D>
 			std::ostream& operator << (std::ostream& os, const DIntervalBase<D>& rhs)
 			{
 				os << "--DIntervalBase BEGIN--"<<std::endl;

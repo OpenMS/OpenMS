@@ -300,7 +300,7 @@ namespace OpenMS
 		{
 			peaks = experiment[i].getContainer();
 			precursor_peak = experiment[i].getPrecursorPeak();
-			precursor_position = experiment[i].getPrecursorPeak().getPos()[0];
+			precursor_position = experiment[i].getPrecursorPeak().getPosition()[0];
 			
 			if (experiment[i].getMSLevel() == 2)
 			{

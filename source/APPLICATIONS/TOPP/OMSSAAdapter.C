@@ -317,7 +317,7 @@ class TOPPOMSSAAdapter
 			// calculations
 			//-------------------------------------------------------------
 	
-			Size i(0);
+			UnsignedInt i(0);
 			for (PeakMap::ConstIterator it = map.begin(); it != map.end(); ++it)
 			{
 				PeakSpectrum spec(*it);

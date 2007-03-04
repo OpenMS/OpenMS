@@ -150,7 +150,7 @@ CHECK((void setParameters(const Param& param)))
   TEST_EQUAL(bpmm_copy.getParameters() == param, true)
 RESULT
 
-CHECK((const PointMapType& getElementMap(Size index) const))
+CHECK((const PointMapType& getElementMap(UnsignedInt index) const))
   ElementMapType first;
   ElementMapType second;
   
@@ -168,9 +168,9 @@ CHECK((void initGridTransformation(const PointMapType& scene_map)))
   Feature feat2;
   Feature::PositionType pos1(0,0);
   Feature::PositionType pos2(2,3);
-  feat1.setPos(pos1);
+  feat1.setPosition(pos1);
   feat1.setIntensity(100);
-  feat2.setPos(pos2);
+  feat2.setPosition(pos2);
   feat1.setIntensity(300);
   scene.push_back(feat1);
   scene.push_back(feat2);
@@ -181,14 +181,14 @@ CHECK((void initGridTransformation(const PointMapType& scene_map)))
   TEST_EQUAL(bpmm.getGrid().size() == 1,true)   
 RESULT
 
-CHECK((UnsignedInt getNumberBuckets(Size index) const))
+CHECK((UnsignedInt getNumberBuckets(UnsignedInt index) const))
   TestPairwiseMapMatcher bpmm;
     
   TEST_EQUAL(bpmm.getNumberBuckets(0) == 1,true)
   TEST_EQUAL(bpmm.getNumberBuckets(1) == 1,true)
 RESULT
 
-CHECK((void setNumberBuckets(Size const index, UnsignedInt number)))
+CHECK((void setNumberBuckets(UnsignedInt const index, UnsignedInt number)))
   TestPairwiseMapMatcher bpmm;
   bpmm.setNumberBuckets(0,3);
   bpmm.setNumberBuckets(1,4);
@@ -205,7 +205,7 @@ CHECK((static void registerChildren()))
   
 RESULT
 
-CHECK((void setElementMap(Size const index, const PointMapType& element_map)))
+CHECK((void setElementMap(UnsignedInt const index, const PointMapType& element_map)))
   ElementMapType first;
   TestPairwiseMapMatcher bpmm;
   bpmm.setElementMap(0,first);

@@ -66,7 +66,7 @@ namespace OpenMS
   void MzDataExpSettHandler::characters(const XMLCh* const chars, const unsigned int /*length*/)
   {
 		// find the tag that the parser is in right now
- 		for (Size i=0; i<is_parser_in_tag_.size(); i++)
+ 		for (UnsignedInt i=0; i<is_parser_in_tag_.size(); i++)
 			if (is_parser_in_tag_[i]){
 				switch(i) {
 					// Do something with the characters depending on the tag

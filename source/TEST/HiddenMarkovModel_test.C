@@ -133,7 +133,7 @@ RESULT
 
 ptr = new HiddenMarkovModel();
 
-CHECK(Size getNumberOfStates() const)
+CHECK(UnsignedInt getNumberOfStates() const)
 	TEST_EQUAL(ptr->getNumberOfStates(), 0)
 RESULT
 

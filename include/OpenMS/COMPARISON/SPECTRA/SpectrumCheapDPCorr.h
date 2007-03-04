@@ -99,7 +99,7 @@ namespace OpenMS
     const PeakSpectrum& lastconsensus() const;
 
 		///
-		HashMap<Size, Size> getPeakMap() const;
+		HashMap<UnsignedInt, UnsignedInt> getPeakMap() const;
 
     /// set weighting of the second spectrum for consensus from next function call operator
     void setFactor(double f);
@@ -125,7 +125,7 @@ namespace OpenMS
     mutable double factor_;
 
 		/// last peak map
-		mutable HashMap<Size, Size> peak_map_;
+		mutable HashMap<UnsignedInt, UnsignedInt> peak_map_;
   };
 
 }

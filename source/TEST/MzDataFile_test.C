@@ -94,31 +94,31 @@ CHECK((template<typename MapType> void load(const String& filename, MapType& map
 	TEST_EQUAL(e2[1].getContainer().size(), 3)
 	TEST_EQUAL(e2[2].getContainer().size(), 5)
 
-	TEST_REAL_EQUAL(e2[0].getContainer()[0].getPos()[0], 120)
+	TEST_REAL_EQUAL(e2[0].getContainer()[0].getPosition()[0], 120)
 	TEST_REAL_EQUAL(e2[0].getContainer()[0].getIntensity(), 100)
 
-	TEST_REAL_EQUAL(e2[1].getContainer()[0].getPos()[0], 110)
+	TEST_REAL_EQUAL(e2[1].getContainer()[0].getPosition()[0], 110)
 	TEST_REAL_EQUAL(e2[1].getContainer()[0].getIntensity(), 100)
 
-	TEST_REAL_EQUAL(e2[1].getContainer()[1].getPos()[0], 120)
+	TEST_REAL_EQUAL(e2[1].getContainer()[1].getPosition()[0], 120)
 	TEST_REAL_EQUAL(e2[1].getContainer()[1].getIntensity(), 200)
 
-	TEST_REAL_EQUAL(e2[1].getContainer()[2].getPos()[0], 130)
+	TEST_REAL_EQUAL(e2[1].getContainer()[2].getPosition()[0], 130)
 	TEST_REAL_EQUAL(e2[1].getContainer()[2].getIntensity(), 100)
 
-	TEST_REAL_EQUAL(e2[2].getContainer()[0].getPos()[0], 100)
+	TEST_REAL_EQUAL(e2[2].getContainer()[0].getPosition()[0], 100)
 	TEST_REAL_EQUAL(e2[2].getContainer()[0].getIntensity(), 100)
 
-	TEST_REAL_EQUAL(e2[2].getContainer()[1].getPos()[0], 110)
+	TEST_REAL_EQUAL(e2[2].getContainer()[1].getPosition()[0], 110)
 	TEST_REAL_EQUAL(e2[2].getContainer()[1].getIntensity(), 200)
 
-	TEST_REAL_EQUAL(e2[2].getContainer()[2].getPos()[0], 120)
+	TEST_REAL_EQUAL(e2[2].getContainer()[2].getPosition()[0], 120)
 	TEST_REAL_EQUAL(e2[2].getContainer()[2].getIntensity(), 300)
 
-	TEST_REAL_EQUAL(e2[2].getContainer()[3].getPos()[0], 130)
+	TEST_REAL_EQUAL(e2[2].getContainer()[3].getPosition()[0], 130)
 	TEST_REAL_EQUAL(e2[2].getContainer()[3].getIntensity(), 200)
 
-	TEST_REAL_EQUAL(e2[2].getContainer()[4].getPos()[0], 140)
+	TEST_REAL_EQUAL(e2[2].getContainer()[4].getPosition()[0], 140)
 	TEST_REAL_EQUAL(e2[2].getContainer()[4].getIntensity(), 100)
 
   //---------------------------------------------------------------------------
@@ -190,7 +190,7 @@ CHECK((template<typename MapType> void load(const String& filename, MapType& map
 	TEST_EQUAL(e[0].getMetaInfoDescriptions()["8"].getMetaValue("URL"),"www.open-ms.de")
 	TEST_EQUAL(e[0].getMetaInfoDescriptions()["8"].getMetaValue("Comment"),"Peak shape")
 
-	TEST_EQUAL(e[1].getPrecursorPeak().getPos()[0], 1.2f)
+	TEST_EQUAL(e[1].getPrecursorPeak().getPosition()[0], 1.2f)
 	TEST_EQUAL(e[1].getPrecursorPeak().getCharge(), 2)
 	TEST_EQUAL(e[1].getPrecursorPeak().getIntensity(), 2.3f)
 	TEST_EQUAL(e[1].getPrecursorPeak().getMetaValue("#IntensityUnits"),
@@ -247,7 +247,7 @@ CHECK((template<typename MapType> void load(const String& filename, MapType& map
 	TEST_EQUAL(e[1].getContainer().size(), 3)
 	TEST_EQUAL(e[2].getContainer().size(), 5)
 
-	TEST_REAL_EQUAL(e[0].getContainer()[0].getPos()[0], 120)
+	TEST_REAL_EQUAL(e[0].getContainer()[0].getPosition()[0], 120)
 	TEST_REAL_EQUAL(e[0].getContainer()[0].getIntensity(), 100)
 	TEST_REAL_EQUAL(e[0].getContainer()[0].getArea(), 100)
 	TEST_REAL_EQUAL(e[0].getContainer()[0].getFWHM(), 100)
@@ -258,7 +258,7 @@ CHECK((template<typename MapType> void load(const String& filename, MapType& map
 	TEST_REAL_EQUAL(e[0].getContainer()[0].getSN(), 100)
 	TEST_EQUAL(e[0].getContainer()[0].getPeakShape(), 100)
 
-	TEST_REAL_EQUAL(e[1].getContainer()[0].getPos()[0], 110)
+	TEST_REAL_EQUAL(e[1].getContainer()[0].getPosition()[0], 110)
 	TEST_REAL_EQUAL(e[1].getContainer()[0].getIntensity(), 100)
 	TEST_REAL_EQUAL(e[1].getContainer()[0].getArea(), 100)
 	TEST_REAL_EQUAL(e[1].getContainer()[0].getFWHM(), 100)
@@ -269,7 +269,7 @@ CHECK((template<typename MapType> void load(const String& filename, MapType& map
 	TEST_REAL_EQUAL(e[1].getContainer()[0].getSN(), 100)
 	TEST_EQUAL(e[1].getContainer()[0].getPeakShape(), 100)
 
-	TEST_REAL_EQUAL(e[1].getContainer()[1].getPos()[0], 120)
+	TEST_REAL_EQUAL(e[1].getContainer()[1].getPosition()[0], 120)
 	TEST_REAL_EQUAL(e[1].getContainer()[1].getIntensity(), 200)
 	TEST_REAL_EQUAL(e[1].getContainer()[1].getArea(), 200)
 	TEST_REAL_EQUAL(e[1].getContainer()[1].getFWHM(), 200)
@@ -280,7 +280,7 @@ CHECK((template<typename MapType> void load(const String& filename, MapType& map
 	TEST_REAL_EQUAL(e[1].getContainer()[1].getSN(), 200)
 	TEST_EQUAL(e[1].getContainer()[1].getPeakShape(), 200)
 
-	TEST_REAL_EQUAL(e[1].getContainer()[2].getPos()[0], 130)
+	TEST_REAL_EQUAL(e[1].getContainer()[2].getPosition()[0], 130)
 	TEST_REAL_EQUAL(e[1].getContainer()[2].getIntensity(), 100)
 	TEST_REAL_EQUAL(e[1].getContainer()[2].getArea(), 100)
 	TEST_REAL_EQUAL(e[1].getContainer()[2].getFWHM(), 100)
@@ -291,7 +291,7 @@ CHECK((template<typename MapType> void load(const String& filename, MapType& map
 	TEST_REAL_EQUAL(e[1].getContainer()[2].getSN(), 100)
 	TEST_EQUAL(e[1].getContainer()[2].getPeakShape(), 100)
 
-	TEST_REAL_EQUAL(e[2].getContainer()[0].getPos()[0], 100)
+	TEST_REAL_EQUAL(e[2].getContainer()[0].getPosition()[0], 100)
 	TEST_REAL_EQUAL(e[2].getContainer()[0].getIntensity(), 100)
 	TEST_REAL_EQUAL(e[2].getContainer()[0].getArea(), 100)
 	TEST_REAL_EQUAL(e[2].getContainer()[0].getFWHM(), 100)
@@ -302,7 +302,7 @@ CHECK((template<typename MapType> void load(const String& filename, MapType& map
 	TEST_REAL_EQUAL(e[2].getContainer()[0].getSN(), 100)
 	TEST_EQUAL(e[2].getContainer()[0].getPeakShape(), 100)
 
-	TEST_REAL_EQUAL(e[2].getContainer()[1].getPos()[0], 110)
+	TEST_REAL_EQUAL(e[2].getContainer()[1].getPosition()[0], 110)
 	TEST_REAL_EQUAL(e[2].getContainer()[1].getIntensity(), 200)
 	TEST_REAL_EQUAL(e[2].getContainer()[1].getArea(), 200)
 	TEST_REAL_EQUAL(e[2].getContainer()[1].getFWHM(), 200)
@@ -313,7 +313,7 @@ CHECK((template<typename MapType> void load(const String& filename, MapType& map
 	TEST_REAL_EQUAL(e[2].getContainer()[1].getSN(), 200)
 	TEST_EQUAL(e[2].getContainer()[1].getPeakShape(), 200)
 
-	TEST_REAL_EQUAL(e[2].getContainer()[2].getPos()[0], 120)
+	TEST_REAL_EQUAL(e[2].getContainer()[2].getPosition()[0], 120)
 	TEST_REAL_EQUAL(e[2].getContainer()[2].getIntensity(), 300)
 	TEST_REAL_EQUAL(e[2].getContainer()[2].getArea(), 300)
 	TEST_REAL_EQUAL(e[2].getContainer()[2].getFWHM(), 300)
@@ -324,7 +324,7 @@ CHECK((template<typename MapType> void load(const String& filename, MapType& map
 	TEST_REAL_EQUAL(e[2].getContainer()[2].getSN(), 300)
 	TEST_EQUAL(e[2].getContainer()[2].getPeakShape(), 300)
 
-	TEST_REAL_EQUAL(e[2].getContainer()[3].getPos()[0], 130)
+	TEST_REAL_EQUAL(e[2].getContainer()[3].getPosition()[0], 130)
 	TEST_REAL_EQUAL(e[2].getContainer()[3].getIntensity(), 200)
 	TEST_REAL_EQUAL(e[2].getContainer()[3].getArea(), 200)
 	TEST_REAL_EQUAL(e[2].getContainer()[3].getFWHM(), 200)
@@ -335,7 +335,7 @@ CHECK((template<typename MapType> void load(const String& filename, MapType& map
 	TEST_REAL_EQUAL(e[2].getContainer()[3].getSN(), 200)
 	TEST_EQUAL(e[2].getContainer()[3].getPeakShape(), 200)
 
-	TEST_REAL_EQUAL(e[2].getContainer()[4].getPos()[0], 140)
+	TEST_REAL_EQUAL(e[2].getContainer()[4].getPosition()[0], 140)
 	TEST_REAL_EQUAL(e[2].getContainer()[4].getIntensity(), 100)
 	TEST_REAL_EQUAL(e[2].getContainer()[4].getArea(), 100)
 	TEST_REAL_EQUAL(e[2].getContainer()[4].getFWHM(), 100)
@@ -481,31 +481,31 @@ CHECK([EXTRA] load with DRawDataPoint)
 	TEST_EQUAL(e2[1].getContainer().size(), 3)
 	TEST_EQUAL(e2[2].getContainer().size(), 5)
 
-	TEST_REAL_EQUAL(e2[0].getContainer()[0].getPos()[0], 120)
+	TEST_REAL_EQUAL(e2[0].getContainer()[0].getPosition()[0], 120)
 	TEST_REAL_EQUAL(e2[0].getContainer()[0].getIntensity(), 100)
 
-	TEST_REAL_EQUAL(e2[1].getContainer()[0].getPos()[0], 110)
+	TEST_REAL_EQUAL(e2[1].getContainer()[0].getPosition()[0], 110)
 	TEST_REAL_EQUAL(e2[1].getContainer()[0].getIntensity(), 100)
 
-	TEST_REAL_EQUAL(e2[1].getContainer()[1].getPos()[0], 120)
+	TEST_REAL_EQUAL(e2[1].getContainer()[1].getPosition()[0], 120)
 	TEST_REAL_EQUAL(e2[1].getContainer()[1].getIntensity(), 200)
 
-	TEST_REAL_EQUAL(e2[1].getContainer()[2].getPos()[0], 130)
+	TEST_REAL_EQUAL(e2[1].getContainer()[2].getPosition()[0], 130)
 	TEST_REAL_EQUAL(e2[1].getContainer()[2].getIntensity(), 100)
 
-	TEST_REAL_EQUAL(e2[2].getContainer()[0].getPos()[0], 100)
+	TEST_REAL_EQUAL(e2[2].getContainer()[0].getPosition()[0], 100)
 	TEST_REAL_EQUAL(e2[2].getContainer()[0].getIntensity(), 100)
 
-	TEST_REAL_EQUAL(e2[2].getContainer()[1].getPos()[0], 110)
+	TEST_REAL_EQUAL(e2[2].getContainer()[1].getPosition()[0], 110)
 	TEST_REAL_EQUAL(e2[2].getContainer()[1].getIntensity(), 200)
 
-	TEST_REAL_EQUAL(e2[2].getContainer()[2].getPos()[0], 120)
+	TEST_REAL_EQUAL(e2[2].getContainer()[2].getPosition()[0], 120)
 	TEST_REAL_EQUAL(e2[2].getContainer()[2].getIntensity(), 300)
 
-	TEST_REAL_EQUAL(e2[2].getContainer()[3].getPos()[0], 130)
+	TEST_REAL_EQUAL(e2[2].getContainer()[3].getPosition()[0], 130)
 	TEST_REAL_EQUAL(e2[2].getContainer()[3].getIntensity(), 200)
 
-	TEST_REAL_EQUAL(e2[2].getContainer()[4].getPos()[0], 140)
+	TEST_REAL_EQUAL(e2[2].getContainer()[4].getPosition()[0], 140)
 	TEST_REAL_EQUAL(e2[2].getContainer()[4].getIntensity(), 100)
 
 RESULT  
@@ -705,19 +705,19 @@ CHECK(([EXTRA] load with MZ range))
 	TEST_EQUAL(e[1].getContainer().size(), 2)
 	TEST_EQUAL(e[2].getContainer().size(), 2)
 
-	TEST_REAL_EQUAL(e[0].getContainer()[0].getPos()[0], 120)
+	TEST_REAL_EQUAL(e[0].getContainer()[0].getPosition()[0], 120)
 	TEST_REAL_EQUAL(e[0].getContainer()[0].getIntensity(), 100)
 
-	TEST_REAL_EQUAL(e[1].getContainer()[0].getPos()[0], 120)
+	TEST_REAL_EQUAL(e[1].getContainer()[0].getPosition()[0], 120)
 	TEST_REAL_EQUAL(e[1].getContainer()[0].getIntensity(), 200)
 
-	TEST_REAL_EQUAL(e[1].getContainer()[1].getPos()[0], 130)
+	TEST_REAL_EQUAL(e[1].getContainer()[1].getPosition()[0], 130)
 	TEST_REAL_EQUAL(e[1].getContainer()[1].getIntensity(), 100)
 
-	TEST_REAL_EQUAL(e[2].getContainer()[0].getPos()[0], 120)
+	TEST_REAL_EQUAL(e[2].getContainer()[0].getPosition()[0], 120)
 	TEST_REAL_EQUAL(e[2].getContainer()[0].getIntensity(), 300)
 
-	TEST_REAL_EQUAL(e[2].getContainer()[1].getPos()[0], 130)
+	TEST_REAL_EQUAL(e[2].getContainer()[1].getPosition()[0], 130)
 	TEST_REAL_EQUAL(e[2].getContainer()[1].getIntensity(), 200)
 RESULT
 
@@ -740,16 +740,16 @@ CHECK(([EXTRA] load with intensity range))
 	TEST_EQUAL(e[1].getContainer().size(), 1)
 	TEST_EQUAL(e[2].getContainer().size(), 3)
 
-	TEST_REAL_EQUAL(e[1].getContainer()[0].getPos()[0], 120)
+	TEST_REAL_EQUAL(e[1].getContainer()[0].getPosition()[0], 120)
 	TEST_REAL_EQUAL(e[1].getContainer()[0].getIntensity(), 200)
 
-	TEST_REAL_EQUAL(e[2].getContainer()[0].getPos()[0], 110)
+	TEST_REAL_EQUAL(e[2].getContainer()[0].getPosition()[0], 110)
 	TEST_REAL_EQUAL(e[2].getContainer()[0].getIntensity(), 200)
 
-	TEST_REAL_EQUAL(e[2].getContainer()[1].getPos()[0], 120)
+	TEST_REAL_EQUAL(e[2].getContainer()[1].getPosition()[0], 120)
 	TEST_REAL_EQUAL(e[2].getContainer()[1].getIntensity(), 300)
 
-	TEST_REAL_EQUAL(e[2].getContainer()[2].getPos()[0], 130)
+	TEST_REAL_EQUAL(e[2].getContainer()[2].getPosition()[0], 130)
 	TEST_REAL_EQUAL(e[2].getContainer()[2].getIntensity(), 200)
 RESULT
 
@@ -789,7 +789,7 @@ CHECK([EXTRA] load with 64 bit )
 
 	TEST_EQUAL(e[0].getContainer().size(), 3)
 
-	TEST_REAL_EQUAL(e[0].getContainer()[0].getPos()[0], 110)
+	TEST_REAL_EQUAL(e[0].getContainer()[0].getPosition()[0], 110)
 	TEST_REAL_EQUAL(e[0].getContainer()[0].getIntensity(), 100)
 	TEST_REAL_EQUAL(e[0].getContainer()[0].getArea(), 100)
 	TEST_REAL_EQUAL(e[0].getContainer()[0].getFWHM(), 100)
@@ -800,7 +800,7 @@ CHECK([EXTRA] load with 64 bit )
 	TEST_REAL_EQUAL(e[0].getContainer()[0].getSN(), 100)
 	TEST_EQUAL(e[0].getContainer()[0].getPeakShape(), 100)
 
-	TEST_REAL_EQUAL(e[0].getContainer()[1].getPos()[0], 120)
+	TEST_REAL_EQUAL(e[0].getContainer()[1].getPosition()[0], 120)
 	TEST_REAL_EQUAL(e[0].getContainer()[1].getIntensity(), 200)
 	TEST_REAL_EQUAL(e[0].getContainer()[1].getArea(), 200)
 	TEST_REAL_EQUAL(e[0].getContainer()[1].getFWHM(), 200)
@@ -811,7 +811,7 @@ CHECK([EXTRA] load with 64 bit )
 	TEST_REAL_EQUAL(e[0].getContainer()[1].getSN(), 200)
 	TEST_EQUAL(e[0].getContainer()[1].getPeakShape(), 200)
 
-	TEST_REAL_EQUAL(e[0].getContainer()[2].getPos()[0], 130)
+	TEST_REAL_EQUAL(e[0].getContainer()[2].getPosition()[0], 130)
 	TEST_REAL_EQUAL(e[0].getContainer()[2].getIntensity(), 100)
 	TEST_REAL_EQUAL(e[0].getContainer()[2].getArea(), 100)
 	TEST_REAL_EQUAL(e[0].getContainer()[2].getFWHM(), 100)

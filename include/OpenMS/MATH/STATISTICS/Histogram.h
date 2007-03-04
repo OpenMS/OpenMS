@@ -143,7 +143,7 @@ namespace OpenMS
 			}
 	
 			///returns the number of bins
-			Size size() const
+			UnsignedInt size() const
 			{
 				return bins_.size();
 			}

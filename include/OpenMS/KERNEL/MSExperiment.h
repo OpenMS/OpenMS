@@ -210,7 +210,7 @@ namespace OpenMS
 					// create temporary peak and insert it into spectrum
 					spectrum->insert(spectrum->end(), PeakType());
 					spectrum->back().setIntensity(iter->getIntensity());
-					spectrum->back().setPos(iter->getMZ());
+					spectrum->back().setPosition(iter->getMZ());
 				}
 	    }
 

@@ -65,15 +65,15 @@ CHECK((template<class PeakT> UnsignedInt annotate(MSExperiment< PeakT >& experim
 					   		identifications);
 	
 	peak = spectrum.getPrecursorPeak();
-	peak.setPos(0);
+	peak.setPosition(0);
 	spectrum.setRetentionTime(60);
 	experiment.push_back(spectrum);							
 	experiment[0].setPrecursorPeak(peak);
-	peak.setPos(20);
+	peak.setPosition(20);
 	spectrum.setRetentionTime(181);
 	experiment.push_back(spectrum);							
 	experiment[1].setPrecursorPeak(peak);
-	peak.setPos(11);
+	peak.setPosition(11);
 	spectrum.setRetentionTime(120.0001);
 	experiment.push_back(spectrum);							
 	experiment[2].setPrecursorPeak(peak);
@@ -99,15 +99,15 @@ CHECK((template<class PeakT> void getAnnotations(const MSExperiment< PeakT >& ex
 					   		identifications);
 	
 	peak = spectrum.getPrecursorPeak();
-	peak.setPos(0);
+	peak.setPosition(0);
 	spectrum.setRetentionTime(60);
 	experiment.push_back(spectrum);							
 	experiment[0].setPrecursorPeak(peak);
-	peak.setPos(11);
+	peak.setPosition(11);
 	spectrum.setRetentionTime(120);
 	experiment.push_back(spectrum);							
 	experiment[1].setPrecursorPeak(peak);
-	peak.setPos(20);
+	peak.setPosition(20);
 	spectrum.setRetentionTime(180);
 	experiment.push_back(spectrum);							
 	experiment[2].setPrecursorPeak(peak);

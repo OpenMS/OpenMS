@@ -95,38 +95,44 @@ namespace OpenMS
 		//@{
 		/// Non-mutable access to the data point intensity (height)
 		inline const IntensityType& getIntensity() const { return intensity_; }
-		/// Non-mutable access to the data point intensity (height)
+		/// Mutable access to the data point intensity (height)
 		inline void setIntensity(const IntensityType& intensity) { intensity_ = intensity; }
 
 		/// Non-mutable access to m/z
 		inline CoordinateType const & getMZ() const
 		{
-			// static int dimension_must_be_one_ [2-DIMENSION];
 			return position_[0];
 		}
 		/// Mutable access to m/z
 		inline void setMZ(const CoordinateType& mz)
 		{
-			// static int dimension_must_be_one_ [2-DIMENSION];
 			position_[0] = mz;
 		}
 
+		/// Alias for getMZ()
+		inline CoordinateType const & getPos() const
+		{
+			return position_[0];
+		}
+		/// Alias for setMZ()
+		inline void setPos(const CoordinateType& pos)
+		{
+			position_[0] = pos;
+		}
+
     /// Non-mutable access to the position
-    inline PositionType const & getPos() const
+    inline PositionType const & getPosition() const
     {
-      // static int dimension_must_be_one_ [2-DIMENSION];
       return position_;
     }
     /// Mutable access to the position
-    inline PositionType & getPos()
+    inline PositionType & getPosition()
     {
-      // static int dimension_must_be_one_  [2-DIMENSION];
       return position_;
     }
     /// Mutable access to the position
-    inline void setPos(PositionType const& position)
+    inline void setPosition(PositionType const& position)
     {
-      // static int dimension_must_be_one_ [2-DIMENSION];
       position_ = position;
     }
     //@}

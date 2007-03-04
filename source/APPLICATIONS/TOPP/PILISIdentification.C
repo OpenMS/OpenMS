@@ -127,7 +127,7 @@ class TOPPPILISIdentification
 			p.setValue("exponent", exponent);
 			PILIS_id.setParameters(p);
 
-			Size no(1);
+			UnsignedInt no(1);
 			for (PeakMap::ConstIterator it = exp.begin(); it != exp.end(); ++it, ++no)
 			{
 				if (it->getMSLevel() == 0)

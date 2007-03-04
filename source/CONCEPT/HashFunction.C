@@ -39,7 +39,7 @@ namespace OpenMS
 		throw()
 	{
 		double d = ((double)((unsigned long)void_ptr)) * 0.6180339887;
-		Index index = (Index)(5832641097.37287 * (d - (double)((unsigned long)d)));
+		SignedInt index = (SignedInt)(5832641097.37287 * (d - (double)((unsigned long)d)));
 
 		return ((index < 0) ? -index : index);
 	}
@@ -94,13 +94,13 @@ namespace OpenMS
 	UnsignedInt hashPJWString(const char *s)
 	 throw()
 	{
-		Index index = 0;
-		Index temp_index;
+		SignedInt index = 0;
+		SignedInt temp_index;
 
-#		define OPENMS_BITS_IN_HASHVALUE_   (sizeof(Index) * CHAR_BIT)
-#		define OPENMS_THREE_QUARTERS_      ((Index)((OPENMS_BITS_IN_HASHVALUE_ * 3) / 4))
-#		define OPENMS_ONE_EIGHTH_          ((Index)(OPENMS_BITS_IN_HASHVALUE_ / 8))
-#		define OPENMS_HIGH_BITS_           (~((Index)(~0) >> OPENMS_ONE_EIGHTH_))
+#		define OPENMS_BITS_IN_HASHVALUE_   (sizeof(SignedInt) * CHAR_BIT)
+#		define OPENMS_THREE_QUARTERS_      ((SignedInt)((OPENMS_BITS_IN_HASHVALUE_ * 3) / 4))
+#		define OPENMS_ONE_EIGHTH_          ((SignedInt)(OPENMS_BITS_IN_HASHVALUE_ / 8))
+#		define OPENMS_HIGH_BITS_           (~((SignedInt)(~0) >> OPENMS_ONE_EIGHTH_))
 
 		for (; *s; s++)
 		{
@@ -140,7 +140,7 @@ namespace OpenMS
 			l &= ~temp;
 		}
 
-		return (Index)l;
+		return (SignedInt)l;
 	}
 
 

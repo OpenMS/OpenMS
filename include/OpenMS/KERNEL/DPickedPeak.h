@@ -45,7 +45,7 @@ namespace OpenMS
   	
   	@ingroup Kernel
   */
-  template <Size D>
+  template <UnsignedInt D>
   class DPickedPeak
         : public DPeak <D>
   {

@@ -54,12 +54,12 @@ RESULT
 
 IsotopeDistribution dist;
 String name("Name"), symbol("Symbol");
-Size atomic_number(43);
+UnsignedInt atomic_number(43);
 Real average_weight(0.12345);
 Real mono_weight(0.123456789);
 
 e_ptr = 0;
-CHECK((Element(const String& name, const String& symbol, Size atomic_number, Real average_weight, Real mono_weight, const IsotopeDistribution& isotopes)))
+CHECK((Element(const String& name, const String& symbol, UnsignedInt atomic_number, Real average_weight, Real mono_weight, const IsotopeDistribution& isotopes)))
 	e_ptr = new Element(name, symbol, atomic_number, average_weight, mono_weight, dist);	
 	TEST_NOT_EQUAL(e_ptr, 0)
 RESULT
@@ -72,11 +72,11 @@ RESULT
 delete e_ptr;
 e_ptr = new Element;
 
-CHECK(void setAtomicNumber(Size atomic_number))
+CHECK(void setAtomicNumber(UnsignedInt atomic_number))
 	e_ptr->setAtomicNumber(atomic_number);
 RESULT
 
-CHECK(Size getAtomicNumber() const)
+CHECK(UnsignedInt getAtomicNumber() const)
 	TEST_EQUAL(e_ptr->getAtomicNumber(), atomic_number)
 RESULT
 

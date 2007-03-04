@@ -40,7 +40,7 @@ namespace OpenMS
 		
 		 @ingroup Datastructures		
 	*/
-	template <Size D>
+	template <UnsignedInt D>
 	class DPosition
 	{
 	 public:
@@ -291,7 +291,7 @@ namespace OpenMS
 		}
 
 		/// Returns the number of dimensions
-		static Size size() { return D; }
+		static UnsignedInt size() { return D; }
 				
 		/// Set all dimensions to zero
 		void clear() { for (UnsignedInt i = 0; i < D; coordinate_[i++] = (CoordinateType)0); }
@@ -327,43 +327,43 @@ namespace OpenMS
 	};  // DPosition
 
 	/// Scalar multiplication (a bit inefficient)
-	template <Size D>
+	template <UnsignedInt D>
 	DPosition<D> operator * (DPosition<D> position, typename DPosition<D>::CoordinateType scalar) throw()
 	{
-		for (Size i = 0; i < D; position[i] *= scalar,++i) ;
+		for (UnsignedInt i = 0; i < D; position[i] *= scalar,++i) ;
 		return position;
 	}
 	
 	/// Scalar multiplication (a bit inefficient)
-	template <Size D>
+	template <UnsignedInt D>
 	DPosition<D> operator * (typename DPosition<D>::CoordinateType scalar, DPosition<D> position) throw()
 	{
-		for (Size i = 0; i < D; position[i] *= scalar,++i) ;
+		for (UnsignedInt i = 0; i < D; position[i] *= scalar,++i) ;
 		return position;
 	}
 
-	template <Size D>
+	template <UnsignedInt D>
 	const DPosition<D> DPosition<D>::zero 
 	= DPosition<D>(0);
 
-	template <Size D>
+	template <UnsignedInt D>
 	const DPosition<D> DPosition<D>::min 
 	= DPosition<D>(std::numeric_limits<typename DPosition<D>::CoordinateType>::min());
 
-	template <Size D>
+	template <UnsignedInt D>
 	const DPosition<D> DPosition<D>::max 
 	= DPosition<D>(std::numeric_limits<typename DPosition<D>::CoordinateType>::max());
 
-	template <Size D>
+	template <UnsignedInt D>
 	const DPosition<D> DPosition<D>::min_negative
 	= DPosition<D>(-std::numeric_limits<typename DPosition<D>::CoordinateType>::max());
 
 	///Print the contents to a stream.
-	template <Size D>
+	template <UnsignedInt D>
 	std::ostream& operator << (std::ostream& os, const DPosition<D>& pos)
 	{
 		os << pos[0];
-		for (Size i=1; i < D; ++i)
+		for (UnsignedInt i=1; i < D; ++i)
 		{
 			os << ' ' << pos[i];
 		}

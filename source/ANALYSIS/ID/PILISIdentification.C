@@ -197,7 +197,7 @@ namespace OpenMS
 		scorer_param.setValue("exponent", (double)param_.getValue("exponent"));
 		scorer_->setParameters(scorer_param);
 	
-		double pre_pos = spec_copy.getPrecursorPeak().getPos()[0];
+		double pre_pos = spec_copy.getPrecursorPeak().getPosition()[0];
 
     if (pre_pos < 200) // TODO
     {
@@ -238,7 +238,7 @@ namespace OpenMS
 	void PILISIdentification::getFinalIdentification_(Identification& id, const PeakSpectrum& spec, const Identification& pre_id)
 	{
 		unsigned int max_candidates = (unsigned int)param_.getValue("max_candidates");
-		for (Size i = 0; i < pre_id.getPeptideHits().size() && i < max_candidates; ++i)
+		for (UnsignedInt i = 0; i < pre_id.getPeptideHits().size() && i < max_candidates; ++i)
     {
       String sequence = pre_id.getPeptideHits()[i].getSequence();
       AASequence peptide_sequence(sequence);
@@ -286,7 +286,7 @@ namespace OpenMS
 		double b_pos(0);
 		double y_pos(18);
 		bool b_H2O_loss(false), b_NH3_loss(false), y_H2O_loss(false), y_NH3_loss(false);
-		for (Size i = 0; i != sequence.size(); ++i)
+		for (UnsignedInt i = 0; i != sequence.size(); ++i)
 		{
 			char aa(sequence[i]);
 			b_pos += aa_weight_[aa];
@@ -296,7 +296,7 @@ namespace OpenMS
 			for (int z = 1; z <= charge; ++z)
 			{
 				// b-ions
-				p_.setPos((b_pos + z)/z);
+				p_.setPosition((b_pos + z)/z);
 				p_.setIntensity(0.8);
 				spec.getContainer().push_back(p_);
 
@@ -304,32 +304,32 @@ namespace OpenMS
 				if (b_H2O_loss || aa == 'S' || aa == 'T' || aa == 'E' || aa == 'D')
 				{
 					b_H2O_loss = true;
-					p_.setPos((b_pos + z - 18.0)/z);
+					p_.setPosition((b_pos + z - 18.0)/z);
 					p_.setIntensity(0.1);
 					spec.getContainer().push_back(p_);
 				}
 				if (b_NH3_loss || aa == 'Q' || aa == 'N' || aa == 'R' || aa == 'K')
 				{
 					b_NH3_loss = true;
-					p_.setPos((b_pos + z - 17.0)/z);
+					p_.setPosition((b_pos + z - 17.0)/z);
 					p_.setIntensity(0.1);
 					spec.getContainer().push_back(p_);
 				}
 
 				// a-ions
-				p_.setPos((b_pos +z - 28.0)/z);
+				p_.setPosition((b_pos +z - 28.0)/z);
 				p_.setIntensity(0.3);
 				spec.getContainer().push_back(p_);
 				
 				// y-ions
-				p_.setPos((y_pos + z)/z);
+				p_.setPosition((y_pos + z)/z);
 				p_.setIntensity(1.0);
 				spec.getContainer().push_back(p_);
 
 				if (y_H2O_loss || aa2 == 'S' || aa2 == 'T' || aa2 == 'E' || aa2 == 'D' || aa2 == 'Q')
 				{
 					y_H2O_loss = true;
-					p_.setPos((y_pos + z - 18.0)/z);
+					p_.setPosition((y_pos + z - 18.0)/z);
 					if (aa2 != 'Q')
 					{
 						p_.setIntensity(0.2);
@@ -343,7 +343,7 @@ namespace OpenMS
 				if (y_NH3_loss || aa == 'Q' || aa == 'N' || aa == 'R' || aa == 'K')
 				{
 					y_NH3_loss = true;
-					p_.setPos((y_pos + z - 17.0)/z);
+					p_.setPosition((y_pos + z - 17.0)/z);
 					p_.setIntensity(0.2);
 				}
 			}
