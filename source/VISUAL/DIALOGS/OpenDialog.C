@@ -164,7 +164,7 @@ namespace OpenMS
 				{
 					//cout <<"Name:'"<< getPref_("Preferences:DB:Name") <<"' Login:'"<<getPref_("Preferences:DB:Login")<<"' PW:'"<<prefs_.getValue("DBPassword")<<"' Host:'"<<getPref_("Preferences:DB:Host")<<"' Port:'"<<getPref_("Preferences:DB:Port")<<"'"<<endl;
 					db.connect(getPref_("Preferences:DB:Name"), getPref_("Preferences:DB:Login"),getPref_("DBPassword"),getPref_("Preferences:DB:Host"),getPrefAsInt_("Preferences:DB:Port"));
-					vector<UInt> result;
+					vector<UnsignedInt> result;
 		
 					DBSpectrumSelectorDialog dialog(db,result,this);
 					if (dialog.exec() && result.size()!=0)
@@ -173,7 +173,7 @@ namespace OpenMS
 						names_.clear();
 						name_label->setText( "" );
 						QString convert;
-						for (vector<UInt>::iterator it = result.begin();it!=result.end();++it)
+						for (vector<UnsignedInt>::iterator it = result.begin();it!=result.end();++it)
 						{
 							names_.push_back(String(*it));
 							
@@ -209,22 +209,6 @@ namespace OpenMS
 			Date today;
 			today.today();
 			
-			Sample s;
-			s.setName("Test1");
-			s.setNumber("Sample4711");
-			s.setOrganism("Human");
-			s.setComment("Sample Description");
-			s.setState(Sample::LIQUID);
-			s.setMass(4711.2);
-			s.setVolume(4711.3);
-			s.setConcentration(4711.4);
-			for(UInt i=1; i<6; ++i)
-			{
-				std::string test="Test";
-				test=test+String(i);
-				s.setMetaValue(i, test);
-			}
-	
 			//------------------------------------------------------------------------------
 			//	             Set ProteinIdentification object
 			//------------------------------------------------------------------------------
@@ -258,44 +242,67 @@ namespace OpenMS
 			
 			std::vector<ProteinIdentification> protIDs;
 			protIDs.push_back(pid);
-			//------------------------------------------------------------------------------
-			//	             Set Acquisition objects
-			//------------------------------------------------------------------------------
-			Acquisition a1;
-			Acquisition a2;
-			Acquisition a3;
-			AcquisitionInfo ai;
 			
-			a1.setNumber(178);
-			for(UInt i=1; i<6; ++i)
-			{
-				std::string test="AquisitionTest";
-				test=test+String(i);
-				a1.setMetaValue(i, test);
-			}
-			a2.setNumber(248);
-			for(UInt i=1; i<6; ++i)
-			{
-				std::string test="AquisitionTest";
-				test=test+String(i);
-				a2.setMetaValue(i, test);
-			}
-			a3.setNumber(598);
-			for(UInt i=1; i<6; ++i)
-			{
-				std::string test="AquisitionTest";
-				test=test+String(i);
-				a3.setMetaValue(i, test);
-			}
+			
 			
 			//------------------------------------------------------------------------------
-			//	             Set AquisitionInfo object
+			//	             Set PeptideHit object
 			//------------------------------------------------------------------------------
-			ai.push_back(a1);
-			ai.push_back(a2);
-			ai.push_back(a3);
-			ai.setMethodOfCombination ("Your prefered method");
-	
+			PeptideHit pep;
+			PeptideHit pep1;
+			PeptideHit pep2;
+			PeptideHit pep3;
+			pep.setScore(1.2);
+			pep.setScoreType("XCorr");
+			pep.setSequence("ARRAY");
+			pep.addProteinIndex(date,"1BNL");
+			pep.addProteinIndex(date,"1BY0");
+			pep.addProteinIndex(date,"ACC392");
+			//pep.setRank(2);
+			
+			pep1.setScore(2.2);
+			pep1.setScoreType("XCorr");
+			pep1.setSequence("TTRRAY");
+			pep1.addProteinIndex(date,"1BY0");
+			pep1.addProteinIndex(date,"ACC392");
+			//pep1.setRank(1);
+			
+			pep2.setScore(6.2);
+			pep2.setScoreType("XCorr");
+			pep2.setSequence("TTYYRAY");
+			pep2.addProteinIndex(date,"1BNL");
+			pep2.addProteinIndex(date,"ACC392");
+			pep2.addProteinIndex(date,"ACD392");
+			//pep2.setRank(3);
+			
+			pep3.setScore(8.4);
+			pep3.setScoreType("XCorr");
+			pep3.setSequence("AARRTTYYRAY");
+			
+			std::vector< PeptideHit > pep_hits; 
+			pep_hits.push_back(pep); 
+			pep_hits.push_back(pep1); 
+			pep_hits.push_back(pep2); 
+			pep_hits.push_back(pep3); 
+			
+			//------------------------------------------------------------------------------
+			//	             Set Identification object
+			//------------------------------------------------------------------------------
+			Identification ident;
+			ident.setProteinSignificanceThreshold(3.2);
+			ident.setPeptideSignificanceThreshold(4.8);
+			ident.setDateTime(date);
+			
+			
+			ident.setPeptideAndProteinHits(pep_hits, prot_hits);
+			
+			std::vector<Identification> Idents;
+			Idents.push_back(ident);
+		
+			SpectrumSettings ss;
+			ss.setType(SpectrumSettings::PEAKS);
+			ss.setComment("A lot of space for comments here ...");	
+			ss.setIdentifications(Idents);
 			//-------------------------------------------------------------------------
 			//		end of meta data testing
 			//-------------------------------------------------------------------------
@@ -303,8 +310,8 @@ namespace OpenMS
 			//MSMetaDataExplorer dlg(false, this);
 			MSMetaDataExplorer dlg(true, this);
 			dlg.setWindowTitle("Meta data");
-			//dlg.add(&ai);
-			dlg.add(&pid);
+			dlg.add(&ss);
+			//dlg.add(&pid);
 			
 			//dlg.add(&exp);
 			
@@ -332,9 +339,9 @@ namespace OpenMS
 		return prefs_.getValue(name);
 	}
 	
-	Int OpenDialog::getPrefAsInt_(const String& name) const
+	SignedInt OpenDialog::getPrefAsInt_(const String& name) const
 	{
-		return (Int)(prefs_.getValue(name));
+		return (SignedInt)(prefs_.getValue(name));
 	}
 	
 	bool OpenDialog::isViewMaps2D() const
