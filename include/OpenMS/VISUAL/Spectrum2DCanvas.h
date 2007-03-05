@@ -30,6 +30,7 @@
 
 // OpenMS
 #include <OpenMS/VISUAL/SpectrumCanvas.h>
+#include <OpenMS/VISUAL/Spectrum1DCanvas.h>
 #include <OpenMS/VISUAL/MultiGradient.h>
 
 // QT
@@ -149,9 +150,9 @@ namespace OpenMS
 
     signals:
       /// Sets the data for the horizontal projection
-      void showProjectionHorizontal(const MSExperiment<>&);
+      void showProjectionHorizontal(const MSExperiment<>&, Spectrum1DCanvas::DrawModes);
       /// Sets the data for the vertical projection
-      void showProjectionVertical(const MSExperiment<>&);
+      void showProjectionVertical(const MSExperiment<>&, Spectrum1DCanvas::DrawModes);
 
     public slots:
 
@@ -267,8 +268,8 @@ namespace OpenMS
       /**
       	@brief Updates the projection data and emits some related signals.
       	
-      	Emitted signals are showProjectionHorizontal(const MSExperiment<>&) and 
-      	showProjectionVertical(const MSExperiment<>&).
+      	Emitted signals are showProjectionHorizontal(const MSExperiment<>&, Spectrum1DCanvas::DrawModes) and 
+      	showProjectionVertical(const MSExperiment<>&, Spectrum1DCanvas::DrawModes).
       	
       	@see projection_mz_
       	@see projection_rt_

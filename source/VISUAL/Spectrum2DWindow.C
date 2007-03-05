@@ -63,8 +63,8 @@ namespace OpenMS
 		setWidget_(new Spectrum2DWidget(w));
 		grid_->addWidget(widget(), 1, 0);
 		connectWidgetSignals(widget());
-		connect(widget()->canvas(), SIGNAL(showProjectionHorizontal(const MSExperiment<>&)), this, SLOT(horizontalProjection(const MSExperiment<>&)));
-		connect(widget()->canvas(), SIGNAL(showProjectionVertical(const MSExperiment<>&)), this, SLOT(verticalProjection(const MSExperiment<>&)));
+		connect(widget()->canvas(), SIGNAL(showProjectionHorizontal(const MSExperiment<>&, Spectrum1DCanvas::DrawModes)), this, SLOT(horizontalProjection(const MSExperiment<>&, Spectrum1DCanvas::DrawModes)));
+		connect(widget()->canvas(), SIGNAL(showProjectionVertical(const MSExperiment<>&, Spectrum1DCanvas::DrawModes)), this, SLOT(verticalProjection(const MSExperiment<>&, Spectrum1DCanvas::DrawModes)));
 		
 		hide_button_ = new QPushButton("Hide projections", w);
 		hide_button_->hide();
@@ -89,7 +89,7 @@ namespace OpenMS
 		projection_vert_->hide();
 	}
 	
-	void Spectrum2DWindow::horizontalProjection(const MSExperiment<>& exp)
+	void Spectrum2DWindow::horizontalProjection(const MSExperiment<>& exp, Spectrum1DCanvas::DrawModes mode)
 	{
 		projection_horz_->setMainPreferences(prefs_);
 		projection_horz_->mzToXAxis(true);
@@ -98,11 +98,12 @@ namespace OpenMS
 		projection_horz_->canvas()->removeLayer(0);
 		projection_horz_->canvas()->addLayer(exp);
 		projection_horz_->canvas()->setActionMode(SpectrumCanvas::AM_SELECT);
+		projection_horz_->canvas()->setDrawMode(mode);
 		projection_horz_->show();
 		hide_button_->show();
 	}
 	
-	void Spectrum2DWindow::verticalProjection(const MSExperiment<>& exp)
+	void Spectrum2DWindow::verticalProjection(const MSExperiment<>& exp, Spectrum1DCanvas::DrawModes mode)
 	{
 		projection_vert_->setMainPreferences(prefs_);
 		projection_vert_->mzToXAxis(false);
@@ -111,6 +112,7 @@ namespace OpenMS
 		projection_vert_->canvas()->removeLayer(0);
 		projection_vert_->canvas()->addLayer(exp);
 		projection_vert_->canvas()->setActionMode(SpectrumCanvas::AM_SELECT);
+		projection_vert_->canvas()->setDrawMode(mode);
 		projection_vert_->show();
 		hide_button_->show();
 	}

@@ -129,7 +129,7 @@ namespace OpenMS
     tab_bar_->removeTab(0);
 
     //connect slots and sigals for selecting spectra
-    connect(tab_bar_,SIGNAL(selected(int)),this,SLOT(focusByTab(int)));
+    connect(tab_bar_,SIGNAL(currentChanged(int)),this,SLOT(focusByTab(int)));
     connect(tab_bar_,SIGNAL(doubleClicked(int)),this,SLOT(closeByTab(int)));
 
     box_layout->addWidget(tab_bar_);

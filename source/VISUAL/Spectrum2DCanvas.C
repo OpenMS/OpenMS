@@ -120,7 +120,7 @@ namespace OpenMS
 		painter.save();
 		painter.setPen(QPen(Qt::red, 2));
 		QPoint pos;
-		dataToWidget_(peak->getMZ(),pos);
+		dataToWidget_(peak->getMZ(),peak->getRT(),pos);
 		painter.drawEllipse(pos.x() - 5, pos.y() - 5, 10, 10);
 		painter.restore();
 	}
@@ -147,8 +147,8 @@ namespace OpenMS
 					max_int = i->getIntensity();
 					
 					tmp_peak_.setIntensity(i->getIntensity());
-					tmp_peak_.getPosition()[0] = i->getMZ();
-					tmp_peak_.getPosition()[1] = i.getRetentionTime();
+					tmp_peak_.setMZ(i->getMZ());
+					tmp_peak_.setRT(i.getRetentionTime());
 					
 					max_peak = &tmp_peak_;
 				}
@@ -172,8 +172,8 @@ namespace OpenMS
 						max_int = i->getIntensity();
 						
 						tmp_peak_.setIntensity(i->getIntensity());
-						tmp_peak_.getPosition()[0] = i->getPosition()[1];
-						tmp_peak_.getPosition()[1] = i->getPosition()[0];
+						tmp_peak_.setMZ(i->getMZ());
+						tmp_peak_.setRT(i->getRT());
 						tmp_peak_.getConvexHulls() = i->getConvexHulls();
 						
 						max_peak = &tmp_peak_;
@@ -223,7 +223,10 @@ namespace OpenMS
 		const double cell_height = visible_area_.height() / steps;
 		const double half_width = cell_width / 2.0f;
 		const double half_height = cell_height / 2.0f;
-	
+		
+		double min_int = getLayer(layer_index).min_int;
+		double max_int = getLayer(layer_index).max_int;
+		
 		float y = visible_area_.minY();
 		int i, j;
 		for (i = 0; i <= steps; i++)
@@ -239,7 +242,10 @@ namespace OpenMS
 						 i != getPeakData(layer_index).areaEndConst(); 
 						 ++i)
 				{
-					sum += i->getIntensity();
+					if (i->getIntensity()>=min_int && i->getIntensity()<=max_int)
+					{
+						sum += i->getIntensity();
+					}
 				}
 				// log mode
 				if (intensity_mode_ == IM_LOG)
@@ -894,13 +900,13 @@ namespace OpenMS
 		
 		if (isMzToXAxis())
 		{
-			emit showProjectionHorizontal(projection_mz_);
-			emit showProjectionVertical(projection_rt_);	
+			emit showProjectionHorizontal(projection_mz_,Spectrum1DCanvas::DM_PEAKS);
+			emit showProjectionVertical(projection_rt_,Spectrum1DCanvas::DM_CONNECTEDLINES);	
 		}
 		else
 		{
-			emit showProjectionHorizontal(projection_rt_);
-			emit showProjectionVertical(projection_mz_);
+			emit showProjectionHorizontal(projection_rt_,Spectrum1DCanvas::DM_CONNECTEDLINES);
+			emit showProjectionVertical(projection_mz_,Spectrum1DCanvas::DM_PEAKS);
 		}
 	}
 
@@ -1279,7 +1285,7 @@ namespace OpenMS
 			
 			if (measurement_stop_)
 			{
-				 dataToWidget_(measurement_stop_->getMZ(), line_end);
+				 dataToWidget_(measurement_stop_->getMZ(), measurement_stop_->getRT(), line_end);
 				//cout << "Line end: " << line_end << endl;
 			}
 			else
@@ -1287,7 +1293,7 @@ namespace OpenMS
 				line_end = last_mouse_pos_;
 				//cout << "Ende: " << line_end.x() << " " << line_end.y() << endl;
 			}
-			dataToWidget_(measurement_start_->getMZ(), line_begin);
+			dataToWidget_(measurement_start_->getMZ(), measurement_start_->getRT(), line_begin);
 			painter.drawLine(line_begin, line_end);
 		}
 		highlightPeak_(painter, measurement_start_);
@@ -1379,7 +1385,7 @@ namespace OpenMS
 					if (max_peak)
 					{
 						// show Peak Coordinates (with intensity)
-						emit sendCursorStatus(max_peak->getPosition()[0], max_peak->getIntensity(), max_peak->getPosition()[1]);
+						emit sendCursorStatus(max_peak->getMZ(), max_peak->getIntensity(), max_peak->getRT());
 						//show lable
 						string meta = max_peak->getMetaValue(3).toString();
 						if (meta!="") sendStatusMessage(meta, 0);
@@ -1551,9 +1557,9 @@ namespace OpenMS
 					if (measurement_start_)
 					{
 						emit sendStatusMessage(QString("Measured: dRT = %1, dMZ = %3, Intensity ratio = %2")
-																	.arg(measurement_stop_->getMZ() - measurement_start_->getMZ())
+																	.arg(measurement_stop_->getRT() - measurement_start_->getRT())
 																	.arg(measurement_stop_->getIntensity() / measurement_start_->getIntensity())
-																	.arg(measurement_stop_->getRT() - measurement_start_->getRT()).toAscii().data(), 0);
+																	.arg(measurement_stop_->getMZ() - measurement_start_->getMZ()).toAscii().data(), 0);
 					}
 				}
 				break;

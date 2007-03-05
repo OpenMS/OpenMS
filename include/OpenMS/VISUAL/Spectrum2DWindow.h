@@ -30,6 +30,7 @@
 // OpenMS
 #include <OpenMS/VISUAL/SpectrumWindow.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/VISUAL/Spectrum1DCanvas.h>
 
 //QT
 class QGridLayout;
@@ -83,8 +84,8 @@ namespace OpenMS
 		QPushButton* hide_button_;
 	
 	private slots:
-		void horizontalProjection(const MSExperiment<>&);
-		void verticalProjection(const MSExperiment<>&);
+		void horizontalProjection(const MSExperiment<>&, Spectrum1DCanvas::DrawModes);
+		void verticalProjection(const MSExperiment<>&, Spectrum1DCanvas::DrawModes);
 	};
 }
 

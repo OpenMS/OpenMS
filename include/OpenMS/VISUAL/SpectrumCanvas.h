@@ -625,12 +625,6 @@ namespace OpenMS
 			}
 		}
 		
-		/// Calls dataToWidget_(float x, float y, QPoint& point) with x and y position of @p pos
-		inline void dataToWidget_(const PointType& pos, QPoint& point)
-		{
-			dataToWidget_(pos.getX(), pos.getY(),point);
-		}
-		
 		///Helper function to paint grid lines
 		void paintGridLines_(QPainter& painter);
 		
