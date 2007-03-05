@@ -98,7 +98,7 @@ namespace OpenMS
 
 		@todo fix dimension numbers at compile time, see RawDataPoint2D::DimensionDescription (Chris)
     
-    @ingroup SignalToNoiseEstimators
+    @ingroup Filtering
     
   */
   

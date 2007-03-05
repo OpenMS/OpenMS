@@ -54,7 +54,7 @@ namespace OpenMS
 		as children, which can be accessed by xAxis() and
 		yAxis().
 		
-		@ingroup spectrum_widgets
+		@ingroup SpectrumWidgets
 	*/
 	class SpectrumWidget 
 		: public QWidget,

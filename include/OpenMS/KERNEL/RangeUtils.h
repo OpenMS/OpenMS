@@ -33,13 +33,7 @@
 #include <OpenMS/CONCEPT/Types.h>
 
 namespace OpenMS 
-{
-	/**
-		@defgroup Kernel Kernel
-		
-		@brief Kernel datastructures
-	*/	
-	
+{	
 	/**
 		@defgroup RangeUtils RangeUtils
 		

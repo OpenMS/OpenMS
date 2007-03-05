@@ -57,7 +57,7 @@ namespace OpenMS
 		zoom stack is provided for going back to an earlier
 		view.
 		
-		@ingroup spectrum_widgets
+		@ingroup SpectrumWidgets
 	*/
 	class Spectrum2DWidget : public SpectrumWidget
 	{

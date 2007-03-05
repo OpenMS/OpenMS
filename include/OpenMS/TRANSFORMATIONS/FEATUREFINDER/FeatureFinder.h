@@ -40,7 +40,7 @@ namespace OpenMS
 		
 		@brief The feature detection algorithm in OpenMS.
 		
-		@ingroup Transformations
+		@ingroup Analysis
 	*/
 	
 	/**

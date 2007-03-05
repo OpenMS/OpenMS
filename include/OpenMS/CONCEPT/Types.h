@@ -49,34 +49,28 @@
 
 namespace OpenMS
 {
-	/**
-		@defgroup Concept Concept
-		
-		@brief OpenMS concepts
-	*/
-
-	/**
-		@defgroup BasicTypes Basic data types
-		
-		@brief Basic data types.
-		
-		@ingroup Concept
-		
-		@{
-	*/
-	
 	#ifndef OPENMS_HAS_STDINT_H
 
-	/// Signed integer type
+	/**
+		@brief Signed integer type
+		
+		@ingroup Concept
+  */
 	typedef OPENMS_INDEX_TYPE Int;
 
-	/// Unsigned integer type
+	/**
+		@brief Unsigned integer type
+		
+		@ingroup Concept
+  */
 	typedef OPENMS_SIZE_TYPE UInt;
 
 	/**	
 		@brief Time type
 		
 		Use this type to represent a point in time (as a replaecement for time_t).
+		
+		@ingroup Concept
 	*/
 	typedef time_t 	Time;
 
@@ -84,6 +78,8 @@ namespace OpenMS
 		@brief Real type
 		
 		Use this type to represent standard floating point numbers.
+		
+		@ingroup Concept
 	*/
 	typedef float Real;
 
@@ -91,6 +87,8 @@ namespace OpenMS
 		@brief Double-precision real type
 		
 		Use this type to represent double precision floating point numbers.
+		
+		@ingroup Concept
 	*/
 	typedef double DoubleReal;
 
@@ -98,6 +96,8 @@ namespace OpenMS
 		@brief Byte type
 		
 		Use this type to represent byte data (8 bit length). A Byte is always unsigned.
+		
+		@ingroup Concept
 	*/
 	typedef	unsigned char Byte;
 
@@ -106,6 +106,8 @@ namespace OpenMS
 		
 		This type holds unsigned 64 bit integer numbers and is used to store pointers
 		in a portable fashion (for both 32-bit and 64-bit systems).
+	
+		@ingroup Concept
 	*/
 	typedef OPENMS_POINTERSIZEUINT_TYPE PointerSizeUInt;
 
@@ -114,6 +116,8 @@ namespace OpenMS
 		
 		This type holds unsigned 64 bit numbers and is used to store pointers
 		in a portable fashion (for both 32-bit and 64-bit systems).
+	
+		@ingroup Concept
 	*/
 	typedef OPENMS_POINTERSIZEINT_TYPE PointerSizeInt;
 
@@ -121,10 +125,10 @@ namespace OpenMS
 		@brief A unique object ID.
 		
 		@see PersistentObject
+		
+		@ingroup Concept
 	*/
 	typedef OPENMS_ULONG64_TYPE UID;
-
-/** @} */ // end of BasicTypes
 
 
 	#else

@@ -24,14 +24,9 @@
 // $Maintainer: Marc Sturm $
 // --------------------------------------------------------------------------
 
-/**
-	@defgroup Visual Visual
-
-	@brief Visualization classes
-*/
 
 /**
-	@defgroup spectrum_widgets Spectrum visualizaion widgets
+	@defgroup SpectrumWidgets Spectrum visualizaion widgets
 	
 	@brief Spectrum visualization widgets
 	

@@ -37,16 +37,6 @@
 namespace OpenMS
 {
   class String;
-
-  /**
-    @defgroup Transformations Transformations
-
-    @brief Classes for the transformation of ms data.
-
-    This module contains all classes that are involved in a data-reduction
-    method (e.g. the transformation of raw data into peak data).
-  */
-
   /**
      @brief This class is the base class for every peak picker.
      

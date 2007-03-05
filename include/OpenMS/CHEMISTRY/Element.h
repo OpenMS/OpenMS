@@ -39,8 +39,6 @@
 
 namespace OpenMS
 {
-	/** @defgroup Chemistry Chemistry
-	*/
 	/** @ingroup Chemistry
 	
 			@brief Representation of an element

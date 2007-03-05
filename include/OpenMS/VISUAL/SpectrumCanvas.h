@@ -60,7 +60,7 @@ namespace OpenMS
 		your class derived from SpectrumCanvas. To integrate you class into
 		TOPPView, you also need to derive from SpectrumWindow.
 		
-		@ingroup spectrum_widgets
+		@ingroup SpectrumWidgets
 	*/
 	class SpectrumCanvas 
 		: public QWidget, 

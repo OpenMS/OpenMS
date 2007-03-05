@@ -35,7 +35,7 @@ namespace OpenMS
 	/**
 		@brief Widget for 3D-visualization of map data
 		
-		@ingroup spectrum_widgets
+		@ingroup SpectrumWidgets
 	*/
 	class Spectrum3DWidget:public SpectrumWidget
 	{

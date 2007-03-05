@@ -39,6 +39,8 @@ namespace OpenMS
 		This class implements date handling.
 		Import and export to/from both string and integers is possible.
 		
+		@todo derive from QDateTime (Nico)
+		
 		@ingroup Datastructures
 	*/
 	class DateTime : Date

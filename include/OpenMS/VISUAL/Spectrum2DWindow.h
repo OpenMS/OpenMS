@@ -45,7 +45,7 @@ namespace OpenMS
 		
 		
 		
-		@ingroup spectrum_widgets
+		@ingroup SpectrumWidgets
 	*/
 	class Spectrum2DWindow : public SpectrumWindow
 	{

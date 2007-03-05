@@ -40,12 +40,14 @@
 
 			<LI><B>Wie update ich die Website?</B>
 				<OL>
-					<LI> Das Modul web auschecken:
+					<LI> Das Modul website auschecken:
 					<BR>
-					<TT>svn co https://svn.sourceforge.net/svnroot/open-ms/website</TT>
+					<TT>svn co https://open-ms.svn.sourceforge.net/svnroot/open-ms/website</TT>
 					<LI> Die Website editieren
 					<LI> Änderungen einchecken
-					<LI> Auf shell.sourceforge.net das Skript <TT>/home/groups/o/op/open-ms/scripts/webupdate.sh</TT> ausführen. 
+					<LI> <TT>update.sh &lt;sf-login&gt;</TT> ausführen.
+					<LI> <TT>chmod -R 775</TT> in <TT>/home/groups/o/op/open-ms/htdocs/</TT> auf <TT>shell.sourceforge.net</TT> ausführen.
+							 <BR>(Damit alle Entwickler die Files überschreiben können).
 				</OL>
 
 	    <li><b>How do I add a new directory in the <tt>source/</tt> directory to the built system?</b><br>
@@ -74,10 +76,11 @@
 	        <tt>WidgetTemplate</tt>. You need to check in the
 	        <tt>Widget.h</tt> and <tt>Widget.C</tt> files.</li>
 	      </ul>
-		</UL>
 
 	    <li><b>How can i speed up the compile process?</b><br>
 	      For g++ you can use the wrapper <tt>ccache</tt>.
+
+		</UL>
 
 	<H2 style="border-top:2px solid grey;">Common problems</H2>
 		<UL>

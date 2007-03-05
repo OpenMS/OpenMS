@@ -89,7 +89,7 @@ namespace OpenMS
             - percent of windows that have less than "MinReqElementsInWindow" of elements
               (noise estimates in those windows are simply a constant "NoiseEmptyWindow").   
     
-  	@ingroup SignalToNoiseEstimators
+  	@ingroup Filtering
     
     @todo use DefaultParamHandler (Chris)
     

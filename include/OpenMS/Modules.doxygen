@@ -25,7 +25,79 @@
 // --------------------------------------------------------------------------
 
 /**
+	@defgroup Concept Concept
+	
+	@brief OpenMS concepts (types, macros, ...)
+*/
+
+/**
 	@defgroup System System
 	
 	@brief Very vasic functionality like file system or stopwatch.
 */
+
+/**	
+	@defgroup Datastructures Datastructures
+	
+	@brief Auxilary datastructures.
+*/
+
+/**
+  @defgroup Math Math
+  
+  @brief Math functions and classes
+*/
+
+/**
+	@defgroup Kernel Kernel
+	
+	@brief Kernel datastructures
+*/
+
+/**
+	@defgroup Format Format
+	
+	@brief IO classes.
+	
+	This module contains all classes that are involved in file or DB IO.
+	
+	Very basic file system functions can be found in the File class of the @ref System module! 
+*/
+
+/**
+	@defgroup Metadata Metadata
+	
+	@brief Classes that capture meta data about a MS or HPLC-MS experiment.
+	
+	The top-level classes are OpenMS::ExperimentalSettings and OpenMS::SpectrumSettings .
+*/
+
+/** 
+	@defgroup Chemistry Chemistry
+
+*/
+
+/**
+	@defgroup SpectraComparison Spectrum Comparison
+
+	@brief The classes within this group are used to compare single spectra, by reporting a similarity value.
+*/
+
+/**
+	@defgroup Filtering Spectrum filters
+	
+	@brief This group contains filtering classes for spectra	
+*/
+
+/**
+	@defgroup Analysis Analsysis
+	
+	@brief High-level analysis like PeakPicking, Quantitation, Identification,  MapMatching
+*/	
+
+/**
+	@defgroup Visual Visual
+
+	@brief Visualization classes
+*/
+

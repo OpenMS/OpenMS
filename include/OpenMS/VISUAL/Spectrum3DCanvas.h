@@ -41,7 +41,7 @@ namespace OpenMS
   /**
      @brief Canvas for 3D-visualization of map data
 
-     @ingroup spectrum_widgets
+     @ingroup SpectrumWidgets
   */	
   class Spectrum3DCanvas
   	: public SpectrumCanvas

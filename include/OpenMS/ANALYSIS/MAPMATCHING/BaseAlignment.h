@@ -40,20 +40,12 @@
 namespace OpenMS
 {
   /**
-  Map alignment classes.
-
-  This module contains all classes that can be used for the alignment of multiple maps.
-
-  @defgroup MapAlignment Map Alignment
-  */
-
-  /**
-     @brief Base alignment class.
-     
-     This class is the base class for the alignment of multiple element maps. 
-     An element can be a DPeak, a DFeature, a ConsensusPeak or a ConsensusFeature.
-     Corresponding elements are grouped together and stored as a consensus
-     element in the final consensus map (a stl vector of consensus elements). 
+		@brief Base alignment class.
+		
+		This class is the base class for the alignment of multiple element maps. 
+		An element can be a DPeak, a DFeature, a ConsensusPeak or a ConsensusFeature.
+		Corresponding elements are grouped together and stored as a consensus
+		element in the final consensus map (a stl vector of consensus elements). 
    
   */
   template < typename ConsensusElementT >

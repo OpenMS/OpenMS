@@ -49,7 +49,7 @@ namespace OpenMS
 		
 		@todo Add measurement (Marc)
 		
-		@ingroup spectrum_widgets
+		@ingroup SpectrumWidgets
 	*/
 	class Spectrum1DCanvas : public SpectrumCanvas
 	{

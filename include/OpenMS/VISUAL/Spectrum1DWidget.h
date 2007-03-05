@@ -43,7 +43,7 @@ namespace OpenMS
 	/**
 		@brief Widget for visualization of spectrum
 		
-		@ingroup spectrum_widgets
+		@ingroup SpectrumWidgets
 	*/
 	class Spectrum1DWidget : public SpectrumWidget
 	{

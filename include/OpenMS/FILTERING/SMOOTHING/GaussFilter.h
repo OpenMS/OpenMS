@@ -52,7 +52,7 @@ namespace OpenMS
           Use a gaussian filter kernel which has approximately the same width as your mass peaks,
           whereas the gaussian peak width corresponds approximately to 8*sigma.
           
-    @ingroup Smoothers
+    @ingroup Filtering
   */
 //#define DEBUG_FILTERING
 

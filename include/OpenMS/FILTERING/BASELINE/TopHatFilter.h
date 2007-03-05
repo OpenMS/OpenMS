@@ -51,7 +51,7 @@ namespace OpenMS
       
       @note This filter works only for uniform raw data!
       
-      @ingroup BaselineFilter
+      @ingroup Filtering
   */
   class TopHatFilter : public MorphFilter
   {

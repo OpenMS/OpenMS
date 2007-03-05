@@ -35,8 +35,6 @@ namespace OpenMS
 {
   /**
   	@brief Class to encode and decode Base64
-  	
-  	@ingroup Format
 		
 		Use the encoding-functions only after filling the internal buffer. To get the
 		buffer, call get***Buffer(). Furthermore, do not use the same or different

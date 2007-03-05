@@ -61,8 +61,6 @@ namespace OpenMS
 		Call initGridTransformation() before run()!
 		
 		@todo Avoid the "0.01 hack" in initGridTransformation(). (Eva)
-		
-		@ingroup Analysis
   */
   template < typename MapT = FeatureMap< > >
   class BasePairwiseMapMatcher 

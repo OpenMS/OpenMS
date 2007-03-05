@@ -54,7 +54,7 @@ namespace OpenMS
 
      This module contains all important classes that are involved in the peak picking as described by Lange et al. (2006) Proc. PSB-06.
 
-     @ingroup Transformations
+     @ingroup Analysis
   */
 
   /**

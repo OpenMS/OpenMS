@@ -34,14 +34,6 @@
 namespace OpenMS
 {
 	/**
-		@defgroup SpectraComparison Spectra Comparison
-
-		@brief The classes within this group are used to compare single spectra, by reporting a similarity value.
-
-
-	*/
-
-	/**
 	
 		@brief Base class for compare functors of binned spectra which report the spectra similarity
 

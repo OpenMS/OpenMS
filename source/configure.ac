@@ -28,7 +28,6 @@ dnl
 AC_ARG_ENABLE(optimization,    [  --disable-optimization  disables optimizing the library for speed.])
 AC_ARG_ENABLE(debuginfo,       [  --enable-debuginfo      add -g to the compiler flags (to create debug information). Disables optimization!])
 AC_ARG_ENABLE(pedantic,        [  --disable-pedantic      removes the '-pedantic' flag when using gcc])
-AC_ARG_ENABLE(db, 				     [  --disable-db            disable support for database connectivity])
 AC_ARG_ENABLE(db-plugin,       [  --with-db-plugin        set the Qt SQL DB plugin to use (default: QMYSQL)])
 AC_ARG_WITH(compiler,          [  --with-compiler=CXX     use CXX as C++ compiler])
 AC_ARG_WITH(cxxflags,          [  --with-cxxflags=FLAGS   add FLAGS to the C++ compiler flags (commas are converted to blanks)])
@@ -60,6 +59,7 @@ AC_ARG_WITH(libsvm-libs,       [  --with-libsvm-libs=DIR  specify the location o
 AC_ARG_WITH(xerces-incl,       [  --with-xerces-incl=DIR  specify the location of the XERCES include directory containing "xercesc/util/Base64.hpp"])
 AC_ARG_WITH(xerces-libs,       [  --with-xerces-libs=DIR  specify the location of the XERCES lib directory containing "libxerces-c.so"])
 
+dnl AC_ARG_ENABLE(db, 				     [  --disable-db            disable support for database connectivity])
 dnl AC_ARG_ENABLE(python,          [  --enable-python         enable Python support and search for executable])
 dnl AC_ARG_WITH(python,            [  --with-python=EXE       enable Python support and use Python executable in EXE])
 dnl AC_ARG_WITH(python-incl,       [  --with-python-incl=DIR  Python includes (Python.h) is in DIR])

@@ -33,40 +33,32 @@
 
 namespace OpenMS
 {
+	//@{	
 	/**
-		@defgroup default_types Default MS data types
+		@brief Spectrum consisting of raw data points, with meta information.
 		
-		@brief OpenMS default data types
-		
-    The following classes and type definitions provide some
-		default data types to handle one- and two-dimensional
-		raw data, peak (stick) data, and feature data (maps).
-		Depending on your application, the use of other internal
-		data structures might be preferable, although we recommend
-		to use these data types if you have no urgent need to use					
-		something else.
+		Meta information includes retention time and MS-level.
 		
 		@ingroup Kernel
 	*/
-
-	//@{	
-	/**
-		 @brief Spectrum consisting of raw data points, with meta information.
-
-		 Meta information includes retention time and MS-level.
-	*/
 	typedef MSSpectrum<RawDataPoint1D> RawSpectrum;
 	/**
-		 @brief Two-dimensional map of raw data points, with meta information about experimental settings.
+		@brief Two-dimensional map of raw data points, with meta information about experimental settings.
+		
+		@ingroup Kernel
 	*/
 	typedef MSExperiment<RawDataPoint1D> RawMap;
 
 	/**
-		 @brief Spectrum consisting of peaks with meta information.
+		@brief Spectrum consisting of peaks with meta information.
+		
+		@ingroup Kernel
 	*/
 	typedef MSSpectrum<Peak1D> PeakSpectrum;
 	/**
-		 @brief  Two-dimensional map of peaks, with meta information about experimental settings.
+		@brief  Two-dimensional map of peaks, with meta information about experimental settings.
+		
+		@ingroup Kernel
 	*/
 	typedef MSExperiment<Peak1D> PeakMap;
 	//@}

@@ -62,7 +62,7 @@ namespace OpenMS
   	
   	@todo Add reduction of 2D data (Marc)
   	
-  	@ingroup spectrum_widgets
+  	@ingroup SpectrumWidgets
   */
   class Spectrum2DCanvas : public SpectrumCanvas
   {

@@ -37,15 +37,11 @@
 namespace OpenMS
 {
 	/**	
-		@defgroup Datastructures Datastructures
-		
-		@brief Auxilary datastructures.
-	*/
-
-	/**	
 		@brief A more convenient string class.
 		
 		It based on std::string but adds a lot of methods for convenience.
+		
+		@todo derive from QString (Marc)
 		
 		@ingroup Datastructures
 	*/

@@ -61,7 +61,7 @@ namespace OpenMS
      @Note If you use consensus maps, the consensus elements are used as normal elements and you will
      loose the former consensus information.
      
-     @ingroup MapAlignment
+     @ingroup Analysis
   */
   template < typename ConsensusElementT = ConsensusFeature< FeatureMap < > > >
   class StarAlignment : public BaseAlignment< ConsensusElementT >

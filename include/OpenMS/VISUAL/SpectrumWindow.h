@@ -55,7 +55,7 @@ namespace OpenMS
 		instance of the SpectrumWidget class as a child widget (see
 		setWidget_() and widget()).
 		
-		@ingroup spectrum_widgets
+		@ingroup SpectrumWidgets
 	*/
 	class SpectrumWindow 
 		: public QMainWindow, 

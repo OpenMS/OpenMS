@@ -25,24 +25,6 @@
 // --------------------------------------------------------------------------
 
 /**
-	@defgroup Filtering Filtering
-	
-	@brief This group contains filtering classes for spectra	
-*/
-
-/**
-	@defgroup SignalToNoiseEstimators Signal to Noise Estimators
-	
-	@ingroup Filtering
-*/
-
-/**
-	@defgroup BaselineFilter Baseline Filters
-	
-	@ingroup Filtering
-*/
-
-/**
 	@defgroup SpectraPreprocessers Spectra Preprocessors
 	
 	@brief The spectra preprocessors filter the spectra with different criterions
@@ -52,12 +34,6 @@
 	Additionally PeakMaps can be filtered using the filterPeakMap function. The details of the filters
 	and their options are described in the class documentation respectively.
 
-	@ingroup Filtering
-*/
-
-/**
-	@defgroup Smoothers Smoothing Filters
-	
 	@ingroup Filtering
 */
 

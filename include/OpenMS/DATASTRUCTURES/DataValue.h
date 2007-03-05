@@ -40,6 +40,9 @@ namespace OpenMS
 		<LI> Automatic conversion is supported and throws Exceptions in case of invalid ones.
 		<LI> An empty objects is created with the default constructor.
 		</UL>
+		
+		@todo derive from QVariant (Marc)
+		
 		@ingroup Datastructures
 	*/
 	class DataValue
