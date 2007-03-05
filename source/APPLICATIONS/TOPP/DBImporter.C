@@ -29,8 +29,6 @@
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 
-#include <QtGui/QApplication>
-
 using namespace OpenMS;
 using namespace std;
 
@@ -70,7 +68,7 @@ class TOPPDBImporter
 														"The data of 'in' is not imported!");
 		}
 	
-		ExitCodes main_(int argc , char** argv)
+		ExitCodes main_(int , char**)
 		{
 	
 			//-------------------------------------------------------------
@@ -99,7 +97,6 @@ class TOPPDBImporter
 			//-------------------------------------------------------------
 			// reading input
 			//-------------------------------------------------------------
-			QApplication app(argc,argv,false);
 			DBConnection con;
 			con.connect(db, user, password, host, port);
 			DBAdapter a(con);

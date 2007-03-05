@@ -43,12 +43,6 @@ namespace OpenMS
 {
   /** 
   	@brief A class for connecting to a SQL database
-  	
-    @note DB support is based on QT, and needs a qapplication. If you do not use a GUI create a background QApplication with:
-    
-    @code
-      QApplication app(argc,argv,false);
-    @endcode
     
     @note Do not use '*' in SELECT statments. The order of result columns is not definded then! Read the QT documentation for details.
     

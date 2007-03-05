@@ -129,27 +129,17 @@ EXECUTABLES_KERNEL =\
 
 #VISUAL
 
-ifeq ($(ENABLE_GUI),true)
-	EXECUTABLES_VISUAL =\
+
+EXECUTABLES_VISUAL =\
 	MultiGradient_test\
 	MappingInfo_test\
 	AxisTickCalculator_test
-endif
 
 #FORMAT
 
 ifeq ($(ANDIMS_SUPPORT),true)
-	ifeq ($(NETCDF_SUPPORT),true)
-		ANDI_EXECUTABLES_FORMAT=\
-			ANDIFile_test
-	endif
-endif
-
-#conditional tests
-ifeq ($(ENABLE_DB),true)
-	DB_EXECUTABLES_FORMAT=\
-	DBConnection_test\
-	DBAdapter_test
+	ANDI_EXECUTABLES_FORMAT=\
+		ANDIFile_test
 endif
 
 ifeq ($(LIBSVM_SUPPORT),true)
@@ -160,7 +150,6 @@ endif
 EXECUTABLES_FORMAT = \
 	TextFile_test\
 	$(ANDI_EXECUTABLES_FORMAT)\
-	${DB_EXECUTABLES_FORMAT}\
 	${LIBSVM_EXECUTABLES_FORMAT}\
 	DTAFile_test\
 	DTA2DFile_test\
@@ -188,11 +177,9 @@ EXECUTABLES_FORMAT = \
 	SequestOutfile_test\
 	PTMXMLFile_test\
 	IsotopeXMLFile_test\
-
-ifeq ($(CGAL_SUPPORT),true)
-EXECUTABLES_FORMAT_CGAL=\
-	ConsensusXMLFile_test
-endif
+	ConsensusXMLFile_test\
+	DBConnection_test\
+	DBAdapter_test
 
 #MATH
 
@@ -306,14 +293,10 @@ EXECUTABLES_ANALYSIS_MAPMATCHING = \
 	PoseClusteringAffineSuperimposer_test\
 	PoseClusteringShiftSuperimposer_test\
 	BasePairwiseMapMatcher_test\
-	PoseClusteringPairwiseMapMatcher_test
-
-ifeq ($(CGAL_SUPPORT),true)
-EXECUTABLES_ANALYSIS_MAPMATCHING_CGAL=\
+	PoseClusteringPairwiseMapMatcher_test\
 	BaseAlignment_test\
 	StarAlignment_test\
 	DelaunayPairFinder_test
-endif
 
 EXECUTABLES_ANALYSIS_ID =\
 	IDSpectrumMapper_test\
@@ -383,7 +366,6 @@ EXECUTABLES = \
 	$(EXECUTABLES_SYSTEM)\
 	$(EXECUTABLES_KERNEL)\
 	$(EXECUTABLES_FORMAT)\
-	$(EXECUTABLES_FORMAT_CGAL)\
 	$(EXECUTABLES_DATASTRUCTURES)\
 	$(EXECUTABLES_VISUAL)\
 	$(EXECUTABLES_CHEMISTRY)\
@@ -392,7 +374,6 @@ EXECUTABLES = \
 	$(EXECUTABLES_ANALYSIS_ID)\
 	$(EXECUTABLES_ANALYSIS_SVM)\
 	$(EXECUTABLES_ANALYSIS_MAPMATCHING)\
-	$(EXECUTABLES_ANALYSIS_MAPMATCHING_CGAL)\
 	$(EXECUTABLES_APPLICATIONS)
 
 
@@ -415,11 +396,9 @@ LIB_CXXFLAGS=$(NONLIB_CXXFLAGS)
 # do not optimize tests (reduces compile time drastically)
 CPP_MODE_FLAGS= $(CPP_MODE_FLAGS_NO_OPTIMIZATION) -O0
 
-#add libraries for GUI to LIBS
-ifeq ($(ENABLE_GUI),true)
-	LIBS=$(GUI_LIBS)
-	OPENMS_INCLUDES=$(GUI_INCLUDES)
-endif
+
+LIBS=$(GUI_LIBS)
+
 
 .o:
 	$(CXX) $(CXXFLAGS) $*.o $(LDFLAGS) -o $@ $(LIBS)
@@ -458,8 +437,8 @@ kernel_test:	$(EXECUTABLES_KERNEL) dummy
 datastructures_test:	$(EXECUTABLES_DATASTRUCTURES) dummy
 	@./runtests -section "DATASTRUCTURES" $(TEST_OPTIONS) $(EXECUTABLES_DATASTRUCTURES)
 
-format_test:	$(EXECUTABLES_FORMAT) $(EXECUTABLES_FORMAT_CGAL) dummy
-	@./runtests -section "FORMAT" $(TEST_OPTIONS) $(EXECUTABLES_FORMAT) $(EXECUTABLES_FORMAT_CGAL)
+format_test:	$(EXECUTABLES_FORMAT) dummy
+	@./runtests -section "FORMAT" $(TEST_OPTIONS) $(EXECUTABLES_FORMAT)
 
 system_test:	$(EXECUTABLES_SYSTEM) dummy
 	@./runtests -section "SYSTEM" $(TEST_OPTIONS) $(EXECUTABLES_SYSTEM)
@@ -482,8 +461,8 @@ analysis_id_test:	$(EXECUTABLES_ANALYSIS_ID) dummy
 analysis_svm_test:	$(EXECUTABLES_ANALYSIS_SVM) dummy
 	@./runtests -section "ANALYSIS_SVM" $(TEST_OPTIONS) $(EXECUTABLES_ANALYSIS_SVM)
 
-analysis_mapmatching_test:	$(EXECUTABLES_ANALYSIS_MAPMATCHING) $(EXECUTABLES_ANALYSIS_MAPMATCHING_CGAL) dummy
-	@./runtests -section "ANALYSIS_MAPMATCHING" $(TEST_OPTIONS) $(EXECUTABLES_ANALYSIS_MAPMATCHING) $(EXECUTABLES_ANALYSIS_MAPMATCHING_CGAL)
+analysis_mapmatching_test:	$(EXECUTABLES_ANALYSIS_MAPMATCHING) dummy
+	@./runtests -section "ANALYSIS_MAPMATCHING" $(TEST_OPTIONS) $(EXECUTABLES_ANALYSIS_MAPMATCHING)
 
 applications_test:	$(EXECUTABLES_APPLICATIONS) dummy
 	@./runtests -section "APPLICATIONS" $(TEST_OPTIONS) $(EXECUTABLES_APPLICATIONS)

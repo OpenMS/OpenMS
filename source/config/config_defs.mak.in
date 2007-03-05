@@ -101,14 +101,12 @@ OPENMS_LIBS       = @OPENMS_LIBS@
 # specific objects can be built (see e.g. ANALYSIS/Makefile).
 
 CGAL_SUPPORT      = @CGAL_SUPPORT@
-BOOST_SUPPORT     = @BOOST_SUPPORT@
 ANDIMS_SUPPORT    = @ANDIMS_SUPPORT@
 NETCDF_SUPPORT    = @NETCDF_SUPPORT@
 FFTW_SUPPORT      = @FFTW_SUPPORT@
 LIBSVM_SUPPORT    = @LIBSVM_SUPPORT@
 MOC               = @MOC@
 UIC               = @UIC@
-ENABLE_DB         = @ENABLE_DB@
 ENABLE_GUI        = true
 GUI_INCLUDES      = @GUI_INCLUDES@
 GUI_LIBS          = @GUI_LIBS@

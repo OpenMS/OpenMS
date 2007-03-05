@@ -31,14 +31,9 @@ THISLIB=$(LIBNAME)
 
 include ../../config_defs.mak
 
-ifeq ($(ENABLE_DB),true)
-DB_CPP_SOURCES=\
-	ClusterSpectrum.C
-endif
-
 CPP_SOURCES=\
 	BinnedRep.C\
-	$(DB_CPP_SOURCES)
+	ClusterSpectrum.C
 
 
 include ../../common.mak

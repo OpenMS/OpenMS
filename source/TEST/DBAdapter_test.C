@@ -30,7 +30,6 @@
 #include <OpenMS/FORMAT/TextFile.h>
 #include <OpenMS/FORMAT/DB/DBAdapter.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
-#include <QtGui/QApplication>
 ///////////////////////////
 
 using namespace OpenMS;
@@ -89,9 +88,6 @@ for (TextFile::iterator it = credentials.begin(); it!= credentials.end(); ++it)
 
 if (do_tests)
 {
-	// start QApplication. Otherwise the DB classes are not available
-	QApplication qapp(argc,argv,false);
-	
 	//DB connection for DBAdapter
 	DBConnection con;
 	con.connect(db, user, password, host, port.toInt());

@@ -311,7 +311,7 @@ ac_includes_default="\
 #endif"
 
 ac_default_prefix=`cd ..; pwd`
-ac_subst_vars='SHELL PATH_SEPARATOR PACKAGE_NAME PACKAGE_TARNAME PACKAGE_VERSION PACKAGE_STRING PACKAGE_BUGREPORT exec_prefix prefix program_transform_name bindir sbindir libexecdir datadir sysconfdir sharedstatedir localstatedir libdir includedir oldincludedir infodir mandir build_alias host_alias target_alias DEFS ECHO_C ECHO_N ECHO_T LIBS PAGER ENABLE_DB LN_S UNAME CUT TR AR CP RM MV LN SED FIND DIFF TAIL GREP EGREP CAT ECHO_COMMAND ECHO ifGNUmake MAKE OSMAJOR OS OSREV BINFMT BINFMT_PATH ARCHITECTURE SHARED_LIB_SUFFIX CXXPATH CXX CXXFLAGS LDFLAGS CPPFLAGS ac_ct_CXX EXEEXT OBJEXT CXXCPP OPENMS_HAS_XDR LEX LEXLIB LEX_OUTPUT_ROOT YACC OPENMS_HAS_FLEX_YACC NETCDF_SUPPORT NETCDF_INCLUDES NETCDF_LIBS ANDIMS_SUPPORT ANDIMS_INCLUDES ANDIMS_LIBS GSL_SUPPORT GSL_INCLUDES GSL_LIBS CGAL_SUPPORT CGAL_INCLUDES CGAL_LIBS FFTW_SUPPORT FFTW_INCLUDES FFTW_LIBS OpenMS_HAS_FFTW OpenMS_HAS_FFTW_H OpenMS_HAS_FFTW_FLOAT OpenMS_HAS_FFTW_DOUBLE OpenMS_HAS_FFTW_LONG_DOUBLE LIBSVM_SUPPORT LIBSVM_OBJECT XERCES_SUPPORT XERCES_OBJECT GUI_INCLUDES MOC UIC SIP SIP_LIB SIP_INCLUDES PYTHON_INCLUDES PYTHON_SUPPORT PYTHON_LIBS PYTHON_EXECUTABLE VALGRIND VALGRIND_OPTS OPENMS_PATH OPENMS_INCLUDES OPENMS_LIBS CXX_MAKEDEPEND MAKEDEP_CXX_OPTS MAKEDEP_CXX_SUFFIX DEPENDENCY_GREPS CC ADD_CXXFLAGS LIB_CXXFLAGS NONLIB_CXXFLAGS HAS_GPLUSPLUS STD_CPP_INCLUDES MAKEDEP_OPTS OPENMS_TYPENAME GUI_LIBS DEFINES CXXFLAGS_D CXXFLAGS_O CPP_MODE_FLAGS CPP_MODE_FLAGS_NO_OPTIMIZATION AROPTS DYNAR DYNAROPTS ADDITIONAL_COMMENTS TEMPLATE_DIR SUBDIRS GUI_STATIC_LIB GUISUBDIRS LIBOBJS LTLIBOBJS'
+ac_subst_vars='SHELL PATH_SEPARATOR PACKAGE_NAME PACKAGE_TARNAME PACKAGE_VERSION PACKAGE_STRING PACKAGE_BUGREPORT exec_prefix prefix program_transform_name bindir sbindir libexecdir datadir sysconfdir sharedstatedir localstatedir libdir includedir oldincludedir infodir mandir build_alias host_alias target_alias DEFS ECHO_C ECHO_N ECHO_T LIBS PAGER LN_S UNAME CUT TR AR CP RM MV LN SED FIND DIFF TAIL GREP EGREP CAT ECHO_COMMAND ECHO ifGNUmake MAKE OSMAJOR OS OSREV BINFMT BINFMT_PATH ARCHITECTURE SHARED_LIB_SUFFIX CXXPATH CXX CXXFLAGS LDFLAGS CPPFLAGS ac_ct_CXX EXEEXT OBJEXT CXXCPP OPENMS_HAS_XDR LEX LEXLIB LEX_OUTPUT_ROOT YACC OPENMS_HAS_FLEX_YACC NETCDF_SUPPORT NETCDF_INCLUDES NETCDF_LIBS ANDIMS_SUPPORT ANDIMS_INCLUDES ANDIMS_LIBS GSL_SUPPORT GSL_INCLUDES GSL_LIBS CGAL_SUPPORT CGAL_INCLUDES CGAL_LIBS FFTW_SUPPORT FFTW_INCLUDES FFTW_LIBS OpenMS_HAS_FFTW OpenMS_HAS_FFTW_H OpenMS_HAS_FFTW_FLOAT OpenMS_HAS_FFTW_DOUBLE OpenMS_HAS_FFTW_LONG_DOUBLE LIBSVM_SUPPORT LIBSVM_OBJECT XERCES_SUPPORT XERCES_OBJECT GUI_INCLUDES MOC UIC SIP SIP_LIB SIP_INCLUDES PYTHON_INCLUDES PYTHON_SUPPORT PYTHON_LIBS PYTHON_EXECUTABLE VALGRIND VALGRIND_OPTS OPENMS_PATH OPENMS_INCLUDES OPENMS_LIBS CXX_MAKEDEPEND MAKEDEP_CXX_OPTS MAKEDEP_CXX_SUFFIX DEPENDENCY_GREPS CC ADD_CXXFLAGS LIB_CXXFLAGS NONLIB_CXXFLAGS HAS_GPLUSPLUS STD_CPP_INCLUDES MAKEDEP_OPTS OPENMS_TYPENAME GUI_LIBS DEFINES CXXFLAGS_D CXXFLAGS_O CPP_MODE_FLAGS CPP_MODE_FLAGS_NO_OPTIMIZATION AROPTS DYNAR DYNAROPTS ADDITIONAL_COMMENTS TEMPLATE_DIR SUBDIRS GUI_STATIC_LIB GUISUBDIRS LIBOBJS LTLIBOBJS'
 ac_subst_files=''
 
 # Initialize some variables set by options.
@@ -1683,18 +1683,6 @@ else
   DEFAULT_LIB_PATH="${OPENMS_PATH}/contrib/lib"
   DEFAULT_INCL_PATH="${OPENMS_PATH}/contrib/include"
 fi
-
-if test "$with_db" = "no" -o "$enable_db" = "no"; then
-  ENABLE_DB=false
-else
-	ENABLE_DB=true
-  cat >>confdefs.h <<\_ACEOF
-#define DB_DEF 1
-_ACEOF
-
-fi
-
-
 
 if test "$with_db_plugin" != ""; then
 	DB_PLUGIN="${with_db_plugin}"
@@ -20665,7 +20653,7 @@ echo "$as_me: error: Aborted." >&2;}
 	  else
   		echo "$as_me:$LINENO: result: (${XERCES_DIR2})" >&5
 echo "${ECHO_T}(${XERCES_DIR2})" >&6
-  		OPENMS_LIBS="${OPENMS_LIBS} ${XERCES_DIR2}/libxerces-c.so"
+  		OPENMS_LIBS="${OPENMS_LIBS} -L${XERCES_DIR2} -lxerces-c"
   	fi
 
 
@@ -22001,6 +21989,7 @@ echo "$as_me: error: Aborted." >&2;}
 echo "${ECHO_T}(${QT_LIBPATH})" >&6
 	fi
 
+
   echo "$as_me:$LINENO: checking for libQtGui" >&5
 echo $ECHO_N "checking for libQtGui... $ECHO_C" >&6
   if test "${QT_LIBPATH}" != "" ; then
@@ -22171,7 +22160,11 @@ echo "$as_me: error: Aborted." >&2;}
 
 
 				if test "${QT_INCPATH}" != /usr/include && test "${QT_INCPATH}" != "" ; then
-		GUI_INCLUDES="${GUI_INCLUDES} -I${QT_INCPATH}"
+		OPENMS_INCLUDES="${OPENMS_INCLUDES} -I${QT_INCPATH}"
+	fi
+
+				if test "${QT_LIBPATH}" != /usr/lib && test "${QT_LIBPATH}" != "" ; then
+		OPENMS_LIBS="${OPENMS_LIBS} -L${QT_LIBPATH} -lQtCore -lQtSql"
 	fi
 
 
@@ -22825,15 +22818,13 @@ echo "${ECHO_T}yes" >&6
 		echo "$as_me:$LINENO: checking linking against QtCore lib" >&5
 echo $ECHO_N "checking linking against QtCore lib... $ECHO_C" >&6
 
-		if test "${QT_LIBPATH}" != "/usr/lib" ; then
-			QT_LIBOPTS="-L${QT_LIBPATH} -lQtCore -lQtSql -lQtGui -lQtOpenGL"
-		else
+		if test "${QT_LIBPATH}" == "/usr/lib" ; then
 			QT_LIBPATH=""
-			QT_LIBOPTS="-lQtCore -lQtSql -lQtGui -lQtOpenGL"
 		fi
+		QT_LIBOPTS="-lQtGui -lQtOpenGL"
 
 								SAVE_LIBS=${LIBS}
-		LIBS="-L${QT_LIBPATH} -lQtCore ${X11_LIBOPTS} ${LIBS} ${GUI_INCLUDES}"
+		LIBS="${X11_LIBOPTS} ${LIBS} ${GUI_INCLUDES}"
 
 		QT_LINKING_OK=0
 		cat >conftest.$ac_ext <<_ACEOF
@@ -22935,7 +22926,7 @@ echo "${ECHO_T}yes" >&6
 								echo "$as_me:$LINENO: checking linking against QtGui lib" >&5
 echo $ECHO_N "checking linking against QtGui lib... $ECHO_C" >&6
 
-		LIBS="-L${QT_LIBPATH} -lQtCore -lQtGui ${X11_LIBOPTS} ${LIBS} ${GUI_INCLUDES}"
+		LIBS="-lQtGui ${X11_LIBOPTS} ${LIBS} ${GUI_INCLUDES}"
 
 		QT_LINKING_OK=0
     cat >conftest.$ac_ext <<_ACEOF
@@ -23038,7 +23029,7 @@ echo "${ECHO_T}yes" >&6
 								echo "$as_me:$LINENO: checking linking against QtOpenGL lib" >&5
 echo $ECHO_N "checking linking against QtOpenGL lib... $ECHO_C" >&6
 
-		LIBS="L${QT_LIBPATH} -lQtCore -ltGui -lQtOpenGL ${X11_LIBOPTS} ${LIBS} ${GUI_INCLUDES}"
+		LIBS="-ltGui -lQtOpenGL ${X11_LIBOPTS} ${LIBS} ${GUI_INCLUDES}"
 
 		QT_LINKING_OK=0
 		cat >conftest.$ac_ext <<_ACEOF
@@ -23141,7 +23132,7 @@ echo "${ECHO_T}yes" >&6
 								echo "$as_me:$LINENO: checking linking against QtSql lib" >&5
 echo $ECHO_N "checking linking against QtSql lib... $ECHO_C" >&6
 
-		LIBS="L${QT_LIBPATH} -lQtCore -lQtSql ${X11_LIBOPTS} ${LIBS} ${GUI_INCLUDES}"
+		LIBS="${X11_LIBOPTS} ${LIBS} ${GUI_INCLUDES}"
 
 		QT_LINKING_OK=0
 		cat >conftest.$ac_ext <<_ACEOF
@@ -23245,7 +23236,7 @@ echo "${ECHO_T}yes" >&6
                 echo "$as_me:$LINENO: checking QT library version" >&5
 echo $ECHO_N "checking QT library version... $ECHO_C" >&6
     SAVE_LIBS=${LIBS}
-    LIBS="${QT_LIBOPTS} ${OPENGL_LIBOPTS} ${X11_LIBOPTS} ${LIBS}"
+    LIBS="${OPENGL_LIBOPTS} ${X11_LIBOPTS} ${LIBS} -L${QT_LIBPATH} ${QT_LIBOPTS}"
     if test "${OS}" = "Darwin" ; then
       DYLD_LIBRARY_PATH="${QT_LIBPATH}:${X11_LIBPATH}:${OPENGL_LIBPATH}:${GLEW_LIBPATH}:${DYLD_LIBRARY_PATH}"
       export DYLD_LIBRARY_PATH
@@ -23794,16 +23785,13 @@ echo "$as_me: error: Aborted." >&2;}
 	fi
 
 
-
-
-
 	cat >>confdefs.h <<\_ACEOF
 #define OpenMS_HAS_GUI
 _ACEOF
 
 	LIBGUI="libGUI.a"
 	GUI="GUI"
-	GUI_LIBS="${QT_LIBOPTS} ${OPENGL_LIBOPTS} ${X11_LIBOPTS} ${LIBS}"
+	GUI_LIBS="${OPENGL_LIBOPTS} ${X11_LIBOPTS} ${LIBS} ${QT_LIBOPTS}"
 fi
 
 
@@ -25572,7 +25560,6 @@ s,@ECHO_N@,$ECHO_N,;t t
 s,@ECHO_T@,$ECHO_T,;t t
 s,@LIBS@,$LIBS,;t t
 s,@PAGER@,$PAGER,;t t
-s,@ENABLE_DB@,$ENABLE_DB,;t t
 s,@LN_S@,$LN_S,;t t
 s,@UNAME@,$UNAME,;t t
 s,@CUT@,$CUT,;t t

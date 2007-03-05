@@ -28,12 +28,6 @@ include ../../config_defs.mak
 
 DIRECTORY=APPLICATIONS/TOPP
 
-ifeq ($(CGAL_SUPPORT),true)
-CGAL_EXEC=\
-	UnlabeledMatcher\
-	MapAlignment
-endif
-
 ifeq ($(LIBSVM_SUPPORT),true)
 LIBSVM_EXEC=\
 	RTModel\
@@ -41,7 +35,6 @@ LIBSVM_EXEC=\
 endif
 
 EXECUTABLES=\
-	$(CGAL_EXEC)\
 	$(LIBSVM_EXEC)\
 	FileConverter\
 	FileInfo\
@@ -70,7 +63,9 @@ EXECUTABLES=\
 	FeatureFinder\
 	PILISModel\
 	PILISIdentification\
-	OMSSAAdapter
+	OMSSAAdapter\
+	UnlabeledMatcher\
+	MapAlignment
 
 
 all: $(EXECUTABLES)
@@ -88,7 +83,6 @@ clean: default_clean
 
 ADD_CXXFLAGS= -D_REENTRANT
 
-OPENMS_INCLUDES=$(GUI_INCLUDES)
 LIBS=$(GUI_LIBS)
 
 CPP_SOURCES =\

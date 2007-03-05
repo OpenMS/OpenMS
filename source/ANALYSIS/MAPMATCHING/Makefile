@@ -30,13 +30,6 @@ THISLIB=$(LIBNAME)
 
 include ../../config_defs.mak
 
-ifeq ($(CGAL_SUPPORT),true)
-CGAL_SOURCES=\
-	BaseAlignment.C\
-	StarAlignment.C\
-	DelaunayPairFinder.C
-endif
-
 CPP_SOURCES=\
 	IndexTuple.C\
 	Group.C\
@@ -55,9 +48,10 @@ CPP_SOURCES=\
 	MapDewarper.C\
 	BasePairwiseMapMatcher.C\
 	PoseClusteringPairwiseMapMatcher.C\
-	PairMatcher.C
-
-ADD_CPP_SOURCES = $(CGAL_SOURCES)
+	PairMatcher.C\
+	BaseAlignment.C\
+	StarAlignment.C\
+	DelaunayPairFinder.C
 
 include ../../common.mak
 -include .Dependencies

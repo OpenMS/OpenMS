@@ -273,12 +273,8 @@
 
 // Defines for conditional compiles when Libs are missing
 #undef ANDIMS_DEF
-#undef FFTW_DEF
 #undef LIBSVM_DEF
 #undef NETCDF_DEF
-#undef BOOST_DEF
-#undef CGAL_DEF
-#undef DB_DEF
 #define DB_PLUGIN "(undefined)"
 
 #define ENABLE_GUI 1

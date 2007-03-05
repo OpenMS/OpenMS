@@ -54,34 +54,26 @@ UNCONDITIONAL_TESTS = \
 	Resampler_test \
 	SequestAdapter_test\
 	SpectraFilter_test \
-
-ifeq ($(CGAL_SUPPORT),true)
-CGAL_TESTS= \
 	MapAlignment_test \
 	UnlabeledMatcher_test \
 
-endif
 
 ifeq ($(LIBSVM_SUPPORT),true)
 LIBSVM_TESTS= \
 	RTModel_test \
-	RTPredict_test \
-
+	RTPredict_test
 endif
 
-TOPP_TOOL_TESTS = ${UNCONDITIONAL_TESTS} ${LIBSVM_TESTS} ${CGAL_TESTS}
+TOPP_TOOL_TESTS = ${UNCONDITIONAL_TESTS} ${LIBSVM_TESTS}
 
 # Tests for processing pipelines using several tools
 
 UNCONDITIONAL_PIPELINE_TESTS = \
+	PairwiseSuperposition_test \
 
 #	MyoQuant_test
 
-ifeq ($(CGAL_SUPPORT),true)
-CGAL_PIPELINE_TESTS = \
-	PairwiseSuperposition_test
-endif
-TOPP_PIPELINE_TESTS = ${UNCONDITIONAL_PIPELINE_TESTS} ${CGAL_PIPELINE_TESTS}
+TOPP_PIPELINE_TESTS = ${UNCONDITIONAL_PIPELINE_TESTS}
 
 # Files to remove
 CLEANUP = ${RM} -f *.tmp *.log core.* *.TMP region* feature* model* plot.gp

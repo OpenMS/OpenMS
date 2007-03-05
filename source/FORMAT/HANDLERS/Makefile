@@ -48,20 +48,14 @@ CPP_SOURCES=\
 	OMSSAXMLHandler.C\
 	PTMXMLHandler.C\
 	IsotopeXMLHandler.C\
+	ConsensusXMLHandler.C\
 
 ifeq ($(ANDIMS_SUPPORT),true)
-	ifeq ($(NETCDF_SUPPORT),true)
-		ANDI_SOURCES=\
-			ANDIHandler.C
-	endif
+	ANDI_SOURCES=\
+		ANDIHandler.C
 endif
 
-ifeq ($(CGAL_SUPPORT),true)
-	CGAL_SOURCES=\
-		ConsensusXMLHandler.C
-endif
-
-ADD_CPP_SOURCES = $(ANDI_SOURCES) $(CGAL_SOURCES)
+ADD_CPP_SOURCES = $(ANDI_SOURCES)
 
 include ../../common.mak
 -include .Dependencies

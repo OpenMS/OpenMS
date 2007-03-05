@@ -30,17 +30,11 @@ DIRECTORY=FORMAT/DB
 
 THISLIB=$(LIBNAME)
 
-CPP_SOURCES=
+CPP_SOURCES=\
+	DBConnection.C\
+	DBAdapter.C
 
-ifeq ($(ENABLE_DB),true)
-	DB_CPP_SOURCES=\
-		DBConnection.C\
-		DBAdapter.C
-endif
-
-ADD_INCLUDES=$(GUI_INCLUDES)
-
-SOURCES		= $(CPP_SOURCES) $(ADD_CPP_SOURCES) $(DB_CPP_SOURCES)
+SOURCES		= $(CPP_SOURCES) $(ADD_CPP_SOURCES)
 OBJECTS 	= $(SOURCES:.C=.o)
 
 default:	echodir $(OBJECTS)
@@ -50,7 +44,7 @@ default:	echodir $(OBJECTS)
 depend:
 	@echo "creating dependencies for $(DIRECTORY)..."
 	@echo "" > .Dependencies
-	@$(CXX) -M  -fPIC -pedantic -Wno-long-long -Wno-deprecated  $(CPP_SOURCES) $(ADD_CPP_SOURCES) $(DB_CPP_SOURCES) $(STD_CPP_INCLUDES) $(ADD_INCLUDES) $(OPENMS_INCLUDES)  >.Dependencies
+	@$(CXX) -M  -fPIC -pedantic -Wno-long-long -Wno-deprecated  $(CPP_SOURCES) $(ADD_CPP_SOURCES) $(STD_CPP_INCLUDES) $(ADD_INCLUDES) $(OPENMS_INCLUDES)  >.Dependencies
 
 default_clean:
 	@-$(RM) -rf .Dependencies *~  core.* $(OBJECTS)

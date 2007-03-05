@@ -29,8 +29,6 @@
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 
-#include <QtGui/QApplication>
-
 using namespace OpenMS;
 using namespace std;
 
@@ -77,7 +75,7 @@ class TOPPDBExporter
 			addText_("In order to create a new OpenMS database, please use the 'init' flag of the DBImporter.");
 		}
 	
-		ExitCodes main_(int argc , char** argv)
+		ExitCodes main_(int , char**)
 		{
 	
 			//-------------------------------------------------------------
@@ -107,9 +105,6 @@ class TOPPDBExporter
 			//-------------------------------------------------------------
 			// reading input
 			//-------------------------------------------------------------
-			
-			QApplication app(argc,argv,false);
-			
 			vector<UID> ids;
 			
 			if (id!=0)

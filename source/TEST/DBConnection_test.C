@@ -30,7 +30,6 @@
 #include <OpenMS/FORMAT/TextFile.h>
 #include <OpenMS/FORMAT/DB/DBConnection.h>
 
-#include <QtGui/QApplication>
 #include <QtSql/QSqlQuery>
 ///////////////////////////
 
@@ -41,9 +40,6 @@ START_TEST(DBConnection, "$Id$")
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
-
-// start QApplication. Otherwise the DB classes are not available
-QApplication qapp(argc,argv,false);
 
 DBConnection* ptr = 0;
 CHECK((DBConnection()))

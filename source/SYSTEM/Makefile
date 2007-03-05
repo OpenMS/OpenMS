@@ -36,4 +36,3 @@ CPP_SOURCES= \
 include ../common.mak
 -include .Dependencies
 
-OPENMS_INCLUDES=$(GUI_INCLUDES)

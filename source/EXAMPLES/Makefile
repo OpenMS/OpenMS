@@ -28,12 +28,6 @@ DIRECTORY=EXAMPLES
 
 CPP_SOURCES= 
 
-### Apparently this one doesn't compile with g++ version 4.1.0.
-### It used to compile with an earlier version...
-### TODO fix that (Clemens).
-#	Serialization_example_KERNEL_2.C \
-
-
 OBJECTS=$(SOURCES:.C=.o)
 
 all:	build_all
@@ -45,24 +39,7 @@ EXECUTABLES=$(SOURCES:.C=)
 
 build_all:	$(EXECUTABLES)
 
-OPENMS_INCLUDES =  $(GUI_INCLUDES) 
-
-LIBS = $(GUI_LIBS)
-
-LIB_CXXFLAGS = $(NONLIB_CXXFLAGS)
-
-CXXFLAGS += -g
-
 clean:	default_clean
-
-FeatureFinder:	FeatureFinder.o 
-	$(CXX)	$(LDFLAGS) -o $@ $@.o $(LIBS)
-
-FeatureMapping: FeatureMapping.o
-	$(CXX)	$(LDFLAGS) -o $@ $@.o $(LIBS)
 
 dummy:
 
-
-bla:
-	echo $(CXX) $(CXXFLAGS) $(ADD_CXXFLAGS) $(CPP_MODE_FLAGS) $(LIB_CXXFLAGS) $(OPENMS_INCLUDES) $(ADD_INCLUDES) $(GUI_INCLUDES)

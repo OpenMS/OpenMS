@@ -2831,7 +2831,7 @@ AC_DEFUN(CF_XERCES, [
 		  CF_ERROR
 	  else
   		AC_MSG_RESULT((${XERCES_DIR2}))
-  		[]PROJECTUPPER[]_LIBS="${[]PROJECTUPPER[]_LIBS} ${XERCES_DIR2}/libxerces-c.so"	
+  		[]PROJECTUPPER[]_LIBS="${[]PROJECTUPPER[]_LIBS} -L${XERCES_DIR2} -lxerces-c"	
   	fi
 
 
@@ -2999,7 +2999,8 @@ AC_DEFUN(CF_GUI_QT_BASICS, [
 	else
 		AC_MSG_RESULT((${QT_LIBPATH}))
 	fi
-
+	
+	
   AC_MSG_CHECKING(for libQtGui)
   if test "${QT_LIBPATH}" != "" ; then
     if test -a "${QT_LIBPATH}/libQtGui.so" ; then
@@ -3053,11 +3054,18 @@ AC_DEFUN(CF_GUI_QT_BASICS, [
 	
 
 	dnl
-	dnl	Add the Qt include path to the GUI includes
+	dnl	Add the Qt include path to the OpenMS includes
 	dnl
 	if test "${QT_INCPATH}" != /usr/include && test "${QT_INCPATH}" != "" ; then
-		GUI_INCLUDES="${GUI_INCLUDES} -I${QT_INCPATH}"
-	fi	
+		[]PROJECTUPPER[]_INCLUDES="${[]PROJECTUPPER[]_INCLUDES} -I${QT_INCPATH}"
+	fi
+
+	dnl
+	dnl	Add the Qt lib path to the OpenMS libraries
+	dnl
+	if test "${QT_LIBPATH}" != /usr/lib && test "${QT_LIBPATH}" != "" ; then
+		[]PROJECTUPPER[]_LIBS="${[]PROJECTUPPER[]_LIBS} -L${QT_LIBPATH} -lQtCore -lQtSql"
+	fi
 ])
 
 dnl Make sure we can link against OpenGL or Mesa
@@ -3159,18 +3167,16 @@ AC_DEFUN(CF_GUI_QT_LINK_TEST, [
 		X=`pwd`
 		AC_MSG_CHECKING(linking against QtCore lib)
 
-		if test "${QT_LIBPATH}" != "/usr/lib" ; then
-			QT_LIBOPTS="-L${QT_LIBPATH} -lQtCore -lQtSql -lQtGui -lQtOpenGL"
-		else 
+		if test "${QT_LIBPATH}" == "/usr/lib" ; then
 			QT_LIBPATH=""
-			QT_LIBOPTS="-lQtCore -lQtSql -lQtGui -lQtOpenGL"
 		fi
-
+		QT_LIBOPTS="-lQtGui -lQtOpenGL"
+		
 		dnl
 		dnl	test the general linking (QtCore)
 		dnl
 		SAVE_LIBS=${LIBS}
-		LIBS="-L${QT_LIBPATH} -lQtCore ${X11_LIBOPTS} ${LIBS} ${GUI_INCLUDES}"
+		LIBS="${X11_LIBOPTS} ${LIBS} ${GUI_INCLUDES}"
 
 		QT_LINKING_OK=0
 		AC_TRY_LINK([#include <QtCore/QDir>], [QDir dir;], QT_LINKING_OK=1)
@@ -3193,7 +3199,7 @@ AC_DEFUN(CF_GUI_QT_LINK_TEST, [
 		dnl
 		AC_MSG_CHECKING(linking against QtGui lib)
 
-		LIBS="-L${QT_LIBPATH} -lQtCore -lQtGui ${X11_LIBOPTS} ${LIBS} ${GUI_INCLUDES}"
+		LIBS="-lQtGui ${X11_LIBOPTS} ${LIBS} ${GUI_INCLUDES}"
 		
 		QT_LINKING_OK=0
     AC_TRY_LINK([#include <QtGui/QWidget>], [QWidget widget;], QT_LINKING_OK=1)
@@ -3217,7 +3223,7 @@ AC_DEFUN(CF_GUI_QT_LINK_TEST, [
 		dnl 
 		AC_MSG_CHECKING(linking against QtOpenGL lib)
 
-		LIBS="L${QT_LIBPATH} -lQtCore -ltGui -lQtOpenGL ${X11_LIBOPTS} ${LIBS} ${GUI_INCLUDES}"
+		LIBS="-ltGui -lQtOpenGL ${X11_LIBOPTS} ${LIBS} ${GUI_INCLUDES}"
 
 		QT_LINKING_OK=0
 		AC_TRY_LINK([#include <QtOpenGL/QGLWidget>], [QGlWidget widget;], QT_LINKING_OK=1) 
@@ -3241,7 +3247,7 @@ AC_DEFUN(CF_GUI_QT_LINK_TEST, [
 		dnl
 		AC_MSG_CHECKING(linking against QtSql lib)
 
-		LIBS="L${QT_LIBPATH} -lQtCore -lQtSql ${X11_LIBOPTS} ${LIBS} ${GUI_INCLUDES}"
+		LIBS="${X11_LIBOPTS} ${LIBS} ${GUI_INCLUDES}"
 
 		QT_LINKING_OK=0
 		AC_TRY_LINK([#include <QtSql/QSqlDatabase>], [QSqlDatabase db;], QT_LINKING_OK=1)
@@ -3266,7 +3272,7 @@ AC_DEFUN(CF_GUI_QT_LINK_TEST, [
     dnl
     AC_MSG_CHECKING(QT library version)
     SAVE_LIBS=${LIBS}
-    LIBS="${QT_LIBOPTS} ${OPENGL_LIBOPTS} ${X11_LIBOPTS} ${LIBS}"
+    LIBS="${OPENGL_LIBOPTS} ${X11_LIBOPTS} ${LIBS} -L${QT_LIBPATH} ${QT_LIBOPTS}"
     if test "${OS}" = "Darwin" ; then
       DYLD_LIBRARY_PATH="${QT_LIBPATH}:${X11_LIBPATH}:${OPENGL_LIBPATH}:${GLEW_LIBPATH}:${DYLD_LIBRARY_PATH}"
       export DYLD_LIBRARY_PATH
@@ -3445,11 +3451,6 @@ AC_DEFUN(CF_GUI_QT_EXECUTABLES, [
 	fi
 ])
 
-dnl  Try to identify whether SQL support has been compiled into QT
-AC_DEFUN(CF_GUI_QT_SQL, [
-	dnl ????
-])
-
 dnl Try to identify the X11 libraries to link against
 AC_DEFUN(CF_GUI_X_LINK_TEST, [
 
@@ -3591,13 +3592,10 @@ if test "${ENABLE_GUI}" = true ; then
 	dnl Check for Qt executables required to build the dialogs (MOC, UIC)
 	CF_GUI_QT_EXECUTABLES
 
-	dnl Check for special features, e.g. SQL drivers
-	CF_GUI_QT_SQL
-
 	AC_DEFINE(PROJECT[]_HAS_GUI,)
 	LIBGUI="libGUI.a"
 	GUI="GUI"
-	GUI_LIBS="${QT_LIBOPTS} ${OPENGL_LIBOPTS} ${X11_LIBOPTS} ${LIBS}"
+	GUI_LIBS="${OPENGL_LIBOPTS} ${X11_LIBOPTS} ${LIBS} ${QT_LIBOPTS}"
 fi
 ])
 

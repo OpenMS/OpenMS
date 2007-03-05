@@ -61,8 +61,6 @@ CPP_SOURCES=\
 	PeakExtender.C\
 	DummyFitter.C
 
-ADD_CPP_SOURCES = $(CGAL_SOURCES)
-
 include ../../common.mak
 -include .Dependencies
 

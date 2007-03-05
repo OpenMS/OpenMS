@@ -113,15 +113,6 @@ else
   DEFAULT_INCL_PATH="${OPENMS_PATH}/contrib/include"
 fi
 
-if test "$with_db" = "no" -o "$enable_db" = "no"; then
-  ENABLE_DB=false
-else
-	ENABLE_DB=true
-  AC_DEFINE(DB_DEF)
-fi
-AC_SUBST(ENABLE_DB)
-
-
 if test "$with_db_plugin" != ""; then
 	DB_PLUGIN="${with_db_plugin}"
 else

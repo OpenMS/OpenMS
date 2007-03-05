@@ -64,22 +64,17 @@ CPP_SOURCES=\
 	OMSSACSVFile.C\
 	PTMXMLFile.C\
 	IsotopeXMLFile.C\
+	ConsensusXMLFile.C\
+
 
 ifeq ($(ANDIMS_SUPPORT),true)
-	ifeq ($(NETCDF_SUPPORT),true)
-		ANDI_SOURCES=\
-			ANDIFile.C
-	endif
+	ANDI_SOURCES=\
+		ANDIFile.C
 endif
 
 ifeq ($(LIBSVM_SUPPORT),true)
 	LIBSVM_SOURCES=\
 		LibSVMEncoder.C
-endif
-
-ifeq ($(CGAL_SUPPORT),true)
-	CGAL_SOURCES=\
-		ConsensusXMLFile.C
 endif
 
 
@@ -115,7 +110,7 @@ collectlib:	echodir
 
 include ../config.mak
 
-SOURCES		= $(CPP_SOURCES) $(ANDI_SOURCES) $(LIBSVM_SOURCES) $(CGAL_SOURCES)
+SOURCES		= $(CPP_SOURCES) $(ANDI_SOURCES) $(LIBSVM_SOURCES)
 OBJECTS 	= $(SOURCES:.C=.o)
 
 default:	echodir $(OBJECTS)

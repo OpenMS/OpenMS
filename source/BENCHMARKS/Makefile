@@ -44,11 +44,7 @@ include ../common.mak
 LIB_CXXFLAGS=$(NONLIB_CXXFLAGS)
 
 #add libraries for GUI to LIBS
-ifeq ($(ENABLE_GUI),true)
-	LIBS=$(GUI_LIBS)
-else
-	LIBS=$(OPENMS_LIBS)
-endif
+LIBS=$(OPENMS_LIBS)
 
 .o:
 	$(CXX) $(CXXFLAGS) $*.o $(LDFLAGS) -o $@ $(LIBS)

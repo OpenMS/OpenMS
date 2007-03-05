@@ -25,12 +25,8 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/APPLICATIONS/TOPPViewBase.h>
-
-#ifdef DB_DEF
 #include <OpenMS/FORMAT/DB/DBConnection.h>
 #include <OpenMS/FORMAT/DB/DBAdapter.h>
-#endif
-
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinder.h>
 #include <OpenMS/VISUAL/DIALOGS/FeaFiDialog.h>
 #include <OpenMS/VISUAL/DIALOGS/SaveImageDialog.h>
@@ -73,6 +69,7 @@
 #include <QtGui/QPainter>
 #include <QtGui/QPrintDialog>
 #include <QtCore/QDir>
+#include <QtCore/QDate>
 
 //action modes
 #include "../VISUAL/ICONS/zoom.xpm"
@@ -244,7 +241,6 @@ namespace OpenMS
 
   void TOPPViewBase::addDBSpectrum(UInt db_id, bool as_new_window, bool maps_as_2d, bool maximize, OpenDialog::Mower use_mower)
   {
-#ifdef DB_DEF
     //DBConnection for all DB queries
     DBConnection con;
     con.connect(getPref("Preferences:DB:Name"), getPref("Preferences:DB:Login"),getPref("DBPassword"),getPref("Preferences:DB:Host"),getPrefAsInt("Preferences:DB:Port"));
@@ -403,7 +399,6 @@ namespace OpenMS
 
     //do for all windows
     updateLayerbar();
-#endif
   }
 
   float TOPPViewBase::estimateNoise_(const SpectrumCanvas::ExperimentType& exp)

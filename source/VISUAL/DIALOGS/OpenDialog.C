@@ -144,7 +144,6 @@ namespace OpenMS
 		else 
 		//browse DB
 		{
-#ifdef DB_DEF
 			DBConnection db;
 			try
 			{
@@ -190,7 +189,6 @@ namespace OpenMS
 				QMessageBox::warning ( this, "Connection problem", ss.str().c_str(), QMessageBox::Ok , Qt::NoButton );
 		
 			}
-#endif
 		}
 	}
 	
