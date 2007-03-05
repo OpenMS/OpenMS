@@ -65,7 +65,9 @@ void DataTable::addLabel_(const QString &labelName, UInt row)
 //public member functios
 void DataTable::addLabel(const QString &labelName)
 {
-	addLabel_(labelName, row_);
+	QLabel *label = new QLabel(labelName, this);
+	mainlayout_->addWidget(label, row_, 0,1,3);
+	//addLabel_(labelName, row_);
 	row_++;
 }
 
