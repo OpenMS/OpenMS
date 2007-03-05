@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
 <results_additiveseries>
-	<slope>0.222602</slope>
-	<intercept>0.0893687</intercept>
-	<x_intercept>-0.401474</x_intercept>
-	<confidence_lowerlimit>-0.445316</confidence_lowerlimit>
-	<confidence_upperlimit>-0.35928</confidence_upperlimit>
+	<slope>0.216417</slope>
+	<intercept>0.0782298</intercept>
+	<x_intercept>-0.361477</x_intercept>
+	<confidence_lowerlimit>-0.40192</confidence_lowerlimit>
+	<confidence_upperlimit>-0.322425</confidence_upperlimit>
 </results_additiveseries>
