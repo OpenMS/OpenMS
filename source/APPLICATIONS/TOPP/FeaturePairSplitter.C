@@ -146,7 +146,7 @@ class TOPPFeaturePairSplitter
 			std::string dump_gp = dump + ".gp";
 
 			dump_file <<
-				"# " << dump << " generated " << QDate::currentDate().toString("yyyy-MM-dd").toStdString() << ".\n"
+				"# " << dump << " generated " << QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss").toStdString() << ".\n"
 				"# Use 'gnuplot " << dump_gp << "' to view.\n"
 				"# num  rt1 mz1 it1  rt2 mz2 it2  qual\n";
 			for ( FeaturePairVector::const_iterator iter = feature_pairs.begin();
@@ -164,17 +164,17 @@ class TOPPFeaturePairSplitter
 					<< iter -> getSecond() . getIntensity() << "  "
 					<< iter -> getQuality() << '\n';
 			}
-			dump_file << "# " << dump_gp << " EOF " << QDate::currentDate().toString("yyyy-MM-dd").toStdString() << std::endl;
+			dump_file << "# " << dump_gp << " EOF " << QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss").toStdString() << std::endl;
 
 			std::ofstream dump_file_gp(dump_gp.c_str());
-			dump_file_gp << "# " << dump_gp << " generated " << QDate::currentDate().toString("yyyy-MM-dd").toStdString() << std::endl;
+			dump_file_gp << "# " << dump_gp << " generated " << QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss").toStdString() << std::endl;
 			dump_file_gp <<
 				"# Gnuplot script to view feature pairs\n"
 				"plot   \"" << dump <<"\" using 2:3 title \"map 1\"\n"
 				"replot \"" << dump <<"\" using 5:6 title \"map 2\"\n"
 				"replot \"" << dump <<"\" using 2:3:($5-$2):($6-$3) w vectors nohead title \"pairs\"\n"
 				;
-			dump_file_gp << "# " << dump_gp << " EOF " << QDate::currentDate().toString("yyyy-MM-dd").toStdString() << std::endl;
+			dump_file_gp << "# " << dump_gp << " EOF " << QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss").toStdString() << std::endl;
 		}
 
 		return EXECUTION_OK;
