@@ -49,6 +49,8 @@ This class provides all functionality to view the meta information of an object 
 	public: 
          /// Default constructor
 	      SourceFileVisualizer(bool editable= FALSE, QWidget *parent =0);
+				/// Destructor
+				~SourceFileVisualizer();
         /// Loads the meta data from the object to the viewer.
 	      void load(SourceFile &h);
 

@@ -62,6 +62,10 @@ MetaInfoVisualizer::MetaInfoVisualizer(bool editable, QWidget *parent) : BaseVis
 		
 }
 
+MetaInfoVisualizer::~MetaInfoVisualizer()
+{
+
+}
 
 void MetaInfoVisualizer::load(MetaInfoInterface &m)
 {	

@@ -48,6 +48,10 @@ MetaInfoDescriptionVisualizer::MetaInfoDescriptionVisualizer(bool editable, QWid
 	finishAdding_();
 }
 
+MetaInfoDescriptionVisualizer::~MetaInfoDescriptionVisualizer()
+{
+
+}
 
 void MetaInfoDescriptionVisualizer::load(MetaInfoDescription &a)
 {

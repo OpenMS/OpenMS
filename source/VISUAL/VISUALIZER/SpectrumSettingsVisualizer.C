@@ -52,7 +52,10 @@ SpectrumSettingsVisualizer::SpectrumSettingsVisualizer(bool editable, QWidget *p
 	finishAdding_();
 }
 
+SpectrumSettingsVisualizer::~SpectrumSettingsVisualizer()
+{
 
+}
 void SpectrumSettingsVisualizer::load(SpectrumSettings &s)
 {
   //Pointer to current object to keep track of the actual object

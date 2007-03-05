@@ -55,6 +55,11 @@ ProcessingMethodVisualizer::ProcessingMethodVisualizer(bool editable, QWidget *p
 	
 }
 
+ProcessingMethodVisualizer::~ProcessingMethodVisualizer()
+{
+
+}
+
 
 void ProcessingMethodVisualizer::load(ProcessingMethod &s)
 {

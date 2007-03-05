@@ -51,6 +51,10 @@ ContactPersonVisualizer::ContactPersonVisualizer(bool editable, QWidget *parent)
 	
 }
 
+ContactPersonVisualizer::~ContactPersonVisualizer()
+{
+
+}
 
 void ContactPersonVisualizer::load(ContactPerson &h)
 {

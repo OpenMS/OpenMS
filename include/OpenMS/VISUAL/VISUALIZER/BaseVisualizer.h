@@ -34,8 +34,8 @@ namespace OpenMS {
 /**
 @brief A base class for all visualizer classes
 
-This class is a basic class for all visualizer classes. 
-It provides some functions that are re-implemented in the subclasses. <br>
+This class is a basic class for all visualizer classes. It is an abstract class.
+It provides some functions that are implemented in the subclasses. <br>
 Increases ease of use to store data.
 */	
 	class BaseVisualizer : public DataTable
@@ -45,6 +45,8 @@ Increases ease of use to store data.
 		public:
 			/// Default constructor 
 			BaseVisualizer(bool editable=FALSE, QWidget *parent =0);
+			/// Destructor
+			virtual ~BaseVisualizer();
 			/// Returns the type of the visualizer class.
 			String getType();
 			///Defines a friend class that can use the functionality of the subclasses.

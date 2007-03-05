@@ -45,12 +45,18 @@ This class provides all functionality to view the meta information of an object 
 	{
 		Q_OBJECT
 
-	public: 
+	public:
+		/// Default constructor 
 		SoftwareVisualizer(bool editable= FALSE, QWidget *parent =0);
+		/// Destructor
+		~SoftwareVisualizer();
+		/// Loads the meta data from the object to the viewer.
 		void load(Software &s);
 	  
 	private slots:
+		/// Saves the changes made to the meta data into the object.
 		void store();
+		/// Deletes all changes made in the viewer and restores the original meta data.
 		void reject();
 
 	private:  

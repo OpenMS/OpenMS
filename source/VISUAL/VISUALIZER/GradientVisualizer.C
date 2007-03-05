@@ -47,21 +47,17 @@ namespace OpenMS
 GradientVisualizer::GradientVisualizer(bool editable, QWidget *parent) 
 	: BaseVisualizer(editable, parent)
 {
-	//type_="Gradient";
+	
 	nextrow_=0;
-	
-	//viewlayout_ = new QGridLayout();
-	//mainlayout_->addLayout(viewlayout_, row_, 0, 1 ,3);
-	//row_++;		
-	
 }
 
+GradientVisualizer::~GradientVisualizer()
+{
+
+}
 
 void GradientVisualizer::load(Gradient &g)
 {
-  
-	
-	
 	ptr_ = &g;
 	
 	//Copy of current object for restoring the original values

@@ -122,7 +122,11 @@ namespace OpenMS
 	   
 	}//end of constructor
 	
+	//Destructor
+	MSMetaDataExplorer::~MSMetaDataExplorer()
+	{
 	
+	}
 	
 	bool MSMetaDataExplorer::isEditable()
 	{
@@ -145,19 +149,20 @@ namespace OpenMS
 		try
 		{
 			//call internal store function of all active visualizer objects
-			const QObjectList& children = ws_->children(); 
-			for (int i = 0; i < children.size(); ++i) 
+			for (int i = 0; i < ws_->count(); ++i) 
 			{
-			  dynamic_cast<BaseVisualizer*>(children.at(i))->store();
+			  dynamic_cast<BaseVisualizer*>(ws_->widget(i))->store();
 			}
 			
-			//close dialog
-			accept();
+			
 		}
 		catch(exception& e)
 		{
 			cout<<"Exception: "<<e.what()<<endl;
 		}
+		
+		//close dialog
+		accept();	
 	}
 	
 	//--------------------------------------------------------------------------
@@ -243,6 +248,7 @@ namespace OpenMS
 			 item->child(i)->setHidden(true);
 		}
 		
+		vector<QTreeWidgetItem*> visible_peptides;
 		
 		//search all peptide hits IN IDENTIFICATION		
 		vector< PeptideHit >& peps= id.getPeptideHits();
@@ -268,8 +274,8 @@ namespace OpenMS
 			
 			if(hit)
 			{
-				//Search QTreeWidgetItem belonging to peptide and set it visible.
-				cout<<"Search QTreeWidgetItem belonging to peptide and set it visible."<<endl;
+				//Search item in tree belonging to peptide and set it visible.
+				cout<<"Search item in tree belonging to peptide and set it visible."<<endl;
 				for(int i=0; i<item->childCount(); ++i)
 				{
 					QTreeWidgetItem* child = item->child(i);
@@ -277,19 +283,28 @@ namespace OpenMS
 					if( child->text(0)==name.c_str() && child->text(3)== peps[i].getSequence().c_str() )
 					{
 						cout<<"Found a child a will set it visible"<<endl;
-						child->setHidden(false);
+						//child->setHidden(false);
+						visible_peptides.push_back(child);
 					}
-					treeview_->collapseItem(item);
-					treeview_->expandItem(item);				
+					//treeview_->collapseItem(item);
+					//treeview_->expandItem(item);				
 				}	
 			}
 			hit = false;
 			
 			
 		}
+		
+			for(vector<QTreeWidgetItem* >::iterator item_it = visible_peptides.begin(); item_it != visible_peptides.end();	item_it++)
+			{
+				(*item_it)->setHidden(false);
+				treeview_->collapseItem((*item_it));
+				treeview_->expandItem((*item_it));
+			}
+			
 		//parent item must be collapsed and re-expanded so the items will be shown...
-		//treeview_->collapseItem(item);
-		//treeview_->expandItem(item);
+		treeview_->collapseItem(item);
+		treeview_->expandItem(item);
 	}
 	
 		

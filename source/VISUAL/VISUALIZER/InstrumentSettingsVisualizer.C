@@ -55,6 +55,10 @@ InstrumentSettingsVisualizer::InstrumentSettingsVisualizer(bool editable, QWidge
 		
 }
 
+InstrumentSettingsVisualizer::~InstrumentSettingsVisualizer()
+{
+
+}
 
 void InstrumentSettingsVisualizer::load(InstrumentSettings &is)
 {

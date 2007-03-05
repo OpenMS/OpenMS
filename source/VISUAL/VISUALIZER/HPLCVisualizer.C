@@ -58,6 +58,10 @@ HPLCVisualizer::HPLCVisualizer(bool editable, QWidget *parent)
 	
 }
 
+HPLCVisualizer::~HPLCVisualizer()
+{
+
+}
 
 void HPLCVisualizer::load(HPLC &h)
 {

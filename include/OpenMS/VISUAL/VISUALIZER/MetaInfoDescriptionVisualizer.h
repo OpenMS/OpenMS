@@ -47,6 +47,8 @@ This class provides all functionality to view the meta information of an object 
 	public: 
 	   /// Default constructor
 		MetaInfoDescriptionVisualizer(bool editable= FALSE, QWidget *parent =0);
+		 /// Destructor
+		~MetaInfoDescriptionVisualizer();
 		/// Loads the meta data from the object to the viewer.
 		void load(MetaInfoDescription &h);
 

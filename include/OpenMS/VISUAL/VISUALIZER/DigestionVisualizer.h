@@ -48,6 +48,8 @@ This class provides all functionality to view the meta information of an object 
 	public: 
 	  /// Default constructor
 		DigestionVisualizer(bool editable= FALSE, QWidget *parent =0);
+		 /// Destructor
+		~DigestionVisualizer();
 		/// Loads the meta data from the object to the viewer.
 		void load(Digestion &d);
 

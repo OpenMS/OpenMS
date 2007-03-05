@@ -51,6 +51,10 @@ AcquisitionInfoVisualizer::AcquisitionInfoVisualizer(bool editable, QWidget *par
 	finishAdding_();
 }
 
+AcquisitionInfoVisualizer::~AcquisitionInfoVisualizer()
+{
+
+}
 
 void AcquisitionInfoVisualizer::load(AcquisitionInfo &a)
 {

@@ -55,6 +55,10 @@ IonDetectorVisualizer::IonDetectorVisualizer(bool editable, QWidget *parent) : B
 	finishAdding_();			
 }
 
+IonDetectorVisualizer::~IonDetectorVisualizer()
+{
+
+}
 
 void IonDetectorVisualizer::load(IonDetector &s)
 {

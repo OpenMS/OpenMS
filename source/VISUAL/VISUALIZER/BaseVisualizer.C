@@ -39,6 +39,11 @@ namespace OpenMS
   
 	}
 
+	BaseVisualizer::~BaseVisualizer() 
+	{
+  	
+	}
+	
 	String BaseVisualizer::getType()
 	{
 		return type_;

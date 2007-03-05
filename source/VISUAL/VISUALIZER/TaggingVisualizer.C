@@ -64,6 +64,10 @@ TaggingVisualizer::TaggingVisualizer(bool editable, QWidget *parent)
 	
 }
 
+TaggingVisualizer::~TaggingVisualizer()
+{
+
+}
 
 void TaggingVisualizer::load(Tagging &t)
 {

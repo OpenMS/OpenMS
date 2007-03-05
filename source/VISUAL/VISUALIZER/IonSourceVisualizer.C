@@ -51,6 +51,10 @@ IonSourceVisualizer::IonSourceVisualizer(bool editable, QWidget *parent) : BaseV
 	finishAdding_();
 }
 
+IonSourceVisualizer::~IonSourceVisualizer()
+{
+
+}
 
 void IonSourceVisualizer::load(IonSource &s)
 {
