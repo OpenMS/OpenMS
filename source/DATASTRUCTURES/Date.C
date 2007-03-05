@@ -26,205 +26,99 @@
 
 #include <OpenMS/DATASTRUCTURES/Date.h>
 
+#include <QtCore/QDate>
+
 #include <time.h>
 
 using namespace std;
 
 namespace OpenMS
 {
-	Date::Date(): 
-		day_(0),
-		month_(0),
-		year_(0)
+	Date::Date():
+		QDate()
 	{
 		
 	}
 
 	Date::Date(const Date& date): 
-		day_(date.day_),
-		month_(date.month_),
-		year_(date.year_)
+		QDate(date)
 	{
-		
 	}
 
-	Date::~Date()
-	{
-		
-	}
-	
 	Date& Date::operator= (const Date& source)
 	{
-	  if (&source == this) return *this;
-	  
-		day_ = source.day_;
-		month_ = source.month_;
-		year_ = source.year_;
+	  if (&source == this)
+	  { 
+	  	return *this;
+	  }
+	  QDate::operator=(source);
 	  
 	  return *this;		
 	}
 
-	bool Date::operator == (const Date& rhs) const	
-	{
-		return year_==rhs.year_ && month_==rhs.month_ && day_==rhs.day_;
-	}
-
-	bool Date::operator != (const Date& rhs) const	
-	{
-		return !(operator==(rhs));
-	}
-	
 	void Date::set(const String& date) throw (Exception::ParseError)
 	{
-		std::vector<String> split;
-		stringstream ss;
-		String d, m, y;
-		UInt day, month, year;
 		
 		//check for format (german/english)
 		if (date.has('.'))
 		{
-			date.split('.',split);
-
-			//check for right number of parts
-			if (split.size()!=3)
-			{
-				throw Exception::ParseError(__FILE__,__LINE__,__PRETTY_FUNCTION__,date, "Is no valid german date");
-			}
-			d=split[0];
-			m=split[1];
-			y=split[2];
-			
+			QDate::operator=(QDate::fromString(date.c_str(), "dd.MM.yyyy"));
 		}
 		else if (date.has('/'))
 		{
-			date.split('/',split);
-
-			//check for right number of parts
-			if (split.size()!=3)
-			{
-				throw Exception::ParseError(__FILE__,__LINE__,__PRETTY_FUNCTION__,date, "Is no valid german date");
-			}
-			d=split[1];
-			m=split[0];
-			y=split[2];
+			QDate::operator=(QDate::fromString(date.c_str(), "MM/dd/yyyy"));
 		}
 		else if (date.has('-'))
 		{
-			date.split('-',split);
-
-			//check for right number of parts
-			if (split.size()!=3)
-			{
-				throw Exception::ParseError(__FILE__,__LINE__,__PRETTY_FUNCTION__,date, "Is no valid iso date");
-			}
-			d=split[2];
-			m=split[1];
-			y=split[0];
+			QDate::operator=(QDate::fromString(date.c_str(), "yyyy-MM-dd"));
 		}
 		else
 		{
 			throw Exception::ParseError(__FILE__,__LINE__,__PRETTY_FUNCTION__, date, "Is no valid german, english or iso date");
 		}
-		
-		//day
-    ss << d;
-    if (!(ss >> day))
-    {
-    	throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, date, "Could not convert day to a number");
-    } 
-    
-    //month
-    ss.clear();
-    ss << m;
-    if (!(ss >> month))
-    {
-    	throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, date, "Could not convert month to a number");
-    }
-    
-    //year
-    ss.clear();
-    ss << y;
-    if (!(ss >> year))
-    {
-    	throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, date, "Could not convert year to a number");
-    }
-		
-		set(month,day,year);
+		if (!isValid())
+		{
+			throw Exception::ParseError(__FILE__,__LINE__,__PRETTY_FUNCTION__, date, "Is no valid german, english or iso date");
+		}
 	}
 	
 	void Date::set(UInt month, UInt day, UInt year) throw (Exception::ParseError)
 	{
-		//set month lengths
-		UInt month_length[13] = { 0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 };
-    if ( isLeapYear(year) )
-    {
-    	month_length[2] = 29;
-    }
-
-		//month correct
-		if (month==0 || month>12)
-		{
-			throw Exception::ParseError(__FILE__,__LINE__,__PRETTY_FUNCTION__,String(month),"Invalid month");
+		if (!setDate(year, month, day))
+		{	
+			throw Exception::ParseError(__FILE__,__LINE__,__PRETTY_FUNCTION__, String(year) + "-" + String(month) + "-" + String(day), "Invalid date");
 		}
-		
-		//day correct
-		if (day==0 || day>month_length[month])
-		{
-			throw Exception::ParseError(__FILE__,__LINE__,__PRETTY_FUNCTION__, String(day), "Invalid day");
-		}
-
-		day_ = day;
-		month_ = month;
-		year_ = year;				
 	}
 
 	void Date::today()
 	{
-		time_t sec = time(NULL);
-		struct tm* tmp =  localtime(&sec);
-		set(tmp->tm_mon+1, tmp->tm_mday, 1900+tmp->tm_year);		
+		QDate::operator=(QDate::currentDate());
 	}
 
-	string Date::now()
-	{
-		char out[60]; 
-		//get time in sec
-		time_t sec = time(NULL);
-		struct tm* ptr = localtime(&sec);
-		//struct tm* tmp =  ;
-		strftime( out, 100, "%Y-%m-%d %H:%M:%S" , ptr );
-		
-		return out;
-	}
-	
 	void Date::get(String& date) const
 	{
-		date = String(year_).fillLeft('0',4)+"-"+String(month_).fillLeft('0',2)+"-"+String(day_).fillLeft('0',2);
+		if (QDate::isValid())
+		{
+			date = toString("yyyy-MM-dd").toStdString();
+		}
+		else
+		{
+			date = "0000-00-00";
+		}
 	}
 	
 	void Date::get(UInt& month, UInt& day, UInt& year) const
 	{
-		day = day_;
-		month = month_;
-		year = year_;
+		day = QDate::day();
+		month = QDate::month();
+		year = QDate::year();
 	}
 
 	void Date::clear()
 	{
-		day_ = 0;
-		month_ = 0;
-		year_ = 0;
+		QDate::operator=(QDate());
 	}
 	
-	bool Date::isLeapYear(UInt year) const
-	{
- 		if ( (year%4) != 0 ) return false;
-		if ( (year%400) == 0 ) return true;
-		if ( (year%100) == 0 ) return false;
-		return true;
-	}
-
 } // namespace OpenMS
 
 

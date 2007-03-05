@@ -31,6 +31,8 @@
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/CONCEPT/Exception.h>
 
+#include <QtCore/QDate>
+
 namespace OpenMS
 {
 	/**	
@@ -39,11 +41,9 @@ namespace OpenMS
 		This class implements date handling.
 		Import and export to/from both string and integers is possible.
 		
-		@todo derive from QDate (Nico)
-		
 		@ingroup Datastructures
 	*/
-	class Date
+	class Date : public QDate 
 	{
 		public:
 		
@@ -55,17 +55,9 @@ namespace OpenMS
 			Date();
 			/// Copy constructor
 			Date(const Date& date);
-			/// Desctructor
-			~Date();
 			
 			/// Assignment operator
 			Date& operator= (const Date& source);
-			
-			/// Equality operator
-			bool operator == (const Date& rhs) const;
-
-			/// Equality operator
-			bool operator != (const Date& rhs) const;
 			
 			/**
 				@brief sets data from a string
@@ -81,12 +73,9 @@ namespace OpenMS
 			*/
 			void set(UInt month, UInt day, UInt year) throw (Exception::ParseError);
 		
-			/// sets to date to today
+			/// sets the date to today
 			void today();
 
-			/// returns the current date and time as a String in the format (YYYY-MM-DD HH:MM:SS)
-			static std::string now();
-	
 			/**
 				@brief Fills the string @p date with the iso/ansi date
 				
@@ -104,13 +93,7 @@ namespace OpenMS
 			///Sets the undefined date: 00/00/0000
 			void clear();
 			
-			/// return true if the given year @p year is a leap year
-			bool isLeapYear(UInt year) const;
-			
 		protected:
-			UInt day_;
-			UInt month_;
-			UInt year_;
 	};
 } // namespace OPENMS
 

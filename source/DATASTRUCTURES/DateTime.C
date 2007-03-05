@@ -34,231 +34,208 @@ using namespace std;
 namespace OpenMS
 {
 	DateTime::DateTime(): 
-		Date(),
-		hour_(0),
-		minute_(0),
-		second_(0)
+		QDateTime()
 	{
 		
 	}
 
 	DateTime::DateTime(const DateTime& date): 
-		Date(date),
-		hour_(date.hour_),
-		minute_(date.minute_),
-		second_(date.second_)
+		QDateTime(date)
 	{
 		
 	}
 
-	DateTime::~DateTime()
-	{
-		
-	}
-	
 	DateTime& DateTime::operator= (const DateTime& source)
 	{
-	  if (&source == this) return *this;
+	  if (&source == this)
+	  { 
+	  	return *this;
+	  }
 	  
-		day_ = source.day_;
-		month_ = source.month_;
-		year_ = source.year_;
-		hour_ = source.hour_;
-		minute_ = source.minute_;
-		second_ = source.second_;
+	  QDateTime::operator=(source);
 	  
 	  return *this;		
 	}
 
-	bool DateTime::operator == (const DateTime& rhs) const	
-	{
-		return year_==rhs.year_ && month_==rhs.month_ && day_==rhs.day_
-					&& hour_ == rhs.hour_ && minute_ == rhs.minute_ 
-					&& second_ == rhs.second_;
-	}
-
-	bool DateTime::operator != (const DateTime& rhs) const	
-	{
-		return !(operator==(rhs));
-	}
-	
 	void DateTime::set(const String& date) throw (Exception::ParseError)
 	{
-		std::vector<String> split;
-		
-		//separate date and time
-		date.split(' ',split);
-		
-		// if no time is given only set the date
-		if (split.size() == 0)
+		if (date.has('.'))
 		{
-			Date::set(date);
+			QDateTime::operator=(QDateTime::fromString(date.c_str(), "dd.MM.yyyy hh:mm:ss"));
 		}
-		else if (split.size() == 2)
+		else if (date.has('/'))
 		{
-			// set the date
-			Date::set(split[0].trim());
-			
-			// set the time
-    	setTime(split[1].trim()); 
+			QDateTime::operator=(QDateTime::fromString(date.c_str(), "MM/dd/yyyy hh:mm:ss"));
+		}
+		else if (date.has('-'))
+		{
+			QDateTime::operator=(QDateTime::fromString(date.c_str(), "yyyy-MM-dd hh:mm:ss"));
 		}
 		else
 		{
-    		throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, date, "Invalid date time string");			
+    	throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, date, "Invalid date time string");			
+		}
+		if (!QDateTime::isValid())
+		{
+    	throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, date, "Invalid date time string");			
 		}
 	}
 	
 	void DateTime::set(UInt month, UInt day, UInt year,
 							 			 UInt hour, UInt minute, UInt second) throw (Exception::ParseError)
 	{
-		Date::set(month, day, year);
+		QDateTime::setDate(QDate(year, month, day));
+		QDateTime::setTime(QTime(hour, minute, second));
 
-		if (hour > 23)
+		if (!QDateTime::isValid())
 		{
-			throw Exception::ParseError(__FILE__,__LINE__,__PRETTY_FUNCTION__,String(hour),"Invalid hour");
+			String date_time = String(year) + "-" + String(month) + "-" + String(day) 
+				+ " " + String(hour) + ":" + String(minute) + ":" + String(second);
+			throw Exception::ParseError(__FILE__,__LINE__,__PRETTY_FUNCTION__,date_time,"Invalid date time");
 		}
-		if (minute > 59)
-		{
-			throw Exception::ParseError(__FILE__,__LINE__,__PRETTY_FUNCTION__,String(hour),"Invalid minute");
-		}
-		// second can also be 61 to accout for leap seconds (like in tm_struct)
-		if (second > 61)
-		{
-			throw Exception::ParseError(__FILE__,__LINE__,__PRETTY_FUNCTION__,String(hour),"Invalid second");
-		}
-		setTime(hour, minute, second);
 	}
 
 	void DateTime::now()
 	{
-		time_t sec = time(NULL);
-		struct tm* tmp =  localtime(&sec);
-		setDate(tmp->tm_mon+1, tmp->tm_mday, 1900+tmp->tm_year);
-		setTime(tmp->tm_hour, tmp->tm_min, tmp->tm_sec);
+		QDateTime::operator=(QDateTime::currentDateTime());
 	}
 
 	void DateTime::get(String& date) const
 	{
-		String partial_date;
-		Date::get(partial_date);
-		
-		date = partial_date + " ";
-		if (hour_ < 10)
+		if (QDateTime::isValid())
 		{
-			date = date + "0";
+			date = QDateTime::toString("yyyy-MM-dd hh:mm:ss").toStdString();
 		}
-		date = date + String(hour_) + ":";
-		if (minute_ < 10)
+		else
 		{
-			date = date + "0";
+			date = "0000-00-00 00:00:00";
 		}
-		date = date + String(minute_) + ":";
-		if (second_ < 10)
-		{
-			date = date + "0";			
-		}
-		date = date + String(second_);
 	}
 	
 	void DateTime::get(UInt& month, UInt& day, UInt& year,
 										UInt& hour, UInt& minute, UInt& second) const
 	{
-		Date::get(month, day, year);
-		hour = hour_;
-		minute = minute_;
-		second = second_;		
+		const QDate& temp_date = QDateTime::date();
+		const QTime& temp_time = QDateTime::time();
+		
+		year = temp_date.year();
+		month = temp_date.month();
+		day = temp_date.day();
+		hour = temp_time.hour();
+		minute = temp_time.minute();
+		second = temp_time.second();		
 	}
 
 	void DateTime::clear()
 	{
-		Date::clear();
-			
-		hour_ = 0;
-		minute_ = 0;
-		second_ = 0;
+		QDateTime::operator=(QDateTime());
 	}
 
 	void DateTime::setDate(const String& date) throw (Exception::ParseError)
 	{
-		Date::set(date);
+		QDate temp_date;
+		
+		if (date.has('-'))
+		{
+			temp_date = QDate::fromString(date.c_str(), "yyyy-MM-dd");
+		}
+		else if (date.has('.'))
+		{			
+			temp_date = QDate::fromString(date.c_str(), "dd-MM-yyyy");
+		}
+		else if (date.has('/'))
+		{			
+			temp_date = QDate::fromString(date.c_str(), "MM/dd/yyyy");
+		}
+		else
+		{
+  		throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, date, "Could not set date");
+		}
+		if (!temp_date.isValid())
+		{
+  		throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, date, "Could not set date");
+		}
+		
+		QDateTime::setDate(temp_date);
 	}
 				
-	void DateTime::setTime(const String& date) throw (Exception::ParseError)
+	void DateTime::setTime(const String& time) throw (Exception::ParseError)
 	{
-		vector<String> split;
-		String h, m, s;
-		UInt hour, minute, second;
-		stringstream ss;	
+		QTime temp_time;
 		
-		date.split(':', split);
-		if (split.size() != 3)
+		temp_time = QTime::fromString(time.c_str(), "hh:mm:ss");
+		if (!temp_time.isValid())
 		{
-			throw Exception::ParseError(__FILE__,__LINE__,__PRETTY_FUNCTION__, date, "The time information is wrong");			
+  		throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, time, "Could not set time");
 		}
-		h = split[0];
-		m = split[1];
-		s = split[2];
 		
-		//hour
-    ss << h;
-	  if (!(ss >> hour))
-  	{
-  		throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, date, "Could not convert hour to a number");
-  	} 
-
-    ss.clear();
-		//minute
-    ss << m;
-	  if (!(ss >> minute))
-  	{
-  		throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, date, "Could not convert minute to a number");
-  	} 
-
-    ss.clear();
-		//second
-    ss << s;
-	  if (!(ss >> second))
-  	{
-  		throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, date, "Could not convert second to a number");
-  	}
-   	setTime(hour, minute, second); 		
+		QDateTime::setTime(temp_time);				
 	}
 				
 	void DateTime::setDate(UInt month, UInt day, UInt year) throw (Exception::ParseError)
 	{
-		Date::set(month, day, year);
+		QDate temp_date;
+		
+		if (!temp_date.setDate(year, month, day))
+		{
+  		throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, String(year) + "-" + String(month) + "-" + String(day), "Could not set date");
+		}
+		
+		QDateTime::setDate(temp_date);		
 	}
 		
 	void DateTime::setTime(UInt hour, UInt minute, UInt second) throw (Exception::ParseError)
 	{
-		hour_ = hour;
-		minute_ = minute;
-		second_ = second;
+		QTime temp_time;
+		
+		if (!temp_time.setHMS(hour, minute, second))
+		{
+  		throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, String(hour) + ":" + String(minute) + ":" + String(second), "Could not set time");
+		}
+		QDateTime::setTime(temp_time);
 	}
 	
 	void DateTime::getDate(UInt& month, UInt& day, UInt& year) const
 	{
-		month = month_;
-		day = day_;
-		year = year_;
+		const QDate& temp_date = QDateTime::date();
+		
+		month = temp_date.month();
+		day = temp_date.day();
+		year = temp_date.year();
 	}
 
 	void DateTime::getDate(String& date) const
 	{
-		Date::get(date);
+		if (QDateTime::isValid())
+		{
+			date = QDateTime::date().toString("yyyy-MM-dd").toStdString();
+		}
+		else
+		{
+			date = "0000-00-00";
+		}
 	}
 
 	void DateTime::getTime(UInt& hour, UInt& minute, UInt& second) const
 	{
-		hour = hour_;
-		minute = minute_;
-		second = second_;
+		const QTime& temp_time = QDateTime::time();
+		
+		hour = temp_time.hour();
+		minute = temp_time.minute();
+		second = temp_time.second();
 	}
 
 	void DateTime::getTime(String& time) const
 	{
-		time.clear();
-		time = time + String(hour_) + ":" + String(minute_) + ":" + String(second_);		
+		if (QDateTime::isValid())
+		{
+			time = QDateTime::time().toString("hh:mm:ss").toStdString();
+		}
+		else
+		{
+			time = "00:00:00";
+		}
+			
 	}
 			
 } // namespace OpenMS

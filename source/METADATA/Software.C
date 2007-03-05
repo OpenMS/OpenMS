@@ -72,8 +72,7 @@ namespace OpenMS
 	    name_ == rhs.name_ &&
 	    version_ == rhs.version_ &&
 	    comment_ == rhs.comment_ &&
-	    completion_time_ == rhs.completion_time_
-			;
+	    completion_time_ == rhs.completion_time_;
 	}
 	
 	bool Software::operator!= (const Software& rhs) const

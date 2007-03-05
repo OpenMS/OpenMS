@@ -39,11 +39,9 @@ namespace OpenMS
 		This class implements date handling.
 		Import and export to/from both string and integers is possible.
 		
-		@todo derive from QDateTime (Nico)
-		
 		@ingroup Datastructures
 	*/
-	class DateTime : Date
+	class DateTime : public QDateTime
 	{
 		public:
 		
@@ -55,17 +53,9 @@ namespace OpenMS
 			DateTime();
 			/// Copy constructor
 			DateTime(const DateTime& date);
-			/// Desctructor
-			~DateTime();
 			
 			/// Assignment operator
 			DateTime& operator= (const DateTime& source);
-			
-			/// Equality operator
-			bool operator == (const DateTime& rhs) const;
-
-			/// Equality operator
-			bool operator != (const DateTime& rhs) const;
 			
 			/**
 				@brief sets date from a string
@@ -156,11 +146,8 @@ namespace OpenMS
 			 	The format of the string is yyyy-mm-dd hh:mm:ss
 			*/
 			void set(const String& date) throw (Exception::ParseError);
-			
+						
 		protected:
-			UInt hour_;
-			UInt minute_; 
-			UInt second_;
 	};
 	
 } // namespace OPENMS

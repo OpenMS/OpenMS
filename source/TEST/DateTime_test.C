@@ -120,7 +120,7 @@ CHECK((void getDate(UInt& month, UInt& day, UInt& year) const))
 	UInt day;
 	UInt year;
 	
-	date.set("2006-12-14");
+	date.set("2006-12-14 21:12:02");
 
 	date.getDate(month, day, year);
 	TEST_EQUAL(month, 12)	
@@ -133,7 +133,7 @@ CHECK((void getDate(String& date) const))
 	DateTime date;
 	String temp;
 	
-	date.set("2006-12-14");
+	date.set("2006-12-14 21:12:02");
 	date.getDate(temp);
 	TEST_EQUAL(temp, String("2006-12-14"))	
 

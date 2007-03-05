@@ -128,7 +128,7 @@ namespace OpenMS
 		
 		traits_->addConvexHull(set, f);
 		
-		std::cout << Date::now() << " Feature " << counter_ << ": (" << f.getRT();
+		std::cout << QDate::currentDate().toString("yyyy-MM-dd").toStdString() << " Feature " << counter_ << ": (" << f.getRT();
 		std::cout	<< "," << f.getMZ() << ") Qual.:" << f.getOverallQuality() << "\n";
 		
 		// save meta data in feature for TOPPView

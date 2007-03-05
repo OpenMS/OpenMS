@@ -239,7 +239,7 @@ namespace OpenMS
 #define V_dumpElementPairs(bla) std::cerr << bla << std::endl;
     V_dumpElementPairs("### Writing "<<filename);
     std::ofstream dump_file(filename.c_str());
-    dump_file << "# " << filename<< " generated " << Date::now() << std::endl;
+    dump_file << "# " << filename<< " generated " << QDate::currentDate().toString("yyyy-MM-dd").toStdString() << std::endl;
     dump_file << "# 1:number 2:quality 3:firstRT 4:firstMZ 5:firstIT 6:firstQual 7:secondRT 8:secondMZ 9:secondIT 10:secondQual\n";
     for ( UInt fp = 0; fp < getElementPairs().size(); ++fp )
     {
@@ -252,18 +252,18 @@ namespace OpenMS
       << getElementPairs()[fp].getSecond().getIntensity() << ' '
       << std::endl;
     }
-    dump_file << "# " << filename << " EOF " << Date::now() << std::endl;
+    dump_file << "# " << filename << " EOF " << QDate::currentDate().toString("yyyy-MM-dd").toStdString() << std::endl;
     std::string dump_filename_gp = filename + ".gp";
     V_dumpElementPairs("### Writing "<<dump_filename_gp);
     std::ofstream dump_file_gp(dump_filename_gp.c_str());
-    dump_file_gp << "# " << dump_filename_gp << " generated " << Date::now() << std::endl;
+    dump_file_gp << "# " << dump_filename_gp << " generated " << QDate::currentDate().toString("yyyy-MM-dd").toStdString() << std::endl;
     dump_file_gp <<
     "# Gnuplot script to view element pairs\n"
     "plot   \"" << filename <<"\" using 2:3 title \"map 1\"\n"
     "replot \"" << filename <<"\" using 5:6 title \"map 2\"\n"
     "replot \"" << filename <<"\" using 2:3:($5-$2):($6-$3) w vectors nohead title \"pairs\"\n"
     ;
-    dump_file_gp << "# " << dump_filename_gp << " EOF " << Date::now() << std::endl;
+    dump_file_gp << "# " << dump_filename_gp << " EOF " << QDate::currentDate().toString("yyyy-MM-dd").toStdString() << std::endl;
     V_dumpElementPairs("### You can view `"<<filename<<"' using the command line `gnuplot "<<dump_filename_gp<<" -'");
 #undef V_dumpElementPairs
 

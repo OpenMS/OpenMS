@@ -229,9 +229,13 @@ namespace OpenMS
   	{
   		date_time = it->id.getDateTime();
   		date_time.get(date_time_string);
-  		if (date_time_string == "0000-00-00 00:00:00")
+  		if (!date_time.isValid())
   		{
   			date_time_string = actual_date_time_;
+  		}
+  		else
+  		{
+	  		date_time.get(date_time_string);  			
   		}
   		if (date_times.find(date_time_string) == date_times.end())
   		{
@@ -246,10 +250,13 @@ namespace OpenMS
   		  it++)
   	{
   		date_time = it->getDateTime();
-  		date_time.get(date_time_string);
-  		if (date_time_string == "0000-00-00 00:00:00")
+  		if (!date_time.isValid())
   		{
   			date_time_string = actual_date_time_;
+  		}
+  		else
+  		{
+	  		date_time.get(date_time_string);
   		}
   		if (date_times.find(date_time_string) == date_times.end())
   		{
@@ -269,10 +276,13 @@ namespace OpenMS
 			for(UInt j = 0; j < const_protein_identifications_.size(); j++)
 			{
 				date_time = const_protein_identifications_[j].getDateTime();
-				date_time.get(date_time_string);
-	  		if (date_time_string == "0000-00-00 00:00:00")
+	  		if (!date_time.isValid())
 	  		{
 	  			date_time_string = actual_date_time_;
+	  		}
+	  		else
+	  		{
+					date_time.get(date_time_string);
 	  		}
 									
 				os << "\t\t<proteinGroup count=\"" << group_count << "\">\n";
@@ -345,11 +355,14 @@ namespace OpenMS
 			for(UInt j = 0; j < const_id_data_.size(); j++)
 			{
 				date_time = const_id_data_[j].id.getDateTime();
-				date_time.get(date_time_string);
-	  		if (date_time_string == "0000-00-00 00:00:00")
+	  		if (!date_time.isValid())
 	  		{
 	  			date_time_string = actual_date_time_;
-	  		}				
+	  		}	
+	  		else
+	  		{
+					date_time.get(date_time_string);
+	  		}			
 					
 				temp_protein_hits = const_id_data_[j].id.getProteinHits();
 				for(vector<ProteinHit>::const_iterator protein_hits_it = temp_protein_hits.begin();
@@ -710,10 +723,13 @@ namespace OpenMS
 		map< String , UInt>::iterator 	date_times_iterator;
 		
 		// determining the date group
-		date_time.get(date_time_string);
- 		if (date_time_string == "0000-00-00 00:00:00")
+ 		if (!date_time.isValid())
  		{
  			date_time_string = actual_date_time_;
+ 		}
+ 		else
+ 		{
+			date_time.get(date_time_string);
  		}
 		
 		date_times_iterator = date_times.find(date_time_string);

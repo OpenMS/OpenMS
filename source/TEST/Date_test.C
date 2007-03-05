@@ -51,24 +51,14 @@ CHECK((~Date()))
 	delete s_ptr;
 RESULT
 
-CHECK((bool isLeapYear(UInt year) const))
-  Date d;
-  TEST_EQUAL(d.isLeapYear(1999),false);
-  TEST_EQUAL(d.isLeapYear(2000),true);
-  TEST_EQUAL(d.isLeapYear(2001),false);
-  TEST_EQUAL(d.isLeapYear(1800),false);
-  TEST_EQUAL(d.isLeapYear(1900),false);
-  TEST_EQUAL(d.isLeapYear(2100),false);
-  TEST_EQUAL(d.isLeapYear(2400),true);
-RESULT
-
 CHECK((void get(UInt& month, UInt& day, UInt& year) const))
   Date date;
   UInt d,m,y;
+  date.set("2007-12-03");
   date.get(m,d,y);
-  TEST_EQUAL(m,0);
-  TEST_EQUAL(d,0);
-  TEST_EQUAL(y,0);
+  TEST_EQUAL(m,12);
+  TEST_EQUAL(d,3);
+  TEST_EQUAL(y,2007);
 RESULT
 
 CHECK((void set(UInt month, UInt day, UInt year) throw(Exception::ParseError)))
@@ -146,7 +136,7 @@ CHECK((void set(const String& date) throw(Exception::ParseError)))
   TEST_EQUAL(y,1967);
     
    //german short
-  date.set("6.1.888");
+  date.set("06.01.0888");
   date.get(m,d,y);
   TEST_EQUAL(m,1);
   TEST_EQUAL(d,6);
@@ -169,9 +159,9 @@ CHECK((void get(String& date) const))
   d.set("11.12.1977");
   d.get(s);
   TEST_EQUAL(s,"1977-12-11");
-	d.set("02.01.888");
+	d.set("02.01.0888");
   d.get(s);
-  TEST_EQUAL(s,"0888-01-02");
+  TEST_EQUAL(s,"888-01-02");
 RESULT
 
 CHECK((void clear()))

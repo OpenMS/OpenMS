@@ -432,7 +432,7 @@ namespace OpenMS
           String const element_buckets_file = element_buckets_file_base+String(map_index?"_SCENE":"_MODEL");
           std::ofstream dump_file(element_buckets_file.c_str());
           std::cerr << "### Writing "<<element_buckets_file<<std::endl;
-          dump_file << "# " << element_buckets_file << " generated " << Date::now() << std::endl;
+          dump_file << "# " << element_buckets_file << " generated " << QDate::currentDate().toString("yyyy-MM-dd").toStdString() << std::endl;
           dump_file << "# Positions of elements in non-empty element buckets" << std::endl;
           for ( ElementBucketMatrixType::ConstIterator iter = fb.begin(); iter != fb.end(); ++iter)
           {
@@ -446,7 +446,7 @@ namespace OpenMS
             }
             dump_file << std::endl;
           }
-          dump_file << "# " << element_buckets_file << " EOF " << Date::now() << std::endl;
+          dump_file << "# " << element_buckets_file << " EOF " << QDate::currentDate().toString("yyyy-MM-dd").toStdString() << std::endl;
         }
       }
 
@@ -678,7 +678,7 @@ namespace OpenMS
         std::string   dump_filename = data_value_dump_shift_buckets;
         std::ofstream dump_file(dump_filename.c_str());
         V_computeShiftBuckets_("### Writing "<<dump_filename);
-        dump_file << "# " << dump_filename << " generated " << Date::now() << std::endl;
+        dump_file << "# " << dump_filename << " generated " << QDate::currentDate().toString("yyyy-MM-dd").toStdString() << std::endl;
         dump_file << "# Shift buckets: xcoord ycoord quality xindex yindex" << std::endl;
 
         for ( typename ShiftQualityMatrixType::ConstIterator iter = tb.begin(); iter != tb.end(); ++iter)
@@ -694,7 +694,7 @@ namespace OpenMS
             << " #tb" << std::endl ;
           }
         }
-        dump_file << "# " << dump_filename << " EOF " << Date::now() << std::endl;
+        dump_file << "# " << dump_filename << " EOF " << QDate::currentDate().toString("yyyy-MM-dd").toStdString() << std::endl;
       }
 
 #undef V_computeShiftBuckets_

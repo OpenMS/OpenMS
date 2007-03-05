@@ -352,7 +352,7 @@ namespace OpenMS
 		f.setIntensity(feature_intensity);
 		traits_->addConvexHull(model_set, f);
 
-		std::cout << Date::now() << " Feature " << counter_
+		std::cout << QDate::currentDate().toString("yyyy-MM-dd").toStdString() << " Feature " << counter_
 							<< ": (" << f.getRT()
 							<< "," << f.getMZ() << ") Qual.:"
 							<< max_quality << "\n";
