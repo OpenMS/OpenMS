@@ -164,7 +164,7 @@ namespace OpenMS
 				{
 					//cout <<"Name:'"<< getPref_("Preferences:DB:Name") <<"' Login:'"<<getPref_("Preferences:DB:Login")<<"' PW:'"<<prefs_.getValue("DBPassword")<<"' Host:'"<<getPref_("Preferences:DB:Host")<<"' Port:'"<<getPref_("Preferences:DB:Port")<<"'"<<endl;
 					db.connect(getPref_("Preferences:DB:Name"), getPref_("Preferences:DB:Login"),getPref_("DBPassword"),getPref_("Preferences:DB:Host"),getPrefAsInt_("Preferences:DB:Port"));
-					vector<UnsignedInt> result;
+					vector<UInt> result;
 		
 					DBSpectrumSelectorDialog dialog(db,result,this);
 					if (dialog.exec() && result.size()!=0)
@@ -173,7 +173,7 @@ namespace OpenMS
 						names_.clear();
 						name_label->setText( "" );
 						QString convert;
-						for (vector<UnsignedInt>::iterator it = result.begin();it!=result.end();++it)
+						for (vector<UInt>::iterator it = result.begin();it!=result.end();++it)
 						{
 							names_.push_back(String(*it));
 							
@@ -303,6 +303,7 @@ namespace OpenMS
 			ss.setType(SpectrumSettings::PEAKS);
 			ss.setComment("A lot of space for comments here ...");	
 			ss.setIdentifications(Idents);
+	
 			//-------------------------------------------------------------------------
 			//		end of meta data testing
 			//-------------------------------------------------------------------------
@@ -311,7 +312,6 @@ namespace OpenMS
 			MSMetaDataExplorer dlg(true, this);
 			dlg.setWindowTitle("Meta data");
 			dlg.add(&ss);
-			//dlg.add(&pid);
 			
 			//dlg.add(&exp);
 			
@@ -339,9 +339,9 @@ namespace OpenMS
 		return prefs_.getValue(name);
 	}
 	
-	SignedInt OpenDialog::getPrefAsInt_(const String& name) const
+	Int OpenDialog::getPrefAsInt_(const String& name) const
 	{
-		return (SignedInt)(prefs_.getValue(name));
+		return (Int)(prefs_.getValue(name));
 	}
 	
 	bool OpenDialog::isViewMaps2D() const
