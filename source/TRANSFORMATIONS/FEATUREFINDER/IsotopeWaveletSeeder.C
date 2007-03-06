@@ -51,7 +51,7 @@ namespace OpenMS
 		defaults_.setValue("max_charge",4);
 		defaults_.setValue("min_charge",1);
 		
-		// intensity threshold in wt
+		// intensity threshold in cwt
 		defaults_.setValue("intensity_factor",1.5);
 		defaults_.setValue("avg_intensity_factor",3.0);
 		
@@ -99,9 +99,13 @@ namespace OpenMS
 		mass_tolerance_left_   = param_.getValue("mass_tolerance_left");
 		tolerance_scansum_    = param_.getValue("tolerance_scansum");
 		
+		// delete old charge states
+		charges_.clear();
+		
     // store charge states
     for (UInt i=(UInt)param_.getValue("min_charge"); i<=(UInt)param_.getValue("max_charge"); ++i)
     {
+// 			std::cout << "Storing charge: " << i << std::endl;
     	charges_.push_back(i);           
 		}
 	}
@@ -167,36 +171,36 @@ namespace OpenMS
 			// the following lines print the masses of all detected peak clusters
 			// it takes some time if many clusters were found, so we skip it.
 #ifdef DEBUG_FEATUREFINDER
-//		 CoordinateType min_mass = traits_->getData().getMin().getY();
-// 
-//		 for (SweepLineHash::const_iterator citer = hash_.begin();
-//				 citer != hash_.end();
-//				 ++citer)
-//		 {
-// 				
-//			 std::cout << "m/z range: ";
-//			 std::cout << (min_mass + (citer->first-1)*avMZSpacing_) << " ";
-//			 std::cout << (min_mass+ (citer->first)*avMZSpacing_) << " " << std::endl;
-// 												
-//			 for (std::list<UInt>::const_iterator iter_cl2 = citer->second.first.begin();
-//				   iter_cl2 != citer->second.first.end();
-//				   ++iter_cl2)
-//			 {
-//				 std::cout << "rt: " <<  traits_->getData()[*iter_cl2].getRetentionTime() << " |  ";
-// 
-//				 for (std::list<double>::const_iterator iter_l = citer->
-//						 second.second.begin();
-//						 iter_l != citer->second.second.end();
-//						 ++iter_l)
-//				 {
-//					 std::cout << *iter_l << " ";
-//				 }
-//				 std::cout << " | " << std::endl;
-//			 }	// end of times
-// 
-//			 std::cout << "----------------------------------------------------------------" << std::endl;
-// 
-//		 }
+		 CoordinateType min_mass = traits_->getData().getMin().getY();
+
+		 for (SweepLineHash::const_iterator citer = hash_.begin();
+				 citer != hash_.end();
+				 ++citer)
+		 {
+				
+			 std::cout << "m/z range: ";
+			 std::cout << (min_mass + (citer->first-1)*avMZSpacing_) << " ";
+			 std::cout << (min_mass+ (citer->first)*avMZSpacing_) << " " << std::endl;
+												
+			 for (std::list<UInt>::const_iterator iter_cl2 = citer->second.first.begin();
+				   iter_cl2 != citer->second.first.end();
+				   ++iter_cl2)
+			 {
+				 std::cout << "rt: " <<  traits_->getData()[*iter_cl2].getRetentionTime() << " |  ";
+
+				 for (std::list<double>::const_iterator iter_l = citer->
+						 second.second.begin();
+						 iter_l != citer->second.second.end();
+						 ++iter_l)
+				 {
+					 std::cout << *iter_l << " ";
+				 }
+				 std::cout << " | " << std::endl;
+			 }	// end of times
+
+			 std::cout << "----------------------------------------------------------------" << std::endl;
+
+		 }
 #endif
 				watch.stop();
 				std::cout << "Time spent for cwt: " << watch.getClockTime() << " [s] " << std::endl;
@@ -268,7 +272,7 @@ namespace OpenMS
 													
 		}		// for (std::list...)
 		
-		std::cout << "Done. UInt of region: " << region.size() << std::endl;	
+		std::cout << "Done. Size of region: " << region.size() << std::endl;	
 		
 		++hash_iter_;
 		
@@ -474,7 +478,7 @@ namespace OpenMS
 			//Ugly, but do not how to do this in a better (and easy) way
 			for (UInt i=0; i<candidates[c].size(); ++i)
 			{
-				c_candidate[i].setPosition(DPosition<2>( candidates[c][i].getMZ(),i));
+				c_candidate[i].setPosition(DPosition<2>( candidates[c][i].getPos(),i));
 				c_candidate[i].setIntensity( candidates[c][i].getIntensity() );
 			}
 				
@@ -498,56 +502,85 @@ namespace OpenMS
 			containerType::iterator write_iter;
 			for (write_iter=c_candidate.begin(); write_iter != c_candidate.end(); ++write_iter)
 			{
-				outfile << write_iter->getMZ() << " " << write_iter->getIntensity() << std::endl;
+				outfile << write_iter->getPosition().getX() << " " << write_iter->getIntensity() << std::endl;
 			}
 			outfile.close();
 #endif
 					
 			c_candidate.erase (iter, c_candidate.end());
-	
+// 			std::cout << "Here we go..." << std::endl;
+			
 			i_iter=0;
 			for (iter=c_candidate.begin(); iter != c_candidate.end(); ++iter, ++i_iter)
 			{
 				// Retrieve index
-				c_index = (int) (iter->getMZ());	
+				c_index = (int) (iter->getPosition().getY());	// retention time was replaced by index of this point
+				
+// 				std::cout << "c_index : " << c_index << std::endl;
 	
-				if (processed[c_index]) continue;			   
-	
+				if (processed[c_index])
+				{
+// 					std::cout << "processed: " << processed[c_index] << std::endl;
+				 continue;			   
+				}
 				start_index = c_index-waveletLength_-1;
 				end_index = c_index+waveletLength_+1;
-				seed_mz=iter->getMZ();
+				seed_mz=iter->getPosition().getX();	// m/z is still X coordinate
+				
+// 				std::cout << "seed_mz: " << seed_mz << std::endl;
 	
 				//Catch impossible cases
-				if (end_index >= candidates[c].size() || start_index > end_index)  continue;
-				   
+				if (end_index >= candidates[c].size() || start_index > end_index) 
+				{
+			/*		std::cout << "Should not happen ! " << std::endl;
+					std::cout << start_index << " " << end_index <<	std::endl;*/
+				 	continue;
+				}  
 				//Mark as processed
 				for (UInt z=start_index; z<=end_index; ++z) processed[z] = true;				
 	
 				start=(-2*(peak_cut_off_ - 1))+1, end=(2*(peak_cut_off_ - 1))-1;
 				goto_left = c_index - waveletLength_ - 1;
 	
+// 				std::cout << "start = " << start << " end = " << end << std::endl;
+				
 				for (int v=start; v<=end; ++v)
 				{
 					c_check_point = seed_mz+v*0.5/((double)c+1);
+// 					std::cout << "getNearBys( " << scan <<  "," <<  c_check_point << ","  << goto_left << ")" << std::endl;
 					c_between = getNearBys (scan, c_check_point, goto_left);
-									
-					if (c_between.first < 0 || c_between.second < 0) break;
 					
-					c_val = getInterpolatedValue (candidates[c][c_between.first].getMZ(),
+//  					std::cout << "c_between.first : " << c_between.first << " c_between.second : " << c_between.second << std::endl;
+					if (c_between.first < 0 || c_between.second < 0) 
+					{
+// 						std::cout << "c_between.first : " << c_between.first << " c_between.second : " << c_between.second << std::endl;
+						break;
+					}
+					c_val = getInterpolatedValue (candidates[c][c_between.first].getPos(),
 													  						c_check_point,
-													  						candidates[c][c_between.second].getMZ(),
+													  						candidates[c][c_between.second].getPos(),
 													  						candidates[c][c_between.first].getIntensity(),
 													  						candidates[c][c_between.second].getIntensity());
+				
+// 					std::cout <<  "c_val: " << c_val << std::endl;
+																				
+					if (fabs(c_val) < c_av_intens)
+					{
+// 						std::cout << "Below average intensity. Skipping this one. " << std::endl;
+					 continue;  
+					}			
 					
-					if (fabs(c_val) < c_av_intens) continue;  
-								
+// 					std::cout << "Scoring " << std::endl;
+					
 					// What the hell is happening here?
 					if (abs(v)%2 == 1) //i.e. whole
 					{
+// 						std::cout << "-= c_val " << std::endl;
 						scoresC[c][c_index] -= c_val;
 					}
 					else //i.e. peak
 					{
+// 						std::cout << "+= c_val " << std::endl;
 						scoresC[c][c_index] += c_val;
 					}
 				}
@@ -618,7 +651,7 @@ namespace OpenMS
 			}
 		   
 			// generate hash key 
-			c_hash_key = (UInt) ((traits_->getData()[scan].getContainer()[positions[0]-1].getMZ() - traits_->getData().getMin().getY()) / avMZSpacing_);
+			c_hash_key = (UInt) ((traits_->getData()[scan].getContainer()[positions[0]-1].getPos() - traits_->getData().getMin().getY()) / avMZSpacing_);
 	
 			allZero=true;
 			for (iter_cl=charge_scores.begin(); iter_cl!=charge_scores.end(); ++iter_cl)

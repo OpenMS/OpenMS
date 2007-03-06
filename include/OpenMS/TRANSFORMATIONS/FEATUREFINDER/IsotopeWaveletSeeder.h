@@ -41,9 +41,35 @@ namespace OpenMS
 		This seeder select interesting regions in the map using a wavelet funtion
 		modelling the isotopic distribution.
 		
-		@todo Write test with more than one scan and test not only the intensity (Ole)
-		@todo Document parameters (Ole)
-		
+		 Parameters:
+		 
+		 <table>
+		 <tr><td></td><td></td><td>rtvotes_cutoff</td>
+		 <td>number of scan in which a isotopic pattern must occur before it is
+		 declared as seed</td></tr>
+		 <tr><td></td><td></td><td>max_charge</td>
+		 <td>The mother wavelet is precomputed for different charge states. This
+		 is the maximum charge state considered.</td></tr>
+		 <tr><td></td><td></td><td>min_charge</td>
+		 <td>The mother wavelet is precomputed for different charge states. This
+		 is the minimum charge considered.</td></tr>
+		 <tr><td></td><td></td><td>intensity_factor</td>
+		 <td>Scores below the intensity of this point times this parameter are not
+		 considered for charge estimation.</td></tr>
+		 <tr><td></td><td></td><td>avg_intensity_factor</td>
+		 <td>influences the threshold for interesting points in the wavelet transform. </td></tr>
+		 <tr><td></td><td></td><td>min_samplingrate</td>
+		 <td>minimum sampling rate (e.g. step size for cwt), usally determined by the average m/z spacing</td></tr>
+		 <tr><td></td><td></td><td>mass_tolerance_right</td>
+		 <td>width of seed bounding box to the right. </td></tr>
+		 <tr><td></td><td></td><td>mass_tolerance_left</td>
+		 <td>width of seed bounding box to the right. </td></tr>
+		 <tr><td></td><td></td><td>scans_to_sumup</td>
+		 <td>number of scans used for alignment</td></tr>
+		 <tr><td></td><td></td><td>tolerance_scansum</td>
+		 <td>mass tolerance during point alignment</td></tr>
+		  </table>		
+	
 		@ingroup FeatureFinder
 	*/ 
   class IsotopeWaveletSeeder 
@@ -159,7 +185,7 @@ namespace OpenMS
 		{
 			for (unsigned int i=start; i<traits_->getData()[scan].getContainer().size(); ++i)
 			{
-				if (traits_->getData()[scan].getContainer()[i].getPosition() > mz)
+				if (traits_->getData()[scan].getContainer()[i].getPos() > mz)
 				{
 					return std::make_pair(i-1, i);
 				}

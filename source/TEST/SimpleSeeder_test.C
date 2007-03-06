@@ -50,7 +50,7 @@ using namespace std;
 
 // default ctor
 SimpleSeeder* ptr = 0;
-CHECK(Simple())
+CHECK(SimpleSeeder())
 	ptr = new SimpleSeeder();
   TEST_EQUAL(ptr->getName(), "SimpleSeeder")
 	TEST_NOT_EQUAL(ptr, 0)

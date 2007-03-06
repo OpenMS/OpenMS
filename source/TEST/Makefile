@@ -341,9 +341,9 @@ EXECUTABLES_TRANSFORMATIONS_FEATUREFINDER = \
 	BiGaussModel_test\
 	IsotopeModel_test\
 	ProductModel_test\
-	FeatureFinder_test
-
-#	IsotopeWaveletSeeder_test\
+	FeatureFinder_test\
+	IsotopeWaveletSeeder_test\
+	DummySeeder_test
 
 
 EXECUTABLES_TRANSFORMATIONS_PEAKPICKER = \

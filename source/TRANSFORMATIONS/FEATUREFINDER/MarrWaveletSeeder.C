@@ -38,37 +38,33 @@ namespace OpenMS
 	
 		// lower and upper bounds for distances between isotopic peaks (defaults)
 		// charge 1
-		defaults_.setValue("charge1_ub",1.2f);
-		defaults_.setValue("charge1_lb",0.8f);
+		defaults_.setValue("charge1_ub",1.5f);
+		defaults_.setValue("charge1_lb",0.70f);
 		// charge 2
-		defaults_.setValue("charge2_ub",0.65f);
+		defaults_.setValue("charge2_ub",0.69f);
 		defaults_.setValue("charge2_lb",0.41f);
 		// charge 3
 		defaults_.setValue("charge3_ub",0.4f);
-		defaults_.setValue("charge3_lb",0.2f);
-		// charge 4
-		defaults_.setValue("charge4_ub",0.27f);
-		defaults_.setValue("charge4_lb",0.23f);
-		// charge 5
-		defaults_.setValue("charge5_ub",0.21f);
-		defaults_.setValue("charge5_lb",0.19f);
+		defaults_.setValue("charge3_lb",0.1f);
 	
 		// tolerance in m/z for an monoisotopic peak in the previous scan
-		defaults_.setValue("tolerance_mz",0.5f);
+		defaults_.setValue("tolerance_mz",1.0f);
 	
 		// params for the cwt
-		defaults_.setValue("cwt_scale",0.3f);
-		defaults_.setValue("noise_level_signal",750);
+		defaults_.setValue("cwt_scale",0.1f);
+		defaults_.setValue("noise_level_signal",1000);
 		defaults_.setValue("noise_level_cwt",6000);
-		defaults_.setValue("high_peak_intensity_factor",4);
 	
 		// number of scans used for alignment
 		defaults_.setValue("scans_to_sumup",5);
-	
+		// mass tolerance during scan alignment
+		defaults_.setValue("mass_tolerance_alignment", 0.1);
+		
 		// minimum number of scan per isotopic cluster
 		defaults_.setValue("min_number_scans",5);
 		// minimum number of peaks per cluster
 		defaults_.setValue("min_number_peaks",20);
+		
 	
 		defaultsToParam_();
 	}
@@ -109,7 +105,8 @@ namespace OpenMS
 			throw NoSuccessor(__FILE__, __LINE__,__PRETTY_FUNCTION__, make_pair(0,0));
 		}
 		
-		cout << "Retrieving next region with charge: " << (*curr_region_).second.charge_ << endl; 
+		std::cout << "Retrieving next region with charge " << (*curr_region_).second.charge_; 
+		std::cout << " and size " << (*curr_region_).second.peaks_.size() << std::endl;
 			
 		return (curr_region_++)->second.peaks_;
 	}
@@ -125,12 +122,8 @@ namespace OpenMS
 	
 		charge3_ub_	= param_.getValue("charge3_ub");
 		charge3_lb_	 = param_.getValue("charge3_lb");
-	
-		charge4_ub_	= param_.getValue("charge4_ub");
-		charge4_lb_	 = param_.getValue("charge4_lb");
-	
-		charge5_ub_	= param_.getValue("charge5_ub");
-		charge5_lb_	 = param_.getValue("charge5_lb");
+		
+		mass_tolerance_alignment_ = param_.getValue("mass_tolerance_alignment");
 	}
 	
 	void MarrWaveletSeeder::sweep_()
@@ -140,16 +133,14 @@ namespace OpenMS
 		vector<CoordinateType> iso_curr_scan;			// in the last scan
 
 		CoordinateType tolerance_mz = param_.getValue("tolerance_mz");
-		double cwt_scale = param_.getValue("cwt_scale");
-		
-		noise_level_signal_ = param_.getValue("noise_level_signal");
-		noise_level_cwt_ = param_.getValue("noise_level_cwt");
-		// S/N threshold for single peaks in the cwt
-		IntensityType high_peak_intensity_factor = param_.getValue("high_peak_intensity_factor");		
+		double cwt_scale                   = param_.getValue("cwt_scale");
+
+		noise_level_signal_ 							 = param_.getValue("noise_level_signal");
+		noise_level_cwt_                   = param_.getValue("noise_level_cwt");
 	
-		UInt current_charge = 0; // charge state of the current isotopic cluster
-		CoordinateType mz_in_hash = 0; // used as reference to the current isotopic peak
-		CoordinateType current_rt = 0; // retention time of current scan
+		UInt current_charge = 0;															 // charge state of the current isotopic cluster
+		CoordinateType mz_in_hash = 0; 								// used as reference to the current isotopic peak
+		CoordinateType current_rt = 0; 										// retention time of current scan
 	
 		for (UInt currscan_index = 0; currscan_index < traits_->getData().size(); ++currscan_index)
 		{
@@ -180,8 +171,8 @@ namespace OpenMS
 			// align and sum
 			sumUp_(current_scan,currscan_index);
 					
-			double spacing_cwt = 0.0001; // spacing between sampling points of the wavelet
-			double resolution_cwt = 1.0; // compute convolution for each data point
+			double spacing_cwt = 0.0001; 		// spacing between sampling points of the wavelet
+			double resolution_cwt = 1.0;			 // compute convolution for each data point
 								
 			cwt_.init(cwt_scale, spacing_cwt);
 			cwt_.transform(current_scan.begin(), current_scan.end(),resolution_cwt);
@@ -198,7 +189,9 @@ namespace OpenMS
 	
 			if  (cwt_.getSize() == 0)
 			{
+				#ifdef DEBUG_FEATUREFINDER
 				cout << "Empty cwt for this scan => continue." << endl;
+				#endif
 				continue;
 			}
 	
@@ -214,10 +207,10 @@ namespace OpenMS
 			// search for maximal positions in the cwt and extract potential peaks
 			vector<int> local_maxima;
 			getMaxPositions_(current_scan.begin(), current_scan.end(), cwt_, local_maxima 
-#ifdef DEBUG_FEATUREFINDER
-											 ,current_rt 
-#endif
-											 );
+																	#ifdef DEBUG_FEATUREFINDER
+											 						,current_rt 
+																	#endif
+											 						);
 	
 			int nr_maxima = local_maxima.size();
 			cout << "# local maxima in cwt : " << nr_maxima << endl;
@@ -253,26 +246,31 @@ namespace OpenMS
 						{
 							mz_in_hash = curr_mz; // update current hash key
 	
-#ifdef DEBUG_FEATUREFINDER
+							#ifdef DEBUG_FEATUREFINDER
 							cout << "Last peak cluster too far, creating new cluster" << endl;
-#endif
+							#endif
 
 							// create new isotopic cluster												
 							IsotopeCluster isoclust;
 							isoclust.charge_ = current_charge;
 							isoclust.scans_.push_back( currscan_index );
 
+							std::cout << "Creating cluster at m/z " << mz_in_hash << std::endl;
 							entry_to_insert = iso_map_.insert( TableType::value_type(mz_in_hash, isoclust) );   
 						}
 						else
 						{
-#ifdef DEBUG_FEATUREFINDER
+						#ifdef DEBUG_FEATUREFINDER
 						cout << "Found neighbouring peak with distance (m/z) " << delta_mz << endl;
-#endif
+						#endif
 						mz_in_hash = *it;	// retrieve hash key
    										
 						pair<TableType::iterator, TableType::iterator> range = iso_map_.equal_range(mz_in_hash);
-																										
+						
+						std::cout << iso_map_.count(mz_in_hash) << " entries found for m/z " << mz_in_hash << std::endl;
+					
+						bool scan_found = false;								
+					
 						if (range.first != range.second)		// several peak cluster at this m/z found
 						{
 							// we want to find the previous scan
@@ -280,11 +278,20 @@ namespace OpenMS
 																								
 							for (TableType::iterator iter = range.first; iter != range.second; ++iter)
 							{
-								// check if last scan of this cluster is the previous scan
-								if (	*( iter->second.scans_.end() - 1) == scan_wanted )
+
+								// enumerate all scans
+								// the scan number we are searching for is not necessarily the last one
+								// in this cluster if there were other very close local maxima in the same scan.
+								for (std::vector<UInt>::const_iterator it = iter->second.scans_.begin();
+											 it != iter->second.scans_.end(); ++it)
 								{
-									entry_to_insert	= iter;
-									continue;
+								
+									if (	*it == scan_wanted )
+									{
+										scan_found = true;
+										entry_to_insert	= iter;
+										continue;
+									}														
 								}
 							}								
 						}
@@ -292,6 +299,13 @@ namespace OpenMS
 						{
 							entry_to_insert	 = range.first;										
 						}
+						
+						if (!scan_found)
+						{
+							// corrupt hash map / isotope counter
+							throw Exception::InvalidIterator(	__FILE__, __LINE__, "MarrWaveletSeeder::sweep_()");
+						}
+						
 						// save current rt and m/z
 						entry_to_insert->second.scans_.push_back( currscan_index );
 	
@@ -403,134 +417,6 @@ namespace OpenMS
 				current_charge = 0; // reset charge
 	
 			} // end for each (local maximum in cwt)
-					
-			// check for very high local maxima in cwt
-			for (int z = 0; z< nr_maxima; ++z)
-			{							
-				if ( cwt_[ local_maxima[z] ] > (high_peak_intensity_factor *cwt_avg) &&
-					traits_->getPeakFlag(  make_pair(currscan_index, local_maxima[z])) == FeaFiTraits::UNUSED )
-				{
-					// We have reached a data point with high intensity in the wavelet
-					// transform. This might be an interesting signal even without isotopic pattern,
-					// so we collect some surrounding data points and see if we meet this point
-					// in the next scan again....
-// 					cout << "High peak in cwt !!" << endl;
-					UInt this_peak =  local_maxima[z];
-					CoordinateType this_mass	 = current_scan[ this_peak ].getMZ();
-					
-					// hash entry to write in
-					TableType::iterator entry_to_insert;		
-										
-					if (iso_last_scan.size() > 0)  // Did we find any isotopic cluster in the last scan?
-					{
-						// there were some isotopic clustures in the last scan...
-						vector<double>::const_iterator it = searchInScan_(iso_last_scan.begin(),iso_last_scan.end(),this_mass);
-						CoordinateType delta_mz = fabs(*it - this_mass);
-	
-						if ( delta_mz > tolerance_mz) // check if first peak of last cluster is close enough
-						{
-							mz_in_hash = this_mass; // update current hash key
-	
-							// create new isotopic cluster
-#ifdef DEBUG_FEATUREFINDER
-							cout << "Last peak cluster too far, creating new cluster" << endl;
-#endif
-													
-							IsotopeCluster isoclust;
-							isoclust.charge_ = current_charge;
-							isoclust.scans_.push_back( currscan_index );
-
-							entry_to_insert = iso_map_.insert(TableType::value_type(mz_in_hash, isoclust) );   
-						}
-						else
-						{
-#ifdef DEBUG_FEATUREFINDER
-							cout << "Found neighbouring peak with distance (m/z) " << delta_mz << endl;
-#endif
-							mz_in_hash = *it;	// retrieve hash key
- 										
-							pair<TableType::iterator, TableType::iterator> range = iso_map_.equal_range(mz_in_hash);
-																									
-							if (range.first != range.second)		// several peak cluster at this m/z found
-							{
-								// we want to find the previous scan
-								UInt scan_wanted = (currscan_index - 1);
-																							
-								for (TableType::iterator iter = range.first; iter != range.second; ++iter)
-								{
-									// check if last scan of this cluster is the previous scan
-									if (	*( iter->second.scans_.end() - 1) == scan_wanted )
-									{
-										entry_to_insert	= iter;
-										continue;
-									}
-								}							
-							}
-							else	// only one cluster with this m/z
-							{
-								entry_to_insert	 = range.first;										
-							}
-			
-							// save current rt and m/z
-							entry_to_insert->second.scans_.push_back( currscan_index );
-
-#ifdef DEBUG_FEATUREFINDER
-							cout << "Cluster with " << entry_to_insert->second.peaks_.size() << " peaks retrieved." << endl;
-#endif
-						} 
-					}	
-					else // last scan did not contain any isotopic cluster
-					{
-#ifdef DEBUG_FEATUREFINDER
-						cout << "Last scan was empty => creating new cluster." << endl;
-						cout << "Creating new cluster at m/z: " << this_mass << endl;
-#endif
-	
-						mz_in_hash = this_mass; // update current hash key
-	
-						// create new isotopic cluster
-						IsotopeCluster isoclust;
-						isoclust.charge_ = current_charge;
-						isoclust.scans_.push_back( currscan_index );
-						
-						entry_to_insert = iso_map_.insert( TableType::value_type(mz_in_hash, isoclust) );		
-	
-					} // end if (iso_last_scan.size() > 0)
-	
-					// extend this data point
-					
-					CoordinateType this_intensity = current_scan[ this_peak ].getIntensity();
-					CoordinateType next_mass	 = this_mass;
-					CoordinateType next_intensity = this_intensity;
-					iso_curr_scan.push_back( current_scan[ local_maxima[z] ].getMZ() );
-					entry_to_insert->second.peaks_.insert(make_pair(currscan_index, this_peak));
-					traits_->getPeakFlag(make_pair(currscan_index, this_peak)) = FeaFiTraits::SEED;
-	
-					// walk to the left
-					while ( this_peak > 0 && fabs(next_mass - mz_in_hash) < 4 && next_intensity > (this_intensity * 0.003)  )
-					{
-						--this_peak;
-						entry_to_insert->second.peaks_.insert(make_pair(currscan_index, this_peak));
-						traits_->getPeakFlag(make_pair(currscan_index, this_peak)) = FeaFiTraits::SEED;
-	
-						next_mass	 = current_scan[ this_peak ].getMZ(); 
-						next_intensity = current_scan[ this_peak ].getIntensity();
-					}
-	
-					this_peak = local_maxima[z];
-	
-					// walk to the right
-					while ( this_peak < (current_scan.size()-1) && fabs(next_mass - mz_in_hash) < 4 && next_intensity > (this_intensity * 0.003)  )
-					{
-						++this_peak;
-						entry_to_insert->second.peaks_.insert(make_pair(currscan_index, this_peak));
-						traits_->getPeakFlag(make_pair(currscan_index, this_peak)) = FeaFiTraits::SEED;
-	
-						next_mass	 = current_scan[ this_peak ].getMZ(); 
-						next_intensity = current_scan[ this_peak ].getIntensity();
-					}
-				}
-			}	
 	
 			cout << "Numer of potential seeds in this scan: " << iso_curr_scan.size() << endl;
 	
@@ -560,7 +446,25 @@ namespace OpenMS
 	
 		curr_region_ = iso_map_.begin();
 		
-		cout << iso_map_.size() << " clusters remained after filtering." << endl;
+		std::cout << iso_map_.size() << " clusters remained after filtering." << std::endl;
+		
+		#ifdef DEBUG_FEATUREFINDER 
+		for (HashIterator iter = iso_map_.begin(); iter != iso_map_.end(); ++iter)
+		{
+			std::cout << "m/z " << iter->first << " charge: " << iter->second.charge_ << std::endl;
+			
+			for (std::vector<UInt>::const_iterator citer = 	iter->second.scans_.begin(); 
+						citer != iter->second.scans_.end();
+						++citer)
+			{
+				std::cout << "# scan : " << *citer << " (";
+				IDX tmp;
+				tmp.first = *citer;
+				std::cout << traits_->getPeakRt(tmp) << ")" << std::endl;				
+			}
+		
+		}
+		#endif
 	
 	} // end of void sweep_()
 	
@@ -568,9 +472,9 @@ namespace OpenMS
 																						const SpectrumType::const_iterator&  last, 
 																						const ContinuousWaveletTransform& wt, 
 																						vector<int>& localmax
-#ifdef DEBUG_FEATUREFINDER 
+																						#ifdef DEBUG_FEATUREFINDER 
 																							, CoordinateType current_rt
-#endif
+																						#endif
 																						)
 	{
 		if (wt.getSize() == 0) return;
@@ -583,25 +487,34 @@ namespace OpenMS
 			
 		IntensityType max_value = 0.0;	// intensity of the signal peak
 		UInt max_index   = 0;		// index of the signal peak (counted from the very first data point)
-	
-		// Given direction, start the search from left or right
+
 		int start = zeros_left_index + 2;
 		int end  = zeros_right_index - 1;
+		
+		#ifdef DEBUG_FEATUREFINDER 
+		// remove debug file (below we append entries only,
+		// so if the file exists, we will get some quite confusing results)
+		String fname = String("cwt_localmax_") + current_rt;
+		if (File::exists(fname) )
+		{
+			File::remove(fname);
+		}		
+		#endif
 	
 		int i=0, j=0;
-		for(i=start; i<end; i+=1)
+		for(i=start; i<end; ++i)
 		{
 			// Check for maximum in cwt at position i with cwt intensity > noise
 			if( ((wt[i-1] - wt[i]  ) < 0) &&
 					((wt[i] - wt[i+1]) > 0)  &&
 					( wt[i]  > noise_level_cwt_ ) )
 			{
-#ifdef DEBUG_FEATUREFINDER
+				#ifdef DEBUG_FEATUREFINDER
 				String fname = String("cwt_localmax_") + current_rt;
 				ofstream gpfile( fname.c_str(), ios_base::app);
 				gpfile << (first + i)->getMZ()  << "  " << cwt_[i] << endl;
 				gpfile.close();
-#endif
+				#endif
 				max_value=(first +  i)->getIntensity();
 	
 				// search for the corresponding maximum in the signal (consider the "radius" left and right adjacent points)
@@ -614,7 +527,7 @@ namespace OpenMS
 					if((first + j)->getIntensity() > max_value)
 					{
 						max_value = (first + j)->getIntensity();
-											max_index = j;
+						max_index = j;
 					}
 				}
 	
@@ -643,7 +556,7 @@ namespace OpenMS
 	{
 		if (scan.size() == 0 || neighbour.size() == 0) return;
 	
-		double mass_tolerance = 0.1;
+		
 	
 		UInt index_newscan = 0;
 		for (UInt k=0; k<neighbour.size(); ++k)
@@ -661,26 +574,21 @@ namespace OpenMS
 			{
 				double left_diff   = fabs(scan[index_newscan-1].getMZ() - mass);
 				double right_diff = fabs(scan[index_newscan].getMZ() - mass);
-				// 					cout << "Checking neighbours: " << left_diff << " " << right_diff << endl;
-	
+
 				// check which neighbour is closer
-				if (left_diff < right_diff && (left_diff < mass_tolerance) )
+				if (left_diff < right_diff && (left_diff < mass_tolerance_alignment_) )
 				{
-					// 						cout << "Left. Old intensity: " << scan[ (index_newscan-1) ].getIntensity() << endl;
 					scan[ (index_newscan-1) ].setIntensity( scan[ (index_newscan-1) ].getIntensity() + p.getIntensity() );
-					// 						cout << "Left. New intensity: " << scan[ (index_newscan-1) ].getIntensity() << endl;
 				}
-				else if (right_diff < mass_tolerance)
+				else if (right_diff < mass_tolerance_alignment_)
 				{
-					// 						cout << "Right. Old intensity: " << scan[ (index_newscan) ].getIntensity() << endl;
 					scan[ (index_newscan) ].setIntensity( scan[ (index_newscan) ].getIntensity() + p.getIntensity() );
-					// 						cout << "Right. New intensity: " << scan[ (index_newscan) ].getIntensity() << endl;
 				}
 			}
 			else // no left neighbour available
 			{
 				double right_diff = fabs(scan[index_newscan].getMZ() - mass);
-				if (right_diff < mass_tolerance)
+				if (right_diff < mass_tolerance_alignment_)
 				{
 					scan[index_newscan].setIntensity( scan[index_newscan].getIntensity() + p.getIntensity() );
 				}
@@ -702,14 +610,14 @@ namespace OpenMS
 		{
 			return 3;
 		}
-		else if (dist < charge4_ub_ && dist > charge4_lb_)
-		{
-			return 4;
-		}
-		else if (dist < charge5_ub_ && dist > charge5_lb_)
-		{
-			return 5;
-		}
+// 		else if (dist < charge4_ub_ && dist > charge4_lb_)
+// 		{
+// 			return 4;
+// 		}
+// 		else if (dist < charge5_ub_ && dist > charge5_lb_)
+// 		{
+// 			return 5;
+// 		}
 		return 0;
 	}
 
