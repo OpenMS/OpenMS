@@ -236,66 +236,51 @@ namespace OpenMS
 		// find item in tree belonging to Identification object
 		QTreeWidgetItem *item = treeview_->findItems(QString::number(tree_item_id),Qt::MatchExactly | Qt::MatchRecursive, 1).first();	 
 		
-		//Set all items to not visible
-		for(int i=0; i<item->childCount(); ++i)
-		{
-			 item->child(i)->setHidden(true);
-		}
-		
-		vector<QTreeWidgetItem*> visible_peptides;
+		map<string,bool> tree_items;
 		
 		//search all peptide hits IN IDENTIFICATION		
 		vector< PeptideHit >& peps= id.getPeptideHits();
 		bool hit = false;
 		for(UInt i=0; i<peps.size(); ++i)
 		{
-			vector<pair<String, String> >& protlist = peps[i].getProteinIndices();
-			
-			String name = String("Pep ") + peps[i].getSequence() + " (" + peps[i].getScore() + ")";
-			//search all protein hits belonging to current peptide hit
-			for(vector< pair<String, String> >::iterator it = protlist.begin(); it != protlist.end();	it++)
-			{
-				//Check if peptide hit refers to a certain protein hit.
-				if( (ref_date.trim()=="" && it->second == ref_acc )|| 
-				    (it->first==ref_date && ref_acc.trim()=="") ||
-						(it->first==ref_date && it->second == ref_acc)   )
-				{
-					hit = true;
-					cout<<"Found a hit."<<endl;
-					break;	
-				}
-			}
-			
-			if(hit)
-			{
-				//Search item in tree belonging to peptide and set it visible.
-				cout<<"Search item in tree belonging to peptide and set it visible."<<endl;
-				for(int i=0; i<item->childCount(); ++i)
-				{
-					QTreeWidgetItem* child = item->child(i);
+					vector<pair<String, String> >& protlist = peps[i].getProteinIndices();
 					
-					if( child->text(0)==name.c_str() && child->text(3)== peps[i].getSequence().c_str() )
+					String name = String("Pep ") + peps[i].getSequence() + " (" + peps[i].getScore() + ")";
+					//search all protein hits belonging to current peptide hit
+					for(vector< pair<String, String> >::iterator it = protlist.begin(); it != protlist.end();	it++)
 					{
-						cout<<"Found a child a will set it visible"<<endl;
-						//child->setHidden(false);
-						visible_peptides.push_back(child);
+						//Check if peptide hit refers to a certain protein hit.
+						if( (ref_date.trim()=="" && it->second == ref_acc )|| 
+								(it->first==ref_date && ref_acc.trim()=="") ||
+								(it->first==ref_date && it->second == ref_acc)   )
+						{
+							hit = true;
+							break;	
+						}
+						
 					}
-					//treeview_->collapseItem(item);
-					//treeview_->expandItem(item);				
-				}	
-			}
-			hit = false;
-			
-			
+					
+			tree_items.insert(make_pair(name, hit) );
+			hit = false;		
 		}
 		
-			for(vector<QTreeWidgetItem* >::iterator item_it = visible_peptides.begin(); item_it != visible_peptides.end();	item_it++)
+		
+		for(int i=0; i<item->childCount(); ++i)
+		{
+			QTreeWidgetItem* child = item->child(i);
+			map<string,bool>::iterator iter = tree_items.find(child->text(0).toStdString() );
+			
+			if(! iter->second )
 			{
-				(*item_it)->setHidden(false);
-				treeview_->collapseItem((*item_it));
-				treeview_->expandItem((*item_it));
+				child->setHidden(true);	
+			}
+			else
+			{
+				child->setHidden(false);
 			}
 			
+		}	
+		
 		//parent item must be collapsed and re-expanded so the items will be shown...
 		treeview_->collapseItem(item);
 		treeview_->expandItem(item);
@@ -317,7 +302,7 @@ namespace OpenMS
 		}
 		
 		vector<PeptideHit>* hits = id.getNonReferencingHits(map);
-				
+		
 		// find item in tree belonging to Identification object
 		QTreeWidgetItem *item = treeview_->findItems(QString::number(tree_item_id),Qt::MatchExactly | Qt::MatchRecursive, 1).first();	
 			
@@ -331,7 +316,7 @@ namespace OpenMS
 				String seq = (*hits)[i].getSequence();
 				String name = String("Pep ") + seq + " (" + (*hits)[i].getScore() + ")";
 				
-				if( child->text(0)==name.c_str() && child->text(3)== seq.c_str())
+				if( child->text(0).toStdString() == name.c_str() )
 				{
 					child->setHidden(false);
 					break;

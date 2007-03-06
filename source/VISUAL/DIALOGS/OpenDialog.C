@@ -268,9 +268,9 @@ namespace OpenMS
 			pep2.setScore(6.2);
 			pep2.setScoreType("XCorr");
 			pep2.setSequence("TTYYRAY");
-			pep2.addProteinIndex(date,"1BNL");
-			pep2.addProteinIndex(date,"ACC392");
-			pep2.addProteinIndex(date,"ACD392");
+			//pep2.addProteinIndex(date,"1BNL");
+			//pep2.addProteinIndex(date,"ACC392");
+			//pep2.addProteinIndex(date,"ACD392");
 			//pep2.setRank(3);
 			
 			pep3.setScore(8.4);
