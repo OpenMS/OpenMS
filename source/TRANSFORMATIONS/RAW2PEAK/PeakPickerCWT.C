@@ -192,7 +192,6 @@ namespace OpenMS
 					{
 						max_pos = (direction > 0) ? (i - distance_from_scan_border)  : i;
 #ifdef DEBUG_PEAK_PICKING
-
 						std::cout << "MAX in CWT at " << (first + max_pos)->getMZ()<< " with " << wt[i]
 											<< std::endl;
 #endif
