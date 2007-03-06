@@ -52,8 +52,6 @@ namespace OpenMS
 		}
 		return os;
 	}
-
-	// no extra stuff required for this test
 }
 
 using namespace OpenMS;
@@ -183,7 +181,36 @@ RESULT
 
 CHECK(BilinearInterpolation& operator= ( BilinearInterpolation const & arg ))
 {
-  // ???
+	BIFD::ContainerType v;
+	v.resize(2,3);
+	v(0,0) = 17;
+	v(0,1) = 18.9;
+	v(0,2) = 20.333;
+	v(1,0) = -.1;
+	v(1,1) = -.13;
+	v(1,2) = -.001;
+
+	BIFD bifd;
+	bifd.setData(v);
+	bifd.setMapping_0( 13, 230, 14, 250 );
+	bifd.setMapping_1( 15, 2100, 17, 2900 );
+
+	BIFD bifd2;
+
+	// do it
+	bifd2 = bifd;
+
+	TEST_REAL_EQUAL(bifd2.getScale_0(), 20);
+	TEST_REAL_EQUAL(bifd2.getScale_1(), 400);
+	TEST_REAL_EQUAL(bifd2.getOffset_0(), -30);
+	TEST_REAL_EQUAL(bifd2.getOffset_1(), -3900);
+	TEST_REAL_EQUAL(bifd2.getInsideReferencePoint_0(), 13);
+	TEST_REAL_EQUAL(bifd2.getOutsideReferencePoint_0(), 230);
+	TEST_REAL_EQUAL(bifd2.getInsideReferencePoint_1(), 15);
+	TEST_REAL_EQUAL(bifd2.getOutsideReferencePoint_1(), 2100);
+	for ( UInt i = 0; i < v.rows(); ++i )
+		for ( UInt j = 0; j < v.cols(); ++j )
+			TEST_EQUAL(bifd2.getData()(i,j),v(i,j));
 }
 RESULT
 

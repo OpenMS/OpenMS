@@ -242,7 +242,7 @@ CHECK(LinearInterpolation( LinearInterpolation const & arg ))
 {
 	LIFD lifd;
 	lifd.setMapping( 13, 130, 14, 140 );
-	std::vector < LIFD::ValueType > v;
+	LIFD::ContainerType v;
 	v.push_back(17);
 	v.push_back(18.9);
 	v.push_back(20.333);
@@ -262,7 +262,7 @@ CHECK(LinearInterpolation& operator= ( LinearInterpolation const & arg ))
 {
 	LIFD lifd;
 	lifd.setMapping( 13, 130, 14, 140 );
-	std::vector < LIFD::ValueType > v;
+	LIFD::ContainerType v;
 	v.push_back(17);
 	v.push_back(18.9);
 	v.push_back(20.333);

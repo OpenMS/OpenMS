@@ -613,7 +613,7 @@ namespace OpenMS
 			KeyType const & getOffset_0 () const throw() { return offset_0_; }
 
 			/// Accessor.  "Offset" is the point (in "outside" units) which corresponds to "Data(0,0)".
-			KeyType const & getOffset_1 () const throw() { return offset_0_; }
+			KeyType const & getOffset_1 () const throw() { return offset_1_; }
 
 			/**@brief Accessor.  "Offset" is the point (in "outside" units) which
 				 corresponds to "Data(0,0)".
