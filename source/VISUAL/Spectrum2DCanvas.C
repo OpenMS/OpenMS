@@ -1327,27 +1327,29 @@ namespace OpenMS
 			case AM_SELECT:
 				if (e->button() == Qt::LeftButton)
 				{
-					rubber_band_.setGeometry(e->pos().x(),e->pos().y(),0,0);
-					rubber_band_.show();
+					if (e->modifiers() & Qt::ControlModifier) //measure
+					{
+						if (selected_peak_)
+						{
+							delete(measurement_start_);
+							measurement_start_ = new Feature(*selected_peak_);
+						}
+						else
+						{
+							delete(measurement_start_);
+							measurement_start_ = 0;
+						}
+						delete(measurement_stop_);
+						measurement_stop_ = 0;
+					}
+					else //select
+					{
+						rubber_band_.setGeometry(e->pos().x(),e->pos().y(),0,0);
+						rubber_band_.show();
+					}
 				}
 				break;
-			case AM_MEASURE:
-				if (e->button() == Qt::LeftButton)
-				{
-					if (selected_peak_)
-					{
-						delete(measurement_start_);
-						measurement_start_ = new Feature(*selected_peak_);
-					}
-					else
-					{
-						delete(measurement_start_);
-						measurement_start_ = 0;
-					}
-					delete(measurement_stop_);
-					measurement_stop_ = 0;
-				}
-				break;
+
 			case AM_ZOOM:
 				if (e->button() == Qt::LeftButton)
 				{
@@ -1358,7 +1360,7 @@ namespace OpenMS
 			case AM_TRANSLATE:
 				if (e->button() == Qt::LeftButton)
 				{
-					setCursor(cursor_translate_in_progress_);
+					setCursor(Qt::ClosedHandCursor);
 				}
 				break;
 			default:
@@ -1376,82 +1378,84 @@ namespace OpenMS
 		{
 			case AM_SELECT:
 			{
-				// highlight nearest peak
-				if (e->buttons() == Qt::NoButton)
+				if (e->modifiers() & Qt::ControlModifier) //measure
 				{
-					
-					Feature* max_peak = findNearestPeak_(pos);
-					
-					if (max_peak)
+					// highlight nearest peak
+					if (e->buttons() == Qt::NoButton)
 					{
-						// show Peak Coordinates (with intensity)
-						emit sendCursorStatus(max_peak->getMZ(), max_peak->getIntensity(), max_peak->getRT());
-						//show lable
-						string meta = max_peak->getMetaValue(3).toString();
-						if (meta!="") sendStatusMessage(meta, 0);
+						Feature* max_peak = findNearestPeak_(pos);
+						
+						if (max_peak && max_peak != selected_peak_ && !measurement_start_)
+						{
+							//show Peak Coordinates
+							emit sendCursorStatus(max_peak->getRT(), max_peak->getIntensity(), max_peak->getMZ());
+							string meta = max_peak->getMetaValue(3).toString();
+							if (meta!="")
+								sendStatusMessage(meta, 0);
+						}
+						
+						selected_peak_ = max_peak;
+						update();
 					}
-					else
+					else if (e->buttons() & Qt::LeftButton && measurement_start_)
 					{
-						//show Peak Coordinates (without intensity)
-						PointType pnt = widgetToData_(pos);
-						emit sendCursorStatus( pnt[0], -1.0, pnt[1]);				
-					}
+						measurement_stop_ = findNearestPeak_(pos);
+						last_mouse_pos_ = pos;
+						update();
 					
-					selected_peak_ = max_peak;
-					update();
+						if (measurement_stop_)
+						{
+							emit sendCursorStatus(measurement_stop_->getRT() - measurement_start_->getRT(),
+							                      measurement_stop_->getIntensity() / measurement_start_->getIntensity(),
+							                      measurement_stop_->getMZ() - measurement_start_->getMZ());
+						}
+						else
+						{
+							emit sendCursorStatus(measurement_start_->getRT(), measurement_start_->getIntensity(), measurement_start_->getMZ());
+						}
+					}
 				}
-				else if (e->buttons() & Qt::LeftButton) //projection
+				else //select
 				{
-					if (e->modifiers() & Qt::ShiftModifier)
+					// highlight nearest peak
+					if (e->buttons() == Qt::NoButton)
 					{
-						rubber_band_.setGeometry(QRect(QPoint(0, last_mouse_pos_.y()), QPoint(width(), pos.y())));
+						
+						Feature* max_peak = findNearestPeak_(pos);
+						
+						if (max_peak)
+						{
+							// show Peak Coordinates (with intensity)
+							emit sendCursorStatus(max_peak->getMZ(), max_peak->getIntensity(), max_peak->getRT());
+							//show lable
+							string meta = max_peak->getMetaValue(3).toString();
+							if (meta!="") sendStatusMessage(meta, 0);
+						}
+						else
+						{
+							//show Peak Coordinates (without intensity)
+							PointType pnt = widgetToData_(pos);
+							emit sendCursorStatus( pnt[0], -1.0, pnt[1]);				
+						}
+						
+						selected_peak_ = max_peak;
+						update();
 					}
-					else if (e->modifiers() & Qt::ControlModifier)
+					else if (e->buttons() & Qt::LeftButton) //projection
 					{
-						rubber_band_.setGeometry(QRect(QPoint(last_mouse_pos_.x(), 0), QPoint(pos.x(), height())));
-					}
-					else
-					{
-						rubber_band_.setGeometry(QRect(last_mouse_pos_, pos));
-					}
-					update();
-				}
-				break;
-			}
-			case AM_MEASURE:
-			{
-				// highlight nearest peak
-				if (e->buttons() == Qt::NoButton)
-				{
-					Feature* max_peak = findNearestPeak_(pos);
-					
-					if (max_peak && max_peak != selected_peak_ && !measurement_start_)
-					{
-						//show Peak Coordinates
-						emit sendCursorStatus(max_peak->getRT(), max_peak->getIntensity(), max_peak->getMZ());
-						string meta = max_peak->getMetaValue(3).toString();
-						if (meta!="")
-							sendStatusMessage(meta, 0);
-					}
-					
-					selected_peak_ = max_peak;
-					update();
-				}
-				else if (e->buttons() & Qt::LeftButton && measurement_start_)
-				{
-					measurement_stop_ = findNearestPeak_(pos);
-					last_mouse_pos_ = pos;
-					update();
-				
-					if (measurement_stop_)
-					{
-						emit sendCursorStatus(measurement_stop_->getRT() - measurement_start_->getRT(),
-						                      measurement_stop_->getIntensity() / measurement_start_->getIntensity(),
-						                      measurement_stop_->getMZ() - measurement_start_->getMZ());
-					}
-					else
-					{
-						emit sendCursorStatus(measurement_start_->getRT(), measurement_start_->getIntensity(), measurement_start_->getMZ());
+						if (e->modifiers() & Qt::ShiftModifier)
+						{
+							rubber_band_.setGeometry(QRect(QPoint(0, last_mouse_pos_.y()), QPoint(width(), pos.y())));
+						}
+						else if (e->modifiers() & Qt::ControlModifier)
+						{
+							rubber_band_.setGeometry(QRect(QPoint(last_mouse_pos_.x(), 0), QPoint(pos.x(), height())));
+						}
+						else
+						{
+							rubber_band_.setGeometry(QRect(last_mouse_pos_, pos));
+						}
+						update();
 					}
 				}
 				break;
@@ -1528,38 +1532,41 @@ namespace OpenMS
 		{
 			case AM_SELECT:
 			{
-				rubber_band_.hide();
-				if (e->button() == Qt::LeftButton && getCurrentLayer().type==LayerData::DT_PEAK)
-				{
-					//determine data coordiantes
-					QRect rect = rubber_band_.geometry();	
-					AreaType area(widgetToData_(rect.topLeft()), widgetToData_(rect.bottomRight()));
-					createProjections_(area, e->buttons() & Qt::ShiftModifier, e->buttons() & Qt::ControlModifier);
-				}
-				break;
-			}
-			case AM_MEASURE:
-			{
 				if (e->button() == Qt::LeftButton)
 				{
-					if (!measurement_stop_)
+					if (e->modifiers() & Qt::ControlModifier) //measure
 					{
-						delete(measurement_start_);
-						measurement_start_ = 0;
+						if (!measurement_stop_)
+						{
+							delete(measurement_start_);
+							measurement_start_ = 0;
+						}
+						else
+						{
+							measurement_stop_ = new Feature(*measurement_stop_);
+						}
+						
+						update();
+						
+						if (measurement_start_)
+						{
+							emit sendStatusMessage(QString("Measured: dRT = %1, dMZ = %3, Intensity ratio = %2")
+																		.arg(measurement_stop_->getRT() - measurement_start_->getRT())
+																		.arg(measurement_stop_->getIntensity() / measurement_start_->getIntensity())
+																		.arg(measurement_stop_->getMZ() - measurement_start_->getMZ()).toAscii().data(), 0);
+						}
+
 					}
-					else
+					else //select
 					{
-						measurement_stop_ = new Feature(*measurement_stop_);
-					}
-					
-					update();
-					
-					if (measurement_start_)
-					{
-						emit sendStatusMessage(QString("Measured: dRT = %1, dMZ = %3, Intensity ratio = %2")
-																	.arg(measurement_stop_->getRT() - measurement_start_->getRT())
-																	.arg(measurement_stop_->getIntensity() / measurement_start_->getIntensity())
-																	.arg(measurement_stop_->getMZ() - measurement_start_->getMZ()).toAscii().data(), 0);
+						rubber_band_.hide();
+						if (e->button() == Qt::LeftButton && getCurrentLayer().type==LayerData::DT_PEAK)
+						{
+							//determine data coordiantes
+							QRect rect = rubber_band_.geometry();	
+							AreaType area(widgetToData_(rect.topLeft()), widgetToData_(rect.bottomRight()));
+							createProjections_(area, e->buttons() & Qt::ShiftModifier, e->buttons() & Qt::ControlModifier);
+						}
 					}
 				}
 				break;
@@ -1580,7 +1587,7 @@ namespace OpenMS
 			}
 			case AM_TRANSLATE:
 			{
-	      setCursor(cursor_translate_);
+	      setCursor(Qt::OpenHandCursor);
 	      break;
 			}
 			default:

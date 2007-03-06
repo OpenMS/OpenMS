@@ -66,7 +66,7 @@ namespace OpenMS
     /// assignment operator
     BinnedRepMutualInformation& operator = (const BinnedRepMutualInformation& source);
 
-		///
+		/// @todo fix the 32/64 bit precision here (Andreas)
 		double operator () (const BinnedRep& a, const BinnedRep& b) const;
 
 		double operator () (const BinnedRep& a) const;

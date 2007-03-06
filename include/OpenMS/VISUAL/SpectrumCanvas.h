@@ -57,8 +57,8 @@ namespace OpenMS
 		
 		To provide additional spectrum views, you can derive from this class.
 		You should also create a subclass from SpectrumWidget which encloses
-		your class derived from SpectrumCanvas. To integrate you class into
-		TOPPView, you also need to derive from SpectrumWindow.
+		your class derived from SpectrumCanvas. To integrate your class into
+		TOPPView, you also need to derive a class from SpectrumWidget.
 		
 		@ingroup SpectrumWidgets
 	*/
@@ -94,10 +94,9 @@ namespace OpenMS
 		///Mouse action modes
 		enum ActionModes 
 		{
-			AM_SELECT,		///< select a peaks
-			AM_ZOOM,			///< zoom in / out
-			AM_TRANSLATE,	///< move the visible area
-			AM_MEASURE		///< measure distance between peaks
+			AM_SELECT,		///< select + measure
+			AM_ZOOM,			///< zoom + translate
+			AM_TRANSLATE	///< @todo remove
 		};
 		
 		///Display modes of intensity
@@ -159,21 +158,16 @@ namespace OpenMS
 		inline void setActionMode(ActionModes mode) 
 		{ 
 			action_mode_ = mode;
-			if (mode == AM_ZOOM)
+			switch (mode)
 			{
-				setCursor(Qt::CrossCursor);
-			}
-			else if (mode == AM_SELECT)
-			{
-			  setCursor(Qt::ArrowCursor);
-			}
-			else if (mode == AM_TRANSLATE)
-			{
-				setCursor(cursor_translate_);	
-			}
-			else if (mode == AM_MEASURE)
-			{
-				setCursor(Qt::ArrowCursor);
+				case AM_ZOOM:
+					setCursor(Qt::CrossCursor);
+					break;
+				case AM_TRANSLATE:
+					setCursor(Qt::OpenHandCursor);
+					break;
+				default:
+					setCursor(Qt::ArrowCursor);
 			}
 			actionModeChange_();
 		}
@@ -699,12 +693,6 @@ namespace OpenMS
 
 		/// Whether to recalculate the data in the buffer when repainting
 		bool update_buffer_;
-
-		/// The cursor used in the @c translate action mode
-		QCursor cursor_translate_;
-
-		/// The cursor used in while the view is dragged in the @c translate action mode
-		QCursor cursor_translate_in_progress_;
 
 		/// Stores the index of the currently active layer.
 		UInt current_layer_;

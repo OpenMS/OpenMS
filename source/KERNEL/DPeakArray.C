@@ -28,8 +28,6 @@
 
 namespace OpenMS
 {	
-	/// @cond DOXYGEN_IGNORES_THIS
 	DPeakArray<1> default_dpeakarray_1;
 	DPeakArray<2> default_dpeakarray_2;
-	/// @endcond
 }

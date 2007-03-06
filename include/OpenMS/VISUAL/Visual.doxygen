@@ -42,42 +42,10 @@
 	  additional widgets, such as OpenMS::AxisWidget. This
 	  class is also responsible for holding the data and for
 	  providing it to the canvas class instance.
-	- for integration into the TOPPView application, there
-	  must be another "window" class derived from
-	  OpenMS::SpectrumWindow, which serves as a container for
-	  the "widget" class and integrates into the MDI concept
-	  used by the TOPPView application.
 	
-	The predefined classes for 1D-views are: Spectrum1DCanvas,
-	Spectrum1DWidget and Spectrum1DWindow. The classes for
-	2D-views are: Spectrum2DCanvas, Spectrum2DWidget and
-	Spectrum2DWindow.
-	
-	For the most common operations, the window class provides
-	wrapper methods which forward to the widget or canvas
-	class. Also, there might be wrappers in the widget class
-	which forward to the canvas class.
-	
-	The canvas, widget and window classes are designed that
-	instances of the classes can work together. In particular,
-	an instance of a widget class needs the presence of an
-	instance of the canvas class, but not the other way around:
-	
-	@code
-	                 needs                  needs
-	                ------>                ------>
-	 SpectrumWindow         SpectrumWidget         SpectrumCanvas
-	                <------                <------
-	              doesn't need           doesn't need
-	@endcode
-	
-	Here, "doesn't need" means that if no instance is present
-	the widget will still work, but if it is present, it can
-	be used.
-	
-	This design allows more complex interconnected views, such
-	as a window widget containing more than one spectrum widgets
-	or spectrum widgets of different kinds.
+	The predefined classes for 1D-views are: Spectrum1DCanvas and
+	Spectrum1DWidget. The classes for
+	2D-views are: Spectrum2DCanvas and Spectrum2DWidget.
 	
 	@ingroup Visual
 */

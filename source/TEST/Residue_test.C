@@ -51,7 +51,7 @@ CHECK(~Residue())
 RESULT
 
 
-///////// Modification tests /////////////////
+// Modification tests
 
 Residue::Modification* m_ptr = 0;
 CHECK(Modification())

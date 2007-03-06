@@ -49,13 +49,7 @@ namespace OpenMS
 		setCanvas_(new Spectrum3DCanvas(this));
 		
 		x_axis_->hide();
-		y_axis_->hide();	
-		
-		connect(canvas(), SIGNAL(sendStatusMessage(std::string, OpenMS::UInt)),this, SIGNAL(sendStatusMessage(std::string, OpenMS::UInt)));
-		
-		connect(canvas(), SIGNAL(sendCursorStatus(double,double,double)),
-		this, SIGNAL(sendCursorStatus(double,double,double)));
-		addClient(canvas(),"Canvas",true);
+		y_axis_->hide();
 	}
 	
 	Spectrum3DWidget::~Spectrum3DWidget()
@@ -115,5 +109,11 @@ namespace OpenMS
 	{
 		return legend_shown_; 
 	}
+
+	void Spectrum3DWidget::showGoToDialog()
+	{
+		//add content (Cornelia)
+	}
+
 }//namespace
 

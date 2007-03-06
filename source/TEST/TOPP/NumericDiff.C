@@ -31,7 +31,7 @@
 #include <limits> // for NaN
 #include <sstream>
 
-/// @Todo Think about another distance than the ratio because of infinite ratios for really small values? (e.g. 0 and 10^-15)? (Clemens)
+//TODO Think about another distance than the ratio because of infinite ratios for really small values? (e.g. 0 and 10^-15)? (Clemens)
 
 int argc = 0;
 char ** argv = 0;
@@ -45,16 +45,16 @@ std::stringstream line_2;
 std::ios::pos_type line_1_pos;
 std::ios::pos_type line_2_pos;
 
-/// Maximum ratio of numbers allowed
+// Maximum ratio of numbers allowed
 double ratio_max_allowed = 1.0;
 
-/// Maximum ratio of numbers observed so far
+// Maximum ratio of numbers observed so far
 double ratio_max = 1.0;
 
-/// Maximum absolute difference of numbers allowed
+// Maximum absolute difference of numbers allowed
 double absdiff_max_allowed = 12345;
 
-/// Maximum difference of numbers observed so far
+// Maximum difference of numbers observed so far
 double absdiff_max = 0.0;
 
 double number_1 = 0;
@@ -83,7 +83,7 @@ std::string line_str_2;
 std::string line_str_1_max;
 std::string line_str_2_max;
 
-/// Write out usage information.
+// Write out usage information.
 void usage()
 {
   std::cerr <<
@@ -138,7 +138,8 @@ void report ( char* message = "<no message>" )
 }
 
 
-/**@brief Simple diff-like application to compare two input files.
+/*
+	 Simple diff-like application to compare two input files.
 	 Numeric differences are tolerated up to a certain ratio.
 
    <pre>

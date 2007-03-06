@@ -38,47 +38,48 @@ namespace OpenMS
 	
 	SpectrumWidget::SpectrumWidget(QWidget* parent)
 		: QWidget(parent),
-			canvas_(0),
-			spectrum_window_(0)
+			canvas_(0)
 	{
+		setAttribute(Qt::WA_DeleteOnClose);
+		setMinimumSize(200,200);
 		grid_ = new QGridLayout(this);
-		
-		//add axes
-		y_axis_ = new AxisWidget(AxisWidget::LEFT, "",this);
-		x_axis_ = new AxisWidget(AxisWidget::BOTTOM, "",this);
-		grid_->addWidget(y_axis_,0,1);
-		grid_->addWidget(x_axis_,1,2);
-
-		//add scrollbars
-		x_scrollbar_ = new QScrollBar(Qt::Horizontal, this);
-		y_scrollbar_ = new QScrollBar(Qt::Vertical, this);
-		grid_->addWidget(y_scrollbar_,0,0);
-		grid_->addWidget(x_scrollbar_,2,2);		
-		x_scrollbar_->hide();
-		y_scrollbar_->hide();
+		grid_->setSpacing(0);
+		grid_->setMargin(1);
 	}
 	
 	
-	void SpectrumWidget::setCanvas_(SpectrumCanvas* canvas)
+	void SpectrumWidget::setCanvas_(SpectrumCanvas* canvas, UInt row, UInt col)
 	{
 		canvas_ = canvas;
-		grid_->addWidget(canvas_, 0, 2);
-
+		grid_->addWidget(canvas_, row, col);
 		//axes
+		y_axis_ = new AxisWidget(AxisWidget::LEFT, "",this);
+		x_axis_ = new AxisWidget(AxisWidget::BOTTOM, "",this);
+		grid_->addWidget(y_axis_,row,col-1);
+		grid_->addWidget(x_axis_,row+1,col);
 		connect(canvas_, SIGNAL(visibleAreaChanged(DRange<2>)), this, SLOT(updateAxes()));
 		connect(canvas_, SIGNAL(recalculateAxes()), this, SLOT(updateAxes()));
 		//scrollbars
+		x_scrollbar_ = new QScrollBar(Qt::Horizontal, this);
+		y_scrollbar_ = new QScrollBar(Qt::Vertical, this);
+		grid_->addWidget(y_scrollbar_,row,col-2);
+		grid_->addWidget(x_scrollbar_,row+2,col);		
+		x_scrollbar_->hide();
+		y_scrollbar_->hide();
 		connect(canvas_, SIGNAL(updateHScrollbar(float,float,float,float)), this, SLOT(updateHScrollbar(float,float,float,float)));
 		connect(canvas_, SIGNAL(updateVScrollbar(float,float,float,float)), this, SLOT(updateVScrollbar(float,float,float,float)));
 		connect(x_scrollbar_, SIGNAL(valueChanged(int)), canvas_, SLOT(horizontalScrollBarChange(int)));
 		connect(y_scrollbar_, SIGNAL(valueChanged(int)), canvas_, SLOT(verticalScrollBarChange(int)));
-		
+		connect(canvas_, SIGNAL(sendStatusMessage(std::string, OpenMS::UInt)),this, SIGNAL(sendStatusMessage(std::string, OpenMS::UInt)));
+		connect(canvas_, SIGNAL(sendCursorStatus(double,double,double)), this, SIGNAL(sendCursorStatus(double,double,double)));
+
+		addClient(canvas_,"Canvas",true);
 		canvas_->setSpectrumWidget(this);
 	}
 	
 	SpectrumWidget::~SpectrumWidget()
 	{
-		
+		emit aboutToBeDestroyed(window_id);
 	}
 	
 	Int SpectrumWidget::getActionMode() const 

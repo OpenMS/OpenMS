@@ -144,7 +144,7 @@ namespace OpenMS
 		
 		noise_level_signal_ = param_.getValue("noise_level_signal");
 		noise_level_cwt_ = param_.getValue("noise_level_cwt");
-		/// S/N threshold for single peaks in the cwt
+		// S/N threshold for single peaks in the cwt
 		IntensityType high_peak_intensity_factor = param_.getValue("high_peak_intensity_factor");		
 	
 		UInt current_charge = 0; // charge state of the current isotopic cluster

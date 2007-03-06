@@ -57,7 +57,6 @@ namespace OpenMS
     parse_(filename, &handler);
   }
 
-  /// stores the pair vector @p pairs in file with name @p filename.
   void FeaturePairsFile::store(String filename, const std::vector< ElementPair < Feature > > & pairs) const throw (Exception::UnableToCreateFile)
   {
     if (pairs.empty()) return;

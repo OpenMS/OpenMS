@@ -78,9 +78,9 @@ namespace OpenMS
 
 		void IsotopeModel::setSamples()
 		{
-			/// MAGIC alert, num stdev for smooth table for normal distribution
+			// MAGIC alert, num stdev for smooth table for normal distribution
 			CoordinateType normal_widening_num_stdev = 4.;
-			/// Actual width for values in the smooth table for normal distribution
+			// Actual width for values in the smooth table for normal distribution
 			CoordinateType normal_widening_width = isotope_stdev_
 																						* normal_widening_num_stdev;
 

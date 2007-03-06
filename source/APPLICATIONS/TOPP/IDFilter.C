@@ -219,7 +219,7 @@ class TOPPIDFilter
 		// calculations
 		//-------------------------------------------------------------
 						
-		/// Filtering identifications	by thresholds
+		// Filtering identifications	by thresholds
 		for(UInt i = 0; i < identifications.size(); i++)
 		{       
 			filter.filterIdentificationsByThresholds(identifications[i].id, 

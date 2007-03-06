@@ -199,16 +199,16 @@ namespace OpenMS
 		min_[RT] -= stdev_rt1_;
 		max_[RT] += stdev_rt2_;
 
-		/// create a vector with RT-values & Intensity
-		/// compute the parameters (intial values) for the EMG & Gauss function and finally,
-		/// optimize the parameters with Levenberg-Marquardt algorithms
+		// create a vector with RT-values & Intensity
+		// compute the parameters (intial values) for the EMG & Gauss function and finally,
+		// optimize the parameters with Levenberg-Marquardt algorithms
 		if (profile_=="LmaGauss" || profile_=="EMG" || profile_=="LogNormal")
 		{
 			setData(set);
 			optimize();
 		}
 
-		/// Test different charges and stdevs
+		// Test different charges and stdevs
 		const int first_model = param_.getValue("mz:model_type:first");
 		const int last_model = param_.getValue("mz:model_type:last");
 		for ( ; stdev <= last; stdev += step)
@@ -612,7 +612,7 @@ namespace OpenMS
 		size_t n = ((struct ExpFitPolyData*)params)->n;
 		String profile = ((struct ExpFitPolyData*)params)->profile;
 
-		/// normal distribution (s = standard deviation, m = expected value)
+		// normal distribution (s = standard deviation, m = expected value)
 		if (profile=="LmaGauss")
 		{
 			double normal_s = gsl_vector_get(x,0);
@@ -632,7 +632,7 @@ namespace OpenMS
 		}
 		else
 		{
-			/// Simplified EMG
+			// Simplified EMG
 			if (profile=="EMG")
 			{
 				double h = gsl_vector_get(x,0);
@@ -653,7 +653,7 @@ namespace OpenMS
 					gsl_vector_set(f, i, (Yi - signalDC_[i]));
 				}
 			}
-			/// log normal
+			// log normal
 			else
 			{
 				double h = gsl_vector_get(x,0);
@@ -759,7 +759,7 @@ namespace OpenMS
 					gsl_matrix_set(J, i, 3, derivative_retention);
 				}
 			}
-			/// log normal function
+			// log normal function
 			else
 			{
 				double h = gsl_vector_get(x,0);

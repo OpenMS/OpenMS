@@ -50,7 +50,7 @@ namespace OpenMS
 			
 			// Docu in base class
 			Spectrum3DCanvas* canvas();
-			
+		
 			// Docu in base class
 			virtual PreferencesDialogPage* createPreferences(QWidget* parent);  
 			// Docu in base class
@@ -59,13 +59,18 @@ namespace OpenMS
 			virtual Math::Histogram<UInt, float> createIntensityDistribution_();   
 			// Docu in base class
 			virtual QImage getImage(UInt width, UInt height);
-	
+			
+			//document me (Cornelia)
 			bool isLegendShown() ;
 		
 		public slots:
+			// document me (Cornelia)
 			void showLegend(int);
-
+			// Docu in base class
+	    virtual void showGoToDialog();
+	    
 		protected:
+			// document me (Cornelia)
 			bool legend_shown_;
 
 	};

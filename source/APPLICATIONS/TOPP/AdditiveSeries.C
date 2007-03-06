@@ -139,10 +139,10 @@ class AdditiveSeries
 	}
 
 
-  /// searches for a features with coordinates within the tolerance in this map
-	/// NOTE: It might happen, that there are several features at similar coordinates.
-	/// In this case, the program cannot be sure which one is the correct. So we decided
-	/// to use the one with the strongest intensity.
+  // searches for a features with coordinates within the tolerance in this map
+	// NOTE: It might happen, that there are several features at similar coordinates.
+	// In this case, the program cannot be sure which one is the correct. So we decided
+	// to use the one with the strongest intensity.
 	bool readMapFile_(String filename, vector<double>& intensities,
 										CoordinateType tol_mz, CoordinateType tol_rt,
 										DPosition<2> fpos1, DPosition<2> fpos2)
@@ -221,7 +221,8 @@ class AdditiveSeries
 		return false;
 	}
 
-	/**\brief Computes the linear regression for a series of measurements, the
+	/*
+		 Computes the linear regression for a series of measurements, the
 		 x-axis intercept of the regression line and its confidence interval, and
 		 writes a couple of files from which a nice plot of all this can be
 		 generated using the gnuplot program.

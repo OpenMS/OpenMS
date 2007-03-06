@@ -31,6 +31,7 @@
 
 //QT includes
 #include <QtGui/QGridLayout>
+#include <QtGui/QSplitter>
 #include <QtGui/QHeaderView>
 
 //STL
@@ -41,14 +42,14 @@ using namespace std;
 namespace OpenMS
 {
 
-	ListStack::ListStack( QWidget * parent): 
-	QWidget(parent), 
-	last_(0)
+	ListStack::ListStack( QWidget * parent)
+		: QWidget(parent), 
+		last_(0)
 	{
 		//layout
 		QGridLayout* layout = new QGridLayout(this);
-		layout->setSpacing(4);
-		layout->setMargin(6);
+		QSplitter* splitter = new QSplitter(Qt::Horizontal, this);
+		layout->addWidget(splitter,0,0);
 		
 		//listview (left)
 		tree_ =  new QTreeWidget(this);
@@ -58,13 +59,12 @@ namespace OpenMS
 		tree_->setSortingEnabled(false);
 		tree_->setHorizontalScrollBarPolicy ( Qt::ScrollBarAlwaysOff );
 		tree_->header()->hide();
-		layout->addWidget(tree_,0,0);
+		splitter->addWidget(tree_);
 			
 		
 		//widget stack (right)
 		stack_ = new QStackedWidget(this);
-		layout->addWidget(stack_,0,1);
-		layout->setColumnStretch(1,1);
+		splitter->addWidget(stack_);
 		
 		connect(tree_,SIGNAL( itemSelectionChanged() ),this,SLOT( raiseActiveWidget_() ));
 	}

@@ -85,7 +85,7 @@ namespace OpenMS
 			//default map view
 			default_map_view_ = new QComboBox( tab);
 			default_map_view_->insertItem(0,"2D");
-			default_map_view_->insertItem(1,"3D");
+			default_map_view_->insertItem(1,"3D (experimental)");
 			addWidget_(grid,2,"Default map visualization:",default_map_view_);
 			//legend
 			show_legend_ = new QComboBox( tab);

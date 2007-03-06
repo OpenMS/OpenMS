@@ -47,7 +47,7 @@ CHECK((Date()))
 	TEST_NOT_EQUAL(s_ptr, 0)
 RESULT
 
-CHECK((~Date()))
+CHECK(([EXTRA]~Date()))
 	delete s_ptr;
 RESULT
 
@@ -76,24 +76,6 @@ CHECK((void set(UInt month, UInt day, UInt year) throw(Exception::ParseError)))
   TEST_EXCEPTION(Exception::ParseError,date.set(1,32,1977));
   TEST_EXCEPTION(Exception::ParseError,date.set(13,1,1977));
 	TEST_EXCEPTION(Exception::ParseError,date.set(02,29,2100));
-RESULT
-
-CHECK((bool operator == (const Date& rhs) const))
-  Date date, date2;
-  TEST_EQUAL(date==date2,true);
-  date.set(12,1,1977);
-  TEST_EQUAL(date==date2,false);
-  date2.set(12,1,1977);
-  TEST_EQUAL(date==date2,true);
-RESULT
-
-CHECK((bool operator != (const Date& rhs) const))
-  Date date, date2;
-  TEST_EQUAL(date!=date2,false);
-  date.set(12,1,1977);
-  TEST_EQUAL(date!=date2,true);
-  date2.set(12,1,1977);
-  TEST_EQUAL(date!=date2,false);
 RESULT
 
 CHECK((Date& operator= (const Date& source)))
@@ -175,11 +157,7 @@ CHECK((void clear()))
   TEST_EQUAL(s,"0000-00-00");
 RESULT
 
-CHECK(void today())
-	// not testable
-RESULT
-
-CHECK(static std::string now())
+CHECK((void today()))
 	// not testable
 RESULT
 

@@ -61,29 +61,38 @@ namespace OpenMS
 	
 	void PreferencesManager::addClient(PreferencesManager* client, const string& name, bool isIncluded)
 	{ 
-			if (isIncluded){
+		if (isIncluded)
+		{
 			incl_clients_[client] = name;
-			}else{
+		}
+		else
+		{
 			clients_[client] = name;
-			}
+		}
 		client->setParent(this);
 	}
 	
 	
 	void PreferencesManager::removeClient(PreferencesManager* client, bool isIncluded)
 	{ 	
-		if (isIncluded){
+		if (isIncluded)
+		{
 			incl_clients_.erase(client);
-		}else{
+		}
+		else
+		{
 			clients_.erase(client);
 		}
 	}
 	
 	void PreferencesManager::setClientName(PreferencesManager* client, const std::string& name, bool isIncluded)
 	{
-		if (isIncluded){
+		if (isIncluded)
+		{
 			incl_clients_[client] = name;
-		}else{
+		}
+		else
+		{
 			clients_[client] = name;
 		} 
 	}
@@ -129,8 +138,7 @@ namespace OpenMS
 	{
 		for (map<PreferencesManager*,string>::iterator it = incl_clients_.begin(); it!=incl_clients_.end();++it)
 		{
-			if (it->second == name)
-				return it->first->createPreferences(parent);
+			if (it->second == name) return it->first->createPreferences(parent);
 		}
 		return 0;
 	}

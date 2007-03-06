@@ -310,7 +310,6 @@ CHECK(void setNoiseForEmtpyWindow(DoubleReal noise_for_empty_window))
   TEST_EQUAL(sne.getNoiseForEmtpyWindow(), 2.5);
 RESULT
 
-/// overwritten base-members
 
 CHECK(void setFirstDataPoint(const PeakIterator& first))
   DPeakArray<1,RawDataPoint1D > raw_data;

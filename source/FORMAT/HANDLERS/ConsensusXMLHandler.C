@@ -32,7 +32,7 @@ namespace OpenMS
 {
   namespace Internal
   {
-    /// Load the peaks
+    // Load the peaks
     template <>
     template <>
     void ConsensusXMLHandler< StarAlignment< ConsensusFeature< FeatureMap< > > > >::loadFile_< ConsensusFeature< FeatureMap< > > >(const String& file_name, UInt id, const ConsensusFeature< FeatureMap< > >& /* c */ ) throw (Exception::FileNotFound, Exception::ParseError)

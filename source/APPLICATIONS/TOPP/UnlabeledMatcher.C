@@ -112,7 +112,7 @@ class TOPPUnlabeledMatcher
       FeatureMapFile feature_file[2];
       FeatureMap< > feature_map[2];
 
-      /// determine names of input files
+      // determine names of input files
       for ( UInt index = 0; index < 2; ++index )
       {
         inputfile[index] = getStringOption_(String("in") + (index+1));

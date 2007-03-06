@@ -47,7 +47,8 @@ namespace OpenMS
 			help_ = "This is the preferences dialog of a 3D view of a map!";
 		
 			QGridLayout* grid;	
-			grid = new QGridLayout(this);		
+			grid = new QGridLayout(this);
+			
 			canvas_ = manager->client("Canvas", this);
 			grid->addWidget(canvas_, 0,0,1,1);
 			load();

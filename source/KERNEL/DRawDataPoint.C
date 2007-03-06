@@ -28,8 +28,6 @@
 
 namespace OpenMS
 {
-	/// @cond DOXYGEN_IGNORES_THIS
   DRawDataPoint<1> default_drawdatapoint_1;
   DRawDataPoint<2> default_drawdatapoint_2;
-  /// @endcond
 }

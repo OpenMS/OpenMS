@@ -36,11 +36,13 @@ help:
 #######################################################################
 # creates the documentation
 doc:
-	@test -f Doxyfile || cp ../source/config/Doxyfile.in Doxyfile
-	@doxygen Doxyfile
+	@rm -rf doxygen/xml_output doxygen/html_output
+	@test -f doxygen/Doxyfile || cp ../source/config/Doxyfile.in doxygen/Doxyfile
+	@doxygen doxygen/Doxyfile
 
 #######################################################################
 # creates the internal documentation
 idoc:
-	@test -f Doxyfile || cp ../source/config/Doxyfile.in Doxyfile
-	@doxygen Doxyfile_internal
+	@rm -rf doxygen/xml_output doxygen/html_output
+	@test -f doxygen/Doxyfile || cp ../source/config/Doxyfile.in doxygen/Doxyfile
+	@doxygen doxygen/Doxyfile_internal

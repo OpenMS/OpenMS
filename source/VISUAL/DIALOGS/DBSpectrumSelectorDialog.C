@@ -60,8 +60,6 @@ namespace OpenMS
 		hbox1_->addStretch(1);
 		hbox1_->addWidget(ok_button_);
 		hbox1_->addWidget(cancel_button_);
-		hbox1_->setSpacing(4);
-		hbox1_->setMargin(6);
 		
 		//string line edit, button + layout
 		QLabel* label_ = new QLabel("Description contains:",this);

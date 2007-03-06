@@ -951,7 +951,7 @@ namespace OpenMS
 
   }
 
-  /// Finds the neighbour of the peak denoted by @p current_mz in the previous scan
+  // Finds the neighbour of the peak denoted by @p current_mz in the previous scan
   std::vector<double>::iterator TwoDOptimization::searchInScan_(std::vector<double>::iterator scan_begin,
       std::vector<double>::iterator scan_end ,
       double current_mz)

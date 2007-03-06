@@ -64,7 +64,7 @@ CHECK(void setMissedCleavages(UInt missed_cleavages))
 RESULT
 
 CHECK(void setEnzyme(Enzyme enzyme))
-	///TODO ?????? as soon as there is a second enzyme
+	//TODO: as soon as there is a second enzyme
 RESULT
 
 CHECK(UInt peptideCount(const AASequence& protein))

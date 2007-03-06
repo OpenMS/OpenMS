@@ -29,8 +29,6 @@
 
 namespace OpenMS
 {
-	/// @cond DOXYGEN_IGNORES_THIS
 	Math::LinearInterpolation<> default_linint_;
-	/// @endcond
 }
 

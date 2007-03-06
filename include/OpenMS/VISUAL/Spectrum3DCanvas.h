@@ -58,17 +58,20 @@ namespace OpenMS
 	    
 	    /**	@name Type definitions */
 	    //@{
+	    //document me (Cornelia)
 			enum DotModes 
 	    {
 				DOT_BLACK = 0,            ///< use black only
 				DOT_GRADIENT = 1          ///< use gradient
 	    };
+	    //remove!?!?! (Cornelia)
 			enum DataModes 
 	    {
 				REDUCTION_OFF = 0,          
 				REDUCTION_MAX = 1,
 				REDUCTION_SUM = 2
 	    };
+	    //document me (Cornelia)
 	    enum ShadeModes 
 	    {
 				SHADE_FLAT = 0,            
@@ -101,20 +104,29 @@ namespace OpenMS
 			*/
 			virtual void changeVisibleArea_(const AreaType& new_area, bool add_to_stack = false);
 
-	    ///preferences
+	    //document me (Cornelia)
 	    Int getDotMode();
+	    //document me (Cornelia)
 			Int getDataMode();
+			//document me (Cornelia)
 			void setDataMode();
+			//document me (Cornelia)
 	    void setDotGradient(const std::string& gradient);
+	    //document me (Cornelia)
 	    Int getShadeMode();
+	    //document me (Cornelia)
 	    UInt getDotInterpolationSteps();
+	    //Docu in base class
 	    void repaintAll();
-	    //resizeEvent
+	    ///QT resizeEvent
 	    void resizeEvent(QResizeEvent * e);
+		  //document me (Cornelia)
 		  void connectMouseEvents();
+	    //document me (Cornelia)
 	    void showLegend(bool);
+	    //document me (Cornelia)
 	    Spectrum3DOpenGLCanvas* openglcanvas_;
-	
+			//document me (Cornelia)
 	    void makeReducedDataSet();
 
 		public slots:
@@ -133,9 +145,11 @@ namespace OpenMS
 			double area_;
 			///peak per RT
 			int peaks_per_rt_;
-
+			
+			//document me (Cornelia)
 			int current_zoom_;  
 			
+			//document me (Cornelia)
 			bool legend_shown_;
   };
   

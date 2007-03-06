@@ -29,7 +29,5 @@
 
 namespace OpenMS
 {
-	/// @cond DOXYGEN_IGNORES_THIS
 	DPeakConstReferenceArray<FeatureMap<Feature> > default_dpeakconstreferencearray_featuremap_2;
-	/// @endcond
 }

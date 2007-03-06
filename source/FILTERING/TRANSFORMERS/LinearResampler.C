@@ -29,8 +29,6 @@
 
 namespace OpenMS
 {
-	 /// @cond DOXYGEN_IGNORES_THIS
    LinearResampler default_linear_resampler;
    LinearResampler default_linear_resampler2;
-	/// @endcond
 }

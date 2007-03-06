@@ -29,6 +29,9 @@
 
 // OpenMS
 #include <OpenMS/VISUAL/SpectrumWidget.h>
+#include <OpenMS/VISUAL/Spectrum1DWidget.h>
+
+class QPushButton;
 
 namespace OpenMS
 {
@@ -71,14 +74,23 @@ namespace OpenMS
 		
 		// Docu in base class
 		Spectrum2DCanvas* canvas();
-		
+
 		// Docu in base class
 		virtual PreferencesDialogPage* createPreferences(QWidget* parent);
+
+		/// const reference to the horizontal projection
+		const Spectrum1DWidget* getHorizontalProjection() const;
+		/// const reference to the vertical projection
+		const Spectrum1DWidget* getVerticalProjection() const;
 
 	public slots:	
 		// Docu in base class
 		virtual void recalculateAxes_();
-		
+		/// Hides the projections
+		void hideProjections();
+		// Docu in base class
+    virtual void showGoToDialog();
+    
 	signals:
 		/**
 			@brief Signal emitted whenever the visible area changes.
@@ -90,6 +102,19 @@ namespace OpenMS
 	protected:
 		// Docu in base class
 		virtual Math::Histogram<UInt,float> createIntensityDistribution_();
+		
+		/// Vertical projection widget
+		Spectrum1DWidget* projection_vert_;
+		/// Horizontal projection widget
+		Spectrum1DWidget* projection_horz_;
+		QPushButton* hide_button_;
+	
+	private slots:
+		/// shows the horizontal projection with the given data and draw mode
+		void horizontalProjection(const MSExperiment<>&, Spectrum1DCanvas::DrawModes);
+		/// shows the vertical projection with the given data and draw mode
+		void verticalProjection(const MSExperiment<>&, Spectrum1DCanvas::DrawModes);
+
 	};
 }
 

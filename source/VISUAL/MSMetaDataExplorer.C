@@ -78,8 +78,6 @@ namespace OpenMS
 	  setModal(modal);
 	  
 		basiclayout_ = new QGridLayout(this);
-		basiclayout_->setSpacing(6);
-		basiclayout_->setMargin(11); 
 		
 		//Create the tree for exploring data 
 		treeview_ = new QTreeWidget(this);

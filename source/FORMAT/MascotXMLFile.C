@@ -95,8 +95,8 @@ namespace OpenMS
       throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "", String("SAXException: ") + xercesc::XMLString::transcode(toCatch.getMessage()) );
     }
 		
-		/// Since the mascot xml can contain "peptides" without sequences the identifications 
-		/// without any real peptide hit are removed
+		// Since the mascot xml can contain "peptides" without sequences the identifications 
+		// without any real peptide hit are removed
   	vector<PeptideHit> peptide_hits;
   	vector<IdentificationData>::iterator id_it = id_data.begin();
 

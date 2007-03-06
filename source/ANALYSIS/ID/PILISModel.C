@@ -1567,7 +1567,7 @@ namespace OpenMS
         }
         if (bb_sum < (double)param_.getValue("charge_remote_threshold") /*CHARGE_REMOTE_THRESHOLD*/ && (aa == "D" || aa == "E"))
         {
-          cr_init.push_back(((1 - bb_sum) * bb_avg /** sc_charge[i]*/) * (double)param_.getValue("charge_remote_factor")/*CHARGE_REMOTE_FACTOR*/);
+          cr_init.push_back(((1 - bb_sum) * bb_avg /* sc_charge[i]*/) * (double)param_.getValue("charge_remote_factor")/*CHARGE_REMOTE_FACTOR*/);
         }
         else
         {

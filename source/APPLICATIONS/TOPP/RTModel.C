@@ -376,7 +376,7 @@ class TOPPRTModel
 				debug_string += " with performance " + String(cv_quality);
 				writeDebug_(debug_string, 1);
 			}			
-			/// enabling probability estimates of the svm
+			// enabling probability estimates of the svm
 			svm.setParameter(PROBABILITY, 1);
 			
 			svm.train(encoded_training_sample);

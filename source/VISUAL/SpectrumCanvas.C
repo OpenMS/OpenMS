@@ -29,10 +29,6 @@
 #include <OpenMS/VISUAL/SpectrumWidget.h>
 #include <OpenMS/VISUAL/AxisWidget.h>
 
-// custom cursor for translating
-#include "ICONS/handopen.xpm"
-#include "ICONS/handclosed.xpm"
-
 // QT
 #include <QtGui/QPainter>
 #include <QtGui/QPaintEvent>
@@ -54,8 +50,6 @@ namespace OpenMS
 			show_grid_(true),
 			show_reduced_(false),
 			update_buffer_(false),
-			cursor_translate_(QPixmap(XPM_handopen)),
-			cursor_translate_in_progress_(QPixmap(XPM_handclosed)),
 			current_layer_(0),
 			spectrum_widget_(0),
 			datareducer_(0),

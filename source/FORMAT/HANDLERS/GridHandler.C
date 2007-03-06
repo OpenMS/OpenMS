@@ -145,7 +145,7 @@ namespace OpenMS
       }
     }
 
-    /// Print the contents to a stream
+    // Print the contents to a stream
     void GridHandler::writeTo(std::ostream& os)
     {
       os << "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?><!-- -*- mode: nxml; tab-width: 2 -*- -->" << std::endl;

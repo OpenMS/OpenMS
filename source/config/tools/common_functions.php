@@ -200,9 +200,9 @@ function getClassInfo($path,$header, $debug)
 		);
 
 	######################## needed stuff ###############################
-	if (!file_exists("$path/doc/xml/"))
+	if (!file_exists("$path/doc/doxygen/xml_output/"))
 	{
-		print "Error: The directory '$path/doc/xml/' is needed!\n";
+		print "Error: The directory '$path/doc/doxygen/xml_output/' is needed!\n";
 		print "       Please execute 'make idoc' in '$path/doc/'.\n";
 	}
 	
@@ -216,7 +216,7 @@ function getClassInfo($path,$header, $debug)
 	$found = false;
 	foreach ($paths as $p)
 	{
-		$tmp = "$path/doc/xml/classOpenMS_1_1".$p.$members["classname"].".xml";
+		$tmp = "$path/doc/doxygen/xml_output/classOpenMS_1_1".$p.$members["classname"].".xml";
 		if (file_exists($tmp))
 		{
 			$class = simplexml_load_file($tmp);

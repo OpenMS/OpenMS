@@ -28,7 +28,5 @@
 
 namespace OpenMS
 {
-	/// @cond DOXYGEN_IGNORES_THIS
   ElementPair<> default_dfeaturepair;
-  /// @endcond
 }

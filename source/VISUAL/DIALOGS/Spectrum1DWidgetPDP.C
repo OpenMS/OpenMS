@@ -49,6 +49,7 @@ namespace OpenMS
 			help_ = "This is the preferences dialog of a displayed spectrum!";
 		
 			QGridLayout* grid = new QGridLayout(this);
+			grid->setMargin(0);
 			
 			//Specetrum1DCanvas settings
 			colors_ = manager->client("Canvas", this);

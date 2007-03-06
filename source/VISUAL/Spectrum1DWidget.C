@@ -28,7 +28,7 @@
 #include <OpenMS/VISUAL/Spectrum1DWidget.h>
 #include <OpenMS/VISUAL/AxisWidget.h>
 #include <OpenMS/VISUAL/DIALOGS/Spectrum1DWidgetPDP.h>
-
+#include <OpenMS/VISUAL/DIALOGS/Spectrum1DGoToDialog.h>
 
 using namespace std;
 
@@ -42,15 +42,12 @@ namespace OpenMS
 	{
 		//set the label mode for the axes  - side effect
 		setCanvas_(new Spectrum1DCanvas(this));
-		connect(canvas(), SIGNAL(sendStatusMessage(std::string, OpenMS::UInt)), this, SIGNAL(sendStatusMessage(std::string, OpenMS::UInt)));
-		connect(canvas(), SIGNAL(sendCursorStatus(double,double,double)), this, SIGNAL(sendCursorStatus(double,double,double)));
-		
+
 		x_axis_->setLegend("m/z");
 		x_axis_->setAllowShortNumbers(false);
 		y_axis_->setLegend("Intensity");
 		y_axis_->setAllowShortNumbers(true);
 		y_axis_->setMinimumWidth(50);
-		addClient(canvas(),"Canvas",true);
 	}
 	
 	Spectrum1DCanvas* Spectrum1DWidget::canvas()
@@ -119,6 +116,17 @@ namespace OpenMS
 	{
 		PreferencesDialogPage* background = new Spectrum1DWidgetPDP(this, parent);
 		return background;
+	}
+
+	void Spectrum1DWidget::showGoToDialog()
+	{
+	  Spectrum1DGoToDialog goto_dialog(this);
+	  goto_dialog.setMin(canvas()->getDataRange().minX());
+	  goto_dialog.setMax(canvas()->getDataRange().maxX());
+	  if (goto_dialog.exec())
+	  {
+	  	canvas()->setVisibleArea(SpectrumCanvas::AreaType(goto_dialog.getMin(),0,goto_dialog.getMax(),0));
+		}
 	}
 
 } //namespace

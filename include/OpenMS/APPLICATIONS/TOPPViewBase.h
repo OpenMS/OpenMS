@@ -31,7 +31,7 @@
 #include <OpenMS/VISUAL/PreferencesManager.h>
 #include <OpenMS/VISUAL/DIALOGS/OpenDialog.h>
 #include <OpenMS/VISUAL/SpectrumCanvas.h>
-#include <OpenMS/VISUAL/SpectrumWindow.h>
+#include <OpenMS/VISUAL/SpectrumWidget.h>
 #include <OpenMS/VISUAL/EnhancedTabBar.h>
 
 //STL
@@ -54,17 +54,15 @@ class QCloseEvent;
 namespace OpenMS
 {
   class MultiGradientSelector;
-  class Spectrum1DWindow;
-  class Spectrum2DWindow;
-  class Spectrum3DWindow;
+  class Spectrum1DWidget;
+  class Spectrum2DWidget;
+  class Spectrum3DWidget;
 
   /**
   	@brief MDI window of TOPPView tool
   	
   	@todo Add preferences for layers (Marc)
-  	@todo Use right mouse button and double-click for navigation in data (Marc)
   	@todo Remove coordinate-data transformations (Marc)
-  	@todo Remove SpectrumWindow (Marc)
   */
   class TOPPViewBase 
   	: public QMainWindow, 
@@ -241,21 +239,21 @@ namespace OpenMS
 
     protected:
       /// Adds a tab for the window in the tabbar
-      void addTab_(SpectrumWindow*, const String&);
+      void addTab_(SpectrumWidget*, const String&);
       /// connect the slots/signals for status messages and mode changes (paint or mouse mode)
-      void connectWindowSignals_(SpectrumWindow* sw);
+      void connectWindowSignals_(SpectrumWidget* sw);
       ///returns the window with id @p id
-      SpectrumWindow* window_(int id) const;
-      ///returns a pointer to the active SpectrumWindow (0 if none is active)
-      SpectrumWindow*  activeWindow_() const;
+      SpectrumWidget* window_(int id) const;
+      ///returns a pointer to the active SpectrumWidget (0 if none is active)
+      SpectrumWidget*  activeWindow_() const;
       ///returns a pointer to the active SpectrumCanvas (0 if none is active)
       SpectrumCanvas*  activeCanvas_() const;
-      ///returns a pointer to the active Spectrum1DWindow (0 the active window is no Spectrum1DWindow or there is no active window)
-      Spectrum1DWindow* active1DWindow_() const;
-      ///returns a pointer to the active Spectrum2DWindow (0 the active window is no Spectrum2DWindow or there is no active window)
-      Spectrum2DWindow* active2DWindow_() const;
-      ///returns a pointer to the active Spectrum3DWindow (0 the active window is no Spectrum2DWindow or there is no active window)
-      Spectrum3DWindow* active3DWindow_() const;
+      ///returns a pointer to the active Spectrum1DWidget (0 the active window is no Spectrum1DWidget or there is no active window)
+      Spectrum1DWidget* active1DWindow_() const;
+      ///returns a pointer to the active Spectrum2DWidget (0 the active window is no Spectrum2DWidget or there is no active window)
+      Spectrum2DWidget* active2DWindow_() const;
+      ///returns a pointer to the active Spectrum3DWidget (0 the active window is no Spectrum2DWidget or there is no active window)
+      Spectrum3DWidget* active3DWindow_() const;
       ///Estimates the noise by evaluating 10 random scans of MS level 1
       float estimateNoise_(const SpectrumCanvas::ExperimentType& exp);
 

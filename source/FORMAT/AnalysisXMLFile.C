@@ -122,7 +122,7 @@ namespace OpenMS
 		parser->setFeature(xercesc::XMLUni::fgSAX2CoreNameSpaces,false);
 		parser->setFeature(xercesc::XMLUni::fgSAX2CoreNameSpacePrefixes,false);
 
-		/// clear information
+		// clear information
 		protein_identifications.clear();
 		id_data.clear();
 		predicted_retention_times.clear();

@@ -185,7 +185,7 @@ namespace OpenMS
 			{
 				for(UInt i = 0; i<layers_.size();i++)
 				{
-					/// @todo added fix for segfault for release (Cornelia)
+					//TODO added fix for segfault for release (Cornelia)
 					if (datareducer_ != 0)
 					{
 						datareducer_->applyReduction(getLayer(i).peaks,getLayer_(i).reduced);

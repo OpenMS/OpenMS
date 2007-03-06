@@ -69,7 +69,6 @@ namespace OpenMS
     }
   }
 
-  /// stores the grid @p grid in file with name @p filename.
   void GridFile::store(String filename, const Grid& grid) const throw (Exception::UnableToCreateFile)
   {
     if (grid.empty()) return;

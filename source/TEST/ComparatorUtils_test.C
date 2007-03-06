@@ -51,7 +51,6 @@ struct IntStringPair
 	int id;
 };
 
-/// This class is used to test the <code>typedef</code>s
 struct
 StrangeMixedLessOfIntAndString : std::binary_function < int, string, bool >
 {

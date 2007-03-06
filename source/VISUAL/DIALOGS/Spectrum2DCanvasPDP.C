@@ -53,6 +53,7 @@ namespace OpenMS
 			help_ = "This is the preferences dialog of a 2D view of a map!";
 		
 			QGridLayout* grid = new QGridLayout(this);
+			grid->setMargin(0);
 			
 			//colors
 			QGroupBox* box =	addBox_(grid,0,0,"Colors",2,1);

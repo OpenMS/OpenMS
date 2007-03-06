@@ -359,7 +359,7 @@ class TOPPOMSSAAdapter
 			
 			AnalysisXMLFile().store(outputfile_name, protein_identifications, peptide_ids);
 													 		 												 		 
-			/// Deletion of temporary files
+			// Deletion of temporary files
 			
 			return EXECUTION_OK;	
 		}

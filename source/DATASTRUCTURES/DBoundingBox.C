@@ -28,8 +28,6 @@
 
 namespace OpenMS
 {
-	/// @cond DOXYGEN_IGNORES_THIS
 	DBoundingBox<1> default_boundingbox_1;
 	DBoundingBox<2> default_boundingbox_2;
-	/// @endcond
 }

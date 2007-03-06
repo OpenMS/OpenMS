@@ -96,7 +96,7 @@ namespace OpenMS
 		{
 			if (action_mode_ == AM_TRANSLATE)
 			{
-				setCursor(cursor_translate_in_progress_);
+				setCursor(Qt::ClosedHandCursor);
 			}
 			else if (action_mode_ == AM_ZOOM)
 			{
@@ -266,13 +266,11 @@ namespace OpenMS
 			}
 			case AM_TRANSLATE:
 			{
-				setCursor(cursor_translate_);
+				setCursor(Qt::OpenHandCursor);
 				break;
 			}
-			case AM_MEASURE:
-			{
-				
-			}	
+			default:
+				break;
 		}
 	}
 	
@@ -650,8 +648,7 @@ namespace OpenMS
 				}
 			}
 			painter.end();
-		}
-		
+		} //if (update_buffer)
 		painter.begin(this);
 		
 		//draw peak data
@@ -660,11 +657,9 @@ namespace OpenMS
 		{
 			painter.drawPixmap(rects[i].topLeft(), buffer_, rects[i]);
 		}
-		
 		//draw selected peak
 		if (selected_peak_!=currentPeakData_()[0].end())
 		{
-			painter.save();
 			painter.setPen(QPen(QColor(getPrefAsString("Preferences:1D:HighColor").c_str()), 2));		
 			if (getDrawMode() == DM_PEAKS)
 			{
@@ -694,10 +689,8 @@ namespace OpenMS
 				painter.drawLine(begin.x(), begin.y()-4, begin.x(), begin.y()+4);
 				painter.drawLine(begin.x()-4, begin.y(), begin.x()+4, begin.y());
 			}
-			painter.restore();
 			emit sendCursorStatus( selected_peak_->getMZ(), selected_peak_->getIntensity());
 		}
-		
 		painter.end();
 #ifdef DEBUG_TOPPVIEW
 		cout << "END   " << __PRETTY_FUNCTION__ << endl;
@@ -734,7 +727,7 @@ namespace OpenMS
 #endif
 	}
 	
-	/// Destructor
+	// Destructor
 	Spectrum1DCanvas::~Spectrum1DCanvas()
 	{
 		

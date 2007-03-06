@@ -199,7 +199,8 @@
 		{
 			print "Rebuilding doxygen XML output\n";
 		}
-		exec("cd $path/doc/ && rm -rf html xml && make idoc");
+		exec("cd $path/doc/doxygen/ && rm -rf html_output xml_output");
+		exec("cd $path/doc/ && make idoc");
 		if ($debug>0)
 		{
 			print "Done\n";
@@ -210,7 +211,7 @@
 	
 	$abort = false;
 	$out = array();
-	exec("cd $path/doc/xml/ && ls -a *.xml | wc -l",$out);
+	exec("cd $path/doc/doxygen/xml_output/ && ls -a *.xml | wc -l",$out);
 	if (trim($out[0]) < 100)
 	{
 		print "Error: For this script, doxygen XML output is needed!\n";
@@ -219,9 +220,9 @@
 	}
 	if ($test == "all" || $test == "doxygen_errors")
 	{
-		if (!file_exists("$path/doc/doxygen-error.log"))
+		if (!file_exists("$path/doc/doxygen/doxygen-error.log"))
 		{
-			print "Error: For the 'doxygen_errors' test, the file '$path/doc/doxygen-error.log' is needed!\n";
+			print "Error: For the 'doxygen_errors' test, the file '$path/doc/doxygen/doxygen-error.log' is needed!\n";
 			print "       Please execute 'make idoc' in '$path/doc/'.\n";
 			$abort = true;
 		}
@@ -350,7 +351,7 @@
 	if ($test == "all" || $test == "doxygen_errors")
 	{
 		$doxygen_errors = array();
-		$errorfile = file("$path/doc/doxygen-error.log");
+		$errorfile = file("$path/doc/doxygen/doxygen-error.log");
 		foreach($errorfile as $line)
 		{
 			if (ereg("(.*/[a-zA-Z0-9_]+\.[hC]):[0-9]+:",$line,$parts))
@@ -794,7 +795,7 @@
 	################### doxygen errors in .doxygen-files  ##########################
 	if ($user == "all" && ($test == "all" || $test == "doxygen_errors"))
 	{
-		$file = file("$path/doc/doxygen-error.log");
+		$file = file("$path/doc/doxygen/doxygen-error.log");
 		foreach ($file as $line)
 		{
 			$line = trim($line);

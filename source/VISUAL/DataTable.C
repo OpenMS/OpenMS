@@ -46,11 +46,7 @@ DataTable::DataTable(bool editable, QWidget *parent)
 {
   //for the actual metadata
 	mainlayout_= new QGridLayout(this);
-  mainlayout_->setSpacing(6);
-  mainlayout_->setMargin(11);
-	
 	row_=0;
-	
 }
 
 

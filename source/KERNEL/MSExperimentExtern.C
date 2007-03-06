@@ -28,8 +28,6 @@
 
 namespace OpenMS
 {
-	/// @cond DOXYGEN_IGNORES_THIS
 	MSExperimentExtern<> default_msexp_extern_d1;
-	/// @endcond
 }
 

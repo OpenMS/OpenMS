@@ -5214,7 +5214,8 @@ AC_DEFUN(CF_MOVE_CONFIG_FILES, [
 		${MV} common.mak.tmp common.mak
 		${MV} config.mak.tmp config.mak
 		${MV} config_defs.mak.tmp config_defs.mak
-		${MV} Doxyfile.tmp ../doc/Doxyfile
+		${MV} Doxyfile.tmp ../doc/doxygen/Doxyfile
+		${RM} config.h
 		dnl
 		dnl move that damned file only if it differs from the previous
 		dnl version. Otherwise we have to rebuild _everything_ after each configure

@@ -29,7 +29,5 @@
 
 namespace OpenMS
 {
-	/// @cond DOXYGEN_IGNORES_THIS
   DSignalToNoiseEstimatorMedian<> default_sn_median1;
-	/// @endcond
 }

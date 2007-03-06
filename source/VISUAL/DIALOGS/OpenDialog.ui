@@ -227,7 +227,7 @@
          <item>
           <widget class="QRadioButton" name="d3_radio" >
            <property name="text" >
-            <string>3D</string>
+            <string>3D (experimental)</string>
            </property>
           </widget>
          </item>
@@ -360,7 +360,6 @@
   </layout>
  </widget>
  <layoutdefault spacing="6" margin="11" />
- 
  <resources/>
  <connections>
   <connection>
@@ -400,6 +399,16 @@
    <signal>clicked()</signal>
    <receiver>OpenDialogTemplate</receiver>
    <slot>browse()</slot>
+   <hints>
+    <hint type="sourcelabel" >
+     <x>20</x>
+     <y>20</y>
+    </hint>
+    <hint type="destinationlabel" >
+     <x>20</x>
+     <y>20</y>
+    </hint>
+   </hints>
   </connection>
   <connection>
    <sender>metadata_button</sender>

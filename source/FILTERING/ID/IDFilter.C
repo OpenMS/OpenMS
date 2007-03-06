@@ -135,7 +135,7 @@ namespace OpenMS
 			max_value = temp_peptide_hits[0].getScore();
 			new_peptide_indices.push_back(0);
 			
-			/// searching for peptide(s) with maximal score			
+			// searching for peptide(s) with maximal score			
 			for(UInt i = 1; i < temp_peptide_hits.size(); i++)
 			{
 				temp_score = temp_peptide_hits[i].getScore();
@@ -164,7 +164,7 @@ namespace OpenMS
 			max_value = temp_protein_hits[0].getScore();
 			new_protein_indices.push_back(0);
 
-			/// searching for protein(s) with maximal score			
+			// searching for protein(s) with maximal score			
 			for(UInt i = 1; i < temp_protein_hits.size(); i++)
 			{
 				temp_score = temp_protein_hits[i].getScore();

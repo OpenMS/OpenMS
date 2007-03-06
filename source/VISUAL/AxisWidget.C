@@ -28,7 +28,7 @@
 #include <QtGui/QPaintEvent>
 #include <QtGui/QPainter>
 
-//// STL
+// STL
 #include <iostream>
 #include <algorithm>
 

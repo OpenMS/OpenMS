@@ -28,8 +28,6 @@
 
 namespace OpenMS
 {
-	/// @cond DOXYGEN_IGNORES_THIS
 	Matrix<int>    default_matrix_int;
 	Matrix<double> default_matrix_double;
-	/// @endcond
 }

@@ -65,6 +65,10 @@ namespace OpenMS
 		/// Is emitted whenever the visible area changes.		
 		void visibleAreaChanged(double, double); 
 
+	public slots:
+		// Docu in base class
+    virtual void showGoToDialog();
+
 	protected:
 		// Docu in base class
 		virtual Math::Histogram<UInt,float> createIntensityDistribution_();

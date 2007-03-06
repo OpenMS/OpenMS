@@ -147,7 +147,7 @@ namespace OpenMS
 		/*
  		if (tag_ == "protein")
  		{	
- 			/// since Mascot uses SwissProt IDs we set this type here
+ 			// since Mascot uses SwissProt IDs we set this type here
 			actual_protein_hit_.setAccessionType("SwissProt");
 			actual_protein_hit_.setScoreType("Mascot");
  			protein_identification_.insertProteinHit(actual_protein_hit_);
@@ -356,8 +356,8 @@ namespace OpenMS
 									DoubleReal temp_homology = 0;
 									DoubleReal temp_identity = 0;
 			
-									/// According to matrixscience the homology threshold is only used if it exists and is
-									/// smaller than the identity threshold.
+									// According to matrixscience the homology threshold is only used if it exists and is
+									// smaller than the identity threshold.
 									temp_homology = id_data_[peptide_identification_index_].id.getPeptideSignificanceThreshold();
 									temp_identity = ((String) XMLString::transcode(chars)).trim().toFloat();
 									if (temp_homology > temp_identity || temp_homology == 0)

@@ -71,41 +71,23 @@ namespace OpenMS
 				Destroys the OpenGLWidget and all associated data.
 			*/		
 	    virtual ~Spectrum3DOpenGLCanvas();
-			/**
-				 @brief virtual function provided from QGLWidget	
-			*/
-	    void initializeGL();
-			/**
-				 @brief virtual function provided from QGLWidget	
-			*/ 
+			///virtual function provided from QGLWidget	
+			void initializeGL();
+			/// virtual function provided from QGLWidget	
 			void resizeGL(int w,int h);
-	    /**
-				 @brief virtual function provided from QGLWidget	
-			*/
+	    /// virtual function provided from QGLWidget	
 			void paintGL();
-			/**
-				 @brief Display list for the sticks which display the 3-dimensional data
-			*/
-	    virtual GLuint makeDataAsStick();
-		  /**
-			  @brief Display list for the coordinates
-		  */ 
-			virtual GLuint makeCoordinates();
-			/**
-				 @brief Display list for the different axes label
-			*/
+			/// Display list for the sticks which display the 3-dimensional data
+			virtual GLuint makeDataAsStick();
+		  /// Display list for the coordinates
+		  virtual GLuint makeCoordinates();
+			/// Display list for the different axes label
 			virtual GLuint makeAxesLabel();
-			/**
-				 @brief Display list for the top view
-			*/
+			/// Display list for the top view
 			virtual GLuint makeDataAsTopView();
-			/**
-			 @brief displaylist
-			*/	
+			//document me (Cornelia)
 			virtual GLuint makeGround();
-			/**
-			 @brief displaylist
-			*/	
+			//document me (Cornelia)
 			virtual GLuint makeGridLines();
 			/// method to make the font
 			virtual GLuint makeLegend();
@@ -155,11 +137,11 @@ namespace OpenMS
 			int zRotation() const { return zrot_; }
 	    /// normalize the angel
 			void normalizeAngle(int* angle);
-			///
+			//document me (Cornelia)
 			void setAngels(int xrot, int yrot, int zrot);
-			///
+			//document me (Cornelia)
 			void resetTranslation();
-			///
+			//document me (Cornelia)
 			void timeMessure();
 			
 			/// displaylist
@@ -174,10 +156,10 @@ namespace OpenMS
 			GLuint ground_;
 			/// displaylist
 			GLuint axeslegend_;
-			//preferences
+			//document me (Cornelia)
 			MultiGradient gradient_;
 	
-			// reference to Spectrum3DCanvas
+			/// reference to Spectrum3DCanvas
 			Spectrum3DCanvas& canvas_3d_;
 	  
 			/// member x-variables for the rotation

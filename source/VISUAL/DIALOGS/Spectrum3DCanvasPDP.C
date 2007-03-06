@@ -52,7 +52,8 @@ namespace OpenMS
 			help_ = "This is the preferences dialog of a 3D view of a map!";
 			
 			QGridLayout* grid = new QGridLayout(this);
-
+			grid->setMargin(0);
+			
 			//peak color box
 			QGroupBox* box =	addBox_(grid,0,0,"Peak colors",1,2);
 

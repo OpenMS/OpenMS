@@ -40,19 +40,21 @@ namespace OpenMS
 {
 
 	class AxisWidget;
-	class SpectrumWindow;
 	
 	/**
 		@brief Base class for spectrum widgets
 		
-		This class is the base class for widgets which contain a
-		widget derived from SpectrumCanvas. For each class derived
-		from SpectrumCanvas, there must be another class derived
-		from this class.
+		This class is the base class for the different MDI window
+		types in the TOPPView application. For each type of spectrum
+		view (such as 1D view, 2D view etc.), there must exist a
+		corresponding class derived from this class.
 		
-		A SpectrumWidget instance has two instances of AxisWidget
-		as children, which can be accessed by xAxis() and
-		yAxis().
+		To integrate a new spectrum view (i.e. classes derived from
+		SpectrumWidget and SpectrumCanvas) into the TOPPView application,
+		a class must be derived from this class which holds an
+		instance of the SpectrumCanvas class as a child widget.
+		
+		This Widget also provides axis widgets and scrollbars.
 		
 		@ingroup SpectrumWidgets
 	*/
@@ -61,174 +63,142 @@ namespace OpenMS
 			public PreferencesManager
 	{
 		Q_OBJECT
+
+		public:
+			/// Default constructor
+			SpectrumWidget(QWidget* parent = 0);
+			/// Destructor
+			~SpectrumWidget();
+		
 	
-	public:
-		/**
-			@brief Returns image of the diagram.
+			/**
+				@brief Returns image of the diagram.
+				
+				Creates an image of the diagram with the specified size and possibly with special setting (e.g. for printing or saving).
+				
+				@param width The image's width.
+				@param height The image's height.
+				@returns The created image.
+			*/
+			virtual QImage getImage(UInt width, UInt height);
 			
-			Creates an image of the diagram with the specified size and possibly with special setting (e.g. for printing or saving).
+			/**
+				@brief Returns a pointer to canvas object
+				
+				The canvas object is set with the setCanvas_() method. 
+				This is usually done in the constructor.
+			*/
+			SpectrumCanvas* canvas()
+			{ 
+				return canvas_; 
+			}
 			
-			@param width The image's width.
-			@param height The image's height.
-			@returns The created image.
-		*/
-		virtual QImage getImage(UInt width, UInt height);
+			///Returns a pointer to the x-axis axis widget.
+			inline AxisWidget* xAxis() 
+			{ 
+				return x_axis_; 
+			}
+			
+			///Returns a pointer to the y-axis axis widget.
+			inline AxisWidget* yAxis() 
+			{ 
+				return y_axis_; 
+			}
+			
+			///Get the mouse action mode
+			Int getActionMode() const;
+	
+			/// SpectrumWidgetActionModes
+			void setActionMode(SpectrumCanvas::ActionModes mode);
+			
+			///Set the main Param object
+			void setMainPreferences(const Param& prefs);
+	
+			// Docu in base class
+			virtual PreferencesDialogPage* createPreferences(QWidget* parent)=0;
+			
+			/// Returns if the axis labels are shown
+			bool isLegendShown() const;
+	
+			/// Returns if the axis labels are shown
+			void showLegend(bool show);
+	
+			/// Sets the intensity mode of the SpectrumCanvas
+			void setIntensityMode(SpectrumCanvas::IntensityModes mode);
+	
+			/// Hides x-axis and y-axis
+			void hideAxes();
+			
+			/// Widget id used as identifier
+			Int window_id;
+			
+		signals:
+			/// Signals that draw mode or display mode changed (e.g. used to update the tool bar)
+			void modesChanged(QWidget*);
+			/// Displays a status message. See TOPPViewBase::showStatusMessage .
+			void sendStatusMessage(std::string, OpenMS::UInt);
+			/// Displays peak information in the status bar (m/z, RT, intensity)
+			void sendCursorStatus(double,double,double);
+		  /// Message about the destruction of this widget
+		  void aboutToBeDestroyed(int window_id);
+		  /// Shows the main preferences dialog
+		  void openPreferences();
+			  
+		public slots:
+			/// Shows the intensity distribution of the data
+			void showIntensityDistribution();
+			/// Sets mapping of m/z values to x-axis or y-axis
+			virtual void mzToXAxis(bool mz_to_x_axis);
+			/// Updates the axes by calling recalculateAxes_();
+			void updateAxes();
+			/**
+				@brief Updates the horizontal scrollbar
+				
+				@param min The overall minimum of the range
+				@param disp_min The displayed minimum 
+				@param disp_max The displayed maximum
+				@param max The overall maximum of the range
+			*/
+			void updateHScrollbar(float min, float disp_min, float disp_max, float max);
+			/**
+				@brief Updates the vertical scrollbar
+				
+				@param min The overall minimum of the range
+				@param disp_min The displayed minimum 
+				@param disp_max The displayed maximum
+				@param max The overall maximum of the range
+			*/
+			void updateVScrollbar(float min, float disp_min, float disp_max, float max);
+			/// Shows a goto dialog
+			virtual void showGoToDialog() = 0;
 		
-		/**
-			@brief Returns a pointer to canvas object
+		protected:
+			/**
+				@brief Adds the canvas, axes and scrollbars to the layout
 			
-			Returns a pointer to the canvas object. The canvas object
-			is set with the setCanvas_() method. This is usually done
-			in the constructor.
+				@p row and @p col define the position of the canvas. 
+				Axes and scrollbars are added to the left and bottom of the canvas.
+			*/
+			void setCanvas_(SpectrumCanvas* canvas, UInt row=0, UInt col=2);
+	  	/// Switch between different intensitiy modes
+	  	virtual void intensityModeChange_();
+			/// creates the intensity distribution of the widget
+			virtual Math::Histogram<UInt,float> createIntensityDistribution_() = 0;
+			/// recalculates the Axis ticks
+			virtual void recalculateAxes_() = 0;
 			
-			@note Don't delete this object
-			
-			@return the canvas widget
-		*/
-		SpectrumCanvas* canvas()
-		{ 
-			return canvas_; 
-		}
-		
-		/**
-			@brief Returns pointer to x-axis widget
-			
-			Returns a pointer to the x-axis axis widget.
-			
-			@note Don't delete this object
-			
-			@return the x-axis widget
-		*/
-		inline AxisWidget* xAxis() 
-		{ 
-			return x_axis_; 
-		}
-		
-		/**
-			@brief Returns pointer to y-axis widget
-			
-			Returns a pointer to the y-axis axis widget.
-			
-			@note Don't delete this object
-			
-			@return the y-axis widget
-		*/
-		inline AxisWidget* yAxis() 
-		{ 
-			return y_axis_; 
-		}
-		
-		/**
-			@brief Sets the spectrum window
-			
-			Sets the pointer to the SpectrumWindow instance which
-			contains this widget. This is neccessary for integration
-			with the TOPPView application. You can get the pointer
-			to the SpectrumWindow instance with the getSpectrumWindow()
-			method.
-			
-			@param window The SpectrumWindow instance, can be 0
-		*/
-		inline void setSpectrumWindow(SpectrumWindow* window) { spectrum_window_ = window; }
-		
-		/**
-			@brief Returns pointer to spectrum window
-			
-			Returns the pointer to the SpectrumWindow instance
-			containing this widget, as set with setSpectrumWindow().
-			
-			@note Don't delete this object
-			@note The return value can be 0
-			
-			@return the Spectrum
-		*/
-		inline SpectrumWindow* getSpectrumWindow() const { return spectrum_window_; }
-		
-		///Get the mouse action mode
-		Int getActionMode() const;
-
-		/// SpectrumWidgetActionModes
-		void setActionMode(SpectrumCanvas::ActionModes mode);
-		
-		///Set the main Param object
-		void setMainPreferences(const Param& prefs);
-
-		// Docu in base class
-		virtual PreferencesDialogPage* createPreferences(QWidget* parent)=0;
-		
-		/// Returns if the axis labels are shown
-		bool isLegendShown() const;
-
-		/// Returns if the axis labels are shown
-		void showLegend(bool show);
-
-		/// Sets the intensity mode of the SpectrumCanvas
-		void setIntensityMode(SpectrumCanvas::IntensityModes mode);
-
-		/// Hides x-axis and y-axis
-		void hideAxes();
-		
-	signals:
-		/// Signals that draw mode or display mode changed (e.g. used to update the tool bar)
-		void modesChanged(QWidget*);
-		/// Displays a status message. See TOPPViewBase::showStatusMessage .
-		void sendStatusMessage(std::string, OpenMS::UInt);
-		/// Displays peak information in the status bar (m/z, RT, intensity)
-		void sendCursorStatus(double,double,double);
-		
-	public slots:
-		/// Shows the intensity distribution of the data
-		void showIntensityDistribution();
-		/// Sets mapping of m/z values to x-axis or y-axis
-		virtual void mzToXAxis(bool mz_to_x_axis);
-		/// Updates the axes by calling recalculateAxes_();
-		void updateAxes();
-		/**
-			@brief Updates the horizontal scrollbar
-			
-			@param min The overall minimum of the range
-			@param disp_min The displayed minimum 
-			@param disp_max The displayed maximum
-			@param max The overall maximum of the range
-		*/
-		void updateHScrollbar(float min, float disp_min, float disp_max, float max);
-		/**
-			@brief Updates the vertical scrollbar
-			
-			@param min The overall minimum of the range
-			@param disp_min The displayed minimum 
-			@param disp_max The displayed maximum
-			@param max The overall maximum of the range
-		*/
-		void updateVScrollbar(float min, float disp_min, float disp_max, float max);
-	protected:
-		/// Default constructor
-		SpectrumWidget(QWidget* parent = 0);
-		/// Destructor
-		~SpectrumWidget();
-		/// Adds the canvas to the layout and connects some signals/slots
-		void setCanvas_(SpectrumCanvas* canvas);
-  	/// Switch between different intensitiy modes
-  	virtual void intensityModeChange_();
-		/// creates the intensity distribution of the widget
-		virtual Math::Histogram<UInt,float> createIntensityDistribution_() = 0;
-		/// recalculates the Axis ticks
-		virtual void recalculateAxes_() = 0;
-		
-		/// Pointer to the canvas widget
-		SpectrumCanvas* canvas_;
-		/// Pointer to the main window widget
-		SpectrumWindow* spectrum_window_;	
-		///Main layout
-		QGridLayout* grid_;
-		/// Vertical axis
-		AxisWidget* y_axis_;
-		/// Horizontal axis
-		AxisWidget* x_axis_;
-		/// Horizontal scrollbar
-		QScrollBar* x_scrollbar_;
-		/// Vertical scrollbar
-		QScrollBar* y_scrollbar_;
+			/// Pointer to the canvas widget
+			SpectrumCanvas* canvas_;
+			///Main layout
+			QGridLayout* grid_;
+			/// Vertical axis
+			AxisWidget* y_axis_;
+			/// Horizontal axis
+			AxisWidget* x_axis_;
+			/// Horizontal scrollbar
+			QScrollBar* x_scrollbar_;
+			/// Vertical scrollbar
+			QScrollBar* y_scrollbar_;
 	};
 }
 

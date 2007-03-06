@@ -55,17 +55,13 @@ GUI_CPP_SOURCES=\
 	LayerData.C\
 	SpectrumCanvas.C\
 	SpectrumWidget.C\
-	SpectrumWindow.C\
 	Spectrum1DCanvas.C\
 	Spectrum1DWidget.C\
-	Spectrum1DWindow.C\
 	Spectrum2DCanvas.C\
 	Spectrum2DWidget.C\
-	Spectrum2DWindow.C\
 	Spectrum3DCanvas.C\
 	Spectrum3DOpenGLCanvas.C\
-	Spectrum3DWidget.C\
-	Spectrum3DWindow.C
+	Spectrum3DWidget.C
 
 
 GUI_MOC_SOURCES=\
@@ -78,18 +74,14 @@ GUI_MOC_SOURCES=\
 	DataTable_moc.C\
 	MSMetaDataExplorer_moc.C\
 	SpectrumCanvas_moc.C\
-	SpectrumWindow_moc.C\
 	SpectrumWidget_moc.C\
 	Spectrum1DCanvas_moc.C\
 	Spectrum1DWidget_moc.C\
-	Spectrum1DWindow_moc.C\
 	Spectrum2DCanvas_moc.C\
 	Spectrum2DWidget_moc.C\
-	Spectrum2DWindow_moc.C\
 	Spectrum3DCanvas_moc.C\
 	Spectrum3DOpenGLCanvas_moc.C\
-	Spectrum3DWidget_moc.C\
-	Spectrum3DWindow_moc.C
+	Spectrum3DWidget_moc.C
 
 #conditional compiles QT
 ifeq ($(ENABLE_GUI),true)
@@ -153,9 +145,6 @@ include ../config.mak
 SpectrumCanvas_moc.C:  $(HEADER_DIR)/SpectrumCanvas.h
 	$(MOC) $(HEADER_DIR)/SpectrumCanvas.h -o SpectrumCanvas_moc.C
 
-SpectrumWindow_moc.C:  $(HEADER_DIR)/SpectrumWindow.h
-	$(MOC) $(HEADER_DIR)/SpectrumWindow.h -o SpectrumWindow_moc.C
-
 SpectrumWidget_moc.C:  $(HEADER_DIR)/SpectrumWidget.h
 	$(MOC) $(HEADER_DIR)/SpectrumWidget.h -o SpectrumWidget_moc.C
 
@@ -165,17 +154,11 @@ Spectrum1DCanvas_moc.C:  $(HEADER_DIR)/Spectrum1DCanvas.h
 Spectrum1DWidget_moc.C:  $(HEADER_DIR)/Spectrum1DWidget.h
 	$(MOC) $(HEADER_DIR)/Spectrum1DWidget.h -o Spectrum1DWidget_moc.C
 
-Spectrum1DWindow_moc.C:  $(HEADER_DIR)/Spectrum1DWindow.h
-	$(MOC) $(HEADER_DIR)/Spectrum1DWindow.h -o Spectrum1DWindow_moc.C
-
 Spectrum2DCanvas_moc.C:  $(HEADER_DIR)/Spectrum2DCanvas.h
 	$(MOC) $(HEADER_DIR)/Spectrum2DCanvas.h -o Spectrum2DCanvas_moc.C
 
 Spectrum2DWidget_moc.C:  $(HEADER_DIR)/Spectrum2DWidget.h
 	$(MOC) $(HEADER_DIR)/Spectrum2DWidget.h -o Spectrum2DWidget_moc.C
-
-Spectrum2DWindow_moc.C:  $(HEADER_DIR)/Spectrum2DWindow.h
-	$(MOC) $(HEADER_DIR)/Spectrum2DWindow.h -o Spectrum2DWindow_moc.C
 
 Spectrum3DCanvas_moc.C:  $(HEADER_DIR)/Spectrum3DCanvas.h
 	$(MOC) $(HEADER_DIR)/Spectrum3DCanvas.h -o Spectrum3DCanvas_moc.C
@@ -185,9 +168,6 @@ Spectrum3DOpenGLCanvas_moc.C:  $(HEADER_DIR)/Spectrum3DOpenGLCanvas.h
 
 Spectrum3DWidget_moc.C:  $(HEADER_DIR)/Spectrum3DWidget.h
 	$(MOC) $(HEADER_DIR)/Spectrum3DWidget.h -o Spectrum3DWidget_moc.C
-
-Spectrum3DWindow_moc.C:  $(HEADER_DIR)/Spectrum3DWindow.h
-	$(MOC) $(HEADER_DIR)/Spectrum3DWindow.h -o Spectrum3DWindow_moc.C
 
 EnhancedTabBar_moc.C:  $(HEADER_DIR)/EnhancedTabBar.h
 	$(MOC) $(HEADER_DIR)/EnhancedTabBar.h -o EnhancedTabBar_moc.C

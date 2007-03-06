@@ -28,7 +28,7 @@
 
 namespace OpenMS
 {
-  /// assignment operator
+  // assignment operator
   LinearMapping& LinearMapping::operator = (const LinearMapping& source)
   {
     if (this==&source) return *this;

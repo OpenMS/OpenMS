@@ -59,10 +59,6 @@ namespace OpenMS
 	    return *this;
 	  }
 	
-	  /**
-	  \param score classifier score
-	  \param clas real type 
-	  */
 	  void ROCCurve::insertPair(double score, bool clas)
 	  {
 	    score_clas_pairs_.push_back(std::make_pair(score,clas));

@@ -336,7 +336,7 @@ class TOPPMascotAdapter
 				peak_mass_tolerance = getDoubleOption_("peak_mass_tolerance");
 				taxonomy = getStringOption_("taxonomy");
 				
-				/// fixed modifications
+				// fixed modifications
 				temp_string = getStringOption_("modifications");
 				temp_string.split(',', mods);
 				if (mods.size() == 0 && temp_string != "")
@@ -344,7 +344,7 @@ class TOPPMascotAdapter
 					mods.push_back(temp_string);
 				}
 
-				/// variable modifications
+				// variable modifications
 				temp_string = getStringOption_("variable_modifications");
 				temp_string.split(',', variable_mods);
 				if (variable_mods.size() == 0 && temp_string != "")
@@ -490,7 +490,7 @@ class TOPPMascotAdapter
 					File::absolutePath(tmp);
 
 					writeDebug_("Searching...", 1);
-					/// calling the Mascot process
+					// calling the Mascot process
 					writeDebug_("The Mascot process created the following output:", 1);
 					call = "cd " + mascot_cgi_dir + "; ./nph-mascot.exe 1 -commandline -f " + 
 						mascot_data_dir + "/" + mascot_outfile_name + " < " + 
@@ -557,7 +557,7 @@ class TOPPMascotAdapter
 															 protein_identifications, 
 													 		 identifications);
 													 		 												 		 
-				/// Deletion of temporary Mascot files
+				// Deletion of temporary Mascot files
 				if (!mascot_out)
 				{
 					call = "rm " + mascot_data_dir + "/" + mascot_infile_name + ";"

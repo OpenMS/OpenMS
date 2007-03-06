@@ -43,8 +43,6 @@ namespace OpenMS
 		
 		//layout
 		QGridLayout* layout = new QGridLayout(this);
-		layout->setMargin(6);
-		layout->setSpacing(6);
 		layout->setRowStretch(0,100);
 	
 		//ok
