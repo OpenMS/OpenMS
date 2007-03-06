@@ -58,10 +58,7 @@ DigestionVisualizer::DigestionVisualizer(bool editable, QWidget *parent)
 		
 }
 
-DigestionVisualizer::~DigestionVisualizer()
-{
 
-}
 
 void DigestionVisualizer::load(Digestion &d)
 {

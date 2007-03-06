@@ -61,10 +61,7 @@ namespace OpenMS
 		
 	}
 
-ProteinIdentificationVisualizer::~ProteinIdentificationVisualizer()
-{
 
-}
 
 void ProteinIdentificationVisualizer::load(ProteinIdentification &s, int tree_item_id)
 {

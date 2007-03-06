@@ -55,10 +55,7 @@ InstrumentVisualizer::InstrumentVisualizer(bool editable, QWidget *parent) : Bas
 	finishAdding_();
 }
 
-InstrumentVisualizer::~InstrumentVisualizer()
-{
 
-}
 
 void InstrumentVisualizer::load(Instrument &s)
 {

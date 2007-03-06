@@ -56,10 +56,7 @@ ProteinHitVisualizer::ProteinHitVisualizer(bool editable, QWidget *parent) : Bas
 	
 }
 
-ProteinHitVisualizer::~ProteinHitVisualizer()
-{
 
-}
 
 void ProteinHitVisualizer::load(ProteinHit &h)
 {

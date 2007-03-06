@@ -89,8 +89,7 @@ namespace OpenMS
 			/// Constructor with flag for edit mode
 			MSMetaDataExplorer(bool editable = FALSE, QWidget *parent = 0, bool modal = FALSE );
 		  
-			/// Destructor
-			virtual ~MSMetaDataExplorer();
+			
 			
 			/**
 			@brief A template function to add classes
@@ -241,9 +240,6 @@ namespace OpenMS
 			
 			/// The tree.
 			QTreeWidget* treeview_;
-			
-			/// Vector of pointer of type BaseVisualizer
-			std::vector<BaseVisualizer*> base_ptrs_;
 	};
 }
 #endif

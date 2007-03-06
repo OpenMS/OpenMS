@@ -54,10 +54,7 @@ ExperimentalSettingsVisualizer::ExperimentalSettingsVisualizer(bool editable, QW
 	finishAdding_();
 }
 
-ExperimentalSettingsVisualizer::~ExperimentalSettingsVisualizer()
-{
 
-}
 
 void ExperimentalSettingsVisualizer::load(ExperimentalSettings &s)
 {

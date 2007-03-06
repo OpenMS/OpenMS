@@ -53,10 +53,6 @@ AcquisitionVisualizer::AcquisitionVisualizer(bool editable, QWidget *parent)
 	
 }
 
-AcquisitionVisualizer::~AcquisitionVisualizer()
-{
-
-}
 
 void AcquisitionVisualizer::load(Acquisition &a)
 {

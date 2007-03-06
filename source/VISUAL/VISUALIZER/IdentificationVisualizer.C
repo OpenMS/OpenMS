@@ -73,10 +73,7 @@ IdentificationVisualizer::IdentificationVisualizer(bool editable, QWidget *paren
 		
 }
 
-IdentificationVisualizer::~IdentificationVisualizer()
-{
 
-}
 
 void IdentificationVisualizer::load(Identification &s, int tree_item_id)
 {

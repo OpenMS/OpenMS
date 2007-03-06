@@ -48,8 +48,7 @@ This class provides all functionality to view the meta information of an object 
 	public: 
 	  /// Default constructor
 		PrecursorVisualizer(bool editable= FALSE, QWidget *parent =0);
-		/// Destructor
-		~PrecursorVisualizer();
+		
 		/// Loads the meta data from the object to the viewer.
 		void load(Precursor &s);
 	  

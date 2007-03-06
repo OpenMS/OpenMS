@@ -48,8 +48,6 @@ This class provides all functionality to view the meta information of an object 
 	public: 
 	  /// Default constructor
 		SpectrumSettingsVisualizer(bool editable= FALSE, QWidget *parent =0);
-		/// Destructor
-		~SpectrumSettingsVisualizer();
 		/// Loads the meta data from the object to the viewer.
 		void load(SpectrumSettings &s);
 	  

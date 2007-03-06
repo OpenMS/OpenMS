@@ -70,10 +70,7 @@ MassAnalyzerVisualizer::MassAnalyzerVisualizer(bool editable, QWidget *parent) :
 			
 }
 
-MassAnalyzerVisualizer::~MassAnalyzerVisualizer()
-{
 
-}
 
 void MassAnalyzerVisualizer::load(MassAnalyzer &s)
 {

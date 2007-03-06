@@ -53,10 +53,7 @@ SourceFileVisualizer::SourceFileVisualizer(bool editable, QWidget *parent) : Bas
 		
 }
 
-SourceFileVisualizer::~SourceFileVisualizer()
-{
 
-}
 
 void SourceFileVisualizer::load(SourceFile &s)
 {

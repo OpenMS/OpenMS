@@ -122,11 +122,7 @@ namespace OpenMS
 	   
 	}//end of constructor
 	
-	//Destructor
-	MSMetaDataExplorer::~MSMetaDataExplorer()
-	{
 	
-	}
 	
 	bool MSMetaDataExplorer::isEditable()
 	{

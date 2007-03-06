@@ -48,8 +48,7 @@ This class provides all functionality to view the meta information of an object 
 	public: 
 	  /// Default constructor
 		MassAnalyzerVisualizer(bool editable= FALSE, QWidget *parent =0);
-		/// Destructor
-		~MassAnalyzerVisualizer();
+		
 		/// Loads the meta data from the object to the viewer.
 		void load(MassAnalyzer &s);
 	  

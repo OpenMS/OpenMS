@@ -58,10 +58,7 @@ ModificationVisualizer::ModificationVisualizer(bool editable, QWidget *parent) :
 	
 }
 
-ModificationVisualizer::~ModificationVisualizer()
-{
 
-}
 
 
 void ModificationVisualizer::load(Modification &m)

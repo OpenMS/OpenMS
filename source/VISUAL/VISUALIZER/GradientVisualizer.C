@@ -51,10 +51,7 @@ GradientVisualizer::GradientVisualizer(bool editable, QWidget *parent)
 	nextrow_=0;
 }
 
-GradientVisualizer::~GradientVisualizer()
-{
 
-}
 
 void GradientVisualizer::load(Gradient &g)
 {

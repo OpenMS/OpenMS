@@ -56,10 +56,7 @@ PrecursorVisualizer::PrecursorVisualizer(bool editable, QWidget *parent)
 	finishAdding_();
 }
 
-PrecursorVisualizer::~PrecursorVisualizer()
-{
 
-}
 
 
 void PrecursorVisualizer::load(Precursor &s)

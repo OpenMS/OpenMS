@@ -47,8 +47,7 @@ This class provides all functionality to view the meta information of an object 
 	public: 
 	   /// Default constructor
 		ProteinHitVisualizer(bool editable= FALSE, QWidget *parent =0);
-		 /// Destructor
-		~ProteinHitVisualizer();
+		
 		/// Loads the meta data from the object to the viewer.
 		void load(ProteinHit &h);
 

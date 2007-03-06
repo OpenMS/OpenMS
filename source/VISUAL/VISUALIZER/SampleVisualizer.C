@@ -65,10 +65,6 @@ SampleVisualizer::SampleVisualizer(bool editable, QWidget *parent)
 	
 }
 
-SampleVisualizer::~SampleVisualizer()
-{
-
-}
 
 void SampleVisualizer::load(Sample &s)
 {

@@ -57,10 +57,7 @@ PeptideHitVisualizer::PeptideHitVisualizer(bool editable, QWidget *parent) : Bas
 	
 }
 
-PeptideHitVisualizer::~PeptideHitVisualizer()
-{
 
-}
 
 
 void PeptideHitVisualizer::load(PeptideHit &h)

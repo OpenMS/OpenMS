@@ -53,8 +53,7 @@ Meta information is an array of Type-Name-Value tupels. Classes that have a Meta
 	public: 
 	  /// Default constructor
 		MetaInfoVisualizer(bool editable= FALSE, QWidget *parent =0);
-		/// Destructor
-		~MetaInfoVisualizer();
+		
 		/// Loads the meta data from the object to the viewer.
 		void load(MetaInfoInterface &m);
 		

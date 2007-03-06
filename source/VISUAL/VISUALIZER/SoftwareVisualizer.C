@@ -54,10 +54,7 @@ SoftwareVisualizer::SoftwareVisualizer(bool editable, QWidget *parent) : BaseVis
 			
 }
 
-SoftwareVisualizer::~SoftwareVisualizer()
-{
 
-}
 
 void SoftwareVisualizer::load(Software &s)
 {
