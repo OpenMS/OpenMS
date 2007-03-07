@@ -550,8 +550,9 @@ namespace OpenMS
 				rt = exp[iso_map_iter->second.scans_[i]].getRetentionTime();
 				spec.setRetentionTime(rt);
 				InputSpectrumIterator iter = lower_bound(first, last, spec, typename MSSpectrum<InputPeakType>::RTLess());
-
+				//				if(iter->getRetentionTime() != rt) --iter;
 				exp_it = exp.RTBegin(rt);
+				std::cout << exp_it->getRetentionTime() << " vs "<< iter->getRetentionTime()<<std::endl;
 				// now the right mz
 				IndexSet::const_iterator j=(iso_map_iter->second.peaks_.begin());
 																		
@@ -572,7 +573,7 @@ namespace OpenMS
 				--set_iter2;
 				last_peak_mz = (exp_it->begin() + set_iter2->second)->getMZ() + 1;
 				
-				std::cout << "first peak mz "<<first_peak_mz << "\tlast peak mz "<<last_peak_mz <<std::endl;
+				std::cout << rt<<": first peak mz "<<first_peak_mz << "\tlast peak mz "<<last_peak_mz <<std::endl;
 				peak.setPosition(first_peak_mz);
 				typename MSSpectrum<InputPeakType>::const_iterator raw_data_iter
 					= lower_bound(iter->begin(), iter->end(), peak, typename InputPeakType::PositionLess());
@@ -592,7 +593,7 @@ namespace OpenMS
 				Idx left,right;
 				left.first = distance(first,iter);
 				left.second = distance(iter->begin(),raw_data_iter);
-
+				std::cout << "left: "<<iter->getRetentionTime()<<"\t"<<raw_data_iter->getMZ()<<std::endl;
 				// consider a bit more of the signal to the right
 				peak.setPosition(last_peak_mz + 1);
 				raw_data_iter
@@ -608,12 +609,12 @@ namespace OpenMS
 					}
 				right.first = left.first;
 				right.second = distance(iter->begin(),raw_data_iter);
+				std::cout << "rightt: "<<iter->getRetentionTime()<<"\t"<<raw_data_iter->getMZ()<<std::endl;
 				// region endpoints are stored in global vector
 				OptimizationFunctions::signal2D.push_back(left);
 				OptimizationFunctions::signal2D.push_back(right);
-
 			}
-
+		std::cout << "fertig"<< std::endl; 
 
 	}
     
