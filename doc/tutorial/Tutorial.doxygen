@@ -24,15 +24,18 @@
 // $Maintainer: Marc Sturm $
 // --------------------------------------------------------------------------
 
-// Read me:
-// - pages are tuned into \subsection commands in the Latex output
-// - to add new pages you have to add them to the refman_overwrite.tex file
+// Attention:
+// - prefix the tutorial pages with 'tutorial_'
+// - to add new pages you have to add them to:
+//		- doc/tutorial/refman_overwrite.tex (pdf output)
+//		- doc/doxygen/public/Tutorial_html.doxygen (html output)
+
 
 //####################################### KERNEL #######################################
 
 /**
 
-@page kernel The kernel classes
+@page tutorial_kernel The kernel classes
  
  The kernal data points exist in three versions: one-dimensional, two-dimensional and d-dimensioal.
  Bla bla bla ... 
@@ -55,7 +58,7 @@
 
 /**
 
-@page datastructures Auxilary datastructures
+@page tutorial_datastructures Auxilary datastructures
 	
 	Bla bla bla ... 
 	
