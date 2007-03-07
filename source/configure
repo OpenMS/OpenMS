@@ -26168,7 +26168,7 @@ fi
 		${MV} config.mak.tmp config.mak
 		${MV} config_defs.mak.tmp config_defs.mak
 		${MV} Doxyfile.tmp ../doc/doxygen/Doxyfile
-		${RM} config.h
+
 										if test -f $OPENMS_PATH/include/OpenMS/config.h ; then
 			if test "`${DIFF} config.h $OPENMS_PATH/include/OpenMS/config.h`" != "" ; then
 				${MV} -f config.h $OPENMS_PATH/include/OpenMS/config.h

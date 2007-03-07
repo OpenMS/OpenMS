@@ -55,8 +55,11 @@ namespace OpenMS
 		///Destructor
 		virtual ~Spectrum1DWidget();
 		
-		// Docu in base class
-		Spectrum1DCanvas* canvas();
+		/// This method is overwritten to make the class specific members accessable
+		inline Spectrum1DCanvas* canvas()
+		{
+			return static_cast<Spectrum1DCanvas*>(canvas_);
+		}
 		
 		// Docu in base class
 		virtual PreferencesDialogPage* createPreferences(QWidget* parent);

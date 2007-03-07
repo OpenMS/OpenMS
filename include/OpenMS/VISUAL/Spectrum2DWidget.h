@@ -30,6 +30,7 @@
 // OpenMS
 #include <OpenMS/VISUAL/SpectrumWidget.h>
 #include <OpenMS/VISUAL/Spectrum1DWidget.h>
+#include <OpenMS/VISUAL/Spectrum2DCanvas.h>
 
 class QPushButton;
 
@@ -72,8 +73,11 @@ namespace OpenMS
 		/// Destructor
 		virtual ~Spectrum2DWidget();
 		
-		// Docu in base class
-		Spectrum2DCanvas* canvas();
+		/// This method is overwritten to make the class specific members accessable
+		inline Spectrum2DCanvas* canvas()
+		{
+			return static_cast<Spectrum2DCanvas*>(canvas_);
+		}
 
 		// Docu in base class
 		virtual PreferencesDialogPage* createPreferences(QWidget* parent);

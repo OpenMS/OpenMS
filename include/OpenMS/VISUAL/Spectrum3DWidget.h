@@ -28,6 +28,7 @@
 #define OPENMS_VISUAL_SPECTRUM3DWIDGET_H
 
 #include <OpenMS/VISUAL/SpectrumWidget.h>
+#include <OpenMS/VISUAL/Spectrum3DCanvas.h>
 
 namespace OpenMS
 {	
@@ -48,8 +49,11 @@ namespace OpenMS
 			/// Destructor
 			virtual ~Spectrum3DWidget();
 			
-			// Docu in base class
-			Spectrum3DCanvas* canvas();
+		/// This method is overwritten to make the class specific members accessable
+		inline Spectrum3DCanvas* canvas()
+		{
+			return static_cast<Spectrum3DCanvas*>(canvas_);
+		}
 		
 			// Docu in base class
 			virtual PreferencesDialogPage* createPreferences(QWidget* parent);  

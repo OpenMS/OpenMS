@@ -67,12 +67,7 @@ namespace OpenMS
 		grid_->addWidget(hide_button_, 0, 3, Qt::AlignLeft | Qt::AlignBottom);
 		connect(hide_button_, SIGNAL(clicked()), this, SLOT(hideProjections()));
 	}
-	
-	Spectrum2DCanvas* Spectrum2DWidget::canvas()
-	{
-		return static_cast<Spectrum2DCanvas*>(canvas_);
-	}
-	
+
 	Spectrum2DWidget::~Spectrum2DWidget()
 	{
 		

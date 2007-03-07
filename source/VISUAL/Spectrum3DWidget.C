@@ -87,11 +87,6 @@ namespace OpenMS
 		return tmp;
 	}
 	
-	Spectrum3DCanvas * Spectrum3DWidget::canvas()
-	{
-	  return static_cast<Spectrum3DCanvas*>(canvas_);
-	}
-	
 	QImage Spectrum3DWidget::getImage(UInt width, UInt height )
 	{	
 		QPixmap pix = canvas()->openglwidget()->renderPixmap(width,height,true);

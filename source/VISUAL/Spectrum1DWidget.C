@@ -50,11 +50,6 @@ namespace OpenMS
 		y_axis_->setMinimumWidth(50);
 	}
 	
-	Spectrum1DCanvas* Spectrum1DWidget::canvas()
-	{
-		return static_cast<Spectrum1DCanvas*>(canvas_);
-	}
-	
 	void Spectrum1DWidget::recalculateAxes_()
 	{
 		//determine axes
