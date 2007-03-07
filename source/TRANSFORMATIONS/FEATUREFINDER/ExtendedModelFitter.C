@@ -585,7 +585,7 @@ namespace OpenMS
 
 		// calculate the width of the peak
 		// rt-values with intensity zero are not allowed for calculation of the width
-		width_ = abs(positionsDC_[positionsDC_.size()-3] - positionsDC_[2]);
+		width_ = abs(positionsDC_[positionsDC_.size()-1] - positionsDC_[0]);
 
 		// calculate retention time
 		retention_ = positionsDC_[median];
