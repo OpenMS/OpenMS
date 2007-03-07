@@ -198,6 +198,7 @@ namespace OpenMS
 		double symmetry_;
 		double retention_;
 		double deviation_;
+		bool symmetric_;
 
 		/// the name of the function
 		std::string profile_;
