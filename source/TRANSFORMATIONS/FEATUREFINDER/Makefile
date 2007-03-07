@@ -57,10 +57,9 @@ CPP_SOURCES=\
 	EuclideanDistance.C\
 	FeaFiTraits.C\
 	FeatureFinder.C\
-	DummyFitter.C
-
-#	DummySeeder.C\
-#	DummyExtender.C\
+	DummyFitter.C\
+	DummySeeder.C\
+	DummyExtender.C\
 
 include ../../common.mak
 -include .Dependencies

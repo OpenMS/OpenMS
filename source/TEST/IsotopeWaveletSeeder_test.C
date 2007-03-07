@@ -61,7 +61,6 @@ RESULT
 CHECK((FeaFiModule::IndexSet  nextSeed() throw(NoSuccessor)))
 	PRECISION(0.01)
 	
-	// test single scan
   IsotopeWaveletSeeder seeder;
   FeaFiTraits* traits = new FeaFiTraits();
  

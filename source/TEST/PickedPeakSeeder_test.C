@@ -60,65 +60,60 @@ CHECK(~PickedPeakSeeder())
 RESULT
 
 CHECK(nextSeed())
+	PRECISION(0.01)	
+
   PickedPeakSeeder seeder;
   FeaFiTraits* traits = new FeaFiTraits();
  
 	MSExperiment<Peak1D > exp;
 	MzDataFile().load("data/PickedPeakTestData.mzData",exp);
 	
-	traits->setData(exp.begin(), exp.end(),100);
-	
+	traits->setData(exp.begin(), exp.end(),100);	
 	seeder.setTraits(traits);
 	
-	Param param;
-  param.setValue("min_number_scans",0);
-	param.setValue("min_number_peaks",3);
-	seeder.setParameters(param);
-	
-	FeaFiModule::IndexSet  region;
-	FeaFiModule::IDX peak;
-	
-	region = seeder.nextSeed();
-	peak =  *(region.begin());
-	// CHECK for positions as well
-	TEST_EQUAL(traits->getPeakIntensity(peak),18084);	
-	
-	region = seeder.nextSeed();
-	peak =  *(region.begin());
-	TEST_EQUAL(traits->getPeakIntensity(peak),2522);					
-	
-	region = seeder.nextSeed();
-	peak =  *(region.begin());
-	TEST_EQUAL(traits->getPeakIntensity(peak),100108);			
-	
-	region = seeder.nextSeed();
-	peak =  *(region.begin());
-	TEST_EQUAL(traits->getPeakIntensity(peak),9105);			
-	
-	region = seeder.nextSeed();
-	peak =  *(region.begin());
-	TEST_EQUAL(traits->getPeakIntensity(peak),9118);			
-	
-	region = seeder.nextSeed();
-	peak =  *(region.begin());
-	TEST_EQUAL(traits->getPeakIntensity(peak),9902);			
-	
-	region = seeder.nextSeed();
-	peak =  *(region.begin());
-	TEST_EQUAL(traits->getPeakIntensity(peak),4412);			
-	
-	region = seeder.nextSeed();
-	peak =  *(region.begin());
-	TEST_EQUAL(traits->getPeakIntensity(peak),9961);			
-	
-	region = seeder.nextSeed();
-	peak =  *(region.begin());
-	TEST_EQUAL(traits->getPeakIntensity(peak),7708);			
-	
-	region = seeder.nextSeed();
-	peak =  *(region.begin());
-	TEST_EQUAL(traits->getPeakIntensity(peak),44099);			
+	// test first region
+	FeaFiModule::IndexSet  region = seeder.nextSeed();	
+	TEST_EQUAL(region.size(),100)
+	FeaFiModule::IndexSet::const_iterator citer = region.begin();
 
+	TEST_REAL_EQUAL(traits->getPeakIntensity(*citer),18084);	
+	TEST_REAL_EQUAL(traits->getPeakMz(*citer),18084);	
+	TEST_REAL_EQUAL(traits->getPeakRt(*citer),18084);	
+	
+	++citer;
+	TEST_REAL_EQUAL(traits->getPeakIntensity(*citer),18084);	
+	TEST_REAL_EQUAL(traits->getPeakMz(*citer),18084);	
+	TEST_REAL_EQUAL(traits->getPeakRt(*citer),18084);	
+	
+	double max_intensity = 0.0;
+	FeaFiModule::IDX max_peak;
+	for (citer = region.begin(); citer != region.end();++citer)
+	{
+		if (traits->getPeakIntensity(*citer) > max_intensity)
+		{
+			max_intensity = traits->getPeakIntensity(*citer);
+			max_peak = *citer;
+		}  	
+	}
+	
+	TEST_REAL_EQUAL(traits->getPeakIntensity(max_peak),18084);	
+	TEST_REAL_EQUAL(traits->getPeakMz(max_peak),18084);	
+	TEST_REAL_EQUAL(traits->getPeakRt(max_peak),18084);	
+	
+	citer = region.end();
+	--citer;--citer;--citer;
+	
+	TEST_REAL_EQUAL(traits->getPeakIntensity(*citer),18084);	
+	TEST_REAL_EQUAL(traits->getPeakMz(*citer),18084);	
+	TEST_REAL_EQUAL(traits->getPeakRt(*citer),18084);	
+	
+	++citer;
+	TEST_REAL_EQUAL(traits->getPeakIntensity(*citer),18084);	
+	TEST_REAL_EQUAL(traits->getPeakMz(*citer),18084);	
+	TEST_REAL_EQUAL(traits->getPeakRt(*citer),18084);	
+	
+	
+	
 	TEST_EXCEPTION( FeaFiModule::NoSuccessor , seeder.nextSeed() )
 
 RESULT
