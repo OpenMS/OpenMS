@@ -29,8 +29,9 @@
 help:
 	@echo ""
 	@echo "Main targets are:"
-	@echo "  - 'make [help]'  shows this help"
-	@echo "  - 'make doc'     creates the HTML documentation"
+	@echo "  - 'make [help]'    shows this help"
+	@echo "  - 'make doc'       creates the HTML documentation"
+	@echo "  - 'make tutorial'  creates the tutorial as a PDF"
 	@echo ""
 
 #######################################################################
@@ -46,3 +47,12 @@ idoc:
 	@rm -rf doxygen/xml_output doxygen/html_output
 	@test -f doxygen/Doxyfile || cp ../source/config/Doxyfile.in doxygen/Doxyfile
 	@doxygen doxygen/Doxyfile_internal
+
+#######################################################################
+# creates the tutorial
+tutorial: tutorial/Tutorial.doxygen tutorial/Doxyfile
+	@rm -rf tutorial/latex_output
+	@doxygen tutorial/Doxyfile
+	@cp tutorial/refman_overwrite.tex tutorial/latex_output/refman.tex
+	@cd tutorial/latex_output/ && make
+	@cp tutorial/latex_output/refman.pdf tutorial/Tutorial.pdf

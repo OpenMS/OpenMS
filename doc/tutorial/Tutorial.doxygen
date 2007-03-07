@@ -1,0 +1,62 @@
+// -*- Mode: C++; tab-width: 2; -*-
+// vi: set ts=2:
+//
+// --------------------------------------------------------------------------
+//                   OpenMS Mass Spectrometry Framework
+// --------------------------------------------------------------------------
+//  Copyright (C) 2003-2007 -- Oliver Kohlbacher, Knut Reinert
+//
+//  This library is free software; you can redistribute it and/or
+//  modify it under the terms of the GNU Lesser General Public
+//  License as published by the Free Software Foundation; either
+//  version 2.1 of the License, or (at your option) any later version.
+//
+//  This library is distributed in the hope that it will be useful,
+//  but WITHOUT ANY WARRANTY; without even the implied warranty of
+//  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+//  Lesser General Public License for more details.
+//
+//  You should have received a copy of the GNU Lesser General Public
+//  License along with this library; if not, write to the Free Software
+//  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+//
+// --------------------------------------------------------------------------
+// $Maintainer: Marc Sturm $
+// --------------------------------------------------------------------------
+
+// Read me:
+// - pages are tuned into \subsection commands in the Latex output
+// - to add new pages you have to add them to the refman_overwrite.tex file
+
+//####################################### KERNEL #######################################
+
+/**
+
+@page kernel The kernel classes
+ 
+ The kernal data points exist in three versions: one-dimensional, two-dimensional and d-dimensioal.
+ Bla bla bla ... 
+ 
+@section kernel_peaks1D one-dimensional data points
+	
+	RawDataPoint1D is the base class for bla, bla, bla
+	
+@section kernel_peaks2D one-dimensional data points
+	
+	RawDataPoint2D is the base class for bla, bla, bla
+
+@section kernel_peaksdD d-dimensional data points
+
+	DRawDataPoint is the base class for bla, bla, bla
+
+*/
+
+//####################################### DATASTRUCTURES #######################################
+
+/**
+
+@page datastructures Auxilary datastructures
+	
+	Bla bla bla ... 
+	
+*/
