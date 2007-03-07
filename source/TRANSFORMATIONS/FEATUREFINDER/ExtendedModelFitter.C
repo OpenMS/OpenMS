@@ -199,27 +199,28 @@ namespace OpenMS
 		min_[RT] -= stdev_rt1_;
 		max_[RT] += stdev_rt2_;
 
-		// create a vector with RT-values & Intensity
-		// compute the parameters (intial values) for the EMG & Gauss function and finally,
-		// optimize the parameters with Levenberg-Marquardt algorithms
+		/// create a vector with RT-values & Intensity
+		/// compute the parameters (intial values) for the EMG & Gauss function and finally,
+		/// optimize the parameters with Levenberg-Marquardt algorithms
 		if (profile_=="LmaGauss" || profile_=="EMG" || profile_=="LogNormal")
 		{
 			setData(set);
-			optimize();
+			if (symmetric_==false)
+				optimize();
 		}
 
-		// Test different charges and stdevs
+		/// Test different charges and stdevs
 		const int first_model = param_.getValue("mz:model_type:first");
 		const int last_model = param_.getValue("mz:model_type:last");
 		for ( ; stdev <= last; stdev += step)
 		{
 			for (int mz_fit_type = first_model; mz_fit_type <= last_model; ++mz_fit_type)
 			{
-				if (profile_=="LmaGauss")
+				if (profile_=="LmaGauss" && symmetric_==false)
 					quality = fit_(set, static_cast<MzFitting>(mz_fit_type), LMAGAUSS, stdev);
-				else if (profile_=="EMG")
+				else if (profile_=="EMG" && symmetric_==false)
 					quality = fit_(set, static_cast<MzFitting>(mz_fit_type), EMGAUSS, stdev);
-				else if (profile_=="LogNormal")
+				else if (profile_=="LogNormal" && symmetric_==false)
 					quality = fit_(set, static_cast<MzFitting>(mz_fit_type), LOGNORMAL, stdev);
 				else
 					quality = fit_(set, static_cast<MzFitting>(mz_fit_type), BIGAUSS, stdev);
@@ -508,11 +509,16 @@ namespace OpenMS
 	void ExtendedModelFitter::setData(const IndexSet& set)
 	{
 		// start rt-value with intensity 0.0
-
+		/*
+		positionsDC_.push_back(min_[RT]-3);
+		positionsDC_.push_back(min_[RT]-2);
+		positionsDC_.push_back(min_[RT]-1);
 		positionsDC_.push_back(min_[RT]);
-		positionsDC_.push_back(min_[RT]+1);
+		signalDC_.push_back(0);
 		signalDC_.push_back(0.);
+		signalDC_.push_back(0);
 		signalDC_.push_back(0.);
+		*/
 
 		// sum over all intensities
 		double sum = 0.0;
@@ -544,11 +550,16 @@ namespace OpenMS
 		}
 
 		// end rt-value with intensity 0.0
-
-		positionsDC_.push_back(max_[RT]-1);
+		/*
 		positionsDC_.push_back(max_[RT]);
+		positionsDC_.push_back(max_[RT]+1);
+		positionsDC_.push_back(max_[RT]+2);
+		positionsDC_.push_back(max_[RT]+3);
+		signalDC_.push_back(0);
 		signalDC_.push_back(0.);
+		signalDC_.push_back(0);
 		signalDC_.push_back(0.);
+		*/
 
 		// calculate the median
 		int median = 0;
@@ -579,8 +590,21 @@ namespace OpenMS
 		// calculate retention time
 		retention_ = positionsDC_[median];
 
+		// default is an asymmetric peak
+		symmetric_ = false;
+
 		// calculate the symmetry (fronted peak: s<1 , tailed peak: s>1)
 		symmetry_ = abs(positionsDC_.back() - positionsDC_[median])/abs(positionsDC_[median] - positionsDC_.front());
+
+		// check the symmetry
+		if (isinf(symmetry_) || isnan(symmetry_))
+		{
+			symmetric_ = true;
+			symmetry_ = 10;
+		}
+//cout << "******************************************************** symmetry: " << symmetry_<< endl;
+//cout << "******************************************************** width: " << width_<< endl;
+
 
 		// optimize the symmetry
 		if (profile_=="LogNormal") {
@@ -593,11 +617,14 @@ namespace OpenMS
 		}
 		else
 		{
-			// The computations can lead to an overflow error at very low values of symmetry (s~0). For s~5 the parameter can be aproximized by the Levenberg-Marquardt argorithms.
+			// The computations can lead to an overflow error at very low values of symmetry (s~0). For s~5 the parameter can be aproximized by the Levenberg-Marquardt argorithms. (the other parameters are much greater than one)
+			
 			if (symmetry_<1)
 				symmetry_+=5;
-			else
-				symmetry_=5;
+			else if (symmetry_==1)
+				symmetric_ = true;
+			
+			symmetry_ *= 10;
 		}
 
 
@@ -612,7 +639,7 @@ namespace OpenMS
 		size_t n = ((struct ExpFitPolyData*)params)->n;
 		String profile = ((struct ExpFitPolyData*)params)->profile;
 
-		// normal distribution (s = standard deviation, m = expected value)
+		/// normal distribution (s = standard deviation, m = expected value)
 		if (profile=="LmaGauss")
 		{
 			double normal_s = gsl_vector_get(x,0);
@@ -632,7 +659,7 @@ namespace OpenMS
 		}
 		else
 		{
-			// Simplified EMG
+			/// Simplified EMG
 			if (profile=="EMG")
 			{
 				double h = gsl_vector_get(x,0);
@@ -653,7 +680,7 @@ namespace OpenMS
 					gsl_vector_set(f, i, (Yi - signalDC_[i]));
 				}
 			}
-			// log normal
+			/// log normal
 			else
 			{
 				double h = gsl_vector_get(x,0);
@@ -759,7 +786,7 @@ namespace OpenMS
 					gsl_matrix_set(J, i, 3, derivative_retention);
 				}
 			}
-			// log normal function
+			/// log normal function
 			else
 			{
 				double h = gsl_vector_get(x,0);
@@ -866,7 +893,7 @@ namespace OpenMS
 		s = gsl_multifit_fdfsolver_alloc(T,n,p);
 		gsl_multifit_fdfsolver_set(s, &f, &x.vector);
 
-#ifdef DEBUG_EXTENDEDMODELFITTER_LMA
+#ifdef DEBUG_FEATUREFINDER
 		if (profile_=="LmaGauss") {
 			printf ("before loop iter: %4u x = % 15.8f % 15.8f % 15.8f |f(x)| = %g\n", iter,
 							gsl_vector_get(s->x,0),
@@ -901,7 +928,7 @@ namespace OpenMS
 			iter++;
 			status = gsl_multifit_fdfsolver_iterate (s);
 
-#ifdef DEBUG_EXTENDEDMODELFITTER_LMA
+#ifdef DEBUG_FEATUREFINDER
 			// This is useful for debugging
 			if (profile_=="LmaGauss") 	{
 				printf ("in loop iter: %4u x = % 15.8f % 15.8f % 15.8f |f(x)| = %g\n", iter,
@@ -940,20 +967,22 @@ namespace OpenMS
 		// This function uses Jacobian matrix J to compute the covariance matrix of the best-fit parameters, covar. The parameter epsrel (0.0) is used to remove linear-dependent columns when J is rank deficient.
 		gsl_multifit_covar(s->J, 0.0, covar);
 
-#ifdef DEBUG_EXTENDEDMODELFITTER_LMA
+#ifdef DEBUG_FEATUREFINDER
 		gsl_matrix_fprintf(stdout, covar, "%g");
 #endif
 
 #define FIT(i) gsl_vector_get(s->x, i)
 #define ERR(i) sqrt(gsl_matrix_get(covar,i,i))
 
-#ifdef DEBUG_EXTENDEDMODELFITTER_LMA
+		cout << "EMG status: " << gsl_strerror(status) << endl;
+
+#ifdef DEBUG_FEATUREFINDER
 		cout << "status: " << gsl_strerror(status) << endl;
 		cout << "symmetry: " << symmetry_ << endl;
 #endif
 		if (profile_=="LmaGauss")
 		{
-#ifdef DEBUG_EXTENDEDMODELFITTER_LMA
+#ifdef DEBUG_FEATUREFINDER
 			printf("deviation          = %.5f +/- %.5f\n", FIT(0), ERR(0));
 			printf("expected_value	   = %.5f +/- %.5f\n", FIT(1), ERR(1));
 			printf("scale_factor       = %.5f +/- %.5f\n", FIT(2), ERR(2));
@@ -966,7 +995,7 @@ namespace OpenMS
 		{
 			if (profile_=="EMG")
 			{
-#ifdef DEBUG_EXTENDEDMODELFITTER_LMA
+#ifdef DEBUG_FEATUREFINDER
 				printf("h = %.5f +/- %.5f\n", FIT(0), ERR(0));
 				printf("w = %.5f +/- %.5f\n", FIT(1), ERR(1));
 				printf("s = %.5f +/- %.5f\n", FIT(2), ERR(2));
@@ -979,7 +1008,7 @@ namespace OpenMS
 			}
 			else
 			{
-#ifdef DEBUG_EXTENDEDMODELFITTER_LMA
+#ifdef DEBUG_FEATUREFINDER
 				printf("h = %.5f +/- %.5f\n", FIT(0), ERR(0));
 				printf("w = %.5f +/- %.5f\n", FIT(1), ERR(1));
 				printf("s = %.5f +/- %.5f\n", FIT(2), ERR(2));
@@ -994,7 +1023,7 @@ namespace OpenMS
 			}
 		}
 
-#ifdef DEBUG_EXTENDEDMODELFITTER_LMA
+#ifdef DEBUG_FEATUREFINDER
 		{
 			// chi-squared value
 			double chi = gsl_blas_dnrm2(s->f);
@@ -1005,7 +1034,7 @@ namespace OpenMS
 		// function free all memory associated with the solver s
 		gsl_multifit_fdfsolver_free(s);
 
-#ifdef DEBUG_EXTENDEDMODELFITTER_LMA
+#ifdef DEBUG_FEATUREFINDER
 		for (size_t current_point=0; current_point<positionsDC_.size();current_point++)
 			std::cout << positionsDC_[current_point] << " " << signalDC_[current_point] << std::endl;
 
