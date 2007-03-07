@@ -26,7 +26,7 @@
 
 /**
 	
-	@page Tutorial
+	@page Tutorial Tutorial
 	
 	The subsections of the OpenMS tutorial are:
 		- @subpage tutorial_kernel
