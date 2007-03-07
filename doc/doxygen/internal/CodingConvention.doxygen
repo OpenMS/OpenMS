@@ -28,7 +28,7 @@
 
 /**
 
-@page coding_conventions OpenMS Coding conventions
+@page coding_conventions Coding conventions
 
 <CENTER>$Revision$</CENTER>
 
@@ -145,14 +145,12 @@ Here an example for the <tt>DPeak</tt> class:
 
 namespace OpenMS
 {
-  /// @cond DOXYGEN_IGNORES_THIS
   DPeak<1> default_dpeak_1;
   DPeak<2> default_dpeak_2;
-  /// @endcond
 }
 @endcode
 The compiler does instanciate the template and detects errors at compile time that
-way. Doing this saves your time! Otherwise the error is detected much laten, when 
+way. Doing this saves your time! Otherwise the error is detected much later, when 
 the test is compiles.
 
 <H1 style="margin-top:40px; border-top:4px solid grey; text-align:left;">Class requirements</H1>
@@ -199,19 +197,11 @@ pointer to a base class will fail badly.
 OpenMS uses its own type names for primitive types. Use only the types defined in
 <TT>OpenMS/include/OpenMS/CONCEPT/Types.h</TT>!
 
-<H2 style="margin-top:20px; border-top:1px solid grey;">Namespaces and the 'using' directive</H2>
+<H2 style="margin-top:20px; border-top:1px solid grey;">Namespaces</H2>
 
 The main OpenMS classes are implemented in the namespace <TT>OpenMS</TT>.
 Auxilary classes are implemented in <TT>OpenMS::Internal</TT>.
 There are some other namespaces e.g. for constants and exceptions.
-<p>
-For <TT>.h</TT> files it is strictly forbidden to use <TT>using namespace OpenMS;</TT>, 
-<TT>using namespace std;</TT> or similar. This may cause name clashes (see 'Effective C++').
-<p>
-In <TT>.C</TT> files you should not import complete namespaces to the scope either.
-Instead, introduce individual symbols to the scope where you need
-them. E.g. you would write <TT>using std::vector;</TT> instead of <TT>using namespace std;</TT>.
-This immediately gives a hint to where the symbol is defined as well.
 
 <H2 style="margin-top:20px; border-top:1px solid grey;">Accessors to members</H2>
 
@@ -247,80 +237,6 @@ class Test
     Type member_;
 };
 @endcode
-
-<H2 style="margin-top:20px; border-top:1px solid grey;">Pass-by-value versus pass-by-reference</H2>
-Except of primitive types (int, double, float, ....) all method arguments should be passed as non-mutable references.
-<p>
-Return types of methods should be non-mutable references as well.
-Sometimes you cannot use references as the retuned value is constructed in the method.
-If the constructed type is large, you can save computation time like that:
-@code
-//Bad idea
-LargeObject someFunction()
-{
-  LargeObject tmp = ...
-  return tmp;
-}
-
-//Better idea
-void someFunction(LargeObject& obj)
-{
-  obj = ...
-}
-@endcode
-
-<H2 style="margin-top:20px; border-top:1px solid grey;">Pointer or reference</H2>
-If you do not have really good reasons to do so, do not use pointers.
-They tend to cause segmentation faults!
-In 9 out of 10 cases a reference does the job as well!
-
-<H2 style="margin-top:20px; border-top:1px solid grey;">Iterators</H2>
-
-In simple looping constructs, iterators are generally preferable to indexed
-access.  Prefer ``<code>++i</code>'' to ``<code>i++</code>'', because the preincrement operator can safe
-a copy constructor.  Use <code>const_iterators</code> where possible to help
-avoiding unwanted side effects.
-
-<H2 style="margin-top:20px; border-top:1px solid grey;">Includes</H2>
-
-Includes in header files should be avoided and replaced by forward declarations.<BR>
-Unnecessary includes cause longer compile times after changes in OpenMS header.
-<p>
-Reasons for includes in header files are:
-<UL>
-	<LI> Headers of base classes have to be included in the header of the derived classes.
-	<LI> If a class has members of type T (not T* or T&) the header has to be included.
-	<LI> Headers of template classes have to be included.
-</UL>
-
-An example class could look like this:
-@code
-#include <QtGui/QMainWindow>
-#include <QtGui/QPainter>
-
-// Forward declaration in main namespace
-class QLabel;
-
-namespace OpenMS
-{
-	// Forward declaration in OpenMS namespace
- 	class Spectrum1DWidget;
- 	
-  class Dummy 
-  	: public QMainWindow
-  {
-  	...
-  	
-  	protected:
-  		Spectrum1DWidget* parent_;
-  	  QLabel* label_;
-  	  QPainter painter_;
-  }
-}
-
-@endcode
-
-<b>Note:</b> Qt headers have to be included with the library prefix!
 
 <H1 style="margin-top:40px; border-top:4px solid grey; text-align:left;">Exception handling</H1>
 

@@ -68,11 +68,6 @@
     </tr>
     <tr>
       <td align="left">&nbsp;</td>
-      <td align="left">Boost</td>
-      <td align="left">&nbsp;</td>
-    </tr>
-    <tr>
-      <td align="left">&nbsp;</td>
       <td align="left">GSL</td>
       <td align="left">&nbsp;</td>
     </tr>
@@ -101,9 +96,8 @@
   <BR>
   <b><font color="red">Note:</font></b> In order to make the
   installation of the required libraries easier, we composed a
-  package containing the libraries ANDI/MS, NetCDF, GSL, CGAL, libSVM, XERCES-C and
-  Boost. This contrib package has three advantages over manual
-  installation
+  package containing the libraries ANDI/MS, NetCDF, GSL, CGAL, libSVM and XERCES-C. 
+  This contrib package has three advantages over manual installation
 
   <ul>
     <li>you get all the libraries in versions tested with OpenMS.</li>
@@ -201,19 +195,11 @@
       </td>
       <td>&nbsp;use CC as C compiler (default: gcc)</td>
     </tr>
-    <tr>
-      <td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>
-      <td>
-         <li>--with-toolset=TS</li>
-      </td>
-      <td>&nbsp;use TS as boost toolset. make sure the compiler and toolset match (default: gcc)</td>
-    </tr>
   </table>
   
   <BR>
   If you do not give any configure options, it is assumed that you
-  want to use 'gcc' as C-compiler, 'g++' as C++-compiler and the
-  boost toolset 'gcc'.
+  want to use 'gcc' as C-compiler and 'g++' as C++-compiler.
   <br>
   Next you can build all the libraries with
 
