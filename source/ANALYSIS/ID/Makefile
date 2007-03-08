@@ -33,6 +33,7 @@ include ../../config_defs.mak
 CPP_SOURCES=\
   IDSpectrumMapper.C\
 	IDFeatureMapper.C\
+	ConsensusID.C\
 	ProtonDistributionModel.C\
 	HiddenMarkovModel.C\
 	HiddenMarkovModelLight.C\

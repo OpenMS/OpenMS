@@ -301,6 +301,7 @@ EXECUTABLES_ANALYSIS_MAPMATCHING = \
 EXECUTABLES_ANALYSIS_ID =\
 	IDSpectrumMapper_test\
 	IDFeatureMapper_test\
+	ConsensusID_test\
 	HiddenMarkovModelLight_test\
 	HiddenMarkovModel_test\
 	ProtonDistributionModel_test\

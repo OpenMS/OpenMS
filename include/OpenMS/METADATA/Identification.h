@@ -159,8 +159,6 @@ namespace OpenMS
 			the ProteinIdentification the particular protein hit belongs to.
     */
   	std::vector<PeptideHit>* getNonReferencingHits(const std::multimap< String, ProteinHit >& protein_hits) const;
-		/// Inserts a protein hit into a container
-	  void insertProteinHit(const ProteinHit& input);
 
   protected:
 

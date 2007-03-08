@@ -36,7 +36,6 @@ UNCONDITIONAL_TESTS = \
 	DBExporter_test \
 	DBImporter_test \
 	DTAExtractor_test \
-	FeatureFinder_test \
 	FeaturePairSplitter_test \
 	FileConverter_test \
 	FileFilter_test \
@@ -57,6 +56,7 @@ UNCONDITIONAL_TESTS = \
 	MapAlignment_test \
 	UnlabeledMatcher_test \
 
+#	FeatureFinder_test \
 
 ifeq ($(LIBSVM_SUPPORT),true)
 LIBSVM_TESTS= \
