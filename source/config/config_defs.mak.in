@@ -60,6 +60,9 @@ AROPTS = @AROPTS@
 # options for shared library generation
 DYNAROPTS = @DYNAROPTS@
 
+# options for shared GUI library generation (only used on Darwin)
+DYNAROPTS_GUI = @DYNAROPTS_GUI@
+
 # suffix of shared library filenames
 SHARED_LIB_SUFFIX = @SHARED_LIB_SUFFIX@
 

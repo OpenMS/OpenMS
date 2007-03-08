@@ -106,7 +106,7 @@ libOpenMS.@SHARED_LIB_SUFFIX@:	collect
 libOpenMS_GUI.@SHARED_LIB_SUFFIX@:	collect
 	@$(ECHO)
 	@$(ECHO) "Linking shared library:  OpenMS_GUI"
-	$(DYNAR) $(DYNAROPTS) $(GUILIBNAME).@SHARED_LIB_SUFFIX@ `cat $(GUILIBNAME).objects` -lm
+	$(DYNAR) $(DYNAROPTS_GUI) $(DYNAROPTS) $(GUILIBNAME).@SHARED_LIB_SUFFIX@ `cat $(GUILIBNAME).objects` -lm
 
 .objects.a:	
 	@$(ECHO)

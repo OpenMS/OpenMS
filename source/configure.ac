@@ -626,7 +626,13 @@ dnl
 dnl	Add OpenMS library path and uniquify list
 dnl
 GUI_LIBS=" -L${OPENMS_PATH}/lib/${BINFMT} -lOpenMS -lOpenMS_GUI ${OPENMS_LIBS} ${GUI_LIBS} ${LIBS} -lm"
-CF_UNIQUIFY(${GUI_LIBS},GUI_LIBS)
+dnl
+dnl Darwin uses -framework foo -framework bar, so be sure all occurencies
+dnl of "-framework" are kept
+dnl
+if test "${OS}" != "Darwin" ; then
+	CF_UNIQUIFY(${GUI_LIBS},GUI_LIBS)
+fi
 
 OPENMS_LIBS=" -L${OPENMS_PATH}/lib/${BINFMT} -lOpenMS ${OPENMS_LIBS} ${LIBS} -lm"
 CF_UNIQUIFY(${OPENMS_LIBS},OPENMS_LIBS)
@@ -722,6 +728,7 @@ AC_SUBST(AR)
 AC_SUBST(AROPTS)
 AC_SUBST(DYNAR)
 AC_SUBST(DYNAROPTS)
+AC_SUBST(DYNAROPTS_GUI)
 
 
 dnl				  MISC

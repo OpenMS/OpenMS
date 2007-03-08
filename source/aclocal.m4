@@ -702,11 +702,14 @@ ${RM} ${VERSION_FILE}
   DYNAR="${CXX}"
   if test "${OS}" == "Solaris" ; then
     DYNAROPTS="${DYNAROPTS} -G -fPIC -o"
+		DYNAROPTS_GUI=""
   else 
     if test "${OS}" == Darwin ; then
-	    DYNAROPTS="${DYNAROPTS} -dynamiclib -fPIC -o"			
+	    DYNAROPTS="${DYNAROPTS} -single_module -framework QtSql -framework QtCore -L${[]PROJECTUPPER[]_PATH}/contrib/lib -lxerces-c -lnetcdf -lnetcdf_c++ -lCGAL -lgsl -lsvm.o ${[]PROJECTUPPER[]_PATH}/contrib/lib/ms10lib.a -dynamiclib -fPIC -o"
+			DYNAROPTS_GUI=" -L. -lOpenMS -framework OpenGL -framework QtGui -framework QtOpenGl"
 		else	
   	  DYNAROPTS="${DYNAROPTS} -shared -fPIC -o"
+			DYNAROPTS_GUI=""
 		fi
   fi
 
@@ -2219,7 +2222,7 @@ AC_DEFUN(CF_CHECK_XDR, [
 					[
 						#include <rpc/types.h>
 						#include <rpc/xdr.h>
-						extern "C" int dummy(void*, char*, int) {return 0;}
+						extern "C" int dummy(void*, void*, int) {return 0;}
 						void foo(){ 
 							XDR xdrs;
 							xdrrec_create(&xdrs, 0, 0, 0, dummy, dummy);
@@ -2227,17 +2230,17 @@ AC_DEFUN(CF_CHECK_XDR, [
 					],
 					[	
 					],
-					[]PROJECTUPPER[]_XDRREC_VOID_CHAR_INT=true,
-					[]PROJECTUPPER[]_XDRREC_VOID_CHAR_INT=false
+					[]PROJECTUPPER[]_XDRREC_VOID_VOID_INT=true,
+					[]PROJECTUPPER[]_XDRREC_VOID_VOID_INT=false
 			)
-			if test "${[]PROJECTUPPER[]_XDRREC_VOID_CHAR_INT}" = true ; then
-				AC_MSG_RESULT([(void*, char*, int)])
+			if test "${[]PROJECTUPPER[]_XDRREC_VOID_VOID_INT}" = true ; then
+				AC_MSG_RESULT([(void*, void*, int)])
 			else
 				AC_TRY_COMPILE(
 						[
 							#include <rpc/types.h>
 							#include <rpc/xdr.h>
-							extern "C" int dummy(char*, char*, int) {return 0;}
+							extern "C" int dummy(void*, char*, int) {return 0;}
 							void foo(){ 
 								XDR xdrs;
 								xdrrec_create(&xdrs, 0, 0, 0, dummy, dummy);
@@ -2245,32 +2248,51 @@ AC_DEFUN(CF_CHECK_XDR, [
 						],
 						[	
 						],
-						[]PROJECTUPPER[]_XDRREC_CHAR_CHAR_INT=true,
-						[]PROJECTUPPER[]_XDRREC_CHAR_CHAR_INT=false
+						[]PROJECTUPPER[]_XDRREC_VOID_CHAR_INT=true,
+						[]PROJECTUPPER[]_XDRREC_VOID_CHAR_INT=false
 				)
-				if test "${[]PROJECTUPPER[]_XDRREC_CHAR_CHAR_INT}" = true ; then
-					AC_MSG_RESULT([(char*, char*, int)])
+				if test "${[]PROJECTUPPER[]_XDRREC_VOID_CHAR_INT}" = true ; then
+					AC_MSG_RESULT([(void*, char*, int)])
 				else
 					AC_TRY_COMPILE(
-						[
-							#include <rpc/types.h>
-							#include <rpc/xdr.h>
-							extern "C" int dummy() {return 0;}
-							void foo(){
-								XDR xdrs;
-								xdrrec_create(&xdrs, 0, 0, 0, dummy, dummy);
-							}
-						],
-						[
-						],
-						[]PROJECTUPPER[]_XDRREC_VOID=true,
-						[]PROJECTUPPER[]_XDRREC_VOID=false
+							[
+								#include <rpc/types.h>
+								#include <rpc/xdr.h>
+								extern "C" int dummy(char*, char*, int) {return 0;}
+								void foo(){ 
+									XDR xdrs;
+									xdrrec_create(&xdrs, 0, 0, 0, dummy, dummy);
+								}
+							],
+							[	
+							],
+							[]PROJECTUPPER[]_XDRREC_CHAR_CHAR_INT=true,
+							[]PROJECTUPPER[]_XDRREC_CHAR_CHAR_INT=false
 					)
-					if test "${[]PROJECTUPPER[]_XDRREC_VOID}" = true ; then
-						AC_MSG_RESULT(())
+					if test "${[]PROJECTUPPER[]_XDRREC_CHAR_CHAR_INT}" = true ; then
+						AC_MSG_RESULT([(char*, char*, int)])
 					else
-						AC_MSG_RESULT(not found!)
-						CF_ERROR
+						AC_TRY_COMPILE(
+							[
+								#include <rpc/types.h>
+								#include <rpc/xdr.h>
+								extern "C" int dummy() {return 0;}
+								void foo(){
+									XDR xdrs;
+									xdrrec_create(&xdrs, 0, 0, 0, dummy, dummy);
+								}
+							],
+							[
+							],
+							[]PROJECTUPPER[]_XDRREC_VOID=true,
+							[]PROJECTUPPER[]_XDRREC_VOID=false
+						)
+						if test "${[]PROJECTUPPER[]_XDRREC_VOID}" = true ; then
+							AC_MSG_RESULT(())
+						else
+							AC_MSG_RESULT(not found!)
+							CF_ERROR
+						fi
 					fi
 				fi
 			fi
@@ -2822,7 +2844,7 @@ AC_DEFUN(CF_XERCES, [
 		if test "${XERCES_DIR2}" = "" ; then
       AC_MSG_RESULT((not found!))
 		  AC_MSG_RESULT()
-			AC_MSG_RESULT([The XERCES object file could not be found. Please specify the path to <libxerces-c.so>])
+			AC_MSG_RESULT([The XERCES object file could not be found. Please specify the path to <libxerces-c.${SHARED_LIB_SUFFIX}>])
 		  AC_MSG_RESULT([by passing the option --with-xerces-libs=DIR to configure.])
 		  AC_MSG_RESULT()
 		  AC_MSG_RESULT([XERCES is needed for XML parsing.])
@@ -2842,7 +2864,7 @@ AC_DEFUN(CF_XERCES, [
 		AC_MSG_CHECKING(linking against XERCES)
 		SAVE_LIBS=${LIBS}
 		SAVE_LDFLAGS=${LDFLAGS}
-		LIBS=" ${XERCES_DIR2}/libxerces-c.so "
+		LIBS=" ${XERCES_DIR2}/libxerces-c.${SHARED_LIB_SUFFIX} "
 		LDFLAGS=" -I${XERCES_DIR} "
 		XERCES_LINKING_OK=0
 		AC_TRY_LINK([
@@ -2856,7 +2878,7 @@ AC_DEFUN(CF_XERCES, [
 		if test "${XERCES_LINKING_OK}" != "1" ; then
 			AC_MSG_RESULT(no)
 			AC_MSG_RESULT()
-			AC_MSG_RESULT([Cannot link against libxerces-c.so . Please check config.log and])
+			AC_MSG_RESULT([Cannot link against libxerces-c.${SHARED_LIB_SUFFIX} . Please check config.log and])
 			AC_MSG_RESULT([specify appropriate options to configure (e.g. --with-xerces-lib/incl).])
 			CF_ERROR
 		else
@@ -2879,7 +2901,7 @@ if test "${OS}" = "Darwin" ; then
 	OPENGL_LIBOPTS="-framework Carbon -framework OpenGL -framework AGL"
 	X11_LIBPATHOPT=""
 	X11_INCPATH=""
-	OPENGL_INCPATH="-I/System/Library/Frameworks/OpenGL.framework/Versions/A/Headers -I/System/Library/Frameworks/AGL.framework/Versions/A/Headers"
+dnl	OPENGL_INCPATH="-I/System/Library/Frameworks/OpenGL.framework/Versions/A/Headers -I/System/Library/Frameworks/AGL.framework/Versions/A/Headers"
 	GUI_INCLUDES="${GUI_INCLUDES} ${OPENGL_INCPATH}"
 fi
 
@@ -2957,6 +2979,17 @@ fi
 
 
 AC_DEFUN(CF_GUI_QT_BASICS, [
+dnl
+dnl		Fix up the Qt stuff for MacOS X -- here we need to use Qt frameworks
+dnl
+if test "${OS}" = "Darwin" ; then
+	QT_PLATFORM="Qt-Darwin"
+	QT_LIBOPTS="-framework QtCore -framework QtGui -framework QtSql -framework QtOpenGL"
+dnl	QT_LIBPATHOPT=""
+dnl	QT_INCPATH=""
+dnl	OPENGL_INCPATH="-I/System/Library/Frameworks/OpenGL.framework/Versions/A/Headers -I/System/Library/Frameworks/AGL.framework/Versions/A/Headers"
+dnl	GUI_INCLUDES="${GUI_INCLUDES} ${OPENGL_INCPATH}"
+else
 	AC_MSG_CHECKING(for Qt headers)
 	if test "${QTDIR}" != "" ; then
 		CF_FIND_HEADER(QT_INCPATH,Qt/qgl.h,${QTDIR}/include)
@@ -3066,6 +3099,7 @@ AC_DEFUN(CF_GUI_QT_BASICS, [
 	if test "${QT_LIBPATH}" != /usr/lib && test "${QT_LIBPATH}" != "" ; then
 		[]PROJECTUPPER[]_LIBS="${[]PROJECTUPPER[]_LIBS} -L${QT_LIBPATH} -lQtCore -lQtSql"
 	fi
+fi
 ])
 
 dnl Make sure we can link against OpenGL or Mesa
@@ -3167,16 +3201,23 @@ AC_DEFUN(CF_GUI_QT_LINK_TEST, [
 		X=`pwd`
 		AC_MSG_CHECKING(linking against QtCore lib)
 
-		if test "${QT_LIBPATH}" == "/usr/lib" ; then
-			QT_LIBPATH=""
+		if test "${QT_PLATFORM}" != "Qt-Darwin"; then
+			if test "${QT_LIBPATH}" == "/usr/lib" ; then
+				QT_LIBPATH=""
+			fi
+			QT_LIBOPTS="-lQtGui -lQtOpenGL"
 		fi
-		QT_LIBOPTS="-lQtGui -lQtOpenGL"
 		
 		dnl
 		dnl	test the general linking (QtCore)
 		dnl
-		SAVE_LIBS=${LIBS}
-		LIBS="${X11_LIBOPTS} ${LIBS} ${GUI_INCLUDES}"
+		if test "${QT_PLATFORM}" == "Qt-Darwin"; then
+			LIBS="${QT_LIBOPTS} ${X11_LIBOPTS} ${LIBS} ${GUI_INCLUDES}"
+			SAVE_LIBS=${LIBS}
+		else
+			SAVE_LIBS=${LIBS}
+			LIBS="${X11_LIBOPTS} ${LIBS} ${GUI_INCLUDES}"
+		fi
 
 		QT_LINKING_OK=0
 		AC_TRY_LINK([#include <QtCore/QDir>], [QDir dir;], QT_LINKING_OK=1)
@@ -3199,8 +3240,10 @@ AC_DEFUN(CF_GUI_QT_LINK_TEST, [
 		dnl
 		AC_MSG_CHECKING(linking against QtGui lib)
 
-		LIBS="-lQtGui ${X11_LIBOPTS} ${LIBS} ${GUI_INCLUDES}"
-		
+		if test "${QT_PLATFORM}" != "Qt-Darwin"; then
+			LIBS="-lQtGui ${X11_LIBOPTS} ${LIBS} ${GUI_INCLUDES}"
+		fi
+
 		QT_LINKING_OK=0
     AC_TRY_LINK([#include <QtGui/QWidget>], [QWidget widget;], QT_LINKING_OK=1)
 
@@ -3223,7 +3266,9 @@ AC_DEFUN(CF_GUI_QT_LINK_TEST, [
 		dnl 
 		AC_MSG_CHECKING(linking against QtOpenGL lib)
 
-		LIBS="-ltGui -lQtOpenGL ${X11_LIBOPTS} ${LIBS} ${GUI_INCLUDES}"
+		if test "${QT_PLATFORM}" != "Qt-Darwin"; then
+			LIBS="-ltGui -lQtOpenGL ${X11_LIBOPTS} ${LIBS} ${GUI_INCLUDES}"
+		fi
 
 		QT_LINKING_OK=0
 		AC_TRY_LINK([#include <QtOpenGL/QGLWidget>], [QGlWidget widget;], QT_LINKING_OK=1) 
@@ -3247,7 +3292,9 @@ AC_DEFUN(CF_GUI_QT_LINK_TEST, [
 		dnl
 		AC_MSG_CHECKING(linking against QtSql lib)
 
-		LIBS="${X11_LIBOPTS} ${LIBS} ${GUI_INCLUDES}"
+		if test "${QT_PLATFORM}" != "Qt-Darwin"; then
+			LIBS="${X11_LIBOPTS} ${LIBS} ${GUI_INCLUDES}"
+		fi
 
 		QT_LINKING_OK=0
 		AC_TRY_LINK([#include <QtSql/QSqlDatabase>], [QSqlDatabase db;], QT_LINKING_OK=1)
@@ -3265,18 +3312,22 @@ AC_DEFUN(CF_GUI_QT_LINK_TEST, [
       AC_MSG_RESULT(yes)
     fi
 
-		LIBS=${SAVE_LIBS}
+		if test "${QT_PLATFORM}" != "Qt-Darwin"; then
+			LIBS=${SAVE_LIBS}
+		fi
 
     dnl
     dnl  identify the version of the library
     dnl
     AC_MSG_CHECKING(QT library version)
     SAVE_LIBS=${LIBS}
-    LIBS="${OPENGL_LIBOPTS} ${X11_LIBOPTS} ${LIBS} -L${QT_LIBPATH} ${QT_LIBOPTS}"
+		if test "${QT_PLATFORM}" != "Qt-Darwin"; then
+			LIBS="${OPENGL_LIBOPTS} ${X11_LIBOPTS} ${LIBS} -L${QT_LIBPATH} ${QT_LIBOPTS}"
+		fi
     if test "${OS}" = "Darwin" ; then
-      DYLD_LIBRARY_PATH="${QT_LIBPATH}:${X11_LIBPATH}:${OPENGL_LIBPATH}:${GLEW_LIBPATH}:${DYLD_LIBRARY_PATH}"
-      export DYLD_LIBRARY_PATH
-      echo "DYLD_LIBRARY_PATH = ${DYLD_LIBRARY_PATH}" 1>&5
+      DYLD_FALLBACK_LIBRARY_PATH="${QT_LIBPATH}:${X11_LIBPATH}:${OPENGL_LIBPATH}:${GLEW_LIBPATH}:${DYLD_FALLBACK_LIBRARY_PATH}"
+      export DYLD_FALLBACK_LIBRARY_PATH
+      echo "DYLD_FALLBACK_LIBRARY_PATH = ${DYLD_FALLBACK_LIBRARY_PATH}" 1>&5
     else
       LD_LIBRARY_PATH="${QT_LIBPATH}:${X11_LIBPATH}:${OPENGL_LIBPATH}:${GLEW_LIBPATH}:${LD_LIBRARY_PATH}"
       export LD_LIBRARY_PATH
@@ -3337,7 +3388,6 @@ AC_DEFUN(CF_GUI_QT_LINK_TEST, [
         fi
       fi
     fi
-
 ])
 
 
@@ -3695,7 +3745,7 @@ AC_DEFUN(CF_CGAL, [
 			AC_MSG_RESULT(no)
 			AC_MSG_RESULT()
 			AC_MSG_RESULT([Cannot link against libCGAL . Please check config.log and])
-			AC_MSG_RESULT([specify appropriate options to configure (e.g. --with-cgal-lib/incl).])
+			AC_MSG_RESULT([specify appropriate options to configure (e.g. --with-cgal-libs=DIR / --with-cgal-incl=DIR).])
 			CF_ERROR
 		else
 			AC_MSG_RESULT(yes)
