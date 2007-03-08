@@ -51,55 +51,76 @@ CHECK(~ConsensusID())
 	delete(ptr);
 RESULT
 
+// Identification with 3 id runs is created
+std::vector<Identification> ids(3);
+std::vector<PeptideHit> hits;
+// the first ID has 5 hits
+hits.resize(5);
+hits[0].setRank(1);
+hits[0].setSequence("A");
+hits[0].setScore(31);
+hits[1].setRank(2);
+hits[1].setSequence("B");	
+hits[1].setScore(28);
+hits[2].setRank(3);
+hits[2].setSequence("C");
+hits[2].setScore(17);
+hits[3].setRank(4);
+hits[3].setSequence("D");
+hits[3].setScore(7);
+hits[4].setRank(5);
+hits[4].setSequence("E");
+hits[4].setScore(3);
+ids[0].getPeptideHits() = hits;
+// the second ID has 3 hits
+hits.resize(3);
+hits[0].setRank(1);
+hits[0].setSequence("C");
+hits[0].setScore(32);
+hits[1].setRank(2);
+hits[1].setSequence("A");
+hits[1].setScore(30);
+hits[2].setRank(3);
+hits[2].setSequence("B");
+hits[2].setScore(29);
+ids[1].getPeptideHits() = hits;
+// the third ID has 10 hits
+hits.resize(10);
+hits[0].setRank(1);
+hits[0].setSequence("F");
+hits[0].setScore(81);
+hits[1].setRank(2);
+hits[1].setSequence("C");	
+hits[1].setScore(60);
+hits[2].setRank(3);
+hits[2].setSequence("G");
+hits[2].setScore(50);
+hits[3].setRank(4);
+hits[3].setSequence("D");
+hits[3].setScore(40);
+hits[4].setRank(5);
+hits[4].setSequence("B");
+hits[4].setScore(25);
+hits[5].setRank(6);
+hits[5].setSequence("E");
+hits[5].setScore(5);
+hits[6].setRank(7);
+hits[6].setSequence("H");	
+hits[6].setScore(4);
+hits[7].setRank(8);
+hits[7].setSequence("I");
+hits[7].setScore(3);
+hits[8].setRank(9);
+hits[8].setSequence("J");
+hits[8].setScore(2);
+hits[9].setRank(10);
+hits[9].setSequence("K");
+hits[9].setScore(1);
+ids[2].getPeptideHits() = hits;
+
 CHECK(void apply(Feature& feature) throw (Exception::InvalidValue))
-	// 3 id runs are created
-	std::vector<Identification> ids(3);
-	std::vector<PeptideHit> hits;
-	// the first ID has 5 hits
-	hits.resize(5);
-	hits[0].setRank(1);
-	hits[0].setSequence("A");
-	hits[1].setRank(2);
-	hits[1].setSequence("B");	
-	hits[2].setRank(3);
-	hits[2].setSequence("C");
-	hits[3].setRank(4);
-	hits[3].setSequence("D");
-	hits[4].setRank(5);
-	hits[4].setSequence("E");
-	ids[0].getPeptideHits() = hits;
-	// the second ID has 3 hits
-	hits.resize(3);
-	hits[0].setRank(1);
-	hits[0].setSequence("C");
-	hits[1].setRank(2);
-	hits[1].setSequence("A");	
-	hits[2].setRank(3);
-	hits[2].setSequence("B");
-	ids[1].getPeptideHits() = hits;
-	// the third ID has 10 hits
-	hits.resize(10);
-	hits[0].setRank(1);
-	hits[0].setSequence("F");
-	hits[1].setRank(2);
-	hits[1].setSequence("C");	
-	hits[2].setRank(3);
-	hits[2].setSequence("G");
-	hits[3].setRank(4);
-	hits[3].setSequence("D");
-	hits[4].setRank(5);
-	hits[4].setSequence("B");
-	hits[5].setRank(6);
-	hits[5].setSequence("E");
-	hits[6].setRank(7);
-	hits[6].setSequence("H");	
-	hits[7].setRank(8);
-	hits[7].setSequence("I");
-	hits[8].setRank(9);
-	hits[8].setSequence("J");
-	hits[9].setRank(10);
-	hits[9].setSequence("K");
-	ids[2].getPeptideHits() = hits;
+	
+	// ***** Ranked ********
 	
 	ConsensusID consensus;
 	//define parameters
@@ -112,9 +133,8 @@ CHECK(void apply(Feature& feature) throw (Exception::InvalidValue))
 	f.setIdentifications(ids);
 	consensus.apply(f);
 	
-	ids = f.getIdentifications();
-	TEST_EQUAL(ids.size(),1);
-	hits = ids[0].getPeptideHits();
+	TEST_EQUAL(f.getIdentifications().size(),1);
+	hits = f.getIdentifications()[0].getPeptideHits();
 	TEST_EQUAL(hits.size(),7);
 	
 	TEST_EQUAL(hits[0].getRank(),1);
@@ -145,8 +165,52 @@ CHECK(void apply(Feature& feature) throw (Exception::InvalidValue))
 	TEST_EQUAL(hits[6].getSequence(),"E");
 	TEST_REAL_EQUAL(hits[6].getScore(),1.0f);
 
+	// ***** Merge ********
 
-	//test exception 
+	//define parameters
+	param.clear();
+	param.setValue("Algorithm","Merge");
+	param.setValue("ConsideredHits",6);
+	consensus.setParameters(param);
+	//apply to feature
+	f.setIdentifications(ids);
+	consensus.apply(f);
+	
+	ids = f.getIdentifications();
+	TEST_EQUAL(ids.size(),1);
+	hits = ids[0].getPeptideHits();
+	TEST_EQUAL(hits.size(),7);
+	
+	TEST_EQUAL(hits[0].getRank(),1);
+	TEST_EQUAL(hits[0].getSequence(),"F");
+	TEST_REAL_EQUAL(hits[0].getScore(),81.0f);
+	
+	TEST_EQUAL(hits[1].getRank(),2);
+	TEST_EQUAL(hits[1].getSequence(),"C");
+	TEST_REAL_EQUAL(hits[1].getScore(),60.0f);
+	
+	TEST_EQUAL(hits[2].getRank(),3);
+	TEST_EQUAL(hits[2].getSequence(),"G");
+	TEST_REAL_EQUAL(hits[2].getScore(),50.0f);
+	
+	TEST_EQUAL(hits[3].getRank(),4);
+	TEST_EQUAL(hits[3].getSequence(),"D");
+	TEST_REAL_EQUAL(hits[3].getScore(),40.0f);
+	
+	TEST_EQUAL(hits[4].getRank(),5);
+	TEST_EQUAL(hits[4].getSequence(),"A");
+	TEST_REAL_EQUAL(hits[4].getScore(),31.0f);
+	
+	TEST_EQUAL(hits[5].getRank(),6);
+	TEST_EQUAL(hits[5].getSequence(),"B");
+	TEST_REAL_EQUAL(hits[5].getScore(),29.0f);
+	
+	TEST_EQUAL(hits[6].getRank(),7);
+	TEST_EQUAL(hits[6].getSequence(),"E");
+	TEST_REAL_EQUAL(hits[6].getScore(),5.0f);
+
+
+	// ***** Exception ********
 	param.setValue("Algorithm","Bla4711");
 	consensus.setParameters(param);
 	TEST_EXCEPTION(Exception::InvalidValue,consensus.apply(f));

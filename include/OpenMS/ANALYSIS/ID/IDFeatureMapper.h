@@ -47,7 +47,7 @@ namespace OpenMS
       IDFeatureMapper();
       
 			///This method does the actual mapping
-		  void annotate(FeatureMap<>& fm, const std::vector<IdentificationData>& ids, const std::vector<ProteinIdentification>& protein_ids) throw (Exception::Precondition);      
+		  void annotate(FeatureMap<>& fm, const std::vector<IdentificationData>& ids, const std::vector<ProteinIdentification>& protein_ids);      
   };
  
 } // namespace OpenMS

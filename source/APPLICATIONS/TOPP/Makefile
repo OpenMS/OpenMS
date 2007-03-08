@@ -36,6 +36,7 @@ endif
 
 EXECUTABLES=\
 	$(LIBSVM_EXEC)\
+	ConsensusID\
 	FileConverter\
 	FileInfo\
 	FileFilter\
@@ -90,6 +91,10 @@ CPP_SOURCES =\
 
 test:
 	cd ${OPENMS_PATH}/source/TEST/TOPP/ && make
+
+ConsensusID: ConsensusID.o
+	$(CXX) $(LDFLAGS) -o $@ $< $(LIBS)
+	$(CP) $@ $(OPENMS_PATH)/bin/ 
 
 MapStatistics: MapStatistics.o
 	$(CXX) $(LDFLAGS) -o $@ $< $(LIBS)

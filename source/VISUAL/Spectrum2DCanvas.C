@@ -337,6 +337,42 @@ namespace OpenMS
 					painter.drawLine(pos.x()-1,pos.y(),pos.x()+1,pos.y());
 				}
 			}
+			
+			//draw precursor peaks
+			painter.setPen(Qt::black);
+			for (ExperimentType::ConstIterator i = getPeakData(layer_index).begin(); 
+					 i != getPeakData(layer_index).end(); 
+					 ++i)
+			{
+				//this is a MS/MS scan
+				if (i->getMSLevel()==2)
+				{
+					//look up precursor peak scan for RT
+					ExperimentType::ConstIterator prec = i;
+					while(true)
+					{
+						//we have found the precursor
+						if (prec->getMSLevel()==1)
+						{
+							//draw icon
+							dataToWidget_(i->getPrecursorPeak().getPosition()[0], prec->getRetentionTime(),pos);
+							painter.drawLine(pos.x(),pos.y()+2,pos.x()+2,pos.y());
+							painter.drawLine(pos.x()+2,pos.y(),pos.x(),pos.y()-2);
+							painter.drawLine(pos.x(),pos.y()-2,pos.x()-2,pos.y());
+							painter.drawLine(pos.x()-2,pos.y(),pos.x(),pos.y()+2);
+							//abort while loop
+							break;
+						}
+						//there is no precusor scan for this MS/MS scan
+						if (prec == getPeakData(layer_index).begin())
+						{
+							cout << "Warning: No precursor scan for scan with RT=" << i->getRetentionTime() << endl;
+							break;
+						}
+						--prec;
+					}
+				}
+			}
 		}
 		else //features
 		{

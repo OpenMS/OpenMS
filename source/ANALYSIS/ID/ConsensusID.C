@@ -44,15 +44,24 @@ namespace OpenMS
 	
 	void ConsensusID::apply(Feature& feature) throw (Exception::InvalidValue)
 	{
+#ifdef DEBUG_ID
+		cout << "Feature " << feature.getRT() << " / " << feature.getMZ() << " -> " << feature.getIdentifications().size() << endl;
+#endif
+		//Abort if no IDs present
+		if (feature.getIdentifications().size()==0)
+		{
+			return;
+		}
+		
 		String algorithm = param_.getValue("Algorithm");
 
 		//temporary datastructure to accumulate scores
 		map<String,Real> scores;
-			
+		
+		UInt considered_hits = (UInt)(param_.getValue("ConsideredHits"));
+		
 		if (algorithm == "Ranked")
 		{
-			UInt considered_hits = (UInt)(param_.getValue("ConsideredHits"));
-			
 			//iterate over the different ID runs
 			vector<Identification>& ids = feature.getIdentifications();
 			for (vector<Identification>::iterator id = ids.begin(); id != ids.end(); ++id)
@@ -75,6 +84,46 @@ namespace OpenMS
 				}
 			}
 		}
+		else if (algorithm == "Merge")
+		{	
+			//store the score type (to make sure only IDs of the same type are merged)
+			String score_type = feature.getIdentifications()[0].getPeptideHits().begin()->getScoreType();
+			//iterate over the different ID runs
+			vector<Identification>& ids = feature.getIdentifications();
+			for (vector<Identification>::iterator id = ids.begin(); id != ids.end(); ++id)
+			{
+#ifdef DEBUG_ID
+				cout << "Id run with " << id->getPeptideHits().size() << " hits" << endl;
+#endif
+				//check the score type
+				if (id->getPeptideHits().begin()->getScoreType()!=score_type)
+				{
+					cerr << "Warning: You are merging differnt types of scores: '" << score_type << "' and '" << id->getPeptideHits().begin()->getScoreType() << "'" << endl;
+				}
+				//make sure that the ranks are present
+				id->assignRanks();
+				//iterate over the hits
+				UInt hit_count = 1;
+				for (vector<PeptideHit>::const_iterator hit = id->getPeptideHits().begin(); hit != id->getPeptideHits().end() && hit_count <= considered_hits; ++hit)
+				{
+					if (scores.find(hit->getSequence())==scores.end())
+					{
+#ifdef DEBUG_ID
+						cout << " - Added hit: " << hit->getSequence() << " " << hit->getScore() << endl;
+#endif
+						scores.insert(make_pair(hit->getSequence(),hit->getScore()));  
+					}
+					else if(scores[hit->getSequence()] < hit->getScore())
+					{
+#ifdef DEBUG_ID
+						cout << " - Updated hit: " << hit->getSequence() << " " << scores[hit->getSequence()] << " -> " << hit->getScore() << endl;
+#endif
+						scores[hit->getSequence()] = hit->getScore();
+					}
+					++hit_count;
+				}
+			}
+		}
 		else
 		{
 			throw Exception::InvalidValue(__FILE__,__LINE__,__PRETTY_FUNCTION__,"There is no such ConsensusID algorithm!",algorithm);
@@ -86,8 +135,23 @@ namespace OpenMS
 		vector<PeptideHit>& hits = feature.getIdentifications()[0].getPeptideHits();
 		hits.resize(scores.size());
 		UInt hit_count = 0;
+#ifdef DEBUG_ID
+		cout << "Writing " << scores.size() << " hits" << endl;
+#endif
 		for (map<String,Real>::const_iterator it = scores.begin(); it != scores.end(); ++it)
 		{
+			if (algorithm == "Ranked")
+			{
+				hits[hit_count].setScoreType("Consensus_ranked");
+			}
+			else if (algorithm == "Merge")
+			{
+				hits[hit_count].setScoreType("Consensus_merge");
+			}
+			else
+			{
+				throw Exception::InvalidValue(__FILE__,__LINE__,__PRETTY_FUNCTION__,"No Score type defined for this algorithm!",algorithm);
+			}
 			hits[hit_count].setSequence(it->first);
 			hits[hit_count].setScore(it->second);
 			++hit_count;
