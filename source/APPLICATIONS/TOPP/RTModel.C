@@ -152,17 +152,17 @@ class TOPPRTModel
 			registerIntOption_("number_of_runs","<n>",50,"number of runs for the CV",false);
 			registerIntOption_("number_of_partitions","<n>",10,"number of CV partitions",false);
 			registerIntOption_("degree_start","<int>",0,"starting point of degree",false);
-			registerIntOption_("degree_step_size","<int>",0,"starting point of degree",false);
-			registerIntOption_("degree_stop","<int>",0,"starting point of degree",false);
-			registerDoubleOption_("p_start","<float>",0.0,"starting point of degree",false);
-			registerDoubleOption_("p_step_size","<float>",0.0,"starting point of degree",false);
-			registerDoubleOption_("p_stop","<float>",0.0,"starting point of degree",false);
-			registerDoubleOption_("c_start","<float>",0.0,"starting point of degree",false);
-			registerDoubleOption_("c_step_size","<float>",0.0,"starting point of degree",false);
-			registerDoubleOption_("c_stop","<float>",0.0,"starting point of degree",false);
-			registerDoubleOption_("nu_start","<float>",0.0,"starting point of degree",false);
-			registerDoubleOption_("nu_step_size","<float>",0.0,"starting point of degree",false);
-			registerDoubleOption_("nu_stop","<float>",0.0,"starting point of degree",false);
+			registerIntOption_("degree_step_size","<int>",0,"step size point of degree",false);
+			registerIntOption_("degree_stop","<int>",0,"stopping point of degree",false);
+			registerDoubleOption_("p_start","<float>",0.0,"starting point of p",false);
+			registerDoubleOption_("p_step_size","<float>",0.0,"step size point of p",false);
+			registerDoubleOption_("p_stop","<float>",0.0,"stopping point of p",false);
+			registerDoubleOption_("c_start","<float>",0.0,"starting point of c",false);
+			registerDoubleOption_("c_step_size","<float>",0.0,"step size of c",false);
+			registerDoubleOption_("c_stop","<float>",0.0,"stopping point of c",false);
+			registerDoubleOption_("nu_start","<float>",0.0,"starting point of nu",false);
+			registerDoubleOption_("nu_step_size","<float>",0.0,"step size of nu",false);
+			registerDoubleOption_("nu_stop","<float>",0.0,"stopping point of nu",false);
 		}
 
 		ExitCodes main_(int , char**)
