@@ -45,6 +45,26 @@ namespace OpenMS
 		Seeds are extended 
 		 (a) until a given maximum distance from seed (data point with highest intensity) is reached,
 		 (b) as long as they contribute significantly to the feature intensity.
+		 		 
+		 <table>
+			<tr>
+				<td>dist_mz_down / dist_mz_up</td>
+				<td>Lower and upper bound for the distance in m/z from the highest point.</td>
+			</tr>
+			<tr>
+				<td>dist_rt_down / dist_rt_up</td>
+				<td>Lower and upper bound for the distance in rt from the highest point.</td>
+			</tr>
+			<tr>
+				<td>intensity_perc</td>
+				<td>Minimum percentage of the intensity of the largest peak that a seed has to have
+				    (used only if min_nitensity is set to 0.</td>
+			</tr>
+				<td>intensity_factor</td>
+				<td>Minimum percentage of the intensity of the largest peak that a seed has to have
+				    (used only if min_nitensity is set to 0.</td>
+			</tr>
+		</table>
 		
 		
 		@ingroup FeatureFinder

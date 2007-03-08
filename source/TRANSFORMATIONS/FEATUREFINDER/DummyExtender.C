@@ -97,7 +97,6 @@ namespace OpenMS
         max_intensity = traits_->getPeakIntensity(seed);						
 			}
 			region_.insert(*citer);
-// 			boundary_.push(*citer);
     }
   
 		// remember last extracted point (in this case the seed !)
