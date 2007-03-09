@@ -311,7 +311,7 @@ ac_includes_default="\
 #endif"
 
 ac_default_prefix=`cd ..; pwd`
-ac_subst_vars='SHELL PATH_SEPARATOR PACKAGE_NAME PACKAGE_TARNAME PACKAGE_VERSION PACKAGE_STRING PACKAGE_BUGREPORT exec_prefix prefix program_transform_name bindir sbindir libexecdir datadir sysconfdir sharedstatedir localstatedir libdir includedir oldincludedir infodir mandir build_alias host_alias target_alias DEFS ECHO_C ECHO_N ECHO_T LIBS PAGER LN_S UNAME CUT TR AR CP RM MV LN SED FIND DIFF TAIL GREP EGREP CAT ECHO_COMMAND ECHO ifGNUmake MAKE OSMAJOR OS OSREV BINFMT BINFMT_PATH ARCHITECTURE SHARED_LIB_SUFFIX CXXPATH CXX CXXFLAGS LDFLAGS CPPFLAGS ac_ct_CXX EXEEXT OBJEXT CXXCPP OPENMS_HAS_XDR LEX LEXLIB LEX_OUTPUT_ROOT YACC OPENMS_HAS_FLEX_YACC NETCDF_SUPPORT NETCDF_INCLUDES NETCDF_LIBS ANDIMS_SUPPORT ANDIMS_INCLUDES ANDIMS_LIBS GSL_SUPPORT GSL_INCLUDES GSL_LIBS CGAL_SUPPORT CGAL_INCLUDES CGAL_LIBS FFTW_SUPPORT FFTW_INCLUDES FFTW_LIBS OpenMS_HAS_FFTW OpenMS_HAS_FFTW_H OpenMS_HAS_FFTW_FLOAT OpenMS_HAS_FFTW_DOUBLE OpenMS_HAS_FFTW_LONG_DOUBLE LIBSVM_SUPPORT LIBSVM_OBJECT XERCES_SUPPORT XERCES_OBJECT GUI_INCLUDES MOC UIC SIP SIP_LIB SIP_INCLUDES PYTHON_INCLUDES PYTHON_SUPPORT PYTHON_LIBS PYTHON_EXECUTABLE VALGRIND VALGRIND_OPTS OPENMS_PATH OPENMS_INCLUDES OPENMS_LIBS CXX_MAKEDEPEND MAKEDEP_CXX_OPTS MAKEDEP_CXX_SUFFIX DEPENDENCY_GREPS CC ADD_CXXFLAGS LIB_CXXFLAGS NONLIB_CXXFLAGS HAS_GPLUSPLUS STD_CPP_INCLUDES MAKEDEP_OPTS OPENMS_TYPENAME GUI_LIBS DEFINES CXXFLAGS_D CXXFLAGS_O CPP_MODE_FLAGS CPP_MODE_FLAGS_NO_OPTIMIZATION AROPTS DYNAR DYNAROPTS ADDITIONAL_COMMENTS TEMPLATE_DIR SUBDIRS GUI_STATIC_LIB GUISUBDIRS LIBOBJS LTLIBOBJS'
+ac_subst_vars='SHELL PATH_SEPARATOR PACKAGE_NAME PACKAGE_TARNAME PACKAGE_VERSION PACKAGE_STRING PACKAGE_BUGREPORT exec_prefix prefix program_transform_name bindir sbindir libexecdir datadir sysconfdir sharedstatedir localstatedir libdir includedir oldincludedir infodir mandir build_alias host_alias target_alias DEFS ECHO_C ECHO_N ECHO_T LIBS PAGER LN_S UNAME CUT TR AR CP RM MV LN SED FIND DIFF TAIL GREP EGREP CAT ECHO_COMMAND ECHO ifGNUmake MAKE OSMAJOR OS OSREV BINFMT BINFMT_PATH ARCHITECTURE SHARED_LIB_SUFFIX CXXPATH CXX CXXFLAGS LDFLAGS CPPFLAGS ac_ct_CXX EXEEXT OBJEXT CXXCPP OPENMS_HAS_XDR LEX LEXLIB LEX_OUTPUT_ROOT YACC OPENMS_HAS_FLEX_YACC NETCDF_SUPPORT NETCDF_INCLUDES NETCDF_LIBS ANDIMS_SUPPORT ANDIMS_INCLUDES ANDIMS_LIBS GSL_SUPPORT GSL_INCLUDES GSL_LIBS CGAL_SUPPORT CGAL_INCLUDES CGAL_LIBS FFTW_SUPPORT FFTW_INCLUDES FFTW_LIBS OpenMS_HAS_FFTW OpenMS_HAS_FFTW_H OpenMS_HAS_FFTW_FLOAT OpenMS_HAS_FFTW_DOUBLE OpenMS_HAS_FFTW_LONG_DOUBLE LIBSVM_SUPPORT LIBSVM_OBJECT XERCES_SUPPORT XERCES_OBJECT GUI_INCLUDES MOC UIC SIP SIP_LIB SIP_INCLUDES PYTHON_INCLUDES PYTHON_SUPPORT PYTHON_LIBS PYTHON_EXECUTABLE VALGRIND VALGRIND_OPTS OPENMS_PATH OPENMS_INCLUDES OPENMS_LIBS CXX_MAKEDEPEND MAKEDEP_CXX_OPTS MAKEDEP_CXX_SUFFIX DEPENDENCY_GREPS CC ADD_CXXFLAGS LIB_CXXFLAGS NONLIB_CXXFLAGS HAS_GPLUSPLUS STD_CPP_INCLUDES MAKEDEP_OPTS OPENMS_TYPENAME GUI_LIBS DEFINES CXXFLAGS_D CXXFLAGS_O CPP_MODE_FLAGS CPP_MODE_FLAGS_NO_OPTIMIZATION AROPTS DYNAR DYNAROPTS DYNAROPTS_GUI ADDITIONAL_COMMENTS TEMPLATE_DIR SUBDIRS GUI_STATIC_LIB GUISUBDIRS LIBOBJS LTLIBOBJS'
 ac_subst_files=''
 
 # Initialize some variables set by options.
@@ -1358,6 +1358,10 @@ PROJECT=OPENMS
 
 
 
+	OS=`uname -s`
+	if test "${OS}" = Darwin ; then
+		exec 0<&7 7<&-
+	fi
 	# Extract the first word of "less", so it can be a program name with args.
 set dummy less; ac_word=$2
 echo "$as_me:$LINENO: checking for $ac_word" >&5
@@ -1446,7 +1450,7 @@ fi
 	if test ! -f config.lic ; then
 		${PAGER} LICENSE
 		echo " "
-		echo "Do you accept the terms of this license (y/n)?"
+		echo -n "Do you accept the terms of this license (y/n)? "
 		answer=""
 		while test "$answer" != "y" -a "$answer" != "n" ; do
 			read answer
@@ -1456,6 +1460,9 @@ fi
 		else
 			echo "accepted" > config.lic
 		fi
+	fi
+	if test "${OS}" = Darwin ; then
+		exec 7<&0 </dev/null
 	fi
 
 
@@ -4770,11 +4777,14 @@ echo "${ECHO_T}yes" >&6
   DYNAR="${CXX}"
   if test "${OS}" == "Solaris" ; then
     DYNAROPTS="${DYNAROPTS} -G -fPIC -o"
+		DYNAROPTS_GUI=""
   else
     if test "${OS}" == Darwin ; then
-	    DYNAROPTS="${DYNAROPTS} -dynamiclib -fPIC -o"
+	    DYNAROPTS="${DYNAROPTS} -single_module -framework QtSql -framework QtCore -L${OPENMS_PATH}/contrib/lib -lxerces-c -lnetcdf -lnetcdf_c++ -lCGAL -lgsl -lsvm.o ${OPENMS_PATH}/contrib/lib/ms10lib.a -dynamiclib -fPIC -o"
+			DYNAROPTS_GUI=" -L. -lOpenMS -framework OpenGL -framework QtGui -framework QtOpenGl"
 		else
   	  DYNAROPTS="${DYNAROPTS} -shared -fPIC -o"
+			DYNAROPTS_GUI=""
 		fi
   fi
 
@@ -15890,11 +15900,70 @@ cat >>conftest.$ac_ext <<_ACEOF
 
 						#include <rpc/types.h>
 						#include <rpc/xdr.h>
-						extern "C" int dummy(void*, char*, int) {return 0;}
+						extern "C" int dummy(void*, void*, int) {return 0;}
 						void foo(){
 							XDR xdrs;
 							xdrrec_create(&xdrs, 0, 0, 0, dummy, dummy);
 						}
+
+int
+main ()
+{
+
+
+  ;
+  return 0;
+}
+_ACEOF
+rm -f conftest.$ac_objext
+if { (eval echo "$as_me:$LINENO: \"$ac_compile\"") >&5
+  (eval $ac_compile) 2>conftest.er1
+  ac_status=$?
+  grep -v '^ *+' conftest.er1 >conftest.err
+  rm -f conftest.er1
+  cat conftest.err >&5
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); } &&
+	 { ac_try='test -z "$ac_cxx_werror_flag"
+			 || test ! -s conftest.err'
+  { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
+  (eval $ac_try) 2>&5
+  ac_status=$?
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); }; } &&
+	 { ac_try='test -s conftest.$ac_objext'
+  { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
+  (eval $ac_try) 2>&5
+  ac_status=$?
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); }; }; then
+  OPENMS_XDRREC_VOID_VOID_INT=true
+else
+  echo "$as_me: failed program was:" >&5
+sed 's/^/| /' conftest.$ac_ext >&5
+
+OPENMS_XDRREC_VOID_VOID_INT=false
+
+fi
+rm -f conftest.err conftest.$ac_objext conftest.$ac_ext
+			if test "${OPENMS_XDRREC_VOID_VOID_INT}" = true ; then
+				echo "$as_me:$LINENO: result: (void*, void*, int)" >&5
+echo "${ECHO_T}(void*, void*, int)" >&6
+			else
+				cat >conftest.$ac_ext <<_ACEOF
+/* confdefs.h.  */
+_ACEOF
+cat confdefs.h >>conftest.$ac_ext
+cat >>conftest.$ac_ext <<_ACEOF
+/* end confdefs.h.  */
+
+							#include <rpc/types.h>
+							#include <rpc/xdr.h>
+							extern "C" int dummy(void*, char*, int) {return 0;}
+							void foo(){
+								XDR xdrs;
+								xdrrec_create(&xdrs, 0, 0, 0, dummy, dummy);
+							}
 
 int
 main ()
@@ -15936,24 +16005,24 @@ OPENMS_XDRREC_VOID_CHAR_INT=false
 
 fi
 rm -f conftest.err conftest.$ac_objext conftest.$ac_ext
-			if test "${OPENMS_XDRREC_VOID_CHAR_INT}" = true ; then
-				echo "$as_me:$LINENO: result: (void*, char*, int)" >&5
+				if test "${OPENMS_XDRREC_VOID_CHAR_INT}" = true ; then
+					echo "$as_me:$LINENO: result: (void*, char*, int)" >&5
 echo "${ECHO_T}(void*, char*, int)" >&6
-			else
-				cat >conftest.$ac_ext <<_ACEOF
+				else
+					cat >conftest.$ac_ext <<_ACEOF
 /* confdefs.h.  */
 _ACEOF
 cat confdefs.h >>conftest.$ac_ext
 cat >>conftest.$ac_ext <<_ACEOF
 /* end confdefs.h.  */
 
-							#include <rpc/types.h>
-							#include <rpc/xdr.h>
-							extern "C" int dummy(char*, char*, int) {return 0;}
-							void foo(){
-								XDR xdrs;
-								xdrrec_create(&xdrs, 0, 0, 0, dummy, dummy);
-							}
+								#include <rpc/types.h>
+								#include <rpc/xdr.h>
+								extern "C" int dummy(char*, char*, int) {return 0;}
+								void foo(){
+									XDR xdrs;
+									xdrrec_create(&xdrs, 0, 0, 0, dummy, dummy);
+								}
 
 int
 main ()
@@ -15995,24 +16064,24 @@ OPENMS_XDRREC_CHAR_CHAR_INT=false
 
 fi
 rm -f conftest.err conftest.$ac_objext conftest.$ac_ext
-				if test "${OPENMS_XDRREC_CHAR_CHAR_INT}" = true ; then
-					echo "$as_me:$LINENO: result: (char*, char*, int)" >&5
+					if test "${OPENMS_XDRREC_CHAR_CHAR_INT}" = true ; then
+						echo "$as_me:$LINENO: result: (char*, char*, int)" >&5
 echo "${ECHO_T}(char*, char*, int)" >&6
-				else
-					cat >conftest.$ac_ext <<_ACEOF
+					else
+						cat >conftest.$ac_ext <<_ACEOF
 /* confdefs.h.  */
 _ACEOF
 cat confdefs.h >>conftest.$ac_ext
 cat >>conftest.$ac_ext <<_ACEOF
 /* end confdefs.h.  */
 
-							#include <rpc/types.h>
-							#include <rpc/xdr.h>
-							extern "C" int dummy() {return 0;}
-							void foo(){
-								XDR xdrs;
-								xdrrec_create(&xdrs, 0, 0, 0, dummy, dummy);
-							}
+								#include <rpc/types.h>
+								#include <rpc/xdr.h>
+								extern "C" int dummy() {return 0;}
+								void foo(){
+									XDR xdrs;
+									xdrrec_create(&xdrs, 0, 0, 0, dummy, dummy);
+								}
 
 int
 main ()
@@ -16054,11 +16123,11 @@ OPENMS_XDRREC_VOID=false
 
 fi
 rm -f conftest.err conftest.$ac_objext conftest.$ac_ext
-					if test "${OPENMS_XDRREC_VOID}" = true ; then
-						echo "$as_me:$LINENO: result: ()" >&5
+						if test "${OPENMS_XDRREC_VOID}" = true ; then
+							echo "$as_me:$LINENO: result: ()" >&5
 echo "${ECHO_T}()" >&6
-					else
-						echo "$as_me:$LINENO: result: not found!" >&5
+						else
+							echo "$as_me:$LINENO: result: not found!" >&5
 echo "${ECHO_T}not found!" >&6
 
 	echo "$as_me:$LINENO: result: " >&5
@@ -16090,6 +16159,7 @@ echo "${ECHO_T}" >&6
 echo "$as_me: error: Aborted." >&2;}
    { (exit 1); exit 1; }; }
 
+						fi
 					fi
 				fi
 			fi
@@ -18853,8 +18923,8 @@ echo "${ECHO_T}no" >&6
 echo "${ECHO_T}" >&6
 			echo "$as_me:$LINENO: result: Cannot link against libCGAL . Please check config.log and" >&5
 echo "${ECHO_T}Cannot link against libCGAL . Please check config.log and" >&6
-			echo "$as_me:$LINENO: result: specify appropriate options to configure (e.g. --with-cgal-lib/incl)." >&5
-echo "${ECHO_T}specify appropriate options to configure (e.g. --with-cgal-lib/incl)." >&6
+			echo "$as_me:$LINENO: result: specify appropriate options to configure (e.g. --with-cgal-libs=DIR / --with-cgal-incl=DIR)." >&5
+echo "${ECHO_T}specify appropriate options to configure (e.g. --with-cgal-libs=DIR / --with-cgal-incl=DIR)." >&6
 
 	echo "$as_me:$LINENO: result: " >&5
 echo "${ECHO_T}" >&6
@@ -20580,8 +20650,8 @@ echo $ECHO_N "checking for XERCES object file... $ECHO_C" >&6
 echo "${ECHO_T}(not found!)" >&6
 		  echo "$as_me:$LINENO: result: " >&5
 echo "${ECHO_T}" >&6
-			echo "$as_me:$LINENO: result: The XERCES object file could not be found. Please specify the path to <libxerces-c.so>" >&5
-echo "${ECHO_T}The XERCES object file could not be found. Please specify the path to <libxerces-c.so>" >&6
+			echo "$as_me:$LINENO: result: The XERCES object file could not be found. Please specify the path to <libxerces-c.${SHARED_LIB_SUFFIX}>" >&5
+echo "${ECHO_T}The XERCES object file could not be found. Please specify the path to <libxerces-c.${SHARED_LIB_SUFFIX}>" >&6
 		  echo "$as_me:$LINENO: result: by passing the option --with-xerces-libs=DIR to configure." >&5
 echo "${ECHO_T}by passing the option --with-xerces-libs=DIR to configure." >&6
 		  echo "$as_me:$LINENO: result: " >&5
@@ -20662,7 +20732,7 @@ echo "${ECHO_T}(${XERCES_DIR2})" >&6
 echo $ECHO_N "checking linking against XERCES... $ECHO_C" >&6
 		SAVE_LIBS=${LIBS}
 		SAVE_LDFLAGS=${LDFLAGS}
-		LIBS=" ${XERCES_DIR2}/libxerces-c.so "
+		LIBS=" ${XERCES_DIR2}/libxerces-c.${SHARED_LIB_SUFFIX} "
 		LDFLAGS=" -I${XERCES_DIR} "
 		XERCES_LINKING_OK=0
 		cat >conftest.$ac_ext <<_ACEOF
@@ -20721,8 +20791,8 @@ rm -f conftest.err conftest.$ac_objext \
 echo "${ECHO_T}no" >&6
 			echo "$as_me:$LINENO: result: " >&5
 echo "${ECHO_T}" >&6
-			echo "$as_me:$LINENO: result: Cannot link against libxerces-c.so . Please check config.log and" >&5
-echo "${ECHO_T}Cannot link against libxerces-c.so . Please check config.log and" >&6
+			echo "$as_me:$LINENO: result: Cannot link against libxerces-c.${SHARED_LIB_SUFFIX} . Please check config.log and" >&5
+echo "${ECHO_T}Cannot link against libxerces-c.${SHARED_LIB_SUFFIX} . Please check config.log and" >&6
 			echo "$as_me:$LINENO: result: specify appropriate options to configure (e.g. --with-xerces-lib/incl)." >&5
 echo "${ECHO_T}specify appropriate options to configure (e.g. --with-xerces-lib/incl)." >&6
 
@@ -21027,7 +21097,6 @@ if test "${OS}" = "Darwin" ; then
 	OPENGL_LIBOPTS="-framework Carbon -framework OpenGL -framework AGL"
 	X11_LIBPATHOPT=""
 	X11_INCPATH=""
-	OPENGL_INCPATH="-I/System/Library/Frameworks/OpenGL.framework/Versions/A/Headers -I/System/Library/Frameworks/AGL.framework/Versions/A/Headers"
 	GUI_INCLUDES="${GUI_INCLUDES} ${OPENGL_INCPATH}"
 fi
 
@@ -21580,6 +21649,10 @@ fi
 
 
 
+if test "${OS}" = "Darwin" ; then
+	QT_PLATFORM="Qt-Darwin"
+	QT_LIBOPTS="-framework QtCore -framework QtGui -framework QtSql -framework QtOpenGL"
+else
 	echo "$as_me:$LINENO: checking for Qt headers" >&5
 echo $ECHO_N "checking for Qt headers... $ECHO_C" >&6
 	if test "${QTDIR}" != "" ; then
@@ -22166,6 +22239,7 @@ echo "$as_me: error: Aborted." >&2;}
 				if test "${QT_LIBPATH}" != /usr/lib && test "${QT_LIBPATH}" != "" ; then
 		OPENMS_LIBS="${OPENMS_LIBS} -L${QT_LIBPATH} -lQtCore -lQtSql"
 	fi
+fi
 
 
 
@@ -22818,13 +22892,20 @@ echo "${ECHO_T}yes" >&6
 		echo "$as_me:$LINENO: checking linking against QtCore lib" >&5
 echo $ECHO_N "checking linking against QtCore lib... $ECHO_C" >&6
 
-		if test "${QT_LIBPATH}" == "/usr/lib" ; then
-			QT_LIBPATH=""
+		if test "${QT_PLATFORM}" != "Qt-Darwin"; then
+			if test "${QT_LIBPATH}" == "/usr/lib" ; then
+				QT_LIBPATH=""
+			fi
+			QT_LIBOPTS="-lQtGui -lQtOpenGL"
 		fi
-		QT_LIBOPTS="-lQtGui -lQtOpenGL"
 
-								SAVE_LIBS=${LIBS}
-		LIBS="${X11_LIBOPTS} ${LIBS} ${GUI_INCLUDES}"
+								if test "${QT_PLATFORM}" == "Qt-Darwin"; then
+			LIBS="${QT_LIBOPTS} ${X11_LIBOPTS} ${LIBS} ${GUI_INCLUDES}"
+			SAVE_LIBS=${LIBS}
+		else
+			SAVE_LIBS=${LIBS}
+			LIBS="${X11_LIBOPTS} ${LIBS} ${GUI_INCLUDES}"
+		fi
 
 		QT_LINKING_OK=0
 		cat >conftest.$ac_ext <<_ACEOF
@@ -22926,7 +23007,9 @@ echo "${ECHO_T}yes" >&6
 								echo "$as_me:$LINENO: checking linking against QtGui lib" >&5
 echo $ECHO_N "checking linking against QtGui lib... $ECHO_C" >&6
 
-		LIBS="-lQtGui ${X11_LIBOPTS} ${LIBS} ${GUI_INCLUDES}"
+		if test "${QT_PLATFORM}" != "Qt-Darwin"; then
+			LIBS="-lQtGui ${X11_LIBOPTS} ${LIBS} ${GUI_INCLUDES}"
+		fi
 
 		QT_LINKING_OK=0
     cat >conftest.$ac_ext <<_ACEOF
@@ -23029,7 +23112,9 @@ echo "${ECHO_T}yes" >&6
 								echo "$as_me:$LINENO: checking linking against QtOpenGL lib" >&5
 echo $ECHO_N "checking linking against QtOpenGL lib... $ECHO_C" >&6
 
-		LIBS="-ltGui -lQtOpenGL ${X11_LIBOPTS} ${LIBS} ${GUI_INCLUDES}"
+		if test "${QT_PLATFORM}" != "Qt-Darwin"; then
+			LIBS="-ltGui -lQtOpenGL ${X11_LIBOPTS} ${LIBS} ${GUI_INCLUDES}"
+		fi
 
 		QT_LINKING_OK=0
 		cat >conftest.$ac_ext <<_ACEOF
@@ -23132,7 +23217,9 @@ echo "${ECHO_T}yes" >&6
 								echo "$as_me:$LINENO: checking linking against QtSql lib" >&5
 echo $ECHO_N "checking linking against QtSql lib... $ECHO_C" >&6
 
-		LIBS="${X11_LIBOPTS} ${LIBS} ${GUI_INCLUDES}"
+		if test "${QT_PLATFORM}" != "Qt-Darwin"; then
+			LIBS="${X11_LIBOPTS} ${LIBS} ${GUI_INCLUDES}"
+		fi
 
 		QT_LINKING_OK=0
 		cat >conftest.$ac_ext <<_ACEOF
@@ -23231,16 +23318,20 @@ echo "$as_me: error: Aborted." >&2;}
 echo "${ECHO_T}yes" >&6
     fi
 
-		LIBS=${SAVE_LIBS}
+		if test "${QT_PLATFORM}" != "Qt-Darwin"; then
+			LIBS=${SAVE_LIBS}
+		fi
 
                 echo "$as_me:$LINENO: checking QT library version" >&5
 echo $ECHO_N "checking QT library version... $ECHO_C" >&6
     SAVE_LIBS=${LIBS}
-    LIBS="${OPENGL_LIBOPTS} ${X11_LIBOPTS} ${LIBS} -L${QT_LIBPATH} ${QT_LIBOPTS}"
+		if test "${QT_PLATFORM}" != "Qt-Darwin"; then
+			LIBS="${OPENGL_LIBOPTS} ${X11_LIBOPTS} ${LIBS} -L${QT_LIBPATH} ${QT_LIBOPTS}"
+		fi
     if test "${OS}" = "Darwin" ; then
-      DYLD_LIBRARY_PATH="${QT_LIBPATH}:${X11_LIBPATH}:${OPENGL_LIBPATH}:${GLEW_LIBPATH}:${DYLD_LIBRARY_PATH}"
-      export DYLD_LIBRARY_PATH
-      echo "DYLD_LIBRARY_PATH = ${DYLD_LIBRARY_PATH}" 1>&5
+      DYLD_FALLBACK_LIBRARY_PATH="${QT_LIBPATH}:${X11_LIBPATH}:${OPENGL_LIBPATH}:${GLEW_LIBPATH}:${DYLD_FALLBACK_LIBRARY_PATH}"
+      export DYLD_FALLBACK_LIBRARY_PATH
+      echo "DYLD_FALLBACK_LIBRARY_PATH = ${DYLD_FALLBACK_LIBRARY_PATH}" 1>&5
     else
       LD_LIBRARY_PATH="${QT_LIBPATH}:${X11_LIBPATH}:${OPENGL_LIBPATH}:${GLEW_LIBPATH}:${LD_LIBRARY_PATH}"
       export LD_LIBRARY_PATH
@@ -23397,7 +23488,6 @@ echo "$as_me: error: Aborted." >&2;}
         fi
       fi
     fi
-
 
 
 
@@ -24804,6 +24894,7 @@ GUI_INCLUDES="${OPENMS_INCLUDES} ${GUI_INCLUDES}"
 BINFMT="${BINFMT}-${CXX_NAME}"
 
 GUI_LIBS=" -L${OPENMS_PATH}/lib/${BINFMT} -lOpenMS -lOpenMS_GUI ${OPENMS_LIBS} ${GUI_LIBS} ${LIBS} -lm"
+if test "${OS}" != "Darwin" ; then
 
 	ac_u_bar=""
 	for arg in ${GUI_LIBS} ; do
@@ -24826,6 +24917,7 @@ GUI_LIBS=" -L${OPENMS_PATH}/lib/${BINFMT} -lOpenMS -lOpenMS_GUI ${OPENMS_LIBS} $
 	done
 	GUI_LIBS="$ac_u_bar"
 
+fi
 
 OPENMS_LIBS=" -L${OPENMS_PATH}/lib/${BINFMT} -lOpenMS ${OPENMS_LIBS} ${LIBS} -lm"
 
@@ -24888,6 +24980,7 @@ fi
 if test "${AROPTS}" = "" ; then
 	AROPTS="cru"
 fi
+
 
 
 
@@ -25662,6 +25755,7 @@ s,@CPP_MODE_FLAGS_NO_OPTIMIZATION@,$CPP_MODE_FLAGS_NO_OPTIMIZATION,;t t
 s,@AROPTS@,$AROPTS,;t t
 s,@DYNAR@,$DYNAR,;t t
 s,@DYNAROPTS@,$DYNAROPTS,;t t
+s,@DYNAROPTS_GUI@,$DYNAROPTS_GUI,;t t
 s,@ADDITIONAL_COMMENTS@,$ADDITIONAL_COMMENTS,;t t
 s,@TEMPLATE_DIR@,$TEMPLATE_DIR,;t t
 s,@SUBDIRS@,$SUBDIRS,;t t
