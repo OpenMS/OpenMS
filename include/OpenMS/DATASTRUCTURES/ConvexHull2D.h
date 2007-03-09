@@ -44,9 +44,6 @@ namespace OpenMS
 	/**	
 		@brief A 2-dimensional convex hull representation (conterclockwise)
 		
-		@note If OpenMS is compiled with CGAL, the convex hull is calculated using CGAL. 
-					Otherwise the gift-wrapping algorithm is used.
-		
 		@ingroup Datastructures
 	*/
 	class ConvexHull2D

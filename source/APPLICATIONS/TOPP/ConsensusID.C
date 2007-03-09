@@ -110,6 +110,7 @@ class TOPPConsensusID
 			vector<IdentificationData> all_ids;
 			for(UInt i = 0; i < ids.size(); ++i)
 			{
+				writeDebug_(String("Mapping ids: ") + ids[i], 2);
 				ax_file.load(ids[i],prot_ids, all_ids);
 				mapper.annotate(features,all_ids,prot_ids);
 			}

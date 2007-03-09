@@ -119,6 +119,7 @@ hits[9].setScore(1);
 ids[2].getPeptideHits() = hits;
 
 CHECK(void apply(Feature& feature) throw (Exception::InvalidValue))
+	PRECISION(0.01)
 	
 	// ***** Ranked ********
 	
@@ -139,31 +140,31 @@ CHECK(void apply(Feature& feature) throw (Exception::InvalidValue))
 	
 	TEST_EQUAL(hits[0].getRank(),1);
 	TEST_EQUAL(hits[0].getSequence(),"C");
-	TEST_REAL_EQUAL(hits[0].getScore(),12.0f);
+	TEST_REAL_EQUAL(hits[0].getScore(),80.0f);
 	
 	TEST_EQUAL(hits[1].getRank(),2);
 	TEST_EQUAL(hits[1].getSequence(),"A");
-	TEST_REAL_EQUAL(hits[1].getScore(),9.0f);
+	TEST_REAL_EQUAL(hits[1].getScore(),60.0f);
 	
 	TEST_EQUAL(hits[2].getRank(),3);
 	TEST_EQUAL(hits[2].getSequence(),"B");
-	TEST_REAL_EQUAL(hits[2].getScore(),8.0f);
+	TEST_REAL_EQUAL(hits[2].getScore(),53.33f);
 	
 	TEST_EQUAL(hits[3].getRank(),4);
 	TEST_EQUAL(hits[3].getSequence(),"F");
-	TEST_REAL_EQUAL(hits[3].getScore(),5.0f);
+	TEST_REAL_EQUAL(hits[3].getScore(),33.333f);
 	
 	TEST_EQUAL(hits[4].getRank(),5);
 	TEST_EQUAL(hits[4].getSequence(),"D");
-	TEST_REAL_EQUAL(hits[4].getScore(),4.0f);
+	TEST_REAL_EQUAL(hits[4].getScore(),26.666f);
 	
 	TEST_EQUAL(hits[5].getRank(),6);
 	TEST_EQUAL(hits[5].getSequence(),"G");
-	TEST_REAL_EQUAL(hits[5].getScore(),3.0f);
+	TEST_REAL_EQUAL(hits[5].getScore(),20.0f);
 	
 	TEST_EQUAL(hits[6].getRank(),7);
 	TEST_EQUAL(hits[6].getSequence(),"E");
-	TEST_REAL_EQUAL(hits[6].getScore(),1.0f);
+	TEST_REAL_EQUAL(hits[6].getScore(),6.666f);
 
 	// ***** Merge ********
 

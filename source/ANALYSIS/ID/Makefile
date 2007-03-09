@@ -45,6 +45,8 @@ CPP_SOURCES=\
 include ../../common.mak
 -include .Dependencies
 
-# For debugging the ID, please create the file 'Makefile_debug'
-# and add the line 'ADD_CXXFLAGS=-DDEBUG_ID' to it
+# For debugging the ID classes, create the file 'Makefile_debug' and 
+# set 'ADD_CXXFLAGS' one or more of the following flags
+#  -DDEBUG_ID_MAPPING  
+#  -DDEBUG_ID_CONSENSUS
 -include Makefile_debug

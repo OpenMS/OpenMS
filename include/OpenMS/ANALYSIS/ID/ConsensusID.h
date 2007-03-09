@@ -56,6 +56,10 @@ namespace OpenMS
 			///Hidden and not implemented assignment operator
 			ConsensusID& operator = (const ConsensusID&);
 			
+			/// Merge algorithm
+			void merge_(Feature& feature);
+			/// Ranked algorithm
+			void ranked_(Feature& feature);
   };
  
 } // namespace OpenMS
