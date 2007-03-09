@@ -38,13 +38,16 @@ namespace OpenMS
 {
 
 	/**
-	  @brief Implements the extension phase of the feature detection / quantification algorithm in OpenMS.
+	  @brief A straightforward implementation of the extension phase of the feature detection / quantification algorithm in OpenMS.
 		
 		As one can imagine, this module implements a rather trivial extension.
 		
-		Seeds are extended 
-		 (a) until a given maximum distance from seed (data point with highest intensity) is reached,
-		 (b) as long as they contribute significantly to the feature intensity.
+		This module takes a single data point (seed) or a group of points (seeding region) 
+		and adds further points until :
+		
+		 (a) until a given maximum distance from the highest data point in the seeding region is reached or
+		 (b) no more points are found in the neighbourhood of the seed that contribute a significant amount 
+		 of intensity to the feature.
 		 		 
 		 <table>
 			<tr>

@@ -124,8 +124,10 @@ namespace OpenMS
 		
 			if (traits_->getPeakIntensity(current_index) < (intensity_sum/std::sqrt(std::max((IntensityType)region_.size(),1.0)) )  *  min_intensity_contribution )
 			{
+				#ifdef DEBUG_FEATUREFINDER
  				cout << "Skipping point because of low intensity contribution. " << endl;
  				cout << traits_->getPeakIntensity(current_index) << " " << (intensity_sum/std::sqrt(std::max((IntensityType) region_.size(),1.0) )  *  min_intensity_contribution ) << endl;
+				#endif
 				continue;			 
 			}
 						
@@ -141,11 +143,16 @@ namespace OpenMS
 				traits_->getPeakFlag(current_index) = FeaFiTraits::INSIDE_FEATURE;
 				region_.insert(current_index);
 				intensity_sum += traits_->getPeakIntensity(current_index);
+				
+				#ifdef DEBUG_FEATUREFINDER
 	 			cout << "Added point to region. Intensity sum is now: " << intensity_sum << endl;
 	 			cout << "Intensity of included point is : " << traits_->getPeakIntensity(current_index) << endl;
+				#endif
 			}
 			
+			#ifdef DEBUG_FEATUREFINDER
 			cout << "Size of boundary: " << boundary_.size() << endl;
+			#endif
 			
     } // end of while ( !boundary_.empty() )
 

@@ -226,12 +226,8 @@ namespace OpenMS
 			   		++iter_cl2)
 			{
 				UInt current_scan = *iter_cl2;
-				
-				if (current_scan >= (traits_->getData().size() ) )
-				{
-					// this shouldn't happen ;-)
-					break;
-				}			
+								
+				OPENMS_PRECONDITION(current_scan < (traits_->getData().size() ), "Scan index out of bounds")		
 				
 				SpectrumType::ConstIterator insert_iter = std::lower_bound(traits_->getData()[current_scan].begin(),traits_->getData()[current_scan].end(),mass_to_find,PeakType::PositionLess());	
 				
@@ -644,10 +640,11 @@ namespace OpenMS
 	
 			for (unsigned int c=0; c<numOfCharges-1; ++c)
 			{
-				if (positions[c+1] != positions[c])
-				{
-					std::cout << "Quadro Zack!" << std::endl;
-				}
+				OPENMS_PRECONDITION(positions[c+1] == positions[c], "positions[c+1] != positions[c]");
+// 				if (positions[c+1] != positions[c])
+// 				{
+// 					std::cout << "Quadro Zack!" << std::endl;
+// 				}
 			}
 		   
 			// generate hash key 

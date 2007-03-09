@@ -37,6 +37,7 @@ namespace OpenMS
 		setName(getProductName());
 	
 		// lower and upper bounds for distances between isotopic peaks (defaults)
+		// we check for charges states up to three
 		// charge 1
 		defaults_.setValue("charge1_ub",1.5f);
 		defaults_.setValue("charge1_lb",0.70f);
@@ -534,7 +535,7 @@ namespace OpenMS
 				// check if this intensity is higher than the signal intensity threshold
 				if (max_value > noise_level_signal_)
 				{
-					localmax.push_back(j);
+					localmax.push_back(max_index);
 				}
 			}
 		}
@@ -610,14 +611,6 @@ namespace OpenMS
 		{
 			return 3;
 		}
-// 		else if (dist < charge4_ub_ && dist > charge4_lb_)
-// 		{
-// 			return 4;
-// 		}
-// 		else if (dist < charge5_ub_ && dist > charge5_lb_)
-// 		{
-// 			return 5;
-// 		}
 		return 0;
 	}
 

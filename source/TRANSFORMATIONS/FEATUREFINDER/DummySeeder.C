@@ -232,7 +232,25 @@ namespace OpenMS
 		curr_region_ = iso_map_.begin();
 		
 		cout << iso_map_.size() << " clusters remained after filtering." << endl;
-	
+		
+		#ifdef DEBUG_FEATUREFINDER 
+		for (HashIterator iter = iso_map_.begin(); iter != iso_map_.end(); ++iter)
+		{
+			std::cout << "m/z " << iter->first << " charge: " << iter->second.charge_ << std::endl;
+			
+			for (std::vector<UInt>::const_iterator citer = 	iter->second.scans_.begin(); 
+						citer != iter->second.scans_.end();
+						++citer)
+			{
+				std::cout << "# scan : " << *citer << " (";
+				IDX tmp;
+				tmp.first = *citer;
+				std::cout << traits_->getPeakRt(tmp) << ")" << std::endl;				
+			}
+		
+		}
+		#endif	
+		
 	} // end of void sweep_()
 	
 	

@@ -55,8 +55,7 @@ UNCONDITIONAL_TESTS = \
 	SpectraFilter_test \
 	MapAlignment_test \
 	UnlabeledMatcher_test \
-
-#	FeatureFinder_test \
+	FeatureFinder_test
 
 ifeq ($(LIBSVM_SUPPORT),true)
 LIBSVM_TESTS= \

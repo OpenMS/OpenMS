@@ -24,8 +24,8 @@
 // $Maintainer: Ole Schulz-Trieglaff $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_TRANSFORMATIONS_FEATUREFINDER_PEAKFITTER_H
-#define OPENMS_TRANSFORMATIONS_FEATUREFINDER_PEAKFITTER_H
+#ifndef OPENMS_TRANSFORMATIONS_FEATUREFINDER_DUMMYFITTER_H
+#define OPENMS_TRANSFORMATIONS_FEATUREFINDER_DUMMYFITTER_H
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/BaseModelFitter.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeaFiTraits.h>
@@ -34,9 +34,10 @@ namespace OpenMS
 {
 	
 	/**
-		 @brief Dummy fitting.
+		 @brief Dummy fitting. Use this module if you don't need any refinement of your features by model fitting.
 		 
-		 This module does not do anything (besides constructing the feature).
+		 This module does not do anything besides constructing the feature from
+		 the region.
 		 
 		 <table>
 			<tr>
@@ -100,4 +101,4 @@ namespace OpenMS
 	
   };
 }
-#endif // OPENMS_TRANSFORMATIONS_FEATUREFINDER_PEAKFITTER_H
+#endif // OPENMS_TRANSFORMATIONS_FEATUREFINDER_DUMMYFITTER_H

@@ -344,7 +344,8 @@ EXECUTABLES_TRANSFORMATIONS_FEATUREFINDER = \
 	ProductModel_test\
 	FeatureFinder_test\
 	IsotopeWaveletSeeder_test\
-	DummySeeder_test
+	DummySeeder_test\
+	DummyExtender_test
 
 
 EXECUTABLES_TRANSFORMATIONS_PEAKPICKER = \

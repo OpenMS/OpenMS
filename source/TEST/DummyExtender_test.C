@@ -26,7 +26,7 @@
 
 #include <OpenMS/CONCEPT/ClassTest.h>
 
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/DummySeeder.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/DummyExtender.h>
 
 #include <OpenMS/FORMAT/MzDataFile.h>
 
@@ -35,7 +35,7 @@
 
 using namespace OpenMS;
 
-START_TEST(DummySeeder, "$Id: DummySeeder_test.C 1586 2007-03-01 17:59:10Z ole_st $")
+START_TEST(DummyExtender, "$Id: DummyExtender_test.C 1586 2007-03-01 17:59:10Z ole_st $")
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
@@ -44,63 +44,52 @@ using namespace OpenMS;
 using namespace std;
 
 // default ctor
-DummySeeder* ptr = 0;
-CHECK(DummySeeder())
-	ptr = new DummySeeder();
-  TEST_EQUAL(ptr->getName(), "DummySeeder")
+DummyExtender* ptr = 0;
+CHECK(DummyExtender())
+	ptr = new DummyExtender();
+  TEST_EQUAL(ptr->getName(), "DummyExtender")
 	TEST_NOT_EQUAL(ptr, 0)
 RESULT
 
-CHECK(~DummySeeder())
+CHECK(~DummyExtender())
 	delete ptr;
 RESULT
 
 CHECK((FeaFiModule::IndexSet  nextSeed() throw(NoSuccessor)))
 	PRECISION(0.01)
 	
-  DummySeeder seeder;
+  DummyExtender extender;
   FeaFiTraits* traits = new FeaFiTraits();
  
 	MSExperiment< > exp;
-	MzDataFile().load("data/DummySeederTestData.mzData",exp);
+	MzDataFile().load("data/DummyExtenderTestData.mzData",exp);
 	
 	traits->setData(exp.begin(), exp.end(),100);	
-	seeder.setTraits(traits);
+	extender.setTraits(traits);
 	
 	Param param;
-	param.setValue("min_snratio",2.0);
-	param.setValue("min_number_scans",7.0);
-	seeder.setParameters(param);
-	
-	FeaFiModule::IndexSet  region;
-	
-	// there should be two (seeding) regions for this data set, check the first one
-	region = seeder.nextSeed();
+	param.setValue("min_intensity_contribution",0.05);
+	extender.setParameters(param);
 		
-	ifstream infile( "data/DummySeederTestData_region1");
-	DoubleReal intensity, rt, mz;
+	FeaFiModule::IndexSet  set;
+	set.insert( std::make_pair(3,10) );		// point with max. ion count		
+	
+	// some other points around the maximum
+	set.insert( std::make_pair(3,11) );		
+	set.insert( std::make_pair(3,12) );	
+	set.insert( std::make_pair(3,8) );		
+	set.insert( std::make_pair(3,9) );	
+	set.insert( std::make_pair(2,10) );		
+	set.insert( std::make_pair(4,10) );	
 
+	// extend seeding region	
+	FeaFiModule::IndexSet region = extender.extend(set);
+			
+	ifstream infile( "data/DummyExtender_region1");
+	
+	DoubleReal intensity, rt, mz;
+	
 	FeaFiModule::IndexSet::const_iterator citer = region.begin();
-	
-	while ( infile >> rt )
-	{
-		infile >> mz >> intensity;
-		
-		TEST_NOT_EQUAL(citer == region.end(),true)
-		
-		TEST_REAL_EQUAL(traits->getPeakRt(*citer),rt)
-		TEST_REAL_EQUAL(traits->getPeakMz(*citer),mz)
-		TEST_REAL_EQUAL(traits->getPeakIntensity(*citer),intensity)
-				
-		++citer;		
-	}	
-	infile.close();
-	
-	// check second region
-	region = seeder.nextSeed();		
-	infile.open( "data/DummySeederTestData_region2");
-	citer = region.begin();
-	
 	while ( infile >> rt )
 	{
 		infile >> mz >> intensity;
@@ -115,15 +104,14 @@ CHECK((FeaFiModule::IndexSet  nextSeed() throw(NoSuccessor)))
 	}	
 	infile.close();
 	
-	TEST_EXCEPTION( FeaFiModule::NoSuccessor , seeder.nextSeed() )	
 RESULT
 
 CHECK(static const String getProductName())
-	TEST_EQUAL(DummySeeder::getProductName(),"DummySeeder");
+	TEST_EQUAL(DummyExtender::getProductName(),"DummyExtender");
 RESULT
 
 CHECK(static BaseSeeder* create())
-	BaseSeeder* base = DummySeeder::create();
+	BaseExtender* base = DummyExtender::create();
 	TEST_NOT_EQUAL(base,0);
 	delete(base);
 RESULT
