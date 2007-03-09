@@ -1,0 +1,149 @@
+<!-- $Maintainer: Marc Sturm $ -->
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html>
+<head>
+  <meta name="generator"
+        content=
+        "HTML Tidy for Linux/x86 (vers 12 April 2005), see www.w3.org">
+
+
+  <title>OpenMS Installation Instructions</title>
+  <link rel="stylesheet"
+        media="all"
+        href="../common/styles.css"
+        type="text/css">
+</head>
+
+<body>
+  <script type="text/javascript"
+      src="../common/header.txt">
+</script><!-- ........ Content starts here ........ -->
+
+  <h1>OpenMS Installation on MacOS X</h1>
+
+  <h2>First of all</h2>
+
+<p>
+This manual is written for MacOS 10.4. I started with 10.3, but I forced MacOS to install an incompatible version of Xcode tools, so everything broke in the end.
+</p>
+
+<p>
+If you want to try using a different MacOS X version, use the right Xcode tools (should be version 1.X for 10.3) and things might work out fine. This document might still give you valuable hints.
+</p>
+
+<p>
+Good luck.
+</p>
+
+<h2>OpenMS Installation on MacOS 10.4 (Tiger)</h2>
+
+<h3>Three things to consider</h3>
+
+<ul>
+<li>If you want to recycle a contrib directory that was already used for building OpenMS on a different OS on the same computer, be sure to
+<code>
+<pre>
+rm contrib/bin/*
+rm contrib/src/gsl-1.6/gsl-histogram src/gsl-1.6/gsl-randist
+</pre>
+</code>
+<p>
+These files contain references or binaries that are not compatible across OSs, but the contrib installer will not notice that they have to be rebuilt.
+</li>
+<li><code>make test</code> will fail for some classes because of endian problems. This might break some features, but is most probably going to be fixed soon.</li>
+<li>Today (2007-03-08) I committed the last patches to the OpenMS SVN repository. Be sure to use a recent version of *both* contrib and OpenMS, as all versions before today still have problems compiling on MacOS X.</li>
+</ul>
+
+<h3>Installation</h3>
+
+<pre>
+- get and install a recent Xcode (>= 2.4.1) from http://connect.apple.com
+- get and install Qt4, e.g. the original .dmg from http://www.trolltech.com
+  be sure your Qt has MySQL support and uses a socket that you actually have.
+  I had to ln -s /opt/local/var/run/mysql5/mysqld.sock /tmp/mysql.sock
+- get and install a recent MySQL, 4 or 5, e.g. with darwinports from
+  darwinports.opendarwin.org:    port install mysql5
+- download OpenMS source and unpack
+  This directory is from now on referenced as $OPENMSDIR in this document.
+- export OPENMSDIR="please-insert-your-OpenMS-directory-here"
+  (just to make this HowTo easier to follow)
+- download OpenMS contrib source and unpack to $OPENMSDIR/contrib
+- export MACOSX_DEPLOYMENT_TARGET=10.4
+- cd $OPENMSDIR/contrib
+- autoconf
+- ./configure
+- make
+- export DYLD_LIBRARY_PATH=$OPENMSDIR/contrib/lib
+- cd $OPENMSDIR/source
+- autoconf
+- ./configure
+  might complain about "rpc/xdr.h: present but cannot be compiled".
+  That's not an error, but to get rid of it anyway, add the line
+  #include <rpc/types.h>
+  to /usr/include/rpc/xdr.h (line 66).
+- make
+  QT bug: if "make" complains about
+  "'QtValidLicenseForCoreModule' does not name a type", then edit
+  /Library/Frameworks/QtCore.framework/Headers/qconfig.h:
+  and replace QT_EDITION_UNKNOWN by QT_EDITION_DESKTOP
+  (or fix the real bug and contact me :)
+- make install
+- export DYLD_FALLBACK_LIBRARY_PATH=$OPENMSDIR/lib/Darwin-8.8.0-g++_4.0.1
+- make TOPP
+- optionally (please insert your own path):
+  defaults write ~/.MacOSX/environment DYLD_FALLBACK_LIBRARY_PATH $OPENMSDIR/lib/Darwin-8.8.0-g++_4.0.1
+</pre>
+
+<h3>Eyecandy (making TOPPView a real MacOS Application)</h3>
+
+<code>
+<pre>
+cd $OPENMSDIR/bin
+mkdir -p TOPPView.app/Contents/MacOS
+mkdir TOPPView.app/Contents/Resources
+touch TOPPView.app/Contents/PgkInfo
+cp TOPPView TOPPView.app/Contents/MacOS
+</pre>
+</code>
+
+<p>
+edit <code>TOPPView.app/Contents/Info.plist</code> and insert the following:
+</p>
+
+<code>
+<pre>
+&lt;?xml version="1.0" encoding="UTF-8"?&gt;
+&lt;!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd"&gt;
+&lt;plist version="1.0"&gt;
+&lt;dict&gt;
+        &lt;key&gt;CFBundleDevelopmentRegion&lt;/key&gt;
+        &lt;string&gt;Englisch&lt;/string&gt;
+        &lt;key&gt;CFBundleDisplayName&lt;/key&gt;
+        &lt;string&gt;ToppView&lt;/string&gt;
+        &lt;key&gt;CFBundleExecutable&lt;/key&gt;
+        &lt;string&gt;TOPPView&lt;/string&gt;
+        &lt;key&gt;CFBundleIdentifier&lt;/key&gt;
+        &lt;string&gt;de.openms.TOPPView&lt;/string&gt;
+        &lt;key&gt;CFBundleVersion&lt;/key&gt;
+        &lt;string&gt;0.9&lt;/string&gt;
+&lt;/dict&gt;
+&lt;/plist&gt;
+</pre>
+</code>
+
+<p>
+(This was a hint by Alex Haupt, which did not work for me though - the application is not started and bouncing symbol disappears again immediately)
+</p>
+
+<p>
+Further information on Info.plist can be found at
+</p>
+
+<a target="_new" href="http://developer.apple.com/documentation/MacOSX/Conceptual/BPRuntimeConfig/Articles/ConfigFiles.html">http://developer.apple.com/documentation/MacOSX/Conceptual/BPRuntimeConfig/Articles/ConfigFiles.html</a>
+
+
+<h3>Any questions?</h3>
+
+Contact me via <a href="http://www.tschreiner.org">http://www.tschreiner.org</a> or <a href="http://www.isistius.de">http://www.isistiius.de</a>.
+
