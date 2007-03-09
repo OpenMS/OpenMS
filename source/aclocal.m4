@@ -11,6 +11,10 @@ dnl		We create the file config.lic if the license was
 dnl		accepted and do not show the license the second time
 dnl
 AC_DEFUN(CF_CHECK_LICENSE,[
+	OS=`uname -s`
+	if test "${OS}" = Darwin ; then
+		exec 0<&7 7<&-
+	fi
 	AC_PATH_PROG(PAGER, less, no)
 	if test "${PAGER}" = "no" ; then
 		AC_PATH_PROG(PAGER, more, no)
@@ -21,7 +25,7 @@ AC_DEFUN(CF_CHECK_LICENSE,[
 	if test ! -f config.lic ; then
 		${PAGER} LICENSE
 		echo " "
-		echo "Do you accept the terms of this license (y/n)?"
+		echo -n "Do you accept the terms of this license (y/n)? "
 		answer=""
 		while test "$answer" != "y" -a "$answer" != "n" ; do
 			read answer 
@@ -31,6 +35,9 @@ AC_DEFUN(CF_CHECK_LICENSE,[
 		else
 			echo "accepted" > config.lic
 		fi
+	fi
+	if test "${OS}" = Darwin ; then
+		exec 7<&0 </dev/null
 	fi
 ])
 
