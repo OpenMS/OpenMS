@@ -121,7 +121,7 @@ namespace OpenMS
         max_intensity = traits_->getPeakIntensity(seed);						
 			}
     }
-    traits_->getPeakFlag(seed) = FeaFiTraits::SEED;
+    traits_->getPeakFlag(seed) = FeaFiTraits::INSIDE_BOUNDARY;
     		
 		// remember last extracted point (in this case the seed !)
 		last_pos_extracted_[RawDataPoint2D::RT] = traits_->getPeakRt(seed);
@@ -138,17 +138,18 @@ namespace OpenMS
 		
 		cout << "Extending from " << traits_->getPeakRt(seed) << "/" << traits_->getPeakMz(seed); 
 		cout << " (" << seed.first << "/" << seed.second << ")" << endl;
+		cout << "Intensity " << traits_->getPeakIntensity(seed) << endl;
 		
 		//compute intensity threshold 
 		intensity_threshold_ = (double)param_.getValue("intensity_factor") * traits_->getPeakIntensity(seed);
-				
+
     while (!boundary_.empty())
     {
 			// remove peak with highest priority
 			const IDX  current_index = boundary_.top().index;
 			boundary_.pop();
 						
-    	//Corrupt index
+			// 	check for corrupt index
     	OPENMS_PRECONDITION(current_index.first<traits_->getData().size(), "Scan index outside of map!");
       OPENMS_PRECONDITION(current_index.second<traits_->getData()[current_index.first].size(), "Peak index outside of scan!");
 
@@ -158,11 +159,14 @@ namespace OpenMS
 
 			// Now we explore the neighbourhood of the current peak. Points in this area are included
 			// into the boundary if their intensity is not too low and they are not too
-			// far away from the seed.
-			
+			// far away from the seed.			
 			// Add position to the current average of positions weighted by intensity
 			running_avg_.add(last_pos_extracted_,traits_->getPeakIntensity(current_index));
-
+			
+			#ifdef DEBUG_FEATUREFINDER
+			cout << "Size of boundary: " << boundary_.size() << endl;
+			#endif
+			
 			// explore neighbourhood of current peak
 			moveMzUp_(current_index);
 			moveMzDown_(current_index);
@@ -174,8 +178,10 @@ namespace OpenMS
 			{
 				traits_->getPeakFlag(current_index) = FeaFiTraits::INSIDE_FEATURE;
 				region_.insert(current_index);
-// 				cout << "Adding " << traits_->getPeakRt(current_index) << " " << traits_->getPeakMz(current_index) << " to region." << endl;
-// 	 			cout << "Intensity of the added point is : " << traits_->getPeakIntensity(current_index) << endl;
+				#ifdef DEBUG_FEATUREFINDER
+				cout << "Adding " << traits_->getPeakRt(current_index) << " " << traits_->getPeakMz(current_index) << " to region." << endl;
+	 			cout << "Intensity of the added point is : " << traits_->getPeakIntensity(current_index) << endl;
+				#endif
 			}
     } // end of while ( !boundary_.empty() )
 
@@ -307,7 +313,7 @@ namespace OpenMS
 				boundary_.push(IndexWithPriority(index,pr_new));
 			}
 		
-			// Note that Clemens used to update priorities in his FF algo version...
+			// Note that Clemens used to update priorities in his FF algo ...
 			// I don't think that this is necessary. 
 			
 		}

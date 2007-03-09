@@ -39,23 +39,23 @@ namespace OpenMS
 
     // lower and upper bounds for distances between isotopic peaks (defaults)
     // charge 1
-    defaults_.setValue("charge1_ub",1.1f);
-    defaults_.setValue("charge1_lb",0.9f);
+    defaults_.setValue("charge1_ub",1.6f);
+    defaults_.setValue("charge1_lb",0.7f);
     // charge 2
-    defaults_.setValue("charge2_ub",0.50f);
+    defaults_.setValue("charge2_ub",0.69f);
     defaults_.setValue("charge2_lb",0.4f);
     // charge 3
-    defaults_.setValue("charge3_ub",0.4f);
-    defaults_.setValue("charge3_lb",0.2f);
+    defaults_.setValue("charge3_ub",0.39f);
+    defaults_.setValue("charge3_lb",0.27f);
     // charge 4
-    defaults_.setValue("charge4_ub",0.24f);
-    defaults_.setValue("charge4_lb",0.26f);
+    defaults_.setValue("charge4_ub",0.26f);
+    defaults_.setValue("charge4_lb",0.24f);
     // charge 5
-    defaults_.setValue("charge5_ub",0.21f);
-    defaults_.setValue("charge5_lb",0.19f);
+    defaults_.setValue("charge5_ub",0.23f);
+    defaults_.setValue("charge5_lb",0.15f);
 
     // tolerance in m/z for an monoisotopic peak in the previous scan
-    defaults_.setValue("tolerance_mz",1.0f);
+    defaults_.setValue("tolerance_mz",1.1f);
 		
 		 // minimum number of scan per isotopic cluster
     defaults_.setValue("min_number_scans",3);
@@ -195,46 +195,65 @@ namespace OpenMS
 						}
 						else
 						{
-	#ifdef DEBUG_FEATUREFINDER
+							#ifdef DEBUG_FEATUREFINDER
 							cout << "Found neighbouring peak with distance (m/z) " << delta_mz << endl;
-	#endif
+							#endif
 							mz_in_hash = *it;	// retrieve hash key
 	   										
 							pair<TableType::iterator, TableType::iterator> range = iso_map_.equal_range(mz_in_hash);
+							bool scan_found = false;		
 																	
 							if (range.first != range.second)		// several peak cluster at this m/z found
 							{
 								// we want to find the previous scan
 								UInt scan_wanted = (i - 1);
-																									
+								
 								for (TableType::iterator iter = range.first; iter != range.second; ++iter)
 								{
-									// check if last scan of this cluster is the previous scan
-									if (	*( iter->second.scans_.end() - 1) == scan_wanted )
-									{
-										entry_to_insert	= iter;
-										continue;
-									}
-								}	
+
+										// enumerate all scans
+										// the scan number we are searching for is not necessarily the last one
+										// in this cluster if there were other very close local maxima in the same scan.
+										for (std::vector<UInt>::const_iterator it = iter->second.scans_.begin();
+													 it != iter->second.scans_.end(); 
+													 ++it)
+										{
+								
+											if (	*it == scan_wanted )
+											{
+												scan_found = true;
+												entry_to_insert	= iter;
+												continue;
+											}														
+										}
+
+									}	// end for (TableType::iterator iter = range.first; iter != range.second; ++iter)
 							}
 							else	// only one cluster with this m/z
 							{
 								entry_to_insert	 = range.first;										
 							}
+							
+							if (!scan_found)
+							{
+								// corrupt hash map / isotope counter
+								throw Exception::InvalidIterator(	__FILE__, __LINE__, "PickedPeakSeeder::sweep_()");
+							}
+							
 							// save current rt and m/z
 							entry_to_insert->second.scans_.push_back( i );
 		
-	#ifdef DEBUG_FEATUREFINDER
+							#ifdef DEBUG_FEATUREFINDER
 							cout << "Cluster with " << entry_to_insert->second.peaks_.size() << " peaks retrieved." << endl;
-	#endif
+							#endif
 						}
 					}
 					else // last scan did not contain any isotopic cluster
 					{
-	#ifdef DEBUG_FEATUREFINDER
+						#ifdef DEBUG_FEATUREFINDER
 						cout << "Last scan was empty => creating new cluster." << endl;
 						cout << "Creating new cluster at m/z: " << scan[j].getMZ() << endl;
-	#endif
+						#endif
 						mz_in_hash = scan[j].getMZ(); // update current hash key
 										
 						IsotopeCluster isoclust;
@@ -275,6 +294,7 @@ namespace OpenMS
 		
 		} //end scan loop
 		
+		typedef TableType::iterator HashIterator;		
 		vector< TableType::iterator > toDelete;
 	
 		cout << iso_map_.size() << " isotopic clusters were found." << endl;
@@ -298,6 +318,25 @@ namespace OpenMS
 	
 		curr_region_ = iso_map_.begin();
 		cout << iso_map_.size() << " clusters remained after filtering." << endl;
+
+		#ifdef DEBUG_FEATUREFINDER 
+		for (HashIterator iter = iso_map_.begin(); iter != iso_map_.end(); ++iter)
+		{
+			std::cout << "m/z " << iter->first << " charge: " << iter->second.charge_ << std::endl;
+			std::cout << "number of points contained: " <<  iter->second.peaks_.size() << std::endl;
+			
+			for (std::vector<UInt>::const_iterator citer = 	iter->second.scans_.begin(); 
+						citer != iter->second.scans_.end();
+						++citer)
+			{
+				std::cout << "# scan : " << *citer << " (";
+				IDX tmp;
+				tmp.first = *citer;
+				std::cout << traits_->getPeakRt(tmp) << ")" << std::endl;				
+			}
+		
+		}
+		#endif
 	
 	} // end of void sweep_()
 	

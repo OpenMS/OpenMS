@@ -268,8 +268,6 @@ namespace OpenMS
    										
 						pair<TableType::iterator, TableType::iterator> range = iso_map_.equal_range(mz_in_hash);
 						
-						std::cout << iso_map_.count(mz_in_hash) << " entries found for m/z " << mz_in_hash << std::endl;
-					
 						bool scan_found = false;								
 					
 						if (range.first != range.second)		// several peak cluster at this m/z found
@@ -284,7 +282,8 @@ namespace OpenMS
 								// the scan number we are searching for is not necessarily the last one
 								// in this cluster if there were other very close local maxima in the same scan.
 								for (std::vector<UInt>::const_iterator it = iter->second.scans_.begin();
-											 it != iter->second.scans_.end(); ++it)
+											 it != iter->second.scans_.end(); 
+											 ++it)
 								{
 								
 									if (	*it == scan_wanted )

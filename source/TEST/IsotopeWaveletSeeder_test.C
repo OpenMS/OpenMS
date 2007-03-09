@@ -75,64 +75,46 @@ CHECK((FeaFiModule::IndexSet  nextSeed() throw(NoSuccessor)))
   param.setValue("rtvotes_cutoff",6);
 	param.setValue("avg_intensity_factor",3.0);
 	param.setValue("intensity_factor",2.0);
-	param.setValue("scans_to_sumup",3);
+	param.setValue("scans_to_sumup",0);
 	seeder.setParameters(param);
 	
-	FeaFiModule::IndexSet  region;
-		
-	region = seeder.nextSeed();
+	FeaFiModule::IndexSet  region = seeder.nextSeed();
 	
-	TEST_EQUAL(region.size() == 263,true);
+	ifstream infile( "data/IsotopeWaveletSeeder_region1");	
+	DoubleReal intensity, rt, mz;
 	
 	FeaFiModule::IndexSet::const_iterator citer = region.begin();
-
-	TEST_REAL_EQUAL(traits->getPeakIntensity(*citer),339292);	
-	TEST_REAL_EQUAL(traits->getPeakMz(*citer),1163.3);
-	TEST_REAL_EQUAL(traits->getPeakRt(*citer),1402.77);
-	
-	++citer;
-	
-	TEST_REAL_EQUAL(traits->getPeakIntensity(*citer),829624);	
-	TEST_REAL_EQUAL(traits->getPeakMz(*citer),1163.4);
-	TEST_REAL_EQUAL(traits->getPeakRt(*citer),1402.77);
-	
-	// test point with highest intensity
-	FeaFiModule::IDX max_peak;
-	double max_intensity = 0.0;
-	
-	for (citer = region.begin(); citer != region.end(); ++citer)
+	while ( infile >> rt )
 	{
-			if (traits->getPeakIntensity(*citer) > max_intensity)
-			{
-				max_peak      = *citer;
-				max_intensity = traits->getPeakIntensity(*citer);
-			}	
-	}
-
+		infile >> mz >> intensity;
+		
+		TEST_NOT_EQUAL(citer == region.end(),true)
+		
+		TEST_REAL_EQUAL(traits->getPeakRt(*citer),rt)
+		TEST_REAL_EQUAL(traits->getPeakMz(*citer),mz)
+		TEST_REAL_EQUAL(traits->getPeakIntensity(*citer),intensity)
+				
+		++citer;				
+	}	
+	infile.close();
+	
+	region = seeder.nextSeed();
+	infile.open( "data/IsotopeWaveletSeeder_region2");	
+	
+	citer = region.begin();
+	while ( infile >> rt )
 	{
-	// we test absolute precision only, so here we allow a lower precision
-	PRECISION(10);		
-	TEST_REAL_EQUAL(traits->getPeakIntensity(max_peak),2.10752e+06);	
-	}
-	
-	TEST_REAL_EQUAL(traits->getPeakMz(max_peak),1163.6);
-	TEST_REAL_EQUAL(traits->getPeakRt(max_peak),1408.41);
-	
-	// test last two peaks
-	citer = region.end();
-	--citer;
-	--citer;
-	
-	TEST_REAL_EQUAL(traits->getPeakIntensity(*citer),3061);	
-	TEST_REAL_EQUAL(traits->getPeakMz(*citer),1166.1);
-	TEST_REAL_EQUAL(traits->getPeakRt(*citer),1414.08);
-	
-	++citer;
-	
-	TEST_REAL_EQUAL(traits->getPeakIntensity(*citer),7342);	
-	TEST_REAL_EQUAL(traits->getPeakMz(*citer),1166.2);
-	TEST_REAL_EQUAL(traits->getPeakRt(*citer),1414.08);
-	
+		infile >> mz >> intensity;
+		
+		TEST_NOT_EQUAL(citer == region.end(),true)
+		
+		TEST_REAL_EQUAL(traits->getPeakRt(*citer),rt)
+		TEST_REAL_EQUAL(traits->getPeakMz(*citer),mz)
+		TEST_REAL_EQUAL(traits->getPeakIntensity(*citer),intensity)
+				
+		++citer;				
+	}	
+	infile.close();
 	
 	// test exception, there should be no more seeds
 	TEST_EXCEPTION( FeaFiModule::NoSuccessor , seeder.nextSeed() )

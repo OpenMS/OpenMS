@@ -249,7 +249,9 @@ TEST_EQUAL(citer==region.end(),true)
 
 RESULT
 
-CHECK(([EXTRA] Extension on picked data))
+CHECK(([EXTRA] Extension on real-world data))
+
+PRECISION(0.01)
 
 SimpleExtender extender;
 FeaFiTraits* traits = new FeaFiTraits();
@@ -257,65 +259,77 @@ MSExperiment<Peak1D > exp;
 
 MzDataFile().load("data/SimpleExtender_test.mzData",exp);
 traits->setData(exp.begin(),exp.end(),100);
-
 extender.setTraits(traits);
 
-// set very restrictive settings for extension
 Param param;
-param.setValue("dist_rt_up",2);
-param.setValue("dist_rt_down",2);
-param.setValue("dist_mz_up",2);
-param.setValue("dist_mz_down",2);
-param.setValue("priority_thr",0.01);
-
-param.setValue("tolerance_rt",3.0);
-param.setValue("tolerance_mz",3.0);
-
+param.setValue("intensity_factor",0.01);
 extender.setParameters(param);
 
 FeaFiModule::IndexSet  set;
-
-set.insert( std::make_pair(1,4) );		// start extension in the middle of first feature
+// SimpleExtender starts at maximum point
+set.insert( std::make_pair(15,15) );	
 
 FeaFiModule::IndexSet region = extender.extend(set);
+		
+ifstream infile( "data/SimpleExtender_region1");
+	
+DoubleReal intensity, rt, mz;
+	
 FeaFiModule::IndexSet::const_iterator citer = region.begin();
+while ( infile >> rt )
+{
+	infile >> mz >> intensity;
+		
+	TEST_NOT_EQUAL(citer == region.end(),true)
+		
+	TEST_REAL_EQUAL(traits->getPeakRt(*citer),rt)
+	TEST_REAL_EQUAL(traits->getPeakMz(*citer),mz)
+	TEST_REAL_EQUAL(traits->getPeakIntensity(*citer),intensity)
+				
+	++citer;				
+}	
+infile.close();
 
-TEST_EQUAL(region.size(),6);
+RESULT
+
+CHECK(([EXTRA] Extension on picked data))
 
 PRECISION(0.01)
 
-TEST_EQUAL(traits->getPeakIntensity(*citer),34065);
-TEST_REAL_EQUAL(traits->getPeakMz(*citer),633.816);
-TEST_REAL_EQUAL(traits->getPeakRt(*citer),1985.43);
+SimpleExtender extender;
+FeaFiTraits* traits = new FeaFiTraits();
+MSExperiment<Peak1D > exp;
 
-++citer;
-TEST_REAL_EQUAL(traits->getPeakIntensity(*citer),23139);
-TEST_REAL_EQUAL(traits->getPeakMz(*citer),634.314);
-TEST_REAL_EQUAL(traits->getPeakRt(*citer),1985.43);
+MzDataFile().load("data/SimpleExtender_test2.mzData",exp);
+traits->setData(exp.begin(),exp.end(),100);
+extender.setTraits(traits);
 
-++citer;
-TEST_REAL_EQUAL(traits->getPeakIntensity(*citer),9137);
-TEST_REAL_EQUAL(traits->getPeakMz(*citer),634.813);
-TEST_REAL_EQUAL(traits->getPeakRt(*citer),1985.43);
+FeaFiModule::IndexSet  set;
+// SimpleExtender starts at maximum point
+set.insert( std::make_pair(2,42) );	
 
-++citer;
-TEST_REAL_EQUAL(traits->getPeakIntensity(*citer),20582);
-TEST_REAL_EQUAL(traits->getPeakMz(*citer),635.301);
-TEST_REAL_EQUAL(traits->getPeakRt(*citer),1985.43);
-
-++citer;
-TEST_REAL_EQUAL(traits->getPeakIntensity(*citer),12002);
-TEST_REAL_EQUAL(traits->getPeakMz(*citer),635.806);
-TEST_REAL_EQUAL(traits->getPeakRt(*citer),1985.43);
-
-++citer;
-TEST_REAL_EQUAL(traits->getPeakIntensity(*citer),5991);
-TEST_REAL_EQUAL(traits->getPeakMz(*citer),636.312);
-TEST_REAL_EQUAL(traits->getPeakRt(*citer),1985.43);
-
-++ citer;
-
-TEST_REAL_EQUAL(citer==region.end(),true)
+FeaFiModule::IndexSet region = extender.extend(set);
+		
+ifstream infile( "data/SimpleExtender_region2");
+	
+DoubleReal intensity, rt, mz;
+	
+FeaFiModule::IndexSet::const_iterator citer = region.begin();
+while ( infile >> rt )
+{
+	infile >> mz >> intensity;
+		
+	TEST_NOT_EQUAL(citer == region.end(),true)
+		
+	TEST_REAL_EQUAL(traits->getPeakRt(*citer),rt)
+	TEST_REAL_EQUAL(traits->getPeakMz(*citer),mz)
+	{
+	PRECISION(1000)	// lower (absolute) precision for high intensities
+	TEST_REAL_EQUAL(traits->getPeakIntensity(*citer),intensity)
+	}		
+	++citer;				
+}	
+infile.close();
 
 RESULT
 

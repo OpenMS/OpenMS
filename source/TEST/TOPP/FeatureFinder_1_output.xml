@@ -50,10 +50,10 @@
 				<param name="RT:bounding_box:max" value="1258.1"></param>
 				<param name="RT:bounding_box:min" value="1225.6"></param>
 				<param name="RT:cutoff" value="0"></param>
-				<param name="RT:emg:height" value="997743"></param>
-				<param name="RT:emg:retention" value="1246.65"></param>
-				<param name="RT:emg:symmetry" value="-1.72216"></param>
-				<param name="RT:emg:width" value="-0.870954"></param>
+				<param name="RT:emg:height" value="758855"></param>
+				<param name="RT:emg:retention" value="1245.17"></param>
+				<param name="RT:emg:symmetry" value="0.728711"></param>
+				<param name="RT:emg:width" value="0.870958"></param>
 				<param name="RT:intensity_scaling" value="1"></param>
 				<param name="RT:interpolation_step" value="0.2"></param>
 				<param name="RT:statistics:mean" value="1244.77"></param>
@@ -108,10 +108,10 @@
 			<position dim="0">1245.15</position>
 			<position dim="1">676.433</position>
 			<intensity>231083</intensity>
-			<quality dim="0">0.522006</quality>
+			<quality dim="0">0.522011</quality>
 			<quality dim="1">0.344835</quality>
-			<meta>Feature #1, +2, 642->160, Corr: (0.776189,0.522006,0.344835)</meta>
-			<overallquality>0.776189</overallquality>
+			<meta>Feature #1, +2, 642->160, Corr: (0.776195,0.522011,0.344835)</meta>
+			<overallquality>0.776195</overallquality>
 			<charge>2</charge>
 			<model name="ProductModel2D">
 				<param name="MZ" value="IsotopeModel"></param>
@@ -133,16 +133,16 @@
 				<param name="RT:bounding_box:max" value="1269.15"></param>
 				<param name="RT:bounding_box:min" value="1218.33"></param>
 				<param name="RT:cutoff" value="0"></param>
-				<param name="RT:emg:height" value="62418.2"></param>
+				<param name="RT:emg:height" value="62419.9"></param>
 				<param name="RT:emg:retention" value="1246.66"></param>
-				<param name="RT:emg:symmetry" value="0.888958"></param>
-				<param name="RT:emg:width" value="1.24318"></param>
+				<param name="RT:emg:symmetry" value="0.888986"></param>
+				<param name="RT:emg:width" value="1.24319"></param>
 				<param name="RT:intensity_scaling" value="1"></param>
 				<param name="RT:interpolation_step" value="0.2"></param>
 				<param name="RT:statistics:mean" value="1245.15"></param>
 				<param name="RT:statistics:variance" value="23.571"></param>
 				<param name="cutoff" value="233.85"></param>
-				<param name="intensity_scaling" value="0.128365"></param>
+				<param name="intensity_scaling" value="0.128362"></param>
 			</model>
 			<convexhull nr="0">
 				<hullpoint>

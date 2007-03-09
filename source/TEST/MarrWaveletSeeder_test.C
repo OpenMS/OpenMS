@@ -68,179 +68,59 @@ CHECK(nextSeed())
  
 	MSExperiment<Peak1D > exp;
 	MzDataFile().load("data/MarrWaveletTestData.mzData",exp);
-	
 	traits->setData(exp.begin(), exp.end(),100);
-	
 	seeder.setTraits(traits);
 	
 	Param param;
-  param.setValue("min_number_scans",6);
+  param.setValue("min_number_scans",4);
 	param.setValue("noise_level_signal",10000);
-	param.setValue("noise_level_cwt",200000);
+	param.setValue("noise_level_cwt",10000);
 	param.setValue("scans_to_sumup",4);
-	param.setValue("cwt_scale",0.05);
+	param.setValue("cwt_scale",0.1);
 	seeder.setParameters(param);
 	
-	// test first region	
+	// test first seeding region	
 	FeaFiModule::IndexSet region = seeder.nextSeed();
-	TEST_EQUAL(region.size(),368);
+	
+	ifstream infile( "data/MarrWaveletSeeder_region1");	
+	DoubleReal intensity, rt, mz;
 	
 	FeaFiModule::IndexSet::const_iterator citer = region.begin();
-	
-	TEST_REAL_EQUAL(traits->getPeakIntensity(*citer),68250)
-	TEST_REAL_EQUAL(traits->getPeakMz(*citer),740.1)
-	TEST_REAL_EQUAL(traits->getPeakRt(*citer),1516.88)
-	
-	++citer;	
-	TEST_REAL_EQUAL(traits->getPeakIntensity(*citer),361525)
-	TEST_REAL_EQUAL(traits->getPeakMz(*citer),740.2)
-	TEST_REAL_EQUAL(traits->getPeakRt(*citer),1516.88)
-	
-	// test intensity and position of point with highest intensity
-	double max_intensity = 0.0;
-	FeaFiModule::IDX max_index;
-	for (; citer != region.end(); ++citer)
+	while ( infile >> rt )
 	{
-			if (traits->getPeakIntensity(*citer) > max_intensity)
-			{
-				max_intensity = traits->getPeakIntensity(*citer);
-				max_index = *citer;
-			}
-	}
+		infile >> mz >> intensity;
+		
+		TEST_NOT_EQUAL(citer == region.end(),true)
+		
+		TEST_REAL_EQUAL(traits->getPeakRt(*citer),rt)
+		TEST_REAL_EQUAL(traits->getPeakMz(*citer),mz)
+		TEST_REAL_EQUAL(traits->getPeakIntensity(*citer),intensity)
+				
+		++citer;				
+	}		
+	infile.close();
 	
-	// allow lower precision for high intensities
-	{
-	PRECISION(10)
-	TEST_REAL_EQUAL(traits->getPeakIntensity(max_index),5.71824e+06)
-	}
-	TEST_REAL_EQUAL(traits->getPeakMz(max_index),740.5)
-	TEST_REAL_EQUAL(traits->getPeakRt(max_index),1521.11)
-	
-	// test last two points
- 	--citer; --citer; --citer;	
-	{
-	PRECISION(10)
-	TEST_REAL_EQUAL(traits->getPeakIntensity(*citer),1.46191e+06)
-	}
-	TEST_REAL_EQUAL(traits->getPeakMz(*citer),740.7)
-	TEST_REAL_EQUAL(traits->getPeakRt(*citer),1538.02)
-	
-	++citer;
-	{
-	PRECISION(10)
-	TEST_REAL_EQUAL(traits->getPeakIntensity(*citer),778422)
-	}
-	TEST_REAL_EQUAL(traits->getPeakMz(*citer),740.8)
-	TEST_REAL_EQUAL(traits->getPeakRt(*citer),1538.02)
-	
-	
-	////////////////////////////////////////////////////////////////////////////////////////////
-	
-	// test second region
-/*	region = seeder.nextSeed();
-	TEST_EQUAL(region.size(),454);
-	
-	citer = region.begin();
-	{
-	PRECISION(10)
-	TEST_REAL_EQUAL(traits->getPeakIntensity(*citer),4.99434e+06)
-	}
-	TEST_REAL_EQUAL(traits->getPeakMz(*citer),740.5)
-	TEST_REAL_EQUAL(traits->getPeakRt(*citer),1504.26)
-	
-	++citer;
-	{
-	PRECISION(10)
-	TEST_REAL_EQUAL(traits->getPeakIntensity(*citer),6.32346e+06)
-	}
-	TEST_REAL_EQUAL(traits->getPeakMz(*citer),740.6)
-	TEST_REAL_EQUAL(traits->getPeakRt(*citer),1504.26)
-	
-	// test intensity and position of point with highest intensity
-	max_intensity = 0.0;
-	for (; citer != region.end(); ++citer)
-	{
-			if (traits->getPeakIntensity(*citer) > max_intensity)
-			{
-				max_intensity = traits->getPeakIntensity(*citer);
-				max_index = *citer;
-			}
-	}
-	{
-	PRECISION(10)
-	TEST_REAL_EQUAL(traits->getPeakIntensity(max_index),6.91232e+06)
-	}
-	TEST_REAL_EQUAL(traits->getPeakMz(max_index), 740.6)
-	TEST_REAL_EQUAL(traits->getPeakRt(max_index),1509.85)
-	
-	// test last two points
- 	--citer; --citer; --citer;	
-	{
-	PRECISION(10)
-	TEST_REAL_EQUAL(traits->getPeakIntensity(*citer),2.30957e+06)
-	}
-	TEST_REAL_EQUAL(traits->getPeakMz(*citer),820.7)
-	TEST_REAL_EQUAL(traits->getPeakRt(*citer),1529.55)
-	
-	++citer;
-	{
-	PRECISION(10)
-	TEST_REAL_EQUAL(traits->getPeakIntensity(*citer),1.52578e+06)
-	}
-	TEST_REAL_EQUAL(traits->getPeakMz(*citer),820.8)
-	TEST_REAL_EQUAL(traits->getPeakRt(*citer),1529.55)
-	
-	////////////////////////////////////////////////////////////////////////////////////////////
-	
-	// test third region
+	// retrieve second region
 	region = seeder.nextSeed();
-	TEST_EQUAL(region.size(),88);
+	
+	infile.open( "data/MarrWaveletSeeder_region2");	
 	
 	citer = region.begin();
-	
-	TEST_REAL_EQUAL(traits->getPeakIntensity(*citer),699438)
-	TEST_REAL_EQUAL(traits->getPeakMz(*citer),820)
-	TEST_REAL_EQUAL(traits->getPeakRt(*citer),1504.26)
-	
-	++citer;	
+	while ( infile >> rt )
 	{
-	PRECISION(10)
-	TEST_REAL_EQUAL(traits->getPeakIntensity(*citer),1.32732e+06)
-	}
-	TEST_REAL_EQUAL(traits->getPeakMz(*citer),820.1)
-	TEST_REAL_EQUAL(traits->getPeakRt(*citer),1504.26)
+		infile >> mz >> intensity;
+		
+		TEST_NOT_EQUAL(citer == region.end(),true)
+		
+		TEST_REAL_EQUAL(traits->getPeakRt(*citer),rt)
+		TEST_REAL_EQUAL(traits->getPeakMz(*citer),mz)
+		TEST_REAL_EQUAL(traits->getPeakIntensity(*citer),intensity)
+				
+		++citer;				
+	}		
+	infile.close();
 	
-	// test intensity and position of point with highest intensity
-	max_intensity = 0.0;
-	for (; citer != region.end(); ++citer)
-	{
-			if (traits->getPeakIntensity(*citer) > max_intensity)
-			{
-				max_intensity = traits->getPeakIntensity(*citer);
-				max_index = *citer;
-			}
-	}
-	{
-	PRECISION(10)
-	TEST_REAL_EQUAL(traits->getPeakIntensity(max_index),3.66519e+06)
-	}
-	TEST_REAL_EQUAL(traits->getPeakMz(max_index),820.3)
-	TEST_REAL_EQUAL(traits->getPeakRt(max_index),1509.85)
-	
-	// test last two points
- 	--citer; --citer; --citer;	
-	TEST_REAL_EQUAL(traits->getPeakIntensity(*citer),368537)
-	TEST_REAL_EQUAL(traits->getPeakMz(*citer),821.2)
-	TEST_REAL_EQUAL(traits->getPeakRt(*citer),1511.25)
-	
-	++citer;
-	TEST_REAL_EQUAL(traits->getPeakIntensity(*citer),401375)
-	TEST_REAL_EQUAL(traits->getPeakMz(*citer),821.3)
-	TEST_REAL_EQUAL(traits->getPeakRt(*citer),1511.25)*/
-	
-	//////////////////////////////////////////////////////////////////////////////////////////////////
-	// done
-
+	// done, should be the last region !
 	TEST_EXCEPTION( FeaFiModule::NoSuccessor , seeder.nextSeed() );
 	 
 RESULT
