@@ -80,18 +80,18 @@ These files contain references or binaries that are not compatible across OSs, b
 - ./configure
   might complain about "rpc/xdr.h: present but cannot be compiled".
   That's not an error, but to get rid of it anyway, add the line
-  #include <rpc/types.h>
+  #include &lt;rpc/types.h&gt;
   to /usr/include/rpc/xdr.h (line 66).
 - make
   QT bug: if "make" complains about
   "'QtValidLicenseForCoreModule' does not name a type", then edit
-  /Library/Frameworks/QtCore.framework/Headers/qconfig.h:
+  /Library/Frameworks/QtCore.framework/Headers/qconfig.h
   and replace QT_EDITION_UNKNOWN by QT_EDITION_DESKTOP
   (or fix the real bug and contact me :)
 - make install
 - export DYLD_FALLBACK_LIBRARY_PATH=$OPENMSDIR/lib/Darwin-8.8.0-g++_4.0.1
 - make TOPP
-- optionally (please insert your own path):
+- optionally:
   defaults write ~/.MacOSX/environment DYLD_FALLBACK_LIBRARY_PATH $OPENMSDIR/lib/Darwin-8.8.0-g++_4.0.1
 </pre>
 
