@@ -52,6 +52,7 @@ namespace OpenMS
 		defaults_.setValue("min_num_peaks:extended",10);
 		defaults_.setValue("use_max_intensity",0);
 		
+		defaultsToParam_();
 	}
 
 	DummyFitter::~DummyFitter()  { }
