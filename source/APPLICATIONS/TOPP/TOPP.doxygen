@@ -64,6 +64,7 @@
  		- \subpage LabeledMatcher
   - <b>Identification</b>
     - \subpage IDFilter
+    - \subpage ConsensusID
     - \subpage InspectAdapter
   	- \subpage MascotAdapter
     - \subpage SequestAdapter

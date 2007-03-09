@@ -60,4 +60,38 @@
 Ideen:
 - Seeder/Extender: Analyse der MassenSpur-Distanzen
 - Seeder: precursor peaks :o)
+
+Todos:
+- TOPP
+	- FeatureFiles + AnalysisXML beschneiden können
+  - FileFilter: MS/MS scans nach Precursor MZ/RT abscheiden
+  - RTPredict/RTModel: RT-Vorhersage als ID speichern (Besser in Consensus zu integrieren)
+  - Tests alle durchführen, dann Summary
+  - FeatureFinder
+    - Traits nach FF / entfernen
+    - MainLoop rausfaktorieren
+
+- OpenMS
+  - getPrecursorRT(int scan/ float RT) -> OMSSA/Inspect/Mascot/Sequest, IDSpectrumMapper updaten
+  - AnalysisXML: Mods speichern
+  - For-Schleifen aus Makefiles raus -> paralles Bauen möglich
+  - MetaData from DB (OpenDialog)
+  - ID: ScoreType/AccessionType als Enum in Identification/ProteinIdentification (Richtung auch speichern)
+
+-TOPPView:
+  - Zoom und Move zusammen
+  - Kontextmenu
+    - show scan
+    - show precursor spectrum
+  - Projektionen
+    - Folgen immer dem 2D view
+    - einzeln abschaltbar
+    - Infobox mit Intensität usw.
+  - Zoomen
+    - über Achsen
+    - über Scrollrad in allen Modi
+    - ungenau wenn man weit reinzoomt
+  - Scrollen mit RT-Achse geht nicht
+  - generisches TOPP Menu
+
 ***********************************************************************/
