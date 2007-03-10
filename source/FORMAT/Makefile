@@ -63,7 +63,6 @@ CPP_SOURCES=\
 	OMSSAXMLFile.C\
 	OMSSACSVFile.C\
 	PTMXMLFile.C\
-	IsotopeXMLFile.C\
 	ConsensusXMLFile.C\
 
 

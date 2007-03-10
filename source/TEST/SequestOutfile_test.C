@@ -45,10 +45,10 @@ RESULT
 
 SequestOutfile file;
 
-CHECK(void load(const string& result_filename, vector< IdentificationData >&	identifications, ProteinIdentification&	protein_identification, DoubleReal p_value_threshold, const vector< Real >& pvalues, const string& database = "", const string& snd_database = "") throw (Exception::FileNotFound, Exception::ParseError))
+CHECK(void load(const string& result_filename, vector< IdentificationData >&	identifications, ProteinIdentification&	protein_identification, const DoubleReal& p_value_threshold, const vector< DoubleReal >& pvalues, const string& database = "", const string& snd_database = "") throw (Exception::FileNotFound, Exception::ParseError))
 	vector< IdentificationData > identifications;
 	ProteinIdentification protein_identification;
-	vector< Real > pvalues;
+	vector< DoubleReal > pvalues;
 	
 	file.load("data/SequestOutfile2.out", identifications, protein_identification, 1.0, pvalues);
 	TEST_EQUAL(identifications.empty(), 1)
@@ -56,23 +56,29 @@ CHECK(void load(const string& result_filename, vector< IdentificationData >&	ide
 	file.load("data/SequestOutfile.out", identifications, protein_identification, 1.0, pvalues);
 	
 	TEST_EQUAL(identifications.size(), 1)
-	TEST_EQUAL(identifications[0].id.getPeptideHits().size(), 4)
-	TEST_REAL_EQUAL(identifications[0].id.getPeptideHits()[0].getScore(), 0.05)
-	TEST_EQUAL(identifications[0].id.getPeptideHits()[0].getSequence(), "ETQAWSIATILETLYDL")
-	TEST_EQUAL(identifications[0].id.getPeptideHits()[0].getScoreType(), "SEQUEST")
-	TEST_EQUAL(identifications[0].id.getPeptideHits()[0].getRank(), 1)
-	TEST_REAL_EQUAL(identifications[0].id.getPeptideHits()[1].getScore(), 0.04)
-	TEST_EQUAL(identifications[0].id.getPeptideHits()[1].getSequence(), "QVLNPLLVLIFIPLFDL")
-	TEST_EQUAL(identifications[0].id.getPeptideHits()[1].getScoreType(), "SEQUEST")
-	TEST_EQUAL(identifications[0].id.getPeptideHits()[1].getRank(), 2)
-	TEST_REAL_EQUAL(identifications[0].id.getPeptideHits()[2].getScore(), 0.02)
-	TEST_EQUAL(identifications[0].id.getPeptideHits()[2].getSequence(), "WVELGPSVLAGVGVM*VLLI")
-	TEST_EQUAL(identifications[0].id.getPeptideHits()[2].getScoreType(), "SEQUEST")
-	TEST_EQUAL(identifications[0].id.getPeptideHits()[2].getRank(), 3)
-	TEST_REAL_EQUAL(identifications[0].id.getPeptideHits()[3].getScore(), 0.14)
-	TEST_EQUAL(identifications[0].id.getPeptideHits()[3].getSequence(), "FDEITAMTGDGVNDAPALK")
-	TEST_EQUAL(identifications[0].id.getPeptideHits()[3].getScoreType(), "SEQUEST")
-	TEST_EQUAL(identifications[0].id.getPeptideHits()[3].getRank(), 4)
+	if ( identifications.size() == 1 )
+	{
+		TEST_EQUAL(identifications[0].id.getPeptideHits().size(), 4)
+		if ( identifications[0].id.getPeptideHits().size() == 4 )
+		{
+			TEST_REAL_EQUAL(identifications[0].id.getPeptideHits()[0].getScore(), 0.05)
+			TEST_EQUAL(identifications[0].id.getPeptideHits()[0].getSequence(), "ETQAWSIATILETLYDL")
+			TEST_EQUAL(identifications[0].id.getPeptideHits()[0].getScoreType(), "SEQUEST")
+			TEST_EQUAL(identifications[0].id.getPeptideHits()[0].getRank(), 1)
+			TEST_REAL_EQUAL(identifications[0].id.getPeptideHits()[1].getScore(), 0.04)
+			TEST_EQUAL(identifications[0].id.getPeptideHits()[1].getSequence(), "QVLNPLLVLIFIPLFDL")
+			TEST_EQUAL(identifications[0].id.getPeptideHits()[1].getScoreType(), "SEQUEST")
+			TEST_EQUAL(identifications[0].id.getPeptideHits()[1].getRank(), 2)
+			TEST_REAL_EQUAL(identifications[0].id.getPeptideHits()[2].getScore(), 0.02)
+			TEST_EQUAL(identifications[0].id.getPeptideHits()[2].getSequence(), "WVELGPSVLAGVGVM*VLLI")
+			TEST_EQUAL(identifications[0].id.getPeptideHits()[2].getScoreType(), "SEQUEST")
+			TEST_EQUAL(identifications[0].id.getPeptideHits()[2].getRank(), 3)
+			TEST_REAL_EQUAL(identifications[0].id.getPeptideHits()[3].getScore(), 0.14)
+			TEST_EQUAL(identifications[0].id.getPeptideHits()[3].getSequence(), "FDEITAMTGDGVNDAPALK")
+			TEST_EQUAL(identifications[0].id.getPeptideHits()[3].getScoreType(), "SEQUEST")
+			TEST_EQUAL(identifications[0].id.getPeptideHits()[3].getRank(), 4)
+		}
+	}
 
 	identifications.clear();
 	pvalues.push_back(0.001);
@@ -82,15 +88,21 @@ CHECK(void load(const string& result_filename, vector< IdentificationData >&	ide
 	file.load("data/SequestOutfile.out", identifications, protein_identification, 0.01, pvalues);
 	
 	TEST_EQUAL(identifications.size(), 1)
-	TEST_EQUAL(identifications[0].id.getPeptideHits().size(), 2)
-	TEST_REAL_EQUAL(identifications[0].id.getPeptideHits()[0].getScore(), 0.05)
-	TEST_EQUAL(identifications[0].id.getPeptideHits()[0].getSequence(), "ETQAWSIATILETLYDL")
-	TEST_EQUAL(identifications[0].id.getPeptideHits()[0].getScoreType(), "SEQUEST")
-	TEST_EQUAL(identifications[0].id.getPeptideHits()[0].getRank(), 1)
-	TEST_REAL_EQUAL(identifications[0].id.getPeptideHits()[1].getScore(), 0.04)
-	TEST_EQUAL(identifications[0].id.getPeptideHits()[1].getSequence(), "QVLNPLLVLIFIPLFDL")
-	TEST_EQUAL(identifications[0].id.getPeptideHits()[1].getScoreType(), "SEQUEST")
-	TEST_EQUAL(identifications[0].id.getPeptideHits()[1].getRank(), 2)
+	if ( identifications.size() == 1 )
+	{
+		TEST_EQUAL(identifications[0].id.getPeptideHits().size(), 2)
+		if ( identifications[0].id.getPeptideHits().size() == 2 )
+		{
+			TEST_REAL_EQUAL(identifications[0].id.getPeptideHits()[0].getScore(), 0.05)
+			TEST_EQUAL(identifications[0].id.getPeptideHits()[0].getSequence(), "ETQAWSIATILETLYDL")
+			TEST_EQUAL(identifications[0].id.getPeptideHits()[0].getScoreType(), "SEQUEST")
+			TEST_EQUAL(identifications[0].id.getPeptideHits()[0].getRank(), 1)
+			TEST_REAL_EQUAL(identifications[0].id.getPeptideHits()[1].getScore(), 0.04)
+			TEST_EQUAL(identifications[0].id.getPeptideHits()[1].getSequence(), "QVLNPLLVLIFIPLFDL")
+			TEST_EQUAL(identifications[0].id.getPeptideHits()[1].getScoreType(), "SEQUEST")
+			TEST_EQUAL(identifications[0].id.getPeptideHits()[1].getRank(), 2)
+		}
+	}
 RESULT
 
 CHECK(bool getColumns(const String& line, vector< String >& substrings, UInt number_of_columns, UInt reference_column))

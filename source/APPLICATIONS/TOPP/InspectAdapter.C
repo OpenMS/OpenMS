@@ -25,10 +25,10 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
+#include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
 #include <OpenMS/FORMAT/AnalysisXMLFile.h>
 #include <OpenMS/FORMAT/InspectInfile.h>
 #include <OpenMS/FORMAT/InspectOutfile.h>
-#include <OpenMS/FORMAT/IsotopeXMLFile.h>
 #include <OpenMS/FORMAT/PTMXMLFile.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/FORMAT/TextFile.h>
@@ -139,7 +139,6 @@ class TOPPInspectAdapter
 																																													 "and \"opt\" (the default).\n", false);
 			registerFlag_("use_monoisotopic_mod_mass", "use monoisotopic masses for the modifications");
 			registerStringOption_("modifications_xml_file", "<file>", "", "name of an XML file with the modifications", false);
-			registerStringOption_("isotopes_xml_file", "<file>", "", "name of an XML file with the masses and probabilities of isotopes", false);
 			registerStringOption_("cleavage", "<enz>", "Trypsin", "the enzyme used for digestion", false);
 			registerStringOption_("inspect_output", "<file>", "", "name for the output file of Inspect (may only be used in a full run)", false);
 			registerStringOption_("inspect_input", "<file>", "", "name for the input file of Inspect (may only be used in a full run)", false);
@@ -236,7 +235,7 @@ class TOPPInspectAdapter
 				dbs,
 				seq_files;
 			
-			vector < vector< String > > mod;
+// 			vector < vector< String > > mod;
 			
 			String
 				string_buffer,
@@ -375,7 +374,7 @@ class TOPPInspectAdapter
 					{
 						string_buffer.append(".mzXML");
 						MzXMLFile().store(string_buffer, experiment);
-						//tmp_names.push_back(string_buffer);
+						tmp_names.push_back(string_buffer);
 					}
 					inspect_infile.setSpectra(string_buffer);
 					
@@ -561,15 +560,18 @@ class TOPPInspectAdapter
 						// to store the informations about modifications from the ptm xml file
 						map< String, pair< String, String > > ptm_informations;
 						
-						// to store the informations about isotopes from the isotopes xml file
-						map< String, vector< pair< DoubleReal, DoubleReal > > > isotopes_mass_and_probability;
-						map< String, DoubleReal > isotope_masses;
+						// to get masses from a formula
+						EmpiricalFormula add_e_formula, sub_e_formula;
 						
-						UInt comp_mass_name_given;
+						Int comp_mass_name_given;
 						String types = "opt#fix#cterminal#nterminal";
 						
 						for ( vector< String >::const_iterator mod_i = substrings.begin(); mod_i != substrings.end(); ++mod_i )
 						{
+							// clear the formulae
+							add_e_formula = "";
+							sub_e_formula = "";
+							
 							if ( mod_i->empty() ) continue;
 							iso_sym_occ.clear();
 							// get the components of the modification
@@ -586,23 +588,51 @@ class TOPPInspectAdapter
 								substrings2[0].erase(substrings2[0].length() - 1, 1);
 								substrings2[0].insert(0, "-");
 							}
-							bool is_mass = false;
+							bool go_on = false;
 							try
 							{
-								is_mass = ( String(substrings2[0].toDouble()) == substrings2[0] );
-							}
-							catch ( Exception::ConversionError ce ) {}
-							if ( is_mass ) // if it's a mass
-							{
+								go_on = ( String(substrings2[0].toDouble()) != substrings2[0] );
 								mass_res_type_name.back()[0] = substrings2[0]; // mass
 								comp_mass_name_given = 0;
 							}
-							else if ( get_composition_elements(substrings2[0], iso_sym_occ, '.').empty() ) // if it is a composition, put it into the vector
+							catch ( Exception::ConversionError ce )
+							{
+								go_on = true;
+							}
+							if ( go_on && get_composition_elements(substrings2[0], iso_sym_occ, '.').empty() ) // if it is a composition, put it into the vector
 							{
 								mass_res_type_name.back()[0] = substrings2[0]; // composition
 								comp_mass_name_given = 1;
+								go_on = false;
 							}
-							else // if it's a name, try to find it in the ptm xml file
+							if ( go_on ) // check whether it's an empirical formula
+							{
+								String::size_type pos = substrings2[0].find(".-");
+								try
+								{
+									if ( pos != String::npos )
+									{
+										add_e_formula = substrings2[0].substr(0, pos);
+										pos += 2;
+										sub_e_formula = substrings2[0].substr(pos);
+									}
+									else
+									{
+										add_e_formula = substrings2[0];
+									}
+									// sum up the masses
+									if ( monoisotopic ) mass_res_type_name.back()[0] = String(add_e_formula.getMonoWeight() - sub_e_formula.getMonoWeight());
+									else mass_res_type_name.back()[0] = String(add_e_formula.getAverageWeight() - sub_e_formula.getAverageWeight());
+									
+									go_on = false;
+									comp_mass_name_given = -1;
+								}
+								catch ( Exception::ParseError pe )
+								{
+									go_on = true;
+								}
+							}
+							if ( go_on ) // if it's a name, try to find it in the ptm xml file
 							{
 								if ( ptm_informations.empty() ) // if the ptm xml file has not been read yet, read it
 								{
@@ -637,6 +667,7 @@ class TOPPInspectAdapter
 								mass_res_type_name.back()[0] = ptm_informations[substrings2[0]].first; // composition
 								mass_res_type_name.back()[1] = ptm_informations[substrings2[0]].second; // residues
 								mass_res_type_name.back()[3] = substrings2[0]; // name
+								
 								// get the type
 								if ( substrings2.size() > 1 )
 								{
@@ -681,55 +712,9 @@ class TOPPInspectAdapter
 							}
 							
 							// if a composition is given, get the corresponding mass
-							if ( comp_mass_name_given )
+							if ( comp_mass_name_given > 0 )
 							{
-								if ( isotope_masses.empty() ) // if the isotopes xml file has not been read yet, read it
-								{
-									string isotopes_filename = getStringOption_("isotopes_xml_file");
-									if ( isotopes_filename.empty() )
-									{
-										writeLog_("No isotopes XML file given. Aborting!");
-										return INPUT_FILE_NOT_FOUND;
-									}
-									if ( !File::readable(isotopes_filename) )
-									{
-										writeLog_("Isotopes XML file is not readable. Aborting!");
-										return INPUT_FILE_NOT_READABLE;
-									}
-									
-									try
-									{
-										IsotopeXMLFile().load(isotopes_filename, isotopes_mass_and_probability);
-									}
-									catch ( Exception::ParseError pe )
-									{
-										writeLog_(pe.getMessage());
-										return PARSE_ERROR;
-									}
-									
-									DoubleReal mass, probability; // compute the monoisotopic or average mass
-									for ( map< String, vector< pair< DoubleReal, DoubleReal > > >::const_iterator iso_i = isotopes_mass_and_probability.begin(); iso_i != isotopes_mass_and_probability.end(); ++iso_i )
-									{
-										mass = probability = 0;
-										for ( vector< pair< DoubleReal, DoubleReal > >::const_iterator mp_i = iso_i->second.begin(); mp_i != iso_i->second.end(); ++mp_i )
-										{
-											if ( monoisotopic )
-											{
-												if ( probability < mp_i->second )
-												{
-													mass = mp_i->first;
-													probability = mp_i->second;
-												}
-											}
-											else mass += mp_i->first * mp_i->second;
-										}
-										isotope_masses[iso_i->first] = mass;
-									}
-								}
-								
-								// compute the mass
-								DoubleReal mass = 0;
-								// get the single components of the composition
+								// get the single components of the composition, if a name was given (for not doing this work twice)
 								if ( comp_mass_name_given == 2 )
 								{
 									if ( !get_composition_elements(mass_res_type_name.back()[0], iso_sym_occ).empty() )
@@ -742,21 +727,16 @@ class TOPPInspectAdapter
 								{
 									if ( (*comp_i)[0] == "0" )
 									{
-										mass += isotope_masses[(*comp_i)[1]] * (*comp_i)[2].toDouble();
+										if ( (*comp_i)[2].hasPrefix("-")  ) sub_e_formula += (*comp_i)[1] + (*comp_i)[2];
+										else add_e_formula += (*comp_i)[1] + (*comp_i)[2];
 									}
 									else // if an isotope was used, get the mass
 									{
-										for ( vector< pair< DoubleReal, DoubleReal > >::const_iterator iso_i = isotopes_mass_and_probability[(*comp_i)[1]].begin(); iso_i != isotopes_mass_and_probability[(*comp_i)[1]].end(); ++iso_i )
-										{
-											if ( ((Int) (iso_i->first + 0.5)) == (*comp_i)[0].toDouble() ) // round the mass
-											{
-												mass += iso_i->first * (*comp_i)[2].toDouble();
-												break;
-											}
-										}
 									}
 								}
-								mass_res_type_name.back()[0] = String(mass);
+								// sum up the masses
+								if ( monoisotopic ) mass_res_type_name.back()[0] = String(add_e_formula.getMonoWeight() - sub_e_formula.getMonoWeight());
+								else mass_res_type_name.back()[0] = String(add_e_formula.getAverageWeight() - sub_e_formula.getAverageWeight());
 							}
 						}
 						
@@ -768,7 +748,7 @@ class TOPPInspectAdapter
 				inspect_infile.setInstrument(getStringOption_("instrument"));
 				
 				inspect_infile.setMods(getIntOption_("max_modifications_pp"));
-				if ( inspect_infile.getMods() < 1 && !mod.empty() )
+				if ( inspect_infile.getMods() < 1 && /*!mod.empty()*/ !inspect_infile.getMod().empty() )
 				{
 					writeLog_("Modifications specified, but max_modifications_pp not set. Setting it to 1.");
 					inspect_infile.setMods(1);
@@ -798,9 +778,9 @@ class TOPPInspectAdapter
 				}
 				
 				inspect_infile.setMaxPTMsize(getDoubleOption_("maxptmsize") );
-				if ( inspect_infile.getMaxPTMsize() < 0 && inspect_infile.getMaxPTMsize() != -1)
+				if ( (inspect_infile.getMaxPTMsize() < 10 || inspect_infile.getMaxPTMsize() > 2000) && inspect_infile.getMaxPTMsize() != -1)
 				{
-					writeLog_("Illegal maximum modification size (<0). Aborting!");
+					writeLog_("Illegal maximum modification size (not in [10,2000]). Aborting!");
 					return ILLEGAL_PARAMETERS;
 				}
 			}

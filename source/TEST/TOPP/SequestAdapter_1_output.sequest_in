@@ -10,7 +10,7 @@ num_description_lines = 0
 show_fragment_ions = 1
 print_duplicate_references = 1
 enzyme_number = 14
-diff_search_options = 79.97991705 DHRSTY 95.97991705 C
+diff_search_options = 14.02658 EIKLNQ 79.9799 Y 94.00648 DHRST 110.00648 C
 term_diff_search_options = -16 -16
 remove_precursor_peak = 0
 ion_cutoff_percentage = 0.3
@@ -31,7 +31,7 @@ match_peak_tolerance = 0.3
 residues_in_upper_case = 1
 
 
-add_Nterm_peptide = 43.02482467
+add_Nterm_peptide = 43.0247
 add_Cterm_peptide = -16
 add_Nterm_protein = -16
 add_Cterm_protein = -16

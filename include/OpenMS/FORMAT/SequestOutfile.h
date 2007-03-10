@@ -70,15 +70,15 @@ namespace OpenMS
 				This class serves to read in a Sequest outfile. The information can be
 				retrieved via the load function.
 			*/
-			void load(const std::string& result_filename, std::vector< IdentificationData >& identifications, ProteinIdentification& protein_identification, Real p_value_threshold, std::vector< Real >& pvalues, const std::string& database = "") throw (Exception::FileNotFound, Exception::ParseError);
+			void load(const std::string& result_filename, std::vector< IdentificationData >& identifications, ProteinIdentification& protein_identification, const DoubleReal& p_value_threshold, std::vector< DoubleReal >& pvalues, const std::string& database = "") throw (Exception::FileNotFound, Exception::ParseError);
 
 			
 			void finishSummaryHtml(const std::string& summary_filename) throw (Exception::UnableToCreateFile);
 
 			/// write a
-			void out2SummaryHtml(const std::string& out_filename, const std::string& summary_filename, const std::string& database_filename) throw(Exception::FileNotFound, Exception::ParseError, Exception::UnableToCreateFile);
+			void out2SummaryHtml(std::string out_filename, const std::string& summary_filename, const std::string& database_filename) throw(Exception::FileNotFound, Exception::ParseError, Exception::UnableToCreateFile);
 
-			std::map< String, std::vector< Real > > getPeptidePValues(const std::string& out_dir, const std::string& prob_filename) throw (Exception::FileNotFound);
+			std::map< String, std::vector< DoubleReal > > getPeptidePValues(/*const std::string& out_dir,*/ const std::string& prob_filename) throw (Exception::FileNotFound);
 			
 			/// retrieve columns from a Sequest outfile line
 			bool getColumns(const String& line, std::vector< String >& substrings, UInt number_of_columns, UInt reference_column);
@@ -93,7 +93,7 @@ namespace OpenMS
 			/// either insert the new peptide hit or update it's protein indices
 			bool updatePeptideHits(PeptideHit& peptide_hit, std::vector< PeptideHit >& peptide_hits);
 
-			void readOutHeader(const std::string& result_filename, DateTime& datetime, Real& precursor_mz_value, Int& charge, UInt& precursor_mass_type, UInt& ion_mass_type, Int& number_column, Int& rank_sp_column, Int& id_column, Int& mh_column, Int& delta_cn_column, Int& xcorr_column, Int& sp_column, Int& sf_column, Int& ions_column, Int& reference_column, Int& peptide_column, Int& score_column, UInt& number_of_columns, UInt& displayed_peptides) throw(Exception::FileNotFound, Exception::ParseError);
+			void readOutHeader(const std::string& result_filename, DateTime& datetime, DoubleReal& precursor_mz_value, Int& charge, UInt& precursor_mass_type, UInt& ion_mass_type, Int& number_column, Int& rank_sp_column, Int& id_column, Int& mh_column, Int& delta_cn_column, Int& xcorr_column, Int& sp_column, Int& sf_column, Int& ions_column, Int& reference_column, Int& peptide_column, Int& score_column, UInt& number_of_columns, UInt& displayed_peptides) throw(Exception::FileNotFound, Exception::ParseError);
 			
 		private:
 			UInt out2summary_number;

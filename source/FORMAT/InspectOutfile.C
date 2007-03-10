@@ -289,9 +289,9 @@ namespace OpenMS
 		}
 		else if ( line.hasPrefix("gi") )
 		{
-			size_t snd = line.find('|', 3);
-			size_t third(0);
-			if ( snd != string::npos )
+			String::size_type snd = line.find('|', 3);
+			String::size_type third(0);
+			if ( snd != String::npos )
 			{
 				third = line.find('|', ++snd) + 1;
 				
@@ -308,22 +308,22 @@ namespace OpenMS
 				accession_type = accession;
 				snd = line.find('|', third);
 				third = line.find('|', ++snd);
-				if ( third != string::npos ) accession = line.substr(snd, third-snd);
+				if ( third != String::npos ) accession = line.substr(snd, third-snd);
 				else
 				{
 					third = line.find(' ', snd);
-					if ( third != string::npos ) accession = line.substr(snd, third-snd);
+					if ( third != String::npos ) accession = line.substr(snd, third-snd);
 					else accession = line.substr(snd);
 				}
 			}
 			else
 			{
 				accession_type = "gi";
-				if ( snd != string::npos ) accession = line.substr(3, snd-4);
+				if ( snd != String::npos ) accession = line.substr(3, snd-4);
 				else
 				{
-					if ( snd == string::npos ) snd = line.find(' ', 3);
-					if ( snd != string::npos ) accession = line.substr(3, snd-3);
+					if ( snd == String::npos ) snd = line.find(' ', 3);
+					if ( snd != String::npos ) accession = line.substr(3, snd-3);
 					else accession = line.substr(3);
 				}
 			}
@@ -354,15 +354,15 @@ namespace OpenMS
 		}
 		else
 		{
-			size_t pos1 = line.find('(', 0);
-			size_t pos2;
-			if ( pos1 != string::npos )
+			String::size_type pos1 = line.find('(', 0);
+			String::size_type pos2;
+			if ( pos1 != String::npos )
 			{
 				pos2 = line.find(')', ++pos1);
-				if ( pos2 != string::npos )
+				if ( pos2 != String::npos )
 				{
 					accession = line.substr(pos1, pos2 - pos1);
-					if ( (accession.size() == 6) && (String("OPQ").find(accession[0], 0) != string::npos) ) accession_type = "SwissProt";
+					if ( (accession.size() == 6) && (String("OPQ").find(accession[0], 0) != String::npos) ) accession_type = "SwissProt";
 					else accession.clear();
 				}
 			}
@@ -370,16 +370,16 @@ namespace OpenMS
 			{
 				pos1 = line.find('|');
 				accession = line.substr(0, pos1);
-				if ( (accession.size() == 6) && (String("OPQ").find(accession[0], 0) != string::npos) ) accession_type = "SwissProt";
+				if ( (accession.size() == 6) && (String("OPQ").find(accession[0], 0) != String::npos) ) accession_type = "SwissProt";
 				else
 				{
 					pos1 = line.find(' ');
 					accession = line.substr(0, pos1);
-					if ( (accession.size() == 6) && (String("OPQ").find(accession[0], 0) != string::npos) ) accession_type = "SwissProt";
+					if ( (accession.size() == 6) && (String("OPQ").find(accession[0], 0) != String::npos) ) accession_type = "SwissProt";
 					else
 					{
 						accession = line.substr(0, 6);
-						if ( String("OPQ").find(accession[0], 0) != string::npos ) accession_type = "SwissProt";
+						if ( String("OPQ").find(accession[0], 0) != String::npos ) accession_type = "SwissProt";
 						else accession.clear();
 					}
 				}
@@ -601,7 +601,7 @@ namespace OpenMS
 		// the value
 		unsigned char record_flags = 0;
 		
-		string::size_type pos; // the position in a line
+		String::size_type pos; // the position in a line
 		unsigned long long source_database_pos = source_database.tellg(); // the start of a protein in the source database
 		unsigned long long source_database_pos_buffer = 0; // because you don't know whether a new protein starts unless the line is read, the actual position is buffered before any new getline
 		UInt database_pos;
@@ -680,7 +680,7 @@ namespace OpenMS
 				if ( species_flag && line.hasPrefix(species_label) && (record_flags == ac_flag) )
 				{
 					pos = species_label.length();
-					if ( line.find(species, pos) != string::npos ) record_flags |= species_flag;
+					if ( line.find(species, pos) != String::npos ) record_flags |= species_flag;
 					else record_flags = 0;
 				}
 				// if the beginning of the sequence is found and accession and correct species have been found

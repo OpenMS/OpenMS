@@ -47,7 +47,6 @@ CPP_SOURCES=\
 	XMLSchemes.C\
 	OMSSAXMLHandler.C\
 	PTMXMLHandler.C\
-	IsotopeXMLHandler.C\
 	ConsensusXMLHandler.C\
 
 ifeq ($(ANDIMS_SUPPORT),true)

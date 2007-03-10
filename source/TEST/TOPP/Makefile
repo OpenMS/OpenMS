@@ -557,8 +557,14 @@ InspectAdapter_test: $(NUMERICDIFF)
 	@$(ECHO) ""
 	@$(ECHO) "InspectAdapter:"
 
-	@$(ECHO) "- Test 1: -inspect_in"
+	@$(ECHO) "- Test 1: -inspect_in with mzXML"
 	@$(call RUN_PROG_OPT,InspectAdapter,-ini InspectAdapter_1_parameters.ini -inspect_in)
+	@$(SED) -i 's/^spectra,.*$$/spectra,dummy.mzXML/g' InspectAdapter_1_output.tmp
+	@$(SED) -i 's/^db,.*$$/db,dummy.trie/g' InspectAdapter_1_output.tmp
+	@$(call TEST_FILE_EQUAL,InspectAdapter_1_output.inspect_in,InspectAdapter_1_output.tmp)
+
+	@$(ECHO) "- Test 1: -inspect_in with mzData"
+	@$(call RUN_PROG_OPT,InspectAdapter,-ini InspectAdapter_1_parameters.ini -inspect_in -in Inspect_Sequest.mzData)
 	@$(SED) -i 's/^spectra,.*$$/spectra,dummy.mzXML/g' InspectAdapter_1_output.tmp
 	@$(SED) -i 's/^db,.*$$/db,dummy.trie/g' InspectAdapter_1_output.tmp
 	@$(call TEST_FILE_EQUAL,InspectAdapter_1_output.inspect_in,InspectAdapter_1_output.tmp)
@@ -574,8 +580,14 @@ SequestAdapter_test: $(NUMERICDIFF)
 	@$(ECHO) "SequestAdapter:"
 
 	@$(RM) -rf ./tmp/*.dta_*  ./tmp/sequest_run.bat ./tmp/temp.sequest.in
-	@$(ECHO) "- Test 1: -sequest_in"
+	@$(ECHO) "- Test 1: -sequest_in with mzXML"
 	@$(call RUN_PROG_OPT,SequestAdapter,-ini SequestAdapter_1_parameters.ini -in Inspect_Sequest.mzXML -out SequestAdapter_1_output.tmp -sequest_in)
+	@$(call TEST_FILE_EQUAL,SequestAdapter_1_output.sequest_in,SequestAdapter_1_output.tmp)
+	@$(RM) -rf Inspect_Sequest*.dta_*
+	
+	@$(RM) -rf ./tmp/*.dta_*  ./tmp/sequest_run.bat ./tmp/temp.sequest.in
+	@$(ECHO) "- Test 1: -sequest_in with mzData"
+	@$(call RUN_PROG_OPT,SequestAdapter,-ini SequestAdapter_1_parameters.ini -in Inspect_Sequest.mzXML -out SequestAdapter_1_output.tmp -sequest_in -in Inspect_Sequest.mzData)
 	@$(call TEST_FILE_EQUAL,SequestAdapter_1_output.sequest_in,SequestAdapter_1_output.tmp)
 	@$(RM) -rf Inspect_Sequest*.dta_*
 

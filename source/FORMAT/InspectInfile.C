@@ -152,27 +152,27 @@ namespace OpenMS
 	
 	void InspectInfile::addMod(const vector< String >& mod) {mod_.push_back(mod);}
 
-	Int InspectInfile::getMods() const {return mods_;}
+	const Int InspectInfile::getMods() const {return mods_;}
 
 	void InspectInfile::setMods(Int mods) {mods_ = mods;}
 
-	UInt InspectInfile::getBlind() const {return blind_;}
+	const UInt InspectInfile::getBlind() const {return blind_;}
 
 	void InspectInfile::setBlind(UInt blind) {blind_ = blind;}
 
-	DoubleReal InspectInfile::getMaxPTMsize() const {return maxptmsize_;}
+	const DoubleReal InspectInfile::getMaxPTMsize() const {return maxptmsize_;}
 
 	void InspectInfile::setMaxPTMsize(DoubleReal maxptmsize) {maxptmsize_ = maxptmsize;}
 
-	DoubleReal InspectInfile::getPMTolerance() const {return PM_tolerance_;}
+	const DoubleReal InspectInfile::getPMTolerance() const {return PM_tolerance_;}
 
 	void InspectInfile::setPMTolerance(DoubleReal PM_tolerance) {PM_tolerance_ = PM_tolerance;}
 
-	DoubleReal InspectInfile::getIonTolerance() const {return ion_tolerance_;}
+	const DoubleReal InspectInfile::getIonTolerance() const {return ion_tolerance_;}
 
 	void InspectInfile::setIonTolerance(DoubleReal ion_tolerance) {ion_tolerance_ = ion_tolerance;}
 
-	UInt InspectInfile::getMulticharge() const {return multicharge_;}
+	const UInt InspectInfile::getMulticharge() const {return multicharge_;}
 
 	void InspectInfile::setMulticharge(UInt multicharge) {multicharge_ = multicharge;}
 
@@ -180,7 +180,7 @@ namespace OpenMS
 
 	void InspectInfile::setInstrument(const String& instrument) {instrument_ = instrument;}
 
-	Int InspectInfile::getTagCount() const {return tag_count_;}
+	const Int InspectInfile::getTagCount() const {return tag_count_;}
 
 	void InspectInfile::setTagCount(Int tag_count) {tag_count_ = tag_count;}
 } // namespace OpenMS

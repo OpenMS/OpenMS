@@ -441,7 +441,7 @@ namespace OpenMS
 		amino_acids.toUpper();
 		for ( String::const_iterator s_i = amino_acids.begin(); s_i != amino_acids.end(); ++s_i )
 		{
-			if ( aas_single_letter_.find(*s_i) == string::npos ) return *s_i; // if an unknown amino acid is used, report it
+			if ( aas_single_letter_.find(*s_i) == String::npos ) return *s_i; // if an unknown amino acid is used, report it
 			stat_mods_[*s_i] = mass;
 		}
 		return 0;

@@ -27,10 +27,10 @@
 
 #include <OpenMS/FORMAT/AnalysisXMLFile.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
+#include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/FORMAT/DTAFile.h>
-#include <OpenMS/FORMAT/IsotopeXMLFile.h>
 #include <OpenMS/FORMAT/MzXMLFile.h>
 #include <OpenMS/FORMAT/PTMXMLFile.h>
 #include <OpenMS/FORMAT/SequestInfile.h>
@@ -63,7 +63,7 @@ using namespace std;
 	<ol>	
 				<li>
 				The whole process of identification via Sequest is executed. 
-				Inputfile is one (or more) mzXML file containing the MS/MS spectra
+				Inputfile is one (or more) mz file containing the MS/MS spectra
 				for which identifications are to be found
 				and one ore two databases in FASTA format containing
 				the possible proteins.
@@ -75,7 +75,7 @@ using namespace std;
 				<li>
 				Only the first part of the identification process is performed.
 				This means that a Sequest input file is generated and dta files are
-				created from the mzXML file.
+				created from the mz file.
 				Calling an Sequest process should look like the following:				
 				
 				@code sequest -P\<inputfilename\> \<path to dta files\>*.dta  @endcode
@@ -117,15 +117,15 @@ class TOPPSequestAdapter
 										 "http://www.grosse-coosmann.de/~florian/Parameters.html#file.");
 			registerStringOption_("out", "<file>", "", "output file in analysisXML format.\n"
 			                                           "Note: In mode 'sequest_in' a Sequest input file is written.", false);
-			registerStringOption_("in", "<file>", "", "input file(s) in mzXML format (comma-separated).\n"
+			registerStringOption_("in", "<file>", "", "input file(s) in mzXML or mzData format (comma-separated).\n"
 					 																			"Note: In mode 'sequest_out' a directory with Sequest results files\n"
 																								"(*.out) is read", false);
-			registerFlag_("sequest_in", "if this flag is set the SequestAdapter will read in mzXML\n"
+			registerFlag_("sequest_in", "if this flag is set the SequestAdapter will read in mzXML or mzData\n"
 																								"and write an Sequest input file\n"
-																								"and create dta files from the given mzXML files");
+																								"and create dta files from the given mzXML or mzData files");
 			registerFlag_("sequest_out", "if this flag is set the SequestAdapter will read in Sequest result files\n"
 																									"and write analysisXML");
-			registerStringOption_("mzXMLs", "<file>", "", "when using sequest_out the mzXML files (comma-separated)\n"
+			registerStringOption_("mzFiles", "<file>", "", "when using sequest_out the mzXML or mzData files (comma-separated)\n"
 																																						"have to be given to retrieve the retention times", false);
 			registerFlag_("show_enzymes", "show a list with enzymes and corresponding numbers to choose from");
 			registerStringOption_("sequest_computer", "<name>", "", "the name of the computer in the network that hosts Sequest\n"
@@ -167,7 +167,6 @@ class TOPPSequestAdapter
 																																													 "and \"opt\" (the default).\n", false);
 			registerFlag_("use_monoisotopic_mod_mass", "use monoisotopic masses for the modifications");
 			registerStringOption_("modifications_xml_file", "<file>", "", "name of an XML file with the modifications", false);
-			registerStringOption_("isotopes_xml_file", "<file>", "", "name of an XML file with the masses and probabilities of isotopes", false);
 			registerIntOption_("max_num_dif_AA_per_mod", "<num>", 0, "limits the maximum total number of\n"
 																																																			 "variable modifications per amino acid", false);
 			registerIntOption_("max_num_dif_mods_per_peptide", "<num>", 0, "limits the maximum total number of\n"
@@ -212,7 +211,7 @@ class TOPPSequestAdapter
 																																															"if one filter string matches the header string.\n"
 																																															"A tilde (~) in the filter string is replaced by a blank during comparison.", false);
 			registerFlag_("keep_out_files", "If set the Seuest .out-files are not removed");
-			registerFlag_("keep_dta_files", "If set the dta-files that were created from the mzXML-files are not removed");
+			registerFlag_("keep_dta_files", "If set the dta-files that were created from the mzXML or mzData files are not removed");
 			registerIntOption_("nuc_reading_frame", "<num>", 0, "Format of the FASTA database:\n"
 																													 "0  The FASTA file contains amino acid codes. No translation is needed.\n"
 																													 "1  The DNA sequence is scanned left to right (forward direction).\n"
@@ -306,7 +305,7 @@ class TOPPSequestAdapter
 						if ( name[2] == '\\' )
 						{
 							// make sure there's no space within the name, as in windows 'cmd /C "command"' is used, so there's no possibility to use any more ""
-							if ( name.find(" ") == string::npos ) return true;
+							if ( name.find(" ") == String::npos ) return true;
 							else return false;
 						}
 						else return false;
@@ -319,7 +318,7 @@ class TOPPSequestAdapter
 
 		bool correctNetworkPath(String& network_path, UInt backslashes = 2)
 		{
-			UInt pos = 0;
+			String::size_type pos = 0;
 			while ( (pos < network_path.length()) && (network_path[pos] == '\\') ) ++pos;
 			if ( pos < backslashes ) network_path.insert(network_path.begin(), backslashes-pos, '\\');
 			else network_path.erase(0, pos-backslashes);
@@ -328,7 +327,7 @@ class TOPPSequestAdapter
 			return true;
 		}
 
-		UInt
+  UInt
 		MSExperiment2DTAs(
 			MSExperiment<>& msexperiment,
 			const String& common_name,
@@ -435,7 +434,7 @@ class TOPPSequestAdapter
 			
 			Int int_buffer;
 			
-			Real p_value = 0.05;
+			DoubleReal p_value;
 			
 			map< String, DoubleReal > filenames_and_precursor_retention_times;
 			
@@ -598,11 +597,11 @@ class TOPPSequestAdapter
 					File::absolutePath(out_directory);
 					out_directory.ensureLastChar('/');
 					
-					// if only sequest_out is set, the mzXML files have to be given to retrieve the retention times
-					string_buffer = getStringOption_("mzXMLs");
+					// if only sequest_out is set, the mz files have to be given to retrieve the retention times
+					string_buffer = getStringOption_("mzFiles");
 					if ( string_buffer.empty() )
 					{
-						writeLog_("No mzXML files specified. Aborting!");
+						writeLog_("No mz files specified. Aborting!");
 						return ILLEGAL_PARAMETERS;
 					}
 					else
@@ -625,28 +624,35 @@ class TOPPSequestAdapter
 
 			if ( sequest_in )
 			{
+				temp_data_directory_win = getStringOption_("temp_data_directory_win");
+				temp_data_directory_win.ensureLastChar('\\');
+				
+				if ( !isWinFormat(temp_data_directory_win) )
+				{
+					writeLog_("Windows path for the directory for temporary files has wrong format: " + temp_data_directory_win + ". borting!");
+					return ILLEGAL_PARAMETERS;
+				}
+				temp_data_directory_network = getStringOption_("temp_data_directory_network");
+				if ( temp_data_directory_network.empty() )
+				{
+					writeLog_("No network path for the directory for temporary files given. Aborting!");
+					return ILLEGAL_PARAMETERS;
+				}
+				if ( !correctNetworkPath(temp_data_directory_network) )
+				{
+					writeLog_(temp_data_directory_network + "is no network path. Aborting!");
+					return ILLEGAL_PARAMETERS;
+				}
+					
+				database = getStringOption_("db");
+				if ( database.empty() )
+				{
+					writeLog_("No database specified. Aborting!");
+					return ILLEGAL_PARAMETERS;
+				}
+				
 				if ( !sequest_out )
 				{
-					temp_data_directory_win = getStringOption_("temp_data_directory_win");
-					temp_data_directory_win.ensureLastChar('\\');
-					
-					if ( !isWinFormat(temp_data_directory_win) )
-					{
-						writeLog_("Windows path for the directory for temporary files has wrong format: " + temp_data_directory_win + ". Aborting!");
-						return ILLEGAL_PARAMETERS;
-					}
-					temp_data_directory_network = getStringOption_("temp_data_directory_network");
-					if ( temp_data_directory_network.empty() )
-					{
-						writeLog_("No network path for the directory for temporary files given. Aborting!");
-						return ILLEGAL_PARAMETERS;
-					}
-					if ( !correctNetworkPath(temp_data_directory_network) )
-					{
-						writeLog_(temp_data_directory_network + "is no network path. Aborting!");
-						return ILLEGAL_PARAMETERS;
-					}
-					
 					input_filename = getStringOption_("out");
 					if ( input_filename.empty() )
 					{
@@ -663,13 +669,6 @@ class TOPPSequestAdapter
 					if ( !correctNetworkPath(input_file_directory_network) )
 					{
 						writeLog_(input_file_directory_network + "is no network path. Aborting!");
-						return ILLEGAL_PARAMETERS;
-					}
-					
-					database = getStringOption_("db");
-					if ( database.empty() )
-					{
-						writeLog_("No database specified. Aborting!");
 						return ILLEGAL_PARAMETERS;
 					}
 				}
@@ -941,7 +940,7 @@ class TOPPSequestAdapter
 				
 				string_buffer = getStringOption_("neutral_loss_ABY");
 				string_buffer2 = "01";
-				if ( (string_buffer.size() != 3) || (string_buffer2.find(string_buffer[0], 0) == string::npos) || (string_buffer2.find(string_buffer[1], 0) == string::npos) || (string_buffer2.find(string_buffer[2], 0) == string::npos) )
+				if ( (string_buffer.size() != 3) || (string_buffer2.find(string_buffer[0], 0) == String::npos) || (string_buffer2.find(string_buffer[1], 0) == String::npos) || (string_buffer2.find(string_buffer[2], 0) == String::npos) )
 				{
 					writeLog_("Neutral losses for ABY-ions not given (or illegal values given). Aborting!");
 
@@ -991,18 +990,22 @@ class TOPPSequestAdapter
 
 					// to store the informations about modifications from the ptm xml file
 					map< String, pair< String, String > > ptm_informations;
+					
+					// to get masses from a formula
+					EmpiricalFormula add_e_formula, sub_e_formula;
 
-					// to store the informations about isotopes from the isotopes xml file
-					map< String, vector< pair< DoubleReal, DoubleReal > > > isotopes_mass_and_probability;
-					map< String, DoubleReal > isotope_masses;
 					map< char, DoubleReal > stat_mods, dyn_mods;
 					map< String, DoubleReal > terminal_mods;
 
-					UInt comp_mass_name_given;
+					Int comp_mass_name_given;
 					String types = "dyn#stat#cterminal#nterminal#cterminal_dyn#nterminal_dyn#cterminal_prot#nterminal_prot#";
 
 					for ( vector< String >::const_iterator mod_i = substrings.begin(); mod_i != substrings.end(); ++mod_i )
 					{
+						// clear the formulae
+						add_e_formula = "";
+						sub_e_formula = "";
+						
 						if ( mod_i->empty() ) continue;
 						
 						iso_sym_occ.clear();
@@ -1020,23 +1023,49 @@ class TOPPSequestAdapter
 							substrings2[0].erase(substrings2[0].length() - 1, 1);
 							substrings2[0].insert(0, "-");
 						}
-						bool is_mass = false;
+						bool go_on = false;
 						try
 						{
-								is_mass = ( String(substrings2[0].toDouble()) == substrings2[0] );
-						}
-						catch ( Exception::ConversionError ce ) {}
-						if ( is_mass ) // if it's a mass
-						{
+							go_on = ( String(substrings2[0].toDouble()) != substrings2[0] );
 							mass_res_type_name.back()[0] = substrings2[0]; // mass
 							comp_mass_name_given = 0;
 						}
-						else if ( get_composition_elements(substrings2[0], iso_sym_occ, '.').empty() ) // if it is a composition, put it into the vector
+						catch ( Exception::ConversionError ce )
+						{
+							go_on = true;
+						}
+						if ( go_on && get_composition_elements(substrings2[0], iso_sym_occ, '.').empty() ) // if it is a composition, put it into the vector
 						{
 							mass_res_type_name.back()[0] = substrings2[0]; // composition
 							comp_mass_name_given = 1;
+							go_on = false;
 						}
-						else // if it's a name, try to find it in the ptm xml file
+						if ( go_on ) // check whether it's an empirical formula
+						{
+							String::size_type pos = substrings2[0].find("-");
+							try
+							{
+								if ( pos != String::npos )
+								{
+									add_e_formula = substrings2[0].substr(0, pos);
+									sub_e_formula = substrings2[0].substr(++pos);
+								}
+								else
+								{
+									add_e_formula = substrings2[0];
+								}
+								// sum up the masses
+								if ( monoisotopic ) mass_res_type_name.back()[0] = String(add_e_formula.getMonoWeight() - sub_e_formula.getMonoWeight());
+								else mass_res_type_name.back()[0] = String(add_e_formula.getAverageWeight() - sub_e_formula.getAverageWeight());
+								go_on = false;
+								comp_mass_name_given = -1;
+							}
+							catch ( Exception::ParseError pe )
+							{
+								go_on = true;
+							}
+						}
+						if ( go_on ) // if it's a name, try to find it in the ptm xml file
 						{
 							if ( ptm_informations.empty() ) // if the ptm xml file has not been read yet, read it
 							{
@@ -1076,7 +1105,7 @@ class TOPPSequestAdapter
 							if ( substrings2.size() > 1 )
 							{
 								// if it's not a legal type
-								if ( types.find(substrings2[1]) == string::npos )
+								if ( types.find(substrings2[1]) == String::npos )
 								{
 									writeLog_("The given type (" + substrings2[1] + ") is neither dyn, stat, cterminal, nterminal, cterminal_dyn, nterminal_dyn, cterminal_prot nor nterminal_prot. Aborting!");
 									return ILLEGAL_PARAMETERS;
@@ -1096,9 +1125,9 @@ class TOPPSequestAdapter
 								return ILLEGAL_PARAMETERS;
 							}
 							// if the type is a terminal, there may be no residues
-							if ( types.find(substrings2[1]) != string::npos )
+							if ( types.find(substrings2[1]) != String::npos ) // the second one ought be residues if it's a non-terminal mod
 							{
-								if ( String("dyn#stat").find(substrings2[1]) != string::npos )
+								if ( String("dyn#stat").find(substrings2[1]) != String::npos )
 								{
 									writeLog_("Non-terminal modification, but no residues given. Aborting!");
 									return ILLEGAL_PARAMETERS;
@@ -1118,7 +1147,7 @@ class TOPPSequestAdapter
 								if ( substrings2.size() > 2 )
 								{
 									// if it's not a legal type
-									if ( types.find(substrings2[2]) == string::npos )
+									if ( types.find(substrings2[2]) == String::npos )
 									{
 										writeLog_("The given type (" + substrings2[2] + ") is neither dyn, stat, cterminal, nterminal, cterminal_dyn, nterminal_dyn, cterminal_prot nor nterminal_prot. Aborting!");
 										return ILLEGAL_PARAMETERS;
@@ -1133,55 +1162,9 @@ class TOPPSequestAdapter
 						}
 						
 						// if a composition is given, get the corresponding mass
-						if ( comp_mass_name_given )
+						if ( comp_mass_name_given > 0 )
 						{
-							if ( isotope_masses.empty() ) // if the isotopes xml file has not been read yet, read it
-							{
-								string isotopes_filename = getStringOption_("isotopes_xml_file");
-								if ( isotopes_filename.empty() )
-								{
-									writeLog_("No isotopes XML file given. Aborting!");
-									return INPUT_FILE_NOT_FOUND;
-								}
-								if ( !File::readable(isotopes_filename) )
-								{
-									writeLog_("Isotopes XML file is not readable. Aborting!");
-									return INPUT_FILE_NOT_READABLE;
-								}
-								
-								try
-								{
-									IsotopeXMLFile().load(isotopes_filename, isotopes_mass_and_probability);
-								}
-								catch ( Exception::ParseError pe )
-								{
-									writeLog_(pe.getMessage());
-									return PARSE_ERROR;
-								}
-								
-								DoubleReal mass, probability; // compute the monoisotopic or average mass
-								for ( map< String, vector< pair< DoubleReal, DoubleReal > > >::const_iterator iso_i = isotopes_mass_and_probability.begin(); iso_i != isotopes_mass_and_probability.end(); ++iso_i )
-								{
-									mass = probability = 0;
-									for ( vector< pair< DoubleReal, DoubleReal > >::const_iterator mp_i = iso_i->second.begin(); mp_i != iso_i->second.end(); ++mp_i )
-									{
-										if ( monoisotopic )
-										{
-											if ( probability < mp_i->second )
-											{
-												mass = mp_i->first;
-												probability = mp_i->second;
-											}
-										}
-										else mass += mp_i->first * mp_i->second;
-									}
-									isotope_masses[iso_i->first] = mass;
-								}
-							}
-							
-							// compute the mass
-							DoubleReal mass = 0;
-							// get the single components of the composition
+								// get the single components of the composition, if a name was given (for not doing this work twice)
 							if ( comp_mass_name_given == 2 )
 							{
 								if ( !get_composition_elements(mass_res_type_name.back()[0], iso_sym_occ).empty() )
@@ -1192,20 +1175,18 @@ class TOPPSequestAdapter
 							}
 							for ( vector< vector< String > >::const_iterator comp_i = iso_sym_occ.begin(); comp_i != iso_sym_occ.end(); ++comp_i )
 							{
-								if ( (*comp_i)[0] == "0" ) mass += isotope_masses[(*comp_i)[1]] * (*comp_i)[2].toDouble();
+								if ( (*comp_i)[0] == "0" )
+								{
+									if ( (*comp_i)[2].hasPrefix("-")  ) sub_e_formula += (*comp_i)[1] + (*comp_i)[2];
+									else add_e_formula += (*comp_i)[1] + (*comp_i)[2];
+								}
 								else // if an isotope was used, get the mass
 								{
-									for ( vector< pair< DoubleReal, DoubleReal > >::const_iterator iso_i = isotopes_mass_and_probability[(*comp_i)[1]].begin(); iso_i != isotopes_mass_and_probability[(*comp_i)[1]].end(); ++iso_i )
-									{
-										if ( ((Int) (iso_i->first + 0.5)) == (*comp_i)[0].toDouble() ) // round the mass
-										{
-											mass += iso_i->first * (*comp_i)[2].toDouble();
-											break;
-										}
-									}
 								}
 							}
-							mass_res_type_name.back()[0] = String(mass);
+								// sum up the masses
+							if ( monoisotopic ) mass_res_type_name.back()[0] = String(add_e_formula.getMonoWeight() - sub_e_formula.getMonoWeight());
+							else mass_res_type_name.back()[0] = String(add_e_formula.getAverageWeight() - sub_e_formula.getAverageWeight());
 						}
 						
 						// for each type, collect all masses
@@ -1405,7 +1386,7 @@ class TOPPSequestAdapter
 
 			if ( !msms_spectra_altogether )
 			{
-				writeLog_("No MS/MS spectra found in any of the mzXML files. Aborting!");
+				writeLog_("No MS/MS spectra found in any of the mz files. Aborting!");
 				return UNKNOWN_ERROR;
 			}
 
@@ -1416,10 +1397,10 @@ class TOPPSequestAdapter
 				String sequest_screen_output; // direct the screen-output to a file
 				do
 				{
-					sequest_screen_output = temp_data_directory + String::random(10);
+					sequest_screen_output = String::random(10);
 				}
 				while ( File::exists(sequest_screen_output) );
-				tmp_names.push_back(sequest_screen_output);
+				tmp_names.push_back(temp_data_directory + sequest_screen_output);
 				
 				ofstream batchfile(String(temp_data_directory + batch_filename).c_str());
 				if ( !batchfile )
@@ -1431,16 +1412,16 @@ class TOPPSequestAdapter
 				if ( !password.empty() ) call.append(" -p \"" + password + "\"");
 				call.append(" -s cmd\\ /K\\ \"");
 // 				call.append("echo net use " + temp_data_directory_win.substr(0,2) + " \\\\" + temp_data_directory_network + " && ");
-				call.append("net use " + temp_data_directory_win.substr(0,2) + " \\\\" + temp_data_directory_network + " && ");
+				call.append("net use " + temp_data_directory_win.substr(0,2) + " \\\\" + temp_data_directory_network.substr(0, temp_data_directory_network.length() - 1) + " && ");
 // 				call.append(" net use " + temp_data_directory_win.substr(0,2) + " " + temp_data_directory_network + " && ");
 				
 				batchfile << String(" cd " + temp_data_directory_win + " && " + temp_data_directory_win.substr(0,2));
 				
 				for ( PointerSizeUInt i = 0; i <= (PointerSizeUInt) (dtas / max_dtas_per_run); ++i )
 				{
-					batchfile << String(" && " + sequest_directory_win + "sequest.exe -P" + input_file_directory_network + input_filename + " " + temp_data_directory_network + "*.dta_" + String(i) + " >  " +  temp_data_directory_network + File::basename(sequest_screen_output) + " && move sequest.log sequest.log" + String(i));
+					batchfile << " && " << sequest_directory_win << "sequest.exe -P" << input_file_directory_network << File::basename(input_filename) << "  " << temp_data_directory_network << "*.dta_" << i<< " > " <<  temp_data_directory_network << sequest_screen_output << " && move sequest.log sequest.log" << i;
 				}
-				batchfile << String(" && " + sequest_directory_win.substr(0,2));
+				batchfile << " && " << sequest_directory_win.substr(0,2) << endl;
 // 				batchfile << std::endl << String(" net use /delete " + temp_data_directory_win.substr(0,2));
 // 				batchfile << std::endl << "logoff";
 				batchfile.close();
@@ -1560,7 +1541,7 @@ class TOPPSequestAdapter
 				}
 				
 				String call;
-				map< String, vector< Real > > filenames_and_pvalues;
+				map< String, vector< DoubleReal > > filenames_and_pvalues;
 				if ( !peptide_prophet_directory.empty() )
 				{
 					String summary = temp_data_directory + "tmp.summary.html";
@@ -1589,40 +1570,62 @@ class TOPPSequestAdapter
 					if ( status != 0 )
 					{
 						writeLog_("Problems with Peptide Prophet. Using all peptides!");
-// 						remove(summary.c_str());
+						remove(summary.c_str());
 					}
 					else
 					{
-						filenames_and_pvalues = sequest_outfile.getPeptidePValues(temp_data_directory, summary + ".prob");
+						filenames_and_pvalues = sequest_outfile.getPeptidePValues(/*out_directory,*/ summary + ".prob");
 						
-// 						remove(summary.c_str());
-// 						remove(String(summary + ".prob").c_str());
-// 						remove(String(summary + ".esi").c_str());
-// 						summary.replace(summary.length() - 4, 4, "model");
-// 						remove(summary.c_str());
+						remove(summary.c_str());
+						remove(String(summary + ".prob").c_str());
+						remove(String(summary + ".esi").c_str());
+						summary.replace(summary.length() - 4, 4, "model");
+						remove(summary.c_str());
 					}
 				}
 				String filename;
-				vector< Real > pvalues;
+				vector< DoubleReal > pvalues;
 				
-				for ( vector<String>::const_iterator i = out_files.begin(); i != out_files.end(); ++i )
+				String::size_type pos;
+				
+				if ( filenames_and_pvalues.empty() )
 				{
-					filename = out_directory + *i;
-					if ( filenames_and_pvalues.empty() )
+					for ( vector<String>::const_iterator i = out_files.begin(); i != out_files.end(); ++i )
 					{
+						filename = out_directory + *i;
 						sequest_outfile.load(filename, identifications, protein_identification, p_value, pvalues/*, database*/);
+						// save the retention times if peptides have been identified to the p-level
+						if ( identification_size != identifications.size() )
+						{
+							identification_size = identifications.size();
+							identifications.back().rt = filenames_and_precursor_retention_times[File::basename(filename)];
+						}
 					}
-					else
+				}
+				else
+				{
+					for ( vector<String>::const_iterator i = out_files.begin(); i != out_files.end(); ++i )
 					{
-						sequest_outfile.load(filename, identifications, protein_identification, p_value, filenames_and_pvalues[out_directory + *i]/*, database*/);
-					}
-					
-					// save the retention times if peptides have been identified to the p-level
-					if ( identification_size != identifications.size() )
-					{
-						identification_size = identifications.size();
-						identifications.back().rt = filenames_and_precursor_retention_times[File::basename(filename)];
-						//cout << "LFF: " << filename << endl;
+						filename = out_directory + *i;
+						// the keys in filenames_and_pvalues doesn't contain .out ends with the scan number and charge, there's nothing like: 100.2.d, just 100.2
+						string_buffer = /*out_directory +*/ i->substr(0, i->find_last_of('.'));
+						pos = string_buffer.find_last_of('.') + 1;
+						while ( pos < string_buffer.length() && (bool) isdigit(string_buffer[pos]) ) ++pos; // check whether the last part of the filename is a charge
+							// if it is not a charge, erase it
+						if ( pos != string_buffer.length() ) string_buffer.erase(string_buffer.find_last_of('.'));
+						
+						// if the file contains results
+						if ( filenames_and_pvalues.find(string_buffer) != filenames_and_pvalues.end() )
+						{
+							sequest_outfile.load(filename, identifications, protein_identification, p_value, filenames_and_pvalues[string_buffer]/*, database*/);
+
+							// save the retention times if peptides have been identified to the p-level
+							if ( identification_size != identifications.size() )
+							{
+								identification_size = identifications.size();
+								identifications.back().rt = filenames_and_precursor_retention_times[File::basename(filename)];
+							}
+						}
 					}
 				}
 				
