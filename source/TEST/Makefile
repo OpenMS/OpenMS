@@ -176,7 +176,6 @@ EXECUTABLES_FORMAT = \
 	SequestInfile_test\
 	SequestOutfile_test\
 	PTMXMLFile_test\
-	IsotopeXMLFile_test\
 	ConsensusXMLFile_test\
 	DBConnection_test\
 	DBAdapter_test
