@@ -3,3 +3,5 @@ Changes from OpenMS 0.95 to 1.0
 - Kernel redesign
 - Removed Boost dependencies
 - Qt4 port
+- Added experimental support for MacOS 10
+- Added tutorial

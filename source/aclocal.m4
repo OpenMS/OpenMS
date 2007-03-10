@@ -3101,11 +3101,12 @@ else
 	fi
 
 	dnl
-	dnl	Add the Qt lib path to the OpenMS libraries
+	dnl	Add the Qt lib path and libs to the OpenMS libraries
 	dnl
 	if test "${QT_LIBPATH}" != /usr/lib && test "${QT_LIBPATH}" != "" ; then
-		[]PROJECTUPPER[]_LIBS="${[]PROJECTUPPER[]_LIBS} -L${QT_LIBPATH} -lQtCore -lQtSql"
+		[]PROJECTUPPER[]_LIBS="${[]PROJECTUPPER[]_LIBS} -L${QT_LIBPATH}"
 	fi
+	[]PROJECTUPPER[]_LIBS="${[]PROJECTUPPER[]_LIBS} -lQtCore -lQtSql"
 fi
 ])
 

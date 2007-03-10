@@ -50,9 +50,11 @@ idoc:
 
 #######################################################################
 # creates the tutorial
-tutorial: tutorial/Tutorial.doxygen tutorial/Doxyfile
+tutorial: tutorial/Tutorial.doxygen tutorial/Doxyfile dummy
 	@rm -rf tutorial/latex_output
 	@doxygen tutorial/Doxyfile
 	@cp tutorial/refman_overwrite.tex tutorial/latex_output/refman.tex
 	@cd tutorial/latex_output/ && make
-	@cp tutorial/latex_output/refman.pdf tutorial/Tutorial.pdf
+	@cp tutorial/latex_output/refman.pdf Tutorial.pdf
+
+dummy:

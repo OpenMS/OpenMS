@@ -26,7 +26,9 @@
 
 DIRECTORY=EXAMPLES
 
-CPP_SOURCES= 
+CPP_SOURCES=\
+  Tutorial_DPosition.C\
+  Tutorial_DRange.C
 
 OBJECTS=$(SOURCES:.C=.o)
 
@@ -42,4 +44,10 @@ build_all:	$(EXECUTABLES)
 clean:	default_clean
 
 dummy:
+
+Tutorial_DPosition: Tutorial_DPosition.o
+	$(CXX) $(LDFLAGS) -o $@ $< $(OPENMS_LIBS)
+
+Tutorial_DRange: Tutorial_DRange.o
+	$(CXX) $(LDFLAGS) -o $@ $< $(OPENMS_LIBS)
 
