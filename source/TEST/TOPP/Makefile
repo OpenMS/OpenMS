@@ -28,13 +28,13 @@ include ../../config_defs.mak
 
 DIRECTORY=TEST/TOPP
 
-# Tests for individual tools, in alphabetical order
+# Tests for individual tools
 UNCONDITIONAL_TESTS = \
 	AdditiveSeries_test \
 	AnalysisXMLMerger_test \
 	BaselineFilter_test \
-	DBExporter_test \
 	DBImporter_test \
+	DBExporter_test \
 	DTAExtractor_test \
 	FeatureFinder_test \
 	FeaturePairSplitter_test \
@@ -55,9 +55,8 @@ UNCONDITIONAL_TESTS = \
 	SequestAdapter_test\
 	SpectraFilter_test \
 	MapAlignment_test \
-	UnlabeledMatcher_test
-
-#	FeatureFinder_test
+	UnlabeledMatcher_test \
+  FeatureFinder_test
 
 ifeq ($(LIBSVM_SUPPORT),true)
 LIBSVM_TESTS= \
