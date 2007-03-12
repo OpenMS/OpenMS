@@ -198,7 +198,9 @@ namespace OpenMS
       void smoothActiveSpectrum();
       /// Finds features in the active spectrum
       void findFeaturesActiveSpectrum();
-			
+      /// TOPP tool dialog
+      void showTOPPDialog();
+      
     protected slots:
       /** @name Layer manager slots
       */

@@ -61,7 +61,8 @@ GUI_CPP_SOURCES=\
 	Spectrum2DWidget.C\
 	Spectrum3DCanvas.C\
 	Spectrum3DOpenGLCanvas.C\
-	Spectrum3DWidget.C
+	Spectrum3DWidget.C\
+	ParamEditor.C
 
 
 GUI_MOC_SOURCES=\
@@ -81,7 +82,8 @@ GUI_MOC_SOURCES=\
 	Spectrum2DWidget_moc.C\
 	Spectrum3DCanvas_moc.C\
 	Spectrum3DOpenGLCanvas_moc.C\
-	Spectrum3DWidget_moc.C
+	Spectrum3DWidget_moc.C\
+	ParamEditor_moc.C
 
 #conditional compiles QT
 ifeq ($(ENABLE_GUI),true)
@@ -192,7 +194,10 @@ DataTable_moc.C:  $(HEADER_DIR)/DataTable.h
 
 MSMetaDataExplorer_moc.C:  $(HEADER_DIR)/MSMetaDataExplorer.h
 	$(MOC) $(HEADER_DIR)/MSMetaDataExplorer.h -o MSMetaDataExplorer_moc.C
-	
+
+ParamEditor_moc.C:  $(HEADER_DIR)/ParamEditor.h
+	$(MOC) $(HEADER_DIR)/ParamEditor.h -o ParamEditor_moc.C
+
 
 # For debugging the visual classes, create the file 'Makefile_debug' and 
 # set 'ADD_CXXFLAGS' one or more of the following flags

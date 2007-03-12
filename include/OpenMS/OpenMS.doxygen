@@ -66,7 +66,7 @@ Todos:
 	- FeatureFiles + AnalysisXML beschneiden können
   - FileFilter: MS/MS scans nach Precursor MZ/RT abscheiden
   - RTPredict/RTModel: RT-Vorhersage als ID speichern (Besser in Consensus zu integrieren)
-  - Tests alle durchführen, dann Summary
+  - Tests alle durchführen, dann Summary -> Tests anpassen
   - FeatureFinder
     - Traits nach FF / entfernen
     - MainLoop rausfaktorieren
@@ -74,8 +74,6 @@ Todos:
 - OpenMS
   - getPrecursorRT(int scan/ float RT) -> OMSSA/Inspect/Mascot/Sequest, IDSpectrumMapper updaten
   - AnalysisXML: Mods speichern
-  - For-Schleifen aus Makefiles raus -> paralles Bauen möglich
-  - MetaData from DB (OpenDialog)
   - ID: ScoreType/AccessionType als Enum in Identification/ProteinIdentification (Richtung auch speichern)
 
 -TOPPView:

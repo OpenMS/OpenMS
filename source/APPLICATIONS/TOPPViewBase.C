@@ -52,6 +52,7 @@
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/VISUAL/MSMetaDataExplorer.h>
 #include <OpenMS/FORMAT/FeaturePairsFile.h>
+#include <OpenMS/VISUAL/ParamEditor.h>
 
 //Qt
 #include <QtGui/QToolBar>
@@ -197,6 +198,7 @@ namespace OpenMS
     tools_menu->addAction("&Smooth data", this, SLOT(smoothActiveSpectrum()));
     tools_menu->addAction("&Filter baseline in data", this, SLOT(baselineFilteringActiveSpectrum()));
     tools_menu->addAction("&Find Features (2D)", this, SLOT(findFeaturesActiveSpectrum()));
+		tools_menu->addAction("&TOPP tools", this, SLOT(showTOPPDialog()));
 
     //create status bar
     message_label_ = new QLabel(statusBar());
@@ -2248,6 +2250,25 @@ namespace OpenMS
       maximizeActiveSpectrum();
     }
   }
+
+	void TOPPViewBase::showTOPPDialog()
+	{
+		//add ParamEditor to Dialog
+		QDialog* dlg = new QDialog(this);
+		QGridLayout* layout = new QGridLayout(dlg);
+		ParamEditor* edit = new ParamEditor(dlg);
+		layout->addWidget(edit,0,0);
+		
+		//load dummy data
+		Param dummy;
+		dummy.setValue("bli", 4711);
+		dummy.setValue("bla", "0815");
+		dummy.setValue("bluff", 1.234);
+		
+		edit->load(dummy);
+		
+		dlg->exec();
+	}
 
 } //namespace OpenMS
 
