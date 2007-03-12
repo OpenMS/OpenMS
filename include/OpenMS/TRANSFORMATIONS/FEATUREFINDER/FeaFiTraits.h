@@ -46,7 +46,7 @@ namespace OpenMS
 		This class is rather an "umbrella" for the different modules / steps of the algorithm
 		than a traits class in the traditional sense.
 		
-		@todo Allow choice between different map types (MSExperiment or MSExperimentExtern) (Ole)
+		@todo Allow choice between different map types (MSExperiment or MSExperimentExtern) (Whoever wants to do that ...)
 		
 		@ingroup FeatureFinder 	
 	*/
@@ -93,7 +93,10 @@ namespace OpenMS
 		
 				for (SpectrumIteratorType it = begin; it != end; ++it)
 				{
-					if (it->getMSLevel() == 1 && it->size() > 0) map_.push_back(*it);	// remove empty scans.
+					if (it->getMSLevel() == 1 && it->size() > 0) 
+					{
+							map_.push_back(*it);	// remove empty scans.
+					}
 				}	
 			
 				std::cout << "Updating range information. " << std::endl;

@@ -42,16 +42,16 @@ namespace OpenMS
     defaults_.setValue("charge1_ub",1.6f);
     defaults_.setValue("charge1_lb",0.7f);
     // charge 2
-    defaults_.setValue("charge2_ub",0.69f);
+    defaults_.setValue("charge2_ub",0.7f);
     defaults_.setValue("charge2_lb",0.4f);
     // charge 3
-    defaults_.setValue("charge3_ub",0.39f);
+    defaults_.setValue("charge3_ub",0.4f);
     defaults_.setValue("charge3_lb",0.27f);
     // charge 4
-    defaults_.setValue("charge4_ub",0.26f);
+    defaults_.setValue("charge4_ub",0.27f);
     defaults_.setValue("charge4_lb",0.24f);
     // charge 5
-    defaults_.setValue("charge5_ub",0.23f);
+    defaults_.setValue("charge5_ub",0.24f);
     defaults_.setValue("charge5_lb",0.15f);
 
     // tolerance in m/z for an monoisotopic peak in the previous scan
@@ -125,6 +125,8 @@ namespace OpenMS
 	
 		charge5_ub_	= param_.getValue("charge5_ub");
 		charge5_lb_	 = param_.getValue("charge5_lb");		
+		
+		tolerance_mz_ = param_.getValue("tolerance_mz");
 	}
 	
 	void PickedPeakSeeder::sweep_()
@@ -132,9 +134,7 @@ namespace OpenMS
 		// stores the monoisotopic peaks of isotopic clusters
 		vector<double> iso_last_scan;
 		vector<double> iso_curr_scan;
-	
-		CoordinateType tolerance_mz = param_.getValue("tolerance_mz");
-	
+		
 		UInt current_charge	 = 0;			// charge state of the current isotopic cluster
 		CoordinateType mz_in_hash   = 0;			// used as reference to the current isotopic peak
 	
@@ -143,10 +143,11 @@ namespace OpenMS
 		{
 			const FeaFiTraits::MapType::SpectrumType& scan = traits_->getData()[i];
 			
-#ifdef DEBUG_FEATUREFINDER
+			#ifdef DEBUG_FEATUREFINDER
+			cout << "------------------------------------------------------------------------------------------------------------" << endl;
 			cout << "Next scan with rt: " << scan.getRetentionTime() << endl;
-			cout << "---------------------------------------------------------------------------" << endl;
-#endif
+			#endif
+			
 			// copy cluster information of last scan
 			iso_last_scan = iso_curr_scan;
 			iso_curr_scan.clear();
@@ -155,20 +156,21 @@ namespace OpenMS
 			{
 				// test for different charge states
 				current_charge = distanceToCharge_(scan[j+1].getMZ() - scan[j].getMZ());
-				
-				//remove false positives by looking at the intensity ratio of the peaks
-				if ( fabs( scan[j].getIntensity()/scan[j+1].getIntensity() - 1.0) < 0.1)
-				{
-					current_charge = 0;
+
+				// remove false positives by looking at the intensity ratio of the first two peaks peaks
+				if ( fabs( scan[j].getIntensity()/scan[j+1].getIntensity() - 1.0) < 0.01)
+				{					
+					current_charge = 0;	// reset charge
 				}
 				
-				// charger = 0 => no isotope
+				// charger = 0 >= no isotope
 				if (current_charge > 0) 
 				{
-#ifdef DEBUG_FEATUREFINDER
+					#ifdef DEBUG_FEATUREFINDER
 					cout << "Isotopic pattern found ! " << endl;
 					cout << "We are at: " << scan.getRetentionTime() << " " << scan[j].getMZ() << endl;
-#endif
+					cout << "Predicted charge state: " << current_charge << endl;
+					#endif
 					// hash entry to write in
 					TableType::iterator entry_to_insert;			
 		
@@ -179,11 +181,11 @@ namespace OpenMS
 						double delta_mz = fabs(*it - scan[j].getMZ());
 						
 						// check if first peak of last cluster is close enough -> create new isotopic cluster
-						if ( delta_mz > tolerance_mz)
+						if ( delta_mz > tolerance_mz_)
 						{
-	#ifdef DEBUG_FEATUREFINDER
+							#ifdef DEBUG_FEATUREFINDER
 							cout << "Last peak cluster too far, creating new cluster" << endl;
-	#endif
+							#endif
 	
 							mz_in_hash = scan[j].getMZ(); // update current hash key
 			
@@ -263,24 +265,16 @@ namespace OpenMS
 						entry_to_insert = iso_map_.insert( TableType::value_type(mz_in_hash, isoclust) );		  
 					}
 		
-	#ifdef DEBUG_FEATUREFINDER
+					#ifdef DEBUG_FEATUREFINDER
 					cout << "Storing found peak in current isotopic cluster" << endl;
-	#endif
+					#endif
 		
 					// add next two peaks to current cluster
 					iso_curr_scan.push_back(mz_in_hash);
 					entry_to_insert->second.peaks_.insert(std::make_pair(i,j));
 					++j;
 					entry_to_insert->second.peaks_.insert(std::make_pair(i,j));
-								
-					// if distance to next peak does not correspond to a isotopic spacing, just add one more peak 
-					// and continue
-					if (distanceToCharge_(scan[j+1].getMZ() - scan[j].getMZ()) != current_charge)
-					{
-						entry_to_insert->second.peaks_.insert(std::make_pair(i,j+1));
-						continue;
-					}
-		
+	
 					// loop until end of isotopic pattern in this scan
 					while (j+1!=scan.size() && distanceToCharge_(scan[j+1].getMZ() - scan[j].getMZ()) == current_charge )
 					{
@@ -336,6 +330,7 @@ namespace OpenMS
 			}
 		
 		}
+		cout << "---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------" << endl;
 		#endif
 	
 	} // end of void sweep_()
@@ -343,23 +338,23 @@ namespace OpenMS
 	
 	UInt PickedPeakSeeder::distanceToCharge_(CoordinateType dist)
 	{
-    if (dist < charge1_ub_ && dist > charge1_lb_)
+	  if (dist <= charge1_ub_ && dist >= charge1_lb_)
     {
     	return 1;
     }
-    else if (dist < charge2_ub_ && dist > charge2_lb_)
+    else if (dist <= charge2_ub_ && dist >= charge2_lb_)
     {
     	return 2;
     }
-    else if (dist < charge3_ub_ && dist > charge3_lb_)
+    else if (dist <= charge3_ub_ && dist >= charge3_lb_)
     {
     	return 3;
     }
-    else if (dist < charge4_ub_ && dist > charge4_lb_)
+    else if (dist <= charge4_ub_ && dist >= charge4_lb_)
     {
     	return 4;
     }
-    else if (dist < charge5_ub_ && dist > charge5_lb_)
+    else if (dist <= charge5_ub_ && dist >= charge5_lb_)
     {
     	return 5;
     }

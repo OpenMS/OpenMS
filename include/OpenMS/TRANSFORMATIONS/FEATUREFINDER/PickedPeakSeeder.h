@@ -42,9 +42,40 @@ namespace OpenMS
  
  		@note Experiments have shown that this extender produces a lot of false positive hits. It would be
  		better to check if the relaitive intensities between the peaks is similar to an isotopic pattern.
-  	
-  	@todo Write test with more than one scan and test not only the intensity (Ole)
-		@todo Document parameters (Ole)
+		
+		@note: better check for at least three peaks in each scan instead of the absolute number...
+		
+		@todo: Tie your shoelaces and brush your teeth every morning. (Marc)
+  
+		<table>
+		 <tr><td></td><td></td><td>charge1_ub</td>
+		 <td>upper bound for the distance between "charge one" maxima</td></tr>
+		 <tr><td></td><td></td><td>charge1_lb</td>
+		 <td>lower bound for charge one </td></tr>
+		 <tr><td></td><td></td><td>charge2_ub</td>
+		 <td>upper bound charge two </td></tr>
+		 <tr><td></td><td></td><td>charge2_lb</td>
+		 <td>lower bound charge two </td></tr>
+		 <tr><td></td><td></td><td>charge3_ub</td>
+		 <td>upper bound charge three </td></tr>
+		 <tr><td></td><td></td><td>charge3_lb</td>
+		 <td>lower bound charge three </td></tr>
+		 <tr><td></td><td></td><td>charge4_ub</td>
+		 <td>upper bound charge four </td></tr>
+		 <tr><td></td><td></td><td>charge4_lb</td>
+		 <td>lower bound charge four </td></tr>
+		 <tr><td></td><td></td><td>charge5_ub</td>
+		 <td>upper bound charge five </td></tr>
+		 <tr><td></td><td></td><td>charge5_lb</td>
+		 <td>lower bound charge five </td></tr>
+		 <tr><td></td><td></td><td>tolerance_mz</td>
+		 <td>mass tolerance for isotopic pattern in adjacent scans </td></tr>
+		 <tr><td></td><td></td><td>min_number_scans</td>
+		 <td>lower bound for the number of scans in which a isotopic pattern must occur 
+		  before it is accepted as seed</td></tr>
+		 <tr><td></td><td></td><td>min_number_peaks</td>
+		 <td>min. number of data points for a seeding region</td></tr>
+		</table>		
 		  	
 		@ingroup FeatureFinder
 	*/
@@ -164,6 +195,10 @@ namespace OpenMS
 	    CoordinateType charge5_ub_;
 	    /// lower bound for distance between charge 5 peaks
 	    CoordinateType charge5_lb_;
+			
+			/// m/z tolerance for peaks in successive scans
+			CoordinateType tolerance_mz_;
+			
 	};
 }
 #endif // OPENMS_TRANSFORMATIONS_FEATUREFINDER_PICKEDPEAKSEEDER_H
