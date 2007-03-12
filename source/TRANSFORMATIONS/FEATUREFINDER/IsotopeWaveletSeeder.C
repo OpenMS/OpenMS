@@ -504,32 +504,25 @@ namespace OpenMS
 #endif
 					
 			c_candidate.erase (iter, c_candidate.end());
-// 			std::cout << "Here we go..." << std::endl;
 			
 			i_iter=0;
 			for (iter=c_candidate.begin(); iter != c_candidate.end(); ++iter, ++i_iter)
 			{
 				// Retrieve index
 				c_index = (int) (iter->getPosition().getY());	// retention time was replaced by index of this point
-				
-// 				std::cout << "c_index : " << c_index << std::endl;
 	
 				if (processed[c_index])
 				{
-// 					std::cout << "processed: " << processed[c_index] << std::endl;
 				 continue;			   
 				}
 				start_index = c_index-waveletLength_-1;
 				end_index = c_index+waveletLength_+1;
 				seed_mz=iter->getPosition().getX();	// m/z is still X coordinate
-				
-// 				std::cout << "seed_mz: " << seed_mz << std::endl;
+
 	
 				//Catch impossible cases
 				if (end_index >= candidates[c].size() || start_index > end_index) 
 				{
-			/*		std::cout << "Should not happen ! " << std::endl;
-					std::cout << start_index << " " << end_index <<	std::endl;*/
 				 	continue;
 				}  
 				//Mark as processed
@@ -537,19 +530,14 @@ namespace OpenMS
 	
 				start=(-2*(peak_cut_off_ - 1))+1, end=(2*(peak_cut_off_ - 1))-1;
 				goto_left = c_index - waveletLength_ - 1;
-	
-// 				std::cout << "start = " << start << " end = " << end << std::endl;
-				
+					
 				for (int v=start; v<=end; ++v)
 				{
 					c_check_point = seed_mz+v*0.5/((double)c+1);
-// 					std::cout << "getNearBys( " << scan <<  "," <<  c_check_point << ","  << goto_left << ")" << std::endl;
 					c_between = getNearBys (scan, c_check_point, goto_left);
 					
-//  					std::cout << "c_between.first : " << c_between.first << " c_between.second : " << c_between.second << std::endl;
 					if (c_between.first < 0 || c_between.second < 0) 
 					{
-// 						std::cout << "c_between.first : " << c_between.first << " c_between.second : " << c_between.second << std::endl;
 						break;
 					}
 					c_val = getInterpolatedValue (candidates[c][c_between.first].getPos(),
@@ -557,26 +545,19 @@ namespace OpenMS
 													  						candidates[c][c_between.second].getPos(),
 													  						candidates[c][c_between.first].getIntensity(),
 													  						candidates[c][c_between.second].getIntensity());
-				
-// 					std::cout <<  "c_val: " << c_val << std::endl;
 																				
 					if (fabs(c_val) < c_av_intens)
 					{
-// 						std::cout << "Below average intensity. Skipping this one. " << std::endl;
 					 continue;  
 					}			
-					
-// 					std::cout << "Scoring " << std::endl;
-					
+
 					// What the hell is happening here?
 					if (abs(v)%2 == 1) //i.e. whole
 					{
-// 						std::cout << "-= c_val " << std::endl;
 						scoresC[c][c_index] -= c_val;
 					}
 					else //i.e. peak
 					{
-// 						std::cout << "+= c_val " << std::endl;
 						scoresC[c][c_index] += c_val;
 					}
 				}

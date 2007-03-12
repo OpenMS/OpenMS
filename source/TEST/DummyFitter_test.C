@@ -68,7 +68,7 @@ CHECK(void DummyFitter::setParameters(const Param& param))
 	Param p1 = fitter->getParameters();
 	TEST_EQUAL(p1.getValue("min_num_peaks:final"),DataValue(5))
 	TEST_EQUAL(p1.getValue("min_num_peaks:extended"),DataValue(10))
-	TEST_EQUAL(p1.getValue("use_max_intensity"),DataValue(0))
+	TEST_EQUAL(p1.getValue("use_fwhm_intensity"),DataValue(0))
 	
 	// change default settings
 	Param p2;
@@ -147,6 +147,7 @@ CHECK( Feature fit(const IndexSet& set) throw (UnableToFit))
 	
 	// intensity should be sum of ion counts by default
 	TEST_REAL_EQUAL(feature.getIntensity(), 79820.9);
+	// charge estimate is always zero
 	TEST_EQUAL(feature.getCharge(), 0);
 	
 	// test quality

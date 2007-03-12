@@ -50,7 +50,7 @@ namespace OpenMS
 		
 		defaults_.setValue("min_num_peaks:final",5);
 		defaults_.setValue("min_num_peaks:extended",10);
-		defaults_.setValue("use_max_intensity",0);
+		defaults_.setValue("use_fwhm_intensity",0);
 		
 		defaultsToParam_();
 	}
@@ -96,24 +96,20 @@ namespace OpenMS
 		
 		// set feature coordinates and intensity
 		IntensityType intensity_sum  = 0.0;		
-		IntensityType max_intensity  = 0.0;
 		IDX max_intensity_index;
+		IntensityType max_intensity = 0.0;
 		
-		// intensity of the feature is either the sum of all included data points 
-		// or the maximum ion count in the feature region
-		// coordinates are given by point with max intensity
 		for (IndexSet::const_iterator it=set.begin(); it!=set.end(); ++it) 
 		{
 			intensity_sum += traits_->getPeakIntensity(*it);
 			traits_->getPeakFlag(*it) = FeaFiTraits::INSIDE_FEATURE;
 			if (traits_->getPeakIntensity(*it) > max_intensity)
 			{
-				max_intensity          = traits_->getPeakIntensity(*it);
 				max_intensity_index = *it;
-			} 
+				max_intensity = traits_->getPeakIntensity(*it);
+			}		
 		}		
-		
-		UInt use_max_intensity = param_.getValue("use_max_intensity");
+		UInt use_max_intensity = param_.getValue("use_fwhm_intensity");
 		
 		if (use_max_intensity == 0)
 		{
@@ -121,7 +117,16 @@ namespace OpenMS
 		}
 		else
 		{
-			f.setIntensity(max_intensity);
+			IntensityType intensity_avg = intensity_sum /= set.size();
+			IntensityType intensity_std = 0.0;
+		
+			// compute standard deviation of intensities
+			for (IndexSet::const_iterator it=set.begin(); it!=set.end(); ++it) 
+			{
+				intensity_std += ( (traits_->getPeakIntensity(*it) - intensity_avg) * (traits_->getPeakIntensity(*it) - intensity_avg) );
+			}		
+			intensity_std /= set.size();
+			intensity_std = sqrt(intensity_std);						
 		}
 		
 		f.setRT(traits_->getPeakRt(max_intensity_index));
