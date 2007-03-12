@@ -29,14 +29,14 @@
 
 // all from BaseExtender derived classes
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SimpleExtender.h>
-// #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/DummyExtender.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/DummyExtender.h>
 
 namespace OpenMS
 {
 	void BaseExtender::registerChildren()
 	{
 		Factory<BaseExtender>::registerProduct(SimpleExtender::getProductName(), &SimpleExtender::create);
-//		Factory<BaseExtender>::registerProduct(DummyExtender::getProductName(), &DummyExtender::create);
+		Factory<BaseExtender>::registerProduct(DummyExtender::getProductName(), &DummyExtender::create);
 	}	
 
 	BaseExtender::BaseExtender() : FeaFiModule()
