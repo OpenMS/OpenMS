@@ -3494,12 +3494,14 @@ AC_DEFUN(CF_GUI_QT_EXECUTABLES, [
 		else
 			AC_MSG_RESULT(yes)
 			AC_MSG_CHECKING(uic version)
-			UIC_VERSION=`${UIC} -version 2>&1 | ${GREP} version | ${TR} -d "()" | ${SED} "s/.*version //"`
+			dnl Qt 4.1 uic version string: 'Qt user interface compiler 4.1.x.'
+			dnl Qt 4.2 uic version string: 'Qt User Interface Compiler version 4.2.x'
+			UIC_VERSION=`${UIC} -version 2>&1 | ${SED} "s/.*ompiler //" | ${SED} "s/version //" | ${SED} "s/\.$//"`
 			AC_MSG_RESULT(${UIC_VERSION})
 			
 			if test "${UIC_VERSION}" != "${QT_VERSION_STR}" ; then
 				AC_MSG_RESULT()
-				AC_MSG_RESULT([Qt version (${QT_VERSION_STR}) is incompatible with uic version (${UIC_VERISON})!])
+				AC_MSG_RESULT([Qt version (${QT_VERSION_STR}) is incompatible with uic version (${UIC_VERSION})!])
 				AC_MSG_RESULT([Please check your QTDIR environment variable, include the correct])
 				AC_MSG_RESULT([path to uic in your PATH environment variable, or specify the correct])
 				AC_MSG_RESULT([path to uic using the option --with-uic=PATH to rerun configure.])

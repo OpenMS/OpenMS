@@ -577,7 +577,7 @@ CF_CGAL
 dnl 
 dnl Check for the FFTW
 dnl
-CF_CHECK_FFTW_SUPPORT
+dnl CF_CHECK_FFTW_SUPPORT
 
 dnl
 dnl Check for libSVM
