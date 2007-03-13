@@ -108,12 +108,19 @@ namespace OpenMS
 			friend class ProteinIdentificationVisualizer;
 			friend class IdentificationVisualizer;
       
-    private slots:
+    public slots:
+			/// Set a list of error strings due to invalid date format.
+			void setStatus(std::string status);
+			
+			
+		private slots:
 			/// Raises the corresponding viewer from the widget stack according to the item selected in the tree.
 			void showDetails_(QTreeWidgetItem *item, int column);
 			
 			/// Saves all changes and close explorer
 			void saveAll_();
+			
+			
 			
 							 
     private:
@@ -221,6 +228,9 @@ namespace OpenMS
 			*/
 			void updateNonRefPeptideHits_(Identification id,  int tree_item_id);
 			 
+			/// A list of setting errors due to invalid formats.
+			std::string status_list_;
+			
 			/// Indicates the mode
 			bool editable_;
 			

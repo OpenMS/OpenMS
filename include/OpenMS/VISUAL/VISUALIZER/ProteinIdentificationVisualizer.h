@@ -48,13 +48,17 @@ namespace OpenMS
 	{
 		Q_OBJECT
 
-public: 
+	public: 
 	  /// Default constructor
 		ProteinIdentificationVisualizer(bool editable= FALSE, QWidget *parent =0, MSMetaDataExplorer *caller=0);
 	
 		/// Loads the meta data from the object to the viewer. Gets the id of the item in the tree as parameter.
 		void load(ProteinIdentification &s, int tree_item_id);
 	  
+		signals:
+		/// Sends a status message, if date is not in proper format.
+	  void sendStatus(std::string status); 
+		
 	private slots:
 		/// Save all changes
 		void store();

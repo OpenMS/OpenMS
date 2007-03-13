@@ -70,7 +70,9 @@ IdentificationVisualizer::IdentificationVisualizer(bool editable, QWidget *paren
 	connect(updatebutton_, SIGNAL(clicked()), this, SLOT(updateTree()) );
 	connect(updatebutton2_, SIGNAL(clicked()), this, SLOT(searchRefPeptides()) );
 	connect(updatebutton3_, SIGNAL(clicked()), this, SLOT(searchNonRefPeptides()) );
-		
+	
+	connect(this, SIGNAL(sendStatus(std::string)), caller, SLOT(setStatus(std::string))  );	
+	
 }
 
 
@@ -119,21 +121,34 @@ void IdentificationVisualizer::searchNonRefPeptides()
 
 void IdentificationVisualizer::store()
 {
+	
+	
 	try
 	{
 		String m(identification_threshold_->text().toStdString());
-		(*ptr_).setProteinSignificanceThreshold(m.toFloat());
-		
+		(*ptr_).setPeptideSignificanceThreshold(m.toFloat());
 		DateTime date;
 		String o(identification_date_->text().toStdString());
-		date.set(o);
-		(*ptr_).setDateTime(date);
-				
+		try
+		{
+			date.set(o);
+			(*ptr_).setDateTime(date);
+		}
+		catch(exception& e)
+		{
+			if(date.isNull())
+			{
+				std::string status= "Format of date in IDENTIFICATION is not correct.";
+				emit sendStatus(status);
+			}
+		}
+		
 		tempidentification_=(*ptr_);		
+	
 	}
 	catch(exception& e)
 	{
-		std::cout<<"Error while trying to store the new protein identification data. "<<e.what()<<endl;
+		std::cout<<"Error while trying to store the identification data. "<<e.what()<<endl;
 	}
 	
 }

@@ -60,6 +60,7 @@
 #include <QtGui/QStackedWidget>
 #include <QtGui/QHBoxLayout>
 #include <QtGui/QPushButton>
+#include <QtGui/QMessageBox>
 
 class QLayoutItem;
 
@@ -118,6 +119,8 @@ namespace OpenMS
 		
 	  connect(treeview_, SIGNAL(itemClicked(QTreeWidgetItem*,int)), this, SLOT(showDetails_(QTreeWidgetItem*,int))  );
 	   
+		status_list_="";
+		
 	}//end of constructor
 	
 	
@@ -127,7 +130,10 @@ namespace OpenMS
 			return editable_;
 	}
 	
-	
+	void MSMetaDataExplorer::setStatus(std::string status)
+	{
+		status_list_ = status_list_+ "\n"+ status;    
+	}
 	
 	
 	void MSMetaDataExplorer::showDetails_(QTreeWidgetItem *item,int /*column*/)
@@ -147,8 +153,15 @@ namespace OpenMS
 			{
 			  dynamic_cast<BaseVisualizer*>(ws_->widget(i))->store();
 			}
-			
-			
+			if(status_list_.length() != 0)
+			{
+				status_list_ = status_list_ + "\n"+ "\n"+ "Incorrect modifications will not be saved.";
+				QMessageBox::warning(this,tr("Save warning"),status_list_.c_str());
+			}
+			else
+			{
+				QMessageBox::information(this,tr("Save information"),tr("Your modifications have been saved."));
+			}
 		}
 		catch(exception& e)
 		{
@@ -448,7 +461,7 @@ namespace OpenMS
 	//Visualizing ExperimentalSettings object
 	void MSMetaDataExplorer::visualize_(ExperimentalSettings& meta, QTreeWidgetItem* parent)
 	{
-		ExperimentalSettingsVisualizer *visualizer = new ExperimentalSettingsVisualizer(isEditable(), this);  
+		ExperimentalSettingsVisualizer *visualizer = new ExperimentalSettingsVisualizer(isEditable(), this, this);  
 		visualizer->load(meta);  
 		
     QStringList labels;
@@ -1040,7 +1053,7 @@ namespace OpenMS
 	//Visualizing Software object
 	void MSMetaDataExplorer::visualize_(Software& meta, QTreeWidgetItem* parent)
 	{
-		SoftwareVisualizer *visualizer = new SoftwareVisualizer(isEditable(), this);
+		SoftwareVisualizer *visualizer = new SoftwareVisualizer(isEditable(), this, this);
 		visualizer->load(meta);  
 		
     QStringList labels;

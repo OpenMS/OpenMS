@@ -26,6 +26,7 @@
 
 #include <OpenMS/VISUAL/VISUALIZER/ExperimentalSettingsVisualizer.h>
 #include <OpenMS/DATASTRUCTURES/Date.h>
+#include <OpenMS/VISUAL/MSMetaDataExplorer.h>
 
 //QT
 #include <QtGui/QLineEdit>
@@ -41,7 +42,8 @@ namespace OpenMS
 {
 
 //Constructor
-ExperimentalSettingsVisualizer::ExperimentalSettingsVisualizer(bool editable, QWidget *parent) : BaseVisualizer(editable, parent)
+ExperimentalSettingsVisualizer::ExperimentalSettingsVisualizer(bool editable, QWidget *parent, MSMetaDataExplorer *caller) 
+: BaseVisualizer(editable, parent)
 {
 	type_="ExperimentalSettings";
   
@@ -52,6 +54,8 @@ ExperimentalSettingsVisualizer::ExperimentalSettingsVisualizer(bool editable, QW
 	addTextEdit(experimentalsettings_comment_, "Comment");
 	
 	finishAdding_();
+	
+	connect(this, SIGNAL(sendStatus(std::string)), caller, SLOT(setStatus(std::string))  );	
 }
 
 
@@ -86,8 +90,20 @@ void ExperimentalSettingsVisualizer::store()
 		(*ptr_).setType((ExperimentalSettings::ExperimentType)experimentalsettings_type_->currentIndex());		
 		Date date;
 		String n(experimentalsettings_date_->text().toStdString());
-		date.set(n);
-		(*ptr_).setDate(date);
+		try
+		{
+			date.set(n);
+			(*ptr_).setDate(date);
+		}
+		catch(exception& e)
+		{
+			if(date.isNull())
+			{
+				std::string status= "Format of date in EXPERIMENTALSETTINGS is not correct.";
+				emit sendStatus(status);
+			}
+		}
+		
 		(*ptr_).setComment(experimentalsettings_comment_->toPlainText().toStdString());
 		
 		tempexperimentalsettings_=(*ptr_);

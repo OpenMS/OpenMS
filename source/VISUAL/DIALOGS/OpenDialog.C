@@ -309,9 +309,9 @@ namespace OpenMS
 			//MSMetaDataExplorer dlg(false, this);
 			MSMetaDataExplorer dlg(true, this);
 			dlg.setWindowTitle("Meta data");
-			dlg.add(&ss);
+			//dlg.add(&ss);
 			
-			//dlg.add(&exp);
+			dlg.add(&exp);
 			
      	dlg.exec();
 		}

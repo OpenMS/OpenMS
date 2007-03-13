@@ -54,7 +54,12 @@ namespace OpenMS
 		
 		/// Loads the meta data from the object to the viewer. Gets the id of the item in the tree as parameter.
 		void load(Identification &s, int tree_item_id);
-	  
+	
+	signals:
+		/// Sends a status message, if date is not in proper format.
+	  void sendStatus(std::string status); 
+		
+		
 	private slots:
 		/// Save all changes
 		void store();

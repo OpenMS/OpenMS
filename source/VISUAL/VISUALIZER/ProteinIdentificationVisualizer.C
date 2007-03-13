@@ -58,6 +58,7 @@ namespace OpenMS
 		finishAdding_();
 	
 		connect(updatebutton_, SIGNAL(clicked()), this, SLOT(updateTree()) );
+		connect(this, SIGNAL(sendStatus(std::string)), caller, SLOT(setStatus(std::string))  );	
 		
 	}
 
@@ -100,8 +101,20 @@ void ProteinIdentificationVisualizer::store()
 		
 		DateTime date;
 		String n(proteinidentification_date_->text().toStdString());
-		date.set(n);
-		(*ptr_).setDateTime(date);
+		
+		try
+		{
+			date.set(n);
+			(*ptr_).setDateTime(date);
+		}
+		catch(exception& e)
+		{
+			if(date.isNull())
+			{
+				std::string status= "Format of date in PROTEINIDENTIFICATION is not correct.";
+				emit sendStatus(status);
+			}
+		}
 				
 		tempproteinidentification_=(*ptr_);		
 	}

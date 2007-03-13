@@ -25,6 +25,7 @@
 // --------------------------------------------------------------------------s
 
 #include <OpenMS/VISUAL/VISUALIZER/SoftwareVisualizer.h>
+#include <OpenMS/VISUAL/MSMetaDataExplorer.h>
 
 //QT
 #include <QtGui/QTextEdit>
@@ -38,7 +39,7 @@ namespace OpenMS
 {
 
 //Constructor
-SoftwareVisualizer::SoftwareVisualizer(bool editable, QWidget *parent) : BaseVisualizer(editable, parent)
+SoftwareVisualizer::SoftwareVisualizer(bool editable, QWidget *parent, MSMetaDataExplorer *caller) : BaseVisualizer(editable, parent)
 {
 	type_="Software";
   
@@ -51,7 +52,7 @@ SoftwareVisualizer::SoftwareVisualizer(bool editable, QWidget *parent) : BaseVis
 
 	finishAdding_();
 	
-			
+	connect(this, SIGNAL(sendStatus(std::string)), caller, SLOT(setStatus(std::string))  );			
 }
 
 
@@ -81,8 +82,22 @@ void SoftwareVisualizer::store()
 		(*ptr_).setVersion(software_version_->text().toStdString());
 		String m(software_completion_time_->text().toStdString());
 		DateTime date;
-		date.set(m);
-		(*ptr_).setCompletionTime(date);
+		
+		try
+		{
+			date.set(m);
+			(*ptr_).setCompletionTime(date);
+		}
+		catch(exception& e)
+		{
+			if(date.isNull())
+			{
+				std::string status= "Format of date in SOFTWARE is not correct.";
+				emit sendStatus(status);
+			}
+		}
+		
+		
 		(*ptr_).setComment(software_comment_->toPlainText().toStdString());
 		
 		tempsoftware_=(*ptr_);		
