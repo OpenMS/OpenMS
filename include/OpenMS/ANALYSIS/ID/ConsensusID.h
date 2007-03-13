@@ -60,6 +60,8 @@ namespace OpenMS
 			void merge_(Feature& feature);
 			/// Ranked algorithm
 			void ranked_(Feature& feature);
+			/// Average score algorithm
+			void average_(Feature& feature);
   };
  
 } // namespace OpenMS

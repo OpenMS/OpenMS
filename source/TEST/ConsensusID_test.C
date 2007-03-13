@@ -177,9 +177,8 @@ CHECK(void apply(Feature& feature) throw (Exception::InvalidValue))
 	f.setIdentifications(ids);
 	consensus.apply(f);
 	
-	ids = f.getIdentifications();
-	TEST_EQUAL(ids.size(),1);
-	hits = ids[0].getPeptideHits();
+	TEST_EQUAL(f.getIdentifications().size(),1);
+	hits = f.getIdentifications()[0].getPeptideHits();
 	TEST_EQUAL(hits.size(),7);
 	
 	TEST_EQUAL(hits[0].getRank(),1);
@@ -210,6 +209,44 @@ CHECK(void apply(Feature& feature) throw (Exception::InvalidValue))
 	TEST_EQUAL(hits[6].getSequence(),"E");
 	TEST_REAL_EQUAL(hits[6].getScore(),5.0f);
 
+	// ***** Average ********
+
+	//define parameters
+	param.clear();
+	param.setValue("Algorithm","Average");
+	param.setValue("ConsideredHits",4);
+	consensus.setParameters(param);
+	//apply to feature
+	f.setIdentifications(ids);
+	consensus.apply(f);
+	
+	TEST_EQUAL(f.getIdentifications().size(),1);
+	hits = f.getIdentifications()[0].getPeptideHits();
+	TEST_EQUAL(hits.size(),6);
+	
+	TEST_EQUAL(hits[0].getRank(),1);
+	TEST_EQUAL(hits[0].getSequence(),"C");
+	TEST_REAL_EQUAL(hits[0].getScore(),36.333f);
+	
+	TEST_EQUAL(hits[1].getRank(),2);
+	TEST_EQUAL(hits[1].getSequence(),"F");
+	TEST_REAL_EQUAL(hits[1].getScore(),27.0f);
+	
+	TEST_EQUAL(hits[2].getRank(),3);
+	TEST_EQUAL(hits[2].getSequence(),"A");
+	TEST_REAL_EQUAL(hits[2].getScore(),20.333f);
+	
+	TEST_EQUAL(hits[3].getRank(),4);
+	TEST_EQUAL(hits[3].getSequence(),"B");
+	TEST_REAL_EQUAL(hits[3].getScore(),19.0f);
+	
+	TEST_EQUAL(hits[4].getRank(),5);
+	TEST_EQUAL(hits[4].getSequence(),"G");
+	TEST_REAL_EQUAL(hits[4].getScore(),16.666f);
+	
+	TEST_EQUAL(hits[5].getRank(),6);
+	TEST_EQUAL(hits[5].getSequence(),"D");
+	TEST_REAL_EQUAL(hits[5].getScore(),15.666f);
 
 	// ***** Exception ********
 	param.setValue("Algorithm","Bla4711");

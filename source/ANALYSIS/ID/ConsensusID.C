@@ -38,6 +38,7 @@ namespace OpenMS
 	{
 		defaults_.setValue("Algorithm","Ranked");
 		defaults_.setValue("ConsideredHits","10");
+		defaults_.setValue("NumberOfRuns","0");
 		
 		defaultsToParam_();
 	}
@@ -63,6 +64,10 @@ namespace OpenMS
 		{	
 			merge_(feature);
 		}
+		else if (algorithm == "Average")
+		{	
+			average_(feature);
+		}
 		else
 		{
 			throw Exception::InvalidValue(__FILE__,__LINE__,__PRETTY_FUNCTION__,"There is no such ConsensusID algorithm!",algorithm);
@@ -82,7 +87,7 @@ namespace OpenMS
 	{
 		map<String,Real> scores;		
 		UInt considered_hits = (UInt)(param_.getValue("ConsideredHits"));
-		
+		UInt number_of_runs = (UInt)(param_.getValue("NumberOfRuns"));
 		//iterate over the different ID runs
 		vector<Identification>& ids = feature.getIdentifications();
 		for (vector<Identification>::iterator id = ids.begin(); id != ids.end(); ++id)
@@ -114,7 +119,15 @@ namespace OpenMS
 			}
 		}
 		//divide score by the maximum possible score and multiply with 100 => %
-		UInt max_score = ids.size()*considered_hits;
+		UInt max_score;
+		if (number_of_runs==0)
+		{
+			max_score = ids.size()*considered_hits;
+		}
+		else
+		{
+			max_score = number_of_runs*considered_hits;
+		}
 		for (map<String,Real>::iterator it = scores.begin(); it != scores.end(); ++it)
 		{
 			it->second = (it->second * 100.0f / max_score);
@@ -161,14 +174,14 @@ namespace OpenMS
 				if (scores.find(hit->getSequence())==scores.end())
 				{
 #ifdef DEBUG_ID_CONSENSUS
-					cout << " - Added hit: " << hit->getSequence() << " " << hit->getScore() << endl;
+					//cout << " - Added hit: " << hit->getSequence() << " " << hit->getScore() << endl;
 #endif
 					scores.insert(make_pair(hit->getSequence(),hit->getScore()));  
 				}
 				else if(scores[hit->getSequence()] < hit->getScore())
 				{
 #ifdef DEBUG_ID_CONSENSUS
-					cout << " - Updated hit: " << hit->getSequence() << " " << scores[hit->getSequence()] << " -> " << hit->getScore() << endl;
+					//cout << " - Updated hit: " << hit->getSequence() << " " << scores[hit->getSequence()] << " -> " << hit->getScore() << endl;
 #endif
 					scores[hit->getSequence()] = hit->getScore();
 				}
@@ -185,6 +198,69 @@ namespace OpenMS
 		for (map<String,Real>::const_iterator it = scores.begin(); it != scores.end(); ++it)
 		{
 			hits[hit_count].setScoreType("Consensus_merge");
+			hits[hit_count].setSequence(it->first);
+			hits[hit_count].setScore(it->second);
+			++hit_count;
+		}
+	}
+
+	void ConsensusID::average_(Feature& feature)
+	{
+		map<String,Real> scores;		
+		UInt considered_hits = (UInt)(param_.getValue("ConsideredHits"));
+		UInt number_of_runs = (UInt)(param_.getValue("NumberOfRuns"));
+		//iterate over the different ID runs
+		vector<Identification>& ids = feature.getIdentifications();
+		for (vector<Identification>::iterator id = ids.begin(); id != ids.end(); ++id)
+		{
+#ifdef DEBUG_ID_CONSENSUS
+			//cout << " - ID run" << endl;
+#endif
+			//make sure that the ranks are present
+			id->assignRanks();
+			//iterate over the hits
+			UInt hit_count = 1;
+			for (vector<PeptideHit>::const_iterator hit = id->getPeptideHits().begin(); hit != id->getPeptideHits().end() && hit_count <= considered_hits; ++hit)
+			{
+				if (scores.find(hit->getSequence())==scores.end())
+				{
+#ifdef DEBUG_ID_CONSENSUS
+					//cout << " - New hit: " << hit->getSequence() << " " << hit->getScore() << endl;
+#endif
+					scores.insert(make_pair(hit->getSequence(),hit->getScore()));  
+				}
+				else
+				{
+#ifdef DEBUG_ID_CONSENSUS
+					//cout << " - Summed up: " << hit->getSequence() << " " << hit->getScore() << endl;
+#endif
+					scores[hit->getSequence()] += hit->getScore();  
+				}
+				++hit_count;
+			}
+		}
+		//normalize score by number of id runs
+		for (map<String,Real>::iterator it = scores.begin(); it != scores.end(); ++it)
+		{
+			if (number_of_runs==0)
+			{
+				it->second = (it->second / ids.size());
+			}
+			else
+			{
+				it->second = (it->second / number_of_runs);
+			}
+		}
+
+		//Replace IDs by consensus
+		feature.getIdentifications().clear();
+		feature.getIdentifications().resize(1);
+		vector<PeptideHit>& hits = feature.getIdentifications()[0].getPeptideHits();
+		hits.resize(scores.size());
+		UInt hit_count = 0;
+		for (map<String,Real>::const_iterator it = scores.begin(); it != scores.end(); ++it)
+		{
+			hits[hit_count].setScoreType("Consensus_averaged");
 			hits[hit_count].setSequence(it->first);
 			hits[hit_count].setScore(it->second);
 			++hit_count;

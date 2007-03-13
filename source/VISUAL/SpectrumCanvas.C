@@ -199,15 +199,18 @@ namespace OpenMS
 	
 	
 	void SpectrumCanvas::paintGridLines_(QPainter& painter)
-	{
-		QColor g1(130,130,130);
-		QColor g2(170,170,170);
-		QColor g3(230,230,230);
-		
+	{	
 		if (!show_grid_ || !spectrum_widget_) return;
+
+		QPen p1(QColor(130,130,130));
+		p1.setStyle(Qt::DashLine);
+		QPen p2(QColor(130,130,130));
+		p2.setStyle(Qt::DashLine);
+		QPen p3(QColor(130,130,130));
+		p3.setStyle(Qt::DashLine);
 	
 		painter.save();
-	
+
 		unsigned int xl, xh, yl, yh; //width/height of the diagram area, x, y coordinates of lo/hi x,y values
 	
 		xl = 0;
@@ -215,7 +218,6 @@ namespace OpenMS
 
 		yl = height();
 		yh = 0;
-
 	
 		// drawing of grid lines and associated text	
 		for (unsigned int j = 0; j != spectrum_widget_->xAxis()->gridLines().size() ; j++) 
@@ -224,13 +226,13 @@ namespace OpenMS
 			switch(j)
 			{
 				case 0:	// style settings for big intervals 
-					painter.setPen(QPen(g1));
+					painter.setPen(p1);
 					break;
 				case 1:	// style settings for small intervals
-					painter.setPen(QPen(g2));
+					painter.setPen(p2);
 					break;
 				case 2: // style settings for smalles intervals
-					painter.setPen(QPen(g3));
+					painter.setPen(p3);
 					break;
 				default:
 					std::cout << "empty vertical grid line vector error!" << std::endl;
@@ -253,13 +255,13 @@ namespace OpenMS
 			switch(j)
 			{
 				case 0:	// style settings for big intervals 
-					painter.setPen(QPen(g1));
+					painter.setPen(p1);
 					break;
 				case 1:	// style settings for small intervals
-					painter.setPen(QPen(g2));
+					painter.setPen(p2);
 					break;
 				case 2: // style settings for smalles intervals
-					painter.setPen(QPen(g3));
+					painter.setPen(p3);
 					break;
 				default:
 					std::cout << "empty vertical grid line vector error!" << std::endl;

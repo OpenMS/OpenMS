@@ -592,7 +592,7 @@ CF_XERCES
 dnl
 dnl Check for the visualization/GUI stuff (QT-dependent).
 dnl
-QT_MIN_VERSION=410
+QT_MIN_VERSION=420
 QT_MAX_VERSION=499
 QT_RECOMMENDED_VERSION=4.2.2
 ENABLE_GUI=true
