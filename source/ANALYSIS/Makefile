@@ -30,37 +30,35 @@ include ../config_defs.mak
 
 DIRECTORY=ANALYSIS
 
-THISLIB=$(LIBNAME)
+THISLIB=libOpenMS
 
 -include .Dependencies
 
 # Take care of subdirectories
 
-SECOND_LEVEL_DIRS=\
-  MAPMATCHING\
-  ID\
-  SVM
-
-default:	dirs $(OBJECTS)
-
-dirs:	dummy
-	@$(MAKE) subdirs SUBDIRS="$(SECOND_LEVEL_DIRS)" TARGET="default"
-
-subdirs:	dummy
-	@set -e; for i in $(SUBDIRS); do cd $$i; if $(MAKE) $(TARGET); then cd .. ; else cd .. ; exit 1 ; fi ; done
-
 dummy:
+
+default: $(OBJECTS) dummy
+	@cd MAPMATCHING; if $(MAKE) default; then cd .. ; else cd .. ; exit 1 ; fi ;
+	@cd ID; if $(MAKE) default; then cd .. ; else cd .. ; exit 1 ; fi ;
+	@cd SVM; if $(MAKE) default; then cd .. ; else cd .. ; exit 1 ; fi ;
 
 depend:	dummy
 	@echo "" > .Dependencies
-	@$(MAKE) subdirs SUBDIRS="$(SECOND_LEVEL_DIRS)" TARGET=depend
+	@cd MAPMATCHING; if $(MAKE) depend; then cd .. ; else cd .. ; exit 1 ; fi ;
+	@cd ID; if $(MAKE) depend; then cd .. ; else cd .. ; exit 1 ; fi ;
+	@cd SVM; if $(MAKE) depend; then cd .. ; else cd .. ; exit 1 ; fi ;
 
-default_clean:
+default_clean: dummy
 	@-$(RM) -rf .Dependencies *~  core.*
-	@$(MAKE) subdirs SUBDIRS="$(SECOND_LEVEL_DIRS)" TARGET=default_clean
+	@cd MAPMATCHING; if $(MAKE) default_clean; then cd .. ; else cd .. ; exit 1 ; fi ;
+	@cd ID; if $(MAKE) default_clean; then cd .. ; else cd .. ; exit 1 ; fi ;
+	@cd SVM; if $(MAKE) default_clean; then cd .. ; else cd .. ; exit 1 ; fi ;
 
-collectlib:
-	@$(MAKE) subdirs SUBDIRS="$(SECOND_LEVEL_DIRS)" TARGET=collectlib
+collectlib: dummy
+	@cd MAPMATCHING; if $(MAKE) collectlib; then cd .. ; else cd .. ; exit 1 ; fi ;
+	@cd ID; if $(MAKE) collectlib; then cd .. ; else cd .. ; exit 1 ; fi ;
+	@cd SVM; if $(MAKE) collectlib; then cd .. ; else cd .. ; exit 1 ; fi ;
 
 
 include ../config.mak

@@ -31,7 +31,7 @@ DIRECTORY=APPLICATIONS
 # Where the headers of the derived classes reside
 HEADER_DIR=$(OPENMS_PATH)/include/OpenMS/$(DIRECTORY)
 
-THISLIB=$(LIBNAME)
+THISLIB=libOpenMS
 
 CPP_SOURCES=\
 	TOPPBase.C

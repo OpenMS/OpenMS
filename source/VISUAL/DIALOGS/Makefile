@@ -34,7 +34,7 @@ HEADER_DIR=$(OPENMS_PATH)/include/OpenMS/$(DIRECTORY)
 # Where the UIC-created headers reside
 UIC_DIR=$(OPENMS_PATH)/include/OpenMS/$(DIRECTORY)/UIC
 
-THISLIB=$(LIBNAME)
+THISLIB=libOpenMS_GUI
 
 # These depend on QT:
 GUI_CPP_SOURCES=\

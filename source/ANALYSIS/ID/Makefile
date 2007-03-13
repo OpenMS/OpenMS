@@ -26,7 +26,7 @@
 
 DIRECTORY=ANALYSIS/ID
 
-THISLIB=$(LIBNAME)
+THISLIB=libOpenMS
 
 include ../../config_defs.mak
 

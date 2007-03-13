@@ -65,15 +65,32 @@ install:	install.shared
 
 clean:
 	@$(ECHO) "Cleaning up object files, cores,  and (uninstalled) library files..."
-	@$(MAKE) subdirs SUBDIRS="$(DIRS) $(GUI_DIRS) TEST BENCHMARKS EXAMPLES" TARGET=default_clean
+	@cd CONCEPT; if $(MAKE) default_clean; then cd .. ; else cd .. ; exit 1 ; fi ;
+	@cd SYSTEM; if $(MAKE) default_clean; then cd .. ; else cd .. ; exit 1 ; fi ;
+	@cd MATH; if $(MAKE) default_clean; then cd .. ; else cd .. ; exit 1 ; fi ;
+	@cd DATASTRUCTURES; if $(MAKE) default_clean; then cd .. ; else cd .. ; exit 1 ; fi ;
+	@cd METADATA; if $(MAKE) default_clean; then cd .. ; else cd .. ; exit 1 ; fi ;
+	@cd KERNEL; if $(MAKE) default_clean; then cd .. ; else cd .. ; exit 1 ; fi ;
+	@cd FORMAT; if $(MAKE) default_clean; then cd .. ; else cd .. ; exit 1 ; fi ;
+	@cd FILTERING; if $(MAKE) default_clean; then cd .. ; else cd .. ; exit 1 ; fi ;
+	@cd COMPARISON; if $(MAKE) default_clean; then cd .. ; else cd .. ; exit 1 ; fi ;
+	@cd CHEMISTRY; if $(MAKE) default_clean; then cd .. ; else cd .. ; exit 1 ; fi ;
+	@cd TRANSFORMATIONS; if $(MAKE) default_clean; then cd .. ; else cd .. ; exit 1 ; fi ;
+	@cd ANALYSIS; if $(MAKE) default_clean; then cd .. ; else cd .. ; exit 1 ; fi ;   
+	@cd APPLICATIONS; if $(MAKE) default_clean; then cd .. ; else cd .. ; exit 1 ; fi ; 
+	@cd VISUAL; if $(MAKE) default_clean; then cd .. ; else cd .. ; exit 1 ; fi ;
+	@cd TEST; if $(MAKE) default_clean; then cd .. ; else cd .. ; exit 1 ; fi ;
+	@cd BENCHMARKS; if $(MAKE) default_clean; then cd .. ; else cd .. ; exit 1 ; fi ;
+	@cd EXAMPLES; if $(MAKE) default_clean; then cd .. ; else cd .. ; exit 1 ; fi ;
 	@-$(RM) -f  $(STATIC_LIBS) $(SHARED_LIBS)
 	@-$(RM) -rf core.* .Dependencies *.objects *~ @TEMPLATE_DIR@
 	@cd $(OPENMS_PATH)/source/APPLICATIONS && make -f Makefile_SUBDIRS default_clean
 	@cd $(OPENMS_PATH)/source/TEST/TOPP/ && make clean
 	@${RM} -f $(OPENMS_PATH)/source/TEST/*.output
 
-distclean:	clean
-	@-$(RM) -rf conf.diag.tar autom4te* config.lic config.log config.status config.mak config_defs.mak common.mak ../include/OpenMS/config.h Makefile ../doc/html/ config.h ../bin
+distclean: clean
+	@-$(RM) -rf conf.diag.tar autom4te* config.lic config.log config.status config.mak config_defs.mak common.mak ../include/OpenMS/config.h Makefile  config.h ../bin ../lib TEST/TOPP/NumericDiff
+	@cd ../doc/; $(MAKE) clean
 
 libclean:
 	@$(ECHO) "Removing all installed libraries..."
@@ -84,13 +101,25 @@ libOpenMS.objects:
 	@$(ECHO)
 	@$(ECHO) "Collecting object files for libraries..."
 	@-rm -f libOpenMS.objects
-	@$(MAKE) subdirs SUBDIRS="$(DIRS)" TARGET=collectlib LIBNAME=$(LIBNAME)
+	@cd CONCEPT; if $(MAKE) collectlib; then cd .. ; else cd .. ; exit 1 ; fi ;
+	@cd SYSTEM; if $(MAKE) collectlib; then cd .. ; else cd .. ; exit 1 ; fi ;
+	@cd MATH; if $(MAKE) collectlib; then cd .. ; else cd .. ; exit 1 ; fi ;
+	@cd DATASTRUCTURES; if $(MAKE) collectlib; then cd .. ; else cd .. ; exit 1 ; fi ;
+	@cd METADATA; if $(MAKE) collectlib; then cd .. ; else cd .. ; exit 1 ; fi ;
+	@cd KERNEL; if $(MAKE) collectlib; then cd .. ; else cd .. ; exit 1 ; fi ;
+	@cd FORMAT; if $(MAKE) collectlib; then cd .. ; else cd .. ; exit 1 ; fi ;
+	@cd FILTERING; if $(MAKE) collectlib; then cd .. ; else cd .. ; exit 1 ; fi ;
+	@cd COMPARISON; if $(MAKE) collectlib; then cd .. ; else cd .. ; exit 1 ; fi ;
+	@cd CHEMISTRY; if $(MAKE) collectlib; then cd .. ; else cd .. ; exit 1 ; fi ;
+	@cd TRANSFORMATIONS; if $(MAKE) collectlib; then cd .. ; else cd .. ; exit 1 ; fi ;
+	@cd ANALYSIS; if $(MAKE) collectlib; then cd .. ; else cd .. ; exit 1 ; fi ;   
+	@cd APPLICATIONS; if $(MAKE) collectlib; then cd .. ; else cd .. ; exit 1 ; fi ; 
 
 libOpenMS_GUI.objects:
 	@$(ECHO)
 	@$(ECHO) "Collecting object files for libraries..."
 	@-rm -f libOpenMS_GUI.objects
-	@$(MAKE) subdirs SUBDIRS="$(GUI_DIRS)" TARGET=collectlib LIBNAME=$(GUILIBNAME)
+	@cd VISUAL; if $(MAKE) collectlib; then cd .. ; else cd .. ; exit 1 ; fi ; 
 
 collect:	$(OBJECT_LISTS)
 
@@ -112,6 +141,22 @@ libOpenMS_GUI.@SHARED_LIB_SUFFIX@:	collect
 	@$(ECHO)
 	@$(ECHO) "Linking static library:  $@"
 	$(AR) $(AROPTS) $*.a `cat $*.objects`
+
+dirs: dummy
+	@cd CONCEPT; if $(MAKE) default; then cd .. ; else cd .. ; exit 1 ; fi ;
+	@cd SYSTEM; if $(MAKE) default; then cd .. ; else cd .. ; exit 1 ; fi ;
+	@cd MATH; if $(MAKE) default; then cd .. ; else cd .. ; exit 1 ; fi ;
+	@cd DATASTRUCTURES; if $(MAKE) default; then cd .. ; else cd .. ; exit 1 ; fi ;
+	@cd METADATA; if $(MAKE) default; then cd .. ; else cd .. ; exit 1 ; fi ;
+	@cd KERNEL; if $(MAKE) default; then cd .. ; else cd .. ; exit 1 ; fi ;
+	@cd FORMAT; if $(MAKE) default; then cd .. ; else cd .. ; exit 1 ; fi ;
+	@cd FILTERING; if $(MAKE) default; then cd .. ; else cd .. ; exit 1 ; fi ;
+	@cd COMPARISON; if $(MAKE) default; then cd .. ; else cd .. ; exit 1 ; fi ;
+	@cd CHEMISTRY; if $(MAKE) default; then cd .. ; else cd .. ; exit 1 ; fi ;
+	@cd TRANSFORMATIONS; if $(MAKE) default; then cd .. ; else cd .. ; exit 1 ; fi ;
+	@cd ANALYSIS; if $(MAKE) default; then cd .. ; else cd .. ; exit 1 ; fi ;   
+	@cd APPLICATIONS; if $(MAKE) default; then cd .. ; else cd .. ; exit 1 ; fi ; 
+	@cd VISUAL; if $(MAKE) default; then cd .. ; else cd .. ; exit 1 ; fi ;
 
 lib:	.Dependencies dirs collect $(SHARED_LIBS)
 	@$(ECHO) " "
@@ -161,16 +206,24 @@ delete.shared:
 depend:
 	@$(ECHO) "Creating dependencies..."
 	@$(ECHO) "" >.Dependencies
-	@for i in $(DIRS) $(GUI_DIRS) TEST BENCHMARKS EXAMPLES ; do ( cd $$i; echo "" >.Dependencies; cd .. ) ; done
-	@set -e; for i in $(DIRS) $(GUI_DIRS) TEST BENCHMARKS EXAMPLES ; do ( cd $$i; $(MAKE) depend; cd .. ) ; done
-	@cd APPLICATIONS && make -f Makefile_SUBDIRS depend
-
-dirs:		dummy
-	@$(MAKE) subdirs SUBDIRS="$(DIRS) $(GUI_DIRS)" TARGET=default
-
-subdirs:	dummy
-	@set -e; for i in $(SUBDIRS) ; do cd $$i; if $(MAKE) $(TARGET); then cd .. ; else cd .. ; exit 1 ; fi ; done
-
+	@cd CONCEPT; if $(MAKE) depend; then cd .. ; else cd .. ; exit 1 ; fi ;
+	@cd SYSTEM; if $(MAKE) depend; then cd .. ; else cd .. ; exit 1 ; fi ;
+	@cd MATH; if $(MAKE) depend; then cd .. ; else cd .. ; exit 1 ; fi ;
+	@cd DATASTRUCTURES; if $(MAKE) depend; then cd .. ; else cd .. ; exit 1 ; fi ;
+	@cd METADATA; if $(MAKE) depend; then cd .. ; else cd .. ; exit 1 ; fi ;
+	@cd KERNEL; if $(MAKE) depend; then cd .. ; else cd .. ; exit 1 ; fi ;
+	@cd FORMAT; if $(MAKE) depend; then cd .. ; else cd .. ; exit 1 ; fi ;
+	@cd FILTERING; if $(MAKE) depend; then cd .. ; else cd .. ; exit 1 ; fi ;
+	@cd COMPARISON; if $(MAKE) depend; then cd .. ; else cd .. ; exit 1 ; fi ;
+	@cd CHEMISTRY; if $(MAKE) depend; then cd .. ; else cd .. ; exit 1 ; fi ;
+	@cd TRANSFORMATIONS; if $(MAKE) depend; then cd .. ; else cd .. ; exit 1 ; fi ;
+	@cd ANALYSIS; if $(MAKE) depend; then cd .. ; else cd .. ; exit 1 ; fi ;   
+	@cd VISUAL; if $(MAKE) depend; then cd .. ; else cd .. ; exit 1 ; fi ;
+	@cd APPLICATIONS; if $(MAKE) depend; then cd .. ; else cd .. ; exit 1 ; fi ;   
+	@cd TEST; if $(MAKE) depend; then cd .. ; else cd .. ; exit 1 ; fi ;
+	@cd BENCHMARKS; if $(MAKE) depend; then cd .. ; else cd .. ; exit 1 ; fi ;
+	@cd EXAMPLES; if $(MAKE) depend; then cd .. ; else cd .. ; exit 1 ; fi ;
+	@cd APPLICATIONS; if $(MAKE) -f Makefile_SUBDIRS depend; then cd .. ; else cd .. ; exit 1 ; fi ;
 
 test:	dummy
 	@cd TEST ; $(MAKE) test

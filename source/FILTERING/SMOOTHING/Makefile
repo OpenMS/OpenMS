@@ -26,7 +26,7 @@
 
 DIRECTORY=FILTERING/SMOOTHING
 
-THISLIB=$(LIBNAME)
+THISLIB=libOpenMS
 
 include ../../config_defs.mak
 

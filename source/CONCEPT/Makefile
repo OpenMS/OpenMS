@@ -23,11 +23,10 @@
 # --------------------------------------------------------------------------
 # $Maintainer: Marc Sturm $
 # --------------------------------------------------------------------------
-#
 
 DIRECTORY=CONCEPT
 
-THISLIB=$(LIBNAME)
+THISLIB=libOpenMS
 
 CPP_SOURCES= \
 	Constants.C\

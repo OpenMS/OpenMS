@@ -32,6 +32,7 @@ help:
 	@echo "  - 'make [help]'    shows this help"
 	@echo "  - 'make doc'       creates the HTML documentation"
 	@echo "  - 'make tutorial'  creates the tutorial as a PDF"
+	@echo "  - 'make clean'     removes doxygen docu and tutorial"
 	@echo ""
 
 #######################################################################
@@ -56,5 +57,10 @@ tutorial: tutorial/Tutorial.doxygen tutorial/Doxyfile dummy
 	@cp tutorial/refman_overwrite.tex tutorial/latex_output/refman.tex
 	@cd tutorial/latex_output/ && make
 	@cp tutorial/latex_output/refman.pdf Tutorial.pdf
+
+#######################################################################
+# cleaning up
+clean:
+	@rm -rf tutorial/latex_output/ doxygen/html_output/ doxygen/xml_output/ Tutorial.pdf doxygen/doxygen-error.log tutorial/doxygen-error.log doxygen/Doxyfile
 
 dummy:

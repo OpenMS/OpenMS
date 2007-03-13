@@ -28,7 +28,7 @@ include ../../config_defs.mak
 
 DIRECTORY=FILTERING/DATAREDUCTION
 
-THISLIB=$(LIBNAME)
+THISLIB=libOpenMS
 
 CPP_SOURCES=\
 	DataReducer.C\

@@ -35,7 +35,7 @@ HEADER_DIR=$(OPENMS_PATH)/include/OpenMS/$(DIRECTORY)
 UIC_DIR=$(OPENMS_PATH)/include/OpenMS/$(DIRECTORY)/UIC
 
 
-THISLIB=$(LIBNAME)
+THISLIB=libOpenMS_GUI
 
 # These depend on QT:
 GUI_CPP_SOURCES=\
@@ -97,19 +97,13 @@ endif
 SOURCES		= $(CPP_SOURCES) $(MOC_SOURCES) $(ADD_CPP_SOURCES) $(ADD_MOC_SOURCES) $(ANDI_SOURCES)
 OBJECTS 	= $(SOURCES:.C=.o)
 
-# Take care of subdirectories of VISUAL
+# Redefine targets to take care of subdirectories of VISUAL
 
-VISUAL_DIRS=DIALOGS VISUALIZER
-
-default:	echodir dirs $(OBJECTS)
+default:	echodir $(OBJECTS)
+	@cd DIALOGS; if $(MAKE) default; then cd .. ; else cd .. ; exit 1 ; fi ;
+	@cd VISUALIZER; if $(MAKE) default; then cd .. ; else cd .. ; exit 1 ; fi ;
 
 -include .Dependencies
-
-dirs:	dummy
-	@$(MAKE) subdirs SUBDIRS="$(VISUAL_DIRS)" TARGET="default"
-
-subdirs:	dummy
-	@set -e; for i in $(SUBDIRS); do cd $$i; if $(MAKE) $(TARGET); then cd .. ; else cd .. ; exit 1 ; fi ; done
 
 dummy:
 
@@ -117,10 +111,11 @@ depend:	uic_depend $(MOC_SOURCES) $(ADD_MOC_SOURCES)
 	@echo "creating dependencies for $(DIRECTORY)..."
 	@echo "" > .Dependencies
 	@$(CXX) -M  -fPIC -pedantic -Wno-long-long -Wno-deprecated  $(CPP_SOURCES) $(ADD_CPP_SOURCES) $(ADD_MOC_SOURCES) $(STD_CPP_INCLUDES) $(ADD_INCLUDES) $(OPENMS_INCLUDES)  >.Dependencies
-	@$(MAKE) subdirs SUBDIRS="$(VISUAL_DIRS)" TARGET=depend
+	@cd DIALOGS; if $(MAKE) depend; then cd .. ; else cd .. ; exit 1 ; fi ;
+	@cd VISUALIZER; if $(MAKE) depend; then cd .. ; else cd .. ; exit 1 ; fi ;
 
 uic_depend:
-	@$(MAKE) subdirs SUBDIRS="$(VISUAL_DIRS)" TARGET=uic_depend
+	@cd DIALOGS; if $(MAKE) uic_depend; then cd .. ; else cd .. ; exit 1 ; fi ;
 
 uic_clean:
 	@echo "Cleaning UIC files in $(UIC_DIR) and local direcory..."
@@ -130,7 +125,8 @@ uic_clean:
 
 default_clean: uic_clean
 	@-$(RM) -rf .Dependencies *~  core.* $(OBJECTS) $(MOC_SOURCES) $(ADD_MOC_SOURCES)
-	@$(MAKE) subdirs SUBDIRS="$(VISUAL_DIRS)" TARGET=default_clean
+	@cd DIALOGS; if $(MAKE) default_clean; then cd .. ; else cd .. ; exit 1 ; fi ;
+	@cd VISUALIZER; if $(MAKE) default_clean; then cd .. ; else cd .. ; exit 1 ; fi ;
 
 echodir:
 	@echo " "
@@ -139,7 +135,8 @@ echodir:
 collectlib:	echodir
 	@echo "collecting objects from $(DIRECTORY)..."
 	@for i in $(OBJECTS); do echo $(DIRECTORY)/$$i >>$(OPENMS_PATH)/source/$(THISLIB).objects ; done
-	@$(MAKE) subdirs SUBDIRS="$(VISUAL_DIRS)" TARGET=collectlib
+	@cd DIALOGS; if $(MAKE) collectlib; then cd .. ; else cd .. ; exit 1 ; fi ;
+	@cd VISUALIZER; if $(MAKE) collectlib; then cd .. ; else cd .. ; exit 1 ; fi ;
 
 include ../config.mak
 

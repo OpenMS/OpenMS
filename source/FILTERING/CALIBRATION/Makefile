@@ -27,7 +27,7 @@
 
 DIRECTORY=FILTERING/NOISEESTIMATION
 
-THISLIB=$(LIBNAME)
+THISLIB=libOpenMS
 
 include ../../config_defs.mak
 

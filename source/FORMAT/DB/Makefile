@@ -24,37 +24,13 @@
 # $Maintainer:  Long John Silver$
 # --------------------------------------------------------------------------
 
-include ../../config_defs.mak
-
 DIRECTORY=FORMAT/DB
 
-THISLIB=$(LIBNAME)
+THISLIB=libOpenMS
 
 CPP_SOURCES=\
 	DBConnection.C\
 	DBAdapter.C
 
-SOURCES		= $(CPP_SOURCES) $(ADD_CPP_SOURCES)
-OBJECTS 	= $(SOURCES:.C=.o)
-
-default:	echodir $(OBJECTS)
-
+include ../../common.mak
 -include .Dependencies
-
-depend:
-	@echo "creating dependencies for $(DIRECTORY)..."
-	@echo "" > .Dependencies
-	@$(CXX) -M  -fPIC -pedantic -Wno-long-long -Wno-deprecated  $(CPP_SOURCES) $(ADD_CPP_SOURCES) $(STD_CPP_INCLUDES) $(ADD_INCLUDES) $(OPENMS_INCLUDES)  >.Dependencies
-
-default_clean:
-	@-$(RM) -rf .Dependencies *~  core.* $(OBJECTS)
-
-echodir:
-	@echo " "
-	@echo "Entering directory $(DIRECTORY) ..."
-
-collectlib:	echodir
-	@echo "collecting objects from $(DIRECTORY)..."
-	@for i in $(OBJECTS); do echo $(DIRECTORY)/$$i >>$(OPENMS_PATH)/source/$(THISLIB).objects ; done
-
-include ../../config.mak

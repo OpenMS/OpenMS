@@ -28,7 +28,7 @@ include ../../config_defs.mak
 
 DIRECTORY=FILTERING/TRANSFORMERS
 
-THISLIB=$(LIBNAME)
+THISLIB=libOpenMS
 
 CPP_SOURCES = \
   BernNorm.C\

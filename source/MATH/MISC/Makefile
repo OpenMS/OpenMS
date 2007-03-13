@@ -29,7 +29,7 @@ include ../../config_defs.mak
 
 DIRECTORY=MATH/MISC
 
-THISLIB=$(LIBNAME)
+THISLIB=libOpenMS
 
 
 

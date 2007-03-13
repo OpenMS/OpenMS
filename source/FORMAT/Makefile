@@ -30,7 +30,7 @@ include ../config_defs.mak
 
 DIRECTORY=FORMAT
 
-THISLIB=$(LIBNAME)
+THISLIB=libOpenMS
 
 -include .Dependencies
 
@@ -77,17 +77,7 @@ ifeq ($(LIBSVM_SUPPORT),true)
 endif
 
 
-# Take care of subdirectories of FORMAT
-
-FORMAT_DIRS=HANDLERS DB
-
-default: dirs $(OBJECTS)
-
-dirs:	dummy
-	@$(MAKE) subdirs SUBDIRS="$(FORMAT_DIRS)" TARGET="default"
-
-subdirs:	dummy
-	@set -e; for i in $(SUBDIRS); do cd $$i; if $(MAKE) $(TARGET); then cd .. ; else cd .. ; exit 1 ; fi ; done
+# Redefine targets to take care of subdirectories of FORMAT
 
 dummy:
 
@@ -95,16 +85,19 @@ depend:	dummy
 	@echo "creating dependencies for $(DIRECTORY)..."
 	@echo "" > .Dependencies
 	@$(CXX) -M  -fPIC -pedantic -Wno-long-long -Wno-deprecated  $(CPP_SOURCES) $(STD_CPP_INCLUDES) $(ADD_INCLUDES) $(OPENMS_INCLUDES)  >.Dependencies
-	@$(MAKE) subdirs SUBDIRS="$(FORMAT_DIRS)" TARGET=depend
+	@cd DB; if $(MAKE) depend; then cd .. ; else cd .. ; exit 1; fi;
+	@cd HANDLERS; if $(MAKE) depend; then cd .. ; else cd .. ; exit 1; fi;
 
-default_clean:
+default_clean: dummy
 	@-$(RM) -rf .Dependencies *~  core.* $(OBJECTS) $(EXECUTABLES) $(EXECUTABLE)
-	@$(MAKE) subdirs SUBDIRS="$(FORMAT_DIRS)" TARGET=default_clean
+	@cd DB; if $(MAKE) default_clean; then cd .. ; else cd .. ; exit 1; fi;
+	@cd HANDLERS; if $(MAKE) default_clean; then cd .. ; else cd .. ; exit 1; fi;
 
-collectlib:	echodir
+collectlib:	dummy
 	@echo "collecting objects from $(DIRECTORY)..."
 	@for i in $(OBJECTS); do echo $(DIRECTORY)/$$i >>$(OPENMS_PATH)/source/$(THISLIB).objects ; done
-	@$(MAKE) subdirs SUBDIRS="$(FORMAT_DIRS)" TARGET=collectlib
+	@cd DB; if $(MAKE) collectlib; then cd .. ; else cd .. ; exit 1; fi;
+	@cd HANDLERS; if $(MAKE) collectlib; then cd .. ; else cd .. ; exit 1; fi;
 
 
 include ../config.mak
@@ -112,8 +105,9 @@ include ../config.mak
 SOURCES		= $(CPP_SOURCES) $(ANDI_SOURCES) $(LIBSVM_SOURCES)
 OBJECTS 	= $(SOURCES:.C=.o)
 
-default:	echodir $(OBJECTS)
-
-echodir:
-	@echo " "
+default: $(OBJECTS) dummy
 	@echo "Entering directory $(DIRECTORY) ..."
+	@cd DB; if $(MAKE) default; then cd .. ; else cd .. ; exit 1; fi;
+	@cd HANDLERS; if $(MAKE) default; then cd .. ; else cd .. ; exit 1; fi;
+
+

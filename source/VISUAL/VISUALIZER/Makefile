@@ -30,13 +30,7 @@ include ../../config_defs.mak
 
 DIRECTORY=VISUAL/VISUALIZER
 
-# Where the headers of the derived classes reside
-HEADER_DIR=$(OPENMS_PATH)/include/OpenMS/$(DIRECTORY)
-
-# Where the UIC-created headers reside
-UIC_DIR=$(OPENMS_PATH)/include/OpenMS/$(DIRECTORY)/UIC
-
-THISLIB=$(LIBNAME)
+THISLIB=libOpenMS_GUI
 
 # These depend on QT:
 GUI_CPP_SOURCES=\
@@ -95,10 +89,7 @@ GUI_MOC_SOURCES=\
 	PrecursorVisualizer_moc.C\
 	InstrumentSettingsVisualizer_moc.C\
 	IdentificationVisualizer_moc.C\
-	SpectrumSettingsVisualizer_moc.C
-	
-UIC_SOURCES=\
-	
+	SpectrumSettingsVisualizer_moc.C	
 
 #conditional compiles QT
 ifeq ($(ENABLE_GUI),true)
@@ -106,54 +97,33 @@ ifeq ($(ENABLE_GUI),true)
 	ADD_MOC_SOURCES=$(GUI_MOC_SOURCES)
 endif
 
-SOURCES		= ${UIC_SOURCES} $(CPP_SOURCES) $(MOC_SOURCES) $(ADD_CPP_SOURCES) $(ADD_MOC_SOURCES) $(ANDI_SOURCES)
+SOURCES		= $(ADD_CPP_SOURCES) $(ADD_MOC_SOURCES)
 OBJECTS 	= $(SOURCES:.C=.o)
-
-
-# Take care of subdirectories of VISUAL
-
-VISUAL_DIRS=\
-        
-default:	dirs $(OBJECTS)
 
 -include .Dependencies
 
-dirs:	dummy
-	@$(MAKE) subdirs SUBDIRS="$(VISUAL_DIRS)" TARGET="default"
+default: echodir $(OBJECTS)
 
-subdirs:	dummy
-	@set -e; for i in $(SUBDIRS); do cd $$i; if $(MAKE) $(TARGET); then cd .. ; else cd .. ; exit 1 ; fi ; done
-
-dummy:
-
-depend:	uic_depend $(MOC_SOURCES) $(ADD_MOC_SOURCES)
+depend:	$(ADD_MOC_SOURCES)
 	@echo "creating dependencies for $(DIRECTORY)..."
 	@echo "" > .Dependencies
-	@$(CXX) -M  -fPIC -pedantic -Wno-long-long -Wno-deprecated  $(CPP_SOURCES) $(ADD_CPP_SOURCES) $(ADD_MOC_SOURCES) $(STD_CPP_INCLUDES) $(ADD_INCLUDES) $(OPENMS_INCLUDES)  >.Dependencies
-	@$(MAKE) subdirs SUBDIRS="$(VISUAL_DIRS)" TARGET=depend
+	@$(CXX) -M  -fPIC -pedantic -Wno-long-long -Wno-deprecated  $(ADD_CPP_SOURCES) $(ADD_MOC_SOURCES) $(OPENMS_INCLUDES)  >.Dependencies
 
-uic_depend: $(UIC_SOURCES)
-	@$(MAKE) subdirs SUBDIRS="$(VISUAL_DIRS)" TARGET=uic_depend
-
-uic_clean:
-	@echo "Cleaning UIC files in $(UIC_DIR) and local direcory..."
-	@$(RM) -f $(UIC_DIR)/*.h
-	@$(RM) -f *Template.C
-
-default_clean: uic_clean
-	@-$(RM) -rf .Dependencies *~  core.* $(OBJECTS) $(MOC_SOURCES) $(ADD_MOC_SOURCES)
-	@$(MAKE) subdirs SUBDIRS="$(VISUAL_DIRS)" TARGET=default_clean
+default_clean:
+	@-$(RM) -rf .Dependencies *~  core.* $(OBJECTS) $(ADD_MOC_SOURCES)
 
 echodir:
-	@echo "entering $(DIRECTORY)..."
+	@echo " "
+	@echo "Entering directory $(DIRECTORY) ..."
 
 collectlib:	echodir
 	@echo "collecting objects from $(DIRECTORY)..."
 	@for i in $(OBJECTS); do echo $(DIRECTORY)/$$i >>$(OPENMS_PATH)/source/$(THISLIB).objects ; done
-	@$(MAKE) subdirs SUBDIRS="$(VISUAL_DIRS)" TARGET=collectlib
 
 include ../../config.mak
-	
+
+HEADER_DIR = $(OPENMS_PATH)/include/OpenMS/$(DIRECTORY)
+
 BaseVisualizer_moc.C:  $(HEADER_DIR)/BaseVisualizer.h
 	$(MOC) $(HEADER_DIR)/BaseVisualizer.h -o BaseVisualizer_moc.C	
 

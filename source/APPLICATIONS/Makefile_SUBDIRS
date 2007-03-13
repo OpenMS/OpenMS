@@ -31,14 +31,11 @@ DIRECTORY=APPLICATIONS
 
 THISLIB=$(LIBNAME)
 
-APPLICATION_DIRS=\
-	TOPP
-
 depend: dummy
-	@set -e; for i in $(APPLICATION_DIRS); do cd $$i; if $(MAKE) depend; then cd .. ; else cd .. ; exit 1 ; fi ; done
+	@cd TOPP; if $(MAKE) depend; then cd .. ; else cd .. ; exit 1 ; fi
 
 default_clean: dummy
-	@set -e; for i in $(APPLICATION_DIRS); do cd $$i; if $(MAKE) default_clean; then cd .. ; else cd .. ; exit 1 ; fi ; done
+	@cd TOPP; if $(MAKE) default_clean; then cd .. ; else cd .. ; exit 1 ; fi
 
 dummy:
 	

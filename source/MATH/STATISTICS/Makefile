@@ -28,7 +28,7 @@ include ../../config_defs.mak
 
 DIRECTORY=MATH/STATISTICS
 
-THISLIB=$(LIBNAME)
+THISLIB=libOpenMS
 
 CPP_SOURCES= \
 	BasicStatistics.C\

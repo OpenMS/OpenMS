@@ -30,42 +30,51 @@ include ../config_defs.mak
 
 DIRECTORY=FILTERING
 
-THISLIB=$(LIBNAME)
+THISLIB=libOpenMS
 
 -include .Dependencies
 
 # Take care of subdirectories
 
-SECOND_LEVEL_DIRS=\
-  BASELINE\
-  CALIBRATION\
-	ID\
-  NOISEESTIMATION\
-  SMOOTHING\
-  TRANSFORMERS\
-  DATAREDUCTION
-
-default:	dirs $(OBJECTS)
-
-dirs:	dummy
-	@$(MAKE) subdirs SUBDIRS="$(SECOND_LEVEL_DIRS)" TARGET="default"
-
-subdirs:	dummy
-	@set -e; for i in $(SUBDIRS); do cd $$i; if $(MAKE) $(TARGET); then cd .. ; else cd .. ; exit 1 ; fi ; done
-
 dummy:
+
+default: $(OBJECTS) dummy
+	@cd BASELINE; if $(MAKE) default; then cd .. ; else cd .. ; exit 1 ; fi ;
+	@cd CALIBRATION; if $(MAKE) default; then cd .. ; else cd .. ; exit 1 ; fi ;
+	@cd ID; if $(MAKE) default; then cd .. ; else cd .. ; exit 1 ; fi ;
+	@cd NOISEESTIMATION; if $(MAKE) default; then cd .. ; else cd .. ; exit 1 ; fi ;
+	@cd SMOOTHING; if $(MAKE) default; then cd .. ; else cd .. ; exit 1 ; fi ;
+	@cd TRANSFORMERS; if $(MAKE) default; then cd .. ; else cd .. ; exit 1 ; fi ;
+	@cd DATAREDUCTION; if $(MAKE) default; then cd .. ; else cd .. ; exit 1 ; fi ;
 
 depend:	dummy
 	@echo "" > .Dependencies
-	@$(MAKE) subdirs SUBDIRS="$(SECOND_LEVEL_DIRS)" TARGET=depend
+	@cd BASELINE; if $(MAKE) depend; then cd .. ; else cd .. ; exit 1 ; fi ;
+	@cd CALIBRATION; if $(MAKE) depend; then cd .. ; else cd .. ; exit 1 ; fi ;
+	@cd ID; if $(MAKE) depend; then cd .. ; else cd .. ; exit 1 ; fi ;
+	@cd NOISEESTIMATION; if $(MAKE) depend; then cd .. ; else cd .. ; exit 1 ; fi ;
+	@cd SMOOTHING; if $(MAKE) depend; then cd .. ; else cd .. ; exit 1 ; fi ;
+	@cd TRANSFORMERS; if $(MAKE) depend; then cd .. ; else cd .. ; exit 1 ; fi ;
+	@cd DATAREDUCTION; if $(MAKE) depend; then cd .. ; else cd .. ; exit 1 ; fi ;
 
-default_clean:
+default_clean: dummy
 	@-$(RM) -rf .Dependencies *~  core.*
-	@$(MAKE) subdirs SUBDIRS="$(SECOND_LEVEL_DIRS)" TARGET=default_clean
+	@cd BASELINE; if $(MAKE) default_clean; then cd .. ; else cd .. ; exit 1 ; fi ;
+	@cd CALIBRATION; if $(MAKE) default_clean; then cd .. ; else cd .. ; exit 1 ; fi ;
+	@cd ID; if $(MAKE) default_clean; then cd .. ; else cd .. ; exit 1 ; fi ;
+	@cd NOISEESTIMATION; if $(MAKE) default_clean; then cd .. ; else cd .. ; exit 1 ; fi ;
+	@cd SMOOTHING; if $(MAKE) default_clean; then cd .. ; else cd .. ; exit 1 ; fi ;
+	@cd TRANSFORMERS; if $(MAKE) default_clean; then cd .. ; else cd .. ; exit 1 ; fi ;
+	@cd DATAREDUCTION; if $(MAKE) default_clean; then cd .. ; else cd .. ; exit 1 ; fi ;
 
-collectlib:
-	@$(MAKE) subdirs SUBDIRS="$(SECOND_LEVEL_DIRS)" TARGET=collectlib
-
+collectlib: dummy
+	@cd BASELINE; if $(MAKE) collectlib; then cd .. ; else cd .. ; exit 1 ; fi ;
+	@cd CALIBRATION; if $(MAKE) collectlib; then cd .. ; else cd .. ; exit 1 ; fi ;
+	@cd ID; if $(MAKE) collectlib; then cd .. ; else cd .. ; exit 1 ; fi ;
+	@cd NOISEESTIMATION; if $(MAKE) collectlib; then cd .. ; else cd .. ; exit 1 ; fi ;
+	@cd SMOOTHING; if $(MAKE) collectlib; then cd .. ; else cd .. ; exit 1 ; fi ;
+	@cd TRANSFORMERS; if $(MAKE) collectlib; then cd .. ; else cd .. ; exit 1 ; fi ;
+	@cd DATAREDUCTION; if $(MAKE) collectlib; then cd .. ; else cd .. ; exit 1 ; fi ;
 
 include ../config.mak
 

@@ -30,36 +30,31 @@ include ../config_defs.mak
 
 DIRECTORY=TRANSFORMATIONS
 
-THISLIB=$(LIBNAME)
+THISLIB=libOpenMS
 
 -include .Dependencies
 
 # Take care of subdirectories
 
-SECOND_LEVEL_DIRS=\
-	RAW2PEAK\
-	FEATUREFINDER
-
-default:	dirs $(OBJECTS)
-
-dirs:	dummy
-	@$(MAKE) subdirs SUBDIRS="$(SECOND_LEVEL_DIRS)" TARGET="default"
-
-subdirs:	dummy
-	@set -e; for i in $(SUBDIRS); do cd $$i; if $(MAKE) $(TARGET); then cd .. ; else cd .. ; exit 1 ; fi ; done
-
 dummy:
+
+default: $(OBJECTS) dummy
+	@cd RAW2PEAK; if $(MAKE) default; then cd .. ; else cd .. ; exit 1 ; fi ;
+	@cd FEATUREFINDER; if $(MAKE) default; then cd .. ; else cd .. ; exit 1 ; fi ;
 
 depend:	dummy
 	@echo "" > .Dependencies
-	@$(MAKE) subdirs SUBDIRS="$(SECOND_LEVEL_DIRS)" TARGET=depend
+	@cd RAW2PEAK; if $(MAKE) depend; then cd .. ; else cd .. ; exit 1 ; fi ;
+	@cd FEATUREFINDER; if $(MAKE) depend; then cd .. ; else cd .. ; exit 1 ; fi ;
 
-default_clean:
+default_clean: dummy
 	@-$(RM) -rf .Dependencies *~  core.*
-	@$(MAKE) subdirs SUBDIRS="$(SECOND_LEVEL_DIRS)" TARGET=default_clean
+	@cd RAW2PEAK; if $(MAKE) default_clean; then cd .. ; else cd .. ; exit 1 ; fi ;
+	@cd FEATUREFINDER; if $(MAKE) default_clean; then cd .. ; else cd .. ; exit 1 ; fi ;
 
-collectlib:
-	@$(MAKE) subdirs SUBDIRS="$(SECOND_LEVEL_DIRS)" TARGET=collectlib
+collectlib: dummy
+	@cd RAW2PEAK; if $(MAKE) collectlib; then cd .. ; else cd .. ; exit 1 ; fi ;
+	@cd FEATUREFINDER; if $(MAKE) collectlib; then cd .. ; else cd .. ; exit 1 ; fi ;
 
 
 include ../config.mak

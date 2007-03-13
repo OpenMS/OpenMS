@@ -27,7 +27,7 @@
 
 DIRECTORY=TRANSFORMATIONS/RAW2PEAK
 
-THISLIB=$(LIBNAME)
+THISLIB=libOpenMS
 
 include ../../config_defs.mak
 
