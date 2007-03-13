@@ -42,12 +42,21 @@ using namespace std;
 	@page ConsensusID ConsensusID
 	
 	@brief Combines results of Identification engines.
-	
 
+	@todo write test (Marc)
+	@todo document (Marc)
 */
 
 // We do not want this class to show up in the docu:
 /// @cond TOPPCLASSES
+
+//Helper class
+struct IDData
+{
+	DoubleReal mz;
+	DoubleReal rt;
+	vector<Identification> ids;
+};
 
 class TOPPConsensusID
 	: public TOPPBase
@@ -63,10 +72,10 @@ class TOPPConsensusID
 
 		void registerOptionsAndFlags_()
 		{
-			registerStringOption_("in","<file>","","input feature file");
 			registerStringOption_("ids","<file>","","one or more analysisXML files separated by comma (without blanks)");
 			registerStringOption_("out","<file>","","output file in AnalysisXML format");
-			
+			registerStringOption_("features","<file>","","input feature file. If this file is given, all identifications\n"
+																									 "are mapped to features and the consensus is made for feaatures.",false);
 			registerSubsection_("algorithm");
 		}
 	
@@ -88,70 +97,138 @@ class TOPPConsensusID
 			{
 				inputFileReadable_(ids[i]);
 			}
-
-			String in = getStringOption_("in");
-			inputFileReadable_(in);
 	
 			String out = getStringOption_("out");
 			outputFileWritable_(out);
+
+			String feature_file = getStringOption_("features");
+			bool feature_mode = false;
+			if (feature_file!="")
+			{
+				inputFileReadable_(feature_file);
+				feature_mode = true;
+			}
 			
 			//-------------------------------------------------------------
 			// loading input + calculations
 			//-------------------------------------------------------------
 			
-			//load features
-			FeatureMap<> features;
-			FeatureMapFile().load(in,features);
-			
-			//map ids to features
-			IDFeatureMapper mapper;
-			AnalysisXMLFile ax_file;
-			vector<ProteinIdentification> prot_ids;
-			vector<IdentificationData> all_ids;
-			for(UInt i = 0; i < ids.size(); ++i)
-			{
-				writeDebug_(String("Mapping ids: ") + ids[i], 2);
-				ax_file.load(ids[i],prot_ids, all_ids);
-				mapper.annotate(features,all_ids,prot_ids);
-			}
-			
-			//do merge
+			//set up ConsensusID
 			ConsensusID consensus;
 			const Param& alg_param = getParam_().copy("algorithm:",true);
-	
 			writeDebug_("Parameters passed to ConsensusID", alg_param, 3);
-			
 			if (alg_param.empty())
 			{
 				writeLog_("No parameters for ConsensusID given. Aborting!");
 				return ILLEGAL_PARAMETERS;
 			}
-			
 			consensus.setParameters(alg_param);
-			for (UInt i = 0; i < features.size(); ++i)
+
+			AnalysisXMLFile ax_file;
+			vector<ProteinIdentification> prot_ids;
+			vector<IdentificationData> all_ids;
+
+			//feature mode
+			if (feature_mode)
 			{
-				consensus.apply(features[i]);
-			}
-			//-------------------------------------------------------------
-			// writing output
-			//-------------------------------------------------------------
-			
-			all_ids.clear();
-			IdentificationData id;
-			for (UInt i = 0; i < features.size(); ++i)
-			{
-				id.rt = features[i].getRT();
-				id.mz = features[i].getMZ();
-				for (vector<Identification>::const_iterator id_it = features[i].getIdentifications().begin(); 
-						 id_it != features[i].getIdentifications().end(); 
-						 ++id_it)
+				//load features
+				FeatureMap<> features;
+				FeatureMapFile().load(feature_file,features);
+				
+				//map ids to features
+				IDFeatureMapper mapper;
+				for(UInt i = 0; i < ids.size(); ++i)
 				{
-					id.id = *id_it;
+					writeDebug_(String("Mapping ids: ") + ids[i], 2);
+					ax_file.load(ids[i],prot_ids, all_ids);
+					mapper.annotate(features,all_ids,prot_ids);
+				}
+				
+				//do consensus
+				for (UInt i = 0; i < features.size(); ++i)
+				{
+					cout << "ConsensusID -- Feature " << features[i].getRT() << " / " << features[i].getMZ() << endl;
+					consensus.apply(features[i].getIdentifications());
+				}
+				
+				// writing output
+				all_ids.clear();
+				IdentificationData id;
+				for (UInt i = 0; i < features.size(); ++i)
+				{
+					id.rt = features[i].getRT();
+					id.mz = features[i].getMZ();
+					for (vector<Identification>::const_iterator id_it = features[i].getIdentifications().begin(); 
+							 id_it != features[i].getIdentifications().end(); 
+							 ++id_it)
+					{
+						id.id = *id_it;
+						all_ids.push_back(id);
+					}
+				}
+				ax_file.store(out,features.getProteinIdentifications(),all_ids);
+			}
+			else //non-feature mode
+			{
+				//Identifications merged by precursor position
+				vector<IDData> prec_data;
+				//Storage for protein identifications
+				vector< ProteinIdentification > prot_id_out;
+				
+				//load and merge ids (by precursor position)
+				for(UInt i = 0; i < ids.size(); ++i)
+				{
+					writeDebug_(String("Mapping ids: ") + ids[i], 2);
+					ax_file.load(ids[i],prot_ids, all_ids);
+					// Append protein IDs
+					prot_id_out.insert(prot_id_out.end(), prot_ids.begin(), prot_ids.end());
+					// Insert peptide IDs
+					for (vector<IdentificationData>::iterator ins = all_ids.begin(); ins != all_ids.end(); ++ins)
+					{
+						vector<IDData>::iterator pos = prec_data.begin();
+						while (pos != prec_data.end())
+						{
+							if (fabs(pos->rt - ins->rt) < 0.1 && fabs(pos->mz - ins->mz) < 0.1 )
+							{
+								break;
+							}
+						}
+						//right position was found => append ids
+						if (pos != prec_data.end())
+						{
+							pos->ids.push_back(ins->id);
+						}
+						//insert new entry
+						else
+						{
+							IDData tmp;
+							tmp.mz = ins->mz;
+							tmp.rt = ins->rt;
+							tmp.ids.push_back(ins->id);
+							prec_data.push_back(tmp);
+						}
+					}
+				}
+				
+				//do consensus
+				for (vector<IDData>::iterator it = prec_data.begin(); it!=prec_data.end(); ++it)
+				{
+					cout << "ConsensusID -- Precursor " << it->rt << " / " << it->mz  << endl;
+					consensus.apply(it->ids);
+				}
+				
+				// writing output
+				all_ids.clear();
+				IdentificationData id;
+				for (vector<IDData>::iterator it = prec_data.begin(); it!=prec_data.end(); ++it)
+				{
+					id.rt = it->rt;
+					id.mz = it->mz;
+					id.id = it->ids[0];
 					all_ids.push_back(id);
 				}
+				ax_file.store(out,prot_id_out,all_ids);
 			}
-			ax_file.store(out,features.getProteinIdentifications(),all_ids);
-
 			return EXECUTION_OK;
 		}
 };

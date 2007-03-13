@@ -28,16 +28,16 @@
 #define OPENMS_ANALYSIS_ID_CONSENSUSID_H
 
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
+#include <OpenMS/METADATA/Identification.h>
+
+#include <vector>
 
 namespace OpenMS
 {
-	class Feature;
-	
   /**
     @brief Calculates a consensus ID from several ID runs
     
-		
-    
+		@todo document algorithms (Marc)
   */
   class ConsensusID
   	: public DefaultParamHandler
@@ -47,7 +47,7 @@ namespace OpenMS
 	  	ConsensusID();
   		
   		///Calculates the consensus ID for a Feature
-  		void apply(Feature& feature) throw (Exception::InvalidValue);
+  		void apply(std::vector<Identification>& ids) throw (Exception::InvalidValue);
   		
   	private:
   		///Hidden and not implemented copy constructor
@@ -57,11 +57,11 @@ namespace OpenMS
 			ConsensusID& operator = (const ConsensusID&);
 			
 			/// Merge algorithm
-			void merge_(Feature& feature);
+			void merge_(std::vector<Identification>& ids);
 			/// Ranked algorithm
-			void ranked_(Feature& feature);
+			void ranked_(std::vector<Identification>& ids);
 			/// Average score algorithm
-			void average_(Feature& feature);
+			void average_(std::vector<Identification>& ids);
   };
  
 } // namespace OpenMS

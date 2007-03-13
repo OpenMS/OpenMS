@@ -30,7 +30,6 @@
 #include <OpenMS/FORMAT/MascotInfile.h>
 #include <OpenMS/FORMAT/MascotOutfile.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
-#include <OpenMS/ANALYSIS/ID/IDSpectrumMapper.h>
 #include <OpenMS/FILTERING/ID/IDFilter.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/SYSTEM/File.h>
@@ -240,7 +239,6 @@ class TOPPMascotAdapter
 			String mascotXML_file_name = "";
 			MzDataFile mzdata_infile;
 			MSExperiment< Peak1D > experiment;
-			IDSpectrumMapper annotator;
 			IDFilter filter;
 			MascotXMLFile mascotXML_file;
 			MascotInfile mascot_infile;

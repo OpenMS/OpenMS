@@ -204,9 +204,9 @@ namespace OpenMS
 
 		QPen p1(QColor(130,130,130));
 		p1.setStyle(Qt::DashLine);
-		QPen p2(QColor(130,130,130));
+		QPen p2(QColor(170,170,170));
 		p2.setStyle(Qt::DashLine);
-		QPen p3(QColor(130,130,130));
+		QPen p3(QColor(230,230,230));
 		p3.setStyle(Qt::DashLine);
 	
 		painter.save();

@@ -52,8 +52,8 @@ CHECK(~ConsensusID())
 RESULT
 
 // Identification with 3 id runs is created
-std::vector<Identification> ids(3);
-std::vector<PeptideHit> hits;
+vector<Identification> ids(3);
+vector<PeptideHit> hits;
 // the first ID has 5 hits
 hits.resize(5);
 hits[0].setRank(1);
@@ -118,7 +118,7 @@ hits[9].setSequence("K");
 hits[9].setScore(1);
 ids[2].getPeptideHits() = hits;
 
-CHECK(void apply(Feature& feature) throw (Exception::InvalidValue))
+CHECK(void apply(std::vector<Identification>& ids) throw (Exception::InvalidValue))
 	PRECISION(0.01)
 	
 	// ***** Ranked ********
@@ -129,13 +129,12 @@ CHECK(void apply(Feature& feature) throw (Exception::InvalidValue))
 	param.setValue("Algorithm","Ranked");
 	param.setValue("ConsideredHits",5);
 	consensus.setParameters(param);
-	//apply to feature
-	Feature f;
-	f.setIdentifications(ids);
+	//apply
+	vector<Identification> f = ids;
 	consensus.apply(f);
 	
-	TEST_EQUAL(f.getIdentifications().size(),1);
-	hits = f.getIdentifications()[0].getPeptideHits();
+	TEST_EQUAL(f.size(),1);
+	hits = f[0].getPeptideHits();
 	TEST_EQUAL(hits.size(),7);
 	
 	TEST_EQUAL(hits[0].getRank(),1);
@@ -173,12 +172,12 @@ CHECK(void apply(Feature& feature) throw (Exception::InvalidValue))
 	param.setValue("Algorithm","Merge");
 	param.setValue("ConsideredHits",6);
 	consensus.setParameters(param);
-	//apply to feature
-	f.setIdentifications(ids);
+	//apply
+	f = ids;
 	consensus.apply(f);
 	
-	TEST_EQUAL(f.getIdentifications().size(),1);
-	hits = f.getIdentifications()[0].getPeptideHits();
+	TEST_EQUAL(f.size(),1);
+	hits = f[0].getPeptideHits();
 	TEST_EQUAL(hits.size(),7);
 	
 	TEST_EQUAL(hits[0].getRank(),1);
@@ -216,12 +215,12 @@ CHECK(void apply(Feature& feature) throw (Exception::InvalidValue))
 	param.setValue("Algorithm","Average");
 	param.setValue("ConsideredHits",4);
 	consensus.setParameters(param);
-	//apply to feature
-	f.setIdentifications(ids);
+	//apply
+	f = ids;
 	consensus.apply(f);
 	
-	TEST_EQUAL(f.getIdentifications().size(),1);
-	hits = f.getIdentifications()[0].getPeptideHits();
+	TEST_EQUAL(f.size(),1);
+	hits = f[0].getPeptideHits();
 	TEST_EQUAL(hits.size(),6);
 	
 	TEST_EQUAL(hits[0].getRank(),1);
