@@ -109,7 +109,7 @@ EXCLUDE_PATTERNS       = */.svn/* \
                          */weg/* \
                          */tmp/* \
                          *_moc*
-EXAMPLE_PATH           = 
+EXAMPLE_PATH           = ../source/EXAMPLES/
 EXAMPLE_PATTERNS       = 
 EXAMPLE_RECURSIVE      = NO
 IMAGE_PATH             = ./doxygen/images/

@@ -74,7 +74,7 @@ Todos:
   - getPrecursorRT(int scan/float RT) -> OMSSA/Inspect/Mascot/Sequest, IDSpectrumMapper updaten
   - AnalysisXML: Mods speichern
   - ID: ScoreType/AccessionType als Enum in Identification/ProteinIdentification (Richtung auch speichern)
-  - Tutorial KERNEL, FORMAT, VISUAL
+  - Tutorial KERNEL, FORMAT, VISUAL -> altes Tutorial löschen
   - make install mit prefix testen (Hiwi)
   - AndiFile auf 64 Bit geefixt (hiwi) -> Installationsanleitung + Test-Builts updaten
   
