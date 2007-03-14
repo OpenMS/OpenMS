@@ -1,4 +1,4 @@
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -10,7 +10,7 @@
 //  modify it under the terms of the GNU Lesser General Public
 //  License as published by the Free Software Foundation; either
 //  version 2.1 of the License, or (at your option) any later version.
-// 
+//
 //  This library is distributed in the hope that it will be useful,
 //  but WITHOUT ANY WARRANTY; without even the implied warranty of
 //  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
@@ -32,45 +32,47 @@
 
 #include <vector>
 
-namespace OpenMS 
+namespace OpenMS
 {
   /**
-    @brief This class serves for reading in FASTA files
-    
+		 @brief This class serves for reading in FASTA files
+
   */
   class FASTAFile
   {
-    public:
-    	
-    	/// FASTA type
-    	typedef std::vector< std::pair <String, String> > FASTAType;
-    	
-      /// Copy constructor
-      FASTAFile();
-      
-      /// Destructor
-      ~FASTAFile();
+	 public:
 
-      /**
- 				@brief loads a FASTA file given by 'filename' and stores the information in 'data'
- 				
- 				The first String in the pair corresponds to the identifier that is 
- 				written after the > in the FASTA file and the second String in the 
- 				pair corresponds to the sequence
-      */
-      void load(const String& filename, FASTAType& data) throw (Exception::FileNotFound,Exception::ParseError);
+		/**@brief
+			 FASTA entry type (first is comment, second is sequence)
 
-      /**
-      	@brief stores the data given by 'data' at the file 'filename'
- 				
- 				The first String in the pair corresponds to the identifier that is 
- 				written after the > in the FASTA file and the second String in the 
- 				pair corresponds to the sequence
-      */
-      void store(const String& filename, const FASTAType& data) const throw (Exception::UnableToCreateFile);
+			 The first String in the pair corresponds to the identifier that is
+			 written after the > in the FASTA file and the second String in the
+			 pair corresponds to the sequence.
+
+		*/
+		typedef std::pair<String, String> FASTAEntry;
+
+		/// FASTA type (a sequence of FASTA entries)
+		typedef std::vector< FASTAEntry > FASTAType;
+
+		/// Copy constructor
+		FASTAFile();
+
+		/// Destructor
+		~FASTAFile();
+
+		/**
+			 @brief loads a FASTA file given by 'filename' and stores the information in 'data'
+		*/
+		void load(const String& filename, FASTAType& data) throw (Exception::FileNotFound,Exception::ParseError);
+
+		/**
+			 @brief stores the data given by 'data' at the file 'filename'
+		*/
+		void store(const String& filename, const FASTAType& data) const throw (Exception::UnableToCreateFile);
 
   };
- 
+
 } // namespace OpenMS
 
 #endif // OPENMS_FORMAT_FASTAFILE_H

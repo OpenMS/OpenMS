@@ -93,7 +93,7 @@ namespace OpenMS
   				running_iterator++;
   			}  			  			
   		}
-			data.push_back(make_pair(actual_tag, actual_sequence));
+			data.push_back(FASTAEntry(actual_tag, actual_sequence));
 	  	actual_sequence = "";  			  			
   	}		    
   }
