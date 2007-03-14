@@ -14,5 +14,4 @@ This folder contains some useful tools for developers:
 
   checker.php        -  Reports errors in the code, test, documentation, ...
                         This tool relies on doxygen XML output.
-                        Rebuild the doceumentation in order to update the results. 
 

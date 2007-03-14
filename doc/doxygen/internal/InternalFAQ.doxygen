@@ -51,8 +51,7 @@
 				</OL>
 
 	    <li><b>How do I add a new directory in the <tt>source/</tt> directory to the built system?</b><br>
-	      Add the new directory name to the end of the
-	      '<tt>SUBDIRS</tt>' variable in <tt>source/configure.ac</tt>.
+	      Add the new directory to <tt>source/config/Makefile.in</tt>.
 
 	    <li><b>Can I use QT designer to create GUI widgets?</b><br>
 	      Yes! If you want to create a class called 'Widget':
