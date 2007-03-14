@@ -575,8 +575,8 @@ namespace OpenMS
 			
 		//Now, since we computed all scores, we can hash all mz positions
 		UInt numOfCharges = candidates.size(), numOfMZPositions = candidates[0].size();
-		//This is a vector telling us the next mz position in charge i we have to hash
-		std::vector<UInt> positions (numOfCharges, 0);
+		//This vector tells us the next mz position in charge i we have to hash
+		std::vector<Int> positions (numOfCharges, 0);
 			
 		UInt c_hash_key, count_finished_charges=0;
 		bool allZero;
