@@ -43,16 +43,7 @@ namespace OpenMS
 			map< String, pair< String, String > >& ptm_informations,
 			const String& filename):
 				XMLHandler(filename),
-				ptm_informations_(ptm_informations),
-				const_ptm_informations_()
-		{}
-
-		PTMXMLHandler::PTMXMLHandler(
-			const map< String, pair< String, String > >& ptm_informations,
-			const String& filename):
-				XMLHandler(filename),
-				ptm_informations_(),
-				const_ptm_informations_(ptm_informations)
+				ptm_informations_(ptm_informations)
 		{}
 
 		PTMXMLHandler::~PTMXMLHandler()
@@ -61,7 +52,7 @@ namespace OpenMS
 		void PTMXMLHandler::writeTo(std::ostream& os)
 		{
 			os << "<PTMs>" << std::endl;
-			for ( map< String, pair< String, String > >::const_iterator ptm_i = const_ptm_informations_.begin(); ptm_i != const_ptm_informations_.end(); ++ptm_i )
+			for ( map< String, pair< String, String > >::const_iterator ptm_i = ptm_informations_.begin(); ptm_i != ptm_informations_.end(); ++ptm_i )
 			{
 					os << "\t<PTM>" << std::endl;
 					os << "\t\t<name>" << ptm_i->first << "</name>" << std::endl; // see header

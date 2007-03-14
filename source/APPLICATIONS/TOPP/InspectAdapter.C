@@ -114,7 +114,7 @@ class TOPPInspectAdapter
 		{
 			registerStringOption_("out", "<file>", "", "output file in analysisXML format.\n"
 			                                           "Note: In mode 'inspect_in' an Inspect input file is written.");
-			registerStringOption_("in", "<file>", "", "input file in mzXML format OR directory to search in.\n"
+			registerStringOption_("in", "<file>", "", "input file in mzXML or mzData format.\n"
 					 																			"Note: In mode 'inspect_out' an Inspect results file is read");
 			registerFlag_("inspect_in", "if this flag is set the InspectAdapter will read in mzXML,\n"
 																							 "write an Inspect input file and generate a trie database");

@@ -59,7 +59,7 @@ namespace OpenMS
 				
 				The data is read in and stored in the file 'filename'.
 			*/
-			void store(String filename, const std::map< String, std::pair< String, String > >& ptm_informations) const throw (Exception::UnableToCreateFile);
+			void store(String filename, std::map< String, std::pair< String, String > >& ptm_informations) const throw (Exception::UnableToCreateFile);
 	};
  
 } // namespace OpenMS

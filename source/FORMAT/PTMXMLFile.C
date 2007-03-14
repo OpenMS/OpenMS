@@ -98,7 +98,7 @@ namespace OpenMS
 	void
 	PTMXMLFile::store(
 		String filename,
-		const map< String, pair< String, String > >& ptm_informations
+		map< String, pair< String, String > >& ptm_informations
 	) const
 	throw (
 		Exception::UnableToCreateFile

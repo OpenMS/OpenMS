@@ -47,9 +47,6 @@ namespace OpenMS
 			public:
 				/// Constructor for loading
 				PTMXMLHandler(std::map< String, std::pair< String, String > >& ptm_informations, const String& filename);
-		
-				/// Constructor for storing
-				PTMXMLHandler(const std::map< String, std::pair< String, String > >& ptm_informations, const String& filename);
 				
 				/// Destructor
 				~PTMXMLHandler();
@@ -68,7 +65,6 @@ namespace OpenMS
 				
 			protected:
 				std::map< String, std::pair< String, String > >& ptm_informations_;
-				const std::map< String, std::pair< String, String > >& const_ptm_informations_;
 				String name_, tag_, composition_;
 				bool open_tag_;
 		};
