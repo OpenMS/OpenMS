@@ -46,6 +46,7 @@ DataTable::DataTable(bool editable, QWidget *parent)
 {
   //for the actual metadata
 	mainlayout_= new QGridLayout(this);
+	mainlayout_->setMargin(0);
 	row_=0;
 }
 
@@ -151,18 +152,18 @@ void DataTable::fillComboBox(QComboBox* &ptr , const std::string* items, int agr
 void DataTable::addButton(QPushButton* &ptr, const QString &label )
 {
 	ptr = new QPushButton(label, this);
-	QSpacerItem* vspacer = new QSpacerItem( 0, 0, QSizePolicy::Expanding, QSizePolicy::Expanding );
-	mainlayout_->addItem(vspacer, row_, 0, 1, 2);
-	mainlayout_->addWidget(ptr, row_, 2);
+	QHBoxLayout* box = new QHBoxLayout();
+	box->addStretch(1);
+	box->addWidget(ptr);
+	mainlayout_->addLayout(box, row_, 0, 1, 3);
+
 	ptr->setEnabled(isEditable());
-	row_++;
-	
+	row_++;	
 }
 
 void DataTable::addVSpacer()
 {
-	QSpacerItem* vspacer = new QSpacerItem( 0, 0, QSizePolicy::Expanding, QSizePolicy::Expanding );
-	mainlayout_->addItem(vspacer, row_, 0, 1, 3);
+	mainlayout_->setRowStretch(row_,1);
 	row_++;
 }
 
@@ -170,13 +171,13 @@ void DataTable::addVSpacer()
 
 void DataTable::add2Buttons(QPushButton* &ptr1, const QString &label1, QPushButton* &ptr2, const QString &label2 )
 {
-  
 	ptr1 = new QPushButton(label1, this);
 	ptr2 = new QPushButton(label2, this);
-	QSpacerItem* vspacer = new QSpacerItem( 0, 0, QSizePolicy::Expanding, QSizePolicy::Expanding );
-	mainlayout_->addItem(vspacer, row_, 0);
-	mainlayout_->addWidget(ptr1, row_, 1);
-	mainlayout_->addWidget(ptr2, row_, 2);
+	QHBoxLayout* box = new QHBoxLayout();
+	box->addStretch(1);
+	box->addWidget(ptr1);
+	box->addWidget(ptr2);
+	mainlayout_->addLayout(box, row_, 0, 1, 3);
 	row_++;
 }
 
@@ -187,7 +188,6 @@ void DataTable::addSeperator()
 	pLabel->setFrameShape(QFrame::HLine); 
 	mainlayout_->addWidget(pLabel, row_, 0, 1, 3);
 	row_++;
-	
 }
 		
 

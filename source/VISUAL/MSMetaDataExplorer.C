@@ -56,11 +56,11 @@
 #include <OpenMS/VISUAL/VISUALIZER/SpectrumSettingsVisualizer.h>
 
 #include <QtGui/QLabel>
-#include <QtGui/QTreeWidget>
 #include <QtGui/QStackedWidget>
 #include <QtGui/QHBoxLayout>
 #include <QtGui/QPushButton>
 #include <QtGui/QMessageBox>
+#include <QtGui/QSplitter>
 
 class QLayoutItem;
 
@@ -78,7 +78,10 @@ namespace OpenMS
 	{    
 	  setModal(modal);
 	  
-		basiclayout_ = new QGridLayout(this);
+	  //splitter to hold treewidget and the right part (on a dummy widget)
+	  QGridLayout* grid = new QGridLayout(this);
+	  QSplitter* splitter = new QSplitter(Qt::Horizontal,this);
+	  grid->addWidget(splitter,0,0);
 		
 		//Create the tree for exploring data 
 		treeview_ = new QTreeWidget(this);
@@ -87,33 +90,31 @@ namespace OpenMS
 		treeview_->setRootIsDecorated(true);
 		treeview_->setColumnHidden(1,true);
 		treeview_->setColumnHidden(2,true);
-		treeview_->setMinimumWidth(450);
-	 	basiclayout_->addWidget(treeview_, 0,0,5,3);
+	 	splitter->addWidget(treeview_);
 		
-				  
+		//create a dummy widget to hold a grid layout and the item stack
+		QWidget* dummy = new QWidget(splitter);
+		splitter->addWidget(dummy);
+		grid = new QGridLayout(dummy);
+		grid->setColumnStretch(0,1);
+		
 		//Create WidgetStack for managing visible metadata
-		ws_ = new QStackedWidget(this);    
-		basiclayout_->addWidget(ws_, 0,3,3,3);
+		ws_ = new QStackedWidget(dummy);    
+		grid->addWidget(ws_,0,0,1,3);
 				
 		if(isEditable())
 		{
-			QSpacerItem* spacer = new QSpacerItem( 0, 0, QSizePolicy::Expanding, QSizePolicy::Expanding );
-			basiclayout_->addItem(spacer, 5, 3);
-			saveallbutton_ = new QPushButton("OK", this);
-		 	cancelbutton_ = new QPushButton("Cancel", this);
-			basiclayout_->addWidget(saveallbutton_, 5, 4);
-			basiclayout_->addWidget(cancelbutton_,5 ,5);
+			saveallbutton_ = new QPushButton("OK", dummy);
+		 	cancelbutton_ = new QPushButton("Cancel", dummy);
+			grid->addWidget(saveallbutton_, 1, 1);
+			grid->addWidget(cancelbutton_,1 ,2);
 			connect(saveallbutton_, SIGNAL(clicked()), this, SLOT(saveAll_())  );
 			connect(cancelbutton_, SIGNAL(clicked()), this, SLOT(reject())  );
 		}
 		else 
 		{
-			closebutton_ = new QPushButton("Close", this);
-			QSpacerItem* row_spacer = new QSpacerItem( 0, 0, QSizePolicy::Expanding, QSizePolicy::Expanding );
-			QSpacerItem* spacer = new QSpacerItem( 0, 0, QSizePolicy::Expanding, QSizePolicy::Expanding );
-			basiclayout_->addItem(row_spacer, 3,3,1,3);
-			basiclayout_->addItem(spacer, 4, 3,1,2);
-			basiclayout_->addWidget(closebutton_,4 ,5);
+			closebutton_ = new QPushButton("Close", dummy);
+			grid->addWidget(closebutton_,1 ,2);
 			connect(closebutton_, SIGNAL(clicked()), this, SLOT(reject())  );
 		}
 		

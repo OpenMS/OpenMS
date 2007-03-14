@@ -44,13 +44,13 @@ include ../common.mak
 LIB_CXXFLAGS=$(NONLIB_CXXFLAGS)
 
 #add libraries for GUI to LIBS
-LIBS=$(OPENMS_LIBS)
+LIBS=$(GUI_LIBS)
 
 .o:
 	$(CXX) $(CXXFLAGS) $*.o $(LDFLAGS) -o $@ $(LIBS)
 #
 %%.C:
-	$(CXX) $(CXXFLAGS) $(ADD_CXXFLAGS) $(CPP_MODE_FLAGS) $(OPENMS_CXXFLAGS) $(OPENMS_INCLUDES) $*.C $(LDFLAGS) -o $@ $(LIBS)
+	$(CXX) $(CXXFLAGS) $(ADD_CXXFLAGS) $(CPP_MODE_FLAGS) $(OPENMS_CXXFLAGS) $(GUI_INCLUDES) $*.C $(LDFLAGS) -o $@ $(LIBS)
 
 bench:	$(EXECUTABLES)
 	@./runbenchmarks $(EXECUTABLES)

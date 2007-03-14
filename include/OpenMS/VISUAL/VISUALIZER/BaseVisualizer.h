@@ -30,15 +30,17 @@
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/VISUAL/DataTable.h>
 
-namespace OpenMS {
-/**
-@brief A base class for all visualizer classes
-
-This class is a basic class for all visualizer classes. It is an abstract class.
-It provides some functions that are implemented in the subclasses. <br>
-Increases ease of use to store data.
-*/	
-	class BaseVisualizer : public DataTable
+namespace OpenMS 
+{
+	/**
+		@brief A base class for all visualizer classes
+		
+		This class is a basic class for all visualizer classes. It is an abstract class.
+		It provides some functions that are implemented in the subclasses. <br>
+		Increases ease of use to store data.
+	*/	
+	class BaseVisualizer 
+		: public DataTable
 	{
 		Q_OBJECT
 
@@ -61,7 +63,7 @@ Increases ease of use to store data.
 	    ///Undo buttons.	
 			QPushButton *undobutton_;		
 			
-			private slots:
+		private slots:
 			///Saves the changes made to the object.
 			virtual void store()=0;
 			

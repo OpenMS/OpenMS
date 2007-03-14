@@ -58,17 +58,12 @@ namespace OpenMS
 	
 	void BaseVisualizer::finishAdding_()
 	{
-		
-		
 		if(isEditable())
 		{	
-		
 			addSeperator();
 			addButton(undobutton_, "Undo");
 			connect(undobutton_, SIGNAL(clicked()), this, SLOT(reject()) );
 		}
-		
 		addVSpacer();
 	}
-
 }

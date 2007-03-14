@@ -31,10 +31,10 @@
 
 //QT
 #include <QtGui/QDialog>
+#include <QtGui/QTreeWidget>
 class QTreeWidgetItem;
 class QPushButton;
 class QStackedWidget;
-class QTreeWidget;
 class QHBoxLayout;
 class QVBoxLayout;
 class QGridLayout;
@@ -99,6 +99,7 @@ namespace OpenMS
 			template <class T> void add(T *ptr ) 
 			{                
 				visualize_(*ptr);
+				treeview_->expandAll();
 			}
 			
 			///	 Check if mode is editable or not
@@ -233,9 +234,6 @@ namespace OpenMS
 			
 			/// Indicates the mode
 			bool editable_;
-			
-			/// Basic layout.
-			QGridLayout* basiclayout_;	
 			
 			/// A widgetstack that keeps track of all widgets.
 			QStackedWidget* ws_;
