@@ -76,7 +76,7 @@ namespace OpenMS
 	String File::path(const string& file)
 	{
 		QFileInfo fi(file.c_str());
-		return fi.filePath().toAscii().data();
+		return fi.path().toAscii().data();
 	}
 
 	bool File::readable(const string& file)
