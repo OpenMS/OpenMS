@@ -401,6 +401,21 @@ namespace OpenMS
 
   float TOPPViewBase::estimateNoise_(const SpectrumCanvas::ExperimentType& exp)
   {
+  	//test if no scans with MS-level 1 exist => prevent deadlock
+  	bool ms1_present = false;
+  	for (UInt i = 0; i < exp.size(); ++i)
+  	{
+  		if (exp[i].getMSLevel()==1)
+  		{
+  			ms1_present = true;
+  			break;
+  		}
+  	}
+  	if (!ms1_present)
+  	{
+  		return 0.0;
+  	}
+  	
     float noise = 0.0;
     UInt count = 0;
     srand(time(0));
@@ -481,6 +496,14 @@ namespace OpenMS
       QMessageBox::warning(this,"Open file error",("Could not determine file type of '"+filename+"'!").c_str());
       return;
 		}
+
+#ifdef DEBUG_TOPP
+		cout << "TOPPViewBase::addSpectrum():";
+		cout << " - File name: " << filename << endl;
+		cout << " - File type: " << fh.typeToName(force_type) << endl;
+		cout << " - New Window: " << as_new_window << endl;
+		cout << " - Map as 2D: " << maps_as_2d << endl;		
+#endif
 
     if (as_new_window)
     {

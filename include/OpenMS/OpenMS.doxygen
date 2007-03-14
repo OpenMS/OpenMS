@@ -71,10 +71,12 @@ Todos:
     - MainLoop rausfaktorieren
 
 - OpenMS
-  - getPrecursorRT(int scan/ float RT) -> OMSSA/Inspect/Mascot/Sequest, IDSpectrumMapper updaten
+  - getPrecursorRT(int scan/float RT) -> OMSSA/Inspect/Mascot/Sequest, IDSpectrumMapper updaten
   - AnalysisXML: Mods speichern
   - ID: ScoreType/AccessionType als Enum in Identification/ProteinIdentification (Richtung auch speichern)
   - Tutorial KERNEL, FORMAT, VISUAL
+  - make install mit prefix testen (Hiwi)
+  - AndiFile auf 64 Bit geefixt (hiwi) -> Installationsanleitung + Test-Builts updaten
   
 -TOPPView:
   - Zoom und Move zusammen
@@ -90,6 +92,6 @@ Todos:
     - über Scrollrad in allen Modi
     - ungenau wenn man weit reinzoomt
   - Scrollen mit RT-Achse geht nicht
-  - generisches TOPP Menu
+  - generisches TOPP Menu (Hiwi)
 
 ***********************************************************************/

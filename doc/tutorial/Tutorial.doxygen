@@ -135,7 +135,7 @@
   DateTime and DataValue. Making yourself familiar with these Qt classes would be
   no harm!
 
-@section datastructures_dposition d-dimensional coordinates
+@section datastructures_dposition D-dimensional coordinates
 
   Many OpenMS classes, especially the kernel classes, need to store some kind of 
   d-dimensional coordinates. The template class 'DPosition' is used for that purpose.
@@ -159,7 +159,7 @@
     Dimension 1: 47.11
 	@endcode
   
-@section datastructures_drange d-dimensional coordinates
+@section datastructures_drange D-dimensional ranges
 	
   Another important datastructure we need to look at in detail is 'DRange'. 
   It defines a d-dimensional, half-open interval through its two 'DPosition' members.

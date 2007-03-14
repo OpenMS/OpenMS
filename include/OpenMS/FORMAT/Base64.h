@@ -45,7 +45,8 @@ namespace OpenMS
 		Base64 supports endian-conversion only for little-endian machines:
 		to handle big endian data call decode***Corrected() and encode***Corrected().
 		
-		@todo Speed up by writing to MSExperiment directly (Marc)
+		@todo Use vector of char / double / float instead of buffers (Thomas S.)	
+  	@todo Fix problems on Big Endian machines (Thomas S.)	
   */
   class Base64
   {

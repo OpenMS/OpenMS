@@ -467,7 +467,7 @@ namespace OpenMS
 		void visibleAreaChanged(DRange<2> area); //Do not change this to AreaType! QT needs the exact type...
 				
 		/// Emited when the cursor position changes (for displaying in status bar)
-		void sendCursorStatus(double pos=-1.0, double intens=-1.0, double rt=-1.0);
+		void sendCursorStatus(double mz=-1.0, double intens=-1.0, double rt=-1.0);
 
 		/// Displays a status message. See TOPPViewBase::showStatusMessage .
 		void sendStatusMessage(std::string, OpenMS::UInt);

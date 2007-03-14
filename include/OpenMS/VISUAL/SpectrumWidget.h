@@ -138,7 +138,7 @@ namespace OpenMS
 			/// Displays a status message. See TOPPViewBase::showStatusMessage .
 			void sendStatusMessage(std::string, OpenMS::UInt);
 			/// Displays peak information in the status bar (m/z, RT, intensity)
-			void sendCursorStatus(double,double,double);
+			void sendCursorStatus(double mz=-1.0, double intens=-1.0, double rt=-1.0);
 		  /// Message about the destruction of this widget
 		  void aboutToBeDestroyed(int window_id);
 		  /// Shows the main preferences dialog

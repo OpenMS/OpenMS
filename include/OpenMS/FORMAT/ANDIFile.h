@@ -38,7 +38,7 @@ namespace OpenMS
   /**
   	@brief File adapter for ANDI/MS files
 
-  	
+  	@todo Fix for 64 bit (Thomas S.)	
   
   	@ingroup FileIO
   */

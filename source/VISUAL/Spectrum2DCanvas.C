@@ -1006,7 +1006,7 @@ namespace OpenMS
 		show_surface_.push_back(false);
 		show_dots_.push_back(true);
 		
-		if (layers_.back().type==LayerData::DT_PEAK) //Feature data
+		if (layers_.back().type==LayerData::DT_PEAK) //peak data
 		{
 			currentPeakData_().sortSpectra(true);
 			currentPeakData_().updateRanges(1);
@@ -1014,9 +1014,8 @@ namespace OpenMS
 			getCurrentLayer_().max_int = getCurrentPeakData().getMaxInt();
 			update_buffer_ = true;
 		}
-		else //peak data
+		else //feature data
 		{
-
 			getCurrentLayer_().features.updateRanges();
 			getCurrentLayer_().max_int = getCurrentLayer().features.getMaxInt();
 		}
@@ -1426,7 +1425,7 @@ namespace OpenMS
 						if (max_peak && max_peak != selected_peak_ && !measurement_start_)
 						{
 							//show Peak Coordinates
-							emit sendCursorStatus(max_peak->getRT(), max_peak->getIntensity(), max_peak->getMZ());
+							emit sendCursorStatus(max_peak->getMZ(), max_peak->getIntensity(), max_peak->getRT());
 							string meta = max_peak->getMetaValue(3).toString();
 							if (meta!="")
 								sendStatusMessage(meta, 0);
@@ -1443,13 +1442,13 @@ namespace OpenMS
 					
 						if (measurement_stop_)
 						{
-							emit sendCursorStatus(measurement_stop_->getRT() - measurement_start_->getRT(),
+							emit sendCursorStatus(measurement_stop_->getMZ() - measurement_start_->getMZ(),
 							                      measurement_stop_->getIntensity() / measurement_start_->getIntensity(),
-							                      measurement_stop_->getMZ() - measurement_start_->getMZ());
+							                      measurement_stop_->getRT() - measurement_start_->getRT());
 						}
 						else
 						{
-							emit sendCursorStatus(measurement_start_->getRT(), measurement_start_->getIntensity(), measurement_start_->getMZ());
+							emit sendCursorStatus(measurement_start_->getMZ(), measurement_start_->getIntensity(), measurement_start_->getRT());
 						}
 					}
 				}
@@ -1502,7 +1501,7 @@ namespace OpenMS
 			{
 				//show Peak Coordinates
 				PointType pnt = widgetToData_(pos);
-				emit sendCursorStatus( pnt[RawDataPoint2D::RT], -1.0, pnt[RawDataPoint2D::MZ]);
+				emit sendCursorStatus( pnt[0], -1.0, pnt[1]);
 				
 				if (e->buttons() & Qt::LeftButton)
 				{
