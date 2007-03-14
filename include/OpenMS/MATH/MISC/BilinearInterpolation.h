@@ -95,10 +95,10 @@ namespace OpenMS
 					offset_0_ ( offset_0 ),
 					scale_1_  ( scale_1 ),
 					offset_1_ ( offset_1 ),
-					inside_0_  (),
-					outside_0_ (),
-					inside_1_  (),
-					outside_1_ (),
+					inside_0_  ( 0 ),
+					outside_0_ ( 0 ),
+					inside_1_  ( 1 ),
+					outside_1_ ( 1 ),
 					data_   ()
 			{}
 
@@ -107,7 +107,7 @@ namespace OpenMS
 				: scale_0_  ( arg.scale_0_ ),
 					offset_0_ ( arg.offset_0_ ),
 					scale_1_  ( arg.scale_1_ ),
-					offset_1_ ( arg.offset_0_ ),
+					offset_1_ ( arg.offset_1_ ),
 					inside_0_ ( arg.inside_0_ ),
 					outside_0_ (arg.outside_0_ ),
 					inside_1_ ( arg.inside_1_ ),
@@ -127,7 +127,8 @@ namespace OpenMS
 				outside_1_ = arg.outside_1_;
 				inside_1_  = arg.inside_1_;
 				outside_0_ = arg.outside_0_;
-				data_    = arg.data_;
+				data_      = arg.data_;
+				return *this;
 			}
 
 			/// Destructor.

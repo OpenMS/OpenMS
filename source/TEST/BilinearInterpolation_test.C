@@ -1,4 +1,4 @@
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -82,7 +82,6 @@ typedef BilinearInterpolation < float, double > BIFD;
 //-----------------------------------------------------------
 CHECK( default constructor )
 {
-	typedef BilinearInterpolation < float, double > BIFD;
 	BIFD bifd;
 }
 RESULT
@@ -216,7 +215,34 @@ RESULT
 
 CHECK(BilinearInterpolation( BilinearInterpolation const & arg ))
 {
-  // ???
+	BIFD::ContainerType v;
+	v.resize(2,3);
+	v(0,0) = 17;
+	v(0,1) = 18.9;
+	v(0,2) = 20.333;
+	v(1,0) = -.1;
+	v(1,1) = -.13;
+	v(1,2) = -.001;
+
+	BIFD bifd;
+	bifd.setData(v);
+	bifd.setMapping_0( 13, 230, 14, 250 );
+	bifd.setMapping_1( 15, 2100, 17, 2900 );
+
+	// do it
+	BIFD bifd2 = bifd;
+
+	TEST_REAL_EQUAL(bifd2.getScale_0(), 20);
+	TEST_REAL_EQUAL(bifd2.getScale_1(), 400);
+	TEST_REAL_EQUAL(bifd2.getOffset_0(), -30);
+	TEST_REAL_EQUAL(bifd2.getOffset_1(), -3900);
+	TEST_REAL_EQUAL(bifd2.getInsideReferencePoint_0(), 13);
+	TEST_REAL_EQUAL(bifd2.getOutsideReferencePoint_0(), 230);
+	TEST_REAL_EQUAL(bifd2.getInsideReferencePoint_1(), 15);
+	TEST_REAL_EQUAL(bifd2.getOutsideReferencePoint_1(), 2100);
+	for ( UInt i = 0; i < v.rows(); ++i )
+		for ( UInt j = 0; j < v.cols(); ++j )
+			TEST_EQUAL(bifd2.getData()(i,j),v(i,j));
 }
 RESULT
 
@@ -333,17 +359,20 @@ RESULT
 
 CHECK((void addValue( KeyType arg_pos_0, KeyType arg_pos_1, ValueType arg_value ) throw()))
 {
+	
+#define verbose(a)
+	// #define verbose(a) a
 
 	for ( int i = -50; i <= 100; ++i )
 	{
 		float p = i / 10.;
-		STATUS(i);
+		verbose(STATUS(i));
 
 		for ( int j = -50; j <= 100; ++j )
 		{
 			float q = j / 10.;
-			STATUS("i: " << i);
-			STATUS("j: " << j);
+			verbose(STATUS("i: " << i));
+			verbose(STATUS("j: " << j));
 
 			BIFD bifd_small;
 			bifd_small.getData().resize(5,5,0);
@@ -354,7 +383,7 @@ CHECK((void addValue( KeyType arg_pos_0, KeyType arg_pos_1, ValueType arg_value 
 						iter != bifd_small.getData().end();
 						++iter
 					) *iter = round(*iter);
-			STATUS("          " << bifd_small.getData());
+			verbose(STATUS("          " << bifd_small.getData()));
 
 			BIFD bifd_big;
 			bifd_big.getData().resize(15,15,0);
@@ -365,7 +394,7 @@ CHECK((void addValue( KeyType arg_pos_0, KeyType arg_pos_1, ValueType arg_value 
 						iter != bifd_big.getData().end();
 						++iter
 					) *iter = round(*iter);
-			STATUS(bifd_big.getData());
+			verbose(STATUS(bifd_big.getData()));
 
 			BIFD::ContainerType big_submatrix;
 			big_submatrix.resize(5,5);
