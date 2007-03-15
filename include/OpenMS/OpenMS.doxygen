@@ -79,10 +79,14 @@ Todos:
   - AndiFile auf 64 Bit geefixt (hiwi) -> Installationsanleitung + Test-Builts updaten
   
 -TOPPView:
+  - Recent -> als neues Layer
+  - Features -> Convexe Hülle, Punkte, Nummern einzeln abschaltbar
+  - Prozent / Snap gleichzeitig
   - Zoom und Move zusammen
   - Kontextmenu
     - show scan
     - show precursor spectrum
+    - show in 3D (zoom bereich)
   - Projektionen
     - Folgen immer dem 2D view
     - einzeln abschaltbar

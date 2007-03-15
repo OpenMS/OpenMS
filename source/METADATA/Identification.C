@@ -145,10 +145,10 @@ namespace OpenMS {
   	protein_hits_ = protein_hits;
   }
   
-  void Identification::assignRanks()
+  void Identification::assignRanks(bool inverse_score)
   {
     UInt rank = 1;
-    sort();
+    sort(inverse_score);
     for ( vector<PeptideHit>::iterator lit = peptide_hits_.begin(); lit != peptide_hits_.end(); ++lit )
     {
       lit->setRank(rank++);
@@ -160,10 +160,17 @@ namespace OpenMS {
     }
   }
     
-  void Identification::sort()
+  void Identification::sort(bool inverse_score)
   {
-  	ProteinIdentification::sort();		
-		std::sort(peptide_hits_.begin(), peptide_hits_.end(), ScoreMore());
+  	ProteinIdentification::sort(inverse_score);
+   	if (inverse_score)
+  	{
+			std::sort(peptide_hits_.begin(), peptide_hits_.end(), ScoreLess());
+  	}
+  	else
+  	{
+  		std::sort(peptide_hits_.begin(), peptide_hits_.end(), ScoreMore());
+  	}
   }
   
 	bool Identification::empty() const

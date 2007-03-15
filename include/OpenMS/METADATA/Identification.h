@@ -91,14 +91,22 @@ namespace OpenMS
 		/// clears all information of this instance
     void clear();
 
-		/// sorts the peptide and protein hits according to their score
-		void sort();
+		/**
+			@brief sorts the peptide and protein hits according to their score
+					
+			@param inverse_score Setting this flag to true indiciates that a lower score is better
+		*/
+		void sort(bool inverse_score = false);
 
 		/// tests whether there is no information stored
 		bool empty() const;
 
-		/// sorts the peptide hits by sort() and assigns ranks according to the sorting
-    void assignRanks();
+		/**
+			@brief sorts the peptide hits by sort() and assigns ranks according to the sorting
+			
+			@param inverse_score Setting this flag to true indiciates that a lower score is better
+		*/
+    void assignRanks(bool inverse_score = false);
     
 		/**
 			@brief returns all referencing hits

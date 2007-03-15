@@ -82,8 +82,12 @@ namespace OpenMS
 		/// setting of the protein significance threshold value
 		void setProteinSignificanceThreshold(Real value);
 
-		/// assigns ranks to the stored protein hits according to their score
-    void assignRanks();
+		/**
+			@brief assigns ranks to the stored protein hits according to their score
+			
+			@param inverse_score Setting this flag to true indiciates that a lower score is better
+		*/
+    void assignRanks(bool inverse_score = false);
 
 		/// retrival of the date of the identification
     DateTime& getDateTime();
@@ -97,8 +101,12 @@ namespace OpenMS
 		/// clears all information of this instance
     void clear();
 
-		/// sorts the protein hits according to their score
-		void sort();
+		/**
+			@brief sorts the protein hits according to their score
+			
+			@param inverse_score Setting this flag to true indiciates that a lower score is better
+		*/
+		void sort(bool inverse_score = false);
 
 		/// tests wether there is no information stored
 		bool empty() const;
@@ -116,17 +124,28 @@ namespace OpenMS
       }
     };
     
-    /// predicate for sorting the hits     
+    /// Greater predicate for scores of hits 
     class ScoreMore
     {
-    public:
-    	template<typename Arg>
-      bool operator()(const Arg& a, const Arg& b)
-      {
-        return a.getScore() > b.getScore();
-      }
+	    public:
+	    	template<typename Arg>
+	      bool operator()(const Arg& a, const Arg& b)
+	      {
+	        return a.getScore() > b.getScore();
+	      }
     };
-   
+
+    /// Lesser predicate for scores of hits
+    class ScoreLess
+    {
+	    public:
+	    	template<typename Arg>
+	      bool operator()(const Arg& a, const Arg& b)
+	      {
+	        return a.getScore() < b.getScore();
+	      }
+    };
+
     DateTime date_;																		///< the date when the search was performed
     std::vector<ProteinHit> protein_hits_;						///< a list containing the protein hits
     Real protein_significance_threshold_;						///< the protein significance threshold

@@ -38,6 +38,7 @@ namespace OpenMS
     @brief Calculates a consensus ID from several ID runs
     
 		@todo document algorithms (Marc)
+		@todo Add tests for inverse order (Marc)
   */
   class ConsensusID
   	: public DefaultParamHandler
@@ -62,6 +63,9 @@ namespace OpenMS
 			void ranked_(std::vector<Identification>& ids);
 			/// Average score algorithm
 			void average_(std::vector<Identification>& ids);
+			
+			/// This flag indicates that a bigger score is better
+			bool inverse_order_;
   };
  
 } // namespace OpenMS

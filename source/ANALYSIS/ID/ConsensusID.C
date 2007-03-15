@@ -33,11 +33,13 @@ using namespace std;
 namespace OpenMS 
 {
 	ConsensusID::ConsensusID()
-		: DefaultParamHandler("ConsensusID")
+		: DefaultParamHandler("ConsensusID"),
+			inverse_order_(false)
 	{
 		defaults_.setValue("Algorithm","Ranked");
 		defaults_.setValue("ConsideredHits","10");
 		defaults_.setValue("NumberOfRuns","0");
+		defaults_.setValue("InverseOrder","0");
 		
 		defaultsToParam_();
 	}
@@ -50,26 +52,34 @@ namespace OpenMS
 			return;
 		}
 		
+		//check order
+		if ((UInt)(param_.getValue("InverseOrder"))!=0)
+		{
+			inverse_order_ = true;
+		}
+		
 		String algorithm = param_.getValue("Algorithm");
 		
 		if (algorithm == "Ranked")
 		{
 			ranked_(ids);
+			ids[0].assignRanks();
 		}
 		else if (algorithm == "Merge")
 		{	
 			merge_(ids);
+			ids[0].assignRanks(inverse_order_);
 		}
 		else if (algorithm == "Average")
 		{	
 			average_(ids);
+			ids[0].assignRanks(inverse_order_);
 		}
 		else
 		{
 			throw Exception::InvalidValue(__FILE__,__LINE__,__PRETTY_FUNCTION__,"There is no such ConsensusID algorithm!",algorithm);
 		}
 		
-		ids[0].assignRanks();
 #ifdef DEBUG_ID_CONSENSUS
 		vector<PeptideHit>& hits2 = ids[0].getPeptideHits();
 		for (UInt i=0; i< hits2.size(); ++i)
@@ -84,6 +94,7 @@ namespace OpenMS
 		map<String,Real> scores;		
 		UInt considered_hits = (UInt)(param_.getValue("ConsideredHits"));
 		UInt number_of_runs = (UInt)(param_.getValue("NumberOfRuns"));
+		
 		//iterate over the different ID runs
 		for (vector<Identification>::iterator id = ids.begin(); id != ids.end(); ++id)
 		{
@@ -91,7 +102,7 @@ namespace OpenMS
 					//cout << " - ID run" << endl;
 #endif
 			//make sure that the ranks are present
-			id->assignRanks();
+			id->assignRanks(inverse_order_);
 			//iterate over the hits
 			UInt hit_count = 1;
 			for (vector<PeptideHit>::const_iterator hit = id->getPeptideHits().begin(); hit != id->getPeptideHits().end() && hit_count <= considered_hits; ++hit)
@@ -148,7 +159,7 @@ namespace OpenMS
 	{
 		map<String,Real> scores;		
 		UInt considered_hits = (UInt)(param_.getValue("ConsideredHits"));
-		
+				
 		//store the score type (to make sure only IDs of the same type are merged)
 		String score_type = ids[0].getPeptideHits().begin()->getScoreType();
 		//iterate over the different ID runs
@@ -160,7 +171,7 @@ namespace OpenMS
 				cerr << "Warning: You are merging differnt types of scores: '" << score_type << "' and '" << id->getPeptideHits().begin()->getScoreType() << "'" << endl;
 			}
 			//make sure that the ranks are present
-			id->assignRanks();
+			id->assignRanks(inverse_order_);
 			//iterate over the hits
 			UInt hit_count = 1;
 			for (vector<PeptideHit>::const_iterator hit = id->getPeptideHits().begin(); hit != id->getPeptideHits().end() && hit_count <= considered_hits; ++hit)
@@ -203,6 +214,7 @@ namespace OpenMS
 		map<String,Real> scores;		
 		UInt considered_hits = (UInt)(param_.getValue("ConsideredHits"));
 		UInt number_of_runs = (UInt)(param_.getValue("NumberOfRuns"));
+		
 		//iterate over the different ID runs
 		for (vector<Identification>::iterator id = ids.begin(); id != ids.end(); ++id)
 		{
@@ -210,7 +222,7 @@ namespace OpenMS
 			//cout << " - ID run" << endl;
 #endif
 			//make sure that the ranks are present
-			id->assignRanks();
+			id->assignRanks(inverse_order_);
 			//iterate over the hits
 			UInt hit_count = 1;
 			for (vector<PeptideHit>::const_iterator hit = id->getPeptideHits().begin(); hit != id->getPeptideHits().end() && hit_count <= considered_hits; ++hit)
