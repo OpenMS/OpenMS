@@ -283,7 +283,7 @@ FeatureFinder_test: $(NUMERICDIFF)
 	@$(ECHO) ""
 	@$(ECHO) "FeatureFinder:"
 
-	@$(ECHO) "- Test 1:"
+	@$(ECHO) "- Test 1 (raw data) :"
 	@$(call RUN_PROG_OPT,FeatureFinder,\
 	-ini FeatureFinder_1_parameters.ini \
 	-in FeatureFinder_1_input.mzData \
@@ -296,7 +296,20 @@ FeatureFinder_test: $(NUMERICDIFF)
 	-in FeatureFinder_2_input.mzData \
 	-out FeatureFinder_2_output.tmp)
 	@$(call TEST_FILE_EQUAL,FeatureFinder_2_output.xml)
-
+ 
+	@$(ECHO) "- Test 3 (raw data, using SimpleModelFitter):"
+	@$(call RUN_PROG_OPT,FeatureFinder,\
+	-ini FeatureFinder_3_parameters.ini \
+	-in FeatureFinder_1_input.mzData \
+	-out FeatureFinder_3_output.tmp)
+	@$(call TEST_FILE_EQUAL,FeatureFinder_3_output.xml)
+	
+	@$(ECHO) "- Test 4 (picked data, using SimpleModelFitter):"
+	@$(call RUN_PROG_OPT,FeatureFinder,\
+	-ini FeatureFinder_4_parameters.ini \
+	-in FeatureFinder_2_input.mzData \
+	-out FeatureFinder_4_output.tmp)
+	@$(call TEST_FILE_EQUAL,FeatureFinder_4_output.xml)
 
 FeaturePairSplitter_test: $(NUMERICDIFF)
 	@$(ECHO) ""
