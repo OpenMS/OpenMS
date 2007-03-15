@@ -61,18 +61,18 @@ class TestExtender : public BaseExtender
 
 // default ctor
 TestExtender* ptr = 0;
-CHECK(TestExtender())
+CHECK((BaseExtender()))
 	ptr = new TestExtender();
 	TEST_NOT_EQUAL(ptr, 0)
 RESULT
 
 // destructor
-CHECK(~TestExtender())
+CHECK((virtual ~BaseExtender()))
 	delete ptr;
 RESULT
 
 // assignment operator
-CHECK(TestExtender& operator = (const TestExtender& source))
+CHECK((virtual BaseExtender& operator=(const BaseExtender &source)))
 	TestExtender tm1;
   TestExtender tm2;
   tm2 = tm1;
@@ -84,7 +84,7 @@ CHECK(TestExtender& operator = (const TestExtender& source))
 RESULT
 
 // copy constructor
-CHECK(TestExtender(const TestExtender& source))
+CHECK((BaseExtender(const BaseExtender &source)))
 	TestExtender fp1;	
  
   TestExtender fp2(fp1);
@@ -95,7 +95,7 @@ CHECK(TestExtender(const TestExtender& source))
 	TEST_EQUAL(fp2, fp3)
 RESULT
 
-CHECK(const IndexSet& extend(const IndexSet& seed_region))
+CHECK((virtual const IndexSet& extend(const IndexSet &seed_region)=0))
 	TestExtender text;
 	FeaFiModule::IndexSet  inds;
 	inds.insert(std::make_pair(7,7));
@@ -103,7 +103,7 @@ CHECK(const IndexSet& extend(const IndexSet& seed_region))
   TEST_EQUAL(result.size(),0)
 RESULT
 
-CHECK(static void registerChildren())
+CHECK((static void registerChildren()))
 	// not much happening here
 RESULT
 

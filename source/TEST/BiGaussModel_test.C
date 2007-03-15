@@ -44,25 +44,25 @@ using std::stringstream;
 
 // default ctor
 BiGaussModel* ptr = 0;
-CHECK(BiGaussModel())
+CHECK((BiGaussModel()))
 	ptr = new BiGaussModel();
   TEST_EQUAL(ptr->getName(), "BiGaussModel")
 	TEST_NOT_EQUAL(ptr, 0)
 RESULT
 
 // destructor
-CHECK(~BiGaussModel())
+CHECK((virtual ~BiGaussModel()))
 	delete ptr;
 RESULT
 
 
-CHECK(const String getName())
+CHECK((static const String getProductName()))
 	TEST_EQUAL(BiGaussModel::getProductName(),"BiGaussModel")
 	TEST_EQUAL(BiGaussModel().getName(),"BiGaussModel")
 RESULT
 
 // assignment operator
-CHECK(BiGaussModel& operator = (const BiGaussModel& source))
+CHECK((virtual BiGaussModel& operator=(const BiGaussModel &source)))
 	BiGaussModel bgm1;
 	bgm1.setScalingFactor(10.0);
 	bgm1.setInterpolationStep(0.3);
@@ -88,7 +88,7 @@ CHECK(BiGaussModel& operator = (const BiGaussModel& source))
 RESULT
 
 // copy ctor
-CHECK(BiGaussModel(const BiGaussModel& source))
+CHECK((BiGaussModel(const BiGaussModel& source)))
 	BiGaussModel bgm1;
 	BasicStatistics<>  stat;
 	bgm1.setScalingFactor(10.0);
@@ -143,7 +143,7 @@ CHECK([EXTRA] DefaultParamHandler::setParameters(...))
 	}
 RESULT
 
-CHECK(void setOffset(double offset))
+CHECK((void setOffset(double offset)))
 	BiGaussModel bgm1;
 	
 	Param tmp;

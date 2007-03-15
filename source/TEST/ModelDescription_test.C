@@ -45,18 +45,18 @@ using std::stringstream;
 
 // default ctor
 ModelDescription<2>* ptr = 0;
-CHECK(ModelDescription<2>())
+CHECK((ModelDescription()))
 	ptr = new ModelDescription<2>();
 	TEST_NOT_EQUAL(ptr, 0)
 RESULT
 
 // destructor
-CHECK(ModelDescription<2>())
+CHECK((virtual ~ModelDescription()))
 	delete ptr;
 RESULT
 
 // assignment operator
-CHECK(ModelDescription<2>& operator = (const ModelDescription<2>& source))
+CHECK((virtual ModelDescription& operator=(const ModelDescription &source)))
 	ModelDescription<2> tm1;
   tm1.setName("halligalli");
   ModelDescription<2> tm2;
@@ -70,7 +70,7 @@ CHECK(ModelDescription<2>& operator = (const ModelDescription<2>& source))
 RESULT
 
 // copy constructor
-CHECK(ModelDescription<2>(const ModelDescription<2>& source))
+CHECK((ModelDescription(const ModelDescription &source)))
 	ModelDescription<2> fp1;	
   fp1.setName("halligalli2000");
 
@@ -82,18 +82,18 @@ CHECK(ModelDescription<2>(const ModelDescription<2>& source))
 	TEST_EQUAL(fp2==fp3,true)
 RESULT
 
-CHECK(String getName() const)
+CHECK((const String& getName() const ))
   const ModelDescription<2> m;
   TEST_EQUAL(m.getName(), "")
 RESULT
 
-CHECK(String setName() )
+CHECK((void setName(const String &name)))
   ModelDescription<2> m;
 	m.setName("halligalli2006");
   TEST_EQUAL(m.getName(), "halligalli2006")
 RESULT
 
-CHECK(String getParam() const)
+CHECK((const Param& getParam() const ))
   ModelDescription<2> m;
 	Param p;
 	p.setValue("x1",1.0);
@@ -102,7 +102,7 @@ CHECK(String getParam() const)
   TEST_EQUAL(m.getParam(), p)
 RESULT
 
-CHECK(String setName() )
+CHECK((void setName(const String &name)))
   ModelDescription<2> m;
 	m.setName("halligalli2006");
   TEST_EQUAL(m.getName(), "halligalli2006")

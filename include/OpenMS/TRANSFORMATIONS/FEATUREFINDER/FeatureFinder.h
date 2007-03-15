@@ -144,7 +144,7 @@ namespace OpenMS
 	
 		protected:
 	
-	    inline bool setModule(const String& module)
+	    inline bool setModule_(const String& module)
 	    {
 	      Param mod_param = param_.copy(module+":",true);
 	      if (mod_param.empty()) return false;

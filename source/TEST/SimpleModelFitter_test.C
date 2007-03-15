@@ -52,18 +52,18 @@ enum
 
 // default ctor
 SimpleModelFitter* ptr = 0;
-CHECK(SimpleModelFitter())
+CHECK((SimpleModelFitter()))
 	ptr = new SimpleModelFitter();
   TEST_EQUAL(ptr->getName(), "SimpleModelFitter")
 	TEST_NOT_EQUAL(ptr, 0)
 RESULT
 
 // destructor
-CHECK(~SimpleModelFitter())
+CHECK((virtual ~SimpleModelFitter()))
 	delete ptr;
 RESULT
 
-CHECK(void SimpleModelFitter::setParameters(const Param& param))
+CHECK(([EXTRA]void SimpleModelFitter::setParameters(const Param& param)))
 	SimpleModelFitter* fitter = new SimpleModelFitter();
 	Param p1;
 
@@ -96,7 +96,7 @@ CHECK(void SimpleModelFitter::setParameters(const Param& param))
 RESULT
 
 
-CHECK( Feature fit(const IndexSet& set) throw (UnableToFit))
+CHECK((Feature fit(const IndexSet &range)))
 	// Test Gauss Fitting (mz/rt)
 	const double default_precision = 0.1;
 	PRECISION(default_precision)
@@ -195,7 +195,7 @@ CHECK( Feature fit(const IndexSet& set) throw (UnableToFit))
 RESULT
 
 
-CHECK( Feature fit(const IndexSet& set) throw (UnableToFit))
+CHECK(([EXTRA]Feature fit(const IndexSet& set) throw (UnableToFit)))
 	// Test Isotope/Bigauss Fitting (mz/rt)
 	const double default_precision = 0.1;
 	PRECISION(default_precision)

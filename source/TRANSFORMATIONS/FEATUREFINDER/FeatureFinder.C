@@ -139,17 +139,17 @@ namespace OpenMS
 		}
 		else
 		{
-			if (!setModule("Seeders"))
+			if (!setModule_("Seeders"))
 			{
 				cerr << "Error: Could not set Seeders module" << endl;
 				return false;
 			}
-			if (!setModule("Extenders"))
+			if (!setModule_("Extenders"))
 			{
 				cerr << "Error: Could not set Extenders module" << endl;
 				return false;
 			}
-			if (!setModule("ModelFitters"))
+			if (!setModule_("ModelFitters"))
 			{
 				cerr << "Error: Could not set ModelFitters module" << endl;
 				return false;

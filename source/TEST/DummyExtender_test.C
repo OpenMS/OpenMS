@@ -35,7 +35,7 @@
 
 using namespace OpenMS;
 
-START_TEST(DummyExtender, "$Id: DummyExtender_test.C 1586 2007-03-01 17:59:10Z ole_st $")
+START_TEST(DummyExtender, "$Id$")
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
@@ -45,17 +45,17 @@ using namespace std;
 
 // default ctor
 DummyExtender* ptr = 0;
-CHECK(DummyExtender())
+CHECK((DummyExtender()))
 	ptr = new DummyExtender();
   TEST_EQUAL(ptr->getName(), "DummyExtender")
 	TEST_NOT_EQUAL(ptr, 0)
 RESULT
 
-CHECK(~DummyExtender())
+CHECK((virtual ~DummyExtender()))
 	delete ptr;
 RESULT
 
-CHECK((FeaFiModule::IndexSet  nextSeed() throw(NoSuccessor)))
+CHECK((const IndexSet& extend(const IndexSet &seed_region)))
 	PRECISION(0.01)
 	
   DummyExtender extender;
@@ -106,11 +106,11 @@ CHECK((FeaFiModule::IndexSet  nextSeed() throw(NoSuccessor)))
 	
 RESULT
 
-CHECK(static const String getProductName())
+CHECK((static const String getProductName()))
 	TEST_EQUAL(DummyExtender::getProductName(),"DummyExtender");
 RESULT
 
-CHECK(static BaseSeeder* create())
+CHECK((static BaseExtender* create()))
 	BaseExtender* base = DummyExtender::create();
 	TEST_NOT_EQUAL(base,0);
 	delete(base);

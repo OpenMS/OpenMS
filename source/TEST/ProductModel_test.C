@@ -60,20 +60,20 @@ p2.setValue("statistics:variance",0.3f);
 
 // default ctor
 ProductModel* ptr = 0;
-CHECK(ProductModel())
+CHECK((ProductModel()))
 ptr = new ProductModel();
 TEST_EQUAL(ptr->getName(), "ProductModel2D")
 TEST_NOT_EQUAL(ptr, 0)
 RESULT
 
 // destructor
-CHECK(~ProductModel())
+CHECK((virtual ~ProductModel()))
 delete ptr;
 RESULT
 
 
 // assignment operator
-CHECK(ProductModel& operator = (const ProductModel& source))
+CHECK((virtual ProductModel& operator=(const ProductModel &source)))
 GaussModel* gm1 = new GaussModel();
 gm1->setParameters(p1);
 GaussModel* gm2 = new GaussModel();
@@ -101,7 +101,7 @@ RESULT
 
 
 // copy ctor
-CHECK(ProductModel(const ProductModel& source))
+CHECK((ProductModel(const ProductModel& source)))
 GaussModel* gm1 = new GaussModel();
 gm1->setParameters(p1);
 GaussModel* gm2 = new GaussModel();
@@ -125,7 +125,7 @@ TEST_EQUAL(pm3.getParameters(), pm2.getParameters())
 RESULT
 
 // ModelDescription
-CHECK( ModelDescription::createModel)
+CHECK((static BaseModel<D>* create()))
 GaussModel* gm1 = new GaussModel();
 GaussModel* gm2 = new GaussModel();
 GaussModel* gm3 = new GaussModel();

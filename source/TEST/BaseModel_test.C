@@ -109,18 +109,18 @@ class TestModel : public BaseModel<3>
 
 // default ctor
 TestModel* ptr = 0;
-CHECK(TestModel())
+CHECK((TestModel()))
 	ptr = new TestModel();
 	TEST_NOT_EQUAL(ptr, 0)
 RESULT
 
 // destructor
-CHECK(~TestModel())
+CHECK((~TestModel()))
 	delete ptr;
 RESULT
 
 // assignment operator
-CHECK(TestModel& operator = (const TestModel& source))
+CHECK((TestModel& operator = (const TestModel& source)))
 	TestModel tm1;
   TestModel tm2;
   
@@ -130,7 +130,7 @@ CHECK(TestModel& operator = (const TestModel& source))
 RESULT
 
 // copy constructor
-CHECK(TestModel(const TestModel& source))
+CHECK((TestModel(const TestModel& source)))
 	TestModel tm1;	
   tm1.setCutOff(0.1);
 	
@@ -138,23 +138,23 @@ CHECK(TestModel(const TestModel& source))
 	TEST_REAL_EQUAL(tm1.getCutOff(),tm2.getCutOff())
 RESULT
 
-CHECK(IntensityType getCutOff() const)
+CHECK((IntensityType getCutOff() const))
   const TestModel s;
   TEST_REAL_EQUAL(s.getCutOff(), TestModel::IntensityType(0))
 RESULT
 
-CHECK(void setCutOff(IntensityType cut_off))
+CHECK((void setCutOff(IntensityType cut_off)))
 	TestModel s;
 	s.setCutOff(4.4);
   TEST_REAL_EQUAL(s.getCutOff(), 4.4)
 RESULT
 
-CHECK(const String& getName() const)
+CHECK((const String& getName() const))
 	TestModel s;
   TEST_EQUAL(s.getName(), "TestModel")
 RESULT
 
-CHECK(IntensityType getIntensity(const PositionType& pos) const)
+CHECK((IntensityType getIntensity(const PositionType& pos) const))
 	const TestModel s;
   TestModel::PositionType pos;
   pos[0]=0.1;
@@ -163,7 +163,7 @@ CHECK(IntensityType getIntensity(const PositionType& pos) const)
   TEST_REAL_EQUAL(s.getIntensity(pos), 0.6)
 RESULT
 
-CHECK(bool isContained(const PositionType& pos) const)
+CHECK((bool isContained(const PositionType& pos) const))
 	TestModel s;
   s.setCutOff(0.9);
   TestModel::PositionType pos;
@@ -174,7 +174,7 @@ CHECK(bool isContained(const PositionType& pos) const)
   TEST_REAL_EQUAL(t.isContained(pos), false)
 RESULT
 
-CHECK(void fillIntensity(PeakType& peak) const)
+CHECK((void fillIntensity(PeakType& peak) const))
 	const TestModel t;
   TestModel::PeakType p;
   p.getPosition()[0]=0.1;
@@ -185,7 +185,7 @@ CHECK(void fillIntensity(PeakType& peak) const)
   TEST_REAL_EQUAL(p.getIntensity(), 0.6)
 RESULT
 
-CHECK(void  fillIntensities(PeakIterator beg, PeakIterator end) const)
+CHECK((void  fillIntensities(PeakIterator beg, PeakIterator end) const))
 	const TestModel t;
   std::vector< TestModel::PeakType > vec(4);
   for (UInt i=0; i<4; ++i)

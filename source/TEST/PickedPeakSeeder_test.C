@@ -49,17 +49,17 @@ using namespace std;
 
 // default ctor
 PickedPeakSeeder* ptr = 0;
-CHECK(PickedPeakSeeder())
+CHECK((PickedPeakSeeder()))
 	ptr = new PickedPeakSeeder();
   TEST_EQUAL(ptr->getName(), "PickedPeakSeeder")
 	TEST_NOT_EQUAL(ptr, 0)
 RESULT
 
-CHECK(~PickedPeakSeeder())
+CHECK((virtual ~PickedPeakSeeder()))
 	delete ptr;
 RESULT
 
-CHECK(nextSeed())
+CHECK((IndexSet nextSeed()))
 	PRECISION(0.01)	
 
   PickedPeakSeeder seeder;

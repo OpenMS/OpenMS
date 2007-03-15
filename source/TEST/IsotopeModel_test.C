@@ -45,25 +45,25 @@ using std::stringstream;
 
 // default ctor
 IsotopeModel* ptr = 0;
-CHECK(IsotopeModel())
+CHECK((IsotopeModel()))
 	ptr = new IsotopeModel();
   TEST_EQUAL(ptr->getName(), "IsotopeModel")
 	TEST_NOT_EQUAL(ptr, 0)
 RESULT
 
 // destructor
-CHECK(~IsotopeModel())
+CHECK((virtual ~IsotopeModel()))
 	delete ptr;
 RESULT
 
 
-CHECK(const String getName())
+CHECK((static const String getProductName()))
 	TEST_EQUAL(IsotopeModel::getProductName(),"IsotopeModel")
 	TEST_EQUAL(IsotopeModel().getName(),"IsotopeModel")
 RESULT
 
 // assignment operator
-CHECK(IsotopeModel& operator = (const IsotopeModel& source))
+CHECK((virtual IsotopeModel& operator=(const IsotopeModel &source)))
 	IsotopeModel im1;
 	
 	Param tmp;
@@ -83,7 +83,7 @@ CHECK(IsotopeModel& operator = (const IsotopeModel& source))
 RESULT
 
 // copy ctor
-CHECK(IsotopeModel(const IsotopeModel& source))
+CHECK((IsotopeModel(const IsotopeModel& source)))
 	IsotopeModel im1;
 	
 	Param tmp;

@@ -75,18 +75,18 @@ class TestQuality : public BaseQuality
 
 // default ctor
 TestQuality* ptr = 0;
-CHECK(TestQuality())
+CHECK((BaseQuality()))
 	ptr = new TestQuality();
 	TEST_NOT_EQUAL(ptr, 0)
 RESULT
 
 // destructor
-CHECK(~TestQuality())
+CHECK((virtual ~BaseQuality()))
 	delete ptr;
 RESULT
 
 // assignment operator
-CHECK(TestQuality& operator = (const TestQuality& source))
+CHECK((virtual BaseQuality& operator=(const BaseQuality &source)))
 	TestQuality tm1;
   TestQuality tm2;
   tm2 = tm1;
@@ -98,7 +98,7 @@ CHECK(TestQuality& operator = (const TestQuality& source))
 RESULT
 
 // copy constructor
-CHECK(TestQuality(const TestQuality& source))
+CHECK((BaseQuality(const BaseQuality &source)))
 	TestQuality fp1;	
  
   TestQuality fp2(fp1);
@@ -109,7 +109,7 @@ CHECK(TestQuality(const TestQuality& source))
 	TEST_EQUAL(fp2, fp3)
 RESULT
 
-CHECK(double evaluate(const IndexSet& /*set*/, const BaseModel<2>& /*model*/))
+CHECK((virtual double evaluate(const IndexSet &set, const BaseModel< 2 > &model)=0))
 	TestQuality ft;
 	FeaFiModule::IndexSet  inds;
 	inds.insert(std::make_pair(7,7));
@@ -144,7 +144,7 @@ CHECK(double evaluate(const IndexSet& /*set*/, const BaseModel<2>& /*model*/))
 	TEST_REAL_EQUAL(ft.evaluate(inds,pm1),5.0);
 RESULT
 
-CHECK(double evaluate(const IndexSet& /*set*/, const BaseModel<1>& /*model*/, UInt dim))
+CHECK((virtual double evaluate(const IndexSet &set, const BaseModel< 1 > &model, UInt dim)=0))
 	TestQuality ft;
 	FeaFiModule::IndexSet  inds;
 	inds.insert(std::make_pair(7,7));

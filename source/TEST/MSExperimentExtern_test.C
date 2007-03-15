@@ -43,7 +43,7 @@ using namespace OpenMS;
 using namespace std;
 
 MSExperimentExtern<>* ptr = 0;
-CHECK(MSExperimentExternExtern())
+CHECK(MSExperimentExtern())
 	ptr = new MSExperimentExtern<>;
 	TEST_NOT_EQUAL(ptr, 0)
 RESULT

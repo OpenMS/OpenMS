@@ -63,18 +63,18 @@ class TestSeeder : public BaseSeeder
 
 // default ctor
 TestSeeder* ptr = 0;
-CHECK(TestSeeder())
+CHECK((TestSeeder()))
 	ptr = new TestSeeder();
 	TEST_NOT_EQUAL(ptr, 0)
 RESULT
 
 // destructor
-CHECK(~TestSeeder())
+CHECK((~TestSeeder()))
 	delete ptr;
 RESULT
 
 // assignment operator
-CHECK(TestSeeder& operator = (const TestSeeder& source))
+CHECK((TestSeeder& operator = (const TestSeeder& source)))
 	TestSeeder tm1;
   TestSeeder tm2;
   tm2 = tm1;
@@ -86,7 +86,7 @@ CHECK(TestSeeder& operator = (const TestSeeder& source))
 RESULT
 
 // copy constructor
-CHECK(TestSeeder(const TestSeeder& source))
+CHECK((TestSeeder(const TestSeeder& source)))
 	TestSeeder fp1;	
  
   TestSeeder fp2(fp1);
@@ -97,14 +97,14 @@ CHECK(TestSeeder(const TestSeeder& source))
 	TEST_EQUAL(fp2, fp3)
 RESULT
 
-CHECK(IndexSet nextSeed() throw (NoSuccessor))
+CHECK((IndexSet nextSeed() throw (NoSuccessor)))
 	TestSeeder s;
 	FeaFiModule::IndexSet  almost_empty;
 	almost_empty.insert(std::make_pair(7,7));
 	TEST_EQUAL(s.nextSeed()==almost_empty,true);
 RESULT
 
-CHECK(static void registerChildren())
+CHECK((static void registerChildren()))
 	// not much happening here
 RESULT
 

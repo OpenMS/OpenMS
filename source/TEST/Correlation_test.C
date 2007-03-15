@@ -54,7 +54,7 @@ CHECK((Correlation()))
 	TEST_NOT_EQUAL(ptr, 0)
 RESULT
 
-CHECK((~Correlation()))
+CHECK((virtual ~Correlation()))
 	delete ptr;
 RESULT
 
@@ -204,12 +204,12 @@ CHECK((double evaluate(const IndexSet& set, const BaseModel<2>& model)))
 	
 RESULT
 
-CHECK(const String getName())
+CHECK((static const String getProductName()))
 	TEST_EQUAL(Correlation::getProductName(),"Correlation")
 	TEST_EQUAL(Correlation().getName(),"Correlation")
 RESULT
 
-CHECK(static BaseQuality* create())
+CHECK((static BaseQuality* create()))
 	TEST_NOT_EQUAL(Correlation::create(),0)
 RESULT
 

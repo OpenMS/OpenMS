@@ -54,11 +54,11 @@ CHECK((IsotopeWaveletSeeder()))
 	TEST_NOT_EQUAL(ptr, 0)
 RESULT
 
-CHECK((~IsotopeWaveletSeeder()))
+CHECK((virtual ~IsotopeWaveletSeeder()))
 	delete ptr;
 RESULT
 
-CHECK((FeaFiModule::IndexSet  nextSeed() throw(NoSuccessor)))
+CHECK((IndexSet nextSeed()))
 	PRECISION(0.01)
 	
   IsotopeWaveletSeeder seeder;
@@ -122,11 +122,11 @@ CHECK((FeaFiModule::IndexSet  nextSeed() throw(NoSuccessor)))
 RESULT
 
 
-CHECK(static const String getProductName())
+CHECK((static const String getProductName()))
 	TEST_EQUAL(IsotopeWaveletSeeder::getProductName(),"IsotopeWaveletSeeder");
 RESULT
 
-CHECK(static BaseSeeder* create())
+CHECK((static BaseSeeder* create()))
 	BaseSeeder* base = IsotopeWaveletSeeder::create();
 	TEST_NOT_EQUAL(base,0);
 	delete(base);

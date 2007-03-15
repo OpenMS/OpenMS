@@ -43,12 +43,12 @@ using namespace OpenMS;
 using namespace std;
 
 FeaFiTraits* ptr = 0;
-CHECK(FeaFiTraits())
+CHECK((FeaFiTraits()))
 	ptr = new FeaFiTraits();
 	TEST_NOT_EQUAL(ptr, 0)
 RESULT
 
-CHECK(~FeaFiTraits())
+CHECK((virtual ~FeaFiTraits()))
 	delete ptr;
 RESULT
 
@@ -80,12 +80,12 @@ p.setIntensity(1001.0);
 exp[1].push_back(p);
 
 
-CHECK(inline const MapType& getData() const)
+CHECK((const MapType& getData() const ))
 	FeaFiTraits t;
 	TEST_EQUAL(t.getData()==FeaFiTraits::MapType(),true)
 RESULT
 
-CHECK(template <class SpectrumIteratorType> void setData(const SpectrumIteratorType& begin, const SpectrumIteratorType& end, UInt buffer_size))
+CHECK((template <class SpectrumIteratorType> void setData(const SpectrumIteratorType& begin, const SpectrumIteratorType& end, UInt buffer_size)))
 	FeaFiTraits t;
 	t.setData(exp.begin(),exp.end(),2);
 	TEST_EQUAL(t.getData().getSize(),5)
@@ -104,7 +104,7 @@ CHECK(template <class SpectrumIteratorType> void setData(const SpectrumIteratorT
 	TEST_REAL_EQUAL(t.getData()[1][1].getIntensity(),1001.0)
 RESULT
 
-CHECK(inline const Flag& getPeakFlag(const IDX& index) const)
+CHECK((const Flag& getPeakFlag(const IDX &index) const ))
 	FeaFiTraits t;
 	t.setData(exp.begin(),exp.end(),2);
 	TEST_EQUAL(t.getPeakFlag(make_pair(0,0)), FeaFiTraits::UNUSED)
@@ -114,7 +114,7 @@ CHECK(inline const Flag& getPeakFlag(const IDX& index) const)
 	TEST_EQUAL(t.getPeakFlag(make_pair(1,1)), FeaFiTraits::UNUSED)
 RESULT
 
-CHECK(inline Flag& getPeakFlag(const IDX& index))
+CHECK((const Flag& getPeakFlag(const IDX &index) const ))
 	FeaFiTraits t;
 	t.setData(exp.begin(),exp.end(),2);
 	t.getPeakFlag(make_pair(0,0)) = FeaFiTraits::SEED;
@@ -125,7 +125,7 @@ CHECK(inline Flag& getPeakFlag(const IDX& index))
 	TEST_EQUAL(t.getPeakFlag(make_pair(1,1)), FeaFiTraits::UNUSED)
 RESULT
 
-CHECK(inline IntensityType getPeakIntensity(const IDX& index) const)
+CHECK((IntensityType getPeakIntensity(const IDX &index) const ))
 	FeaFiTraits t;
 	t.setData(exp.begin(),exp.end(),2);
 	TEST_REAL_EQUAL(t.getPeakIntensity(make_pair(0,0)), 501.0)
@@ -135,7 +135,7 @@ CHECK(inline IntensityType getPeakIntensity(const IDX& index) const)
 	TEST_REAL_EQUAL(t.getPeakIntensity(make_pair(1,1)), 1001.0)
 RESULT
 
-CHECK(inline CoordinateType getPeakMz(const IDX& index) const)
+CHECK((CoordinateType getPeakMz(const IDX &index) const ))
 	FeaFiTraits t;
 	t.setData(exp.begin(),exp.end(),2);
 	TEST_REAL_EQUAL(t.getPeakMz(make_pair(0,0)), 500.0)
@@ -145,7 +145,7 @@ CHECK(inline CoordinateType getPeakMz(const IDX& index) const)
 	TEST_REAL_EQUAL(t.getPeakMz(make_pair(1,1)), 1000.0)
 RESULT
 
-CHECK(inline CoordinateType getPeakRt(const IDX& index) const)
+CHECK((CoordinateType getPeakRt(const IDX &index) const ))
 	FeaFiTraits t;
 	t.setData(exp.begin(),exp.end(),2);
 	TEST_REAL_EQUAL(t.getPeakRt(make_pair(0,0)), 1.1)
@@ -155,7 +155,7 @@ CHECK(inline CoordinateType getPeakRt(const IDX& index) const)
 	TEST_REAL_EQUAL(t.getPeakRt(make_pair(1,1)), 2.2)
 RESULT
 
-CHECK(inline PositionType2D getPeakPos(const IDX& index) const)
+CHECK((PositionType2D getPeakPos(const IDX &index) const ))
 	FeaFiTraits t;
 	t.setData(exp.begin(),exp.end(),2);
 	TEST_EQUAL(t.getPeakPos(make_pair(0,0)),DPosition<2>(1.1,500.0))
@@ -165,7 +165,7 @@ CHECK(inline PositionType2D getPeakPos(const IDX& index) const)
 	TEST_EQUAL(t.getPeakPos(make_pair(1,1)),DPosition<2>(2.2,1000.0))
 RESULT
 
-CHECK(inline void getNextMz(IDX& index) const throw (NoSuccessor))
+CHECK((void getNextMz(IDX &index) const  throw (NoSuccessor, Exception::Precondition)))
 	FeaFiTraits t;
 	t.setData(exp.begin(),exp.end(),2);
 	
@@ -195,7 +195,7 @@ CHECK(inline void getNextMz(IDX& index) const throw (NoSuccessor))
 #endif
 RESULT
 
-CHECK(inline void getPrevMz(IDX& index) const throw (NoSuccessor))
+CHECK((void getPrevMz(IDX &index) const  throw (NoSuccessor, Exception::Precondition)))
 	FeaFiTraits t;
 	t.setData(exp.begin(),exp.end(),2);
 	//scan one
@@ -223,7 +223,7 @@ CHECK(inline void getPrevMz(IDX& index) const throw (NoSuccessor))
 #endif
 RESULT
 
-CHECK(void getNextRt(IDX& index) throw (NoSuccessor))
+CHECK((void getNextRt(IDX &index) throw (NoSuccessor, Exception::Precondition)))
 	FeaFiTraits t;
 	MSExperiment<> exp2 = exp;
 	exp2.resize(3);
@@ -296,7 +296,7 @@ CHECK(void getNextRt(IDX& index) throw (NoSuccessor))
 #endif
 RESULT
 
-CHECK(void getPrevRt(IDX& index) throw (NoSuccessor))
+CHECK((void getPrevRt(IDX &index) throw (NoSuccessor, Exception::Precondition)))
 	FeaFiTraits t;
 	MSExperiment<> exp2 = exp;
 	exp2[1].resize(4);
@@ -344,7 +344,7 @@ CHECK(void getPrevRt(IDX& index) throw (NoSuccessor))
 #endif
 RESULT
 
-CHECK(void addConvexHull(const IndexSet& set, Feature& f) const)
+CHECK((void addConvexHull(const IndexSet& set, Feature& f) const))
 	FeaFiTraits t;
 	Peak2D p;
 	DPeakArray<2, Peak2D> peak_array;

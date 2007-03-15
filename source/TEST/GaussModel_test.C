@@ -43,25 +43,25 @@ using std::stringstream;
 
 // default ctor
 GaussModel* ptr = 0;
-CHECK(GaussModel())
+CHECK((GaussModel()))
 	ptr = new GaussModel();
   TEST_EQUAL(ptr->getName(), "GaussModel")
 	TEST_NOT_EQUAL(ptr, 0)
 RESULT
 
 // destructor
-CHECK(~GaussModel())
+CHECK((virtual ~GaussModel()))
 	delete ptr;
 RESULT
 
 
-CHECK(const String getProductName())
+CHECK((static const String getProductName()))
 	TEST_EQUAL(GaussModel::getProductName(),"GaussModel")
 	TEST_EQUAL(GaussModel().getProductName(),"GaussModel")
 RESULT
 
 // assignment operator
-CHECK(GaussModel& operator = (const GaussModel& source))
+CHECK((virtual GaussModel& operator=(const GaussModel &source)))
 	GaussModel gm1;
 	BasicStatistics<>  stat;
 	stat.setMean(680.1);
@@ -75,8 +75,6 @@ CHECK(GaussModel& operator = (const GaussModel& source))
 	tmp.setValue("statistics:variance",stat.variance() );
 	tmp.setValue("statistics:mean",stat.mean() );			
 	gm1.setParameters(tmp);
-	
-// 	gm1.setParameters(stat, 678.9, 789.0);
 
   GaussModel gm2;
   gm2 = gm1;
@@ -91,7 +89,7 @@ CHECK(GaussModel& operator = (const GaussModel& source))
 RESULT
 
 // copy ctor
-CHECK(GaussModel(const GaussModel& source))
+CHECK((GaussModel(const GaussModel& source)))
 	GaussModel gm1;
 	BasicStatistics<>  stat;
 	stat.setMean(680.1);
@@ -154,7 +152,7 @@ CHECK([EXTRA] DefaultParmHandler::setParameters(...))
 	}
 RESULT
 
-CHECK(void setParam(const BasicStatistics&,CoordinateType,CoordinateType))
+CHECK(([EXTRA]void setParam(const BasicStatistics&,CoordinateType,CoordinateType)))
 	GaussModel gm1;
 	BasicStatistics<>  stat;
 	stat.setMean(0.0);
@@ -167,8 +165,6 @@ CHECK(void setParam(const BasicStatistics&,CoordinateType,CoordinateType))
 	tmp.setValue("statistics:variance",stat.variance() );
 	tmp.setValue("statistics:mean",stat.mean() );			
 	gm1.setParameters(tmp);	
-	
-// 	gm1.setParameters(stat, -4.0, 4.0);
 
 	TEST_REAL_EQUAL(gm1.getCenter(), 0.0)
 
@@ -196,7 +192,7 @@ CHECK(void setParam(const BasicStatistics&,CoordinateType,CoordinateType))
 RESULT
 
 
-CHECK(void setOffset(double offset))
+CHECK((void setOffset(CoordinateType offset)))
 	GaussModel gm1;
 	BasicStatistics<>  stat;
 	stat.setMean(680.1);

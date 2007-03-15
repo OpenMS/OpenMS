@@ -53,17 +53,17 @@ using namespace std;
 
 // default ctor
 SimpleExtender* ptr = 0;
-CHECK(Simple())
+CHECK((SimpleExtender()))
 ptr = new SimpleExtender();
 TEST_EQUAL(ptr->getName(), "SimpleExtender")
 TEST_NOT_EQUAL(ptr, 0)
 RESULT
 
-CHECK(~SimpleExtender())
+CHECK((virtual ~SimpleExtender()))
 delete ptr;
 RESULT
 
-CHECK(nextSeed())
+CHECK((const IndexSet& extend(const IndexSet &seed_region)))
 
 // this test checks the regions returned by SimpleExtender
 // on one artificial data set and a picked (centroided) data set

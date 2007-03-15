@@ -45,16 +45,16 @@ START_TEST(FeatureFinder, "$Id FeatureFinder_test.C 139 2006-07-14 10:08:39Z ole
 /////////////////////////////////////////////////////////////
 
 FeatureFinder* ptr = 0;
-CHECK(FeatureFinder())
+CHECK((FeatureFinder()))
 	ptr = new FeatureFinder();
 	TEST_NOT_EQUAL(ptr, 0)
 RESULT
 
-CHECK(~FeatureFinder())
+CHECK((virtual ~FeatureFinder()))
 	delete ptr;
 RESULT
 
-CHECK(FeatureFinder& operator = (const FeatureFinder& source))
+CHECK((FeatureFinder& operator = (const FeatureFinder& source)))
   FeatureFinder ff1;
     
   ff1.addSeeder("SimpleSeeder");
@@ -68,7 +68,7 @@ CHECK(FeatureFinder& operator = (const FeatureFinder& source))
   
 RESULT
 
-CHECK(FeatureFinder(const FeatureFinder& source))
+CHECK((FeatureFinder(const FeatureFinder& source)))
 
   FeatureFinder ff1;
     
@@ -82,7 +82,7 @@ CHECK(FeatureFinder(const FeatureFinder& source))
   
 RESULT
 
-CHECK(bool setParam(const Param& param))
+CHECK((bool setParam(const Param& param)))
 	
 	Param p;
 	p.load("data/FeaFi_testparams.ini");
@@ -93,7 +93,7 @@ CHECK(bool setParam(const Param& param))
 		
 RESULT
 
-CHECK(const FeatureVector& run())
+CHECK((const FeatureMap& run()))
 
 	Param p;
 	p.load("data/FeaFi_testparams.ini");
@@ -109,7 +109,7 @@ CHECK(const FeatureVector& run())
 	
 RESULT
 
-CHECK((template<class ConstPeakIterator> void setData(ConstPeakIterator begin, ConstPeakIterator end)))
+CHECK((template <class SpectrumIteratorType> void setData(const SpectrumIteratorType &begin, const SpectrumIteratorType &end, UInt buffer_size)))
   	
 	DPeakArray<2, Peak2D> parray;
 	
@@ -133,7 +133,7 @@ CHECK((template<class ConstPeakIterator> void setData(ConstPeakIterator begin, C
 	
 RESULT
 
-CHECK(void setData(MSExperiment<Peak1D >& exp))
+CHECK((template <class SpectrumIteratorType> void setData(const SpectrumIteratorType &begin, const SpectrumIteratorType &end, UInt buffer_size)))
 
 	MSExperiment<Peak1D > exp;	
 	

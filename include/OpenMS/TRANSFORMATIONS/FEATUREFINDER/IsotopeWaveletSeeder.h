@@ -135,7 +135,7 @@ namespace OpenMS
 		 	Note that you should compute a convolution instead of an correlation. Since we do not mirror the wavelet function
 		 	this yields the same.		
 		*/																			
-		void fastMultiCorrelate(const SpectrumType& signal, std::vector<DPeakArray<1, PeakType > >* pwts, std::vector<double>* wt_thresholds);
+		void fastMultiCorrelate_(const SpectrumType& signal, std::vector<DPeakArray<1, PeakType > >* pwts, std::vector<double>* wt_thresholds);
 		
 		/** 
 				@brief Returns the lamba parameter of the mother wavelet
@@ -144,13 +144,13 @@ namespace OpenMS
 		 		Since isotope patterns depend on mass, the wavelet has to adapt its shape. 
 		 		For more insights look at the formula of the wavelet function. 
 		*/
-		inline CoordinateType getLambda (CoordinateType real_mass) const 
+		inline CoordinateType getLambda_(CoordinateType real_mass) const 
 		{	
 			return (0.035 + 0.000678*real_mass); 
 		}																	
 		
 		/// The wavelet (mother) function. 
- 		inline double phiRaw (double t, double lambda, double a) throw ()
+ 		inline double phiRaw_(double t, double lambda, double a) throw ()
 		{	
 			if (t>2*peak_cut_off_)	return(0);
 			
@@ -172,16 +172,16 @@ namespace OpenMS
 		}
 		
 		/// Assigns scores to each charge state of a isotopic pattern
-		void identifyCharge(const std::vector<DPeakArray<1, PeakType > >& candidates, std::vector<double>* wt_thresholds, UInt scan);
+		void identifyCharge_(const std::vector<DPeakArray<1, PeakType > >& candidates, std::vector<double>* wt_thresholds, UInt scan);
 		
 		/// Returns the interpolated value 
-		inline double getInterpolatedValue (double x0, double x, double x1, double f0, double f1) const throw ()
+		inline double getInterpolatedValue_(double x0, double x, double x1, double f0, double f1) const throw ()
 		{
 			return (f0 + (f1-f0)/(x1-x0) * (x-x0));
 		}
 
 		/// Returns a bucket containing the mass/charge @p mz
-		inline std::pair<int, int> getNearBys(UInt scan, double mz, UInt start=0)
+		inline std::pair<int, int> getNearBys_(UInt scan, double mz, UInt start=0)
 		{
 			for (unsigned int i=start; i<traits_->getData()[scan].getContainer().size(); ++i)
 			{
@@ -196,12 +196,12 @@ namespace OpenMS
 		}	
 		
 		/// Returns the absolute mean of the intensities in @p signal
-		double getAbsMean (const DPeakArray<1, PeakType >& signal,
+		double getAbsMean_(const DPeakArray<1, PeakType >& signal,
 																	UInt startIndex, 
 																	UInt endIndex) const;
 		
 		/// Removes entries from hash occuring in less then rt_votes_cutoff_ scans
-		void filterHashByRTVotes ();
+		void filterHashByRTVotes_();
 		
 	  /// Sums the intensities in adjacent scans
 	  void sumUp_(SpectrumType& scan, UInt current_scan_index);

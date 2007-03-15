@@ -121,18 +121,18 @@ class TestModel : public InterpolationModel
 
 // default ctor
 TestModel* ptr = 0;
-CHECK(TestModel())
+CHECK((InterpolationModel()))
 	ptr = new TestModel();
 	TEST_NOT_EQUAL(ptr, 0)
 RESULT
 
 // destructor
-CHECK(~TestModel())
+CHECK((virtual ~InterpolationModel()))
 	delete ptr;
 RESULT
 
 // assignment operator
-CHECK(TestModel& operator = (const TestModel& source))
+CHECK((virtual InterpolationModel& operator=(const InterpolationModel &source)))
 	TestModel tm1;
   TestModel tm2;
   
@@ -143,7 +143,7 @@ CHECK(TestModel& operator = (const TestModel& source))
 RESULT
 
 // copy constructor
-CHECK(TestModel(const TestModel& source))
+CHECK((InterpolationModel(const InterpolationModel &source)))
 	TestModel fp1;	
   fp1.setCutOff(0.1);
 
@@ -156,30 +156,30 @@ CHECK(TestModel(const TestModel& source))
 	TEST_EQUAL(fp2, fp3)
 RESULT
 
-CHECK(IntensityType getCutOff() const)
+CHECK(([EXTRA]IntensityType getCutOff() const))
   const TestModel s;
   TEST_REAL_EQUAL(s.getCutOff(), TestModel::IntensityType(0))
 RESULT
 
-CHECK(void setCutOff(IntensityType cut_off))
+CHECK(([EXTRA]void setCutOff(IntensityType cut_off)))
 	TestModel s;
 	s.setCutOff(4.4);
   TEST_REAL_EQUAL(s.getCutOff(), 4.4)
 RESULT
 
-CHECK(const String& getName() const)
+CHECK(([EXTRA]const String& getName() const))
 	TestModel s;
   TEST_EQUAL(s.getName(), "TestModel")
 RESULT
 
-CHECK(IntensityType getIntensity(const PositionType& pos) const)
+CHECK((IntensityType getIntensity(const PositionType& pos) const))
 	const TestModel s;
   TestModel::PositionType pos;
   pos[0]=0.1;
   TEST_REAL_EQUAL(s.getIntensity(pos), 0.3)
 RESULT
 
-CHECK(bool isContained(const PositionType& pos) const)
+CHECK(([EXTRA]bool isContained(const PositionType& pos) const))
 	TestModel s;
   s.setCutOff(0.9);
   TestModel::PositionType pos;
@@ -188,7 +188,7 @@ CHECK(bool isContained(const PositionType& pos) const)
   TEST_REAL_EQUAL(t.isContained(pos), false)
 RESULT
 
-CHECK(void fillIntensity(PeakType& peak) const)
+CHECK(([EXTRA]void fillIntensity(PeakType& peak) const))
 	const TestModel t;
   TestModel::PeakType p;
   p.getPosition()[0]=0.1;
@@ -197,7 +197,7 @@ CHECK(void fillIntensity(PeakType& peak) const)
   TEST_REAL_EQUAL(p.getIntensity(), 0.3)
 RESULT
 
-CHECK(void  fillIntensities(PeakIterator beg, PeakIterator end) const)
+CHECK(([EXTRA]void  fillIntensities(PeakIterator beg, PeakIterator end) const))
 	const TestModel t;
   std::vector< TestModel::PeakType > vec(4);
   for (UInt i=0; i<4; ++i)
@@ -212,7 +212,7 @@ CHECK(void  fillIntensities(PeakIterator beg, PeakIterator end) const)
   TEST_EQUAL(vec[3].getIntensity(), -0.5)
 RESULT
 
-CHECK(void  getCenter() const)
+CHECK(([EXTRA]void  getCenter() const))
 	const TestModel t;
  TEST_REAL_EQUAL(t.getCenter(),10.0);
 RESULT

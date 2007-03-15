@@ -158,15 +158,15 @@ namespace OpenMS
 				wt_thresholds = new std::vector<double> (charges_.size(), 0);
 	
 				// compute wavelet transform
-				fastMultiCorrelate(current_scan, pwts, wt_thresholds);
+				fastMultiCorrelate_(current_scan, pwts, wt_thresholds);
 				// compute scores of charge states
-				identifyCharge(*pwts, wt_thresholds, i);
+				identifyCharge_(*pwts, wt_thresholds, i);
 				delete (pwts);
 				delete (wt_thresholds);
 			} // end of for (each scan)
 	
 			// filter detected isotopic pattern
-			filterHashByRTVotes();
+			filterHashByRTVotes_();
 	
 			// the following lines print the masses of all detected peak clusters
 			// it takes some time if many clusters were found, so we skip it.
@@ -324,7 +324,7 @@ namespace OpenMS
 		std::cout << " done." << std::endl;
 	}
 	
-	void IsotopeWaveletSeeder::fastMultiCorrelate(const SpectrumType& signal, std::vector<DPeakArray<1, PeakType > >* pwts, std::vector<double>* wt_thresholds)
+	void IsotopeWaveletSeeder::fastMultiCorrelate_(const SpectrumType& signal, std::vector<DPeakArray<1, PeakType > >* pwts, std::vector<double>* wt_thresholds)
 	{
 		std::vector<DPeakArray<1, PeakType > >* res = pwts;
 		unsigned int signal_size = signal.size();
@@ -349,7 +349,7 @@ namespace OpenMS
 				w_s_sum=0;
 				realMass = signal[i].getMZ() * (*charge_iter);
 	
-				lambda = getLambda (realMass); 	//Lambda determines the distribution (the shape) of the wavelet
+				lambda = getLambda_(realMass); 	//Lambda determines the distribution (the shape) of the wavelet
 				max_w_monoi_intens=0.25/(*charge_iter);
 	
 				//Align the maximum monoisotopic peak of the wavelet with some signal point
@@ -382,9 +382,9 @@ namespace OpenMS
 					tmp_pos1 = signal[(i+j+1)%signal_size].getMZ();
 	
 					realMass = tmp_pos1 * (*charge_iter);
-					lambda = getLambda (realMass); //Lambda determines the distribution (the shape) of the wavelet
+					lambda = getLambda_(realMass); //Lambda determines the distribution (the shape) of the wavelet
 				   
-					phis[k][j] = phiRaw (cumSpacing, lambda, 1.0/(double)(*charge_iter));
+					phis[k][j] = phiRaw_(cumSpacing, lambda, 1.0/(double)(*charge_iter));
 					w_sum += phis[k][j];
 					w_s_sum += phis[k][j] * phis[k][j];
 					cSpacing = tmp_pos1 - tmp_pos;
@@ -446,7 +446,7 @@ namespace OpenMS
 	} // end of fastMultiCorrelate(...)
 	
 	
-	void IsotopeWaveletSeeder::identifyCharge (const std::vector<DPeakArray<1, PeakType > >& candidates, std::vector<double>* wt_thresholds, UInt scan)
+	void IsotopeWaveletSeeder::identifyCharge_(const std::vector<DPeakArray<1, PeakType > >& candidates, std::vector<double>* wt_thresholds, UInt scan)
 	{
 		std::vector<double> int_mins (candidates[0].size(),INT_MIN), zeros (candidates[0].size(),0);
 		WaveletCollection scoresC (candidates.size(), zeros);
@@ -479,7 +479,7 @@ namespace OpenMS
 			}
 				
 			sort (c_candidate.begin(), c_candidate.end(), 	ReverseComparator< RawDataPoint2D::IntensityLess>() );
-			c_av_intens = getAbsMean (candidates[c], 0, candidates[c].size());
+			c_av_intens = getAbsMean_(candidates[c], 0, candidates[c].size());
 					
 			for (iter=c_candidate.begin(); iter != c_candidate.end(); ++iter)
 			{
@@ -534,13 +534,13 @@ namespace OpenMS
 				for (int v=start; v<=end; ++v)
 				{
 					c_check_point = seed_mz+v*0.5/((double)c+1);
-					c_between = getNearBys (scan, c_check_point, goto_left);
+					c_between = getNearBys_(scan, c_check_point, goto_left);
 					
 					if (c_between.first < 0 || c_between.second < 0) 
 					{
 						break;
 					}
-					c_val = getInterpolatedValue (candidates[c][c_between.first].getPos(),
+					c_val = getInterpolatedValue_(candidates[c][c_between.first].getPos(),
 													  						c_check_point,
 													  						candidates[c][c_between.second].getPos(),
 													  						candidates[c][c_between.first].getIntensity(),
@@ -722,7 +722,7 @@ namespace OpenMS
 		return;
 	}
 
-	double IsotopeWaveletSeeder::getAbsMean (const DPeakArray<1, PeakType >& signal, UInt startIndex, UInt endIndex) const
+	double IsotopeWaveletSeeder::getAbsMean_(const DPeakArray<1, PeakType >& signal, UInt startIndex, UInt endIndex) const
 	{
 	  double res=0;
 	  for (unsigned int i=startIndex; i<endIndex; ++i)
@@ -732,7 +732,7 @@ namespace OpenMS
 	  return (res/(double)(endIndex-startIndex+1));
 	}
 
-	void IsotopeWaveletSeeder::filterHashByRTVotes()
+	void IsotopeWaveletSeeder::filterHashByRTVotes_()
 	{
 	  std::cout << "Hash size before filtering: " << hash_.size() << std::endl << std::endl;
 	

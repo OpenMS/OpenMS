@@ -49,17 +49,17 @@ using namespace std;
 
 // default ctor
 MarrWaveletSeeder* ptr = 0;
-CHECK(MarrWaveletSeeder())
+CHECK((MarrWaveletSeeder()))
 	ptr = new MarrWaveletSeeder();
   TEST_EQUAL(ptr->getName(), "MarrWaveletSeeder")
 	TEST_NOT_EQUAL(ptr, 0)
 RESULT
 
-CHECK(~MarrWaveletSeeder())
+CHECK((virtual ~MarrWaveletSeeder()))
 	delete ptr;
 RESULT
 
-CHECK(nextSeed())
+CHECK((IndexSet nextSeed()))
 	
 	PRECISION(0.01)
 	

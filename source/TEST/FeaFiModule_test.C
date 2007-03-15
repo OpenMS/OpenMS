@@ -45,18 +45,18 @@ using namespace OpenMS;
 
 // default ctor
 FeaFiModule* ptr = 0;
-CHECK(FeaFiModule())
+CHECK((FeaFiModule()))
 	ptr = new FeaFiModule();
 	TEST_NOT_EQUAL(ptr, 0)
 RESULT
 
 // destructor
-CHECK(~FeaFiModule())
+CHECK((virtual ~FeaFiModule()))
 	delete ptr;
 RESULT
 
 // assignment operator
-CHECK(FeaFiModule& operator = (const FeaFiModule& source))
+CHECK((virtual FeaFiModule& operator=(const FeaFiModule &source)))
 	FeaFiModule fm1;
 	FeaFiTraits fft;
   fm1.setTraits(&fft);
@@ -71,7 +71,7 @@ CHECK(FeaFiModule& operator = (const FeaFiModule& source))
 RESULT
 
 // copy constructor
-CHECK(TestModel(const FeaFiModule& source))
+CHECK((FeaFiModule(const FeaFiModule &source)))
 	FeaFiModule fm1;	
   FeaFiTraits fft;
   fm1.setTraits(&fft);

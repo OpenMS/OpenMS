@@ -50,13 +50,13 @@ using namespace std;
 
 // default ctor
 SimpleSeeder* ptr = 0;
-CHECK(SimpleSeeder())
+CHECK((SimpleSeeder()))
 	ptr = new SimpleSeeder();
   TEST_EQUAL(ptr->getName(), "SimpleSeeder")
 	TEST_NOT_EQUAL(ptr, 0)
 RESULT
 
-CHECK(~SimpleSeeder())
+CHECK((virtual ~SimpleSeeder()))
 	delete ptr;
 RESULT
 
@@ -110,7 +110,7 @@ p.setMZ(1200.0);
 p.setIntensity(110.0);
 s2.push_back(p);
 
-CHECK(nextSeed())
+CHECK((IndexSet nextSeed()))
   
 	MSExperiment<> exp;
 	exp.push_back(s1);

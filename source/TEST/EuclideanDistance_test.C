@@ -53,7 +53,7 @@ CHECK((EuclideanDistance()))
 	TEST_NOT_EQUAL(ptr, 0)
 RESULT
 
-CHECK((~EuclideanDistance()))
+CHECK((virtual ~EuclideanDistance()))
 	delete ptr;
 RESULT
 
@@ -198,12 +198,12 @@ CHECK((double evaluate(const IndexSet& set, const BaseModel<2>& model)))
 	TEST_REAL_EQUAL(pval,-1);	// euclidean distance does not have a p-value
 RESULT
 
-CHECK(const String getName())
+CHECK((static const String getProductName()))
 	TEST_EQUAL(EuclideanDistance::getProductName(),"EuclideanDistance")
 	TEST_EQUAL(EuclideanDistance().getName(),"EuclideanDistance")
 RESULT
 
-CHECK(static BaseQuality* create())
+CHECK((static BaseQuality* create()))
 	TEST_NOT_EQUAL(EuclideanDistance::create(),0)
 RESULT
 

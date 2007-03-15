@@ -54,7 +54,7 @@ CHECK((RankCorrelation()))
 	TEST_NOT_EQUAL(ptr, 0)
 RESULT
 
-CHECK((~RankCorrelation()))
+CHECK((virtual ~RankCorrelation()))
 	delete ptr;
 RESULT
 
@@ -208,12 +208,12 @@ CHECK((double evaluate(const IndexSet& set, const BaseModel<2>& model)))
 	
 RESULT
 
-CHECK(const String getName())
+CHECK((static const String getProductName()))
 	TEST_EQUAL(RankCorrelation::getProductName(),"RankCorrelation")
 	TEST_EQUAL(RankCorrelation().getName(),"RankCorrelation")
 RESULT
 
-CHECK(static BaseQuality* create())
+CHECK((static BaseQuality* create()))
 	TEST_NOT_EQUAL(RankCorrelation::create(),0)
 RESULT
 

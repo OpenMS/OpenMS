@@ -51,7 +51,7 @@ CHECK((~FeatureMapFile()))
 	delete ptr;
 RESULT
  
-CHECK(void load(String filename, FeatureMap<>& feature_map) throw (Exception::FileNotFound, Exception::ParseError))
+CHECK((void load(String filename, FeatureMap<>& feature_map) throw (Exception::FileNotFound, Exception::ParseError)))
 	PRECISION(0.01)
 	
 	FeatureMap<> e;

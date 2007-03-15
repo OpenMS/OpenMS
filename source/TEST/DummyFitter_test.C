@@ -34,7 +34,7 @@
 
 ///////////////////////////
 
-START_TEST(DummyFitter, "$Id: DummyFitter_test.C 1687 2007-03-04 10:17:26Z ole_st $")
+START_TEST(DummyFitter, "$Id$")
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
@@ -50,18 +50,18 @@ enum
 
 // default ctor
 DummyFitter* ptr = 0;
-CHECK(DummyFitter())
+CHECK((DummyFitter()))
 	ptr = new DummyFitter();
   TEST_EQUAL(ptr->getName(), "DummyFitter")
 	TEST_NOT_EQUAL(ptr, 0)
 RESULT
 
 // destructor
-CHECK(~DummyFitter())
+CHECK((virtual ~DummyFitter()))
 	delete ptr;
 RESULT
 
-CHECK(void DummyFitter::setParameters(const Param& param))
+CHECK(([EXTRA]void DummyFitter::setParameters(const Param& param)))
 	DummyFitter* fitter = new DummyFitter();
 	
 	// check default params
@@ -83,7 +83,7 @@ CHECK(void DummyFitter::setParameters(const Param& param))
 
 RESULT
 
-CHECK( Feature fit(const IndexSet& set) throw (UnableToFit))
+CHECK((Feature fit(const IndexSet &range)))
 	
 	// Test feature construction
 	PRECISION(0.1)

@@ -35,7 +35,7 @@
 
 using namespace OpenMS;
 
-START_TEST(DummySeeder, "$Id: DummySeeder_test.C 1586 2007-03-01 17:59:10Z ole_st $")
+START_TEST(DummySeeder, "$Id$")
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
@@ -45,17 +45,17 @@ using namespace std;
 
 // default ctor
 DummySeeder* ptr = 0;
-CHECK(DummySeeder())
+CHECK((DummySeeder()))
 	ptr = new DummySeeder();
   TEST_EQUAL(ptr->getName(), "DummySeeder")
 	TEST_NOT_EQUAL(ptr, 0)
 RESULT
 
-CHECK(~DummySeeder())
+CHECK((virtual ~DummySeeder()))
 	delete ptr;
 RESULT
 
-CHECK((FeaFiModule::IndexSet  nextSeed() throw(NoSuccessor)))
+CHECK((IndexSet nextSeed()))
 	PRECISION(0.01)
 	
   DummySeeder seeder;
@@ -118,11 +118,11 @@ CHECK((FeaFiModule::IndexSet  nextSeed() throw(NoSuccessor)))
 	TEST_EXCEPTION( FeaFiModule::NoSuccessor , seeder.nextSeed() )	
 RESULT
 
-CHECK(static const String getProductName())
+CHECK((static const String getProductName()))
 	TEST_EQUAL(DummySeeder::getProductName(),"DummySeeder");
 RESULT
 
-CHECK(static BaseSeeder* create())
+CHECK((static BaseSeeder* create()))
 	BaseSeeder* base = DummySeeder::create();
 	TEST_NOT_EQUAL(base,0);
 	delete(base);

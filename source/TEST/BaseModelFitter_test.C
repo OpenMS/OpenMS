@@ -61,18 +61,18 @@ class TestFitter : public BaseModelFitter
 
 // default ctor
 TestFitter* ptr = 0;
-CHECK(TestFitter())
+CHECK((BaseModelFitter()))
 	ptr = new TestFitter();
 	TEST_NOT_EQUAL(ptr, 0)
 RESULT
 
 // destructor
-CHECK(~TestFitter())
+CHECK((virtual ~BaseModelFitter()))
 	delete ptr;
 RESULT
 
 // assignment operator
-CHECK(TestFitter& operator = (const TestFitter& source))
+CHECK((virtual BaseModelFitter& operator=(const BaseModelFitter &source)))
 	TestFitter tm1;
   TestFitter tm2;
   tm2 = tm1;
@@ -84,7 +84,7 @@ CHECK(TestFitter& operator = (const TestFitter& source))
 RESULT
 
 // copy constructor
-CHECK(TestFitter(const TestFitter& source))
+CHECK((BaseModelFitter(const BaseModelFitter &source)))
 	TestFitter fp1;	
  
   TestFitter fp2(fp1);
@@ -95,7 +95,7 @@ CHECK(TestFitter(const TestFitter& source))
 	TEST_EQUAL(fp2, fp3)
 RESULT
 
-CHECK(Feature fit(const IndexSet& /*extension*/) throw(UnableToFit))
+CHECK((virtual Feature fit(const IndexSet &extension)=0 throw (UnableToFit)))
 	TestFitter ft;
 	FeaFiModule::IndexSet  inds;
 	inds.insert(std::make_pair(7,7));
@@ -104,7 +104,7 @@ CHECK(Feature fit(const IndexSet& /*extension*/) throw(UnableToFit))
   TEST_EQUAL(result==empty,true)
 RESULT
 	
-CHECK(static void registerChildren())
+CHECK((static void registerChildren()))
 	// not much happening here
 RESULT
 

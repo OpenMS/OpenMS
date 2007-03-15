@@ -27,9 +27,6 @@
 #ifndef OPENMS_KERNEL_MSEXPERIMENTEXTERN_H
 #define OPENMS_KERNEL_MSEXPERIMENTEXTERN_H
 
-// This does not work. 
-//#define _FILE_OFFSET_BITS 64
-
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
