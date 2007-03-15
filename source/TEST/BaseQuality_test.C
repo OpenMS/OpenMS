@@ -124,11 +124,18 @@ CHECK(double evaluate(const IndexSet& /*set*/, const BaseModel<2>& /*model*/))
 	
 	gm1->setScalingFactor(5.0);
 	gm1->setInterpolationStep(0.3);
-	gm1->setParam(stat,1,5);
+		
+	Param tmp;
+	tmp.setValue("bounding_box:min",1);
+	tmp.setValue("bounding_box:max",5 );
+	tmp.setValue("statistics:variance",stat.variance() );
+	tmp.setValue("statistics:mean",stat.mean() );			
+	
+	gm1->setParameters(tmp);
 	
 	gm2->setScalingFactor(5.0);
 	gm2->setInterpolationStep(0.3);
-	gm2->setParam(stat,1,5);
+	gm2->setParameters(tmp);
 	
 	ProductModel<2> pm1;
 	pm1.setModel(0,gm1);

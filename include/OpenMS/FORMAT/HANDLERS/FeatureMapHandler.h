@@ -25,8 +25,8 @@
 // --------------------------------------------------------------------------
 
 
-#ifndef OPENMS_FORMAT_HANDLERS_DFEATUREMAPHANDLER_H
-#define OPENMS_FORMAT_HANDLERS_DFEATUREMAPHANDLER_H
+#ifndef OPENMS_FORMAT_HANDLERS_FEATUREMAPHANDLER_H
+#define OPENMS_FORMAT_HANDLERS_FEATUREMAPHANDLER_H
 
 #include <OpenMS/KERNEL/Feature.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
@@ -172,4 +172,4 @@ namespace OpenMS
 	} // namespace Internal
 } // namespace OpenMS
 
-#endif
+#endif // OPENMS_FORMAT_HANDLERS_FEATUREMAPHANDLER_H

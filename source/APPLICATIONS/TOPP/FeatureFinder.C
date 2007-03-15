@@ -83,8 +83,7 @@ using namespace std;
 	- <b>intensity_cutoff_factor</b> After fitting, the model is used to truncate the feature region and to remove points with low probability under the model. This is the corresponding threshold.
 	- <b>mz:interpolation_step</b> Gives the interpolation step size in m/z domain
 	- <b>rt:interpolation_step</b> interpolation step size in time domain
-	
-	@todo Add test with SimpleModelFitter (Ole)
+
 */
 
 // We do not want this class to show up in the docu:

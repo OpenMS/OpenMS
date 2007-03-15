@@ -57,7 +57,7 @@ namespace OpenMS
   	IsotopeModel::IsotopeModel(const IsotopeModel& source)
 		: InterpolationModel(source)
 		{
-			setParam(source.mean_, source.charge_, source.isotope_stdev_);
+			setParameters( source.getParameters() );
 			updateMembers_();
 		}
 
@@ -70,7 +70,7 @@ namespace OpenMS
 			if (&source == this) return *this;
 			
 			InterpolationModel::operator = (source);
-			setParam(source.mean_, source.charge_, source.isotope_stdev_);
+			setParameters( source.getParameters() );
 			updateMembers_();
 			
 			return *this;
@@ -187,18 +187,18 @@ namespace OpenMS
 			}
 		}
 
-		void IsotopeModel::setParam(CoordinateType mean, UInt charge, CoordinateType isotope_stdev)
-		{
-			charge_ = charge;
-			isotope_stdev_ = isotope_stdev;
-			mean_ = mean;
-
-			param_.setValue("charge", static_cast<Int>(charge_));
-			param_.setValue("isotope:stdev",isotope_stdev_);
-			param_.setValue("statistics:mean", mean_);
-			
-			setSamples();
-		}
+// 		void IsotopeModel::setParameters(CoordinateType mean, UInt charge, CoordinateType isotope_stdev)
+// 		{
+// 			charge_ = charge;
+// 			isotope_stdev_ = isotope_stdev;
+// 			mean_ = mean;
+// 
+// 			param_.setValue("charge", static_cast<Int>(charge_));
+// 			param_.setValue("isotope:stdev",isotope_stdev_);
+// 			param_.setValue("statistics:mean", mean_);
+// 			
+// 			setSamples();
+// 		}
 
 		void IsotopeModel::setOffset(double offset)
 		{

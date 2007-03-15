@@ -51,8 +51,6 @@ namespace OpenMS
 			<td>mean and variance of the data used to fit the model</td></tr>
 	</table>
 	
-	@todo Remove setParam method and use setParameters instead (Ole)
-	
 	@ingroup FeatureFinder
 */
 class GaussModel
@@ -76,7 +74,7 @@ public:
     /// assignment operator
     virtual GaussModel& operator = (const GaussModel& source);
     
-    void setParam(const BasicStatistics& statistics, CoordinateType min, CoordinateType max);
+//     void setParameters(const BasicStatistics& statistics, CoordinateType min, CoordinateType max);
 
     /// create new GaussModel object (needed by Factory)
     static BaseModel<1>* create()

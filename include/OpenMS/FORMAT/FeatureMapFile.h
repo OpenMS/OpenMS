@@ -24,8 +24,8 @@
 // $Maintainer: Ole Schulz-Trieglaff $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_FORMAT_DFEATUREMAPFILE_H
-#define OPENMS_FORMAT_DFEATUREMAPFILE_H
+#ifndef OPENMS_FORMAT_FEATUREMAPFILE_H
+#define OPENMS_FORMAT_FEATUREMAPFILE_H
 
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/FORMAT/SchemaFile.h>
@@ -52,16 +52,8 @@ namespace OpenMS
 
 		/** @name Accessors */
 		//@{
-		/// loads the file with name @p filename into @p map. General case is not implemented!
-		template<UInt D> 
-		void load(String filename, FeatureMap<>& map) throw (Exception::FileNotFound);
-		
 		/// loads the file with name @p filename into @p map.
 		void load(String filename, FeatureMap<>& feature_map) throw (Exception::FileNotFound, Exception::ParseError);
-
-		/// stores the map @p map in file with name @p filename. General case is not implemented!
-		template<UInt D> 
-		void store(String filename, const FeatureMap<>& map) const throw (Exception::UnableToCreateFile);
 					
 		/// stores the map @p feature_map in file with name @p filename.
 		void store(String filename, const FeatureMap<>& feature_map) const throw (Exception::UnableToCreateFile);
@@ -76,4 +68,4 @@ namespace OpenMS
 
 } // namespace OpenMS
 
-#endif // OPENMS_FORMAT_DEFEATUREMAPFILE_H
+#endif // OPENMS_FORMAT_FEATUREMAPFILE_H

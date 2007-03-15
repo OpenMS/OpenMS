@@ -46,7 +46,7 @@ namespace OpenMS
   	GaussModel::GaussModel(const GaussModel& source)
 		: InterpolationModel(source)
 		{
-			setParam(source.statistics_, source.min_, source.max_);
+			setParameters(source.getParameters());
 			updateMembers_();
 		}
 
@@ -58,7 +58,7 @@ namespace OpenMS
 		{
 			if (&source==this) return *this;
 			
-			setParam(source.statistics_, source.min_, source.max_);
+			setParameters( source.getParameters() );
 			InterpolationModel::operator = (source);
 			updateMembers_();
 			
@@ -87,20 +87,20 @@ namespace OpenMS
 			interpolation_.setOffset ( min_ );
 		}
 
-		void GaussModel::setParam(const BasicStatistics& statistics, CoordinateType min, CoordinateType max)
-		{
-			statistics_.setMean(statistics.mean());
-			statistics_.setVariance(statistics.variance());
-			min_ = min;
-			max_ = max;
-
-			param_.setValue("bounding_box:min", min_);
-			param_.setValue("bounding_box:max", max_);
-			param_.setValue("statistics:mean", statistics_.mean());
-			param_.setValue("statistics:variance", statistics_.variance());
-
-			setSamples();
-		}
+// 		void GaussModel::setParameters(const BasicStatistics& statistics, CoordinateType min, CoordinateType max)
+// 		{
+// 			statistics_.setMean(statistics.mean());
+// 			statistics_.setVariance(statistics.variance());
+// 			min_ = min;
+// 			max_ = max;
+// 
+// 			param_.setValue("bounding_box:min", min_);
+// 			param_.setValue("bounding_box:max", max_);
+// 			param_.setValue("statistics:mean", statistics_.mean());
+// 			param_.setValue("statistics:variance", statistics_.variance());
+// 
+// 			setSamples();
+// 		}
 		
 		void GaussModel::updateMembers_()
 		{

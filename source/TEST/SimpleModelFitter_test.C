@@ -189,7 +189,7 @@ CHECK( Feature fit(const IndexSet& set) throw (UnableToFit))
 	{
 	 	pos[MZ] = mzs[mz];
 		pos[RT] = rts[rt];
-		PRECISION(intens[mz*rt_num+rt]*0.08)		// Intensities can differ by 8%
+		PRECISION(intens[mz*rt_num+rt]*0.1)		// Intensities can differ by 10%
 		TEST_REAL_EQUAL(model->getIntensity(pos),intens[mz*rt_num+rt])
 	}
 RESULT

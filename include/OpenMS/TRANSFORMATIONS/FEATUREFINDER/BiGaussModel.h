@@ -54,9 +54,7 @@ namespace OpenMS
 					<td>mean and variances of the data used to fit the model.
 							variance1 is the variance of the lower half of the asymmetric peak.</td></tr>
 		</table>
-		
-		@todo Remove setParam method and use setParameters instead (Ole)
-		
+				
 		@ingroup FeatureFinder
 		
 	*/
@@ -78,7 +76,7 @@ namespace OpenMS
     /// assignment operator
     virtual BiGaussModel& operator = (const BiGaussModel& source);
 
-		void setParam(CoordinateType mean, CoordinateType variance1, CoordinateType variance2,	CoordinateType min, CoordinateType max);
+// 		void setParameters(CoordinateType mean, CoordinateType variance1, CoordinateType variance2,	CoordinateType min, CoordinateType max);
 
 		/// create new BiGaussModel object (function needed by Factory)
 		static BaseModel<1>* create()

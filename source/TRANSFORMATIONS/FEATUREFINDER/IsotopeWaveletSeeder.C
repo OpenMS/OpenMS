@@ -574,7 +574,8 @@ namespace OpenMS
 			
 			
 		//Now, since we computed all scores, we can hash all mz positions
-		UInt numOfCharges = candidates.size(), numOfMZPositions = candidates[0].size();
+		UInt numOfCharges = candidates.size(); 
+		Int numOfMZPositions = candidates[0].size();
 		//This vector tells us the next mz position in charge i we have to hash
 		std::vector<Int> positions (numOfCharges, 0);
 			
@@ -622,10 +623,6 @@ namespace OpenMS
 			for (unsigned int c=0; c<numOfCharges-1; ++c)
 			{
 				OPENMS_PRECONDITION(positions[c+1] == positions[c], "positions[c+1] != positions[c]");
-// 				if (positions[c+1] != positions[c])
-// 				{
-// 					std::cout << "Quadro Zack!" << std::endl;
-// 				}
 			}
 		   
 			// generate hash key 

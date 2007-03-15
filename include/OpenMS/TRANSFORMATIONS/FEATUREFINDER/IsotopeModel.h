@@ -60,9 +60,7 @@ namespace OpenMS
 					<td>averagines are used to approximate the number of atoms of a given element
 					 (C,H,N,O,S) given a mass</td></tr>
 		</table>
-		
-		@todo Remove setParam method and use setParameters instead (Ole)
-		
+				
 		@ingroup FeatureFinder
 	*/
 	class IsotopeModel
@@ -87,7 +85,7 @@ namespace OpenMS
     /// assignment operator 
     virtual IsotopeModel& operator = (const IsotopeModel& source);
 
-		void setParam(CoordinateType mean, UInt charge, CoordinateType isotope_stdev);
+// 		void setParameters(CoordinateType mean, UInt charge, CoordinateType isotope_stdev);
 
 		UInt getCharge();
 
@@ -107,7 +105,7 @@ namespace OpenMS
 
 			The whole model will be shifted to the new offset without being computing all over.
 			This leaves a discrepancy which is minor in small shifts (i.e. shifting by one or two
-			standard deviations) but can get significant otherwise. In that case use setParam()
+			standard deviations) but can get significant otherwise. In that case use setParameters()
 			which enforces a recomputation of the model.
 		*/
 		void setOffset(CoordinateType offset);
@@ -117,8 +115,8 @@ namespace OpenMS
 		/// set sample/supporting points of interpolation
 		void setSamples();
 
-		/** @brief get the center of the Isotope model i.e. the position of the monoisotopic peak
-
+		/** @brief get the center of the Isotope model 
+		
 			 This is a m/z-value not necessarily the monoisotopic mass.
 		*/
 		CoordinateType getCenter() const;

@@ -23,12 +23,12 @@
 	<featureList count="5">
 		<feature id="0">
 			<position dim="0">196.296</position>
-			<position dim="1">464.364</position>
+			<position dim="1">464.347</position>
 			<intensity>4.8565e+08</intensity>
 			<quality dim="0">0.554701</quality>
-			<quality dim="1">0.724526</quality>
-			<meta>Feature #0, +3, 16->6, Corr: (0.828602,0.554701,0.724526)</meta>
-			<overallquality>0.828602</overallquality>
+			<quality dim="1">0.753757</quality>
+			<meta>Feature #0, +3, 16->6, Corr: (0.857965,0.554701,0.753757)</meta>
+			<overallquality>0.857965</overallquality>
 			<charge>3</charge>
 			<model name="ProductModel2D">
 				<param name="MZ" value="IsotopeModel"></param>
@@ -40,9 +40,9 @@
 				<param name="MZ:charge" value="3"></param>
 				<param name="MZ:cutoff" value="0"></param>
 				<param name="MZ:intensity_scaling" value="1"></param>
-				<param name="MZ:interpolation_step" value="0.03"></param>
+				<param name="MZ:interpolation_step" value="0.1"></param>
 				<param name="MZ:isotope:distance" value="1.00049"></param>
-				<param name="MZ:isotope:maximum" value="4"></param>
+				<param name="MZ:isotope:maximum" value="1000000"></param>
 				<param name="MZ:isotope:stdev" value="0.16"></param>
 				<param name="MZ:isotope:trim_right_cutoff" value="0.001"></param>
 				<param name="MZ:statistics:mean" value="464.619"></param>
@@ -51,12 +51,12 @@
 				<param name="RT:bounding_box:min" value="189.951"></param>
 				<param name="RT:cutoff" value="0"></param>
 				<param name="RT:intensity_scaling" value="1"></param>
-				<param name="RT:interpolation_step" value="0.2"></param>
+				<param name="RT:interpolation_step" value="0.1"></param>
 				<param name="RT:statistics:mean" value="196.296"></param>
 				<param name="RT:statistics:variance1" value="0.739737"></param>
 				<param name="RT:statistics:variance2" value="5.46396"></param>
 				<param name="cutoff" value="7.19622e+06"></param>
-				<param name="intensity_scaling" value="1.07281e+09"></param>
+				<param name="intensity_scaling" value="1.04315e+09"></param>
 			</model>
 			<convexhull nr="0">
 				<hullpoint>
@@ -79,12 +79,12 @@
 		</feature>
 		<feature id="1">
 			<position dim="0">210.478</position>
-			<position dim="1">547.535</position>
+			<position dim="1">547.521</position>
 			<intensity>3.25562e+08</intensity>
 			<quality dim="0">0.234332</quality>
-			<quality dim="1">0.727317</quality>
-			<meta>Feature #1, +2, 20->8, Corr: (0.851281,0.234332,0.727317)</meta>
-			<overallquality>0.851281</overallquality>
+			<quality dim="1">0.743397</quality>
+			<meta>Feature #1, +2, 20->8, Corr: (0.876573,0.234332,0.743397)</meta>
+			<overallquality>0.876573</overallquality>
 			<charge>2</charge>
 			<model name="ProductModel2D">
 				<param name="MZ" value="IsotopeModel"></param>
@@ -96,9 +96,9 @@
 				<param name="MZ:charge" value="2"></param>
 				<param name="MZ:cutoff" value="0"></param>
 				<param name="MZ:intensity_scaling" value="1"></param>
-				<param name="MZ:interpolation_step" value="0.03"></param>
+				<param name="MZ:interpolation_step" value="0.1"></param>
 				<param name="MZ:isotope:distance" value="1.00049"></param>
-				<param name="MZ:isotope:maximum" value="4"></param>
+				<param name="MZ:isotope:maximum" value="1000000"></param>
 				<param name="MZ:isotope:stdev" value="0.16"></param>
 				<param name="MZ:isotope:trim_right_cutoff" value="0.001"></param>
 				<param name="MZ:statistics:mean" value="547.843"></param>
@@ -107,12 +107,12 @@
 				<param name="RT:bounding_box:min" value="200.03"></param>
 				<param name="RT:cutoff" value="0"></param>
 				<param name="RT:intensity_scaling" value="1"></param>
-				<param name="RT:interpolation_step" value="0.2"></param>
+				<param name="RT:interpolation_step" value="0.1"></param>
 				<param name="RT:statistics:mean" value="210.478"></param>
 				<param name="RT:statistics:variance1" value="6.82336"></param>
 				<param name="RT:statistics:variance2" value="0.73098"></param>
 				<param name="cutoff" value="4.79892e+06"></param>
-				<param name="intensity_scaling" value="5.64901e+08"></param>
+				<param name="intensity_scaling" value="5.72259e+08"></param>
 			</model>
 			<convexhull nr="0">
 				<hullpoint>
@@ -135,13 +135,13 @@
 		</feature>
 		<feature id="2">
 			<position dim="0">221.504</position>
-			<position dim="1">480.898</position>
+			<position dim="1">480.892</position>
 			<intensity>3.24674e+08</intensity>
 			<quality dim="0">0.270238</quality>
-			<quality dim="1">0.799844</quality>
-			<meta>Feature #2, +2, 17->8, Corr: (0.840548,0.270238,0.799844)</meta>
-			<overallquality>0.840548</overallquality>
-			<charge>2</charge>
+			<quality dim="1">0.578069</quality>
+			<meta>Feature #2, +3, 17->8, Corr: (0.673167,0.270238,0.578069)</meta>
+			<overallquality>0.673167</overallquality>
+			<charge>3</charge>
 			<model name="ProductModel2D">
 				<param name="MZ" value="IsotopeModel"></param>
 				<param name="MZ:averagines:C" value="0.0443"></param>
@@ -149,12 +149,12 @@
 				<param name="MZ:averagines:N" value="0.0037"></param>
 				<param name="MZ:averagines:O" value="0.022"></param>
 				<param name="MZ:averagines:S" value="0"></param>
-				<param name="MZ:charge" value="2"></param>
+				<param name="MZ:charge" value="3"></param>
 				<param name="MZ:cutoff" value="0"></param>
 				<param name="MZ:intensity_scaling" value="1"></param>
-				<param name="MZ:interpolation_step" value="0.03"></param>
+				<param name="MZ:interpolation_step" value="0.1"></param>
 				<param name="MZ:isotope:distance" value="1.00049"></param>
-				<param name="MZ:isotope:maximum" value="4"></param>
+				<param name="MZ:isotope:maximum" value="1000000"></param>
 				<param name="MZ:isotope:stdev" value="0.16"></param>
 				<param name="MZ:isotope:trim_right_cutoff" value="0.001"></param>
 				<param name="MZ:statistics:mean" value="481.173"></param>
@@ -163,12 +163,12 @@
 				<param name="RT:bounding_box:min" value="212.625"></param>
 				<param name="RT:cutoff" value="0"></param>
 				<param name="RT:intensity_scaling" value="1"></param>
-				<param name="RT:interpolation_step" value="0.2"></param>
+				<param name="RT:interpolation_step" value="0.1"></param>
 				<param name="RT:statistics:mean" value="221.504"></param>
 				<param name="RT:statistics:variance1" value="1.94057"></param>
 				<param name="RT:statistics:variance2" value="4.83198"></param>
 				<param name="cutoff" value="4.27566e+06"></param>
-				<param name="intensity_scaling" value="5.84338e+08"></param>
+				<param name="intensity_scaling" value="7.15028e+08"></param>
 			</model>
 			<convexhull nr="0">
 				<hullpoint>
@@ -191,13 +191,13 @@
 		</feature>
 		<feature id="3">
 			<position dim="0">181.234</position>
-			<position dim="1">512.378</position>
-			<intensity>7.33183e+08</intensity>
-			<quality dim="0">0.484385</quality>
-			<quality dim="1">0.675706</quality>
-			<meta>Feature #3, +3, 11->6, Corr: (0.675721,0.484385,0.675706)</meta>
-			<overallquality>0.675721</overallquality>
-			<charge>3</charge>
+			<position dim="1">512.355</position>
+			<intensity>7.45817e+08</intensity>
+			<quality dim="0">0.380276</quality>
+			<quality dim="1">0.726911</quality>
+			<meta>Feature #3, +2, 11->8, Corr: (0.726911,0.380276,0.726911)</meta>
+			<overallquality>0.726911</overallquality>
+			<charge>2</charge>
 			<model name="ProductModel2D">
 				<param name="MZ" value="IsotopeModel"></param>
 				<param name="MZ:averagines:C" value="0.0443"></param>
@@ -205,12 +205,12 @@
 				<param name="MZ:averagines:N" value="0.0037"></param>
 				<param name="MZ:averagines:O" value="0.022"></param>
 				<param name="MZ:averagines:S" value="0"></param>
-				<param name="MZ:charge" value="3"></param>
+				<param name="MZ:charge" value="2"></param>
 				<param name="MZ:cutoff" value="0"></param>
 				<param name="MZ:intensity_scaling" value="1"></param>
-				<param name="MZ:interpolation_step" value="0.03"></param>
+				<param name="MZ:interpolation_step" value="0.1"></param>
 				<param name="MZ:isotope:distance" value="1.00049"></param>
-				<param name="MZ:isotope:maximum" value="4"></param>
+				<param name="MZ:isotope:maximum" value="1000000"></param>
 				<param name="MZ:isotope:stdev" value="0.16"></param>
 				<param name="MZ:isotope:trim_right_cutoff" value="0.001"></param>
 				<param name="MZ:statistics:mean" value="512.655"></param>
@@ -219,12 +219,12 @@
 				<param name="RT:bounding_box:min" value="178.034"></param>
 				<param name="RT:cutoff" value="0"></param>
 				<param name="RT:intensity_scaling" value="1"></param>
-				<param name="RT:interpolation_step" value="0.2"></param>
+				<param name="RT:interpolation_step" value="0.1"></param>
 				<param name="RT:statistics:mean" value="181.234"></param>
 				<param name="RT:statistics:variance1" value="0.640118"></param>
 				<param name="RT:statistics:variance2" value="4.64372"></param>
 				<param name="cutoff" value="1.0818e+07"></param>
-				<param name="intensity_scaling" value="1.82123e+09"></param>
+				<param name="intensity_scaling" value="1.59896e+09"></param>
 			</model>
 			<convexhull nr="0">
 				<hullpoint>
@@ -237,22 +237,22 @@
 				</hullpoint>
 				<hullpoint>
 					<hposition dim="0">183.389</hposition>
-					<hposition dim="1">513.27</hposition>
+					<hposition dim="1">513.697</hposition>
 				</hullpoint>
 				<hullpoint>
 					<hposition dim="0">180.434</hposition>
-					<hposition dim="1">513.319</hposition>
+					<hposition dim="1">513.709</hposition>
 				</hullpoint>
 			</convexhull>
 		</feature>
 		<feature id="4">
 			<position dim="0">207.811</position>
-			<position dim="1">537.999</position>
+			<position dim="1">537.986</position>
 			<intensity>1.02954e+08</intensity>
-			<quality dim="0">0.540317</quality>
-			<quality dim="1">0.38661</quality>
-			<meta>Feature #4, +2, 25->7, Corr: (0.798365,0.540317,0.38661)</meta>
-			<overallquality>0.798365</overallquality>
+			<quality dim="0">0.540585</quality>
+			<quality dim="1">0.383811</quality>
+			<meta>Feature #4, +2, 25->7, Corr: (0.818831,0.540585,0.383811)</meta>
+			<overallquality>0.818831</overallquality>
 			<charge>2</charge>
 			<model name="ProductModel2D">
 				<param name="MZ" value="IsotopeModel"></param>
@@ -264,9 +264,9 @@
 				<param name="MZ:charge" value="2"></param>
 				<param name="MZ:cutoff" value="0"></param>
 				<param name="MZ:intensity_scaling" value="1"></param>
-				<param name="MZ:interpolation_step" value="0.03"></param>
+				<param name="MZ:interpolation_step" value="0.1"></param>
 				<param name="MZ:isotope:distance" value="1.00049"></param>
-				<param name="MZ:isotope:maximum" value="4"></param>
+				<param name="MZ:isotope:maximum" value="1000000"></param>
 				<param name="MZ:isotope:stdev" value="0.16"></param>
 				<param name="MZ:isotope:trim_right_cutoff" value="0.001"></param>
 				<param name="MZ:statistics:mean" value="538.303"></param>
@@ -275,12 +275,12 @@
 				<param name="RT:bounding_box:min" value="196.187"></param>
 				<param name="RT:cutoff" value="0"></param>
 				<param name="RT:intensity_scaling" value="1"></param>
-				<param name="RT:interpolation_step" value="0.2"></param>
+				<param name="RT:interpolation_step" value="0.1"></param>
 				<param name="RT:statistics:mean" value="207.811"></param>
 				<param name="RT:statistics:variance1" value="8.44533"></param>
 				<param name="RT:statistics:variance2" value="2.23514"></param>
 				<param name="cutoff" value="1.90821e+06"></param>
-				<param name="intensity_scaling" value="4.73337e+08"></param>
+				<param name="intensity_scaling" value="4.71235e+08"></param>
 			</model>
 			<convexhull nr="0">
 				<hullpoint>

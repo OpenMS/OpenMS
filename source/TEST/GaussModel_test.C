@@ -68,7 +68,15 @@ CHECK(GaussModel& operator = (const GaussModel& source))
 	stat.setVariance(2.0);
 	gm1.setScalingFactor(10.0);
 	gm1.setInterpolationStep(0.3);
-	gm1.setParam(stat, 678.9, 789.0);
+	
+	Param tmp;
+	tmp.setValue("bounding_box:min",678.9);
+	tmp.setValue("bounding_box:max",789.0 );
+	tmp.setValue("statistics:variance",stat.variance() );
+	tmp.setValue("statistics:mean",stat.mean() );			
+	gm1.setParameters(tmp);
+	
+// 	gm1.setParameters(stat, 678.9, 789.0);
 
   GaussModel gm2;
   gm2 = gm1;
@@ -76,7 +84,7 @@ CHECK(GaussModel& operator = (const GaussModel& source))
   GaussModel gm3;
 	gm3.setScalingFactor(10.0);
 	gm3.setInterpolationStep(0.3);
-	gm3.setParam(stat, 678.9, 789.0);
+	gm3.setParameters(tmp);
 
   gm1 = GaussModel();
 	TEST_EQUAL(gm3.getParameters(), gm2.getParameters())
@@ -90,13 +98,19 @@ CHECK(GaussModel(const GaussModel& source))
 	stat.setVariance(2.0);
 	gm1.setScalingFactor(10.0);
 	gm1.setInterpolationStep(0.3);
-	gm1.setParam(stat, 678.9, 789.0);
+	
+	Param tmp;
+	tmp.setValue("bounding_box:min",678.9);
+	tmp.setValue("bounding_box:max",789.0 );
+	tmp.setValue("statistics:variance",stat.variance() );
+	tmp.setValue("statistics:mean",stat.mean() );			
+	gm1.setParameters(tmp);	
 
 	GaussModel gm2(gm1);
-  	GaussModel gm3;
+  GaussModel gm3;
 	gm3.setScalingFactor(10.0);
 	gm3.setInterpolationStep(0.3);
-	gm3.setParam(stat, 678.9, 789.0);
+	gm3.setParameters(tmp);
 
   	gm1 = GaussModel();
 	TEST_EQUAL(gm3.getParameters(), gm2.getParameters())
@@ -110,14 +124,20 @@ CHECK([EXTRA] DefaultParmHandler::setParameters(...))
 	stat.setVariance(2.0);
 
 	gm1.setScalingFactor(10.0);
-	gm1.setParam(stat, 678.9, 680.9);
+	
+	Param tmp;
+	tmp.setValue("bounding_box:min",678.9);
+	tmp.setValue("bounding_box:max",789.0 );
+	tmp.setValue("statistics:variance",stat.variance() );
+	tmp.setValue("statistics:mean",stat.mean() );			
+	gm1.setParameters(tmp);
+// 	gm1.setParameters(stat, 678.9,789.0);
 	gm1.setOffset(680.0);
 
 	TEST_REAL_EQUAL(gm1.getCenter(), 680.2)
 
 	GaussModel gm2;
-	const Param p(gm1.getParameters());
-	gm2.setParameters(p);
+	gm2.setParameters( gm1.getParameters() );
 
 	DPeakArray<1> dpa1;
 	DPeakArray<1> dpa2;
@@ -140,7 +160,15 @@ CHECK(void setParam(const BasicStatistics&,CoordinateType,CoordinateType))
 	stat.setMean(0.0);
 	stat.setVariance(1.0);
 	gm1.setInterpolationStep(0.001);
-	gm1.setParam(stat, -4.0, 4.0);
+	
+	Param tmp;
+	tmp.setValue("bounding_box:min",-4.0);
+	tmp.setValue("bounding_box:max",4.0 );
+	tmp.setValue("statistics:variance",stat.variance() );
+	tmp.setValue("statistics:mean",stat.mean() );			
+	gm1.setParameters(tmp);	
+	
+// 	gm1.setParameters(stat, -4.0, 4.0);
 
 	TEST_REAL_EQUAL(gm1.getCenter(), 0.0)
 
@@ -173,17 +201,22 @@ CHECK(void setOffset(double offset))
 	BasicStatistics<>  stat;
 	stat.setMean(680.1);
 	stat.setVariance(2.0);
-	gm1.setParam(stat, 678.9, 789.0);
+	Param tmp;
+	tmp.setValue("bounding_box:min",680.9);
+	tmp.setValue("bounding_box:max",791.0);
+	tmp.setValue("statistics:variance",stat.variance() );
+	tmp.setValue("statistics:mean",stat.mean() );			
+	gm1.setParameters(tmp);
 	gm1.setOffset(680.9);
 
 	GaussModel gm2;
 	stat.setMean(682.1);
 	stat.setVariance(2.0);
-	gm2.setParam(stat, 680.9, 791.0);
+	gm2.setParameters(tmp);
 
 	TEST_EQUAL(gm1.getParameters(), gm2.getParameters())
 	TEST_REAL_EQUAL(gm1.getCenter(), gm2.getCenter())
-	TEST_REAL_EQUAL(gm1.getCenter(), 682.1)
+	TEST_REAL_EQUAL(gm1.getCenter(), 680.1)
 
 	DPeakArray<1> dpa1;
 	DPeakArray<1> dpa2;

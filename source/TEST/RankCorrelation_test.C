@@ -62,12 +62,16 @@ CHECK((double evaluate(const IndexSet& set, const BaseModel<1>& model, UInt dim)
 	
 	RankCorrelation corr;
 	GaussModel gm1;
-	BasicStatistics<>  stat;
-	stat.setMean(2.5);
-	stat.setVariance(3.0);
+
 	gm1.setScalingFactor(5.0);
 	gm1.setInterpolationStep(0.3);
-	gm1.setParam(stat,1,5);
+	
+	Param tmp;
+	tmp.setValue("bounding_box:min",1);
+	tmp.setValue("bounding_box:max",5 );
+	tmp.setValue("statistics:variance",3.0 );
+	tmp.setValue("statistics:mean",2.5 );			
+	gm1.setParameters(tmp);
 	
 	FeaFiTraits traits;
 	DPeakArray<2, Peak2D> peak_array;
@@ -116,11 +120,11 @@ CHECK((double evaluate(const IndexSet& set, const BaseModel<1>& model, UInt dim)
 	
 	// evaluate rt dimension
 	double result = corr.evaluate(set, gm1,0);
-	TEST_REAL_EQUAL(result,0.954702)
+	TEST_REAL_EQUAL(result,0.912863)
 
 	// evaluate mz dimension
 	result = corr.evaluate(set, gm1,1);
-	TEST_REAL_EQUAL(result, 0.954702)
+	TEST_REAL_EQUAL(result, 0.912863)
 	
 RESULT
 
@@ -136,11 +140,17 @@ CHECK((double evaluate(const IndexSet& set, const BaseModel<2>& model)))
 	
 	gm1->setScalingFactor(5.0);
 	gm1->setInterpolationStep(0.3);
-	gm1->setParam(stat,1,5);
+	
+	Param tmp;
+	tmp.setValue("bounding_box:min",1);
+	tmp.setValue("bounding_box:max",5 );
+	tmp.setValue("statistics:variance",stat.variance() );
+	tmp.setValue("statistics:mean",stat.mean() );			
+	gm1->setParameters(tmp);
 	
 	gm2->setScalingFactor(5.0);
 	gm2->setInterpolationStep(0.3);
-	gm2->setParam(stat,1,5);
+	gm2->setParameters(tmp);
 	
 	ProductModel pm1;
 	pm1.setModel(0,gm1);
@@ -193,8 +203,8 @@ CHECK((double evaluate(const IndexSet& set, const BaseModel<2>& model)))
 	
 	double result = corr.evaluate(set, pm1);
 	double pval   = corr.getPvalue();
-	TEST_REAL_EQUAL(result,0.955305);
-	TEST_REAL_EQUAL(pval,0.0280274);
+	TEST_REAL_EQUAL(result, 0.902813);
+	TEST_REAL_EQUAL(pval,0.0354884);
 	
 RESULT
 

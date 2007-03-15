@@ -419,7 +419,14 @@ namespace OpenMS
 		{
 			mz_model = new GaussModel();
 			mz_model->setInterpolationStep(interpolation_step_mz);
-			dynamic_cast<GaussModel*>(mz_model)->setParam(mz_stat_, min_[MZ], max_[MZ]);
+			
+			Param tmp;
+			tmp.setValue("bounding_box:min",min_[MZ] );
+			tmp.setValue("bounding_box:max",max_[MZ] );
+			tmp.setValue("statistics:variance",mz_stat_.variance() );
+			tmp.setValue("statistics:mean",mz_stat_.mean() );
+			
+			static_cast<GaussModel*>(mz_model)->setParameters(tmp);			
 		}
 		else
 		{
@@ -429,15 +436,27 @@ namespace OpenMS
 			iso_param.remove("stdev");
 			mz_model->setParameters(iso_param);
 			mz_model->setInterpolationStep(interpolation_step_mz);
-			dynamic_cast<IsotopeModel*>(mz_model)->setParam(mz_stat_.mean(), mz_fit, isotope_stdev);
+			
+			Param tmp;
+			tmp.setValue("charge", static_cast<Int>(mz_fit));
+			tmp.setValue("isotope:stdev",isotope_stdev);
+			tmp.setValue("statistics:mean", mz_stat_.mean());
+			
+			static_cast<IsotopeModel*>(mz_model)->setParameters( tmp );			
 		}
 		InterpolationModel* rt_model;
 		if (rt_fit==RTGAUSS)
 		{
 			rt_model = new GaussModel();
 			rt_model->setInterpolationStep(interpolation_step_rt);
-			dynamic_cast<GaussModel*>(rt_model)->setParam(rt_stat_, min_[RT], max_[RT]);
-
+			
+			Param tmp;
+			tmp.setValue("bounding_box:min",min_[RT] );
+			tmp.setValue("bounding_box:max",max_[RT] );
+			tmp.setValue("statistics:variance",rt_stat_.variance() );
+			tmp.setValue("statistics:mean",rt_stat_.mean() );			
+			
+			static_cast<GaussModel*>(rt_model)->setParameters( tmp );
 		}
 		else if (rt_fit==LMAGAUSS)
 		{
@@ -461,7 +480,15 @@ namespace OpenMS
 		{
 			rt_model = new BiGaussModel();
 			rt_model->setInterpolationStep(interpolation_step_rt);
-			dynamic_cast<BiGaussModel*>(rt_model)->setParam(rt_stat_.mean(), rt_stat_.variance1(), rt_stat_.variance2(), min_[RT], max_[RT]);
+			
+			Param tmp;
+			tmp.setValue("bounding_box:min", 	min_[RT]);
+			tmp.setValue("bounding_box:max", max_[RT]);
+			tmp.setValue("statistics:mean", rt_stat_.mean());
+			tmp.setValue("statistics:variance1",  rt_stat_.variance1());
+			tmp.setValue("statistics:variance2", rt_stat_.variance2() );
+			
+			static_cast<BiGaussModel*>(rt_model)->setParameters( tmp );
 		}
 
 		model2D_.setModel(MZ, mz_model).setModel(RT, rt_model);
