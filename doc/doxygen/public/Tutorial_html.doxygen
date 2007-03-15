@@ -29,9 +29,14 @@
 	@page Tutorial Tutorial
 	
 	The subsections of the OpenMS tutorial are:
+	- @subpage tutorial_ms_terms
 	- @subpage tutorial_concept
 	- @subpage tutorial_datastructures		
 	- @subpage tutorial_kernel
-		
+	- @subpage tutorial_metadata
+	- @subpage tutorial_format
+	- @subpage tutorial_transformations
+	- @subpage tutorial_filtering
+	- @subpage tutorial_analysis
 
 */

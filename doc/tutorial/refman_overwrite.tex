@@ -31,30 +31,45 @@
 \begin{titlepage}
 \vspace*{7cm}
 \begin{center}
-{\Large Open\-MS Tutorial\\[1ex]\large Version: TODO }\\
+{\Large OpenMS Tutorial\\[1ex]\large Version: TODO }\\
 \end{center}
 \end{titlepage}
 
 \pagenumbering{arabic}
-\section{Open\-MS Tutorial}
 
-This tutorial gives an introduction to the OpenMS core datastructures and algorithms.
-It is intended to allow for a quick start in writing your own applications based on
-the OpenMS framework.
+\section{OpenMS Terms}
+	
+	\input{tutorial_ms_terms}
+	\pagebreak
 
-The structure of this tutorial is similar to the modules of the class documentation.
-First, the basic concepts and datastructures of OpenMS are explained. The next chapter is
-about the kernel datastructures. These datastructures represent the actual mass spectronomy
-data: raw data, peaks, spectra and maps. In the following chapters the more sophisticated 
-datastructures and algorithms, e.g. used for peak picking, feature finding and identification
-are presended.
+\section{OpenMS Tutorial}
 
-\pagebreak
-\input{tutorial_concept}
-\pagebreak
-\input{tutorial_datastructures}
-\pagebreak
-\input{tutorial_kernel}
-
+	This tutorial gives an introduction to the OpenMS core datastructures and algorithms.
+	It is intended to allow for a quick start in writing your own applications based on
+	the OpenMS framework.
+	
+	The structure of this tutorial is similar to the modules of the class documentation.
+	First, the basic concepts and datastructures of OpenMS are explained. The next chapter is
+	about the kernel datastructures. These datastructures represent the actual mass spectronomy
+	data: raw data, peaks, spectra and maps. In the following chapters the more sophisticated 
+	datastructures and algorithms, e.g. used for peak picking, feature finding and identification
+	are presended.
+	
+	\pagebreak
+	\input{tutorial_concept}
+	\pagebreak
+	\input{tutorial_datastructures}
+	\pagebreak
+	\input{tutorial_kernel}
+	\pagebreak
+	\input{tutorial_metadata}
+	\pagebreak
+	\input{tutorial_format}
+	\pagebreak
+	\input{tutorial_transformations}
+	\pagebreak
+	\input{tutorial_filtering}
+	\pagebreak
+	\input{tutorial_analysis}
 
 \end{document}
