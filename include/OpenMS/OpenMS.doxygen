@@ -64,7 +64,7 @@ Ideen:
 Todos:
 - TOPP
 	- FeatureFiles + AnalysisXML beschneiden können
-  - FileFilter: MS/MS scans nach Precursor MZ/RT abscheiden
+  - FileFilter: MS/MS scans nach Precursor MZ/RT abscheiden, aber nicht in MZ kürzen
   - RTPredict/RTModel: RT-Vorhersage als ID speichern (Besser in Consensus zu integrieren)
   - FeatureFinder
     - Traits nach FF / entfernen
@@ -79,8 +79,12 @@ Todos:
   - AndiFile auf 64 Bit geefixt (hiwi) -> Installationsanleitung + Test-Builts updaten
   
 -TOPPView:
+	- Layern Menü -> Context von Layers
+	- Intensity Distribution -> Doch widget
+	- Bild / Image speichern -> Warnung wenn nicht schreibbar
   - Recent -> als neues Layer
   - Features -> Convexe Hülle, Punkte, Nummern einzeln abschaltbar
+  - Peaks 2D -> Precursor Peaks einzeln abschaltbar
   - Prozent / Snap gleichzeitig
   - Zoom und Move zusammen
   - Kontextmenu

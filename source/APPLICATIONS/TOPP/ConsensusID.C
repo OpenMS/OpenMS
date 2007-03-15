@@ -76,6 +76,8 @@ class TOPPConsensusID
 			registerStringOption_("out","<file>","","output file in AnalysisXML format");
 			registerStringOption_("features","<file>","","input feature file. If this file is given, all identifications\n"
 																									 "are mapped to features and the consensus is made for feaatures.",false);
+			registerStringOption_("features_out","<file>","","Features that have identifications are stored in this file."
+			                                                 "Only available when 'features' file is given!",false);
 			registerSubsection_("algorithm");
 		}
 	
@@ -102,11 +104,17 @@ class TOPPConsensusID
 			outputFileWritable_(out);
 
 			String feature_file = getStringOption_("features");
+			String feature_out_file = "";
 			bool feature_mode = false;
 			if (feature_file!="")
 			{
 				inputFileReadable_(feature_file);
 				feature_mode = true;
+				feature_out_file = getStringOption_("features_out");
+				if (feature_out_file!="")
+				{
+					outputFileWritable_(feature_out_file);
+				}
 			}
 			
 			//-------------------------------------------------------------
@@ -133,7 +141,8 @@ class TOPPConsensusID
 			{
 				//load features
 				FeatureMap<> features;
-				FeatureMapFile().load(feature_file,features);
+				FeatureMapFile feat_file;
+				feat_file.load(feature_file,features);
 				
 				//map ids to features
 				IDFeatureMapper mapper;
@@ -167,6 +176,20 @@ class TOPPConsensusID
 					}
 				}
 				ax_file.store(out,features.getProteinIdentifications(),all_ids);
+				
+				//write output features (those with IDs)
+				if (feature_out_file!="")
+				{
+					FeatureMap<> features_out;
+					for (UInt i = 0; i < features.size(); ++i)
+					{
+						if (features[i].getIdentifications().size()!=0 && features[i].getIdentifications()[0].getPeptideHits().size()!=0)
+						{
+							features_out.push_back(features[i]);
+						}
+					}
+					feat_file.store(feature_out_file,features_out);
+				}
 			}
 			else //non-feature mode
 			{
