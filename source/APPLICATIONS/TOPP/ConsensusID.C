@@ -208,6 +208,7 @@ class TOPPConsensusID
 					// Insert peptide IDs
 					for (vector<IdentificationData>::iterator ins = all_ids.begin(); ins != all_ids.end(); ++ins)
 					{
+						writeDebug_(String("  ID: ") + ins->rt + " / " + ins->mz, 4);
 						vector<IDData>::iterator pos = prec_data.begin();
 						while (pos != prec_data.end())
 						{
@@ -215,10 +216,12 @@ class TOPPConsensusID
 							{
 								break;
 							}
+							++pos;
 						}
 						//right position was found => append ids
 						if (pos != prec_data.end())
 						{
+							writeDebug_(String("    Appending IDs to precursor: ") + pos->rt + " / " + pos->mz, 4);
 							pos->ids.push_back(ins->id);
 						}
 						//insert new entry
@@ -229,6 +232,7 @@ class TOPPConsensusID
 							tmp.rt = ins->rt;
 							tmp.ids.push_back(ins->id);
 							prec_data.push_back(tmp);
+							writeDebug_(String("    Inserting new precursor: ") + tmp.rt + " / " + tmp.mz, 4);
 						}
 					}
 				}

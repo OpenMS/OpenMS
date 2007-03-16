@@ -238,6 +238,13 @@ class Test
 };
 @endcode
 
+<H2 style="margin-top:20px; border-top:1px solid grey;">Use of the STL</H2>
+
+Many OpenMS classes base on STL classes. 
+However, only the C++ Standard Library part of the STL must be used.
+This means that SGI extensions like <tt>hash_set</tt>, <tt>hash_multiset</tt>, <tt>hash_map</tt> 
+and <tt>hash_multimap</tt> are not allowed!
+
 <H1 style="margin-top:40px; border-top:4px solid grey; text-align:left;">Exception handling</H1>
 
 No OpenMS program should dump a core if an error occurs. Instead, it should
