@@ -28,8 +28,6 @@
 
 ///////////////////////////
 
-#include <iostream>
-
 #include <OpenMS/ANALYSIS/ID/PILISIdentification.h>
 #include <OpenMS/FORMAT/DTAFile.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
@@ -69,31 +67,6 @@ CHECK(PILISIdentification& operator = (const PILISIdentification&))
 	copy = *ptr;
 	TEST_EQUAL(copy.getParameters(), ptr->getParameters())
 RESULT
-
-
-CHECK(Param& getParameters())
-	Param p(ptr->getParameters());
-	p.setValue("bla", "blubb");
-	ptr->setParameters(p);
-	TEST_EQUAL(ptr->getParameters().getValue("bla"), "blubb")
-RESULT
-
-CHECK(const Param& getParameters() const)
-	Param p(ptr->getParameters());
-	TEST_EQUAL(p.getValue("bla"), "blubb")
-RESULT
-
-CHECK(void setParameters(const Param& param))
-	Param p;
-	p.setValue("blubb", "bla");
-	ptr->setParameters(p);
-RESULT
-
-//CHECK(void resetToDefaultParam())
-//	ptr->resetToDefaultParam();
-//	PILISIdentification id;
-//	TEST_EQUAL(ptr->getParameters(), id.getParameters())
-//RESULT
 
 CHECK(void setSequenceDB(PILISSequenceDB* sequence_db))
 	PILISSequenceDB* db = new PILISSequenceDB();

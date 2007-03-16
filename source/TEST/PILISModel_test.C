@@ -68,27 +68,6 @@ CHECK(PILISModel& operator = (const PILISModel& mode))
 	TEST_EQUAL(copy.getParameters(), ptr->getParameters())
 RESULT
 
-//CHECK(Param& getParameters())
-//	ptr->getParameters().setValue("bla", "blubb");
-//RESULT
-
-CHECK(const Param& getParameters() const)
-	Param p(ptr->getParameters());
-	TEST_REAL_EQUAL((double)p.getValue("upper_mz"), 2000.0)
-RESULT
-
-CHECK(void setParameters(const Param& param))
-	Param p;
-	p.setValue("blubb", "bla");
-	ptr->setParameters(p);
-	TEST_EQUAL(ptr->getParameters().getValue("blubb"), "bla")
-RESULT
-
-//CHECK(void resetToDefaultParam())
-//	ptr->resetToDefaultParam();
-//	TEST_REAL_EQUAL(ptr->getParameters().getValue("upper_mz"), 2000.0)
-//RESULT
-
 CHECK(void writetoYGFFile(const String& filename))
 	// TODO
 RESULT
@@ -106,31 +85,8 @@ RESULT
 CHECK(void getSpectrum(PeakSpectrum& spec, const AASequence& peptide, UInt charge))
 	PeakSpectrum spec;
 	ptr->getSpectrum(spec, peptide, 1);
-	TEST_EQUAL(spec.size(), 75)
+	TEST_EQUAL(spec.size(), 89)
 RESULT
-
-/*
-CHECK(void getSpectrumAlignment(HashMap<UInt, UInt>& peak_map, const PeakSpectrum& spec1, const PeakSpectrum& spec2))
-	PeakSpectrum sim, exp;
-	ptr->getSpectrum(sim, peptide, 1);
-	DTAFile().load("data/PILISSequenceDB_DFPIANGER_1.dta", exp);
-	sim.getContainer().sortByPosition();
-	
-	HashMap<UInt, UInt> peak_map;
-	ptr->getSpectrumAlignment(peak_map, sim, exp);
-	TEST_EQUAL(peak_map.size(), 73);
-	for (HashMap<UInt, UInt>::ConstIterator it = peak_map.begin(); it != peak_map.end(); ++it)
-	{
-		bool in_error_range(false);
-		double diff(sim.getContainer()[it->first].getPosition()[0] - exp.getContainer()[it->second].getPosition()[0]);
-		if (fabs(diff) < 0.004 * sim.getContainer()[it->first].getPosition()[0])
-		{
-			in_error_range = true;
-		}
-		TEST_EQUAL(in_error_range, true);
-	}
-RESULT
-*/
 
 CHECK(void train(const PeakSpectrum&, const AASequence& peptide, UInt charge))
 	PeakSpectrum spec;
