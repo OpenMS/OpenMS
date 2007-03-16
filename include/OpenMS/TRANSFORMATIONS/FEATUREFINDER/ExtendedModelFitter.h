@@ -164,6 +164,18 @@ namespace OpenMS
 		/// perform a nonlinear optimization
 		void optimize();
 
+		/// get current height for the EMG, Gauss and logNormal model
+		CoordinateType getHeight() const;
+
+		/// get current width for the EMG, Gauss and logNormal model
+		CoordinateType getWidth() const;
+
+		/// get current symmetry for the EMG, Gauss and logNormal model
+		CoordinateType getSymmetry() const;
+
+		/// get current retention time for the EMG, Gauss and logNormal model
+		CoordinateType getRetention() const;
+
 	 protected:
 
 		virtual void updateMembers_();
@@ -199,6 +211,7 @@ namespace OpenMS
 		double retention_;
 		double deviation_;
 		bool symmetric_;
+		std::string gsl_status_;
 
 		/// the name of the function
 		std::string profile_;
@@ -214,7 +227,6 @@ namespace OpenMS
 		double standard_deviation_;
 		double scale_factor_;
 		double expected_value_;
-
   };
 }
 #endif // OPENMS_TRANSFORMATIONS_FEATUREFINDER_EXTENDEDMODELFITTER_H
