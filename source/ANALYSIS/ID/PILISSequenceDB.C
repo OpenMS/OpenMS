@@ -93,6 +93,11 @@ namespace OpenMS
 			{
 				// contains only peptide
 				String peptide(s);
+				if (replace_X_and_L_)
+				{
+					replace(peptide.begin(), peptide.end(), 'X', 'I');
+					replace(peptide.begin(), peptide.end(), 'L', 'I');
+				}
 				PepStruct new_peptide;
 
 				// add peptide with charge 1

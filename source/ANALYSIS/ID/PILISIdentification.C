@@ -66,7 +66,8 @@ namespace OpenMS
   	aa_weight_['R'] = 156.101;
   	aa_weight_['N'] = 114.043;
   	aa_weight_['D'] = 115.027;
-  	aa_weight_['C'] = 161.015;
+  	aa_weight_['C'] = 161.015; //CmC
+		//aa_weight_['C'] = 103.00919;
   	aa_weight_['E'] = 129.043;
   	aa_weight_['Q'] = 128.059;
   	aa_weight_['G'] = 57.0215;

@@ -1300,21 +1300,21 @@ namespace OpenMS
 			//weight = prefixes[i].getMonoWeight(Residue::AIon);
 			//id.estimateFromPeptideWeight(weight);
 			double a_int1 = tmp[hmm_.getState(a_names1[i])];
-			addPeaks_(weight, 1, 0.0, a_int1, spec, id, "a" + String(i+1) + "+");
+			addPeaks_(weight - 28.0, 1, 0.0, a_int1, spec, id, "a" + String(i+1) + "+");
 
 			if (charge == 2)
 			{
 				double a_int2 = tmp[hmm_.getState(a_names2[i])];
-				addPeaks_(weight, 2, 0.0, a_int2, spec, id, "a" + String(i+1) + "++");
+				addPeaks_(weight - 28.0, 2, 0.0, a_int2, spec, id, "a" + String(i+1) + "++");
 			}
 
 			// suffix ions
 			weight = suffixes[i].getMonoWeight(Residue::YIon);
       id.estimateFromPeptideWeight(weight);
-			addPeaks_(weight, 1, 0.0, suffix_ints1[i], spec, id, suffix_names1[i] + "+");
+			addPeaks_(weight, 1, 0.0, suffix_ints1[i], spec, id, suffix_names1[i]);
       if (charge == 2)
       {
-				addPeaks_(weight, 2, 0.0, suffix_ints2[i], spec, id, suffix_names2[i] + "++");
+				addPeaks_(weight, 2, 0.0, suffix_ints2[i], spec, id, suffix_names2[i]);
 
         // neutral losses
         // get fractions as the different charge states are treated together
