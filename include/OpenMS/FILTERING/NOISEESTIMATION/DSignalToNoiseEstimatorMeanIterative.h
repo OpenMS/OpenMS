@@ -799,10 +799,7 @@ namespace OpenMS
       }
 
       /// stores the noise estimate for each peak
-      /// Todo: change to std::hash_map<const char*, int, hash<const char*>, eqstr>  == the current one is SORTED (WHY??)! (Chris)
       std::map< PeakType, double, typename PeakType::PositionLess > stn_estimates_;
-      //HashMap <PeakType, double> stn_estimates_; // --> error cast to int
-
       /// range of data points which belong to a window in Thomson
       double win_len_;
       /// number of bins in the histogram

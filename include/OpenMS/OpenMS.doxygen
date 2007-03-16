@@ -79,6 +79,7 @@ Todos:
   - AndiFile auf 64 Bit geefixt (hiwi) -> Installationsanleitung + Test-Builts updaten
   
 -TOPPView:
+  - Zwei Layers auf -> Prozent
 	- Layern Menü -> Context von Layers
 	- Intensity Distribution -> Doch widget
 	- Bild / Image speichern -> Warnung wenn nicht schreibbar

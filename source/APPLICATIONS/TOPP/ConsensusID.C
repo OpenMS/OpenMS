@@ -156,7 +156,7 @@ class TOPPConsensusID
 				//do consensus
 				for (UInt i = 0; i < features.size(); ++i)
 				{
-					cout << "ConsensusID -- Feature " << features[i].getRT() << " / " << features[i].getMZ() << endl;
+					cout << "ConsensusID -- Feature " << features[i].getRT() << " / " << features[i].getMZ() << " ("<< i+1 << ")" << endl;
 					consensus.apply(features[i].getIdentifications());
 				}
 				
