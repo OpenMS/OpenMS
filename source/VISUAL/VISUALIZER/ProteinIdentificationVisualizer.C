@@ -58,7 +58,7 @@ namespace OpenMS
 		finishAdding_();
 	
 		connect(updatebutton_, SIGNAL(clicked()), this, SLOT(updateTree()) );
-		connect(this, SIGNAL(sendStatus(std::string)), caller, SLOT(setStatus(std::string))  );	
+		
 		
 	}
 

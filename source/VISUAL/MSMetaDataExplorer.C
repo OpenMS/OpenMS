@@ -142,7 +142,10 @@ namespace OpenMS
 	  ws_->setCurrentIndex(item->text(1).toInt());
 	}
 	
-	
+	void MSMetaDataExplorer::connectVisualizer_(BaseVisualizer* ptr)
+	{
+		connect(ptr, SIGNAL(sendStatus(std::string)), this, SLOT(setStatus(std::string))  );			
+	}
 		
 	//Save all changes
 	void MSMetaDataExplorer::saveAll_()
@@ -156,7 +159,7 @@ namespace OpenMS
 			}
 			if(status_list_.length() != 0)
 			{
-				status_list_ = status_list_ + "\n"+ "\n"+ "Incorrect modifications will not be saved.";
+				status_list_ = status_list_ + "\n"+ "\n"+ "Invalid modifications will not be saved.";
 				QMessageBox::warning(this,tr("Save warning"),status_list_.c_str());
 			}
 			else
@@ -166,7 +169,7 @@ namespace OpenMS
 		}
 		catch(exception& e)
 		{
-			cout<<"Exception: "<<e.what()<<endl;
+			cout<<"Exception while trying to save modifications."<<endl<<e.what()<<endl;
 		}
 		
 		//close dialog
@@ -379,6 +382,8 @@ namespace OpenMS
 		{ 
 			visualize_(meta[i], item);
 		}
+		
+		connectVisualizer_(visualizer);
 	}
 		
 	//Visualizing Acquisition object
@@ -405,6 +410,7 @@ namespace OpenMS
 		{
 			visualize_(dynamic_cast<MetaInfoInterface&>(meta), item);
 		}
+		connectVisualizer_(visualizer);
 	}
 	
 	
@@ -431,6 +437,7 @@ namespace OpenMS
 		{
 			visualize_(dynamic_cast<MetaInfoInterface&>(meta), item);
 		}
+		connectVisualizer_(visualizer);
 	}
 	
 	
@@ -457,12 +464,13 @@ namespace OpenMS
 		{
 			visualize_(dynamic_cast<MetaInfoInterface&>(meta), item);
 		} 
+		connectVisualizer_(visualizer);
 	}
 	
 	//Visualizing ExperimentalSettings object
 	void MSMetaDataExplorer::visualize_(ExperimentalSettings& meta, QTreeWidgetItem* parent)
 	{
-		ExperimentalSettingsVisualizer *visualizer = new ExperimentalSettingsVisualizer(isEditable(), this, this);  
+		ExperimentalSettingsVisualizer *visualizer = new ExperimentalSettingsVisualizer(isEditable(), this);  
 		visualizer->load(meta);  
 		
     QStringList labels;
@@ -483,44 +491,38 @@ namespace OpenMS
 			visualize_(dynamic_cast<MetaInfoInterface&>(meta), item);
 		}
 		
-		try
+		
+		//check for Sample
+		visualize_(meta.getSample(), item);
+		
+		//check for ProteinIdentification
+		for(UInt i=0; i<meta.getProteinIdentifications().size(); ++i)    
 		{
-			//check for Sample
-			visualize_(meta.getSample(), item);
-			
-			//check for ProteinIdentification
-			for(UInt i=0; i<meta.getProteinIdentifications().size(); ++i)    
-			{
-				visualize_(meta.getProteinIdentifications()[i], item);
-			}
-			
-			//check for ProcessingMethod
-			visualize_(meta.getProcessingMethod(), item);
-			
-			//check for Instrument
-			visualize_(meta.getInstrument(), item);
-			
-			//check for SourceFile
-			visualize_(meta.getSourceFile(), item);
-			
-			//check for ContactPersons
-			for(UInt i=0; i<meta.getContacts().size(); ++i)    
-			{
-				visualize_(meta.getContacts()[i], item);
-			}
-			
-			//check for Software
-			visualize_(meta.getSoftware(), item);
-			
-			//check for HPLC
-			visualize_(meta.getHPLC(), item);
-			
-						
+			visualize_(meta.getProteinIdentifications()[i], item);
 		}
-		catch(exception& e)
+		
+		//check for ProcessingMethod
+		visualize_(meta.getProcessingMethod(), item);
+		
+		//check for Instrument
+		visualize_(meta.getInstrument(), item);
+		
+		//check for SourceFile
+		visualize_(meta.getSourceFile(), item);
+		
+		//check for ContactPersons
+		for(UInt i=0; i<meta.getContacts().size(); ++i)    
 		{
-			std::cout<<"Error while trying to visualize ExperimentalSettings. "<<e.what()<<endl;
+			visualize_(meta.getContacts()[i], item);
 		}
+		
+		//check for Software
+		visualize_(meta.getSoftware(), item);
+		
+		//check for HPLC
+		visualize_(meta.getHPLC(), item);
+					
+		connectVisualizer_(visualizer);
 	}
 	
 	//Visualizing Gradient object
@@ -541,6 +543,7 @@ namespace OpenMS
 		{
 			item = new QTreeWidgetItem(parent, labels );
 		}
+		connectVisualizer_(visualizer);
 	}
 	
 	
@@ -563,14 +566,10 @@ namespace OpenMS
 			item = new QTreeWidgetItem(parent, labels );
 		}
 		
-		try
-		{	
-			visualize_(meta.getGradient(), item);
-		}
-		catch(exception& e)
-		{
-			std::cout<<"Error while trying to visualize Gradient. "<<e.what()<<endl;
-		}
+		
+		visualize_(meta.getGradient(), item);
+		
+		connectVisualizer_(visualizer);
 	}
 	
 	
@@ -608,6 +607,7 @@ namespace OpenMS
 				visualize_(peps[i], item, &prots);
 			}
 		}
+		connectVisualizer_(visualizer);
 	}
 	
 	
@@ -634,6 +634,7 @@ namespace OpenMS
 		{
 			visualize_(dynamic_cast<MetaInfoInterface&>(meta), item);
 		}
+		connectVisualizer_(visualizer);
 	}
 	
 	
@@ -662,24 +663,10 @@ namespace OpenMS
 		}
 
 		//visualize IonSource object
-		try
-		{	
-			visualize_(meta.getIonSource(), item);
-		}
-		catch(exception& e)
-		{
-			std::cout<<"Error while trying to visualize IonSource. "<<e.what()<<endl;
-		}
+		visualize_(meta.getIonSource(), item);
 		
 		//visualize IonDetector object
-		try
-		{	
-			visualize_(meta.getIonDetector(), item);
-		}
-		catch(exception& e)
-		{
-			std::cout<<"Error while trying to visualize IonDetector. "<<e.what()<<endl;
-		}
+		visualize_(meta.getIonDetector(), item);
 			
 		//Check for MassAnalyzers
 		vector<MassAnalyzer>& v= meta.getMassAnalyzers();  
@@ -690,6 +677,7 @@ namespace OpenMS
 				visualize_(v[i], item);
 			}
 		}
+		connectVisualizer_(visualizer);
 	}
 	
 	
@@ -716,6 +704,7 @@ namespace OpenMS
 		{
 			visualize_(dynamic_cast<MetaInfoInterface&>(meta), item);
 		}
+		connectVisualizer_(visualizer);
 	}
 	
 	
@@ -741,7 +730,8 @@ namespace OpenMS
 		if(! meta.isMetaEmpty() )
 		{
 			visualize_(dynamic_cast<MetaInfoInterface&>(meta), item);
-		}			
+		}		
+		connectVisualizer_(visualizer);	
 	}
 	
 	
@@ -768,6 +758,7 @@ namespace OpenMS
 		{
 			visualize_(dynamic_cast<MetaInfoInterface&>(meta), item);
 		}
+		connectVisualizer_(visualizer);
 	}
 	
 	
@@ -799,6 +790,7 @@ namespace OpenMS
 			
 		//Check for source file
 		visualize_(meta.getSourceFile(), item);
+		connectVisualizer_(visualizer);
 	}
 	
 	
@@ -820,6 +812,7 @@ namespace OpenMS
 		{
 			item = new QTreeWidgetItem(parent, labels );
 		}
+		connectVisualizer_(visualizer);
 	}
 	
 	
@@ -845,7 +838,8 @@ namespace OpenMS
 		if(! meta.isMetaEmpty() )
 		{
 			visualize_(dynamic_cast<MetaInfoInterface&>(meta), item);
-		}  
+		} 
+		connectVisualizer_(visualizer); 
 	}
 	
 	
@@ -884,6 +878,7 @@ namespace OpenMS
 				}
 			}
 		}
+		connectVisualizer_(visualizer);
 	}
 	
 	
@@ -905,6 +900,7 @@ namespace OpenMS
 		{
 			item = new QTreeWidgetItem(parent, labels );
 		}
+		connectVisualizer_(visualizer);
 	}
 	
 	
@@ -931,6 +927,7 @@ namespace OpenMS
 		{
 			visualize_(dynamic_cast<MetaInfoInterface&>(meta), item);
 		}
+		connectVisualizer_(visualizer);
 	}
 	
 	
@@ -955,6 +952,7 @@ namespace OpenMS
 		{
 			item = new QTreeWidgetItem(parent, labels );
 		} 
+		connectVisualizer_(visualizer);
 	}
 	
 	
@@ -987,7 +985,7 @@ namespace OpenMS
 			visualize_(v[i], item);
 		}
 		
-
+		connectVisualizer_(visualizer);
 	}
 	
 	
@@ -1048,13 +1046,14 @@ namespace OpenMS
 		{
 			visualize_(dynamic_cast<MetaInfoInterface&>(meta), item);
 		}
+		connectVisualizer_(visualizer);
 	}
 	
 	
 	//Visualizing Software object
 	void MSMetaDataExplorer::visualize_(Software& meta, QTreeWidgetItem* parent)
 	{
-		SoftwareVisualizer *visualizer = new SoftwareVisualizer(isEditable(), this, this);
+		SoftwareVisualizer *visualizer = new SoftwareVisualizer(isEditable(), this);
 		visualizer->load(meta);  
 		
     QStringList labels;
@@ -1069,6 +1068,7 @@ namespace OpenMS
 		{
 			item = new QTreeWidgetItem(parent, labels );
 		}
+		connectVisualizer_(visualizer);
 	}
 
 	
@@ -1090,6 +1090,7 @@ namespace OpenMS
 		{
 			item = new QTreeWidgetItem(parent, labels );
 		} 
+		connectVisualizer_(visualizer);
 	}
 	
 	
@@ -1113,34 +1114,29 @@ namespace OpenMS
 			item = new QTreeWidgetItem(parent, labels );
 		}
 		
-		try
-		{
-			//check for InstrumentSettings
-			visualize_(meta.getInstrumentSettings(), item);
-			
-			//check for Identification
-			for(UInt i=0; i<meta.getIdentifications().size(); ++i)    
-			{
-				visualize_(meta.getIdentifications()[i], item);
-			}
-			
-			//check for Precursor
-			visualize_(meta.getPrecursor(), item);
-					
-			//check for MetaInfoDescription
-  		for(map<String, MetaInfoDescription>::iterator iter = meta.getMetaInfoDescriptions().begin(); iter != meta.getMetaInfoDescriptions().end(); iter++ ) 
-			{
-				visualize_(iter->second, item, iter->first );
-      }			
-			
-			//check for AcquisitionInfo
-			visualize_(meta.getAcquisitionInfo(), item);
 		
-		}
-		catch(exception& e)
+		//check for InstrumentSettings
+		visualize_(meta.getInstrumentSettings(), item);
+		
+		//check for Identification
+		for(UInt i=0; i<meta.getIdentifications().size(); ++i)    
 		{
-			std::cout<<"Error while trying to visualize SpectrumSettings. "<<e.what()<<endl;
+			visualize_(meta.getIdentifications()[i], item);
 		}
+		
+		//check for Precursor
+		visualize_(meta.getPrecursor(), item);
+				
+		//check for MetaInfoDescription
+		for(map<String, MetaInfoDescription>::iterator iter = meta.getMetaInfoDescriptions().begin(); iter != meta.getMetaInfoDescriptions().end(); iter++ ) 
+		{
+			visualize_(iter->second, item, iter->first );
+		}			
+		
+		//check for AcquisitionInfo
+		visualize_(meta.getAcquisitionInfo(), item);
+			
+		connectVisualizer_(visualizer);
 	}
 	
 	
@@ -1163,6 +1159,7 @@ namespace OpenMS
 		{
 			item = new QTreeWidgetItem(parent, labels );
 		}
+		connectVisualizer_(visualizer);
 	}
 	
 

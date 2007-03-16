@@ -66,42 +66,75 @@ void ProcessingMethodVisualizer::load(ProcessingMethod &s)
 	//Copy of current object for restoring the original values
 	tempprocessingmethod_=s;
 	
-	//An array for bool values
-	String bool_values_[3]= {"FALSE","TRUE"};		
 	
-	fillComboBox(processingmethod_method_, SpectrumSettings::NamesOfSpectrumType , SpectrumSettings::SIZE_OF_SPECTRUMTYPE);
-	fillComboBox(processingmethod_deisotoping_, bool_values_ , 2);
-	fillComboBox(processingmethod_charge_deconvolution_, bool_values_ , 2);
+			
+	
+	
 	
 	update_();
 }
 
 void ProcessingMethodVisualizer::update_()
-{		
+{			
+		//An array for bool values	
+		String bool_values_[3]= {"FALSE","TRUE"};
 		
-		//update deisotoping
-		if(tempprocessingmethod_.getDeisotoping())
+		if(! isEditable())
 		{
-			processingmethod_deisotoping_->setCurrentIndex(1);
+			//update deisotoping
+			if(tempprocessingmethod_.getDeisotoping())
+			{
+				fillComboBox(processingmethod_method_, &SpectrumSettings::NamesOfSpectrumType[1] , 1);
+			}
+			else 
+			{ 
+				fillComboBox(processingmethod_method_, &SpectrumSettings::NamesOfSpectrumType[0] , 1);
+			}
+			
+			//update charge_deconvolution
+			if(tempprocessingmethod_.getChargeDeconvolution())
+			{
+				fillComboBox(processingmethod_charge_deconvolution_, &SpectrumSettings::NamesOfSpectrumType[1] , 1);
+			}
+			else 
+			{ 
+				fillComboBox(processingmethod_charge_deconvolution_, &SpectrumSettings::NamesOfSpectrumType[0] , 1);
+			}
+			
+			fillComboBox(processingmethod_method_, &SpectrumSettings::NamesOfSpectrumType[tempprocessingmethod_.getSpectrumType()] , 1);
 		}
-		else 
-		{ 
-			processingmethod_deisotoping_->setCurrentIndex(0);
-		}
-		
-		
-		//update charge_deconvolution
-		if(tempprocessingmethod_.getChargeDeconvolution())
+		else
 		{
-			processingmethod_charge_deconvolution_->setCurrentIndex(1);
-		}
-		else 
-		{ 
-			processingmethod_charge_deconvolution_->setCurrentIndex(0);
+			fillComboBox(processingmethod_method_, SpectrumSettings::NamesOfSpectrumType , SpectrumSettings::SIZE_OF_SPECTRUMTYPE);
+			fillComboBox(processingmethod_deisotoping_, bool_values_ , 2);
+			fillComboBox(processingmethod_charge_deconvolution_, bool_values_ , 2);	
+			
+			//update deisotoping
+			if(tempprocessingmethod_.getDeisotoping())
+			{
+				processingmethod_deisotoping_->setCurrentIndex(1);
+			}
+			else 
+			{ 
+				processingmethod_deisotoping_->setCurrentIndex(0);
+			}
+			
+			//update charge_deconvolution
+			if(tempprocessingmethod_.getChargeDeconvolution())
+			{
+				processingmethod_charge_deconvolution_->setCurrentIndex(1);
+			}
+			else 
+			{ 
+				processingmethod_charge_deconvolution_->setCurrentIndex(0);
+			}
+			
+			processingmethod_method_->setCurrentIndex(tempprocessingmethod_.getSpectrumType()); 
 		}
 		
+			
 		processingmethod_intensity_cutoff_->setText(String( tempprocessingmethod_.getIntensityCutoff() ).c_str() );		
-		processingmethod_method_->setCurrentIndex(tempprocessingmethod_.getSpectrumType()); 
+		
 	
 }
 

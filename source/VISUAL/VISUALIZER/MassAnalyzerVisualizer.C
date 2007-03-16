@@ -80,28 +80,47 @@ void MassAnalyzerVisualizer::load(MassAnalyzer &s)
 	//Copy of current object for restoring the original values
 	tempmassanalyzer_=s;
 			
-  fillComboBox(massanalyzer_type_, s.NamesOfAnalyzerType , MassAnalyzer::SIZE_OF_ANALYZERTYPE);
-	fillComboBox(massanalyzer_res_method_, s.NamesOfResolutionMethod , MassAnalyzer::SIZE_OF_RESOLUTIONMETHOD);
-	fillComboBox(massanalyzer_res_type_, s.NamesOfResolutionType , MassAnalyzer::SIZE_OF_RESOLUTIONTYPE);
-	fillComboBox(massanalyzer_scan_func_, s.NamesOfScanFunction , MassAnalyzer::SIZE_OF_SCANFUNCTION);
-	fillComboBox(massanalyzer_scan_dir_, s.NamesOfScanDirection , MassAnalyzer::SIZE_OF_SCANDIRECTION);
-	fillComboBox(massanalyzer_scan_law_, s.NamesOfScanLaw , MassAnalyzer::SIZE_OF_SCANLAW);
-	fillComboBox(massanalyzer_tandem_scan_method_, s.NamesOfTandemScanningMethod , MassAnalyzer::SIZE_OF_TANDEMSCANNINGMETHOD);
-	fillComboBox(massanalyzer_reflectron_state_, s.NamesOfReflectronState , MassAnalyzer::SIZE_OF_REFLECTRONSTATE);
+  
 	
 	update_();
 }
 
 void MassAnalyzerVisualizer::update_()
 {
-		massanalyzer_type_->setCurrentIndex(tempmassanalyzer_.getType()); 
-		massanalyzer_res_method_->setCurrentIndex(tempmassanalyzer_.getResolutionMethod()); 
-		massanalyzer_res_type_->setCurrentIndex(tempmassanalyzer_.getResolutionType()); 
-		massanalyzer_scan_func_->setCurrentIndex(tempmassanalyzer_.getScanFunction()); 
-		massanalyzer_scan_dir_->setCurrentIndex(tempmassanalyzer_.getScanDirection()); 
-		massanalyzer_scan_law_->setCurrentIndex(tempmassanalyzer_.getScanLaw()); 
-		massanalyzer_tandem_scan_method_->setCurrentIndex(tempmassanalyzer_.getTandemScanMethod()); 
-		massanalyzer_reflectron_state_->setCurrentIndex(tempmassanalyzer_.getReflectronState()); 
+		if(! isEditable())
+		{
+			
+			fillComboBox(massanalyzer_type_, &tempmassanalyzer_.NamesOfAnalyzerType[tempmassanalyzer_.getType()] , 1);
+			fillComboBox(massanalyzer_res_method_, &tempmassanalyzer_.NamesOfResolutionMethod[tempmassanalyzer_.getResolutionMethod()] , 1);
+			fillComboBox(massanalyzer_res_type_, &tempmassanalyzer_.NamesOfResolutionType[tempmassanalyzer_.getResolutionType()] , 1);
+			fillComboBox(massanalyzer_scan_func_, &tempmassanalyzer_.NamesOfScanFunction[tempmassanalyzer_.getScanFunction()] , 1);
+			fillComboBox(massanalyzer_scan_dir_, &tempmassanalyzer_.NamesOfScanDirection[tempmassanalyzer_.getScanDirection()] , 1);
+			fillComboBox(massanalyzer_scan_law_, &tempmassanalyzer_.NamesOfScanLaw[tempmassanalyzer_.getScanLaw()] , 1);
+			fillComboBox(massanalyzer_tandem_scan_method_, &tempmassanalyzer_.NamesOfTandemScanningMethod[tempmassanalyzer_.getTandemScanMethod()] , 1);
+			fillComboBox(massanalyzer_reflectron_state_, &tempmassanalyzer_.NamesOfReflectronState[tempmassanalyzer_.getReflectronState()] , 1);
+			
+		}
+		else
+		{
+			fillComboBox(massanalyzer_type_, tempmassanalyzer_.NamesOfAnalyzerType , MassAnalyzer::SIZE_OF_ANALYZERTYPE);
+			fillComboBox(massanalyzer_res_method_, tempmassanalyzer_.NamesOfResolutionMethod , MassAnalyzer::SIZE_OF_RESOLUTIONMETHOD);
+			fillComboBox(massanalyzer_res_type_, tempmassanalyzer_.NamesOfResolutionType , MassAnalyzer::SIZE_OF_RESOLUTIONTYPE);
+			fillComboBox(massanalyzer_scan_func_, tempmassanalyzer_.NamesOfScanFunction , MassAnalyzer::SIZE_OF_SCANFUNCTION);
+			fillComboBox(massanalyzer_scan_dir_, tempmassanalyzer_.NamesOfScanDirection , MassAnalyzer::SIZE_OF_SCANDIRECTION);
+			fillComboBox(massanalyzer_scan_law_, tempmassanalyzer_.NamesOfScanLaw , MassAnalyzer::SIZE_OF_SCANLAW);
+			fillComboBox(massanalyzer_tandem_scan_method_, tempmassanalyzer_.NamesOfTandemScanningMethod , MassAnalyzer::SIZE_OF_TANDEMSCANNINGMETHOD);
+			fillComboBox(massanalyzer_reflectron_state_, tempmassanalyzer_.NamesOfReflectronState , MassAnalyzer::SIZE_OF_REFLECTRONSTATE);
+			
+			massanalyzer_type_->setCurrentIndex(tempmassanalyzer_.getType()); 
+			massanalyzer_res_method_->setCurrentIndex(tempmassanalyzer_.getResolutionMethod()); 
+			massanalyzer_res_type_->setCurrentIndex(tempmassanalyzer_.getResolutionType()); 
+			massanalyzer_scan_func_->setCurrentIndex(tempmassanalyzer_.getScanFunction()); 
+			massanalyzer_scan_dir_->setCurrentIndex(tempmassanalyzer_.getScanDirection()); 
+			massanalyzer_scan_law_->setCurrentIndex(tempmassanalyzer_.getScanLaw()); 
+			massanalyzer_tandem_scan_method_->setCurrentIndex(tempmassanalyzer_.getTandemScanMethod()); 
+			massanalyzer_reflectron_state_->setCurrentIndex(tempmassanalyzer_.getReflectronState()); 
+		
+		}
 		
 		massanalyzer_res_->setText(String( tempmassanalyzer_.getResolution() ).c_str());
 		massanalyzer_acc_->setText(String( tempmassanalyzer_.getAccuracy() ).c_str());

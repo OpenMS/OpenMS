@@ -74,18 +74,28 @@ void SampleVisualizer::load(Sample &s)
 	//Copy of current object for restoring the original values
 	tempsample_=s;
 		
-	fillComboBox(samplestate_, s.NamesOfSampleState , Sample::SIZE_OF_SAMPLESTATE);
+	
 	
   update_();		
 }
 
 void SampleVisualizer::update_()
 {
+	if(! isEditable())
+	{
+		fillComboBox(samplestate_, &tempsample_.NamesOfSampleState[tempsample_.getState()] ,1);
+	}
+	else
+	{
+		fillComboBox(samplestate_, tempsample_.NamesOfSampleState , Sample::SIZE_OF_SAMPLESTATE);
+		samplestate_->setCurrentIndex(tempsample_.getState());
+	}
+	
 	samplename_->setText(tempsample_.getName().c_str());
 	samplenumber_->setText(tempsample_.getNumber().c_str());
 	sampleorganism_->setText(tempsample_.getOrganism().c_str());
   samplecomment_->setText(tempsample_.getComment().c_str());
-	samplestate_->setCurrentIndex(tempsample_.getState());
+	
 	samplemass_->setText(String(tempsample_.getMass()).c_str()   );
 	samplevolume_->setText(String(tempsample_.getVolume()).c_str());
 	sampleconcentration_->setText(String(tempsample_.getConcentration()).c_str() );

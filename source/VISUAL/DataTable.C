@@ -147,10 +147,6 @@ void DataTable::fillComboBox(QComboBox* &ptr , const std::string* items, int agr
 	{
 		ptr->insertItem(i,QString(items[i].c_str()));
 	}	
-	if(!isEditable())
-	{
-		ptr->setDisabled(true);
-	}
 }
 
 void DataTable::addButton(QPushButton* &ptr, const QString &label )

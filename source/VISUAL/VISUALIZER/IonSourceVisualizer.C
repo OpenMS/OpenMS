@@ -61,18 +61,29 @@ void IonSourceVisualizer::load(IonSource &s)
 	//Copy of current object for restoring the original values
 	tempionsource_=s;
 			
-  fillComboBox(ionsource_inlet_type_, s.NamesOfInletType , IonSource::SIZE_OF_INLETTYPE);
-	fillComboBox(ionsource_ionization_method_, s.NamesOfIonizationMethod , IonSource::SIZE_OF_IONIZATIONMETHOD);
-	fillComboBox(ionsource_polarity_, s.NamesOfPolarity , IonSource::SIZE_OF_POLARITY);
-	
 	update_();
 }
 
 void IonSourceVisualizer::update_()
 {
-		ionsource_inlet_type_->setCurrentIndex(tempionsource_.getInletType()); 
-		ionsource_ionization_method_->setCurrentIndex(tempionsource_.getIonizationMethod()); 
-		ionsource_polarity_->setCurrentIndex(tempionsource_.getPolarity()); 
+		
+		if(! isEditable())
+		{
+			fillComboBox(ionsource_inlet_type_, &tempionsource_.NamesOfInletType[tempionsource_.getInletType()]  , 1);
+			fillComboBox(ionsource_ionization_method_, &tempionsource_.NamesOfIonizationMethod[tempionsource_.getIonizationMethod()] , 1);
+			fillComboBox(ionsource_polarity_, &tempionsource_.NamesOfPolarity[tempionsource_.getPolarity()] , 1);	
+		}
+		else
+		{
+			fillComboBox(ionsource_inlet_type_, tempionsource_.NamesOfInletType  , IonSource::SIZE_OF_INLETTYPE);
+			fillComboBox(ionsource_ionization_method_, tempionsource_.NamesOfIonizationMethod , IonSource::SIZE_OF_IONIZATIONMETHOD);
+			fillComboBox(ionsource_polarity_, tempionsource_.NamesOfPolarity , IonSource::SIZE_OF_POLARITY);
+			
+			ionsource_inlet_type_->setCurrentIndex(tempionsource_.getInletType()); 
+			ionsource_ionization_method_->setCurrentIndex(tempionsource_.getIonizationMethod()); 
+			ionsource_polarity_->setCurrentIndex(tempionsource_.getPolarity()); 
+		}
+		
 }
 
 void IonSourceVisualizer::store()

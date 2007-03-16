@@ -73,8 +73,7 @@ void TaggingVisualizer::load(Tagging &t)
 	//Copy of current object for restoring the original values
 	temptag_=t;
   
-	fillComboBox(modificationspecificity_, t.NamesOfSpecificityType, Tagging::SIZE_OF_SPECIFICITYTYPE);
-  fillComboBox(taggingvariant_, t.NamesOfIsotopeVariant, Tagging::SIZE_OF_ISOTOPEVARIANT);
+	
 	
 	
 	updateTag_();
@@ -82,15 +81,27 @@ void TaggingVisualizer::load(Tagging &t)
 
 void TaggingVisualizer::updateTag_()
 {
+	if(! isEditable())
+	{
+		fillComboBox(modificationspecificity_, &temptag_.NamesOfSpecificityType[temptag_.getSpecificityType()], 1);
+  	fillComboBox(taggingvariant_, &temptag_.NamesOfIsotopeVariant[temptag_.getVariant()], 1);
+	}
+	else
+	{
+		fillComboBox(modificationspecificity_, temptag_.NamesOfSpecificityType, Tagging::SIZE_OF_SPECIFICITYTYPE);
+  	fillComboBox(taggingvariant_, temptag_.NamesOfIsotopeVariant, Tagging::SIZE_OF_ISOTOPEVARIANT);
+		modificationspecificity_->setCurrentIndex(temptag_.getSpecificityType());
+		taggingvariant_->setCurrentIndex(temptag_.getVariant());			
+	}
 	treatmenttype_->setText(temptag_.getType().c_str());
 	treatmenttype_->setReadOnly(true);
 	treatmentcomment_->setText(temptag_.getComment().c_str());
 	modificationname_->setText(temptag_.getReagentName().c_str());
 	modificationmass_->setText(String(temptag_.getMass()).c_str() );
-	modificationspecificity_->setCurrentIndex(temptag_.getSpecificityType());
+	
 	modificationAA_->setText(temptag_.getAffectedAminoAcids().c_str() ); 
 	taggingmass_shift_->setText(String(temptag_.getMassShift()).c_str());
-	taggingvariant_->setCurrentIndex(temptag_.getVariant());			
+	
 
 }
 

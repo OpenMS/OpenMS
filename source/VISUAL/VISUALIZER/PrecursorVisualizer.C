@@ -67,21 +67,26 @@ void PrecursorVisualizer::load(Precursor &s)
 	//Copy of current object for restoring the original values
 	tempprecursor_=s;
 	
-		
-	fillComboBox(precursor_activation_method_, Precursor::NamesOfActivationMethod , Precursor::SIZE_OF_ACTIVATIONMETHOD);
-	fillComboBox(precursor_energy_units_, Precursor::NamesOfEnergyUnits , Precursor::SIZE_OF_ENERGYUNITS);
-	
-	
 	update_();
 }
 
 void PrecursorVisualizer::update_()
 {		
-		
-	precursor_activation_method_->setCurrentIndex(tempprecursor_.getActivationMethod()); 
+	if(! isEditable())
+	{
+		fillComboBox(precursor_activation_method_, &tempprecursor_.NamesOfActivationMethod[tempprecursor_.getActivationMethod()] , 1);
+		fillComboBox(precursor_energy_units_, &tempprecursor_.NamesOfEnergyUnits[tempprecursor_.getActivationEnergyUnit()] , 1);
+	}
+	else
+	{
+		fillComboBox(precursor_activation_method_, Precursor::NamesOfActivationMethod , Precursor::SIZE_OF_ACTIVATIONMETHOD);
+		fillComboBox(precursor_energy_units_, Precursor::NamesOfEnergyUnits , Precursor::SIZE_OF_ENERGYUNITS);
+		precursor_activation_method_->setCurrentIndex(tempprecursor_.getActivationMethod()); 
+		precursor_energy_units_->setCurrentIndex(tempprecursor_.getActivationEnergyUnit()); 
+	}
+	
 	precursor_activation_energy_->setText(String( tempprecursor_.getActivationEnergy() ).c_str() );
-	precursor_energy_units_->setCurrentIndex(tempprecursor_.getActivationEnergyUnit()); 
- 	precursor_window_size_->setText(String( tempprecursor_.getWindowSize() ).c_str() );		
+	precursor_window_size_->setText(String( tempprecursor_.getWindowSize() ).c_str() );		
 }
 
 void PrecursorVisualizer::store()

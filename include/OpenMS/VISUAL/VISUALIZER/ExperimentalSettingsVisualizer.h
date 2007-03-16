@@ -52,15 +52,11 @@ namespace OpenMS
 
 	public: 
 	  /// Default constructor
-		ExperimentalSettingsVisualizer(bool editable= FALSE, QWidget *parent =0, MSMetaDataExplorer *caller=0);
+		ExperimentalSettingsVisualizer(bool editable= FALSE, QWidget *parent =0);
 		
 		/// Loads the meta data from the object to the viewer.
 		void load(ExperimentalSettings &s);
 	  
-		signals:
-		/// Sends a status message, if date is not in proper format.
-	  void sendStatus(std::string status); 
-		
 	private slots:
 		 /// Saves the changes made to the meta data into the object.
 		void store();

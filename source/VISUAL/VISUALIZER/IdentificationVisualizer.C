@@ -54,13 +54,11 @@ IdentificationVisualizer::IdentificationVisualizer(bool editable, QWidget *paren
 	addLabel("Show peptide hits with score equal or higher than current threshold.");
 	addLabel("(To show all peptide hits set threshold to 0).");
 	addButton(updatebutton_, "Show peptide hits");
-	addVSpacer();
 	addSeperator();
 	addLabel("Show peptide hits referencing a certain protein.");
 	addLineEdit(identification_ref_date_, "Date and Time of DB search (YYYY-MM-DD hh:mm:ss)" );
 	addLineEdit(identification_acc_, "Accession number of the protein." );
 	addButton(updatebutton2_, "Show peptide hits");
-	addVSpacer();
 	addSeperator();
 	addLabel("Show peptide hits NOT referencing any protein.");
 	addButton(updatebutton3_, "Show peptide hits");
@@ -71,7 +69,7 @@ IdentificationVisualizer::IdentificationVisualizer(bool editable, QWidget *paren
 	connect(updatebutton2_, SIGNAL(clicked()), this, SLOT(searchRefPeptides()) );
 	connect(updatebutton3_, SIGNAL(clicked()), this, SLOT(searchNonRefPeptides()) );
 	
-	connect(this, SIGNAL(sendStatus(std::string)), caller, SLOT(setStatus(std::string))  );	
+	
 	
 }
 

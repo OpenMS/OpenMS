@@ -60,15 +60,24 @@ void SpectrumSettingsVisualizer::load(SpectrumSettings &s)
 	
 	//Copy of current object for restoring the original values
 	tempspectrumsettings_=s;
-			
-  fillComboBox(spectrumsettings_type_, s.NamesOfSpectrumType , SpectrumSettings::SIZE_OF_SPECTRUMTYPE);
+	
+  
 		
 	update_();
 }
 
 void SpectrumSettingsVisualizer::update_()
 {
-		spectrumsettings_type_->setCurrentIndex(tempspectrumsettings_.getType()); 
+		if(! isEditable())
+		{
+			fillComboBox(spectrumsettings_type_, &tempspectrumsettings_.NamesOfSpectrumType[tempspectrumsettings_.getType()] , 1);
+		}
+		else
+		{
+			fillComboBox(spectrumsettings_type_, tempspectrumsettings_.NamesOfSpectrumType , SpectrumSettings::SIZE_OF_SPECTRUMTYPE);
+			spectrumsettings_type_->setCurrentIndex(tempspectrumsettings_.getType()); 
+		}
+		
 		spectrumsettings_comment_->setText(tempspectrumsettings_.getComment().c_str());
 	  
 }

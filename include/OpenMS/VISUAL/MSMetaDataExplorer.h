@@ -229,6 +229,9 @@ namespace OpenMS
 			*/
 			void updateNonRefPeptideHits_(Identification id,  int tree_item_id);
 			 
+			
+			void connectVisualizer_(BaseVisualizer*);
+			
 			/// A list of setting errors due to invalid formats.
 			std::string status_list_;
 			

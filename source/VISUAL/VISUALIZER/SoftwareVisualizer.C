@@ -39,7 +39,7 @@ namespace OpenMS
 {
 
 //Constructor
-SoftwareVisualizer::SoftwareVisualizer(bool editable, QWidget *parent, MSMetaDataExplorer *caller) : BaseVisualizer(editable, parent)
+SoftwareVisualizer::SoftwareVisualizer(bool editable, QWidget *parent) : BaseVisualizer(editable, parent)
 {
 	type_="Software";
   
@@ -52,7 +52,7 @@ SoftwareVisualizer::SoftwareVisualizer(bool editable, QWidget *parent, MSMetaDat
 
 	finishAdding_();
 	
-	connect(this, SIGNAL(sendStatus(std::string)), caller, SLOT(setStatus(std::string))  );			
+	
 }
 
 

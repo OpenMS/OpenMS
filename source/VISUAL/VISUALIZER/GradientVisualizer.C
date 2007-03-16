@@ -74,7 +74,6 @@ void GradientVisualizer::load(Gradient &g)
 	addLineEditButton("Add new Eluent", new_eluent_,  add_eluent_button_, "Add Eluent");
 	addLineEditButton( "Add new Timepoint", new_timepoint_, add_timepoint_button_, "Add Timepoint");
 	addLabel("Attention: All percentage values at a certain timepoint must add up to 100.");
-	addVSpacer();
 	addSeperator();
 	addLabel("Remove all eluents, timepoints and percentage values.");
 	addButton(removebutton_, "Remove");

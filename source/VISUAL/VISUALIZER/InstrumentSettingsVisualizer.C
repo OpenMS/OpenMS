@@ -64,17 +64,27 @@ void InstrumentSettingsVisualizer::load(InstrumentSettings &is)
 	
 	//Copy of current object for restoring the original values
 	tempinstrumentsettings_=is;
-			
-  fillComboBox(instrumentsettings_scan_mode_, InstrumentSettings::NamesOfScanMode , InstrumentSettings::SIZE_OF_SCANMODE);
-	fillComboBox(instrumentsettings_polarity_, IonSource::NamesOfPolarity , IonSource::SIZE_OF_POLARITY);
 		
 	update_();
 }
 
 void InstrumentSettingsVisualizer::update_()
 {
-		instrumentsettings_scan_mode_->setCurrentIndex(tempinstrumentsettings_.getScanMode()); 
-		instrumentsettings_polarity_->setCurrentIndex(tempinstrumentsettings_.getPolarity()); 
+		if(! isEditable())
+		{
+			fillComboBox(instrumentsettings_scan_mode_, &tempinstrumentsettings_.NamesOfScanMode[tempinstrumentsettings_.getScanMode()] , 1);
+			fillComboBox(instrumentsettings_polarity_, &IonSource::NamesOfPolarity[tempinstrumentsettings_.getPolarity()] , 1);
+		}
+		else
+		{
+			fillComboBox(instrumentsettings_scan_mode_, InstrumentSettings::NamesOfScanMode , InstrumentSettings::SIZE_OF_SCANMODE);
+			fillComboBox(instrumentsettings_polarity_, IonSource::NamesOfPolarity , IonSource::SIZE_OF_POLARITY);
+			
+			instrumentsettings_scan_mode_->setCurrentIndex(tempinstrumentsettings_.getScanMode()); 
+			instrumentsettings_polarity_->setCurrentIndex(tempinstrumentsettings_.getPolarity()); 
+		}
+		
+		
 		instrumentsettings_mz_range_start_->setText(String(tempinstrumentsettings_.getMzRangeStart() ).c_str() );
 		instrumentsettings_mz_range_stop_->setText(String(tempinstrumentsettings_.getMzRangeStop() ).c_str() );
 }

@@ -42,7 +42,7 @@ namespace OpenMS
 {
 
 //Constructor
-ExperimentalSettingsVisualizer::ExperimentalSettingsVisualizer(bool editable, QWidget *parent, MSMetaDataExplorer *caller) 
+ExperimentalSettingsVisualizer::ExperimentalSettingsVisualizer(bool editable, QWidget *parent) 
 : BaseVisualizer(editable, parent)
 {
 	type_="ExperimentalSettings";
@@ -55,7 +55,7 @@ ExperimentalSettingsVisualizer::ExperimentalSettingsVisualizer(bool editable, QW
 	
 	finishAdding_();
 	
-	connect(this, SIGNAL(sendStatus(std::string)), caller, SLOT(setStatus(std::string))  );	
+	
 }
 
 
@@ -68,14 +68,24 @@ void ExperimentalSettingsVisualizer::load(ExperimentalSettings &s)
 	//Copy of current object for restoring the original values
 	tempexperimentalsettings_=s;
 			
-  fillComboBox(experimentalsettings_type_, s.NamesOfExperimentType , ExperimentalSettings::SIZE_OF_EXPERIMENTTYPE);
+  
 		
 	update_();
 }
 
 void ExperimentalSettingsVisualizer::update_()
 {
-		experimentalsettings_type_->setCurrentIndex(tempexperimentalsettings_.getType()); 
+		if(! isEditable())
+		{
+			
+			fillComboBox(experimentalsettings_type_, &tempexperimentalsettings_.NamesOfExperimentType[tempexperimentalsettings_.getType()] ,1); 
+			
+		}
+		else
+		{
+			fillComboBox(experimentalsettings_type_, tempexperimentalsettings_.NamesOfExperimentType , ExperimentalSettings::SIZE_OF_EXPERIMENTTYPE);
+			experimentalsettings_type_->setCurrentIndex(tempexperimentalsettings_.getType()); 
+		}
 		String str;
     tempexperimentalsettings_.getDate().get(str);
 	  experimentalsettings_date_->setText(str.c_str()); 

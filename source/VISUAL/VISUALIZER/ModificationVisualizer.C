@@ -67,9 +67,6 @@ void ModificationVisualizer::load(Modification &m)
 	
 	//Copy of current object for restoring the original values
 	tempmod_=m;
-	
-	
-	fillComboBox(modificationspecificity_, m.NamesOfSpecificityType, Modification::SIZE_OF_SPECIFICITYTYPE);
   
 	updateMod_();
 			
@@ -77,12 +74,20 @@ void ModificationVisualizer::load(Modification &m)
 
 void ModificationVisualizer::updateMod_()
 {
+	if(! isEditable())
+	{
+		fillComboBox(modificationspecificity_, &tempmod_.NamesOfSpecificityType[tempmod_.getSpecificityType()], 1);
+	}
+	else
+	{
+		fillComboBox(modificationspecificity_, tempmod_.NamesOfSpecificityType, Modification::SIZE_OF_SPECIFICITYTYPE);
+		modificationspecificity_->setCurrentIndex(tempmod_.getSpecificityType());
+	}
 	treatmenttype_->setText(tempmod_.getType().c_str());
 	treatmenttype_->setReadOnly(true);
 	treatmentcomment_->setText(tempmod_.getComment().c_str());
   modificationname_->setText(tempmod_.getReagentName().c_str());
 	modificationmass_->setText(String(tempmod_.getMass()).c_str() );
-	modificationspecificity_->setCurrentIndex(tempmod_.getSpecificityType());
 	modificationAA_->setText(tempmod_.getAffectedAminoAcids().c_str() ); 
 
 }

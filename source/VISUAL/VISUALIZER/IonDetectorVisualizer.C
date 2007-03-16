@@ -65,19 +65,27 @@ void IonDetectorVisualizer::load(IonDetector &s)
 	//Copy of current object for restoring the original values
 	tempiondetector_=s;
 			
-  fillComboBox(iondetector_type_, s.NamesOfType , IonDetector::SIZE_OF_TYPE);
-		fillComboBox(iondetector_ac_mode_, s.NamesOfAcquisitionMode , IonDetector::SIZE_OF_ACQUISITIONMODE);
-	
-	
 	update_();
 }
 
 void IonDetectorVisualizer::update_()
 {
+		if(! isEditable())
+		{
+			fillComboBox(iondetector_type_, &tempiondetector_.NamesOfType[tempiondetector_.getType()] , 1);
+			fillComboBox(iondetector_ac_mode_, &tempiondetector_.NamesOfAcquisitionMode[tempiondetector_.getAcquisitionMode()] , 1);
+		}
+		else
+		{
+			fillComboBox(iondetector_type_, tempiondetector_.NamesOfType , IonDetector::SIZE_OF_TYPE);
+			fillComboBox(iondetector_ac_mode_, tempiondetector_.NamesOfAcquisitionMode , IonDetector::SIZE_OF_ACQUISITIONMODE);
+			iondetector_type_->setCurrentIndex(tempiondetector_.getType()); 
+			iondetector_ac_mode_->setCurrentIndex(tempiondetector_.getAcquisitionMode()); 
+		}
+		
 		iondetector_res_->setText(String( tempiondetector_.getResolution() ).c_str());
 		iondetector_freq_->setText(String( tempiondetector_.getADCSamplingFrequency() ).c_str());
-		iondetector_type_->setCurrentIndex(tempiondetector_.getType()); 
-		iondetector_ac_mode_->setCurrentIndex(tempiondetector_.getAcquisitionMode()); 
+		
 		
 }
 
