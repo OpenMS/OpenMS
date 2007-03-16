@@ -152,6 +152,30 @@ CHECK(void setParam(const Math::BasicStatistics&, CoordinateType, CoordinateType
 	TEST_REAL_EQUAL(logm1.getIntensity(3.0), 100.0);
 
 
+	// symmetry cannot be 1, because the log(1)=0 => division by zero
+	logm1.setParam(stat, 100.0, 5.0, 1.0, 3.0, 2.0, -1.0, 4.0);
+	ABORT_IF(isnan(logm1.getIntensity(1.0)))
+
+	// symmetry cannot be 0, cause division by zero
+	logm1.setParam(stat, 100.0, 5.0, 0.0, 3.0, 2.0, -1.0, 4.0);
+	ABORT_IF(isnan(logm1.getIntensity(1.0)))
+
+	// small values for the parameter symmetry are valid
+	logm1.setParam(stat, 100.0, 5.0, 1.001, 3.0, 2.0, -1.0, 4.0);
+	ABORT_IF(!isnan(logm1.getIntensity(1.0)))
+	ABORT_IF(!isinf(logm1.getIntensity(1.0)))
+
+	logm1.setParam(stat, 100.0, 5.0, 0.998, 3.0, 2.0, -1.0, 4.0);
+	ABORT_IF(!isinf(logm1.getIntensity(1.0)))
+	ABORT_IF(!isnan(logm1.getIntensity(1.0)))
+	
+	logm1.setParam(stat, 100.0, 5.0, 0.001, 3.0, 2.0, -1.0, 4.0);
+	ABORT_IF(!isinf(logm1.getIntensity(1.0)))
+	
+	logm1.setParam(stat, 100.0, 5.0, -0.001, 3.0, 2.0, -1.0, 4.0);
+	ABORT_IF(!isinf(logm1.getIntensity(1.0)))
+
+
 RESULT
 
 
