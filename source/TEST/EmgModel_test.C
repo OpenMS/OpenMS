@@ -153,6 +153,23 @@ CHECK(void setParam(const Math::BasicStatistics&, CoordinateType, CoordinateType
 	TEST_REAL_EQUAL(em1.getIntensity(1.0), 0.54166);
 	TEST_REAL_EQUAL(em1.getIntensity(2.0), 1.69364);
 
+
+	// checked small values of parameter symmetry
+	em1.setParam(stat, 10.0, 6.0, 1.0, 3.0, 0.0, 10.0);
+	TEST_REAL_EQUAL(em1.getIntensity(2.0), 747203);
+
+	em1.setParam(stat, 10.0, 6.0, 0.1, 3.0, 0.0, 10.0);
+	ABORT_IF(isinf(em1.getIntensity(2.0)))
+
+	em1.setParam(stat, 10.0, 6.0, 0.16, 3.0, 0.0, 10.0);
+	ABORT_IF(isinf(em1.getIntensity(2.0)))
+
+	em1.setParam(stat, 10.0, 6.0, 0.17, 3.0, 0.0, 10.0);
+	ABORT_IF(isinf(!em1.getIntensity(2.0)))
+
+	em1.setParam(stat, 10.0, 6.0, 0.2, 3.0, 0.0, 10.0);
+	ABORT_IF(!isinf(em1.getIntensity(2.0)))
+
 RESULT
 
 
@@ -189,17 +206,6 @@ CHECK(void setOffset(double offset))
 		TEST_REAL_EQUAL(dpa1[i].getIntensity(),dpa2[i].getIntensity())
 	}
 
-RESULT
-
-// checked by other check-methods 
-// It is not necessarily to test the methods again.
-CHECK(CoordinateType getCenter() const)
-RESULT
-
-CHECK(static BaseModel<1>* create())
-RESULT
-
-CHECK(void setSamples())
 RESULT
 
 /////////////////////////////////////////////////////////////
