@@ -57,7 +57,7 @@ namespace OpenMS
 		typedef DoubleReal IntensityType;
 		/// Position type
 		typedef DPosition<1> PositionType;
-		/// @todo remove (Kernel team)
+		/// Coordinate type
 		typedef DoubleReal CoordinateType;
 		//@}
 
