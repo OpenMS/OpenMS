@@ -272,51 +272,69 @@ CHECK( Feature fit(const IndexSet& set) throw (UnableToFit))
 
 RESULT
 
-
-// checked by other check-methods 
-// It is not necessarily to test the methods again.
-CHECK(AssymStatistics())
-  // ???
-RESULT
-
-CHECK((template< typename ProbabilityIterator, typename CoordinateIterator > void update( ProbabilityIterator const probability_begin, ProbabilityIterator const probability_end, CoordinateIterator const coordinate_begin)))
- // ???
-RESULT
-
 CHECK(static BaseModelFitter* create())
- // ???
+	BaseModelFitter* model = ExtendedModelFitter::create();
+	TEST_NOT_EQUAL(model,0);
+	delete(model);
 RESULT
 
 CHECK(static const String getName())
- // ???
-RESULT
-
-CHECK(coordinate_type variance1() const throw())
-// ???
-RESULT
- 
-CHECK(coordinate_type variance2() const throw())
-// ???
+	TEST_EQUAL(ExtendedModelFitter::getProductName(),"ExtendedModelFitter");
 RESULT
 
 CHECK(void setData(const IndexSet& set))
-// ???
-RESULT
+	const double default_precision = 0.1;
+	PRECISION(default_precision)
 
-CHECK((int evaluate(const gsl_vector* x, void* params, gsl_vector* f, gsl_matrix* J)))
-// ???
-RESULT
+	FeaFiTraits traits;
+	double mzs[] = {10};
+	const UInt mz_num = 1;
+	double rts[] = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11};
+	const UInt rt_num = 11;
 
-CHECK((int jacobian(const gsl_vector* x, void* /* params */, gsl_matrix* J)))
-// ???
-RESULT
+	// Samples of Gaussian distribution N(mean,stdev) with scaling factor 20000
+	double mean[2];	mean[MZ] = 10; mean[RT] = 5.78305;
+	double stdev[2]; stdev[MZ] = 0.5; stdev[RT] = 0.2;
 
-CHECK((int residual(const gsl_vector* x, void* /* params */, gsl_vector* f)))
-// ???
-RESULT
+	double intens[] = {1000, 1100, 1500, 1900, 1800, 1700, 1400, 1200, 1100, 1050, 1000};	
 
-CHECK(void optimize())
-// ???
+	Peak2D p;
+	DPeakArray<2, Peak2D> peak_array;
+	for (UInt mz=0; mz<mz_num; mz++) 
+		for (UInt rt=0; rt<rt_num; rt++)
+		{
+			p.setMZ(mzs[mz]);
+			p.setRT(rts[rt]);
+			p.setIntensity(intens[mz*rt_num+rt]);
+			peak_array.push_back(p);
+		}
+	
+	peak_array.sortByPosition();
+	MSExperimentExtern<Peak1D > exp;
+	exp.set2DData(peak_array);
+	traits.setData(exp.begin(), exp.end(),100);
+	
+	ExtendedModelFitter fitter;
+	fitter.setTraits(&traits);
+	Param param = fitter.getParameters();
+	param.setValue("intensity_cutoff_factor",0.0f);
+	fitter.setParameters(param);
+	FeaFiModule::IndexSet  set;
+	for (UInt i=0; i<exp.size(); ++i) 
+	{
+		for (UInt j=0; j<exp[i].size(); ++j) 
+		{
+			set.insert(std::make_pair(i,j));
+		}
+	}
+	
+	fitter.setData(set);
+
+	TEST_REAL_EQUAL(fitter.getSymmetry(), 15);
+	TEST_REAL_EQUAL(fitter.getHeight(), 1800);
+	TEST_REAL_EQUAL(fitter.getWidth(), 10);
+	TEST_REAL_EQUAL(fitter.getRetention(), 5);
+
 RESULT
 
 /////////////////////////////////////////////////////////////
