@@ -207,6 +207,9 @@ namespace OpenMS
 			setData(set);
 			if (symmetric_==false)
 				optimize();
+
+			if (gsl_status_!="success")
+				throw UnableToFit(__FILE__, __LINE__,__PRETTY_FUNCTION__, "UnableToFit-BadQuality","Skipping feature, " + profile_ + " status: " + gsl_status_);
 		}
 
 		/// Test different charges and stdevs
@@ -216,11 +219,11 @@ namespace OpenMS
 		{
 			for (int mz_fit_type = first_model; mz_fit_type <= last_model; ++mz_fit_type)
 			{
-				if (profile_=="LmaGauss" && symmetric_==false)
+				if (profile_=="LmaGauss")
 					quality = fit_(set, static_cast<MzFitting>(mz_fit_type), LMAGAUSS, stdev);
 				else if (profile_=="EMG" && symmetric_==false)
 					quality = fit_(set, static_cast<MzFitting>(mz_fit_type), EMGAUSS, stdev);
-				else if (profile_=="LogNormal" && symmetric_==false)
+				else if (profile_=="LogNormal" && symmetric_==false && symmetry_!=1 && symmetry_!=0)
 					quality = fit_(set, static_cast<MzFitting>(mz_fit_type), LOGNORMAL, stdev);
 				else
 					quality = fit_(set, static_cast<MzFitting>(mz_fit_type), BIGAUSS, stdev);
@@ -384,6 +387,7 @@ namespace OpenMS
 				file << pos[RT] << " " << pos[MZ] << " " << final->getIntensity( traits_->getPeakPos(*it)) << "\n";						
 			}
 		}
+		file.close();
 		
 		// wrote peaks remaining after model fit
 		fname = String("feature") + counter_ +  "_" + rt + "_" + mz;
@@ -396,9 +400,9 @@ namespace OpenMS
 				file2 << pos[RT] << " " << pos[MZ] << " " << traits_->getPeakIntensity(*it) << "\n";						
 			}
 		}
-		file.close();
+		file2.close();
 		#endif
-		
+
 		++counter_;
 
 		delete final;
@@ -535,23 +539,16 @@ namespace OpenMS
 	//create a vector with RT-values & Intensities and compute the parameters (intial values) for the EMG & Gauss function
 	void ExtendedModelFitter::setData(const IndexSet& set)
 	{
-		// start rt-value with intensity 0.0
+		// start rt-value with intensity 0.0 (zero padding)
 		/*
-		positionsDC_.push_back(min_[RT]-3);
-		positionsDC_.push_back(min_[RT]-2);
 		positionsDC_.push_back(min_[RT]-1);
 		positionsDC_.push_back(min_[RT]);
-		signalDC_.push_back(0);
-		signalDC_.push_back(0.);
 		signalDC_.push_back(0);
 		signalDC_.push_back(0.);
 		*/
 
 		// sum over all intensities
 		double sum = 0.0;
-
-		//String fname = String("feature") + counter_ + "_orginal_" + profile_;
-		//ofstream orgFile(fname.c_str());
 
 		// iterate over all points of the signal
 		for (IndexSet::const_iterator it=set.begin(); it!=set.end(); it++)
@@ -576,14 +573,10 @@ namespace OpenMS
 			}
 		}
 
-		// end rt-value with intensity 0.0
+		// end rt-value with intensity 0.0 (zero padding)
 		/*
 		positionsDC_.push_back(max_[RT]);
 		positionsDC_.push_back(max_[RT]+1);
-		positionsDC_.push_back(max_[RT]+2);
-		positionsDC_.push_back(max_[RT]+3);
-		signalDC_.push_back(0);
-		signalDC_.push_back(0.);
 		signalDC_.push_back(0);
 		signalDC_.push_back(0.);
 		*/
@@ -629,9 +622,6 @@ namespace OpenMS
 			symmetric_ = true;
 			symmetry_ = 10;
 		}
-//cout << "******************************************************** symmetry: " << symmetry_<< endl;
-//cout << "******************************************************** width: " << width_<< endl;
-
 
 		// optimize the symmetry
 		if (profile_=="LogNormal") {
@@ -648,16 +638,14 @@ namespace OpenMS
 			
 			if (symmetry_<1)
 				symmetry_+=5;
-			else if (symmetry_==1)
-				symmetric_ = true;
 			
 			symmetry_ *= 10;
 		}
 
-
 		// calculate the parameter r of the log normal function
 		// r is the ratio between h and the height at which w and s are computed
 		r_ = 1.5;
+
 	}
 
 	//Evaluation of the target function for nonlinear optimization.
@@ -1001,11 +989,10 @@ namespace OpenMS
 #define FIT(i) gsl_vector_get(s->x, i)
 #define ERR(i) sqrt(gsl_matrix_get(covar,i,i))
 
-		cout << "EMG status: " << gsl_strerror(status) << endl;
+		gsl_status_ = gsl_strerror(status);
 
 #ifdef DEBUG_FEATUREFINDER
-		cout << "status: " << gsl_strerror(status) << endl;
-		cout << "symmetry: " << symmetry_ << endl;
+		cout << "EMG status: " << gsl_status_ << endl;
 #endif
 		if (profile_=="LmaGauss")
 		{
@@ -1078,9 +1065,28 @@ namespace OpenMS
 		cout << "      profile:  " << profile_ << endl;
 		cout << "" << endl;
 #endif
-
 		positionsDC_.clear();
 		signalDC_.clear();
+	}
+
+ 	ExtendedModelFitter::CoordinateType ExtendedModelFitter::getSymmetry() const 
+	{ 
+		return symmetry_; 
+	}
+	
+	ExtendedModelFitter::CoordinateType ExtendedModelFitter::getHeight() const 
+	{ 
+		return height_; 
+	}
+	
+	ExtendedModelFitter::CoordinateType ExtendedModelFitter::getWidth() const 
+	{ 
+		return width_; 
+	}
+	
+	ExtendedModelFitter::CoordinateType ExtendedModelFitter::getRetention() const 
+	{ 
+		return retention_; 
 	}
 
 }
