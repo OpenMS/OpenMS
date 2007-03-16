@@ -35,8 +35,6 @@ namespace OpenMS
 {
 	/**
 		@brief Options for loading files containing peak data.
-		
-		@todo operator==, operator= etc (Kadauke) 
 	*/
 	class PeakFileOptions
 	{

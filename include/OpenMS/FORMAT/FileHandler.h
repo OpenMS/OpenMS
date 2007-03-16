@@ -38,15 +38,17 @@
 namespace OpenMS
 {
 	/**
-		 @brief Facilitates file handling by file type recognition.
-
-		 This class provides file type recognition from the file name and
-		 from the file content.
-
-		 It also offer a common interface to load MSExperiment data
-		 and allows querying for supported file types.
-
-		 @ingroup FileIO
+		@brief Facilitates file handling by file type recognition.
+		
+		This class provides file type recognition from the file name and
+		from the file content.
+		
+		It also offer a common interface to load MSExperiment data
+		and allows querying for supported file types.
+		
+		@todo add PeakFileOptions to FileHandler (Thomas S.)
+		
+		@ingroup FileIO
 	*/
 	class FileHandler
 	{
