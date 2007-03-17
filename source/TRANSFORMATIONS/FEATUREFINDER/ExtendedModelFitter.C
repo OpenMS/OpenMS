@@ -208,8 +208,8 @@ namespace OpenMS
 			if (symmetric_==false)
 				optimize();
 
-			if (gsl_status_!="success")
-				throw UnableToFit(__FILE__, __LINE__,__PRETTY_FUNCTION__, "UnableToFit-BadQuality","Skipping feature, " + profile_ + " status: " + gsl_status_);
+		//	if (gsl_status_!="success")
+			//	throw UnableToFit(__FILE__, __LINE__,__PRETTY_FUNCTION__, "UnableToFit-BadQuality","Skipping feature, " + profile_ + " status: " + gsl_status_);
 		}
 
 		/// Test different charges and stdevs
@@ -223,7 +223,7 @@ namespace OpenMS
 					quality = fit_(set, static_cast<MzFitting>(mz_fit_type), LMAGAUSS, stdev);
 				else if (profile_=="EMG" && symmetric_==false)
 					quality = fit_(set, static_cast<MzFitting>(mz_fit_type), EMGAUSS, stdev);
-				else if (profile_=="LogNormal" && symmetric_==false && symmetry_!=1 && symmetry_!=0)
+				else if (profile_=="LogNormal" && symmetric_==false  && symmetry_!=1 && symmetry_!=0)
 					quality = fit_(set, static_cast<MzFitting>(mz_fit_type), LOGNORMAL, stdev);
 				else
 					quality = fit_(set, static_cast<MzFitting>(mz_fit_type), BIGAUSS, stdev);
