@@ -54,6 +54,8 @@ namespace OpenMS
 		that Linux / C can access files > 2 GB. In this case, you will need to comple OpenMS with -D_FILE_OFFSET_BITS = 64.
 		
 		@note This container works only with DPeak's. Other point types are not supported.
+		
+		@todo: write tests for areaBegin(), areaEnd() etc (whoever wrote these methods)
 					
 		@ingroup Kernel
 	*/
@@ -316,7 +318,7 @@ namespace OpenMS
 	    }
 	
 	    /// Assignment operator
-	    MSExperimentExtern & operator= (const MSExperimentExtern& source)
+	    MSExperimentExtern& operator= (const MSExperimentExtern& source)
 	    {
 	        if (&source == this) return *this;
 	        
@@ -560,32 +562,16 @@ namespace OpenMS
 	    ConstIterator end() const { return ConstIterator(this,this->size()); }
 	
 	    /// See std::vector documentation.
-	    ReverseIterator rbegin() { return ReverseIterator(end()); }
-	
-	    /// See std::vector documentation.
-	    ReverseIterator rend() { return ReverseIterator(begin()); }
-	
-	    /// See std::vector documentation.
-	    ConstReverseIterator rbegin() const { return ConstReverseIterator(end()); }
-	
-	    /// See std::vector documentation.
-	    ConstReverseIterator rend() const { return ConstReverseIterator(begin()); }
-	
-	    /// See std::vector documentation.
 	    reference back() { return  this->at( (scan2buffer_.size() -1) ) ; }
 	
 	    void push_back(const SpectrumType& spec)
 	    {
-	//          std::cout << "Inserting scan " << current_scan_ << std::endl;
-	//          std::cout << "buffer capacity: " << buffer_size_ << " buffer index: " << buffer_index_ << " buffer size: " << exp_.size() << std::endl;
 	        if (buffer_index_ < buffer_size_)
 	        {
-	//      				std::cout << "Writing in buffer at pos: " << buffer_index_ << std::endl;
 	            // test if we already wrote at this buffer position
 	            if (current_scan_ >= buffer_size_)
 	            {
 	                // yes => store scan at current buffer position and then overwrite
-	// 								std::cout << "Position in buffer occupied. Writing to hard disk and then overwrite." << std::endl;
 	                writeScan_(buffer2scan_[buffer_index_], exp_[buffer_index_] );
 	            }
 	
@@ -595,7 +581,6 @@ namespace OpenMS
 	        }
 	        else
 	        {
-	// 	         	std::cout << "Buffer full. Overwriting buffer at pos 0."   << std::endl;
 	            buffer_index_ = 0; 																		// reset buffer index
 	            writeScan_(buffer2scan_[buffer_index_],  exp_[buffer_index_] ); 		// write content of buffer to temp. file
 	            exp_[buffer_index_] = spec;														// store new spectrum
@@ -603,19 +588,15 @@ namespace OpenMS
 	            scan2buffer_.push_back(buffer_index_);
 	            buffer2scan_[buffer_index_++] = current_scan_++;
 	        }
-	//         std::cout << "scan2buffer : " << scan2buffer_[ (current_scan_-1)] << std::endl;
-	//         std::cout << "buffer2scan: " << buffer2scan_[ ( scan2buffer_[ (current_scan_-1)]  )] << std::endl;
 	    }
 	
 	    /// see std::vector (additionally test if scan is in buffer or needs to be read from temp file)
 	    reference operator[] (size_type n)
 	    {
-	//         std::cout << "operator[" << n << "]" << std::endl;
 	        // test if current scan is in buffer
 	        UInt b = scan2buffer_[n];
 	        if (buffer2scan_[b] != n)
 					{	
-	// 						std::cout << "scan not in buffer." << std::endl;
 	            storeInBuffer_(n);	// scan is not in buffer, needs to be read from file
 					 }
 	        b = scan2buffer_[n];
@@ -625,12 +606,10 @@ namespace OpenMS
 	    /// see std::vector (additionally test if scan is in buffer or needs to be read from temp file)
 	    const_reference operator[] (size_type n) const
 	    {
-	// 				std::cout << "operator[" << n << "] const" << std::endl;
 	        // test if current scan is in buffer
 	        UInt b = scan2buffer_[n];
 	        if (buffer2scan_[b] != n)
 	        {
-	//             std::cout << "scan not in buffer." << std::endl;
 	            storeInBuffer_(n);	// scan is not in buffer, needs to be read from file
 	        }
 	        b = scan2buffer_[n];
@@ -640,12 +619,10 @@ namespace OpenMS
 	    /// see std::vector (additionally test if scan is in buffer or needs to be read from temp file)
 	    reference at(size_type n)
 	    {
-	//         std::cout << "at(" << n << ")" << std::endl;
 	        // test if current scan is in buffer
 	        UInt b = scan2buffer_[n];
 	        if (buffer2scan_[b] != n) 
 					{
-	// 					std::cout << "scan not in buffer." << std::endl;
 	           storeInBuffer_(n);	// scan is not in buffer, needs to be read from file
 					}
 	        b = scan2buffer_[n];
@@ -655,12 +632,10 @@ namespace OpenMS
 	    /// see std::vector (additionally test if scan is in buffer or needs to be read from temp file)
 	    const_reference at(size_type n) const
 	    {
-	//         std::cout << "at(" << n << ") const" << std::endl;
 	        // test if current scan is in buffer
 	        UInt b = scan2buffer_[n];
 	        if (buffer2scan_[b] != n)
 	        {    
-	// 					std::cout << "scan not in buffer." << std::endl;
 						storeInBuffer_(n);	// scan is not in buffer, needs to be read from file
 					}
 	        b = scan2buffer_[n];
@@ -712,6 +687,8 @@ namespace OpenMS
 					exp_.resize(new_size);
 	        buffer2scan_.resize(buffer_size_);
 	    }
+			
+			size_type capacity() const { return exp_.capacity(); }
 	
 	    /// See std::vector documentation.
 	    void reserve(size_type n) {	exp_.reserve(n); }
@@ -774,10 +751,12 @@ namespace OpenMS
 	    const Date& getDate() const { return exp_.getDate(); }
 	    /// sets the date the experiment was performed
 	    void setDate(const Date& date) {	exp_.setDate(date); }
-	
-	    /// deletes the temporary file (or what did you expect ?)
-	    void deleteTempFile_()	{ std::remove( file_name_ .c_str()); }
-	
+			
+			 /// returns the free-text comment
+      const String& getComment() const { return exp_.getComment(); }
+      /// sets the free-text comment
+      void setComment(const String& comment) { exp_.setComment(comment); }
+		
 	    /// resets the internal data
 	    void reset()
 	    {
@@ -858,9 +837,6 @@ namespace OpenMS
 	        // check if buffer is full
 	        if (buffer_index_ < buffer_size_)
 	        {
-	            //             std::cout << "buffer is not full, inserting scan at " << buffer_index_ << std::endl;
-	            // 			std::cout << scan2buffer_.size() << "  " << buffer2scan_.size() << std::endl;
-	
 	            // test if we already wrote at this buffer position
 	            if (current_scan_ > buffer_size_)
 	            {
@@ -874,7 +850,6 @@ namespace OpenMS
 	        }
 	        else
 	        {
-	            // 			std::cout << "buffer is full, inserting scan at first position " << std::endl;
 	            // buffer is full, therefore we overwrite the first entry
 	            buffer_index_ = 0;
 	
@@ -883,7 +858,7 @@ namespace OpenMS
 	            {
 	                writeScan_(buffer2scan_[buffer_index_], exp_[buffer_index_] );
 	                readScan_(n,exp_[buffer_index_]);
-	                scan2buffer_[n]                      = buffer_index_;
+	                scan2buffer_[n] = buffer_index_;
 	                buffer2scan_[buffer_index_++] = n;
 	            }
 	            else // buffer size is set to zero
@@ -937,14 +912,9 @@ namespace OpenMS
 			/// Stores spectrum with number @p n in buffer
 	    void storeInBuffer_(const size_type& n) const
 	    {
-	        // 		std::cout << "storeInBuffer_ :: spectra at " << n << " is not in buffer. " << std::endl;
-	
 	        // check if buffer is full
 	        if (buffer_index_ < buffer_size_)
 	        {
-	            // 	std::cout << "buffer is not full, inserting scan at " << buffer_index_ << std::endl;
-	            // 	std::cout << scan2buffer_.size() << "  " << buffer2scan_.size() << std::endl;
-	
 	            // test if we already wrote at this buffer position
 	            if (current_scan_ > buffer_size_)
 	            {
@@ -958,7 +928,6 @@ namespace OpenMS
 	        }
 	        else
 	        {
-	            //	std::cout << "buffer is full, inserting scan at first position " << std::endl;
 	            // buffer is full, therefore we overwrite the first entry
 	            buffer_index_ = 0;
 	
@@ -996,14 +965,12 @@ namespace OpenMS
 	            if (scan_sizes_[index] == spec.size() )
 	            {
 	                // write at old position
-	               // std::cout << "Size has not changed. Overwriting" << std::endl;
 									off_t pos = scan_location_[index];
 									openFile_(pos,"rb+");
 	            }
 	            else
 	            {
 	                // size has changed, forget old position and append
-								//	std::cout << "Size has changed. Old "  << scan_sizes_[index] << " new " << spec.size() << std::endl;
 									scan_location_[index] = openFile_(0,"a");
 									scan_sizes_[index] = spec.getContainer().size();	// update scan size
 	            }
@@ -1049,9 +1016,7 @@ namespace OpenMS
 	        CoordinateType rt = 0;
 					UInt mslvl = 0;
 	        fread(&rt,sizeof(CoordinateType),1,pFile_);
-		//			std::cout << "Reading rt: " << rt << std::endl;
 					fread(&mslvl,sizeof(UInt),1,pFile_);
-		//			std::cout << "Reading ms level: " << mslvl << std::endl;
 		
 	        spec.setRetentionTime(rt);
 					spec.setMSLevel(mslvl);
@@ -1071,8 +1036,7 @@ namespace OpenMS
 									
 									throw Exception::IndexOverflow(__FILE__, __LINE__,"MSExperimentExtern::readScan_()",pos,sizeof(off_t));
 							}
-	        }
-	        // 		std::cout << "Done."<< std::endl;
+					}
 	        fclose(pFile_);
 	
 	    }	// end of read const

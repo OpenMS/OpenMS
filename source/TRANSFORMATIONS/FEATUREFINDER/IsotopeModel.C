@@ -35,6 +35,7 @@ namespace OpenMS
 {
     IsotopeModel::IsotopeModel()
 		: InterpolationModel(),
+			charge_(0),
 			monoisotopic_mz_(0.0)
 		{
 			setName(getProductName());
@@ -186,19 +187,6 @@ namespace OpenMS
 				*iter *= factor;
 			}
 		}
-
-// 		void IsotopeModel::setParameters(CoordinateType mean, UInt charge, CoordinateType isotope_stdev)
-// 		{
-// 			charge_ = charge;
-// 			isotope_stdev_ = isotope_stdev;
-// 			mean_ = mean;
-// 
-// 			param_.setValue("charge", static_cast<Int>(charge_));
-// 			param_.setValue("isotope:stdev",isotope_stdev_);
-// 			param_.setValue("statistics:mean", mean_);
-// 			
-// 			setSamples();
-// 		}
 
 		void IsotopeModel::setOffset(double offset)
 		{

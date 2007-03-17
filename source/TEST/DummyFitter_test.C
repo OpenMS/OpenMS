@@ -61,6 +61,31 @@ CHECK((virtual ~DummyFitter()))
 	delete ptr;
 RESULT
 
+CHECK((static const String getProductName()))
+	TEST_EQUAL(DummyFitter::getProductName(),"DummyFitter")
+	TEST_EQUAL(DummyFitter().getName(),"DummyFitter")
+RESULT
+
+CHECK((static BaseModelFitter* create()))
+	TEST_NOT_EQUAL(DummyFitter::create(),0)
+RESULT
+
+CHECK((DummyFitter& operator=(const DummyFitter &rhs)))
+	DummyFitter ms1;
+	DummyFitter ms2;
+	
+	ms1 = ms2;
+	
+	TEST_EQUAL(ms1 == ms2, true)
+RESULT
+
+CHECK((DummyFitter(const DummyFitter &rhs)))
+	DummyFitter ms1;
+	DummyFitter ms2(ms1);
+		
+	TEST_EQUAL(ms1 == ms2, true)
+RESULT
+
 CHECK(([EXTRA]void DummyFitter::setParameters(const Param& param)))
 	DummyFitter* fitter = new DummyFitter();
 	

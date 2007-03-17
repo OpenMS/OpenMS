@@ -76,8 +76,6 @@ namespace OpenMS
     /// assignment operator
     virtual BiGaussModel& operator = (const BiGaussModel& source);
 
-// 		void setParameters(CoordinateType mean, CoordinateType variance1, CoordinateType variance2,	CoordinateType min, CoordinateType max);
-
 		/// create new BiGaussModel object (function needed by Factory)
 		static BaseModel<1>* create()
     {

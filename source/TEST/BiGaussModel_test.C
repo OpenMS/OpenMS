@@ -55,10 +55,15 @@ CHECK((virtual ~BiGaussModel()))
 	delete ptr;
 RESULT
 
-
 CHECK((static const String getProductName()))
 	TEST_EQUAL(BiGaussModel::getProductName(),"BiGaussModel")
 	TEST_EQUAL(BiGaussModel().getName(),"BiGaussModel")
+RESULT
+
+CHECK( static BaseModel<1>* create() )
+	BaseModel<1>* ptr = BiGaussModel::create();
+	TEST_EQUAL(ptr->getName(), "BiGaussModel")
+	TEST_NOT_EQUAL(ptr, 0)
 RESULT
 
 // assignment operator
@@ -196,6 +201,29 @@ CHECK((void setOffset(double offset)))
 	TEST_REAL_EQUAL(bgm1.getIntensity(3.123), bgm1.getIntensity(5.123));
 
 RESULT
+
+CHECK( void setSamples() )
+	// already test above
+RESULT
+
+CHECK( CoordinateType getCenter() const )
+	
+	// already test above, but just for the sake of it
+	PRECISION(0.001)
+	BiGaussModel bgm1;
+	
+	Param tmp;
+	tmp.setValue("bounding_box:min", 	678.9);
+	tmp.setValue("bounding_box:max", 789.0);
+	tmp.setValue("statistics:mean", 680.1 );
+	tmp.setValue("statistics:variance1",  2.0);
+	tmp.setValue("statistics:variance2", 5.0 );
+	bgm1.setParameters(tmp);
+	bgm1.setOffset(680.0);
+	TEST_REAL_EQUAL(bgm1.getCenter(), 681.2)
+
+RESULT
+
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

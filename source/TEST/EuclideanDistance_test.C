@@ -207,7 +207,9 @@ CHECK((static BaseQuality* create()))
 	TEST_NOT_EQUAL(EuclideanDistance::create(),0)
 RESULT
 
-
+CHECK( double getPvalue() )
+	TEST_EQUAL( EuclideanDistance().getPvalue() == (-1),true)
+RESULT
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST

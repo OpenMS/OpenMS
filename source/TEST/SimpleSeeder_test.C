@@ -60,6 +60,31 @@ CHECK((virtual ~SimpleSeeder()))
 	delete ptr;
 RESULT
 
+CHECK((static const String getProductName()))
+	TEST_EQUAL(SimpleSeeder::getProductName(),"SimpleSeeder")
+	TEST_EQUAL(SimpleSeeder().getName(),"SimpleSeeder")
+RESULT
+
+CHECK(static BaseSeeder* create())
+	TEST_NOT_EQUAL(SimpleSeeder::create(),0)
+RESULT
+
+CHECK(SimpleSeeder& operator=(const SimpleSeeder &rhs))
+	SimpleSeeder ms1;
+	SimpleSeeder ms2;
+	
+	ms1 = ms2;
+	
+	TEST_EQUAL(ms1 == ms2, true)
+RESULT
+
+CHECK(SimpleSeeder(const SimpleSeeder &rhs))
+	SimpleSeeder ms1;
+	SimpleSeeder ms2(ms1);
+		
+	TEST_EQUAL(ms1 == ms2, true)
+RESULT
+
 MSExperiment<>::PeakType p;
 
 // SPECTRUM 1

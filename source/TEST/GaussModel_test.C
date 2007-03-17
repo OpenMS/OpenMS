@@ -60,6 +60,12 @@ CHECK((static const String getProductName()))
 	TEST_EQUAL(GaussModel().getProductName(),"GaussModel")
 RESULT
 
+CHECK(static BaseModel<1>* create())
+	BaseModel<1>* ptr = GaussModel::create();
+	TEST_EQUAL(ptr->getName(), "GaussModel")
+	TEST_NOT_EQUAL(ptr, 0)
+RESULT
+
 // assignment operator
 CHECK((virtual GaussModel& operator=(const GaussModel &source)))
 	GaussModel gm1;
@@ -117,19 +123,15 @@ RESULT
 CHECK([EXTRA] DefaultParmHandler::setParameters(...))
 	PRECISION(0.001)
 	GaussModel gm1;
-	BasicStatistics<>  stat;
-	stat.setMean(679.1);
-	stat.setVariance(2.0);
-
+	
 	gm1.setScalingFactor(10.0);
 	
 	Param tmp;
 	tmp.setValue("bounding_box:min",678.9);
 	tmp.setValue("bounding_box:max",789.0 );
-	tmp.setValue("statistics:variance",stat.variance() );
-	tmp.setValue("statistics:mean",stat.mean() );			
+	tmp.setValue("statistics:variance",2.0);
+	tmp.setValue("statistics:mean",679.1);			
 	gm1.setParameters(tmp);
-// 	gm1.setParameters(stat, 678.9,789.0);
 	gm1.setOffset(680.0);
 
 	TEST_REAL_EQUAL(gm1.getCenter(), 680.2)
@@ -193,41 +195,42 @@ RESULT
 
 
 CHECK((void setOffset(CoordinateType offset)))
-	GaussModel gm1;
-	BasicStatistics<>  stat;
-	stat.setMean(680.1);
-	stat.setVariance(2.0);
-	Param tmp;
-	tmp.setValue("bounding_box:min",680.9);
-	tmp.setValue("bounding_box:max",791.0);
-	tmp.setValue("statistics:variance",stat.variance() );
-	tmp.setValue("statistics:mean",stat.mean() );			
-	gm1.setParameters(tmp);
-	gm1.setOffset(680.9);
-
-	GaussModel gm2;
-	stat.setMean(682.1);
-	stat.setVariance(2.0);
-	gm2.setParameters(tmp);
-
-	TEST_EQUAL(gm1.getParameters(), gm2.getParameters())
-	TEST_REAL_EQUAL(gm1.getCenter(), gm2.getCenter())
-	TEST_REAL_EQUAL(gm1.getCenter(), 680.1)
-
-	DPeakArray<1> dpa1;
-	DPeakArray<1> dpa2;
-	gm1.getSamples(dpa1);
-	gm2.getSamples(dpa2);
 
 	PRECISION(0.001)
-	TEST_EQUAL(dpa1.size(),dpa2.size())
-	ABORT_IF(dpa1.size()!=dpa2.size());
-	for (UInt i=0; i<dpa1.size(); ++i)
-	{
-		TEST_REAL_EQUAL(dpa1[i].getPosition()[0],dpa2[i].getPosition()[0])
-		TEST_REAL_EQUAL(dpa1[i].getIntensity(),dpa2[i].getIntensity())
-	}
+	GaussModel gm1;
+	
+	gm1.setScalingFactor(10.0);
+	
+	Param tmp;
+	tmp.setValue("bounding_box:min",678.9);
+	tmp.setValue("bounding_box:max",789.0 );
+	tmp.setValue("statistics:variance",2.0);
+	tmp.setValue("statistics:mean",679.1);			
+	gm1.setParameters(tmp);
+	gm1.setOffset(680.0);
 
+	TEST_REAL_EQUAL(gm1.getCenter(), 680.2)
+
+RESULT
+
+CHECK( void setSamples() )
+	// already tested above
+RESULT
+
+CHECK( CoordinateType getCenter() const )
+	PRECISION(0.001)
+	GaussModel gm1;
+	
+	gm1.setScalingFactor(10.0);
+	
+	Param tmp;
+	tmp.setValue("bounding_box:min",650.0);
+	tmp.setValue("bounding_box:max",750.0 );
+	tmp.setValue("statistics:variance",2.0);
+	tmp.setValue("statistics:mean",679.1);			
+	gm1.setParameters(tmp);
+
+	TEST_REAL_EQUAL(gm1.getCenter(), 679.1)	
 RESULT
 
 /////////////////////////////////////////////////////////////

@@ -29,6 +29,7 @@
 ///////////////////////////
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/ModelDescription.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/IsotopeModel.h>
 #include <OpenMS/CONCEPT/Exception.h>
 
 
@@ -55,6 +56,11 @@ CHECK((virtual ~ModelDescription()))
 	delete ptr;
 RESULT
 
+CHECK(BaseModel<D>* createModel())
+	BaseModel<2>* ptr = ModelDescription<2>().createModel();
+	TEST_EQUAL(ptr, 0)	// no name is set, should be zero pointer
+RESULT
+
 // assignment operator
 CHECK((virtual ModelDescription& operator=(const ModelDescription &source)))
 	ModelDescription<2> tm1;
@@ -64,8 +70,7 @@ CHECK((virtual ModelDescription& operator=(const ModelDescription &source)))
 
   ModelDescription<2> tm3;
 	tm3.setName("halligalli");
-  
-// 	tm1 = ModelDescription<2>();
+
 	TEST_EQUAL(tm3==tm2,true)
 RESULT
 
@@ -81,6 +86,34 @@ CHECK((ModelDescription(const ModelDescription &source)))
 
 	TEST_EQUAL(fp2==fp3,true)
 RESULT
+
+CHECK( virtual bool operator==(const ModelDescription &rhs) const )
+	ModelDescription<2> fp1;	
+  fp1.setName("halligalli2000");
+
+  ModelDescription<2> fp2(fp1);
+
+	TEST_EQUAL(fp1==fp2,true)
+RESULT
+
+CHECK( virtual bool operator!=(const ModelDescription &rhs) const )
+	ModelDescription<2> fp1;	
+  fp1.setName("halligalli2000");
+
+  ModelDescription<2> fp2(fp1);
+  fp2.setName("halligalli2002");
+
+	TEST_EQUAL(fp1!=fp2,true)
+RESULT
+
+CHECK( ModelDescription(const BaseModel< D > *model) )
+	const BaseModel<1> * bm = new IsotopeModel();
+
+  ModelDescription<1> md(bm);
+	
+	BaseModel<1>* ptr = md.createModel();
+	TEST_EQUAL( *ptr == *bm, true)	
+ RESULT
 
 CHECK((const String& getName() const ))
   const ModelDescription<2> m;
@@ -102,12 +135,29 @@ CHECK((const Param& getParam() const ))
   TEST_EQUAL(m.getParam(), p)
 RESULT
 
-CHECK((void setName(const String &name)))
+CHECK( String& getName() )
   ModelDescription<2> m;
 	m.setName("halligalli2006");
   TEST_EQUAL(m.getName(), "halligalli2006")
-RESULT 
+RESULT
 
+CHECK( Param& getParam() )
+	ModelDescription<2> m;
+	Param p;
+	p.setValue("x1",1.0);
+	p.setValue("x2",2.0);
+	m.setParam(p);
+  TEST_EQUAL(m.getParam(), p)
+RESULT
+
+CHECK( void setParam(const Param &param) )
+	ModelDescription<2> m;
+	Param p;
+	p.setValue("x1",1.0);
+	p.setValue("x2",2.0);
+	m.setParam(p);
+  TEST_EQUAL(m.getParam(), p)
+RESULT
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

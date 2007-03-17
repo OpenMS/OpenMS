@@ -82,6 +82,20 @@ CHECK((FeatureFinder(const FeatureFinder& source)))
   
 RESULT
 
+CHECK((bool operator==(const FeatureFinder &rhs) const))
+
+	 // implicitely tested above already, but let's do it again (so Marc is happy)
+	 FeatureFinder ff1;
+   
+  ff1.addSeeder("SimpleSeeder");
+  ff1.addExtender("SimpleExtender");
+  ff1.addFitter("SimpleModelFitter"); 
+  
+  FeatureFinder ff2(ff1);
+  TEST_EQUAL(ff1==ff2,true);
+
+RESULT
+
 CHECK((bool setParam(const Param& param)))
 	
 	Param p;
@@ -128,37 +142,33 @@ CHECK((template <class SpectrumIteratorType> void setData(const SpectrumIterator
 	MSExperimentExtern<Peak1D > exp;
 	exp.set2DData(parray);
 	ff.setData(exp.begin(), exp.end(),100);
-	
-		
-	
-RESULT
-
-CHECK((template <class SpectrumIteratorType> void setData(const SpectrumIteratorType &begin, const SpectrumIteratorType &end, UInt buffer_size)))
-
-	MSExperiment<Peak1D > exp;	
-	
-	for (int i=0; i<10; ++i)
-	{
-		
-		Peak1D p1;
-		p1.getPosition()[0]  = i;
-		p1.setIntensity(i*10);
-		
-		MSSpectrum<> spec;
-		spec.push_back(p1);
-		spec.setRetentionTime(i*5);
-        spec.setMSLevel(1);	
-	
-		exp.push_back(spec);
-	}
-	
-	FeatureFinder ff;
-	
-	ff.setData(exp.begin(), exp.end(),100);
-	
 
 RESULT
 
+
+CHECK((void addSeeder(const String &name, const Param *param=0)))
+	// not much happening here
+RESULT
+
+CHECK((void addExtender(const String &name, const Param *param=0)))
+	// not much happening here
+RESULT
+
+CHECK((void addFitter(const String &name, const Param *param=0)))
+	// not much happening here
+RESULT
+
+CHECK((void removeSeeder(const String &name)))
+	// not much happening here
+RESULT
+
+CHECK((void removeExtender(const String &name)))
+	// not much happening here
+RESULT
+
+CHECK((void removeFitter(const String &name)))
+	// not much happening here
+RESULT
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

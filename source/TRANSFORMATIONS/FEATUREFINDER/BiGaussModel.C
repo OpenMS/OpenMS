@@ -94,24 +94,6 @@ namespace OpenMS
 			interpolation_.setOffset ( min_ );
 		}
 
-// 		void BiGaussModel::setParameters(CoordinateType mean, CoordinateType variance1, CoordinateType variance2,	CoordinateType min, CoordinateType max)
-// 		{
-// 			min_ = min;
-// 			max_ = max;
-// 			statistics1_.setMean(mean);
-// 			statistics2_.setMean(mean);
-// 			statistics1_.setVariance(variance1);
-// 			statistics2_.setVariance(variance2);
-// 
-// 			param_.setValue("bounding_box:min", min_);
-// 			param_.setValue("bounding_box:max", max_);
-// 			param_.setValue("statistics:mean", statistics1_.mean());
-// 			param_.setValue("statistics:variance1", statistics1_.variance());
-// 			param_.setValue("statistics:variance2", statistics2_.variance());
-// 
-// 			setSamples();
-// 		}
-
 		void BiGaussModel::updateMembers_()
 		{
 			InterpolationModel::updateMembers_();

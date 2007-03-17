@@ -59,6 +59,31 @@ CHECK((virtual ~PickedPeakSeeder()))
 	delete ptr;
 RESULT
 
+CHECK((static const String getProductName()))
+	TEST_EQUAL(PickedPeakSeeder::getProductName(),"PickedPeakSeeder")
+	TEST_EQUAL(PickedPeakSeeder().getName(),"PickedPeakSeeder")
+RESULT
+
+CHECK(static BaseSeeder* create())
+	TEST_NOT_EQUAL(PickedPeakSeeder::create(),0)
+RESULT
+
+CHECK(PickedPeakSeeder& operator=(const PickedPeakSeeder &rhs))
+	PickedPeakSeeder ms1;
+	PickedPeakSeeder ms2;
+	
+	ms1 = ms2;
+	
+	TEST_EQUAL(ms1 == ms2, true)
+RESULT
+
+CHECK(PickedPeakSeeder(const PickedPeakSeeder &rhs))
+	PickedPeakSeeder ms1;
+	PickedPeakSeeder ms2(ms1);
+		
+	TEST_EQUAL(ms1 == ms2, true)
+RESULT
+
 CHECK((IndexSet nextSeed()))
 	PRECISION(0.01)	
 

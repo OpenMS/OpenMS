@@ -63,6 +63,31 @@ CHECK((virtual ~SimpleExtender()))
 delete ptr;
 RESULT
 
+CHECK((static const String getProductName()))
+	TEST_EQUAL(SimpleExtender::getProductName(),"SimpleExtender")
+	TEST_EQUAL(SimpleExtender().getName(),"SimpleExtender")
+RESULT
+
+CHECK(static BaseExtender* create())
+	TEST_NOT_EQUAL(SimpleExtender::create(),0)
+RESULT
+
+CHECK(SimpleExtender& operator=(const SimpleExtender &rhs))
+	SimpleExtender ms1;
+	SimpleExtender ms2;
+	
+	ms1 = ms2;
+	
+	TEST_EQUAL(ms1 == ms2, true)
+RESULT
+
+CHECK(SimpleExtender(const SimpleExtender &rhs))
+	SimpleExtender ms1;
+	SimpleExtender ms2(ms1);
+		
+	TEST_EQUAL(ms1 == ms2, true)
+RESULT
+
 CHECK((const IndexSet& extend(const IndexSet &seed_region)))
 
 // this test checks the regions returned by SimpleExtender

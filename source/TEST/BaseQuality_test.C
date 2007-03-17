@@ -152,6 +152,14 @@ CHECK((virtual double evaluate(const IndexSet &set, const BaseModel< 1 > &model,
 	TEST_REAL_EQUAL(ft.evaluate(inds,bm,1),3.0);
 RESULT
 
+CHECK(double getPvalue())
+	TEST_EQUAL(TestQuality().getPvalue(),-1)
+RESULT
+
+CHECK((static void registerChildren()))
+	// not much happening here
+RESULT
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST

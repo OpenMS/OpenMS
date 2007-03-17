@@ -61,14 +61,20 @@ p2.setValue("statistics:variance",0.3f);
 // default ctor
 ProductModel* ptr = 0;
 CHECK((ProductModel()))
-ptr = new ProductModel();
-TEST_EQUAL(ptr->getName(), "ProductModel2D")
-TEST_NOT_EQUAL(ptr, 0)
+	ptr = new ProductModel();
+	TEST_EQUAL(ptr->getName(), "ProductModel2D")
+	TEST_NOT_EQUAL(ptr, 0)
 RESULT
 
 // destructor
 CHECK((virtual ~ProductModel()))
 delete ptr;
+RESULT
+
+CHECK( static const String getProductName() )
+	ptr = new ProductModel();
+	TEST_EQUAL(ptr->getName(), "ProductModel2D")
+	TEST_NOT_EQUAL(ptr, 0)
 RESULT
 
 
@@ -169,6 +175,106 @@ DPosition<2> pos;
 pos[0] = 3.5;
 pos[1] = 7.5;
 TEST_REAL_EQUAL(pm3.getIntensity(pos), pm2->getIntensity(pos))
+RESULT
+
+CHECK( IntensityType getIntensity(const PositionType &pos) const )
+
+	PRECISION(0.1)	
+	GaussModel* gm1 = new GaussModel();
+	GaussModel* gm2 = new GaussModel();
+	gm1->setParameters(p1);
+	gm2->setParameters(p2);
+	
+	ProductModel pm1;
+	pm1.setModel(0,gm1);
+	pm1.setModel(1,gm2);
+	pm1.setScale(10.0);
+	pm1.setCutOff(0.01);
+	
+	DPosition<2> pos;
+	pos[0] = 2.5;
+	pos[1] = 5.9;
+	TEST_REAL_EQUAL(pm1.getIntensity(pos), 8.52587)
+	pos[0] = 2.0;
+	pos[1] = 5.9;
+	TEST_REAL_EQUAL(pm1.getIntensity(pos), 0.200509)
+	pos[0] = 1.8;
+	pos[1] = 5.9;
+	TEST_REAL_EQUAL(pm1.getIntensity(pos), 0.0222171)
+RESULT
+
+CHECK( void getSamples(SamplesType &cont) const )
+		
+		GaussModel* gm1 = new GaussModel();
+		gm1->setParameters(p1);
+		GaussModel* gm2 = new GaussModel();
+		gm2->setParameters(p2);
+		GaussModel* gm3 = new GaussModel();
+		gm3->setParameters(p1);
+		GaussModel* gm4 = new GaussModel();
+		gm4->setParameters(p2);
+
+		ProductModel pm1;
+		pm1.setModel(0,gm1);
+		pm1.setModel(1,gm2);
+		
+		ProductModel pm2(pm1);
+		
+		DPeakArray<2> dpa1;
+		DPeakArray<2> dpa2;
+		pm1.getSamples(dpa1);
+		pm2.getSamples(dpa2);
+
+		PRECISION(0.0000001)
+		TEST_EQUAL(dpa1.size(),dpa2.size())
+		ABORT_IF(dpa1.size()!=dpa2.size());
+		for (UInt i=0; i<dpa1.size(); ++i)
+		{
+			TEST_REAL_EQUAL(dpa1[i].getPosition()[0],dpa2[i].getPosition()[0])
+			TEST_REAL_EQUAL(dpa1[i].getIntensity(),dpa2[i].getIntensity())
+		}
+RESULT
+
+CHECK( void setScale(IntensityType scale) )
+		ProductModel pm1;
+		pm1.setScale(3.0);
+		TEST_REAL_EQUAL(pm1.getScale(),3.0)	
+RESULT
+
+CHECK( IntensityType getScale() const )
+		ProductModel pm1;
+		pm1.setScale(66.6);
+		TEST_REAL_EQUAL(pm1.getScale(),66.6)	
+RESULT
+
+CHECK( ProductModel& setModel(UInt dim, BaseModel< 1 > *dist) )
+	GaussModel* gm1 = new GaussModel();
+	gm1->setParameters(p1);
+	GaussModel* gm2 = new GaussModel();
+	gm2->setParameters(p2);
+	
+	ProductModel pm1;
+	pm1.setModel(0,gm1);
+	pm1.setModel(1,gm2);
+	
+	TEST_EQUAL( pm1.getModel(0) == gm1, true)
+	TEST_EQUAL( pm1.getModel(1) == gm2, true)
+		
+RESULT
+
+CHECK( BaseModel<1>* getModel(UInt dim) const )
+	GaussModel* gm1 = new GaussModel();
+	gm1->setParameters(p1);
+	GaussModel* gm2 = new GaussModel();
+	gm2->setParameters(p2);
+	
+	ProductModel pm1;
+	pm1.setModel(0,gm1);
+	pm1.setModel(1,gm2);
+	
+	TEST_EQUAL( pm1.getModel(0) == gm1, true)
+	TEST_EQUAL( pm1.getModel(1) == gm2, true)
+		
 RESULT
 
 /////////////////////////////////////////////////////////////

@@ -189,6 +189,11 @@ CHECK((void store(String filename, const FeatureMap<>& feature_map) const throw(
 
 RESULT
 
+CHECK( PeakFileOptions& getOptions() )
+
+// see todo in FeatureMapFile
+
+RESULT
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

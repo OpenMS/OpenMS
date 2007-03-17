@@ -138,7 +138,7 @@ namespace OpenMS
 		
     protected:
     	
-    	String name_;
+    String name_;
 		Param parameters_;
 	};
 

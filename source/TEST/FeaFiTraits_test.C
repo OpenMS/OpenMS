@@ -104,7 +104,7 @@ CHECK((template <class SpectrumIteratorType> void setData(const SpectrumIterator
 	TEST_REAL_EQUAL(t.getData()[1][1].getIntensity(),1001.0)
 RESULT
 
-CHECK((const Flag& getPeakFlag(const IDX &index) const ))
+CHECK((Flag& getPeakFlag(const IDX &index) ))
 	FeaFiTraits t;
 	t.setData(exp.begin(),exp.end(),2);
 	TEST_EQUAL(t.getPeakFlag(make_pair(0,0)), FeaFiTraits::UNUSED)
@@ -404,6 +404,10 @@ CHECK((void addConvexHull(const IndexSet& set, Feature& f) const))
 	TEST_EQUAL(find(hull.getPoints().begin(), hull.getPoints().end(), ConvexHull2D::PointType(1251.07, 695.4)) != hull.getPoints().end(), true);
 	TEST_EQUAL(find(hull.getPoints().begin(), hull.getPoints().end(), ConvexHull2D::PointType(1239.9, 695.4)) != hull.getPoints().end(), true);
 	TEST_EQUAL(find(hull.getPoints().begin(), hull.getPoints().end(), ConvexHull2D::PointType(1237.27, 692)) != hull.getPoints().end(), true);
+RESULT
+
+CHECK( const FeatureMap& run(const std::vector< BaseSeeder * > &seeders, const std::vector< BaseExtender * > &extenders, const std::vector< BaseModelFitter * > &fitters) )
+	// this one is tested in the TOPP tool section
 RESULT
 
 /////////////////////////////////////////////////////////////

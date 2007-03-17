@@ -85,6 +85,11 @@ class TestModel : public InterpolationModel
 	{
 		return pos[0]*3.0;
 	}
+	
+	IntensityType getIntensity(CoordinateType coord) const
+	{
+		return coord*3.0;
+	}
 
 	bool isContained(const PositionType& pos) const
 	{
@@ -118,6 +123,7 @@ class TestModel : public InterpolationModel
 
 };
 
+//////////////////////////////////////
 
 // default ctor
 TestModel* ptr = 0;
@@ -212,7 +218,7 @@ CHECK(([EXTRA]void  fillIntensities(PeakIterator beg, PeakIterator end) const))
   TEST_EQUAL(vec[3].getIntensity(), -0.5)
 RESULT
 
-CHECK(([EXTRA]void  getCenter() const))
+CHECK( virtual CoordinateType getCenter() const) 
 	const TestModel t;
  TEST_REAL_EQUAL(t.getCenter(),10.0);
 RESULT
@@ -223,6 +229,60 @@ CHECK([EXTRA] DefaultParmHandler::setParameters(...))
 	TestModel m;
 	m.setParameters(p);
 	TEST_REAL_EQUAL(m.getParameters().getValue("cutoff"), 17.0)
+RESULT
+
+CHECK( void setScalingFactor(CoordinateType scaling) )
+	TestModel tm;
+	tm.setScalingFactor(2.0);
+	
+	TEST_REAL_EQUAL(tm.getParameters().getValue("intensity_scaling"),2.0)
+	TEST_REAL_EQUAL(tm.getScalingFactor(),2.0)		
+RESULT
+
+CHECK( void setInterpolationStep(CoordinateType interpolation_step) )
+	TestModel tm;
+	tm.setInterpolationStep( 10.5 );
+	
+	TEST_REAL_EQUAL(tm.getParameters().getValue("interpolation_step"), 10.5 )
+RESULT
+
+CHECK( virtual void setSamples() )
+	// not much to be tested here
+RESULT
+
+CHECK( void getSamples(SamplesType &cont) const )
+	// not much to be tested here
+RESULT
+
+CHECK( virtual void setOffset(CoordinateType offset) )
+
+RESULT
+
+CHECK( CoordinateType getScalingFactor() const )
+	TestModel tm;
+	tm.setScalingFactor(666.0);
+	
+	TEST_REAL_EQUAL(tm.getParameters().getValue("intensity_scaling"),666.0)
+	TEST_REAL_EQUAL(tm.getScalingFactor(),666.0)		
+RESULT
+
+CHECK( const LinearInterpolation& getInterpolation() const )
+	TestModel tm;
+	InterpolationModel::LinearInterpolation interpol1;
+	InterpolationModel::LinearInterpolation interpol2 = tm.getInterpolation();
+	
+	// compare models
+	TEST_REAL_EQUAL(interpol1.getScale(), interpol2.getScale());
+	TEST_REAL_EQUAL(interpol1.getInsideReferencePoint(), interpol2.getInsideReferencePoint());
+	TEST_REAL_EQUAL(interpol1.getOutsideReferencePoint(), interpol2.getOutsideReferencePoint() );
+	
+RESULT
+
+CHECK( IntensityType getIntensity(CoordinateType coord) const )
+	const TestModel s;
+  TestModel::PositionType pos;
+  pos[0]=0.1;
+  TEST_REAL_EQUAL(s.getIntensity(pos), 0.3)
 RESULT
 
 /////////////////////////////////////////////////////////////

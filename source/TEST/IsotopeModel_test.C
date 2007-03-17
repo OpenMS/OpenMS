@@ -56,6 +56,11 @@ CHECK((virtual ~IsotopeModel()))
 	delete ptr;
 RESULT
 
+CHECK(static BaseModel<1>* create())
+	BaseModel<1>* ptr = IsotopeModel::create();
+	TEST_EQUAL(ptr->getName(), "IsotopeModel")
+	TEST_NOT_EQUAL(ptr, 0)
+RESULT
 
 CHECK((static const String getProductName()))
 	TEST_EQUAL(IsotopeModel::getProductName(),"IsotopeModel")
@@ -125,6 +130,78 @@ CHECK([EXTRA] DefaultParamHandler::setParameters(...))
 		TEST_REAL_EQUAL(dpa1[i].getPosition()[0],dpa2[i].getPosition()[0])
 		TEST_REAL_EQUAL(dpa1[i].getIntensity(),dpa2[i].getIntensity())
 	}
+RESULT
+
+CHECK(UInt getCharge() )
+	// can only reliably be tested after fitting, only sanity check here
+	IsotopeModel im1;
+	TEST_EQUAL(im1.getCharge() == 1, true)		// default charge is 1
+RESULT
+
+CHECK( CoordinateType getCenter() const )
+	// can only reliably be tested after fitting, only sanity check here
+	IsotopeModel im1;
+	TEST_EQUAL(im1.getCenter() == 0, true)
+RESULT
+
+CHECK( void setSamples() )
+	// already tested above 
+RESULT
+
+CHECK( void setOffset(CoordinateType offset) )
+	PRECISION(0.1)
+	IsotopeModel im1;
+	Param tmp;
+	tmp.setValue("charge", 3);
+	tmp.setValue("isotope:stdev",0.8);
+	tmp.setValue("statistics:mean", 670.5);
+	im1.setParameters(tmp);
+	im1.setOffset( 673.5 );
+	
+	IsotopeModel im2;
+	im2.setParameters(im1.getParameters());
+	im2.setOffset( 673.5 );
+	
+	DPeakArray<1> dpa1;
+	DPeakArray<1> dpa2;
+	im1.getSamples(dpa1);
+	im2.getSamples(dpa2);
+
+	TEST_EQUAL(dpa1.size(),dpa2.size())
+	ABORT_IF(dpa1.size()!=dpa2.size());
+	for (UInt i=0; i<dpa1.size(); ++i)
+	{
+		TEST_REAL_EQUAL(dpa1[i].getPosition()[0],dpa2[i].getPosition()[0])
+		TEST_REAL_EQUAL(dpa1[i].getIntensity(),dpa2[i].getIntensity())
+	}
+RESULT
+
+CHECK( CoordinateType getOffset() )
+	PRECISION(0.1)
+	IsotopeModel im1;
+	Param tmp;
+	tmp.setValue("charge", 3);
+	tmp.setValue("isotope:stdev",0.8);
+	tmp.setValue("statistics:mean", 670.5);
+	im1.setParameters(tmp);
+	im1.setOffset( 673.5 );
+	
+	IsotopeModel im2;
+	im2.setParameters(im1.getParameters());
+	im2.setOffset( im1.getOffset() );
+	
+	DPeakArray<1> dpa1;
+	DPeakArray<1> dpa2;
+	im1.getSamples(dpa1);
+	im2.getSamples(dpa2);
+
+	TEST_EQUAL(dpa1.size(),dpa2.size())
+	ABORT_IF(dpa1.size()!=dpa2.size());
+	for (UInt i=0; i<dpa1.size(); ++i)
+	{
+		TEST_REAL_EQUAL(dpa1[i].getPosition()[0],dpa2[i].getPosition()[0])
+		TEST_REAL_EQUAL(dpa1[i].getIntensity(),dpa2[i].getIntensity())
+	}	
 RESULT
 
 /////////////////////////////////////////////////////////////

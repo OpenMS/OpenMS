@@ -85,8 +85,6 @@ namespace OpenMS
     /// assignment operator 
     virtual IsotopeModel& operator = (const IsotopeModel& source);
 
-// 		void setParameters(CoordinateType mean, UInt charge, CoordinateType isotope_stdev);
-
 		UInt getCharge();
 
 		/// create new IsotopeModel object (needed by Factory)

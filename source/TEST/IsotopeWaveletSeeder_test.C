@@ -58,6 +58,31 @@ CHECK((virtual ~IsotopeWaveletSeeder()))
 	delete ptr;
 RESULT
 
+CHECK((static const String getProductName()))
+	TEST_EQUAL(IsotopeWaveletSeeder::getProductName(),"IsotopeWaveletSeeder")
+	TEST_EQUAL(IsotopeWaveletSeeder().getName(),"IsotopeWaveletSeeder")
+RESULT
+
+CHECK((static BaseSeeder* create()))
+	TEST_NOT_EQUAL(IsotopeWaveletSeeder::create(),0)
+RESULT
+
+CHECK((IsotopeWaveletSeeder& operator=(const IsotopeWaveletSeeder &rhs)))
+	IsotopeWaveletSeeder ms1;
+	IsotopeWaveletSeeder ms2;
+	
+	ms1 = ms2;
+	
+	TEST_EQUAL(ms1 == ms2, true)
+RESULT
+
+CHECK((IsotopeWaveletSeeder(const IsotopeWaveletSeeder &rhs)))
+	IsotopeWaveletSeeder ms1;
+	IsotopeWaveletSeeder ms2(ms1);
+		
+	TEST_EQUAL(ms1 == ms2, true)
+RESULT
+
 CHECK((IndexSet nextSeed()))
 	PRECISION(0.01)
 	
@@ -122,15 +147,6 @@ CHECK((IndexSet nextSeed()))
 RESULT
 
 
-CHECK((static const String getProductName()))
-	TEST_EQUAL(IsotopeWaveletSeeder::getProductName(),"IsotopeWaveletSeeder");
-RESULT
-
-CHECK((static BaseSeeder* create()))
-	BaseSeeder* base = IsotopeWaveletSeeder::create();
-	TEST_NOT_EQUAL(base,0);
-	delete(base);
-RESULT
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

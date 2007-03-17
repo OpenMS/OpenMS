@@ -55,6 +55,30 @@ CHECK((virtual ~DummySeeder()))
 	delete ptr;
 RESULT
 
+CHECK((static const String getProductName()))
+	TEST_EQUAL(DummySeeder::getProductName(),"DummySeeder")
+	TEST_EQUAL(DummySeeder().getName(),"DummySeeder")
+RESULT
+
+CHECK((static BaseSeeder* create()))
+	TEST_NOT_EQUAL(DummySeeder::create(),0)
+RESULT
+
+CHECK((DummySeeder& operator=(const DummySeeder &rhs)))
+	DummySeeder ms1;
+	DummySeeder ms2;
+	
+	ms1 = ms2;	
+	TEST_EQUAL(ms1 == ms2, true)
+RESULT
+
+CHECK((DummySeeder(const DummySeeder &rhs)))
+	DummySeeder ms1;
+	DummySeeder ms2(ms1);
+		
+	TEST_EQUAL(ms1 == ms2, true)
+RESULT
+
 CHECK((IndexSet nextSeed()))
 	PRECISION(0.01)
 	
@@ -118,15 +142,6 @@ CHECK((IndexSet nextSeed()))
 	TEST_EXCEPTION( FeaFiModule::NoSuccessor , seeder.nextSeed() )	
 RESULT
 
-CHECK((static const String getProductName()))
-	TEST_EQUAL(DummySeeder::getProductName(),"DummySeeder");
-RESULT
-
-CHECK((static BaseSeeder* create()))
-	BaseSeeder* base = DummySeeder::create();
-	TEST_NOT_EQUAL(base,0);
-	delete(base);
-RESULT
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

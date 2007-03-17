@@ -85,6 +85,9 @@ CHECK((FeaFiModule(const FeaFiModule &source)))
 	TEST_EQUAL(fm2, fm3)
 RESULT
 
+CHECK(void setTraits(FeaFiTraits *traits))
+	// not so much going on here
+RESULT
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

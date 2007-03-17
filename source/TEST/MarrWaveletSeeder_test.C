@@ -59,6 +59,31 @@ CHECK((virtual ~MarrWaveletSeeder()))
 	delete ptr;
 RESULT
 
+CHECK((static const String getProductName()))
+	TEST_EQUAL(MarrWaveletSeeder::getProductName(),"MarrWaveletSeeder")
+	TEST_EQUAL(MarrWaveletSeeder().getName(),"MarrWaveletSeeder")
+RESULT
+
+CHECK(static BaseSeeder* create())
+	TEST_NOT_EQUAL(MarrWaveletSeeder::create(),0)
+RESULT
+
+CHECK(MarrWaveletSeeder& operator=(const MarrWaveletSeeder &rhs))
+	MarrWaveletSeeder ms1;
+	MarrWaveletSeeder ms2;
+	
+	ms1 = ms2;
+	
+	TEST_EQUAL(ms1 == ms2, true)
+RESULT
+
+CHECK(MarrWaveletSeeder(const MarrWaveletSeeder &rhs))
+	MarrWaveletSeeder ms1;
+	MarrWaveletSeeder ms2(ms1);
+		
+	TEST_EQUAL(ms1 == ms2, true)
+RESULT
+
 CHECK((IndexSet nextSeed()))
 	
 	PRECISION(0.01)
@@ -124,6 +149,8 @@ CHECK((IndexSet nextSeed()))
 	TEST_EXCEPTION( FeaFiModule::NoSuccessor , seeder.nextSeed() );
 	 
 RESULT
+
+
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

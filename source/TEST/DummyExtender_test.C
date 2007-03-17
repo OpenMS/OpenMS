@@ -55,6 +55,31 @@ CHECK((virtual ~DummyExtender()))
 	delete ptr;
 RESULT
 
+CHECK((static const String getProductName()))
+	TEST_EQUAL(DummyExtender::getProductName(),"DummyExtender")
+	TEST_EQUAL(DummyExtender().getName(),"DummyExtender")
+RESULT
+
+CHECK(static BaseExtender* create())
+	TEST_NOT_EQUAL(DummyExtender::create(),0)
+RESULT
+
+CHECK(DummyExtender& operator=(const DummyExtender &rhs))
+	DummyExtender ms1;
+	DummyExtender ms2;
+	
+	ms1 = ms2;
+	
+	TEST_EQUAL(ms1 == ms2, true)
+RESULT
+
+CHECK(DummyExtender(const DummyExtender &rhs))
+	DummyExtender ms1;
+	DummyExtender ms2(ms1);
+		
+	TEST_EQUAL(ms1 == ms2, true)
+RESULT
+
 CHECK((const IndexSet& extend(const IndexSet &seed_region)))
 	PRECISION(0.01)
 	
@@ -104,16 +129,6 @@ CHECK((const IndexSet& extend(const IndexSet &seed_region)))
 	}	
 	infile.close();
 	
-RESULT
-
-CHECK((static const String getProductName()))
-	TEST_EQUAL(DummyExtender::getProductName(),"DummyExtender");
-RESULT
-
-CHECK((static BaseExtender* create()))
-	BaseExtender* base = DummyExtender::create();
-	TEST_NOT_EQUAL(base,0);
-	delete(base);
 RESULT
 
 /////////////////////////////////////////////////////////////

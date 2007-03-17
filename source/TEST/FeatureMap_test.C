@@ -75,7 +75,7 @@ feature3.getPosition()[0] = 10.5;
 feature3.getPosition()[1] = 0.0;
 feature3.setIntensity(0.01);
 
-CHECK((updateRanges_(this->begin(), this->end())))
+CHECK( void updateRanges() )
   FeatureMap<> s;
   s.push_back(feature1);
   s.push_back(feature2);

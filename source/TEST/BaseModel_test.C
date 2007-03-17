@@ -109,18 +109,18 @@ class TestModel : public BaseModel<3>
 
 // default ctor
 TestModel* ptr = 0;
-CHECK((TestModel()))
+CHECK((BaseModel()))
 	ptr = new TestModel();
 	TEST_NOT_EQUAL(ptr, 0)
 RESULT
 
 // destructor
-CHECK((~TestModel()))
+CHECK((virtual ~BaseModel()))
 	delete ptr;
 RESULT
 
 // assignment operator
-CHECK((TestModel& operator = (const TestModel& source)))
+CHECK((virtual BaseModel& operator=(const BaseModel &source)))
 	TestModel tm1;
   TestModel tm2;
   
@@ -130,7 +130,7 @@ CHECK((TestModel& operator = (const TestModel& source)))
 RESULT
 
 // copy constructor
-CHECK((TestModel(const TestModel& source)))
+CHECK((BaseModel(const BaseModel &source)))
 	TestModel tm1;	
   tm1.setCutOff(0.1);
 	
@@ -138,23 +138,23 @@ CHECK((TestModel(const TestModel& source)))
 	TEST_REAL_EQUAL(tm1.getCutOff(),tm2.getCutOff())
 RESULT
 
-CHECK((IntensityType getCutOff() const))
+CHECK(([EXTRA]IntensityType getCutOff() const))
   const TestModel s;
   TEST_REAL_EQUAL(s.getCutOff(), TestModel::IntensityType(0))
 RESULT
 
-CHECK((void setCutOff(IntensityType cut_off)))
+CHECK((virtual void setCutOff(IntensityType cut_off)))
 	TestModel s;
 	s.setCutOff(4.4);
   TEST_REAL_EQUAL(s.getCutOff(), 4.4)
 RESULT
 
-CHECK((const String& getName() const))
+CHECK(([EXTRA]const String& getName() const))
 	TestModel s;
   TEST_EQUAL(s.getName(), "TestModel")
 RESULT
 
-CHECK((IntensityType getIntensity(const PositionType& pos) const))
+CHECK((virtual IntensityType getIntensity(const PositionType &pos) const =0))
 	const TestModel s;
   TestModel::PositionType pos;
   pos[0]=0.1;
@@ -163,7 +163,7 @@ CHECK((IntensityType getIntensity(const PositionType& pos) const))
   TEST_REAL_EQUAL(s.getIntensity(pos), 0.6)
 RESULT
 
-CHECK((bool isContained(const PositionType& pos) const))
+CHECK((virtual bool isContained(const PositionType &pos) const ))
 	TestModel s;
   s.setCutOff(0.9);
   TestModel::PositionType pos;
@@ -174,7 +174,7 @@ CHECK((bool isContained(const PositionType& pos) const))
   TEST_REAL_EQUAL(t.isContained(pos), false)
 RESULT
 
-CHECK((void fillIntensity(PeakType& peak) const))
+CHECK((virtual void fillIntensity(PeakType &peak) const ))
 	const TestModel t;
   TestModel::PeakType p;
   p.getPosition()[0]=0.1;
@@ -185,7 +185,7 @@ CHECK((void fillIntensity(PeakType& peak) const))
   TEST_REAL_EQUAL(p.getIntensity(), 0.6)
 RESULT
 
-CHECK((void  fillIntensities(PeakIterator beg, PeakIterator end) const))
+CHECK((template <class PeakIterator> void fillIntensities(PeakIterator beg, PeakIterator end) const ))
 	const TestModel t;
   std::vector< TestModel::PeakType > vec(4);
   for (UInt i=0; i<4; ++i)
@@ -208,6 +208,23 @@ CHECK([EXTRA] DefaultParmHandler::setParameters(...))
 	TEST_REAL_EQUAL(m.getParameters().getValue("cutoff"), 17.0)
 RESULT
 
+CHECK((static void registerChildren()))
+	// not much happening here
+RESULT
+
+CHECK( virtual IntensityType getCutOff() const )
+	TestModel s;
+	s.setCutOff(4.4);
+  TEST_REAL_EQUAL(s.getCutOff(), 4.4)
+RESULT
+
+CHECK( virtual void getSamples(SamplesType &cont) const =0 )
+		// not much happening here
+RESULT
+
+CHECK( virtual void getSamples(std::ostream &os) )
+		// not much happening here
+RESULT
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

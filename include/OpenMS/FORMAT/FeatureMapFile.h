@@ -36,7 +36,7 @@ namespace OpenMS
 	/**
   	@brief This class provides Input/Output functionality for FeatureMaps
 		
-		@Todo: Write test for getOptions() (Marc)
+		@todo: Write test for getOptions() (Marc)
   		
   	@ingroup FileIO
   */

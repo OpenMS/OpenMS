@@ -63,6 +63,31 @@ CHECK((virtual ~SimpleModelFitter()))
 	delete ptr;
 RESULT
 
+CHECK((static const String getProductName()))
+	TEST_EQUAL(SimpleModelFitter::getProductName(),"SimpleModelFitter")
+	TEST_EQUAL(SimpleModelFitter().getName(),"SimpleModelFitter")
+RESULT
+
+CHECK((static BaseModelFitter* create()))
+	TEST_NOT_EQUAL(SimpleModelFitter::create(),0)
+RESULT
+
+CHECK((SimpleModelFitter& operator=(const SimpleModelFitter &rhs)))
+	SimpleModelFitter ms1;
+	SimpleModelFitter ms2;
+	
+	ms1 = ms2;
+	
+	TEST_EQUAL(ms1 == ms2, true)
+RESULT
+
+CHECK((SimpleModelFitter(const SimpleModelFitter &rhs)))
+	SimpleModelFitter ms1;
+	SimpleModelFitter ms2(ms1);
+		
+	TEST_EQUAL(ms1 == ms2, true)
+RESULT
+
 CHECK(([EXTRA]void SimpleModelFitter::setParameters(const Param& param)))
 	SimpleModelFitter* fitter = new SimpleModelFitter();
 	Param p1;
