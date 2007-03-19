@@ -32,6 +32,7 @@
 #include "gsl/gsl_cdf.h"
 
 #include <math.h>
+#include<limits>
 
 namespace OpenMS
 {
@@ -80,33 +81,36 @@ namespace OpenMS
 	  }
 	
 	protected:
-		/// Computes the rank of the sorted vector @p w (taken from "Numerical Recipies in C") 	
+		/// Computes the rank of the sorted vector @p w 
 		void computeRank_(IntensityVector& w)
 		{
-			unsigned long j=1,ji,jt;
-			float rank;
-			unsigned int n = w.size();
+			UInt i       = 0;					// main index
+			UInt v, z  = 0;						// "secondary" indizes
+			IntensityType rank = 0;
+			UInt n = ( w.size() - 1);
 			
-			while (j < n) 
+			while (i < n) 
 			{
-				if (w[j] != w[j-1]) 
+				// test for equality with tolerance 
+				if ( fabs( w[i+1] - w[i] ) > 0.0000001 * fabs(w[i+1]) ) 
 				{ 
 					// no tie
-					w[j-1]=j;
-					++j;
+					w[i]=i;
+					++i;
 				} 
-				else 
+				else 	// tie, replace by mean rank 
 				{
-					// tie, replace by mean rank 
-					for (jt=j+1;jt<=n && w[jt-1]==w[j-1]; ++jt);
-					rank=0.5*(j+jt-1); // mean rank of tie
+					// count number of ties
+					for (z=i+1;z<=n &&  fabs( w[z] - w[i] ) <= 0.0000001 * fabs(w[z]) ; ++z);
+					// compute mean rank of tie
+					rank=0.5*(i+z-1); 
+					// replace intensities by rank
+					for (v=i;v<=(z-1);++v) w[v]=rank; 
 					
-					for (ji=j;ji<=(jt-1);++ji) w[ji]=rank; 
-					
-					j=jt;
+					i=z;
 				}
 			}
-			if (j == n) w[n-1]=n; 
+			if (i == n) w[n]=n; 
 		}
 		
   }; //class

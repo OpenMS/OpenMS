@@ -344,9 +344,8 @@ EXECUTABLES_TRANSFORMATIONS_FEATUREFINDER = \
 	IsotopeWaveletSeeder_test\
 	DummySeeder_test\
 	DummyExtender_test\
-	DummyFitter_test
-
-#	RankCorrelation_test just discovered that this test (if compiled with opt.) does not work, will check it later.
+	DummyFitter_test\
+	RankCorrelation_test 
 
 EXECUTABLES_TRANSFORMATIONS_PEAKPICKER = \
 	ContinuousWaveletTransform_test\

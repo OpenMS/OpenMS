@@ -105,7 +105,6 @@ namespace OpenMS
     // store charge states
     for (UInt i=(UInt)param_.getValue("min_charge"); i<=(UInt)param_.getValue("max_charge"); ++i)
     {
-// 			std::cout << "Storing charge: " << i << std::endl;
     	charges_.push_back(i);           
 		}
 	}
@@ -602,9 +601,8 @@ namespace OpenMS
 				//... if we hashed already all possible mz coordinates
 				if (positions[c] >= numOfMZPositions)
 				{
-					//if so ... goto FINISHED_HASHING
-					if (++count_finished_charges >= numOfCharges)
-						goto FINISHED_HASHING;
+					if (++count_finished_charges >= numOfCharges) return;
+			
 					positions[c] = -1;
 				}
 			}
@@ -715,9 +713,7 @@ namespace OpenMS
 	
 			charge_scores.clear();
 		}
-	
-		FINISHED_HASHING:
-	
+		
 		// done
 		return;
 	}
