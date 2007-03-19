@@ -58,20 +58,20 @@ namespace OpenMS
 	    
 	    /**	@name Type definitions */
 	    //@{
-	    //document me (Cornelia)
+	    ///different dot modes black or gradient
 			enum DotModes 
 	    {
 				DOT_BLACK = 0,            ///< use black only
 				DOT_GRADIENT = 1          ///< use gradient
 	    };
-	    //remove!?!?! (Cornelia)
-			enum DataModes 
-	    {
-				REDUCTION_OFF = 0,          
-				REDUCTION_MAX = 1,
-				REDUCTION_SUM = 2
-	    };
-	    //document me (Cornelia)
+	     ///different reduktion modes: no reduction, sumreduktion or maxreduktion
+ 			enum DataModes 
+ 	    {
+ 				REDUCTION_OFF = 0,          
+ 				REDUCTION_MAX = 1,
+ 				REDUCTION_SUM = 2
+ 	    };
+	  	///Different shade modes
 	    enum ShadeModes 
 	    {
 				SHADE_FLAT = 0,            
@@ -104,29 +104,27 @@ namespace OpenMS
 			*/
 			virtual void changeVisibleArea_(const AreaType& new_area, bool add_to_stack = false);
 
-	    //document me (Cornelia)
+	    //return the dot mode
 	    Int getDotMode();
-	    //document me (Cornelia)
+	    //return the data mode
 			Int getDataMode();
-			//document me (Cornelia)
+			//calls the funktion makeReducedDatasets and sets the Data modes
 			void setDataMode();
-			//document me (Cornelia)
+			///sets the Dot Gradient for Color
 	    void setDotGradient(const std::string& gradient);
-	    //document me (Cornelia)
+	    ///returns the ShadeModes flat or smooth
 	    Int getShadeMode();
-	    //document me (Cornelia)
+	    ///return the Interpolationssteps
 	    UInt getDotInterpolationSteps();
-	    //Docu in base class
+	    ///Docu in base class
 	    void repaintAll();
 	    ///QT resizeEvent
 	    void resizeEvent(QResizeEvent * e);
-		  //document me (Cornelia)
-		  void connectMouseEvents();
-	    //document me (Cornelia)
+	    ///whether the legend is shoen or not
 	    void showLegend(bool);
-	    //document me (Cornelia)
+	    ///pointer to the SpectrumOpenGLCanvas implementation
 	    Spectrum3DOpenGLCanvas* openglcanvas_;
-			//document me (Cornelia)
+			///makes the reduced datasets using sumreducer or maxreducer
 	    void makeReducedDataSet();
 
 		public slots:
@@ -139,17 +137,9 @@ namespace OpenMS
   		// Reimplementation in order to update the OpenGL widget
   		virtual void update_(const char* caller_name);
 
-			/// number of peaks in the layer
-			int sum_of_peaks_;
 			/// area of the layer
 			double area_;
-			///peak per RT
-			int peaks_per_rt_;
-			
-			//document me (Cornelia)
-			int current_zoom_;  
-			
-			//document me (Cornelia)
+			///whether the legend is shoen or not
 			bool legend_shown_;
   };
   

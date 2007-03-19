@@ -5369,18 +5369,18 @@ _ACEOF
 #define OPENMS_NO_INLINE_FUNCTIONS
 _ACEOF
 
-			CPP_MODE_FLAGS="${CXXFLAGS_D}"
+			CPP_MODE_FLAGS="\${CXXFLAGS_D}"
 			CPP_MODE_FLAGS_NO_OPTIMIZATION="${CXXFLAGS_D}"
 		else
 			echo "$as_me:$LINENO: result: enabled" >&5
 echo "${ECHO_T}enabled" >&6
-			CPP_MODE_FLAGS="${CXXFLAGS_O}"
+			CPP_MODE_FLAGS="\${CXXFLAGS_O}"
 			CPP_MODE_FLAGS_NO_OPTIMIZATION=""
 		fi
 	else
 		echo "$as_me:$LINENO: result: enabled" >&5
 echo "${ECHO_T}enabled" >&6
-		CPP_MODE_FLAGS="${CXXFLAGS_O}"
+		CPP_MODE_FLAGS="\${CXXFLAGS_O}"
 		CPP_MODE_FLAGS_NO_OPTIMIZATION=""
 	fi
 

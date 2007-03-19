@@ -240,12 +240,13 @@ namespace OpenMS
 	GLuint Spectrum3DOpenGLCanvas::makeLegend()
 	{
 		GLuint list = glGenLists(1);
-		glNewList(list,GL_COMPILE);
-		qglColor(Qt::black);			
-		QFont font("TypeWriter");
+		glNewList(list,GL_COMPILE);	
+		QColor color(canvas_3d_.getPrefAsString("Preferences:3D:AxesColor").c_str());
+ 		qglColor(color);
+		QFont font("Typewriter");
 		font.setPixelSize(12);
 		QString result("RT");
-		renderText (0.0, 
+ 		renderText (0.0, 
 								-corner_-20.0, 
 								-near_-2*corner_+20.0,
 								result,
@@ -1176,9 +1177,15 @@ namespace OpenMS
 	void Spectrum3DOpenGLCanvas::mouseReleaseEvent (QMouseEvent* e)
 	{
 		if(canvas_3d_.action_mode_ == SpectrumCanvas::AM_ZOOM && e->button()==Qt::LeftButton)
-		{			
+		{				
+			QRect rect = canvas_3d_.rubber_band_.geometry();
+	 		x_1_ = ((rect.topLeft().x()- width_/2) * corner_ *1.25* 2) / width_;
+ 			y_1_ = -300 + (((rect.topLeft().y()-heigth_/2) * corner_*1.25* 2) / heigth_);
+ 			x_2_ = ((rect.bottomRight().x()- width_/2) * corner_ *1.25* 2) / width_;
+ 			y_2_ = -300 + (((rect.bottomRight().y()-heigth_/2) * corner_*1.25* 2) / heigth_);
 			dataToZoomArray(x_1_, y_1_, x_2_, y_2_);
 			canvas_3d_.rubber_band_.hide();
+			canvas_3d_.update_buffer_ = true;
 			canvas_3d_.update_(__PRETTY_FUNCTION__);
 		}
 	}

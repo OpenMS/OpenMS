@@ -76,10 +76,7 @@ namespace OpenMS
 		currentPeakData_().sortSpectra(true);
 		currentPeakData_().updateRanges(1);	
 		recalculateRanges_(1,0,2);
-		//values for datareduction
-		sum_of_peaks_ = getCurrentPeakData().getSize();
 		area_ = (getCurrentPeakData().getMaxRT()-getCurrentPeakData().getMinRT())*(getCurrentPeakData().getMaxMZ()-getCurrentPeakData().getMinMZ());
-		peaks_per_rt_ = (int)floor(sum_of_peaks_/getCurrentPeakData().size());
 	
 	 	if(getPrefAsString("Preferences:3D:Reduction:Mode")!="Reduction OFF")
 	 	{
@@ -92,7 +89,7 @@ namespace OpenMS
 		layers_.back().max_int = overall_data_range_.max_[2];
 		emit layerActivated(this);
 		openglwidget()->recalculateDotGradient_();
-		update_(__PRETTY_FUNCTION__);
+		//	update_(__PRETTY_FUNCTION__);
 		update_buffer_ = true;
 		update_(__PRETTY_FUNCTION__);
 		return current_layer_;
@@ -120,12 +117,19 @@ namespace OpenMS
 	}
 	void Spectrum3DCanvas::makeReducedDataSet()
 	{
-		if(sum_of_peaks_ < getPrefAsInt("Preferences:3D:DisplayedPeaks")||getPrefAsString("Preferences:3D:Reduction:Mode")=="Reduction OFF")
+		if(getPrefAsString("Preferences:3D:Reduction:Mode")=="Reduction OFF")
 		{	
 	 		show_reduced_ = false;
 	 		recalculateRanges_(1,0,2);
+			return;
 		}
-		else 
+		else if(getCurrentLayer().peaks.getSize() < getPrefAsInt("Preferences:3D:DisplayedPeaks"))
+		{
+			show_reduced_ = false;
+			recalculateRanges_(1,0,2);
+			return;
+		}
+		else
 		{
 			Param reduction_param;
 			show_reduced_ = true;
@@ -134,62 +138,73 @@ namespace OpenMS
 				int reduction;
 				if(zoom_stack_.empty())
 				{
-					reduction = sum_of_peaks_/getPrefAsInt("Preferences:3D:DisplayedPeaks");
+					reduction = getCurrentLayer().peaks.getSize()/getPrefAsInt("Preferences:3D:DisplayedPeaks");
 				}
 				else
 				{
 					double new_area = (visible_area_.max_[0]-visible_area_.min_[0])*(visible_area_.max_[1]-visible_area_.min_[1]);
 					int needed_peak_number = (int)(getPrefAsInt("Preferences:3D:DisplayedPeaks")* area_ / new_area);
-					if(needed_peak_number<sum_of_peaks_)
+					if(needed_peak_number<getCurrentLayer().peaks.getSize())
 					{
-						reduction = sum_of_peaks_/needed_peak_number;
-						if (datareducer_==0 || datareducer_->getName()!="MaxReducer")
-						{
-							datareducer_ = Factory<DataReducer>::create("MaxReducer");
-						}
+						reduction = getCurrentLayer().peaks.getSize()/needed_peak_number;
 					}
 					else
 					{
 						show_reduced_= false;
+						return;
 					}
 				}
+				if (datareducer_!= 0 && datareducer_->getName()!="MaxReducer")
+				{
+					delete datareducer_;
+					datareducer_ = NULL;
+				}
+				if(datareducer_==0)
+				{
+					datareducer_ = Factory<DataReducer>::create("MaxReducer");
+					
+				}
 				reduction_param.setValue("Peaksperstep", reduction);
-			}
+				}
 			else if(getPrefAsString("Preferences:3D:Reduction:Mode")=="SumReduction")
 			{	
+				int peaks_per_rt = (int)floor(getCurrentLayer().peaks.getSize()/getCurrentLayer().peaks.size());
 				double reduction;
 				if(zoom_stack_.empty())
 				{
-					reduction = (double)sum_of_peaks_/(	(double)peaks_per_rt_*(double)getPrefAsInt("Preferences:3D:DisplayedPeaks"));
+					reduction = (double)getCurrentLayer().peaks.getSize()/(	(double)peaks_per_rt*(double)getPrefAsInt("Preferences:3D:DisplayedPeaks"));
 				}
 				else
 				{
 					double new_area = (visible_area_.max_[0]-visible_area_.min_[0])*(visible_area_.max_[1]-visible_area_.min_[1]);
 					int needed_peak_number = (int)(getPrefAsInt("Preferences:3D:DisplayedPeaks")* area_ / new_area);
-	 				if(needed_peak_number<sum_of_peaks_)
+	 				if(needed_peak_number<getCurrentLayer().peaks.getSize())
 					{
-						reduction = (double)sum_of_peaks_/(	(double)peaks_per_rt_* needed_peak_number);
-						if (datareducer_==0 || datareducer_->getName()!="SumReducer")
-						{
-							datareducer_ = Factory<DataReducer>::create("SumReducer");
-						}
+						reduction = (double)getCurrentLayer().peaks.getSize()/(	(double)peaks_per_rt* needed_peak_number);
 					}
-					else
+						else
 					{
 						show_reduced_= false;
+						return;
 					}
 				}
+				if (datareducer_!=0 && datareducer_->getName()!="SumReducer")
+				{
+					delete datareducer_;
+					datareducer_ = NULL;
+				}
+				if (datareducer_==0)
+				{
+					datareducer_ = Factory<DataReducer>::create("SumReducer");
+					}
 				reduction_param.setValue("Rangeperstep",reduction);
 			}
+			
 			if(show_reduced_)
 			{
 				for(UInt i = 0; i<layers_.size();i++)
 				{
-					//TODO added fix for segfault for release (Cornelia)
-					if (datareducer_ != 0)
-					{
 						datareducer_->applyReduction(getLayer(i).peaks,getLayer_(i).reduced);
-					}
 				}
 				recalculateRanges_(1,0,2);
 			}
@@ -350,10 +365,11 @@ namespace OpenMS
 					openglwidget()->updateIntensityScale();
 				}
 				openglwidget()->recalculateDotGradient_();
-				openglwidget()->glInit(); 
+				openglwidget()->initializeGL(); 
 			}
-			openglwidget()->resizeGL(width(),height());
+			openglwidget()->resizeGL(width(),height());	
 			openglwidget()->glDraw(); 
+			
 		}
 
 }//namspace
