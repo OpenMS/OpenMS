@@ -66,22 +66,14 @@ This class provides all functionality to view the meta information of an object 
 		/// Fills the comboboxes with current values
 		void update_();
 	  
-		/// The type of this experiment
+		/** @name Edit fields
+   */
+    //@{
    	QComboBox *instrumentsettings_scan_mode_;
 		QComboBox *instrumentsettings_polarity_;
-		/// The date of this experiment
 		QLineEdit *instrumentsettings_mz_range_start_;
 		QLineEdit *instrumentsettings_mz_range_stop_;
-		
-		 
-
-     /** @name Some buttons.
-		*/
-    //@{
-		QPushButton *savebutton_;
-		QPushButton *cancelbutton_;
 		//@}
-		
 		
 					
 	};

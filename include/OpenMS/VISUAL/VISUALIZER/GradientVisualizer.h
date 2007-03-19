@@ -110,8 +110,6 @@ Each HPLC objects contains a gradient object. A gradient objects contains a list
 		/** @name Some buttons.
 		*/
     //@{
-		QPushButton* savebutton_;
-		QPushButton* cancelbutton_;
 		QPushButton* add_eluent_button_;
 		QPushButton* add_timepoint_button_;
 		QPushButton* removebutton_;

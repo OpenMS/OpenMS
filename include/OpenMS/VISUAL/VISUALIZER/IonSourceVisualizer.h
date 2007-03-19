@@ -74,12 +74,7 @@ This class provides all functionality to view the meta information of an object 
 		QComboBox *ionsource_polarity_;
 		 //@}
 
-     /** @name Some buttons.
-		*/
-    //@{
-		QPushButton *savebutton_;
-		QPushButton *cancelbutton_;
-		//@}
+    
 		
 		
 					

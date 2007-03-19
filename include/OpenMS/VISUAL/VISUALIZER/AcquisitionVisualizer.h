@@ -60,17 +60,9 @@ This class provides all functionality to view the meta information of an object 
 	private:  
 		
 		/// Edit field for the number 
-   	QLineEdit *acquisitionnumber_;
-		
-		/** @name Some buttons
-		*/
-		//@{
-		QPushButton *savebutton_;
-		QPushButton *cancelbutton_;
-		//@}
-		
+   	QLineEdit* acquisitionnumber_;
 		/// Pointer to current object	to keep track of the actual object.
-		Acquisition *ptr_;
+		Acquisition* ptr_;
 		/// Copy of current object for restoring the original values
 		Acquisition tempAcquisition_;
 		

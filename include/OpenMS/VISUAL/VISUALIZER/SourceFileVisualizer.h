@@ -69,8 +69,6 @@ This class provides all functionality to view the meta information of an object 
 		QLineEdit *file_size_;
 		QLineEdit *file_type_;
 		QLineEdit *sha1_;
-		QPushButton *savebutton_;
-		QPushButton *cancelbutton_;
 		//@}
 
 		/// Pointer to current object to keep track of the actual object

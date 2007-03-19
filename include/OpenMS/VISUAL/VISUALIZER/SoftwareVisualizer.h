@@ -67,20 +67,15 @@ namespace OpenMS {
 		Software  tempsoftware_;
 	  
 		/** @name Edit fields and buttons
-                */
-                //@{
+   */
+    //@{
 		QLineEdit *software_name_;
 		QLineEdit *software_version_;
 		QTextEdit *software_comment_;
 		QLineEdit *software_completion_time_;
-                //@}
+    //@}
 
-                /** @name Some buttons.
-		*/
-                //@{
-		QPushButton *savebutton_;
-		QPushButton *cancelbutton_;
-		//@}
+    
 		
 		
 					

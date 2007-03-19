@@ -59,7 +59,7 @@ This class provides all functionality to view the meta information of an object 
 
 	private:  
 		
-		/** @name Edit fields and buttons
+		/** @name Edit fields 
    */
     //@{
 		QLineEdit *peptidehit_score_;
@@ -67,9 +67,6 @@ This class provides all functionality to view the meta information of an object 
 		QLineEdit *peptidehit_score_type_;
 		QLineEdit *peptidehit_rank_;
 		QTextEdit *peptidehit_sequence_;
-		
-		QPushButton *savebutton_;
-		QPushButton *cancelbutton_;
 		//@}
 		
 		/// Pointer to current object	to keep track of the actual object.

@@ -59,7 +59,7 @@ This class provides all functionality to view the meta information of an object 
 
 	private:  
 		
-		/** @name Edit fields and buttons
+		/** @name Edit fields 
    */
     //@{
 		QLineEdit *hplcinstrument_;
@@ -68,8 +68,6 @@ This class provides all functionality to view the meta information of an object 
 		QLineEdit *hplcpressure_;
 		QLineEdit *hplcflux_;
 		QTextEdit *hplccomment_;
-		QPushButton *savebutton_;
-		QPushButton *cancelbutton_;
 		//@}
 		
 		/// Pointer to current object	to keep track of the actual object.

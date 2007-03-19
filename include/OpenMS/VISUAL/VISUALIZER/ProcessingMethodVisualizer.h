@@ -78,13 +78,7 @@ This class provides all functionality to view the meta information of an object 
 		QLineEdit *processingmethod_intensity_cutoff_;
 		//@}
 
-     /** @name Some buttons.
-		*/
-    //@{
-		QPushButton *savebutton_;
-		QPushButton *cancelbutton_;
-		//@}
-		
+   
 		
 					
 	};

@@ -958,6 +958,7 @@ namespace OpenMS
 			if (layer.type==LayerData::DT_PEAK) //peak data
     	{
     		dlg.add(&(const_cast<LayerData&>(layer).peaks));
+				
     	}
     	else //feature data
     	{

@@ -66,12 +66,6 @@ This class provides all functionality to view the meta information of an object 
 		QTextEdit *metainfodescription_comment_;
 		//@}
 		
-		/** @name Some buttons
-		*/
-		//@{
-		QPushButton *savebutton_;
-		QPushButton *cancelbutton_;
-		//@}
 		
 		/// Pointer to current object	to keep track of the actual object.
 		MetaInfoDescription *ptr_;

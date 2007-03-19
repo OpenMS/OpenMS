@@ -86,13 +86,9 @@ namespace OpenMS
 		QLineEdit *proteinidentification_threshold_;
 		//@}
 
-     /** @name Some buttons.
-		*/
-    //@{
-		QPushButton *savebutton_;
-		QPushButton *cancelbutton_;
+    /// Update button
 		QPushButton *updatebutton_;
-		//@}
+		
 		
 		
 					

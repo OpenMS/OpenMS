@@ -50,6 +50,7 @@ namespace OpenMS
 		
 			/// Returns the type of the visualizer class.
 			String getType();
+			
 			///Defines a friend class that can use the functionality of the subclasses.
 			friend class MSMetaDataExplorer;
 		

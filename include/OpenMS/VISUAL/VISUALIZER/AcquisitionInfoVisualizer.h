@@ -63,13 +63,6 @@ This class provides all functionality to view the meta information of an object 
 		/// Edit field for the method 
    	QLineEdit *acquisitioninfo_method_;
 		
-		/** @name Some buttons
-		*/
-		//@{
-		QPushButton *savebutton_;
-		QPushButton *cancelbutton_;
-		//@}
-		
 		/// Pointer to current object	to keep track of the actual object.
 		AcquisitionInfo *ptr_;
 		/// Copy of current object for restoring the original values

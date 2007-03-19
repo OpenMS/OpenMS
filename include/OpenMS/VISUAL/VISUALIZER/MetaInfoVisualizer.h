@@ -93,8 +93,6 @@ Meta information is an array of Type-Name-Value tupels. Classes that have a Meta
 		/** @name Some buttons.
 		*/
     //@{
-		QPushButton* savebutton_;
-		QPushButton* cancelbutton_;
 		QPushButton* addbutton_;
 		QPushButton* clearbutton_;
 		QButtonGroup* buttongroup_;

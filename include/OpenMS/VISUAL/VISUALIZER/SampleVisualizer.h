@@ -68,7 +68,7 @@ This class provides all functionality to view the meta information of an object 
 		/// Sets the comboboxes with current values
 		void update_();
 		
-		/** @name Edit fields and buttons
+		/** @name Edit fields
    */
     //@{
 		QLineEdit *samplename_;
@@ -80,9 +80,6 @@ This class provides all functionality to view the meta information of an object 
 		QLineEdit  *samplemass_;
 		QLineEdit  *samplevolume_;
 		QLineEdit  *sampleconcentration_;
-				
-		QPushButton *savebutton_;
-		QPushButton *cancelbutton_;
 		//@}
 		
 		

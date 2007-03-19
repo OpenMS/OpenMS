@@ -81,10 +81,6 @@ This class provides all functionality to view the meta information of an object 
 		QLineEdit *modificationAA_;
 		QLineEdit *taggingmass_shift_;
 		QComboBox *taggingvariant_;
-		
-		
-		QPushButton *savebutton_;
-		QPushButton *cancelbutton_;
 		//@}
 		
 		/// Pointer to current object	 to keep track of the actual object.

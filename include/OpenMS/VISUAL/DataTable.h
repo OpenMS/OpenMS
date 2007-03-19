@@ -69,7 +69,7 @@ namespace OpenMS
 			/// Adds a text edit field to the grid layout.
 			void addTextEdit(QTextEdit* &ptr ,  const QString &label);
 			/// Adds a line edit field to the grid layout.
-			void addComboBox(QComboBox* &ptr ,  const QString &label);//,  const std::string* items[]);
+			void addComboBox(QComboBox* &ptr ,  const QString &label);
 			/// Fills a combo box with data.
 			void fillComboBox(QComboBox* &ptr , const std::string* items, int agr);
 					

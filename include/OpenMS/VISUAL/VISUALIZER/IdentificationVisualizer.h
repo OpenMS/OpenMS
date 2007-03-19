@@ -110,8 +110,6 @@ namespace OpenMS
      /** @name Some buttons.
 		*/
     //@{
-		QPushButton *savebutton_;
-		QPushButton *cancelbutton_;
 		QPushButton *updatebutton_;
 		QPushButton *updatebutton2_;
 		QPushButton *updatebutton3_;

@@ -125,7 +125,6 @@ namespace OpenMS
 	}//end of constructor
 	
 	
-	
 	bool MSMetaDataExplorer::isEditable()
 	{
 			return editable_;

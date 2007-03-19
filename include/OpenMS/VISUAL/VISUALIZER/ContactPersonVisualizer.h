@@ -69,12 +69,10 @@ This class provides all functionality to view the meta information of an object 
 		QLineEdit *cp_institution_;
 		QLineEdit *cp_email_;
 		QLineEdit *cp_contact_info_;
-		QPushButton *savebutton_;
-		QPushButton *cancelbutton_;
 		//@}
 		
 		/// Pointer to current object	to keep track of the actual object.
-		ContactPerson *ptr_;
+		ContactPerson* ptr_;
 		/// Copy of current object for restoring the original values
 		ContactPerson tempContactPerson_;
 		

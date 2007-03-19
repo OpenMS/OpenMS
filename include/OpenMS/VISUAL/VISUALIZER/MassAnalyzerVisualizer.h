@@ -94,13 +94,6 @@ This class provides all functionality to view the meta information of an object 
 		QComboBox *massanalyzer_tandem_scan_method_;
 		QComboBox *massanalyzer_reflectron_state_;
 		//@}
-
-     /** @name Some buttons.
-		*/
-    //@{
-		QPushButton *savebutton_;
-		QPushButton *cancelbutton_;
-		//@}
 		
 		
 					

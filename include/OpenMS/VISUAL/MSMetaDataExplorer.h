@@ -99,7 +99,7 @@ namespace OpenMS
 			template <class T> void add(T *ptr ) 
 			{                
 				visualize_(*ptr);
-				treeview_->expandAll();
+				treeview_->expandItem(  treeview_->findItems(QString::number(0),Qt::MatchExactly , 1).first() );
 			}
 			
 			///	 Check if mode is editable or not
@@ -229,7 +229,7 @@ namespace OpenMS
 			*/
 			void updateNonRefPeptideHits_(Identification id,  int tree_item_id);
 			 
-			
+			/// Connects the Signals of all visualier classes with Slot setStatus()
 			void connectVisualizer_(BaseVisualizer*);
 			
 			/// A list of setting errors due to invalid formats.

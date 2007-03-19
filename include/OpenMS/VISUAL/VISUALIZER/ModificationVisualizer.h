@@ -63,7 +63,7 @@ This class provides all functionality to view the meta information of an object 
 		/// Sets the comboboxes with current values
 		void updateMod_();
 		
-		/** @name Edit fields and buttons
+		/** @name Edit fields 
    */
     //@{
 		QLineEdit *treatmenttype_;
@@ -72,8 +72,6 @@ This class provides all functionality to view the meta information of an object 
 		QLineEdit *modificationmass_;
 		QComboBox *modificationspecificity_;
 		QLineEdit *modificationAA_;
-		QPushButton *savebutton_;
-		QPushButton *cancelbutton_;
 		//@}
 		
 		/// Pointer to current object	 to keep track of the actual object.
