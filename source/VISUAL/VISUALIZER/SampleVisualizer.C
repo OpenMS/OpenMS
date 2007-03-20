@@ -103,7 +103,7 @@ void SampleVisualizer::update_()
 }
 
 
-void SampleVisualizer::store()
+void SampleVisualizer::store_()
 {
 	try
 	{
@@ -133,12 +133,11 @@ void SampleVisualizer::store()
 	
 }
 
-void SampleVisualizer::reject()
+void SampleVisualizer::reject_()
 {
 	
 	try
 	{
-		//load(tempsample_);
 		update_();
 	}
 	catch(exception e)

@@ -70,7 +70,7 @@ void SourceFileVisualizer::load(SourceFile &s)
 			
 }
 
-void SourceFileVisualizer::store()
+void SourceFileVisualizer::store_()
 {
 	try
 	{
@@ -89,7 +89,7 @@ void SourceFileVisualizer::store()
 	}
 }
 
-void SourceFileVisualizer::reject()
+void SourceFileVisualizer::reject_()
 {
 	try
 	{

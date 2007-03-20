@@ -93,7 +93,7 @@ void ModificationVisualizer::updateMod_()
 }
 
 
-void ModificationVisualizer::store()
+void ModificationVisualizer::store_()
 {
 try
 	{
@@ -121,7 +121,7 @@ try
 	  
 }
 
-void ModificationVisualizer::reject()
+void ModificationVisualizer::reject_()
 {
 	try
 	{

@@ -82,7 +82,7 @@ void SpectrumSettingsVisualizer::update_()
 	  
 }
 
-void SpectrumSettingsVisualizer::store()
+void SpectrumSettingsVisualizer::store_()
 {
 	try
 	{
@@ -99,7 +99,7 @@ void SpectrumSettingsVisualizer::store()
 	
 }
 
-void SpectrumSettingsVisualizer::reject()
+void SpectrumSettingsVisualizer::reject_()
 {
 	
 	try

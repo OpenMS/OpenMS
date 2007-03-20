@@ -89,7 +89,7 @@ void IonDetectorVisualizer::update_()
 		
 }
 
-void IonDetectorVisualizer::store()
+void IonDetectorVisualizer::store_()
 {
 	try
 	{
@@ -111,7 +111,7 @@ void IonDetectorVisualizer::store()
 	
 }
 
-void IonDetectorVisualizer::reject()
+void IonDetectorVisualizer::reject_()
 {
 	
 	try

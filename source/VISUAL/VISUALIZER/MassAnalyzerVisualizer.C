@@ -132,7 +132,7 @@ void MassAnalyzerVisualizer::update_()
 		massanalyzer_magnetic_fs_->setText(String( tempmassanalyzer_.getMagneticFieldStrength() ).c_str());
 }
 
-void MassAnalyzerVisualizer::store()
+void MassAnalyzerVisualizer::store_()
 {
 	try
 	{
@@ -176,7 +176,7 @@ void MassAnalyzerVisualizer::store()
 	
 }
 
-void MassAnalyzerVisualizer::reject()
+void MassAnalyzerVisualizer::reject_()
 {
 	
 	try

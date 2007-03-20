@@ -92,7 +92,7 @@ void ExperimentalSettingsVisualizer::update_()
 		experimentalsettings_comment_->setText(tempexperimentalsettings_.getComment().c_str());
 }
 
-void ExperimentalSettingsVisualizer::store()
+void ExperimentalSettingsVisualizer::store_()
 {
 	try
 	{
@@ -125,7 +125,7 @@ void ExperimentalSettingsVisualizer::store()
 	
 }
 
-void ExperimentalSettingsVisualizer::reject()
+void ExperimentalSettingsVisualizer::reject_()
 {
 	
 	try

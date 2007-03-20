@@ -58,9 +58,11 @@ namespace OpenMS
 		
 	private slots:
 		/// Save all changes
-		void store();
+		void store_();
 		/// Restore all changes
-		void reject();
+		void reject_();
+		
+	private:  	
 		/** 
 		@brief Updates the tree by calling MSMetaDataExplorer::updatePeptideHits(Identification, int)
 			
@@ -68,7 +70,7 @@ namespace OpenMS
 		Updates the tree depending of the protein significance threshold.<br>
 		Only ProteinHits with a score superior or equal to the current threshold will be displayed.
 		*/
-		void updateTree();
+		void updateTree_();
 		
 		/** 
 		@brief Updates the tree by calling MSMetaDataExplorer::updatePeptideHits(Identification, int, String, String)
@@ -77,7 +79,7 @@ namespace OpenMS
 		Updates the tree depending on the searched ProteinHit.<br>
 		Only PeptideHits that reference the searched ProteinHit will be displayed.
 		*/
-		void searchRefPeptides();
+		void searchRefPeptides_();
 		
 		/** 
 		@brief Updates the tree by calling MSMetaDataExplorer::updatePeptideHits(Identification, int, String, String)
@@ -86,9 +88,8 @@ namespace OpenMS
 		Updates the tree depending on the existing ProteinHits.<br>
 		Only PeptideHits that do not refererence any ProteinHit will be displayed.
 		*/
-		void searchNonRefPeptides();
+		void searchNonRefPeptides_();
 		
-	private:  
 		/// Pointer to current object to keep track of the actual object
 		Identification *ptr_;
 		/// Copy of current object for restoring the original values

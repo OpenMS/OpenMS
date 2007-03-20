@@ -89,7 +89,7 @@ void InstrumentSettingsVisualizer::update_()
 		instrumentsettings_mz_range_stop_->setText(String(tempinstrumentsettings_.getMzRangeStop() ).c_str() );
 }
 
-void InstrumentSettingsVisualizer::store()
+void InstrumentSettingsVisualizer::store_()
 {
 	try
 	{
@@ -108,7 +108,7 @@ void InstrumentSettingsVisualizer::store()
 	
 }
 
-void InstrumentSettingsVisualizer::reject()
+void InstrumentSettingsVisualizer::reject_()
 {
 	
 	try

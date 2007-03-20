@@ -72,7 +72,7 @@ void InstrumentVisualizer::load(Instrument &s)
 				
 }
 
-void InstrumentVisualizer::store()
+void InstrumentVisualizer::store_()
 {
 	try
 	{
@@ -91,7 +91,7 @@ void InstrumentVisualizer::store()
 	
 }
 
-void InstrumentVisualizer::reject()
+void InstrumentVisualizer::reject_()
 {
 	
 	try

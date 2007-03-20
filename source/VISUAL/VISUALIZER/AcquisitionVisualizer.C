@@ -64,7 +64,7 @@ void AcquisitionVisualizer::load(Acquisition &a)
 				
 }
 
-void AcquisitionVisualizer::store()
+void AcquisitionVisualizer::store_()
 {
 	try
 	{
@@ -80,7 +80,7 @@ void AcquisitionVisualizer::store()
 	}
 }
 
-void AcquisitionVisualizer::reject()
+void AcquisitionVisualizer::reject_()
 {
 	try
 	{

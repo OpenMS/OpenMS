@@ -105,7 +105,7 @@ void TaggingVisualizer::updateTag_()
 
 }
 
-void TaggingVisualizer::store()
+void TaggingVisualizer::store_()
 {
 	try
 	{
@@ -129,7 +129,7 @@ void TaggingVisualizer::store()
 	}  
 }
 
-void TaggingVisualizer::reject()
+void TaggingVisualizer::reject_()
 {
 	try
 	{

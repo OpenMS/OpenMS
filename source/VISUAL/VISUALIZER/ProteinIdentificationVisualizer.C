@@ -57,7 +57,7 @@ namespace OpenMS
 	
 		finishAdding_();
 	
-		connect(updatebutton_, SIGNAL(clicked()), this, SLOT(updateTree()) );
+		connect(updatebutton_, SIGNAL(clicked()), this, SLOT(updateTree_()) );
 		
 		
 	}
@@ -82,7 +82,7 @@ void ProteinIdentificationVisualizer::load(ProteinIdentification &s, int tree_it
 }
 
 
-void ProteinIdentificationVisualizer::updateTree()
+void ProteinIdentificationVisualizer::updateTree_()
 {
 	String m(proteinidentification_threshold_->text().toStdString());
 	tempproteinidentification_.setProteinSignificanceThreshold(m.toFloat());
@@ -92,7 +92,7 @@ void ProteinIdentificationVisualizer::updateTree()
 }
 
 
-void ProteinIdentificationVisualizer::store()
+void ProteinIdentificationVisualizer::store_()
 {
 	try
 	{
@@ -125,13 +125,12 @@ void ProteinIdentificationVisualizer::store()
 	
 }
 
-void ProteinIdentificationVisualizer::reject()
+void ProteinIdentificationVisualizer::reject_()
 {
 	
 	try
 	{
-		//load(tempproteinidentification_);
-		load(*ptr_, tree_id_);
+			load(*ptr_, tree_id_);
 	}
 	catch(exception e)
 	{

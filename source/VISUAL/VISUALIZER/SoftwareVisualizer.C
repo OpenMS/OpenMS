@@ -74,7 +74,7 @@ void SoftwareVisualizer::load(Software &s)
 				
 }
 
-void SoftwareVisualizer::store()
+void SoftwareVisualizer::store_()
 {
 	try
 	{
@@ -109,7 +109,7 @@ void SoftwareVisualizer::store()
 	
 }
 
-void SoftwareVisualizer::reject()
+void SoftwareVisualizer::reject_()
 {
 	
 	try

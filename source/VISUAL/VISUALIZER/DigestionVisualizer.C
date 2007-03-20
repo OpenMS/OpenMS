@@ -77,7 +77,7 @@ void DigestionVisualizer::load(Digestion &d)
 			
 }
 
-void DigestionVisualizer::store()
+void DigestionVisualizer::store_()
 {
 	try
 	{		
@@ -95,7 +95,7 @@ void DigestionVisualizer::store()
 	}
 }
 
-void DigestionVisualizer::reject()
+void DigestionVisualizer::reject_()
 {
 	try
 	{

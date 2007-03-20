@@ -154,7 +154,7 @@ namespace OpenMS
 			//call internal store function of all active visualizer objects
 			for (int i = 0; i < ws_->count(); ++i) 
 			{
-			  dynamic_cast<BaseVisualizer*>(ws_->widget(i))->store();
+			  dynamic_cast<BaseVisualizer*>(ws_->widget(i))->store_();
 			}
 			if(status_list_.length() != 0)
 			{

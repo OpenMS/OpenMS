@@ -75,7 +75,7 @@ void ContactPersonVisualizer::load(ContactPerson &h)
 	
 }
 
-void ContactPersonVisualizer::store()
+void ContactPersonVisualizer::store_()
 {
 	try
 	{
@@ -99,7 +99,7 @@ void ContactPersonVisualizer::store()
 	}
 }
 
-void ContactPersonVisualizer::reject()
+void ContactPersonVisualizer::reject_()
 {
 	try
 	{

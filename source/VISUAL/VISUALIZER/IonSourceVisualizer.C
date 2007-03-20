@@ -86,7 +86,7 @@ void IonSourceVisualizer::update_()
 		
 }
 
-void IonSourceVisualizer::store()
+void IonSourceVisualizer::store_()
 {
 	try
 	{
@@ -104,7 +104,7 @@ void IonSourceVisualizer::store()
 	
 }
 
-void IonSourceVisualizer::reject()
+void IonSourceVisualizer::reject_()
 {
 	
 	try

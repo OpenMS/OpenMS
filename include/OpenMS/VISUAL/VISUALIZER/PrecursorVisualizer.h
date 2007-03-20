@@ -54,9 +54,9 @@ This class provides all functionality to view the meta information of an object 
 	  
 	private slots:
 	/// Saves the changes made to the meta data into the object.
-		void store();
+		void store_();
 		/// Deletes all changes made in the viewer and restores the original meta data.
-		void reject();
+		void reject_();
 
 	private:  
 		/// Pointer to current object to keep track of the actual object

@@ -60,15 +60,15 @@ Meta information is an array of Type-Name-Value tupels. Classes that have a Meta
 		
 	private slots:
 	  /// Adds a new Type-Value pair to the MetaInfo Object.
-		void add();
+		void add_();
 		/// Clears out all fields.
-		void clear();
+		void clear_();
 		/// Removes a selected Type-Value pair from the MetaInfo Object.
-		void remove(int);
+		void remove_(int);
 		/// Saves the information to MetaInfo Object.
-		void store();
+		void store_();
 		/// Deletes all changes made in the viewer and restores the original data.
-		void reject();
+		void reject_();
 
 	private: 
 	  /// Loads all Type-Value pairs one after another. 

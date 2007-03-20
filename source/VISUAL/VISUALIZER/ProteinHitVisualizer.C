@@ -80,7 +80,7 @@ void ProteinHitVisualizer::load(ProteinHit &h)
 			
 }
 
-void ProteinHitVisualizer::store()
+void ProteinHitVisualizer::store_()
 {
 	try
 	{
@@ -94,7 +94,7 @@ void ProteinHitVisualizer::store()
 	}
 }
 
-void ProteinHitVisualizer::reject()
+void ProteinHitVisualizer::reject_()
 {
 	try
 	{

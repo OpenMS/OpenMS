@@ -70,10 +70,10 @@ namespace OpenMS
 			
 		private slots:
 			///Saves the changes made to the object.
-			virtual void store()=0;
+			virtual void store_()=0;
 			
 			///Undo the changes made to the object.
-			virtual void reject()=0;
+			virtual void reject_()=0;
 		
 			
 				

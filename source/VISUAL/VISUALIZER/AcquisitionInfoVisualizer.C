@@ -62,7 +62,7 @@ void AcquisitionInfoVisualizer::load(AcquisitionInfo &a)
   acquisitioninfo_method_->setText( tempAcquisitionInfo_.getMethodOfCombination().c_str() );
 }
 
-void AcquisitionInfoVisualizer::store()
+void AcquisitionInfoVisualizer::store_()
 {
 	try
 	{
@@ -78,7 +78,7 @@ void AcquisitionInfoVisualizer::store()
 	}
 }
 
-void AcquisitionInfoVisualizer::reject()
+void AcquisitionInfoVisualizer::reject_()
 {
 	try
 	{

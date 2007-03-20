@@ -62,7 +62,7 @@ void MetaInfoDescriptionVisualizer::load(MetaInfoDescription &a)
 				
 }
 
-void MetaInfoDescriptionVisualizer::store()
+void MetaInfoDescriptionVisualizer::store_()
 {
 	try
 	{
@@ -79,7 +79,7 @@ void MetaInfoDescriptionVisualizer::store()
 	}
 }
 
-void MetaInfoDescriptionVisualizer::reject()
+void MetaInfoDescriptionVisualizer::reject_()
 {
 	try
 	{

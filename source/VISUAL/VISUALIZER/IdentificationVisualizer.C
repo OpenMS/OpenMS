@@ -65,9 +65,9 @@ IdentificationVisualizer::IdentificationVisualizer(bool editable, QWidget *paren
 	
 	finishAdding_();
 	
-	connect(updatebutton_, SIGNAL(clicked()), this, SLOT(updateTree()) );
-	connect(updatebutton2_, SIGNAL(clicked()), this, SLOT(searchRefPeptides()) );
-	connect(updatebutton3_, SIGNAL(clicked()), this, SLOT(searchNonRefPeptides()) );
+	connect(updatebutton_, SIGNAL(clicked()), this, SLOT(updateTree_()) );
+	connect(updatebutton2_, SIGNAL(clicked()), this, SLOT(searchRefPeptides_()) );
+	connect(updatebutton3_, SIGNAL(clicked()), this, SLOT(searchNonRefPeptides_()) );
 	
 	
 	
@@ -93,7 +93,7 @@ void IdentificationVisualizer::load(Identification &s, int tree_item_id)
 }
 
 
-void IdentificationVisualizer::updateTree()
+void IdentificationVisualizer::updateTree_()
 {
 	String m(identification_threshold_->text().toStdString()) ;
 	tempidentification_.setPeptideSignificanceThreshold(m.toFloat());
@@ -102,7 +102,7 @@ void IdentificationVisualizer::updateTree()
 	
 }
 
-void IdentificationVisualizer::searchRefPeptides()
+void IdentificationVisualizer::searchRefPeptides_()
 {
 	
 	String ref_date(identification_ref_date_->text().toStdString());
@@ -112,12 +112,12 @@ void IdentificationVisualizer::searchRefPeptides()
 	
 }
 
-void IdentificationVisualizer::searchNonRefPeptides()
+void IdentificationVisualizer::searchNonRefPeptides_()
 {
 	pidv_caller_->updateNonRefPeptideHits_(tempidentification_ , tree_id_ );
 }
 
-void IdentificationVisualizer::store()
+void IdentificationVisualizer::store_()
 {
 	
 	
@@ -151,12 +151,11 @@ void IdentificationVisualizer::store()
 	
 }
 
-void IdentificationVisualizer::reject()
+void IdentificationVisualizer::reject_()
 {
 	
 	try
 	{
-		//load(tempidentification_);
 		load(*ptr_, tree_id_);
 	}
 	catch(exception e)

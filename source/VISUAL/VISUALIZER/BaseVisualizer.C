@@ -46,12 +46,12 @@ namespace OpenMS
 		return type_;
 	}
 	
-	void BaseVisualizer::store()
+	void BaseVisualizer::store_()
 	{
 	
 	}
 	
-	void BaseVisualizer::reject()
+	void BaseVisualizer::reject_()
 	{
 	
 	}
@@ -62,7 +62,7 @@ namespace OpenMS
 		{	
 			addSeperator();
 			addButton(undobutton_, "Undo");
-			connect(undobutton_, SIGNAL(clicked()), this, SLOT(reject()) );
+			connect(undobutton_, SIGNAL(clicked()), this, SLOT(reject_()) );
 		}
 		addVSpacer();
 	}

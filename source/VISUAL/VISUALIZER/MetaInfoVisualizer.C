@@ -97,9 +97,9 @@ void MetaInfoVisualizer::load(MetaInfoInterface &m)
 	
 	finishAdding_();
 		
-	connect(buttongroup_, SIGNAL(buttonClicked(int)), this, SLOT(remove(int)));
-	connect(addbutton_, SIGNAL(clicked()), this, SLOT(add()));
-	connect(clearbutton_, SIGNAL(clicked()), this, SLOT(clear()));
+	connect(buttongroup_, SIGNAL(buttonClicked(int)), this, SLOT(remove_(int)));
+	connect(addbutton_, SIGNAL(clicked()), this, SLOT(add_()));
+	connect(clearbutton_, SIGNAL(clicked()), this, SLOT(clear_()));
   
 	
 }
@@ -111,7 +111,7 @@ void MetaInfoVisualizer::load(MetaInfoInterface &m)
 //			SLOTS
 //----------------------------------------------------------------------------
 
-void MetaInfoVisualizer::remove(int index)
+void MetaInfoVisualizer::remove_(int index)
 {	
   UInt id=(UInt)index;
 	
@@ -209,7 +209,7 @@ void MetaInfoVisualizer::loadData_(UInt index)
 }
 
 
-void MetaInfoVisualizer::add()
+void MetaInfoVisualizer::add_()
 { 
  
 	String name(newkey_->text().toStdString()) ;
@@ -250,7 +250,7 @@ void MetaInfoVisualizer::add()
 	} 
 }
 
-void MetaInfoVisualizer::clear()
+void MetaInfoVisualizer::clear_()
 {
 		
 	newkey_->clear();
@@ -261,7 +261,7 @@ void MetaInfoVisualizer::clear()
 
 
 
-void MetaInfoVisualizer::store()
+void MetaInfoVisualizer::store_()
 {
 	try
 	{	
@@ -284,7 +284,7 @@ void MetaInfoVisualizer::store()
 	}
 }
 
-void MetaInfoVisualizer::reject()
+void MetaInfoVisualizer::reject_()
 {
 	try
 	{
@@ -294,7 +294,7 @@ void MetaInfoVisualizer::reject()
 		
 		for(UInt i =0; i< keys_temp.size(); ++i)
 		{	
-					remove(keys_temp[i]);
+					remove_(keys_temp[i]);
 		}
 		
 		

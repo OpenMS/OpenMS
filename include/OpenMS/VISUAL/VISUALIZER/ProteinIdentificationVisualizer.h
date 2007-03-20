@@ -57,9 +57,9 @@ namespace OpenMS
 	  
 	private slots:
 		/// Save all changes
-		void store();
+		void store_();
 		/// Restore all changes
-		void reject();
+		void reject_();
 		/** 
 		@brief Updates the tree by calling MSMetaDataExplorer::updateProteinHits()
 			
@@ -67,7 +67,7 @@ namespace OpenMS
 		Updates the tree depending of the protein significance threshold.<br>
 		Only ProteinHits with a score superior or equal to the current threshold will be displayed.
 		*/
-		void updateTree();
+		void updateTree_();
 		
 	private:  
 		/// Pointer to current object to keep track of the actual object

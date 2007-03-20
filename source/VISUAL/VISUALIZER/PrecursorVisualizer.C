@@ -89,7 +89,7 @@ void PrecursorVisualizer::update_()
 	precursor_window_size_->setText(String( tempprecursor_.getWindowSize() ).c_str() );		
 }
 
-void PrecursorVisualizer::store()
+void PrecursorVisualizer::store_()
 {
 	try
 	{
@@ -108,7 +108,7 @@ void PrecursorVisualizer::store()
 	
 }
 
-void PrecursorVisualizer::reject()
+void PrecursorVisualizer::reject_()
 {
 	
 	try

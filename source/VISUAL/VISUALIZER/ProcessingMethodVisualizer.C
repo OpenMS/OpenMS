@@ -138,7 +138,7 @@ void ProcessingMethodVisualizer::update_()
 	
 }
 
-void ProcessingMethodVisualizer::store()
+void ProcessingMethodVisualizer::store_()
 {
 	try
 	{
@@ -157,7 +157,7 @@ void ProcessingMethodVisualizer::store()
 	
 }
 
-void ProcessingMethodVisualizer::reject()
+void ProcessingMethodVisualizer::reject_()
 {
 	
 	try

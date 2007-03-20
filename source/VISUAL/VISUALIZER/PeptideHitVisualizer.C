@@ -80,7 +80,7 @@ void PeptideHitVisualizer::load(PeptideHit &h)
 			
 }
 
-void PeptideHitVisualizer::store()
+void PeptideHitVisualizer::store_()
 {
 	try
 	{
@@ -94,7 +94,7 @@ void PeptideHitVisualizer::store()
 	}
 }
 
-void PeptideHitVisualizer::reject()
+void PeptideHitVisualizer::reject_()
 {
 	try
 	{

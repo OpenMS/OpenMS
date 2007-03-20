@@ -75,7 +75,7 @@ void HPLCVisualizer::load(HPLC &h)
 			
 }
 
-void HPLCVisualizer::store()
+void HPLCVisualizer::store_()
 {
 	try
 	{
@@ -102,7 +102,7 @@ void HPLCVisualizer::store()
 	}
 }
 
-void HPLCVisualizer::reject()
+void HPLCVisualizer::reject_()
 {
 	try
 	{

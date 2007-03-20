@@ -152,7 +152,7 @@ void GradientVisualizer::addEluent()
 }
 
 
-void GradientVisualizer::store()
+void GradientVisualizer::store_()
 {
 	try
 	{	
@@ -319,7 +319,7 @@ void GradientVisualizer::update_()
 }
 
 
-void GradientVisualizer::reject()
+void GradientVisualizer::reject_()
 { 
   
 	try
