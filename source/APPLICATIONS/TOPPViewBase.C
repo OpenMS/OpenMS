@@ -2294,5 +2294,15 @@ namespace OpenMS
 		dlg->exec();
 	}
 
+	const LayerData* TOPPViewBase::getCurrentLayer() const
+	{
+		SpectrumCanvas* canvas = activeCanvas_();
+		if (canvas==0)
+		{
+			return 0;
+		}
+		return &(canvas->getCurrentLayer());
+	}
+
 } //namespace OpenMS
 

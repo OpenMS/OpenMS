@@ -142,7 +142,10 @@ namespace OpenMS
       void loadPreferences(std::string filename="");
       /// stores the preferences (used when this window is closed)
       void savePreferences();
-
+			
+			/// Returns the active Layer data (0 if no layer is active)
+			const LayerData* getCurrentLayer() const;
+			
     public slots:
       /// shows the dialog for opening spectra from file or the database
       void openSpectrumDialog();
