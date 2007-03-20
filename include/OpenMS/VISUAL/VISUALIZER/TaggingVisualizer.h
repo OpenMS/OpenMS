@@ -60,12 +60,6 @@ This class provides all functionality to view the meta information of an object 
 		void reject_();
 
 	private:  
-		
-	  /// A validator to check the input for the mass
-		QDoubleValidator *massvali_;
-		
-		/// A Validator to check the input for the shift
-		QDoubleValidator *shiftvali_;
 			
 		/// Sets the fields and comboboxes with current values
 		void updateTag_();
