@@ -39,7 +39,7 @@
 #include <map>
 #include <math.h>
 
-#define V_PoseClusteringAffineSuperimposer(bla) // std::cout << bla << std::endl;
+#define V_PoseClusteringAffineSuperimposer(bla) //  std::cout << bla << std::endl;
 
 namespace OpenMS
 {
@@ -330,6 +330,10 @@ namespace OpenMS
     void preprocess_()
     {
 #define V_preprocessSceneMap(bla)  V_PoseClusteringAffineSuperimposer(bla)
+      // clear scene_map_partners_
+      scene_map_partners_.clear();
+      // clear model_map_red_
+      model_map_red_.clear();
 
       // build an array of pointer to all elements in the model map
       PeakPointerArray model_map(element_map_[MODEL]->begin(), element_map_[MODEL]->end());
@@ -374,14 +378,11 @@ namespace OpenMS
 
         /// TODO Remove
         PeakPointerArray partner_;
-        //         std::cout << "Partners of " << model_map[i] <<  std::endl;
         for (typename PeakPointerArray::const_iterator it = it_first; it != it_last; ++it)
         {
-          //           std::cout << *it << std::endl;
           if ((it->getRT() < max_rt) && (it->getRT() > min_rt) )
           {
             partners.push_back(&(*it));
-            //             std::cout << *it << std::endl;
           }
 
         }
@@ -425,7 +426,7 @@ namespace OpenMS
       for (UInt i = 0; i < n; ++i)
       {
         // take only the next 10 neighbours in m/z as partner in the model map
-        UInt k=((i+10)> n) ? n : (i+10);
+        UInt k=((i+10)>= n) ? n : (i+10);
         for (UInt j = i+1; j < k; ++j)
         {
           // avoid cross mappings (i,j) -> (k,l) (e.g. i_rt < j_rt and k_rt > l_rt)
@@ -436,12 +437,14 @@ namespace OpenMS
           std::vector< const PointType* >& partners_j  = scene_map_partners_[j];
           UInt m = partners_i.size();
           UInt p = partners_j.size();
-
+          
           for (UInt k = 0; k < m; ++k)
           {
             for (UInt l = 0; l < p; ++l)
             {
-              PositionType diff_2 = (partners_j[l]->getRT() - partners_i[k]->getRT());
+              //               std::cout << "Partner of " << model_map_red_[j].getPosition() << ' ' << l << ' ' << partners_j.size() << std::endl;
+              //               std::cout << *(partners_j[l]) << std::endl;
+              PositionType diff_2 = (partners_j[l]->getPosition() - partners_i[k]->getPosition());
 
               // compute the transformation (i,j) -> (k,l)
               PositionType shift;
@@ -453,7 +456,7 @@ namespace OpenMS
               if ((fabs(diff[RawDataPoint2D::RT]) > 0.001) && (fabs(diff_2[RawDataPoint2D::RT]) > 0.001))
               {
                 scaling[RawDataPoint2D::RT] = (model_map_red_[j].getRT() - model_map_red_[i].getRT())
-                              /(partners_j[l]->getRT() - partners_i[k]->getRT());
+                                              /(partners_j[l]->getRT() - partners_i[k]->getRT());
 
                 shift[RawDataPoint2D::RT] =  model_map_red_[i].getRT() - partners_i[k]->getRT()*scaling[RawDataPoint2D::RT];
                 transformation_ok[RawDataPoint2D::RT] = true;
@@ -463,7 +466,7 @@ namespace OpenMS
               if ((fabs(diff[RawDataPoint2D::MZ]) > 0.001) && (fabs(diff_2[RawDataPoint2D::MZ]) > 0.001))
               {
                 scaling[RawDataPoint2D::MZ] = (model_map_red_[j].getMZ() - model_map_red_[i].getMZ())
-                              /(partners_j[l]->getMZ() - partners_i[k]->getMZ());
+                                              /(partners_j[l]->getMZ() - partners_i[k]->getMZ());
 
                 shift[RawDataPoint2D::MZ] =  model_map_red_[i].getMZ() - partners_i[k]->getMZ()*scaling[RawDataPoint2D::MZ];
                 transformation_ok[RawDataPoint2D::MZ] = true;

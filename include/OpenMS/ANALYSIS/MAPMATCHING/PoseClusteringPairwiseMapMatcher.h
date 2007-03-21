@@ -165,6 +165,9 @@ namespace OpenMS
       {
         initGridTransformation(*(element_map_[SCENE]));
       }
+      
+      // clear pairs
+      all_element_pairs_.clear();
 
       // assign each element of the scene map to the grid cells and build a pointer map for each grid cell
       PeakConstReferenceMapType scene_pointer_map(element_map_[SCENE]->begin(), element_map_[SCENE]->end());
@@ -177,14 +180,6 @@ namespace OpenMS
 
       // compute the matching of each scene's grid cell elements and all the elements of the model map
       computeMatching_(model_pointer_map,scene_grid_maps);
-
-
-      //         String all_element_pairs_gnuplot_file =
-      //           param_.getValue("debug:all_element_pairs_gnuplot_file");
-      //         if ( !all_element_pairs_gnuplot_file.empty() )
-      //         {
-      //           pair_finder_->dumpFeaturePairs(all_element_pairs_gnuplot_file);
-      //         }
     }
 
   protected:

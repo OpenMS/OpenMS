@@ -176,6 +176,7 @@ namespace OpenMS
       return number_buckets_[index];
     }
 
+    /// Clear the grid information
     void clearGrid()
     {
       grid_.clear();
