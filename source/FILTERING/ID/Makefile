@@ -27,7 +27,6 @@
 
 DIRECTORY=FILTERING/ID
 
-THISLIB=libOpenMS
 
 include ../../config_defs.mak
 

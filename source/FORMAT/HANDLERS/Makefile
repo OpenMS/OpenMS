@@ -27,7 +27,6 @@
 
 DIRECTORY=FORMAT/HANDLERS
 
-THISLIB=libOpenMS
 
 include ../../config_defs.mak
 

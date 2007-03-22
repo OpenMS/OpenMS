@@ -26,7 +26,6 @@
 
 DIRECTORY=CONCEPT
 
-THISLIB=libOpenMS
 
 CPP_SOURCES= \
 	Constants.C\

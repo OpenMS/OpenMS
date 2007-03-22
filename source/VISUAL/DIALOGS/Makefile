@@ -34,10 +34,8 @@ HEADER_DIR=$(OPENMS_PATH)/include/OpenMS/$(DIRECTORY)
 # Where the UIC-created headers reside
 UIC_DIR=$(OPENMS_PATH)/include/OpenMS/$(DIRECTORY)/UIC
 
-THISLIB=libOpenMS_GUI
 
-# These depend on QT:
-GUI_CPP_SOURCES=\
+CPP_SOURCES=\
 	PreferencesDialog.C\
 	PreferencesDialogPage.C\
 	Spectrum1DWidgetPDP.C\
@@ -58,7 +56,7 @@ GUI_CPP_SOURCES=\
 	DBSpectrumSelectorDialog.C\
 	TOPPViewBasePDP.C
 
-GUI_MOC_SOURCES=\
+MOC_SOURCES=\
 	PreferencesDialog_moc.C\
 	PreferencesDialogPage_moc.C\
 	Spectrum1DWidgetPDP_moc.C\
@@ -79,25 +77,17 @@ GUI_MOC_SOURCES=\
 	FeaFiDialog_moc.C\
 	TOPPViewBasePDP_moc.C
 
-#conditional compiles QT
-ifeq ($(ENABLE_GUI),true)
-	ADD_CPP_SOURCES=\
-		$(GUI_CPP_SOURCES)
-	ADD_MOC_SOURCES=\
-		$(GUI_MOC_SOURCES)
-endif
-
-SOURCES		= $(CPP_SOURCES) $(MOC_SOURCES) $(ADD_CPP_SOURCES) $(ADD_MOC_SOURCES) $(ANDI_SOURCES)
+SOURCES		= $(CPP_SOURCES) $(MOC_SOURCES)
 OBJECTS 	= $(SOURCES:.C=.o)
 
 -include .Dependencies
 
 default: echodir $(OBJECTS)
 
-depend:	$(MOC_SOURCES) $(ADD_MOC_SOURCES)
+depend:	$(MOC_SOURCES)
 	@echo "creating dependencies for $(DIRECTORY)..."
 	@echo "" > .Dependencies
-	@$(CXX) -M  -fPIC -pedantic -Wno-long-long -Wno-deprecated  $(CPP_SOURCES) $(ADD_CPP_SOURCES) $(ADD_MOC_SOURCES) $(STD_CPP_INCLUDES) $(ADD_INCLUDES) $(OPENMS_INCLUDES)  >.Dependencies
+	@$(CXX) -M  -fPIC -pedantic -Wno-long-long -Wno-deprecated  $(CPP_SOURCES) $(STD_CPP_INCLUDES) $(ADD_INCLUDES) $(OPENMS_INCLUDES)  >.Dependencies
 
 uic_depend:
 	$(UIC) -o $(UIC_DIR)/Spectrum1DGoToDialogTemplate.h Spectrum1DGoToDialog.ui
@@ -114,7 +104,7 @@ uic_clean:
 	@$(RM) -f $(UIC_DIR)/*.h
 
 default_clean: uic_clean
-	@-$(RM) -rf .Dependencies *~  core.* $(OBJECTS) $(MOC_SOURCES) $(ADD_MOC_SOURCES)
+	@-$(RM) -rf .Dependencies *~  core.* $(OBJECTS) $(MOC_SOURCES)
 
 echodir:
 	@echo " "
@@ -122,7 +112,7 @@ echodir:
 
 collectlib:	echodir
 	@echo "collecting objects from $(DIRECTORY)..."
-	@for i in $(OBJECTS); do echo $(DIRECTORY)/$$i >>$(OPENMS_PATH)/source/$(THISLIB).objects ; done
+	@for i in $(OBJECTS); do echo $(DIRECTORY)/$$i >>$(OPENMS_PATH)/source/libOpenMS.objects ; done
 
 include ../../config.mak
 

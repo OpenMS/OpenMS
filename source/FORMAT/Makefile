@@ -30,7 +30,6 @@ include ../config_defs.mak
 
 DIRECTORY=FORMAT
 
-THISLIB=libOpenMS
 
 -include .Dependencies
 
@@ -95,7 +94,7 @@ default_clean: dummy
 
 collectlib:	dummy
 	@echo "collecting objects from $(DIRECTORY)..."
-	@for i in $(OBJECTS); do echo $(DIRECTORY)/$$i >>$(OPENMS_PATH)/source/$(THISLIB).objects ; done
+	@for i in $(OBJECTS); do echo $(DIRECTORY)/$$i >>$(OPENMS_PATH)/source/libOpenMS.objects ; done
 	@cd DB; if $(MAKE) collectlib; then cd .. ; else cd .. ; exit 1; fi;
 	@cd HANDLERS; if $(MAKE) collectlib; then cd .. ; else cd .. ; exit 1; fi;
 

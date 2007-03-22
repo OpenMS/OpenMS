@@ -27,7 +27,6 @@
 
 DIRECTORY=ANALYSIS/SVM
 
-THISLIB=libOpenMS
 
 include ../../config_defs.mak
 

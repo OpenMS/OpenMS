@@ -27,7 +27,6 @@
 
 DIRECTORY=SYSTEM
 
-THISLIB=libOpenMS
 
 CPP_SOURCES= \
 	StopWatch.C\

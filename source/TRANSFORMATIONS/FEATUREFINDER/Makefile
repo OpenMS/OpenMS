@@ -26,7 +26,6 @@
 
 DIRECTORY=TRANSFORMATIONS/FEATUREFINDER
 
-THISLIB=libOpenMS
 
 include ../../config_defs.mak
 

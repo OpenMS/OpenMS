@@ -30,8 +30,6 @@ include ../config_defs.mak
 
 DIRECTORY=FILTERING
 
-THISLIB=libOpenMS
-
 -include .Dependencies
 
 # Take care of subdirectories

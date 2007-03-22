@@ -31,28 +31,15 @@ DIRECTORY=APPLICATIONS
 # Where the headers of the derived classes reside
 HEADER_DIR=$(OPENMS_PATH)/include/OpenMS/$(DIRECTORY)
 
-THISLIB=libOpenMS
 
 CPP_SOURCES=\
-	TOPPBase.C
+	TOPPBase.C\
+	TOPPViewBase.C
 
-# These depend on QT:
-GUI_CPP_SOURCES=\
-	TOPPViewBase.C		
-
-GUI_MOC_SOURCES=\
+MOC_SOURCES=\
 	TOPPViewBase_moc.C
 
-#conditional compiles QT
-ifeq ($(ENABLE_GUI),true)
-	ADD_CPP_SOURCES=\
-		$(GUI_CPP_SOURCES)
-	ADD_MOC_SOURCES=\
-		$(GUI_MOC_SOURCES)
-endif
-
-
-SOURCES		= $(CPP_SOURCES) $(ADD_CPP_SOURCES) $(ADD_MOC_SOURCES)
+SOURCES		= $(CPP_SOURCES) $(MOC_SOURCES)
 OBJECTS 	= $(SOURCES:.C=.o)
 
 
@@ -60,13 +47,13 @@ default:	echodir $(OBJECTS)
 
 -include .Dependencies
 
-depend:	$(MOC_SOURCES) $(ADD_MOC_SOURCES)
+depend:	$(MOC_SOURCES)
 	@echo "creating dependencies for $(DIRECTORY)..."
 	@echo "" > .Dependencies
-	@$(CXX) -M  -fPIC -pedantic -Wno-long-long -Wno-deprecated  $(CPP_SOURCES) $(ADD_CPP_SOURCES) $(STD_CPP_INCLUDES) $(ADD_INCLUDES) $(OPENMS_INCLUDES)  >.Dependencies
+	@$(CXX) -M  -fPIC -pedantic -Wno-long-long -Wno-deprecated  $(CPP_SOURCES) $(MOC_SOURCES) $(STD_CPP_INCLUDES) $(ADD_INCLUDES) $(OPENMS_INCLUDES)  >.Dependencies
 
 default_clean:
-	@-$(RM) -rf .Dependencies *~  core.* $(OBJECTS) $(MOC_SOURCES) $(ADD_MOC_SOURCES)
+	@-$(RM) -rf .Dependencies *~  core.* $(OBJECTS) $(MOC_SOURCES)
 
 echodir:
 	@echo " "
@@ -74,7 +61,7 @@ echodir:
 
 collectlib:	echodir
 	@echo "collecting objects from $(DIRECTORY)..."
-	@for i in $(OBJECTS); do echo $(DIRECTORY)/$$i >>$(OPENMS_PATH)/source/$(THISLIB).objects ; done
+	@for i in $(OBJECTS); do echo $(DIRECTORY)/$$i >>$(OPENMS_PATH)/source/libOpenMS.objects ; done
 
 include ../config.mak
 

@@ -27,7 +27,6 @@
 
 DIRECTORY=COMPARISON/MAPS
 
-THISLIB=libOpenMS
 
 include ../../config_defs.mak
 

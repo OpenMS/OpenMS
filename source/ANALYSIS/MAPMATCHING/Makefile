@@ -26,7 +26,6 @@
 
 DIRECTORY=ANALYSIS/MAPMATCHING
 
-THISLIB=libOpenMS
 
 include ../../config_defs.mak
 

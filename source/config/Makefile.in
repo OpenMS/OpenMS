@@ -38,12 +38,8 @@ include config.mak
 # 	library version number
 LIB_VERSION	= @PACKAGE_VERSION@
 
-#	default library name
-LIBNAME = libOpenMS
-GUILIBNAME = libOpenMS_GUI
-
 # names of the static libraries
-STATIC_LIBS	= libOpenMS.a @GUI_STATIC_LIB@
+STATIC_LIBS	= libOpenMS.a
 
 #	names of the shared libraries
 SHARED_LIBS	= $(STATIC_LIBS:.a=.@SHARED_LIB_SUFFIX@)
@@ -113,13 +109,9 @@ libOpenMS.objects:
 	@cd CHEMISTRY; if $(MAKE) collectlib; then cd .. ; else cd .. ; exit 1 ; fi ;
 	@cd TRANSFORMATIONS; if $(MAKE) collectlib; then cd .. ; else cd .. ; exit 1 ; fi ;
 	@cd ANALYSIS; if $(MAKE) collectlib; then cd .. ; else cd .. ; exit 1 ; fi ;   
+	@cd VISUAL; if $(MAKE) collectlib; then cd .. ; else cd .. ; exit 1 ; fi ; 
 	@cd APPLICATIONS; if $(MAKE) collectlib; then cd .. ; else cd .. ; exit 1 ; fi ; 
 
-libOpenMS_GUI.objects:
-	@$(ECHO)
-	@$(ECHO) "Collecting object files for libraries..."
-	@-rm -f libOpenMS_GUI.objects
-	@cd VISUAL; if $(MAKE) collectlib; then cd .. ; else cd .. ; exit 1 ; fi ; 
 
 collect:	$(OBJECT_LISTS)
 
@@ -127,15 +119,11 @@ recollect:
 	rm -f $(OBJECT_LISTS)
 	@$(MAKE) collect
 
-libOpenMS.@SHARED_LIB_SUFFIX@:	collect
+libOpenMS.@SHARED_LIB_SUFFIX@: collect
 	@$(ECHO)
 	@$(ECHO) "Linking shared library:  OpenMS"
-	$(DYNAR) $(DYNAROPTS) $(LIBNAME).@SHARED_LIB_SUFFIX@ `cat $(LIBNAME).objects` -lm
+	$(DYNAR) $(DYNAROPTS) libOpenMS.@SHARED_LIB_SUFFIX@ `cat libOpenMS.objects` -lm
 
-libOpenMS_GUI.@SHARED_LIB_SUFFIX@:	collect
-	@$(ECHO)
-	@$(ECHO) "Linking shared library:  OpenMS_GUI"
-	$(DYNAR) $(DYNAROPTS_GUI) $(DYNAROPTS) $(GUILIBNAME).@SHARED_LIB_SUFFIX@ `cat $(GUILIBNAME).objects` -lm
 
 .objects.a:	
 	@$(ECHO)

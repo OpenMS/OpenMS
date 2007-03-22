@@ -35,10 +35,8 @@ HEADER_DIR=$(OPENMS_PATH)/include/OpenMS/$(DIRECTORY)
 UIC_DIR=$(OPENMS_PATH)/include/OpenMS/$(DIRECTORY)/UIC
 
 
-THISLIB=libOpenMS_GUI
 
-# These depend on QT:
-GUI_CPP_SOURCES=\
+CPP_SOURCES=\
 	EnhancedTabBar.C\
 	AxisWidget.C\
 	ColorSelector.C\
@@ -65,7 +63,7 @@ GUI_CPP_SOURCES=\
 	ParamEditor.C
 
 
-GUI_MOC_SOURCES=\
+MOC_SOURCES=\
 	EnhancedTabBar_moc.C\
 	AxisWidget_moc.C\
 	ColorSelector_moc.C\
@@ -85,16 +83,7 @@ GUI_MOC_SOURCES=\
 	Spectrum3DWidget_moc.C\
 	ParamEditor_moc.C
 
-#conditional compiles QT
-ifeq ($(ENABLE_GUI),true)
-	ADD_CPP_SOURCES=\
-		$(GUI_CPP_SOURCES)
-	
-	ADD_MOC_SOURCES=\
-		$(GUI_MOC_SOURCES)
-endif
-
-SOURCES		= $(CPP_SOURCES) $(MOC_SOURCES) $(ADD_CPP_SOURCES) $(ADD_MOC_SOURCES) $(ANDI_SOURCES)
+SOURCES		= $(CPP_SOURCES) $(MOC_SOURCES)
 OBJECTS 	= $(SOURCES:.C=.o)
 
 # Redefine targets to take care of subdirectories of VISUAL
@@ -107,10 +96,10 @@ default:	echodir $(OBJECTS)
 
 dummy:
 
-depend:	uic_depend $(MOC_SOURCES) $(ADD_MOC_SOURCES)
+depend:	uic_depend $(MOC_SOURCES)
 	@echo "creating dependencies for $(DIRECTORY)..."
 	@echo "" > .Dependencies
-	@$(CXX) -M  -fPIC -pedantic -Wno-long-long -Wno-deprecated  $(CPP_SOURCES) $(ADD_CPP_SOURCES) $(ADD_MOC_SOURCES) $(STD_CPP_INCLUDES) $(ADD_INCLUDES) $(OPENMS_INCLUDES)  >.Dependencies
+	@$(CXX) -M  -fPIC -pedantic -Wno-long-long -Wno-deprecated  $(CPP_SOURCES) $(STD_CPP_INCLUDES) $(ADD_INCLUDES) $(OPENMS_INCLUDES)  >.Dependencies
 	@cd DIALOGS; if $(MAKE) depend; then cd .. ; else cd .. ; exit 1 ; fi ;
 	@cd VISUALIZER; if $(MAKE) depend; then cd .. ; else cd .. ; exit 1 ; fi ;
 
@@ -124,7 +113,7 @@ uic_clean:
 	@$(RM) -f *Template.C
 
 default_clean: uic_clean
-	@-$(RM) -rf .Dependencies *~  core.* $(OBJECTS) $(MOC_SOURCES) $(ADD_MOC_SOURCES)
+	@-$(RM) -rf .Dependencies *~  core.* $(OBJECTS) $(MOC_SOURCES)
 	@cd DIALOGS; if $(MAKE) default_clean; then cd .. ; else cd .. ; exit 1 ; fi ;
 	@cd VISUALIZER; if $(MAKE) default_clean; then cd .. ; else cd .. ; exit 1 ; fi ;
 
@@ -134,7 +123,7 @@ echodir:
 
 collectlib:	echodir
 	@echo "collecting objects from $(DIRECTORY)..."
-	@for i in $(OBJECTS); do echo $(DIRECTORY)/$$i >>$(OPENMS_PATH)/source/$(THISLIB).objects ; done
+	@for i in $(OBJECTS); do echo $(DIRECTORY)/$$i >>$(OPENMS_PATH)/source/libOpenMS.objects ; done
 	@cd DIALOGS; if $(MAKE) collectlib; then cd .. ; else cd .. ; exit 1 ; fi ;
 	@cd VISUALIZER; if $(MAKE) collectlib; then cd .. ; else cd .. ; exit 1 ; fi ;
 

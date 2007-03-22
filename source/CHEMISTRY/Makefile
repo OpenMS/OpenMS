@@ -28,7 +28,6 @@ DIRECTORY=CHEMISTRY
 
 include ../config_defs.mak
 
-THISLIB=libOpenMS
 
 ADD_CPP_SOURCES=\
 		IsotopeDistribution.C\

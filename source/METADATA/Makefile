@@ -26,8 +26,6 @@
 
 DIRECTORY=METADATA
 
-THISLIB=libOpenMS
-
 CPP_SOURCES=\
 	PeptideHit.C\
 	SourceFile.C\

@@ -30,7 +30,6 @@ include ../config_defs.mak
 
 DIRECTORY=TRANSFORMATIONS
 
-THISLIB=libOpenMS
 
 -include .Dependencies
 

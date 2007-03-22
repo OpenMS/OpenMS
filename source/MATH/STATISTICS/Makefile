@@ -28,7 +28,6 @@ include ../../config_defs.mak
 
 DIRECTORY=MATH/STATISTICS
 
-THISLIB=libOpenMS
 
 CPP_SOURCES= \
 	BasicStatistics.C\

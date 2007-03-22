@@ -277,8 +277,6 @@
 #undef NETCDF_DEF
 #define DB_PLUGIN "(undefined)"
 
-#define ENABLE_GUI 1
-
 // __PRETTY_FUNCTION__ is a GNU G++ extension.  It is used in exceptions to indicate their origin.
 #ifndef OPENMS_COMPILER_GXX 
 #  define __PRETTY_FUNCTION__ "<unknown>"

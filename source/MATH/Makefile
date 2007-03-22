@@ -30,7 +30,6 @@ include ../config_defs.mak
 
 DIRECTORY=MATH
 
-THISLIB=libOpenMS
 
 -include .Dependencies
 

@@ -27,7 +27,6 @@
 
 DIRECTORY=COMPARISON/SPECTRA
 
-THISLIB=libOpenMS
 
 include ../../config_defs.mak
 

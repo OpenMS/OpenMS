@@ -28,8 +28,6 @@ include ../../config_defs.mak
 
 DIRECTORY=FILTERING/DATAREDUCTION
 
-THISLIB=libOpenMS
-
 CPP_SOURCES=\
 	DataReducer.C\
 	MaxReducer.C\

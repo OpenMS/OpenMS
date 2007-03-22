@@ -26,7 +26,6 @@
 
 DIRECTORY=FORMAT/DB
 
-THISLIB=libOpenMS
 
 CPP_SOURCES=\
 	DBConnection.C\

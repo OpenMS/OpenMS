@@ -30,7 +30,6 @@ include ../config_defs.mak
 
 DIRECTORY=COMPARISON
 
-THISLIB=libOpenMS
 
 -include .Dependencies
 

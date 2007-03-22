@@ -27,7 +27,6 @@
 
 DIRECTORY=COMPARISON/CLUSTERING
 
-THISLIB=libOpenMS
 
 include ../../config_defs.mak
 

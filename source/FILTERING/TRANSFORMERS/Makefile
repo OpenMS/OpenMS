@@ -28,8 +28,6 @@ include ../../config_defs.mak
 
 DIRECTORY=FILTERING/TRANSFORMERS
 
-THISLIB=libOpenMS
-
 CPP_SOURCES = \
   BernNorm.C\
   GoodDiffFilter.C\

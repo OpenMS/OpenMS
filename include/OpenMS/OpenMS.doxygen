@@ -63,6 +63,7 @@ Ideen:
 
 Todos:
 - TOPP
+  - ParamEditor
 	- FeatureFiles + AnalysisXML beschneiden können
   - FileFilter: MS/MS scans nach Precursor MZ/RT abscheiden, aber nicht in MZ kürzen
   - RTPredict/RTModel: RT-Vorhersage als ID speichern (Besser in Consensus zu integrieren)

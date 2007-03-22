@@ -30,10 +30,8 @@ include ../../config_defs.mak
 
 DIRECTORY=VISUAL/VISUALIZER
 
-THISLIB=libOpenMS_GUI
 
-# These depend on QT:
-GUI_CPP_SOURCES=\
+CPP_SOURCES=\
 	BaseVisualizer.C\
 	SampleVisualizer.C\
 	DigestionVisualizer.C\
@@ -62,7 +60,7 @@ GUI_CPP_SOURCES=\
 	IdentificationVisualizer.C\
 	SpectrumSettingsVisualizer.C
 
-GUI_MOC_SOURCES=\
+MOC_SOURCES=\
 	BaseVisualizer_moc.C\
 	SampleVisualizer_moc.C\
 	DigestionVisualizer_moc.C\
@@ -91,26 +89,20 @@ GUI_MOC_SOURCES=\
 	IdentificationVisualizer_moc.C\
 	SpectrumSettingsVisualizer_moc.C	
 
-#conditional compiles QT
-ifeq ($(ENABLE_GUI),true)
-	ADD_CPP_SOURCES=$(GUI_CPP_SOURCES)
-	ADD_MOC_SOURCES=$(GUI_MOC_SOURCES)
-endif
-
-SOURCES		= $(ADD_CPP_SOURCES) $(ADD_MOC_SOURCES)
+SOURCES		= $(CPP_SOURCES) $(MOC_SOURCES)
 OBJECTS 	= $(SOURCES:.C=.o)
 
 -include .Dependencies
 
 default: echodir $(OBJECTS)
 
-depend:	$(ADD_MOC_SOURCES)
+depend:	$(MOC_SOURCES)
 	@echo "creating dependencies for $(DIRECTORY)..."
 	@echo "" > .Dependencies
-	@$(CXX) -M  -fPIC -pedantic -Wno-long-long -Wno-deprecated  $(ADD_CPP_SOURCES) $(ADD_MOC_SOURCES) $(OPENMS_INCLUDES)  >.Dependencies
+	@$(CXX) -M  -fPIC -pedantic -Wno-long-long -Wno-deprecated  $(CPP_SOURCES) $(MOC_SOURCES) $(OPENMS_INCLUDES)  >.Dependencies
 
 default_clean:
-	@-$(RM) -rf .Dependencies *~  core.* $(OBJECTS) $(ADD_MOC_SOURCES)
+	@-$(RM) -rf .Dependencies *~  core.* $(OBJECTS) $(MOC_SOURCES)
 
 echodir:
 	@echo " "
@@ -118,7 +110,7 @@ echodir:
 
 collectlib:	echodir
 	@echo "collecting objects from $(DIRECTORY)..."
-	@for i in $(OBJECTS); do echo $(DIRECTORY)/$$i >>$(OPENMS_PATH)/source/$(THISLIB).objects ; done
+	@for i in $(OBJECTS); do echo $(DIRECTORY)/$$i >>$(OPENMS_PATH)/source/libOpenMS.objects ; done
 
 include ../../config.mak
 

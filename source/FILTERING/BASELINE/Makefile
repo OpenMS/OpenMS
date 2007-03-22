@@ -27,8 +27,6 @@
 
 DIRECTORY=FILTERING/BASELINE
 
-THISLIB=libOpenMS
-
 include ../../config_defs.mak
 
 CPP_SOURCES=\

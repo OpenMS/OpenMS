@@ -110,7 +110,6 @@ FFTW_SUPPORT      = @FFTW_SUPPORT@
 LIBSVM_SUPPORT    = @LIBSVM_SUPPORT@
 MOC               = @MOC@
 UIC               = @UIC@
-ENABLE_GUI        = true
 GUI_INCLUDES      = @GUI_INCLUDES@
 GUI_LIBS          = @GUI_LIBS@
 SIP               = @SIP@
@@ -180,4 +179,3 @@ STD_CPP_INCLUDES  = @STD_CPP_INCLUDES@
 #  to add the subdirectories' objects to the library.
 #
 DIRS  = @SUBDIRS@
-GUI_DIRS = @GUISUBDIRS@

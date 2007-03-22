@@ -30,7 +30,6 @@ include ../config_defs.mak
 
 DIRECTORY=ANALYSIS
 
-THISLIB=libOpenMS
 
 -include .Dependencies
 

@@ -56,7 +56,7 @@ default_clean:
 
 collectlib:	default
 	@echo "Collecting objects from directory $(DIRECTORY)..."
-	@for i in $(OBJECTS) ""; do if [ X"$$i" != X"" ]; then echo $(DIRECTORY)/$$i >>@OPENMS_PATH@/source@BINFMT_PATH@/$(THISLIB).objects ; fi ; done
+	@for i in $(OBJECTS) ""; do if [ X"$$i" != X"" ]; then echo $(DIRECTORY)/$$i >>@OPENMS_PATH@/source@BINFMT_PATH@/libOpenMS.objects ; fi ; done
 
 depend: $(SOURCES)
 	@echo "Creating .Dependencies for directory $(DIRECTORY)..."

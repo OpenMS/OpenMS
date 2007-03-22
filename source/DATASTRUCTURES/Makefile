@@ -26,7 +26,6 @@
 
 DIRECTORY=DATASTRUCTURES
 
-THISLIB=libOpenMS
 
 include ../config_defs.mak
 
