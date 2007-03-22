@@ -201,6 +201,16 @@ namespace OpenMS
         {
           total_int_scene_map += (*element_map_[SCENE])[i].getIntensity();
         }
+        // clear scene_map_partners_
+        scene_map_partners_.clear();
+        // clear model_map_red_
+        model_map_red_.clear();
+        // clear rt hash
+        rt_hash_.clear();
+        // clear mz hash
+        mz_hash_.clear();
+
+
 
         preprocess_();
         hashAffineTransformations_(total_int_model_map,total_int_scene_map);
@@ -330,11 +340,6 @@ namespace OpenMS
     void preprocess_()
     {
 #define V_preprocessSceneMap(bla)  V_PoseClusteringAffineSuperimposer(bla)
-      // clear scene_map_partners_
-      scene_map_partners_.clear();
-      // clear model_map_red_
-      model_map_red_.clear();
-
       // build an array of pointer to all elements in the model map
       PeakPointerArray model_map(element_map_[MODEL]->begin(), element_map_[MODEL]->end());
       // build an array of pointer to all elements in the scene map
@@ -437,7 +442,7 @@ namespace OpenMS
           std::vector< const PointType* >& partners_j  = scene_map_partners_[j];
           UInt m = partners_i.size();
           UInt p = partners_j.size();
-          
+
           for (UInt k = 0; k < m; ++k)
           {
             for (UInt l = 0; l < p; ++l)
