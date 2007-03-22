@@ -997,7 +997,7 @@ class TOPPSequestAdapter
 					map< char, DoubleReal > stat_mods, dyn_mods;
 					map< String, DoubleReal > terminal_mods;
 
-					Int comp_mass_name_given;
+					Int comp_mass_name_given(0);
 					String types = "dyn#stat#cterminal#nterminal#cterminal_dyn#nterminal_dyn#cterminal_prot#nterminal_prot#";
 
 					for ( vector< String >::const_iterator mod_i = substrings.begin(); mod_i != substrings.end(); ++mod_i )

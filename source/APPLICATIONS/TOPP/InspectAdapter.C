@@ -563,7 +563,7 @@ class TOPPInspectAdapter
 						// to get masses from a formula
 						EmpiricalFormula add_e_formula, sub_e_formula;
 						
-						Int comp_mass_name_given;
+						Int comp_mass_name_given(0);
 						String types = "opt#fix#cterminal#nterminal";
 						
 						for ( vector< String >::const_iterator mod_i = substrings.begin(); mod_i != substrings.end(); ++mod_i )
