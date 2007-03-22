@@ -267,24 +267,26 @@ class TOPPOMSSAAdapter
 				return ILLEGAL_PARAMETERS;
 			}				
 		
-			parameters += " -d ";
-			parameters += getStringOption_("d");
-			parameters += " -to ";
-			parameters += String(getDoubleOption_("to"));
-			parameters += " -te ";
-			parameters += String(getDoubleOption_("te"));
-			parameters += " -zl ";
-			parameters += String(getIntOption_("zl"));
-			parameters += " -zh ";
-			parameters += String(getIntOption_("zh"));
+			parameters += " -d "  +  getStringOption_("d");
+			parameters += " -to " +  String(getDoubleOption_("to"));
+			parameters += " -te " +  String(getDoubleOption_("te"));
+			parameters += " -zl " +  String(getIntOption_("zl"));
+			parameters += " -zh " +  String(getIntOption_("zh"));
+			parameters += " -zt " +  String(getIntOption_("zt"));
+			parameters += " -zc " +  String(getIntOption_("zc"));
+			parameters += " -zcc " + String(getIntOption_("zcc"));
+			parameters += " -ht " +  String(getIntOption_("ht"));
+			parameters += " -v " +   String(getIntOption_("v"));
+			parameters += " -e " +   String(getIntOption_("e"));
+			parameters += " -tez " + String(getIntOption_("tez"));
+			parameters += " -tom " + String(getIntOption_("tom"));
+			parameters += " -tem " + String(getIntOption_("tem"));
 			parameters += " -f ";
 			String omssa_tmp_filename("omssa_tmp.dta");
 			parameters += omssa_tmp_filename;
-			parameters += " -ox ";
-			parameters += omssa_outfile_name;
+			parameters += " -ox " + omssa_outfile_name;
 			parameters += " -ni ";
-			parameters += " -he ";
-			parameters += String(getDoubleOption_("he"));
+			parameters += " -he " + String(getDoubleOption_("he"));
 			if (getStringOption_("mf") != "")
 			{
 				parameters += " -mf " + getStringOption_("mf");
@@ -293,6 +295,7 @@ class TOPPOMSSAAdapter
 			{
 				parameters += " -mv " + getStringOption_("mv");
 			}
+			//parameters += " -pc 100 ";
 
 			
 			//-------------------------------------------------------------
@@ -318,15 +321,23 @@ class TOPPOMSSAAdapter
 			//-------------------------------------------------------------
 	
 			UInt i(0);
-			for (PeakMap::ConstIterator it = map.begin(); it != map.end(); ++it)
+			for (PeakMap::ConstIterator it = map.begin(); it != map.end(); ++it, ++i)
 			{
+				if (it->getMSLevel() != 2)
+				{
+					continue;
+				}
 				PeakSpectrum spec(*it);
 				spec.getPrecursorPeak().setCharge(1);
 				DTAFile().store(omssa_tmp_filename, spec);
 				
+				writeDebug_("Precursor position: " + String(spec.getPrecursorPeak().getPosition()[0]), 3);
+
 				String call = omssa_dir + "/omssacl " + parameters;
 
-				writeDebug_(String(++i) + "/" + String(map.size()), 2);
+				writeDebug_(String(i) + "/" + String(map.size()), 2);
+
+				writeDebug_(call, 5);
 				int status = system(call.c_str());
 		
 				if (status != 0)
@@ -343,12 +354,20 @@ class TOPPOMSSAAdapter
 
 				if (tmp_peptide_ids.size() == 1)
 				{
+					writeDebug_(String(i) + ". found " + String(tmp_peptide_ids[0].id.getPeptideHits().size()) + " peptide identifications", 2);
+					tmp_peptide_ids[0].rt = it->getRetentionTime();
+					tmp_peptide_ids[0].mz = it->getPrecursorPeak().getPosition()[0];
 					peptide_ids.push_back(tmp_peptide_ids[0]);
+					// TODO protein mz/rt
 					protein_identifications.push_back(tmp_protein_id);
 				}
 				else
 				{
-					peptide_ids.push_back(IdentificationData());
+					writeDebug_(String(i) + ". found " + String(tmp_peptide_ids.size()) + " peptide identifications", 2);
+					IdentificationData tmp_id_data;
+					tmp_id_data.rt = it->getRetentionTime();
+					tmp_id_data.mz = it->getPrecursorPeak().getPosition()[0];
+					peptide_ids.push_back(tmp_id_data);
 					protein_identifications.push_back(tmp_protein_id);
 				}
 			}
