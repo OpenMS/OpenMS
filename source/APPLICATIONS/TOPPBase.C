@@ -30,6 +30,9 @@
 #include <OpenMS/CONCEPT/VersionInfo.h>
 
 #include <math.h>
+#include <QtCore/QStringList>
+#include <QtGui/QMessageBox>
+#include <string>
 
 using namespace std;
 
@@ -47,6 +50,16 @@ namespace OpenMS
 			instance_number_(-1),
 			debug_level_(-1)
 	{
+		bool is_registered=false;
+		const QStringList list=registerTools();
+		for(QStringList::const_iterator it=list.begin();it!=list.end();++it)
+		{
+			if(it->toStdString()==tool_name) 
+			{
+				is_registered=true;
+			}
+		}
+		if(!is_registered) QMessageBox::warning(NULL,QString("Warning"),QString(String(tool_name+" is not registered yet!").c_str())); 
 	}
 
 	TOPPBase::~TOPPBase()
@@ -853,6 +866,16 @@ namespace OpenMS
 			high = tmp.toDouble();
 		}
 	}
-
+	
+	const QStringList TOPPBase::registerTools()
+	{
+		QStringList tools;
+		tools<<"AdditiveSeries"<<"AnalysisXMLMerger"<<"BaselineFilter"<<"ConsensusID"<<"DBExporter"\
+		<<"DBImporter"<<"DTAExtractor"<<"FeatureFinder"<<"FeaturePairSplitter"<<"FileConverter"<<"FileFilter"\
+		<<"FileInfo"<<"FileMerger"<<"IDFilter"<<"InspectAdapter"<<"LabeledMatcher"<<"MapAlignment"<<"MapDewarper"\
+		<<"MapMatcher"<<"MapStatistics"<<"MascotAdapter"<<"NoiseFilter"<<"OMSSAAdapter"<<"PeakPicker"<<"PILISIdentification"\
+		<<"PILISModel"<<"Resampler"<<"RTModel"<<"RTPredict"<<"SequestAdapter"<<"SpectraFilter"<<"UnlabeledMatcher";
+		return tools;
+	}
 } // namespace OpenMS
 

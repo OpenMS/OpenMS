@@ -53,6 +53,7 @@
 #include <OpenMS/VISUAL/MSMetaDataExplorer.h>
 #include <OpenMS/FORMAT/FeaturePairsFile.h>
 #include <OpenMS/VISUAL/ParamEditor.h>
+#include <OpenMS/VISUAL/DIALOGS/ToolsDialog.h>
 
 //Qt
 #include <QtGui/QToolBar>
@@ -189,7 +190,7 @@ namespace OpenMS
     windows->addAction("&Tile automatic",this->ws_,SLOT(tile()));
     windows->addAction(QIcon(QPixmap(XPM_tile_h)),"Tile &vertical",this,SLOT(tileHorizontal()));
     windows->addAction(QIcon(QPixmap(XPM_tile_v)),"Tile &horizontal",this,SLOT(tileVertical()));
-    
+  //***********************************************************************************************************************************************  
     //Tools menu
     QMenu* tools_menu = new QMenu("&Tools",this);
     menuBar()->addMenu(tools_menu);
@@ -199,7 +200,7 @@ namespace OpenMS
     tools_menu->addAction("&Filter baseline in data", this, SLOT(baselineFilteringActiveSpectrum()));
     tools_menu->addAction("&Find Features (2D)", this, SLOT(findFeaturesActiveSpectrum()));
 		tools_menu->addAction("&TOPP tools", this, SLOT(showTOPPDialog()));
-
+//******************************************************************************************************
     //create status bar
     message_label_ = new QLabel(statusBar());
     statusBar()->addWidget(message_label_,1);
@@ -2277,23 +2278,69 @@ namespace OpenMS
 
 	void TOPPViewBase::showTOPPDialog()
 	{
-		//add ParamEditor to Dialog
-		QDialog* dlg = new QDialog(this);
-		QGridLayout* layout = new QGridLayout(dlg);
-		ParamEditor* edit = new ParamEditor(dlg);
-		layout->addWidget(edit,0,0);
 		
-		//load dummy data
-		Param dummy;
-		dummy.setValue("bli", 4711);
-		dummy.setValue("bla", "0815");
-		dummy.setValue("bluff", 1.234);
+		ToolsDialog dialog(this);
+	
+		if(dialog.exec()==QDialog::Accepted)
+		{
+			  //check if there is a active window
+			if (ws_->activeWindow())
+			{
+				const LayerData& layer = activeWindow_()->canvas()->getCurrentLayer();
+				//warn if hidden layer => wrong layer selected...
+				if (!layer.visible)
+				{
+					QMessageBox::warning(this,"Warning","The current layer is not visible!");
+				}
+				if (layer.type==LayerData::DT_PEAK)
+				{
+					//Extract selected visible data to out
+					LayerData::ExperimentType out;
+					out.ExperimentalSettings::operator=(layer.peaks);
+					LayerData::ExperimentType::ConstIterator begin=layer.peaks.begin();;
+					LayerData::ExperimentType::ConstIterator end= layer.peaks.end(); 
+					out.resize(end-begin);
+					
+					UInt i = 0;
+					for (LayerData::ExperimentType::ConstIterator it=begin; it!=end; ++it)
+					{
+							out[i].SpectrumSettings::operator=(*it);
+							out[i].setRetentionTime(it->getRetentionTime());
+							out[i].setMSLevel(it->getMSLevel());
+							out[i].setPrecursorPeak(it->getPrecursorPeak());
+							for (LayerData::ExperimentType::SpectrumType::ConstIterator it2 = it->begin(); it2!= it->end(); ++it2)
+							{
+								if ( it2->getIntensity() >= layer.min_int && it2->getIntensity() <= layer.max_int)
+								{
+									out[i].push_back(*it2);
+								}
+							}
+							++i;
+					}
+					
+					string input_string=dialog.getInput();
+					string output_string=dialog.getOutput();
+					string tool_string=dialog.getTool();
+					
+					MzDataFile().store(std::string("tmp/"+input_string+".mzData").c_str(),out);
+					string arg0;
+					arg0=tool_string;
+					
+					string arg1=" -ini tmp/in.ini";
+					string arg2=" -in tmp/"+input_string+".mzData";
+					string arg3=" -out tmp/"+output_string+".mzData";
+								
+					cerr<<arg0+arg1+arg2+arg3+"\n";
+					
+					system((arg0+arg1+arg2+arg3).c_str());
+						
+					addSpectrum(string("tmp/"+output_string+".mzData").c_str(),dialog.isWindow(),true,true,OpenDialog::NO_MOWER,FileHandler::MZDATA);
+					system("rm -rf tmp");
+				}
+			}
 		
-		edit->load(dummy);
-		
-		dlg->exec();
+		}
 	}
-
 	const LayerData* TOPPViewBase::getCurrentLayer() const
 	{
 		SpectrumCanvas* canvas = activeCanvas_();

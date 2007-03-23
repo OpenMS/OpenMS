@@ -32,6 +32,7 @@
 #include <QtGui/QKeyEvent>
 #include <QtGui/QMenu>
 
+
 using namespace std;
 
 namespace OpenMS
@@ -42,15 +43,25 @@ namespace OpenMS
 	  	param_editable_(0),
 	  	param_const_(0)
 	{
-		deleteAct = new QAction(tr("&Delete"), this);
-		deleteAct->setShortcut(tr("d"));
-		deleteAct->setStatusTip(tr("Delete an item"));
-		connect(deleteAct, SIGNAL(triggered()), this, SLOT(deleteItem()));
+		delete_act_ = new QAction(tr("&Delete"), this);
+		delete_act_->setShortcut(tr("d"));
+		delete_act_->setStatusTip(tr("Delete an item"));
+		connect(delete_act_, SIGNAL(triggered()), this, SLOT(deleteItem()));
 
-		insertAct = new QAction(tr("&Insert Item"), this);
-		insertAct->setShortcut(tr("i"));
-		insertAct->setStatusTip(tr("Insert an item"));
-		connect(insertAct, SIGNAL(triggered()), this, SLOT(insertItem()));
+		insert_act_ = new QAction(tr("&Insert Item"), this);
+		insert_act_->setShortcut(tr("i"));
+		insert_act_->setStatusTip(tr("Insert an item"));
+		connect(insert_act_, SIGNAL(triggered()), this, SLOT(insertItem()));
+		
+		expand_act_ = new QAction(tr("&Expand All"), this);
+		expand_act_->setShortcut(tr("e"));
+		expand_act_->setStatusTip(tr("Expand all Items"));
+		connect(expand_act_, SIGNAL(triggered()), this, SLOT(expandAll()));
+		
+		collapse_act_ = new QAction(tr("&Collapse All"), this);
+		collapse_act_->setShortcut(tr("c"));
+		collapse_act_->setStatusTip(tr("Collapse all Items"));
+		connect(collapse_act_, SIGNAL(triggered()), this, SLOT(collapseAll()));
 		
 		setWindowTitle("ParamEditor");
 		setColumnCount(3);
@@ -63,7 +74,6 @@ namespace OpenMS
 	    
 	void ParamEditor::load(const Param& param)
 	{
-		param_editable_ = 0;
 		string up, down ,key, key_without_prefix, new_prefix ,type, prefix = "";
 		UInt common;//, level=1;
 		QTreeWidgetItem* parent=this->invisibleRootItem();
@@ -126,8 +136,14 @@ namespace OpenMS
 					item->setText(0, QString::fromStdString ( up.substr(0,pos)));
 					item->setText(1, QString::fromStdString ( ""));
 					item->setText(2, QString::fromStdString ( ""));
-					item->setFlags( Qt::ItemIsEnabled );
-					
+					if(param_editable_!=NULL)
+					{
+						item->setFlags( Qt::ItemIsSelectable | Qt::ItemIsEnabled | Qt::ItemIsEditable);
+					}
+					else 
+					{
+						item->setFlags( Qt::ItemIsEnabled );
+					}
 						parent=item;
 						up = up.substr(pos+1,up.size());
 				}				
@@ -154,7 +170,14 @@ namespace OpenMS
 				item->setText(0, QString::fromStdString ( key_without_prefix));
 				item->setText(1, QString::fromStdString ( it->second.toString()));
 				item->setText(2, QString::fromStdString ( type));
-				item->setFlags( Qt::ItemIsEnabled );
+				if(param_editable_!=NULL)
+				{
+					item->setFlags( Qt::ItemIsSelectable | Qt::ItemIsEnabled | Qt::ItemIsEditable);
+				}
+				else 
+				{
+					item->setFlags( Qt::ItemIsEnabled );
+				}
 			}
 					
 				//set new prefix
@@ -174,6 +197,7 @@ namespace OpenMS
 				}
 			}	
 		}
+		
 	}
 
 	void ParamEditor::loadEditable(Param& param)
@@ -190,19 +214,33 @@ namespace OpenMS
 		{
 			if(param_editable_!=NULL)
 			{
+				
 				ret=true;
 				QTreeWidgetItem* parent=this->invisibleRootItem();  
 				param_editable_->clear();
-				storeRecursive(parent->child(0),path);	//whole tree recursively
+				path+=parent->child(0)->text(0).toStdString();
+				
+		
+				for (Int i = 0; i < parent->child(0)->childCount();++i)
+				{
+					storeRecursive_(parent->child(0)->child(i),path);	//whole tree recursively
+				}	
+			
 			}
 		}
+		else std::cerr<<"\n***You must stick to the Param format!***\n";
 		return ret;
 	}
 	    
 	bool ParamEditor::isValid() const
 	{
+		bool ret=true;
 		QTreeWidgetItem* parent=this->invisibleRootItem();
-		return isValidRecursive(parent);
+		for (int i = 0; i < parent->childCount();++i)
+			{
+				if(!(isValidRecursive_(parent->child(i)))) ret=false;	//check whole tree recursively
+			}	
+		return ret;
 	}
 	    
 	void ParamEditor::deleteItem()
@@ -211,18 +249,24 @@ namespace OpenMS
 		if (!item) return;
 		for(int i=item->childCount()-1; i>=0; i--)
 		{
-			deleteItemRecursive(item->child(i));
+			deleteItemRecursive_(item->child(i));
 		}
 		delete item;
 	}
 		
-	void ParamEditor::deleteItemRecursive(QTreeWidgetItem* item)
+	void ParamEditor::deleteItemRecursive_(QTreeWidgetItem* item)
 	{				
 		for(int i=item->childCount()-1; i>=0; i--)
 		{
-			deleteItemRecursive(item->child(i));
+			deleteItemRecursive_(item->child(i));
 		}
 		delete item;
+	}
+	
+	void ParamEditor::deleteAll()
+	{
+		QTreeWidgetItem* item=invisibleRootItem();
+		deleteItemRecursive_(item->child(0));
 	}
 		
 	void ParamEditor::insertItem()
@@ -249,7 +293,7 @@ namespace OpenMS
 		
 	}
 	    
-	void ParamEditor::storeRecursive(const QTreeWidgetItem* child, std::string path) const
+	void ParamEditor::storeRecursive_(const QTreeWidgetItem* child, std::string path) const
 	{
 		path+=":"+child->text(0).toStdString();
 		if(child->text(2)=="float")
@@ -259,18 +303,21 @@ namespace OpenMS
 		else if(child->text(2)=="string")
 		{
 			param_editable_->setValue(path, child->text(1).toStdString());
+			//std::cerr<<"\n"<<path<<":  "<<child->text(1).toStdString()<<"\n";
 		}
 		else if(child->text(2)=="int")
 		{
 			param_editable_->setValue(path, child->text(1).toInt());
 		}
+	
 		for (Int i = 0; i < child->childCount();++i)
 		{
-			storeRecursive(child->child(i),path);	//whole tree recursively
+			storeRecursive_(child->child(i),path);	//whole tree recursively
 		}	
 	}
 	   
-	bool ParamEditor::isValidRecursive(QTreeWidgetItem* parent) const
+	
+	bool ParamEditor::isValidRecursive_(QTreeWidgetItem* parent) const
 	{
 		bool ret=true;
 		bool ok1,ok2;
@@ -279,49 +326,63 @@ namespace OpenMS
 			if(parent->text(0).size()==0)
 			{
 				ret=false;
+				
 			}
 			else
 			{
 				parent->text(0).toDouble(&ok1);
 				parent->text(0).toLong(&ok2);
 				if(ok1==true || ok2==true) ret=false;
+				
+
 			}
 			if(parent->text(2)=="int")
 			{
 				parent->text(1).toLong(&ok1);
 				if(!ok1) ret=false;
+				if(parent->text(1).size()==0) ret=true;
+				
+
 			}
 			else if(parent->text(2)=="float")
 			{
 				parent->text(1).toDouble(&ok1);
 				if(!ok1) ret=false;
+				if(parent->text(1).size()==0) ret=true;
+				
 			}
 			else if(parent->text(2)=="string")
 			{
+				
 				parent->text(1).toDouble(&ok1);
 				parent->text(1).toLong(&ok2);
 				if(ok1==true || ok2==true) ret=false;
+				if(parent->text(1).size()==0) ret=true;
+				
 			}
 			else
 			{
 				ret=false;
+				
+				
 			}
 		}
 		else				//  *****NODE********
 		{
-			if(parent->text(0).size()==0 || parent->text(1).size()!=0 || parent->text(2)!=0)		//if name of node is empty or type and value are not empty--> wrong format
+			if(parent->text(0).size()==0 || parent->text(1).size()!=0 || parent->text(2).size()!=0)		//if name of node is empty or type and value are not empty--> wrong format
 			{
 				ret=false;
+				
 			}
 			else
 			{
 				parent->text(0).toLong(&ok1);
 				parent->text(0).toDouble(&ok2);
-				if(ok1==true || ok2==true ) ret=false;	//if name of node can be converted to a number--> wrong format
+				//if(ok1==true || ok2==true ) ret=false;	//(if name of node can be converted to a number--> wrong format) is maybe too strict?
 			}
 			for (Int i = 0; i < parent->childCount();++i)
 			{
-				if(!(isValidRecursive(parent->child(i)))) ret=false;	//check whole tree recursively
+				if(!(isValidRecursive_(parent->child(i)))) ret=false;	//check whole tree recursively
 			}	
 		}	
 		return ret;
@@ -351,8 +412,10 @@ namespace OpenMS
 			// an item exists under the requested position 
 			QMenu menu(this);
 	    
-			menu.addAction(deleteAct);
-			menu.addAction(insertAct);
+			menu.addAction(delete_act_);
+			menu.addAction(insert_act_);
+			menu.addAction(expand_act_);
+			menu.addAction(collapse_act_);
 			menu.exec(event->globalPos());
 		}
 		else
@@ -360,5 +423,6 @@ namespace OpenMS
 			// there is no item under the requested position
 		}
 	}
+	
 
 } // namespace OpenMS

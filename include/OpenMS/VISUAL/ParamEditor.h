@@ -66,25 +66,29 @@ namespace OpenMS
 			bool store() const;
 			/// check if edited data still valid before storing
 			bool isValid() const;
+			/// delete all items
+			void deleteAll();
 
 		public slots:
 			/// deletes an item and its children
 			void deleteItem();
 			/// inserts an item
 			void insertItem();
-
+			
 		private:
 			/// recursive helper method for method isValid()
-			bool isValidRecursive(QTreeWidgetItem* parent) const;
+			bool isValidRecursive_(QTreeWidgetItem* parent) const;
 			/// recursive helper method for method storeRecursive()
-			void storeRecursive(const QTreeWidgetItem* child, std::string path) const;
+			void storeRecursive_(const QTreeWidgetItem* child, std::string path) const;
 			/// recursive helper method for slot deleteItem()
-			void deleteItemRecursive(QTreeWidgetItem* item);
+			void deleteItemRecursive_(QTreeWidgetItem* item);
 			/** @name Actions for context menu
 			*/
 			//@{
-			QAction* deleteAct;
-			QAction* insertAct; 
+			QAction* delete_act_;
+			QAction* insert_act_; 
+			QAction* expand_act_;
+			QAction* collapse_act_;
 			//@}
 			
 		protected:

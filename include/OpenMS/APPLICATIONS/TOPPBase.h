@@ -33,6 +33,7 @@
 
 #include <iostream>
 #include <fstream>
+class QStringList;
 
 namespace OpenMS
 {
@@ -184,9 +185,14 @@ namespace OpenMS
 				required = rhs.required;
 				return *this;
 			}
-
+			
+			
 		};
+	
+		/// registers each Tool in a QStringList
+		static const QStringList registerTools();
 
+		
 	 private:
 
 		/// Tool name.  This is assigned once and for all in the constructor.

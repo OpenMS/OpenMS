@@ -54,7 +54,8 @@ CPP_SOURCES=\
 	BaselineFilteringDialog.C\
 	FeaFiDialog.C\
 	DBSpectrumSelectorDialog.C\
-	TOPPViewBasePDP.C
+	TOPPViewBasePDP.C\
+	ToolsDialog.C
 
 MOC_SOURCES=\
 	PreferencesDialog_moc.C\
@@ -75,7 +76,8 @@ MOC_SOURCES=\
 	SmoothingDialog_moc.C\
 	BaselineFilteringDialog_moc.C\
 	FeaFiDialog_moc.C\
-	TOPPViewBasePDP_moc.C
+	TOPPViewBasePDP_moc.C\
+	ToolsDialog_moc.C
 
 SOURCES		= $(CPP_SOURCES) $(MOC_SOURCES)
 OBJECTS 	= $(SOURCES:.C=.o)
@@ -178,5 +180,7 @@ SmoothingDialog_moc.C:  $(HEADER_DIR)/SmoothingDialog.h
 
 BaselineFilteringDialog_moc.C:  $(HEADER_DIR)/BaselineFilteringDialog.h
 	$(MOC) $(HEADER_DIR)/BaselineFilteringDialog.h -o BaselineFilteringDialog_moc.C
-
+	
+ToolsDialog_moc.C:	$(HEADER_DIR)/ToolsDialog.h
+	$(MOC) $(HEADER_DIR)/ToolsDialog.h -o ToolsDialog_moc.C
 
