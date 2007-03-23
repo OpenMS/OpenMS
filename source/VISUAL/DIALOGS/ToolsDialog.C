@@ -62,10 +62,10 @@ namespace OpenMS
 			
 
 		
-		tools_list_=TOPPBase::registerTools();
-		tools_list_.push_front("<select>");
+		QStringList list = TOPPBase::registerTools();
+		list.push_front("<select>");
 		tools_combo_=new QComboBox;
-		tools_combo_->addItems(tools_list_);
+		tools_combo_->addItems(list);
 		connect(tools_combo_,SIGNAL(activated(int)),this,SLOT(setTool_(int)));
 		hbox=new QHBoxLayout;
 		hbox->addWidget(tools_combo_);
@@ -116,9 +116,9 @@ namespace OpenMS
 		hbox->addWidget(ok_button_);
 		ok_button_->setEnabled(false);
 		
-		cancel_button_=new QPushButton(tr("&Cancel"));
-		connect(cancel_button_,SIGNAL(clicked()),this,SLOT(cancel_()));
-		hbox->addWidget(cancel_button_);
+		QPushButton* cancel_button=new QPushButton(tr("&Cancel"));
+		connect(cancel_button,SIGNAL(clicked()),this,SLOT(cancel_()));
+		hbox->addWidget(cancel_button);
 		
 		main->addLayout(hbox);
 		
@@ -139,9 +139,8 @@ namespace OpenMS
 	{
 		if(i)
 		{
-			tool_string_=tools_list_[i];
 			ok_button_->setEnabled(true);
-			system((tool_string_.toStdString()+" -write_ini /tmp/in.ini").c_str());
+			system((ToolsDialog::getTool()+" -write_ini /tmp/in.ini").c_str());
 			if(QFileInfo("/tmp/in.ini").exists())
 			{	
 				if(!arg_param_.empty())
@@ -149,18 +148,16 @@ namespace OpenMS
 					arg_param_.clear();
 					editor_->deleteAll();
 					arg_map_.clear();
-					arg_list_.clear();
 				}
 				arg_param_.load("/tmp/in.ini");
 				editor_->loadEditable(arg_param_);
-				std::string str;
+				String str;
 				for (Param::ConstIterator iter=arg_param_.begin();iter!=arg_param_.end();++iter)
 				{
 					str=iter->first.substr(iter->first.rfind("1:")+2,iter->first.size());
-					if(str.size()!=0 && str.find(":")==std::string::npos)
+					if(str.size()!=0 && str.find(":")==String::npos)
 					{
 						arg_map_.insert(make_pair(str,iter->first));
-						arg_list_.push_back(str.c_str());
 					}
 				}
 			}
@@ -218,12 +215,12 @@ namespace OpenMS
 		}
 	}
 	
-	std::string ToolsDialog::getOutput()
+	String ToolsDialog::getOutput()
 	{
 		return output_string_;
 	}
 	
-	std::string ToolsDialog::getInput()
+	String ToolsDialog::getInput()
 	{
 		return input_string_;
 	}
@@ -233,10 +230,10 @@ namespace OpenMS
 		return window_radio_->isChecked();
 	}
 	
-	std::string ToolsDialog::getTool()
+	String ToolsDialog::getTool()
 	{
-		return tool_string_.toStdString();
+		return tools_combo_->currentText().toStdString();
 	}
 	
-	}
+}
 	

@@ -29,6 +29,7 @@
 #define OPENMS_VISUAL_PARAMEDITOR_H
 
 #include <OpenMS/CONCEPT/Types.h>
+#include <OpenMS/DATASTRUCTURES/String.h>
 
 #include <QtGui/QTreeWidget>
 #include <string>
@@ -43,6 +44,11 @@ namespace OpenMS
 		
 		This class provides visualization for the XML-files and class Param.
 		It can also be used to edit the data visually.
+		
+		@todo Allow valid Param types only (Stefan)
+		@todo Allow deleting an entry (Stefan)
+		@todo Show only entries below '1' (Stefan)
+		@todo Add INIFileEditor tool (Stefan)
 		
 		@ingroup Visual
 	*/
@@ -79,17 +85,9 @@ namespace OpenMS
 			/// recursive helper method for method isValid()
 			bool isValidRecursive_(QTreeWidgetItem* parent) const;
 			/// recursive helper method for method storeRecursive()
-			void storeRecursive_(const QTreeWidgetItem* child, std::string path) const;
+			void storeRecursive_(const QTreeWidgetItem* child, String path) const;
 			/// recursive helper method for slot deleteItem()
 			void deleteItemRecursive_(QTreeWidgetItem* item);
-			/** @name Actions for context menu
-			*/
-			//@{
-			QAction* delete_act_;
-			QAction* insert_act_; 
-			QAction* expand_act_;
-			QAction* collapse_act_;
-			//@}
 			
 		protected:
 			/// Param object for load(const Param&)

@@ -44,26 +44,6 @@ namespace OpenMS
 	  	param_const_(0)
 	{
 		setMinimumSize(500,300);
-
-		delete_act_ = new QAction(tr("&Delete"), this);
-		delete_act_->setShortcut(tr("d"));
-		delete_act_->setStatusTip(tr("Delete an item"));
-		connect(delete_act_, SIGNAL(triggered()), this, SLOT(deleteItem()));
-
-		insert_act_ = new QAction(tr("&Insert Item"), this);
-		insert_act_->setShortcut(tr("i"));
-		insert_act_->setStatusTip(tr("Insert an item"));
-		connect(insert_act_, SIGNAL(triggered()), this, SLOT(insertItem()));
-		
-		expand_act_ = new QAction(tr("&Expand All"), this);
-		expand_act_->setShortcut(tr("e"));
-		expand_act_->setStatusTip(tr("Expand all Items"));
-		connect(expand_act_, SIGNAL(triggered()), this, SLOT(expandAll()));
-		
-		collapse_act_ = new QAction(tr("&Collapse All"), this);
-		collapse_act_->setShortcut(tr("c"));
-		collapse_act_->setStatusTip(tr("Collapse all Items"));
-		connect(collapse_act_, SIGNAL(triggered()), this, SLOT(collapseAll()));
 		
 		setWindowTitle("ParamEditor");
 		setColumnCount(3);
@@ -214,7 +194,7 @@ namespace OpenMS
 	bool ParamEditor::store() const
 	{
 		bool ret=false;
-		std::string path;
+		String path;
 		if (isValid()) 
 		{
 			if(param_editable_!=NULL)
@@ -233,7 +213,10 @@ namespace OpenMS
 			
 			}
 		}
-		else std::cerr<<"\n***You must stick to the Param format!***\n";
+		else 
+		{
+			std::cerr<<"\n***You must stick to the Param format!***\n";
+		}
 		return ret;
 	}
 	    
@@ -298,7 +281,7 @@ namespace OpenMS
 		
 	}
 	    
-	void ParamEditor::storeRecursive_(const QTreeWidgetItem* child, std::string path) const
+	void ParamEditor::storeRecursive_(const QTreeWidgetItem* child, String path) const
 	{
 		path+=":"+child->text(0).toStdString();
 		if(child->text(2)=="float")
@@ -414,13 +397,11 @@ namespace OpenMS
 		QTreeWidgetItem* item = itemAt(event->pos());
 		if (item  && item->text(1).size()==0 && item->text(2)==0)
 		{
-			// an item exists under the requested position 
 			QMenu menu(this);
-	    
-			menu.addAction(delete_act_);
-			menu.addAction(insert_act_);
-			menu.addAction(expand_act_);
-			menu.addAction(collapse_act_);
+			menu.addAction(tr("&Delete item"), this, SLOT(deleteItem()));
+			menu.addAction(tr("&Insert item"), this, SLOT(insertItem()));
+			menu.addAction(tr("&Expand all"), this, SLOT(expandAll()));
+			menu.addAction(tr("&Collapse all"), this, SLOT(collapseAll()));			
 			menu.exec(event->globalPos());
 		}
 		else

@@ -40,7 +40,6 @@ class QLineEdit;
 #include <QtGui/QDialog>
 #include <QtCore/QDir>
 #include <OpenMS/FORMAT/Param.h>
-#include <string>
 
 namespace OpenMS 
 {
@@ -52,6 +51,11 @@ class Param;
 		TOPP Tools are executed by syscall
 		Remember to set the PATH-variable to the OpenMS/bin directory before executing the TOPP-tools dialog!
 		Before clicking ok-button you should open a file with spectrum data.
+		
+		@todo Keep only the grid layout (Stefan)
+		@todo Writing of feature pairs (Stefan)
+		@todo Write docu (Stefan)
+		@todo Replace QLineEdit by QComboBox (Stefan)
 
 		@ingroup Dialogs
 	*/
@@ -62,9 +66,9 @@ class Param;
 		
 		public:
 			ToolsDialog( QWidget* parent = 0 );
-			std::string getOutput();
-			std::string getInput();
-			std::string getTool();
+			String getOutput();
+			String getInput();
+			String getTool();
 			bool isWindow();
 			~ToolsDialog();    
 	
@@ -75,24 +79,17 @@ class Param;
 			/// save output argument in output_
 			void setOutput_();
 		
-			QStringList tools_list_;
-			QString tool_string_;
 			ParamEditor *editor_;
-		
 			QComboBox* tools_combo_;
 			QLineEdit* input_edit_;
 			QLineEdit* output_edit_;
-					
 			Param arg_param_;
 			QPushButton* ok_button_;
-			QPushButton* cancel_button_;
 			QRadioButton* window_radio_;
 			QRadioButton* layer_radio_;
-			std::map<std::string,std::string> arg_map_;
-			QStringList arg_list_;
-			std::string input_string_;
-			std::string output_string_;
-			QDir current_dir_;
+			std::map<String,String> arg_map_;
+			String input_string_;
+			String output_string_;
 		
 		protected slots:
 			/// ok button pressed

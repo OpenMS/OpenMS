@@ -2295,52 +2295,36 @@ namespace OpenMS
 				}
 				if (layer.type==LayerData::DT_PEAK)
 				{
-					//Extract selected visible data to out
-					LayerData::ExperimentType out;
-					out.ExperimentalSettings::operator=(layer.peaks);
-					LayerData::ExperimentType::ConstIterator begin=layer.peaks.begin();;
-					LayerData::ExperimentType::ConstIterator end= layer.peaks.end(); 
-					out.resize(end-begin);
+					MzDataFile().store("/tmp/in",layer.peaks);
+				}
+				else if (layer.type==LayerData::DT_FEATURE)
+				{
+					FeatureMapFile().store("/tmp/in",layer.features);
+				}
+				else if (layer.type==LayerData::DT_FEATURE_PAIR)
+				{
+					//TODO FeaturePairsFile().store("/tmp/in",layer.features);
+				}
+				else
+				{
+					return;
+				}
 					
-					UInt i = 0;
-					for (LayerData::ExperimentType::ConstIterator it=begin; it!=end; ++it)
-					{
-							out[i].SpectrumSettings::operator=(*it);
-							out[i].setRetentionTime(it->getRetentionTime());
-							out[i].setMSLevel(it->getMSLevel());
-							out[i].setPrecursorPeak(it->getPrecursorPeak());
-							for (LayerData::ExperimentType::SpectrumType::ConstIterator it2 = it->begin(); it2!= it->end(); ++it2)
-							{
-								if ( it2->getIntensity() >= layer.min_int && it2->getIntensity() <= layer.max_int)
-								{
-									out[i].push_back(*it2);
-								}
-							}
-							++i;
-					}
+				String call = dialog.getTool() + " -ini /tmp/in.ini -"+dialog.getInput()+" /tmp/in -"+dialog.getOutput()+" /tmp/out > /tmp/TOPP.log 2>&1";
 					
-					String input_string=dialog.getInput();
-					String output_string=dialog.getOutput();
-					String tool_string=dialog.getTool();
-					
-					MzDataFile().store(std::string("/tmp/"+input_string+".mzData").c_str(),out);
-					String call = tool_string + " -ini /tmp/in.ini -in /tmp/" + input_string + ".mzData -out /tmp/" + output_string + " > /tmp/TOPP.log 2>&1";
-					
-					if (system(call.c_str())!=0)
-					{
-						TextFile f;
-						f.load("/tmp/TOPP.log");
-						String log_file;
-						log_file.implode(f.begin(),f.end(),"<BR>");
-         		QMessageBox::warning(this,"Execution of TOPP tool not successful!",log_file.c_str());
-					}
-					else
-					{
-						addSpectrum(string("/tmp/"+output_string).c_str(),dialog.isWindow(),true,true);
-					}
+				if (system(call.c_str())!=0)
+				{
+					TextFile f;
+					f.load("/tmp/TOPP.log");
+					String log_file;
+					log_file.implode(f.begin(),f.end(),"<BR>");
+       		QMessageBox::warning(this,"Execution of TOPP tool not successful!",log_file.c_str());
+				}
+				else
+				{
+					addSpectrum("/tmp/out",dialog.isWindow(),true,true);
 				}
 			}
-		
 		}
 	}
 	const LayerData* TOPPViewBase::getCurrentLayer() const
