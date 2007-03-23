@@ -70,13 +70,19 @@ namespace OpenMS
 			template <class ExperimentType>
 			void storeExperiment(ExperimentType& exp);
 
-			/// Reads a MSExperiment according to a set of options
+			/// Reads a MSExperiment
 			template <class ExperimentType>
-			void loadExperiment(UID id, ExperimentType& exp, PeakFileOptions options = PeakFileOptions());
+			void loadExperiment(UID id, ExperimentType& exp);
 
 			template <class SpectrumType>
-			/// Reads a MSSpectrum according to a set of options
-			void loadSpectrum(UID id, SpectrumType& spec, PeakFileOptions options = PeakFileOptions());
+			/// Reads a MSSpectrum
+			void loadSpectrum(UID id, SpectrumType& spec);
+
+      /// Mutable access to the options for loading/storing 
+      PeakFileOptions& getOptions();
+
+      /// Non-mutable access to the options for loading/storing 
+      const PeakFileOptions& getOptions() const;
 
 			/**
 				@brief Returns true if the DB is up-to-date (Checks the version in ADMIN_Version table).
@@ -139,6 +145,8 @@ namespace OpenMS
 				
 			*/
 			void loadSample_(UID id, Sample& sample);
+
+			PeakFileOptions options_;
 };
 
 
@@ -764,7 +772,7 @@ namespace OpenMS
 	}
 
 	template <class ExperimentType>
-	void DBAdapter::loadExperiment(UID id, ExperimentType& exp, PeakFileOptions options)
+	void DBAdapter::loadExperiment(UID id, ExperimentType& exp)
 	{
 		//----------------------------------------------------------------------------------------
 		//------------------------------- CHECK DB VERSION --------------------------------------- 
@@ -965,7 +973,7 @@ namespace OpenMS
 		exp.setPersistenceId(id);
 
 		// if we don't have to load the spectra, we're already done
-		if (options.getMetadataOnly())
+		if (options_.getMetadataOnly())
 		{
 			return;
 		}
@@ -973,13 +981,13 @@ namespace OpenMS
 		//spectra
 		query.str("");
 		query << "SELECT id FROM DATA_Spectrum WHERE fid_MSExperiment=" << id;
-		if (options.hasRTRange())
+		if (options_.hasRTRange())
 		{
-			query << " AND RetentionTime > " << options.getRTRange().min() << " AND RetentionTime < " << options.getRTRange().max();
+			query << " AND RetentionTime > " << options_.getRTRange().min() << " AND RetentionTime < " << options_.getRTRange().max();
 		}
-		if (options.hasMSLevels())
+		if (options_.hasMSLevels())
 		{
-			const std::vector<int>& levels = options.getMSLevels();
+			const std::vector<int>& levels = options_.getMSLevels();
 			query << " AND (";
 			for (std::vector<int>::const_iterator it = levels.begin(); it != levels.end(); it++)
 			{
@@ -999,14 +1007,14 @@ namespace OpenMS
 		result.first();
 		while (result.isValid())
 		{
-			loadSpectrum(result.value(0).toInt(), exp[i], options);
+			loadSpectrum(result.value(0).toInt(), exp[i]);
 			++i;
 			result.next();
 		}
 	}
 
 	template <class SpectrumType>
-	void DBAdapter::loadSpectrum(UID id, SpectrumType& spec, PeakFileOptions options)
+	void DBAdapter::loadSpectrum(UID id, SpectrumType& spec)
 	{
 		//----------------------------------------------------------------------------------------
 		//------------------------------- CHECK DB VERSION --------------------------------------- 
@@ -1112,13 +1120,13 @@ namespace OpenMS
 		//Peaks
 		query.str("");
 		query << "SELECT mz,Intensity,fid_MetaInfo FROM DATA_Peak WHERE fid_Spectrum='" << id << "' ";
-		if (options.hasMZRange())
+		if (options_.hasMZRange())
 		{
-			query << " AND mz > " << options.getMZRange().min() << " AND mz < " << options.getMZRange().max();
+			query << " AND mz > " << options_.getMZRange().min() << " AND mz < " << options_.getMZRange().max();
 		}
-		if (options.hasIntensityRange())
+		if (options_.hasIntensityRange())
 		{
-			query << " AND Intensity > " << options.getIntensityRange().min() << " AND Intensity < " << options.getIntensityRange().max();
+			query << " AND Intensity > " << options_.getIntensityRange().min() << " AND Intensity < " << options_.getIntensityRange().max();
 		}
 		query << " ORDER BY mz ASC";
 		db_con_.executeQuery(query.str(),result);

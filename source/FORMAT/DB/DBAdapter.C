@@ -725,5 +725,15 @@ namespace OpenMS
 		// execute queries
 		db_con_.executeQueries(queries);
 	}
-	
+
+	PeakFileOptions& DBAdapter::getOptions()
+	{
+		return options_;
+	}
+
+  const PeakFileOptions& DBAdapter::getOptions() const
+  {
+  	return options_;
+  }
+
 } //namespace

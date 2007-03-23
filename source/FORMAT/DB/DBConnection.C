@@ -67,7 +67,7 @@ namespace OpenMS
 		{
 			//construct query
 			String query = "Connecting to DB ";
-			query = query + db + "( host: '"+host+"' ,port: '"+String(port)+"' ,user: '"+user+"' ,password: '"+password+"')";
+			query = query + db + "( host: '"+host+"', port: '"+String(port)+"', user: '"+user+"', password: '"+password+"')";
 			//sore error
 			string error = db_handle_.lastError().databaseText().toAscii().data();
 			//close connection

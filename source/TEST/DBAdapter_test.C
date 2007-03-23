@@ -378,7 +378,8 @@ CHECK((template <class SpectrumType> void loadSpectrum(UID id, SpectrumType &spe
 
 			PeakFileOptions options;
 			options.setIntensityRange(DRange<1> (600, 1000));
-			a.loadSpectrum(spec_tmp_id, spec, options);
+			a.getOptions() = options;
+			a.loadSpectrum(spec_tmp_id, spec);
 			
 			// check if the Intensity restriction worked - first peak (525) should have been skipped
 			TEST_REAL_EQUAL( spec[0].getIntensity() , 620 )
@@ -386,7 +387,8 @@ CHECK((template <class SpectrumType> void loadSpectrum(UID id, SpectrumType &spe
 
 			options = PeakFileOptions();
 			options.setMZRange(DRange<1> (650, 1000));
-			a.loadSpectrum(spec_tmp_id, spec, options);
+			a.getOptions() = options;
+			a.loadSpectrum(spec_tmp_id, spec);
 
 			// check if the MZ restriction worked - first peak (600.1) should have been skipped
 			TEST_REAL_EQUAL( spec[0].getPosition()[0] , 700.1 )
@@ -534,7 +536,8 @@ CHECK((template <class ExperimentType> void loadExperiment(UID id, ExperimentTyp
 			PeakFileOptions options;
 			options = PeakFileOptions();
 			options.setRTRange(DRange<1> (2.5, 4.5));
-			a.loadExperiment(tmp_id, exp_new, options);
+			a.getOptions() = options;
+			a.loadExperiment(tmp_id, exp_new);
 
 			// check if the RT restriction worked - first spectrum should have been skipped
 			TEST_REAL_EQUAL( exp_new[0][0].getPosition()[0] , 100.155 )
@@ -544,7 +547,8 @@ CHECK((template <class ExperimentType> void loadExperiment(UID id, ExperimentTyp
 			std::vector<int> levels;
 			levels.push_back(2);
 			options.setMSLevels(levels);
-			a.loadExperiment(tmp_id, exp_new, options);
+			a.getOptions() = options;
+			a.loadExperiment(tmp_id, exp_new);
 
 			// check if the MSLevel restriction worked - first spectrum should have been skipped
 			TEST_REAL_EQUAL( exp_new[0][0].getPosition()[0] , 100.155 )
