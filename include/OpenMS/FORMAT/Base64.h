@@ -31,6 +31,9 @@
 #include <arpa/inet.h>
 #include <OpenMS/CONCEPT/Types.h>
 
+#include <string>
+#include <vector>
+
 namespace OpenMS
 {
   /**
@@ -57,6 +60,25 @@ namespace OpenMS
     /// Destructor
     virtual ~Base64();
 
+		enum ByteOrder{BIGENDIAN,LITTLEENDIAN};
+
+/**
+     @note @p in will be emtpy after this method
+*/
+void encode(std::vector<Real>& in, ByteOrder to_byte_order, std::string& out);
+
+/**
+   @brief Encodes a float vector to a Base64 String
+     @note @p in will be emtpy after this method
+*/
+void encode(std::vector<DoubleReal>& in, ByteOrder to_byte_order, std::string& out);
+
+/// Decodes a Base64 string to a float vector
+void decode(const std::string& in, ByteOrder from_byte_order, std::vector<Real>& out);
+
+/// Decodes a Base64 string to a double vector
+void decode(const std::string& in, ByteOrder from_byte_order, std::vector<DoubleReal>& out);
+
 		/// Return size of output buffer
 		UInt getOutputBufferSize();
 
@@ -74,7 +96,7 @@ namespace OpenMS
     /// Decode given Base64-String of size @p size
 		char* decode(const char* src, UInt size);
 		
-    /// Dncode given Base64-String of size @p size
+    /// Encode given Base64-String of size @p size
 		char* encode(const char* src, UInt size);
 
 		/**@name Handling of 32 bit real type */

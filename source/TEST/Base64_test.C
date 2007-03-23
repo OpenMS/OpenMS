@@ -53,214 +53,67 @@ CHECK((~Base64()))
 	delete ptr;
 RESULT
 
-CHECK((UInt getOutputBufferSize()))
-	Base64 b64;
-  string src = "SGFsbG8gV29ybA==";  //"Hallo Worl"
-	b64.decode(src.c_str(), src.size());
-  TEST_EQUAL(b64.getOutputBufferSize(), 12)
-
-  src = "SGFsbG8gV29ybGQ=";  //"Hallo World"
-	b64.decode(src.c_str(), src.size());
-  TEST_EQUAL(b64.getOutputBufferSize(), 12)
-
-	src = "SGFsbG8gV29ybGQh";  //"Hallo World!"
-	b64.decode(src.c_str(), src.size());
-  TEST_EQUAL(b64.getOutputBufferSize(), 12)
-
-	src = "SGFsbG8gV29ybGQhPw==";  //"Hallo World!?"
-	b64.decode(src.c_str(), src.size());
-  TEST_EQUAL(b64.getOutputBufferSize(), 15)
-
-	src = "VGhpcyBpcyBvbmUgdGVzdA==";  //"This is one test"
-	b64.decode(src.c_str(), src.size());
-  TEST_EQUAL(b64.getOutputBufferSize(), 18)
-
-	src = "VGhlIEVuZA==";  //"The End"
-  b64.decode(src.c_str(), src.size());
-  TEST_EQUAL(b64.getOutputBufferSize(), 18)
-RESULT
-
-CHECK((void setOutputBufferSize(UInt s)))
-	Base64 b64;
-  b64.setOutputBufferSize(22);
-  string src = "SGFsbG8gV29ybGQ=";  //"Hallo World"
-	b64.decode(src.c_str(), src.size());
-  TEST_EQUAL(b64.getOutputBufferSize(), 24)
-RESULT
-
-CHECK((char* decode(const char* src, UInt size)))
-	Base64 b64;
-	string src = "SGFsbG8gV29ybGQ=";
-	string dest = b64.decode(src.c_str(), src.size());
-  TEST_EQUAL(dest, string("Hallo World"))
-
-	src = "SGFsbG8gV29ybGQh";
-	dest = b64.decode(src.c_str() ,src.size());
-  TEST_EQUAL(dest, "Hallo World!")
-	src = "VGhpcyBpcyBvbmUgdGVzdA==";
-	dest = b64.decode(src.c_str() ,src.size());
-  TEST_EQUAL(dest, "This is one test")
-RESULT
-
-CHECK((float* decodeFloat(const char* src, UInt size)))
+CHECK((void encode(std::vector<Real>& in, ByteOrder to_byte_order, std::string& out)))
   PRECISION(0.001)
-	Base64 b64;
-	string src = "JhOWQ8b/l0PMTJhD";
-  float* res = b64.decodeFloat(src.c_str() ,src.size());
-	TEST_REAL_EQUAL(res[0], 300.15)
-	TEST_REAL_EQUAL(res[1], 303.998)
-	TEST_REAL_EQUAL(res[2], 304.6)
 
-	src = "QGYTSADLaUgAAABA";
-  res = b64.decodeFloat(src.c_str(), src.size());
-	TEST_REAL_EQUAL(res[0], 150937)
-	TEST_REAL_EQUAL(res[1], 239404)
-	TEST_REAL_EQUAL(res[2], 2)
+	Base64 b64;
+  std::vector<Real> data;
+  std::vector<Real> res;
+  string dest;
+
+  data.push_back(300.15);
+  data.push_back(303.998);
+  data.push_back(304.6);
+	b64.encode(data, Base64::LITTLEENDIAN, dest);
+  b64.decode(dest.c_str(), Base64::LITTLEENDIAN, res);
+  TEST_REAL_EQUAL(res[0], 300.15)
+  TEST_REAL_EQUAL(res[1], 303.998)
+  TEST_REAL_EQUAL(res[2], 304.6)
+  
+	b64.encode(data, Base64::BIGENDIAN, dest);
+  b64.decode(dest.c_str(), Base64::BIGENDIAN, res);
+  TEST_REAL_EQUAL(res[0], 300.15)
+  TEST_REAL_EQUAL(res[1], 303.998)
+  TEST_REAL_EQUAL(res[2], 304.6)
+
+  data = std::vector<Real>();
+  data.push_back(4711.08);
+  b64.encode(data, Base64::LITTLEENDIAN, dest);
+	TEST_EQUAL(dest, "pDiTRQ==")
 RESULT
 
-
-CHECK((float* decodeFloatCorrected(const char* src, UInt size)))
+CHECK((void decode(const std::string& in, ByteOrder from_byte_order, std::vector<Real>& out)))
   PRECISION(0.001)
+
 	Base64 b64;
-	string src = "Q+vIuEec9YBD7TgoR/HTgEPt23hHA8UA";
-  float* res = b64.decodeFloatCorrected(src.c_str() ,src.size());
+	string src;
+	std::vector<Real> res;
+
+	src = "QvAAAELIAA==";
+  b64.decode(src.c_str(), Base64::BIGENDIAN, res);
+	TEST_REAL_EQUAL(res[0], 120)
+	TEST_REAL_EQUAL(res[1], 100)
+
+	src = "Q+vIuEec9YBD7TgoR/HTgEPt23hHA8UA";
+  b64.decode(src.c_str(), Base64::BIGENDIAN, res);
 	TEST_REAL_EQUAL(res[0], 471.568)
 	TEST_REAL_EQUAL(res[1], 80363)
 	TEST_REAL_EQUAL(res[2], 474.439)
 	TEST_REAL_EQUAL(res[3], 123815)
 	TEST_REAL_EQUAL(res[4], 475.715)
 	TEST_REAL_EQUAL(res[5], 33733)
-	
-	src = "QvAAAELIAA==";
-  res = b64.decodeFloatCorrected(src.c_str() ,src.size());
-	TEST_REAL_EQUAL(res[0], 120)
-	TEST_REAL_EQUAL(res[1], 100)
-RESULT
 
-CHECK((char* encode(const char* src, UInt size)))
-	Base64 b64;
-	string src = "Hallo World";
-	string dest = b64.encode(src.c_str(), src.size());
-  TEST_EQUAL(dest, string("SGFsbG8gV29ybGQ="))
-
-	src = "Hallo World!";
-	dest = b64.encode(src.c_str() ,src.size());
-  TEST_EQUAL(dest, "SGFsbG8gV29ybGQh")
-
-	src = "This is one test";
-	dest = b64.encode(src.c_str() ,src.size());
-  TEST_EQUAL(dest, "VGhpcyBpcyBvbmUgdGVzdA==")
-
-	src = "All around";
-  dest = b64.encode(src.c_str() ,src.size());
-  dest = b64.decode(dest.c_str(), dest.size());
-  TEST_EQUAL(dest, src)
-
-	src = "";
-	dest = b64.encode(src.c_str() ,src.size());
-	dest = b64.encode(dest.c_str(), dest.size());
-	TEST_EQUAL(dest, src)
-RESULT
-
-CHECK((float* getFloatBuffer(UInt size)))
-	Base64 b64;
-  float* data = b64.getFloatBuffer(3);
-	TEST_NOT_EQUAL(data,0);
-RESULT
-
-CHECK((char* encodeFloat()))
-  PRECISION(0.001)
-
-	Base64 b64;
-  float* data = b64.getFloatBuffer(3);
-  data[0] = 300.15;
-  data[1] = 303.998;
-  data[2] = 304.6;
-  string print1 = (char*) data;
-
-  string dest = b64.encodeFloat();
-  string print2 = b64.decode(dest.c_str(), dest.size());
-  TEST_EQUAL(print1, print2)
-  float* res = b64.decodeFloat(dest.c_str() ,dest.size());
+	src = "JhOWQ8b/l0PMTJhD";
+  b64.decode(src.c_str(), Base64::LITTLEENDIAN, res);
 	TEST_REAL_EQUAL(res[0], 300.15)
 	TEST_REAL_EQUAL(res[1], 303.998)
 	TEST_REAL_EQUAL(res[2], 304.6)
 
-  data = b64.getFloatBuffer(1);
-  data[0] = 4711.08;
-  dest = b64.encodeFloat();
-  res = b64.decodeFloat(dest.c_str() ,dest.size());
-	TEST_EQUAL(dest, "pDiTRQ==")
-	TEST_REAL_EQUAL(res[0], 4711.08)
-RESULT
-
-CHECK((char* encodeFloatCorrected()))
-  PRECISION(0.001)
-
-	Base64 b64;
-  float* data = b64.getFloatBuffer(3);
-  data[0] = 300.15;
-  data[1] = 303.998;
-  data[2] = 304.6;
-
-  string dest = b64.encodeFloatCorrected();
-  float* res = b64.decodeFloatCorrected(dest.c_str() ,dest.size());
-	TEST_REAL_EQUAL(res[0], 300.15)
-	TEST_REAL_EQUAL(res[1], 303.998)
-	TEST_REAL_EQUAL(res[2], 304.6)
-RESULT
-
-CHECK((double* getDoubleBuffer(UInt size)))
-	Base64 b64;
-  double* data = b64.getDoubleBuffer(3);
-	TEST_NOT_EQUAL(data,0);
-RESULT
-
-CHECK((char* encodeDouble()))
-  PRECISION(0.001)
-
-	Base64 b64;
-  double* data = b64.getDoubleBuffer(3);
-  data[0] = 300.15;
-  data[1] = 303.998;
-  data[2] = 304.6;
-  string print1 = (char*) data;
-
-  string dest = b64.encodeDouble();
-  string print2 = b64.decode(dest.c_str(), dest.size());
-  TEST_EQUAL(print1, print2)
-  double* res = b64.decodeDouble(dest.c_str() ,dest.size());
-	TEST_REAL_EQUAL(res[0], 300.15)
-	TEST_REAL_EQUAL(res[1], 303.998)
-	TEST_REAL_EQUAL(res[2], 304.6)
-
-  data = b64.getDoubleBuffer(1);
-  data[0] = 4711.08;
-  dest = b64.encodeDouble();
-  res = b64.decodeDouble(dest.c_str() ,dest.size());
-	TEST_REAL_EQUAL(res[0], 4711.08)
-RESULT
-
-CHECK((char* encodeDoubleCorrected()))
-  PRECISION(0.001)
-
-	Base64 b64;
-  double* data = b64.getDoubleBuffer(3);
-  data[0] = 300.15;
-  data[1] = 303.998;
-  data[2] = 304.6;
-
-  string dest = b64.encodeDoubleCorrected();
-  double* res = b64.decodeDoubleCorrected(dest.c_str() ,dest.size());
-	TEST_REAL_EQUAL(res[0], 300.15)
-	TEST_REAL_EQUAL(res[1], 303.998)
-	TEST_REAL_EQUAL(res[2], 304.6)
-
-  data = b64.getDoubleBuffer(1);
-  data[0] = 4711.08;
-  dest = b64.encodeDoubleCorrected();
-  res = b64.decodeDoubleCorrected(dest.c_str() ,dest.size());
-	TEST_REAL_EQUAL(res[0], 4711.08)
+	src = "QGYTSADLaUgAAABA";
+  b64.decode(src.c_str(), Base64::LITTLEENDIAN, res);
+	TEST_REAL_EQUAL(res[0], 150937)
+	TEST_REAL_EQUAL(res[1], 239404)
+	TEST_REAL_EQUAL(res[2], 2)
 RESULT
 
 /////////////////////////////////////////////////////////////
