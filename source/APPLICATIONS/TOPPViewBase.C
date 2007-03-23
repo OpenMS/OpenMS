@@ -26,6 +26,7 @@
 
 #include <OpenMS/APPLICATIONS/TOPPViewBase.h>
 #include <OpenMS/FORMAT/DB/DBConnection.h>
+#include <OpenMS/FORMAT/TextFile.h>
 #include <OpenMS/FORMAT/DB/DBAdapter.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinder.h>
 #include <OpenMS/VISUAL/DIALOGS/FeaFiDialog.h>
@@ -528,11 +529,11 @@ namespace OpenMS
     {
       if (active1DWindow_()!=0) //1D window
       {
-        if (force_type!=FileHandler::DTA)
-        {
-          QMessageBox::warning(this,"Wrong file type",("You cannot open 2D data ("+filename+") in a 1D window!").c_str());
-          return;
-        }
+        //if (force_type!=FileHandler::DTA)
+        //{
+        //  QMessageBox::warning(this,"Wrong file type",("You cannot open 2D data ("+filename+") in a 1D window!").c_str());
+        //  return;
+        //}
 
         w = active1DWindow_();
       }
@@ -547,11 +548,11 @@ namespace OpenMS
       }
       else if (active3DWindow_()!=0)//3d window
       {
-        if (force_type==FileHandler::DTA)
-        {
-          QMessageBox::warning(this,"Wrong file type",("You cannot open 1D data ("+filename+") in a 3D window!").c_str());
-          return;
-        }
+        //if (force_type==FileHandler::DTA)
+        //{
+        //  QMessageBox::warning(this,"Wrong file type",("You cannot open 1D data ("+filename+") in a 3D window!").c_str());
+        //  return;
+        //}
         w = active3DWindow_();
       }
     }
@@ -2283,7 +2284,7 @@ namespace OpenMS
 	
 		if(dialog.exec()==QDialog::Accepted)
 		{
-			  //check if there is a active window
+			//check if there is a active window
 			if (ws_->activeWindow())
 			{
 				const LayerData& layer = activeWindow_()->canvas()->getCurrentLayer();
@@ -2318,24 +2319,25 @@ namespace OpenMS
 							++i;
 					}
 					
-					string input_string=dialog.getInput();
-					string output_string=dialog.getOutput();
-					string tool_string=dialog.getTool();
+					String input_string=dialog.getInput();
+					String output_string=dialog.getOutput();
+					String tool_string=dialog.getTool();
 					
-					MzDataFile().store(std::string("tmp/"+input_string+".mzData").c_str(),out);
-					string arg0;
-					arg0=tool_string;
+					MzDataFile().store(std::string("/tmp/"+input_string+".mzData").c_str(),out);
+					String call = tool_string + " -ini /tmp/in.ini -in /tmp/" + input_string + ".mzData -out /tmp/" + output_string + " > /tmp/TOPP.log 2>&1";
 					
-					string arg1=" -ini tmp/in.ini";
-					string arg2=" -in tmp/"+input_string+".mzData";
-					string arg3=" -out tmp/"+output_string+".mzData";
-								
-					cerr<<arg0+arg1+arg2+arg3+"\n";
-					
-					system((arg0+arg1+arg2+arg3).c_str());
-						
-					addSpectrum(string("tmp/"+output_string+".mzData").c_str(),dialog.isWindow(),true,true,OpenDialog::NO_MOWER,FileHandler::MZDATA);
-					system("rm -rf tmp");
+					if (system(call.c_str())!=0)
+					{
+						TextFile f;
+						f.load("/tmp/TOPP.log");
+						String log_file;
+						log_file.implode(f.begin(),f.end(),"<BR>");
+         		QMessageBox::warning(this,"Execution of TOPP tool not successful!",log_file.c_str());
+					}
+					else
+					{
+						addSpectrum(string("/tmp/"+output_string).c_str(),dialog.isWindow(),true,true);
+					}
 				}
 			}
 		

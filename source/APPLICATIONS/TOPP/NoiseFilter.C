@@ -193,6 +193,11 @@ class TOPPNoiseFilter
         gauss.setParam(filter_param);
         gauss.filterExperiment(ms_exp_raw, ms_exp_filtered);
       }
+			else
+			{
+				writeLog_(String("Invalid filter type '") + filter_type + "' given!");
+			  return ILLEGAL_PARAMETERS; 
+			}
 
       //-------------------------------------------------------------
       // writing output

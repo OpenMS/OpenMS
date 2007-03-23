@@ -141,9 +141,8 @@ namespace OpenMS
 		{
 			tool_string_=tools_list_[i];
 			ok_button_->setEnabled(true);
-			current_dir_.mkdir("tmp");
-			system((tool_string_.toStdString()+" -write_ini"+" tmp/in.ini").c_str());
-			if(QFileInfo("tmp/in.ini").exists())
+			system((tool_string_.toStdString()+" -write_ini /tmp/in.ini").c_str());
+			if(QFileInfo("/tmp/in.ini").exists())
 			{	
 				if(!arg_param_.empty())
 				{
@@ -152,7 +151,7 @@ namespace OpenMS
 					arg_map_.clear();
 					arg_list_.clear();
 				}
-				arg_param_.load("tmp/in.ini");
+				arg_param_.load("/tmp/in.ini");
 				editor_->loadEditable(arg_param_);
 				std::string str;
 				for (Param::ConstIterator iter=arg_param_.begin();iter!=arg_param_.end();++iter)
@@ -175,20 +174,15 @@ namespace OpenMS
 	void ToolsDialog::ok_()
 	{
 		editor_->store();
-		arg_param_.store("tmp/in.ini");
+		arg_param_.store("/tmp/in.ini");
 		setInput_();
 		setOutput_();
-		
 		
 		accept();
 	}
 	
 	void ToolsDialog::cancel_()
 	{
-		if(QDir("tmp").exists())
-		{
-			system("rm -rf tmp");
-		}
 		reject();
 	}
 	

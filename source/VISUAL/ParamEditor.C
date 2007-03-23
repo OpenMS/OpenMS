@@ -43,6 +43,8 @@ namespace OpenMS
 	  	param_editable_(0),
 	  	param_const_(0)
 	{
+		setMinimumSize(500,300);
+
 		delete_act_ = new QAction(tr("&Delete"), this);
 		delete_act_->setShortcut(tr("d"));
 		delete_act_->setStatusTip(tr("Delete an item"));
@@ -197,7 +199,10 @@ namespace OpenMS
 				}
 			}	
 		}
-		
+		expandAll();
+		resizeColumnToContents(0);
+		resizeColumnToContents(1);
+		resizeColumnToContents(2);
 	}
 
 	void ParamEditor::loadEditable(Param& param)
