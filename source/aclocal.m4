@@ -709,14 +709,11 @@ ${RM} ${VERSION_FILE}
   DYNAR="${CXX}"
   if test "${OS}" == "Solaris" ; then
     DYNAROPTS="${DYNAROPTS} -G -fPIC -o"
-		DYNAROPTS_GUI=""
   else 
     if test "${OS}" == Darwin ; then
-	    DYNAROPTS="${DYNAROPTS} -single_module -framework QtSql -framework QtCore -L${[]PROJECTUPPER[]_PATH}/contrib/lib -lxerces-c -lnetcdf -lnetcdf_c++ -lCGAL -lgsl -lsvm.o ${[]PROJECTUPPER[]_PATH}/contrib/lib/ms10lib.a -dynamiclib -fPIC -o"
-			DYNAROPTS_GUI=" -L. -lOpenMS -framework OpenGL -framework QtGui -framework QtOpenGl"
+	    DYNAROPTS="${DYNAROPTS} -single_module -framework QtSql -framework QtCore -framework OpenGL -framework QtGui -framework QtOpenGl -L${[]PROJECTUPPER[]_PATH}/contrib/lib -lxerces-c -lnetcdf -lnetcdf_c++ -lCGAL -lgsl -lsvm.o ${[]PROJECTUPPER[]_PATH}/contrib/lib/ms10lib.a -dynamiclib -fPIC -o"
 		else	
   	  DYNAROPTS="${DYNAROPTS} -shared -fPIC -o"
-			DYNAROPTS_GUI=""
 		fi
   fi
 
