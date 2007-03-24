@@ -131,8 +131,6 @@ namespace OpenMS
         }
         maximizeActiveSpectrum();
       }
-      /// returns selected peaks of the active spectrum framed by \c layer_index_.begin() and the last peak BEFORE \c layer_index_.end();
-      std::vector<MSExperiment<>::SpectrumType::Iterator> getActiveSpectrumSelectedPeaks();
 
       /**
       	@brief Loads the preferences from the filename given.
@@ -191,19 +189,10 @@ namespace OpenMS
       /// shows m/z, intensity and rt in the status bar
       void showCursorStatus(double mz, double intensity, double rt);
 
-      /// Shows a list all selected peaks
-      void showPeaklistActiveSpectrum();
-      /// Picks peaks in the active spectrum
-      void pickActiveSpectrum();
-      /// Filter baseline
-      void baselineFilteringActiveSpectrum();
-      /// Smooth data in the active spectrum
-      void smoothActiveSpectrum();
-      /// Finds features in the active spectrum
-      void findFeaturesActiveSpectrum();
       /// TOPP tool dialog
       void showTOPPDialog();
-      
+      /// INI File edit dialog
+      void editParamDialog();
     protected slots:
       /** @name Layer manager slots
       */

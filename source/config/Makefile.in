@@ -51,7 +51,23 @@ OBJECT_LISTS = $(STATIC_LIBS:.a=.objects)
 
 .PHONY: dummy
 
-default:	lib
+default: help lib
+
+help:
+	@echo "";
+	@echo "Main targets:";
+	@echo " [lib]      builds the OpenMS library";
+	@echo " install    installes the OpenMS library"; 
+	@echo " test       executes a test suite for the OpenMS library";
+	@echo " TOPP       builds the TOPP tools";
+	@echo " TOPPtest   executes a test suite for the TOPP tools";
+	@echo "";
+	@echo "Targets for developers:";
+	@echo " depend     updates source file dependencies";
+	@echo " recollect  updates the objects that are included in the library";
+	@echo " clean      removes object files";
+	@echo " distclean  removes all files not under SVN control";
+	@echo "";
 
 sharedlibs: $(SHARED_LIBS)
 

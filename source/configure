@@ -311,7 +311,7 @@ ac_includes_default="\
 #endif"
 
 ac_default_prefix=`cd ..; pwd`
-ac_subst_vars='SHELL PATH_SEPARATOR PACKAGE_NAME PACKAGE_TARNAME PACKAGE_VERSION PACKAGE_STRING PACKAGE_BUGREPORT exec_prefix prefix program_transform_name bindir sbindir libexecdir datadir sysconfdir sharedstatedir localstatedir libdir includedir oldincludedir infodir mandir build_alias host_alias target_alias DEFS ECHO_C ECHO_N ECHO_T LIBS PAGER LN_S UNAME CUT TR AR CP RM MV LN SED FIND DIFF TAIL GREP EGREP CAT ECHO_COMMAND ECHO ifGNUmake MAKE OSMAJOR OS OSREV BINFMT BINFMT_PATH ARCHITECTURE SHARED_LIB_SUFFIX CXXPATH CXX CXXFLAGS LDFLAGS CPPFLAGS ac_ct_CXX EXEEXT OBJEXT CXXCPP OPENMS_HAS_XDR LEX LEXLIB LEX_OUTPUT_ROOT YACC OPENMS_HAS_FLEX_YACC NETCDF_SUPPORT NETCDF_INCLUDES NETCDF_LIBS ANDIMS_SUPPORT ANDIMS_INCLUDES ANDIMS_LIBS GSL_SUPPORT GSL_INCLUDES GSL_LIBS CGAL_SUPPORT CGAL_INCLUDES CGAL_LIBS LIBSVM_SUPPORT LIBSVM_OBJECT XERCES_SUPPORT XERCES_OBJECT GUI_INCLUDES MOC UIC SIP SIP_LIB SIP_INCLUDES PYTHON_INCLUDES PYTHON_SUPPORT PYTHON_LIBS PYTHON_EXECUTABLE VALGRIND VALGRIND_OPTS OPENMS_PATH OPENMS_INCLUDES OPENMS_LIBS CXX_MAKEDEPEND MAKEDEP_CXX_OPTS MAKEDEP_CXX_SUFFIX DEPENDENCY_GREPS CC ADD_CXXFLAGS LIB_CXXFLAGS NONLIB_CXXFLAGS HAS_GPLUSPLUS STD_CPP_INCLUDES MAKEDEP_OPTS OPENMS_TYPENAME GUI_LIBS DEFINES CXXFLAGS_D CXXFLAGS_O CPP_MODE_FLAGS CPP_MODE_FLAGS_NO_OPTIMIZATION AROPTS DYNAR DYNAROPTS DYNAROPTS_GUI ADDITIONAL_COMMENTS TEMPLATE_DIR SUBDIRS LIBOBJS LTLIBOBJS'
+ac_subst_vars='SHELL PATH_SEPARATOR PACKAGE_NAME PACKAGE_TARNAME PACKAGE_VERSION PACKAGE_STRING PACKAGE_BUGREPORT exec_prefix prefix program_transform_name bindir sbindir libexecdir datadir sysconfdir sharedstatedir localstatedir libdir includedir oldincludedir infodir mandir build_alias host_alias target_alias DEFS ECHO_C ECHO_N ECHO_T LIBS PAGER LN_S UNAME CUT TR AR CP RM MV LN SED FIND DIFF TAIL GREP EGREP CAT ECHO_COMMAND ECHO ifGNUmake MAKE OSMAJOR OS OSREV BINFMT BINFMT_PATH ARCHITECTURE SHARED_LIB_SUFFIX CXXPATH CXX CXXFLAGS LDFLAGS CPPFLAGS ac_ct_CXX EXEEXT OBJEXT CXXCPP OPENMS_HAS_XDR LEX LEXLIB LEX_OUTPUT_ROOT YACC OPENMS_HAS_FLEX_YACC NETCDF_SUPPORT NETCDF_INCLUDES NETCDF_LIBS ANDIMS_SUPPORT ANDIMS_INCLUDES ANDIMS_LIBS GSL_SUPPORT GSL_INCLUDES GSL_LIBS CGAL_SUPPORT CGAL_INCLUDES CGAL_LIBS LIBSVM_SUPPORT LIBSVM_OBJECT XERCES_SUPPORT XERCES_OBJECT GUI_INCLUDES MOC UIC SIP SIP_LIB SIP_INCLUDES PYTHON_INCLUDES PYTHON_SUPPORT PYTHON_LIBS PYTHON_EXECUTABLE VALGRIND VALGRIND_OPTS OPENMS_PATH OPENMS_INCLUDES OPENMS_LIBS CXX_MAKEDEPEND MAKEDEP_CXX_OPTS MAKEDEP_CXX_SUFFIX DEPENDENCY_GREPS CC ADD_CXXFLAGS LIB_CXXFLAGS NONLIB_CXXFLAGS HAS_GPLUSPLUS STD_CPP_INCLUDES MAKEDEP_OPTS OPENMS_TYPENAME GUI_LIBS DEFINES CXXFLAGS_D CXXFLAGS_O CPP_MODE_FLAGS CPP_MODE_FLAGS_NO_OPTIMIZATION AROPTS DYNAR DYNAROPTS ADDITIONAL_COMMENTS TEMPLATE_DIR SUBDIRS LIBOBJS LTLIBOBJS'
 ac_subst_files=''
 
 # Initialize some variables set by options.
@@ -4777,14 +4777,11 @@ echo "${ECHO_T}yes" >&6
   DYNAR="${CXX}"
   if test "${OS}" == "Solaris" ; then
     DYNAROPTS="${DYNAROPTS} -G -fPIC -o"
-		DYNAROPTS_GUI=""
   else
     if test "${OS}" == Darwin ; then
-	    DYNAROPTS="${DYNAROPTS} -single_module -framework QtSql -framework QtCore -L${OPENMS_PATH}/contrib/lib -lxerces-c -lnetcdf -lnetcdf_c++ -lCGAL -lgsl -lsvm.o ${OPENMS_PATH}/contrib/lib/ms10lib.a -dynamiclib -fPIC -o"
-			DYNAROPTS_GUI=" -L. -lOpenMS -framework OpenGL -framework QtGui -framework QtOpenGl"
+	    DYNAROPTS="${DYNAROPTS} -single_module -framework QtSql -framework QtCore -framework OpenGL -framework QtGui -framework QtOpenGl -L${OPENMS_PATH}/contrib/lib -lxerces-c -lnetcdf -lnetcdf_c++ -lCGAL -lgsl -lsvm.o ${OPENMS_PATH}/contrib/lib/ms10lib.a -dynamiclib -fPIC -o"
 		else
   	  DYNAROPTS="${DYNAROPTS} -shared -fPIC -o"
-			DYNAROPTS_GUI=""
 		fi
   fi
 
@@ -20052,7 +20049,7 @@ ac_x_header_dirs='
 /usr/openwin/share/include'
 
 if test "$ac_x_includes" = no; then
-  # Guess where to find include files, by looking for Intrinsic.h.
+  # Guess where to find include files, by looking for Xlib.h.
   # First, try using that file with no special directory specified.
   cat >conftest.$ac_ext <<_ACEOF
 /* confdefs.h.  */
@@ -20060,7 +20057,7 @@ _ACEOF
 cat confdefs.h >>conftest.$ac_ext
 cat >>conftest.$ac_ext <<_ACEOF
 /* end confdefs.h.  */
-#include <X11/Intrinsic.h>
+#include <X11/Xlib.h>
 _ACEOF
 if { (eval echo "$as_me:$LINENO: \"$ac_cpp conftest.$ac_ext\"") >&5
   (eval $ac_cpp conftest.$ac_ext) 2>conftest.er1
@@ -20087,7 +20084,7 @@ else
 sed 's/^/| /' conftest.$ac_ext >&5
 
   for ac_dir in $ac_x_header_dirs; do
-  if test -r "$ac_dir/X11/Intrinsic.h"; then
+  if test -r "$ac_dir/X11/Xlib.h"; then
     ac_x_includes=$ac_dir
     break
   fi
@@ -20101,18 +20098,18 @@ if test "$ac_x_libraries" = no; then
   # See if we find them without any special options.
   # Don't add to $LIBS permanently.
   ac_save_LIBS=$LIBS
-  LIBS="-lXt $LIBS"
+  LIBS="-lX11 $LIBS"
   cat >conftest.$ac_ext <<_ACEOF
 /* confdefs.h.  */
 _ACEOF
 cat confdefs.h >>conftest.$ac_ext
 cat >>conftest.$ac_ext <<_ACEOF
 /* end confdefs.h.  */
-#include <X11/Intrinsic.h>
+#include <X11/Xlib.h>
 int
 main ()
 {
-XtMalloc (0)
+XrmInitialize ()
   ;
   return 0;
 }
@@ -24103,7 +24100,6 @@ fi
 
 
 
-
 if test "${ADDITIONAL_COMMENTS}" = "" ; then
 	ADDITIONAL_COMMENTS=""
 fi
@@ -24856,7 +24852,6 @@ s,@CPP_MODE_FLAGS_NO_OPTIMIZATION@,$CPP_MODE_FLAGS_NO_OPTIMIZATION,;t t
 s,@AROPTS@,$AROPTS,;t t
 s,@DYNAR@,$DYNAR,;t t
 s,@DYNAROPTS@,$DYNAROPTS,;t t
-s,@DYNAROPTS_GUI@,$DYNAROPTS_GUI,;t t
 s,@ADDITIONAL_COMMENTS@,$ADDITIONAL_COMMENTS,;t t
 s,@TEMPLATE_DIR@,$TEMPLATE_DIR,;t t
 s,@SUBDIRS@,$SUBDIRS,;t t

@@ -28,7 +28,8 @@ DIRECTORY=EXAMPLES
 
 CPP_SOURCES=\
   Tutorial_DPosition.C\
-  Tutorial_DRange.C
+  Tutorial_DRange.C\
+	Tutorial_MSSpectrum.C
 
 OBJECTS=$(SOURCES:.C=.o)
 
@@ -46,8 +47,10 @@ clean:	default_clean
 dummy:
 
 Tutorial_DPosition: Tutorial_DPosition.o
-	$(CXX) $(LDFLAGS) -o $@ $< $(OPENMS_LIBS)
+	$(CXX) $(LDFLAGS) -o $@ $< $(GUI_LIBS)
 
 Tutorial_DRange: Tutorial_DRange.o
-	$(CXX) $(LDFLAGS) -o $@ $< $(OPENMS_LIBS)
+	$(CXX) $(LDFLAGS) -o $@ $< $(GUI_LIBS)
 
+Tutorial_MSSpectrum: Tutorial_MSSpectrum.o
+	$(CXX) $(LDFLAGS) -o $@ $< $(GUI_LIBS)

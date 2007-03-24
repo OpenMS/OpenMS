@@ -53,11 +53,6 @@
     <li>If ANDI/MS tests fail, you can disable ANDI/MS using <code>--disable-andims</code> in the OpenMS configure.</li>
   </ul>
 
-  <font color="red"><b>Installation on MacOS X:</b></font>
-  <ul>
-    <li>Installation of OpenMS on MacOS X is experimental and has been tested with MacOS 10.4.</li>
-    <li>An installation manual is available at <a href="install-macos.html">install-macos.html</a>.</li>
-  </ul>
 
   <a name="libraries" id="libraries"></a>
   <h2>Installing required libraries</h2>
@@ -302,13 +297,32 @@ the other required libraries must also be added to LD_LIBRARY_PATH.
   long as the 'DB_credentials.txt' file remains there, the DB will
   be tested with any subsequent call of 'make test'.
 
-  <h2>TOPP</h2>
+  <h2>Building the TOPP tools</h2>
 	TOPP is a pipeline for the analysis of HPLC/MS data. It consists of several small applications that can be chained to create analysis pipelines tailored for a specific problem.
 	<BR>
 	<BR>
-	The installation instructions of the TOPP Tools can be found <a href="../misc/TOPP.html">here</a>.
-  <!-- ........ Content ends here ........ -->
+  After you have built OpenMS, you can build the TOPP tools
+  with the following command:
 
+  <pre>
+&gt; cd &lt;path_to_OpenMS&gt;/source/
+&gt; make TOPP
+</pre>Now the TOPP tools are ready to use in <code>OpenMS/bin/</code>.
+  <br>
+
+  <h2>Testing the TOPP tools</h2>
+  After you have built the TOPP tools, you can test them with the following command:
+
+  <pre>
+&gt; cd &lt;path_to_OpenMS&gt;/source/
+&gt; make TOPPtest
+</pre> 
+
+  <b>Note</b>: To test the DBImporter and DBExporter go to the '&lt;path_to_OpenMS&gt;/source/TEST/TOPP/' 
+  directory and copy the files 'DBImporter_input_template.ini' and 'DBExporter_input_template.ini'
+  to 'DBImporter_input.ini' and 'DBExporter_input.ini', respectively.
+  Then fill in your DB access details. As long as these file remains there, the DB will
+  be tested with any subsequent call of 'make TOPPtest'.
   <br>
   <br>
   <br>

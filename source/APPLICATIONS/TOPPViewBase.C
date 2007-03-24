@@ -29,7 +29,6 @@
 #include <OpenMS/FORMAT/TextFile.h>
 #include <OpenMS/FORMAT/DB/DBAdapter.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinder.h>
-#include <OpenMS/VISUAL/DIALOGS/FeaFiDialog.h>
 #include <OpenMS/VISUAL/DIALOGS/SaveImageDialog.h>
 #include <OpenMS/VISUAL/DIALOGS/TOPPViewBasePDP.h>
 #include <OpenMS/VISUAL/Spectrum1DCanvas.h>
@@ -42,13 +41,10 @@
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/FeatureMapFile.h>
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerCWT.h>
-#include <OpenMS/VISUAL/DIALOGS/PeakPickingDialog.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/LinearResampler.h>
 #include <OpenMS/FILTERING/SMOOTHING/SavitzkyGolaySVDFilter.h>
 #include <OpenMS/FILTERING/SMOOTHING/GaussFilter.h>
-#include <OpenMS/VISUAL/DIALOGS/SmoothingDialog.h>
 #include <OpenMS/FILTERING/BASELINE/TopHatFilter.h>
-#include <OpenMS/VISUAL/DIALOGS/BaselineFilteringDialog.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/VISUAL/MSMetaDataExplorer.h>
@@ -191,17 +187,11 @@ namespace OpenMS
     windows->addAction("&Tile automatic",this->ws_,SLOT(tile()));
     windows->addAction(QIcon(QPixmap(XPM_tile_h)),"Tile &vertical",this,SLOT(tileHorizontal()));
     windows->addAction(QIcon(QPixmap(XPM_tile_v)),"Tile &horizontal",this,SLOT(tileVertical()));
-  //***********************************************************************************************************************************************  
     //Tools menu
     QMenu* tools_menu = new QMenu("&Tools",this);
     menuBar()->addMenu(tools_menu);
-    tools_menu->addAction("&Show Selected Peaks (1D)", this, SLOT(showPeaklistActiveSpectrum()));
-    tools_menu->addAction("&Pick Peaks", this, SLOT(pickActiveSpectrum()));
-    tools_menu->addAction("&Smooth data", this, SLOT(smoothActiveSpectrum()));
-    tools_menu->addAction("&Filter baseline in data", this, SLOT(baselineFilteringActiveSpectrum()));
-    tools_menu->addAction("&Find Features (2D)", this, SLOT(findFeaturesActiveSpectrum()));
+    tools_menu->addAction("&Edit INI file", this, SLOT(editParamDialog()));
 		tools_menu->addAction("&TOPP tools", this, SLOT(showTOPPDialog()));
-//******************************************************************************************************
     //create status bar
     message_label_ = new QLabel(statusBar());
     statusBar()->addWidget(message_label_,1);
@@ -1572,465 +1562,12 @@ namespace OpenMS
   	}
   }
 
-  //! returns selected peaks of active spectrum framed by \c layer_index_.begin() and the last peak BEFORE \c layer_index_.end();
-  vector<MSExperiment<>::SpectrumType::Iterator> TOPPViewBase::getActiveSpectrumSelectedPeaks()
-  {
-    Spectrum1DWidget* w1 = active1DWindow_();
-    if (w1)
-    {
-      return (w1->canvas()->getSelectedPeaks());
-    }
-    return vector<MSExperiment<>::SpectrumType::Iterator>();
-  }
-
   void TOPPViewBase::gotoDialog()
   {
     SpectrumWidget* w = activeWindow_();
     if (w)
     {
       w->showGoToDialog();
-    }
-  }
-
-
-  void TOPPViewBase::showPeaklistActiveSpectrum()
-  {
-    std::vector<MSExperiment<>::SpectrumType::Iterator> peaks = getActiveSpectrumSelectedPeaks();
-
-    //only if peaks selected:
-    if (peaks.size() >= 3)
-    {
-      std::ostringstream peaklist;
-
-      for (std::vector<MSExperiment<>::SpectrumType::Iterator>::iterator it = peaks.begin(); it != peaks.end(); it++)
-      {
-        if (it == peaks.begin())
-        {
-          peaklist << "First Peak in Spectrum: Position " << (**it).getMZ() << ", Intensity " << (**it).getIntensity() << endl;
-        }
-        else if (*it == *(peaks.rbegin()))
-        {
-          peaklist << "Last Peak in Spectrum: Position " << (**it).getMZ() << ", Intensity " << (**it).getIntensity();
-        }
-        else
-        {
-          peaklist << "Selected Peak: Position " << (**it).getMZ() << ", Intensity " << (**it).getIntensity() << endl;
-        }
-      }
-      QMessageBox::information(this, QString("Peaklist"), QString(peaklist.str().c_str()));
-    }
-    else
-    {
-      QMessageBox::information(this, QString("Peaklist"), QString("No Peaks selected!"));
-    }
-
-  }
-
-  void TOPPViewBase::smoothActiveSpectrum()
-  {
-    SmoothingDialog dialog(this);
-    if (dialog.exec())
-    {
-      float kernel_width = dialog.getKernelWidth();
-			float spacing = dialog.getSpacing();
-			bool resampling_flag = dialog.getResampling();
-      bool sgolay_flag = dialog.getSGolay();
-      
-      // 1D smoothing
-      Spectrum1DWidget* w = active1DWindow_();
-      if (w!=0)
-      {
-      	// raw data spectrum
-        const Spectrum1DCanvas::ExperimentType& exp_raw = w->canvas()->getCurrentPeakData();
-				
-				//add new layer
-        String new_name = w->canvas()->getCurrentLayer().name+" (smoothed)";
-        Spectrum1DCanvas::ExperimentType& exp_smoothed = w->canvas()->addEmptyPeakLayer();
-
-        // add one spectrum
-        exp_smoothed.resize(1);
-      	if (sgolay_flag)
-        {
-        	SavitzkyGolaySVDFilter sgolay;
-        	try
-	        {
-	          sgolay.setOrder(dialog.getSGolayOrder());
-	
-	          // if resampling take the resampling spacing
-	          if (resampling_flag)
-	          { 
-		          // and determine the number of kernel coefficients
-		          int frame_size = (int) ceil(kernel_width / spacing + 1);
-		
-		          // the number has to be odd
-		          if (!isOdd(frame_size))
-		          {
-		            frame_size += 1;
-		          }
-		          sgolay.setWindowSize(frame_size);
-		          
-		          Spectrum1DCanvas::ExperimentType::SpectrumType resampled_spectrum;
-		          LinearResampler resampler;
-		          resampler.setSpacing(spacing);
-		          resampler.raster(exp_raw[0],resampled_spectrum);
-		    
-		          sgolay.filter(resampled_spectrum,exp_smoothed[0]);
-		        }
-		        // savitzky golay without resampling
-		        else
-		        {
-		        	// else compute the spacing of data
-			        float s =  ((exp_raw[0].end()-1)->getMZ() - exp_raw[0].begin()->getMZ()) / (exp_raw[0].size() + 1);
-			        
-			        // and determine the number of kernel coefficients
-			        int frame_size = (int) ceil(kernel_width / s + 1);
-			
-			        // the number has to be odd
-			        if (!isOdd(frame_size))
-			        {
-			         frame_size += 1;
-			        }
-			        sgolay.setWindowSize(frame_size);      
-		          sgolay.filter(exp_raw[0],exp_smoothed[0]);
-	          }
-	        }
-	        catch (Exception::InvalidValue)
-	        {
-	        	QMessageBox::warning(this,"Order of the smoothing polynomial too large!","Choose a smaller order or enlarge the width of the smoothing kernel.");
-	        	w->canvas()->finishAdding();
-	        	w->canvas()->setCurrentLayerName(new_name);
-						return;
-	        }
-        }
-        // gaussian smoothing
-        else
-        {
-        	GaussFilter gauss;
-        	
-          gauss.setKernelWidth(kernel_width);
-          gauss.filter(exp_raw[0],exp_smoothed[0]);
-        }
-
-        //color smoothed data
-        for (Spectrum1DCanvas::ExperimentType::SpectrumType::Iterator it = exp_smoothed[0].begin(); it!= exp_smoothed[0].end(); ++it)
-        {
-          it->setMetaValue(UInt(5),string("#FF00FF"));
-        }
-
-        w->canvas()->finishAdding();
-        w->canvas()->setCurrentLayerName(new_name);
-      }
-      // 2D window
-      else
-      {
-        Spectrum2DWidget* w2 = active2DWindow_();
-        if (w2!=0)
-        {
-          const Spectrum2DCanvas::ExperimentType& exp_raw = w2->canvas()->getCurrentPeakData();
-          	
-         	//add new window for picked peaks
-          Spectrum2DWidget* w_smoothed = new Spectrum2DWidget(ws_);
-					
-          //set main preferences
-          w_smoothed->setMainPreferences(prefs_);
-          String new_name = w2->canvas()->getCurrentLayer().name+" (smoothed)";
-
-          Spectrum2DCanvas::ExperimentType& exp2 = w_smoothed->canvas()->addEmptyPeakLayer();
-
-          String filename = w2->canvas()->getCurrentLayer().name+"_smoothed";
-
-					// savitzky golay filtering
-
-					if (sgolay_flag)
-        	{
-	        	SavitzkyGolaySVDFilter sgolay;
-	        	try
-	        	{
-		          sgolay.setOrder(dialog.getSGolayOrder());
-	
-		          // if resampling take the resampling spacing
-		          if (resampling_flag)
-		          { 
-			          // and determine the number of kernel coefficients
-			          int frame_size = (int) ceil(kernel_width / spacing + 1);
-			
-			          // the number has to be odd
-			          if (!isOdd(frame_size))
-			          {
-			            frame_size += 1;
-			          }
-			          sgolay.setWindowSize(frame_size);
-		          
-			          Spectrum2DCanvas::ExperimentType resampled_experiment;
-	            	LinearResampler lin_resampler;
-	            	lin_resampler.setSpacing(spacing);
-	
-	            	unsigned int n = exp_raw.size();
-	            	// resample and filter every scan
-	            	for (unsigned int i = 0; i < n; ++i)
-	            	{
-		              // temporary container for the resampled data
-		              Spectrum2DCanvas::ExperimentType::SpectrumType resampled_data;
-		              lin_resampler.raster(exp_raw[i],resampled_data);
-		
-		              Spectrum2DCanvas::ExperimentType::SpectrumType spectrum;
-		              sgolay.filter(resampled_data, spectrum);
-	
-		              // if any peaks are found copy the spectrum settings
-		              if (spectrum.size() > 0)
-		              {
-	                	exp2.push_back(spectrum);
-	              	}
-	            	}
-	          	}
-	          	// savitzky golay filtering without resampling
-	          	else
-	          	{
-	          		// else compute the spacing of data
-				        float s =  ((exp_raw[0].end()-1)->getMZ() - exp_raw[0].begin()->getMZ()) / (exp_raw[0].size() + 1);
-				        
-				        // and determine the number of kernel coefficients
-				        int frame_size = (int) ceil(kernel_width / s + 1);
-				
-				        // the number has to be odd
-				        if (!isOdd(frame_size))
-				        {
-			         		frame_size += 1;
-			        	}
-				        sgolay.setWindowSize(frame_size);      
-	          		sgolay.filterExperiment(exp_raw,exp2);
-	            }
-          	}
-            catch (Exception::InvalidValue)
-	        	{
-	        		QMessageBox::warning(this,"Order of the smoothing polynomial too large!","Choose a smaller order or enlarge the width of the smoothing kernel.");
-	        	
-	        		delete w_smoothed;
-							return;
-	        	}
-          }
-
-          // gaussian filtering
-          else
-          {
-           	GaussFilter gauss;
-           	
-           	gauss.setKernelWidth(kernel_width);
-            gauss.filterExperiment(exp_raw,exp2);
-          }
-           
-	      	w_smoothed->canvas()->finishAdding();
-					w_smoothed->canvas()->setCurrentLayerName(new_name);
-					
-	        connectWindowSignals_(w_smoothed);
-	        w_smoothed->setWindowTitle(new_name.c_str());
-	        addClient(w_smoothed,filename);
-	        addTab_(w_smoothed,new_name);
-	
-	        w_smoothed->showMaximized();
-	        //           String gradient_peaks("Linear|0,#dbffcf;100,#00ff00");
-	        //           w_smoothed->canvas()->setDotGradient(gradient_peaks);
-	      }
-	    }
-      updateLayerbar();
-    }
-  }
-
-
-
-  void TOPPViewBase::baselineFilteringActiveSpectrum()
-  {
-    BaselineFilteringDialog dialog(this);
-    if (dialog.exec())
-    {
-      // 1D baseline filtering
-      Spectrum1DWidget* w = active1DWindow_();
-      if (w!=0)
-      {
-        const Spectrum1DCanvas::ExperimentType& exp_raw = w->canvas()->getCurrentPeakData();
-        TopHatFilter tophat;
-        tophat.setStrucElemSize(dialog.getStrucElemWidth());
-
-        bool resampling_flag = dialog.getResampling();
-
-        //add new layer
-        String new_name = w->canvas()->getCurrentLayer().name+" (basline)";
-        Spectrum1DCanvas::ExperimentType& exp_filtered = w->canvas()->addEmptyPeakLayer();
-
-        // add one spectrum
-        exp_filtered.resize(1);
-
-        // Resampling before baseline filtering?
-        if (resampling_flag)
-        {
-          Spectrum1DCanvas::ExperimentType::SpectrumType resampled_spectrum;
-          LinearResampler resampler;
-          resampler.setSpacing(dialog.getSpacing());
-          resampler.raster(exp_raw[0],resampled_spectrum);
-          tophat.filter(resampled_spectrum,exp_filtered[0]);
-        }
-        else
-        {
-          tophat.filter(exp_raw[0],exp_filtered[0]);
-        }
-        //color smoothed data
-        for (Spectrum1DCanvas::ExperimentType::SpectrumType::Iterator it = exp_filtered[0].begin(); it!= exp_filtered[0].end(); ++it)
-        {
-          it->setMetaValue(UInt(5),string("#FF00FF"));
-        }
-
-        w->canvas()->finishAdding();
-        w->canvas()->setCurrentLayerName(new_name);
-      }
-      else
-      {
-        Spectrum2DWidget* w2 = active2DWindow_();
-        if (w2!=0)
-        {
-          const Spectrum2DCanvas::ExperimentType& exp_raw = w2->canvas()->getCurrentPeakData();
-          TopHatFilter tophat;
-          tophat.setStrucElemSize(dialog.getStrucElemWidth());
-
-          bool resampling_flag = dialog.getResampling();
-
-          //add new window for baseline filtered data
-          Spectrum2DWidget* w_tophat = new Spectrum2DWidget(ws_);
-          
-          //set main preferences
-          w_tophat->setMainPreferences(prefs_);
-          String new_name = w2->canvas()->getCurrentLayer().name+" (basline)";
-
-          Spectrum2DCanvas::ExperimentType& exp_filtered = w_tophat->canvas()->addEmptyPeakLayer();
-
-          String filename = w2->canvas()->getCurrentLayer().name+"_filtered";
-
-          // Resampling before baseline filtering?
-          if (resampling_flag)
-          {
-            Spectrum2DCanvas::ExperimentType resampled_experiment;
-            LinearResampler lin_resampler;
-            lin_resampler.setSpacing(dialog.getSpacing());
-
-            unsigned int n = exp_raw.size();
-            // resample and filter every scan
-            for (unsigned int i = 0; i < n; ++i)
-            {
-              // temporary container for the resampled data
-              Spectrum2DCanvas::ExperimentType::SpectrumType resampled_data;
-              lin_resampler.raster(exp_raw[i],resampled_data);
-
-              Spectrum2DCanvas::ExperimentType::SpectrumType spectrum;
-              tophat.filter(resampled_data, spectrum);
-
-              // if any peaks are found copy the spectrum settings
-              if (spectrum.size() > 0)
-              {
-                // copy the spectrum settings
-                //  static_cast<SpectrumSettings&>(spectrum) = ms_exp_raw[i];
-                // spectrum.setType(SpectrumSettings::RAWDATA);
-
-                // copy the spectrum information
-                //                 spectrum.getPrecursorPeak() = ms_exp_raw[i].getPrecursorPeak();
-                //                 spectrum.setRetentionTime(ms_exp_raw[i].getRetentionTime());
-                //                 spectrum.setMSLevel(ms_exp_raw[i].getMSLevel());
-                //                 spectrum.getName() = ms_exp_raw[i].getName();
-
-                exp_filtered.push_back(spectrum);
-              }
-            }
-          }
-          else
-          {
-              tophat.filterExperiment(exp_raw,exp_filtered);
-          }
-
-          w_tophat->canvas()->finishAdding();
-          w_tophat->canvas()->setCurrentLayerName(new_name);
-          connectWindowSignals_(w_tophat);
-          w_tophat->setWindowTitle(new_name.c_str());
-          addClient(w_tophat,filename);
-          addTab_(w_tophat,new_name);
-
-          w_tophat->showMaximized();
-
-          //           String gradient_peaks("Linear|0,#dbffcf;100,#00ff00");
-          //           w_smoothed->canvas()->setDotGradient(gradient_peaks);
-        }
-      }
-      updateLayerbar();
-    }
-  }
-
-
-
-
-  void TOPPViewBase::pickActiveSpectrum()
-  {
-    PeakPickingDialog dialog(this);
-    if (dialog.exec())
-    {
-      //pick data
-      PeakPickerCWT peak_picker;
-      //estimate the scale a given the fwhm f
-      //the fwhm of a marr wavelet is f ~ 1.252*a
-      peak_picker.setWaveletScale(dialog.getFwhm() / 1.252);
-      peak_picker.setFwhmBound(dialog.getFwhm());
-      peak_picker.setPeakBound(dialog.getPeakHeight());
-      peak_picker.setPeakBoundMs2Level(dialog.getPeakHeightMs2());
-      peak_picker.setOptimizationFlag(dialog.getOptimization());
-      peak_picker.setSignalToNoiseLevel(dialog.getSignalToNoise());
-
-      Spectrum1DWidget* w = active1DWindow_();
-      if (w!=0)
-      {
-        //add new layer
-        String new_name = w->canvas()->getCurrentLayer().name+" (picked)";
-        Spectrum1DCanvas::ExperimentType& exp = w->canvas()->addEmptyPeakLayer();
-
-        // add one spectrum
-        exp.resize(1);
-        // pick peaks
-        peak_picker.pick(w->canvas()->getCurrentPeakData()[0].begin(),w->canvas()->getCurrentPeakData()[0].end(),exp[0]);
-
-        //color picked peaks
-        for (Spectrum1DCanvas::ExperimentType::SpectrumType::Iterator it = exp[0].begin(); it!= exp[0].end(); ++it)
-        {
-          it->setMetaValue(UInt(5),string("#FF00FF"));
-        }
-
-        w->canvas()->finishAdding();
-        w->canvas()->setCurrentLayerName(new_name);
-      }
-      else
-      {
-
-        Spectrum2DWidget* w2 = active2DWindow_();
-        if (w2!=0)
-        {
-          //add new window for picked peaks
-          Spectrum2DWidget* w_picked = new Spectrum2DWidget(ws_);
-          //set main preferences
-          w_picked->setMainPreferences(prefs_);
-          String new_name = w2->canvas()->getCurrentLayer().name+"(picked)";
-
-          Spectrum2DCanvas::ExperimentType& exp2 = w_picked->canvas()->addEmptyPeakLayer();
-
-          String filename = w2->canvas()->getCurrentLayer().name+"_picked";
-
-          peak_picker.pickExperiment(w2->canvas()->getCurrentPeakData(),exp2);
-
-          w_picked->canvas()->finishAdding();
-          w_picked->canvas()->setCurrentLayerName(new_name);
-
-          connectWindowSignals_(w_picked);
-          w_picked->setWindowTitle(new_name.c_str());
-          addClient(w_picked,filename);
-          addTab_(w_picked,new_name);
-
-          w_picked->showMaximized();
-        }
-      }
-      updateLayerbar();
     }
   }
 
@@ -2228,28 +1765,6 @@ namespace OpenMS
 		}
  }
 
-  void TOPPViewBase::findFeaturesActiveSpectrum()
-  {
-    Spectrum2DWidget* w = active2DWindow_();
-    if (w!=0)
-    {
-      FeaFiDialog dialog(this);
-      if (dialog.exec() == QDialog::Accepted)
-      {
-        //find features
-        FeatureFinder& finder = dialog.getFeatureFinder();
-        
-        finder.setData(w->canvas()->getCurrentPeakData().begin(),w->canvas()->getCurrentPeakData().end(),1500);
-        FeatureMap<> map = finder.run();
-
-        //display features
-        w->canvas()->addLayer(map,false);
-        w->canvas()->setCurrentLayerName(w->canvas()->getCurrentLayer().name+" (features)");
-        updateLayerbar();
-      }
-    }
-  }
-
   void TOPPViewBase::openSpectrumDialog()
   {
     OpenDialog dialog(prefs_,this);
@@ -2276,6 +1791,41 @@ namespace OpenMS
       maximizeActiveSpectrum();
     }
   }
+
+	void TOPPViewBase::editParamDialog()
+	{
+		// CREATE DIALOG
+		QDialog dialog(this);
+		QGridLayout* layout = new QGridLayout(&dialog);
+		//Editor
+		ParamEditor* edit = new ParamEditor(&dialog);		
+		layout->addWidget(edit,0,0,1,3);
+		//Stretch
+		layout->setColumnStretch(0,2);
+		//Store button
+		QPushButton* button = new QPushButton("Cancel",&dialog);
+		connect(button,SIGNAL(pressed()),&dialog,SLOT(reject()));
+		layout->addWidget(button,1,1);
+		//Cancel button
+		button = new QPushButton("OK",&dialog);
+		connect(button,SIGNAL(pressed()),&dialog,SLOT(accept()));
+		layout->addWidget(button,1,2);
+		
+		//LOAD DATA	
+		QString name = QFileDialog::getOpenFileName(this,"Select a INI file",prefs_.getValue("Preferences:DefaultPath").toString().c_str());
+		if (name=="") return;
+
+		Param p;
+		p.load(name.toAscii().data());
+		edit->loadEditable(p);
+
+		//EXECUTE DIALOG + STORE DATA
+		if (dialog.exec())
+		{
+			edit->store();
+			p.store(name.toAscii().data());
+		}
+	}
 
 	void TOPPViewBase::showTOPPDialog()
 	{

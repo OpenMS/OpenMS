@@ -49,10 +49,6 @@ CPP_SOURCES=\
 	Spectrum1DGoToDialog.C\
 	Spectrum2DGoToDialog.C\
 	OpenDialog.C\
-	PeakPickingDialog.C\
-	SmoothingDialog.C\
-	BaselineFilteringDialog.C\
-	FeaFiDialog.C\
 	DBSpectrumSelectorDialog.C\
 	TOPPViewBasePDP.C\
 	ToolsDialog.C
@@ -72,10 +68,6 @@ MOC_SOURCES=\
 	Spectrum1DGoToDialog_moc.C\
 	Spectrum2DGoToDialog_moc.C\
 	OpenDialog_moc.C\
-	PeakPickingDialog_moc.C\
-	SmoothingDialog_moc.C\
-	BaselineFilteringDialog_moc.C\
-	FeaFiDialog_moc.C\
 	TOPPViewBasePDP_moc.C\
 	ToolsDialog_moc.C
 
@@ -95,10 +87,6 @@ uic_depend:
 	$(UIC) -o $(UIC_DIR)/Spectrum1DGoToDialogTemplate.h Spectrum1DGoToDialog.ui
 	$(UIC) -o $(UIC_DIR)/Spectrum2DGoToDialogTemplate.h Spectrum2DGoToDialog.ui
 	$(UIC) -o $(UIC_DIR)/OpenDialogTemplate.h OpenDialog.ui
-	$(UIC) -o $(UIC_DIR)/PeakPickingDialogTemplate.h PeakPickingDialog.ui
-	$(UIC) -o $(UIC_DIR)/SmoothingDialogTemplate.h SmoothingDialog.ui
-	$(UIC) -o $(UIC_DIR)/BaselineFilteringDialogTemplate.h BaselineFilteringDialog.ui
-	$(UIC) -o $(UIC_DIR)/FeaFiDialogTemplate.h FeaFiDialog.ui
 
 
 uic_clean:
@@ -160,9 +148,6 @@ PreferencesDialog_moc.C:  $(HEADER_DIR)/PreferencesDialog.h
 PreferencesDialogPage_moc.C:  $(HEADER_DIR)/PreferencesDialogPage.h
 	$(MOC) $(HEADER_DIR)/PreferencesDialogPage.h -o PreferencesDialogPage_moc.C
 
-FeaFiDialog_moc.C:  $(HEADER_DIR)/FeaFiDialog.h
-	$(MOC) $(HEADER_DIR)/FeaFiDialog.h -o FeaFiDialog_moc.C
-
 Spectrum1DGoToDialog_moc.C:  $(HEADER_DIR)/Spectrum1DGoToDialog.h
 	$(MOC) $(HEADER_DIR)/Spectrum1DGoToDialog.h -o Spectrum1DGoToDialog_moc.C
 
@@ -172,15 +157,6 @@ Spectrum2DGoToDialog_moc.C:  $(HEADER_DIR)/Spectrum2DGoToDialog.h
 OpenDialog_moc.C:  $(HEADER_DIR)/OpenDialog.h
 	$(MOC) $(HEADER_DIR)/OpenDialog.h -o OpenDialog_moc.C
 
-PeakPickingDialog_moc.C:  $(HEADER_DIR)/PeakPickingDialog.h
-	$(MOC) $(HEADER_DIR)/PeakPickingDialog.h -o PeakPickingDialog_moc.C
-
-SmoothingDialog_moc.C:  $(HEADER_DIR)/SmoothingDialog.h
-	$(MOC) $(HEADER_DIR)/SmoothingDialog.h -o SmoothingDialog_moc.C
-
-BaselineFilteringDialog_moc.C:  $(HEADER_DIR)/BaselineFilteringDialog.h
-	$(MOC) $(HEADER_DIR)/BaselineFilteringDialog.h -o BaselineFilteringDialog_moc.C
-	
 ToolsDialog_moc.C:	$(HEADER_DIR)/ToolsDialog.h
 	$(MOC) $(HEADER_DIR)/ToolsDialog.h -o ToolsDialog_moc.C
 

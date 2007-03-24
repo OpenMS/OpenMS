@@ -23,158 +23,9 @@
 
   <h1>Tutorial</h1>
 	
-	This is a tutorial for people that want to develop new applications using OpenMS.
-	<BR>
-	If you're not a programmer, have a look at the <a href="../misc/TOPP.html">TOPP</a> section.
+	This is a tutorial is deprecated and will be removed as soon as the OpenMS PDF tutorial is finished.
 	<BR>
 	<BR>
-	Subsections of this tutorial are:
-	<a href="#kernel">Kernel</a> | 
-	<a href="#datastructures">Datastructures</a> | 
-	<a href="#format">Format</a> | 
-	<a href="#metadata">Metadata</a> | 
-	<a href="#transformations">Transformations</a> | 
-	<a href="#filtering">Filtering</a> | 
-	<a href="#visual">Visual</a> |
-	<a href="#analysis">Analysis</a>
-
-
-	<!-- -------------------------------------------------------------------- -->
-	<H2>Kernel<a name="kernel"></h2>
-
-  
-	<img src="Kernel.png" align=left>  
-	
-	The <tt>KERNEL</tt> folder contains classes that represent the
-  actual MS data: Peaks, Spectra, Features, Maps, ...
-	<br clear="all">
-	
-	<!-- -------------------------------------------------------------------- -->
-	<H3>Main datastructures</h3>
-
-  <b>MSSpectrum</b> is a 1-dimensional spectrum of an
-  arbitrary peak type that holds meta information as well
-  (SpectrumSettings).
-  <br>
-  <b>MSExperiment</b> is a two dimensional MS
-  experiment. It is implemented as a vector of MSSpectrum and is
-  derived from ExperimentalSettings for meta information.
-	<BR>
-	Those two main classes consist of several other classes that are explained now.
-	<BR>
-	<img src="Kernel_main.png">
-
- <h3>Traits</h3>
-
-  The traits class used as template argument of many Kernel classes
-  determines the type that e.g. position, intensity and charge
-  have. By default most of these types are doubles.
-  <br>
-  If you do not need double precicion, you can use float traits
-  instead.
-
-	<!-- -------------------------------------------------------------------- -->
-	<H3>D-dimensional coordinates</h3>
-
-  <b>DPosition</b> represents a coordinate in D-dimensional space.
-  Dimensions are accessed by <tt>operator[]</tt>.
-  <br>
-  <b>DimenstionDescription</b> is used in order to have a defined
-  order of dimensions, if there is more than one dimension. The
-  following example demonstrates its use for a LC-MS experiment:
-
-  <pre>
-// typedef to avoid too long name
-typedef DimensionDescription &lt; DimensionDescriptionTagLCMS &gt; DimDesc;
-
-// create coordiante
-DPosition&lt;2&gt; coordiante;
-
-// sets RT and MZ dimentsion
-coordiante[DimDesc::MZ] = 500.0;
-coordiante[DimDesc::RT] = 0.1;
-</pre><b>DRange</b> is a pair of <tt>DPositions</tt> that spans a
-D-dimensions hypercube and offers some convenient methods e.g. for
-intersection and center.
-</pre>
-
-	<!-- -------------------------------------------------------------------- -->
-	<H3>Raw data, peaks and features</h3>
-
-  <b>DRawDataPoint</b> is rawdata point with a D-dimensional
-  position and an intensity. Raw data means that no 'peak picking'
-  or other pre-processing methods were performed on this data.
-  <br>
-  <b>DPeak</b> and its derived classes are used for data that on
-  which some kind of 'peak picking' was applied (It also adds a
-  interface for persistent storage e.g. in a DB). Although
-  <tt>DPeak</tt> is a 'picked' peak, it does not contain any
-  information about the 'peak picking'.
-  <br>
-  <b>DPickedPeak</b> is used if more information from any
-  pre-processing steps e.g. width or full width at half max, is
-  available.
-  <br>
-  <b>DFeature</b> is also derived from <tt>DPeak</tt> but
-  represents a collection of peaks. In general, it summarizes all
-  peaks related to a specific peptide or some other chemical
-  entity.
-
-	<!-- -------------------------------------------------------------------- -->
-	<H3>DSpectrum and peak container</h3>
-
-  <b>DSpectrum</b> represents a D-dimensional spectrum i.e. a
-  container of D-dimensional data points (any class derived from
-  DRawDataPoint).
-  <br>
-  One of the template arguments of <tt>DSpectrum</tt> is the
-  Container the data is stored in. As container
-  <tt>DPeakArray</tt> or a container with the same interface is used.
-  <br>
-  <b>DPeakArray</b> is vector of data points with a
-  more convenient interface for sorting of the data.
-  <br>
-  <br>
-  The following example demonstrates the use of a 2-dimensional
-  spectrum of raw data with <tt>DPeakArray</tt> as
-  container:
-
-  <pre>
-// typedef to avoid too long names
-typedef DimensionDescription &lt; DimensionDescriptionTagLCMS &gt; DimDesc;
-typedef DSpectrum&lt;2, DPeakArray&lt;2, DRawDataPoint&lt;2&gt; &gt; &gt; Spectrum2D;
-
-// create a spectrum
-Spectrum2D spectrum;
-
-// creata a data point
-DRawDataPoint&lt;2&gt; data;
-data.getPosition()[DimDesc::MZ] = 500.0;
-data.getPosition()[DimDesc::RT] = 0.1;
-data.getIntensity() = 47.11;
-
-// insert the data point into the spectrum
-spectrum.getContainer().push_back(data);
-
-// iterate over the data points
-for (Spectrum2D::Iterator it = spectrum.getContainer().begin(); it!=spectrum.getContainer().end(); ++it)
-{
-  cout &lt;&lt; *it &lt;&lt; endl;
-}
-</pre>
-
-	<!-- -------------------------------------------------------------------- -->
-	<H2>Datastructures<a name="datastructures"></h2>
-
-  The <tt>DATASTRUCTURES</tt> folder contains shared datastructure
-  classes, e.g. a convenient string implementation.
-
-	<!-- -------------------------------------------------------------------- -->
-	<H2>Format<a name="format"></h2>
-
-  The <tt>FORMAT</tt> folder contains classes for both database and
-  file I/O.
-
 	<!-- -------------------------------------------------------------------- -->
 	<H3>File IO</h3>
 
@@ -245,14 +96,6 @@ datastructure independent of the file type.
 MSExperiment<> in;
 FileHandler().loadExperiment("data/MaxReducer_test.dta2d",in);
 </pre>
-
-
-	<!-- -------------------------------------------------------------------- -->
-	<H3>Database IO</h3>
-
-
-
-  An OpenMS DB can be accessed using the <tt>DBAdapter</tt> class.
 
 	<!-- -------------------------------------------------------------------- -->
 	<H2>Metadata<a name="metadata"></h2>
@@ -530,13 +373,6 @@ features = ff.run();
   diagram given below. <img src="FeatureFinder.png">
 
 	<!-- -------------------------------------------------------------------- -->
-	<H2>Filtering<a name="filtering"></h2>
-
-  The FILTERING folder contains classes for calibration, smoothing
-  and the baseline-filtering of raw data as well as a class for 
-  filtering identifications.
-
-	<!-- -------------------------------------------------------------------- -->
 	<H3>Baseline filtering</h3>
 
   This is folder contains classes for baseline filtering of raw
@@ -754,17 +590,6 @@ sgolay.filterExperiment(raw_experiment, filtered_experiment);
   </ul>
 
 
-	<!-- -------------------------------------------------------------------- -->
-	<H2>Visual<a name="visual"></h2>
-
-  The <tt>VISUAL</tt> folder contains classes of the GUI.
-
-
-	<!-- -------------------------------------------------------------------- -->
-	<H2>Analysis<a name="analysis"></h2>
-
-  The ANALYSIS folder contains algorithms and modules for the high-level processing and analysis of LC/MS data.
-  
 	<!-- -------------------------------------------------------------------- -->
 	<H3>MAPMATCHING</h3>
 

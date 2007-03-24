@@ -278,7 +278,42 @@
 
 @section kernel_spectra Spectra
 	
-	TODO: spectra, default typedefs
+	\par one-dimensional spectrum
+	The most important container for raw data and peaks is @a MSSpectrum. It is a template
+  class that takes the peak type as template argument. The default peak type is @a Peak1D. Possible other peak types
+  are classes derived from @a RawDataPoint1D of classes providing the same interface. @n
+	@a MSSpectrum is derived from two base classes: @a DSpectrum, a generic container for d-dimensional peak data, and from
+  @a SpectrumSettings, a container for the meta data of a spectrum. Here MS data handling is explained, 
+	@a SpectrumSettings is described in section @ref metadata_spectrum.
+
+  \par d-dimensional spectrum
+	The base class of @a MSSpectrum is @a DSpectrum. This class provides a generic container for d-dimensional data.
+	One of the template arguments of @a DSpectrum is the Container the data is stored in. As container @p DPeakArray or a 
+	container with the same interface is used. @a DPeakArray is vector of data points with a more convenient interface 
+	for sorting of the data. @n
+  The peak container can be accessed through the @a getContainer() method. For convenience, part of the container interface is
+ 	also provided by @a DSpectrum.
+
+	In the following example program, a @a MSSpectrum is filled with peaks, sorted according to mass-to-charge
+  ratio and a selection of peak positions is displayed.
+
+	First we create a spectrum and insert peaks with descending mass-to-charge ratios: 
+  @dontinclude Tutorial_MSSpectrum.C
+	@skip main
+	@until }
+	Then we sort the peaks in according to ascending mass-to-charge ratio. As the method used for sorting is not wrapped by
+	@a DSpectrum, we need to access the container to sort it.
+	@until sort	
+	Finally we print the peak positions of those peaks between 800 and 1000 Thomson. For printing all the peaks in the
+  spectrum, we simply would have used the STL-conform methods @a begin() and @a end(). 
+	@until main
+	
+	\par Typedefs
+	For convenience the following type definitions are defined in @a OpenMS/KERNEL/StandardTypes.h.
+	@code
+	typedef MSSpectrum<Peak1D> PeakSpectrum
+  typedef MSSpectrum<RawDataPoint1D> RawSpectrum 
+	@endcode	
 
 @section kernel_maps 
 
