@@ -310,15 +310,6 @@ CHECK(([EXTRA]Feature fit(const IndexSet& set) throw (UnableToFit)))
 	}
 RESULT
 
-CHECK(static BaseModelFitter* create())
-	BaseModelFitter* model = SimpleModelFitter::create();
-	TEST_NOT_EQUAL(model,0);
-	delete(model);
-RESULT
-
-CHECK(static const String getName())
-	TEST_EQUAL(SimpleModelFitter::getProductName(),"SimpleModelFitter");
-RESULT
 
 
 /////////////////////////////////////////////////////////////

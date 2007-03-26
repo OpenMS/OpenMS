@@ -145,7 +145,7 @@ CHECK((virtual ~BaseSweepSeeder()))
 RESULT
 
 // assignment operator
-CHECK((virtual BaseSweepSeede& operator=(const BaseSweepSeede &source)))
+CHECK((virtual BaseSweepSeeder& operator=(const BaseSweepSeeder &source)))
 	TestSweepSeeder tss1;
   TestSweepSeeder tss2;
 	
@@ -158,7 +158,7 @@ CHECK((virtual BaseSweepSeede& operator=(const BaseSweepSeede &source)))
 RESULT
 
 // copy constructor
-CHECK((BaseSweepSeede(const BaseSweepSeede &source)))
+CHECK((BaseSweepSeeder(const BaseSweepSeeder &source)))
 	TestSweepSeeder tss1;	
   
 	Param p;
@@ -169,7 +169,7 @@ CHECK((BaseSweepSeede(const BaseSweepSeede &source)))
 	TEST_EQUAL(tss1 == tss2,true)
 RESULT
 
-CHECK( virtual IndexSet nextSeed() throw (NoSuccessor) )
+CHECK((virtual IndexSet nextSeed()))
 	TestSweepSeeder tss1;
 	Param p;
 	p.setValue("scans_to_sumup",0);

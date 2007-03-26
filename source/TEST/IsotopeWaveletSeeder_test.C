@@ -83,7 +83,7 @@ CHECK((IsotopeWaveletSeeder(const IsotopeWaveletSeeder &rhs)))
 	TEST_EQUAL(ms1 == ms2, true)
 RESULT
 
-CHECK((IndexSet nextSeed()))
+CHECK(([EXTRA]IndexSet nextSeed()))
 	PRECISION(0.01)
 	
   IsotopeWaveletSeeder seeder;
