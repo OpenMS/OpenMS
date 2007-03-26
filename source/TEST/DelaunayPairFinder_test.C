@@ -54,42 +54,42 @@ RESULT
 
 CHECK((DelaunayPairFinder& operator = (DelaunayPairFinder source)))
   DelaunayPairFinder<FeatureMap<> > dpf;
-  dpf.setDiffIntercept(0,10);
-  dpf.setDiffIntercept(1,15);
+  dpf.setDiffIntercept(0,1);
+  dpf.setDiffIntercept(1,1);
   dpf.setMaxPairDistance(0,20);
-  dpf.setMaxPairDistance(1,25);
+  dpf.setMaxPairDistance(1,0.5);
   dpf.setPrecision(0,30);
-  dpf.setPrecision(1,35);
+  dpf.setPrecision(1,3.5);
   
   DelaunayPairFinder<FeatureMap<> > dpf_copy;
   dpf_copy = dpf;
   
-  TEST_REAL_EQUAL(dpf_copy.getDiffIntercept(0),10)
-  TEST_REAL_EQUAL(dpf_copy.getDiffIntercept(1),15)
+  TEST_REAL_EQUAL(dpf_copy.getDiffIntercept(0),1)
+  TEST_REAL_EQUAL(dpf_copy.getDiffIntercept(1),1)
   TEST_REAL_EQUAL(dpf_copy.getMaxPairDistance(0),20)
-  TEST_REAL_EQUAL(dpf_copy.getMaxPairDistance(1),25)
+  TEST_REAL_EQUAL(dpf_copy.getMaxPairDistance(1),0.5)
   TEST_REAL_EQUAL(dpf_copy.getPrecision(0),30)
-  TEST_REAL_EQUAL(dpf_copy.getPrecision(1),35)
+  TEST_REAL_EQUAL(dpf_copy.getPrecision(1),3.5)
 RESULT
 
 CHECK((DelaunayPairFinder(const DelaunayPairFinder& source)))
   DelaunayPairFinder<FeatureMap<> > dpf;
-  dpf.setDiffIntercept(0,10);
-  dpf.setDiffIntercept(1,15);
+  dpf.setDiffIntercept(0,1);
+  dpf.setDiffIntercept(1,1);
   dpf.setMaxPairDistance(0,20);
-  dpf.setMaxPairDistance(1,25);
+  dpf.setMaxPairDistance(1,0.5);
   dpf.setPrecision(0,30);
-  dpf.setPrecision(1,35);
+  dpf.setPrecision(1,3.5);
   
   DelaunayPairFinder<FeatureMap<> > dpf_copy;
   dpf_copy = dpf;
   
-  TEST_REAL_EQUAL(dpf_copy.getDiffIntercept(0),10)
-  TEST_REAL_EQUAL(dpf_copy.getDiffIntercept(1),15)
+  TEST_REAL_EQUAL(dpf_copy.getDiffIntercept(0),1)
+  TEST_REAL_EQUAL(dpf_copy.getDiffIntercept(1),1)
   TEST_REAL_EQUAL(dpf_copy.getMaxPairDistance(0),20)
-  TEST_REAL_EQUAL(dpf_copy.getMaxPairDistance(1),25)
+  TEST_REAL_EQUAL(dpf_copy.getMaxPairDistance(1),0.5)
   TEST_REAL_EQUAL(dpf_copy.getPrecision(0),30)
-  TEST_REAL_EQUAL(dpf_copy.getPrecision(1),35)
+  TEST_REAL_EQUAL(dpf_copy.getPrecision(1),3.5)
 RESULT
 
 DelaunayPairFinder<FeatureMap<> >::Point* ptr2 = 0;
@@ -215,9 +215,11 @@ CHECK((void findElementPairs()))
   model.push_back(feat5);
   model.push_back(feat6);
   
-  DelaunayPairFinder<FeatureMap<> > dpf;
+  DelaunayPairFinder< FeatureMap<> > dpf;
   dpf.setDiffIntercept(0,1.0);
   dpf.setDiffIntercept(1,1.0);
+  dpf.setPrecision(0,5.0);
+  dpf.setPrecision(1,5.0);
   dpf.setElementMap(0,model);
   dpf.setElementMap(1,scene);
   vector< ElementPair < Feature > > pairs;
@@ -276,6 +278,8 @@ CHECK((template< typename ResultMapType > void computeConsensusMap(const PointMa
   DelaunayPairFinder<ConsensusMap<ConsensusFeature<FeatureMap<> > > > dpf;
   dpf.setDiffIntercept(0,1.0);
   dpf.setDiffIntercept(1,1.0);
+  dpf.setPrecision(0,5.0);
+  dpf.setPrecision(1,5.0);
   dpf.computeConsensusMap(scene,model);
   Group<FeatureMap<> > group1 = model.begin()->getFeatures();
   Group<FeatureMap<> > group2 = (model.begin()+1)->getFeatures();

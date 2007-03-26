@@ -118,7 +118,7 @@ namespace OpenMS
 						selection.push_back(*pair_iter);
 
 #ifdef DEBUG_MAPMATCHING
-						std::cout << "Pair " << pair_iter->first.getPosition() << " " << pair_iter->second.getPosition() << std::endl;
+// 						std::cout << "Pair " << pair_iter->first.getPosition() << " " << pair_iter->second.getPosition() << std::endl;
 #endif
 
 					}
@@ -153,7 +153,8 @@ namespace OpenMS
 
 						std::cout << "Estimating transform for dimension " << d << std::endl;
 						std::cout << "Best fit: Y = " << intercept << " + " << slope << "* X" << std::endl;
-						std::cout << "Sumsquares: " << sumsq << std::endl;
+            std::cout << "Sumsquares: " << sumsq << std::endl;
+            std::cout << "Pearson: " << (cov01*cov01)/(cov00*cov11) << std::endl;
 #endif
 
 						// create the transform and save it in the cell

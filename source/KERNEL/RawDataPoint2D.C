@@ -115,7 +115,7 @@ namespace OpenMS
 	
 	std::ostream& operator << (std::ostream& os, const RawDataPoint2D& point)
 	{
-		os << "POS: "<< point.getMZ() << " INT: "<<point.getIntensity();
+    os << "RT: " << point.getRT() <<  " MZ: "  << point.getMZ() << " INT: "<<point.getIntensity();
 		
 		return os;
 	}
