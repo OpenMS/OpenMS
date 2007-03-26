@@ -97,12 +97,12 @@ CHECK((IndexSet nextSeed()))
 	seeder.setTraits(traits);
 	
 	Param param;
-  param.setValue("min_number_scans",8);
+  param.setValue("min_number_scans",5);
 	seeder.setParameters(param);
 	
 	// test first seeding region	
 	FeaFiModule::IndexSet region = seeder.nextSeed();
-	
+		
 	ifstream infile( "data/PickedPeakSeeder_region1");	
 	DoubleReal intensity, rt, mz;
 	
@@ -112,6 +112,7 @@ CHECK((IndexSet nextSeed()))
 		infile >> mz >> intensity;
 		
 		TEST_NOT_EQUAL(citer == region.end(),true)
+		ABORT_IF(citer == region.end())
 		
 		TEST_REAL_EQUAL(traits->getPeakRt(*citer),rt)
 		TEST_REAL_EQUAL(traits->getPeakMz(*citer),mz)
@@ -132,6 +133,7 @@ CHECK((IndexSet nextSeed()))
 		infile >> mz >> intensity;
 		
 		TEST_NOT_EQUAL(citer == region.end(),true)
+		ABORT_IF(citer == region.end())
 		
 		TEST_REAL_EQUAL(traits->getPeakRt(*citer),rt)
 		TEST_REAL_EQUAL(traits->getPeakMz(*citer),mz)
@@ -140,27 +142,7 @@ CHECK((IndexSet nextSeed()))
 		++citer;				
 	}		
 	infile.close();
-	
-	// retrieve third region
-	region = seeder.nextSeed();
-	
-	infile.open( "data/PickedPeakSeeder_region3");	
-	
-	citer = region.begin();
-	while ( infile >> rt )
-	{
-		infile >> mz >> intensity;
-		
-		TEST_NOT_EQUAL(citer == region.end(),true)
-		
-		TEST_REAL_EQUAL(traits->getPeakRt(*citer),rt)
-		TEST_REAL_EQUAL(traits->getPeakMz(*citer),mz)
-		TEST_REAL_EQUAL(traits->getPeakIntensity(*citer),intensity)
-				
-		++citer;				
-	}		
-	infile.close();
-	
+			
 	// done, should be the last region !
 	TEST_EXCEPTION( FeaFiModule::NoSuccessor , seeder.nextSeed() );
 

@@ -32,8 +32,8 @@ namespace OpenMS
 {
 
 	PickedPeakSeeder::PickedPeakSeeder()
-		: BaseSeeder(), 
-			is_initialized_(false)
+		: BaseSweepSeeder(),
+			isomodel_()
 	{
     setName(getProductName());
 
@@ -54,13 +54,8 @@ namespace OpenMS
     defaults_.setValue("charge5_ub",0.24f);
     defaults_.setValue("charge5_lb",0.15f);
 
-    // tolerance in m/z for an monoisotopic peak in the previous scan
-    defaults_.setValue("tolerance_mz",1.1f);
-		
-		 // minimum number of scan per isotopic cluster
-    defaults_.setValue("min_number_scans",3);
-    // minimum number of peaks per cluster
-    defaults_.setValue("min_number_peaks",6);
+    // minimum number of peaks per pattern (in one scan)
+    defaults_.setValue("min_peaks_per_scan",3);
 
     defaultsToParam_();
 	}
@@ -70,8 +65,7 @@ namespace OpenMS
 	}
 
   PickedPeakSeeder::PickedPeakSeeder(const PickedPeakSeeder& rhs)
-    : BaseSeeder(rhs),
-    	is_initialized_(false)
+    : BaseSweepSeeder(rhs)
   {
     updateMembers_();
   }
@@ -80,7 +74,7 @@ namespace OpenMS
   {
     if (&rhs == this) return *this;
     
-    BaseSeeder::operator=(rhs);
+    BaseSweepSeeder::operator=(rhs);
     is_initialized_ = false;
     
     updateMembers_();
@@ -88,28 +82,11 @@ namespace OpenMS
     return *this;
   }
 	
-	FeaFiModule::IndexSet PickedPeakSeeder::nextSeed() throw (NoSuccessor)
-	{
-    if (!is_initialized_)
-    {
-    	sweep_();
-    	is_initialized_ = true;
-    }
-    
-		if ( curr_region_ == iso_map_.end() || iso_map_.size() == 0 ) 
-		{
-			throw NoSuccessor(__FILE__, __LINE__,__PRETTY_FUNCTION__, make_pair(0u,0u));
-		}
-		
-    IndexSet next_region = (*curr_region_).second.peaks_;
-
-    ++curr_region_;
-
-    return next_region;	
-	}
-	
 	void PickedPeakSeeder::updateMembers_()
-	{
+	{	
+		// update member of base class first
+		BaseSweepSeeder::updateMembers_();
+	
 		// retrieve values for accepted peaks distances
 		charge1_ub_	= param_.getValue("charge1_ub");
 		charge1_lb_	 = param_.getValue("charge1_lb");
@@ -126,217 +103,116 @@ namespace OpenMS
 		charge5_ub_	= param_.getValue("charge5_ub");
 		charge5_lb_	 = param_.getValue("charge5_lb");		
 		
-		tolerance_mz_ = param_.getValue("tolerance_mz");
+		min_peaks_ = param_.getValue("min_peaks_per_scan");
 	}
 	
-	void PickedPeakSeeder::sweep_()
+	PickedPeakSeeder::ScoredMZVector PickedPeakSeeder::detectIsotopicPattern_(SpectrumType& scan )
 	{
-		// stores the monoisotopic peaks of isotopic clusters
-		vector<double> iso_last_scan;
-		vector<double> iso_curr_scan;
-		
 		UInt current_charge	 = 0;			// charge state of the current isotopic cluster
-		CoordinateType mz_in_hash   = 0;			// used as reference to the current isotopic peak
+		
+		ScoredMZVector scored_positions;
+		
+		vector<IntensityType> data_intensities;
+		vector<IntensityType> model_intensities;
 	
-		// sweep through scans
-		for (UInt i=0; i < traits_->getData().size(); ++i)
+		// it would be better to look at more peaks not only the next neighbour.
+		for (UInt j=0; j < (scan.size()-1); ++j)
 		{
-			const FeaFiTraits::MapType::SpectrumType& scan = traits_->getData()[i];
-			
-			#ifdef DEBUG_FEATUREFINDER
-			cout << "------------------------------------------------------------------------------------------------------------" << endl;
-			cout << "Next scan with rt: " << scan.getRetentionTime() << endl;
-			#endif
-			
-			// copy cluster information of last scan
-			iso_last_scan = iso_curr_scan;
-			iso_curr_scan.clear();
-			
-			for (UInt j=0; j < traits_->getData()[i].size()-1; ++j)
-			{
+				CoordinateType dist 	= scan[j+1].getMZ() - scan[j].getMZ();
+						
 				// test for different charge states
-				current_charge = distanceToCharge_(scan[j+1].getMZ() - scan[j].getMZ());
+				current_charge = distanceToCharge_(dist);
 
 				// remove false positives by looking at the intensity ratio of the first two peaks peaks
-				if ( fabs( scan[j].getIntensity()/scan[j+1].getIntensity() - 1.0) < 0.01)
+				// their intensities should not be equal.
+				if ( fabs( scan[j].getIntensity()/scan[j+1].getIntensity() - 1.0) < 0.001)
 				{					
 					current_charge = 0;	// reset charge
 				}
-				
-				// charger = 0 >= no isotope
-				if (current_charge > 0) 
+								
+				if (current_charge > 0) 	// 0 => no pattern
 				{
-					#ifdef DEBUG_FEATUREFINDER
-					cout << "Isotopic pattern found ! " << endl;
-					cout << "We are at: " << scan.getRetentionTime() << " " << scan[j].getMZ() << endl;
-					cout << "Predicted charge state: " << current_charge << endl;
-					#endif
-					// hash entry to write in
-					TableType::iterator entry_to_insert;			
-		
-					if (iso_last_scan.size() > 0)  // Did we find any isotopic cluster in the last scan?
-					{
-						// there were some isotopic clustures in the last scan...
-						std::vector<double>::iterator it = searchInScan_(iso_last_scan.begin(),iso_last_scan.end(),scan[j].getMZ());
-						double delta_mz = fabs(*it - scan[j].getMZ());
-						
-						// check if first peak of last cluster is close enough -> create new isotopic cluster
-						if ( delta_mz > tolerance_mz_)
-						{
-							#ifdef DEBUG_FEATUREFINDER
-							cout << "Last peak cluster too far, creating new cluster" << endl;
-							#endif
-	
-							mz_in_hash = scan[j].getMZ(); // update current hash key
-			
-							IsotopeCluster isoclust;
-							isoclust.charge_ = current_charge;
-							isoclust.scans_.push_back(i);
-	
-							entry_to_insert = iso_map_.insert( TableType::value_type(mz_in_hash, isoclust) );		   
-						}
-						else
-						{
-							#ifdef DEBUG_FEATUREFINDER
-							cout << "Found neighbouring peak with distance (m/z) " << delta_mz << endl;
-							#endif
-							mz_in_hash = *it;	// retrieve hash key
-	   										
-							pair<TableType::iterator, TableType::iterator> range = iso_map_.equal_range(mz_in_hash);
-							bool scan_found = false;		
-																	
-							if (range.first != range.second)		// several peak cluster at this m/z found
-							{
-								// we want to find the previous scan
-								UInt scan_wanted = (i - 1);
-								
-								for (TableType::iterator iter = range.first; iter != range.second; ++iter)
-								{
-
-										// enumerate all scans
-										// the scan number we are searching for is not necessarily the last one
-										// in this cluster if there were other very close local maxima in the same scan.
-										for (std::vector<UInt>::const_iterator it = iter->second.scans_.begin();
-													 it != iter->second.scans_.end(); 
-													 ++it)
-										{
-								
-											if (	*it == scan_wanted )
-											{
-												scan_found = true;
-												entry_to_insert	= iter;
-												continue;
-											}														
-										}
-
-									}	// end for (TableType::iterator iter = range.first; iter != range.second; ++iter)
-							}
-							else	// only one cluster with this m/z
-							{
-								entry_to_insert	 = range.first;										
-							}
-							
-							if (!scan_found)
-							{
-								// corrupt hash map / isotope counter
-								throw Exception::InvalidIterator(	__FILE__, __LINE__, "PickedPeakSeeder::sweep_()");
-							}
-							
-							// save current rt and m/z
-							entry_to_insert->second.scans_.push_back( i );
-		
-							#ifdef DEBUG_FEATUREFINDER
-							cout << "Cluster with " << entry_to_insert->second.peaks_.size() << " peaks retrieved." << endl;
-							#endif
-						}
-					}
-					else // last scan did not contain any isotopic cluster
-					{
-						#ifdef DEBUG_FEATUREFINDER
-						cout << "Last scan was empty => creating new cluster." << endl;
-						cout << "Creating new cluster at m/z: " << scan[j].getMZ() << endl;
-						#endif
-						mz_in_hash = scan[j].getMZ(); // update current hash key
-										
-						IsotopeCluster isoclust;
-						isoclust.charge_ = current_charge;
-						isoclust.scans_.push_back(i);
-	
-						entry_to_insert = iso_map_.insert( TableType::value_type(mz_in_hash, isoclust) );		  
-					}
-		
-					#ifdef DEBUG_FEATUREFINDER
-					cout << "Storing found peak in current isotopic cluster" << endl;
-					#endif
-		
-					// add next two peaks to current cluster
-					iso_curr_scan.push_back(mz_in_hash);
-					entry_to_insert->second.peaks_.insert(std::make_pair(i,j));
-					++j;
-					entry_to_insert->second.peaks_.insert(std::make_pair(i,j));
-	
-					// loop until end of isotopic pattern in this scan
-					while (j+1!=scan.size() && distanceToCharge_(scan[j+1].getMZ() - scan[j].getMZ()) == current_charge )
-					{
-						++j;
-						entry_to_insert->second.peaks_.insert(std::make_pair(i,j));				// save peak in cluster
-					}
+					ScoredChargeType sc_charge;
+					sc_charge.first = current_charge;
 					
-				} // end of if (charge > 0)
+					// initialize averagine model
+					Param p;
+					p.setValue("statistics:mean", (scan[j].getMZ() + 1) );
+					p.setValue("isotope:stdev",0.1);	
+					isomodel_.setParameters(p);
+					isomodel_.setSamples();
+									
+					data_intensities.push_back( scan[j].getIntensity() );	
+					model_intensities.push_back( isomodel_.getIntensity( scan[j].getMZ() ) );
+					
+					// count number of peaks supporting this charge
+					UInt count = 1; 
+					for (UInt c = j + 1; c < scan.size(); ++c)
+					{	
+						CoordinateType this_mz = 	scan[c].getMZ();
+						CoordinateType prev_mz = scan[ (c-1) ].getMZ();
+					
+						UInt next_charge = 	distanceToCharge_( (this_mz - prev_mz) );
 						
-			} // end keep loop
+						if (next_charge != current_charge) 	break;
+					
+						data_intensities.push_back( scan[c].getIntensity() );	
+						model_intensities.push_back( isomodel_.getIntensity( scan[c].getMZ() ) );
+						++count;	
+						++j;
+					}
+													
+					#ifdef DEBUG_FEATUREFINDER
+					std::cout	<< "There are " << count << " peaks supporting this charge. " << std::endl;
+					#endif
+					
+					if (count >= min_peaks_)  										
+					{
+						// use number of peaks as score
+						sc_charge.second = scorePattern_(data_intensities, model_intensities);
+						scored_positions.push_back( make_pair(j,sc_charge) );				
+					}
+				}
 		
-		} //end scan loop
-		
-		typedef TableType::iterator HashIterator;		
-		vector< TableType::iterator > toDelete;
-	
-		cout << iso_map_.size() << " isotopic clusters were found." << endl;
-			
-		UInt min_number_scans = param_.getValue("min_number_scans");
-		UInt min_number_peaks = param_.getValue("min_number_peaks");
-	
-		// remove cluster having less than 6 peaks or less than 3 scans
-		for (TableType::iterator iter = iso_map_.begin(); iter != iso_map_.end(); ++iter)
-		{
-			if (iter->second.scans_.size() < min_number_scans ||  iter->second.peaks_.size() < min_number_peaks)
-			{
-				toDelete.push_back(iter);
-			}
-		}
-	
-		for (unsigned int i=0; i<toDelete.size();++i)
-		{
-			iso_map_.erase(toDelete[i]);
-		}
-	
-		curr_region_ = iso_map_.begin();
-		cout << iso_map_.size() << " clusters remained after filtering." << endl;
+		} // end for (all peaks in scan)
 
-		#ifdef DEBUG_FEATUREFINDER 
-		for (HashIterator iter = iso_map_.begin(); iter != iso_map_.end(); ++iter)
-		{
-			std::cout << "m/z " << iter->first << " charge: " << iter->second.charge_ << std::endl;
-			std::cout << "number of points contained: " <<  iter->second.peaks_.size() << std::endl;
-			
-			for (std::vector<UInt>::const_iterator citer = 	iter->second.scans_.begin(); 
-						citer != iter->second.scans_.end();
-						++citer)
-			{
-				std::cout << "# scan : " << *citer << " (";
-				IDX tmp;
-				tmp.first = *citer;
-				std::cout << traits_->getPeakRt(tmp) << ")" << std::endl;				
-			}
+		return scored_positions;
 		
-		}
-		cout << "---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------" << endl;
-		#endif
+} // end of detectIsotopicPattern_(SpectrumType& scan )
 	
-	} // end of void sweep_()
+
+PickedPeakSeeder::ProbabilityType PickedPeakSeeder::scorePattern_(std::vector<IntensityType>& data, std::vector<IntensityType>& model)
+{
+	IntensityType data_sum   = 0.0;
+	IntensityType model_sum = 0.0;
 	
+	// normalize...
+	for (UInt i=0;i<data.size(); ++i)
+	{
+		data_sum += data[i];	
+		model_sum += model[i];	
+	}
 	
-	UInt PickedPeakSeeder::distanceToCharge_(CoordinateType dist)
+	// compute chi^2 statistic
+	ProbabilityType chi_stat = 0.0;
+	IntensityType temp = 0.0;
+	for (UInt j=0;j<data.size();++j)
+	{
+			if (model[j] <= 0) continue; // skip zeros in model
+		
+			cout << "data: " << ( data[j] / data_sum) << " model: " << (model[j] / model_sum) << endl;
+				
+			temp = (data[j] / data_sum) - ( model[j] / model_sum);
+			chi_stat += (temp * temp) / (model[j] /  model_sum) ;	
+	}
+
+	cout << "test statistic " << chi_stat << endl;
+	cout << "p-value is " << (1 - gsl_cdf_chisq_P(chi_stat, (data.size() - 1 ))) << endl;
+	
+	return chi_stat;
+}	
+	
+UInt PickedPeakSeeder::distanceToCharge_(CoordinateType dist)
 	{
 	  if (dist <= charge1_ub_ && dist >= charge1_lb_)
     {

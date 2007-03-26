@@ -65,9 +65,9 @@ namespace OpenMS
 		
 		IntensityType mu = (ranks_data.size() + 1) / 2; // mean of ranks
 
-		IntensityType sum_model_data   = 0;
-		IntensityType sqsum_data          = 0;
-		IntensityType sqsum_model       = 0;
+		IntensityType sum_model_data = 0;
+		IntensityType sqsum_data     = 0;
+		IntensityType sqsum_model    = 0;
 		
 		for (UInt i=0; i<ranks_data.size();++i)
 		{
@@ -115,9 +115,9 @@ namespace OpenMS
 		
 		IntensityType mu = (ranks_data.size() + 1) / 2; // mean of ranks
 		
-		IntensityType sum_model_data  = 0;
-		IntensityType sqsum_data         = 0;
-		IntensityType sqsum_model      = 0;
+		IntensityType sum_model_data = 0;
+		IntensityType sqsum_data     = 0;
+		IntensityType sqsum_model    = 0;
 		
 		for (UInt i=0; i<ranks_data.size();++i)
 		{

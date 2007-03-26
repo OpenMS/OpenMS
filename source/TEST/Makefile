@@ -345,7 +345,8 @@ EXECUTABLES_TRANSFORMATIONS_FEATUREFINDER = \
 	DummySeeder_test\
 	DummyExtender_test\
 	DummyFitter_test\
-	RankCorrelation_test 
+	RankCorrelation_test\
+	BaseSweepSeeder_test
 
 EXECUTABLES_TRANSFORMATIONS_PEAKPICKER = \
 	ContinuousWaveletTransform_test\

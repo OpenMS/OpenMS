@@ -36,8 +36,7 @@ namespace OpenMS
 	class FeaFiTraits;
 
   /** 
-  	@brief Class to hold a module of the FeatureFinder algorithm 
-		module accesses datastructures using BaseFeaFiTraits.
+  	@brief Implements a module of the FeatureFinder algorithm.
       
 		@ingroup FeatureFinder
   */

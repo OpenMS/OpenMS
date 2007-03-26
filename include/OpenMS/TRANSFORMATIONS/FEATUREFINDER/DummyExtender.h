@@ -63,9 +63,9 @@ namespace OpenMS
 				<td>Minimum percentage of the intensity of the largest peak that a seed has to have
 				    (used only if min_nitensity is set to 0.</td>
 			</tr>
-				<td>intensity_factor</td>
-				<td>Minimum percentage of the intensity of the largest peak that a seed has to have
-				    (used only if min_nitensity is set to 0.</td>
+				<td>min_intensity_contribution_</td>
+				<td>Minimum percentage of the feature intensity sum collected so far 
+				      that a point has to contribute.</td>
 			</tr>
 		</table>
 		
@@ -146,6 +146,8 @@ namespace OpenMS
 		CoordinateType dist_rt_up_; 
 		/// Maximum distance to seed in negative retention time
 		CoordinateType dist_rt_down_;   			
+		/// The name speaks for itself
+		IntensityType min_intensity_contribution_;
 				
   };
 }

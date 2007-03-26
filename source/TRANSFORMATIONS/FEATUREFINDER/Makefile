@@ -59,6 +59,8 @@ CPP_SOURCES=\
 	DummyFitter.C\
 	DummySeeder.C\
 	DummyExtender.C\
+	BaseSweepSeeder.C\
+	InterpolationModel.C
 
 include ../../common.mak
 -include .Dependencies

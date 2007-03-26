@@ -59,7 +59,7 @@ namespace OpenMS
 		spectra.erase(remove_if(spectra.begin(), spectra.end(), range), spectra.end());	
 		@endcode
 	
-		The code for the removal of peaks in s certain intensity range from a spectrum might look like this:
+		The code for the removal of peaks within certain intensity range from a spectrum might look like this:
 		
 		@code
 		//data
@@ -73,6 +73,8 @@ namespace OpenMS
 		//remove the range
 		spectrum.erase(remove_if(spectrum.begin(), spectrum.end(), range), spectrum.end());
 		@endcode
+		
+		@todo: change examples for range predicates (Marc)
 		
 	*/
 	
@@ -255,7 +257,7 @@ namespace OpenMS
 				
 				@param min lower boundary
 				@param max upper boundary
-				@param reverse if @p reverse is true, operator() return true if the peak lies outside the set
+				@param reverse if @p reverse is true, operator() return true if the peak lies outside the range
 			*/
 			InMzRange(double min, double max, bool reverse = false)
 				: 

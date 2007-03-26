@@ -27,9 +27,11 @@
 #ifndef OPENMS_TRANSFORMATIONS_FEATUREFINDER_PICKEDPEAKSEEDER_H
 #define OPENMS_TRANSFORMATIONS_FEATUREFINDER_PICKEDPEAKSEEDER_H
 
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/BaseSeeder.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/BaseSweepSeeder.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeaFiTraits.h>
-#include <OpenMS/DATASTRUCTURES/IsotopeCluster.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/IsotopeModel.h>
+
+#include <gsl/gsl_cdf.h>
 
 namespace OpenMS
 {
@@ -39,14 +41,9 @@ namespace OpenMS
 		This extender module sweeps through the scans and classifies cluster 
  		of peaks as candidate peptides if the distance between successive peaks 
  		is 1 Da (charge 1) , 0.5 Da (charge 2) or 0.3 Da (charge 3) etc.
- 
- 		@note Experiments have shown that this extender produces a lot of false positive hits. It would be
- 		better to check if the relaitive intensities between the peaks is similar to an isotopic pattern.
-		
-		@note: better check for at least three peaks in each scan instead of the absolute number...
-		
-		@todo: Tie your shoelaces and brush your teeth every morning. (Marc)
   
+		@note: it would be better to look at more peaks not only the next neighbour.
+				
 		<table>
 		 <tr><td></td><td></td><td>charge1_ub</td>
 		 <td>upper bound for the distance between "charge one" maxima</td></tr>
@@ -68,25 +65,30 @@ namespace OpenMS
 		 <td>upper bound charge five </td></tr>
 		 <tr><td></td><td></td><td>charge5_lb</td>
 		 <td>lower bound charge five </td></tr>
-		 <tr><td></td><td></td><td>tolerance_mz</td>
-		 <td>mass tolerance for isotopic pattern in adjacent scans </td></tr>
-		 <tr><td></td><td></td><td>min_number_scans</td>
-		 <td>lower bound for the number of scans in which a isotopic pattern must occur 
-		  before it is accepted as seed</td></tr>
-		 <tr><td></td><td></td><td>min_number_peaks</td>
-		 <td>min. number of data points for a seeding region</td></tr>
 		</table>		
 		  	
 		@ingroup FeatureFinder
 	*/
 	class PickedPeakSeeder
-	  : public BaseSeeder
+	  : public BaseSweepSeeder
 	{
 		public:
-		  typedef FeaFiTraits::IntensityType IntensityType;
+		  /// intensity of a peak
+			typedef FeaFiTraits::IntensityType IntensityType;
+			/// coordinate ( in rt or m/z )
 		  typedef FeaFiTraits::CoordinateType CoordinateType;
-		  typedef DoubleReal ProbabilityType;
-			typedef std::multimap<CoordinateType,IsotopeCluster> TableType;
+			/// score
+		  typedef DoubleReal ProbabilityType;	
+
+			/// a single MS spectrum
+			typedef BaseSweepSeeder::SpectrumType SpectrumType;
+			
+		/// charge state estimate with associated score
+		typedef BaseSweepSeeder::ScoredChargeType ScoredChargeType;
+		/// m/z position in spectrum with charge estimate and score
+		typedef BaseSweepSeeder::ScoredMZType ScoredMZType;
+		/// container of scored m/z positions
+		typedef BaseSweepSeeder::ScoredMZVector ScoredMZVector;
 		
 	    /// Default constructor
 	    PickedPeakSeeder();
@@ -100,77 +102,32 @@ namespace OpenMS
 	    /// Assignment operator
 	    PickedPeakSeeder& operator= (const PickedPeakSeeder& rhs);
 	
-	    /// return next seed
-	    IndexSet nextSeed() throw (NoSuccessor);
-	
+			/// Creates an instance of this class
 	    static BaseSeeder* create()
 	    {
 	        return new PickedPeakSeeder();
 	    }
 	
+			/// Well....
 	    static const String getProductName()
 	    {
 	        return "PickedPeakSeeder";
 	    }
 		
 		protected:
+		
+			/// keeps member and param entries in synchrony
 			virtual void updateMembers_();
-			
-	    /// Finds the neighbour of the peak denoted by @p current_mz in the previous scan
-	    std::vector<double>::iterator searchInScan_(const std::vector<CoordinateType>::iterator& scan_begin, const std::vector<CoordinateType>::iterator& scan_end, CoordinateType current_mz)
-	    {
-	      // perform binary search to find the neighbour in rt dimension
-	      // 	lower_bound finds the peak with m/z current_mz or the next larger peak if this peak does not exist.
-	      std::vector<CoordinateType>::iterator insert_iter = lower_bound(scan_begin,scan_end,current_mz);
 	
-	      // the peak found by lower_bound does not have to be the closest one, therefore we have
-	      // to check both neighbours
-	      if ( insert_iter == scan_end ) // we are at the and have only one choice
-	      {
-	      	return --insert_iter;
-	      }
-	      else
-	      {
-	        // if the found peak is at the beginning of the spectrum,
-	        // there is not much we can do.
-	        if ( insert_iter == scan_begin )
-	        {
-	            return insert_iter;
-	        }
-	        else // see if the next smaller one fits better
-	        {
-	          double delta_mz = fabs(*insert_iter - current_mz);
-	          
-	          --insert_iter;
-	
-	          if ( fabs(*insert_iter - current_mz) < delta_mz )
-	          {
-	          	return insert_iter; // peak to the left is closer (in m/z dimension)
-	          }
-	          else
-	          {
-	          	return ++insert_iter;    // peak to the right is closer
-	          }
-	        }
-	      }
-	
-	    } // end of searchInScan_
-	
+			/// detects isotopic pattern in a scan
+			ScoredMZVector detectIsotopicPattern_(SpectrumType& scan );	
+
 	    /// Find out which charge state belongs to this distance
 	    UInt distanceToCharge_(CoordinateType dist);
-	
-	    /// Sweeps through scans and detects isotopic patterns
-	    void sweep_();
-	
-	    /// stores the retention time of each isotopic cluster
-	    TableType iso_map_;
-	
-	    /// Pointer to the current region
-	    TableType::const_iterator curr_region_;
-	
-	    /// indicates whether the extender has been initialized
-	    bool is_initialized_;
-	
+			
+			/// Scores a group of peaks
+			ProbabilityType scorePattern_(std::vector<IntensityType>& data, std::vector<IntensityType>& model);
+		  		
 	    /// upper bound for distance between charge 1 peaks
 	    CoordinateType charge1_ub_;
 	    /// lower bound for distance between charge 1 peaks
@@ -196,9 +153,11 @@ namespace OpenMS
 	    /// lower bound for distance between charge 5 peaks
 	    CoordinateType charge5_lb_;
 			
-			/// m/z tolerance for peaks in successive scans
-			CoordinateType tolerance_mz_;
+			/// Averagine model used to determine the significance of a isotopic pattern
+			IsotopeModel isomodel_;
 			
+			/// Minimum number of peaks per pattern
+			UInt min_peaks_;
 	};
 }
 #endif // OPENMS_TRANSFORMATIONS_FEATUREFINDER_PICKEDPEAKSEEDER_H

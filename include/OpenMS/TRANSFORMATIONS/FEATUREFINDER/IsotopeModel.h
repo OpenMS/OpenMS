@@ -33,6 +33,8 @@
 namespace OpenMS
 {
   /** @brief Isotope distribution approximated using linear interpolation.
+	
+		@note: why is the sum of the intensities not 1 ??
 
 		Parameters:
 		<table>
@@ -125,7 +127,7 @@ namespace OpenMS
 			CoordinateType mean_;
 			CoordinateType monoisotopic_mz_;
 			double averagine_[AVERAGINE_NUM];
-			int max_isotope_;
+			Int max_isotope_;
 			double trim_right_cutoff_;
 			double isotope_distance_;
   

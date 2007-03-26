@@ -143,7 +143,7 @@ namespace OpenMS
 	    		If the isotope distribution is calculated for large masses (and with high max isotope)
 	    		it might happen that many entries contain only small numbers. This function can be
 	    		used to remove these entries.
-	    		Do consider to normalize the distribution afterwards.	    
+	    		Do consider normalising the distribution afterwards.	    
 	    */
 	    void trimRight(); 
 			

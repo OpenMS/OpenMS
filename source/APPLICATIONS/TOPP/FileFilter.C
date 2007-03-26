@@ -157,7 +157,7 @@ class TOPPFileFilter
 			// calculations
 			//-------------------------------------------------------------
 			
-			//remove ms level first (might be a large amount of spectra)
+			//remove ms level first (might be a lot of spectra)
 			exp.erase(remove_if(exp.begin(), exp.end(), InMSLevelRange<MSExperiment< >::SpectrumType>(levels, true)), exp.end());
 			
 			//remove zoom scan mode (might be a lot of spectra)

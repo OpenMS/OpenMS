@@ -32,7 +32,7 @@
 namespace OpenMS
 {
   /** 
-  	@brief Abstract base class for Seeder-Module of FeatureFinder 
+  	@brief Abstract base class for a seeding module in the feature detection algorithm. 
    
 	 	Abstract base class for Seeder-Module of FeatureFinder
     every derived class has to implement the static functions
@@ -45,7 +45,7 @@ namespace OpenMS
   {
 
 	  public:	  	
-	    /// Default constructor 
+	    /// default constructor 
 	    BaseSeeder();
 	
 	    /// copy constructor 

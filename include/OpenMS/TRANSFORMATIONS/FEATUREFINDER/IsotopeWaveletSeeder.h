@@ -27,11 +27,12 @@
 #ifndef OPENMS_TRANSFORMATIONS_FEATUREFINDER_ISOTOPEWAVELETSEEDER_H
 #define OPENMS_TRANSFORMATIONS_FEATUREFINDER_ISOTOPEWAVELETSEEDER_H
 
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/BaseSeeder.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/BaseSweepSeeder.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeaFiTraits.h>
+
 #include <OpenMS/DATASTRUCTURES/HashMap.h>
 
-#include <hash_map.h>
+// #include <hash_map.h>
 
 namespace OpenMS
 {
@@ -39,7 +40,7 @@ namespace OpenMS
 		@brief Seeding module which uses a isotopic wavelet to find seeds.
 	
 		This seeder select interesting regions in the map using a wavelet funtion
-		modelling the isotopic distribution.
+		modelling the distribution of isotopic peak intensities.
 		
 		 Parameters:
 		 
@@ -73,27 +74,42 @@ namespace OpenMS
 		@ingroup FeatureFinder
 	*/ 
   class IsotopeWaveletSeeder 
-    : public BaseSeeder
+    : public BaseSweepSeeder
   {
 
   public:
-  
-    typedef FeaFiTraits::IntensityType IntensityType;
-    typedef FeaFiTraits::CoordinateType CoordinateType;
-    typedef DoubleReal ProbabilityType;
-		typedef FeaFiTraits::MapType MapType;
-		typedef MapType::PeakType PeakType;
-		typedef MapType::SpectrumType SpectrumType;
+		
+		/// intensity of a peak
+		typedef FeaFiTraits::IntensityType IntensityType;
+		/// coordinate ( in rt or m/z )
+		typedef FeaFiTraits::CoordinateType CoordinateType;
+		/// score
+		typedef DoubleReal ProbabilityType;	
+
+		/// a single MS spectrum
+		typedef BaseSweepSeeder::SpectrumType SpectrumType;
+		/// a peak 
+		typedef SpectrumType::PeakType PeakType;			
+		/// a container of peaks
+		typedef SpectrumType::ContainerType ContainerType;
+		/// a container of 2D peaks (only temporarily used)
+		typedef MSSpectrum< Peak2D >::ContainerType TempContainerType;	
+		
+		/// charge state estimate with associated score
+		typedef BaseSweepSeeder::ScoredChargeType ScoredChargeType;
+		/// m/z position in spectrum with charge estimate and score
+		typedef BaseSweepSeeder::ScoredMZType ScoredMZType;
+		/// container of scored m/z positions
+		typedef BaseSweepSeeder::ScoredMZVector ScoredMZVector;
 		
 		/// The mother wavelets (one for each charge state)
 		typedef std::vector<std::vector<double> > WaveletCollection; 
 		/// The Hash entry, stores pairs of scan number and list of charge scores
 		typedef std::pair<std::list<UInt>, std::list<double> > DoubleList;
-		/// The Hash. Maps mass bins to scans and charge scores
-		typedef hash_multimap<UInt, DoubleList> SweepLineHash;
 		/// Stores the charge states examined
 		typedef std::list<UInt> ChargeVector;
 
+		
     /// Default constructor
     IsotopeWaveletSeeder();
 
@@ -106,9 +122,6 @@ namespace OpenMS
     /// Assignment operator
     IsotopeWaveletSeeder& operator= (const IsotopeWaveletSeeder& rhs);
 
-    /// return next seed 
-    IndexSet nextSeed() throw (NoSuccessor);
-
     static BaseSeeder* create()
     {
       return new IsotopeWaveletSeeder();
@@ -120,6 +133,11 @@ namespace OpenMS
     }
 		
   protected:
+	
+		/// detects isotopic pattern
+		ScoredMZVector detectIsotopicPattern_(SpectrumType& scan);
+	
+		/// keeps member and param entries in synchrony
   	virtual void updateMembers_();
   	
 		/// Computes m/z spacing of the LC-MS map
@@ -172,7 +190,7 @@ namespace OpenMS
 		}
 		
 		/// Assigns scores to each charge state of a isotopic pattern
-		void identifyCharge_(const std::vector<DPeakArray<1, PeakType > >& candidates, std::vector<double>* wt_thresholds, UInt scan);
+		ScoredMZVector identifyCharge_(const std::vector<DPeakArray<1, PeakType > >& candidates, std::vector<double>* wt_thresholds, SpectrumType& scan);
 		
 		/// Returns the interpolated value 
 		inline double getInterpolatedValue_(double x0, double x, double x1, double f0, double f1) const throw ()
@@ -181,11 +199,11 @@ namespace OpenMS
 		}
 
 		/// Returns a bucket containing the mass/charge @p mz
-		inline std::pair<int, int> getNearBys_(UInt scan, double mz, UInt start=0)
+		inline std::pair<Int, Int> getNearBys_(SpectrumType& scan, double mz, UInt start=0)
 		{
-			for (unsigned int i=start; i<traits_->getData()[scan].getContainer().size(); ++i)
+			for (UInt i=start; i<scan.getContainer().size(); ++i)
 			{
-				if (traits_->getData()[scan].getContainer()[i].getPos() > mz)
+				if (scan.getContainer()[i].getPos() > mz)
 				{
 					return std::make_pair(i-1, i);
 				}
@@ -197,20 +215,11 @@ namespace OpenMS
 		
 		/// Returns the absolute mean of the intensities in @p signal
 		double getAbsMean_(const DPeakArray<1, PeakType >& signal,
-																	UInt startIndex, 
-																	UInt endIndex) const;
-		
-		/// Removes entries from hash occuring in less then rt_votes_cutoff_ scans
-		void filterHashByRTVotes_();
-		
-	  /// Sums the intensities in adjacent scans
-	  void sumUp_(SpectrumType& scan, UInt current_scan_index);
-		
-		///Aligns the two scans and increases intensities of peaks in @p scan if those peaks are present in @p neighbour
-		void AlignAndSum_(SpectrumType& scan, const SpectrumType& neighbour);
+																		UInt startIndex, 
+																		UInt endIndex) const;
 										
 		/// Does not need much explanation.
-		bool is_initialized_;
+		bool wavelet_initialized_;
 		/// Number of isotopic peaks a wavelet should contain		
 		UInt peak_cut_off_;
 		/// Length of the mother wavelet
@@ -219,24 +228,14 @@ namespace OpenMS
 		CoordinateType avMZSpacing_;
 		/// Minium spacing
 		CoordinateType min_spacing_;
-		/// Minimum number of scans in which an isotopic pattern has to occur 
-		UInt rt_votes_cutoff_;
 		/// Charge states being tested
 		ChargeVector charges_;
-		//// Hash storing the detected regions
-		SweepLineHash hash_;
 		/// Stores the Gamme function
 		HashMap<UInt, double> preComputedGamma_;
-		/// Iterator pointing at the next region
-		SweepLineHash::const_iterator hash_iter_;
 		/// Determines threshold for the minimum score of a peak
 		IntensityType intensity_factor_;
 		/// Determines threshold for cwt of a peak
 		IntensityType avg_intensity_factor_;
-		/// Determines distance of left box frame from monoisotopic bin
-		CoordinateType mass_tolerance_right_;
-		/// Determines distance of right box frame from monoisotopic bin
-		CoordinateType mass_tolerance_left_;
 		/// Tolerance for scan alignment
 		CoordinateType tolerance_scansum_;
 		

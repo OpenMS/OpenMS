@@ -27,13 +27,15 @@
 #ifndef OPENMS_TRANSFORMATIONS_FEATUREFINDER_MARRWAVELETSEEDER_H
 #define OPENMS_TRANSFORMATIONS_FEATUREFINDER_MARRWAVELETSEEDER_H
 
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/BaseSeeder.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/BaseSweepSeeder.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeaFiTraits.h>
+
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/ContinuousWaveletTransformNumIntegration.h>
 
-#include <OpenMS/DATASTRUCTURES/IsotopeCluster.h>
 
 #include <OpenMS/CONCEPT/Exception.h>
+
+#include <gsl/gsl_cdf.h>
 
 namespace OpenMS
 {
@@ -41,12 +43,15 @@ namespace OpenMS
 		@brief Seeding module based on the Marr wavelet transform to detect (poorly resolved) isotopic pattern.
 	  
  		Uses the continuous wavelet transform (and the Marr mother wavelet) to detect isotopic pattern
-		in each scan. Patterns that occur in several consecutive scans are declared as seeding regions
+		in each scan. Patterns that occur in several consecutive scans are joined to seeding regions
 		for the extension phase.
 		
 		The algorithm considers local maxima in the wavelet transform signal and checks for maxima
 		with a distance corresponding to isotopic pattern (e.g. 1 Th, 1/2 Th etc).
 		
+		Regions with local maxima a scored based on a F-statistic (compares variance of intervals in cwt).
+		
+		Parameters:
 		<table>
 		 <tr><td></td><td></td><td>charge1_ub</td>
 		 <td>upper bound for the distance between "charge one" maxima</td></tr>
@@ -60,40 +65,37 @@ namespace OpenMS
 		 <td>upper bound charge three </td></tr>
 		 <tr><td></td><td></td><td>charge3_lb</td>
 		 <td>lower bound charge three </td></tr>
-		 <tr><td></td><td></td><td>tolerance_mz</td>
-		 <td>mass tolerance for isotopic pattern in adjacent scans </td></tr>
 		 <tr><td></td><td></td><td>cwt_scale</td>
 		 <td>scale of Marr wavelet </td></tr>
 		 <tr><td></td><td></td><td>noise_level_signal</td>
 		 <td>intensity threshold for points in the current scan to be considered </td></tr>
 		 <tr><td></td><td></td><td>noise_level_cwt</td>
 		 <td>same as above for the wavelet transformed signal. </td></tr>
-		 <tr><td></td><td></td><td>scans_to_sumup</td>
-		 <td>number of scans for alignment </td></tr>
-		 <tr><td></td><td></td><td>mass_tolerance_alignment</td>
-		 <td>mass tolerance applied during alignment</td></tr>
-		 <tr><td></td><td></td><td>min_number_scans</td>
-		 <td>lower bound for the number of scans in which a isotopic pattern must occur 
-		  before it is accepted as seed</td></tr>
-		 <tr><td></td><td></td><td>min_number_peaks</td>
-		 <td>min. number of data points for a seeding region</td></tr>
-		  </table>		
-		
+		 </table>				
 		
 		@ingroup FeatureFinder
 	*/ 
   class MarrWaveletSeeder 
-    : public BaseSeeder
+    : public BaseSweepSeeder
   {
   	public:	
+		
+			/// intensity of a peak
 			typedef FeaFiTraits::IntensityType IntensityType;
+			/// coordinate ( in rt or m/z )
 		  typedef FeaFiTraits::CoordinateType CoordinateType;
+			/// score
 		  typedef DoubleReal ProbabilityType;	
-	
-			typedef FeaFiTraits::MapType MapType;
-			typedef MapType::SpectrumType SpectrumType;
-			typedef	MapType::PeakType PeakType;
-			typedef std::multimap<CoordinateType,IsotopeCluster> TableType;
+
+			/// a single MS spectrum
+			typedef BaseSweepSeeder::SpectrumType SpectrumType;
+			
+			/// charge state estimate with associated score
+			typedef BaseSweepSeeder::ScoredChargeType ScoredChargeType;
+			/// m/z position in spectrum with charge estimate and score
+			typedef BaseSweepSeeder::ScoredMZType ScoredMZType;
+			/// container of scored m/z positions
+			typedef BaseSweepSeeder::ScoredMZVector ScoredMZVector;
 	
 		  /// Default constructor
 	    MarrWaveletSeeder();
@@ -101,83 +103,49 @@ namespace OpenMS
 	    /// destructor 
 	    virtual ~MarrWaveletSeeder();
 
-	    /// Copy constructor
+	    /// copy constructor
 	    MarrWaveletSeeder(const MarrWaveletSeeder& rhs);
 	    
-	    /// Assignment operator
+	    /// assignment operator
 	    MarrWaveletSeeder& operator= (const MarrWaveletSeeder& rhs);
 	
-	    /// return next seed 
-	    IndexSet nextSeed() throw (NoSuccessor);
-	
+			/// Creates an instance of this class
 	    static BaseSeeder* create()
 	    {
 	      return new MarrWaveletSeeder();
 	    }
 	
+			/// Well....
 	    static const String getProductName()
 	    {
 	      return "MarrWaveletSeeder";
 	    }
-	
-	  protected:
+		  
+			protected:
 			
+			/// keeps member and param entries in synchrony
 	  	virtual void updateMembers_();
-	  	
-	    /// Finds the neighbour of the peak denoted by @p current_mz in the previous scan
-	    std::vector<double>::const_iterator searchInScan_(const std::vector<CoordinateType>::const_iterator& scan_begin, const std::vector<CoordinateType>::const_iterator& scan_end, CoordinateType current_mz)
-	    {
-	      // perform binary search to find the neighbour in rt dimension
-	      // 	lower_bound finds the peak with m/z current_mz or the next larger peak if this peak does not exist.
-	      std::vector<CoordinateType>::const_iterator insert_iter = lower_bound(scan_begin,scan_end,current_mz);
-	
-	      // the peak found by lower_bound does not have to be the closest one, therefore we have
-	      // to check both neighbours
-	      if ( insert_iter == scan_end ) // we are at the and have only one choice
-	      {
-	      	--insert_iter;
-	      }
-        // if the found peak is at the beginning of the spectrum,
-        // there is not much we can do.
-        else if ( insert_iter != scan_begin )
-        {
-          if ( *insert_iter - current_mz < current_mz - *(--insert_iter) )
-          {
-          	++insert_iter;    // peak to the right is closer
-          }
-	      }
-				return insert_iter;
-	    }
-
-			/// Finds local maxima in the cwt
+			
+			/// detects an isotopic pattern in a scan
+			ScoredMZVector detectIsotopicPattern_(SpectrumType& scan );
+	  		    
+			/// Finds local maxima in cwt
 			void getMaxPositions_( const SpectrumType::const_iterator& first, 
 														 const SpectrumType::const_iterator& last, 
 														 const ContinuousWaveletTransform& wt,
-														 std::vector<int>& localmax
-#ifdef DEBUG_FEATUREFINDER
+														 std::vector<Int>& localmax
+														#ifdef DEBUG_FEATUREFINDER
 														 ,CoordinateType curr_peak
-#endif
+														#endif
 														 );
-		 
-		  /// Sums the intensities in adjacent scans
-		  void sumUp_(SpectrumType& scan, UInt current_scan_index);
-			
-			///Aligns the two scans and increases intensities of peaks in @p scan if those peaks are present in @p neighbour
-			void AlignAndSum_(SpectrumType& scan, const SpectrumType& neighbour);
+													
+			/// Compute local variance and test for significance
+			ProbabilityType testLocalVariance_(std::vector<Int>& local_maxima, UInt max_index);
 		 	
-	    /// Find out which charge state belongs to this distance
+	    /// estimate charge state
 	    UInt distanceToCharge_(CoordinateType dist);
 		
-		  /// Sweeps through scans and detects isotopic patterns
-		  void sweep_();
-		
-		  /// stores the retention time of each isotopic cluster
-		  TableType iso_map_;
-		
-		  /// Pointer to the current region
-		  TableType::const_iterator curr_region_;
-		
-		  /// indicates whether the extender has been initialized
+		  /// indicates whether this module has been initialized
 		  bool is_initialized_;
 			
 			/// upper bound for distance between charge 1 peaks
@@ -205,18 +173,21 @@ namespace OpenMS
 			/// lower bound for distance between charge 4 peaks
 			CoordinateType charge5_lb_;
 			
-			/// Computes the wavelet transform for a given scan
+			/// computes the wavelet transform for a given scan
 			ContinuousWaveletTransformNumIntegration cwt_;
 						
-			/// Minimum ion count
+			/// intensity threshold for spectrum
 			IntensityType noise_level_signal_;
 		
-	   	/// The min. intensity in the cwt 
+	   	/// intensity threshold for cwt
 	   	IntensityType noise_level_cwt_;
 			
-			/// Mass tolerance during scan alignment
-			CoordinateType mass_tolerance_alignment_;
-	 
+			/// Marr wavelet scale
+			CoordinateType cwt_scale_;
+			
+			/// Minimum number of local maxima in cwt for an isotopic pattern
+			UInt min_peaks_;
+			 
   };
 }
 #endif // OPENMS_TRANSFORMATIONS_FEATUREFINDER_MARRWAVELETSEEDER_H

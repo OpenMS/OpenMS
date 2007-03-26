@@ -97,10 +97,11 @@ CHECK((IndexSet nextSeed()))
 	seeder.setTraits(traits);
 	
 	Param param;
-  param.setValue("rtvotes_cutoff",6);
-	param.setValue("avg_intensity_factor",3.0);
-	param.setValue("intensity_factor",2.0);
-	param.setValue("scans_to_sumup",0);
+  param.setValue("min_number_scans",11);
+	param.setValue("avg_intensity_factor",2.0);
+	param.setValue("intensity_factor",1.4);
+	param.setValue("rt_tolerance_cluster",2.0);
+	param.setValue("mass_tolerance_cluster",2.0);
 	seeder.setParameters(param);
 	
 	FeaFiModule::IndexSet  region = seeder.nextSeed();
@@ -114,6 +115,7 @@ CHECK((IndexSet nextSeed()))
 		infile >> mz >> intensity;
 		
 		TEST_NOT_EQUAL(citer == region.end(),true)
+		ABORT_IF(citer == region.end())
 		
 		TEST_REAL_EQUAL(traits->getPeakRt(*citer),rt)
 		TEST_REAL_EQUAL(traits->getPeakMz(*citer),mz)
@@ -132,6 +134,7 @@ CHECK((IndexSet nextSeed()))
 		infile >> mz >> intensity;
 		
 		TEST_NOT_EQUAL(citer == region.end(),true)
+		ABORT_IF(citer == region.end())
 		
 		TEST_REAL_EQUAL(traits->getPeakRt(*citer),rt)
 		TEST_REAL_EQUAL(traits->getPeakMz(*citer),mz)
@@ -140,6 +143,44 @@ CHECK((IndexSet nextSeed()))
 		++citer;				
 	}	
 	infile.close();
+	
+	region = seeder.nextSeed();
+	infile.open( "data/IsotopeWaveletSeeder_region3");	
+	
+	citer = region.begin();
+	while ( infile >> rt )
+	{
+		infile >> mz >> intensity;
+		
+		TEST_NOT_EQUAL(citer == region.end(),true)
+		ABORT_IF(citer == region.end())
+		
+		TEST_REAL_EQUAL(traits->getPeakRt(*citer),rt)
+		TEST_REAL_EQUAL(traits->getPeakMz(*citer),mz)
+		TEST_REAL_EQUAL(traits->getPeakIntensity(*citer),intensity)
+				
+		++citer;				
+	}	
+	infile.close();
+	
+	region = seeder.nextSeed();
+	infile.open( "data/IsotopeWaveletSeeder_region4");	
+	
+	citer = region.begin();
+	while ( infile >> rt )
+	{
+		infile >> mz >> intensity;
+		
+		TEST_NOT_EQUAL(citer == region.end(),true)
+		ABORT_IF(citer == region.end())
+		
+		TEST_REAL_EQUAL(traits->getPeakRt(*citer),rt)
+		TEST_REAL_EQUAL(traits->getPeakMz(*citer),mz)
+		TEST_REAL_EQUAL(traits->getPeakIntensity(*citer),intensity)
+				
+		++citer;				
+	}	
+	infile.close();	
 	
 	// test exception, there should be no more seeds
 	TEST_EXCEPTION( FeaFiModule::NoSuccessor , seeder.nextSeed() )

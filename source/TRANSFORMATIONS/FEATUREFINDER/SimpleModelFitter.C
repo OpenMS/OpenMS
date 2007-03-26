@@ -119,6 +119,7 @@ namespace OpenMS
 		// not enough peaks to fit
 		if (set.size() < static_cast<UInt>(param_.getValue("min_num_peaks:extended")))
 		{
+			// reset flags
 			for (IndexSet::const_iterator it=set.begin(); it!=set.end(); ++it) 
 			{
 				traits_->getPeakFlag(*it) = FeaFiTraits::UNUSED;
@@ -170,11 +171,11 @@ namespace OpenMS
 		max_[RT] += stdev_rt2_;
 
 		// Test charges and stdevs
-		const int first_model = param_.getValue("mz:model_type:first");
-		const int last_model = param_.getValue("mz:model_type:last");
+		const Int first_model = (Int) param_.getValue("mz:model_type:first");
+		const Int last_model = (Int) param_.getValue("mz:model_type:last");
 		for ( ; stdev <= last; stdev += step)
 		{
-			for (int mz_fit_type = first_model; mz_fit_type <= last_model; ++mz_fit_type)
+			for (Int mz_fit_type = first_model; mz_fit_type <= last_model; ++mz_fit_type)
 			{
 				quality = fit_(set, static_cast<MzFitting>(mz_fit_type), BIGAUSS, stdev);
 				if (quality > max_quality)
@@ -198,10 +199,10 @@ namespace OpenMS
 		}
 
 		// find peak with highest predicted intensity to use as cutoff
-		float model_max = 0;
+		IntensityType model_max = 0;
 		for (IndexSet::const_iterator it=set.begin(); it!=set.end(); ++it)
 		{
-			float model_int = final->getIntensity(traits_->getPeakPos(*it));
+			IntensityType model_int = final->getIntensity(traits_->getPeakPos(*it));
 			if (model_int>model_max) model_max = model_int;
 		}
 		final->setCutOff( model_max * float(param_.getValue("intensity_cutoff_factor")));
@@ -243,12 +244,12 @@ namespace OpenMS
 		}
 
 		// Calculate intensity scaling
-		float model_sum = 0;
-		float data_sum = 0;
-		float data_max = 0;
+		IntensityType model_sum = 0;
+		IntensityType data_sum = 0;
+		IntensityType data_max = 0;
 		for (IndexSet::const_iterator it=model_set.begin(); it!=model_set.end(); ++it)
 		{
-			float model_int = final->getIntensity(traits_->getPeakPos(*it));
+			IntensityType model_int = final->getIntensity(traits_->getPeakPos(*it));
 			model_sum += model_int;
 			data_sum += traits_->getPeakIntensity(*it);
 			if (traits_->getPeakIntensity(*it) > data_max) data_max = traits_->getPeakIntensity(*it);
@@ -286,8 +287,8 @@ namespace OpenMS
 			f.setCharge(0);		
 		}
 				
-		int const intensity_choice = param_.getValue("feature_intensity_sum");
-		double feature_intensity = 0.0;
+		Int const intensity_choice = param_.getValue("feature_intensity_sum");
+		IntensityType feature_intensity = 0.0;
 		
 		if (intensity_choice == 1)
 		{

@@ -2,7 +2,7 @@
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
-//                   OpenMS Mass Spectrometry Framework 
+//                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
 //  Copyright (C) 2003-2007 -- Oliver Kohlbacher, Knut Reinert
 //
@@ -21,41 +21,15 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Marc Sturm $
+// $Maintainer: Ole Schulz-Trieglaff $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_DATASTRUCTURES_ISOTOPECLUSTER_H
-#define OPENMS_DATASTRUCTURES_ISOTOPECLUSTER_H
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/InterpolationModel.h>
 
-#include <OpenMS/CONCEPT/Types.h>
-
-#include <set>
 
 namespace OpenMS
-{	
-	///Stores information about an isotopic cluster (i.e. potential peptide charge variants)
-  struct IsotopeCluster
-  {
-  	/// An index in an MSExperiment
-  	typedef std::pair<UInt,UInt> IDX;
-  	
-    IsotopeCluster()
-      : charge_(0), 
-      	peaks_(), 
-      	scans_()
-    {
-    }
-    
-    /// predicted charge state of this peptide
-    UInt charge_;
-    
-    /// peaks in this cluster
-    std::set<IDX> peaks_;
-    
-    /// the scans of this cluster
-    std::vector<UInt> scans_;
-  };
+{
 
-} // namespace OPENMS
+	
 
-#endif // OPENMS_DATASTRUCTURES_ISOTOPECLUSTER_H
+} // namespace OpenMS

@@ -97,16 +97,17 @@ CHECK((IndexSet nextSeed()))
 	seeder.setTraits(traits);
 	
 	Param param;
-  param.setValue("min_number_scans",4);
-	param.setValue("noise_level_signal",10000);
-	param.setValue("noise_level_cwt",10000);
+	param.setValue("min_number_scans",0);
+	param.setValue("noise_level_signal",12000);
+	param.setValue("noise_level_cwt",9500);
 	param.setValue("scans_to_sumup",4);
-	param.setValue("cwt_scale",0.1);
+	param.setValue("cwt_scale",0.07);
+	param.setValue("min_peaks_per_scan",0);
 	seeder.setParameters(param);
 	
 	// test first seeding region	
 	FeaFiModule::IndexSet region = seeder.nextSeed();
-	
+
 	ifstream infile( "data/MarrWaveletSeeder_region1");	
 	DoubleReal intensity, rt, mz;
 	
@@ -116,6 +117,7 @@ CHECK((IndexSet nextSeed()))
 		infile >> mz >> intensity;
 		
 		TEST_NOT_EQUAL(citer == region.end(),true)
+		ABORT_IF(citer == region.end())
 		
 		TEST_REAL_EQUAL(traits->getPeakRt(*citer),rt)
 		TEST_REAL_EQUAL(traits->getPeakMz(*citer),mz)
@@ -136,6 +138,28 @@ CHECK((IndexSet nextSeed()))
 		infile >> mz >> intensity;
 		
 		TEST_NOT_EQUAL(citer == region.end(),true)
+		ABORT_IF(citer == region.end())
+		
+		TEST_REAL_EQUAL(traits->getPeakRt(*citer),rt)
+		TEST_REAL_EQUAL(traits->getPeakMz(*citer),mz)
+		TEST_REAL_EQUAL(traits->getPeakIntensity(*citer),intensity)
+				
+		++citer;				
+	}		
+	infile.close();
+	
+	// retrieve third region
+	region = seeder.nextSeed();
+	
+	infile.open( "data/MarrWaveletSeeder_region3");	
+	
+	citer = region.begin();
+	while ( infile >> rt )
+	{
+		infile >> mz >> intensity;
+		
+		TEST_NOT_EQUAL(citer == region.end(),true)
+		ABORT_IF(citer == region.end())
 		
 		TEST_REAL_EQUAL(traits->getPeakRt(*citer),rt)
 		TEST_REAL_EQUAL(traits->getPeakMz(*citer),mz)

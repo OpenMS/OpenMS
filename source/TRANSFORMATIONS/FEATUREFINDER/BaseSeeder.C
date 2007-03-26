@@ -43,6 +43,7 @@ namespace OpenMS
 		Factory<BaseSeeder>::registerProduct(MarrWaveletSeeder::getProductName(), &MarrWaveletSeeder::create);
 		Factory<BaseSeeder>::registerProduct(IsotopeWaveletSeeder::getProductName(), &IsotopeWaveletSeeder::create);
 		Factory<BaseSeeder>::registerProduct(DummySeeder::getProductName(), &DummySeeder::create);
+		
 	}	
 	
 	BaseSeeder::BaseSeeder()

@@ -159,15 +159,15 @@ namespace OpenMS
 			ContainerType& result = interpolation_.getData();
 	    result.clear ();
 
-      int rMax = std::min ( int( left.size() + right.size() - 1 ),
+      Int rMax = std::min ( int( left.size() + right.size() - 1 ),
 														int(2*normal_widening_width/interpolation_step_*max_isotope_+1) );
       result.resize ( rMax, 0 );
 
       // we loop backwards because then the small products tend to come first
       // (for better numerics)
-      for ( int i = left.size() - 1; i >= 0; --i )
+      for ( Int i = left.size() - 1; i >= 0; --i )
 			{
-				for ( int j = std::min ( rMax - i, int ( right.size() ) ) - 1; j >= 0 ; --j )
+				for ( Int j = std::min ( rMax - i, int ( right.size() ) ) - 1; j >= 0 ; --j )
 				{
 					result[i+j] += left[i] * right[j];
 				}

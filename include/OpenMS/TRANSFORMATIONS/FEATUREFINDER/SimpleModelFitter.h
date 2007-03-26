@@ -97,19 +97,25 @@ namespace OpenMS
     : public BaseModelFitter
   {
 	 public:
-		typedef FeaFiTraits::CoordinateType Coordinate;
-	
-		enum 
+	 
+	 	enum 
 			{
 				RT = RawDataPoint2D::RT,
 				MZ = RawDataPoint2D::MZ
 			};
-		
+	  
+			/// 
+			typedef FeaFiTraits::IntensityType IntensityType;
+			///
+			typedef FeaFiTraits::CoordinateType Coordinate;
+			///		
 			typedef Feature::CoordinateType CoordinateType;
+			///
 			typedef Feature::PositionType PositionType2D;
-	
-			enum RtFitting{ RTGAUSS=0, BIGAUSS=1};
-			enum MzFitting{ MZGAUSS=0, CHARGE1=1, CHARGE2=2, CHARGE3=3, CHARGE4=4	};
+			///
+			enum RtFitting { RTGAUSS=0, BIGAUSS=1};
+			/// 
+			enum MzFitting { MZGAUSS=0, CHARGE1=1, CHARGE2=2, CHARGE3=3, CHARGE4=4	, CHARGE5=5, CHARGE6=6 };
 	
 	    /// Default constructor
 	    SimpleModelFitter();

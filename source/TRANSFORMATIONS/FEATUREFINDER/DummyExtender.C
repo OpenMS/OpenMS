@@ -74,10 +74,11 @@ namespace OpenMS
   void DummyExtender::updateMembers_()
   {
 		// initialize members
-		dist_mz_up_     = param_.getValue("dist_mz_up");
-		dist_mz_down_ = param_.getValue("dist_mz_down");
-		dist_rt_up_       = param_.getValue("dist_rt_up");
-		dist_rt_down_   = param_.getValue("dist_rt_down");
+		dist_mz_up_                     = param_.getValue("dist_mz_up");
+		dist_mz_down_                 = param_.getValue("dist_mz_down");
+		dist_rt_up_       								  = param_.getValue("dist_rt_up");
+		dist_rt_down_   									= param_.getValue("dist_rt_down");
+		min_intensity_contribution_ = param_.getValue("min_intensity_contribution");
   }
 
 	const FeaFiModule::IndexSet& DummyExtender::extend(const IndexSet& seed_region)
@@ -110,7 +111,7 @@ namespace OpenMS
 		
 		// compute intensity threshold and sum
 		IntensityType intensity_sum = 0.0;
-		IntensityType min_intensity_contribution = param_.getValue("min_intensity_contribution");
+		
 				
     while (!boundary_.empty())
     {
@@ -122,11 +123,11 @@ namespace OpenMS
     	OPENMS_PRECONDITION(current_index.first<traits_->getData().size(), "Scan index outside of map!");
       OPENMS_PRECONDITION(current_index.second<traits_->getData()[current_index.first].size(), "Peak index outside of scan!");
 		
-			if (traits_->getPeakIntensity(current_index) < (intensity_sum/std::sqrt(std::max((IntensityType)region_.size(),1.0)) )  *  min_intensity_contribution )
+			if (traits_->getPeakIntensity(current_index) < (intensity_sum/std::sqrt(std::max((IntensityType)region_.size(),1.0)) )  *  min_intensity_contribution_ )
 			{
 				#ifdef DEBUG_FEATUREFINDER
  				cout << "Skipping point because of low intensity contribution. " << endl;
- 				cout << traits_->getPeakIntensity(current_index) << " " << (intensity_sum/std::sqrt(std::max((IntensityType) region_.size(),1.0) )  *  min_intensity_contribution ) << endl;
+ 				cout << traits_->getPeakIntensity(current_index) << " " << (intensity_sum/std::sqrt(std::max((IntensityType) region_.size(),1.0) )  *  min_intensity_contribution_ ) << endl;
 				#endif
 				continue;			 
 			}
