@@ -30,17 +30,14 @@
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/FORMAT/Param.h>
 #include <OpenMS/SYSTEM/File.h>
-#include <QtCore/QString>
 #include <QtCore/QStringList>
 #include <QtGui/QPushButton>
 #include <QtGui/QComboBox>
 #include <QtGui/QHBoxLayout>
-#include <QtGui/QVBoxLayout>
+#include <QtGui/QGridLayout>
 #include <QtGui/QLabel>
 #include <QtGui/QMessageBox>
 #include <QtGui/QRadioButton>
-#include <QtGui/QLineEdit>
-#include <QtCore/QDir>
 
 
 using namespace std;
@@ -52,11 +49,9 @@ namespace OpenMS
 		: QDialog(parent),
 			tmp_dir_(tmp_dir)
 	{
-		QVBoxLayout *main=new QVBoxLayout;
-		QVBoxLayout *vbox=NULL;
 		QHBoxLayout *hbox=NULL;
-		QGridLayout *grid=NULL;
-		QValidator *validator=NULL;
+		QGridLayout *main_grid=NULL;
+		QGridLayout *radio_grid=NULL;
 		QLabel *label=NULL;
 		
 		QStringList list = TOPPBase::registerTools();
@@ -64,46 +59,42 @@ namespace OpenMS
 		tools_combo_=new QComboBox;
 		tools_combo_->addItems(list);
 		connect(tools_combo_,SIGNAL(activated(int)),this,SLOT(setTool_(int)));
-		hbox=new QHBoxLayout;
-		hbox->addWidget(tools_combo_);
-		hbox->addStretch();
-		main->addLayout(hbox);
+		main_grid=new QGridLayout;
+		main_grid->addWidget(tools_combo_,0,0,1,2);
 		
 		label=new QLabel("input file:");
-		input_edit_=new QLineEdit;
-		validator = new QRegExpValidator(QRegExp("\\w+"),this);
-		input_edit_->setValidator(validator);
-		grid=new QGridLayout;
-		grid->addWidget(label,0,0);
-		grid->addWidget(input_edit_,0,1);
+		label->setAlignment(Qt::AlignHCenter|Qt::AlignVCenter);
+		input_combo_=new QComboBox;
+		input_combo_->setEnabled(false);
+		main_grid->addWidget(label,1,0);
+		main_grid->addWidget(input_combo_,1,1,1,1);
 		
 		label=new QLabel("output file:");
-		output_edit_=new QLineEdit;
-		validator = new QRegExpValidator(QRegExp("\\w+"),this);
-		output_edit_->setValidator(validator);
-		grid->addWidget(label,1,0);
-		grid->addWidget(output_edit_,1,1);
-		main->addLayout(grid);
-	
+		label->setAlignment(Qt::AlignHCenter|Qt::AlignVCenter);
+		output_combo_=new QComboBox;
+		output_combo_->setEnabled(false);
+		main_grid->addWidget(label,2,0);
+		main_grid->addWidget(output_combo_,2,1,1,1);
+		
+		
+		radio_grid=new QGridLayout;
 		label=new QLabel("Open As:");
-		hbox=new QHBoxLayout;
-		vbox=new QVBoxLayout;
+		label->setAlignment(Qt::AlignHCenter|Qt::AlignVCenter);
 		window_radio_=new QRadioButton("New Window");
-		vbox->addWidget(window_radio_);
+		radio_grid->addWidget(window_radio_,0,0);
 		layer_radio_=new QRadioButton("New Layer");
 		layer_radio_->setChecked(true);
-		vbox->addWidget(layer_radio_);
-		hbox->addWidget(label);
-		hbox->addLayout(vbox);
-		hbox->addStretch();
-		main->addLayout(hbox);
+		radio_grid->addWidget(layer_radio_,1,0);
+		main_grid->addWidget(label,3,0);
+		main_grid->addLayout(radio_grid,3,1);
 		
 		
 		
 		
 		editor_=new ParamEditor;
 		
-		main->addWidget(editor_);
+		main_grid->addWidget(editor_,4,0,2,4);
+		
 		
 		hbox=new QHBoxLayout;
 		hbox->addStretch();
@@ -116,10 +107,9 @@ namespace OpenMS
 		QPushButton* cancel_button=new QPushButton(tr("&Cancel"));
 		connect(cancel_button,SIGNAL(clicked()),this,SLOT(cancel_()));
 		hbox->addWidget(cancel_button);
+		main_grid->addLayout(hbox,6,0,1,4);
 		
-		main->addLayout(hbox);
-		
-		setLayout(main);
+		setLayout(main_grid);
 		
 		setWindowTitle(tr("TOPP tools"));
 		
@@ -148,6 +138,8 @@ namespace OpenMS
 			else
 			{
 				ok_button_->setEnabled(true);
+				input_combo_->setEnabled(true);
+				output_combo_->setEnabled(true);
 				if(!arg_param_.empty())
 				{
 					arg_param_.clear();
@@ -157,14 +149,21 @@ namespace OpenMS
 				arg_param_.load((tmp_dir_+"/in.ini").c_str());
 				editor_->loadEditable(arg_param_);
 				String str;
+				QStringList arg_list;
 				for (Param::ConstIterator iter=arg_param_.begin();iter!=arg_param_.end();++iter)
 				{
 					str=iter->first.substr(iter->first.rfind("1:")+2,iter->first.size());
 					if(str.size()!=0 && str.find(":")==String::npos)
 					{
 						arg_map_.insert(make_pair(str,iter->first));
+						arg_list<<QStringList(str.c_str());
 					}
 				}
+				arg_list.push_front("<select>");
+				input_combo_->clear();
+				output_combo_->clear();
+				input_combo_->addItems(arg_list);
+				output_combo_->addItems(arg_list);
 			}
 
 		}
@@ -187,9 +186,9 @@ namespace OpenMS
 	
 	void ToolsDialog::setInput_()
 	{
-		if(!input_edit_->text().isEmpty())
+		if(!input_combo_->currentIndex() && input_combo_->currentIndex()!=-1)
 		{
-			input_string_=input_edit_->text().toStdString();
+			input_string_=input_combo_->currentText().toStdString();
 		}
 		else if(!arg_param_.getValue(arg_map_["in"]).toString().empty())
 		{
@@ -203,9 +202,9 @@ namespace OpenMS
 	
 	void ToolsDialog::setOutput_()
 	{
-		if(!output_edit_->text().isEmpty())
+		if(!output_combo_->currentIndex() && output_combo_->currentIndex()!=-1)
 		{
-			output_string_=output_edit_->text().toStdString();
+			output_string_=output_combo_->currentText().toStdString();
 		}
 		else if(!arg_param_.getValue(arg_map_["out"]).toString().empty())
 		{

@@ -28,17 +28,11 @@
 #ifndef OPENMS_VISUAL_DIALOGS_TOOLSDIALOG_H
 #define OPENMS_VISUAL_DIALOGS_TOOLSDIALOG_H
 
-class QString;
-class QStringList;
 class QComboBox;
-class QHBoxLayout;
 class QPushButton;
 class QRadioButton;
-class QLabel;
-class QLineEdit;
 
 #include <QtGui/QDialog>
-#include <QtCore/QDir>
 #include <OpenMS/FORMAT/Param.h>
 
 namespace OpenMS 
@@ -52,10 +46,8 @@ namespace OpenMS
 		Remember to set the PATH-variable to the OpenMS/bin directory before executing the TOPP-tools dialog!
 		Before clicking ok-button you should open a file with spectrum data.
 		
-		@todo Keep only the grid layout, except for buttons layout (Stefan)
 		@todo Add writing of feature pairs (Stefan)
 		@todo Write docu (Stefan)
-		@todo Replace QLineEdit by QComboBox (Stefan)
 		@todo Show only entries below '1' (Stefan)
 		
 		@ingroup Dialogs
@@ -82,8 +74,8 @@ namespace OpenMS
 		
 			ParamEditor *editor_;
 			QComboBox* tools_combo_;
-			QLineEdit* input_edit_;
-			QLineEdit* output_edit_;
+			QComboBox* input_combo_;
+			QComboBox* output_combo_;
 			Param arg_param_;
 			QPushButton* ok_button_;
 			QRadioButton* window_radio_;
