@@ -43,8 +43,8 @@ class QLineEdit;
 
 namespace OpenMS 
 {
-class ParamEditor;
-class Param;
+	class ParamEditor;
+	class Param;
 	/**
 		@brief Dialog for executing a TOPP Tool
 		
@@ -52,11 +52,12 @@ class Param;
 		Remember to set the PATH-variable to the OpenMS/bin directory before executing the TOPP-tools dialog!
 		Before clicking ok-button you should open a file with spectrum data.
 		
-		@todo Keep only the grid layout (Stefan)
-		@todo Writing of feature pairs (Stefan)
+		@todo Keep only the grid layout, except for buttons layout (Stefan)
+		@todo Add writing of feature pairs (Stefan)
 		@todo Write docu (Stefan)
 		@todo Replace QLineEdit by QComboBox (Stefan)
-
+		@todo Show only entries below '1' (Stefan)
+		
 		@ingroup Dialogs
 	*/
 	class ToolsDialog

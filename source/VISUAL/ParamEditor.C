@@ -31,7 +31,7 @@
 #include <QtGui/QAction>
 #include <QtGui/QKeyEvent>
 #include <QtGui/QMenu>
-
+#include <QtGui/QMessageBox>
 
 using namespace std;
 
@@ -199,23 +199,20 @@ namespace OpenMS
 		{
 			if(param_editable_!=NULL)
 			{
-				
 				ret=true;
 				QTreeWidgetItem* parent=this->invisibleRootItem();  
 				param_editable_->clear();
 				path+=parent->child(0)->text(0).toStdString();
 				
-		
 				for (Int i = 0; i < parent->child(0)->childCount();++i)
 				{
 					storeRecursive_(parent->child(0)->child(i),path);	//whole tree recursively
 				}	
-			
 			}
 		}
 		else 
 		{
-			std::cerr<<"\n***You must stick to the Param format!***\n";
+			QMessageBox::critical(const_cast<ParamEditor*>(this),"Error writing file!","Look at the output to stderr for details!");
 		}
 		return ret;
 	}
@@ -307,73 +304,69 @@ namespace OpenMS
 	
 	bool ParamEditor::isValidRecursive_(QTreeWidgetItem* parent) const
 	{
-		bool ret=true;
-		bool ok1,ok2;
-		if(parent->childCount()==0)		//   *******ITEM*******
+		bool ok;
+		// -- ITEM --
+		if(parent->childCount()==0)		
 		{
 			if(parent->text(0).size()==0)
 			{
-				ret=false;
-				
+				cerr << "ParamEditor: Error - Empty item name!" << endl;	
+				return false;
+			}
+			
+			String type = parent->text(2).toStdString();
+			if(type=="int")
+			{
+				parent->text(1).toLong(&ok);
+				if(!ok)
+				{
+					cerr << "ParamEditor: Error - Invalid 'int' value '" << parent->text(1).toStdString() << "'!" << endl;	
+					return false;
+				}
+			}
+			else if(type=="float")
+			{
+				parent->text(1).toDouble(&ok);
+				if(!ok)
+				{
+					cerr << "ParamEditor: Error - Invalid 'float' value '" << parent->text(1).toStdString() << "'!" << endl;	
+					return false;
+				}
+			}
+			else if(type=="string")
+			{
+				//nothing to check here, but not removable because of else case
 			}
 			else
 			{
-				parent->text(0).toDouble(&ok1);
-				parent->text(0).toLong(&ok2);
-				if(ok1==true || ok2==true) ret=false;
-				
-
-			}
-			if(parent->text(2)=="int")
-			{
-				parent->text(1).toLong(&ok1);
-				if(!ok1) ret=false;
-				if(parent->text(1).size()==0) ret=true;
-				
-
-			}
-			else if(parent->text(2)=="float")
-			{
-				parent->text(1).toDouble(&ok1);
-				if(!ok1) ret=false;
-				if(parent->text(1).size()==0) ret=true;
-				
-			}
-			else if(parent->text(2)=="string")
-			{
-				
-				parent->text(1).toDouble(&ok1);
-				parent->text(1).toLong(&ok2);
-				if(ok1==true || ok2==true) ret=false;
-				if(parent->text(1).size()==0) ret=true;
-				
-			}
-			else
-			{
-				ret=false;
-				
-				
+				cerr << "ParamEditor: Error - Unknown type '" << type << "'!" << endl;	
+				return false;
 			}
 		}
-		else				//  *****NODE********
+		// -- NODE --
+		else 
 		{
-			if(parent->text(0).size()==0 || parent->text(1).size()!=0 || parent->text(2).size()!=0)		//if name of node is empty or type and value are not empty--> wrong format
+			//name of node is empty
+			if(parent->text(0).size()==0)		
 			{
-				ret=false;
-				
+				cerr << "ParamEditor: Error - Empty subsection!" << endl;	
+				return false;
 			}
-			else
-			{
-				parent->text(0).toLong(&ok1);
-				parent->text(0).toDouble(&ok2);
-				//if(ok1==true || ok2==true ) ret=false;	//(if name of node can be converted to a number--> wrong format) is maybe too strict?
-			}
+			//check whole tree recursively
+			ok = true;
 			for (Int i = 0; i < parent->childCount();++i)
 			{
-				if(!(isValidRecursive_(parent->child(i)))) ret=false;	//check whole tree recursively
-			}	
+				if(isValidRecursive_(parent->child(i))==false)
+				{
+					ok = false;
+				}
+			}
+			if (!ok)
+			{
+				return false;
+			}
 		}	
-		return ret;
+		return true;
 	}
 
 	void ParamEditor::keyPressEvent(QKeyEvent* e)
