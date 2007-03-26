@@ -29,7 +29,7 @@
 #include <OpenMS/VISUAL/ParamEditor.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/FORMAT/Param.h>
-#include <QtCore/QFileInfo>
+#include <OpenMS/SYSTEM/File.h>
 #include <QtCore/QString>
 #include <QtCore/QStringList>
 #include <QtGui/QPushButton>
@@ -48,19 +48,16 @@ using namespace std;
 namespace OpenMS
 {
 
-	ToolsDialog::ToolsDialog( QWidget * parent)
-		: QDialog(parent)
+	ToolsDialog::ToolsDialog( QWidget * parent, String tmp_dir)
+		: QDialog(parent),
+			tmp_dir_(tmp_dir)
 	{
-		
-		
 		QVBoxLayout *main=new QVBoxLayout;
 		QVBoxLayout *vbox=NULL;
 		QHBoxLayout *hbox=NULL;
 		QGridLayout *grid=NULL;
 		QValidator *validator=NULL;
 		QLabel *label=NULL;
-			
-
 		
 		QStringList list = TOPPBase::registerTools();
 		list.push_front("<select>");
@@ -92,9 +89,9 @@ namespace OpenMS
 		hbox=new QHBoxLayout;
 		vbox=new QVBoxLayout;
 		window_radio_=new QRadioButton("New Window");
-		window_radio_->setChecked(true);
 		vbox->addWidget(window_radio_);
 		layer_radio_=new QRadioButton("New Layer");
+		layer_radio_->setChecked(true);
 		vbox->addWidget(layer_radio_);
 		hbox->addWidget(label);
 		hbox->addLayout(vbox);
@@ -139,17 +136,25 @@ namespace OpenMS
 	{
 		if(i)
 		{
-			ok_button_->setEnabled(true);
-			system((ToolsDialog::getTool()+" -write_ini /tmp/in.ini").c_str());
-			if(QFileInfo("/tmp/in.ini").exists())
-			{	
+			String call = ToolsDialog::getTool()+" -write_ini "+tmp_dir_+"/in.ini";
+			if(system(call.c_str())!=0)
+			{
+				QMessageBox::critical(this,"Error",(String("Could not execute '")+call+"'!").c_str());
+			}
+			else if(!File::exists(tmp_dir_+"/in.ini"))
+			{
+				QMessageBox::critical(this,"Error",(String("Could not open '")+tmp_dir_+"/in.ini'!").c_str());
+			}
+			else
+			{
+				ok_button_->setEnabled(true);
 				if(!arg_param_.empty())
 				{
 					arg_param_.clear();
 					editor_->deleteAll();
 					arg_map_.clear();
 				}
-				arg_param_.load("/tmp/in.ini");
+				arg_param_.load((tmp_dir_+"/in.ini").c_str());
 				editor_->loadEditable(arg_param_);
 				String str;
 				for (Param::ConstIterator iter=arg_param_.begin();iter!=arg_param_.end();++iter)
@@ -161,17 +166,14 @@ namespace OpenMS
 					}
 				}
 			}
-			else
-			{
-				QMessageBox::warning(this,"Warning","OpenMS/bin must be set in your PATH-variable!");
-			}
+
 		}
 	}
 	
 	void ToolsDialog::ok_()
 	{
 		editor_->store();
-		arg_param_.store("/tmp/in.ini");
+		arg_param_.store(tmp_dir_+"/in.ini");
 		setInput_();
 		setOutput_();
 		

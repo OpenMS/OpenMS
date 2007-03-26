@@ -57,7 +57,7 @@ help:
 	@echo "";
 	@echo "Main targets:";
 	@echo " [lib]      builds the OpenMS library";
-	@echo " install    installes the OpenMS library"; 
+	@echo " install    installs the OpenMS library"; 
 	@echo " test       executes a test suite for the OpenMS library";
 	@echo " TOPP       builds the TOPP tools";
 	@echo " TOPPtest   executes a test suite for the TOPP tools";

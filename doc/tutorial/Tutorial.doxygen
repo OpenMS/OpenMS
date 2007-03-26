@@ -81,7 +81,7 @@
 
 	The main classes of OpenMS are implemented in the namespace @a OpenMS. There are several
 	sub-namespaces to the @a OpenMS namespace. The most important ones are:
-	- @a OpenMS::Internal contains auxilary classes that are typically used by only a few classes.
+	- @a OpenMS::Internal contains auxiliary classes that are typically used by only a few classes.
   - @a OpenMS::Constants contains nature constants.
   - @a OpenMS::Math contains math functions and classes.
   - @a OpenMS::Exception contains the OpenMS exceptions.
@@ -94,7 +94,7 @@
   All exceptions are defined in the namespace @a OpenMS::Exception. The Base class for all
   OpenMS exceptions is @a Base. This base class provides three members, which facilitate
   debugging OpenMS exceptions. It stores the source file, the line number and the function
-  name where the exception occured. All derived exceptions provide a constructor that takes
+  name where the exception occurred. All derived exceptions provide a constructor that takes
   at least these arguments. The following code snippet show the handling of an index overflow:	
 	@code
 	  void someMethode(UInt index) throw (Exception::IndexOverflow)
@@ -141,7 +141,7 @@
 
 /**
 
-@page tutorial_datastructures Auxilary datastructures
+@page tutorial_datastructures Auxiliary datastructures
 	
 	This section contains a short introduction to three datastructures you will
   definitely need when programming with OpenMS. The datastructures module of the
@@ -157,7 +157,7 @@
 	There is one property @a String inherits form @a QString that you should know about. 
   QString uses implicit sharing (copy-on-write), i.e. two copies of QString with
   the same content point to the same character array as long as you do not modify 
-  one of the strings. This behaviour allows to use pass-by-value instead of 
+  one of the strings. This behavior allows to use pass-by-value instead of 
   pass-by-reference without loosing performance. A list of all Qt classes that use
   implicit sharing can be found in the Qt reference manual.
 
@@ -169,7 +169,7 @@
 
   Many OpenMS classes, especially the kernel classes, need to store some kind of 
   d-dimensional coordinates. The template class @a DPosition is used for that purpose.
-	The interface of DPosition is pretty steight forward. The operator[] is used to
+	The interface of DPosition is pretty straight forward. The operator[] is used to
   access the coordinate of the different dimensions. The dimensionality is stored
   in the enum value @a DIMENSION. The following example shows how to print a DPosition
   to the standard output stream.
@@ -183,7 +183,7 @@
 	Finally we, print the content of the DPosition to the standard output stream:
 	@until main
 	
-	The output of our first litte OpenMS program is the following:
+	The output of our first little OpenMS program is the following:
 	@code
     Dimension 0: 8.15
     Dimension 1: 47.11
@@ -197,7 +197,7 @@
   set by the @a setMin and @a setMax methods.
 
   DRange maintains the invariant that @a min is geometrically less or equal to @a max,
-  i.e. @f$ min()[x] <= max()[x]' @f$. The following example demonstrates this behavour.
+  i.e. @f$ min()[x] <= max()[x]' @f$. The following example demonstrates this behavior.
 
   This time we skip everything before the main method. In the main method we 
   create a range and assign values to @a min and @a max. Note that the the minimum
@@ -318,19 +318,19 @@
 @section kernel_maps Maps 
 	
 	Although raw data maps, peak maps and feature maps are conceptually very similar. They are stored in different
-  data tyes. For raw data and peak maps, the default container is @a MSExperiment, which is an array of @a MSSpectrum
+  data types. For raw data and peak maps, the default container is @a MSExperiment, which is an array of @a MSSpectrum
 	instances. Just as @a MSSpectrum it is a template class with the peak type as template parameter.
 
 	In contrast the to raw data and peak maps, feature maps are no collection of one-dimensional spectra, but a set
   of two-dimensional @a Feature instances. The main datastructure for feature maps is called @a FeatureMap.
 
 	Although @a MSExperiment and @a FeatureMap differ in the data they store, they also have things in common.
-  Both stores meta data that is valid for the whole map, i.e. sample decription and instrument description.
-  This data is stored in the commeon base class @a ExperimentalSettings.
+  Both stores meta data that is valid for the whole map, i.e. sample description and instrument description.
+  This data is stored in the common base class @a ExperimentalSettings.
 
 	@par MSExperiment
 	The following figure shows the big picture of the kernel datastructures. @a MSExperiment is the 
-	@image html Kernel.png "Overvide of the main kernel datastructures" 
+	@image html Kernel.png "Overview of the main kernel datastructures" 
 	@image latex Kernel.png "Overview of the main kernel datastructures" width=10cm
 
 TODO: maps, default typedefs, feature maps

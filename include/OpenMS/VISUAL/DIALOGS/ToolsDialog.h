@@ -65,7 +65,7 @@ class Param;
 		Q_OBJECT
 		
 		public:
-			ToolsDialog( QWidget* parent = 0 );
+			ToolsDialog( QWidget* parent, String tmp_dir );
 			String getOutput();
 			String getInput();
 			String getTool();
@@ -90,7 +90,9 @@ class Param;
 			std::map<String,String> arg_map_;
 			String input_string_;
 			String output_string_;
-		
+			/// Temporary files directory
+			String tmp_dir_;
+			
 		protected slots:
 			/// ok button pressed
 			void ok_();

@@ -312,7 +312,7 @@ namespace OpenMS
         //wrong active window type
         if (w==0)
         {
-          QMessageBox::warning(this,"Wrong file type",("You cannot open 1D data ("+db_id_string+") in a 2D window!<BR>Please open the file in new tab.").c_str());
+          QMessageBox::critical(this,"Wrong file type",("You cannot open 1D data ("+db_id_string+") in a 2D window!<BR>Please open the file in new tab.").c_str());
           return;
         }
         else //open it
@@ -335,7 +335,7 @@ namespace OpenMS
         //wrong active window type
         if (w2==0 && w3==0)
         {
-          QMessageBox::warning(this,"Wrong file type",("You cannot open 1D data ("+db_id_string+") in a 2D/3D window!<BR>Please open the file in new tab.").c_str());
+          QMessageBox::critical(this,"Wrong file type",("You cannot open 1D data ("+db_id_string+") in a 2D/3D window!<BR>Please open the file in new tab.").c_str());
           return;
         }
         //create 2D view
@@ -450,7 +450,7 @@ namespace OpenMS
   {
     if (!File::exists(filename))
     {
-      QMessageBox::warning(this,"Open file error",("The file '"+filename+"' does not exist!").c_str());
+      QMessageBox::critical(this,"Open file error",("The file '"+filename+"' does not exist!").c_str());
       return;
     }
 
@@ -485,7 +485,7 @@ namespace OpenMS
 
 		if (force_type==FileHandler::UNKNOWN)
 		{
-      QMessageBox::warning(this,"Open file error",("Could not determine file type of '"+filename+"'!").c_str());
+      QMessageBox::critical(this,"Open file error",("Could not determine file type of '"+filename+"'!").c_str());
       return;
 		}
 
@@ -519,30 +519,19 @@ namespace OpenMS
     {
       if (active1DWindow_()!=0) //1D window
       {
-        //if (force_type!=FileHandler::DTA)
-        //{
-        //  QMessageBox::warning(this,"Wrong file type",("You cannot open 2D data ("+filename+") in a 1D window!").c_str());
-        //  return;
-        //}
-
         w = active1DWindow_();
       }
       else if (active2DWindow_()!=0) //2d window
       {
         if (force_type==FileHandler::DTA)
         {
-          QMessageBox::warning(this,"Wrong file type",("You cannot open 1D data ("+filename+") in a 2D window!").c_str());
+          QMessageBox::critical(this,"Wrong file type",("You cannot open 1D data ("+filename+") in a 2D window!").c_str());
           return;
         }
         w = active2DWindow_();
       }
       else if (active3DWindow_()!=0)//3d window
       {
-        //if (force_type==FileHandler::DTA)
-        //{
-        //  QMessageBox::warning(this,"Wrong file type",("You cannot open 1D data ("+filename+") in a 3D window!").c_str());
-        //  return;
-        //}
         w = active3DWindow_();
       }
     }
@@ -557,7 +546,7 @@ namespace OpenMS
       }
       catch(Exception::Base& e)
       {
-        QMessageBox::warning(this,"Error",(String("Error while reading feature file: ")+e.what()).c_str());
+        QMessageBox::critical(this,"Error",(String("Error while reading feature file: ")+e.what()).c_str());
         return;
       }
       w->canvas()->addLayer(map,false);
@@ -573,7 +562,7 @@ namespace OpenMS
       }
       catch(Exception::Base& e)
       {
-        QMessageBox::warning(this,"Error",(String("Error while reading feature pairs file: ")+e.what()).c_str());
+        QMessageBox::critical(this,"Error",(String("Error while reading feature pairs file: ")+e.what()).c_str());
         return;
       }
       
@@ -593,7 +582,7 @@ namespace OpenMS
       }
       catch(Exception::Base& e)
       {
-        QMessageBox::warning(this,"Error",(String("Error while reading data file: ")+e.what()).c_str());
+        QMessageBox::critical(this,"Error",(String("Error while reading data file: ")+e.what()).c_str());
         return;
       }
 
@@ -1704,6 +1693,7 @@ namespace OpenMS
     default_preferences.setValue("DB:Port", "3306");
     default_preferences.setValue("DefaultMapView", "2D");
     default_preferences.setValue("DefaultPath", ".");
+    default_preferences.setValue("TmpPath", "/tmp/");
     default_preferences.setValue("NumberOfRecentFiles", 15);
     default_preferences.setValue("Legend", "Show");
     default_preferences.setValue("MapIntensityCutoff", "None");
@@ -1822,6 +1812,11 @@ namespace OpenMS
 		//EXECUTE DIALOG + STORE DATA
 		if (dialog.exec())
 		{
+			if (!File::writable(name.toAscii().data()))
+			{
+				QMessageBox::critical(this,"Error writing file!",(String("Cannot write to '")+name.toAscii().data()+"'!").c_str());
+				return;
+			}
 			edit->store();
 			p.store(name.toAscii().data());
 		}
@@ -1829,8 +1824,9 @@ namespace OpenMS
 
 	void TOPPViewBase::showTOPPDialog()
 	{
+		String tmp_dir = prefs_.getValue("Preferences:TmpPath").toString();
 		
-		ToolsDialog dialog(this);
+		ToolsDialog dialog(this,tmp_dir);
 	
 		if(dialog.exec()==QDialog::Accepted)
 		{
@@ -1843,36 +1839,51 @@ namespace OpenMS
 				{
 					QMessageBox::warning(this,"Warning","The current layer is not visible!");
 				}
+				if (!File::writable(tmp_dir+"/in"))
+				{
+					QMessageBox::critical(this,"Error creating temporary file!",(String("Cannot write to '")+tmp_dir+"/in'!").c_str());
+					return;
+				}
+				if (!File::writable(tmp_dir+"/out"))
+				{
+					QMessageBox::critical(this,"Error creating temporary file!",(String("Cannot write to '")+tmp_dir+"/out'!").c_str());
+					return;
+				}
 				if (layer.type==LayerData::DT_PEAK)
 				{
-					MzDataFile().store("/tmp/in",layer.peaks);
+					MzDataFile().store(tmp_dir+"/in",layer.peaks);
 				}
 				else if (layer.type==LayerData::DT_FEATURE)
 				{
-					FeatureMapFile().store("/tmp/in",layer.features);
+					FeatureMapFile().store(tmp_dir+"/in",layer.features);
 				}
 				else if (layer.type==LayerData::DT_FEATURE_PAIR)
 				{
-					//TODO FeaturePairsFile().store("/tmp/in",layer.features);
+					//TODO FeaturePairsFile().store(tmp_dir+"in",layer.features);
 				}
 				else
 				{
 					return;
 				}
 					
-				String call = dialog.getTool() + " -ini /tmp/in.ini -"+dialog.getInput()+" /tmp/in -"+dialog.getOutput()+" /tmp/out > /tmp/TOPP.log 2>&1";
+				String call = dialog.getTool() + " -ini "+tmp_dir+"/in.ini -"+dialog.getInput()+" "+tmp_dir+"/in -"+dialog.getOutput()+" "+tmp_dir+"/out > "+tmp_dir+"/TOPP.log 2>&1";
 					
 				if (system(call.c_str())!=0)
 				{
 					TextFile f;
-					f.load("/tmp/TOPP.log");
+					f.load(tmp_dir+"/TOPP.log");
 					String log_file;
 					log_file.implode(f.begin(),f.end(),"<BR>");
-       		QMessageBox::warning(this,"Execution of TOPP tool not successful!",log_file.c_str());
+       		QMessageBox::critical(this,"Execution of TOPP tool not successful!",log_file.c_str());
+				}
+				else if (!File::readable(tmp_dir+"/out"))
+				{
+					QMessageBox::critical(this,"Error creating temporary file!",(String("Cannot read '")+tmp_dir+"/in'!").c_str());
+					return;
 				}
 				else
 				{
-					addSpectrum("/tmp/out",dialog.isWindow(),true,true);
+					addSpectrum(tmp_dir+"/out",dialog.isWindow(),true,true);
 				}
 			}
 		}

@@ -60,13 +60,16 @@ namespace OpenMS
 			virtual void save();
 		
 		protected slots:
-			/// Opens a dialog for brousing through the filesystem
+			/// Opens a dialog for browsing through the filesystem
 			void browseDefaultPath_();
+			/// Opens a dialog for browsing through the filesystem
+			void browseTmpPath_();
 		
 		protected:
 			
 			//general
 			QLineEdit* main_default_path_;
+			QLineEdit* main_tmp_path_;
 			QSpinBox* recent_files_;
 			QComboBox* default_map_view_;
 			QComboBox* show_legend_;

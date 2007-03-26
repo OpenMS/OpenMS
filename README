@@ -6,5 +6,18 @@
 
 This directory contains the sources of OpenMS.
 
-Detailled installation instructions can be found in the documentation (doc/index.html).
-There you find the the installation instructions for the contrib package as well!
+Detailled installation instructions can be found in
+the documentation (doc/index.html).
+
+
+
+------------------------------
+--       TOPP tools         --
+------------------------------
+
+In addition to the OpenMS library 'The OpenMS Proteomics 
+Pipeline' - TOPP is also included in this package.
+The installation instructions for OpenMS at doc/index.html 
+also contain installation instructions for TOPP!
+
+

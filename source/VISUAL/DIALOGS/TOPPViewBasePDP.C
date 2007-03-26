@@ -79,24 +79,31 @@ namespace OpenMS
 			QPushButton* tmp = new QPushButton("Browse",tab);
 			grid->addWidget(tmp,0,2);
 			connect(tmp,SIGNAL(clicked()),this,SLOT(browseDefaultPath_()));
+			//tmp path
+			main_tmp_path_ = new QLineEdit(tab);
+			addWidget_(grid,1,"Tmporary file path:",main_tmp_path_);
+			main_tmp_path_->setMinimumWidth(fontMetrics().width('W') * 25);
+			tmp = new QPushButton("Browse",tab);
+			grid->addWidget(tmp,1,2);
+			connect(tmp,SIGNAL(clicked()),this,SLOT(browseTmpPath_()));
 			//recent files
 			recent_files_ = addSpinBox_(tab,1,20,1);
-			addWidget_(grid,1,"Number of recent files:",recent_files_);
+			addWidget_(grid,2,"Number of recent files:",recent_files_);
 			//default map view
 			default_map_view_ = new QComboBox( tab);
 			default_map_view_->insertItem(0,"2D");
 			default_map_view_->insertItem(1,"3D (experimental)");
-			addWidget_(grid,2,"Default map visualization:",default_map_view_);
+			addWidget_(grid,3,"Default map visualization:",default_map_view_);
 			//legend
 			show_legend_ = new QComboBox( tab);
 			show_legend_->insertItem(0,"Show");
 			show_legend_->insertItem(1,"Hide");
-			addWidget_(grid,3,"Axis legend:",show_legend_);
+			addWidget_(grid,4,"Axis legend:",show_legend_);
 			//legend
 			intensity_cutoff_ = new QComboBox( tab);
 			intensity_cutoff_->insertItem(0,"None");
 			intensity_cutoff_->insertItem(1,"Noise Estimator");
-			addWidget_(grid,4,"Map intensity cutoff:",intensity_cutoff_);
+			addWidget_(grid,5,"Map intensity cutoff:",intensity_cutoff_);
 			
 			finish_(grid);
 			
@@ -271,6 +278,7 @@ namespace OpenMS
 		{
 			//general
 			main_default_path_->setText(manager_->getPrefAsString("Preferences:DefaultPath").c_str());
+			main_tmp_path_->setText(manager_->getPrefAsString("Preferences:TmpPath").c_str());
 			recent_files_->setValue(manager_->getPrefAsInt("Preferences:NumberOfRecentFiles"));
 			default_map_view_->setCurrentIndex(default_map_view_->findText(manager_->getPrefAsString("Preferences:DefaultMapView").c_str()));
 			show_legend_->setCurrentIndex(show_legend_->findText(manager_->getPrefAsString("Preferences:Legend").c_str()));
@@ -343,6 +351,7 @@ namespace OpenMS
 		{
 			//main
 			manager_->setPref("Preferences:DefaultPath", main_default_path_->text().toAscii().data());
+			manager_->setPref("Preferences:TmpPath", main_tmp_path_->text().toAscii().data());
 			manager_->setPref("Preferences:NumberOfRecentFiles", recent_files_->value());
 			manager_->setPref("Preferences:DefaultMapView", default_map_view_->currentText().toAscii().data());
 			manager_->setPref("Preferences:Legend", show_legend_->currentText().toAscii().data());
@@ -427,6 +436,15 @@ namespace OpenMS
 			if (path!="")
 			{
 				main_default_path_->setText(path);
+			}
+		}
+
+		void TOPPViewBasePDP::browseTmpPath_()
+		{
+			QString path = QFileDialog::getExistingDirectory(this, "Choose a directory", main_tmp_path_->text());
+			if (path!="")
+			{
+				main_tmp_path_->setText(path);
 			}
 		}
 

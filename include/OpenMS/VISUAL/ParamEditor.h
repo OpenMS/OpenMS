@@ -48,7 +48,8 @@ namespace OpenMS
 		@todo Allow valid Param types only (Stefan)
 		@todo Allow deleting an entry (Stefan)
 		@todo Show only entries below '1' (Stefan)
-		@todo Add INIFileEditor tool (Stefan)
+		@todo Make expanding/collapsing only a subtree possible (Stefan)
+		@todo Add INIFileEditor TOPP tool (Stefan)
 		
 		@ingroup Visual
 	*/
