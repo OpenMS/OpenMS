@@ -476,7 +476,10 @@ MapAlignment_test: $(NUMERICDIFF)
 
 	@$(ECHO) "- Test 2: peak files"
 	@$(call RUN_PROG_OPT,MapAlignment, -ini MapAlignment_1_peak_parameters.ini -out MapAlignment_1_peak_output.tmp)
-	@$(call TEST_FILE_EQUAL,MapAlignment_1_peak_consensus.xml, MapAlignment_1_peak_output.tmp)
+	@$(MV) MapAlignmentPeakMap2.grid MapAlignment_1_peak_grid.tmp
+	@$(MV) MapAlignmentPeakMap2_dewarped.mzData MapAlignment_1_peak_dewarped.tmp
+	@$(call TEST_FILE_EQUAL,MapAlignment_1_peak_grid.output, MapAlignment_1_peak_grid.tmp)
+	@$(call TEST_FILE_EQUAL,MapAlignment_1_peak_dewarped.output, MapAlignment_1_peak_dewarped.tmp)
 
 	@$(ECHO) "- Test 3: consensus files"
 	@$(call RUN_PROG_OPT,MapAlignment, -ini MapAlignment_1_consensus_parameters.ini -out MapAlignment_1_consensus_output.tmp)
