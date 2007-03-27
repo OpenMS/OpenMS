@@ -178,13 +178,14 @@ void BaseSweepSeeder::sweep_()
 				// walk to the left (for at most 2 Th)
 				while (mz_dist < 2.0 && this_peak < current_scan.size())
 				{
+					mz_dist = ( start_mz - traits_->getPeakMz( make_pair(currscan_index,this_peak) ) );
+					
 					if (traits_->getPeakFlag( make_pair(currscan_index,this_peak) ) == FeaFiTraits::UNUSED )
 					{
 						entry_to_insert->second.peaks_.insert( make_pair(currscan_index,this_peak) );
 						traits_->getPeakFlag( make_pair(currscan_index,this_peak) ) = FeaFiTraits::SEED;
 					}
-					
-					mz_dist = ( start_mz - traits_->getPeakMz( make_pair(currscan_index,--this_peak) ) );
+					--this_peak;
 				}
 			
 				// reset
