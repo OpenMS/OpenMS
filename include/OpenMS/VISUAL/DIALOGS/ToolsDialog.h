@@ -49,6 +49,7 @@ namespace OpenMS
 		@todo Add writing of feature pairs (Stefan)
 		@todo Write docu (Stefan)
 		@todo Show only entries below '1' (Stefan)
+		@todo Add "show output only" option for "open as", e.g. used for FileInfo (Stefan)
 		
 		@ingroup Dialogs
 	*/

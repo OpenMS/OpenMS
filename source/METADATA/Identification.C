@@ -131,7 +131,7 @@ namespace OpenMS {
     else
     {
       stringstream ss;
-      ss << peptide_hits_.begin()->getScoreType() << " != " <<  input.getScoreType();
+      ss << "'" << peptide_hits_.begin()->getScoreType() << "' != '" <<  input.getScoreType() << "'";
       throw Exception::Base(__FILE__, __LINE__, __PRETTY_FUNCTION__,"Incompatible PeptideHit.score_type",ss.str().c_str());
     }
   }

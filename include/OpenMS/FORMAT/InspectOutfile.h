@@ -52,6 +52,8 @@ namespace OpenMS
 		
 		This class serves to read in an Inspect outfile and write an AnalysisXML file
 		
+		@todo Store modifications instead of removing them
+		
 		@ingroup FileIO
 	*/
 	class InspectOutfile

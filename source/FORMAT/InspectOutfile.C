@@ -179,7 +179,37 @@ namespace OpenMS
 			peptide_hit.setScoreType("Inspect");
 			start = substrings[peptide_column].find('.')+1;
 			end = substrings[peptide_column].find_last_of('.');
-			peptide_hit.setSequence(substrings[peptide_column].substr(start, end-start));
+			
+			//remove modifications (small characters)
+			String sequence_with_mods = substrings[peptide_column].substr(start, end-start);
+			sequence_with_mods.remove('a');
+			sequence_with_mods.remove('b');
+			sequence_with_mods.remove('c');
+			sequence_with_mods.remove('d');
+			sequence_with_mods.remove('e');
+			sequence_with_mods.remove('f');
+			sequence_with_mods.remove('g');
+			sequence_with_mods.remove('h');
+			sequence_with_mods.remove('i');
+			sequence_with_mods.remove('j');
+			sequence_with_mods.remove('k');
+			sequence_with_mods.remove('l');
+			sequence_with_mods.remove('m');
+			sequence_with_mods.remove('n');
+			sequence_with_mods.remove('o');
+			sequence_with_mods.remove('p');
+			sequence_with_mods.remove('q');
+			sequence_with_mods.remove('r');
+			sequence_with_mods.remove('s');
+			sequence_with_mods.remove('t');
+			sequence_with_mods.remove('u');
+			sequence_with_mods.remove('v');
+			sequence_with_mods.remove('w');
+			sequence_with_mods.remove('x');
+			sequence_with_mods.remove('y');
+			sequence_with_mods.remove('z');
+
+			peptide_hit.setSequence(sequence_with_mods);
 			peptide_hit.setRank(++rank);
 			peptide_hit.addProteinIndex(datetime, accession);
 			

@@ -40,6 +40,7 @@ namespace OpenMS
 		defaults_.setValue("ConsideredHits","10");
 		defaults_.setValue("NumberOfRuns","0");
 		defaults_.setValue("InverseOrder","0");
+		defaults_.setValue("MinOutputScore","0");
 		
 		defaultsToParam_();
 	}
@@ -140,17 +141,20 @@ namespace OpenMS
 		}
 
 		//Replace IDs by consensus
+		Real min_score = (Real)(param_.getValue("MinOutputScore"));
 		ids.clear();
 		ids.resize(1);
 		vector<PeptideHit>& hits = ids[0].getPeptideHits();
-		hits.resize(scores.size());
-		UInt hit_count = 0;
 		for (map<String,Real>::const_iterator it = scores.begin(); it != scores.end(); ++it)
 		{
-			hits[hit_count].setScoreType("Consensus_ranked");
-			hits[hit_count].setSequence(it->first);
-			hits[hit_count].setScore(it->second);
-			++hit_count;
+			if (it->second >= min_score)
+			{
+				PeptideHit hit;
+				hit.setScoreType("Consensus_averaged");
+				hit.setSequence(it->first);
+				hit.setScore(it->second);
+				hits.push_back(hit);
+			}
 		}
 
 	}
@@ -195,17 +199,20 @@ namespace OpenMS
 		}
 
 		//Replace IDs by consensus
+		Real min_score = (Real)(param_.getValue("MinOutputScore"));
 		ids.clear();
 		ids.resize(1);
 		vector<PeptideHit>& hits = ids[0].getPeptideHits();
-		hits.resize(scores.size());
-		UInt hit_count = 0;
 		for (map<String,Real>::const_iterator it = scores.begin(); it != scores.end(); ++it)
 		{
-			hits[hit_count].setScoreType("Consensus_merge");
-			hits[hit_count].setSequence(it->first);
-			hits[hit_count].setScore(it->second);
-			++hit_count;
+			if (it->second >= min_score)
+			{
+				PeptideHit hit;
+				hit.setScoreType("Consensus_averaged");
+				hit.setSequence(it->first);
+				hit.setScore(it->second);
+				hits.push_back(hit);
+			}
 		}
 	}
 
@@ -258,17 +265,20 @@ namespace OpenMS
 		}
 
 		//Replace IDs by consensus
+		Real min_score = (Real)(param_.getValue("MinOutputScore"));
 		ids.clear();
 		ids.resize(1);
 		vector<PeptideHit>& hits = ids[0].getPeptideHits();
-		hits.resize(scores.size());
-		UInt hit_count = 0;
 		for (map<String,Real>::const_iterator it = scores.begin(); it != scores.end(); ++it)
 		{
-			hits[hit_count].setScoreType("Consensus_averaged");
-			hits[hit_count].setSequence(it->first);
-			hits[hit_count].setScore(it->second);
-			++hit_count;
+			if (it->second >= min_score)
+			{
+				PeptideHit hit;
+				hit.setScoreType("Consensus_averaged");
+				hit.setSequence(it->first);
+				hit.setScore(it->second);
+				hits.push_back(hit);
+			}
 		}
 	}
 

@@ -45,6 +45,7 @@ using namespace std;
 
 	@todo write test (Marc)
 	@todo document (Marc)
+	@todo merge with AnalysisXMLMerger -> Method 'Combine' (Marc)
 */
 
 // We do not want this class to show up in the docu:

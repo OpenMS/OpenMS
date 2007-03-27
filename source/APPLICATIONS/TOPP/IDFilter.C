@@ -94,6 +94,7 @@ using namespace std;
 	</ul>
 	
 	@todo write test for filtering by retention time (Nico)
+	@todo make filtering by score possible
 */
 
 // We do not want this class to show up in the docu:
