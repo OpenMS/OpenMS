@@ -65,13 +65,7 @@ namespace OpenMS
 			bool isWindow();
 			~ToolsDialog();    
 	
-		private:
-			
-			/// save input argument in input_
-			void setInput_();
-			/// save output argument in output_
-			void setOutput_();
-		
+		private:		
 			ParamEditor *editor_;
 			QComboBox* tools_combo_;
 			QComboBox* input_combo_;
@@ -89,8 +83,6 @@ namespace OpenMS
 		protected slots:
 			/// ok button pressed
 			void ok_();
-			/// cancel button pressed
-			void cancel_();
 			/// get tool name from combobox
 			void setTool_(int i);
 			

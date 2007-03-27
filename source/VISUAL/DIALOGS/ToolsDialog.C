@@ -49,37 +49,33 @@ namespace OpenMS
 		: QDialog(parent),
 			tmp_dir_(tmp_dir)
 	{
-		QHBoxLayout *hbox=NULL;
-		QGridLayout *main_grid=NULL;
-		QGridLayout *radio_grid=NULL;
+		QGridLayout *main_grid=new QGridLayout(this);
 		QLabel *label=NULL;
-		
+
+		label=new QLabel("TOPP tool:");
+		main_grid->addWidget(label,0,0);
 		QStringList list = TOPPBase::registerTools();
 		list.push_front("<select>");
 		tools_combo_=new QComboBox;
 		tools_combo_->addItems(list);
 		connect(tools_combo_,SIGNAL(activated(int)),this,SLOT(setTool_(int)));
-		main_grid=new QGridLayout;
-		main_grid->addWidget(tools_combo_,0,0,1,2);
+		main_grid->addWidget(tools_combo_,0,1);
 		
-		label=new QLabel("input file:");
-		label->setAlignment(Qt::AlignHCenter|Qt::AlignVCenter);
+		label=new QLabel("input argument:");
+		main_grid->addWidget(label,1,0);
 		input_combo_=new QComboBox;
 		input_combo_->setEnabled(false);
-		main_grid->addWidget(label,1,0);
 		main_grid->addWidget(input_combo_,1,1,1,1);
 		
-		label=new QLabel("output file:");
-		label->setAlignment(Qt::AlignHCenter|Qt::AlignVCenter);
+		label=new QLabel("output argument:");
+		main_grid->addWidget(label,2,0);
 		output_combo_=new QComboBox;
 		output_combo_->setEnabled(false);
-		main_grid->addWidget(label,2,0);
 		main_grid->addWidget(output_combo_,2,1,1,1);
 		
 		
-		radio_grid=new QGridLayout;
+		QGridLayout* radio_grid = new QGridLayout;
 		label=new QLabel("Open As:");
-		label->setAlignment(Qt::AlignHCenter|Qt::AlignVCenter);
 		window_radio_=new QRadioButton("New Window");
 		radio_grid->addWidget(window_radio_,0,0);
 		layer_radio_=new QRadioButton("New Layer");
@@ -88,15 +84,12 @@ namespace OpenMS
 		main_grid->addWidget(label,3,0);
 		main_grid->addLayout(radio_grid,3,1);
 		
-		
-		
-		
 		editor_=new ParamEditor;
 		
 		main_grid->addWidget(editor_,4,0,2,4);
 		
 		
-		hbox=new QHBoxLayout;
+		QHBoxLayout* hbox = new QHBoxLayout;
 		hbox->addStretch();
 		
 		ok_button_= new QPushButton(tr("&Ok"));
@@ -105,7 +98,7 @@ namespace OpenMS
 		ok_button_->setEnabled(false);
 		
 		QPushButton* cancel_button=new QPushButton(tr("&Cancel"));
-		connect(cancel_button,SIGNAL(clicked()),this,SLOT(cancel_()));
+		connect(cancel_button,SIGNAL(clicked()),this,SLOT(reject()));
 		hbox->addWidget(cancel_button);
 		main_grid->addLayout(hbox,6,0,1,4);
 		
@@ -120,99 +113,85 @@ namespace OpenMS
 	
 	}
 	
-	
-	
 	void ToolsDialog::setTool_(int i)
 	{
-		if(i)
+		if(i==0)
 		{
-			String call = ToolsDialog::getTool()+" -write_ini "+tmp_dir_+"/in.ini";
-			if(system(call.c_str())!=0)
+			ok_button_->setEnabled(false);
+			input_combo_->setCurrentIndex(0);
+			input_combo_->setEnabled(false);
+			output_combo_->setCurrentIndex(0);
+			output_combo_->setEnabled(false);
+			output_combo_->setEnabled(false);
+			editor_->deleteAll();
+			return;
+		}
+		
+		String call = ToolsDialog::getTool()+" -write_ini "+tmp_dir_+"/in.ini";
+		if(system(call.c_str())!=0)
+		{
+			QMessageBox::critical(this,"Error",(String("Could not execute '")+call+"'!").c_str());
+		}
+		else if(!File::exists(tmp_dir_+"/in.ini"))
+		{
+			QMessageBox::critical(this,"Error",(String("Could not open '")+tmp_dir_+"/in.ini'!").c_str());
+		}
+		else
+		{
+			ok_button_->setEnabled(true);
+			input_combo_->setEnabled(true);
+			output_combo_->setEnabled(true);
+			if(!arg_param_.empty())
 			{
-				QMessageBox::critical(this,"Error",(String("Could not execute '")+call+"'!").c_str());
+				arg_param_.clear();
+				editor_->deleteAll();
+				arg_map_.clear();
 			}
-			else if(!File::exists(tmp_dir_+"/in.ini"))
+			arg_param_.load((tmp_dir_+"/in.ini").c_str());
+			editor_->loadEditable(arg_param_);
+			String str;
+			QStringList arg_list;
+			for (Param::ConstIterator iter=arg_param_.begin();iter!=arg_param_.end();++iter)
 			{
-				QMessageBox::critical(this,"Error",(String("Could not open '")+tmp_dir_+"/in.ini'!").c_str());
-			}
-			else
-			{
-				ok_button_->setEnabled(true);
-				input_combo_->setEnabled(true);
-				output_combo_->setEnabled(true);
-				if(!arg_param_.empty())
+				str=iter->first.substr(iter->first.rfind("1:")+2,iter->first.size());
+				if(str.size()!=0 && str.find(":")==String::npos)
 				{
-					arg_param_.clear();
-					editor_->deleteAll();
-					arg_map_.clear();
+					arg_map_.insert(make_pair(str,iter->first));
+					arg_list<<QStringList(str.c_str());
 				}
-				arg_param_.load((tmp_dir_+"/in.ini").c_str());
-				editor_->loadEditable(arg_param_);
-				String str;
-				QStringList arg_list;
-				for (Param::ConstIterator iter=arg_param_.begin();iter!=arg_param_.end();++iter)
-				{
-					str=iter->first.substr(iter->first.rfind("1:")+2,iter->first.size());
-					if(str.size()!=0 && str.find(":")==String::npos)
-					{
-						arg_map_.insert(make_pair(str,iter->first));
-						arg_list<<QStringList(str.c_str());
-					}
-				}
-				arg_list.push_front("<select>");
-				input_combo_->clear();
-				output_combo_->clear();
-				input_combo_->addItems(arg_list);
-				output_combo_->addItems(arg_list);
 			}
-
+			arg_list.push_front("<select>");
+			input_combo_->clear();
+			output_combo_->clear();
+			input_combo_->addItems(arg_list);
+			Int pos = arg_list.indexOf("in");
+			if (pos!=-1)
+			{
+				input_combo_->setCurrentIndex(pos);
+			}
+			output_combo_->addItems(arg_list);
+			pos = arg_list.indexOf("out");
+			if (pos!=-1)
+			{
+				output_combo_->setCurrentIndex(pos);
+			}
 		}
 	}
 	
 	void ToolsDialog::ok_()
 	{
-		editor_->store();
-		arg_param_.store(tmp_dir_+"/in.ini");
-		setInput_();
-		setOutput_();
-		
-		accept();
-	}
-	
-	void ToolsDialog::cancel_()
-	{
-		reject();
-	}
-	
-	void ToolsDialog::setInput_()
-	{
-		if(!input_combo_->currentIndex() && input_combo_->currentIndex()!=-1)
+		if (input_combo_->currentText()=="<select>" || output_combo_->currentText()=="<select>" || tools_combo_->currentText()=="<select>")
 		{
+			QMessageBox::critical(this,"Error","You have to select a tool, an input argument and an output argument!");
+		}
+		else
+		{
+			editor_->store();
+			arg_param_.store(tmp_dir_+"/in.ini");
 			input_string_=input_combo_->currentText().toStdString();
-		}
-		else if(!arg_param_.getValue(arg_map_["in"]).toString().empty())
-		{
-			input_string_=arg_param_.getValue(arg_map_["in"]).toString();
-		}
-		else
-		{
-			input_string_="in";
-		}
-	}
-	
-	void ToolsDialog::setOutput_()
-	{
-		if(!output_combo_->currentIndex() && output_combo_->currentIndex()!=-1)
-		{
 			output_string_=output_combo_->currentText().toStdString();
-		}
-		else if(!arg_param_.getValue(arg_map_["out"]).toString().empty())
-		{
-			output_string_=arg_param_.getValue(arg_map_["out"]).toString();
-		}
-		else
-		{
-			output_string_="out";
+	
+			accept();
 		}
 	}
 	

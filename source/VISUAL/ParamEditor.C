@@ -251,7 +251,10 @@ namespace OpenMS
 	void ParamEditor::deleteAll()
 	{
 		QTreeWidgetItem* item=invisibleRootItem();
-		deleteItemRecursive_(item->child(0));
+		for (Int i = 0; i < item->childCount();++i)
+		{
+			deleteItemRecursive_(item->child(i));
+		}
 	}
 		
 	void ParamEditor::insertItem()
