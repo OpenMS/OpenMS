@@ -101,7 +101,8 @@ namespace OpenMS
 				{
 					if (down[i]==':')
 					{
-						parent=parent->parent();				
+						parent=parent->parent();
+						if(parent==NULL) parent=invisibleRootItem();
 					}
 				}	
 			}
@@ -176,6 +177,7 @@ namespace OpenMS
 				if (down[i]==':')
 				{
 					parent=parent->parent();
+					if(parent==NULL) parent=invisibleRootItem();
 				}
 			}	
 		}
@@ -241,18 +243,22 @@ namespace OpenMS
 		
 	void ParamEditor::deleteItemRecursive_(QTreeWidgetItem* item)
 	{				
-		for(int i=item->childCount()-1; i>=0; i--)
+		for(Int i=item->childCount()-1; i>=0; i--)
 		{
 			deleteItemRecursive_(item->child(i));
 		}
+		
 		delete item;
 	}
 	
 	void ParamEditor::deleteAll()
 	{
 		QTreeWidgetItem* item=invisibleRootItem();
-		for (Int i = 0; i < item->childCount();++i)
+		
+		
+		for (Int i = item->childCount()-1; i >=0;i--)
 		{
+			
 			deleteItemRecursive_(item->child(i));
 		}
 	}

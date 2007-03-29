@@ -144,11 +144,15 @@ namespace OpenMS
 			if(!arg_param_.empty())
 			{
 				arg_param_.clear();
+				vis_param_.clear();
 				editor_->deleteAll();
 				arg_map_.clear();
 			}
 			arg_param_.load((tmp_dir_+"/in.ini").c_str());
-			editor_->loadEditable(arg_param_);
+			
+			vis_param_=arg_param_.copy(getTool()+":1:",true);
+			
+			editor_->loadEditable(vis_param_);
 			String str;
 			QStringList arg_list;
 			for (Param::ConstIterator iter=arg_param_.begin();iter!=arg_param_.end();++iter)
@@ -187,6 +191,7 @@ namespace OpenMS
 		else
 		{
 			editor_->store();
+			arg_param_.insert(getTool()+":1:",vis_param_);
 			arg_param_.store(tmp_dir_+"/in.ini");
 			input_string_=input_combo_->currentText().toStdString();
 			output_string_=output_combo_->currentText().toStdString();
