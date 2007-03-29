@@ -1859,7 +1859,17 @@ namespace OpenMS
 				}
 				else if (layer.type==LayerData::DT_FEATURE_PAIR)
 				{
-					//TODO FeaturePairsFile().store(tmp_dir+"in",layer.features);
+					LayerData::FeatureMapType feature_map=layer.features;
+					FeatureMap<>::ConstIterator end=--feature_map.end();
+					vector< ElementPair< Feature > > feature_pairs;
+					FeatureMap<>::ConstIterator next;
+					for(FeatureMap<>::ConstIterator i=feature_map.begin();i<end;i+=2)
+					{
+						next=++i;
+						--i;
+						feature_pairs.push_back(ElementPair<>(*i,*next));
+					}
+					FeaturePairsFile().store(tmp_dir+"/in",feature_pairs);
 				}
 				else
 				{
@@ -1874,7 +1884,7 @@ namespace OpenMS
 					f.load(tmp_dir+"/TOPP.log");
 					String log_file;
 					log_file.implode(f.begin(),f.end(),"<BR>");
-       		QMessageBox::critical(this,"Execution of TOPP tool not successful!",log_file.c_str());
+					QMessageBox::critical(this,"Execution of TOPP tool not successful!",log_file.c_str());
 				}
 				else if (!File::readable(tmp_dir+"/out"))
 				{
