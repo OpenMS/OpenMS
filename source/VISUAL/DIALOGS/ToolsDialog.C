@@ -130,7 +130,7 @@ namespace OpenMS
 		String call = ToolsDialog::getTool()+" -write_ini "+tmp_dir_+"/in.ini";
 		if(system(call.c_str())!=0)
 		{
-			QMessageBox::critical(this,"Error",(String("Could not execute '")+call+"'!").c_str());
+			QMessageBox::critical(this,"Error",(String("Could not execute '")+call+"'!\nMake sure the TOPP tools are in your $PATH variable!").c_str());
 		}
 		else if(!File::exists(tmp_dir_+"/in.ini"))
 		{

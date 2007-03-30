@@ -63,13 +63,14 @@ Ideen:
 
 Todos:
 - TOPP
-  - ParamEditor
+	- Konzept für write_ini der Algorithmen-Parameter
 	- FeatureFiles + AnalysisXML beschneiden können
   - FileFilter: MS/MS scans nach Precursor MZ/RT abscheiden, aber nicht in MZ kürzen
   - RTPredict/RTModel: RT-Vorhersage als ID speichern (Besser in Consensus zu integrieren)
   - FeatureFinder
     - Traits nach FF / entfernen
     - MainLoop rausfaktorieren
+  - MapNormalizer (TIC/100%)
 
 - OpenMS
   - getPrecursorRT(int scan/float RT) -> OMSSA/Inspect/Mascot/Sequest, IDSpectrumMapper updaten
@@ -82,26 +83,28 @@ Todos:
 -TOPPView:
   - Zwei Layers auf -> Prozent
 	- Layern Menü -> Context von Layers
-	- Intensity Distribution -> Doch widget
+	- Intensity Distribution -> Dock widget
 	- Bild / Image speichern -> Warnung wenn nicht schreibbar
   - Recent -> als neues Layer
   - Features -> Convexe Hülle, Punkte, Nummern einzeln abschaltbar
   - Peaks 2D -> Precursor Peaks einzeln abschaltbar
-  - Prozent / Snap gleichzeitig
   - Zoom und Move zusammen
+  - Tools -> Annotate with ID 
   - Kontextmenu
     - show scan
     - show precursor spectrum
     - show in 3D (zoom bereich)
+    - show IDs
+    - show extracted ion chromatogram
   - Projektionen
     - Folgen immer dem 2D view
     - einzeln abschaltbar
     - Infobox mit Intensität usw.
+    - Projektionen beachten MS/MS? -> Fixen
   - Zoomen
     - über Achsen
     - über Scrollrad in allen Modi
     - ungenau wenn man weit reinzoomt
-  - Scrollen mit RT-Achse geht nicht
-  - generisches TOPP Menu (Hiwi)
+  - Scrollen mit RT-Achse geht nicht richtig
 
 ***********************************************************************/
