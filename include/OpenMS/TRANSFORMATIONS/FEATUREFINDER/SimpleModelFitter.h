@@ -174,6 +174,11 @@ namespace OpenMS
 			float iso_stdev_last_;
 			/// step size
 			float iso_stdev_stepsize_;
+			
+			/// first mz model (0=Gaussian, 1....n = charge )
+			Int first_mz_model_;			
+			/// last mz model
+			Int last_mz_model_;
   };
 }
 #endif // OPENMS_TRANSFORMATIONS_FEATUREFINDER_SIMPLEMODELFITTER_H

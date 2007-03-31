@@ -118,6 +118,9 @@ namespace OpenMS
 		iso_stdev_first_        = param_.getValue("isotope_model:stdev:first");
 		iso_stdev_last_        = param_.getValue("isotope_model:stdev:last");
 		iso_stdev_stepsize_ = param_.getValue("isotope_model:stdev:step");
+		
+		first_mz_model_ = (Int) param_.getValue("mz:model_type:first");
+		last_mz_model_ = (Int) param_.getValue("mz:model_type:last");
 	}
 
   Feature SimpleModelFitter::fit(const IndexSet& set) throw (UnableToFit)
@@ -174,11 +177,9 @@ namespace OpenMS
 		max_[RT] += stdev_rt2_;
 
 		// Test charges and stdevs
-		const Int first_model = (Int) param_.getValue("mz:model_type:first");
-		const Int last_model = (Int) param_.getValue("mz:model_type:last");
-		for ( ; stdev <= last; stdev += step)
+		for ( float stdev = iso_stdev_first_; stdev <= iso_stdev_last_; stdev += iso_stdev_stepsize_)
 		{
-			for (Int mz_fit_type = first_model; mz_fit_type <= last_model; ++mz_fit_type)
+			for (Int mz_fit_type = first_mz_model_; mz_fit_type <= first_mz_model_; ++mz_fit_type)
 			{
 				quality = fit_(set, static_cast<MzFitting>(mz_fit_type), BIGAUSS, stdev);
 				if (quality > max_quality)
