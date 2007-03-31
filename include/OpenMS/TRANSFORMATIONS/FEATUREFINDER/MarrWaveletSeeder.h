@@ -52,6 +52,7 @@ namespace OpenMS
 		Regions with local maxima a scored based on a F-statistic (compares variance of intervals in cwt).
 		
 		Parameters:
+		
 		<table>
 		 <tr><td></td><td></td><td>charge1_ub</td>
 		 <td>upper bound for the distance between "charge one" maxima</td></tr>
@@ -71,7 +72,9 @@ namespace OpenMS
 		 <td>intensity threshold for points in the current scan to be considered </td></tr>
 		 <tr><td></td><td></td><td>noise_level_cwt</td>
 		 <td>same as above for the wavelet transformed signal. </td></tr>
-		 </table>				
+		 </table>			
+		 
+		 There are additional parameter : @see BaseSweepSeeder	
 		
 		@ingroup FeatureFinder
 	*/ 

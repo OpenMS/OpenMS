@@ -87,21 +87,6 @@ namespace OpenMS
 			interpolation_.setOffset ( min_ );
 		}
 
-// 		void GaussModel::setParameters(const BasicStatistics& statistics, CoordinateType min, CoordinateType max)
-// 		{
-// 			statistics_.setMean(statistics.mean());
-// 			statistics_.setVariance(statistics.variance());
-// 			min_ = min;
-// 			max_ = max;
-// 
-// 			param_.setValue("bounding_box:min", min_);
-// 			param_.setValue("bounding_box:max", max_);
-// 			param_.setValue("statistics:mean", statistics_.mean());
-// 			param_.setValue("statistics:variance", statistics_.variance());
-// 
-// 			setSamples();
-// 		}
-		
 		void GaussModel::updateMembers_()
 		{
 			InterpolationModel::updateMembers_();

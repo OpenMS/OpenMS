@@ -32,8 +32,6 @@
 
 #include <OpenMS/DATASTRUCTURES/HashMap.h>
 
-// #include <hash_map.h>
-
 namespace OpenMS
 {
 	/** 
@@ -45,9 +43,6 @@ namespace OpenMS
 		 Parameters:
 		 
 		 <table>
-		 <tr><td></td><td></td><td>rtvotes_cutoff</td>
-		 <td>number of scan in which a isotopic pattern must occur before it is
-		 declared as seed</td></tr>
 		 <tr><td></td><td></td><td>max_charge</td>
 		 <td>The mother wavelet is precomputed for different charge states. This
 		 is the maximum charge state considered.</td></tr>
@@ -70,6 +65,8 @@ namespace OpenMS
 		 <tr><td></td><td></td><td>tolerance_scansum</td>
 		 <td>mass tolerance during point alignment</td></tr>
 		  </table>		
+			
+			There are additional parameter : @see BaseSweepSeeder
 	
 		@ingroup FeatureFinder
 	*/ 
@@ -172,10 +169,10 @@ namespace OpenMS
 		{	
 			if (t>2*peak_cut_off_)	return(0);
 			
-			int x0, x1; double f0, f1, fi, res=0;
+			Int x0, x1; double f0, f1, fi, res=0;
 			x0 = (int) trunc ((t/a + 1)/min_spacing_);
 			x1 = x0+1;
-			if ((unsigned int) x1 < preComputedGamma_.size())
+			if ((UInt) x1 < preComputedGamma_.size())
 			{
 				f0 = preComputedGamma_[x0];
 				f1 = preComputedGamma_[x1];

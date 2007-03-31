@@ -41,8 +41,8 @@ namespace OpenMS
 		This extender module sweeps through the scans and classifies cluster 
  		of peaks as candidate peptides if the distance between successive peaks 
  		is 1 Da (charge 1) , 0.5 Da (charge 2) or 0.3 Da (charge 3) etc.
-  
-		@note: it would be better to look at more peaks not only the next neighbour.
+  	
+		Parameters:
 				
 		<table>
 		 <tr><td></td><td></td><td>charge1_ub</td>
@@ -66,6 +66,8 @@ namespace OpenMS
 		 <tr><td></td><td></td><td>charge5_lb</td>
 		 <td>lower bound charge five </td></tr>
 		</table>		
+		
+		There are additional parameter : @see BaseSweepSeeder
 		  	
 		@ingroup FeatureFinder
 	*/

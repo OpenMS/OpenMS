@@ -73,8 +73,6 @@ public:
 
     /// assignment operator
     virtual GaussModel& operator = (const GaussModel& source);
-    
-//     void setParameters(const BasicStatistics& statistics, CoordinateType min, CoordinateType max);
 
     /// create new GaussModel object (needed by Factory)
     static BaseModel<1>* create()

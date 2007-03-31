@@ -140,7 +140,7 @@ class AdditiveSeries
 
 
   // searches for a features with coordinates within the tolerance in this map
-	// NOTE: It might happen, that there are several features at similar coordinates.
+	// NOTE: It might happen that there are several features at similar coordinates.
 	// In this case, the program cannot be sure which one is the correct. So we decided
 	// to use the one with the strongest intensity.
 	bool readMapFile_(String filename, vector<double>& intensities,
@@ -408,7 +408,7 @@ class AdditiveSeries
 		}
 
 		vector<double> sp_concentrations2;
-		for (unsigned int i=0; i<sp_concentrations.size(); i++)
+		for (UInt i=0; i<sp_concentrations.size(); i++)
 		{
 			if (flags.at(i) == true )
 			{

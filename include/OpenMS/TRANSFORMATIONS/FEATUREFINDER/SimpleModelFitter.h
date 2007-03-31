@@ -160,7 +160,20 @@ namespace OpenMS
 			PositionType2D min_;
 			PositionType2D max_;
 		
+			/// counts features (used for debug output only)
 			UInt counter_;
+			
+			/// interpolation step size (in m/z)
+			Coordinate interpolation_step_mz_;
+			/// interpolation step size (in retention time)
+			Coordinate interpolation_step_rt_;
+			
+			/// first stdev
+			float iso_stdev_first_;
+			/// last stdev
+			float iso_stdev_last_;
+			/// step size
+			float iso_stdev_stepsize_;
   };
 }
 #endif // OPENMS_TRANSFORMATIONS_FEATUREFINDER_SIMPLEMODELFITTER_H

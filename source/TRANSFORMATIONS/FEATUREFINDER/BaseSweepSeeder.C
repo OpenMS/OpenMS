@@ -313,7 +313,7 @@ BaseSweepSeeder::TableIteratorType BaseSweepSeeder::checkInPreviousScans_(const 
     TableIteratorType entry_to_insert;
 		CoordinateType mz_in_hash = 0;
 		
-		cout << "checkInPreviousScans_(...) : Retrieving m/z " << sc_mz.first << " " << currscan_index << endl;
+// 		cout << "checkInPreviousScans_(...) : Retrieving m/z " << sc_mz.first << " " << currscan_index << endl;
 		
 		CoordinateType curr_mz = traits_->getPeakMz( make_pair(currscan_index,sc_mz.first) );
 
@@ -323,7 +323,9 @@ BaseSweepSeeder::TableIteratorType BaseSweepSeeder::checkInPreviousScans_(const 
         TableConstIteratorType table_iter = searchClosestCluster_(curr_mz);
 				CoordinateType delta_mz = fabs(table_iter->first - curr_mz);
 
+				#ifdef DEBUG_FEATUREFINDER
 				cout << "m/z distance to closest cluster : " << delta_mz << endl;
+				#endif
 				
         if ( delta_mz > mass_tolerance_cluster_) // check if first peak of last cluster is close enough
         {
@@ -332,13 +334,14 @@ BaseSweepSeeder::TableIteratorType BaseSweepSeeder::checkInPreviousScans_(const 
 						#ifdef DEBUG_FEATUREFINDER
             cout << "Last peak cluster too far, creating new cluster" << endl;
 						cout << "Tolerance : " << mass_tolerance_cluster_ << endl;
+						cout << "Creating cluster at m/z " << mz_in_hash << std::endl;
 						#endif
 
             // create new isotopic cluster
             IsotopeClusterScoredCharge isoclust;
             isoclust.scans_.push_back( currscan_index );
 
-            std::cout << "Creating cluster at m/z " << mz_in_hash << std::endl;
+           
             entry_to_insert = iso_map_.insert( TableType::value_type(mz_in_hash, isoclust) );
         }
         else
@@ -357,7 +360,7 @@ BaseSweepSeeder::TableIteratorType BaseSweepSeeder::checkInPreviousScans_(const 
 						// currentscan_index can't be zero so we don't have to check for that.
             UInt scan_wanted = (currscan_index - 1);
 						
-						cout << "Searching for scan " << scan_wanted << endl;
+// 						cout << "Searching for scan " << scan_wanted << endl;
 				
 						if (!checkForMatchingCluster_(range,scan_wanted,entry_to_insert))
 						{
@@ -423,11 +426,11 @@ bool BaseSweepSeeder::checkForMatchingCluster_(const pair<TableIteratorType, Tab
 	} // end for (TableIteratorType )
 	
 	UInt dist = (scan_wanted - closest_scan);	
-	if (scan_found)
-	{		
-		cout << "Distance to previous cluster: " << dist << endl;
-	}
-	
+// 	if (scan_found)
+// 	{		
+// 		cout << "Distance to previous cluster: " << dist << endl;
+// 	}
+// 	
 	if (dist < rt_tolerance_cluster_ && scan_found)
 	{		
 		return true;	

@@ -111,6 +111,13 @@ namespace OpenMS
 	{
 		if (quality_) delete quality_;
 		quality_ = Factory<BaseQuality>::create(param_.getValue("quality:type"));
+		
+		interpolation_step_mz_ = param_.getValue("mz:interpolation_step");
+		interpolation_step_rt_ = param_.getValue("rt:interpolation_step");
+		
+		iso_stdev_first_        = param_.getValue("isotope_model:stdev:first");
+		iso_stdev_last_        = param_.getValue("isotope_model:stdev:last");
+		iso_stdev_stepsize_ = param_.getValue("isotope_model:stdev:step");
 	}
 
   Feature SimpleModelFitter::fit(const IndexSet& set) throw (UnableToFit)
@@ -133,11 +140,7 @@ namespace OpenMS
 		ModelDescription<2> model_desc;
 		double quality = 0.0;
 		double max_quality = -std::numeric_limits<double>::max();
-		
-		float stdev = param_.getValue("isotope_model:stdev:first");
-		float last = param_.getValue("isotope_model:stdev:last");
-		float step = param_.getValue("isotope_model:stdev:step");
-		
+				
 		// Calculate statistics
 		mz_stat_.update( 	IntensityIterator(set.begin(),traits_),
 											IntensityIterator(set.end(),traits_),
@@ -361,15 +364,13 @@ namespace OpenMS
 
 	double SimpleModelFitter::fit_(const IndexSet& set, MzFitting mz_fit, RtFitting rt_fit, Coordinate isotope_stdev)
 	{
-		const Coordinate interpolation_step_mz = param_.getValue("mz:interpolation_step");
-		const Coordinate interpolation_step_rt = param_.getValue("rt:interpolation_step");
 
 		// Build Models
 		InterpolationModel* mz_model;
 		if (mz_fit==MZGAUSS)
 		{
 			mz_model = new GaussModel();
-			mz_model->setInterpolationStep(interpolation_step_mz);
+			mz_model->setInterpolationStep(interpolation_step_mz_);
 			
 			Param tmp;
 			tmp.setValue("bounding_box:min",min_[MZ] );
@@ -385,7 +386,7 @@ namespace OpenMS
 			Param iso_param = param_.copy("isotope_model:",true);
 			iso_param.remove("stdev");
 			mz_model->setParameters(iso_param);
-			mz_model->setInterpolationStep(interpolation_step_mz);
+			mz_model->setInterpolationStep(interpolation_step_mz_);
 			
 			Param tmp;
 			tmp.setValue("charge", static_cast<Int>(mz_fit));
@@ -398,7 +399,7 @@ namespace OpenMS
 		if (rt_fit==RTGAUSS)
 		{
 			rt_model = new GaussModel();
-			rt_model->setInterpolationStep(interpolation_step_rt);
+			rt_model->setInterpolationStep(interpolation_step_rt_);
 			
 			Param tmp;
 			tmp.setValue("bounding_box:min",min_[RT] );
@@ -410,7 +411,7 @@ namespace OpenMS
 		}else
 		{
 			rt_model = new BiGaussModel();
-			rt_model->setInterpolationStep(interpolation_step_rt);
+			rt_model->setInterpolationStep(interpolation_step_rt_);
 			
 			Param tmp;
 			tmp.setValue("bounding_box:min", 	min_[RT]);
@@ -424,8 +425,8 @@ namespace OpenMS
 		model2D_.setModel(MZ, mz_model).setModel(RT, rt_model);
 
 		double res;
-		res = fitOffset_(mz_model, set, stdev_mz_, stdev_mz_, interpolation_step_mz);
-		res = fitOffset_(rt_model, set, stdev_rt1_, stdev_rt2_, interpolation_step_rt);
+		res = fitOffset_(mz_model, set, stdev_mz_, stdev_mz_, interpolation_step_mz_);
+		res = fitOffset_(rt_model, set, stdev_rt1_, stdev_rt2_, interpolation_step_rt_);
 		return res;
 	}
 

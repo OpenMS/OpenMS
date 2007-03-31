@@ -127,65 +127,8 @@ namespace OpenMS
 			
 			delete (pwts);
 			delete (wt_thresholds);
-			
-			// compute mass we are searching for
-// 			CoordinateType min_mass = traits_->getData().getMin().getY();
-// 			CoordinateType mass_to_find = min_mass + (hash_iter_->first-1)*avMZSpacing_;
-// 			IndexSet region;		
-				
-			// check all scans that support this isotopic pattern
-// 			for (std::list<UInt>::const_iterator iter_cl2 = hash_iter_->second.first.begin(); 
-// 			  		iter_cl2 != hash_iter_->second.first.end(); 
-// 			   		++iter_cl2)
-// 			{
-// 				UInt current_scan = *iter_cl2;
-// 								
-// 				OPENMS_PRECONDITION(current_scan < (traits_->getData().size() ), "Scan index out of bounds")		
-// 				
-// 				SpectrumType::ConstIterator insert_iter = std::lower_bound(traits_->getData()[current_scan].begin(),traits_->getData()[current_scan].end(),mass_to_find,PeakType::PositionLess());	
-// 				
-// 				CoordinateType miso_mass = insert_iter->getMZ();
-			
-// 				// The isotope wavelet operates on mass bins and not actual masses in the spectrum
-// 				// We therefore need to check a couple of surrounding peaks in order to find the monoisotopic one
-// 				// walk to the left for at most 10 data points
-// 				for (UInt p=0; p<=10; ++p)
-// 				{
-// 					if ( miso_mass - (insert_iter - p)->getMZ() < mass_tolerance_right_  )
-// 					{
-// 						traits_->getPeakFlag(  make_pair(current_scan,insert_iter - traits_->getData()[current_scan].begin() )  ) = FeaFiTraits::SEED;
-// 				 		region.insert( make_pair(current_scan,insert_iter - traits_->getData()[current_scan].begin()) );
-// 					}
-// 					//abort when the left border is reached
-// 					if (insert_iter - p == traits_->getData()[current_scan].begin())
-// 					{
-// 						break;
-// 					}
-// 				}
-// 	
-// 			CoordinateType mass_distance = 0;
-// 			// walk to the right
-// 			while (mass_distance < mass_tolerance_left_ && insert_iter != (traits_->getData()[current_scan].end()-1) )
-// 			{
-// 				++insert_iter;
-// 				
-// 				// test if point is not included in any other region
-// 				if ( traits_->getPeakFlag(  make_pair(current_scan,insert_iter - traits_->getData()[current_scan].begin() )  ) == FeaFiTraits::UNUSED )
-// 				{
-// 					traits_->getPeakFlag(  make_pair(current_scan,insert_iter - traits_->getData()[current_scan].begin() )  ) = FeaFiTraits::SEED;
-// 					region.insert( make_pair(current_scan,insert_iter - traits_->getData()[current_scan].begin()) );
-// 				}
-// 				
-// 				mass_distance = ((insert_iter + 1)->getMZ() - miso_mass);
-// 			} 
-													
-// 		}		// for (std::list...)
-		
-// 		std::cout << "Done. Size of region: " << region.size() << std::endl;	
-		
-// 		++hash_iter_;
-		
-		return scmzvec;
+	
+			return scmzvec;
 	}
 	
 	void IsotopeWaveletSeeder::computeSpacings_()
@@ -215,9 +158,11 @@ namespace OpenMS
 	
 	void IsotopeWaveletSeeder::generateGammaValues_()
 	{
+		#ifdef DEBUG_FEATUREFINDER
 		std::cout << "Precomputing the Gamma function ...";
 		preComputedGamma_.clear();
-	
+		#endif
+		
 		double query = 0;
 		UInt counter=0;
 		UInt max_charge = param_.getValue("max_charge");
@@ -228,7 +173,10 @@ namespace OpenMS
 			query += min_spacing_;
 			++counter;
 		}
+		
+		#ifdef DEBUG_FEATUREFINDER
 		std::cout << " done." << std::endl;
+		#endif
 	}
 	
 	void IsotopeWaveletSeeder::fastMultiCorrelate_(const SpectrumType& signal, std::vector<DPeakArray<1, PeakType > >* pwts, std::vector<double>* wt_thresholds)

@@ -673,7 +673,7 @@ namespace OpenMS
 	        exp_.resize(buffer_size_);
 	
 	        // generate new name for temp file
-	        std::remove( file_name_ .c_str());
+	        File::remove( file_name_ .c_str());
 	        file_name_ = String("msexp_") + std::rand();
 	
 	    }
