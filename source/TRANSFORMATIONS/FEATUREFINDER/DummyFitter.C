@@ -72,7 +72,7 @@ namespace OpenMS
     return *this;
   }
 
-  Feature DummyFitter::fit(const IndexSet& set) throw (UnableToFit)
+  Feature DummyFitter::fit(const ChargedIndexSet& set) throw (UnableToFit)
 	{		
 		// not enough peaks to fit
 		if (set.size() < static_cast<UInt>(param_.getValue("min_num_peaks:extended")))

@@ -195,10 +195,10 @@ namespace OpenMS
       while (true)
       {
 				cout << "(1) Seeding ( seed # " << ++seed_count << ")..." << endl;
-				IndexSet seed_region = seeders[0]->nextSeed();
+				ChargedIndexSet seed_region = seeders[0]->nextSeed();
 				cout << "(2) Extension ..." << endl;
         watch.start();
-        IndexSet peaks = extenders[0]->extend(seed_region);
+        ChargedIndexSet peaks = extenders[0]->extend(seed_region);
         watch.stop();
         cout << "Time spent for extension: " << watch.getClockTime() << endl;
         watch.reset();

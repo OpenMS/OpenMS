@@ -113,7 +113,7 @@ namespace OpenMS
     SimpleExtender& operator= (const SimpleExtender& rhs);
 
     /// return next seed
-    const IndexSet& extend(const IndexSet& seed_region);
+    const ChargedIndexSet& extend(const ChargedIndexSet& seed_region);
 
 		/// returns an instance of this class 
     static BaseExtender* create()

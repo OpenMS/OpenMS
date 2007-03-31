@@ -130,7 +130,7 @@ namespace OpenMS
 	    virtual BaseSweepSeeder& operator = (const BaseSweepSeeder& source);
 		
 	    /// return next seed 
-		 virtual IndexSet nextSeed() throw (NoSuccessor);
+		 virtual ChargedIndexSet nextSeed() throw (NoSuccessor);
 						 		 			   
 		protected:
 		

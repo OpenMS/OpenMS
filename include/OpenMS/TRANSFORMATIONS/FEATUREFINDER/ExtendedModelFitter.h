@@ -137,7 +137,7 @@ namespace OpenMS
     ExtendedModelFitter& operator= (const ExtendedModelFitter& rhs);
 
     /// return next seed
-    Feature fit(const IndexSet& range) throw (UnableToFit);
+    Feature fit(const ChargedIndexSet& range) throw (UnableToFit);
 
     static BaseModelFitter* create()
     {

@@ -123,7 +123,7 @@ namespace OpenMS
 		last_mz_model_ = (Int) param_.getValue("mz:model_type:last");
 	}
 
-  Feature SimpleModelFitter::fit(const IndexSet& set) throw (UnableToFit)
+  Feature SimpleModelFitter::fit(const ChargedIndexSet& set) throw (UnableToFit)
 	{
 		
 		// not enough peaks to fit
@@ -175,11 +175,22 @@ namespace OpenMS
 		stdev_rt2_ = sqrt ( rt_stat_.variance2() ) * tolerance_stdev_box;
 		min_[RT] -= stdev_rt1_;
 		max_[RT] += stdev_rt2_;
-
+		
+		Int first_mz  = first_mz_model_;
+		Int last_mz  = last_mz_model_;
+		
+		// check charge estimate 
+		if (set.charge_ != 0)
+		{
+			first_mz = set.charge_;
+			last_mz = (set.charge_ + 1);		
+		}
+		std::cout << "Checking charge state from " << first_mz << " to " << last_mz << std::endl;
+		
 		// Test charges and stdevs
 		for ( float stdev = iso_stdev_first_; stdev <= iso_stdev_last_; stdev += iso_stdev_stepsize_)
 		{
-			for (Int mz_fit_type = first_mz_model_; mz_fit_type <= first_mz_model_; ++mz_fit_type)
+			for (Int mz_fit_type = first_mz; mz_fit_type <= last_mz; ++mz_fit_type)
 			{
 				quality = fit_(set, static_cast<MzFitting>(mz_fit_type), BIGAUSS, stdev);
 				if (quality > max_quality)

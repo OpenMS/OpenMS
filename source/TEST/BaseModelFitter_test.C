@@ -50,7 +50,7 @@ class TestFitter : public BaseModelFitter
 		check_defaults_ = false;
 	}
 
-	Feature fit(const IndexSet& /*extension*/) throw(UnableToFit)
+	Feature fit(const ChargedIndexSet& /*extension*/) throw(UnableToFit)
 	{
 		Feature f;
 		return f;	
@@ -95,9 +95,9 @@ CHECK((BaseModelFitter(const BaseModelFitter &source)))
 	TEST_EQUAL(fp2, fp3)
 RESULT
 
-CHECK((virtual Feature fit(const IndexSet &extension)=0 throw (UnableToFit)))
+CHECK((virtual Feature fit(const ChargedIndexSet &extension)=0 throw (UnableToFit)))
 	TestFitter ft;
-	FeaFiModule::IndexSet  inds;
+	FeaFiModule::ChargedIndexSet  inds;
 	inds.insert(std::make_pair(7,7));
 	Feature result = ft.fit(inds);
 	Feature empty;

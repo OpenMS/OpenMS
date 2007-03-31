@@ -38,19 +38,26 @@ namespace OpenMS
   {
   	/// An index in an MSExperiment
   	typedef std::pair<UInt,UInt> IDX;
+		/// Int set
+		typedef std::set<IDX> IndexSet;
+		
+		/// index set with associated charge estimate
+		struct ChargedIndexSet 
+		: public IndexSet
+		{
+			ChargedIndexSet() : charge_(0) { }
+			/// charge estimate (convention: zero means "no charge estimate")
+			UInt charge_;			
+		};
+		
   	
     IsotopeCluster()
-      : charge_(0), 
-      	peaks_(), 
+      : peaks_(), 
       	scans_()
     {
     }
-    
-    /// predicted charge state of this peptide
-    UInt charge_;
-    
     /// peaks in this cluster
-    std::set<IDX> peaks_;
+    ChargedIndexSet peaks_;
     
     /// the scans of this cluster
     std::vector<UInt> scans_;

@@ -80,7 +80,7 @@ CHECK(DummyExtender(const DummyExtender &rhs))
 	TEST_EQUAL(ms1 == ms2, true)
 RESULT
 
-CHECK((const IndexSet& extend(const IndexSet &seed_region)))
+CHECK((const ChargedIndexSet& extend(const ChargedIndexSet &seed_region)))
 	PRECISION(0.01)
 	
   DummyExtender extender;
@@ -96,7 +96,7 @@ CHECK((const IndexSet& extend(const IndexSet &seed_region)))
 	param.setValue("min_intensity_contribution",0.05);
 	extender.setParameters(param);
 		
-	FeaFiModule::IndexSet  set;
+	FeaFiModule::ChargedIndexSet  set;
 	set.insert( std::make_pair(3,10) );		// point with max. ion count		
 	
 	// some other points around the maximum
@@ -108,13 +108,13 @@ CHECK((const IndexSet& extend(const IndexSet &seed_region)))
 	set.insert( std::make_pair(4,10) );	
 
 	// extend seeding region	
-	FeaFiModule::IndexSet region = extender.extend(set);
+	FeaFiModule::ChargedIndexSet region = extender.extend(set);
 			
 	ifstream infile( "data/DummyExtender_region1");
 	
 	DoubleReal intensity, rt, mz;
 	
-	FeaFiModule::IndexSet::const_iterator citer = region.begin();
+	FeaFiModule::ChargedIndexSet::const_iterator citer = region.begin();
 	while ( infile >> rt )
 	{
 		infile >> mz >> intensity;

@@ -144,7 +144,7 @@ namespace OpenMS
 		profile_ = (string)param_.getValue("rt:profile");
 	}
 
-	Feature ExtendedModelFitter::fit(const IndexSet& set) throw (UnableToFit)
+	Feature ExtendedModelFitter::fit(const ChargedIndexSet& set) throw (UnableToFit)
 	{
 		// not enough peaks to fit
 		if (set.size() < (UInt)(param_.getValue("min_num_peaks:extended")))

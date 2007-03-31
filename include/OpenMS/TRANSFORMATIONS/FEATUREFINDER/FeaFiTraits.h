@@ -31,7 +31,10 @@
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/MSExperimentExtern.h>
+
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeaFiModule.h>
+
+#include <OpenMS/DATASTRUCTURES/IsotopeCluster.h>
 
 #include <set>
 
@@ -45,19 +48,19 @@ namespace OpenMS
 		
 		This class is rather an "umbrella" for the different modules / steps of the algorithm
 		than a traits class in the traditional sense.
-		
-		@todo Allow choice between different map types (MSExperiment or MSExperimentExtern) (Whoever wants to do that ...)
-		
+			
 		@ingroup FeatureFinder 	
 	*/
 	class FeaFiTraits
 	{
 		public:
 			/// Int in a MSExperiment ( first index denotes rt, second m/z )
-			typedef std::pair<UInt,UInt> IDX;
+			typedef IsotopeCluster::IDX IDX;
 			/// Int set
-			typedef std::set<IDX> IndexSet;
-	
+			typedef IsotopeCluster::IndexSet IndexSet;
+			/// index set with associated charge estimate
+			typedef IsotopeCluster::ChargedIndexSet ChargedIndexSet;
+			
 	    /// Flag for each data point
 	    enum Flag { UNUSED, SEED, INSIDE_BOUNDARY, INSIDE_FEATURE };
 			

@@ -121,7 +121,7 @@ CHECK(([EXTRA]void SimpleModelFitter::setParameters(const Param& param)))
 RESULT
 
 
-CHECK((Feature fit(const IndexSet &range)))
+CHECK((Feature fit(const ChargedIndexSet &range)))
 	// Test Gauss Fitting (mz/rt)
 	const double default_precision = 0.1;
 	PRECISION(default_precision)
@@ -175,7 +175,7 @@ CHECK((Feature fit(const IndexSet &range)))
 	Param param = fitter.getParameters();
 	param.setValue("intensity_cutoff_factor",0.0f);
 	fitter.setParameters(param);
-	FeaFiModule::IndexSet  set;
+	FeaFiModule::ChargedIndexSet  set;
 	for (UInt mz=0; mz<mz_num; mz++) 
 	{
 		for (UInt rt=0; rt<rt_num; rt++)
@@ -220,7 +220,7 @@ CHECK((Feature fit(const IndexSet &range)))
 RESULT
 
 
-CHECK(([EXTRA]Feature fit(const IndexSet& set) throw (UnableToFit)))
+CHECK(([EXTRA]Feature fit(const ChargedIndexSet& set) throw (UnableToFit)))
 	// Test Isotope/Bigauss Fitting (mz/rt)
 	const double default_precision = 0.1;
 	PRECISION(default_precision)
@@ -266,7 +266,7 @@ CHECK(([EXTRA]Feature fit(const IndexSet& set) throw (UnableToFit)))
 	param.setValue("rt:interpolation_step",0.05f);
 	param.setValue("intensity_cutoff_factor",0.0f);
 	fitter.setParameters(param);
-	FeaFiModule::IndexSet  set;
+	FeaFiModule::ChargedIndexSet  set;
 	for (UInt i=0; i<exp.size(); ++i) 
 	{
 		for (UInt j=0; j<exp[i].size(); ++j) 

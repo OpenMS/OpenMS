@@ -88,7 +88,7 @@ CHECK(SimpleExtender(const SimpleExtender &rhs))
 	TEST_EQUAL(ms1 == ms2, true)
 RESULT
 
-CHECK((const IndexSet& extend(const IndexSet &seed_region)))
+CHECK((const ChargedIndexSet& extend(const IndexSet &seed_region)))
 
 // this test checks the regions returned by SimpleExtender
 // on one artificial data set and a picked (centroided) data set
@@ -171,16 +171,16 @@ traits->getPeakFlag(make_pair(0,1)) = FeaFiTraits::INSIDE_FEATURE;
 
 extender.setTraits(traits);
 
-FeaFiModule::IndexSet  set;
+FeaFiModule::ChargedIndexSet  set;
 
 set.insert( std::make_pair(2,2) );		// start extension with point of highest intensity
 
-FeaFiModule::IndexSet region = extender.extend(set);
+FeaFiModule::ChargedIndexSet region = extender.extend(set);
 
 // 20 points in total, 2 in another feature, 2 with too little intensity => region should be of size 16
 TEST_EQUAL(region.size(),16);
 
-FeaFiModule::IndexSet::const_iterator citer = region.begin();
+FeaFiModule::ChargedIndexSet::const_iterator citer = region.begin();
 
 // first scan
 TEST_EQUAL(traits->getPeakIntensity(*citer),2000.0);
@@ -290,17 +290,17 @@ Param param;
 param.setValue("intensity_factor",0.01);
 extender.setParameters(param);
 
-FeaFiModule::IndexSet  set;
+FeaFiModule::ChargedIndexSet  set;
 // SimpleExtender starts at maximum point
 set.insert( std::make_pair(15,15) );	
 
-FeaFiModule::IndexSet region = extender.extend(set);
+FeaFiModule::ChargedIndexSet region = extender.extend(set);
 		
 ifstream infile( "data/SimpleExtender_region1");
 	
 DoubleReal intensity, rt, mz;
 	
-FeaFiModule::IndexSet::const_iterator citer = region.begin();
+FeaFiModule::ChargedIndexSet::const_iterator citer = region.begin();
 while ( infile >> rt )
 {
 	infile >> mz >> intensity;
@@ -329,17 +329,17 @@ MzDataFile().load("data/SimpleExtender_test2.mzData",exp);
 traits->setData(exp.begin(),exp.end(),100);
 extender.setTraits(traits);
 
-FeaFiModule::IndexSet  set;
+FeaFiModule::ChargedIndexSet  set;
 // SimpleExtender starts at maximum point
 set.insert( std::make_pair(2,42) );	
 
-FeaFiModule::IndexSet region = extender.extend(set);
+FeaFiModule::ChargedIndexSet region = extender.extend(set);
 		
 ifstream infile( "data/SimpleExtender_region2");
 	
 DoubleReal intensity, rt, mz;
 	
-FeaFiModule::IndexSet::const_iterator citer = region.begin();
+FeaFiModule::ChargedIndexSet::const_iterator citer = region.begin();
 while ( infile >> rt )
 {
 	infile >> mz >> intensity;

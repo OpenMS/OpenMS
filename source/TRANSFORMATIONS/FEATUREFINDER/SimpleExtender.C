@@ -102,7 +102,7 @@ namespace OpenMS
   }
 
 
-	const FeaFiModule::IndexSet& SimpleExtender::extend(const IndexSet& seed_region)
+	const FeaFiModule::ChargedIndexSet& SimpleExtender::extend(const ChargedIndexSet& seed_region)
 	{
     // empty region and boundary datastructures
     region_.clear();
@@ -135,6 +135,8 @@ namespace OpenMS
 			traits_->getPeakFlag(*citer) = FeaFiTraits::INSIDE_BOUNDARY;
 			boundary_.push(IndexWithPriority(*citer,priority));
     }
+		// pass on charge information
+		region_.charge_ = seed_region.charge_;
 		
 		cout << "Extending from " << traits_->getPeakRt(seed) << "/" << traits_->getPeakMz(seed); 
 		cout << " (" << seed.first << "/" << seed.second << ")" << endl;

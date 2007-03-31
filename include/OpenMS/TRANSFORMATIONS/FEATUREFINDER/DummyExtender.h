@@ -99,7 +99,7 @@ namespace OpenMS
     DummyExtender& operator= (const DummyExtender& rhs);
 
     /// return next seed
-    const IndexSet& extend(const IndexSet& seed_region);
+    const ChargedIndexSet& extend(const ChargedIndexSet& seed_region);
 
 		/// returns an instance of this class 
     static BaseExtender* create()
@@ -114,7 +114,7 @@ namespace OpenMS
     }
                   
   protected:
-		///
+		/// initialize member
   	virtual void updateMembers_();
   	
   	/// Checks if the current peak is too far from the centroid

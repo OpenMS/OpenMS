@@ -381,7 +381,7 @@ namespace OpenMS
 														std::cout << "Last peak cluster too far, creating new cluster at "<<curr_mz << std::endl;
 #endif
 														IsotopeCluster new_cluster;
-														new_cluster.charge_  = current_charge;
+														new_cluster.peaks_.charge_  = current_charge;
 														new_cluster.scans_.push_back( curr_scan );					
 														cluster_iter = iso_map_.insert(std::pair<double,IsotopeCluster>(mz_in_hash,new_cluster));
 			      
@@ -418,7 +418,7 @@ namespace OpenMS
 			  
 												// create new isotopic cluster
 												IsotopeCluster new_cluster;
-												new_cluster.charge_  = current_charge;
+												new_cluster.peaks_.charge_  = current_charge;
 												new_cluster.scans_.push_back( curr_scan );					
 												cluster_iter = iso_map_.insert(std::pair<double,IsotopeCluster>(mz_in_hash,new_cluster));
 

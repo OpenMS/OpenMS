@@ -66,12 +66,12 @@ namespace OpenMS
 				@param seed_region index of peak that serves as seed for feature
 				@return IndexSet of peaks that could be part of a feature (only valid until next call to extend) 
 	    */
-	    virtual const IndexSet& extend(const IndexSet& seed_region)=0;
+	    virtual const ChargedIndexSet& extend(const ChargedIndexSet& seed_region)=0;
 				
 	  protected:
 	    
 	    /// Set of indizes representing the region that belongs to this feature.
-	    IndexSet region_;
+	    ChargedIndexSet region_;
     
   };
 }

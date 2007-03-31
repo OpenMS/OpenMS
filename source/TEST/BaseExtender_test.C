@@ -50,7 +50,7 @@ class TestExtender : public BaseExtender
 		check_defaults_ = false;
 	}
 
-	const IndexSet& extend(const IndexSet& /*seed_region*/)
+	const ChargedIndexSet& extend(const ChargedIndexSet& /*seed_region*/)
 	{
 		return region_;	
 	}
@@ -95,11 +95,11 @@ CHECK((BaseExtender(const BaseExtender &source)))
 	TEST_EQUAL(fp2, fp3)
 RESULT
 
-CHECK((virtual const IndexSet& extend(const IndexSet &seed_region)=0))
+CHECK((virtual const ChargedIndexSet& extend(const ChargedIndexSet &seed_region)=0))
 	TestExtender text;
-	FeaFiModule::IndexSet  inds;
+	FeaFiModule::ChargedIndexSet  inds;
 	inds.insert(std::make_pair(7,7));
-	FeaFiModule::IndexSet result = text.extend(inds);
+	FeaFiModule::ChargedIndexSet result = text.extend(inds);
   TEST_EQUAL(result.size(),0)
 RESULT
 

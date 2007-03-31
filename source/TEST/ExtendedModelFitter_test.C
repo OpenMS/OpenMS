@@ -100,7 +100,7 @@ CHECK(void ExtendedModelFitter::setParameters(const Param& param))
 RESULT
 
 
-CHECK( Feature fit(const IndexSet& set) throw (UnableToFit))
+CHECK( Feature fit(const ChargedIndexSet& set) throw (UnableToFit))
 
 	// Test EMG Fitting (mz/rt)
 	const double default_precision = 0.1;
@@ -138,7 +138,7 @@ CHECK( Feature fit(const IndexSet& set) throw (UnableToFit))
 	Param param = fitter.getParameters();
 	param.setValue("intensity_cutoff_factor",0.0f);
 	fitter.setParameters(param);
-	FeaFiModule::IndexSet  set;
+	FeaFiModule::ChargedIndexSet  set;
 	for (UInt i=0; i<exp.size(); ++i) 
 	{
 		for (UInt j=0; j<exp[i].size(); ++j) 
@@ -183,7 +183,7 @@ CHECK( Feature fit(const IndexSet& set) throw (UnableToFit))
 RESULT
 
 
-CHECK( Feature fit(const IndexSet& set) throw (UnableToFit))
+CHECK( Feature fit(const ChargedIndexSet& set) throw (UnableToFit))
 
 	// Test Isotope/Bigauss Fitting (mz/rt)
 	const double default_precision = 0.1;
@@ -229,7 +229,7 @@ CHECK( Feature fit(const IndexSet& set) throw (UnableToFit))
 	param.setValue("rt:interpolation_step",0.05f);
 	param.setValue("intensity_cutoff_factor",0.0f);
 	fitter.setParameters(param);
-	FeaFiModule::IndexSet  set;
+	FeaFiModule::ChargedIndexSet  set;
 	for (UInt i=0; i<exp.size(); ++i) 
 	{
 		for (UInt j=0; j<exp[i].size(); ++j) 
@@ -282,7 +282,7 @@ CHECK(static const String getName())
 	TEST_EQUAL(ExtendedModelFitter::getProductName(),"ExtendedModelFitter");
 RESULT
 
-CHECK(void setData(const IndexSet& set))
+CHECK(void setData(const ChargedIndexSet& set))
 	const double default_precision = 0.1;
 	PRECISION(default_precision)
 
@@ -319,7 +319,7 @@ CHECK(void setData(const IndexSet& set))
 	Param param = fitter.getParameters();
 	param.setValue("intensity_cutoff_factor",0.0f);
 	fitter.setParameters(param);
-	FeaFiModule::IndexSet  set;
+	FeaFiModule::ChargedIndexSet  set;
 	for (UInt i=0; i<exp.size(); ++i) 
 	{
 		for (UInt j=0; j<exp[i].size(); ++j) 

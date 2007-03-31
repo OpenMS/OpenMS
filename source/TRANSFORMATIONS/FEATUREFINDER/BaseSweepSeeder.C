@@ -68,7 +68,7 @@ BaseSweepSeeder& BaseSweepSeeder::operator = (const BaseSweepSeeder& source)
     return *this;
 }
 
-FeaFiModule::IndexSet BaseSweepSeeder::nextSeed() throw (NoSuccessor)
+FeaFiModule::ChargedIndexSet BaseSweepSeeder::nextSeed() throw (NoSuccessor)
 {
 		if (!is_initialized_)
 		{
@@ -82,7 +82,7 @@ FeaFiModule::IndexSet BaseSweepSeeder::nextSeed() throw (NoSuccessor)
 			throw NoSuccessor(__FILE__, __LINE__,__PRETTY_FUNCTION__, make_pair(0,0));
 		}
 		
-		cout << "Retrieving next region with charge " << (*curr_region_).second.charge_; 
+		cout << "Retrieving next region with charge " << (*curr_region_).second.peaks_.charge_; 
 		cout << " and size " << (*curr_region_).second.peaks_.size() << endl;
 			
 		return (curr_region_++)->second.peaks_;
@@ -303,7 +303,7 @@ void BaseSweepSeeder::voteForCharge_()
 		
 		}
 // 		cout << "And the winner is " << max_charge << endl;
-		iter->second.charge_ = max_charge;
+		iter->second.peaks_.charge_ = max_charge;
 	}
 }
 
@@ -426,11 +426,6 @@ bool BaseSweepSeeder::checkForMatchingCluster_(const pair<TableIteratorType, Tab
 	} // end for (TableIteratorType )
 	
 	UInt dist = (scan_wanted - closest_scan);	
-// 	if (scan_found)
-// 	{		
-// 		cout << "Distance to previous cluster: " << dist << endl;
-// 	}
-// 	
 	if (dist < rt_tolerance_cluster_ && scan_found)
 	{		
 		return true;	

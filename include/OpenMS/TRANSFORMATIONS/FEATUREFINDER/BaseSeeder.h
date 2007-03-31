@@ -61,7 +61,7 @@ namespace OpenMS
 	    static void registerChildren();
 	
 	    /// return next seed 
-	    virtual IndexSet nextSeed() throw (NoSuccessor)=0;
+	    virtual ChargedIndexSet nextSeed() throw (NoSuccessor)=0;
   };
 }
 #endif // OPENMS_TRANSFORMATIONS_FEATUREFINDER_BASESEEDER_H

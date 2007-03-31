@@ -66,7 +66,7 @@ namespace OpenMS
     return *this;
   }
 
-  FeaFiModule::IndexSet SimpleSeeder::nextSeed() throw (NoSuccessor)
+  FeaFiModule::ChargedIndexSet SimpleSeeder::nextSeed() throw (NoSuccessor)
 	{
 		if (!is_initialized_) 
 		{
@@ -123,7 +123,7 @@ namespace OpenMS
 		// set flag
 		traits_->getPeakFlag(*current_peak_) = FeaFiTraits::SEED;
 		
-		IndexSet result;
+		ChargedIndexSet result;
 		result.insert( *current_peak_++ );
 				
 		return result;

@@ -108,7 +108,7 @@ CHECK(([EXTRA]void DummyFitter::setParameters(const Param& param)))
 
 RESULT
 
-CHECK((Feature fit(const IndexSet &range)))
+CHECK((Feature fit(const ChargedIndexSet &range)))
 	
 	// Test feature construction
 	PRECISION(0.1)
@@ -156,7 +156,7 @@ CHECK((Feature fit(const IndexSet &range)))
 	DummyFitter fitter;
 	fitter.setTraits(&traits);
 	
-	FeaFiModule::IndexSet  set;
+	FeaFiModule::ChargedIndexSet  set;
 	for (UInt mz=0; mz<mz_num; mz++) 
 	{
 		for (UInt rt=0; rt<rt_num; rt++)

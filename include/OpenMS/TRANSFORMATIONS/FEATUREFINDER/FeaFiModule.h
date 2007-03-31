@@ -29,6 +29,9 @@
 
 #include <OpenMS/CONCEPT/FactoryProduct.h>
 #include <OpenMS/CONCEPT/Types.h>
+
+#include <OpenMS/DATASTRUCTURES/IsotopeCluster.h>
+
 #include <set>
 
 namespace OpenMS
@@ -44,10 +47,12 @@ namespace OpenMS
     : public FactoryProduct
   {	
   	public:
-			/// Int in a MSExperiment
-			typedef std::pair<UInt,UInt> IDX;
+			/// Int in a MSExperiment ( first index denotes rt, second m/z )
+			typedef IsotopeCluster::IDX IDX;
 			/// Int set
-			typedef std::set<IDX> IndexSet;
+			typedef IsotopeCluster::IndexSet IndexSet;
+			/// index set with associated charge estimate
+			typedef IsotopeCluster::ChargedIndexSet ChargedIndexSet;
 		
 			/** 
 				@brief Inner Classes for Exception handling

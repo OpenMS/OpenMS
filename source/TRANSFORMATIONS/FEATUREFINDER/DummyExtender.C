@@ -81,7 +81,7 @@ namespace OpenMS
 		min_intensity_contribution_ = param_.getValue("min_intensity_contribution");
   }
 
-	const FeaFiModule::IndexSet& DummyExtender::extend(const IndexSet& seed_region)
+	const FeaFiModule::ChargedIndexSet& DummyExtender::extend(const ChargedIndexSet& seed_region)
 	{
     // empty region and boundary datastructures
     region_.clear();
@@ -99,6 +99,8 @@ namespace OpenMS
 			}
 			region_.insert(*citer);
     }
+		// pass on charge information
+		region_.charge_ = seed_region.charge_;
   
 		// remember last extracted point (in this case the seed !)
 		seed_pos_[RawDataPoint2D::RT] = traits_->getPeakRt(seed);

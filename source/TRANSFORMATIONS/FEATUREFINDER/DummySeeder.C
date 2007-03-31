@@ -73,7 +73,7 @@ namespace OpenMS
     return *this;
   }
 	
-	FeaFiModule::IndexSet DummySeeder::nextSeed() throw (NoSuccessor)
+	FeaFiModule::ChargedIndexSet DummySeeder::nextSeed() throw (NoSuccessor)
 	{
 		if (!is_initialized_)
 		{

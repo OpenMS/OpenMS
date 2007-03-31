@@ -78,7 +78,7 @@ namespace OpenMS
 	       @param extension range of peaks that ought to be fitted 
 	       @return feature 
 	    */
-	    virtual Feature fit(const IndexSet& extension) throw(UnableToFit) =0;
+	    virtual Feature fit(const ChargedIndexSet& extension) throw(UnableToFit) =0;
 
   };
 }

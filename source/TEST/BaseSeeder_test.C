@@ -51,9 +51,9 @@ class TestSeeder : public BaseSeeder
 		check_defaults_ = false;
 	}
 	
-	IndexSet nextSeed() throw (NoSuccessor)
+	ChargedIndexSet nextSeed() throw (NoSuccessor)
 	{
-		FeaFiModule::IndexSet  set;
+		FeaFiModule::ChargedIndexSet  set;
 		set.insert(std::make_pair(7,7));
 		return set;
 	}
@@ -97,9 +97,9 @@ CHECK((BaseSeeder(const BaseSeeder &source)))
 	TEST_EQUAL(fp2, fp3)
 RESULT
 
-CHECK((virtual IndexSet nextSeed()=0))
+CHECK((virtual ChargedIndexSet nextSeed()=0))
 	TestSeeder s;
-	FeaFiModule::IndexSet  almost_empty;
+	FeaFiModule::ChargedIndexSet  almost_empty;
 	almost_empty.insert(std::make_pair(7,7));
 	TEST_EQUAL(s.nextSeed()==almost_empty,true);
 RESULT

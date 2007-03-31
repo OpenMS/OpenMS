@@ -21,11 +21,10 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Ole Schulz-Trieglaff , Rene Hussong$
+// $Maintainer: Ole Schulz-Trieglaff, Rene Hussong$
 // --------------------------------------------------------------------------
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/IsotopeWaveletSeeder.h>
-#include <OpenMS/SYSTEM/StopWatch.h>
 
 using namespace std;
 

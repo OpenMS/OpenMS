@@ -96,7 +96,7 @@ namespace OpenMS
 	  SimpleSeeder& operator= (const SimpleSeeder& rhs);
   
     /// return next seed 
-    IndexSet nextSeed() throw (NoSuccessor);
+    ChargedIndexSet nextSeed() throw (NoSuccessor);
 
     static BaseSeeder* create()
     {
