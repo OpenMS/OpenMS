@@ -95,8 +95,7 @@ namespace OpenMS
 		enum ActionModes 
 		{
 			AM_SELECT,		///< select + measure
-			AM_ZOOM,			///< zoom + translate
-			AM_TRANSLATE	///< @todo remove
+			AM_ZOOM 			///< zoom + translate
 		};
 		
 		///Display modes of intensity
@@ -152,8 +151,6 @@ namespace OpenMS
 			
 			Sets the action mode for the left mouse button, e.g. zoom, translate etc.
 			@param mode the new action mode.
-			
-			@see actionModeChange_()
 		*/
 		inline void setActionMode(ActionModes mode) 
 		{ 
@@ -163,13 +160,9 @@ namespace OpenMS
 				case AM_ZOOM:
 					setCursor(Qt::CrossCursor);
 					break;
-				case AM_TRANSLATE:
-					setCursor(Qt::OpenHandCursor);
-					break;
 				default:
 					setCursor(Qt::ArrowCursor);
 			}
-			actionModeChange_();
 		}
 		
 		/**
@@ -221,7 +214,101 @@ namespace OpenMS
 			OPENMS_PRECONDITION(current_layer_ < layers_.size(), "SpectrumCanvas::getLayer() index overflow");
 			return layers_[current_layer_];
 		}
-		
+
+		/// returns a layer flag of the current layer
+		bool getLayerFlag(LayerData::Flags f) const
+		{
+			OPENMS_PRECONDITION(current_layer_ < layers_.size(), "SpectrumCanvas::getLayerFlag() index overflow");
+			switch(f)
+			{
+				case LayerData::F_HULLS:
+					return layers_[current_layer_].f1;
+				case LayerData::F_NUMBERS:
+					return layers_[current_layer_].f2;
+				case LayerData::P_SURFACE:
+					return layers_[current_layer_].f1;
+				case LayerData::P_CONTOURS:
+					return layers_[current_layer_].f2;
+				case LayerData::P_PRECURSORS:
+					return layers_[current_layer_].f3;
+			}
+			std::cout << "Error: SpectrumCanvas::getLayerFlag -- unknown flag '" << f << "'!" << std::endl;
+			return false;
+		}
+
+		/// sets a layer flag of the current layer
+		void setLayerFlag(LayerData::Flags f, bool value)
+		{
+			OPENMS_PRECONDITION(current_layer_ < layers_.size(), "SpectrumCanvas::setLayerFlag() index overflow");
+			switch(f)
+			{
+				case LayerData::F_HULLS:
+					layers_[current_layer_].f1 = value;
+					break;
+				case LayerData::F_NUMBERS:
+					layers_[current_layer_].f2 = value;
+					break;
+				case LayerData::P_SURFACE:
+					layers_[current_layer_].f1 = value;
+					break;
+				case LayerData::P_CONTOURS:
+					layers_[current_layer_].f2 = value;
+					break;
+				case LayerData::P_PRECURSORS:
+					layers_[current_layer_].f3 = value;
+					break;
+			}
+			update_buffer_ = true;
+			update();
+		}
+
+		/// returns a layer flag of the layer @p layer
+		bool getLayerFlag(UInt layer, LayerData::Flags f) const
+		{
+			OPENMS_PRECONDITION(layer < layers_.size(), "SpectrumCanvas::getLayerFlag() index overflow");
+			switch(f)
+			{
+				case LayerData::F_HULLS:
+					return layers_[layer].f1;
+				case LayerData::F_NUMBERS:
+					return layers_[layer].f2;
+				case LayerData::P_SURFACE:
+					return layers_[layer].f1;
+				case LayerData::P_CONTOURS:
+					return layers_[layer].f2;
+				case LayerData::P_PRECURSORS:
+					return layers_[layer].f3;
+			}
+			std::cout << "Error: SpectrumCanvas::getLayerFlag -- unknown flag '" << f << "'!" << std::endl;
+			return false;
+		}
+
+		/// sets a layer flag of the layer @p layer
+		void setLayerFlag(UInt layer, LayerData::Flags f, bool value)
+		{
+			OPENMS_PRECONDITION(layer < layers_.size(), "SpectrumCanvas::setLayerFlag() index overflow");
+			switch(f)
+			{
+				case LayerData::F_HULLS:
+					layers_[layer].f1 = value;
+					break;
+				case LayerData::F_NUMBERS:
+					layers_[layer].f2 = value;
+					break;
+				case LayerData::P_SURFACE:
+					layers_[layer].f1 = value;
+					break;
+				case LayerData::P_CONTOURS:
+					layers_[layer].f2 = value;
+					break;
+				case LayerData::P_PRECURSORS:
+					layers_[layer].f3 = value;
+					break;
+			}
+			update_buffer_ = true;
+			update();
+		}
+
 		/**
 			@brief Returns the currently visible area
 			
@@ -514,7 +601,7 @@ namespace OpenMS
 			return getCurrentLayer_().peaks;
 		}
 	
-		/// reimplemented QT event
+		///reimplemented QT event
 		void resizeEvent(QResizeEvent* e);
 		
 		/**
@@ -526,9 +613,6 @@ namespace OpenMS
 
 		///This function is called whenever the intensity mode changes. Reimplement if you need to react on such changes.
 		virtual void intensityModeChange_();
-
-		///This function is called whenever the action mode changes. Reimplement if you need to react on such changes.
-		virtual void actionModeChange_();
 
 		///This function is called whenever the action mode changes. Reimplement if you need to react on such changes.
 		virtual void axisMappingChange_();

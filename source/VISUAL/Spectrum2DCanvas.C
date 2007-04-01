@@ -51,9 +51,6 @@ namespace OpenMS
 		: SpectrumCanvas(parent),
 		marching_squares_matrices_(),
 		max_values_(),
-		show_contours_(),
-		show_surface_(),
-		show_dots_(),
 		selected_peak_(0),
 		measurement_start_(0),
 		measurement_stop_(0),
@@ -67,51 +64,6 @@ namespace OpenMS
 	
 	Spectrum2DCanvas::~Spectrum2DCanvas()
 	{
-	}
-	
-	void Spectrum2DCanvas::showContours(bool on)
-	{
-		if (on != show_contours_[current_layer_])
-		{
-			show_contours_[current_layer_] = on;
-			update_buffer_ = true;
-			update();
-		}
-	}
-	
-	void Spectrum2DCanvas::showSurface(bool on)
-	{
-		if (on != show_surface_[current_layer_])
-		{
-			show_surface_[current_layer_] = on;
-			update_buffer_ = true;
-			update();
-		}
-	}
-	
-	void Spectrum2DCanvas::showPoints(bool on)
-	{
-		if (on != show_dots_[current_layer_])
-		{
-			show_dots_[current_layer_] = on;
-			update_buffer_ = true;
-			update();
-		}
-	}
-	
-	bool Spectrum2DCanvas::contoursAreShown()
-	{
-		return show_contours_[current_layer_];
-	}
-	
-	bool Spectrum2DCanvas::surfaceIsShown()
-	{
-		return show_surface_[current_layer_];
-	}
-	
-	bool Spectrum2DCanvas::dotsAreShown()
-	{
-		return show_dots_[current_layer_];
 	}
 	
 	void Spectrum2DCanvas::highlightPeak_(QPainter& painter, Feature* peak)
@@ -277,23 +229,6 @@ namespace OpenMS
 		QTime timer;
 		timer.start();
 #endif	
-//		// Create this dot shape: 
-//		// .##.
-//		// ####
-//		// ####
-//		// .##.
-//		// This is much faster than always drawing circles
-//		QBitmap dotshape(4,4);
-//		dotshape.fill(Qt::color1);
-//		QPainter dotshape_painter(&dotshape);
-//		dotshape_painter.setPen(Qt::color0);
-//		dotshape_painter.drawPoint(0,0);
-//		dotshape_painter.drawPoint(3,3);
-//		dotshape_painter.drawPoint(0,3);
-//		dotshape_painter.drawPoint(3,0);
-//		
-//		//shift of the bitmap
-//		QPoint shift(2,2);
 		
 		if (intensity_mode_ == IM_PERCENTAGE)
 		{
@@ -339,49 +274,55 @@ namespace OpenMS
 			}
 			
 			//draw precursor peaks
-			painter.setPen(Qt::black);
-			for (ExperimentType::ConstIterator i = getPeakData(layer_index).RTBegin(visible_area_.min()[1]); 
-					 i != getPeakData(layer_index).RTEnd(visible_area_.max()[1]); 
-					 ++i)
+			if (getLayerFlag(layer_index,LayerData::P_PRECURSORS))
 			{
-				//this is a MS/MS scan
-				if (i->getMSLevel()==2)
+				painter.setPen(Qt::black);
+				for (ExperimentType::ConstIterator i = getPeakData(layer_index).RTBegin(visible_area_.min()[1]); 
+						 i != getPeakData(layer_index).RTEnd(visible_area_.max()[1]); 
+						 ++i)
 				{
-					//cout << "Looking for Precursor scan of " << i->getRetentionTime() << " " << i->getPrecursorPeak().getPosition()[0] << endl;
-					//look up precursor peak scan for RT
-					ExperimentType::ConstIterator prec = i;
-					while(true)
+					//this is a MS/MS scan
+					if (i->getMSLevel()==2)
 					{
-						//cout << "prec " << prec->getMSLevel() << " " << prec->getRetentionTime() << endl;
-						//we have found the precursor
-						if (prec->getMSLevel()==1)
+						//cout << "Looking for Precursor scan of " << i->getRetentionTime() << " " << i->getPrecursorPeak().getPosition()[0] << endl;
+						//look up precursor peak scan for RT
+						ExperimentType::ConstIterator prec = i;
+						while(true)
 						{
-							//cout << "HIT!" << endl;
-							//draw icon
-							dataToWidget_(i->getPrecursorPeak().getPosition()[0], prec->getRetentionTime(),pos);
-							painter.drawLine(pos.x(),pos.y()+2,pos.x()+2,pos.y());
-							painter.drawLine(pos.x()+2,pos.y(),pos.x(),pos.y()-2);
-							painter.drawLine(pos.x(),pos.y()-2,pos.x()-2,pos.y());
-							painter.drawLine(pos.x()-2,pos.y(),pos.x(),pos.y()+2);
-							//abort while loop
-							break;
+							//cout << "prec " << prec->getMSLevel() << " " << prec->getRetentionTime() << endl;
+							//we have found the precursor
+							if (prec->getMSLevel()==1)
+							{
+								//cout << "HIT!" << endl;
+								//draw icon
+								dataToWidget_(i->getPrecursorPeak().getPosition()[0], prec->getRetentionTime(),pos);
+								painter.drawLine(pos.x(),pos.y()+2,pos.x()+2,pos.y());
+								painter.drawLine(pos.x()+2,pos.y(),pos.x(),pos.y()-2);
+								painter.drawLine(pos.x(),pos.y()-2,pos.x()-2,pos.y());
+								painter.drawLine(pos.x()-2,pos.y(),pos.x(),pos.y()+2);
+								//abort while loop
+								break;
+							}
+							//there is no precusor scan for this MS/MS scan
+							if (prec == getPeakData(layer_index).begin())
+							{
+								break;
+							}
+							--prec;
 						}
-						//there is no precusor scan for this MS/MS scan
-						if (prec == getPeakData(layer_index).begin())
-						{
-							break;
-						}
-						--prec;
 					}
 				}
 			}
 		}
 		else //features
 		{
+			bool numbers = getLayerFlag(layer_index,LayerData::F_NUMBERS);
+			UInt num=0;
 			for (FeatureMapType::ConstIterator i = getLayer(layer_index).features.begin();
 				   i != getLayer(layer_index).features.end();
 				   ++i)
 			{
+				++num;
 				if ( i->getRT() >= visible_area_.min()[1] &&
 						 i->getRT() <= visible_area_.max()[1] &&
 						 i->getMZ() >= visible_area_.min()[0] &&
@@ -396,6 +337,10 @@ namespace OpenMS
 					dataToWidget_(i->getMZ(),i->getRT(),pos);
 					painter.drawLine(pos.x(),pos.y()-1,pos.x(),pos.y()+1);
 					painter.drawLine(pos.x()-1,pos.y(),pos.x()+1,pos.y());
+					if (numbers)
+					{
+						painter.drawText(pos.x()+10,pos.y()+10,QString::number(num));
+					}
 				}
 			}
 		}
@@ -853,7 +798,7 @@ namespace OpenMS
 		}	
 	}
 	
-	void Spectrum2DCanvas::createProjections_(const AreaType& area, bool shift_pressed, bool ctrl_pressed)
+	void Spectrum2DCanvas::createProjections_(const AreaType& area)
 	{
 		ExperimentType::CoordinateType rt_l = area.minY();
 		ExperimentType::CoordinateType rt_h = area.maxY();
@@ -861,35 +806,6 @@ namespace OpenMS
 		ExperimentType::CoordinateType mz_h = area.maxX();
 
 		//cout << "Projection: "<< rt_l << " " << rt_h << " " << mz_l << " " << mz_h << endl;
-		
-		if (shift_pressed)
-		{
-			if (isMzToXAxis())
-			{
-				mz_l = visible_area_.min()[0];
-				mz_h = visible_area_.max()[0];	
-			}
-			else
-			{
-				rt_l = visible_area_.min()[1];
-				rt_h = visible_area_.max()[1];
-			}
-		}
-		else if (ctrl_pressed)
-		{
-			if (isMzToXAxis())
-			{
-				rt_l = visible_area_.min()[1];
-				rt_h = visible_area_.max()[1];	
-			}
-			else
-			{
-				mz_l = visible_area_.min()[0];
-				mz_h = visible_area_.max()[0];
-			}
-		}
-		
-		//cout << "Projection (buttons): "<< rt_l << " " << rt_h << " " << mz_l << " " << mz_h << endl;
 		
 		//create projection data
 		map<float, float> mz, rt;
@@ -1000,11 +916,6 @@ namespace OpenMS
 	Int Spectrum2DCanvas::finishAdding(float low_intensity_cutoff)
 	{
 		current_layer_ = getLayerCount()-1;
-
-		//set visibility to true
-		show_contours_.push_back(false);
-		show_surface_.push_back(false);
-		show_dots_.push_back(true);
 		
 		if (layers_.back().type==LayerData::DT_PEAK) //peak data
 		{
@@ -1034,7 +945,12 @@ namespace OpenMS
 		{
 			resetZoom();
 		}
-
+		
+		if (getLayerCount()==2)
+		{
+			setIntensityMode(IM_PERCENTAGE);
+		}
+		
 		intensityModeChange_();
 		
 		emit sendStatusMessage("",0);
@@ -1061,11 +977,6 @@ namespace OpenMS
 	
 		//remove the data
 		layers_.erase(layers_.begin()+layer_index);
-		
-		//remove settings
-		show_contours_.erase(show_contours_.begin()+layer_index);
-		show_surface_.erase(show_surface_.begin()+layer_index);
-		show_dots_.erase(show_dots_.begin()+layer_index);
 		
 		//update visible area and boundaries
 		recalculateRanges_(0,1,2);
@@ -1250,7 +1161,7 @@ namespace OpenMS
 			max_values_.resize(getLayerCount());
 			for (UInt i=0; i<getLayerCount(); i++)
 			{
-				if ( getLayer(i).type == LayerData::DT_PEAK && getLayer(i).visible && (show_surface_[i] || show_contours_[i]))
+				if ( getLayer(i).type == LayerData::DT_PEAK && getLayer(i).visible && (getLayerFlag(i,LayerData::P_SURFACE) || getLayerFlag(i,LayerData::P_CONTOURS)))
 				{
 					calculateMarchingSquareMatrix_(i);
 				}
@@ -1269,33 +1180,35 @@ namespace OpenMS
 				{
 					if (getLayer(i).type==LayerData::DT_PEAK)
 					{
-						if (show_surface_[i])
+						if (getLayerFlag(i,LayerData::P_SURFACE))
 						{
 							//cout << "surface peak layer: " << i << endl;
 							paintSurface_(i, painter);
 						}
-						if (show_contours_[i])
+						if (getLayerFlag(i,LayerData::P_CONTOURS))
 						{
 							//cout << "countour peak layer: " << i << endl;
 							paintContours_(i, painter);
 						}
-						if (show_dots_[i])
-						{
-							//cout << "dot peak layer: " << i << endl;
-							paintDots_(i, painter);
-						}
+						paintDots_(i, painter);
 					}
 					else if (getLayer(i).type==LayerData::DT_FEATURE)
 					{
 						//cout << "dot feature layer: " << i << endl;
 						paintDots_(i, painter);
-						paintConvexHulls_(i, painter);
+						if (getLayerFlag(i,LayerData::F_HULLS))
+						{
+							paintConvexHulls_(i, painter);
+						}
 					}
 					else if (getLayer(i).type==LayerData::DT_FEATURE_PAIR)
 					{
 						//cout << "dot feature pair layer: " << i << endl;
 						paintDots_(i, painter);
-						paintConvexHulls_(i, painter);
+						if( getLayerFlag(i,LayerData::F_HULLS))
+						{
+							paintConvexHulls_(i, painter);
+						}
 						paintFeaturePairConnections_(i, painter);
 					}
 				}
@@ -1390,14 +1303,15 @@ namespace OpenMS
 			case AM_ZOOM:
 				if (e->button() == Qt::LeftButton)
 				{
-					rubber_band_.setGeometry(e->pos().x(),e->pos().y(),0,0);
-					rubber_band_.show();
-				}
-				break;
-			case AM_TRANSLATE:
-				if (e->button() == Qt::LeftButton)
-				{
-					setCursor(Qt::ClosedHandCursor);
+					if (e->modifiers() & Qt::ControlModifier) //translate
+					{
+						setCursor(Qt::ClosedHandCursor);
+					}
+					else //zoom
+					{
+						rubber_band_.setGeometry(e->pos().x(),e->pos().y(),0,0);
+						rubber_band_.show();
+					}
 				}
 				break;
 			default:
@@ -1480,18 +1394,7 @@ namespace OpenMS
 					}
 					else if (e->buttons() & Qt::LeftButton) //projection
 					{
-						if (e->modifiers() & Qt::ShiftModifier)
-						{
-							rubber_band_.setGeometry(QRect(QPoint(0, last_mouse_pos_.y()), QPoint(width(), pos.y())));
-						}
-						else if (e->modifiers() & Qt::ControlModifier)
-						{
-							rubber_band_.setGeometry(QRect(QPoint(last_mouse_pos_.x(), 0), QPoint(pos.x(), height())));
-						}
-						else
-						{
-							rubber_band_.setGeometry(QRect(last_mouse_pos_, pos));
-						}
+						rubber_band_.setGeometry(QRect(last_mouse_pos_, pos));
 						update();
 					}
 				}
@@ -1505,53 +1408,63 @@ namespace OpenMS
 				
 				if (e->buttons() & Qt::LeftButton)
 				{
-					rubber_band_.setGeometry(last_mouse_pos_.x(), last_mouse_pos_.y(), pos.x() - last_mouse_pos_.x(), pos.y() - last_mouse_pos_.y());
-					update();
+					if (e->modifiers() & Qt::ControlModifier) //translate
+					{
+						//caldulate data coordinates of shift
+						PointType old_data = widgetToData_(last_mouse_pos_);
+						PointType new_data = widgetToData_(pos);
+						//calculate x shift
+						double shift = old_data.getX() - new_data.getX();
+						double newLoX = visible_area_.minX() + shift;
+						double newHiX = visible_area_.maxX() + shift;
+						// check if we are falling out of bounds
+						if (newLoX < overall_data_range_.minX())
+						{
+							newLoX = overall_data_range_.minX();
+							newHiX = newLoX + visible_area_.width();
+						}
+						if (newHiX > overall_data_range_.maxX())
+						{
+							newHiX = overall_data_range_.maxX();
+							newLoX = newHiX - visible_area_.width();
+						}
+						//calculate y shift
+						shift = old_data.getY() - new_data.getY();
+						double newLoY = visible_area_.minY() + shift;
+						double newHiY = visible_area_.maxY() + shift;
+						// check if we are falling out of bounds
+						if (newLoY < overall_data_range_.minY())
+						{
+							newLoY = overall_data_range_.minY();
+							newHiY = newLoY + visible_area_.height();
+						}
+						if (newHiY > overall_data_range_.maxY())
+						{
+							newHiY = overall_data_range_.maxY();
+							newLoY = newHiY - visible_area_.height();
+						}
+		     		
+		     		//change area
+						changeVisibleArea_(AreaType(newLoX,newLoY,newHiX,newHiY));
+		
+						last_mouse_pos_ = pos;
+					}
+					else //zoom
+					{
+						rubber_band_.setGeometry(last_mouse_pos_.x(), last_mouse_pos_.y(), pos.x() - last_mouse_pos_.x(), pos.y() - last_mouse_pos_.y());
+						update();
+					}
 				}
-				break;
-			}
-			case AM_TRANSLATE:
-			{
-				if (e->buttons() & Qt::LeftButton)
+				else
 				{
-					//caldulate data coordinates of shift
-					PointType old_data = widgetToData_(last_mouse_pos_);
-					PointType new_data = widgetToData_(pos);
-					//calculate x shift
-					double shift = old_data.getX() - new_data.getX();
-					double newLoX = visible_area_.minX() + shift;
-					double newHiX = visible_area_.maxX() + shift;
-					// check if we are falling out of bounds
-					if (newLoX < overall_data_range_.minX())
+					if (e->modifiers() & Qt::ControlModifier) //translate
 					{
-						newLoX = overall_data_range_.minX();
-						newHiX = newLoX + visible_area_.width();
+						setCursor(Qt::OpenHandCursor);
 					}
-					if (newHiX > overall_data_range_.maxX())
+					else
 					{
-						newHiX = overall_data_range_.maxX();
-						newLoX = newHiX - visible_area_.width();
+						setCursor(Qt::CrossCursor);
 					}
-					//calculate y shift
-					shift = old_data.getY() - new_data.getY();
-					double newLoY = visible_area_.minY() + shift;
-					double newHiY = visible_area_.maxY() + shift;
-					// check if we are falling out of bounds
-					if (newLoY < overall_data_range_.minY())
-					{
-						newLoY = overall_data_range_.minY();
-						newHiY = newLoY + visible_area_.height();
-					}
-					if (newHiY > overall_data_range_.maxY())
-					{
-						newHiY = overall_data_range_.maxY();
-						newLoY = newHiY - visible_area_.height();
-					}
-	     		
-	     		//change area
-					changeVisibleArea_(AreaType(newLoX,newLoY,newHiX,newHiY));
-	
-					last_mouse_pos_ = pos;
 				}
 				break;
 			}
@@ -1602,7 +1515,7 @@ namespace OpenMS
 							//determine data coordiantes
 							QRect rect = rubber_band_.geometry();	
 							AreaType area(widgetToData_(rect.topLeft()), widgetToData_(rect.bottomRight()));
-							createProjections_(area, e->buttons() & Qt::ShiftModifier, e->buttons() & Qt::ControlModifier);
+							createProjections_(area);
 						}
 					}
 				}
@@ -1611,7 +1524,11 @@ namespace OpenMS
 			case AM_ZOOM:
 			{
 				rubber_band_.hide();
-				if (e->button() == Qt::LeftButton) //zoom to rubber band area
+				if (e->modifiers() & Qt::ControlModifier) //translate
+				{
+					setCursor(Qt::OpenHandCursor);
+				}
+				else //zoom
 				{
 					QRect rect = rubber_band_.geometry();
 					if (rect.width()!=0 && rect.height()!=0) //probably double click -> mouseDoubleClickEvent
@@ -1621,11 +1538,6 @@ namespace OpenMS
 					}
 				}
 				break;
-			}
-			case AM_TRANSLATE:
-			{
-	      setCursor(Qt::OpenHandCursor);
-	      break;
 			}
 			default:
 				break;

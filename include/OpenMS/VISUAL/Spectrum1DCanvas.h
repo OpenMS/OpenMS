@@ -47,7 +47,8 @@ namespace OpenMS
 	/**
 		@brief Canvas for visualization of spectrum
 		
-		@todo Add measurement (Marc)
+		@todo Add measurement (Andreas)
+		@todo Remove coordinate-data transformations (Andreas)
 		
 		@ingroup SpectrumWidgets
 	*/

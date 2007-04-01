@@ -82,7 +82,7 @@ namespace OpenMS
 		cout << "END   " << __PRETTY_FUNCTION__ << endl;
 #endif
 	}
-	
+
 	void SpectrumCanvas::setDispInt(float min, float max)
 	{
 		layers_[current_layer_].min_int = min;
@@ -126,11 +126,6 @@ namespace OpenMS
 		updateScrollbars_();
 		update_buffer_ = true;
 		update_(__PRETTY_FUNCTION__);
-	}
-
-	void SpectrumCanvas::actionModeChange_()
-	{
-		
 	}
 	
 	void SpectrumCanvas::changeVisibleArea_(const AreaType& new_area, bool add_to_stack)

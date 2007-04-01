@@ -81,14 +81,8 @@ Todos:
   - AndiFile auf 64 Bit geefixt (hiwi) -> Installationsanleitung + Test-Builts updaten
   
 -TOPPView:
-  - Zwei Layers auf -> Prozent
-	- Layern Menü -> Context von Layers
 	- Intensity Distribution -> Dock widget
-	- Bild / Image speichern -> Warnung wenn nicht schreibbar
   - Recent -> als neues Layer
-  - Features -> Convexe Hülle, Punkte, Nummern einzeln abschaltbar
-  - Peaks 2D -> Precursor Peaks einzeln abschaltbar
-  - Zoom und Move zusammen
   - Tools -> Annotate with ID 
   - Kontextmenu
     - show scan
@@ -100,11 +94,9 @@ Todos:
     - Folgen immer dem 2D view
     - einzeln abschaltbar
     - Infobox mit Intensität usw.
-    - Projektionen beachten MS/MS? -> Fixen
   - Zoomen
     - über Achsen
     - über Scrollrad in allen Modi
-    - ungenau wenn man weit reinzoomt
-  - Scrollen mit RT-Achse geht nicht richtig
+    - ungenau wenn man weit reinzoomt / mit scrollbar
 
 ***********************************************************************/

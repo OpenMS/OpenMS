@@ -94,11 +94,11 @@ namespace OpenMS
 	
 		if (e->button() == Qt::LeftButton)
 		{
-			if (action_mode_ == AM_TRANSLATE)
+			if (e->modifiers() & Qt::ControlModifier) //translate
 			{
-				setCursor(Qt::ClosedHandCursor);
+      	setCursor(Qt::ClosedHandCursor);
 			}
-			else if (action_mode_ == AM_ZOOM)
+			else //zoom
 			{
 				rubber_band_.setGeometry(e->pos().x(),e->pos().y(),0,0);
 				rubber_band_.show();
@@ -122,54 +122,40 @@ namespace OpenMS
 			}
 			case AM_ZOOM:
 			{
-				PointType pos = widgetToData_(p);
-	
-				if (e->buttons() & Qt::LeftButton)
+				if (e->modifiers() & Qt::ControlModifier) //translate
 				{
-					if (e->modifiers() & Qt::ShiftModifier) // free zoom
+					if(e->buttons() & Qt::LeftButton)
 					{
-						rubber_band_.setGeometry(last_mouse_pos_.x(), last_mouse_pos_.y(), p.x() - last_mouse_pos_.x(), p.y() - last_mouse_pos_.y());
+						// translation in data metric
+						double shift = widgetToData_(last_mouse_pos_).getX() - widgetToData_(p).getX();
+						double newLo = visible_area_.minX() + shift;
+						double newHi = visible_area_.maxX() + shift;
+						// check if we are falling out of bounds
+						if (newLo < overall_data_range_.minX())
+						{
+							newLo = overall_data_range_.minX();
+							newHi = newLo + visible_area_.width();
+						}
+						if (newHi > overall_data_range_.maxX())
+						{
+							newHi = overall_data_range_.maxX();
+							newLo = newHi - visible_area_.width();
+						}
+						//chage data area
+						changeVisibleArea_(newLo, newHi);
+						last_mouse_pos_=p;
 					}
-					else // zoom on position axis only
+				}
+				else //zoom
+				{
+					PointType pos = widgetToData_(p);
+		
+					if (e->buttons() & Qt::LeftButton)
 					{
 						rubber_band_.setGeometry(last_mouse_pos_.x(), 0, p.x() - last_mouse_pos_.x(), height());
+						update_(__PRETTY_FUNCTION__);
 					}
-					update_(__PRETTY_FUNCTION__);
-				}
-				if (e->modifiers() & Qt::ShiftModifier)
-				{
-					emit sendCursorStatus( pos.getX(), pos.getY());
-				}
-				else
-				{
 					emit sendCursorStatus( pos.getX() );
-				}
-				break;
-			}
-			case AM_TRANSLATE:
-			{
-				// Translation of visible area
-				if(e->buttons() & Qt::LeftButton)
-				{
-					// translation in data metric
-					double shift = widgetToData_(last_mouse_pos_).getX() - widgetToData_(p).getX();
-					double newLo = visible_area_.minX() + shift;
-					double newHi = visible_area_.maxX() + shift;
-					// check if we are falling out of bounds
-					if (newLo < overall_data_range_.minX())
-					{
-						newLo = overall_data_range_.minX();
-						newHi = newLo + visible_area_.width();
-					}
-					if (newHi > overall_data_range_.maxX())
-					{
-						newHi = overall_data_range_.maxX();
-						newLo = newHi - visible_area_.width();
-					}
-					//chage data area
-					changeVisibleArea_(newLo, newHi);
-					last_mouse_pos_=p;
-				// End of: Translation
 				}
 				break;
 			}
@@ -223,50 +209,26 @@ namespace OpenMS
 			case AM_ZOOM:
 			{
 				rubber_band_.hide();
-				
 				// zoom-in-at-position or zoom-in-to-area
 				if (e->button() == Qt::LeftButton)
 				{
-					QRect rect = rubber_band_.geometry();
-					
-					//cout << "Canvas area (x,y)-(x1,y1): " << rect.x() << "/" << rect.y() << " - " << rect.x() + rect.width() << "/" << rect.y() + rect.height() << endl;
-					
-					if (rect.width()!=0 && rect.height()!=0) // probably double click -> mouseDoubleClickEvent
+					if (e->modifiers() & Qt::ControlModifier) //translate
 					{
-						AreaType area(widgetToData_(rect.topLeft()), widgetToData_(rect.bottomRight()));
-						if (e->modifiers() & Qt::ShiftModifier)
+						setCursor(Qt::OpenHandCursor);
+					}
+					else //zoom
+					{
+						QRect rect = rubber_band_.geometry();
+					
+						//cout << "Canvas area (x,y)-(x1,y1): " << rect.x() << "/" << rect.y() << " - " << rect.x() + rect.width() << "/" << rect.y() + rect.height() << endl;
+					
+						if (rect.width()!=0 && rect.height()!=0) // probably double click -> mouseDoubleClickEvent
 						{
-							//check if selected area is outside visible area and correct errors
-							if (area.minX() < visible_area_.minX())
-							{
-								area.setMinX(visible_area_.minX());
-							}
-							if (area.minY() < visible_area_.minY())
-							{
-								area.setMinY(visible_area_.minY());
-							}
-							if (area.maxX() > visible_area_.maxX())
-							{
-								area.setMaxX(visible_area_.maxX());
-							}
-							if (area.maxY() > visible_area_.maxY())
-							{
-								area.setMaxY(visible_area_.maxY());
-							}
-							//cout << "Data area (corrected): " << area << endl;
-							changeVisibleArea_(area);
-						}
-						else
-						{
+							AreaType area(widgetToData_(rect.topLeft()), widgetToData_(rect.bottomRight()));
 							changeVisibleArea_(area.minX(), area.maxX(), true);
 						}
 					}
 				}
-				break;
-			}
-			case AM_TRANSLATE:
-			{
-				setCursor(Qt::OpenHandCursor);
 				break;
 			}
 			default:

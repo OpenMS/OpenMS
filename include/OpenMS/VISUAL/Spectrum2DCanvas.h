@@ -61,7 +61,7 @@ namespace OpenMS
   	zoom stack is provided for going back to an earlier
   	view.
   	
-  	@todo Add reduction of 2D data (Marc)
+  	@todo Remove coordinate-data transformations (Marc)
   	
   	@ingroup SpectrumWidgets
   */
@@ -155,20 +155,6 @@ namespace OpenMS
       void showProjectionVertical(const MSExperiment<>&, Spectrum1DCanvas::DrawModes);
 
     public slots:
-
-      /// Sets if countours are shown
-      void showContours(bool on);
-      /// Sets if colored surface is shown
-      void showSurface(bool on);
-      /// Sets if dots are shown
-      void showPoints(bool on);
-
-      /// Returns if countours are shown
-      bool contoursAreShown();
-      /// Returns if colored surface is shown
-      bool surfaceIsShown();
-      /// Returns if dots are shown
-      bool dotsAreShown();
 
       // Docu in base class
       void activateLayer(int layer_index);
@@ -274,7 +260,7 @@ namespace OpenMS
       	@see projection_mz_
       	@see projection_rt_
       */
-      void createProjections_(const AreaType& area, bool shift_pressed, bool ctrl_pressed);
+      void createProjections_(const AreaType& area);
 
       /// m/z projection data
       MSExperiment<> projection_mz_;
@@ -306,13 +292,6 @@ namespace OpenMS
       std::vector< std::vector< std::vector<float> > > marching_squares_matrices_;
       /// Contains the highes value in the marching squares matrix foreach layer
       std::vector<float> max_values_;
-
-      /// Flags whether or not to show the height map for each layer
-      std::vector<bool> show_contours_;
-      /// Flags whether or not to show the surface gradient for each layer
-      std::vector<bool> show_surface_;
-      /// Flags whether or not to show individual peaks for each layer
-      std::vector<bool> show_dots_;
 
       /// the nearest peak/feature to the mouse cursor (DFeature to be able to store the convex hull too)
       Feature* selected_peak_;

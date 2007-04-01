@@ -50,6 +50,17 @@ namespace OpenMS
 			DT_FEATURE_PAIR,	///< Feature pair data (treated like features, but a line is drawn between even and uneven indices)
 			DT_UNKNOWN			  ///< Undefined data type indicating an error
 		};
+
+		///Flags that determine which information is shown.
+		enum Flags
+		{
+			F_HULLS,      ///< Features: Convex hull
+			F_NUMBERS,    ///< Feature: Number
+			P_SURFACE,    ///< Peaks: Surface calculated by marching squares
+			P_CONTOURS,    ///< Peaks: Contour lines calculated by marching squares
+			P_PRECURSORS  ///< Peaks: Mark precursor peaks of MS/MS scans
+		};
+
 		/// Main data type (experiment)
 		typedef MSExperiment<> ExperimentType;
 		/// Main data type (features)
@@ -87,8 +98,11 @@ namespace OpenMS
 				max_int(std::numeric_limits<double>::max()),
 				peaks(),
 				reduced(),
-				features()
-		{	
+				features(),
+				f1(false),
+				f2(false),
+				f3(false)
+		{
 		}
 		
 		/// if this layer is visible
@@ -109,7 +123,13 @@ namespace OpenMS
 		ExperimentType reduced;
 		/// feature data
 		FeatureMapType features;
-
+		
+		/// Flag one (Feature: convex hull, Peak: surface)
+		bool f1;
+		/// Flag two (Feature: numbers , Peak: contours)
+		bool f2;
+		/// Flag three (Feature: - , Peak: precursors)
+		bool f3;
 	};
 
 	///Print the contents to a stream.

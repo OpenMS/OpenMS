@@ -62,7 +62,6 @@ namespace OpenMS
   	@brief MDI window of TOPPView tool
   	
   	@todo Add preferences for layers (Marc)
-  	@todo Remove coordinate-data transformations (Marc)
   */
   class TOPPViewBase 
   	: public QMainWindow, 
@@ -225,9 +224,7 @@ namespace OpenMS
       void setDrawMode1D(int);
       void setIntensityMode(int);
       void showGridLines(bool);
-      void showPoints(bool);
-      void showSurface(bool);
-      void showContours(bool);
+      void changeLayerFlag(bool);
       void resetZoom();
       //@}
 
@@ -276,9 +273,11 @@ namespace OpenMS
       QComboBox* link_box_;
       //2D specific stuff
       QToolBar* tool_bar_2d_;
-      QAction* dm_points_2d_;
       QAction* dm_surface_2d_;
       QAction* dm_contours_2d_;
+      QAction* dm_precursors_2d_;
+      QAction* dm_hull_2d_;
+      QAction* dm_numbers_2d_;
       //@}
 
       /// Main workspace

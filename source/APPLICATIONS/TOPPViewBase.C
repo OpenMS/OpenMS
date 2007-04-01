@@ -73,7 +73,6 @@
 
 //action modes
 #include "../VISUAL/ICONS/zoom.xpm"
-#include "../VISUAL/ICONS/translate.xpm"
 #include "../VISUAL/ICONS/select.xpm"
 
 //intensity modes
@@ -94,9 +93,12 @@
 #include "../VISUAL/ICONS/peaks.xpm"
 
 //2d
-#include "../VISUAL/ICONS/points.xpm"
 #include "../VISUAL/ICONS/colors.xpm"
 #include "../VISUAL/ICONS/contours.xpm"
+#include "../VISUAL/ICONS/precursors.xpm"
+#include "../VISUAL/ICONS/convexhulls.xpm"
+#include "../VISUAL/ICONS/numbers.xpm"
+
 
 #include "../VISUAL/ICONS/TOPPView.xpm"
 
@@ -764,9 +766,15 @@ namespace OpenMS
           {
             file_name.append("."+format.toLower());
           }
-
-          QImage image = window->getImage(dialog->getXSize(),dialog->getYSize());
-          image.save(file_name,format.toAscii().data(),100);
+					if (File::writable(file_name.toStdString()))
+					{
+          	QImage image = window->getImage(dialog->getXSize(),dialog->getYSize());
+          	image.save(file_name,format.toAscii().data(),100);
+        	}
+        	else
+        	{
+        	  QMessageBox::critical(this,"Error writing file!",(String("Cannot write to '")+file_name.toStdString()	+"'!").c_str());
+        	}
         }
       }
     }
@@ -992,18 +1000,12 @@ namespace OpenMS
     
     b = new QToolButton(tool_bar_);
     b->setIcon(QPixmap(XPM_zoom));
-    b->setToolTip("Action: Zoom");
+    b->setToolTip("Action: Zoom + Translate");
     b->setShortcut(Qt::Key_Z);
     b->setCheckable(true);
+    b->setWhatsThis("Action mode: Zoom + Translate<BR><BR>This mode allows to navigate in the data."
+    								" The default is to zoom, Press the CTRL key for translation mode.");
     action_group_->addButton(b,SpectrumCanvas::SpectrumCanvas::AM_ZOOM);
-		tool_bar_->addWidget(b);
-
-    b = new QToolButton(tool_bar_);
-    b->setIcon(QPixmap(XPM_translate));
-    b->setToolTip("Action: Translate");
-    b->setShortcut(Qt::Key_T);
-    b->setCheckable(true);
-    action_group_->addButton(b,SpectrumCanvas::SpectrumCanvas::AM_TRANSLATE);
 		tool_bar_->addWidget(b);
 
     b = new QToolButton(tool_bar_);
@@ -1126,25 +1128,33 @@ namespace OpenMS
     //**2D toolbar**
     tool_bar_2d_ = addToolBar("2D tool bar");
 
-    dm_points_2d_ = tool_bar_2d_->addAction(QPixmap(XPM_points),"Show dots");
-    dm_points_2d_->setShortcut(Qt::Key_D);
-    dm_points_2d_->setCheckable(true);
-    dm_points_2d_->setWhatsThis("2D Draw mode: Dots<BR><BR>Peaks are diplayed as dots.");
-    connect(dm_points_2d_, SIGNAL(toggled(bool)), this, SLOT(showPoints(bool)));
-
     dm_surface_2d_ = tool_bar_2d_->addAction(QPixmap(XPM_colors),"Show colored surface");
-    dm_surface_2d_->setShortcut(Qt::Key_U);
     dm_surface_2d_->setCheckable(true);
-    dm_surface_2d_->setWhatsThis("2D Draw mode: Surface<BR><BR>The marching squares algorithm is applied"
+    dm_surface_2d_->setWhatsThis("2D peak draw mode: Surface<BR><BR>The marching squares algorithm is applied"
     								             " to calculate a surface");
-    connect(dm_surface_2d_, SIGNAL(toggled(bool)), this, SLOT(showSurface(bool)));
+    connect(dm_surface_2d_, SIGNAL(toggled(bool)), this, SLOT(changeLayerFlag(bool)));
 
     dm_contours_2d_ = tool_bar_2d_->addAction(QPixmap(XPM_contours),"Show contour lines");
-    dm_contours_2d_->setShortcut(Qt::Key_C);
     dm_contours_2d_->setCheckable(true);
-    dm_contours_2d_->setWhatsThis("2D Draw mode: Contour lines<BR><BR>The marching squares algorithm is applied"
+    dm_contours_2d_->setWhatsThis("2D peak draw mode: Contour lines<BR><BR>The marching squares algorithm is applied"
     								              " to calculate contour lines.");
-    connect(dm_contours_2d_, SIGNAL(toggled(bool)), this, SLOT(showContours(bool)));
+    connect(dm_contours_2d_, SIGNAL(toggled(bool)), this, SLOT(changeLayerFlag(bool)));
+
+    dm_precursors_2d_ = tool_bar_2d_->addAction(QPixmap(XPM_precursors),"Show MS/MS precursors");
+    dm_precursors_2d_->setCheckable(true);
+    dm_precursors_2d_->setWhatsThis("2D peak draw mode: Precursors<BR><BR>MS/MS precursor peaks are marked");
+    connect(dm_precursors_2d_, SIGNAL(toggled(bool)), this, SLOT(changeLayerFlag(bool)));
+
+
+    dm_hull_2d_ = tool_bar_2d_->addAction(QPixmap(XPM_convexhulls),"Show feature convex hulls");
+    dm_hull_2d_->setCheckable(true);
+    dm_hull_2d_->setWhatsThis("2D feature draw mode: Convex hull<BR><BR>The convex hull of the featuer is displayed");
+    connect(dm_hull_2d_, SIGNAL(toggled(bool)), this, SLOT(changeLayerFlag(bool)));
+
+    dm_numbers_2d_ = tool_bar_2d_->addAction(QPixmap(XPM_numbers),"Show feature numbers");
+    dm_numbers_2d_->setCheckable(true);
+    dm_numbers_2d_->setWhatsThis("2D feature draw mode: Numbers<BR><BR>The feature number is displayed next to the feature");
+    connect(dm_numbers_2d_, SIGNAL(toggled(bool)), this, SLOT(changeLayerFlag(bool)));
 
     //layer bar
     QDockWidget* layer_bar = new QDockWidget("Layers", this);
@@ -1295,28 +1305,34 @@ namespace OpenMS
   	}
   }
 
-  void TOPPViewBase::showPoints(bool on)
+  void TOPPViewBase::changeLayerFlag(bool on)
   {
+		QAction* action = qobject_cast<QAction *>(sender());
     if (Spectrum2DWidget* win = active2DWindow_())
     {
-      win->canvas()->showPoints(on);
-    }
-  }
-
-  void TOPPViewBase::showSurface(bool on)
-  {
-    if (Spectrum2DWidget* win = active2DWindow_())
-    {
-      win->canvas()->showSurface(on);
-    }
-  }
-
-  void TOPPViewBase::showContours(bool on)
-  {
-    if (Spectrum2DWidget* win = active2DWindow_())
-    {
-      win->canvas()->showContours(on);
-    }
+    	//peaks
+	    if (action == dm_contours_2d_)
+			{
+		    win->canvas()->setLayerFlag(LayerData::P_CONTOURS,on);
+			}
+			else if (action == dm_surface_2d_)
+			{
+		    win->canvas()->setLayerFlag(LayerData::P_SURFACE,on);
+			}
+			else if (action == dm_precursors_2d_)
+			{
+		    win->canvas()->setLayerFlag(LayerData::P_PRECURSORS,on);
+			}
+			//features
+			else if (action == dm_hull_2d_)
+			{
+		    win->canvas()->setLayerFlag(LayerData::F_HULLS,on);
+			}
+			else if (action == dm_numbers_2d_)
+			{
+		    win->canvas()->setLayerFlag(LayerData::F_NUMBERS,on);
+			}
+		}
   }
 
   void TOPPViewBase::updateToolbar()
@@ -1370,11 +1386,29 @@ namespace OpenMS
     Spectrum2DWidget* w2 = active2DWindow_();
     if (w2)
     {
-      //draw modes
-      dm_points_2d_->setChecked(w2->canvas()->dotsAreShown());
-      dm_surface_2d_->setChecked(w2->canvas()->surfaceIsShown());
-      dm_contours_2d_->setChecked(w2->canvas()->contoursAreShown());
-
+      //peak draw modes
+      if (w2->canvas()->getCurrentLayer().type == LayerData::DT_PEAK)
+      {
+      	dm_surface_2d_->setVisible(true);
+      	dm_contours_2d_->setVisible(true);
+      	dm_precursors_2d_->setVisible(true);
+      	dm_hull_2d_->setVisible(false);
+      	dm_numbers_2d_->setVisible(false);
+      	dm_surface_2d_->setChecked(w2->canvas()->getLayerFlag(LayerData::P_SURFACE));
+      	dm_contours_2d_->setChecked(w2->canvas()->getLayerFlag(LayerData::P_CONTOURS));
+				dm_precursors_2d_->setChecked(w2->canvas()->getLayerFlag(LayerData::P_PRECURSORS));
+			}
+			//feature draw modes
+			else
+			{
+      	dm_surface_2d_->setVisible(false);
+      	dm_contours_2d_->setVisible(false);
+      	dm_precursors_2d_->setVisible(false);
+      	dm_hull_2d_->setVisible(true);
+      	dm_numbers_2d_->setVisible(true);
+      	dm_hull_2d_->setChecked(w2->canvas()->getLayerFlag(LayerData::F_HULLS));
+      	dm_numbers_2d_->setChecked(w2->canvas()->getLayerFlag(LayerData::F_NUMBERS));
+			}
       //show/hide toolbars and buttons
       tool_bar_1d_->hide();
       tool_bar_2d_->show();

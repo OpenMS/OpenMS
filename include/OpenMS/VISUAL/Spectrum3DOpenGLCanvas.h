@@ -98,6 +98,8 @@ namespace OpenMS
 			void mouseReleaseEvent(QMouseEvent* e);
 	    void mousePressEvent(QMouseEvent* e);
 			void wheelEvent(QWheelEvent* e);
+			void keyPressEvent(QKeyEvent* e);
+			void keyReleaseEvent(QKeyEvent* e);
       //@}
       
 			/**
@@ -208,6 +210,10 @@ namespace OpenMS
 			double trans_x_;
 			/// y_translation
 			double trans_y_;
+			
+			/// Flag for translate mode
+			bool zoom_mode_;
+			
 			
 		public slots:
 	    /// first normalize the angel and then set xRot_ 

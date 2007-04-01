@@ -88,8 +88,6 @@ namespace OpenMS
 			// Docu in base class
 	    Int finishAdding(float low_intensity_cutoff = 0);
 		  // Docu in base class
-	    virtual void actionModeChange_();
-		  // Docu in base class
 	    virtual void setMainPreferences(const Param& prefs);
 			// Docu in base class
 			virtual void intensityModeChange_();
