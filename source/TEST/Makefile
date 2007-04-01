@@ -243,6 +243,7 @@ EXECUTABLES_COMPARISON=\
 	SpectrumCheapDPCorr_test\
 	BinnedRep_test\
 	ClusterSpectrum_test\
+	HierarchicalClustering_test\
 	BinnedRepCompareFunctor_test\
 	BinnedRepMutualInformation_test\
 	BinnedRepSpectrumContrastAngle_test\
@@ -296,6 +297,9 @@ EXECUTABLES_ANALYSIS_MAPMATCHING = \
 	BaseAlignment_test\
 	StarAlignment_test\
 	DelaunayPairFinder_test
+
+EXECUTABLES_ANALYSIS_DECHARGING = \
+	FeatureDecharger_test
 
 EXECUTABLES_ANALYSIS_ID =\
 	IDSpectrumMapper_test\
@@ -374,6 +378,7 @@ EXECUTABLES = \
 	$(EXECUTABLES_TRANSFORMATIONS_FEATUREFINDER)\
 	$(EXECUTABLES_TRANSFORMATIONS_PEAKPICKER)\
 	$(EXECUTABLES_ANALYSIS_ID)\
+	$(EXECUTABLES_ANALYSIS_DECHARGING)\
 	$(EXECUTABLES_ANALYSIS_SVM)\
 	$(EXECUTABLES_ANALYSIS_MAPMATCHING)\
 	$(EXECUTABLES_APPLICATIONS)
@@ -415,7 +420,7 @@ LIBS=$(GUI_LIBS)
 dummy:
 
 # concept_test should be the first one, because it tests the testing ...
-test: info concept_test system_test math_test datastructures_test metadata_test kernel_test format_test filtering_test visual_test comparison_test chemistry_test transformations_test analysis_id_test analysis_svm_test analysis_mapmatching_test applications_test
+test: info concept_test system_test math_test datastructures_test metadata_test kernel_test format_test filtering_test visual_test comparison_test chemistry_test transformations_test analysis_id_test analysis_decharging_test analysis_svm_test analysis_mapmatching_test applications_test
 	@./runtests -success
 
 info:
@@ -459,6 +464,9 @@ transformations_test:	$(EXECUTABLES_TRANSFORMATIONS_FEATUREFINDER) $(EXECUTABLES
 
 analysis_id_test:	$(EXECUTABLES_ANALYSIS_ID) dummy
 	@./runtests -section "ANALYSIS_ID" $(TEST_OPTIONS) $(EXECUTABLES_ANALYSIS_ID)
+
+analysis_decharging_test:	$(EXECUTABLES_ANALYSIS_DECHARGING) dummy
+	@./runtests -section "ANALYSIS_DECHARGING" $(TEST_OPTIONS) $(EXECUTABLES_ANALYSIS_DECHARGING)
 
 analysis_svm_test:	$(EXECUTABLES_ANALYSIS_SVM) dummy
 	@./runtests -section "ANALYSIS_SVM" $(TEST_OPTIONS) $(EXECUTABLES_ANALYSIS_SVM)

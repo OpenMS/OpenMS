@@ -67,7 +67,8 @@ EXECUTABLES=\
 	OMSSAAdapter\
 	UnlabeledMatcher\
 	MapAlignment\
-	MapNormalizer
+	MapNormalizer\
+	Decharger
 
 
 all: $(EXECUTABLES)
@@ -237,6 +238,9 @@ OMSSAAdapter: OMSSAAdapter.o
 	$(CXX) $(LDFLAGS) -o $@ $< $(LIBS)
 	$(CP) $@ $(OPENMS_PATH)/bin/
 
+Decharger: Decharger.o
+	$(CXX) $(LDFLAGS) -o $@ $< $(LIBS)
+	$(CP) $@ $(OPENMS_PATH)/bin/
 
 MapNormalizer: MapNormalizer.o
 	$(CXX) $(LDFLAGS) -o $@ $< $(LIBS)

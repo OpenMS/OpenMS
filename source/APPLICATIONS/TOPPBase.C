@@ -863,7 +863,7 @@ namespace OpenMS
 	const QStringList TOPPBase::registerTools()
 	{
 		QStringList tools;
-		tools<<"AdditiveSeries"<<"AnalysisXMLMerger"<<"BaselineFilter"<<"ConsensusID"<<"DBExporter"
+		tools<<"AdditiveSeries"<<"AnalysisXMLMerger"<<"BaselineFilter"<<"ConsensusID"<<"Decharger"<<"DBExporter"
 		<<"DBImporter"<<"DTAExtractor"<<"FeatureFinder"<<"FeaturePairSplitter"<<"FileConverter"<<"FileFilter"
 		<<"FileInfo"<<"FileMerger"<<"IDFilter"<<"InspectAdapter"<<"LabeledMatcher"<<"MapAlignment"<<"MapDewarper"
 		<<"MapMatcher"<<"MapStatistics"<<"MascotAdapter"<<"NoiseFilter"<<"OMSSAAdapter"<<"PeakPicker"<<"PILISIdentification"

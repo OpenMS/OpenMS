@@ -21,20 +21,24 @@
 #  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
 # --------------------------------------------------------------------------
-# $Maintainer: Andreas Bertsch $
+# $Maintainer: Chris Bielow  $
 # --------------------------------------------------------------------------
+#
 
-
-DIRECTORY=COMPARISON/CLUSTERING
+DIRECTORY=ANALYSIS/DECHARGING
 
 
 include ../../config_defs.mak
 
 CPP_SOURCES=\
-	BinnedRep.C\
-	ClusterSpectrum.C\
-	HierarchicalClustering.C
+  	FeatureDecharger.C
+
 
 include ../../common.mak
-
 -include .Dependencies
+
+# For debugging the ID classes, create the file 'Makefile_debug' and 
+# set 'ADD_CXXFLAGS' one or more of the following flags
+#  -DDEBUG_ID_MAPPING  
+#  -DDEBUG_ID_CONSENSUS
+-include Makefile_debug
