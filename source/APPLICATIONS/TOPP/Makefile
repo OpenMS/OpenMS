@@ -66,7 +66,8 @@ EXECUTABLES=\
 	PILISIdentification\
 	OMSSAAdapter\
 	UnlabeledMatcher\
-	MapAlignment
+	MapAlignment\
+	MapNormalizer
 
 
 all: $(EXECUTABLES)
@@ -233,6 +234,11 @@ PILISModel: PILISModel.o
 	$(CP) $@ $(OPENMS_PATH)/bin/
 
 OMSSAAdapter: OMSSAAdapter.o
+	$(CXX) $(LDFLAGS) -o $@ $< $(LIBS)
+	$(CP) $@ $(OPENMS_PATH)/bin/
+
+
+MapNormalizer: MapNormalizer.o
 	$(CXX) $(LDFLAGS) -o $@ $< $(LIBS)
 	$(CP) $@ $(OPENMS_PATH)/bin/
 

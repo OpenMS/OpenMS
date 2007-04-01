@@ -62,6 +62,9 @@ namespace OpenMS
   	@brief MDI window of TOPPView tool
   	
   	@todo Add preferences for layers (Marc)
+	@todo Make opening recent files as new layer possible (Marc)
+	@todo Tools - annotate with ID (Marc)
+	@todo Make intensity distribution a dock widget (Marc)
   */
   class TOPPViewBase 
   	: public QMainWindow, 

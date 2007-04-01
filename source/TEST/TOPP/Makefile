@@ -30,6 +30,7 @@ DIRECTORY=TEST/TOPP
 
 # Tests for individual tools
 UNCONDITIONAL_TESTS = \
+	MapNormalizer_test \
 	AdditiveSeries_test \
 	AnalysisXMLMerger_test \
 	BaselineFilter_test \
@@ -224,6 +225,12 @@ BaselineFilter_test: $(NUMERICDIFF)
 	@$(call RUN_PROG_OPT,BaselineFilter, -in RawData_input.mzData -out BaselineFilter_output.tmp -resampling 0.2 -struc_elem_length 1.5)
 	@$(call TEST_FILE_EQUAL,BaselineFilter_output.tmp, BaselineFilter_output.mzData)
 
+
+MapNormalizer_test: $(NUMERICDIFF)
+	@$(ECHO) ""
+	@$(ECHO) "MapNormalizer:"
+	@$(call RUN_PROG_OPT,MapNormalizer, -in MapNormalizer_input.mzData -out MapNormalizer_output.tmp)
+	@$(call TEST_FILE_EQUAL,MapNormalizer_output.tmp, MapNormalizer_output.mzData)
 
 DBExporter_test: $(NUMERICDIFF)
 	@$(ECHO) ""

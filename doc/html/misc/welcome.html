@@ -22,34 +22,29 @@
 
 
   <h1>Welcome</h1>
-  Here you can find the OpenMS documentation. The documentation
-  consists of the following fixed parts:
-
-  <dl>
-    <dt>Home</dt>
-    <dd>This page.</dd>
-
-    <dt>Installation Linux</dt>
-    <dd>Installation instructions for Linux.</dd>
-
-    <dt>Installation MacOS</dt>
-    <dd>Installation instructions for MacOS (experimental).</dd>
-
-    <dt>Makefile</dt>
-    <dd>Explains the 'make' targets defined in <code>OpenMS/source/Makefile</code>.</dd>
-
-  </dl>
   
-  <br>
- 
-  Additionally, the OpenMS class documentation and TOPP documentation can be built:
-
-    <br>
-    Note:
-    <UL>
-    	<LI> Execute <tt>'make doc'</tt> in the <tt>OpenMS/doc/</tt> directory to create it. 
-    	<LI> Doxygen version 1.4.5 or higher is recommended as it is is aware of most STL classes.
-    </UL>
+  <dt>Installation instructions</dt>
+  On these pages you find the OpenMS installation instructions for Linux and MacOS.
+  
+  <dt>OpenMS + TOPP documentation</dt>
+  The actual OpenMS and TOPP documentation has to be built using the tool <tt>doxygen</tt>.
+  <BR>
+  If you do not want to install <tt>doxygen</tt>, the documentation of the latest release can also be found 
+  <a href="http://www-bs2.informatik.uni-tuebingen.de/services/OpenMS-release/">online</a>.
+  <p>
+  In order to built the documentation the following tools are needed:
+  <UL>
+		<LI> <tt>doxygen</tt> (version 1.4.5 or higher is recommended as it is is aware of most STL classes)
+		<LI> <tt>pdflatex</tt> (for the pdf version of the tutorial)
+	</UL>
+	<p>
+	The commands used to build the documentation in <tt>OpenMS/doc/</tt> are:
+  <UL>
+  	<LI> <tt>make doc</tt> (for the OpenMS/TOPP documentation)
+  	<LI> <tt>make tutorial</tt> (for the PDF version of the tutorial)
+  </UL>
+  
+  
   <!-- ........ Content ends here ........ -->
 </body>
 </html>

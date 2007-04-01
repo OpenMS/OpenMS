@@ -58,6 +58,7 @@
     - \subpage PeakPicker
     - \subpage Resampler
     - \subpage SpectraFilter
+    - \subpage MapNormalizer
   - <b>Quantitation</b>
  		- \subpage FeatureFinder
   	- \subpage UnlabeledMatcher 

@@ -55,8 +55,6 @@ namespace OpenMS
 		
 		@note This container works only with DPeak's. Other point types are not supported.
 		
-		@todo: write tests for areaBegin(), areaEnd() etc (whoever wrote these methods)
-					
 		@ingroup Kernel
 	*/
 	template < typename PeakT = Peak1D >

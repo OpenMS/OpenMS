@@ -62,7 +62,10 @@ namespace OpenMS
   	view.
   	
   	@todo Remove coordinate-data transformations (Marc)
-  	
+		@todo Context menu: show scan, precursor scan, ID, EIC (Marc)
+		@todo Projections: follow 2D view, info box with intensity (Marc)
+		@todo Zoom: always with axes + scrollwheel, fix bug (Mar)
+
   	@ingroup SpectrumWidgets
   */
   class Spectrum2DCanvas : public SpectrumCanvas

@@ -82,17 +82,7 @@ namespace OpenMS
      and main_ only.
 		 
 		 @todo complete the tests (Clemens)
-		 
-		 To move from TOPPBase to TOPPBase:
-		 -# Change include to TOPPBase
-		 -# Change constructors to TOPPBase (move tool description to constructors)
-		 -# rename setOptionsAndFlags to registerOptionsAndFlags_()
-		 -# Add registration (name, argument text, default value, description, required=true)
-		 -# replace getParamAs... with new Methods. (Delete writeDebug entries for parameters if present.
-			      Debug output is now generated in the get-Method)
-		 -# delete printToolUsage_ and printToolHelpOpt_ methods
-		 -# use IO file checks
-		 .
+		 @todo Add concept for write_ini algorithm sections (Marc)		 .
 	*/
   class TOPPBase
   {

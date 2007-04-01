@@ -49,6 +49,8 @@ namespace OpenMS
 		stored in this class. The only way to find a precursor spectrum of MSSpectrum x is to 
 		search for the first spectrum before x that has a lower MS-level!
 		
+		@todo Add getPrecursorRT(rt/scan nr) and update ID adapters and IDSpectrumMapper (Marc)
+		
 		@note For range operations, see \ref RangeUtils "RangeUtils module"!
 				
 		@ingroup Kernel

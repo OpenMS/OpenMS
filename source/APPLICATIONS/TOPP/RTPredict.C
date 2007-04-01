@@ -54,7 +54,8 @@ using namespace std;
 	according to the trained model. The predicted retention times
 	are stored as @code <userParam name="predicted_retention_time" value="<predicted retention time>" /> 
 	@endcode inside the peptide entities in the analysisXML output file.
-
+	
+	@todo Store RT prediction p-values as identifications (Nico)
 */
 
 // We do not want this class to show up in the docu:

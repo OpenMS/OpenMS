@@ -53,7 +53,7 @@ namespace OpenMS
 		//... spectra are added to the vector ...
 		
 		//range from 0.0 to 36.0 s
-		RTRange< DSpectrum<1> > range(0.0, 36.0);
+		InRTRange< DSpectrum<1> > range(0.0, 36.0);
 
 		//remove the range		
 		spectra.erase(remove_if(spectra.begin(), spectra.end(), range), spectra.end());	
@@ -68,14 +68,11 @@ namespace OpenMS
 		//... peaks are added to the spectrum ...
 		
 		//range from 0.0 to 5000.0 intensity
-		IntensityRange< Peak1D >(0.0, 5000.0);
+		InIntensityRange< Peak1D >(0.0, 5000.0);
 		
 		//remove the range
 		spectrum.erase(remove_if(spectrum.begin(), spectrum.end(), range), spectrum.end());
 		@endcode
-		
-		@todo: change examples for range predicates (Marc)
-		
 	*/
 	
 	/**

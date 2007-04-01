@@ -41,6 +41,8 @@ namespace OpenMS
     
 	  Represents the peptide and protein hits with additional parameters.
 		
+		@todo Store ScoreType (with direction) and AccessionType as Enum in Identification (Marc, Andreas)
+		
 		@ingroup Metadata
   */
   class Identification : public ProteinIdentification
