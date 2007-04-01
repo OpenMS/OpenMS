@@ -247,6 +247,13 @@ namespace OpenMS
 		/// Storage location for parameter information
 		std::vector<ParameterInformation> parameters_;
 
+		/**
+			@brief This method should return the defautl parameters for subsections.
+			
+			Reimplement this method to set the defaults written in the 'write_ini' method.
+		*/
+		virtual Param getSubsectionDefaults_(const String& section) const;
+		
 		/// Storage location for allowed subsections
 		std::vector<String> subsections_;
 		

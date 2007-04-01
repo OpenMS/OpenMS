@@ -160,7 +160,7 @@ namespace OpenMS
 			//subsections
 			for(vector<String>::const_iterator it = subsections_.begin(); it!=subsections_.end(); ++it)
 			{
-				tmp.setValue(loc + *it + ":dummy" , "Replace this ITEM with your seettings!");
+				tmp.insert(loc + *it + ":",getSubsectionDefaults_(*it));
 			}
 			tmp.store(ini_file);
 			return EXECUTION_OK;
@@ -870,5 +870,14 @@ namespace OpenMS
 		<<"PILISModel"<<"Resampler"<<"RTModel"<<"RTPredict"<<"SequestAdapter"<<"SpectraFilter"<<"UnlabeledMatcher"<<"MapNormalizer";
 		return tools;
 	}
+	
+	Param TOPPBase::getSubsectionDefaults_(const String& /*section*/) const
+	{
+		Param tmp;
+		tmp.setValue("dummy","Please replace this entry with your settings!");
+		return tmp;
+	}
+	
+	
 } // namespace OpenMS
 

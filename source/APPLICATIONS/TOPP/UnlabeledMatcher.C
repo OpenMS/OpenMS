@@ -93,6 +93,11 @@ class TOPPUnlabeledMatcher
     	registerSubsection_("algorithm");
     }
 
+		Param getSubsectionDefaults_(const String& /*section*/) const
+		{
+			return PoseClusteringPairwiseMapMatcher<>().getDefaults();
+		}
+
     ExitCodes main_(int , char**)
     {
       //-------------------------------------------------------------

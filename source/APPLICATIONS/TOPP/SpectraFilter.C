@@ -54,16 +54,8 @@ using namespace std;
 	</UL>
 
 	Parameters of the different filters are documented at the class documentation of each filter
-	respectively. The options can be set using the ini file. Each filter might have its own section
-	named by the filter name with the parameters which should be used. An example section might look
-	like:
-
-  @code
-  <NODE name="NLargest"> 
-    <ITEM name="n" value="100" type="float"/>
-  </NODE>
-	@endcode
-
+	respectively. The options can be set using the ini file. Each filter has its own section
+	named by the filter name with the parameters which should be used.
 */
 
 
@@ -124,6 +116,12 @@ class TOPPSpectraFilter
 			registerSubsection_("Normalizer");
 			registerSubsection_("Scaler");
 			registerSubsection_("BernNorm");
+		}
+		
+		Param getSubsectionDefaults_(const String& section) const
+		{
+			Factory<PreprocessingFunctor>* factory = Factory<PreprocessingFunctor>::instance();
+			return factory->create(section)->getDefaults();
 		}
 		
 		ExitCodes main_(int , char**)

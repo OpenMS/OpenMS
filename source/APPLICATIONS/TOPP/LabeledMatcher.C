@@ -88,7 +88,13 @@ class TOPPLabeledMatcher
 			         "      This is due to the fact, that the heavier peptide normally elutes earlier!");
 			registerSubsection_("algorithm");
 	  }
-	
+		
+		Param getSubsectionDefaults_(const String& /*section*/) const
+		{
+			FeatureMap<> fm;
+			return PairMatcher(fm).getDefaults();
+		}
+		
 	  ExitCodes main_(int , char**)
 	  {
 	

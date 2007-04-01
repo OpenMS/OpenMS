@@ -28,6 +28,9 @@
 #include <OpenMS/FORMAT/FeatureMapFile.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinder.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/BaseSeeder.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/BaseExtender.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/BaseModelFitter.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -118,7 +121,20 @@ class TOPPFeatureFinder
 		
 		registerSubsection_("algorithm");
 	}
-	
+
+	Param getSubsectionDefaults_(const String& /*section*/) const
+	{
+		Param tmp;
+		
+		tmp.insert("Seeders:Seeder1",Factory<BaseSeeder>::create("SimpleSeeder")->getDefaults());
+		tmp.setValue("Seeders:Seeder1:ID","SimpleSeeder");
+		tmp.insert("Extenders:Extender1",Factory<BaseExtender>::create("SimpleExtender")->getDefaults());	
+		tmp.setValue("Extenders:Extender1:ID","SimpleExtender");
+		tmp.insert("ModelFitters:ModelFitter1",Factory<BaseModelFitter>::create("SimpleModelFitter")->getDefaults());	
+		tmp.setValue("ModelFitters:ModelFitter1:ID","SimpleModelFitter");
+		return tmp;
+	}
+
 	ExitCodes main_(int , char**)
 	{
 		//input file names and types
