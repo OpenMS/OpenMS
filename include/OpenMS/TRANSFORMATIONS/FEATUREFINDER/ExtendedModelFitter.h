@@ -164,17 +164,29 @@ namespace OpenMS
 		/// perform a nonlinear optimization
 		void optimize();
 
-		/// get current height for the EMG, Gauss and logNormal model
+		/// get height for the EMG and logNormal model
 		CoordinateType getHeight() const;
 
-		/// get current width for the EMG, Gauss and logNormal model
+		/// get width for the EMG and logNormal model
 		CoordinateType getWidth() const;
 
-		/// get current symmetry for the EMG, Gauss and logNormal model
+		/// get symmetry for the EMG and logNormal model
 		CoordinateType getSymmetry() const;
 
-		/// get current retention time for the EMG, Gauss and logNormal model
+		/// get retention time for the EMG and logNormal model
 		CoordinateType getRetention() const;
+
+		/// get standard deviation for the Gauss
+		CoordinateType getStandardDeviation() const;
+
+		/// get expected value for the Gauss
+		CoordinateType getExpectedValue() const;
+
+		/// get scale factor for the Gauss
+		CoordinateType getScaleFactor() const;
+
+		/// get GSL status
+		std::string getGSLStatus() const;
 
 	 protected:
 
@@ -209,7 +221,6 @@ namespace OpenMS
 		double width_;
 		double symmetry_;
 		double retention_;
-		double deviation_;
 		bool symmetric_;
 		std::string gsl_status_;
 
