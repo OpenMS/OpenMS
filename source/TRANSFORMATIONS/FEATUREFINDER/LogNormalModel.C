@@ -79,13 +79,15 @@ namespace OpenMS
 		data.reserve( UInt ( (max_-min_) / interpolation_step_ + 1 ) );
 		CoordinateType pos = min_;
 
-
+		double canelValue = retention_ - (width_*symmetry_)/(symmetry_*symmetry_ - 1);
 		for ( UInt i = 0; pos< max_; ++i)
 		{
 			pos = min_ + i * interpolation_step_;
 
-			// data.push_back (Simplified EMG)
-			data.push_back( height_*exp(-log(r_)/(log(symmetry_)*log(symmetry_))*log((pos-retention_)*(symmetry_*symmetry_-1)/width_/symmetry_+1)*log((pos-retention_)*(symmetry_*symmetry_-1)/width_/symmetry_+1)));
+			if (pos <= canelValue)
+			data.push_back(0);
+			else
+				data.push_back( height_*exp(-log(r_)/(log(symmetry_)*log(symmetry_))*log((pos-retention_)*(symmetry_*symmetry_-1)/width_/symmetry_+1)*log((pos-retention_)*(symmetry_*symmetry_-1)/width_/symmetry_+1)));
 		}
 
 		interpolation_.setScale  ( interpolation_step_ );
