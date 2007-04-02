@@ -207,9 +207,10 @@ namespace OpenMS
 			setData(set);
 			if (symmetric_==false)
 				optimize();
-
-		//	if (gsl_status_!="success")
-			//	throw UnableToFit(__FILE__, __LINE__,__PRETTY_FUNCTION__, "UnableToFit-BadQuality","Skipping feature, " + profile_ + " status: " + gsl_status_);
+				
+			if (gsl_status_!="success")
+				cout << profile_ + " status: " + gsl_status_ << endl;
+				//throw UnableToFit(__FILE__, __LINE__,__PRETTY_FUNCTION__, "UnableToFit-BadQuality","Skipping feature, " + profile_ + " status: " + gsl_status_);
 		}
 
 		/// Test different charges and stdevs
@@ -388,7 +389,7 @@ namespace OpenMS
 			}
 		}
 		file.close();
-		
+	
 		// wrote peaks remaining after model fit
 		fname = String("feature") + counter_ +  "_" + rt + "_" + mz;
 		ofstream file2(fname.c_str()); 
@@ -539,14 +540,6 @@ namespace OpenMS
 	//create a vector with RT-values & Intensities and compute the parameters (intial values) for the EMG & Gauss function
 	void ExtendedModelFitter::setData(const IndexSet& set)
 	{
-		// start rt-value with intensity 0.0 (zero padding)
-		/*
-		positionsDC_.push_back(min_[RT]-1);
-		positionsDC_.push_back(min_[RT]);
-		signalDC_.push_back(0);
-		signalDC_.push_back(0.);
-		*/
-
 		// sum over all intensities
 		double sum = 0.0;
 
@@ -556,6 +549,7 @@ namespace OpenMS
 			// store the current rt-position and signal
 			float position = traits_->getPeakRt(*it);
 			float signal = traits_->getPeakIntensity(*it);
+
 			//float mz = traits_->getPeakMz(*it);
 			sum+=signal;
 
@@ -572,14 +566,6 @@ namespace OpenMS
 				signalDC_.push_back(signal);
 			}
 		}
-
-		// end rt-value with intensity 0.0 (zero padding)
-		/*
-		positionsDC_.push_back(max_[RT]);
-		positionsDC_.push_back(max_[RT]+1);
-		signalDC_.push_back(0);
-		signalDC_.push_back(0.);
-		*/
 
 		// calculate the median
 		int median = 0;
@@ -598,7 +584,10 @@ namespace OpenMS
 		}
 
 		// calculate the stardard deviation
-		deviation_ = sqrt(sumS/(positionsDC_.size() - 1));
+		standard_deviation_ = sqrt(sumS/(positionsDC_.size() - 1));
+
+		// set expeceted value
+		expected_value_ = positionsDC_[median];//rt_stat_.mean();
 
 		// calculate the heigth of the peak
 		height_ = signalDC_[median];
@@ -626,26 +615,40 @@ namespace OpenMS
 		// optimize the symmetry
 		if (profile_=="LogNormal") {
 			// The computations can lead to an overflow error at very low values of symmetry (s~0).
+			
 			if (symmetry_<=0.8)
 				symmetry_=0.8;
+			
+			if (symmetry_==1)
+				symmetry_=1.1;
 
 			if (symmetry_>=1.5)
 				symmetry_=1.4;
+
+			// it is better to proceed from narrow peaks
+			width_ /= 2;
 		}
 		else
 		{
 			// The computations can lead to an overflow error at very low values of symmetry (s~0). For s~5 the parameter can be aproximized by the Levenberg-Marquardt argorithms. (the other parameters are much greater than one)
 			
-			if (symmetry_<1)
-				symmetry_+=5;
+			//if (symmetry_<1)
+			//	symmetry_+=5;
 			
-			symmetry_ *= 10;
+			//symmetry_ *= 10;
+
+			if (symmetry_<1)
+				symmetry_+=10;
+
+			// it is better for the emg function to proceed from narrow peaks
+			width_ = symmetry_;
 		}
 
-		// calculate the parameter r of the log normal function
-		// r is the ratio between h and the height at which w and s are computed
-		r_ = 1.5;
-
+		/* set the parameter r of the log normal function;
+		  r is the ratio between h and the height at which w and s are computed;
+		  r = 2, see "Mathematical functions for representation of chromatographic peaks", V.B. Di Marco(2001)
+		*/
+		r_ = 2;
 	}
 
 	//Evaluation of the target function for nonlinear optimization.
@@ -702,7 +705,7 @@ namespace OpenMS
 				double w = gsl_vector_get(x,1);
 				double s = gsl_vector_get(x,2);
 				double z = gsl_vector_get(x,3);
-				double r = gsl_vector_get(x,4);
+				double r = 2;//gsl_vector_get(x,4);
 
 				double Yi = 0.0;
 
@@ -808,7 +811,7 @@ namespace OpenMS
 				double w = gsl_vector_get(x,1);
 				double s = gsl_vector_get(x,2);
 				double z = gsl_vector_get(x,3);
-				double r = gsl_vector_get(x,4);
+				double r = 2;//gsl_vector_get(x,4);
 
 				double derivative_height, derivative_width, derivative_symmetry, derivative_retention,  derivative_r = 0.0;
 
@@ -838,7 +841,7 @@ namespace OpenMS
 					gsl_matrix_set(J, i, 1, derivative_width);
 					gsl_matrix_set(J, i, 2, derivative_symmetry);
 					gsl_matrix_set(J, i, 3, derivative_retention);
-					gsl_matrix_set(J, i, 4, derivative_r);
+					//gsl_matrix_set(J, i, 4, derivative_r);
 				}
 			}
 		}
@@ -868,15 +871,20 @@ namespace OpenMS
 		// number of parameter to be optimize
 		unsigned int p = 0;
 		if (profile_=="LmaGauss") p = 3;
-		else if (profile_=="LogNormal") p = 5;
+		else if (profile_=="LogNormal") p = 4;//5;
 		else p = 4;
 
+		// gsl always excepts N>=p or default gsl error handler invoked, cause Jacobian be rectangular M x N with M>=N	
+		if (n<p)
+			throw UnableToFit(__FILE__, __LINE__,__PRETTY_FUNCTION__,"UnableToFit-FinalSet","Skipping feature, gsl always expects N>=p");
+ 
 		gsl_matrix *covar = gsl_matrix_alloc(p,p);
 		gsl_multifit_function_fdf f;
 
-		double x_init_normal[3] = { deviation_, rt_stat_.mean(), height_ };
+		double x_init_normal[3] = { standard_deviation_, expected_value_, height_ };
 		double x_init_emg[4] = { height_, width_, symmetry_, retention_ };
-		double x_init_lognormal[5] = { height_, width_, symmetry_, retention_, r_ };
+		//double x_init_lognormal[5] = { height_, width_, symmetry_, retention_, r_ };
+		double x_init_lognormal[4] = { height_, width_, symmetry_, retention_ };
 
 		gsl_vector_view x;
 
@@ -931,7 +939,7 @@ namespace OpenMS
 								gsl_vector_get(s->x,1),
 								gsl_vector_get(s->x,2),
 								gsl_vector_get(s->x,3),
-								gsl_vector_get(s->x,4),
+								//gsl_vector_get(s->x,4),
 								gsl_blas_dnrm2(s->f));
 			}
 		}
@@ -967,7 +975,7 @@ namespace OpenMS
 									gsl_vector_get(s->x,1),
 									gsl_vector_get(s->x,2),
 									gsl_vector_get(s->x,3),
-									gsl_vector_get(s->x,4),
+									//gsl_vector_get(s->x,4),
 									gsl_blas_dnrm2(s->f));
 				}
 			}
@@ -992,8 +1000,9 @@ namespace OpenMS
 		gsl_status_ = gsl_strerror(status);
 
 #ifdef DEBUG_FEATUREFINDER
-		cout << "EMG status: " << gsl_status_ << endl;
+		cout << profile_ << " status: " << gsl_status_ << endl;
 #endif
+
 		if (profile_=="LmaGauss")
 		{
 #ifdef DEBUG_FEATUREFINDER
@@ -1027,13 +1036,13 @@ namespace OpenMS
 				printf("w = %.5f +/- %.5f\n", FIT(1), ERR(1));
 				printf("s = %.5f +/- %.5f\n", FIT(2), ERR(2));
 				printf("z = %.5f +/- %.5f\n", FIT(3), ERR(3));
-				printf("r = %.5f +/- %.5f\n", FIT(4), ERR(4));
+			//	printf("r = %.5f +/- %.5f\n", FIT(4), ERR(4));
 #endif
 				height_     = FIT(0);
 				width_      = FIT(1);
 				symmetry_   = FIT(2);
 				retention_  = FIT(3);
-				r_ 	    = FIT(4);
+				r_ 	    = r_;//FIT(4);
 			}
 		}
 
@@ -1058,7 +1067,7 @@ namespace OpenMS
 		cout << "        width:  " << width_ << endl;
 		cout << "     symmetry:  " << symmetry_ << endl;
 		cout << "    retention:  " << retention_ << endl;
-		cout << "std.deviation:  " << deviation_ << endl;
+		cout << "std.deviation:  " << standard_deviation_ << endl;
 		cout << "max_iteration:  " << max_iteration_ << endl;
 		cout << "      eps_abs:  " << eps_abs_ << endl;
 		cout << "      eps_rel:  " << eps_rel_ << endl;
@@ -1087,6 +1096,26 @@ namespace OpenMS
 	ExtendedModelFitter::CoordinateType ExtendedModelFitter::getRetention() const 
 	{ 
 		return retention_; 
+	}
+
+	ExtendedModelFitter::CoordinateType ExtendedModelFitter::getStandardDeviation() const 
+	{ 
+		return standard_deviation_; 
+	}
+
+	ExtendedModelFitter::CoordinateType ExtendedModelFitter::getExpectedValue() const 
+	{ 
+		return expected_value_; 
+	}
+
+	ExtendedModelFitter::CoordinateType ExtendedModelFitter::getScaleFactor() const 
+	{ 
+		return scale_factor_; 
+	}
+
+	std::string ExtendedModelFitter::getGSLStatus() const 
+	{ 
+		return gsl_status_; 
 	}
 
 }
