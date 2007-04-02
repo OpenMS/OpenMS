@@ -63,6 +63,7 @@
  		- \subpage FeatureFinder
   	- \subpage UnlabeledMatcher 
  		- \subpage LabeledMatcher
+		- \subpage Decharger
   - <b>Identification</b>
     - \subpage IDFilter
     - \subpage ConsensusID

@@ -67,9 +67,8 @@ EXECUTABLES=\
 	OMSSAAdapter\
 	UnlabeledMatcher\
 	MapAlignment\
-	MapNormalizer
-
-#	Decharger
+	MapNormalizer\
+	Decharger
 
 
 all: $(EXECUTABLES)
