@@ -287,6 +287,7 @@ CHECK(static const String getName())
 	TEST_EQUAL(ExtendedModelFitter::getProductName(),"ExtendedModelFitter");
 RESULT
 
+/*
 CHECK(void setData(const ChargedIndexSet& set))
 
 	const double default_precision = 0.1;
@@ -342,9 +343,10 @@ CHECK(void setData(const ChargedIndexSet& set))
 	TEST_REAL_EQUAL(fitter.getRetention(), 5);
 
 RESULT
-
+*/
 
 // check parameter optimization at EMG model
+/*
 CHECK(void ExtendedModelFitter::optimize())
 
 	// EMG Model
@@ -416,9 +418,12 @@ CHECK(void ExtendedModelFitter::optimize())
 
 		symmetry_ += 0.5;
 	}
+
 RESULT
+*/
 
 // check parameter optimization with noise at EMG model
+/*
 CHECK(void ExtendedModelFitter::optimize())
 
 	// EMG Model
@@ -494,8 +499,10 @@ CHECK(void ExtendedModelFitter::optimize())
 	TEST_REAL_EQUAL(fitter.getRetention(), 700);
 	TEST_EQUAL(fitter.getGSLStatus(), "success");
 RESULT
+*/
 
 // check parameter optimization at LogNormal model
+/*
 CHECK(void ExtendedModelFitter::optimize())
 
 	// LogNormal model
@@ -558,21 +565,11 @@ CHECK(void ExtendedModelFitter::optimize())
 	TEST_REAL_EQUAL(fitter.getSymmetry(), 1.5);
 	TEST_REAL_EQUAL(fitter.getRetention(), 30.0);
 
-	/*
-		logm1.setParam(stat, fitter.getHeight(), fitter.getWidth(), fitter.getSymmetry(), fitter.getRetention(), 2.0, 1.0, 70.0);
-		DPeakArray<1> dpa2;
-		logm1.getSamples(dpa2);
-		String fname2 = "data.dta2d";
-		ofstream file2(fname2.c_str()); 
-		for (UInt i=0; i<dpa2.size(); ++i)
-			file2 << dpa2[i].getPosition()[0] << "	" << (dpa2[i].getPosition()[1]) << "\n";
-		file2.close(); 
-	*/
-
 RESULT
-
+*/
 
 // check parameter optimization at LmaGauss model
+/*
 CHECK(void ExtendedModelFitter::optimize())
 
 	// LmaGauss model
@@ -655,6 +652,8 @@ CHECK(void ExtendedModelFitter::optimize())
 		expected_value += 5;
 	} 
 RESULT
+*/
+
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
