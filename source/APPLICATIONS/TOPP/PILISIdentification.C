@@ -78,7 +78,11 @@ class TOPPPILISIdentification
 																														 "the third the charge. As a alternative the sequence file\n"
 																														 "may contain only peptide sequences each in a separate line\n"
 																														 "repectively", true);
+			registerDoubleOption_("precursor_mass_tolerance", "<tol>", 2.0 , "the precursor mass tolerance", false);
+			registerDoubleOption_("peak_mass_tolerance", "<tol>", 1.0, "the peak mass tolerance", false);
 			registerDoubleOption_("exponent", "<float>", 0.3, "exponent of the SpectrumAlignmentScore; see documentation of that class for more info", false);
+
+			registerIntOption_("max_pre_candidates", "<int>", 200, "number of candidates that are used for precise scoring", false);
 			addEmptyLine_();
 		}
 		
@@ -122,26 +126,35 @@ class TOPPPILISIdentification
 			PILIS_id.setSequenceDB(db);
 			PILIS_id.setModel(model);
 
-			double exponent = getDoubleOption_("exponent");
 			Param p(PILIS_id.getParameters());
-			p.setValue("exponent", exponent);
+			p.setValue("exponent", getDoubleOption_("exponent"));
+			p.setValue("max_pre_candidates", getIntOption_("max_pre_candidates"));
+			p.setValue("prcr_m_tol", getDoubleOption_("precursor_mass_tolerance"));
 			PILIS_id.setParameters(p);
+			
+			vector<IdentificationData> id_data;
 
 			UInt no(1);
-			for (PeakMap::ConstIterator it = exp.begin(); it != exp.end(); ++it, ++no)
+			for (PeakMap::Iterator it = exp.begin(); it != exp.end(); ++it, ++no)
 			{
 				if (it->getMSLevel() == 0)
 				{
 					writeLog_("Warning: MSLevel is 0, assuming MSLevel 2");
+					it->setMSLevel(2);
 				}
 							
 				if (it->getMSLevel() == 2)
 				{
 					writeDebug_(String(no) + "/" + String(exp.size()), 1);
-					//cerr << no << "/" << exp.size() << endl;
 					Identification id;
 					PILIS_id.getIdentification(id, *it);
-					ids.push_back(id);
+					
+					//ids.push_back(id);
+					IdentificationData id_data_tmp;
+					id_data_tmp.rt = it->getRetentionTime();
+					id_data_tmp.mz = it->getPrecursorPeak().getPosition()[0];
+					id_data_tmp.id = id;
+					id_data.push_back(id_data_tmp);
 				}
 			}
 			
@@ -153,16 +166,6 @@ class TOPPPILISIdentification
 			// writing output
 			//-------------------------------------------------------------
 		
-			vector<IdentificationData> id_data;
-			for (vector<Identification>::const_iterator it = ids.begin(); it != ids.end(); ++it)
-			{
-				IdentificationData id_data_tmp;
-				id_data_tmp.rt = 0;
-				id_data_tmp.mz = 0;
-				id_data_tmp.id = *it;
-				id_data.push_back(id_data_tmp);
-			}
-
 			AnalysisXMLFile().store(out, vector<ProteinIdentification>(), id_data);
 			
 			return EXECUTION_OK;
