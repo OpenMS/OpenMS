@@ -289,7 +289,7 @@ namespace OpenMS
 		const std::vector <Int>& time = gradient.getTimepoints();
 		const std::vector< std::vector< UInt > >& percentages = gradient.getPercentages();
 		std::stringstream query_eluents, query_time, query_percentages;
-		UID eluents_id, time_id;
+		UID eluents_id(0), time_id(0);
 		
 		// this also deletes all references in META_GradientPercentage by constraint
 		query.str("");

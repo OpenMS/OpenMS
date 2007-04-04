@@ -95,7 +95,7 @@
   OpenMS exceptions is @a Base. This base class provides three members, which facilitate
   debugging OpenMS exceptions. It stores the source file, the line number and the function
   name where the exception occurred. All derived exceptions provide a constructor that takes
-  at least these arguments. The following code snippet show the handling of an index overflow:	
+  at least these arguments. The following code snippet shows the handling of an index overflow:	
 	@code
 	  void someMethode(UInt index) throw (Exception::IndexOverflow)
 		{
