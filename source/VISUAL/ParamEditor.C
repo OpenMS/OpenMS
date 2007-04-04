@@ -45,8 +45,8 @@ namespace OpenMS
 	  	param_const_(0)
 	{
 		setMinimumSize(500,300);
-		 ParamEditorDelegate delegate;
-		setItemDelegate(&delegate);
+		//ParamEditorDelegate delegate;
+		//setItemDelegate(&delegate);
 		setWindowTitle("ParamEditor");
 		setColumnCount(3);
 		QStringList list;
@@ -62,7 +62,7 @@ namespace OpenMS
 		UInt common;//, level=1;
 		QTreeWidgetItem* parent=this->invisibleRootItem();
 		param_const_=&param;
-		QTreeWidgetItem* item = NULL;		
+		QTreeWidgetItem* item = NULL;	
 		for(Param::ConstIterator it=param.begin();it!=param.end();++it)
 		{
 			//init variables
@@ -77,6 +77,7 @@ namespace OpenMS
 				key_without_prefix = key.substr(key.rfind(":")+1,key.size());
 				new_prefix = key.substr(0,key.rfind(":")+1);
 			} 
+			
 			//common prefix
 			common=0;
 			for (UInt i=0;i<min(key.size(),prefix.size());++i)	
@@ -164,7 +165,7 @@ namespace OpenMS
 					item->setFlags( Qt::ItemIsEnabled );
 				}
 			}
-					
+				
 				//set new prefix
 			prefix = new_prefix;
 		}
@@ -184,9 +185,11 @@ namespace OpenMS
 			}	
 		}
 		expandAll();
+		
 		resizeColumnToContents(0);
 		resizeColumnToContents(1);
 		resizeColumnToContents(2);
+		
 	}
 
 	void ParamEditor::loadEditable(Param& param)
@@ -412,6 +415,7 @@ namespace OpenMS
 		{
 			QMenu menu(this);
 			menu.addAction(tr("&Delete item"), this, SLOT(deleteItem()));
+			menu.exec(event->globalPos());
 		}
 		else
 		{

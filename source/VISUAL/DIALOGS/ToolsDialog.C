@@ -36,6 +36,7 @@
 #include <QtGui/QHBoxLayout>
 #include <QtGui/QGridLayout>
 #include <QtGui/QLabel>
+#include <QtCore/QtDebug>
 #include <QtGui/QMessageBox>
 #include <QtGui/QRadioButton>
 
@@ -117,8 +118,11 @@ namespace OpenMS
 	
 	void ToolsDialog::setTool_(int i)
 	{
+		
+		
 		if(i==0)
 		{
+			
 			ok_button_->setEnabled(false);
 			input_combo_->setCurrentIndex(0);
 			input_combo_->setEnabled(false);
@@ -130,6 +134,7 @@ namespace OpenMS
 		}
 		
 		String call = ToolsDialog::getTool()+" -write_ini "+tmp_dir_+"/in.ini";
+		
 		if(system(call.c_str())!=0)
 		{
 			QMessageBox::critical(this,"Error",(String("Could not execute '")+call+"'!\nMake sure the TOPP tools are in your $PATH variable!").c_str());
@@ -150,11 +155,13 @@ namespace OpenMS
 				editor_->deleteAll();
 				arg_map_.clear();
 			}
+			
 			arg_param_.load((tmp_dir_+"/in.ini").c_str());
 			
 			vis_param_=arg_param_.copy(getTool()+":1:",true);
 			
 			editor_->loadEditable(vis_param_);
+			
 			String str;
 			QStringList arg_list;
 			for (Param::ConstIterator iter=arg_param_.begin();iter!=arg_param_.end();++iter)
@@ -166,6 +173,7 @@ namespace OpenMS
 					arg_list<<QStringList(str.c_str());
 				}
 			}
+			
 			arg_list.push_front("<select>");
 			input_combo_->clear();
 			output_combo_->clear();
