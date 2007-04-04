@@ -27,6 +27,7 @@
 
 #include <OpenMS/VISUAL/ParamEditor.h>
 #include <OpenMS/FORMAT/Param.h>
+#include <OpenMS/VISUAL/ParamEditorDelegate.h>
 
 #include <QtGui/QAction>
 #include <QtGui/QKeyEvent>
@@ -44,7 +45,8 @@ namespace OpenMS
 	  	param_const_(0)
 	{
 		setMinimumSize(500,300);
-		
+		 ParamEditorDelegate delegate;
+		setItemDelegate(&delegate);
 		setWindowTitle("ParamEditor");
 		setColumnCount(3);
 		QStringList list;
@@ -402,14 +404,36 @@ namespace OpenMS
 			QMenu menu(this);
 			menu.addAction(tr("&Delete item"), this, SLOT(deleteItem()));
 			menu.addAction(tr("&Insert item"), this, SLOT(insertItem()));
-			menu.addAction(tr("&Expand all"), this, SLOT(expandAll()));
-			menu.addAction(tr("&Collapse all"), this, SLOT(collapseAll()));			
+			menu.addAction(tr("&Expand subtree"), this, SLOT(expandTree()));
+			menu.addAction(tr("&Collapse subtree"), this, SLOT(collapseTree()));			
 			menu.exec(event->globalPos());
+		}
+		else if(item)
+		{
+			QMenu menu(this);
+			menu.addAction(tr("&Delete item"), this, SLOT(deleteItem()));
 		}
 		else
 		{
 			// there is no item under the requested position
 		}
+	void ParamEditor::expandTree()
+	{
+		QTreeWidgetItem* item =currentItem();
+		if(item)
+		{
+			expandItem(item);
+		}
+	}
+	
+	void ParamEditor::collapseTree()
+	{
+		QTreeWidgetItem* item =currentItem();
+		if(item)
+		{
+			collapseItem(item);
+		}
+	}
 	}
 	
 

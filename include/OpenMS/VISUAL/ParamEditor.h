@@ -45,10 +45,7 @@ namespace OpenMS
 		This class provides visualization for the XML-files and class Param.
 		It can also be used to edit the data visually.
 		
-		@todo Allow valid Param types only (Stefan)
-		@todo Allow deleting an entry (Stefan)
-		@todo Make expanding/collapsing a subtree possible (Stefan)
-		@todo Prevent editing type/value of nodes (Stefan)
+		
 		@todo Add INIFileEditor TOPP tool (Stefan)
 		
 		@ingroup Visual
@@ -81,6 +78,10 @@ namespace OpenMS
 			void deleteItem();
 			/// inserts an item
 			void insertItem();
+			/// expands the subtree
+			void expandTree();
+			/// collapses the subtree
+			void collapseTree();
 			
 		private:
 			/// recursive helper method for method isValid()

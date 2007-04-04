@@ -76,11 +76,13 @@ namespace OpenMS
 		
 		QGridLayout* radio_grid = new QGridLayout;
 		label=new QLabel("Open As:");
+		output_radio_=new QRadioButton("Show Output only")
+		radio_grid_->addWidget(output_radio_,0,0)
 		window_radio_=new QRadioButton("New Window");
-		radio_grid->addWidget(window_radio_,0,0);
+		radio_grid->addWidget(window_radio_,1,0);
 		layer_radio_=new QRadioButton("New Layer");
 		layer_radio_->setChecked(true);
-		radio_grid->addWidget(layer_radio_,1,0);
+		radio_grid->addWidget(layer_radio_,2,0);
 		main_grid->addWidget(label,3,0);
 		main_grid->addLayout(radio_grid,3,1);
 		
@@ -184,9 +186,13 @@ namespace OpenMS
 	
 	void ToolsDialog::ok_()
 	{
-		if (input_combo_->currentText()=="<select>" || output_combo_->currentText()=="<select>" || tools_combo_->currentText()=="<select>")
+		if ((input_combo_->currentText()=="<select>" || output_combo_->currentText()=="<select>" || tools_combo_->currentText()=="<select>") && !isOutputOnly())
 		{
 			QMessageBox::critical(this,"Error","You have to select a tool, an input argument and an output argument!");
+		}
+		else if((input_combo_->currentText()=="<select>" || tools_combo_->currentText()=="<select>") && isOutputOnly())
+		{
+			QMessageBox::critical(this,"Error","You have to select a tool and an input argument!");
 		}
 		else
 		{
@@ -213,6 +219,16 @@ namespace OpenMS
 	bool ToolsDialog::isWindow()
 	{
 		return window_radio_->isChecked();
+	}
+	
+	bool ToolsDialog::isLayer()
+	{
+		return layer_radio_->isChecked();
+	}
+	
+	bool ToolsDialog::isOutputOnly()
+	{
+		return output_radio_->isChecked();
 	}
 	
 	String ToolsDialog::getTool()

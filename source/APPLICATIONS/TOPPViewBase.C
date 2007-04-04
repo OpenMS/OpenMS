@@ -1910,7 +1910,8 @@ namespace OpenMS
 					return;
 				}
 					
-				String call = dialog.getTool() + " -ini "+tmp_dir+"/in.ini -"+dialog.getInput()+" "+tmp_dir+"/in -"+dialog.getOutput()+" "+tmp_dir+"/out > "+tmp_dir+"/TOPP.log 2>&1";
+				String output = dialog.isOutputOnly() ? String(""):String("-"+dialog.getOutput()+" "+tmp_dir+"/out");
+				String call = dialog.getTool() + " -ini "+tmp_dir+"/in.ini -"+dialog.getInput()+" "+tmp_dir+"/in "+output +" > "+tmp_dir+"/TOPP.log 2>&1";
 					
 				if (system(call.c_str())!=0)
 				{
@@ -1925,9 +1926,21 @@ namespace OpenMS
 					QMessageBox::critical(this,"Error creating temporary file!",(String("Cannot read '")+tmp_dir+"/in'!").c_str());
 					return;
 				}
-				else
+				else if(dialog.isWindow())
 				{
-					addSpectrum(tmp_dir+"/out",dialog.isWindow(),true,true);
+					addSpectrum(tmp_dir+"/out",true,true,true);
+				}
+				else if(dialog.isLayer())
+				{
+					addSpectrum(tmp_dir+"/out",false,true,true);
+				}
+				else if(dialog.isOutputOnly())
+				{
+					TextFile f;
+					f.load(tmp_dir+"/TOPP.log");
+					String log_file;
+					log_file.implode(f.begin(),f.end(),"<BR>");
+					QMessageBox::information(this,("Standard Output of Tool: "+dialog.getTool()).c_str(), log_file.c_str());
 				}
 			}
 		}

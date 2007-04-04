@@ -42,13 +42,10 @@ namespace OpenMS
 	/**
 		@brief Dialog for executing a TOPP Tool
 		
-		TOPP Tools are executed by syscall
+		In this dialog the TOPP Tools are executed by syscall
 		Remember to set the PATH-variable to the OpenMS/bin directory before executing the TOPP-tools dialog!
 		Before clicking ok-button you should open a file with spectrum data.
 		
-		@todo Add writing of feature pairs (Stefan)
-		@todo Write docu (Stefan)
-		@todo Add "show output only" option for "open as", e.g. used for FileInfo (Stefan)
 		
 		@ingroup Dialogs
 	*/
@@ -58,31 +55,60 @@ namespace OpenMS
 		Q_OBJECT
 		
 		public:
+			/// constructor is given tmp_dir where the input-,output-files are saved
 			ToolsDialog( QWidget* parent, String tmp_dir );
+			/// to get the parameter name for output
 			String getOutput();
+			/// to get the parameter name for input
 			String getInput();
+			/// to get the currently selected tool-name
 			String getTool();
+			
+			/**
+				@name bool functions for checking radio-buttons
+		
+				is the layer-,window- or output-, button checked (visualization option for the output data)
+				either only a layer or a new window is created or standard output is dispayed in a messagebox
+			*/
+			//@{
 			bool isWindow();
+			bool isLayer();
+			bool isOutputOnly();
+			//@}
 			~ToolsDialog();    
 	
 		private:		
+			/// ParamEditor for reading ini-files
 			ParamEditor *editor_;
+			/// ComboBox for choosing a TOPP-tool
 			QComboBox* tools_combo_;
+			/// for choosing an input parameter
 			QComboBox* input_combo_;
+			/// for choosing an output parameter
 			QComboBox* output_combo_;
+			/// Param for loading the ini-file
 			Param arg_param_;
+			/// Param for loading configuration information in the ParamEditor
 			Param vis_param_;
+			/// ok-button connected with slot ok_()
 			QPushButton* ok_button_;
+			/// choosing a window as visualization of the tool-output
 			QRadioButton* window_radio_;
+			/// choosing a layer as visualization of the tool-output
 			QRadioButton* layer_radio_;
+			/// option for choosing only the output of the tool, which means it is not loaded via addSpectrum(...)
+			QRadioButton* output_radio_;
+			/// map for getting the parameter name from the full path in arg_param
 			std::map<String,String> arg_map_;
+			/// parameter chosen for input
 			String input_string_;
+			/// parameter chosen for output
 			String output_string_;
 			/// Temporary files directory
 			String tmp_dir_;
 			
 		protected slots:
-			/// ok button pressed
+			/// if ok button pressed show the tool output in a new layer, a new window or standard output as messagebox 
 			void ok_();
 			/// get tool name from combobox
 			void setTool_(int i);
