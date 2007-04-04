@@ -417,6 +417,7 @@ namespace OpenMS
 		{
 			// there is no item under the requested position
 		}
+	}
 	void ParamEditor::expandTree()
 	{
 		QTreeWidgetItem* item =currentItem();
@@ -434,7 +435,7 @@ namespace OpenMS
 			collapseItem(item);
 		}
 	}
-	}
+	
 	
 
 } // namespace OpenMS

@@ -76,8 +76,8 @@ namespace OpenMS
 		
 		QGridLayout* radio_grid = new QGridLayout;
 		label=new QLabel("Open As:");
-		output_radio_=new QRadioButton("Show Output only")
-		radio_grid_->addWidget(output_radio_,0,0)
+		output_radio_=new QRadioButton("Show Output only");
+		radio_grid->addWidget(output_radio_,0,0);
 		window_radio_=new QRadioButton("New Window");
 		radio_grid->addWidget(window_radio_,1,0);
 		layer_radio_=new QRadioButton("New Layer");

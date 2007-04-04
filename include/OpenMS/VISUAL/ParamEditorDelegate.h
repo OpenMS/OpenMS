@@ -66,7 +66,7 @@ namespace OpenMS
 	 private:
 		 QStringList combo_list_;
 	 };
-	 
+ }
 #endif
 	 
 	 
