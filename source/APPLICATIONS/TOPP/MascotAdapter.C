@@ -260,7 +260,7 @@ class TOPPMascotAdapter
 			string cleavage;
 			UInt missed_cleavages;
 			string mass_type;
-			int status = 0;
+			Int status = 0;
 			bool mascot_in = false;
 			bool mascot_out = false;
 			DateTime date_time;

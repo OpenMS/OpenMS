@@ -146,11 +146,15 @@ class TOPPRTModel
 			registerDoubleOption_("c","<float>",1,"the penalty parameter of the svm",false);
 			registerStringOption_("kernel_type","<type>","RBF","the kernel type of the svm (LINEAR, RBF, POLY or SIGMOID)",false);
 			registerIntOption_("degree","<int>",1,"the degree parameter of the kernel function of the svm",false);
+			registerIntOption_("border_length","<int>",0,"length of the oligo border",false);
+			registerIntOption_("k_mer_length","<int>",0,"k_mer length of the oligo border kernel",false);
+			registerDoubleOption_("sigma","<float>",0.1,"sigma of the oligo border",false);
 			registerDoubleOption_("total_gradient_time","<time>",0.0,"the time (in seconds) of the gradient");
+			registerFlag_("additive_cv","if the step sizes should be interpreted additively (otherwise the actual value is multiplied with the step size to get the new value");
 			addEmptyLine_();
 			addText_("Parameters for the grid search / cross validation:");
-			registerIntOption_("number_of_runs","<n>",50,"number of runs for the CV",false);
-			registerIntOption_("number_of_partitions","<n>",10,"number of CV partitions",false);
+			registerIntOption_("number_of_runs","<int>",50,"number of runs for the CV",false);
+			registerIntOption_("number_of_partitions","<int>",10,"number of CV partitions",false);
 			registerIntOption_("degree_start","<int>",0,"starting point of degree",false);
 			registerIntOption_("degree_step_size","<int>",0,"step size point of degree",false);
 			registerIntOption_("degree_stop","<int>",0,"stopping point of degree",false);
@@ -163,9 +167,12 @@ class TOPPRTModel
 			registerDoubleOption_("nu_start","<float>",0.0,"starting point of nu",false);
 			registerDoubleOption_("nu_step_size","<float>",0.0,"step size of nu",false);
 			registerDoubleOption_("nu_stop","<float>",0.0,"stopping point of nu",false);
+			registerDoubleOption_("sigma_start","<float>",0.0,"starting point of sigma",false);
+			registerDoubleOption_("sigma_step_size","<float>",0.0,"step size of sigma",false);
+			registerDoubleOption_("sigma_stop","<float>",0.0,"stopping point of sigma",false);
 		}
 
-		ExitCodes main_(int , char**)
+		ExitCodes main_(Int , char**)
 		{
 			vector<ProteinIdentification> protein_identifications;
 		  vector<IdentificationData> identifications;
@@ -179,12 +186,24 @@ class TOPPRTModel
 			map<SVM_parameter_type, DoubleReal> start_values;
 			map<SVM_parameter_type, DoubleReal> step_sizes;
 			map<SVM_parameter_type, DoubleReal> end_values;
+			DoubleReal sigma_start = 0;
+			DoubleReal sigma_step_size = 0;
+			DoubleReal sigma_stop = 0;
 			UInt number_of_partitions;
 			UInt number_of_runs;
 			DoubleReal cv_quality;
 			map<SVM_parameter_type, DoubleReal>* optimized_parameters;
 			map<SVM_parameter_type, DoubleReal>::iterator parameters_iterator;
 			UInt maximum_sequence_length = 50;
+			bool additive_cv = true;
+			Param additional_parameters;
+			pair<DoubleReal, DoubleReal> sigmas;
+			Int temp_type;
+			String debug_string = "";
+			DoubleReal sigma = 0.1;
+			UInt k_mer_length = 1;
+			Int border_length = 0;
+			
 	
 			//-------------------------------------------------------------
 			// parsing parameters
@@ -206,7 +225,7 @@ class TOPPRTModel
 			}
 			else
 			{
-				writeLog_("Unknown svm type given. Aborting!");
+				writeLog_("Illegal svm type given. Svm type has to be either NU_SVR or EPSILON_SVR. Aborting!");
 				printUsage_();
 				return ILLEGAL_PARAMETERS;		
 			}
@@ -223,6 +242,10 @@ class TOPPRTModel
 			else if (type == "RBF")
 			{
 				svm.setParameter(KERNEL_TYPE, RBF);
+			}
+			else if (type == "OLIGO")
+			{
+				svm.setParameter(KERNEL_TYPE, OLIGO);
 			}
 			else if (type == "SIGMOID")
 			{
@@ -288,8 +311,41 @@ class TOPPRTModel
 				end_values.insert(make_pair(NU, nu_stop));	
 			}			
 
-			number_of_runs = getIntOption_("number_of_runs");
-			number_of_partitions = getIntOption_("number_of_partitions");
+ 			border_length = getIntOption_("border_length");
+			svm.setParameter(BORDER_LENGTH, border_length);
+ 			sigma = getDoubleOption_("sigma");
+			svm.setParameter(SIGMA, sigma);
+ 			k_mer_length = getIntOption_("k_mer_length");
+
+			sigma_start = getDoubleOption_("sigma_start");
+			sigma_step_size = getDoubleOption_("sigma_step_size");
+			sigma_stop = getDoubleOption_("sigma_stop");
+
+			if (sigma_step_size != 0
+					&& svm.getIntParameter(KERNEL_TYPE) == OLIGO)
+			{
+				start_values.insert(make_pair(SIGMA, sigma_start));
+				step_sizes.insert(make_pair(SIGMA, sigma_step_size));
+				end_values.insert(make_pair(SIGMA, sigma_stop));
+				
+				debug_string = "CV from sigma = " + String(sigma_start) +
+					 " to sigma = " + String(sigma_stop) + " with step size " + 
+					 String(sigma_step_size);
+				writeDebug_(debug_string, 1);			
+			}			
+
+			if (start_values.size() > 0)
+			{
+ 				number_of_runs = getIntOption_("number_of_runs");
+				writeDebug_(String("Number of CV runs: ") + String(number_of_runs), 1);
+
+ 				number_of_partitions = getIntOption_("number_of_partitions");
+				writeDebug_(String("Number of CV partitions: ") + String(number_of_partitions), 1);
+				
+				additive_cv = getFlag_("additive_cv");
+			}
+			
+			Int debug_level = getIntOption_("debug");
 			
 			//-------------------------------------------------------------
 			// reading input
@@ -332,21 +388,52 @@ class TOPPRTModel
 			{
 				training_retention_times[i] = training_retention_times[i] / total_gradient_time;
 			}
-			encoded_training_sample = 
-				encoder.encodeLibSVMProblemWithCompositionAndLengthVectors(training_peptides,
+			if (temp_type == LINEAR || temp_type == POLY || temp_type == RBF)
+			{
+				encoded_training_sample = 
+					encoder.encodeLibSVMProblemWithCompositionAndLengthVectors(training_peptides,
 																																	&training_retention_times,
 																																	allowed_amino_acid_characters,
 																																	maximum_sequence_length);
+			}
+			else if (temp_type == OLIGO)
+			{
+				encoded_training_sample = 
+					encoder.encodeLibSVMProblemWithOligoBorderVectors(training_peptides,
+																														&training_retention_times,
+																														k_mer_length,
+																														allowed_amino_acid_characters,
+																														svm.getIntParameter(BORDER_LENGTH));
+			}			
 																													
 			if (start_values.size() > 0)
 			{	
+				String digest = "";
+				bool output_flag = false;
+				if (debug_level >= 1)
+				{
+					output_flag = true;
+					vector<String> parts;
+					inputfile_name.split('/', parts);
+					if (parts.size() == 0)
+					{
+						digest = inputfile_name;
+					}
+					else
+					{
+						digest = parts[parts.size() - 1];
+					}
+				}				
 				optimized_parameters = svm.performCrossValidation(encoded_training_sample,
 																												 	start_values,
 																	 												step_sizes,
 																	 												end_values,
 																	 												&cv_quality,
 																	 												number_of_partitions,
-																	 												number_of_runs);
+																	 												number_of_runs,
+																	 												additive_cv,
+																	 												output_flag,
+																	 												"performances_" + digest + ".txt");
 																	 												
 				String debug_string = "Best parameters found in cross validation:";
 
@@ -372,13 +459,15 @@ class TOPPRTModel
 					{
 						debug_string += " P: " + String(parameters_iterator->second);
 					}
+					else if (parameters_iterator->first == SIGMA)
+					{
+						debug_string += " sigma: " + String(parameters_iterator->second);
+					}
 				}
 				debug_string += " with performance " + String(cv_quality);
 				writeDebug_(debug_string, 1);
 			}			
-			// enabling probability estimates of the svm
-			svm.setParameter(PROBABILITY, 1);
-			
+
 			svm.train(encoded_training_sample);
 	
 			//-------------------------------------------------------------
@@ -386,6 +475,25 @@ class TOPPRTModel
 			//-------------------------------------------------------------
 			
 			svm.saveModel(outputfile_name);
+
+			// If the oligo-border kernel is used some additional information has to be stored
+			if (temp_type == OLIGO)
+			{
+				encoder.storeLibSVMProblem(outputfile_name + "_samples", encoded_training_sample);
+				additional_parameters.setValue((string)"kernel_type", (Int) temp_type);
+				svm.getSignificanceBorders(encoded_training_sample, sigmas);
+				
+				additional_parameters.setValue((string)"sigma_0", sigmas.first); 
+				additional_parameters.setValue((string)"sigma_max", sigmas.second);
+				if (temp_type == OLIGO)
+				{
+					additional_parameters.setValue((string)"border_length", svm.getIntParameter(BORDER_LENGTH));
+					additional_parameters.setValue((string)"k_mer_length", (Int) k_mer_length);
+					additional_parameters.setValue((string)"sigma", svm.getDoubleParameter(SIGMA));
+				}
+				
+				additional_parameters.store(outputfile_name + "_additional_parameters");
+			}
 			
 			return EXECUTION_OK;
 		}

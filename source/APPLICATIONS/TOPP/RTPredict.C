@@ -77,7 +77,7 @@ class TOPPRTPredict
 			registerStringOption_("in","<file>",""," input file in analysisXML format");
 			registerStringOption_("out","<file>","","output file in analysisXML format");
 			registerStringOption_("svm_model","<file>","","svm model in libsvm format (can be produced by RTModel)");
-			registerDoubleOption_("total_gradient_time","<time>",0.0,"the time (in seconds) of the gradient");
+			registerDoubleOption_("total_gradient_time","<time>",1.0,"the time (in seconds) of the gradient");
 		}
 
 		ExitCodes main_(int , char**)
@@ -91,10 +91,19 @@ class TOPPRTPredict
 			SVMWrapper svm;
 			LibSVMEncoder encoder;
 			String allowed_amino_acid_characters = "ACDEFGHIKLMNPQRSTVWY";
-			vector< vector< pair<Int, DoubleReal> > >* encoded_composition_vectors;
-			vector<svm_node*>* encoded_LibSVM_vectors;
 			vector<DoubleReal>* predicted_retention_times;
 			map< String, DoubleReal > predicted_data;
+			svm_problem* training_data = NULL;
+			svm_problem* prediction_data = NULL;
+			UInt border_length = 0;
+			UInt k_mer_length = 0;
+			DoubleReal sigma = 0;
+			DoubleReal sigma_0 = 0;
+			DoubleReal sigma_max = 0;
+			String temp_string = "";
+			UInt maximum_length = 50;
+			pair<DoubleReal, DoubleReal> temp_point;
+			vector<float> performance_retention_times;
   
 			//-------------------------------------------------------------
 			// parsing parameters
@@ -112,6 +121,64 @@ class TOPPRTPredict
 			// reading input
 			//-------------------------------------------------------------
 			
+			svm.loadModel(svmfile_name);
+
+			// Since the oligo border kernel is not included in the libsvm we have to load
+			// additional parameters from additional files.
+			if (svm.getIntParameter(KERNEL_TYPE) == OLIGO)
+			{
+				inputFileReadable_(svmfile_name + "_additional_parameters");
+	
+				Param additional_parameters;
+				
+				additional_parameters.load(svmfile_name + "_additional_parameters");
+				if (additional_parameters.getValue("kernel_type") != DataValue::EMPTY)
+				{
+					svm.setParameter(KERNEL_TYPE, ((String) additional_parameters.getValue("kernel_type")).toInt());
+					cout << "Kernel type = " << svm.getIntParameter(KERNEL_TYPE) << endl;					
+				}
+								
+				if (additional_parameters.getValue("border_length") == DataValue::EMPTY
+						&& svm.getIntParameter(KERNEL_TYPE) == OLIGO)
+				{
+					writeLog_("No border length saved in additional parameters file. Aborting!");
+					cout << "No border length saved in additional parameters file. Aborting!" << endl;
+					return ILLEGAL_PARAMETERS;					
+				}
+				border_length = ((String)additional_parameters.getValue("border_length")).toInt();
+				if (additional_parameters.getValue("k_mer_length") == DataValue::EMPTY
+						&& svm.getIntParameter(KERNEL_TYPE) == OLIGO)
+				{
+					writeLog_("No k-mer length saved in additional parameters file. Aborting!");
+					cout << "No k-mer length saved in additional parameters file. Aborting!" << endl;
+					return ILLEGAL_PARAMETERS;					
+				}
+				k_mer_length = ((String)additional_parameters.getValue("k_mer_length")).toInt();
+				if (additional_parameters.getValue("sigma") == DataValue::EMPTY
+						&& svm.getIntParameter(KERNEL_TYPE) == OLIGO)
+				{
+					writeLog_("No sigma saved in additional parameters file. Aborting!");
+					cout << "No sigma length saved in additional parameters file. Aborting!" << endl;
+					return ILLEGAL_PARAMETERS;					
+				}
+				sigma = ((String)additional_parameters.getValue("sigma")).toFloat();
+				
+				if (additional_parameters.getValue("sigma_0") == DataValue::EMPTY)
+				{
+					writeLog_("No sigma_0 saved in additional parameters file. Aborting!");
+					cout << "No sigma_0 length saved in additional parameters file. Aborting!" << endl;
+					return ILLEGAL_PARAMETERS;					
+				}
+				sigma_0 = ((String)additional_parameters.getValue("sigma_0")).toFloat();
+				if (additional_parameters.getValue("sigma_max") == DataValue::EMPTY)
+				{
+					writeLog_("No sigma_max saved in additional parameters file. Aborting!");
+					cout << "No sigma_max length saved in additional parameters file. Aborting!" << endl;
+					return ILLEGAL_PARAMETERS;					
+				}
+				sigma_max = ((String)additional_parameters.getValue("sigma_max")).toFloat();
+			}				
+			
 			analysisXML_file.load(inputfile_name, protein_identifications, identifications);
 	  													
 			//-------------------------------------------------------------
@@ -127,18 +194,46 @@ class TOPPRTPredict
 				}
 			}
 			
-			encoded_composition_vectors =  encoder.encodeCompositionVectors(peptides,  allowed_amino_acid_characters);
-			encoded_LibSVM_vectors = encoder.encodeLibSVMVectors(*encoded_composition_vectors);
-		
-			svm.loadModel(svmfile_name);	
-			predicted_retention_times = svm.predict(*encoded_LibSVM_vectors);
-		
-			delete encoded_composition_vectors;
-			delete encoded_LibSVM_vectors;
-		
+			vector<DoubleReal> rts;
+			rts.resize(peptides.size(), 0);
+			if (svm.getIntParameter(KERNEL_TYPE) != OLIGO)
+			{
+				prediction_data = 
+					encoder.encodeLibSVMProblemWithCompositionAndLengthVectors(peptides,
+																																			&rts,
+																														 					allowed_amino_acid_characters,
+																														 					maximum_length);
+			}
+			else if (svm.getIntParameter(KERNEL_TYPE) == OLIGO)
+			{
+				prediction_data = encoder.encodeLibSVMProblemWithOligoBorderVectors(peptides, 
+																																						&rts, 
+																																						k_mer_length, 
+																																						allowed_amino_acid_characters, 
+																																						border_length);				
+			}
+					
+			if (svm.getIntParameter(KERNEL_TYPE) == OLIGO)
+			{
+				inputFileReadable_((svmfile_name + "_samples").c_str());
+
+				training_data = encoder.loadLibSVMProblem(svmfile_name + "_samples");
+				cout << "Loading training_data" << endl;
+				svm.setTrainingSample(training_data);
+
+				svm.setParameter(BORDER_LENGTH, (Int) border_length);
+				svm.setParameter(SIGMA, sigma);
+				predicted_retention_times = svm.predict(prediction_data);
+			}
+			else
+			{
+				predicted_retention_times = svm.predict(prediction_data);
+			}
+
 			for(UInt i = 0; i < peptides.size(); i++)
 			{
-				predicted_data.insert(make_pair(peptides[i], ((*predicted_retention_times)[i] * total_gradient_time)));
+				predicted_data.insert(make_pair(peptides[i],
+																				((*predicted_retention_times)[i] * total_gradient_time)));
 			}
 		
 			//-------------------------------------------------------------

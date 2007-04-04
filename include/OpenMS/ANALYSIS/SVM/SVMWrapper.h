@@ -253,6 +253,10 @@ namespace OpenMS
 		  */
 			svm_problem* computeKernelMatrix(svm_problem* problem1, svm_problem* problem2);
 
+		  /**
+		    @brief This is used for being able to perform predictions with non libsvm standard kernels	    		        
+		    
+		  */
   		void setTrainingSample(svm_problem* training_sample);
 
 		protected:
