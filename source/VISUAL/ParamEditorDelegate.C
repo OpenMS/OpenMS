@@ -4,9 +4,11 @@
 #include <QtCore/QAbstractItemModel>
 #include <QtCore/QString>
 #include <QtCore/QStringList>
+#include <OpenMS/VISUAL/ParamEditorDelegate.h>
+
 namespace OpenMS
 {
-	#include <OpenMS/VISUAL/ParamEditorDelegate.h>
+	
 
 	ParamEditorDelegate::ParamEditorDelegate(QObject *parent)
 	     : QItemDelegate(parent)
