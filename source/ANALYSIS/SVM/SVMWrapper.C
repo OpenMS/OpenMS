@@ -367,7 +367,7 @@ namespace OpenMS
 	
 	void SVMWrapper::createRandomPartitions(svm_problem* 					problem,
 																					UInt  			 					number,
-																					vector<svm_problem*> 	problems)
+																					vector<svm_problem*>& 	problems)
 	{
 		vector<UInt> indices;
 		UInt partition_count = 0;

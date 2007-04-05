@@ -66,7 +66,7 @@ CHECK(double getSVRProbability())
 	LibSVMEncoder encoder;
 	vector< vector< pair<Int, DoubleReal> > > vectors;		
 	vector< pair<Int, DoubleReal> > temp_vector;
-	vector<svm_node*>* encoded_vectors;
+	vector<svm_node*> encoded_vectors;
 	UInt count = 100;
 	vector<DoubleReal> labels;
 	svm_problem* problem;
@@ -80,12 +80,12 @@ CHECK(double getSVRProbability())
 		}
 		vectors.push_back(temp_vector);
 	}
-	encoded_vectors = encoder.encodeLibSVMVectors(vectors);
+	encoder.encodeLibSVMVectors(vectors, encoded_vectors);
 	for(UInt i = 0; i < count; i++)
 	{
 		labels.push_back(((DoubleReal) i * 2) / 3 + 0.03);
 	}
-	problem = encoder.encodeLibSVMProblem(*encoded_vectors, &labels);
+	problem = encoder.encodeLibSVMProblem(encoded_vectors, labels);
 	svm.setParameter(PROBABILITY, 1);
 	svm.train(problem);
 	TEST_EQUAL(svm.getSVRProbability() == 0, false)
@@ -124,28 +124,26 @@ CHECK(static std::vector<DoubleReal>* getLabels(svm_problem* problem))
 	UInt count = 4;
 	svm_node** nodes = new svm_node*[count];
 	DoubleReal* labels = new DoubleReal[count];
-	std::vector<DoubleReal>* label_vector1 = new vector<DoubleReal>();
-	std::vector<DoubleReal>* label_vector2 = new vector<DoubleReal>();
+	std::vector<DoubleReal> label_vector1;
+	std::vector<DoubleReal> label_vector2;
 	
 	for(UInt i = 0; i < count; i++)
 	{
 		nodes[i] = new svm_node[count];
 		nodes[i][count - 1].index = -1;
 		labels[i] = i * 2 / 3 + 0.03;
-		label_vector1->push_back(labels[i]);
+		label_vector1.push_back(labels[i]);
 	}
 	problem->x = nodes;
 	problem->l = count;
 	problem->y = labels;
 	
-	label_vector2 = SVMWrapper::getLabels(problem);
-	TEST_EQUAL(label_vector1->size(), label_vector2->size())
-	for(UInt i = 0; i < label_vector2->size(); i++)
+	SVMWrapper::getLabels(problem, label_vector2);
+	TEST_EQUAL(label_vector1.size(), label_vector2.size())
+	for(UInt i = 0; i < label_vector2.size(); i++)
 	{
-		TEST_REAL_EQUAL((*label_vector1)[i], (*label_vector2)[i])
+		TEST_REAL_EQUAL(label_vector1[i], label_vector2[i])
 	}	
-	delete label_vector1;
-	delete label_vector2;
 	delete problem;
 RESULT
 
@@ -154,7 +152,7 @@ CHECK((static std::vector<svm_problem*>* createRandomPartitions(svm_problem* pro
 	UInt count = 4;
 	 svm_node** nodes = new svm_node*[count];
 	DoubleReal* labels = new DoubleReal[count];
-	std::vector<svm_problem*>* partitions;
+	std::vector<svm_problem*> partitions;
 		
 	for(UInt i = 0; i < count; i++)
 	{
@@ -166,20 +164,20 @@ CHECK((static std::vector<svm_problem*>* createRandomPartitions(svm_problem* pro
 	problem->l = count;
 	problem->y = labels;
 	
-	partitions = SVMWrapper::createRandomPartitions(problem, 2);
-	TEST_EQUAL(partitions->size(), 2)
-	TEST_EQUAL((*partitions)[0]->l, 2)
-	TEST_EQUAL((*partitions)[1]->l, 2)
+	SVMWrapper::createRandomPartitions(problem, 2, partitions);
+	TEST_EQUAL(partitions.size(), 2)
+	TEST_EQUAL(partitions[0]->l, 2)
+	TEST_EQUAL(partitions[1]->l, 2)
 RESULT
 
-CHECK((static svm_problem* mergePartitions(const std::vector<svm_problem*>* const problems, UInt except)))
+CHECK((static svm_problem* mergePartitions(const std::vector<svm_problem*> const problems, UInt except)))
 	 svm_problem* problem = new svm_problem();
 	 svm_problem* problem2;
 	 UInt count = 10;
 	 UInt number_of_partitions = 5;
 	 svm_node** nodes = new svm_node*[count];
 	 DoubleReal* labels = new DoubleReal[count];
-	 std::vector<svm_problem*>* partitions;
+	 std::vector<svm_problem*> partitions;
 	
 		
 	for(UInt i = 0; i < count; i++)
@@ -196,7 +194,7 @@ CHECK((static svm_problem* mergePartitions(const std::vector<svm_problem*>* cons
 	problem->l = count;
 	problem->y = labels;
 
-	partitions = SVMWrapper::createRandomPartitions(problem, number_of_partitions);
+	SVMWrapper::createRandomPartitions(problem, number_of_partitions, partitions);
 	problem2 = SVMWrapper::mergePartitions(partitions, 4);
 	UInt problem2_size = (count / number_of_partitions) * (number_of_partitions - 1);
 	UInt partition_size = count / number_of_partitions;
@@ -206,10 +204,10 @@ CHECK((static svm_problem* mergePartitions(const std::vector<svm_problem*>* cons
 		UInt j = 0;
 		while(problem->x[i][j].index != -1 && problem2->x[i][j].index != -1)
 		{
-			TEST_REAL_EQUAL((*partitions)[i / partition_size]->x[i % partition_size][j].value, problem2->x[i][j].value)
+			TEST_REAL_EQUAL(partitions[i / partition_size]->x[i % partition_size][j].value, problem2->x[i][j].value)
 			++j;
 		}
-		TEST_REAL_EQUAL((*partitions)[i / partition_size]->y[i % partition_size], problem2->y[i])
+		TEST_REAL_EQUAL(partitions[i / partition_size]->y[i % partition_size], problem2->y[i])
 	}
 RESULT
 
@@ -235,11 +233,11 @@ CHECK((std::map<SVM_parameter_type, DoubleReal>* performCrossValidation(svm_prob
 	LibSVMEncoder encoder;
 	vector< vector< pair<Int, DoubleReal> > > vectors;		
 	vector< pair<Int, DoubleReal> > temp_vector;
-	vector<svm_node*>* encoded_vectors;
+	vector<svm_node*> encoded_vectors;
 	UInt count = 8;
 	vector<DoubleReal> labels;
 	svm_problem* problem;
-	map<SVM_parameter_type, DoubleReal>* parameters;
+	map<SVM_parameter_type, DoubleReal> parameters;
 	DoubleReal cv_quality;
 	
 	for(UInt j = 0; j < count; j++)
@@ -251,12 +249,12 @@ CHECK((std::map<SVM_parameter_type, DoubleReal>* performCrossValidation(svm_prob
 		}
 		vectors.push_back(temp_vector);
 	}
-	encoded_vectors = encoder.encodeLibSVMVectors(vectors);
+	encoder.encodeLibSVMVectors(vectors, encoded_vectors);
 	for(UInt i = 0; i < count; i++)
 	{
 		labels.push_back(((DoubleReal) i * 2) / 3 + 0.03);
 	}
-	problem = encoder.encodeLibSVMProblem(*encoded_vectors, &labels);
+	problem = encoder.encodeLibSVMProblem(encoded_vectors, labels);
 
 	start_values.insert(make_pair(C, 1));
 	step_sizes.insert(make_pair(C, 100));
@@ -270,18 +268,18 @@ CHECK((std::map<SVM_parameter_type, DoubleReal>* performCrossValidation(svm_prob
 	step_sizes.insert(make_pair(DEGREE, 1));
 	end_values.insert(make_pair(DEGREE, 3));
 
-	parameters = svm.performCrossValidation(problem, start_values, step_sizes, end_values, &cv_quality, 2, 1, true, false);
-	TEST_NOT_EQUAL(parameters->size(), 0)
+	cv_quality = svm.performCrossValidation(problem, start_values, step_sizes, end_values, 2, 1, parameters, true, false);
+	TEST_NOT_EQUAL(parameters.size(), 0)
 RESULT
 
 CHECK(std::vector<DoubleReal>* predict(struct svm_problem* predictProblem))
  	LibSVMEncoder encoder;
 	vector< vector< pair<Int, DoubleReal> > > vectors;		
 	vector< pair<Int, DoubleReal> > temp_vector;
-	vector<svm_node*>* encoded_vectors;
+	vector<svm_node*> encoded_vectors;
 	UInt count = 8;
 	vector<DoubleReal> labels;
-	vector<DoubleReal>* predicted_labels;
+	vector<DoubleReal> predicted_labels;
 	svm_problem* problem;
 	
 	for(UInt j = 0; j < count; j++)
@@ -293,15 +291,15 @@ CHECK(std::vector<DoubleReal>* predict(struct svm_problem* predictProblem))
 		}
 		vectors.push_back(temp_vector);
 	}
-	encoded_vectors = encoder.encodeLibSVMVectors(vectors);
+	encoder.encodeLibSVMVectors(vectors, encoded_vectors);
 	for(UInt i = 0; i < count; i++)
 	{
 		labels.push_back(((DoubleReal) i * 2) / 3 + 0.03);
 	}
-	problem = encoder.encodeLibSVMProblem(*encoded_vectors, &labels);
+	problem = encoder.encodeLibSVMProblem(encoded_vectors, labels);
 	svm.train(problem);
-	predicted_labels = svm.predict(problem);
-	TEST_NOT_EQUAL(predicted_labels->size(), 0)
+	svm.predict(problem, predicted_labels);
+	TEST_NOT_EQUAL(predicted_labels.size(), 0)
 RESULT
 
 CHECK((svm_problem* computeKernelMatrix(svm_problem* problem1, svm_problem* problem2)))
@@ -323,7 +321,7 @@ CHECK((svm_problem* computeKernelMatrix(svm_problem* problem1, svm_problem* prob
   labels.push_back(2);
   sequences.push_back("ACNNGTATCA");
   sequences.push_back("AACNNGTACCA");
-	data = encoder.encodeLibSVMProblemWithOligoBorderVectors(sequences, &labels, 1, allowed_characters, border_length);
+	data = encoder.encodeLibSVMProblemWithOligoBorderVectors(sequences, labels, 1, allowed_characters, border_length);
 	kernel_matrix = svm.computeKernelMatrix(data, data);
 	svm.train(data);
 
@@ -366,7 +364,7 @@ CHECK((static DoubleReal kernelOligo(const svm_node* x, const svm_node* y, const
   labels.push_back(2);
   sequences.push_back("ACNNGTATCA");
   sequences.push_back("AACNNGTACCA");
-	data = encoder.encodeLibSVMProblemWithOligoBorderVectors(sequences, &labels, 1, allowed_characters, border_length);
+	data = encoder.encodeLibSVMProblemWithOligoBorderVectors(sequences, labels, 1, allowed_characters, border_length);
 	result = SVMWrapper::kernelOligo(data->x[0], data->x[1], gauss_table);
 	PRECISION(0.0001)
 	TEST_REAL_EQUAL(result, 21.1308)
@@ -377,10 +375,10 @@ CHECK((void getDecisionValues(svm_problem* data, std::vector<DoubleReal>& decisi
  	LibSVMEncoder encoder;
 	vector< vector< pair<Int, DoubleReal> > > vectors;		
 	vector< pair<Int, DoubleReal> > temp_vector;
-	vector<svm_node*>* encoded_vectors;
+	vector<svm_node*> encoded_vectors;
 	UInt count = 8;
 	vector<DoubleReal> labels;
-	vector<DoubleReal>* predicted_labels;
+	vector<DoubleReal> predicted_labels;
 	svm_problem* problem;
 	vector<DoubleReal> decision_values;
 	
@@ -396,17 +394,17 @@ CHECK((void getDecisionValues(svm_problem* data, std::vector<DoubleReal>& decisi
 		}
 		vectors.push_back(temp_vector);
 	}
-	encoded_vectors = encoder.encodeLibSVMVectors(vectors);
+	encoder.encodeLibSVMVectors(vectors, encoded_vectors);
 	for(UInt i = 0; i < count; i++)
 	{
 		labels.push_back(((DoubleReal) i * 2) / 3 + 0.03);
 	}
-	problem = encoder.encodeLibSVMProblem(*encoded_vectors, &labels);
+	problem = encoder.encodeLibSVMProblem(encoded_vectors, labels);
 	svm.train(problem);
-	predicted_labels = svm.predict(problem);
-	TEST_NOT_EQUAL(predicted_labels->size(), 0)
+	svm.predict(problem, predicted_labels);
+	TEST_NOT_EQUAL(predicted_labels.size(), 0)
 	svm.getDecisionValues(problem, decision_values);
-	TEST_EQUAL(*predicted_labels == decision_values, true)
+	TEST_EQUAL(predicted_labels == decision_values, true)
 	
 RESULT
 
@@ -414,7 +412,7 @@ CHECK((void scaleData(svm_problem* data, Int max_scale_value = -1)))
  	LibSVMEncoder encoder;
 	vector< vector< pair<Int, DoubleReal> > > vectors;		
 	vector< pair<Int, DoubleReal> > temp_vector;
-	vector<svm_node*>* encoded_vectors;
+	vector<svm_node*> encoded_vectors;
 	UInt count = 8;
 	vector<DoubleReal> labels;
 	svm_problem* problem;
@@ -432,12 +430,12 @@ CHECK((void scaleData(svm_problem* data, Int max_scale_value = -1)))
 		}
 		vectors.push_back(temp_vector);
 	}
-	encoded_vectors = encoder.encodeLibSVMVectors(vectors);
+	encoder.encodeLibSVMVectors(vectors, encoded_vectors);
 	for(UInt i = 0; i < count; i++)
 	{
 		labels.push_back(((DoubleReal) i * 2) / 3 + 0.03);
 	}
-	problem = encoder.encodeLibSVMProblem(*encoded_vectors, &labels);
+	problem = encoder.encodeLibSVMProblem(encoded_vectors, labels);
 	svm.scaleData(problem, 2);
 
 	TEST_REAL_EQUAL(problem->x[0][0].value, 0)
@@ -571,11 +569,11 @@ CHECK((void loadModel(std::string modelFilename)))
 	svm.setParameter(KERNEL_TYPE, POLY);
 	vector< vector< pair<Int, DoubleReal> > > vectors;		
 	vector< pair<Int, DoubleReal> > temp_vector;
-	vector<svm_node*>* encoded_vectors;
+	vector<svm_node*> encoded_vectors;
 	UInt count = 8;
 	vector<DoubleReal> labels;
-	vector<DoubleReal>* predicted_labels1;
-	vector<DoubleReal>* predicted_labels2;
+	vector<DoubleReal> predicted_labels1;
+	vector<DoubleReal> predicted_labels2;
 	svm_problem* problem;
 	SVMWrapper svm2;
 	
@@ -588,25 +586,25 @@ CHECK((void loadModel(std::string modelFilename)))
 		}
 		vectors.push_back(temp_vector);
 	}
-	encoded_vectors = encoder.encodeLibSVMVectors(vectors);
+	encoder.encodeLibSVMVectors(vectors, encoded_vectors);
 	for(UInt i = 0; i < count; i++)
 	{
 		labels.push_back(((DoubleReal) i * 2) / 3 + 0.03);
 	}
-	problem = encoder.encodeLibSVMProblem(*encoded_vectors, &labels);
+	problem = encoder.encodeLibSVMProblem(encoded_vectors, labels);
 	svm.train(problem);
-	predicted_labels1 = svm.predict(problem);
+	svm.predict(problem, predicted_labels1);
 	
 	String filename = "svm.model";
 	NEW_TMP_FILE(filename)
 	svm.saveModel(filename);
 	svm2.loadModel(filename);
-	predicted_labels2 = svm2.predict(problem);
-	TEST_NOT_EQUAL(predicted_labels1->size(), 0)
-	TEST_EQUAL(predicted_labels1->size(), predicted_labels2->size())
-	for(UInt i = 0; i < predicted_labels1->size(); i++)
+	svm2.predict(problem, predicted_labels2);
+	TEST_NOT_EQUAL(predicted_labels1.size(), 0)
+	TEST_EQUAL(predicted_labels1.size(), predicted_labels2.size())
+	for(UInt i = 0; i < predicted_labels1.size(); i++)
 	{
-		TEST_REAL_EQUAL((*predicted_labels1)[i], (*predicted_labels2)[i])
+		TEST_REAL_EQUAL(predicted_labels1[i], predicted_labels2[i])
 	}
 RESULT
 
@@ -615,11 +613,11 @@ CHECK((void saveModel(std::string modelFilename) const throw(Exception::UnableTo
 	svm.setParameter(KERNEL_TYPE, POLY);
 	vector< vector< pair<Int, DoubleReal> > > vectors;		
 	vector< pair<Int, DoubleReal> > temp_vector;
-	vector<svm_node*>* encoded_vectors;
+	vector<svm_node*> encoded_vectors;
 	UInt count = 8;
 	vector<DoubleReal> labels;
-	vector<DoubleReal>* predicted_labels1;
-	vector<DoubleReal>* predicted_labels2;
+	vector<DoubleReal> predicted_labels1;
+	vector<DoubleReal> predicted_labels2;
 	svm_problem* problem;
 	SVMWrapper svm2;	
 	
@@ -632,27 +630,27 @@ CHECK((void saveModel(std::string modelFilename) const throw(Exception::UnableTo
 		}
 		vectors.push_back(temp_vector);
 	}
-	encoded_vectors = encoder.encodeLibSVMVectors(vectors);
+	encoder.encodeLibSVMVectors(vectors, encoded_vectors);
 	for(UInt i = 0; i < count; i++)
 	{
 		labels.push_back(((DoubleReal) i * 2) / 3 + 0.03);
 	}
-	problem = encoder.encodeLibSVMProblem(*encoded_vectors, &labels);
+	problem = encoder.encodeLibSVMProblem(encoded_vectors, labels);
 	svm.train(problem);
 	
 	String filename = "svm.model";
 	NEW_TMP_FILE(filename)
 	svm.saveModel(filename);
 	svm2.loadModel(filename);
-	predicted_labels1 = svm.predict(problem);
-	predicted_labels2 = svm2.predict(problem);
-	TEST_NOT_EQUAL(predicted_labels1->size(), 0)
-	TEST_NOT_EQUAL(predicted_labels2->size(), 0)
-	TEST_EQUAL(predicted_labels1->size(), predicted_labels2->size())
+	svm.predict(problem, predicted_labels1);
+	svm2.predict(problem, predicted_labels2);
+	TEST_NOT_EQUAL(predicted_labels1.size(), 0)
+	TEST_NOT_EQUAL(predicted_labels2.size(), 0)
+	TEST_EQUAL(predicted_labels1.size(), predicted_labels2.size())
 
-	for(UInt i = 0; i < predicted_labels1->size(); i++)
+	for(UInt i = 0; i < predicted_labels1.size(); i++)
 	{
-		TEST_REAL_EQUAL((*predicted_labels1)[i], (*predicted_labels2)[i])
+		TEST_REAL_EQUAL(predicted_labels1[i], predicted_labels2[i])
 	}
 RESULT
 
@@ -660,10 +658,10 @@ CHECK((std::vector<DoubleReal>* predict(const std::vector<svm_node*>& vectors)))
 	LibSVMEncoder encoder;
 	vector< vector< pair<Int, DoubleReal> > > vectors;		
 	vector< pair<Int, DoubleReal> > temp_vector;
-	vector<svm_node*>* encoded_vectors;
+	vector<svm_node*> encoded_vectors;
 	UInt count = 8;
 	vector<DoubleReal> labels;
-	vector<DoubleReal>* predicted_labels;
+	vector<DoubleReal> predicted_labels;
 	svm_problem* problem;
 	
 	for(UInt j = 0; j < count; j++)
@@ -674,15 +672,15 @@ CHECK((std::vector<DoubleReal>* predict(const std::vector<svm_node*>& vectors)))
 		}
 		vectors.push_back(temp_vector);
 	}
-	encoded_vectors = encoder.encodeLibSVMVectors(vectors);
+	encoder.encodeLibSVMVectors(vectors, encoded_vectors);
 	for(UInt i = 0; i < count; i++)
 	{
 		labels.push_back(((DoubleReal) i * 2) / 3 + 0.03);
 	}
-	problem = encoder.encodeLibSVMProblem(*encoded_vectors, &labels);
+	problem = encoder.encodeLibSVMProblem(encoded_vectors, labels);
 	svm.train(problem);
-	predicted_labels = svm.predict(*encoded_vectors);
-	TEST_NOT_EQUAL(predicted_labels->size(), 0)
+	svm.predict(encoded_vectors, predicted_labels);
+	TEST_NOT_EQUAL(predicted_labels.size(), 0)
 	
 RESULT
 

@@ -397,7 +397,7 @@ class TOPPRTModel
 			{
 				encoded_training_sample = 
 					encoder.encodeLibSVMProblemWithCompositionAndLengthVectors(training_peptides,
-																																	&training_retention_times,
+																																	training_retention_times,
 																																	allowed_amino_acid_characters,
 																																	maximum_sequence_length);
 			}
@@ -405,7 +405,7 @@ class TOPPRTModel
 			{
 				encoded_training_sample = 
 					encoder.encodeLibSVMProblemWithOligoBorderVectors(training_peptides,
-																														&training_retention_times,
+																														training_retention_times,
 																														k_mer_length,
 																														allowed_amino_acid_characters,
 																														svm.getIntParameter(BORDER_LENGTH));

@@ -200,14 +200,14 @@ class TOPPRTPredict
 			{
 				prediction_data = 
 					encoder.encodeLibSVMProblemWithCompositionAndLengthVectors(peptides,
-																																			&rts,
+																																			rts,
 																														 					allowed_amino_acid_characters,
 																														 					maximum_length);
 			}
 			else if (svm.getIntParameter(KERNEL_TYPE) == OLIGO)
 			{
 				prediction_data = encoder.encodeLibSVMProblemWithOligoBorderVectors(peptides, 
-																																						&rts, 
+																																						rts, 
 																																						k_mer_length, 
 																																						allowed_amino_acid_characters, 
 																																						border_length);				

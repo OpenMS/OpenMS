@@ -47,15 +47,16 @@ namespace OpenMS
     
   }
 		
-	vector< pair<Int, DoubleReal> >* LibSVMEncoder::encodeCompositionVector(const String& sequence, 
-																											 				 					    const String& allowed_characters)
+	void LibSVMEncoder::encodeCompositionVector(const String& 										sequence, 
+																							vector< pair<Int, DoubleReal> >& 	composition_vector,
+																							const String& 										allowed_characters)
 	{
 	
 		UInt number_of_different_letters = allowed_characters.size();
 		UInt* counts = new UInt[number_of_different_letters];
 		UInt total_count = 0;
-		vector< pair<Int, DoubleReal> >* composition_vector = 
-			new vector< pair<Int, DoubleReal> >();
+		
+		composition_vector.clear();												
 		
 		for (UInt i = 0; i < number_of_different_letters; i++)
 		{
@@ -75,30 +76,29 @@ namespace OpenMS
 		{
 			if (counts[i] > 0)
 			{
-				composition_vector->push_back(make_pair(i + 1, (((DoubleReal) counts[i]) / total_count)));
+				composition_vector.push_back(make_pair(i + 1, (((DoubleReal) counts[i]) / total_count)));
 			}
 		}
 		delete [] counts;
 		
-		return composition_vector;
 	}
 		
-	vector< vector< pair<Int, DoubleReal> > >* LibSVMEncoder::encodeCompositionVectors(const vector<String>& sequences, 
-																												 								 			   						 const String& allowed_characters)
+	void LibSVMEncoder::encodeCompositionVectors(const vector<String>& 											sequences, 
+																							 const String& 															allowed_characters,
+																							 vector< vector< pair<Int, DoubleReal> > >& composition_vectors)
 	{
-		vector< vector< pair<Int, DoubleReal> > >* composition_vectors = 
-			new vector< vector< pair<Int, DoubleReal> > >();
-		vector< pair<Int, DoubleReal> >* composition_vector;
+		vector< pair<Int, DoubleReal> > composition_vector;
 		
+		composition_vectors.clear();
+
 		for(UInt i = 0; i < sequences.size(); i++)
 		{
-			composition_vector = encodeCompositionVector(sequences[i],
-																									 allowed_characters);
-			composition_vectors->push_back(*composition_vector);
-			delete composition_vector;
+			encodeCompositionVector(sequences[i],
+															composition_vector,
+														  allowed_characters);
+			composition_vectors.push_back(composition_vector);
 		}
 					
-		return composition_vectors;
 	}      
 	
 	svm_node* LibSVMEncoder::encodeLibSVMVector(const vector< pair<Int, DoubleReal> >& feature_vector)
@@ -124,22 +124,20 @@ namespace OpenMS
 		return nodes;	
 	}
 	
-	vector<svm_node*>* LibSVMEncoder::encodeLibSVMVectors(
-  	const vector< vector< pair<Int, DoubleReal> > >& feature_vectors)
+	void LibSVMEncoder::encodeLibSVMVectors(const vector< vector< pair<Int, DoubleReal> > >& 	feature_vectors,
+																					vector<svm_node*>& 																libsvm_vectors)
   {
-  	vector<svm_node*>* libsvm_vectors = new vector<svm_node*>();
+  	libsvm_vectors.clear();
   	
   	for(UInt i = 0; i < feature_vectors.size(); i++)
   	{
-  		libsvm_vectors->push_back(encodeLibSVMVector(feature_vectors[i]));
+  		libsvm_vectors.push_back(encodeLibSVMVector(feature_vectors[i]));
   	}
-  	
-  	return libsvm_vectors;
-  }
+ 	}
 	
 	
-	svm_problem* LibSVMEncoder::encodeLibSVMProblem(const vector<svm_node*>& vectors, 
-																						vector<DoubleReal>*  		 labels)
+	svm_problem* LibSVMEncoder::encodeLibSVMProblem(const vector<svm_node*>& 			 vectors, 
+																									vector<DoubleReal>&			  		 labels)
 	{
 		svm_problem* problem;
 		svm_node** node_vectors;
@@ -155,7 +153,7 @@ namespace OpenMS
 			return NULL;
 		}
 		
-		problem->y = &((*labels)[0]);
+		problem->y = &(labels[0]);
 		
 		node_vectors = new svm_node*[problem->l];
 		if (node_vectors == NULL)
@@ -176,18 +174,18 @@ namespace OpenMS
 	}
 	
 	svm_problem* LibSVMEncoder::encodeLibSVMProblemWithCompositionVectors(const vector<String>&    sequences,
-																																	std::vector<DoubleReal>* labels,
-																																	const String&   				 allowed_characters)
+																																				std::vector<DoubleReal>& labels,
+																																				const String&   				 allowed_characters)
 	{
 		vector<svm_node*> vectors;
-		vector< pair<Int, DoubleReal> >* encoded_vector;
+		vector< pair<Int, DoubleReal> > encoded_vector;
 		svm_node* libsvm_vector;
 		
 		for(UInt i = 0; i < sequences.size(); i++)
 		{
 			
-			encoded_vector = encodeCompositionVector(sequences[i], allowed_characters);
-			libsvm_vector = encodeLibSVMVector(*encoded_vector);
+			encodeCompositionVector(sequences[i], encoded_vector, allowed_characters);
+			libsvm_vector = encodeLibSVMVector(encoded_vector);
 			vectors.push_back(libsvm_vector);
 		}
 		
@@ -195,20 +193,20 @@ namespace OpenMS
 	} 
 
 	svm_problem* LibSVMEncoder::encodeLibSVMProblemWithCompositionAndLengthVectors(const vector<String>&    sequences,
-																																								 std::vector<DoubleReal>* labels,
+																																								 std::vector<DoubleReal>& labels,
 																																								 const String& 	 				  allowed_characters,
 																																								 UInt 							maximum_sequence_length)
 	{
 		vector<svm_node*> vectors;
-		vector< pair<Int, DoubleReal> >* encoded_vector;
+		vector< pair<Int, DoubleReal> > encoded_vector;
 		svm_node* libsvm_vector;
 		
 		for(UInt i = 0; i < sequences.size(); i++)
 		{
 			
-			encoded_vector = encodeCompositionVector(sequences[i], allowed_characters);
-			encoded_vector->push_back(make_pair(allowed_characters.size() + 1, ((DoubleReal) sequences[i].length()) / maximum_sequence_length));
-			libsvm_vector = encodeLibSVMVector(*encoded_vector);
+			encodeCompositionVector(sequences[i], encoded_vector, allowed_characters);
+			encoded_vector.push_back(make_pair(allowed_characters.size() + 1, ((DoubleReal) sequences[i].length()) / maximum_sequence_length));
+			libsvm_vector = encodeLibSVMVector(encoded_vector);
 			vectors.push_back(libsvm_vector);
 		}
 		
@@ -444,7 +442,7 @@ namespace OpenMS
 	}
 	
 	svm_problem* LibSVMEncoder::encodeLibSVMProblemWithOligoBorderVectors(const vector<String>&     sequences,
-																																				vector<DoubleReal>*       labels,
+																																				vector<DoubleReal>&       labels,
 																																				UInt 							k_mer_length,
 																																				const String& 	 				  allowed_characters,
 																																				UInt 							border_length,

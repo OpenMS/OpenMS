@@ -163,7 +163,7 @@ namespace OpenMS
 		    This function creates 'number' equally sized random partitions and stores them in 'partitions'. 
 		    
 		  */
-			static void createRandomPartitions(svm_problem* problem, UInt number, std::vector<svm_problem*> partitions);
+			static void createRandomPartitions(svm_problem* problem, UInt number, std::vector<svm_problem*>& partitions);
 	
 		  /**
 		    @brief You can merge partitions excuding the partition with index 'except' 

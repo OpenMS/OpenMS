@@ -53,7 +53,7 @@ namespace OpenMS
       ~LibSVMEncoder();
             
       /**
- 				@brief returns a composition vector of 'sequence'
+ 				@brief stores a composition vector of 'sequence' in 'encoded_vector'
  				
  				The allowed characters given by 'allowed_characters' are counted in the sequence 'sequence'
  				and the relative frequency of the letters are sored in the composition vector. 
@@ -61,11 +61,10 @@ namespace OpenMS
  				'allowed_characters' that has a non zero frequency in 'sequence' and its corresponding 
  				relative frequency...
 			*/ 				
-      std::vector< std::pair<Int, DoubleReal> >* encodeCompositionVector(const String& sequence, 
-																												 								 			   const String& allowed_characters = "ACDEFGHIKLMNPQRSTVWY");      
+      void encodeCompositionVector(const String& sequence, std::vector< std::pair<Int, DoubleReal> >& encoded_vector, const String& allowed_characters = "ACDEFGHIKLMNPQRSTVWY");      
 																																		  
       /**
- 				@brief returns composition vector of the sequences given by 'sequence'
+ 				@brief stores composition vectors of the sequences given by 'sequence' in 'composition_vectors'
  				
  				The allowed characters given by 'allowed_characters' are counted in the sequences 'sequences'
  				and the relative frequency of the letters are sored in the composition vectors. 
@@ -73,28 +72,25 @@ namespace OpenMS
  				'allowed_characters' that has a non zero frequency in the first 'sequence' and its corresponding 
  				relative frequency...
 			*/ 				
-      std::vector< std::vector< std::pair<Int, DoubleReal> > >* encodeCompositionVectors(const std::vector<String>& sequences, 
-																												 								 			   						const String& allowed_characters);      
+      void encodeCompositionVectors(const std::vector<String>& sequences, const String& allowed_characters, std::vector< std::vector< std::pair<Int, DoubleReal> > >& composition_vectors);      
 			/// encodes the feature vector in LibSVM compliant format																																		  
-      svm_node* encodeLibSVMVector(
-      	const std::vector< std::pair<Int, DoubleReal> >& feature_vector);
+      svm_node* encodeLibSVMVector(const std::vector< std::pair<Int, DoubleReal> >& feature_vector);
       
 			/// encodes the feature vectors in LibSVM compliant format																																		  
-      std::vector<svm_node*>* encodeLibSVMVectors(
-      	const std::vector< std::vector< std::pair<Int, DoubleReal> > >& feature_vectors);
+      void encodeLibSVMVectors(const std::vector< std::vector< std::pair<Int, DoubleReal> > >& feature_vectors, std::vector<svm_node*>& libsvm_vectors);
       
 			/// encodes the LibSVM compliant vectors into a LibSVM compliant structure																																		  
       svm_problem* encodeLibSVMProblem(const std::vector<svm_node*>&  vectors, 
-      																 std::vector<DoubleReal>* 		  labels);
+      																 std::vector<DoubleReal>& labels);
       
       /// creates composition vectors for 'sequences' and stores them in LibSVM compliant format
 			svm_problem* encodeLibSVMProblemWithCompositionVectors(const std::vector<String>& sequences,
-																														 std::vector<DoubleReal>*   labels,
+																														 std::vector<DoubleReal>&   labels,
 																														 const String&              allowed_characters);      
     
       /// creates composition vectors with additional length information for 'sequences' and stores them in LibSVM compliant format
 			svm_problem* encodeLibSVMProblemWithCompositionAndLengthVectors(const std::vector<String>& sequences,
-																																			std::vector<DoubleReal>*   labels,
+																																			std::vector<DoubleReal>&   labels,
 																																			const String&              allowed_characters,
 																																			UInt                maximum_sequence_length);      
     	
@@ -115,7 +111,7 @@ namespace OpenMS
 
       /// creates oligo border vectors vectors for 'sequences' and stores them in LibSVM compliant format
 			svm_problem* encodeLibSVMProblemWithOligoBorderVectors(const std::vector<String>&     sequences,
-																														 std::vector<DoubleReal>*  			labels,
+																														 std::vector<DoubleReal>&  			labels,
 																														 UInt 										k_mer_length,
 																														 const String& 	 				  			allowed_characters,
 																														 UInt 										border_length,
