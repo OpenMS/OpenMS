@@ -234,22 +234,27 @@ class TOPPRTModel
 			if (type == "POLY")
 			{
 				svm.setParameter(KERNEL_TYPE, POLY);
+				temp_type = POLY;
 			}
 			else if (type == "LINEAR")
 			{
 				svm.setParameter(KERNEL_TYPE, LINEAR);
+				temp_type = LINEAR;
 			}			
 			else if (type == "RBF")
 			{
 				svm.setParameter(KERNEL_TYPE, RBF);
+				temp_type = RBF;
 			}
 			else if (type == "OLIGO")
 			{
 				svm.setParameter(KERNEL_TYPE, OLIGO);
+				temp_type = OLIGO;
 			}
 			else if (type == "SIGMOID")
 			{
 				svm.setParameter(KERNEL_TYPE, SIGMOID);
+				temp_type = SIGMOID;
 			}
 			else
 			{
