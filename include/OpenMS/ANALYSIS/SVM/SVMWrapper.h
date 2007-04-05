@@ -126,10 +126,10 @@ namespace OpenMS
 		  /**
 		    @brief predicts the labels using the trained model
 		    
-	     	 The prediction process is started and the results are returned.
+	     	 The prediction process is started and the results are stored in 'predicted_rts'.
 
 		  */
-	    std::vector<DoubleReal>* predict(struct svm_problem* predictProblem);
+	    void predict(struct svm_problem* predictProblem, std::vector<DoubleReal>& predicted_rts);
 
 		  /**
 		    @brief You can get the actual int- parameters of the svm
@@ -158,36 +158,38 @@ namespace OpenMS
 	    DoubleReal getDoubleParameter(SVM_parameter_type type); 
 
 		  /**
-		    @brief You can create 'number' equally sized random partitions 
+		    @brief You can create 'number' equally sized random partitions
+		    
+		    This function creates 'number' equally sized random partitions and stores them in 'partitions'. 
 		    
 		  */
-			static std::vector<svm_problem*>* createRandomPartitions(svm_problem* problem, UInt number);
+			static void createRandomPartitions(svm_problem* problem, UInt number, std::vector<svm_problem*> partitions);
 	
 		  /**
 		    @brief You can merge partitions excuding the partition with index 'except' 
 		    
 		  */
-	    static svm_problem* mergePartitions(const std::vector<svm_problem*>* const problems,UInt except);
+	    static svm_problem* mergePartitions(const std::vector<svm_problem*>& problems,UInt except);
 																	 				
 		  /**
 		    @brief predicts the labels using the trained model
 		    
-	     	 The prediction process is started and the results are returned.
+	     	 The prediction process is started and the results are stored in 'predicted_rts'.
 
 		  */
-	    std::vector<DoubleReal>* predict(const std::vector<svm_node*>& vectors);
+	    void predict(const std::vector<svm_node*>& vectors, std::vector<DoubleReal>& predicted_rts);
 	
 		  /**
-		    @brief Returns the stored labels of the encoded SVM data 
+		    @brief Stores the stored labels of the encoded SVM data at 'labels' 
 		    
 		  */
-			static std::vector<DoubleReal>* getLabels(svm_problem* problem);
+			static void getLabels(svm_problem* problem, std::vector<DoubleReal>& labels);
 																	 				
 		  /**
-		    @brief Returns the stored labels of the encoded SVM data 
+		    @brief Performs a CV for the data given by 'problem'
 		    
 		  */
-			std::map<SVM_parameter_type, DoubleReal>* performCrossValidation(svm_problem* problem, std::map<SVM_parameter_type, DoubleReal>& start_values, std::map<SVM_parameter_type, DoubleReal>& step_sizes, std::map<SVM_parameter_type, DoubleReal>& end_values, DoubleReal* cv_quality, UInt number_of_partitions, UInt number_of_runs, bool additive_step_size = true, bool output = false, String performances_file_name = "performances.txt");
+			DoubleReal performCrossValidation(svm_problem* problem, const std::map<SVM_parameter_type, DoubleReal>& start_values, const std::map<SVM_parameter_type, DoubleReal>& step_sizes, const std::map<SVM_parameter_type, DoubleReal>& end_values, UInt number_of_partitions, UInt number_of_runs, std::map<SVM_parameter_type, DoubleReal>& best_parameters, bool additive_step_size = true, bool output = false, String performances_file_name = "performances.txt");
 																 					
 		  /**
 		    @brief Returns the probability parameter sigma of the fitted laplace model.		      

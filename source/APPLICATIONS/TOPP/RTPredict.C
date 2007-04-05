@@ -91,7 +91,7 @@ class TOPPRTPredict
 			SVMWrapper svm;
 			LibSVMEncoder encoder;
 			String allowed_amino_acid_characters = "ACDEFGHIKLMNPQRSTVWY";
-			vector<DoubleReal>* predicted_retention_times;
+			vector<DoubleReal> predicted_retention_times;
 			map< String, DoubleReal > predicted_data;
 			svm_problem* training_data = NULL;
 			svm_problem* prediction_data = NULL;
@@ -223,17 +223,17 @@ class TOPPRTPredict
 
 				svm.setParameter(BORDER_LENGTH, (Int) border_length);
 				svm.setParameter(SIGMA, sigma);
-				predicted_retention_times = svm.predict(prediction_data);
+				svm.predict(prediction_data, predicted_retention_times);
 			}
 			else
 			{
-				predicted_retention_times = svm.predict(prediction_data);
+				svm.predict(prediction_data, predicted_retention_times);
 			}
 
 			for(UInt i = 0; i < peptides.size(); i++)
 			{
 				predicted_data.insert(make_pair(peptides[i],
-																				((*predicted_retention_times)[i] * total_gradient_time)));
+																				(predicted_retention_times[i] * total_gradient_time)));
 			}
 		
 			//-------------------------------------------------------------

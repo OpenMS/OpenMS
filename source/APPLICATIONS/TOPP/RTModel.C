@@ -192,7 +192,7 @@ class TOPPRTModel
 			UInt number_of_partitions;
 			UInt number_of_runs;
 			DoubleReal cv_quality;
-			map<SVM_parameter_type, DoubleReal>* optimized_parameters;
+			map<SVM_parameter_type, DoubleReal> optimized_parameters;
 			map<SVM_parameter_type, DoubleReal>::iterator parameters_iterator;
 			UInt maximum_sequence_length = 50;
 			bool additive_cv = true;
@@ -424,21 +424,21 @@ class TOPPRTModel
 						digest = parts[parts.size() - 1];
 					}
 				}				
-				optimized_parameters = svm.performCrossValidation(encoded_training_sample,
-																												 	start_values,
-																	 												step_sizes,
-																	 												end_values,
-																	 												&cv_quality,
-																	 												number_of_partitions,
-																	 												number_of_runs,
-																	 												additive_cv,
-																	 												output_flag,
-																	 												"performances_" + digest + ".txt");
+				cv_quality = svm.performCrossValidation(encoded_training_sample,
+																								start_values,
+																	 							step_sizes,
+																	 							end_values,
+																	 							number_of_partitions,
+																	 							number_of_runs,
+																	 							optimized_parameters,
+																	 							additive_cv,
+																	 							output_flag,
+																	 							"performances_" + digest + ".txt");
 																	 												
 				String debug_string = "Best parameters found in cross validation:";
 
-				for(parameters_iterator = optimized_parameters->begin();
-						parameters_iterator != optimized_parameters->end();
+				for(parameters_iterator = optimized_parameters.begin();
+						parameters_iterator != optimized_parameters.end();
 						parameters_iterator++)
 				{
 					svm.setParameter(parameters_iterator->first,

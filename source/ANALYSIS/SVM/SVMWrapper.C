@@ -324,71 +324,72 @@ namespace OpenMS
 		}
 	}
 	
-	vector<DoubleReal>* SVMWrapper::predict(struct svm_problem* problem)
+	void SVMWrapper::predict(struct svm_problem* problem, vector<DoubleReal>& results)
 	{
     DoubleReal          label = 0.0;
-    vector<DoubleReal>* results = new vector<DoubleReal>();
+    
+    results.clear();
 
 		if (model_ == NULL)
-			{
-				cout << "Model is null" << endl;
-			}
+		{
+			cout << "Model is null" << endl;
+		}
 		if (problem == NULL)
-			{
-				cout << "problem is null" << endl;
-			}
+		{
+			cout << "problem is null" << endl;
+		}
 		if (param_->kernel_type == PRECOMPUTED && training_set_ == NULL)
-			{
-				cout << "Training set is null and kernel type == PRECOMPUTED" << endl;
-			}
-
-    if (model_ == NULL || problem == NULL)
-    {
-			return results;
-    }
-		if (kernel_type_ == OLIGO)
 		{
-			if (training_set_ == NULL)
-			{
-				return results;
-			}
-   		problem = computeKernelMatrix(problem, training_set_);
+			cout << "Training set is null and kernel type == PRECOMPUTED" << endl;
 		}
-   
-    for(Int i = 0; i < problem->l; i++)
+
+    if (model_ != NULL && problem != NULL)
     {
-			label = svm_predict(model_, problem->x[i]);
-			results->push_back(label);
-		}
+			if (kernel_type_ == OLIGO)
+			{
+				if (training_set_ != NULL)
+				{
+		   		problem = computeKernelMatrix(problem, training_set_);
+				}
+  		} 
+	    for(Int i = 0; i < problem->l; i++)
+	    {
+				label = svm_predict(model_, problem->x[i]);
+				results.push_back(label);
+			}
 		
-		if (kernel_type_ == OLIGO)
-		{
-    	destroyProblem(problem);
-		}
-
-    return results;
+			if (kernel_type_ == OLIGO)
+			{
+ 		   	destroyProblem(problem);
+			}
+  	}
 	}
 	
-	vector<svm_problem*>* SVMWrapper::createRandomPartitions(svm_problem* problem,
-																													 UInt  number)
+	void SVMWrapper::createRandomPartitions(svm_problem* 					problem,
+																					UInt  			 					number,
+																					vector<svm_problem*> 	problems)
 	{
-		vector<svm_problem*>* problems = new vector<svm_problem*>();
 		vector<UInt> indices;
 		UInt partition_count = 0;
 		UInt actual_partition_size = 0; 
 		vector<UInt>::iterator indices_iterator;
+		
+		for(UInt i = 0; i < problems.size(); ++i)
+		{
+			delete problems[i];
+		}		
+		problems.clear();
 			
 		if (number == 1)
 		{
-			problems->push_back(problem);
-			return problems;
+			problems.push_back(problem);
 		}
-		if (number > 1)
+		else if (number > 1)
 		{
 			// Creating the particular partition instances
 			for(UInt i = 0; i < number; i++)
 			{
-				problems->push_back(new svm_problem());
+				problems.push_back(new svm_problem());
 			}
 			
 			// Creating indices
@@ -418,55 +419,54 @@ namespace OpenMS
 				{
 					if (actual_partition_size == 0)
 					{
-						(*problems)[partition_index]->l = partition_count;
-						(*problems)[partition_index]->x = new svm_node*[partition_count];
-						(*problems)[partition_index]->y = new DoubleReal[partition_count];						
+						problems[partition_index]->l = partition_count;
+						problems[partition_index]->x = new svm_node*[partition_count];
+						problems[partition_index]->y = new DoubleReal[partition_count];						
 					}
-					(*problems)[partition_index]->x[actual_partition_size] = 
+					problems[partition_index]->x[actual_partition_size] = 
 						problem->x[*indices_iterator];
-					(*problems)[partition_index]->y[actual_partition_size] = 
+					problems[partition_index]->y[actual_partition_size] = 
 						problem->y[*indices_iterator];
 					actual_partition_size++;
 					indices_iterator++;
 				}
 			}			
 		}
-		return problems;		
 	}
 	
-	svm_problem* SVMWrapper::mergePartitions(const vector<svm_problem*>* const problems,
-								 															UInt 											except)
+	svm_problem* SVMWrapper::mergePartitions(const vector<svm_problem*>& problems,
+								 													 UInt 											 except)
 	{
 		svm_problem* merged_problem = NULL;
 		UInt count = 0;
 		UInt actual_index = 0;
 		
-		if (problems->size() == 1 && except == 0)
+		if (problems.size() == 1 && except == 0)
 		{
 			return NULL;
 		}
 		
-		if (problems->size() > 0)
+		if (problems.size() > 0)
 		{
 			merged_problem = new svm_problem();
-			for(UInt i = 0; i < problems->size(); i++)
+			for(UInt i = 0; i < problems.size(); i++)
 			{
 				if (i != except)
 				{
-					count += (*problems)[i]->l;
+					count += problems[i]->l;
 				}
 			}
 			merged_problem->l = count;
 			merged_problem->x = new svm_node*[count];
 			merged_problem->y = new DoubleReal[count];
-			for(UInt i = 0; i < problems->size(); i++)
+			for(UInt i = 0; i < problems.size(); i++)
 			{
 				if (i != except)
 				{
-					for(Int  j = 0; j < (*problems)[i]->l; j++)
+					for(Int  j = 0; j < problems[i]->l; j++)
 					{
-						merged_problem->x[actual_index] = (*problems)[i]->x[j];
-						merged_problem->y[actual_index] = (*problems)[i]->y[j];
+						merged_problem->x[actual_index] = problems[i]->x[j];
+						merged_problem->y[actual_index] = problems[i]->y[j];
 						actual_index++;
 					}
 				}
@@ -475,46 +475,42 @@ namespace OpenMS
 		return merged_problem;
 	}
 	
-	vector<DoubleReal>* SVMWrapper::getLabels(svm_problem* problem)
+	void SVMWrapper::getLabels(svm_problem* problem, vector<DoubleReal>& labels)
 	{
 		UInt count = 0;
-		vector<DoubleReal>* labels = new vector<DoubleReal>();
+		labels.clear();
 		
-		if (problem == NULL)
-		{
-			return labels;
+		if (problem != NULL)
+		{		
+			count = problem->l;
+			for(UInt i = 0; i < count; i++)
+			{
+				labels.push_back(problem->y[i]);
+			}
 		}
-		
-		count = problem->l;
-		for(UInt i = 0; i < count; i++)
-		{
-			labels->push_back(problem->y[i]);
-		}
-		return labels;
 	}
 	
-	map<SVM_parameter_type, DoubleReal>* SVMWrapper::performCrossValidation(svm_problem*   problem,
-																 									map<SVM_parameter_type, DoubleReal>&   start_values_map,
-																 									map<SVM_parameter_type, DoubleReal>&   step_sizes_map,
-																 									map<SVM_parameter_type, DoubleReal>&   end_values_map,
-																 									DoubleReal* 												   cv_quality,
-																 									UInt 												   number_of_partitions,
-																 									UInt 												   number_of_runs,
-																 									bool																	 additive_step_sizes,
-																 									bool				 												   output,
-																 									String																 performances_file_name)
+	DoubleReal SVMWrapper::performCrossValidation(svm_problem*   															 problem,
+																 								const	map<SVM_parameter_type, DoubleReal>&   start_values_map,
+																 								const	map<SVM_parameter_type, DoubleReal>&   step_sizes_map,
+																 								const	map<SVM_parameter_type, DoubleReal>&   end_values_map,
+																 								UInt 												   				 			 number_of_partitions,
+																 								UInt 												   				 			 number_of_runs,
+																 								map<SVM_parameter_type, DoubleReal>&   			 best_parameters,
+																 								bool																	 			 additive_step_sizes,
+																 								bool				 												   			 output,
+																 								String																 			 performances_file_name)
 	{
-		map<SVM_parameter_type, DoubleReal>::iterator start_values_iterator;
-		map<SVM_parameter_type, DoubleReal>::iterator step_sizes_iterator;
-		map<SVM_parameter_type, DoubleReal>::iterator end_values_iterator;
-		map<SVM_parameter_type, DoubleReal>* best_parameters;	
+		map<SVM_parameter_type, DoubleReal>::const_iterator start_values_iterator;
+		map<SVM_parameter_type, DoubleReal>::const_iterator step_sizes_iterator;
+		map<SVM_parameter_type, DoubleReal>::const_iterator end_values_iterator;
 		vector<pair<DoubleReal, UInt> > combined_parameters;
+		DoubleReal cv_quality = 0.0;
 		combined_parameters.push_back(make_pair(1, 25));
 		for(UInt i = 1; i < gauss_tables_.size(); ++i)
 		{
 			combined_parameters.push_back(make_pair(1, 25));
-		}
-		
+		}				
 		DoubleReal precision = 0.0001;
 		
 		DoubleReal* start_values = new DoubleReal[start_values_map.size()]();
@@ -526,11 +522,11 @@ namespace OpenMS
 		bool condition = false;
 		bool found = false;
 		UInt counter = 0;
-		vector<svm_problem*>* partitions;
+		vector<svm_problem*> partitions;
 		svm_problem** training_data;
 		DoubleReal temp_performance = 0;
-		vector<DoubleReal>* predicted_labels;
-		vector<DoubleReal>* real_labels;
+		vector<DoubleReal> predicted_labels;
+		vector<DoubleReal> real_labels;
 		vector<DoubleReal> performances;
 		UInt max_index = 0;
 		DoubleReal max = 0;
@@ -540,6 +536,8 @@ namespace OpenMS
 		DoubleReal* best_values = new DoubleReal[start_values_map.size()]();
 		vector<DoubleReal>::iterator predicted_it;
 		vector<DoubleReal>::iterator real_it;
+		
+		best_parameters.clear();
 		
 		if (output)
 		{
@@ -587,7 +585,7 @@ namespace OpenMS
 				best_values[index] = 0;
 			}
 			max_performance = 0;		
-			partitions = createRandomPartitions(problem, number_of_partitions);
+			createRandomPartitions(problem, number_of_partitions, partitions);
 	
 			counter = 0;
 			found = true;
@@ -627,27 +625,25 @@ namespace OpenMS
 				{
 					if (train(training_data[j]))
 					{
-						predicted_labels = predict((*partitions)[j]);
-						real_labels = getLabels((*partitions)[j]);
+						predict(partitions[j], predicted_labels);
+						getLabels(partitions[j], real_labels);
 												
-						predicted_it = predicted_labels->begin();
-						real_it = real_labels->begin();
+						predicted_it = predicted_labels.begin();
+						real_it = real_labels.begin();
 						
 						if (param_->svm_type == C_SVC || param_->svm_type == NU_SVC)
 						{
 							temp_performance += Math::BasicStatistics<DoubleReal>::classificationRate(
-								predicted_labels->begin(), predicted_labels->end(),
-								real_labels->begin(), real_labels->end());
+								predicted_labels.begin(), predicted_labels.end(),
+								real_labels.begin(), real_labels.end());
 						}
 						else if (param_->svm_type == NU_SVR || param_->svm_type == EPSILON_SVR)
 						{
 							temp_performance += Math::BasicStatistics<DoubleReal>::pearsonCorrelationCoefficient(
-								predicted_labels->begin(), predicted_labels->end(),
-								real_labels->begin(), real_labels->end());
+								predicted_labels.begin(), predicted_labels.end(),
+								real_labels.begin(), real_labels.end());
 						}
 						
-						delete predicted_labels;
-						delete real_labels;
 						if (param_->kernel_type == PRECOMPUTED)
 						{
 							destroyProblem(training_problem_);
@@ -939,13 +935,11 @@ namespace OpenMS
 		
 		performances_file.close();
 		
-		best_parameters = new map<SVM_parameter_type, DoubleReal>();
-		
 		for(actual_index = 0; actual_index < start_values_map.size(); actual_index++)
 		{
-			best_parameters->insert(make_pair(actual_types[actual_index], actual_values[actual_index]));
+			best_parameters.insert(make_pair(actual_types[actual_index], actual_values[actual_index]));
 		}
-		*cv_quality = performances[max_index] / number_of_runs;
+		cv_quality = performances[max_index] / number_of_runs;
 
 		actual_index = 0;
 		while(actual_index < start_values_map.size())
@@ -960,26 +954,24 @@ namespace OpenMS
 		delete step_sizes;
 		delete best_values;
 		
-		return best_parameters;									
+		return cv_quality;
+		
 	}
 
-	vector<DoubleReal>* SVMWrapper::predict(const std::vector<svm_node*>& vectors)
+	void SVMWrapper::predict(const std::vector<svm_node*>& vectors, vector<DoubleReal>& results)
 	{
     DoubleReal          label = 0.0;
-    vector<DoubleReal>* results = new vector<DoubleReal>();
 
-    if (model_ == NULL)
-    {
-			return results;
-    }
-   
-    for(UInt i = 0; i < vectors.size(); i++)
-    {
-			label = svm_predict(model_, vectors[i]);
-			results->push_back(label);
-		}
+		results.clear();
 		
-    return results;
+    if (model_ != NULL)
+    {
+	    for(UInt i = 0; i < vectors.size(); i++)
+	    {
+				label = svm_predict(model_, vectors[i]);
+				results.push_back(label);
+			}
+		}
 	}
 	
 	DoubleReal SVMWrapper::getSVRProbability()
@@ -1046,11 +1038,7 @@ namespace OpenMS
           }
           else
           {
-//						cout << "kernelOligo" << endl;
             kernel += exp(-1 * (x[i1].value - y[i2].value)* (x[i1].value - y[i2].value) / (4 * sigma_square));
-
-//            cout << "adding " << exp(-1 * (x[i1].value - y[i2].value)* (x[i1].value - y[i2].value) / (4 * sigma_square))
-//              << " for index " << x[i1].index << " and positions " << x[i1].value << ", " << y[i2].value << endl;
 
           }
           if (x[i1].index == x[i1 + 1].index)
@@ -1192,12 +1180,12 @@ namespace OpenMS
 	{
 		vector<pair<DoubleReal, DoubleReal> > points;
 		vector<DoubleReal> 										differences;
-		vector<svm_problem*>* 								partitions;
+		vector<svm_problem*>  								partitions;
 		svm_problem*													training_data;
-		vector<DoubleReal>*										predicted_labels;
-		vector<DoubleReal>*										real_labels;
-		UInt														counter = 0;
-		UInt														target = 0;
+		vector<DoubleReal>										predicted_labels;
+		vector<DoubleReal>										real_labels;
+		UInt																	counter = 0;
+		UInt																	target = 0;
 		ofstream															file("points.txt");
 		DoubleReal 														mean;
 		DoubleReal														sigma1 = 0;
@@ -1207,19 +1195,19 @@ namespace OpenMS
 		// creation of points (measured rt, predicted rt)
 		for(UInt i = 0; i < number_of_runs; ++i)
 		{
-			partitions = createRandomPartitions(data, number_of_partitions);
+			createRandomPartitions(data, number_of_partitions, partitions);
 			
 			for (UInt j = 0; j < number_of_partitions; ++j)
 			{
 				training_data = SVMWrapper::mergePartitions(partitions, j);
 				if (train(training_data))
 				{
-					predicted_labels = predict((*partitions)[j]);
-					real_labels = getLabels((*partitions)[j]);
-					vector<DoubleReal>::iterator pred_it = predicted_labels->begin();
-					vector<DoubleReal>::iterator real_it = real_labels->begin();						
-					while(pred_it != predicted_labels->end()
-								&& real_it != real_labels->end())
+					predict(partitions[j], predicted_labels);
+					getLabels(partitions[j], real_labels);
+					vector<DoubleReal>::iterator pred_it = predicted_labels.begin();
+					vector<DoubleReal>::iterator real_it = real_labels.begin();						
+					while(pred_it != predicted_labels.end()
+								&& real_it != real_labels.end())
 					{
 						points.push_back(make_pair(*real_it, *pred_it));
 						differences.push_back(abs(*real_it - *pred_it));
@@ -1227,8 +1215,6 @@ namespace OpenMS
 						++pred_it;
 						++real_it;
 					}
-					delete predicted_labels;
-					delete real_labels;
 				}
 			}
 		}
@@ -1260,8 +1246,8 @@ namespace OpenMS
 	}
 	
 	UInt SVMWrapper::getNumberOfEnclosedPoints(DoubleReal sigma1, 
-																										DoubleReal sigma2, 
-																										const vector<pair<DoubleReal, DoubleReal> >& points)
+																						 DoubleReal sigma2, 
+																						 const vector<pair<DoubleReal, DoubleReal> >& points)
 	{
 		UInt counter = 0;
 		DoubleReal 	sigma		= 0;
