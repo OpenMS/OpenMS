@@ -342,7 +342,7 @@ class TOPPOMSSAAdapter
 		
 				if (status != 0)
 				{
-					writeLog_("OMSSA problem. Aborting! (Details can be seen in the logfile: \"" + logfile + "\")");
+					writeLog_("OMSSA problem. Warning, resuming with next spectrum! (Details can be seen in the logfile: \"" + logfile + "\")");
 					//return EXTERNAL_PROGRAM_ERROR;
 				}
 

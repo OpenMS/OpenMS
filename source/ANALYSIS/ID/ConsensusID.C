@@ -172,7 +172,7 @@ namespace OpenMS
 			//check the score type
 			if (id->getPeptideHits().begin()->getScoreType()!=score_type)
 			{
-				cerr << "Warning: You are merging differnt types of scores: '" << score_type << "' and '" << id->getPeptideHits().begin()->getScoreType() << "'" << endl;
+				cerr << "Warning: You are merging different types of scores: '" << score_type << "' and '" << id->getPeptideHits().begin()->getScoreType() << "'" << endl;
 			}
 			//make sure that the ranks are present
 			id->assignRanks(inverse_order_);
