@@ -72,12 +72,16 @@ namespace OpenMS
 			bool isValid() const;
 			/// delete all items
 			void deleteAll();
+			/// types of data elements
+			enum{NODE,ITEM};
 
 		public slots:
 			/// deletes an item and its children
 			void deleteItem();
 			/// inserts an item
 			void insertItem();
+			/// inserts a node
+			void insertNode();
 			/// expands the subtree
 			void expandTree();
 			/// collapses the subtree

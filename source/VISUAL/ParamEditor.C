@@ -45,8 +45,7 @@ namespace OpenMS
 	  	param_const_(0)
 	{
 		setMinimumSize(500,300);
-		//ParamEditorDelegate delegate;
-		//setItemDelegate(&delegate);
+		setItemDelegate(new ParamEditorDelegate);
 		setWindowTitle("ParamEditor");
 		setColumnCount(3);
 		QStringList list;
@@ -122,6 +121,9 @@ namespace OpenMS
 					item->setText(0, QString::fromStdString ( up.substr(0,pos)));
 					item->setText(1, QString::fromStdString ( ""));
 					item->setText(2, QString::fromStdString ( ""));
+					item->setData(0,Qt::UserRole,NODE);
+					item->setData(1,Qt::UserRole,NODE);
+					item->setData(2,Qt::UserRole,NODE);
 					if(param_editable_!=NULL)
 					{
 						item->setFlags( Qt::ItemIsSelectable | Qt::ItemIsEnabled | Qt::ItemIsEditable);
@@ -156,6 +158,9 @@ namespace OpenMS
 				item->setText(0, QString::fromStdString ( key_without_prefix));
 				item->setText(1, QString::fromStdString ( it->second.toString()));
 				item->setText(2, QString::fromStdString ( type));
+				item->setData(0,Qt::UserRole,ITEM);
+				item->setData(1,Qt::UserRole,ITEM);
+				item->setData(2,Qt::UserRole,ITEM);
 				if(param_editable_!=NULL)
 				{
 					item->setFlags( Qt::ItemIsSelectable | Qt::ItemIsEnabled | Qt::ItemIsEditable);
@@ -288,10 +293,39 @@ namespace OpenMS
 		item->setText(0, "");
 		item->setText(1, "");
 		item->setText(2, "");
+		item->setData(0,Qt::UserRole,ITEM);
+		item->setData(1,Qt::UserRole,ITEM);
+		item->setData(2,Qt::UserRole,ITEM);
 		item->setFlags( Qt::ItemIsSelectable | Qt::ItemIsEnabled | Qt::ItemIsEditable);
 		
 	}
 	    
+	void ParamEditor::insertNode()
+	{
+		QTreeWidgetItem* parent=currentItem();
+		QTreeWidgetItem* item=NULL;
+			
+		if(!parent && topLevelItemCount()==0)
+		{
+			item=new QTreeWidgetItem(invisibleRootItem());
+		}
+		else if(parent && parent->text(1).size()==0 && parent->text(2)==0)
+		{
+			item=new QTreeWidgetItem(parent);
+		}
+		else
+		{
+			return;
+		}
+		item->setText(0, "");
+		item->setText(1, "");
+		item->setText(2, "");
+		item->setData(0,Qt::UserRole,NODE);
+		item->setData(1,Qt::UserRole,NODE);
+		item->setData(2,Qt::UserRole,NODE);
+		item->setFlags( Qt::ItemIsSelectable | Qt::ItemIsEnabled | Qt::ItemIsEditable);
+		
+	}
 	void ParamEditor::storeRecursive_(const QTreeWidgetItem* child, String path) const
 	{
 		path+=":"+child->text(0).toStdString();
@@ -407,6 +441,7 @@ namespace OpenMS
 			QMenu menu(this);
 			menu.addAction(tr("&Delete item"), this, SLOT(deleteItem()));
 			menu.addAction(tr("&Insert item"), this, SLOT(insertItem()));
+			menu.addAction(tr("&Insert node"), this, SLOT(insertNode()));
 			menu.addAction(tr("&Expand subtree"), this, SLOT(expandTree()));
 			menu.addAction(tr("&Collapse subtree"), this, SLOT(collapseTree()));			
 			menu.exec(event->globalPos());

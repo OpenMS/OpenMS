@@ -4,7 +4,9 @@
 #include <QtCore/QAbstractItemModel>
 #include <QtCore/QString>
 #include <QtCore/QStringList>
+#include <OpenMS/VISUAL/ParamEditor.h>
 #include <OpenMS/VISUAL/ParamEditorDelegate.h>
+#include <OpenMS/CONCEPT/Types.h>
 
 namespace OpenMS
 {
@@ -20,19 +22,18 @@ namespace OpenMS
 	     const QModelIndex & index ) const
 	 {
 		 QString str = index.model()->data(index, Qt::DisplayRole).toString();
-		 if(index.column()==1 &&str.isEmpty()) return 0;
-		 else if (index.column() == 2 && !str.isEmpty())
+		 Int id=index.model()->data(index, Qt::UserRole).toInt();
+		 if(index.column()==1 && id==ParamEditor::NODE) return 0;
+		 else if (index.column() == 2 && id==ParamEditor::ITEM)
 		{
-			//  QVariant originalValue = index.model()->data(index, Qt::UserRole);
-			//if (!isSupportedType(originalValue.type()))
-			//  return 0;
+			
 			QComboBox *editor = new QComboBox(parent);
 			QStringList list;
 			list<<"int"<<"float"<<"string";
 			editor->addItems(list);
 			return editor;
 		}
-		else if(index.column()==2 && str.isEmpty()) return 0;
+		else if(index.column()==2 && id==ParamEditor::NODE) return 0;
 		 else return QItemDelegate::createEditor(parent,option,index);
 
 	 }

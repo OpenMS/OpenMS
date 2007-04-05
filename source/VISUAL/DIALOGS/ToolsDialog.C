@@ -36,7 +36,6 @@
 #include <QtGui/QHBoxLayout>
 #include <QtGui/QGridLayout>
 #include <QtGui/QLabel>
-#include <QtCore/QtDebug>
 #include <QtGui/QMessageBox>
 #include <QtGui/QRadioButton>
 
