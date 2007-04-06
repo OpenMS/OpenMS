@@ -30,7 +30,9 @@ CPP_SOURCES=\
   Tutorial_DPosition.C\
   Tutorial_DRange.C\
 	Tutorial_MSSpectrum.C\
-	Tutorial_MSExperiment.C
+	Tutorial_MSExperiment.C\
+	Tutorial_FeatureMap.C\
+	Tutorial_RangeManager.C
 
 OBJECTS=$(SOURCES:.C=.o)
 
@@ -57,5 +59,11 @@ Tutorial_MSSpectrum: Tutorial_MSSpectrum.o
 	$(CXX) $(LDFLAGS) -o $@ $< $(GUI_LIBS)
 
 Tutorial_MSExperiment: Tutorial_MSExperiment.o
+	$(CXX) $(LDFLAGS) -o $@ $< $(GUI_LIBS)
+
+Tutorial_FeatureMap: Tutorial_FeatureMap.o
+	$(CXX) $(LDFLAGS) -o $@ $< $(GUI_LIBS)
+
+Tutorial_RangeManager: Tutorial_RangeManager.o
 	$(CXX) $(LDFLAGS) -o $@ $< $(GUI_LIBS)
 

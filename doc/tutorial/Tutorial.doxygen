@@ -372,9 +372,33 @@
 	@until main
 
   @par FeatureMap
+	@a FeatureMap, the container for features, is simply a @a vector<Feature>. Additionally, it is 
+	derived from @a ExperimentalSettings, to store the meta information. Just like @a MSExperiment
+	it is a template class. It takes the feature type as template argument.
 	
-  
-
+	The following example shows how to insert two features into a map and iterate over the features.
+  @dontinclude Tutorial_FeatureMap.C
+	@skip main
+	@until end of main
+	
+  @par RangeManager  
+	All peak and feature containers (@a DSpectrum, @a MSExperiment, @a FeatureMap) are also derived from @a RangeManager.
+	This class facilitates the handling of MS data ranges. It allows to calculate and store both the position range 
+	and the intensity range of the container.
+	
+	The following example shows the functionality of the class @a RangeManger using a @a FeatureMap.
+	First a @a FeatureMap with two features is created, then the ranges are calulated and printed:
+  @dontinclude Tutorial_RangeManager.C
+	@skip main
+	@until end of main
+	
+	The output of this program is:
+	@code
+	Int: 461.3 - 12213.5
+	RT:  15 - 23.3
+	m/z: 571.3 - 1311.3
+	@endcode
+	
 */
 
 //####################################### METADATA #######################################
@@ -400,6 +424,8 @@
  
  
 @section format_file File adapter classes
+
+	PeakFileOptions
 
 @section format_db DB access
 
