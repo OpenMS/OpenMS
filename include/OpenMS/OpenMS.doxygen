@@ -72,5 +72,25 @@ Todos:
 - Tutorial KERNEL, FORMAT, VISUAL -> altes Tutorial löschen
 - make install mit prefix testen (Hiwi)
 - AndiFile auf 64 Bit geefixt -> Installationsanleitung + Test-Builts updaten
+
+ConsensusID -- document algorithms 
+ConsensusID -- Add tests for inverse order 
+ConsensusID -- write test 
+ConsensusID -- document 
+ConsensusID -- merge with AnalysisXMLMerger -> Method 'Combine'
+Spectrum2DCanvas -- Context menu: show scan, precursor scan, ID, EIC 
+Spectrum2DCanvas -- Projections: follow 2D view, info box with intensity 
+TOPPViewBase -- Make opening recent files as new layer possible 
+FileInfo -- Merge with MapStatistics 
+
+DataValue -- derive from QVariant 
+Identification -- Store ScoreType (with direction) and AccessionType as Enum in Identification (Marc, Andreas)
+MSExperiment -- Add getPrecursorRT(rt/scan nr) and update ID adapters and IDSpectrumMapper 
+Spectrum2DCanvas -- Remove coordinate-data transformations 
+String -- derive from QString 
+TOPPViewBase -- Add preferences for layers 
+TOPPViewBase -- Tools - annotate with ID 
+TOPPViewBase -- Make intensity distribution a dock widget 
+XMLHandler -- Add external CVs, integrate OLS
   
 ***********************************************************************/
