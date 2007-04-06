@@ -48,7 +48,7 @@
   
   <font color="red"><b>x86_64 architectures:</b></font>
   <ul>
-    <li>OpenMS is tested with GCC 4.0.</li>
+    <li>OpenMS is tested with GCC 4.0 and 4.1.</li>
     <li>If the built aborts with errors concerning 'compound literals' use <code>--disable-pedantic</code> in the OpenMS configure.</li>
     <li>If ANDI/MS tests fail, you can disable ANDI/MS using <code>--disable-andims</code> in the OpenMS configure.</li>
   </ul>
@@ -247,7 +247,6 @@
   in the following commands
 
   <pre>
-&gt; autoconf
 &gt; ./configure (... see 'configure --help' and below)
 &gt; make
 &gt; make install
@@ -273,7 +272,11 @@
   </table>
 
   <br>
-  If you encounter unsolvable problems during configure, a file
+  If configure is not executable on your system, you should execute <tt>autoconf</tt> 
+  before the above commands.
+  <br>
+  <br>
+  If configure fails, a file
   called <b>config.diag.tar</b> is created. Please send this file
   together with a description of the problem by <a href=
   "http://open-ms.sourceforge.net/team.html">email</a>.
@@ -298,7 +301,7 @@ the other required libraries must also be added to LD_LIBRARY_PATH.
   be tested with any subsequent call of 'make test'.
 
   <h2>Building the TOPP tools</h2>
-	TOPP is a pipeline for the analysis of HPLC/MS data. It consists of several small applications that can be chained to create analysis pipelines tailored for a specific problem.
+	TOPP is a toolset for the analysis of HPLC/MS data. It consists of several small applications that can be chained to create analysis pipelines tailored for a specific problem.
 	<BR>
 	<BR>
   After you have built OpenMS, you can build the TOPP tools

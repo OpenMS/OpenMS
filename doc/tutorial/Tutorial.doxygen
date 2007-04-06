@@ -311,8 +311,8 @@
 	@par Typedefs
 	For convenience the following type definitions are defined in @a OpenMS/KERNEL/StandardTypes.h.
 	@code
-	typedef MSSpectrum<Peak1D> PeakSpectrum
-  typedef MSSpectrum<RawDataPoint1D> RawSpectrum 
+	typedef MSSpectrum<Peak1D> PeakSpectrum;
+  typedef MSSpectrum<RawDataPoint1D> RawSpectrum; 
 	@endcode	
 
 @section kernel_maps Maps 
@@ -328,12 +328,52 @@
   Both stores meta data that is valid for the whole map, i.e. sample description and instrument description.
   This data is stored in the common base class @a ExperimentalSettings.
 
-	@par MSExperiment
-	The following figure shows the big picture of the kernel datastructures. @a MSExperiment is the 
-	@image html Kernel.png "Overview of the main kernel datastructures" 
-	@image latex Kernel.png "Overview of the main kernel datastructures" width=10cm
+  @par MSExperiment
+  The following figure shows the big picture of the kernel datastructures. @a MSExperiment is
+  derived from @a ExperimentalSettings (meta data of the experiment) and from @a vector<MSSpectrum>.
+  The one-dimensional spectrum @a MSSpectrum is derived from SpectrumSettings (meta data of a spectrum)
+  and from @a DSpectrum<1>, which stores the actual peak data in a @a DPeakArray. @n
+  Since DPeakArray is can store all types of peaks derived from @a RawDataPoint, all the data containers
+  are template classes, that take the peak type as template argument. This is omitted in the diagram for
+  simplicity.
 
-TODO: maps, default typedefs, feature maps
+  @image html Kernel.png "Overview of the main kernel datastructures" 
+  @image latex Kernel.png "Overview of the main kernel datastructures" width=10cm
+
+  @par Typedefs
+  For convenience the following map types are defined in @a OpenMS/KERNEL/StandardTypes.h.
+  @code
+  typedef MSExperiment<Peak1D> PeakMap;
+  typedef MSExperiment<RawDataPoint1D> RawMap; 
+  @endcode
+
+	The following example program, creates a @a MSExperiment containing four @a MSSpectrum instances.
+	Then it iterates over an area and prints the peak positions in the area:
+
+	First we create the spectra in a for-loop and set the retention time and MS level. Survey scans have 
+  a MS level of 1, MS/MS scans would have a MS level of 2, and so on.
+  @dontinclude Tutorial_MSExperiment.C
+	@skip main
+	@until setMSLevel
+	Then we fill each spectrum with several peaks. As all spectra would have the same peaks otherwise,
+  we add the retention time to the mass-to-charge ratio of each peak.
+	@until creation
+	Finally we iterate over the RT range (2,3) and the m/z range (603,802) and print the peak positions.
+	@until }
+	The output of this loop is:
+	@code
+	2 - 702
+	2 - 802
+	3 - 603
+  3 - 703
+	@endcode
+	For printing all the peaks in the experiment, we could have used the STL-iterators of the 
+  experiment to iterate over the spectra and the STL-iterators of the spectra to iterate over the peaks:
+	@until main
+
+  @par FeatureMap
+	
+  
 
 */
 

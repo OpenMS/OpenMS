@@ -29,7 +29,8 @@ DIRECTORY=EXAMPLES
 CPP_SOURCES=\
   Tutorial_DPosition.C\
   Tutorial_DRange.C\
-	Tutorial_MSSpectrum.C
+	Tutorial_MSSpectrum.C\
+	Tutorial_MSExperiment.C
 
 OBJECTS=$(SOURCES:.C=.o)
 
@@ -54,3 +55,7 @@ Tutorial_DRange: Tutorial_DRange.o
 
 Tutorial_MSSpectrum: Tutorial_MSSpectrum.o
 	$(CXX) $(LDFLAGS) -o $@ $< $(GUI_LIBS)
+
+Tutorial_MSExperiment: Tutorial_MSExperiment.o
+	$(CXX) $(LDFLAGS) -o $@ $< $(GUI_LIBS)
+
