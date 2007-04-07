@@ -26,7 +26,8 @@
 
 /**
 	@mainpage OpenMS and TOPP documentation
-	
+
+	<HR>	
 	@section OpenMS_section OpenMS - A C++ library for shotgun proteomics.
  
 	%OpenMS is a free platform for the analysis of HPLC/MS data.
@@ -39,8 +40,14 @@
 	<UL>
 	  <LI> \subpage Tutorial
 	  <LI> \subpage coding_conventions
+	\if INTERNAL_INFO
+	  <LI> \subpage CPP
+	  <LI> \subpage FAQ
+	  <LI> \subpage todo
+	\endif
 	</UL>
 	
+	<HR>
 	@section TOPP_section TOPP - The OpenMS proteomics pipeline.
 	
 	TOPP is a pipeline for the analysis of HPLC/MS data. It consists of several small applications that
@@ -48,6 +55,7 @@
 	
 	Documentation of the TOPP tools can be found \subpage TOPP "here".
 	
+	<HR>
 	@section authors_section Developers
 	The %OpenMS project was initialized by Prof. Oliver Kohlbacher and Prof. Knut Reinert.
 
@@ -58,7 +66,7 @@
 		<LI> Eva Lange -- PeakPicking, MapMapping
 		<LI> Nico Pfeifer -- Retention time prediction
 		<LI> Ole Schulz-Trieglaff -- FeatureFinder
-		<LI> Marc Sturm -- Built system, Kernel, File formats ,Visualization
+		<LI> Marc Sturm -- Built system, Kernel, File formats, Visualization
 		<LI> Alexandra Zerck -- PeakPicker
 	</UL>
   
