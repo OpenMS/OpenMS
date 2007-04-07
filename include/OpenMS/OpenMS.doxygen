@@ -27,17 +27,18 @@
 /**
 	@mainpage OpenMS and TOPP documentation
 	
-	@section OpenMS_section OpenMS - a C++ library for shotgun proteomics.
+	@section OpenMS_section OpenMS - A C++ library for shotgun proteomics.
  
-	OpenMS is a free platform for the analysis of HPLC/MS data.
+	%OpenMS is a free platform for the analysis of HPLC/MS data.
 	
-	These pages contain the class documentation of OpenMS. It is intended for prgrammers that
-  want to develop software based on OpenMS. If you only want to use the tools based on OpenMS
+	These pages contain the class documentation of %OpenMS. It is intended for prgrammers that
+  want to develop software based on %OpenMS. If you only want to use the tools based on %OpenMS
   have a look at the at the TOPP tools.
 
   In addition to the class documentation the following information can be found here:
 	<UL>
 	  <LI> \subpage Tutorial
+	  <LI> \subpage coding_conventions
 	</UL>
 	
 	@section TOPP_section TOPP - The OpenMS proteomics pipeline.
@@ -48,9 +49,9 @@
 	Documentation of the TOPP tools can be found \subpage TOPP "here".
 	
 	@section authors_section Developers
-	The OpenMS project was initialized by Prof. Oliver Kohlbacher and Prof. Knut Reinert.
+	The %OpenMS project was initialized by Prof. Oliver Kohlbacher and Prof. Knut Reinert.
 
-	The current main developers of OpenMS are listed here:
+	The current main developers of %OpenMS are listed here:
 	<UL>
 		<LI> Andreas Bertsch -- Protein/peptide identification
 		<LI> Clemens Gr&ouml;pl -- FeatureFinder, MapMapping
@@ -69,7 +70,6 @@ Ideen:
 - Seeder: precursor peaks :o)
 
 Todos:
-- Tutorial KERNEL, FORMAT, VISUAL -> altes Tutorial löschen
 - make install mit prefix testen (Hiwi)
 - AndiFile auf 64 Bit geefixt -> Installationsanleitung + Test-Builts updaten
 

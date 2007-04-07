@@ -24,8 +24,6 @@
 // $Maintainer: Marc Sturm $
 // --------------------------------------------------------------------------
 
-/// @cond INTERNAL_INFO
-
 /**
 
 @page coding_conventions Coding conventions
@@ -754,5 +752,3 @@ documentation for consistence and (strange coincidence?!) the best way to
 implement a test program, too!
 
 */
-
-/// @endcond

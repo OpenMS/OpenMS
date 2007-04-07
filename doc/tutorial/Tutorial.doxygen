@@ -67,7 +67,7 @@
 	
 	This chapter covers some very basic concepts needed to understand OpenMS code.
 	It describes OpenMS primitive types, namespaces, exceptions and
-  important preprocessor macros.
+  important preprocessor macros. The classes described in this section can be found in the @a CONCEPT folder.
 	
 @section concept_primitives Basic data types
 
@@ -146,7 +146,7 @@
 	This section contains a short introduction to three datastructures you will
   definitely need when programming with OpenMS. The datastructures module of the
   class documentation contains many more classes, which are not mentioned here in
-  detail.
+  detail. The classes described in this section can be found in the @a DATASTRUCTURES folder.
 
 @section datastructures_string The OpenMS string implementation
 
@@ -171,9 +171,9 @@
   d-dimensional coordinates. The template class @a DPosition is used for that purpose.
 	The interface of DPosition is pretty straight forward. The operator[] is used to
   access the coordinate of the different dimensions. The dimensionality is stored
-  in the enum value @a DIMENSION. The following example shows how to print a DPosition
-  to the standard output stream.
-
+  in the enum value @a DIMENSION. The following example (Tutorial_DPosition.C) 
+  shows how to print a DPosition to the standard output stream.
+	
 	First we need to include the header file for @a DPosition and @a iostream. Then we
   import all the OpenMS symbols to the scope with the @a using directive.
   @dontinclude Tutorial_DPosition.C
@@ -197,7 +197,7 @@
   set by the @a setMin and @a setMax methods.
 
   DRange maintains the invariant that @a min is geometrically less or equal to @a max,
-  i.e. @f$ min()[x] <= max()[x]' @f$. The following example demonstrates this behavior.
+  i.e. @f$ min()[x] <= max()[x]' @f$. The following example (Tutorial_DRange.C) demonstrates this behavior.
 
   This time we skip everything before the main method. In the main method we 
   create a range and assign values to @a min and @a max. Note that the the minimum
@@ -233,6 +233,7 @@
  
  The OpenMS kernel contains the datastructures that store the actual MS data, i.e. 
  raw data points, peaks, features, spectra, maps.
+ The classes described in this section can be found in the @a KERNEL folder.
 
 @section kernel_datapoints Raw data point, Peak, Feature, ...
 	
@@ -294,7 +295,7 @@
   The peak container can be accessed through the @a getContainer() method. For convenience, part of the container interface is
  	also provided by @a DSpectrum.
 
-	In the following example program, a @a MSSpectrum is filled with peaks, sorted according to mass-to-charge
+	In the following example (Tutorial_MSSpectrum.C) program, a @a MSSpectrum is filled with peaks, sorted according to mass-to-charge
   ratio and a selection of peak positions is displayed.
 
 	First we create a spectrum and insert peaks with descending mass-to-charge ratios: 
@@ -338,7 +339,7 @@
   simplicity.
 
   @image html Kernel.png "Overview of the main kernel datastructures" 
-  @image latex Kernel.png "Overview of the main kernel datastructures" width=10cm
+  @image latex Kernel.png "Overview of the main kernel datastructures" width=6cm
 
   @par Typedefs
   For convenience the following map types are defined in @a OpenMS/KERNEL/StandardTypes.h.
@@ -347,7 +348,7 @@
   typedef MSExperiment<RawDataPoint1D> RawMap; 
   @endcode
 
-	The following example program, creates a @a MSExperiment containing four @a MSSpectrum instances.
+	The following example program (Tutorial_MSExperiment.C), creates a @a MSExperiment containing four @a MSSpectrum instances.
 	Then it iterates over an area and prints the peak positions in the area:
 
 	First we create the spectra in a for-loop and set the retention time and MS level. Survey scans have 
@@ -376,7 +377,7 @@
 	derived from @a ExperimentalSettings, to store the meta information. Just like @a MSExperiment
 	it is a template class. It takes the feature type as template argument.
 	
-	The following example shows how to insert two features into a map and iterate over the features.
+	The following example (Tutorial_FeatureMap.C) shows how to insert two features into a map and iterate over the features.
   @dontinclude Tutorial_FeatureMap.C
 	@skip main
 	@until end of main
@@ -386,7 +387,7 @@
 	This class facilitates the handling of MS data ranges. It allows to calculate and store both the position range 
 	and the intensity range of the container.
 	
-	The following example shows the functionality of the class @a RangeManger using a @a FeatureMap.
+	The following example (Tutorial_RangeManager.C) shows the functionality of the class @a RangeManger using a @a FeatureMap.
 	First a @a FeatureMap with two features is created, then the ranges are calulated and printed:
   @dontinclude Tutorial_RangeManager.C
 	@skip main
@@ -406,13 +407,73 @@
 /**
 
 @page tutorial_metadata How meta data is stored
- 
- 
+
+	The meta information about an HPLC-MS experiment are stored in @a ExperimentalSettings and
+	@a SpectrumSettings. All information that is not covered by these classes can be stored
+	in the type-name-value datastructure @a MetaInfo. All classes described in this section
+	can be found in the @a METADATA folder.
+	
 @section metadata_metainfo MetaInfo
 
+	MetaInfo is used to easily store information of any type, that does not fit into the the other
+	classes. It implements type-name-value triplets.
+
+  @a DataValue is a data structure that can store any numerical
+  or string information. It also supports casting of the stored
+  value back to its original type.
+
+  @a MetaInfo is a associative container that stores
+  @a DataValue instances as values associated to string keys.
+  Internally a the string keys are converted to integer keys for
+  performance resaons i.e. a @a map<UInt,DataValue> is used.
+  
+  The @a MetaInfoRegistry associates the string keys used in
+  @a MetaValue with the integer values that are used for
+  internal storage. Each key used has to be registered at the
+  registry first. The @a MetaInfoRegistry is a singleton.
+
+  If you want a class to have a @a MetaInfo member, simply derive it from @a MetaInfoInterface.
+  This class provides a @a MetaInfo member and the interface to access it.
+
+	@image html MetaInfo.png "The classes involved in meta information storage" 
+	@image latex MetaInfo.png "The classes involved in meta information storage" width=5cm
+	
+	The folowing example (Tutorial_MetaData.C) shows how to use @a Metadata.
+	First we must register the names we want to use, then we can set the values:
+  @dontinclude Tutorial_MetaInfo.C
+	@skip main
+	@until Unique identifier
+	In order to access the values we can either use the registered name or the index of the name.
+	The @a getMetaValue method returns a @a DataValue, which has to be casted to the right type.
+	If you do not know the type, you can use the @a DataValue::valueType() method.
+	@until end of main
+	
 @section metadata_experiment Meta data of a map
 
+	This class holds meta information about the experiment that is valid for the whole experiment:
+	- protein identifications of ID engines
+	- preprocessing performed on the data
+	- MS instrument
+	- source file
+	- contact person
+	- sample description
+	- instrument software
+	- HPLC settings
+
+	@image html ExperimentalSettings.png "Map meta information" 
+	@image latex ExperimentalSettings.png "Map meta information" width=10cm
+	
 @section metadata_spectrum Meta data of a spectrum
+
+	This class contains meta information about settings specific to one spectrum:
+	- spectrum-specific instrument settings
+	- peptide and protein identifications of ID engines
+	- precursor information (of MS/MS spectra)
+	- description of the @a MetaInfo present for each data point
+	- information on the acquisition
+
+	@image html SpectrumSettings.png "Spectrum meta information" 
+	@image latex SpectrumSettings.png "Spectrum meta information" width=7cm
 
 */
 
@@ -421,14 +482,61 @@
 /**
 
 @page tutorial_format File and DB access
- 
+	
+	All classes for file and database IO can be found in the @a FORMAT folder.
  
 @section format_file File adapter classes
 
-	PeakFileOptions
+	The interface of most file adapter classes is very similar. They implement
+	a @a load and a @a store method, that take a file name and the appropriate
+	data structure.
+
+  The following example (Tutorial_FileIO.C) demonstrates the use of @a MzDataFile
+  and @a MzXMLFile to convert one format into another using @a MSExperiment to hold the temporary data:
+  @dontinclude Tutorial_FileIO.C
+	@skip main
+	@until end of main
+
+	@par FileHandler
+	In order to make the handling of different file types easier, the class
+	@a FileHandler can be used. It loads a file into the appropriate
+	datastructure independent of the file type. The file type is determined
+	from the file extention or the file contents:
+	@code
+	MSExperiment<> in;
+	FileHandler handler();
+	handler.loadExperiment("input.mzData",in);
+	@endcode
 
 @section format_db DB access
+	
+	For database access, the class @a DBAdapter is used. As its interface is very similar
+	to the interface of the file adapters, no example is shown here.
 
+@section format_options PeakFileOptions
+	
+	In order to have more control over loading data from files or databases,
+	most adapters can be configured using @a PeakFileOptions. The following options 
+	are available:
+	- only a specific retention time range is loaded
+	- only a specific mass-to.charge ratio range is loaded
+	- only a specific intensity range is loaded
+	- only spectra with a given MS level are loaded
+	- only meta data of the whole experiment is loaded (@a ExperimentalSettings)
+
+@section format_param Param	
+	
+	Most algorithms of OpenMS and some of the TOPP tools have many parameters. The parameters
+	are stored in instances of @a Param. This class is a extension of Windows INI files.
+	The actual parameters (type, name and value) are stored in sections. Sections can contain parameters
+	and sub-sections, which leads to a tree-like structure. The values are stored in @a DataValue, but 
+	@a Param supports only the types @a string, @a int and @a float. @n
+	Parameter names are given as a string including the sections and subsections in which ':' is used as a delimiter. 
+	
+	The following example shows how a file description is given.
+  @dontinclude Tutorial_Param.C
+	@skip main
+	@until end of main
 */
 
 //####################################### TRANSFORMATION #######################################

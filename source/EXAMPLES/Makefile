@@ -32,7 +32,11 @@ CPP_SOURCES=\
 	Tutorial_MSSpectrum.C\
 	Tutorial_MSExperiment.C\
 	Tutorial_FeatureMap.C\
-	Tutorial_RangeManager.C
+	Tutorial_RangeManager.C\
+	Tutorial_MetaInfo.C\
+	Tutorial_FileIO.C\
+	Tutorial_Param.C
+	
 
 OBJECTS=$(SOURCES:.C=.o)
 
@@ -67,3 +71,11 @@ Tutorial_FeatureMap: Tutorial_FeatureMap.o
 Tutorial_RangeManager: Tutorial_RangeManager.o
 	$(CXX) $(LDFLAGS) -o $@ $< $(GUI_LIBS)
 
+Tutorial_MetaInfo: Tutorial_MetaInfo.o
+	$(CXX) $(LDFLAGS) -o $@ $< $(GUI_LIBS)
+
+Tutorial_FileIO: Tutorial_FileIO.o
+	$(CXX) $(LDFLAGS) -o $@ $< $(GUI_LIBS)
+
+Tutorial_Param: Tutorial_Param.o
+	$(CXX) $(LDFLAGS) -o $@ $< $(GUI_LIBS)
