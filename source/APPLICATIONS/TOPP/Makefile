@@ -28,6 +28,9 @@ include ../../config_defs.mak
 
 DIRECTORY=APPLICATIONS/TOPP
 
+# Where the headers of the derived classes reside
+HEADER_DIR=$(OPENMS_PATH)/include/OpenMS/$(DIRECTORY)
+
 ifeq ($(LIBSVM_SUPPORT),true)
 LIBSVM_EXEC=\
 	RTModel\
@@ -68,7 +71,8 @@ EXECUTABLES=\
 	UnlabeledMatcher\
 	MapAlignment\
 	MapNormalizer\
-	Decharger
+	Decharger\
+	INIFileEditor
 
 
 all: $(EXECUTABLES)
@@ -246,6 +250,12 @@ MapNormalizer: MapNormalizer.o
 	$(CXX) $(LDFLAGS) -o $@ $< $(LIBS)
 	$(CP) $@ $(OPENMS_PATH)/bin/
 
+INIFileEditor: INIFileEditor.o
+	$(CXX) $(LDFLAGS) -o $@ $< $(LIBS)
+	$(CP) $@ $(OPENMS_PATH)/bin/
+	
+
+	
 # For debugging the TOPP applications, please create the file 'Makefile_debug'
 # in source/APPLICATIONS/ and add the line 'ADD_CXXFLAGS=-DDEBUG_TOPP' to it
 -include ../Makefile_debug

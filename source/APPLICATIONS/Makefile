@@ -34,10 +34,12 @@ HEADER_DIR=$(OPENMS_PATH)/include/OpenMS/$(DIRECTORY)
 
 CPP_SOURCES=\
 	TOPPBase.C\
-	TOPPViewBase.C
+	TOPPViewBase.C\
+	INIFileEditorWindow.C
 
 MOC_SOURCES=\
-	TOPPViewBase_moc.C
+	TOPPViewBase_moc.C\
+	INIFileEditorWindow_moc.C
 
 SOURCES		= $(CPP_SOURCES) $(MOC_SOURCES)
 OBJECTS 	= $(SOURCES:.C=.o)
@@ -67,6 +69,10 @@ include ../config.mak
 
 TOPPViewBase_moc.C:  $(HEADER_DIR)/TOPPViewBase.h
 	$(MOC) $(HEADER_DIR)/TOPPViewBase.h -o TOPPViewBase_moc.C
+	
+INIFileEditorWindow_moc.C:  $(HEADER_DIR)/INIFileEditorWindow.h
+	$(MOC) $(HEADER_DIR)/INIFileEditorWindow.h -o INIFileEditorWindow_moc.C
+	
 
 # For debugging the TOPP applications, please create the file 'Makefile_debug'
 # and add the line 'ADD_CXXFLAGS=-DDEBUG_TOPP' to it
