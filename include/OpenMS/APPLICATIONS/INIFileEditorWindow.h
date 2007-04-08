@@ -37,27 +37,32 @@ class QAction;
 class QString;
 class QFileDialog;
 
-using namespace OpenMS;
-
- /**
-      	@brief shows the ParamEditor widget in a QMainWindow with a toolbar
-      	
-*/
-
-class INIFileEditorWindow: public QMainWindow
+namespace OpenMS
 {
-	Q_OBJECT
-	public:
-		 INIFileEditorWindow(QWidget *parent = 0);
-	public slots:
-		bool openFile_();
-		bool saveFile_();
-		bool saveFileAs_();
-	private:
-		QToolBar* toolbar_;
-		ParamEditor* editor_;
-		Param param_;
-		QString filename_;
-};
+	/**
+		@brief shows the ParamEditor widget in a QMainWindow with a toolbar
+      	
+	*/
+
+	class INIFileEditorWindow
+		: public QMainWindow
+	{
+		Q_OBJECT
+		
+		public:
+			 INIFileEditorWindow(QWidget *parent = 0);
+		
+		public slots:
+			bool openFile(const String& filename="");
+			bool saveFile();
+			bool saveFileAs();
+		
+		private:
+			QToolBar* toolbar_;
+			ParamEditor* editor_;
+			Param param_;
+			QString filename_;
+	};
+}
 
 #endif

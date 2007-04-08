@@ -38,14 +38,17 @@
 
   In addition to the class documentation the following information can be found here:
 	<UL>
-	  <LI> \subpage Tutorial
-	  <LI> \subpage coding_conventions
-	@if INTERNAL_INFO
-	  <LI> \subpage CPP
-	  <LI> \subpage FAQ
-	  <LI> \subpage todo
-	@endif
+	  <LI> @subpage Tutorial
+	  <LI> @subpage coding_conventions
 	</UL>
+	@if INTERNAL_INFO
+	Internal developers information can be found here:
+	<UL>
+	  <LI> @subpage CPP
+	  <LI> @subpage FAQ
+	  <LI> @subpage todo
+	</UL>
+	@endif
 	
 	<HR>
 	@section TOPP_section TOPP - The OpenMS proteomics pipeline.
@@ -53,7 +56,7 @@
 	TOPP is a pipeline for the analysis of HPLC/MS data. It consists of several small applications that
   can be chained to create analysis pipelines tailored for a specific problem.
 	
-	Documentation of the TOPP tools can be found \subpage TOPP "here".
+	Documentation of the TOPP tools can be found @subpage TOPP "here".
 	
 	<HR>
 	@section authors_section Developers

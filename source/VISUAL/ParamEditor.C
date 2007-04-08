@@ -206,7 +206,6 @@ namespace OpenMS
 	bool ParamEditor::store() const
 	{
 		bool ret=false;
-		String path;
 		if (isValid()) 
 		{
 			if(param_editable_!=NULL)
@@ -214,11 +213,10 @@ namespace OpenMS
 				ret=true;
 				QTreeWidgetItem* parent=this->invisibleRootItem();  
 				param_editable_->clear();
-				path+=parent->child(0)->text(0).toStdString();
-				
-				for (Int i = 0; i < parent->child(0)->childCount();++i)
+			
+				for (Int i = 0; i < parent->childCount();++i)
 				{
-					storeRecursive_(parent->child(0)->child(i),path);	//whole tree recursively
+					storeRecursive_(parent->child(i),"");	//whole tree recursively
 				}	
 			}
 		}
@@ -328,7 +326,16 @@ namespace OpenMS
 	}
 	void ParamEditor::storeRecursive_(const QTreeWidgetItem* child, String path) const
 	{
-		path+=":"+child->text(0).toStdString();
+		if (path=="")
+		{
+			path = child->text(0).toStdString();
+			
+		}
+		else
+		{
+			path = path + ":" + child->text(0).toStdString();	
+		}
+		
 		if(child->text(2)=="float")
 		{
 			param_editable_->setValue(path,child->text(1).toDouble());

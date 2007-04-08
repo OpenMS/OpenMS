@@ -205,6 +205,10 @@ namespace OpenMS
 		{
 			editor_->store();
 			arg_param_.insert(getTool()+":1:",vis_param_);
+			if(!File::writable(tmp_dir_+"/in.ini"))
+			{
+				QMessageBox::critical(this,"Error",(String("Could not write to '")+tmp_dir_+"/in.ini'!").c_str());
+			}
 			arg_param_.store(tmp_dir_+"/in.ini");
 			input_string_=input_combo_->currentText().toStdString();
 			output_string_=output_combo_->currentText().toStdString();

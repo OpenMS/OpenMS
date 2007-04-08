@@ -26,17 +26,32 @@
 
 
 #include <OpenMS/APPLICATIONS/INIFileEditorWindow.h>
+#include <OpenMS/SYSTEM/File.h>
 
 #include <QtGui/QApplication>
 
-
 using namespace OpenMS;
-
+using namespace std;
 
 int main(int argc, char** argv)
+{
+	if (argc>2)
 	{
-		QApplication app(argc,argv);
-		INIFileEditorWindow editor_window;
-		editor_window.show();
-		return app.exec();
+		cout << "Usage: " << argv[0] << " [file ]" << endl;
+		return 0;
 	}
+	
+	//Create window
+	QApplication app(argc,argv);
+	INIFileEditorWindow editor_window;
+	
+	//Open passed file
+	if (argc==2)
+	{
+		cout << "OPEN: "  << argv[1] << endl;
+		editor_window.openFile(argv[1]);
+	}
+	
+	editor_window.show();
+	return app.exec();
+}

@@ -664,9 +664,7 @@ namespace OpenMS
 		{
 			if (i < (UInt)(recent_files_.size()))
 			{
-				QString text = tr("&%1 %2").arg(i).arg(recent_files_[i]);
-				recent_actions_[i]->setText(text);
-				recent_actions_[i]->setData(recent_files_[i]);
+				recent_actions_[i]->setText(recent_files_[i]);
 				recent_actions_[i]->setVisible(true);
 			}
 			else
@@ -1770,22 +1768,17 @@ namespace OpenMS
 
   void TOPPViewBase::openRecentFile()
   {
-  	//cout << "TEST" << endl;
-
 		QAction* action = qobject_cast<QAction *>(sender());
     if (action)
 		{
-	  	String filename = action->data().toString().toStdString();
-	  	//cout << "filename: " << filename << endl;
 	  	setCursor(Qt::WaitCursor);
  	  	OpenDialog::Mower mow = OpenDialog::NO_MOWER;
 			if ( getPrefAsString("Preferences:MapIntensityCutoff")=="Noise Estimator")
 			{
 				mow = OpenDialog::NOISE_ESTIMATOR;
 			}
-   		addSpectrum(filename,true,getPrefAsString("Preferences:DefaultMapView")=="2D",true,mow);
+   		addSpectrum(action->text().toStdString(),true,getPrefAsString("Preferences:DefaultMapView")=="2D",true,mow);
 			setCursor(Qt::ArrowCursor); 	
-			//cout << "TEST_END" << endl;
 		}
  }
 
@@ -1836,7 +1829,7 @@ namespace OpenMS
 		layout->addWidget(button,1,2);
 		
 		//LOAD DATA	
-		QString name = QFileDialog::getOpenFileName(this,"Select a INI file",prefs_.getValue("Preferences:DefaultPath").toString().c_str());
+		QString name = QFileDialog::getOpenFileName(this,"Select a INI file",prefs_.getValue("Preferences:DefaultPath").toString().c_str(),tr("ini files (*.ini);; all files (*.*)"));
 		if (name=="") return;
 
 		Param p;

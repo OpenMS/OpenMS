@@ -24,83 +24,90 @@
 // $Maintainer: Stefan Rink $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/VISUAL/ParamEditor.h>
-#include <OpenMS/FORMAT/Param.h>
 #include <OpenMS/APPLICATIONS/INIFileEditorWindow.h>
-
-#include <QtGui/QApplication>
-#include <QtGui/QMainWindow>
+#include <OpenMS/VISUAL/ParamEditor.h>
 #include <QtGui/QToolBar>
 #include <QtCore/QString>
 #include <QtGui/QFileDialog>
-#include <QtGui/QIcon>
+#include <QtGui/QMenu>
+#include <QtGui/QMenuBar>
 
-#include "../VISUAL/ICONS/save.xpm"
-#include "../VISUAL/ICONS/saveas.xpm"
-#include "../VISUAL/ICONS/open.xpm"
-#include "../VISUAL/ICONS/TOPPView.xpm"
+namespace OpenMS
+{
 
-using namespace OpenMS;
-
-
-		 INIFileEditorWindow::INIFileEditorWindow(QWidget *parent) : QMainWindow(parent)
-		{
-			
-			
-			setWindowTitle("INIFileEditor");
-			setWindowIcon(QIcon(XPM_toppview));
-			editor_=new ParamEditor;
-			setCentralWidget(editor_);
-			
-			
-			
-			toolbar_=addToolBar(tr("&File"));
-			toolbar_->addAction(QIcon(open_xpm),tr("&Open ini file"),this,SLOT(openFile_()));
-			toolbar_->addAction(QIcon(save_xpm),tr("&Save ini file"),this,SLOT(saveFile_()));
-			toolbar_->addAction(QIcon(saveas_xpm),tr("&Save as"),this,SLOT(saveFileAs_()));
-		}
-
-		bool INIFileEditorWindow::openFile_()
-		{
-			filename_=QFileDialog::getOpenFileName(this,tr("Open ini file"),".",tr("ini files (*.ini)"));
-			if(!filename_.isEmpty())
-			{
-				param_.load(filename_.toStdString());
-				editor_->loadEditable(param_);
-				QString str=QString("%1 - INIFileEditor").arg(filename_);
-				setWindowTitle(str.remove(0,str.lastIndexOf('/')+1));
-				return true;
-			}
-			else return false;
-		}
-		bool INIFileEditorWindow::saveFile_()
-		{
-			if(!filename_.isEmpty())
-			{
-				editor_->store();
-				param_.store(filename_.toStdString());
-				QString str=QString("%1 - INIFileEditor").arg(filename_);
-				setWindowTitle(str.remove(0,str.lastIndexOf('/')+1));
-				
-				return true;
-			}
-			else
-			{
-				return saveFileAs_();
-			}
-		}
+	INIFileEditorWindow::INIFileEditorWindow(QWidget *parent) 
+		: QMainWindow(parent)
+	{
+		setWindowTitle("INIFileEditor");
+		editor_=new ParamEditor;
+		setCentralWidget(editor_);
+		
+    QMenu* file = new QMenu("&File",this);
+    menuBar()->addMenu(file);
+    file->addAction("&Open",this,SLOT(openFile()));
+    file->addSeparator();
+    file->addAction("&Save",this,SLOT(saveFile()));
+    file->addAction("Save &As",this,SLOT(saveFileAs()));
+    file->addSeparator();
+    file->addAction("&Quit",this,SLOT(close()));
+	}
 	
-		bool INIFileEditorWindow::saveFileAs_()
+	
+	bool INIFileEditorWindow::openFile(const String& filename)
+	{
+		if (filename=="")
 		{
-			filename_=QFileDialog::getSaveFileName(this,tr("Save ini file"),".",tr("ini files (*.ini)"));
-			if(!filename_.isEmpty())
-			{
-				if(!filename_.endsWith(".ini")) filename_.append(".ini");
-				editor_->store();
-				param_.store(filename_.toStdString());
-				QString str=QString("%1 - INIFileEditor").arg(filename_);
-				setWindowTitle(str.remove(0,str.lastIndexOf('/')+1));
-				return true;
-			}
-			return false;
+			filename_=QFileDialog::getOpenFileName(this,tr("Open ini file"),".",tr("ini files (*.ini);; all files (*.*)"));
 		}
+		else
+		{
+			filename_ = filename.c_str();
+		}
+		
+		if(!filename_.isEmpty())
+		{
+			param_.load(filename_.toStdString());
+			editor_->loadEditable(param_);
+			QString str=QString("%1 - INIFileEditor").arg(filename_);
+			setWindowTitle(str.remove(0,str.lastIndexOf('/')+1));
+			return true;
+		}
+		else return false;
+	}
+	
+	
+	bool INIFileEditorWindow::saveFile()
+	{
+		if(!filename_.isEmpty())
+		{
+			editor_->store();
+			param_.store(filename_.toStdString());
+			QString str=QString("%1 - INIFileEditor").arg(filename_);
+			setWindowTitle(str.remove(0,str.lastIndexOf('/')+1));
+			
+			return true;
+		}
+		else
+		{
+			return saveFileAs();
+		}
+	}
+	
+	
+	bool INIFileEditorWindow::saveFileAs()
+	{
+		filename_=QFileDialog::getSaveFileName(this,tr("Save ini file"),".",tr("ini files (*.ini)"));
+		if(!filename_.isEmpty())
+		{
+			if(!filename_.endsWith(".ini")) filename_.append(".ini");
+			editor_->store();
+			param_.store(filename_.toStdString());
+			QString str=QString("%1 - INIFileEditor").arg(filename_);
+			setWindowTitle(str.remove(0,str.lastIndexOf('/')+1));
+			return true;
+		}
+		return false;
+	}
+	
+}
+
