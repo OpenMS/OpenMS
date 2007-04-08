@@ -40,11 +40,11 @@
 	<UL>
 	  <LI> \subpage Tutorial
 	  <LI> \subpage coding_conventions
-	\if INTERNAL_INFO
+	@if INTERNAL_INFO
 	  <LI> \subpage CPP
 	  <LI> \subpage FAQ
 	  <LI> \subpage todo
-	\endif
+	@endif
 	</UL>
 	
 	<HR>
@@ -75,21 +75,16 @@
 /*************************** Marc's todos ******************************
 Ideen:
 - Seeder/Extender: Analyse der MassenSpur-Distanzen
-- Seeder: precursor peaks :o)
+- Seeder: precursor peaks, signal-to-noise
 
 Todos:
 - make install mit prefix testen (Hiwi)
-- AndiFile auf 64 Bit geefixt -> Installationsanleitung + Test-Builts updaten
 
-ConsensusID -- document algorithms 
-ConsensusID -- Add tests for inverse order 
-ConsensusID -- write test 
-ConsensusID -- document 
-ConsensusID -- merge with AnalysisXMLMerger -> Method 'Combine'
+FileInfo -- Merge with MapStatistics
+TOPPViewBase -- Make opening recent files as new layer possible 
 Spectrum2DCanvas -- Context menu: show scan, precursor scan, ID, EIC 
 Spectrum2DCanvas -- Projections: follow 2D view, info box with intensity 
-TOPPViewBase -- Make opening recent files as new layer possible 
-FileInfo -- Merge with MapStatistics 
+
 
 DataValue -- derive from QVariant 
 Identification -- Store ScoreType (with direction) and AccessionType as Enum in Identification (Marc, Andreas)

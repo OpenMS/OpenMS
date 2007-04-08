@@ -37,8 +37,19 @@ namespace OpenMS
   /**
     @brief Calculates a consensus ID from several ID runs
     
-		@todo document algorithms (Marc)
-		@todo Add tests for inverse order (Marc)
+    Available algorithms are:
+    - Merge -- merges the runs with respect to their score. The score is not modified.
+    - Ranked -- reorders the hits according to a consensus score computed from the ranks in the input runs.
+                The score is normalized to the interval (0,100).
+    - Average -- reorders the hits according to the average score of the input runs.
+		
+		The following parameters can be given:
+		- Algorithm -- see above.
+		- ConsideredHits -- the number of top hits to use as input.
+		- NumberOfRuns -- the number of runs used as input. This information is used in 'Ranked' and 'Average' to
+		                  compute the new scores.
+		- InverseOrder -- indicates that the lower scores are better scores.
+		- MinOutputScore -- the minimum score a hit has to have to be reported as output.
   */
   class ConsensusID
   	: public DefaultParamHandler

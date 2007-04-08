@@ -42,10 +42,9 @@ using namespace std;
 	@page ConsensusID ConsensusID
 	
 	@brief Combines results of Identification engines.
-
-	@todo write test (Marc)
-	@todo document (Marc)
-	@todo merge with AnalysisXMLMerger -> Method 'Combine' (Marc)
+	
+	For a detailed description of the algorithms and parameters see the the documentation of
+	the ConsensusID class.
 */
 
 // We do not want this class to show up in the docu:
@@ -71,6 +70,11 @@ class TOPPConsensusID
 	
 	protected:
 
+		Param getSubsectionDefaults_(const String& /*section*/) const
+		{
+			return ConsensusID().getDefaults();
+		}
+
 		void registerOptionsAndFlags_()
 		{
 			registerStringOption_("ids","<file>","","one or more analysisXML files separated by comma (without blanks)");
@@ -79,6 +83,10 @@ class TOPPConsensusID
 																									 "are mapped to features and the consensus is made for feaatures.",false);
 			registerStringOption_("features_out","<file>","","Features that have identifications are stored in this file."
 			                                                 "Only available when 'features' file is given!",false);
+			addEmptyLine_();
+			addText_("All other options of ConsensusID can be given only in the 'algorithm' seciton  of the INI file.\n"
+							 "For a detailed description, please have a look at the doxygen documentation.\n"
+							 "How the docu can be built is explained in OpenMS/doc/index.html.");
 			registerSubsection_("algorithm");
 		}
 	
@@ -124,13 +132,14 @@ class TOPPConsensusID
 			
 			//set up ConsensusID
 			ConsensusID consensus;
-			const Param& alg_param = getParam_().copy("algorithm:",true);
-			writeDebug_("Parameters passed to ConsensusID", alg_param, 3);
+			Param alg_param = getParam_().copy("algorithm:",true);
 			if (alg_param.empty())
 			{
 				writeLog_("No parameters for ConsensusID given. Aborting!");
 				return ILLEGAL_PARAMETERS;
 			}
+			alg_param.setValue("NumberOfRuns",(Int)(ids.size()));
+			writeDebug_("Parameters passed to ConsensusID", alg_param, 3);
 			consensus.setParameters(alg_param);
 
 			AnalysisXMLFile ax_file;
@@ -157,7 +166,7 @@ class TOPPConsensusID
 				//do consensus
 				for (UInt i = 0; i < features.size(); ++i)
 				{
-					cout << "ConsensusID -- Feature " << features[i].getRT() << " / " << features[i].getMZ() << " ("<< i+1 << ")" << endl;
+					//cout << "ConsensusID -- Feature " << features[i].getRT() << " / " << features[i].getMZ() << " ("<< i+1 << ")" << endl;
 					consensus.apply(features[i].getIdentifications());
 				}
 				
@@ -241,7 +250,7 @@ class TOPPConsensusID
 				//do consensus
 				for (vector<IDData>::iterator it = prec_data.begin(); it!=prec_data.end(); ++it)
 				{
-					cout << "ConsensusID -- Precursor " << it->rt << " / " << it->mz  << endl;
+					//cout << "ConsensusID -- Precursor " << it->rt << " / " << it->mz  << endl;
 					consensus.apply(it->ids);
 				}
 				

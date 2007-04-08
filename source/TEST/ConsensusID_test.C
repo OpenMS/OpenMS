@@ -247,6 +247,35 @@ CHECK(void apply(std::vector<Identification>& ids) throw (Exception::InvalidValu
 	TEST_EQUAL(hits[5].getSequence(),"D");
 	TEST_REAL_EQUAL(hits[5].getScore(),15.666f);
 
+	// ***** Average, Inverse Order ********
+
+	//define parameters
+	param.clear();
+	param.setValue("Algorithm","Average");
+	param.setValue("ConsideredHits",1);
+	param.setValue("InverseOrder",1);
+	consensus.setParameters(param);
+	//apply
+	f = ids;
+	consensus.apply(f);
+	
+	TEST_EQUAL(f.size(),1);
+	hits = f[0].getPeptideHits();
+	TEST_EQUAL(hits.size(),3);
+	
+	TEST_EQUAL(hits[0].getRank(),1);
+	TEST_EQUAL(hits[0].getSequence(),"K");
+	TEST_REAL_EQUAL(hits[0].getScore(),0.333f);
+	
+	TEST_EQUAL(hits[1].getRank(),2);
+	TEST_EQUAL(hits[1].getSequence(),"E");
+	TEST_REAL_EQUAL(hits[1].getScore(),1.0f);
+	
+	TEST_EQUAL(hits[2].getRank(),3);
+	TEST_EQUAL(hits[2].getSequence(),"B");
+	TEST_REAL_EQUAL(hits[2].getScore(),9.666f);
+	
+
 	// ***** Exception ********
 	param.setValue("Algorithm","Bla4711");
 	consensus.setParameters(param);

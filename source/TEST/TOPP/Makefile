@@ -30,6 +30,7 @@ DIRECTORY=TEST/TOPP
 
 # Tests for individual tools
 UNCONDITIONAL_TESTS = \
+	ConsensusID_test \
 	MapNormalizer_test \
 	AdditiveSeries_test \
 	AnalysisXMLMerger_test \
@@ -642,6 +643,19 @@ UnlabeledMatcher_test: $(NUMERICDIFF)
 	@$(call TEST_FILE_EQUAL,UnlabeledMatcher_1_pairs.xml)
 	@$(call TEST_FILE_EQUAL,UnlabeledMatcher_1_grid.xml)
 
+ConsensusID_test: $(NUMERICDIFF)
+	@$(ECHO) ""
+	@$(ECHO) "ConsensusID:"
+
+	@$(ECHO) "- Test 1: Map consensus"
+	@$(call RUN_PROG_OPT,ConsensusID,-ini ConsensusID_1_parameters.ini -out ConsensusID_1_output.tmp)
+	@$(SED) -i 's/^.*date_group_0.*$$/# date group removed/g' ConsensusID_1_output.tmp
+	@$(call TEST_FILE_EQUAL,ConsensusID_1_output.analysisXML)
+
+	@$(ECHO) "- Test 2: Feature consensus"
+	@$(call RUN_PROG_OPT,ConsensusID,-ini ConsensusID_2_parameters.ini -out ConsensusID_2_output.tmp -features ConsensusID_2_features.feat)
+	@$(SED) -i 's/^.*date_group_0.*$$/# date group removed/g' ConsensusID_2_output.tmp
+	@$(call TEST_FILE_EQUAL,ConsensusID_2_output.analysisXML)
 
 ###########################################################################################
 ## Tests for processing pipelines.

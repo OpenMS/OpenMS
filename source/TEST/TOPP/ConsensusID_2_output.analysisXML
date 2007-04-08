@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="yes"?>
+<mzIdent>
+	<description>
+		<admin>
+			<sampleName> unknown </sampleName>
+		</admin>
+		<settings>
+			<userParam name="number_of_identifications" value="2" />
+			<userParam name="number_of_protein_identifications" value="0" />
+			<userParam name="retention_time_type" value="float" />
+			<userParam name="mz_type" value="float" />
+			<userParam name="retention_time_unit" value="seconds" />
+			<userParam name="mz_unit" value="Thomson" />
+# date group removed
+		</settings>
+	</description>
+	<ident>
+		<peptide>
+			<seq>A</seq>
+			<userParam name="identification_index" value="0" />
+			<userParam name="peptide_significance_threshold" value="0"/>
+			<userParam name="precursor_charge" value="0" />
+			<userParam name="precursor_retention_time" value="1.5" />
+			<userParam name="precursor_mz" value="1.5" />
+			<userParam name="score" value="5" />
+			<userParam name="score_type" value="Consensus_averaged"/>
+			<userParam name="date_group_index" value="0"/>
+		</peptide>
+		<peptide>
+			<seq>B</seq>
+			<userParam name="identification_index" value="0" />
+			<userParam name="peptide_significance_threshold" value="0"/>
+			<userParam name="precursor_charge" value="0" />
+			<userParam name="precursor_retention_time" value="1.5" />
+			<userParam name="precursor_mz" value="1.5" />
+			<userParam name="score" value="2.5" />
+			<userParam name="score_type" value="Consensus_averaged"/>
+			<userParam name="date_group_index" value="0"/>
+		</peptide>
+		<peptide>
+			<seq>C</seq>
+			<userParam name="identification_index" value="1" />
+			<userParam name="peptide_significance_threshold" value="0"/>
+			<userParam name="precursor_charge" value="0" />
+			<userParam name="precursor_retention_time" value="3.5" />
+			<userParam name="precursor_mz" value="3.5" />
+			<userParam name="score" value="5" />
+			<userParam name="score_type" value="Consensus_averaged"/>
+			<userParam name="date_group_index" value="0"/>
+		</peptide>
+		<peptide>
+			<seq>D</seq>
+			<userParam name="identification_index" value="1" />
+			<userParam name="peptide_significance_threshold" value="0"/>
+			<userParam name="precursor_charge" value="0" />
+			<userParam name="precursor_retention_time" value="3.5" />
+			<userParam name="precursor_mz" value="3.5" />
+			<userParam name="score" value="2.5" />
+			<userParam name="score_type" value="Consensus_averaged"/>
+			<userParam name="date_group_index" value="0"/>
+		</peptide>
+	</ident>
+</mzIdent>
