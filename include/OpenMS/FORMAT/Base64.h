@@ -314,6 +314,9 @@ namespace OpenMS
 	template <typename ToType>
 	void Base64::decode(const std::string& in, ByteOrder from_byte_order, std::vector<ToType>& out)
 	{
+		out = std::vector<ToType>();
+		if (in == "") return;
+	
 		UInt src_size = in.size();
 		// last one or two '=' are skipped if contained
 		int padding = 0;
@@ -330,9 +333,6 @@ namespace OpenMS
 		int inc = 1;
 		UInt written = 0;
 
-		out = std::vector<ToType>();
-		if (in == "") return;
-	
 		UInt element_size = sizeof(ToType);
 
 		// enough for either float or double
