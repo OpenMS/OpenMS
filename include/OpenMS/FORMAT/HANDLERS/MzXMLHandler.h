@@ -956,7 +956,7 @@ namespace OpenMS
 	template <typename MapType>
 	void MzXMLHandler<MapType>::endElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname)
   {
-  	//std::cout << " -- Ende -- "<< xercesc::XMLString::transcode(qname) << " -- " << std::endl;
+  	//std::cout << " -- End -- " << xercesc::XMLString::transcode(qname) << " -- " << std::endl;
   	
   	bool skip = skip_tag_.top();
 		int tag = leaveTag(qname);
@@ -976,7 +976,8 @@ namespace OpenMS
 			}
 			if (precision_==DOUBLE)		//precision 64
 			{
-				double* data = decoder_.decodeDoubleCorrected(char_rest_.c_str(), char_rest_.size());
+				std::vector<DoubleReal> data;
+				decoder_.decode(char_rest_, Base64::BIGENDIAN, data);
 				char_rest_ = "";
 				PeakType peak;
 				//push_back the peaks into the container
@@ -994,7 +995,9 @@ namespace OpenMS
 			}
 			else	//precision 32
 			{
-				float* data = decoder_.decodeFloatCorrected(char_rest_.c_str(), char_rest_.size());
+//				float* data = decoder_.decodeFloatCorrected(char_rest_.c_str(), char_rest_.size());
+				std::vector<Real> data;
+				decoder_.decode(char_rest_, Base64::BIGENDIAN, data);
 				char_rest_ = "";
 				PeakType peak;
 				//push_back the peaks into the container
@@ -1010,7 +1013,7 @@ namespace OpenMS
 				}
 			}
 		}
-		//std::cout << " -- Ende -- " << std::endl;
+		//std::cout << " -- End -- " << std::endl;
   }
 
 	template <typename MapType>
@@ -1212,19 +1215,23 @@ namespace OpenMS
 				 << " byteOrder=\"network\" pairOrder=\"m/z-int\">";
 			
 			
-			//std::cout << "Writing scan" << std::endl;
-			float* tmp = decoder_.getFloatBuffer(spec.size()*2);
+			//std::cout << "Writing scan " << s << std::endl;
+			std::vector<Real> tmp;
 			for (UInt i=0; i<spec.size(); i++)
 			{
-				tmp[2*i]   = spec.getContainer()[i].getMZ();
-				tmp[2*i+1] = spec.getContainer()[i].getIntensity();
+				tmp.push_back(spec.getContainer()[i].getMZ());
+				tmp.push_back(spec.getContainer()[i].getIntensity());
 			}
 			
-			os << decoder_.encodeFloatCorrected() << "</peaks>\n";
+			std::string encoded;
+			decoder_.encode(tmp, Base64::BIGENDIAN, encoded);
+			os << encoded << "</peaks>\n";
 
 			writeUserParam_(os,spec,MSLevel+2);
 			if (spec.getComment() != "")
+			{
 				os << String(MSLevel+2,'\t') << "<comment>" << spec.getComment() << "</comment>\n";
+			}
 			
 			//check MS level of next scan and close scans (scans can be nested)
 			int next_MSLevel = min_ms_level;

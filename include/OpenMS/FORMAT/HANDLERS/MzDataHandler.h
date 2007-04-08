@@ -73,7 +73,7 @@ namespace OpenMS
 					prec_(0),	acq_(0),
 					meta_id_(),
 					exp_sett_(),
-					decoder_(2),
+					decoder_(),
 					spec_write_counter_(1)
 	  	{
 				fillMaps_(Schemes::MzData[schema_]);	// fill maps with current schema
@@ -89,7 +89,7 @@ namespace OpenMS
 					prec_(0),	acq_(0),
 					meta_id_(),
 					exp_sett_(),
-					decoder_(2),
+					decoder_(),
 					spec_write_counter_(1)
   		{
 				fillMaps_(Schemes::MzData[schema_]);	// fill maps with current schema
@@ -181,7 +181,12 @@ namespace OpenMS
 			Precursor* prec_;
 			Acquisition* acq_;
 			String meta_id_;
-			std::vector<String> data_;
+			/// encoded data which is read and has to be decoded
+			std::vector<String> data_to_decode_;
+			/// floating point numbers which have to be encoded and written
+			std::vector<Real> data_to_encode_;
+			std::vector<std::vector<Real> > decoded_list_;
+			std::vector<std::vector<DoubleReal> > decoded_double_list_;
 			std::vector<String> array_name_;
 			std::vector<Precision> precisions_;
 			std::vector<Endian> endians_;
@@ -191,7 +196,7 @@ namespace OpenMS
 			std::stringstream exp_sett_;
 
 			/// Decoder/Encoder for Base64-data in MzData
-			std::vector<Base64> decoder_;
+			Base64 decoder_;
 
 			/// spectrum counter (spectra without peaks are not written)
 			UInt spec_write_counter_;
@@ -215,7 +220,7 @@ namespace OpenMS
 			*/
 			void userParam_(const String& name, const String& value);
 
-			/// write binary data to stream using the first decoder_ (previously filled)
+			/// write binary data to stream (first one)
 			inline void writeBinary_(std::ostream& os, UInt size, const String& tag, const String& desc="", int id=-1)
 			{
 				os 	<< "\t\t\t<" << tag;
@@ -228,21 +233,27 @@ namespace OpenMS
 				{
 					os << "\t\t\t\t<arrayName>" << desc << "</arrayName>\n";
 				}
+
+				std::string str;				
+				decoder_.encode(data_to_encode_, Base64::LITTLEENDIAN, str);
+				data_to_encode_.clear();
 				os << "\t\t\t\t<data precision=\"32\" endian=\"little\" length=\""
 					 << size << "\">"
-					 << decoder_[0].encodeFloat()
+					 << str
 					 << "</data>\n\t\t\t</" << tag << ">\n";
 			}
 
-			inline double getDatum_(const std::vector<void*>& ptrs,  UInt member, UInt index)
+			inline double getDatum_(UInt member, UInt index)
 			{
 				if (precisions_[member]==DOUBLE)
 				{
-					return static_cast<double*>(ptrs[member])[index];
+//					std::cout << "fetching double-precision index " << index << " of member" << member << std::endl;
+					return decoded_double_list_[member][index];
 				}
 				else
 				{
-					return static_cast<float*>(ptrs[member])[index];
+//					std::cout << "fetching single-precision index " << index << " of member" << member << std::endl;
+					return (double) decoded_list_[member][index];
 				}
 			}
 
@@ -260,7 +271,8 @@ namespace OpenMS
 				 picked peaks.  Default is to do nothing.
 			*/
 			template <typename PeakType>
-			void readPeakSupplementalData_( std::vector<void*>& /*data*/, PeakType& /*peak*/, UInt /*n*/)
+//			void readPeakSupplementalData_( std::vector<void*>& /*data*/, PeakType& /*peak*/, UInt /*n*/)
+			void readPeakSupplementalData_( PeakType& /*peak*/, UInt /*n*/)
 			{
 			}
 
@@ -297,7 +309,7 @@ namespace OpenMS
 						case DATA:
 							if (options_.getMetadataOnly()) break;
 							
-							data_.push_back(xercesc::XMLString::transcode(chars));		// store characters for later
+							data_to_decode_.push_back(xercesc::XMLString::transcode(chars));		// store characters for later
 							if (is_parser_in_tag_[MZARRAYBINARY]) array_name_.push_back("mz");
 							if (is_parser_in_tag_[INTENARRAYBINARY]) array_name_.push_back("intens");
 							break;
@@ -553,7 +565,7 @@ namespace OpenMS
 					exp_->push_back(spec_);
 				}
 				
-				data_.clear();
+				data_to_decode_.clear();
 				array_name_.clear();
 				precisions_.clear();
 				endians_.clear();
@@ -689,34 +701,48 @@ namespace OpenMS
 		template <typename MapType>
 		void MzDataHandler<MapType>::fillData_()
 		{
-			//std::cout << "reading scan" << std::endl;
-			if (data_.size() > decoder_.size()) // not enough decoder
-				decoder_.resize(data_.size());
-
-			std::vector<void*> ptrs(data_.size(),0);		//pointers to data of each decoder
-			for (UInt i=0; i<data_.size(); i++)
+			std::vector<Real> decoded;
+			std::vector<DoubleReal> decoded_double;
+			decoded_list_.clear();
+			decoded_double_list_.clear();
+			
+			// data_to_decode is an encoded spectrum, represented as
+			// vector of base64-encoded strings:
+			// Each string represents one property (e.g. mzData) and decodes
+			// to a vector of property values - one value for every peak in the spectrum.
+			for (UInt i=0; i<data_to_decode_.size(); i++)
 			{
 				if (precisions_[i]==DOUBLE)	// precision 64 Bit
 				{
 					if (endians_[i]==BIG)
 					{
-						ptrs[i] = static_cast<void*>( decoder_[i].decodeDoubleCorrected(data_[i].c_str(), data_[i].length()));
+//						std::cout << "nr. " << i << ": decoding as high-precision big endian" << std::endl;
+						decoder_.decode(data_to_decode_[i], Base64::BIGENDIAN, decoded_double);
 					}
 					else
 					{
-						ptrs[i] = static_cast<void*>( decoder_[i].decodeDouble(data_[i].c_str(), data_[i].length()));
+//						std::cout << "nr. " << i << ": decoding as high-precision little endian" << std::endl;
+						decoder_.decode(data_to_decode_[i], Base64::LITTLEENDIAN, decoded_double);
 					}
+					// push_back the decoded double data - and an empty one into
+					// the dingle-precision vector, so that we don't mess up the index
+					decoded_double_list_.push_back(decoded_double);
+					decoded_list_.push_back(std::vector<float>());
 				}
 				else
 				{											// precision 32 Bit
 					if (endians_[i]==BIG)
 					{
-						ptrs[i] = static_cast<void*>(decoder_[i].decodeFloatCorrected(data_[i].c_str(), data_[i].length()));
+//						std::cout << "nr. " << i << ": decoding as low-precision big endian" << std::endl;
+						decoder_.decode(data_to_decode_[i], Base64::BIGENDIAN, decoded);
 					}
 					else
 					{
-						ptrs[i] = static_cast<void*>(decoder_[i].decodeFloat(data_[i].c_str(), data_[i].length()));
+//						std::cout << "nr. " << i << ": decoding as low-precision little endian" << std::endl;
+						decoder_.decode(data_to_decode_[i], Base64::LITTLEENDIAN, decoded);
 					}
+					decoded_list_.push_back(decoded);
+					decoded_double_list_.push_back(std::vector<double>());
 				}
 			}
 
@@ -728,8 +754,8 @@ namespace OpenMS
 				//push_back the peaks into the container
 				for (UInt n = 0 ; n < peak_count_ ; n++)
 				{
-					double mz = getDatum_(ptrs,MZ,n);
-					double intensity = getDatum_(ptrs,INTENS,n);
+					double mz = getDatum_(MZ, n);
+					double intensity = getDatum_(INTENS, n);
 					if ((!options_.hasMZRange() || options_.getMZRange().encloses(DPosition<1>(mz)))
 					 && (!options_.hasIntensityRange() || options_.getIntensityRange().encloses(DPosition<1>(intensity))))
 					{
@@ -737,7 +763,7 @@ namespace OpenMS
 						spec_.back().setIntensity(intensity);
 						spec_.back().setPosition(mz);
 						//read supplemental data for derived classes (do nothing for DPeak)
-						readPeakSupplementalData_(ptrs,spec_.back(),n);
+						readPeakSupplementalData_(spec_.back(), n);
 					}
 				}
 			}
@@ -888,14 +914,22 @@ namespace OpenMS
 				}
 
 				// m/z
-				float* tmp = decoder_[0].getFloatBuffer(spec.size());
+//				float* tmp = decoder_[0].getFloatBuffer(spec.size());
+				data_to_encode_.clear();
 				for (UInt i=0; i<spec.size(); i++)
-					tmp[i] = spec.getContainer()[i].getPosition()[0];
+				{
+					data_to_encode_.push_back(spec.getContainer()[i].getPosition()[0]);
+				}
+				
 				writeBinary_(os,spec.size(),"mzArrayBinary");
 
 				// intensity
+				data_to_encode_.clear();
 				for (UInt i=0; i<spec.size(); i++)
-					tmp[i] = spec.getContainer()[i].getIntensity();
+				{
+					data_to_encode_.push_back(spec.getContainer()[i].getIntensity());
+				}
+				
 				writeBinary_(os,spec.size(),"intenArrayBinary");
 
 				// write the supplementary data for picked peaks (is a no-op otherwise)
@@ -926,7 +960,8 @@ namespace OpenMS
 		*/
 		template <>
 		template <>
-		void MzDataHandler <MSExperiment<PickedPeak1D > >::readPeakSupplementalData_ < PickedPeak1D >( std::vector<void*>& data, PickedPeak1D& peak, UInt n);
+//		void MzDataHandler <MSExperiment<PickedPeak1D > >::readPeakSupplementalData_ < PickedPeak1D >( std::vector<void*>& data, PickedPeak1D& peak, UInt n);
+		void MzDataHandler <MSExperiment<PickedPeak1D > >::readPeakSupplementalData_ < PickedPeak1D >( PickedPeak1D& peak, UInt n);
 
 
 	} // namespace Internal
