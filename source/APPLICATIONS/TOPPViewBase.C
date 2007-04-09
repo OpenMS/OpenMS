@@ -148,6 +148,9 @@ namespace OpenMS
     file->addSeparator();
     
     QMenu* recent_menu = new QMenu("Recent files", this);
+    recent_as_new_layer_ = recent_menu->addAction("open as new layer");
+    recent_as_new_layer_->setCheckable(true);
+    recent_menu->addSeparator();
     //create the max mumber of recent files actions
   	recent_actions_.resize(20);
 		for (UInt i = 0; i<20; ++i)
@@ -1777,7 +1780,7 @@ namespace OpenMS
 			{
 				mow = OpenDialog::NOISE_ESTIMATOR;
 			}
-   		addSpectrum(action->text().toStdString(),true,getPrefAsString("Preferences:DefaultMapView")=="2D",true,mow);
+   		addSpectrum(action->text().toStdString(),!recent_as_new_layer_->isChecked(),getPrefAsString("Preferences:DefaultMapView")=="2D",true,mow);
 			setCursor(Qt::ArrowCursor); 	
 		}
  }

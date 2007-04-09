@@ -62,9 +62,7 @@ namespace OpenMS
   	@brief MDI window of TOPPView tool
   	
   	@todo Add preferences for layers (Marc)
-	@todo Make opening recent files as new layer possible (Marc)
-	@todo Tools - annotate with ID (Marc)
-	@todo Make intensity distribution a dock widget (Marc)
+		@todo Tools - annotate with ID (Marc)
   */
   class TOPPViewBase 
   	: public QMainWindow, 
@@ -318,6 +316,8 @@ namespace OpenMS
       void updateRecentMenu_();
       /// list of the recently opened files
       QStringList recent_files_;
+      /// If this QAction is checked, the recent files are opened as a new layer
+      QAction* recent_as_new_layer_;
 
 			/// list of the recently opened files actions (menu entries)
 			std::vector<QAction*> recent_actions_;

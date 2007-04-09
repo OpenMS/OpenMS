@@ -60,7 +60,7 @@
 	
 	<HR>
 	@section authors_section Developers
-	The %OpenMS project was initialized by Prof. Oliver Kohlbacher and Prof. Knut Reinert.
+	The %OpenMS project was initiated by Prof. Oliver Kohlbacher and Prof. Knut Reinert.
 
 	The current main developers of %OpenMS are listed here:
 	<UL>
@@ -84,7 +84,6 @@ Todos:
 - make install mit prefix testen (Hiwi)
 
 FileInfo -- Merge with MapStatistics
-TOPPViewBase -- Make opening recent files as new layer possible 
 Spectrum2DCanvas -- Context menu: show scan, precursor scan, ID, EIC 
 Spectrum2DCanvas -- Projections: follow 2D view, info box with intensity 
 
@@ -96,7 +95,6 @@ Spectrum2DCanvas -- Remove coordinate-data transformations
 String -- derive from QString 
 TOPPViewBase -- Add preferences for layers 
 TOPPViewBase -- Tools - annotate with ID 
-TOPPViewBase -- Make intensity distribution a dock widget 
 XMLHandler -- Add external CVs, integrate OLS
   
 ***********************************************************************/
