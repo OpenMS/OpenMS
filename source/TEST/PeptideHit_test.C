@@ -73,6 +73,7 @@ CHECK((PeptideHit(double score, std::string score_type, uint rank, Int charge, S
 	TEST_EQUAL(ptr1->getRank(), rank)
 	TEST_EQUAL(ptr1->getCharge(), charge)
 	TEST_EQUAL(ptr1->getSequence(), sequence)
+	TEST_EQUAL(ptr1->getPredictedRTPValue(), -1)
 RESULT
 
 CHECK((PeptideHit& operator=(const PeptideHit& source)))
@@ -82,7 +83,8 @@ CHECK((PeptideHit& operator=(const PeptideHit& source)))
 	TEST_EQUAL(hit.getScore(), ptr1->getScore())
 	TEST_EQUAL(hit.getScoreType(), ptr1->getScoreType())
 	TEST_EQUAL(hit.getRank(), ptr1->getRank())
-	TEST_EQUAL(hit.getSequence(), ptr1->getSequence())		
+	TEST_EQUAL(hit.getSequence(), ptr1->getSequence())
+	TEST_EQUAL(hit.getPredictedRTPValue(), ptr1->getPredictedRTPValue())		
 RESULT
 
 CHECK((PeptideHit(const PeptideHit& source)))
@@ -97,6 +99,8 @@ CHECK((PeptideHit(const PeptideHit& source)))
 	TEST_EQUAL(ptr1->getScoreType(), source.getScoreType())
 	TEST_EQUAL(ptr1->getRank(), source.getRank())
 	TEST_EQUAL(ptr1->getSequence(), source.getSequence())		  
+	TEST_EQUAL(ptr1->getPredictedRTPValue(), source.getPredictedRTPValue())		
+			
 RESULT
 
 CHECK((bool operator == (const PeptideHit& rhs) const))
@@ -118,6 +122,10 @@ CHECK((bool operator == (const PeptideHit& rhs) const))
   TEST_EQUAL(hit==hit2,false);
 	hit2.setSequence(sequence);
 	TEST_EQUAL(hit==hit2,true);
+	hit.setPredictedRTPValue(0.6);
+  TEST_EQUAL(hit==hit2,false);
+	hit2.setPredictedRTPValue(0.6);
+	TEST_EQUAL(hit==hit2,true);
 RESULT
 
 CHECK((bool operator != (const PeptideHit& rhs) const))
@@ -138,6 +146,10 @@ CHECK((bool operator != (const PeptideHit& rhs) const))
 	hit.setSequence(sequence);
   TEST_EQUAL(hit!=hit2,true);
 	hit2.setSequence(sequence);
+	TEST_EQUAL(hit!=hit2,false);
+	hit.setPredictedRTPValue(0.6);
+  TEST_EQUAL(hit!=hit2,true);
+	hit2.setPredictedRTPValue(0.6);
 	TEST_EQUAL(hit!=hit2,false);
 RESULT
 
@@ -163,11 +175,13 @@ RESULT
 
 CHECK((void clear()))
 	ptr1 = new PeptideHit(score, score_type, rank, charge, sequence);
+  ptr1->setPredictedRTPValue(0.3);
 	ptr1->clear();
 	TEST_EQUAL(ptr1->getScore(), 0)
 	TEST_EQUAL(ptr1->getScoreType(), "")
 	TEST_EQUAL(ptr1->getRank(), 0)
 	TEST_EQUAL(ptr1->getSequence(), "")
+	TEST_EQUAL(ptr1->getPredictedRTPValue(), -1)
 RESULT
 
 CHECK((void setRank(UInt newrank)))
@@ -299,6 +313,20 @@ CHECK(void setCharge(Int charge))
 	hit.setCharge(-43);
 	TEST_EQUAL(-43, hit.getCharge())
 RESULT
+
+CHECK(void setPredictedRTPValue(DoubleReal value))
+	ptr1 = new PeptideHit(score, score_type, rank, charge, sequence);
+  ptr1->setPredictedRTPValue(0.3);
+  TEST_EQUAL(ptr1->getPredictedRTPValue(), 0.3)
+RESULT
+
+CHECK(DoubleReal getPredictedRTPValue() const)
+	ptr1 = new PeptideHit(score, score_type, rank, charge, sequence);
+  ptr1->setPredictedRTPValue(0.3);
+  TEST_EQUAL(ptr1->getPredictedRTPValue(), 0.3)
+RESULT
+
+
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

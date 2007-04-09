@@ -98,8 +98,7 @@ namespace OpenMS
   void AnalysisXMLFile::load(const String& filename, 
   					 								 vector<ProteinIdentification>& protein_identifications,
   													 std::vector<IdentificationData>& id_data,
-      											 std::map<String, DoubleReal>& predicted_retention_times,
-      											 DoubleReal& predicted_sigma)
+      											 std::map<String, DoubleReal>& predicted_retention_times)
   	const throw (Exception::FileNotFound, Exception::ParseError)
   {
   	//try to open file
@@ -126,12 +125,10 @@ namespace OpenMS
 		protein_identifications.clear();
 		id_data.clear();
 		predicted_retention_times.clear();
-		predicted_sigma = 0;
 
 		Internal::AnalysisXMLHandler handler(protein_identifications,
 																				 id_data,
 																				 predicted_retention_times,
-																				 predicted_sigma,
 																				 filename);
 
 		parser->setContentHandler(&handler);
@@ -175,8 +172,7 @@ namespace OpenMS
   void AnalysisXMLFile::store(String filename, 
   					 									const vector<ProteinIdentification>& protein_identifications,
   					 									const std::vector<IdentificationData>& id_data,
-  					 									const map<String, DoubleReal>& predicted_retention_times,
-  					 									DoubleReal predicted_sigma) 
+  					 									const map<String, DoubleReal>& predicted_retention_times) 
   	const throw (Exception::UnableToCreateFile)
   {
 		std::ofstream os(filename.c_str());
@@ -189,7 +185,6 @@ namespace OpenMS
 		Internal::AnalysisXMLHandler handler(protein_identifications,
 																				 id_data,
 																				 predicted_retention_times,
-																				 predicted_sigma,
 																				 filename);
 		handler.writeTo(os);
 		os.close();

@@ -59,9 +59,7 @@ namespace OpenMS
 		charge_identification_index_(0),        
     inside_protein_(false),
     inside_global_protein_(false),
-    predicted_retention_times_(),
-    predicted_sigma_(0),
-    const_predicted_sigma_(0),
+    predicted_retention_times_(new map<String, DoubleReal>()),
     date_times_temp_(),
     date_times_counter_(0),
     actual_date_time_("0000-00-00 00:00:00")
@@ -71,7 +69,6 @@ namespace OpenMS
   AnalysisXMLHandler::AnalysisXMLHandler(vector<ProteinIdentification>& protein_identifications, 
       									 std::vector<IdentificationData>& id_data,
       									 map<String, DoubleReal>& predicted_retention_times,
-      									 DoubleReal& predicted_sigma,
    									 		 const String& filename) :
     XMLHandler(filename),
     protein_identifications_(&protein_identifications),
@@ -91,8 +88,6 @@ namespace OpenMS
     inside_protein_(false),
     inside_global_protein_(false),
     predicted_retention_times_(&predicted_retention_times),
-    predicted_sigma_(&predicted_sigma),
-    const_predicted_sigma_(0),
     date_times_temp_(),
     date_times_counter_(0),
     actual_date_time_("0000-00-00 00:00:00")
@@ -120,8 +115,6 @@ namespace OpenMS
     inside_protein_(false),
     inside_global_protein_(false),
     predicted_retention_times_(),
-    predicted_sigma_(0),
-    const_predicted_sigma_(0),
     date_times_temp_(),
     date_times_counter_(0),
     actual_date_time_("0000-00-00 00:00:00")    
@@ -129,10 +122,9 @@ namespace OpenMS
   }
       									 	      									 	  
   AnalysisXMLHandler::AnalysisXMLHandler(const vector<ProteinIdentification>& protein_identifications, 
-      									 const std::vector<IdentificationData>& id_data,
-      									 const map<String, DoubleReal>& const_predicted_retention_times,
-      									 DoubleReal predicted_sigma,
-   									 const String& filename) :
+																				 const std::vector<IdentificationData>& id_data,
+																				 const map<String, DoubleReal>& const_predicted_retention_times,
+																				 const String& filename) :
     XMLHandler(filename),
     protein_identifications_(0),
     id_data_(0),
@@ -151,8 +143,6 @@ namespace OpenMS
     inside_protein_(false),
     inside_global_protein_(false),
     predicted_retention_times_(),
-    predicted_sigma_(),
-    const_predicted_sigma_(predicted_sigma),
     date_times_temp_(),
     date_times_counter_(0),
     actual_date_time_("0000-00-00 00:00:00")
@@ -218,11 +208,6 @@ namespace OpenMS
   	 << "seconds\" />\n"  	 
 		 << "\t\t\t<userParam name=\"mz_unit\" value=\""
   	 << "Thomson\" />\n";
-  	if (const_predicted_sigma_ != 0)
-  	{	 
-			os << "\t\t\t<userParam name=\"predicted_sigma\" value=\""
-  	 		<< const_predicted_sigma_ << "\" />\n";  	 
-  	}
   	for(vector<IdentificationData>::const_iterator it = const_id_data_.begin();
   		  it != const_id_data_.end();
   		  it++)
@@ -321,7 +306,8 @@ namespace OpenMS
   														const_id_data_[i].rt,
   														const_id_data_[i].mz,
   														const_id_data_[i].id.getDateTime(),
-															date_times);
+															date_times,
+															peptide_hits_it->getPredictedRTPValue());
 
 						} // peptide_hits_it
 						delete referencing_peptide_hits;
@@ -399,7 +385,8 @@ namespace OpenMS
   														const_id_data_[i].rt,
   														const_id_data_[i].mz,
   														const_id_data_[i].id.getDateTime(),
-															date_times);
+															date_times,
+															peptide_hits_it->getPredictedRTPValue());
 
 						} // peptide_hits_it
 						delete referencing_peptide_hits;
@@ -471,7 +458,8 @@ namespace OpenMS
 												const_id_data_[i].rt,
 												const_id_data_[i].mz,
 												const_id_data_[i].id.getDateTime(),
-												date_times);
+												date_times,
+												peptide_hits_it->getPredictedRTPValue());
 			}
 			delete non_referencing_peptide_hits;
 		}
@@ -508,17 +496,10 @@ namespace OpenMS
 				(*id_data_)[peptide_identification_index_].rt = 
 					((String) XMLString::transcode(attributes.getValue(1u))).toFloat();
 			}
-			else if (attribute_value == "predicted_sigma")
-			{
-				if (predicted_sigma_ != 0)
-				{
-					*predicted_sigma_ = ((String) XMLString::transcode(attributes.getValue(1u))).toFloat();
-				}
-			}
 			else if (attribute_value == "predicted_precursor_retention_time")
 			{
-				if (predicted_sigma_ != 0)
-				{
+				if (actual_peptide_hit_.getPredictedRTPValue() != -1)
+				{						
 					predicted_retention_times_->insert(make_pair(actual_peptide_hit_.getSequence(), 
 						((String) XMLString::transcode(attributes.getValue(1u))).toFloat()));
 				}
@@ -538,6 +519,10 @@ namespace OpenMS
 			else if (attribute_value == "precursor_mz")
 			{
 				(*id_data_)[peptide_identification_index_].mz = ((String) XMLString::transcode(attributes.getValue(1u))).toFloat();
+			}
+			else if (attribute_value == "predicted_rt_p_value")
+			{			
+				actual_peptide_hit_.setPredictedRTPValue(((String) XMLString::transcode(attributes.getValue(1u))).toFloat());			
 			}
 			else if (attribute_value == "score")
 			{
@@ -754,7 +739,8 @@ namespace OpenMS
 			  																	Real precursor_retention_time,
 			  																	Real precursor_mz,
 			  																	DateTime date_time,
-			  																	map< String , UInt> date_times)
+			  																	map< String , UInt> date_times,
+																					DoubleReal predicted_rt_p_value)
   {
   	String 																temp_peptide_sequence 		= "";
 		Real 																	predicted_retention_time 	= -1;
@@ -768,7 +754,7 @@ namespace OpenMS
 				const_predicted_retention_times_.find(hit.getSequence());
 			if (predictions_iterator != const_predicted_retention_times_.end())
 			{
-				predicted_retention_time = predictions_iterator->second;
+				predicted_retention_time = predictions_iterator->second;				
 			}
 			else
 			{
@@ -794,9 +780,13 @@ namespace OpenMS
 		<< charge << "\" />\n"
 		<< shift << "\t<userParam name=\"precursor_retention_time\" value=\""
 		<< precursor_retention_time << "\" />\n";						
-		if (predicted_retention_time >= 0)
+		if (predicted_rt_p_value != -1)
 		{
-			os << shift << "\t<userParam name=\"predicted_precursor_retention_time\" "
+			os << shift << "\t<userParam name=\"predicted_rt_p_value\" "
+				 << "value=\"" 
+				 << predicted_rt_p_value
+				 << "\" />\n"
+				 << shift << "\t<userParam name=\"predicted_precursor_retention_time\" "
 				 << "value=\"" 
 				 << predicted_retention_time
 				 << "\" />\n";

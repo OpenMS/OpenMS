@@ -38,7 +38,8 @@ namespace OpenMS
 				score_type_(""), 
 				rank_(0), 
 				charge_(0), 
-				sequence_("")
+				sequence_(""),
+				predicted_rt_p_value_(-1)
   {
   }
   
@@ -52,7 +53,8 @@ namespace OpenMS
     		score_type_(score_type), 
     		rank_(rank),
 				charge_(charge),
-    		sequence_(sequence)
+    		sequence_(sequence),
+				predicted_rt_p_value_(-1)
   {
   	sequence_.trim();
   }
@@ -65,7 +67,8 @@ namespace OpenMS
 				rank_(source.rank_),
 				charge_(source.charge_),
 				sequence_(source.sequence_),
-				corresponding_protein_indices_(source.corresponding_protein_indices_)
+				corresponding_protein_indices_(source.corresponding_protein_indices_),
+				predicted_rt_p_value_(source.predicted_rt_p_value_)
   {
   }
   
@@ -84,6 +87,7 @@ namespace OpenMS
     rank_ = 0;
 		charge_ = 0;
     corresponding_protein_indices_.clear();
+		predicted_rt_p_value_ = -1;
   }
    
   PeptideHit& PeptideHit::operator= (const PeptideHit& source)
@@ -99,6 +103,8 @@ namespace OpenMS
 		rank_  = source.rank_;
     sequence_ = source.sequence_;
     corresponding_protein_indices_ = source.corresponding_protein_indices_;
+		predicted_rt_p_value_ = source.predicted_rt_p_value_;
+
     return *this;
   }
 	
@@ -109,7 +115,8 @@ namespace OpenMS
 			&& rank_ == rhs.rank_ 
 			&& charge_ == rhs.charge_
 			&& sequence_ == rhs.sequence_
-			&& corresponding_protein_indices_ == rhs.corresponding_protein_indices_;
+			&& corresponding_protein_indices_ == rhs.corresponding_protein_indices_
+		  && predicted_rt_p_value_ == rhs.predicted_rt_p_value_;
 	}
 
 	bool PeptideHit::operator != (const PeptideHit& rhs) const	
@@ -219,4 +226,15 @@ namespace OpenMS
   	corresponding_protein_indices_ = indices;
   }
   
+	void PeptideHit::setPredictedRTPValue(DoubleReal value)
+	{
+		predicted_rt_p_value_ = value;
+	}
+
+  DoubleReal PeptideHit::getPredictedRTPValue() const
+	{
+		return predicted_rt_p_value_;
+	}
+
+
 } // namespace OpenMS

@@ -51,11 +51,11 @@ namespace OpenMS
       /// Constructor for loading
       AnalysisXMLHandler(std::vector<ProteinIdentification>& protein_identifications, std::vector<IdentificationData>& id_data, const String& filename);
       /// Constructor for loading
-      AnalysisXMLHandler(std::vector<ProteinIdentification>& protein_identifications, std::vector<IdentificationData>& id_data, std::map<String, DoubleReal>& predicted_retention_times, DoubleReal& predicted_sigma, const String& filename);
+      AnalysisXMLHandler(std::vector<ProteinIdentification>& protein_identifications, std::vector<IdentificationData>& id_data, std::map<String, DoubleReal>& predicted_retention_times, const String& filename);
       /// Constructor for storing
       AnalysisXMLHandler(const std::vector<ProteinIdentification>& protein_identifications, const std::vector<IdentificationData>& id_data, const String& filename);
       /// Constructor for storing
-      AnalysisXMLHandler(const std::vector<ProteinIdentification>& protein_identifications, const std::vector<IdentificationData>& id_data, const std::map<String, DoubleReal>& predicted_retention_times, DoubleReal predicted_sigma,  const String& filename);
+      AnalysisXMLHandler(const std::vector<ProteinIdentification>& protein_identifications, const std::vector<IdentificationData>& id_data, const std::map<String, DoubleReal>& predicted_retention_times, const String& filename);
       
       /// Destructor
       ~AnalysisXMLHandler();
@@ -92,8 +92,6 @@ namespace OpenMS
 			bool inside_global_protein_;
 			std::vector<UInt> actual_peptide_indices_;
 			std::map<String, DoubleReal>* predicted_retention_times_;
-			DoubleReal* predicted_sigma_;
-			DoubleReal const_predicted_sigma_;
 			std::vector< String > date_times_temp_;
 			UInt date_times_counter_;
 			String actual_date_time_;
@@ -113,7 +111,8 @@ namespace OpenMS
 		 													Real precursor_retention_time,
 		 													Real precursor_mz,
 		 													DateTime date_time,
-					  									std::map< String , UInt> date_times);
+					  									std::map< String , UInt> date_times,
+														  DoubleReal predicted_rt_p_value = -1);
 
 
   };

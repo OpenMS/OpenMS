@@ -137,6 +137,11 @@ namespace OpenMS
 
 		/// clears all information of the peptide hit
     void clear();
+
+		void setPredictedRTPValue(DoubleReal value);
+
+		DoubleReal getPredictedRTPValue() const;
+
   protected:
     Real score_;									///< the score of the peptide hit
     std::string score_type_;    	///< the score type of the peptide hit 
@@ -151,7 +156,8 @@ namespace OpenMS
     std::vector< std::pair<String, String> > corresponding_protein_indices_; ///< the indices 
     															///< of the corresponding proteins
 
-  };
+		DoubleReal predicted_rt_p_value_;
+};
 
 } // namespace OpenMS
 

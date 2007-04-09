@@ -100,18 +100,16 @@ CHECK((void load(const String& filename, std::vector<ProteinIdentification>& pro
 	
 RESULT
 
-CHECK((void load(const String& filename, std::vector<ProteinIdentification>& protein_identifications, std::vector<IdentificationData>& id_data, std::map<String, double>& predicted_retention_times, DoubleReal& predicted_sigma) const throw(Exception::FileNotFound, Exception::ParseError)))
+CHECK((void load(const String& filename, std::vector<ProteinIdentification>& protein_identifications, std::vector<IdentificationData>& id_data, std::map<String, double>& predicted_retention_times) const throw(Exception::FileNotFound, Exception::ParseError)))
 
 	vector<ProteinIdentification> protein_identifications; 
 	vector<IdentificationData> identifications; 
 	map<String, double> predicted_retention_times;
-	DoubleReal predicted_sigma = 0.0;
 
 	xml_file.load("data/AnalysisXMLFile_test.analysisXML",
 							protein_identifications, 
 				   		identifications,
-							predicted_retention_times,
-							predicted_sigma);
+							predicted_retention_times);
 	TEST_EQUAL(identifications.size(), 3)
 	TEST_EQUAL(identifications[0].rt, 120)
 	TEST_EQUAL(identifications[1].rt, 150)
@@ -150,7 +148,6 @@ CHECK((void load(const String& filename, std::vector<ProteinIdentification>& pro
 	TEST_EQUAL(protein_identifications[0].getProteinHits()[1].getScoreType(), "Mascot")
 	TEST_EQUAL(protein_identifications[0].getProteinHits()[0].getAccessionType(), "SwissProt")
 	TEST_EQUAL(protein_identifications[0].getProteinHits()[1].getAccessionType(), "SwissProt")
-	TEST_REAL_EQUAL(predicted_sigma, 0.0852201)
 	TEST_EQUAL(predicted_retention_times.size(), 5)
 	TEST_REAL_EQUAL(predicted_retention_times[string("LHASGITVTEIPVTATNFK")], 122.5)
 	TEST_REAL_EQUAL(predicted_retention_times[string("MRSLGYVAVISAVATDTDK")], 122.5)
@@ -219,12 +216,11 @@ CHECK((void store(String filename, const std::vector<ProteinIdentification>& pro
 									
 RESULT
 
-CHECK((void store(String filename, const std::vector<ProteinIdentification>& protein_identifications, const std::vector<IdentificationData>& id_data, const std::map<String, double>& predicted_retention_times, DoubleReal predicted_sigma) const throw(Exception::UnableToCreateFile)))
+CHECK((void store(String filename, const std::vector<ProteinIdentification>& protein_identifications, const std::vector<IdentificationData>& id_data, const std::map<String, double>& predicted_retention_times) const throw(Exception::UnableToCreateFile)))
 												
 	vector<ProteinIdentification> protein_identifications; 
 	vector<IdentificationData> identifications; 
 	map<String, double> predicted_retention_times;
-	DoubleReal predicted_sigma = 0.0;
 
 	String temp_filename = "data/AnalysisXMLFile_test_2.analysisXML";
 	NEW_TMP_FILE(temp_filename)
@@ -232,19 +228,16 @@ CHECK((void store(String filename, const std::vector<ProteinIdentification>& pro
 	xml_file.load("data/AnalysisXMLFile_test.analysisXML", 
 							protein_identifications, 
 				   		identifications,
-							predicted_retention_times,
-							predicted_sigma);
+								predicted_retention_times);
 	xml_file.store(temp_filename, 
 									protein_identifications, 
 				   				identifications,
-									predicted_retention_times,
-									predicted_sigma);
+									predicted_retention_times);
 
 	xml_file.load(temp_filename,
 							protein_identifications, 
 				   		identifications,
-							predicted_retention_times,
-							predicted_sigma);
+							predicted_retention_times);
 
 	TEST_EQUAL(identifications.size(), 3)
 	TEST_EQUAL(identifications[0].rt, 120)
@@ -285,7 +278,6 @@ CHECK((void store(String filename, const std::vector<ProteinIdentification>& pro
 	TEST_EQUAL(protein_identifications[0].getProteinHits()[1].getScoreType(), "Mascot")
 	TEST_EQUAL(protein_identifications[0].getProteinHits()[0].getAccessionType(), "SwissProt")
 	TEST_EQUAL(protein_identifications[0].getProteinHits()[1].getAccessionType(), "SwissProt")
-	TEST_REAL_EQUAL(predicted_sigma, 0.0852201)
 	TEST_EQUAL(predicted_retention_times.size(), 5)
 	TEST_REAL_EQUAL(predicted_retention_times[string("LHASGITVTEIPVTATNFK")], 122.5)
 	TEST_REAL_EQUAL(predicted_retention_times[string("MRSLGYVAVISAVATDTDK")], 122.5)

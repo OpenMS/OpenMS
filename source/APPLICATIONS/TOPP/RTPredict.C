@@ -29,6 +29,7 @@
 #include <OpenMS/FORMAT/LibSVMEncoder.h>
 #include <OpenMS/METADATA/Identification.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
+#include <OpenMS/MATH/STATISTICS/BasicStatistics.h>
 
 #include <map>
 
@@ -103,8 +104,8 @@ class TOPPRTPredict
 			String temp_string = "";
 			UInt maximum_length = 50;
 			pair<DoubleReal, DoubleReal> temp_point;
-			vector<float> performance_retention_times;
-  
+			vector<Real> performance_retention_times;
+
 			//-------------------------------------------------------------
 			// parsing parameters
 			//-------------------------------------------------------------
@@ -236,6 +237,24 @@ class TOPPRTPredict
 																				(predicted_retention_times[i] * total_gradient_time)));
 			}
 		
+			for(UInt i = 0; i < identifications.size(); i++)
+			{
+				temp_peptide_hits = identifications[i].id.getPeptideHits();
+				vector<ProteinHit> temp_protein_hits = identifications[i].id.getProteinHits();
+				for(UInt j = 0; j < temp_peptide_hits.size(); j++)
+				{
+					DoubleReal temp_rt = predicted_data[temp_peptide_hits[j].getSequence()];
+
+					temp_point.first = identifications[i].rt;
+					temp_point.second = temp_rt;
+					DoubleReal temp_p_value = svm.getPValue(sigma_0, sigma_max, temp_point);
+					temp_peptide_hits[j].setPredictedRTPValue(temp_p_value);
+
+					performance_retention_times.push_back(identifications[i].rt);					
+				}
+				identifications[i].id.setPeptideAndProteinHits(temp_peptide_hits,
+																											temp_protein_hits);				
+			}
 			//-------------------------------------------------------------
 			// writing output
 			//-------------------------------------------------------------
@@ -243,8 +262,17 @@ class TOPPRTPredict
 			analysisXML_file.store(outputfile_name,
 														 protein_identifications,
 														 identifications,
-														 predicted_data,
-														 svm.getSVRProbability());
+														 predicted_data);
+			writeDebug_("Linear correlation between predicted and measured rt is: "
+									+ String(Math::BasicStatistics<Real>::pearsonCorrelationCoefficient(predicted_retention_times.begin(), 
+																		predicted_retention_times.end(), 
+																		performance_retention_times.begin(), 
+																		performance_retention_times.end())), 1);														 
+			writeDebug_("MSE between predicted and measured rt is: "
+									+ String(Math::BasicStatistics<Real>::meanSquareError(predicted_retention_times.begin(), 
+																		predicted_retention_times.end(), 
+																		performance_retention_times.begin(), 
+																		performance_retention_times.end())), 1);														 
 			return EXECUTION_OK;
 		}
 };

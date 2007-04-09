@@ -144,7 +144,6 @@ class TOPPIDFilter
 		vector<UInt> charges;
 		vector< pair< String, String > > sequences;
 		map<String, double> predicted_retention_times;
-		DoubleReal predicted_sigma;
 		vector<String> exclusion_peptides;
 		
 		//-------------------------------------------------------------
@@ -186,8 +185,7 @@ class TOPPIDFilter
 			analysisXML_file.load(inputfile_name,
 														protein_identifications, 
 														identifications,
-														predicted_retention_times,
-														predicted_sigma);
+														predicted_retention_times);
 		}
 		else
 		{
@@ -234,10 +232,11 @@ class TOPPIDFilter
 																							 sequences,
 																							 filtered_identification);
 			}
-			
+/*			
 			if (total_gradient_time != 0.0)
 			{
 				Identification temp_identification = filtered_identification;
+
 				filter.filterIdentificationsByRetentionTimes(temp_identification, 
 																										 predicted_retention_times,
 																										 identifications[i].rt,
@@ -245,8 +244,9 @@ class TOPPIDFilter
 																										 allowed_deviation,
 																										 total_gradient_time,
 																										 filtered_identification);
+
 			}
-				
+*/				
 			if (exclusion_peptides_file_name != "")
 			{
 				Identification temp_identification = filtered_identification;
@@ -282,8 +282,7 @@ class TOPPIDFilter
 			analysisXML_file.store(outputfile_name,
 														 protein_identifications, 
 												 		 filtered_identifications,
-												 		 predicted_retention_times,
-												 		 predicted_sigma);
+												 		 predicted_retention_times);
 		}
 		else
 		{
