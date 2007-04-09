@@ -93,9 +93,11 @@ These files contain references or binaries that are not compatible across OSs, b
   (or fix the real bug and contact me :)
 - make install
 - export DYLD_FALLBACK_LIBRARY_PATH=$OPENMSDIR/lib/Darwin-8.8.0-g++_4.0.1
+  The exact number depends on your MacOS X version - might be 8.9.0 on MacOS 10.4.9. Better go and check.
 - make TOPP
 - optionally:
   defaults write ~/.MacOSX/environment DYLD_FALLBACK_LIBRARY_PATH $OPENMSDIR/lib/Darwin-8.8.0-g++_4.0.1
+  (same comment as three lines above - better double-check your own path)
 </pre>
 
 <h3>Eyecandy (making TOPPView a real MacOS Application)</h3>
