@@ -68,7 +68,12 @@ namespace OpenMS
 	  //reserve enough space to avoid copying layer data
 	  layers_.reserve(10);
 	}
-	
+
+	SpectrumCanvas::~SpectrumCanvas()
+	{
+		//cout << "DEST SpectrumCanvas" << endl;
+	}
+
 	void SpectrumCanvas::resizeEvent(QResizeEvent* /* e */)
 	{
 #ifdef DEBUG_TOPPVIEW

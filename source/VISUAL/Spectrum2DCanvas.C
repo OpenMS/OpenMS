@@ -64,6 +64,7 @@ namespace OpenMS
 	
 	Spectrum2DCanvas::~Spectrum2DCanvas()
 	{
+		//cout << "DEST Spectrum2DCanvas" << endl;
 	}
 	
 	void Spectrum2DCanvas::highlightPeak_(QPainter& painter, Feature* peak)
@@ -929,6 +930,7 @@ namespace OpenMS
 		{
 			getCurrentLayer_().features.updateRanges();
 			getCurrentLayer_().max_int = getCurrentLayer().features.getMaxInt();
+			setLayerFlag(LayerData::F_HULLS,true);
 		}
 		
 		//overall values update

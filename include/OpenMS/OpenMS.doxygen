@@ -83,13 +83,11 @@ Ideen:
 Todos:
 - make install mit prefix testen (Hiwi)
 
-Spectrum2DCanvas -- Punkte wenn zu viele Daten
-Spectrum2DCanvas -- Features -> Hüllen an
-Seg-Fault
 FileInfo -- Merge with MapStatistics
 Spectrum2DCanvas -- Context menu: show scan, precursor scan, ID, EIC 
 Spectrum2DCanvas -- Projections: follow 2D view, info box with intensity 
-
+Spectrum2DCanvas -- Zoom: fix bug
+Spectrum2DCanvas -- Punkte wenn zu viele Daten
 
 DataValue -- derive from QVariant 
 Identification -- Store ScoreType (with direction) and AccessionType as Enum in Identification (Marc, Andreas)
@@ -97,7 +95,7 @@ MSExperiment -- Add getPrecursorRT(rt/scan nr) and update ID adapters and IDSpec
 Spectrum2DCanvas -- Remove coordinate-data transformations 
 String -- derive from QString 
 TOPPViewBase -- Add preferences for layers 
-TOPPViewBase -- Tools - annotate with ID 
+TOPPViewBase -- Layer - annotate with ID
 XMLHandler -- Add external CVs, integrate OLS
   
 ***********************************************************************/

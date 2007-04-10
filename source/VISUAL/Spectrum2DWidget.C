@@ -70,7 +70,7 @@ namespace OpenMS
 
 	Spectrum2DWidget::~Spectrum2DWidget()
 	{
-		
+		//cout << "DEST Spectrum2DWidget" << endl;
 	}
 	
 	void Spectrum2DWidget::recalculateAxes_()

@@ -43,9 +43,23 @@ namespace OpenMS
 	
 	PreferencesManager::~PreferencesManager()
 	{
+		//cout << "Dest PreferencesManager" << endl;
+		
+		//tell parent that the client is deleted
 		if (parent_!=0)
 		{
 			parent_->removeClient(this);
+		}
+		
+		//tell clients that their parent is deleted
+		map<PreferencesManager*,string>::iterator it;
+		for (it = incl_clients_.begin(); it!=incl_clients_.end();++it)
+		{
+			it->first->setParent(0);
+		}
+		for (it = clients_.begin(); it!=clients_.end();++it)
+		{
+			it->first->setParent(0);
 		}
 	}
 	

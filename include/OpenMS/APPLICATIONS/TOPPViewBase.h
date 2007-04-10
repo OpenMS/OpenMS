@@ -62,7 +62,7 @@ namespace OpenMS
   	@brief MDI window of TOPPView tool
   	
   	@todo Add preferences for layers (Marc)
-		@todo Tools - annotate with ID (Marc)
+		@todo Layer - annotate with ID (Marc)
   */
   class TOPPViewBase 
   	: public QMainWindow, 

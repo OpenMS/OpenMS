@@ -111,6 +111,9 @@ namespace OpenMS
 
 		/// Default constructor
 		SpectrumCanvas(QWidget* parent = 0);
+
+		/// Destructor
+		~SpectrumCanvas();
 		
 		/**
 			@brief Sets the spectrum widget.

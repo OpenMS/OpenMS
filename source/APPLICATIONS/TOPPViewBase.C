@@ -147,7 +147,7 @@ namespace OpenMS
     file->addAction("&Close",this,SLOT(closeFile()));
     file->addSeparator();
     
-    QMenu* recent_menu = new QMenu("Recent files", this);
+    QMenu* recent_menu = new QMenu("&Recent files", this);
     recent_as_new_layer_ = recent_menu->addAction("open as new layer");
     recent_as_new_layer_->setCheckable(true);
     recent_menu->addSeparator();
@@ -179,7 +179,7 @@ namespace OpenMS
     QMenu * view = new QMenu("&View",this);
     menuBar()->addMenu(view);
     view->addAction("&Go to",this,SLOT(gotoDialog()), Qt::CTRL+Qt::Key_G);
-   	view->addAction("Show/Hide axis legends",this,SLOT(changeAxisVisibility()));
+   	view->addAction("Show/Hide axis &legends",this,SLOT(changeAxisVisibility()));
    	
     //Image menu
     QMenu * image = new QMenu("&Image",this);
@@ -227,6 +227,7 @@ namespace OpenMS
 
   TOPPViewBase::~TOPPViewBase()
   {
+  	//cout << "DEST TOPPViewBase" << endl;
   	savePreferences();
   }
 
@@ -1150,7 +1151,7 @@ namespace OpenMS
 
     dm_hull_2d_ = tool_bar_2d_->addAction(QPixmap(XPM_convexhulls),"Show feature convex hulls");
     dm_hull_2d_->setCheckable(true);
-    dm_hull_2d_->setWhatsThis("2D feature draw mode: Convex hull<BR><BR>The convex hull of the featuer is displayed");
+    dm_hull_2d_->setWhatsThis("2D feature draw mode: Convex hull<BR><BR>The convex hull of the feature is displayed");
     connect(dm_hull_2d_, SIGNAL(toggled(bool)), this, SLOT(changeLayerFlag(bool)));
 
     dm_numbers_2d_ = tool_bar_2d_->addAction(QPixmap(XPM_numbers),"Show feature numbers");
