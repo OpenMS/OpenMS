@@ -30,6 +30,7 @@ DIRECTORY=TEST/TOPP
 
 # Tests for individual tools
 UNCONDITIONAL_TESTS = \
+	ConsensusID_test \
 	MapNormalizer_test \
 	AdditiveSeries_test \
 	AnalysisXMLMerger_test \
@@ -579,6 +580,7 @@ RTPredict_test: $(NUMERICDIFF)
 	@$(call RUN_PROG_OPT,RTPredict,-in RTPredict_1_input.analysisXML -out RTPredict_1_output.tmp -total_gradient_time 3000 -svm_model RTPredict_1_input.model)
 	@$(call TEST_FILE_EQUAL,RTPredict_1_output.tmp,RTPredict_1_output.analysisXML)
 
+
 InspectAdapter_test: $(NUMERICDIFF)
 	@$(ECHO) ""
 	@$(ECHO) "InspectAdapter:"
@@ -646,6 +648,19 @@ UnlabeledMatcher_test: $(NUMERICDIFF)
 	@$(call TEST_FILE_EQUAL,UnlabeledMatcher_1_pairs.xml)
 	@$(call TEST_FILE_EQUAL,UnlabeledMatcher_1_grid.xml)
 
+ConsensusID_test: $(NUMERICDIFF)
+	@$(ECHO) ""
+	@$(ECHO) "ConsensusID:"
+
+	@$(ECHO) "- Test 1: Map consensus"
+	@$(call RUN_PROG_OPT,ConsensusID,-ini ConsensusID_1_parameters.ini -out ConsensusID_1_output.tmp)
+	@$(SED) -i 's/^.*date_group_0.*$$/# date group removed/g' ConsensusID_1_output.tmp
+	@$(call TEST_FILE_EQUAL,ConsensusID_1_output.analysisXML)
+
+	@$(ECHO) "- Test 2: Feature consensus"
+	@$(call RUN_PROG_OPT,ConsensusID,-ini ConsensusID_2_parameters.ini -out ConsensusID_2_output.tmp -features ConsensusID_2_features.feat)
+	@$(SED) -i 's/^.*date_group_0.*$$/# date group removed/g' ConsensusID_2_output.tmp
+	@$(call TEST_FILE_EQUAL,ConsensusID_2_output.analysisXML)
 
 ###########################################################################################
 ## Tests for processing pipelines.
@@ -663,10 +678,6 @@ MyoQuant_test: $(NUMERICDIFF)
 	@$(ECHO) "	AdditiveSeries, linear regression";
 	@$(call RUN_PROG_OPT,AdditiveSeries,-ini MyoQuant_1_parameters.ini)
 	@$(call TEST_FILE_EQUAL,MyoQuant_1_output.xml)
-
-	@$(ECHO) ""
-	@$(ECHO) "- Test 2: Additive Series using intensity ratio of tryptic peptides T11hu / T10ho, with dewarping"
-	@$(ECHO) "	... todo ..."
 
 PairwiseSuperposition_test: $(NUMERICDIFF)
 	@$(ECHO) ""
