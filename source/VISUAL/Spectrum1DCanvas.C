@@ -272,22 +272,15 @@ namespace OpenMS
 
 	void Spectrum1DCanvas::wheelEvent(QWheelEvent* e)
 	{
-		switch (action_mode_)
+		if (e->delta() > 0) // forward rotation -> zoom in
 		{
-			case AM_ZOOM:
-				if (e->delta() > 0) // forward rotation -> zoom in
-				{
-					double position = widgetToData_(e->pos()).getX();
-					double delta = (visible_area_.maxX()-visible_area_.minX())/2.5;
-					changeVisibleArea_(position - delta, position + delta, true);
-				}
-				else // backward rotation -> zoom out
-				{
-					zoomBack_();
-				}
-				break;
-			default:
-				e->ignore();
+			DoubleReal position = visible_area_.center().getX();
+			DoubleReal half_width = (visible_area_.maxX()-visible_area_.minX())/2.0*0.9;
+			changeVisibleArea_(position - half_width, position + half_width, true);
+		}
+		else // backward rotation -> zoom out
+		{
+			zoomBack_();
 		}
 		e->accept();
 	}

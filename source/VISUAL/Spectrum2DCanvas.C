@@ -247,7 +247,7 @@ namespace OpenMS
 			percentage_factor_ = 1.0;
 		}
 		
-		//tmporary variable
+		//temporary variable
 		QPoint pos;
 		
 		double min_int = getLayer(layer_index).min_int;
@@ -255,9 +255,40 @@ namespace OpenMS
 		Int mode = getDotMode();
 		
 		painter.setPen(Qt::black);
-
+		
 		if (getLayer(layer_index).type==LayerData::DT_PEAK) //peaks
 		{
+			//determine number of MS1 scans
+			UInt scans = 0;
+			MSExperiment<>::ConstIterator it = getPeakData(layer_index).RTBegin(visible_area_.min()[1]);
+			while (it != getPeakData(layer_index).RTEnd(visible_area_.max()[1]))
+			{
+				if (it->getMSLevel()==1) ++scans;
+				++it;
+			}
+			//determine number of shown peaks
+			Int peaks = 0;
+			it = getPeakData(layer_index).RTBegin(visible_area_.min()[1]) + scans/2;
+			while (it!=getPeakData(layer_index).end() && it->getMSLevel()!=1)
+			{
+				++it;
+			}
+			if (it!=getPeakData(layer_index).end())
+			{
+				peaks = it->MZEnd(visible_area_.max()[0]) - it->MZBegin(visible_area_.min()[0]);
+			}
+			//paint dots if too many peaks are shown, crosses otherwise
+			bool dots = false;
+			if(isMzToXAxis())
+			{
+				if (peaks>0.5*width() || scans>0.5*height()) dots=true;
+			}
+			else
+			{
+				if (peaks>0.5*height() || scans>0.5*width()) dots=true;
+			}
+			//cout << "peaks: " << peaks << "  scans: " << scans << endl;
+			//cout << "width: " << width() << "  height: " << height() << endl;
 			for (ExperimentType::ConstAreaIterator i = getPeakData(layer_index).areaBeginConst(visible_area_.min()[1],visible_area_.max()[1],visible_area_.min()[0],visible_area_.max()[0]); 
 					 i != getPeakData(layer_index).areaEndConst(); 
 					 ++i)
@@ -268,9 +299,17 @@ namespace OpenMS
 					{
 						painter.setPen(heightColor_(i->getIntensity(), dot_gradient_));
 					}
-					dataToWidget_(i->getMZ(), i.getRetentionTime(),pos);
-					painter.drawLine(pos.x(),pos.y()-1,pos.x(),pos.y()+1);
-					painter.drawLine(pos.x()-1,pos.y(),pos.x()+1,pos.y());
+					if (dots)
+					{
+						dataToWidget_(i->getMZ(), i.getRetentionTime(),pos);
+						painter.drawPoint(pos.x(),pos.y());
+					}
+					else
+					{
+						dataToWidget_(i->getMZ(), i.getRetentionTime(),pos);
+						painter.drawLine(pos.x(),pos.y()-1,pos.x(),pos.y()+1);
+						painter.drawLine(pos.x()-1,pos.y(),pos.x()+1,pos.y());
+					}
 				}
 			}
 			
@@ -1558,37 +1597,18 @@ namespace OpenMS
 
 	void Spectrum2DCanvas::wheelEvent(QWheelEvent* e)
 	{
-		switch (action_mode_)
+		if (e->delta() > 0) // forward rotation -> zoom in
 		{
-			case AM_ZOOM:
-				if (e->delta() > 0) // forward rotation -> zoom in
-				{
-					PointType new_pos = visible_area_.center();
-
-					// adjust new width (we don't want it bigger than overall_data_range_)
-					float new_width = visible_area_.width() * 0.9;
-					float new_height = visible_area_.height() * 0.9;	 
-					if (new_width >= overall_data_range_.width()) new_width = overall_data_range_.width();
-					if (new_height >= overall_data_range_.height()) new_height = overall_data_range_.height();
+			PointType new_pos = visible_area_.center();
+			float half_width = visible_area_.width() / 2.0 * 0.9;
+			float half_height = visible_area_.height() / 2.0f * 0.9;
 			
-					float half_width = new_width / 2.0f;
-					float half_height = new_height / 2.0f;	
-					if (new_pos.getX() < overall_data_range_.minX() + half_width)   new_pos.setX(overall_data_range_.minX() + half_width);
-					if (new_pos.getY() < overall_data_range_.minY() + half_height)  new_pos.setY(overall_data_range_.minY() + half_height);
-					if (new_pos.getX() > overall_data_range_.maxX() - half_width)   new_pos.setX(overall_data_range_.maxX() - half_width);
-					if (new_pos.getY() > overall_data_range_.maxY() - half_height)  new_pos.setY(overall_data_range_.maxY() - half_height);
-			
-					// set visible area accordingly and redraw
-					//cout << __PRETTY_FUNCTION__ << endl;
-					changeVisibleArea_(AreaType(new_pos.getX() - half_width, new_pos.getY() - half_height, new_pos.getX() + half_width, new_pos.getY() + half_height), true);
-				}
-				else // backward rotation -> zoom out
-				{
-					zoomBack_();
-				}
-				break;
-			default:
-				e->ignore();
+			//cout << __PRETTY_FUNCTION__ << endl;
+			changeVisibleArea_(AreaType(new_pos.getX() - half_width, new_pos.getY() - half_height, new_pos.getX() + half_width, new_pos.getY() + half_height), true);
+		}
+		else // backward rotation -> zoom out
+		{
+			zoomBack_();
 		}
 		e->accept();
 	}
