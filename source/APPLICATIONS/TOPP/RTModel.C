@@ -181,7 +181,7 @@ class TOPPRTModel
 		  PeptideHit temp_peptide_hit;
 			SVMWrapper svm;
 			LibSVMEncoder encoder;
-			svm_problem* encoded_training_sample;
+			svm_problem* encoded_training_sample = 0;
 			String allowed_amino_acid_characters = "ACDEFGHIKLMNPQRSTVWY";
 			map<SVM_parameter_type, DoubleReal> start_values;
 			map<SVM_parameter_type, DoubleReal> step_sizes;
@@ -189,9 +189,9 @@ class TOPPRTModel
 			DoubleReal sigma_start = 0;
 			DoubleReal sigma_step_size = 0;
 			DoubleReal sigma_stop = 0;
-			UInt number_of_partitions;
-			UInt number_of_runs;
-			DoubleReal cv_quality;
+			UInt number_of_partitions = 0;
+			UInt number_of_runs = 0;
+			DoubleReal cv_quality = 0;
 			map<SVM_parameter_type, DoubleReal> optimized_parameters;
 			map<SVM_parameter_type, DoubleReal>::iterator parameters_iterator;
 			UInt maximum_sequence_length = 50;
