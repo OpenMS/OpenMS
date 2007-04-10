@@ -28,18 +28,26 @@
 #define OPENMS_COMPARISON_SPECTRA_SPECTRUMALIGNMENTSCORE_H
 
 #include <OpenMS/COMPARISON/SPECTRA/PeakSpectrumCompareFunctor.h>
-#include <OpenMS/KERNEL/StandardTypes.h>
-
-#include <vector>
-#include <utility>
 
 namespace OpenMS
 {
 
   /**
-	  @brief Similarity score of Zhang
+	  @brief Similarity score via spectra alignment
 
-		@param epsilon - defines the absolut error of the mass spectrometer; default value is 0.2 Th
+		This class implements a simple scoring based on the alignment of spectra. This alignment
+		is implemented in the SpectrumAlignment class and performs a dynamic programming alignment
+		of the peaks, minimizing the distances between the aligned peaks and maximizing the number
+		of peak pairs. 
+
+		The scoring is done via the simple formula score = sum / (sqrt(sum1 * sum2)). sum is the 
+		product of the intensities of the aligned peaks, with the given exponent (default is 2). 
+		sum1 and sum2 are the sum of the intensities squared for each peak of both spectra respectively.
+
+		A binned version of this scoring is implemented in the ZhangSimilarityScoring class.
+
+		@param epsilon - defines the absolut error of the mass spectrometer; default value is 0.3 Th
+		@param exponent - defines the exponent of the comparison 
 		
 		@ingroup SpectraComparison
   */
