@@ -43,6 +43,8 @@ Good luck.
 <h3>Three things to consider</h3>
 
 <ul>
+<li>On 2007-03-08, I committed the last patches to the OpenMS SVN repository. Be sure to use a more recent version of *both* contrib and OpenMS, as all versions before this date still have problems compiling on MacOS X.</li>
+<li><code>make test</code> will fail for InspectOutfile and MascotOutfile because of architecture problems. This might break some features, but is most probably going to be fixed soon.</li>
 <li>If you want to recycle a contrib directory that was already used for building OpenMS on a different OS on the same computer, be sure to
 <code>
 <pre>
@@ -51,10 +53,8 @@ rm contrib/src/gsl-1.6/gsl-histogram src/gsl-1.6/gsl-randist
 </pre>
 </code>
 <p>
-These files contain references or binaries that are not compatible across OSs, but the contrib installer will not notice that they have to be rebuilt.
+These files contain references or binaries that are not compatible across operating systems, but the contrib installer will not notice that they have to be rebuilt.
 </li>
-<li><code>make test</code> will fail for some classes because of endian problems. This might break some features, but is most probably going to be fixed soon.</li>
-<li>Today (2007-03-08) I committed the last patches to the OpenMS SVN repository. Be sure to use a recent version of *both* contrib and OpenMS, as all versions before today still have problems compiling on MacOS X.</li>
 </ul>
 
 <h3>Installation</h3>
@@ -138,7 +138,7 @@ edit <code>TOPPView.app/Contents/Info.plist</code> and insert the following:
 </code>
 
 <p>
-(This was a hint by Alex Haupt, which did not work for me though - the application is not started and bouncing symbol disappears again immediately)
+(This was a hint by Alex Haupt, which did not work for me though - the application did not start and the bouncing symbol disappears again immediately. If you can find the bug, please contact me.)
 </p>
 
 <p>
