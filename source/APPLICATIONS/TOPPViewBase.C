@@ -82,8 +82,6 @@
 #include "../VISUAL/ICONS/snap.xpm"
 
 //common
-#include "../VISUAL/ICONS/grid.xpm"
-#include "../VISUAL/ICONS/print.xpm"
 #include "../VISUAL/ICONS/reset_zoom.xpm"
 #include "../VISUAL/ICONS/tile_horizontal.xpm"
 #include "../VISUAL/ICONS/tile_vertical.xpm"
@@ -125,6 +123,7 @@ namespace OpenMS
     setCentralWidget(dummy);
     QVBoxLayout* box_layout = new QVBoxLayout(dummy);
     tab_bar_ = new EnhancedTabBar(dummy);
+    tab_bar_->setWhatsThis("Double-click tab to close it.");
     tab_bar_->addTab("dummy");
     tab_bar_->setMinimumSize(tab_bar_->sizeHint());
     tab_bar_->removeTab(0);
@@ -143,9 +142,11 @@ namespace OpenMS
     // File menu
     QMenu* file = new QMenu("&File",this);
     menuBar()->addMenu(file);
-    file->addAction("&Open",this,SLOT(openSpectrumDialog()));
+    file->addAction("&Open",this,SLOT(openSpectrumDialog()), Qt::CTRL+Qt::Key_O);
     file->addAction("&Close",this,SLOT(closeFile()));
     file->addSeparator();
+    file->addAction("&Edit INI file", this, SLOT(editParamDialog()));
+		file->addSeparator();
     
     QMenu* recent_menu = new QMenu("&Recent files", this);
     recent_as_new_layer_ = recent_menu->addAction("open as new layer");
@@ -162,16 +163,16 @@ namespace OpenMS
 
     file->addSeparator();
     file->addAction("&Preferences",this, SLOT(preferencesDialog()));
-    file->addAction("&Quit",qApp,SLOT(quit()));
+    file->addAction("&Quit",qApp,SLOT(quit()), Qt::CTRL+Qt::Key_Q);
     
     //Layer menu
     QMenu* layer = new QMenu("&Layer",this);
     menuBar()->addMenu(layer);
-    layer->addAction("&Save visible data",this,SLOT(saveLayer()));
+    layer->addAction("&Save visible data",this,SLOT(saveLayer()), Qt::CTRL+Qt::Key_S);
     layer->addAction("&Edit metadata",this,SLOT(editMetadata()));
     layer->addAction("&Intensity distribution",this,SLOT(layerIntensityDistribution()));
 		layer->addSeparator();
-    layer->addAction("Apply &TOPP tool", this, SLOT(showTOPPDialog()));
+    layer->addAction("Apply &TOPP tool", this, SLOT(showTOPPDialog()), Qt::CTRL+Qt::Key_T);
 		layer->addSeparator();
     layer->addAction("&Preferences",this, SLOT(layerPreferencesDialog()));
     
@@ -179,13 +180,14 @@ namespace OpenMS
     QMenu * view = new QMenu("&View",this);
     menuBar()->addMenu(view);
     view->addAction("&Go to",this,SLOT(gotoDialog()), Qt::CTRL+Qt::Key_G);
-   	view->addAction("Show/Hide axis &legends",this,SLOT(changeAxisVisibility()));
+   	view->addAction("Show/Hide &axis legends",this,SLOT(changeAxisVisibility()));
+   	view->addAction("Show/Hide &grid lines",this,SLOT(changeGridLines()));
    	
     //Image menu
     QMenu * image = new QMenu("&Image",this);
     menuBar()->addMenu(image);
     image->addAction("&Save to file",this,SLOT(saveImage()));
-    image->addAction("&Print",this,SLOT(print()));
+    image->addAction("&Print",this,SLOT(print()), Qt::CTRL+Qt::Key_P);
 
     //Windows menu
     QMenu * windows = new QMenu("&Windows", this);
@@ -194,10 +196,7 @@ namespace OpenMS
     windows->addAction("&Tile automatic",this->ws_,SLOT(tile()));
     windows->addAction(QIcon(QPixmap(XPM_tile_h)),"Tile &vertical",this,SLOT(tileHorizontal()));
     windows->addAction(QIcon(QPixmap(XPM_tile_v)),"Tile &horizontal",this,SLOT(tileVertical()));
-    //Tools menu
-    QMenu* tools_menu = new QMenu("&Tools",this);
-    menuBar()->addMenu(tools_menu);
-    tools_menu->addAction("&Edit INI file", this, SLOT(editParamDialog()));
+
     //create status bar
     message_label_ = new QLabel(statusBar());
     statusBar()->addWidget(message_label_,1);
@@ -994,7 +993,7 @@ namespace OpenMS
   {
   	QToolButton* b;
   	
-  	//Basic tool bar for all views
+  	//--Basic tool bar for all views--
     tool_bar_ = addToolBar("Basic tool bar");
     
     //action modes
@@ -1007,7 +1006,8 @@ namespace OpenMS
     b->setShortcut(Qt::Key_Z);
     b->setCheckable(true);
     b->setWhatsThis("Action mode: Zoom + Translate<BR><BR>This mode allows to navigate in the data."
-    								" The default is to zoom, Press the CTRL key for translation mode.");
+    								" The default is to zoom, Press the CTRL key for translation mode.<BR><BR>"
+    								"A double-click resets the zoom.");
     action_group_->addButton(b,SpectrumCanvas::SpectrumCanvas::AM_ZOOM);
 		tool_bar_->addWidget(b);
 
@@ -1034,7 +1034,7 @@ namespace OpenMS
     b->setToolTip("Intensity: Normal");
     b->setShortcut(Qt::Key_N);
     b->setCheckable(true);
-    b->setWhatsThis("Intensity: Normal<BR><BR>Intensity is displayed unmodified");
+    b->setWhatsThis("Intensity: Normal<BR><BR>Intensity is displayed unmodified.");
     intensity_group_->addButton(b,SpectrumCanvas::SpectrumCanvas::IM_NONE);
 		tool_bar_->addWidget(b);
     
@@ -1043,7 +1043,7 @@ namespace OpenMS
     b->setToolTip("Intensity: Logarithmic");
     b->setShortcut(Qt::Key_L);
     b->setCheckable(true);
-    b->setWhatsThis("Intensity: Logarithmic<BR><BR>Intensity is displayed in a logarithmic scale");
+    b->setWhatsThis("Intensity: Logarithmic<BR><BR>Intensity is displayed in a logarithmic scale.");
     intensity_group_->addButton(b,SpectrumCanvas::SpectrumCanvas::IM_LOG);
 		tool_bar_->addWidget(b);
 
@@ -1073,26 +1073,16 @@ namespace OpenMS
 
     //common buttons
     QAction* reset_zoom_button = tool_bar_->addAction(QPixmap(XPM_reset_zoom), "Reset Zoom", this, SLOT(resetZoom()));
+    reset_zoom_button->setWhatsThis("Reset zoom: Zooms out as far as possible.");
     reset_zoom_button->setShortcut(Qt::Key_Backspace);
-    tool_bar_->addSeparator();
 
-    grid_button_ = tool_bar_->addAction(QPixmap(XPM_grid), "Show grid");
-    grid_button_->setIcon(QIcon(QPixmap(XPM_grid)));
-    grid_button_->setCheckable(true);
-    connect(grid_button_,SIGNAL(toggled(bool)),this,SLOT(showGridLines(bool)));
-    tool_bar_->addSeparator();
-
-    QAction* print_button = tool_bar_->addAction(QPixmap(XPM_print), "Print", this, SLOT(print()));
-    print_button->setShortcut(Qt::CTRL + Qt::Key_P);
-
-		//that's this mode
-		tool_bar_->addSeparator();
-		tool_bar_->addAction(QWhatsThis::createAction(tool_bar_));
-
-    tool_bar_->resize(tool_bar_->sizeHint());
     tool_bar_->show();
-    
-    //1D toolbar
+
+		//--help toolbar--
+		QToolBar* help_bar = addToolBar("Help tool bar");
+		help_bar->addAction(QWhatsThis::createAction(help_bar));
+
+    //--1D toolbar--
     tool_bar_1d_ = addToolBar("1D tool bar");
 
     //draw modes 1D
@@ -1128,7 +1118,7 @@ namespace OpenMS
     tool_bar_1d_->addWidget(link_box_);
     connect(link_box_,SIGNAL(activated(int)),this,SLOT(linkActiveTo(int)));
 
-    //**2D toolbar**
+    //--2D toolbar--
     tool_bar_2d_ = addToolBar("2D tool bar");
 
     dm_surface_2d_ = tool_bar_2d_->addAction(QPixmap(XPM_colors),"Show colored surface");
@@ -1263,12 +1253,12 @@ namespace OpenMS
     statusBar()->update();
   }
 
-  void TOPPViewBase::showGridLines(bool b)
+  void TOPPViewBase::changeGridLines()
   {
     SpectrumWidget* window = activeWindow_();
     if (window!=0)
     {
-      window->canvas()->showGridLines(b);
+      window->canvas()->showGridLines(!window->canvas()->gridLinesShown());
     }
   }
 
@@ -1349,9 +1339,6 @@ namespace OpenMS
 
       //set intensity mode
      	intensity_group_->button(w->canvas()->getIntensityMode())->setChecked(true);
-
-      //grid lines
-      grid_button_->setChecked(w->canvas()->gridLinesShown());
     }
 
     //1D

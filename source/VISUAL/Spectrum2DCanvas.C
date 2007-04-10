@@ -29,6 +29,7 @@
 #include <OpenMS/KERNEL/Feature.h>
 #include <OpenMS/VISUAL/DIALOGS/Spectrum2DCanvasPDP.h>
 #include <OpenMS/CONCEPT/TimeStamp.h>
+#include <OpenMS/KERNEL/StandardTypes.h>
 
 //STL
 #include <algorithm>	
@@ -260,7 +261,7 @@ namespace OpenMS
 		{
 			//determine number of MS1 scans
 			UInt scans = 0;
-			MSExperiment<>::ConstIterator it = getPeakData(layer_index).RTBegin(visible_area_.min()[1]);
+			PeakMap::ConstIterator it = getPeakData(layer_index).RTBegin(visible_area_.min()[1]);
 			while (it != getPeakData(layer_index).RTEnd(visible_area_.max()[1]))
 			{
 				if (it->getMSLevel()==1) ++scans;
@@ -275,7 +276,12 @@ namespace OpenMS
 			}
 			if (it!=getPeakData(layer_index).end())
 			{
-				peaks = it->MZEnd(visible_area_.max()[0]) - it->MZBegin(visible_area_.min()[0]);
+				PeakSpectrum::ConstIterator it2 = it->MZBegin(visible_area_.min()[0]);
+				while (it2!=it->MZEnd(visible_area_.max()[0]))
+				{
+					if (it2->getIntensity()>=min_int && it2->getIntensity()<=max_int) ++peaks;
+					++it2;
+				}
 			}
 			//paint dots if too many peaks are shown, crosses otherwise
 			bool dots = false;
@@ -1571,7 +1577,7 @@ namespace OpenMS
 				else //zoom
 				{
 					QRect rect = rubber_band_.geometry();
-					if (rect.width()!=0 && rect.height()!=0) //probably double click -> mouseDoubleClickEvent
+					if (rect.width()!=0 && rect.height()!=0) //probably double-click -> mouseDoubleClickEvent
 					{
 						AreaType area(widgetToData_(rect.topLeft()), widgetToData_(rect.bottomRight()));
 						//cout << __PRETTY_FUNCTION__ << endl;

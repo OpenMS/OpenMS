@@ -234,6 +234,8 @@ namespace OpenMS
 					return layers_[current_layer_].f2;
 				case LayerData::P_PRECURSORS:
 					return layers_[current_layer_].f3;
+				case LayerData::P_PROJECTIONS:
+					return layers_[current_layer_].f4;
 			}
 			std::cout << "Error: SpectrumCanvas::getLayerFlag -- unknown flag '" << f << "'!" << std::endl;
 			return false;
@@ -260,6 +262,9 @@ namespace OpenMS
 				case LayerData::P_PRECURSORS:
 					layers_[current_layer_].f3 = value;
 					break;
+				case LayerData::P_PROJECTIONS:
+					layers_[current_layer_].f4 = value;
+					break;
 			}
 			update_buffer_ = true;
 			update();
@@ -281,6 +286,8 @@ namespace OpenMS
 					return layers_[layer].f2;
 				case LayerData::P_PRECURSORS:
 					return layers_[layer].f3;
+				case LayerData::P_PROJECTIONS:
+					return layers_[layer].f4;
 			}
 			std::cout << "Error: SpectrumCanvas::getLayerFlag -- unknown flag '" << f << "'!" << std::endl;
 			return false;
@@ -306,6 +313,9 @@ namespace OpenMS
 					break;
 				case LayerData::P_PRECURSORS:
 					layers_[layer].f3 = value;
+					break;
+				case LayerData::P_PROJECTIONS:
+					layers_[layer].f4 = value;
 					break;
 			}
 			update_buffer_ = true;

@@ -57,8 +57,9 @@ namespace OpenMS
 			F_HULLS,      ///< Features: Convex hull
 			F_NUMBERS,    ///< Feature: Number
 			P_SURFACE,    ///< Peaks: Surface calculated by marching squares
-			P_CONTOURS,    ///< Peaks: Contour lines calculated by marching squares
-			P_PRECURSORS  ///< Peaks: Mark precursor peaks of MS/MS scans
+			P_CONTOURS,   ///< Peaks: Contour lines calculated by marching squares
+			P_PRECURSORS, ///< Peaks: Mark precursor peaks of MS/MS scans
+			P_PROJECTIONS ///< Peaks: Show projections
 		};
 
 		/// Main data type (experiment)
@@ -101,7 +102,8 @@ namespace OpenMS
 				features(),
 				f1(false),
 				f2(false),
-				f3(false)
+				f3(false),
+				f4(false)
 		{
 		}
 		
@@ -130,6 +132,8 @@ namespace OpenMS
 		bool f2;
 		/// Flag three (Feature: - , Peak: precursors)
 		bool f3;
+		/// Flag four (Feature: - , Peak: projections)
+		bool f4;
 	};
 
 	///Print the contents to a stream.

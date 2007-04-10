@@ -81,7 +81,7 @@ namespace OpenMS
 			connect(tmp,SIGNAL(clicked()),this,SLOT(browseDefaultPath_()));
 			//tmp path
 			main_tmp_path_ = new QLineEdit(tab);
-			addWidget_(grid,1,"Tmporary file path:",main_tmp_path_);
+			addWidget_(grid,1,"Temporary file path:",main_tmp_path_);
 			main_tmp_path_->setMinimumWidth(fontMetrics().width('W') * 25);
 			tmp = new QPushButton("Browse",tab);
 			grid->addWidget(tmp,1,2);

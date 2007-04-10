@@ -224,7 +224,7 @@ namespace OpenMS
       void setActionMode(int);
       void setDrawMode1D(int);
       void setIntensityMode(int);
-      void showGridLines(bool);
+      void changeGridLines();
       void changeLayerFlag(bool);
       void resetZoom();
       //@}
@@ -266,8 +266,6 @@ namespace OpenMS
       QButtonGroup* action_group_;
       //common intensity modes
       QButtonGroup* intensity_group_;
-      //common buttons
-      QAction* grid_button_;
       //1D specific stuff
       QToolBar* tool_bar_1d_;
       QButtonGroup* draw_group_1d_;
