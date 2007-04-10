@@ -100,6 +100,8 @@ namespace OpenMS
 			Param* param_editable_;
 			/// Param object for load_editable(Param&)
 			const Param* param_const_;         
+			/// selected item or no no item selected
+			QTreeWidgetItem* selected_item_;
 			
 	};
 

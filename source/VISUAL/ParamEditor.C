@@ -273,18 +273,18 @@ namespace OpenMS
 		
 	void ParamEditor::insertItem()
 	{
-		QTreeWidgetItem* parent=currentItem();
+		QTreeWidgetItem* parent=selected_item_;
 		QTreeWidgetItem* item=NULL;
 			
-		if(!parent && topLevelItemCount()==0)
+		if(!parent)
 		{
 			item=new QTreeWidgetItem(invisibleRootItem());
 		}
-		else if(parent && parent->text(1).size()==0 && parent->text(2)==0)
+		else if(parent->data(0,Qt::UserRole)==NODE)
 		{
 			item=new QTreeWidgetItem(parent);
 		}
-		else
+		else if(parent->data(0,Qt::UserRole)==ITEM)
 		{
 			return;
 		}
@@ -300,18 +300,18 @@ namespace OpenMS
 	    
 	void ParamEditor::insertNode()
 	{
-		QTreeWidgetItem* parent=currentItem();
+		QTreeWidgetItem* parent=selected_item_;
 		QTreeWidgetItem* item=NULL;
 			
-		if(!parent && topLevelItemCount()==0)
+		if(!parent)
 		{
 			item=new QTreeWidgetItem(invisibleRootItem());
 		}
-		else if(parent && parent->text(1).size()==0 && parent->text(2)==0)
+		else if(parent->data(0,Qt::UserRole)==NODE)
 		{
 			item=new QTreeWidgetItem(parent);
 		}
-		else
+		else if(parent->data(0,Qt::UserRole)==ITEM)
 		{
 			return;
 		}
@@ -428,10 +428,12 @@ namespace OpenMS
 	{
 		if(e->key()==Qt::Key_Delete)
 		{
+			selected_item_=currentItem();
 			deleteItem();
 		}
 		else if(e->key()==Qt::Key_Insert)
 		{
+			selected_item_=currentItem();
 			insertItem();
 		}
 		else
@@ -442,8 +444,16 @@ namespace OpenMS
 
 	void ParamEditor::contextMenuEvent(QContextMenuEvent* event)
 	{
-		QTreeWidgetItem* item = itemAt(event->pos());
-		if (item  && item->text(1).size()==0 && item->text(2)==0)
+		selected_item_ = itemAt(event->pos());
+		if(!selected_item_)
+		{
+			// there is no item under the requested position
+			QMenu menu(this);
+			menu.addAction(tr("&Insert item"), this, SLOT(insertItem()));
+			menu.addAction(tr("&Insert node"), this, SLOT(insertNode()));
+			menu.exec(event->globalPos());
+		}
+		else if (selected_item_->data(0,Qt::UserRole)==NODE)
 		{
 			QMenu menu(this);
 			menu.addAction(tr("&Delete item"), this, SLOT(deleteItem()));
@@ -453,16 +463,13 @@ namespace OpenMS
 			menu.addAction(tr("&Collapse subtree"), this, SLOT(collapseTree()));			
 			menu.exec(event->globalPos());
 		}
-		else if(item)
+		else if(selected_item_->data(0,Qt::UserRole)==ITEM)
 		{
 			QMenu menu(this);
 			menu.addAction(tr("&Delete item"), this, SLOT(deleteItem()));
 			menu.exec(event->globalPos());
 		}
-		else
-		{
-			// there is no item under the requested position
-		}
+		
 	}
 	void ParamEditor::expandTree()
 	{
