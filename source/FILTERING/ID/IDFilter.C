@@ -466,5 +466,54 @@ namespace OpenMS
 			filtered_identification.setDateTime(date);  																								
 		}
 	}
+	
+		bool IDFilter::filterIdentificationsByRTPValues(const Identification& 	identification,
+																							 			Identification& 				filtered_identification,
+																							 			DoubleReal 							p_value)
+	{
+		DoubleReal border = 1 - p_value;
+		vector< UInt > new_peptide_indices;		
+		vector< UInt > new_protein_indices;
+		vector<PeptideHit> temp_peptide_hits;
+		vector<PeptideHit> filtered_peptide_hits;
+		PeptideHit temp_peptide_hit;
+		DateTime date;
+		bool unset_p_values = false;
+		DoubleReal temp = 0.0;
+		
+		filtered_identification.clear();
+		temp_peptide_hits = identification.getPeptideHits();
+		date = identification.getDateTime();
+		
+		for(UInt i = 0; i < temp_peptide_hits.size(); i++)
+		{
+			temp = temp_peptide_hits[i].getPredictedRTPValue();
+	  	if (temp <= border)
+	  	{
+	  		new_peptide_indices.push_back(i);
+			}
+			if (temp < 0)
+			{
+				unset_p_values = true;
+			}				
+		}		
+		
+		for(UInt i = 0; i < new_peptide_indices.size(); i++)
+		{
+			temp_peptide_hit = PeptideHit(temp_peptide_hits[new_peptide_indices[i]]);
+			temp_peptide_hit.setRank((i + 1));
+			filtered_peptide_hits.push_back(temp_peptide_hit);
+		}
+		if (filtered_peptide_hits.size() > 0 || identification.getProteinHits().size() > 0)
+		{
+  		filtered_identification.setPeptideAndProteinHits(filtered_peptide_hits, 
+  																											identification.getProteinHits());
+			filtered_identification.setPeptideSignificanceThreshold(identification.getPeptideSignificanceThreshold());
+			filtered_identification.setProteinSignificanceThreshold(identification.getProteinSignificanceThreshold());  																								
+			filtered_identification.setDateTime(date);  																								
+		}
+		
+		return unset_p_values;
+	}																		 																										 
 		
 } // namespace OpenMS

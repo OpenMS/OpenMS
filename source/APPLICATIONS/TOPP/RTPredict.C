@@ -273,6 +273,16 @@ class TOPPRTPredict
 																		predicted_retention_times.end(), 
 																		performance_retention_times.begin(), 
 																		performance_retention_times.end())), 1);														 
+			writeDebug_("Linear correlation between predicted and measured rt is: "
+									+ String(Math::BasicStatistics<Real>::pearsonCorrelationCoefficient(predicted_retention_times.begin(), 
+																		predicted_retention_times.end(), 
+																		performance_retention_times.begin(), 
+																		performance_retention_times.end())), 1);														 
+			writeDebug_("MSE between predicted and measured rt is: "
+									+ String(Math::BasicStatistics<Real>::meanSquareError(predicted_retention_times.begin(), 
+																		predicted_retention_times.end(), 
+																		performance_retention_times.begin(), 
+																		performance_retention_times.end())), 1);														 
 			return EXECUTION_OK;
 		}
 };

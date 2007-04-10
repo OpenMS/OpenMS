@@ -104,6 +104,18 @@ namespace OpenMS
 			/// removes all peptide hits having a sequence equal to a element in <code>peptides</code>
 			void filterIdentificationsByExclusionPeptides(const Identification& identification, std::vector<String> peptides, Identification& filtered_identification);
 																														
+		  /**
+				@brief Filters the peptide hits according to their predicted rt p-values
+				
+				Filters the peptide hits of this identification by the 
+				probability (p-value) of a correct identification having a deviation between 
+				observed and predicted rt equal or bigger than allowed. If there are 
+				unset p_values of the peptide hits the function returns 'true' 
+				otherwise 'false'.
+			*/
+			bool filterIdentificationsByRTPValues(const Identification& 	identification,
+																				 		Identification& 				filtered_identification,
+																				 		DoubleReal 							p_value = 0.05);
 
       /// filters an MS/MS experiment corresponding to the threshold_fractions
 			template <class PeakT>

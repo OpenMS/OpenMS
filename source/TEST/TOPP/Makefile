@@ -30,7 +30,6 @@ DIRECTORY=TEST/TOPP
 
 # Tests for individual tools
 UNCONDITIONAL_TESTS = \
-	ConsensusID_test \
 	MapNormalizer_test \
 	AdditiveSeries_test \
 	AnalysisXMLMerger_test \
@@ -467,6 +466,10 @@ IDFilter_test: $(NUMERICDIFF)
 	@$(call RUN_PROG_OPT,IDFilter,-in IDFilter_1_input.analysisXML -out IDFilter_3_output.tmp -exclusion_peptides_file IDFilter_3_input.analysisXML)
 	@$(call TEST_FILE_EQUAL,IDFilter_3_output.analysisXML,IDFilter_3_output.tmp)
 
+	@$(ECHO) "- Test 4: retention time"
+	@$(call RUN_PROG_OPT,IDFilter,-in IDFilter_4_input.analysisXML -out IDFilter_4_output.tmp -rt_filtering -p_value 0.08)
+	@$(call TEST_FILE_EQUAL,IDFilter_4_output.analysisXML,IDFilter_4_output.tmp)
+
 LabeledMatcher_test: $(NUMERICDIFF)
 	@$(ECHO) ""
 	@$(ECHO) "LabeledMatcher:"
@@ -643,19 +646,6 @@ UnlabeledMatcher_test: $(NUMERICDIFF)
 	@$(call TEST_FILE_EQUAL,UnlabeledMatcher_1_pairs.xml)
 	@$(call TEST_FILE_EQUAL,UnlabeledMatcher_1_grid.xml)
 
-ConsensusID_test: $(NUMERICDIFF)
-	@$(ECHO) ""
-	@$(ECHO) "ConsensusID:"
-
-	@$(ECHO) "- Test 1: Map consensus"
-	@$(call RUN_PROG_OPT,ConsensusID,-ini ConsensusID_1_parameters.ini -out ConsensusID_1_output.tmp)
-	@$(SED) -i 's/^.*date_group_0.*$$/# date group removed/g' ConsensusID_1_output.tmp
-	@$(call TEST_FILE_EQUAL,ConsensusID_1_output.analysisXML)
-
-	@$(ECHO) "- Test 2: Feature consensus"
-	@$(call RUN_PROG_OPT,ConsensusID,-ini ConsensusID_2_parameters.ini -out ConsensusID_2_output.tmp -features ConsensusID_2_features.feat)
-	@$(SED) -i 's/^.*date_group_0.*$$/# date group removed/g' ConsensusID_2_output.tmp
-	@$(call TEST_FILE_EQUAL,ConsensusID_2_output.analysisXML)
 
 ###########################################################################################
 ## Tests for processing pipelines.
@@ -673,6 +663,10 @@ MyoQuant_test: $(NUMERICDIFF)
 	@$(ECHO) "	AdditiveSeries, linear regression";
 	@$(call RUN_PROG_OPT,AdditiveSeries,-ini MyoQuant_1_parameters.ini)
 	@$(call TEST_FILE_EQUAL,MyoQuant_1_output.xml)
+
+	@$(ECHO) ""
+	@$(ECHO) "- Test 2: Additive Series using intensity ratio of tryptic peptides T11hu / T10ho, with dewarping"
+	@$(ECHO) "	... todo ..."
 
 PairwiseSuperposition_test: $(NUMERICDIFF)
 	@$(ECHO) ""

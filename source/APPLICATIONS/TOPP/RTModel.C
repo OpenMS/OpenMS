@@ -198,7 +198,7 @@ class TOPPRTModel
 			bool additive_cv = true;
 			Param additional_parameters;
 			pair<DoubleReal, DoubleReal> sigmas;
-			Int temp_type;
+			Int temp_type = POLY;
 			String debug_string = "";
 			DoubleReal sigma = 0.1;
 			UInt k_mer_length = 1;

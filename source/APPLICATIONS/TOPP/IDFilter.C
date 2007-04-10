@@ -93,7 +93,6 @@ using namespace std;
 		</li>
 	</ul>
 	
-	@todo write test for filtering by retention time (Nico)
 	@todo make filtering by score possible
 */
 
@@ -121,10 +120,10 @@ class TOPPIDFilter
 		registerStringOption_("exclusion_peptides_file","<file>","","An AnalysisXML file. Peptides having the same sequence as any peptide in this file will be filtered out",false);
 		registerDoubleOption_("pep_fraction","<fraction>",0.0,"the fraction of the peptide significance threshold that should be reached by a peptide hit",false);	
 		registerDoubleOption_("prot_fraction","<fraction>",0.0,"the fraction of the protein significance threshold that should be reached by a protein hit",false);
-		registerDoubleOption_("total_gradient_time","<time>",0.0,"the total time the HPLC gradient ran",false);	
-		registerDoubleOption_("allowed_deviation","<dev>",0.0,"standard deviation allowed for the predicted retention times",false);	
+		registerDoubleOption_("p_value","<significance>",0.05,"The probability of a correct identification having a deviation between observed and predicted rt equal or bigger than allowed",false);	
 		registerFlag_("best_hits","If this flag is set only the highest scoring hit is kept.\n"
-															"If there is are two or more highest scoring hits, none are kept.");
+															"If there are two or more highest scoring hits, none are kept.");
+		registerFlag_("rt_filtering","If this flag is set rt filtering will be pursued.");
 	}
 
 	ExitCodes main_(int , char**)
@@ -143,8 +142,10 @@ class TOPPIDFilter
 		Identification filtered_identification;
 		vector<UInt> charges;
 		vector< pair< String, String > > sequences;
-		map<String, double> predicted_retention_times;
+		map<String, DoubleReal> predicted_retention_times;
 		vector<String> exclusion_peptides;
+		bool rt_filtering = false;
+		DoubleReal p_value = 0.05;
 		
 		//-------------------------------------------------------------
 		// parsing parameters
@@ -156,8 +157,8 @@ class TOPPIDFilter
 		String outputfile_name = getStringOption_("out");
 		outputFileWritable_(outputfile_name);
 		
-		double peptide_significance_threshold_fraction = getDoubleOption_("pep_fraction");
-		double protein_significance_threshold_fraction = getDoubleOption_("prot_fraction");
+		DoubleReal peptide_significance_threshold_fraction = getDoubleOption_("pep_fraction");
+		DoubleReal protein_significance_threshold_fraction = getDoubleOption_("prot_fraction");
 		
 		String sequences_file_name = getStringOption_("sequences_file");
 		if (sequences_file_name!="")
@@ -171,8 +172,8 @@ class TOPPIDFilter
 			inputFileReadable_(exclusion_peptides_file_name);
 		}
 		
-		double total_gradient_time = getDoubleOption_("total_gradient_time");
-		double allowed_deviation = getDoubleOption_("allowed_deviation");
+		p_value = getDoubleOption_("p_value");
+		rt_filtering = getFlag_("rt_filtering");
 
 		bool strict = getFlag_("best_hits");
 	
@@ -180,7 +181,7 @@ class TOPPIDFilter
 		// reading input
 		//-------------------------------------------------------------
 	
-		if (total_gradient_time != 0.0)
+		if (rt_filtering)
 		{
 			analysisXML_file.load(inputfile_name,
 														protein_identifications, 
@@ -232,21 +233,23 @@ class TOPPIDFilter
 																							 sequences,
 																							 filtered_identification);
 			}
-/*			
-			if (total_gradient_time != 0.0)
+
+			if (rt_filtering)
 			{
 				Identification temp_identification = filtered_identification;
-
-				filter.filterIdentificationsByRetentionTimes(temp_identification, 
-																										 predicted_retention_times,
-																										 identifications[i].rt,
-																										 predicted_sigma,
-																										 allowed_deviation,
-																										 total_gradient_time,
-																										 filtered_identification);
-
+				bool unset_p_values = filter.filterIdentificationsByRTPValues(temp_identification,
+																																			filtered_identification,
+																																			p_value);
+				if (unset_p_values)
+				{
+					writeDebug_("There were peptides without predicted retention time."
+											+ String(" These peptides\nwere not filtered. Please")
+											+ " use the RTModel and RTPredict tools to get the "
+											+ "predicted retention times", 1);
+											
+				}																																		
 			}
-*/				
+
 			if (exclusion_peptides_file_name != "")
 			{
 				Identification temp_identification = filtered_identification;
@@ -277,7 +280,7 @@ class TOPPIDFilter
 		// writing output
 		//-------------------------------------------------------------
 		
-		if (total_gradient_time != 0.0)
+		if (rt_filtering)
 		{
 			analysisXML_file.store(outputfile_name,
 														 protein_identifications, 
