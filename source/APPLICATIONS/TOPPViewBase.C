@@ -171,6 +171,8 @@ namespace OpenMS
     layer->addAction("&Edit metadata",this,SLOT(editMetadata()));
     layer->addAction("&Intensity distribution",this,SLOT(layerIntensityDistribution()));
 		layer->addSeparator();
+    layer->addAction("Apply &TOPP tool", this, SLOT(showTOPPDialog()));
+		layer->addSeparator();
     layer->addAction("&Preferences",this, SLOT(layerPreferencesDialog()));
     
     //View menu
@@ -196,7 +198,6 @@ namespace OpenMS
     QMenu* tools_menu = new QMenu("&Tools",this);
     menuBar()->addMenu(tools_menu);
     tools_menu->addAction("&Edit INI file", this, SLOT(editParamDialog()));
-		tools_menu->addAction("&TOPP tools", this, SLOT(showTOPPDialog()));
     //create status bar
     message_label_ = new QLabel(statusBar());
     statusBar()->addWidget(message_label_,1);

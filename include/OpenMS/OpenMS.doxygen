@@ -83,6 +83,9 @@ Ideen:
 Todos:
 - make install mit prefix testen (Hiwi)
 
+Spectrum2DCanvas -- Punkte wenn zu viele Daten
+Spectrum2DCanvas -- Features -> Hüllen an
+Seg-Fault
 FileInfo -- Merge with MapStatistics
 Spectrum2DCanvas -- Context menu: show scan, precursor scan, ID, EIC 
 Spectrum2DCanvas -- Projections: follow 2D view, info box with intensity 
