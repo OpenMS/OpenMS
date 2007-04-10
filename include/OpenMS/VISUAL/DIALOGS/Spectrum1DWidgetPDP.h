@@ -57,7 +57,6 @@ namespace OpenMS
 			
 			protected:            
 				PreferencesDialogPage* colors_;
-				QComboBox* axis_mapping_;
 		};
 	
 	} //namespace Internal

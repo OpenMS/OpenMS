@@ -42,7 +42,7 @@
  - peak @n
  	 Data point that is the result of some kind of peak detection algorithm. 
  	 Peaks are often referred to as @a sticks or @a centroided @a data as well.
- - spectrum @n
+ - spectrum / scan @n
 	 A mass spectrum containing raw data points (<i>raw spectrum</i>) or peaks (<i>peak spectrum</i>).
 
 	@image html Terms_Spectrum.png "Part of a raw spectrum (blue) with three peaks (red)" 

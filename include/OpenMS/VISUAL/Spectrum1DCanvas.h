@@ -120,8 +120,6 @@ namespace OpenMS
 		void setVisibleArea(DRange<2> range); //Do not change this to AreaType the signal needs QT needs the exact type...
 		// Docu in base class
 		virtual void horizontalScrollBarChange(int value);
-		// Docu in base class
-		virtual void verticalScrollBarChange(int value);
 	
 	protected:
 		/**

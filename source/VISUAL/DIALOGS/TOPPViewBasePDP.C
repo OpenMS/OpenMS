@@ -145,13 +145,6 @@ namespace OpenMS
 			addWidget_(box->layout(),2,"Highlighted peak color:",high_color_);
 			back_color_1D_ = new ColorSelector(box);
 			addWidget_(box->layout(),3,"Background color:",back_color_1D_);						
-
-			//mapping box
-			box =	addBox_(grid,1,0,"Mapping");		
-			axis_mapping_ = new QComboBox( box);
-			axis_mapping_->insertItem(0,"X-Axis");
-			axis_mapping_->insertItem(1,"Y-Axis");
-			addWidget_(box->layout(),0,"Map m/z to: ",axis_mapping_);
 			
 			finish_(grid);
 			
@@ -296,7 +289,6 @@ namespace OpenMS
 			icon_color_->setColor(QColor(manager_->getPrefAsString("Preferences:1D:IconColor").c_str()));
 			high_color_->setColor(QColor(manager_->getPrefAsString("Preferences:1D:HighColor").c_str()));
 			back_color_1D_->setColor(QColor(manager_->getPrefAsString("Preferences:1D:BackgroundColor").c_str()));
-			axis_mapping_->setCurrentIndex(axis_mapping_->findText(manager_->getPrefAsString("Preferences:1D:Mapping:MappingOfMzTo").c_str()));
 
 			//2D
 			if (UInt(manager_->getPref("Preferences:2D:Dot:Mode"))==Spectrum2DCanvas::DOT_GRADIENT)
@@ -369,7 +361,6 @@ namespace OpenMS
 			manager_->setPref("Preferences:1D:IconColor",icon_color_->getColor().name().toAscii().data());
 			manager_->setPref("Preferences:1D:HighColor",high_color_->getColor().name().toAscii().data());
 			manager_->setPref("Preferences:1D:BackgroundColor",back_color_1D_->getColor().name().toAscii().data());
-			manager_->setPref("Preferences:1D:Mapping:MappingOfMzTo",axis_mapping_->currentText().toAscii().data());
 			
 			//2D
 			if (dot_mode_gradient_->isChecked())

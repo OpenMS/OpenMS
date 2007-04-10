@@ -83,11 +83,11 @@ Ideen:
 Todos:
 - make install mit prefix testen (Hiwi)
 
-FileInfo -- Merge with MapStatistics
-Spectrum2DCanvas -- Context menu: show scan, precursor scan, ID, EIC 
+Spectrum2DCanvas -- Zoom: always with scrollwheel (Marc)
 Spectrum2DCanvas -- Projections: follow 2D view, info box with intensity 
-Spectrum2DCanvas -- Zoom: fix bug
+Spectrum2DCanvas -- Context menu: show scan, precursor scan, ID, EIC 
 Spectrum2DCanvas -- Punkte wenn zu viele Daten
+FileInfo -- Merge with MapStatistics
 
 DataValue -- derive from QVariant 
 Identification -- Store ScoreType (with direction) and AccessionType as Enum in Identification (Marc, Andreas)
@@ -97,5 +97,5 @@ String -- derive from QString
 TOPPViewBase -- Add preferences for layers 
 TOPPViewBase -- Layer - annotate with ID
 XMLHandler -- Add external CVs, integrate OLS
-  
+
 ***********************************************************************/

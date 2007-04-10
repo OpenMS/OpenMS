@@ -135,6 +135,7 @@ namespace OpenMS
 	
 	void SpectrumCanvas::changeVisibleArea_(const AreaType& new_area, bool add_to_stack)
 	{
+		//cout << "CWA: " << new_area << endl;
 #ifdef DEBUG_TOPPVIEW
 		cout << "BEGIN " << __PRETTY_FUNCTION__ << endl;
 #endif
@@ -172,6 +173,7 @@ namespace OpenMS
 		}
 		else
 		{
+			//cout << __PRETTY_FUNCTION__ << endl;
 			changeVisibleArea_(zoom_stack_.top());
 			zoom_stack_.pop();
 		}
@@ -186,6 +188,7 @@ namespace OpenMS
 
 		AreaType tmp;
 		tmp.assign(overall_data_range_);
+		//cout << __PRETTY_FUNCTION__ << endl;
 		changeVisibleArea_(tmp);
 #ifdef DEBUG_TOPPVIEW
 		cout << "END   " << __PRETTY_FUNCTION__ << endl;
@@ -194,6 +197,7 @@ namespace OpenMS
 	
 	void SpectrumCanvas::setVisibleArea(AreaType area)
 	{
+		//cout << __PRETTY_FUNCTION__ << endl;
 		changeVisibleArea_(area);
 	}
 	

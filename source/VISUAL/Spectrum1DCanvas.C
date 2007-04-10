@@ -122,9 +122,9 @@ namespace OpenMS
 			}
 			case AM_ZOOM:
 			{
-				if (e->modifiers() & Qt::ControlModifier) //translate
+				if(e->buttons() & Qt::LeftButton)
 				{
-					if(e->buttons() & Qt::LeftButton)
+					if (e->modifiers() & Qt::ControlModifier) //translate
 					{
 						// translation in data metric
 						double shift = widgetToData_(last_mouse_pos_).getX() - widgetToData_(p).getX();
@@ -145,17 +145,28 @@ namespace OpenMS
 						changeVisibleArea_(newLo, newHi);
 						last_mouse_pos_=p;
 					}
-				}
-				else //zoom
-				{
-					PointType pos = widgetToData_(p);
-		
-					if (e->buttons() & Qt::LeftButton)
+					else //zoom
 					{
-						rubber_band_.setGeometry(last_mouse_pos_.x(), 0, p.x() - last_mouse_pos_.x(), height());
-						update_(__PRETTY_FUNCTION__);
+						PointType pos = widgetToData_(p);
+			
+						if (e->buttons() & Qt::LeftButton)
+						{
+							rubber_band_.setGeometry(last_mouse_pos_.x(), 0, p.x() - last_mouse_pos_.x(), height());
+							update_(__PRETTY_FUNCTION__);
+						}
+						emit sendCursorStatus( pos.getX() );
 					}
-					emit sendCursorStatus( pos.getX() );
+				}
+				else
+				{
+					if (e->modifiers() & Qt::ControlModifier) //translate
+					{
+						setCursor(Qt::OpenHandCursor);
+					}
+					else //zoom
+					{
+						setCursor(Qt::CrossCursor);
+					}
 				}
 				break;
 			}
@@ -320,18 +331,9 @@ namespace OpenMS
 		//double dest_interval_start, dest_interval_end;
 		// select source interval start and end depending on diagram orientation
 	
-		if (isMzToXAxis())
-		{
-			// select destination interval start and end depending on diagram orientation AND axis direction
-			dest_interval_start = height();
-			dest_interval_end = 0;
-		}
-		else
-		{
-			// select destination interval start and end depending on diagram orientation and axis direction
-			dest_interval_start = 0;
-			dest_interval_end = width();
-		}
+		// select destination interval start and end
+		dest_interval_start = height();
+		dest_interval_end = 0;
 	
 		int nearest_intensity = static_cast<int>(intervalTransformation(nearest_it->getIntensity(), visible_area_.minY(),
 		                                                                 visible_area_.maxY(), dest_interval_start, dest_interval_end));
@@ -341,21 +343,10 @@ namespace OpenMS
 		{
 			current_intensity = static_cast<int>(intervalTransformation(it->getIntensity(), visible_area_.minY(), visible_area_.maxY(),
 			                                                             dest_interval_start, dest_interval_end));
-			if (isMzToXAxis())
+			if ( abs(current_intensity - p.y()) < abs(nearest_intensity - p.y()))
 			{
-				if ( abs(current_intensity - p.y()) < abs(nearest_intensity - p.y()))
-				{
-					nearest_intensity = current_intensity;
-					nearest_it = it;
-				}
-			}
-			else
-			{
-				if ( abs(current_intensity - p.x()) < abs(nearest_intensity - p.x()))
-				{
-					nearest_intensity = current_intensity;
-					nearest_it = it;
-				}
+				nearest_intensity = current_intensity;
+				nearest_it = it;
 			}
 		}
 	
@@ -442,10 +433,6 @@ namespace OpenMS
 	void Spectrum1DCanvas::setMainPreferences(const Param& prefs)
 	{
 		SpectrumCanvas::setMainPreferences(prefs);
-		if (getPrefAsString("Preferences:1D:Mapping:MappingOfMzTo") != "X-Axis")
-		{
-			mzToXAxis(false);
-		}
 	}
 	
 	void Spectrum1DCanvas::paintEvent(QPaintEvent* e)
@@ -791,34 +778,13 @@ namespace OpenMS
 
 	void Spectrum1DCanvas::updateScrollbars_()
 	{
-		if (isMzToXAxis())
-		{
-			emit updateHScrollbar(overall_data_range_.min()[0],visible_area_.min()[0],visible_area_.max()[0],overall_data_range_.max()[0]);
-			emit updateVScrollbar(1,1,1,1);
-		}
-		else
-		{
-			emit updateHScrollbar(1,1,1,1);
-			emit updateVScrollbar(overall_data_range_.min()[0],visible_area_.min()[0],visible_area_.max()[0],overall_data_range_.max()[0]);
-		}
+		emit updateHScrollbar(overall_data_range_.min()[0],visible_area_.min()[0],visible_area_.max()[0],overall_data_range_.max()[0]);
+		emit updateVScrollbar(1,1,1,1);
 	}
 
 	void Spectrum1DCanvas::horizontalScrollBarChange(int value)
 	{
-		if (isMzToXAxis())
-		{
-			changeVisibleArea_(value, value + (visible_area_.max()[0] - visible_area_.min()[0]));
-		}
-	}
-
-	void Spectrum1DCanvas::verticalScrollBarChange(int value)
-	{
-		if (!isMzToXAxis())
-		{
-			double range = (overall_data_range_.maxX() - overall_data_range_.minX())- (visible_area_.maxX() - visible_area_.minX());
-			double newval = (1.0 - (double(value) - overall_data_range_.minX()) / range )* range + overall_data_range_.minX();
-			changeVisibleArea_(newval, newval + (visible_area_.maxX() - visible_area_.minX()));
-		}
+		changeVisibleArea_(value, value + (visible_area_.max()[0] - visible_area_.min()[0]));
 	}
 
 }//Namespace

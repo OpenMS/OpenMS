@@ -86,11 +86,10 @@ namespace OpenMS
 			ColorSelector* high_color_;
 			ColorSelector* icon_color_;
 			ColorSelector* back_color_1D_;
-			ColorSelector* back_color_2D_;
-			QComboBox* axis_mapping_2d_;
-			QComboBox* axis_mapping_;
 			
 			//2d
+			QComboBox* axis_mapping_2d_;
+			ColorSelector* back_color_2D_;
 			QSpinBox* marching_squares_steps_;
 			QSpinBox* contour_steps_;
 			QSpinBox* interpolation_steps_;

@@ -55,13 +55,6 @@ namespace OpenMS
 			colors_ = manager->client("Canvas", this);
 			grid->addWidget(colors_,0,0);
 			
-			//mapping
-			QGroupBox* box =	addBox_(grid,1,0,"Mapping");
-			axis_mapping_ = new QComboBox( box);
-			axis_mapping_->insertItem(0,"X-Axis");
-			axis_mapping_->insertItem(1,"Y-Axis");  
-			addWidget_(box->layout(),0,"Map m/z to:",axis_mapping_);
-			
 			finish_(grid);
 			
 			load();
@@ -75,23 +68,12 @@ namespace OpenMS
 		void Spectrum1DWidgetPDP::load()
 		{
 			Spectrum1DWidget* w = dynamic_cast<Spectrum1DWidget*>(manager_);
-			
-		  if (w->canvas()->isMzToXAxis()) 
-		  {
-		  	axis_mapping_->setCurrentIndex(0);
-			}
-			else
-			{
-				axis_mapping_->setCurrentIndex(1);
-			}
 		}
 		
 		void Spectrum1DWidgetPDP::save()
 		{
 			Spectrum1DWidget* w = dynamic_cast<Spectrum1DWidget*>(manager_);
 			
-			(axis_mapping_->currentText()=="X-Axis") ? w->mzToXAxis(true) : w->mzToXAxis(false);
-
 			colors_->save();
 		}
 

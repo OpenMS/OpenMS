@@ -935,7 +935,8 @@ namespace OpenMS
 		
 		//overall values update
 		updateRanges_(current_layer_,0,1,2);
-
+		//cout << "New data range: " << overall_data_range_ << endl;
+		
 		if (getLayerCount()==1)
 		{
 			AreaType tmp_area;
@@ -1103,12 +1104,14 @@ namespace OpenMS
 		{
 			new_area.setMinX(value);
 			new_area.setMaxX(value + (visible_area_.maxX() - visible_area_.minX()));
+			//cout << __PRETTY_FUNCTION__ << endl;
 			changeVisibleArea_(new_area);
 		}
 		else
 		{
 			new_area.setMinY(value);
 			new_area.setMaxY(value + (visible_area_.maxY() - visible_area_.minY()));
+			//cout << __PRETTY_FUNCTION__ << endl;
 			changeVisibleArea_(new_area);
 		}
 	}
@@ -1118,22 +1121,16 @@ namespace OpenMS
 		AreaType new_area = visible_area_;
 		if (!isMzToXAxis())
 		{
-			double range = (overall_data_range_.maxX() - overall_data_range_.minX())- (visible_area_.maxX() - visible_area_.minX());
-			double newval = (1.0 - (double(value) - overall_data_range_.minX()) / range )* range + overall_data_range_.minX();
-			//cout << value << " " << newval << " " << newval + (visible_area_.maxX() - visible_area_.minX()) << endl;
-			//cout << "Min: " <<  overall_data_range_.minX() << " Range: " << range << endl << endl;
-			new_area.setMinX(newval);
-			new_area.setMaxX(newval + (visible_area_.maxX() - visible_area_.minX()));
+			new_area.setMinX(value);
+			new_area.setMaxX(value + (visible_area_.maxX() - visible_area_.minX()));
+			//cout << __PRETTY_FUNCTION__ << endl;
 			changeVisibleArea_(new_area);
 		}
 		else
 		{
-			double range = (overall_data_range_.maxY() - overall_data_range_.minY())- (visible_area_.maxY() - visible_area_.minY());
-			double newval = (1.0 - (double(value) - overall_data_range_.minY()) / range )* range + overall_data_range_.minY();
-			//cout << value << " " << newval << " " << newval + (visible_area_.maxY() - visible_area_.minY()) << endl;
-			//cout << "Min: " <<  overall_data_range_.minY() << " Range: " << range << endl << endl;
-			new_area.setMinY(newval);
-			new_area.setMaxY(newval + (visible_area_.maxY() - visible_area_.minY()));
+			new_area.setMinY(value);
+			new_area.setMaxY(value + (visible_area_.maxY() - visible_area_.minY()));
+			//cout << __PRETTY_FUNCTION__ << endl;
 			changeVisibleArea_(new_area);
 		}
 	}
@@ -1447,6 +1444,8 @@ namespace OpenMS
 						}
 		     		
 		     		//change area
+						//cout << "New area: x " << newLoX <<"-"<< newHiX << " - y "<<newLoY <<"-"<< newHiY << endl;
+						//cout << __PRETTY_FUNCTION__ << endl;
 						changeVisibleArea_(AreaType(newLoX,newLoY,newHiX,newHiY));
 		
 						last_mouse_pos_ = pos;
@@ -1463,7 +1462,7 @@ namespace OpenMS
 					{
 						setCursor(Qt::OpenHandCursor);
 					}
-					else
+					else //zoom
 					{
 						setCursor(Qt::CrossCursor);
 					}
@@ -1536,6 +1535,7 @@ namespace OpenMS
 					if (rect.width()!=0 && rect.height()!=0) //probably double click -> mouseDoubleClickEvent
 					{
 						AreaType area(widgetToData_(rect.topLeft()), widgetToData_(rect.bottomRight()));
+						//cout << __PRETTY_FUNCTION__ << endl;
 						changeVisibleArea_(area, true);
 					}
 				}
@@ -1579,6 +1579,7 @@ namespace OpenMS
 					if (new_pos.getY() > overall_data_range_.maxY() - half_height)  new_pos.setY(overall_data_range_.maxY() - half_height);
 			
 					// set visible area accordingly and redraw
+					//cout << __PRETTY_FUNCTION__ << endl;
 					changeVisibleArea_(AreaType(new_pos.getX() - half_width, new_pos.getY() - half_height, new_pos.getX() + half_width, new_pos.getY() + half_height), true);
 				}
 				else // backward rotation -> zoom out

@@ -62,6 +62,7 @@ namespace OpenMS
 		//scrollbars
 		x_scrollbar_ = new QScrollBar(Qt::Horizontal, this);
 		y_scrollbar_ = new QScrollBar(Qt::Vertical, this);
+		y_scrollbar_->setInvertedAppearance(true);
 		grid_->addWidget(y_scrollbar_,row,col-2);
 		grid_->addWidget(x_scrollbar_,row+2,col);		
 		x_scrollbar_->hide();
@@ -279,7 +280,7 @@ namespace OpenMS
 			y_scrollbar_->show();
 			y_scrollbar_->setMinimum(static_cast<int>(min));
 			y_scrollbar_->setMaximum(static_cast<int>(max-disp_max+disp_min));
-			y_scrollbar_->setValue(static_cast<int>(max-disp_max+min));
+			y_scrollbar_->setValue(static_cast<int>(disp_min));
 			y_scrollbar_->setPageStep(static_cast<int>(disp_max-disp_min));
 		}
 	}
