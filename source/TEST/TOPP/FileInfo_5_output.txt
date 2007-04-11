@@ -47,4 +47,16 @@ Contact Person
   Email            : 
 
 
+-- Statistics --
+
+Intensities:
+  mean: 869.84
+  median: 490.92
+  variance: 1891529.99
+  min: 16.30
+  max: 38920.12
+  lower_quartile: 209.70
+  upper_quartile: 1037.65
+
+
 

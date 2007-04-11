@@ -31,6 +31,10 @@
 #include <OpenMS/FORMAT/PeakTypeEstimator.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 
+#include <QtCore/QString>
+
+#include <gsl/gsl_sort.h>
+#include <gsl/gsl_statistics.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -48,7 +52,7 @@ using namespace std;
 	and retention time range that data lies in and some statistics about the number of spectra 
 	for each MS level is displayed.
 	
-	Additionally an overview of the metadata of the experiment can be displayed.
+	Additionally an overview of the metadata of the map and a statistical summary of intensities can be displayed.
 	
 	@todo Merge with MapStatistics (Marc)
 */
@@ -74,6 +78,7 @@ class TOPPFileInfo
 			registerStringOption_("in_type","<type>","","input file type (default: determined from file extension or content)\n"
 			                                            "Valid types are: 'mzData', 'mzXML', 'DTA2D', 'ANDIMS' (cdf) , 'FeatureFile'", false);
 			registerFlag_("m","show meta information about the whole experiment");
+			registerFlag_("s","computes a five-number statistics of intensities (and feature qualities)");
 		}
 		
 		ExitCodes main_(int , char**)
@@ -236,6 +241,123 @@ class TOPPFileInfo
 					     << "  Last Name        : " << exp_set->getContacts()[i].getLastName() << endl
 					     << "  Email            : " << exp_set->getContacts()[i].getEmail() << endl
 					     << endl;
+				}
+			}
+
+			// '-s' show statistics
+			if (getFlag_("s"))
+			{
+				cout << endl
+				     << "-- Statistics --" << endl
+				     << endl;
+				if (in_type!=FileHandler::FEATURE) //peaks
+				{
+					//copy intensities of  MS-level 1 peaks
+					exp.updateRanges(1);
+					UInt size = exp.getSize();
+					Peak1D::IntensityType * intensities = new  Peak1D::IntensityType[ size ];
+					UInt i = 0;
+		      for (MSExperiment<>::const_iterator spec = exp.begin(); spec != exp.end(); ++spec)
+		      {
+			      if (spec->getMSLevel()!=1)
+			      {
+			          continue;
+			      }
+			      for (MSExperiment<>::SpectrumType::const_iterator it = spec->begin(); it!=spec->end(); ++it)
+			      {
+							intensities[i++] = it->getIntensity();
+			      }
+			      
+		      }
+		
+					gsl_sort(intensities, 1, size);
+		
+					double mean_int, var_int, max_int, min_int;
+					mean_int = gsl_stats_mean(intensities,1,size);
+					var_int  = gsl_stats_variance(intensities,1,size);
+					max_int  = gsl_stats_max(intensities,1,size);
+					min_int  = gsl_stats_min(intensities,1,size);
+		
+					double median_int, upperq_int, lowerq_int;
+					median_int = gsl_stats_median_from_sorted_data(intensities,1,size);
+					upperq_int = gsl_stats_quantile_from_sorted_data(intensities,1,size,0.75);
+					lowerq_int = gsl_stats_quantile_from_sorted_data (intensities,1,size,0.25);
+		
+					delete [] intensities;
+		
+					cout << "Intensities:" << endl
+							 << "  mean: " << QString::number(mean_int,'f',2).toStdString() << endl
+							 << "  median: " << QString::number(median_int,'f',2).toStdString() << endl
+							 << "  variance: " << QString::number(var_int,'f',2).toStdString() << endl
+							 << "  min: " << QString::number(min_int,'f',2).toStdString() << endl
+							 << "  max: " << QString::number(max_int,'f',2).toStdString() << endl
+							 << "  lower_quartile: " << QString::number(lowerq_int,'f',2).toStdString() << endl
+							 << "  upper_quartile: " << QString::number(upperq_int,'f',2).toStdString() << endl
+							 << endl;
+							 
+				}
+				else //features
+				{
+					UInt size = feat.size();
+		
+					typedef FeatureMap<>::FeatureType::IntensityType IntensityType;
+					typedef FeatureMap<>::FeatureType::QualityType QualityType;
+		
+					IntensityType * intensities = new IntensityType[ size ];
+					QualityType * qualities	 = new QualityType[ size ];
+		
+					for (unsigned int i = 0; i < size; 	++i)
+					{
+						intensities[i] = feat.at(i).getIntensity();
+						qualities[i]   = feat.at(i).getOverallQuality();
+					}
+		
+					gsl_sort(intensities, 1, size);
+					gsl_sort(qualities, 1, size);
+		
+					double mean_int, var_int, max_int, min_int;
+					mean_int = gsl_stats_mean(intensities,1,size);
+					var_int  = gsl_stats_variance(intensities,1,size);
+					max_int  = gsl_stats_max(intensities,1,size);
+					min_int  = gsl_stats_min(intensities,1,size);
+		
+					double mean_q, var_q, max_q, min_q;
+					mean_q = gsl_stats_mean(qualities,1,size);
+					var_q  = gsl_stats_variance(qualities,1,size);
+					max_q  = gsl_stats_max(qualities,1,size);
+					min_q  = gsl_stats_min(qualities,1,size);
+		
+					double median_int, upperq_int, lowerq_int;
+					median_int = gsl_stats_median_from_sorted_data(intensities,1,size);
+					upperq_int = gsl_stats_quantile_from_sorted_data(intensities,1,size,0.75);
+					lowerq_int = gsl_stats_quantile_from_sorted_data (intensities,1,size,0.25);
+		
+					double median_q, upperq_q, lowerq_q;
+					median_q = gsl_stats_median_from_sorted_data(qualities,1,size);
+					upperq_q = gsl_stats_quantile_from_sorted_data(qualities,1,size,0.75);
+					lowerq_q = gsl_stats_quantile_from_sorted_data (qualities,1,size,0.25);
+		
+					delete [] intensities;
+					delete [] qualities;
+					
+					cout << "Intensities:" << endl
+							 << "  mean: " << QString::number(mean_int,'f',2).toStdString() << endl
+							 << "  median: " << QString::number(median_int,'f',2).toStdString() << endl
+							 << "  variance: " << QString::number(var_int,'f',2).toStdString() << endl
+							 << "  min: " << QString::number(min_int,'f',2).toStdString() << endl
+							 << "  max: " << QString::number(max_int,'f',2).toStdString() << endl
+							 << "  lower_quartile: " << QString::number(lowerq_int,'f',2).toStdString() << endl
+							 << "  upper_quartile: " << QString::number(upperq_int,'f',2).toStdString() << endl
+							 << endl
+							 << "Qualities:" << endl
+							 << "  mean: " << QString::number(mean_q,'f',4).toStdString() << endl
+							 << "  median: " << QString::number(median_q,'f',4).toStdString()  << endl
+							 << "  variance: " << QString::number(var_q,'f',4).toStdString()  << endl
+							 << "  min: " << QString::number(min_q,'f',4).toStdString()  << endl
+							 << "  max: " << QString::number(max_q,'f',4).toStdString()  << endl
+							 << "  lower_quartile: " << QString::number(lowerq_q,'f',4).toStdString()  << endl
+							 << "  upper_quartile: " << QString::number(upperq_q,'f',4).toStdString()  << endl
+							 ;
 				}
 			}
 			

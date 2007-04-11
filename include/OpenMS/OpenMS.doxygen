@@ -85,7 +85,6 @@ Todos:
 
 Spectrum2DCanvas -- Context menu: show scan, precursor scan, ID, EIC 
 
-FileInfo -- Merge with MapStatistics
 DataValue -- derive from QVariant 
 Identification -- Store ScoreType (with direction) and AccessionType as Enum in Identification (Marc, Andreas)
 MSExperiment -- Add getPrecursorRT(rt/scan nr) and update ID adapters and IDSpectrumMapper 

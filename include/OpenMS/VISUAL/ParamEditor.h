@@ -39,14 +39,10 @@ namespace OpenMS
  	class Param;
 	
 	/**
-	
 		@brief Visualization of class Param's loaded XML-file
 		
 		This class provides visualization for the XML-files and class Param.
 		It can also be used to edit the data visually.
-		
-		
-		@todo Add INIFileEditor TOPP tool (Stefan)
 		
 		@ingroup Visual
 	*/

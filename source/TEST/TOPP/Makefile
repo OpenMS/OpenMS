@@ -49,7 +49,6 @@ UNCONDITIONAL_TESTS = \
 	LabeledMatcher_test \
 	MapDewarper_test \
 	MapMatcher_test \
-	MapStatistics_test \
 	MascotAdapter_test \
 	NoiseFilter_test \
 	PeakPicker_test \
@@ -405,16 +404,16 @@ FileInfo_test: $(NUMERICDIFF)
 	@$(call RUN_PROG_OPT,FileInfo,-in FileInfo_2_input.dta2d > FileInfo.tmp)
 	@$(call TEST_FILE_EQUAL,FileInfo_2_output.txt,FileInfo.tmp)
 
-	@$(ECHO) "- Test 3: feature file test (with meta info)"
-	@$(call RUN_PROG_OPT,FileInfo,-in FileInfo_3_input.feat -m > FileInfo.tmp)
+	@$(ECHO) "- Test 3: feature file test (with meta info and statistics)"
+	@$(call RUN_PROG_OPT,FileInfo,-in FileInfo_3_input.feat -m -s > FileInfo.tmp)
 	@$(call TEST_FILE_EQUAL,FileInfo_3_output.txt,FileInfo.tmp)
 
 	@$(ECHO) "- Test 4: MzXML file test (with meta info)"
 	@$(call RUN_PROG_OPT,FileInfo,-in FileInfo_4_input.mzXML -m > FileInfo.tmp)
 	@$(call TEST_FILE_EQUAL,FileInfo_4_output.txt,FileInfo.tmp)
 
-	@$(ECHO) "- Test 5: MzData file test (with meta info)"
-	@$(call RUN_PROG_OPT,FileInfo,-in FileInfo_5_input.txt -in_type MzDaTa -m > FileInfo.tmp)
+	@$(ECHO) "- Test 5: MzData file test (with meta info and statistics)"
+	@$(call RUN_PROG_OPT,FileInfo,-in FileInfo_5_input.txt -in_type MzDaTa -m -s > FileInfo.tmp)
 	@$(call TEST_FILE_EQUAL,FileInfo_5_output.txt,FileInfo.tmp)
 
 ifeq ($(ANDIMS_SUPPORT),true)
@@ -503,14 +502,6 @@ MapMatcher_test: $(NUMERICDIFF)
 	@$(ECHO) "MapMatcher:"
 	@$(call RUN_PROG_OPT,MapMatcher,-pairs MapMatcher_1_input.pairs -grid MapMatcher_1_input.grid -out MapMatcher_1_output_grid.tmp)
 	@$(call TEST_FILE_EQUAL,MapMatcher_1_output.grid,MapMatcher_1_output_grid.tmp)
-
-MapStatistics_test: $(NUMERICDIFF)
-	@$(ECHO) ""
-	@$(ECHO) "MapStatistics:"
-	@$(call RUN_PROG_OPT,MapStatistics,-in MapStatistics_rawdata.mzData -out MapStatistics_rawdata_results.tmp)
-	@$(call TEST_FILE_EQUAL,MapStatistics_rawdata_results.tmp, MapStatistics_rawdata_results.xml)
-	@$(call RUN_PROG_OPT,MapStatistics,-in MapStatistics_featdata.feat -out MapStatistics_featdata_results.tmp)
-	@$(call TEST_FILE_EQUAL,MapStatistics_featdata_results.tmp, MapStatistics_featdata_results.xml)
 
 MascotAdapter_test: $(NUMERICDIFF)
 	@$(ECHO) ""

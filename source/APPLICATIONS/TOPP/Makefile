@@ -58,7 +58,6 @@ EXECUTABLES=\
 	DBExporter\
 	DBImporter\
 	AnalysisXMLMerger\
-	MapStatistics\
 	AdditiveSeries\
 	MapMatcher\
 	NoiseFilter\
@@ -101,10 +100,6 @@ test:
 ConsensusID: ConsensusID.o
 	$(CXX) $(LDFLAGS) -o $@ $< $(LIBS)
 	$(CP) $@ $(OPENMS_PATH)/bin/ 
-
-MapStatistics: MapStatistics.o
-	$(CXX) $(LDFLAGS) -o $@ $< $(LIBS)
-	$(CP) $@ $(OPENMS_PATH)/bin/             
 
 MapMatcher: MapMatcher.o
 	$(CXX) $(LDFLAGS) -o $@ $< $(LIBS)
