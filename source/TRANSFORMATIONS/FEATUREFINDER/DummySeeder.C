@@ -236,7 +236,7 @@ namespace OpenMS
 		#ifdef DEBUG_FEATUREFINDER 
 		for (HashIterator iter = iso_map_.begin(); iter != iso_map_.end(); ++iter)
 		{
-			std::cout << "m/z " << iter->first << " charge: " << iter->second.charge_ << std::endl;
+			std::cout << "m/z " << iter->first << " charge: " << iter->second.peaks_.charge_ << std::endl;
 			
 			for (std::vector<UInt>::const_iterator citer = 	iter->second.scans_.begin(); 
 						citer != iter->second.scans_.end();

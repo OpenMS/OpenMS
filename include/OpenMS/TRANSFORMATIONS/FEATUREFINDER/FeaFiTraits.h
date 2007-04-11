@@ -48,7 +48,7 @@ namespace OpenMS
 		
 		This class is rather an "umbrella" for the different modules / steps of the algorithm
 		than a traits class in the traditional sense.
-			
+
 		@ingroup FeatureFinder 	
 	*/
 	class FeaFiTraits
@@ -60,7 +60,7 @@ namespace OpenMS
 			typedef IsotopeCluster::IndexSet IndexSet;
 			/// index set with associated charge estimate
 			typedef IsotopeCluster::ChargedIndexSet ChargedIndexSet;
-			
+
 	    /// Flag for each data point
 	    enum Flag { UNUSED, SEED, INSIDE_BOUNDARY, INSIDE_FEATURE };
 			
@@ -101,9 +101,8 @@ namespace OpenMS
 							map_.push_back(*it);	// remove empty scans.
 					}
 				}	
-			
-				std::cout << "Updating range information. " << std::endl;
-		    // update range informations
+		    
+				// update range informations
 		    map_.updateRanges();
 		
 				if (map_.getSize() == 0)

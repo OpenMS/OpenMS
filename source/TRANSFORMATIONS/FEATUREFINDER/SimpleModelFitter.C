@@ -53,7 +53,12 @@ namespace OpenMS
 		stdev_rt2_(0),
 		min_(), 
 		max_(),
-		counter_(0)
+		counter_(0),
+		iso_stdev_first_(0),
+		iso_stdev_last_(0),
+		iso_stdev_stepsize_(0),
+		first_mz_model_(0),
+		last_mz_model_(0)
 	{
 		setName(getProductName());
 		
@@ -119,8 +124,8 @@ namespace OpenMS
 		iso_stdev_last_        = param_.getValue("isotope_model:stdev:last");
 		iso_stdev_stepsize_ = param_.getValue("isotope_model:stdev:step");
 		
-		first_mz_model_ = (Int) param_.getValue("mz:model_type:first");
-		last_mz_model_ = (Int) param_.getValue("mz:model_type:last");
+		first_mz_model_ 			= (Int) param_.getValue("mz:model_type:first");
+		last_mz_model_				= (Int) param_.getValue("mz:model_type:last");
 	}
 
   Feature SimpleModelFitter::fit(const ChargedIndexSet& set) throw (UnableToFit)

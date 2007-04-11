@@ -220,7 +220,7 @@ void BaseSweepSeeder::sweep_()
 		cout << "List of seeding regions: " << endl;
 		for (TableConstIteratorType iter = iso_map_.begin(); iter != iso_map_.end(); ++iter)
 		{
-			cout << "m/z " << iter->first << " charge: " << iter->second.charge_ << endl;
+			cout << "m/z " << iter->first << " charge: " << iter->second.peaks_.charge_ << endl;
 			
 			for (vector<UInt>::const_iterator citer = 	iter->second.scans_.begin(); 
 						citer != iter->second.scans_.end();
