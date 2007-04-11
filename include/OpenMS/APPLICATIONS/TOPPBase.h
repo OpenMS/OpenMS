@@ -82,7 +82,6 @@ namespace OpenMS
      and main_ only.
 		 
 		 @todo complete the tests (Clemens)
-		 @todo Add concept for write_ini algorithm sections (Marc)		 .
 	*/
   class TOPPBase
   {

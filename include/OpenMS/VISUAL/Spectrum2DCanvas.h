@@ -63,7 +63,6 @@ namespace OpenMS
   	
   	@todo Remove coordinate-data transformations (Marc)
 		@todo Context menu: show scan, precursor scan, ID, EIC (Marc)
-		@todo Projections: follow 2D view, info box with intensity (Marc)
 
   	@ingroup SpectrumWidgets
   */
