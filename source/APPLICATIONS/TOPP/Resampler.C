@@ -31,7 +31,10 @@
 #include <OpenMS/MATH/MISC/BilinearInterpolation.h>
 #include <OpenMS/CONCEPT/VersionInfo.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
+#include <OpenMS/VISUAL/MultiGradient.h>
 
+#include <QtGui/QImage>
+#include <QtGui/QColor>
 
 using namespace OpenMS;
 using namespace OpenMS::Math;
@@ -52,7 +55,6 @@ using namespace std;
 	The output has a uniform spacing in both dimensions regardless of the input.
 	You can output the data in transposed order, reverse video, with gamma correction, etc.
 
-	@todo support for a better graphics format like png - use Qt (Clemens)
 	@todo output IT range (Clemens)
 	@todo maybe we could include support for one-dimensional resampling ("-cols auto -rows auto") for mzData output (Clemens)
 
@@ -80,7 +82,8 @@ class TOPPResampler
 		// specified.
 		registerStringOption_("out","<file>","","output file in MzData format", false);
 		registerStringOption_("pgm","<file>","","output file in plain PGM format", false);
-		addText_("(Either -out or -pgm must be specified.)");
+		registerStringOption_("png","<file>","","output file in plain PNG format", false);
+		addText_("(Either -out, -pgm or -png must be specified.)");
 
 		addEmptyLine_();
 		addText_("Parameters affecting the resampling:");
@@ -113,29 +116,31 @@ class TOPPResampler
 
 		String in = getStringOption_("in");
 		inputFileReadable_(in);
-					
+		
+		bool output_defined=false;	
 		String out = getStringOption_("out");
-		TOPPBase::ParameterInformation const & pi_out = findEntry_("out");
-		bool has_out = (out != pi_out.default_value);
-
-		String pgm = getStringOption_("pgm");
-		TOPPBase::ParameterInformation const & pi_pgm = findEntry_("pgm");
-		bool has_pgm = (pgm != pi_pgm.default_value);
-
-		if ( !has_out && !has_pgm )
+		if (out!="")
 		{
-			writeLog_("You need to specify an output destination using parameters \"out\" or \"pgm\".");
-			return MISSING_PARAMETERS;
-		}
-
-		if ( has_out )
-		{
+			output_defined = true;
 			outputFileWritable_(out);
 		}
-		
-		if ( has_pgm )
+		String pgm = getStringOption_("pgm");
+		if (pgm!="")
 		{
+			output_defined = true;
 			outputFileWritable_(pgm);
+		}
+		String png = getStringOption_("png");
+		if (png!="")
+		{
+			output_defined = true;
+			outputFileWritable_(png);
+		}
+		
+		if (!output_defined)
+		{
+			writeLog_("You need to specify an output destination using parameters \"out\", \"pgm\" or \"png\".");
+			return MISSING_PARAMETERS;
 		}
 		
 		//parse RT and m/z range
@@ -165,7 +170,7 @@ class TOPPResampler
 		std::stringstream comments;
 		
 		//basic info
-		exp.updateRanges();
+		exp.updateRanges(1);
 
 		//update RT and m/z to the real data if no boundary was given
 		if (rt_l == -1 * numeric_limits<double>::max()) rt_l = exp.getMinRT();
@@ -212,6 +217,10 @@ class TOPPResampler
 						++spec_iter
 					)
 			{
+				if (spec_iter->getMSLevel()!=1)
+				{
+					continue;
+				}
 				double const rt = spec_iter->getRetentionTime();
 				for ( SpectrumType::ConstIterator peak1_iter = spec_iter->begin();
 							peak1_iter != spec_iter->end();
@@ -233,6 +242,10 @@ class TOPPResampler
 						++spec_iter
 					)
 			{
+				if (spec_iter->getMSLevel()!=1)
+				{
+					continue;
+				}
 				double const rt = spec_iter->getRetentionTime();
 				for ( SpectrumType::ConstIterator peak1_iter = spec_iter->begin();
 							peak1_iter != spec_iter->end();
@@ -265,6 +278,27 @@ class TOPPResampler
 										comments.str()
 									);
 			pgm_file.close();
+		}
+		
+		if(!png.empty())
+		{
+			outputFileWritable_(png);
+			UInt scans = bilip.getData().sizePair().first;
+			UInt peaks = bilip.getData().sizePair().second;
+			
+			MultiGradient gradient;
+			gradient.fromString("Linear|0,#FFFFFF;2,#FFFF00;11,#ffaa00;32,#ff0000;55,#aa00ff;78,#5500ff;100,#000000");
+			
+			QImage image(peaks, scans, QImage::Format_RGB32);
+			DoubleReal factor = (*std::max_element(bilip.getData().begin(),bilip.getData().end())) /100.0;
+			for (UInt i=0; i<scans; ++i)
+			{
+				for (UInt j=0; j<peaks; ++j)
+				{
+					image.setPixel(j,i,gradient.interpolatedColorAt(bilip.getData().getValue(i,j)/factor).rgb());
+				}
+			}
+			image.save(png.c_str());
 		}
 
 		if ( !out.empty() )

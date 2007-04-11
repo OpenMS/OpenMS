@@ -37,10 +37,10 @@ namespace OpenMS
 			inverse_order_(false)
 	{
 		defaults_.setValue("Algorithm","Ranked");
-		defaults_.setValue("ConsideredHits","10");
-		defaults_.setValue("NumberOfRuns","0");
-		defaults_.setValue("InverseOrder","0");
-		defaults_.setValue("MinOutputScore","0");
+		defaults_.setValue("ConsideredHits",10);
+		defaults_.setValue("NumberOfRuns",0);
+		defaults_.setValue("InverseOrder",0);
+		defaults_.setValue("MinOutputScore",0);
 		
 		defaultsToParam_();
 	}

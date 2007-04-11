@@ -43,8 +43,6 @@ namespace OpenMS
 		@brief Base class for XML handlers.
 		
 		@todo Add external CVs, integrate OLS (Marc)
-		
-		@todo throw out old error handlers? (Thomas K.)
 	*/
   class XMLHandler
   	: public xercesc::DefaultHandler
