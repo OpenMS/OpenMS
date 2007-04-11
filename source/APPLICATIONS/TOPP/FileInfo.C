@@ -53,8 +53,6 @@ using namespace std;
 	for each MS level is displayed.
 	
 	Additionally an overview of the metadata of the map and a statistical summary of intensities can be displayed.
-	
-	@todo Merge with MapStatistics (Marc)
 */
 
 // We do not want this class to show up in the docu:
