@@ -287,7 +287,7 @@ CHECK(static const String getName())
 	TEST_EQUAL(ExtendedModelFitter::getProductName(),"ExtendedModelFitter");
 RESULT
 
-/*
+
 CHECK(void setData(const ChargedIndexSet& set))
 
 	const double default_precision = 0.1;
@@ -343,13 +343,13 @@ CHECK(void setData(const ChargedIndexSet& set))
 	TEST_REAL_EQUAL(fitter.getRetention(), 5);
 
 RESULT
-*/
 
-// check parameter optimization at EMG model
-/*
+
 CHECK(void ExtendedModelFitter::optimize())
 
-	// EMG Model
+// *************************************************
+// *** check parameter optimization at EMG model ***
+// *************************************************
 	EmgModel em1;
 	Math::BasicStatistics<>  stat;
 	stat.setVariance(0.0);
@@ -361,8 +361,6 @@ CHECK(void ExtendedModelFitter::optimize())
 	double retention_ = 700.0;
 	double min_ = 650;
 	double max_ = 750;
-
-	symmetry_ = 10;
 
 	// iterate symmetry from 1.3 to 8.3, i.e. fronted, symmetric and tailed peaks
 	while (symmetry_ < 8.4) 
@@ -419,163 +417,152 @@ CHECK(void ExtendedModelFitter::optimize())
 		symmetry_ += 0.5;
 	}
 
-RESULT
-*/
 
-// check parameter optimization with noise at EMG model
-/*
-CHECK(void ExtendedModelFitter::optimize())
-
-	// EMG Model
-	EmgModel em1;
-	Math::BasicStatistics<>  stat;
+// ************************************************************
+// *** check parameter optimization with noise at EMG model ***
+// ************************************************************
+	EmgModel em2;
+	Math::BasicStatistics<>  stat2;
 	stat.setVariance(0.0);
-	em1.setInterpolationStep(0.1);
+	em2.setInterpolationStep(0.1);
 	
 	// set model parameter
-	em1.setParam(stat, 1000, 2, 1.3, 700, 650, 750);
+	em2.setParam(stat2, 1000, 2, 1.3, 700, 650, 750);
 
 	// get samples from model
-	DPeakArray<1> dpa1;
-	em1.getSamples(dpa1);
+	DPeakArray<1> dpa2;
+	em2.getSamples(dpa2);
 
 	// save samples
-	Peak2D p;
-	DPeakArray<2, Peak2D> peak_array;
+	Peak2D p2;
+	DPeakArray<2, Peak2D> peak_array2;
 	
 	// noise value		
 	double noise = 10;
 
-	//String fname = "samples.dta2d";
-	//ofstream file(fname.c_str()); 	
-	for (UInt i=0; i<dpa1.size(); ++i)
+	//String fname2 = "samples2.dta2d";
+	//ofstream file2(fname2.c_str()); 	
+	for (UInt i=0; i<dpa2.size(); ++i)
 	{
 		
-		//if (i%3 == 0 && (dpa1[i].getPosition()[1] > 1))
-		//	file << dpa1[i].getPosition()[0] << "	" << noise << "\n";
+		//if (i%3 == 0 && (dpa2[i].getPosition()[1] > 1))
+		//	file2 << dpa2[i].getPosition()[0] << "	" << noise << "\n";
 		//else
-		//	file << dpa1[i].getPosition()[0] << "	" << (dpa1[i].getPosition()[1]) << "\n";
+		//	file2 << dpa2[i].getPosition()[0] << "	" << (dpa2[i].getPosition()[1]) << "\n";
 
-		p.setMZ(1);
-		p.setRT(dpa1[i].getPosition()[0]);
+		p2.setMZ(1);
+		p2.setRT(dpa2[i].getPosition()[0]);
 
-		if (i%5 == 0 && (dpa1[i].getPosition()[1] > 1))
-			p.setIntensity(noise);
+		if (i%5 == 0 && (dpa2[i].getPosition()[1] > 1))
+			p2.setIntensity(noise);
 		else
-			p.setIntensity(dpa1[i].getPosition()[1]);
+			p2.setIntensity(dpa2[i].getPosition()[1]);
 		
-		peak_array.push_back(p);
+		peak_array2.push_back(p2);
 	}
-	//file.close();
+	//file2.close();
 
 	// set traits
-	peak_array.sortByPosition();
-	MSExperimentExtern<Peak1D > exp;
-	exp.set2DData(peak_array);
-	FeaFiTraits traits;
-	traits.setData(exp.begin(), exp.end(),1001);
+	peak_array2.sortByPosition();
+	MSExperimentExtern<Peak1D > exp2;
+	exp2.set2DData(peak_array2);
+	FeaFiTraits traits2;
+	traits2.setData(exp2.begin(), exp2.end(),1001);
 	
 	// set traits and parameter in ExtendedModelFitter
-	ExtendedModelFitter fitter;
-	Param param = fitter.getParameters();
-	param.setValue("rt:max_iteration",10000);
-	fitter.setParameters(param);
-	FeaFiModule::IndexSet  set;
-	fitter.setTraits(&traits);
+	ExtendedModelFitter fitter2;
+	Param param2 = fitter2.getParameters();
+	param2.setValue("rt:max_iteration",10000);
+	fitter2.setParameters(param2);
+	FeaFiModule::IndexSet  set2;
+	fitter2.setTraits(&traits2);
 
 	// construct indexSet
-	for (UInt i=0; i<exp.size(); ++i) 
-		for (UInt j=0; j<exp[i].size(); ++j) 
-			set.insert(std::make_pair(i,j));
+	for (UInt i=0; i<exp2.size(); ++i) 
+		for (UInt j=0; j<exp2[i].size(); ++j) 
+			set2.insert(std::make_pair(i,j));
 
 	// compute start parameter
-	fitter.setData(set);
+	fitter2.setData(set2);
 	// optimize parameter with Levenberg-Maruardt algorithm
-	fitter.optimize();
+	fitter2.optimize();
 	// test
 	PRECISION(0.5)
-	TEST_REAL_EQUAL(fitter.getSymmetry(), 1.3); 
-	TEST_REAL_EQUAL(fitter.getWidth(), 2);
-	TEST_REAL_EQUAL(fitter.getRetention(), 700);
-	TEST_EQUAL(fitter.getGSLStatus(), "success");
-RESULT
-*/
+	TEST_REAL_EQUAL(fitter2.getSymmetry(), 1.3); 
+	TEST_REAL_EQUAL(fitter2.getWidth(), 2);
+	TEST_REAL_EQUAL(fitter2.getRetention(), 700);
+	TEST_EQUAL(fitter2.getGSLStatus(), "success");
 
-// check parameter optimization at LogNormal model
-/*
-CHECK(void ExtendedModelFitter::optimize())
 
-	// LogNormal model
+// *******************************************************
+// *** check parameter optimization at LogNormal model ***
+// *******************************************************
 	LogNormalModel logm1;	
-	Math::BasicStatistics<>  stat;
-	stat.setVariance(0.0);
+	Math::BasicStatistics<>  stat3;
+	stat3.setVariance(0.0);
 	logm1.setInterpolationStep(0.1);
-	logm1.setParam(stat, 850.0, 20.0, 1.5, 30.0, 2.0, 1.0, 70.0);
+	logm1.setParam(stat3, 850.0, 20.0, 1.5, 30.0, 2.0, 1.0, 70.0);
 
 	// get samples from model
-	DPeakArray<1> dpa1;
-	logm1.getSamples(dpa1);
+	DPeakArray<1> dpa3;
+	logm1.getSamples(dpa3);
 	
-	Peak2D p;
-	DPeakArray<2, Peak2D> peak_array;
+	Peak2D p3;
+	DPeakArray<2, Peak2D> peak_array3;
 
-	//String fname = "samples.dta2d";
-	//ofstream file(fname.c_str()); 
+	//String fname3 = "samples3.dta2d";
+	//ofstream file3(fname3.c_str()); 
 	// save samples
-	for (UInt i=0; i<dpa1.size(); ++i) {
-		//file << dpa1[i].getPosition()[0] << "	" << (dpa1[i].getPosition()[1]) << "\n";
-		p.setMZ(1);
-		p.setRT(dpa1[i].getPosition()[0]);
-		p.setIntensity(dpa1[i].getPosition()[1]);
-		peak_array.push_back(p);
+	for (UInt i=0; i<dpa3.size(); ++i) {
+		//file3 << dpa3[i].getPosition()[0] << "	" << (dpa3[i].getPosition()[1]) << "\n";
+		p3.setMZ(1);
+		p3.setRT(dpa3[i].getPosition()[0]);
+		p3.setIntensity(dpa3[i].getPosition()[1]);
+		peak_array3.push_back(p3);
 	}
-	//file.close();
+	//file3.close();
 
 	// set traits
-	FeaFiTraits traits;
-	peak_array.sortByPosition();
-	MSExperimentExtern<Peak1D > exp;
-	exp.set2DData(peak_array);
-	traits.setData(exp.begin(), exp.end(),691);
+	FeaFiTraits traits3;
+	peak_array3.sortByPosition();
+	MSExperimentExtern<Peak1D > exp3;
+	exp3.set2DData(peak_array3);
+	traits3.setData(exp3.begin(), exp3.end(),691);
 
 	// set traits and parameter in ExtendedModelFitter
-	ExtendedModelFitter fitter;
-	fitter.setTraits(&traits);
-	Param param;
-	param.setValue("rt:profile","LogNormal");
-	fitter.setParameters(param);
+	ExtendedModelFitter fitter3;
+	fitter3.setTraits(&traits3);
+	Param param3;
+	param3.setValue("rt:profile","LogNormal");
+	fitter3.setParameters(param3);
 	
 	// construct indexSet
-	FeaFiModule::IndexSet  set;
-	for (UInt i=0; i<exp.size(); ++i) 
-		for (UInt j=0; j<exp[i].size(); ++j) 
-			set.insert(std::make_pair(i,j));
+	FeaFiModule::IndexSet set3;
+	for (UInt i=0; i<exp3.size(); ++i) 
+		for (UInt j=0; j<exp3[i].size(); ++j) 
+			set3.insert(std::make_pair(i,j));
 	
 	// compute start parameter
-	fitter.setData(set);
+	fitter3.setData(set3);
 	// optimize parameter with Levenberg-Maruardt algorithm
-	fitter.optimize();
+	fitter3.optimize();
 
 	// test
-	TEST_EQUAL(fitter.getGSLStatus(), "success");
+	TEST_EQUAL(fitter3.getGSLStatus(), "success");
 	PRECISION(50.0)
-	TEST_REAL_EQUAL(fitter.getHeight(), 850.0);
+	TEST_REAL_EQUAL(fitter3.getHeight(), 850.0);
 	PRECISION(1.0)
-	TEST_REAL_EQUAL(fitter.getWidth(), 20.0);
-	TEST_REAL_EQUAL(fitter.getSymmetry(), 1.5);
-	TEST_REAL_EQUAL(fitter.getRetention(), 30.0);
+	TEST_REAL_EQUAL(fitter3.getWidth(), 20.0);
+	TEST_REAL_EQUAL(fitter3.getSymmetry(), 1.5);
+	TEST_REAL_EQUAL(fitter3.getRetention(), 30.0);
 
-RESULT
-*/
 
-// check parameter optimization at LmaGauss model
-/*
-CHECK(void ExtendedModelFitter::optimize())
-
-	// LmaGauss model
+// ******************************************************
+// *** check parameter optimization at LmaGauss model ***
+// ******************************************************
 	LmaGaussModel lm1;
-	Math::BasicStatistics<>  stat;
-	stat.setVariance(0.0);
+	Math::BasicStatistics<>  stat4;
+	stat4.setVariance(0.0);
 	lm1.setInterpolationStep(0.1);
 
 	// model parameter
@@ -592,67 +579,67 @@ CHECK(void ExtendedModelFitter::optimize())
 		while (standard_deviation < 10) 
 		{
 			// set model parameter
-			lm1.setParam(stat, scale_factor, standard_deviation,expected_value,min, max);	
+			lm1.setParam(stat4, scale_factor, standard_deviation,expected_value,min, max);	
 		
 			// get samples from model
-			DPeakArray<1> dpa1;
-			lm1.getSamples(dpa1);
+			DPeakArray<1> dpa4;
+			lm1.getSamples(dpa4);
 			
-			Peak2D p;
-			DPeakArray<2, Peak2D> peak_array;
+			Peak2D p4;
+			DPeakArray<2, Peak2D> peak_array4;
 		
-			//String fname = "samples.dta2d";
-			//ofstream file(fname.c_str()); 
+			//String fname4 = "samples4.dta2d";
+			//ofstream file4(fname4.c_str()); 
 			// save samples
-			for (UInt i=0; i<dpa1.size(); ++i)
+			for (UInt i=0; i<dpa4.size(); ++i)
 			{
 				
-				//file << dpa1[i].getPosition()[0] << "	" << (dpa1[i].getPosition()[1]) << "\n";
-				p.setMZ(1);
-				p.setRT(dpa1[i].getPosition()[0]);
-				p.setIntensity(dpa1[i].getPosition()[1]);
-				peak_array.push_back(p);
+				//file4 << dpa4[i].getPosition()[0] << "	" << (dpa4[i].getPosition()[1]) << "\n";
+				p4.setMZ(1);
+				p4.setRT(dpa4[i].getPosition()[0]);
+				p4.setIntensity(dpa4[i].getPosition()[1]);
+				peak_array4.push_back(p4);
 			}
-			//file.close();
+			//file4.close();
 			
 			// set traits
-			FeaFiTraits traits;
-			peak_array.sortByPosition();
-			MSExperimentExtern<Peak1D > exp;
-			exp.set2DData(peak_array);
-			traits.setData(exp.begin(), exp.end(),501);
+			FeaFiTraits traits4;
+			peak_array4.sortByPosition();
+			MSExperimentExtern<Peak1D > exp4;
+			exp4.set2DData(peak_array4);
+			traits4.setData(exp4.begin(), exp4.end(),501);
 		
 			// set traits and parameter in ExtendedModelFitter
-			ExtendedModelFitter fitter;
-			fitter.setTraits(&traits);
-			Param param;
-			param.setValue("rt:profile","LmaGauss");
-			fitter.setParameters(param);
+			ExtendedModelFitter fitter4;
+			fitter4.setTraits(&traits4);
+			Param param4;
+			param4.setValue("rt:profile","LmaGauss");
+			fitter4.setParameters(param4);
 			
 			// construct indexSet
-			FeaFiModule::IndexSet  set;
-			for (UInt i=0; i<exp.size(); ++i) 
-				for (UInt j=0; j<exp[i].size(); ++j) 
-					set.insert(std::make_pair(i,j));
+			FeaFiModule::IndexSet set4;
+			for (UInt i=0; i<exp4.size(); ++i) 
+				for (UInt j=0; j<exp4[i].size(); ++j) 
+					set4.insert(std::make_pair(i,j));
 			
 			// compute start parameter
-			fitter.setData(set);
+			fitter4.setData(set4);
 			// optimize parameter with Levenberg-Maruardt algorithm
-			fitter.optimize();
+			fitter4.optimize();
 	
 			// test
-			TEST_REAL_EQUAL(fitter.getExpectedValue(), expected_value); 
-			TEST_REAL_EQUAL(fitter.getStandardDeviation(), standard_deviation);
-			TEST_REAL_EQUAL(fitter.getScaleFactor(), scale_factor);
-			TEST_EQUAL(fitter.getGSLStatus(), "success");
+			TEST_REAL_EQUAL(fitter4.getExpectedValue(), expected_value); 
+			TEST_REAL_EQUAL(fitter4.getStandardDeviation(), standard_deviation);
+			TEST_REAL_EQUAL(fitter4.getScaleFactor(), scale_factor);
+			TEST_EQUAL(fitter4.getGSLStatus(), "success");
 	
 			standard_deviation += 1;
 		}
 		standard_deviation = 0.5;
 		expected_value += 5;
 	} 
+
 RESULT
-*/
 
 
 /////////////////////////////////////////////////////////////
