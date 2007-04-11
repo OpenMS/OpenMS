@@ -142,6 +142,16 @@ namespace OpenMS
 		eps_abs_ = param_.getValue("rt:deltaAbsError");
 		eps_rel_ = param_.getValue("rt:deltaRelError");
 		profile_ = (string)param_.getValue("rt:profile");
+
+		interpolation_step_mz_ = param_.getValue("mz:interpolation_step");
+		interpolation_step_rt_ = param_.getValue("rt:interpolation_step");
+		
+		iso_stdev_first_        = param_.getValue("isotope_model:stdev:first");
+		iso_stdev_last_        = param_.getValue("isotope_model:stdev:last");
+		iso_stdev_stepsize_ = param_.getValue("isotope_model:stdev:step");
+		
+		first_mz_model_ = (Int) param_.getValue("mz:model_type:first");
+		last_mz_model_ = (Int) param_.getValue("mz:model_type:last");
 	}
 
 	Feature ExtendedModelFitter::fit(const ChargedIndexSet& set) throw (UnableToFit)
@@ -163,18 +173,9 @@ namespace OpenMS
 		double quality = 0.0;
 		double max_quality = -std::numeric_limits<double>::max();
 
-		float stdev = param_.getValue("isotope_model:stdev:first");
-		float last = param_.getValue("isotope_model:stdev:last");
-		float step = param_.getValue("isotope_model:stdev:step");
-
 		// Calculate statistics
-		mz_stat_.update( 	IntensityIterator(set.begin(),traits_),
-											IntensityIterator(set.end(),traits_),
-											MzIterator(set.begin(),traits_) );
-
-		rt_stat_.update ( IntensityIterator(set.begin(),traits_),
-											IntensityIterator(set.end(),traits_),
-											RtIterator(set.begin(),traits_) );
+		mz_stat_.update( IntensityIterator(set.begin(),traits_),IntensityIterator(set.end(),traits_),MzIterator(set.begin(),traits_) );
+		rt_stat_.update ( IntensityIterator(set.begin(),traits_),IntensityIterator(set.end(),traits_),RtIterator(set.begin(),traits_) );
 
 		// Calculate bounding box
 		IndexSetIter it=set.begin();
@@ -210,15 +211,23 @@ namespace OpenMS
 				
 			if (gsl_status_!="success")
 				cout << profile_ + " status: " + gsl_status_ << endl;
-				//throw UnableToFit(__FILE__, __LINE__,__PRETTY_FUNCTION__, "UnableToFit-BadQuality","Skipping feature, " + profile_ + " status: " + gsl_status_);
 		}
 
 		/// Test different charges and stdevs
-		const int first_model = param_.getValue("mz:model_type:first");
-		const int last_model = param_.getValue("mz:model_type:last");
-		for ( ; stdev <= last; stdev += step)
+		Int first_mz  = first_mz_model_;
+		Int last_mz  = last_mz_model_;
+		
+		// check charge estimate 
+		if (set.charge_ != 0)
 		{
-			for (int mz_fit_type = first_model; mz_fit_type <= last_model; ++mz_fit_type)
+			first_mz = set.charge_;
+			last_mz = (set.charge_ + 1);		
+		}
+		std::cout << "Checking charge state from " << first_mz << " to " << last_mz << std::endl;
+	
+		for ( float stdev = iso_stdev_first_; stdev <= iso_stdev_last_; stdev += iso_stdev_stepsize_)
+		{
+			for (Int mz_fit_type = first_mz; mz_fit_type <= last_mz; ++mz_fit_type)
 			{
 				if (profile_=="LmaGauss")
 					quality = fit_(set, static_cast<MzFitting>(mz_fit_type), LMAGAUSS, stdev);
@@ -414,16 +423,12 @@ namespace OpenMS
 	double ExtendedModelFitter::fit_(const IndexSet& set, MzFitting mz_fit, RtFitting rt_fit,
 																	 Coordinate isotope_stdev)
 	{
-
-		const Coordinate interpolation_step_mz = param_.getValue("mz:interpolation_step");
-		const Coordinate interpolation_step_rt = param_.getValue("rt:interpolation_step");
-
 		// Build Models
 		InterpolationModel* mz_model;
 		if (mz_fit==MZGAUSS)
 		{
 			mz_model = new GaussModel();
-			mz_model->setInterpolationStep(interpolation_step_mz);
+			mz_model->setInterpolationStep(interpolation_step_mz_);
 			
 			Param tmp;
 			tmp.setValue("bounding_box:min",min_[MZ] );
@@ -440,20 +445,21 @@ namespace OpenMS
 			Param iso_param = param_.copy("isotope_model:",true);
 			iso_param.remove("stdev");
 			mz_model->setParameters(iso_param);
-			mz_model->setInterpolationStep(interpolation_step_mz);
+			mz_model->setInterpolationStep(interpolation_step_mz_);
 			
 			Param tmp;
 			tmp.setValue("charge", static_cast<Int>(mz_fit));
 			tmp.setValue("isotope:stdev",isotope_stdev);
 			tmp.setValue("statistics:mean", mz_stat_.mean());
 			
-			static_cast<IsotopeModel*>(mz_model)->setParameters( tmp );			
+			static_cast<IsotopeModel*>(mz_model)->setParameters( tmp );
 		}
+
 		InterpolationModel* rt_model;
 		if (rt_fit==RTGAUSS)
 		{
 			rt_model = new GaussModel();
-			rt_model->setInterpolationStep(interpolation_step_rt);
+			rt_model->setInterpolationStep(interpolation_step_rt_);
 			
 			Param tmp;
 			tmp.setValue("bounding_box:min",min_[RT] );
@@ -466,31 +472,31 @@ namespace OpenMS
 		else if (rt_fit==LMAGAUSS)
 		{
 			rt_model = new LmaGaussModel();
-			rt_model->setInterpolationStep(interpolation_step_rt);
+			rt_model->setInterpolationStep(interpolation_step_rt_);
 			dynamic_cast<LmaGaussModel*>(rt_model)->setParam(rt_stat_, scale_factor_, standard_deviation_, expected_value_, min_[RT], max_[RT]);
 		}
 		else if (rt_fit==EMGAUSS)
 		{
 			rt_model = new EmgModel();
-			rt_model->setInterpolationStep(interpolation_step_rt);
+			rt_model->setInterpolationStep(interpolation_step_rt_);
 			dynamic_cast<EmgModel*>(rt_model)->setParam(rt_stat_, height_, width_, symmetry_, retention_, min_[RT], max_[RT]);
 		}
 		else if (rt_fit==LOGNORMAL)
 		{
 			rt_model = new LogNormalModel();
-			rt_model->setInterpolationStep(interpolation_step_rt);
+			rt_model->setInterpolationStep(interpolation_step_rt_);
 			dynamic_cast<LogNormalModel*>(rt_model)->setParam(rt_stat_, height_, width_, symmetry_, retention_, r_, min_[RT], max_[RT]);
 		}
 		else
 		{
 			rt_model = new BiGaussModel();
-			rt_model->setInterpolationStep(interpolation_step_rt);
+			rt_model->setInterpolationStep(interpolation_step_rt_);
 			
 			Param tmp;
-			tmp.setValue("bounding_box:min", 	min_[RT]);
+			tmp.setValue("bounding_box:min", min_[RT]);
 			tmp.setValue("bounding_box:max", max_[RT]);
 			tmp.setValue("statistics:mean", rt_stat_.mean());
-			tmp.setValue("statistics:variance1",  rt_stat_.variance1());
+			tmp.setValue("statistics:variance1", rt_stat_.variance1());
 			tmp.setValue("statistics:variance2", rt_stat_.variance2() );
 			
 			static_cast<BiGaussModel*>(rt_model)->setParameters( tmp );
@@ -499,9 +505,9 @@ namespace OpenMS
 		model2D_.setModel(MZ, mz_model).setModel(RT, rt_model);
 
 		double res;
-		res = fitOffset_(mz_model, set, stdev_mz_, stdev_mz_, interpolation_step_mz);
+		res = fitOffset_(mz_model, set, stdev_mz_, stdev_mz_, interpolation_step_mz_);
 		if (profile_!="LmaGauss" && profile_!="EMG" && profile_!="LogNormal")
-			res = fitOffset_(rt_model, set, stdev_rt1_, stdev_rt2_, interpolation_step_rt);
+			res = fitOffset_(rt_model, set, stdev_rt1_, stdev_rt2_, interpolation_step_rt_);
 
 		return res;
 
