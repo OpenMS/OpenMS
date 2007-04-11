@@ -149,44 +149,44 @@ namespace OpenMS
       return "ExtendedModelFitter";
     }
 
-		/// create a vector with RT-values & Intensities and compute the parameters (intial values) for the EMG, Gauss and logNormal function
-		void setData (const IndexSet& set);
+	/// create a vector with RT-values & Intensities and compute the parameters (intial values) for the EMG, Gauss and logNormal function
+	void setData (const IndexSet& set);
 
-		/// Evaluation of the target function for nonlinear optimization.
-		int residual(const gsl_vector* x, void* /* params */, gsl_vector* f);
+	/// Evaluation of the target function for nonlinear optimization.
+	int residual(const gsl_vector* x, void* /* params */, gsl_vector* f);
 
-		/// Compute the Jacobian of the residual, where each row of the matrix corresponds to a point in the data.
-		int jacobian(const gsl_vector* x, void* /* params */, gsl_matrix* J);
+	/// Compute the Jacobian of the residual, where each row of the matrix corresponds to a point in the data.
+	int jacobian(const gsl_vector* x, void* /* params */, gsl_matrix* J);
 
-		/// Driver function for the evaluation of function and jacobian.
-		int evaluate(const gsl_vector* x, void* params, gsl_vector* f, gsl_matrix* J);
+	/// Driver function for the evaluation of function and jacobian.
+	int evaluate(const gsl_vector* x, void* params, gsl_vector* f, gsl_matrix* J);
 
-		/// perform a nonlinear optimization
-		void optimize();
+	/// perform a nonlinear optimization
+	void optimize();
 
-		/// get height for the EMG and logNormal model
-		CoordinateType getHeight() const;
+	/// get height for the EMG and logNormal model
+	CoordinateType getHeight() const;
 
-		/// get width for the EMG and logNormal model
-		CoordinateType getWidth() const;
+	/// get width for the EMG and logNormal model
+	CoordinateType getWidth() const;
 
-		/// get symmetry for the EMG and logNormal model
-		CoordinateType getSymmetry() const;
+	/// get symmetry for the EMG and logNormal model
+	CoordinateType getSymmetry() const;
 
-		/// get retention time for the EMG and logNormal model
-		CoordinateType getRetention() const;
+	/// get retention time for the EMG and logNormal model
+	CoordinateType getRetention() const;
 
-		/// get standard deviation for the Gauss
-		CoordinateType getStandardDeviation() const;
+	/// get standard deviation for the Gauss
+	CoordinateType getStandardDeviation() const;
 
-		/// get expected value for the Gauss
-		CoordinateType getExpectedValue() const;
+	/// get expected value for the Gauss
+	CoordinateType getExpectedValue() const;
 
-		/// get scale factor for the Gauss
-		CoordinateType getScaleFactor() const;
+	/// get scale factor for the Gauss
+	CoordinateType getScaleFactor() const;
 
-		/// get GSL status
-		std::string getGSLStatus() const;
+	/// get GSL status
+	std::string getGSLStatus() const;
 
 	 protected:
 
@@ -207,7 +207,25 @@ namespace OpenMS
 		PositionType2D min_;
 		PositionType2D max_;
 
-		unsigned int counter_;
+		/// counts features (used for debug output only)
+		UInt counter_;
+			
+		/// interpolation step size (in m/z)
+		Coordinate interpolation_step_mz_;
+		/// interpolation step size (in retention time)
+		Coordinate interpolation_step_rt_;
+			
+		/// first stdev
+		float iso_stdev_first_;
+		/// last stdev
+		float iso_stdev_last_;
+		/// step size
+		float iso_stdev_stepsize_;
+			
+		/// first mz model (0=Gaussian, 1....n = charge )
+		Int first_mz_model_;			
+		/// last mz model
+		Int last_mz_model_;
 
 		/// Maximum number of iterations
 		unsigned int max_iteration_;
@@ -238,6 +256,9 @@ namespace OpenMS
 		double standard_deviation_;
 		double scale_factor_;
 		double expected_value_;
+
+		
+
   };
 }
 #endif // OPENMS_TRANSFORMATIONS_FEATUREFINDER_EXTENDEDMODELFITTER_H
