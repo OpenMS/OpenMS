@@ -227,6 +227,7 @@ namespace OpenMS
       void changeGridLines();
       void changeLayerFlag(bool);
       void resetZoom();
+      void showProjections();
       //@}
 
     protected:
@@ -277,6 +278,7 @@ namespace OpenMS
       QAction* dm_precursors_2d_;
       QAction* dm_hull_2d_;
       QAction* dm_numbers_2d_;
+      QAction* projections_2d_;
       //@}
 
       /// Main workspace

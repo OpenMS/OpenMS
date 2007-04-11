@@ -32,7 +32,8 @@
 #include <OpenMS/VISUAL/Spectrum1DWidget.h>
 #include <OpenMS/VISUAL/Spectrum2DCanvas.h>
 
-class QPushButton;
+class QGroupBox;
+class QLabel;
 
 namespace OpenMS
 {
@@ -111,13 +112,20 @@ namespace OpenMS
 		Spectrum1DWidget* projection_vert_;
 		/// Horizontal projection widget
 		Spectrum1DWidget* projection_horz_;
-		QPushButton* hide_button_;
-	
+		/// Group box that shows information about the projections
+		QGroupBox* projection_box_;
+		/// Number of peaks of the projection
+		QLabel* projection_peaks_;
+		/// Intensity sum of the projection
+		QLabel* projection_sum_;
+
 	private slots:
 		/// shows the horizontal projection with the given data and draw mode
 		void horizontalProjection(const MSExperiment<>&, Spectrum1DCanvas::DrawModes);
 		/// shows the vertical projection with the given data and draw mode
 		void verticalProjection(const MSExperiment<>&, Spectrum1DCanvas::DrawModes);
+		/// shows projections information
+		void projectionInfo(int peaks, double intensity);
 
 	};
 }

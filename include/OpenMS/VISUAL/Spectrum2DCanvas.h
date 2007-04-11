@@ -155,7 +155,9 @@ namespace OpenMS
       void showProjectionHorizontal(const MSExperiment<>&, Spectrum1DCanvas::DrawModes);
       /// Sets the data for the vertical projection
       void showProjectionVertical(const MSExperiment<>&, Spectrum1DCanvas::DrawModes);
-
+      /// Shows the number of peaks and the intensity sum of the projection
+      void showProjectionInfo(int, double);
+      	
     public slots:
 
       // Docu in base class
@@ -168,7 +170,17 @@ namespace OpenMS
       virtual void horizontalScrollBarChange(int value);
       // Docu in base class
       virtual void verticalScrollBarChange(int value);
-
+      /**
+      	@brief Updates the projection data and emits some related signals.
+      	
+      	Emitted signals are showProjectionHorizontal(const MSExperiment<>&, Spectrum1DCanvas::DrawModes) and 
+      	showProjectionVertical(const MSExperiment<>&, Spectrum1DCanvas::DrawModes).
+      	
+      	@see projection_mz_
+      	@see projection_rt_
+      */
+      void showProjections();
+      
     protected:
       /** @name Reimplemented QT events */
       //@{
@@ -252,17 +264,6 @@ namespace OpenMS
       void recalculateSurfaceGradient_();
       /// recalculates the dot gradient inerpolation values. Use after Intensites or gradient changed
       void recalculateDotGradient_();
-
-      /**
-      	@brief Updates the projection data and emits some related signals.
-      	
-      	Emitted signals are showProjectionHorizontal(const MSExperiment<>&, Spectrum1DCanvas::DrawModes) and 
-      	showProjectionVertical(const MSExperiment<>&, Spectrum1DCanvas::DrawModes).
-      	
-      	@see projection_mz_
-      	@see projection_rt_
-      */
-      void createProjections_(const AreaType& area);
 
       /// m/z projection data
       MSExperiment<> projection_mz_;

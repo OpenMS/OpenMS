@@ -844,23 +844,20 @@ namespace OpenMS
 		}	
 	}
 	
-	void Spectrum2DCanvas::createProjections_(const AreaType& area)
+	void Spectrum2DCanvas::showProjections()
 	{
-		ExperimentType::CoordinateType rt_l = area.minY();
-		ExperimentType::CoordinateType rt_h = area.maxY();
-		ExperimentType::CoordinateType mz_l = area.minX();
-		ExperimentType::CoordinateType mz_h = area.maxX();
-
-		//cout << "Projection: "<< rt_l << " " << rt_h << " " << mz_l << " " << mz_h << endl;
-		
 		//create projection data
 		map<float, float> mz, rt;
-		for (ExperimentType::ConstAreaIterator i = getCurrentPeakData().areaBeginConst(rt_l,rt_h,mz_l,mz_h); 
+		UInt peak_count = 0;
+		DoubleReal intensity_sum = 0.0;
+		for (ExperimentType::ConstAreaIterator i = getCurrentPeakData().areaBeginConst(visible_area_.min()[1],visible_area_.max()[1],visible_area_.min()[0],visible_area_.max()[0]); 
 				 i != getCurrentPeakData().areaEndConst();
 				 ++i)
 		{
 			if (i->getIntensity()>=getCurrentLayer().min_int && i->getIntensity()<=getCurrentLayer().max_int)
 			{
+				++peak_count;
+				intensity_sum += i->getIntensity();
 				mz[i->getMZ()] += i->getIntensity();
 				rt[i.getRetentionTime()] += i->getIntensity();
 			}
@@ -872,14 +869,14 @@ namespace OpenMS
 		
 		//resize and add boundary peaks		
 		cont_mz.resize(mz.size()+2);
-		cont_mz[0].setMZ(mz_l);
+		cont_mz[0].setMZ(visible_area_.min()[0]);
 		cont_mz[0].setIntensity(0.0);
-		cont_mz[1].setMZ(mz_h);
+		cont_mz[1].setMZ(visible_area_.max()[0]);
 		cont_mz[1].setIntensity(0.0);
 		cont_rt.resize(rt.size()+2);
-		cont_rt[0].setMZ(rt_l);
+		cont_rt[0].setMZ(visible_area_.min()[1]);
 		cont_rt[0].setIntensity(0.0);
-		cont_rt[1].setMZ(rt_h);
+		cont_rt[1].setMZ(visible_area_.max()[1]);
 		cont_rt[1].setIntensity(0.0);
 		
 		UInt i = 2;
@@ -908,6 +905,7 @@ namespace OpenMS
 			emit showProjectionHorizontal(projection_rt_,Spectrum1DCanvas::DM_CONNECTEDLINES);
 			emit showProjectionVertical(projection_mz_,Spectrum1DCanvas::DM_PEAKS);
 		}
+		showProjectionInfo(peak_count,intensity_sum);
 	}
 
 	
@@ -1336,11 +1334,6 @@ namespace OpenMS
 						delete(measurement_stop_);
 						measurement_stop_ = 0;
 					}
-					else //select
-					{
-						rubber_band_.setGeometry(e->pos().x(),e->pos().y(),0,0);
-						rubber_band_.show();
-					}
 				}
 				break;
 
@@ -1408,38 +1401,6 @@ namespace OpenMS
 						{
 							emit sendCursorStatus(measurement_start_->getMZ(), measurement_start_->getIntensity(), measurement_start_->getRT());
 						}
-					}
-				}
-				else //select
-				{
-					// highlight nearest peak
-					if (e->buttons() == Qt::NoButton)
-					{
-						
-						Feature* max_peak = findNearestPeak_(pos);
-						
-						if (max_peak)
-						{
-							// show Peak Coordinates (with intensity)
-							emit sendCursorStatus(max_peak->getMZ(), max_peak->getIntensity(), max_peak->getRT());
-							//show lable
-							string meta = max_peak->getMetaValue(3).toString();
-							if (meta!="") sendStatusMessage(meta, 0);
-						}
-						else
-						{
-							//show Peak Coordinates (without intensity)
-							PointType pnt = widgetToData_(pos);
-							emit sendCursorStatus( pnt[0], -1.0, pnt[1]);				
-						}
-						
-						selected_peak_ = max_peak;
-						update();
-					}
-					else if (e->buttons() & Qt::LeftButton) //projection
-					{
-						rubber_band_.setGeometry(QRect(last_mouse_pos_, pos));
-						update();
 					}
 				}
 				break;
@@ -1552,17 +1513,6 @@ namespace OpenMS
 																		.arg(measurement_stop_->getMZ() - measurement_start_->getMZ()).toAscii().data(), 0);
 						}
 
-					}
-					else //select
-					{
-						rubber_band_.hide();
-						if (e->button() == Qt::LeftButton && getCurrentLayer().type==LayerData::DT_PEAK)
-						{
-							//determine data coordiantes
-							QRect rect = rubber_band_.geometry();	
-							AreaType area(widgetToData_(rect.topLeft()), widgetToData_(rect.bottomRight()));
-							createProjections_(area);
-						}
 					}
 				}
 				break;

@@ -233,7 +233,7 @@ namespace OpenMS
 					
 						//cout << "Canvas area (x,y)-(x1,y1): " << rect.x() << "/" << rect.y() << " - " << rect.x() + rect.width() << "/" << rect.y() + rect.height() << endl;
 					
-						if (rect.width()!=0 && rect.height()!=0) // probably double click -> mouseDoubleClickEvent
+						if (rect.width()!=0 && rect.height()!=0) // probably double-click -> mouseDoubleClickEvent
 						{
 							AreaType area(widgetToData_(rect.topLeft()), widgetToData_(rect.bottomRight()));
 							changeVisibleArea_(area.minX(), area.maxX(), true);

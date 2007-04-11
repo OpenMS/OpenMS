@@ -1138,6 +1138,9 @@ namespace OpenMS
     dm_precursors_2d_->setWhatsThis("2D peak draw mode: Precursors<BR><BR>MS/MS precursor peaks are marked");
     connect(dm_precursors_2d_, SIGNAL(toggled(bool)), this, SLOT(changeLayerFlag(bool)));
 
+    projections_2d_ = tool_bar_2d_->addAction("PRJ", this, SLOT(showProjections()));
+    projections_2d_->setWhatsThis("Projections: Shows projections of peak data along RT and MZ axis.");
+
 
     dm_hull_2d_ = tool_bar_2d_->addAction(QPixmap(XPM_convexhulls),"Show feature convex hulls");
     dm_hull_2d_->setCheckable(true);
@@ -1382,6 +1385,7 @@ namespace OpenMS
       	dm_surface_2d_->setVisible(true);
       	dm_contours_2d_->setVisible(true);
       	dm_precursors_2d_->setVisible(true);
+      	projections_2d_->setVisible(true);
       	dm_hull_2d_->setVisible(false);
       	dm_numbers_2d_->setVisible(false);
       	dm_surface_2d_->setChecked(w2->canvas()->getLayerFlag(LayerData::P_SURFACE));
@@ -1394,6 +1398,7 @@ namespace OpenMS
       	dm_surface_2d_->setVisible(false);
       	dm_contours_2d_->setVisible(false);
       	dm_precursors_2d_->setVisible(false);
+      	projections_2d_->setVisible(false);
       	dm_hull_2d_->setVisible(true);
       	dm_numbers_2d_->setVisible(true);
       	dm_hull_2d_->setChecked(w2->canvas()->getLayerFlag(LayerData::F_HULLS));
@@ -1930,6 +1935,7 @@ namespace OpenMS
 			}
 		}
 	}
+	
 	const LayerData* TOPPViewBase::getCurrentLayer() const
 	{
 		SpectrumCanvas* canvas = activeCanvas_();
@@ -1939,6 +1945,15 @@ namespace OpenMS
 		}
 		return &(canvas->getCurrentLayer());
 	}
+
+  void TOPPViewBase::showProjections()
+  {
+    Spectrum2DWidget* w = active2DWindow_();
+    if (w)
+    {
+    	w->canvas()->showProjections();
+    }
+  }
 
 } //namespace OpenMS
 
