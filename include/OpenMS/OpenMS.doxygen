@@ -84,6 +84,7 @@ Todos:
 - make install mit prefix testen (Hiwi)
 
 Spectrum2DCanvas -- Context menu: show scan, precursor scan, ID, EIC 
+FileFilter -- Filter MS/MS scans by precursor RT/MZ, do not crop MS/MS scans
 
 DataValue -- derive from QVariant 
 Identification -- Store ScoreType (with direction) and AccessionType as Enum in Identification (Marc, Andreas)

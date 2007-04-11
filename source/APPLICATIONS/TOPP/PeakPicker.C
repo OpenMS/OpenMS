@@ -71,8 +71,6 @@ using namespace std;
 		and <tt>scale</tt> in an INI file.
 		- <tt>scale</tt> can be set to the equal to the <tt>peak_bound</tt> parameter.
 	
-	@todo INI file for NoiseFilter, PeakPicker and MapAlignment
-	
 	@ingroup TOPP
 */
 

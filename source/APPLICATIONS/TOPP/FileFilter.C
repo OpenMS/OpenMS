@@ -45,7 +45,7 @@ using namespace std;
 	and to write all data that lies within the given ranges to an output mzData file.<BR>
 	It can also extract spectra of a certain MS level e.g. MS/MS spectra when using level '2'.
 
-	@todo Filter MS/MS scans by precursor RT/MZ
+	@todo Filter MS/MS scans by precursor RT/MZ, do not crop MS/MS scans (Marc)
 */
 
 // We do not want this class to show up in the docu:

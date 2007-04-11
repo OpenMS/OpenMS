@@ -110,8 +110,6 @@ namespace OpenMS
 		 and the peaks' heights.
 
 		 @ingroup PeakPicking
-			
-		 @todo use DefaultParamHandler (Alexandra)
 	*/
 	class TwoDOptimization : public DefaultParamHandler
 	{

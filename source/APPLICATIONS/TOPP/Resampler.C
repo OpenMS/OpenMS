@@ -52,7 +52,6 @@ using namespace std;
 	The output has a uniform spacing in both dimensions regardless of the input.
 	You can output the data in transposed order, reverse video, with gamma correction, etc.
 
-	@todo fix test (Clemens)
 	@todo support for a better graphics format like png - use Qt (Clemens)
 	@todo output IT range (Clemens)
 	@todo maybe we could include support for one-dimensional resampling ("-cols auto -rows auto") for mzData output (Clemens)

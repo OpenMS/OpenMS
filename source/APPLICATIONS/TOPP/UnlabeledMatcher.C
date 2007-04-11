@@ -61,8 +61,6 @@ typedef FeaturePairsFile FeaturePairVectorFile;
   on pose clustering can be used to estimate
   a transform and to compute feature pairs based
   on this transform.
-	
-	@todo check that the example ini file still works and does not report any warnings (Eva)
 */
 
 // We do not want this class to show up in the docu, thus:

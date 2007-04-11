@@ -43,9 +43,7 @@ namespace OpenMS
 			
 		This class provides modifies visualization for the items in ParamEditor.
 		It places a Combobox in the second column and prevents edit operations on nodes' values and types
-			
-			
-		@ingroup Visual
+
 	*/
 	class ParamEditorDelegate : public QItemDelegate
 	 {
