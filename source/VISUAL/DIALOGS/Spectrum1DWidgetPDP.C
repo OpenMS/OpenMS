@@ -67,12 +67,12 @@ namespace OpenMS
 		
 		void Spectrum1DWidgetPDP::load()
 		{
-			Spectrum1DWidget* w = dynamic_cast<Spectrum1DWidget*>(manager_);
+			//Spectrum1DWidget* w = dynamic_cast<Spectrum1DWidget*>(manager_);
 		}
 		
 		void Spectrum1DWidgetPDP::save()
 		{
-			Spectrum1DWidget* w = dynamic_cast<Spectrum1DWidget*>(manager_);
+			//Spectrum1DWidget* w = dynamic_cast<Spectrum1DWidget*>(manager_);
 			
 			colors_->save();
 		}
