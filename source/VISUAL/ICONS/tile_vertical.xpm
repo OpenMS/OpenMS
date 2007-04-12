@@ -1,5 +1,5 @@
 /* XPM */
-static char *XPM_tile_v[]={
+static char *tile_v[]={
 "32 32 4 1",
 "-     c #0000FF",
 "0     c #FFFFFF",

@@ -1,5 +1,5 @@
 /* XPM */
-static char *XPM_convexhulls[]={
+static char *convexhulls[]={
 "32 32 2 1",
 ". c None",
 "# c #000000",

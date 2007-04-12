@@ -1,5 +1,5 @@
 /* XPM */
-static const char *XPM_log[] = {
+static const char *logarithm[] = {
 /* columns rows colors chars-per-pixel */
 "32 32 3 1",
 "x c black",

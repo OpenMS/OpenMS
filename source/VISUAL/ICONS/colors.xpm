@@ -1,5 +1,5 @@
 /* XPM */ 
-static char * XPM_colors[] = {
+static char * colors[] = {
 "32 32 351 2",
 "  	c None",
 "xx c black",

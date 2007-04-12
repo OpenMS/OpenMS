@@ -1,5 +1,5 @@
 /* XPM */
-static char *XPM_precursors[]={
+static char *precursors[]={
 "32 32 3 1",
 ". c None",
 "# c #000000",

@@ -73,11 +73,11 @@
 
 //action modes
 #include "../VISUAL/ICONS/zoom.xpm"
-#include "../VISUAL/ICONS/select.xpm"
+#include "../VISUAL/ICONS/selection.xpm"
 
 //intensity modes
 #include "../VISUAL/ICONS/lin.xpm"
-#include "../VISUAL/ICONS/log.xpm"
+#include "../VISUAL/ICONS/logarithm.xpm"
 #include "../VISUAL/ICONS/percentage.xpm"
 #include "../VISUAL/ICONS/snap.xpm"
 
@@ -94,9 +94,9 @@
 #include "../VISUAL/ICONS/colors.xpm"
 #include "../VISUAL/ICONS/contours.xpm"
 #include "../VISUAL/ICONS/precursors.xpm"
+#include "../VISUAL/ICONS/projections.xpm"
 #include "../VISUAL/ICONS/convexhulls.xpm"
 #include "../VISUAL/ICONS/numbers.xpm"
-
 
 #include "../VISUAL/ICONS/TOPPView.xpm"
 
@@ -114,7 +114,7 @@ namespace OpenMS
       PreferencesManager()
   {
   	setWindowTitle("TOPPView");
-    setWindowIcon(QIcon(XPM_toppview));
+    setWindowIcon(QIcon(toppview));
     //prevents errors caused by too small width,height values
     setMinimumSize(400,400);
 
@@ -194,8 +194,8 @@ namespace OpenMS
     menuBar()->addMenu(windows);
     windows->addAction("&Cascade",this->ws_,SLOT(cascade()));
     windows->addAction("&Tile automatic",this->ws_,SLOT(tile()));
-    windows->addAction(QIcon(QPixmap(XPM_tile_h)),"Tile &vertical",this,SLOT(tileHorizontal()));
-    windows->addAction(QIcon(QPixmap(XPM_tile_v)),"Tile &horizontal",this,SLOT(tileVertical()));
+    windows->addAction(QIcon(QPixmap(tile_h)),"Tile &vertical",this,SLOT(tileHorizontal()));
+    windows->addAction(QIcon(QPixmap(tile_v)),"Tile &horizontal",this,SLOT(tileVertical()));
 
     //create status bar
     message_label_ = new QLabel(statusBar());
@@ -1001,7 +1001,7 @@ namespace OpenMS
     action_group_->setExclusive(true);
     
     b = new QToolButton(tool_bar_);
-    b->setIcon(QPixmap(XPM_zoom));
+    b->setIcon(QPixmap(zoom));
     b->setToolTip("Action: Zoom + Translate");
     b->setShortcut(Qt::Key_Z);
     b->setCheckable(true);
@@ -1012,7 +1012,7 @@ namespace OpenMS
 		tool_bar_->addWidget(b);
 
     b = new QToolButton(tool_bar_);
-    b->setIcon(QPixmap(XPM_select));
+    b->setIcon(QPixmap(selection));
     b->setToolTip("Action: Select + Measure");
     b->setShortcut(Qt::Key_S);
     b->setCheckable(true);
@@ -1030,7 +1030,7 @@ namespace OpenMS
     intensity_group_->setExclusive(true);
     
     b = new QToolButton(tool_bar_);
-    b->setIcon(QPixmap(XPM_lin));
+    b->setIcon(QPixmap(lin));
     b->setToolTip("Intensity: Normal");
     b->setShortcut(Qt::Key_N);
     b->setCheckable(true);
@@ -1039,7 +1039,7 @@ namespace OpenMS
 		tool_bar_->addWidget(b);
     
     b = new QToolButton(tool_bar_);
-    b->setIcon(QPixmap(XPM_log));
+    b->setIcon(QPixmap(logarithm));
     b->setToolTip("Intensity: Logarithmic");
     b->setShortcut(Qt::Key_L);
     b->setCheckable(true);
@@ -1048,7 +1048,7 @@ namespace OpenMS
 		tool_bar_->addWidget(b);
 
     b = new QToolButton(tool_bar_);
-    b->setIcon(QPixmap(XPM_percentage));
+    b->setIcon(QPixmap(percentage));
     b->setToolTip("Intensity: Percentage");
     b->setShortcut(Qt::Key_P);
     b->setCheckable(true);
@@ -1059,7 +1059,7 @@ namespace OpenMS
 		tool_bar_->addWidget(b);
 
     b = new QToolButton(tool_bar_);
-    b->setIcon(QPixmap(XPM_snap));
+    b->setIcon(QPixmap(snap));
     b->setToolTip("Intensity: Snap to maximum displayed intensity");
     b->setShortcut(Qt::Key_A);
     b->setCheckable(true);
@@ -1072,7 +1072,7 @@ namespace OpenMS
     tool_bar_->addSeparator();
 
     //common buttons
-    QAction* reset_zoom_button = tool_bar_->addAction(QPixmap(XPM_reset_zoom), "Reset Zoom", this, SLOT(resetZoom()));
+    QAction* reset_zoom_button = tool_bar_->addAction(QPixmap(reset_zoom), "Reset Zoom", this, SLOT(resetZoom()));
     reset_zoom_button->setWhatsThis("Reset zoom: Zooms out as far as possible.");
     reset_zoom_button->setShortcut(Qt::Key_Backspace);
 
@@ -1090,7 +1090,7 @@ namespace OpenMS
     draw_group_1d_->setExclusive(true);
     
     b = new QToolButton(tool_bar_1d_);
-    b->setIcon(QPixmap(XPM_peaks));
+    b->setIcon(QPixmap(peaks));
     b->setToolTip("Peak mode");
     b->setShortcut(Qt::Key_I);
     b->setCheckable(true);
@@ -1099,7 +1099,7 @@ namespace OpenMS
 		tool_bar_1d_->addWidget(b);
     
     b = new QToolButton(tool_bar_1d_);
-    b->setIcon(QPixmap(XPM_lines));
+    b->setIcon(QPixmap(lines));
     b->setToolTip("Raw data mode");
     b->setShortcut(Qt::Key_R);
     b->setCheckable(true);
@@ -1121,33 +1121,33 @@ namespace OpenMS
     //--2D toolbar--
     tool_bar_2d_ = addToolBar("2D tool bar");
 
-    dm_surface_2d_ = tool_bar_2d_->addAction(QPixmap(XPM_colors),"Show colored surface");
+    dm_surface_2d_ = tool_bar_2d_->addAction(QPixmap(colors),"Show colored surface");
     dm_surface_2d_->setCheckable(true);
     dm_surface_2d_->setWhatsThis("2D peak draw mode: Surface<BR><BR>The marching squares algorithm is applied"
     								             " to calculate a surface");
     connect(dm_surface_2d_, SIGNAL(toggled(bool)), this, SLOT(changeLayerFlag(bool)));
 
-    dm_contours_2d_ = tool_bar_2d_->addAction(QPixmap(XPM_contours),"Show contour lines");
+    dm_contours_2d_ = tool_bar_2d_->addAction(QPixmap(contours),"Show contour lines");
     dm_contours_2d_->setCheckable(true);
     dm_contours_2d_->setWhatsThis("2D peak draw mode: Contour lines<BR><BR>The marching squares algorithm is applied"
     								              " to calculate contour lines.");
     connect(dm_contours_2d_, SIGNAL(toggled(bool)), this, SLOT(changeLayerFlag(bool)));
 
-    dm_precursors_2d_ = tool_bar_2d_->addAction(QPixmap(XPM_precursors),"Show MS/MS precursors");
+    dm_precursors_2d_ = tool_bar_2d_->addAction(QPixmap(precursors),"Show MS/MS precursors");
     dm_precursors_2d_->setCheckable(true);
     dm_precursors_2d_->setWhatsThis("2D peak draw mode: Precursors<BR><BR>MS/MS precursor peaks are marked");
     connect(dm_precursors_2d_, SIGNAL(toggled(bool)), this, SLOT(changeLayerFlag(bool)));
 
-    projections_2d_ = tool_bar_2d_->addAction("PRJ", this, SLOT(showProjections()));
+    projections_2d_ = tool_bar_2d_->addAction(QPixmap(projections), "Show Projections" ,this, SLOT(showProjections()));
     projections_2d_->setWhatsThis("Projections: Shows projections of peak data along RT and MZ axis.");
 
 
-    dm_hull_2d_ = tool_bar_2d_->addAction(QPixmap(XPM_convexhulls),"Show feature convex hulls");
+    dm_hull_2d_ = tool_bar_2d_->addAction(QPixmap(convexhulls),"Show feature convex hulls");
     dm_hull_2d_->setCheckable(true);
     dm_hull_2d_->setWhatsThis("2D feature draw mode: Convex hull<BR><BR>The convex hull of the feature is displayed");
     connect(dm_hull_2d_, SIGNAL(toggled(bool)), this, SLOT(changeLayerFlag(bool)));
 
-    dm_numbers_2d_ = tool_bar_2d_->addAction(QPixmap(XPM_numbers),"Show feature numbers");
+    dm_numbers_2d_ = tool_bar_2d_->addAction(QPixmap(numbers),"Show feature numbers");
     dm_numbers_2d_->setCheckable(true);
     dm_numbers_2d_->setWhatsThis("2D feature draw mode: Numbers<BR><BR>The feature number is displayed next to the feature");
     connect(dm_numbers_2d_, SIGNAL(toggled(bool)), this, SLOT(changeLayerFlag(bool)));
