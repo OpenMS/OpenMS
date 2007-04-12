@@ -27,6 +27,7 @@
 #include <OpenMS/CHEMISTRY/ElementDB.h>
 #include <OpenMS/FORMAT/Param.h>
 #include <OpenMS/CHEMISTRY/Element.h>
+#include <OpenMS/SYSTEM/File.h>
 
 #include <cmath>
 #include <iostream>
@@ -37,7 +38,7 @@ namespace OpenMS
 {
 	ElementDB::ElementDB()
 	{
-		readFromFile_(OPENMS_PATH "/data/" OPENMS_CHEMISTRY_ELEMENTDB_DEFAULT_FILE);
+		readFromFile_(OPENMS_CHEMISTRY_ELEMENTDB_DEFAULT_FILE);
 	}
 
 	ElementDB::~ElementDB()
@@ -97,8 +98,10 @@ namespace OpenMS
 	
 	void ElementDB::readFromFile_(const String& file_name) throw(Exception::FileNotFound, Exception::ParseError)
 	{
+		String file = File::find(file_name);
+
 		Param param;
-		param.load(file_name);
+		param.load(file);
 
 		UInt an(0);
 		float avg_weight(0), mono_weight(0);

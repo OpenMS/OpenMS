@@ -27,7 +27,7 @@
 
 #include <OpenMS/CHEMISTRY/ResidueDB.h>
 #include <OpenMS/FORMAT/Param.h>
-#include <fstream>
+#include <OpenMS/SYSTEM/File.h>
 
 using namespace std;
 
@@ -35,9 +35,9 @@ namespace OpenMS
 {
 	ResidueDB::ResidueDB()
 	{
-		readResiduesFromFile_(OPENMS_PATH "/data/CHEMISTRY/Residues.xml" );
+		readResiduesFromFile_("CHEMISTRY/Residues.xml" );
 		buildResidueNames_();
-		readModificationsFromFile_(OPENMS_PATH "/data/CHEMISTRY/Modifications.xml" );
+		readModificationsFromFile_("CHEMISTRY/Modifications.xml" );
 		buildModificationNames_();
 		buildModifiedResidues_();
 	}
@@ -239,15 +239,15 @@ namespace OpenMS
 	void ResidueDB::readResiduesFromFile_(const String& file_name)
 		throw(Exception::FileNotFound, Exception::ParseError)
 	{
-		ifstream is(file_name.c_str());
-		if (!is)
+		String file = File::find(file_name);
+
+		if (!File::exists(file))
 		{
 			throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, file_name);
 		}
-		is.close();
 		
 		Param param;
-		param.load(file_name);
+		param.load(file);
 		
 		if (!String(param.begin()->first).hasPrefix("Residues"))
 		{
@@ -296,17 +296,16 @@ namespace OpenMS
 	void ResidueDB::readModificationsFromFile_(const String& filename)
 		throw(Exception::FileNotFound, Exception::ParseError)
 	{
+		String file = File::find(filename);
 		// try filename
-		ifstream is(filename.c_str());
-		if (!is)
+		if (!File::exists(file))
 		{
 			throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename);
 		}
-		is.close();
 
 		// seems to be ok, open it
 		Param param;
-		param.load(filename);
+		param.load(file);
 
 		if (!String(param.begin()->first).hasPrefix("Modifications"))
 		{
