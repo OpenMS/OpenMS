@@ -67,10 +67,14 @@ namespace OpenMS
 		defaults_.setValue("model_depth", 4);
 		defaults_.setValue("visible_model_depth", 30);
 		defaults_.setValue("precursor_error", 3.0);
-		defaults_.setValue("min_main_ion_intensity", 0.1);
-		defaults_.setValue("min_main_ion_intensity_threshold", 0.1);
-		defaults_.setValue("min_loss_ion_intensity", 0.05);
-		defaults_.setValue("min_loss_ion_intensity_threshold", 0.05);
+		defaults_.setValue("peak_mass_tolerance", 0.3); // TODO
+
+		defaults_.setValue("min_main_ion_intensity", 0.02);
+		defaults_.setValue("min_main_ion_intensity_threshold", 0.02);
+		defaults_.setValue("min_loss_ion_intensity", 0.005);
+		defaults_.setValue("min_loss_ion_intensity_threshold", 0.005);
+
+		defaults_.setValue("charge_loss_factor", 0.5); // TODO
 		
 		defaultsToParam_();
 
@@ -90,9 +94,11 @@ namespace OpenMS
 			tsg_(model.tsg_),
 			name_to_enum_(model.name_to_enum_),
 			enum_to_name_(model.enum_to_name_),
-			valid_(model.valid_)
+			valid_(model.valid_),
+			peaks_(model.peaks_),
+			spectra_aligner_(model.spectra_aligner_)
 	{
-		initModels_();
+		//initModels_();
 	}
 
 	PILISModel& PILISModel::operator = (const PILISModel& model)
@@ -108,6 +114,8 @@ namespace OpenMS
 	    name_to_enum_ = model.name_to_enum_;
 	    enum_to_name_ = model.enum_to_name_;
 	    valid_ = model.valid_;
+			peaks_ = model.peaks_;
+			spectra_aligner_ = model.spectra_aligner_;
 		}
 		return *this;
 	}
@@ -204,33 +212,26 @@ namespace OpenMS
 		cout << "peptide: " << peptide  << "(z=" << charge << ")" << endl;
 		#endif
 		double peptide_weight((peptide.getMonoWeight() + double(charge)) / double(charge));
-		//double pre_int1(0), pre_int_H2O_1(0), pre_int_NH3_1(0), pre_int2(0), pre_int_H2O_2(0), pre_int_NH3_2(0);
 		PrecursorPeaks_ pre_ints_1, pre_ints_2;
 		getPrecursorIntensitiesFromSpectrum_(train_spec, pre_ints_1, peptide_weight, 1);
 		if (charge > 1)
 		{
 			getPrecursorIntensitiesFromSpectrum_(train_spec, pre_ints_2, peptide_weight, 2);
 		}
+
 		// get the ions intensities, y and b ions and losses H2O, NH3 respectively
-		
 		IonPeaks_ ints_1, ints_2;
-		//for (UInt z = 1; z <= charge; ++z)
-		//{
-			// TODO
-			double sum1 = getIntensitiesFromSpectrum_(train_spec, ints_1, peptide, 1);
+		double sum1 = getIntensitiesFromSpectrum_(train_spec, ints_1, peptide, 1);
 			
-			double sum2(0);
+		double sum2(0);
 			
-			if (charge > 1)
-			{
-				sum2 = getIntensitiesFromSpectrum_(train_spec, ints_2, peptide, 2);
-			}
-		//}
+		if (charge > 1)
+		{
+			sum2 = getIntensitiesFromSpectrum_(train_spec, ints_2, peptide, 2);
+		}
 
 		// normalize the intensities
-		//cerr << "pre_ints="	<< pre_ints_1.pre << " " <<  pre_ints_2.pre << " " << pre_ints_1.pre_NH3 << " " <<  pre_ints_2.pre_NH3 << " " <<  pre_ints_1.pre_H2O << " " <<  pre_ints_2.pre_H2O << endl;
-		double sum(0);
-		sum += sum1;
+		double sum(sum1);
 		sum += pre_ints_1.pre + pre_ints_1.pre_NH3 + pre_ints_1.pre_H2O;
 		if (charge > 1)
 		{
@@ -266,17 +267,14 @@ namespace OpenMS
 			}
 		}
 	
-		//cerr << "sum=" << sum << endl;
-		
 		if (sum == 0)
 		{
 			// does not make sense to proceed here
-			cerr << "warning: no peaks found which match the given sequence" << endl;
+			cerr << "PILISModel::train warning: no peaks found which match the given sequence" << endl;
 			return;
 		}
 
-		HashMap<UInt, double> bb_charge_full;
-		HashMap<UInt, double> sc_charge_full;
+		HashMap<UInt, double> bb_charge_full, sc_charge_full;
 		prot_dist_.getProtonDistribution(bb_charge_full, sc_charge_full, peptide, charge, Residue::YIon);
 		prot_dist_.setPeptideProtonDistribution(bb_charge_full, sc_charge_full);
 	
@@ -294,7 +292,6 @@ namespace OpenMS
 		// for each site: 1. set proton distribution, 2. initial training intensities, 3. train the model
 		for (UInt i = 0; i != peptide.size() - 1; ++i)
 		{
-			//cerr << i << " " << peptide << endl;
 			String pos_name, y_name1, b_name1, a_name1, y_name, b_name;
 			String y_name2, b_name2, a_name2, prefix_size(i + 1), suffix_size(peptide.size() - 1 - i);
 
@@ -328,8 +325,6 @@ namespace OpenMS
         a_name2 = "ak-"+suffix_size+"++";
 			}
 						
-			//cerr << "pos_name=" << pos_name << ", b_name=" << b_name1 << ", y_name=" << y_name1 << endl;
-	
 			AASequence prefix(peptide.getPrefix(i + 1)), suffix(peptide.getSuffix(peptide.size() - i - 1));
 			String aa1(peptide[i]->getOneLetterCode()), aa2(peptide[i + 1]->getOneLetterCode());
 			
@@ -338,12 +333,12 @@ namespace OpenMS
 			prot_dist_.getChargeStateIntensities(peptide, prefix, suffix, charge, Residue::BIon, bint1, yint1, bint2, yint2, ProtonDistributionModel::ChargeDirected);
 
 			hmm_.setInitialTransitionProbability("BB"+pos_name, bb_init[i]);
+		
 			// TODO disable this if necessary
 			hmm_.setInitialTransitionProbability(aa1+aa2+"bxyz"+pos_name, bb_init[i]);
 			hmm_.setInitialTransitionProbability(aa1+aa2+"axyz"+pos_name, bb_init[i]);
 
 			//cerr << "ChargeStats: BB=" << BB_charges[i] << ", " << peptide.getPrefix(i+1) << "-" << peptide.getSuffix(peptide.size() - 1 - i) << ", " << charge << endl;
-			
 			//charge_sum += BB_charges[i]; 
 
 			prefixes.push_back(prefix);
@@ -365,11 +360,11 @@ namespace OpenMS
 				prot_dist_.getChargeStateIntensities(peptide, prefix, suffix, charge, Residue::BIon, b_sc_int1, y_sc_int1, b_sc_int2, y_sc_int2, ProtonDistributionModel::SideChain);
 				hmm_.setInitialTransitionProbability("SC"+pos_name, sc_init[i]);
 
-				//cerr << "ChargeStats: SC=" << SC_charges[i] << ", " << peptide.getPrefix(i+1) << "-" << peptide.getSuffix(peptide.size() - 1 - i) << ", " << charge << endl;
-				
+				//cerr << "ChargeStats: SC=" << SC_charges[i] << ", " << peptide.getPrefix(i+1) << "-" << peptide.getSuffix(peptide.size() - 1 - i) << ", " << charge << endl;	
 				//charge_sum += SC_charges[i];
 			}
 
+			//cerr << "suffix_pos=" << suffix_pos << ", prefix_pos=" << i << ", peptide.size()=" << peptide.size() << endl;
 			double y_sum1 = ints_1.ints[YIon][suffix_pos - 1] + ints_1.ints[YIon_H2O][suffix_pos - 1] + ints_1.ints[YIon_NH3][suffix_pos - 1];
 			double b_sum1 = ints_1.ints[BIon][i] + ints_1.ints[BIon_H2O][i] + ints_1.ints[BIon_NH3][i]; 
 		
@@ -380,7 +375,7 @@ namespace OpenMS
 				b_sum2 = ints_2.ints[BIon][i] + ints_2.ints[BIon_H2O][i] + ints_2.ints[BIon_NH3][i];
 			}
 
-			//cerr << prefix << " - " << suffix << " " << b_sum1 << " " << y_sum1 << " " << i + 1 << " " << suffix_pos << endl;
+			//cerr << prefix << " - " << suffix << " " << b_sum1 << " " << y_sum1 << " " << i + 1 << " " << suffix_pos << " " << ints_1.ints[BIon][i] << endl;
 			
 			hmm_.setTrainingEmissionProbability(b_name1, b_sum1);
 			hmm_.setTrainingEmissionProbability(a_name1, ints_1.ints[AIon][i]);
@@ -393,7 +388,6 @@ namespace OpenMS
 			}
 
 			hmm_.setTrainingEmissionProbability("AA"+pos_name, b_sum1 + b_sum2 + y_sum1 + y_sum2);
-
 			hmm_.setTrainingEmissionProbability("end"+pos_name, 0.5/(double(peptide.size()-1)));
 
 			//cerr << aa1 << aa2 << ": " << b_name1 << "=" << b_ints1[i] << ", " << y_name1 << "=" << y_ints1[y_ints1.size()-i-1] << 
@@ -700,23 +694,28 @@ namespace OpenMS
 																								double ion_intensity, 
 																								const AASequence& ion)
 	{
-		//cerr << "LOSS: " << initial_probability << " " << intensities[LOSS_TYPE_H2O] << " " << intensities[LOSS_TYPE_NH3] << " " << ion_intensity << endl;
-		// H2O loss
+		//cerr << "LOSS: " << initial_probability << " " << intensities[LOSS_TYPE_H2O] << " " << intensities[LOSS_TYPE_NH3] << " " << ion_intensity << " " << ion << endl;
+		// b-ions loss
 		HiddenMarkovModelLight* hmm = &hmms_losses_[ion_type];
 		hmm->clearInitialTransitionProbabilities();
 		hmm->clearTrainingEmissionProbabilities();
 		if (ion_type == Residue::BIon)
 		{
 			hmm->setInitialTransitionProbability(B_ION, initial_probability);
-			if (intensities.has(PILISModel::LOSS_TYPE_H2O))
+
+			// H2O loss
+			if (intensities.has(LOSS_TYPE_H2O))
 			{
-				hmm->setTrainingEmissionProbability(B_H2O, intensities[PILISModel::LOSS_TYPE_H2O]);
+				hmm->setTrainingEmissionProbability(B_H2O, intensities[LOSS_TYPE_H2O]);
 			}
 			
-			if (intensities.has(PILISModel::LOSS_TYPE_NH3))
+			// NH3 loss
+			if (intensities.has(LOSS_TYPE_NH3))
 			{
-				hmm->setTrainingEmissionProbability(B_NH3, intensities[PILISModel::LOSS_TYPE_NH3]);
+				hmm->setTrainingEmissionProbability(B_NH3, intensities[LOSS_TYPE_NH3]);
 			}
+
+			// end state
 			hmm->setTrainingEmissionProbability(B_LOSS_END, ion_intensity);
 			enableNeutralLossStates_(ion_type, ion);
 
@@ -729,14 +728,14 @@ namespace OpenMS
 		if (ion_type == Residue::YIon)
 		{
 			hmm->setInitialTransitionProbability(Y_ION, initial_probability);
-      if (intensities.has(PILISModel::LOSS_TYPE_H2O))
+      if (intensities.has(LOSS_TYPE_H2O))
       {
-        hmm->setTrainingEmissionProbability(Y_H2O, intensities[PILISModel::LOSS_TYPE_H2O]);
+        hmm->setTrainingEmissionProbability(Y_H2O, intensities[LOSS_TYPE_H2O]);
       }
 
-      if (intensities.has(PILISModel::LOSS_TYPE_NH3))
+      if (intensities.has(LOSS_TYPE_NH3))
       {
-        hmm->setTrainingEmissionProbability(Y_NH3, intensities[PILISModel::LOSS_TYPE_NH3]);
+        hmm->setTrainingEmissionProbability(Y_NH3, intensities[LOSS_TYPE_NH3]);
       }
       hmm->setTrainingEmissionProbability(Y_LOSS_END, ion_intensity);
 
@@ -937,70 +936,19 @@ namespace OpenMS
 		hmm_.estimateUntrainedTransitions();
 
 		hmm_precursor_.evaluate();
-		//hmm_precursor_.dump();
 
 		for (HashMap<Residue::ResidueType, HiddenMarkovModelLight>::Iterator it = hmms_losses_.begin(); it != hmms_losses_.end(); ++it)
 		{
 			it->second.evaluate();
-			//it->second.dump();
 		}
 	}
-
-/*
-	void PILISModel::getSpectrumAlignment(HashMap<UInt, UInt>& peak_map, const PeakSpectrum& spec1, const PeakSpectrum& spec2)
-	{
-		//cerr << "HashMap<UInt, UInt> HMMModel2::getSpectrumAlignment(const PeakSpectrum& spec1, const PeakSpectrum& spec2)" << endl;
-		// spec1 should be the fixed (theo spec)
-		// "threaded" algorithm
-	
-		//const float rel_error(0.004);
-		const float rel_error(0.004);
-		
-		const PeakSpectrum::ContainerType& a1 = spec1.getContainer();
-		const PeakSpectrum::ContainerType& a2 = spec2.getContainer();
-		
-		UInt last_j(0);
-		for (UInt i = 0; i != a1.size(); ++i)
-		{
-			float pos1 = a1[i].getPosition();
-			float error = pos1 * rel_error;
-			//float error = 0.3;
-			float diff = numeric_limits<float>::max();
-			for (UInt j = last_j; j != a2.size(); ++j)
-			{
-				float pos2 = a2[j].getPosition();
-				if (abs(pos1 - pos2) < error && abs(pos1 - pos2) < diff)
-				{
-					diff = abs(pos1-pos2);
-					last_j = j;
-				}
-				
-				if (pos2 > pos1 && abs(pos1 - pos2) > error)
-				{
-					break;
-				}
-			}
-			if (diff != numeric_limits<float>::max())
-			{
-				peak_map[i] = last_j;
-			}
-		}
-		#ifdef ALIGMENT_DEBUG
-		for (HashMap<UInt, UInt>::ConstIterator it = peak_map.begin(); it != peak_map.end(); ++it)
-		{
-			cerr << it->first << " " << a1[it->first].getPosition() << " <> " << a2[it->second].getPosition() << " " << a2[it->second].getIntensity() << endl;
-		}
-		#endif
-		//cerr << peak_map.size() << endl;
-	}
-
-	*/
 
 	void PILISModel::getSpectrum(PeakSpectrum& spec, const AASequence& peptide, UInt charge)
 	{
 		if (!valid_)
 		{
-			cerr << "PILISModel: cannot train, initialize model from file first, e.g. data/PILIS/PILIS_model_default.dat" << endl;
+			cerr << "PILISModel: cannot simulate, initialize model from file first, e.g. data/PILIS/PILIS_model_default.dat" << endl;
+			return;
 		}
 		
 		// calc proton distribution
@@ -1223,6 +1171,7 @@ namespace OpenMS
 			double prefix_int1 = tmp[hmm_.getState(prefix_names1[i])];
 			prefix_ints1.push_back(prefix_int1);
 			double prefix_int2 = tmp[hmm_.getState(prefix_names2[i])];
+			//cerr << "prefix loss ints, "<< prefix_names1[i] << " "  << prefix_int1 << " " << prefix_int2 << endl;
 			prefix_ints2.push_back(prefix_int2);
 			getNeutralLossesFromIon_(prefix_loss, prefix_int1 + prefix_int2, Residue::BIon, prefixes[i]);
 			prefix_losses.push_back(prefix_loss);
@@ -1232,7 +1181,7 @@ namespace OpenMS
 			suffix_ints1.push_back(suffix_int1);
 			double suffix_int2 = tmp[hmm_.getState(suffix_names2[i])];
 			suffix_ints2.push_back(suffix_int2);
-			//cerr << "getting loss ints: " << suffix_int1 + suffix_int2 << endl;
+			//cerr << "suffix loss ints, " << suffix_names1[i] << " "  << suffix_int1 << " " <<  suffix_int2 << endl;
 			getNeutralLossesFromIon_(suffix_loss, suffix_int1 + suffix_int2, Residue::YIon, suffixes[i]);
 			suffix_losses.push_back(suffix_loss);
 		}
@@ -1288,10 +1237,12 @@ namespace OpenMS
 			{
 				if (prefix_losses[i].has(LOSS_TYPE_H2O))
         {
+					//cerr << weight << " " << prefix_losses[i][LOSS_TYPE_H2O] << "b" << String(i+1) << "-H2O" << endl;
 					addPeaks_(weight, 1, -18.0, prefix_losses[i][LOSS_TYPE_H2O], spec, id, "b" + String(i+1) + "-H2O+");
 				}
 				if (prefix_losses[i].has(LOSS_TYPE_NH3))
         {
+					//cerr << weight << " " << prefix_losses[i][LOSS_TYPE_NH3] << "b" << String(i+1) << "-NH3" << endl;
 					addPeaks_(weight, 1, -17.0, prefix_losses[i][LOSS_TYPE_NH3], spec, id, "b" + String(i+1) + "-NH3+");
 				}
 			}
@@ -1385,7 +1336,6 @@ namespace OpenMS
 		}
 	
 		// now build the spectrum with the peaks
-		//Peak p;
 		double intensity_max(0);
 		for (HashMap<double, vector<Peak1D> >::ConstIterator it = peaks_.begin(); it != peaks_.end(); ++it)
 		{
@@ -1410,13 +1360,7 @@ namespace OpenMS
 					}
 				}
 
-				/*if (int_sum != 0)
-				{*/
-					//p = *it->second.begin();
-					p.setIntensity(int_sum);
-
-					//p.setPosition(pit->first);
-				//}
+				p.setIntensity(int_sum);
 				spec.getContainer().push_back(p);
 				if (intensity_max < int_sum)
 				{
@@ -1426,14 +1370,6 @@ namespace OpenMS
 		}
 
 		spec.getContainer().sortByPosition();
-
-		#ifdef SIM_DEBUG
-		cerr << "now mapping the intensities to positions" << endl;
-		for (HashMap<HMMState*, double>::const_iterator it = tmp.begin(); it != tmp.end(); ++it)
-		{
-			cerr << it->first->getName() << "\t" << it->second << endl;
-		}
-		#endif
 
 		double min_main_ion_intensity = (double)param_.getValue("min_main_ion_intensity");
 		double min_main_ion_intensity_threshold = (double)param_.getValue("min_main_ion_intensity_threshold");
@@ -1478,9 +1414,9 @@ namespace OpenMS
 		HashMap<HMMStateLight*, double> tmp;
 		hmm_precursor_.calculateEmissionProbabilities(tmp);
 
-		intensities[PILISModel::LOSS_TYPE_H2O] = tmp[hmm_precursor_.getState(PRE_MH_H2O)];
-		intensities[PILISModel::LOSS_TYPE_NH3] = tmp[hmm_precursor_.getState(PRE_MH_NH3)];
-		intensities[PILISModel::LOSS_TYPE_NONE] =	tmp[hmm_precursor_.getState(PRE_MH)];
+		intensities[LOSS_TYPE_H2O] = tmp[hmm_precursor_.getState(PRE_MH_H2O)];
+		intensities[LOSS_TYPE_NH3] = tmp[hmm_precursor_.getState(PRE_MH_NH3)];
+		intensities[LOSS_TYPE_NONE] =	tmp[hmm_precursor_.getState(PRE_MH)];
 
 		hmm_precursor_.disableTransitions();
 	}
@@ -1495,10 +1431,23 @@ namespace OpenMS
 			enableNeutralLossStates_(ion_type, ion);
 
 			HashMap<HMMStateLight*, double> tmp;
+
 			hmm->calculateEmissionProbabilities(tmp);
 			
-			intensities[PILISModel::LOSS_TYPE_H2O] = tmp[hmm->getState(B_H2O)];
-			intensities[PILISModel::LOSS_TYPE_NH3] = tmp[hmm->getState(B_NH3)];
+			/*
+			for (HashMap<HMMStateLight*, double>::ConstIterator it = tmp.begin(); it != tmp.end(); ++it)
+			{
+				cerr << enum_to_name_[(States_)it->first->getIdentifier()] << " " << it->second << endl;
+			}*/
+
+			if (tmp.has(hmm->getState(B_H2O)))
+			{
+				intensities[LOSS_TYPE_H2O] = tmp[hmm->getState(B_H2O)];
+			}
+			if (tmp.has(hmm->getState(B_NH3)))
+			{
+				intensities[LOSS_TYPE_NH3] = tmp[hmm->getState(B_NH3)];
+			}
 
 			hmm->disableTransitions();
 			
@@ -1513,8 +1462,14 @@ namespace OpenMS
       HashMap<HMMStateLight*, double> tmp;
       hmm->calculateEmissionProbabilities(tmp);
 
-      intensities[PILISModel::LOSS_TYPE_H2O] = tmp[hmm->getState(Y_H2O)];
-      intensities[PILISModel::LOSS_TYPE_NH3] = tmp[hmm->getState(Y_NH3)];
+			if (tmp.has(hmm->getState(Y_H2O)))
+			{
+	      intensities[LOSS_TYPE_H2O] = tmp[hmm->getState(Y_H2O)];
+			}
+			if (tmp.has(hmm->getState(Y_NH3)))
+			{
+	      intensities[LOSS_TYPE_NH3] = tmp[hmm->getState(Y_NH3)];
+			}
 
 			hmm->disableTransitions();
 			
@@ -1618,7 +1573,6 @@ namespace OpenMS
 			if (pos >= (double)param_.getValue("lower_mz") && pos <= (double)param_.getValue("upper_mz"))
 			{
 				p.setIntensity(intensity * it->second);
-				//spectrum.getContainer().push_back(p);
 				peaks_[p.getMZ()].push_back(p);
 			}
 
@@ -1631,325 +1585,7 @@ namespace OpenMS
 		return;
 	}
 	
-	/*
-	void PILISModel::initModel_()
-	{
-		cerr << ">> Init model " << endl;
-
-		hmm_.addNewState(new HMMState(String("endcenter"), false));
-		hmm_.addNewState(new HMMState(String("end"), false));
-		
-		hmm_.addNewState(new HMMState(String("BBcenter")));
-		hmm_.addNewState(new HMMState(String("AAcenter")));
-		hmm_.addNewState(new HMMState(String("CRcenter")));
-		hmm_.addNewState(new HMMState(String("Acenter")));
-		hmm_.addNewState(new HMMState(String("SCcenter")));
-		hmm_.addNewState(new HMMState(String("ASCcenter")));
-		
-		hmm_.addNewState(new HMMState(String("bxyz")));
-		hmm_.addNewState(new HMMState(String("axyz")));
-		hmm_.addNewState(new HMMState(String("D")));
-		hmm_.addNewState(new HMMState(String("E")));
-		
-		hmm_.addNewState(new HMMState(String("AABase1")));
-		hmm_.addNewState(new HMMState(String("AABase2")));
-		
-		hmm_.addNewState(new HMMState(String("K")));
-		hmm_.addNewState(new HMMState(String("H")));
-		hmm_.addNewState(new HMMState(String("R")));
 	
-		const String residues("ACDEFGHIKMNPQRSTVWY");
-	
-		// create the residue states states
-		for (UInt ii = 0; ii != residues.size(); ++ii)
-    {
-      String first;
-      first += residues[ii];
-      hmm_.addNewState(new HMMState(first+"D"));
-			hmm_.addNewState(new HMMState(first+"E"));
-
-			hmm_.addNewState(new HMMState(first+"K"));
-			hmm_.addNewState(new HMMState(first+"H"));
-			hmm_.addNewState(new HMMState(first+"RSC"));
-			
-      for (UInt j = 0; j != residues.size(); ++j)
-      {
-        String second;
-        second += residues[j];
-        hmm_.addNewState(new HMMState(first+second+"bxyz"));
-				hmm_.addNewState(new HMMState(first+second+"axyz"));
-      }
-    }
-
-		for (UInt i = 1; i <= VISIBLE_MODEL_DEPTH; ++i)
-		{
-			// these states are really created
-			// charge states
-			hmm_.addNewState(new HMMState("BB"+String(i)));
-			hmm_.addNewState(new HMMState("BBk-"+String(i)));
-			hmm_.addNewState(new HMMState("CR"+String(i))); 
-			hmm_.addNewState(new HMMState("CRk-"+String(i)));
-
-			hmm_.addNewState(new HMMState("SC"+String(i)));
-			hmm_.addNewState(new HMMState("SCk-"+String(i)));
-
-			// states for trans mapping 
-			hmm_.addNewState(new HMMState("AA"+String(i)));
-			hmm_.addNewState(new HMMState("AAk-"+String(i)));
-
-			hmm_.addNewState(new HMMState("A"+String(i)));
-			hmm_.addNewState(new HMMState("Ak-"+String(i)));
-
-			hmm_.addNewState(new HMMState("ASC"+String(i)));
-			hmm_.addNewState(new HMMState("ASCk-"+String(i)));
-
-			// emitting ion states
-			hmm_.addNewState(new HMMState("b"+String(i)+"+", false));
-			hmm_.addNewState(new HMMState("bk-"+String(i)+"+", false));
-			hmm_.addNewState(new HMMState("y"+String(i)+"+", false));
-			hmm_.addNewState(new HMMState("yk-"+String(i)+"+", false));
-			hmm_.addNewState(new HMMState("a"+String(i)+"+", false));
-			hmm_.addNewState(new HMMState("ak-"+String(i)+"+", false));
-
-			hmm_.addNewState(new HMMState("b"+String(i)+"++", false));
-      hmm_.addNewState(new HMMState("bk-"+String(i)+"++", false));
-      hmm_.addNewState(new HMMState("y"+String(i)+"++", false));
-      hmm_.addNewState(new HMMState("yk-"+String(i)+"++", false));
-      hmm_.addNewState(new HMMState("a"+String(i)+"++", false));
-      hmm_.addNewState(new HMMState("ak-"+String(i)+"++", false));
-
-			hmm_.addNewState(new HMMState("end"+String(i), false));
-			hmm_.addNewState(new HMMState("endk-"+String(i), false));
-
-			// emitting neutral loss states
-		
-			// post AA collector states
-			hmm_.addNewState(new HMMState("bxyz"+String(i)));
-			hmm_.addNewState(new HMMState("bxyzk-"+String(i)));
-			hmm_.addNewState(new HMMState("axyz"+String(i)));
-			hmm_.addNewState(new HMMState("axyzk-"+String(i)));
-			hmm_.addNewState(new HMMState("D"+String(i)));
-			hmm_.addNewState(new HMMState("Dk-"+String(i)));
-			hmm_.addNewState(new HMMState("E"+String(i)));
-			hmm_.addNewState(new HMMState("Ek-"+String(i)));
-
-			hmm_.addNewState(new HMMState("K"+String(i)));
-			hmm_.addNewState(new HMMState("Kk-"+String(i)));
-			hmm_.addNewState(new HMMState("H"+String(i)));
-			hmm_.addNewState(new HMMState("Hk-"+String(i)));
-			hmm_.addNewState(new HMMState("R"+String(i)));
-			hmm_.addNewState(new HMMState("Rk-"+String(i)));
-
-			// map the residue states
-			for (UInt ii = 0; ii != residues.size(); ++ii)
-			{
-				String first;
-				first += residues[ii];
-				hmm_.addNewState(new HMMState(first+"D"+String(i)));
-				hmm_.addNewState(new HMMState(first+"Dk-"+String(i)));
-
-        hmm_.addNewState(new HMMState(first+"E"+String(i)));
-        hmm_.addNewState(new HMMState(first+"Ek-"+String(i)));
-
-				hmm_.addNewState(new HMMState(first+"K"+String(i)));
-				hmm_.addNewState(new HMMState(first+"Kk-"+String(i)));
-
-				hmm_.addNewState(new HMMState(first+"H"+String(i)));
-        hmm_.addNewState(new HMMState(first+"Hk-"+String(i)));
-
-				hmm_.addNewState(new HMMState(first+"RSC"+String(i)));
-        hmm_.addNewState(new HMMState(first+"RSCk-"+String(i)));
-				
-				for (UInt j = 0; j != residues.size(); ++j)
-				{
-					String second;
-					second += residues[j];
-					hmm_.addNewState(new HMMState(first+second+"bxyz"+String(i)));
-					hmm_.addNewState(new HMMState(first+second+"bxyzk-"+String(i)));
-					hmm_.addNewState(new HMMState(first+second+"axyz"+String(i)));
-					hmm_.addNewState(new HMMState(first+second+"axyzk-"+String(i)));
-				}
-			}
-		}
-
-		cerr << "setting transitions" << endl;
-
-
-		hmm_.setTransitionProbability("AABase1", "AABase2", 1);
-
-		// set the initial transitions
-		for (UInt i = 1; i <= VISIBLE_MODEL_DEPTH; ++i)
-		{
-			if (i <= MODEL_DEPTH)
-			{
-		
-				hmm_.setTransitionProbability("BB"+String(i), "end"+String(i), 0.5);
-				hmm_.setTransitionProbability("BBk-"+String(i), "endk-"+String(i), 0.5);
-			
-				hmm_.setTransitionProbability("SC"+String(i), "end"+String(i), 0.5);
-				hmm_.setTransitionProbability("SCk-"+String(i), "endk-"+String(i), 0.5);
-
-				hmm_.setTransitionProbability("CR"+String(i), "end"+String(i), 0.5);
-				hmm_.setTransitionProbability("CRk-"+String(i), "endk-"+String(i), 0.5);
-	
-				hmm_.setTransitionProbability("BB"+String(i), "AA"+String(i), 0.5);
-				hmm_.setTransitionProbability("BBk-"+String(i), "AAk-"+String(i), 0.5);
-
-				hmm_.setTransitionProbability("CR"+String(i), "A"+String(i), 0.5);
-				hmm_.setTransitionProbability("CRk-"+String(i), "Ak-"+String(i), 0.5);
-
-        hmm_.setTransitionProbability("SC"+String(i), "ASC"+String(i), 0.5);
-        hmm_.setTransitionProbability("SCk-"+String(i), "ASCk-"+String(i), 0.5);
-			}
-			else
-			{
-				hmm_.addSynonymTransition("BBcenter", "endcenter", "BB"+String(i), "end"+String(i));
-				hmm_.addSynonymTransition("BBcenter", "endcenter", "BBk-"+String(i), "endk-"+String(i));
-				hmm_.setTransitionProbability("BBcenter", "endcenter", 0.5);
-			
-				hmm_.addSynonymTransition("CRcenter", "endcenter", "CR"+String(i), "end"+String(i));
-				hmm_.addSynonymTransition("CRcenter", "endcenter", "CRk-"+String(i), "endk-"+String(i));
-				hmm_.setTransitionProbability("CRcenter", "endcenter", 0.5);
-
-				hmm_.addSynonymTransition("SCcenter", "endcenter", "SC"+String(i), "end"+String(i));
-				hmm_.addSynonymTransition("SCcenter", "endcenter", "SCk-"+String(i), "endk-"+String(i));
-				hmm_.setTransitionProbability("SCcenter", "endcenter", 0.5);
-
-				hmm_.addSynonymTransition("BBcenter", "AAcenter", "BB"+String(i), "AA"+String(i));
-				hmm_.addSynonymTransition("BBcenter", "AAcenter", "BBk-"+String(i), "AAk-"+String(i));
-				hmm_.setTransitionProbability("BBcenter", "AAcenter", 0.5);
-
-				hmm_.addSynonymTransition("CRcenter", "Acenter", "CR"+String(i), "A"+String(i));
-				hmm_.addSynonymTransition("CRcenter", "Acenter", "CRk-"+String(i), "Ak-"+String(i));
-				hmm_.setTransitionProbability("CRcenter", "Acenter", 0.5);
-
-        hmm_.addSynonymTransition("SCcenter", "ASCcenter", "SC"+String(i), "ASC"+String(i));
-        hmm_.addSynonymTransition("SCcenter", "ASCcenter", "SCk-"+String(i), "ASCk-"+String(i));
-        hmm_.setTransitionProbability("SCcenter", "ASCcenter", 0.5);
-			}
-			
-			for (UInt ii = 0; ii != residues.size(); ++ii)
-			{
-				String first;
-				first += residues[ii];
-
-				// CR D
-				hmm_.addSynonymTransition("AABase1", "AABase2", "A"+String(i), first+"D"+String(i));
-				hmm_.addSynonymTransition("AABase1", "AABase2", "Ak-"+String(i), first+"Dk-"+String(i));
-			
-				hmm_.addSynonymTransition(first+"D", "D", first+"D"+String(i), "D"+String(i));
-				hmm_.addSynonymTransition(first+"D", "end", first+"D"+String(i), "end"+String(i));
-				hmm_.addSynonymTransition(first+"D", "D", first+"Dk-"+String(i), "Dk-"+String(i));
-				hmm_.addSynonymTransition(first+"D", "end", first+"Dk-"+String(i), "endk-"+String(i));
-
-				hmm_.setTransitionProbability(first+"D", "D", 0.5);
-				hmm_.setTransitionProbability(first+"D", "end", 0.5);
-		
-				// CR E
-				hmm_.addSynonymTransition("AABase1", "AABase2", "A"+String(i), first+"E"+String(i));
-        hmm_.addSynonymTransition("AABase1", "AABase2", "Ak-"+String(i), first+"Ek-"+String(i));
-        
-        hmm_.addSynonymTransition(first+"E", "E", first+"E"+String(i), "E"+String(i));
-				hmm_.addSynonymTransition(first+"E", "end", first+"E"+String(i), "end"+String(i));
-        hmm_.addSynonymTransition(first+"E", "E", first+"Ek-"+String(i), "Ek-"+String(i));
-				hmm_.addSynonymTransition(first+"E", "end", first+"Ek-"+String(i), "endk-"+String(i));
-        
-        hmm_.setTransitionProbability(first+"E", "E", 0.5);
-       	hmm_.setTransitionProbability(first+"E", "end", 0.5);
-		
-				// SC K
-				hmm_.addSynonymTransition("AABase1", "AABase2", "ASC"+String(i), first+"K"+String(i));
-        hmm_.addSynonymTransition("AABase1", "AABase2", "ASCk-"+String(i), first+"Kk-"+String(i));
-
-        hmm_.addSynonymTransition(first+"K", "K", first+"K"+String(i), "K"+String(i));
-				hmm_.addSynonymTransition(first+"K", "end", first+"K"+String(i), "end"+String(i));
-        hmm_.addSynonymTransition(first+"K", "K", first+"Kk-"+String(i), "Kk-"+String(i));
-				hmm_.addSynonymTransition(first+"K", "end", first+"Kk-"+String(i), "endk-"+String(i));
-
-        hmm_.setTransitionProbability(first+"K", "K", 0.5);
-        hmm_.setTransitionProbability(first+"K", "end", 0.5);
-			
-				// SC H
-				hmm_.addSynonymTransition("AABase1", "AABase2", "ASC"+String(i), first+"H"+String(i));
-        hmm_.addSynonymTransition("AABase1", "AABase2", "ASCk-"+String(i), first+"Hk-"+String(i));
-
-        hmm_.addSynonymTransition(first+"H", "H", first+"H"+String(i), "H"+String(i));
-				hmm_.addSynonymTransition(first+"H", "end", first+"H"+String(i), "end"+String(i));
-        hmm_.addSynonymTransition(first+"H", "H", first+"Hk-"+String(i), "Hk-"+String(i));
-				hmm_.addSynonymTransition(first+"H", "end", first+"Hk-"+String(i), "endk-"+String(i));
-
-        hmm_.setTransitionProbability(first+"H", "H", 0.5);
-        hmm_.setTransitionProbability(first+"H", "end", 0.5);
-
-				// SC R	
-				hmm_.addSynonymTransition("AABase1", "AABase2", "ASC"+String(i), first+"RSC"+String(i));
-        hmm_.addSynonymTransition("AABase1", "AABase2", "ASCk-"+String(i), first+"RSCk-"+String(i));
-
-        hmm_.addSynonymTransition(first+"RSC", "R", first+"RSC"+String(i), "R"+String(i));
-				hmm_.addSynonymTransition(first+"RSC", "end", first+"RSC"+String(i), "end"+String(i));
-        hmm_.addSynonymTransition(first+"RSC", "R", first+"RSCk-"+String(i), "Rk-"+String(i));
-				hmm_.addSynonymTransition(first+"RSC", "end", first+"RSCk-"+String(i), "endk-"+String(i));
-
-        hmm_.setTransitionProbability(first+"RSC", "R", 0.5);
-        hmm_.setTransitionProbability(first+"RSC", "end", 0.5);
-				
-
-				for (UInt j = 0; j != residues.size(); ++j)
-				{
-					String second;
-					second += residues[j];
-
-					hmm_.addSynonymTransition("AABase1", "AABase2", "AA"+String(i), first+second+"bxyz"+String(i));
-					hmm_.addSynonymTransition("AABase1", "AABase2", "AA"+String(i), first+second+"axyz"+String(i));
-
-					hmm_.addSynonymTransition("AABase1", "AABase2", "AAk-"+String(i), first+second+"bxyzk-"+String(i));
-					hmm_.addSynonymTransition("AABase1", "AABase2", "AAk-"+String(i), first+second+"axyzk-"+String(i));
-				
-					if ((second == "P")&& i <= 2)
-					{
-            hmm_.setTransitionProbability(first+second+"bxyz"+String(i), "bxyz"+String(i), 0.01);
-						hmm_.addSynonymTransition(first+second+"bxyz"+String(i), "end", first+second+"bxyz"+String(i), "end"+String(i));
-						hmm_.setTransitionProbability(first+second+"bxyz"+String(i), "end", 0.99);
-
-            hmm_.setTransitionProbability(first+second+"axyz"+String(i), "axyz"+String(i), 0.01);
-						hmm_.addSynonymTransition(first+second+"axyz"+String(i), "end", first+second+"axyz"+String(i), "end"+String(i));
-						hmm_.setTransitionProbability(first+second+"axyz"+String(i), "end", 0.99);
-					}
-					else
-					{
-					
-						hmm_.addSynonymTransition(first+second+"bxyz", "bxyz", first+second+"bxyz"+String(i), "bxyz"+String(i));
-						hmm_.addSynonymTransition(first+second+"bxyz", "end", first+second+"bxyz"+String(i), "end"+String(i));
-
-						hmm_.addSynonymTransition(first+second+"axyz", "axyz", first+second+"axyz"+String(i), "axyz"+String(i));
-						hmm_.addSynonymTransition(first+second+"axyz", "end", first+second+"axyz"+String(i), "end"+String(i)); 
-
-						hmm_.addSynonymTransition(first+second+"bxyz", "end", first+second+"bxyz"+String(i), "end"+String(i));
-						hmm_.addSynonymTransition(first+second+"axyz", "end", first+second+"axyz"+String(i), "end"+String(i));
-					}
-					
-					hmm_.addSynonymTransition(first+second+"bxyz", "bxyz", first+second+"bxyzk-"+String(i), "bxyzk-"+String(i));
-					hmm_.addSynonymTransition(first+second+"bxyz", "end", first+second+"bxyzk-"+String(i), "endk-"+String(i));
-					
-					hmm_.addSynonymTransition(first+second+"axyz", "axyz", first+second+"axyzk-"+String(i), "axyzk-"+String(i));
-					hmm_.addSynonymTransition(first+second+"axyz", "end", first+second+"axyzk-"+String(i), "endk-"+String(i));
-					
-					hmm_.setTransitionProbability(first+second+"bxyz", "bxyz", 0.5);
-					hmm_.setTransitionProbability(first+second+"axyz", "axyz", 0.5);
-
-					hmm_.setTransitionProbability(first+second+"bxyz", "end", 0.5);
-					hmm_.setTransitionProbability(first+second+"axyz", "end", 0.5);
-					hmm_.addSynonymTransition(first+second+"bxyz", "end", first+second+"bxyzk-"+String(i), "end"+String(i));
-          hmm_.addSynonymTransition(first+second+"axyz", "end", first+second+"axyzk-"+String(i), "end"+String(i));
-				}
-			}
-		}
-
-		hmm_.disableTransitions();
-		hmm_.buildSynonyms();
-		cerr << "#states=" << hmm_.getNumberOfStates() << endl;
-	}*/
-
 	void PILISModel::initModels_()
 	{
 		name_to_enum_["b-H2O"] = B_H2O;
@@ -2041,9 +1677,7 @@ namespace OpenMS
 		enum_to_name_[PRE_H2O_CTERM] = "Pre_H2O_Cterm";
 	
     hmms_losses_[Residue::BIon] = HiddenMarkovModelLight();
-    //parseModelFile(String("model_losses_bions.dat"), &hmms_losses_[Residue::BIon]);
     hmms_losses_[Residue::YIon] = HiddenMarkovModelLight();
-    //parseModelFile(String("model_losses_yions.dat"), &hmms_losses_[Residue::YIon]);
 
 		for (HashMap<States_, String>::ConstIterator it = enum_to_name_.begin(); it != enum_to_name_.end(); ++it)
 		{
@@ -2200,4 +1834,5 @@ namespace OpenMS
 		model.buildSynonyms();
 	}
 } // namespace OpenMS
+
 

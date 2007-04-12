@@ -129,9 +129,23 @@ namespace OpenMS
 	{
 	}
 
-	HiddenMarkovModelLight::HiddenMarkovModelLight(const HiddenMarkovModelLight& /*hmm*/)
+	HiddenMarkovModelLight::HiddenMarkovModelLight(const HiddenMarkovModelLight& hmm)
+		:	trans_(hmm.trans_),
+      count_trans_(hmm.count_trans_),
+      train_count_trans_(hmm.train_count_trans_),
+      training_steps_count_(hmm.training_steps_count_),
+      forward_(hmm.forward_),
+      backward_(hmm.backward_),
+      id_to_state_(hmm.id_to_state_),
+      train_emission_prob_(hmm.train_emission_prob_),
+      init_train_prob_(hmm.init_train_prob_),
+      states_(hmm.states_),
+      trained_trans_(hmm.trained_trans_),
+      synonym_trans_names_(hmm.synonym_trans_names_),
+      synonym_trans_(hmm.synonym_trans_),
+      enabled_trans_(hmm.enabled_trans_),
+      id_to_name_(hmm.id_to_name_)
 	{
-		//throw Exception::NotImplemented(__FILE__, __LINE__, __PRETTY_FUNCTION__);
 	}
 	
 	HiddenMarkovModelLight::~HiddenMarkovModelLight()
@@ -140,10 +154,24 @@ namespace OpenMS
 
 	HiddenMarkovModelLight& HiddenMarkovModelLight::operator = (const HiddenMarkovModelLight& hmm)
 	{
-		trans_ = hmm.trans_;
-		count_trans_ = hmm.count_trans_;
-		id_to_state_ = hmm.id_to_state_;
-		states_ = hmm.states_;
+		if (&hmm != this)
+		{
+			trans_ = hmm.trans_;
+			count_trans_ = hmm.count_trans_;
+			train_count_trans_ = hmm.train_count_trans_;
+			training_steps_count_ = hmm.training_steps_count_;
+			forward_ = hmm.forward_;
+			backward_ = hmm.backward_;
+			id_to_state_ = hmm.id_to_state_;
+			train_emission_prob_ = hmm.train_emission_prob_;
+			init_train_prob_ = hmm.init_train_prob_;
+			states_ = hmm.states_;
+			trained_trans_ = hmm.trained_trans_;
+			synonym_trans_names_ = hmm.synonym_trans_names_;
+			synonym_trans_ = hmm.synonym_trans_;
+			enabled_trans_ = hmm.enabled_trans_;
+			id_to_name_ = hmm.id_to_name_;
+		}
 		return *this;
 	}
 

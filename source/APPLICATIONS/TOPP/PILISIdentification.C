@@ -83,6 +83,7 @@ class TOPPPILISIdentification
 			registerDoubleOption_("exponent", "<float>", 0.3, "exponent of the SpectrumAlignmentScore; see documentation of that class for more info", false);
 
 			registerIntOption_("max_pre_candidates", "<int>", 200, "number of candidates that are used for precise scoring", false);
+			registerIntOption_("max_candidates", "<int>", 20, "number of candidates that are reported by PILIS", false);
 			addEmptyLine_();
 		}
 		
@@ -129,7 +130,8 @@ class TOPPPILISIdentification
 			Param p(PILIS_id.getParameters());
 			p.setValue("exponent", getDoubleOption_("exponent"));
 			p.setValue("max_pre_candidates", getIntOption_("max_pre_candidates"));
-			p.setValue("prcr_m_tol", getDoubleOption_("precursor_mass_tolerance"));
+			p.setValue("precursor_mass_tolerance", getDoubleOption_("precursor_mass_tolerance"));
+			p.setValue("max_candidates", getIntOption_("max_candidates"));
 			PILIS_id.setParameters(p);
 			
 			vector<IdentificationData> id_data;

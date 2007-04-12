@@ -85,7 +85,7 @@ RESULT
 CHECK(void getSpectrum(PeakSpectrum& spec, const AASequence& peptide, UInt charge))
 	PeakSpectrum spec;
 	ptr->getSpectrum(spec, peptide, 1);
-	TEST_EQUAL(spec.size(), 89)
+	TEST_EQUAL(spec.size(), 82)
 RESULT
 
 CHECK(void train(const PeakSpectrum&, const AASequence& peptide, UInt charge))

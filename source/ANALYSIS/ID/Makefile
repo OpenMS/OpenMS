@@ -38,7 +38,9 @@ CPP_SOURCES=\
 	HiddenMarkovModelLight.C\
 	PILISSequenceDB.C\
 	PILISModel.C\
-	PILISIdentification.C
+	PILISIdentification.C\
+	PILISModelGenerator.C\
+	PILISScoring.C
 
 
 include ../../common.mak

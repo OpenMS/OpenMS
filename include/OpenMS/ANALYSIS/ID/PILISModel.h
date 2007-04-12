@@ -56,6 +56,8 @@ namespace OpenMS
 	*/	
 	class PILISModel : public DefaultParamHandler
 	{
+		friend class PILISModelGenerator;
+
 		public:
 						
 			/** @name Constructors and destructors

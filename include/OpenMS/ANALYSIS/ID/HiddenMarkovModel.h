@@ -175,6 +175,9 @@ namespace OpenMS
 			/// registers a new state to the HMM
 			void addNewState(HMMState* state);
 
+			/// registers a new state to the HMM
+			void addNewState(const String& name);
+
 			/// add a new synonym transition to the given state names
 			void addSynonymTransition(const String& name1, const String& name2, const String& synonym1, const String& synonym2);
 

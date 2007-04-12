@@ -132,8 +132,19 @@ namespace OpenMS
 	HiddenMarkovModel::HiddenMarkovModel(const HiddenMarkovModel& hmm)
 		:	trans_(hmm.trans_),
 			count_trans_(hmm.count_trans_),
-			name_to_state_(hmm.name_to_state_),
-			states_(hmm.states_)
+      train_count_trans_(hmm.train_count_trans_),
+      training_steps_count_(hmm.training_steps_count_),
+      forward_(hmm.forward_),
+      backward_(hmm.backward_),
+      name_to_state_(hmm.name_to_state_),
+      train_emission_prob_(hmm.train_emission_prob_),
+      init_prob_(hmm.init_prob_),
+      states_(hmm.states_),
+      trained_trans_(hmm.trained_trans_),
+      synonym_trans_names_(hmm.synonym_trans_names_),
+      synonym_trans_(hmm.synonym_trans_),
+      enabled_trans_(hmm.enabled_trans_)
+
 	{
 	}
 	
@@ -143,10 +154,23 @@ namespace OpenMS
 
 	HiddenMarkovModel& HiddenMarkovModel::operator = (const HiddenMarkovModel& hmm)
 	{
-		trans_ = hmm.trans_;
-		count_trans_ = hmm.count_trans_;
-		name_to_state_ = hmm.name_to_state_;
-		states_ = hmm.states_;
+		if (&hmm != this)
+		{
+			trans_ = hmm.trans_;
+			count_trans_ = hmm.count_trans_;
+			train_count_trans_ = hmm.train_count_trans_;
+			training_steps_count_ = hmm.training_steps_count_;
+			forward_ = hmm.forward_;
+			backward_ = hmm.backward_;
+			name_to_state_ = hmm.name_to_state_;
+			train_emission_prob_ = hmm.train_emission_prob_;
+			init_prob_ = hmm.init_prob_;
+			states_ = hmm.states_;
+			trained_trans_ = hmm.trained_trans_;
+			synonym_trans_names_ = hmm.synonym_trans_names_;
+			synonym_trans_ = hmm.synonym_trans_;
+			enabled_trans_ = hmm.enabled_trans_;
+		}
 		return *this;
 	}
 
@@ -419,6 +443,21 @@ namespace OpenMS
 		{
 			cerr << "HiddenMarkovModel: state name '" << s->getName() << "' (" << s << ") already used!" << endl;
 		}
+	}
+
+	void HiddenMarkovModel::addNewState(const String& name)
+	{
+		HMMState* s = new HMMState(name);
+		states_.insert(s);
+		if (!name_to_state_.has(name))
+		{
+			name_to_state_[name] = s;
+		}
+		else
+		{
+			cerr << "HiddenMarkovModel: state name '" << name << "' (" << name_to_state_[name] << ") already used!" << endl;
+		}
+		return;
 	}
 
 	void HiddenMarkovModel::addSynonymTransition(const String& name1, const String& name2, const String& synonym1, const String& synonym2)

@@ -32,6 +32,7 @@
 #include <OpenMS/COMPARISON/CLUSTERING/ClusterSpectrum.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/Normalizer.h>
+#include <OpenMS/ANALYSIS/ID/PILISScoring.h>
 
 using namespace std;
 
@@ -47,11 +48,13 @@ namespace OpenMS
 			own_sequence_db_(false),
 			own_model_(false)
 	{
-		defaults_.setValue("prcr_m_tol", double(3.0));
+		defaults_.setValue("precursor_mass_tolerance", 3.0);
+		defaults_.setValue("peak_mass_tolerance", 0.3);
 		defaults_.setValue("max_candidates", 200);
 		defaults_.setValue("pre_score_name", "ZhangSimilarityScore");
 		defaults_.setValue("score_name", "SpectrumAlignmentScore");
 		defaults_.setValue("exponent", 0.3);
+		defaults_.setValue("use_evalue_scoring", 1);
 
 		aa_weight_['K'] = 128.095;
   	aa_weight_['M'] = 131.04;
@@ -160,6 +163,7 @@ namespace OpenMS
 	
 	void PILISIdentification::getIdentifications(vector<Identification>& ids, const PeakMap& exp)
 	{
+		UInt max_candidates = (UInt)param_.getValue("max_candidates");
 		for (PeakMap::ConstIterator it = exp.begin(); it != exp.end(); ++it)
 		{
 			if (it->getMSLevel() != 2)
@@ -168,9 +172,30 @@ namespace OpenMS
 			}
 
 			Identification id;
-			getIdentification(id, *it);	
+			getIdentification(id, *it);
+			
+			//if (id.getPeptideHits().size() > max_candidates)
+			//{
+			//	id.getPeptideHits().resize(max_candidates);
+			//}
+
 			ids.push_back(id);
 		}
+
+		if ((UInt)param_.getValue("use_evalue_scoring") != 0)
+		{
+			PILISScoring scoring;
+			scoring.getScores(ids);
+		}
+
+		for (vector<Identification>::iterator it = ids.begin(); it != ids.end(); ++it)
+		{
+			if (it->getPeptideHits().size() > max_candidates)
+			{
+				it->getPeptideHits().resize(max_candidates);
+			}
+		}
+
 		return;
 	}
 
@@ -188,14 +213,13 @@ namespace OpenMS
 		normalizer.setParameters(param);
 
 		normalizer.filterSpectrum(spec_copy);
-		
 
-		double pre_tol = (double)param_.getValue("prcr_m_tol");
+		double pre_tol = (double)param_.getValue("precursor_mass_tolerance");
 		String score_name = param_.getValue("score_name");
 		
 		scorer_ = Factory<PeakSpectrumCompareFunctor>::create(score_name);
 		Param scorer_param(scorer_->getParameters());
-		scorer_param.setValue("exponent", (double)param_.getValue("exponent"));
+		scorer_param.setValue("epsilon", (double)param_.getValue("peak_mass_tolerance"));
 		scorer_->setParameters(scorer_param);
 	
 		double pre_pos = spec_copy.getPrecursorPeak().getPosition()[0];
@@ -214,6 +238,18 @@ namespace OpenMS
 		getPreIdentification_(pre_id, spec_copy, cand_peptides);
 
 		getFinalIdentification_(id, spec_copy, pre_id);
+
+		if ((UInt)param_.getValue("use_evalue_scoring") != 0)
+		{
+			PILISScoring scoring;
+			scoring.getScore(id);
+		}
+
+		UInt max_candidates = (UInt)param_.getValue("max_candidates");
+		if (id.getPeptideHits().size() > max_candidates)
+		{
+			id.getPeptideHits().resize(max_candidates);
+		}
 
 		return;
 	}
@@ -238,7 +274,7 @@ namespace OpenMS
 
 	void PILISIdentification::getFinalIdentification_(Identification& id, const PeakSpectrum& spec, const Identification& pre_id)
 	{
-		unsigned int max_candidates = (unsigned int)param_.getValue("max_candidates");
+		UInt max_candidates = (UInt)param_.getValue("max_candidates");
 		for (UInt i = 0; i < pre_id.getPeptideHits().size() && i < max_candidates; ++i)
     {
       String sequence = pre_id.getPeptideHits()[i].getSequence();
@@ -246,32 +282,6 @@ namespace OpenMS
       PeakSpectrum sim_spec;
       getPILISModel_()->getSpectrum(sim_spec, peptide_sequence, pre_id.getPeptideHits()[i].getCharge());
 
-      // normalize the spectra and add intensity to too small peaks
-      // TODO remove cheating
-			/*
-      double max(0);
-      for (PeakSpectrum::ConstIterator it1 = sim_spec.begin(); it1 != sim_spec.end(); ++it1)
-      {
-        if (max < it1->getIntensity())
-        {
-          max = it1->getIntensity();
-        }
-      }
-
-			
-      for (PeakSpectrum::Iterator it1 = sim_spec.begin(); it1 != sim_spec.end(); ++it1)
-      {
-        it1->setIntensity(it1->getIntensity()/max);
-      }
-
-      for (PeakSpectrum::Iterator it1 = sim_spec.begin(); it1 != sim_spec.end(); ++it1)
-      {
-        if (it1->getIntensity() < 0.01 && it1->getMetaValue("IonName") != "")
-        {
-          it1->setIntensity(0.01);
-        }
-      }*/
-			
       double score = (*scorer_)(sim_spec, spec);
       PeptideHit peptide_hit(score, "PILIS", 0, pre_id.getPeptideHits()[i].getCharge(), sequence);
       id.insertPeptideHit(peptide_hit);
