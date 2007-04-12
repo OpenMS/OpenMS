@@ -178,7 +178,9 @@ EXECUTABLES_FORMAT = \
 	PTMXMLFile_test\
 	ConsensusXMLFile_test\
 	DBConnection_test\
-	DBAdapter_test
+	DBAdapter_test\
+	OMSSAXMLFile_test\
+	XTandemXMLFile_test
 
 #MATH
 
@@ -251,7 +253,8 @@ EXECUTABLES_COMPARISON=\
 	BinnedRepSumAgreeingIntensities_test\
 	PeakSpectrumCompareFunctor_test\
 	SpectrumPrecursorComparator_test\
-	ZhangSimilarityScore_test
+	ZhangSimilarityScore_test\
+	SpectrumAlignmentScore_test
 
 #CHEMISTRY
 

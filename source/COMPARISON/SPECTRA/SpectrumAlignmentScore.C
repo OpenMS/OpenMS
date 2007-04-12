@@ -76,7 +76,6 @@ namespace OpenMS
 
 		vector<pair<UInt, UInt> > alignment;
 		aligner.getSpectrumAlignment(alignment, s1, s2);
-		unique(alignment.begin(), alignment.end());
 
 		double score(0), sum(0), sum1(0), sum2(0);
 		for (PeakSpectrum::ConstIterator it1 = s1.begin(); it1 != s1.end(); ++it1)

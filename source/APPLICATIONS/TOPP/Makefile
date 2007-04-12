@@ -66,6 +66,7 @@ EXECUTABLES=\
 	FeatureFinder\
 	PILISModel\
 	PILISIdentification\
+	XTandemAdapter\
 	OMSSAAdapter\
 	UnlabeledMatcher\
 	MapAlignment\
@@ -234,6 +235,10 @@ PILISModel: PILISModel.o
 	$(CP) $@ $(OPENMS_PATH)/bin/
 
 OMSSAAdapter: OMSSAAdapter.o
+	$(CXX) $(LDFLAGS) -o $@ $< $(LIBS)
+	$(CP) $@ $(OPENMS_PATH)/bin/
+
+XTandemAdapter: XTandemAdapter.o
 	$(CXX) $(LDFLAGS) -o $@ $< $(LIBS)
 	$(CP) $@ $(OPENMS_PATH)/bin/
 
