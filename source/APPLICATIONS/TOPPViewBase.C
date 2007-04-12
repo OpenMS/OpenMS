@@ -51,6 +51,9 @@
 #include <OpenMS/FORMAT/FeaturePairsFile.h>
 #include <OpenMS/VISUAL/ParamEditor.h>
 #include <OpenMS/VISUAL/DIALOGS/ToolsDialog.h>
+#include <OpenMS/ANALYSIS/ID/IDFeatureMapper.h>
+#include <OpenMS/ANALYSIS/ID/IDSpectrumMapper.h>
+#include <OpenMS/FORMAT/AnalysisXMLFile.h>
 
 //Qt
 #include <QtGui/QToolBar>
@@ -173,6 +176,7 @@ namespace OpenMS
     layer->addAction("&Intensity distribution",this,SLOT(layerIntensityDistribution()));
 		layer->addSeparator();
     layer->addAction("Apply &TOPP tool", this, SLOT(showTOPPDialog()), Qt::CTRL+Qt::Key_T);
+    layer->addAction("&Annotate with identifiction", this, SLOT(annotateWithID()), Qt::CTRL+Qt::Key_A);
 		layer->addSeparator();
     layer->addAction("&Preferences",this, SLOT(layerPreferencesDialog()));
     
@@ -381,10 +385,7 @@ namespace OpenMS
     //do for all windows
     if (as_new_window)
     {
-      connectWindowSignals_(w);
-      w->setWindowTitle(caption.c_str());
-      addClient(w,caption);
-      addTab_(w,caption);
+      showAsWindow_(w,caption);
     }
 
     //do for all (in active and in new window, 1D/2D/3D)
@@ -618,11 +619,7 @@ namespace OpenMS
 
     if (as_new_window)
     {
-    	ws_->addWindow(w);
-      connectWindowSignals_(w);
-      w->setWindowTitle(filename.c_str());
-      addClient(w,filename);
-      addTab_(w,caption);
+      showAsWindow_(w,caption);
     }
     if(maximize)
     {
@@ -872,7 +869,7 @@ namespace OpenMS
     		//no extracted data
     		if (out.size()==0)
     		{
-    		  QMessageBox::warning(this,"Warning","The displayed region of the current layer is empty!");
+    		  QMessageBox::critical(this,"Error","The displayed region of the current layer is empty!");
     		  return;
     		}
     		//one scan => DTA
@@ -917,7 +914,7 @@ namespace OpenMS
     		//no extracted data
     		if (out.size()==0)
     		{
-    		  QMessageBox::warning(this,"Warning","The displayed region of the current layer is empty!");
+    		  QMessageBox::critical(this,"Error","The displayed region of the current layer is empty!");
     		  return;
     		}
     		else
@@ -1465,8 +1462,8 @@ namespace OpenMS
 		if (item && item!=layer_manager_->item(0))
 		{
 			QMenu* context_menu = new QMenu(layer_manager_);
-			QAction* delete_action = context_menu->addAction("Delete");
-			if (context_menu->exec(layer_manager_->mapToGlobal(pos)) == delete_action)
+			context_menu->addAction("Delete");
+			if (context_menu->exec(layer_manager_->mapToGlobal(pos)))
 			{
 				activeCanvas_()->removeLayer(layer_manager_->row(item));
 				updateLayerbar();
@@ -1565,8 +1562,9 @@ namespace OpenMS
     }
   }
 
-  void TOPPViewBase::connectWindowSignals_(SpectrumWidget* sw)
+  void TOPPViewBase::showAsWindow_(SpectrumWidget* sw, const String& caption)
   {
+  	ws_->addWindow(sw);
     connect(sw->canvas(),SIGNAL(layerActivated(QWidget*)),this,SLOT(updateToolbar()));
     connect(sw,SIGNAL(sendStatusMessage(std::string,OpenMS::UInt)),this,SLOT(showStatusMessage(std::string,OpenMS::UInt)));
     connect(sw,SIGNAL(sendCursorStatus(double,double,double)),this,SLOT(showCursorStatus(double,double,double)));
@@ -1577,7 +1575,12 @@ namespace OpenMS
   	{
   		connect(sw2->getHorizontalProjection(),SIGNAL(sendCursorStatus(double,double,double)),this,SLOT(showCursorStatus(double,double,double)));
   		connect(sw2->getVerticalProjection(),SIGNAL(sendCursorStatus(double,double,double)),this,SLOT(showCursorStatus(double,double,double)));
+  		connect(sw2,SIGNAL(showCurrentPeaksAs3D()),this,SLOT(showCurrentPeaksAs3D()));
   	}
+  	
+	  sw->setWindowTitle(caption.c_str());
+    addClient(sw,caption);
+    addTab_(sw,caption);
   }
 
   void TOPPViewBase::gotoDialog()
@@ -1954,6 +1957,89 @@ namespace OpenMS
     	w->canvas()->showProjections();
     }
   }
+
+	void TOPPViewBase::annotateWithID()
+	{
+		QString name = QFileDialog::getOpenFileName(this,"Select identification data",prefs_.getValue("Preferences:DefaultPath").toString().c_str(),tr("identfication files (*.analysisXML);; all files (*.*)"));
+		
+		if(name!="")
+		{
+			//check if there is a active window
+			if (ws_->activeWindow())
+			{
+				const LayerData& layer = activeWindow_()->canvas()->getCurrentLayer();
+				//warn if hidden layer => wrong layer selected...
+				if (!layer.visible)
+				{
+					QMessageBox::warning(this,"Warning","The current layer is not visible!");
+				}
+				
+				//load id data
+				vector<IdentificationData> identifications; 
+				vector<ProteinIdentification> protein_identifications; 
+				AnalysisXMLFile().load(name.toStdString(), protein_identifications, identifications);
+				if (layer.type==LayerData::DT_PEAK)
+				{
+					IDSpectrumMapper().annotate(const_cast<LayerData&>(layer).peaks, identifications, 0.1);
+				}
+				else if (layer.type==LayerData::DT_FEATURE || layer.type==LayerData::DT_FEATURE_PAIR)
+				{
+					IDFeatureMapper().annotate(const_cast<LayerData&>(layer).features,identifications,protein_identifications);
+				}
+			}
+		}
+	}
+
+	void TOPPViewBase::showCurrentPeaksAs3D()
+	{
+  	//check if there is a active window
+    if (ws_->activeWindow())
+    {
+      const LayerData& layer = activeWindow_()->canvas()->getCurrentLayer();
+    	const SpectrumCanvas::AreaType& area = activeWindow_()->canvas()->getVisibleArea();
+    	
+    	if (layer.type==LayerData::DT_PEAK)
+    	{
+    		//open new 3D widget
+    		Spectrum3DWidget* w = new Spectrum3DWidget(ws_);
+  			w->setMainPreferences(prefs_);
+  			SpectrumCanvas::ExperimentType& out = w->canvas()->addEmptyPeakLayer();
+  			
+    		for (LayerData::ExperimentType::ConstIterator it=layer.peaks.RTBegin(area.min()[1]); it!=layer.peaks.RTBegin(area.max()[1]); ++it)
+    		{
+    			if (it->getMSLevel()!=1) continue;
+    			SpectrumCanvas::ExperimentType::SpectrumType spectrum;
+    				
+  				spectrum.setRetentionTime(it->getRetentionTime());
+  				spectrum.setMSLevel(it->getMSLevel());
+  				for (LayerData::ExperimentType::SpectrumType::ConstIterator it2 = it->MZBegin(area.min()[0]); it2!= it->MZEnd(area.max()[0]); ++it2)
+  				{
+  					if ( it2->getIntensity() >= layer.min_int && it2->getIntensity() <= layer.max_int)
+  					{
+  						spectrum.push_back(*it2);
+  					}
+  				}
+  				out.push_back(spectrum);
+    		}
+    		
+    		if (out.size()==0) //no extracted data
+    		{
+    		  QMessageBox::critical(this,"Error","The displayed region of the current layer is empty!");
+    		  delete(w);
+    		}
+    		else //finish adding
+    		{
+    			String caption = layer.name + " (3D)";
+    			w->canvas()->finishAdding(0.0);
+					w->canvas()->setCurrentLayerName(caption);
+		      showAsWindow_(w,caption);
+		      w->showMaximized();
+			    updateLayerbar();
+    		}
+    		
+			}
+    }
+	}
 
 } //namespace OpenMS
 

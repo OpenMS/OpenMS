@@ -71,6 +71,7 @@
   	- \subpage MascotAdapter
     - \subpage SequestAdapter
     - \subpage OMSSAAdapter
+    - \subpage XTandemAdapter
  		- \subpage RTPredict
  		- \subpage RTModel    
  		- \subpage PILISModel
@@ -82,5 +83,6 @@
   - <b>Misc</b>
    	- \subpage AdditiveSeries
     - \subpage TOPPView
-
+		- \subpage INIFileEditor
+		
 */

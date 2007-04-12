@@ -62,7 +62,6 @@ namespace OpenMS
   	@brief MDI window of TOPPView tool
   	
   	@todo Add preferences for layers (Marc)
-		@todo Layer - annotate with ID (Marc)
   */
   class TOPPViewBase 
   	: public QMainWindow, 
@@ -188,11 +187,15 @@ namespace OpenMS
       void showStatusMessage(std::string msg, OpenMS::UInt time);
       /// shows m/z, intensity and rt in the status bar
       void showCursorStatus(double mz, double intensity, double rt);
-
       /// TOPP tool dialog
       void showTOPPDialog();
+      /// Annotates current layer with ID data
+      void annotateWithID();
       /// INI File edit dialog
       void editParamDialog();
+      /// Shows the current peak data of the active layer in 3D 
+      void showCurrentPeaksAs3D();
+      
     protected slots:
       /** @name Layer manager slots
       */
@@ -233,8 +236,13 @@ namespace OpenMS
     protected:
       /// Adds a tab for the window in the tabbar
       void addTab_(SpectrumWidget*, const String&);
-      /// connect the slots/signals for status messages and mode changes (paint or mouse mode)
-      void connectWindowSignals_(SpectrumWidget* sw);
+      /**
+      	@brief Opens a SpectrumWidget as a new window
+      	
+      	Connect the slots/signals for status messages and mode changes (paint or mouse mode).
+      	Adds a Tab, a window caption and connects PreferencesManagers.
+      */
+      void showAsWindow_(SpectrumWidget* sw, const String& caption);
       ///returns the window with id @p id
       SpectrumWidget* window_(int id) const;
       ///returns a pointer to the active SpectrumWidget (0 if none is active)

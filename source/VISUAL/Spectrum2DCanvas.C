@@ -30,6 +30,7 @@
 #include <OpenMS/VISUAL/DIALOGS/Spectrum2DCanvasPDP.h>
 #include <OpenMS/CONCEPT/TimeStamp.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
+#include <OpenMS/VISUAL/MSMetaDataExplorer.h>
 
 //STL
 #include <algorithm>	
@@ -38,6 +39,7 @@
 #include <QtGui/QWheelEvent>
 #include <QtGui/QMouseEvent>
 #include <QtGui/QPainter>
+#include <QtGui/QMenu>
 #include <QtGui/QBitmap>
 #include <QtGui/QPolygon>
 #include <QtCore/QTime>
@@ -1394,13 +1396,38 @@ namespace OpenMS
 						if (measurement_stop_)
 						{
 							emit sendCursorStatus(measurement_stop_->getMZ() - measurement_start_->getMZ(),
-							                      measurement_stop_->getIntensity() / measurement_start_->getIntensity(),
-							                      measurement_stop_->getRT() - measurement_start_->getRT());
+									      measurement_stop_->getIntensity() / measurement_start_->getIntensity(),
+									      measurement_stop_->getRT() - measurement_start_->getRT());
 						}
 						else
 						{
 							emit sendCursorStatus(measurement_start_->getMZ(), measurement_start_->getIntensity(), measurement_start_->getRT());
 						}
+					}
+				}
+				else //select 	 
+				{ 	 
+					// highlight nearest peak 	 
+					if (e->buttons() == Qt::NoButton) 	 
+					{ 	 
+						Feature* max_peak = findNearestPeak_(pos); 	 
+						if (max_peak) 	 
+						{ 	 
+							// show Peak Coordinates (with intensity) 	 
+							emit sendCursorStatus(max_peak->getMZ(), max_peak->getIntensity(), max_peak->getRT()); 	 
+							//show lable 	 
+							string meta = max_peak->getMetaValue(3).toString(); 	 
+							if (meta!="") sendStatusMessage(meta, 0); 	 
+						} 	 
+						else 	 
+						{ 	 
+						 //show Peak Coordinates (without intensity) 	 
+						 PointType pnt = widgetToData_(pos); 	 
+						 emit sendCursorStatus( pnt[0], -1.0, pnt[1]); 	 
+						} 	 
+						
+						selected_peak_ = max_peak; 	 
+						update(); 	 
 					}
 				}
 				break;
@@ -1519,19 +1546,22 @@ namespace OpenMS
 			}
 			case AM_ZOOM:
 			{
-				rubber_band_.hide();
-				if (e->modifiers() & Qt::ControlModifier) //translate
+				if(e->button() == Qt::LeftButton)
 				{
-					setCursor(Qt::OpenHandCursor);
-				}
-				else //zoom
-				{
-					QRect rect = rubber_band_.geometry();
-					if (rect.width()!=0 && rect.height()!=0) //probably double-click -> mouseDoubleClickEvent
+					rubber_band_.hide();
+					if (e->modifiers() & Qt::ControlModifier) //translate
 					{
-						AreaType area(widgetToData_(rect.topLeft()), widgetToData_(rect.bottomRight()));
-						//cout << __PRETTY_FUNCTION__ << endl;
-						changeVisibleArea_(area, true);
+						setCursor(Qt::OpenHandCursor);
+					}
+					else //zoom
+					{
+						QRect rect = rubber_band_.geometry();
+						if (rect.width()!=0 && rect.height()!=0) //probably double-click -> mouseDoubleClickEvent
+						{
+							AreaType area(widgetToData_(rect.topLeft()), widgetToData_(rect.bottomRight()));
+							//cout << __PRETTY_FUNCTION__ << endl;
+							changeVisibleArea_(area, true);
+						}
 					}
 				}
 				break;
@@ -1566,6 +1596,132 @@ namespace OpenMS
 		{
 			zoomBack_();
 		}
+		e->accept();
+	}
+
+	void Spectrum2DCanvas::contextMenuEvent(QContextMenuEvent* e)
+	{
+		DoubleReal rt = widgetToData_(e->pos())[1];
+		
+		const LayerData& layer = getCurrentLayer();
+
+		QMenu context_menu(this);
+		QAction* a = 0;
+		QAction* result = 0;
+		
+		//-------------------PEAKS----------------------------------
+		if (layer.type==LayerData::DT_PEAK)
+		{
+			//select surrounding scans
+			MSExperiment<>::ConstIterator first = getCurrentPeakData().begin();
+			MSExperiment<>::ConstIterator it = getCurrentPeakData().RTBegin(rt);
+			MSExperiment<>::ConstIterator begin = it;
+			MSExperiment<>::ConstIterator end = it;
+			UInt count = 0;
+			while (begin!=first && count <4)
+			{
+				--begin;
+				++count;
+			}
+			count = 0;
+			while (end!=getCurrentPeakData().end() && count <5)
+			{
+				++end;
+				++count;
+			}
+			
+			//add scans
+			QMenu* scans = context_menu.addMenu("View MS scan");
+			QMenu* meta = context_menu.addMenu("View/edit meta data");
+			while(begin!=end)
+			{
+				if (begin==it)
+				{
+					scans->addSeparator();
+					meta->addSeparator();
+				}
+				if (begin->getMSLevel()<2)
+				{
+					a = scans->addAction(QString("RT: ") + QString::number(begin->getRetentionTime()));
+					a->setData(begin-first);
+					a = meta->addAction(QString("RT: ") + QString::number(begin->getRetentionTime()));
+					a->setData(begin-first);
+				}
+				else
+				{
+					a = scans->addAction(QString("RT: ") + QString::number(begin->getRetentionTime()) + "  Precursor m/z:" + QString::number(begin->getPrecursorPeak().getPosition()[0]));
+					a->setData(begin-first);
+					a = meta->addAction(QString("RT: ") + QString::number(begin->getRetentionTime()) + "  Precursor m/z:" + QString::number(begin->getPrecursorPeak().getPosition()[0]));
+					a->setData(begin-first);
+				}
+				if (begin==it)
+				{
+					scans->addSeparator();
+					meta->addSeparator();
+				}
+				++begin;
+			}
+			context_menu.addAction("View visible data in 3D");
+			
+			if ((result = context_menu.exec(mapToGlobal(e->pos()))))
+			{
+				if (result->parent()==scans)
+				{
+					//TODO
+					cout << "Scan: " << result->data().toInt() << endl;
+				}
+				else if (result->parent()==meta)
+				{
+					MSMetaDataExplorer dlg(true, this);
+		      dlg.setWindowTitle("View/Edit meta data");
+		    	dlg.add(static_cast<SpectrumSettings*>(&(currentPeakData_()[result->data().toInt()])));
+		      dlg.exec();
+				}
+				else if (result->text() == "View visible data in 3D")
+				{
+					emit showCurrentPeaksAs3D();
+				}
+			}			
+		}
+		//-------------------FEATURES----------------------------------
+		else if (layer.type==LayerData::DT_FEATURE || layer.type==LayerData::DT_FEATURE_PAIR)
+		{
+			//search for nearby features
+			DPosition<2> p1 = widgetToData_(e->pos()+ QPoint(10,10));
+			DPosition<2> p2   = widgetToData_(e->pos()- QPoint(10,10));
+			DoubleReal rt_min = min(p1[1],p2[1]);
+			DoubleReal rt_max = max(p1[1],p2[1]);
+			DoubleReal mz_min = min(p1[0],p2[0]);
+			DoubleReal mz_max = max(p1[0],p2[0]);
+			
+			QMenu* meta = context_menu.addMenu("View/edit meta data");
+			bool present = false;
+			FeatureMapType& features = getCurrentLayer_().features;
+			for (FeatureMapType::Iterator it = features.begin(); it!=features.end(); ++it)
+			{
+				if (it->getMZ() <= mz_max && it->getMZ() >= mz_min && it->getRT() <= rt_max && it->getRT() >= rt_min)
+				{
+					present=true;
+					a = meta->addAction(QString("RT: ") + QString::number(it->getRT()) + "  m/z:" + QString::number(it->getMZ()));
+					a->setData(it-features.begin());
+				}  
+			}
+			
+			if (present && (result = context_menu.exec(mapToGlobal(e->pos()))))
+			{
+				MSMetaDataExplorer dlg(true, this);
+	      dlg.setWindowTitle("View/Edit meta data");
+	      
+	      vector<Identification>& ids = features[result->data().toInt()].getIdentifications();
+				for (vector<Identification>::iterator it=ids.begin(); it!=ids.end(); ++it)
+				{
+	    		dlg.add(&(*it));
+				}
+				
+	      dlg.exec();
+			}
+		}
+		
 		e->accept();
 	}
 

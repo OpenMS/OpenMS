@@ -62,7 +62,6 @@ namespace OpenMS
   	view.
   	
   	@todo Remove coordinate-data transformations (Marc)
-		@todo Context menu: show scan, precursor scan, ID, EIC (Marc)
 
   	@ingroup SpectrumWidgets
   */
@@ -156,7 +155,9 @@ namespace OpenMS
       void showProjectionVertical(const MSExperiment<>&, Spectrum1DCanvas::DrawModes);
       /// Shows the number of peaks and the intensity sum of the projection
       void showProjectionInfo(int, double);
-      	
+      /// Requests to display the current peak data in 3D 
+      void showCurrentPeaksAs3D();
+      
     public slots:
 
       // Docu in base class
@@ -189,6 +190,7 @@ namespace OpenMS
       void wheelEvent(QWheelEvent* e);
 			void mouseDoubleClickEvent(QMouseEvent* e);
 			void paintEvent(QPaintEvent* e);
+			void contextMenuEvent(QContextMenuEvent* e);
       //@}
 
       // Docu in base class

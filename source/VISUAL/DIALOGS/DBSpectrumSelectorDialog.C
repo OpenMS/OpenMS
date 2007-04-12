@@ -79,8 +79,6 @@ namespace OpenMS
 		table_ = new QTableWidget(0,4,this);
 		table_->setMinimumWidth(650);
 		table_->setMinimumHeight(300);
-		//todo sort whole rows instead of one column
-		//table_->setSorting(true);
 		table_->setSelectionMode(QTableWidget::NoSelection);
 		table_->horizontalHeaderItem(0)->setText("");
 		table_->horizontalHeaderItem(1)->setText("MS Experiment id");

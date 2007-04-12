@@ -68,6 +68,7 @@ namespace OpenMS
 		connect(canvas(), SIGNAL(showProjectionHorizontal(const MSExperiment<>&, Spectrum1DCanvas::DrawModes)), this, SLOT(horizontalProjection(const MSExperiment<>&, Spectrum1DCanvas::DrawModes)));
 		connect(canvas(), SIGNAL(showProjectionVertical(const MSExperiment<>&, Spectrum1DCanvas::DrawModes)), this, SLOT(verticalProjection(const MSExperiment<>&, Spectrum1DCanvas::DrawModes)));
 		connect(canvas(), SIGNAL(showProjectionInfo(int,double)), this, SLOT(projectionInfo(int,double)));
+		connect(canvas(), SIGNAL(showCurrentPeaksAs3D()), this, SIGNAL(showCurrentPeaksAs3D()));
 		
 		// add projections box
 		projection_box_ = new QGroupBox("Projections",this);
@@ -104,7 +105,7 @@ namespace OpenMS
 	void Spectrum2DWidget::projectionInfo(int peaks, double intensity)
 	{
 		projection_peaks_->setText(QString::number(peaks));
-		projection_sum_->setText(QString::number(intensity));
+		projection_sum_->setText(QString::number(intensity,'f',1));
 	}
 	
 	void Spectrum2DWidget::recalculateAxes_()

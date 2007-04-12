@@ -103,6 +103,8 @@ namespace OpenMS
 			@param area The new visible area.
 		*/
 		void visibleAreaChanged(DRange<2> area);
+		/// Requests to display the current peak data of the active layer in 3D 
+		void showCurrentPeaksAs3D();
 
 	protected:
 		// Docu in base class

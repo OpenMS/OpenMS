@@ -33,6 +33,12 @@
 using namespace OpenMS;
 using namespace std;
 
+/**
+	@page INIFileEditor INIFileEditor
+	
+	@brief Can be used to visually edit INI files of TOPP tools.
+*/
+
 int main(int argc, char** argv)
 {
 	if (argc>2)
