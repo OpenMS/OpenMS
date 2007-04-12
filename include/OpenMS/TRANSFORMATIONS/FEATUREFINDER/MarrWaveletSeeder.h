@@ -143,7 +143,7 @@ namespace OpenMS
 														 );
 													
 			/// Compute local variance and test for significance
-			ProbabilityType testLocalVariance_(std::vector<Int>& local_maxima, UInt max_index);
+			ProbabilityType testLocalVariance_(const std::vector<Int>& local_maxima, const UInt max_index);
 		 	
 	    /// estimate charge state
 	    UInt distanceToCharge_(CoordinateType dist);

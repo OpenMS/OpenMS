@@ -157,7 +157,7 @@ class TOPPFeatureFinder
 		//New scope => exp is deleted as soon as the FeatureFinder has made a copy
 		writeLog_(String("Reading input file ") + in);
 		{
-			MSExperiment<Peak1D > exp;
+			MSExperimentExtern<Peak1D > exp;
 			MzDataFile().load(in,exp);
 			ff.setData(exp.begin(),exp.end(),getIntOption_("buffer_size"));
 		}

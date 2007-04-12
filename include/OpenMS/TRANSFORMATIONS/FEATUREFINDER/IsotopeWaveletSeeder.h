@@ -32,6 +32,8 @@
 
 #include <OpenMS/DATASTRUCTURES/HashMap.h>
 
+#include <gsl/gsl_cdf.h>
+
 namespace OpenMS
 {
 	/** 
@@ -143,6 +145,9 @@ namespace OpenMS
 		/// Precompute and store the gamma function (for the mother wavelet)
 		void generateGammaValues_();
 		
+		/// Compute local variance (in an interval) and test its significance
+		ProbabilityType testLocalVariance_(const DPeakArray<1, PeakType >& cwt , const Int index);
+		
 		/**
 			@brief Computes the wavelet transform for several charges in nearly the same time.
 			
@@ -170,7 +175,7 @@ namespace OpenMS
 			if (t>2*peak_cut_off_)	return(0);
 			
 			Int x0, x1; double f0, f1, fi, res=0;
-			x0 = (int) trunc ((t/a + 1)/min_spacing_);
+			x0 = (Int) trunc ((t/a + 1)/min_spacing_);
 			x1 = x0+1;
 			if ((UInt) x1 < preComputedGamma_.size())
 			{
@@ -189,8 +194,8 @@ namespace OpenMS
 		/// Assigns scores to each charge state of a isotopic pattern
 		ScoredMZVector identifyCharge_(const std::vector<DPeakArray<1, PeakType > >& candidates, std::vector<double>* wt_thresholds, SpectrumType& scan);
 		
-		/// Returns the interpolated value 
-		inline double getInterpolatedValue_(double x0, double x, double x1, double f0, double f1) const throw ()
+		/// Interpolates between to data points
+		inline double getInterpolatedValue_(double x0, double x, double x1, double f0, double f1) const
 		{
 			return (f0 + (f1-f0)/(x1-x0) * (x-x0));
 		}

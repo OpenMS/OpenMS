@@ -270,7 +270,7 @@ namespace OpenMS
 		}
 	}
 	
-	MarrWaveletSeeder::ProbabilityType MarrWaveletSeeder::testLocalVariance_(vector<Int>& local_maxima , UInt max_index)
+	MarrWaveletSeeder::ProbabilityType MarrWaveletSeeder::testLocalVariance_(const vector<Int>& local_maxima , const UInt max_index)
 	{	
 		IntensityType cwt_sum    = 0.0;
 		IntensityType cwt_sqsum = 0.0;
@@ -334,7 +334,7 @@ namespace OpenMS
 // 		cout << "Value of f_stat " << f_stat << endl;
 // 		cout << "p-value is " << (1 - gsl_cdf_fdist_P(f_stat,29,29)) << endl;
 
-		return f_stat; //(1 - gsl_cdf_fdist_P(f_stat,29,29));				
+		return f_stat; 
 	}
 
 	UInt MarrWaveletSeeder::distanceToCharge_(CoordinateType dist)

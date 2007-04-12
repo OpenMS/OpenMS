@@ -181,7 +181,7 @@ namespace OpenMS
 	void IsotopeWaveletSeeder::fastMultiCorrelate_(const SpectrumType& signal, std::vector<DPeakArray<1, PeakType > >* pwts, std::vector<double>* wt_thresholds)
 	{
 		std::vector<DPeakArray<1, PeakType > >* res = pwts;
-		unsigned int signal_size = signal.size();
+		UInt signal_size = signal.size();
 	
 		WaveletCollection phis (charges_.size(), std::vector<double> (waveletLength_)); 		//all necessary wavelets (by rows)
 	
@@ -311,21 +311,24 @@ namespace OpenMS
 			
 		std::vector<UInt> start_indices, end_indices;
 		
-		//In order to determine the start and end indices, we first need to know the width of the region one should consider
-		//to estimate the mean and the sd of the pattern candidate.
-		//That region is defined by the position of the highest amplitude +/- waveletLength_.
+		// In order to determine the start and end indices, we first need to know the width of the region one should consider
+		// to estimate the mean and the sd of the pattern candidate.
+		// That region is defined by the position of the highest amplitude +/- waveletLength_.
 			
 		TempContainerType::iterator iter;
-		UInt start_index, end_index, c_index, i_iter; //Helping variables
-		CoordinateType seed_mz, c_check_point, c_val;
-		IntensityType c_av_intens;
+		UInt start_index, end_index, c_index = 0; 															// Helping variables
+		CoordinateType seed_mz, c_check_point, c_val = 0.0;
+		IntensityType c_av_intens = 0.0;																						// mean of intensities in cwt								
 		std::vector<bool> processed (candidates[0].size(), false);
 		std::pair<Int, Int> c_between;
-		Int start, end, goto_left;
+		Int start, end, goto_left = 0;
 	
+		Int last_end_index = 0;								  // remember index of last isotopic pattern in cwt vector	
+		ProbabilityType local_fstat = 0.0;		// remember last value of F-statistic
+		
 		ChargeVector::const_iterator charge_iter = charges_.begin();
 	
-		for (UInt c=0; c<candidates.size(); ++c)
+		for (UInt c=0; c<candidates.size(); ++c)		// for each charge state
 		{		
 			processed = std::vector<bool> (candidates[0].size(), false); 				//Reset
 			TempContainerType c_candidate(candidates[c].size());
@@ -361,11 +364,11 @@ namespace OpenMS
 			}
 			outfile.close();
 			#endif
-					
-			c_candidate.erase (iter, c_candidate.end());
 			
-			i_iter=0;
-			for (iter=c_candidate.begin(); iter != c_candidate.end(); ++iter, ++i_iter)
+			// delete all points in cwt with intensity lower than chosen threshold	
+			c_candidate.erase (iter, c_candidate.end());
+
+			for (iter=c_candidate.begin(); iter != c_candidate.end(); ++iter)
 			{
 				// Retrieve index
 				c_index = (Int) (iter->getPosition().getY());	
@@ -389,9 +392,9 @@ namespace OpenMS
 	
 				start=(-2*(peak_cut_off_ - 1))+1, end=(2*(peak_cut_off_ - 1))-1;
 				goto_left = c_index - waveletLength_ - 1;
-					
+													
 				for (Int v=start; v<=end; ++v)
-				{
+				{							
 					c_check_point = seed_mz+v*0.5/((double)c+1);
 					c_between = getNearBys_(scan, c_check_point, goto_left);
 					
@@ -401,34 +404,52 @@ namespace OpenMS
 					}
 					
 					c_val = getInterpolatedValue_(candidates[c][c_between.first].getPos(),
-													  						c_check_point,
-													  						candidates[c][c_between.second].getPos(),
-													  						candidates[c][c_between.first].getIntensity(),
-													  						candidates[c][c_between.second].getIntensity());
-																				
+													  													c_check_point,
+													  													candidates[c][c_between.second].getPos(),
+													  													candidates[c][c_between.first].getIntensity(),
+													  													candidates[c][c_between.second].getIntensity());
+																																													
 					if (fabs(c_val) < c_av_intens)
 					{
 					 continue;  
 					}			
 
-					// What the hell is happening here?
-					if (abs(v)%2 == 1) //i.e. whole
+					if (abs(v)%2 == 1) // => valley
 					{
-						scoresC[c][c_index] -= c_val;
+						scoresC[c][c_index] -= c_val; // substract 
 					}
-					else //i.e. peak
+					else // => peak
 					{
 						scoresC[c][c_index] += c_val;
 					}
-				}
+				} // end for (Int v=start; v<=end; ++v)
 	
 				if (scoresC[c][c_index] <= intensity_factor_*iter->getIntensity())
 				{
 					scoresC[c][c_index] = 0;
 				}
-												
-			} 
-						
+										
+				// recompute local variance only if last pattern is more than 5 indizes away
+				if (c_between.first < (last_end_index + 5 ) &&
+				    c_between.first > (last_end_index - 5 ) &&
+            local_fstat > 0 )
+				{
+					scoresC[c][c_index] *= local_fstat;
+				}
+				else
+				{
+					// compute local variance and test its significance
+					local_fstat =  testLocalVariance_(candidates[c],c_between.first);
+					scoresC[c][c_index] *= local_fstat;
+					last_end_index = c_between.first;
+				}
+				
+				
+											
+			} // end for (iter=c_candidate.begin();...)
+		
+		
+			
 			++charge_iter;
 		} // end of for (unsigned int c=0; c<candidates.size(); ++c)
 			
@@ -466,7 +487,6 @@ namespace OpenMS
 			}
 			//End of Termination criterion
 		
-			//The hashing
 			for (UInt c=0; c<num_charges; ++c)
 			{
 				if (positions[c] >= num_mzpos) continue;			   
@@ -512,11 +532,78 @@ namespace OpenMS
 	double IsotopeWaveletSeeder::getAbsMean_(const DPeakArray<1, PeakType >& signal, UInt startIndex, UInt endIndex) const
 	{
 	  double res=0;
-	  for (unsigned int i=startIndex; i<endIndex; ++i)
+	  for (UInt i=startIndex; i<endIndex; ++i)
 	  {
 	  	res += fabs(signal[i].getIntensity());
 		}
 	  return (res/(double)(endIndex-startIndex+1));
+	}
+	
+	IsotopeWaveletSeeder::ProbabilityType IsotopeWaveletSeeder::testLocalVariance_(const DPeakArray<1, PeakType >& cwt, const Int index)
+	{	
+		IntensityType cwt_sum    = 0.0;
+		IntensityType cwt_sqsum = 0.0;
+		
+		UInt N = 30; // number of samples: 10 to the left, 20 to the right 
+					
+		// compute local variance and test against variance in end or beginning of spectrum
+		
+		Int start = (index < 10 ) ? 0  : ( index - 10);
+		Int end  = (index + 20) < (Int) cwt.size() ? (index + 20) : cwt.size();
+
+		for (Int j = start ; j < end ; ++j)	// walk to the left in cwt
+		{
+			cwt_sum    += cwt[j].getIntensity();
+			cwt_sqsum += (cwt[j].getIntensity() * cwt[j].getIntensity());							
+		} 
+					
+		
+		IntensityType local_var = ( N * cwt_sqsum - ( cwt_sum * cwt_sum) ) / ( N * (N-1) );
+		
+		// we need to check for several cases:
+		// a) are we at the very beginning of the scan => compute variance at the end
+		// b) end of scan => other way around
+		// c) scan to short => do what ?
+		
+		if ( cwt.size() < 60 )
+		{
+			// cwt too small, return very small p-value
+			return 0.0001;	
+		}
+	
+		IntensityType null_var = 0;
+		cwt_sum  =  cwt_sqsum  = 0.0;
+
+		// check if we are at the beginning or end of the cwt
+		if (start < 30 )
+		{
+			// take end	
+			for (UInt j = (cwt.size() - 30); j < cwt.size(); ++j)	// walk to the left in cwt
+			{
+				cwt_sum    += cwt[j].getIntensity();
+				cwt_sqsum += (cwt[j].getIntensity() * cwt[j].getIntensity());							
+			} 
+		}
+		else
+		{
+			// take begin
+			for (UInt j = 0; j < 30; ++j)	// walk to the left in cwt
+			{
+				cwt_sum    += cwt[j].getIntensity();
+				cwt_sqsum += (cwt[j].getIntensity() * cwt[j].getIntensity());							
+			} 
+		}
+		
+		null_var = ( N * cwt_sqsum - ( cwt_sum * cwt_sum) ) / ( N * (N-1) );
+		
+		IntensityType f_stat = local_var / null_var;		
+		
+// 		cout << "local_var " << local_var << endl;
+// 		cout << "null_var " << null_var << endl;
+// 		cout << "Value of f_stat " << f_stat << endl;
+// 		cout << "p-value is " << (1 - gsl_cdf_fdist_P(f_stat,29,29)) << endl;
+
+		return f_stat; 			
 	}
 
 } // end of namespace OpenMS
