@@ -84,15 +84,14 @@ Todos:
 - make install mit prefix testen (Hiwi)
 
 Spectrum2DCanvas -- Context menu: show scan, precursor scan, ID, EIC 
+TOPPViewBase -- Layer - annotate with ID
+Spectrum2DCanvas -- Remove coordinate-data transformations 
+TOPPViewBase -- Add preferences for layers 
 FileFilter -- Filter MS/MS scans by precursor RT/MZ, do not crop MS/MS scans
-
+MSExperiment -- Add getPrecursorRT(rt/scan nr) and update ID adapters and IDSpectrumMapper 
+String -- derive from QString 
 DataValue -- derive from QVariant 
 Identification -- Store ScoreType (with direction) and AccessionType as Enum in Identification (Marc, Andreas)
-MSExperiment -- Add getPrecursorRT(rt/scan nr) and update ID adapters and IDSpectrumMapper 
-Spectrum2DCanvas -- Remove coordinate-data transformations 
-String -- derive from QString 
-TOPPViewBase -- Add preferences for layers 
-TOPPViewBase -- Layer - annotate with ID
 XMLHandler -- Add external CVs, integrate OLS
 
 ***********************************************************************/

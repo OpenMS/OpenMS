@@ -338,6 +338,7 @@ EXECUTABLES_TRANSFORMATIONS_FEATUREFINDER = \
 	SimpleExtender_test\
 	BaseModelFitter_test\
 	SimpleModelFitter_test\
+	ExtendedModelFitter_test\
 	InterpolationModel_test\
 	GaussModel_test\
 	BiGaussModel_test\
@@ -351,7 +352,6 @@ EXECUTABLES_TRANSFORMATIONS_FEATUREFINDER = \
 	RankCorrelation_test\
 	BaseSweepSeeder_test
 
-#	ExtendedModelFitter_test\
 
 EXECUTABLES_TRANSFORMATIONS_PEAKPICKER = \
 	ContinuousWaveletTransform_test\
