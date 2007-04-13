@@ -287,9 +287,9 @@ CHECK(static const String getName())
 	TEST_EQUAL(ExtendedModelFitter::getProductName(),"ExtendedModelFitter");
 RESULT
 
-
-CHECK(void setData(const ChargedIndexSet& set))
 /*
+CHECK(void setData(const ChargedIndexSet& set))
+
 	const double default_precision = 0.1;
 	PRECISION(default_precision)
 
@@ -341,12 +341,13 @@ CHECK(void setData(const ChargedIndexSet& set))
 	TEST_REAL_EQUAL(fitter.getHeight(), 1800);
 	TEST_REAL_EQUAL(fitter.getWidth(), 1.5);
 	TEST_REAL_EQUAL(fitter.getRetention(), 5);
-*/
+
 RESULT
+*/
 
-
-CHECK(void ExtendedModelFitter::optimize())
 /*
+CHECK(void ExtendedModelFitter::optimize())
+
 // *************************************************
 // *** check parameter optimization at EMG model ***
 // *************************************************
@@ -638,8 +639,9 @@ CHECK(void ExtendedModelFitter::optimize())
 		standard_deviation = 0.5;
 		expected_value += 5;
 	} 
-*/
+
 RESULT
+*/
 
 
 /////////////////////////////////////////////////////////////
