@@ -69,6 +69,7 @@ namespace OpenMS
 		connect(canvas(), SIGNAL(showProjectionVertical(const MSExperiment<>&, Spectrum1DCanvas::DrawModes)), this, SLOT(verticalProjection(const MSExperiment<>&, Spectrum1DCanvas::DrawModes)));
 		connect(canvas(), SIGNAL(showProjectionInfo(int,double)), this, SLOT(projectionInfo(int,double)));
 		connect(canvas(), SIGNAL(showCurrentPeaksAs3D()), this, SIGNAL(showCurrentPeaksAs3D()));
+		connect(canvas(), SIGNAL(showSpectrumAs1D(int)), this, SIGNAL(showSpectrumAs1D(int)));
 		
 		// add projections box
 		projection_box_ = new QGroupBox("Projections",this);

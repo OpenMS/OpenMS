@@ -1631,7 +1631,7 @@ namespace OpenMS
 			}
 			
 			//add scans
-			QMenu* scans = context_menu.addMenu("View MS scan");
+			QMenu* scans = context_menu.addMenu("View MS scan in 1D");
 			QMenu* meta = context_menu.addMenu("View/edit meta data");
 			while(begin!=end)
 			{
@@ -1667,8 +1667,7 @@ namespace OpenMS
 			{
 				if (result->parent()==scans)
 				{
-					//TODO
-					cout << "Scan: " << result->data().toInt() << endl;
+					emit showSpectrumAs1D(result->data().toInt());
 				}
 				else if (result->parent()==meta)
 				{

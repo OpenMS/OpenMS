@@ -76,14 +76,16 @@ namespace OpenMS
 		hbox2_->setMargin(6);
 	
 		//table + layout
-		table_ = new QTableWidget(0,4,this);
+		table_ = new QTableWidget(this);
+		table_->setColumnCount(4);
 		table_->setMinimumWidth(650);
 		table_->setMinimumHeight(300);
 		table_->setSelectionMode(QTableWidget::NoSelection);
-		table_->horizontalHeaderItem(0)->setText("");
-		table_->horizontalHeaderItem(1)->setText("MS Experiment id");
-		table_->horizontalHeaderItem(2)->setText("description");
-		table_->horizontalHeaderItem(3)->setText("type");
+			
+		QStringList header;
+		header << "" << "MS Experiment id" << "description" << "type";
+		table_->QTableWidget::setHorizontalHeaderLabels(header);
+		
 		QVBoxLayout* vbox1_ = new QVBoxLayout(this);
 		vbox1_->addLayout(hbox2_);
 		vbox1_->insertWidget(-1,table_,1);
@@ -123,29 +125,35 @@ namespace OpenMS
 		adapter_.executeQuery(query.str(),result);
 		table_->setRowCount(result.size());
 	 	UInt row=0;
+	 	QTableWidgetItem* item;
 	 	while(result.isValid())
 		{
 			//id, description
-	 		for (unsigned int col = 0; col < 3; col++) 
+	 		for (unsigned int col = 0; col < 2; col++) 
 	 		{ 
-	      table_->item(row,col+1)->setText(result.value(col).toString());
+	 		 	item = new QTableWidgetItem(result.value(col).toString());
+     		table_->setItem(row, col+1, item);
 	    }
 	    //type
 	    if (result.value(2).toInt()==1)
 	    {
-	    	table_->item(row,3)->setText("MS");
+	    	item = new QTableWidgetItem("MS");
+	    	table_->setItem(row, 3, item);
 	    }
 	    else
 	    {
-	    	table_->item(row,3)->setText("HPLC-MS");
+	    	item = new QTableWidgetItem("HPLC-MS");
+	    	table_->setItem(row, 3, item);
 	    }
 	    //checkboxes
-	    table_->item(row,0)->setCheckState(Qt::Unchecked);
+	    item = new QTableWidgetItem(QTableWidgetItem::Type);
+	    item->setCheckState(Qt::Unchecked);
+	    table_->setItem(row, 0, item);
+	    
 	    ++row;
 	    result.next();
 		}
 	}
-
 }
 
 

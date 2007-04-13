@@ -376,7 +376,6 @@ namespace OpenMS
     if(use_mower!=OpenDialog::NO_MOWER && exp->size()>1)
     {
       cutoff = estimateNoise_(*exp);
-      cout << "Estimated noise level: " << cutoff << endl;
     }
     w->canvas()->finishAdding(cutoff);
 		w->canvas()->setCurrentLayerName(caption);
@@ -1576,6 +1575,7 @@ namespace OpenMS
   		connect(sw2->getHorizontalProjection(),SIGNAL(sendCursorStatus(double,double,double)),this,SLOT(showCursorStatus(double,double,double)));
   		connect(sw2->getVerticalProjection(),SIGNAL(sendCursorStatus(double,double,double)),this,SLOT(showCursorStatus(double,double,double)));
   		connect(sw2,SIGNAL(showCurrentPeaksAs3D()),this,SLOT(showCurrentPeaksAs3D()));
+  		connect(sw2,SIGNAL(showSpectrumAs1D(int)),this,SLOT(showSpectrumAs1D(int)));
   	}
   	
 	  sw->setWindowTitle(caption.c_str());
@@ -2037,6 +2037,29 @@ namespace OpenMS
 			    updateLayerbar();
     		}
     		
+			}
+    }
+	}
+
+	void TOPPViewBase::showSpectrumAs1D(int index)
+	{
+  	//check if there is a active window
+    if (ws_->activeWindow())
+    {
+      const LayerData& layer = activeWindow_()->canvas()->getCurrentLayer();
+    	
+    	if (layer.type==LayerData::DT_PEAK)
+    	{
+    		//open new 1D widget
+    		Spectrum1DWidget* w = new Spectrum1DWidget(ws_);
+  			w->setMainPreferences(prefs_);
+  			w->canvas()->addEmptyPeakLayer().push_back(layer.peaks[index]);
+  			String caption = layer.name + " (RT: " + layer.peaks[index].getRetentionTime() + ")";
+  			w->canvas()->finishAdding(0.0);
+				w->canvas()->setCurrentLayerName(caption);
+	      showAsWindow_(w,caption);
+	      w->showMaximized();
+		    updateLayerbar();
 			}
     }
 	}

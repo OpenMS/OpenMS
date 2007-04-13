@@ -195,6 +195,8 @@ namespace OpenMS
       void editParamDialog();
       /// Shows the current peak data of the active layer in 3D 
       void showCurrentPeaksAs3D();
+			/// Shows the spectrum with index @p index of the sctive layer in 1D
+			void showSpectrumAs1D(int index);
       
     protected slots:
       /** @name Layer manager slots

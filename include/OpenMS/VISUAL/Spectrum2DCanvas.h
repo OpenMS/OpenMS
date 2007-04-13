@@ -157,7 +157,9 @@ namespace OpenMS
       void showProjectionInfo(int, double);
       /// Requests to display the current peak data in 3D 
       void showCurrentPeaksAs3D();
-      
+			/// Requests to display the spectrum with index @p index in 1D
+			void showSpectrumAs1D(int index);
+		
     public slots:
 
       // Docu in base class

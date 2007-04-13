@@ -105,6 +105,8 @@ namespace OpenMS
 		void visibleAreaChanged(DRange<2> area);
 		/// Requests to display the current peak data of the active layer in 3D 
 		void showCurrentPeaksAs3D();
+		/// Requests to display the spectrum with index @p index in 1D
+		void showSpectrumAs1D(int index);
 
 	protected:
 		// Docu in base class

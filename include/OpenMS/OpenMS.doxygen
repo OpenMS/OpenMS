@@ -83,8 +83,6 @@ Ideen:
 Todos:
 - make install mit prefix testen (Hiwi)
 
-DBSpectrumSelectorDialog -- Bug finden
-Spectrum2DCanvas -- Open spectra in 1D
 MSExperiment -> MSMap (ExperimentType -> MapType)
 get/setRetentionTime() -> get/setRT()
 TOPPViewBase -- Add preferences for layers
