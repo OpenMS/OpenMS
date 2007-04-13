@@ -99,7 +99,7 @@ FeaFiTraits* traits = new FeaFiTraits();
 MSExperiment<Peak1D > exp;
 
 MSExperiment<Peak1D >::SpectrumType spec;
-spec.setRetentionTime(1);
+spec.setRT(1);
 
 double mzs[] = {1, 2, 3, 4, 5};
 double its1[] = {1000, 1500,2000, 1500, 1000};
@@ -117,7 +117,7 @@ for (UInt i=0; i < num; i++)
 exp.push_back(spec);
 
 spec.clear();
-spec.setRetentionTime(2);
+spec.setRT(2);
 
 double its2[] = {1000, 1500,2000, 1500, 1000};
 
@@ -132,7 +132,7 @@ for (UInt i=0; i < num; i++)
 exp.push_back(spec);
 
 spec.clear();
-spec.setRetentionTime(3);
+spec.setRT(3);
 
 double its3[] = {1000, 1500,5000, 1500, 1000};
 
@@ -147,7 +147,7 @@ for (UInt i=0; i < num; i++)
 exp.push_back(spec);
 
 spec.clear();
-spec.setRetentionTime(4);
+spec.setRT(4);
 
 // the last two data points should not be included (see param intensity_factor)
 double its4[] = {1000, 1500,2000, 0.1, 0.1};

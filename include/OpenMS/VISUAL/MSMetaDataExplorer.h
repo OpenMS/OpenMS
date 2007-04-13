@@ -94,11 +94,12 @@ namespace OpenMS
 			/**
 			@brief A template function to add classes
 				
-			The meta data information of many different objects can be visualized using this function. A pointer of the object is passed to a type specific function managing the visulization of the meta data.
+			The meta data information of many different objects can be visualized using this function. 
+			The object is passed to one of the type-specific visualize_ methods, managing the visulization of the meta data.
 			*/
-			template <class T> void add(T *ptr ) 
+			template <class T> void visualize(T& class_reference) 
 			{                
-				visualize_(*ptr);
+				visualize_(class_reference);
 				treeview_->expandItem(  treeview_->findItems(QString::number(0),Qt::MatchExactly , 1).first() );
 			}
 			

@@ -618,15 +618,15 @@ namespace OpenMS
 						sett.setScanMode( (InstrumentSettings::ScanMode)str2enum_(SCANMODEMAP, value) );
 						break;
 					case TIMEMIN:
-						spec_.setRetentionTime(asFloat_(value)*60); //Minutes to seconds
-						if (options_.hasRTRange() && !options_.getRTRange().encloses(DPosition<1>(spec_.getRetentionTime())))
+						spec_.setRT(asFloat_(value)*60); //Minutes to seconds
+						if (options_.hasRTRange() && !options_.getRTRange().encloses(DPosition<1>(spec_.getRT())))
 						{
 							skip = true;
 						}
 						break;
 					case TIMESEC:
-						spec_.setRetentionTime(asFloat_(value));
-						if (options_.hasRTRange() && !options_.getRTRange().encloses(DPosition<1>(spec_.getRetentionTime())))
+						spec_.setRT(asFloat_(value));
+						if (options_.hasRTRange() && !options_.getRTRange().encloses(DPosition<1>(spec_.getRT())))
 						{
 							skip = true;
 						}
@@ -843,8 +843,8 @@ namespace OpenMS
 				writeCVS_(os, spec.getInstrumentSettings().getPolarity(), POLARITYMAP,
 									"1000037", "Polarity",6);
 				//Retiontion time already in TimeInSeconds
-				//writeCVS_(os, spec.getRetentionTime()/60, "1000038", "TimeInMinutes",6);
-				writeCVS_(os, spec.getRetentionTime(), "1000039", "TimeInSeconds",6);
+				//writeCVS_(os, spec.getRT()/60, "1000038", "TimeInMinutes",6);
+				writeCVS_(os, spec.getRT(), "1000039", "TimeInSeconds",6);
 				writeUserParam_(os, spec.getInstrumentSettings(), 6);
 				os 	<< "\t\t\t\t\t</spectrumInstrument>\n\t\t\t\t</spectrumSettings>\n";
 

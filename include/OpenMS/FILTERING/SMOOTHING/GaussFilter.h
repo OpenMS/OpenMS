@@ -270,7 +270,7 @@ namespace OpenMS
 
             // copy the spectrum information
             spectrum.getPrecursorPeak() = input_it->getPrecursorPeak();
-            spectrum.setRetentionTime(input_it->getRetentionTime());
+            spectrum.setRT(input_it->getRT());
             spectrum.setMSLevel(input_it->getMSLevel());
             spectrum.getName() = input_it->getName();
 
@@ -312,7 +312,7 @@ namespace OpenMS
 
             // copy the spectrum information
             spectrum.getPrecursorPeak() = input_it->getPrecursorPeak();
-            spectrum.setRetentionTime(input_it->getRetentionTime());
+            spectrum.setRT(input_it->getRT());
             spectrum.setMSLevel(input_it->getMSLevel());
             spectrum.getName() = input_it->getName();
 

@@ -99,12 +99,12 @@ namespace OpenMS
 			{
 				if (i->getIntensity() > max_int && i->getIntensity()>=getCurrentLayer().min_int && i->getIntensity()<=getCurrentLayer().max_int)
 				{
-					//cout << "new max: " << i.getRetentionTime() << " " << i->getMZ() << endl;
+					//cout << "new max: " << i.getRT() << " " << i->getMZ() << endl;
 					max_int = i->getIntensity();
 					
 					tmp_peak_.setIntensity(i->getIntensity());
 					tmp_peak_.setMZ(i->getMZ());
-					tmp_peak_.setRT(i.getRetentionTime());
+					tmp_peak_.setRT(i.getRT());
 					
 					max_peak = &tmp_peak_;
 				}
@@ -309,12 +309,12 @@ namespace OpenMS
 					}
 					if (dots)
 					{
-						dataToWidget_(i->getMZ(), i.getRetentionTime(),pos);
+						dataToWidget_(i->getMZ(), i.getRT(),pos);
 						painter.drawPoint(pos.x(),pos.y());
 					}
 					else
 					{
-						dataToWidget_(i->getMZ(), i.getRetentionTime(),pos);
+						dataToWidget_(i->getMZ(), i.getRT(),pos);
 						painter.drawLine(pos.x(),pos.y()-1,pos.x(),pos.y()+1);
 						painter.drawLine(pos.x()-1,pos.y(),pos.x()+1,pos.y());
 					}
@@ -332,18 +332,18 @@ namespace OpenMS
 					//this is a MS/MS scan
 					if (i->getMSLevel()==2)
 					{
-						//cout << "Looking for Precursor scan of " << i->getRetentionTime() << " " << i->getPrecursorPeak().getPosition()[0] << endl;
+						//cout << "Looking for Precursor scan of " << i->getRT() << " " << i->getPrecursorPeak().getPosition()[0] << endl;
 						//look up precursor peak scan for RT
 						ExperimentType::ConstIterator prec = i;
 						while(true)
 						{
-							//cout << "prec " << prec->getMSLevel() << " " << prec->getRetentionTime() << endl;
+							//cout << "prec " << prec->getMSLevel() << " " << prec->getRT() << endl;
 							//we have found the precursor
 							if (prec->getMSLevel()==1)
 							{
 								//cout << "HIT!" << endl;
 								//draw icon
-								dataToWidget_(i->getPrecursorPeak().getPosition()[0], prec->getRetentionTime(),pos);
+								dataToWidget_(i->getPrecursorPeak().getPosition()[0], prec->getRT(),pos);
 								painter.drawLine(pos.x(),pos.y()+2,pos.x()+2,pos.y());
 								painter.drawLine(pos.x()+2,pos.y(),pos.x(),pos.y()-2);
 								painter.drawLine(pos.x(),pos.y()-2,pos.x()-2,pos.y());
@@ -861,7 +861,7 @@ namespace OpenMS
 				++peak_count;
 				intensity_sum += i->getIntensity();
 				mz[i->getMZ()] += i->getIntensity();
-				rt[i.getRetentionTime()] += i->getIntensity();
+				rt[i.getRT()] += i->getIntensity();
 			}
 		}
 		
@@ -1642,16 +1642,16 @@ namespace OpenMS
 				}
 				if (begin->getMSLevel()<2)
 				{
-					a = scans->addAction(QString("RT: ") + QString::number(begin->getRetentionTime()));
+					a = scans->addAction(QString("RT: ") + QString::number(begin->getRT()));
 					a->setData(begin-first);
-					a = meta->addAction(QString("RT: ") + QString::number(begin->getRetentionTime()));
+					a = meta->addAction(QString("RT: ") + QString::number(begin->getRT()));
 					a->setData(begin-first);
 				}
 				else
 				{
-					a = scans->addAction(QString("RT: ") + QString::number(begin->getRetentionTime()) + "  Precursor m/z:" + QString::number(begin->getPrecursorPeak().getPosition()[0]));
+					a = scans->addAction(QString("RT: ") + QString::number(begin->getRT()) + "  Precursor m/z:" + QString::number(begin->getPrecursorPeak().getPosition()[0]));
 					a->setData(begin-first);
-					a = meta->addAction(QString("RT: ") + QString::number(begin->getRetentionTime()) + "  Precursor m/z:" + QString::number(begin->getPrecursorPeak().getPosition()[0]));
+					a = meta->addAction(QString("RT: ") + QString::number(begin->getRT()) + "  Precursor m/z:" + QString::number(begin->getPrecursorPeak().getPosition()[0]));
 					a->setData(begin-first);
 				}
 				if (begin==it)
@@ -1673,7 +1673,7 @@ namespace OpenMS
 				{
 					MSMetaDataExplorer dlg(true, this);
 		      dlg.setWindowTitle("View/Edit meta data");
-		    	dlg.add(static_cast<SpectrumSettings*>(&(currentPeakData_()[result->data().toInt()])));
+		    	dlg.visualize(static_cast<SpectrumSettings&>(currentPeakData_()[result->data().toInt()]));
 		      dlg.exec();
 				}
 				else if (result->text() == "View visible data in 3D")
@@ -1714,7 +1714,7 @@ namespace OpenMS
 	      vector<Identification>& ids = features[result->data().toInt()].getIdentifications();
 				for (vector<Identification>::iterator it=ids.begin(); it!=ids.end(); ++it)
 				{
-	    		dlg.add(&(*it));
+	    		dlg.visualize(*it);
 				}
 				
 	      dlg.exec();

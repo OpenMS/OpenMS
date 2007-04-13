@@ -11,7 +11,7 @@ Int main()
 	for (UInt i=0; i<4; ++i)
 	{
 		PeakSpectrum spectrum;
-		spectrum.setRetentionTime(i);
+		spectrum.setRT(i);
 		spectrum.setMSLevel(1);
   	for (Real mz=500.0; mz<=900; mz+=100.0)
   	{ 
@@ -24,14 +24,14 @@ Int main()
 
   for(PeakMap::AreaIterator it=exp.areaBegin(2.0, 3.0, 603.0, 802.0); it!=exp.areaEnd(); ++it)
   {
-    cout << it.getRetentionTime() << " - " << it->getMZ() << endl;
+    cout << it.getRT() << " - " << it->getMZ() << endl;
   }
 
   for(PeakMap::Iterator s_it=exp.begin(); s_it!=exp.end(); ++s_it)
   {
 		for (PeakSpectrum::Iterator p_it=s_it->begin(); p_it!=s_it->end(); ++p_it)
 		{
-    	cout << s_it->getRetentionTime() << " - " << p_it->getMZ() << endl;
+    	cout << s_it->getRT() << " - " << p_it->getMZ() << endl;
   	}
 	}
 

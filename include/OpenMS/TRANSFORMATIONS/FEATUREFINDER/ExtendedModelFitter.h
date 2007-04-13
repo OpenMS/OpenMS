@@ -174,7 +174,7 @@ namespace OpenMS
 	CoordinateType getSymmetry() const;
 
 	/// get retention time for the EMG and logNormal model
-	CoordinateType getRetention() const;
+	CoordinateType getRT() const;
 
 	/// get standard deviation for the Gauss
 	CoordinateType getStandardDeviation() const;

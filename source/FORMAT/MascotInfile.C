@@ -308,7 +308,7 @@ namespace OpenMS
 				{
 					//retention time
 					ss.str("");
-					ss << experiment[i].getRetentionTime();
+					ss << experiment[i].getRT();
 					cout << "No precursor m/z information for spectrum with rt: " 
 						<< ss.str() << " present" << endl;
 				}
@@ -317,7 +317,7 @@ namespace OpenMS
 					fputs ("\nBEGIN IONS\n",fp);
 
 					ss.str("");
-					ss << precursor_position << "_" << experiment[i].getRetentionTime();
+					ss << precursor_position << "_" << experiment[i].getRT();
 					fputs (String("TITLE=" + ss.str() + "\n").c_str(),fp);
 
 					//precursor data (includes mz and retention time)
@@ -327,7 +327,7 @@ namespace OpenMS
 			
 					//retention time
 					ss.str("");
-					ss << experiment[i].getRetentionTime();
+					ss << experiment[i].getRT();
 					fputs(String("RTINSECONDS=" + ss.str() + "\n").c_str(),fp);		
 					fputs("\n",fp);
 							

@@ -170,7 +170,7 @@ namespace OpenMS
             ++it)
           {
             cont.insert(cont.end(), typename Container::value_type());
-            cont.back().setRT(spec->getRetentionTime());
+            cont.back().setRT(spec->getRT());
             cont.back().setIntensity(it->getIntensity());
             cont.back().setMZ(it->getMZ());
           }
@@ -205,7 +205,7 @@ namespace OpenMS
 						current_rt =  iter->getRT();
 						Base_::insert(Base_::end(),SpectrumType());
 						spectrum = &(Base_::back());
-						spectrum->setRetentionTime(current_rt);
+						spectrum->setRT(current_rt);
 						spectrum->setMSLevel(1);
 					}
 	
@@ -254,7 +254,7 @@ namespace OpenMS
 	    ConstIterator RTBegin(double rt) const
 	    {
 	      SpectrumType s;
-	      s.setRetentionTime(rt);
+	      s.setRT(rt);
 	      return lower_bound(Base_::begin(), Base_::end(), s, typename SpectrumType::RTLess());
 	    }
 	
@@ -266,7 +266,7 @@ namespace OpenMS
 	    ConstIterator RTEnd(double rt) const
 	    {
 	      SpectrumType s;
-	      s.setRetentionTime(rt);
+	      s.setRT(rt);
 	      return upper_bound(Base_::begin(),Base_::end(), s, typename SpectrumType::RTLess());
 	    }
 	
@@ -278,7 +278,7 @@ namespace OpenMS
 	    Iterator RTBegin(double rt)
 	    {
 	      SpectrumType s;
-	      s.setRetentionTime(rt);
+	      s.setRT(rt);
 	      return lower_bound(Base_::begin(), Base_::end(), s, typename SpectrumType::RTLess());
 	    }
 	
@@ -290,7 +290,7 @@ namespace OpenMS
 	    Iterator RTEnd(double rt)
 	    {
 	      SpectrumType s;
-	      s.setRetentionTime(rt);
+	      s.setRT(rt);
 	      return upper_bound(Base_::begin(),Base_::end(), s, typename SpectrumType::RTLess());
 	    }
 	
@@ -346,8 +346,8 @@ namespace OpenMS
 		        nr_dpoints_ += it->size();
 	              
 	          //rt
-	          if (it->getRetentionTime() < RangeManagerType::pos_range_.minX()) RangeManagerType::pos_range_.setMinX(it->getRetentionTime());
-	          if (it->getRetentionTime() > RangeManagerType::pos_range_.maxX()) RangeManagerType::pos_range_.setMaxX(it->getRetentionTime());
+	          if (it->getRT() < RangeManagerType::pos_range_.minX()) RangeManagerType::pos_range_.setMinX(it->getRT());
+	          if (it->getRT() > RangeManagerType::pos_range_.maxX()) RangeManagerType::pos_range_.setMaxX(it->getRT());
 						
 						//do not update mz and int when the spectrum is empty
 						if (it->size()==0) continue;

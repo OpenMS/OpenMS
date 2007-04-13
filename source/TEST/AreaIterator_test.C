@@ -48,28 +48,28 @@ AI* ptr1 = 0, *ptr2 = 0;
 Map exp;
 exp.resize(5);
 exp[0].resize(2);
-exp[0].setRetentionTime(2.0);
+exp[0].setRT(2.0);
 exp[0].setMSLevel(1);
 exp[0][0].setMZ(502);
 exp[0][1].setMZ(510);
 
 exp[1].resize(2);
-exp[1].setRetentionTime(4.0);
+exp[1].setRT(4.0);
 exp[1].setMSLevel(1);
 exp[1][0].setMZ(504);
 exp[1][1].setMZ(506);
 
-exp[2].setRetentionTime(6.0);
+exp[2].setRT(6.0);
 exp[2].setMSLevel(1);
 
 exp[3].resize(2);
-exp[3].setRetentionTime(8.0);
+exp[3].setRT(8.0);
 exp[3].setMSLevel(1);
 exp[3][0].setMZ(504.1);
 exp[3][1].setMZ(506.1);
 
 exp[4].resize(2);
-exp[4].setRetentionTime(10.0);
+exp[4].setRT(10.0);
 exp[4].setMSLevel(1);
 exp[4][0].setMZ(502.1);
 exp[4][1].setMZ(510.1);

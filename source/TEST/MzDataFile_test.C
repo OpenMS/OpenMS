@@ -137,9 +137,9 @@ CHECK((template<typename MapType> void load(const String& filename, MapType& map
 	TEST_REAL_EQUAL(e[0].getMSLevel(), 1)
 	TEST_REAL_EQUAL(e[1].getMSLevel(), 2)
 	TEST_REAL_EQUAL(e[2].getMSLevel(), 1)
-	TEST_REAL_EQUAL(e[0].getRetentionTime(), 60)
-	TEST_REAL_EQUAL(e[1].getRetentionTime(), 120)
-	TEST_REAL_EQUAL(e[2].getRetentionTime(), 180)
+	TEST_REAL_EQUAL(e[0].getRT(), 60)
+	TEST_REAL_EQUAL(e[1].getRT(), 120)
+	TEST_REAL_EQUAL(e[2].getRT(), 180)
 	TEST_EQUAL(e[0].getType(), SpectrumSettings::UNKNOWN)
 
 	TEST_EQUAL(e[0].getMetaInfoDescriptions()["1"].getSourceFile().getNameOfFile(),"area.raw")
@@ -682,8 +682,8 @@ CHECK(([EXTRA] load with RT range))
 	TEST_EQUAL(e.size(), 2)
 	TEST_REAL_EQUAL(e[0].getMSLevel(), 2)
 	TEST_REAL_EQUAL(e[1].getMSLevel(), 1)
-	TEST_REAL_EQUAL(e[0].getRetentionTime(), 120)
-	TEST_REAL_EQUAL(e[1].getRetentionTime(), 180)
+	TEST_REAL_EQUAL(e[0].getRT(), 120)
+	TEST_REAL_EQUAL(e[1].getRT(), 180)
 RESULT
 
 CHECK(([EXTRA] load with MZ range))

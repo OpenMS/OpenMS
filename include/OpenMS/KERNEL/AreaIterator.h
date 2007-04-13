@@ -168,9 +168,9 @@ namespace OpenMS
 				}
 	
 				/// returns the retention time of the current scan
-				CoordinateType getRetentionTime() const
+				CoordinateType getRT() const
 				{
-					return current_scan_->getRetentionTime();
+					return current_scan_->getRT();
 				}
 				
 			private:
@@ -179,7 +179,7 @@ namespace OpenMS
 				{
 					while (true)
 					{
-						//if (current_scan_ != end_scan_) std::cout << "RT: " << current_scan_->getRetentionTime() << std::endl;
+						//if (current_scan_ != end_scan_) std::cout << "RT: " << current_scan_->getRT() << std::endl;
 						while (current_scan_ != end_scan_ && current_scan_->getMSLevel()!=1)
 						{
 							++current_scan_;

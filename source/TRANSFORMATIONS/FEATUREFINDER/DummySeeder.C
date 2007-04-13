@@ -106,7 +106,7 @@ namespace OpenMS
 		for (UInt currscan_index = 0; currscan_index < traits_->getData().size(); ++currscan_index)
 		{
 			SpectrumType current_scan = traits_->getData()[currscan_index];
-			current_rt = current_scan.getRetentionTime();
+			current_rt = current_scan.getRT();
 
 			cout << "---------------------------------------------------------------------------" << endl;
 			cout << "Processing scan " << currscan_index << " of " << traits_->getData().size() << endl;

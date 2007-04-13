@@ -195,7 +195,7 @@ class TOPPFileMerger
 				}
 				else
 				{
-					rt_final = it2->getRetentionTime();
+					rt_final = it2->getRT();
 				}
 	
 				// guess the retention time from filename
@@ -244,7 +244,7 @@ class TOPPFileMerger
 				}
 				
 				out.push_back(*it2);
-				out.back().setRetentionTime(rt_final);
+				out.back().setRT(rt_final);
 				if (user_ms_level)
 				{
 					out.back().setMSLevel((int)getIntOption_("ms_level"));

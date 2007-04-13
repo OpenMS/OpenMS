@@ -377,7 +377,7 @@ namespace OpenMS
 	            for (typename MSSpectrum<PeakT>::const_iterator it = spec.begin(); it!=spec.end(); ++it)
 	            {
 	              cont.insert(cont.end(), typename Container::value_type());
-	              cont.back().setRT(spec.getRetentionTime());
+	              cont.back().setRT(spec.getRT());
 	              cont.back().setIntensity(it->getIntensity());
 	              cont.back().setMZ(it->getPosition()[0]);
 	            }
@@ -405,7 +405,7 @@ namespace OpenMS
 	            current_rt =  iter->getRT();
 	            this->push_back(SpectrumType());
 							spectrum = &(this->back());
-	            spectrum->setRetentionTime(current_rt);
+	            spectrum->setRT(current_rt);
 	            spectrum->setMSLevel(1);
 	          }
 	
@@ -460,8 +460,8 @@ namespace OpenMS
 		        nr_dpoints_ += spec_temp.size();
 	              
 	          //rt
-	          if (spec_temp.getRetentionTime() < RangeManagerType::pos_range_.minX()) RangeManagerType::pos_range_.setMinX(spec_temp.getRetentionTime());
-	          if (spec_temp.getRetentionTime() > RangeManagerType::pos_range_.maxX()) RangeManagerType::pos_range_.setMaxX(spec_temp.getRetentionTime());
+	          if (spec_temp.getRT() < RangeManagerType::pos_range_.minX()) RangeManagerType::pos_range_.setMinX(spec_temp.getRT());
+	          if (spec_temp.getRT() > RangeManagerType::pos_range_.maxX()) RangeManagerType::pos_range_.setMaxX(spec_temp.getRT());
 						
 						//do not update mz and intensities if spectrum is empty
 						if (spec_temp.size()==0) continue;
@@ -507,7 +507,7 @@ namespace OpenMS
 	    ConstIterator RTBegin(double rt) const
 	    {
 	        SpectrumType s;
-	        s.setRetentionTime(rt);
+	        s.setRT(rt);
 	        return lower_bound(begin(), end(), s, typename SpectrumType::RTLess());
 	    }
 	
@@ -519,7 +519,7 @@ namespace OpenMS
 	    ConstIterator RTEnd(double rt) const
 	    {
 	        SpectrumType s;
-	        s.setRetentionTime(rt);
+	        s.setRT(rt);
 	        return upper_bound(begin(),end(), s, typename SpectrumType::RTLess());
 	    }
 	
@@ -531,7 +531,7 @@ namespace OpenMS
 	    Iterator RTBegin(double rt)
 	    {
 	        SpectrumType s;
-	        s.setRetentionTime(rt);
+	        s.setRT(rt);
 	        return lower_bound(begin(),end(), s, typename SpectrumType::RTLess());
 	    }
 	
@@ -543,7 +543,7 @@ namespace OpenMS
 	    Iterator RTEnd(double rt)
 	    {
 	        SpectrumType s;
-	        s.setRetentionTime(rt);
+	        s.setRT(rt);
 	        return upper_bound(begin(),end(), s, typename SpectrumType::RTLess());
 	    }
 	
@@ -947,7 +947,7 @@ namespace OpenMS
 	    /// write spectrum to file
 	    void writeScan_(const size_type& index, const SpectrumType& spec) const
 	    {
-	        CoordinateType rt  = spec.getRetentionTime();
+	        CoordinateType rt  = spec.getRT();
 					UInt  mslvl = spec.getMSLevel();
 	
 	        // test if this scan was already written and store its offset
@@ -1016,7 +1016,7 @@ namespace OpenMS
 	        fread(&rt,sizeof(CoordinateType),1,pFile_);
 					fread(&mslvl,sizeof(UInt),1,pFile_);
 		
-	        spec.setRetentionTime(rt);
+	        spec.setRT(rt);
 					spec.setMSLevel(mslvl);
 					unsigned int nr_peaks = scan_sizes_[index];
 	        spec.getContainer().clear();

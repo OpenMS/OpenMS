@@ -140,7 +140,7 @@ CHECK(( template <typename InputSpectrumIterator,typename OutputPeakType>
 	peaks.push_back(peak);
 	MSExperiment<PickedPeak1D > ms_exp;
 	ms_exp.push_back(peaks);
-	ms_exp.begin()->setRetentionTime(100);
+	ms_exp.begin()->setRT(100);
 			
   float origin = 499;
   float spacing = 0.1;
@@ -155,7 +155,7 @@ CHECK(( template <typename InputSpectrumIterator,typename OutputPeakType>
   }
   MSExperiment<RawDataPoint1D > raw_exp;
   raw_exp.push_back(raw_spec);
-	raw_exp.begin()->setRetentionTime(100);
+	raw_exp.begin()->setRT(100);
   String file = "data/TwoDOptimization.xml";	
   Param param;
 	param.load(file);

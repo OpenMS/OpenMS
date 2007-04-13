@@ -178,7 +178,7 @@ namespace OpenMS
           // if the scan contains enough raw data points filter the baseline
           if ( struc_size_ < fabs((input_it->end()-1)->getMZ()- input_it->begin()->getMZ()))
           {
-            //std::cout << "filter " << input_it->getRetentionTime()<< std::endl;
+            //std::cout << "filter " << input_it->getRT()<< std::endl;
             MSSpectrum< OutputPeakType > spectrum;
 
             // pick the peaks in scan i
@@ -193,7 +193,7 @@ namespace OpenMS
 
               // copy the spectrum information
               spectrum.getPrecursorPeak() = input_it->getPrecursorPeak();
-              spectrum.setRetentionTime(input_it->getRetentionTime());
+              spectrum.setRT(input_it->getRT());
               spectrum.setMSLevel(input_it->getMSLevel());
               spectrum.getName() = input_it->getName();
 
@@ -237,7 +237,7 @@ namespace OpenMS
 
             // copy the spectrum information
             spectrum.getPrecursorPeak() = input_it->getPrecursorPeak();
-            spectrum.setRetentionTime(input_it->getRetentionTime());
+            spectrum.setRT(input_it->getRT());
             spectrum.setMSLevel(input_it->getMSLevel());
             spectrum.getName() = input_it->getName();
 

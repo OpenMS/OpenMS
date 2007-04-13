@@ -356,7 +356,7 @@ class TOPPSequestAdapter
 							dtafile.store(filename, *spec_i);
 						}
 						filename.replace(filename.length() - 4, 4, ".out");
-						filenames_and_precursor_retention_times[File::basename(filename)] = spec_i->getRetentionTime();
+						filenames_and_precursor_retention_times[File::basename(filename)] = spec_i->getRT();
 					}
 					else
 					{
@@ -370,7 +370,7 @@ class TOPPSequestAdapter
 								dtafile.store(filename, *spec_i);
 							}
 							filename.replace(filename.length() - 4, 4, ".out");
-							filenames_and_precursor_retention_times[File::basename(filename)] = spec_i->getRetentionTime();
+							filenames_and_precursor_retention_times[File::basename(filename)] = spec_i->getRT();
 						}
 						spec_i->getPrecursorPeak().setCharge(0);
 					}

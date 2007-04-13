@@ -105,7 +105,7 @@ namespace OpenMS
 		
 			inline bool operator()(const SpectrumType& s) const
 			{
-				double tmp = s.getRetentionTime();
+				double tmp = s.getRT();
 				if (reverse_)
 				{
 					return ( min_ > tmp || max_ < tmp ); 

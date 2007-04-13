@@ -532,7 +532,7 @@ namespace OpenMS
 			//type
 			query << ",Type=" << (1u+exp_it->getType());
 			//RT
-			query << ",RetentionTime='" << exp_it->getRetentionTime() << "'";
+			query << ",RetentionTime='" << exp_it->getRT() << "'";
 			//MS-Level
 			query << ",MSLevel='" << exp_it->getMSLevel() << "'";
 			//Description
@@ -1034,7 +1034,7 @@ namespace OpenMS
 		
 		//Spectrum meta info
 		spec.setType((SpectrumSettings::SpectrumType)(result.value(0).toInt()));
-		spec.setRetentionTime(result.value(1).toDouble());
+		spec.setRT(result.value(1).toDouble());
 		spec.setMSLevel(result.value(2).toInt());
 		spec.setComment(result.value(3).toString().toAscii().data());
 		loadMetaInfo_(result.value(4).toInt(),spec);

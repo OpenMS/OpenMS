@@ -95,7 +95,7 @@ namespace OpenMS
     double min() const{return begin_;}
 
 		/// returns the retention time
-    double getRetention() const { return retention_;}
+    double getRT() const { return retention_;}
 
 		/// returns the spreading of the bins
     unsigned int getBinSpread() const {return spread_;}

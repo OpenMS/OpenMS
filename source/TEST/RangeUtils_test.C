@@ -57,19 +57,19 @@ CHECK((bool operator()(const SpectrumType& s) const))
 	InRTRange<DSpectrum<1> > r(5,10,false);
 	InRTRange<DSpectrum<1> > r2(5,10,true);
 	DSpectrum<1> s;
-	s.setRetentionTime(4.9);
+	s.setRT(4.9);
 	TEST_EQUAL(r(s), false);
 	TEST_EQUAL(r2(s), true);
-	s.setRetentionTime(5.0);
+	s.setRT(5.0);
 	TEST_EQUAL(r(s), true);
 	TEST_EQUAL(r2(s), false);
-	s.setRetentionTime(7.5);
+	s.setRT(7.5);
 	TEST_EQUAL(r(s), true);
 	TEST_EQUAL(r2(s), false);
-	s.setRetentionTime(10.0);
+	s.setRT(10.0);
 	TEST_EQUAL(r(s), true);
 	TEST_EQUAL(r2(s), false);
-	s.setRetentionTime(10.1);
+	s.setRT(10.1);
 	TEST_EQUAL(r(s), false);
 	TEST_EQUAL(r2(s), true);	
 RESULT

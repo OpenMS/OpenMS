@@ -123,7 +123,7 @@ namespace OpenMS
     int id() const;
 
 		/// returns the retention time of the spectrum
-    DoubleReal getRetention() const;
+    DoubleReal getRT() const;
 
 		/// returns the parent mass of the parent ion
     DoubleReal getParentMass() const;

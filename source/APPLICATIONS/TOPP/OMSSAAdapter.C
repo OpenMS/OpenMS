@@ -355,7 +355,7 @@ class TOPPOMSSAAdapter
 				if (tmp_peptide_ids.size() == 1)
 				{
 					writeDebug_(String(i) + ". found " + String(tmp_peptide_ids[0].id.getPeptideHits().size()) + " peptide identifications", 2);
-					tmp_peptide_ids[0].rt = it->getRetentionTime();
+					tmp_peptide_ids[0].rt = it->getRT();
 					tmp_peptide_ids[0].mz = it->getPrecursorPeak().getPosition()[0];
 					peptide_ids.push_back(tmp_peptide_ids[0]);
 					// TODO protein mz/rt
@@ -365,7 +365,7 @@ class TOPPOMSSAAdapter
 				{
 					writeDebug_(String(i) + ". found " + String(tmp_peptide_ids.size()) + " peptide identifications", 2);
 					IdentificationData tmp_id_data;
-					tmp_id_data.rt = it->getRetentionTime();
+					tmp_id_data.rt = it->getRT();
 					tmp_id_data.mz = it->getPrecursorPeak().getPosition()[0];
 					peptide_ids.push_back(tmp_id_data);
 					protein_identifications.push_back(tmp_protein_id);

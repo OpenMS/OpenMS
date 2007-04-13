@@ -59,7 +59,7 @@ namespace OpenMS
 
 		for(ExperimentType::ConstIterator spec_it = in.begin(); spec_it !=in.end(); ++spec_it)
 		{
-			out[out_spec].setRetentionTime(spec_it->getRetentionTime());
+			out[out_spec].setRT(spec_it->getRT());
 			out[out_spec].setMSLevel(spec_it->getMSLevel()); 
 			
 			//init

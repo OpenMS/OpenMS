@@ -172,11 +172,11 @@ class TOPPDTAExtractor
 					{
 						continue;
 					}		
-					dta.store(out+"_RT"+String(it->getRetentionTime())+"_MZ"+String(mz)+".dta", *it);
+					dta.store(out+"_RT"+String(it->getRT())+"_MZ"+String(mz)+".dta", *it);
 				}
 				else
 				{
-					dta.store(out+"_RT"+String(it->getRetentionTime())+".dta", *it);
+					dta.store(out+"_RT"+String(it->getRT())+".dta", *it);
 				}
 			}
 			

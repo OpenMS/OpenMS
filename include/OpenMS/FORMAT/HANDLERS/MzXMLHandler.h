@@ -602,8 +602,8 @@ namespace OpenMS
 								break;
 							case RETTIME:
 								value.trim();
-								spec.setRetentionTime( asFloat_(value.substr(2,value.size()-3)));
-								//std::cout << spec_->getRetentionTime() << std::endl;
+								spec.setRT( asFloat_(value.substr(2,value.size()-3)));
+								//std::cout << spec_->getRT() << std::endl;
 								break;
 							case STARTMZ:
 								sett.setMzRangeStart( asDouble_(value));
@@ -627,7 +627,7 @@ namespace OpenMS
 					}
 					
 					// check if the scan is in the desired range
-					if (options_.hasRTRange() && !options_.getRTRange().encloses(DPosition<1>(spec.getRetentionTime()))
+					if (options_.hasRTRange() && !options_.getRTRange().encloses(DPosition<1>(spec.getRT()))
 					 || options_.hasMSLevels() && !options_.containsMSLevel(spec.getMSLevel()))
 					{
 						// skip this tag
@@ -1193,7 +1193,7 @@ namespace OpenMS
 					 << enum2str_(SCANMODEMAP,spec.getInstrumentSettings().getScanMode());
 			}
 			os << "\" retentionTime=\"PT"
-				 << spec.getRetentionTime() << "S\"";
+				 << spec.getRT() << "S\"";
 			if (spec.getInstrumentSettings().getMzRangeStart()!=0)
 				os << " startMz=\"" << spec.getInstrumentSettings().getMzRangeStart() << "\"";
 			if (spec.getInstrumentSettings().getMzRangeStop()!=0)

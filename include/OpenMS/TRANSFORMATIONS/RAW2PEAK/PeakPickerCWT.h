@@ -535,7 +535,7 @@ namespace OpenMS
         MSSpectrum< OutputPeakType > spectrum;
         InputSpectrumIterator input_it(first+i);
 #ifdef DEBUG_PEAK_PICKING
-        std::cout << "PeakPicker: Picking Scan " << input_it->getRetentionTime()<< std::endl;
+        std::cout << "PeakPicker: Picking Scan " << input_it->getRT()<< std::endl;
 #endif
         StopWatch timer;
         timer.start();
@@ -556,7 +556,7 @@ namespace OpenMS
 
           // copy the spectrum information
           spectrum.getPrecursorPeak() = input_it->getPrecursorPeak();
-          spectrum.setRetentionTime(input_it->getRetentionTime());
+          spectrum.setRT(input_it->getRT());
           spectrum.setMSLevel(input_it->getMSLevel());
           spectrum.getName() = input_it->getName();
 
@@ -612,7 +612,7 @@ namespace OpenMS
 
           // copy the spectrum information
           spectrum.getPrecursorPeak() = input_it->getPrecursorPeak();
-          spectrum.setRetentionTime(input_it->getRetentionTime());
+          spectrum.setRT(input_it->getRT());
           spectrum.setMSLevel(input_it->getMSLevel());
           spectrum.getName() = input_it->getName();
 
@@ -673,7 +673,7 @@ namespace OpenMS
 
         // copy the spectrum information
         out_spec.getPrecursorPeak() = ms_exp_raw[i].getPrecursorPeak();
-        out_spec.setRetentionTime(ms_exp_raw[i].getRetentionTime());
+        out_spec.setRT(ms_exp_raw[i].getRT());
         out_spec.setMSLevel(ms_exp_raw[i].getMSLevel());
         out_spec.getName() = ms_exp_raw[i].getName();
 

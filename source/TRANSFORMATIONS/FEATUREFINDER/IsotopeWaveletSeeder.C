@@ -354,7 +354,7 @@ namespace OpenMS
 			std::cout << "Threshold for wt: " << ((*wt_thresholds)[c]*avg_intensity_factor_*c_av_intens) << std::endl;
 	
 			// write debug output
-			CoordinateType current_rt = scan.getRetentionTime();
+			CoordinateType current_rt = scan.getRT();
 			String filename = String("isowavcwt_") + current_rt + "_charge_" + (c+1);
 			std::ofstream outfile(filename.c_str());
 			TempContainerType::iterator write_iter;

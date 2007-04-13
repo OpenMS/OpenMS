@@ -340,7 +340,7 @@ CHECK(void setData(const ChargedIndexSet& set))
 	TEST_REAL_EQUAL(fitter.getSymmetry(), 1.5);
 	TEST_REAL_EQUAL(fitter.getHeight(), 1800);
 	TEST_REAL_EQUAL(fitter.getWidth(), 1.5);
-	TEST_REAL_EQUAL(fitter.getRetention(), 5);
+	TEST_REAL_EQUAL(fitter.getRT(), 5);
 
 RESULT
 */
@@ -412,7 +412,7 @@ CHECK(void ExtendedModelFitter::optimize())
 		TEST_REAL_EQUAL(fitter.getSymmetry(), symmetry_); 
 		TEST_REAL_EQUAL(fitter.getHeight(), height_);
 		TEST_REAL_EQUAL(fitter.getWidth(), width_);
-		TEST_REAL_EQUAL(fitter.getRetention(), retention_);
+		TEST_REAL_EQUAL(fitter.getRT(), retention_);
 		TEST_EQUAL(fitter.getGSLStatus(), "success");
 
 		symmetry_ += 0.5;
@@ -491,7 +491,7 @@ CHECK(void ExtendedModelFitter::optimize())
 	PRECISION(0.5)
 	TEST_REAL_EQUAL(fitter2.getSymmetry(), 1.3); 
 	TEST_REAL_EQUAL(fitter2.getWidth(), 2);
-	TEST_REAL_EQUAL(fitter2.getRetention(), 700);
+	TEST_REAL_EQUAL(fitter2.getRT(), 700);
 	TEST_EQUAL(fitter2.getGSLStatus(), "success");
 
 
@@ -555,7 +555,7 @@ CHECK(void ExtendedModelFitter::optimize())
 	PRECISION(1.0)
 	TEST_REAL_EQUAL(fitter3.getWidth(), 20.0);
 	TEST_REAL_EQUAL(fitter3.getSymmetry(), 1.5);
-	TEST_REAL_EQUAL(fitter3.getRetention(), 30.0);
+	TEST_REAL_EQUAL(fitter3.getRT(), 30.0);
 
 
 // ******************************************************

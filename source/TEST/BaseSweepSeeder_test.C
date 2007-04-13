@@ -192,7 +192,7 @@ CHECK((virtual IndexSet nextSeed()))
 		
 			spec.push_back(peak);		
 		}
-		spec.setRetentionTime(j);
+		spec.setRT(j);
 		exp.push_back(spec);		
 		spec.clear();	
 	}

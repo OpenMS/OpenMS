@@ -146,7 +146,7 @@ class TOPPBaselineFilter
 
 					// copy the spectrum information
 					spectrum.getPrecursorPeak() = ms_exp_raw[i].getPrecursorPeak();
-					spectrum.setRetentionTime(ms_exp_raw[i].getRetentionTime());
+					spectrum.setRT(ms_exp_raw[i].getRT());
 					spectrum.setMSLevel(ms_exp_raw[i].getMSLevel());
 					spectrum.getName() = ms_exp_raw[i].getName();
 

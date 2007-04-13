@@ -60,7 +60,7 @@ namespace OpenMS
 		
 		for(ExperimentType::ConstIterator spec_it = in.begin(); spec_it !=in.end(); ++spec_it)
 		{
-			out[out_spec].setRetentionTime(spec_it->getRetentionTime());
+			out[out_spec].setRT(spec_it->getRT());
 			out[out_spec].setMSLevel(spec_it->getMSLevel()); 	
 			
 			distance  = std::max(((spec_it->end()-1)->getMZ()- spec_it->begin()->getMZ()) * reduction,0.01);
@@ -93,7 +93,7 @@ namespace OpenMS
 			// 	cout<<*max<<endl;
 // 				cout<<sum<<endl;
 
-	// 			cout<<spec_it->getRetentionTime()<<endl;
+	// 			cout<<spec_it->getRT()<<endl;
 				out[out_spec].back().setIntensity(sum);
 			}
 			if(!out[out_spec].empty())

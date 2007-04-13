@@ -853,7 +853,7 @@ namespace OpenMS
     		for (LayerData::ExperimentType::ConstIterator it=begin; it!=end; ++it)
     		{
   				out[i].SpectrumSettings::operator=(*it);
-  				out[i].setRetentionTime(it->getRetentionTime());
+  				out[i].setRT(it->getRT());
   				out[i].setMSLevel(it->getMSLevel());
   				out[i].setPrecursorPeak(it->getPrecursorPeak());
   				for (LayerData::ExperimentType::SpectrumType::ConstIterator it2 = it->MZBegin(area.min()[0]); it2!= it->MZEnd(area.max()[0]); ++it2)
@@ -944,12 +944,12 @@ namespace OpenMS
       dlg.setWindowTitle("Edit meta data");
 			if (layer.type==LayerData::DT_PEAK) //peak data
     	{
-    		dlg.add(&(const_cast<LayerData&>(layer).peaks));
+    		dlg.visualize(const_cast<LayerData&>(layer).peaks);
 				
     	}
     	else //feature data
     	{
-    		dlg.add(&(const_cast<LayerData&>(layer).features));
+    		dlg.visualize(const_cast<LayerData&>(layer).features);
     	}
       dlg.exec();
     }
@@ -2010,7 +2010,7 @@ namespace OpenMS
     			if (it->getMSLevel()!=1) continue;
     			SpectrumCanvas::ExperimentType::SpectrumType spectrum;
     				
-  				spectrum.setRetentionTime(it->getRetentionTime());
+  				spectrum.setRT(it->getRT());
   				spectrum.setMSLevel(it->getMSLevel());
   				for (LayerData::ExperimentType::SpectrumType::ConstIterator it2 = it->MZBegin(area.min()[0]); it2!= it->MZEnd(area.max()[0]); ++it2)
   				{
@@ -2054,7 +2054,7 @@ namespace OpenMS
     		Spectrum1DWidget* w = new Spectrum1DWidget(ws_);
   			w->setMainPreferences(prefs_);
   			w->canvas()->addEmptyPeakLayer().push_back(layer.peaks[index]);
-  			String caption = layer.name + " (RT: " + layer.peaks[index].getRetentionTime() + ")";
+  			String caption = layer.name + " (RT: " + layer.peaks[index].getRT() + ")";
   			w->canvas()->finishAdding(0.0);
 				w->canvas()->setCurrentLayerName(caption);
 	      showAsWindow_(w,caption);

@@ -153,7 +153,7 @@ class TOPPPILISIdentification
 					
 					//ids.push_back(id);
 					IdentificationData id_data_tmp;
-					id_data_tmp.rt = it->getRetentionTime();
+					id_data_tmp.rt = it->getRT();
 					id_data_tmp.mz = it->getPrecursorPeak().getPosition()[0];
 					id_data_tmp.id = id;
 					id_data.push_back(id_data_tmp);

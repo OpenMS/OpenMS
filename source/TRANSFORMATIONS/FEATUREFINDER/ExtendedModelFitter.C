@@ -1099,7 +1099,7 @@ namespace OpenMS
 		return width_; 
 	}
 	
-	ExtendedModelFitter::CoordinateType ExtendedModelFitter::getRetention() const 
+	ExtendedModelFitter::CoordinateType ExtendedModelFitter::getRT() const 
 	{ 
 		return retention_; 
 	}

@@ -118,8 +118,8 @@ CHECK(double min() const)
 	TEST_REAL_EQUAL(brp->min(), 104.0)
 RESULT
 
-CHECK(double getRetention() const)
-	TEST_REAL_EQUAL(brp->getRetention(), -1.0)
+CHECK(double getRT() const)
+	TEST_REAL_EQUAL(brp->getRT(), -1.0)
 RESULT
 
 CHECK(unsigned int getBinSpread() const)

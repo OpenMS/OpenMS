@@ -95,7 +95,7 @@ namespace OpenMS
 			// temporary variables to store the data in
 			std::vector<String> strings(3);
 			typename MapType::SpectrumType spec;
-			spec.setRetentionTime(-1.0);
+			spec.setRT(-1.0);
 			typename MapType::SpectrumType::PeakType p;
 			typename MapType::SpectrumType::PeakType::CoordinateType rt(0.0);
 			char delimiter;
@@ -204,22 +204,22 @@ namespace OpenMS
 				}
 
 				// Retention time changed -> new Spectrum
-				//std::cout << "rt: " << rt << " spec: " <<  spec.getRetentionTime() << "test: "<< rt-spec.getRetentionTime()<< std::endl;
-				if (rt != spec.getRetentionTime())
+				//std::cout << "rt: " << rt << " spec: " <<  spec.getRT() << "test: "<< rt-spec.getRT()<< std::endl;
+				if (rt != spec.getRT())
 				{
-					if (spec.getRetentionTime() >= 0) // if not initial Spectrum
+					if (spec.getRT() >= 0) // if not initial Spectrum
 					{
 						map.push_back(spec);
 						//std::cout << "NEW SPEC"<< std::endl;
 					}
 					spec.getContainer().clear();
-					spec.setRetentionTime(rt);
+					spec.setRT(rt);
 				}
 				//insert peak into the spectrum
 				spec.getContainer().push_back(p);
 			}
 
-			if (spec.getRetentionTime() >= 0) map.push_back(spec);  // add last Spectrum
+			if (spec.getRT() >= 0) map.push_back(spec);  // add last Spectrum
 			is.close();
 		}
 
@@ -244,7 +244,7 @@ namespace OpenMS
 				for (typename MapType::SpectrumType::ConstIterator it = spec->begin(); it != spec->end(); ++it)
 				{
 					// Write rt, m/z and intensity.
-					os	<< spec->getRetentionTime() << " "<< it->getPosition() << " "<< it->getIntensity() << std::endl;
+					os	<< spec->getRT() << " "<< it->getPosition() << " "<< it->getIntensity() << std::endl;
 				}
 
 			}

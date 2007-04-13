@@ -288,7 +288,7 @@ namespace OpenMS
 	SimpleExtender::ProbabilityType SimpleExtender::computePeakPriority_(const IDX& index)
 	{
 		return traits_->getData()[index.first][index.second].getIntensity() *
- 			score_distribution_rt_.value(traits_->getData()[index.first].getRetentionTime()-last_pos_extracted_[RawDataPoint2D::RT]) *
+ 			score_distribution_rt_.value(traits_->getData()[index.first].getRT()-last_pos_extracted_[RawDataPoint2D::RT]) *
 			score_distribution_mz_.value(traits_->getData()[index.first][index.second].getMZ()-last_pos_extracted_[RawDataPoint2D::MZ]);
 	}
 

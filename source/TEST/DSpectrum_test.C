@@ -126,7 +126,7 @@ CHECK((DSpectrum(const DSpectrum<D>& rhs)))
 	s.getContainer().push_back(p2);
 	s.getPrecursorPeak().setIntensity(200.0);
 	s.setMSLevel(17);
-	s.setRetentionTime(7.0,5.0,10.0);
+	s.setRT(7.0,5.0,10.0);
 	s.setName("bla");
 	s.updateRanges();
 	DSpectrum<1> s2(s);
@@ -139,9 +139,9 @@ CHECK((DSpectrum(const DSpectrum<D>& rhs)))
 	TEST_REAL_EQUAL(0.0 , s2.getMinInt())
 	TEST_REAL_EQUAL(100.0 , s2.getMaxInt())
 	TEST_EQUAL(17 , s2.getMSLevel())
-	TEST_REAL_EQUAL(7.0 , s2.getRetentionTime())
-	TEST_REAL_EQUAL(5.0 , s2.getRetentionTimeStart())
-	TEST_REAL_EQUAL(10.0 , s2.getRetentionTimeStop())
+	TEST_REAL_EQUAL(7.0 , s2.getRT())
+	TEST_REAL_EQUAL(5.0 , s2.getRTStart())
+	TEST_REAL_EQUAL(10.0 , s2.getRTStop())
 	TEST_EQUAL("bla",s2.getName())
 RESULT
 
@@ -152,7 +152,7 @@ CHECK((DSpectrum& operator = (const DSpectrum& rhs)))
 	s.getContainer().push_back(p2);
 	s.getPrecursorPeak().setIntensity(200.0);
 	s.setMSLevel(17);
-	s.setRetentionTime(7.0,5.0,10.0);
+	s.setRT(7.0,5.0,10.0);
 	s.setName("bla");
 	s.updateRanges();
 	DSpectrum<1> s2;
@@ -166,9 +166,9 @@ CHECK((DSpectrum& operator = (const DSpectrum& rhs)))
 	TEST_REAL_EQUAL(0.0 , s2.getMinInt())
 	TEST_REAL_EQUAL(100.0 , s2.getMaxInt())
 	TEST_EQUAL(17 , s2.getMSLevel())
-	TEST_REAL_EQUAL(7.0 , s2.getRetentionTime())
-	TEST_REAL_EQUAL(5.0 , s2.getRetentionTimeStart())
-	TEST_REAL_EQUAL(10.0 , s2.getRetentionTimeStop())
+	TEST_REAL_EQUAL(7.0 , s2.getRT())
+	TEST_REAL_EQUAL(5.0 , s2.getRTStart())
+	TEST_REAL_EQUAL(10.0 , s2.getRTStop())
 	TEST_EQUAL("bla",s2.getName())
 RESULT
 
@@ -192,15 +192,15 @@ CHECK((bool operator == (const DSpectrum& rhs) const))
 	edit.getPrecursorPeak().setIntensity(5.5);
 	TEST_EQUAL(empty==edit, false);
 	
-	edit.setRetentionTime(5,0,0);
+	edit.setRT(5,0,0);
 	TEST_EQUAL(empty==edit, false);
 	
 	edit = empty;
-	edit.setRetentionTime(-1,5,0);
+	edit.setRT(-1,5,0);
 	TEST_EQUAL(empty==edit, false);
 	
 	edit = empty;
-	edit.setRetentionTime(-1,0,5);
+	edit.setRT(-1,0,5);
 	TEST_EQUAL(empty==edit, false);
 
 	edit = empty;
@@ -229,15 +229,15 @@ CHECK((bool operator != (const DSpectrum& rhs) const))
 	
 	TEST_EQUAL(empty!=edit, false);
 	
-	edit.setRetentionTime(5,0,0);
+	edit.setRT(5,0,0);
 	TEST_EQUAL(empty!=edit, true);
 	
 	edit = empty;
-	edit.setRetentionTime(-1,5,0);
+	edit.setRT(-1,5,0);
 	TEST_EQUAL(empty!=edit, true);
 	
 	edit = empty;
-	edit.setRetentionTime(-1,0,5);
+	edit.setRT(-1,0,5);
 	TEST_EQUAL(empty!=edit, true);
 
 	edit = empty;
@@ -736,19 +736,19 @@ CHECK((void setPrecursorPeak(const PrecursorPeakType& peak)))
   TEST_REAL_EQUAL(sdi.getPrecursorPeak().getIntensity(),47.11)
 RESULT
 
-CHECK((CoordinateType getRetentionTimeStart() const))
+CHECK((CoordinateType getRTStart() const))
   DSpectrum<1> sdi;
-  TEST_REAL_EQUAL(sdi.getRetentionTimeStart(),0.0)
+  TEST_REAL_EQUAL(sdi.getRTStart(),0.0)
 RESULT
 
-CHECK((CoordinateType getRetentionTimeStop() const))
+CHECK((CoordinateType getRTStop() const))
   DSpectrum<1> sdi;
-  TEST_REAL_EQUAL(sdi.getRetentionTimeStop(),0.0)
+  TEST_REAL_EQUAL(sdi.getRTStop(),0.0)
 RESULT
 
-CHECK((CoordinateType getRetentionTime() const))
+CHECK((CoordinateType getRT() const))
   DSpectrum<1> sdi;
-  TEST_REAL_EQUAL(sdi.getRetentionTime(),-1)
+  TEST_REAL_EQUAL(sdi.getRT(),-1)
 RESULT
 
 CHECK((CoordinateType getNormalizedRetentionTime() const))
@@ -756,10 +756,10 @@ CHECK((CoordinateType getNormalizedRetentionTime() const))
   TEST_REAL_EQUAL(sdi.getNormalizedRetentionTime(),-1)
 RESULT
 
-CHECK((void setRetentionTime(CoordinateType rt, CoordinateType start=0, CoordinateType stop=0)))
+CHECK((void setRT(CoordinateType rt, CoordinateType start=0, CoordinateType stop=0)))
   DSpectrum<1> sdi;
-  sdi.setRetentionTime(0.451,0.0,2.0);
-  TEST_REAL_EQUAL(sdi.getRetentionTime(),0.451)
+  sdi.setRT(0.451,0.0,2.0);
+  TEST_REAL_EQUAL(sdi.getRT(),0.451)
   TEST_REAL_EQUAL(sdi.getNormalizedRetentionTime(),0.2255)
 RESULT
 

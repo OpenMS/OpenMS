@@ -434,19 +434,19 @@ namespace OpenMS
 	    }
 			
 			/// returns the absolute retention time (unit is seconds)
-	    CoordinateType getRetentionTime() const 
+	    CoordinateType getRT() const 
 	    { 
 	    	return retention_time_; 
 	    }
 
 			/// returns the retention time interval start (unit is seconds)
-	    CoordinateType getRetentionTimeStart() const 
+	    CoordinateType getRTStart() const 
 	    { 
 	    	return retention_start_; 
 	    }
 
 			/// returns the retention time interval stop (unit is seconds)
-	    CoordinateType getRetentionTimeStop() const 
+	    CoordinateType getRTStop() const 
 	    { 
 	    	return retention_stop_; 
 	    }
@@ -455,7 +455,7 @@ namespace OpenMS
 	    	Sets the retention time and the start/stop time of the gradient.
 	    	The latter two are needed for calculating the normalized retention time
 	    */
-	    void setRetentionTime(CoordinateType rt, CoordinateType start=0, CoordinateType stop=0) 
+	    void setRT(CoordinateType rt, CoordinateType start=0, CoordinateType stop=0) 
 	    { 
 	    	retention_time_= rt; 
 				retention_start_ = start;
@@ -568,7 +568,7 @@ namespace OpenMS
 	{
 		os << "-- DSpectrum BEGIN --"<<std::endl;
 		os << "MS-LEVEL:" <<dds.getMSLevel() << std::endl;
-		os << "RT:" <<dds.getRetentionTime() << std::endl;
+		os << "RT:" <<dds.getRT() << std::endl;
 		os << "NAME:" <<dds.getName() << std::endl;
 		os << "-- DSpectrum END --"<<std::endl;
 		

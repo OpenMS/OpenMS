@@ -56,9 +56,9 @@ RESULT
 MSExperiment<> exp;
 exp.resize(2);
 exp[0].setMSLevel(1);
-exp[0].setRetentionTime(1.1);
+exp[0].setRT(1.1);
 exp[1].setMSLevel(1);
-exp[1].setRetentionTime(2.2);
+exp[1].setRT(2.2);
 
 Peak1D p;
 

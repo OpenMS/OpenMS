@@ -487,7 +487,7 @@ namespace OpenMS
 			for ( vector< UInt >::const_iterator scan_i = fs_i->second.begin(); scan_i != fs_i->second.end(); ++scan_i )
 			{
 				ids[pos].mz = experiment[*scan_i - 1].getPrecursorPeak().getPosition()[0];
-				ids[pos++].rt = experiment[*scan_i - 1].getRetentionTime();
+				ids[pos++].rt = experiment[*scan_i - 1].getRT();
 			}
 		}
 	}

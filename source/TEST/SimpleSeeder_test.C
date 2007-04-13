@@ -89,7 +89,7 @@ MSExperiment<>::PeakType p;
 
 // SPECTRUM 1
 MSExperiment<>::SpectrumType s1;
-s1.setRetentionTime(1.0);
+s1.setRT(1.0);
 
 p.setMZ(500.0);
 p.setIntensity(10.0);
@@ -113,7 +113,7 @@ s1.push_back(p);
 
 // SPECTRUM 2
 MSExperiment<>::SpectrumType s2;
-s2.setRetentionTime(2.0);
+s2.setRT(2.0);
 
 p.setMZ(500.0);
 p.setIntensity(100.0);

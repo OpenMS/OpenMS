@@ -152,13 +152,13 @@ namespace OpenMS
 	    /// access retention time of peak with index @p index.
 	    inline CoordinateType getPeakRt(const IDX& index) const
 	    { 
-	    	return map_[index.first].getRetentionTime();
+	    	return map_[index.first].getRT();
 	    }
 	
 	    /// returns the 2D coordinates of a peak (needed for models)
 	    inline PositionType2D getPeakPos(const IDX& index) const
 			{ 
-				return PositionType2D(map_[index.first].getRetentionTime(),map_[index.first][index.second].getMZ());
+				return PositionType2D(map_[index.first].getRT(),map_[index.first][index.second].getMZ());
 			}
 	
 	    /// fills @p index with the index of next peak in m/z dimension

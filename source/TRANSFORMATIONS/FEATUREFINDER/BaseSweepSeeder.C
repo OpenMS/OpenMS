@@ -109,11 +109,11 @@ void BaseSweepSeeder::sweep_()
 			
 			cout << "---------------------------------------------------------------------------" << endl;
 			cout << "Processing scan " << (currscan_index + 1) << " of " << traits_->getData().size() << endl;
-			cout << "Retention time: " << current_scan.getRetentionTime() << endl;
+			cout << "Retention time: " << current_scan.getRT() << endl;
 			
 			#ifdef DEBUG_FEATUREFINDER
 			// write debug output
-			String fname = String("scan_") + current_scan.getRetentionTime();;
+			String fname = String("scan_") + current_scan.getRT();;
 			ofstream out( fname.c_str() );
 			for(UInt k = 0; k<current_scan.size();++k)
 			{
@@ -127,7 +127,7 @@ void BaseSweepSeeder::sweep_()
 			
 			#ifdef DEBUG_FEATUREFINDER
 			// write debug output
-			fname = String("scan_aligned_") + current_scan.getRetentionTime();;
+			fname = String("scan_aligned_") + current_scan.getRT();;
 			out.open( fname.c_str() );
 			for(UInt k = 0; k<current_scan.size();++k)
 			{

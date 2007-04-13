@@ -196,7 +196,7 @@ class TOPPFileConverter
 						++spec_iter
 					)
 			{
-				feature.setRT(spec_iter->getRetentionTime());
+				feature.setRT(spec_iter->getRT());
 				for ( SpectrumType::ConstIterator peak1_iter = spec_iter->begin();
 							peak1_iter != spec_iter->end();
 							++peak1_iter

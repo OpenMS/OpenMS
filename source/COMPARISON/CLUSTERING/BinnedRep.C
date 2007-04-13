@@ -145,7 +145,7 @@ namespace OpenMS
     binrep.clear_();
     //set information from PeakSpectrum TODO
     binrep.id_ = spectrum.getPersistenceId();
-    binrep.retention_ = spectrum.getRetentionTime();
+    binrep.retention_ = spectrum.getRT();
     binrep.parent_m_z_ = spectrum.getPrecursorPeak().getPosition()[0];
     binrep.precursorpeakcharge_ = spectrum.getPrecursorPeak().getCharge();
     

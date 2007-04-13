@@ -68,7 +68,7 @@ namespace OpenMS
 		{
 			inline bool operator () (const MSSpectrum& a, const MSSpectrum& b) const
 			{
-				return (a.getRetentionTime() < b.getRetentionTime());
+				return (a.getRT() < b.getRT());
 			}
 		};
 

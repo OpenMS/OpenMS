@@ -149,7 +149,7 @@ namespace OpenMS
 		for (IndexSet::const_iterator it=set.begin(); it!=set.end(); ++it)
     {
     	tmp[RawDataPoint2D::MZ] = map_[it->first][it->second].getMZ();
-    	tmp[RawDataPoint2D::RT] = map_[it->first].getRetentionTime();
+    	tmp[RawDataPoint2D::RT] = map_[it->first].getRT();
     	points.push_back(tmp);
     }
 		f.getConvexHulls().resize(f.getConvexHulls().size()+1);

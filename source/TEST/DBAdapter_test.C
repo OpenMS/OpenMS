@@ -238,7 +238,7 @@ CHECK((bool checkDBVersion(bool warning)))
 		p.setIntensity(701);
 		p.getPosition()[0] = 800.1;
 		spec.getContainer().push_back(p);
-		spec.setRetentionTime(1.98);
+		spec.setRT(1.98);
 		spec.setMSLevel(1);	
 		
 		InstrumentSettings settings;
@@ -298,7 +298,7 @@ CHECK((bool checkDBVersion(bool warning)))
 		p.setIntensity(90);
 		p.getPosition()[0] = 300.5;
 		spec.getContainer().push_back(p);
-		spec.setRetentionTime(3.96);
+		spec.setRT(3.96);
 		spec.setMSLevel(2);
 		spec.getPrecursorPeak().getPosition()[0] = 600.1;
 		spec.getPrecursorPeak().setIntensity(4711);
@@ -341,7 +341,7 @@ CHECK((template <class SpectrumType> void loadSpectrum(UID id, SpectrumType &spe
 			MSSpectrum<> spec;
 			a.loadSpectrum(spec_tmp_id, spec);
 						
-		  TEST_EQUAL( spec.getRetentionTime() , exp_original.begin()->getRetentionTime() )
+		  TEST_EQUAL( spec.getRT() , exp_original.begin()->getRT() )
 			TEST_EQUAL( spec.getMSLevel() , exp_original.begin()->getMSLevel() )
 			TEST_EQUAL( spec.size() , exp_original.begin()->size() )
 			TEST_EQUAL( spec.getInstrumentSettings().getMzRangeStart() , exp_original.begin()->getInstrumentSettings().getMzRangeStart() )
@@ -496,7 +496,7 @@ CHECK((template <class ExperimentType> void loadExperiment(UID id, ExperimentTyp
 			MSExperiment<>::const_iterator itn(exp_new.begin());
 			MSExperiment<>::const_iterator ito(exp_original.begin());
 				
-		  TEST_EQUAL( itn->getRetentionTime() , ito->getRetentionTime() )
+		  TEST_EQUAL( itn->getRT() , ito->getRT() )
 			TEST_EQUAL( itn->getMSLevel() , ito->getMSLevel() )
 			TEST_EQUAL( itn->size() , ito->size() )
 			for (UInt i=0; i<3; ++i)
@@ -509,7 +509,7 @@ CHECK((template <class ExperimentType> void loadExperiment(UID id, ExperimentTyp
 			++itn;
 			++ito;
 				
-		  TEST_EQUAL( itn->getRetentionTime() , ito->getRetentionTime() )
+		  TEST_EQUAL( itn->getRT() , ito->getRT() )
 			TEST_EQUAL( itn->getMSLevel() , ito->getMSLevel() )
 			TEST_EQUAL( itn->getPrecursorPeak().getPosition()[0] , ito->getPrecursorPeak().getPosition()[0] )
 			TEST_EQUAL( itn->getPrecursorPeak().getIntensity() , ito->getPrecursorPeak().getIntensity() )
@@ -567,7 +567,7 @@ CHECK((template <class ExperimentType> void loadExperiment(UID id, ExperimentTyp
 			modified_spec[1].getPosition()[0] = 712.1;
 			modified_spec[2].setIntensity(701);
 			modified_spec[2].getPosition()[0] = 812.1;
-			modified_spec.setRetentionTime(1.88);
+			modified_spec.setRT(1.88);
 			modified_spec.setMSLevel(1);
 			modified_spec.getInstrumentSettings().setMzRangeStart(3.567);
 			modified_spec.getInstrumentSettings().setMzRangeStop(7.91);
@@ -628,7 +628,7 @@ CHECK((template <class ExperimentType> void loadExperiment(UID id, ExperimentTyp
 			MSExperiment<>::const_iterator itn(exp_new.begin());
 			MSExperiment<>::const_iterator ito(exp_original.begin());
 				
-		  TEST_EQUAL( itn->getRetentionTime() , ito->getRetentionTime() )
+		  TEST_EQUAL( itn->getRT() , ito->getRT() )
 			TEST_EQUAL( itn->getMSLevel() , ito->getMSLevel() )
 			TEST_EQUAL( itn->size() , ito->size() )
 			TEST_EQUAL( itn->getInstrumentSettings().getMetaValue("label") , "please bite here" )
@@ -646,7 +646,7 @@ CHECK((template <class ExperimentType> void loadExperiment(UID id, ExperimentTyp
 			++itn;
 			++ito;
 				
-		  TEST_EQUAL( itn->getRetentionTime() , ito->getRetentionTime() )
+		  TEST_EQUAL( itn->getRT() , ito->getRT() )
 			TEST_EQUAL( itn->getMSLevel() , ito->getMSLevel() )
 			TEST_EQUAL( itn->getPrecursorPeak().getPosition()[0] , ito->getPrecursorPeak().getPosition()[0] )
 			TEST_EQUAL( itn->getPrecursorPeak().getIntensity() , ito->getPrecursorPeak().getIntensity() )

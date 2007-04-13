@@ -271,7 +271,7 @@ namespace OpenMS
     return parent_mass_;
   }
 
-  DoubleReal ClusterSpectrum::getRetention() const
+  DoubleReal ClusterSpectrum::getRT() const
   {
     if ( !cached_ ) updatecache_();
     return retention_;
@@ -281,14 +281,14 @@ namespace OpenMS
   {
     if (specp_)
     {
-      retention_ = specp_->getRetentionTime();
+      retention_ = specp_->getRT();
       parent_mass_ = specp_->getPrecursorPeak().getPosition()[0];
       parentioncharge_ = specp_->getPrecursorPeak().getCharge();
       cached_ = 1;     
     }
     else if ( binrepp_ )
     {
-      retention_ = binrepp_->getRetention();
+      retention_ = binrepp_->getRT();
       parent_mass_ = binrepp_->getParentmz();
       parentioncharge_ = binrepp_->getPrecursorPeakCharge();
       cached_ = 1;     

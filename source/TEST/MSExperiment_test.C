@@ -121,7 +121,7 @@ CHECK((template<class Container> void get2DData(Container& cont) const))
 	MSExperiment<>::PeakType peak;
 
 	// first spectrum (MS)
-	spec.setRetentionTime(11.1);
+	spec.setRT(11.1);
 	spec.setMSLevel(1);
 	peak.getPosition()[0] = 5;
 	peak.setIntensity(47.11);
@@ -135,7 +135,7 @@ CHECK((template<class Container> void get2DData(Container& cont) const))
 
 	// second spectrum (MS/MS)
 	spec.getContainer().clear();
-	spec.setRetentionTime(11.5);
+	spec.setRT(11.5);
 	spec.setMSLevel(2);
 	peak.getPosition()[0] = 6;
 	spec.getContainer().push_back(peak);
@@ -145,7 +145,7 @@ CHECK((template<class Container> void get2DData(Container& cont) const))
 
 	// third spectrum (MS)
 	spec.getContainer().clear();
-	spec.setRetentionTime(12.2);
+	spec.setRT(12.2);
 	spec.setMSLevel(1);
 	peak.getPosition()[0] = 20;
 	spec.getContainer().push_back(peak);
@@ -155,7 +155,7 @@ CHECK((template<class Container> void get2DData(Container& cont) const))
 
 	// forth spectrum (MS/MS)
 	spec.getContainer().clear();
-	spec.setRetentionTime(12.5);
+	spec.setRT(12.5);
 	spec.setMSLevel(2);
 	peak.getPosition()[0] = 21;
 	spec.getContainer().push_back(peak);
@@ -303,7 +303,7 @@ CHECK((virtual void updateRanges()))
 	RawDataPoint1D p;
 	
 	s.setMSLevel(1);
-	s.setRetentionTime(30.0);
+	s.setRT(30.0);
 	p.getPosition()[0] = 5.0;
 	p.setIntensity(-5.0);
 	s.getContainer().push_back(p);
@@ -311,7 +311,7 @@ CHECK((virtual void updateRanges()))
 	
 	s.getContainer().clear();
 	s.setMSLevel(1);
-	s.setRetentionTime(40.0);
+	s.setRT(40.0);
 	p.getPosition()[0] = 7.0;
 	p.setIntensity(-7.0);
 	s.getContainer().push_back(p);
@@ -319,7 +319,7 @@ CHECK((virtual void updateRanges()))
 
 	s.getContainer().clear();
 	s.setMSLevel(3);
-	s.setRetentionTime(45.0);
+	s.setRT(45.0);
 	p.getPosition()[0] = 9.0;
 	p.setIntensity(-10.0);
 	s.getContainer().push_back(p);
@@ -327,7 +327,7 @@ CHECK((virtual void updateRanges()))
 
 	s.getContainer().clear();
 	s.setMSLevel(3);
-	s.setRetentionTime(50.0);
+	s.setRT(50.0);
 	p.getPosition()[0] = 10.0;
 	p.setIntensity(-9.0);
 	s.getContainer().push_back(p);
@@ -395,7 +395,7 @@ CHECK((virtual void updateRanges()))
 	MSSpectrum< RawDataPoint1D > s2;
 	RawDataPoint1D p2;
 	
-	s2.setRetentionTime(30.0);
+	s2.setRT(30.0);
 	p2.getPosition()[0] = 5.0;
 	p2.setIntensity(-5.0);
 	s2.getContainer().push_back(p2);
@@ -425,7 +425,7 @@ CHECK((void updateRanges(Int ms_level)))
 	RawDataPoint1D p;
 	
 	s.setMSLevel(1);
-	s.setRetentionTime(30.0);
+	s.setRT(30.0);
 	p.getPosition()[0] = 5.0;
 	p.setIntensity(-5.0);
 	s.getContainer().push_back(p);
@@ -433,7 +433,7 @@ CHECK((void updateRanges(Int ms_level)))
 	
 	s.getContainer().clear();
 	s.setMSLevel(1);
-	s.setRetentionTime(40.0);
+	s.setRT(40.0);
 	p.getPosition()[0] = 7.0;
 	p.setIntensity(-7.0);
 	s.getContainer().push_back(p);
@@ -441,7 +441,7 @@ CHECK((void updateRanges(Int ms_level)))
 
 	s.getContainer().clear();
 	s.setMSLevel(3);
-	s.setRetentionTime(45.0);
+	s.setRT(45.0);
 	p.getPosition()[0] = 9.0;
 	p.setIntensity(-10.0);
 	s.getContainer().push_back(p);
@@ -449,7 +449,7 @@ CHECK((void updateRanges(Int ms_level)))
 
 	s.getContainer().clear();
 	s.setMSLevel(3);
-	s.setRetentionTime(50.0);
+	s.setRT(50.0);
 	p.getPosition()[0] = 10.0;
 	p.setIntensity(-9.0);
 	s.getContainer().push_back(p);
@@ -485,7 +485,7 @@ CHECK((void updateRanges(Int ms_level)))
 	MSSpectrum< RawDataPoint1D > s2;
 	RawDataPoint1D p2;
 	
-	s2.setRetentionTime(30.0);
+	s2.setRT(30.0);
 	p2.getPosition()[0] = 5.0;
 	p2.setIntensity(-5.0);
 	s2.getContainer().push_back(p2);
@@ -582,23 +582,23 @@ CHECK((Iterator RTBegin(double rt)))
 	MSSpectrum< RawDataPoint1D > s;
 	RawDataPoint1D p;
 	
-	s.setRetentionTime(30.0);
+	s.setRT(30.0);
 	tmp.push_back(s);	
-	s.setRetentionTime(40.0);
+	s.setRT(40.0);
 	tmp.push_back(s);	
-	s.setRetentionTime(45.0);
+	s.setRT(45.0);
 	tmp.push_back(s);	
-	s.setRetentionTime(50.0);
+	s.setRT(50.0);
 	tmp.push_back(s);
 	
 	MSExperiment< RawDataPoint1D >::Iterator it;
 	
 	it = tmp.RTBegin(20.0);
-	TEST_REAL_EQUAL(it->getRetentionTime(),30.0)
+	TEST_REAL_EQUAL(it->getRT(),30.0)
 	it = tmp.RTBegin(30.0);
-	TEST_REAL_EQUAL(it->getRetentionTime(),30.0)
+	TEST_REAL_EQUAL(it->getRT(),30.0)
 	it = tmp.RTBegin(31.0);
-	TEST_REAL_EQUAL(it->getRetentionTime(),40.0)
+	TEST_REAL_EQUAL(it->getRT(),40.0)
 	TEST_EQUAL(tmp.RTBegin(55.0) == tmp.end(), true) 
 RESULT
 
@@ -607,23 +607,23 @@ CHECK((Iterator RTEnd(double rt)))
 	MSSpectrum< RawDataPoint1D > s;
 	RawDataPoint1D p;
 	
-	s.setRetentionTime(30.0);
+	s.setRT(30.0);
 	tmp.push_back(s);	
-	s.setRetentionTime(40.0);
+	s.setRT(40.0);
 	tmp.push_back(s);	
-	s.setRetentionTime(45.0);
+	s.setRT(45.0);
 	tmp.push_back(s);	
-	s.setRetentionTime(50.0);
+	s.setRT(50.0);
 	tmp.push_back(s);
 	
 	MSExperiment< RawDataPoint1D >::Iterator it;
 	
 	it = tmp.RTEnd(20.0);
-	TEST_REAL_EQUAL(it->getRetentionTime(),30.0)
+	TEST_REAL_EQUAL(it->getRT(),30.0)
 	it = tmp.RTEnd(30.0);
-	TEST_REAL_EQUAL(it->getRetentionTime(),40.0)
+	TEST_REAL_EQUAL(it->getRT(),40.0)
 	it = tmp.RTEnd(31.0);
-	TEST_REAL_EQUAL(it->getRetentionTime(),40.0)
+	TEST_REAL_EQUAL(it->getRT(),40.0)
 	TEST_EQUAL(tmp.RTBegin(55.0) == tmp.end(), true) 
 RESULT
 
@@ -632,23 +632,23 @@ CHECK((ConstIterator RTBegin(double rt) const))
 	MSSpectrum< RawDataPoint1D > s;
 	RawDataPoint1D p;
 	
-	s.setRetentionTime(30.0);
+	s.setRT(30.0);
 	tmp.push_back(s);	
-	s.setRetentionTime(40.0);
+	s.setRT(40.0);
 	tmp.push_back(s);	
-	s.setRetentionTime(45.0);
+	s.setRT(45.0);
 	tmp.push_back(s);	
-	s.setRetentionTime(50.0);
+	s.setRT(50.0);
 	tmp.push_back(s);
 	
 	MSExperiment< RawDataPoint1D >::Iterator it;
 	
 	it = tmp.RTBegin(20.0);
-	TEST_REAL_EQUAL(it->getRetentionTime(),30.0)
+	TEST_REAL_EQUAL(it->getRT(),30.0)
 	it = tmp.RTBegin(30.0);
-	TEST_REAL_EQUAL(it->getRetentionTime(),30.0)
+	TEST_REAL_EQUAL(it->getRT(),30.0)
 	it = tmp.RTBegin(31.0);
-	TEST_REAL_EQUAL(it->getRetentionTime(),40.0)
+	TEST_REAL_EQUAL(it->getRT(),40.0)
 	TEST_EQUAL(tmp.RTBegin(55.0) == tmp.end(), true) 
 RESULT
 
@@ -657,23 +657,23 @@ CHECK((ConstIterator RTEnd(double rt) const))
 	MSSpectrum< RawDataPoint1D > s;
 	RawDataPoint1D p;
 	
-	s.setRetentionTime(30.0);
+	s.setRT(30.0);
 	tmp.push_back(s);	
-	s.setRetentionTime(40.0);
+	s.setRT(40.0);
 	tmp.push_back(s);	
-	s.setRetentionTime(45.0);
+	s.setRT(45.0);
 	tmp.push_back(s);	
-	s.setRetentionTime(50.0);
+	s.setRT(50.0);
 	tmp.push_back(s);
 	
 	MSExperiment< RawDataPoint1D >::Iterator it;
 	
 	it = tmp.RTEnd(20.0);
-	TEST_REAL_EQUAL(it->getRetentionTime(),30.0)
+	TEST_REAL_EQUAL(it->getRT(),30.0)
 	it = tmp.RTEnd(30.0);
-	TEST_REAL_EQUAL(it->getRetentionTime(),40.0)
+	TEST_REAL_EQUAL(it->getRT(),40.0)
 	it = tmp.RTEnd(31.0);
-	TEST_REAL_EQUAL(it->getRetentionTime(),40.0)
+	TEST_REAL_EQUAL(it->getRT(),40.0)
 	TEST_EQUAL(tmp.RTBegin(55.0) == tmp.end(), true) 
 RESULT
 

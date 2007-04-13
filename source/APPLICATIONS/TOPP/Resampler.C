@@ -197,7 +197,7 @@ class TOPPResampler
 				{
 					continue;
 				}
-				double const rt = spec_iter->getRetentionTime();
+				double const rt = spec_iter->getRT();
 				for ( SpectrumType::ConstIterator peak1_iter = spec_iter->begin();
 							peak1_iter != spec_iter->end();
 							++peak1_iter
@@ -222,7 +222,7 @@ class TOPPResampler
 				{
 					continue;
 				}
-				double const rt = spec_iter->getRetentionTime();
+				double const rt = spec_iter->getRT();
 				for ( SpectrumType::ConstIterator peak1_iter = spec_iter->begin();
 							peak1_iter != spec_iter->end();
 							++peak1_iter
@@ -274,7 +274,7 @@ class TOPPResampler
 			{
 				SpectrumType & spectrum = exp_resampled[rows-row_index-1]; // reversed order so that retention times are increasing again
 
-				spectrum.setRetentionTime( bilip.index2key_0( row_index ) );
+				spectrum.setRT( bilip.index2key_0( row_index ) );
 				spectrum.setMSLevel(1);
 				spectrum.resize(cols);
 

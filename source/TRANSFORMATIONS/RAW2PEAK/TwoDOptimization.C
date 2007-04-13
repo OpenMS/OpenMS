@@ -83,7 +83,7 @@ namespace OpenMS
 
 #ifdef DEBUG_2D
           std::cout << "experimental signal rt "<<(raw_data_first 
-                + OptimizationFunctions::signal2D[2*current_scan].first)->getRetentionTime()
+                + OptimizationFunctions::signal2D[2*current_scan].first)->getRT()
                 << "\tmz " << ((raw_data_first 
                 + OptimizationFunctions::signal2D[2*current_scan].first)->getContainer().begin()
 															 + OptimizationFunctions::signal2D[2*current_scan].second+current_point)->getMZ()
@@ -268,7 +268,7 @@ namespace OpenMS
 
 #ifdef DEBUG_2D
           std::cout << "experimental signal rt "<<(raw_data_first 
-                        + OptimizationFunctions::signal2D[2*current_scan].first)->getRetentionTime()
+                        + OptimizationFunctions::signal2D[2*current_scan].first)->getRT()
                     << "\tmz " << ((raw_data_first 
                         + OptimizationFunctions::signal2D[2*current_scan].first)->getContainer().begin()
 																	 + OptimizationFunctions::signal2D[2*current_scan].second+current_point)->getMZ()
@@ -809,7 +809,7 @@ namespace OpenMS
 		std::cout << "\n\n\n\n---------------------------------------------------------------";
 		while(help!=last)
 			{
-				std::cout<<help->getRetentionTime()<<std::endl;
+				std::cout<<help->getRT()<<std::endl;
 				++help;
 			}
 		std::cout << "---------------------------------------------------------------\n\n\n\n";
@@ -907,7 +907,7 @@ namespace OpenMS
 
         }
         std::cout << "rt "
-									<<(OptimizationFunctions::raw_data_first + OptimizationFunctions::signal2D[2*i].first)->getRetentionTime()
+									<<(OptimizationFunctions::raw_data_first + OptimizationFunctions::signal2D[2*i].first)->getRT()
 									<<"\n";
         OptimizePick opt(penalties,max_iteration,eps_abs,eps_rel);
         std::cout << "vorher\n";

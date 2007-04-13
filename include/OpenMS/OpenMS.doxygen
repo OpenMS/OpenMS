@@ -83,8 +83,6 @@ Ideen:
 Todos:
 - make install mit prefix testen (Hiwi)
 
-MSExperiment -> MSMap (ExperimentType -> MapType)
-get/setRetentionTime() -> get/setRT()
 TOPPViewBase -- Add preferences for layers
 Spectrum2DCanvas -- Remove coordinate-data transformations 
 FileFilter -- Filter MS/MS scans by precursor RT/MZ, do not crop MS/MS scans

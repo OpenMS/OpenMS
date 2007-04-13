@@ -233,7 +233,7 @@ CHECK((void store(const std::string& filename, const MSExperiment< Peak1D >& exp
 	MSExperiment<>::PeakType peak;
 
 	// first spectrum (MS)
-	spec.setRetentionTime(11.1);
+	spec.setRT(11.1);
 	spec.setMSLevel(1);
 	peak.getPosition()[0] = 5;
 	peak.setIntensity(47.11);
@@ -247,7 +247,7 @@ CHECK((void store(const std::string& filename, const MSExperiment< Peak1D >& exp
 
 	// second spectrum (MS/MS)
 	spec.getContainer().clear();
-	spec.setRetentionTime(11.5);
+	spec.setRT(11.5);
 	spec.getPrecursorPeak().getPosition()[0] = 11.4;
 	spec.setMSLevel(2);
 	peak.getPosition()[0] = 6;
@@ -258,7 +258,7 @@ CHECK((void store(const std::string& filename, const MSExperiment< Peak1D >& exp
 
 	// third spectrum (MS)
 	spec.getContainer().clear();
-	spec.setRetentionTime(12.2);
+	spec.setRT(12.2);
 	spec.setMSLevel(1);
 	peak.getPosition()[0] = 20;
 	spec.getContainer().push_back(peak);
@@ -268,7 +268,7 @@ CHECK((void store(const std::string& filename, const MSExperiment< Peak1D >& exp
 
 	// forth spectrum (MS/MS)
 	spec.getContainer().clear();
-	spec.setRetentionTime(12.5);
+	spec.setRT(12.5);
 	spec.getPrecursorPeak().getPosition()[0] = 21.4;
 	spec.setMSLevel(2);
 	peak.getPosition()[0] = 21;

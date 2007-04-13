@@ -421,7 +421,7 @@ namespace OpenMS
 		exp_[index].resize(n);
 		spec_ = &exp_[index];
 
-		spec_->setRetentionTime( float_(scan_data->scan_acq_time),
+		spec_->setRT( float_(scan_data->scan_acq_time),
 																			 float_(global_data->delay_time),
 																			 float_(global_data->run_time));
 		spec_->setMSLevel(1);

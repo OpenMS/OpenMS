@@ -311,7 +311,7 @@ namespace OpenMS
 		std::vector<std::multimap<double,IsotopeCluster>::iterator> clusters_last_scan;
 		std::vector<std::multimap<double,IsotopeCluster>::iterator> clusters_curr_scan;
 		std::multimap<double,IsotopeCluster>::iterator cluster_iter;
-		double current_rt=ms_exp_it->getRetentionTime(),last_rt  = 0;
+		double current_rt=ms_exp_it->getRT(),last_rt  = 0;
 
 		// retrieve values for accepted peaks distances
 		max_peak_distance_ = param_.getValue("2D_optimization:thresholds:max_peak_distance");
@@ -325,7 +325,7 @@ namespace OpenMS
 			{
 				unsigned int nr_peaks_in_scan = (ms_exp_it +curr_scan)->size();
 				//last_rt = current_rt;
-				current_rt = (ms_exp_it+curr_scan)->getRetentionTime();
+				current_rt = (ms_exp_it+curr_scan)->getRT();
 				typename MSSpectrum<OutputPeakType>::Iterator peak_it  = (ms_exp_it+curr_scan)->begin();
 				typename MSSpectrum<OutputPeakType>::Iterator peak_it_last  = (ms_exp_it+curr_scan)->end();
 
@@ -341,10 +341,10 @@ namespace OpenMS
 				std::cout << "---------------------------------------------------------------------------" << std::endl;
 #endif	  
 				MSSpectrum<RawDataPointType> s;
-				s.setRetentionTime(current_rt);
+				s.setRT(current_rt);
 				// check if there were scans in between
 				if ( last_rt == 0|| // are we in the first scan
-						 ( (lower_bound(first,last,s, typename SpectrumType::RTLess())-1)->getRetentionTime() == last_rt))
+						 ( (lower_bound(first,last,s, typename SpectrumType::RTLess())-1)->getRT() == last_rt))
 					{
 	      
 	  
@@ -545,12 +545,12 @@ namespace OpenMS
 				typename MSExperiment<OutputPeakType>::iterator exp_it;
 	  
 				// first the right scan through binary search
-				rt = exp[iso_map_iter->second.scans_[i]].getRetentionTime();
-				spec.setRetentionTime(rt);
+				rt = exp[iso_map_iter->second.scans_[i]].getRT();
+				spec.setRT(rt);
 				InputSpectrumIterator iter = lower_bound(first, last, spec, typename MSSpectrum<InputPeakType>::RTLess());
-				//				if(iter->getRetentionTime() != rt) --iter;
+				//				if(iter->getRT() != rt) --iter;
 				exp_it = exp.RTBegin(rt);
-				std::cout << exp_it->getRetentionTime() << " vs "<< iter->getRetentionTime()<<std::endl;
+				std::cout << exp_it->getRT() << " vs "<< iter->getRT()<<std::endl;
 				// now the right mz
 				IndexSet::const_iterator j=(iso_map_iter->second.peaks_.begin());
 																		
@@ -591,7 +591,7 @@ namespace OpenMS
 				Idx left,right;
 				left.first = distance(first,iter);
 				left.second = distance(iter->begin(),raw_data_iter);
-				std::cout << "left: "<<iter->getRetentionTime()<<"\t"<<raw_data_iter->getMZ()<<std::endl;
+				std::cout << "left: "<<iter->getRT()<<"\t"<<raw_data_iter->getMZ()<<std::endl;
 				// consider a bit more of the signal to the right
 				peak.setPosition(last_peak_mz + 1);
 				raw_data_iter
@@ -607,7 +607,7 @@ namespace OpenMS
 					}
 				right.first = left.first;
 				right.second = distance(iter->begin(),raw_data_iter);
-				std::cout << "rightt: "<<iter->getRetentionTime()<<"\t"<<raw_data_iter->getMZ()<<std::endl;
+				std::cout << "rightt: "<<iter->getRT()<<"\t"<<raw_data_iter->getMZ()<<std::endl;
 				// region endpoints are stored in global vector
 				OptimizationFunctions::signal2D.push_back(left);
 				OptimizationFunctions::signal2D.push_back(right);

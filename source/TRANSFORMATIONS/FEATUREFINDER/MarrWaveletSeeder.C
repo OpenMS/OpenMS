@@ -121,7 +121,7 @@ namespace OpenMS
 			cwt_.transform(current_scan.begin(), current_scan.end(),resolution_cwt);
 	
 			#ifdef DEBUG_FEATUREFINDER
-			String fname = String("cwt_") + current_scan.getRetentionTime();
+			String fname = String("cwt_") + current_scan.getRT();
 			ofstream gpfile( fname.c_str() );
 			for (int i=0;i<cwt_.getSize(); ++i)
 			{
@@ -142,7 +142,7 @@ namespace OpenMS
 			vector<Int> local_maxima;
 			getMaxPositions_(current_scan.begin(), current_scan.end(), cwt_, local_maxima 
 																	#ifdef DEBUG_FEATUREFINDER
-											 						, current_scan.getRetentionTime() 
+											 						, current_scan.getRT() 
 																	#endif
 											 						);
 	

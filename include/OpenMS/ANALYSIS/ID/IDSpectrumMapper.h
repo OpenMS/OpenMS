@@ -72,7 +72,7 @@ namespace OpenMS
 					
 				for(UInt i = 0; i < experiment.size(); i++)
 				{
-					actual_retention_time = experiment[i].getRetentionTime();
+					actual_retention_time = experiment[i].getRT();
 					experiment_precursors.insert(std::make_pair(actual_retention_time, i));
 				}
 				for(UInt i = 0; i < identifications.size(); i++)
@@ -131,7 +131,7 @@ namespace OpenMS
 					temp_identifications = experiment[i].getIdentifications();
 					if (temp_identifications.size() > 0)
 					{
-						tmp_id.rt = experiment[i].getRetentionTime();				
+						tmp_id.rt = experiment[i].getRT();				
 						tmp_id.mz = experiment[i].getPrecursorPeak().getPosition()[0];
 						for(UInt j = 0; j < temp_identifications.size(); j++)
 						{
