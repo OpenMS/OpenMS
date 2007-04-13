@@ -79,15 +79,15 @@
 Ideen:
 - Seeder/Extender: Analyse der MassenSpur-Distanzen
 - Seeder: precursor peaks, signal-to-noise
+- TOPPView entfernen: Surface/Contour, Mapping x/y-Achse
 
 Todos:
 - make install mit prefix testen (Hiwi)
 
 TOPPViewBase -- Add preferences for layers
-Spectrum2DCanvas -- Remove coordinate-data transformations 
-FileFilter -- Filter MS/MS scans by precursor RT/MZ, do not crop MS/MS scans
+Spectrum2DCanvas -- Remove coordinate-data transformations
 MSExperiment -- Add getPrecursorRT(rt/scan nr) and update ID adapters and IDSpectrumMapper 
-String -- derive from QString 
+String -- derive from QString
 DataValue -- derive from QVariant 
 Identification -- Store ScoreType (with direction) and AccessionType as Enum in Identification (Marc, Andreas)
 XMLHandler -- Add external CVs, integrate OLS

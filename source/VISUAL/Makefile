@@ -46,7 +46,6 @@ CPP_SOURCES=\
 	PreferencesManager.C\
 	ListStack.C\
 	PeakIcon.C\
-	MappingInfo.C\
 	AxisTickCalculator.C\
 	DataTable.C\
 	MSMetaDataExplorer.C\

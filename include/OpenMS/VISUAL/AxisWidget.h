@@ -33,7 +33,6 @@ class QPaintEvent;
 
 // OpenMS
 #include <OpenMS/CONCEPT/Types.h>
-#include <OpenMS/VISUAL/MappingInfo.h>
 #include <OpenMS/MATH/MISC/MathFunctions.h>
 
 namespace OpenMS

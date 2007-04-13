@@ -1181,7 +1181,7 @@ namespace OpenMS
 	}
 
 	void Spectrum2DCanvas::paintEvent(QPaintEvent* e)
-	{		
+	{
 #ifdef DEBUG_TOPPVIEW
 		cout << "BEGIN " << __PRETTY_FUNCTION__ << endl;
 	  cout << "  Visible area -- m/z: " << visible_area_.minX() << " - " << visible_area_.maxX() << " int: " << visible_area_.minY() << " - " << visible_area_.maxY() << endl;
@@ -1214,10 +1214,9 @@ namespace OpenMS
 			//recalculate snap factor
 			recalculateSnapFactor_();
 			
-			//draw buffer in image in order to have composition
-			//QImage image(buffer_.width(),buffer_.height(),QImage::Format_ARGB32_Premultiplied);
 			buffer_.fill(QColor(getPrefAsString("Preferences:2D:BackgroundColor").c_str()).rgb());
 			painter.begin(&buffer_);
+
 			for (UInt i=0; i<getLayerCount(); i++)
 			{
 				if (getLayer(i).visible)

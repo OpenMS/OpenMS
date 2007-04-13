@@ -132,7 +132,6 @@ EXECUTABLES_KERNEL =\
 
 EXECUTABLES_VISUAL =\
 	MultiGradient_test\
-	MappingInfo_test\
 	AxisTickCalculator_test
 
 #FORMAT
