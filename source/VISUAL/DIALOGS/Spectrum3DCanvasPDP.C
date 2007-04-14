@@ -157,7 +157,6 @@ namespace OpenMS
 			
 			man->setPref("Preferences:3D:Dot:LineWidth",dot_line_width_->value());
 		
-			man->setDataMode();
 			man->repaintAll();	
 		
 

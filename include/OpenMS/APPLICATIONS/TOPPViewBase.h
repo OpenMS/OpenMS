@@ -28,7 +28,7 @@
 #define OPENMS_APPLICATIONS_TOPPVIEWBASE_H
 
 //OpenGL
-#include <OpenMS/VISUAL/PreferencesManager.h>
+#include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/VISUAL/DIALOGS/OpenDialog.h>
 #include <OpenMS/VISUAL/SpectrumCanvas.h>
 #include <OpenMS/VISUAL/SpectrumWidget.h>
@@ -65,7 +65,7 @@ namespace OpenMS
   */
   class TOPPViewBase 
   	: public QMainWindow, 
-  		public PreferencesManager
+  		public DefaultParamHandler
   {
       Q_OBJECT
 
@@ -105,7 +105,7 @@ namespace OpenMS
       {
         //use mower?
         OpenDialog::Mower mow = OpenDialog::NO_MOWER;
-        if ( getPrefAsString("Preferences:MapIntensityCutoff")=="Noise Estimator")
+        if ( (String)param_.getValue("Preferences:MapIntensityCutoff")=="Noise Estimator")
         {
           mow = OpenDialog::NOISE_ESTIMATOR;
         }
@@ -120,12 +120,12 @@ namespace OpenMS
         	}
         	else if (!last_was_plus)
         	{
-        		addSpectrum(*it,true,getPrefAsString("Preferences:DefaultMapView")=="2D",true,mow);
+        		addSpectrum(*it,true,(String)param_.getValue("Preferences:DefaultMapView")=="2D",true,mow);
         	}
         	else
         	{
         		last_was_plus = false;
-        		addSpectrum(*it,false,getPrefAsString("Preferences:DefaultMapView")=="2D",true,mow);
+        		addSpectrum(*it,false,(String)param_.getValue("Preferences:DefaultMapView")=="2D",true,mow);
         	}
         }
         maximizeActiveSpectrum();
@@ -242,7 +242,7 @@ namespace OpenMS
       	@brief Opens a SpectrumWidget as a new window
       	
       	Connect the slots/signals for status messages and mode changes (paint or mouse mode).
-      	Adds a Tab, a window caption and connects PreferencesManagers.
+      	Adds a tab and the window caption..
       */
       void showAsWindow_(SpectrumWidget* sw, const String& caption);
       ///returns the window with id @p id
@@ -259,9 +259,6 @@ namespace OpenMS
       Spectrum3DWidget* active3DWindow_() const;
       ///Estimates the noise by evaluating 10 random scans of MS level 1
       float estimateNoise_(const SpectrumCanvas::ExperimentType& exp);
-
-      // Docu in base class
-      virtual PreferencesDialogPage* createPreferences(QWidget* parent);
 
       /// Layer mangment widget
       QListWidget* layer_manager_;

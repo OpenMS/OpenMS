@@ -84,7 +84,7 @@ Ideen:
 Todos:
 - make install mit prefix testen (Hiwi)
 
-TOPPViewBase -- Add preferences for layers
+TOPPViewBase -- Remove old PreferencesManager, add preferences for layers
 Spectrum2DCanvas -- Remove coordinate-data transformations
 MSExperiment -- Add getPrecursorRT(rt/scan nr) and update ID adapters and IDSpectrumMapper 
 String -- derive from QString

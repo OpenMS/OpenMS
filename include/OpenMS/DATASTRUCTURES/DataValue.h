@@ -29,6 +29,8 @@
 
 #include <OpenMS/CONCEPT/Exception.h>
 
+#include <QtCore/QString>
+
 namespace OpenMS
 {
 
@@ -139,6 +141,14 @@ namespace OpenMS
 				If you expect a DataValue of DataType STRVALUE, you better use the cast operator!
 			*/
 			std::string toString() const;
+
+			/**
+				@brief Convert DataValues to a QString. 
+			
+				This method does not throw an exception, if the data is not string data.
+				The data is simply converted.
+			*/
+			QString toQString() const;
 
 	  protected:
 	  	/// Type of the currently stored value

@@ -134,9 +134,6 @@ namespace OpenMS
 		bool f3;
 		/// Flag four (Feature: - , Peak: projections)
 		bool f4;
-		
-		/// Parameters of the layer
-		Param param;
 	};
 
 	///Print the contents to a stream.

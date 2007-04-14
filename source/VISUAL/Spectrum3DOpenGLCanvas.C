@@ -523,7 +523,7 @@ namespace OpenMS
 		GLuint list = glGenLists(1);
 		glNewList(list,GL_COMPILE);
 		glPointSize(3.0);
-		if(canvas_3d_.getPrefAsInt("Preferences:3D:Shade:Mode"))
+		if(canvas_3d_.getPrefAsInt("Preferences:3D:Dot:ShadeMode"))
 		{
 			glShadeModel(GL_SMOOTH); 
 		}
@@ -587,7 +587,7 @@ namespace OpenMS
 		GLuint list = glGenLists(1);
 		glNewList(list,GL_COMPILE);
 		glLineWidth(canvas_3d_.getPref("Preferences:3D:Dot:LineWidth"));
-		if(canvas_3d_.getPrefAsInt("Preferences:3D:Shade:Mode"))
+		if(canvas_3d_.getPrefAsInt("Preferences:3D:Dot:ShadeMode"))
 		{
 			glShadeModel(GL_SMOOTH); 
 		}

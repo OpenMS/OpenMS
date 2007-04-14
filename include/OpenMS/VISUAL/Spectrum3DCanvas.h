@@ -96,16 +96,10 @@ namespace OpenMS
 			*/
 			virtual void changeVisibleArea_(const AreaType& new_area, bool add_to_stack = false);
 
-	    //return the data mode
-			Int getDataMode();
-			//calls the funktion makeReducedDatasets and sets the Data modes
-			void setDataMode();
 			///sets the Dot Gradient for Color
 	    void setDotGradient(const std::string& gradient);
 	    ///returns the ShadeModes flat or smooth
 	    Int getShadeMode();
-	    ///return the Interpolationssteps
-	    UInt getDotInterpolationSteps();
 	    ///Docu in base class
 	    void repaintAll();
 	    ///QT resizeEvent

@@ -78,7 +78,7 @@ namespace OpenMS
 		recalculateRanges_(1,0,2);
 		area_ = (getCurrentPeakData().getMaxRT()-getCurrentPeakData().getMinRT())*(getCurrentPeakData().getMaxMZ()-getCurrentPeakData().getMinMZ());
 	
-	 	if(getPrefAsString("Preferences:3D:Reduction:Mode")!="Reduction OFF")
+	 	if(getPrefAsString("Preferences:3D:ReductionMode")!="Off")
 	 	{
 			makeReducedDataSet();
 	 	}
@@ -117,7 +117,7 @@ namespace OpenMS
 	}
 	void Spectrum3DCanvas::makeReducedDataSet()
 	{
-		if(getPrefAsString("Preferences:3D:Reduction:Mode")=="Reduction OFF")
+		if(getPrefAsString("Preferences:3D:ReductionMode")=="Off")
 		{	
 	 		show_reduced_ = false;
 	 		recalculateRanges_(1,0,2);
@@ -133,7 +133,7 @@ namespace OpenMS
 		{
 			Param reduction_param;
 			show_reduced_ = true;
-			if(getPrefAsString("Preferences:3D:Reduction:Mode")=="MaxReduction")
+			if(getPrefAsString("Preferences:3D:ReductionMode")=="Max reduction")
 			{	
 				int reduction;
 				if(zoom_stack_.empty())
@@ -166,7 +166,7 @@ namespace OpenMS
 				}
 				reduction_param.setValue("Peaksperstep", reduction);
 				}
-			else if(getPrefAsString("Preferences:3D:Reduction:Mode")=="SumReduction")
+			else if(getPrefAsString("Preferences:3D:ReductionMode")=="Sum reduction")
 			{	
 				int peaks_per_rt = (int)floor(getCurrentLayer().peaks.getSize()/getCurrentLayer().peaks.size());
 				double reduction;
@@ -272,26 +272,6 @@ namespace OpenMS
 	
 	
 	////preferences////////////////////
-	  
-	Int Spectrum3DCanvas::getDataMode()
-	{
-		if(prefs_.getValue("Preferences:3D:Data:Mode").isEmpty())
-		{
-			return 0;
-		}
-		return Int(prefs_.getValue("Preferences:3D:Data:Mode"));
-	}
-	
-	void Spectrum3DCanvas::setDataMode()
-	{
-		makeReducedDataSet();
-		if(zoom_stack_.empty())
-		{
-			resetZoom();
-		}
-		update_buffer_ = true;
-		update_(__PRETTY_FUNCTION__);
-	}
 	
 	void Spectrum3DCanvas::setDotGradient(const std::string& gradient)
 	{
@@ -300,20 +280,11 @@ namespace OpenMS
 	
 	Int Spectrum3DCanvas::getShadeMode()
 	{
-		if(prefs_.getValue("Preferences:3D:Shade:Mode").isEmpty())
+		if(prefs_.getValue("Preferences:3D:Dot:ShadeMode").isEmpty())
 		{
 			return 0;
 		}
-		return Int(prefs_.getValue("Preferences:3D:Shade:Mode"));
-	}
-	
-	UInt Spectrum3DCanvas::getDotInterpolationSteps()
-	{
-		if(prefs_.getValue("Preferences:3D:InterpolationSteps").isEmpty())
-		{
-			return 0;
-		}
-		return UInt(prefs_.getValue("Preferences:3D:InterpolationSteps"));
+		return Int(prefs_.getValue("Preferences:3D:Dot:ShadeMode"));
 	}
 
 	void Spectrum3DCanvas::update_(const char*

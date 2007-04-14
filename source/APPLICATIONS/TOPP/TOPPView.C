@@ -105,7 +105,7 @@ const char* tool_name = "TOPPView";
 void print_usage()
 {
 	cerr << endl
-       << tool_name << " -- A viewer for MS data." << endl
+       << tool_name << " -- A viewer for mass spectrometry data." << endl
        << endl
        << "Usage:" << endl
 			 << " " << tool_name << " [options] [files]" << endl

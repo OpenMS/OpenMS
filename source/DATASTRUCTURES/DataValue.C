@@ -348,6 +348,22 @@ namespace OpenMS
 		};
 		return ss.str();
 	}
+
+	QString DataValue::toQString() const
+	{
+		QString result;
+		switch(value_type_) 
+		{
+			case DataValue::EMPTYVALUE: break;
+			case DataValue::STRVALUE: result = QString::fromStdString(*(data_.str_)); break;
+			case DataValue::INTVALUE: result.setNum(data_.int_); break;
+			case DataValue::DOUVALUE: result.setNum(data_.dou_,'f'); break;
+			case DataValue::FLOVALUE: result.setNum(data_.flo_,'f'); break;
+			case DataValue::SHOVALUE: result.setNum(data_.sho_); break;
+			case DataValue::LONVALUE: result.setNum(data_.lon_); break;
+		};
+		return result;
+	}
 	
 	// ----------------- Comperator ----------------------
 	
