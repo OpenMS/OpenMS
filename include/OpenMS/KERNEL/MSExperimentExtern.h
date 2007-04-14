@@ -303,7 +303,7 @@ namespace OpenMS
 							ms_levels_(source.ms_levels_)
 	    {
 	        // genarete new temp file and copy the old one
-					File::remove( file_name_ .c_str());
+					if  (! File::remove( file_name_ ) ) std::cout << "Removal of temporary file failed !!" << std::endl;
 	        file_name_ = String("msexp_") + std::rand();
 	        copyTmpFile_(source.file_name_);
 	    }
@@ -312,8 +312,8 @@ namespace OpenMS
 	    virtual ~MSExperimentExtern()
 	    {
 	        // delete temporary file
-					File::remove( file_name_ );
-	    }
+					if  (! File::remove( file_name_ ) ) std::cout << "Removal of temporary file failed !!" << std::endl;
+		   }
 	
 	    /// Assignment operator
 	    MSExperimentExtern& operator= (const MSExperimentExtern& source)
@@ -333,7 +333,7 @@ namespace OpenMS
 					ms_levels_         = source.ms_levels_;
 	
 	        // generate new name for temp file
-	        File::remove( file_name_  );
+	       	if  (! File::remove( file_name_ ) ) std::cout << "Removal of temporary file failed !!" << std::endl;
 	        file_name_ = String("msexp_") + std::rand();
 	        // and copy the old one
 	        copyTmpFile_(source.file_name_);
@@ -671,7 +671,7 @@ namespace OpenMS
 	        exp_.resize(buffer_size_);
 	
 	        // generate new name for temp file
-	        File::remove( file_name_ .c_str());
+	        if  (! File::remove( file_name_ ) ) std::cout << "Removal of temporary file failed !!" << std::endl;
 	        file_name_ = String("msexp_") + std::rand();
 	
 	    }
@@ -1018,7 +1018,7 @@ namespace OpenMS
 		
 	        spec.setRT(rt);
 					spec.setMSLevel(mslvl);
-					unsigned int nr_peaks = scan_sizes_[index];
+					UInt nr_peaks = scan_sizes_[index];
 	        spec.getContainer().clear();
 	        spec.resize(nr_peaks);
 	
