@@ -255,7 +255,6 @@ namespace OpenMS
 		
 		double min_int = getLayer(layer_index).min_int;
 		double max_int = getLayer(layer_index).max_int;
-		Int mode = getDotMode();
 		
 		painter.setPen(Qt::black);
 		
@@ -303,10 +302,7 @@ namespace OpenMS
 			{
 				if (i->getIntensity()>=min_int && i->getIntensity()<=max_int)
 				{
-					if (mode==DOT_GRADIENT)
-					{
-						painter.setPen(heightColor_(i->getIntensity(), dot_gradient_));
-					}
+					painter.setPen(heightColor_(i->getIntensity(), dot_gradient_));
 					if (dots)
 					{
 						dataToWidget_(i->getMZ(), i.getRT(),pos);
@@ -378,10 +374,7 @@ namespace OpenMS
 						 i->getIntensity()>=min_int &&
 						 i->getIntensity()<=max_int)
 				{
-					if (mode==DOT_GRADIENT)
-					{
-						painter.setPen(heightColor_(i->getIntensity(), dot_gradient_));
-					}
+					painter.setPen(heightColor_(i->getIntensity(), dot_gradient_));
 					dataToWidget_(i->getMZ(),i->getRT(),pos);
 					painter.drawLine(pos.x(),pos.y()-1,pos.x(),pos.y()+1);
 					painter.drawLine(pos.x()-1,pos.y(),pos.x()+1,pos.y());
@@ -915,21 +908,7 @@ namespace OpenMS
 	{
 		return new Spectrum2DCanvasPDP(this, parent);
 	}
-	
-	void Spectrum2DCanvas::setDotMode(Int mode)
-	{
-		prefs_.setValue("Preferences:2D:Dot:Mode", mode);
-	}
-	
-	Int Spectrum2DCanvas::getDotMode()
-	{
-		if (prefs_.getValue("Preferences:2D:Dot:Mode").isEmpty())
-		{
-			return 0;
-		}
-		
-		return Int(prefs_.getValue("Preferences:2D:Dot:Mode"));
-	}
+
 	
 	void Spectrum2DCanvas::setDotGradient(const string& gradient)
 	

@@ -61,9 +61,6 @@ namespace OpenMS
 			
 			high_color_ = new ColorSelector(box);
 			addWidget_(box->layout(),2,"Highlighted peak color:", high_color_);
-			
-			back_color_ = new ColorSelector(box);
-			addWidget_(box->layout(),3,"Background color:", back_color_);
 		
 			load();
 		}
@@ -80,7 +77,6 @@ namespace OpenMS
 			peak_color_->setColor(QColor(w->getPrefAsString("Preferences:1D:PeakColor").c_str()));
 			icon_color_->setColor(QColor(w->getPrefAsString("Preferences:1D:IconColor").c_str()));
 			high_color_->setColor(QColor(w->getPrefAsString("Preferences:1D:HighColor").c_str()));
-			back_color_->setColor(QColor(w->getPrefAsString("Preferences:1D:BackgroundColor").c_str()));
 		}
 		
 		void Spectrum1DCanvasPDP::save()
@@ -90,7 +86,6 @@ namespace OpenMS
 			w->setPref("Preferences:1D:PeakColor",peak_color_->getColor().name().toAscii().data());
 			w->setPref("Preferences:1D:HighColor",high_color_->getColor().name().toAscii().data());
 			w->setPref("Preferences:1D:IconColor",icon_color_->getColor().name().toAscii().data());
-			w->setPref("Preferences:1D:BackgroundColor",back_color_->getColor().name().toAscii().data());
 		
 			w->repaintAll();
 		}

@@ -58,12 +58,6 @@ namespace OpenMS
 	    
 	    /**	@name Type definitions */
 	    //@{
-	    ///different dot modes black or gradient
-			enum DotModes 
-	    {
-				DOT_BLACK = 0,            ///< use black only
-				DOT_GRADIENT = 1          ///< use gradient
-	    };
 	     ///different reduktion modes: no reduction, sumreduktion or maxreduktion
  			enum DataModes 
  	    {
@@ -102,8 +96,6 @@ namespace OpenMS
 			*/
 			virtual void changeVisibleArea_(const AreaType& new_area, bool add_to_stack = false);
 
-	    //return the dot mode
-	    Int getDotMode();
 	    //return the data mode
 			Int getDataMode();
 			//calls the funktion makeReducedDatasets and sets the Data modes

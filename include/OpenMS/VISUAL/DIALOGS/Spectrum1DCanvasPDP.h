@@ -57,7 +57,6 @@ namespace OpenMS
 				ColorSelector* peak_color_;
 				ColorSelector* high_color_; // color of highlighted peak
 				ColorSelector* icon_color_;
-				ColorSelector* back_color_; // color of background
 		};
 		
 	} //namespace Internal

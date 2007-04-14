@@ -30,7 +30,6 @@
 #include <OpenMS/config.h>
 #include <OpenMS/VISUAL/DIALOGS/PreferencesDialogPage.h>
 
-class QRadioButton;
 class QSpinBox;
 
 namespace OpenMS
@@ -58,13 +57,9 @@ namespace OpenMS
 				virtual void save();
 	
 			protected:
-				QRadioButton* dot_mode_black_;
-				QRadioButton* dot_mode_gradient_;
 				MultiGradientSelector* dot_gradient_;
 				MultiGradientSelector* surface_gradient_;
-			  ColorSelector* background_color_;
 			  QSpinBox* marching_squares_steps_;
-			  QSpinBox* interpolation_steps_;
 			  QSpinBox* contour_steps_;
 		};
 	

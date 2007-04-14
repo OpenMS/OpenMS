@@ -57,21 +57,11 @@ namespace OpenMS
 			//peak color box
 			QGroupBox* box =	addBox_(grid,0,0,"Peak colors",1,2);
 
-			QVBoxLayout* tmp2 = new QVBoxLayout();
-			dot_mode_black_= new QRadioButton("Black",this);
-			tmp2->addWidget(dot_mode_black_);
-			dot_mode_gradient_= new QRadioButton("Gradient",this);
-			tmp2->addWidget(dot_mode_gradient_);
-			addLayout_(box->layout(),0,"Mode:",tmp2);
-
 			dot_gradient_= new MultiGradientSelector(box);
-			addWidget_(box->layout(),1,"Gradient:",dot_gradient_);
-
-			dot_interpolation_steps_= addSpinBox_(box,10,1000,1);
-			addWidget_(box->layout(),2,"Interpolation steps:",dot_interpolation_steps_);
+			addWidget_(box->layout(),0,"Gradient:",dot_gradient_);
 			finish_(box->layout());
 			
-			tmp2 = new QVBoxLayout();
+			QVBoxLayout* tmp2 = new QVBoxLayout();
 			QButtonGroup* tmp3 = new QButtonGroup(this);
 			shade_mode_flat_= new QRadioButton("Flat",this);
 			tmp2->addWidget(shade_mode_flat_);
@@ -79,7 +69,7 @@ namespace OpenMS
 			shade_mode_smooth_= new QRadioButton("Smooth",this);
 			tmp2->addWidget(shade_mode_smooth_);
 			tmp3->addButton(shade_mode_smooth_);
-			addLayout_(box->layout(),3,"Shade mode:",tmp2);
+			addLayout_(box->layout(),2,"Shade mode:",tmp2);
 			finish_(box->layout());
 			
 			//misc box
@@ -88,10 +78,6 @@ namespace OpenMS
 			dot_line_width_ = addSpinBox_(box,1,10,1);
 			addWidget_(box->layout(),0,"Line width:",dot_line_width_);
 			
-			background_color_= new ColorSelector(box);
-			addWidget_(box->layout(),1,"Background color:",background_color_);
-			axes_color_= new ColorSelector(box);
-			addWidget_(box->layout(),2,"Axis color:",axes_color_);
 			finish_(box->layout());
 
 			//data reduction box
@@ -120,17 +106,6 @@ namespace OpenMS
 		{
 			Spectrum3DCanvas* man = static_cast<Spectrum3DCanvas*>(manager_);
 			
-			if (man->getDotMode()==Spectrum3DCanvas::DOT_GRADIENT)
-			{
-				dot_mode_gradient_->setChecked(true);
-			}
-			else
-			{
-				if (man->getDotMode()==Spectrum3DCanvas::DOT_BLACK)
-				{
-					dot_mode_black_->setChecked(true);
-				}
-			}
 			if (man->getShadeMode()==Spectrum3DCanvas::SHADE_FLAT)
 			{
 				shade_mode_flat_->setChecked(true);
@@ -144,42 +119,25 @@ namespace OpenMS
 			}
 			data_reduction_->setCurrentIndex(data_reduction_->findText(man->getPrefAsString("Preferences:3D:Reduction:Mode").c_str()));	
 			reduction_diplay_peaks_->setValue(UInt(man->getPrefAsInt("Preferences:3D:DisplayedPeaks")));
-		
-			background_color_->setColor(QColor(man->getPrefAsString("Preferences:3D:BackgroundColor").c_str()));
+
 			dot_gradient_->gradient().fromString(man->getPref("Preferences:3D:Dot:Gradient"));
-			dot_interpolation_steps_->setValue(UInt(man->getPref("Preferences:3D:Dot:InterpolationSteps")));
 			dot_line_width_->setValue(UInt(man->getPref("Preferences:3D:Dot:LineWidth")));
-			axes_color_->setColor(QColor(man->getPrefAsString("Preferences:3D:AxesColor").c_str()));
 		}
 		
 		void Spectrum3DCanvasPDP::save()
 		{
 			Spectrum3DCanvas* man = static_cast<Spectrum3DCanvas*>(manager_);
-			if(dot_mode_gradient_->isChecked())
+			man->setPref("Preferences:3D:Dot:Gradient",dot_gradient_->gradient().toString());
+			man->setDotGradient(dot_gradient_->gradient().toString());
+	
+			if(shade_mode_flat_ -> isChecked())
 			{
-				man->setPref("Preferences:3D:Dot:Gradient",dot_gradient_->gradient().toString());
-				man->setDotGradient(dot_gradient_->gradient().toString());
-		
-				man->setPref("Preferences:3D:Dot:InterpolationSteps",dot_interpolation_steps_->value());
-		
-				man->setPref("Preferences:3D:Dot:Mode",Spectrum3DCanvas::DOT_GRADIENT);
-		
-				if(shade_mode_flat_ -> isChecked())
-				{
-					man->setPref("Preferences:3D:Shade:Mode",Spectrum3DCanvas::SHADE_FLAT);
-				}
-				else if (shade_mode_smooth_->isChecked())
-				{
-					man->setPref("Preferences:3D:Shade:Mode",Spectrum3DCanvas::SHADE_SMOOTH);
-				}
-			}	
-			else
-			{ 
-				if(dot_mode_black_->isChecked())
-				{
-					man->setPref("Preferences:3D:Dot:Mode",Spectrum3DCanvas::DOT_BLACK);
-				}
-			} 
+				man->setPref("Preferences:3D:Shade:Mode",Spectrum3DCanvas::SHADE_FLAT);
+			}
+			else if (shade_mode_smooth_->isChecked())
+			{
+				man->setPref("Preferences:3D:Shade:Mode",Spectrum3DCanvas::SHADE_SMOOTH);
+			}
 
 			if(data_reduction_->currentText().toAscii().data()=="MaxReduction")
 			{
@@ -197,8 +155,6 @@ namespace OpenMS
 			man->setPref("Preferences:3D:Reduction:Mode", data_reduction_->currentText().toAscii().data());
 			man->setPref("Preferences:3D:DisplayedPeaks",	reduction_diplay_peaks_->value());
 			
-			man->setPref("Preferences:3D:BackgroundColor",background_color_->getColor().name().toAscii().data());
-			man->setPref("Preferences:3D:AxesColor",axes_color_->getColor().name().toAscii().data());
 			man->setPref("Preferences:3D:Dot:LineWidth",dot_line_width_->value());
 		
 			man->setDataMode();

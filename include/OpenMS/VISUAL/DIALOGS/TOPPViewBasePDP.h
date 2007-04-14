@@ -72,7 +72,6 @@ namespace OpenMS
 			QLineEdit* main_tmp_path_;
 			QSpinBox* recent_files_;
 			QComboBox* default_map_view_;
-			QComboBox* show_legend_;
 			QComboBox* intensity_cutoff_;
 						
 			//db
@@ -85,28 +84,18 @@ namespace OpenMS
 			ColorSelector* peak_color_;
 			ColorSelector* high_color_;
 			ColorSelector* icon_color_;
-			ColorSelector* back_color_1D_;
 			
 			//2d
 			QComboBox* axis_mapping_2d_;
-			ColorSelector* back_color_2D_;
 			QSpinBox* marching_squares_steps_;
 			QSpinBox* contour_steps_;
-			QSpinBox* interpolation_steps_;
-			QRadioButton* dot_mode_black_;
-			QRadioButton* dot_mode_gradient_;
 			MultiGradientSelector* dot_gradient_;
 			MultiGradientSelector* surface_gradient_;
 			
 			//3d
-			QRadioButton* dot_mode_black_3d_;
-			QRadioButton* dot_mode_gradient_3d_;
-			ColorSelector* back_color_3d_; 
 			MultiGradientSelector* dot_gradient_3d_;
-			QSpinBox* dot_interpolation_steps_3d_;
 			QRadioButton* shade_mode_flat_3d_;
 			QRadioButton* shade_mode_smooth_3d_;
-			ColorSelector* axes_color_3d_;
 			QSpinBox* dot_line_width_;
 			QComboBox* data_reduction_3d_;
       QSpinBox* reduction_diplay_peaks_3d_;

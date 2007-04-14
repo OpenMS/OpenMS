@@ -293,15 +293,6 @@ namespace OpenMS
 		update_(__PRETTY_FUNCTION__);
 	}
 	
-	Int Spectrum3DCanvas::getDotMode()
-	{
-		if (prefs_.getValue("Preferences:3D:Dot:Mode").isEmpty())
-		{
-			return 0;
-		}
-		return Int(prefs_.getValue("Preferences:3D:Dot:Mode"));
-	}
-	
 	void Spectrum3DCanvas::setDotGradient(const std::string& gradient)
 	{
 		openglcanvas_->setDotGradient(gradient);

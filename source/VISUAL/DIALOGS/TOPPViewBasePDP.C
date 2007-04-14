@@ -95,15 +95,10 @@ namespace OpenMS
 			default_map_view_->insertItem(1,"3D (experimental)");
 			addWidget_(grid,3,"Default map visualization:",default_map_view_);
 			//legend
-			show_legend_ = new QComboBox( tab);
-			show_legend_->insertItem(0,"Show");
-			show_legend_->insertItem(1,"Hide");
-			addWidget_(grid,4,"Axis legend:",show_legend_);
-			//legend
 			intensity_cutoff_ = new QComboBox( tab);
 			intensity_cutoff_->insertItem(0,"None");
 			intensity_cutoff_->insertItem(1,"Noise Estimator");
-			addWidget_(grid,5,"Map intensity cutoff:",intensity_cutoff_);
+			addWidget_(grid,4,"Map intensity cutoff:",intensity_cutoff_);
 			
 			finish_(grid);
 			
@@ -143,48 +138,22 @@ namespace OpenMS
 			addWidget_(box->layout(),1,"Icon color:",icon_color_);
 			high_color_ = new ColorSelector(box);
 			addWidget_(box->layout(),2,"Highlighted peak color:",high_color_);
-			back_color_1D_ = new ColorSelector(box);
-			addWidget_(box->layout(),3,"Background color:",back_color_1D_);						
-			
 			finish_(grid);
 			
 			tab_widget->addTab(tab,"1D View");
 		
 			//-----------2D View Tab-----------
 			tab = new QWidget(tab_widget);
-			grid = new QGridLayout(tab);
-
-			//colors
-			box =	addBox_(grid,0,0,"Colors");
-			back_color_2D_ = new ColorSelector(box);
-			addWidget_(box->layout(),0,"Background color:",back_color_2D_);
-			interpolation_steps_ = addSpinBox_(box,10,1000,1);
-			addWidget_(box->layout(),1,"Interpolation steps:",interpolation_steps_);
-			finish_(box->layout());
-			
-			//mapping
-			box =	addBox_(grid,1,0,"Mapping");
-			axis_mapping_2d_ = new QComboBox( box);
-			axis_mapping_2d_->insertItem(0,"X-Axis");
-			axis_mapping_2d_->insertItem(1,"Y-Axis");
-			addWidget_(box->layout(),0,"Map m/z to:",axis_mapping_2d_);
-			finish_(box->layout());			
+			grid = new QGridLayout(tab);	
 						
 			//dot mode
-			box =	addBox_(grid,0,1,"Dot Colors");
-			QVBoxLayout* tmp2 = new QVBoxLayout();
-			dot_mode_black_ = new QRadioButton("Black",tab);
-			tmp2->addWidget(dot_mode_black_);
-			dot_mode_gradient_ = new QRadioButton("Gradient",tab);
-			tmp2->addWidget(dot_mode_gradient_);
-			addLayout_(box->layout(),0,"Mode:",tmp2);
-	
+			box =	addBox_(grid,1,0,"Dot Colors");
 			dot_gradient_ = new MultiGradientSelector(box);
-			addWidget_(box->layout(),1,"Gradient:",dot_gradient_);
+			addWidget_(box->layout(),0,"Gradient:",dot_gradient_);
 			finish_(box->layout());
 					
 			//surface mode
-			box =	addBox_(grid,1,1,"Surface/contour settings");
+			box =	addBox_(grid,2,0,"Surface/contour settings");
 			surface_gradient_ = new MultiGradientSelector(box);
 			addWidget_(box->layout(),0,"Gradient:",surface_gradient_);			
 
@@ -194,7 +163,15 @@ namespace OpenMS
 			contour_steps_ = addSpinBox_(box,3,30,1);
 			addWidget_(box->layout(),2,"Contour lines:",contour_steps_);
 			finish_(box->layout());
-			
+
+			//mapping
+			box =	addBox_(grid,3,0,"Mapping");
+			axis_mapping_2d_ = new QComboBox( box);
+			axis_mapping_2d_->insertItem(0,"X-Axis");
+			axis_mapping_2d_->insertItem(1,"Y-Axis");
+			addWidget_(box->layout(),0,"Map m/z to:",axis_mapping_2d_);
+			finish_(box->layout());
+
 			finish_(grid);
 			
 			tab_widget->addTab(tab,"2D View");
@@ -206,21 +183,11 @@ namespace OpenMS
 			//peak color box
 			box =	addBox_(grid,0,0,"Peak colors",1,2);
 
-			tmp2 = new QVBoxLayout();
-			dot_mode_black_3d_ = new QRadioButton("Black",tab);
-			tmp2->addWidget(dot_mode_black_3d_);
-			dot_mode_gradient_3d_ = new QRadioButton("Gradient",tab);
-			tmp2->addWidget(dot_mode_gradient_3d_);
-			addLayout_(box->layout(),0,"Mode:",tmp2);
-
 			dot_gradient_3d_ = new MultiGradientSelector(box);
-			addWidget_(box->layout(),1,"Gradient:",dot_gradient_3d_);
-
-			dot_interpolation_steps_3d_ = addSpinBox_(box,10,1000,1);
-			addWidget_(box->layout(),2,"Interpolation steps:",dot_interpolation_steps_3d_);
+			addWidget_(box->layout(),0,"Gradient:",dot_gradient_3d_);
 			finish_(box->layout());
 			
-			tmp2 = new QVBoxLayout();
+			QVBoxLayout* tmp2 = new QVBoxLayout();
 			QButtonGroup* tmp3 = new QButtonGroup(tab);
 			shade_mode_flat_3d_ = new QRadioButton("Flat",tab);
 			tmp2->addWidget(shade_mode_flat_3d_);
@@ -236,11 +203,6 @@ namespace OpenMS
 			
 			dot_line_width_ = addSpinBox_(box,1,10,1);
 			addWidget_(box->layout(),0,"Line width:",dot_line_width_);
-			
-			back_color_3d_ = new ColorSelector(box);
-			addWidget_(box->layout(),1,"Background color:",back_color_3d_);
-			axes_color_3d_ = new ColorSelector(box);
-			addWidget_(box->layout(),2,"Axis color:",axes_color_3d_);
 			finish_(box->layout());
 
 			//data reduction box
@@ -274,9 +236,7 @@ namespace OpenMS
 			main_tmp_path_->setText(manager_->getPrefAsString("Preferences:TmpPath").c_str());
 			recent_files_->setValue(manager_->getPrefAsInt("Preferences:NumberOfRecentFiles"));
 			default_map_view_->setCurrentIndex(default_map_view_->findText(manager_->getPrefAsString("Preferences:DefaultMapView").c_str()));
-			show_legend_->setCurrentIndex(show_legend_->findText(manager_->getPrefAsString("Preferences:Legend").c_str()));
 			intensity_cutoff_->setCurrentIndex(intensity_cutoff_->findText(manager_->getPrefAsString("Preferences:MapIntensityCutoff").c_str()));
-			
 			
 			//DB
 			db_host_->setText(manager_->getPrefAsString("Preferences:DB:Host").c_str());
@@ -288,53 +248,28 @@ namespace OpenMS
 			peak_color_->setColor(QColor(manager_->getPrefAsString("Preferences:1D:PeakColor").c_str()));
 			icon_color_->setColor(QColor(manager_->getPrefAsString("Preferences:1D:IconColor").c_str()));
 			high_color_->setColor(QColor(manager_->getPrefAsString("Preferences:1D:HighColor").c_str()));
-			back_color_1D_->setColor(QColor(manager_->getPrefAsString("Preferences:1D:BackgroundColor").c_str()));
-
-			//2D
-			if (UInt(manager_->getPref("Preferences:2D:Dot:Mode"))==Spectrum2DCanvas::DOT_GRADIENT)
-			{
-				dot_mode_gradient_->setChecked(true);
-			}
-			else if (UInt(manager_->getPref("Preferences:2D:Dot:Mode"))==Spectrum2DCanvas::DOT_BLACK)
-			{
-				dot_mode_black_->setChecked(true);
-			}
 			
+			//2D
 			marching_squares_steps_->setValue(UInt(manager_->getPref("Preferences:2D:MarchingSquaresSteps")));
 			contour_steps_->setValue(UInt(manager_->getPref("Preferences:2D:Contour:Lines")));
 			dot_gradient_->gradient().fromString(manager_->getPrefAsString("Preferences:2D:Dot:Gradient"));
-			interpolation_steps_->setValue(UInt(manager_->getPref("Preferences:2D:InterpolationSteps")));
 			surface_gradient_->gradient().fromString(manager_->getPrefAsString("Preferences:2D:Surface:Gradient"));
-			back_color_2D_->setColor(QColor(manager_->getPrefAsString("Preferences:2D:BackgroundColor").c_str()));
 			axis_mapping_2d_->setCurrentIndex(axis_mapping_2d_->findText(manager_->getPrefAsString("Preferences:2D:Mapping:MappingOfMzTo").c_str()));
 	
 			//3d
-		
-			if (UInt(manager_->getPref("Preferences:3D:Dot:Mode"))==Spectrum3DCanvas::DOT_GRADIENT)
+			if (UInt(manager_->getPref("Preferences:3D:Shade:Mode"))==Spectrum3DCanvas::SHADE_FLAT)
 			{
-				dot_mode_gradient_3d_->setChecked(true);
-
-				if (UInt(manager_->getPref("Preferences:3D:Shade:Mode"))==Spectrum3DCanvas::SHADE_FLAT)
-				{
-					shade_mode_flat_3d_->setChecked(true);
-				}
-				else if (UInt(manager_->getPref("Preferences:3D:Shade:Mode"))==Spectrum3DCanvas::SHADE_SMOOTH)
-				{
-					shade_mode_smooth_3d_->setChecked(true);
-				}
+				shade_mode_flat_3d_->setChecked(true);
 			}
-			else if (UInt(manager_->getPref("Preferences:3D:Dot:Mode"))==Spectrum3DCanvas::DOT_BLACK)
+			else if (UInt(manager_->getPref("Preferences:3D:Shade:Mode"))==Spectrum3DCanvas::SHADE_SMOOTH)
 			{
-				dot_mode_black_3d_->setChecked(true);
+				shade_mode_smooth_3d_->setChecked(true);
 			}
 			
 			data_reduction_3d_->setCurrentIndex(data_reduction_3d_->findText(manager_->getPrefAsString("Preferences:3D:Reduction:Mode").c_str()));	
 			reduction_diplay_peaks_3d_->setValue(UInt(manager_->getPrefAsInt("Preferences:3D:DisplayedPeaks")));
 		
-			dot_interpolation_steps_3d_->setValue(UInt(manager_->getPref("Preferences:3D:Dot:InterpolationSteps")));
-			back_color_3d_->setColor(QColor(manager_->getPrefAsString("Preferences:3D:BackgroundColor").c_str()));
 			dot_gradient_3d_->gradient().fromString(manager_->getPrefAsString("Preferences:3D:Dot:Gradient"));
-			axes_color_3d_->setColor(QColor(manager_->getPrefAsString("Preferences:3D:AxesColor").c_str()));
 			dot_line_width_->setValue(UInt(manager_->getPref("Preferences:3D:Dot:LineWidth")));
 		
 		}
@@ -346,7 +281,6 @@ namespace OpenMS
 			manager_->setPref("Preferences:TmpPath", main_tmp_path_->text().toAscii().data());
 			manager_->setPref("Preferences:NumberOfRecentFiles", recent_files_->value());
 			manager_->setPref("Preferences:DefaultMapView", default_map_view_->currentText().toAscii().data());
-			manager_->setPref("Preferences:Legend", show_legend_->currentText().toAscii().data());
 			manager_->setPref("Preferences:MapIntensityCutoff", intensity_cutoff_->currentText().toAscii().data());
 
 			//DB
@@ -360,36 +294,16 @@ namespace OpenMS
 			manager_->setPref("Preferences:1D:PeakColor",peak_color_->getColor().name().toAscii().data());
 			manager_->setPref("Preferences:1D:IconColor",icon_color_->getColor().name().toAscii().data());
 			manager_->setPref("Preferences:1D:HighColor",high_color_->getColor().name().toAscii().data());
-			manager_->setPref("Preferences:1D:BackgroundColor",back_color_1D_->getColor().name().toAscii().data());
 			
 			//2D
-			if (dot_mode_gradient_->isChecked())
-			{
-				manager_->setPref("Preferences:2D:Dot:Mode", Spectrum2DCanvas::DOT_GRADIENT);
-			}
-			else	if (dot_mode_black_->isChecked())
-			{
-				manager_->setPref("Preferences:2D:Dot:Mode", Spectrum2DCanvas::DOT_BLACK);
-			}
 			manager_->setPref("Preferences:2D:MarchingSquaresSteps",marching_squares_steps_->value());
 			manager_->setPref("Preferences:2D:Contour:Lines",contour_steps_->value());
-			manager_->setPref("Preferences:2D:InterpolationSteps",interpolation_steps_->value());
-			manager_->setPref("Preferences:2D:BackgroundColor",back_color_2D_->getColor().name().toAscii().data());
 			manager_->setPref("Preferences:2D:Mapping:MappingOfMzTo",axis_mapping_2d_->currentText().toAscii().data());
 			manager_->setPref("Preferences:2D:Dot:Gradient",dot_gradient_->gradient().toString());
 			manager_->setPref("Preferences:2D:Surface:Gradient",surface_gradient_->gradient().toString());
 			
 			//3d
-			if (dot_mode_gradient_3d_->isChecked())
-			{
-				manager_->setPref("Preferences:3D:Dot:Mode", Spectrum3DCanvas::DOT_GRADIENT);
-			}
-			else	if (dot_mode_black_3d_->isChecked())
-			{
-				manager_->setPref("Preferences:3D:Dot:Mode", Spectrum3DCanvas::DOT_BLACK);	
-			}
 			manager_->setPref("Preferences:3D:Dot:Gradient",dot_gradient_3d_->gradient().toString());
-			manager_->setPref("Preferences:3D:Dot:InterpolationSteps",dot_interpolation_steps_3d_->value());
 
 			if (shade_mode_flat_3d_->isChecked())
 			{
@@ -399,8 +313,6 @@ namespace OpenMS
 			{
 				manager_->setPref("Preferences:3D:Shade:Mode", Spectrum3DCanvas::SHADE_SMOOTH);	
 			}
-		  manager_->setPref("Preferences:3D:BackgroundColor",back_color_3d_->getColor().name().toAscii().data());
-			manager_->setPref("Preferences:3D:AxesColor",axes_color_3d_->getColor().name().toAscii().data());
 			manager_->setPref("Preferences:3D:Dot:LineWidth",dot_line_width_->value());
 	
 			if(data_reduction_3d_->currentText().toAscii().data()=="MaxReduction")

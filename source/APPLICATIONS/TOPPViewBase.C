@@ -1742,13 +1742,11 @@ namespace OpenMS
     default_preferences.setValue("2D:MarchingSquaresSteps", 20);
     default_preferences.setValue("2D:InterpolationSteps", 200);
     default_preferences.setValue("2D:Dot:Gradient", "Linear|0,#efef00;7,#ffaa00;15,#ff0000;27,#aa00ff;55,#5500ff;100,#000000");
-    default_preferences.setValue("2D:Dot:Mode", 1);
     default_preferences.setValue("2D:Surface:Gradient", "Linear|0,#ffffff;7,#fdffcb;20,#ffb4b4;50,#d7cfff;100,#c1c1c1");
     default_preferences.setValue("2D:Contour:Lines", 8);
     default_preferences.setValue("2D:Mapping:MappingOfMzTo","X-Axis");
 
     //3d
-    default_preferences.setValue("3D:Dot:Mode", 1);
     default_preferences.setValue("3D:Shade:Mode", 1);
     default_preferences.setValue("3D:Dot:Gradient", "Linear|0,#efef00;11,#ffaa00;32,#ff0000;55,#aa00ff;78,#5500ff;100,#000000");
     default_preferences.setValue("3D:Dot:InterpolationSteps",200);

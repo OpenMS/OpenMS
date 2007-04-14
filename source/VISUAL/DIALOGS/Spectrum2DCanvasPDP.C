@@ -32,7 +32,6 @@
 
 // Qt
 #include <QtGui/QLayout>
-#include <QtGui/QRadioButton>
 #include <QtGui/QLabel>
 #include <QtGui/QGroupBox>
 #include <QtGui/QSpinBox>
@@ -54,26 +53,11 @@ namespace OpenMS
 		
 			QGridLayout* grid = new QGridLayout(this);
 			grid->setMargin(0);
-			
-			//colors
-			QGroupBox* box =	addBox_(grid,0,0,"Colors",2,1);
-			background_color_ = new ColorSelector(box);
-			addWidget_(box->layout(),0,"Background color:",background_color_);
-			interpolation_steps_ = addSpinBox_(box,10,1000,1);
-			addWidget_(box->layout(),1,"Interpolation steps:",interpolation_steps_);
-			finish_(box->layout());		
 						
 			//dot mode
-			box =	addBox_(grid,0,1,"Dot Colors");
-			QVBoxLayout* tmp2 = new QVBoxLayout();
-			dot_mode_black_ = new QRadioButton("Black",this);
-			tmp2->addWidget(dot_mode_black_);
-			dot_mode_gradient_ = new QRadioButton("Gradient",this);
-			tmp2->addWidget(dot_mode_gradient_);
-			addLayout_(box->layout(),0,"Mode:",tmp2);
-	
+			QGroupBox*  box =   addBox_(grid,0,1,"Dot Colors");
 			dot_gradient_ = new MultiGradientSelector(box);
-			addWidget_(box->layout(),1,"Gradient:",dot_gradient_);
+			addWidget_(box->layout(),0,"Gradient:",dot_gradient_);
 			finish_(box->layout());
 					
 			//surface mode
@@ -100,19 +84,9 @@ namespace OpenMS
 		{
 			Spectrum2DCanvas* man = static_cast<Spectrum2DCanvas*>(manager_);
 			
-			if (man->getDotMode()==Spectrum2DCanvas::DOT_GRADIENT)
-			{
-				dot_mode_gradient_->setChecked(true);
-			}
-			else if (man->getDotMode()==Spectrum2DCanvas::DOT_BLACK)
-			{
-				dot_mode_black_->setChecked(true);
-			}
 			dot_gradient_->gradient().fromString(man->getPrefAsString("Preferences:2D:Dot:Gradient"));
 			surface_gradient_->gradient().fromString(man->getPrefAsString("Preferences:2D:Surface:Gradient"));
-			background_color_->setColor(QColor(man->getPrefAsString("Preferences:2D:BackgroundColor").c_str()));
 			marching_squares_steps_->setValue(UInt(man->getPref("Preferences:2D:MarchingSquaresSteps")));
-			interpolation_steps_->setValue(UInt(man->getPref("Preferences:2D:InterpolationSteps")));
 			contour_steps_->setValue(UInt(man->getPref("Preferences:2D:Contour:Lines")));
 		}
 		
@@ -120,19 +94,9 @@ namespace OpenMS
 		{
 			Spectrum2DCanvas* man = static_cast<Spectrum2DCanvas*>(manager_);
 			
-			if (dot_mode_gradient_->isChecked())
-			{
-				man->setDotMode(Spectrum2DCanvas::DOT_GRADIENT);
-			}
-			else if (dot_mode_black_->isChecked())
-			{
-				man->setDotMode(Spectrum2DCanvas::DOT_BLACK);
-			}
 			man->setDotGradient(dot_gradient_->gradient().toString());
 			man->setSurfaceGradient(surface_gradient_->gradient().toString());
-			man->setPref("Preferences:2D:BackgroundColor",background_color_->getColor().name().toAscii().data());
 			man->setPref("Preferences:2D:MarchingSquaresSteps",marching_squares_steps_->value());
-			man->setPref("Preferences:2D:InterpolationSteps",interpolation_steps_->value());
 			man->setPref("Preferences:2D:Contour:Lines",contour_steps_->value());
 			
 			man->repaintAll();

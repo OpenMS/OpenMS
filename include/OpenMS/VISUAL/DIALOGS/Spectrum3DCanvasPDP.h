@@ -55,20 +55,13 @@ namespace OpenMS
       virtual void save();
       
     protected:
-      
-      
-      QRadioButton* dot_mode_black_;
-      QRadioButton* dot_mode_gradient_;
-      ColorSelector* background_color_;
       MultiGradientSelector* dot_gradient_;
-      QSpinBox* dot_interpolation_steps_;
       QRadioButton* shade_mode_flat_;
       QRadioButton* shade_mode_smooth_;
       
       QComboBox* data_reduction_;
       QSpinBox* reduction_diplay_peaks_;
    
-      ColorSelector* axes_color_;
       QSpinBox* dot_line_width_;
     };
     

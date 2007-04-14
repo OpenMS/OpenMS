@@ -70,16 +70,6 @@ namespace OpenMS
       Q_OBJECT
 
     public:
-
-      ///View modes for 2D dots.
-      enum DotModes
-      {
-        DOT_BLACK = 0,            ///< use black only
-        DOT_GRADIENT = 1          ///< use gradient
-    	};
-
-      //@}
-
       /// Default constructor
       Spectrum2DCanvas(QWidget* parent = 0);
 
@@ -97,26 +87,6 @@ namespace OpenMS
       	@param height The height of the canvas in pixels.
       */
       void print(QPainter& p, int width, int height);
-
-      /**
-      	@brief Sets the mode for 2D dots.
-
-      	Sets the view mode for the dots. Note that this only affects the view
-      	if peaks are actually shown as dots.
-
-      	@param mode The new dot mode.
-      */
-      void setDotMode(Int mode);
-
-      /**
-      	@brief Retunrs the mode for 2D dots.
-
-      	Returns the currently set dot mode. If it has not been set yet, it is
-      	read from the configuration file.
-
-      	@returns The current dot mode.
-      */
-      Int getDotMode();
 
       /**
       	@brief Sets the 2D dot gradient.
