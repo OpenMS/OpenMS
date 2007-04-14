@@ -1642,16 +1642,16 @@ namespace OpenMS
 				if (begin->getMSLevel()<2)
 				{
 					a = scans->addAction(QString("RT: ") + QString::number(begin->getRT()));
-					a->setData(begin-first);
+					a->setData((int)(begin-first));
 					a = meta->addAction(QString("RT: ") + QString::number(begin->getRT()));
-					a->setData(begin-first);
+					a->setData((int)(begin-first));
 				}
 				else
 				{
 					a = scans->addAction(QString("RT: ") + QString::number(begin->getRT()) + "  Precursor m/z:" + QString::number(begin->getPrecursorPeak().getPosition()[0]));
-					a->setData(begin-first);
+					a->setData((int)(begin-first));
 					a = meta->addAction(QString("RT: ") + QString::number(begin->getRT()) + "  Precursor m/z:" + QString::number(begin->getPrecursorPeak().getPosition()[0]));
-					a->setData(begin-first);
+					a->setData((int)(begin-first));
 				}
 				if (begin==it)
 				{
@@ -1701,7 +1701,7 @@ namespace OpenMS
 				{
 					present=true;
 					a = meta->addAction(QString("RT: ") + QString::number(it->getRT()) + "  m/z:" + QString::number(it->getMZ()));
-					a->setData(it-features.begin());
+					a->setData((int)(it-features.begin()));
 				}  
 			}
 			
