@@ -138,7 +138,7 @@ void BaseSweepSeeder::sweep_()
 			
 			// detect isotopic pattern...
 			ScoredMZVector iso_curr_scan = detectIsotopicPattern_(current_scan );
-			
+					
 			for (ScoredMZVector::const_iterator citer = iso_curr_scan.begin();
 						citer != iso_curr_scan.end();
 						++citer)
@@ -249,6 +249,8 @@ void BaseSweepSeeder::filterHash_()
 		// Remove cluster containing too few scans or peaks
 		for (TableIteratorType iter = iso_map_.begin(); iter != iso_map_.end(); ++iter)
 		{
+			sort(iter->second.scans_.begin(),iter->second.scans_.end());
+		
 			if (iter->second.scans_.size() < min_number_scans ||  iter->second.peaks_.size() < min_number_peaks)
 			{
 				toDelete.push_back(iter);
@@ -339,9 +341,7 @@ BaseSweepSeeder::TableIteratorType BaseSweepSeeder::checkInPreviousScans_(const 
 
             // create new isotopic cluster
             IsotopeClusterScoredCharge isoclust;
-            isoclust.scans_.push_back( currscan_index );
-
-           
+            isoclust.scans_.push_back( currscan_index );          
             entry_to_insert = iso_map_.insert( TableType::value_type(mz_in_hash, isoclust) );
         }
         else
@@ -396,7 +396,7 @@ BaseSweepSeeder::TableIteratorType BaseSweepSeeder::checkInPreviousScans_(const 
     return entry_to_insert;
 }
 
-bool BaseSweepSeeder::checkForMatchingCluster_(const pair<TableIteratorType, TableIteratorType>& range, UInt scan_wanted, TableIteratorType& entry_to_insert )
+bool BaseSweepSeeder::checkForMatchingCluster_(const pair<TableIteratorType, TableIteratorType>& range, const UInt scan_wanted, TableIteratorType& entry_to_insert )
 {
 
 	// so far we check only for matching cluster in the previous scan
@@ -420,8 +420,7 @@ bool BaseSweepSeeder::checkForMatchingCluster_(const pair<TableIteratorType, Tab
 						closest_scan   = *it;				
 						entry_to_insert = iter;		// remember iterator
 						scan_found      = true;
-					}
-				
+					}				
     	}
 	} // end for (TableIteratorType )
 	

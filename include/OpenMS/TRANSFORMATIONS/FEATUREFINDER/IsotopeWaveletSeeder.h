@@ -192,7 +192,7 @@ namespace OpenMS
 		}
 		
 		/// Assigns scores to each charge state of a isotopic pattern
-		ScoredMZVector identifyCharge_(const std::vector<DPeakArray<1, PeakType > >& candidates, std::vector<double>* wt_thresholds, SpectrumType& scan);
+		ScoredMZVector identifyCharge_(const std::vector<DPeakArray<1, PeakType > >& candidates, const std::vector<double>* wt_thresholds, const SpectrumType& scan);
 		
 		/// Interpolates between to data points
 		inline double getInterpolatedValue_(double x0, double x, double x1, double f0, double f1) const
@@ -201,7 +201,7 @@ namespace OpenMS
 		}
 
 		/// Returns a bucket containing the mass/charge @p mz
-		inline std::pair<Int, Int> getNearBys_(SpectrumType& scan, double mz, UInt start=0)
+		inline std::pair<Int, Int> getNearBys_(const SpectrumType& scan, double mz, UInt start=0)
 		{
 			for (UInt i=start; i<scan.getContainer().size(); ++i)
 			{

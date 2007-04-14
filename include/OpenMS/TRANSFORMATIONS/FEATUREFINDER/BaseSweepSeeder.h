@@ -184,7 +184,7 @@ namespace OpenMS
 			TableIteratorType checkInPreviousScans_(const ScoredMZType&,  const UInt);
 			
 			/// check for matching cluster. called when there are several point cluster with similar masses.
-			bool checkForMatchingCluster_(const std::pair<TableIteratorType, TableIteratorType>&, UInt, TableIteratorType&);
+			bool checkForMatchingCluster_(const std::pair<TableIteratorType, TableIteratorType>&, const UInt, TableIteratorType&);
 							
 			/// Maps m/z to sets of peaks 
 		  TableType iso_map_;

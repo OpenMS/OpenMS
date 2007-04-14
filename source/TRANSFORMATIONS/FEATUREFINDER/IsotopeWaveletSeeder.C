@@ -159,8 +159,9 @@ namespace OpenMS
 	{
 		#ifdef DEBUG_FEATUREFINDER
 		std::cout << "Precomputing the Gamma function ...";
-		preComputedGamma_.clear();
 		#endif
+		
+		preComputedGamma_.clear();
 		
 		double query = 0;
 		UInt counter=0;
@@ -301,27 +302,24 @@ namespace OpenMS
 	
 	
 	IsotopeWaveletSeeder::ScoredMZVector IsotopeWaveletSeeder::identifyCharge_(const std::vector<DPeakArray<1, PeakType > >& candidates, 
-	                                                                                                                     std::vector<double>* wt_thresholds, 
-																																								                                       SpectrumType& scan)
+	                                                                                                                     const std::vector<double>* wt_thresholds, 
+																																								                                       const SpectrumType& scan)
 	{
-		std::vector<IntensityType> int_mins (candidates[0].size(),INT_MIN), zeros (candidates[0].size(),0);
+		std::vector<IntensityType> zeros (candidates[0].size(),0);
 		WaveletCollection scoresC (candidates.size(), zeros);
 		
 		ScoredMZVector scmzvec;	// container of scored mz positions
 			
 		std::vector<UInt> start_indices, end_indices;
 		
-		// In order to determine the start and end indices, we first need to know the width of the region one should consider
-		// to estimate the mean and the sd of the pattern candidate.
-		// That region is defined by the position of the highest amplitude +/- waveletLength_.
-			
 		TempContainerType::iterator iter;
-		UInt start_index, end_index, c_index = 0; 															// Helping variables
+		UInt start_index, end_index = 0;
+		Int c_index = 0; 																																		// Helping variables
 		CoordinateType seed_mz, c_check_point, c_val = 0.0;
 		IntensityType c_av_intens = 0.0;																						// mean of intensities in cwt								
 		std::vector<bool> processed (candidates[0].size(), false);
 		std::pair<Int, Int> c_between;
-		Int start, end, goto_left = 0;
+		Int start, end = 0;
 	
 		Int last_end_index = 0;								  // remember index of last isotopic pattern in cwt vector	
 		ProbabilityType local_fstat = 0.0;		// remember last value of F-statistic
@@ -357,10 +355,11 @@ namespace OpenMS
 			CoordinateType current_rt = scan.getRT();
 			String filename = String("isowavcwt_") + current_rt + "_charge_" + (c+1);
 			std::ofstream outfile(filename.c_str());
-			TempContainerType::iterator write_iter;
-			for (write_iter=c_candidate.begin(); write_iter != c_candidate.end(); ++write_iter)
+			for (DPeakArray<1, PeakType >::const_iterator write_iter=candidates[c].begin(); 
+						write_iter != candidates[c].end(); 
+						++write_iter)
 			{
-				outfile << write_iter->getPosition().getX() << " " << write_iter->getIntensity() << std::endl;
+				outfile << write_iter->getMZ() << " " << write_iter->getIntensity() << std::endl;
 			}
 			outfile.close();
 			#endif
@@ -378,25 +377,28 @@ namespace OpenMS
 				 continue;			   
 				}
 				
-				start_index = c_index-waveletLength_-1;
-				end_index = c_index+waveletLength_+1;
+				start_index = (c_index - (Int) waveletLength_-1) > 0 ? (c_index - (Int) waveletLength_-1) : 0 ;
+				end_index = (c_index+waveletLength_+1) < candidates[c].size() ? (c_index+waveletLength_+1) : (candidates[c].size() - 1) ;
 				seed_mz=iter->getPosition().getX();	// m/z is still X coordinate
 	
+// 				cout << start_index << " " << end_index << endl;
+				
 				//Catch impossible cases
 				if (end_index >= candidates[c].size() || start_index > end_index) 
 				{
+// 					cout << "end_index >= candidates[c].size() || start_index > end_index" << endl;
+// 					cout << start_index << " " << end_index << endl;
 				 	continue;
 				}  
 				//Mark as processed
 				for (UInt z=start_index; z<=end_index; ++z) processed[z] = true;				
 	
 				start=(-2*(peak_cut_off_ - 1))+1, end=(2*(peak_cut_off_ - 1))-1;
-				goto_left = c_index - waveletLength_ - 1;
 													
 				for (Int v=start; v<=end; ++v)
 				{							
 					c_check_point = seed_mz+v*0.5/((double)c+1);
-					c_between = getNearBys_(scan, c_check_point, goto_left);
+					c_between = getNearBys_(scan, c_check_point, start_index);
 					
 					if (c_between.first < 0 || c_between.second < 0) 
 					{
@@ -423,15 +425,16 @@ namespace OpenMS
 						scoresC[c][c_index] += c_val;
 					}
 				} // end for (Int v=start; v<=end; ++v)
-	
+					
 				if (scoresC[c][c_index] <= intensity_factor_*iter->getIntensity())
 				{
 					scoresC[c][c_index] = 0;
 				}
-										
+				
 				// recompute local variance only if last pattern is more than 5 indizes away
 				if (c_between.first < (last_end_index + 5 ) &&
 				    c_between.first > (last_end_index - 5 ) &&
+						scoresC[c][c_index] != 0 &&
             local_fstat > 0 )
 				{
 					scoresC[c][c_index] *= local_fstat;
@@ -443,13 +446,9 @@ namespace OpenMS
 					scoresC[c][c_index] *= local_fstat;
 					last_end_index = c_between.first;
 				}
-				
-				
-											
+																								
 			} // end for (iter=c_candidate.begin();...)
-		
-		
-			
+						
 			++charge_iter;
 		} // end of for (unsigned int c=0; c<candidates.size(); ++c)
 			

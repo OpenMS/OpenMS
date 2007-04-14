@@ -120,8 +120,9 @@ namespace OpenMS
         seed = *citer;
         max_intensity = traits_->getPeakIntensity(seed);						
 			}
+			 traits_->getPeakFlag(*citer) = FeaFiTraits::INSIDE_BOUNDARY;
     }
-    traits_->getPeakFlag(seed) = FeaFiTraits::INSIDE_BOUNDARY;
+   
     		
 		// remember last extracted point (in this case the seed !)
 		last_pos_extracted_[RawDataPoint2D::RT] = traits_->getPeakRt(seed);
@@ -165,10 +166,8 @@ namespace OpenMS
 			// Add position to the current average of positions weighted by intensity
 			running_avg_.add(last_pos_extracted_,traits_->getPeakIntensity(current_index));
 			
-			#ifdef DEBUG_FEATUREFINDER
-			cout << "Size of boundary: " << boundary_.size() << endl;
-			#endif
-			
+// 			cout << "Size of boundary: " << boundary_.size() << endl;
+						
 			// explore neighbourhood of current peak
 			moveMzUp_(current_index);
 			moveMzDown_(current_index);
@@ -180,10 +179,10 @@ namespace OpenMS
 			{
 				traits_->getPeakFlag(current_index) = FeaFiTraits::INSIDE_FEATURE;
 				region_.insert(current_index);
-				#ifdef DEBUG_FEATUREFINDER
-				cout << "Adding " << traits_->getPeakRt(current_index) << " " << traits_->getPeakMz(current_index) << " to region." << endl;
-	 			cout << "Intensity of the added point is : " << traits_->getPeakIntensity(current_index) << endl;
-				#endif
+// 				#ifdef DEBUG_FEATUREFINDER
+// 				cout << "Adding " << traits_->getPeakRt(current_index) << " " << traits_->getPeakMz(current_index) << " to region." << endl;
+// 	 			cout << "Intensity of the added point is : " << traits_->getPeakIntensity(current_index) << endl;
+// 				#endif
 			}
     } // end of while ( !boundary_.empty() )
 
