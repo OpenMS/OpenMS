@@ -39,13 +39,16 @@ namespace OpenMS
 {
 	using namespace Internal;
 	
-	Spectrum3DCanvas::Spectrum3DCanvas(QWidget* parent)
-		: SpectrumCanvas(parent)
+	Spectrum3DCanvas::Spectrum3DCanvas(const Param& preferences, QWidget* parent)
+		: SpectrumCanvas(preferences, parent)
 	{  
 		setFocusPolicy(Qt::TabFocus);
 		openglcanvas_= new Spectrum3DOpenGLCanvas(this, *this);
 		action_mode_ = AM_ZOOM;
 		legend_shown_ = true;
+
+		//set preferences and update widgets acoordningly
+		openglwidget()->gradient_.fromString(getPrefAsString("Preferences:3D:Dot:Gradient"));
 	}
 		
 	Spectrum3DCanvas::~Spectrum3DCanvas()
@@ -213,8 +216,7 @@ namespace OpenMS
 	
 	void Spectrum3DCanvas::setMainPreferences(const Param& prefs)
 	{
-		SpectrumCanvas::setMainPreferences(prefs);
-		openglwidget()->gradient_.fromString(getPrefAsString("Preferences:3D:Dot:Gradient"));
+
 	}
 	
 	PreferencesDialogPage * Spectrum3DCanvas::createPreferences(QWidget* parent)

@@ -45,13 +45,14 @@ namespace OpenMS
 		
 		@ingroup SpectrumWidgets
 	*/
-	class Spectrum1DWidget : public SpectrumWidget
+	class Spectrum1DWidget 
+		: public SpectrumWidget
 	{
 		Q_OBJECT
 		
 	public:
 		/// Default constructor
-		Spectrum1DWidget(QWidget* parent = 0);
+		Spectrum1DWidget(const Param& preferences, QWidget* parent = 0);
 		///Destructor
 		virtual ~Spectrum1DWidget();
 		
@@ -60,9 +61,6 @@ namespace OpenMS
 		{
 			return static_cast<Spectrum1DCanvas*>(canvas_);
 		}
-		
-		// Docu in base class
-		virtual PreferencesDialogPage* createPreferences(QWidget* parent);
 	
 	signals:
 		/// Is emitted whenever the visible area changes.		

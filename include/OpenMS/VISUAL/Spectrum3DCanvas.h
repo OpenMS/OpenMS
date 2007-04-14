@@ -52,7 +52,7 @@ namespace OpenMS
     
 	  public:
 	    /// Constructor
-	    Spectrum3DCanvas(QWidget* parent = 0);	
+	    Spectrum3DCanvas(const Param& preferences, QWidget* parent = 0);	
 	    /// Destructor
 	    virtual  ~Spectrum3DCanvas();
 	    

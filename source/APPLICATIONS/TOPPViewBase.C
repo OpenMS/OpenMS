@@ -311,7 +311,7 @@ namespace OpenMS
       {
       	//cout << "NEW 1D" << endl;
         // create 1D window
-        w = new Spectrum1DWidget(ws_);
+        w = new Spectrum1DWidget(param_, ws_);
 
         //determine Spectrum id
         con.executeQuery("SELECT id from DATA_Spectrum where fid_MSExperiment='"+db_id_string+"' and MSLevel='1'",result);
@@ -330,7 +330,7 @@ namespace OpenMS
         {
           //cout << "NEW 2D" << endl;
           //create 2D window
-          w = new Spectrum2DWidget(ws_);
+          w = new Spectrum2DWidget(param_, ws_);
 
           //load spectrum
           exp = &(w->canvas()->addEmptyPeakLayer());
@@ -341,14 +341,13 @@ namespace OpenMS
         {
           //cout << "NEW 3D" << endl;
         	// create 3D window
-          w = new Spectrum3DWidget(ws_);
+          w = new Spectrum3DWidget(param_, ws_);
 
           //load data
           exp = &(w->canvas()->addEmptyPeakLayer());
           dba.loadExperiment(db_id, *exp);
         }
       }
-      w->setMainPreferences(getParameters());
     }
     //open in active window
     else
@@ -633,19 +632,16 @@ namespace OpenMS
     {
       if (force_type==FileHandler::DTA)
       {
-        w = new Spectrum1DWidget(ws_);
+        w = new Spectrum1DWidget(param_, ws_);
       }
       else if (maps_as_2d || force_type==FileHandler::FEATURE || force_type==FileHandler::FEATURE_PAIRS) //2d or features
       {
-        w = new Spectrum2DWidget(ws_);
+        w = new Spectrum2DWidget(param_, ws_);
       }
       else //3d
       {
-        w = new Spectrum3DWidget(ws_);
+        w = new Spectrum3DWidget(param_, ws_);
       }
-
-      //set main preferences
-      w->setMainPreferences(getParameters());
     }
     else //!as_new_window
     {
@@ -722,8 +718,7 @@ namespace OpenMS
       if (as_new_window && active1DWindow_()==0 && exp->size()==1)
       {
         delete(w);
-        w = new Spectrum1DWidget(ws_);
-        w->setMainPreferences(getParameters());
+        w = new Spectrum1DWidget(param_, ws_);
         exp = &(w->canvas()->addEmptyPeakLayer());
         FileHandler().loadExperiment(filename,*exp, force_type);
       }
@@ -1085,7 +1080,7 @@ namespace OpenMS
   {
     if (ws_->activeWindow())
     {
-			activeWindow_()->showPreferencesDialog();
+			activeWindow_()->canvas()->showPreferencesDialog();
     }
   }
 
@@ -2062,8 +2057,7 @@ namespace OpenMS
     	if (layer.type==LayerData::DT_PEAK)
     	{
     		//open new 3D widget
-    		Spectrum3DWidget* w = new Spectrum3DWidget(ws_);
-  			w->setMainPreferences(param_);
+    		Spectrum3DWidget* w = new Spectrum3DWidget(param_, ws_);
   			SpectrumCanvas::ExperimentType& out = w->canvas()->addEmptyPeakLayer();
   			
     		for (LayerData::ExperimentType::ConstIterator it=layer.peaks.RTBegin(area.min()[1]); it!=layer.peaks.RTBegin(area.max()[1]); ++it)
@@ -2112,8 +2106,7 @@ namespace OpenMS
     	if (layer.type==LayerData::DT_PEAK)
     	{
     		//open new 1D widget
-    		Spectrum1DWidget* w = new Spectrum1DWidget(ws_);
-  			w->setMainPreferences(param_);
+    		Spectrum1DWidget* w = new Spectrum1DWidget(param_, ws_);
   			w->canvas()->addEmptyPeakLayer().push_back(layer.peaks[index]);
   			String caption = layer.name + " (RT: " + layer.peaks[index].getRT() + ")";
   			w->canvas()->finishAdding(0.0);

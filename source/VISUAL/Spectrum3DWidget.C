@@ -28,7 +28,6 @@
 
 //OpenMS
 #include <OpenMS/VISUAL/Spectrum3DWidget.h>
-#include <OpenMS/VISUAL/DIALOGS/Spectrum3DWidgetPDP.h>
 #include <OpenMS/VISUAL/Spectrum3DCanvas.h>
 #include <OpenMS/VISUAL/Spectrum3DOpenGLCanvas.h>
 #include <OpenMS/VISUAL/AxisWidget.h>
@@ -43,10 +42,10 @@ namespace OpenMS
 	using namespace Internal;
 	using namespace Math;
 	
-	Spectrum3DWidget::Spectrum3DWidget(QWidget* parent)
-	  : SpectrumWidget(parent)		
+	Spectrum3DWidget::Spectrum3DWidget(const Param& preferences, QWidget* parent)
+	  : SpectrumWidget(preferences, parent)		
 	{
-		setCanvas_(new Spectrum3DCanvas(this));
+		setCanvas_(new Spectrum3DCanvas(preferences, this));
 		
 		x_axis_->hide();
 		y_axis_->hide();
@@ -56,13 +55,6 @@ namespace OpenMS
 	{
 	
 	}
-	
-	PreferencesDialogPage* Spectrum3DWidget::createPreferences(QWidget* parent)
-	{
-		PreferencesDialogPage* background = new Spectrum3DWidgetPDP(this, parent);
-		return background;
-	}
-	
 	
 	void Spectrum3DWidget::recalculateAxes_()
 	{

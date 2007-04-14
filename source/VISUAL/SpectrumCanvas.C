@@ -38,7 +38,7 @@ using namespace std;
 
 namespace OpenMS
 {	
-	SpectrumCanvas::SpectrumCanvas(QWidget* parent)
+	SpectrumCanvas::SpectrumCanvas(const Param& preferences, QWidget* parent)
 		: QWidget(parent),
 			buffer_(),
 			action_mode_(AM_ZOOM),
@@ -57,6 +57,10 @@ namespace OpenMS
 			snap_factor_(1.0),
 			rubber_band_(QRubberBand::Rectangle,this)
 	{
+		//copy main preferences
+		prefs_ = preferences;
+		
+		//Prefent filling background
 		setAttribute(Qt::WA_OpaquePaintEvent);
 		// get mouse coordinates while mouse moves over diagramm.	
 		setMouseTracking(TRUE);

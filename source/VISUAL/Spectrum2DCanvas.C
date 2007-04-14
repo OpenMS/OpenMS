@@ -50,19 +50,30 @@ namespace OpenMS
 {
 	using namespace Internal;
 
-	Spectrum2DCanvas::Spectrum2DCanvas(QWidget* parent)
-		: SpectrumCanvas(parent),
-		marching_squares_matrices_(),
-		max_values_(),
-		selected_peak_(0),
-		measurement_start_(0),
-		measurement_stop_(0),
-		tmp_peak_(),
-		dot_gradient_(),
-		surface_gradient_()
+	Spectrum2DCanvas::Spectrum2DCanvas(const Param& preferences, QWidget* parent)
+		: SpectrumCanvas(preferences, parent),
+			marching_squares_matrices_(),
+			max_values_(),
+			selected_peak_(0),
+			measurement_start_(0),
+			measurement_stop_(0),
+			tmp_peak_(),
+			dot_gradient_(),
+			surface_gradient_()
 	{
 		projection_mz_.resize(1);
 		projection_rt_.resize(1);
+		
+		//set preferences and update widgets acoordningly
+		surface_gradient_.fromString(getPrefAsString("Preferences:2D:Surface:Gradient"));
+		recalculateSurfaceGradient_();
+		dot_gradient_.fromString(getPrefAsString("Preferences:2D:Dot:Gradient"));
+		recalculateDotGradient_();
+		if (getPrefAsString("Preferences:2D:Mapping:MappingOfMzTo") != "X-Axis")
+		{
+			mzToXAxis(false);
+		}
+		
 	}
 	
 	Spectrum2DCanvas::~Spectrum2DCanvas()

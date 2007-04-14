@@ -26,7 +26,6 @@
 
 // OpenMS
 #include <OpenMS/VISUAL/Spectrum2DWidget.h>
-#include <OpenMS/VISUAL/DIALOGS/Spectrum2DWidgetPDP.h>
 #include <OpenMS/VISUAL/Spectrum2DCanvas.h>
 #include <OpenMS/VISUAL/AxisWidget.h>
 #include <OpenMS/VISUAL/DIALOGS/Spectrum2DGoToDialog.h>
@@ -42,27 +41,25 @@ namespace OpenMS
 	using namespace Internal;
 	using namespace Math;
 	
-	Spectrum2DWidget::Spectrum2DWidget(QWidget* parent)
-		: SpectrumWidget(parent)
+	Spectrum2DWidget::Spectrum2DWidget(const Param& preferences, QWidget* parent)
+		: SpectrumWidget(preferences, parent)
 	{
-		setCanvas_(new Spectrum2DCanvas(this),1,2);
+		setCanvas_(new Spectrum2DCanvas(preferences, this),1,2);
 		
 		// add axes
 		x_axis_->setLegend(String(RawDataPoint2D::shortDimensionName(RawDataPoint2D::MZ))+" ["+String(RawDataPoint2D::shortDimensionUnit(RawDataPoint2D::MZ))+"]");
 		y_axis_->setLegend(String(RawDataPoint2D::shortDimensionName(RawDataPoint2D::RT))+" ["+String(RawDataPoint2D::shortDimensionUnit(RawDataPoint2D::RT))+"]");
 		y_axis_->setMinimumWidth(50);
 		
-		addClient(canvas(), "Canvas", true);
-		
 		// add projetions
 		grid_->setColumnStretch(2,3);
 		grid_->setRowStretch(1,3);
 		
-		projection_vert_ = new 	Spectrum1DWidget(this);
+		projection_vert_ = new 	Spectrum1DWidget(preferences, this);
 		projection_vert_->hide();
 		grid_->addWidget(projection_vert_,1,3,2,1);
 		
-		projection_horz_ = new Spectrum1DWidget(this);
+		projection_horz_ = new Spectrum1DWidget(preferences, this);
 		projection_horz_->hide();
 		grid_->addWidget(projection_horz_,0,1,1,2);
 		connect(canvas(), SIGNAL(showProjectionHorizontal(const MSExperiment<>&, Spectrum1DCanvas::DrawModes)), this, SLOT(horizontalProjection(const MSExperiment<>&, Spectrum1DCanvas::DrawModes)));
@@ -153,12 +150,6 @@ namespace OpenMS
 		
 		return tmp;
 	}
-	
-	PreferencesDialogPage* Spectrum2DWidget::createPreferences(QWidget* parent)
-	{
-		PreferencesDialogPage* background = new Spectrum2DWidgetPDP(this,parent);
-		return background;
-	}
 
 	void Spectrum2DWidget::hideProjections()
 	{
@@ -171,7 +162,6 @@ namespace OpenMS
 	
 	void Spectrum2DWidget::horizontalProjection(const MSExperiment<>& exp, Spectrum1DCanvas::DrawModes mode)
 	{
-		projection_horz_->setMainPreferences(prefs_);
 		projection_horz_->mzToXAxis(true);
 		projection_horz_->showLegend(false);
 		projection_horz_->canvas()->setIntensityMode(SpectrumCanvas::IM_PERCENTAGE);
@@ -186,7 +176,6 @@ namespace OpenMS
 	
 	void Spectrum2DWidget::verticalProjection(const MSExperiment<>& exp, Spectrum1DCanvas::DrawModes mode)
 	{
-		projection_vert_->setMainPreferences(prefs_);
 		projection_vert_->mzToXAxis(false);
 		projection_vert_->showLegend(false);
 		projection_vert_->canvas()->setIntensityMode(SpectrumCanvas::IM_PERCENTAGE);

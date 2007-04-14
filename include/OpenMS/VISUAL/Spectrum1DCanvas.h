@@ -52,7 +52,8 @@ namespace OpenMS
 		
 		@ingroup SpectrumWidgets
 	*/
-	class Spectrum1DCanvas : public SpectrumCanvas
+	class Spectrum1DCanvas 
+		: public SpectrumCanvas
 	{
 		Q_OBJECT
 		
@@ -67,7 +68,7 @@ namespace OpenMS
 		};
 		
 		/// Default constructor
-		Spectrum1DCanvas(QWidget* parent = 0);
+		Spectrum1DCanvas(const Param& preferences, QWidget* parent = 0);
 		/// Destructor
 		virtual ~Spectrum1DCanvas();
 	

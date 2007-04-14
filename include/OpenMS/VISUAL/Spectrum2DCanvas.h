@@ -65,13 +65,14 @@ namespace OpenMS
 
   	@ingroup SpectrumWidgets
   */
-  class Spectrum2DCanvas : public SpectrumCanvas
+  class Spectrum2DCanvas 
+  	: public SpectrumCanvas
   {
       Q_OBJECT
 
     public:
       /// Default constructor
-      Spectrum2DCanvas(QWidget* parent = 0);
+      Spectrum2DCanvas(const Param& preferences, QWidget* parent = 0);
 
       /// Destructor
       ~Spectrum2DCanvas();

@@ -30,7 +30,6 @@
 //OpenMS
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/MATH/STATISTICS/Histogram.h>
-#include <OpenMS/VISUAL/PreferencesManager.h>
 #include <OpenMS/VISUAL/SpectrumCanvas.h>
 
 class QGridLayout;
@@ -59,14 +58,13 @@ namespace OpenMS
 		@ingroup SpectrumWidgets
 	*/
 	class SpectrumWidget 
-		: public QWidget,
-			public PreferencesManager
+		: public QWidget
 	{
 		Q_OBJECT
 
 		public:
 			/// Default constructor
-			SpectrumWidget(QWidget* parent = 0);
+			SpectrumWidget(const Param& preferences, QWidget* parent = 0);
 			/// Destructor
 			~SpectrumWidget();
 		
@@ -111,16 +109,10 @@ namespace OpenMS
 			/// SpectrumWidgetActionModes
 			void setActionMode(SpectrumCanvas::ActionModes mode);
 			
-			///Set the main Param object
-			void setMainPreferences(const Param& prefs);
-	
-			// Docu in base class
-			virtual PreferencesDialogPage* createPreferences(QWidget* parent)=0;
-			
 			/// Returns if the axis labels are shown
 			bool isLegendShown() const;
 	
-			/// Returns if the axis labels are shown
+			/// Shows/hides axis labels
 			void showLegend(bool show);
 	
 			/// Sets the intensity mode of the SpectrumCanvas

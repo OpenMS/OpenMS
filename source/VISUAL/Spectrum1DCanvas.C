@@ -46,9 +46,10 @@ namespace OpenMS
 	using namespace Math;
 	using namespace Internal;
 		
-	Spectrum1DCanvas::Spectrum1DCanvas(QWidget* parent)
-		: SpectrumCanvas(parent)
+	Spectrum1DCanvas::Spectrum1DCanvas(const Param& preferences, QWidget* parent)
+		: SpectrumCanvas(preferences, parent)
 	{
+		
 	}
 	
 	//change the current layer

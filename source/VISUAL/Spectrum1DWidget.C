@@ -27,7 +27,6 @@
 // OpenMS
 #include <OpenMS/VISUAL/Spectrum1DWidget.h>
 #include <OpenMS/VISUAL/AxisWidget.h>
-#include <OpenMS/VISUAL/DIALOGS/Spectrum1DWidgetPDP.h>
 #include <OpenMS/VISUAL/DIALOGS/Spectrum1DGoToDialog.h>
 
 using namespace std;
@@ -37,11 +36,11 @@ namespace OpenMS
 	using namespace Internal;
 	using namespace Math;
 	
-	Spectrum1DWidget::Spectrum1DWidget(QWidget* parent)
-		: SpectrumWidget(parent)
+	Spectrum1DWidget::Spectrum1DWidget(const Param& preferences, QWidget* parent)
+		: SpectrumWidget(preferences, parent)
 	{
 		//set the label mode for the axes  - side effect
-		setCanvas_(new Spectrum1DCanvas(this));
+		setCanvas_(new Spectrum1DCanvas(preferences, this));
 
 		x_axis_->setLegend("m/z");
 		x_axis_->setAllowShortNumbers(false);
@@ -105,12 +104,6 @@ namespace OpenMS
 	Spectrum1DWidget::~Spectrum1DWidget()
 	{
 		
-	}
-	
-	PreferencesDialogPage* Spectrum1DWidget::createPreferences(QWidget* parent)
-	{
-		PreferencesDialogPage* background = new Spectrum1DWidgetPDP(this, parent);
-		return background;
 	}
 
 	void Spectrum1DWidget::showGoToDialog()

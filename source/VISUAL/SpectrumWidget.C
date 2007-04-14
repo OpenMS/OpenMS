@@ -36,7 +36,7 @@ using namespace std;
 namespace OpenMS
 {
 	
-	SpectrumWidget::SpectrumWidget(QWidget* parent)
+	SpectrumWidget::SpectrumWidget(const Param& /*preferences*/, QWidget* parent)
 		: QWidget(parent),
 			canvas_(0)
 	{
@@ -73,8 +73,16 @@ namespace OpenMS
 		connect(y_scrollbar_, SIGNAL(valueChanged(int)), canvas_, SLOT(verticalScrollBarChange(int)));
 		connect(canvas_, SIGNAL(sendStatusMessage(std::string, OpenMS::UInt)),this, SIGNAL(sendStatusMessage(std::string, OpenMS::UInt)));
 		connect(canvas_, SIGNAL(sendCursorStatus(double,double,double)), this, SIGNAL(sendCursorStatus(double,double,double)));
-
-		addClient(canvas_,"Canvas",true);
+		
+		if (!canvas_->isMzToXAxis())
+		{
+			// swap legend text
+			std::string tmp = x_axis_->getLegend();
+			// and update axis with swapped legend text
+			x_axis_->setLegend(y_axis_->getLegend());
+			y_axis_->setLegend(tmp);
+		}
+		
 		canvas_->setSpectrumWidget(this);
 	}
 	
@@ -107,25 +115,7 @@ namespace OpenMS
 			intensityModeChange_();
 		}
 	}
-	
-	void SpectrumWidget::setMainPreferences(const Param& prefs)
-	{
-		prefs_ = prefs;
-		canvas()->setMainPreferences(prefs);
 		
-		x_axis_->showLegend(getPrefAsString("Preferences:Legend")=="Show");
-		y_axis_->showLegend(getPrefAsString("Preferences:Legend")=="Show");
-		
-		if (! canvas()->isMzToXAxis())
-		{
-			// swap legend text
-			std::string tmp = x_axis_->getLegend();
-			// and update axis with swapped legend text
-			x_axis_->setLegend(y_axis_->getLegend());
-			y_axis_->setLegend(tmp);
-		}
-	}
-	
 	void SpectrumWidget::showIntensityDistribution()
 	{
 		HistogramDialog dw(createIntensityDistribution_());

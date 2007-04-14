@@ -110,7 +110,7 @@ namespace OpenMS
 		//@}
 
 		/// Default constructor
-		SpectrumCanvas(QWidget* parent = 0);
+		SpectrumCanvas(const Param& preferences, QWidget* parent = 0);
 
 		/// Destructor
 		~SpectrumCanvas();

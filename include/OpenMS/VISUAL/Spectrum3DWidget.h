@@ -38,25 +38,24 @@ namespace OpenMS
 		
 		@ingroup SpectrumWidgets
 	*/
-	class Spectrum3DWidget:public SpectrumWidget
+	class Spectrum3DWidget
+		: public SpectrumWidget
 	{
 		Q_OBJECT		
 
 		public:	
 			///Constructor
-			Spectrum3DWidget(QWidget* parent = 0);
+			Spectrum3DWidget(const Param& preferences, QWidget* parent = 0);
 			
 			/// Destructor
 			virtual ~Spectrum3DWidget();
 			
-		/// This method is overwritten to make the class specific members accessable
-		inline Spectrum3DCanvas* canvas()
-		{
-			return static_cast<Spectrum3DCanvas*>(canvas_);
-		}
+			/// This method is overwritten to make the class specific members accessable
+			inline Spectrum3DCanvas* canvas()
+			{
+				return static_cast<Spectrum3DCanvas*>(canvas_);
+			}
 		
-			// Docu in base class
-			virtual PreferencesDialogPage* createPreferences(QWidget* parent);  
 			// Docu in base class
 			virtual void recalculateAxes_();
 			// Docu in base class

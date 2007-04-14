@@ -38,11 +38,8 @@ UIC_DIR=$(OPENMS_PATH)/include/OpenMS/$(DIRECTORY)/UIC
 CPP_SOURCES=\
 	PreferencesDialog.C\
 	PreferencesDialogPage.C\
-	Spectrum1DWidgetPDP.C\
 	Spectrum1DCanvasPDP.C\
-	Spectrum2DWidgetPDP.C\
 	Spectrum2DCanvasPDP.C\
-	Spectrum3DWidgetPDP.C\
   Spectrum3DCanvasPDP.C\
 	SaveImageDialog.C\
 	HistogramDialog.C\
@@ -56,11 +53,8 @@ CPP_SOURCES=\
 MOC_SOURCES=\
 	PreferencesDialog_moc.C\
 	PreferencesDialogPage_moc.C\
-	Spectrum1DWidgetPDP_moc.C\
 	Spectrum1DCanvasPDP_moc.C\
-	Spectrum2DWidgetPDP_moc.C\
 	Spectrum2DCanvasPDP_moc.C\
-	Spectrum3DWidgetPDP_moc.C\
 	Spectrum3DCanvasPDP_moc.C\
 	SaveImageDialog_moc.C\
 	DBSpectrumSelectorDialog_moc.C\
@@ -116,15 +110,6 @@ Spectrum2DCanvasPDP_moc.C:  $(HEADER_DIR)/Spectrum2DCanvasPDP.h
 
 Spectrum3DCanvasPDP_moc.C:  $(HEADER_DIR)/Spectrum3DCanvasPDP.h
 	$(MOC) $(HEADER_DIR)/Spectrum3DCanvasPDP.h -o Spectrum3DCanvasPDP_moc.C
-
-Spectrum2DWidgetPDP_moc.C:  $(HEADER_DIR)/Spectrum2DWidgetPDP.h
-	$(MOC) $(HEADER_DIR)/Spectrum2DWidgetPDP.h -o Spectrum2DWidgetPDP_moc.C
-
-Spectrum1DWidgetPDP_moc.C:  $(HEADER_DIR)/Spectrum1DWidgetPDP.h
-	$(MOC) $(HEADER_DIR)/Spectrum1DWidgetPDP.h -o Spectrum1DWidgetPDP_moc.C
-
-Spectrum3DWidgetPDP_moc.C:  $(HEADER_DIR)/Spectrum3DWidgetPDP.h
-	$(MOC) $(HEADER_DIR)/Spectrum3DWidgetPDP.h -o Spectrum3DWidgetPDP_moc.C
 
 FactoryProductDialog_moc.C:  $(HEADER_DIR)/FactoryProductDialog.h
 	$(MOC) $(HEADER_DIR)/FactoryProductDialog.h -o FactoryProductDialog_moc.C

@@ -64,13 +64,14 @@ namespace OpenMS
 		
 		@ingroup SpectrumWidgets
 	*/
-	class Spectrum2DWidget : public SpectrumWidget
+	class Spectrum2DWidget 
+		: public SpectrumWidget
 	{
 		Q_OBJECT
 	public:
 
 		/// Default constructor
-		Spectrum2DWidget(QWidget* parent = 0);
+		Spectrum2DWidget(const Param& preferences, QWidget* parent = 0);
 		/// Destructor
 		virtual ~Spectrum2DWidget();
 		
@@ -79,9 +80,6 @@ namespace OpenMS
 		{
 			return static_cast<Spectrum2DCanvas*>(canvas_);
 		}
-
-		// Docu in base class
-		virtual PreferencesDialogPage* createPreferences(QWidget* parent);
 
 		/// const reference to the horizontal projection
 		const Spectrum1DWidget* getHorizontalProjection() const;
