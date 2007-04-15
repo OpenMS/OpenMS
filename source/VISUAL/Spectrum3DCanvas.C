@@ -27,9 +27,9 @@
 //OpenMS
 #include <OpenMS/VISUAL/Spectrum3DCanvas.h>
 #include <OpenMS/VISUAL/Spectrum3DOpenGLCanvas.h>
-#include <OpenMS/VISUAL/DIALOGS/Spectrum3DCanvasPDP.h>
 #include <OpenMS/CONCEPT/Factory.h>
 #include <OpenMS/FILTERING/DATAREDUCTION/DataReducer.h>
+#include <OpenMS/VISUAL/DIALOGS/Spectrum3DPrefDialog.h>
 
 #include <QtGui/QResizeEvent>
 
@@ -42,13 +42,26 @@ namespace OpenMS
 	Spectrum3DCanvas::Spectrum3DCanvas(const Param& preferences, QWidget* parent)
 		: SpectrumCanvas(preferences, parent)
 	{  
+    //Paramater handling
+    defaults_.setValue("Dot:ShadeMode", 1);
+    defaults_.setValue("Dot:Gradient", "Linear|0,#efef00;11,#ffaa00;32,#ff0000;55,#aa00ff;78,#5500ff;100,#000000");
+    defaults_.setValue("Dot:InterpolationSteps",200);
+    defaults_.setValue("BackgroundColor", "#ffffff");
+    defaults_.setValue("AxesColor", "#000000");
+    defaults_.setValue("Dot:LineWidth",2);
+		defaults_.setValue("DisplayedPeaks",10000);
+		defaults_.setValue("ReductionMode","Max reduction");
+		setName("Spectrum3DCanvas");
+		defaultsToParam_();
+		setParameters(preferences);
+
 		setFocusPolicy(Qt::TabFocus);
 		openglcanvas_= new Spectrum3DOpenGLCanvas(this, *this);
 		action_mode_ = AM_ZOOM;
 		legend_shown_ = true;
 
 		//set preferences and update widgets acoordningly
-		openglwidget()->gradient_.fromString(getPrefAsString("Preferences:3D:Dot:Gradient"));
+		openglwidget()->gradient_.fromString(param_.getValue("Dot:Gradient"));
 	}
 		
 	Spectrum3DCanvas::~Spectrum3DCanvas()
@@ -81,7 +94,7 @@ namespace OpenMS
 		recalculateRanges_(1,0,2);
 		area_ = (getCurrentPeakData().getMaxRT()-getCurrentPeakData().getMinRT())*(getCurrentPeakData().getMaxMZ()-getCurrentPeakData().getMinMZ());
 	
-	 	if(getPrefAsString("Preferences:3D:ReductionMode")!="Off")
+	 	if(param_.getValue("ReductionMode")!="Off")
 	 	{
 			makeReducedDataSet();
 	 	}
@@ -120,13 +133,13 @@ namespace OpenMS
 	}
 	void Spectrum3DCanvas::makeReducedDataSet()
 	{
-		if(getPrefAsString("Preferences:3D:ReductionMode")=="Off")
+		if(param_.getValue("ReductionMode")=="Off")
 		{	
 	 		show_reduced_ = false;
 	 		recalculateRanges_(1,0,2);
 			return;
 		}
-		else if(getCurrentLayer().peaks.getSize() < (UInt)(getPrefAsInt("Preferences:3D:DisplayedPeaks")))
+		else if(getCurrentLayer().peaks.getSize() < (UInt)(param_.getValue("DisplayedPeaks")))
 		{
 			show_reduced_ = false;
 			recalculateRanges_(1,0,2);
@@ -136,17 +149,17 @@ namespace OpenMS
 		{
 			Param reduction_param;
 			show_reduced_ = true;
-			if(getPrefAsString("Preferences:3D:ReductionMode")=="Max reduction")
+			if(param_.getValue("ReductionMode")=="Max reduction")
 			{	
 				int reduction;
 				if(zoom_stack_.empty())
 				{
-					reduction = getCurrentLayer().peaks.getSize()/(UInt)(getPrefAsInt("Preferences:3D:DisplayedPeaks"));
+					reduction = getCurrentLayer().peaks.getSize()/(UInt)(param_.getValue("DisplayedPeaks"));
 				}
 				else
 				{
 					double new_area = (visible_area_.max_[0]-visible_area_.min_[0])*(visible_area_.max_[1]-visible_area_.min_[1]);
-					UInt needed_peak_number = (UInt)(getPrefAsInt("Preferences:3D:DisplayedPeaks")* area_ / new_area);
+					UInt needed_peak_number = (UInt)((Int)param_.getValue("DisplayedPeaks")* area_ / new_area);
 					if(needed_peak_number<getCurrentLayer().peaks.getSize())
 					{
 						reduction = getCurrentLayer().peaks.getSize()/needed_peak_number;
@@ -169,18 +182,18 @@ namespace OpenMS
 				}
 				reduction_param.setValue("Peaksperstep", reduction);
 				}
-			else if(getPrefAsString("Preferences:3D:ReductionMode")=="Sum reduction")
+			else if(param_.getValue("ReductionMode")=="Sum reduction")
 			{	
 				int peaks_per_rt = (int)floor(getCurrentLayer().peaks.getSize()/getCurrentLayer().peaks.size());
 				double reduction;
 				if(zoom_stack_.empty())
 				{
-					reduction = (double)getCurrentLayer().peaks.getSize()/(	(double)peaks_per_rt*(double)getPrefAsInt("Preferences:3D:DisplayedPeaks"));
+					reduction = (double)getCurrentLayer().peaks.getSize()/(	(double)peaks_per_rt*(double)param_.getValue("DisplayedPeaks"));
 				}
 				else
 				{
 					double new_area = (visible_area_.max_[0]-visible_area_.min_[0])*(visible_area_.max_[1]-visible_area_.min_[1]);
-					UInt needed_peak_number = (UInt)(getPrefAsInt("Preferences:3D:DisplayedPeaks")* area_ / new_area);
+					UInt needed_peak_number = (UInt)((Int)param_.getValue("DisplayedPeaks")* area_ / new_area);
 	 				if(needed_peak_number<getCurrentLayer().peaks.getSize())
 					{
 						reduction = (double)getCurrentLayer().peaks.getSize()/(	(double)peaks_per_rt* needed_peak_number);
@@ -213,16 +226,6 @@ namespace OpenMS
 			}
 		}
 	}
-	
-	void Spectrum3DCanvas::setMainPreferences(const Param& prefs)
-	{
-
-	}
-	
-	PreferencesDialogPage * Spectrum3DCanvas::createPreferences(QWidget* parent)
-	{
-		return new Spectrum3DCanvasPDP(this,parent);
-	}
 
 	void Spectrum3DCanvas::activateLayer(int layer_index)
 	{
@@ -232,12 +235,6 @@ namespace OpenMS
 		}
 		current_layer_ = layer_index;
 		emit layerActivated(this);
-		update_(__PRETTY_FUNCTION__);
-	}
-	
-	void Spectrum3DCanvas::repaintAll()
-	{
-		update_buffer_ = true;
 		update_(__PRETTY_FUNCTION__);
 	}
 	
@@ -275,18 +272,13 @@ namespace OpenMS
 	
 	////preferences////////////////////
 	
-	void Spectrum3DCanvas::setDotGradient(const std::string& gradient)
-	{
-		openglcanvas_->setDotGradient(gradient);
-	}
-	
 	Int Spectrum3DCanvas::getShadeMode()
 	{
-		if(prefs_.getValue("Preferences:3D:Dot:ShadeMode").isEmpty())
+		if(param_.getValue("Dot:ShadeMode").isEmpty())
 		{
 			return 0;
 		}
-		return Int(prefs_.getValue("Preferences:3D:Dot:ShadeMode"));
+		return Int(param_.getValue("Dot:ShadeMode"));
 	}
 
 	void Spectrum3DCanvas::update_(const char*
@@ -311,6 +303,17 @@ namespace OpenMS
 		openglwidget()->resizeGL(width(),height());	
 		openglwidget()->glDraw(); 
 		
+	}
+
+	void Spectrum3DCanvas::showCurrentLayerPreferences()
+	{
+		Internal::Spectrum3DPrefDialog dlg(this);
+
+		if (dlg.exec())
+		{
+			update_buffer_ = true;
+			update_(__PRETTY_FUNCTION__);
+		}
 	}
 
 }//namspace

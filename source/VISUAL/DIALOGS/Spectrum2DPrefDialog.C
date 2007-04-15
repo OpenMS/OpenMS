@@ -21,52 +21,26 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Marc Sturm $
+// $Maintainer: Marc Sturm$
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_VISUAL_DIALOGS_SPECTRUM2DCANVASPDP_H
-#define OPENMS_VISUAL_DIALOGS_SPECTRUM2DCANVASPDP_H
+// OpenMS includes
+#include <OpenMS/VISUAL/DIALOGS/Spectrum2DPrefDialog.h>
 
-#include <OpenMS/config.h>
-#include <OpenMS/VISUAL/DIALOGS/PreferencesDialogPage.h>
-
-class QSpinBox;
+using namespace std;
 
 namespace OpenMS
 {
-	class MultiGradientSelector;
-	class Spectrum2DCanvas;
-	class ColorSelector;
-
 	namespace Internal
 	{
-	
-		///Preferences dialog page of a Spectrum2DCanvas (internal use only)	
-		class Spectrum2DCanvasPDP: public PreferencesDialogPage
+		Spectrum2DPrefDialog::Spectrum2DPrefDialog(QWidget * parent)
+			: QDialog(parent)
 		{
-			Q_OBJECT
-			
-			public:
-				/// Constructor
-				Spectrum2DCanvasPDP( Spectrum2DCanvas* manager, QWidget* parent = 0);
-				///  Destructor
-				virtual ~Spectrum2DCanvasPDP();
-				// Docu in base class
-				virtual void load();
-				// Docu in base class
-				virtual void save();
-	
-			protected:
-				MultiGradientSelector* dot_gradient_;
-				MultiGradientSelector* surface_gradient_;
-			  QSpinBox* marching_squares_steps_;
-			  QSpinBox* contour_steps_;
-		};
-	
-	} //namespace Internal
-	
-} //namespace OpenMS
+			setupUi(this);
+		}
 
-#endif //OPENMS_VISUAL_DIALOGS_SPECTRUM2DCANVASPDP_H
+	} //namespace Internal
+}//namspace OpenMS
+
 
 

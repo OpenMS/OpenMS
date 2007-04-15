@@ -36,11 +36,6 @@ UIC_DIR=$(OPENMS_PATH)/include/OpenMS/$(DIRECTORY)/UIC
 
 
 CPP_SOURCES=\
-	PreferencesDialog.C\
-	PreferencesDialogPage.C\
-	Spectrum1DCanvasPDP.C\
-	Spectrum2DCanvasPDP.C\
-  Spectrum3DCanvasPDP.C\
 	SaveImageDialog.C\
 	HistogramDialog.C\
 	Spectrum1DGoToDialog.C\
@@ -48,14 +43,12 @@ CPP_SOURCES=\
 	OpenDialog.C\
 	DBSpectrumSelectorDialog.C\
 	ToolsDialog.C\
-	TOPPViewPrefDialog.C
+	TOPPViewPrefDialog.C\
+	Spectrum1DPrefDialog.C\
+	Spectrum2DPrefDialog.C\
+	Spectrum3DPrefDialog.C
 
 MOC_SOURCES=\
-	PreferencesDialog_moc.C\
-	PreferencesDialogPage_moc.C\
-	Spectrum1DCanvasPDP_moc.C\
-	Spectrum2DCanvasPDP_moc.C\
-	Spectrum3DCanvasPDP_moc.C\
 	SaveImageDialog_moc.C\
 	DBSpectrumSelectorDialog_moc.C\
 	HistogramDialog_moc.C\
@@ -63,7 +56,10 @@ MOC_SOURCES=\
 	Spectrum2DGoToDialog_moc.C\
 	OpenDialog_moc.C\
 	ToolsDialog_moc.C\
-	TOPPViewPrefDialog_moc.C
+	TOPPViewPrefDialog_moc.C\
+	Spectrum1DPrefDialog_moc.C\
+	Spectrum2DPrefDialog_moc.C\
+	Spectrum3DPrefDialog_moc.C
 
 SOURCES		= $(CPP_SOURCES) $(MOC_SOURCES)
 OBJECTS 	= $(SOURCES:.C=.o)
@@ -77,7 +73,7 @@ depend: uic_depend $(MOC_SOURCES)
 	@echo "" > .Dependencies
 	@$(CXX) -M  -fPIC -pedantic -Wno-long-long -Wno-deprecated  $(CPP_SOURCES) $(STD_CPP_INCLUDES) $(ADD_INCLUDES) $(OPENMS_INCLUDES)  >.Dependencies
 
-uic_depend: $(UIC_DIR)/Spectrum1DGoToDialogTemplate.h $(UIC_DIR)/Spectrum2DGoToDialogTemplate.h $(UIC_DIR)/OpenDialogTemplate.h $(UIC_DIR)/TOPPViewPrefDialogTemplate.h
+uic_depend: $(UIC_DIR)/Spectrum1DGoToDialogTemplate.h $(UIC_DIR)/Spectrum2DGoToDialogTemplate.h $(UIC_DIR)/OpenDialogTemplate.h $(UIC_DIR)/TOPPViewPrefDialogTemplate.h $(UIC_DIR)/Spectrum1DPrefDialogTemplate.h $(UIC_DIR)/Spectrum2DPrefDialogTemplate.h $(UIC_DIR)/Spectrum3DPrefDialogTemplate.h
 
 
 uic_clean:
@@ -99,21 +95,6 @@ include ../../config.mak
 
 ## MOC SOURCES
 
-AxisWidgetPDP_moc.C:  $(HEADER_DIR)/AxisWidgetPDP.h
-	$(MOC) $(HEADER_DIR)/AxisWidgetPDP.h -o AxisWidgetPDP_moc.C
-
-Spectrum1DCanvasPDP_moc.C:  $(HEADER_DIR)/Spectrum1DCanvasPDP.h
-	$(MOC) $(HEADER_DIR)/Spectrum1DCanvasPDP.h -o Spectrum1DCanvasPDP_moc.C
-
-Spectrum2DCanvasPDP_moc.C:  $(HEADER_DIR)/Spectrum2DCanvasPDP.h
-	$(MOC) $(HEADER_DIR)/Spectrum2DCanvasPDP.h -o Spectrum2DCanvasPDP_moc.C
-
-Spectrum3DCanvasPDP_moc.C:  $(HEADER_DIR)/Spectrum3DCanvasPDP.h
-	$(MOC) $(HEADER_DIR)/Spectrum3DCanvasPDP.h -o Spectrum3DCanvasPDP_moc.C
-
-FactoryProductDialog_moc.C:  $(HEADER_DIR)/FactoryProductDialog.h
-	$(MOC) $(HEADER_DIR)/FactoryProductDialog.h -o FactoryProductDialog_moc.C
-
 SaveImageDialog_moc.C:  $(HEADER_DIR)/SaveImageDialog.h
 	$(MOC) $(HEADER_DIR)/SaveImageDialog.h -o SaveImageDialog_moc.C
 
@@ -123,12 +104,6 @@ DBSpectrumSelectorDialog_moc.C:  $(HEADER_DIR)/DBSpectrumSelectorDialog.h
 HistogramDialog_moc.C:  $(HEADER_DIR)/HistogramDialog.h
 	$(MOC) $(HEADER_DIR)/HistogramDialog.h -o HistogramDialog_moc.C
 
-PreferencesDialog_moc.C:  $(HEADER_DIR)/PreferencesDialog.h
-	$(MOC) $(HEADER_DIR)/PreferencesDialog.h -o PreferencesDialog_moc.C	
-
-PreferencesDialogPage_moc.C:  $(HEADER_DIR)/PreferencesDialogPage.h
-	$(MOC) $(HEADER_DIR)/PreferencesDialogPage.h -o PreferencesDialogPage_moc.C
-
 ToolsDialog_moc.C:	$(HEADER_DIR)/ToolsDialog.h
 	$(MOC) $(HEADER_DIR)/ToolsDialog.h -o ToolsDialog_moc.C
 
@@ -136,6 +111,15 @@ ToolsDialog_moc.C:	$(HEADER_DIR)/ToolsDialog.h
 
 TOPPViewPrefDialog_moc.C: $(HEADER_DIR)/TOPPViewPrefDialog.h $(UIC_DIR)/TOPPViewPrefDialogTemplate.h
 	$(MOC) $(HEADER_DIR)/TOPPViewPrefDialog.h -o TOPPViewPrefDialog_moc.C
+
+Spectrum1DPrefDialog_moc.C: $(HEADER_DIR)/Spectrum1DPrefDialog.h $(UIC_DIR)/Spectrum1DPrefDialogTemplate.h
+	$(MOC) $(HEADER_DIR)/Spectrum1DPrefDialog.h -o Spectrum1DPrefDialog_moc.C
+
+Spectrum2DPrefDialog_moc.C: $(HEADER_DIR)/Spectrum2DPrefDialog.h $(UIC_DIR)/Spectrum2DPrefDialogTemplate.h
+	$(MOC) $(HEADER_DIR)/Spectrum2DPrefDialog.h -o Spectrum2DPrefDialog_moc.C
+
+Spectrum3DPrefDialog_moc.C: $(HEADER_DIR)/Spectrum3DPrefDialog.h $(UIC_DIR)/Spectrum3DPrefDialogTemplate.h
+	$(MOC) $(HEADER_DIR)/Spectrum3DPrefDialog.h -o Spectrum3DPrefDialog_moc.C
 
 Spectrum1DGoToDialog_moc.C:  $(HEADER_DIR)/Spectrum1DGoToDialog.h
 	$(MOC) $(HEADER_DIR)/Spectrum1DGoToDialog.h -o Spectrum1DGoToDialog_moc.C
@@ -150,6 +134,15 @@ OpenDialog_moc.C:  $(HEADER_DIR)/OpenDialog.h
 
 $(UIC_DIR)/TOPPViewPrefDialogTemplate.h: TOPPViewPrefDialog.ui
 	$(UIC) -o $(UIC_DIR)/TOPPViewPrefDialogTemplate.h TOPPViewPrefDialog.ui
+
+$(UIC_DIR)/Spectrum1DPrefDialogTemplate.h: Spectrum1DPrefDialog.ui
+	$(UIC) -o $(UIC_DIR)/Spectrum1DPrefDialogTemplate.h Spectrum1DPrefDialog.ui
+
+$(UIC_DIR)/Spectrum2DPrefDialogTemplate.h: Spectrum2DPrefDialog.ui
+	$(UIC) -o $(UIC_DIR)/Spectrum2DPrefDialogTemplate.h Spectrum2DPrefDialog.ui
+
+$(UIC_DIR)/Spectrum3DPrefDialogTemplate.h: Spectrum3DPrefDialog.ui
+	$(UIC) -o $(UIC_DIR)/Spectrum3DPrefDialogTemplate.h Spectrum3DPrefDialog.ui
 
 $(UIC_DIR)/Spectrum1DGoToDialogTemplate.h: Spectrum1DGoToDialog.ui
 	$(UIC) -o $(UIC_DIR)/Spectrum1DGoToDialogTemplate.h Spectrum1DGoToDialog.ui

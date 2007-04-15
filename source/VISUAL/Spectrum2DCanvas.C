@@ -27,10 +27,10 @@
 // OpenMS
 #include <OpenMS/VISUAL/Spectrum2DCanvas.h>
 #include <OpenMS/KERNEL/Feature.h>
-#include <OpenMS/VISUAL/DIALOGS/Spectrum2DCanvasPDP.h>
 #include <OpenMS/CONCEPT/TimeStamp.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/VISUAL/MSMetaDataExplorer.h>
+#include <OpenMS/VISUAL/DIALOGS/Spectrum2DPrefDialog.h>
 
 //STL
 #include <algorithm>	
@@ -61,19 +61,30 @@ namespace OpenMS
 			dot_gradient_(),
 			surface_gradient_()
 	{
+    //Paramater handling
+    defaults_.setValue("BackgroundColor", "#ffffff");
+    defaults_.setValue("MarchingSquaresSteps", 20);
+    defaults_.setValue("InterpolationSteps", 200);
+    defaults_.setValue("Dot:Gradient", "Linear|0,#efef00;7,#ffaa00;15,#ff0000;27,#aa00ff;55,#5500ff;100,#000000");
+    defaults_.setValue("Surface:Gradient", "Linear|0,#ffffff;7,#fdffcb;20,#ffb4b4;50,#d7cfff;100,#c1c1c1");
+    defaults_.setValue("Contour:Lines", 8);
+    defaults_.setValue("Mapping:MappingOfMzTo","X-Axis");
+		defaultsToParam_();
+		setName("Spectrum2DCanvas");
+		setParameters(preferences);
+
 		projection_mz_.resize(1);
 		projection_rt_.resize(1);
 		
 		//set preferences and update widgets acoordningly
-		surface_gradient_.fromString(getPrefAsString("Preferences:2D:Surface:Gradient"));
+		surface_gradient_.fromString(param_.getValue("Surface:Gradient"));
 		recalculateSurfaceGradient_();
-		dot_gradient_.fromString(getPrefAsString("Preferences:2D:Dot:Gradient"));
+		dot_gradient_.fromString(param_.getValue("Dot:Gradient"));
 		recalculateDotGradient_();
-		if (getPrefAsString("Preferences:2D:Mapping:MappingOfMzTo") != "X-Axis")
+		if (param_.getValue("Mapping:MappingOfMzTo") != "X-Axis")
 		{
 			mzToXAxis(false);
 		}
-		
 	}
 	
 	Spectrum2DCanvas::~Spectrum2DCanvas()
@@ -185,7 +196,7 @@ namespace OpenMS
 		
 	void Spectrum2DCanvas::calculateMarchingSquareMatrix_(UInt layer_index)
 	{
-		Int steps = getPrefAsInt("Preferences:2D:MarchingSquaresSteps");
+		Int steps = param_.getValue("MarchingSquaresSteps");
 		const double cell_width = visible_area_.width() / steps;
 		const double cell_height = visible_area_.height() / steps;
 		const double half_width = cell_width / 2.0f;
@@ -491,10 +502,10 @@ namespace OpenMS
 		painter.setPen(Qt::black);
 		
 		//intensity steps where lines are drawn (valid for all the layer)
-		float intensity_step = max_values_[layer_index] / getPrefAsInt("Preferences:2D:Contour:Lines");
+		float intensity_step = max_values_[layer_index] / (Int)param_.getValue("Contour:Lines");
 		
 		//calculate data/pixel width and height or a cell
-		Int steps = getPrefAsInt("Preferences:2D:MarchingSquaresSteps");
+		Int steps = param_.getValue("MarchingSquaresSteps");
 		Int pixel_width = width() / steps;
 		Int pixel_height = height() / steps;
 		float data_width = visible_area_.width() / steps;
@@ -691,7 +702,7 @@ namespace OpenMS
 		const uint image_line_diff = reinterpret_cast<QRgb*>(image.scanLine(1)) - image_start;
 
 		//calculate data/pixel width and height or a cell
-		Int steps = getPrefAsInt("Preferences:2D:MarchingSquaresSteps");
+		Int steps = param_.getValue("MarchingSquaresSteps");
 		Int pixel_width = width() / steps;
 		Int pixel_height = height() / steps;
 		float data_width = visible_area_.width() / steps;
@@ -828,13 +839,13 @@ namespace OpenMS
 		//cout << "recalculateDotGradient_" << endl;
 		if (intensity_mode_ == IM_LOG)
 		{
-			//cout << "LOG:" <<" "<< log(overall_data_range_.min()[2]) <<" "<< log(overall_data_range_.max()[2])<<" "<<getPrefAsInt("Preferences:2D:InterpolationSteps")<<endl;
-			dot_gradient_.activatePrecalculationMode(0, log(overall_data_range_.max()[2]+1), getPrefAsInt("Preferences:2D:InterpolationSteps"));
+			//cout << "LOG:" <<" "<< log(overall_data_range_.min()[2]) <<" "<< log(overall_data_range_.max()[2])<<" "<<param_.getValue("InterpolationSteps")<<endl;
+			dot_gradient_.activatePrecalculationMode(0, log(overall_data_range_.max()[2]+1), param_.getValue("InterpolationSteps"));
 		}
 		else
 		{
-			//cout << "NORMAL:" << overall_data_range_.min()[2] <<" "<< overall_data_range_.max()[2]<<" "<<getPrefAsInt("Preferences:2D:InterpolationSteps")<<endl;
-			dot_gradient_.activatePrecalculationMode(0, overall_data_range_.max()[2], getPrefAsInt("Preferences:2D:InterpolationSteps"));
+			//cout << "NORMAL:" << overall_data_range_.min()[2] <<" "<< overall_data_range_.max()[2]<<" "<<param_.getValue("InterpolationSteps")<<endl;
+			dot_gradient_.activatePrecalculationMode(0, overall_data_range_.max()[2], param_.getValue("InterpolationSteps"));
 		}	
 	}
 	
@@ -842,11 +853,11 @@ namespace OpenMS
 	{
 		if (intensity_mode_ == IM_LOG)
 		{
-			surface_gradient_.activatePrecalculationMode(0, log(overall_data_range_.max()[2]+1), getPrefAsInt("Preferences:2D:InterpolationSteps"));
+			surface_gradient_.activatePrecalculationMode(0, log(overall_data_range_.max()[2]+1), param_.getValue("InterpolationSteps"));
 		}
 		else
 		{
-			surface_gradient_.activatePrecalculationMode(0, overall_data_range_.max()[2], getPrefAsInt("Preferences:2D:InterpolationSteps"));		
+			surface_gradient_.activatePrecalculationMode(0, overall_data_range_.max()[2], param_.getValue("InterpolationSteps"));		
 		}	
 	}
 	
@@ -912,41 +923,6 @@ namespace OpenMS
 			emit showProjectionVertical(projection_mz_,Spectrum1DCanvas::DM_PEAKS);
 		}
 		showProjectionInfo(peak_count,intensity_sum);
-	}
-
-	
-	PreferencesDialogPage* Spectrum2DCanvas::createPreferences(QWidget* parent)
-	{
-		return new Spectrum2DCanvasPDP(this, parent);
-	}
-
-	
-	void Spectrum2DCanvas::setDotGradient(const string& gradient)
-	
-	{
-		prefs_.setValue("Preferences:2D:Dot:Gradient",gradient);
-		dot_gradient_.fromString(gradient);
-		recalculateDotGradient_();
-	}
-	
-	void Spectrum2DCanvas::setSurfaceGradient(const string& gradient)
-	{
-		prefs_.setValue("Preferences:2D:Surface:Gradient",gradient);
-		surface_gradient_.fromString(gradient);
-		recalculateSurfaceGradient_();
-	}
-	
-	void Spectrum2DCanvas::setMainPreferences(const Param& prefs)
-	{
-		SpectrumCanvas::setMainPreferences(prefs);
-		surface_gradient_.fromString(getPrefAsString("Preferences:2D:Surface:Gradient"));
-		recalculateSurfaceGradient_();
-		dot_gradient_.fromString(getPrefAsString("Preferences:2D:Dot:Gradient"));
-		recalculateDotGradient_();
-		if (getPrefAsString("Preferences:2D:Mapping:MappingOfMzTo") != "X-Axis")
-		{
-			mzToXAxis(false);
-		}
 	}
 	
 	Int Spectrum2DCanvas::finishAdding(float low_intensity_cutoff)
@@ -1061,14 +1037,7 @@ namespace OpenMS
 		
 		update();
 	}
-	
-	void Spectrum2DCanvas::repaintAll()
-	{				
-		recalculateDotGradient_();
-		recalculateSurfaceGradient_();
-		SpectrumCanvas::repaintAll();
-	}
-	
+
 	void Spectrum2DCanvas::recalculateSnapFactor_()
 	{
 		if (intensity_mode_ == IM_SNAP) 
@@ -1204,7 +1173,7 @@ namespace OpenMS
 			//recalculate snap factor
 			recalculateSnapFactor_();
 			
-			buffer_.fill(QColor(getPrefAsString("Preferences:2D:BackgroundColor").c_str()).rgb());
+			buffer_.fill(QColor(param_.getValue("BackgroundColor").toQString()).rgb());
 			painter.begin(&buffer_);
 
 			for (UInt i=0; i<getLayerCount(); i++)
@@ -1713,5 +1682,18 @@ namespace OpenMS
 		e->accept();
 	}
 
-} //namespace
+	void Spectrum2DCanvas::showCurrentLayerPreferences()
+	{
+		Internal::Spectrum2DPrefDialog dlg(this);
+
+		if (dlg.exec())
+		{
+			recalculateDotGradient_();
+			recalculateSurfaceGradient_();
+			update_buffer_ = true;
+			update_(__PRETTY_FUNCTION__);
+		}
+	}
+
+} //namespace OpenMS
 

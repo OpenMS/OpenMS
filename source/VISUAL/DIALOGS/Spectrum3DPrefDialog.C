@@ -1,4 +1,3 @@
-
 // -*- Mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
@@ -22,51 +21,26 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer:Cornelia Friedle $
+// $Maintainer: Marc Sturm$
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_VISUAL_DIALOGS_SPECTRUM3DCANVASPDP_H
-#define OPENMS_VISUAL_DIALOGS_SPECTRUM3DCANVASPDP_H
+// OpenMS includes
+#include <OpenMS/VISUAL/DIALOGS/Spectrum3DPrefDialog.h>
 
-#include <OpenMS/config.h>
-#include <OpenMS/VISUAL/DIALOGS/PreferencesDialogPage.h>
-#include <QtGui/QRadioButton>
-class QSpinBox;
-class QComboBox;
+using namespace std;
 
 namespace OpenMS
 {
-  class ColorSelector;
-  class Spectrum3DCanvas;
-  class MultiGradientSelector;
-  
-  namespace Internal
-  {
-    
-    ///Preferences dialog page of a Spectrum3DCanvas (internal use only)	
-    class Spectrum3DCanvasPDP: public PreferencesDialogPage
-    {
-      Q_OBJECT
-      
-    public:
-      Spectrum3DCanvasPDP( Spectrum3DCanvas* manager, QWidget* parent = 0);
-      virtual ~Spectrum3DCanvasPDP();
-      virtual void load();
-      virtual void save();
-      
-    protected:
-      MultiGradientSelector* dot_gradient_;
-      QRadioButton* shade_mode_flat_;
-      QRadioButton* shade_mode_smooth_;
-      
-      QComboBox* data_reduction_;
-      QSpinBox* reduction_diplay_peaks_;
-   
-      QSpinBox* dot_line_width_;
-    };
-    
-  } //namespace Internal
-  
-} //namespace OpenMS
+	namespace Internal
+	{
+		Spectrum3DPrefDialog::Spectrum3DPrefDialog(QWidget * parent)
+			: QDialog(parent)
+		{
+			setupUi(this);
+		}
 
-#endif 
+	} //namespace Internal
+}//namspace OpenMS
+
+
+

@@ -84,7 +84,10 @@ Ideen:
 Todos:
 - make install mit prefix testen (Hiwi)
 
-TOPPViewBase -- Remove old PreferencesManager and PDPs, add preferences for layers
+Spectrum1DCanvas: fix highlighting of peaks in percentage mode
+Spectrum2DCanvas: add preferences for layers
+Spectrum3DCanvas: add preferences for layers, fix axis labels
+
 Spectrum2DCanvas -- Remove coordinate-data transformations
 MSExperiment -- Add getPrecursorRT(rt/scan nr) and update ID adapters and IDSpectrumMapper 
 String -- derive from QString

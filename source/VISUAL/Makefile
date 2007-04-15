@@ -43,8 +43,6 @@ CPP_SOURCES=\
 	MultiGradient.C\
 	MultiGradientSelector.C\
 	HistogramWidget.C\
-	PreferencesManager.C\
-	ListStack.C\
 	PeakIcon.C\
 	AxisTickCalculator.C\
 	DataTable.C\
@@ -69,7 +67,6 @@ MOC_SOURCES=\
 	ColorSelector_moc.C\
 	MultiGradientSelector_moc.C\
 	HistogramWidget_moc.C\
-	ListStack_moc.C\
 	DataTable_moc.C\
 	MSMetaDataExplorer_moc.C\
 	SpectrumCanvas_moc.C\

@@ -73,16 +73,12 @@ namespace OpenMS
 	    };
 	    //@}
 	    
-	    // Docu in base class
-	    virtual PreferencesDialogPage* createPreferences(QWidget* parent);
-	    
 	    ///returns the Spectrum3DOpenGLcanvas     
 	    Spectrum3DOpenGLCanvas* openglwidget();
 
 			// Docu in base class
 	    Int finishAdding(float low_intensity_cutoff = 0);
-		  // Docu in base class
-	    virtual void setMainPreferences(const Param& prefs);
+	    
 			// Docu in base class
 			virtual void intensityModeChange_();
 			/**
@@ -96,12 +92,8 @@ namespace OpenMS
 			*/
 			virtual void changeVisibleArea_(const AreaType& new_area, bool add_to_stack = false);
 
-			///sets the Dot Gradient for Color
-	    void setDotGradient(const std::string& gradient);
 	    ///returns the ShadeModes flat or smooth
 	    Int getShadeMode();
-	    ///Docu in base class
-	    void repaintAll();
 	    ///QT resizeEvent
 	    void resizeEvent(QResizeEvent * e);
 	    ///whether the legend is shoen or not
@@ -110,7 +102,10 @@ namespace OpenMS
 	    Spectrum3DOpenGLCanvas* openglcanvas_;
 			///makes the reduced datasets using sumreducer or maxreducer
 	    void makeReducedDataSet();
-
+			
+			// docu in base class
+			virtual void showCurrentLayerPreferences();
+			
 		public slots:
 	    // Docu in base class
 	    void activateLayer(int layer_index);

@@ -33,9 +33,9 @@
  
 // OpenMS
 #include <OpenMS/VISUAL/PeakIcon.h>
+#include <OpenMS/VISUAL/DIALOGS/Spectrum1DPrefDialog.h>
 #include <OpenMS/MATH/MISC/MathFunctions.h>
 #include <OpenMS/VISUAL/Spectrum1DCanvas.h>
-#include <OpenMS/VISUAL/DIALOGS/Spectrum1DCanvasPDP.h>
 #include <OpenMS/FORMAT/PeakTypeEstimator.h>
 #include <OpenMS/CONCEPT/TimeStamp.h>
 
@@ -49,7 +49,15 @@ namespace OpenMS
 	Spectrum1DCanvas::Spectrum1DCanvas(const Param& preferences, QWidget* parent)
 		: SpectrumCanvas(preferences, parent)
 	{
-		
+
+    //Paramater handling
+    defaults_.setValue("HighColor", "#ff0000");
+    defaults_.setValue("IconColor", "#000000");
+    defaults_.setValue("PeakColor", "#0000ff");
+    defaults_.setValue("BackgroundColor", "#ffffff");
+		defaultsToParam_();
+		setName("Spectrum1DCanvas");
+		setParameters(preferences);
 	}
 	
 	//change the current layer
@@ -424,11 +432,6 @@ namespace OpenMS
 		return draw_modes_[current_layer_]; 
 	}
 	
-	void Spectrum1DCanvas::setMainPreferences(const Param& prefs)
-	{
-		SpectrumCanvas::setMainPreferences(prefs);
-	}
-	
 	void Spectrum1DCanvas::paintEvent(QPaintEvent* e)
 	{		
 #ifdef DEBUG_TOPPVIEW
@@ -451,11 +454,7 @@ namespace OpenMS
 			
 			painter.begin(&buffer_);
 
-			QPen icon_pen = QPen(QColor(getPrefAsString("Preferences:1D:IconColor").c_str()), 1);
-			QPen norm_pen = QPen(QColor(getPrefAsString("Preferences:1D:PeakColor").c_str()), 1);
-			painter.setPen(norm_pen);
-
-			buffer_.fill(QColor(getPrefAsString("Preferences:1D:BackgroundColor").c_str()).rgb());
+			buffer_.fill(QColor(param_.getValue("BackgroundColor").toQString()).rgb());
 
 			emit recalculateAxes();
 			paintGridLines_(painter);
@@ -466,6 +465,8 @@ namespace OpenMS
 			{
 				if (getLayer(i).visible)
 				{
+					QPen icon_pen = QPen(QColor(getLayer(i).param.getValue("IconColor").toQString()), 1);
+					painter.setPen(QPen(QColor(getLayer(i).param.getValue("PeakColor").toQString()), 1));
 					if (intensity_mode_ == IM_PERCENTAGE)
 					{
 						percentage_factor_ = overall_data_range_.max()[1]/getPeakData(i)[0].getMaxInt();
@@ -603,7 +604,7 @@ namespace OpenMS
 		//draw selected peak
 		if (selected_peak_!=currentPeakData_()[0].end())
 		{
-			painter.setPen(QPen(QColor(getPrefAsString("Preferences:1D:HighColor").c_str()), 2));		
+			painter.setPen(QPen(QColor(param_.getValue("HighColor").toQString()), 2));		
 			if (getDrawMode() == DM_PEAKS)
 			{
 				if (intensity_mode_==IM_LOG)
@@ -687,11 +688,6 @@ namespace OpenMS
 		}
 	
 		return result; 
-	}
-	
-	PreferencesDialogPage* Spectrum1DCanvas::createPreferences(QWidget* parent)
-	{
-		return new Spectrum1DCanvasPDP(this, parent);
 	}
 
 	Int Spectrum1DCanvas::finishAdding(float low_intensity_cutoff)
@@ -780,6 +776,33 @@ namespace OpenMS
 	{
 		changeVisibleArea_(value, value + (visible_area_.max()[0] - visible_area_.min()[0]));
 	}
+	
+	void Spectrum1DCanvas::showCurrentLayerPreferences()
+	{
+		Internal::Spectrum1DPrefDialog dlg(this);
+		
+		ColorSelector* peak_color = dlg.findChild<ColorSelector*>("peak_color");
+		ColorSelector* icon_color = dlg.findChild<ColorSelector*>("icon_color");
+		ColorSelector* bg_color = dlg.findChild<ColorSelector*>("bg_color");
+		ColorSelector* selected_color = dlg.findChild<ColorSelector*>("selected_color");
+		
+		peak_color->setColor(QColor(getCurrentLayer_().param.getValue("PeakColor").toQString()));
+		icon_color->setColor(QColor(getCurrentLayer_().param.getValue("IconColor").toQString()));
+		bg_color->setColor(QColor(param_.getValue("BackgroundColor").toQString()));
+		selected_color->setColor(QColor(param_.getValue("HighColor").toQString()));
+		
+		if (dlg.exec())
+		{
+			getCurrentLayer_().param.setValue("PeakColor",peak_color->getColor().name().toAscii().data());
+			getCurrentLayer_().param.setValue("IconColor",icon_color->getColor().name().toAscii().data());
+			param_.setValue("BackgroundColor",bg_color->getColor().name().toAscii().data());
+			param_.setValue("HighColor",selected_color->getColor().name().toAscii().data());
+			
+			update_buffer_ = true;
+			update_(__PRETTY_FUNCTION__);		
+		}
+	}
+
 
 }//Namespace
 

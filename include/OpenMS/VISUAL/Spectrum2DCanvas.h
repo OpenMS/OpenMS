@@ -40,11 +40,6 @@ class QWheelEvent;
 
 namespace OpenMS
 {
-  namespace Internal
-  {
-    class Spectrum2DCanvasPDP;
-  }
-
   /**
   	@brief Canvas for 2D-visualization of map data
 
@@ -89,35 +84,8 @@ namespace OpenMS
       */
       void print(QPainter& p, int width, int height);
 
-      /**
-      	@brief Sets the 2D dot gradient.
-
-      	Sets the color gradient for peaks shown as dots. Peaks are colored
-      	according to the gradient and their height, if the dot mode is set to
-      	DOT_GRADIENT.
-
-      	@param gradient A string containing the gradient description.
-      */
-      void setDotGradient(const std::string& gradient);
-
-      /**
-      	@brief Set 2D Surface gradient
-
-      	Sets the color gradient used to paint the averaged peak intensities
-      	in the background.
-
-      	@param gradient a string representation of the gradient
-      */
-      void setSurfaceGradient(const std::string& gradient);
-
-      // Docu in base class
-      virtual PreferencesDialogPage* createPreferences(QWidget* parent);
-
-      // Docu in base class
-      void setMainPreferences(const Param& prefs);
-
-      // Docu in base class
-      virtual void repaintAll();
+			// Docu in base class
+			virtual void showCurrentLayerPreferences();
 
     signals:
       /// Sets the data for the horizontal projection

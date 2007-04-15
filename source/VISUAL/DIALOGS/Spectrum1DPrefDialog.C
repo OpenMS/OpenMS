@@ -2,7 +2,7 @@
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
-//                   OpenMS Mass Spectrometry Framework
+//                   OpenMS Mass Spectrometry Framework 
 // --------------------------------------------------------------------------
 //  Copyright (C) 2003-2007 -- Oliver Kohlbacher, Knut Reinert
 //
@@ -21,63 +21,26 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Marc Sturm $
+// $Maintainer: Marc Sturm$
 // --------------------------------------------------------------------------
 
+// OpenMS includes
+#include <OpenMS/VISUAL/DIALOGS/Spectrum1DPrefDialog.h>
 
-#ifndef OPENMS_VISUAL_DIALOGS_PREFERENCESDIALOG_H
-#define OPENMS_VISUAL_DIALOGS_PREFERENCESDIALOG_H
-
-// QT
-#include <QtGui/QDialog>
-
-// STL
-#include <string>
-#include <vector>
+using namespace std;
 
 namespace OpenMS
 {
-	class PreferencesDialogPage;
-	class PreferencesManager;
-	class ListStack;
-	
-	/**
-		@brief Main dialog for the PreferencesManager classes.	
-		
-		@ingroup Dialogs
-	*/
-	class PreferencesDialog: public QDialog
+	namespace Internal
 	{
-		Q_OBJECT
+		Spectrum1DPrefDialog::Spectrum1DPrefDialog(QWidget * parent)
+			: QDialog(parent)
+		{
+			setupUi(this);
+		}
 
-		public:
-			///constructor
-			PreferencesDialog();
-			///destructor
-			virtual ~PreferencesDialog();
-
-
-			/// add a new PreferencesDailogPage
-			void addPage(std::string name, PreferencesDialogPage* page, PreferencesManager* creator, bool highlight, PreferencesManager* parent = 0);
-
-		protected slots:
-			/// ok button pressed
-			void ok_();
-			/// cancel button pressed
-			void cancel_();
-			/// apply button pressed
-			void apply_();
-			/// help button pressed
-			void help_();
-		
-		protected:
-			/// the ListStack in which the PreferencesDialogPages are displayed
-			ListStack* stack_;
-			/// a vector with pointers to all pages
-			std::vector<PreferencesDialogPage*> pages_;
-	};
-} // namespace OpenMS
+	} //namespace Internal
+}//namspace OpenMS
 
 
-#endif
 

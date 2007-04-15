@@ -101,13 +101,6 @@ namespace OpenMS
 			void keyPressEvent(QKeyEvent* e);
 			void keyReleaseEvent(QKeyEvent* e);
       //@}
-      
-			/**
-				 @brief Sets the 3D stick gradient.
-				 the dot mode is set to	DOT_GRADIENT.
-				 @param gradient A string containing the gradient description.
-			*/
-			void setDotGradient(const std::string& gradient);
 	
 			/// updates the min and max values of the intensity
 			void updateIntensityScale();

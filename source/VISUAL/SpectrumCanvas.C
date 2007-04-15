@@ -38,8 +38,9 @@ using namespace std;
 
 namespace OpenMS
 {	
-	SpectrumCanvas::SpectrumCanvas(const Param& preferences, QWidget* parent)
+	SpectrumCanvas::SpectrumCanvas(const Param& /*preferences*/, QWidget* parent)
 		: QWidget(parent),
+			DefaultParamHandler("SpectrumCanvas"),
 			buffer_(),
 			action_mode_(AM_ZOOM),
 			intensity_mode_(IM_NONE),
@@ -56,10 +57,7 @@ namespace OpenMS
 			percentage_factor_(1.0),
 			snap_factor_(1.0),
 			rubber_band_(QRubberBand::Rectangle,this)
-	{
-		//copy main preferences
-		prefs_ = preferences;
-		
+	{		
 		//Prefent filling background
 		setAttribute(Qt::WA_OpaquePaintEvent);
 		// get mouse coordinates while mouse moves over diagramm.	
@@ -288,11 +286,6 @@ namespace OpenMS
 		painter.restore();
 	}
 	
-	void SpectrumCanvas::setMainPreferences(const Param& prefs)
-	{
-		prefs_ = prefs;
-	}
-	
 	UInt SpectrumCanvas::activeLayerIndex() const
 	{
 		return current_layer_;	
@@ -302,6 +295,7 @@ namespace OpenMS
 	{
 		UInt newcount = getLayerCount()+1;
 		layers_.resize(newcount);
+		layers_.back().param = param_;
 		layers_.back().type = LayerData::DT_PEAK;
 		return layers_[newcount-1].peaks;
 	}
@@ -309,6 +303,7 @@ namespace OpenMS
 	Int SpectrumCanvas::addLayer(const ExperimentType& in)
 	{	
 		layers_.resize(getLayerCount()+1);
+		layers_.back().param = param_;
 		layers_.back().peaks = in;
 		layers_.back().type = LayerData::DT_PEAK;
 		return finishAdding();
@@ -317,6 +312,7 @@ namespace OpenMS
 	Int SpectrumCanvas::addLayer(const FeatureMapType& map, bool pairs)
 	{
 		layers_.resize(layers_.size()+1);
+		layers_.back().param = param_;
 		layers_.back().features = map;
 		if (pairs)
 		{
@@ -410,12 +406,6 @@ namespace OpenMS
 	double SpectrumCanvas::getSnapFactor()
 	{
 		return snap_factor_;
-	}
-
-	void SpectrumCanvas::repaintAll()
-	{
-		update_buffer_ = true;
-		update_(__PRETTY_FUNCTION__);
 	}
 
 	void SpectrumCanvas::recalculateSnapFactor_()

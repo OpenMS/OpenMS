@@ -29,9 +29,9 @@
 
 //OpenMS
 #include <OpenMS/CONCEPT/Types.h>
-#include <OpenMS/VISUAL/PreferencesManager.h>
 #include <OpenMS/DATASTRUCTURES/DRange.h>
 #include <OpenMS/VISUAL/LayerData.h>
+#include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 
 //QT
 #include <QtGui/QWidget>
@@ -49,9 +49,7 @@ namespace OpenMS
 	/**
 		@brief Base class for visualization canvas classes
 		
-		This class is the base class for the spectrum data views. It
-		derives from QScrollView, so scrollbars are provided. The viewing
-		area is also managed by this class.
+		This class is the base class for the spectrum data views.
 		
 		It also provides commonly used constants such as ActionModes or IntensityModes.
 		
@@ -63,8 +61,8 @@ namespace OpenMS
 		@ingroup SpectrumWidgets
 	*/
 	class SpectrumCanvas 
-		: public QWidget, 
-			public PreferencesManager
+		: public QWidget,
+			public DefaultParamHandler
 	{
 		Q_OBJECT
 	
@@ -347,14 +345,6 @@ namespace OpenMS
 		
 		/// Sets the mapping of m/z to axes
 		void mzToXAxis(bool mz_to_x_axis);
-		
-		/**
-			@brief Sets the preferences object
-			
-			Sets the preferences object for this spectrum view
-			@param prefs the preferences object
-		*/
-		virtual void setMainPreferences(const Param& prefs);		
 
 		/** 
 			@name Dataset handling methods
@@ -494,19 +484,14 @@ namespace OpenMS
 		const DRange<3>& getDataRange();	
 
 		/**
-			@brief Returns repaints the whole widget.
-			
-			Call this method after you changed the settings through the pulic interface of PreferencesManager
-			in order to notify the widget of the changes.
-		*/
-		virtual void repaintAll();	
-
-		/**
 			@brief Returns the intensity scaling factor for 'snap to maximum intensity mode'.
 			
 			@see snap_factor_
 		*/
 		double getSnapFactor();
+		
+		/// Shows the preferences dialog of the active layer
+		virtual void showCurrentLayerPreferences() = 0;
 		
 	public slots:
 		/**
@@ -580,8 +565,8 @@ namespace OpenMS
 
 		/// Triggers the update of the horizontal scrollbar
 		void updateHScrollbar(float,float,float,float);
-	protected:
 
+	protected:
 		inline LayerData& getLayer_(UInt index)
 		{
 			OPENMS_PRECONDITION(index < layers_.size(), "SpectrumCanvas::getLayer() index overflow");

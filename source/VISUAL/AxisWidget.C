@@ -46,7 +46,7 @@ namespace OpenMS
 	AxisWidget::AxisWidget(UInt alignment, const char* legend, QWidget* parent)
 		: QWidget( parent),
 		is_log_(false),
-		show_legend_(false),
+		show_legend_(true),
 		alignment_(alignment),
 		inverse_orientation_(false),
 		margin_(0),

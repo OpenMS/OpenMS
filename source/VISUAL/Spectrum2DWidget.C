@@ -55,11 +55,11 @@ namespace OpenMS
 		grid_->setColumnStretch(2,3);
 		grid_->setRowStretch(1,3);
 		
-		projection_vert_ = new 	Spectrum1DWidget(preferences, this);
+		projection_vert_ = new 	Spectrum1DWidget(Param(), this);
 		projection_vert_->hide();
 		grid_->addWidget(projection_vert_,1,3,2,1);
 		
-		projection_horz_ = new Spectrum1DWidget(preferences, this);
+		projection_horz_ = new Spectrum1DWidget(Param(), this);
 		projection_horz_->hide();
 		grid_->addWidget(projection_horz_,0,1,1,2);
 		connect(canvas(), SIGNAL(showProjectionHorizontal(const MSExperiment<>&, Spectrum1DCanvas::DrawModes)), this, SLOT(horizontalProjection(const MSExperiment<>&, Spectrum1DCanvas::DrawModes)));

@@ -2,7 +2,7 @@
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
-//                   OpenMS Mass Spectrometry Framework 
+//                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
 //  Copyright (C) 2003-2007 -- Oliver Kohlbacher, Knut Reinert
 //
@@ -21,47 +21,30 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Marc Sturm $
+// $Maintainer: Marc Sturm$
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_VISUAL_DIALOGS_SPECTRUM1DCANVASPDP_H
-#define OPENMS_VISUAL_DIALOGS_SPECTRUM1DCANVASPDP_H
 
-#include <OpenMS/config.h>
-#include <OpenMS/VISUAL/DIALOGS/PreferencesDialogPage.h>
+#ifndef OPENMS_VISUAL_DIALOGS_SPECTRUM3DPREFDIALOG_H
+#define OPENMS_VISUAL_DIALOGS_SPECTRUM3DPREFDIALOG_H
 
-namespace OpenMS
+#include <OpenMS/VISUAL/DIALOGS/UIC/Spectrum3DPrefDialogTemplate.h>
+
+namespace OpenMS 
 {
-	class ColorSelector;
-	class Spectrum1DCanvas;
-	
 	namespace Internal
 	{
-	
-		///Preferences dialog page of a Spectrum1DCanvas widget (internal use only)	
-		class Spectrum1DCanvasPDP: public PreferencesDialogPage
+		///Preferences dialog for TOPPView
+		class Spectrum3DPrefDialog
+			: public QDialog,
+	  		public Ui::Spectrum3DPrefDialogTemplate
 		{
 			Q_OBJECT
 			
 			public:
-				/// Constructor
-				Spectrum1DCanvasPDP( Spectrum1DCanvas* manager, QWidget* parent = 0);
-				/// Destructor
-				virtual ~Spectrum1DCanvasPDP();
-				// Docu in base class
-				virtual void load();
-				// Docu in base class
-				virtual void save();
-			
-			protected:
-				ColorSelector* peak_color_;
-				ColorSelector* high_color_; // color of highlighted peak
-				ColorSelector* icon_color_;
+				Spectrum3DPrefDialog(QWidget * parent);
 		};
-		
-	} //namespace Internal
-	
-} //namespace OpenMS
-
-#endif //OPENMS_VISUAL_DIALOGS_SPECTRUM1DCANVASPDP_H
+	}
+}
+#endif // OPENMS_VISUAL_DIALOGS_SPECTRUM3DPREFDIALOG_H
 
