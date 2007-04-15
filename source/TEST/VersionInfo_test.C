@@ -39,9 +39,12 @@ START_TEST(VersionInfo, "$Id$")
 
 using namespace OpenMS;
 
-CHECK(static const char* getVersion() throw())
-	TEST_NOT_EQUAL(VersionInfo::getVersion(), 0)
-	TEST_EQUAL(std::string(VersionInfo::getVersion(), strlen(PACKAGE_VERSION)), PACKAGE_VERSION)
+CHECK(static String getVersionAndTime())
+	TEST_EQUAL(VersionInfo::getVersionAndTime().hasPrefix(PACKAGE_VERSION),true)
+RESULT
+
+CHECK(static String getVersion() throw())
+	TEST_EQUAL(VersionInfo::getVersion(), PACKAGE_VERSION)
 RESULT
 
 CHECK(static int getMajorRevision())

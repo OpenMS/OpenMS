@@ -31,7 +31,8 @@
 
 namespace OpenMS
 {
-
+	class String;
+	
 	/**	
 		@brief Version information class.
 		
@@ -46,19 +47,17 @@ namespace OpenMS
 	{
 		public:
 
-		/** Return the version number, which is defined in PACKAGE_VERSION
-		*/
-		static const char* getVersion() throw();
+		///Return the version number and the build time of OpenMS
+		static String getVersionAndTime();
 
-		/** Return the major revision number.
-				The part of the release number before the first dot.
-		*/
-		static int getMajorRevision();
+		///Return the version number of OpenMS
+		static String getVersion();
 
-		/** Return the minor revision number.
-				The part of the release number after the first and before the second dot.
-		*/
-		static int getMinorRevision();
+		/// Return the major revision number. The part of the release number before the dot.
+		static Int getMajorRevision();
+
+		///Return the minor revision number. The part of the release number after the dot.
+		static Int getMinorRevision();
 	};
 	
 }

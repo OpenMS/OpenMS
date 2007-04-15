@@ -24,19 +24,25 @@
 // $Maintainer: Marc Sturm $
 // --------------------------------------------------------------------------
 #include <OpenMS/CONCEPT/VersionInfo.h>
+#include <OpenMS/DATASTRUCTURES/String.h>
 
 namespace OpenMS
 {
 
-	const char* VersionInfo::getVersion() throw()
+	String VersionInfo::getVersionAndTime()
 	{
 		return PACKAGE_VERSION " ("__DATE__", " __TIME__ ")";
 	}
 
-	int VersionInfo::getMajorRevision()
+	String VersionInfo::getVersion()
+	{
+		return PACKAGE_VERSION;
+	}
+
+	Int VersionInfo::getMajorRevision()
 	{
 		static std::string release(PACKAGE_VERSION);
-		static int major = -1;
+		static Int major = -1;
 		if (major < 0)
 		{
 			size_t first_dot = release.find(".");
@@ -46,10 +52,10 @@ namespace OpenMS
 		return major;
 	}
 	
-	int VersionInfo::getMinorRevision()
+	Int VersionInfo::getMinorRevision()
 	{
 		static std::string release(PACKAGE_VERSION);
-		static int minor = -1;
+		static Int minor = -1;
 		if (minor < 0)
 		{
 			size_t first_dot = release.find(".");

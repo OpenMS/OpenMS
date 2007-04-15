@@ -56,6 +56,7 @@
 #include <OpenMS/FORMAT/AnalysisXMLFile.h>
 #include <OpenMS/VISUAL/ColorSelector.h>
 #include <OpenMS/VISUAL/MultiGradientSelector.h>
+#include <OpenMS/CONCEPT/VersionInfo.h>
 
 //Qt
 #include <QtGui/QToolBar>
@@ -258,6 +259,8 @@ namespace OpenMS
     defaults_.setValue("Preferences:3D:Dot:LineWidth",2);
 		defaults_.setValue("Preferences:3D:DisplayedPeaks",10000);
 		defaults_.setValue("Preferences:3D:ReductionMode","Max reduction");
+		
+		defaults_.setValue("Preferences:Version","none");
 		
 		subsections_.push_back("Preferences:RecentFiles");
 		
@@ -1776,7 +1779,16 @@ namespace OpenMS
     {
     	Param tmp;
     	tmp.load(filename);
-      setParameters(tmp);
+    	//apply preferences if they are of the current TOPPView version
+    	if(tmp.getValue("Preferences:Version").toString()==VersionInfo::getVersion())
+    	{
+      	setParameters(tmp);
+    	}
+    	else
+    	{
+    		cout << "The preferences files '" << filename  
+    		     << "' is replaced as it is not of the current TOPPView version." << endl;
+    	}
     }
     else
     {
@@ -1810,7 +1822,10 @@ namespace OpenMS
     {
       param_.setValue("Preferences:RecentFiles:"+String(i),recent_files_[i].toStdString());
     }
-
+		
+		//set version
+		param_.setValue("Preferences:Version",VersionInfo::getVersion());
+		
     //save only the subsection that begins with "Preferences:"
     try
     {

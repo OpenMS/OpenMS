@@ -326,7 +326,7 @@ namespace OpenMS
 		//common output
 		cerr << endl
 	       << tool_name_ << " -- " << tool_description_ << endl
-	       << "Version: " << VersionInfo::getVersion() << endl
+	       << "Version: " << VersionInfo::getVersionAndTime() << endl
 	       << endl
 	       << "Usage:" << endl
 				 << "  " << tool_name_ << " <options>" << endl
