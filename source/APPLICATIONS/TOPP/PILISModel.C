@@ -27,6 +27,7 @@
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/ANALYSIS/ID/PILISModel.h>
+#include <OpenMS/ANALYSIS/ID/PILISModelGenerator.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/FORMAT/MzDataFile.h>
 #include <OpenMS/FORMAT/AnalysisXMLFile.h>
@@ -72,14 +73,18 @@ class TOPPPILISModel
 		{
 			registerStringOption_("in", "<file>", "", "input file for the spectra in MzData format");
 			registerStringOption_("id_in", "<file>", "", "input file for the annotations in AnalysisXML format");
-			registerStringOption_("model_file", "<file>", "", "model file for training");
 			registerStringOption_("trained_model_file", "<file>", "", "the output file of the trained model");
+			registerStringOption_("model_file", "<file>", "", "model file for training", false);
+			registerFlag_("base_model_from_file", "if this flag is set, the model is not generated from scratch but read from the given 'model_file'");
 			registerDoubleOption_("threshold", "<double>", 0.0, "only annotated peptides with score higher than the given threshold are used", false);
+			registerDoubleOption_("precursor_mass_tolerance", "<double>", 1.5, "precursor mass tolerance for the training", false);
+			registerDoubleOption_("peak_mass_tolerance", "<double>", 0.3, "peak mass tolerance of the MS/MS spectra", false);
 			registerIntOption_("model_depth", "<int>", 4, "model depth", false);
 			registerIntOption_("visible_model_depth", "<int>", 30, "visible model depth", false);
 			registerFlag_("duplicates_by_tic", "duplicate sequence/charge combinations are filtered not by score but by TIC of the spectra");
 			registerDoubleOption_("pseudo_counts", "<double>", 1e-15, "pseudo counts which are added when training the transition probabilties of the HMM", false);
-
+			registerDoubleOption_("charge_remote_threshold", "<double>", 0.2, "", false);
+			registerDoubleOption_("charge_directed_threshold", "<double>", 0.3, "", false);
 			addEmptyLine_();
 		}
 		
@@ -92,10 +97,11 @@ class TOPPPILISModel
 			//input/output files
 			String in(getStringOption_("in"));
 			String id_in(getStringOption_("id_in"));
-			String model_file(getStringOption_("model_file"));
+			//String model_file(getStringOption_("model_file"));
 			String trained_model_file(getStringOption_("trained_model_file"));
 			double threshold(getDoubleOption_("threshold"));
 			bool duplicates_by_tic(getFlag_("duplicates_by_tic"));
+			bool base_model_from_file(getFlag_("base_model_from_file"));
 						
       //-------------------------------------------------------------
       // loading input
@@ -109,18 +115,44 @@ class TOPPPILISModel
       // calculations
       //-------------------------------------------------------------
 			
-			PILISModel* model = new PILISModel();
-			Param model_param(model->getParameters());
-			model_param.setValue("model_depth", getIntOption_("model_depth"));
-			model_param.setValue("visible_model_depth", getIntOption_("visible_model_depth"));
-			model->setParameters(model_param);
-			model->readFromFile(model_file);
+			PILISModel* model = 0;
+			
+			
+			if (base_model_from_file)
+			{
+				String model_file(getStringOption_("model_file"));
+				model = new PILISModel();
+				Param model_param(model->getParameters());
+				model_param.setValue("model_depth", getIntOption_("model_depth"));
+				model_param.setValue("visible_model_depth", getIntOption_("visible_model_depth"));
+				model->setParameters(model_param);
+				model->readFromFile(model_file);
+			}
+			else
+			{
+				PILISModelGenerator model_generator;
+				Param p(model_generator.getParameters());
+				p.setValue("model_depth", getIntOption_("model_depth"));
+				p.setValue("visible_model_depth", getIntOption_("visible_model_depth"));
+				model_generator.setParameters(p);
+				model = new PILISModel(model_generator.getModel());
+			}
 
 
 			AnalysisXMLFile id_in_file;
 			vector<ProteinIdentification> prot_ids;
 			vector<IdentificationData> peptide_ids;
 			id_in_file.load(id_in, prot_ids, peptide_ids);
+
+			Param model_param(model->getParameters());
+			model_param.setValue("model_depth", getIntOption_("model_depth"));
+			model_param.setValue("visible_model_depth", getIntOption_("visible_model_depth"));
+			model_param.setValue("pseudo_counts", getDoubleOption_("pseudo_counts"));
+			model_param.setValue("charge_remote_threshold", getDoubleOption_("charge_remote_threshold"));
+			model_param.setValue("charge_directed_threshold", getDoubleOption_("charge_directed_threshold"));
+			model_param.setValue("precursor_mass_tolerance", getDoubleOption_("precursor_mass_tolerance"));
+			model_param.setValue("peak_mass_tolerance", getDoubleOption_("peak_mass_tolerance"));
+			model->setParameters(model_param);
 
 
 			HashMap<String, HashMap<UInt, HashMap<UInt, PeptideHit> > > ids; // [peptide][charge][index]
@@ -211,13 +243,15 @@ class TOPPPILISModel
 					model->train(*map_it, hit.getSequence(), hit.getCharge());
 				}
 			}
-		
+	
+			writeDebug_("Evaluating the model", 1);
 			model->evaluate();
 			
 			//-------------------------------------------------------------
 			// writing output
 			//-------------------------------------------------------------
 		
+			writeDebug_("Writing the model file", 1);
 			model->writeToFile(trained_model_file);
 			
 			// Write to model file

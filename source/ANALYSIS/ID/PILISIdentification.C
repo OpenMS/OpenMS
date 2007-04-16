@@ -53,7 +53,6 @@ namespace OpenMS
 		defaults_.setValue("max_candidates", 200);
 		defaults_.setValue("pre_score_name", "ZhangSimilarityScore");
 		defaults_.setValue("score_name", "SpectrumAlignmentScore");
-		defaults_.setValue("exponent", 0.3);
 		defaults_.setValue("use_evalue_scoring", 1);
 
 		aa_weight_['K'] = 128.095;
@@ -77,10 +76,6 @@ namespace OpenMS
   	aa_weight_['H'] = 137.059;
   	aa_weight_['I'] = 113.084;
   	aa_weight_['L'] = 113.084;
-
-		//param_ = defaults_;
-		//pre_scorer_ = Factory<PeakSpectrumCompareFunctor>::create((String)defaults_.getValue("pre_score_name"));
-		//scorer_ = Factory<PeakSpectrumCompareFunctor>::create((String)defaults_.getValue("score_name"));
 
 		defaultsToParam_();
 	}
@@ -136,11 +131,12 @@ namespace OpenMS
 		if (own_model_)
 		{
 			delete hmm_model_;
-			own_model_ = false;
+    	own_model_ = false;
 		}
 		hmm_model_ = hmm_model;
+		return;
 	}
-	
+
 	PILISModel* PILISIdentification::getPILISModel_()
 	{
 		if (hmm_model_ == 0)

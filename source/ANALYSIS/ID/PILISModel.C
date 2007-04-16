@@ -59,23 +59,23 @@ namespace OpenMS
 		defaults_.setValue("upper_mz", 2000.0);
 		defaults_.setValue("lower_mz", 200.0);
 		defaults_.setValue("charge_remote_threshold", 0.2);
-		defaults_.setValue("charge_remote_factor", 1.0);
+		//defaults_.setValue("charge_remote_factor", 1.0); // TODO
 		defaults_.setValue("charge_directed_threshold", 0.3);
-		defaults_.setValue("charge_directed_factor", 1.0);
+		//defaults_.setValue("charge_directed_factor", 1.0); // TODO
 		defaults_.setValue("side_chain_intensity_threshold", 0.0);
-		defaults_.setValue("side_chain_factor", 1.0);
+		//defaults_.setValue("side_chain_factor", 1.0); // TODO
 		defaults_.setValue("model_depth", 4);
 		defaults_.setValue("visible_model_depth", 30);
-		defaults_.setValue("precursor_error", 3.0);
+		defaults_.setValue("precursor_mass_tolerance", 3.0);
 		defaults_.setValue("peak_mass_tolerance", 0.3); // TODO
 
 		defaults_.setValue("min_main_ion_intensity", 0.02);
-		defaults_.setValue("min_main_ion_intensity_threshold", 0.02);
+		//defaults_.setValue("min_main_ion_intensity_threshold", 0.02);
 		defaults_.setValue("min_loss_ion_intensity", 0.005);
-		defaults_.setValue("min_loss_ion_intensity_threshold", 0.005);
+		//defaults_.setValue("min_loss_ion_intensity_threshold", 0.005);
 
 		defaults_.setValue("charge_loss_factor", 0.5); // TODO
-		
+		defaults_.setValue("pseudo_counts", 1e-15);
 		defaultsToParam_();
 
 		initModels_();
@@ -571,7 +571,7 @@ namespace OpenMS
 	{
 		static double H2O_weight = Formulas::H2O.getMonoWeight();
 		static double NH3_weight = Formulas::NH3.getMonoWeight();
-		double pre_error = (double)param_.getValue("precursor_error");
+		double pre_error = (double)param_.getValue("precursor_mass_tolerance");
 		peak_ints.pre = 0;
 		peak_ints.pre_H2O = 0;
 		peak_ints.pre_NH3 = 0;
@@ -1019,6 +1019,7 @@ namespace OpenMS
 			hmm_.setInitialTransitionProbability("BB"+pos_name, bb_init[i]);
 			charge_sum += bb_init[i];
 
+			double charge_loss_factor = (double)param_.getValue("charge_loss_factor");
 			double b_cr_int1(0), b_cr_int2(0), y_cr_int1(0), y_cr_int2(0);
 			double bint1(0), yint1(0), bint2(0), yint2(0), aint1(0), aint2(0), ayint1(0), ayint2(0), b_sc_int1(0), b_sc_int2(0), y_sc_int1(0), y_sc_int2(0);
 			if ((aa1 == "D" || aa1 == "E") && is_charge_remote)
@@ -1029,10 +1030,10 @@ namespace OpenMS
 																		Residue::BIon, b_cr_int1, y_cr_int1, b_cr_int2, y_cr_int2, ProtonDistributionModel::ChargeRemote);
 
 				// TODO
-				y_cr_int1 += 0.5 * y_cr_int2;
-				y_cr_int2 *= 0.5;
-				b_cr_int1 += 0.5 * b_cr_int2;
-				b_cr_int2 *= 0.5;
+				y_cr_int1 += charge_loss_factor * y_cr_int2;
+				y_cr_int2 *= 1 - charge_loss_factor;
+				b_cr_int1 += charge_loss_factor * b_cr_int2;
+				b_cr_int2 *= 1 - charge_loss_factor;
 			}
 
 			if ((aa1 == "K" || aa1 == "H" || aa1 == "R") && is_charge_remote)
@@ -1042,10 +1043,10 @@ namespace OpenMS
 				prot_dist_.getChargeStateIntensities(peptide, prefix, suffix, charge,	Residue::BIon, b_sc_int1, y_sc_int1, b_sc_int2, y_sc_int2, ProtonDistributionModel::SideChain);
 
 				// TODO
-				y_sc_int1 += 0.5 * y_sc_int2;
-        y_sc_int2 *= 0.5;
-        b_sc_int1 += 0.5 * b_sc_int2;
-        b_sc_int2 *= 0.5;
+				y_sc_int1 += charge_loss_factor * y_sc_int2;
+        y_sc_int2 *= 1 - charge_loss_factor;
+        b_sc_int1 += charge_loss_factor * b_sc_int2;
+        b_sc_int2 *= 1 - charge_loss_factor;
 			}
 		
       prot_dist_.getChargeStateIntensities(peptide, prefix, suffix, charge, Residue::BIon, bint1, yint1, bint2, yint2, ProtonDistributionModel::ChargeDirected);
@@ -1055,10 +1056,10 @@ namespace OpenMS
       prot_dist_.getChargeStateIntensities(peptide, prefix, suffix, charge, Residue::AIon, aint1, ayint1, aint2, ayint2, ProtonDistributionModel::ChargeDirected);	
 	
 			// TODO correction of the doubly charged ions to singly charged ones, to account for proton loss (and not to need it model explicitly)
-			yint1 += 0.5 * yint2;
-			yint2 *= 0.5;
-			bint1 += 0.5 * bint2;
-			bint2 *= 0.5;
+			yint1 += charge_loss_factor * yint2;
+			yint2 *= 1 - charge_loss_factor;
+			bint1 += charge_loss_factor * bint2;
+			bint2 *= 1 - charge_loss_factor;
 
       // now enable the states
 			hmm_.enableTransition("BB"+pos_name, "AA"+pos_name);
@@ -1372,9 +1373,9 @@ namespace OpenMS
 		spec.getContainer().sortByPosition();
 
 		double min_main_ion_intensity = (double)param_.getValue("min_main_ion_intensity");
-		double min_main_ion_intensity_threshold = (double)param_.getValue("min_main_ion_intensity_threshold");
+		//double min_main_ion_intensity_threshold = (double)param_.getValue("min_main_ion_intensity_threshold");
 		double min_loss_ion_intensity = (double)param_.getValue("min_loss_ion_intensity");
-		double min_loss_ion_intensity_threshold = (double)param_.getValue("min_loss_ion_intensity_threshold");
+		//double min_loss_ion_intensity_threshold = (double)param_.getValue("min_loss_ion_intensity_threshold");
 		// TODO switch to enable disable default
 		for (PeakSpectrum::Iterator it = spec.begin(); it != spec.end(); ++it)
 		{
@@ -1385,7 +1386,7 @@ namespace OpenMS
 			{
 				if ((ion_name.hasSubstring("H2O") || ion_name.hasSubstring("NH3") || ion_name[0] == 'a'))
 				{
-					if (it->getIntensity() < min_loss_ion_intensity_threshold)
+					if (it->getIntensity() < min_loss_ion_intensity)
 					{
 						it->setIntensity(min_loss_ion_intensity);
 					}
@@ -1393,7 +1394,7 @@ namespace OpenMS
 				}
 				else
 				{
-					if (it->getIntensity() < min_main_ion_intensity_threshold)
+					if (it->getIntensity() < min_main_ion_intensity)
 					{
 						it->setIntensity(min_main_ion_intensity);
 					}
@@ -1497,9 +1498,9 @@ namespace OpenMS
     }
 
     charge_dir_tmp = bb_sum;
-    if (bb_sum < (double)param_.getValue("charge_directed_threshold")/*CHARGE_DIRECTED_THRESHOLD*/)
+    if (bb_sum < (double)param_.getValue("charge_directed_threshold"))
     {
-      charge_dir_tmp = (double)param_.getValue("charge_directed_threshold")/*CHARGE_DIRECTED_THRESHOLD*/;
+      charge_dir_tmp = (double)param_.getValue("charge_directed_threshold");
 			is_charge_remote = true;
     }
 
@@ -1508,21 +1509,21 @@ namespace OpenMS
 					
 		for (UInt i = 0; i != peptide.size() - 1; ++i)
     {
-      bb_init.push_back(bb_charges[i+1] * charge_dir_tmp * (double)param_.getValue("charge_directed_factor")/*CHARGE_DIRECTED_FACTOR*/);
+      bb_init.push_back(bb_charges[i+1] * charge_dir_tmp/* * (double)param_.getValue("charge_directed_factor")*/);
       String aa(peptide[i]->getOneLetterCode());
       if (sc_charges.has(i))
       {
         if ((aa == "K" || aa == "R" || aa == "H") /*&& bb_sum < (double)param_.getValue("charge_remote_threshold")*/)
         {
-          sc_init.push_back(sc_charges[i] * bb_avg * (double)param_.getValue("side_chain_factor") /*SIDE_CHAIN_FACTOR*/);
+          sc_init.push_back(sc_charges[i] * bb_avg/* * (double)param_.getValue("side_chain_factor")*/);
         }
         else
         {
           sc_init.push_back(0.0);
         }
-        if (bb_sum < (double)param_.getValue("charge_remote_threshold") /*CHARGE_REMOTE_THRESHOLD*/ && (aa == "D" || aa == "E"))
+        if (bb_sum < (double)param_.getValue("charge_remote_threshold") && (aa == "D" || aa == "E"))
         {
-          cr_init.push_back(((1 - bb_sum) * bb_avg /* sc_charge[i]*/) * (double)param_.getValue("charge_remote_factor")/*CHARGE_REMOTE_FACTOR*/);
+          cr_init.push_back(((1 - bb_sum) * bb_avg /* sc_charge[i]*/)/* * (double)param_.getValue("charge_remote_factor")*/);
         }
         else
         {

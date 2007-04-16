@@ -27,6 +27,7 @@
 
 #include <OpenMS/ANALYSIS/ID/PILISSequenceDB.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
+#include <OpenMS/SYSTEM/File.h>
 #include <fstream>
 #include <iostream>
 
@@ -67,6 +68,15 @@ namespace OpenMS
 
 	void PILISSequenceDB::addPeptidesFromFile(const String& filename)
 	{
+		// check if file exists and is readable
+		if (!File::exists(filename))
+		{
+			throw(Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename));
+		}
+		if (!File::readable(filename))
+		{
+			throw(Exception::FileNotReadable(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename));
+		}
 		ifstream seq_db_in(filename.c_str());
 		char line[1000];
 		while (seq_db_in.getline(line, 1000))

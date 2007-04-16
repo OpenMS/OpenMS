@@ -29,6 +29,7 @@
 #include <OpenMS/ANALYSIS/ID/PILISIdentification.h>
 #include <OpenMS/ANALYSIS/ID/PILISSequenceDB.h>
 #include <OpenMS/ANALYSIS/ID/PILISModel.h>
+#include <OpenMS/ANALYSIS/ID/PILISScoring.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/FORMAT/MzDataFile.h>
 #include <OpenMS/FORMAT/AnalysisXMLFile.h>
@@ -80,10 +81,29 @@ class TOPPPILISIdentification
 																														 "repectively", true);
 			registerDoubleOption_("precursor_mass_tolerance", "<tol>", 2.0 , "the precursor mass tolerance", false);
 			registerDoubleOption_("peak_mass_tolerance", "<tol>", 1.0, "the peak mass tolerance", false);
-			registerDoubleOption_("exponent", "<float>", 0.3, "exponent of the SpectrumAlignmentScore; see documentation of that class for more info", false);
-
 			registerIntOption_("max_pre_candidates", "<int>", 200, "number of candidates that are used for precise scoring", false);
 			registerIntOption_("max_candidates", "<int>", 20, "number of candidates that are reported by PILIS", false);
+      registerDoubleOption_("upper_mz", "<double>", 2000.0, "bla", false);
+			registerDoubleOption_("lower_mz", "<double>", 200.0, "bla", false);
+	
+			addEmptyLine_();
+			addText_("Parameters of PILISModel");
+			registerDoubleOption_("charge_directed_threshold", "<double>", 0.3, "bla", false);
+			registerDoubleOption_("charge_remote_threshold", "<double>", 0.2, "bla", false);
+			registerDoubleOption_("charge_loss_factor", "<double>", 0.5, "bla", false);
+			registerDoubleOption_("min_main_ion_intensity", "<double>", 0.02, "bla", false);
+			registerDoubleOption_("min_loss_ion_intensity", "<double>", 0.005, "bla", false);
+			registerIntOption_("visible_model_depth", "<int>", 30, "bla", false);
+			registerIntOption_("model_depth", "<int>", 4, "bla", false);
+
+			addEmptyLine_();
+			addText_("Parameters of PILISScoring");
+			registerFlag_("use_local_scoring", "bla");
+			registerFlag_("do_not_use_evalue_scoring", "bla");
+			registerIntOption_("survival_function_bin_size", "<int>", 20, "bla", false);
+			registerDoubleOption_("global_linear_fitting_threshold", "<double>", 0.1, "bla", false);
+			registerDoubleOption_("local_linear_fitting_threshold", "<double>", 0.5, "bla", false);
+
 			addEmptyLine_();
 		}
 		
@@ -113,29 +133,45 @@ class TOPPPILISIdentification
 		
 			writeDebug_("Reading model file", 2);
 
+			// create model an set the given options
 			PILISModel* model = new PILISModel();
 			model->readFromFile(getStringOption_("model_file"));
+			Param model_param(model->getParameters());
+			model_param.setValue("upper_mz", getDoubleOption_("upper_mz"));
+			model_param.setValue("lower_mz", getDoubleOption_("lower_mz"));
+			model_param.setValue("charge_directed_threshold", getDoubleOption_("charge_directed_threshold"));
+			model_param.setValue("charge_remote_threshold", getDoubleOption_("charge_remote_threshold"));
+			model_param.setValue("min_main_ion_intensity", getDoubleOption_("min_main_ion_intensity"));
+			model_param.setValue("min_loss_ion_intensity", getDoubleOption_("min_loss_ion_intensity"));
+			model_param.setValue("charge_loss_factor", getDoubleOption_("charge_loss_factor"));
+			model_param.setValue("visible_model_depth", getIntOption_("visible_model_depth"));
+			model_param.setValue("model_depth", getIntOption_("model_depth"));
+			model->setParameters(model_param);
 
 			writeDebug_("Reading sequence db", 2);
 
+			// create sequence db 
 			PILISSequenceDB* db = new PILISSequenceDB();
 			db->addPeptidesFromFile(getStringOption_("peptide_db_file"));
-			
-			vector<Identification> ids;
+		
+
+			// create identification and set the options
 			PILISIdentification PILIS_id;
 			
 			PILIS_id.setSequenceDB(db);
 			PILIS_id.setModel(model);
 
-			Param p(PILIS_id.getParameters());
-			p.setValue("exponent", getDoubleOption_("exponent"));
-			p.setValue("max_pre_candidates", getIntOption_("max_pre_candidates"));
-			p.setValue("precursor_mass_tolerance", getDoubleOption_("precursor_mass_tolerance"));
-			p.setValue("max_candidates", getIntOption_("max_candidates"));
-			PILIS_id.setParameters(p);
-			
+			Param id_param(PILIS_id.getParameters());
+			id_param.setValue("precursor_mass_tolerance", getDoubleOption_("precursor_mass_tolerance"));
+			id_param.setValue("max_candidates", getIntOption_("max_pre_candidates"));
+			// disable evalue scoring, this is done separately to allow for a single id per spectrum
+			id_param.setValue("use_evalue_scoring", 0);
+			PILIS_id.setParameters(id_param);
+
+			vector<Identification> ids;
 			vector<IdentificationData> id_data;
 
+			// perform the identification of the given spectra
 			UInt no(1);
 			for (PeakMap::Iterator it = exp.begin(); it != exp.end(); ++it, ++no)
 			{
@@ -150,13 +186,36 @@ class TOPPPILISIdentification
 					writeDebug_(String(no) + "/" + String(exp.size()), 1);
 					Identification id;
 					PILIS_id.getIdentification(id, *it);
-					
-					//ids.push_back(id);
+		
+					ids.push_back(id);
+
 					IdentificationData id_data_tmp;
 					id_data_tmp.rt = it->getRT();
 					id_data_tmp.mz = it->getPrecursorPeak().getPosition()[0];
 					id_data_tmp.id = id;
 					id_data.push_back(id_data_tmp);
+				}
+			}
+
+			// perform the PILIS scoring to the spectra
+			PILISScoring scoring;
+			Param scoring_param(scoring.getParameters());
+			scoring_param.setValue("use_local_scoring", (int)getFlag_("use_local_scoring"));
+			scoring_param.setValue("survival_function_bin_size", getIntOption_("survival_function_bin_size"));
+			scoring_param.setValue("global_linear_fitting_threshold", getDoubleOption_("global_linear_fitting_threshold"));
+			scoring_param.setValue("local_linear_fitting_threshold", getDoubleOption_("local_linear_fitting_threshold"));
+			scoring.setParameters(scoring_param);
+
+			scoring.getScores(ids);
+
+			// write the result to the IdentificationData structure for the storing
+			UInt max_candidates = getIntOption_("max_candidates");
+			for (UInt i = 0; i != ids.size(); ++i)
+			{
+				id_data[i].id = ids[i];
+				if (id_data[i].id.getPeptideHits().size() > max_candidates)
+				{
+					id_data[i].id.getPeptideHits().resize(max_candidates);
 				}
 			}
 			

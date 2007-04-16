@@ -46,6 +46,7 @@ namespace OpenMS
 	const PILISModel& PILISModelGenerator::getModel()
 	{
 		initModels_();
+		model_.valid_ = true;
 		return model_;
 	}
 	
@@ -59,8 +60,6 @@ namespace OpenMS
 
 	void PILISModelGenerator::initMainModel_()
 	{
-		cerr << ">> Init model " << endl;
-
 		UInt visible_model_depth = (UInt)param_.getValue("visible_model_depth");
 		UInt model_depth = (UInt)param_.getValue("model_depth");
 
@@ -200,9 +199,6 @@ namespace OpenMS
 				}
 			}
 		}
-
-		cerr << "setting transitions" << endl;
-
 
 		model_.hmm_.setTransitionProbability("AABase1", "AABase2", 1);
 
@@ -377,12 +373,10 @@ namespace OpenMS
 
 		model_.hmm_.disableTransitions();
 		model_.hmm_.buildSynonyms();
-		cerr << "#states=" << model_.hmm_.getNumberOfStates() << endl;
 	}
 
 	void PILISModelGenerator::initLossModels_()
 	{
-		cerr << "init Loss models" << endl;
 		//# new states from this HMM
 		//# format State <Name> [<Hidden?>]
 		//# emitting states
@@ -524,7 +518,6 @@ namespace OpenMS
 		model_.hmms_losses_[Residue::BIon].disableTransitions();
     model_.hmms_losses_[Residue::BIon].buildSynonyms();
 
-		cerr << "#states b-ion loss model " << model_.hmms_losses_[Residue::BIon].getNumberOfStates() << endl;
 		return;
 	}
 
