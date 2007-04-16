@@ -184,12 +184,13 @@ namespace OpenMS
 		Int first_mz  = first_mz_model_;
 		Int last_mz  = last_mz_model_;
 		
-		// check charge estimate 
-		if (set.charge_ != 0)
+		// check charge estimate if charge is not specified by user
+		if (set.charge_ != 0 && (iso_stdev_first_ != iso_stdev_last_))
 		{
 			first_mz = set.charge_;
-			last_mz = (set.charge_ + 1);		
+			last_mz = set.charge_;
 		}
+		
 		std::cout << "Checking charge state from " << first_mz << " to " << last_mz << std::endl;
 		
 		// Test charges and stdevs

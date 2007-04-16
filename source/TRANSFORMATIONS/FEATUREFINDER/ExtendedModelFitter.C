@@ -209,19 +209,23 @@ namespace OpenMS
 			if (symmetric_==false)
 				optimize();
 				
-			if (gsl_status_!="success")
+			if (gsl_status_!="success") {
 				cout << profile_ + " status: " + gsl_status_ << endl;
+				//throw UnableToFit(__FILE__, __LINE__,__PRETTY_FUNCTION__,"UnableToFit-BadQuality",String("Skipping feature, " + profile_ + " status: " + gsl_status_));
+			}
 		}
 
 		/// Test different charges and stdevs
 		Int first_mz  = first_mz_model_;
 		Int last_mz  = last_mz_model_;
 		
-		// check charge estimate 
-		if (set.charge_ != 0)
+		/// Check charge estimate if charge is not specified by user
+		if (set.charge_ != 0 && (iso_stdev_first_ != iso_stdev_last_))
 		{
 			first_mz = set.charge_;
-			last_mz = (set.charge_ + 1);		
+			last_mz = set.charge_;
+		// 	first_mz = (set.charge_ - 1);
+		//	last_mz = (set.charge_ + 1);		
 		}
 		std::cout << "Checking charge state from " << first_mz << " to " << last_mz << std::endl;
 	
@@ -243,8 +247,10 @@ namespace OpenMS
 					max_quality = quality;
 					model_desc = ModelDescription<2>(&model2D_);
 				}
+				
 			}
 		}
+		
 
 		// model with highest correlation
 		ProductModel<2>* final = dynamic_cast< ProductModel<2>* >(model_desc.createModel());
@@ -637,14 +643,9 @@ namespace OpenMS
 		else
 		{
 			// The computations can lead to an overflow error at very low values of symmetry (s~0). For s~5 the parameter can be aproximized by the Levenberg-Marquardt argorithms. (the other parameters are much greater than one)
-			
-			//if (symmetry_<1)
-			//	symmetry_+=5;
-			
-			//symmetry_ *= 10;
-
+				
 			if (symmetry_<1)
-				symmetry_+=10;
+				symmetry_+=5;
 
 			// it is better for the emg function to proceed from narrow peaks
 			width_ = symmetry_;
