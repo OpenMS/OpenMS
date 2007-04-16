@@ -27,14 +27,105 @@
 
 #include <OpenMS/VISUAL/ParamEditor.h>
 #include <OpenMS/FORMAT/Param.h>
-#include <OpenMS/VISUAL/ParamEditorDelegate.h>
+#include <OpenMS/CONCEPT/Types.h>
 
 #include <QtGui/QAction>
 #include <QtGui/QKeyEvent>
 #include <QtGui/QMenu>
 #include <QtGui/QMessageBox>
+#include <QtGui/QItemDelegate>
+#include <QtCore/QModelIndex>
+#include <QtGui/QComboBox>
+#include <QtCore/QAbstractItemModel>
+#include <QtCore/QString>
+#include <QtCore/QStringList>
+
+
+
 
 using namespace std;
+
+namespace OpenMS
+{
+	namespace Internal
+	{
+
+		ParamEditorDelegate::ParamEditorDelegate(QObject *parent)
+		     : QItemDelegate(parent)
+		 {
+		 }
+		 
+		 QWidget *ParamEditorDelegate::createEditor(QWidget *parent,
+		     const QStyleOptionViewItem & option,
+		     const QModelIndex & index ) const
+		 {
+			 QString str = index.model()->data(index, Qt::DisplayRole).toString();
+			 Int id=index.model()->data(index, Qt::UserRole).toInt();
+			 if(index.column()==1 && id==ParamEditor::NODE)
+			 {
+				 return 0;
+			 }
+			 else if (index.column() == 2 && id==ParamEditor::ITEM)
+			{
+				
+				QComboBox *editor = new QComboBox(parent);
+				QStringList list;
+				list<<"int"<<"float"<<"string";
+				editor->addItems(list);
+				int pos =list.indexOf(str);
+					if (pos!=-1)
+					{
+						editor->setCurrentIndex(pos);
+					}
+				return editor;
+			}
+			else if(index.column()==2 && id==ParamEditor::NODE) return 0;
+			 else return QItemDelegate::createEditor(parent,option,index);
+
+		 }
+		 
+		 void ParamEditorDelegate::setEditorData(QWidget *editor,
+						     const QModelIndex &index) const
+		 {
+			 if(index.column()==2)
+			 {
+				QString str = index.model()->data(index, Qt::DisplayRole).toString();
+				 QStringList list;
+				list<<"int"<<"float"<<"string";
+				int pos = list.indexOf(str);
+				QComboBox *combo = static_cast<QComboBox*>(editor);
+				if (pos!=-1)
+				{
+					combo->setCurrentIndex(pos);
+				}
+			}
+				else QItemDelegate::setEditorData(editor,index);
+		 }
+		 
+		 void ParamEditorDelegate::setModelData(QWidget *editor, QAbstractItemModel *model,
+						    const QModelIndex &index) const
+		 {
+			 if(index.column()==2)
+			 {
+				QComboBox *combo= static_cast<QComboBox*>(editor);
+				QString str = combo->currentText();
+
+				model->setData(index, str);
+			 }
+			 else QItemDelegate::setModelData(editor,model,index);
+		 }
+		 
+		 void ParamEditorDelegate::updateEditorGeometry(QWidget *editor,
+		     const QStyleOptionViewItem &option, const QModelIndex & index) const
+		 {
+			 if(index.column()==2)
+			 {
+				editor->setGeometry(option.rect);
+			 }
+			 else QItemDelegate::updateEditorGeometry(editor,option,index);
+		 }
+	}
+ }
 
 namespace OpenMS
 {
@@ -45,7 +136,7 @@ namespace OpenMS
 	  	param_const_(0)
 	{
 		setMinimumSize(500,300);
-		setItemDelegate(new ParamEditorDelegate);
+		setItemDelegate(new Internal::ParamEditorDelegate);
 		setWindowTitle("ParamEditor");
 		setColumnCount(3);
 		QStringList list;

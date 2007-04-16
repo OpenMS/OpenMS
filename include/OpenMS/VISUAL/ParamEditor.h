@@ -29,14 +29,56 @@
 #define OPENMS_VISUAL_PARAMEDITOR_H
 
 #include <OpenMS/CONCEPT/Types.h>
-#include <OpenMS/DATASTRUCTURES/String.h>
 
+
+#include <QtGui/QItemDelegate>
 #include <QtGui/QTreeWidget>
-#include <string>
+
+class QModelIndex;
+class QStyleOptionViewItem;
+class QAbstractItemModel;
+class QStringList;
+class QString;
+
+namespace OpenMS
+{
+	namespace Internal
+	{
+		/**
+			
+			@brief Delegate class for ParamEditor
+				
+			This class provides modifies visualization for the items in ParamEditor.
+			It places a Combobox in the second column and prevents edit operations on nodes' values and types
+				
+				
+			@ingroup Visual
+		*/
+		class ParamEditorDelegate : public QItemDelegate
+		 {
+		     Q_OBJECT
+
+		 public:
+		     ParamEditorDelegate(QObject *parent = 0);
+
+		     QWidget *createEditor(QWidget *parent, const QStyleOptionViewItem &option,
+					   const QModelIndex &index) const;
+
+		     void setEditorData(QWidget *editor, const QModelIndex &index) const;
+		     void setModelData(QWidget *editor, QAbstractItemModel *model,
+				       const QModelIndex &index) const;
+
+		     void updateEditorGeometry(QWidget *editor,
+			 const QStyleOptionViewItem &option, const QModelIndex &index) const;
+		
+		 };
+	}
+ }
 
 namespace OpenMS
 {
  	class Param;
+	class String;
 	
 	/**
 		@brief Visualization of class Param's loaded XML-file

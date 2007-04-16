@@ -57,8 +57,7 @@ CPP_SOURCES=\
 	Spectrum3DCanvas.C\
 	Spectrum3DOpenGLCanvas.C\
 	Spectrum3DWidget.C\
-	ParamEditor.C\
-	ParamEditorDelegate.C
+	ParamEditor.C
 
 
 MOC_SOURCES=\
@@ -78,8 +77,7 @@ MOC_SOURCES=\
 	Spectrum3DCanvas_moc.C\
 	Spectrum3DOpenGLCanvas_moc.C\
 	Spectrum3DWidget_moc.C\
-	ParamEditor_moc.C\
-	ParamEditorDelegate_moc.C
+	ParamEditor_moc.C
 
 SOURCES		= $(CPP_SOURCES) $(MOC_SOURCES)
 OBJECTS 	= $(SOURCES:.C=.o)
@@ -181,9 +179,6 @@ MSMetaDataExplorer_moc.C:  $(HEADER_DIR)/MSMetaDataExplorer.h
 
 ParamEditor_moc.C:  $(HEADER_DIR)/ParamEditor.h
 	$(MOC) $(HEADER_DIR)/ParamEditor.h -o ParamEditor_moc.C
-
-ParamEditorDelegate_moc.C:  $(HEADER_DIR)/ParamEditorDelegate.h
-	$(MOC) $(HEADER_DIR)/ParamEditorDelegate.h -o ParamEditorDelegate_moc.C
 
 # For debugging the visual classes, create the file 'Makefile_debug' and 
 # set 'ADD_CXXFLAGS' one or more of the following flags
