@@ -49,48 +49,48 @@ namespace OpenMS
 {
 	namespace Internal
 	{
-
 		ParamEditorDelegate::ParamEditorDelegate(QObject *parent)
-		     : QItemDelegate(parent)
-		 {
-		 }
-		 
-		 QWidget *ParamEditorDelegate::createEditor(QWidget *parent,
-		     const QStyleOptionViewItem & option,
-		     const QModelIndex & index ) const
-		 {
-			 QString str = index.model()->data(index, Qt::DisplayRole).toString();
-			 Int id=index.model()->data(index, Qt::UserRole).toInt();
-			 if(index.column()==1 && id==ParamEditor::NODE)
-			 {
-				 return 0;
-			 }
-			 else if (index.column() == 2 && id==ParamEditor::ITEM)
+			: QItemDelegate(parent)
 			{
-				
+			}
+		 
+		QWidget *ParamEditorDelegate::createEditor(QWidget *parent, const QStyleOptionViewItem & option, const QModelIndex & index ) const
+		{
+			QString str = index.model()->data(index, Qt::DisplayRole).toString();
+			Int id=index.model()->data(index, Qt::UserRole).toInt();
+			if(index.column()==1 && id==ParamEditor::NODE)
+			{
+				return 0;
+			}
+			else if (index.column() == 2 && id==ParamEditor::ITEM)
+			{
 				QComboBox *editor = new QComboBox(parent);
 				QStringList list;
 				list<<"int"<<"float"<<"string";
 				editor->addItems(list);
 				int pos =list.indexOf(str);
-					if (pos!=-1)
-					{
-						editor->setCurrentIndex(pos);
-					}
+				if (pos!=-1)
+				{
+					editor->setCurrentIndex(pos);
+				}
 				return editor;
 			}
-			else if(index.column()==2 && id==ParamEditor::NODE) return 0;
-			 else return QItemDelegate::createEditor(parent,option,index);
-
-		 }
+			else if(index.column()==2 && id==ParamEditor::NODE)
+			{
+				return 0;
+			}
+			else
+			{
+				return QItemDelegate::createEditor(parent,option,index);
+			}
+		}
 		 
-		 void ParamEditorDelegate::setEditorData(QWidget *editor,
-						     const QModelIndex &index) const
-		 {
-			 if(index.column()==2)
-			 {
+		void ParamEditorDelegate::setEditorData(QWidget *editor, const QModelIndex &index) const
+		{
+			if(index.column()==2)
+			{
 				QString str = index.model()->data(index, Qt::DisplayRole).toString();
-				 QStringList list;
+				QStringList list;
 				list<<"int"<<"float"<<"string";
 				int pos = list.indexOf(str);
 				QComboBox *combo = static_cast<QComboBox*>(editor);
@@ -99,36 +99,38 @@ namespace OpenMS
 					combo->setCurrentIndex(pos);
 				}
 			}
-				else QItemDelegate::setEditorData(editor,index);
-		 }
+			else 
+			{
+				QItemDelegate::setEditorData(editor,index);
+		 	}
+		}
 		 
-		 void ParamEditorDelegate::setModelData(QWidget *editor, QAbstractItemModel *model,
-						    const QModelIndex &index) const
-		 {
-			 if(index.column()==2)
-			 {
+		void ParamEditorDelegate::setModelData(QWidget *editor, QAbstractItemModel *model, const QModelIndex &index) const
+		{
+			if(index.column()==2)
+			{
 				QComboBox *combo= static_cast<QComboBox*>(editor);
 				QString str = combo->currentText();
-
 				model->setData(index, str);
-			 }
-			 else QItemDelegate::setModelData(editor,model,index);
-		 }
+			}
+			else 
+			{
+				QItemDelegate::setModelData(editor,model,index);
+			}
+		}
 		 
-		 void ParamEditorDelegate::updateEditorGeometry(QWidget *editor,
-		     const QStyleOptionViewItem &option, const QModelIndex & index) const
-		 {
-			 if(index.column()==2)
-			 {
+		void ParamEditorDelegate::updateEditorGeometry(QWidget *editor, const QStyleOptionViewItem &option, const QModelIndex & index) const
+		{
+			if(index.column()==2)
+			{
 				editor->setGeometry(option.rect);
-			 }
-			 else QItemDelegate::updateEditorGeometry(editor,option,index);
-		 }
+			}
+			else 
+			{
+				QItemDelegate::updateEditorGeometry(editor,option,index);
+		 	}
+		}
 	}
- }
-
-namespace OpenMS
-{
 
 	ParamEditor::ParamEditor(QWidget * parent)
 	  : QTreeWidget(parent),
@@ -353,11 +355,9 @@ namespace OpenMS
 	void ParamEditor::deleteAll()
 	{
 		QTreeWidgetItem* item=invisibleRootItem();
-		
-		
+
 		for (Int i = item->childCount()-1; i >=0;i--)
 		{
-			
 			deleteItemRecursive_(item->child(i));
 		}
 	}
@@ -386,7 +386,6 @@ namespace OpenMS
 		item->setData(1,Qt::UserRole,ITEM);
 		item->setData(2,Qt::UserRole,ITEM);
 		item->setFlags( Qt::ItemIsSelectable | Qt::ItemIsEnabled | Qt::ItemIsEditable);
-		
 	}
 	    
 	void ParamEditor::insertNode()
@@ -413,8 +412,8 @@ namespace OpenMS
 		item->setData(1,Qt::UserRole,NODE);
 		item->setData(2,Qt::UserRole,NODE);
 		item->setFlags( Qt::ItemIsSelectable | Qt::ItemIsEnabled | Qt::ItemIsEditable);
-		
 	}
+	
 	void ParamEditor::storeRecursive_(const QTreeWidgetItem* child, String path) const
 	{
 		if (path=="")

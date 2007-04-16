@@ -79,13 +79,13 @@
 Ideen:
 - Seeder/Extender: Analyse der MassenSpur-Distanzen
 - Seeder: precursor peaks, signal-to-noise
-- TOPPView entfernen: Surface/Contour, Mapping x/y-Achse
+- TOPPView entfernen: Surface/Contour, Mapping nur für 2D
 
 Todos:
 - make install mit prefix testen (Hiwi)
 
 Spectrum1DCanvas: fix highlighting of peaks in percentage mode
-Spectrum2DCanvas: add preferences for layers
+Spectrum2DCanvas: add preferences for layers, fix feature number colors
 Spectrum3DCanvas: add preferences for layers, fix axis labels
 
 Spectrum2DCanvas -- Remove coordinate-data transformations

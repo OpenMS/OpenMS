@@ -29,6 +29,7 @@
 #include <OpenMS/SYSTEM/File.h>
 
 #include <QtGui/QApplication>
+#include <QtGui/QStyleFactory>
 
 using namespace OpenMS;
 using namespace std;
@@ -49,6 +50,24 @@ int main(int argc, char** argv)
 	
 	//Create window
 	QApplication app(argc,argv);
+
+	  //set plastique style unless windows / mac style is available
+	  QStringList styles = QStyleFactory::keys();
+	  
+	  if (styles.contains("windowsxp",Qt::CaseInsensitive))
+	  {
+			app.setStyle("windowsxp");
+	  }
+	  else if (styles.contains("macintosh",Qt::CaseInsensitive))
+	  {
+			app.setStyle("macintosh");
+	  }
+	  else if (styles.contains("plastique",Qt::CaseInsensitive))
+	  {
+			app.setStyle("plastique");
+	  }
+
+
 	INIFileEditorWindow editor_window;
 	
 	//Open passed file

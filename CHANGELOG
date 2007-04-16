@@ -7,3 +7,4 @@ Changes from OpenMS 0.95 to 1.0
 - Added tutorial
 - merged libOpenMS and libOpenMS_GUI
 - New TOPP tools: INIFileEditor, ConsensusID
+- The TOPPView application was completely rewritten
