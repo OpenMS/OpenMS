@@ -5,8 +5,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>287</width>
-    <height>262</height>
+    <width>297</width>
+    <height>229</height>
    </rect>
   </property>
   <property name="windowTitle" >
@@ -31,6 +31,37 @@
       <property name="spacing" >
        <number>6</number>
       </property>
+      <item row="0" column="1" >
+       <widget class="OpenMS::ColorSelector" native="1" name="bg_color" />
+      </item>
+      <item row="1" column="1" >
+       <widget class="QComboBox" name="mapping" >
+        <item>
+         <property name="text" >
+          <string>X-Axis</string>
+         </property>
+        </item>
+        <item>
+         <property name="text" >
+          <string>Y-Axis</string>
+         </property>
+        </item>
+       </widget>
+      </item>
+      <item row="1" column="0" >
+       <widget class="QLabel" name="label_3" >
+        <property name="text" >
+         <string>Mapping of m/z to:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="0" >
+       <widget class="QLabel" name="label" >
+        <property name="text" >
+         <string>Background color:</string>
+        </property>
+       </widget>
+      </item>
      </layout>
     </widget>
    </item>
@@ -46,6 +77,16 @@
       <property name="spacing" >
        <number>6</number>
       </property>
+      <item row="0" column="1" >
+       <widget class="OpenMS::MultiGradientSelector" native="1" name="gradient" />
+      </item>
+      <item row="0" column="0" >
+       <widget class="QLabel" name="label_2" >
+        <property name="text" >
+         <string>Peak colors:</string>
+        </property>
+       </widget>
+      </item>
      </layout>
     </widget>
    </item>
@@ -56,8 +97,8 @@
      </property>
      <property name="sizeHint" >
       <size>
-       <width>20</width>
-       <height>40</height>
+       <width>269</width>
+       <height>21</height>
       </size>
      </property>
     </spacer>
@@ -74,6 +115,18 @@
    </item>
   </layout>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>OpenMS::ColorSelector</class>
+   <extends>QWidget</extends>
+   <header>OpenMS/VISUAL/ColorSelector.h</header>
+  </customwidget>
+  <customwidget>
+   <class>OpenMS::MultiGradientSelector</class>
+   <extends>QWidget</extends>
+   <header>OpenMS/VISUAL/MultiGradientSelector.h</header>
+  </customwidget>
+ </customwidgets>
  <resources/>
  <connections>
   <connection>

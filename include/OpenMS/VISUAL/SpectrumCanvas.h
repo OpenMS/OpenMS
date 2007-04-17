@@ -226,14 +226,10 @@ namespace OpenMS
 					return layers_[current_layer_].f1;
 				case LayerData::F_NUMBERS:
 					return layers_[current_layer_].f2;
-				case LayerData::P_SURFACE:
-					return layers_[current_layer_].f1;
-				case LayerData::P_CONTOURS:
-					return layers_[current_layer_].f2;
 				case LayerData::P_PRECURSORS:
-					return layers_[current_layer_].f3;
+					return layers_[current_layer_].f1;
 				case LayerData::P_PROJECTIONS:
-					return layers_[current_layer_].f4;
+					return layers_[current_layer_].f2;
 			}
 			std::cout << "Error: SpectrumCanvas::getLayerFlag -- unknown flag '" << f << "'!" << std::endl;
 			return false;
@@ -251,17 +247,11 @@ namespace OpenMS
 				case LayerData::F_NUMBERS:
 					layers_[current_layer_].f2 = value;
 					break;
-				case LayerData::P_SURFACE:
+				case LayerData::P_PRECURSORS:
 					layers_[current_layer_].f1 = value;
 					break;
-				case LayerData::P_CONTOURS:
-					layers_[current_layer_].f2 = value;
-					break;
-				case LayerData::P_PRECURSORS:
-					layers_[current_layer_].f3 = value;
-					break;
 				case LayerData::P_PROJECTIONS:
-					layers_[current_layer_].f4 = value;
+					layers_[current_layer_].f2 = value;
 					break;
 			}
 			update_buffer_ = true;
@@ -278,14 +268,10 @@ namespace OpenMS
 					return layers_[layer].f1;
 				case LayerData::F_NUMBERS:
 					return layers_[layer].f2;
-				case LayerData::P_SURFACE:
-					return layers_[layer].f1;
-				case LayerData::P_CONTOURS:
-					return layers_[layer].f2;
 				case LayerData::P_PRECURSORS:
-					return layers_[layer].f3;
+					return layers_[layer].f1;
 				case LayerData::P_PROJECTIONS:
-					return layers_[layer].f4;
+					return layers_[layer].f2;
 			}
 			std::cout << "Error: SpectrumCanvas::getLayerFlag -- unknown flag '" << f << "'!" << std::endl;
 			return false;
@@ -303,17 +289,11 @@ namespace OpenMS
 				case LayerData::F_NUMBERS:
 					layers_[layer].f2 = value;
 					break;
-				case LayerData::P_SURFACE:
+				case LayerData::P_PRECURSORS:
 					layers_[layer].f1 = value;
 					break;
-				case LayerData::P_CONTOURS:
-					layers_[layer].f2 = value;
-					break;
-				case LayerData::P_PRECURSORS:
-					layers_[layer].f3 = value;
-					break;
 				case LayerData::P_PROJECTIONS:
-					layers_[layer].f4 = value;
+					layers_[layer].f2 = value;
 					break;
 			}
 			update_buffer_ = true;

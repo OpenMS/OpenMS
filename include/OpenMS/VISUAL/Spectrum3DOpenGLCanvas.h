@@ -21,7 +21,7 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Cornelia Friedle $
+// $Maintainer: Marc Sturm $
 // --------------------------------------------------------------------------
 
 #ifndef OPENMS_VISUAL_SPECTRUM3DOPENGLCANVAS_H
@@ -85,9 +85,9 @@ namespace OpenMS
 			virtual GLuint makeAxesLabel();
 			/// Display list for the top view
 			virtual GLuint makeDataAsTopView();
-			//document me (Cornelia)
+			//document me
 			virtual GLuint makeGround();
-			//document me (Cornelia)
+			//document me
 			virtual GLuint makeGridLines();
 			/// method to make the font
 			virtual GLuint makeLegend();
@@ -120,7 +120,7 @@ namespace OpenMS
 			double scaledIntensity(double intensity,int layer_index);
 	
 			/// recalculates the dot gradient inerpolation values.
-			void recalculateDotGradient_();
+			void recalculateDotGradient_(UInt layer);
 			///calculate the ticks for the gridlines
 			void calculateGridLines_();
 		
@@ -132,11 +132,11 @@ namespace OpenMS
 			int zRotation() const { return zrot_; }
 	    /// normalize the angel
 			void normalizeAngle(int* angle);
-			//document me (Cornelia)
+			//document me
 			void setAngels(int xrot, int yrot, int zrot);
-			//document me (Cornelia)
+			//document me
 			void resetTranslation();
-			//document me (Cornelia)
+			//document me
 			void timeMessure();
 			
 			/// displaylist
@@ -151,8 +151,6 @@ namespace OpenMS
 			GLuint ground_;
 			/// displaylist
 			GLuint axeslegend_;
-			//document me (Cornelia)
-			MultiGradient gradient_;
 	
 			/// reference to Spectrum3DCanvas
 			Spectrum3DCanvas& canvas_3d_;

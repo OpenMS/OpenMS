@@ -5,8 +5,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>293</width>
-    <height>262</height>
+    <width>387</width>
+    <height>356</height>
    </rect>
   </property>
   <property name="windowTitle" >
@@ -31,6 +31,77 @@
       <property name="spacing" >
        <number>6</number>
       </property>
+      <item row="0" column="1" >
+       <widget class="OpenMS::ColorSelector" native="1" name="bg_color" />
+      </item>
+      <item row="1" column="0" colspan="2" >
+       <widget class="QGroupBox" name="groupBox_3" >
+        <property name="title" >
+         <string>Data reduction</string>
+        </property>
+        <layout class="QGridLayout" >
+         <property name="margin" >
+          <number>9</number>
+         </property>
+         <property name="spacing" >
+          <number>6</number>
+         </property>
+         <item row="1" column="1" >
+          <widget class="QSpinBox" name="reduction_peaks" >
+           <property name="maximum" >
+            <number>1000000</number>
+           </property>
+           <property name="minimum" >
+            <number>5000</number>
+           </property>
+           <property name="singleStep" >
+            <number>5000</number>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="1" >
+          <widget class="QComboBox" name="reduction_mode" >
+           <item>
+            <property name="text" >
+             <string>Off</string>
+            </property>
+           </item>
+           <item>
+            <property name="text" >
+             <string>Sum reduction</string>
+            </property>
+           </item>
+           <item>
+            <property name="text" >
+             <string>Max reduction</string>
+            </property>
+           </item>
+          </widget>
+         </item>
+         <item row="1" column="0" >
+          <widget class="QLabel" name="label_6" >
+           <property name="text" >
+            <string>Number of displayed peaks:</string>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="0" >
+          <widget class="QLabel" name="label_5" >
+           <property name="text" >
+            <string>Reduction mode:</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </widget>
+      </item>
+      <item row="0" column="0" >
+       <widget class="QLabel" name="label" >
+        <property name="text" >
+         <string>Background color:</string>
+        </property>
+       </widget>
+      </item>
      </layout>
     </widget>
    </item>
@@ -46,6 +117,51 @@
       <property name="spacing" >
        <number>6</number>
       </property>
+      <item row="1" column="0" >
+       <widget class="QLabel" name="label_3" >
+        <property name="text" >
+         <string>Line width:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="0" >
+       <widget class="QLabel" name="label_4" >
+        <property name="text" >
+         <string>Shade mode:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="0" >
+       <widget class="QLabel" name="label_2" >
+        <property name="text" >
+         <string>Peak colors:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="1" >
+       <widget class="OpenMS::MultiGradientSelector" native="1" name="gradient" />
+      </item>
+      <item row="1" column="1" >
+       <widget class="QSpinBox" name="width" >
+        <property name="minimum" >
+         <number>1</number>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="1" >
+       <widget class="QComboBox" name="shade" >
+        <item>
+         <property name="text" >
+          <string>Flat</string>
+         </property>
+        </item>
+        <item>
+         <property name="text" >
+          <string>Smooth</string>
+         </property>
+        </item>
+       </widget>
+      </item>
      </layout>
     </widget>
    </item>
@@ -56,8 +172,8 @@
      </property>
      <property name="sizeHint" >
       <size>
-       <width>20</width>
-       <height>40</height>
+       <width>306</width>
+       <height>16</height>
       </size>
      </property>
     </spacer>
@@ -74,6 +190,18 @@
    </item>
   </layout>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>OpenMS::MultiGradientSelector</class>
+   <extends>QWidget</extends>
+   <header>OpenMS/VISUAL/MultiGradientSelector.h</header>
+  </customwidget>
+  <customwidget>
+   <class>OpenMS::ColorSelector</class>
+   <extends>QWidget</extends>
+   <header>OpenMS/VISUAL/ColorSelector.h</header>
+  </customwidget>
+ </customwidgets>
  <resources/>
  <connections>
   <connection>

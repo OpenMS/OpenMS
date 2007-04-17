@@ -110,10 +110,10 @@ namespace OpenMS
 			void setActionMode(SpectrumCanvas::ActionModes mode);
 			
 			/// Returns if the axis labels are shown
-			bool isLegendShown() const;
+			virtual bool isLegendShown() const;
 	
 			/// Shows/hides axis labels
-			void showLegend(bool show);
+			virtual void showLegend(bool show);
 	
 			/// Sets the intensity mode of the SpectrumCanvas
 			void setIntensityMode(SpectrumCanvas::IntensityModes mode);

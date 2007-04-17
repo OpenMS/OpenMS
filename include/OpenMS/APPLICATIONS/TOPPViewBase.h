@@ -280,8 +280,6 @@ namespace OpenMS
       QComboBox* link_box_;
       //2D specific stuff
       QToolBar* tool_bar_2d_;
-      QAction* dm_surface_2d_;
-      QAction* dm_contours_2d_;
       QAction* dm_precursors_2d_;
       QAction* dm_hull_2d_;
       QAction* dm_numbers_2d_;

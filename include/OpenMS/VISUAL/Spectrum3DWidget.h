@@ -21,7 +21,7 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Cornelia Friedle $
+// $Maintainer: Marc Sturm $
 // --------------------------------------------------------------------------
 
 #ifndef OPENMS_VISUAL_SPECTRUM3DWIDGET_H
@@ -35,6 +35,8 @@ namespace OpenMS
 	class Spectrum3DCanvas;
 	/**
 		@brief Widget for 3D-visualization of map data
+		
+		@todo Add GoTo-Dialog (Marc)
 		
 		@ingroup SpectrumWidgets
 	*/
@@ -63,18 +65,14 @@ namespace OpenMS
 			// Docu in base class
 			virtual QImage getImage(UInt width, UInt height);
 			
-			//document me (Cornelia)
-			bool isLegendShown() ;
-		
+			//docu in base class
+			bool isLegendShown() const;
+			//docu in base class
+			virtual void showLegend(bool show);
+			
 		public slots:
-			// document me (Cornelia)
-			void showLegend(int);
 			// Docu in base class
 	    virtual void showGoToDialog();
-	    
-		protected:
-			// document me (Cornelia)
-			bool legend_shown_;
 
 	};
 	

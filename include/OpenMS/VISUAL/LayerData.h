@@ -30,6 +30,7 @@
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/VISUAL/MultiGradient.h>
 
 namespace OpenMS 
 {
@@ -56,8 +57,6 @@ namespace OpenMS
 		{
 			F_HULLS,      ///< Features: Convex hull
 			F_NUMBERS,    ///< Feature: Number
-			P_SURFACE,    ///< Peaks: Surface calculated by marching squares
-			P_CONTOURS,   ///< Peaks: Contour lines calculated by marching squares
 			P_PRECURSORS, ///< Peaks: Mark precursor peaks of MS/MS scans
 			P_PROJECTIONS ///< Peaks: Show projections
 		};
@@ -102,8 +101,8 @@ namespace OpenMS
 				features(),
 				f1(false),
 				f2(false),
-				f3(false),
-				f4(false)
+				param(),
+				gradient()
 		{
 		}
 		
@@ -121,22 +120,22 @@ namespace OpenMS
 		
 		/// peak data
 		ExperimentType peaks;
-		/// peak data (reduced)
+		/// peak data (reduced is used only in 3D more right now)
 		ExperimentType reduced;
 		/// feature data
 		FeatureMapType features;
 		
-		/// Flag one (Feature: convex hull, Peak: surface)
+		/// Flag one (Feature: convex hull, Peak: precursors)
 		bool f1;
-		/// Flag two (Feature: numbers , Peak: contours)
+		/// Flag two (Feature: numbers , Peak: projections)
 		bool f2;
-		/// Flag three (Feature: - , Peak: precursors)
-		bool f3;
-		/// Flag four (Feature: - , Peak: projections)
-		bool f4;
 		
 		//Layer parameters
 		Param param;
+		
+		//Gradient for 2D and 3D views
+		MultiGradient gradient;
+		
 	};
 
 	///Print the contents to a stream.

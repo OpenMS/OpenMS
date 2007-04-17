@@ -21,7 +21,7 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Cornelia Friedle $
+// $Maintainer: Marc Sturm $
 // --------------------------------------------------------------------------
 
 //OpenMS
@@ -30,8 +30,13 @@
 #include <OpenMS/CONCEPT/Factory.h>
 #include <OpenMS/FILTERING/DATAREDUCTION/DataReducer.h>
 #include <OpenMS/VISUAL/DIALOGS/Spectrum3DPrefDialog.h>
+#include <OpenMS/VISUAL/ColorSelector.h>
+#include <OpenMS/VISUAL/MultiGradientSelector.h>
+
 
 #include <QtGui/QResizeEvent>
+#include <QtGui/QComboBox>
+#include <QtGui/QSpinBox>
 
 using namespace std;
 
@@ -59,9 +64,6 @@ namespace OpenMS
 		openglcanvas_= new Spectrum3DOpenGLCanvas(this, *this);
 		action_mode_ = AM_ZOOM;
 		legend_shown_ = true;
-
-		//set preferences and update widgets acoordningly
-		openglwidget()->gradient_.fromString(param_.getValue("Dot:Gradient"));
 	}
 		
 	Spectrum3DCanvas::~Spectrum3DCanvas()
@@ -79,6 +81,11 @@ namespace OpenMS
 		legend_shown_ = show;
 		update_buffer_ = true;
 		update_(__PRETTY_FUNCTION__);
+	}
+
+	bool Spectrum3DCanvas::isLegendShown() const
+	{
+		return legend_shown_;
 	}
 	
 	Int Spectrum3DCanvas::finishAdding(float low_intensity_cutoff)
@@ -104,7 +111,7 @@ namespace OpenMS
 		layers_.back().min_int = low_intensity_cutoff;
 		layers_.back().max_int = overall_data_range_.max_[2];
 		emit layerActivated(this);
-		openglwidget()->recalculateDotGradient_();
+		openglwidget()->recalculateDotGradient_(current_layer_);
 		//	update_(__PRETTY_FUNCTION__);
 		update_buffer_ = true;
 		update_(__PRETTY_FUNCTION__);
@@ -131,6 +138,7 @@ namespace OpenMS
 		update_buffer_ = true;
 		update_(__PRETTY_FUNCTION__);
 	}
+	
 	void Spectrum3DCanvas::makeReducedDataSet()
 	{
 		if(param_.getValue("ReductionMode")=="Off")
@@ -269,18 +277,6 @@ namespace OpenMS
 		return static_cast<Spectrum3DOpenGLCanvas*>(openglcanvas_);
 	}
 	
-	
-	////preferences////////////////////
-	
-	Int Spectrum3DCanvas::getShadeMode()
-	{
-		if(param_.getValue("Dot:ShadeMode").isEmpty())
-		{
-			return 0;
-		}
-		return Int(param_.getValue("Dot:ShadeMode"));
-	}
-
 	void Spectrum3DCanvas::update_(const char*
 #ifdef DEBUG_UPDATE_
 			caller_name)
@@ -297,7 +293,6 @@ namespace OpenMS
 			{
 				openglwidget()->updateIntensityScale();
 			}
-			openglwidget()->recalculateDotGradient_();
 			openglwidget()->initializeGL(); 
 		}
 		openglwidget()->resizeGL(width(),height());	
@@ -309,10 +304,36 @@ namespace OpenMS
 	{
 		Internal::Spectrum3DPrefDialog dlg(this);
 
+		cout << "IN: " << param_ << endl;
+
+		ColorSelector* bg_color = dlg.findChild<ColorSelector*>("bg_color");
+		QComboBox* reduction_mode = dlg.findChild<QComboBox*>("reduction_mode");
+		QSpinBox* reduction_peaks  = dlg.findChild<QSpinBox*>("reduction_peaks");
+		QComboBox* shade = dlg.findChild<QComboBox*>("shade");
+		MultiGradientSelector* gradient = dlg.findChild<MultiGradientSelector*>("gradient");
+		QSpinBox* width  = dlg.findChild<QSpinBox*>("width");
+		
+		bg_color->setColor(QColor(param_.getValue("BackgroundColor").toQString()));		
+		reduction_mode->setCurrentIndex(reduction_mode->findText(param_.getValue("ReductionMode").toQString()));
+		reduction_peaks->setValue(UInt(param_.getValue("DisplayedPeaks")));
+		shade->setCurrentIndex(getCurrentLayer().param.getValue("Dot:ShadeMode"));
+		gradient->gradient().fromString(getCurrentLayer().param.getValue("Dot:Gradient"));
+		width->setValue(UInt(getCurrentLayer().param.getValue("Dot:LineWidth")));
+		
 		if (dlg.exec())
 		{
-			update_buffer_ = true;
-			update_(__PRETTY_FUNCTION__);
+			param_.setValue("BackgroundColor",bg_color->getColor().name().toAscii().data());
+			param_.setValue("ReductionMode",reduction_mode->currentText().toAscii().data());
+			param_.setValue("DisplayedPeaks",reduction_peaks->value());
+			getCurrentLayer_().param.setValue("Dot:ShadeMode",shade->currentIndex());
+			getCurrentLayer_().param.setValue("Dot:Gradient",gradient->gradient().toString());
+			getCurrentLayer_().param.setValue("Dot:LineWidth",width->value());
+
+			cout << "OUT: " << param_ << endl;
+
+			openglwidget()->recalculateDotGradient_(current_layer_);
+			update_buffer_ = true;	
+			update_(__FUNCTION__);
 		}
 	}
 

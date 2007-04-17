@@ -5,739 +5,654 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>592</width>
-    <height>449</height>
+    <width>496</width>
+    <height>397</height>
    </rect>
   </property>
   <property name="windowTitle" >
    <string>TOPPView default preferences</string>
   </property>
-  <widget class="QTabWidget" name="tabWidget" >
-   <property name="geometry" >
-    <rect>
-     <x>9</x>
-     <y>9</y>
-     <width>534</width>
-     <height>399</height>
-    </rect>
+  <layout class="QVBoxLayout" >
+   <property name="margin" >
+    <number>9</number>
    </property>
-   <property name="currentIndex" >
-    <number>0</number>
+   <property name="spacing" >
+    <number>6</number>
    </property>
-   <widget class="QWidget" name="tab" >
-    <attribute name="title" >
-     <string>General</string>
-    </attribute>
-    <layout class="QGridLayout" >
-     <property name="margin" >
-      <number>9</number>
+   <item>
+    <widget class="QTabWidget" name="tabWidget" >
+     <property name="currentIndex" >
+      <number>0</number>
      </property>
-     <property name="spacing" >
-      <number>6</number>
-     </property>
-     <item row="5" column="1" >
-      <spacer>
-       <property name="orientation" >
-        <enum>Qt::Vertical</enum>
+     <widget class="QWidget" name="tab" >
+      <attribute name="title" >
+       <string>General</string>
+      </attribute>
+      <layout class="QGridLayout" >
+       <property name="margin" >
+        <number>9</number>
        </property>
-       <property name="sizeHint" >
-        <size>
-         <width>20</width>
-         <height>40</height>
-        </size>
+       <property name="spacing" >
+        <number>6</number>
        </property>
-      </spacer>
-     </item>
-     <item row="2" column="3" >
-      <spacer>
-       <property name="orientation" >
-        <enum>Qt::Horizontal</enum>
-       </property>
-       <property name="sizeHint" >
-        <size>
-         <width>40</width>
-         <height>20</height>
-        </size>
-       </property>
-      </spacer>
-     </item>
-     <item row="0" column="2" >
-      <widget class="QPushButton" name="browse_default" >
-       <property name="text" >
-        <string>Browse</string>
-       </property>
-      </widget>
-     </item>
-     <item row="1" column="2" >
-      <widget class="QPushButton" name="browse_temp" >
-       <property name="text" >
-        <string>Browse</string>
-       </property>
-      </widget>
-     </item>
-     <item row="4" column="1" >
-      <widget class="QComboBox" name="map_cutoff" >
-       <item>
-        <property name="text" >
-         <string>None</string>
-        </property>
+       <item row="5" column="1" >
+        <spacer>
+         <property name="orientation" >
+          <enum>Qt::Vertical</enum>
+         </property>
+         <property name="sizeHint" >
+          <size>
+           <width>20</width>
+           <height>40</height>
+          </size>
+         </property>
+        </spacer>
        </item>
-       <item>
-        <property name="text" >
-         <string>Noise Estimator</string>
-        </property>
+       <item row="2" column="3" >
+        <spacer>
+         <property name="orientation" >
+          <enum>Qt::Horizontal</enum>
+         </property>
+         <property name="sizeHint" >
+          <size>
+           <width>40</width>
+           <height>20</height>
+          </size>
+         </property>
+        </spacer>
        </item>
-      </widget>
-     </item>
-     <item row="3" column="1" >
-      <widget class="QComboBox" name="map_default" >
-       <property name="maximumSize" >
-        <size>
-         <width>100</width>
-         <height>16777215</height>
-        </size>
-       </property>
-       <item>
-        <property name="text" >
-         <string>2D</string>
-        </property>
+       <item row="0" column="2" >
+        <widget class="QPushButton" name="browse_default" >
+         <property name="text" >
+          <string>Browse</string>
+         </property>
+        </widget>
        </item>
-       <item>
-        <property name="text" >
-         <string>3D</string>
-        </property>
+       <item row="1" column="2" >
+        <widget class="QPushButton" name="browse_temp" >
+         <property name="text" >
+          <string>Browse</string>
+         </property>
+        </widget>
        </item>
-      </widget>
-     </item>
-     <item row="3" column="0" >
-      <widget class="QLabel" name="label_8" >
-       <property name="text" >
-        <string>Default map view:</string>
-       </property>
-      </widget>
-     </item>
-     <item row="2" column="1" >
-      <widget class="QSpinBox" name="recent_files" >
-       <property name="maximumSize" >
-        <size>
-         <width>50</width>
-         <height>16777215</height>
-        </size>
-       </property>
-       <property name="maximum" >
-        <number>20</number>
-       </property>
-       <property name="minimum" >
-        <number>5</number>
-       </property>
-      </widget>
-     </item>
-     <item row="1" column="1" >
-      <widget class="QLineEdit" name="temp_path" />
-     </item>
-     <item row="0" column="1" >
-      <widget class="QLineEdit" name="default_path" >
-       <property name="minimumSize" >
-        <size>
-         <width>240</width>
-         <height>0</height>
-        </size>
-       </property>
-      </widget>
-     </item>
-     <item row="4" column="0" >
-      <widget class="QLabel" name="label_9" >
-       <property name="text" >
-        <string>Map intensity cutoff:</string>
-       </property>
-      </widget>
-     </item>
-     <item row="2" column="0" >
-      <widget class="QLabel" name="label_7" >
-       <property name="text" >
-        <string>Number of recent files:</string>
-       </property>
-      </widget>
-     </item>
-     <item row="0" column="0" >
-      <widget class="QLabel" name="label_5" >
-       <property name="text" >
-        <string>Default path:</string>
-       </property>
-      </widget>
-     </item>
-     <item row="1" column="0" >
-      <widget class="QLabel" name="label_6" >
-       <property name="text" >
-        <string>Temporary file path:</string>
-       </property>
-      </widget>
-     </item>
-    </layout>
-   </widget>
-   <widget class="QWidget" name="tab_2" >
-    <attribute name="title" >
-     <string>DB</string>
-    </attribute>
-    <layout class="QGridLayout" >
-     <property name="margin" >
-      <number>9</number>
-     </property>
-     <property name="spacing" >
-      <number>6</number>
-     </property>
-     <item row="2" column="2" >
-      <spacer>
-       <property name="orientation" >
-        <enum>Qt::Horizontal</enum>
-       </property>
-       <property name="sizeHint" >
-        <size>
-         <width>40</width>
-         <height>20</height>
-        </size>
-       </property>
-      </spacer>
-     </item>
-     <item row="4" column="1" >
-      <spacer>
-       <property name="orientation" >
-        <enum>Qt::Vertical</enum>
-       </property>
-       <property name="sizeHint" >
-        <size>
-         <width>20</width>
-         <height>40</height>
-        </size>
-       </property>
-      </spacer>
-     </item>
-     <item row="3" column="1" >
-      <widget class="QLineEdit" name="db_login" />
-     </item>
-     <item row="2" column="1" >
-      <widget class="QLineEdit" name="db_name" />
-     </item>
-     <item row="0" column="1" >
-      <widget class="QLineEdit" name="db_host" />
-     </item>
-     <item row="3" column="0" >
-      <widget class="QLabel" name="label_4" >
-       <property name="text" >
-        <string>Login:</string>
-       </property>
-      </widget>
-     </item>
-     <item row="1" column="0" >
-      <widget class="QLabel" name="label_2" >
-       <property name="text" >
-        <string>Port:</string>
-       </property>
-      </widget>
-     </item>
-     <item row="0" column="0" >
-      <widget class="QLabel" name="label" >
-       <property name="text" >
-        <string>Host:</string>
-       </property>
-      </widget>
-     </item>
-     <item row="1" column="1" >
-      <widget class="QSpinBox" name="db_port" >
-       <property name="maximumSize" >
-        <size>
-         <width>120</width>
-         <height>16777215</height>
-        </size>
-       </property>
-       <property name="maximum" >
-        <number>100000</number>
-       </property>
-       <property name="minimum" >
-        <number>1</number>
-       </property>
-      </widget>
-     </item>
-     <item row="2" column="0" >
-      <widget class="QLabel" name="label_3" >
-       <property name="text" >
-        <string>DB name:</string>
-       </property>
-      </widget>
-     </item>
-    </layout>
-   </widget>
-   <widget class="QWidget" name="tab_3" >
-    <attribute name="title" >
-     <string>1D View</string>
-    </attribute>
-    <layout class="QGridLayout" >
-     <property name="margin" >
-      <number>9</number>
-     </property>
-     <property name="spacing" >
-      <number>6</number>
-     </property>
-     <item row="4" column="0" >
-      <spacer>
-       <property name="orientation" >
-        <enum>Qt::Vertical</enum>
-       </property>
-       <property name="sizeHint" >
-        <size>
-         <width>20</width>
-         <height>40</height>
-        </size>
-       </property>
-      </spacer>
-     </item>
-     <item row="3" column="2" >
-      <spacer>
-       <property name="orientation" >
-        <enum>Qt::Horizontal</enum>
-       </property>
-       <property name="sizeHint" >
-        <size>
-         <width>40</width>
-         <height>20</height>
-        </size>
-       </property>
-      </spacer>
-     </item>
-     <item row="1" column="1" >
-      <widget class="OpenMS::ColorSelector" native="1" name="selected_1D" />
-     </item>
-     <item row="2" column="1" >
-      <widget class="OpenMS::ColorSelector" native="1" name="icon_1D" />
-     </item>
-     <item row="0" column="1" >
-      <widget class="OpenMS::ColorSelector" native="1" name="color_1D" />
-     </item>
-     <item row="0" column="0" >
-      <widget class="QLabel" name="label_11" >
-       <property name="text" >
-        <string>Peak color:</string>
-       </property>
-      </widget>
-     </item>
-     <item row="2" column="0" >
-      <widget class="QLabel" name="label_12" >
-       <property name="text" >
-        <string>Icon color:</string>
-       </property>
-      </widget>
-     </item>
-     <item row="1" column="0" >
-      <widget class="QLabel" name="label_10" >
-       <property name="text" >
-        <string>Selected peak color:</string>
-       </property>
-      </widget>
-     </item>
-    </layout>
-   </widget>
-   <widget class="QWidget" name="tab_5" >
-    <attribute name="title" >
-     <string>2D View</string>
-    </attribute>
-    <layout class="QGridLayout" >
-     <property name="margin" >
-      <number>9</number>
-     </property>
-     <property name="spacing" >
-      <number>6</number>
-     </property>
-     <item row="2" column="0" colspan="3" >
-      <widget class="QGroupBox" name="groupBox" >
-       <property name="title" >
-        <string>Surface/contour settings</string>
-       </property>
-       <layout class="QGridLayout" >
-        <property name="margin" >
-         <number>9</number>
-        </property>
-        <property name="spacing" >
-         <number>6</number>
-        </property>
-        <item row="3" column="0" >
-         <spacer>
-          <property name="orientation" >
-           <enum>Qt::Vertical</enum>
-          </property>
-          <property name="sizeHint" >
-           <size>
-            <width>20</width>
-            <height>40</height>
-           </size>
-          </property>
-         </spacer>
-        </item>
-        <item row="2" column="0" >
-         <widget class="QLabel" name="label_16" >
+       <item row="4" column="1" >
+        <widget class="QComboBox" name="map_cutoff" >
+         <item>
           <property name="text" >
-           <string>Surface/countour grid cells:</string>
+           <string>None</string>
           </property>
-         </widget>
-        </item>
-        <item row="1" column="0" >
-         <widget class="QLabel" name="label_15" >
+         </item>
+         <item>
           <property name="text" >
-           <string>Number of countour lines:</string>
+           <string>Noise Estimator</string>
           </property>
-         </widget>
-        </item>
-        <item row="2" column="1" >
-         <widget class="QSpinBox" name="marching_cells_2D" >
-          <property name="maximumSize" >
-           <size>
-            <width>50</width>
-            <height>16777215</height>
-           </size>
-          </property>
-          <property name="minimum" >
-           <number>5</number>
-          </property>
-         </widget>
-        </item>
-        <item row="0" column="0" >
-         <widget class="QLabel" name="label_14" >
-          <property name="text" >
-           <string>Surface gradient:</string>
-          </property>
-         </widget>
-        </item>
-        <item row="1" column="1" >
-         <widget class="QSpinBox" name="contours_2D" >
-          <property name="maximumSize" >
-           <size>
-            <width>50</width>
-            <height>16777215</height>
-           </size>
-          </property>
-          <property name="maximum" >
-           <number>99</number>
-          </property>
-          <property name="minimum" >
-           <number>5</number>
-          </property>
-         </widget>
-        </item>
-        <item row="0" column="1" >
-         <widget class="OpenMS::MultiGradientSelector" native="1" name="surface_2D" />
-        </item>
-       </layout>
-      </widget>
-     </item>
-     <item row="2" column="3" >
-      <spacer>
-       <property name="orientation" >
-        <enum>Qt::Horizontal</enum>
-       </property>
-       <property name="sizeHint" >
-        <size>
-         <width>40</width>
-         <height>20</height>
-        </size>
-       </property>
-      </spacer>
-     </item>
-     <item row="1" column="2" >
-      <widget class="QComboBox" name="mapping_2D" >
-       <property name="maximumSize" >
-        <size>
-         <width>120</width>
-         <height>16777215</height>
-        </size>
-       </property>
-       <item>
-        <property name="text" >
-         <string>X-Axis</string>
-        </property>
+         </item>
+        </widget>
        </item>
-       <item>
-        <property name="text" >
-         <string>Y-Axis</string>
-        </property>
+       <item row="3" column="1" >
+        <widget class="QComboBox" name="map_default" >
+         <property name="maximumSize" >
+          <size>
+           <width>100</width>
+           <height>16777215</height>
+          </size>
+         </property>
+         <item>
+          <property name="text" >
+           <string>2D</string>
+          </property>
+         </item>
+         <item>
+          <property name="text" >
+           <string>3D</string>
+          </property>
+         </item>
+        </widget>
        </item>
-      </widget>
-     </item>
-     <item row="1" column="0" >
-      <widget class="QLabel" name="label_17" >
-       <property name="text" >
-        <string>m/z axis:</string>
+       <item row="3" column="0" >
+        <widget class="QLabel" name="label_8" >
+         <property name="text" >
+          <string>Default map view:</string>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="1" >
+        <widget class="QSpinBox" name="recent_files" >
+         <property name="maximumSize" >
+          <size>
+           <width>50</width>
+           <height>16777215</height>
+          </size>
+         </property>
+         <property name="maximum" >
+          <number>20</number>
+         </property>
+         <property name="minimum" >
+          <number>5</number>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="1" >
+        <widget class="QLineEdit" name="temp_path" />
+       </item>
+       <item row="0" column="1" >
+        <widget class="QLineEdit" name="default_path" >
+         <property name="minimumSize" >
+          <size>
+           <width>240</width>
+           <height>0</height>
+          </size>
+         </property>
+        </widget>
+       </item>
+       <item row="4" column="0" >
+        <widget class="QLabel" name="label_9" >
+         <property name="text" >
+          <string>Map intensity cutoff:</string>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="0" >
+        <widget class="QLabel" name="label_7" >
+         <property name="text" >
+          <string>Number of recent files:</string>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="0" >
+        <widget class="QLabel" name="label_5" >
+         <property name="text" >
+          <string>Default path:</string>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="0" >
+        <widget class="QLabel" name="label_6" >
+         <property name="text" >
+          <string>Temporary file path:</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QWidget" name="tab_2" >
+      <attribute name="title" >
+       <string>DB</string>
+      </attribute>
+      <layout class="QGridLayout" >
+       <property name="margin" >
+        <number>9</number>
        </property>
-      </widget>
-     </item>
-     <item row="3" column="1" >
-      <spacer>
-       <property name="orientation" >
-        <enum>Qt::Vertical</enum>
+       <property name="spacing" >
+        <number>6</number>
        </property>
-       <property name="sizeHint" >
-        <size>
-         <width>20</width>
-         <height>71</height>
-        </size>
+       <item row="2" column="2" >
+        <spacer>
+         <property name="orientation" >
+          <enum>Qt::Horizontal</enum>
+         </property>
+         <property name="sizeHint" >
+          <size>
+           <width>40</width>
+           <height>20</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+       <item row="4" column="1" >
+        <spacer>
+         <property name="orientation" >
+          <enum>Qt::Vertical</enum>
+         </property>
+         <property name="sizeHint" >
+          <size>
+           <width>20</width>
+           <height>40</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+       <item row="3" column="1" >
+        <widget class="QLineEdit" name="db_login" />
+       </item>
+       <item row="2" column="1" >
+        <widget class="QLineEdit" name="db_name" />
+       </item>
+       <item row="0" column="1" >
+        <widget class="QLineEdit" name="db_host" />
+       </item>
+       <item row="3" column="0" >
+        <widget class="QLabel" name="label_4" >
+         <property name="text" >
+          <string>Login:</string>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="0" >
+        <widget class="QLabel" name="label_2" >
+         <property name="text" >
+          <string>Port:</string>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="0" >
+        <widget class="QLabel" name="label" >
+         <property name="text" >
+          <string>Host:</string>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="1" >
+        <widget class="QSpinBox" name="db_port" >
+         <property name="maximumSize" >
+          <size>
+           <width>120</width>
+           <height>16777215</height>
+          </size>
+         </property>
+         <property name="maximum" >
+          <number>100000</number>
+         </property>
+         <property name="minimum" >
+          <number>1</number>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="0" >
+        <widget class="QLabel" name="label_3" >
+         <property name="text" >
+          <string>DB name:</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QWidget" name="tab_3" >
+      <attribute name="title" >
+       <string>1D View</string>
+      </attribute>
+      <layout class="QGridLayout" >
+       <property name="margin" >
+        <number>9</number>
        </property>
-      </spacer>
-     </item>
-     <item row="0" column="0" >
-      <widget class="QLabel" name="label_13" >
-       <property name="text" >
-        <string>Peak gradient:</string>
+       <property name="spacing" >
+        <number>6</number>
        </property>
-      </widget>
-     </item>
-     <item row="0" column="2" >
-      <widget class="OpenMS::MultiGradientSelector" native="1" name="peak_2D" />
-     </item>
-    </layout>
-   </widget>
-   <widget class="QWidget" name="tab_4" >
-    <attribute name="title" >
-     <string>3D View</string>
-    </attribute>
-    <layout class="QGridLayout" >
-     <property name="margin" >
-      <number>9</number>
-     </property>
-     <property name="spacing" >
-      <number>6</number>
-     </property>
-     <item row="0" column="0" >
-      <widget class="QGroupBox" name="groupBox_3" >
-       <property name="title" >
-        <string>Peak settings</string>
+       <item row="4" column="0" >
+        <spacer>
+         <property name="orientation" >
+          <enum>Qt::Vertical</enum>
+         </property>
+         <property name="sizeHint" >
+          <size>
+           <width>20</width>
+           <height>40</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+       <item row="3" column="2" >
+        <spacer>
+         <property name="orientation" >
+          <enum>Qt::Horizontal</enum>
+         </property>
+         <property name="sizeHint" >
+          <size>
+           <width>40</width>
+           <height>20</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+       <item row="1" column="1" >
+        <widget class="OpenMS::ColorSelector" native="1" name="selected_1D" />
+       </item>
+       <item row="2" column="1" >
+        <widget class="OpenMS::ColorSelector" native="1" name="icon_1D" />
+       </item>
+       <item row="0" column="1" >
+        <widget class="OpenMS::ColorSelector" native="1" name="color_1D" />
+       </item>
+       <item row="0" column="0" >
+        <widget class="QLabel" name="label_11" >
+         <property name="text" >
+          <string>Peak color:</string>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="0" >
+        <widget class="QLabel" name="label_12" >
+         <property name="text" >
+          <string>Icon color:</string>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="0" >
+        <widget class="QLabel" name="label_10" >
+         <property name="text" >
+          <string>Selected peak color:</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QWidget" name="tab_5" >
+      <attribute name="title" >
+       <string>2D View</string>
+      </attribute>
+      <layout class="QGridLayout" >
+       <property name="margin" >
+        <number>9</number>
        </property>
-       <layout class="QGridLayout" >
-        <property name="margin" >
-         <number>9</number>
-        </property>
-        <property name="spacing" >
-         <number>6</number>
-        </property>
-        <item row="3" column="0" >
-         <spacer>
-          <property name="orientation" >
-           <enum>Qt::Vertical</enum>
-          </property>
-          <property name="sizeHint" >
-           <size>
-            <width>20</width>
-            <height>40</height>
-           </size>
-          </property>
-         </spacer>
-        </item>
-        <item row="2" column="1" >
-         <widget class="QSpinBox" name="line_width_3D" >
-          <property name="maximumSize" >
-           <size>
-            <width>100</width>
-            <height>16777215</height>
-           </size>
-          </property>
-          <property name="minimum" >
-           <number>1</number>
-          </property>
-         </widget>
-        </item>
-        <item row="2" column="0" >
-         <widget class="QLabel" name="label_20" >
+       <property name="spacing" >
+        <number>6</number>
+       </property>
+       <item row="2" column="3" >
+        <spacer>
+         <property name="orientation" >
+          <enum>Qt::Horizontal</enum>
+         </property>
+         <property name="sizeHint" >
+          <size>
+           <width>40</width>
+           <height>20</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+       <item row="1" column="2" >
+        <widget class="QComboBox" name="mapping_2D" >
+         <property name="maximumSize" >
+          <size>
+           <width>120</width>
+           <height>16777215</height>
+          </size>
+         </property>
+         <item>
           <property name="text" >
-           <string>Line width:</string>
+           <string>X-Axis</string>
           </property>
-         </widget>
-        </item>
-        <item row="1" column="0" >
-         <widget class="QLabel" name="label_19" >
+         </item>
+         <item>
           <property name="text" >
-           <string>Shade mode:</string>
+           <string>Y-Axis</string>
           </property>
-         </widget>
-        </item>
-        <item row="0" column="1" >
-         <widget class="OpenMS::MultiGradientSelector" native="1" name="peak_3D" />
-        </item>
-        <item row="1" column="1" >
-         <widget class="QComboBox" name="shade_3D" >
-          <property name="maximumSize" >
-           <size>
-            <width>100</width>
-            <height>16777215</height>
-           </size>
+         </item>
+        </widget>
+       </item>
+       <item row="1" column="0" >
+        <widget class="QLabel" name="label_17" >
+         <property name="text" >
+          <string>m/z axis:</string>
+         </property>
+        </widget>
+       </item>
+       <item row="3" column="1" >
+        <spacer>
+         <property name="orientation" >
+          <enum>Qt::Vertical</enum>
+         </property>
+         <property name="sizeHint" >
+          <size>
+           <width>20</width>
+           <height>71</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+       <item row="0" column="0" >
+        <widget class="QLabel" name="label_13" >
+         <property name="text" >
+          <string>Peak gradient:</string>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="2" >
+        <widget class="OpenMS::MultiGradientSelector" native="1" name="peak_2D" />
+       </item>
+      </layout>
+     </widget>
+     <widget class="QWidget" name="tab_4" >
+      <attribute name="title" >
+       <string>3D View</string>
+      </attribute>
+      <layout class="QGridLayout" >
+       <property name="margin" >
+        <number>9</number>
+       </property>
+       <property name="spacing" >
+        <number>6</number>
+       </property>
+       <item row="0" column="0" >
+        <widget class="QGroupBox" name="groupBox_3" >
+         <property name="title" >
+          <string>Peak settings</string>
+         </property>
+         <layout class="QGridLayout" >
+          <property name="margin" >
+           <number>9</number>
           </property>
-          <item>
-           <property name="text" >
-            <string>Flat</string>
-           </property>
+          <property name="spacing" >
+           <number>6</number>
+          </property>
+          <item row="3" column="0" >
+           <spacer>
+            <property name="orientation" >
+             <enum>Qt::Vertical</enum>
+            </property>
+            <property name="sizeHint" >
+             <size>
+              <width>20</width>
+              <height>40</height>
+             </size>
+            </property>
+           </spacer>
           </item>
-          <item>
-           <property name="text" >
-            <string>Smooth</string>
-           </property>
+          <item row="2" column="1" >
+           <widget class="QSpinBox" name="line_width_3D" >
+            <property name="maximumSize" >
+             <size>
+              <width>100</width>
+              <height>16777215</height>
+             </size>
+            </property>
+            <property name="minimum" >
+             <number>1</number>
+            </property>
+           </widget>
           </item>
-         </widget>
-        </item>
-        <item row="0" column="0" >
-         <widget class="QLabel" name="label_18" >
-          <property name="text" >
-           <string>Peak colors:</string>
-          </property>
-         </widget>
-        </item>
-       </layout>
-      </widget>
-     </item>
-     <item rowspan="2" row="0" column="1" >
-      <spacer>
-       <property name="orientation" >
-        <enum>Qt::Horizontal</enum>
-       </property>
-       <property name="sizeHint" >
-        <size>
-         <width>181</width>
-         <height>20</height>
-        </size>
-       </property>
-      </spacer>
-     </item>
-     <item row="1" column="0" >
-      <widget class="QGroupBox" name="groupBox_2" >
-       <property name="title" >
-        <string>Data reduction</string>
-       </property>
-       <layout class="QGridLayout" >
-        <property name="margin" >
-         <number>9</number>
-        </property>
-        <property name="spacing" >
-         <number>6</number>
-        </property>
-        <item row="1" column="3" >
-         <spacer>
-          <property name="orientation" >
-           <enum>Qt::Horizontal</enum>
-          </property>
-          <property name="sizeHint" >
-           <size>
-            <width>40</width>
-            <height>20</height>
-           </size>
-          </property>
-         </spacer>
-        </item>
-        <item row="1" column="2" >
-         <widget class="QSpinBox" name="reduction_peaks_3D" >
-          <property name="maximumSize" >
-           <size>
-            <width>100</width>
-            <height>16777215</height>
-           </size>
-          </property>
-          <property name="maximum" >
-           <number>1000000</number>
-          </property>
-          <property name="minimum" >
-           <number>5000</number>
-          </property>
-          <property name="singleStep" >
-           <number>5000</number>
-          </property>
-         </widget>
-        </item>
-        <item row="0" column="2" >
-         <widget class="QComboBox" name="reduction_3D" >
-          <item>
-           <property name="text" >
-            <string>Off</string>
-           </property>
+          <item row="2" column="0" >
+           <widget class="QLabel" name="label_20" >
+            <property name="text" >
+             <string>Line width:</string>
+            </property>
+           </widget>
           </item>
-          <item>
-           <property name="text" >
-            <string>Sum reduction</string>
-           </property>
+          <item row="1" column="0" >
+           <widget class="QLabel" name="label_19" >
+            <property name="text" >
+             <string>Shade mode:</string>
+            </property>
+           </widget>
           </item>
-          <item>
-           <property name="text" >
-            <string>Max reduction</string>
-           </property>
+          <item row="0" column="1" >
+           <widget class="OpenMS::MultiGradientSelector" native="1" name="peak_3D" />
           </item>
-         </widget>
-        </item>
-        <item row="0" column="0" >
-         <widget class="QLabel" name="label_21" >
-          <property name="text" >
-           <string>Reduction mode:</string>
+          <item row="1" column="1" >
+           <widget class="QComboBox" name="shade_3D" >
+            <property name="maximumSize" >
+             <size>
+              <width>100</width>
+              <height>16777215</height>
+             </size>
+            </property>
+            <item>
+             <property name="text" >
+              <string>Flat</string>
+             </property>
+            </item>
+            <item>
+             <property name="text" >
+              <string>Smooth</string>
+             </property>
+            </item>
+           </widget>
+          </item>
+          <item row="0" column="0" >
+           <widget class="QLabel" name="label_18" >
+            <property name="text" >
+             <string>Peak colors:</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item rowspan="2" row="0" column="1" >
+        <spacer>
+         <property name="orientation" >
+          <enum>Qt::Horizontal</enum>
+         </property>
+         <property name="sizeHint" >
+          <size>
+           <width>181</width>
+           <height>20</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+       <item row="1" column="0" >
+        <widget class="QGroupBox" name="groupBox_2" >
+         <property name="title" >
+          <string>Data reduction</string>
+         </property>
+         <layout class="QGridLayout" >
+          <property name="margin" >
+           <number>9</number>
           </property>
-         </widget>
-        </item>
-        <item row="1" column="0" colspan="2" >
-         <widget class="QLabel" name="label_22" >
-          <property name="text" >
-           <string>Displayed peaks:</string>
+          <property name="spacing" >
+           <number>6</number>
           </property>
-         </widget>
-        </item>
-        <item row="2" column="1" >
-         <spacer>
-          <property name="orientation" >
-           <enum>Qt::Vertical</enum>
-          </property>
-          <property name="sizeHint" >
-           <size>
-            <width>20</width>
-            <height>40</height>
-           </size>
-          </property>
-         </spacer>
-        </item>
-       </layout>
-      </widget>
-     </item>
-     <item row="2" column="0" >
-      <spacer>
-       <property name="orientation" >
-        <enum>Qt::Vertical</enum>
-       </property>
-       <property name="sizeHint" >
-        <size>
-         <width>20</width>
-         <height>41</height>
-        </size>
-       </property>
-      </spacer>
-     </item>
-    </layout>
-   </widget>
-  </widget>
-  <widget class="QDialogButtonBox" name="buttonBox" >
-   <property name="geometry" >
-    <rect>
-     <x>9</x>
-     <y>413</y>
-     <width>574</width>
-     <height>27</height>
-    </rect>
-   </property>
-   <property name="orientation" >
-    <enum>Qt::Horizontal</enum>
-   </property>
-   <property name="standardButtons" >
-    <set>QDialogButtonBox::Cancel|QDialogButtonBox::NoButton|QDialogButtonBox::Ok</set>
-   </property>
-  </widget>
+          <item row="1" column="3" >
+           <spacer>
+            <property name="orientation" >
+             <enum>Qt::Horizontal</enum>
+            </property>
+            <property name="sizeHint" >
+             <size>
+              <width>40</width>
+              <height>20</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+          <item row="1" column="2" >
+           <widget class="QSpinBox" name="reduction_peaks_3D" >
+            <property name="maximumSize" >
+             <size>
+              <width>100</width>
+              <height>16777215</height>
+             </size>
+            </property>
+            <property name="maximum" >
+             <number>1000000</number>
+            </property>
+            <property name="minimum" >
+             <number>5000</number>
+            </property>
+            <property name="singleStep" >
+             <number>5000</number>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="2" >
+           <widget class="QComboBox" name="reduction_3D" >
+            <item>
+             <property name="text" >
+              <string>Off</string>
+             </property>
+            </item>
+            <item>
+             <property name="text" >
+              <string>Sum reduction</string>
+             </property>
+            </item>
+            <item>
+             <property name="text" >
+              <string>Max reduction</string>
+             </property>
+            </item>
+           </widget>
+          </item>
+          <item row="0" column="0" >
+           <widget class="QLabel" name="label_21" >
+            <property name="text" >
+             <string>Reduction mode:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="0" colspan="2" >
+           <widget class="QLabel" name="label_22" >
+            <property name="text" >
+             <string>Displayed peaks:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="1" >
+           <spacer>
+            <property name="orientation" >
+             <enum>Qt::Vertical</enum>
+            </property>
+            <property name="sizeHint" >
+             <size>
+              <width>20</width>
+              <height>40</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item row="2" column="0" >
+        <spacer>
+         <property name="orientation" >
+          <enum>Qt::Vertical</enum>
+         </property>
+         <property name="sizeHint" >
+          <size>
+           <width>20</width>
+           <height>41</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+      </layout>
+     </widget>
+    </widget>
+   </item>
+   <item>
+    <widget class="QDialogButtonBox" name="buttonBox" >
+     <property name="orientation" >
+      <enum>Qt::Horizontal</enum>
+     </property>
+     <property name="standardButtons" >
+      <set>QDialogButtonBox::Cancel|QDialogButtonBox::NoButton|QDialogButtonBox::Ok</set>
+     </property>
+    </widget>
+   </item>
+  </layout>
  </widget>
  <customwidgets>
-  <customwidget>
-   <class>OpenMS::ColorSelector</class>
-   <extends>QWidget</extends>
-   <header>OpenMS/VISUAL/ColorSelector.h</header>
-  </customwidget>
   <customwidget>
    <class>OpenMS::MultiGradientSelector</class>
    <extends>QWidget</extends>
    <header>OpenMS/VISUAL/MultiGradientSelector.h</header>
+  </customwidget>
+  <customwidget>
+   <class>OpenMS::ColorSelector</class>
+   <extends>QWidget</extends>
+   <header>OpenMS/VISUAL/ColorSelector.h</header>
   </customwidget>
  </customwidgets>
  <resources/>

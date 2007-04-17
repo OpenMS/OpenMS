@@ -48,16 +48,6 @@ namespace OpenMS
 		the two axis-widgets as children and controls them.
 		It also provides an interface to these widgets.
 		
-		If you want to use the 2D spectrum widget, you need
-		to use this class. The view features several view
-		modes:
-		
-		- Dots: display peaks as small filled circles.
-		- Contour lines: show an interpolated height map
-		  by grouping peaks together.
-		- Color map: show an interpolated height map as
-		  a colored gradient background.
-		
 		The user can zoom, translate and select peaks. A
 		zoom stack is provided for going back to an earlier
 		view.

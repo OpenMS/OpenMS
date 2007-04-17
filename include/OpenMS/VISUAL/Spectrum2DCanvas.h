@@ -149,30 +149,6 @@ namespace OpenMS
       void paintDots_(UInt layer_index, QPainter& p);
 
       /**
-      	@brief Paints data as a height map.
-
-      	Paints the peak data as interpolated contour lines.
-      	The data is shown as a height map such that higher
-      	areas are enclosed by more lines than lower areas.
-      	
-      	@param layer_index The index of the layer.
-      	@param p The QPainter to paint on.
-      */
-      void paintContours_(UInt layer_index, QPainter& p);
-
-      /**
-      	@brief Paints data as a colored surface gradient.
-
-      	Paints the peak data as an interpolated surface gradient.
-      	The data is shown according to the gradien which can be
-      	set with the setSurfaceGradient() member function.
-      	
-      	@param layer_index The index of the layer.
-      	@param p The QPainter to paint on.
-      */
-      void paintSurface_(UInt layer_index, QPainter& p);
-
-      /**
       	@brief Paints all feature convex hulls for a feature layer.
       	
       	@param layer_index Int of the layer.
@@ -202,10 +178,8 @@ namespace OpenMS
       virtual void intensityDistributionChange_();
       // DOcu in base class
       virtual void recalculateSnapFactor_();
-      /// recalculates the surface gradient inerpolation values. Use after Intensites or gradient changed
-      void recalculateSurfaceGradient_();
-      /// recalculates the dot gradient inerpolation values. Use after Intensites or gradient changed
-      void recalculateDotGradient_();
+      /// recalculates the dot gradient of a layer
+      void recalculateDotGradient_(UInt layer);
 
       /// m/z projection data
       MSExperiment<> projection_mz_;
@@ -222,21 +196,11 @@ namespace OpenMS
       */
       const QColor& heightColor_(float val, const MultiGradient& gradient);
 
-      /// Performs the marching squares calculations for a layer and stores the matrix in marching_squares_matrices_
-      void calculateMarchingSquareMatrix_(UInt layer_index);
-      /// Returns the marching square cell with the smallest data coordinates
-      AreaType getOriginCell_(UInt layer_index);
-
       /// Highlights a single peak
       void highlightPeak_(QPainter& p, Feature* peak);
 
       /// Returns the nearest peak to position @p pos
       Feature* findNearestPeak_(const QPoint& pos);
-
-      /// marching squares matrices for the layers
-      std::vector< std::vector< std::vector<float> > > marching_squares_matrices_;
-      /// Contains the highes value in the marching squares matrix foreach layer
-      std::vector<float> max_values_;
 
       /// the nearest peak/feature to the mouse cursor (DFeature to be able to store the convex hull too)
       Feature* selected_peak_;
@@ -246,11 +210,6 @@ namespace OpenMS
       Feature* measurement_stop_;
       /// temporary peak/feature for findNearestPeak_
       Feature tmp_peak_;
-
-      /// Gradient for dots
-      MultiGradient dot_gradient_;
-      /// Gradient for surface
-      MultiGradient surface_gradient_;
 
   };
 }

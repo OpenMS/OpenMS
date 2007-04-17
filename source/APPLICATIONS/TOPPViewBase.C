@@ -97,8 +97,6 @@
 #include "../VISUAL/ICONS/peaks.xpm"
 
 //2d
-#include "../VISUAL/ICONS/colors.xpm"
-#include "../VISUAL/ICONS/contours.xpm"
 #include "../VISUAL/ICONS/precursors.xpm"
 #include "../VISUAL/ICONS/projections.xpm"
 #include "../VISUAL/ICONS/convexhulls.xpm"
@@ -244,12 +242,9 @@ namespace OpenMS
     defaults_.setValue("Preferences:1D:BackgroundColor", "#ffffff");
     //2d
     defaults_.setValue("Preferences:2D:BackgroundColor", "#ffffff");
-    defaults_.setValue("Preferences:2D:MarchingSquaresSteps", 20);
     defaults_.setValue("Preferences:2D:InterpolationSteps", 200);
     defaults_.setValue("Preferences:2D:Dot:Gradient", "Linear|0,#efef00;7,#ffaa00;15,#ff0000;27,#aa00ff;55,#5500ff;100,#000000");
-    defaults_.setValue("Preferences:2D:Surface:Gradient", "Linear|0,#ffffff;7,#fdffcb;20,#ffb4b4;50,#d7cfff;100,#c1c1c1");
-    defaults_.setValue("Preferences:2D:Contour:Lines", 8);
-    defaults_.setValue("Preferences:2D:Mapping:MappingOfMzTo","X-Axis");
+    defaults_.setValue("Preferences:2D:MappingOfMzTo","X-Axis");
     //3d
     defaults_.setValue("Preferences:3D:Dot:ShadeMode", 1);
     defaults_.setValue("Preferences:3D:Dot:Gradient", "Linear|0,#efef00;11,#ffaa00;32,#ff0000;55,#aa00ff;78,#5500ff;100,#000000");
@@ -505,9 +500,6 @@ namespace OpenMS
 		ColorSelector* icon_1D = dlg.findChild<ColorSelector*>("icon_1D");
 
 		MultiGradientSelector* peak_2D = dlg.findChild<MultiGradientSelector*>("peak_2D");
-		MultiGradientSelector* surface_2D = dlg.findChild<MultiGradientSelector*>("surface_2D");
-		QSpinBox* contours_2D  = dlg.findChild<QSpinBox*>("contours_2D");
-		QSpinBox* marching_cells_2D  = dlg.findChild<QSpinBox*>("marching_cells_2D");
 		QComboBox* mapping_2D = dlg.findChild<QComboBox*>("mapping_2D");
 
 		MultiGradientSelector* peak_3D = dlg.findChild<MultiGradientSelector*>("peak_3D");
@@ -533,10 +525,7 @@ namespace OpenMS
 		icon_1D->setColor(QColor(param_.getValue("Preferences:1D:IconColor").toQString()));
 
 		peak_2D->gradient().fromString(param_.getValue("Preferences:2D:Dot:Gradient"));
-		surface_2D->gradient().fromString(param_.getValue("Preferences:2D:Surface:Gradient"));
-		contours_2D->setValue(UInt(param_.getValue("Preferences:2D:Contour:Lines")));
-		marching_cells_2D->setValue(UInt(param_.getValue("Preferences:2D:MarchingSquaresSteps")));
-		mapping_2D->setCurrentIndex(mapping_2D->findText(param_.getValue("Preferences:2D:Mapping:MappingOfMzTo").toQString()));
+		mapping_2D->setCurrentIndex(mapping_2D->findText(param_.getValue("Preferences:2D:MappingOfMzTo").toQString()));
 
 		peak_3D->gradient().fromString(param_.getValue("Preferences:3D:Dot:Gradient"));
 		shade_3D->setCurrentIndex((Int)param_.getValue("Preferences:3D:Dot:ShadeMode"));
@@ -565,10 +554,7 @@ namespace OpenMS
 			param_.setValue("Preferences:1D:IconColor",icon_1D->getColor().name().toAscii().data());
 
 			param_.setValue("Preferences:2D:Dot:Gradient",peak_2D->gradient().toString());
-			param_.setValue("Preferences:2D:Surface:Gradient",surface_2D->gradient().toString());
-			param_.setValue("Preferences:2D:Contour:Lines",contours_2D->value());
-			param_.setValue("Preferences:2D:MarchingSquaresSteps",marching_cells_2D->value());
-			param_.setValue("Preferences:2D:Mapping:MappingOfMzTo",mapping_2D->currentText().toAscii().data());
+			param_.setValue("Preferences:2D:MappingOfMzTo",mapping_2D->currentText().toAscii().data());
 
 			param_.setValue("Preferences:3D:Dot:Gradient",peak_3D->gradient().toString());
 			param_.setValue("Preferences:3D:Dot:ShadeMode", shade_3D->currentIndex());
@@ -1237,18 +1223,6 @@ namespace OpenMS
     //--2D toolbar--
     tool_bar_2d_ = addToolBar("2D tool bar");
 
-    dm_surface_2d_ = tool_bar_2d_->addAction(QPixmap(colors),"Show colored surface");
-    dm_surface_2d_->setCheckable(true);
-    dm_surface_2d_->setWhatsThis("2D peak draw mode: Surface<BR><BR>The marching squares algorithm is applied"
-    								             " to calculate a surface");
-    connect(dm_surface_2d_, SIGNAL(toggled(bool)), this, SLOT(changeLayerFlag(bool)));
-
-    dm_contours_2d_ = tool_bar_2d_->addAction(QPixmap(contours),"Show contour lines");
-    dm_contours_2d_->setCheckable(true);
-    dm_contours_2d_->setWhatsThis("2D peak draw mode: Contour lines<BR><BR>The marching squares algorithm is applied"
-    								              " to calculate contour lines.");
-    connect(dm_contours_2d_, SIGNAL(toggled(bool)), this, SLOT(changeLayerFlag(bool)));
-
     dm_precursors_2d_ = tool_bar_2d_->addAction(QPixmap(precursors),"Show MS/MS precursors");
     dm_precursors_2d_->setCheckable(true);
     dm_precursors_2d_->setWhatsThis("2D peak draw mode: Precursors<BR><BR>MS/MS precursor peaks are marked");
@@ -1423,15 +1397,7 @@ namespace OpenMS
     if (Spectrum2DWidget* win = active2DWindow_())
     {
     	//peaks
-	    if (action == dm_contours_2d_)
-			{
-		    win->canvas()->setLayerFlag(LayerData::P_CONTOURS,on);
-			}
-			else if (action == dm_surface_2d_)
-			{
-		    win->canvas()->setLayerFlag(LayerData::P_SURFACE,on);
-			}
-			else if (action == dm_precursors_2d_)
+			if (action == dm_precursors_2d_)
 			{
 		    win->canvas()->setLayerFlag(LayerData::P_PRECURSORS,on);
 			}
@@ -1498,21 +1464,15 @@ namespace OpenMS
       //peak draw modes
       if (w2->canvas()->getCurrentLayer().type == LayerData::DT_PEAK)
       {
-      	dm_surface_2d_->setVisible(true);
-      	dm_contours_2d_->setVisible(true);
       	dm_precursors_2d_->setVisible(true);
       	projections_2d_->setVisible(true);
       	dm_hull_2d_->setVisible(false);
       	dm_numbers_2d_->setVisible(false);
-      	dm_surface_2d_->setChecked(w2->canvas()->getLayerFlag(LayerData::P_SURFACE));
-      	dm_contours_2d_->setChecked(w2->canvas()->getLayerFlag(LayerData::P_CONTOURS));
 				dm_precursors_2d_->setChecked(w2->canvas()->getLayerFlag(LayerData::P_PRECURSORS));
 			}
 			//feature draw modes
 			else
 			{
-      	dm_surface_2d_->setVisible(false);
-      	dm_contours_2d_->setVisible(false);
       	dm_precursors_2d_->setVisible(false);
       	projections_2d_->setVisible(false);
       	dm_hull_2d_->setVisible(true);

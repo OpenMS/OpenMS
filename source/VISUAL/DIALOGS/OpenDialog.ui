@@ -227,7 +227,7 @@
          <item>
           <widget class="QRadioButton" name="d3_radio" >
            <property name="text" >
-            <string>3D (experimental)</string>
+            <string>3D</string>
            </property>
           </widget>
          </item>

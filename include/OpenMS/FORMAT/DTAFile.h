@@ -56,7 +56,7 @@ namespace OpenMS
  				@brief Loads a DTA file to a spectrum.
  				
  				The content of the file is stored in @p spectrum.
- 				@p spectrum has to be a DSpectrum<1>/MSSpectrum<1> or have the same interface.
+ 				@p spectrum has to be a DSpectrum<1>/MSSpectrum<> or have the same interface.
       */
       template <typename SpectrumType>
       void load(const String& filename, SpectrumType& spectrum) throw (Exception::FileNotFound,Exception::ParseError)
@@ -155,7 +155,7 @@ namespace OpenMS
       	@brief Stores a spectrum in a DTA file.
       	
       	The content of @p spectrum is stored in a file.
-      	@p spectrum has to be a DSpectrum<1>/MSSpectrum<1> or have the same interface.
+      	@p spectrum has to be a DSpectrum<1>/MSSpectrum<> or have the same interface.
       */
       template <typename SpectrumType>
       void store(const String& filename, const SpectrumType& spectrum) const throw (Exception::UnableToCreateFile)

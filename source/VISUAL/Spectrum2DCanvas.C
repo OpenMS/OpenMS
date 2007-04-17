@@ -31,6 +31,8 @@
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/VISUAL/MSMetaDataExplorer.h>
 #include <OpenMS/VISUAL/DIALOGS/Spectrum2DPrefDialog.h>
+#include <OpenMS/VISUAL/ColorSelector.h>
+#include <OpenMS/VISUAL/MultiGradientSelector.h>
 
 //STL
 #include <algorithm>	
@@ -43,6 +45,8 @@
 #include <QtGui/QBitmap>
 #include <QtGui/QPolygon>
 #include <QtCore/QTime>
+#include <QtGui/QComboBox>
+
 
 using namespace std;
 
@@ -52,23 +56,16 @@ namespace OpenMS
 
 	Spectrum2DCanvas::Spectrum2DCanvas(const Param& preferences, QWidget* parent)
 		: SpectrumCanvas(preferences, parent),
-			marching_squares_matrices_(),
-			max_values_(),
 			selected_peak_(0),
 			measurement_start_(0),
 			measurement_stop_(0),
-			tmp_peak_(),
-			dot_gradient_(),
-			surface_gradient_()
+			tmp_peak_()
 	{
     //Paramater handling
     defaults_.setValue("BackgroundColor", "#ffffff");
-    defaults_.setValue("MarchingSquaresSteps", 20);
     defaults_.setValue("InterpolationSteps", 200);
     defaults_.setValue("Dot:Gradient", "Linear|0,#efef00;7,#ffaa00;15,#ff0000;27,#aa00ff;55,#5500ff;100,#000000");
-    defaults_.setValue("Surface:Gradient", "Linear|0,#ffffff;7,#fdffcb;20,#ffb4b4;50,#d7cfff;100,#c1c1c1");
-    defaults_.setValue("Contour:Lines", 8);
-    defaults_.setValue("Mapping:MappingOfMzTo","X-Axis");
+    defaults_.setValue("MappingOfMzTo","X-Axis");
 		defaultsToParam_();
 		setName("Spectrum2DCanvas");
 		setParameters(preferences);
@@ -77,11 +74,7 @@ namespace OpenMS
 		projection_rt_.resize(1);
 		
 		//set preferences and update widgets acoordningly
-		surface_gradient_.fromString(param_.getValue("Surface:Gradient"));
-		recalculateSurfaceGradient_();
-		dot_gradient_.fromString(param_.getValue("Dot:Gradient"));
-		recalculateDotGradient_();
-		if (param_.getValue("Mapping:MappingOfMzTo") != "X-Axis")
+		if (param_.getValue("MappingOfMzTo") != "X-Axis")
 		{
 			mzToXAxis(false);
 		}
@@ -193,62 +186,7 @@ namespace OpenMS
 				throw Exception::NotImplemented(__FILE__, __LINE__, __PRETTY_FUNCTION__);
 		}
 	}
-		
-	void Spectrum2DCanvas::calculateMarchingSquareMatrix_(UInt layer_index)
-	{
-		Int steps = param_.getValue("MarchingSquaresSteps");
-		const double cell_width = visible_area_.width() / steps;
-		const double cell_height = visible_area_.height() / steps;
-		const double half_width = cell_width / 2.0f;
-		const double half_height = cell_height / 2.0f;
-		
-		double min_int = getLayer(layer_index).min_int;
-		double max_int = getLayer(layer_index).max_int;
-		
-		float y = visible_area_.minY();
-		int i, j;
-		for (i = 0; i <= steps; i++)
-		{
-			float x = visible_area_.minX();
-			vector<float> line;
-			for (j = 0; j <= steps; j++)
-			{
-				// build sum of all peak heights in the current cell
-				float sum = 0.0f;
 
-				for (ExperimentType::ConstAreaIterator i = getPeakData(layer_index).areaBeginConst(y - half_height, y + half_height, x - half_width, x + half_width); 
-						 i != getPeakData(layer_index).areaEndConst(); 
-						 ++i)
-				{
-					if (i->getIntensity()>=min_int && i->getIntensity()<=max_int)
-					{
-						sum += i->getIntensity();
-					}
-				}
-				// log mode
-				if (intensity_mode_ == IM_LOG)
-				{
-					sum = log(sum+1); // prevent log of numbers smaller than one
-				}
-				// store max
-				if (sum > max_values_[layer_index])
-				{
-					max_values_[layer_index] = sum;
-				}
-				
-				line.push_back(sum);
-				//cout << sum << " ";
-				x += cell_width;
-			}
-			//cout << endl;
-			marching_squares_matrices_[layer_index].push_back(line);
-			y += cell_height;
-		}
-		//cout << "rows: " << marching_squares_matrices_[layer_index].size() << " cols: " << marching_squares_matrices_[layer_index][0].size() << endl;
-	}
-	
-
-	
 	void Spectrum2DCanvas::paintDots_(UInt layer_index, QPainter& painter)
 	{
 #ifdef TIMING_TOPPVIEW
@@ -324,7 +262,7 @@ namespace OpenMS
 			{
 				if (i->getIntensity()>=min_int && i->getIntensity()<=max_int)
 				{
-					painter.setPen(heightColor_(i->getIntensity(), dot_gradient_));
+					painter.setPen(heightColor_(i->getIntensity(), getLayer(layer_index).gradient));
 					if (dots)
 					{
 						dataToWidget_(i->getMZ(), i.getRT(),pos);
@@ -396,7 +334,7 @@ namespace OpenMS
 						 i->getIntensity()>=min_int &&
 						 i->getIntensity()<=max_int)
 				{
-					painter.setPen(heightColor_(i->getIntensity(), dot_gradient_));
+					painter.setPen(heightColor_(i->getIntensity(), getLayer(layer_index).gradient));
 					dataToWidget_(i->getMZ(),i->getRT(),pos);
 					painter.drawLine(pos.x(),pos.y()-1,pos.x(),pos.y()+1);
 					painter.drawLine(pos.x()-1,pos.y(),pos.x()+1,pos.y());
@@ -494,333 +432,7 @@ namespace OpenMS
 			painter.drawPolygon(points);
 		}
   }
-
-	void Spectrum2DCanvas::paintContours_(UInt layer_index, QPainter& painter)
-	{
-		if (max_values_[layer_index] == 0) return;
-		
-		painter.setPen(Qt::black);
-		
-		//intensity steps where lines are drawn (valid for all the layer)
-		float intensity_step = max_values_[layer_index] / (Int)param_.getValue("Contour:Lines");
-		
-		//calculate data/pixel width and height or a cell
-		Int steps = param_.getValue("MarchingSquaresSteps");
-		Int pixel_width = width() / steps;
-		Int pixel_height = height() / steps;
-		float data_width = visible_area_.width() / steps;
-		float data_height = visible_area_.height() / steps;
-		
-		QPoint cell_pos;
-		
-		// draw the lines
-		float y = visible_area_.minY();
-		for (int i = 0; i < steps; i++)
-		{
-			float x = visible_area_.minX();
-			for (int j = 0; j < steps; j++)
-			{
-				float left_bottom = marching_squares_matrices_[layer_index][i][j];
-				float right_bottom = 0;
-				float left_top = 0;
-				float right_top = marching_squares_matrices_[layer_index][i + 1][j + 1];
-
-				if ( isMzToXAxis() )
-				{
-				  right_bottom = marching_squares_matrices_[layer_index][i][j + 1];
-				  left_top = marching_squares_matrices_[layer_index][i + 1][j];
-				}
-				else
-				{
-				  left_top = marching_squares_matrices_[layer_index][i][j + 1];
-				  right_bottom = marching_squares_matrices_[layer_index][i + 1][j];		
-				}
 	
-				dataToWidget_(x, y, cell_pos);
-				cell_pos.setY(cell_pos.y() - (pixel_height+1));
-
-				const float minimum = min(left_top, min(right_top, min(left_bottom, right_bottom)));
-				const float maximum = max(left_top, max(right_top, max(left_bottom, right_bottom)));
-				for (float height = ceil(minimum / intensity_step) * intensity_step; height <= maximum; height += intensity_step)
-				{
-					// this bitset indicates which points are above the height threshold
-					int state = (left_top > height) << 3 |
-											(right_top > height) << 2 |
-											(left_bottom > height) << 1 |
-											(right_bottom > height);
-	
-					// this is the ugly marching squares case differentiation.
-					switch (state)
-					{
-						default:
-						case 0:
-						case 15:
-						{
-							// no line to draw
-							break;
-						}
-	
-						case 1:
-						{
-							painter.drawLine(cell_pos.x() + int(betweenFactor_(left_bottom, right_bottom, height) * pixel_width),
-													cell_pos.y() + pixel_height,
-													cell_pos.x() + pixel_width,
-													cell_pos.y() + int(betweenFactor_(right_top, right_bottom, height) * pixel_height));
-							break;
-						}
-						case 14:
-						{
-							painter.drawLine(cell_pos.x() + pixel_width - int(betweenFactor_(left_bottom, right_bottom, height) * pixel_width),
-													cell_pos.y() + pixel_height,
-													cell_pos.x() + pixel_width,
-													cell_pos.y() + pixel_height - int(betweenFactor_(right_top, right_bottom, height) * pixel_height));
-							break;
-						}
-						case 2:
-						{
-							painter.drawLine(cell_pos.x(),
-													cell_pos.y() + int(betweenFactor_(left_top, left_bottom, height) * pixel_height),
-													cell_pos.x() + pixel_width - int(betweenFactor_(left_bottom, right_bottom, height) * pixel_width),
-													cell_pos.y() + pixel_height);
-							break;
-						}
-						case 13:
-						{
-							painter.drawLine(cell_pos.x(),
-													cell_pos.y() + pixel_height - int(betweenFactor_(left_top, left_bottom, height) * pixel_height),
-													cell_pos.x() + int(betweenFactor_(left_bottom, right_bottom, height) * pixel_width),
-	
-													cell_pos.y() + pixel_height);
-							break;
-						}
-						case 3:
-						{
-							painter.drawLine(cell_pos.x(),
-													cell_pos.y() + int(betweenFactor_(left_top, left_bottom, height) * pixel_height),
-													cell_pos.x() + pixel_width,
-													cell_pos.y() + int(betweenFactor_(right_top, right_bottom, height) * pixel_height));
-	
-							break;
-						}
-						case 12:
-						{
-							painter.drawLine(cell_pos.x(),
-	
-													cell_pos.y() + pixel_height - int(betweenFactor_(left_top, left_bottom, height) * pixel_height),
-													cell_pos.x() + pixel_width,
-													cell_pos.y() + pixel_height - int(betweenFactor_(right_top, right_bottom, height) * pixel_height));
-							break;
-						}
-						case 4:
-						{
-							painter.drawLine(cell_pos.x() + int(betweenFactor_(left_top, right_top, height) * pixel_width),
-													cell_pos.y(),
-													cell_pos.x() + pixel_width,
-													cell_pos.y() + pixel_height - int(betweenFactor_(right_top, right_bottom, height) * pixel_height));
-							break;
-						}
-						case 11:
-						{
-							painter.drawLine(cell_pos.x() + pixel_width - int(betweenFactor_(left_top, right_top, height) * pixel_width),
-													cell_pos.y(),
-													cell_pos.x() + pixel_width,
-													cell_pos.y() + int(betweenFactor_(right_top, right_bottom, height) * pixel_height));
-							break;
-						}
-						case 5:
-						{
-							painter.drawLine(cell_pos.x() + int(betweenFactor_(left_top, right_top, height) * pixel_width),
-													cell_pos.y(),
-													cell_pos.x() + int(betweenFactor_(left_bottom, right_bottom, height) * pixel_width),
-													cell_pos.y() + pixel_height);
-							break;
-						}
-						case 10:
-						{
-							painter.drawLine(cell_pos.x() + pixel_width - int(betweenFactor_(left_top, right_top, height) * pixel_width),
-													cell_pos.y(),
-													cell_pos.x() + pixel_width - int(betweenFactor_(left_bottom, right_bottom, height) * pixel_width),
-													cell_pos.y() + pixel_height);
-							break;
-						}
-						case 6:
-						{
-							painter.drawLine(cell_pos.x(),
-													cell_pos.y() + int(betweenFactor_(left_top, left_bottom, height) * pixel_height),
-													cell_pos.x() + pixel_width - int(betweenFactor_(left_bottom, right_bottom, height) * pixel_width),
-													cell_pos.y() + pixel_height);
-							painter.drawLine(cell_pos.x() + int(betweenFactor_(left_top, right_top, height) * pixel_width),
-													cell_pos.y(),
-													cell_pos.x() + pixel_width,
-													cell_pos.y() + pixel_height - int(betweenFactor_(right_top, right_bottom, height) * pixel_height));
-							break;
-						}
-						case 9:
-						{
-							painter.drawLine(cell_pos.x() + int(betweenFactor_(left_bottom, right_bottom, height) * pixel_width),
-													cell_pos.y() + pixel_height,
-													cell_pos.x() + pixel_width,
-													cell_pos.y() + int(betweenFactor_(right_top, right_bottom, height) * pixel_height));
-							painter.drawLine(cell_pos.x(),
-													cell_pos.y() + pixel_height - int(betweenFactor_(left_top, left_bottom, height) * pixel_height),
-													cell_pos.x() + pixel_width - int(betweenFactor_(left_top, right_top, height) * pixel_width),
-													cell_pos.y());
-							break;
-						}
-	
-						case 7:
-						{
-							painter.drawLine(cell_pos.x(),
-													cell_pos.y() + int(betweenFactor_(left_top, left_bottom, height) * pixel_height),
-													cell_pos.x() + int(betweenFactor_(left_top, right_top, height) * pixel_width),
-													cell_pos.y());
-							break;
-						}
-						case 8:
-						{
-							painter.drawLine(cell_pos.x(),
-													cell_pos.y() + pixel_height - int(betweenFactor_(left_top, left_bottom, height) * pixel_height),
-													cell_pos.x() + pixel_width - int(betweenFactor_(left_top, right_top, height) * pixel_width),
-													cell_pos.y());
-	
-							break;
-						}
-					}
-				}
-				x += data_width;
-			}
-			y += data_height;
-		}
-	}
-	
-	void Spectrum2DCanvas::paintSurface_(UInt layer_index, QPainter& painter)
-	{
-		if (max_values_[layer_index] == 0) return;
-		
-		QImage image(buffer_.width(), buffer_.height(),QImage::Format_RGB32);
-		QRgb* image_start = reinterpret_cast<QRgb*>(image.scanLine(0));
-		const uint image_line_diff = reinterpret_cast<QRgb*>(image.scanLine(1)) - image_start;
-
-		//calculate data/pixel width and height or a cell
-		Int steps = param_.getValue("MarchingSquaresSteps");
-		Int pixel_width = width() / steps;
-		Int pixel_height = height() / steps;
-		float data_width = visible_area_.width() / steps;
-		float data_height = visible_area_.height() / steps;
-		
-		//cout << "Pixel size: " << pixel_width << " " << pixel_height <<endl;
-		//cout << "Data size: " << data_width << " " << data_height <<endl;
-		
-		//construct color matrix
-		vector<vector<const QColor*> > color_matrix;
-		//cout << "color matrix for layer " << layer_index << ": " << endl;
-		for (Int i = 0; i <= steps; i++)
-		{
-			color_matrix.insert(color_matrix.end(), vector<const QColor*>() );
-			for (Int j = 0; j <= steps; j++)
-			{
-				color_matrix.back().push_back(&heightColor_(marching_squares_matrices_[layer_index][i][j] / max_values_[layer_index] * overall_data_range_.max()[2], surface_gradient_));
-				//cout << 255.0 - color_matrix.back().back()->red() << " ";
-			}
-			//cout << endl;
-		}
-		
-		//draw
-		QRgb* pixel;
-		float y = visible_area_.minY();
-		QPoint cell_pos;
-		for (int i = 0; i < steps; i++)
-		{
-			float x = visible_area_.minX();
-			for (int j = 0; j < steps; j++)
-			{
-				const QColor* left_top = 0;
-				const QColor* right_top = color_matrix[i + 1][j + 1];
-				const QColor* left_bottom = color_matrix[i][j];
-				const QColor* right_bottom = 0;
-	
-				if ( isMzToXAxis() )
-				{
-					right_bottom = color_matrix[i][j + 1];
-					left_top = color_matrix[i + 1][j];
-				}
-				else
-				{
-					left_top = color_matrix[i][j + 1];
-					right_bottom = color_matrix[i + 1][j];					
-				}
-				dataToWidget_(x, y, cell_pos);
-				cell_pos.setY(cell_pos.y() - (pixel_height+1));
-				
-				//cout << cell_pos.x() << " " << cell_pos.y() << endl;
-				
-				int left_red = left_top->red() << 8;
-				int left_green = left_top->green() << 8;
-				int left_blue = left_top->blue() << 8;
-				int right_red = right_top->red() << 8;
-				int right_green = right_top->green() << 8;
-				int right_blue = right_top->blue() << 8;
-	
-				const int left_d_red = ((left_bottom->red() << 8) - left_red) / pixel_height;
-				const int left_d_green = ((left_bottom->green() << 8) - left_green) / pixel_height;
-				const int left_d_blue = ((left_bottom->blue() << 8) - left_blue) / pixel_height;
-				const int right_d_red = ((right_bottom->red() << 8) - right_red) / pixel_height;
-				const int right_d_green = ((right_bottom->green() << 8) - right_green) / pixel_height;
-				const int right_d_blue = ((right_bottom->blue() << 8) - right_blue) / pixel_height;
-	
-				pixel = image_start;
-				pixel += cell_pos.y() * buffer_.width() + cell_pos.x();
-	
-				for (int py = 0; py !=pixel_height + 1; py++)
-				{
-					QRgb* start_pixel = pixel;
-	
-					// vertical clipping
-					if (cell_pos.y() + py >= 0 && cell_pos.y() + py < buffer_.height())
-					{
-						const int d_red = (right_red - left_red) / pixel_width;
-						const int d_green = (right_green - left_green) / pixel_width;
-	
-						const int d_blue = (right_blue - left_blue) / pixel_width;
-	
-						int c_red = left_red;
-						int c_green = left_green;
-						int c_blue = left_blue;
-	
-						for (int px = 0; px != pixel_width + 1; px++)
-						{
-							// horizontal clipping
-							if (cell_pos.x() + px >= 0 && cell_pos.x() + px < buffer_.width())
-							{
-								*pixel = qRgb(c_red >> 8, c_green >> 8, c_blue >> 8);
-							}
-	
-							pixel++;
-	
-							c_red += d_red;
-							c_green += d_green;
-							c_blue += d_blue;
-						}
-					}
-	
-					left_red += left_d_red;
-					left_green += left_d_green;
-					left_blue += left_d_blue;
-	
-					right_red += right_d_red;
-					right_green += right_d_green;
-					right_blue += right_d_blue;
-	
-					// next line
-					pixel = start_pixel + image_line_diff;
-				}
-				x += data_width;
-			}
-			y += data_height;
-		}
-		painter.drawImage(0, 0, image);
-	}
-
 	void Spectrum2DCanvas::intensityDistributionChange_()
 	{
 		update_buffer_ = true;
@@ -829,35 +441,26 @@ namespace OpenMS
 	
 	void Spectrum2DCanvas::intensityModeChange_()
 	{
-		recalculateDotGradient_();
-		recalculateSurfaceGradient_();
+		for (UInt i=0; i<layers_.size();++i)
+		{
+			recalculateDotGradient_(i);
+		}
 		SpectrumCanvas::intensityModeChange_();
 	}
 	
-	void Spectrum2DCanvas::recalculateDotGradient_()
+	void Spectrum2DCanvas::recalculateDotGradient_(UInt layer)
 	{
+		getLayer_(layer).gradient.fromString(getLayer_(layer).param.getValue("Dot:Gradient"));
 		//cout << "recalculateDotGradient_" << endl;
 		if (intensity_mode_ == IM_LOG)
 		{
 			//cout << "LOG:" <<" "<< log(overall_data_range_.min()[2]) <<" "<< log(overall_data_range_.max()[2])<<" "<<param_.getValue("InterpolationSteps")<<endl;
-			dot_gradient_.activatePrecalculationMode(0, log(overall_data_range_.max()[2]+1), param_.getValue("InterpolationSteps"));
+			getLayer_(layer).gradient.activatePrecalculationMode(0, log(overall_data_range_.max()[2]+1), param_.getValue("InterpolationSteps"));
 		}
 		else
 		{
 			//cout << "NORMAL:" << overall_data_range_.min()[2] <<" "<< overall_data_range_.max()[2]<<" "<<param_.getValue("InterpolationSteps")<<endl;
-			dot_gradient_.activatePrecalculationMode(0, overall_data_range_.max()[2], param_.getValue("InterpolationSteps"));
-		}	
-	}
-	
-	void Spectrum2DCanvas::recalculateSurfaceGradient_()
-	{
-		if (intensity_mode_ == IM_LOG)
-		{
-			surface_gradient_.activatePrecalculationMode(0, log(overall_data_range_.max()[2]+1), param_.getValue("InterpolationSteps"));
-		}
-		else
-		{
-			surface_gradient_.activatePrecalculationMode(0, overall_data_range_.max()[2], param_.getValue("InterpolationSteps"));		
+			getLayer_(layer).gradient.activatePrecalculationMode(0, overall_data_range_.max()[2], param_.getValue("InterpolationSteps"));
 		}	
 	}
 	
@@ -928,6 +531,8 @@ namespace OpenMS
 	Int Spectrum2DCanvas::finishAdding(float low_intensity_cutoff)
 	{
 		current_layer_ = getLayerCount()-1;
+		
+		recalculateDotGradient_(activeLayerIndex());
 		
 		if (layers_.back().type==LayerData::DT_PEAK) //peak data
 		{
@@ -1157,19 +762,6 @@ namespace OpenMS
 		{
 			update_buffer_ = false;
 			
-			//recalculate marching squares matices for layers with visible surfaces and contour lines
-			marching_squares_matrices_.clear();
-			marching_squares_matrices_.resize(getLayerCount());
-			max_values_.clear();
-			max_values_.resize(getLayerCount());
-			for (UInt i=0; i<getLayerCount(); i++)
-			{
-				if ( getLayer(i).type == LayerData::DT_PEAK && getLayer(i).visible && (getLayerFlag(i,LayerData::P_SURFACE) || getLayerFlag(i,LayerData::P_CONTOURS)))
-				{
-					calculateMarchingSquareMatrix_(i);
-				}
-			}
-			
 			//recalculate snap factor
 			recalculateSnapFactor_();
 			
@@ -1182,16 +774,6 @@ namespace OpenMS
 				{
 					if (getLayer(i).type==LayerData::DT_PEAK)
 					{
-						if (getLayerFlag(i,LayerData::P_SURFACE))
-						{
-							//cout << "surface peak layer: " << i << endl;
-							paintSurface_(i, painter);
-						}
-						if (getLayerFlag(i,LayerData::P_CONTOURS))
-						{
-							//cout << "countour peak layer: " << i << endl;
-							paintContours_(i, painter);
-						}
 						paintDots_(i, painter);
 					}
 					else if (getLayer(i).type==LayerData::DT_FEATURE)
@@ -1686,10 +1268,31 @@ namespace OpenMS
 	{
 		Internal::Spectrum2DPrefDialog dlg(this);
 
+		ColorSelector* bg_color = dlg.findChild<ColorSelector*>("bg_color");
+		QComboBox* mapping = dlg.findChild<QComboBox*>("mapping");
+		MultiGradientSelector* gradient = dlg.findChild<MultiGradientSelector*>("gradient");
+
+		bg_color->setColor(QColor(param_.getValue("BackgroundColor").toQString()));
+		if (isMzToXAxis())
+		{
+			mapping->setCurrentIndex(0);
+		}
+		else
+		{
+			mapping->setCurrentIndex(1);
+		}
+		gradient->gradient().fromString(getCurrentLayer_().param.getValue("Dot:Gradient"));
+		
 		if (dlg.exec())
 		{
-			recalculateDotGradient_();
-			recalculateSurfaceGradient_();
+			param_.setValue("BackgroundColor",bg_color->getColor().name().toAscii().data());
+			if ((mapping->currentIndex()==0 && !isMzToXAxis()) || (mapping->currentIndex()==1 && isMzToXAxis()))
+			{
+				mzToXAxis(!isMzToXAxis());
+			}
+			getCurrentLayer_().param.setValue("Dot:Gradient",gradient->gradient().toString());
+			
+			recalculateDotGradient_(activeLayerIndex());
 			update_buffer_ = true;
 			update_(__PRETTY_FUNCTION__);
 		}

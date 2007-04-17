@@ -21,7 +21,7 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Cornelia Friedle $
+// $Maintainer: Marc Sturm $
 // --------------------------------------------------------------------------
 
 #ifndef OPENMS_VISUAL_SPECTRUM3DCANVAS_H
@@ -92,11 +92,11 @@ namespace OpenMS
 			*/
 			virtual void changeVisibleArea_(const AreaType& new_area, bool add_to_stack = false);
 
-	    ///returns the ShadeModes flat or smooth
-	    Int getShadeMode();
 	    ///QT resizeEvent
 	    void resizeEvent(QResizeEvent * e);
-	    ///whether the legend is shoen or not
+	    /// Returns if the legend is shown
+	    bool isLegendShown() const;
+	    ///Shows/hides the legend
 	    void showLegend(bool);
 	    ///pointer to the SpectrumOpenGLCanvas implementation
 	    Spectrum3DOpenGLCanvas* openglcanvas_;

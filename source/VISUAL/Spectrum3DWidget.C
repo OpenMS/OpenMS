@@ -21,7 +21,7 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Cornelia Friedle $
+// $Maintainer: Marc Sturm $
 // --------------------------------------------------------------------------
 
 #include<iostream.h>
@@ -62,6 +62,7 @@ namespace OpenMS
 	
 	Histogram<UInt,float> Spectrum3DWidget::createIntensityDistribution_()
 	{
+		cout << canvas()->getCurrentMinIntensity() << " - " << canvas()->getCurrentMaxIntensity()  << endl;
 		Histogram<UInt,float> tmp(canvas()->getCurrentMinIntensity(),canvas()->getCurrentMaxIntensity(),(canvas()->getCurrentMaxIntensity() - canvas()->getCurrentMinIntensity())/500.0);
 
 		for (Spectrum3DCanvas::ExperimentType::ConstIterator spec_it = canvas()->getCurrentPeakData().begin(); spec_it != canvas()->getCurrentPeakData().end(); ++spec_it)
@@ -86,20 +87,18 @@ namespace OpenMS
 		return img;
 	}
 	
-	void Spectrum3DWidget::showLegend(int show)
+	void Spectrum3DWidget::showLegend(bool show)
 	{
-		legend_shown_ = (bool)show;
-		canvas()->showLegend(legend_shown_);
+		canvas()->showLegend(show);
 	}
 
-	bool Spectrum3DWidget::isLegendShown()  
+	bool Spectrum3DWidget::isLegendShown() const
 	{
-		return legend_shown_; 
+		return static_cast<const Spectrum3DCanvas*>(canvas_)->isLegendShown();
 	}
 
 	void Spectrum3DWidget::showGoToDialog()
 	{
-		//add content (Cornelia)
 	}
 
 }//namespace
