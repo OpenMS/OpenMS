@@ -37,6 +37,7 @@ UNCONDITIONAL_TESTS = \
 	BaselineFilter_test \
 	DBImporter_test \
 	DBExporter_test \
+	Decharger_test \
 	DTAExtractor_test \
 	FeatureFinder_test \
 	FeaturePairSplitter_test \
@@ -258,6 +259,13 @@ DBImporter_test: $(NUMERICDIFF)
 	else \
 		$(ECHO) "  Cannot run test as there is no INI file 'DBImporter_input.ini'"; \
 	fi;
+
+
+Decharger_test: $(NUMERICDIFF)
+	@$(ECHO) ""
+	@$(ECHO) "Decharger:"
+	@$(call RUN_PROG_OPT,Decharger, -ini Decharger.ini -in Decharger_input.feat -out Decharger_output.tmp)
+	@$(call TEST_FILE_EQUAL,Decharger_output.tmp, Decharger_output.feat)
 
 
 DTAExtractor_test: $(NUMERICDIFF)

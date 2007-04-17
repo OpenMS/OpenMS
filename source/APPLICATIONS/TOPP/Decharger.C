@@ -41,11 +41,11 @@ using namespace std;
 
    The Decharger uses an hierarchical clustering (complete linkage) to group charge variants of the same peptide, which
    usually occur in ESI ionization mode. The resulting zero-charge peptides, which are defined by RT and mass
-   are written in a feature file. Intensities of charge variants are summed up. The position the zero charge
+   are written to a feature file. Intensities of charge variants are summed up. The position of the zero charge
    variant is the average of all clustered peptides in each dimension.
    If several peptides with the same charge variant are grouped (which is clearly not allowed), a heuristic is used:
    <ul>
-   <li>cluster consists of only one charge variant (but several peptides) -> split cluster in single elements</li>
+   <li>cluster consists of only one charge variant (but several peptides) -> split cluster into single elements</li>
    <li>cluster consists of several charge variants -> dispose cluster</li>
    </ul>
    
@@ -145,6 +145,16 @@ class TOPPDecharger
     return EXECUTION_OK;
   }
 };
+
+
+Param TOPPBase::getSubsectionDefaults_(const String& /*section*/) const
+{
+  // there is only one subsection: 'algorithm' (s.a) .. and in it belongs the FeatureDecharger param
+  FeatureDecharger fdc;
+  Param tmp;
+  tmp.insert("FeatureDecharger:",fdc.getParameters());
+  return tmp;
+}
 
 int main( int argc, char ** argv )
 {

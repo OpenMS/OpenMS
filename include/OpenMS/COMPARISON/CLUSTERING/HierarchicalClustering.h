@@ -73,7 +73,7 @@ namespace OpenMS
       HierarchicalClustering()
       : DefaultParamHandler("FeatureDecharger")
       {
-        defaults_.setValue("cluster_cutoff", 40.0);      // maximal distance allowed between two clusters before merging them
+        defaults_.setValue("cluster_cutoff", 40.0);           // maximal distance allowed between two clusters before merging them
         defaults_.setValue("linkage_type", COMPLETE_LINKAGE); // clustering method
     
         defaultsToParam_();
@@ -193,7 +193,8 @@ namespace OpenMS
            else if (linkage_method==SINGLE_LINKAGE)
            {
              linkageSingle_(distanceMatrix, minRow, minColumn);
-           } else
+           } 
+           else
            {
               std::cerr << "Linkage method not available" << linkage_method << "\n";
               throw Exception::NotImplemented(__FILE__,__LINE__,__FUNCTION__);
