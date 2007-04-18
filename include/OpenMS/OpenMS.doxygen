@@ -79,17 +79,19 @@
 Ideen:
 - Seeder/Extender: Analyse der MassenSpur-Distanzen
 - Seeder: precursor peaks, signal-to-noise
-- TOPPView entfernen: Mapping nur für 2D
 
 Todos:
-- make install mit prefix testen (Hiwi)
 
+TOPPView: Mapping nur für 2D
 Spectrum1DCanvas: fix highlighting of peaks in percentage mode
 Spectrum2DCanvas: fix feature number colors
-Spectrum3DCanvas: add preferences for layers, fix axis labels
+Spectrum3DCanvas: fix intensity distribution for 2. layer
+TOPPView Help: What's this, About 
 
 Spectrum2DCanvas -- Remove coordinate-data transformations
-MSExperiment -- Add getPrecursorRT(rt/scan nr) and update ID adapters and IDSpectrumMapper 
+MSExperiment -- Add getPrecursorRT(rt/scan nr) and update ID adapters and IDSpectrumMapper (Stefan R.)
+make install mit prefix testen (Stefan R.)
+
 String -- derive from QString
 DataValue -- derive from QVariant 
 Identification -- Store ScoreType (with direction) and AccessionType as Enum in Identification (Marc, Andreas)
