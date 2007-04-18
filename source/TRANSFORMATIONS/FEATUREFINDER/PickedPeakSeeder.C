@@ -200,14 +200,14 @@ PickedPeakSeeder::ProbabilityType PickedPeakSeeder::scorePattern_(std::vector<In
 	{
 			if (model[j] <= 0) continue; // skip zeros in model
 		
-			cout << "data: " << ( data[j] / data_sum) << " model: " << (model[j] / model_sum) << endl;
+// 			cout << "data: " << ( data[j] / data_sum) << " model: " << (model[j] / model_sum) << endl;
 				
 			temp = (data[j] / data_sum) - ( model[j] / model_sum);
 			chi_stat += (temp * temp) / (model[j] /  model_sum) ;	
 	}
-
+/*
 	cout << "test statistic " << chi_stat << endl;
-	cout << "p-value is " << (1 - gsl_cdf_chisq_P(chi_stat, (data.size() - 1 ))) << endl;
+	cout << "p-value is " << (1 - gsl_cdf_chisq_P(chi_stat, (data.size() - 1 ))) << endl;*/
 	
 	return chi_stat;
 }	
