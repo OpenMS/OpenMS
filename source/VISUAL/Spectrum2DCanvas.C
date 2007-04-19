@@ -340,6 +340,7 @@ namespace OpenMS
 					painter.drawLine(pos.x()-1,pos.y(),pos.x()+1,pos.y());
 					if (numbers)
 					{
+						painter.setPen(Qt::black);
 						painter.drawText(pos.x()+10,pos.y()+10,QString::number(num));
 					}
 				}

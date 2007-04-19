@@ -106,7 +106,7 @@ for i in $* ; do
 	rm $i.log 2>/dev/null
 
 	# run it and examine its return value
-	if ./$i >& $i.output ; then
+	if ./$i > $i.output 2>&1 ; then
 		# test passed - OK
 		echo "OK"
 	else 

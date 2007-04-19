@@ -81,12 +81,9 @@ Ideen:
 - Seeder: precursor peaks, signal-to-noise
 
 Todos:
-
-TOPPView: Mapping nur für 2D
 Spectrum1DCanvas: fix highlighting of peaks in percentage mode
-Spectrum2DCanvas: fix feature number colors
-Spectrum3DCanvas: fix intensity distribution for 2. layer
 TOPPView Help: What's this, About 
+Spectrum3DCanvas: fix intensity distribution for 2. layer
 
 Spectrum2DCanvas -- Remove coordinate-data transformations
 MSExperiment -- Add getPrecursorRT(rt/scan nr) and update ID adapters and IDSpectrumMapper (Stefan R.)
