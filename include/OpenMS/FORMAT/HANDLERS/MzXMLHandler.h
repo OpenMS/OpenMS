@@ -47,7 +47,6 @@ namespace OpenMS
 		Do not use this class. It is only needed in MzXMLFile.
   	
   	@todo Softly abort parsing after metadata, if only metadata should be read (Thomas S.)
-  	@todo Fix handling of empty scans: xsi:nil (Thomas S.)
   */
 	template <typename MapType>
   class MzXMLHandler
@@ -1211,22 +1210,29 @@ namespace OpenMS
 				 	 << peak.getPosition()[0] << "</precursorMz>\n";
 			}
 
-			os << String(MSLevel+2,'\t') << "<peaks precision=\"32\""
-				 << " byteOrder=\"network\" pairOrder=\"m/z-int\">";
-			
-			
-			//std::cout << "Writing scan " << s << std::endl;
-			std::vector<Real> tmp;
-			for (UInt i=0; i<spec.size(); i++)
+			if (spec.size() > 0)
 			{
-				tmp.push_back(spec.getContainer()[i].getMZ());
-				tmp.push_back(spec.getContainer()[i].getIntensity());
+				os << String(MSLevel+2,'\t') << "<peaks precision=\"32\""
+					 << " byteOrder=\"network\" pairOrder=\"m/z-int\">";
+				
+				//std::cout << "Writing scan " << s << std::endl;
+				std::vector<Real> tmp;
+				for (UInt i=0; i<spec.size(); i++)
+				{
+					tmp.push_back(spec.getContainer()[i].getMZ());
+					tmp.push_back(spec.getContainer()[i].getIntensity());
+				}
+				
+				std::string encoded;
+				decoder_.encode(tmp, Base64::BIGENDIAN, encoded);
+				os << encoded << "</peaks>\n";
+			}
+			else
+			{
+				os << String(MSLevel+2,'\t') << "<peaks precision=\"32\""
+					 << " byteOrder=\"network\" pairOrder=\"m/z-int\" xsi:nil=\"1\"/>\n";
 			}
 			
-			std::string encoded;
-			decoder_.encode(tmp, Base64::BIGENDIAN, encoded);
-			os << encoded << "</peaks>\n";
-
 			writeUserParam_(os,spec,MSLevel+2);
 			if (spec.getComment() != "")
 			{
