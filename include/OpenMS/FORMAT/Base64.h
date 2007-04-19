@@ -74,76 +74,8 @@ namespace OpenMS
 
 		template <typename ToType>
 		void decode(const std::string& in, ByteOrder from_byte_order, std::vector<ToType>& out);
-/*		
-		/// Return size of output buffer
-		UInt getOutputBufferSize();
 
-		void setOutputBufferSize(UInt s);
-
-
-    /// Decode given Base64-String of size @p size
-		char* decode(const char* src, UInt size);
-		
-    /// Encode given Base64-String of size @p size
-		char* encode(const char* src, UInt size);
-
-		/ **@name Handling of 32 bit real type
-    //@{
-
-    /// Decode given Base64-String of size @p size to array of floats, each float corrected from network to host byte order
-		float* decodeFloatCorrected(const char* src, UInt size);
-
-    /// decode given Base64-String of size @p size to array of floats
-		float* decodeFloat(const char* src, UInt size);
-
-    /// return internal input buffer to fill with @p size floats
-		float* getFloatBuffer(UInt size);
-
-    /// encode internal input buffer (fill with getFloatBuffer()) to Base64-String after conversion to network byte order
-		char* encodeFloatCorrected();
-
-    /// encode internal input buffer (fill with getFloatBuffer()) to Base64-String
-		char* encodeFloat();
-		//@}
-		
-		
-		/ **@name Handling of 64 bit real type
-    //@{
-
-    /// decode given Base64-String of size @p size to array of doubles, each double corrected from network to host byte order
-		double* decodeDoubleCorrected(const char* src, UInt size);
-
-    /// decode given Base64-String of size @p size to array of doubles
-		double* decodeDouble(const char* src, UInt size);
-
-    /// return internal input buffer to fill with @p size doubles
-		double* getDoubleBuffer(UInt size);
-
-    /// encode internal input buffer (fill with getDoubleBuffer()) to Base64-String after conversion to network byte order
-		char* encodeDoubleCorrected();
-
-    /// encode internal input buffer (fill with getDoubleBuffer()) to Base64-String
-		char* encodeDouble();
-		//@}
-*/		
-
-  private:
-/*
-		/// input buffer
-		char* in_buffer_;
-		/// output buffer
-		char* out_buffer_;
-		/// Length of input buffer
-		UInt in_length_;
-		/// Length of output buffer
-		UInt out_length_;
-		/// Length of input buffer
-		UInt ibuffer_size_;
-
-		/// Adapts input buffer size to new value of in_length_.
-		void adaptInputBuffer_();
-*/		
-		
+	private:
 		static const char encoder_[];
 		static const char decoder_[];
   };
@@ -173,6 +105,12 @@ namespace OpenMS
 
 /*
 	Inline documentation:
+
+  If you want to understand the following, this link might be crucial:
+
+  http://babbage.cs.qc.edu/IEEE-754/32bit.html (and some links at the bottom of this document)
+  (online converter - *extremely* helpful for debugging)
+
 	3 bytes are encoded to 4 base64 chars after the following method:
 	|7 6 5 4 3 2 1 0|7 6 5 4 3 2 1 0|7 6 5 4 3 2 1 0| 3 Bytes
   |5 4 3 2 1 0|5 4 3 2 1 0|5 4 3 2 1 0|5 4 3 2 1 0| 4 "Bytes"
