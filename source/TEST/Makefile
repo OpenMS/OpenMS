@@ -202,6 +202,9 @@ EXECUTABLES_FILTERING = \
 	DSignalToNoiseEstimator_test\
 	DSignalToNoiseEstimatorMedian_test\
 	DSignalToNoiseEstimatorMeanIterative_test\
+	SignalToNoiseEstimator_test\
+	SignalToNoiseEstimatorMedian_test\
+	SignalToNoiseEstimatorMeanIterative_test\
 	SmoothFilter_test\
 	GaussFilter_test\
 	MaxReducer_test\

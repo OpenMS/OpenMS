@@ -32,7 +32,7 @@
 #include <OpenMS/CONCEPT/Types.h>
 #include <vector>
 #include <cmath>
-#include <map>
+#include <map> 
 
 namespace OpenMS
 {
@@ -91,7 +91,7 @@ namespace OpenMS
     
   	@ingroup Filtering
     
-    @todo use DefaultParamHandler (Chris)
+    @todo Delete This Class, once all dependend classes use SignalToNoiseEstimatorMeanIterative (Ole, Alexandra)
     
   */
 

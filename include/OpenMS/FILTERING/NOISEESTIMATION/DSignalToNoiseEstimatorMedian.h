@@ -33,7 +33,7 @@
 #include <OpenMS/CONCEPT/Types.h>
 #include <vector>
 #include <cmath>
-#include <map>
+#include <map> 
 
 namespace OpenMS
 {
@@ -94,10 +94,8 @@ namespace OpenMS
             .  
     
     
-    @todo use DefaultParamHandler (Chris)
+    @todo Delete This Class, once all dependend classes use SignalToNoiseEstimatorMedian (Ole, Alexandra)
 
-		@todo fix dimension numbers at compile time, see RawDataPoint2D::DimensionDescription (Chris)
-    
     @ingroup Filtering
     
   */

@@ -42,7 +42,7 @@ namespace OpenMS
     A signal to noise estimator should provide the signal to noise ratio of all raw data points
     in a given intervall [first_,last_).
   	
-  	@todo remove template and use Peak1D::getMZ() (Chris Bielow)
+    @todo Delete This Class, once all dependend classes use SignalToNoiseEstimator (Ole, Alexandra)
   
   */
   template <UInt D = 1 , typename PeakIterator = MSSpectrum<DRawDataPoint<1> >::const_iterator >
