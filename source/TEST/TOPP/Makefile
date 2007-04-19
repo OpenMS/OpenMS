@@ -565,6 +565,10 @@ RTModel_test: $(NUMERICDIFF)
 	@$(ECHO) "RTModel:"
 	@$(call RUN_PROG_OPT,RTModel,-in RTModel_1_input.analysisXML -out RTModel_1_output.tmp -ini RTModel_1_parameters.ini)
 	@$(call TEST_FILE_EQUAL,RTModel_1_output.tmp,RTModel_1_output.model)
+	@$(call RUN_PROG_OPT,RTModel,-in_positive RTModel_2_input_positive.analysisXML -in_negative RTModel_2_input_negative.analysisXML -out RTModel_2_output.tmp -ini RTModel_2_parameters.ini)
+	@$(call TEST_FILE_EQUAL,RTModel_2_output.tmp,RTModel_2_output.model)
+	@$(call TEST_FILE_EQUAL,RTModel_2_output.tmp_samples,RTModel_2_output.samples)
+	@$(call TEST_FILE_EQUAL,RTModel_2_output.tmp_additional_parameters,RTModel_2_output.additional_parameters)
 
 
 RTPredict_test: $(NUMERICDIFF)
@@ -572,6 +576,9 @@ RTPredict_test: $(NUMERICDIFF)
 	@$(ECHO) "RTPredict:"
 	@$(call RUN_PROG_OPT,RTPredict,-in RTPredict_1_input.analysisXML -out RTPredict_1_output.tmp -total_gradient_time 3000 -svm_model RTPredict_1_input.model)
 	@$(call TEST_FILE_EQUAL,RTPredict_1_output.tmp,RTPredict_1_output.analysisXML)
+	@$(call RUN_PROG_OPT,RTPredict,-in RTPredict_2_input.analysisXML -out_positive RTPredict_2_output_positive.tmp -out_negative RTPredict_2_output_negative.tmp -svm_model RTPredict_2_input.model)
+	@$(call TEST_FILE_EQUAL,RTPredict_2_output_positive.tmp,RTPredict_2_output_positive.analysisXML)
+	@$(call TEST_FILE_EQUAL,RTPredict_2_output_negative.tmp,RTPredict_2_output_negative.analysisXML)
 
 
 InspectAdapter_test: $(NUMERICDIFF)
