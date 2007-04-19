@@ -74,9 +74,11 @@ class TOPPRTPredict
 		void registerOptionsAndFlags_()
 		{
 			registerStringOption_("in","<file>",""," input file in analysisXML format");
-			registerStringOption_("out","<file>","","output file in analysisXML format");
+			registerStringOption_("out","<file>","","output file in analysisXML format (peptide RT prediction)", false);
+			registerStringOption_("out_positive","<file>","","output file in analysisXML format containing positive predictions (peptide separation prediction)", false);
+			registerStringOption_("out_negative","<file>","","output file in analysisXML format containing negative predictions (peptide separation prediction)", false);
 			registerStringOption_("svm_model","<file>","","svm model in libsvm format (can be produced by RTModel)");
-			registerDoubleOption_("total_gradient_time","<time>",1.0,"the time (in seconds) of the gradient");
+			registerDoubleOption_("total_gradient_time","<time>",1.0,"the time (in seconds) of the gradient (peptide RT prediction)", false);
 		}
 
 		ExitCodes main_(int , char**)
@@ -103,26 +105,70 @@ class TOPPRTPredict
 			UInt maximum_length = 50;
 			pair<DoubleReal, DoubleReal> temp_point;
 			vector<Real> performance_retention_times;
+			String inputfile_name = "";
+			String outputfile_name = "";
+			String outputfile_name_positive = "";
+			String outputfile_name_negative = "";
+			String svmfile_name = "";
+			Real total_gradient_time = 1.f;
+			bool separation_prediction = false;
+			vector<IdentificationData> identifications_positive;
+			vector<IdentificationData> identifications_negative;
 
+			
 			//-------------------------------------------------------------
 			// parsing parameters
 			//-------------------------------------------------------------
 			
-			String inputfile_name = getStringOption_("in");			
+			inputfile_name = getStringOption_("in");			
 			inputFileReadable_(inputfile_name);
-			String outputfile_name = getStringOption_("out");	
-			outputFileWritable_(outputfile_name);
-			String svmfile_name = getStringOption_("svm_model");
+			outputfile_name_positive = getStringOption_("out_positive");
+			if (outputfile_name_positive != "")
+			{
+				outputFileWritable_(outputfile_name_positive);
+				outputfile_name_negative = getStringOption_("out_negative");
+				if (outputfile_name_negative != "")
+				{
+					outputFileWritable_(outputfile_name_negative);
+					separation_prediction = true;					
+				}
+				else
+				{
+					writeLog_("No file name given for negative output . Aborting!");
+					return ILLEGAL_PARAMETERS;					
+				}
+			}
+			else
+			{
+				outputfile_name = getStringOption_("out");	
+				outputFileWritable_(outputfile_name);
+			}
+
+			svmfile_name = getStringOption_("svm_model");
 			inputFileReadable_(svmfile_name);			
-			Real total_gradient_time = getDoubleOption_("total_gradient_time");
+			total_gradient_time = getDoubleOption_("total_gradient_time");
+
+			
 
 			//-------------------------------------------------------------
 			// reading input
 			//-------------------------------------------------------------
 			
 			svm.loadModel(svmfile_name);
+			if (svm.getIntParameter(SVM_TYPE) == C_SVC && !separation_prediction)
+			{
+					writeLog_("You cannot perform peptide separation prediction with a model trained for"
+										+ String("\npeptide retention time prediction. Aborting!"));
+					return ILLEGAL_PARAMETERS;					
+			}
+			if (svm.getIntParameter(SVM_TYPE) != C_SVC && separation_prediction)
+			{
+					writeLog_("You cannot perform peptide retention time prediction with a model trained for\n"
+										+ String("peptide separation prediction. Aborting!"));
+					return ILLEGAL_PARAMETERS;					
+			}
 
-			// Since the oligo border kernel is not included in the libsvm we have to load
+			// Since the POBK is not included in the libsvm we have to load
 			// additional parameters from additional files.
 			if (svm.getIntParameter(KERNEL_TYPE) == OLIGO)
 			{
@@ -157,25 +203,33 @@ class TOPPRTPredict
 						&& svm.getIntParameter(KERNEL_TYPE) == OLIGO)
 				{
 					writeLog_("No sigma saved in additional parameters file. Aborting!");
-					cout << "No sigma length saved in additional parameters file. Aborting!" << endl;
+					cout << "No sigma saved in additional parameters file. Aborting!" << endl;
 					return ILLEGAL_PARAMETERS;					
 				}
 				sigma = ((String)additional_parameters.getValue("sigma")).toFloat();
 				
-				if (additional_parameters.getValue("sigma_0") == DataValue::EMPTY)
+				if (additional_parameters.getValue("sigma_0") == DataValue::EMPTY
+						&& !separation_prediction)
 				{
 					writeLog_("No sigma_0 saved in additional parameters file. Aborting!");
 					cout << "No sigma_0 length saved in additional parameters file. Aborting!" << endl;
 					return ILLEGAL_PARAMETERS;					
 				}
-				sigma_0 = ((String)additional_parameters.getValue("sigma_0")).toFloat();
-				if (additional_parameters.getValue("sigma_max") == DataValue::EMPTY)
+				if (!separation_prediction)
+				{
+					sigma_0 = ((String)additional_parameters.getValue("sigma_0")).toFloat();
+				}
+				if (additional_parameters.getValue("sigma_max") == DataValue::EMPTY
+						&& !separation_prediction)
 				{
 					writeLog_("No sigma_max saved in additional parameters file. Aborting!");
 					cout << "No sigma_max length saved in additional parameters file. Aborting!" << endl;
 					return ILLEGAL_PARAMETERS;					
 				}
-				sigma_max = ((String)additional_parameters.getValue("sigma_max")).toFloat();
+				if (!separation_prediction)
+				{
+					sigma_max = ((String)additional_parameters.getValue("sigma_max")).toFloat();
+				}
 			}				
 			
 			analysisXML_file.load(inputfile_name, protein_identifications, identifications);
@@ -234,53 +288,96 @@ class TOPPRTPredict
 				predicted_data.insert(make_pair(peptides[i],
 																				(predicted_retention_times[i] * total_gradient_time)));
 			}
-		
-			for(UInt i = 0; i < identifications.size(); i++)
+			if (!separation_prediction)
 			{
-				temp_peptide_hits = identifications[i].id.getPeptideHits();
-				vector<ProteinHit> temp_protein_hits = identifications[i].id.getProteinHits();
-				for(UInt j = 0; j < temp_peptide_hits.size(); j++)
+				for(UInt i = 0; i < identifications.size(); i++)
 				{
-					DoubleReal temp_rt = predicted_data[temp_peptide_hits[j].getSequence()];
-
-					temp_point.first = identifications[i].rt;
-					temp_point.second = temp_rt;
-					DoubleReal temp_p_value = svm.getPValue(sigma_0, sigma_max, temp_point);
-					temp_peptide_hits[j].setPredictedRTPValue(temp_p_value);
-
-					performance_retention_times.push_back(identifications[i].rt);					
+					temp_peptide_hits = identifications[i].id.getPeptideHits();
+					vector<ProteinHit> temp_protein_hits = identifications[i].id.getProteinHits();
+					for(UInt j = 0; j < temp_peptide_hits.size(); j++)
+					{
+						DoubleReal temp_rt = predicted_data[temp_peptide_hits[j].getSequence()];
+	
+						temp_point.first = identifications[i].rt;
+						temp_point.second = temp_rt;
+						DoubleReal temp_p_value = svm.getPValue(sigma_0, sigma_max, temp_point);
+						temp_peptide_hits[j].setPredictedRTPValue(temp_p_value);
+	
+						performance_retention_times.push_back(identifications[i].rt);					
+					}
+					identifications[i].id.setPeptideAndProteinHits(temp_peptide_hits,
+																												temp_protein_hits);				
 				}
-				identifications[i].id.setPeptideAndProteinHits(temp_peptide_hits,
-																											temp_protein_hits);				
+			}
+			else
+			{
+				vector<PeptideHit> hits_positive;
+				vector<PeptideHit> hits_negative;
+				
+				IdentificationData temp_identification;
+
+				for(UInt i = 0; i < identifications.size(); i++)
+				{					
+					hits_negative.clear();
+					hits_positive.clear();
+
+					temp_peptide_hits = identifications[i].id.getPeptideHits();
+					vector<ProteinHit> temp_protein_hits = identifications[i].id.getProteinHits();
+					for(vector<PeptideHit>::iterator it = temp_peptide_hits.begin();
+							it != temp_peptide_hits.end();
+							++it)
+					{						
+						if (predicted_data[it->getSequence()] > 0)
+						{
+							hits_positive.push_back(*it);
+						}
+						else
+						{
+							hits_negative.push_back(*it);
+						}
+					}
+					temp_identification.mz = identifications[i].mz;
+					temp_identification.rt = identifications[i].rt;
+										
+					temp_identification.id = identifications[i].id;
+					temp_identification.id.setPeptideAndProteinHits(hits_positive,
+																													temp_protein_hits);
+					identifications_positive.push_back(temp_identification);																														
+					temp_identification.id.setPeptideAndProteinHits(hits_negative,
+																													temp_protein_hits);
+					identifications_negative.push_back(temp_identification);
+				}																														
 			}
 			//-------------------------------------------------------------
 			// writing output
 			//-------------------------------------------------------------
 			
-			analysisXML_file.store(outputfile_name,
-														 protein_identifications,
-														 identifications,
-														 predicted_data);
-			writeDebug_("Linear correlation between predicted and measured rt is: "
-									+ String(Math::BasicStatistics<Real>::pearsonCorrelationCoefficient(predicted_retention_times.begin(), 
-																		predicted_retention_times.end(), 
-																		performance_retention_times.begin(), 
-																		performance_retention_times.end())), 1);														 
-			writeDebug_("MSE between predicted and measured rt is: "
-									+ String(Math::BasicStatistics<Real>::meanSquareError(predicted_retention_times.begin(), 
-																		predicted_retention_times.end(), 
-																		performance_retention_times.begin(), 
-																		performance_retention_times.end())), 1);														 
-			writeDebug_("Linear correlation between predicted and measured rt is: "
-									+ String(Math::BasicStatistics<Real>::pearsonCorrelationCoefficient(predicted_retention_times.begin(), 
-																		predicted_retention_times.end(), 
-																		performance_retention_times.begin(), 
-																		performance_retention_times.end())), 1);														 
-			writeDebug_("MSE between predicted and measured rt is: "
-									+ String(Math::BasicStatistics<Real>::meanSquareError(predicted_retention_times.begin(), 
-																		predicted_retention_times.end(), 
-																		performance_retention_times.begin(), 
-																		performance_retention_times.end())), 1);														 
+			if (separation_prediction)
+			{
+				analysisXML_file.store(outputfile_name_positive,
+															 protein_identifications,
+															 identifications_positive);
+				analysisXML_file.store(outputfile_name_negative,
+															 protein_identifications,
+															 identifications_negative);
+			}
+			else
+			{
+				analysisXML_file.store(outputfile_name,
+															 protein_identifications,
+															 identifications,
+															 predicted_data);
+				writeDebug_("Linear correlation between predicted and measured rt is: "
+										+ String(Math::BasicStatistics<Real>::pearsonCorrelationCoefficient(predicted_retention_times.begin(), 
+																			predicted_retention_times.end(), 
+																			performance_retention_times.begin(), 
+																			performance_retention_times.end())), 1);														 
+				writeDebug_("MSE between predicted and measured rt is: "
+										+ String(Math::BasicStatistics<Real>::meanSquareError(predicted_retention_times.begin(), 
+																			predicted_retention_times.end(), 
+																			performance_retention_times.begin(), 
+																			performance_retention_times.end())), 1);														 
+			}
 			return EXECUTION_OK;
 		}
 };

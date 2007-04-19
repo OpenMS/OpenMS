@@ -130,7 +130,9 @@ class TOPPRTModel
 {
 	public:
 		TOPPRTModel()
-			: TOPPBase("RTModel","Builds a model for retention time prediction of peptides from a training set")
+			: TOPPBase("RTModel","Builds a model for retention time prediction of peptides from a training set."+
+								String("\nFurthermore the tool can be used to build a model for peptide separation prediction.")
+								+ "\nIn this case one file with positive examples and one file with negative examples have to be given.")
 		{
 			
 		}
@@ -138,18 +140,20 @@ class TOPPRTModel
 	protected:
 		void registerOptionsAndFlags_()
 		{
-			registerStringOption_("in","<file>","","input file in analysisXML format");
+			registerStringOption_("in","<file>","","input file in analysisXML format (RT prediction)", false);
+			registerStringOption_("in_positive","<file>","","input file in analysisXML format with positive examples (peptide separation prediction)", false);
+			registerStringOption_("in_negative","<file>","","input file in analysisXML format with negative examples (peptide separation prediction)", false);
 			registerStringOption_("out","<file>","","output file: the model in libsvm format");
-			registerStringOption_("svm_type","<type>","NU_SVR","the type of the svm (NU_SVR or EPSILON_SVR)",false);
+			registerStringOption_("svm_type","<type>","NU_SVR","the type of the svm (NU_SVR or EPSILON_SVR for RT prediction, automatically set to C_SVC for separation prediction)",false);
 			registerDoubleOption_("nu","<float>",0.5,"the nu parameter [0..1] of the svm (for nu-SVR)",false);
 			registerDoubleOption_("p","<float>",0.1,"the epsilon parameter of the svm (for epsilon-SVR)",false);
 			registerDoubleOption_("c","<float>",1,"the penalty parameter of the svm",false);
-			registerStringOption_("kernel_type","<type>","RBF","the kernel type of the svm (LINEAR, RBF, POLY or SIGMOID)",false);
-			registerIntOption_("degree","<int>",1,"the degree parameter of the kernel function of the svm",false);
-			registerIntOption_("border_length","<int>",0,"length of the oligo border",false);
-			registerIntOption_("k_mer_length","<int>",0,"k_mer length of the oligo border kernel",false);
-			registerDoubleOption_("sigma","<float>",0.1,"sigma of the oligo border",false);
-			registerDoubleOption_("total_gradient_time","<time>",0.0,"the time (in seconds) of the gradient");
+			registerStringOption_("kernel_type","<type>","OLIGO","the kernel type of the svm (LINEAR, RBF, POLY, SIGMOID or OLIGO)",false);
+			registerIntOption_("degree","<int>",1,"the degree parameter of the kernel function of the svm (POLY kernel)",false);
+			registerIntOption_("border_length","<int>",0,"length of the POBK",false);
+			registerIntOption_("k_mer_length","<int>",0,"k_mer length of the POBK",false);
+			registerDoubleOption_("sigma","<float>",0.1,"sigma of the POBK",false);
+			registerDoubleOption_("total_gradient_time","<time>",-1.0,"the time (in seconds) of the gradient (only for RT prediction)", false);
 			registerFlag_("additive_cv","if the step sizes should be interpreted additively (otherwise the actual value is multiplied with the step size to get the new value");
 			addEmptyLine_();
 			addText_("Parameters for the grid search / cross validation:");
@@ -176,6 +180,8 @@ class TOPPRTModel
 		{
 			vector<ProteinIdentification> protein_identifications;
 		  vector<IdentificationData> identifications;
+			vector<ProteinIdentification> protein_identifications_negative;
+		  vector<IdentificationData> identifications_negative;
 		  vector< String > training_peptides;
 		  vector< DoubleReal > training_retention_times;
 		  PeptideHit temp_peptide_hit;
@@ -203,29 +209,65 @@ class TOPPRTModel
 			DoubleReal sigma = 0.1;
 			UInt k_mer_length = 1;
 			Int border_length = 0;
+			bool separation_prediction = false;
 			
 	
 			//-------------------------------------------------------------
 			// parsing parameters
 			//-------------------------------------------------------------
-			String inputfile_name = getStringOption_("in");
-			inputFileReadable_(inputfile_name);
+			String inputfile_positives = getStringOption_("in_positive");
+			String inputfile_negatives = "";
+			String inputfile_name = "";
+			if (inputfile_positives != "")
+			{
+				inputFileReadable_(inputfile_positives);
+				inputfile_negatives = getStringOption_("in_negative");
+				if (inputfile_negatives != "")
+				{
+					inputFileReadable_(inputfile_negatives);
+					separation_prediction = true;					
+				}
+				else
+				{
+					writeLog_("Positive peptides for separation prediction set but no negative peptides. Aborting!");
+					printUsage_();
+					return ILLEGAL_PARAMETERS;		
+				}
+			}
+			else
+			{										
+				inputfile_name = getStringOption_("in");
+				inputFileReadable_(inputfile_name);
+			}
 			String outputfile_name = getStringOption_("out");
 			outputFileWritable_(outputfile_name);
-			Real total_gradient_time = getDoubleOption_("total_gradient_time");		
+			Real total_gradient_time = getDoubleOption_("total_gradient_time");
+			if (!separation_prediction && total_gradient_time	< 0)
+			{
+					writeLog_("No total gradient time given for RT prediction. Aborting!");
+					printUsage_();
+					return ILLEGAL_PARAMETERS;						
+			}
  			//SVR type
  			String type = getStringOption_("svm_type");
-			if (type == "NU_SVR")
+			if (type == "NU_SVR" && !separation_prediction)
 			{
 				svm.setParameter(SVM_TYPE, NU_SVR);
 			}
-			else if (type == "EPSILON_SVR")
+			else if (type == "EPSILON_SVR" && !separation_prediction)
 			{
 				svm.setParameter(SVM_TYPE, EPSILON_SVR);
 			}
+			else if ((separation_prediction && type == "C_SVC")
+							 || separation_prediction)
+			{
+				svm.setParameter(SVM_TYPE, C_SVC);
+			}
 			else
 			{
-				writeLog_("Illegal svm type given. Svm type has to be either NU_SVR or EPSILON_SVR. Aborting!");
+				writeLog_("Illegal svm type given. Svm type has to be either "
+									+ String("NU_SVR or EPSILON_SVR for rt prediction and ")
+									+ "C_SVC for separation prediction. Aborting!");
 				printUsage_();
 				return ILLEGAL_PARAMETERS;		
 			}
@@ -356,7 +398,15 @@ class TOPPRTModel
 			// reading input
 			//-------------------------------------------------------------
 			
-			AnalysisXMLFile().load(inputfile_name, protein_identifications, identifications);
+			if (!separation_prediction)
+			{
+				AnalysisXMLFile().load(inputfile_name, protein_identifications, identifications);
+			}
+			else
+			{
+				AnalysisXMLFile().load(inputfile_positives, protein_identifications, identifications);
+				AnalysisXMLFile().load(inputfile_negatives, protein_identifications_negative, identifications_negative);				
+			}
 		  													
 			//-------------------------------------------------------------
 			// calculations
@@ -371,7 +421,14 @@ class TOPPRTModel
 					{
 						temp_peptide_hit = identifications[i].id.getPeptideHits()[0];
 						training_peptides.push_back(temp_peptide_hit.getSequence());
-						training_retention_times.push_back(identifications[i].rt);
+						if (separation_prediction)
+						{
+							training_retention_times.push_back(1.0);
+						}	
+						else
+						{
+							training_retention_times.push_back(identifications[i].rt);
+						}
 					}
 					else
 					{
@@ -388,10 +445,44 @@ class TOPPRTModel
 					}
 				}				
 			}
-
-			for(UInt i = 0; i < training_retention_times.size(); i++)
+			// For separation prediction there are two files needed
+			if (separation_prediction)
 			{
-				training_retention_times[i] = training_retention_times[i] / total_gradient_time;
+				for(UInt i = 0; i < identifications_negative.size(); i++)
+				{
+					UInt temp_size = identifications_negative[i].id.getPeptideHits().size();
+					if (temp_size > 0)
+					{
+						if (temp_size == 1)
+						{
+							temp_peptide_hit = identifications_negative[i].id.getPeptideHits()[0];
+							training_peptides.push_back(temp_peptide_hit.getSequence());
+
+							training_retention_times.push_back(-1.0);
+						}
+						else
+						{
+							writeLog_("For one spectrum there should not be more than one peptide."
+									      "Please use the IDFilter with the -best_hits option to achieve this. Aborting!");
+							writeLog_("Hits: ");
+							for(vector<PeptideHit>::iterator it = identifications_negative[i].id.getPeptideHits().begin(); 
+									it != identifications_negative[i].id.getPeptideHits().end(); 
+									it++)
+							{
+								writeLog_(String(it->getSequence()) + " score: " + String(it->getScore()));
+							}
+							return INPUT_FILE_CORRUPT;
+						}
+					}				
+				}
+			}
+
+			if (!separation_prediction)
+			{
+				for(UInt i = 0; i < training_retention_times.size(); i++)
+				{
+					training_retention_times[i] = training_retention_times[i] / total_gradient_time;
+				}
 			}
 			if (temp_type == LINEAR || temp_type == POLY || temp_type == RBF)
 			{
@@ -486,10 +577,13 @@ class TOPPRTModel
 			{
 				encoder.storeLibSVMProblem(outputfile_name + "_samples", encoded_training_sample);
 				additional_parameters.setValue((string)"kernel_type", (Int) temp_type);
-				svm.getSignificanceBorders(encoded_training_sample, sigmas);
 				
-				additional_parameters.setValue((string)"sigma_0", sigmas.first); 
-				additional_parameters.setValue((string)"sigma_max", sigmas.second);
+				if (!separation_prediction)
+				{	
+					svm.getSignificanceBorders(encoded_training_sample, sigmas);
+					additional_parameters.setValue((string)"sigma_0", sigmas.first); 
+					additional_parameters.setValue((string)"sigma_max", sigmas.second);
+				}
 				if (temp_type == OLIGO)
 				{
 					additional_parameters.setValue((string)"border_length", svm.getIntParameter(BORDER_LENGTH));
