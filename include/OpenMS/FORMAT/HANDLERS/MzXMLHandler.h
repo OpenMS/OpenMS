@@ -994,7 +994,6 @@ namespace OpenMS
 			}
 			else	//precision 32
 			{
-//				float* data = decoder_.decodeFloatCorrected(char_rest_.c_str(), char_rest_.size());
 				std::vector<Real> data;
 				decoder_.decode(char_rest_, Base64::BIGENDIAN, data);
 				char_rest_ = "";
