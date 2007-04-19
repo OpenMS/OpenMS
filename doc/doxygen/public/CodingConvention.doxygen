@@ -204,35 +204,58 @@ There are some other namespaces e.g. for constants and exceptions.
 <H2 style="margin-top:20px; border-top:1px solid grey;">Accessors to members</H2>
 
 Accessors to protected or private members of a class are implemented as a pair
-of get-method and set-method. This is necessary as accessors that return references to a member cannot be wrapped with Python!
-
-For members that are too large to be read with the get-method, modified and written back with the set-method, 
-an additional non-const get-method can be implemented!
+of get-method and set-method. This is necessary as accessors that return mutable references to a member 
+cannot be wrapped with Python!
 
 @code
 class Test
 {
   public:
   	// always implement a non-mutable get-method
-    Type& getMember() const
+    const UInt& getMember() const
     {
       return member_;
     }
     
 		// always implement a set-method
-    void setName(const Type& name)
+    void setMember(const UInt& name)
+    {
+      name_ = member_;
+    }
+    
+  protected:
+    UInt member_;
+};
+@endcode
+
+For members that are too large to be read with the get-method, modified and written back with the set-method, 
+an additional non-const get-method can be implemented!
+<p>
+For primitive types a non-const get-method is strictly forbidden!
+For more complex types it should be present only when really necessary!
+
+@code
+class Test
+{
+  public:
+    const vector<String>& getMember() const
+    {
+      return member_;
+    }
+    
+    void setMember(const vector<String>& name)
     {
       name_ = member_;
     }
 		
-		// if really necessary implement a mutable get-method
-    Type& getName()
+		// if absolutely necessary implement a mutable get-method
+    vector<String>& getMember()
     {
       return member_;
     }
 
   protected:
-    Type member_;
+    vector<String> member_;
 };
 @endcode
 

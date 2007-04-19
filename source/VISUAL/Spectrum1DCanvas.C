@@ -612,6 +612,11 @@ namespace OpenMS
 					log_factor = getCurrentPeakData().getMaxInt()/log(getCurrentPeakData().getMaxInt());
 					SpectrumCanvas::dataToWidget_(selected_peak_->getMZ(), log(selected_peak_->getIntensity()+1)*log_factor,end);
 				}
+				if (intensity_mode_==IM_PERCENTAGE)
+				{
+					percentage_factor_ = overall_data_range_.max()[1]/getCurrentPeakData()[0].getMaxInt();
+					dataToWidget_(*selected_peak_, end);
+				}
 				else
 				{
 					dataToWidget_(*selected_peak_,end);
@@ -625,6 +630,11 @@ namespace OpenMS
 				{
 					log_factor = getCurrentPeakData().getMaxInt()/log(getCurrentPeakData().getMaxInt());
 					SpectrumCanvas::dataToWidget_(selected_peak_->getMZ(), log(selected_peak_->getIntensity()+1)*log_factor,begin);
+				}
+				if (intensity_mode_==IM_PERCENTAGE)
+				{
+					percentage_factor_ = overall_data_range_.max()[1]/getCurrentPeakData()[0].getMaxInt();
+					dataToWidget_(*selected_peak_, begin);
 				}
 				else
 				{

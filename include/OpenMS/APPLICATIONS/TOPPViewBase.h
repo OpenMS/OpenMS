@@ -59,9 +59,7 @@ namespace OpenMS
   class Spectrum3DWidget;
 
   /**
-  	@brief MDI window of TOPPView tool
-  	
-  	@todo Add preferences for layers (Marc)
+  	@brief Main window of TOPPView tool
   */
   class TOPPViewBase 
   	: public QMainWindow, 
@@ -197,6 +195,8 @@ namespace OpenMS
       void showCurrentPeaksAs3D();
 			/// Shows the spectrum with index @p index of the sctive layer in 1D
 			void showSpectrumAs1D(int index);
+      /// Shows the 'About' dialog
+      void showAboutDialog();
       
     protected slots:
       /** @name Layer manager slots

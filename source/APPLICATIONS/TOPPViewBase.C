@@ -102,7 +102,9 @@
 #include "../VISUAL/ICONS/convexhulls.xpm"
 #include "../VISUAL/ICONS/numbers.xpm"
 
+//misc
 #include "../VISUAL/ICONS/TOPPView.xpm"
+#include "../VISUAL/ICONS/Oesterberg.xpm"
 
 #include <algorithm>
 
@@ -201,7 +203,14 @@ namespace OpenMS
     windows->addAction("&Tile automatic",this->ws_,SLOT(tile()));
     windows->addAction(QIcon(QPixmap(tile_h)),"Tile &vertical",this,SLOT(tileHorizontal()));
     windows->addAction(QIcon(QPixmap(tile_v)),"Tile &horizontal",this,SLOT(tileVertical()));
-
+		
+		//Help menu
+		QMenu* help = new QMenu("&Help", this);
+		menuBar()->addMenu(help);
+		help->addAction(QWhatsThis::createAction(help));
+		help->addSeparator();
+		help->addAction("&About",this,SLOT(showAboutDialog()));
+		
     //create status bar
     message_label_ = new QLabel(statusBar());
     statusBar()->addWidget(message_label_,1);
@@ -1179,11 +1188,7 @@ namespace OpenMS
     reset_zoom_button->setShortcut(Qt::Key_Backspace);
 
     tool_bar_->show();
-
-		//--help toolbar--
-		QToolBar* help_bar = addToolBar("Help tool bar");
-		help_bar->addAction(QWhatsThis::createAction(help_bar));
-
+    
     //--1D toolbar--
     tool_bar_1d_ = addToolBar("1D tool bar");
 
@@ -2091,6 +2096,34 @@ namespace OpenMS
 		    updateLayerbar();
 			}
     }
+	}
+
+	void TOPPViewBase::showAboutDialog()
+	{
+		//dialog and grid layout 
+		QDialog* dlg = new QDialog(this);
+		QGridLayout* grid = new QGridLayout(dlg);
+		dlg->setWindowTitle("About TOPPView");
+		
+		//image
+		QLabel* label = new QLabel(dlg);
+		QPixmap image(Oesterberg);
+		label->setPixmap(image);
+		grid->addWidget(label,0,0);
+		
+		//text
+		QString text = QString("<BR>"
+									 				 "<FONT size=+3>TOPPView</font><BR>"
+									 				 "<BR>"
+													 "Version: %1<BR>"
+													 "<BR>"
+													 "OpenMS and TOPP is free software available under the<BR>"
+													 "Lesser GNU Public License (LGPL)").arg(VersionInfo::getVersion().c_str());
+		label = new QLabel(text,dlg);
+		grid->addWidget(label,0,1,Qt::AlignTop | Qt::AlignLeft);
+		
+		//execute
+		dlg->exec();
 	}
 
 } //namespace OpenMS

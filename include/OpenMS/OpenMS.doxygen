@@ -81,8 +81,6 @@ Ideen:
 - Seeder: precursor peaks, signal-to-noise
 
 Todos:
-Spectrum1DCanvas: fix highlighting of peaks in percentage mode
-TOPPView Help: What's this, About 
 Spectrum3DCanvas: fix intensity distribution for 2. layer
 
 Spectrum2DCanvas -- Remove coordinate-data transformations
