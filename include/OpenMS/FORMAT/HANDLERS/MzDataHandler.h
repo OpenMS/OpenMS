@@ -271,7 +271,6 @@ namespace OpenMS
 				 picked peaks.  Default is to do nothing.
 			*/
 			template <typename PeakType>
-//			void readPeakSupplementalData_( std::vector<void*>& /*data*/, PeakType& /*peak*/, UInt /*n*/)
 			void readPeakSupplementalData_( PeakType& /*peak*/, UInt /*n*/)
 			{
 			}
@@ -960,7 +959,6 @@ namespace OpenMS
 		*/
 		template <>
 		template <>
-//		void MzDataHandler <MSExperiment<PickedPeak1D > >::readPeakSupplementalData_ < PickedPeak1D >( std::vector<void*>& data, PickedPeak1D& peak, UInt n);
 		void MzDataHandler <MSExperiment<PickedPeak1D > >::readPeakSupplementalData_ < PickedPeak1D >( PickedPeak1D& peak, UInt n);
 
 
