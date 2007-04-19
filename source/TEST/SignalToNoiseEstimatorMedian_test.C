@@ -112,27 +112,16 @@ CHECK(DoubleReal getMaxIntensity() const )
   TEST_EQUAL(sne.getMaxIntensity(), -1);
 RESULT
 
-CHECK(DoubleReal& getMaxIntensity())
-  SignalToNoiseEstimatorMedian sne;
-  sne.getMaxIntensity() = 100;
-  TEST_EQUAL(sne.getMaxIntensity(), 100);
-RESULT
-
 CHECK(void setMaxIntensity(DoubleReal max_intensity))
   SignalToNoiseEstimatorMedian sne;
   sne.setMaxIntensity(100);
   TEST_EQUAL(sne.getMaxIntensity(), 100);
 RESULT
 
+
 CHECK(DoubleReal getAutoMaxStdevFactor() const )
   const SignalToNoiseEstimatorMedian sne;
   TEST_EQUAL(sne.getAutoMaxStdevFactor(), 3);
-RESULT
-
-CHECK(DoubleReal& getAutoMaxStdevFactor())
-  SignalToNoiseEstimatorMedian sne;
-  sne.getAutoMaxStdevFactor() = 100;
-  TEST_EQUAL(sne.getAutoMaxStdevFactor(), 100);
 RESULT
 
 CHECK(void setAutoMaxStdevFactor(DoubleReal value))
@@ -141,15 +130,10 @@ CHECK(void setAutoMaxStdevFactor(DoubleReal value))
   TEST_EQUAL(sne.getAutoMaxStdevFactor(), 100);
 RESULT
 
+
 CHECK(DoubleReal getAutoMaxPercentile() const )
   const SignalToNoiseEstimatorMedian sne;
   TEST_EQUAL(sne.getAutoMaxPercentile(), 95);
-RESULT
-
-CHECK(DoubleReal& getAutoMaxPercentile())
-  SignalToNoiseEstimatorMedian sne;
-  sne.getAutoMaxPercentile() = 100;
-  TEST_EQUAL(sne.getAutoMaxPercentile(), 100);
 RESULT
 
 CHECK(void setAutoMaxPercentile(DoubleReal value))
@@ -158,15 +142,10 @@ CHECK(void setAutoMaxPercentile(DoubleReal value))
   TEST_EQUAL(sne.getAutoMaxPercentile(), 100);
 RESULT
 
+
 CHECK(Int getAutoMode() const )
   const SignalToNoiseEstimatorMedian sne;
   TEST_EQUAL(sne.getAutoMode(), 0);
-RESULT
-
-CHECK(int& getAutoMode())
-  SignalToNoiseEstimatorMedian sne;
-  sne.getAutoMode() = 100;
-  TEST_EQUAL(sne.getAutoMode(), 100);
 RESULT
 
 CHECK(void setAutoMode(Int auto_mode))
@@ -175,15 +154,10 @@ CHECK(void setAutoMode(Int auto_mode))
   TEST_EQUAL(sne.getAutoMode(), 100);
 RESULT
 
+
 CHECK(DoubleReal getWinLen() const )
   const SignalToNoiseEstimatorMedian sne;
   TEST_EQUAL(sne.getWinLen(), 200);
-RESULT
-
-CHECK(double& getWinLen())
-  SignalToNoiseEstimatorMedian sne;
-  sne.getWinLen() = 100;
-  TEST_EQUAL(sne.getWinLen(), 100);
 RESULT
 
 CHECK(void setWinLen(DoubleReal win_len))
@@ -192,15 +166,10 @@ CHECK(void setWinLen(DoubleReal win_len))
   TEST_EQUAL(sne.getWinLen(), 100);
 RESULT
 
+
 CHECK(Int getBinCount() const )
   const SignalToNoiseEstimatorMedian sne;
   TEST_EQUAL(sne.getBinCount(), 30);
-RESULT
-
-CHECK(int& getBinCount())
-  SignalToNoiseEstimatorMedian sne;
-  sne.getBinCount() = 100;
-  TEST_EQUAL(sne.getBinCount(), 100);
 RESULT
 
 CHECK(void setBinCount(Int bin_count))
@@ -209,15 +178,10 @@ CHECK(void setBinCount(Int bin_count))
   TEST_EQUAL(sne.getBinCount(), 100);
 RESULT
 
+
 CHECK(Int getMinReqElements() const )
   const SignalToNoiseEstimatorMedian sne;
   TEST_EQUAL(sne.getMinReqElements(), 10);
-RESULT
-
-CHECK(int& getMinReqElements())
-  SignalToNoiseEstimatorMedian sne;
-  sne.getMinReqElements() = 100;
-  TEST_EQUAL(sne.getMinReqElements(), 100);
 RESULT
 
 CHECK(void setMinReqElements(Int min_required_elements))
@@ -226,15 +190,10 @@ CHECK(void setMinReqElements(Int min_required_elements))
   TEST_EQUAL(sne.getMinReqElements(), 100);
 RESULT
 
+
 CHECK(DoubleReal getNoiseForEmtpyWindow() const )
   const SignalToNoiseEstimatorMedian sne;
   TEST_EQUAL(sne.getNoiseForEmtpyWindow(), 2);
-RESULT
-
-CHECK(double& getNoiseForEmtpyWindow())
-  SignalToNoiseEstimatorMedian sne;
-  sne.getNoiseForEmtpyWindow() = 100;
-  TEST_EQUAL(sne.getNoiseForEmtpyWindow(), 100);
 RESULT
 
 CHECK(void setNoiseForEmtpyWindow(DoubleReal noise_for_empty_window))
@@ -242,6 +201,7 @@ CHECK(void setNoiseForEmtpyWindow(DoubleReal noise_for_empty_window))
   sne.setNoiseForEmtpyWindow(100);
   TEST_EQUAL(sne.getNoiseForEmtpyWindow(), 100);
 RESULT
+
 
 CHECK(virtual double getSignalToNoise(PeakIterator data_point))
   // A container for the raw data 
@@ -258,16 +218,22 @@ CHECK(virtual double getSignalToNoise(PeakIterator data_point))
   sne.init(raw_data.begin(),raw_data.end());
 
   MSSpectrum < > stn_data;
+  dta_file.load("./data/SignalToNoiseEstimatorMedian_test.out", stn_data);
+  int i = 0;
   for (it=raw_data.begin();it!=raw_data.end(); ++it)
   {
-    Peak1D peak = (*it);
-    peak.setIntensity(sne.getSignalToNoise(it));
-    stn_data.push_back(peak);
+    TEST_REAL_EQUAL (stn_data[i].getIntensity(), sne.getSignalToNoise(it));
+        
+    
+    //Peak1D peak = (*it);
+    //peak.setIntensity(sne.getSignalToNoise(it));
+    //stn_data.push_back(peak);
+    ++i;
   }
 
-  dta_file.store("./data/SignalToNoiseEstimatorMedian_test.tmp", stn_data);
+  //dta_file.store("./data/SignalToNoiseEstimatorMedian_test.tmp", stn_data);
   
-  TEST_FILE("./data/SignalToNoiseEstimatorMedian_test.tmp", "./data/SignalToNoiseEstimatorMedian_test.out");
+  //TEST_FILE("./data/SignalToNoiseEstimatorMedian_test.tmp", "./data/SignalToNoiseEstimatorMedian_test.out");
 
 
 RESULT

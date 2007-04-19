@@ -160,8 +160,6 @@ namespace OpenMS
     /// Non-mutable access to the maximal intensity that is included in the histogram (higher values get discarded)
     inline DoubleReal getMaxIntensity() const     {    return max_intensity_;   }
     /// Mutable access to the maximal intensity that is included in the histogram (higher values get discarded)
-    inline DoubleReal& getMaxIntensity()           {    return max_intensity_;   }
-    /// Mutable access to the maximal intensity that is included in the histogram (higher values get discarded)
     inline void setMaxIntensity(DoubleReal max_intensity)
     {
       max_intensity_ = max_intensity;
@@ -172,8 +170,6 @@ namespace OpenMS
     /// Non-Mutable access to the AutoMaxStdevFactor-Param, which holds a factor for stddev (only used if autoMode=1)
     inline DoubleReal getAutoMaxStdevFactor() const  {  return auto_max_stdev_Factor_;    }
     /// Mutable access to the AutoMaxStdevFactor-Param, which holds a factor for stddev (only used if autoMode=1)
-    inline DoubleReal& getAutoMaxStdevFactor()        {  return auto_max_stdev_Factor_;    }
-    /// Mutable access to the AutoMaxStdevFactor-Param, which holds a factor for stddev (only used if autoMode=1)
     inline void setAutoMaxStdevFactor(DoubleReal value)
     {
       auto_max_stdev_Factor_ = value;
@@ -183,8 +179,6 @@ namespace OpenMS
 
     /// get the AutoMaxPercentile-Param, which holds a percentile (only used if autoMode=2)
     inline DoubleReal getAutoMaxPercentile() const  {  return auto_max_percentile_;      }
-    /// Mutable access to the AutoMaxPercentile-Param, which holds a percentile (only used if autoMode=2)
-    inline DoubleReal& getAutoMaxPercentile()        {  return auto_max_percentile_;      }
     /// Mutable access to the AutoMaxPercentile-Param, which holds a percentile (only used if autoMode=2)
     inline void setAutoMaxPercentile(DoubleReal value)
     {
@@ -198,9 +192,6 @@ namespace OpenMS
     inline Int getAutoMode() const      {    return auto_mode_;     }
     /// @brief -1 will disable it. 0 is default. 1 is alternative method
     /// Mutable access to AutoMode, which determines the heuristic to find MaxIntensity. See Class description.
-    inline int& getAutoMode()           {    return auto_mode_;     }
-    /// @brief -1 will disable it. 0 is default. 1 is alternative method
-    /// Mutable access to AutoMode, which determines the heuristic to find MaxIntensity. See Class description.
     inline void setAutoMode(Int auto_mode)
     {
       auto_mode_ = auto_mode;
@@ -210,8 +201,6 @@ namespace OpenMS
 
     /// Non-mutable access to the window length (in Thomson)
     inline DoubleReal getWinLen() const   {   return win_len_;      }
-    /// Mutable access to the window length (in Thomson)
-    inline double& getWinLen()            {   return win_len_;      }
     /// Mutable access to the window length (in Thomson)
     inline void setWinLen(DoubleReal win_len)
     {
@@ -223,8 +212,6 @@ namespace OpenMS
     /// Non-mutable access to the number of bins used for the histogram (the more bins, the better the approximation, but longer runtime)
     inline Int getBinCount() const       {   return bin_count_;      }
     /// Mutable access to the number of bins used for the histogram
-    inline int& getBinCount()            {   return bin_count_;      }
-    /// Mutable access to the number of bins used for the histogram
     inline void setBinCount(Int bin_count)
     {
       bin_count_ = bin_count;
@@ -235,8 +222,6 @@ namespace OpenMS
     /// Non-mutable access to the minimum required elements in a window, to be evaluated.
     inline Int getMinReqElements() const          {    return min_required_elements_;     }
     /// Mutable access to the minimum required elements in a window, to be evaluated.
-    inline int& getMinReqElements()               {    return min_required_elements_;     }
-    /// Mutable access to the minimum required elements in a window, to be evaluated.
     inline void setMinReqElements(Int min_required_elements)
     {
       min_required_elements_ = min_required_elements;
@@ -246,8 +231,6 @@ namespace OpenMS
 //
     /// Non-mutable access to the noise value that is used if a window contains not enough elements
     inline DoubleReal getNoiseForEmtpyWindow() const     {   return noise_for_empty_window_;   }
-    /// Mutable access to the noise value that is used if a window contains not enough elements
-    inline double& getNoiseForEmtpyWindow()             {    return noise_for_empty_window_;   }
     /// Mutable access to the noise value that is used if a window contains not enough elements
     inline void setNoiseForEmtpyWindow(DoubleReal noise_for_empty_window)
     {
