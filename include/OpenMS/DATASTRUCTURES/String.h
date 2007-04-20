@@ -41,8 +41,6 @@ namespace OpenMS
 		
 		It based on std::string but adds a lot of methods for convenience.
 		
-		@todo derive from QString (Marc)
-		
 		@ingroup Datastructures
 	*/
 	class String:

@@ -55,8 +55,6 @@ namespace OpenMS
   	The user can zoom, translate and select peaks. A
   	zoom stack is provided for going back to an earlier
   	view.
-  	
-  	@todo Remove coordinate-data transformations (Marc)
 
   	@ingroup SpectrumWidgets
   */
