@@ -149,7 +149,7 @@ namespace OpenMS
 		inline void setMZTolerance(double tolerance_mz)
 		{
 			tolerance_mz_ = tolerance_mz;
-			param_.setValue("2D_optimization:thresholds:tolerance_mz",tolerance_mz);
+			param_.setValue("thresholds:tolerance_mz",tolerance_mz);
 		}
 
 		///Non-mutable access to the maximal peak distance in a cluster
@@ -160,7 +160,7 @@ namespace OpenMS
 		inline void setMaxPeakDistance(double max_peak_distance)
 		{
 			max_peak_distance_ = max_peak_distance;
-			param_.setValue("2D_optimization:thresholds:max_peak_distance",max_peak_distance);
+			param_.setValue("thresholds:max_peak_distance",max_peak_distance);
 		}
 
 		///Non-mutable access to the maximal absolute error
@@ -171,7 +171,7 @@ namespace OpenMS
 		inline void setMaxAbsError(double eps_abs)
 		{
 			eps_abs_ = eps_abs;
-			param_.setValue("2D_optimization:delta_abs_error",eps_abs);
+			param_.setValue("delta_abs_error",eps_abs);
 		}
       
 		///Non-mutable access to the maximal relative error
@@ -182,7 +182,7 @@ namespace OpenMS
 		inline void setMaxRelError(double eps_rel)
 		{
 			eps_rel_ = eps_rel;
-			param_.setValue("2D_optimization:delta_rel_error",eps_rel);
+			param_.setValue("delta_rel_error",eps_rel);
 		}
 
 		///Non-mutable access to the maximal number of iterations
@@ -193,7 +193,7 @@ namespace OpenMS
 		inline void setMaxIterations(int max_iteration)
 		{
 			max_iteration_ = max_iteration;
-			param_.setValue("2D_optimization:iterations",max_iteration);
+			param_.setValue("iterations",max_iteration);
 		}
 
 		///Non-mutable access to the minimal number of adjacent scans
@@ -204,10 +204,10 @@ namespace OpenMS
 		inline void setPenalties(OptimizationFunctions::PenaltyFactorsInt& penalties)
 		{
 			penalties_ = penalties;
-			param_.setValue("2D_optimization:penalties:position",penalties.pos);
-			param_.setValue("2D_optimization:penalties:height",penalties.height);
-			param_.setValue("2D_optimization:penalties:left_width",penalties.lWidth);
-			param_.setValue("2D_optimization:penalties:right_width",penalties.rWidth);
+			param_.setValue("penalties:position",penalties.pos);
+			param_.setValue("penalties:height",penalties.height);
+			param_.setValue("penalties:left_width",penalties.lWidth);
+			param_.setValue("penalties:right_width",penalties.rWidth);
 		}
 
 
@@ -314,8 +314,8 @@ namespace OpenMS
 		double current_rt=ms_exp_it->getRT(),last_rt  = 0;
 
 		// retrieve values for accepted peaks distances
-		max_peak_distance_ = param_.getValue("2D_optimization:thresholds:max_peak_distance");
-		double tolerance_mz = param_.getValue("2D_optimization:thresholds:tolerance_mz");
+		max_peak_distance_ = param_.getValue("thresholds:max_peak_distance");
+		double tolerance_mz = param_.getValue("thresholds:tolerance_mz");
 	
 		UInt current_charge     = 0;			// charge state of the current isotopic cluster
 		double mz_in_hash   = 0;			// used as reference to the current isotopic peak			
@@ -538,7 +538,14 @@ namespace OpenMS
 
 		MapType::iterator iso_map_iter = iso_map_.begin();
 		for(unsigned int i=0;i<iso_map_idx;++i)  ++iso_map_iter;
-	
+
+#ifdef DEBUG2D
+		std::cout << "rt begin: "<<exp[iso_map_iter->second.scans_[0]].getRT()
+							<< "\trt end: "<<exp[iso_map_iter->second.scans_[iso_map_iter->second.scans_.size()-1]].getRT()
+							<< " \t"<<iso_map_iter->second.scans_.size()<<" scans"
+							<< std::endl;
+#endif
+		
 		// get left and right endpoint for all scans in the current cluster
 		for(unsigned int i=0; i< iso_map_iter->second.scans_.size();++i)
 			{
@@ -550,7 +557,9 @@ namespace OpenMS
 				InputSpectrumIterator iter = lower_bound(first, last, spec, typename MSSpectrum<InputPeakType>::RTLess());
 				//				if(iter->getRT() != rt) --iter;
 				exp_it = exp.RTBegin(rt);
+#ifdef DEBUG2D
 				std::cout << exp_it->getRT() << " vs "<< iter->getRT()<<std::endl;
+#endif
 				// now the right mz
 				IndexSet::const_iterator j=(iso_map_iter->second.peaks_.begin());
 																		
@@ -571,7 +580,7 @@ namespace OpenMS
 				--set_iter2;
 				last_peak_mz = (exp_it->begin() + set_iter2->second)->getMZ() + 1;
 				
-				std::cout << rt<<": first peak mz "<<first_peak_mz << "\tlast peak mz "<<last_peak_mz <<std::endl;
+				//std::cout << rt<<": first peak mz "<<first_peak_mz << "\tlast peak mz "<<last_peak_mz <<std::endl;
 				peak.setPosition(first_peak_mz);
 				typename MSSpectrum<InputPeakType>::const_iterator raw_data_iter
 					= lower_bound(iter->begin(), iter->end(), peak, typename InputPeakType::PositionLess());
@@ -591,7 +600,9 @@ namespace OpenMS
 				Idx left,right;
 				left.first = distance(first,iter);
 				left.second = distance(iter->begin(),raw_data_iter);
+#ifdef DEBUG2D
 				std::cout << "left: "<<iter->getRT()<<"\t"<<raw_data_iter->getMZ()<<std::endl;
+#endif
 				// consider a bit more of the signal to the right
 				peak.setPosition(last_peak_mz + 1);
 				raw_data_iter
@@ -607,13 +618,17 @@ namespace OpenMS
 					}
 				right.first = left.first;
 				right.second = distance(iter->begin(),raw_data_iter);
+#ifdef DEBUG2D
 				std::cout << "rightt: "<<iter->getRT()<<"\t"<<raw_data_iter->getMZ()<<std::endl;
+#endif
 				// region endpoints are stored in global vector
 				OptimizationFunctions::signal2D.push_back(left);
 				OptimizationFunctions::signal2D.push_back(right);
 			}
-		std::cout << "fertig"<< std::endl; 
-
+#ifdef DEBUG2D
+		//std::cout << "fertig"<< std::endl;
+		std::cout << first_peak_mz <<"\t"<<last_peak_mz<<std::endl;
+#endif
 	}
     
 

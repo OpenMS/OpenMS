@@ -555,6 +555,10 @@ namespace OpenMS
 
       if(two_d_optimization_ || optimization_)
       {
+				Param two_d_param(param_.copy("2D_optimization:",true));
+				if(two_d_param.empty()) TwoDOptimization my_2d;
+				else TwoDOptimization my_2d(two_d_param);
+				
         TwoDOptimization my_2d(param_);
 
         my_2d.twoDOptimize(first,last,ms_exp_peaks,two_d_optimization_);
