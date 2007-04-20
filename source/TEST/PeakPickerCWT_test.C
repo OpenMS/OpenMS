@@ -59,7 +59,7 @@ CHECK(setParam)
   param.setValue("Optimization:optimization","two_dimensional");
   
   PeakPickerCWT pp;
-  pp.setParam(param);
+  pp.setParameters(param);
   TEST_REAL_EQUAL(pp.getWaveletScale(),0.3)
   TEST_REAL_EQUAL(pp.getPeakCorrBound(),0.8)
   TEST_REAL_EQUAL(pp.getNoiseLevel(),9)
@@ -79,7 +79,7 @@ CHECK((PeakPickerCWT& operator=(const PeakPickerCWT& pp)))
   param.setValue("Optimization:optimization","one_dimensional");
   
   PeakPickerCWT pp;
-  pp.setParam(param);
+  pp.setParameters(param);
   PeakPickerCWT pp_copy;
   pp_copy = pp;
   TEST_REAL_EQUAL(pp_copy.getWaveletScale(),0.3)
@@ -101,7 +101,7 @@ CHECK((PeakPickerCWT(const PeakPickerCWT& pp)))
   param.setValue("Optimization:optimization","no");
   
   PeakPickerCWT pp;
-  pp.setParam(param);
+  pp.setParameters(param);
   
   PeakPickerCWT pp_copy(pp);
   TEST_REAL_EQUAL(pp_copy.getWaveletScale(),0.3)

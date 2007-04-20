@@ -27,7 +27,7 @@
 #ifndef OPENMS_TRANSFORMATIONS_RAW2PEAK_PEAKPICKER_H
 #define OPENMS_TRANSFORMATIONS_RAW2PEAK_PEAKPICKER_H
 
-#include <OpenMS/FORMAT/Param.h>
+#include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 
 #include <iostream>
 #include <vector>
@@ -42,7 +42,7 @@ namespace OpenMS
      
      @ingroup PeakPicking
   */
-  class PeakPicker
+  class PeakPicker : public DefaultParamHandler
   {
 
   public:
@@ -65,12 +65,10 @@ namespace OpenMS
 	    {
 	      return *this;
 	    }
-			param_ = pp.param_;
-	    peak_bound_= pp.peak_bound_;
-	    peak_bound_ms2_level_= pp.peak_bound_ms2_level_;
-	    signal_to_noise_= pp.signal_to_noise_;
-	    fwhm_bound_ = pp.fwhm_bound_;
-	
+			DefaultParamHandler::operator=(pp);
+			
+			updateMembers_();
+				
 	    return *this;
 	  }
 
@@ -122,25 +120,8 @@ namespace OpenMS
     	param_.setValue("thresholds:fwhm_bound",fwhm);
     }
 
-		/**
-			@brief Checks the give parameters against defaults_ and copies them to member variables.
-			
-			Call this method in the constructor of derived classes after the defaults_ are set!
-			
-			@note Overwrite this method in derived classes! You need to copy the subclass-specific parameters to members as well! 
-		*/
-		virtual void setParam(Param param);
-		
-		/// Returns the set parameters
-		const Param& getParam() const;
 		
   protected:
-		/// passed parameters
-		Param param_;
-
-		/// default parameters
-		Param defaults_;
-		
     /// Threshold for the peak height in the MS 1 level
     float peak_bound_;
 
@@ -153,6 +134,8 @@ namespace OpenMS
     /// The minimal full width at half maximum
     float fwhm_bound_;
 
+		void updateMembers_();
+		
   };
 
 }// namespace OpenMS

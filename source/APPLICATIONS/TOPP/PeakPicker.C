@@ -139,7 +139,7 @@ class TOPPPeakPicker
 		
 		writeDebug_("Parameters passed to PeakPickerCWT", pepi_param,3);
     PeakPickerCWT peak_picker;
-		peak_picker.setParam(pepi_param);
+		peak_picker.setParameters(pepi_param);
 
     //-------------------------------------------------------------
     // loading input

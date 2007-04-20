@@ -84,7 +84,6 @@ namespace OpenMS
     typedef DPosition<1> PositionType;
 
 
-    using PeakPicker::param_;
     using PeakPicker::peak_bound_;
     using PeakPicker::peak_bound_ms2_level_;
     using PeakPicker::signal_to_noise_;
@@ -95,15 +94,10 @@ namespace OpenMS
 
     /// Copy constructor
     PeakPickerCWT(const PeakPickerCWT& pp)
-        : PeakPicker(pp),
-        radius_(pp.radius_),
-        scale_(pp.scale_),
-        peak_bound_cwt_(pp.peak_bound_cwt_),
-        peak_bound_ms2_level_cwt_(pp.peak_bound_ms2_level_cwt_),
-        peak_corr_bound_(pp.peak_corr_bound_),
-        noise_level_(pp.noise_level_),
-        optimization_(pp.optimization_)
-    {}
+        : PeakPicker(pp)
+    {
+			updateMembers_();
+		}
 
     /// Destructor
     virtual ~PeakPickerCWT();
@@ -117,17 +111,10 @@ namespace OpenMS
         return *this;
       }
 
-      param_ = pp.param_;
-      peak_bound_ = pp.peak_bound_;
-      signal_to_noise_ = pp.signal_to_noise_;
-      scale_ = pp.scale_;
-      peak_bound_cwt_ = pp.peak_bound_cwt_;
-      peak_bound_ms2_level_cwt_ = pp.peak_bound_ms2_level_cwt_;
-      radius_ = pp.radius_;
-      peak_corr_bound_ = pp.peak_corr_bound_;
-      noise_level_ = pp.noise_level_;
-      optimization_ = pp.optimization_;
+			PeakPicker::operator=(pp);
 
+			updateMembers_();
+			
       return *this;
     }
 
@@ -689,8 +676,7 @@ namespace OpenMS
     void fillPeak_(const PeakShape& /* peak_shape */, OutputPeakType& /* picked_peak */)
     {}
 
-    // docu in base class
-    virtual void setParam(Param param);
+   
 
   protected:
     /// Container the determined peak shapes
@@ -730,7 +716,7 @@ namespace OpenMS
     bool two_d_optimization_;
 
 
-
+		void updateMembers_();
 
     /// Initializes the members and parses the parameter object
     void init_();

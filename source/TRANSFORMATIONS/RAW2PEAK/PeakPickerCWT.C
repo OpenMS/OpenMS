@@ -34,8 +34,7 @@ namespace OpenMS
 {
   PeakPickerCWT::PeakPickerCWT()
 		: PeakPicker(),
-      	
-      radius_(0),
+			radius_(0),
       scale_(0.0),
       peak_bound_cwt_(0.0),
       peak_bound_ms2_level_cwt_(0.0),
@@ -88,19 +87,20 @@ namespace OpenMS
 		defaults_.setValue("2D_optimization:delta_rel_error",1e-05f);
 		defaults_.setValue("2D_optimization:iterations",10);
 
-		
-		
   	
-		setParam(Param());
+		defaultsToParam_();
   }
 
   PeakPickerCWT::~PeakPickerCWT()
   {}
 
-  void PeakPickerCWT::setParam(Param param)
+  void PeakPickerCWT::updateMembers_()
   {
-    PeakPicker::setParam(param);
 
+		signal_to_noise_ = (float)param_.getValue("thresholds:signal_to_noise");
+		peak_bound_ = (float)param_.getValue("thresholds:peak_bound");
+		peak_bound_ms2_level_ = (float)param_.getValue("thresholds:peak_bound_ms2_level");
+    fwhm_bound_ = (float)param_.getValue("thresholds:fwhm_bound");
     peak_corr_bound_ = (float)param_.getValue("thresholds:correlation");
     String opt = param_.getValue("Optimization:optimization").toString();
     if (opt=="one_dimensional")
@@ -191,6 +191,7 @@ namespace OpenMS
 					 && ( wt[i]  >  noise_level_cwt))
 					{
 						max_pos = (direction > 0) ? (i - distance_from_scan_border)  : i;
+						if(first+max_pos < first ||first +max_pos >=last ) break;
 #ifdef DEBUG_PEAK_PICKING
 						std::cout << "MAX in CWT at " << (first + max_pos)->getMZ()<< " with " << wt[i]
 											<< std::endl;

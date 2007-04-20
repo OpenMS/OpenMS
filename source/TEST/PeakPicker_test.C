@@ -55,7 +55,7 @@ CHECK((PeakPicker& operator=(const PeakPicker& pp)))
   param.setValue("thresholds:peak_bound_ms2_level",10);
   param.setValue("thresholds:fwhm_bound",0.5);
   PeakPicker p;
-  p.setParam(param);
+  p.setParameters(param);
   
   PeakPicker p_copy;
   p_copy = p;
@@ -63,10 +63,10 @@ CHECK((PeakPicker& operator=(const PeakPicker& pp)))
   TEST_REAL_EQUAL(p_copy.getPeakBoundMs2Level(),10)
   TEST_REAL_EQUAL(p_copy.getSignalToNoiseLevel(),7)
   TEST_REAL_EQUAL(p_copy.getFwhmBound(),0.5)
-  TEST_EQUAL(p_copy.getParam() == param, true)
+  TEST_EQUAL(p_copy.getParameters() == param, true)
 RESULT
 
-CHECK((void setParam(Param param)))
+CHECK((void setParameters(Param param)))
   Param param;
   param.setValue("thresholds:signal_to_noise",7);
   param.setValue("thresholds:peak_bound",100);
@@ -74,13 +74,13 @@ CHECK((void setParam(Param param)))
   param.setValue("thresholds:fwhm_bound",0.5);
   
   PeakPicker pp;
-  pp.setParam(param);
+  pp.setParameters(param);
   
   TEST_REAL_EQUAL(pp.getPeakBound(),100)
   TEST_REAL_EQUAL(pp.getPeakBoundMs2Level(),10)
   TEST_REAL_EQUAL(pp.getSignalToNoiseLevel(),7)
   TEST_REAL_EQUAL(pp.getFwhmBound(),0.5)
-  TEST_EQUAL(pp.getParam() == param, true)
+  TEST_EQUAL(pp.getParameters() == param, true)
 RESULT
 
 CHECK((PeakPicker(const PeakPicker& pp)))
@@ -90,17 +90,17 @@ CHECK((PeakPicker(const PeakPicker& pp)))
   param.setValue("thresholds:peak_bound_ms2_level",10);
   param.setValue("thresholds:fwhm_bound",0.5);
   PeakPicker p;
-  p.setParam(param);
+  p.setParameters(param);
   
   PeakPicker p_copy(p);
   TEST_REAL_EQUAL(p_copy.getPeakBound(),100)
   TEST_REAL_EQUAL(p_copy.getPeakBoundMs2Level(),10)
   TEST_REAL_EQUAL(p_copy.getSignalToNoiseLevel(),7)
   TEST_REAL_EQUAL(p_copy.getFwhmBound(),0.5)
-  TEST_EQUAL(p_copy.getParam() == param, true)
+  TEST_EQUAL(p_copy.getParameters() == param, true)
 RESULT
 
-CHECK((const Param& getParam() const))
+CHECK((const Param& getParameters() const))
   Param param;
   param.setValue("thresholds:signal_to_noise",7);
   param.setValue("thresholds:peak_bound",100);
@@ -108,35 +108,35 @@ CHECK((const Param& getParam() const))
   param.setValue("thresholds:fwhm_bound",0.5);
   
   PeakPicker pp;
-  pp.setParam(param);
+  pp.setParameters(param);
 
-  TEST_REAL_EQUAL((double)pp.getParam().getValue("thresholds:signal_to_noise"),7.0);
-  TEST_REAL_EQUAL((double)pp.getParam().getValue("thresholds:peak_bound"),100.0);
-  TEST_REAL_EQUAL((double)pp.getParam().getValue("thresholds:peak_bound_ms2_level"),10.0);
-  TEST_REAL_EQUAL((double)pp.getParam().getValue("thresholds:fwhm_bound"),0.5);
+  TEST_REAL_EQUAL((double)pp.getParameters().getValue("thresholds:signal_to_noise"),7.0);
+  TEST_REAL_EQUAL((double)pp.getParameters().getValue("thresholds:peak_bound"),100.0);
+  TEST_REAL_EQUAL((double)pp.getParameters().getValue("thresholds:peak_bound_ms2_level"),10.0);
+  TEST_REAL_EQUAL((double)pp.getParameters().getValue("thresholds:fwhm_bound"),0.5);
 RESULT
 
 CHECK((Real getFwhmBound() const))
   PeakPicker pp;
-  pp.setParam(Param());
+  pp.setParameters(Param());
   TEST_REAL_EQUAL(pp.getFwhmBound(),0.2)
 RESULT
 
 CHECK((Real getPeakBound() const))
   PeakPicker pp;
-  pp.setParam(Param());
+  pp.setParameters(Param());
   TEST_REAL_EQUAL(pp.getPeakBound(),200)
 RESULT
 
 CHECK((Real getPeakBoundMs2Level() const))
   PeakPicker pp;
-  pp.setParam(Param());
+  pp.setParameters(Param());
   TEST_REAL_EQUAL(pp.getPeakBoundMs2Level(),50)
 RESULT
 
 CHECK((Real getSignalToNoiseLevel() const))
   PeakPicker pp;
-  pp.setParam(Param());
+  pp.setParameters(Param());
   TEST_REAL_EQUAL(pp.getSignalToNoiseLevel(),3)
 RESULT
 
@@ -147,7 +147,7 @@ CHECK((void setFwhmBound(Real fwhm)))
   TEST_REAL_EQUAL(pp.getFwhmBound(),0.3)
 RESULT
 
-CHECK((void setParam(const Param& param)))
+CHECK((void setParameters(const Param& param)))
   // ???
 RESULT
 
