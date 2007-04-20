@@ -59,6 +59,7 @@ class TestSignalToNoiseEstimator
   
   virtual double getSignalToNoise(PeakIterator data_point)
   {
+    return data_point->getMZ();
   }
 
 };
