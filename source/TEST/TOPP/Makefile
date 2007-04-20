@@ -569,7 +569,7 @@ RTModel_test: $(NUMERICDIFF)
 	@$(call TEST_FILE_EQUAL,RTModel_2_output.tmp,RTModel_2_output.model)
 	@$(call TEST_FILE_EQUAL,RTModel_2_output.tmp_samples,RTModel_2_output.samples)
 	@$(call TEST_FILE_EQUAL,RTModel_2_output.tmp_additional_parameters,RTModel_2_output.additional_parameters)
-
+	@$(RM) -rf RTModel_2_output.tmp_additional_parameters RTModel_2_output.tmp_samples
 
 RTPredict_test: $(NUMERICDIFF)
 	@$(ECHO) ""

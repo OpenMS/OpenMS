@@ -219,6 +219,7 @@ CHECK(void setNoiseForEmtpyWindow(DoubleReal noise_for_empty_window))
   TEST_EQUAL(sne.getNoiseForEmtpyWindow(), 100);
 RESULT
 
+PRECISION(0.5)
 
 CHECK(virtual double getSignalToNoise(PeakIterator data_point))
   // A container for the raw data 

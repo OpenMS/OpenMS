@@ -15,15 +15,8 @@ AC_DEFUN(CF_CHECK_LICENSE,[
 	if test "${OS}" = Darwin ; then
 		exec 0<&7 7<&-
 	fi
-	AC_PATH_PROG(PAGER, less, no)
-	if test "${PAGER}" = "no" ; then
-		AC_PATH_PROG(PAGER, more, no)
-	fi
-	if test "${PAGER}" = "no" ; then
-		PAGER=cat
-	fi
 	if test ! -f config.lic ; then
-		${PAGER} LICENSE
+		cat COPYRIGHT
 		echo " "
 		echo -n "Do you accept the terms of this license (y/n)? "
 		answer=""

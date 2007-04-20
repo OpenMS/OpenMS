@@ -204,7 +204,8 @@ namespace OpenMS
 
 	void MzDataExpSettHandler::cvParam_(const XMLCh* name, const XMLCh* value)
 	{
-		int ont = str2enum_(ONTOLOGYMAP,XMLString::transcode(name),"cvParam elment"); // index of current ontology term
+		//cout << "cvParam_: '" << XMLString::transcode(name) << "' - '" << XMLString::transcode(value) << "'";
+		int ont = str2enum_(ONTOLOGYMAP,XMLString::transcode(name),"cvParam element"); // index of current ontology term
 
 		std::string error = "";
 		if (is_parser_in_tag_[DETECTOR]){
