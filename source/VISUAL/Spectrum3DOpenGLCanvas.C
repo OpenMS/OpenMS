@@ -545,8 +545,8 @@ namespace OpenMS
 				//cout << "  - RT: " << canvas_3d_.visible_area_.min_[0] << " " << canvas_3d_.visible_area_.max_[0] << endl;
 				//cout << "  - MZ: " << canvas_3d_.visible_area_.min_[1] << " " << canvas_3d_.visible_area_.max_[1] << endl;
 		
-				for (Spectrum3DCanvas::ExperimentType::ConstAreaIterator it = canvas_3d_.getCurrentPeakData().areaBeginConst(canvas_3d_.visible_area_.min_[0],canvas_3d_.visible_area_.max_[0],canvas_3d_.visible_area_.min_[1],canvas_3d_.visible_area_.max_[1]); 
-						 it != canvas_3d_.getCurrentPeakData().areaEndConst(); 
+				for (Spectrum3DCanvas::ExperimentType::ConstAreaIterator it = canvas_3d_.getPeakData(i).areaBeginConst(canvas_3d_.visible_area_.min_[0],canvas_3d_.visible_area_.max_[0],canvas_3d_.visible_area_.min_[1],canvas_3d_.visible_area_.max_[1]); 
+						 it != canvas_3d_.getPeakData(i).areaEndConst(); 
 						 ++it)
 				{
 					if (it->getIntensity()>=min_int && it->getIntensity()<=max_int)
@@ -612,8 +612,8 @@ namespace OpenMS
 				//cout << "  - RT: " << canvas_3d_.visible_area_.min_[0] << " " << canvas_3d_.visible_area_.max_[0] << endl;
 				//cout << "  - MZ: " << canvas_3d_.visible_area_.min_[1] << " " << canvas_3d_.visible_area_.max_[1] << endl;
 	
-				for (Spectrum3DCanvas::ExperimentType::ConstAreaIterator it = canvas_3d_.getCurrentPeakData().areaBeginConst(canvas_3d_.visible_area_.min_[0],canvas_3d_.visible_area_.max_[0],canvas_3d_.visible_area_.min_[1],canvas_3d_.visible_area_.max_[1]); 
-						 it != canvas_3d_.getCurrentPeakData().areaEndConst(); 
+				for (Spectrum3DCanvas::ExperimentType::ConstAreaIterator it = canvas_3d_.getPeakData(i).areaBeginConst(canvas_3d_.visible_area_.min_[0],canvas_3d_.visible_area_.max_[0],canvas_3d_.visible_area_.min_[1],canvas_3d_.visible_area_.max_[1]); 
+						 it != canvas_3d_.getPeakData(i).areaEndConst(); 
 						 ++it)
 				{
 					if (it->getIntensity()>=min_int && it->getIntensity()<=max_int)

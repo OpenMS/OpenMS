@@ -164,6 +164,8 @@ namespace OpenMS
       void closeFile();
       /// saves the current view of the current layer
       void saveLayer();
+      /// renames a layer
+      void renameLayer();
       /// updates the toolbar
       void updateToolbar();
       /// adapts the layer bar to the active window

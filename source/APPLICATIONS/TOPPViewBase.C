@@ -76,6 +76,7 @@
 #include <QtCore/QDir>
 #include <QtCore/QDate>
 #include <QtGui/QWhatsThis>
+#include <QtGui/QInputDialog>
 
 //action modes
 #include "../VISUAL/ICONS/zoom.xpm"
@@ -175,6 +176,7 @@ namespace OpenMS
     QMenu* layer = new QMenu("&Layer",this);
     menuBar()->addMenu(layer);
     layer->addAction("&Save visible data",this,SLOT(saveLayer()), Qt::CTRL+Qt::Key_S);
+    layer->addAction("&Rename layer",this,SLOT(renameLayer()), Qt::CTRL+Qt::Key_R);
     layer->addAction("&Edit metadata",this,SLOT(editMetadata()));
     layer->addAction("&Intensity distribution",this,SLOT(layerIntensityDistribution()));
 		layer->addSeparator();
@@ -941,13 +943,33 @@ namespace OpenMS
     if (ws_->activeWindow())
     {
       const LayerData& layer = activeWindow_()->canvas()->getCurrentLayer();
+		
       //warn if hidden layer => wrong layer selected...
     	if (!layer.visible)
     	{
     		QMessageBox::warning(this,"Warning","The current layer is not visible!");
     	}
     	//Visible area
-    	const SpectrumCanvas::AreaType& area = activeWindow_()->canvas()->getVisibleArea();
+    	DoubleReal min_rt;
+    	DoubleReal max_rt;
+    	DoubleReal min_mz;
+    	DoubleReal max_mz;
+		if (dynamic_cast<Spectrum3DCanvas*>(activeWindow_()->canvas())!=0) //3D
+		{
+	    	min_rt = activeWindow_()->canvas()->getVisibleArea().min()[0];
+	    	max_rt = activeWindow_()->canvas()->getVisibleArea().max()[0];
+	    	min_mz = activeWindow_()->canvas()->getVisibleArea().min()[1];
+	    	max_mz = activeWindow_()->canvas()->getVisibleArea().max()[1];
+		}
+		else //1D or 2D
+		{
+	    	min_rt = activeWindow_()->canvas()->getVisibleArea().min()[1];
+	    	max_rt = activeWindow_()->canvas()->getVisibleArea().max()[1];
+	    	min_mz = activeWindow_()->canvas()->getVisibleArea().min()[0];
+	    	max_mz = activeWindow_()->canvas()->getVisibleArea().max()[0];			
+		}
+    	
+    	cout << "RT: " << min_rt << "-"  << max_rt << " -- mz: " << min_mz << "-" << max_mz << endl; 
     	
     	if (layer.type==LayerData::DT_PEAK)
     	{
@@ -963,8 +985,8 @@ namespace OpenMS
     		}
     		else
     		{
-	    		begin = layer.peaks.RTBegin(area.min()[1]);
-	    		end = layer.peaks.RTBegin(area.max()[1]);
+	    		begin = layer.peaks.RTBegin(min_rt);
+	    		end = layer.peaks.RTEnd(max_rt);
     		}
     		out.resize(end-begin);
 				
@@ -975,7 +997,7 @@ namespace OpenMS
   				out[i].setRT(it->getRT());
   				out[i].setMSLevel(it->getMSLevel());
   				out[i].setPrecursorPeak(it->getPrecursorPeak());
-  				for (LayerData::ExperimentType::SpectrumType::ConstIterator it2 = it->MZBegin(area.min()[0]); it2!= it->MZEnd(area.max()[0]); ++it2)
+  				for (LayerData::ExperimentType::SpectrumType::ConstIterator it2 = it->MZBegin(min_mz); it2!= it->MZEnd(max_mz); ++it2)
   				{
   					if ( it2->getIntensity() >= layer.min_int && it2->getIntensity() <= layer.max_int)
   					{
@@ -1020,10 +1042,10 @@ namespace OpenMS
     		{
 					if ( it->getIntensity() >= layer.min_int && 
 							 it->getIntensity() <= layer.max_int &&
-							 it->getRT() >= area.min()[1] &&
-							 it->getRT() <= area.max()[1] &&
-							 it->getMZ() >= area.min()[0] &&
-							 it->getMZ() <= area.max()[0]
+							 it->getRT() >= min_rt &&
+							 it->getRT() <= max_rt &&
+							 it->getMZ() >= min_mz &&
+							 it->getMZ() <= max_mz
 						 )
 					{
 						out.push_back(*it);
@@ -1887,14 +1909,14 @@ namespace OpenMS
 
 	void TOPPViewBase::showTOPPDialog()
 	{
-		String tmp_dir = param_.getValue("Preferences:TmpPath").toString();
-		
-		ToolsDialog dialog(this,tmp_dir);
-	
-		if(dialog.exec()==QDialog::Accepted)
+		//check if there is a active window
+		if (ws_->activeWindow())
 		{
-			//check if there is a active window
-			if (ws_->activeWindow())
+			String tmp_dir = param_.getValue("Preferences:TmpPath").toString();
+			
+			ToolsDialog dialog(this,tmp_dir);
+		
+			if(dialog.exec()==QDialog::Accepted)
 			{
 				const LayerData& layer = activeWindow_()->canvas()->getCurrentLayer();
 				//warn if hidden layer => wrong layer selected...
@@ -1996,21 +2018,20 @@ namespace OpenMS
 
 	void TOPPViewBase::annotateWithID()
 	{
-		QString name = QFileDialog::getOpenFileName(this,"Select identification data",param_.getValue("Preferences:DefaultPath").toString().c_str(),tr("identfication files (*.analysisXML);; all files (*.*)"));
-		
-		if(name!="")
+		//check if there is a active window
+		if (ws_->activeWindow())
 		{
-			//check if there is a active window
-			if (ws_->activeWindow())
+			const LayerData& layer = activeWindow_()->canvas()->getCurrentLayer();
+			//warn if hidden layer => wrong layer selected...
+			if (!layer.visible)
 			{
-				const LayerData& layer = activeWindow_()->canvas()->getCurrentLayer();
-				//warn if hidden layer => wrong layer selected...
-				if (!layer.visible)
-				{
-					QMessageBox::warning(this,"Warning","The current layer is not visible!");
-				}
-				
-				//load id data
+				QMessageBox::warning(this,"Warning","The current layer is not visible!");
+			}
+					
+			//load id data
+			QString name = QFileDialog::getOpenFileName(this,"Select identification data",param_.getValue("Preferences:DefaultPath").toString().c_str(),tr("identfication files (*.analysisXML);; all files (*.*)"));
+			if(name!="")
+			{
 				vector<IdentificationData> identifications; 
 				vector<ProteinIdentification> protein_identifications; 
 				AnalysisXMLFile().load(name.toStdString(), protein_identifications, identifications);
@@ -2033,6 +2054,7 @@ namespace OpenMS
     {
       const LayerData& layer = activeWindow_()->canvas()->getCurrentLayer();
     	const SpectrumCanvas::AreaType& area = activeWindow_()->canvas()->getVisibleArea();
+    	const LayerData::ExperimentType& peaks = activeWindow_()->canvas()->getCurrentPeakData();
     	
     	if (layer.type==LayerData::DT_PEAK)
     	{
@@ -2040,7 +2062,7 @@ namespace OpenMS
     		Spectrum3DWidget* w = new Spectrum3DWidget(param_.copy("Preferences:3D:",true), ws_);
   			SpectrumCanvas::ExperimentType& out = w->canvas()->addEmptyPeakLayer();
   			
-    		for (LayerData::ExperimentType::ConstIterator it=layer.peaks.RTBegin(area.min()[1]); it!=layer.peaks.RTBegin(area.max()[1]); ++it)
+    		for (LayerData::ExperimentType::ConstIterator it=peaks.RTBegin(area.min()[1]); it!=peaks.RTEnd(area.max()[1]); ++it)
     		{
     			if (it->getMSLevel()!=1) continue;
     			SpectrumCanvas::ExperimentType::SpectrumType spectrum;
@@ -2082,13 +2104,14 @@ namespace OpenMS
     if (ws_->activeWindow())
     {
       const LayerData& layer = activeWindow_()->canvas()->getCurrentLayer();
-    	
+    	const LayerData::ExperimentType& peaks = activeWindow_()->canvas()->getCurrentPeakData();
+    		
     	if (layer.type==LayerData::DT_PEAK)
     	{
     		//open new 1D widget
     		Spectrum1DWidget* w = new Spectrum1DWidget(param_.copy("Preferences:1D:",true), ws_);
-  			w->canvas()->addEmptyPeakLayer().push_back(layer.peaks[index]);
-  			String caption = layer.name + " (RT: " + layer.peaks[index].getRT() + ")";
+  			w->canvas()->addEmptyPeakLayer().push_back(peaks[index]);
+  			String caption = layer.name + " (RT: " + peaks[index].getRT() + ")";
   			w->canvas()->finishAdding(0.0);
 				w->canvas()->setCurrentLayerName(caption);
 	      showAsWindow_(w,caption);
@@ -2124,6 +2147,26 @@ namespace OpenMS
 		
 		//execute
 		dlg->exec();
+	}
+
+	void TOPPViewBase::renameLayer()
+	{
+		//check if there is a active window
+		if (ws_->activeWindow())
+		{
+			const LayerData& layer = activeWindow_()->canvas()->getCurrentLayer();
+			//warn if hidden layer => wrong layer selected...
+			if (!layer.visible)
+			{
+				QMessageBox::warning(this,"Warning","The current layer is not visible!");
+			}
+			QString name = QInputDialog::getText(this,"New layer name","Name:");
+			if (name!="")
+			{
+				const_cast<LayerData&>(layer).name = name.toStdString();
+				updateLayerbar();
+			}
+		}
 	}
 
 } //namespace OpenMS

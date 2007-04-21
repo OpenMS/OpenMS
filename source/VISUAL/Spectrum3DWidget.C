@@ -31,6 +31,7 @@
 #include <OpenMS/VISUAL/Spectrum3DCanvas.h>
 #include <OpenMS/VISUAL/Spectrum3DOpenGLCanvas.h>
 #include <OpenMS/VISUAL/AxisWidget.h>
+#include <OpenMS/VISUAL/DIALOGS/Spectrum2DGoToDialog.h>
 
 //QT
 #include <QtGui/QPixmap>
@@ -62,7 +63,7 @@ namespace OpenMS
 	
 	Histogram<UInt,float> Spectrum3DWidget::createIntensityDistribution_()
 	{
-		cout << canvas()->getCurrentMinIntensity() << " - " << canvas()->getCurrentMaxIntensity()  << endl;
+		//cout << canvas()->getCurrentMinIntensity() << " - " << canvas()->getCurrentMaxIntensity()  << endl;
 		Histogram<UInt,float> tmp(canvas()->getCurrentMinIntensity(),canvas()->getCurrentMaxIntensity(),(canvas()->getCurrentMaxIntensity() - canvas()->getCurrentMinIntensity())/500.0);
 
 		for (Spectrum3DCanvas::ExperimentType::ConstIterator spec_it = canvas()->getCurrentPeakData().begin(); spec_it != canvas()->getCurrentPeakData().end(); ++spec_it)
@@ -99,6 +100,16 @@ namespace OpenMS
 
 	void Spectrum3DWidget::showGoToDialog()
 	{
+		Spectrum2DGoToDialog goto_dialog(this);
+		const DRange<3>& area = canvas()->getDataRange();
+		goto_dialog.setMinRT(area.minY());
+		goto_dialog.setMaxRT(area.maxY());
+		goto_dialog.setMinMZ(area.minX());
+		goto_dialog.setMaxMZ(area.maxX());  
+		if(goto_dialog.exec())
+		{
+			canvas()->setVisibleArea(SpectrumCanvas::AreaType( goto_dialog.getMinMZ(), goto_dialog.getMinRT(), goto_dialog.getMaxMZ(), goto_dialog.getMaxRT()));
+		}
 	}
 
 }//namespace

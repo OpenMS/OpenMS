@@ -103,6 +103,7 @@ namespace OpenMS
 	
 	 	if(param_.getValue("ReductionMode")!="Off")
 	 	{
+	 		show_reduced_ = true;
 			makeReducedDataSet();
 	 	}
 	
@@ -134,21 +135,15 @@ namespace OpenMS
 		updateScrollbars_();
 		
 		emit visibleAreaChanged(new_area);
-		makeReducedDataSet();
 		update_buffer_ = true;
 		update_(__PRETTY_FUNCTION__);
 	}
 	
 	void Spectrum3DCanvas::makeReducedDataSet()
 	{
-		if(param_.getValue("ReductionMode")=="Off")
-		{	
-	 		show_reduced_ = false;
-	 		recalculateRanges_(1,0,2);
-			return;
-		}
-		else if(getCurrentLayer().peaks.getSize() < (UInt)(param_.getValue("DisplayedPeaks")))
+		if(getCurrentLayer().peaks.getSize() < (UInt)(param_.getValue("DisplayedPeaks")))
 		{
+			//cout << "Reduction: not enough data points" << endl;
 			show_reduced_ = false;
 			recalculateRanges_(1,0,2);
 			return;
@@ -229,6 +224,7 @@ namespace OpenMS
 				for(UInt i = 0; i<layers_.size();i++)
 				{
 						datareducer_->applyReduction(getLayer(i).peaks,getLayer_(i).reduced);
+						getLayer_(i).reduced.updateRanges(1);
 				}
 				recalculateRanges_(1,0,2);
 			}
@@ -304,7 +300,7 @@ namespace OpenMS
 	{
 		Internal::Spectrum3DPrefDialog dlg(this);
 
-		cout << "IN: " << param_ << endl;
+//		cout << "IN: " << param_ << endl;
 
 		ColorSelector* bg_color = dlg.findChild<ColorSelector*>("bg_color");
 		QComboBox* reduction_mode = dlg.findChild<QComboBox*>("reduction_mode");
@@ -329,9 +325,20 @@ namespace OpenMS
 			getCurrentLayer_().param.setValue("Dot:Gradient",gradient->gradient().toString());
 			getCurrentLayer_().param.setValue("Dot:LineWidth",width->value());
 
-			cout << "OUT: " << param_ << endl;
+	//		cout << "OUT: " << param_ << endl;
 
 			openglwidget()->recalculateDotGradient_(current_layer_);
+		 	if(param_.getValue("ReductionMode")!="Off")
+		 	{
+		 		show_reduced_ = true;
+				makeReducedDataSet();
+		 	}
+		 	else
+		 	{
+		 		show_reduced_= false;
+		 		getCurrentLayer_().peaks.clear();
+		 		recalculateRanges_(1,0,2);
+		 	}
 			update_buffer_ = true;	
 			update_(__FUNCTION__);
 		}

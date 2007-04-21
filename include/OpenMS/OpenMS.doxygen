@@ -80,14 +80,12 @@ Ideen:
 - Seeder/Extender: Analyse der MassenSpur-Distanzen
 
 Todos:
-Spectrum3DCanvas: fix intensity distribution for 2. layer
-Spectrum3DWidget: add GoTo
+Spectrum3DCanvas: fix grab keyboard
 
 
 MSExperiment -- Add getPrecursorRT(rt/scan nr) and update ID adapters and IDSpectrumMapper (Stefan R.)
 make install mit prefix testen (Stefan R.)
 
 Identification -- Store ScoreType (with direction) and AccessionType as Enum in Identification (Marc, Andreas)
-XMLHandler -- Add external CVs, integrate OLS
 
 ***********************************************************************/
