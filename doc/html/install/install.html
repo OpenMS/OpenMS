@@ -35,24 +35,22 @@
 	<b><font color="red">Note:</font></b> OpenMS does not yet run under <font color="red">Windows</font>, not even in Cygwin!  
   <br>
   <br>
-  <font color="red"><b>All architectures:</b></font>
-  <ul>
-    <li>Autoconf version 2.59 or higher is needed for the installation of OpenMS and the contrib package. Autoconf can be downloaded from <a target="blank" href="http://www.gnu.org/software/autoconf/">http://www.gnu.org/software/autoconf/</a>.</li>
-    <li>GCC 3.4.3 and lower will not work due to a bug.</li>
-  </ul>
-
-  <font color="red"><b>i386 architectures:</b></font>
-  <ul>
-    <li>OpenMS is tested with GCC 3.4.x (x&gt;=4), 4.0 and 4.1.</li>
-  </ul>
   
-  <font color="red"><b>x86_64 architectures:</b></font>
-  <ul>
-    <li>OpenMS is tested with GCC 4.0 and 4.1.</li>
-    <li>If the built aborts with errors concerning 'compound literals' use <code>--disable-pedantic</code> in the OpenMS configure.</li>
-    <li>If ANDI/MS tests fail, you can disable ANDI/MS using <code>--disable-andims</code> in the OpenMS configure.</li>
-  </ul>
-
+  <b>Required applications</b>
+  <BR> In order to install OpenMS, several applications need to be installed:
+  <UL>
+  	<LI>Compiler: A ANSI-compatible C++ compiler is required.
+  			 <BR>We recommend to use g++ 4.1.0 or higher.
+  			 <BR>g++ is part of the GNU Cimpiler Collection (GCC).
+  	<LI>Autoconf 2.9 or higher is required
+  	<LI> GNU make is required
+  </UL>
+  
+  <BR> In order to create the OpenMS documentation the following applications are needed:
+  <UL>
+  	<LI>doxygen (We recommend version 1.4.5 or higher)
+  	<LI>pdflatex
+  </UL>
 
   <a name="libraries" id="libraries"></a>
   <h2>Installing required libraries</h2>
@@ -300,7 +298,10 @@ the other required libraries must also be added to LD_LIBRARY_PATH.
   to 'DB_credentials.txt' and fill in your DB access details. As
   long as the 'DB_credentials.txt' file remains there, the DB will
   be tested with any subsequent call of 'make test'.
-
+  <br>
+  <br>
+	<b>Note:</b> If ANDI/MS (cdf) tests fail, you can disable ANDI/MS (cdf) support using <code>--disable-andims</code> in the OpenMS configure.</li>
+  
   <h2>Building the TOPP tools</h2>
 	TOPP is a toolset for the analysis of HPLC/MS data. It consists of several small applications that can be chained to create analysis pipelines tailored for a specific problem.
 	<BR>

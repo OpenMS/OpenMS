@@ -32,7 +32,7 @@
 #include <OpenMS/FORMAT/DTA2DFile.h>
 #include <OpenMS/FORMAT/MzXMLFile.h>
 #include <OpenMS/FORMAT/MzDataFile.h>
-
+#include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/FORMAT/ANDIFile.h>
 
 namespace OpenMS
@@ -99,7 +99,7 @@ namespace OpenMS
 
 			 @return true if the file could be loaded, false otherwise
 		*/
-		template <class PeakType> bool loadExperiment(const String& filename, MSExperiment<PeakType>& exp, Type force_type = UNKNOWN)
+		template <class PeakType> bool loadExperiment(const String& filename, MSExperiment<PeakType>& exp, Type force_type = UNKNOWN, ProgressLogger::LogType log = ProgressLogger::NONE)
 		{
 			Type type;
 			if (force_type != UNKNOWN)
@@ -118,7 +118,6 @@ namespace OpenMS
 				}
 				catch(Exception::FileNotFound)
 				{
-					// ???? I assume this is the intended behavior?  (Clemens asking Marc, 2006-01-11)
 					return false;
 				}
 			}
@@ -141,8 +140,12 @@ namespace OpenMS
 				return true;
 				break;
 			case MZDATA:
-				MzDataFile().load(filename,exp);
-				return true;
+				{
+					MzDataFile f;
+					f.setLogType(log);
+					f.load(filename,exp);
+					return true;
+				}
 				break;
 #ifdef ANDIMS_DEF
 			case ANDIMS:

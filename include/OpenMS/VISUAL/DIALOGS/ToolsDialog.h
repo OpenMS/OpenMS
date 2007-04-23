@@ -65,15 +65,12 @@ namespace OpenMS
 			String getTool();
 			
 			/**
-				@name bool functions for checking radio-buttons
-		
-				is the layer-,window- or output-, button checked (visualization option for the output data)
-				either only a layer or a new window is created or standard output is dispayed in a messagebox
+				@name bool functions for checking ouput action
 			*/
 			//@{
-			bool isWindow();
-			bool isLayer();
-			bool isOutputOnly();
+			bool openAsWindow();
+			bool openAsLayer();
+			bool noOutputAction();
 			//@}
 			~ToolsDialog();    
 	

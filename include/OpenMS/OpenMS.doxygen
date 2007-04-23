@@ -79,13 +79,15 @@
 Ideen:
 - Seeder/Extender: Analyse der MassenSpur-Distanzen
 
+
 Todos:
-Spectrum3DCanvas: fix grab keyboard
-
-
-MSExperiment -- Add getPrecursorRT(rt/scan nr) and update ID adapters and IDSpectrumMapper (Stefan R.)
-make install mit prefix testen (Stefan R.)
-
-Identification -- Store ScoreType (with direction) and AccessionType as Enum in Identification (Marc, Andreas)
+- TOPPBase -progress flag
+- Progress in mzData, mzXML, DTA2D und ANDI/MS (lesen und schreiben)
+- Progress in alle wichtigen Algorithmen einbauen
+- Reine TOPPView Klassen aufräumen
+- Spectrum3DCanvas: fix grab keyboard
+- make install mit prefix testen
+- MSExperiment -- Add getPrecursorRT(rt/scan nr) and update ID adapters and IDSpectrumMapper (Stefan R.)
+- Identification -- Store ScoreType (with direction) and AccessionType as Enum in Identification (Marc, Andreas)
 
 ***********************************************************************/

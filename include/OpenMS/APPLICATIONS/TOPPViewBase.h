@@ -50,6 +50,7 @@ class QListWidgetItem;
 class QDockWidget;
 class QToolButton;
 class QCloseEvent;
+class QTextEdit;
 
 namespace OpenMS
 {
@@ -236,7 +237,10 @@ namespace OpenMS
       void resetZoom();
       void showProjections();
       //@}
-
+		
+		/// Appends process output to log window
+		void updateProcessLog();
+		
     protected:
       /// Adds a tab for the window in the tabbar
       void addTab_(SpectrumWidget*, const String&);
@@ -265,8 +269,8 @@ namespace OpenMS
       /// Layer mangment widget
       QListWidget* layer_manager_;
 
-      /// Creates the toolbars and connects the signals and slots
-      void createToolBars_();
+      /// Log output window
+      QTextEdit* log_;
 
       /** @name Toolbar
       */

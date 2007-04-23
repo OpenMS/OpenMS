@@ -30,6 +30,7 @@
 #include <OpenMS/FORMAT/SchemaFile.h>
 #include <OpenMS/FORMAT/PeakFileOptions.h>
 #include <OpenMS/FORMAT/HANDLERS/MzDataHandler.h>
+#include <OpenMS/CONCEPT/ProgressLogger.h>
 
 namespace OpenMS
 {
@@ -38,7 +39,9 @@ namespace OpenMS
 		
 		@ingroup FileIO
 	*/
-	class MzDataFile : public Internal::SchemaFile
+	class MzDataFile 
+		:	public Internal::SchemaFile,
+			public ProgressLogger
 	{
 		public:
 			///Default constructor
@@ -62,7 +65,7 @@ namespace OpenMS
 			{
 				map.reset();
 				
-				Internal::MzDataHandler<MapType> handler(map,filename);
+				Internal::MzDataHandler<MapType> handler(map,filename,*this);
 				handler.setOptions(options_);
 				parse_(filename, &handler);
 			}
@@ -76,7 +79,7 @@ namespace OpenMS
 			void store(const String& filename, const MapType& map)
 			const throw (Exception::UnableToCreateFile)
 			{
-				Internal::MzDataHandler<MapType> handler(map,filename);
+				Internal::MzDataHandler<MapType> handler(map,filename,*this);
 				handler.setOptions(options_);
 				save_(filename, &handler);
 			}

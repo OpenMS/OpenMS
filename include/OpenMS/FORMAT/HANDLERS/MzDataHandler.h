@@ -37,6 +37,7 @@
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/DPeak.h>
 #include <OpenMS/KERNEL/PickedPeak1D.h>
+#include <OpenMS/CONCEPT/ProgressLogger.h>
 
 #include <xercesc/sax2/SAX2XMLReader.hpp>
 #include <xercesc/framework/MemBufInputSource.hpp>
@@ -65,7 +66,7 @@ namespace OpenMS
       /**@name Constructors and destructor */
       //@{
       /// Constructor for a write-only handler
-      MzDataHandler(MapType& exp, const String& filename)
+      MzDataHandler(MapType& exp, const String& filename, ProgressLogger& logger)
 				: SchemaHandler(TAG_NUM,MAP_NUM,filename), // number of tags, number of maps
 					exp_(&exp),
 					cexp_(0),
@@ -74,14 +75,15 @@ namespace OpenMS
 					meta_id_(),
 					exp_sett_(),
 					decoder_(),
-					spec_write_counter_(1)
+					spec_write_counter_(1),
+					logger_(logger)
 	  	{
 				fillMaps_(Schemes::MzData[schema_]);	// fill maps with current schema
 				setMaps_(TAGMAP, ATTMAP);
 			}
 
       /// Constructor for a read-only handler
-      MzDataHandler(const MapType& exp, const String& filename)
+      MzDataHandler(const MapType& exp, const String& filename, const ProgressLogger& logger)
 				: SchemaHandler(TAG_NUM,MAP_NUM,filename), // number of tags, number of maps
 					exp_(0),
 					cexp_(&exp),
@@ -90,14 +92,17 @@ namespace OpenMS
 					meta_id_(),
 					exp_sett_(),
 					decoder_(),
-					spec_write_counter_(1)
+					spec_write_counter_(1),
+					logger_(logger)
   		{
 				fillMaps_(Schemes::MzData[schema_]);	// fill maps with current schema
 				setMaps_(TAGMAP, ATTMAP);
 			}
 
       /// Destructor
-      virtual ~MzDataHandler(){}
+      virtual ~MzDataHandler()
+      {
+      }
       //@}
 
 
@@ -200,6 +205,8 @@ namespace OpenMS
 
 			/// spectrum counter (spectra without peaks are not written)
 			UInt spec_write_counter_;
+
+			const ProgressLogger& logger_;
 
 			/// fills the experiment with peaks
 			void fillData_();
@@ -412,12 +419,12 @@ namespace OpenMS
 					meta_id_ = getAttributeAsString_(ID);
 					break;
 				case SPECTRUM:
-// 					exp_->push_back(SpectrumType());
 					spec_ = SpectrumType();
 					break;
 			  case SPECTRUMLIST:
 			  	//std::cout << Date::now() << " Reserving space for spectra" << std::endl;
 			  	exp_->reserve( asInt_(getAttributeAsString_(COUNT)) );
+			  	logger_.initProgress(0,asInt_(getAttributeAsString_(COUNT)),"loading mzData file");
 			  	//std::cout << Date::now() << " done" << std::endl;
 			  	break;
 				case ACQSPEC:
@@ -562,6 +569,7 @@ namespace OpenMS
 				{
 					fillData_();
 					exp_->push_back(spec_);
+					logger_.setProgress(exp_->size());
 				}
 				
 				data_to_decode_.clear();
