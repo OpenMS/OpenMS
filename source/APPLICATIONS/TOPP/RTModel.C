@@ -42,18 +42,42 @@ using namespace std;
 /**
 	@page RTModel RTModel
 	
-	@brief Used to train a prediction model for peptide retention time prediction
+	@brief Used to train a prediction model for peptide retention 
+				 time prediction or peptide separation prediction.
 	
-	A support vector machine is trained with peptide sequences and their
-	measured retention times. There are a number of parameters that
+	For retention time prediction a support vector machine is 
+	trained with peptide sequences and their measured retention 
+	times.
+	For peptide separation prediction two files have to be given.
+	One file contains the positive examples (the peptides which
+	are collected) and one file contains the negative peptides
+	(the flowthrough peptides).
+	
+	There are a number of parameters which
 	can be changed for the svm (specified in the ini file):
 	<ul>
 		<li>
-			svm_type: the type of the svm (can be NU_SVR or EPSILON_SVR)
+			svm_type: the type of the svm (can be NU_SVR or 
+			EPSILON_SVR for RT prediction and is C_SVC for separation
+			prediction)
 		</li>
 		<li>
 			kernel_type: the kernel function (can be POLY for the 
-				polynomial kernel or LINEAR for the linear kernel)
+				polynomial kernel or LINEAR for the linear kernel, or 
+				OLIGO for our POBK (recommended))
+		</li>
+		<li>
+			border_length: border length for the POBK
+		</li>
+		<li>
+			sigma: the amount of positional smoothing for the POBK
+		</li>
+		<li>
+			k_mer_length: length of the signals considered in the 
+			POBK
+		</li>
+		<li>
+			degree: the degree parameter for the polynomial kernel
 		</li>
 		<li>
 			c: the penalty parameter of the svm
@@ -64,14 +88,12 @@ using namespace std;
 		<li>
 			p: the epsilon parameter for epsilon-SVR
 		</li>
-		<li>
-			degree: the degree parameter for the polynomial kernel
-		</li>
 	</ul>
 	
 	<br>
 	
-	The last 4 parameters (c, nu, p and degree) can be used in a 
+	The last 4 parameters (sigma, k_mer_length, degree, c, nu and p)
+	can be used in a 
 	cross validation (CV) to find the best parameters according to the 
 	training set. Therefore you have to specify the start value of a
 	parameter, the step size in which the parameters should be increased
@@ -111,13 +133,14 @@ using namespace std;
 			The RTModel application will perform a CV to find the best 
 			parameter combination in the given range and afterwards train
 			the svm with the best parameters and the whole training data.
-			Then the model is be stored.
+			Then the model is stored.
 		</li>
 	</ol>
 			
 	<br>	
 	The model can be used in RTPredict, to predict retention times 
-	for peptides.
+	for peptides or peptide separation depending on how you trained 
+	the model.
 
 */
 

@@ -43,18 +43,25 @@ using namespace std;
 /**
 	@page RTPredict RTPredict
 	
-	@brief This application is used to predict retention times for peptides
+	@brief This application is used to predict retention times 
+				 for peptides or peptide separation.
 	
-	The input of this application is a svm model and an analysisXML
+	The input of this application 
+	is an svm model and an analysisXML
 	file with peptide identifications. The svm model file is specified
 	by the <b>svm_model</b> parameter in the command line or the ini file. 
 	This file should have been produced by the RTModel application. 
 	<br>
-	The peptide sequences are extracted from the analysisXML inputfile 
+	For retention time prediction the peptide sequences are extracted 
+	from the analysisXML inputfile 
 	and passed to the svm. The svm then predicts retention times
 	according to the trained model. The predicted retention times
 	are stored as @code <userParam name="predicted_retention_time" value="<predicted retention time>" /> 
 	@endcode inside the peptide entities in the analysisXML output file.
+	For separation prediction you have to specify two output file names.
+	'out_positive' is the filename of the peptides which are predicted
+	to be collected by the coloumn and 'out_negative' is the file
+	of the predicted flowthrough peptides.
 */
 
 // We do not want this class to show up in the docu:
@@ -65,7 +72,7 @@ class TOPPRTPredict
 {
 	public:
 		TOPPRTPredict()
-			: TOPPBase("RTPredict","predicts retention times for peptides via the svm_model that is trained by RTModel")
+			: TOPPBase("RTPredict","predicts retention times for peptides via the svm_model which is trained by RTModel")
 		{
 			
 		}
