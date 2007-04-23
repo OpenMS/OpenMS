@@ -75,12 +75,12 @@ namespace OpenMS
 		
 		
 		QGridLayout* radio_grid = new QGridLayout;
-		label=new QLabel("Open As:");
-		output_radio_=new QRadioButton("Show Output only");
+		label=new QLabel("Output action:");
+		output_radio_=new QRadioButton("None");
 		radio_grid->addWidget(output_radio_,0,0);
-		window_radio_=new QRadioButton("New Window");
+		window_radio_=new QRadioButton("Open as new Window");
 		radio_grid->addWidget(window_radio_,1,0);
-		layer_radio_=new QRadioButton("New Layer");
+		layer_radio_=new QRadioButton("Open as new Layer");
 		layer_radio_->setChecked(true);
 		radio_grid->addWidget(layer_radio_,2,0);
 		main_grid->addWidget(label,3,0);
@@ -132,7 +132,7 @@ namespace OpenMS
 			return;
 		}
 		
-		String call = ToolsDialog::getTool()+" -write_ini "+tmp_dir_+"/in.ini";
+		String call = ToolsDialog::getTool()+" -write_ini "+tmp_dir_+"/in.ini -log "+tmp_dir_+"/ToolsDialog.log";
 		
 		if(system(call.c_str())!=0)
 		{
@@ -193,11 +193,11 @@ namespace OpenMS
 	
 	void ToolsDialog::ok_()
 	{
-		if ((input_combo_->currentText()=="<select>" || output_combo_->currentText()=="<select>" || tools_combo_->currentText()=="<select>") && !isOutputOnly())
+		if ((input_combo_->currentText()=="<select>" || output_combo_->currentText()=="<select>" || tools_combo_->currentText()=="<select>") && !noOutputAction())
 		{
 			QMessageBox::critical(this,"Error","You have to select a tool, an input argument and an output argument!");
 		}
-		else if((input_combo_->currentText()=="<select>" || tools_combo_->currentText()=="<select>") && isOutputOnly())
+		else if((input_combo_->currentText()=="<select>" || tools_combo_->currentText()=="<select>") && noOutputAction())
 		{
 			QMessageBox::critical(this,"Error","You have to select a tool and an input argument!");
 		}
@@ -227,17 +227,17 @@ namespace OpenMS
 		return input_string_;
 	}
 	
-	bool ToolsDialog::isWindow()
+	bool ToolsDialog::openAsWindow()
 	{
 		return window_radio_->isChecked();
 	}
 	
-	bool ToolsDialog::isLayer()
+	bool ToolsDialog::openAsLayer()
 	{
 		return layer_radio_->isChecked();
 	}
 	
-	bool ToolsDialog::isOutputOnly()
+	bool ToolsDialog::noOutputAction()
 	{
 		return output_radio_->isChecked();
 	}

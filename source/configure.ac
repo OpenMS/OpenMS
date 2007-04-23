@@ -552,7 +552,7 @@ CF_CHECK_XDR
 dnl
 dnl We need flex/yacc(bison) for parsers and related stuff.
 dnl
-CF_CHECK_LEX_YACC
+dnl CF_CHECK_LEX_YACC
 
 dnl
 dnl Check for NetCDF (a library for a data format)

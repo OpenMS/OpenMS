@@ -33,7 +33,8 @@ CPP_SOURCES= \
 	HashFunction.C\
 	TimeStamp.C\
 	VersionInfo.C\
-	FactoryProduct.C
+	FactoryProduct.C\
+	ProgressLogger.C
 
 include ../common.mak
 -include .Dependencies

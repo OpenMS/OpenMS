@@ -75,8 +75,10 @@
 #include <QtGui/QPrintDialog>
 #include <QtCore/QDir>
 #include <QtCore/QDate>
+#include <QtCore/QProcess>
 #include <QtGui/QWhatsThis>
 #include <QtGui/QInputDialog>
+#include <QtGui/QTextEdit>
 
 //action modes
 #include "../VISUAL/ICONS/zoom.xpm"
@@ -146,6 +148,7 @@ namespace OpenMS
     connect(ws_,SIGNAL(windowActivated(QWidget*)),this,SLOT(updateLayerbar()));
     box_layout->addWidget(ws_);
 
+	//################## MENUS #################
     // File menu
     QMenu* file = new QMenu("&File",this);
     menuBar()->addMenu(file);
@@ -205,7 +208,8 @@ namespace OpenMS
     windows->addAction("&Tile automatic",this->ws_,SLOT(tile()));
     windows->addAction(QIcon(QPixmap(tile_h)),"Tile &vertical",this,SLOT(tileHorizontal()));
     windows->addAction(QIcon(QPixmap(tile_v)),"Tile &horizontal",this,SLOT(tileVertical()));
-		
+	windows->addSeparator();
+	
 		//Help menu
 		QMenu* help = new QMenu("&Help", this);
 		menuBar()->addMenu(help);
@@ -230,10 +234,177 @@ namespace OpenMS
     int_label_->setText("");
     statusBar()->addPermanentWidget(int_label_,0);
 
+		//################## TOOLBARS #################
     //create toolbars and connect signals
-    createToolBars_();
+  	QToolButton* b;
+  	
+  	//--Basic tool bar for all views--
+    tool_bar_ = addToolBar("Basic tool bar");
+    
+    //action modes
+    action_group_ = new QButtonGroup(tool_bar_);
+    action_group_->setExclusive(true);
+    
+    b = new QToolButton(tool_bar_);
+    b->setIcon(QPixmap(zoom));
+    b->setToolTip("Action: Zoom + Translate");
+    b->setShortcut(Qt::Key_Z);
+    b->setCheckable(true);
+    b->setWhatsThis("Action mode: Zoom + Translate<BR><BR>This mode allows to navigate in the data."
+    								" The default is to zoom, Press the CTRL key for translation mode.<BR><BR>"
+    								"A double-click resets the zoom.");
+    action_group_->addButton(b,SpectrumCanvas::SpectrumCanvas::AM_ZOOM);
+		tool_bar_->addWidget(b);
 
-    //set defaults
+    b = new QToolButton(tool_bar_);
+    b->setIcon(QPixmap(selection));
+    b->setToolTip("Action: Select + Measure");
+    b->setShortcut(Qt::Key_S);
+    b->setCheckable(true);
+    b->setWhatsThis("Action mode: Select + Measure<BR><BR>This mode allows to select peaks and"
+    								" measure distances between peaks. The default is to select peaks. Press the"
+    								" CTRL key for measurment mode.");
+    action_group_->addButton(b,SpectrumCanvas::SpectrumCanvas::AM_SELECT);
+		tool_bar_->addWidget(b);
+
+    connect(action_group_,SIGNAL(buttonClicked(int)),this,SLOT(setActionMode(int)));
+    tool_bar_->addSeparator();
+	   
+    //intensity modes
+    intensity_group_ = new QButtonGroup(tool_bar_);
+    intensity_group_->setExclusive(true);
+    
+    b = new QToolButton(tool_bar_);
+    b->setIcon(QPixmap(lin));
+    b->setToolTip("Intensity: Normal");
+    b->setShortcut(Qt::Key_N);
+    b->setCheckable(true);
+    b->setWhatsThis("Intensity: Normal<BR><BR>Intensity is displayed unmodified.");
+    intensity_group_->addButton(b,SpectrumCanvas::SpectrumCanvas::IM_NONE);
+		tool_bar_->addWidget(b);
+    
+    b = new QToolButton(tool_bar_);
+    b->setIcon(QPixmap(logarithm));
+    b->setToolTip("Intensity: Logarithmic");
+    b->setShortcut(Qt::Key_L);
+    b->setCheckable(true);
+    b->setWhatsThis("Intensity: Logarithmic<BR><BR>Intensity is displayed in a logarithmic scale.");
+    intensity_group_->addButton(b,SpectrumCanvas::SpectrumCanvas::IM_LOG);
+		tool_bar_->addWidget(b);
+
+    b = new QToolButton(tool_bar_);
+    b->setIcon(QPixmap(percentage));
+    b->setToolTip("Intensity: Percentage");
+    b->setShortcut(Qt::Key_P);
+    b->setCheckable(true);
+    b->setWhatsThis("Intensity: Percentage<BR><BR>Intensity is displayed as a percentage of the layer"
+    								" maximum intensity. If only one layer is displayed this mode behaves like the"
+    								" normal mode. If more than one layer is displayed intensities are aligned.");
+    intensity_group_->addButton(b,SpectrumCanvas::SpectrumCanvas::IM_PERCENTAGE);
+		tool_bar_->addWidget(b);
+
+    b = new QToolButton(tool_bar_);
+    b->setIcon(QPixmap(snap));
+    b->setToolTip("Intensity: Snap to maximum displayed intensity");
+    b->setShortcut(Qt::Key_A);
+    b->setCheckable(true);
+    b->setWhatsThis("Intensity: Snap to maximum displayed intensity<BR><BR> In this mode the"
+    								" color gradient is adapted to the maximum currently displayed intensity.");
+    intensity_group_->addButton(b,SpectrumCanvas::SpectrumCanvas::IM_SNAP);
+		tool_bar_->addWidget(b);
+
+    connect(intensity_group_,SIGNAL(buttonClicked(int)),this,SLOT(setIntensityMode(int)));
+    tool_bar_->addSeparator();
+
+    //common buttons
+    QAction* reset_zoom_button = tool_bar_->addAction(QPixmap(reset_zoom), "Reset Zoom", this, SLOT(resetZoom()));
+    reset_zoom_button->setWhatsThis("Reset zoom: Zooms out as far as possible.");
+    reset_zoom_button->setShortcut(Qt::Key_Backspace);
+
+    tool_bar_->show();
+    
+    //--1D toolbar--
+    tool_bar_1d_ = addToolBar("1D tool bar");
+
+    //draw modes 1D
+    draw_group_1d_ = new QButtonGroup(tool_bar_1d_);
+    draw_group_1d_->setExclusive(true);
+    
+    b = new QToolButton(tool_bar_1d_);
+    b->setIcon(QPixmap(peaks));
+    b->setToolTip("Peak mode");
+    b->setShortcut(Qt::Key_I);
+    b->setCheckable(true);
+    b->setWhatsThis("1D Draw mode: Peaks<BR><BR>Peaks are diplayed as sticks.");
+    draw_group_1d_->addButton(b,Spectrum1DCanvas::DM_PEAKS);
+		tool_bar_1d_->addWidget(b);
+    
+    b = new QToolButton(tool_bar_1d_);
+    b->setIcon(QPixmap(lines));
+    b->setToolTip("Raw data mode");
+    b->setShortcut(Qt::Key_R);
+    b->setCheckable(true);
+    b->setWhatsThis("1D Draw mode: Raw data<BR><BR>Peaks are diplayed as a continous line.");
+    draw_group_1d_->addButton(b,Spectrum1DCanvas::DM_CONNECTEDLINES);
+		tool_bar_1d_->addWidget(b);
+
+    connect(draw_group_1d_,SIGNAL(buttonClicked(int)),this,SLOT(setDrawMode1D(int)));
+    tool_bar_->addSeparator();
+
+
+    link_box_ = new QComboBox(tool_bar_1d_);
+    link_box_->setToolTip("Linking spectra");
+    link_box_->setWhatsThis("Linking spectra<BR><BR>Use this combobox to link two 1D spectra."
+    												"Linked spectra zoom in/out together.");
+    tool_bar_1d_->addWidget(link_box_);
+    connect(link_box_,SIGNAL(activated(int)),this,SLOT(linkActiveTo(int)));
+
+    //--2D toolbar--
+    tool_bar_2d_ = addToolBar("2D tool bar");
+
+    dm_precursors_2d_ = tool_bar_2d_->addAction(QPixmap(precursors),"Show MS/MS precursors");
+    dm_precursors_2d_->setCheckable(true);
+    dm_precursors_2d_->setWhatsThis("2D peak draw mode: Precursors<BR><BR>MS/MS precursor peaks are marked");
+    connect(dm_precursors_2d_, SIGNAL(toggled(bool)), this, SLOT(changeLayerFlag(bool)));
+
+    projections_2d_ = tool_bar_2d_->addAction(QPixmap(projections), "Show Projections" ,this, SLOT(showProjections()));
+    projections_2d_->setWhatsThis("Projections: Shows projections of peak data along RT and MZ axis.");
+
+
+    dm_hull_2d_ = tool_bar_2d_->addAction(QPixmap(convexhulls),"Show feature convex hulls");
+    dm_hull_2d_->setCheckable(true);
+    dm_hull_2d_->setWhatsThis("2D feature draw mode: Convex hull<BR><BR>The convex hull of the feature is displayed");
+    connect(dm_hull_2d_, SIGNAL(toggled(bool)), this, SLOT(changeLayerFlag(bool)));
+
+    dm_numbers_2d_ = tool_bar_2d_->addAction(QPixmap(numbers),"Show feature numbers");
+    dm_numbers_2d_->setCheckable(true);
+    dm_numbers_2d_->setWhatsThis("2D feature draw mode: Numbers<BR><BR>The feature number is displayed next to the feature");
+    connect(dm_numbers_2d_, SIGNAL(toggled(bool)), this, SLOT(changeLayerFlag(bool)));
+
+    //layer wndow
+    QDockWidget* layer_bar = new QDockWidget("Layers", this);
+    addDockWidget(Qt::RightDockWidgetArea, layer_bar);
+    layer_manager_ = new QListWidget(layer_bar);
+    layer_manager_->setWhatsThis("Layer bar<BR><BR>Here the availabe layers are shown. You can select, hide"
+    								              " and remove the layers using this bar.");
+
+    layer_bar->setWidget(layer_manager_);
+    layer_manager_->setContextMenuPolicy(Qt::CustomContextMenu);
+    connect(layer_manager_,SIGNAL(currentRowChanged(int)),this,SLOT(layerSelectionChange(int)));
+		connect(layer_manager_,SIGNAL(customContextMenuRequested(const QPoint&)),this,SLOT(layerContextMenu(const QPoint&)));
+		connect(layer_manager_,SIGNAL(itemChanged(QListWidgetItem*)),this,SLOT(layerVisibilityChange(QListWidgetItem*)));
+    windows->addAction("&Show layer window",layer_bar,SLOT(show()));
+
+	//log window
+	QDockWidget* log_bar = new QDockWidget("Log", this);
+	addDockWidget(Qt::BottomDockWidgetArea, log_bar);
+	log_ = new QTextEdit(log_bar);
+	log_->setReadOnly(true);
+	log_bar->setWidget(log_);
+	log_bar->hide();
+    windows->addAction("&Show log window",log_bar,SLOT(show()));
+
+	//################## DEFAULTS #################
     //general
     defaults_.setValue("Preferences:DefaultMapView", "2D");
     defaults_.setValue("Preferences:DefaultPath", ".");
@@ -706,7 +877,7 @@ namespace OpenMS
       SpectrumCanvas::ExperimentType* exp = &(w->canvas()->addEmptyPeakLayer());
       try
       {
-        fh.loadExperiment(filename,*exp, force_type);
+        fh.loadExperiment(filename,*exp, force_type,ProgressLogger::GUI);
       }
       catch(Exception::Base& e)
       {
@@ -1120,167 +1291,6 @@ namespace OpenMS
     {
       activeWindow_()->showLegend(!activeWindow_()->isLegendShown());
     }  	
-  }
-
-  void TOPPViewBase::createToolBars_()
-  {
-  	QToolButton* b;
-  	
-  	//--Basic tool bar for all views--
-    tool_bar_ = addToolBar("Basic tool bar");
-    
-    //action modes
-    action_group_ = new QButtonGroup(tool_bar_);
-    action_group_->setExclusive(true);
-    
-    b = new QToolButton(tool_bar_);
-    b->setIcon(QPixmap(zoom));
-    b->setToolTip("Action: Zoom + Translate");
-    b->setShortcut(Qt::Key_Z);
-    b->setCheckable(true);
-    b->setWhatsThis("Action mode: Zoom + Translate<BR><BR>This mode allows to navigate in the data."
-    								" The default is to zoom, Press the CTRL key for translation mode.<BR><BR>"
-    								"A double-click resets the zoom.");
-    action_group_->addButton(b,SpectrumCanvas::SpectrumCanvas::AM_ZOOM);
-		tool_bar_->addWidget(b);
-
-    b = new QToolButton(tool_bar_);
-    b->setIcon(QPixmap(selection));
-    b->setToolTip("Action: Select + Measure");
-    b->setShortcut(Qt::Key_S);
-    b->setCheckable(true);
-    b->setWhatsThis("Action mode: Select + Measure<BR><BR>This mode allows to select peaks and"
-    								" measure distances between peaks. The default is to select peaks. Press the"
-    								" CTRL key for measurment mode.");
-    action_group_->addButton(b,SpectrumCanvas::SpectrumCanvas::AM_SELECT);
-		tool_bar_->addWidget(b);
-
-    connect(action_group_,SIGNAL(buttonClicked(int)),this,SLOT(setActionMode(int)));
-    tool_bar_->addSeparator();
-	   
-    //intensity modes
-    intensity_group_ = new QButtonGroup(tool_bar_);
-    intensity_group_->setExclusive(true);
-    
-    b = new QToolButton(tool_bar_);
-    b->setIcon(QPixmap(lin));
-    b->setToolTip("Intensity: Normal");
-    b->setShortcut(Qt::Key_N);
-    b->setCheckable(true);
-    b->setWhatsThis("Intensity: Normal<BR><BR>Intensity is displayed unmodified.");
-    intensity_group_->addButton(b,SpectrumCanvas::SpectrumCanvas::IM_NONE);
-		tool_bar_->addWidget(b);
-    
-    b = new QToolButton(tool_bar_);
-    b->setIcon(QPixmap(logarithm));
-    b->setToolTip("Intensity: Logarithmic");
-    b->setShortcut(Qt::Key_L);
-    b->setCheckable(true);
-    b->setWhatsThis("Intensity: Logarithmic<BR><BR>Intensity is displayed in a logarithmic scale.");
-    intensity_group_->addButton(b,SpectrumCanvas::SpectrumCanvas::IM_LOG);
-		tool_bar_->addWidget(b);
-
-    b = new QToolButton(tool_bar_);
-    b->setIcon(QPixmap(percentage));
-    b->setToolTip("Intensity: Percentage");
-    b->setShortcut(Qt::Key_P);
-    b->setCheckable(true);
-    b->setWhatsThis("Intensity: Percentage<BR><BR>Intensity is displayed as a percentage of the layer"
-    								" maximum intensity. If only one layer is displayed this mode behaves like the"
-    								" normal mode. If more than one layer is displayed intensities are aligned.");
-    intensity_group_->addButton(b,SpectrumCanvas::SpectrumCanvas::IM_PERCENTAGE);
-		tool_bar_->addWidget(b);
-
-    b = new QToolButton(tool_bar_);
-    b->setIcon(QPixmap(snap));
-    b->setToolTip("Intensity: Snap to maximum displayed intensity");
-    b->setShortcut(Qt::Key_A);
-    b->setCheckable(true);
-    b->setWhatsThis("Intensity: Snap to maximum displayed intensity<BR><BR> In this mode the"
-    								" color gradient is adapted to the maximum currently displayed intensity.");
-    intensity_group_->addButton(b,SpectrumCanvas::SpectrumCanvas::IM_SNAP);
-		tool_bar_->addWidget(b);
-
-    connect(intensity_group_,SIGNAL(buttonClicked(int)),this,SLOT(setIntensityMode(int)));
-    tool_bar_->addSeparator();
-
-    //common buttons
-    QAction* reset_zoom_button = tool_bar_->addAction(QPixmap(reset_zoom), "Reset Zoom", this, SLOT(resetZoom()));
-    reset_zoom_button->setWhatsThis("Reset zoom: Zooms out as far as possible.");
-    reset_zoom_button->setShortcut(Qt::Key_Backspace);
-
-    tool_bar_->show();
-    
-    //--1D toolbar--
-    tool_bar_1d_ = addToolBar("1D tool bar");
-
-    //draw modes 1D
-    draw_group_1d_ = new QButtonGroup(tool_bar_1d_);
-    draw_group_1d_->setExclusive(true);
-    
-    b = new QToolButton(tool_bar_1d_);
-    b->setIcon(QPixmap(peaks));
-    b->setToolTip("Peak mode");
-    b->setShortcut(Qt::Key_I);
-    b->setCheckable(true);
-    b->setWhatsThis("1D Draw mode: Peaks<BR><BR>Peaks are diplayed as sticks.");
-    draw_group_1d_->addButton(b,Spectrum1DCanvas::DM_PEAKS);
-		tool_bar_1d_->addWidget(b);
-    
-    b = new QToolButton(tool_bar_1d_);
-    b->setIcon(QPixmap(lines));
-    b->setToolTip("Raw data mode");
-    b->setShortcut(Qt::Key_R);
-    b->setCheckable(true);
-    b->setWhatsThis("1D Draw mode: Raw data<BR><BR>Peaks are diplayed as a continous line.");
-    draw_group_1d_->addButton(b,Spectrum1DCanvas::DM_CONNECTEDLINES);
-		tool_bar_1d_->addWidget(b);
-
-    connect(draw_group_1d_,SIGNAL(buttonClicked(int)),this,SLOT(setDrawMode1D(int)));
-    tool_bar_->addSeparator();
-
-
-    link_box_ = new QComboBox(tool_bar_1d_);
-    link_box_->setToolTip("Linking spectra");
-    link_box_->setWhatsThis("Linking spectra<BR><BR>Use this combobox to link two 1D spectra."
-    												"Linked spectra zoom in/out together.");
-    tool_bar_1d_->addWidget(link_box_);
-    connect(link_box_,SIGNAL(activated(int)),this,SLOT(linkActiveTo(int)));
-
-    //--2D toolbar--
-    tool_bar_2d_ = addToolBar("2D tool bar");
-
-    dm_precursors_2d_ = tool_bar_2d_->addAction(QPixmap(precursors),"Show MS/MS precursors");
-    dm_precursors_2d_->setCheckable(true);
-    dm_precursors_2d_->setWhatsThis("2D peak draw mode: Precursors<BR><BR>MS/MS precursor peaks are marked");
-    connect(dm_precursors_2d_, SIGNAL(toggled(bool)), this, SLOT(changeLayerFlag(bool)));
-
-    projections_2d_ = tool_bar_2d_->addAction(QPixmap(projections), "Show Projections" ,this, SLOT(showProjections()));
-    projections_2d_->setWhatsThis("Projections: Shows projections of peak data along RT and MZ axis.");
-
-
-    dm_hull_2d_ = tool_bar_2d_->addAction(QPixmap(convexhulls),"Show feature convex hulls");
-    dm_hull_2d_->setCheckable(true);
-    dm_hull_2d_->setWhatsThis("2D feature draw mode: Convex hull<BR><BR>The convex hull of the feature is displayed");
-    connect(dm_hull_2d_, SIGNAL(toggled(bool)), this, SLOT(changeLayerFlag(bool)));
-
-    dm_numbers_2d_ = tool_bar_2d_->addAction(QPixmap(numbers),"Show feature numbers");
-    dm_numbers_2d_->setCheckable(true);
-    dm_numbers_2d_->setWhatsThis("2D feature draw mode: Numbers<BR><BR>The feature number is displayed next to the feature");
-    connect(dm_numbers_2d_, SIGNAL(toggled(bool)), this, SLOT(changeLayerFlag(bool)));
-
-    //layer bar
-    QDockWidget* layer_bar = new QDockWidget("Layers", this);
-    addDockWidget(Qt::RightDockWidgetArea, layer_bar);
-    layer_manager_ = new QListWidget(layer_bar);
-    layer_manager_->setWhatsThis("Layer bar<BR><BR>Here the availabe layers are shown. You can select, hide"
-    								              " and remove the layers using this bar.");
-
-    layer_bar->setWidget(layer_manager_);
-    layer_manager_->setContextMenuPolicy(Qt::CustomContextMenu);
-    connect(layer_manager_,SIGNAL(currentRowChanged(int)),this,SLOT(layerSelectionChange(int)));
-		connect(layer_manager_,SIGNAL(customContextMenuRequested(const QPoint&)),this,SLOT(layerContextMenu(const QPoint&)));
-		connect(layer_manager_,SIGNAL(itemChanged(QListWidgetItem*)),this,SLOT(layerVisibilityChange(QListWidgetItem*)));
   }
 
   void TOPPViewBase::linkActiveTo(int index)
@@ -1960,38 +1970,42 @@ namespace OpenMS
 				{
 					return;
 				}
-					
-				String output = dialog.isOutputOnly() ? String(""):String("-"+dialog.getOutput()+" "+tmp_dir+"/out");
-				String call = dialog.getTool() + " -ini "+tmp_dir+"/in.ini -"+dialog.getInput()+" "+tmp_dir+"/in "+output +" > "+tmp_dir+"/TOPP.log 2>&1";
-					
-				if (system(call.c_str())!=0)
+				
+				//compose argument list
+				QStringList args;
+				args <<"-ini" 
+				        << QString("%1/in.ini").arg(tmp_dir.c_str())
+				        << QString("-%1").arg(dialog.getInput().c_str())
+				        <<  QString("%1/in").arg(tmp_dir.c_str());
+				if (!dialog.noOutputAction())
 				{
-					TextFile f;
-					f.load(tmp_dir+"/TOPP.log");
-					String log_file;
-					log_file.implode(f.begin(),f.end(),"<BR>");
-					QMessageBox::critical(this,"Execution of TOPP tool not successful!",log_file.c_str());
+					args << QString("-%1").arg(dialog.getOutput().c_str())
+				           <<  QString("%1/out").arg(tmp_dir.c_str());
+				}
+				//delete log and show it
+				qobject_cast<QWidget *>(log_->parent())->show();
+				log_->clear();
+				//start process
+				QProcess process;
+				process.setProcessChannelMode(QProcess::MergedChannels);
+				connect(&process,SIGNAL(readyReadStandardOutput()),this,SLOT(updateProcessLog()));
+				process.start(dialog.getTool().c_str(),args);
+				if (!process.waitForFinished(80000000))
+				{
+					QMessageBox::critical(this,"Execution of TOPP tool not successful!","See log window for details.");
 				}
 				else if (!File::readable(tmp_dir+"/out"))
 				{
 					QMessageBox::critical(this,"Error creating temporary file!",(String("Cannot read '")+tmp_dir+"/in'!").c_str());
 					return;
 				}
-				else if(dialog.isWindow())
+				else if(dialog.openAsWindow())
 				{
 					addSpectrum(tmp_dir+"/out",true,true,true);
 				}
-				else if(dialog.isLayer())
+				else if(dialog.openAsLayer())
 				{
 					addSpectrum(tmp_dir+"/out",false,true,true);
-				}
-				else if(dialog.isOutputOnly())
-				{
-					TextFile f;
-					f.load(tmp_dir+"/TOPP.log");
-					String log_file;
-					log_file.implode(f.begin(),f.end(),"<BR>");
-					QMessageBox::information(this,("Standard Output of Tool: "+dialog.getTool()).c_str(), log_file.c_str());
 				}
 			}
 		}
@@ -2167,6 +2181,12 @@ namespace OpenMS
 				updateLayerbar();
 			}
 		}
+	}
+
+	void TOPPViewBase::updateProcessLog()
+	{
+		QProcess* process = qobject_cast<QProcess *>(sender());
+		log_->textCursor().insertText(process->readAllStandardOutput());
 	}
 
 } //namespace OpenMS
