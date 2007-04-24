@@ -58,7 +58,8 @@ UNCONDITIONAL_TESTS = \
 	SpectraFilter_test \
 	MapAlignment_test \
 	UnlabeledMatcher_test \
-  FeatureFinder_test
+  FeatureFinder_test\
+	InternalCalibration_test
 
 ifeq ($(LIBSVM_SUPPORT),true)
 LIBSVM_TESTS= \
@@ -695,3 +696,11 @@ PairwiseSuperposition_test: $(NUMERICDIFF)
 	@$(ECHO) "  Apply affine map using MapDewarper..."
 	@$(call RUN_PROG_OPT,MapDewarper,-feat PairwiseSuperposition_1_input1.feat -grid PairwiseSuperposition_1_output2.grid -out PairwiseSuperposition_1_output1_feat.tmp)
 	@$(call TEST_FILE_EQUAL,PairwiseSuperposition_1_output1.feat,PairwiseSuperposition_1_output1_feat.tmp)
+
+InternalCalibration_test: $(NUMERICDIFF)
+	@$(ECHO) ""
+	@$(ECHO) "InternalCalibration_test:"
+	@$(call RUN_PROG_OPT,InternalCalibration,-in InternalCalibration_input.mzData -out InternalCalibration_output_tmp.mzData -ref_masses InternalCalibration_ref_masses -peak_bound 800)
+	@$(call TEST_FILE_EQUAL,InternalCalibration_output.mzData,InternalCalibration_output_tmp.mzData)
+
+
