@@ -25,9 +25,12 @@
 # --------------------------------------------------------------------------
 #
 
-DIRECTORY=FILTERING/NOISEESTIMATION
+DIRECTORY=FILTERING/CALIBRATION
 
 include ../../config_defs.mak
+
+CPP_SOURCES=\
+  InternalCalibration.C
 
 include ../../common.mak
 -include .Dependencies
