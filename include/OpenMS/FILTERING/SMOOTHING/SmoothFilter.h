@@ -42,7 +42,7 @@ namespace OpenMS
 
       /// Constructor
       inline SmoothFilter()
-          : coeffs_(0)
+      : coeffs_(0)
       {}
 
       /// Copy constructor

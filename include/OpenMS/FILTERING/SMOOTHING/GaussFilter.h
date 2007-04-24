@@ -29,7 +29,8 @@
 
 #include <OpenMS/FILTERING/SMOOTHING/SmoothFilter.h>
 #include <OpenMS/KERNEL/MSExperimentExtern.h>
-#include <OpenMS/FORMAT/Param.h>
+#include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
+
 
 #include <math.h>
 
@@ -56,38 +57,35 @@ namespace OpenMS
   */
 //#define DEBUG_FILTERING
 
-  class GaussFilter : public SmoothFilter
+  class GaussFilter : public SmoothFilter, public DefaultParamHandler
   {
     public:
       using SmoothFilter::coeffs_;
 
       /// Constructor
       inline GaussFilter()
+      : DefaultParamHandler("GaussFilter")
       {
       	//Parameter settings
       	defaults_.setValue("gaussian_width",0.8);
         
-        //members
+         //members
         sigma_ = .1;
         spacing_ = 0.01;
 
         //compute the filter kernel coefficients
         init(sigma_,spacing_);
+        
+        defaultsToParam_();
       }
-
-      /** @brief Constructor given a param object.
-          
-          @note Please note that the frame_size must be odd.
-      */
-      GaussFilter(const Param& parameters) throw (Exception::InvalidValue);
 
       /// Copy constructor
       inline GaussFilter(const GaussFilter& g)
-          : SmoothFilter(g),
-          sigma_(g.sigma_),
-          spacing_(g.spacing_),
-          defaults_(g.defaults_)
+        : SmoothFilter(g),
+          DefaultParamHandler(g),
+          spacing_(g.spacing_)
       {
+        updateMembers_();
       }
 
       /// Destructor
@@ -100,12 +98,11 @@ namespace OpenMS
       {
         // take care of self assignments
         if (this == &s) return *this;
-
-        defaults_ = s.defaults_;
-
-        spacing_=s.spacing_;
-        coeffs_=s.coeffs_;
-        sigma_=s.sigma_;
+        
+        DefaultParamHandler::operator=(s);
+        spacing_ = s.spacing_;
+        
+        updateMembers_();
 
         return *this;
       }
@@ -121,6 +118,8 @@ namespace OpenMS
         sigma_ = sigma;
         spacing_ = 4*sigma_ / 50;
         init(sigma_,spacing_);
+        
+        param_.setValue("gaussian_width",8*sigma_);
       }
       
       /// Non-mutable access to the kernel width
@@ -129,10 +128,16 @@ namespace OpenMS
         return (sigma_ * 8.);
       }
       /// Mutable access to the kernel width
-      inline void setKernelWidth(DoubleReal kernel_width)
+      inline void setKernelWidth(DoubleReal kernel_width) throw (Exception::InvalidValue)
       {
+        if (kernel_width <= 0)
+        {
+          throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__,"The kernel width should be greater than zero!",String(kernel_width));
+        }
+        
         sigma_ = kernel_width / 8.;
         init(sigma_,spacing_);
+        param_.setValue("gaussian_width",kernel_width);
       }
       
       /// Non-mutable access to the spacing
@@ -148,28 +153,6 @@ namespace OpenMS
         init(sigma_,spacing_);
       }
       
-      /// Sets the parameters through a Param
-      inline void setParam(Param param) throw (Exception::InvalidValue)
-      {
-      	param.setDefaults(defaults_);
-      	param.checkDefaults("GaussFilter", defaults_);
-      	
-        DataValue dv = param.getValue("gaussian_width");
-        if (dv.toString() != "")
-        {
-          double kernel_width = (float)dv;
-
-          if (kernel_width <= 0)
-          {
-            throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__,"The kernel width should be greater than zero!",String(kernel_width));
-          }
-
-          sigma_ = kernel_width / 8.;
-          init(sigma_,spacing_);
-        }
-      }
-
-
       /** @brief Build a gaussian distribution for the current spacing and standard deviation.
           
           We store the coefficiens of gaussian in the vector<double> coeffs_;
@@ -356,14 +339,19 @@ namespace OpenMS
       	filterExperiment(ms_exp_raw.begin(), ms_exp_raw.end(), ms_exp_filtered);
       }
 
-
     protected:
       /// The standard derivation  \f$ \sigma \f$.
       double sigma_;
       /// The spacing of the pre-tabulated kernel coefficients
       double spacing_;
-      /// Parameter object
-      Param defaults_;
+     
+      void updateMembers_() 
+      {
+        double kernel_width = (float)param_.getValue("gaussian_width"); 
+        
+        sigma_ = kernel_width / 8.;
+        init(sigma_,spacing_);
+      }
 
 
       /// Computes the value of the gaussian distribution (mean=0 and standard deviation=sigma) at position x
@@ -575,7 +563,6 @@ namespace OpenMS
           return 0;
         }
       }
-
   };
 
 } // namespace OpenMS

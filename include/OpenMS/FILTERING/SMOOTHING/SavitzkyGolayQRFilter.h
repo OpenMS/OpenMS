@@ -28,8 +28,7 @@
 #define OPENMS_FILTERING_SMOOTHING_SAVITZKYGOLAYQRFILTER_H
 
 #include <OpenMS/FILTERING/SMOOTHING/SmoothFilter.h>
-
-#include <OpenMS/FORMAT/Param.h>
+#include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 
 #include <gsl/gsl_vector.h>
 #include <gsl/gsl_matrix.h>
@@ -92,7 +91,7 @@ namespace OpenMS
     
     @ingroup Filtering
   */
-  class SavitzkyGolayQRFilter : public SmoothFilter
+  class SavitzkyGolayQRFilter : public SmoothFilter, public DefaultParamHandler
   {
     public:
       using SmoothFilter::coeffs_;
@@ -103,10 +102,10 @@ namespace OpenMS
       /// Copy constructor
       inline SavitzkyGolayQRFilter(const SavitzkyGolayQRFilter& s)
           : SmoothFilter(s),
-          defaults_(s.defaults_),
-          frame_size_(s.frame_size_),
-          order_(s.order_)
+          DefaultParamHandler(s)
+      
       {
+        updateMembers_();
       }
 
       /// Destructor
@@ -123,12 +122,11 @@ namespace OpenMS
           return *this;
         }
 
-        defaults_ = s.defaults_;
-
-        frame_size_=s.frame_size_;
+        DefaultParamHandler::operator=(s);
+        updateMembers_();
+        
         coeffs_=s.coeffs_;
-        order_=s.order_;
-
+        
         return *this;
       }
 
@@ -148,10 +146,6 @@ namespace OpenMS
       /// Mutable access to the length of the window
       void setWindowSize(UInt frame_size);
 
-      /// Mutable access to the parameter object
-      void setParam(Param param) throw (Exception::InvalidValue);
-
-
       /** @brief Applies the convolution with the filter coefficients to an given iterator range.
 
       Convolutes the filter and the raw data in the iterator intervall [first,last) and writes the
@@ -166,13 +160,18 @@ namespace OpenMS
             If you use MSSpectrum iterators you have to set the SpectrumSettings by your own.
        */
       template < typename InputPeakIterator, typename OutputPeakContainer  >
-      void filter(InputPeakIterator first, InputPeakIterator last, OutputPeakContainer& smoothed_data_container) throw (Exception::InvalidSize)
+      void filter(InputPeakIterator first, InputPeakIterator last, OutputPeakContainer& smoothed_data_container)
       {
-        if (distance(first,last) <= (int)frame_size_)
+        UInt n = distance(first,last);
+        if (n <= frame_size_)
         {
-          throw Exception::InvalidSize(__FILE__,__LINE__,__PRETTY_FUNCTION__,distance(first,last));
+          smoothed_data_container.resize(n);
+          for (UInt i = 0; i < n; ++i)
+          {
+            smoothed_data_container[i] = *first;
+          }
+          return;
         }
-
         smoothed_data_container.resize(distance(first,last));
 
         int i;
@@ -328,8 +327,6 @@ namespace OpenMS
 
 
     protected:
-      /// Parameter object
-      Param defaults_;
       /// UInt of the filter kernel (number of pre-tabulated coefficients)
       unsigned int frame_size_;
       /// The order of the smoothing polynomial.
@@ -337,6 +334,12 @@ namespace OpenMS
 
       /// Compute the coefficient-matrix \f$ C \f$ of the filter.
       void computeCoeffs_() throw (Exception::InvalidValue);
+      
+      void updateMembers_() 
+      {
+        frame_size_ = (UInt)param_.getValue("frame_length"); 
+        order_ = (UInt)param_.getValue("polynomial_order");
+      }
   };
 
 } // namespace OpenMS

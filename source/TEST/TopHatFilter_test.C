@@ -56,7 +56,8 @@ RESULT
 CHECK((TopHatFilter(const Param& parameters)))
   Param p;
   p.setValue("struc_elem_length",3);
-  TopHatFilter tophat(p);
+  TopHatFilter tophat;
+  tophat.setParameters(p);
   
   TEST_EQUAL(tophat.getStrucElemSize(), 3)
 RESULT

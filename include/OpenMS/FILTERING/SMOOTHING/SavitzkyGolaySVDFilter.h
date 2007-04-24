@@ -28,10 +28,9 @@
 #define OPENMS_FILTERING_SMOOTHING_SAVITZKYGOLAYSVDFILTER_H
 
 #include <OpenMS/FILTERING/SMOOTHING/SmoothFilter.h>
+#include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 
 #include <OpenMS/KERNEL/MSExperimentExtern.h>
-
-#include <OpenMS/FORMAT/Param.h>
 
 #include <gsl/gsl_vector.h>
 #include <gsl/gsl_matrix.h>
@@ -95,7 +94,7 @@ namespace OpenMS
     @ingroup Filtering
    
   */
-  class SavitzkyGolaySVDFilter : public SmoothFilter
+  class SavitzkyGolaySVDFilter : public SmoothFilter, public DefaultParamHandler
   {
     public:
       using SmoothFilter::coeffs_;
@@ -105,11 +104,10 @@ namespace OpenMS
 
       /// Copy constructor
       inline SavitzkyGolaySVDFilter(const SavitzkyGolaySVDFilter& s)
-          : SmoothFilter(s),
-          defaults_(s.defaults_),
-          frame_size_(s.frame_size_),
-          order_(s.order_)
+        : SmoothFilter(s), 
+          DefaultParamHandler(s)
       {
+        updateMembers_();
       }
 
       /// Destructor
@@ -126,11 +124,11 @@ namespace OpenMS
           return *this;
         }
 
-        defaults_ = s.defaults_;
-        frame_size_=s.frame_size_;
-        coeffs_=s.coeffs_;
-        order_=s.order_;
+        DefaultParamHandler::operator=(s);
+        updateMembers_();
 
+        coeffs_=s.coeffs_;
+        
         return *this;
       }
 
@@ -152,9 +150,6 @@ namespace OpenMS
       /// Mutable access to the length of the window
       void setWindowSize(UInt frame_size);
 
-      /// Sets the parameters through a Param
-      void setParam(Param param) throw (Exception::InvalidValue);
-
 
       /** @brief Applies the convolution with the filter coefficients to an given iterator range.
 
@@ -170,17 +165,23 @@ namespace OpenMS
               If you use MSSpectrum iterators you have to set the SpectrumSettings by your own.
          */
       template < typename InputPeakIterator, typename OutputPeakContainer  >
-      void filter(InputPeakIterator first, InputPeakIterator last, OutputPeakContainer& smoothed_data_container) throw (Exception::InvalidSize)
+      void filter(InputPeakIterator first, InputPeakIterator last, OutputPeakContainer& smoothed_data_container) 
       {
-        if (distance(first,last) <= (int)frame_size_)
+        UInt n = distance(first,last);
+        if (n <= frame_size_)
         {
-          throw Exception::InvalidSize(__FILE__,__LINE__,__PRETTY_FUNCTION__,distance(first,last));
+          smoothed_data_container.resize(n);
+          for (UInt i = 0; i < n; ++i)
+          {
+            smoothed_data_container[i] = *first;
+          }
+          return;
         }
 
         smoothed_data_container.resize(distance(first,last));
 
         int i;
-        unsigned int j;
+        UInt j;
         int mid=(frame_size_/2);
         double help;
 
@@ -281,9 +282,9 @@ namespace OpenMS
                             		InputSpectrumIterator last,
                             		MSExperiment<OutputPeakType>& ms_exp_filtered)
       {
-        unsigned int n = distance(first,last);
+        UInt n = distance(first,last);
         // pick peaks on each scan
-        for (unsigned int i = 0; i < n; ++i)
+        for (UInt i = 0; i < n; ++i)
         {
           MSSpectrum< OutputPeakType > spectrum;
           InputSpectrumIterator input_it(first+i);
@@ -358,9 +359,9 @@ namespace OpenMS
                             		InputSpectrumIterator last,
                             		MSExperimentExtern<OutputPeakType>& ms_exp_filtered)
       {
-        unsigned int n = distance(first,last);
+        UInt n = distance(first,last);
         // pick peaks on each scan
-        for (unsigned int i = 0; i < n; ++i)
+        for (UInt i = 0; i < n; ++i)
         {
           MSSpectrum< OutputPeakType > spectrum;
           InputSpectrumIterator input_it(first+i);
@@ -387,13 +388,19 @@ namespace OpenMS
       }
 
     protected:
-      /// parameter defaults
-      Param defaults_;
       /// UInt of the filter kernel (number of pre-tabulated coefficients)
-      unsigned int frame_size_;
+      UInt frame_size_;
       /// The order of the smoothing polynomial.
-      unsigned int order_;
+      UInt order_;
 
+      void updateMembers_() 
+      {
+        frame_size_ = (UInt)param_.getValue("frame_length"); 
+        order_ = (UInt)param_.getValue("polynomial_order");
+        std::cout << "update " << frame_size_ << ' '  << order_ << std::endl;
+        computeCoeffs_();
+      }
+      
       /// Compute the coefficient-matrix \f$ C \f$ of the filter.
       void computeCoeffs_() throw (Exception::InvalidValue);
   };

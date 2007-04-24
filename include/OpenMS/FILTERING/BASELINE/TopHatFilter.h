@@ -58,18 +58,15 @@ namespace OpenMS
     public:
       typedef MorphFilter BaseClass;
       using BaseClass::struc_size_;
-      using BaseClass::param_;
 
       /// Constructor
       inline TopHatFilter() : MorphFilter()
       {}
 
-      /// Constructor given a param object
-      inline TopHatFilter(const Param& parameters) : MorphFilter(parameters)
-      {}
       /// Copy constructor
       inline TopHatFilter(const TopHatFilter& t) : MorphFilter(t)
       {}
+      
       /// Destructor
       virtual ~TopHatFilter()
       {}
@@ -82,9 +79,8 @@ namespace OpenMS
         {
           return *this;
         }
-        param_=t.param_;
-        struc_size_=t.struc_size_;
-
+        MorphFilter::operator=(t);
+        
         return *this;
       }
 

@@ -101,12 +101,12 @@ CHECK((void setOrder(UInt order)))
   TEST_EQUAL(sgolay.getOrder(),3);
 RESULT
 
-CHECK((void setParam(Param param) throw(Exception::InvalidValue)))
+CHECK((void setParameters(Param param) throw(Exception::InvalidValue)))
   Param p;
   p.setValue("polynomial_order",2);
   p.setValue("frame_length",3);
   SavitzkyGolaySVDFilter sgolay;
-  sgolay.setParam(p);
+  sgolay.setParameters(p);
 
   TEST_REAL_EQUAL(sgolay.getOrder(),2);
   TEST_REAL_EQUAL(sgolay.getWindowSize(),3);

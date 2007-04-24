@@ -77,6 +77,11 @@ class TOPPBaselineFilter
       addEmptyLine_();
 			addText_("Note: The top-hat filter works only on uniform data (to generate equally spaced data you have to set the resampling option!)");
 	}
+  
+  Param getSubsectionDefaults_(const String& /*section*/) const
+  {
+    return TopHatFilter().getDefaults();
+  }
 
 	ExitCodes main_(int , char**)
 	{
@@ -126,9 +131,9 @@ class TOPPBaselineFilter
 		}
 		else
 		{
-			unsigned int n = ms_exp_raw.size();
+			UInt n = ms_exp_raw.size();
 			// resample and filter every scan
-			for (unsigned int i = 0; i < n; ++i)
+			for (UInt i = 0; i < n; ++i)
 			{
 				// temporary container for the resampled data
 				MSSpectrum< RawDataPoint1D > resampled_data;
@@ -163,7 +168,11 @@ class TOPPBaselineFilter
 
 		return EXECUTION_OK;
 	}
+
 };
+
+
+
 
 int main( int argc, char ** argv )
 {

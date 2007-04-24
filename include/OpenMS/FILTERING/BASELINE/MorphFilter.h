@@ -27,7 +27,7 @@
 #ifndef OPENMS_FILTERING_BASELINE_MORPHFILTER_H
 #define OPENMS_FILTERING_BASELINE_MORPHFILTER_H
 
-#include <OpenMS/FORMAT/Param.h>
+#include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 
 #include <iostream>
 
@@ -49,31 +49,25 @@ namespace OpenMS
   	@todo use DefaultParamHandler (Eva) 
   */
 
-  class MorphFilter
+  class MorphFilter 
+    : public DefaultParamHandler
   {
   public:
     /// Constructor
     inline MorphFilter()
-        : struc_size_(3)
-    {}
-
-    /// Constructor given a param object
-    inline MorphFilter(const Param& parameters)
+      : DefaultParamHandler("MorphFilter"),
+      struc_size_(3)
     {
-      param_ = parameters;
-
-      // if a parameter is missed in the param object the value should be substituted by a dv value
-      DataValue dv = param_.getValue("struc_elem_length");
-      if (dv.isEmpty() || dv.toString() == "") struc_size_ = 3;
-      else struc_size_ = (float)dv;
+      defaults_.setValue("struc_elem_length",3);
+    
+      defaultsToParam_();
     }
 
     /// Copy constructor
     inline MorphFilter(const MorphFilter& m)
-        : struc_size_(m.struc_size_)
+      : DefaultParamHandler(m)
     {
-      param_ = m.param_;
-
+      updateMembers_();
     }
 
     /// Destructor
@@ -89,30 +83,17 @@ namespace OpenMS
         return *this;
       }
 
-      struc_size_=m.struc_size_;
-      param_=m.param_;
-
+      DefaultParamHandler::operator=(m);
+      updateMembers_();
+       
       return *this;
     }
 
     /// Non-mutable access to length of the structuring element
     inline Real getStrucElemSize() const { return struc_size_; }
-    /// Mutable access to length of the structuring element
-    inline float& getStrucElemSize() { return struc_size_; }
+    
     /// Mutable access to the length of the structuring element
-    inline void setStrucElemSize(Real struc_size) { struc_size_=struc_size; }
-
-    /// Non-mutable access to the parameter object
-    inline const Param& getParam() const { return param_; }
-    /// Mutable access to the parameter object
-    inline void setParam(const Param& param)
-    {
-      param_ = param;
-
-      // read the new parameter
-      DataValue dv = param_.getValue("struc_elem_length");
-      if (!(dv.isEmpty() || dv.toString() == "")) struc_size_ = (float)dv;
-    }
+    inline void setStrucElemSize(Real struc_size) { struc_size_ = struc_size; param_.setValue("struc_elem_length",struc_size_);}
 
     /** Van Herk's method of the Dilatation. The algorithm requires 3 min/max comparisons for every data point
         independent from the length of the structuring element.
@@ -289,8 +270,12 @@ namespace OpenMS
   protected:
     ///The length of the structuring element.
     float struc_size_;
-    /// Parameter object
-    Param param_;
+   
+    
+    void updateMembers_()
+    {
+      struc_size_ = (float)param_.getValue("struc_elem_length"); 
+    }
 
     /// Subtracted the intensities of all data points in [first, last] from the intensities in result
     template < typename InputPeakIterator, typename OutputPeakContainer >

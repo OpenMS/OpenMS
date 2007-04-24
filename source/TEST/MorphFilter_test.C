@@ -55,44 +55,22 @@ CHECK(MorphFilter& operator=(const MorphFilter& m))
   p.setValue("struc_elem_length", 3);
   
   MorphFilter m;
-  m.setParam(p);
+  m.setParameters(p);
   m.setStrucElemSize(4);
   
   MorphFilter m_copy;
   m_copy = m;
   
-  TEST_EQUAL(p == m_copy.getParam(),true)
   TEST_EQUAL(m_copy.getStrucElemSize(),4)
 RESULT
 
 CHECK(MorphFilter(const MorphFilter& m))
-  Param p;
-  p.setValue("struc_elem_length", 3);
-  
   MorphFilter m;
-  m.setParam(p);
   m.setStrucElemSize(4);
   
   MorphFilter m_copy(m);
   
-  TEST_EQUAL(p == m_copy.getParam(),true)
   TEST_REAL_EQUAL(m_copy.getStrucElemSize(),4)
-RESULT
-
-CHECK(MorphFilter(const Param& parameters))
-  Param p;
-  p.setValue("struc_elem_length", 3);
-  MorphFilter m(p);
-  
-  TEST_EQUAL(p == m.getParam(), true)
-RESULT
-
-CHECK(const Param& getParam() const)
-  Param p;
-  p.setValue("struc_elem_length", 3);
-  MorphFilter m(p);
-  
-  TEST_EQUAL(p == m.getParam(), true)
 RESULT
 
 CHECK(Real getStrucElemSize() const)
@@ -162,15 +140,6 @@ CHECK((template< typename InputPeakIterator, typename OutputPeakContainer > void
   TEST_EQUAL(filtered[2].getIntensity(), 1)
   TEST_EQUAL(filtered[3].getIntensity(), 0)
   TEST_EQUAL(filtered[4].getIntensity(), 0)    
-RESULT
-
-CHECK(void setParam(const Param& param))
-  Param p;
-  p.setValue("struc_elem_length", 3);
-  MorphFilter m;
-  m.setParam(p);
-  
-  TEST_EQUAL(p == m.getParam(), true)
 RESULT
 
 CHECK(void setStrucElemSize(Real struc_size))

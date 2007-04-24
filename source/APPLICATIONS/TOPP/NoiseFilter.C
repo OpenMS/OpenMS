@@ -33,6 +33,7 @@
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/FORMAT/PeakTypeEstimator.h>
 
+
 using namespace OpenMS;
 using namespace std;
 
@@ -75,7 +76,7 @@ class TOPPNoiseFilter
     {
 	  	registerStringOption_("in","<file>","","input mzData file (raw data)");
 			registerStringOption_("out","<file>","","output mzData file (raw data)");
-      registerStringOption_("filter_type","<type>","","smoothing filter type. Valid types are: 'sgolay' or 'gaussian'");
+      registerStringOption_("filter_type","<type>","gaussian","smoothing filter type. Valid types are: 'sgolay' or 'gaussian'",false);
       registerDoubleOption_("resampling","<spacing>",0.0,"spacing for the resampling process",false);
 			addEmptyLine_();
 	  	addText_("Parameters for the algorithms can be given in the INI file only:\n"
@@ -92,14 +93,32 @@ class TOPPNoiseFilter
     	registerSubsection_("sgolay");
     	registerSubsection_("gaussian");
     }
+    
+    Param getSubsectionDefaults_(const String& section) const
+    {
+      if (section == "sgolay")
+      {
+        return SavitzkyGolaySVDFilter().getDefaults();
+      }
+      else 
+        if (section == "gaussian")
+        {
+          return GaussFilter().getDefaults();
+        }
+     
+      return Param();
+    }
 
     ExitCodes main_(int , char**)
     {
+      std::cout << "Huch" << std::endl;
+      std::cout << "Parameters " << getParam_() << std::endl;
       //-------------------------------------------------------------
       // parameter handling
       //-------------------------------------------------------------
       String in = getStringOption_("in");
       String out = getStringOption_("out");
+      std::cout << "Huch" << getStringOption_("filter_type")<< std::endl;
       String filter_type = getStringOption_("filter_type");
       float spacing = getDoubleOption_("resampling");
 
@@ -131,7 +150,9 @@ class TOPPNoiseFilter
       	Param filter_param = getParam_().copy("sgolay:",true);
   			writeDebug_("Parameters passed to SavitzkyGolaySVDFilter", filter_param,3);
   			SavitzkyGolaySVDFilter sgolay;
-  			sgolay.setParam( filter_param );
+  			sgolay.setParameters( filter_param );
+        std::cout << "sgolay " << filter_param << ' ' << spacing << std::endl;
+        
         
         LinearResampler lin_resampler;
         lin_resampler.setSpacing(spacing);
@@ -147,15 +168,15 @@ class TOPPNoiseFilter
         }
         else
         {
-          unsigned int n = ms_exp_raw.size();
+          std::cout << "Hach" << std::endl;
+          UInt n = ms_exp_raw.size();
           // resample and filter every scan
-          for (unsigned int i = 0; i < n; ++i)
+          for (UInt i = 0; i < n; ++i)
           {
             // temporary container for the resampled data
             MSSpectrum< RawDataPoint1D > resampled_data;
             lin_resampler.raster(ms_exp_raw[i],resampled_data);
 
-					
             MSSpectrum< RawDataPoint1D > spectrum;
 						
 						if (resampled_data.size() == 1)
@@ -190,7 +211,7 @@ class TOPPNoiseFilter
       	Param filter_param = getParam_().copy("gaussian:",true);
   			writeDebug_("Parameters passed to GaussFilter", filter_param,3);
         GaussFilter gauss;
-        gauss.setParam(filter_param);
+        gauss.setParameters(filter_param);
         gauss.filterExperiment(ms_exp_raw, ms_exp_filtered);
       }
 			else

@@ -28,51 +28,29 @@
 #include <OpenMS/FILTERING/SMOOTHING/SavitzkyGolayQRFilter.h>
 #include <OpenMS/MATH/MISC/MathFunctions.h>
 
+
 namespace OpenMS
 {
 	using namespace Math;
 	
   SavitzkyGolayQRFilter::SavitzkyGolayQRFilter()
-      : SmoothFilter()
+    : SmoothFilter(),
+    DefaultParamHandler("SavitzkyGolayQRFilter")  
   {
-  	
-  	defaults_.setValue("frame_length",17);
-  	defaults_.setValue("polynomial_order",4);
-    
-    frame_size_=17;
-    order_=4;
-    
+    defaults_.setValue("frame_length",17);
+    defaults_.setValue("polynomial_order",4);
+      
+    defaultsToParam_();
+      
     coeffs_.clear();
     coeffs_.resize(frame_size_*(frame_size_/2+1));
     computeCoeffs_();
   }
 
-  void SavitzkyGolayQRFilter::setParam(Param param) throw (Exception::InvalidValue)
-  {
-		param.setDefaults(defaults_);
-    param.checkDefaults("SavitzkyGolayQRFilter",defaults_);
-    
-    frame_size_ = (int)param.getValue("frame_length");
-    if (!isOdd(frame_size_))
-    {
-      throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__,"The frame_size has to be an odd integer!", String(frame_size_));
-    }
-
-    order_ = (unsigned int)param.getValue("polynomial_order");
-
-    if (frame_size_ <= order_)
-    {
-      throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__,"The degree of the polynomial has to be less than the frame length.", String(order_));
-    }
-
-    coeffs_.clear();
-    coeffs_.resize(frame_size_*(frame_size_/2+1));
-    computeCoeffs_();
-  }
-
-  void SavitzkyGolayQRFilter::setWindowSize(UInt frame_size)
+ void SavitzkyGolayQRFilter::setWindowSize(UInt frame_size)
   {
     frame_size_=frame_size;
+    param_.setValue("frame_length",(Int)frame_size_);
     
     coeffs_.clear();
     coeffs_.resize(frame_size_*(frame_size_/2+1));
@@ -82,6 +60,8 @@ namespace OpenMS
   void SavitzkyGolayQRFilter::setOrder(UInt order)
   {
     order_=order;
+    param_.setValue("polynomial_order",(Int)order_);
+    
     computeCoeffs_();
   }
 
