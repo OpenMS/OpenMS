@@ -224,7 +224,6 @@ PRECISION(0.5)
 CHECK(virtual double getSignalToNoise(PeakIterator data_point))
   // A container for the raw data 
   
-  PRECISION(0.1);
   MSSpectrum < > raw_data;
   MSSpectrum< >::const_iterator it;
   DTAFile dta_file;
