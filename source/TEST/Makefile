@@ -239,7 +239,7 @@ EXECUTABLES_FILTERING = \
 	KellerQuality_test\
 	SavitzkyGolayQRFilter_test\
 	SavitzkyGolaySVDFilter_test\
-
+	InternalCalibration_test\
 
 #COMPARISON
 
