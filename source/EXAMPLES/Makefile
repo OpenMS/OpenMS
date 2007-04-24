@@ -35,7 +35,8 @@ CPP_SOURCES=\
 	Tutorial_RangeManager.C\
 	Tutorial_MetaInfo.C\
 	Tutorial_FileIO.C\
-	Tutorial_Param.C
+	Tutorial_Param.C\
+	Tutorial_PeakPickerCWT.C
 	
 
 OBJECTS=$(SOURCES:.C=.o)
@@ -78,4 +79,7 @@ Tutorial_FileIO: Tutorial_FileIO.o
 	$(CXX) $(LDFLAGS) -o $@ $< $(GUI_LIBS)
 
 Tutorial_Param: Tutorial_Param.o
+	$(CXX) $(LDFLAGS) -o $@ $< $(GUI_LIBS)
+
+Tutorial_PeakPickerCWT: Tutorial_PeakPickerCWT.o
 	$(CXX) $(LDFLAGS) -o $@ $< $(GUI_LIBS)
