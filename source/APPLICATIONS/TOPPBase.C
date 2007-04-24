@@ -867,7 +867,8 @@ namespace OpenMS
 		<<"DBImporter"<<"DTAExtractor"<<"FeatureFinder"<<"FeaturePairSplitter"<<"FileConverter"<<"FileFilter"
 		<<"FileInfo"<<"FileMerger"<<"IDFilter"<<"InspectAdapter"<<"LabeledMatcher"<<"MapAlignment"<<"MapDewarper"
 		<<"MapMatcher"<<"MascotAdapter"<<"NoiseFilter"<<"OMSSAAdapter"<<"PeakPicker"<<"PILISIdentification"
-		<<"PILISModel"<<"Resampler"<<"RTModel"<<"RTPredict"<<"SequestAdapter"<<"SpectraFilter"<<"UnlabeledMatcher"<<"MapNormalizer";
+		<<"PILISModel"<<"Resampler"<<"RTModel"<<"RTPredict"<<"SequestAdapter"<<"SpectraFilter"<<"UnlabeledMatcher"
+		<<"MapNormalizer" <<"InternalCalibration";
 		return tools;
 	}
 	

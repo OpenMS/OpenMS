@@ -72,8 +72,8 @@ EXECUTABLES=\
 	MapAlignment\
 	MapNormalizer\
 	Decharger\
-	INIFileEditor
-
+	INIFileEditor\
+	InternalCalibration
 
 all: $(EXECUTABLES)
 
@@ -253,9 +253,12 @@ MapNormalizer: MapNormalizer.o
 INIFileEditor: INIFileEditor.o
 	$(CXX) $(LDFLAGS) -o $@ $< $(LIBS)
 	$(CP) $@ $(OPENMS_PATH)/bin/
-	
 
-	
+InternalCalibration: InternalCalibration.o
+	$(CXX) $(LDFLAGS) -o $@ $< $(LIBS)
+	$(CP) $@ $(OPENMS_PATH)/bin/
+
 # For debugging the TOPP applications, please create the file 'Makefile_debug'
 # in source/APPLICATIONS/ and add the line 'ADD_CXXFLAGS=-DDEBUG_TOPP' to it
 -include ../Makefile_debug
+
