@@ -50,7 +50,7 @@ using namespace std;
 namespace OpenMS 
 {
 
-	ResidueDB PILISModel::res_db_;
+	//ResidueDB PILISModel::res_db_;
 
 	PILISModel::PILISModel()
 		: DefaultParamHandler("PILISModel"),
@@ -69,6 +69,11 @@ namespace OpenMS
 		defaults_.setValue("precursor_mass_tolerance", 3.0);
 		defaults_.setValue("peak_mass_tolerance", 0.3); // TODO
 
+		defaults_.setValue("fixed_modifications", "");
+
+		// TODO max isotope support
+
+		// TODO switch to toggle min intensities
 		defaults_.setValue("min_main_ion_intensity", 0.02);
 		//defaults_.setValue("min_main_ion_intensity_threshold", 0.02);
 		defaults_.setValue("min_loss_ion_intensity", 0.005);
@@ -1383,24 +1388,22 @@ namespace OpenMS
 		{
 			it->setIntensity(it->getIntensity() / intensity_max);
 			String ion_name(it->getMetaValue("IonName"));
-			//cerr << ion_name << endl;
 			if (ion_name != "")
 			{
-				if ((ion_name.hasSubstring("H2O") || ion_name.hasSubstring("NH3") || ion_name[0] == 'a'))
+				if (ion_name.hasSubstring("H2O") || ion_name.hasSubstring("NH3") || ion_name[0] == 'a' || ion_name.hasSubstring("++"))
 				{
 					if (it->getIntensity() < min_loss_ion_intensity)
 					{
 						it->setIntensity(min_loss_ion_intensity);
 					}
-					//cerr << "LOSS NAME: " << ion_name << " " << it->getIntensity() << endl;
 				}
 				else
 				{
 					if (it->getIntensity() < min_main_ion_intensity)
 					{
 						it->setIntensity(min_main_ion_intensity);
+						// TODO intensity also @ isotope?
 					}
-					//cerr << "MAIN NAME: " << ion_name << " " << it->getIntensity() << endl;
 				}
 			}
 		}
@@ -1835,6 +1838,17 @@ namespace OpenMS
 		}
 		model.disableTransitions();
 		model.buildSynonyms();
+	}
+
+	void PILISModel::updateMembers_()
+	{
+		double pseudo_counts = (double)param_.getValue("pseudo_counts");
+		hmm_.setPseudoCounts(pseudo_counts);
+		hmm_precursor_.setPseudoCounts(pseudo_counts);
+		for (HashMap<Residue::ResidueType, HiddenMarkovModelLight>::Iterator it = hmms_losses_.begin(); it != hmms_losses_.end(); ++it)
+		{
+			it->second.setPseudoCounts(pseudo_counts);
+		}
 	}
 } // namespace OpenMS
 
