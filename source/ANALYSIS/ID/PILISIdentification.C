@@ -54,6 +54,7 @@ namespace OpenMS
 		defaults_.setValue("pre_score_name", "ZhangSimilarityScore");
 		defaults_.setValue("score_name", "SpectrumAlignmentScore");
 		defaults_.setValue("use_evalue_scoring", 1);
+		defaults_.setValue("modifications", "");
 
 		aa_weight_['K'] = 128.095;
   	aa_weight_['M'] = 131.04;

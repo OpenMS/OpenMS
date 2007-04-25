@@ -76,6 +76,8 @@ namespace OpenMS
 
 		defaults_.setValue("charge_loss_factor", 0.5); // TODO
 		defaults_.setValue("pseudo_counts", 1e-15);
+
+		defaults_.setValue("modifications", "");
 		defaultsToParam_();
 
 		initModels_();
