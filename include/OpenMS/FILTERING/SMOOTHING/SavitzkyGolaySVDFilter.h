@@ -393,11 +393,10 @@ namespace OpenMS
       /// The order of the smoothing polynomial.
       UInt order_;
 
-      void updateMembers_() 
+      virtual void updateMembers_() 
       {
         frame_size_ = (UInt)param_.getValue("frame_length"); 
         order_ = (UInt)param_.getValue("polynomial_order");
-        std::cout << "update " << frame_size_ << ' '  << order_ << std::endl;
         computeCoeffs_();
       }
       

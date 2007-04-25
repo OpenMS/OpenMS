@@ -272,7 +272,7 @@ namespace OpenMS
     float struc_size_;
    
     
-    void updateMembers_()
+    virtual void updateMembers_()
     {
       struc_size_ = (float)param_.getValue("struc_elem_length"); 
     }

@@ -335,7 +335,7 @@ namespace OpenMS
       /// Compute the coefficient-matrix \f$ C \f$ of the filter.
       void computeCoeffs_() throw (Exception::InvalidValue);
       
-      void updateMembers_() 
+      virtual void updateMembers_() 
       {
         frame_size_ = (UInt)param_.getValue("frame_length"); 
         order_ = (UInt)param_.getValue("polynomial_order");

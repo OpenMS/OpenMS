@@ -345,7 +345,7 @@ namespace OpenMS
       /// The spacing of the pre-tabulated kernel coefficients
       double spacing_;
      
-      void updateMembers_() 
+      virtual void updateMembers_() 
       {
         double kernel_width = (float)param_.getValue("gaussian_width"); 
         
