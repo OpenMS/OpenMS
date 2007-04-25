@@ -175,7 +175,7 @@ class TOPPRTModel
 			registerIntOption_("degree","<int>",1,"the degree parameter of the kernel function of the svm (POLY kernel)",false);
 			registerIntOption_("border_length","<int>",0,"length of the POBK",false);
 			registerIntOption_("k_mer_length","<int>",0,"k_mer length of the POBK",false);
-			registerDoubleOption_("sigma","<float>",0.1,"sigma of the POBK",false);
+			registerDoubleOption_("sigma","<float>",-1.0,"sigma of the POBK",false);
 			registerDoubleOption_("total_gradient_time","<time>",-1.0,"the time (in seconds) of the gradient (only for RT prediction)", false);
 			registerFlag_("additive_cv","if the step sizes should be interpreted additively (otherwise the actual value is multiplied with the step size to get the new value");
 			addEmptyLine_();
@@ -382,10 +382,28 @@ class TOPPRTModel
 			}			
 
  			border_length = getIntOption_("border_length");
+ 			if (border_length == 0 
+ 					&& svm.getIntParameter(KERNEL_TYPE) == OLIGO)
+ 			{
+				writeLog_("No border length given for POBK. Aborting!");
+				return ILLEGAL_PARAMETERS;		
+ 			}
 			svm.setParameter(BORDER_LENGTH, border_length);
  			sigma = getDoubleOption_("sigma");
+ 			if (sigma < 0 
+ 					&& svm.getIntParameter(KERNEL_TYPE) == OLIGO)
+ 			{
+				writeLog_("No sigma given for POBK. Aborting!");
+				return ILLEGAL_PARAMETERS;		
+ 			}
 			svm.setParameter(SIGMA, sigma);
  			k_mer_length = getIntOption_("k_mer_length");
+ 			if (k_mer_length == 0 
+ 					&& svm.getIntParameter(KERNEL_TYPE) == OLIGO)
+ 			{
+				writeLog_("No k-mer length given for POBK. Aborting!");
+				return ILLEGAL_PARAMETERS;		
+ 			}
 
 			sigma_start = getDoubleOption_("sigma_start");
 			sigma_step_size = getDoubleOption_("sigma_step_size");
