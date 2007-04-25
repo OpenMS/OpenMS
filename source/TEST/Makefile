@@ -180,7 +180,8 @@ EXECUTABLES_FORMAT = \
 	DBConnection_test\
 	DBAdapter_test\
 	OMSSAXMLFile_test\
-	XTandemXMLFile_test
+	XTandemXMLFile_test\
+	MSPFile_test
 
 #MATH
 

@@ -31,7 +31,9 @@
 #include <OpenMS/FORMAT/HANDLERS/MzDataHandler.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/METADATA/Identification.h>
+#include <OpenMS/SYSTEM/File.h>
 #include <cctype>
+#include <fstream>
 
 namespace OpenMS
 {
@@ -42,8 +44,7 @@ namespace OpenMS
 		@TODO is TextFile a good idea? (andreas)
 		@ingroup FileIO
 	*/
-	class MSPFile 
-		:	public TextFile/*,
+	class MSPFile /*
 			public ProgressLogger*/
 	{
 		public:
@@ -62,12 +63,20 @@ namespace OpenMS
 			template <typename MapType>
 			void load(const String& filename, std::vector<IdentificationData>& ids, MapType& map) throw (Exception::FileNotFound, Exception::ParseError)
 			{
-				TextFile::load(filename, true); // load a trimmed version of the file
-				typename MapType::SpectrumType spec;
-				for (ConstIterator it = begin(); it != end(); ++it)
+				if (!File::exists(filename))
 				{
-					String line = *it;
+					throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename);
+				}
+				if (!File::readable(filename))
+				{
+					throw Exception::FileNotReadable(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename);
+				}
+				String line;
+				std::ifstream is(filename.c_str());
 
+				typename MapType::SpectrumType spec;
+				while (getline(is, line))
+				{
 					if (line.hasPrefix("Name:"))
 					{
 						std::vector<String> split, split2;
@@ -77,6 +86,8 @@ namespace OpenMS
 						id.getPeptideHits().push_back(PeptideHit(0, "", 0, split2[1].toInt(), split2[0]));
 						IdentificationData data;
 						data.id = id;
+						data.mz = -1;
+						data.rt = -1;
 						ids.push_back(data);
 						std::cerr << split[1] << std::endl;
 					}
@@ -90,27 +101,21 @@ namespace OpenMS
 					}
 					if (line.hasPrefix("Num peaks:"))
 					{
-						++it;
-						if (it != end() && *it != "")
+						while (getline(is, line) && line.size() > 0 && std::isdigit(line[0]))
 						{
-							line = *it;
-							while (line.size() > 0 && std::isdigit(line[0]) && it != end() && *it != "")
+							std::vector<String> split;
+							line.split('\t', split);
+							typename MapType::SpectrumType::PeakType peak;
+							if (split.size() != 3)
 							{
-								line = *it;
-								std::vector<String> split;
-								line.split('\t', split);
-								typename MapType::SpectrumType::PeakType peak;
-								if (split.size() != 3)
-								{
-									throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, line, "not <mz> <intensity> <comment>");
-								}
-								peak.setMZ(split[0].toFloat());
-								peak.setIntensity(split[1].toFloat());
-								//peak.setMetaValue("MSPPeakInfo", split[2]);
-								++it;
-								spec.push_back(peak);
+								throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, line, "not <mz> <intensity> <comment>");
 							}
+							peak.setMZ(split[0].toFloat());
+							peak.setIntensity(split[1].toFloat());
+							//peak.setMetaValue("MSPPeakInfo", split[2]);
+							spec.push_back(peak);
 						}
+						
 						map.push_back(spec);
 						spec.clear();
 					}
@@ -126,6 +131,7 @@ namespace OpenMS
 			void store(const String& filename, const MapType& map)
 			const throw (Exception::UnableToCreateFile)
 			{
+				// TODO
 			}
 		
 	};

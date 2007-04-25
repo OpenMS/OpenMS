@@ -29,7 +29,6 @@
 namespace OpenMS
 {
 	MSPFile::MSPFile()
-		: TextFile()
 	{
 	}
 
