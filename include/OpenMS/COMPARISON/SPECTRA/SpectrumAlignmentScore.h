@@ -47,7 +47,6 @@ namespace OpenMS
 		A binned version of this scoring is implemented in the ZhangSimilarityScoring class.
 
 		@param epsilon - defines the absolut error of the mass spectrometer; default value is 0.3 Th
-		@param exponent - defines the exponent of the comparison 
 		
 		@ingroup SpectraComparison
   */

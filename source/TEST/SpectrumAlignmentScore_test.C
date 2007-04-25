@@ -57,19 +57,23 @@ CHECK(double operator () (const PeakSpectrum& s1, const PeakSpectrum& s2))
 	DTAFile().load("data/PILISSequenceDB_DFPIANGER_1.dta", s2);
 
 	Normalizer normalizer;
+	Param p(normalizer.getParameters());
+	p.setValue("method", "to_one");
+	normalizer.setParameters(p);
 	normalizer.filterSpectrum(s1);
 	normalizer.filterSpectrum(s2);
 	
+	PRECISION(0.01)
 
 	double score = (*ptr)(s1, s2);
-	//TEST_REAL_EQUAL(score, 1.0)
+	TEST_REAL_EQUAL(score, 1.48268)
 
 	s2.getContainer().resize(100);
 
 	score = (*ptr)(s1, s2);
 
 	normalizer.filterSpectrum(s2);
-	//TEST_REAL_EQUAL(score, 0.2)
+	TEST_REAL_EQUAL(score, 3.77931)
 
 RESULT
 
