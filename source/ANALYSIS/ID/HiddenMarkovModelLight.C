@@ -125,7 +125,8 @@ namespace OpenMS
 	}
 
 	// The hidden markov model
-	HiddenMarkovModelLight::HiddenMarkovModelLight() 
+	HiddenMarkovModelLight::HiddenMarkovModelLight()
+		:	pseudo_counts_(PSEUDO_COUNTS)
 	{
 	}
 
@@ -144,7 +145,8 @@ namespace OpenMS
       synonym_trans_names_(hmm.synonym_trans_names_),
       synonym_trans_(hmm.synonym_trans_),
       enabled_trans_(hmm.enabled_trans_),
-      id_to_name_(hmm.id_to_name_)
+      id_to_name_(hmm.id_to_name_),
+			pseudo_counts_(hmm.pseudo_counts_)
 	{
 	}
 	
@@ -171,6 +173,7 @@ namespace OpenMS
 			synonym_trans_ = hmm.synonym_trans_;
 			enabled_trans_ = hmm.enabled_trans_;
 			id_to_name_ = hmm.id_to_name_;
+			pseudo_counts_ = hmm.pseudo_counts_;
 		}
 		return *this;
 	}
@@ -480,7 +483,7 @@ namespace OpenMS
 		{
 			double tmp(0);
 			tmp = num_px * getForwardVariable_(it->first) * getBackwardVariable_(it->second) * getTransitionProbability(it->first, it->second);
-			tmp += PSEUDO_COUNTS;
+			tmp += pseudo_counts_/*PSEUDO_COUNTS*/;
 			HMMStateLight* s1 = it->first;
 			HMMStateLight* s2 = it->second;
 			train_count_trans_[s1][s2] = tmp;
@@ -950,6 +953,15 @@ namespace OpenMS
 			}
 		}
 	}
-}
+	
+	void HiddenMarkovModelLight::setPseudoCounts(double pseudo_counts)
+	{
+		pseudo_counts_ = pseudo_counts;
+	}
 
+	double HiddenMarkovModelLight::getPseudoCounts() const
+	{
+		return pseudo_counts_;
+	}
+}
 

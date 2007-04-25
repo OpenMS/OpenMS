@@ -243,6 +243,12 @@ namespace OpenMS
 
 			/// clears all data
 			void clear();
+
+			/// 
+			void setPseudoCounts(double pseudo_counts);
+
+			///
+			double getPseudoCounts() const;
 			//@}
 			
 		protected:
@@ -302,6 +308,8 @@ namespace OpenMS
 
 			// transitions which are enabled
 			HashMap<HMMState*, std::set<HMMState*> > enabled_trans_;
+
+			double pseudo_counts_;
 	};
 }
 #endif

@@ -233,6 +233,10 @@ namespace OpenMS
 			///
 			void addIdToName(UInt id, const String& name);
 
+			void setPseudoCounts(double pseudo_counts);
+
+			double getPseudoCounts() const;
+
 		protected:
 			
 			void calculateForwardPart_();
@@ -274,6 +278,8 @@ namespace OpenMS
 			HashMap<HMMStateLight*, std::set<HMMStateLight*> > enabled_trans_;
 
 			HashMap<UInt, String> id_to_name_;
+
+			double pseudo_counts_;
 	};
 }
 #endif

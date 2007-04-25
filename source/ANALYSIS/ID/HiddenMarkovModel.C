@@ -126,6 +126,7 @@ namespace OpenMS
 
 	// The hidden markov model
 	HiddenMarkovModel::HiddenMarkovModel() 
+		: pseudo_counts_(PSEUDO_COUNTS)
 	{
 	}
 
@@ -143,8 +144,8 @@ namespace OpenMS
       trained_trans_(hmm.trained_trans_),
       synonym_trans_names_(hmm.synonym_trans_names_),
       synonym_trans_(hmm.synonym_trans_),
-      enabled_trans_(hmm.enabled_trans_)
-
+      enabled_trans_(hmm.enabled_trans_),
+			pseudo_counts_(hmm.pseudo_counts_)
 	{
 	}
 	
@@ -170,6 +171,7 @@ namespace OpenMS
 			synonym_trans_names_ = hmm.synonym_trans_names_;
 			synonym_trans_ = hmm.synonym_trans_;
 			enabled_trans_ = hmm.enabled_trans_;
+			pseudo_counts_ = hmm.pseudo_counts_;
 		}
 		return *this;
 	}
@@ -585,7 +587,7 @@ namespace OpenMS
 		{
 			double tmp(0);
 			tmp = num_px * getForwardVariable_(it->first) * getBackwardVariable_(it->second) * getTransitionProbability(it->first, it->second);
-			tmp += PSEUDO_COUNTS;
+			tmp += pseudo_counts_ /*PSEUDO_COUNTS*/;
 			HMMState* s1 = it->first;
 			HMMState* s2 = it->second;
 			train_count_trans_[s1][s2] = tmp;
@@ -1017,6 +1019,17 @@ namespace OpenMS
 			}
 		}
 
+	}
+
+	void HiddenMarkovModel::setPseudoCounts(double pseudo_counts)
+	{
+		pseudo_counts_ = pseudo_counts;
+		return;
+	}
+
+	double HiddenMarkovModel::getPseudoCounts() const
+	{
+		return pseudo_counts_;
 	}
 }
 
