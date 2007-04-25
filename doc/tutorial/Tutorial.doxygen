@@ -602,6 +602,39 @@ spectrometric peak.
 
 */
 
+//####################################### CHEMISTRY #######################################
+
+/**
+
+@page tutorial_chemistry Chemistry
+
+@section Elements
+
+There is a representation of Elements implemented in OpenMS. The correcsponding class is named Element. This class stores the relevant information about an element. The handling of the Elements are done by the class ElementDB, which is implemented as an singleton. This means there is only one instance of the class in OpenMS. This is straightforward because the Elements do not change during execution. The data stored in an Element spans its name, symbol, atomic weight, and isotope distribution beside others. 
+// example
+
+@section EmpiricalFormula
+
+The Elements described in the section above can be combined to empirical formulas. Application are the exact weights of molecules, like peptides and their isotopic distributions. The class support a large number of operations like addition and substraction. 
+// example
+// isodist example
+
+@section Residue
+
+A residue is represented in OpenMS by the class Residue. It provides a container for the amino acids as well as some functionality. The class is able to provide information such as the isotope distribution of the residue, the average and monoisotopic weight. The residue can be identified by their full name, their three letter abbreviation or the single letter abreviation. The residue can also be modified, which is implemented in the Modification class. Additional less frequently used parameters of a residue like the gas-phase basicity are also availble.
+
+@section AASequence
+This class handles the amino acid sequences in OpenMS. A string of amino acid residues can be turned into a instance of AASequence to provide some commonly used operations and data. The implementation supports mathmatical operatotions like addition or substraction. Also, average and mono isotopic weight and isotope distributions are accessable. 
+
+OpenMS handles mass spectrometry data all the weigths formulas and isotope distribution can be calculated depending on the charge state (additional proton count in case of positive ions) and ion type. Therefore the class allows for a flexible handling of amino acid strings.
+
+@section TheoreticalSpectrumGenerator
+
+This class implements a simple generator to generate tandem MS spectra from a given peptide charge combination. There are various options which influence the occuring ions and their intensities.
+
+*/
+
+
 //####################################### ANALYSIS #######################################
 
 /**
