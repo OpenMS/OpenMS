@@ -708,7 +708,37 @@ namespace OpenMS
 	{
 		return low_mass_ions_;
 	}
-	
+
+	Real Residue::getBackboneBasicityRight() const
+	{
+		return gb_bb_r_;
+	}
+
+	void Residue::setBackboneBasicityRight(Real gb_bb_r)
+	{
+		gb_bb_r_ = gb_bb_r;
+	}
+
+	Real Residue::getBackboneBasicityLeft() const
+	{
+		return gb_bb_l_;
+	}
+
+	void Residue::setBackboneBasicityLeft(Real gb_bb_l)
+	{
+		gb_bb_l_ = gb_bb_l;
+	}
+
+	Real Residue::getSideChainBasicity() const
+	{
+		return gb_sc_;
+	}
+
+	void Residue::setSideChainBasicity(Real gb_sc)
+	{
+		gb_sc_ = gb_sc;
+	}
+
 	bool Residue::isModified() const
 	{
 		return is_modified_;

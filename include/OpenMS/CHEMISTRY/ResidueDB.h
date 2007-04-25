@@ -31,7 +31,6 @@
 #include <OpenMS/DATASTRUCTURES/HashMap.h>
 
 #include <set>
-#include <vector>
 
 namespace OpenMS
 {
@@ -50,9 +49,9 @@ namespace OpenMS
 			*/
 			//@{
 			typedef std::set<Residue*>::iterator ResidueIterator;
-			//typedef std::set<const Residue*>::const_iterator ResidueConstIterator;
+			typedef std::set<const Residue*>::const_iterator ResidueConstIterator;
 			typedef std::set<Residue::Modification*>::iterator ModificationIterator;
-			//typedef std::set<const Residue::Modification*>::const_iterator ModificationConstIterator;
+			typedef std::set<const Residue::Modification*>::const_iterator ModificationConstIterator;
 			//@}
 			
 			/** @name Constructors and Destructors
@@ -142,17 +141,17 @@ namespace OpenMS
 
 			inline ResidueIterator endResidue() { return residues_.end(); }
 			
-			//inline ResidueConstIterator beginResidue() const { return const_residues_.begin(); }
+			inline ResidueConstIterator beginResidue() const { return const_residues_.begin(); }
 
-			//inline ResidueConstIterator endResidue() const { return const_residues_.end(); }
+			inline ResidueConstIterator endResidue() const { return const_residues_.end(); }
 
 			inline ModificationIterator beginModification() { return modifications_.begin(); }
 
 			inline ModificationIterator endModification() { return modifications_.end(); }
 				
-			//inline ModificationConstIterator beginModification() const { return const_modifications_.begin(); }
+			inline ModificationConstIterator beginModification() const { return const_modifications_.begin(); }
 
-			//inline ModificationConstIterator endModification() const { return const_modifications_.end(); }
+			inline ModificationConstIterator endModification() const { return const_modifications_.end(); }
 			//@}
 
 		protected:

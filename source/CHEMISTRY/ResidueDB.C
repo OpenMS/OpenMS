@@ -558,6 +558,21 @@ namespace OpenMS
 				}
 				continue;
 			}
+			if (key.hasSubstring("GB_SC"))
+			{
+				res_ptr->setSideChainBasicity(value.toFloat());
+				continue;
+			}
+			if (key.hasSubstring("GB_BB_L"))
+			{
+				res_ptr->setBackboneBasicityLeft(value.toFloat());
+				continue;
+			}
+			if (key.hasSubstring("GB_BB_R"))
+			{
+				res_ptr->setBackboneBasicityRight(value.toFloat());
+				continue;
+			}
 			cerr << "unknown key: " << key << ", with value: " << value << endl;
 		}
 		

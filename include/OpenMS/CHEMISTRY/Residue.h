@@ -542,6 +542,24 @@ namespace OpenMS
 			/// sets the pkc of the residue
 			void setPkc(DoubleReal value);		
 		
+      ///
+      Real getSideChainBasicity() const;
+
+      ///
+      void setSideChainBasicity(Real gb_sc);
+
+      ///
+      Real getBackboneBasicityLeft() const;
+
+      ///
+      void setBackboneBasicityLeft(Real gb_bb_l);
+
+      ///
+      Real getBackboneBasicityRight() const;
+
+      ///
+      void setBackboneBasicityRight(Real gb_bb_r);
+
 			/// true if the residue is a modified one
 			bool isModified() const;
 			//@}
@@ -597,7 +615,13 @@ namespace OpenMS
 			
 			// pkc values
 			DoubleReal pkc_;
-			
+		
+      Real gb_sc_;
+
+      Real gb_bb_l_;
+
+      Real gb_bb_r_;
+	
 	};
 	
 	std::ostream& operator << (std::ostream& os, const Residue& residue);

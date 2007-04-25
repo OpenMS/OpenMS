@@ -32,6 +32,7 @@
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/CHEMISTRY/Residue.h>
+#include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <vector>
 
 namespace OpenMS 
@@ -56,9 +57,11 @@ namespace OpenMS
 			of peptide (can be Reside::YIon for peptides and y-ions and any other ion type).
 
 			Charge state intensities of differently charged equal (e.g. y7+ and y7++) ions can be calculated
-			using the getChargeStateIntensities function. 
+			using the getChargeStateIntensities function.
+
+			@TODO implement gb values in Residue and use these
 	*/
-	class ProtonDistributionModel 
+	class ProtonDistributionModel : public DefaultParamHandler
 	{
 		public:
 			
@@ -132,7 +135,7 @@ namespace OpenMS
 			void calcChargeStateIntensities_(const AASequence& peptide, const AASequence& n_term_ion, const AASequence& c_term_ion, int charge, Residue::ResidueType n_term_type,	double& n_term1, double& c_term1, double& n_term2, double& c_term2,	FragmentationType type);
 
 			// initializes the parameters needed for the calculation
-			void init_();
+			//void init_();
 
 			HashMap<UInt, double> sc_charge_;
 			HashMap<UInt, double> bb_charge_;
@@ -140,11 +143,11 @@ namespace OpenMS
 			HashMap<UInt, double> bb_charge_full_;
 
 			// contains the side chain proton affinities
-			HashMap<String, double> gb_sc_;
+			//HashMap<String, double> gb_sc_;
 			// contains the backbone proton affinity contributions of the left amino acid
-			HashMap<String, double> gb_bb_l_;
+			//HashMap<String, double> gb_bb_l_;
 			// contains the backbone proton affinity contributions of the right amino acid
-			HashMap<String, double> gb_bb_r_;
+			//HashMap<String, double> gb_bb_r_;
 
 
 			double E_;
