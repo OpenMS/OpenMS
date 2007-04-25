@@ -46,7 +46,8 @@ namespace OpenMS
   	: tool_name_(tool_name),
   		tool_description_(tool_description),
 			instance_number_(-1),
-			debug_level_(-1)
+			debug_level_(-1),
+			log_type_(ProgressLogger::NONE)
 	{
 		QStringList list=registerTools();
 		if( find(list.begin(), list.end(), QString(tool_name.c_str())) == list.end() )
@@ -74,6 +75,7 @@ namespace OpenMS
 		registerIntOption_("instance","<n>",1,"Instance number for the TOPP INI file",false);
 		registerIntOption_("debug","<n>",0,"Sets the debug level",false);
 		registerStringOption_("write_ini","<file>","","Writes an example INI file",false);
+		registerFlag_("progress","Enables progress logging to command line");
 		registerFlag_("-help","Shows this help");
 		
 		// prepare options and flags for command line parsing
@@ -110,6 +112,12 @@ namespace OpenMS
 		//set debug level
 		debug_level_ = getParamAsInt_("debug",0);
 		writeDebug_(String("Debug level: ")+String(debug_level_),1);
+		
+		//progress logging
+		if(getParamAsBool_("progress",false))
+		{
+			log_type_ = ProgressLogger::CMD;	
+		}
 		
 		// test if no options were given
 		if (argc==1)

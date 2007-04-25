@@ -72,10 +72,8 @@ namespace OpenMS
 
 	@internal Emacs has a fanstastic command "backslashify" that you can use to
 	line up the backslashes in the define blocks.
-
-	@{
 */
-
+//@{
 
 /**	@brief Define the precision for floating point comparisons.
 
@@ -780,6 +778,6 @@ int main(int argc, char **argv)																											\
 		}																																																					\
 	}
 
-/** @} */ // end of ClassTest
+//@} // end of ClassTest
 
 #endif //OPENMS_CONCEPT_CLASSTEST_H

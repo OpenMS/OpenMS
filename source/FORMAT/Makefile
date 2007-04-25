@@ -35,6 +35,7 @@ DIRECTORY=FORMAT
 
 CPP_SOURCES=\
 	Base64.C\
+	ControlledVocabulary.C\
 	DTAFile.C\
 	DTA2DFile.C\
 	PersistentObject.C\

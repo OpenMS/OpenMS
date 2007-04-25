@@ -29,6 +29,7 @@
 
 #include <OpenMS/FORMAT/Param.h>
 #include <OpenMS/CONCEPT/Exception.h>
+#include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 
 #include <iostream>
@@ -468,6 +469,9 @@ namespace OpenMS
 		
 		/// Helper function that parses a range string ([a]:[b]) into to variables 
 		void parseRange_(const String& text, double& low, double& high) const;
+  	
+		///Type of progress logging
+		ProgressLogger::LogType log_type_;
   };
 	
 

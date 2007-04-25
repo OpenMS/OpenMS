@@ -147,6 +147,7 @@ ifeq ($(LIBSVM_SUPPORT),true)
 endif
 
 EXECUTABLES_FORMAT = \
+	ControlledVocabulary_test\
 	TextFile_test\
 	$(ANDI_EXECUTABLES_FORMAT)\
 	${LIBSVM_EXECUTABLES_FORMAT}\

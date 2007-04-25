@@ -79,11 +79,14 @@
 Ideen:
 - Seeder/Extender: Analyse der MassenSpur-Distanzen
 
+General:
+- announcments list
+- Pride / RAMP auf Website
+- Umbau -> OpenMS / TOPP
 
 Todos:
-- TOPPBase -progress flag
 - Progress in mzData, mzXML, DTA2D und ANDI/MS (lesen und schreiben)
-- Progress in alle wichtigen Algorithmen einbauen
+- Progress in alle wichtigen Algorithmen einbauen + TOPPTools
 - Reine TOPPView Klassen aufräumen
 - Spectrum3DCanvas: fix grab keyboard
 - make install mit prefix testen

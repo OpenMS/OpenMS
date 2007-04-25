@@ -126,7 +126,7 @@ class TOPPFileInfo
 			if (in_type!=FileHandler::FEATURE)
 			{
 			
-				if (! fh.loadExperiment(in,exp,in_type) )
+				if (! fh.loadExperiment(in,exp,in_type,log_type_) )
 				{
 					writeLog_("Unsupported or corrupt input file. Aborting!");
 					printUsage_();
