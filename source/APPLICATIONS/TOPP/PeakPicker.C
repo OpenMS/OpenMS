@@ -94,7 +94,7 @@ class TOPPPeakPicker
 		registerStringOption_("out","<file>","","output mzData file (peak data)");
 		addEmptyLine_();
   	addText_("Parameters for the peak picker algorithm can be given in the 'algorithm' part of INI file:\n"
-							"<NODE algorithm>\n"
+							"<NODE name=\"algorithm\">\n"
 						 	" <NODE name=\"SignalToNoiseEstimationParameter\">\n "
 						  "   <ITEM name=\"WindowLength\" value=\"200\" type=\"int\" />\n "
 				      "   <ITEM name=\"BinCount\" value=\"30\" type=\"int\" />\n "
@@ -140,7 +140,9 @@ class TOPPPeakPicker
 		writeDebug_("Parameters passed to PeakPickerCWT", pepi_param,3);
     PeakPickerCWT peak_picker;
 		peak_picker.setParameters(pepi_param);
-
+		std::cout << peak_picker.getPeakBound()<< "\t"
+							<< peak_picker.getPeakCorrBound()<< "\t"
+							<< peak_picker.getFwhmBound()<< "\n";
     //-------------------------------------------------------------
     // loading input
     //-------------------------------------------------------------
