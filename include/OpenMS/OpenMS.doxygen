@@ -80,6 +80,7 @@ Ideen:
 - Seeder/Extender: Analyse der MassenSpur-Distanzen
 
 Todos:
+- Alte Mainterner ersetzen
 - 4611/raw_cut.mzData -> mzXML -> nicht mehr zu laden!
 - ProgressLogger finished()
 - Update Mascot
