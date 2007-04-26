@@ -67,7 +67,7 @@ namespace OpenMS
 				QRegExp rx("\\S+");
 				QValidator *validator = new QRegExpValidator(rx, parent);
 				QLineEdit *editor = new QLineEdit(parent);
-				edit->setValidator(validator);
+				editor->setValidator(validator);
 				return editor;
 			}
 			else if(index.column()==1 && id==ParamEditor::NODE)
