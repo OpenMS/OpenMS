@@ -36,9 +36,13 @@
 #include <QtGui/QItemDelegate>
 #include <QtCore/QModelIndex>
 #include <QtGui/QComboBox>
+#include <QtGui/QLineEdit>
 #include <QtCore/QAbstractItemModel>
 #include <QtCore/QString>
 #include <QtCore/QStringList>
+#include <QtGui/QRegExpValidator>
+#include <QtCore/QRegExp>
+#include <QtGui/QValidator>
 
 
 
@@ -58,7 +62,15 @@ namespace OpenMS
 		{
 			QString str = index.model()->data(index, Qt::DisplayRole).toString();
 			Int id=index.model()->data(index, Qt::UserRole).toInt();
-			if(index.column()==1 && id==ParamEditor::NODE)
+			if(index.column()==0)
+			{
+				QRegExp rx("\\S+");
+				QValidator *validator = new QRegExpValidator(rx, parent);
+				QLineEdit *editor = new QLineEdit(parent);
+				edit->setValidator(validator);
+				return editor;
+			}
+			else if(index.column()==1 && id==ParamEditor::NODE)
 			{
 				return 0;
 			}
@@ -99,6 +111,12 @@ namespace OpenMS
 					combo->setCurrentIndex(pos);
 				}
 			}
+			else if(index.column()==0)
+			{
+				QString str = index.model()->data(index, Qt::DisplayRole).toString();
+				QLineEdit *edit = static_cast<QLineEdit*>(editor);
+				edit->setText(str);
+			}
 			else 
 			{
 				QItemDelegate::setEditorData(editor,index);
@@ -113,6 +131,12 @@ namespace OpenMS
 				QString str = combo->currentText();
 				model->setData(index, str);
 			}
+			else if(index.column()==0)
+			{
+				QLineEdit *edit= static_cast<QLineEdit*>(editor);
+				QString str = edit->text();
+				model->setData(index, str);
+			}
 			else 
 			{
 				QItemDelegate::setModelData(editor,model,index);
@@ -122,6 +146,10 @@ namespace OpenMS
 		void ParamEditorDelegate::updateEditorGeometry(QWidget *editor, const QStyleOptionViewItem &option, const QModelIndex & index) const
 		{
 			if(index.column()==2)
+			{
+				editor->setGeometry(option.rect);
+			}
+			else if(index.column()==0)
 			{
 				editor->setGeometry(option.rect);
 			}

@@ -31,6 +31,7 @@
 class QComboBox;
 class QPushButton;
 class QRadioButton;
+class QString; 
 
 #include <QtGui/QDialog>
 #include <OpenMS/FORMAT/Param.h>
@@ -103,12 +104,18 @@ namespace OpenMS
 			String output_string_;
 			/// Temporary files directory
 			String tmp_dir_;
+			/// name of ini-file
+			QString filename_;
 			
 		protected slots:
 			/// if ok button pressed show the tool output in a new layer, a new window or standard output as messagebox 
 			void ok_();
 			/// get tool name from combobox
 			void setTool_(int i);
+			/// loads an ini-file into the editor_
+			bool loadIni();
+			/// stores an ini-file from the editor_
+			bool storeIni();
 			
 	};
 

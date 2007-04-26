@@ -38,6 +38,7 @@
 #include <QtGui/QLabel>
 #include <QtGui/QMessageBox>
 #include <QtGui/QRadioButton>
+#include <QtGui/QFileDialog>
 
 
 using namespace std;
@@ -92,7 +93,17 @@ namespace OpenMS
 		
 		
 		QHBoxLayout* hbox = new QHBoxLayout;
+		
+		QPushButton* load_button=new QPushButton(tr("&Load"));
+		connect(load_button,SIGNAL(clicked()),this,SLOT(loadIni()));
+		hbox->addWidget(load_button);
+		
+		QPushButton* store_button=new QPushButton(tr("&Store"));
+		connect(store_button,SIGNAL(clicked()),this,SLOT(storeIni()));
+		hbox->addWidget(store_button);
+		
 		hbox->addStretch();
+		
 		
 		ok_button_= new QPushButton(tr("&Ok"));
 		connect(ok_button_, SIGNAL(clicked()),this,SLOT(ok_()));
@@ -215,6 +226,91 @@ namespace OpenMS
 	
 			accept();
 		}
+	}
+	
+	bool ToolsDialog::loadIni()
+	{
+		QString string;
+		filename_=QFileDialog::getOpenFileName(this,tr("Open ini file"),".",tr("ini files (*.ini);; all files (*.*)"));
+		
+		if(!filename_.isEmpty())
+		{
+			ok_button_->setEnabled(true);
+			input_combo_->setEnabled(true);
+			output_combo_->setEnabled(true);
+			if(!arg_param_.empty())
+			{
+				arg_param_.clear();
+				vis_param_.clear();
+				editor_->deleteAll();
+				arg_map_.clear();
+			}
+			
+			arg_param_.load(filename_.toStdString());
+			Param::ConstIterator iter=arg_param_.begin();
+			String str;
+			string=iter->first.substr(0,iter->first.find(":")).c_str();
+			Int pos = tools_combo_->findText(string);
+			if (pos!=-1)
+			{
+				tools_combo_->setCurrentIndex(pos);
+			}
+			vis_param_=arg_param_.copy(getTool()+":1:",true);
+			
+			editor_->loadEditable(vis_param_);
+			
+			QStringList arg_list;
+			for (Param::ConstIterator iter=arg_param_.begin();iter!=arg_param_.end();++iter)
+			{
+				str=iter->first.substr(iter->first.rfind("1:")+2,iter->first.size());
+				if(str.size()!=0 && str.find(":")==String::npos)
+				{
+					arg_map_.insert(make_pair(str,iter->first));
+					arg_list<<QStringList(str.c_str());
+				}
+			}
+			
+			arg_list.push_front("<select>");
+			input_combo_->clear();
+			output_combo_->clear();
+			input_combo_->addItems(arg_list);
+			pos = arg_list.indexOf("in");
+			if (pos!=-1)
+			{
+				input_combo_->setCurrentIndex(pos);
+			}
+			output_combo_->addItems(arg_list);
+			pos = arg_list.indexOf("out");
+			if (pos!=-1)
+			{
+				output_combo_->setCurrentIndex(pos);
+			}
+			
+			string=QString("%1 - TOPP tools").arg(filename_);
+			setWindowTitle(string.remove(0,string.lastIndexOf('/')+1));
+			return true;
+		}
+		else return false;
+	}
+	
+	bool ToolsDialog::storeIni()
+	{
+		filename_=QFileDialog::getSaveFileName(this,tr("Save ini file"),".",tr("ini files (*.ini)"));
+		if(!filename_.isEmpty() && !arg_param_.empty())
+		{
+			if(!filename_.endsWith(".ini")) filename_.append(".ini");
+			editor_->store();
+			arg_param_.insert(getTool()+":1:",vis_param_);
+			if(!File::writable(filename_.toStdString()))
+			{
+				QMessageBox::critical(this,"Error",(String("Could not write to '")+filename_.toStdString()).c_str());
+			}
+			arg_param_.store(filename_.toStdString());
+			QString str=QString("%1 - TOPP tools").arg(filename_);
+			setWindowTitle(str.remove(0,str.lastIndexOf('/')+1));
+			return true;
+		}
+		return false;
 	}
 	
 	String ToolsDialog::getOutput()
