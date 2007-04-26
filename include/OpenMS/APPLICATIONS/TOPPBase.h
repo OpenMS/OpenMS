@@ -77,11 +77,19 @@ namespace OpenMS
 		}
 
 	/**
-		 @brief Base class for TOPP Applications.
+		 @brief Base class for TOPP applications.
 		
-		 You have to implement the virtual methods registerOptionsAndFlags_
-     and main_ only.
-		 
+		This base class implements functionality used in most TOPP tools:
+		- parameter handling
+		- file handling
+		- progress logging
+		
+		If you want to create a new TOPP tool, please take care of the following:
+		- derive a new class from this class
+		- impelment the registerOptionsAndFlags_ and main_ methods
+		- add a doxygen page for the tool and add the page to TOPP.doxygen
+		- hide the derived class in the OpenMS documentation by using doxygen codition macros.
+		
 		 @todo complete the tests (Clemens)
 	*/
   class TOPPBase
@@ -248,7 +256,9 @@ namespace OpenMS
 		std::vector<ParameterInformation> parameters_;
 
 		/**
-			@brief This method should return the defautl parameters for subsections.
+			@brief This method should return the default parameters for subsections.
+			
+			It is called once for each registered subsection, when writing the an example ini file.
 			
 			Reimplement this method to set the defaults written in the 'write_ini' method.
 		*/

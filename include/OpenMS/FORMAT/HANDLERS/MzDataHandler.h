@@ -779,6 +779,8 @@ namespace OpenMS
 		template <typename MapType>
 		void MzDataHandler<MapType>::writeTo(std::ostream& os)
 		{
+			logger_.initProgress(0,cexp_->size(),"storing mzData file");
+			
 			os << "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>\n"
 				 << "<mzData version=\"1.05\" accessionNumber=\"OpenMS:\">\n";
 
@@ -799,6 +801,7 @@ namespace OpenMS
 			int spectrum_ref = -1;
 			for (UInt s=0; s<cexp_->size(); s++)
 			{
+				logger_.setProgress(s);
 				//std::cout << "writing scan" << std::endl;
 				
 				const SpectrumType& spec = (*cexp_)[s];

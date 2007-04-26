@@ -27,6 +27,7 @@
 #ifndef OPENMS_FORMAT_HANDLERS_MZXMLHANDLER_H
 #define OPENMS_FORMAT_HANDLERS_MZXMLHANDLER_H
 
+#include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/FORMAT/Base64.h>
 #include <OpenMS/FORMAT/PeakFileOptions.h>
 #include <OpenMS/FORMAT/HANDLERS/SchemaHandler.h>
@@ -56,7 +57,7 @@ namespace OpenMS
       /**@name Constructors and destructor */
       //@{
       /// Constructor for a write-only handler
-      MzXMLHandler(MapType& exp, const String& filename)
+      MzXMLHandler(MapType& exp, const String& filename, ProgressLogger& logger)
 			: SchemaHandler(TAG_NUM,MAP_NUM,filename), // number of tags, number of maps
 				exp_(&exp),	
 				cexp_(0),
@@ -65,14 +66,15 @@ namespace OpenMS
 				decoder_(),
 				peak_count_(0),
 				char_rest_(),
-				spec_write_counter_(1)
+				spec_write_counter_(1),
+				logger_(logger)
   		{
 				fillMaps_(Schemes::MzXML[schema_]);	// fill maps with current schema
 				setMaps_(TAGMAP, ATTMAP);
 			}
 
       /// Constructor for a read-only handler
-      MzXMLHandler(const MapType& exp, const String& filename)
+      MzXMLHandler(const MapType& exp, const String& filename, const ProgressLogger& logger)
 			: SchemaHandler(TAG_NUM,MAP_NUM,filename), // number of tags, number of maps
 				exp_(0), 
 				cexp_(&exp),
@@ -80,7 +82,8 @@ namespace OpenMS
 				decoder_(),
 				peak_count_(0),
 				char_rest_(),
-				spec_write_counter_(1)
+				spec_write_counter_(1),
+				logger_(logger)
   		{
 				fillMaps_(Schemes::MzXML[schema_]);	// fill maps with current schema
 				setMaps_(TAGMAP, ATTMAP);
@@ -174,6 +177,9 @@ namespace OpenMS
 
 		/// spectrum counter (spectra without peaks are not written)
 		UInt spec_write_counter_;
+		
+		/// Progress logging class
+		const ProgressLogger& logger_;
 		
 		/// Add name, value and description to a given MetaInfo object
 		void setAddInfo_(MetaInfoInterface& info, const String& name, const String& value, const String& description)
@@ -292,15 +298,15 @@ namespace OpenMS
 		switch(tag)
 		{
 			case MSRUN:
-				if (options_.getMetadataOnly())
+				if (!options_.getMetadataOnly())
 				{
 					tmp_str = getAttributeAsString_(SCANCOUNT);
 					if (tmp_str!="") // optional attribute
-					{  
+					{
 						exp_->reserve( asUInt_(tmp_str) );
 					}
 				}
-				
+				logger_.initProgress(0,asUInt_(tmp_str),"loading mzXML file");
 				// fall through?
 			case MZXML:
 				// look for schema information
@@ -632,7 +638,10 @@ namespace OpenMS
 						// skip this tag
 						spec_ = 0;
 						skipTag_();
-					} else {
+					} 
+					else 
+					{
+						logger_.setProgress(exp_->size());
 						exp_->push_back(spec);
 						spec_ = &(exp_->back());
 					}
@@ -1024,6 +1033,7 @@ namespace OpenMS
 			const SpectrumType& spec = (*cexp_)[s];
 			if (spec.size()!=0) ++count_tmp_;
 		}
+		logger_.initProgress(0,cexp_->size(),"storing mzXML file");
 		os  << "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>\n"
 			 << "<mzXML xmlns=\"http://sashimi.sourceforge.net/schema_revision/mzXML_2.0\" "
 			 << "xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" "
@@ -1174,6 +1184,7 @@ namespace OpenMS
 		// write scans
 		for (UInt s=0; s<cexp_->size(); s++)
 		{
+			logger_.setProgress(s);
 			const SpectrumType& spec = (*cexp_)[s];
 						
 			int MSLevel = spec.getMSLevel();

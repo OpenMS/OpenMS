@@ -70,7 +70,7 @@
 		<LI> Nico Pfeifer -- Retention time prediction
 		<LI> Ole Schulz-Trieglaff -- FeatureFinder
 		<LI> Marc Sturm -- Built system, Kernel, File formats, Visualization
-		<LI> Alexandra Zerck -- PeakPicker
+		<LI> Alexandra Zerck -- PeakPicking, Calibration
 	</UL>
   
 */
@@ -79,13 +79,21 @@
 Ideen:
 - Seeder/Extender: Analyse der MassenSpur-Distanzen
 
-General:
-- announcments list
-- Pride / RAMP auf Website
-- Umbau -> OpenMS / TOPP
-
 Todos:
-- Progress in mzData, mzXML, DTA2D und ANDI/MS (lesen und schreiben)
+- 4611/raw_cut.mzData -> mzXML -> nicht mehr zu laden!
+- ProgressLogger finished()
+- Update Mascot
+- Docu ProgressLogger: alles const -> immer Logbar
+- Stefan Heess: QT fehler Metadaten einzelne Spektren mit ID
+- TPP anschauen
+- Test-builts: log-datei von tests....
+- announcments password: OMS_ML_PW
+- Release script: Docu bauen!
+- Umbau Website: Team (Position, project role), OpenMS - <name> (Website, Docu, Projektbeschreibungen)
+- Email Developers: ProgressLogger, analysisXML -> idXML, Schemata underer Formate,
+- Thomas Schreiner: mzData fixen (CV)
+- Tutorial: neue Algorithmen -> ProgressLogger, DefaultParamHandler, Interfaces
+- Progress in <DTA2D und ANDI/MS (lesen und schreiben)
 - Progress in alle wichtigen Algorithmen einbauen + TOPPTools
 - Reine TOPPView Klassen aufräumen
 - Spectrum3DCanvas: fix grab keyboard

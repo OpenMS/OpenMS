@@ -156,7 +156,7 @@ class TOPPFileConverter
 		}
 		else
 		{
-			fh.loadExperiment(in,exp,in_type);
+			fh.loadExperiment(in,exp,in_type,log_type_);
 		}
 	
 		//-------------------------------------------------------------
@@ -167,11 +167,15 @@ class TOPPFileConverter
 			
 		if (out_type == FileHandler::MZDATA)
 		{
-			MzDataFile().store(out,exp);			
+			MzDataFile f;
+			f.setLogType(log_type_);
+			f.store(out,exp);			
 		}
 		else if (out_type == FileHandler::MZXML)
 		{
-			MzXMLFile().store(out,exp);				
+			MzXMLFile f;
+			f.setLogType(log_type_);
+			f.store(out,exp);					
 		}
 		else if (out_type == FileHandler::DTA2D)
 		{

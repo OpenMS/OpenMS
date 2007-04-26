@@ -608,6 +608,11 @@ If a test needs suplementary files, put these files in the same folder.
 The name of suplementary files has to begin with the name of the tested tool.
 All extensions but <TT>.tmp</TT>, <TT>.output</TT> or <TT>.log</TT> are possible.
 
+<H3>Suplementary files</H3>
+
+All output files that can be deleted after the test must end with <TT>.tmp</TT>.
+All files with that extension are deleted after the test, unless in debug mode.
+
 <H3>Running the tests</H3>
 
 The tests for TOPP programs are located in <TT>source/TEST/TOPP</TT>.

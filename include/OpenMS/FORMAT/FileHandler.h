@@ -136,8 +136,12 @@ namespace OpenMS
 				return true;
 				break;
 			case MZXML:
-				MzXMLFile().load(filename,exp);
-				return true;
+				{
+					MzXMLFile f;
+					f.setLogType(log);
+					f.load(filename,exp);
+					return true;
+				}
 				break;
 			case MZDATA:
 				{

@@ -40,6 +40,7 @@ namespace OpenMS
 		This represenation only contains the information used for parsing and validation.
 		
 		@todo add check after reading the file -> ParseError (Marc)
+		@todo add OWL format (Marc)
 	*/
 	class ControlledVocabulary
 	{
