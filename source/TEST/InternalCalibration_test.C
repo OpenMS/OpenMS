@@ -119,7 +119,7 @@ RESULT
 
 
 CHECK( template<typename InputPeakType>
-       void calibrate(MSExperiment<InputPeakType>& exp, std::vector<double>& ref_masses) )
+       void calibrate(MSExperiment<InputPeakType>& exp, std::vector<double>& ref_masses,bool peak_data) )
   PRECISION(0.000001)
   MSExperiment<RawDataPoint1D> exp;
   MSExperiment<PickedPeak1D> exp_peaks;
@@ -129,9 +129,13 @@ CHECK( template<typename InputPeakType>
   ref_masses.push_back(1296.68476942);
   ref_masses.push_back(2465.19833942);
 
-  ptr->setPeakBound(800);
-  ptr->calibrate(exp,ref_masses);
-// hier muss nun noch geprüft werden, ob zumindest an den 2 calibranten der fehler null ist
+  Param param;
+  param.setValue("PeakPicker:thresholds:peak_bound",800);
+  param.setValue("PeakPicker:thresholds:fwhm_bound",0.0);
+  param.setValue("PeakPicker:thresholds:correlation",0.0);
+  ptr->setParameters(param);
+  ptr->calibrate(exp,ref_masses,false);
+
   PeakPickerCWT pp;
   pp.setPeakCorrBound(0.0);
   pp.setPeakBound(800);

@@ -34,16 +34,13 @@ namespace OpenMS
 	InternalCalibration::InternalCalibration()
 		:DefaultParamHandler("InternalCalibration")
 	{
-		defaults_.setValue("peak_bound",1400);
-
-		defaultsToParam_();
-		updateMembers_();
+		subsections_.push_back("PeakPicker");
 	}
 	
   InternalCalibration::InternalCalibration(InternalCalibration& obj)
 		:DefaultParamHandler(obj),exp_peaks_(obj.exp_peaks_),monoiso_peaks_(obj.monoiso_peaks_)
   {
-		updateMembers_();
+	
   }
   
   InternalCalibration& InternalCalibration::operator=(const InternalCalibration& obj)
@@ -51,7 +48,7 @@ namespace OpenMS
 		// take care of self assignments
     if (this == &obj)		return *this;
 		DefaultParamHandler::operator=(obj);
-		updateMembers_();
+
 		exp_peaks_=obj.exp_peaks_;
 		monoiso_peaks_=obj.monoiso_peaks_;
     return *this;
@@ -120,9 +117,5 @@ namespace OpenMS
 		std::cout << "--------------\n\n\n";
 #endif
 	}
-
-	void InternalCalibration::updateMembers_()
-	{
-		peak_bound_ = (double)param_.getValue("peak_bound");
-	}
+	
 }

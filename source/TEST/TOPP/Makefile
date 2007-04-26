@@ -305,21 +305,21 @@ FeatureFinder_test: $(NUMERICDIFF)
 	-in FeatureFinder_1_input.mzData \
 	-out FeatureFinder_1_output.tmp)
 	@$(call TEST_FILE_EQUAL,FeatureFinder_1_output.xml)
-	
+
 	@$(ECHO) "- Test 2 (picked data):"
 	@$(call RUN_PROG_OPT,FeatureFinder,\
 	-ini FeatureFinder_2_parameters.ini \
 	-in FeatureFinder_2_input.mzData \
 	-out FeatureFinder_2_output.tmp)
 	@$(call TEST_FILE_EQUAL,FeatureFinder_2_output.xml)
- 
+
 	@$(ECHO) "- Test 3 (raw data, using SimpleModelFitter):"
 	@$(call RUN_PROG_OPT,FeatureFinder,\
 	-ini FeatureFinder_3_parameters.ini \
 	-in FeatureFinder_1_input.mzData \
 	-out FeatureFinder_3_output.tmp)
 	@$(call TEST_FILE_EQUAL,FeatureFinder_3_output.xml)
-	
+
 	@$(ECHO) "- Test 4 (picked data, using SimpleModelFitter):"
 	@$(call RUN_PROG_OPT,FeatureFinder,\
 	-ini FeatureFinder_4_parameters.ini \
@@ -613,7 +613,7 @@ SequestAdapter_test: $(NUMERICDIFF)
 	@$(call RUN_PROG_OPT,SequestAdapter,-ini SequestAdapter_1_parameters.ini -in Inspect_Sequest.mzXML -out SequestAdapter_1_output.tmp -sequest_in)
 	@$(call TEST_FILE_EQUAL,SequestAdapter_1_output.sequest_in,SequestAdapter_1_output.tmp)
 	@$(RM) -rf Inspect_Sequest*.dta_*
-	
+
 	@$(RM) -rf ./tmp/*.dta_*  ./tmp/sequest_run.bat ./tmp/temp.sequest.in
 	@$(ECHO) "- Test 1: -sequest_in with mzData"
 	@$(call RUN_PROG_OPT,SequestAdapter,-ini SequestAdapter_1_parameters.ini -in Inspect_Sequest.mzXML -out SequestAdapter_1_output.tmp -sequest_in -in Inspect_Sequest.mzData)
@@ -700,7 +700,11 @@ PairwiseSuperposition_test: $(NUMERICDIFF)
 InternalCalibration_test: $(NUMERICDIFF)
 	@$(ECHO) ""
 	@$(ECHO) "InternalCalibration_test:"
-	@$(call RUN_PROG_OPT,InternalCalibration,-in InternalCalibration_input.mzData -out InternalCalibration_output_tmp.mzData -ref_masses InternalCalibration_ref_masses -peak_bound 800)
-	@$(call TEST_FILE_EQUAL,InternalCalibration_output.mzData,InternalCalibration_output_tmp.mzData)
+	@$(ECHO) "- Test1: calibration of raw data"
+	@$(call RUN_PROG_OPT,InternalCalibration,-in InternalCalibration_input.mzData -out InternalCalibration_output1.tmp -ref_masses InternalCalibration_ref_masses -ini InternalCalibration_parameters.ini)
+	@$(call TEST_FILE_EQUAL,InternalCalibration_output.mzData,InternalCalibration_output1.tmp)
+	@$(ECHO) "- Test2: calibration of peak data"
+	@$(call RUN_PROG_OPT,InternalCalibration,-in InternalCalibration_input2.mzData -out InternalCalibration_output2.tmp -ref_masses InternalCalibration_ref_masses -peak_data)
+	@$(call TEST_FILE_EQUAL,InternalCalibration_output2.mzData,InternalCalibration_output2.tmp)
 
 

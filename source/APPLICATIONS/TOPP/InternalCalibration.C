@@ -25,7 +25,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/MzDataFile.h>
-#include <OpenMS/FORMAT/MzXMLFile.h>
+#include <OpenMS/FORMAT/TextFile.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/FILTERING/CALIBRATION/InternalCalibration.h>
@@ -39,15 +39,19 @@ using namespace std;
 //Doxygen docu
 //-------------------------------------------------------------
 
-/**	
-   @brief Performs an internal calibration.
+/**
+	 @page InternalCalibration InternalCalibration
 
-	 This is a simle calibration method: given a list of reference masses, 
+   @brief Performs an internal calibration on an MS experiment.
+
+	 This is a simle calibration method: given a list of reference masses and an MS experiment, 
 	 the relative errors of the peaks in the data are approximated by linear interpolation and
 	 subtracted from the data. This is done scanwise, i.e. at least two reference masses need to
-	 be present in each scan, otherwise the scan can't be calibrated.
+	 be present in each scan, otherwise the scan can't be calibrated. If the input file contains
+	 raw data an additional peak picking step is performed.
 
-	
+	 @note The default input is raw data, if you have peak data, please use the flag peak_data.
+	 
    @ingroup TOPP
 */
 
@@ -67,11 +71,29 @@ class TOPPInternalCalibration
 
   void registerOptionsAndFlags_()
   {
-    registerStringOption_("in","<input file>","","input file (mzData or mzXML)");
-    registerStringOption_("out","<output file>","","output file (mzData or mzXML)");
+    registerStringOption_("in","<input file>","","input mzData file (raw or peak data)");
+    registerStringOption_("out","<output file>","","output mzData file (raw or peak data)");
     registerStringOption_("ref_masses","<reference file>","","file containing reference masses(one per line)",true);
-		registerDoubleOption_("peak_bound","<peak bound>",1000,"minimal intensity for the peak picking step",false);
-  }
+		registerFlag_("peak_data","set this flag, if you have peak data, not raw data");
+		addEmptyLine_();
+  	addText_("If you want to calibrate raw data, it is necessary to perform a peak picking step before the "
+						 "actual calibration is done. The parameters for the peak picking step can be given "
+						 "given in the 'algorithm' part of INI file in the subsection PeakPicker, e.g.:\n"
+							"<NODE name=\"algorithm\">\n"
+						  " <NODE name=\"PeakPicker\">\n"
+							"  <NODE name=\"wavelet_transform\">\n"
+							"    <ITEM name=\"scale\" value=\"0.2\" type=\"float\" />\n"
+							"  </NODE>\n"
+							"  <NODE name=\"thresholds\">\n"
+							"    <ITEM name=\"peak_bound\" value=\"100\" type=\"float\" />\n"
+							"    <ITEM name=\"correlation\" value=\"0.5\" type=\"float\" />\n"
+							"    <ITEM name=\"fwhm_bound\" value=\"0.1\" type=\"float\"/>\n"
+							"  </NODE>\n"
+						  " </NODE>\n"
+						  "</NODE>");
+		addEmptyLine_();
+		registerSubsection_("algorithm");
+	}
 
   ExitCodes main_(int , char**)
   {
@@ -83,83 +105,49 @@ class TOPPInternalCalibration
     String in = getStringOption_("in");
     String out = getStringOption_("out");
     String ref = getStringOption_("ref_masses");
-		double peak_bound = getDoubleOption_("peak_bound");
+		bool peak_data = getFlag_("peak_data");
     //-------------------------------------------------------------
     // init InternalCalibration
     //-------------------------------------------------------------
 
     InternalCalibration calib;
-    calib.setPeakBound(peak_bound);
+		Param param = getParam_().copy("algorithm:",true);
+    calib.setParameters(param);
+	  std::cout << param.getValue("PeakPicker:thresholds:peak_bound")<<std::endl;
     //-------------------------------------------------------------
     // loading input
     //-------------------------------------------------------------
     MSExperiment<RawDataPoint1D > ms_exp_raw;
     
-    if(in.hasSuffix("mzXML"))
-      {
-				MzXMLFile mz_xml_file;
-				mz_xml_file.load(in,ms_exp_raw);
-				
-      }
-    else if(in.hasSuffix("mzData"))
-      {
-				MzDataFile mz_data_file;
-				mz_data_file.load(in,ms_exp_raw);
-				
-      }
-    else
-      {
-				std::cout << "Unknown input format. Aborting!"<<std::endl;
-				return INPUT_FILE_NOT_READABLE;
-      }
-    
-    float mz;
-    vector<double> ref_masses;
-    FILE *stream;		
-    if((stream = fopen( ref.c_str(), "rt"))!= NULL)
-      {
-				// read ref masses
-				while (fscanf(stream,"%f\n",&mz)!=EOF)
-					{
-						ref_masses.push_back(mz);
-					}
-      }
-    else
-      {
-				std::cout << "Reference file not found. Aborting!"<<std::endl;
-				return INPUT_FILE_NOT_FOUND;
-      }
+		MzDataFile mz_data_file;
+		mz_data_file.load(in,ms_exp_raw);
+
 		
+    vector<double> ref_masses,ref_masses2;
+		TextFile ref_file;
+
+
+		ref_file.load(ref,true);
+
+		for(TextFile::Iterator iter = ref_file.begin(); iter != ref_file.end(); ++iter)
+			{
+				ref_masses2.push_back(atof(iter->c_str()));
+			}
 		
     //-------------------------------------------------------------
     // perform calibration
     //-------------------------------------------------------------
 		
-    calib.calibrate(ms_exp_raw,ref_masses);
+    calib.calibrate(ms_exp_raw,ref_masses,peak_data);
 
     
     //-------------------------------------------------------------
     // writing output
     //-------------------------------------------------------------
 
-    if(out.hasSuffix("mzXML"))
-      {
-				MzXMLFile mz_xml_file;
-				mz_xml_file.store(out,ms_exp_raw);
-				
-      }
-    else if(out.hasSuffix("mzData"))
-      {
-				MzDataFile mz_data_file;
-				mz_data_file.store(out,ms_exp_raw);
-				
-      }
-    else
-      {
-				std::cout << "Unknown output format. Aborting!"<<std::endl;
-				return CANNOT_WRITE_OUTPUT_FILE;
-      }
-    
+		mz_data_file.store(out,ms_exp_raw);
+
+		
     return EXECUTION_OK;
   }
 };

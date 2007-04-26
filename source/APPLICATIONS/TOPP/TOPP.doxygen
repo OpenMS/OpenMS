@@ -59,6 +59,7 @@
     - \subpage Resampler
     - \subpage SpectraFilter
     - \subpage MapNormalizer
+		- \subpage InternalCalibration
   - <b>Quantitation</b>
  		- \subpage FeatureFinder
   	- \subpage UnlabeledMatcher 

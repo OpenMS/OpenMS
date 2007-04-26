@@ -45,7 +45,7 @@ namespace OpenMS
 
      This class implements a simle calibration method: given a list of reference masses,
      the relative errors of the peaks in the data are approximated by linear interpolation and
-     subtracted from the data.
+     subtracted from the data. If the input data is raw data peak picking is done first.
      
   */
   class InternalCalibration : public DefaultParamHandler
@@ -72,11 +72,12 @@ namespace OpenMS
 
 
 		/**
-			 Calibrate a map using given reference masses.
+			 Calibrate a map using given reference masses. Set the flag peak data if you want to calibrate
+			 already picked data.
 
 		*/		
     template<typename InputPeakType>
-    void calibrate(MSExperiment<InputPeakType>& exp, std::vector<double>& ref_masses);
+    void calibrate(MSExperiment<InputPeakType>& exp, std::vector<double>& ref_masses,bool peak_data=false);
 
 		/// Non-mutable access to the picked peaks
 		inline const MSExperiment<PickedPeakType>& getPeaks() const {return exp_peaks_;}
@@ -88,50 +89,50 @@ namespace OpenMS
 		/// Mutable access to the calibrant spectra
 		inline void setMonoisotopicPeaks(const std::vector<std::vector<UInt> >& monoiso_peaks) {monoiso_peaks_ = monoiso_peaks;}
 
-		/// Non-mutable access to the peak bound
-		inline const float getPeakBound() const {return peak_bound_;}
-		/// Mutable access to the peak bound
-		inline void setPeakBound(float peak_bound)
-		{
-			peak_bound_ = peak_bound;
-			param_.setValue("peak_bound",peak_bound_);
-		}
-
   protected:
 
 		MSExperiment<PickedPeakType> exp_peaks_;
 
 		std::vector<std::vector<UInt> > monoiso_peaks_;
-
-		float peak_bound_;
 		
     /// Determines the monoisotopic peaks
     void getMonoisotopicPeaks_();
 
-		/// update members method from DefaultParamHandler to update the members 
-		void updateMembers_();
-
+		// The actual calibration function
+		template<typename InputPeakType>
+		void calibrate_(MSExperiment<InputPeakType>& exp, std::vector<double>& ref_masses);
 		
   };// class InternalCalibration
 
 
 	template<typename InputPeakType>
-  void InternalCalibration::calibrate(MSExperiment<InputPeakType>& exp, std::vector<double>& ref_masses)
+  void InternalCalibration::calibrate(MSExperiment<InputPeakType>& exp, std::vector<double>& ref_masses,bool peak_data)
   {
 #ifdef DEBUG_CALIBRATION
-	std::cout.precision(12);
+		std::cout.precision(12);
 #endif
-
-		exp_peaks_.clear();
-		monoiso_peaks_.clear();
+	
+		if(peak_data)
+			{
+				exp_peaks_ = exp;
+			}
+		else
+			{
+				exp_peaks_.clear();
+				monoiso_peaks_.clear();
+				
+				// pick peaks
+				PeakPickerCWT pp;
+				pp.setParameters(param_.copy("PeakPicker:",true));
+				pp.pickExperiment(exp,exp_peaks_);
+			}
 		
-    // pick peaks
-    PeakPickerCWT pp;
-    pp.setPeakCorrBound(0.0);
-    pp.setPeakBound(peak_bound_);
-    pp.setFwhmBound(0.0);
-    pp.pickExperiment(exp,exp_peaks_);
+		calibrate_(exp,ref_masses);
+	}
 
+	template<typename InputPeakType>
+  void InternalCalibration::calibrate_(MSExperiment<InputPeakType>& exp, std::vector<double>& ref_masses)
+  {
     // get monoisotopic peaks
     getMonoisotopicPeaks_();
 
