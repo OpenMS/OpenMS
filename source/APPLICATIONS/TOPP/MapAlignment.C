@@ -43,6 +43,9 @@ typedef ConsensusFeature< FeatureMapType > ConsensusFeatureType;
 typedef ConsensusPeak< PeakArrayType > ConsensusPeakType;
 typedef ConsensusMap< ConsensusFeatureType > ConsensusMapType;
 
+#define DEBUG_CONSENSUS
+#undef DEBUG_CONSENSUS
+
 
 //-------------------------------------------------------------
 //Doxygen docu
@@ -80,7 +83,7 @@ public:
 protected: 
 	void registerOptionsAndFlags_()
 	{
-		registerStringOption_("out","<file>","","output consensusXML file name",false);
+		registerStringOption_("out","<file>","Consensus.xml","output consensusXML file name",false);
       
 		addEmptyLine_();
 		addText_("This application implements an algorithm for the alignment of multiple maps.\n"
@@ -107,6 +110,33 @@ protected:
 		registerSubsection_("algorithm");
 		registerSubsection_("file_names");
 	}
+	
+	 Param getSubsectionDefaults_(const String& section) const
+    {
+      Param tmp;
+		
+			if (section == "algorithm")
+				{
+					tmp.setValue("map_type","feature_map");
+					tmp.setValue("number_buckets:RT",1);
+      		tmp.setValue("number_buckets:MZ",1);
+					tmp.setValue("matching_algorithm:type","poseclustering_pairwise");
+					tmp.setValue("matching_algorithm:superimposer:type","poseclustering_affine");
+					tmp.insert("matching_algorithm:superimposer",Factory<BaseSuperimposer<> >::create("poseclustering_affine")->getDefaults());
+					tmp.setValue("matching_algorithm:pairfinder:type","delaunay");
+					tmp.insert("matching_algorithm:pairfinder",Factory<BasePairFinder<> >::create("delaunay")->getDefaults());
+					tmp.insert("consensus_algorithm",Factory<BasePairFinder<> >::create("delaunay")->getDefaults());
+				}
+				if (section == "file_names")
+				{
+					tmp.setValue("1","feature_map_1.xml");
+					tmp.setValue("2","feature_map_2.xml");
+					tmp.setValue("3","feature_map_3.xml");
+					tmp.setValue("4","feature_map_4.xml");
+					tmp.setValue("5","feature_map_5.xml");
+				}
+			return tmp;
+    }
 
 
 	ExitCodes main_(int , char**)
@@ -136,7 +166,7 @@ protected:
 						return MISSING_PARAMETERS;
 					}
         StarAlignment< ConsensusFeatureType > alignment;
-        alignment.setParam(mapali_param);
+        alignment.setParameters(mapali_param);
         FeatureMapFile feature_file;
         std::vector< String > file_names;
         // Vector for the feature maps
@@ -167,6 +197,105 @@ protected:
         // align
         //-------------------------------------------------------------
         alignment.run();
+        
+#ifdef DEBUG_CONSENSUS
+        std::ofstream out_pairs("MapAlignment_pairs.dat",std::ios::out);
+        const ConsensusMap<ConsensusFeatureType>& final_consensus_map_(alignment.getFinalConsensusMap());
+        for (UInt i = 0; i < final_consensus_map_.size(); ++i)
+        {
+          bool ref = false;
+          std::vector<const ConsensusFeatureType::ElementType*> features(1);
+
+          const ConsensusFeatureType* c = &(final_consensus_map_[i]);
+          for (ConsensusFeatureType::Group::const_iterator it = c->begin(); it != c->end(); ++it)
+          {
+            if (it->getMapIndex() == alignment.getReferenceMapIndex())
+            {
+              ref = true;
+              features[0] = &(it->getElement());
+            }
+            else
+            {
+              features.push_back(&(it->getElement()));
+            }
+          }
+          if (ref)
+          {
+            out_pairs
+                << features[0]->getIntensity() << ' '
+                << features[0]->getRT() << ' '
+                << features[0]->getMZ() << ' ';
+
+            UInt j=1;
+            for (; j < features.size(); ++j)
+            {
+              out_pairs
+                  << features[j]->getIntensity() << ' '
+                  << features[j]->getRT() << ' '
+                  << features[j]->getMZ() << ' ';
+            }
+            for (;j < alignment.getElementMapVector().size(); ++j)
+            {
+              out_pairs
+                  << 0 << ' '
+                  << 0 << ' '
+                  << 0 << ' ';
+            }
+            out_pairs << std::endl;
+          }
+        }
+#endif       
+        
+        alignment.merge();
+
+#ifdef DEBUG_CONSENSUS       
+        std::ofstream out_pairs_2("MapAlignment_pairs_merged.dat",std::ios::out);
+        const ConsensusMap<ConsensusFeatureType>& final_consensus_map_2(alignment.getFinalConsensusMap());
+        for (UInt i = 0; i < final_consensus_map_2.size(); ++i)
+        {
+          bool ref = false;
+          std::vector<const ConsensusFeatureType::ElementType*> features(1);
+
+          const ConsensusFeatureType* c = &(final_consensus_map_2[i]);
+          for (ConsensusFeatureType::Group::const_iterator it = c->begin(); it != c->end(); ++it)
+          {
+            if (it->getMapIndex() == alignment.getReferenceMapIndex())
+            {
+              ref = true;
+              features[0] = &(it->getElement());
+            }
+            else
+            {
+              features.push_back(&(it->getElement()));
+            }
+          }
+          if (ref)
+          {
+            out_pairs_2
+                << features[0]->getIntensity() << ' '
+                << features[0]->getRT() << ' '
+                << features[0]->getMZ() << ' ';
+
+            UInt j=1;
+            for (; j < features.size(); ++j)
+            {
+              out_pairs_2
+                  << features[j]->getIntensity() << ' '
+                  << features[j]->getRT() << ' '
+                  << features[j]->getMZ() << ' ';
+            }
+            for (;j < alignment.getElementMapVector().size(); ++j)
+            {
+              out_pairs_2
+                  << 0 << ' '
+                  << 0 << ' '
+                  << 0 << ' ';
+            }
+            out_pairs_2 << std::endl;
+          }
+        }
+#endif
+
         //-------------------------------------------------------------
         // writing output
         //-------------------------------------------------------------
@@ -178,7 +307,7 @@ protected:
 			if (map_type == "peak_map")
 				{
 					StarAlignment< ConsensusPeakType > alignment;
-					alignment.setParam(mapali_param);
+					alignment.setParameters(mapali_param);
 					MzDataFile mzdata_file;
 					std::vector< String > file_names;
           // Vector for the feature maps
@@ -275,8 +404,8 @@ protected:
 							return MISSING_PARAMETERS;
 						}
 					StarAlignment< ConsensusFeature< ConsensusMapType > > alignment;
-					alignment.setParam(mapali_param);
-
+					alignment.setParameters(mapali_param);
+					
 					ConsensusXMLFile cons_file;
 					std::vector< String > file_names;
           // Vector for the feature maps
@@ -291,7 +420,7 @@ protected:
 							// load the feature file into a feature_map
 							try
 								{
-									cons_file.load(pit->second, cons_maps[i]);
+									cons_file.load(pit->second, cons_maps[i], false);
 								}
 							catch(Exception::FileNotFound& e)
 								{

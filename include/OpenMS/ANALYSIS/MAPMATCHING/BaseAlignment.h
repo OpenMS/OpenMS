@@ -29,9 +29,11 @@
 #define OPENMS_ANALYSIS_MAPMATCHING_BASEALIGNMENT_H
 
 #include <OpenMS/KERNEL/FeatureMap.h>
+#include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/BasePairwiseMapMatcher.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/PoseClusteringPairwiseMapMatcher.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/BasePairwiseMapMatcher_registerChildren.h>
+#include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 
 #include <utility>
 #include <fstream>
@@ -49,7 +51,7 @@ namespace OpenMS
    
   */
   template < typename ConsensusElementT >
-  class BaseAlignment
+  class BaseAlignment : public DefaultParamHandler
   {
   public:
     /// Consensus element type
@@ -60,22 +62,25 @@ namespace OpenMS
     /// Element container type (the type of the element maps, that are aligned)
     typedef typename ConsensusElementType::ElementContainerType ElementContainerType;
     /// Consensus map type
-    typedef std::vector< ConsensusElementType > ConsensusMapType;
+    typedef std::vector< ConsensusElementType > ConsensusVectorType;
 
     /// Constructor
     BaseAlignment()
-        : param_()
-    {}
+        : DefaultParamHandler("BaseAlignment")
+    {
+    	defaults_.setValue("map_type","");
+    	
+    	defaultsToParam_();
+    }
 
     /// Copy constructor 
     BaseAlignment(const BaseAlignment& source)
-        : param_(source.param_),
+        : DefaultParamHandler(source),
         final_consensus_map_(source.final_consensus_map_),
-        transformations_(source.transformations_),
-        file_names_(source.file_names_),
-        element_map_vector_(source.element_map_vector_),
-        map_type_(source.map_type_)
-    {}
+        transformations_(source.transformations_)
+    {
+    	updateMembers_();	
+    }
 
     ///  Assignment operator 
     virtual BaseAlignment& operator = (const BaseAlignment& source)
@@ -83,12 +88,12 @@ namespace OpenMS
       if (&source==this)
         return *this;
 
-      param_ = source.param_;
+      DefaultParamHandler::operator=(source);
       final_consensus_map_ = source.final_consensus_map_;
       transformations_ = source.transformations_;
-      file_names_ = source.file_names_;
-      element_map_vector_ = source.element_map_vector_;
-      map_type_ = source.map_type_;
+      
+      updateMembers_();
+      
       return *this;
     }
 
@@ -96,33 +101,20 @@ namespace OpenMS
     virtual ~BaseAlignment()
   {}
 
-    /// Get param class (non-mutable)
-    const Param& getParam() const
-    {
-      return param_;
-    }
-
-    /// Mutable access to the param object
-    void setParam(const Param& param)
-    {
-      param_ = param;
-      map_type_ = param_.getValue("map_type");
-    }
-
     /// Mutable access to the vector of maps
     void setElementMapVector(const std::vector< ElementContainerType* >& element_map_vector)
     {
-      element_map_vector_ = element_map_vector;
+      final_consensus_map_.setMapVector(element_map_vector);
     }
     /// Mutable access to the vector of maps
     std::vector< ElementContainerType* >& getElementMapVector()
     {
-      return element_map_vector_;
+      return final_consensus_map_.getMapVector();
     }
     /// Non-mutable access to the vector of maps
     const std::vector< ElementContainerType* >& getElementMapVector() const
     {
-      return element_map_vector_;
+      return final_consensus_map_.getMapVector();
     }
 
     /// Mutable access to the transformations
@@ -139,20 +131,19 @@ namespace OpenMS
     /// Mutable access to the vector of file names
     void setFileNames(const std::vector< String >& file_names)
     {
-      file_names_ = file_names;
+      final_consensus_map_.setFilenames(file_names);
     }
     /// Non-mutable access to the vector of file names
     const std::vector< String >& getFileNames() const
     {
-      return file_names_;
+      return final_consensus_map_.getFilenames();
     }
 
     /// Mutable access to the map type
     void setMapType(const String& map_type)
     {
       map_type_ = map_type;
-      String param_name = "map_type";
-      param_.setValue(param_name, map_type);
+      param_.setValue("map_type",map_type_);
     }
     /// Non-mutable access to the map type (map type can be "feature_map", "peak_map" or "consensus_map"
     const String& getMapType() const
@@ -161,12 +152,13 @@ namespace OpenMS
     }
 
     /// Non-mutable access to the final consensus map
-    const std::vector < ConsensusElementType >& getFinalConsensusMap() const
+    const ConsensusMap < ConsensusElementType >& getFinalConsensusMap() const
     {
       return final_consensus_map_;
     }
+    
     /// Mutable access to the final consensus map
-    void setFinalConsensusMap(const std::vector < ConsensusElementType >& final_consensus_map)
+    void setFinalConsensusMap(const ConsensusMap < ConsensusElementType >& final_consensus_map)
     {
       final_consensus_map_ = final_consensus_map;
     }
@@ -179,28 +171,19 @@ namespace OpenMS
     virtual String getAlignmentTree() const = 0;
 
   protected:
-    /// Parameter object
-    Param param_;
-
-    /// Final consensus map
-    std::vector < ConsensusElementType > final_consensus_map_;
-
+     /// Final consensus map
+    ConsensusMap < ConsensusElementType > final_consensus_map_;
+    
     /// The transformation vector
     std::vector< Grid > transformations_;
-
-    /// File names of the maps to be aligned
-    std::vector< String > file_names_;
-
-    /// The maps to be aligned
-    std::vector< ElementContainerType* > element_map_vector_;
 
     /// The map type
     String map_type_;
 
     /// Build a consensus map of the map with index map_index (the set of grouped elements contains the element itself).
-    void buildConsensusMapTypeInsertInGroup_(UInt map_index, std::vector< ConsensusElementType >& cons_map)
+    void buildConsensusVectorTypeInsertInGroup_(UInt map_index, std::vector< ConsensusElementType >& cons_map)
     {
-      const ElementContainerType& map = *(element_map_vector_[map_index]);
+      const ElementContainerType& map = *(final_consensus_map_.getMapVector()[map_index]);
       UInt n = map.size();
       for (UInt i=0; i < n; ++i)
       {
@@ -210,9 +193,9 @@ namespace OpenMS
     }
 
     /// Build a consensus map of the map with index map_index (the set of grouped elements doesn't contain the element itself).
-    void buildConsensusMapType_(UInt map_index, std::vector< ConsensusElementType >& cons_map)
+    void buildConsensusVectorType_(UInt map_index, std::vector< ConsensusElementType >& cons_map)
     {
-      const ElementContainerType& map = *(element_map_vector_[map_index]);
+      const ElementContainerType& map = *(final_consensus_map_.getMapVector()[map_index]);
       UInt n = map.size();
       for (UInt i=0; i < n; ++i)
       {
@@ -220,6 +203,11 @@ namespace OpenMS
         cons_map.push_back(c);
       }
     }
+    
+    void updateMembers_() 
+     {
+       map_type_ = param_.getValue("map_type"); 
+     }
   }
   ; // BaseAlignment
 } // namespace OpenMS

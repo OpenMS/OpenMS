@@ -65,7 +65,6 @@ namespace OpenMS
       public:
         typedef typename AlignmentT::ElementContainerType ElementContainerType;
         typedef typename AlignmentT::ElementType ElementType;
-        typedef typename AlignmentT::ConsensusMapType ConsensusMapType;
         typedef typename AlignmentT::ConsensusElementType ConsensusElementType;
 
       
@@ -73,13 +72,14 @@ namespace OpenMS
         typedef DPosition<2> PositionType;
 
       /// Constructor
-        ConsensusXMLHandler(ConsensusMap<ConsensusElementType>& consensus_map , const String& filename)
+        ConsensusXMLHandler(ConsensusMap<ConsensusElementType>& consensus_map , const String& filename, bool load_elements_maps = true)
             : SchemaHandler(TAG_NUM,MAP_NUM,filename),
             consensus_map_(&consensus_map),
             act_cons_element_(),
             calignment_(0),
             consensus_element_range_(false),
-            feature_map_flag_(true)
+            feature_map_flag_(true),
+            load_elements_maps_(load_elements_maps)
         {
           fillMaps_(Schemes::ConsensusXML[schema_]); // fill maps with current schema
           setMaps_(TAGMAP, ATTMAP);
@@ -124,6 +124,7 @@ namespace OpenMS
         bool consensus_element_range_;
         bool feature_map_flag_;
         bool consensus_map_flag_;
+        bool load_elements_maps_;
         typename ConsensusElementType::PositionType pos_;
         typename ConsensusElementType::IntensityType it_;
         typename ConsensusElementType::PositionBoundingBoxType pos_range_;
@@ -315,21 +316,22 @@ namespace OpenMS
             tmp_str = getAttributeAsString_(NAME);
 
             // load FeatureMapXML
-            if (feature_map_flag_)
+            if (feature_map_flag_ && load_elements_maps_)
             {
               loadFile_(tmp_str,id,act_cons_element_);
             }
             // load MzData
             else
             {
-              if (consensus_map_flag_)
+              if (consensus_map_flag_ && load_elements_maps_)
               {
                 loadFile_(tmp_str,id,act_cons_element_);
               }
               else
-              {
-                loadFile_(tmp_str,id,act_cons_element_);
-              }
+                if (load_elements_maps_)
+                {
+                  loadFile_(tmp_str,id,act_cons_element_);
+                }
             }
             consensus_map_->getFilenames()[id]=tmp_str;
           }
@@ -400,35 +402,38 @@ namespace OpenMS
           }
           break;
           case ELEMENT:
-          IndexTuple< ElementContainerType > act_index_tuple;
-          tmp_str = getAttributeAsString_(MAP_ATT);
-          if (tmp_str != "")
-          {
-            UInt map_index = asUInt_(tmp_str);
-            tmp_str = getAttributeAsString_(ID);
-
-            if (tmp_str != "")
+            if (load_elements_maps_)
             {
-              UInt element_index = asUInt_(tmp_str);
-
-              act_index_tuple.setMapIndex(map_index);
-              act_index_tuple.setElementIndex(element_index);
-
-              tmp_str = getAttributeAsString_(RT_ATT);
-              PositionType pos;
-              pos[0] = asDouble_(tmp_str);
-              tmp_str = getAttributeAsString_(MZ_ATT);
-              pos[1] = asDouble_(tmp_str);
-
-              act_index_tuple.setTransformedPosition(pos);
-              act_index_tuple.setElement(((consensus_map_->getMapVector())[map_index])[element_index]);
-              act_cons_element_.insert(act_index_tuple);
-              act_cons_element_.getPosition() = pos_;
-              act_cons_element_.getPositionRange() = pos_range_;
-              act_cons_element_.setIntensity(it_);
-              act_cons_element_.getIntensityRange() = it_range_;
+              IndexTuple< ElementContainerType > act_index_tuple;
+              tmp_str = getAttributeAsString_(MAP_ATT);
+              if (tmp_str != "")
+              {
+                UInt map_index = asUInt_(tmp_str);
+                tmp_str = getAttributeAsString_(ID);
+    
+                if (tmp_str != "")
+                {
+                  UInt element_index = asUInt_(tmp_str);
+    
+                  act_index_tuple.setMapIndex(map_index);
+                  act_index_tuple.setElementIndex(element_index);
+    
+                  tmp_str = getAttributeAsString_(RT_ATT);
+                  PositionType pos;
+                  pos[0] = asDouble_(tmp_str);
+                  tmp_str = getAttributeAsString_(MZ_ATT);
+                  pos[1] = asDouble_(tmp_str);
+    
+                  act_index_tuple.setTransformedPosition(pos);
+                  act_index_tuple.setElement((*((consensus_map_->getMapVector())[map_index]))[element_index]);
+                  act_cons_element_.insert(act_index_tuple);
+                }
+              }
             }
-          }
+            act_cons_element_.getPosition() = pos_;
+            act_cons_element_.getPositionRange() = pos_range_;
+            act_cons_element_.setIntensity(it_);
+            act_cons_element_.getIntensityRange() = it_range_;
           break;
       }
     }
@@ -455,7 +460,7 @@ namespace OpenMS
       os << "\t</mapList>\n";
 
       os << "\t<alignmentMethod name=\"StarAlignmemt\">\n";
-      os << "\t\t<matchingAlgorithm name=\"" << calignment_->getParam().getValue("matching_algorithm:type") << "\"/>\n";
+      os << "\t\t<matchingAlgorithm name=\"" << calignment_->getParameters().getValue("matching_algorithm:type") << "\"/>\n";
       os << "\t\t<consensusAlgorithm name=\"delaunay\"/>\n";
       os << "\t</alignmentMethod>\n";
 

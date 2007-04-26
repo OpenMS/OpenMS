@@ -77,7 +77,7 @@ CHECK((BaseAlignment& operator = (const BaseAlignment& source)))
   TestAlignment al;
   Param param;
   param.setValue("consensus_algorithm","delaunay");
-  al.setParam(param);
+  al.setParameters(param);
   vector<FeatureMap<>*> map_vector;
   FeatureMap<> map;
   map_vector.push_back(&map);
@@ -104,7 +104,7 @@ CHECK((BaseAlignment& operator = (const BaseAlignment& source)))
   al_copy = al;
 
   TEST_EQUAL(al.getTransformationVector() == al_copy.getTransformationVector(),true)
-  TEST_EQUAL(al.getParam() == al_copy.getParam(),true)
+  TEST_EQUAL(al.getParameters() == al_copy.getParameters(),true)
   TEST_EQUAL(al_copy.getElementMapVector().size() == 1, true)
   TEST_EQUAL(al_copy.getFileNames().size() == 1, true)
   TEST_EQUAL((al_copy.getFileNames())[0] == "blub", true)
@@ -115,7 +115,7 @@ CHECK((BaseAlignment(const BaseAlignment& source)))
   TestAlignment al;
   Param param;
   param.setValue("consensus_algorithm","delaunay");
-  al.setParam(param);
+  al.setParameters(param);
   vector<FeatureMap<>*> map_vector;
   FeatureMap<> map;
   map_vector.push_back(&map);
@@ -141,7 +141,7 @@ CHECK((BaseAlignment(const BaseAlignment& source)))
   TestAlignment al_copy(al);
 
   TEST_EQUAL(al.getTransformationVector() == al_copy.getTransformationVector(),true)
-  TEST_EQUAL(al.getParam() == al_copy.getParam(),true)
+  TEST_EQUAL(al.getParameters() == al_copy.getParameters(),true)
   TEST_EQUAL(al_copy.getElementMapVector().size() == 1, true)
   TEST_EQUAL(al_copy.getFileNames().size() == 1, true)
   TEST_EQUAL((al_copy.getFileNames())[0] == "blub", true)
@@ -150,15 +150,6 @@ RESULT
 
 CHECK((String getAlignmentTree() const))
 
-RESULT
-
-CHECK((const Param& getParam() const))
-  TestAlignment al;
-  Param param;
-  param.setValue("consensus_algorithm","delaunay");
-  al.setParam(param);
-  
-  TEST_EQUAL(al.getParam() == param, true)
 RESULT
 
 CHECK((const String& getMapType() const))
@@ -244,18 +235,9 @@ CHECK((void setMapType(const String& map_type)))
   TEST_EQUAL(al.getMapType() == "peak_map", true)
 RESULT
 
-CHECK((void setParam(const Param& param)))
-  TestAlignment al;
-  Param param;
-  param.setValue("consensus_algorithm","delaunay");
-  al.setParam(param);
-  
-  TEST_EQUAL(al.getParam() == param,true)
-RESULT
-
 CHECK((void setFinalConsensusMap(const std::vector < ConsensusElementType >& final_consensus_map)))
   TestAlignment al;
-  std::vector<ConsensusFeatureType> cons_map(4);
+  ConsensusMap<ConsensusFeatureType> cons_map(4);
   al.setFinalConsensusMap(cons_map);
   
   TEST_EQUAL(al.getFinalConsensusMap().size() == 4,true)

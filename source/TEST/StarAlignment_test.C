@@ -56,7 +56,7 @@ CHECK(StarAlignment& operator = (StarAlignment source))
   StarAlignment< ConsensusFeature<FeatureMap<> > > alignment;
   Param param;
   param.setValue("matching_algorithm:type","poseclustering_pairwise");
-  alignment.setParam(param);
+  alignment.setParameters(param);
    
   vector<FeatureMap<>*> map_vector;
   FeatureMap<>map;
@@ -72,7 +72,7 @@ CHECK(StarAlignment& operator = (StarAlignment source))
   StarAlignment< ConsensusFeature<FeatureMap<> > > alignment_copy;
   alignment_copy = alignment;
 
-  TEST_EQUAL(alignment.getParam() == alignment_copy.getParam(),true)
+  TEST_EQUAL(alignment.getParameters() == alignment_copy.getParameters(),true)
   TEST_EQUAL(alignment_copy.getElementMapVector().size() == 1, true)
   TEST_EQUAL(alignment_copy.getFileNames().size() == 1, true)
   TEST_EQUAL((alignment_copy.getFileNames())[0] == "blub", true)
@@ -83,7 +83,7 @@ CHECK(StarAlignment(const StarAlignment& source))
   StarAlignment< ConsensusFeature<FeatureMap<> > > alignment;
   Param param;
   param.setValue("matching_algorithm:type","poseclustering_pairwise");
-  alignment.setParam(param);
+  alignment.setParameters(param);
   vector<FeatureMap<>*> map_vector;
   FeatureMap<>map;
   map_vector.push_back(&map);
@@ -97,7 +97,7 @@ CHECK(StarAlignment(const StarAlignment& source))
     
   StarAlignment< ConsensusFeature<FeatureMap<> > > alignment_copy(alignment);
 
-  TEST_EQUAL(alignment.getParam() == alignment_copy.getParam(),true)
+  TEST_EQUAL(alignment.getParameters() == alignment_copy.getParameters(),true)
   TEST_EQUAL(alignment_copy.getElementMapVector().size() == 1, true)
   TEST_EQUAL(alignment_copy.getFileNames().size() == 1, true)
   TEST_EQUAL((alignment_copy.getFileNames())[0] == "blub", true)
@@ -155,7 +155,7 @@ CHECK(void run() throw(Exception::InvalidValue))
   param.setValue("matching_algorithm:type","poseclustering_pairwise");
   param.setValue("matching_algorithm:superimposer:type","poseclustering_affine");
   param.setValue("matching_algorithm:pairfinder:type","delaunay");
-  alignment.setParam(param);
+  alignment.setParameters(param);
   alignment.run();
   
   PRECISION(0.01)

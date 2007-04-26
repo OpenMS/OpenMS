@@ -81,7 +81,7 @@ namespace OpenMS
     typedef typename Base::ConsensusElementType ConsensusElementType;
     typedef typename Base::ElementType ElementType;
     typedef typename Base::ElementContainerType ElementContainerType;
-    typedef typename Base::ConsensusMapType ConsensusMapType;
+    typedef typename Base::ConsensusVectorType ConsensusVectorType;
 
     /// Pointer vector
     typedef DPeakConstReferenceArray< ElementContainerType > PeakConstReferenceMapType;
@@ -104,11 +104,9 @@ namespace OpenMS
     /// Container for generated element pairs
     typedef std::vector < ElementType > ElementPairVectorType;
 
-    using Base::element_map_vector_;
     using Base::param_;
     using Base::final_consensus_map_;
     using Base::transformations_;
-    using Base::file_names_;
     using Base::map_type_;
 
     /// Constructor
@@ -143,7 +141,7 @@ namespace OpenMS
     /// Mutable access to the index of the reference map
     void setReferenceMapIndex(UInt index) throw (Exception::InvalidValue)
     {
-      if (index > element_map_vector_.size())
+      if (index > final_consensus_map_.getMapVector().size())
 				{
 					throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__,"The index is not contained in the vector of element containers.","") ;
 				}
@@ -161,7 +159,7 @@ namespace OpenMS
     /// Estimates the transformation for each grid cell
     virtual void run() throw (Exception::InvalidValue)
     {
-      if (element_map_vector_.size() < 2)
+      if (final_consensus_map_.getMapVector().size() < 2)
 				{
 					throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__,"Take at least 2 maps for alignment.","") ;
 				}
@@ -170,7 +168,7 @@ namespace OpenMS
 					assignReferenceMap_();
 				}
 #ifdef DEBUG_ALIGNMENT
-      std::cout << "*** Reference Map is " << file_names_[reference_map_index_] << " ***" <<  std::endl;
+      std::cout << "*** Reference Map is " << final_consensus_map_.getFilenames()[reference_map_index_] << " ***" <<  std::endl;
 #endif
 
       if (map_type_ == "feature_map")
@@ -203,7 +201,7 @@ namespace OpenMS
     virtual String getAlignmentTree() const
     {
       String tree;
-      UInt n = element_map_vector_.size();
+      UInt n = final_consensus_map_.getMapVector().size();
       tree = '(';
       UInt j = 0;
       for (UInt i = 0; i < n; ++i)
@@ -223,6 +221,12 @@ namespace OpenMS
 
       return tree;
     }
+    
+    /// Merge the elements of the final consensus map
+    void merge()
+    {
+      final_consensus_map_.merge();
+    }
 
   protected:
 		/// Int of the reference map
@@ -232,9 +236,9 @@ namespace OpenMS
     /// Define the map with the most elements as the reference map
     void assignReferenceMap_()
     {
-      UInt n = element_map_vector_.size();
+      UInt n = final_consensus_map_.getMapVector().size();
       UInt ref_index = 0;
-      UInt max_number = element_map_vector_[ref_index]->size();
+      UInt max_number = final_consensus_map_.getMapVector()[ref_index]->size();
 
       for (UInt i = 1; i < n; ++i)
 				{
@@ -250,21 +254,29 @@ namespace OpenMS
     /// Align all feature maps to the reference map
     void alignMultipleFeatureMaps_()
     {
+      std::vector < ElementContainerType* >& element_map_vector = final_consensus_map_.getMapVector();
+      
 #ifdef DEBUG_ALIGNMENT
       std::cout << "*** Build a consensus map of the elements of the reference map (contains only singleton consensus elements) ***" << std::endl;
 #endif
       // build a consensus map of the elements of the reference map (contains only singleton consensus elements)
-      ConsensusMapType cons_ref_map;
-      buildConsensusMapTypeInsertInGroup_(reference_map_index_,cons_ref_map);
-      final_consensus_map_ = cons_ref_map;
-
+      ConsensusVectorType cons_ref_map;
+      const ElementContainerType& map = *(element_map_vector[reference_map_index_]);
+      UInt n = map.size();
+      for (UInt i=0; i < n; ++i)
+      {
+        ConsensusElementType c(reference_map_index_,i,map[i]);
+        final_consensus_map_.push_back(c);
+        cons_ref_map.push_back(c);
+      }
+      
 #ifdef DEBUG_ALIGNMENT
-      std::ofstream out("reference_map.dat", std::ios::out);
-      for (UInt i = 0; i < cons_ref_map.size(); ++i)
-				{
-					out << cons_ref_map[i].getRT() << ' ' << cons_ref_map[i].getMZ() << '\n';
-				}
-      out.flush();
+//       std::ofstream out("reference_map.dat", std::ios::out);
+//       for (UInt i = 0; i < cons_ref_map.size(); ++i)
+// 				{
+// 					out << cons_ref_map[i].getRT() << ' ' << cons_ref_map[i].getMZ() << '\n';
+// 				}
+//       out.flush();
 
       std::cout << "*** Compute the consensus map of all pairwise alignment ***" << std::endl;
 #endif
@@ -272,16 +284,16 @@ namespace OpenMS
       Param param_matcher = param_.copy("matching_algorithm:",true);
       /// Pairwise map matcher
 
-      BasePairwiseMapMatcher< ConsensusMapType >* pairwise_matcher_;
+      BasePairwiseMapMatcher< ConsensusVectorType >* pairwise_matcher_;
       DataValue data_value = param_matcher.getValue("type");
       if (data_value != DataValue::EMPTY)
 				{
-					pairwise_matcher_ = Factory<BasePairwiseMapMatcher< ConsensusMapType > >::create(data_value);
+					pairwise_matcher_ = Factory<BasePairwiseMapMatcher< ConsensusVectorType > >::create(data_value);
 					pairwise_matcher_->setParameters(param_matcher);
 				}
       else
 				{
-					pairwise_matcher_ = Factory<BasePairwiseMapMatcher< ConsensusMapType > >::create(data_value);
+					pairwise_matcher_ = Factory<BasePairwiseMapMatcher< ConsensusVectorType > >::create(data_value);
 					param_.setValue("matching_algorithm:type","poseclustering_pairwise");
 					pairwise_matcher_->setParameters(param_matcher);
 				}
@@ -289,7 +301,7 @@ namespace OpenMS
       pairwise_matcher_->setElementMap(MODEL,cons_ref_map);
 
       MapMatcherRegression<ConsensusElementType> lin_regression;
-      UInt number_maps = element_map_vector_.size();
+      UInt number_maps = element_map_vector.size();
       transformations_.resize(number_maps);
 #ifdef DEBUG_ALIGNMENT
 
@@ -302,12 +314,12 @@ namespace OpenMS
 					if (i != reference_map_index_)
 						{
 #ifdef DEBUG_ALIGNMENT
-							std::cout << "*** Build a consensus map of map " << i << " *** " << file_names_[i] << " ***" <<  std::endl;
+							std::cout << "*** Build a consensus map of map " << i << " *** " << final_consensus_map_.getFilenames()[i] << " ***" <<  std::endl;
 #endif
 
 							//build a consensus map of map i
-							ConsensusMapType map;
-							buildConsensusMapType_(i,map);
+							ConsensusVectorType map;
+							buildConsensusVectorType_(i,map);
 
 #ifdef DEBUG_ALIGNMENT
 
@@ -339,8 +351,8 @@ namespace OpenMS
 									transformations_[i] = pairwise_matcher_->getGrid();
 								}
 #ifdef DEBUG_ALIGNMENT
-							String name = "map_" + (String)number_alignments + ".dat";
-							std::ofstream out(name.c_str(), std::ios::out);
+// 							String name = "map_" + (String)number_alignments + ".dat";
+// 							std::ofstream out(name.c_str(), std::ios::out);
 #endif
 
 							// iterate over all Elements...
@@ -353,8 +365,8 @@ namespace OpenMS
 									typename Grid::iterator grid_it = transformations_[i].begin();
 									while ((grid_it != (transformations_[i]).end()))
 										{
-											IndexTuple< ElementContainerType > index_tuple(i,j,(*(element_map_vector_[i]))[j]);
-											PositionType pos = (*(element_map_vector_[i]))[j].getPosition();
+											IndexTuple< ElementContainerType > index_tuple(i,j,(*(element_map_vector[i]))[j]);
+											PositionType pos = (*(element_map_vector[i]))[j].getPosition();
 											if (grid_it->encloses(map[j].getPosition()))
 												{
 													// apply transform for the singleton group element
@@ -370,7 +382,7 @@ namespace OpenMS
 													index_tuple.setTransformedPosition(pos);
 #ifdef DEBUG_ALIGNMENT
 
-													out << map[j].getRT() << ' ' << map[j].getMZ() << ' ' << pos[RawDataPoint2D::RT] << ' ' << pos[RawDataPoint2D::MZ] << '\n';
+// 													out << map[j].getRT() << ' ' << map[j].getMZ() << ' ' << pos[RawDataPoint2D::RT] << ' ' << pos[RawDataPoint2D::MZ] << '\n';
 #endif
 
 													map[j].getPosition() = pos;
@@ -382,13 +394,13 @@ namespace OpenMS
 								} // end for (Elements)
 
 #ifdef DEBUG_ALIGNMENT
-							out.flush();
+// 							out.flush();
 							std::cout << "*** Compute the consensus of the reference map and map " << i << " ***" << std::endl;
 #endif
 
 
 							// compute the consensus of the reference map and map i
-							DelaunayPairFinder<ConsensusMapType, ElementContainerType> pair_finder;
+							DelaunayPairFinder<ConsensusVectorType, ElementContainerType> pair_finder;
 							pair_finder.setParameters(param_.copy("consensus_algorithm:",true));
 							pair_finder.computeConsensusMap(map,final_consensus_map_);
 
@@ -396,105 +408,105 @@ namespace OpenMS
 
 							std::cout << "*** DONE!! number of consensus elements " << final_consensus_map_.size() << " ***"<< std::endl;
 							++number_alignments;
-							std::ofstream out_cons("ConsensusMap",std::ios::out);
-							for (UInt i = 0; i < final_consensus_map_.size(); ++i)
-								{
-									out_cons << final_consensus_map_[i] << std::endl;
-								}
+// 							std::ofstream out_cons("ConsensusMap",std::ios::out);
+// 							for (UInt i = 0; i < final_consensus_map_.size(); ++i)
+// 								{
+// 									out_cons << final_consensus_map_[i] << std::endl;
+// 								}
 #endif
 
 						}
 				}
 #ifdef DEBUG_ALIGNMENT
-      std::cout << "=========== Final Consensus Map =========" << std::endl;
-      std::ofstream out_cons("Consensus.dat",std::ios::out);
-      out_cons << "cons_rt cons_mz cons_int rt_map1 rt_transf_map1 mz_map1 mz_transf_map1 int_map1 rt_map2 rt_transf_map1 mz_map2 mz_transf_map2 int_map2 ... rt_mapn rt_transf_mapn mz_mapn mz_transf_mapn int_mapn\n";
-      for (UInt i = 0; i < final_consensus_map_.size(); ++i)
-				{
-					ConsensusElementType* c = &(final_consensus_map_[i]);
-					out_cons << c->getRT() << ' '
-									 << c->getMZ() << ' '
-									 << c->getIntensity() << ' ';
+// //       std::cout << "=========== Final Consensus Map =========" << std::endl;
+// //       std::ofstream out_cons("Consensus.dat",std::ios::out);
+// //       out_cons << "cons_rt cons_mz cons_int rt_map1 rt_transf_map1 mz_map1 mz_transf_map1 int_map1 rt_map2 rt_transf_map1 mz_map2 mz_transf_map2 int_map2 ... rt_mapn rt_transf_mapn mz_mapn mz_transf_mapn int_mapn\n";
+// //       for (UInt i = 0; i < final_consensus_map_.size(); ++i)
+// // 				{
+// // 					ConsensusElementType* c = &(final_consensus_map_[i]);
+// // 					out_cons << c->getRT() << ' '
+// // 									 << c->getMZ() << ' '
+// // 									 << c->getIntensity() << ' ';
+// // 
+// // 					for (typename ConsensusElementType::Group::const_iterator it = c->begin(); it != c->end(); ++it)
+// // 						{
+// // 							out_cons << it->getElement().getRT() << ' '
+// // 											 << it->getTransformedPosition()[RawDataPoint2D::RT] << ' '
+// // 											 << it->getElement().getMZ() << ' '
+// // 											 << it->getTransformedPosition()[RawDataPoint2D::MZ] << ' '
+// // 											 << it->getElement().getIntensity() << ' ';
+// // 						}
+// // 					out_cons << std::endl;
+// //         }
+// 
+//       std::ofstream out_gp("Consensus.gp",std::ios::out);
+//       UInt first=5;
+//       UInt second=7;
+//       out_gp << "plot \"reference_map.dat\" using 1:2 title \"reference_map\"  w points pointtype 20 lt 1\n"
+// 						 << "replot \"Consensus.dat\" using 1:2:($" << first << "-$1):($" << second << "-$2)  w vectors lt 3 nohead title \"pairs\"\n"
+// 						 << "replot \"Consensus.dat\" using 1:2 title \"consensus\"  w points pointtype 20 lt 2\n"
+// 						 << "replot \"Consensus.dat\" using " << first << ':' << second << " title \"\" w points pointtype 20 lt 1\n";
+//       UInt n=element_map_vector_.size();
+//       first +=5;
+//       second +=5;
+//       for (UInt i=0; i < (n-1); ++i)
+// 				{
+// 					String map = "map_" + (String)i + ".dat";
+// 					out_gp << "replot \"Consensus.dat\" using 1:2:($" << first << "-$1):($" << second << "-$2)  w vectors lt 3 nohead title \"\"\n"
+// 								 << "replot \"" << map << "\" using 1:2 title \"original positions map " << i << "\" pointtype 3 lt " << i+3 << '\n'
+// 								 << "replot \"" << map << "\" using 3:4 title \"transformed positions map " << i << "\" pointtype 20 lt " << i+3 << '\n'
+// 								 << "replot \"" << map << "\" using 1:2:($3-$1):($4-$2) w vectors lt 7 nohead title \"transformed\"\n";
+// 					first +=5;
+// 					second +=5;
+// 				}
+//       std::cout << "The consensus elements are written to Consensus.dat.\n"
+// 								<< "You can visualize the result using the gnuplot script \"Consensus.gp\" (Type \"gnuplot Consensus.gp -\")" << std::endl;
 
-					for (typename ConsensusElementType::Group::const_iterator it = c->begin(); it != c->end(); ++it)
-						{
-							out_cons << it->getElement().getRT() << ' '
-											 << it->getTransformedPosition()[RawDataPoint2D::RT] << ' '
-											 << it->getElement().getMZ() << ' '
-											 << it->getTransformedPosition()[RawDataPoint2D::MZ] << ' '
-											 << it->getElement().getIntensity() << ' ';
-						}
-					out_cons << std::endl;
-				}
 
-      std::ofstream out_gp("Consensus.gp",std::ios::out);
-      UInt first=5;
-      UInt second=7;
-      out_gp << "plot \"reference_map.dat\" using 1:2 title \"reference_map\"  w points pointtype 20 lt 1\n"
-						 << "replot \"Consensus.dat\" using 1:2:($" << first << "-$1):($" << second << "-$2)  w vectors lt 3 nohead title \"pairs\"\n"
-						 << "replot \"Consensus.dat\" using 1:2 title \"consensus\"  w points pointtype 20 lt 2\n"
-						 << "replot \"Consensus.dat\" using " << first << ':' << second << " title \"\" w points pointtype 20 lt 1\n";
-      UInt n=element_map_vector_.size();
-      first +=5;
-      second +=5;
-      for (UInt i=0; i < (n-1); ++i)
-				{
-					String map = "map_" + (String)i + ".dat";
-					out_gp << "replot \"Consensus.dat\" using 1:2:($" << first << "-$1):($" << second << "-$2)  w vectors lt 3 nohead title \"\"\n"
-								 << "replot \"" << map << "\" using 1:2 title \"original positions map " << i << "\" pointtype 3 lt " << i+3 << '\n'
-								 << "replot \"" << map << "\" using 3:4 title \"transformed positions map " << i << "\" pointtype 20 lt " << i+3 << '\n'
-								 << "replot \"" << map << "\" using 1:2:($3-$1):($4-$2) w vectors lt 7 nohead title \"transformed\"\n";
-					first +=5;
-					second +=5;
-				}
-      std::cout << "The consensus elements are written to Consensus.dat.\n"
-								<< "You can visualize the result using the gnuplot script \"Consensus.gp\" (Type \"gnuplot Consensus.gp -\")" << std::endl;
-
-
-      std::ofstream out_pairs("MapAlignment_pairs.dat",std::ios::out);
-      for (UInt i = 0; i < final_consensus_map_.size(); ++i)
-				{
-					bool ref = false;
-					std::vector<const ElementType*> features(1);
-
-					ConsensusElementType* c = &(final_consensus_map_[i]);
-					for (typename ConsensusElementType::Group::const_iterator it = c->begin(); it != c->end(); ++it)
-						{
-							if (it->getMapIndex() == reference_map_index_)
-								{
-									ref = true;
-									features[0] = &(it->getElement());
-								}
-							else
-								{
-									features.push_back(&(it->getElement()));
-								}
-						}
-					if (ref)
-						{
-							out_pairs
-								<< features[0]->getIntensity() << ' '
-								<< features[0]->getRT() << ' '
-								<< features[0]->getMZ() << ' ';
-
-							UInt j=1;
-							for (; j < features.size(); ++j)
-								{
-									out_pairs
-										<< features[j]->getIntensity() << ' '
-										<< features[j]->getRT() << ' '
-										<< features[j]->getMZ() << ' ';
-								}
-							for (;j < number_maps; ++j)
-								{
-									out_pairs
-										<< 0 << ' '
-										<< 0 << ' '
-										<< 0 << ' ';
-								}
-							out_pairs << std::endl;
-						}
-				}
+//       std::ofstream out_pairs("MapAlignment_pairs.dat",std::ios::out);
+//       for (UInt i = 0; i < final_consensus_map_.size(); ++i)
+// 				{
+// 					bool ref = false;
+// 					std::vector<const ElementType*> features(1);
+// 
+// 					ConsensusElementType* c = &(final_consensus_map_[i]);
+// 					for (typename ConsensusElementType::Group::const_iterator it = c->begin(); it != c->end(); ++it)
+// 						{
+// 							if (it->getMapIndex() == reference_map_index_)
+// 								{
+// 									ref = true;
+// 									features[0] = &(it->getElement());
+// 								}
+// 							else
+// 								{
+// 									features.push_back(&(it->getElement()));
+// 								}
+// 						}
+// 					if (ref)
+// 						{
+// 							out_pairs
+// 								<< features[0]->getIntensity() << ' '
+// 								<< features[0]->getRT() << ' '
+// 								<< features[0]->getMZ() << ' ';
+// 
+// 							UInt j=1;
+// 							for (; j < features.size(); ++j)
+// 								{
+// 									out_pairs
+// 										<< features[j]->getIntensity() << ' '
+// 										<< features[j]->getRT() << ' '
+// 										<< features[j]->getMZ() << ' ';
+// 								}
+// 							for (;j < number_maps; ++j)
+// 								{
+// 									out_pairs
+// 										<< 0 << ' '
+// 										<< 0 << ' '
+// 										<< 0 << ' ';
+// 								}
+// 							out_pairs << std::endl;
+// 						}
+// 				}
 
 #endif
 
@@ -505,12 +517,14 @@ namespace OpenMS
     /// Align all peak maps to the reference map
     void alignMultiplePeakMaps_()
 		{
+      std::vector < ElementContainerType* >& element_map_vector = final_consensus_map_.getMapVector();
+      
       // compute the consensus map of all pairwise alignment
 			Param param_matcher = param_.copy("matching_algorithm:",true);
 
       // take the n-th most intensive Peaks of the reference map
 			UInt n = 400;
-			PeakConstReferenceMapType reference_pointer_map((element_map_vector_[reference_map_index_])->begin(), (element_map_vector_[reference_map_index_])->end());
+			PeakConstReferenceMapType reference_pointer_map((element_map_vector[reference_map_index_])->begin(), (element_map_vector[reference_map_index_])->end());
 			reference_pointer_map.sortByIntensity();
 			UInt number = (reference_pointer_map.size() > n) ? n : reference_pointer_map.size();
 			PeakConstReferenceMapType reference_most_intense(reference_pointer_map.end() - number, reference_pointer_map.end());
@@ -531,7 +545,7 @@ namespace OpenMS
 			pairwise_matcher_->setElementMap(MODEL,reference_most_intense);
 
 			MapMatcherRegression< ElementType > lin_regression;
-			UInt number_maps = element_map_vector_.size();
+			UInt number_maps = element_map_vector.size();
 			transformations_.resize(number_maps);
 
 			for (UInt i = 0; i < number_maps; ++i)
@@ -539,7 +553,7 @@ namespace OpenMS
 					std::cout.precision(10);
 					if (i != reference_map_index_)
 						{
-							PeakConstReferenceMapType pointer_map((element_map_vector_[i])->begin(), (element_map_vector_[i])->end());
+							PeakConstReferenceMapType pointer_map((element_map_vector[i])->begin(), (element_map_vector[i])->end());
 							pairwise_matcher_->clearGrid();
 							pairwise_matcher_->initGridTransformation(pointer_map);
 							/* pointer_map.sortByIntensity();
@@ -573,14 +587,22 @@ namespace OpenMS
 		/// Align all peak maps to the reference map
     void alignMultipleConsensusMaps_()
 		{
+      std::vector < ElementContainerType* >& element_map_vector = final_consensus_map_.getMapVector();
+      
 #ifdef DEBUG_ALIGNMENT
       std::cout << "*** Build a consensus map of the elements of the reference map (contains only singleton consensus elements) ***" << std::endl;
 #endif
       // build a consensus map of the elements of the reference map (contains only singleton consensus elements)
-      ConsensusMapType cons_ref_map;
-      buildConsensusMapTypeInsertInGroup_(reference_map_index_,cons_ref_map);
-      final_consensus_map_ = cons_ref_map;
-
+      ConsensusVectorType cons_ref_map;
+      const ElementContainerType& map = *(element_map_vector[reference_map_index_]);
+      UInt m = map.size();
+      for (UInt i=0; i < m; ++i)
+      {
+        ConsensusElementType c(reference_map_index_,i,map[i]);
+        final_consensus_map_.push_back(c);
+        cons_ref_map.push_back(c);
+      }
+   
 #ifdef DEBUG_ALIGNMENT
 
       std::ofstream out("reference_map.dat", std::ios::out);
@@ -597,7 +619,7 @@ namespace OpenMS
       
       // take the n-th most intensive Peaks of the reference map
       UInt n = 50;
-      PeakConstReferenceMapType reference_pointer_map((element_map_vector_[reference_map_index_])->begin(), (element_map_vector_[reference_map_index_])->end());
+      PeakConstReferenceMapType reference_pointer_map((element_map_vector[reference_map_index_])->begin(), (element_map_vector[reference_map_index_])->end());
       reference_pointer_map.sortByIntensity();
       UInt number = (reference_pointer_map.size() > n) ? n : reference_pointer_map.size();
       PeakConstReferenceMapType reference_most_intense(reference_pointer_map.end() - number, reference_pointer_map.end());
@@ -618,7 +640,7 @@ namespace OpenMS
       pairwise_matcher_->setElementMap(MODEL,reference_most_intense);
 
       MapMatcherRegression< ElementType > lin_regression;
-      UInt number_maps = element_map_vector_.size();
+      UInt number_maps = element_map_vector.size();
       transformations_.resize(number_maps);
 #ifdef DEBUG_ALIGNMENT
 
@@ -634,10 +656,10 @@ namespace OpenMS
 							std::cout << "*** Build a consensus map of map " << i << " *** " << std::endl;
 #endif
 							//build a consensus map of map i
-							ConsensusMapType map;
-							buildConsensusMapType_(i,map);
+							ConsensusVectorType map;
+							buildConsensusVectorType_(i,map);
 
-							PeakConstReferenceMapType pointer_map((element_map_vector_[i])->begin(), (element_map_vector_[i])->end());
+							PeakConstReferenceMapType pointer_map((element_map_vector[i])->begin(), (element_map_vector[i])->end());
 							pairwise_matcher_->clearGrid();
 							pairwise_matcher_->initGridTransformation(pointer_map);
 							/* pointer_map.sortByIntensity();
@@ -685,8 +707,8 @@ namespace OpenMS
 													LinearMapping* mapping_mz = dynamic_cast<LinearMapping* >(grid_it->getMappings()[RawDataPoint2D::MZ]);
 
 													// apply transform for the singleton group element
-													IndexTuple< ElementContainerType > index_tuple(i,j,(*(element_map_vector_[i]))[j]);
-													PositionType pos = (*(element_map_vector_[i]))[j].getPosition();
+													IndexTuple< ElementContainerType > index_tuple(i,j,(*(element_map_vector[i]))[j]);
+													PositionType pos = (*(element_map_vector[i]))[j].getPosition();
 
 													mapping_rt->apply(pos[RawDataPoint2D::RT]);
 													mapping_mz->apply(pos[RawDataPoint2D::MZ]);
@@ -711,7 +733,7 @@ namespace OpenMS
 							std::cout << "*** Compute the consensus of the reference map and map " << i << " ***" << std::endl;
 #endif
 							// compute the consensus of the reference map and map i
-							DelaunayPairFinder<ConsensusMapType, ElementContainerType> pair_finder;
+							DelaunayPairFinder<ConsensusVectorType, ElementContainerType> pair_finder;
 							pair_finder.setParameters(param_.copy("consensus_algorithm:",true));
 							pair_finder.computeConsensusMap(map,final_consensus_map_);
 
@@ -750,7 +772,7 @@ namespace OpenMS
       out_gp << "plot \"reference_map.dat\" using 1:2 title \"reference_map\"  w points pointtype 20 lt 1\n"
 						 << "replot \"Consensus.dat\" using 1:2 title \"consensus\"  w points pointtype 20 lt 2\n"
 						 << "replot \"Consensus.dat\" using " << first << ':' << second << " title \"\" w points pointtype 20 lt 1\n";
-      n = element_map_vector_.size();
+      n = element_map_vector.size();
       for (UInt i=0; i < n; ++i)
 				{
 					if (i != reference_map_index_)

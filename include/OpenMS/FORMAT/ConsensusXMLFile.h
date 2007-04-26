@@ -56,10 +56,10 @@ namespace OpenMS
       @p 
       */
       template <typename ElementT>
-      void load(const String& filename, ConsensusMap<ElementT>& map) throw (Exception::FileNotFound, Exception::ParseError)
+      void load(const String& filename, ConsensusMap<ElementT>& map, bool load_element_maps = true) throw (Exception::FileNotFound, Exception::ParseError)
       {
-        map = ConsensusMap<ElementT>();  // clear map
-        Internal::ConsensusXMLHandler< StarAlignment<ElementT> > handler(map,filename);
+        map.clear(); // clear map
+        Internal::ConsensusXMLHandler< StarAlignment<ElementT> > handler(map,filename,load_element_maps);
         parse_(filename, &handler);
       }
 

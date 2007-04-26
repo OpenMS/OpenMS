@@ -53,7 +53,13 @@ CHECK((template<typename AlignmentT> void store(const String& filename, const Al
   std::string tmp_filename;
   ConsensusMap< ConsensusFeature<FeatureMap<> > > cons_map;
   ConsensusXMLFile cons_file;
- 
+  FeatureMap<> feat_map_1;
+  FeatureMap<> feat_map_2;
+  std::vector< FeatureMap<>* > feature_maps(2);
+  feature_maps[0] = &feat_map_1;
+  feature_maps[1] = &feat_map_2;
+  cons_map.setMapVector(feature_maps);
+  
   cons_file.load("data/ConsensusXMLFile.xml",cons_map);
   LinearMapping trafo_rt(0.5,-5.99959);
   LinearMapping trafo_mz(0.999999,-0.0990517);
@@ -71,21 +77,14 @@ CHECK((template<typename AlignmentT> void store(const String& filename, const Al
   StarAlignment< ConsensusFeature<FeatureMap<> > > alignment;
   Param param;
   param.setValue("matching_algorithm:type","poseclustering_pairwise");
-  alignment.setParam(param);
+  alignment.setParameters(param);
   alignment.setTransformationVector(grid_vector);
   alignment.setFinalConsensusMap(cons_map);
   alignment.setFileNames(cons_map.getFilenames());
   alignment.setMapType("feature_map");
   alignment.setReferenceMapIndex(0);
-  vector<FeatureMap<> > map_vector = cons_map.getMapVector();
-  unsigned int n = map_vector.size();
-  vector<FeatureMap<> *> map_pointer_vector(n);
-  for (unsigned int i = 0; i < n; ++i)
-  {
-    map_pointer_vector[i] = &(map_vector[i]); 
-  } 
-  alignment.setElementMapVector(map_pointer_vector);
-  
+  alignment.setElementMapVector(cons_map.getMapVector());
+    
   NEW_TMP_FILE(tmp_filename);
   cons_file.store(tmp_filename,alignment);
   PRECISION(0.01)
@@ -95,6 +94,12 @@ RESULT
 CHECK((template<typename ElementT> void load(const String& filename, ConsensusMap<ElementT>& map) throw(Exception::FileNotFound, Exception::ParseError)))
   ConsensusMap< ConsensusFeature<FeatureMap<> > > cons_map;
   ConsensusXMLFile cons_file;
+  FeatureMap<> feat_map_1;
+  FeatureMap<> feat_map_2;
+  std::vector< FeatureMap<>* > feature_maps(2);
+  feature_maps[0] = &feat_map_1;
+  feature_maps[1] = &feat_map_2;
+  cons_map.setMapVector(feature_maps);
   cons_file.load("data/ConsensusXMLFile.xml", cons_map);
   TEST_EQUAL(cons_map.getFilenames()[0] == "data/MapAlignmentFeatureMap1.xml", true)
   TEST_EQUAL(cons_map.getFilenames()[1] == "data/MapAlignmentFeatureMap2.xml", true)

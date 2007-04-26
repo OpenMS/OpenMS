@@ -54,7 +54,7 @@ CHECK((ConsensusMap& operator = (const ConsensusMap& source)))
   String name="blub";
   vector<String> name_vector(1,name);
   cons_map.setFilenames(name_vector);
-  vector< FeatureMap<> > map_vector(4);
+  vector< FeatureMap<>* > map_vector(4);
   cons_map.setMapVector(map_vector);
   
   ConsensusMap<ConsensusFeature < FeatureMap<> > > cons_map_copy;
@@ -69,7 +69,7 @@ CHECK((ConsensusMap(const ConsensusMap& source)))
   String name="blub";
   vector<String> name_vector(1,name);
   cons_map.setFilenames(name_vector);
-  vector< FeatureMap<> > map_vector(4);
+  vector< FeatureMap<>* > map_vector(4);
   cons_map.setMapVector(map_vector);
   
   ConsensusMap<ConsensusFeature < FeatureMap<> > > cons_map_copy(cons_map);
@@ -145,12 +145,12 @@ CHECK((std::vector< typename ConsensusElementType::ElementContainerType >& getMa
   feat.setMZ(4);
   feat.setIntensity(23);
   feat_map.push_back(feat);
-  cons_map.getMapVector()[0] = feat_map;
+  cons_map.getMapVector()[0] = &feat_map;
   
   TEST_REAL_EQUAL(cons_map.getMapVector().size(),1)
-  TEST_REAL_EQUAL((cons_map.getMapVector()[0])[0].getRT(),1)
-  TEST_REAL_EQUAL((cons_map.getMapVector()[0])[0].getMZ(),4)
-  TEST_REAL_EQUAL((cons_map.getMapVector()[0])[0].getIntensity(),23)
+  TEST_REAL_EQUAL((*(cons_map.getMapVector()[0]))[0].getRT(),1)
+  TEST_REAL_EQUAL((*(cons_map.getMapVector()[0]))[0].getMZ(),4)
+  TEST_REAL_EQUAL((*(cons_map.getMapVector()[0]))[0].getIntensity(),23)
 RESULT
 
 CHECK((void setFilenames(const std::vector < String >& filenames)))
@@ -165,20 +165,20 @@ RESULT
 
 CHECK((void setMapVector(const std::vector < typename ConsensusElementType::ElementContainerType >& map_vector)))
   ConsensusMap<ConsensusFeature < FeatureMap<> > > cons_map;
-  vector<FeatureMap<> > map_vector(1);
+  vector<FeatureMap<>* > map_vector(1);
   FeatureMap<> feat_map;
   Feature feat;
   feat.setRT(1);
   feat.setMZ(4);
   feat.setIntensity(23);
   feat_map.push_back(feat);
-  map_vector[0] = feat_map;
+  map_vector[0] = &feat_map;
   cons_map.setMapVector(map_vector);
   
   TEST_REAL_EQUAL(cons_map.getMapVector().size(),1)
-  TEST_REAL_EQUAL((cons_map.getMapVector()[0])[0].getRT(),1)
-  TEST_REAL_EQUAL((cons_map.getMapVector()[0])[0].getMZ(),4)
-  TEST_REAL_EQUAL((cons_map.getMapVector()[0])[0].getIntensity(),23)
+  TEST_REAL_EQUAL((*(cons_map.getMapVector()[0]))[0].getRT(),1)
+  TEST_REAL_EQUAL((*(cons_map.getMapVector()[0]))[0].getMZ(),4)
+  TEST_REAL_EQUAL((*(cons_map.getMapVector()[0]))[0].getIntensity(),23)
 RESULT
 
 /////////////////////////////////////////////////////////////

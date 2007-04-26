@@ -38,7 +38,8 @@ namespace OpenMS
     void ConsensusXMLHandler< StarAlignment< ConsensusFeature< FeatureMap< > > > >::loadFile_< ConsensusFeature< FeatureMap< > > >(const String& file_name, UInt id, const ConsensusFeature< FeatureMap< > >& /* c */ ) throw (Exception::FileNotFound, Exception::ParseError)
     {
       FeatureMapFile feature_file;
-      feature_file.load(file_name,(consensus_map_->getMapVector())[id]);
+      std::cout << (consensus_map_->getMapVector()).size() << std::endl;
+      feature_file.load(file_name,*((consensus_map_->getMapVector())[id]));
     }
 
     // load MzData
@@ -49,7 +50,7 @@ namespace OpenMS
       MzDataFile mzdata_file;
       MSExperiment< Peak1D > ms_exp;
       mzdata_file.load(file_name,ms_exp);
-      ms_exp.get2DData((consensus_map_->getMapVector())[id]);
+      ms_exp.get2DData(*((consensus_map_->getMapVector())[id]));
     }
 
     // load consensusXML
@@ -57,7 +58,7 @@ namespace OpenMS
     template <>
     void ConsensusXMLHandler< StarAlignment< ConsensusFeature< ConsensusMap< ConsensusFeature< FeatureMap< > > > > > >::loadFile_<ConsensusFeature< ConsensusMap< ConsensusFeature< FeatureMap< > > > > >(const String& file_name, UInt id, const ConsensusFeature< ConsensusMap< ConsensusFeature< FeatureMap< > > > >& /* c */) throw (Exception::FileNotFound, Exception::ParseError)
     {
-      ConsensusXMLHandler< StarAlignment< ConsensusFeature<> > > handler(((consensus_map_->getMapVector())[id]),file_name);
+      ConsensusXMLHandler< StarAlignment< ConsensusFeature<> > > handler(*((consensus_map_->getMapVector())[id]),file_name);
 
       //try to open file
       if (!File::exists(file_name))

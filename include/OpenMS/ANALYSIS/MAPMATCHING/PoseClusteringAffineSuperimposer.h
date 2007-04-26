@@ -362,8 +362,8 @@ namespace OpenMS
         DoubleReal max_mz = act_mz + mz_bucket_size_;
 
         CoordinateType act_rt = model_map[i].getRT();
-        CoordinateType min_rt = act_rt - 1000;
-        CoordinateType max_rt = act_rt + 1000;
+        CoordinateType min_rt = act_rt - 5000;
+        CoordinateType max_rt = act_rt + 5000;
 
         std::vector< const PointType* > partners;
         // search for the left end of the intervall
@@ -431,7 +431,7 @@ namespace OpenMS
       for (UInt i = 0; i < n; ++i)
       {
         // take only the next 10 neighbours in m/z as partner in the model map
-        UInt k=((i+10)>= n) ? n : (i+10);
+        UInt k=((i+50)>= n) ? n : (i+50);
         for (UInt j = i+1; j < k; ++j)
         {
           // avoid cross mappings (i,j) -> (k,l) (e.g. i_rt < j_rt and k_rt > l_rt)
