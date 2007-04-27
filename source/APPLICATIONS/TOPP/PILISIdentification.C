@@ -85,6 +85,7 @@ class TOPPPILISIdentification
 			registerIntOption_("max_candidates", "<int>", 20, "number of candidates that are reported by PILIS", false);
       registerDoubleOption_("upper_mz", "<double>", 2000.0, "bla", false);
 			registerDoubleOption_("lower_mz", "<double>", 200.0, "bla", false);
+			registerStringOption_("fixed_modifications", "<mods>", "", "<monoisotopic_mass>@<residues> e.g.: 57.021464@C", false);
 	
 			addEmptyLine_();
 			addText_("Parameters of PILISModel");
@@ -146,6 +147,7 @@ class TOPPPILISIdentification
 			model_param.setValue("charge_loss_factor", getDoubleOption_("charge_loss_factor"));
 			model_param.setValue("visible_model_depth", getIntOption_("visible_model_depth"));
 			model_param.setValue("model_depth", getIntOption_("model_depth"));
+			model_param.setValue("fixed_modifications", getStringOption_("fixed_modifications"));
 			model->setParameters(model_param);
 
 			writeDebug_("Reading sequence db", 2);
@@ -166,6 +168,7 @@ class TOPPPILISIdentification
 			id_param.setValue("max_candidates", getIntOption_("max_pre_candidates"));
 			// disable evalue scoring, this is done separately to allow for a single id per spectrum
 			id_param.setValue("use_evalue_scoring", 0);
+			id_param.setValue("fixed_modifications", getStringOption_("fixed_modifications"));
 			PILIS_id.setParameters(id_param);
 
 			vector<Identification> ids;
