@@ -102,37 +102,11 @@ namespace OpenMS
       /// Constructor
       SavitzkyGolaySVDFilter();
 
-      /// Copy constructor
-      inline SavitzkyGolaySVDFilter(const SavitzkyGolaySVDFilter& s)
-        : SmoothFilter(s), 
-          DefaultParamHandler(s)
-      {
-        updateMembers_();
-      }
-
       /// Destructor
       virtual ~SavitzkyGolaySVDFilter()
       {
       }
 
-      /// Assignment operator
-      inline SavitzkyGolaySVDFilter& operator=(const SavitzkyGolaySVDFilter& s)
-      {
-        // take care of self assignments
-        if (this == &s)
-        {
-          return *this;
-        }
-
-        DefaultParamHandler::operator=(s);
-        updateMembers_();
-
-        coeffs_=s.coeffs_;
-        
-        return *this;
-      }
-
-      
       /// Non-mutable access to the order
       inline UInt getOrder() const
       {

@@ -63,26 +63,9 @@ namespace OpenMS
       inline TopHatFilter() : MorphFilter()
       {}
 
-      /// Copy constructor
-      inline TopHatFilter(const TopHatFilter& t) : MorphFilter(t)
-      {}
-      
       /// Destructor
       virtual ~TopHatFilter()
       {}
-
-      /// Assignment operator
-      inline TopHatFilter& operator=(const TopHatFilter& t)
-      {
-        // take care of self assignments
-        if (this == &t)
-        {
-          return *this;
-        }
-        MorphFilter::operator=(t);
-        
-        return *this;
-      }
 
       /** @brief Applies the baseline removal algorithm to an given iterator range.
 

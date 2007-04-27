@@ -121,6 +121,11 @@ class TOPPPeakPicker
 				     "described in Lange et al. (2006) Proc. PSB-06. ");
   	registerSubsection_("algorithm");
   }
+  
+  Param getSubsectionDefaults_(const String& /* section*/) const
+  {
+      return PeakPickerCWT().getDefaults();
+  }
 
   ExitCodes main_(int , char**)
   {

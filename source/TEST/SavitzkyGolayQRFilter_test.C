@@ -55,27 +55,6 @@ CHECK((~SavitzkyGolayQRFilter()))
   delete dsg_ptr;
 RESULT
 
-CHECK((SavitzkyGolayQRFilter& operator=(const SavitzkyGolayQRFilter& s)))
-  SavitzkyGolayQRFilter sgolay;
-  sgolay.setOrder(4);
-  sgolay.setWindowSize(5);
-
-  SavitzkyGolayQRFilter sgolay_copy;
-  sgolay_copy = sgolay;
-  TEST_REAL_EQUAL(sgolay_copy.getOrder(),sgolay.getOrder())
-  TEST_EQUAL(sgolay_copy.getWindowSize(),sgolay.getWindowSize())
-RESULT
-
-CHECK((SavitzkyGolayQRFilter(const SavitzkyGolayQRFilter& s)))
-   SavitzkyGolayQRFilter sgolay;
-  sgolay.setOrder(4);
-  sgolay.setWindowSize(5);
-
-  SavitzkyGolayQRFilter sgolay_copy(sgolay);
-  TEST_REAL_EQUAL(sgolay_copy.getOrder(),sgolay.getOrder())
-  TEST_EQUAL(sgolay_copy.getWindowSize(),sgolay.getWindowSize())
-RESULT
-
 CHECK((UInt getOrder() const))
   SavitzkyGolayQRFilter sgolay;
 

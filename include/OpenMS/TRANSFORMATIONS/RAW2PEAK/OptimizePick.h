@@ -132,32 +132,9 @@ namespace OpenMS
                  const double eps_abs_,
                  const double eps_rel_ );
     
-    /// Copy constructor
-    OptimizePick(const OptimizePick& opt)
-        : penalties_(opt.penalties_),
-        max_iteration_(opt.max_iteration_),
-    eps_rel_(opt.eps_rel_){}
-    
     /// Destructor
     ~OptimizePick();
-    
-
-    /// Assignment operator
-    inline OptimizePick& operator=(const OptimizePick& opt)
-    {
-     // take care of self assignments
-      if (this == &opt)
-      {
-        return *this;
-      }
-      penalties_=opt.penalties_;
-      max_iteration_=opt.max_iteration_;
-      eps_rel_=opt.eps_rel_;
-      eps_abs_=opt.eps_abs_;
-
-      return *this;
-    }
-    
+        
     /// Non-mutable access to the penalty factors
     inline const struct OptimizationFunctions::PenaltyFactors& getPenalties() const { return penalties_; }
     /// Mutable access to the penalty factors

@@ -37,7 +37,6 @@ namespace OpenMS
   	defaults_.setValue("thresholds:fwhm_bound",0.2);
 
 		defaultsToParam_();
-		updateMembers_();
   }
 	
 	void PeakPicker::updateMembers_()
@@ -47,12 +46,4 @@ namespace OpenMS
 		peak_bound_ms2_level_ = (float)param_.getValue("thresholds:peak_bound_ms2_level");
     fwhm_bound_ = (float)param_.getValue("thresholds:fwhm_bound");
 	}
-
-  PeakPicker::PeakPicker(const PeakPicker& pp)
-	  : DefaultParamHandler(pp)     
-	{
-		updateMembers_();
-	}
-
-
 } // namespace OpenMS

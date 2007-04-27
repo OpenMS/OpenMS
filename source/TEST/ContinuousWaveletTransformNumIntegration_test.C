@@ -48,65 +48,6 @@ CHECK((~ContinuousWaveletTransformNumIntegration()))
   delete ptr;
 RESULT
 
-CHECK((ContinuousWaveletTransformNumIntegration& operator=(const ContinuousWaveletTransformNumIntegration& cwt)))
-  ContinuousWaveletTransformNumIntegration transformer;
-  DPeakArray<1, RawDataPoint1D > transform;
-  vector<double> wavelet(0);
-  transformer.getSignal() = transform;
-  transformer.getWavelet() = wavelet;
-  transformer.getScale() = 0.12;
-  transformer.getSpacing() = 0.2;
-  transformer.getLeftPaddingIndex() = 10;
-  transformer.getRightPaddingIndex() = 2;
-  transformer.getSignalLength() = 8;
-  
-  ContinuousWaveletTransformNumIntegration transformer_copy;
-  transformer_copy = transformer;
-  DPeakArray<1, RawDataPoint1D > transform_copy = transformer_copy.getSignal();
-  vector<double> wavelet_copy = transformer_copy.getWavelet();
-  double scale = transformer_copy.getScale();
-  double spacing = transformer_copy.getSpacing();
-  int l_padding = transformer_copy.getLeftPaddingIndex();
-  int r_padding = transformer_copy.getRightPaddingIndex();
-  int length = transformer_copy.getSignalLength();
-  TEST_EQUAL(transform_copy == transform, true)
-  TEST_EQUAL(wavelet_copy == wavelet, true)
-  TEST_REAL_EQUAL(scale,0.12)
-  TEST_REAL_EQUAL(spacing, 0.2)
-  TEST_REAL_EQUAL(l_padding, 10)
-  TEST_REAL_EQUAL(r_padding, 2)
-  TEST_REAL_EQUAL(length, 8)
-RESULT
-
-CHECK((ContinuousWaveletTransformNumIntegration(const ContinuousWaveletTransformNumIntegration& cwt)))
-  ContinuousWaveletTransformNumIntegration transformer;
-  DPeakArray<1, RawDataPoint1D > transform;
-  vector<double> wavelet(0);
-  transformer.getSignal() = transform;
-  transformer.getWavelet() = wavelet;
-  transformer.getScale() = 0.12;
-  transformer.getSpacing() = 0.2;
-  transformer.getLeftPaddingIndex() = 10;
-  transformer.getRightPaddingIndex() = 2;
-  transformer.getSignalLength() = 8;
-  
-  ContinuousWaveletTransformNumIntegration transformer_copy(transformer);
-  DPeakArray<1, RawDataPoint1D > transform_copy = transformer_copy.getSignal();
-  vector<double> wavelet_copy = transformer_copy.getWavelet();
-  double scale = transformer_copy.getScale();
-  double spacing = transformer_copy.getSpacing();
-  int l_padding = transformer_copy.getLeftPaddingIndex();
-  int r_padding = transformer_copy.getRightPaddingIndex();
-  int length = transformer_copy.getSignalLength();
-  TEST_EQUAL(transform_copy == transform, true)
-  TEST_EQUAL(wavelet_copy == wavelet, true)
-  TEST_REAL_EQUAL(scale,0.12)
-  TEST_REAL_EQUAL(spacing, 0.2)
-  TEST_REAL_EQUAL(l_padding, 10)
-  TEST_REAL_EQUAL(r_padding, 2)
-  TEST_REAL_EQUAL(length, 8)
-RESULT
-
 CHECK((void init(double scale, double spacing)))
   ContinuousWaveletTransformNumIntegration transformer;
   float scale = 0.5;

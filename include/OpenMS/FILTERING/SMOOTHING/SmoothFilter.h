@@ -46,29 +46,9 @@ namespace OpenMS
       : coeffs_(0)
       {}
 
-      /// Copy constructor
-      inline SmoothFilter(const SmoothFilter& fir)
-      {
-        coeffs_ = fir.coeffs_;
-      }
-
       /// Destructor
       virtual ~SmoothFilter()
       {}
-
-      /// Assignment operator
-      inline SmoothFilter& operator=(const SmoothFilter& fir)
-      {
-        // take care of self assignments
-        if (this == &fir)
-        {
-          return *this;
-        }
-
-        coeffs_=fir.coeffs_;
-
-        return *this;
-      }
 
       /// Non-mutable access to the coefficients of the filter
       inline const std::vector<double>& getCoeffs() const

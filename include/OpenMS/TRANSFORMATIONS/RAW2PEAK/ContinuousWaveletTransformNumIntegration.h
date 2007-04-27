@@ -66,32 +66,9 @@ namespace OpenMS
         : ContinuousWaveletTransform()
     {}
 
-    /// Copy constructor
-    ContinuousWaveletTransformNumIntegration(const ContinuousWaveletTransformNumIntegration& cwt)
-        : ContinuousWaveletTransform(cwt)
-    {}
-
     /// Destructor.
     virtual ~ContinuousWaveletTransformNumIntegration() {}
 
-    /// Assignment operator
-    inline ContinuousWaveletTransformNumIntegration& operator=(const ContinuousWaveletTransformNumIntegration& cwt)
-    {
-      // take care of self assignments
-      if (this == &cwt)
-      {
-        return *this;
-      }
-      signal_=cwt.signal_;
-      wavelet_=cwt.wavelet_;
-      spacing_=cwt.spacing_;
-      scale_=cwt.scale_;
-      signal_length_=cwt.signal_length_;
-      end_left_padding_=cwt.end_left_padding_;
-      begin_right_padding_=cwt.begin_right_padding_;
-
-      return *this;
-    }
     /**
      @brief Computes the wavelet transform of a given raw data intervall [begin_input,end_input)
 

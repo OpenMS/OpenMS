@@ -99,37 +99,11 @@ namespace OpenMS
       /// Constructor
       SavitzkyGolayQRFilter();
       
-      /// Copy constructor
-      inline SavitzkyGolayQRFilter(const SavitzkyGolayQRFilter& s)
-          : SmoothFilter(s),
-          DefaultParamHandler(s)
-      
-      {
-        updateMembers_();
-      }
-
       /// Destructor
       virtual ~SavitzkyGolayQRFilter()
       {
       }
-
-      /// Assignment operator
-      inline SavitzkyGolayQRFilter& operator=(const SavitzkyGolayQRFilter& s)
-      {
-        // take care of self assignments
-        if (this == &s)
-        {
-          return *this;
-        }
-
-        DefaultParamHandler::operator=(s);
-        updateMembers_();
-        
-        coeffs_=s.coeffs_;
-        
-        return *this;
-      }
-
+      
       /// Non-mutable access to the order
       inline UInt getOrder() const
       {
@@ -143,6 +117,7 @@ namespace OpenMS
       {
         return frame_size_;
       }
+      
       /// Mutable access to the length of the window
       void setWindowSize(UInt frame_size);
 

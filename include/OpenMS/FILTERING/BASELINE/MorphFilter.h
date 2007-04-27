@@ -62,31 +62,9 @@ namespace OpenMS
       defaultsToParam_();
     }
 
-    /// Copy constructor
-    inline MorphFilter(const MorphFilter& m)
-      : DefaultParamHandler(m)
-    {
-      updateMembers_();
-    }
-
     /// Destructor
     virtual ~MorphFilter()
     { }
-
-    /// Assignment operator
-    inline MorphFilter& operator=(const MorphFilter& m)
-    {
-      // take care of self assignments
-      if (this == &m)
-      {
-        return *this;
-      }
-
-      DefaultParamHandler::operator=(m);
-      updateMembers_();
-       
-      return *this;
-    }
 
     /// Non-mutable access to length of the structuring element
     inline Real getStrucElemSize() const { return struc_size_; }

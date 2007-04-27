@@ -56,29 +56,6 @@ CHECK((~GaussFilter()))
     delete dgauss_ptr;
 RESULT
 
-CHECK((GaussFilter& operator=(const GaussFilter& s)))
-  GaussFilter gauss;
-  gauss.setSigma(0.2);
-  gauss.setSpacing(0.01);
-  
-  GaussFilter gauss_copy;
-  gauss_copy = gauss;
-
-  TEST_REAL_EQUAL(gauss_copy.getSigma(),0.2)
-  TEST_REAL_EQUAL(gauss_copy.getSpacing(),0.01)
-RESULT
-
-CHECK((GaussFilter(const GaussFilter& g)))
- GaussFilter gauss;
-  gauss.setSigma(0.2);
-  gauss.setSpacing(0.01);
-  
-  GaussFilter gauss_copy(gauss);
-
-  TEST_REAL_EQUAL(gauss_copy.getSigma(),0.2)
-  TEST_REAL_EQUAL(gauss_copy.getSpacing(),0.01)
-RESULT
-
 CHECK((DoubleReal getSigma() const))
   const GaussFilter gaussian;
 

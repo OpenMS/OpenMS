@@ -94,31 +94,8 @@ namespace OpenMS
     /// Constructor
     PeakPickerCWT();
 
-    /// Copy constructor
-    PeakPickerCWT(const PeakPickerCWT& pp)
-        : PeakPicker(pp)
-    {
-			updateMembers_();
-		}
-
     /// Destructor
     virtual ~PeakPickerCWT();
-
-    /// Assignment operator
-    inline PeakPickerCWT& operator=(const PeakPickerCWT& pp)
-    {
-      // take care of self assignments
-      if (this == &pp)
-      {
-        return *this;
-      }
-
-			PeakPicker::operator=(pp);
-
-			updateMembers_();
-			
-      return *this;
-    }
 
     /// Non-mutable access to the vector of peak shapes
     inline const std::vector<PeakShape>& getPeakShapes() const

@@ -56,29 +56,6 @@ CHECK((~SmoothFilter()))
   delete dsmooth_ptr;
 RESULT
 
-
-CHECK((SmoothFilter& operator=(const SmoothFilter& fir)))
-  std::vector<double> coeffs(1);
-  coeffs[0]=1.23423;
-  SmoothFilter smooth;
-  smooth.setCoeffs(coeffs);
-  SmoothFilter smooth_copy;
-
-  smooth_copy=smooth;
-
-  TEST_EQUAL(smooth_copy.getCoeffs()[0], 1.23423)
-RESULT
-
-CHECK((SmoothFilter(const SmoothFilter& fir)))
-  std::vector<double> coeffs(1);
-  coeffs[0]=1.23423;
-  SmoothFilter smooth;
-  smooth.setCoeffs(coeffs);
-  
-  SmoothFilter smooth_copy(smooth);
-  TEST_EQUAL(smooth_copy.getCoeffs()[0], 1.23423)
-RESULT
-
 CHECK((const std::vector<double>& getCoeffs() const))
   const SmoothFilter smooth;
   TEST_EQUAL(smooth.getCoeffs().size(),0)

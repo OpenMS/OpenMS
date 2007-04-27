@@ -48,25 +48,6 @@ CHECK((double& getScale()))
   delete ptr;
 RESULT
 
-CHECK((ContinuousWaveletTransform& operator=(const ContinuousWaveletTransform& cwt)))
-  ContinuousWaveletTransform cwt;
-  
-  cwt.getScale() = 0.2;
-  cwt.getSpacing() = 0.01;
-  cwt.getLeftPaddingIndex() = 3;
-  cwt.getRightPaddingIndex() = 1;
-  cwt.getSignalLength() = 2;
-  
-  ContinuousWaveletTransform cwt_copy;
-  cwt_copy = cwt;
-  
-  TEST_REAL_EQUAL(cwt_copy.getScale(), 0.2)
-  TEST_REAL_EQUAL(cwt_copy.getSpacing(), 0.01)
-  TEST_REAL_EQUAL(cwt_copy.getLeftPaddingIndex(),3)
-  TEST_REAL_EQUAL(cwt_copy.getRightPaddingIndex(),1)
-  TEST_REAL_EQUAL(cwt_copy.getSignalLength(), 2)
-RESULT
-
 CHECK((void setWavelet(const std::vector<double>& wavelet)))
   ContinuousWaveletTransform cwt;
   

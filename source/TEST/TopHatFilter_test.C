@@ -53,37 +53,7 @@ CHECK((~TopHatFilter()))
   delete tophat_ptr;
 RESULT
 
-CHECK((TopHatFilter(const Param& parameters)))
-  Param p;
-  p.setValue("struc_elem_length",3);
-  TopHatFilter tophat;
-  tophat.setParameters(p);
-  
-  TEST_EQUAL(tophat.getStrucElemSize(), 3)
-RESULT
-
-CHECK((TopHatFilter(const TopHatFilter& t)))
-  TopHatFilter tophat;
-  tophat.setStrucElemSize(3);
-
-  TopHatFilter tophat_copy(tophat);
-  TEST_EQUAL(tophat_copy.getStrucElemSize(), 3)
-RESULT
-
-CHECK((TopHatFilter& operator=(const TopHatFilter& t)))
-    TopHatFilter tophat;
-    tophat.setStrucElemSize(3);
-
-    TopHatFilter tophat_copy;
-    tophat_copy = tophat;
-    TEST_EQUAL(tophat_copy.getStrucElemSize(), 3)
-RESULT
-
-CHECK((TopHatFilter& operator=(const TopHatFilter& t)))
-RESULT
-
-
-CHECK((template<typename InputPeakIterator, typename OutputPeakContainer  > void filter(InputPeakIterator first, InputPeakIterator last, OutputPeakContainer& baseline_filtered_container)))
+CHECK((template<typename InputPeakIterator, typename OutputPeakContainer  > void filter(InputPeakIterator first, InputPeakIterator last,  OutputPeakContainer& baseline_filtered_container)))
     DPeakArray<1,RawDataPoint1D > raw_data;
     int i;
     for (i=0; i < 24; ++i)

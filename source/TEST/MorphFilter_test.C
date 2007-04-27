@@ -50,29 +50,6 @@ CHECK(~MorphFilter())
   delete ptr;
 RESULT
 
-CHECK(MorphFilter& operator=(const MorphFilter& m))
-  Param p;
-  p.setValue("struc_elem_length", 3);
-  
-  MorphFilter m;
-  m.setParameters(p);
-  m.setStrucElemSize(4);
-  
-  MorphFilter m_copy;
-  m_copy = m;
-  
-  TEST_EQUAL(m_copy.getStrucElemSize(),4)
-RESULT
-
-CHECK(MorphFilter(const MorphFilter& m))
-  MorphFilter m;
-  m.setStrucElemSize(4);
-  
-  MorphFilter m_copy(m);
-  
-  TEST_REAL_EQUAL(m_copy.getStrucElemSize(),4)
-RESULT
-
 CHECK(Real getStrucElemSize() const)
   MorphFilter m;
   

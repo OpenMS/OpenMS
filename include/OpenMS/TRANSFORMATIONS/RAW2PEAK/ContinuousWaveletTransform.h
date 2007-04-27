@@ -54,40 +54,9 @@ public:
             begin_right_padding_(0)
     {}
 
-    /// Copy constructor
-    ContinuousWaveletTransform(const ContinuousWaveletTransform& cwt)
-            : signal_(cwt.signal_),
-            wavelet_(cwt.wavelet_),
-            scale_(cwt.scale_),
-            spacing_(cwt.spacing_),
-            signal_length_(cwt.signal_length_),
-            end_left_padding_(cwt.end_left_padding_),
-            begin_right_padding_(cwt.begin_right_padding_)
-    {}
-
     /// Destructor.
     virtual ~ContinuousWaveletTransform()
     {}
-
-    /// Assignment operator
-    inline ContinuousWaveletTransform& operator=(const ContinuousWaveletTransform& cwt)
-    {
-        // take care of self assignments
-        if (this == &cwt)
-        {
-            return *this;
-        }
-
-        signal_=cwt.signal_;
-        wavelet_=cwt.wavelet_;
-        scale_=cwt.scale_;
-        spacing_=cwt.spacing_;
-        signal_length_=cwt.signal_length_;
-        end_left_padding_=cwt.end_left_padding_;
-        begin_right_padding_=cwt.begin_right_padding_;
-
-        return *this;
-    }
 
     /// Non-mutable access to the wavelet transform of the signal
     inline const DPeakArray<1, RawDataPoint1D >& getSignal() const

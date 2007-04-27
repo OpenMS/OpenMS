@@ -69,50 +69,6 @@ CHECK(setParam)
 	TEST_EQUAL(pp.get2DOptimizationFlag() == true, true)
 RESULT
 
-CHECK((PeakPickerCWT& operator=(const PeakPickerCWT& pp)))
-  Param param;
-  param.setValue("thresholds:correlation",0.8);
-  param.setValue("wavelet_transform:scale",0.3);
-  param.setValue("thresholds:noise_level",9);
-  param.setValue("thresholds:search_radius",2);
-  param.setValue("deconvolution:skip_deconvolution","no");
-  param.setValue("Optimization:optimization","one_dimensional");
-  
-  PeakPickerCWT pp;
-  pp.setParameters(param);
-  PeakPickerCWT pp_copy;
-  pp_copy = pp;
-  TEST_REAL_EQUAL(pp_copy.getWaveletScale(),0.3)
-  TEST_REAL_EQUAL(pp_copy.getPeakCorrBound(),0.8)
-  TEST_REAL_EQUAL(pp_copy.getNoiseLevel(),9)
-  TEST_EQUAL(pp_copy.getOptimizationFlag() == true, true)
-  TEST_REAL_EQUAL(pp_copy.getSearchRadius(),2)
-	TEST_EQUAL(pp.getDeconvolutionFlag() == true, true)
-	TEST_EQUAL(pp.get2DOptimizationFlag() == false, true)
-RESULT
-
-CHECK((PeakPickerCWT(const PeakPickerCWT& pp)))
-  Param param;
-  param.setValue("thresholds:correlation",0.8);
-  param.setValue("wavelet_transform:scale",0.3);
-  param.setValue("thresholds:noise_level",9);
-  param.setValue("thresholds:search_radius",2);
-  param.setValue("deconvolution:skip_deconvolution","no");
-  param.setValue("Optimization:optimization","no");
-  
-  PeakPickerCWT pp;
-  pp.setParameters(param);
-  
-  PeakPickerCWT pp_copy(pp);
-  TEST_REAL_EQUAL(pp_copy.getWaveletScale(),0.3)
-  TEST_REAL_EQUAL(pp_copy.getPeakCorrBound(),0.8)
-  TEST_REAL_EQUAL(pp_copy.getNoiseLevel(),9)
-  TEST_EQUAL(pp_copy.getOptimizationFlag() == false, true)
-  TEST_REAL_EQUAL(pp_copy.getSearchRadius(),2)
-	TEST_EQUAL(pp.getDeconvolutionFlag() == true, true)
-	TEST_EQUAL(pp.get2DOptimizationFlag() == false, true)	
-RESULT
-
 MzDataFile mz_data_file;
 MSExperiment<RawDataPoint1D > exp_raw;
 mz_data_file.load("data/PeakPicker_test.mzData",exp_raw);

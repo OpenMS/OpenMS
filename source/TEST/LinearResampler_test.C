@@ -50,28 +50,6 @@ CHECK((~LinearResampler()))
   delete lr_ptr;
 RESULT
 
-CHECK((LinearResampler( LinearResampler const & lr )))
-  Param p;
-  p.setValue("resampling_width",0.5);
-  LinearResampler tmp;
-  tmp.setParameters(p);
-
-  LinearResampler tmp2(tmp);
-  TEST_REAL_EQUAL(tmp2.getSpacing(),0.5);
-  TEST_EQUAL(tmp2.getParameters(),p);
-RESULT
-
-CHECK((LinearResampler& operator= (const LinearResampler& source)))
-  Param p;
-  p.setValue("resampling_width",0.5);
-  LinearResampler tmp;
-  tmp.setParameters(p);
-
-  LinearResampler tmp2;
-  tmp2 = tmp;
-  TEST_REAL_EQUAL(tmp2.getSpacing(),0.05);
-RESULT
-
 CHECK((template<typename InputSpectrumIterator, typename OutputPeakType > void rasterExperiment(InputSpectrumIterator first, InputSpectrumIterator last, MSExperiment<OutputPeakType>& ms_exp_filtered)))
   MSExperiment< RawDataPoint1D > raw;
   raw.resize(1);

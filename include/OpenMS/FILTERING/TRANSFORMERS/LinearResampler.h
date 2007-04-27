@@ -62,30 +62,11 @@ namespace OpenMS
         defaultsToParam_();
 	    }
 		
-	    /// Copy constructor.
-      LinearResampler( LinearResampler const & lr ) 
-      : DefaultParamHandler(lr)
-			{
-        updateMembers_();
-			}
-	
 	    /// Destructor.
 	    ~LinearResampler()
 	    {
 	    	
 	    }
-	
-	    /// Assignment operator
-	    LinearResampler& operator= (const LinearResampler& source)
-	    {
-	        if (&source == this)
-	            return *this;
-	
-          updateMembers_();
-	
-	        return *this;
-	    }
-	
 	
 	    /** @brief Applies the resampling algorithm to to an given iterator range.
 	
@@ -102,7 +83,7 @@ namespace OpenMS
 	    */
 	    template < typename InputPeakIterator, typename OutputPeakContainer >
 	    void raster(InputPeakIterator first, InputPeakIterator last, OutputPeakContainer& resampled_peak_container)
-	    {
+      {
 	        double end_pos = (last-1)->getMZ();
 	        double start_pos = first->getMZ();
 	        int number_raw_points = distance(first,last);

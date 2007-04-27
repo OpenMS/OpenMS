@@ -48,55 +48,6 @@ CHECK((~OptimizePick()))
 	delete ptr;
 RESULT
 
-CHECK((OptimizePick& operator=(const OptimizePick& opt)))
-	PRECISION(0.0001)
-  OptimizePick opt_pick;
-  struct OptimizationFunctions::PenaltyFactors penalties;
-  opt_pick.setPenalties(penalties);
-  opt_pick.setNumberIterations(10);
-  opt_pick.setMaxAbsError(0.01);
-  opt_pick.setMaxRelError(0.001);
-  
-  OptimizePick opt_pick_copy;
-  opt_pick_copy = opt_pick;
-  struct OptimizationFunctions::PenaltyFactors penalties_copy = opt_pick_copy.getPenalties();
-  unsigned int number = opt_pick_copy.getNumberIterations();
-  double abs_err = opt_pick_copy.getMaxAbsError();
-  double rel_err = opt_pick_copy.getMaxRelError();
-  TEST_REAL_EQUAL(penalties.pos,penalties_copy.pos)
-  TEST_REAL_EQUAL(penalties.lWidth,penalties_copy.lWidth)
-  TEST_REAL_EQUAL(penalties.rWidth,penalties_copy.rWidth)
- 	TEST_EQUAL(number == 10, true)
- 	TEST_REAL_EQUAL(abs_err, 0.01)
- 	TEST_REAL_EQUAL(rel_err, 0.001)
-RESULT
-
-CHECK((OptimizePick( )))
-  // ???
-RESULT
-
-CHECK((OptimizePick(const OptimizePick& opt)))
-  PRECISION(0.0001)
-  OptimizePick opt_pick;
-  struct OptimizationFunctions::PenaltyFactors penalties;
-  opt_pick.setPenalties(penalties);
-  opt_pick.setNumberIterations(10);
-  opt_pick.setMaxAbsError(0.01);
-  opt_pick.setMaxRelError(0.001);
-  
-  OptimizePick opt_pick_copy(opt_pick);
-  struct OptimizationFunctions::PenaltyFactors penalties_copy = opt_pick_copy.getPenalties();
-  unsigned int number = opt_pick_copy.getNumberIterations();
-  double abs_err = opt_pick_copy.getMaxAbsError();
-  double rel_err = opt_pick_copy.getMaxRelError();
-  TEST_REAL_EQUAL(penalties.pos,penalties_copy.pos)
-  TEST_REAL_EQUAL(penalties.lWidth,penalties_copy.lWidth)
-  TEST_REAL_EQUAL(penalties.rWidth,penalties_copy.rWidth)
- 	TEST_EQUAL(number == 10, true)
- 	TEST_REAL_EQUAL(abs_err, 0.01)
- 	TEST_REAL_EQUAL(rel_err, 0.001)
-RESULT
-
 CHECK((OptimizePick(const struct OptimizationFunctions::PenaltyFactors& penalties_, const int max_iteration_, const double eps_abs_, const double eps_rel_ )))
   PRECISION(0.0001)
   struct OptimizationFunctions::PenaltyFactors penalties;

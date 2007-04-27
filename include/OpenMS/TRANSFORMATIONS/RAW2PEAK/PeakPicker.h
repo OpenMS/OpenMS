@@ -50,28 +50,10 @@ namespace OpenMS
     /// Constructor
     PeakPicker();
 
-    /// Copy constructor
-    PeakPicker(const PeakPicker& pp);
-
     /// Destructor
     virtual ~PeakPicker()
     {	
     }
-
-    /// Assignment operator
-    PeakPicker& operator=(const PeakPicker& pp)
-	  {
-	    // take care of self assignments
-	    if (this == &pp)
-	    {
-	      return *this;
-	    }
-			DefaultParamHandler::operator=(pp);
-			
-			updateMembers_();
-				
-	    return *this;
-	  }
 
     /// Non-mutable access to the threshold of the height
     inline Real getPeakBound() const 

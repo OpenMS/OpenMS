@@ -80,32 +80,9 @@ namespace OpenMS
         defaultsToParam_();
       }
 
-      /// Copy constructor
-      inline GaussFilter(const GaussFilter& g)
-        : SmoothFilter(g),
-          DefaultParamHandler(g),
-          spacing_(g.spacing_)
-      {
-        updateMembers_();
-      }
-
       /// Destructor
       virtual ~GaussFilter()
       {
-      }
-
-      /// Assignment operator
-      inline GaussFilter& operator=(const GaussFilter& s)
-      {
-        // take care of self assignments
-        if (this == &s) return *this;
-        
-        DefaultParamHandler::operator=(s);
-        spacing_ = s.spacing_;
-        
-        updateMembers_();
-
-        return *this;
       }
 
       /// Non-mutable access to the sigma
