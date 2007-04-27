@@ -424,7 +424,7 @@ namespace OpenMS
 			  case SPECTRUMLIST:
 			  	//std::cout << Date::now() << " Reserving space for spectra" << std::endl;
 			  	exp_->reserve( asInt_(getAttributeAsString_(COUNT)) );
-			  	logger_.initProgress(0,asInt_(getAttributeAsString_(COUNT)),"loading mzData file");
+			  	logger_.startProgress(0,asInt_(getAttributeAsString_(COUNT)),"loading mzData file");
 			  	//std::cout << Date::now() << " done" << std::endl;
 			  	break;
 				case ACQSPEC:
@@ -542,41 +542,44 @@ namespace OpenMS
 			int tag = leaveTag(qname);
 
 			// Do something depending on the tag
-			switch(tag) {
-			case DESCRIPTION:
-				// delegate control to ExperimentalSettings handler
-				{
-					// initialize parser
-					xercesc::XMLPlatformUtils::Initialize();
-					xercesc::SAX2XMLReader* parser = xercesc::XMLReaderFactory::createXMLReader();
-					parser->setFeature(xercesc::XMLUni::fgSAX2CoreNameSpaces,false);
-					parser->setFeature(xercesc::XMLUni::fgSAX2CoreNameSpacePrefixes,false);
-
-					MzDataExpSettHandler handler( exp_->getExperimentalSettings(),file_); // *((ExperimentalSettings*)
-					handler.resetErrors();
-					parser->setContentHandler(&handler);
-					parser->setErrorHandler(&handler);
-					
-					String tmp(exp_sett_.str().c_str());
-// 					std::cout << tmp << std::endl;
-					xercesc::MemBufInputSource source((const XMLByte*)(tmp.c_str()), tmp.size(), "dummy");
-	      	parser->parse(source);
-	      	delete(parser);
-				}
-				break;
-			case SPECTRUM:
-				if (!skip)
-				{
-					fillData_();
-					exp_->push_back(spec_);
-					logger_.setProgress(exp_->size());
-				}
-				
-				data_to_decode_.clear();
-				array_name_.clear();
-				precisions_.clear();
-				endians_.clear();
-				break;
+			switch(tag) 
+			{
+				case DESCRIPTION:
+					// delegate control to ExperimentalSettings handler
+					{
+						// initialize parser
+						xercesc::XMLPlatformUtils::Initialize();
+						xercesc::SAX2XMLReader* parser = xercesc::XMLReaderFactory::createXMLReader();
+						parser->setFeature(xercesc::XMLUni::fgSAX2CoreNameSpaces,false);
+						parser->setFeature(xercesc::XMLUni::fgSAX2CoreNameSpacePrefixes,false);
+	
+						MzDataExpSettHandler handler( exp_->getExperimentalSettings(),file_); // *((ExperimentalSettings*)
+						handler.resetErrors();
+						parser->setContentHandler(&handler);
+						parser->setErrorHandler(&handler);
+						
+						String tmp(exp_sett_.str().c_str());
+	// 					std::cout << tmp << std::endl;
+						xercesc::MemBufInputSource source((const XMLByte*)(tmp.c_str()), tmp.size(), "dummy");
+				      	parser->parse(source);
+				      	delete(parser);
+					}
+					break;
+				case SPECTRUM:
+					if (!skip)
+					{
+						fillData_();
+						exp_->push_back(spec_);
+						logger_.setProgress(exp_->size());
+					}
+					data_to_decode_.clear();
+					array_name_.clear();
+					precisions_.clear();
+					endians_.clear();
+					break;
+				case MZDATA:
+					logger_.endProgress();
+					break;
 			}
 		}
 
@@ -779,7 +782,7 @@ namespace OpenMS
 		template <typename MapType>
 		void MzDataHandler<MapType>::writeTo(std::ostream& os)
 		{
-			logger_.initProgress(0,cexp_->size(),"storing mzData file");
+			logger_.startProgress(0,cexp_->size(),"storing mzData file");
 			
 			os << "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>\n"
 				 << "<mzData version=\"1.05\" accessionNumber=\"OpenMS:\">\n";
@@ -951,6 +954,8 @@ namespace OpenMS
 				os <<"\t\t</spectrum>\n";
 			}
 			os << "\t</spectrumList>\n</mzData>\n";
+			
+			logger_.endProgress();
 		}
 
 

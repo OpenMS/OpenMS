@@ -455,6 +455,7 @@ class TOPPMascotAdapter
 	
 			if(!mascot_out)
 			{
+				mzdata_infile.setLogType(log_type_);
 				mzdata_infile.load(inputfile_name, experiment);
 					
 			//-------------------------------------------------------------

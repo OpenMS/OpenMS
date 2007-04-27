@@ -80,26 +80,35 @@ Ideen:
 - Seeder/Extender: Analyse der MassenSpur-Distanzen
 
 Todos:
-- Alte Mainterner ersetzen
-- 4611/raw_cut.mzData -> mzXML -> nicht mehr zu laden!
-- ProgressLogger finished()
+- Tutorial: neue Algorithmen -> ProgressLogger, DefaultParamHandler, Interfaces
 - Update Mascot
-- Docu ProgressLogger: alles const -> immer Logbar
-- Stefan Heess: QT fehler Metadaten einzelne Spektren mit ID
 - TPP anschauen
 - Test-builts: log-datei von tests....
 - announcments password: OMS_ML_PW
 - Release script: Docu bauen!
-- Umbau Website: Team (Position, project role), OpenMS - <name> (Website, Docu, Projektbeschreibungen)
-- Email Developers: ProgressLogger, analysisXML -> idXML, Schemata underer Formate,
-- Thomas Schreiner: mzData fixen (CV)
-- Tutorial: neue Algorithmen -> ProgressLogger, DefaultParamHandler, Interfaces
-- Progress in <DTA2D und ANDI/MS (lesen und schreiben)
-- Progress in alle wichtigen Algorithmen einbauen + TOPPTools
-- Reine TOPPView Klassen aufräumen
 - Spectrum3DCanvas: fix grab keyboard
 - make install mit prefix testen
-- MSExperiment -- Add getPrecursorRT(rt/scan nr) and update ID adapters and IDSpectrumMapper (Stefan R.)
 - Identification -- Store ScoreType (with direction) and AccessionType as Enum in Identification (Marc, Andreas)
+
+Thomas Schreiner: 
+- mzData fixen (CV)
+- 4611/raw_cut.mzData -> mzXML -> nicht mehr zu laden!
+
+Stefan Heess:
+- QT fehler Metadaten einzelne Spektren mit ID
+
+Stefan Rink:
+- Add getPrecursorRT(rt/scan nr) and update ID adapters and IDSpectrumMapper 
+
+Email Developers:
+- OpenMS - XXX?
+  - A C++ library for shotgun proteomics
+  - A Software Platform for Shotgun Proteomics
+  - An open source framework for LC-MS based proteomics
+- ProgressLogger in alle wichtigen Algorithmen einbauen
+- analysisXML -> idXML
+- Schemata underer Formate
+- Website - Team (Position, project role)
+
 
 ***********************************************************************/

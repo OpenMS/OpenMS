@@ -179,7 +179,9 @@ class TOPPFileConverter
 		}
 		else if (out_type == FileHandler::DTA2D)
 		{
-			DTA2DFile().store(out,exp);			
+			DTA2DFile f;
+			f.setLogType(log_type_);
+			f.store(out,exp);
 		}
 		else if (out_type == FileHandler::FEATURE)
 		{

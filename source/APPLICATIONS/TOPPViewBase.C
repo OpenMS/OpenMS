@@ -1200,7 +1200,9 @@ namespace OpenMS
 					                    "MzData files (*.mzData)");
 					if (!file_name.isEmpty())
 					{
-					  MzDataFile().store(file_name.toAscii().data(),out);
+					  MzDataFile f;
+					  f.setLogType(ProgressLogger::GUI);
+					  f.store(file_name.toAscii().data(),out);
 					}
     		}
 			}

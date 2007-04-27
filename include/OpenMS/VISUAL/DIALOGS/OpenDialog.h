@@ -46,7 +46,7 @@ namespace OpenMS
 		@todo Implement meta data preview with DB (Thomas S.)
 		@todo load metadata only for Files (Thomas S.)
 		
-		@ingroup Dialogs
+		@ingroup TOPPView_elements
 	*/
 	class OpenDialog
 		: public QDialog,

@@ -310,6 +310,7 @@ class TOPPOMSSAAdapter
 			//-------------------------------------------------------------
 
 			MzDataFile mzdata_infile;
+			mzdata_infile.setLogType(log_type_);
 			ProteinIdentification protein_identification;
 			vector<Identification> identifications;
 			mzdata_infile.load(inputfile_name, map);

@@ -30,6 +30,7 @@
 #include <OpenMS/KERNEL/Peak2D.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/FORMAT/PeakFileOptions.h>
+#include <OpenMS/CONCEPT/ProgressLogger.h>
 
 #include <fstream>
 #include <iostream>
@@ -55,6 +56,7 @@ namespace OpenMS
 			@ingroup FileIO
   */
   class DTA2DFile
+  	: public ProgressLogger
   {
 	 private:
 		PeakFileOptions options_;
@@ -83,6 +85,8 @@ namespace OpenMS
 		template <typename MapType>
 		void load(const String& filename, MapType& map) throw (Exception::FileNotFound, Exception::ParseError)
 		{
+			startProgress(0,0,"loading DTA2D file");
+			
 			//try to open file
 			std::ifstream is(filename.c_str());
 			if (!is)
@@ -210,6 +214,7 @@ namespace OpenMS
 					if (spec.getRT() >= 0) // if not initial Spectrum
 					{
 						map.push_back(spec);
+						setProgress(0);
 						//std::cout << "NEW SPEC"<< std::endl;
 					}
 					spec.getContainer().clear();
@@ -221,6 +226,7 @@ namespace OpenMS
 
 			if (spec.getRT() >= 0) map.push_back(spec);  // add last Spectrum
 			is.close();
+			endProgress();
 		}
 
 		/**
@@ -231,6 +237,8 @@ namespace OpenMS
 		template <typename MapType>
 		void store(const String& filename, const MapType& map) const throw (Exception::UnableToCreateFile)
 		{
+			startProgress(0,map.size(),"storing DTA2D file");
+			
 			std::ofstream os(filename.c_str());
 			if (!os)
 			{
@@ -239,8 +247,10 @@ namespace OpenMS
 
 			// Iterate over all peaks of each spectrum and
 			// write one line for each peak of the spectrum.
+			UInt count = 0;
 			for (typename MapType::const_iterator spec=map.begin(); spec!=map.end(); ++spec)
 			{
+				setProgress(count++);
 				for (typename MapType::SpectrumType::ConstIterator it = spec->begin(); it != spec->end(); ++it)
 				{
 					// Write rt, m/z and intensity.
@@ -249,6 +259,7 @@ namespace OpenMS
 
 			}
 			os.close();
+			endProgress();
 		}
   };
 

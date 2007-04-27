@@ -127,6 +127,7 @@ class TOPPNoiseFilter
       //-------------------------------------------------------------
 
       MzDataFile mz_data_file;
+      mz_data_file.setLogType(log_type_);
       MSExperiment<RawDataPoint1D > ms_exp_raw;
       mz_data_file.load(in,ms_exp_raw);
 

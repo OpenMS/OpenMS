@@ -36,6 +36,13 @@ namespace OpenMS
 {	
 	/**
 		@brief Base class for all classes that want to report their progess. 
+		
+		Per default the progress log is disabled. Use setLogType to enable it
+		
+		Use startProgress, setProgress and endProgress for the actual logging.
+		
+		@note All methods are const, so it can be used through a const reference or in const methods as well!
+		
 	*/
 	class ProgressLogger
 	{
@@ -68,10 +75,13 @@ namespace OpenMS
 
 				@note Make sure to call setLogType first!
 			*/
-			void initProgress(UInt begin, UInt end, const String& label) const;
+			void startProgress(UInt begin, UInt end, const String& label) const;
 			
 			/// Sets the current progress
 			void setProgress(UInt value) const;
+			
+			/// Ends the progress display
+			void endProgress() const;
 		
 		protected:
 			mutable LogType type_;

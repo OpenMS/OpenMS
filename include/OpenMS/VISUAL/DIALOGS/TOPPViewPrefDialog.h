@@ -34,7 +34,11 @@ namespace OpenMS
 {
 	namespace Internal
 	{
-		///Preferences dialog for TOPPView
+		/**
+			@brief Preferences dialog for TOPPView
+			
+			@ingroup TOPPView_elements
+		*/
 		class TOPPViewPrefDialog
 			: public QDialog,
 	  		public Ui::TOPPViewPrefDialogTemplate

@@ -150,6 +150,7 @@ class TOPPResampler
 		typedef MSExperimentType::SpectrumType SpectrumType;
 		MSExperimentType exp;
 		MzDataFile f;
+		f.setLogType(log_type_);
 		f.getOptions().setRTRange(DRange<1>(rt_l,rt_u));
 		f.getOptions().setMZRange(DRange<1>(mz_l,mz_u));
 		f.load(in,exp);
@@ -290,7 +291,9 @@ class TOPPResampler
 
 			} // row_index
 
-			MzDataFile().store(out,exp_resampled);			
+			MzDataFile f;
+			f.setLogType(log_type_);
+			f.store(out,exp_resampled);			
 
 		} // !out.empty()
 		

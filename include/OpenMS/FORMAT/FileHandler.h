@@ -132,8 +132,12 @@ namespace OpenMS
 				return true;
 				break;
 			case DTA2D:
-				DTA2DFile().load(filename,exp);
-				return true;
+				{
+					DTA2DFile f;
+					f.setLogType(log);
+					f.load(filename,exp);
+					return true;
+				}
 				break;
 			case MZXML:
 				{
@@ -153,8 +157,12 @@ namespace OpenMS
 				break;
 #ifdef ANDIMS_DEF
 			case ANDIMS:
-				ANDIFile().load(filename,exp);
-				return true;
+				{
+					ANDIFile f;
+					f.setLogType(log);
+					f.load(filename,exp);
+					return true;
+				}
 				break;
 #endif
 			default:

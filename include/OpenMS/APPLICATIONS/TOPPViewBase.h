@@ -61,6 +61,8 @@ namespace OpenMS
 
   /**
   	@brief Main window of TOPPView tool
+  	
+  	@ingroup TOPPView_elements
   */
   class TOPPViewBase 
   	: public QMainWindow, 

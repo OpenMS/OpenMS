@@ -309,6 +309,7 @@ protected:
 					StarAlignment< ConsensusPeakType > alignment;
 					alignment.setParameters(mapali_param);
 					MzDataFile mzdata_file;
+					mzdata_file.setLogType(log_type_);
 					std::vector< String > file_names;
           // Vector for the feature maps
 					std::vector< PeakArrayType > peak_maps(distance(pit,files_param.end()));

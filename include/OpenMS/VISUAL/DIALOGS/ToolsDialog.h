@@ -47,8 +47,7 @@ namespace OpenMS
 		Remember to set the PATH-variable to the OpenMS/bin directory before executing the TOPP-tools dialog!
 		Before clicking ok-button you should open a file with spectrum data.
 		
-		
-		@ingroup Dialogs
+		@ingroup TOPPView_elements
 	*/
 	class ToolsDialog
 		: public QDialog

@@ -165,7 +165,7 @@ class TOPPFileMerger
 			inputFileReadable_(filename);	
 			
 			//load file 
-			fh.loadExperiment(filename,in,force_type);
+			fh.loadExperiment(filename,in,force_type,log_type_);
 			if (in.size()==0)
 			{
 				writeLog_(String("Warning: Empty file '") + filename +"'!");
@@ -263,7 +263,9 @@ class TOPPFileMerger
 		// writing output
 		//-------------------------------------------------------------
 			
-		MzDataFile().store(out_file,out);
+		MzDataFile f;
+		f.setLogType(log_type_);
+		f.store(out_file,out);
 			
 		return EXECUTION_OK;
 	}

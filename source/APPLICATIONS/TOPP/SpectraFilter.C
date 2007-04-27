@@ -168,6 +168,7 @@ class TOPPSpectraFilter
 
       MSExperiment<> exp;
       MzDataFile f;
+      f.setLogType(log_type_);
       f.load(in, exp);
 
       //-------------------------------------------------------------

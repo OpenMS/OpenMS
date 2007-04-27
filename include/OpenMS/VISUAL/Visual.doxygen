@@ -49,3 +49,14 @@
 	
 	@ingroup Visual
 */
+
+/**
+	@defgroup TOPPView_elements  TOPPView
+	
+	@brief GUI elements for TOPPView
+	
+	Some GUI classes were designed only for TOPPView and are probably not usable in any other application.
+	These classes are lised in this module.
+	
+	@ingroup Visual
+*/

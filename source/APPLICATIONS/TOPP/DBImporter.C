@@ -110,6 +110,7 @@ class TOPPDBImporter
 				//load input file data
 				MSExperiment< > exp;
 				MzDataFile f;
+				f.setLogType(log_type_);
 				f.load(in,exp);			
 				
 				//store data

@@ -120,6 +120,7 @@ class TOPPInternalCalibration
     MSExperiment<RawDataPoint1D > ms_exp_raw;
     
 		MzDataFile mz_data_file;
+		mz_data_file.setLogType(log_type_);
 		mz_data_file.load(in,ms_exp_raw);
 
 		

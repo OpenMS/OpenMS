@@ -306,7 +306,7 @@ namespace OpenMS
 						exp_->reserve( asUInt_(tmp_str) );
 					}
 				}
-				logger_.initProgress(0,asUInt_(tmp_str),"loading mzXML file");
+				logger_.startProgress(0,asUInt_(tmp_str),"loading mzXML file");
 				// fall through?
 			case MZXML:
 				// look for schema information
@@ -969,7 +969,12 @@ namespace OpenMS
   	bool skip = skip_tag_.top();
 		int tag = leaveTag(qname);
 		if (skip) return;
-
+		
+		if (tag==MZXML)
+		{
+			logger_.endProgress();
+		}
+		
 		if (tag==INSTRUMENT && analyzer_)
 		{
 			analyzer_ = 0;
@@ -1033,7 +1038,7 @@ namespace OpenMS
 			const SpectrumType& spec = (*cexp_)[s];
 			if (spec.size()!=0) ++count_tmp_;
 		}
-		logger_.initProgress(0,cexp_->size(),"storing mzXML file");
+		logger_.startProgress(0,cexp_->size(),"storing mzXML file");
 		os  << "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>\n"
 			 << "<mzXML xmlns=\"http://sashimi.sourceforge.net/schema_revision/mzXML_2.0\" "
 			 << "xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" "
@@ -1268,6 +1273,8 @@ namespace OpenMS
 		os << "\t</msRun>\n"
 			 << "\t<indexOffset>0</indexOffset>\n"
 			 << "</mzXML>\n";
+		
+		logger_.endProgress();
 	}
 
 	} // namespace Internal

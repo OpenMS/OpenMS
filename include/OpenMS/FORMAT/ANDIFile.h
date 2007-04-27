@@ -29,6 +29,7 @@
 
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/FORMAT/HANDLERS/ANDIHandler.h>
+#include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <fstream>
 
 namespace OpenMS
@@ -41,6 +42,7 @@ namespace OpenMS
   	@ingroup FileIO
   */
   class ANDIFile
+  	:	public ProgressLogger
   {
     public:
       ///Default constructor
@@ -63,7 +65,7 @@ namespace OpenMS
 		      throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename);
 		    }
 
-				Internal::ANDIHandler<MapType> handler(map);
+				Internal::ANDIHandler<MapType> handler(map,*this);
 				handler.parse(filename);
       }
   };

@@ -56,7 +56,7 @@ namespace OpenMS
 		type_ = type;
 	}
 	
-	void ProgressLogger::initProgress(UInt begin, UInt end, const String& label) const
+	void ProgressLogger::startProgress(UInt begin, UInt end, const String& label) const
 	{
 		OPENMS_PRECONDITION(begin <= end, "ProgressLogger::init : invalid range!");
 		
@@ -93,7 +93,7 @@ namespace OpenMS
 				}
 				if (begin_==end_)
 				{
-					cout << '.' << endl;
+					cout << '.' << flush;
 				}
 				else
 				{
@@ -107,6 +107,28 @@ namespace OpenMS
 							 << "'. Should be between '" << begin_ << "' and '" << end_ << "'!" << endl;
 				}
 				dlg_->setValue(value);
+				break;
+			case NONE:
+				break;
+		};	
+	}
+	
+	void ProgressLogger::endProgress() const
+	{
+		switch (type_)
+		{
+			case CMD:
+				if (begin_==end_)
+				{
+					cout << endl << " -- done --  " << endl;
+				}
+				else
+				{
+					cout << "\r -- done --          " << endl;
+				}
+				break;
+			case GUI:
+				dlg_->setValue(end_);
 				break;
 			case NONE:
 				break;

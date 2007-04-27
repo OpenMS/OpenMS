@@ -142,6 +142,7 @@ class TOPPDTAExtractor
 			
 			MSExperiment< > exp;
 			MzDataFile f;
+			f.setLogType(log_type_);
 			f.getOptions().setRTRange(DRange<1>(rt_l,rt_u));
 			f.load(in,exp);						
 

@@ -124,6 +124,7 @@ class TOPPPILISIdentification
 
       PeakMap exp;
       MzDataFile f;
+      f.setLogType(log_type_);
       f.load(in, exp);
 
 			writeDebug_("Data set contains " + String(exp.size()) + " spectra", 1);

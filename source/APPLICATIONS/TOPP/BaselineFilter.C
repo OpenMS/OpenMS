@@ -100,6 +100,7 @@ class TOPPBaselineFilter
 		MzDataFile mz_data_file;
 		MSExperiment<RawDataPoint1D > ms_exp_raw;
 		MSExperiment<RawDataPoint1D > ms_exp_filtered;
+		mz_data_file.setLogType(log_type_);
 		mz_data_file.load(in,ms_exp_raw);
 
 		//check for peak type (raw data required)

@@ -137,6 +137,8 @@ class TOPPDBExporter
 				DBAdapter a(con);
 				
 				MzDataFile f;
+				f.setLogType(log_type_);
+				
 				MSExperiment<> exp;
 				
 				if (ids.size()==1)

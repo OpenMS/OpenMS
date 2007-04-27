@@ -34,6 +34,7 @@
 
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/CONCEPT/ProgressLogger.h>
 
 namespace OpenMS
 {
@@ -54,16 +55,22 @@ namespace OpenMS
       /**@name Constructors and destructor */
       //@{
       ///
-      ANDIHandler(MapType& exp)
-			: exp_(exp), peak_count_(0), peak_(), pol_()
+      ANDIHandler(MapType& exp, const ProgressLogger& logger)
+			:	exp_(exp), 
+				peak_count_(0), 
+				peak_(), 
+				pol_(),
+				logger_(logger)
   		{
-				MetaInfoRegistry& registry =	MetaInfo().registry();
-				for (int i=0; i<NUM_PARAM; i++) {
-					registry.registerName(user_params_[i], description_[i]);
-				}
+			MetaInfoRegistry& registry =	MetaInfo().registry();
+			for (int i=0; i<NUM_PARAM; i++) {
+				registry.registerName(user_params_[i], description_[i]);
 			}
+		}
       ///
-      virtual ~ANDIHandler(){}
+      virtual ~ANDIHandler()
+      {
+      	}
       //@}
 
 		/// read the ANDIFile using the ANDI/MS-NETCDF library
@@ -135,6 +142,9 @@ namespace OpenMS
 		{
 			return (input < -1000)? def : input;
 		}
+		
+		///Progress logging helper class
+		const ProgressLogger& logger_;
   };
 
 
@@ -193,6 +203,7 @@ namespace OpenMS
 
 		long index;
 		long num_scans = ms_raw_global.nscans;
+		logger_.startProgress(0,num_scans,"reading ANDI/MS file");
 		exp_.resize(num_scans);
 		long num_inst = ms_admin.number_instrument_components;
 		ms_admin_expt_t expt_type = ms_admin.experiment_type;
@@ -202,6 +213,7 @@ namespace OpenMS
 		if (num_inst > 1) num_inst = 1; // Read only the first instrument
 		for (index = 0; index < num_inst; index++)
 		{
+			logger_.setProgress(index);
 			ms_inst.inst_no = index;
 
 			if ( MS_ERROR == ms_read_instrument( file_id, &ms_inst) ) 
@@ -218,7 +230,8 @@ namespace OpenMS
 		
 		ms_init_per_scan(0, &ms_raw, &ms_lib);
 		
-		for (index=0; index<num_scans; index++) {
+		for (index=0; index<num_scans; index++) 
+		{
 			ms_raw.scan_no = index;
 
 			if (is_library) {
@@ -237,6 +250,7 @@ namespace OpenMS
 
 		ms_init_global( 1, &ms_admin, &ms_sample, &ms_test, &ms_raw_global);
 		ms_close( file_id);
+		logger_.endProgress();
 	}
 
 	template <typename MapType>

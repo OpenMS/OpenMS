@@ -148,6 +148,7 @@ class TOPPFileFilter
 			
 			MSExperiment< > exp;
 			MzDataFile f;
+			f.setLogType(log_type_);
 			f.getOptions().setRTRange(DRange<1>(rt_l,rt_u));
 			f.getOptions().setMZRange(DRange<1>(mz_l,mz_u));
 			f.getOptions().setIntensityRange(DRange<1>(it_l,it_u));

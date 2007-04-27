@@ -37,7 +37,7 @@ namespace OpenMS
 	/**
 		@brief Struct that stores the data for one layer
 		
-		@ingroup Visual
+		@ingroup SpectrumWidgets
 	*/
   struct LayerData
 	{

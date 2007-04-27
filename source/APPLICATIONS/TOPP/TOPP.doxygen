@@ -39,7 +39,9 @@
   - <b>-instance &lt;n&gt;</b> Instance number for the TOPP INI file (default: '1')
   - <b>-debug &lt;n&gt;</b> Sets the debug level (default: '0')
   - <b>-write_ini &lt;file&gt;</b> Writes an example INI file
+  - <b>-progress</b> Enables progress logging to command line
   - <b>--help</b> Shows a help page for the command line and INI file options
+
 
  	The TOPP tools are devided into several subgroups:
   - <b>File Handling</b>
