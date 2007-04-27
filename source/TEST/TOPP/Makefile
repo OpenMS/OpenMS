@@ -697,14 +697,16 @@ PairwiseSuperposition_test: $(NUMERICDIFF)
 	@$(call RUN_PROG_OPT,MapDewarper,-feat PairwiseSuperposition_1_input1.feat -grid PairwiseSuperposition_1_output2.grid -out PairwiseSuperposition_1_output1_feat.tmp)
 	@$(call TEST_FILE_EQUAL,PairwiseSuperposition_1_output1.feat,PairwiseSuperposition_1_output1_feat.tmp)
 
+
 InternalCalibration_test: $(NUMERICDIFF)
 	@$(ECHO) ""
 	@$(ECHO) "InternalCalibration_test:"
 	@$(ECHO) "- Test1: calibration of raw data"
-	@$(call RUN_PROG_OPT,InternalCalibration,-in InternalCalibration_input.mzData -out InternalCalibration_output1.tmp -ref_masses InternalCalibration_ref_masses -ini InternalCalibration_parameters.ini)
-	@$(call TEST_FILE_EQUAL,InternalCalibration_output.mzData,InternalCalibration_output1.tmp)
+	@$(call RUN_PROG_OPT,InternalCalibration,-in InternalCalibration_1_input.mzData -out InternalCalibration_1_output.tmp -ref_masses InternalCalibration_ref_masses -ini InternalCalibration_parameters.ini)
+	@$(call TEST_FILE_EQUAL,InternalCalibration_1_output.mzData,InternalCalibration_1_output.tmp)
 	@$(ECHO) "- Test2: calibration of peak data"
-	@$(call RUN_PROG_OPT,InternalCalibration,-in InternalCalibration_input2.mzData -out InternalCalibration_output2.tmp -ref_masses InternalCalibration_ref_masses -peak_data)
-	@$(call TEST_FILE_EQUAL,InternalCalibration_output2.mzData,InternalCalibration_output2.tmp)
+	@$(call RUN_PROG_OPT,InternalCalibration,-in InternalCalibration_2_input.mzData -out InternalCalibration_2_output.tmp -ref_masses InternalCalibration_ref_masses -peak_data)
+	@$(call TEST_FILE_EQUAL,InternalCalibration_2_output.mzData,InternalCalibration_2_output.tmp)
+
 
 
