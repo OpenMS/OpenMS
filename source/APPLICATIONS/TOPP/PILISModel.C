@@ -74,17 +74,25 @@ class TOPPPILISModel
 			registerStringOption_("in", "<file>", "", "input file for the spectra in MzData format");
 			registerStringOption_("id_in", "<file>", "", "input file for the annotations in AnalysisXML format");
 			registerStringOption_("trained_model_file", "<file>", "", "the output file of the trained model");
-			registerStringOption_("model_file", "<file>", "", "model file for training", false);
-			registerFlag_("base_model_from_file", "if this flag is set, the model is not generated from scratch but read from the given 'model_file'");
-			registerDoubleOption_("threshold", "<double>", 0.0, "only annotated peptides with score higher than the given threshold are used", false);
+		
+			addEmptyLine_();		
 			registerDoubleOption_("precursor_mass_tolerance", "<double>", 1.5, "precursor mass tolerance for the training", false);
 			registerDoubleOption_("peak_mass_tolerance", "<double>", 0.3, "peak mass tolerance of the MS/MS spectra", false);
+			registerFlag_("duplicates_by_tic", "duplicate sequence/charge combinations are filtered not by score but by TIC of the spectra");
+
+			registerFlag_("use_tic_filtering", "Only use spectra filtered by the given TIC threshold");
+			registerDoubleOption_("tic_threshold", "<double>", 10e10, "only spectra with TIC greater than the given threshold are used for training", false);
+			registerFlag_("use_score_filtering", "Only use spectra filtered by the given score threshold");
+			registerDoubleOption_("score_threshold", "<double>", 100, "only spectra with a score better than the given thresholde are used for training", false);
+
+			addEmptyLine_();
+			registerFlag_("base_model_from_file", "if this flag is set, the model is not generated from scratch but read from the given 'model_file'");
+			registerStringOption_("model_file", "<file>", "", "model file for training", false);
 			registerIntOption_("model_depth", "<int>", 4, "model depth", false);
 			registerIntOption_("visible_model_depth", "<int>", 30, "visible model depth", false);
-			registerFlag_("duplicates_by_tic", "duplicate sequence/charge combinations are filtered not by score but by TIC of the spectra");
 			registerDoubleOption_("pseudo_counts", "<double>", 1e-15, "pseudo counts which are added when training the transition probabilties of the HMM", false);
-			registerDoubleOption_("charge_remote_threshold", "<double>", 0.2, "", false);
-			registerDoubleOption_("charge_directed_threshold", "<double>", 0.3, "", false);
+			registerDoubleOption_("charge_remote_threshold", "<double>", 0.2, "charge remote threshold of the PILISModel", false);
+			registerDoubleOption_("charge_directed_threshold", "<double>", 0.3, "charge directed threshold of the PILISModel", false);
 			addEmptyLine_();
 		}
 		
@@ -99,7 +107,6 @@ class TOPPPILISModel
 			String id_in(getStringOption_("id_in"));
 			//String model_file(getStringOption_("model_file"));
 			String trained_model_file(getStringOption_("trained_model_file"));
-			double threshold(getDoubleOption_("threshold"));
 			bool duplicates_by_tic(getFlag_("duplicates_by_tic"));
 			bool base_model_from_file(getFlag_("base_model_from_file"));
 						
@@ -161,7 +168,12 @@ class TOPPPILISModel
 				if (peptide_ids[i].id.getPeptideHits().size() > 0)
 				{
 					PeptideHit hit = *peptide_ids[i].id.getPeptideHits().begin();
-					ids[hit.getSequence()][hit.getCharge()][i] = hit;
+					if (hit.getCharge() <= 2) // TODO set option
+					{
+						String sequence = hit.getSequence();
+						replace(sequence.begin(), sequence.end(), 'L', 'I');
+						ids[sequence][hit.getCharge()][i] = hit;
+					}
 				}
 			}
 
@@ -176,14 +188,17 @@ class TOPPPILISModel
 
 			if (!duplicates_by_tic)
 			{
+				// for each peptide sequence
 				for (HashMap<String, HashMap<UInt, HashMap<UInt, PeptideHit> > >::ConstIterator it1 = ids.begin(); it1 != ids.end(); ++it1)
 				{
+					// for each charge
 					for (HashMap<UInt, HashMap<UInt, PeptideHit> >::ConstIterator it2 = it1->second.begin(); it2 != it1->second.end(); ++it2)
 					{
 						double score(numeric_limits<double>::min());
 						UInt max_idx(0);
 						PeptideHit max_hit;
 						bool has_max(false);
+						// for each of the sequence charge spectra
 						for (HashMap<UInt, PeptideHit>::ConstIterator it3 = it2->second.begin(); it3 != it2->second.end(); ++it3)
 						{
 							if (it3->second.getScore() >= score)
@@ -203,20 +218,21 @@ class TOPPPILISModel
 			}
 			else
 			{
+				writeDebug_("Generating unique training spectra by TIC", 10);
 				TICFilter tic_filter;
+				// for each sequence
 				for (HashMap<String, HashMap<UInt, HashMap<UInt, PeptideHit> > >::ConstIterator it1 = ids.begin(); it1 != ids.end(); ++it1)
 				{
-					cerr << it1->first << endl;
+					// for each charge state
 					for (HashMap<UInt, HashMap<UInt, PeptideHit> >::ConstIterator it2 = it1->second.begin(); it2 != it1->second.end(); ++it2)
 					{
-						double tic(numeric_limits<double>::min());
+						double tic(0);
 						UInt max_idx(0);
 						PeptideHit max_hit;
-						
+						// for each sequence charge combination spectra
 						for (HashMap<UInt, PeptideHit>::ConstIterator it3 = it2->second.begin(); it3 != it2->second.end(); ++it3)
 						{
 							double actual_tic = tic_filter.apply(exp[it3->first]);
-							cerr << actual_tic << endl;
 							if (actual_tic > tic)
 							{
 								tic = actual_tic;
@@ -232,15 +248,35 @@ class TOPPPILISModel
 
 			writeDebug_("Training with " + String(ids_to_train.size()) + " peptides", 1);
 
-
-			PeakMap::ConstIterator map_it = exp.begin();
-			for (HashMap<UInt, PeptideHit>::ConstIterator it = ids_to_train.begin(); it != ids_to_train.end(); ++it, ++map_it)
+			double tic_threshold = getDoubleOption_("tic_threshold");
+			double score_threshold = getDoubleOption_("score_threshold");
+			bool use_tic_filtering = getFlag_("use_tic_filtering");
+			bool use_score_filtering = getFlag_("use_score_filtering");
+			for (HashMap<UInt, PeptideHit>::ConstIterator it = ids_to_train.begin(); it != ids_to_train.end(); ++it)
 			{
-				if (it->second.getScore() >= threshold)
+				TICFilter filter;
+				double tic = filter.apply(exp[it->first]);
+				if (!(use_tic_filtering && tic < tic_threshold) &&
+						!(use_score_filtering && score_threshold < it->second.getScore()))
 				{
 					PeptideHit hit = it->second;
 					writeDebug_("Training with peptide: " + hit.getSequence() + " (z=" + String(hit.getCharge()) + ")", 1);
-					model->train(*map_it, hit.getSequence(), hit.getCharge());
+					String sequence = hit.getSequence();
+					replace(sequence.begin(), sequence.end(), 'L', 'I');
+					try
+					{
+						AASequence seq(sequence);
+						if (sequence.hasSubstring("("))
+						{
+							continue;
+						}
+					}
+					catch(Exception::Base e)
+					{
+						writeDebug_(String("Error processing amino acid sequence: ")+e.what(), 1);
+						continue;
+					}
+					model->train(exp[it->first], sequence, hit.getCharge());
 				}
 			}
 	
