@@ -124,7 +124,7 @@ class TOPPInternalCalibration
 		mz_data_file.load(in,ms_exp_raw);
 
 		
-    vector<double> ref_masses,ref_masses2;
+    vector<double> ref_masses;
 		TextFile ref_file;
 
 
@@ -132,7 +132,7 @@ class TOPPInternalCalibration
 
 		for(TextFile::Iterator iter = ref_file.begin(); iter != ref_file.end(); ++iter)
 			{
-				ref_masses2.push_back(atof(iter->c_str()));
+				ref_masses.push_back(atof(iter->c_str()));
 			}
 		
     //-------------------------------------------------------------
