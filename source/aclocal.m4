@@ -11,10 +11,8 @@ dnl		We create the file config.lic if the license was
 dnl		accepted and do not show the license the second time
 dnl
 AC_DEFUN(CF_CHECK_LICENSE,[
-	OS=`uname -s`
-	if test "${OS}" = Darwin ; then
-		exec 0<&7 7<&-
-	fi
+	dnl needed for autoconf 2.60, as it redirects stdin to channel 7
+	exec 0<&7 7<&-
 	if test ! -f config.lic ; then
 		cat COPYRIGHT
 		echo " "
@@ -29,9 +27,7 @@ AC_DEFUN(CF_CHECK_LICENSE,[
 			echo "accepted" > config.lic
 		fi
 	fi
-	if test "${OS}" = Darwin ; then
-		exec 7<&0 </dev/null
-	fi
+	exec 7<&0 </dev/null
 ])
 
 # macro to remove duplicated elements in a space-separated list.

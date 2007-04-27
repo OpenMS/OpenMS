@@ -1810,10 +1810,7 @@ PROJECT=OPENMS
 
 
 
-	OS=`uname -s`
-	if test "${OS}" = Darwin ; then
 		exec 0<&7 7<&-
-	fi
 	if test ! -f config.lic ; then
 		cat COPYRIGHT
 		echo " "
@@ -1828,9 +1825,7 @@ PROJECT=OPENMS
 			echo "accepted" > config.lic
 		fi
 	fi
-	if test "${OS}" = Darwin ; then
-		exec 7<&0 </dev/null
-	fi
+	exec 7<&0 </dev/null
 
 
 # Check whether --enable-optimization was given.

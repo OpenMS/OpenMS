@@ -80,15 +80,20 @@ Ideen:
 - Seeder/Extender: Analyse der MassenSpur-Distanzen
 
 Todos:
-- Tutorial: neue Algorithmen -> ProgressLogger, DefaultParamHandler, Interfaces
+- Release script: Docu bauen!
+- make install mit prefix testen
 - Update Mascot
-- TPP anschauen
 - Test-builts: log-datei von tests....
 - announcments password: OMS_ML_PW
-- Release script: Docu bauen!
 - Spectrum3DCanvas: fix grab keyboard
-- make install mit prefix testen
-- Identification -- Store ScoreType (with direction) and AccessionType as Enum in Identification (Marc, Andreas)
+
+Telefonkonfernz
+- TOPP tutorial (subpage von TOPP docu, 3 Usecases, wie Demo ISMB)
+- analysisXML -> idXML
+- Schemata underer Formate
+- OpenMS - ???
+- TOPP Tutorial
+- ToDos + MindMap altes Release + Tutorial + Klassen durchgehen
 
 Thomas Schreiner: 
 - mzData fixen (CV)
@@ -99,16 +104,5 @@ Stefan Heess:
 
 Stefan Rink:
 - Add getPrecursorRT(rt/scan nr) and update ID adapters and IDSpectrumMapper 
-
-Email Developers:
-- OpenMS - XXX?
-  - A C++ library for shotgun proteomics
-  - A Software Platform for Shotgun Proteomics
-  - An open source framework for LC-MS based proteomics
-- ProgressLogger in alle wichtigen Algorithmen einbauen
-- analysisXML -> idXML
-- Schemata underer Formate
-- Website - Team (Position, project role)
-
 
 ***********************************************************************/

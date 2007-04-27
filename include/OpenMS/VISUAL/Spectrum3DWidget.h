@@ -36,8 +36,6 @@ namespace OpenMS
 	/**
 		@brief Widget for 3D-visualization of map data
 		
-		@todo Add GoTo-Dialog (Marc)
-		
 		@ingroup SpectrumWidgets
 	*/
 	class Spectrum3DWidget

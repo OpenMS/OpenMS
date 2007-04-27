@@ -41,8 +41,6 @@ namespace OpenMS
 	{
 	/**
 		@brief Base class for XML handlers.
-		
-		@todo Add external CVs, integrate OLS (Marc)
 	*/
   class XMLHandler
   	: public xercesc::DefaultHandler

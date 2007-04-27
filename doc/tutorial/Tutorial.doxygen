@@ -36,7 +36,7 @@
 
 @page tutorial_ms_terms Mass spectrometry terms
 
- The following terms for MS-related data are used in this tutorial and the OpenMS class documentation:
+ The following terms for MS-related data are used in this tutorial and the %OpenMS class documentation:
  - raw data point @n
    An unprocessed data point as measured by the instrument.
  - peak @n
@@ -65,13 +65,13 @@
 
 @page tutorial_concept OpenMS concepts
   
-  This chapter covers some very basic concepts needed to understand OpenMS code.
-  It describes OpenMS primitive types, namespaces, exceptions and
+  This chapter covers some very basic concepts needed to understand %OpenMS code.
+  It describes %OpenMS primitive types, namespaces, exceptions and
   important preprocessor macros. The classes described in this section can be found in the @a CONCEPT folder.
   
 @section concept_primitives Basic data types
 
-  OpenMS has its own names for the C++ primitive types. The integer types of OpenMS
+  %OpenMS has its own names for the C++ primitive types. The integer types of %OpenMS
   are @a Int (int) and @a UInt (unsigned int). For floating point numbers @a Real (float) and
   @a DoubleReal (double) are used.
 
@@ -79,12 +79,12 @@
 
 @section concept_namespace The OpenMS namespace
 
-  The main classes of OpenMS are implemented in the namespace @a OpenMS. There are several
+  The main classes of %OpenMS are implemented in the namespace @a OpenMS. There are several
   sub-namespaces to the @a OpenMS namespace. The most important ones are:
   - @a OpenMS::Internal contains auxiliary classes that are typically used by only a few classes.
   - @a OpenMS::Constants contains nature constants.
   - @a OpenMS::Math contains math functions and classes.
-  - @a OpenMS::Exception contains the OpenMS exceptions.
+  - @a OpenMS::Exception contains the %OpenMS exceptions.
   
   There are several more namespaces. For a detailed description have a look at the
   class documentation.
@@ -92,8 +92,8 @@
 @section concept_exceptions Exception handling in OpenMS
 
   All exceptions are defined in the namespace @a OpenMS::Exception. The Base class for all
-  OpenMS exceptions is @a Base. This base class provides three members, which facilitate
-  debugging OpenMS exceptions. It stores the source file, the line number and the function
+  %OpenMS exceptions is @a Base. This base class provides three members, which facilitate
+  debugging %OpenMS exceptions. It stores the source file, the line number and the function
   name where the exception occurred. All derived exceptions provide a constructor that takes
   at least these arguments. The following code snippet shows the handling of an index overflow: 
   @code
@@ -111,7 +111,7 @@
   the current function. For other compilers it is defined as "<unknown>". The last two arguments
   are the invalid index and the maximum allowed index.
 
-  The file name, line number and function name are very useful when debugging. However, OpenMS
+  The file name, line number and function name are very useful when debugging. However, %OpenMS
   also implements its own exception handler which allows to turn each uncaught exception into a 
   segmentation fault. The mechanism allows developers to trace the source of an exception
   with a debugger. The only thing you have to do to use it is to set the environment variable
@@ -144,14 +144,14 @@
 @page tutorial_datastructures Auxiliary datastructures
   
   This section contains a short introduction to three datastructures you will
-  definitely need when programming with OpenMS. The datastructures module of the
+  definitely need when programming with %OpenMS. The datastructures module of the
   class documentation contains many more classes, which are not mentioned here in
   detail. The classes described in this section can be found in the @a DATASTRUCTURES folder.
 
 @section datastructures_string The OpenMS string implementation
 
-  The OpenMS string implementation @a OpenMS::String is based on the Qt string @a QString.
-  In order to make the OpenMS string class more convenient, some methods have been
+  The %OpenMS string implementation @a OpenMS::String is based on the Qt string @a QString.
+  In order to make the %OpenMS string class more convenient, some methods have been
   implemented in addition to the QString methods.
 
   There is one property @a String inherits form @a QString that you should know about. 
@@ -161,13 +161,13 @@
   pass-by-reference without loosing performance. A list of all Qt classes that use
   implicit sharing can be found in the Qt reference manual.
 
-  @note There are many more OpenMS classes that are based on Qt classes, e.g. @a Data,
+  @note There are many more %OpenMS classes that are based on Qt classes, e.g. @a Data,
   @a DateTime and @a DataValue. Making yourself familiar with these Qt classes would be
   no harm!
 
 @section datastructures_dposition D-dimensional coordinates
 
-  Many OpenMS classes, especially the kernel classes, need to store some kind of 
+  Many %OpenMS classes, especially the kernel classes, need to store some kind of 
   d-dimensional coordinates. The template class @a DPosition is used for that purpose.
   The interface of DPosition is pretty straight forward. The operator[] is used to
   access the coordinate of the different dimensions. The dimensionality is stored
@@ -175,7 +175,7 @@
   shows how to print a DPosition to the standard output stream.
   
   First we need to include the header file for @a DPosition and @a iostream. Then we
-  import all the OpenMS symbols to the scope with the @a using directive.
+  import all the %OpenMS symbols to the scope with the @a using directive.
   @dontinclude Tutorial_DPosition.C
   @until namespace
   The first commands in the main method initialize a 2-dimensional @a DPosition :
@@ -183,7 +183,7 @@
   Finally we, print the content of the DPosition to the standard output stream:
   @until main
   
-  The output of our first little OpenMS program is the following:
+  The output of our first little %OpenMS program is the following:
   @code
     Dimension 0: 8.15
     Dimension 1: 47.11
@@ -231,7 +231,7 @@
 
 @page tutorial_kernel The kernel classes
  
- The OpenMS kernel contains the datastructures that store the actual MS data, i.e. 
+ The %OpenMS kernel contains the datastructures that store the actual MS data, i.e. 
  raw data points, peaks, features, spectra, maps.
  The classes described in this section can be found in the @a KERNEL folder.
 
@@ -526,7 +526,7 @@
 
 @section format_param Param 
   
-  Most algorithms of OpenMS and some of the TOPP tools have many parameters. The parameters
+  Most algorithms of %OpenMS and some of the TOPP tools have many parameters. The parameters
   are stored in instances of @a Param. This class is a extension of Windows INI files.
   The actual parameters (type, name and value) are stored in sections. Sections can contain parameters
   and sub-sections, which leads to a tree-like structure. The values are stored in @a DataValue, but 
@@ -610,7 +610,7 @@ spectrometric peak.
 
 @section Elements
 
-There is a representation of Elements implemented in OpenMS. The correcsponding class is named Element. This class stores the relevant information about an element. The handling of the Elements are done by the class ElementDB, which is implemented as an singleton. This means there is only one instance of the class in OpenMS. This is straightforward because the Elements do not change during execution. The data stored in an Element spans its name, symbol, atomic weight, and isotope distribution beside others. 
+There is a representation of Elements implemented in %OpenMS. The correcsponding class is named Element. This class stores the relevant information about an element. The handling of the Elements are done by the class ElementDB, which is implemented as an singleton. This means there is only one instance of the class in %OpenMS. This is straightforward because the Elements do not change during execution. The data stored in an Element spans its name, symbol, atomic weight, and isotope distribution beside others. 
 // example
 
 @section EmpiricalFormula
@@ -621,12 +621,12 @@ The Elements described in the section above can be combined to empirical formula
 
 @section Residue
 
-A residue is represented in OpenMS by the class Residue. It provides a container for the amino acids as well as some functionality. The class is able to provide information such as the isotope distribution of the residue, the average and monoisotopic weight. The residue can be identified by their full name, their three letter abbreviation or the single letter abreviation. The residue can also be modified, which is implemented in the Modification class. Additional less frequently used parameters of a residue like the gas-phase basicity are also availble.
+A residue is represented in %OpenMS by the class Residue. It provides a container for the amino acids as well as some functionality. The class is able to provide information such as the isotope distribution of the residue, the average and monoisotopic weight. The residue can be identified by their full name, their three letter abbreviation or the single letter abreviation. The residue can also be modified, which is implemented in the Modification class. Additional less frequently used parameters of a residue like the gas-phase basicity are also availble.
 
 @section AASequence
-This class handles the amino acid sequences in OpenMS. A string of amino acid residues can be turned into a instance of AASequence to provide some commonly used operations and data. The implementation supports mathmatical operatotions like addition or substraction. Also, average and mono isotopic weight and isotope distributions are accessable. 
+This class handles the amino acid sequences in %OpenMS. A string of amino acid residues can be turned into a instance of AASequence to provide some commonly used operations and data. The implementation supports mathmatical operatotions like addition or substraction. Also, average and mono isotopic weight and isotope distributions are accessable. 
 
-OpenMS handles mass spectrometry data all the weigths formulas and isotope distribution can be calculated depending on the charge state (additional proton count in case of positive ions) and ion type. Therefore the class allows for a flexible handling of amino acid strings.
+%OpenMS handles mass spectrometry data all the weigths formulas and isotope distribution can be calculated depending on the charge state (additional proton count in case of positive ions) and ion type. Therefore the class allows for a flexible handling of amino acid strings.
 
 @section TheoreticalSpectrumGenerator
 
@@ -645,5 +645,27 @@ This class implements a simple generator to generate tandem MS spectra from a gi
 @section analysis_mapmapping Map mapping
 
 @section analysis_id Identification
+
+*/
+
+//####################################### HOWTO #######################################
+
+/**
+
+@page tutorial_howto HowTo
+ 
+@section howto_algorithm Creating a new algorithm
+
+Most of the algorithms in %OpenMS share the following base classes:
+- @a ProgressLogger is used to report the progress of the algorithm.
+- @a DefaultParamHandler is used to make the handling of parameters (and their defaults) easy. @n 
+  In most cases you will not even need accessors for single parameters.
+
+The interfaces of an algorithm depend on the datastructures it works on. 
+For an algorithm that work on peak data, a non-template class should be used that provides templates methods operating 
+on @a MSExperiment or @a MSSpectrum, no matter what peak type is used. 
+See @a PeakPickerCWT for an example.
+
+For algorithms that do not work on peak data, templates should be avoided.
 
 */
