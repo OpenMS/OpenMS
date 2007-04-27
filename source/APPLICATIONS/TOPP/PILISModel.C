@@ -24,7 +24,6 @@
 // $Maintainer: Andreas Bertsch $
 // --------------------------------------------------------------------------
 
-
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/ANALYSIS/ID/PILISModel.h>
 #include <OpenMS/ANALYSIS/ID/PILISModelGenerator.h>
@@ -84,6 +83,7 @@ class TOPPPILISModel
 			registerDoubleOption_("tic_threshold", "<double>", 10e10, "only spectra with TIC greater than the given threshold are used for training", false);
 			registerFlag_("use_score_filtering", "Only use spectra filtered by the given score threshold");
 			registerDoubleOption_("score_threshold", "<double>", 100, "only spectra with a score better than the given thresholde are used for training", false);
+			registerStringOption_("fixed_modifications", "<mods>", "", "fixed modifications used for training", false);
 
 			addEmptyLine_();
 			registerFlag_("base_model_from_file", "if this flag is set, the model is not generated from scratch but read from the given 'model_file'");
@@ -109,7 +109,11 @@ class TOPPPILISModel
 			String trained_model_file(getStringOption_("trained_model_file"));
 			bool duplicates_by_tic(getFlag_("duplicates_by_tic"));
 			bool base_model_from_file(getFlag_("base_model_from_file"));
-						
+			
+			// fixed_modifications
+			String fixed_modifications(getStringOption_("fixed_modifications"));
+				
+
       //-------------------------------------------------------------
       // loading input
       //-------------------------------------------------------------
@@ -124,7 +128,8 @@ class TOPPPILISModel
       //-------------------------------------------------------------
 			
 			PILISModel* model = 0;
-			
+		
+			writeDebug_("initializing the model", 5);
 			
 			if (base_model_from_file)
 			{
@@ -133,6 +138,7 @@ class TOPPPILISModel
 				Param model_param(model->getParameters());
 				model_param.setValue("model_depth", getIntOption_("model_depth"));
 				model_param.setValue("visible_model_depth", getIntOption_("visible_model_depth"));
+				model_param.setValue("fixed_modifications", fixed_modifications);
 				model->setParameters(model_param);
 				model->readFromFile(model_file);
 			}
@@ -142,6 +148,7 @@ class TOPPPILISModel
 				Param p(model_generator.getParameters());
 				p.setValue("model_depth", getIntOption_("model_depth"));
 				p.setValue("visible_model_depth", getIntOption_("visible_model_depth"));
+				p.setValue("fixed_modifications", fixed_modifications);
 				model_generator.setParameters(p);
 				model = new PILISModel(model_generator.getModel());
 			}
@@ -160,6 +167,7 @@ class TOPPPILISModel
 			model_param.setValue("charge_directed_threshold", getDoubleOption_("charge_directed_threshold"));
 			model_param.setValue("precursor_mass_tolerance", getDoubleOption_("precursor_mass_tolerance"));
 			model_param.setValue("peak_mass_tolerance", getDoubleOption_("peak_mass_tolerance"));
+			model_param.setValue("fixed_modifications", fixed_modifications);
 			model->setParameters(model_param);
 
 
@@ -195,7 +203,7 @@ class TOPPPILISModel
 					// for each charge
 					for (HashMap<UInt, HashMap<UInt, PeptideHit> >::ConstIterator it2 = it1->second.begin(); it2 != it1->second.end(); ++it2)
 					{
-						double score(numeric_limits<double>::min());
+						double score(-numeric_limits<double>::max());
 						UInt max_idx(0);
 						PeptideHit max_hit;
 						bool has_max(false);
@@ -234,7 +242,7 @@ class TOPPPILISModel
 						for (HashMap<UInt, PeptideHit>::ConstIterator it3 = it2->second.begin(); it3 != it2->second.end(); ++it3)
 						{
 							double actual_tic = tic_filter.apply(exp[it3->first]);
-							if (actual_tic > tic)
+							if (actual_tic >= tic)
 							{
 								tic = actual_tic;
 								max_idx = it3->first;
@@ -255,13 +263,14 @@ class TOPPPILISModel
 			bool use_score_filtering = getFlag_("use_score_filtering");
 			for (HashMap<UInt, PeptideHit>::ConstIterator it = ids_to_train.begin(); it != ids_to_train.end(); ++it)
 			{
+				//if (it->second.getScore() >= threshold)
+				//{
 				TICFilter filter;
 				double tic = filter.apply(exp[it->first]);
 				if (!(use_tic_filtering && tic < tic_threshold) &&
 						!(use_score_filtering && score_threshold < it->second.getScore()))
 				{
 					PeptideHit hit = it->second;
-					writeDebug_("Training with peptide: " + hit.getSequence() + " (z=" + String(hit.getCharge()) + ")", 1);
 					String sequence = hit.getSequence();
 					replace(sequence.begin(), sequence.end(), 'L', 'I');
 					try
