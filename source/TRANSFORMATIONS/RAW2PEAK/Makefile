@@ -31,7 +31,6 @@ DIRECTORY=TRANSFORMATIONS/RAW2PEAK
 include ../../config_defs.mak
 
 CPP_SOURCES= \
-	ExtractSignalRegions.C\
 	OptimizePick.C\
 	PeakPicker.C\
 	ContinuousWaveletTransform.C\

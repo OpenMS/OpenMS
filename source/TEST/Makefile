@@ -365,7 +365,6 @@ EXECUTABLES_TRANSFORMATIONS_PEAKPICKER = \
 	ContinuousWaveletTransform_test\
 	PeakShape_test\
 	PeakPicker_test\
-	ExtractSignalRegions_test\
 	ContinuousWaveletTransformNumIntegration_test\
 	OptimizePick_test\
 	PeakPickerCWT_test\
