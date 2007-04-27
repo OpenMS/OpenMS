@@ -509,6 +509,7 @@ namespace OpenMS
 
         // pick the peaks in scan i
         pick(*input_it,spectrum,input_it->getMSLevel());
+        setProgress(i);
         timer.stop();
 #ifdef DEBUG_PEAK_PICKING
         std::cout << "Picking took " << timer.getClockTime()  << std::endl;
