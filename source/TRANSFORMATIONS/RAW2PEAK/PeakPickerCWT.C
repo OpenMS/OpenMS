@@ -87,7 +87,8 @@ namespace OpenMS
 		defaults_.setValue("2D_optimization:delta_rel_error",1e-05f);
 		defaults_.setValue("2D_optimization:iterations",10);
 
-  	
+		subsections_.push_back("SignalToNoiseEstimationParameter");
+		
 		defaultsToParam_();
   }
 
@@ -178,7 +179,7 @@ namespace OpenMS
     // Given direction, start the search from left or right
     int start = (direction > 0) ? ((zeros_left_index + 2) + distance_from_scan_border) : ((zeros_right_index - 2) - distance_from_scan_border) ;
     int end   = (direction > 0) ? (zeros_right_index - 1)  : zeros_left_index+1;
-
+      
     int i=0, j=0, k, max_pos;
     for(i=start, k=0; i!=end; i+=direction, ++k)
 			{
