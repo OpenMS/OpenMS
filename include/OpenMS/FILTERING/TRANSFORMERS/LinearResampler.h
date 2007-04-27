@@ -28,7 +28,8 @@
 #define OPENMS_FILTERING_TRANSFORMERS_LINEARRESAMPLER_H
 
 #include <OpenMS/KERNEL/MSExperiment.h>
-#include <OpenMS/FORMAT/Param.h>
+#include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
+#include <OpenMS/CONCEPT/ProgressLogger.h>
 
 #include <limits.h>
 
@@ -45,10 +46,8 @@ namespace OpenMS
 	 
 	 @note Use this method only for high resoluted data (< 0.1 Th between two adjacent raw data points).
 	       The resampling rate should be >= the precision.
-	 
-	 @todo use DefaultParamHandler (Eva)
-	*/
-	class LinearResampler
+*/
+	class LinearResampler : public DefaultParamHandler, public ProgressLogger
 	{
 	
 	public:
@@ -56,30 +55,18 @@ namespace OpenMS
 	    /**@brief
 	    */
 	    LinearResampler()
-	            : spacing_(0.05)
-	    {
-	    	
+      : DefaultParamHandler("LinearResampler")
+      {
+        //Parameter settings
+        defaults_.setValue("resampling_width",0.05);
+        defaultsToParam_();
 	    }
-	
-	    LinearResampler(const Param& parameters)
-	    {
-	        param_ = parameters;
-	
-	        // if a parameter is missed in the param object the value should be substituted by a dv value
-	        DataValue dv = param_.getValue("resampling_width");
-	        if (dv.isEmpty() || dv.toString() == "")
-	            spacing_ = 0.05;
-	        else
-	            spacing_ = (double)dv;
-	
-	    }
-	
+		
 	    /// Copy constructor.
-	    LinearResampler( LinearResampler const & lr )
-	            : param_(lr.param_),
-	            spacing_(lr.spacing_)
+      LinearResampler( LinearResampler const & lr ) 
+      : DefaultParamHandler(lr)
 			{
-			
+        updateMembers_();
 			}
 	
 	    /// Destructor.
@@ -94,8 +81,7 @@ namespace OpenMS
 	        if (&source == this)
 	            return *this;
 	
-	        param_ = source.param_;
-	        spacing_ = source.spacing_;
+          updateMembers_();
 	
 	        return *this;
 	    }
@@ -206,6 +192,7 @@ namespace OpenMS
 	                          MSExperiment<OutputPeakType>& ms_exp_filtered)
 	    {
 	        unsigned int n = distance(first,last);
+          startProgress(0,n,"resampling of data");
 	        // pick peaks on each scan
 	        for (unsigned int i = 0; i < n; ++i)
 	        {
@@ -214,6 +201,7 @@ namespace OpenMS
 	
 	            // pick the peaks in scan i
 	            raster(*input_it,spectrum);
+              setProgress(i);
 	
 	            // if any peaks are found copy the spectrum settings
 	            if (spectrum.size() > 0)
@@ -231,6 +219,7 @@ namespace OpenMS
 	                ms_exp_filtered.push_back(spectrum);
 	            }
 	        }
+          endProgress();
 	    }
 	
 	
@@ -282,42 +271,21 @@ namespace OpenMS
 	    }
 	
 	    /// Mutable access to the spacing
-	    inline double& getSpacing()
-	    {
-	        return spacing_;
-	    }
-	
-	    /// Mutable access to the spacing
 	    inline void setSpacing(DoubleReal spacing)
 	    {
 	        spacing_ = spacing;
+          param_.setValue("resampling_width",spacing_);
 	    }
-	
-	    /// Non-mutable access to the parameter object
-	    inline const Param& getParam() const
-	    {
-	        return param_;
-	    }
-	
-	    /// Mutable access to the parameter object
-	    inline void setParam(const Param& param)
-	    {
-	        param_ = param;
-	
-	        // set the new values
-	        DataValue dv = param_.getValue("resampling_width");
-	        if (!(dv.isEmpty() || dv.toString() == ""))
-	            spacing_ = (double)dv;
-	    }
-	
-	
+		
 	
 	protected:
-	    /// Parameter object
-	    Param param_;
-	
 	    /// Spacing of the resampled data
 	    double spacing_;
+      
+      virtual void updateMembers_()
+      {
+        spacing_ =  param_.getValue("resampling_width");
+      }
 	};
 
 

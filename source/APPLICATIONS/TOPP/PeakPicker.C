@@ -139,6 +139,7 @@ class TOPPPeakPicker
 		
 		writeDebug_("Parameters passed to PeakPickerCWT", pepi_param,3);
     PeakPickerCWT peak_picker;
+    peak_picker.setLogType(log_type_);
 		peak_picker.setParameters(pepi_param);
 		std::cout << peak_picker.getPeakBound()<< "\t"
 							<< peak_picker.getPeakCorrBound()<< "\t"

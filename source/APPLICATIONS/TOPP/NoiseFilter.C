@@ -111,14 +111,11 @@ class TOPPNoiseFilter
 
     ExitCodes main_(int , char**)
     {
-      std::cout << "Huch" << std::endl;
-      std::cout << "Parameters " << getParam_() << std::endl;
       //-------------------------------------------------------------
       // parameter handling
       //-------------------------------------------------------------
       String in = getStringOption_("in");
       String out = getStringOption_("out");
-      std::cout << "Huch" << getStringOption_("filter_type")<< std::endl;
       String filter_type = getStringOption_("filter_type");
       float spacing = getDoubleOption_("resampling");
 
@@ -151,11 +148,11 @@ class TOPPNoiseFilter
       	Param filter_param = getParam_().copy("sgolay:",true);
   			writeDebug_("Parameters passed to SavitzkyGolaySVDFilter", filter_param,3);
   			SavitzkyGolaySVDFilter sgolay;
+        sgolay.setLogType(log_type_);
   			sgolay.setParameters( filter_param );
-        std::cout << "sgolay " << filter_param << ' ' << spacing << std::endl;
-        
         
         LinearResampler lin_resampler;
+        lin_resampler.setLogType(log_type_);
         lin_resampler.setSpacing(spacing);
 
         // copy the experimental settings
@@ -169,14 +166,16 @@ class TOPPNoiseFilter
         }
         else
         {
-          std::cout << "Hach" << std::endl;
           UInt n = ms_exp_raw.size();
+          sgolay.startProgress(0,n,"smoothing mzData file");
+          lin_resampler.startProgress(0,n,"resampling of data");
           // resample and filter every scan
           for (UInt i = 0; i < n; ++i)
           {
             // temporary container for the resampled data
             MSSpectrum< RawDataPoint1D > resampled_data;
             lin_resampler.raster(ms_exp_raw[i],resampled_data);
+            lin_resampler.setProgress(i);
 
             MSSpectrum< RawDataPoint1D > spectrum;
 						
@@ -187,6 +186,7 @@ class TOPPNoiseFilter
 						else
 						{
 							sgolay.filter(resampled_data, spectrum);
+              sgolay.setProgress(i);
 						}
 
             // if any peaks are found copy the spectrum settings
@@ -205,6 +205,8 @@ class TOPPNoiseFilter
               ms_exp_filtered.push_back(spectrum);
             }
           }
+          sgolay.endProgress();
+          lin_resampler.endProgress();
         }
       }
       else if (filter_type == "gaussian")
@@ -212,6 +214,7 @@ class TOPPNoiseFilter
       	Param filter_param = getParam_().copy("gaussian:",true);
   			writeDebug_("Parameters passed to GaussFilter", filter_param,3);
         GaussFilter gauss;
+        gauss.setLogType(log_type_);
         gauss.setParameters(filter_param);
         gauss.filterExperiment(ms_exp_raw, ms_exp_filtered);
       }

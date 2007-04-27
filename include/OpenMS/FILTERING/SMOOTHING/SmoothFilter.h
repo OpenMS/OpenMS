@@ -29,6 +29,7 @@
 #define OPENMS_FILTERING_SMOOTHING_SMOOTHFILTER_H
 
 #include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/CONCEPT/ProgressLogger.h>
 
 
 namespace OpenMS
@@ -36,7 +37,7 @@ namespace OpenMS
 	/**
 		@brief Base class for all noise filter implementations
 	*/
-  class SmoothFilter
+  class SmoothFilter : public ProgressLogger
   {
     public:
 

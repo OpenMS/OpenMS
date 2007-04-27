@@ -50,33 +50,26 @@ CHECK((~LinearResampler()))
   delete lr_ptr;
 RESULT
 
-CHECK((LinearResampler(const Param& parameters)))
-  Param p;
-  p.setValue("resampling_width",0.5);
-  LinearResampler lr(p);
-
-  TEST_REAL_EQUAL(lr.getSpacing(),0.5);
-RESULT
-
 CHECK((LinearResampler( LinearResampler const & lr )))
   Param p;
   p.setValue("resampling_width",0.5);
-  LinearResampler tmp(p);
+  LinearResampler tmp;
+  tmp.setParameters(p);
 
   LinearResampler tmp2(tmp);
   TEST_REAL_EQUAL(tmp2.getSpacing(),0.5);
-  TEST_EQUAL(tmp2.getParam(),p);
+  TEST_EQUAL(tmp2.getParameters(),p);
 RESULT
 
 CHECK((LinearResampler& operator= (const LinearResampler& source)))
   Param p;
   p.setValue("resampling_width",0.5);
-  LinearResampler tmp(p);
+  LinearResampler tmp;
+  tmp.setParameters(p);
 
   LinearResampler tmp2;
   tmp2 = tmp;
-  TEST_REAL_EQUAL(tmp2.getSpacing(),0.5);
-  TEST_EQUAL(tmp2.getParam(),p);
+  TEST_REAL_EQUAL(tmp2.getSpacing(),0.05);
 RESULT
 
 CHECK((template<typename InputSpectrumIterator, typename OutputPeakType > void rasterExperiment(InputSpectrumIterator first, InputSpectrumIterator last, MSExperiment<OutputPeakType>& ms_exp_filtered)))
@@ -145,14 +138,6 @@ CHECK((template<typename InputPeakType, typename OutputPeakType > void rasterExp
   TEST_REAL_EQUAL(sum, 20);
 RESULT
 
-CHECK((const Param& getParam() const))
-  Param p;
-  p.setValue("resampling_width",0.5);
-  const LinearResampler tmp(p);
-
-  TEST_EQUAL(tmp.getParam(),p);
-RESULT
-
 CHECK((DoubleReal getSpacing() const))
   const LinearResampler tmp;
 
@@ -164,15 +149,6 @@ CHECK((double& getSpacing()))
   tmp.setSpacing(0.1);
 
   TEST_EQUAL(tmp.getSpacing(),0.1);
-RESULT
-
-CHECK((void setParam(const Param& param)))
-  Param p;
-  p.setValue("resampling_width",0.5);
-  LinearResampler tmp;
-  tmp.setParam(p);
-
-  TEST_EQUAL(tmp.getParam(),p);
 RESULT
 
 CHECK((template< typename InputPeakIterator, typename OutputPeakContainer > void raster(InputPeakIterator first, InputPeakIterator last, OutputPeakContainer& resampled_peak_container)))

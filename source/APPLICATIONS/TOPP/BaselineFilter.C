@@ -78,12 +78,7 @@ class TOPPBaselineFilter
 			addText_("Note: The top-hat filter works only on uniform data (to generate equally spaced data you have to set the resampling option!)");
 	}
   
-  Param getSubsectionDefaults_(const String& /*section*/) const
-  {
-    return TopHatFilter().getDefaults();
-  }
-
-	ExitCodes main_(int , char**)
+ 	ExitCodes main_(int , char**)
 	{
 		//-------------------------------------------------------------
 		// parameter handling
@@ -117,6 +112,7 @@ class TOPPBaselineFilter
 		// calculations
 		//-------------------------------------------------------------
 		TopHatFilter tophat;
+    tophat.setLogType(log_type_);
 		tophat.setStrucElemSize(struc_elem_length);
 
 		LinearResampler lin_resampler;
@@ -133,6 +129,7 @@ class TOPPBaselineFilter
 		else
 		{
 			UInt n = ms_exp_raw.size();
+      tophat.startProgress(0,n,"resampling and baseline filtering of data");
 			// resample and filter every scan
 			for (UInt i = 0; i < n; ++i)
 			{
@@ -142,7 +139,8 @@ class TOPPBaselineFilter
 
 				MSSpectrum< RawDataPoint1D > spectrum;
 				tophat.filter(resampled_data, spectrum);
-
+        tophat.setProgress(i);
+        
 				// if any peaks are found copy the spectrum settings
 				if (spectrum.size() > 0)
 				{
@@ -159,6 +157,7 @@ class TOPPBaselineFilter
 					ms_exp_filtered.push_back(spectrum);
 				}
 			}
+      tophat.endProgress();
 		}
 		//-------------------------------------------------------------
 		// writing output

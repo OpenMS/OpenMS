@@ -175,7 +175,7 @@ namespace OpenMS
         smoothed_data_container.resize(distance(first,last));
 
         int i;
-        unsigned int j;
+        UInt j;
         int mid=(frame_size_/2);
         double help;
 
@@ -277,32 +277,32 @@ namespace OpenMS
                             InputSpectrumIterator last,
                             MSExperiment<OutputPeakType>& ms_exp_filtered)
       {
-        unsigned int n = distance(first,last);
-        // pick peaks on each scan
-        for (unsigned int i = 0; i < n; ++i)
+        UInt n = distance(first,last);
+        startProgress(0,n,"smoothing data");
+        
+        // smooth each scan
+        for (UInt i = 0; i < n; ++i)
         {
           MSSpectrum< OutputPeakType > spectrum;
           InputSpectrumIterator input_it(first+i);
 
-          // pick the peaks in scan i
+          // smooth scan i
           filter(*input_it,spectrum);
+          setProgress(i);
 
-          // if any peaks are found copy the spectrum settings
-          if (spectrum.size() > 0)
-          {
-            // copy the spectrum settings
-            static_cast<SpectrumSettings&>(spectrum) = *input_it;
-            spectrum.setType(SpectrumSettings::RAWDATA);
+          // copy the spectrum settings
+          static_cast<SpectrumSettings&>(spectrum) = *input_it;
+          spectrum.setType(SpectrumSettings::RAWDATA);
 
-            // copy the spectrum information
-            spectrum.getPrecursorPeak() = input_it->getPrecursorPeak();
-            spectrum.setRT(input_it->getRT());
-            spectrum.setMSLevel(input_it->getMSLevel());
-            spectrum.getName() = input_it->getName();
+          // copy the spectrum information
+          spectrum.getPrecursorPeak() = input_it->getPrecursorPeak();
+          spectrum.setRT(input_it->getRT());
+          spectrum.setMSLevel(input_it->getMSLevel());
+          spectrum.getName() = input_it->getName();
 
-            ms_exp_filtered.push_back(spectrum);
-          }
+          ms_exp_filtered.push_back(spectrum);
         }
+        endProgress();
       }
 
 
@@ -328,9 +328,9 @@ namespace OpenMS
 
     protected:
       /// UInt of the filter kernel (number of pre-tabulated coefficients)
-      unsigned int frame_size_;
+      UInt frame_size_;
       /// The order of the smoothing polynomial.
-      unsigned int order_;
+      UInt order_;
 
       /// Compute the coefficient-matrix \f$ C \f$ of the filter.
       void computeCoeffs_() throw (Exception::InvalidValue);

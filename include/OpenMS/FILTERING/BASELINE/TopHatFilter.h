@@ -166,19 +166,20 @@ namespace OpenMS
                             InputSpectrumIterator last,
                             MSExperiment<OutputPeakType>& ms_exp_filtered)
       {
-        unsigned int n = distance(first,last);
+        UInt n = distance(first,last);
+        startProgress(0,n,"filtering baseline of data");
         // pick peaks on each scan
-        for (unsigned int i = 0; i < n; ++i)
+        for (UInt i = 0; i < n; ++i)
         {
           InputSpectrumIterator input_it(first+i);
           // if the scan contains enough raw data points filter the baseline
           if ( struc_size_ < fabs((input_it->end()-1)->getMZ()- input_it->begin()->getMZ()))
           {
-            //std::cout << "filter " << input_it->getRT()<< std::endl;
             MSSpectrum< OutputPeakType > spectrum;
 
             // pick the peaks in scan i
             filter(*input_it,spectrum);
+            setProgress(i);
 
             // if any peaks are found copy the spectrum settings
             if (spectrum.size() > 0)
@@ -197,6 +198,7 @@ namespace OpenMS
             }
           }
         }
+        endProgress();
       }
 
 
@@ -214,9 +216,9 @@ namespace OpenMS
                             InputSpectrumIterator last,
                             MSExperimentExtern<OutputPeakType>& ms_exp_filtered)
       {
-        unsigned int n = distance(first,last);
+        UInt n = distance(first,last);
         // pick peaks on each scan
-        for (unsigned int i = 0; i < n; ++i)
+        for (UInt i = 0; i < n; ++i)
         {
           MSSpectrum< OutputPeakType > spectrum;
           InputSpectrumIterator input_it(first+i);

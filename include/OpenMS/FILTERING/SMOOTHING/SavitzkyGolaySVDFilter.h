@@ -283,31 +283,30 @@ namespace OpenMS
                             		MSExperiment<OutputPeakType>& ms_exp_filtered)
       {
         UInt n = distance(first,last);
-        // pick peaks on each scan
+        startProgress(0,n,"smoothing data");
+        
+        // smooth each scan
         for (UInt i = 0; i < n; ++i)
         {
           MSSpectrum< OutputPeakType > spectrum;
           InputSpectrumIterator input_it(first+i);
 
-          // smooth the peaks in scan i
+          // smooth scan i
           filter(*input_it,spectrum);
 
-          // if any peaks are found copy the spectrum settings
-          if (spectrum.size() > 0)
-          {
-            // copy the spectrum settings
-            static_cast<SpectrumSettings&>(spectrum) = *input_it;
-            spectrum.setType(SpectrumSettings::RAWDATA);
+          // copy the spectrum settings
+          static_cast<SpectrumSettings&>(spectrum) = *input_it;
+          spectrum.setType(SpectrumSettings::RAWDATA);
 
-            // copy the spectrum information
-            spectrum.getPrecursorPeak() = input_it->getPrecursorPeak();
-            spectrum.setRT(input_it->getRT());
-            spectrum.setMSLevel(input_it->getMSLevel());
-            spectrum.getName() = input_it->getName();
+          // copy the spectrum information
+          spectrum.getPrecursorPeak() = input_it->getPrecursorPeak();
+          spectrum.setRT(input_it->getRT());
+          spectrum.setMSLevel(input_it->getMSLevel());
+          spectrum.getName() = input_it->getName();
 
-            ms_exp_filtered.push_back(spectrum);
-          }
+          ms_exp_filtered.push_back(spectrum);
         }
+        endProgress();
       }
 
 
@@ -360,6 +359,7 @@ namespace OpenMS
                             		MSExperimentExtern<OutputPeakType>& ms_exp_filtered)
       {
         UInt n = distance(first,last);
+        startProgress(0,n,"smoothing data");
         // pick peaks on each scan
         for (UInt i = 0; i < n; ++i)
         {
@@ -385,6 +385,7 @@ namespace OpenMS
             ms_exp_filtered.push_back(spectrum);
           }
         }
+        endProgress();
       }
 
     protected:

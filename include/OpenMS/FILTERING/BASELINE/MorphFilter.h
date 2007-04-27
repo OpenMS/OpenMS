@@ -28,6 +28,7 @@
 #define OPENMS_FILTERING_BASELINE_MORPHFILTER_H
 
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
+#include <OpenMS/CONCEPT/ProgressLogger.h>
 
 #include <iostream>
 
@@ -45,12 +46,10 @@ namespace OpenMS
 		structuring element (a flat line) of length frameSize_.
 		
 		Erosion and dilatation are implemented using van Herk's method.
-  	
-  	@todo use DefaultParamHandler (Eva) 
-  */
+*/
 
   class MorphFilter 
-    : public DefaultParamHandler
+  : public DefaultParamHandler, public ProgressLogger
   {
   public:
     /// Constructor

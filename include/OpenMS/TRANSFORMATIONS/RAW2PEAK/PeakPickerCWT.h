@@ -43,6 +43,8 @@
 #include <vector>
 #include <algorithm>
 
+
+#define DEBUG_PEAK_PICKING
 #undef DEBUG_PEAK_PICKING
 //#undef DEBUG_DECONV
 namespace OpenMS
@@ -516,6 +518,7 @@ namespace OpenMS
                         MSExperiment<OutputPeakType>& ms_exp_peaks)
     {
       unsigned int n = distance(first,last);
+      startProgress(0,n,"pick peaks in mzData file");
       // pick peaks on each scan
       for (unsigned int i = 0; i < n; ++i)
       {
@@ -532,6 +535,7 @@ namespace OpenMS
         timer.stop();
 #ifdef DEBUG_PEAK_PICKING
         std::cout << "Picking took " << timer.getClockTime()  << std::endl;
+        std::cout << "Found " << spectrum.size() << " peaks. " << std::endl;
 #endif
 
         // if any peaks are found copy the spectrum settings
@@ -565,6 +569,7 @@ namespace OpenMS
       }
       // sort spectra
       ms_exp_peaks.sortSpectra(true);
+      endProgress();
     }
 
     /** @brief Picks the peaks in a range of MSSpectren (and output data structure MSExperimentExtern).
@@ -585,6 +590,7 @@ namespace OpenMS
                         MSExperimentExtern<OutputPeakType>& ms_exp_peaks)
     {
       unsigned int n = distance(first,last);
+      startProgress(0,n,"pick peaks in mzData file");
       // pick peaks on each scan
       for (unsigned int i = 0; i < n; ++i)
       {
@@ -593,7 +599,8 @@ namespace OpenMS
 
         // pick the peaks in scan i
         pick(*input_it,spectrum,input_it->getMSLevel());
-
+        setProgress(i);
+        
         // if any peaks are found copy the spectrum settings
         if (spectrum.size() > 0)
         {
@@ -610,6 +617,7 @@ namespace OpenMS
           ms_exp_peaks.push_back(spectrum);
         }
       }
+      endProgress();
     }
 
     /** @brief Picks the peaks in a MSExperiment.

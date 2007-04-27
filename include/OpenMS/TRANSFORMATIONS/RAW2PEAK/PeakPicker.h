@@ -28,6 +28,7 @@
 #define OPENMS_TRANSFORMATIONS_RAW2PEAK_PEAKPICKER_H
 
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
+#include <OpenMS/CONCEPT/ProgressLogger.h>
 
 #include <iostream>
 #include <vector>
@@ -42,7 +43,7 @@ namespace OpenMS
      
      @ingroup PeakPicking
   */
-  class PeakPicker : public DefaultParamHandler
+  class PeakPicker : public DefaultParamHandler, public ProgressLogger
   {
 
   public:

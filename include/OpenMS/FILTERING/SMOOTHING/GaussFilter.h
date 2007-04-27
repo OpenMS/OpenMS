@@ -64,7 +64,8 @@ namespace OpenMS
 
       /// Constructor
       inline GaussFilter()
-      : DefaultParamHandler("GaussFilter")
+      : SmoothFilter(),
+        DefaultParamHandler("GaussFilter")
       {
       	//Parameter settings
       	defaults_.setValue("gaussian_width",0.8);
@@ -231,35 +232,35 @@ namespace OpenMS
       */
       template <typename InputSpectrumIterator, typename OutputPeakType >
       void filterExperiment(InputSpectrumIterator first,
-                            		InputSpectrumIterator last,
-                            		MSExperiment<OutputPeakType>& ms_exp_filtered)
+                           	InputSpectrumIterator last,
+                           	MSExperiment<OutputPeakType>& ms_exp_filtered)
       {
-        unsigned int n = distance(first,last);
+        UInt n = distance(first,last);
+        startProgress(0,n,"smoothing data");
+        
         // pick peaks on each scan
-        for (unsigned int i = 0; i < n; ++i)
+        for (UInt i = 0; i < n; ++i)
         {
           MSSpectrum< OutputPeakType > spectrum;
           InputSpectrumIterator input_it = first+i;
-
-          // pick the peaks in scan i
+          
+          // filter scan i
           filter(*input_it,spectrum);
+          setProgress(i);
+          
+          // copy the spectrum settings
+          static_cast<SpectrumSettings&>(spectrum) = *input_it;
+          spectrum.setType(SpectrumSettings::RAWDATA);
 
-          // if any peaks are found copy the spectrum settings
-          if (spectrum.size() > 0)
-          {
-            // copy the spectrum settings
-            static_cast<SpectrumSettings&>(spectrum) = *input_it;
-            spectrum.setType(SpectrumSettings::RAWDATA);
+          // copy the spectrum information
+          spectrum.getPrecursorPeak() = input_it->getPrecursorPeak();
+          spectrum.setRT(input_it->getRT());
+          spectrum.setMSLevel(input_it->getMSLevel());
+          spectrum.getName() = input_it->getName();
 
-            // copy the spectrum information
-            spectrum.getPrecursorPeak() = input_it->getPrecursorPeak();
-            spectrum.setRT(input_it->getRT());
-            spectrum.setMSLevel(input_it->getMSLevel());
-            spectrum.getName() = input_it->getName();
-
-            ms_exp_filtered.push_back(spectrum);
-          }
+          ms_exp_filtered.push_back(spectrum);
         }
+        endProgress();
       }
 	  
 	     /** @brief Filters every MSSpectrum in a given iterator range.
@@ -277,9 +278,10 @@ namespace OpenMS
                             		InputSpectrumIterator last,
                             		MSExperimentExtern<OutputPeakType>& ms_exp_filtered)
       {
-        unsigned int n = distance(first,last);
+        UInt n = distance(first,last);
+        startProgress(0,n,"smoothing data");
         // pick peaks on each scan
-        for (unsigned int i = 0; i < n; ++i)
+        for (UInt i = 0; i < n; ++i)
         {
           MSSpectrum< OutputPeakType > spectrum;
           InputSpectrumIterator input_it = first+i;
@@ -302,6 +304,7 @@ namespace OpenMS
             ms_exp_filtered.push_back(spectrum);
           }
         }
+        endProgress();
       }
 
 
@@ -386,7 +389,7 @@ namespace OpenMS
         {
           // search for the corresponding datapoint of help in the gaussian (take the left most adjacent point)
           double distance_in_gaussian = fabs(x->getMZ() - help->getMZ());
-          unsigned int left_position = (unsigned int)floor(distance_in_gaussian / spacing_);
+          UInt left_position = (UInt)floor(distance_in_gaussian / spacing_);
 
           // search for the true left adjacent data point (because of rounding errors)
           for (int j=0; ((j<3) &&  (distance(first,help-j) >= 0)); ++j)
@@ -423,7 +426,7 @@ namespace OpenMS
 
           // search for the corresponding datapoint for (help-1) in the gaussian (take the left most adjacent point)
           distance_in_gaussian = fabs(x->getMZ() - (help-1)->getMZ());
-          left_position = (unsigned int)floor(distance_in_gaussian / spacing_);
+          left_position = (UInt)floor(distance_in_gaussian / spacing_);
 
           // search for the true left adjacent data point (because of rounding errors)
           for (int j=0; ((j<3) && (distance(first,help-j) >= 0)); ++j)
@@ -478,7 +481,7 @@ namespace OpenMS
         {
           // search for the corresponding datapoint for help in the gaussian (take the left most adjacent point)
           double distance_in_gaussian = fabs(x->getMZ() - help->getMZ());
-          int left_position = (unsigned int)floor(distance_in_gaussian / spacing_);
+          int left_position = (UInt)floor(distance_in_gaussian / spacing_);
 
           // search for the true left adjacent data point (because of rounding errors)
           for (int j=0; ((j<3) && (distance(help+j,last-1) >= 0)); ++j)
@@ -512,7 +515,7 @@ namespace OpenMS
 
           // search for the corresponding datapoint for (help+1) in the gaussian (take the left most adjacent point)
           distance_in_gaussian = fabs(x->getMZ() - (help+1)->getMZ());
-          left_position = (unsigned int)floor(distance_in_gaussian / spacing_);
+          left_position = (UInt)floor(distance_in_gaussian / spacing_);
 
           // search for the true left adjacent data point (because of rounding errors)
           for (int j=0; ((j<3) && (distance(help+j,last-1) >= 0)); ++j)
