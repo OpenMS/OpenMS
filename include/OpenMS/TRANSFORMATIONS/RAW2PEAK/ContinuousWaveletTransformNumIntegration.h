@@ -37,9 +37,6 @@
 #include<fstream>
 #endif
 
-//#define DEBUG_PEAK_PICKING
-#undef DEBUG_PEAK_PICKING
-
 namespace OpenMS
 {
   /**
