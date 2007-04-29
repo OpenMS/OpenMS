@@ -31,25 +31,28 @@
 #include <QtGui/QFileDialog>
 #include <QtGui/QMenu>
 #include <QtGui/QMenuBar>
+#include <QtGui/QMessageBox>
+#include <QtGui/QCloseEvent>
 
 namespace OpenMS
 {
 
 	INIFileEditorWindow::INIFileEditorWindow(QWidget *parent) 
-		: QMainWindow(parent)
+		: QMainWindow(parent),changed_(false)
 	{
 		setWindowTitle("INIFileEditor");
 		editor_=new ParamEditor;
 		setCentralWidget(editor_);
 		
-    QMenu* file = new QMenu("&File",this);
-    menuBar()->addMenu(file);
-    file->addAction("&Open",this,SLOT(openFile()));
-    file->addSeparator();
-    file->addAction("&Save",this,SLOT(saveFile()));
-    file->addAction("Save &As",this,SLOT(saveFileAs()));
-    file->addSeparator();
-    file->addAction("&Quit",this,SLOT(close()));
+		QMenu* file = new QMenu("&File",this);
+		menuBar()->addMenu(file);
+		file->addAction("&Open",this,SLOT(openFile()));
+		file->addSeparator();
+		file->addAction("&Save",this,SLOT(saveFile()));
+		file->addAction("Save &As",this,SLOT(saveFileAs()));
+		file->addSeparator();
+		file->addAction("&Quit",this,SLOT(close()));
+		connect(editor_,SIGNAL(itemChanged ( QTreeWidgetItem *, int)),this,SLOT(setChanged(QTreeWidgetItem *, int)));
 	}
 	
 	
@@ -107,6 +110,37 @@ namespace OpenMS
 			return true;
 		}
 		return false;
+	}
+	
+	void INIFileEditorWindow::closeEvent(QCloseEvent *event)
+	{
+		if(isChanged())
+		{
+			if (QMessageBox::question(this,"Save?","Do you want to save your changes?",QMessageBox::Ok|QMessageBox::Cancel)==QMessageBox::Ok)
+			{
+				saveFile();
+			}
+		}
+	}
+	void INIFileEditorWindow::setChanged(QTreeWidgetItem * item, int column)
+	{
+		if(item->data(column,33).isValid() && item->data(column,33)!=item->data(column,Qt::DisplayRole))
+		{
+			changed_=true;
+			QString str=QString("%1 * - INIFileEditor").arg(filename_);
+			setWindowTitle(str.remove(0,str.lastIndexOf('/')+1));
+		}
+		else
+		{
+			changed_=false;
+			QString str=QString("%1 - INIFileEditor").arg(filename_);
+			setWindowTitle(str.remove(0,str.lastIndexOf('/')+1));
+		}
+	}
+	
+	bool INIFileEditorWindow::isChanged()
+	{
+		return changed_;
 	}
 	
 }
