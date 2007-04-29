@@ -24,24 +24,47 @@
 # $Maintainer: Marc Sturm $
 # --------------------------------------------------------------------------
 
+#Make sure a SVN path is given
+ if test ! $1; then 
+ 	echo "Please pass the SVN path inside the OpenMS repository as first argument!";
+ 	echo "For the HEAD revision that would be 'OpenMS'.";
+ 	exit;
+ fi
+
 # create a dummy directory and extract the current SVN version of OpenMS
 echo "extracting OpenMS"
 cd /tmp
 rm -rf OpenMS-dist
 mkdir OpenMS-dist
 cd /tmp/OpenMS-dist
-svn co https://svn.sourceforge.net/svnroot/open-ms/OpenMS 1>svn_extract.log 2>svn_extract_err.log || ( echo "cannot extract OpenMS" >&0 && exit )
+svn co https://svn.sourceforge.net/svnroot/open-ms/$1 1>svn_extract.log 2>svn_extract_err.log || ( echo "cannot extract OpenMS" >&0 && exit )
+echo ""
+
+# extracting version number
+echo "extracting version number"
+VERSION="`grep AC_INIT /tmp/OpenMS-dist/OpenMS/source/configure.ac | awk -F, '{print 'bla'$2'bla'}' | sed -e 's/\s//g'`"
+echo "Version: ${VERSION}"
+echo ""
+
+# buid docu
+echo "building docu"
+cd OpenMS/doc/
+cp ../source/config/Doxyfile.in doxygen/Doxyfile
+sed -i -e "s/@PACKAGE_VERSION@/${VERSION}/g" doxygen/Doxyfile
+sed -i -e 's/@OPENMS_PATH@/\/tmp\/OpenMS-dist\/OpenMS/g' doxygen/Doxyfile
+make doc > /tmp/OpenMS-dist/make_doc.log 2>&1
+echo ""
 
 # remove SVN information
 echo "removing SVN info"
 REMOVE=`find . -name .svn -type d`
 rm -rf ${REMOVE} 2>/dev/null
+echo ""
 
 # create archive
-DIR="OpenMS-`grep AC_INIT /tmp/OpenMS-dist/OpenMS/source/configure.ac | awk -F, '{print 'bla'$2'bla'}' | sed -e 's/\s//g'`"
+DIR="OpenMS-${VERSION}"
 FILE="${DIR}.tar.gz"
 cd /tmp/OpenMS-dist/
 mv OpenMS ${DIR}
-
 echo "creating archive /tmp/OpenMS-dist/${FILE}"
 tar zcf ${FILE} ${DIR}

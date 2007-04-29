@@ -80,7 +80,7 @@ Ideen:
 - Seeder/Extender: Analyse der MassenSpur-Distanzen
 
 Todos:
-- Release script: Docu bauen!
+- Release script: Docu bauen testen
 - make install mit prefix testen
 - Update Mascot
 - Test-builts: log-datei von tests....
@@ -88,6 +88,7 @@ Todos:
 - Spectrum3DCanvas: fix grab keyboard
 
 Telefonkonfernz
+- Zeitplan Release: Branch 03.06.07 -- Release bis 01.07.07 a
 - TOPP tutorial (subpage von TOPP docu, 3 Usecases, wie Demo ISMB)
 - analysisXML -> idXML
 - Schemata underer Formate
