@@ -61,9 +61,7 @@ namespace OpenMS
 
 		     void setEditorData(QWidget *editor, const QModelIndex &index) const;
 		     void setModelData(QWidget *editor, QAbstractItemModel *model, const QModelIndex &index) const;
-
-		     void updateEditorGeometry(QWidget *editor,
-			 	const QStyleOptionViewItem &option, const QModelIndex &index) const;
+		     void updateEditorGeometry(QWidget *editor, const QStyleOptionViewItem &option, const QModelIndex &index) const;
 		
 		};
 	}
@@ -115,7 +113,11 @@ namespace OpenMS
 			void expandTree();
 			/// collapses the subtree
 			void collapseTree();
-			
+			/// copy subtree
+			void copySubTree();
+			/// paste subtree
+			void pasteSubTree();
+		
 		private:
 			/// recursive helper method for method isValid()
 			bool isValidRecursive_(QTreeWidgetItem* parent) const;
@@ -131,6 +133,8 @@ namespace OpenMS
 			const Param* param_const_;         
 			/// selected item or no no item selected
 			QTreeWidgetItem* selected_item_;
+			/// item copied or no item copied
+			QTreeWidgetItem* copied_item_;
 			
 	};
 

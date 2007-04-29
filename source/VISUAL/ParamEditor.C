@@ -43,7 +43,9 @@
 #include <QtGui/QRegExpValidator>
 #include <QtCore/QRegExp>
 #include <QtGui/QValidator>
-
+#include <QtGui/QColor>
+#include <QtGui/QPainter>
+#include <QtGui/QBrush>
 
 
 
@@ -91,9 +93,10 @@ namespace OpenMS
 			{
 				return 0;
 			}
-			else
+			else if(index.column()==1 && id==ParamEditor::ITEM)
 			{
-				return QItemDelegate::createEditor(parent,option,index);
+				QLineEdit *editor = new QLineEdit(parent);
+				return editor;
 			}
 		}
 		 
@@ -111,59 +114,84 @@ namespace OpenMS
 					combo->setCurrentIndex(pos);
 				}
 			}
-			else if(index.column()==0)
+			else if(index.column()==1)
 			{
 				QString str = index.model()->data(index, Qt::DisplayRole).toString();
 				QLineEdit *edit = static_cast<QLineEdit*>(editor);
 				edit->setText(str);
 			}
-			else 
+			else if(index.column()==0)
 			{
-				QItemDelegate::setEditorData(editor,index);
+				QString str = index.model()->data(index, Qt::DisplayRole).toString();
+				QLineEdit *edit = static_cast<QLineEdit*>(editor);
+				edit->setText(str);
 		 	}
 		}
 		 
 		void ParamEditorDelegate::setModelData(QWidget *editor, QAbstractItemModel *model, const QModelIndex &index) const
 		{
+			QVariant past_value = index.model()->data(index, 33);
+			QVariant present_value = index.model()->data(index, Qt::DisplayRole);
 			if(index.column()==2)
 			{
 				QComboBox *combo= static_cast<QComboBox*>(editor);
-				QString str = combo->currentText();
-				model->setData(index, str);
+				QVariant editor_value(combo->currentText());
+				model->setData(index, editor_value);
+				if(!past_value.isValid()) model->setData(index, present_value, 33);
+				if(editor_value!=past_value)
+				{
+					model->setData(index,QBrush(Qt::yellow),Qt::BackgroundRole);
+				}
+				else
+				{
+					model->setData(index,QBrush(Qt::white),Qt::BackgroundRole);
+				}
+			}
+			else if(index.column()==1)
+			{
+				QLineEdit *edit= static_cast<QLineEdit*>(editor);
+				QVariant editor_value(edit->text());
+				model->setData(index, editor_value);
+				if(!past_value.isValid()) model->setData(index, present_value, 33);
+				if(editor_value!=past_value)
+				{
+					model->setData(index,QBrush(Qt::yellow),Qt::BackgroundRole);
+				}
+				else
+				{
+					model->setData(index,QBrush(Qt::white),Qt::BackgroundRole);
+				}
 			}
 			else if(index.column()==0)
 			{
 				QLineEdit *edit= static_cast<QLineEdit*>(editor);
-				QString str = edit->text();
-				model->setData(index, str);
-			}
-			else 
-			{
-				QItemDelegate::setModelData(editor,model,index);
+				QVariant editor_value(edit->text());
+				model->setData(index, editor_value);
+				if(!past_value.isValid()) model->setData(index, present_value, 33);
+				if(editor_value!=past_value)
+				{
+					model->setData(index,QBrush(Qt::yellow),Qt::BackgroundRole);
+				}
+				else
+				{
+					model->setData(index,QBrush(Qt::white),Qt::BackgroundRole);
+				}
 			}
 		}
 		 
 		void ParamEditorDelegate::updateEditorGeometry(QWidget *editor, const QStyleOptionViewItem &option, const QModelIndex & index) const
 		{
-			if(index.column()==2)
-			{
 				editor->setGeometry(option.rect);
-			}
-			else if(index.column()==0)
-			{
-				editor->setGeometry(option.rect);
-			}
-			else 
-			{
-				QItemDelegate::updateEditorGeometry(editor,option,index);
-		 	}
 		}
+		
 	}
 
 	ParamEditor::ParamEditor(QWidget * parent)
 	  : QTreeWidget(parent),
 	  	param_editable_(0),
-	  	param_const_(0)
+	  	param_const_(0),
+		selected_item_(0),
+		copied_item_(0)
 	{
 		setMinimumSize(500,300);
 		setItemDelegate(new Internal::ParamEditorDelegate);
@@ -578,13 +606,16 @@ namespace OpenMS
 			menu.addAction(tr("&Insert item"), this, SLOT(insertItem()));
 			menu.addAction(tr("&Insert node"), this, SLOT(insertNode()));
 			menu.addAction(tr("&Expand subtree"), this, SLOT(expandTree()));
-			menu.addAction(tr("&Collapse subtree"), this, SLOT(collapseTree()));			
+			menu.addAction(tr("&Collapse subtree"), this, SLOT(collapseTree()));
+			menu.addAction(tr("&Copy subtree"), this, SLOT(copySubTree()));
+			menu.addAction(tr("&Paste subtree"), this, SLOT(pasteSubTree()));
 			menu.exec(event->globalPos());
 		}
 		else if(selected_item_->data(0,Qt::UserRole)==ITEM)
 		{
 			QMenu menu(this);
 			menu.addAction(tr("&Delete item"), this, SLOT(deleteItem()));
+			menu.addAction(tr("&Copy subtree"), this, SLOT(copySubTree()));
 			menu.exec(event->globalPos());
 		}
 		
@@ -607,6 +638,29 @@ namespace OpenMS
 		}
 	}
 	
+	void ParamEditor::copySubTree()
+	{
+		if(!selected_item_) return;
+		if(copied_item_ != NULL)
+		{
+			delete copied_item_;
+			copied_item_=selected_item_->clone();
+		}
+		else
+		{
+			copied_item_=selected_item_->clone();
+		}
+	}
+	
+	void ParamEditor::pasteSubTree()
+	{
+		if(!selected_item_) return;
+		if(copied_item_)
+		{
+			selected_item_->addChild(copied_item_);
+			selected_item_=NULL;
+		}
+	}
 	
 
 } // namespace OpenMS
