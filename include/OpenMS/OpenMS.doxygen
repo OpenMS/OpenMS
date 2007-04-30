@@ -80,11 +80,9 @@ Ideen:
 - Seeder/Extender: Analyse der MassenSpur-Distanzen
 
 Todos:
-- Release script: Docu bauen testen
-- make install mit prefix testen
-- Update Mascot
-- Test-builts: log-datei von tests....
 - announcments password: OMS_ML_PW
+- Test-builts: log-datei von tests....
+- make install mit prefix testen
 - Spectrum3DCanvas: fix grab keyboard
 
 Telefonkonfernz
@@ -104,6 +102,10 @@ Stefan Heess:
 - QT fehler Metadaten einzelne Spektren mit ID
 
 Stefan Rink:
+- TOPPDialog: Load + Store button, Nur anwendbare Tools anzeigen
+- ParamEditor: Name kann nicht leer sein, Copy-And-Paste, Anzeigen (Farbe) ob datei geändert ist.
+- INIFileEditor: Anzeigen (* am Dateinamen) ob datei geändert ist, Beim verlassen, fragen, ob man speichern will, falls geändert
+- const SpectrumType& MSExperiment::getPrecursorScan(DoubleReal rt/UInt scan nr) (TESTS) 
 - Add getPrecursorRT(rt/scan nr) and update ID adapters and IDSpectrumMapper 
 
 ***********************************************************************/
