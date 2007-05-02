@@ -29,7 +29,7 @@
 
 #include <vector>
 #include <OpenMS/KERNEL/StandardTypes.h>
-#include <OpenMS/DATASTRUCTURES/BinnedSparseVector.h>
+#include <OpenMS/DATASTRUCTURES/SparseVector.h>
 
 
 namespace OpenMS
@@ -52,10 +52,10 @@ namespace OpenMS
   class BinnedRep
   {
   public:
-    typedef BinnedSparseVector::const_iterator const_iterator;
-    typedef BinnedSparseVector::iterator iterator;
-		typedef BinnedSparseVector::const_iterator ConstIterator;
-		typedef BinnedSparseVector::iterator Iterator;
+    typedef SparseVector::const_iterator const_iterator;
+    typedef SparseVector::iterator iterator;
+		typedef SparseVector::const_iterator ConstIterator;
+		typedef SparseVector::iterator Iterator;
 
 		/** @name Constructors and destructors
 		*/
@@ -137,7 +137,7 @@ namespace OpenMS
   private:
     
     /// sparse vector containing the summed intensity <br>
-    BinnedSparseVector bins_;
+    SparseVector bins_;
 
     /// size of the bins
     double binsize_;

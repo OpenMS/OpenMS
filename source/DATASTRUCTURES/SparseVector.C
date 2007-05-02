@@ -24,7 +24,7 @@
 // $Maintainer: Andreas Bertsch $
 // --------------------------------------------------------------------------
 //
-#include <OpenMS/DATASTRUCTURES/BinnedSparseVector.h>
+#include <OpenMS/DATASTRUCTURES/SparseVector.h>
 
 #include <stdexcept>
 #include <cassert>
@@ -39,14 +39,14 @@ using namespace std;
 namespace OpenMS
 {
 
-  BinnedSparseVector::DoubleProxy::DoubleProxy(BinnedSparseVector& vec,uint index)
+  SparseVector::DoubleProxy::DoubleProxy(SparseVector& vec,uint index)
     : vec_(vec), index_(index)
   {
   }
 
-  // if there is a entry in the map from BinnedSparseVector, return that
+  // if there is a entry in the map from SparseVector, return that
   // if not it is a zero, so return 0
-  BinnedSparseVector::DoubleProxy::operator double() const
+  SparseVector::DoubleProxy::operator double() const
   {
     double value = 0;
     map<uint,double>::const_iterator cmit = vec_.values_.find(index_);
@@ -58,7 +58,7 @@ namespace OpenMS
   }
  
   // only save zeros
-  BinnedSparseVector::DoubleProxy& BinnedSparseVector::DoubleProxy::operator = (const BinnedSparseVector::DoubleProxy& rhs)
+  SparseVector::DoubleProxy& SparseVector::DoubleProxy::operator = (const SparseVector::DoubleProxy& rhs)
   {
 		if (this != &rhs)
 		{
@@ -84,7 +84,7 @@ namespace OpenMS
   }
 
   // only save zeros
-  BinnedSparseVector::DoubleProxy& BinnedSparseVector::DoubleProxy::operator=(double val)
+  SparseVector::DoubleProxy& SparseVector::DoubleProxy::operator=(double val)
   {
     if (fabs(val) > 1e-8)
     {
@@ -100,22 +100,22 @@ namespace OpenMS
     return *this;
   }
  
-  BinnedSparseVector::BinnedSparseVector()
+  SparseVector::SparseVector()
     :values_(),size_(0)
   {
   }
   
-  BinnedSparseVector::BinnedSparseVector(int size)
+  SparseVector::SparseVector(int size)
     :values_(),size_(size)
   {
   }
 
-  BinnedSparseVector::BinnedSparseVector(const BinnedSparseVector& source)
+  SparseVector::SparseVector(const SparseVector& source)
     :values_(source.values_),size_(source.size_)
   {
   }
 
-  BinnedSparseVector& BinnedSparseVector::operator = (const BinnedSparseVector& source)
+  SparseVector& SparseVector::operator = (const SparseVector& source)
   {
 		if (this != &source)
 		{
@@ -125,44 +125,44 @@ namespace OpenMS
     return *this;
   }
   
-  BinnedSparseVector::~BinnedSparseVector()
+  SparseVector::~SparseVector()
   {
   }
 
-  uint BinnedSparseVector::nonzero_size() const
+  uint SparseVector::nonzero_size() const
   {
     return values_.size();
   }
 
-  uint BinnedSparseVector::size() const
+  uint SparseVector::size() const
   {
     return size_;
   }
 
-  void BinnedSparseVector::push_back(double value)
+  void SparseVector::push_back(double value)
   {
     operator[](size_++) = value;
   }
 
-  const BinnedSparseVector::DoubleProxy BinnedSparseVector::operator[](uint pos) const 
+  const SparseVector::DoubleProxy SparseVector::operator[](uint pos) const 
   {
     assert(pos < size_);
-    return BinnedSparseVector::DoubleProxy(const_cast<BinnedSparseVector&>(*this),pos);
+    return SparseVector::DoubleProxy(const_cast<SparseVector&>(*this),pos);
   }
 
-  BinnedSparseVector::DoubleProxy BinnedSparseVector::operator[](uint pos)
+  SparseVector::DoubleProxy SparseVector::operator[](uint pos)
   {
     assert(pos < size_);
-    return BinnedSparseVector::DoubleProxy(*this,pos);
+    return SparseVector::DoubleProxy(*this,pos);
   }
   
-  double BinnedSparseVector::at(uint pos) const 
+  double SparseVector::at(uint pos) const 
   {
     if (pos >= size_)
     {
       stringstream ss;
       ss << "tried to access " << pos << " while size was " << size_;
-      throw Exception::Base(__FILE__, __LINE__, __PRETTY_FUNCTION__,"out_of_range in BinnedSparseVector",ss.str().c_str());
+      throw Exception::Base(__FILE__, __LINE__, __PRETTY_FUNCTION__,"out_of_range in SparseVector",ss.str().c_str());
     }
     else 
     {
@@ -170,13 +170,13 @@ namespace OpenMS
     }
   }
 
-  void BinnedSparseVector::clear()
+  void SparseVector::clear()
   {
     values_.clear();
     size_ = 0;
   }
 
-  void BinnedSparseVector::resize(uint newsize)
+  void SparseVector::resize(uint newsize)
   {
     // if the vector is to be smaller
     // delete all invalid entries
@@ -197,17 +197,17 @@ namespace OpenMS
     size_ = newsize;
   }
  
-  BinnedSparseVector::iterator BinnedSparseVector::begin()
+  SparseVector::iterator SparseVector::begin()
   {
-    return BinnedSparseVectorIterator(*this,0);;
+    return SparseVectorIterator(*this,0);;
   }
 
-  BinnedSparseVector::iterator BinnedSparseVector::end()
+  SparseVector::iterator SparseVector::end()
   {
-    return BinnedSparseVectorIterator(*this,this->size());
+    return SparseVectorIterator(*this,this->size());
   }
   
-  BinnedSparseVector::BinnedSparseVectorConstIterator& BinnedSparseVector::BinnedSparseVectorConstIterator::hop()
+  SparseVector::SparseVectorConstIterator& SparseVector::SparseVectorConstIterator::hop()
   {
     //debug
     assert(valit_ != vector_.values_.end() );
@@ -217,17 +217,17 @@ namespace OpenMS
     return *this;
   }
   
-  uint BinnedSparseVector::BinnedSparseVectorIterator::position() const
+  uint SparseVector::SparseVectorIterator::position() const
   {
     return position_;
   }
   
-  uint BinnedSparseVector::BinnedSparseVectorConstIterator::position() const
+  uint SparseVector::SparseVectorConstIterator::position() const
   {
     return position_;
   }
   
-  BinnedSparseVector::BinnedSparseVectorIterator& BinnedSparseVector::BinnedSparseVectorIterator::hop()
+  SparseVector::SparseVectorIterator& SparseVector::SparseVectorIterator::hop()
   {
     //debug
     assert(valit_ != vector_.values_.end() );
@@ -244,94 +244,94 @@ namespace OpenMS
     return *this;
   }
   
-  BinnedSparseVector::const_iterator BinnedSparseVector::begin() const
+  SparseVector::const_iterator SparseVector::begin() const
   {
-    return BinnedSparseVectorConstIterator(*this,0);
+    return SparseVectorConstIterator(*this,0);
   }
 
-  BinnedSparseVector::const_iterator BinnedSparseVector::end() const
+  SparseVector::const_iterator SparseVector::end() const
   {
-    return BinnedSparseVectorConstIterator(*this,this->size());
+    return SparseVectorConstIterator(*this,this->size());
   }
 
-  bool BinnedSparseVector::BinnedSparseVectorIterator::operator!=(const BinnedSparseVector::BinnedSparseVectorIterator& other)
+  bool SparseVector::SparseVectorIterator::operator!=(const SparseVector::SparseVectorIterator& other)
   {
     return (position_ != other.position_ || &vector_ != &other.vector_);
   }
 
-  BinnedSparseVector::BinnedSparseVectorIterator::BinnedSparseVectorIterator(BinnedSparseVector& vector, int position)
+  SparseVector::SparseVectorIterator::SparseVectorIterator(SparseVector& vector, int position)
     :position_(position),vector_(vector),valit_(vector.values_.begin())
   {
   }
   
-  BinnedSparseVector::BinnedSparseVectorIterator::BinnedSparseVectorIterator(const BinnedSparseVector::BinnedSparseVectorIterator& source)
+  SparseVector::SparseVectorIterator::SparseVectorIterator(const SparseVector::SparseVectorIterator& source)
     :position_(source.position_), vector_(source.vector_),valit_(source.valit_)
   {
   }
 
-  BinnedSparseVector::BinnedSparseVectorIterator::~BinnedSparseVectorIterator()
+  SparseVector::SparseVectorIterator::~SparseVectorIterator()
   {
   }
   
-  BinnedSparseVector::BinnedSparseVectorIterator& BinnedSparseVector::BinnedSparseVectorIterator::operator++()
+  SparseVector::SparseVectorIterator& SparseVector::SparseVectorIterator::operator++()
   {
     ++position_;
     return *this;
   }
 
-  BinnedSparseVector::BinnedSparseVectorIterator BinnedSparseVector::BinnedSparseVectorIterator::operator++(int)
+  SparseVector::SparseVectorIterator SparseVector::SparseVectorIterator::operator++(int)
   {
-    BinnedSparseVector::BinnedSparseVectorIterator tmp(*this);
+    SparseVector::SparseVectorIterator tmp(*this);
     ++position_;
     return tmp;
   }
 
-  BinnedSparseVector::DoubleProxy BinnedSparseVector::BinnedSparseVectorIterator::operator*()
+  SparseVector::DoubleProxy SparseVector::SparseVectorIterator::operator*()
   {
     assert(position_ < vector_.size_);
-    return BinnedSparseVector::DoubleProxy(this->vector_,position_);
+    return SparseVector::DoubleProxy(this->vector_,position_);
   }
   
-  bool BinnedSparseVector::BinnedSparseVectorConstIterator::operator!=(const BinnedSparseVector::BinnedSparseVectorConstIterator& other)
+  bool SparseVector::SparseVectorConstIterator::operator!=(const SparseVector::SparseVectorConstIterator& other)
   {
     return (position_ != other.position_ || &vector_ != &other.vector_);
   }
 
-  BinnedSparseVector::BinnedSparseVectorConstIterator::BinnedSparseVectorConstIterator(const BinnedSparseVector::BinnedSparseVectorIterator& source)
+  SparseVector::SparseVectorConstIterator::SparseVectorConstIterator(const SparseVector::SparseVectorIterator& source)
     :position_(source.position_), vector_(source.vector_),valit_(source.valit_)
   { 
   }
   
-  BinnedSparseVector::BinnedSparseVectorConstIterator::BinnedSparseVectorConstIterator(const BinnedSparseVector& vector, int position)
+  SparseVector::SparseVectorConstIterator::SparseVectorConstIterator(const SparseVector& vector, int position)
     :position_(position),vector_(vector),valit_(vector.values_.begin())
   {
   }
   
-  BinnedSparseVector::BinnedSparseVectorConstIterator::BinnedSparseVectorConstIterator(const BinnedSparseVector::BinnedSparseVectorConstIterator& source)
+  SparseVector::SparseVectorConstIterator::SparseVectorConstIterator(const SparseVector::SparseVectorConstIterator& source)
     :position_(source.position_), vector_(source.vector_),valit_(source.valit_)
   {
   }
 
-  BinnedSparseVector::BinnedSparseVectorConstIterator::~BinnedSparseVectorConstIterator()
+  SparseVector::SparseVectorConstIterator::~SparseVectorConstIterator()
   {
   }
   
-  BinnedSparseVector::BinnedSparseVectorConstIterator&BinnedSparseVector::BinnedSparseVectorConstIterator::operator++()
+  SparseVector::SparseVectorConstIterator&SparseVector::SparseVectorConstIterator::operator++()
   {
     assert(position_ <= vector_.size_);
     ++position_;
     return *this;
   }
 
-  BinnedSparseVector::BinnedSparseVectorConstIterator BinnedSparseVector::BinnedSparseVectorConstIterator::operator++(int)
+  SparseVector::SparseVectorConstIterator SparseVector::SparseVectorConstIterator::operator++(int)
   {
-   BinnedSparseVector::BinnedSparseVectorConstIterator tmp(*this);
+   SparseVector::SparseVectorConstIterator tmp(*this);
     ++position_;
     assert(position_ <= vector_.size_);
     return tmp;
   }
 
-  double BinnedSparseVector::BinnedSparseVectorConstIterator::operator*()
+  double SparseVector::SparseVectorConstIterator::operator*()
   {
     assert(position_ < vector_.size_);
     if (position_ == valit_->first)

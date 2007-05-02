@@ -117,14 +117,14 @@ namespace OpenMS
   void BinnedRep::normalize()
   {
     double max = 0;
-    for ( BinnedSparseVector::iterator bit = bins_.begin(); bit != bins_.end(); bit.hop())
+    for ( SparseVector::iterator bit = bins_.begin(); bit != bins_.end(); bit.hop())
     {
       if ( *bit > max )
       {
         max = *bit;
       }
     }
-    for ( BinnedSparseVector::iterator bit = bins_.begin(); bit != bins_.end(); bit.hop())
+    for ( SparseVector::iterator bit = bins_.begin(); bit != bins_.end(); bit.hop())
     {
       *bit = *bit/max;
     }

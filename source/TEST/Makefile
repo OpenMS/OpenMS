@@ -53,7 +53,7 @@ EXECUTABLES_DATASTRUCTURES = \
 	DRange_test\
 	DBoundingBox_test\
 	DataValue_test\
-	BinnedSparseVector_test\
+	SparseVector_test\
 	DateTime_test\
 	QuadTree_test\
 	RangeManager_test\

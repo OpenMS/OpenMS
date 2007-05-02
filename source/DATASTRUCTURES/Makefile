@@ -40,7 +40,7 @@ CPP_SOURCES=\
 	RunningAveragePosition.C\
 	Date.C\
 	Matrix.C\
-	BinnedSparseVector.C\
+	SparseVector.C\
 	DateTime.C\
 	QuadTree.C\
 	ConvexHull2D.C\

@@ -29,13 +29,13 @@
 
 ///////////////////////////
 
-#include <OpenMS/DATASTRUCTURES/BinnedSparseVector.h>
+#include <OpenMS/DATASTRUCTURES/SparseVector.h>
 
 ///////////////////////////
 
 
 ///////////////////////////
-START_TEST(BinnedSparseVector, "$Id$")
+START_TEST(SparseVector, "$Id$")
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
@@ -43,10 +43,10 @@ START_TEST(BinnedSparseVector, "$Id$")
 using namespace OpenMS;
 using namespace std;
 
-BinnedSparseVector* sv2p;
+SparseVector* sv2p;
 
-CHECK(BinnedSparseVector())
-  sv2p = new BinnedSparseVector();
+CHECK(SparseVector())
+  sv2p = new SparseVector();
   TEST_NOT_EQUAL(sv2p, 0)
 RESULT
 
@@ -98,7 +98,7 @@ RESULT
 CHECK(iterator)
   sv2p->resize(10);
   uint i = 0;
-  for ( BinnedSparseVector::iterator vit = sv2p->begin(); vit != sv2p->end();++vit)
+  for ( SparseVector::iterator vit = sv2p->begin(); vit != sv2p->end();++vit)
   {
     if ( i == 2 || i == 5 || i == 7 ) *vit = 1.1;
     else *vit = 0;
@@ -108,7 +108,7 @@ CHECK(iterator)
   TEST_EQUAL(sv2p->size(),10)
   TEST_EQUAL(sv2p->nonzero_size(),3)
   i = 0;
-  for ( BinnedSparseVector::iterator vit = sv2p->begin(); vit != sv2p->end();++vit)
+  for ( SparseVector::iterator vit = sv2p->begin(); vit != sv2p->end();++vit)
   {
     if ( i == 2 || i == 5 || i == 7 ) 
     {
@@ -125,7 +125,7 @@ RESULT
 
 CHECK(const_iterator)
   uint i = 0;
-  for ( BinnedSparseVector::const_iterator cvit = sv2p->begin(); cvit != sv2p->end();++cvit)
+  for ( SparseVector::const_iterator cvit = sv2p->begin(); cvit != sv2p->end();++cvit)
   {
     if ( i == 2 || i == 5 || i == 7 ) 
     {
@@ -141,7 +141,7 @@ CHECK(const_iterator)
   TEST_EQUAL(i,10)
 RESULT
 
-CHECK(~BinnedSparseVector())
+CHECK(~SparseVector())
   delete sv2p;
 RESULT
 

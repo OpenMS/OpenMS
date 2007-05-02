@@ -41,17 +41,17 @@ namespace OpenMS
 
 			@ingroup Datastructures
   */
-  class BinnedSparseVector
+  class SparseVector
   {
 		// @name Friends
 		// @{
-    friend class BinnedSparseVectorIterator;
-    friend class BinnedSparseVectorConstIterator;
+    friend class SparseVectorIterator;
+    friend class SparseVectorConstIterator;
     friend class DoubleProxy;
 		// @}
     
     /**
-			@brief class DoubleProxy allows the BinnedSparseVector to differentiate between writing and reading, so zeros can be ignored
+			@brief class DoubleProxy allows the SparseVector to differentiate between writing and reading, so zeros can be ignored
 			
 			See "more effective c++" section 30
     */
@@ -63,7 +63,7 @@ namespace OpenMS
 				// @name Constructors and Destructors
 				// @{
 				///
-  	    DoubleProxy(BinnedSparseVector& vec, uint index);
+  	    DoubleProxy(SparseVector& vec, uint index);
 				// @}
 
 				// @name Operators
@@ -81,22 +81,22 @@ namespace OpenMS
     	private:
 			
 				///
-      	BinnedSparseVector& vec_;
+      	SparseVector& vec_;
 				
 				///
       	int index_;
     };
 
     // forward declaration
-    class BinnedSparseVectorConstIterator;
+    class SparseVectorConstIterator;
     
-    /// iterator for BinnedSparseVector
-    class BinnedSparseVectorIterator
+    /// iterator for SparseVector
+    class SparseVectorIterator
     {
 			// @name Friends
 			// @{
-      friend class BinnedSparseVector;
-      friend class BinnedSparseVector::BinnedSparseVectorConstIterator;
+      friend class SparseVector;
+      friend class SparseVector::SparseVectorConstIterator;
 			// @}
 			
     public:
@@ -104,19 +104,19 @@ namespace OpenMS
 			// @name Constructors and Destructors
 			// @{
 			/// copy constructor
-      BinnedSparseVectorIterator(const BinnedSparseVectorIterator& source);
+      SparseVectorIterator(const SparseVectorIterator& source);
 			
 			/// destructor
-      virtual ~BinnedSparseVectorIterator();
+      virtual ~SparseVectorIterator();
 			// @}
 
 			// @name Operators
 			// @{
 			///
-      BinnedSparseVectorIterator& operator ++ (); // prefix
+      SparseVectorIterator& operator ++ (); // prefix
 
 			///
-      BinnedSparseVectorIterator operator ++ (int); // postfix
+      SparseVectorIterator operator ++ (int); // postfix
 
 			///
 			DoubleProxy operator * ();			
@@ -126,7 +126,7 @@ namespace OpenMS
 			// @name Accessors
 			// @{
       /// go to the next nonempty position
-      BinnedSparseVectorIterator& hop();
+      SparseVectorIterator& hop();
 			
       /// find out at what position the iterator is; useful in combination with hop()
       uint position() const;
@@ -135,33 +135,33 @@ namespace OpenMS
 			// @name Predicates
 			// @{
 			/// inequality operator
-      bool operator!=(const BinnedSparseVectorIterator& other);
+      bool operator!=(const SparseVectorIterator& other);
 			// @}
       
     private:
 
 			/// default constructor
-      BinnedSparseVectorIterator();
+      SparseVectorIterator();
 
 			/// 
-      BinnedSparseVectorIterator(BinnedSparseVector& vector, int position);
+      SparseVectorIterator(SparseVector& vector, int position);
       
-      // the position in BinnedSparseVector
+      // the position in SparseVector
       uint position_;
      
 		 	///
-      BinnedSparseVector& vector_;
+      SparseVector& vector_;
 
-      // the position in the underlying map of BinnedSparseVector
+      // the position in the underlying map of SparseVector
       std::map<uint,double>::const_iterator valit_;
     };
     
-    /// const_iterator for BinnedSparseVector
-    class BinnedSparseVectorConstIterator
+    /// const_iterator for SparseVector
+    class SparseVectorConstIterator
     {
 			// @name Friends
 			// @{
-      friend class BinnedSparseVector;
+      friend class SparseVector;
 			// @}
 			
     public:
@@ -169,22 +169,22 @@ namespace OpenMS
 			// @name Constructors and Destructors
 			// @{
 			/// copy constructor
-      BinnedSparseVectorConstIterator(const BinnedSparseVectorConstIterator& source);
+      SparseVectorConstIterator(const SparseVectorConstIterator& source);
 			
-			/// copy constructor from BinnedSparseVector::BinnedSparseVectorIterator
-      BinnedSparseVectorConstIterator(const BinnedSparseVector::BinnedSparseVectorIterator& source);
+			/// copy constructor from SparseVector::SparseVectorIterator
+      SparseVectorConstIterator(const SparseVector::SparseVectorIterator& source);
 			
 			/// destructor
-      virtual ~BinnedSparseVectorConstIterator();
+      virtual ~SparseVectorConstIterator();
 			// @}
 
 			// @name Operators
 			// @{
 			/// postincrement operator
-      BinnedSparseVectorConstIterator& operator ++ ();
+      SparseVectorConstIterator& operator ++ ();
 
 			/// immidiate increment operator
-      BinnedSparseVectorConstIterator operator ++ (int);
+      SparseVectorConstIterator operator ++ (int);
 
 			/// derefence operator
 			double operator * ();
@@ -193,7 +193,7 @@ namespace OpenMS
 			// @name Accessors
 			// @{
       /// go to the next nonempty position
-      BinnedSparseVectorConstIterator& hop();
+      SparseVectorConstIterator& hop();
       
       /// find out at what position the iterator is, useful in combination with hop()
       uint position() const;
@@ -202,24 +202,24 @@ namespace OpenMS
 			// @name Predicates
 			// @{
 			/// inequality operator
-      bool operator != (const BinnedSparseVectorConstIterator& other);
+      bool operator != (const SparseVectorConstIterator& other);
 			// @}
 
     private:
 
 			/// default constructor
-      BinnedSparseVectorConstIterator();
+      SparseVectorConstIterator();
 
 			/// detailed constructor
-      BinnedSparseVectorConstIterator(const BinnedSparseVector& vector, int position);
+      SparseVectorConstIterator(const SparseVector& vector, int position);
       
-      // the position in BinnedSparseVector
+      // the position in SparseVector
       uint position_;
       
 			/// 
-      const BinnedSparseVector& vector_;
+      const SparseVector& vector_;
       
-      // the position in the underlying map of BinnedSparseVector
+      // the position in the underlying map of SparseVector
       std::map<uint, double>::const_iterator valit_;
     };
 
@@ -227,31 +227,31 @@ namespace OpenMS
     
 		// @name Typedefs
 		// @{
-    typedef BinnedSparseVectorConstIterator const_iterator;
-		typedef BinnedSparseVectorConstIterator ConstIterator;
-    typedef BinnedSparseVectorIterator iterator;
-		typedef BinnedSparseVectorIterator Iterator;
+    typedef SparseVectorConstIterator const_iterator;
+		typedef SparseVectorConstIterator ConstIterator;
+    typedef SparseVectorIterator iterator;
+		typedef SparseVectorIterator Iterator;
 		// @}
     
     /// @name Constructor and Desctructor
     // @{
 		/// default constructor
-    BinnedSparseVector();
+    SparseVector();
 
 		/// detailed constructor
-    BinnedSparseVector(int size);
+    SparseVector(int size);
 
 		/// copy constructor
-    BinnedSparseVector(const BinnedSparseVector& source);
+    SparseVector(const SparseVector& source);
     
     /// destructor
-    virtual ~BinnedSparseVector();
+    virtual ~SparseVector();
 		// @}
 
 		// @name Operators
 		// @{
 		/// assignment operator
-    BinnedSparseVector& operator = (const BinnedSparseVector& source);
+    SparseVector& operator = (const SparseVector& source);
 
 		/// DoubleProxy handles the conversion to int and ,the writing ( if != 0 )
 		const DoubleProxy operator[] (uint pos) const;
