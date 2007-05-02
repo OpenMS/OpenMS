@@ -84,7 +84,7 @@ CHECK(FeatureDecharger& operator=(const FeatureDecharger &source))
 RESULT
 
 CHECK(virtual ~FeatureDecharger())
-  
+  //...
 RESULT
 
 CHECK(void compute(FeatureMapType &map))

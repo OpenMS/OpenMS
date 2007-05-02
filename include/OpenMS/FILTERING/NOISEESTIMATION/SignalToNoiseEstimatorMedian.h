@@ -98,8 +98,8 @@ namespace OpenMS
     
   */
   
-  
-  class SignalToNoiseEstimatorMedian : public SignalToNoiseEstimator
+  template < typename Container = MSSpectrum< > >
+  class SignalToNoiseEstimatorMedian : public SignalToNoiseEstimator< Container >
   {
 
   public:
@@ -107,10 +107,17 @@ namespace OpenMS
     /// method to use for estimating the maximal intensity that is used for histogram calculation
     enum IntensityThresholdCalculation { MANUAL=-1, AUTOMAXBYSTDEV=0, AUTOMAXBYPERCENT=1 };
 
-    using SignalToNoiseEstimator::stn_estimates_;
-    using SignalToNoiseEstimator::first_;
-    using SignalToNoiseEstimator::last_;
-    using SignalToNoiseEstimator::is_result_valid_;
+    using SignalToNoiseEstimator< Container >::stn_estimates_;
+    using SignalToNoiseEstimator< Container >::first_;
+    using SignalToNoiseEstimator< Container >::last_;
+    using SignalToNoiseEstimator< Container >::is_result_valid_;
+    using SignalToNoiseEstimator< Container >::defaults_;
+    using SignalToNoiseEstimator< Container >::param_;
+    
+    typedef typename SignalToNoiseEstimator< Container >::PeakIterator PeakIterator;
+    typedef typename SignalToNoiseEstimator< Container >::PeakType PeakType;
+    
+    typedef typename SignalToNoiseEstimator< Container >::GaussianEstimate GaussianEstimate;
 
     /// default constructor
     inline SignalToNoiseEstimatorMedian()
@@ -124,13 +131,13 @@ namespace OpenMS
       defaults_.setValue("MinRequiredElements", 10); 
       defaults_.setValue("NoiseForEmptyWindow", 2.0); 
 
-      defaultsToParam_();
+      SignalToNoiseEstimator< Container >::defaultsToParam_();
     }
 
 
     /// Copy Constructor
     inline SignalToNoiseEstimatorMedian(const SignalToNoiseEstimatorMedian&  source)
-        : SignalToNoiseEstimator(source)
+        : SignalToNoiseEstimator< Container >(source)
     {
       updateMembers_();
     }
@@ -143,7 +150,7 @@ namespace OpenMS
     inline SignalToNoiseEstimatorMedian& operator=(const SignalToNoiseEstimatorMedian& source)
     {
       if(&source == this) return *this; 
-      SignalToNoiseEstimator::operator=(source);
+      SignalToNoiseEstimator< Container >::operator=(source);
       updateMembers_();
       return *this;
     }
@@ -154,8 +161,11 @@ namespace OpenMS
     virtual ~SignalToNoiseEstimatorMedian()
     {}
 
-    /** Accessors
+    /** @name Accessors
      */
+
+    //@{
+    ///
     
     /// Non-mutable access to the maximal intensity that is included in the histogram (higher values get discarded)
     inline DoubleReal getMaxIntensity() const     {    return max_intensity_;   }
@@ -237,49 +247,10 @@ namespace OpenMS
       noise_for_empty_window_ = noise_for_empty_window;
       param_.setValue("NoiseForEmptyWindow", noise_for_empty_window_);
     }
+    
+    //@}
+    
 
-    /// Return to signal/noise estimate for data point @p data_point
-    /// @note the first query to this function will take longer, as
-    ///        all SignalToNoise values are calculated
-    /// @note you will get a warning to stderr if more than 20% of the 
-    ///        noise estimates used sparse windows
-    /// @note you will get a warning to stderr if more than 1% of the 
-    ///        median estimates was in the rightmost histogram bin
-    ///        (you should consider increasing MaxIntensity)
-    virtual double getSignalToNoise(PeakIterator data_point)
-    {
-      double sparse_window = 0;
-      double histogram_oob = 0;
-      
-      if (!is_result_valid_)
-      {
-        shiftWindow_(first_, last_, sparse_window, histogram_oob);
-        
-        is_result_valid_ = true;
-
-        // warn if percentage of sparse windows is above 20%
-        if (sparse_window > 20) 
-        {
-          std::cerr << "WARNING in DSignalToNoiseEstimatorMedian: " 
-                   << sparse_window 
-                   << "% of all windows were sparse. You should consider decreasing WindowLength and/or MinReqElementsInWindow" 
-                   << std::endl;
-        }
-        
-        // warn if percentage of possibly wrong median estimates is above 1%
-        if (histogram_oob > 1) 
-        {
-          std::cerr << "WARNING in DSignalToNoiseEstimatorMedian: " 
-                   << histogram_oob 
-                   << "% of all Signal-to-Noise estimates are too high, because the median was found in the rightmost histogram-bin. " 
-                   << "You should consider increasing MaxIntensity (and maybe BinCount with it, to keep bin width reasonable)" 
-                   << std::endl;
-        }
-        
-      }  
-      
-      return stn_estimates_[*data_point];
-    }
 
   protected:
 
@@ -287,17 +258,13 @@ namespace OpenMS
     /// calculate StN values for all datapoints given, by using a sliding window approach
     /// @param scan_first_ first element in the scan
     /// @param scan_last_ last element in the scan (disregarded)
-    /// @param sparse_window_percent percent of windows that have less than "min_required_elements_" of elements
-    ///          (noise estimates in those windows are simply a constant "noise_for_empty_window_")           
-    /// @param histogram_oob_percent (oob=_out_of_bounds) percentage of median estimations that had to rely on the last(=rightmost) bin
-    ///          which gives an unreliable result
-    void shiftWindow_(const PeakIterator& scan_first_, const PeakIterator& scan_last_, double &sparse_window_percent, double &histogram_oob_percent)
+    void computeSTN_(const PeakIterator& scan_first_, const PeakIterator& scan_last_)
     throw(Exception::InvalidValue)
     {
       // reset counter for sparse windows
-      sparse_window_percent = 0;
+      double sparse_window_percent = 0;
       // reset counter for histogram overflow
-      histogram_oob_percent = 0;
+      double histogram_oob_percent = 0;
       
       // reset the results
       stn_estimates_.clear();
@@ -306,7 +273,7 @@ namespace OpenMS
       if (auto_mode_ == AUTOMAXBYSTDEV)
       {
         // use MEAN+auto_max_intensity_*STDEV as threshold
-        GaussianEstimate gauss_global = estimate(scan_first_, scan_last_);
+        GaussianEstimate gauss_global = SignalToNoiseEstimator< Container >::estimate_(scan_first_, scan_last_);
         max_intensity_ = gauss_global.mean + std::sqrt(gauss_global.variance)*auto_max_stdev_Factor_;
       }
       else if (auto_mode_ == AUTOMAXBYPERCENT)
@@ -408,6 +375,17 @@ namespace OpenMS
       
       double noise;    // noise value of a datapoint      
 
+      // determine how many elements we need to estimate (for progress estimation)
+      int windows_overall = 0;
+      PeakIterator run = scan_first_;
+      while (run != scan_last_)
+      {
+        ++windows_overall;
+        ++run;
+      }
+      SignalToNoiseEstimator< Container >::startProgress(0,windows_overall,"noise estimation of data");
+
+      // MAIN LOOP
       while (window_pos_center != scan_last_)
       {
         
@@ -460,10 +438,34 @@ namespace OpenMS
         // advance the window center by one datapoint
         ++window_pos_center;
         ++window_count;  
+        // update progress 
+        SignalToNoiseEstimator< Container >::setProgress(window_count);
+                  
       } // end while
 
+      SignalToNoiseEstimator< Container >::endProgress();
+        
       sparse_window_percent = sparse_window_percent *100 / window_count;
       histogram_oob_percent = histogram_oob_percent *100 / window_count;
+      
+      // warn if percentage of sparse windows is above 20%
+      if (sparse_window_percent > 20) 
+      {
+        std::cerr << "WARNING in DSignalToNoiseEstimatorMedian: " 
+                 << sparse_window_percent 
+                 << "% of all windows were sparse. You should consider decreasing WindowLength and/or MinReqElementsInWindow" 
+                 << std::endl;
+      }
+      
+      // warn if percentage of possibly wrong median estimates is above 1%
+      if (histogram_oob_percent > 1) 
+      {
+        std::cerr << "WARNING in DSignalToNoiseEstimatorMedian: " 
+                 << histogram_oob_percent 
+                 << "% of all Signal-to-Noise estimates are too high, because the median was found in the rightmost histogram-bin. " 
+                 << "You should consider increasing MaxIntensity (and maybe BinCount with it, to keep bin width reasonable)" 
+                 << std::endl;
+      }      
       
     } // end of shiftWindow_
 

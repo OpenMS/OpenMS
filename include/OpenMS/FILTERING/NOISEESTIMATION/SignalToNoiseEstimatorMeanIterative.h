@@ -92,8 +92,8 @@ namespace OpenMS
   	@ingroup Filtering
     
   */
-
-  class SignalToNoiseEstimatorMeanIterative : public SignalToNoiseEstimator
+  template < typename Container = MSSpectrum< > >
+  class SignalToNoiseEstimatorMeanIterative : public SignalToNoiseEstimator< Container >
   {
 
     public:
@@ -101,10 +101,18 @@ namespace OpenMS
       /// method to use for estimating the maximal intensity that is used for histogram calculation
       enum IntensityThresholdCalculation { MANUAL=-1, AUTOMAXBYSTDEV=0, AUTOMAXBYPERCENT=1 };
 
-      using SignalToNoiseEstimator::stn_estimates_;
-      using SignalToNoiseEstimator::first_;
-      using SignalToNoiseEstimator::last_;
-      using SignalToNoiseEstimator::is_result_valid_;
+      using SignalToNoiseEstimator< Container >::stn_estimates_;
+      using SignalToNoiseEstimator< Container >::first_;
+      using SignalToNoiseEstimator< Container >::last_;
+      using SignalToNoiseEstimator< Container >::is_result_valid_;
+      using SignalToNoiseEstimator< Container >::defaults_;
+      using SignalToNoiseEstimator< Container >::param_;
+      
+      typedef typename SignalToNoiseEstimator< Container >::PeakIterator PeakIterator;
+      typedef typename SignalToNoiseEstimator< Container >::PeakType PeakType;
+      
+      typedef typename SignalToNoiseEstimator< Container >::GaussianEstimate GaussianEstimate;
+      
 
       /// default constructor
       inline SignalToNoiseEstimatorMeanIterative()
@@ -119,13 +127,13 @@ namespace OpenMS
         defaults_.setValue("MinRequiredElements", 10); 
         defaults_.setValue("NoiseForEmptyWindow", 2.0); 
 
-        defaultsToParam_();
+        SignalToNoiseEstimator< Container >::defaultsToParam_();
       }
 
 
       /// Copy Constructor
       inline SignalToNoiseEstimatorMeanIterative(const SignalToNoiseEstimatorMeanIterative&  source)
-          : SignalToNoiseEstimator(source)
+          : SignalToNoiseEstimator< Container >(source)
       {
         updateMembers_();
       }
@@ -138,7 +146,7 @@ namespace OpenMS
       inline SignalToNoiseEstimatorMeanIterative& operator=(const SignalToNoiseEstimatorMeanIterative& source)
       {
         if(&source == this) return *this; 
-        SignalToNoiseEstimator::operator=(source);
+        SignalToNoiseEstimator< Container >::operator=(source);
         updateMembers_();
         return *this;
       }
@@ -149,11 +157,11 @@ namespace OpenMS
       virtual ~SignalToNoiseEstimatorMeanIterative()
       {}
       
-      /** Accessors
+      /** @name Accessors
        */
 
-      /* new accessors */
-
+      //@{
+      ///
 
       /// Non-mutable access to the maximal intensity that is included in the histogram (higher values get discarded)
       inline DoubleReal getMaxIntensity() const     {    return max_intensity_;   }
@@ -245,37 +253,9 @@ namespace OpenMS
         noise_for_empty_window_ = noise_for_empty_window;
         param_.setValue("NoiseForEmptyWindow", noise_for_empty_window_);
       }
+      //@}
 
 
-
-      /// Return to signal/noise estimate for data point @p data_point
-      /// @note the first query to this function will take longer, as
-      ///       all SignalToNoise values are calculated
-      /// @note you will get a warning to stderr if more than 20% of the
-      ///       noise estimates used sparse windows
-      virtual double getSignalToNoise(PeakIterator data_point)
-      {
-        double sparse_window = 0;
-
-        if (!is_result_valid_)
-        {
-          shiftWindow_(first_, last_, sparse_window);
-          is_result_valid_ = true;
-
-          // warn if percentage of sparse windows is above 20%
-          if (sparse_window > 20)
-          {
-            std::cerr << "WARNING in SignalToNoiseEstimatorMeanIterative: "
-            << sparse_window
-            << "% of all windows were sparse. You should consider decreasing WindowLength and/or MinReqElementsInWindow"
-            << " You should also check the MaximalIntensity value (or the parameters for its heuristic estimation)"
-            << " If it is too low, then too many high intensity peaks will be discarded, which leads to a sparse window!"
-            << std::endl;
-          }
-        }
-
-        return stn_estimates_[*data_point];
-      }
 
     protected:
 
@@ -283,13 +263,11 @@ namespace OpenMS
       /// calculate StN values for all datapoints given, by using a sliding window approach
       /// @param scan_first_ first element in the scan
       /// @param scan_last_ last element in the scan (disregarded)
-      /// @param sparse_window_percent percent of windows that have less than "min_required_elements_" of elements
-      ///          (noise estimates in those windows are simply a constant "noise_for_empty_window_")
-      void shiftWindow_(const PeakIterator& scan_first_, const PeakIterator& scan_last_, double &sparse_window_percent) 
+      virtual void computeSTN_(const PeakIterator& scan_first_, const PeakIterator& scan_last_) 
       throw(Exception::InvalidValue)
       {
         // reset counter for sparse windows
-        sparse_window_percent = 0;
+        double sparse_window_percent = 0;
 
         // reset the results
         stn_estimates_.clear();
@@ -298,7 +276,7 @@ namespace OpenMS
         if (auto_mode_ == AUTOMAXBYSTDEV)
         {
           // use MEAN+auto_max_intensity_*STDEV as threshold
-          GaussianEstimate gauss_global = estimate(scan_first_, scan_last_);
+          GaussianEstimate gauss_global = SignalToNoiseEstimator< Container >::estimate_(scan_first_, scan_last_);
           max_intensity_ = gauss_global.mean + std::sqrt(gauss_global.variance)*auto_max_stdev_Factor_;
         }
         else if (auto_mode_ == AUTOMAXBYPERCENT)
@@ -395,12 +373,23 @@ namespace OpenMS
 
         double noise;    // noise value of a datapoint
 
+        // determine how many elements we need to estimate (for progress estimation)
+        int windows_overall = 0;
+        PeakIterator run = scan_first_;
+        while (run != scan_last_)
+        {
+          ++windows_overall;
+          ++run;
+        }
+        SignalToNoiseEstimator< Container >::startProgress(0,windows_overall,"noise estimation of data");
+
+        // MAIN LOOP
         while (window_pos_center != scan_last_)
         {
-
           // erase all elements from histogram that will leave the window on the LEFT side
           while ( (*window_pos_borderleft).getMZ() <  (*window_pos_center).getMZ() - window_half_size )
           {
+            //std::cout << "S: " << (*window_pos_borderleft).getMZ()  <<  " " << ( (*window_pos_center).getMZ() - window_half_size ) << "\n";
             to_bin = (int) (((*window_pos_borderleft).getIntensity()) / bin_size);
             if (to_bin < bin_count_)
             {
@@ -409,11 +398,16 @@ namespace OpenMS
             }
             ++window_pos_borderleft;
           }
-
+          
+          //std::printf("S1: %E %E\n", (*window_pos_borderright).getMZ(), (*window_pos_center).getMZ() + window_half_size);
+            
+ 
           // add all elements to histogram that will enter the window on the RIGHT side
           while (     (window_pos_borderright != scan_last_)
-                      && ((*window_pos_borderright).getMZ() <= (*window_pos_center).getMZ() + window_half_size )                     )
+                      && ((*window_pos_borderright).getMZ() < (*window_pos_center).getMZ() + window_half_size )                     )
           {
+            //std::printf("Sb: %E %E %E\n", (*window_pos_borderright).getMZ(), (*window_pos_center).getMZ() + window_half_size, (*window_pos_borderright).getMZ() - ((*window_pos_center).getMZ() + window_half_size));
+            
             to_bin = (int) (((*window_pos_borderright).getIntensity()) / bin_size);
             if (to_bin < bin_count_)
             {
@@ -440,20 +434,23 @@ namespace OpenMS
               hist_mean = 0;
               for (int bin = 0; bin < hist_rightmost_bin; ++bin)
               {
-                hist_mean += histogram[bin]*bin_value[bin];
+                //std::cout << "V: " << bin << " " << hist_mean << " " << histogram[bin] << " " << elements_in_window << " " << bin_value[bin] << "\n";
+                // immediate division is numerically more stable
+                hist_mean += histogram[bin] / (double) elements_in_window * bin_value[bin] ;
               }
-              hist_mean = hist_mean / elements_in_window;
+              //hist_mean = hist_mean / elements_in_window;
 
               // stdev
               hist_stdev = 0;
               for (int bin = 0; bin < hist_rightmost_bin; ++bin)
               {
-                hist_stdev += histogram[bin] * std::pow(bin_value[bin]-hist_mean, 2);
+                hist_stdev += histogram[bin]/ (double) elements_in_window * std::pow(bin_value[bin]-hist_mean, 2);
               }
-              hist_stdev = std::sqrt(hist_stdev / elements_in_window);
+              hist_stdev = std::sqrt(hist_stdev);
 
               //determine new threshold (i.e. the rightmost bin we consider)
               int estimate = (int) ((hist_mean + hist_stdev * stdev_ - 1) / bin_size + 1);
+              //std::cout << "E: " << hist_mean << " " << hist_stdev << " " << stdev_ << " " << bin_size<< " " << estimate << "\n";
               hist_rightmost_bin = std::min(estimate, bin_count_);
             }
 
@@ -464,13 +461,32 @@ namespace OpenMS
           // store result
           stn_estimates_[*window_pos_center] = (*window_pos_center).getIntensity() / noise;
 
+
+
           // advance the window center by one datapoint
           ++window_pos_center;
           ++window_count;
+          // update progress 
+          SignalToNoiseEstimator< Container >::setProgress(window_count);
+                    
         } // end while
 
+        SignalToNoiseEstimator< Container >::endProgress();
+        
         sparse_window_percent = sparse_window_percent *100 / window_count;
+        // warn if percentage of sparse windows is above 20%
+        if (sparse_window_percent > 20)
+        {
+          std::cerr << "WARNING in SignalToNoiseEstimatorMeanIterative: "
+          << sparse_window_percent
+          << "% of all windows were sparse. You should consider decreasing WindowLength and/or MinReqElementsInWindow"
+          << " You should also check the MaximalIntensity value (or the parameters for its heuristic estimation)"
+          << " If it is too low, then too many high intensity peaks will be discarded, which leads to a sparse window!"
+          << std::endl;
+        }
 
+        return;
+        
       } // end of shiftWindow_
 
 

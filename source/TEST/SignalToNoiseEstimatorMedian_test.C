@@ -39,12 +39,12 @@ START_TEST(SignalToNoiseEstimatorMedian, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-SignalToNoiseEstimatorMedian* ptr = 0;
+SignalToNoiseEstimatorMedian< >* ptr = 0;
 CHECK(SignalToNoiseEstimatorMedian())
-        ptr = new SignalToNoiseEstimatorMedian();
+        ptr = new SignalToNoiseEstimatorMedian<>;
         TEST_NOT_EQUAL(ptr, 0)
 
-        SignalToNoiseEstimatorMedian sne;
+        SignalToNoiseEstimatorMedian<> sne;
         TEST_REAL_EQUAL(sne.getWinLen(), 200);
         TEST_EQUAL(sne.getBinCount(), 30);
         TEST_EQUAL(sne.getMinReqElements(), 10);
@@ -60,7 +60,7 @@ CHECK(~SignalToNoiseEstimatorMedian())
 RESULT
 
 CHECK(SignalToNoiseEstimatorMedian& operator=(const SignalToNoiseEstimatorMedian &source))
-  SignalToNoiseEstimatorMedian sne;
+  SignalToNoiseEstimatorMedian<> sne;
   sne.setWinLen(31);
   sne.setBinCount(33);
   sne.setMaxIntensity(45);
@@ -70,7 +70,7 @@ CHECK(SignalToNoiseEstimatorMedian& operator=(const SignalToNoiseEstimatorMedian
   sne.setMinReqElements(4);
   sne.setNoiseForEmtpyWindow(2);  
 
-  SignalToNoiseEstimatorMedian sne2 = sne;
+  SignalToNoiseEstimatorMedian<> sne2 = sne;
   TEST_REAL_EQUAL(sne2.getWinLen(), 31);
   TEST_REAL_EQUAL(sne2.getBinCount(), 33);
   TEST_REAL_EQUAL(sne2.getMaxIntensity(), 45);
@@ -82,7 +82,7 @@ CHECK(SignalToNoiseEstimatorMedian& operator=(const SignalToNoiseEstimatorMedian
 RESULT
 
 CHECK(SignalToNoiseEstimatorMedian(const SignalToNoiseEstimatorMedian &source))
-  SignalToNoiseEstimatorMedian sne;
+  SignalToNoiseEstimatorMedian<> sne;
   sne.setWinLen(31);
   sne.setBinCount(33);
   sne.setMaxIntensity(45);
@@ -92,7 +92,7 @@ CHECK(SignalToNoiseEstimatorMedian(const SignalToNoiseEstimatorMedian &source))
   sne.setMinReqElements(4);
   sne.setNoiseForEmtpyWindow(2);  
 
-  SignalToNoiseEstimatorMedian sne2(sne);
+  SignalToNoiseEstimatorMedian<> sne2(sne);
   TEST_REAL_EQUAL(sne2.getWinLen(), 31);
   TEST_REAL_EQUAL(sne2.getBinCount(), 33);
   TEST_REAL_EQUAL(sne2.getMaxIntensity(), 45);
@@ -108,110 +108,110 @@ CHECK(virtual ~SignalToNoiseEstimatorMedian())
 RESULT
 
 CHECK(DoubleReal getMaxIntensity() const )
-  const SignalToNoiseEstimatorMedian sne;
+  const SignalToNoiseEstimatorMedian<> sne;
   TEST_EQUAL(sne.getMaxIntensity(), -1);
 RESULT
 
 CHECK(void setMaxIntensity(DoubleReal max_intensity))
-  SignalToNoiseEstimatorMedian sne;
+  SignalToNoiseEstimatorMedian<> sne;
   sne.setMaxIntensity(100);
   TEST_EQUAL(sne.getMaxIntensity(), 100);
 RESULT
 
 
 CHECK(DoubleReal getAutoMaxStdevFactor() const )
-  const SignalToNoiseEstimatorMedian sne;
+  const SignalToNoiseEstimatorMedian<> sne;
   TEST_EQUAL(sne.getAutoMaxStdevFactor(), 3);
 RESULT
 
 CHECK(void setAutoMaxStdevFactor(DoubleReal value))
-  SignalToNoiseEstimatorMedian sne;
+  SignalToNoiseEstimatorMedian<> sne;
   sne.setAutoMaxStdevFactor(100);
   TEST_EQUAL(sne.getAutoMaxStdevFactor(), 100);
 RESULT
 
 
 CHECK(DoubleReal getAutoMaxPercentile() const )
-  const SignalToNoiseEstimatorMedian sne;
+  const SignalToNoiseEstimatorMedian<> sne;
   TEST_EQUAL(sne.getAutoMaxPercentile(), 95);
 RESULT
 
 CHECK(void setAutoMaxPercentile(DoubleReal value))
-  SignalToNoiseEstimatorMedian sne;
+  SignalToNoiseEstimatorMedian<> sne;
   sne.setAutoMaxPercentile(100);
   TEST_EQUAL(sne.getAutoMaxPercentile(), 100);
 RESULT
 
 
 CHECK(Int getAutoMode() const )
-  const SignalToNoiseEstimatorMedian sne;
+  const SignalToNoiseEstimatorMedian<> sne;
   TEST_EQUAL(sne.getAutoMode(), 0);
 RESULT
 
 CHECK(void setAutoMode(Int auto_mode))
-  SignalToNoiseEstimatorMedian sne;
+  SignalToNoiseEstimatorMedian<> sne;
   sne.setAutoMode(100);
   TEST_EQUAL(sne.getAutoMode(), 100);
 RESULT
 
 
 CHECK(DoubleReal getWinLen() const )
-  const SignalToNoiseEstimatorMedian sne;
+  const SignalToNoiseEstimatorMedian<> sne;
   TEST_EQUAL(sne.getWinLen(), 200);
 RESULT
 
 CHECK(void setWinLen(DoubleReal win_len))
-  SignalToNoiseEstimatorMedian sne;
+  SignalToNoiseEstimatorMedian<> sne;
   sne.setWinLen(100);
   TEST_EQUAL(sne.getWinLen(), 100);
 RESULT
 
 
 CHECK(Int getBinCount() const )
-  const SignalToNoiseEstimatorMedian sne;
+  const SignalToNoiseEstimatorMedian<> sne;
   TEST_EQUAL(sne.getBinCount(), 30);
 RESULT
 
 CHECK(void setBinCount(Int bin_count))
-  SignalToNoiseEstimatorMedian sne;
+  SignalToNoiseEstimatorMedian<> sne;
   sne.setBinCount(100);
   TEST_EQUAL(sne.getBinCount(), 100);
 RESULT
 
 
 CHECK(Int getMinReqElements() const )
-  const SignalToNoiseEstimatorMedian sne;
+  const SignalToNoiseEstimatorMedian<> sne;
   TEST_EQUAL(sne.getMinReqElements(), 10);
 RESULT
 
 CHECK(void setMinReqElements(Int min_required_elements))
-  SignalToNoiseEstimatorMedian sne;
+  SignalToNoiseEstimatorMedian<> sne;
   sne.setMinReqElements(100);
   TEST_EQUAL(sne.getMinReqElements(), 100);
 RESULT
 
 
 CHECK(DoubleReal getNoiseForEmtpyWindow() const )
-  const SignalToNoiseEstimatorMedian sne;
+  const SignalToNoiseEstimatorMedian<> sne;
   TEST_EQUAL(sne.getNoiseForEmtpyWindow(), 2);
 RESULT
 
 CHECK(void setNoiseForEmtpyWindow(DoubleReal noise_for_empty_window))
-  SignalToNoiseEstimatorMedian sne;
-  sne.setNoiseForEmtpyWindow(100);
-  TEST_EQUAL(sne.getNoiseForEmtpyWindow(), 100);
-RESULT
+  SignalToNoiseEstimatorMedian<> snee;
+  snee.setNoiseForEmtpyWindow(100);
+  TEST_EQUAL(snee.getNoiseForEmtpyWindow(), 100);
 
+// this is a protected method, but we need to test it via init(), which is defined in the base class
+//CHECK(virtual void computeSTN_(const PeakIterator& scan_first_, const PeakIterator& scan_last_) throw(Exception::InvalidValue))
 
-CHECK(virtual double getSignalToNoise(PeakIterator data_point))
-  // A container for the raw data 
   MSSpectrum < > raw_data;
   MSSpectrum< >::const_iterator it;
   DTAFile dta_file;
   dta_file.load("./data/SignalToNoiseEstimator_test.dta", raw_data);
   
     
-  SignalToNoiseEstimatorMedian sne;  
+  SignalToNoiseEstimatorMedian< MSSpectrum < > > sne;  
+  //sne.setLogType(SignalToNoiseEstimatorMedian<>::NONE);
   sne.setWinLen(40);
   sne.setMinReqElements(10);
   sne.setNoiseForEmtpyWindow(2);

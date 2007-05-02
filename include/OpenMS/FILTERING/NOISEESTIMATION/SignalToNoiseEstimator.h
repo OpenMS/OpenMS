@@ -30,6 +30,7 @@
 
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
+#include <OpenMS/CONCEPT/ProgressLogger.h>
 
 #include <iostream>
 #include <vector>
@@ -45,16 +46,19 @@ namespace OpenMS
     in a given intervall [first_,last_).
   
   */
-class SignalToNoiseEstimator: public DefaultParamHandler
+  
+template < typename Container = MSSpectrum< > >
+class SignalToNoiseEstimator: public DefaultParamHandler, public ProgressLogger
   {
   public:
 
     /** @name Type definitions
      */
     //@{
-    typedef MSSpectrum< >::const_iterator PeakIterator;
-    typedef PeakIterator::value_type PeakType;
-
+    typedef typename Container::const_iterator PeakIterator;
+    typedef typename PeakIterator::value_type PeakType;
+    
+    
     //@}
     
     /// Constructor
@@ -91,17 +95,11 @@ class SignalToNoiseEstimator: public DefaultParamHandler
     virtual ~SignalToNoiseEstimator()
     {}
 
-    /** @name Initialisation of the raw data intervall
-        
-        Set the start and endpoint of the raw data intervall, for which signal to noise ratios should be estimated
-    */
-    virtual void init(PeakIterator it_begin, PeakIterator it_end)
-    {
-      first_=it_begin;
-      last_=it_end;
-      is_result_valid_=false;
-    }
+    /** @name Accessors
+     */
 
+    //@{
+    ///
     /// Non-mutable access to the first raw data point
     inline const PeakIterator& getFirstDataPoint() const { return first_; }
     /// Mutable access to the first raw data point
@@ -111,12 +109,47 @@ class SignalToNoiseEstimator: public DefaultParamHandler
     inline const PeakIterator& getLastDataPoint() const { return last_; }
     /// Mutable access to the last raw data point
     inline void setLastDataPoint(const PeakIterator& last) { is_result_valid_=false; last_ = last; }
-
     
-    /// Signal To Noise Estimation
-    virtual double getSignalToNoise(PeakIterator data_point) = 0;
+    //@}
+      
+      
+    /// Set the start and endpoint of the raw data intervall, for which signal to noise ratios will be estimated immediately
+    virtual void init(const PeakIterator& it_begin, const PeakIterator& it_end)
+    {
+      first_=it_begin;
+      last_=it_end;
+      computeSTN_(first_, last_);
+      is_result_valid_ = true;
+    }
+      
+          
+    /// Set the start and endpoint of the raw data intervall, for which signal to noise ratios will be estimated immediately
+    virtual void init(const Container& c)
+    {
+      init(c.begin(), c.end() ); 
+    }
+    
+    /// Return to signal/noise estimate for data point @p data_point
+    /// @note the first query to this function will take longer, as
+    ///       all SignalToNoise values are calculated
+    /// @note you will get a warning to stderr if more than 20% of the
+    ///       noise estimates used sparse windows
+    virtual double getSignalToNoise(const PeakIterator& data_point)
+    {
+      if (!is_result_valid_)
+      { 
+        // recompute ...
+        init(first_, last_);
+      }
+
+      return stn_estimates_[*data_point];
+    }
 
   protected:
+
+    virtual void computeSTN_(const PeakIterator& scan_first_, const PeakIterator& scan_last_) throw(Exception::InvalidValue) = 0;
+        
+
 
     /** 
       @brief protected struct to store parameters my, sigma for a gaussian distribution
@@ -131,7 +164,7 @@ class SignalToNoiseEstimator: public DefaultParamHandler
 
 
     /// calculate mean & stdev of intensities of a DPeakArray
-    inline GaussianEstimate estimate(const PeakIterator& scan_first_, const PeakIterator& scan_last_) const
+    inline GaussianEstimate estimate_(const PeakIterator& scan_first_, const PeakIterator& scan_last_) const
     {
       int size = 0;
       // add up
@@ -163,7 +196,7 @@ class SignalToNoiseEstimator: public DefaultParamHandler
     //MEMBERS:
 
     /// stores the noise estimate for each peak
-    std::map< PeakType, double, PeakType::PositionLess > stn_estimates_;
+    std::map< PeakType, double, typename PeakType::PositionLess > stn_estimates_;
   
     /// points to the first raw data point in the interval
     PeakIterator first_;

@@ -83,7 +83,7 @@ namespace OpenMS
       /// Copy constructor
       inline FeatureDecharger(const FeatureDecharger& source)
           : DefaultParamHandler(source),
-          featuremap_dc(source.featuremap_dc)
+          featuremap_dc_(source.featuremap_dc_)
       {}
 
       /// Assignment operator
@@ -95,7 +95,7 @@ namespace OpenMS
         }
 
         DefaultParamHandler::operator=(source);
-        featuremap_dc = source.featuremap_dc;
+        featuremap_dc_ = source.featuremap_dc_;
 
         return *this;          
       };
@@ -114,7 +114,7 @@ namespace OpenMS
       /// retrieve computed zero-charge feature map
       const FeatureMapType& getFeatureMap() const
       {
-        return featuremap_dc; 
+        return featuremap_dc_; 
       }
 
       //@}
@@ -162,8 +162,8 @@ namespace OpenMS
         
         // combine all features which belong to the same cluster
         FeatureType feature;
-        featuremap_dc.clear();
-        featuremap_dc.assign(clusters.size(), feature);
+        featuremap_dc_.clear();
+        featuremap_dc_.assign(clusters.size(), feature);
 
         uint idx_validCluster = 0;
         bool is_bad_cluster = false;
@@ -207,7 +207,7 @@ namespace OpenMS
                 ++bad_clusters_resolved;
                 // ... we can split it
                 FeatureType feature;
-                featuremap_dc.insert(featuremap_dc.end(), clusters[i].size(), feature);
+                featuremap_dc_.insert(featuremap_dc_.end(), clusters[i].size(), feature);
                 
                 // append single elements of current cluster
                 // --> does not work? why
@@ -216,10 +216,10 @@ namespace OpenMS
                 
                 for (uint new_cl = 0; new_cl<clusters[i].size(); ++new_cl)
                 {
-                  featuremap_dc[idx_validCluster].setRT (map[clusters[i][new_cl]].getRT() );
-                  featuremap_dc[idx_validCluster].setMZ ( map[clusters[i][new_cl]].getMZ() );
-                  featuremap_dc[idx_validCluster].setIntensity ( map[clusters[i][new_cl]].getIntensity() );
-                  featuremap_dc[idx_validCluster].setCharge ( 0 );        
+                  featuremap_dc_[idx_validCluster].setRT (map[clusters[i][new_cl]].getRT() );
+                  featuremap_dc_[idx_validCluster].setMZ ( map[clusters[i][new_cl]].getMZ() );
+                  featuremap_dc_[idx_validCluster].setIntensity ( map[clusters[i][new_cl]].getIntensity() );
+                  featuremap_dc_[idx_validCluster].setCharge ( 0 );        
                   ++idx_validCluster;          
                 }
               }  
@@ -228,10 +228,10 @@ namespace OpenMS
           
           if (is_bad_cluster == false)
           {
-            featuremap_dc[idx_validCluster].setRT (rt_avg / clusters[i].size() );
-            featuremap_dc[idx_validCluster].setMZ ( m_avg / clusters[i].size() );
-            featuremap_dc[idx_validCluster].setIntensity ( int_sum );
-            featuremap_dc[idx_validCluster].setCharge ( 0 );
+            featuremap_dc_[idx_validCluster].setRT (rt_avg / clusters[i].size() );
+            featuremap_dc_[idx_validCluster].setMZ ( m_avg / clusters[i].size() );
+            featuremap_dc_[idx_validCluster].setIntensity ( int_sum );
+            featuremap_dc_[idx_validCluster].setCharge ( 0 );
             
             //TODO average over quality as well?
             //feature.setQuality(0,1); // override default
@@ -243,19 +243,19 @@ namespace OpenMS
         }
 
         // erase all elements past idx_validCluster-1
-        featuremap_dc.erase(featuremap_dc.begin()+idx_validCluster, featuremap_dc.end());    
+        featuremap_dc_.erase(featuremap_dc_.begin()+idx_validCluster, featuremap_dc_.end());    
         
   
         std::cout << "STATISTICS:\n  #valid cluster (incl. recovered):" << idx_validCluster << "\n  #badCluster:" << bad_clusters << "\n  #Cluster recovered from bad:" << bad_clusters_resolved << "\n";
         
-        featuremap_dc.updateRanges();
+        featuremap_dc_.updateRanges();
         
         return;
       }
 
     protected:
       /// result feature map (zero-charge)
-      FeatureMapType featuremap_dc;     
+      FeatureMapType featuremap_dc_;     
   };
 } // namespace OpenMS
 

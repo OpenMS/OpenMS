@@ -25,7 +25,6 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/ClassTest.h>
-#include <OpenMS/KERNEL/MSSpectrum.h>
 
 ///////////////////////////
 #include <OpenMS/FILTERING/NOISEESTIMATION/SignalToNoiseEstimator.h>
@@ -35,16 +34,16 @@ using namespace OpenMS;
 using namespace std;
 
 class TestSignalToNoiseEstimator
-  : public SignalToNoiseEstimator
+  : public SignalToNoiseEstimator< >
 {
   public:
   TestSignalToNoiseEstimator() 
-    : SignalToNoiseEstimator()
+    : SignalToNoiseEstimator< >()
   {
   }
   
   TestSignalToNoiseEstimator(const TestSignalToNoiseEstimator& bpf) 
-  : SignalToNoiseEstimator(bpf)
+  : SignalToNoiseEstimator< >(bpf)
   { 
   }
   
@@ -52,14 +51,17 @@ class TestSignalToNoiseEstimator
   {
     if (&bpf==this) return *this;
     
-    SignalToNoiseEstimator::operator=(bpf);
+    SignalToNoiseEstimator< >::operator=(bpf);
     
     return *this;
   }
   
-  virtual double getSignalToNoise(PeakIterator data_point)
+  protected:
+  
+  virtual void computeSTN_(const PeakIterator& scan_first_, const PeakIterator& scan_last_) 
+      throw(Exception::InvalidValue)
   {
-    return data_point->getMZ();
+    // do nothing here...
   }
 
 };
@@ -70,29 +72,20 @@ START_TEST(SignalToNoiseEstimator, "$Id$")
 /////////////////////////////////////////////////////////////
 
 TestSignalToNoiseEstimator* ptr = 0;
-CHECK(SignalToNoiseEstimator())
+CHECK((SignalToNoiseEstimator()))
         ptr = new TestSignalToNoiseEstimator();
         TEST_NOT_EQUAL(ptr, 0)
 RESULT
 
-CHECK(~SignalToNoiseEstimator())
+CHECK(virtual ~SignalToNoiseEstimator())
         delete ptr;
 RESULT
 
-CHECK(virtual void init(PeakIterator it_begin, PeakIterator it_end))
-  TestSignalToNoiseEstimator sne;
-  MSSpectrum<> spec;
-  sne.init(spec.begin(), spec.end());
-  
-  TEST_EQUAL(sne.getFirstDataPoint() == spec.begin(), true)
-  TEST_EQUAL(sne.getLastDataPoint() == spec.end(), true)
-RESULT
-
-CHECK(const PeakIterator& getFirstDataPoint() const )
+CHECK((const PeakIterator& getFirstDataPoint() const))
   // done above
 RESULT
 
-CHECK(void setFirstDataPoint(const PeakIterator &first))
+CHECK((void setFirstDataPoint(const PeakIterator &first)))
   TestSignalToNoiseEstimator sne;
   MSSpectrum<> spec;
   sne.setFirstDataPoint(spec.begin());
@@ -100,7 +93,11 @@ CHECK(void setFirstDataPoint(const PeakIterator &first))
   TEST_EQUAL(sne.getFirstDataPoint() == spec.begin(), true)
 RESULT
 
-CHECK(const PeakIterator& getLastDataPoint() const )
+CHECK((const PeakIterator& getLastDataPoint() const))
+  // done above
+RESULT
+
+CHECK((void setLastDataPoint(const PeakIterator &last)))
   TestSignalToNoiseEstimator sne;
   MSSpectrum<> spec;
   sne.setLastDataPoint(spec.begin());
@@ -108,15 +105,8 @@ CHECK(const PeakIterator& getLastDataPoint() const )
   TEST_EQUAL(sne.getLastDataPoint() == spec.begin(), true)
 RESULT
 
-CHECK(void setLastDataPoint(const PeakIterator &last))
-  // done above
-RESULT
 
-CHECK(virtual double getSignalToNoise(PeakIterator data_point)=0)
-  // just a base class... no implementation here
-RESULT
-
-CHECK(SignalToNoiseEstimator(const SignalToNoiseEstimator &source))
+CHECK((SignalToNoiseEstimator(const SignalToNoiseEstimator &source)))
   TestSignalToNoiseEstimator sne;
   MSSpectrum<> spec;
   sne.init(spec.begin(), spec.end());
@@ -128,7 +118,7 @@ CHECK(SignalToNoiseEstimator(const SignalToNoiseEstimator &source))
   TEST_REAL_EQUAL(sne_copy.getLastDataPoint() == spec.end(), true)
 RESULT
 
-CHECK(SignalToNoiseEstimator& operator=(const SignalToNoiseEstimator &source))
+CHECK((SignalToNoiseEstimator& operator=(const SignalToNoiseEstimator &source)))
   TestSignalToNoiseEstimator sne;
   MSSpectrum<> spec;
   sne.init(spec.begin(), spec.end());
@@ -141,10 +131,33 @@ CHECK(SignalToNoiseEstimator& operator=(const SignalToNoiseEstimator &source))
   TEST_REAL_EQUAL(sne_copy.getLastDataPoint() == spec.end(), true)
 RESULT
 
-CHECK(virtual ~SignalToNoiseEstimator())
+CHECK((virtual ~SignalToNoiseEstimator()))
   // ...
 RESULT
 
+
+
+CHECK(virtual void init(const PeakIterator& it_begin, const PeakIterator& it_end))
+  TestSignalToNoiseEstimator sne;
+  MSSpectrum<> spec;
+  sne.init(spec.begin(), spec.end());
+  
+  TEST_EQUAL(sne.getFirstDataPoint() == spec.begin(), true)
+  TEST_EQUAL(sne.getLastDataPoint() == spec.end(), true)
+RESULT
+
+CHECK(virtual void init(const Container& c))
+  TestSignalToNoiseEstimator sne;
+  MSSpectrum<> spec;
+  sne.init(spec);
+  
+  TEST_EQUAL(sne.getFirstDataPoint() == spec.begin(), true)
+  TEST_EQUAL(sne.getLastDataPoint() == spec.end(), true)
+RESULT
+
+CHECK(virtual double getSignalToNoise(const PeakIterator& data_point))
+  // hard to do without implementing computeSTN_ properly
+RESULT
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

@@ -32,7 +32,7 @@
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/MSExperimentExtern.h>
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakShape.h>
-#include <OpenMS/FILTERING/NOISEESTIMATION/DSignalToNoiseEstimatorMedian.h>
+#include <OpenMS/FILTERING/NOISEESTIMATION/SignalToNoiseEstimatorMedian.h>
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/ContinuousWaveletTransformNumIntegration.h>
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/OptimizePeakDeconvolution.h>
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/TwoDOptimization.h>
@@ -272,10 +272,10 @@ namespace OpenMS
       // copy the raw data into a DPeakArray<DRawDataPoint<D> >
       RawDataArrayType raw_peak_array;
       // signal to noise estimator
-      DSignalToNoiseEstimatorMedian<1, typename RawDataArrayType::const_iterator> sne;
+      SignalToNoiseEstimatorMedian< RawDataArrayType > sne;
       Param sne_param(param_.copy("SignalToNoiseEstimationParameter:",true));
-      if(sne_param.empty()) sne.setParam(Param());
-      else sne.setParam(sne_param);
+      if(sne_param.empty()) sne.setParameters(Param());
+      else sne.setParameters(sne_param);
       unsigned int n = distance(first, last);
       raw_peak_array.resize(n);
 

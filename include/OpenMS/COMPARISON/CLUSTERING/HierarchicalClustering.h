@@ -83,7 +83,7 @@ namespace OpenMS
       /// Copy constructor
       inline HierarchicalClustering(const HierarchicalClustering& source)
           : DefaultParamHandler(source),
-          clustermap(source.clustermap)
+          clustermap_(source.clustermap_)
       {}
 
       /// Assignment operator
@@ -95,7 +95,7 @@ namespace OpenMS
         }
 
         DefaultParamHandler::operator=(source);
-        clustermap = source.clustermap;
+        clustermap_ = source.clustermap_;
 
         return *this;          
       };
@@ -115,7 +115,7 @@ namespace OpenMS
       /// retrieve computed zero-charge feature map
       const ClusterIdxVectorType & getClusters() const
       {
-        return clustermap; 
+        return clustermap_; 
       }
 
       //@}
@@ -128,13 +128,13 @@ namespace OpenMS
 
                 
         // initial result: every point represents a cluster
-        clustermap.clear();
+        clustermap_.clear();
         ClusterIdxVectorType clustermap_tmp(points.size(), ClusterIdxType(1));
-        clustermap.assign(clustermap_tmp.begin(),clustermap_tmp.end());
+        clustermap_.assign(clustermap_tmp.begin(),clustermap_tmp.end());
         
         for (uint i=0; i<points.size(); ++i)
         {
-          clustermap[i][0] = i;
+          clustermap_[i][0] = i;
         }
         
         
@@ -178,11 +178,11 @@ namespace OpenMS
            
            // combine clusters
            // IDEA? append to larger cluster (and swap afterwards if neccessary)
-           while (!clustermap[minColumn].empty())
+           while (!clustermap_[minColumn].empty())
            {
              //std::cout << "putting " << clustermap[minColumn].back() << " from " << minColumn << "->" << minRow << "\n";
-             clustermap[minRow].push_back( clustermap[minColumn].back() );
-             clustermap[minColumn].pop_back();
+             clustermap_[minRow].push_back( clustermap_[minColumn].back() );
+             clustermap_[minColumn].pop_back();
            }
            
            // partially recompute distance matrix
@@ -210,12 +210,12 @@ namespace OpenMS
                 
         // remove empty indices 
         ClusterIdxVectorType cl_tmp;
-        ClusterIdxVectorType::iterator iter = clustermap.begin();
-        while ( iter != clustermap.end())
+        ClusterIdxVectorType::iterator iter = clustermap_.begin();
+        while ( iter != clustermap_.end())
         {
           if (iter->empty())
           {
-            iter = clustermap.erase(iter, iter+1);
+            iter = clustermap_.erase(iter, iter+1);
           } else
           {
             ++iter;
@@ -228,7 +228,7 @@ namespace OpenMS
      
       void printStatistics (std::ostream& os)
       {
-        if (clustermap.empty())
+        if (clustermap_.empty())
         {
           os << "no clusters defined! call 'compute()' first!\n";
         }
@@ -236,15 +236,15 @@ namespace OpenMS
         {
           os << "\nCluster size statistics:\n";
           uint maxsize = 0;
-          for (uint i=0; i<clustermap.size(); ++i)
+          for (uint i=0; i<clustermap_.size(); ++i)
           {
-            if (clustermap[i].size() > maxsize) maxsize = clustermap[i].size();
+            if (clustermap_[i].size() > maxsize) maxsize = clustermap_[i].size();
           }
 
           std::vector<uint> size_dist(maxsize+1);
-          for (uint i=0; i<clustermap.size(); ++i)
+          for (uint i=0; i<clustermap_.size(); ++i)
           {
-            ++size_dist[clustermap[i].size()];  
+            ++size_dist[clustermap_[i].size()];  
           }
           
           for (uint i=0; i<maxsize+1; ++i)
@@ -359,7 +359,7 @@ namespace OpenMS
       };    
     
       /// result cluster map with indices to given feature map
-      ClusterIdxVectorType clustermap;
+      ClusterIdxVectorType clustermap_;
   };
 } // namespace OpenMS
 
