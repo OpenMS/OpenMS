@@ -85,7 +85,7 @@ namespace OpenMS
 		model_.hmm_.addNewState("H");
 		model_.hmm_.addNewState("R");
 	
-		const String residues("ACDEFGHIKMNPQRSTVWY");
+		const String residues("ACDEFGHIKLMNPQRSTVWY");
 	
 		// create the residue states states
 		for (UInt ii = 0; ii != residues.size(); ++ii)
@@ -331,15 +331,28 @@ namespace OpenMS
 					model_.hmm_.addSynonymTransition("AABase1", "AABase2", "AAk-"+num, first+second+"bxyzk-"+num);
 					model_.hmm_.addSynonymTransition("AABase1", "AABase2", "AAk-"+num, first+second+"axyzk-"+num);
 				
-					if ((second == "P")&& i <= 2)
+					if (/*(second == "P")&&*/ i <= 2)
 					{
-            model_.hmm_.setTransitionProbability(first+second+"bxyz"+num, "bxyz"+num, 0.01);
-						model_.hmm_.addSynonymTransition(first+second+"bxyz"+num, "end", first+second+"bxyz"+num, "end"+num);
-						model_.hmm_.setTransitionProbability(first+second+"bxyz"+num, "end", 0.99);
+						if (second == "P")
+						{
+            	model_.hmm_.setTransitionProbability(first+second+"bxyz"+num, "bxyz"+num, 0.01);
+							model_.hmm_.addSynonymTransition(first+second+"bxyz"+num, "end", first+second+"bxyz"+num, "end"+num);
+							model_.hmm_.setTransitionProbability(first+second+"bxyz"+num, "end", 0.99);
 
-            model_.hmm_.setTransitionProbability(first+second+"axyz"+num, "axyz"+num, 0.01);
-						model_.hmm_.addSynonymTransition(first+second+"axyz"+num, "end", first+second+"axyz"+num, "end"+num);
-						model_.hmm_.setTransitionProbability(first+second+"axyz"+num, "end", 0.99);
+            	model_.hmm_.setTransitionProbability(first+second+"axyz"+num, "axyz"+num, 0.01);
+							model_.hmm_.addSynonymTransition(first+second+"axyz"+num, "end", first+second+"axyz"+num, "end"+num);
+							model_.hmm_.setTransitionProbability(first+second+"axyz"+num, "end", 0.99);
+						}
+						else
+						{
+							model_.hmm_.setTransitionProbability(first+second+"bxyz"+num, "bxyz"+num, 0.5);
+              model_.hmm_.addSynonymTransition(first+second+"bxyz"+num, "end", first+second+"bxyz"+num, "end"+num);
+              model_.hmm_.setTransitionProbability(first+second+"bxyz"+num, "end", 0.5);
+
+							model_.hmm_.setTransitionProbability(first+second+"axyz"+num, "axyz"+num, 0.01);
+              model_.hmm_.addSynonymTransition(first+second+"axyz"+num, "end", first+second+"axyz"+num, "end"+num);
+              model_.hmm_.setTransitionProbability(first+second+"axyz"+num, "end", 0.99);
+						}
 					}
 					else
 					{

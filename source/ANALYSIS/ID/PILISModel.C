@@ -82,7 +82,6 @@ namespace OpenMS
 		defaults_.setValue("charge_loss_factor", 0.5); // TODO
 		defaults_.setValue("pseudo_counts", 1e-15);
 
-		defaults_.setValue("modifications", "");
 		defaultsToParam_();
 
 		initModels_();
@@ -395,7 +394,7 @@ namespace OpenMS
 			}
 
 			hmm_.setTrainingEmissionProbability("AA"+pos_name, b_sum1 + b_sum2 + y_sum1 + y_sum2);
-			hmm_.setTrainingEmissionProbability("end"+pos_name, 0.5/(double(peptide.size()-1)));
+			hmm_.setTrainingEmissionProbability("end"+pos_name, 0.5/(double(peptide.size() - 1)));
 
 			//cerr << aa1 << aa2 << ": " << b_name1 << "=" << b_ints1[i] << ", " << y_name1 << "=" << y_ints1[y_ints1.size()-i-1] << 
 			//		", y-H2O+ = " << y_H2O_ints1[y_H2O_ints1.size() - i - 1] << endl;

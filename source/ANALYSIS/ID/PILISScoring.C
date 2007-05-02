@@ -40,6 +40,7 @@ namespace OpenMS
 		defaults_.setValue("survival_function_bin_size", 20);
 		defaults_.setValue("global_linear_fitting_threshold", 0.1);
 		defaults_.setValue("local_linear_fitting_threshold", 0.5);
+		defaults_.setValue("score_default_value", 10e10);
 		defaultsToParam_();
 	}
 
@@ -159,13 +160,34 @@ namespace OpenMS
 					it->setScoreType("PILIS-E-value");
 				}
 			}
+			else
+			{
+				double score_default_value = (double)param_.getValue("score_default_value");
+				for (vector<PeptideHit>::iterator it = id.getPeptideHits().begin(); it != id.getPeptideHits().end(); ++it)
+				{
+					it->setScoreType("PILIS-E-value");
+					it->setScore(score_default_value);
+				}
+			}
 		}
 		else
 		{
-			for (vector<PeptideHit>::iterator it = id.getPeptideHits().begin(); it != id.getPeptideHits().end(); ++it)
+			if (global_intercept != 0 && global_slope != 0)
 			{
-				it->setScore(exp(global_intercept + global_slope * log(it->getScore())));
-				it->setScoreType("PILIS-E-value");
+				for (vector<PeptideHit>::iterator it = id.getPeptideHits().begin(); it != id.getPeptideHits().end(); ++it)
+				{
+					it->setScore(exp(global_intercept + global_slope * log(it->getScore())));
+					it->setScoreType("PILIS-E-value");
+				}
+			}
+			else
+			{
+				double score_default_value = (double)param_.getValue("score_default_value");
+				for (vector<PeptideHit>::iterator it = id.getPeptideHits().begin(); it != id.getPeptideHits().end(); ++it)
+				{
+					it->setScore(score_default_value);
+					it->setScoreType("PILIS-E-value");
+				}
 			}
 		}
 	}

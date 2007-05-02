@@ -54,8 +54,8 @@ namespace OpenMS
 		defaults_.setValue("pre_score_name", "ZhangSimilarityScore");
 		defaults_.setValue("score_name", "SpectrumAlignmentScore");
 		defaults_.setValue("use_evalue_scoring", 1);
-		defaults_.setValue("modifications", "");
-
+		defaults_.setValue("fixed_modifications", "");
+/*
 		aa_weight_['K'] = 128.095;
   	aa_weight_['M'] = 131.04;
   	aa_weight_['F'] = 147.068;
@@ -69,16 +69,17 @@ namespace OpenMS
   	aa_weight_['R'] = 156.101;
   	aa_weight_['N'] = 114.043;
   	aa_weight_['D'] = 115.027;
-  	aa_weight_['C'] = 161.015; //CmC
-		//aa_weight_['C'] = 103.00919;
+  	//aa_weight_['C'] = 161.015; //CmC
+		aa_weight_['C'] = 103.00919;
   	aa_weight_['E'] = 129.043;
   	aa_weight_['Q'] = 128.059;
   	aa_weight_['G'] = 57.0215;
   	aa_weight_['H'] = 137.059;
   	aa_weight_['I'] = 113.084;
   	aa_weight_['L'] = 113.084;
-
+*/
 		defaultsToParam_();
+		updateMembers_();
 	}
 
 	PILISIdentification::PILISIdentification(const PILISIdentification& rhs)
@@ -366,6 +367,67 @@ namespace OpenMS
 	{
 		pre_scorer_ = Factory<PeakSpectrumCompareFunctor>::create((String)defaults_.getValue("pre_score_name"));
     scorer_ = Factory<PeakSpectrumCompareFunctor>::create((String)defaults_.getValue("score_name"));
+
+		// set amino acids to the default weights
+    aa_weight_['K'] = 128.095;
+    aa_weight_['M'] = 131.04;
+    aa_weight_['F'] = 147.068;
+    aa_weight_['P'] = 97.0528;
+    aa_weight_['S'] = 87.032;
+    aa_weight_['T'] = 101.048;
+    aa_weight_['W'] = 186.079;
+    aa_weight_['Y'] = 163.063;
+    aa_weight_['V'] = 99.0684;
+    aa_weight_['A'] = 71.0371;
+    aa_weight_['R'] = 156.101;
+    aa_weight_['N'] = 114.043;
+    aa_weight_['D'] = 115.027;
+    //aa_weight_['C'] = 161.015; //CmC
+    aa_weight_['C'] = 103.00919;
+    aa_weight_['E'] = 129.043;
+    aa_weight_['Q'] = 128.059;
+    aa_weight_['G'] = 57.0215;
+    aa_weight_['H'] = 137.059;
+    aa_weight_['I'] = 113.084;
+    aa_weight_['L'] = 113.084;
+
+		// decode the fixed modifications string
+		String fixed_modifications = param_.getValue("fixed_modifications");
+
+		if (fixed_modifications != "")
+		{
+			cerr << fixed_modifications << endl;
+			vector<String> mod_split;
+
+			fixed_modifications.split(',', mod_split); // comma separated modifications
+			if (mod_split.size() == 0)
+			{
+				mod_split.push_back(fixed_modifications);
+			}
+
+			// now get the modifications
+			for (UInt i = 0; i != mod_split.size(); ++i)
+			{
+				for (UInt j = 0; j != mod_split[i].size(); ++j)
+				{
+					if (mod_split[i][j] == '@')
+					{
+						float mass_diff(mod_split[i].substr(0, j).toFloat());
+						if (j != mod_split[i].size() - 2)
+						{
+							throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "modification in wrong format", "weight@one_letter_code");
+						}
+						char res = mod_split[i][j + 1];
+
+						if (aa_weight_.has(res))
+						{
+							//cerr << res << " " << mass_diff << endl;
+							aa_weight_[res] += mass_diff;
+						}
+					}
+				}
+			}
+		}
 	}
 }
 
