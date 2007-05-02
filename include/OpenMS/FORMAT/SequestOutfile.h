@@ -48,6 +48,8 @@ namespace OpenMS
     
     This class serves to read in a Sequest outfile. The information can be
     retrieved via the load function.
+
+  	@todo Handle Modifications (Andreas)
   	
   	@ingroup FileIO
   */

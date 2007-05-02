@@ -41,6 +41,8 @@ namespace OpenMS
     This class is used to load documents that implement 
     the schema of XTandemXML files.
   
+  	@todo Handle Modifications (Andreas)
+  	
   	@ingroup FileIO
   */
   class XTandemXMLFile

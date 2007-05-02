@@ -39,6 +39,9 @@ namespace OpenMS
     This class is used to load and store documents that implement 
     the schema of analysisXML files.
   	
+  	@todo Rename to idXML (Marc)
+  	@todo Create Schema (Nico, Andreas)
+  	
   	@ingroup FileIO
   */
   class AnalysisXMLFile

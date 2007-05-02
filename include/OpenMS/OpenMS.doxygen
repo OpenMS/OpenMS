@@ -28,7 +28,7 @@
 	@mainpage OpenMS and TOPP documentation
 
 	<HR>	
-	@section OpenMS_section OpenMS - A C++ library for shotgun proteomics.
+	@section OpenMS_section OpenMS - An open-source framework for mass spectrometry.
  
 	%OpenMS is a free platform for the analysis of HPLC/MS data.
 	
@@ -85,22 +85,13 @@ Ideen:
 - Seeder/Extender: Analyse der MassenSpur-Distanzen
 
 Todos:
+- Team: add Project Role
+- TOPP tutorial (subpage von TOPP docu, 3 Usecases, wie Demo ISMB)
+- analysisXML -> idXML
+- feat -> featureXML
 - Spectrum3DCanvas: fix grab keyboard
 - TOPPViewBase: Parameters (Typ: enum, inputfile, inputfiles, outputfile, outputfiles)
 - Add getPrecursorRT(rt/scan nr) and update ID adapters and IDSpectrumMapper 
-
-Telefonkonferenz:
-- Team: Position/Affiliation, Project Role
-- Zeitplan Release: Branch 03.06.07 -- Release bis 01.07.07
-- TOPP tutorial (subpage von TOPP docu, 3 Usecases, wie Demo ISMB)
-- OpenMS tutorial
-- analysisXML -> idXML (featureXML / pairsXML)
-- Schemata unserer Formate
-- OpenMS - ???
-- Termin Retreat 
-- ChangeLog
-- @todo @improvments @obsolete
-- ToDos durchgehen
 
 Thomas Schreiner: 
 - mzData fixen (CV)
@@ -114,6 +105,7 @@ Stefan Rink:
 - TOPPDialog: 
 	- Nur anwendbare Tools anzeigen -> statische Methode aus TOPPBase ausbauen
 	- Beim Laden und Speichern des INI-File: Tool-Name beachten
+	- ProgressLog von stdout -> Logfile, damit progres im Log-Window angezeigt wird.
 - ParamEditor: 
 	-	Name kann nicht leer sein
 	- QShortcut für: Copy (CTRL+C), Cut (CTRL+X), Paste (CTRL+V), Insert section (S), Insert value(V), Delete (ENTF)

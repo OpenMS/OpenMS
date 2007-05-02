@@ -69,7 +69,7 @@ namespace OpenMS
 
      @ingroup PeakPicking
     
-    @todo fillPeak_ is a public function, not a protected (naming convention). Group common functions.
+    @todo fillPeak_ is a public function, not a protected (naming convention). Group common functions. (Alexandra)
   */
 
   class PeakPickerCWT : public PeakPicker

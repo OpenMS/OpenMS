@@ -37,7 +37,8 @@ namespace OpenMS
   	@brief This class provides Input/Output functionality for FeatureMaps
 		
 		@todo Use PeakFileOptions and write tests (Thomas S.)
-  		
+  	@todo Create Schema and rename to featureXML (Marc)
+  	
   	@ingroup FileIO
   */
   class FeatureMapFile : public Internal::SchemaFile

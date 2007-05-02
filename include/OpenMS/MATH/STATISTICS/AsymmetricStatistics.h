@@ -39,14 +39,14 @@ namespace OpenMS
   namespace Math
 	{
 
-		/**	@brief Internal class for asymmetric distributions
+		/**	
+			@brief Internal class for asymmetric distributions
 				
-		Internal class for asymmetric distributions
-		used for consistency with BasisStatistic class
-		
-		@improvement Various performance improvements are possible, see code. (Clemens)
-		@todo Write test and improve documentation. (Clemens)
-
+			Internal class for asymmetric distributions
+			used for consistency with BasisStatistic class
+			
+			@improvement Various performance improvements are possible, see code. (Clemens)
+			@todo Write test and documentation. (Clemens, Marcel)
 		*/
 		template < typename Real = double >
 		class AsymmetricStatistics : public BasicStatistics<Real>

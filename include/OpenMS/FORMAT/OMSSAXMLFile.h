@@ -40,7 +40,9 @@ namespace OpenMS
     
     This class is used to load documents that implement 
     the schema of OMSSAXML files.
-  
+
+  	@todo Handle Modifications (Andreas)
+  	
   	@ingroup FileIO
   */
   class OMSSAXMLFile
