@@ -272,13 +272,17 @@
       <td>use CXX as C++ compiler</td>
     </tr>
   </table>
-
-  <br>
-  If configure is not executable on your system, you should execute <tt>autoconf</tt> 
+	<p>
+	<b>Note: </b> The configure arguments for installation paths, e.g. --prefix, do not work with OpenMS.
+	The installation is always done in the source directory. Make sure to move the source directory to where
+	you want OpenMS to be before calling configure! Moving the already built library will cause errors on execution!
+	
+  <p>
+	<b>Note: </b> If configure is not executable on your system, you should execute <tt>autoconf</tt> 
   before the above commands.
-  <br>
-  <br>
-  If configure fails, a file
+  
+  <p>
+	If configure fails, a file
   called <b>config.diag.tar</b> is created. Please send this file
   together with a description of the problem by <a href=
   "http://open-ms.sourceforge.net/team.html">email</a>.

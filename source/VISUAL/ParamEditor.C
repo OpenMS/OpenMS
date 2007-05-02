@@ -60,7 +60,7 @@ namespace OpenMS
 			{
 			}
 		 
-		QWidget *ParamEditorDelegate::createEditor(QWidget *parent, const QStyleOptionViewItem & option, const QModelIndex & index ) const
+		QWidget *ParamEditorDelegate::createEditor(QWidget *parent, const QStyleOptionViewItem& /*option*/, const QModelIndex& index ) const
 		{
 			QString str = index.model()->data(index, Qt::DisplayRole).toString();
 			Int id=index.model()->data(index, Qt::UserRole).toInt();
@@ -71,10 +71,6 @@ namespace OpenMS
 				QLineEdit *editor = new QLineEdit(parent);
 				editor->setValidator(validator);
 				return editor;
-			}
-			else if(index.column()==1 && id==ParamEditor::NODE)
-			{
-				return 0;
 			}
 			else if (index.column() == 2 && id==ParamEditor::ITEM)
 			{
@@ -89,15 +85,12 @@ namespace OpenMS
 				}
 				return editor;
 			}
-			else if(index.column()==2 && id==ParamEditor::NODE)
-			{
-				return 0;
-			}
 			else if(index.column()==1 && id==ParamEditor::ITEM)
 			{
 				QLineEdit *editor = new QLineEdit(parent);
 				return editor;
 			}
+			return 0;
 		}
 		 
 		void ParamEditorDelegate::setEditorData(QWidget *editor, const QModelIndex &index) const
@@ -179,9 +172,9 @@ namespace OpenMS
 			}
 		}
 		 
-		void ParamEditorDelegate::updateEditorGeometry(QWidget *editor, const QStyleOptionViewItem &option, const QModelIndex & index) const
+		void ParamEditorDelegate::updateEditorGeometry(QWidget* editor, const QStyleOptionViewItem& option, const QModelIndex& /*index*/) const
 		{
-				editor->setGeometry(option.rect);
+			editor->setGeometry(option.rect);
 		}
 		
 	}
@@ -602,20 +595,22 @@ namespace OpenMS
 		else if (selected_item_->data(0,Qt::UserRole)==NODE)
 		{
 			QMenu menu(this);
-			menu.addAction(tr("&Delete item"), this, SLOT(deleteItem()));
-			menu.addAction(tr("&Insert item"), this, SLOT(insertItem()));
-			menu.addAction(tr("&Insert node"), this, SLOT(insertNode()));
-			menu.addAction(tr("&Expand subtree"), this, SLOT(expandTree()));
-			menu.addAction(tr("&Collapse subtree"), this, SLOT(collapseTree()));
-			menu.addAction(tr("&Copy subtree"), this, SLOT(copySubTree()));
-			menu.addAction(tr("&Paste subtree"), this, SLOT(pasteSubTree()));
+			menu.addAction(tr("&Delete"), this, SLOT(deleteItem()));
+			menu.addAction(tr("&Insert value"), this, SLOT(insertItem()));
+			menu.addAction(tr("&Insert section"), this, SLOT(insertNode()));
+			menu.addSeparator();
+			menu.addAction(tr("&Expand"), this, SLOT(expandTree()));
+			menu.addAction(tr("&Collapse"), this, SLOT(collapseTree()));
+			menu.addSeparator();
+			menu.addAction(tr("&Copy"), this, SLOT(copySubTree()));
+			menu.addAction(tr("&Paste"), this, SLOT(pasteSubTree()));
 			menu.exec(event->globalPos());
 		}
 		else if(selected_item_->data(0,Qt::UserRole)==ITEM)
 		{
 			QMenu menu(this);
-			menu.addAction(tr("&Delete item"), this, SLOT(deleteItem()));
-			menu.addAction(tr("&Copy subtree"), this, SLOT(copySubTree()));
+			menu.addAction(tr("&Delete"), this, SLOT(deleteItem()));
+			menu.addAction(tr("&Copy"), this, SLOT(copySubTree()));
 			menu.exec(event->globalPos());
 		}
 		

@@ -80,19 +80,19 @@ Ideen:
 - Seeder/Extender: Analyse der MassenSpur-Distanzen
 
 Todos:
-- announcments password: OMS_ML_PW
-- Test-builts: log-datei von tests....
-- make install mit prefix testen
 - Spectrum3DCanvas: fix grab keyboard
+- TOPPViewBase: Parameters (Typ: enum, inputfile, inputfiles, outputfile, outputfiles)
+- Add getPrecursorRT(rt/scan nr) and update ID adapters and IDSpectrumMapper 
 
 Telefonkonfernz
-- Zeitplan Release: Branch 03.06.07 -- Release bis 01.07.07 a
+- Team: Position/Affiliation, Project Role
+- Zeitplan Release: Branch 03.06.07 -- Release bis 01.07.07
 - TOPP tutorial (subpage von TOPP docu, 3 Usecases, wie Demo ISMB)
 - analysisXML -> idXML
 - Schemata underer Formate
 - OpenMS - ???
-- TOPP Tutorial
-- ToDos + MindMap altes Release + Tutorial + Klassen durchgehen
+- ToDos + MindMap altes Retreat
+- Termin Retreat 
 
 Thomas Schreiner: 
 - mzData fixen (CV)
@@ -102,10 +102,18 @@ Stefan Heess:
 - QT fehler Metadaten einzelne Spektren mit ID
 
 Stefan Rink:
-- TOPPDialog: Load + Store button, Nur anwendbare Tools anzeigen
-- ParamEditor: Name kann nicht leer sein, Copy-And-Paste, Anzeigen (Farbe) ob datei geändert ist.
-- INIFileEditor: Anzeigen (* am Dateinamen) ob datei geändert ist, Beim verlassen, fragen, ob man speichern will, falls geändert
-- const SpectrumType& MSExperiment::getPrecursorScan(DoubleReal rt/UInt scan nr) (TESTS) 
-- Add getPrecursorRT(rt/scan nr) and update ID adapters and IDSpectrumMapper 
-
+- keine Warnungen!
+- TOPPDialog: 
+	- Nur anwendbare Tools anzeigen -> statische Methode aus TOPPBase ausbauen
+	- Beim Laden und Speichern des INI-File: Tool-Name beachten
+- ParamEditor: 
+	-	Name kann nicht leer sein
+	- QShortcut für: Copy (CTRL+C), Cut (CTRL+X), Paste (CTRL+V), Insert cut (CTRL+V), Insert section (S), Insert value(V), Delete (ENTF)
+	- insert: Typ 'string', gleich Name editieren -> dann kann der nicht leer sein 
+	- Modified hierhin
+		- delete/insert -> edited
+		- store -> not edited / gelber Hintergrund entfernen
+- INIFileEditor:
+	- Edit Menü mit Copy, Cut, Paste, Insert cut/copied, Insert section, Insert value, Delete (Slots in ParamEditor)
+- Param um Beschreibung ergänzen -> im ParamEditor anzeigen bei 'hover'
 ***********************************************************************/

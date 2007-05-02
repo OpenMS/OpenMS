@@ -26,6 +26,7 @@
 
 #include <OpenMS/APPLICATIONS/INIFileEditorWindow.h>
 #include <OpenMS/VISUAL/ParamEditor.h>
+#include <OpenMS/SYSTEM/File.h>
 #include <QtGui/QToolBar>
 #include <QtCore/QString>
 #include <QtGui/QFileDialog>
@@ -46,9 +47,9 @@ namespace OpenMS
 		
 		QMenu* file = new QMenu("&File",this);
 		menuBar()->addMenu(file);
-		file->addAction("&Open",this,SLOT(openFile()));
+		file->addAction("&Open",this,SLOT(openFile()), Qt::CTRL+Qt::Key_O);
 		file->addSeparator();
-		file->addAction("&Save",this,SLOT(saveFile()));
+		file->addAction("&Save",this,SLOT(saveFile()), Qt::CTRL+Qt::Key_S);
 		file->addAction("Save &As",this,SLOT(saveFileAs()));
 		file->addSeparator();
 		file->addAction("&Quit",this,SLOT(close()));
@@ -69,13 +70,20 @@ namespace OpenMS
 		
 		if(!filename_.isEmpty())
 		{
-			param_.load(filename_.toStdString());
-			editor_->loadEditable(param_);
-			QString str=QString("%1 - INIFileEditor").arg(filename_);
-			setWindowTitle(str.remove(0,str.lastIndexOf('/')+1));
-			return true;
+			if (File::readable(filename_.toStdString()))
+			{
+				param_.load(filename_.toStdString());
+				editor_->loadEditable(param_);
+				QString str=QString("%1 - INIFileEditor").arg(filename_);
+				setWindowTitle(str.remove(0,str.lastIndexOf('/')+1));
+				return true;
+			}
+			else
+			{
+				QMessageBox::critical(this,"Error opeing file",("The file '"+filename_.toStdString()+"' does not exist or is not readable!").c_str());		
+			}
 		}
-		else return false;
+		return false;
 	}
 	
 	
@@ -112,7 +120,7 @@ namespace OpenMS
 		return false;
 	}
 	
-	void INIFileEditorWindow::closeEvent(QCloseEvent *event)
+	void INIFileEditorWindow::closeEvent(QCloseEvent* /*event*/)
 	{
 		if(isChanged())
 		{
