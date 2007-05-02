@@ -40,6 +40,8 @@ namespace OpenMS
 		
 		@brief The feature detection algorithm in OpenMS.
 		
+		@todo add FeaFiModule MainLoop (Clemens, Marcel)
+		
 		@ingroup Analysis
 	*/
 	

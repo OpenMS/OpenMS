@@ -46,6 +46,8 @@ namespace OpenMS
 		
 		@todo add check after reading the file -> ParseError (Marc)
 		@todo add 'repeatable' (Marc)
+		
+		@experimental Perhaps used for mzML (Marc)
 	*/
 	class Schema2CV
 	{

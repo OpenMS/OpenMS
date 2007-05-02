@@ -439,8 +439,6 @@ Please use the doxygen style of the following example for OpenMS:
 
   @note All classes need brief description!
 
-  @todo Write tests of this class! (Max Mustermann)
-
   @ingroup DummyClasses
 */
 
@@ -512,7 +510,19 @@ Open tasks are noted in the documentation of a header or a group using the todo 
 The ToDo list is then shown in the doxygen menu under 'Related pages'. Each ToDo should be
 followed by a name in parentheses to indicated who is going to handle it.
 
+These commands should be used as well:
+ - @b \@todo Necessary todo for the the next release. Should be done as soon as possible. 
+ 			@n Please add the name of the responsible person in parentheses!
+ - @b \@improvement Possible improvement, but not really necessary.
+ 			@n Please add the name of the responsible person in parentheses!
+ - @b \@deprecated Deprecated class, that must be removed in the next release.
+ - @b \@experimental Experimental class, that will perhaps not make it to the library.
+ - @b \@bug Decrription of a bug in the class/method. 
+ 			@n Please add the name of the finder in parentheses!
+
 Doxygen is not hard to learn, have a look at the manual :-)
+
+
 <H2 style="margin-top:20px; border-top:1px solid grey;">Commenting code</H2>
 
 The code for each .C file has to be commented. Each piece of code in OpenMS

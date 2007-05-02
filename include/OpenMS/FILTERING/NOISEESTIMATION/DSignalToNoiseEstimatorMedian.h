@@ -94,7 +94,7 @@ namespace OpenMS
             .  
     
     
-    @todo Delete This Class, once all dependend classes use SignalToNoiseEstimatorMedian (Ole, Alexandra)
+    @deprecated Remove when dependencies are gone (Eva, Anlexandra, Clemens, Marcel)
 
     @ingroup Filtering
     

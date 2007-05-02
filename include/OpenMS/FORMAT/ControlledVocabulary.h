@@ -41,6 +41,8 @@ namespace OpenMS
 		
 		@todo add check after reading the file -> ParseError (Marc)
 		@todo add OWL format (Marc)
+		
+		@experimental Perhaps used for mzML (Marc)
 	*/
 	class ControlledVocabulary
 	{

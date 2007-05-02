@@ -59,8 +59,6 @@ namespace OpenMS
 		@note If a piecewise transformation is assumed, the user can define a grid by setting 
 		the number of buckets in the RT as well as the MZ dimension. 
 		Call initGridTransformation() before run()!
-		
-		@todo Avoid the "0.01 hack" in initGridTransformation(). (Eva)
   */
   template < typename MapT = FeatureMap< > >
   class BasePairwiseMapMatcher 

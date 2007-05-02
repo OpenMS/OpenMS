@@ -45,7 +45,8 @@ DETAILS_AT_TOP         = YES
 INHERIT_DOCS           = YES
 SEPARATE_MEMBER_PAGES  = NO
 TAB_SIZE               = 2
-ALIASES                = 
+ALIASES               += "improvement=\xrefitem improvement \"Improvement\"  \"Improvements List\""
+ALIASES								+= "experimental=\xrefitem experimental \"Experimental classes\" \"Experimental List\""
 OPTIMIZE_OUTPUT_FOR_C  = NO
 OPTIMIZE_OUTPUT_JAVA   = NO
 BUILTIN_STL_SUPPORT    = YES

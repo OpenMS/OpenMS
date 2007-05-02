@@ -52,7 +52,9 @@ namespace OpenMS
 		This non-polymorphic peak array should not be used with objects 
 		that are derived from DPeak and DPeaks at a time. See DPeakArray
 		for a container that can handle mixed object types.
-	
+		
+		@todo Take first template parameter from peak type (Clemens)
+		
 		@ingroup Kernel
 	*/
 	template <UInt D, typename PeakT = DPeak<D> >

@@ -55,6 +55,8 @@ namespace OpenMS
 		
 		@note This container works only with DPeak's. Other point types are not supported.
 		
+		@todo Speed up and merge with MSExperiment (Clemens)
+		
 		@ingroup Kernel
 	*/
 	template < typename PeakT = Peak1D >

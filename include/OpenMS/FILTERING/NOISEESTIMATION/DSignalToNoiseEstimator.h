@@ -42,16 +42,13 @@ namespace OpenMS
     A signal to noise estimator should provide the signal to noise ratio of all raw data points
     in a given intervall [first_,last_).
   	
-    @todo Delete This Class, once all dependend classes use SignalToNoiseEstimator (Ole, Alexandra)
-  
+  	@deprecated Remove when dependencies are gone (Eva, Anlexandra, Clemens, Marcel)
   */
   template <UInt D = 1 , typename PeakIterator = MSSpectrum<DRawDataPoint<1> >::const_iterator >
   class DSignalToNoiseEstimator
   {
   public:
 
-		// ????, TODO
-		/// @todo krasser Hack, unbedingt entfernen!!! (Chris Bielow)
 		struct DimensionDescription { enum { RT = 0, MZ = 1 }; };
 
     /// Constructor

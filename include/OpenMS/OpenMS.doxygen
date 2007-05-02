@@ -46,7 +46,6 @@
 	<UL>
 	  <LI> @subpage CPP
 	  <LI> @subpage FAQ
-	  <LI> @subpage todo
 	</UL>
 	@endif
 	
@@ -75,6 +74,12 @@
   
 */
 
+/**
+	@todoall TOPP tutorial
+	@todoall OpenMS tutorial
+	@todoall OpenMS paper
+*/
+
 /*************************** Marc's todos ******************************
 Ideen:
 - Seeder/Extender: Analyse der MassenSpur-Distanzen
@@ -84,15 +89,18 @@ Todos:
 - TOPPViewBase: Parameters (Typ: enum, inputfile, inputfiles, outputfile, outputfiles)
 - Add getPrecursorRT(rt/scan nr) and update ID adapters and IDSpectrumMapper 
 
-Telefonkonfernz
+Telefonkonferenz:
 - Team: Position/Affiliation, Project Role
 - Zeitplan Release: Branch 03.06.07 -- Release bis 01.07.07
 - TOPP tutorial (subpage von TOPP docu, 3 Usecases, wie Demo ISMB)
-- analysisXML -> idXML
-- Schemata underer Formate
+- OpenMS tutorial
+- analysisXML -> idXML (featureXML / pairsXML)
+- Schemata unserer Formate
 - OpenMS - ???
-- ToDos + MindMap altes Retreat
 - Termin Retreat 
+- ChangeLog
+- @todo @improvments @obsolete
+- ToDos durchgehen
 
 Thomas Schreiner: 
 - mzData fixen (CV)
@@ -108,7 +116,7 @@ Stefan Rink:
 	- Beim Laden und Speichern des INI-File: Tool-Name beachten
 - ParamEditor: 
 	-	Name kann nicht leer sein
-	- QShortcut für: Copy (CTRL+C), Cut (CTRL+X), Paste (CTRL+V), Insert cut (CTRL+V), Insert section (S), Insert value(V), Delete (ENTF)
+	- QShortcut für: Copy (CTRL+C), Cut (CTRL+X), Paste (CTRL+V), Insert section (S), Insert value(V), Delete (ENTF)
 	- insert: Typ 'string', gleich Name editieren -> dann kann der nicht leer sein 
 	- Modified hierhin
 		- delete/insert -> edited

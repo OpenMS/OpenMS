@@ -55,7 +55,9 @@ namespace OpenMS
 		
 		Additionally an interface for the minimum and maximum position, and the minimum and maximum
 		intensity of the peaks is provided by RangeManager.
-
+		
+		@todo Take first template parameter from peak type (Clemens)	
+		
 		@ingroup Kernel
 	*/
 	template <UInt D, typename ContainerT = DPeakArray<D> >

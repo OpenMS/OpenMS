@@ -42,6 +42,12 @@ class QString;
 
 namespace OpenMS
 {
+	/**
+		@brief Namespace to hide implementation details
+		
+		This namespace is to be used for classes that are only to be used by some
+		parent class, but not by the user directly.
+	*/
 	namespace Internal
 	{
 		/**

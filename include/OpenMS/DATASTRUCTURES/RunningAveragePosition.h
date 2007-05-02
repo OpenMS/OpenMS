@@ -41,7 +41,9 @@ namespace OpenMS
 		iterators, a typedef CoordinateType and an enum DIMENSION should work (maybe
 		I forgot a few concept requirements here).
 
-		@todo A lot of convenience methods could be added.  For
+		@todo move to MATH/STATISTICS/AveragePosition.h (Clemens)
+
+		@improvement A lot of convenience methods could be added.  For
 		example, we could overload operator + and -, consequently +=, -=, even <
 		and ==, inherit the whole thing from an extended DPosition with similar
 		methods, initialize from iterator ranges, and and and. (Clemens)

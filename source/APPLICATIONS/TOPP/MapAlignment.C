@@ -63,7 +63,9 @@ typedef ConsensusMap< ConsensusFeatureType > ConsensusMapType;
    
 	 @Note If you use consensus maps, the consensus elements are used as normal elements and you will
 	 loose the former consensus information.
-      
+   
+   @todo Konzept MapDewarper, MapMatcher, MapAlignment nochmal überdenken (Marc, Eva)
+   
 	 @ingroup TOPP
 */
 

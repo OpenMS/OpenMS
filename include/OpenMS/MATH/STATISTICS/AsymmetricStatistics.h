@@ -44,7 +44,7 @@ namespace OpenMS
 		Internal class for asymmetric distributions
 		used for consistency with BasisStatistic class
 		
-		@todo Various performance improvements are possible, see code. (Clemens)
+		@improvement Various performance improvements are possible, see code. (Clemens)
 		@todo Write test and improve documentation. (Clemens)
 
 		*/

@@ -91,8 +91,7 @@ namespace OpenMS
     
   	@ingroup Filtering
     
-    @todo Delete This Class, once all dependend classes use SignalToNoiseEstimatorMeanIterative (Ole, Alexandra)
-    
+    @deprecated Remove when dependencies are gone (Eva, Anlexandra, Clemens, Marcel)
   */
 
   template <UInt D = 1 , typename PeakIterator = MSSpectrum<RawDataPoint1D >::const_iterator >
