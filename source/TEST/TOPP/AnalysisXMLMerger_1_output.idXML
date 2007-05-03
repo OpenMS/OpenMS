@@ -1,0 +1,1500 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="yes"?>
+<mzIdent>
+	<description>
+		<admin>
+			<sampleName> unknown </sampleName>
+		</admin>
+		<settings>
+			<userParam name="number_of_identifications" value="2" />
+			<userParam name="number_of_protein_identifications" value="2" />
+			<userParam name="retention_time_type" value="float" />
+			<userParam name="mz_type" value="float" />
+			<userParam name="retention_time_unit" value="seconds" />
+			<userParam name="mz_unit" value="Thomson" />
+			<userParam name="date_group_0" value="2006-10-07 06:30:59"/>
+			<userParam name="date_group_1" value="2006-10-07 06:31:08"/>
+		</settings>
+	</description>
+	<ident>
+		<proteinGroup count="0">
+			<protein>
+				<dbName>SwissProt</dbName>
+				<dbID>LGBO</dbID>
+				<peptide>
+					<seq>TPEVDDEALEK</seq>
+					<userParam name="identification_index" value="0" />
+					<userParam name="peptide_significance_threshold" value="0"/>
+					<userParam name="precursor_charge" value="2" />
+					<userParam name="precursor_retention_time" value="-1" />
+					<userParam name="precursor_mz" value="623.58" />
+					<userParam name="score" value="40.5" />
+					<userParam name="score_type" value="Mascot" />
+					<userParam name="date_group_index" value="0"/>
+				</peptide>
+				<userParam name="protein_identification_index" value="0"/>
+				<userParam name="date_group_index" value="0"/>
+				<userParam name="score" value="40"/>
+				<userParam name="score_type" value="Mascot"/>
+			</protein>
+			<protein>
+				<dbName>SwissProt</dbName>
+				<dbID>LGBUI</dbID>
+				<peptide>
+					<seq>TPEVDDEALEK</seq>
+					<userParam name="identification_index" value="0" />
+					<userParam name="peptide_significance_threshold" value="0"/>
+					<userParam name="precursor_charge" value="2" />
+					<userParam name="precursor_retention_time" value="-1" />
+					<userParam name="precursor_mz" value="623.58" />
+					<userParam name="score" value="40.5" />
+					<userParam name="score_type" value="Mascot" />
+					<userParam name="date_group_index" value="0"/>
+				</peptide>
+				<userParam name="protein_identification_index" value="0"/>
+				<userParam name="date_group_index" value="0"/>
+				<userParam name="score" value="40"/>
+				<userParam name="score_type" value="Mascot"/>
+			</protein>
+			<protein>
+				<dbName>SwissProt</dbName>
+				<dbID>1B0O</dbID>
+				<peptide>
+					<seq>TPEVDDEALEK</seq>
+					<userParam name="identification_index" value="0" />
+					<userParam name="peptide_significance_threshold" value="0"/>
+					<userParam name="precursor_charge" value="2" />
+					<userParam name="precursor_retention_time" value="-1" />
+					<userParam name="precursor_mz" value="623.58" />
+					<userParam name="score" value="40.5" />
+					<userParam name="score_type" value="Mascot" />
+					<userParam name="date_group_index" value="0"/>
+				</peptide>
+				<userParam name="protein_identification_index" value="0"/>
+				<userParam name="date_group_index" value="0"/>
+				<userParam name="score" value="40"/>
+				<userParam name="score_type" value="Mascot"/>
+			</protein>
+			<protein>
+				<dbName>SwissProt</dbName>
+				<dbID>1BEBA</dbID>
+				<peptide>
+					<seq>TPEVDDEALEK</seq>
+					<userParam name="identification_index" value="0" />
+					<userParam name="peptide_significance_threshold" value="0"/>
+					<userParam name="precursor_charge" value="2" />
+					<userParam name="precursor_retention_time" value="-1" />
+					<userParam name="precursor_mz" value="623.58" />
+					<userParam name="score" value="40.5" />
+					<userParam name="score_type" value="Mascot" />
+					<userParam name="date_group_index" value="0"/>
+				</peptide>
+				<userParam name="protein_identification_index" value="0"/>
+				<userParam name="date_group_index" value="0"/>
+				<userParam name="score" value="40"/>
+				<userParam name="score_type" value="Mascot"/>
+			</protein>
+			<protein>
+				<dbName>SwissProt</dbName>
+				<dbID>1BSOA</dbID>
+				<peptide>
+					<seq>TPEVDDEALEK</seq>
+					<userParam name="identification_index" value="0" />
+					<userParam name="peptide_significance_threshold" value="0"/>
+					<userParam name="precursor_charge" value="2" />
+					<userParam name="precursor_retention_time" value="-1" />
+					<userParam name="precursor_mz" value="623.58" />
+					<userParam name="score" value="40.5" />
+					<userParam name="score_type" value="Mascot" />
+					<userParam name="date_group_index" value="0"/>
+				</peptide>
+				<userParam name="protein_identification_index" value="0"/>
+				<userParam name="date_group_index" value="0"/>
+				<userParam name="score" value="40"/>
+				<userParam name="score_type" value="Mascot"/>
+			</protein>
+			<protein>
+				<dbName>SwissProt</dbName>
+				<dbID>1BSQA</dbID>
+				<peptide>
+					<seq>TPEVDDEALEK</seq>
+					<userParam name="identification_index" value="0" />
+					<userParam name="peptide_significance_threshold" value="0"/>
+					<userParam name="precursor_charge" value="2" />
+					<userParam name="precursor_retention_time" value="-1" />
+					<userParam name="precursor_mz" value="623.58" />
+					<userParam name="score" value="40.5" />
+					<userParam name="score_type" value="Mascot" />
+					<userParam name="date_group_index" value="0"/>
+				</peptide>
+				<userParam name="protein_identification_index" value="0"/>
+				<userParam name="date_group_index" value="0"/>
+				<userParam name="score" value="40"/>
+				<userParam name="score_type" value="Mascot"/>
+			</protein>
+			<protein>
+				<dbName>SwissProt</dbName>
+				<dbID>1DV9A</dbID>
+				<peptide>
+					<seq>TPEVDDEALEK</seq>
+					<userParam name="identification_index" value="0" />
+					<userParam name="peptide_significance_threshold" value="0"/>
+					<userParam name="precursor_charge" value="2" />
+					<userParam name="precursor_retention_time" value="-1" />
+					<userParam name="precursor_mz" value="623.58" />
+					<userParam name="score" value="40.5" />
+					<userParam name="score_type" value="Mascot" />
+					<userParam name="date_group_index" value="0"/>
+				</peptide>
+				<userParam name="protein_identification_index" value="0"/>
+				<userParam name="date_group_index" value="0"/>
+				<userParam name="score" value="40"/>
+				<userParam name="score_type" value="Mascot"/>
+			</protein>
+			<protein>
+				<dbName>SwissProt</dbName>
+				<dbID>CAA06532</dbID>
+				<peptide>
+					<seq>TPEVDDEALEK</seq>
+					<userParam name="identification_index" value="0" />
+					<userParam name="peptide_significance_threshold" value="0"/>
+					<userParam name="precursor_charge" value="2" />
+					<userParam name="precursor_retention_time" value="-1" />
+					<userParam name="precursor_mz" value="623.58" />
+					<userParam name="score" value="40.5" />
+					<userParam name="score_type" value="Mascot" />
+					<userParam name="date_group_index" value="0"/>
+				</peptide>
+				<userParam name="protein_identification_index" value="0"/>
+				<userParam name="date_group_index" value="0"/>
+				<userParam name="score" value="40"/>
+				<userParam name="score_type" value="Mascot"/>
+			</protein>
+			<protein>
+				<dbName>SwissProt</dbName>
+				<dbID>AAA30411</dbID>
+				<peptide>
+					<seq>TPEVDDEALEK</seq>
+					<userParam name="identification_index" value="0" />
+					<userParam name="peptide_significance_threshold" value="0"/>
+					<userParam name="precursor_charge" value="2" />
+					<userParam name="precursor_retention_time" value="-1" />
+					<userParam name="precursor_mz" value="623.58" />
+					<userParam name="score" value="40.5" />
+					<userParam name="score_type" value="Mascot" />
+					<userParam name="date_group_index" value="0"/>
+				</peptide>
+				<userParam name="protein_identification_index" value="0"/>
+				<userParam name="date_group_index" value="0"/>
+				<userParam name="score" value="40"/>
+				<userParam name="score_type" value="Mascot"/>
+			</protein>
+			<protein>
+				<dbName>SwissProt</dbName>
+				<dbID>AAA30412</dbID>
+				<peptide>
+					<seq>TPEVDDEALEK</seq>
+					<userParam name="identification_index" value="0" />
+					<userParam name="peptide_significance_threshold" value="0"/>
+					<userParam name="precursor_charge" value="2" />
+					<userParam name="precursor_retention_time" value="-1" />
+					<userParam name="precursor_mz" value="623.58" />
+					<userParam name="score" value="40.5" />
+					<userParam name="score_type" value="Mascot" />
+					<userParam name="date_group_index" value="0"/>
+				</peptide>
+				<userParam name="protein_identification_index" value="0"/>
+				<userParam name="date_group_index" value="0"/>
+				<userParam name="score" value="40"/>
+				<userParam name="score_type" value="Mascot"/>
+			</protein>
+			<protein>
+				<dbName>SwissProt</dbName>
+				<dbID>CAA32835</dbID>
+				<peptide>
+					<seq>TPEVDDEALEK</seq>
+					<userParam name="identification_index" value="0" />
+					<userParam name="peptide_significance_threshold" value="0"/>
+					<userParam name="precursor_charge" value="2" />
+					<userParam name="precursor_retention_time" value="-1" />
+					<userParam name="precursor_mz" value="623.58" />
+					<userParam name="score" value="40.5" />
+					<userParam name="score_type" value="Mascot" />
+					<userParam name="date_group_index" value="0"/>
+				</peptide>
+				<userParam name="protein_identification_index" value="0"/>
+				<userParam name="date_group_index" value="0"/>
+				<userParam name="score" value="40"/>
+				<userParam name="score_type" value="Mascot"/>
+			</protein>
+			<protein>
+				<dbName>SwissProt</dbName>
+				<dbID>CAD32664</dbID>
+				<peptide>
+					<seq>LTLVTENNDVK</seq>
+					<userParam name="identification_index" value="0" />
+					<userParam name="peptide_significance_threshold" value="0"/>
+					<userParam name="precursor_charge" value="2" />
+					<userParam name="precursor_retention_time" value="-1" />
+					<userParam name="precursor_mz" value="623.58" />
+					<userParam name="score" value="7.28" />
+					<userParam name="score_type" value="Mascot" />
+					<userParam name="date_group_index" value="0"/>
+				</peptide>
+				<userParam name="protein_identification_index" value="0"/>
+				<userParam name="date_group_index" value="0"/>
+				<userParam name="score" value="7"/>
+				<userParam name="score_type" value="Mascot"/>
+			</protein>
+			<protein>
+				<dbName>SwissProt</dbName>
+				<dbID>Q6P5H2_MOUSE</dbID>
+				<peptide>
+					<seq>SLEVEEEEQR</seq>
+					<userParam name="identification_index" value="0" />
+					<userParam name="peptide_significance_threshold" value="0"/>
+					<userParam name="precursor_charge" value="2" />
+					<userParam name="precursor_retention_time" value="-1" />
+					<userParam name="precursor_mz" value="623.58" />
+					<userParam name="score" value="6.99" />
+					<userParam name="score_type" value="Mascot" />
+					<userParam name="date_group_index" value="0"/>
+				</peptide>
+				<userParam name="protein_identification_index" value="0"/>
+				<userParam name="date_group_index" value="0"/>
+				<userParam name="score" value="7"/>
+				<userParam name="score_type" value="Mascot"/>
+			</protein>
+			<protein>
+				<dbName>SwissProt</dbName>
+				<dbID>Q9R0C4_MOUSE</dbID>
+				<peptide>
+					<seq>SLEVEEEEQR</seq>
+					<userParam name="identification_index" value="0" />
+					<userParam name="peptide_significance_threshold" value="0"/>
+					<userParam name="precursor_charge" value="2" />
+					<userParam name="precursor_retention_time" value="-1" />
+					<userParam name="precursor_mz" value="623.58" />
+					<userParam name="score" value="6.99" />
+					<userParam name="score_type" value="Mascot" />
+					<userParam name="date_group_index" value="0"/>
+				</peptide>
+				<userParam name="protein_identification_index" value="0"/>
+				<userParam name="date_group_index" value="0"/>
+				<userParam name="score" value="6"/>
+				<userParam name="score_type" value="Mascot"/>
+			</protein>
+			<protein>
+				<dbName>SwissProt</dbName>
+				<dbID>A34736</dbID>
+				<peptide>
+					<seq>SLEVEEEEQR</seq>
+					<userParam name="identification_index" value="0" />
+					<userParam name="peptide_significance_threshold" value="0"/>
+					<userParam name="precursor_charge" value="2" />
+					<userParam name="precursor_retention_time" value="-1" />
+					<userParam name="precursor_mz" value="623.58" />
+					<userParam name="score" value="6.99" />
+					<userParam name="score_type" value="Mascot" />
+					<userParam name="date_group_index" value="0"/>
+				</peptide>
+				<userParam name="protein_identification_index" value="0"/>
+				<userParam name="date_group_index" value="0"/>
+				<userParam name="score" value="5"/>
+				<userParam name="score_type" value="Mascot"/>
+			</protein>
+			<protein>
+				<dbName>SwissProt</dbName>
+				<dbID>Q8CJ14_RAT</dbID>
+				<peptide>
+					<seq>SLEVEEEEQR</seq>
+					<userParam name="identification_index" value="0" />
+					<userParam name="peptide_significance_threshold" value="0"/>
+					<userParam name="precursor_charge" value="2" />
+					<userParam name="precursor_retention_time" value="-1" />
+					<userParam name="precursor_mz" value="623.58" />
+					<userParam name="score" value="6.99" />
+					<userParam name="score_type" value="Mascot" />
+					<userParam name="date_group_index" value="0"/>
+				</peptide>
+				<userParam name="protein_identification_index" value="0"/>
+				<userParam name="date_group_index" value="0"/>
+				<userParam name="score" value="4"/>
+				<userParam name="score_type" value="Mascot"/>
+			</protein>
+			<protein>
+				<dbName>SwissProt</dbName>
+				<dbID>A43800</dbID>
+				<peptide>
+					<seq>EQMATSGNEPGK</seq>
+					<userParam name="identification_index" value="0" />
+					<userParam name="peptide_significance_threshold" value="0"/>
+					<userParam name="precursor_charge" value="2" />
+					<userParam name="precursor_retention_time" value="-1" />
+					<userParam name="precursor_mz" value="623.58" />
+					<userParam name="score" value="5.79" />
+					<userParam name="score_type" value="Mascot" />
+					<userParam name="date_group_index" value="0"/>
+				</peptide>
+				<userParam name="protein_identification_index" value="0"/>
+				<userParam name="date_group_index" value="0"/>
+				<userParam name="score" value="6"/>
+				<userParam name="score_type" value="Mascot"/>
+			</protein>
+			<protein>
+				<dbName>SwissProt</dbName>
+				<dbID>Q8JIF8_9GOBI</dbID>
+				<peptide>
+					<seq>VPETMVLNGKR</seq>
+					<userParam name="identification_index" value="0" />
+					<userParam name="peptide_significance_threshold" value="0"/>
+					<userParam name="precursor_charge" value="2" />
+					<userParam name="precursor_retention_time" value="-1" />
+					<userParam name="precursor_mz" value="623.58" />
+					<userParam name="score" value="3.87" />
+					<userParam name="score_type" value="Mascot" />
+					<userParam name="date_group_index" value="0"/>
+				</peptide>
+				<userParam name="protein_identification_index" value="0"/>
+				<userParam name="date_group_index" value="0"/>
+				<userParam name="score" value="4"/>
+				<userParam name="score_type" value="Mascot"/>
+			</protein>
+			<protein>
+				<dbName>SwissProt</dbName>
+				<dbID>HD_MOUSE</dbID>
+				<peptide>
+					<seq>VTLDLQNSTEK</seq>
+					<userParam name="identification_index" value="0" />
+					<userParam name="peptide_significance_threshold" value="0"/>
+					<userParam name="precursor_charge" value="2" />
+					<userParam name="precursor_retention_time" value="-1" />
+					<userParam name="precursor_mz" value="623.58" />
+					<userParam name="score" value="3.38" />
+					<userParam name="score_type" value="Mascot" />
+					<userParam name="date_group_index" value="0"/>
+				</peptide>
+				<userParam name="protein_identification_index" value="0"/>
+				<userParam name="date_group_index" value="0"/>
+				<userParam name="score" value="3"/>
+				<userParam name="score_type" value="Mascot"/>
+			</protein>
+			<protein>
+				<dbName>SwissProt</dbName>
+				<dbID>HD_RAT</dbID>
+				<peptide>
+					<seq>VTLDLQNSTEK</seq>
+					<userParam name="identification_index" value="0" />
+					<userParam name="peptide_significance_threshold" value="0"/>
+					<userParam name="precursor_charge" value="2" />
+					<userParam name="precursor_retention_time" value="-1" />
+					<userParam name="precursor_mz" value="623.58" />
+					<userParam name="score" value="3.38" />
+					<userParam name="score_type" value="Mascot" />
+					<userParam name="date_group_index" value="0"/>
+				</peptide>
+				<userParam name="protein_identification_index" value="0"/>
+				<userParam name="date_group_index" value="0"/>
+				<userParam name="score" value="3"/>
+				<userParam name="score_type" value="Mascot"/>
+			</protein>
+			<protein>
+				<dbName>SwissProt</dbName>
+				<dbID>AAC52218</dbID>
+				<peptide>
+					<seq>VTLDLQNSTEK</seq>
+					<userParam name="identification_index" value="0" />
+					<userParam name="peptide_significance_threshold" value="0"/>
+					<userParam name="precursor_charge" value="2" />
+					<userParam name="precursor_retention_time" value="-1" />
+					<userParam name="precursor_mz" value="623.58" />
+					<userParam name="score" value="3.38" />
+					<userParam name="score_type" value="Mascot" />
+					<userParam name="date_group_index" value="0"/>
+				</peptide>
+				<userParam name="protein_identification_index" value="0"/>
+				<userParam name="date_group_index" value="0"/>
+				<userParam name="score" value="3"/>
+				<userParam name="score_type" value="Mascot"/>
+			</protein>
+			<protein>
+				<dbName>SwissProt</dbName>
+				<dbID>AAA89100</dbID>
+				<peptide>
+					<seq>VTLDLQNSTEK</seq>
+					<userParam name="identification_index" value="0" />
+					<userParam name="peptide_significance_threshold" value="0"/>
+					<userParam name="precursor_charge" value="2" />
+					<userParam name="precursor_retention_time" value="-1" />
+					<userParam name="precursor_mz" value="623.58" />
+					<userParam name="score" value="3.38" />
+					<userParam name="score_type" value="Mascot" />
+					<userParam name="date_group_index" value="0"/>
+				</peptide>
+				<userParam name="protein_identification_index" value="0"/>
+				<userParam name="date_group_index" value="0"/>
+				<userParam name="score" value="3"/>
+				<userParam name="score_type" value="Mascot"/>
+			</protein>
+			<protein>
+				<dbName>SwissProt</dbName>
+				<dbID>Q9UQB7_HUMAN</dbID>
+				<peptide>
+					<seq>VTLDLQNSTEK</seq>
+					<userParam name="identification_index" value="0" />
+					<userParam name="peptide_significance_threshold" value="0"/>
+					<userParam name="precursor_charge" value="2" />
+					<userParam name="precursor_retention_time" value="-1" />
+					<userParam name="precursor_mz" value="623.58" />
+					<userParam name="score" value="3.38" />
+					<userParam name="score_type" value="Mascot" />
+					<userParam name="date_group_index" value="0"/>
+				</peptide>
+				<userParam name="protein_identification_index" value="0"/>
+				<userParam name="date_group_index" value="0"/>
+				<userParam name="score" value="2"/>
+				<userParam name="score_type" value="Mascot"/>
+			</protein>
+			<protein>
+				<dbName>SwissProt</dbName>
+				<dbID>AAB38240</dbID>
+				<peptide>
+					<seq>VTLDLQNSTEK</seq>
+					<userParam name="identification_index" value="0" />
+					<userParam name="peptide_significance_threshold" value="0"/>
+					<userParam name="precursor_charge" value="2" />
+					<userParam name="precursor_retention_time" value="-1" />
+					<userParam name="precursor_mz" value="623.58" />
+					<userParam name="score" value="3.38" />
+					<userParam name="score_type" value="Mascot" />
+					<userParam name="date_group_index" value="0"/>
+				</peptide>
+				<userParam name="protein_identification_index" value="0"/>
+				<userParam name="date_group_index" value="0"/>
+				<userParam name="score" value="2"/>
+				<userParam name="score_type" value="Mascot"/>
+			</protein>
+			<protein>
+				<dbName>SwissProt</dbName>
+				<dbID>CAD38447</dbID>
+				<peptide>
+					<seq>VTLDLQNSTEK</seq>
+					<userParam name="identification_index" value="0" />
+					<userParam name="peptide_significance_threshold" value="0"/>
+					<userParam name="precursor_charge" value="2" />
+					<userParam name="precursor_retention_time" value="-1" />
+					<userParam name="precursor_mz" value="623.58" />
+					<userParam name="score" value="3.38" />
+					<userParam name="score_type" value="Mascot" />
+					<userParam name="date_group_index" value="0"/>
+				</peptide>
+				<userParam name="protein_identification_index" value="0"/>
+				<userParam name="date_group_index" value="0"/>
+				<userParam name="score" value="2"/>
+				<userParam name="score_type" value="Mascot"/>
+			</protein>
+			<protein>
+				<dbName>SwissProt</dbName>
+				<dbID>CAD38448</dbID>
+				<peptide>
+					<seq>VTLDLQNSTEK</seq>
+					<userParam name="identification_index" value="0" />
+					<userParam name="peptide_significance_threshold" value="0"/>
+					<userParam name="precursor_charge" value="2" />
+					<userParam name="precursor_retention_time" value="-1" />
+					<userParam name="precursor_mz" value="623.58" />
+					<userParam name="score" value="3.38" />
+					<userParam name="score_type" value="Mascot" />
+					<userParam name="date_group_index" value="0"/>
+				</peptide>
+				<userParam name="protein_identification_index" value="0"/>
+				<userParam name="date_group_index" value="0"/>
+				<userParam name="score" value="2"/>
+				<userParam name="score_type" value="Mascot"/>
+			</protein>
+			<protein>
+				<dbName>SwissProt</dbName>
+				<dbID>A46068</dbID>
+				<peptide>
+					<seq>VTLDLQNSTEK</seq>
+					<userParam name="identification_index" value="0" />
+					<userParam name="peptide_significance_threshold" value="0"/>
+					<userParam name="precursor_charge" value="2" />
+					<userParam name="precursor_retention_time" value="-1" />
+					<userParam name="precursor_mz" value="623.58" />
+					<userParam name="score" value="3.38" />
+					<userParam name="score_type" value="Mascot" />
+					<userParam name="date_group_index" value="0"/>
+				</peptide>
+				<userParam name="protein_identification_index" value="0"/>
+				<userParam name="date_group_index" value="0"/>
+				<userParam name="score" value="2"/>
+				<userParam name="score_type" value="Mascot"/>
+			</protein>
+			<protein>
+				<dbName>SwissProt</dbName>
+				<dbID>CAE93990</dbID>
+				<peptide>
+					<seq>AKMVDLGEDDR</seq>
+					<userParam name="identification_index" value="0" />
+					<userParam name="peptide_significance_threshold" value="0"/>
+					<userParam name="precursor_charge" value="2" />
+					<userParam name="precursor_retention_time" value="-1" />
+					<userParam name="precursor_mz" value="623.58" />
+					<userParam name="score" value="4.54" />
+					<userParam name="score_type" value="Mascot" />
+					<userParam name="date_group_index" value="0"/>
+				</peptide>
+				<userParam name="protein_identification_index" value="0"/>
+				<userParam name="date_group_index" value="0"/>
+				<userParam name="score" value="3"/>
+				<userParam name="score_type" value="Mascot"/>
+			</protein>
+			<protein>
+				<dbName>SwissProt</dbName>
+				<dbID>Q5U2E8_XENLA</dbID>
+				<peptide>
+					<seq>IGNAKGDEALEK</seq>
+					<userParam name="identification_index" value="0" />
+					<userParam name="peptide_significance_threshold" value="0"/>
+					<userParam name="precursor_charge" value="2" />
+					<userParam name="precursor_retention_time" value="-1" />
+					<userParam name="precursor_mz" value="623.58" />
+					<userParam name="score" value="2.05" />
+					<userParam name="score_type" value="Mascot" />
+					<userParam name="date_group_index" value="0"/>
+				</peptide>
+				<userParam name="protein_identification_index" value="0"/>
+				<userParam name="date_group_index" value="0"/>
+				<userParam name="score" value="2"/>
+				<userParam name="score_type" value="Mascot"/>
+			</protein>
+			<protein>
+				<dbName>SwissProt</dbName>
+				<dbID>Q99JU9_MOUSE</dbID>
+				<peptide>
+					<seq>IGNAKGDEALEK</seq>
+					<userParam name="identification_index" value="0" />
+					<userParam name="peptide_significance_threshold" value="0"/>
+					<userParam name="precursor_charge" value="2" />
+					<userParam name="precursor_retention_time" value="-1" />
+					<userParam name="precursor_mz" value="623.58" />
+					<userParam name="score" value="2.05" />
+					<userParam name="score_type" value="Mascot" />
+					<userParam name="date_group_index" value="0"/>
+				</peptide>
+				<userParam name="protein_identification_index" value="0"/>
+				<userParam name="date_group_index" value="0"/>
+				<userParam name="score" value="2"/>
+				<userParam name="score_type" value="Mascot"/>
+			</protein>
+			<protein>
+				<dbName>SwissProt</dbName>
+				<dbID>A26998</dbID>
+				<peptide>
+					<seq>IGNAKGDEALEK</seq>
+					<userParam name="identification_index" value="0" />
+					<userParam name="peptide_significance_threshold" value="0"/>
+					<userParam name="precursor_charge" value="2" />
+					<userParam name="precursor_retention_time" value="-1" />
+					<userParam name="precursor_mz" value="623.58" />
+					<userParam name="score" value="2.05" />
+					<userParam name="score_type" value="Mascot" />
+					<userParam name="date_group_index" value="0"/>
+				</peptide>
+				<userParam name="protein_identification_index" value="0"/>
+				<userParam name="date_group_index" value="0"/>
+				<userParam name="score" value="2"/>
+				<userParam name="score_type" value="Mascot"/>
+			</protein>
+			<protein>
+				<dbName>SwissProt</dbName>
+				<dbID>LGSH</dbID>
+				<peptide>
+					<seq>TPEVDNEALEK</seq>
+					<userParam name="identification_index" value="0" />
+					<userParam name="peptide_significance_threshold" value="0"/>
+					<userParam name="precursor_charge" value="2" />
+					<userParam name="precursor_retention_time" value="-1" />
+					<userParam name="precursor_mz" value="623.58" />
+					<userParam name="score" value="1.99" />
+					<userParam name="score_type" value="Mascot" />
+					<userParam name="date_group_index" value="0"/>
+				</peptide>
+				<userParam name="protein_identification_index" value="0"/>
+				<userParam name="date_group_index" value="0"/>
+				<userParam name="score" value="2"/>
+				<userParam name="score_type" value="Mascot"/>
+			</protein>
+			<protein>
+				<dbName>SwissProt</dbName>
+				<dbID>S00132</dbID>
+				<peptide>
+					<seq>TPEVDNEALEK</seq>
+					<userParam name="identification_index" value="0" />
+					<userParam name="peptide_significance_threshold" value="0"/>
+					<userParam name="precursor_charge" value="2" />
+					<userParam name="precursor_retention_time" value="-1" />
+					<userParam name="precursor_mz" value="623.58" />
+					<userParam name="score" value="1.99" />
+					<userParam name="score_type" value="Mascot" />
+					<userParam name="date_group_index" value="0"/>
+				</peptide>
+				<userParam name="protein_identification_index" value="0"/>
+				<userParam name="date_group_index" value="0"/>
+				<userParam name="score" value="2"/>
+				<userParam name="score_type" value="Mascot"/>
+			</protein>
+			<protein>
+				<dbName>SwissProt</dbName>
+				<dbID>AAA31510</dbID>
+				<peptide>
+					<seq>TPEVDNEALEK</seq>
+					<userParam name="identification_index" value="0" />
+					<userParam name="peptide_significance_threshold" value="0"/>
+					<userParam name="precursor_charge" value="2" />
+					<userParam name="precursor_retention_time" value="-1" />
+					<userParam name="precursor_mz" value="623.58" />
+					<userParam name="score" value="1.99" />
+					<userParam name="score_type" value="Mascot" />
+					<userParam name="date_group_index" value="0"/>
+				</peptide>
+				<userParam name="protein_identification_index" value="0"/>
+				<userParam name="date_group_index" value="0"/>
+				<userParam name="score" value="2"/>
+				<userParam name="score_type" value="Mascot"/>
+			</protein>
+			<protein>
+				<dbName>SwissProt</dbName>
+				<dbID>Q6IRB0_XENLA</dbID>
+				<peptide>
+					<seq>EAKTIAEESDR</seq>
+					<userParam name="identification_index" value="0" />
+					<userParam name="peptide_significance_threshold" value="0"/>
+					<userParam name="precursor_charge" value="2" />
+					<userParam name="precursor_retention_time" value="-1" />
+					<userParam name="precursor_mz" value="623.58" />
+					<userParam name="score" value="3.13" />
+					<userParam name="score_type" value="Mascot" />
+					<userParam name="date_group_index" value="0"/>
+				</peptide>
+				<userParam name="protein_identification_index" value="0"/>
+				<userParam name="date_group_index" value="0"/>
+				<userParam name="score" value="2"/>
+				<userParam name="score_type" value="Mascot"/>
+			</protein>
+			<protein>
+				<dbName>SwissProt</dbName>
+				<dbID>Q7SXS3_XENLA</dbID>
+				<peptide>
+					<seq>EAKTIAEESDR</seq>
+					<userParam name="identification_index" value="0" />
+					<userParam name="peptide_significance_threshold" value="0"/>
+					<userParam name="precursor_charge" value="2" />
+					<userParam name="precursor_retention_time" value="-1" />
+					<userParam name="precursor_mz" value="623.58" />
+					<userParam name="score" value="3.13" />
+					<userParam name="score_type" value="Mascot" />
+					<userParam name="date_group_index" value="0"/>
+				</peptide>
+				<userParam name="protein_identification_index" value="0"/>
+				<userParam name="date_group_index" value="0"/>
+				<userParam name="score" value="2"/>
+				<userParam name="score_type" value="Mascot"/>
+			</protein>
+			<protein>
+				<dbName>SwissProt</dbName>
+				<dbID>Q7ZYU5_XENLA</dbID>
+				<peptide>
+					<seq>EAKTIAEESDR</seq>
+					<userParam name="identification_index" value="0" />
+					<userParam name="peptide_significance_threshold" value="0"/>
+					<userParam name="precursor_charge" value="2" />
+					<userParam name="precursor_retention_time" value="-1" />
+					<userParam name="precursor_mz" value="623.58" />
+					<userParam name="score" value="3.13" />
+					<userParam name="score_type" value="Mascot" />
+					<userParam name="date_group_index" value="0"/>
+				</peptide>
+				<userParam name="protein_identification_index" value="0"/>
+				<userParam name="date_group_index" value="0"/>
+				<userParam name="score" value="2"/>
+				<userParam name="score_type" value="Mascot"/>
+			</protein>
+			<protein>
+				<dbName>SwissProt</dbName>
+				<dbID>S23470</dbID>
+				<peptide>
+					<seq>EAKTIAEESDR</seq>
+					<userParam name="identification_index" value="0" />
+					<userParam name="peptide_significance_threshold" value="0"/>
+					<userParam name="precursor_charge" value="2" />
+					<userParam name="precursor_retention_time" value="-1" />
+					<userParam name="precursor_mz" value="623.58" />
+					<userParam name="score" value="3.13" />
+					<userParam name="score_type" value="Mascot" />
+					<userParam name="date_group_index" value="0"/>
+				</peptide>
+				<userParam name="protein_identification_index" value="0"/>
+				<userParam name="date_group_index" value="0"/>
+				<userParam name="score" value="2"/>
+				<userParam name="score_type" value="Mascot"/>
+			</protein>
+			<userParam name="proteins" value="all"/>
+		</proteinGroup>
+		<proteinGroup count="0">
+			<protein>
+				<dbName>SwissProt</dbName>
+				<dbID>LGBO</dbID>
+				<peptide>
+					<seq>TPEVDDEALEK</seq>
+					<userParam name="identification_index" value="1" />
+					<userParam name="peptide_significance_threshold" value="0"/>
+					<userParam name="precursor_charge" value="2" />
+					<userParam name="precursor_retention_time" value="230.45" />
+					<userParam name="precursor_mz" value="623.52" />
+					<userParam name="score" value="38.11" />
+					<userParam name="score_type" value="Mascot" />
+					<userParam name="date_group_index" value="1"/>
+				</peptide>
+				<userParam name="protein_identification_index" value="1"/>
+				<userParam name="date_group_index" value="1"/>
+				<userParam name="score" value="38"/>
+				<userParam name="score_type" value="Mascot"/>
+			</protein>
+			<protein>
+				<dbName>SwissProt</dbName>
+				<dbID>LGBUI</dbID>
+				<peptide>
+					<seq>TPEVDDEALEK</seq>
+					<userParam name="identification_index" value="1" />
+					<userParam name="peptide_significance_threshold" value="0"/>
+					<userParam name="precursor_charge" value="2" />
+					<userParam name="precursor_retention_time" value="230.45" />
+					<userParam name="precursor_mz" value="623.52" />
+					<userParam name="score" value="38.11" />
+					<userParam name="score_type" value="Mascot" />
+					<userParam name="date_group_index" value="1"/>
+				</peptide>
+				<userParam name="protein_identification_index" value="1"/>
+				<userParam name="date_group_index" value="1"/>
+				<userParam name="score" value="38"/>
+				<userParam name="score_type" value="Mascot"/>
+			</protein>
+			<protein>
+				<dbName>SwissProt</dbName>
+				<dbID>1B0O</dbID>
+				<peptide>
+					<seq>TPEVDDEALEK</seq>
+					<userParam name="identification_index" value="1" />
+					<userParam name="peptide_significance_threshold" value="0"/>
+					<userParam name="precursor_charge" value="2" />
+					<userParam name="precursor_retention_time" value="230.45" />
+					<userParam name="precursor_mz" value="623.52" />
+					<userParam name="score" value="38.11" />
+					<userParam name="score_type" value="Mascot" />
+					<userParam name="date_group_index" value="1"/>
+				</peptide>
+				<userParam name="protein_identification_index" value="1"/>
+				<userParam name="date_group_index" value="1"/>
+				<userParam name="score" value="38"/>
+				<userParam name="score_type" value="Mascot"/>
+			</protein>
+			<protein>
+				<dbName>SwissProt</dbName>
+				<dbID>1BEBA</dbID>
+				<peptide>
+					<seq>TPEVDDEALEK</seq>
+					<userParam name="identification_index" value="1" />
+					<userParam name="peptide_significance_threshold" value="0"/>
+					<userParam name="precursor_charge" value="2" />
+					<userParam name="precursor_retention_time" value="230.45" />
+					<userParam name="precursor_mz" value="623.52" />
+					<userParam name="score" value="38.11" />
+					<userParam name="score_type" value="Mascot" />
+					<userParam name="date_group_index" value="1"/>
+				</peptide>
+				<userParam name="protein_identification_index" value="1"/>
+				<userParam name="date_group_index" value="1"/>
+				<userParam name="score" value="38"/>
+				<userParam name="score_type" value="Mascot"/>
+			</protein>
+			<protein>
+				<dbName>SwissProt</dbName>
+				<dbID>1BSOA</dbID>
+				<peptide>
+					<seq>TPEVDDEALEK</seq>
+					<userParam name="identification_index" value="1" />
+					<userParam name="peptide_significance_threshold" value="0"/>
+					<userParam name="precursor_charge" value="2" />
+					<userParam name="precursor_retention_time" value="230.45" />
+					<userParam name="precursor_mz" value="623.52" />
+					<userParam name="score" value="38.11" />
+					<userParam name="score_type" value="Mascot" />
+					<userParam name="date_group_index" value="1"/>
+				</peptide>
+				<userParam name="protein_identification_index" value="1"/>
+				<userParam name="date_group_index" value="1"/>
+				<userParam name="score" value="38"/>
+				<userParam name="score_type" value="Mascot"/>
+			</protein>
+			<protein>
+				<dbName>SwissProt</dbName>
+				<dbID>1BSQA</dbID>
+				<peptide>
+					<seq>TPEVDDEALEK</seq>
+					<userParam name="identification_index" value="1" />
+					<userParam name="peptide_significance_threshold" value="0"/>
+					<userParam name="precursor_charge" value="2" />
+					<userParam name="precursor_retention_time" value="230.45" />
+					<userParam name="precursor_mz" value="623.52" />
+					<userParam name="score" value="38.11" />
+					<userParam name="score_type" value="Mascot" />
+					<userParam name="date_group_index" value="1"/>
+				</peptide>
+				<userParam name="protein_identification_index" value="1"/>
+				<userParam name="date_group_index" value="1"/>
+				<userParam name="score" value="38"/>
+				<userParam name="score_type" value="Mascot"/>
+			</protein>
+			<protein>
+				<dbName>SwissProt</dbName>
+				<dbID>1DV9A</dbID>
+				<peptide>
+					<seq>TPEVDDEALEK</seq>
+					<userParam name="identification_index" value="1" />
+					<userParam name="peptide_significance_threshold" value="0"/>
+					<userParam name="precursor_charge" value="2" />
+					<userParam name="precursor_retention_time" value="230.45" />
+					<userParam name="precursor_mz" value="623.52" />
+					<userParam name="score" value="38.11" />
+					<userParam name="score_type" value="Mascot" />
+					<userParam name="date_group_index" value="1"/>
+				</peptide>
+				<userParam name="protein_identification_index" value="1"/>
+				<userParam name="date_group_index" value="1"/>
+				<userParam name="score" value="38"/>
+				<userParam name="score_type" value="Mascot"/>
+			</protein>
+			<protein>
+				<dbName>SwissProt</dbName>
+				<dbID>CAA06532</dbID>
+				<peptide>
+					<seq>TPEVDDEALEK</seq>
+					<userParam name="identification_index" value="1" />
+					<userParam name="peptide_significance_threshold" value="0"/>
+					<userParam name="precursor_charge" value="2" />
+					<userParam name="precursor_retention_time" value="230.45" />
+					<userParam name="precursor_mz" value="623.52" />
+					<userParam name="score" value="38.11" />
+					<userParam name="score_type" value="Mascot" />
+					<userParam name="date_group_index" value="1"/>
+				</peptide>
+				<userParam name="protein_identification_index" value="1"/>
+				<userParam name="date_group_index" value="1"/>
+				<userParam name="score" value="38"/>
+				<userParam name="score_type" value="Mascot"/>
+			</protein>
+			<protein>
+				<dbName>SwissProt</dbName>
+				<dbID>AAA30411</dbID>
+				<peptide>
+					<seq>TPEVDDEALEK</seq>
+					<userParam name="identification_index" value="1" />
+					<userParam name="peptide_significance_threshold" value="0"/>
+					<userParam name="precursor_charge" value="2" />
+					<userParam name="precursor_retention_time" value="230.45" />
+					<userParam name="precursor_mz" value="623.52" />
+					<userParam name="score" value="38.11" />
+					<userParam name="score_type" value="Mascot" />
+					<userParam name="date_group_index" value="1"/>
+				</peptide>
+				<userParam name="protein_identification_index" value="1"/>
+				<userParam name="date_group_index" value="1"/>
+				<userParam name="score" value="38"/>
+				<userParam name="score_type" value="Mascot"/>
+			</protein>
+			<protein>
+				<dbName>SwissProt</dbName>
+				<dbID>AAA30412</dbID>
+				<peptide>
+					<seq>TPEVDDEALEK</seq>
+					<userParam name="identification_index" value="1" />
+					<userParam name="peptide_significance_threshold" value="0"/>
+					<userParam name="precursor_charge" value="2" />
+					<userParam name="precursor_retention_time" value="230.45" />
+					<userParam name="precursor_mz" value="623.52" />
+					<userParam name="score" value="38.11" />
+					<userParam name="score_type" value="Mascot" />
+					<userParam name="date_group_index" value="1"/>
+				</peptide>
+				<userParam name="protein_identification_index" value="1"/>
+				<userParam name="date_group_index" value="1"/>
+				<userParam name="score" value="38"/>
+				<userParam name="score_type" value="Mascot"/>
+			</protein>
+			<protein>
+				<dbName>SwissProt</dbName>
+				<dbID>CAA32835</dbID>
+				<peptide>
+					<seq>TPEVDDEALEK</seq>
+					<userParam name="identification_index" value="1" />
+					<userParam name="peptide_significance_threshold" value="0"/>
+					<userParam name="precursor_charge" value="2" />
+					<userParam name="precursor_retention_time" value="230.45" />
+					<userParam name="precursor_mz" value="623.52" />
+					<userParam name="score" value="38.11" />
+					<userParam name="score_type" value="Mascot" />
+					<userParam name="date_group_index" value="1"/>
+				</peptide>
+				<userParam name="protein_identification_index" value="1"/>
+				<userParam name="date_group_index" value="1"/>
+				<userParam name="score" value="38"/>
+				<userParam name="score_type" value="Mascot"/>
+			</protein>
+			<protein>
+				<dbName>SwissProt</dbName>
+				<dbID>LGSH</dbID>
+				<peptide>
+					<seq>TPEVDNEALEK</seq>
+					<userParam name="identification_index" value="1" />
+					<userParam name="peptide_significance_threshold" value="0"/>
+					<userParam name="precursor_charge" value="2" />
+					<userParam name="precursor_retention_time" value="230.45" />
+					<userParam name="precursor_mz" value="623.52" />
+					<userParam name="score" value="8.88" />
+					<userParam name="score_type" value="Mascot" />
+					<userParam name="date_group_index" value="1"/>
+				</peptide>
+				<userParam name="protein_identification_index" value="1"/>
+				<userParam name="date_group_index" value="1"/>
+				<userParam name="score" value="9"/>
+				<userParam name="score_type" value="Mascot"/>
+			</protein>
+			<protein>
+				<dbName>SwissProt</dbName>
+				<dbID>S00132</dbID>
+				<peptide>
+					<seq>TPEVDNEALEK</seq>
+					<userParam name="identification_index" value="1" />
+					<userParam name="peptide_significance_threshold" value="0"/>
+					<userParam name="precursor_charge" value="2" />
+					<userParam name="precursor_retention_time" value="230.45" />
+					<userParam name="precursor_mz" value="623.52" />
+					<userParam name="score" value="8.88" />
+					<userParam name="score_type" value="Mascot" />
+					<userParam name="date_group_index" value="1"/>
+				</peptide>
+				<userParam name="protein_identification_index" value="1"/>
+				<userParam name="date_group_index" value="1"/>
+				<userParam name="score" value="9"/>
+				<userParam name="score_type" value="Mascot"/>
+			</protein>
+			<protein>
+				<dbName>SwissProt</dbName>
+				<dbID>AAA31510</dbID>
+				<peptide>
+					<seq>TPEVDNEALEK</seq>
+					<userParam name="identification_index" value="1" />
+					<userParam name="peptide_significance_threshold" value="0"/>
+					<userParam name="precursor_charge" value="2" />
+					<userParam name="precursor_retention_time" value="230.45" />
+					<userParam name="precursor_mz" value="623.52" />
+					<userParam name="score" value="8.88" />
+					<userParam name="score_type" value="Mascot" />
+					<userParam name="date_group_index" value="1"/>
+				</peptide>
+				<userParam name="protein_identification_index" value="1"/>
+				<userParam name="date_group_index" value="1"/>
+				<userParam name="score" value="9"/>
+				<userParam name="score_type" value="Mascot"/>
+			</protein>
+			<protein>
+				<dbName>SwissProt</dbName>
+				<dbID>CAD32664</dbID>
+				<peptide>
+					<seq>LTLVTENNDVK</seq>
+					<userParam name="identification_index" value="1" />
+					<userParam name="peptide_significance_threshold" value="0"/>
+					<userParam name="precursor_charge" value="2" />
+					<userParam name="precursor_retention_time" value="230.45" />
+					<userParam name="precursor_mz" value="623.52" />
+					<userParam name="score" value="7.06" />
+					<userParam name="score_type" value="Mascot" />
+					<userParam name="date_group_index" value="1"/>
+				</peptide>
+				<userParam name="protein_identification_index" value="1"/>
+				<userParam name="date_group_index" value="1"/>
+				<userParam name="score" value="7"/>
+				<userParam name="score_type" value="Mascot"/>
+			</protein>
+			<protein>
+				<dbName>SwissProt</dbName>
+				<dbID>Q6NT31_HUMAN</dbID>
+				<peptide>
+					<seq>SISVEDKTDVR</seq>
+					<userParam name="identification_index" value="1" />
+					<userParam name="peptide_significance_threshold" value="0"/>
+					<userParam name="precursor_charge" value="2" />
+					<userParam name="precursor_retention_time" value="230.45" />
+					<userParam name="precursor_mz" value="623.52" />
+					<userParam name="score" value="6.66" />
+					<userParam name="score_type" value="Mascot" />
+					<userParam name="date_group_index" value="1"/>
+				</peptide>
+				<userParam name="protein_identification_index" value="1"/>
+				<userParam name="date_group_index" value="1"/>
+				<userParam name="score" value="7"/>
+				<userParam name="score_type" value="Mascot"/>
+			</protein>
+			<protein>
+				<dbName>SwissProt</dbName>
+				<dbID>Q6NT47_HUMAN</dbID>
+				<peptide>
+					<seq>SISVEDKTDVR</seq>
+					<userParam name="identification_index" value="1" />
+					<userParam name="peptide_significance_threshold" value="0"/>
+					<userParam name="precursor_charge" value="2" />
+					<userParam name="precursor_retention_time" value="230.45" />
+					<userParam name="precursor_mz" value="623.52" />
+					<userParam name="score" value="6.66" />
+					<userParam name="score_type" value="Mascot" />
+					<userParam name="date_group_index" value="1"/>
+				</peptide>
+				<userParam name="protein_identification_index" value="1"/>
+				<userParam name="date_group_index" value="1"/>
+				<userParam name="score" value="7"/>
+				<userParam name="score_type" value="Mascot"/>
+			</protein>
+			<protein>
+				<dbName>SwissProt</dbName>
+				<dbID>Q6NT53_HUMAN</dbID>
+				<peptide>
+					<seq>SISVEDKTDVR</seq>
+					<userParam name="identification_index" value="1" />
+					<userParam name="peptide_significance_threshold" value="0"/>
+					<userParam name="precursor_charge" value="2" />
+					<userParam name="precursor_retention_time" value="230.45" />
+					<userParam name="precursor_mz" value="623.52" />
+					<userParam name="score" value="6.66" />
+					<userParam name="score_type" value="Mascot" />
+					<userParam name="date_group_index" value="1"/>
+				</peptide>
+				<userParam name="protein_identification_index" value="1"/>
+				<userParam name="date_group_index" value="1"/>
+				<userParam name="score" value="7"/>
+				<userParam name="score_type" value="Mascot"/>
+			</protein>
+			<protein>
+				<dbName>SwissProt</dbName>
+				<dbID>AAL47008</dbID>
+				<peptide>
+					<seq>SISVEDKTDVR</seq>
+					<userParam name="identification_index" value="1" />
+					<userParam name="peptide_significance_threshold" value="0"/>
+					<userParam name="precursor_charge" value="2" />
+					<userParam name="precursor_retention_time" value="230.45" />
+					<userParam name="precursor_mz" value="623.52" />
+					<userParam name="score" value="6.66" />
+					<userParam name="score_type" value="Mascot" />
+					<userParam name="date_group_index" value="1"/>
+				</peptide>
+				<userParam name="protein_identification_index" value="1"/>
+				<userParam name="date_group_index" value="1"/>
+				<userParam name="score" value="7"/>
+				<userParam name="score_type" value="Mascot"/>
+			</protein>
+			<protein>
+				<dbName>SwissProt</dbName>
+				<dbID>AAK57558</dbID>
+				<peptide>
+					<seq>SISVEDKTDVR</seq>
+					<userParam name="identification_index" value="1" />
+					<userParam name="peptide_significance_threshold" value="0"/>
+					<userParam name="precursor_charge" value="2" />
+					<userParam name="precursor_retention_time" value="230.45" />
+					<userParam name="precursor_mz" value="623.52" />
+					<userParam name="score" value="6.66" />
+					<userParam name="score_type" value="Mascot" />
+					<userParam name="date_group_index" value="1"/>
+				</peptide>
+				<userParam name="protein_identification_index" value="1"/>
+				<userParam name="date_group_index" value="1"/>
+				<userParam name="score" value="7"/>
+				<userParam name="score_type" value="Mascot"/>
+			</protein>
+			<protein>
+				<dbName>SwissProt</dbName>
+				<dbID>AAK76362</dbID>
+				<peptide>
+					<seq>SISVEDKTDVR</seq>
+					<userParam name="identification_index" value="1" />
+					<userParam name="peptide_significance_threshold" value="0"/>
+					<userParam name="precursor_charge" value="2" />
+					<userParam name="precursor_retention_time" value="230.45" />
+					<userParam name="precursor_mz" value="623.52" />
+					<userParam name="score" value="6.66" />
+					<userParam name="score_type" value="Mascot" />
+					<userParam name="date_group_index" value="1"/>
+				</peptide>
+				<userParam name="protein_identification_index" value="1"/>
+				<userParam name="date_group_index" value="1"/>
+				<userParam name="score" value="7"/>
+				<userParam name="score_type" value="Mascot"/>
+			</protein>
+			<protein>
+				<dbName>SwissProt</dbName>
+				<dbID>A43800</dbID>
+				<peptide>
+					<seq>EQMATSGNEPGK</seq>
+					<userParam name="identification_index" value="1" />
+					<userParam name="peptide_significance_threshold" value="0"/>
+					<userParam name="precursor_charge" value="2" />
+					<userParam name="precursor_retention_time" value="230.45" />
+					<userParam name="precursor_mz" value="623.52" />
+					<userParam name="score" value="5.57" />
+					<userParam name="score_type" value="Mascot" />
+					<userParam name="date_group_index" value="1"/>
+				</peptide>
+				<userParam name="protein_identification_index" value="1"/>
+				<userParam name="date_group_index" value="1"/>
+				<userParam name="score" value="6"/>
+				<userParam name="score_type" value="Mascot"/>
+			</protein>
+			<protein>
+				<dbName>SwissProt</dbName>
+				<dbID>Q6NRU0_XENLA</dbID>
+				<peptide>
+					<seq>VVEVFSEYFK</seq>
+					<userParam name="identification_index" value="1" />
+					<userParam name="peptide_significance_threshold" value="0"/>
+					<userParam name="precursor_charge" value="2" />
+					<userParam name="precursor_retention_time" value="230.45" />
+					<userParam name="precursor_mz" value="623.52" />
+					<userParam name="score" value="5.24" />
+					<userParam name="score_type" value="Mascot" />
+					<userParam name="date_group_index" value="1"/>
+				</peptide>
+				<userParam name="protein_identification_index" value="1"/>
+				<userParam name="date_group_index" value="1"/>
+				<userParam name="score" value="5"/>
+				<userParam name="score_type" value="Mascot"/>
+			</protein>
+			<protein>
+				<dbName>SwissProt</dbName>
+				<dbID>Q6P408_MOUSE</dbID>
+				<peptide>
+					<seq>TPQADKTEEVK</seq>
+					<userParam name="identification_index" value="1" />
+					<userParam name="peptide_significance_threshold" value="0"/>
+					<userParam name="precursor_charge" value="2" />
+					<userParam name="precursor_retention_time" value="230.45" />
+					<userParam name="precursor_mz" value="623.52" />
+					<userParam name="score" value="4.59" />
+					<userParam name="score_type" value="Mascot" />
+					<userParam name="date_group_index" value="1"/>
+				</peptide>
+				<userParam name="protein_identification_index" value="1"/>
+				<userParam name="date_group_index" value="1"/>
+				<userParam name="score" value="5"/>
+				<userParam name="score_type" value="Mascot"/>
+			</protein>
+			<protein>
+				<dbName>SwissProt</dbName>
+				<dbID>AAF28968</dbID>
+				<peptide>
+					<seq>AQQRMSGTLEK</seq>
+					<userParam name="identification_index" value="1" />
+					<userParam name="peptide_significance_threshold" value="0"/>
+					<userParam name="precursor_charge" value="2" />
+					<userParam name="precursor_retention_time" value="230.45" />
+					<userParam name="precursor_mz" value="623.52" />
+					<userParam name="score" value="5.61" />
+					<userParam name="score_type" value="Mascot" />
+					<userParam name="date_group_index" value="1"/>
+				</peptide>
+				<userParam name="protein_identification_index" value="1"/>
+				<userParam name="date_group_index" value="1"/>
+				<userParam name="score" value="4"/>
+				<userParam name="score_type" value="Mascot"/>
+			</protein>
+			<protein>
+				<dbName>SwissProt</dbName>
+				<dbID>Q6P3L3_BRARE</dbID>
+				<peptide>
+					<seq>LSSEDKEAIEK</seq>
+					<userParam name="identification_index" value="1" />
+					<userParam name="peptide_significance_threshold" value="0"/>
+					<userParam name="precursor_charge" value="2" />
+					<userParam name="precursor_retention_time" value="230.45" />
+					<userParam name="precursor_mz" value="623.52" />
+					<userParam name="score" value="4.24" />
+					<userParam name="score_type" value="Mascot" />
+					<userParam name="date_group_index" value="1"/>
+				</peptide>
+				<userParam name="protein_identification_index" value="1"/>
+				<userParam name="date_group_index" value="1"/>
+				<userParam name="score" value="4"/>
+				<userParam name="score_type" value="Mascot"/>
+			</protein>
+			<protein>
+				<dbName>SwissProt</dbName>
+				<dbID>Q7SZD3_BRARE</dbID>
+				<peptide>
+					<seq>LSSEDKEAIEK</seq>
+					<userParam name="identification_index" value="1" />
+					<userParam name="peptide_significance_threshold" value="0"/>
+					<userParam name="precursor_charge" value="2" />
+					<userParam name="precursor_retention_time" value="230.45" />
+					<userParam name="precursor_mz" value="623.52" />
+					<userParam name="score" value="4.24" />
+					<userParam name="score_type" value="Mascot" />
+					<userParam name="date_group_index" value="1"/>
+				</peptide>
+				<userParam name="protein_identification_index" value="1"/>
+				<userParam name="date_group_index" value="1"/>
+				<userParam name="score" value="4"/>
+				<userParam name="score_type" value="Mascot"/>
+			</protein>
+			<protein>
+				<dbName>SwissProt</dbName>
+				<dbID>Q9DGC5_ORENI</dbID>
+				<peptide>
+					<seq>FLKASHAYALK</seq>
+					<userParam name="identification_index" value="1" />
+					<userParam name="peptide_significance_threshold" value="0"/>
+					<userParam name="precursor_charge" value="2" />
+					<userParam name="precursor_retention_time" value="230.45" />
+					<userParam name="precursor_mz" value="623.52" />
+					<userParam name="score" value="3.94" />
+					<userParam name="score_type" value="Mascot" />
+					<userParam name="date_group_index" value="1"/>
+				</peptide>
+				<userParam name="protein_identification_index" value="1"/>
+				<userParam name="date_group_index" value="1"/>
+				<userParam name="score" value="4"/>
+				<userParam name="score_type" value="Mascot"/>
+			</protein>
+			<userParam name="proteins" value="all"/>
+		</proteinGroup>
+		<peptide>
+			<seq>TPEVDDEALEK</seq>
+			<userParam name="identification_index" value="0" />
+			<userParam name="peptide_significance_threshold" value="0"/>
+			<userParam name="precursor_charge" value="2" />
+			<userParam name="precursor_retention_time" value="-1" />
+			<userParam name="precursor_mz" value="623.58" />
+			<userParam name="score" value="40.5" />
+			<userParam name="score_type" value="Mascot" />
+			<userParam name="date_group_index" value="0"/>
+		</peptide>
+		<peptide>
+			<seq>LTLVTENNDVK</seq>
+			<userParam name="identification_index" value="0" />
+			<userParam name="peptide_significance_threshold" value="0"/>
+			<userParam name="precursor_charge" value="2" />
+			<userParam name="precursor_retention_time" value="-1" />
+			<userParam name="precursor_mz" value="623.58" />
+			<userParam name="score" value="7.28" />
+			<userParam name="score_type" value="Mascot" />
+			<userParam name="date_group_index" value="0"/>
+		</peptide>
+		<peptide>
+			<seq>SLEVEEEEQR</seq>
+			<userParam name="identification_index" value="0" />
+			<userParam name="peptide_significance_threshold" value="0"/>
+			<userParam name="precursor_charge" value="2" />
+			<userParam name="precursor_retention_time" value="-1" />
+			<userParam name="precursor_mz" value="623.58" />
+			<userParam name="score" value="6.99" />
+			<userParam name="score_type" value="Mascot" />
+			<userParam name="date_group_index" value="0"/>
+		</peptide>
+		<peptide>
+			<seq>EQMATSGNEPGK</seq>
+			<userParam name="identification_index" value="0" />
+			<userParam name="peptide_significance_threshold" value="0"/>
+			<userParam name="precursor_charge" value="2" />
+			<userParam name="precursor_retention_time" value="-1" />
+			<userParam name="precursor_mz" value="623.58" />
+			<userParam name="score" value="5.79" />
+			<userParam name="score_type" value="Mascot" />
+			<userParam name="date_group_index" value="0"/>
+		</peptide>
+		<peptide>
+			<seq>VPETMVLNGKR</seq>
+			<userParam name="identification_index" value="0" />
+			<userParam name="peptide_significance_threshold" value="0"/>
+			<userParam name="precursor_charge" value="2" />
+			<userParam name="precursor_retention_time" value="-1" />
+			<userParam name="precursor_mz" value="623.58" />
+			<userParam name="score" value="3.87" />
+			<userParam name="score_type" value="Mascot" />
+			<userParam name="date_group_index" value="0"/>
+		</peptide>
+		<peptide>
+			<seq>VTLDLQNSTEK</seq>
+			<userParam name="identification_index" value="0" />
+			<userParam name="peptide_significance_threshold" value="0"/>
+			<userParam name="precursor_charge" value="2" />
+			<userParam name="precursor_retention_time" value="-1" />
+			<userParam name="precursor_mz" value="623.58" />
+			<userParam name="score" value="3.38" />
+			<userParam name="score_type" value="Mascot" />
+			<userParam name="date_group_index" value="0"/>
+		</peptide>
+		<peptide>
+			<seq>AKMVDLGEDDR</seq>
+			<userParam name="identification_index" value="0" />
+			<userParam name="peptide_significance_threshold" value="0"/>
+			<userParam name="precursor_charge" value="2" />
+			<userParam name="precursor_retention_time" value="-1" />
+			<userParam name="precursor_mz" value="623.58" />
+			<userParam name="score" value="4.54" />
+			<userParam name="score_type" value="Mascot" />
+			<userParam name="date_group_index" value="0"/>
+		</peptide>
+		<peptide>
+			<seq>IGNAKGDEALEK</seq>
+			<userParam name="identification_index" value="0" />
+			<userParam name="peptide_significance_threshold" value="0"/>
+			<userParam name="precursor_charge" value="2" />
+			<userParam name="precursor_retention_time" value="-1" />
+			<userParam name="precursor_mz" value="623.58" />
+			<userParam name="score" value="2.05" />
+			<userParam name="score_type" value="Mascot" />
+			<userParam name="date_group_index" value="0"/>
+		</peptide>
+		<peptide>
+			<seq>TPEVDNEALEK</seq>
+			<userParam name="identification_index" value="0" />
+			<userParam name="peptide_significance_threshold" value="0"/>
+			<userParam name="precursor_charge" value="2" />
+			<userParam name="precursor_retention_time" value="-1" />
+			<userParam name="precursor_mz" value="623.58" />
+			<userParam name="score" value="1.99" />
+			<userParam name="score_type" value="Mascot" />
+			<userParam name="date_group_index" value="0"/>
+		</peptide>
+		<peptide>
+			<seq>EAKTIAEESDR</seq>
+			<userParam name="identification_index" value="0" />
+			<userParam name="peptide_significance_threshold" value="0"/>
+			<userParam name="precursor_charge" value="2" />
+			<userParam name="precursor_retention_time" value="-1" />
+			<userParam name="precursor_mz" value="623.58" />
+			<userParam name="score" value="3.13" />
+			<userParam name="score_type" value="Mascot" />
+			<userParam name="date_group_index" value="0"/>
+		</peptide>
+		<peptide>
+			<seq>TPEVDDEALEK</seq>
+			<userParam name="identification_index" value="1" />
+			<userParam name="peptide_significance_threshold" value="0"/>
+			<userParam name="precursor_charge" value="2" />
+			<userParam name="precursor_retention_time" value="230.45" />
+			<userParam name="precursor_mz" value="623.52" />
+			<userParam name="score" value="38.11" />
+			<userParam name="score_type" value="Mascot" />
+			<userParam name="date_group_index" value="1"/>
+		</peptide>
+		<peptide>
+			<seq>TPEVDNEALEK</seq>
+			<userParam name="identification_index" value="1" />
+			<userParam name="peptide_significance_threshold" value="0"/>
+			<userParam name="precursor_charge" value="2" />
+			<userParam name="precursor_retention_time" value="230.45" />
+			<userParam name="precursor_mz" value="623.52" />
+			<userParam name="score" value="8.88" />
+			<userParam name="score_type" value="Mascot" />
+			<userParam name="date_group_index" value="1"/>
+		</peptide>
+		<peptide>
+			<seq>LTLVTENNDVK</seq>
+			<userParam name="identification_index" value="1" />
+			<userParam name="peptide_significance_threshold" value="0"/>
+			<userParam name="precursor_charge" value="2" />
+			<userParam name="precursor_retention_time" value="230.45" />
+			<userParam name="precursor_mz" value="623.52" />
+			<userParam name="score" value="7.06" />
+			<userParam name="score_type" value="Mascot" />
+			<userParam name="date_group_index" value="1"/>
+		</peptide>
+		<peptide>
+			<seq>SISVEDKTDVR</seq>
+			<userParam name="identification_index" value="1" />
+			<userParam name="peptide_significance_threshold" value="0"/>
+			<userParam name="precursor_charge" value="2" />
+			<userParam name="precursor_retention_time" value="230.45" />
+			<userParam name="precursor_mz" value="623.52" />
+			<userParam name="score" value="6.66" />
+			<userParam name="score_type" value="Mascot" />
+			<userParam name="date_group_index" value="1"/>
+		</peptide>
+		<peptide>
+			<seq>EQMATSGNEPGK</seq>
+			<userParam name="identification_index" value="1" />
+			<userParam name="peptide_significance_threshold" value="0"/>
+			<userParam name="precursor_charge" value="2" />
+			<userParam name="precursor_retention_time" value="230.45" />
+			<userParam name="precursor_mz" value="623.52" />
+			<userParam name="score" value="5.57" />
+			<userParam name="score_type" value="Mascot" />
+			<userParam name="date_group_index" value="1"/>
+		</peptide>
+		<peptide>
+			<seq>VVEVFSEYFK</seq>
+			<userParam name="identification_index" value="1" />
+			<userParam name="peptide_significance_threshold" value="0"/>
+			<userParam name="precursor_charge" value="2" />
+			<userParam name="precursor_retention_time" value="230.45" />
+			<userParam name="precursor_mz" value="623.52" />
+			<userParam name="score" value="5.24" />
+			<userParam name="score_type" value="Mascot" />
+			<userParam name="date_group_index" value="1"/>
+		</peptide>
+		<peptide>
+			<seq>TPQADKTEEVK</seq>
+			<userParam name="identification_index" value="1" />
+			<userParam name="peptide_significance_threshold" value="0"/>
+			<userParam name="precursor_charge" value="2" />
+			<userParam name="precursor_retention_time" value="230.45" />
+			<userParam name="precursor_mz" value="623.52" />
+			<userParam name="score" value="4.59" />
+			<userParam name="score_type" value="Mascot" />
+			<userParam name="date_group_index" value="1"/>
+		</peptide>
+		<peptide>
+			<seq>AQQRMSGTLEK</seq>
+			<userParam name="identification_index" value="1" />
+			<userParam name="peptide_significance_threshold" value="0"/>
+			<userParam name="precursor_charge" value="2" />
+			<userParam name="precursor_retention_time" value="230.45" />
+			<userParam name="precursor_mz" value="623.52" />
+			<userParam name="score" value="5.61" />
+			<userParam name="score_type" value="Mascot" />
+			<userParam name="date_group_index" value="1"/>
+		</peptide>
+		<peptide>
+			<seq>LSSEDKEAIEK</seq>
+			<userParam name="identification_index" value="1" />
+			<userParam name="peptide_significance_threshold" value="0"/>
+			<userParam name="precursor_charge" value="2" />
+			<userParam name="precursor_retention_time" value="230.45" />
+			<userParam name="precursor_mz" value="623.52" />
+			<userParam name="score" value="4.24" />
+			<userParam name="score_type" value="Mascot" />
+			<userParam name="date_group_index" value="1"/>
+		</peptide>
+		<peptide>
+			<seq>FLKASHAYALK</seq>
+			<userParam name="identification_index" value="1" />
+			<userParam name="peptide_significance_threshold" value="0"/>
+			<userParam name="precursor_charge" value="2" />
+			<userParam name="precursor_retention_time" value="230.45" />
+			<userParam name="precursor_mz" value="623.52" />
+			<userParam name="score" value="3.94" />
+			<userParam name="score_type" value="Mascot" />
+			<userParam name="date_group_index" value="1"/>
+		</peptide>
+	</ident>
+</mzIdent>
