@@ -37,6 +37,10 @@
 	- @b idXML The OpenMS format for protein and peptide identification.
 	- @b consensusXML The OpenMS format for alignment of peak and feature data.	
 	
+	Documented schemas of these formats can be found at http://open-ms.sourceforge.net/schemas/.
+	
+	Our formats @a featureXML and @a idXML will only be used until the HUPO-PSI AnalysisXML format is finished!
+	
 	@section TOPP_example1 Example 1: 
 	
 	@section TOPP_example2 Example 2: 

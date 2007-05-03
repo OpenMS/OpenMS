@@ -34,10 +34,13 @@
 namespace OpenMS
 {
 	/**
-  	@brief This class provides Input/Output functionality for FeatureMaps
+  	@brief This class provides Input/Output functionality for feature maps
+
+		A documented schema for this format can be found at http://open-ms.sourceforge.net/schemas/. 
 		
 		@todo Use PeakFileOptions and write tests (Thomas S.)
-  	@todo Create Schema (Marc)
+
+  	@note This format will only be used until the HUPO-PSI AnalysisXML format is finished!
   	
   	@ingroup FileIO
   */

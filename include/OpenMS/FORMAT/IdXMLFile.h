@@ -38,8 +38,12 @@ namespace OpenMS
     
     This class is used to load and store documents that implement 
     the schema of IdXML files.
-
-  	@todo Create Schema (Nico, Andreas)
+		
+		A documented schema for this format can be found at http://open-ms.sourceforge.net/schemas/. 
+		
+  	@todo Document and upload schema (Nico)
+  	
+  	@note This format will only be used until the HUPO-PSI AnalysisXML format is finished!
   	
   	@ingroup FileIO
   */
