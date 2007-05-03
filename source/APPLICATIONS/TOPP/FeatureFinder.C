@@ -25,7 +25,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/MzDataFile.h>
-#include <OpenMS/FORMAT/FeatureMapFile.h>
+#include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinder.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/BaseSeeder.h>
@@ -172,7 +172,7 @@ class TOPPFeatureFinder
 		//-------------------------------------------------------------
 	
 		writeLog_(String("Writing results to ") + out);
-		FeatureMapFile map_file;
+		FeatureXMLFile map_file;
 		map_file.store(out,features);			
 			
 		return EXECUTION_OK;

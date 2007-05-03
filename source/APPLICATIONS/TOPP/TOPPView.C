@@ -31,7 +31,7 @@
   and several other text-based file formats. It also supports viewing data from an OpenMS database.
   The following figure shows two instances of TOPPView displaying a HPLC/MS map and a MS raw spectrum:
  	
- 	\image html TOPPView.png
+ 	@image html TOPPView.png
 
   <HR>
   

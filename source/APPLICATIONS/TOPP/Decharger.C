@@ -24,7 +24,7 @@
 // $Maintainer: Chris Bielow $
 // --------------------------------------------------------------------------
 #include <OpenMS/ANALYSIS/DECHARGING/FeatureDecharger.h>
-#include <OpenMS/FORMAT/FeatureMapFile.h>
+#include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 
 using namespace OpenMS;
@@ -41,7 +41,7 @@ using namespace std;
 
    The Decharger uses an hierarchical clustering (complete linkage) to group charge variants of the same peptide, which
    usually occur in ESI ionization mode. The resulting zero-charge peptides, which are defined by RT and mass
-   are written to a feature file. Intensities of charge variants are summed up. The position of the zero charge
+   are written to a featureXML file. Intensities of charge variants are summed up. The position of the zero charge
    variant is the average of all clustered peptides in each dimension.
    If several peptides with the same charge variant are grouped (which is clearly not allowed), a heuristic is used:
    <ul>
@@ -109,7 +109,7 @@ class TOPPDecharger
     
     typedef FeatureMap<> FeatureMapType;
     FeatureMapType map;
-    FeatureMapFile().load(in,map);
+    FeatureXMLFile().load(in,map);
     //map.sortByPosition();
 
     std::cout << "#Features before: " << map.size() << "\n";
@@ -140,7 +140,7 @@ class TOPPDecharger
     
     writeDebug_("Saving output file", 1);
 
-    FeatureMapFile().store(out,feature_map);
+    FeatureXMLFile().store(out,feature_map);
 
     return EXECUTION_OK;
   }

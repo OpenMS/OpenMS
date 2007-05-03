@@ -165,9 +165,9 @@ EXECUTABLES_FORMAT = \
 	MzXMLFile_test\
 	MzDataFile_test\
 	Param_test\
-	FeatureMapFile_test\
+	FeatureXMLFile_test\
 	FeaturePairsFile_test\
-	AnalysisXMLFile_test\
+	IdXMLFile_test\
 	MascotXMLFile_test\
 	GridFile_test\
 	PeakFileOptions_test\

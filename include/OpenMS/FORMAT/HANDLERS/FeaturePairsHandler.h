@@ -99,7 +99,7 @@ namespace OpenMS
 
 		protected:
 
-		/** @brief indices for tags used by FeatureMapFile
+		/** @brief indices for tags used by FeatureXMLFile
 
 			Used to access is_parser_in_tag_.
 			If you add tags, also add them to XMLSchemes.h.
@@ -110,14 +110,14 @@ namespace OpenMS
 								OVERALLQUALITY, CHARGE, FEATMODEL, PARAM, CONVEXHULL,
 								HULLPOINT, HPOSITION, TAG_NUM};
 
-		/** @brief indices for attributes used by FeatureMapFile
+		/** @brief indices for attributes used by FeatureXMLFile
 
 			If you add tags, also add them to XMLSchemes.h.
 			Add no elements to the enum after TAG_NUM.
 		*/
 		enum Attributes { ATTNULL, DIM, NAME, VALUE, ATT_NUM};
 
-		/** @brief indices for enum2str-maps used by FeatureMapFile
+		/** @brief indices for enum2str-maps used by FeatureXMLFile
 
 			Used to access enum2str_().
 			If you add maps, also add them to XMLSchemes.h.

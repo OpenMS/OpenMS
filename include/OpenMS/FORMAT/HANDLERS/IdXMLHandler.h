@@ -24,8 +24,8 @@
 // $Maintainer: Nico Pfeifer $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_FORMAT_HANDLERS_ANALYSISXMLHANDLER_H
-#define OPENMS_FORMAT_HANDLERS_ANALYSISXMLHANDLER_H
+#ifndef OPENMS_FORMAT_HANDLERS_IDXMLHANDLER_H
+#define OPENMS_FORMAT_HANDLERS_IDXMLHANDLER_H
 
 #include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
 #include <OpenMS/METADATA/Identification.h>
@@ -40,25 +40,25 @@ namespace OpenMS
 	{
 
   /**
-    @brief Handler that is used for parsing AnalysisXML data
+    @brief Handler that is used for parsing IdXML data
     
     @todo do not work with that many pointers internally. Replace by references (Nico)
   */
-  class AnalysisXMLHandler:
+  class IdXMLHandler:
     public XMLHandler
   {
     public:
       /// Constructor for loading
-      AnalysisXMLHandler(std::vector<ProteinIdentification>& protein_identifications, std::vector<IdentificationData>& id_data, const String& filename);
+      IdXMLHandler(std::vector<ProteinIdentification>& protein_identifications, std::vector<IdentificationData>& id_data, const String& filename);
       /// Constructor for loading
-      AnalysisXMLHandler(std::vector<ProteinIdentification>& protein_identifications, std::vector<IdentificationData>& id_data, std::map<String, DoubleReal>& predicted_retention_times, const String& filename);
+      IdXMLHandler(std::vector<ProteinIdentification>& protein_identifications, std::vector<IdentificationData>& id_data, std::map<String, DoubleReal>& predicted_retention_times, const String& filename);
       /// Constructor for storing
-      AnalysisXMLHandler(const std::vector<ProteinIdentification>& protein_identifications, const std::vector<IdentificationData>& id_data, const String& filename);
+      IdXMLHandler(const std::vector<ProteinIdentification>& protein_identifications, const std::vector<IdentificationData>& id_data, const String& filename);
       /// Constructor for storing
-      AnalysisXMLHandler(const std::vector<ProteinIdentification>& protein_identifications, const std::vector<IdentificationData>& id_data, const std::map<String, DoubleReal>& predicted_retention_times, const String& filename);
+      IdXMLHandler(const std::vector<ProteinIdentification>& protein_identifications, const std::vector<IdentificationData>& id_data, const std::map<String, DoubleReal>& predicted_retention_times, const String& filename);
       
       /// Destructor
-      ~AnalysisXMLHandler();
+      ~IdXMLHandler();
       
       /// Writes the xml file to the ostream 'os'
       void writeTo(std::ostream& os);
@@ -120,4 +120,4 @@ namespace OpenMS
 	} // namespace Internal
 } // namespace OpenMS
 
-#endif // OPENMS_FORMAT_HANDLERS_ANALYSISXMLHANDLER_H
+#endif // OPENMS_FORMAT_HANDLERS_IDXMLHANDLER_H

@@ -25,7 +25,7 @@
 // --------------------------------------------------------------------------
 
 
-#include <OpenMS/FORMAT/AnalysisXMLFile.h>
+#include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
 #include <OpenMS/CONCEPT/Exception.h>
@@ -67,7 +67,7 @@ using namespace std;
 				for which identifications are to be found
 				and one ore two databases in FASTA format containing
 				the possible proteins.
-				The results are written as an analysisXML output file. This mode is selected
+				The results are written as an IdXML output file. This mode is selected
 			 	by default.
 				Note: You need a user with network access on the computer hosting sequest.
 			 	</li>
@@ -87,7 +87,7 @@ using namespace std;
 				
 				<li>
 				Only the second part of the identification process is performed.
-				This means that the output of sequest is translated into analysisXML.
+				This means that the output of sequest is translated into IdXML.
 				
 				This mode is selected by the <b>-sequest_out</b> option in the command line.
 				</li>
@@ -115,7 +115,7 @@ class TOPPSequestAdapter
 		{
 			addText_("The definitions for the parameters are taken from the site:\n"
 										 "http://www.grosse-coosmann.de/~florian/Parameters.html#file.");
-			registerStringOption_("out", "<file>", "", "output file in analysisXML format.\n"
+			registerStringOption_("out", "<file>", "", "output file in IdXML format.\n"
 			                                           "Note: In mode 'sequest_in' a Sequest input file is written.", false);
 			registerStringOption_("in", "<file>", "", "input file(s) in mzXML or mzData format (comma-separated).\n"
 					 																			"Note: In mode 'sequest_out' a directory with Sequest results files\n"
@@ -124,7 +124,7 @@ class TOPPSequestAdapter
 																								"and write an Sequest input file\n"
 																								"and create dta files from the given mzXML or mzData files");
 			registerFlag_("sequest_out", "if this flag is set the SequestAdapter will read in Sequest result files\n"
-																									"and write analysisXML");
+																									"and write IdXML");
 			registerStringOption_("mzFiles", "<file>", "", "when using sequest_out the mzXML or mzData files (comma-separated)\n"
 																																						"have to be given to retrieve the retention times", false);
 			registerFlag_("show_enzymes", "show a list with enzymes and corresponding numbers to choose from");
@@ -1632,7 +1632,7 @@ class TOPPSequestAdapter
 				vector< ProteinIdentification > pis;
 				pis.push_back(protein_identification);
 				
-				AnalysisXMLFile().store(output_filename, pis, identifications);
+				IdXMLFile().store(output_filename, pis, identifications);
 				
 				// remove all outs
 				if ( !keep_out_files )

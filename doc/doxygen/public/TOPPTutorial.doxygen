@@ -1,0 +1,46 @@
+// -*- Mode: C++; tab-width: 2; -*-
+// vi: set ts=2:
+//
+// --------------------------------------------------------------------------
+//                   OpenMS Mass Spectrometry Framework
+// --------------------------------------------------------------------------
+//  Copyright (C) 2003-2007 -- Oliver Kohlbacher, Knut Reinert
+//
+//  This library is free software; you can redistribute it and/or
+//  modify it under the terms of the GNU Lesser General Public
+//  License as published by the Free Software Foundation; either
+//  version 2.1 of the License, or (at your option) any later version.
+//
+//  This library is distributed in the hope that it will be useful,
+//  but WITHOUT ANY WARRANTY; without even the implied warranty of
+//  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+//  Lesser General Public License for more details.
+//
+//  You should have received a copy of the GNU Lesser General Public
+//  License along with this library; if not, write to the Free Software
+//  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+//
+// --------------------------------------------------------------------------
+// $Maintainer: Marc Sturm $
+// --------------------------------------------------------------------------
+
+/**
+	@page TOPPTutorial TOPP tutorial
+
+	This tutorial will give you a brief overview of the TOPP tools using thress examples.
+
+	@section TOPP_fileformats File formats
+	
+	The main file formats for TOPP are:
+	- @b mzData The HUPO-PSI standard format for mass spectrometry data.
+	- @b featureXML The OpenMS format for quantitation results.
+	- @b idXML The OpenMS format for protein and peptide identification.
+	- @b consensusXML The OpenMS format for alignment of peak and feature data.	
+	
+	@section TOPP_example1 Example 1: 
+	
+	@section TOPP_example2 Example 2: 
+	
+	@section TOPP_example3 Example 3: 
+	
+*/

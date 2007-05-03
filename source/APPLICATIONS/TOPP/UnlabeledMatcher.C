@@ -25,7 +25,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/PoseClusteringPairwiseMapMatcher.h>
-#include <OpenMS/FORMAT/FeatureMapFile.h>
+#include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/FORMAT/FeaturePairsFile.h>
 #include <OpenMS/FORMAT/GridFile.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
@@ -112,7 +112,7 @@ class TOPPUnlabeledMatcher
       String inputfile[2];
 
       // read input files
-      FeatureMapFile feature_file[2];
+      FeatureXMLFile feature_file[2];
       FeatureMap< > feature_map[2];
 
       // determine names of input files

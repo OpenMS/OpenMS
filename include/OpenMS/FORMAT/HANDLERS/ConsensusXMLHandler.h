@@ -30,7 +30,7 @@
 
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/StarAlignment.h>
-#include <OpenMS/FORMAT/FeatureMapFile.h>
+#include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/FORMAT/HANDLERS/SchemaHandler.h>
 #include <OpenMS/FORMAT/HANDLERS/XMLSchemes.h>
 #include <OpenMS/FORMAT/Param.h>
@@ -148,7 +148,7 @@ namespace OpenMS
         */
         enum Attributes { ATTNULL, COUNT, NAME, ID, RT_ATT, MZ_ATT, IT, RTMIN, RTMAX, MZMIN, MZMAX, ITMIN, ITMAX, MAP_ATT, ATT_NUM};
 
-        /** @brief indices for enum2str-maps used by FeatureMapFile
+        /** @brief indices for enum2str-maps used by FeatureXMLFile
 
           Used to access enum2str_().
           If you add maps, also add them to XMLSchemes.h.

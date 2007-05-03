@@ -25,7 +25,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/FeaturePairsFile.h>
-#include <OpenMS/FORMAT/FeatureMapFile.h>
+#include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/PairMatcher.h>
 #include <OpenMS/KERNEL/ComparatorUtils.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
@@ -118,7 +118,7 @@ class TOPPLabeledMatcher
 	
 	
 	    FeatureMap<> features;
-	    FeatureMapFile().load(inputfile,features);
+	    FeatureXMLFile().load(inputfile,features);
 	
 	    sort(features.begin(),features.end(), LexicographicComparator<Feature::LessRT,Feature::LessMZ>());
 	

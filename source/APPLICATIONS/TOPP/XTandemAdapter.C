@@ -25,7 +25,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/MzDataFile.h>
-#include <OpenMS/FORMAT/AnalysisXMLFile.h>
+#include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/FORMAT/XTandemXMLFile.h>
 #include <OpenMS/FORMAT/DTAFile.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
@@ -68,7 +68,7 @@ class TOPPXTandemAdapter
 	protected:
 		void registerOptionsAndFlags_()
 		{
-			registerStringOption_("out", "<file>", "", "output file in analysisXML format.");
+			registerStringOption_("out", "<file>", "", "output file in IdXML format.");
 			registerStringOption_("in", "<file>", "", "input file in mzData format.");
 
 
@@ -274,7 +274,7 @@ class TOPPXTandemAdapter
 			// writing output
 			//-------------------------------------------------------------
 			
-			AnalysisXMLFile().store(outputfile_name, protein_identifications, peptide_ids);
+			IdXMLFile().store(outputfile_name, protein_identifications, peptide_ids);
 													 		 												 		 
 			/// Deletion of temporary files
 			

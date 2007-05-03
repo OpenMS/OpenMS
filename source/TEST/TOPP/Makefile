@@ -33,7 +33,7 @@ UNCONDITIONAL_TESTS = \
 	ConsensusID_test \
 	MapNormalizer_test \
 	AdditiveSeries_test \
-	AnalysisXMLMerger_test \
+	IDMerger_test \
 	BaselineFilter_test \
 	DBImporter_test \
 	DBExporter_test \
@@ -214,11 +214,11 @@ AdditiveSeries_test: $(NUMERICDIFF)
 	@$(call TEST_FILE_EQUAL,AdditiveSeries_1_gnuplot.err,AdditiveSeries_1_gnuplot_err.tmp)
 
 
-AnalysisXMLMerger_test: $(NUMERICDIFF)
+IDMerger_test: $(NUMERICDIFF)
 	@$(ECHO) ""
-	@$(ECHO) "AnalysisXMLMerger:"
-	@$(call RUN_PROG_OPT,AnalysisXMLMerger,-ini AnalysisXMLMerger_1_parameters.ini)
-	@$(call TEST_FILE_EQUAL,AnalysisXMLMerger_1_output.analysisXML,AnalysisXMLMerger_1_output.tmp)
+	@$(ECHO) "IDMerger:"
+	@$(call RUN_PROG_OPT,IDMerger,-ini IDMerger_1_parameters.ini)
+	@$(call TEST_FILE_EQUAL,IDMerger_1_output.idXML,IDMerger_1_output.tmp)
 
 
 BaselineFilter_test: $(NUMERICDIFF)
@@ -265,8 +265,8 @@ DBImporter_test: $(NUMERICDIFF)
 Decharger_test: $(NUMERICDIFF)
 	@$(ECHO) ""
 	@$(ECHO) "Decharger:"
-	@$(call RUN_PROG_OPT,Decharger, -ini Decharger.ini -in Decharger_input.feat -out Decharger_output.tmp)
-	@$(call TEST_FILE_EQUAL,Decharger_output.tmp, Decharger_output.feat)
+	@$(call RUN_PROG_OPT,Decharger, -ini Decharger.ini -in Decharger_input.featureXML -out Decharger_output.tmp)
+	@$(call TEST_FILE_EQUAL,Decharger_output.tmp, Decharger_output.featureXML)
 
 
 DTAExtractor_test: $(NUMERICDIFF)
@@ -414,7 +414,7 @@ FileInfo_test: $(NUMERICDIFF)
 	@$(call TEST_FILE_EQUAL,FileInfo_2_output.txt,FileInfo.tmp)
 
 	@$(ECHO) "- Test 3: feature file test (with meta info and statistics)"
-	@$(call RUN_PROG_OPT,FileInfo,-in FileInfo_3_input.feat -m -s > FileInfo.tmp)
+	@$(call RUN_PROG_OPT,FileInfo,-in FileInfo_3_input.featureXML -m -s > FileInfo.tmp)
 	@$(call TEST_FILE_EQUAL,FileInfo_3_output.txt,FileInfo.tmp)
 
 	@$(ECHO) "- Test 4: MzXML file test (with meta info)"
@@ -464,25 +464,25 @@ IDFilter_test: $(NUMERICDIFF)
 	@$(ECHO) "IDFilter:"
 
 	@$(ECHO) "- Test 1: sequence file"
-	@$(call RUN_PROG_OPT,IDFilter,-in IDFilter_1_input.analysisXML -out IDFilter_1_output.tmp -sequences_file IDFilter_1_input.fas)
-	@$(call TEST_FILE_EQUAL,IDFilter_1_output.analysisXML,IDFilter_1_output.tmp)
+	@$(call RUN_PROG_OPT,IDFilter,-in IDFilter_1_input.idXML -out IDFilter_1_output.tmp -sequences_file IDFilter_1_input.fas)
+	@$(call TEST_FILE_EQUAL,IDFilter_1_output.idXML,IDFilter_1_output.tmp)
 
 	@$(ECHO) "- Test 2: threshold fractions"
-	@$(call RUN_PROG_OPT,IDFilter,-in IDFilter_1_input.analysisXML -out IDFilter_2_output.tmp -pep_fraction 1 -prot_fraction 1)
-	@$(call TEST_FILE_EQUAL,IDFilter_2_output.analysisXML,IDFilter_2_output.tmp)
+	@$(call RUN_PROG_OPT,IDFilter,-in IDFilter_1_input.idXML -out IDFilter_2_output.tmp -pep_fraction 1 -prot_fraction 1)
+	@$(call TEST_FILE_EQUAL,IDFilter_2_output.idXML,IDFilter_2_output.tmp)
 
 	@$(ECHO) "- Test 3: exclusion peptides"
-	@$(call RUN_PROG_OPT,IDFilter,-in IDFilter_1_input.analysisXML -out IDFilter_3_output.tmp -exclusion_peptides_file IDFilter_3_input.analysisXML)
-	@$(call TEST_FILE_EQUAL,IDFilter_3_output.analysisXML,IDFilter_3_output.tmp)
+	@$(call RUN_PROG_OPT,IDFilter,-in IDFilter_1_input.idXML -out IDFilter_3_output.tmp -exclusion_peptides_file IDFilter_3_input.idXML)
+	@$(call TEST_FILE_EQUAL,IDFilter_3_output.idXML,IDFilter_3_output.tmp)
 
 	@$(ECHO) "- Test 4: retention time"
-	@$(call RUN_PROG_OPT,IDFilter,-in IDFilter_4_input.analysisXML -out IDFilter_4_output.tmp -rt_filtering -p_value 0.08)
-	@$(call TEST_FILE_EQUAL,IDFilter_4_output.analysisXML,IDFilter_4_output.tmp)
+	@$(call RUN_PROG_OPT,IDFilter,-in IDFilter_4_input.idXML -out IDFilter_4_output.tmp -rt_filtering -p_value 0.08)
+	@$(call TEST_FILE_EQUAL,IDFilter_4_output.idXML,IDFilter_4_output.tmp)
 
 LabeledMatcher_test: $(NUMERICDIFF)
 	@$(ECHO) ""
 	@$(ECHO) "LabeledMatcher:"
-	@$(call RUN_PROG_OPT,LabeledMatcher,-in LabeledMatcher_1_input.feat -ini LabeledMatcher_1_parameters.ini -out LabeledMatcher_1_output.tmp)
+	@$(call RUN_PROG_OPT,LabeledMatcher,-in LabeledMatcher_1_input.featureXML -ini LabeledMatcher_1_parameters.ini -out LabeledMatcher_1_output.tmp)
 	@$(call TEST_FILE_EQUAL,LabeledMatcher_1_output.pairs,LabeledMatcher_1_output.tmp)
 
 
@@ -518,7 +518,7 @@ MascotAdapter_test: $(NUMERICDIFF)
 	@$(call RUN_PROG_OPT,MascotAdapter,-ini MascotAdapter_1_parameters.ini -mascot_in)
 	@$(call TEST_FILE_EQUAL,MascotAdapter_1_output.mascot_in,MascotAdapter_1_output.tmp)
 	@$(call RUN_PROG_OPT,MascotAdapter,-in MascotAdapter_2_input.mascotXML -out MascotAdapter_2_output.tmp -mascot_out)
-	@$(call TEST_FILE_EQUAL,MascotAdapter_2_output.analysisXML,MascotAdapter_2_output.tmp)
+	@$(call TEST_FILE_EQUAL,MascotAdapter_2_output.idXML,MascotAdapter_2_output.tmp)
 
 
 NoiseFilter_test: $(NUMERICDIFF)
@@ -564,9 +564,9 @@ Resampler_test: $(NUMERICDIFF)
 RTModel_test: $(NUMERICDIFF)
 	@$(ECHO) ""
 	@$(ECHO) "RTModel:"
-	@$(call RUN_PROG_OPT,RTModel,-in RTModel_1_input.analysisXML -out RTModel_1_output.tmp -ini RTModel_1_parameters.ini)
+	@$(call RUN_PROG_OPT,RTModel,-in RTModel_1_input.idXML -out RTModel_1_output.tmp -ini RTModel_1_parameters.ini)
 	@$(call TEST_FILE_EQUAL,RTModel_1_output.tmp,RTModel_1_output.model)
-	@$(call RUN_PROG_OPT,RTModel,-in_positive RTModel_2_input_positive.analysisXML -in_negative RTModel_2_input_negative.analysisXML -out RTModel_2_output.tmp -ini RTModel_2_parameters.ini)
+	@$(call RUN_PROG_OPT,RTModel,-in_positive RTModel_2_input_positive.idXML -in_negative RTModel_2_input_negative.idXML -out RTModel_2_output.tmp -ini RTModel_2_parameters.ini)
 	@$(call TEST_FILE_EQUAL,RTModel_2_output.tmp,RTModel_2_output.model)
 	@$(call TEST_FILE_EQUAL,RTModel_2_output.tmp_samples,RTModel_2_output.samples)
 	@$(call TEST_FILE_EQUAL,RTModel_2_output.tmp_additional_parameters,RTModel_2_output.additional_parameters)
@@ -575,11 +575,11 @@ RTModel_test: $(NUMERICDIFF)
 RTPredict_test: $(NUMERICDIFF)
 	@$(ECHO) ""
 	@$(ECHO) "RTPredict:"
-	@$(call RUN_PROG_OPT,RTPredict,-in RTPredict_1_input.analysisXML -out RTPredict_1_output.tmp -total_gradient_time 3000 -svm_model RTPredict_1_input.model)
-	@$(call TEST_FILE_EQUAL,RTPredict_1_output.tmp,RTPredict_1_output.analysisXML)
-	@$(call RUN_PROG_OPT,RTPredict,-in RTPredict_2_input.analysisXML -out_positive RTPredict_2_output_positive.tmp -out_negative RTPredict_2_output_negative.tmp -svm_model RTPredict_2_input.model)
-	@$(call TEST_FILE_EQUAL,RTPredict_2_output_positive.tmp,RTPredict_2_output_positive.analysisXML)
-	@$(call TEST_FILE_EQUAL,RTPredict_2_output_negative.tmp,RTPredict_2_output_negative.analysisXML)
+	@$(call RUN_PROG_OPT,RTPredict,-in RTPredict_1_input.idXML -out RTPredict_1_output.tmp -total_gradient_time 3000 -svm_model RTPredict_1_input.model)
+	@$(call TEST_FILE_EQUAL,RTPredict_1_output.tmp,RTPredict_1_output.idXML)
+	@$(call RUN_PROG_OPT,RTPredict,-in RTPredict_2_input.idXML -out_positive RTPredict_2_output_positive.tmp -out_negative RTPredict_2_output_negative.tmp -svm_model RTPredict_2_input.model)
+	@$(call TEST_FILE_EQUAL,RTPredict_2_output_positive.tmp,RTPredict_2_output_positive.idXML)
+	@$(call TEST_FILE_EQUAL,RTPredict_2_output_negative.tmp,RTPredict_2_output_negative.idXML)
 
 
 InspectAdapter_test: $(NUMERICDIFF)
@@ -601,7 +601,7 @@ InspectAdapter_test: $(NUMERICDIFF)
 	@$(ECHO) "- Test 2: -inspect_out"
 	@$(call RUN_PROG_OPT,InspectAdapter,-ini InspectAdapter_1_parameters.ini -in InspectAdapter.out -out InspectAdapter_2_output.tmp -inspect_out)
 	@$(SED) -i 's/^.*date_group_0.*$$/# date group removed/g' InspectAdapter_2_output.tmp
-	@$(call TEST_FILE_EQUAL,InspectAdapter_2_output.analysisXML,InspectAdapter_2_output.tmp)
+	@$(call TEST_FILE_EQUAL,InspectAdapter_2_output.idXML,InspectAdapter_2_output.tmp)
 	@$(RM) -rf Inspect_FASTAFile_test4.trie Inspect_FASTAFile_test4.index
 
 SequestAdapter_test: $(NUMERICDIFF)
@@ -623,7 +623,7 @@ SequestAdapter_test: $(NUMERICDIFF)
 	@$(ECHO) "- Test 2: -sequest_out"
 	@$(call RUN_PROG_OPT,SequestAdapter,-ini SequestAdapter_2_parameters.ini -in tmp -out SequestAdapter_2_output.tmp -sequest_out)
 	@$(SED) -i 's/^.*date_group_1.*$$/# date group removed/g' SequestAdapter_2_output.tmp
-	@$(call TEST_FILE_EQUAL,SequestAdapter_2_output.analysisXML,SequestAdapter_2_output.tmp)
+	@$(call TEST_FILE_EQUAL,SequestAdapter_2_output.idXML,SequestAdapter_2_output.tmp)
 	@$(RM) -rf ./tmp/sequest_run.bat ./tmp/temp.sequest.in
 
 SpectraFilter_test: $(NUMERICDIFF)
@@ -656,12 +656,12 @@ ConsensusID_test: $(NUMERICDIFF)
 	@$(ECHO) "- Test 1: Map consensus"
 	@$(call RUN_PROG_OPT,ConsensusID,-ini ConsensusID_1_parameters.ini -out ConsensusID_1_output.tmp)
 	@$(SED) -i 's/^.*date_group_0.*$$/# date group removed/g' ConsensusID_1_output.tmp
-	@$(call TEST_FILE_EQUAL,ConsensusID_1_output.analysisXML)
+	@$(call TEST_FILE_EQUAL,ConsensusID_1_output.idXML)
 
 	@$(ECHO) "- Test 2: Feature consensus"
-	@$(call RUN_PROG_OPT,ConsensusID,-ini ConsensusID_2_parameters.ini -out ConsensusID_2_output.tmp -features ConsensusID_2_features.feat)
+	@$(call RUN_PROG_OPT,ConsensusID,-ini ConsensusID_2_parameters.ini -out ConsensusID_2_output.tmp -features ConsensusID_2_features.featureXML)
 	@$(SED) -i 's/^.*date_group_0.*$$/# date group removed/g' ConsensusID_2_output.tmp
-	@$(call TEST_FILE_EQUAL,ConsensusID_2_output.analysisXML)
+	@$(call TEST_FILE_EQUAL,ConsensusID_2_output.idXML)
 
 ###########################################################################################
 ## Tests for processing pipelines.
@@ -684,18 +684,18 @@ PairwiseSuperposition_test: $(NUMERICDIFF)
 	@$(ECHO) ""
 	@$(ECHO) "PairwiseSuperposition_test:"
 	@$(ECHO) "- Test 1: UnlabeledMatcher, MapMatcher, and MapDewarper"
-	@$(ECHO) "	PairwiseSuperposition_1_input1.feat shall be transformed into PairwiseSuperposition_1_output1.feat"
-	@$(ECHO) "	which is much closer to PairwiseSuperposition_1_input2.feat"
+	@$(ECHO) "	PairwiseSuperposition_1_input1.featureXML shall be transformed into PairwiseSuperposition_1_output1.featureXML"
+	@$(ECHO) "	which is much closer to PairwiseSuperposition_1_input2.featureXML"
 	@$(ECHO) "  Find pairs using simple UnlabeledMatcher..."
-	@$(call RUN_PROG_OPT,UnlabeledMatcher,-ini PairwiseSuperposition_1_parameters.ini -in1 PairwiseSuperposition_1_input1.feat -in2 PairwiseSuperposition_1_input2.feat -pairs PairwiseSuperposition_1_output1_pairs.tmp -grid PairwiseSuperposition_1_output1_grid.tmp)
+	@$(call RUN_PROG_OPT,UnlabeledMatcher,-ini PairwiseSuperposition_1_parameters.ini -in1 PairwiseSuperposition_1_input1.featureXML -in2 PairwiseSuperposition_1_input2.featureXML -pairs PairwiseSuperposition_1_output1_pairs.tmp -grid PairwiseSuperposition_1_output1_grid.tmp)
 	@$(call TEST_FILE_EQUAL,PairwiseSuperposition_1_output1.grid,PairwiseSuperposition_1_output1_grid.tmp)
 	@$(call TEST_FILE_EQUAL,PairwiseSuperposition_1_output1.pairs,PairwiseSuperposition_1_output1_pairs.tmp)
 	@$(ECHO) "  Find affine map by linear regression using MapMatcher..."
 	@$(call RUN_PROG_OPT,MapMatcher,-pairs PairwiseSuperposition_1_output1.pairs -grid PairwiseSuperposition_1_output1.grid -out PairwiseSuperposition_1_output2_grid.tmp)
 	@$(call TEST_FILE_EQUAL,PairwiseSuperposition_1_output2.grid,PairwiseSuperposition_1_output2_grid.tmp)
 	@$(ECHO) "  Apply affine map using MapDewarper..."
-	@$(call RUN_PROG_OPT,MapDewarper,-feat PairwiseSuperposition_1_input1.feat -grid PairwiseSuperposition_1_output2.grid -out PairwiseSuperposition_1_output1_feat.tmp)
-	@$(call TEST_FILE_EQUAL,PairwiseSuperposition_1_output1.feat,PairwiseSuperposition_1_output1_feat.tmp)
+	@$(call RUN_PROG_OPT,MapDewarper,-feat PairwiseSuperposition_1_input1.featureXML -grid PairwiseSuperposition_1_output2.grid -out PairwiseSuperposition_1_output1_feat.tmp)
+	@$(call TEST_FILE_EQUAL,PairwiseSuperposition_1_output1.featureXML,PairwiseSuperposition_1_output1_feat.tmp)
 
 
 InternalCalibration_test: $(NUMERICDIFF)

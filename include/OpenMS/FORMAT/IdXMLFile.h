@@ -24,8 +24,8 @@
 // $Maintainer: Nico Pfeifer $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_FORMAT_ANALYSISXMLFILE_H
-#define OPENMS_FORMAT_ANALYSISXMLFILE_H
+#ifndef OPENMS_FORMAT_IdXMLFile_H
+#define OPENMS_FORMAT_IdXMLFile_H
 
 #include <OpenMS/METADATA/Identification.h>
 
@@ -34,24 +34,23 @@
 namespace OpenMS 
 {
   /**
-    @brief Used to load and store analysisXML files
+    @brief Used to load and store IdXML files
     
     This class is used to load and store documents that implement 
-    the schema of analysisXML files.
-  	
-  	@todo Rename to idXML (Marc)
+    the schema of IdXML files.
+
   	@todo Create Schema (Nico, Andreas)
   	
   	@ingroup FileIO
   */
-  class AnalysisXMLFile
+  class IdXMLFile
   {
     public:
       /// Constructor
-      AnalysisXMLFile();
+      IdXMLFile();
       
 			/**
-      	@brief Loads the identifications of an AnalysisXML file
+      	@brief Loads the identifications of an IdXML file
 
 				The information is read in and the information is stored in the
 				corresponding variables
@@ -59,7 +58,7 @@ namespace OpenMS
       void load(const String& filename, std::vector<ProteinIdentification>& protein_identifications, std::vector<IdentificationData>& id_data) const throw (Exception::FileNotFound, Exception::ParseError);
       					 
 			/**
-      	@brief Loads the identifications of an AnalysisXML file
+      	@brief Loads the identifications of an IdXML file
 
 				The information is read in and the information is stored in the
 				corresponding variables. This function offers the possibility to load 
@@ -69,14 +68,14 @@ namespace OpenMS
       void load(const String& filename, std::vector<ProteinIdentification>& protein_identifications, std::vector<IdentificationData>& id_data, std::map<String, DoubleReal>& predicted_retention_times)  	const throw (Exception::FileNotFound, Exception::ParseError);
       					 
 			/**
-      	@brief Stores the data in an AnalysisXML file
+      	@brief Stores the data in an IdXML file
 
 				The data is read in and stored in the file 'filename'.
       */
       void store(String filename, const std::vector<ProteinIdentification>& protein_identifications, const std::vector<IdentificationData>& id_data) const throw (Exception::UnableToCreateFile); 
 
 			/**
-      	@brief Stores the data in an AnalysisXML file
+      	@brief Stores the data in an IdXML file
 
 				The data is read in and stored in the file 'filename'.
       */
@@ -87,4 +86,4 @@ namespace OpenMS
  
 } // namespace OpenMS
 
-#endif // OPENMS_FORMAT_ANALYSISXMLFILE_H
+#endif // OPENMS_FORMAT_IdXMLFile_H

@@ -27,7 +27,7 @@
 #include <OpenMS/config.h>
 
 #include <OpenMS/FORMAT/FileHandler.h>
-#include <OpenMS/FORMAT/FeatureMapFile.h>
+#include <OpenMS/FORMAT/FeatureXMLFile.h>
 
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
@@ -150,7 +150,7 @@ class TOPPFileConverter
 			// Enough reasons to issue a warning!
 			writeLog_("Warning: Converting features to peaks. You will lose information!");	
 			FeatureMapType fm;
-			FeatureMapFile().load(in,fm);
+			FeatureXMLFile().load(in,fm);
 			fm.sortByPosition();
 			exp.set2DData(fm);
 		}
@@ -214,7 +214,7 @@ class TOPPFileConverter
 				}
 			}
 			feature_map.updateRanges();
-			FeatureMapFile().store(out,feature_map);
+			FeatureXMLFile().store(out,feature_map);
 		}
 		else
 		{

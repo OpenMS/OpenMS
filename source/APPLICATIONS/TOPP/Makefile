@@ -57,7 +57,7 @@ EXECUTABLES=\
 	DTAExtractor\
 	DBExporter\
 	DBImporter\
-	AnalysisXMLMerger\
+	IDMerger\
 	AdditiveSeries\
 	MapMatcher\
 	NoiseFilter\
@@ -222,7 +222,7 @@ MapAlignment: MapAlignment.o
 	$(CXX) $(LDFLAGS) -o $@ $< $(LIBS)
 	$(CP) $@ $(OPENMS_PATH)/bin/   
 
-AnalysisXMLMerger: AnalysisXMLMerger.o
+IDMerger: IDMerger.o
 	$(CXX) $(LDFLAGS) -o $@ $< $(LIBS)
 	$(CP) $@ $(OPENMS_PATH)/bin/   
 

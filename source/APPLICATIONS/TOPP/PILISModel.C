@@ -29,7 +29,7 @@
 #include <OpenMS/ANALYSIS/ID/PILISModelGenerator.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/FORMAT/MzDataFile.h>
-#include <OpenMS/FORMAT/AnalysisXMLFile.h>
+#include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/TICFilter.h>
 #include <typeinfo>
@@ -71,7 +71,7 @@ class TOPPPILISModel
 		void registerOptionsAndFlags_()
 		{
 			registerStringOption_("in", "<file>", "", "input file for the spectra in MzData format");
-			registerStringOption_("id_in", "<file>", "", "input file for the annotations in AnalysisXML format");
+			registerStringOption_("id_in", "<file>", "", "input file for the annotations in IdXML format");
 			registerStringOption_("trained_model_file", "<file>", "", "the output file of the trained model");
 		
 			addEmptyLine_();		
@@ -154,7 +154,7 @@ class TOPPPILISModel
 			}
 
 
-			AnalysisXMLFile id_in_file;
+			IdXMLFile id_in_file;
 			vector<ProteinIdentification> prot_ids;
 			vector<IdentificationData> peptide_ids;
 			id_in_file.load(id_in, prot_ids, peptide_ids);

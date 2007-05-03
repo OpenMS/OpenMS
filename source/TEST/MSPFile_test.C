@@ -31,7 +31,7 @@
 //#include <OpenMS/KERNEL/MSExperiment.h>
 //#include <OpenMS/KERNEL/MSExperimentExtern.h>
 //#include <OpenMS/KERNEL/StandardTypes.h>
-//#include <OpenMS/FORMAT/AnalysisXMLFile.h>
+//#include <OpenMS/FORMAT/IdXMLFile.h>
 //#include <OpenMS/FORMAT/MzDataFile.h>
 
 using namespace OpenMS;
@@ -60,8 +60,8 @@ CHECK((template<typename MapType> void load(const String& filename, MapType& map
 	vector<IdentificationData> ids;
 	msp_file.load("/home/andreas/DATA/NIST_PEPLIB/LIBS_TXT/human.msp", ids, map);
 	cerr << "#ids=" << ids.size() << endl;
-	AnalysisXMLFile analysis_file;
-	analysis_file.store("human.analysisXML", vector<ProteinIdentification>(), ids);
+	IdXMLFile analysis_file;
+	analysis_file.store("human.idXML", vector<ProteinIdentification>(), ids);
 
 
 	MzDataFile map_file;

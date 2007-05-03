@@ -24,31 +24,31 @@
 // $Maintainer: Ole Schulz-Trieglaff $
 // --------------------------------------------------------------------------
 
-#include<OpenMS/FORMAT/FeatureMapFile.h>
-#include <OpenMS/FORMAT/HANDLERS/FeatureMapHandler.h>
+#include<OpenMS/FORMAT/FeatureXMLFile.h>
+#include <OpenMS/FORMAT/HANDLERS/FeatureXMLHandler.h>
 
 namespace OpenMS 
 {
-	FeatureMapFile::FeatureMapFile()
+	FeatureXMLFile::FeatureXMLFile()
 		: SchemaFile()
 	{
 	}
-	FeatureMapFile::~FeatureMapFile()
+	FeatureXMLFile::~FeatureXMLFile()
 	{
 	}
 
-	void FeatureMapFile::load(String filename, FeatureMap<>& feature_map) throw (Exception::FileNotFound, Exception::ParseError)
+	void FeatureXMLFile::load(String filename, FeatureMap<>& feature_map) throw (Exception::FileNotFound, Exception::ParseError)
 	{
 		feature_map.clear();
-		Internal::FeatureMapHandler handler(feature_map,filename);
+		Internal::FeatureXMLHandler handler(feature_map,filename);
 		handler.setOptions(options_);
 		parse_(filename, &handler);
 	}
 
-	void FeatureMapFile::store(String filename, const FeatureMap<>& feature_map) const throw (Exception::UnableToCreateFile)
+	void FeatureXMLFile::store(String filename, const FeatureMap<>& feature_map) const throw (Exception::UnableToCreateFile)
 	{
 		if (feature_map.empty()) return;
-		Internal::FeatureMapHandler handler(feature_map,filename);
+		Internal::FeatureXMLHandler handler(feature_map,filename);
 		save_(filename, &handler);
 	}
 }

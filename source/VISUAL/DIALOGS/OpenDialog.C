@@ -119,8 +119,8 @@ namespace OpenMS
 			filter_all +=" *.cdf";
 			filter_single += ";;ANDI/MS files (*.cdf)";
 	#endif
-			filter_all += " *.mzXML *.mzData *.feat *.pairs);;" ;
-			filter_single +=";;mzXML files (*.mzXML);;mzData files (*.mzData);;feature map (*.feat);;feature pairs (*.pairs);;all files (*.*)";
+			filter_all += " *.mzXML *.mzData *.featureXML *.pairs);;" ;
+			filter_single +=";;mzXML files (*.mzXML);;mzData files (*.mzData);;feature map (*.featureXML);;feature pairs (*.pairs);;all files (*.*)";
 		
 		 	QStringList files = QFileDialog::getOpenFileNames(this, "Open file(s)", prefs_.getValue("Preferences:DefaultPath").toString().c_str(), (filter_all+ filter_single).c_str());
 			//check if the dialog was canceled

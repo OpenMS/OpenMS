@@ -42,10 +42,11 @@
   - <b>-progress</b> Enables progress logging to command line
   - <b>--help</b> Shows a help page for the command line and INI file options
 
+	There is also a short @subpage TOPPTutorial.
 
  	The TOPP tools are devided into several subgroups:
   - <b>File Handling</b>
-    - \subpage AnalysisXMLMerger
+    - \subpage IDMerger
   	- \subpage DBExporter
     - \subpage DBImporter
     - \subpage DTAExtractor

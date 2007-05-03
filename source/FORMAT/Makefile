@@ -53,8 +53,8 @@ CPP_SOURCES=\
 	MzXMLFile.C\
 	Param.C\
 	MzDataFile.C\
-	AnalysisXMLFile.C\
-	FeatureMapFile.C\
+	IdXMLFile.C\
+	FeatureXMLFile.C\
 	FeaturePairsFile.C\
 	MascotXMLFile.C\
 	GridFile.C\

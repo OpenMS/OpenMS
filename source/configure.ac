@@ -18,9 +18,6 @@ PROJECT=OPENMS
 define(PROJECTUPPER, OPENMS)
 define(PROJECT, OpenMS)
 
-dnl   Require the user to accept the license (once)
-CF_CHECK_LICENSE
-
 dnl		
 dnl    Define command line arguments for compiler,
 dnl    compiler flags, includes and libraries.

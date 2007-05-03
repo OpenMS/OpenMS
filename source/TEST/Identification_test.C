@@ -31,7 +31,7 @@
 #include <string>
 
 #include <OpenMS/FORMAT/MascotXMLFile.h>
-#include <OpenMS/FORMAT/AnalysisXMLFile.h>
+#include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/METADATA/Identification.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
@@ -312,7 +312,7 @@ CHECK((void sort()))
 	hit.setScore(33.9);
 	hit.setScoreType("Mascot");
 
-	AnalysisXMLFile().load("data/AnalysisXMLFile_test.analysisXML", protein_identifications, identifications);
+	IdXMLFile().load("data/IdXMLFile_test.idXML", protein_identifications, identifications);
 	TEST_EQUAL(identifications.size(), 3)
 
 	identifications[0].id.insertPeptideHit(hit);
@@ -331,7 +331,7 @@ CHECK((void assignRanks()))
 	hit.setScore(33.9);
 	hit.setScoreType("Mascot");
 
-	AnalysisXMLFile().load("data/AnalysisXMLFile_test.analysisXML", protein_identifications, identifications);
+	IdXMLFile().load("data/IdXMLFile_test.idXML", protein_identifications, identifications);
 	TEST_EQUAL(identifications.size(), 3)
 
 	identifications[0].id.insertPeptideHit(hit);

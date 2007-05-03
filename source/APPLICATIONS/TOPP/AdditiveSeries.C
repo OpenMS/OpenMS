@@ -24,7 +24,7 @@
 // $Maintainer: Ole Schulz-Trieglaff $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/FORMAT/FeatureMapFile.h>
+#include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/MATH/STATISTICS/LinearRegression.h>
@@ -111,7 +111,7 @@ class AdditiveSeries
 		registerStringOption_("rt_unit","<unit>","seconds","the RT unit of the plot",false);
 			
 		addEmptyLine_();
-		addText_("Input feature files, spiked concentrations, feature position and standard position can only be specified in the INI file:\n"
+		addText_("Input featureXML files, spiked concentrations, feature position and standard position can only be specified in the INI file:\n"
 						 "  <NODE name=\"Files\">\n"
 						 "    <ITEM name=\"1\" value=\"data/file1.xml\" type=\"string\">\n"
 						 "    <ITEM name=\"2\" value=\"data/file2.xml\" type=\"string\">\n"
@@ -147,7 +147,7 @@ class AdditiveSeries
 										CoordinateType tol_mz, CoordinateType tol_rt,
 										DPosition<2> fpos1, DPosition<2> fpos2)
 	{
-		FeatureMapFile map_file;
+		FeatureXMLFile map_file;
 		FeatureMap<> map;
 		map_file.load(filename,map);
 

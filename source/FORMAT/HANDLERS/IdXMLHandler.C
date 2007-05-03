@@ -24,7 +24,7 @@
 // $Maintainer: Nico Pfeifer $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/FORMAT/HANDLERS/AnalysisXMLHandler.h>
+#include <OpenMS/FORMAT/HANDLERS/IdXMLHandler.h>
 #include <OpenMS/DATASTRUCTURES/DateTime.h>
 
 #include <xercesc/sax2/Attributes.hpp>
@@ -39,7 +39,7 @@ namespace OpenMS
 {
 	namespace Internal
 	{
-  AnalysisXMLHandler::AnalysisXMLHandler(vector<ProteinIdentification>& protein_identifications,
+  IdXMLHandler::IdXMLHandler(vector<ProteinIdentification>& protein_identifications,
   									 std::vector<IdentificationData>& id_data,
    									 const String& filename ) :
     XMLHandler(filename),
@@ -66,7 +66,7 @@ namespace OpenMS
   {
   }
 
-  AnalysisXMLHandler::AnalysisXMLHandler(vector<ProteinIdentification>& protein_identifications, 
+  IdXMLHandler::IdXMLHandler(vector<ProteinIdentification>& protein_identifications, 
       									 std::vector<IdentificationData>& id_data,
       									 map<String, DoubleReal>& predicted_retention_times,
    									 		 const String& filename) :
@@ -94,7 +94,7 @@ namespace OpenMS
   {
   }
 
-  AnalysisXMLHandler::AnalysisXMLHandler(const vector<ProteinIdentification>& protein_identifications,
+  IdXMLHandler::IdXMLHandler(const vector<ProteinIdentification>& protein_identifications,
   									 const std::vector<IdentificationData>& id_data,
    									 const String& filename) :
     XMLHandler(filename),
@@ -121,7 +121,7 @@ namespace OpenMS
   {
   }
       									 	      									 	  
-  AnalysisXMLHandler::AnalysisXMLHandler(const vector<ProteinIdentification>& protein_identifications, 
+  IdXMLHandler::IdXMLHandler(const vector<ProteinIdentification>& protein_identifications, 
 																				 const std::vector<IdentificationData>& id_data,
 																				 const map<String, DoubleReal>& const_predicted_retention_times,
 																				 const String& filename) :
@@ -150,12 +150,12 @@ namespace OpenMS
   	
   }
    
-  AnalysisXMLHandler::~AnalysisXMLHandler()
+  IdXMLHandler::~IdXMLHandler()
   {
     
   }
    
-  void AnalysisXMLHandler::writeTo(std::ostream& os)
+  void IdXMLHandler::writeTo(std::ostream& os)
   {
   	vector<ProteinHit> 										temp_protein_hits;
   	vector<PeptideHit> 										temp_peptide_hits;
@@ -469,7 +469,7 @@ namespace OpenMS
 		 
   }
 
-  void AnalysisXMLHandler::startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const xercesc::Attributes& attributes)
+  void IdXMLHandler::startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const xercesc::Attributes& attributes)
 	{
 		tag_ = String(xercesc::XMLString::transcode(qname));
 		
@@ -615,7 +615,7 @@ namespace OpenMS
 		}
 	}
 
-  void AnalysisXMLHandler::endElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname)
+  void IdXMLHandler::endElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname)
  	{
  		tag_ = String(xercesc::XMLString::transcode(qname)).trim();
 		
@@ -676,7 +676,7 @@ namespace OpenMS
 		tag_ = "";
  	} 
 
-  void AnalysisXMLHandler::characters(const XMLCh* const chars, unsigned int /*length*/)
+  void IdXMLHandler::characters(const XMLCh* const chars, unsigned int /*length*/)
   {
 		if (tag_ == "dbName")
 		{
@@ -700,7 +700,7 @@ namespace OpenMS
 		}
   }
   
-  UInt AnalysisXMLHandler::getDateGroupIndex(DateTime 											date_time,
+  UInt IdXMLHandler::getDateGroupIndex(DateTime 											date_time,
 			  																						map< String , UInt> 		date_times)
 	{
 		String 																date_time_string 					= "";
@@ -730,7 +730,7 @@ namespace OpenMS
 		return date_group_index;		
 	}
   
-  void AnalysisXMLHandler::writePeptideHit(ostream& os, 
+  void IdXMLHandler::writePeptideHit(ostream& os, 
   																				String shift,
 			  																	PeptideHit hit,
 			  																	Real significance_threshold,

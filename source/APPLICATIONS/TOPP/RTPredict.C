@@ -25,7 +25,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/SVM/SVMWrapper.h>
-#include <OpenMS/FORMAT/AnalysisXMLFile.h>
+#include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/FORMAT/LibSVMEncoder.h>
 #include <OpenMS/METADATA/Identification.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
@@ -47,17 +47,17 @@ using namespace std;
 				 for peptides or peptide separation.
 	
 	The input of this application 
-	is an svm model and an analysisXML
+	is an svm model and an IdXML
 	file with peptide identifications. The svm model file is specified
 	by the <b>svm_model</b> parameter in the command line or the ini file. 
 	This file should have been produced by the RTModel application. 
 	<br>
 	For retention time prediction the peptide sequences are extracted 
-	from the analysisXML inputfile 
+	from the IdXML inputfile 
 	and passed to the svm. The svm then predicts retention times
 	according to the trained model. The predicted retention times
 	are stored as @code <userParam name="predicted_retention_time" value="<predicted retention time>" /> 
-	@endcode inside the peptide entities in the analysisXML output file.
+	@endcode inside the peptide entities in the IdXML output file.
 	For separation prediction you have to specify two output file names.
 	'out_positive' is the filename of the peptides which are predicted
 	to be collected by the coloumn and 'out_negative' is the file
@@ -80,17 +80,17 @@ class TOPPRTPredict
 	protected:
 		void registerOptionsAndFlags_()
 		{
-			registerStringOption_("in","<file>",""," input file in analysisXML format");
-			registerStringOption_("out","<file>","","output file in analysisXML format (peptide RT prediction)", false);
-			registerStringOption_("out_positive","<file>","","output file in analysisXML format containing positive predictions (peptide separation prediction)", false);
-			registerStringOption_("out_negative","<file>","","output file in analysisXML format containing negative predictions (peptide separation prediction)", false);
+			registerStringOption_("in","<file>",""," input file in IdXML format");
+			registerStringOption_("out","<file>","","output file in IdXML format (peptide RT prediction)", false);
+			registerStringOption_("out_positive","<file>","","output file in IdXML format containing positive predictions (peptide separation prediction)", false);
+			registerStringOption_("out_negative","<file>","","output file in IdXML format containing negative predictions (peptide separation prediction)", false);
 			registerStringOption_("svm_model","<file>","","svm model in libsvm format (can be produced by RTModel)");
 			registerDoubleOption_("total_gradient_time","<time>",1.0,"the time (in seconds) of the gradient (peptide RT prediction)", false);
 		}
 
 		ExitCodes main_(int , char**)
 		{
-			AnalysisXMLFile analysisXML_file;
+			IdXMLFile IdXML_file;
 			vector<ProteinIdentification> protein_identifications;
 			vector<IdentificationData> identifications;
 			vector< String > peptides;
@@ -239,7 +239,7 @@ class TOPPRTPredict
 				}
 			}				
 			
-			analysisXML_file.load(inputfile_name, protein_identifications, identifications);
+			IdXML_file.load(inputfile_name, protein_identifications, identifications);
 	  													
 			//-------------------------------------------------------------
 			// calculations
@@ -361,16 +361,16 @@ class TOPPRTPredict
 			
 			if (separation_prediction)
 			{
-				analysisXML_file.store(outputfile_name_positive,
+				IdXML_file.store(outputfile_name_positive,
 															 protein_identifications,
 															 identifications_positive);
-				analysisXML_file.store(outputfile_name_negative,
+				IdXML_file.store(outputfile_name_negative,
 															 protein_identifications,
 															 identifications_negative);
 			}
 			else
 			{
-				analysisXML_file.store(outputfile_name,
+				IdXML_file.store(outputfile_name,
 															 protein_identifications,
 															 identifications,
 															 predicted_data);

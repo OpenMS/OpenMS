@@ -50,7 +50,7 @@ namespace OpenMS
 	/**
 		@brief Representation of an Inspect outfile
 		
-		This class serves to read in an Inspect outfile and write an AnalysisXML file
+		This class serves to read in an Inspect outfile and write an IdXML file
 		
   	@todo Handle Modifications (Andreas)
 		

@@ -24,8 +24,8 @@
 // $Maintainer: Nico Pfeifer $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/FORMAT/AnalysisXMLFile.h>
-#include <OpenMS/FORMAT/HANDLERS/AnalysisXMLHandler.h>
+#include <OpenMS/FORMAT/IdXMLFile.h>
+#include <OpenMS/FORMAT/HANDLERS/IdXMLHandler.h>
 #include <OpenMS/SYSTEM/File.h>
 
 #include <xercesc/sax2/SAX2XMLReader.hpp>
@@ -39,12 +39,12 @@ using namespace std;
 namespace OpenMS 
 {
 
-	AnalysisXMLFile::AnalysisXMLFile()
+	IdXMLFile::IdXMLFile()
 	{
 	  	
 	}
 
-  void AnalysisXMLFile::load(const String& filename, 
+  void IdXMLFile::load(const String& filename, 
   					 								 vector<ProteinIdentification>& protein_identifications,
   													 std::vector<IdentificationData>& id_data)
   	const throw (Exception::FileNotFound, Exception::ParseError)
@@ -72,7 +72,7 @@ namespace OpenMS
 		protein_identifications.clear();
 		id_data.clear();
 
-		Internal::AnalysisXMLHandler handler(protein_identifications,
+		Internal::IdXMLHandler handler(protein_identifications,
 																				 id_data,
 																				 filename);
 
@@ -95,7 +95,7 @@ namespace OpenMS
     }
   }
   					 
-  void AnalysisXMLFile::load(const String& filename, 
+  void IdXMLFile::load(const String& filename, 
   					 								 vector<ProteinIdentification>& protein_identifications,
   													 std::vector<IdentificationData>& id_data,
       											 std::map<String, DoubleReal>& predicted_retention_times)
@@ -126,7 +126,7 @@ namespace OpenMS
 		id_data.clear();
 		predicted_retention_times.clear();
 
-		Internal::AnalysisXMLHandler handler(protein_identifications,
+		Internal::IdXMLHandler handler(protein_identifications,
 																				 id_data,
 																				 predicted_retention_times,
 																				 filename);
@@ -150,7 +150,7 @@ namespace OpenMS
     }
   }
   					 
-  void AnalysisXMLFile::store(String filename, 
+  void IdXMLFile::store(String filename, 
   					 									const vector<ProteinIdentification>& protein_identifications,
   					 									const std::vector<IdentificationData>& id_data) const throw (Exception::UnableToCreateFile)
   {
@@ -161,7 +161,7 @@ namespace OpenMS
 		}
 
 		//read data and close stream
-		Internal::AnalysisXMLHandler handler(protein_identifications,
+		Internal::IdXMLHandler handler(protein_identifications,
 															 					 id_data,
 															 					 filename);
 		handler.writeTo(os);
@@ -169,7 +169,7 @@ namespace OpenMS
 
   }
 
-  void AnalysisXMLFile::store(String filename, 
+  void IdXMLFile::store(String filename, 
   					 									const vector<ProteinIdentification>& protein_identifications,
   					 									const std::vector<IdentificationData>& id_data,
   					 									const map<String, DoubleReal>& predicted_retention_times) 
@@ -182,7 +182,7 @@ namespace OpenMS
 		}
 
 		//read data and close stream
-		Internal::AnalysisXMLHandler handler(protein_identifications,
+		Internal::IdXMLHandler handler(protein_identifications,
 																				 id_data,
 																				 predicted_retention_times,
 																				 filename);

@@ -25,7 +25,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/MzDataFile.h>
-#include <OpenMS/FORMAT/AnalysisXMLFile.h>
+#include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/FORMAT/MascotXMLFile.h>
 #include <OpenMS/FORMAT/MascotInfile.h>
 #include <OpenMS/FORMAT/MascotOutfile.h>
@@ -59,7 +59,7 @@ using namespace std;
 				The whole process of identification via Mascot is executed. 
 				Inputfile is a mzData file containing the MS/MS spectra
 			 	for which the identifications are to be found. The results
-			 	are written as a analysisXML output file. This mode is selected
+			 	are written as a IdXML output file. This mode is selected
 			 	by default.
 			 	</li>
 				
@@ -80,7 +80,7 @@ using namespace std;
 				<li>
 				Only the second part of the identification process is performed.
 				This means that the outputfile of the Mascot server is
-				translated into analysisXML.
+				translated into IdXML.
 				
 				This mode is selected by the <b>-mascot_out</b> option in the command line.
 				</li>
@@ -115,7 +115,7 @@ using namespace std;
 		</li>
 		<li>
 			execute MascotAdapter in mode 3			
-			@code ./MascotAdapter -in mascotXMLFile -out analysisXMLFile -mascot_out @endcode
+			@code ./MascotAdapter -in mascotXMLFile -out IdXMLFile -mascot_out @endcode
 		</li>
 	</ul>
 
@@ -186,12 +186,12 @@ class TOPPMascotAdapter
 	protected:
 		void registerOptionsAndFlags_()
 		{
-			registerStringOption_("out", "<file>", "", "output file in analysisXML format.\n"
+			registerStringOption_("out", "<file>", "", "output file in IdXML format.\n"
 			                                           "Note: In mode 'mascot_in' Mascot generic format is written.");
 			registerStringOption_("in", "<file>", "", "input file in mzData format.\n"
 					 																			"Note: In mode 'mascot_out' a Mascot results file (.mascotXML) is read");
 			registerFlag_("mascot_in", "if this flag is set the MascotAdapter will read in mzData and write Mascot generic format");
-			registerFlag_("mascot_out", "if this flag is set the MascotAdapter will read in a Mascot results file (.mascotXML) and write analysisXML");
+			registerFlag_("mascot_out", "if this flag is set the MascotAdapter will read in a Mascot results file (.mascotXML) and write IdXML");
 			registerStringOption_("instrument", "<i>", "Default", "the instrument that was used to measure the spectra", false);
 			registerDoubleOption_("precursor_mass_tolerance", "<tol>", 2.0 , "the precursor mass tolerance", false);
 			registerDoubleOption_("peak_mass_tolerance", "<tol>", 1.0, "the peak mass tolerance", false);
@@ -396,11 +396,11 @@ class TOPPMascotAdapter
 			{
 				mascotXML_file_name = inputfile_name;
 
-				writeDebug_("Mascot flag: mascot_out (reads in Mascot results file writes analysisXML file)", 1);
+				writeDebug_("Mascot flag: mascot_out (reads in Mascot results file writes IdXML file)", 1);
 			}
 			else
 			{
-				writeDebug_("No Mascot flag set: reads in MzData writes analysisXML file", 1);
+				writeDebug_("No Mascot flag set: reads in MzData writes IdXML file", 1);
 			}
 			if (!mascot_in && !mascot_out)
 			{
@@ -552,7 +552,7 @@ class TOPPMascotAdapter
 			//-------------------------------------------------------------
 				vector<ProteinIdentification> protein_identifications;
 				protein_identifications.push_back(protein_identification);
-				AnalysisXMLFile().store(outputfile_name,
+				IdXMLFile().store(outputfile_name,
 															 protein_identifications, 
 													 		 identifications);
 													 		 												 		 

@@ -29,7 +29,7 @@
 ///////////////////////////
 
 #include <OpenMS/DATASTRUCTURES/String.h>
-#include <OpenMS/FORMAT/AnalysisXMLFile.h>
+#include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/METADATA/Identification.h>
 
 #include <vector>
@@ -44,11 +44,11 @@ START_TEST(FASTAFile, "$Id$")
 using namespace OpenMS;
 using namespace std;
 
-AnalysisXMLFile* ptr;
-AnalysisXMLFile xml_file;
+IdXMLFile* ptr;
+IdXMLFile xml_file;
 
-CHECK((AnalysisXMLFile()))
-	ptr = new AnalysisXMLFile();
+CHECK((IdXMLFile()))
+	ptr = new IdXMLFile();
 RESULT
 
 CHECK((void load(const String& filename, std::vector<ProteinIdentification>& protein_identifications, std::vector<IdentificationData>& id_data) const throw(Exception::FileNotFound, Exception::ParseError)))
@@ -56,7 +56,7 @@ CHECK((void load(const String& filename, std::vector<ProteinIdentification>& pro
 	vector<ProteinIdentification> protein_identifications; 
 	vector<IdentificationData> identifications;
 
-	xml_file.load("data/AnalysisXMLFile_test.analysisXML",
+	xml_file.load("data/IdXMLFile_test.idXML",
 							protein_identifications, 
 				   		identifications);
 	TEST_EQUAL(identifications.size(), 3)
@@ -106,7 +106,7 @@ CHECK((void load(const String& filename, std::vector<ProteinIdentification>& pro
 	vector<IdentificationData> identifications; 
 	map<String, double> predicted_retention_times;
 
-	xml_file.load("data/AnalysisXMLFile_test.analysisXML",
+	xml_file.load("data/IdXMLFile_test.idXML",
 							protein_identifications, 
 				   		identifications,
 							predicted_retention_times);
@@ -163,10 +163,10 @@ CHECK((void store(String filename, const std::vector<ProteinIdentification>& pro
 	vector<ProteinIdentification> protein_identifications; 
 	vector<IdentificationData> identifications; 
 
-	String temp_filename = "data/AnalysisXMLFile_test_2.analysisXML";
+	String temp_filename = "data/IdXMLFile_test_2.idXML";
 
 	NEW_TMP_FILE(temp_filename)
-	xml_file.load("data/AnalysisXMLFile_test.analysisXML", 
+	xml_file.load("data/IdXMLFile_test.idXML", 
 							protein_identifications, 
 				   		identifications);
 	xml_file.store(temp_filename, 
@@ -222,10 +222,10 @@ CHECK((void store(String filename, const std::vector<ProteinIdentification>& pro
 	vector<IdentificationData> identifications; 
 	map<String, double> predicted_retention_times;
 
-	String temp_filename = "data/AnalysisXMLFile_test_2.analysisXML";
+	String temp_filename = "data/IdXMLFile_test_2.idXML";
 	NEW_TMP_FILE(temp_filename)
 	
-	xml_file.load("data/AnalysisXMLFile_test.analysisXML", 
+	xml_file.load("data/IdXMLFile_test.idXML", 
 							protein_identifications, 
 				   		identifications,
 								predicted_retention_times);

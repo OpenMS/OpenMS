@@ -31,7 +31,7 @@
 #include <iostream>
 
 #include <OpenMS/ANALYSIS/ID/IDSpectrumMapper.h>
-#include <OpenMS/FORMAT/AnalysisXMLFile.h>
+#include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/DSpectrum.h>
 
@@ -60,7 +60,7 @@ CHECK((template<class PeakT> UInt annotate(MSExperiment< PeakT >& experiment, co
 	MSExperiment< Peak1D > experiment;
 	MSSpectrum< Peak1D > spectrum;
 	DSpectrum< 1 >::PrecursorPeakType peak;
-	AnalysisXMLFile().load("data/IDSpectrumMapper_test.analysisXML",
+	IdXMLFile().load("data/IDSpectrumMapper_test.idXML",
 								protein_identifications, 
 					   		identifications);
 	
@@ -94,7 +94,7 @@ CHECK((template<class PeakT> void getAnnotations(const MSExperiment< PeakT >& ex
 	MSExperiment< Peak1D > experiment;
 	MSSpectrum< Peak1D > spectrum;
 	DSpectrum< 1 >::PrecursorPeakType peak;
-	AnalysisXMLFile().load("data/IDSpectrumMapper_test.analysisXML",
+	IdXMLFile().load("data/IDSpectrumMapper_test.idXML",
 								protein_identifications, 
 					   		identifications);
 	

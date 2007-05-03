@@ -34,7 +34,7 @@
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/METADATA/Identification.h>
 #include <OpenMS/FORMAT/MascotOutfile.h>
-#include <OpenMS/FORMAT/AnalysisXMLFile.h>
+#include <OpenMS/FORMAT/IdXMLFile.h>
 
 #include <vector>
 
@@ -58,7 +58,7 @@ std::vector< IdentificationData > identifications;
 std::vector< IdentificationData > identifications2;
 IdentificationData data;
 	
-AnalysisXMLFile().load("data/IDFilter_test.analysisXML", 
+IdXMLFile().load("data/IDFilter_test.idXML", 
 							protein_identifications, 
 							identifications);
 

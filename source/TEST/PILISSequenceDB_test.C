@@ -31,7 +31,7 @@
 #include <iostream>
 
 #include <OpenMS/ANALYSIS/ID/PILISSequenceDB.h>
-#include <OpenMS/FORMAT/AnalysisXMLFile.h>
+#include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 
 ///////////////////////////

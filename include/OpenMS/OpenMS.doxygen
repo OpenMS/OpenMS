@@ -85,13 +85,11 @@ Ideen:
 - Seeder/Extender: Analyse der MassenSpur-Distanzen
 
 Todos:
-- Team: add Project Role
-- TOPP tutorial (subpage von TOPP docu, 3 Usecases, wie Demo ISMB)
-- analysisXML -> idXML
-- feat -> featureXML
-- Spectrum3DCanvas: fix grab keyboard
-- TOPPViewBase: Parameters (Typ: enum, inputfile, inputfiles, outputfile, outputfiles)
+- Schema FeatureXML + XERCES checken lassen
+- Spectrum3DCanvas: fix grab keyboard (buddy?)
+- Store ScoreType (with direction) and AccessionType as Enum in Identification
 - Add getPrecursorRT(rt/scan nr) and update ID adapters and IDSpectrumMapper 
+- TOPP tutorial: Usecases AW-Daten
 
 Thomas Schreiner: 
 - mzData fixen (CV)
@@ -116,4 +114,8 @@ Stefan Rink:
 - INIFileEditor:
 	- Edit Menü mit Copy, Cut, Paste, Insert cut/copied, Insert section, Insert value, Delete (Slots in ParamEditor)
 - Param um Beschreibung ergänzen -> im ParamEditor anzeigen bei 'hover'
+
+Diplomarbeit TOPPAS:
+- TOPPViewBase: Parameters (Typ: enum, inputfile, inputfiles, outputfile, outputfiles)
+
 ***********************************************************************/

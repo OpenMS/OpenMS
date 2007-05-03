@@ -24,7 +24,7 @@
 // $Maintainer: Nico Pfeifer $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/FORMAT/AnalysisXMLFile.h>
+#include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/FILTERING/ID/IDFilter.h>
 #include <OpenMS/FORMAT/FASTAFile.h>
 #include <OpenMS/METADATA/Identification.h>
@@ -73,16 +73,16 @@ using namespace std;
 			<b>predicted retention time</b>:<br> To filter identifications according to their 
 			predicted retention times you have to set two parameters:<br>  
 			The total number of seconds that the gradient ran. (The model is learnt for normalized retention times and the 
-			sigma that is calculated and stored in the analysisXMLFile corresponds to these normalized retention times.) 
+			sigma that is calculated and stored in the IdXMLFile corresponds to these normalized retention times.) 
 			The maximum allowed deviation from the original
 			retention time using the laplace error model that is learnt for confidently assigned peptides in RTModel. 
 			It serves as a scaling of standard 
 			deviations that are allowed for the predicted retention times. If set to 1 this means that one standard 
 			deviation unit is allowed. 
-			This filter can only be applied to AnalysisXML files produced by RTPredict.
+			This filter can only be applied to IdXML files produced by RTPredict.
 		</li>
 		<li>
-			<b>exclusion peptides</b>:<br> For this option you specify an AnalysisXML file.
+			<b>exclusion peptides</b>:<br> For this option you specify an IdXML file.
 			All peptides that are present in both files (in-file and exclusion peptides
 			file) will be dropped.
 		</li>
@@ -113,11 +113,11 @@ class TOPPIDFilter
  protected:
 	void registerOptionsAndFlags_()
 	{
-		registerStringOption_("in","<file>","","input file in AnalysisXML format");
-		registerStringOption_("out","<file>","","output file in AnalysisXML format");	
+		registerStringOption_("in","<file>","","input file in IdXML format");
+		registerStringOption_("out","<file>","","output file in IdXML format");	
 		registerStringOption_("sequences_file","<file>","","filename of a fasta file containing protein sequences.\n"
 																											 "All peptides that are not a substring of a sequence in this file are filtered out",false);
-		registerStringOption_("exclusion_peptides_file","<file>","","An AnalysisXML file. Peptides having the same sequence as any peptide in this file will be filtered out",false);
+		registerStringOption_("exclusion_peptides_file","<file>","","An IdXML file. Peptides having the same sequence as any peptide in this file will be filtered out",false);
 		registerDoubleOption_("pep_fraction","<fraction>",0.0,"the fraction of the peptide significance threshold that should be reached by a peptide hit",false);	
 		registerDoubleOption_("prot_fraction","<fraction>",0.0,"the fraction of the protein significance threshold that should be reached by a protein hit",false);
 		registerDoubleOption_("p_value","<significance>",0.05,"The probability of a correct identification having a deviation between observed and predicted rt equal or bigger than allowed",false);	
@@ -134,7 +134,7 @@ class TOPPIDFilter
 		//-------------------------------------------------------------
 			
 		IDFilter filter;
-		AnalysisXMLFile analysisXML_file;
+		IdXMLFile IdXML_file;
 		vector<ProteinIdentification> protein_identifications;
 		vector<IdentificationData> identifications;
 		vector<IdentificationData> identifications_exclusion;
@@ -183,14 +183,14 @@ class TOPPIDFilter
 	
 		if (rt_filtering)
 		{
-			analysisXML_file.load(inputfile_name,
+			IdXML_file.load(inputfile_name,
 														protein_identifications, 
 														identifications,
 														predicted_retention_times);
 		}
 		else
 		{
-			analysisXML_file.load(inputfile_name, 
+			IdXML_file.load(inputfile_name, 
 														protein_identifications, 
 														identifications);				
 		}
@@ -201,7 +201,7 @@ class TOPPIDFilter
 			
 		if (exclusion_peptides_file_name  != "")
 		{
-			analysisXML_file.load(exclusion_peptides_file_name, 
+			IdXML_file.load(exclusion_peptides_file_name, 
 													  protein_identifications, 
 													 	identifications_exclusion);
 			for(UInt i = 0; i < identifications_exclusion.size(); i++)
@@ -282,14 +282,14 @@ class TOPPIDFilter
 		
 		if (rt_filtering)
 		{
-			analysisXML_file.store(outputfile_name,
+			IdXML_file.store(outputfile_name,
 														 protein_identifications, 
 												 		 filtered_identifications,
 												 		 predicted_retention_times);
 		}
 		else
 		{
-			analysisXML_file.store(outputfile_name,
+			IdXML_file.store(outputfile_name,
 														 protein_identifications, 
 												 		 filtered_identifications);
 		}

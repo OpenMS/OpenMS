@@ -28,7 +28,7 @@
 
 ///////////////////////////
 #include <OpenMS/ANALYSIS/DECHARGING/FeatureDecharger.h>
-#include <OpenMS/FORMAT/FeatureMapFile.h>
+#include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/KERNEL/Feature.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/FORMAT/Param.h>
@@ -91,7 +91,7 @@ CHECK(void compute(FeatureMapType &map))
   FeatureMap<> map;
 
   // load a feature map
-  FeatureMapFile().load("data/FeatureDecharger_TestData.feat",map);  
+  FeatureXMLFile().load("data/FeatureDecharger_TestData.featureXML",map);  
 
   FeatureDecharger fdc;
   fdc.compute(map);
@@ -101,7 +101,7 @@ CHECK(const FeatureMapType& getFeatureMap() const )
   FeatureMap<> map;
 
   // load a feature map
-  FeatureMapFile().load("data/FeatureDecharger_TestData.feat",map);  
+  FeatureXMLFile().load("data/FeatureDecharger_TestData.featureXML",map);  
 
   FeatureDecharger fdc;
   fdc.compute(map);

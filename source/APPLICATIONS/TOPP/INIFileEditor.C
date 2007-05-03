@@ -38,6 +38,9 @@ using namespace std;
 	@page INIFileEditor INIFileEditor
 	
 	@brief Can be used to visually edit INI files of TOPP tools.
+	
+	@image html INIFileEditor.png
+	
 */
 
 int main(int argc, char** argv)

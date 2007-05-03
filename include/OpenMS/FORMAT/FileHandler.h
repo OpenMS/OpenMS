@@ -65,7 +65,7 @@ namespace OpenMS
 				DTA2D,          ///< DTA2D file (.dta2d)
 				MZDATA,         ///< MzData file (.MzData)
 				MZXML,          ///< MzXML file (.MzXML)
-				FEATURE,        ///< OpenMS feature file (.feat)
+				FEATURE,        ///< OpenMS feature file (.featureXML)
 				FEATURE_PAIRS,  ///< OpenMS feature pairs (.pairs)
 				ANDIMS,         ///< ANDI\\MS file (.cdf)
 				SIZE_OF_TYPE    ///< No file type. Simply stores the number of types

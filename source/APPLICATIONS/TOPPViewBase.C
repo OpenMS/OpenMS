@@ -38,7 +38,7 @@
 #include <OpenMS/VISUAL/Spectrum1DWidget.h>
 #include <OpenMS/VISUAL/Spectrum2DWidget.h>
 #include <OpenMS/FORMAT/FileHandler.h>
-#include <OpenMS/FORMAT/FeatureMapFile.h>
+#include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerCWT.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/LinearResampler.h>
 #include <OpenMS/FILTERING/SMOOTHING/SavitzkyGolaySVDFilter.h>
@@ -53,7 +53,7 @@
 #include <OpenMS/VISUAL/DIALOGS/TOPPViewPrefDialog.h>
 #include <OpenMS/ANALYSIS/ID/IDFeatureMapper.h>
 #include <OpenMS/ANALYSIS/ID/IDSpectrumMapper.h>
-#include <OpenMS/FORMAT/AnalysisXMLFile.h>
+#include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/VISUAL/ColorSelector.h>
 #include <OpenMS/VISUAL/MultiGradientSelector.h>
 #include <OpenMS/CONCEPT/VersionInfo.h>
@@ -841,7 +841,7 @@ namespace OpenMS
       FeatureMap<> map;
       try
       {
-        FeatureMapFile().load(filename,map);
+        FeatureXMLFile().load(filename,map);
       }
       catch(Exception::Base& e)
       {
@@ -1233,10 +1233,10 @@ namespace OpenMS
     		else
     		{
 		      QString file_name = QFileDialog::getSaveFileName(this, "Save file",  param_.getValue("Preferences:DefaultPath").toString().c_str(),
-					                    "features files (*.feat)" );
+					                    "features files (*.featureXML)" );
 					if (!file_name.isEmpty())
 					{
-					  FeatureMapFile().store(file_name.toAscii().data(),out);
+					  FeatureXMLFile().store(file_name.toAscii().data(),out);
 					}
     		}
 			}
@@ -1952,7 +1952,7 @@ namespace OpenMS
 				}
 				else if (layer.type==LayerData::DT_FEATURE)
 				{
-					FeatureMapFile().store(tmp_dir+"/in",layer.features);
+					FeatureXMLFile().store(tmp_dir+"/in",layer.features);
 				}
 				else if (layer.type==LayerData::DT_FEATURE_PAIR)
 				{
@@ -2045,12 +2045,12 @@ namespace OpenMS
 			}
 					
 			//load id data
-			QString name = QFileDialog::getOpenFileName(this,"Select identification data",param_.getValue("Preferences:DefaultPath").toString().c_str(),tr("identfication files (*.analysisXML);; all files (*.*)"));
+			QString name = QFileDialog::getOpenFileName(this,"Select identification data",param_.getValue("Preferences:DefaultPath").toString().c_str(),tr("identfication files (*.idXML);; all files (*.*)"));
 			if(name!="")
 			{
 				vector<IdentificationData> identifications; 
 				vector<ProteinIdentification> protein_identifications; 
-				AnalysisXMLFile().load(name.toStdString(), protein_identifications, identifications);
+				IdXMLFile().load(name.toStdString(), protein_identifications, identifications);
 				if (layer.type==LayerData::DT_PEAK)
 				{
 					IDSpectrumMapper().annotate(const_cast<LayerData&>(layer).peaks, identifications, 0.1);

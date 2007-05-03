@@ -57,8 +57,6 @@ namespace OpenMS
 			
 			 A great deviation (squared deviation) of a peak shape's position or its left or right width parameter can be penalised.
 			 During the optimization negative heights may occur, they are penalised as well.
-		
-			 @todo use DefaultParamHandler (Alexandra)
 		*/
     struct PenaltyFactorsInt : public PenaltyFactors
     {
@@ -93,8 +91,9 @@ namespace OpenMS
 		 mass rule, e.g. two consecutive isotopic peaks are 1.003/charge away from each other. Besides the
 		 peaks have all the same left and right width, respectively.
 
-		 @ingroup PeakPicking
-       
+		 @todo use DefaultParamHandler (Alexandra)
+
+		 @ingroup PeakPicking  
 	*/
   class OptimizePeakDeconvolution
   {

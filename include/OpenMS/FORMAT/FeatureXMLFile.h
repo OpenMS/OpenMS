@@ -24,8 +24,8 @@
 // $Maintainer: Ole Schulz-Trieglaff $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_FORMAT_FEATUREMAPFILE_H
-#define OPENMS_FORMAT_FEATUREMAPFILE_H
+#ifndef OPENMS_FORMAT_FeatureXMLFile_H
+#define OPENMS_FORMAT_FeatureXMLFile_H
 
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/FORMAT/SchemaFile.h>
@@ -37,20 +37,20 @@ namespace OpenMS
   	@brief This class provides Input/Output functionality for FeatureMaps
 		
 		@todo Use PeakFileOptions and write tests (Thomas S.)
-  	@todo Create Schema and rename to featureXML (Marc)
+  	@todo Create Schema (Marc)
   	
   	@ingroup FileIO
   */
-  class FeatureMapFile : public Internal::SchemaFile
+  class FeatureXMLFile : public Internal::SchemaFile
   {
 	 public:
 		/** @name Constructors and Destructor */
 		//@{
 
 		///Default constructor
-		FeatureMapFile();
+		FeatureXMLFile();
 		///Destructor
-		~FeatureMapFile();
+		~FeatureXMLFile();
 		//@}
 
 		/** @name Accessors */
@@ -71,4 +71,4 @@ namespace OpenMS
 
 } // namespace OpenMS
 
-#endif // OPENMS_FORMAT_FEATUREMAPFILE_H
+#endif // OPENMS_FORMAT_FeatureXMLFile_H

@@ -31,8 +31,8 @@
 #include <iostream>
 
 #include <OpenMS/ANALYSIS/ID/IDFeatureMapper.h>
-#include <OpenMS/FORMAT/AnalysisXMLFile.h>
-#include <OpenMS/FORMAT/FeatureMapFile.h>
+#include <OpenMS/FORMAT/IdXMLFile.h>
+#include <OpenMS/FORMAT/FeatureXMLFile.h>
 
 ///////////////////////////
 
@@ -60,11 +60,11 @@ CHECK((void annotate(FeatureMap<>& fm, const std::vector<IdentificationData>& id
 //load id data
 vector<IdentificationData> identifications; 
 vector<ProteinIdentification> protein_identifications; 
-AnalysisXMLFile().load("data/IDFeatureMapper_test.analysisXML", protein_identifications, identifications);
+IdXMLFile().load("data/IDFeatureMapper_test.idXML", protein_identifications, identifications);
 
 //load feature data
 FeatureMap<> fm;
-FeatureMapFile().load("data/IDFeatureMapper_test.feat", fm);
+FeatureXMLFile().load("data/IDFeatureMapper_test.featureXML", fm);
 
 //map
 IDFeatureMapper().annotate(fm,identifications,protein_identifications);

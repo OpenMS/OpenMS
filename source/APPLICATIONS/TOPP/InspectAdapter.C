@@ -26,7 +26,7 @@
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
-#include <OpenMS/FORMAT/AnalysisXMLFile.h>
+#include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/FORMAT/InspectInfile.h>
 #include <OpenMS/FORMAT/InspectOutfile.h>
 #include <OpenMS/FORMAT/PTMXMLFile.h>
@@ -66,7 +66,7 @@ using namespace std;
 				everytime.
 				The drawback is, of course, that you need the same amount of space for the trie
 				database as well, which can, in case of large and/or many databases, be a problem.
-				The results are written as a analysisXML output file. This mode is selected
+				The results are written as a IdXML output file. This mode is selected
 			 	by default.
 			 	</li>
 				
@@ -88,7 +88,7 @@ using namespace std;
 				<li>
 				Only the second part of the identification process is performed.
 				This means that the output of an Inspect run is analyzed and the result
-				written to an analysisXML file.
+				written to an IdXML file.
 				
 				This mode is selected by the <b>-inspect_out</b> option in the command line.
 				</li>
@@ -112,14 +112,14 @@ class TOPPInspectAdapter
 	protected:
 		void registerOptionsAndFlags_()
 		{
-			registerStringOption_("out", "<file>", "", "output file in analysisXML format.\n"
+			registerStringOption_("out", "<file>", "", "output file in IdXML format.\n"
 			                                           "Note: In mode 'inspect_in' an Inspect input file is written.");
 			registerStringOption_("in", "<file>", "", "input file in mzXML or mzData format.\n"
 					 																			"Note: In mode 'inspect_out' an Inspect results file is read");
 			registerFlag_("inspect_in", "if this flag is set the InspectAdapter will read in mzXML,\n"
 																							 "write an Inspect input file and generate a trie database");
 			registerFlag_("inspect_out", "if this flag is set the InspectAdapter will read in a Inspect results file\n"
-																								 "and write analysisXML");
+																								 "and write IdXML");
 			registerStringOption_("inspect_directory", "<dir>", "", "the directory in which Inspect is located", false);
 			registerStringOption_("temp_data_directory", "<dir>", "", "a directory in which some temporary files can be stored", false);
 			registerStringOption_("dbs", "<file>", "", "name(s) of database(s) to search in (FASTA and SwissProt supported)", false);
@@ -328,8 +328,8 @@ class TOPPInspectAdapter
 			}
 			
 			if ( inspect_in ) writeDebug_("Inspect flag: mascot_in (reads in MzXML/MzData, writes Inspect generic format)", 1);
-			else if ( inspect_out ) writeDebug_("Inspect flag: mascot_in (reads in Inspect result file, writes analysisXML file)", 1);
-			else writeDebug_("No Inspect flag set: reads in MzXML/MzData, writes analysisXML file", 1);
+			else if ( inspect_out ) writeDebug_("Inspect flag: mascot_in (reads in Inspect result file, writes IdXML file)", 1);
+			else writeDebug_("No Inspect flag set: reads in MzXML/MzData, writes IdXML file", 1);
 			
 			// a 'normal' inspect run corresponds to both inspect_in and inspect_out set
 			if ( !inspect_in && !inspect_out ) inspect_in = inspect_out = true;
@@ -985,8 +985,8 @@ class TOPPInspectAdapter
 				
 				if ( wanted_records.empty() )
 				{
-					AnalysisXMLFile analysisXML_file;
-					analysisXML_file.store(output_filename, vector< ProteinIdentification >(), vector< IdentificationData >());
+					IdXMLFile IdXML_file;
+					IdXML_file.store(output_filename, vector< ProteinIdentification >(), vector< IdentificationData >());
 					inspect_out = false;
 					writeLog_("No proteins matching criteria for generating minimized database for blind search!");
 					
@@ -1001,7 +1001,7 @@ class TOPPInspectAdapter
 				inspect_infile.store(inspect_input_filename);
 			}
 			
-			// writing the output of inspect into an analysisXML file
+			// writing the output of inspect into an IdXML file
 			if ( inspect_in && inspect_out )
 			{
 				writeLog_("Searching ...");
@@ -1031,7 +1031,7 @@ class TOPPInspectAdapter
 			
 			if ( inspect_out )
 			{
-				AnalysisXMLFile analysisXML_file;
+				IdXMLFile IdXML_file;
 				
 				if ( !File::empty(inspect_output_filename) )
 				{
@@ -1052,11 +1052,11 @@ class TOPPInspectAdapter
 					vector< ProteinIdentification > protein_identifications;
 					protein_identifications.push_back(protein_identification);
 					
-					analysisXML_file.store(output_filename, protein_identifications, identifications);
+					IdXML_file.store(output_filename, protein_identifications, identifications);
 				}
 				else
 				{
-					analysisXML_file.store(output_filename, vector< ProteinIdentification >(), vector< IdentificationData >());
+					IdXML_file.store(output_filename, vector< ProteinIdentification >(), vector< IdentificationData >());
 					writeLog_("No proteins identified!");
 				}
 			}

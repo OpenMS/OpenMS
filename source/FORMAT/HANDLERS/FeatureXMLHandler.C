@@ -24,14 +24,14 @@
 // $Maintainer: Ole Schulz-Trieglaff $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/FORMAT/HANDLERS/FeatureMapHandler.h>
+#include <OpenMS/FORMAT/HANDLERS/FeatureXMLHandler.h>
 
 namespace OpenMS
 {	
 	namespace Internal
 	{
 		//--------------------------------------------------------------------------------
-	  void FeatureMapHandler::endElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname)
+	  void FeatureXMLHandler::endElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname)
 		{
 			if (is_parser_in_tag_[DESCRIPTION])	// collect Experimental Settings
 			{
@@ -88,7 +88,7 @@ namespace OpenMS
 			}
 	  }
 	
-	  void FeatureMapHandler::startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const xercesc::Attributes& attributes)
+	  void FeatureXMLHandler::startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const xercesc::Attributes& attributes)
 		{
 			if (is_parser_in_tag_[DESCRIPTION])	// collect Experimental Settings
 			{
@@ -151,7 +151,7 @@ namespace OpenMS
 			}
 		}
 	
-	  void FeatureMapHandler::characters(const XMLCh* const chars, unsigned int /*length*/)
+	  void FeatureXMLHandler::characters(const XMLCh* const chars, unsigned int /*length*/)
 	  {
 			if (is_parser_in_tag_[DESCRIPTION])	// collect Experimental Settings
 			{
@@ -192,7 +192,7 @@ namespace OpenMS
 	  }
 	
 	
-	 	void FeatureMapHandler::writeTo(std::ostream& os)
+	 	void FeatureXMLHandler::writeTo(std::ostream& os)
 		{
 			UniqueIdGenerator id_generator = UniqueIdGenerator::instance();
 	

@@ -25,9 +25,9 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
-#include <OpenMS/FORMAT/AnalysisXMLFile.h>
+#include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/METADATA/Identification.h>
-#include <OpenMS/FORMAT/FeatureMapFile.h>
+#include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/ANALYSIS/ID/IDFeatureMapper.h>
 #include <OpenMS/ANALYSIS/ID/ConsensusID.h>
 
@@ -77,9 +77,9 @@ class TOPPConsensusID
 
 		void registerOptionsAndFlags_()
 		{
-			registerStringOption_("ids","<file>","","one or more analysisXML files separated by comma (without blanks)");
-			registerStringOption_("out","<file>","","output file in AnalysisXML format");
-			registerStringOption_("features","<file>","","input feature file. If this file is given, all identifications\n"
+			registerStringOption_("ids","<file>","","one or more IdXML files separated by comma (without blanks)");
+			registerStringOption_("out","<file>","","output file in IdXML format");
+			registerStringOption_("features","<file>","","input featureXML file. If this file is given, all identifications\n"
 																									 "are mapped to features and the consensus is made for feaatures.",false);
 			registerStringOption_("features_out","<file>","","Features that have identifications are stored in this file."
 			                                                 "Only available when 'features' file is given!",false);
@@ -142,7 +142,7 @@ class TOPPConsensusID
 			writeDebug_("Parameters passed to ConsensusID", alg_param, 3);
 			consensus.setParameters(alg_param);
 
-			AnalysisXMLFile ax_file;
+			IdXMLFile ax_file;
 			vector<ProteinIdentification> prot_ids;
 			vector<IdentificationData> all_ids;
 
@@ -151,7 +151,7 @@ class TOPPConsensusID
 			{
 				//load features
 				FeatureMap<> features;
-				FeatureMapFile feat_file;
+				FeatureXMLFile feat_file;
 				feat_file.load(feature_file,features);
 				
 				//map ids to features

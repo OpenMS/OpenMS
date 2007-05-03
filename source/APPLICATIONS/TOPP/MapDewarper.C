@@ -27,7 +27,7 @@
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapDewarper.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/Grid.h>
 #include <OpenMS/FORMAT/GridFile.h>
-#include <OpenMS/FORMAT/FeatureMapFile.h>
+#include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 
@@ -92,7 +92,7 @@ protected:
     Grid the_grid;
     GridFile().load(gridfile,the_grid);
 
-    FeatureMapFile fmap_file;
+    FeatureXMLFile fmap_file;
     FeatureMap<> feature_map;
     fmap_file.load(features_file,feature_map);
 

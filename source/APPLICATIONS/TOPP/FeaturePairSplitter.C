@@ -25,7 +25,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/FeaturePairsFile.h>
-#include <OpenMS/FORMAT/FeatureMapFile.h>
+#include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/DATASTRUCTURES/Date.h>
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
@@ -45,7 +45,7 @@ using namespace std;
 /**
 	@page FeaturePairSplitter FeaturePairSplitter
 
-	@brief Splits a feature pair file into two feature files.
+	@brief Splits a feature pair file into two featureXML files.
 
 	This is just a small utility.  The features are copied from the pairs.  The
 	relative order of features is preserved.  For example the first two features
@@ -56,8 +56,8 @@ using namespace std;
   The input file is parsed by DFeaturePairsFile; a typical file name extension
   would be ".pairs.xml".
 
-  The two output files are written by FeatureMapFile; a typical file name
-  extension would be '.feat.xml'.
+  The two output files are written by FeatureXMLFile; a typical file name
+  extension would be '.featureXML'.
 
 	The qualities are written one per line; a typical file name extension would be '.txt'.
 
@@ -72,7 +72,7 @@ class TOPPFeaturePairSplitter
 {
  public:
   TOPPFeaturePairSplitter()
-		: TOPPBase("FeaturePairSplitter","split a feature pairs file into two feature files and a qualities file")
+		: TOPPBase("FeaturePairSplitter","split a feature pairs file into two featureXML files and a qualities file")
   {
   }
 
@@ -124,15 +124,15 @@ class TOPPFeaturePairSplitter
 		}
 
 		// write the data to files
-		FeatureMapFile f;
+		FeatureXMLFile f;
 		if ( write_out1 )
 		{
-			FeatureMapFile f;
+			FeatureXMLFile f;
 			f.store(out1,first_feature_map);
 		}
 		if ( write_out2 )
 		{
-			FeatureMapFile f;
+			FeatureXMLFile f;
 			f.store(out2,second_feature_map);
 		}
 		if ( write_qual )

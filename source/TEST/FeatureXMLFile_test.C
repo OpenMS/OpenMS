@@ -27,13 +27,13 @@
 #include <OpenMS/CONCEPT/ClassTest.h>
 ///////////////////////////
 
-#include <OpenMS/FORMAT/FeatureMapFile.h>
+#include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/FORMAT/PeakFileOptions.h>
 
 ///////////////////////////
 
-START_TEST(FeatureMapFile, "$Id$")
+START_TEST(FeatureXMLFile, "$Id$")
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
@@ -41,13 +41,13 @@ START_TEST(FeatureMapFile, "$Id$")
 using namespace OpenMS;
 using namespace std;
 
-FeatureMapFile* ptr = 0;
-CHECK((FeatureMapFile()))
-	ptr = new FeatureMapFile();
+FeatureXMLFile* ptr = 0;
+CHECK((FeatureXMLFile()))
+	ptr = new FeatureXMLFile();
 	TEST_NOT_EQUAL(ptr, 0)
 RESULT
 
-CHECK((~FeatureMapFile()))
+CHECK((~FeatureXMLFile()))
 	delete ptr;
 RESULT
  
@@ -55,13 +55,13 @@ CHECK((void load(String filename, FeatureMap<>& feature_map) throw (Exception::F
 	PRECISION(0.01)
 	
 	FeatureMap<> e;
-	FeatureMapFile dfmap_file;
+	FeatureXMLFile dfmap_file;
 	
 	//test exception
 	TEST_EXCEPTION( Exception::FileNotFound , dfmap_file.load("dummy/dummy.MzData",e) )
 	
 	// real test
-	dfmap_file.load("data/FeatureMapFile.xml",e);
+	dfmap_file.load("data/FeatureXMLFile.xml",e);
   
   //---------------------------------------------------------------------------
   // const SourceFile& getSourceFile() const;
@@ -180,18 +180,18 @@ CHECK((void store(String filename, const FeatureMap<>& feature_map) const throw(
   
   std::string tmp_filename;
   FeatureMap<> e;
-  FeatureMapFile f;
+  FeatureXMLFile f;
   
   NEW_TMP_FILE(tmp_filename);
-  f.load("data/FeatureMapFile.xml",e);
+  f.load("data/FeatureXMLFile.xml",e);
   f.store(tmp_filename,e);
-  TEST_FILE(tmp_filename.c_str(),"data/FeatureMapFile.xml");
+  TEST_FILE(tmp_filename.c_str(),"data/FeatureXMLFile.xml");
 
 RESULT
 
 CHECK( PeakFileOptions& getOptions() )
 
-// see todo in FeatureMapFile
+// see todo in FeatureXMLFile
 
 RESULT
 

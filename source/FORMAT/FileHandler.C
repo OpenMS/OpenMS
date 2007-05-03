@@ -68,7 +68,7 @@ namespace OpenMS
 		{
 			return ANDIMS;
 		}
-		else if (tmp == "FEAT")
+		else if (tmp == "FEATUREXML")
 		{
 			return FEATURE;
 		}

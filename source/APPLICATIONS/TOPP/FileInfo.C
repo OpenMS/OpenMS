@@ -27,7 +27,7 @@
 #include <OpenMS/config.h>
 
 #include <OpenMS/FORMAT/FileHandler.h>
-#include <OpenMS/FORMAT/FeatureMapFile.h>
+#include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/FORMAT/PeakTypeEstimator.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 
@@ -181,7 +181,7 @@ class TOPPFileInfo
 			//-------------------------------------------------------------
 			else
 			{
-				FeatureMapFile().load(in,feat);
+				FeatureXMLFile().load(in,feat);
 				feat.updateRanges();
 				
 				cout 

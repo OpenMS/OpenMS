@@ -56,7 +56,7 @@ namespace OpenMS
     
   }
   
-  void XTandemXMLHandler::startElement(const XMLCh* const uri, const XMLCh* const local_name, const XMLCh* const qname, const xercesc::Attributes& attributes)
+  void XTandemXMLHandler::startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const xercesc::Attributes& attributes)
 	{
 
 		tag_ = String(XMLString::transcode(qname));

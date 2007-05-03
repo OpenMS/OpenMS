@@ -25,8 +25,8 @@
 // --------------------------------------------------------------------------
 
 
-#ifndef OPENMS_FORMAT_HANDLERS_FEATUREMAPHANDLER_H
-#define OPENMS_FORMAT_HANDLERS_FEATUREMAPHANDLER_H
+#ifndef OPENMS_FORMAT_HANDLERS_FeatureXMLHandler_H
+#define OPENMS_FORMAT_HANDLERS_FeatureXMLHandler_H
 
 #include <OpenMS/KERNEL/Feature.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
@@ -63,7 +63,7 @@ namespace OpenMS
 		and their members are stored in a proprietary format
 		(see funtion writeTo(stream& os) for details). 
 	*/
-  class FeatureMapHandler
+  class FeatureXMLHandler
 		: public SchemaHandler
   {
     public:
@@ -73,7 +73,7 @@ namespace OpenMS
       /**@name Constructors and destructor */
       //@{
       ///
-      FeatureMapHandler(FeatureMap<Feature>& map, const String& filename) 
+      FeatureXMLHandler(FeatureMap<Feature>& map, const String& filename) 
       : SchemaHandler(TAG_NUM,MAP_NUM,filename),
 			 	map_(&map), 
 			 	cmap_(0),	
@@ -85,7 +85,7 @@ namespace OpenMS
 			}
       
       ///
-      FeatureMapHandler(const FeatureMap<Feature>& map, const String& filename)
+      FeatureXMLHandler(const FeatureMap<Feature>& map, const String& filename)
       : SchemaHandler(TAG_NUM,MAP_NUM,filename),
 				map_(0), 
 				cmap_(&map),	
@@ -97,7 +97,7 @@ namespace OpenMS
 			}
 
       ///
-      virtual ~FeatureMapHandler() 
+      virtual ~FeatureXMLHandler() 
       {
       }
       //@}
@@ -122,7 +122,7 @@ namespace OpenMS
 		// Feature map pointer for writing
 		const FeatureMap<Feature>* cmap_;
 
-		/** @brief indices for tags used by FeatureMapFile
+		/** @brief indices for tags used by FeatureXMLFile
 
 			Used to access is_parser_in_tag_.
 			If you add tags, also add them to XMLSchemes.h.
@@ -132,14 +132,14 @@ namespace OpenMS
 								OVERALLQUALITY, CHARGE, FEATMODEL, PARAM, CONVEXHULL,
 								HULLPOINT, HPOSITION, META, DESCRIPTION, FEATUREMAP, TAG_NUM};
 
-		/** @brief indices for attributes used by FeatureMapFile
+		/** @brief indices for attributes used by FeatureXMLFile
 
 			If you add tags, also add them to XMLSchemes.h.
 			Add no elements to the enum after TAG_NUM.
 		*/
 		enum Attributes { ATTNULL, DIM, NAME, VALUE, ATT_NUM};
 
-		/** @brief indices for enum2str-maps used by FeatureMapFile
+		/** @brief indices for enum2str-maps used by FeatureXMLFile
 
 			Used to access enum2str_().
 			If you add maps, also add them to XMLSchemes.h.
@@ -172,4 +172,4 @@ namespace OpenMS
 	} // namespace Internal
 } // namespace OpenMS
 
-#endif // OPENMS_FORMAT_HANDLERS_FEATUREMAPHANDLER_H
+#endif // OPENMS_FORMAT_HANDLERS_FeatureXMLHandler_H

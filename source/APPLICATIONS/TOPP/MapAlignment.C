@@ -29,7 +29,7 @@
 #include <OpenMS/KERNEL/ConsensusFeature.h>
 #include <OpenMS/KERNEL/ConsensusPeak.h>
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
-#include <OpenMS/FORMAT/FeatureMapFile.h>
+#include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/FORMAT/GridFile.h>
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
@@ -169,7 +169,7 @@ protected:
 					}
         StarAlignment< ConsensusFeatureType > alignment;
         alignment.setParameters(mapali_param);
-        FeatureMapFile feature_file;
+        FeatureXMLFile feature_file;
         std::vector< String > file_names;
         // Vector for the feature maps
         std::vector< FeatureMapType > feature_maps(distance(pit,files_param.end()));

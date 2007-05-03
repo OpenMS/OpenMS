@@ -1,7 +1,7 @@
 
 -- General information --
 
-file name: FileInfo_3_input.feat
+file name: FileInfo_3_input.featureXML
 file type: FeatureFile
 Number of features: 10
 

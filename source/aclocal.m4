@@ -5,31 +5,6 @@ dnl		$Id: aclocal.m4,v 1.17 2006/06/07 01:19:18 groepl Exp $
 dnl		Autoconf M4 macros used by configure.ac.
 dnl
 
-dnl
-dnl		Display the license and abort if not accepted.
-dnl		We create the file config.lic if the license was
-dnl		accepted and do not show the license the second time
-dnl
-AC_DEFUN(CF_CHECK_LICENSE,[
-	dnl needed for autoconf 2.60, as it redirects stdin to channel 7
-	exec 0<&7 7<&-
-	if test ! -f config.lic ; then
-		cat COPYRIGHT
-		echo " "
-		echo -n "Do you accept the terms of this license (y/n)? "
-		answer=""
-		while test "$answer" != "y" -a "$answer" != "n" ; do
-			read answer 
-		done
-		if test "$answer" = "n" ; then	
-			exit
-		else
-			echo "accepted" > config.lic
-		fi
-	fi
-	exec 7<&0 </dev/null
-])
-
 # macro to remove duplicated elements in a space-separated list.
 # usage: CF_UNIQUIFY([list],[shell-variable-that-output-is-written-to])
 AC_DEFUN(CF_UNIQUIFY,

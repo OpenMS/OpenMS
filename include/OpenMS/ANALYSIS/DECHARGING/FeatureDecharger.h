@@ -45,7 +45,7 @@ namespace OpenMS
     
     The Decharger uses an hierarchical clustering (complete linkage) to group charge variants of the same peptide, which
     usually occur in ESI ionization mode. The resulting zero-charge peptides, which are defined by RT and mass
-    are written in a feature file. Intensities of charge variants are summed up. The position of the zero charge
+    are written in a featureXML file. Intensities of charge variants are summed up. The position of the zero charge
     variant is the average of all clustered peptides in each dimension.
     If several peptides with the same charge variant are grouped (which is clearly not allowed), a heuristic is used:
     <ul>
