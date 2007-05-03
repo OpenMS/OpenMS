@@ -202,9 +202,6 @@ EXECUTABLES_FILTERING = \
 	LinearResampler_test\
 	TopHatFilter_test\
 	MorphFilter_test\
-	DSignalToNoiseEstimator_test\
-	DSignalToNoiseEstimatorMedian_test\
-	DSignalToNoiseEstimatorMeanIterative_test\
 	SignalToNoiseEstimator_test\
 	SignalToNoiseEstimatorMedian_test\
 	SignalToNoiseEstimatorMeanIterative_test\

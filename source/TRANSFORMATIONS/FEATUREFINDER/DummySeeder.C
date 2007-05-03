@@ -353,7 +353,7 @@ namespace OpenMS
 		// minimum s/n ratio for an interesting peak
 		IntensityType min_sn = param_.getValue("min_snratio");			
 		
-		DSignalToNoiseEstimatorMeanIterative<1, SpectrumType::const_iterator > estimator;
+		SignalToNoiseEstimatorMeanIterative< SpectrumType > estimator;
 		estimator.init(vec.begin(), vec.end());
 		
 		int i = 0;
