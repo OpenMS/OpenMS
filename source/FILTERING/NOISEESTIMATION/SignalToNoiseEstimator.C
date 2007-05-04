@@ -25,6 +25,6 @@
 // --------------------------------------------------------------------------
 //
 
-#include <OpenMS/FILTERING/NOISEESTIMATION/DSignalToNoiseEstimator.h>
+#include <OpenMS/FILTERING/NOISEESTIMATION/SignalToNoiseEstimator.h>
 
  

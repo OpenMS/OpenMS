@@ -451,7 +451,7 @@ namespace OpenMS
       // warn if percentage of sparse windows is above 20%
       if (sparse_window_percent > 20) 
       {
-        std::cerr << "WARNING in DSignalToNoiseEstimatorMedian: " 
+        std::cerr << "WARNING in SignalToNoiseEstimatorMedian: " 
                  << sparse_window_percent 
                  << "% of all windows were sparse. You should consider decreasing WindowLength and/or MinReqElementsInWindow" 
                  << std::endl;
@@ -460,7 +460,7 @@ namespace OpenMS
       // warn if percentage of possibly wrong median estimates is above 1%
       if (histogram_oob_percent > 1) 
       {
-        std::cerr << "WARNING in DSignalToNoiseEstimatorMedian: " 
+        std::cerr << "WARNING in SignalToNoiseEstimatorMedian: " 
                  << histogram_oob_percent 
                  << "% of all Signal-to-Noise estimates are too high, because the median was found in the rightmost histogram-bin. " 
                  << "You should consider increasing MaxIntensity (and maybe BinCount with it, to keep bin width reasonable)" 

@@ -113,12 +113,6 @@ namespace OpenMS
 		debug_level_ = getParamAsInt_("debug",0);
 		writeDebug_(String("Debug level: ")+String(debug_level_),1);
 		
-		//progress logging
-		if(getParamAsBool_("progress",false))
-		{
-			log_type_ = ProgressLogger::CMD;	
-		}
-		
 		// test if no options were given
 		if (argc==1)
 		{
@@ -251,6 +245,13 @@ namespace OpenMS
 			debug_level_ = getParamAsInt_("debug",0);
 			writeDebug_(String("Debug level (after ini file): ")+String(debug_level_),1);	
 
+			//-------------------------------------------------------------
+			//progress logging
+			//-------------------------------------------------------------
+			if(getParamAsBool_("progress",false))
+			{
+				log_type_ = ProgressLogger::CMD;	
+			}
 			
 			//----------------------------------------------------------
 			//main
