@@ -30,9 +30,6 @@
 namespace OpenMS
 {
 
-
-	
-
 	
   const double OptimizePeakDeconvolution::dist_ = 1.003;  
   namespace OptimizationFunctions
@@ -142,10 +139,10 @@ namespace OpenMS
 							penalty += penalty_rwidth *peaks_DC_.size()*10000*pow(fabs(p_width_r - old_width_r),2);
 						}
 					else if (p_width_r < 1.5 ) penalty += 10000*pow(fabs(p_width_r - old_width_r),2);
-	// 				if(fabs(old_position - p_position) > 0.5)
-// 						{
-// 							penalty += 10000*penalty_pos*pow(fabs(old_position - p_position),2);
-// 						}
+					if(fabs(old_position - p_position) > 0.5)
+						{
+							penalty += 10000*penalty_pos*pow(fabs(old_position - p_position),2);
+						}
 
 
 	  
@@ -292,10 +289,10 @@ namespace OpenMS
 							penalty_r += peaks_DC_.size()*2*penalties->rWidth*10000*(fabs(p_width_right - old_width_right));
 						}
 					else if (p_width_right < 1.5 ) penalty_r += 2*penalties->rWidth*10000*pow(fabs(p_width_right - old_width_right),2);
-// 					if(fabs(old_position - p_position) > 0.5)
-// 						{
-// 							penalty_p += 10000*penalties->pos*2*fabs(old_position - p_position);
-// 						}
+					if(fabs(old_position - p_position) > 0.5)
+						{
+							penalty_p += 10000*penalties->pos*2*fabs(old_position - p_position);
+						}
 	
 	  
 	  
