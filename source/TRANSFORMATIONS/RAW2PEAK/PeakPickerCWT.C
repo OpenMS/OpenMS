@@ -954,18 +954,10 @@ namespace OpenMS
 						std::cout<<"peak.mz_position "<<peak.mz_position<<std::endl;
 #endif
 					}
-				OpenMS::OptimizationFunctions::PenaltyFactorsInt penalties;
-				penalties.height = (float)param_.getValue("deconvolution:penalties:height");
- 				penalties.pos = (float)param_.getValue("deconvolution:penalties:position");
-				penalties.lWidth = param_.getValue("deconvolution:penalties:left_width");
-				penalties.rWidth = param_.getValue("deconvolution:penalties:right_width");
 
-				unsigned int max_iteration = (int)param_.getValue("deconvolution:iterations");
-
-				double eps_abs = (float)param_.getValue("deconvolution:delta_abs_error");
-				double eps_rel = (float)param_.getValue("deconvolution:delta_rel_error");
-
-				OptimizePeakDeconvolution opt(penalties,max_iteration,eps_abs,eps_rel,charge);
+				OptimizePeakDeconvolution opt;
+				opt.setParameters(param_.copy("deconvolution:",true));
+				opt.setCharge(charge);
 				
 				int runs=0;
 				
@@ -975,7 +967,7 @@ namespace OpenMS
 #endif
 						
 				// if the optimization fails (peaks are too broad) try entering an additional peak
-				while(!opt.optimize(peaks_DC,param_,runs))
+				while(!opt.optimize(peaks_DC,runs))
 					{
 						++runs;
 #ifdef DEBUG_DECONV

@@ -173,7 +173,7 @@ namespace OpenMS
 
       // penalties : especially negative heights have to be penalised
       double penalty = 0.;
-      OptimizationFunctions::PenaltyFactorsInt* penalties = (OptimizationFunctions::PenaltyFactorsInt *)params;
+      OptimizationFunctions::PenaltyFactorsIntensity* penalties = (OptimizationFunctions::PenaltyFactorsIntensity *)params;
 
 
       //iterate over all peaks again to compute the penalties
@@ -465,7 +465,7 @@ namespace OpenMS
 						}
 				}
       // penalties : especially negative heights have to be penalised
-      OptimizationFunctions::PenaltyFactorsInt* penalties = (OptimizationFunctions::PenaltyFactorsInt *)params;
+      OptimizationFunctions::PenaltyFactorsIntensity* penalties = (OptimizationFunctions::PenaltyFactorsIntensity *)params;
 
 
       //iterate over all peaks again to compute the penalties

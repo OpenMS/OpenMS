@@ -49,7 +49,7 @@ RESULT
 
 CHECK((TwoDOptimization& operator=(const TwoDOptimization& opt)))
   TwoDOptimization opt_2d;
-  struct OptimizationFunctions::PenaltyFactorsInt penalties;
+  struct OptimizationFunctions::PenaltyFactorsIntensity penalties;
   penalties.pos = 2;
   penalties.height = 3;
   penalties.lWidth = 4;
@@ -61,7 +61,7 @@ CHECK((TwoDOptimization& operator=(const TwoDOptimization& opt)))
   
   TwoDOptimization opt_2d_copy;
   opt_2d_copy = opt_2d;
-  struct OptimizationFunctions::PenaltyFactorsInt penalties_copy = opt_2d_copy.getPenalties();
+  struct OptimizationFunctions::PenaltyFactorsIntensity penalties_copy = opt_2d_copy.getPenalties();
   unsigned int number = opt_2d_copy.getMaxIterations();
   double abs_err = opt_2d_copy.getMaxAbsError();
   double rel_err = opt_2d_copy.getMaxRelError();
@@ -78,14 +78,14 @@ RESULT
 CHECK((TwoDOptimization(const TwoDOptimization& opt)))
   PRECISION(0.0001)
   TwoDOptimization opt_2d;
-  struct OptimizationFunctions::PenaltyFactorsInt penalties;
+  struct OptimizationFunctions::PenaltyFactorsIntensity penalties;
   opt_2d.setPenalties(penalties);
   opt_2d.setMaxIterations(10);
   opt_2d.setMaxAbsError(0.01);
   opt_2d.setMaxRelError(0.001);
   
   TwoDOptimization opt_2d_copy(opt_2d);
-  struct OptimizationFunctions::PenaltyFactorsInt penalties_copy = opt_2d_copy.getPenalties();
+  struct OptimizationFunctions::PenaltyFactorsIntensity penalties_copy = opt_2d_copy.getPenalties();
   unsigned int number = opt_2d_copy.getMaxIterations();
   double abs_err = opt_2d_copy.getMaxAbsError();
   double rel_err = opt_2d_copy.getMaxRelError();
@@ -223,9 +223,9 @@ RESULT
 
 
 	
-CHECK((void setPenalties(const struct OptimizationFunctions::PenaltyFactorsInt& penalties)))
+CHECK((void setPenalties(const struct OptimizationFunctions::PenaltyFactorsIntensity& penalties)))
   PRECISION(0.0001)
-  struct OptimizationFunctions::PenaltyFactorsInt penalties;
+  struct OptimizationFunctions::PenaltyFactorsIntensity penalties;
   penalties.pos = 0;
   penalties.lWidth = 1;
   penalties.rWidth = 2;

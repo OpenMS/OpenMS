@@ -52,95 +52,56 @@ RESULT
 CHECK((OptimizePeakDeconvolution& operator=(const OptimizePeakDeconvolution& opt)))
   PRECISION(0.0001)
   OptimizePeakDeconvolution opt_deconv;
-  struct OptimizationFunctions::PenaltyFactorsInt penalties;
+  struct OptimizationFunctions::PenaltyFactorsIntensity penalties;
   opt_deconv.setPenalties(penalties);
-  opt_deconv.setNumberIterations(10);
-  opt_deconv.setMaxAbsError(0.01);
-  opt_deconv.setMaxRelError(0.001);
+
   opt_deconv.setCharge(2);
   
   OptimizePeakDeconvolution opt_deconv_copy;
   opt_deconv_copy = opt_deconv;
-  struct OptimizationFunctions::PenaltyFactorsInt penalties_copy = opt_deconv_copy.getPenalties();
-  unsigned int number = opt_deconv_copy.getNumberIterations();
-  double abs_err = opt_deconv_copy.getMaxAbsError();
-  double rel_err = opt_deconv_copy.getMaxRelError();
+  struct OptimizationFunctions::PenaltyFactorsIntensity penalties_copy = opt_deconv_copy.getPenalties();
+ 
   double charge = opt_deconv_copy.getCharge();
   TEST_REAL_EQUAL(penalties.pos,penalties_copy.pos)
   TEST_REAL_EQUAL(penalties.lWidth,penalties_copy.lWidth)
   TEST_REAL_EQUAL(penalties.rWidth,penalties_copy.rWidth)
   TEST_REAL_EQUAL(penalties.height,penalties_copy.height)
     
- 	TEST_EQUAL(number == 10, true)
+
 	TEST_EQUAL(charge == 2, true)
- 	TEST_REAL_EQUAL(abs_err, 0.01)
- 	TEST_REAL_EQUAL(rel_err, 0.001)
+ 
 RESULT
 
 CHECK((OptimizePeakDeconvolution( )))
 	OptimizePeakDeconvolution opt_deconv;
-  int max_iteration = opt_deconv.getNumberIterations();
-  double eps_abs = opt_deconv.getMaxAbsError();
-  double eps_rel = opt_deconv.getMaxRelError();
+  
   int charge = opt_deconv.getCharge();
 
-  TEST_EQUAL(max_iteration == 0, true)
 	TEST_EQUAL(charge == 1, true)
- 	TEST_REAL_EQUAL(eps_abs, 0.0)
- 	TEST_REAL_EQUAL(eps_rel, 0.0)		
+ 
 RESULT
 
 CHECK((OptimizePeakDeconvolution(const OptimizePeakDeconvolution& opt)))
   PRECISION(0.0001)
   OptimizePeakDeconvolution opt_deconv;
-  struct OptimizationFunctions::PenaltyFactorsInt penalties;
+  struct OptimizationFunctions::PenaltyFactorsIntensity penalties;
   opt_deconv.setPenalties(penalties);
-  opt_deconv.setNumberIterations(10);
-  opt_deconv.setMaxAbsError(0.01);
-  opt_deconv.setMaxRelError(0.001);
   opt_deconv.setCharge(2);
   
   OptimizePeakDeconvolution opt_deconv_copy(opt_deconv);
-  struct OptimizationFunctions::PenaltyFactorsInt penalties_copy = opt_deconv_copy.getPenalties();
-  unsigned int number = opt_deconv_copy.getNumberIterations();
-  double abs_err = opt_deconv_copy.getMaxAbsError();
-  double rel_err = opt_deconv_copy.getMaxRelError();
+  struct OptimizationFunctions::PenaltyFactorsIntensity penalties_copy = opt_deconv_copy.getPenalties();
   double charge = opt_deconv_copy.getCharge();
   TEST_REAL_EQUAL(penalties.pos,penalties_copy.pos)
   TEST_REAL_EQUAL(penalties.lWidth,penalties_copy.lWidth)
   TEST_REAL_EQUAL(penalties.rWidth,penalties_copy.rWidth)
   TEST_REAL_EQUAL(penalties.height,penalties_copy.height)
     
- 	TEST_EQUAL(number == 10, true)
 	TEST_EQUAL(charge == 2, true)
- 	TEST_REAL_EQUAL(abs_err, 0.01)
- 	TEST_REAL_EQUAL(rel_err, 0.001)
+ 
 RESULT
 
-CHECK((OptimizePeakDeconvolution(const struct OptimizationFunctions::PenaltyFactorsInt& penalties, const int max_iteration, double eps_abs, double eps_rel, int charge)))
-  PRECISION(0.0001)
-  struct OptimizationFunctions::PenaltyFactorsInt penalties;
-  penalties.pos = 0;
-  penalties.lWidth = 1;
-  penalties.rWidth = 2;
-  penalties.height = 3;
-  int number = 10;
-  double abs_err = 0.01;
-  double rel_err = 0.001;
-  int charge = 5;
 
-  OptimizePeakDeconvolution opt_deconv(penalties,number,abs_err,rel_err,charge);
-  TEST_REAL_EQUAL(penalties.pos,opt_deconv.getPenalties().pos)
-  TEST_REAL_EQUAL(penalties.lWidth,opt_deconv.getPenalties().lWidth)
-  TEST_REAL_EQUAL(penalties.rWidth,opt_deconv.getPenalties().rWidth)
-  TEST_REAL_EQUAL(penalties.height,opt_deconv.getPenalties().height)		
- 	TEST_EQUAL(number == opt_deconv.getNumberIterations(), true)
- 	TEST_REAL_EQUAL(abs_err, opt_deconv.getMaxAbsError())
- 	TEST_REAL_EQUAL(rel_err, opt_deconv.getMaxRelError())
-  TEST_EQUAL(charge == opt_deconv.getCharge(), true)		
-RESULT
-
-CHECK((bool optimize(std::vector<PeakShape>& peaks,Param& param,int failure)))
+CHECK((bool optimize(std::vector<PeakShape>& peaks,int failure)))
 	std::vector<PeakShape> peak_shapes(1);
 	PeakShape peak_shape;
   peak_shape.mz_position = 500;
@@ -151,8 +112,6 @@ CHECK((bool optimize(std::vector<PeakShape>& peaks,Param& param,int failure)))
   peak_shape.type = PeakShapeType::LORENTZ_PEAK;
   peak_shapes[0] = peak_shape;
 //  peak_shapes[1] = peak_shape;
-
-std::cout << "peaks ready"<<std::endl;
   float origin = 499;
   float spacing = 0.1;
  
@@ -163,16 +122,14 @@ std::cout << "peaks ready"<<std::endl;
   	OptimizationFunctions::positions_DC_[i] = origin +i*spacing;
     OptimizationFunctions::signal_DC_[i] = peak_shape(origin +i*spacing);
    }
-std::cout << "positions ready"<<std::endl;
   String file = "data/OptimizePeakDeconvolution.xml";
   Param param;
   param.load(file);
 
-std::cout << "param loaded"<<std::endl;
 
  	OptimizePeakDeconvolution opt_deconv;
- 	opt_deconv.optimize(peak_shapes,param,1);
-std::cout << "opt finished"<<std::endl;
+  opt_deconv.setParameters(param.copy("deconvolution:",true));
+ 	opt_deconv.optimize(peak_shapes,1);
  	TEST_REAL_EQUAL(peak_shape.mz_position,500)
  	TEST_REAL_EQUAL(peak_shape.left_width,2.5)
  	TEST_REAL_EQUAL(peak_shape.right_width,2.5)
@@ -180,34 +137,6 @@ std::cout << "opt finished"<<std::endl;
  	TEST_REAL_EQUAL(peak_shape.height,400)
 RESULT
 
-CHECK((void setMaxAbsError(double eps_abs)))
-  PRECISION(0.0001)
-  double abs_err = 0.01;
-   
-  OptimizePeakDeconvolution opt_deconv;
-  opt_deconv.setMaxAbsError(abs_err);
-    
- 	TEST_REAL_EQUAL(abs_err, opt_deconv.getMaxAbsError())
-RESULT
-
-CHECK((void setMaxRelError(double eps_rel)))
-  PRECISION(0.0001)
-  double rel_err = 0.01;
-   
-  OptimizePeakDeconvolution opt_deconv;
-  opt_deconv.setMaxRelError(rel_err);
-    
- 	TEST_REAL_EQUAL(rel_err, opt_deconv.getMaxRelError())
-RESULT
-
-CHECK((void setNumberIterations(const int max_iteration)))
-  int number = 20;
-   
-  OptimizePeakDeconvolution opt_deconv;
-  opt_deconv.setNumberIterations(number);
-    
- 	TEST_EQUAL(number == opt_deconv.getNumberIterations(), true)
-RESULT
 
 CHECK((void setCharge(const int charge)))
   int charge = 2;
@@ -219,9 +148,9 @@ CHECK((void setCharge(const int charge)))
 RESULT
 
 	
-CHECK((void setPenalties(const struct OptimizationFunctions::PenaltyFactorsInt& penalties)))
+CHECK((void setPenalties(const struct OptimizationFunctions::PenaltyFactorsIntensity& penalties)))
   PRECISION(0.0001)
-  struct OptimizationFunctions::PenaltyFactorsInt penalties;
+  struct OptimizationFunctions::PenaltyFactorsIntensity penalties;
   penalties.pos = 0;
   penalties.lWidth = 1;
   penalties.rWidth = 2;

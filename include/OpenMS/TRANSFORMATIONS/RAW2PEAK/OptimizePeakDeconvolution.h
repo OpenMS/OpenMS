@@ -34,6 +34,7 @@
 #include <gsl/gsl_multifit_nlin.h>
 #include <gsl/gsl_blas.h>
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/OptimizePick.h>
+#include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 
 //#define DEBUG_DECONV
 #include <iostream>
@@ -58,11 +59,11 @@ namespace OpenMS
 			 A great deviation (squared deviation) of a peak shape's position or its left or right width parameter can be penalised.
 			 During the optimization negative heights may occur, they are penalised as well.
 		*/
-    struct PenaltyFactorsInt : public PenaltyFactors
+    struct PenaltyFactorsIntensity : public PenaltyFactors
     {
-      PenaltyFactorsInt():PenaltyFactors(),height(0){}
-      PenaltyFactorsInt(const PenaltyFactorsInt& p) : PenaltyFactors(p), height(p.height) {}
-      inline PenaltyFactorsInt& operator=(const PenaltyFactorsInt& p)
+      PenaltyFactorsIntensity():PenaltyFactors(),height(0){}
+      PenaltyFactorsIntensity(const PenaltyFactorsIntensity& p) : PenaltyFactors(p), height(p.height) {}
+      inline PenaltyFactorsIntensity& operator=(const PenaltyFactorsIntensity& p)
       {
 				height=p.height;
 				pos=p.pos;
@@ -71,7 +72,7 @@ namespace OpenMS
 				
 				return *this;
       }
-      ~PenaltyFactorsInt(){}
+      ~PenaltyFactorsIntensity(){}
 
       double height;
 
@@ -95,7 +96,7 @@ namespace OpenMS
 
 		 @ingroup PeakPicking  
 	*/
-  class OptimizePeakDeconvolution
+  class OptimizePeakDeconvolution : public DefaultParamHandler
   {
   public:
     /** @name Type definitions
@@ -110,25 +111,13 @@ namespace OpenMS
      */
     //@{
     ///Constructor
-    OptimizePeakDeconvolution( )
-			: max_iteration_(0),
-				eps_abs_(0),
-				eps_rel_(0),
-				charge_(1){}
-    
-    ///Constructor
-    OptimizePeakDeconvolution(const OptimizationFunctions::PenaltyFactorsInt& penalties,
-															const int max_iteration,
-															const double eps_abs,
-															const double eps_rel,
-															const int charge);
+    OptimizePeakDeconvolution( );
+
     /// Copy-Constructor
     OptimizePeakDeconvolution(const OptimizePeakDeconvolution& opt)
-      : penalties_(opt.penalties_),
-				max_iteration_(opt.max_iteration_),
-				eps_abs_(opt.eps_abs_),
-				eps_rel_(opt.eps_rel_),
-				charge_(opt.charge_){}
+      :DefaultParamHandler(opt),
+			 penalties_(opt.penalties_),
+			 charge_(opt.charge_){}
 
     ///Destructor
     virtual ~OptimizePeakDeconvolution(){}
@@ -139,11 +128,9 @@ namespace OpenMS
     //@{
     inline OptimizePeakDeconvolution& operator=(const OptimizePeakDeconvolution& opt)
     {
+			DefaultParamHandler::operator=(opt);
       penalties_=opt.penalties_;
-      max_iteration_=opt.max_iteration_;
-      eps_rel_=opt.eps_rel_;
-      eps_abs_=opt.eps_abs_;
-      charge_=opt.charge_;
+			charge_=opt.charge_;
 
       return *this;
     }
@@ -154,55 +141,30 @@ namespace OpenMS
      */
     //@{
 		/// Non-mutable access to the penalty parameter
-    inline const OptimizationFunctions::PenaltyFactorsInt& getPenalties() const { return penalties_; }
-    /// Mutable access to the penalty parameter
-    inline OptimizationFunctions::PenaltyFactorsInt& getPenalties() { return penalties_; }
-    /// Mutable access to the penalty parameter
-    inline void setPenalties(const OptimizationFunctions::PenaltyFactorsInt& penalties) { penalties_ = penalties; }
-    
-    /// Non-mutable access to the number of iterations
-    inline Int getNumberIterations() const { return max_iteration_; }
-    /// Mutable access to the number of iterations
-    inline int& getNumberIterations() { return max_iteration_; }
-    /// Mutable access to the number of iterations
-    inline void setNumberIterations(const int max_iteration) { max_iteration_ = max_iteration; }
-
-    /// Non-mutable access to the maximum absolute error
-    inline DoubleReal getMaxAbsError() const { return eps_abs_; }
-    /// Mutable access to the maximum absolute error
-    inline double& getMaxAbsError() { return eps_abs_; }
-    /// Mutable access to the maximum absolute error
-    inline void setMaxAbsError(double eps_abs) { eps_abs_ = eps_abs; }
-
-    /// Non-mutable access to the maximum relative error
-    inline DoubleReal getMaxRelError() const { return eps_rel_; }
-    /// Mutable access to the maximum relative error
-    inline double& getMaxRelError() { return eps_rel_; }
-    /// Mutable access to the maximum relative error
-    inline void setMaxRelError(double eps_rel) { eps_rel_ = eps_rel; }
+    inline const OptimizationFunctions::PenaltyFactorsIntensity& getPenalties() const { return penalties_; }
+		/// Mutable access to the penalty parameter
+    inline void setPenalties(const OptimizationFunctions::PenaltyFactorsIntensity& penalties)
+		{
+			penalties_ = penalties;
+			param_.setValue("penalties:left_width",penalties_.lWidth);
+			param_.setValue("penalties:right_width",penalties_.rWidth);
+			param_.setValue("penalties:height",penalties_.height);
+			param_.setValue("penalties:position",penalties_.pos);
+		}
 
     /// Non-mutable access to the charge state
     inline Int getCharge() const { return charge_; }
-    /// Mutable access to the charge state
-    inline int& getCharge() { return charge_; }
     /// Mutable access to the charge
     inline void setCharge(const int charge) { charge_ = charge; }
     //@}
 
 
     /// Performs a nonlinear optimization of the peaks that belong to the current isotope pattern
-    bool optimize(std::vector<PeakShape>& peaks,Param& param,int failure);
+    bool optimize(std::vector<PeakShape>& peaks,int failure);
 
   protected:
     // Penalty factors for some paramter in the optimization
-    OptimizationFunctions::PenaltyFactorsInt penalties_;
-
-    /// Maximum number of iterations
-    int max_iteration_;
-
-    /// Test for the convergence of the sequence by comparing the last iteration step dx with the absolute error epsabs and relative error epsrel to the current position x
-    double eps_abs_;
-    double eps_rel_;
+    OptimizationFunctions::PenaltyFactorsIntensity penalties_;
 
     /// Charge state of the current isotope pattern
     int charge_;
@@ -214,7 +176,9 @@ namespace OpenMS
     int getNumberOfPeaks_(int charge, std::vector<PeakShape>& temp_shapes);
 
     // After each iteration the fwhm of all peaks is checked whether it isn't too large
-    bool checkFWHM_(std::vector<PeakShape>& peaks, Param& param,gsl_multifit_fdfsolver *& fit);
+    bool checkFWHM_(std::vector<PeakShape>& peaks,gsl_multifit_fdfsolver *& fit);
+
+		void updateMembers_();
   };// class
   
 }// namespace OpenMS

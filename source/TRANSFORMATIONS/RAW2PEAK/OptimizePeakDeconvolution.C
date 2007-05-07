@@ -29,7 +29,11 @@
 
 namespace OpenMS
 {
-  
+
+
+	
+
+	
   const double OptimizePeakDeconvolution::dist_ = 1.003;  
   namespace OptimizationFunctions
   {
@@ -91,7 +95,7 @@ namespace OpenMS
 
       // penalties : especially negative heights have to be penalised
       double penalty = 0.;
-      PenaltyFactorsInt* penalties = (PenaltyFactorsInt *)params;
+      PenaltyFactorsIntensity* penalties = (PenaltyFactorsIntensity *)params;
       double penalty_pos    = penalties->pos;
       double penalty_lwidth = penalties->lWidth;
       double penalty_rwidth = penalties->rWidth;
@@ -101,7 +105,7 @@ namespace OpenMS
       //iterate over all peaks again to compute the penalties
       for (size_t current_peak = 0; current_peak < peaks_DC_.size(); current_peak++)
       	{
-					double p_position = gsl_vector_get(x, 2+2*current_peak+1);
+ 					double p_position = gsl_vector_get(x, 2+2*current_peak+1);
 					if(current_peak < peaks_DC_.size()-1)
 						{
 	      
@@ -138,10 +142,10 @@ namespace OpenMS
 							penalty += penalty_rwidth *peaks_DC_.size()*10000*pow(fabs(p_width_r - old_width_r),2);
 						}
 					else if (p_width_r < 1.5 ) penalty += 10000*pow(fabs(p_width_r - old_width_r),2);
-					if(fabs(old_position - p_position) > 0.5)
-						{
-							penalty += 10000*penalty_pos*pow(fabs(old_position - p_position),2);
-						}
+	// 				if(fabs(old_position - p_position) > 0.5)
+// 						{
+// 							penalty += 10000*penalty_pos*pow(fabs(old_position - p_position),2);
+// 						}
 
 
 	  
@@ -242,13 +246,13 @@ namespace OpenMS
       /** Now iterate over all peaks again to compute the
        *  penalties.
        */
-      PenaltyFactorsInt* penalties = (PenaltyFactorsInt *)params;
+      PenaltyFactorsIntensity* penalties = (PenaltyFactorsIntensity *)params;
       for (size_t current_peak = 0; current_peak < peaks_DC_.size(); current_peak++)
       	{
 
 	  
 					double penalty_p = 0;
-					double p_position = gsl_vector_get(x, 2+2*current_peak+1);
+		 		 	double p_position = gsl_vector_get(x, 2+2*current_peak+1);
 					if(current_peak < peaks_DC_.size()-1)
 						{
 	      
@@ -288,10 +292,10 @@ namespace OpenMS
 							penalty_r += peaks_DC_.size()*2*penalties->rWidth*10000*(fabs(p_width_right - old_width_right));
 						}
 					else if (p_width_right < 1.5 ) penalty_r += 2*penalties->rWidth*10000*pow(fabs(p_width_right - old_width_right),2);
-					if(fabs(old_position - p_position) > 0.5)
-						{
-							penalty_p += 10000*penalties->pos*2*fabs(old_position - p_position);
-						}
+// 					if(fabs(old_position - p_position) > 0.5)
+// 						{
+// 							penalty_p += 10000*penalties->pos*2*fabs(old_position - p_position);
+// 						}
 	
 	  
 	  
@@ -315,23 +319,39 @@ namespace OpenMS
     
 
   }// namespace OptimizationFunctions
+
 	
-	OptimizePeakDeconvolution::OptimizePeakDeconvolution(const OptimizationFunctions::PenaltyFactorsInt& penalties,
-																											 const int max_iteration,
-																											 const double eps_abs, 
-																											 const double eps_rel,
-																											 const int charge)
+
+ 
+	OptimizePeakDeconvolution::OptimizePeakDeconvolution( )
+		: DefaultParamHandler("OpimizePeakDeconvolution"),charge_(1)
 	{
-		penalties_=penalties;
-		max_iteration_=max_iteration;
-		eps_abs_=eps_abs;
-		eps_rel_=eps_rel;
-		charge_=charge;
+		
+		defaults_.setValue("max_iteration",10);
+		defaults_.setValue("eps_abs",1e-04);
+		defaults_.setValue("eps_rel",1e-04);
+
+		defaults_.setValue("penalties:left_width",0);
+		defaults_.setValue("penalties:right_width",0);
+		defaults_.setValue("penalties:height",0);
+		defaults_.setValue("penalties:position",0);
+
+		defaults_.setValue("fwhm_threshold",1);
+
+		defaultsToParam_();
 	}
 
-   
-		
-	bool OptimizePeakDeconvolution::optimize(std::vector<PeakShape>& peaks, Param& param,int failure)
+
+	void OptimizePeakDeconvolution::updateMembers_()
+	{
+		penalties_.rWidth = (float)param_.getValue("penalties:right_width");
+		penalties_.lWidth = (float)param_.getValue("penalties:left_width");
+		penalties_.height = (float)param_.getValue("penalties:height");
+		penalties_.pos    = (float)param_.getValue("penalties:position");
+	
+	}
+
+	bool OptimizePeakDeconvolution::optimize(std::vector<PeakShape>& peaks, int failure)
 	{
       
 		if (peaks.size() == 0)	return true;
@@ -478,13 +498,15 @@ namespace OpenMS
 						if (isnan(gsl_blas_dnrm2(fit->dx)))
 							break;
 				
-						status = gsl_multifit_test_delta(fit->dx, fit->x, eps_abs_, eps_rel_);
+						status = gsl_multifit_test_delta(fit->dx, fit->x,(float)param_.getValue("eps_abs"),
+																						 (float)param_.getValue("eps_rel"));
 						if (status != GSL_CONTINUE)
 							break;
-						if(!checkFWHM_(peaks,param,fit) && failure <1) return false;
+						if(!checkFWHM_(peaks,fit) && failure <1) return false;
 					}
-				while (status == GSL_CONTINUE && iteration < max_iteration_);
+				while (status == GSL_CONTINUE && iteration < (int)param_.getValue("max_iteration"));
 
+	
 				double chi = gsl_blas_dnrm2(fit->f);
 #ifdef DEBUG_DECONV
 				std::cout << "Finished! Charge " << l << "\tIterations: "<<iteration<< std::endl;
@@ -571,16 +593,12 @@ namespace OpenMS
 	}
 
 
-  bool OptimizePeakDeconvolution::checkFWHM_(std::vector<PeakShape>& peaks, Param& param,gsl_multifit_fdfsolver *& fit)
+  bool OptimizePeakDeconvolution::checkFWHM_(std::vector<PeakShape>& peaks, gsl_multifit_fdfsolver *& fit)
   {
-    double fwhm_threshold;
-    DataValue dv = param.getValue("deconvolution:fwhm:threshold");
-    if (dv.isEmpty() || dv.toString() == "") fwhm_threshold = 1;
-    else fwhm_threshold = (float)dv;
-    
-    int num_peaks = peaks.size();
+    double fwhm_threshold = (double)param_.getValue("fwhm_threshold");
+   
     PeakShape p;
-    for (int current_peak = 0; current_peak < num_peaks; current_peak++)
+    for (unsigned int current_peak = 0; current_peak < peaks.size(); current_peak++)
       {
 				p.left_width  = gsl_vector_get(fit->x, 0);
 				p.right_width = gsl_vector_get(fit->x, 1);
@@ -588,8 +606,6 @@ namespace OpenMS
 
 				if(p.getFWHM() > fwhm_threshold) return false;
       }
-
-
     
     return true;
   }
@@ -623,5 +639,6 @@ namespace OpenMS
 	}
 
     
+	
   
 }

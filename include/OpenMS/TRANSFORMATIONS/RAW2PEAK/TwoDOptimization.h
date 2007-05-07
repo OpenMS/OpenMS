@@ -144,8 +144,6 @@ namespace OpenMS
 		///Non-mutable access to the matching epsilon
 		inline DoubleReal getMZTolerance() const {return tolerance_mz_;}
 		///Mutable access to the matching epsilon
-		inline double& getMZTolerance() {return tolerance_mz_;}
-		///Mutable access to the matching epsilon
 		inline void setMZTolerance(double tolerance_mz)
 		{
 			tolerance_mz_ = tolerance_mz;
@@ -154,8 +152,6 @@ namespace OpenMS
 
 		///Non-mutable access to the maximal peak distance in a cluster
 		inline DoubleReal getMaxPeakDistance() const {return max_peak_distance_;}
-		///Mutable access to the maximal peak distance in a cluster
-		inline double& getMaxPeakDistance() {return max_peak_distance_;}
 		///Mutable access to the maximal peak distance in a cluster
 		inline void setMaxPeakDistance(double max_peak_distance)
 		{
@@ -166,8 +162,6 @@ namespace OpenMS
 		///Non-mutable access to the maximal absolute error
 		inline DoubleReal getMaxAbsError() const {return eps_abs_;}
 		///Mutable access to the  maximal absolute error
-		inline double& getMaxAbsError() {return eps_abs_;}
-		///Mutable access to the  maximal absolute error
 		inline void setMaxAbsError(double eps_abs)
 		{
 			eps_abs_ = eps_abs;
@@ -176,8 +170,6 @@ namespace OpenMS
       
 		///Non-mutable access to the maximal relative error
 		inline DoubleReal getMaxRelError() const {return eps_rel_;}
-		///Mutable access to the maximal relative error
-		inline double& getMaxRelError() {return eps_rel_;}
 		///Mutable access to the maximal relative error
 		inline void setMaxRelError(double eps_rel)
 		{
@@ -188,8 +180,6 @@ namespace OpenMS
 		///Non-mutable access to the maximal number of iterations
 		inline Int getMaxIterations() const {return max_iteration_;}
 		///Mutable access to the  maximal number of iterations
-		inline int& getMaxIterations() {return max_iteration_;}
-		///Mutable access to the  maximal number of iterations
 		inline void setMaxIterations(int max_iteration)
 		{
 			max_iteration_ = max_iteration;
@@ -197,11 +187,9 @@ namespace OpenMS
 		}
 
 		///Non-mutable access to the minimal number of adjacent scans
-		inline const OptimizationFunctions::PenaltyFactorsInt& getPenalties() const {return penalties_;}
+		inline const OptimizationFunctions::PenaltyFactorsIntensity& getPenalties() const {return penalties_;}
 		///Mutable access to the minimal number of adjacent scans
-		inline OptimizationFunctions::PenaltyFactorsInt& getPenalties() {return penalties_;}
-		///Mutable access to the minimal number of adjacent scans
-		inline void setPenalties(OptimizationFunctions::PenaltyFactorsInt& penalties)
+		inline void setPenalties(OptimizationFunctions::PenaltyFactorsIntensity& penalties)
 		{
 			penalties_ = penalties;
 			param_.setValue("penalties:position",penalties.pos);
@@ -250,7 +238,7 @@ namespace OpenMS
 
     
 		/// Penalty factors for some parameters in the optimization
-		OptimizationFunctions::PenaltyFactorsInt penalties_;
+		OptimizationFunctions::PenaltyFactorsIntensity penalties_;
       
 		/**
 			 @name Auxiliary Functions for the search of matching regions
