@@ -46,8 +46,6 @@ namespace OpenMS
 		It also offer a common interface to load MSExperiment data
 		and allows querying for supported file types.
 		
-		@todo add PeakFileOptions to FileHandler (Thomas S.)
-		
 		@ingroup FileIO
 	*/
 	class FileHandler

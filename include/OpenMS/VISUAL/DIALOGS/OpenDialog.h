@@ -43,9 +43,6 @@ namespace OpenMS
 		
 		Allows selecting a spectrum/map from a file or the DB.
 		
-		@todo Implement meta data preview with DB (Thomas S.)
-		@todo load metadata only for Files (Thomas S.)
-		
 		@ingroup TOPPView_elements
 	*/
 	class OpenDialog
