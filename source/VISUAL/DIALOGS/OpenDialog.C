@@ -25,6 +25,7 @@
 // --------------------------------------------------------------------------
 
 // OpenMS includes
+#include <OpenMS/FORMAT/DB/DBAdapter.h>
 #include <OpenMS/config.h>
 #include <OpenMS/VISUAL/DIALOGS/OpenDialog.h>
 #include <OpenMS/VISUAL/DIALOGS/DBSpectrumSelectorDialog.h>
@@ -197,12 +198,27 @@ namespace OpenMS
 		if (names_.size()!=0)
 		{
 			MSExperiment<> exp;
-			FileHandler().loadExperiment(names_[0],exp);
-						
+
+			//browse files
+			if (file_radio->isChecked())
+			{
+				FileHandler fh;
+				fh.getOptions().setMetadataOnly(true);
+				fh.loadExperiment(names_[0],exp);
+			}
+			else
+			{
+				DBConnection con;
+				con.connect(getPref_("Preferences:DB:Name"), getPref_("Preferences:DB:Login"),getPref_("DBPassword"),getPref_("Preferences:DB:Host"),getPrefAsInt_("Preferences:DB:Port"));
+				DBAdapter db(con);
+				db.getOptions().setMetadataOnly(true);
+				db.loadExperiment(names_[0].toInt(), exp);
+			}
+			
 			MSMetaDataExplorer dlg(false, this);
 			dlg.setWindowTitle("Meta data");			
 			dlg.visualize(exp);
-     	dlg.exec();
+   	 	dlg.exec();
 		}
 	}
 	

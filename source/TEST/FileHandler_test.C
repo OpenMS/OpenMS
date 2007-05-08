@@ -95,14 +95,47 @@ CHECK(template<class PeakType> bool loadExperiment(const String& filename, MSExp
 	MSExperiment<> exp;
 	TEST_EQUAL(tmp.loadExperiment("test.bla",exp), false)	
 	TEST_EQUAL(tmp.loadExperiment("data/DTAFile_test.dta",exp), true)
+
 	TEST_EQUAL(tmp.loadExperiment("data/MzDataFile_test_1.mzData",exp), true)	
+	TEST_REAL_EQUAL(exp[1].getContainer()[0].getPosition()[0], 110)
+	TEST_REAL_EQUAL(exp[1].getContainer()[1].getPosition()[0], 120)
+	TEST_REAL_EQUAL(exp[1].getContainer()[2].getPosition()[0], 130)
+
+  // starts with 110, so this one should skip the first
+  tmp.getOptions().setMZRange(DRange<1> (115, 1000));
+	TEST_EQUAL(tmp.loadExperiment("data/MzDataFile_test_1.mzData",exp), true)	
+	TEST_REAL_EQUAL(exp[1].getContainer()[0].getPosition()[0], 120)
+	TEST_REAL_EQUAL(exp[1].getContainer()[1].getPosition()[0], 130)
+
+  tmp.getOptions() = PeakFileOptions();
   TEST_EQUAL(tmp.loadExperiment("data/MzXMLFile_test_1.mzXML",exp), true)	
+	TEST_REAL_EQUAL(exp[2].getContainer()[0].getPosition()[0], 100)
+	TEST_REAL_EQUAL(exp[2].getContainer()[1].getPosition()[0], 110)
+	TEST_REAL_EQUAL(exp[2].getContainer()[2].getPosition()[0], 120)
+
+  tmp.getOptions().setMZRange(DRange<1> (115, 1000));
+  TEST_EQUAL(tmp.loadExperiment("data/MzXMLFile_test_1.mzXML",exp), true)	
+	TEST_REAL_EQUAL(exp[2].getContainer()[0].getPosition()[0], 120)
+	TEST_REAL_EQUAL(exp[2].getContainer()[1].getPosition()[0], 130)
+	TEST_REAL_EQUAL(exp[2].getContainer()[2].getPosition()[0], 140)
+
 #ifdef ANDIMS_DEF
   TEST_EQUAL(tmp.loadExperiment("data/ANDIFile_test.cdf",exp), true)
 #else
 	TEST_EQUAL(tmp.loadExperiment("data/ANDIFile_test.cdf",exp), false)
 #endif
+
+  tmp.getOptions() = PeakFileOptions();
   TEST_EQUAL(tmp.loadExperiment("data/DTA2DFile_test_1.dta2d",exp), true)	
+	TEST_REAL_EQUAL(exp[0].getContainer()[0].getPosition()[0], 230.02)
+	TEST_REAL_EQUAL(exp[0].getContainer()[1].getPosition()[0], 430.02)
+	TEST_REAL_EQUAL(exp[0].getContainer()[2].getPosition()[0], 630.02)
+
+  tmp.getOptions().setMZRange(DRange<1> (300, 1000));
+  TEST_EQUAL(tmp.loadExperiment("data/DTA2DFile_test_1.dta2d",exp), true)	
+	TEST_REAL_EQUAL(exp[0].getContainer()[0].getPosition()[0], 430.02)
+	TEST_REAL_EQUAL(exp[0].getContainer()[1].getPosition()[0], 630.02)
+
 	TEST_EXCEPTION(Exception::ParseError,tmp.loadExperiment("data/DTAFile_test.dta",exp, FileHandler::DTA2D))
 RESULT
 

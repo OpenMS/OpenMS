@@ -213,4 +213,13 @@ namespace OpenMS
 		return UNKNOWN;
 	}
 
+	PeakFileOptions& FileHandler::getOptions()
+	{
+		return options_;
+	}
+
+  const PeakFileOptions& FileHandler::getOptions() const
+  {
+  	return options_;
+  }
 } // namespace OpenMS

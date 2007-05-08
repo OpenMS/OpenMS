@@ -89,6 +89,12 @@ namespace OpenMS
 		/// Returns if the file type is supported in this build of the library
 		bool isSupported(Type type);
 
+    /// Mutable access to the options for loading
+    PeakFileOptions& getOptions();
+
+    /// Non-mutable access to the options for loading
+    const PeakFileOptions& getOptions() const;
+
 		/**
 			 @brief Loads a file into an MSExperiment
 
@@ -134,6 +140,7 @@ namespace OpenMS
 			case DTA2D:
 				{
 					DTA2DFile f;
+					f.getOptions() = options_;
 					f.setLogType(log);
 					f.load(filename,exp);
 					return true;
@@ -142,6 +149,7 @@ namespace OpenMS
 			case MZXML:
 				{
 					MzXMLFile f;
+					f.getOptions() = options_;
 					f.setLogType(log);
 					f.load(filename,exp);
 					return true;
@@ -150,6 +158,7 @@ namespace OpenMS
 			case MZDATA:
 				{
 					MzDataFile f;
+					f.getOptions() = options_;
 					f.setLogType(log);
 					f.load(filename,exp);
 					return true;
@@ -169,6 +178,9 @@ namespace OpenMS
 				return false;
 			}
 		}
+		
+		private:
+		  PeakFileOptions options_;
 	};
 
 } //namespace
