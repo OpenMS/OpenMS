@@ -42,7 +42,7 @@ using namespace std;
 /**
 	@page FeatureFinder FeatureFinder
 	
-	@brief Executes the feature finding algorithm as decribed by Groepl et al. (2005) Proc. CompLife-05.
+	@brief Implements the feature finding algorithm as decribed by Groepl et al. (2005) Proc. CompLife-05.
 	
 	This module identifies "features" in a LC/MS map.
 	By feature, we understand a peptide in a MS sample that

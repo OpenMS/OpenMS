@@ -1,8 +1,11 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
 <results_additiveseries>
-	<slope>0.217554</slope>
-	<intercept>0.0759982</intercept>
-	<x_intercept>-0.34933</x_intercept>
-	<confidence_lowerlimit>-0.394796</confidence_lowerlimit>
-	<confidence_upperlimit>-0.305653</confidence_upperlimit>
+	<slope>0.218084</slope>
+	<intercept>0.0757543</intercept>
+	<x_intercept>-0.347362</x_intercept>
+	<confidence_lowerlimit>-0.39113</confidence_lowerlimit>
+	<confidence_upperlimit>-0.305236</confidence_upperlimit>
+	<pearson_squared>0.99028</pearson_squared>
+	<std_residuals>0.0117435</std_residuals>
+	<t_statistic>2.05183</t_statistic>
 </results_additiveseries>

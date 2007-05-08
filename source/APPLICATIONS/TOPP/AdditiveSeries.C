@@ -158,15 +158,15 @@ class AdditiveSeries
 		while (iter!= map.end() )
 		{
 
-			//cout << "Read: " << *iter << endl;
+			cout << "Read: " << *iter << endl;
 			
 			if ( (iter->getRT() <  fpos1[Feature::RT] + tol_rt) &&
 					 (iter->getRT() >  fpos1[Feature::RT] - tol_rt) &&
 					 (iter->getMZ() <  fpos1[Feature::MZ] + tol_mz) &&
 					 (iter->getMZ() >  fpos1[Feature::MZ] - tol_mz) )
 			{
-				//cout << "Found feature1 at " << endl;
-				//cout << iter->getRT() << " " << iter->getMZ()  << " " << iter->getIntensity() <<  endl;
+				cout << "Found feature1 at " << endl;
+				cout << iter->getRT() << " " << iter->getMZ()  << " " << iter->getIntensity() <<  endl;
 				// feature at correct position found, save intensity
 				if (!feat1)
 				{
@@ -185,8 +185,8 @@ class AdditiveSeries
 					 (iter->getMZ() <  fpos2[Feature::MZ] + tol_mz) &&
 					 (iter->getMZ() >  fpos2[Feature::MZ] - tol_mz) )
 			{
-				//cout << "Found feature2 at " << endl;
-				//cout << iter->getRT() << " " << iter->getMZ() << " " << iter->getIntensity() <<  endl;
+				cout << "Found feature2 at " << endl;
+				cout << iter->getRT() << " " << iter->getMZ() << " " << iter->getIntensity() <<  endl;
 				// same as above
 				if (!feat2)
 				{
@@ -205,9 +205,9 @@ class AdditiveSeries
 
 		if (feat1 != 0 && feat2 != 0)  //(f1_sum != 0 && f2_sum != 0) 
 		{
-			// 						cout << "Feature 1: " << feat1->getIntensity() << endl;
-			// 						cout << "Feature 2: " << feat2->getIntensity() << endl;
-			// 						cout << "Intensity ratio : " << ( feat1->getIntensity() / feat2->getIntensity() ) << endl;
+									cout << "Feature 1: " << feat1->getIntensity() << endl;
+									cout << "Feature 2: " << feat2->getIntensity() << endl;
+									cout << "Intensity ratio : " << ( feat1->getIntensity() / feat2->getIntensity() ) << endl;
 			intensities.push_back( feat1->getIntensity() / feat2->getIntensity());
 
 			return true;
@@ -322,6 +322,9 @@ class AdditiveSeries
 			results << "\t<x_intercept>" << linreg.getXIntercept() << "</x_intercept>" << endl;
 			results << "\t<confidence_lowerlimit>" << linreg.getLower() << "</confidence_lowerlimit>" << endl;
 			results << "\t<confidence_upperlimit>" << linreg.getUpper() << "</confidence_upperlimit>" << endl;
+			results << "\t<pearson_squared>" << linreg.getRSquared() << "</pearson_squared>" << endl;
+			results << "\t<std_residuals>" << linreg.getStandDevRes() << "</std_residuals>" << endl;
+			results << "\t<t_statistic>" << linreg.getTValue() << "</t_statistic>" << endl;
 			results << "</results_additiveseries>" << endl;
 
 			results.close();
@@ -418,6 +421,7 @@ class AdditiveSeries
 
 		if (intensities.size() == 0 || sp_concentrations.size() == 0 )
 		{
+			std::cout << intensities.size() << " " << sp_concentrations.size() << std::endl;
 			writeLog_("Did not find any data. Aborting!");
 			return ILLEGAL_PARAMETERS;
 		}
