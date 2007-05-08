@@ -338,7 +338,7 @@ namespace OpenMS
 				c_candidate[i].setIntensity( candidates[c][i].getIntensity() );
 			}
 				
-			sort (c_candidate.begin(), c_candidate.end(), 	ReverseComparator< RawDataPoint2D::IntensityLess>() );
+			sort (c_candidate.begin(), c_candidate.end(), 	ReverseComparator< RawDataPoint2D::IntensityLess >() );
 			c_av_intens = getAbsMean_(candidates[c], 0, candidates[c].size());
 					
 			for (iter=c_candidate.begin(); iter != c_candidate.end(); ++iter)
