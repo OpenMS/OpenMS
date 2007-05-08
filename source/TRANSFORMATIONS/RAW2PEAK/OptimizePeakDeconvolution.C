@@ -318,7 +318,6 @@ namespace OpenMS
   }// namespace OptimizationFunctions
 
 	
-
  
 	OptimizePeakDeconvolution::OptimizePeakDeconvolution( )
 		: DefaultParamHandler("OpimizePeakDeconvolution"),charge_(1)

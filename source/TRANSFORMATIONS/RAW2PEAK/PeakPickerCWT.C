@@ -1236,7 +1236,7 @@ namespace OpenMS
   }
 
   template <>
-  void PeakPickerCWT::fillPeak_< PickedPeak1D >(const PeakShape& peak_shape, PickedPeak1D& picked_peak)
+  void PeakPickerCWT::fillPeak< PickedPeak1D >(const PeakShape& peak_shape, PickedPeak1D& picked_peak)
   {
     picked_peak.setRValue(peak_shape.r_value);
     picked_peak.setArea(peak_shape.area);

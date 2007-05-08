@@ -69,7 +69,6 @@ namespace OpenMS
 
      @ingroup PeakPicking
     
-    @todo fillPeak_ is a public function, not a protected (naming convention). Group common functions. (Alexandra)
   */
 
   class PeakPickerCWT : public PeakPicker
@@ -97,6 +96,9 @@ namespace OpenMS
     /// Destructor
     virtual ~PeakPickerCWT();
 
+		/** @name Accesssor methods
+		 */
+    //@{
     /// Non-mutable access to the vector of peak shapes
     inline const std::vector<PeakShape>& getPeakShapes() const
     {
@@ -226,6 +228,7 @@ namespace OpenMS
       }
 
     }
+		//@}
     //@}
 
 
@@ -446,7 +449,7 @@ namespace OpenMS
 
 
 
-          fillPeak_(peak_shapes_[i],picked_peak);
+          fillPeak(peak_shapes_[i],picked_peak);
           picked_peak_container.push_back(picked_peak);
         }
 
@@ -499,6 +502,7 @@ namespace OpenMS
       // pick peaks on each scan
       for (unsigned int i = 0; i < n; ++i)
       {
+				setProgress(i);
         MSSpectrum< OutputPeakType > spectrum;
         InputSpectrumIterator input_it(first+i);
 #ifdef DEBUG_PEAK_PICKING
@@ -663,7 +667,7 @@ namespace OpenMS
 
     /// This function fills the members of a picked peak of type OutputPeakType.
     template <typename OutputPeakType>
-    void fillPeak_(const PeakShape& /* peak_shape */, OutputPeakType& /* picked_peak */)
+    void fillPeak(const PeakShape& /* peak_shape */, OutputPeakType& /* picked_peak */)
     {}
 
    
@@ -811,21 +815,35 @@ namespace OpenMS
     */
     void initializeWT_();
 
+		 /** @name Methods needed for separation of overlapping peaks
+    */
+    //@{
+		
+		/** @brief Separates overlapping peaks.
+
+		    It determines the number of peaks lying underneath the initial peak using the cwt with different scales.
+				Then a nonlinear optimzation procedure is applied to optimize the peak parameters.
+
+		*/
     void deconvolutePeak_(PeakShape& shape,PeakArea_& area,std::vector<double> peak_endpoints);
 
-    int getNumberOfPeaks_(RawDataPointIterator& first,RawDataPointIterator& last, std::vector<double>& peak_values, int direction,int resolution, ContinuousWaveletTransformNumIntegration& wt);
+		/// Determines the number of peaks in the given mass range using the cwt
+    int getNumberOfPeaks_(RawDataPointIterator& first,RawDataPointIterator& last, std::vector<double>& peak_values,
+													int direction,int resolution, ContinuousWaveletTransformNumIntegration& wt);
 
+		/// Estimate the charge state of the peaks
     int determineChargeState_(std::vector<double>& peak_values);
 
-
+		/// Add a peak
     void addPeak_(std::vector<PeakShape>& peaks_DC,PeakArea_& area,double left_width,double right_width);
+		//@}
   }
   ; // end PeakPickerCWT
 
 
   /// Fills the members of a DPickedPeak given an PeakShape
   template <>
-  void PeakPickerCWT::fillPeak_< PickedPeak1D >(const PeakShape& peak_shape, PickedPeak1D& picked_peak);
+  void PeakPickerCWT::fillPeak< PickedPeak1D >(const PeakShape& peak_shape, PickedPeak1D& picked_peak);
 
 
 }// namespace OpenMS

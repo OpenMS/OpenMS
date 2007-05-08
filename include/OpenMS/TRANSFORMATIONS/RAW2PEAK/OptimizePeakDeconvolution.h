@@ -92,8 +92,6 @@ namespace OpenMS
 		 mass rule, e.g. two consecutive isotopic peaks are 1.003/charge away from each other. Besides the
 		 peaks have all the same left and right width, respectively.
 
-		 @todo use DefaultParamHandler (Alexandra)
-
 		 @ingroup PeakPicking  
 	*/
   class OptimizePeakDeconvolution : public DefaultParamHandler
@@ -152,8 +150,6 @@ namespace OpenMS
 			param_.setValue("penalties:position",penalties_.pos);
 		}
 
-    /// Non-mutable access to the charge state
-    inline Int getCharge() const { return charge_; }
     /// Mutable access to the charge
     inline void setCharge(const int charge) { charge_ = charge; }
     //@}
