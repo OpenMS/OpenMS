@@ -585,7 +585,50 @@ The output of the program is:
 @Note A rough standard value for the peak's scale is the average fwhm of a mass
 spectrometric peak.  
 
-@section transformations_ff Feature fionding
+@section transformations_ff Peptide Quantification
+
+The FeatureFinder implements an algorithms for the detection and
+quantification of peptides from LC-MS maps. In constrast to the
+previous step (peak picking) we do not only search for pronounced
+signals (peak) in the LC-MS map but search explicitly for peptides
+which can be recognized by their isotopic pattern.
+
+This approach is based on work published on Groepl et al. (2005) and 
+Schulz-Trieglaff et al. (2007). Essentially, we use wavelet-based
+pattern matching to extract isotopic pattern from single scans and
+join adjacent pattern using a geometric approach. We filter the
+extracted signals by matching them against a averagine model.
+
+There are two possibilities to use the feature finding
+algorithms. The first and easiest one is to use the corresponding
+TOPP (TOPP = The OpenMS Proteomics Pipeline) module. It is a 
+commandline program that offers an online help and is pretty 
+self-explanatory.
+
+The second possibility, for the more advanced user who might even
+want to implement his or her own modules, is to use OpenMS as a
+library and write an FeatureFinder application of your own. This
+is straightforward to do. A short example is given below:
+
+@code
+
+MzXMLFile mzxml_file;
+MSExperimentExtern< > exp;
+
+mzxml_file.load("path_to_rawdata_file",exp);
+
+FeatureFinder ff;
+ff.setData(exp);
+FeatureMap< > features = ff.run();
+FeatureMapFile().store(features);
+
+@endcode
+
+This small program loads a data set from a mzXML file, loads this
+data into the FeatureFinder class and runs the algorithm. The
+resulting features are stored in an instance of class FeatureMap
+which is a simple container for features. The feature map can be
+stored or used for further processing.
 
 */
 
