@@ -149,7 +149,9 @@ namespace OpenMS
 			param_.setValue("penalties:height",penalties_.height);
 			param_.setValue("penalties:position",penalties_.pos);
 		}
-
+		
+		/// Non-mutable access to the charge
+    inline const int getCharge() const { return charge_; }
     /// Mutable access to the charge
     inline void setCharge(const int charge) { charge_ = charge; }
     //@}
