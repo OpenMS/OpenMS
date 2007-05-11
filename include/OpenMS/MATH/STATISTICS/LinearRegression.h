@@ -43,7 +43,7 @@ namespace OpenMS
     /**
       @brief This class offers functions to perform least-squares fits to a straight line model, \f$ Y(c,x) = c_0 + c_1 x \f$.
             
-            It capsulates the GSL methods for a weighted and an unweigthed linear regression.
+            It capsulates the GSL methods for a weighted and an unweighted linear regression.
       
             Next to the intercept with the y-axis and the slope of the fitted line, this class
             computes the:
@@ -75,8 +75,10 @@ namespace OpenMS
             t_star_(0),
             r_squared_(0),
             stand_dev_residuals_(0),
+						mean_residuals_(0),
             stand_error_slope_(0),
-            chi_squared_(0)
+            chi_squared_(0),
+						rsd_(0)
         {}
 
         /// Copy constructor.
@@ -89,8 +91,10 @@ namespace OpenMS
             t_star_(arg.t_star_),
             r_squared_(arg.r_squared_),
             stand_dev_residuals_(arg.stand_dev_residuals_),
+						mean_residuals_(arg.mean_residuals_),
             stand_error_slope_(arg.stand_error_slope_),
-            chi_squared_(arg.chi_squared_)
+            chi_squared_(arg.chi_squared_),
+						rsd_(arg.rsd_)
         {}
 
         /// Assignment.
@@ -110,8 +114,10 @@ namespace OpenMS
           t_star_ = arg.t_star;
           r_squared_ = arg.r_squared_;
           stand_dev_residuals_ = arg.stand_dev_residuals_;
+					mean_residuals_  = arg.mean_residuals_;
           stand_error_slope_ = arg.stand_error_slope_;
           chi_squared_ = arg.chi_squared_;
+					rsd_ = arg.rsd_;
 
           return *this;
         }
@@ -200,6 +206,13 @@ namespace OpenMS
         {
           return stand_dev_residuals_;
         }
+				
+				 /// Non-mutable access to the residual mean 
+        inline DoubleReal getMeanRes() const
+        {
+          return mean_residuals_;
+        }
+				
         /// Non-mutable access to the standard error of the slope
         inline DoubleReal getStandErrSlope() const
         {
@@ -209,6 +222,12 @@ namespace OpenMS
         inline DoubleReal getChiSquared() const
         {
           return chi_squared_;
+        }
+				
+				 /// Non-mutable access to relelative standard deviation
+        inline DoubleReal getRSD() const
+        {
+          return rsd_;
         }
 
 
@@ -224,16 +243,20 @@ namespace OpenMS
         double lower_;
         /// The upper bound of the confidence intervall
         double upper_;
-        /// The value of the t-distribution
+        /// The value of the t-statistic
         double t_star_;
         /// The squared correlation coefficient (Pearson)
         double r_squared_;
-        /// The standard deviation of the ressiduals
+        /// The standard deviation of the residuals
         double stand_dev_residuals_;
+				 /// Mean of residuals
+        double mean_residuals_;
         /// The standard error of the slope
         double stand_error_slope_;
-        /// The value of the Chi Squared
+        /// The value of the Chi Squared statistic
         double chi_squared_;
+				/// the relative standard deviation
+				double rsd_;
 
 
         /// Computes the goodness of the fitted regression line
@@ -344,9 +367,10 @@ namespace OpenMS
       double var_Y = gsl_stats_variance(Y,1,N);
       double cov_XY = gsl_stats_covariance(X,1,Y,1,N);
 
-      // Mean of X
+      // Mean of abscissa and ordinate values
       double x_mean = gsl_stats_mean(X,1,N);
-
+			double y_mean = gsl_stats_mean(Y,1,N);
+				
       // S_xx
       double s_XX = 0;
       for (int i=0; i<N; ++i)
@@ -360,11 +384,12 @@ namespace OpenMS
 
       // The standard deviation of the residuals
       double sum = 0;
-      for (int i = 0; i < N; ++i)
+      for (Int i = 0; i < N; ++i)
       {
         double x_i = fabs(Y[i] - (intercept_ + slope_ * X[i]));
         sum += x_i;
       }
+			mean_residuals_       = sum / N;
       stand_dev_residuals_ = sqrt((chi_squared_ - (sum*sum)/N)/(N-1));
 
       // The Standard error of the slope
@@ -392,9 +417,20 @@ namespace OpenMS
       {
         std::swap(lower_,upper_);
       }
-
-      //
-      /*std::cerr <<   "Intercept                                " << intercept_
+			
+			double tmp = 0;
+			for (Int i = 0; i<N;++i)
+			{
+				tmp += (X[i] - x_mean) * (X[i] - x_mean);
+			}
+			
+			// compute relative standard deviation (non-standard formula, taken from Mayr et al. (2006) )
+			rsd_ = (100.0 / fabs( x_intercept_ )) * (stand_dev_residuals_ / slope_) * sqrt(  (1.0/N) * (y_mean / (slope_ * slope_ * tmp ) ) ) ; 
+			
+			if (rsd_ < 0.0)
+			{
+			std::cout << "rsd < 0.0 " << std::endl;
+      std::cout <<   "Intercept                                " << intercept_
                 << "\nSlope                                    " << slope_
                 << "\nSquared pearson coefficient              " << r_squared_
                 << "\nValue of the t-distribution              " << t_star_
@@ -408,7 +444,10 @@ namespace OpenMS
                 << "\nstand_error_slope/slope_                 " << (stand_dev_residuals_/slope_)
                 << "\nCoefficient of Variation                 " << (stand_dev_residuals_/slope_)/x_mean*100  << std::endl
                 << "========================================="
-                << std::endl; */
+                << std::endl; 	
+			}
+			
+ 
     }
 
 

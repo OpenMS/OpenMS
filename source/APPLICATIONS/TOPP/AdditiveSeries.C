@@ -26,8 +26,11 @@
 
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
+
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/MATH/STATISTICS/LinearRegression.h>
+
+#include <OpenMS/SYSTEM/File.h>
 
 #include <map>
 #include <vector>
@@ -147,6 +150,15 @@ class AdditiveSeries
 										CoordinateType tol_mz, CoordinateType tol_rt,
 										DPosition<2> fpos1, DPosition<2> fpos2)
 	{
+		
+		if (!File::exists(filename) )
+		{
+			cout << "File " << filename << " not found. " << endl;
+			return false;
+		}
+		
+		cout << "Reading from " << filename << endl;
+		
 		FeatureXMLFile map_file;
 		FeatureMap<> map;
 		map_file.load(filename,map);
@@ -158,15 +170,15 @@ class AdditiveSeries
 		while (iter!= map.end() )
 		{
 
-			cout << "Read: " << *iter << endl;
+// 			cout << "Read: " << *iter << endl;
 			
 			if ( (iter->getRT() <  fpos1[Feature::RT] + tol_rt) &&
 					 (iter->getRT() >  fpos1[Feature::RT] - tol_rt) &&
 					 (iter->getMZ() <  fpos1[Feature::MZ] + tol_mz) &&
 					 (iter->getMZ() >  fpos1[Feature::MZ] - tol_mz) )
 			{
-				cout << "Found feature1 at " << endl;
-				cout << iter->getRT() << " " << iter->getMZ()  << " " << iter->getIntensity() <<  endl;
+// 				cout << "Found feature1 at " << endl;
+// 				cout << iter->getRT() << " " << iter->getMZ()  << " " << iter->getIntensity() <<  endl;
 				// feature at correct position found, save intensity
 				if (!feat1)
 				{
@@ -185,8 +197,8 @@ class AdditiveSeries
 					 (iter->getMZ() <  fpos2[Feature::MZ] + tol_mz) &&
 					 (iter->getMZ() >  fpos2[Feature::MZ] - tol_mz) )
 			{
-				cout << "Found feature2 at " << endl;
-				cout << iter->getRT() << " " << iter->getMZ() << " " << iter->getIntensity() <<  endl;
+// 				cout << "Found feature2 at " << endl;
+// 				cout << iter->getRT() << " " << iter->getMZ() << " " << iter->getIntensity() <<  endl;
 				// same as above
 				if (!feat2)
 				{
@@ -205,8 +217,8 @@ class AdditiveSeries
 
 		if (feat1 != 0 && feat2 != 0)  //(f1_sum != 0 && f2_sum != 0) 
 		{
-									cout << "Feature 1: " << feat1->getIntensity() << endl;
-									cout << "Feature 2: " << feat2->getIntensity() << endl;
+									cout << "Feature 1: " << *feat1 << endl;
+									cout << "Feature 2: " << *feat2 << endl;
 									cout << "Intensity ratio : " << ( feat1->getIntensity() / feat2->getIntensity() ) << endl;
 			intensities.push_back( feat1->getIntensity() / feat2->getIntensity());
 
@@ -371,7 +383,7 @@ class AdditiveSeries
 
 		writeDebug_(String("Setting tolerances to ") + tol_mz + " " + tol_rt,1);
 
-		// introduce a flag for each concetration. true => the corresponding feature was found
+		// introduce a flag for each concentration. true => the corresponding feature was found
 		vector<bool> flags;
 
 		// fetching list of files
@@ -419,9 +431,12 @@ class AdditiveSeries
 			}
 		}
 
+		cout << "Found feature pairs: " <<  intensities.size() << endl;
+		cout << "Spiked concentrations: " << sp_concentrations.size() << endl;
+		
 		if (intensities.size() == 0 || sp_concentrations.size() == 0 )
 		{
-			std::cout << intensities.size() << " " << sp_concentrations.size() << std::endl;
+			
 			writeLog_("Did not find any data. Aborting!");
 			return ILLEGAL_PARAMETERS;
 		}

@@ -133,6 +133,14 @@ CHECK((DoubleReal getXIntercept() const))
   TEST_REAL_EQUAL(linreg_ptr->getXIntercept(),-2.0)
 RESULT
 
+CHECK((inline DoubleReal getRSD() const))
+  TEST_REAL_EQUAL(linreg_ptr->getRSD(),0.0)
+RESULT
+
+CHECK(inline DoubleReal getMeanRes() const)
+  TEST_REAL_EQUAL(linreg_ptr->getMeanRes(),0.0)
+RESULT
+
 CHECK((~LinearRegression()))
   delete linreg_ptr;
 RESULT
