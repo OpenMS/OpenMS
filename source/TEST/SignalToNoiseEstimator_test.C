@@ -61,6 +61,10 @@ class TestSignalToNoiseEstimator
   virtual void computeSTN_(const PeakIterator& scan_first_, const PeakIterator& scan_last_) 
       throw(Exception::InvalidValue)
   {
+    if (scan_first_ == scan_last_)
+    {
+      std::cout << "bla";
+    }
     // do nothing here...
   }
 

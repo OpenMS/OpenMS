@@ -112,7 +112,6 @@ class TOPPDecharger
     FeatureXMLFile().load(in,map);
     //map.sortByPosition();
 
-    std::cout << "#Features before: " << map.size() << "\n";
     FeatureMapType map_sm;
     
     // removing items with charge 1
@@ -124,7 +123,7 @@ class TOPPDecharger
       }
     }
   
-    std::cout << "#Features after: " << map_sm.size() << "\n";
+    std::cout << "removing features with charge 1...  #Features before: " << map.size() << "#Features after: " << map_sm.size() << "\n";
 
     //-------------------------------------------------------------
     // calculations

@@ -64,6 +64,7 @@ class SignalToNoiseEstimator: public DefaultParamHandler, public ProgressLogger
     /// Constructor
     inline SignalToNoiseEstimator()
         : DefaultParamHandler("SignalToNoiseEstimator"),
+          ProgressLogger(),
           first_(0),
           last_(0),
           is_result_valid_(false)
@@ -73,6 +74,7 @@ class SignalToNoiseEstimator: public DefaultParamHandler, public ProgressLogger
     /// Copy constructor
     inline SignalToNoiseEstimator(const SignalToNoiseEstimator&  source)
         : DefaultParamHandler(source),
+          ProgressLogger(source),
         stn_estimates_( source.stn_estimates_),
         first_(source.first_),
         last_(source.last_),
@@ -85,6 +87,7 @@ class SignalToNoiseEstimator: public DefaultParamHandler, public ProgressLogger
       if(&source == this) return *this; 
       
       DefaultParamHandler::operator=(source);
+      ProgressLogger::operator=(source);
       stn_estimates_ = source.stn_estimates_;
       first_ = source.first_;
       last_  = source.last_;
