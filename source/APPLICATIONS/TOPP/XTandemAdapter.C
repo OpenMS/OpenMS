@@ -224,12 +224,11 @@ class TOPPXTandemAdapter
 
 			MzDataFile mzdata_infile;
 			mzdata_infile.setLogType(log_type_);
-			ProteinIdentification protein_identification;
-			vector<Identification> identifications;
+			Identification protein_identification;
+			vector<PeptideIdentification> peptide_ids;
 			mzdata_infile.load(inputfile_name, map);
 				
-			vector<IdentificationData> peptide_ids;
-			vector<ProteinIdentification> protein_identifications;
+			vector<Identification> protein_identifications;
 			//-------------------------------------------------------------
 			// calculations
 			//-------------------------------------------------------------
@@ -254,8 +253,8 @@ class TOPPXTandemAdapter
 
 				// read XTandem output
 				XTandemXMLFile tandem_out_file;
-				vector<IdentificationData> tmp_peptide_ids;
-				ProteinIdentification tmp_protein_id;
+				vector<PeptideIdentification> tmp_peptide_ids;
+				Identification tmp_protein_id;
 				tandem_out_file.load(tandem_outfile_name, tmp_protein_id, tmp_peptide_ids);
 
 				if (tmp_peptide_ids.size() == 1)
@@ -265,7 +264,7 @@ class TOPPXTandemAdapter
 				}
 				else
 				{
-					peptide_ids.push_back(IdentificationData());
+					peptide_ids.push_back(PeptideIdentification());
 					protein_identifications.push_back(tmp_protein_id);
 				}
 			}

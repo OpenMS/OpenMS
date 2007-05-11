@@ -26,6 +26,8 @@
 
 #include <OpenMS/FORMAT/OMSSACSVFile.h>
 
+#include <fstream>
+
 using namespace std;
 
 namespace OpenMS
@@ -39,10 +41,9 @@ namespace OpenMS
 	{
 	}
 
-
-	void OMSSACSVFile::load(const String& filename, ProteinIdentification& /* protein_identification */, std::vector<IdentificationData>& id_data) const throw (Exception::FileNotFound, Exception::ParseError)
+	void OMSSACSVFile::load(const String& filename, Identification& /* protein_identification */, vector<PeptideIdentification>& id_data) const throw (Exception::FileNotFound, Exception::ParseError)
 	{
-		std::ifstream is(filename.c_str());
+		ifstream is(filename.c_str());
     if (!is)
     {
     	throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename);
@@ -86,16 +87,17 @@ namespace OpenMS
 			p.setSequence(split[2].trim());
 			p.setScore(split[13+offset].trim().toDouble());
 			p.setCharge(split[11+offset].trim().toInt());
-			p.setScoreType("OMSSA");
 
 			if  (actual_spectrum_number != (UInt)split[0].trim().toInt())
 			{
 				// new id
-				id_data.push_back(IdentificationData());
+				//id_data.push_back(IdentificationData());
+				id_data.push_back(PeptideIdentification());
+				id_data.back().setScoreType("OMSSA");
 				actual_spectrum_number = (UInt)split[0].trim().toInt();
 			}
 
-			id_data.back().id.getPeptideHits().push_back(p);
+			id_data.back().insertHit(p);
 		}
 
 	}

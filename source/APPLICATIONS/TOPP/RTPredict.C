@@ -91,8 +91,8 @@ class TOPPRTPredict
 		ExitCodes main_(int , char**)
 		{
 			IdXMLFile IdXML_file;
-			vector<ProteinIdentification> protein_identifications;
-			vector<IdentificationData> identifications;
+			vector<Identification> protein_identifications;
+			vector<PeptideIdentification> identifications;
 			vector< String > peptides;
 			vector< DoubleReal > training_retention_times;
 			vector<PeptideHit> temp_peptide_hits;
@@ -119,8 +119,8 @@ class TOPPRTPredict
 			String svmfile_name = "";
 			Real total_gradient_time = 1.f;
 			bool separation_prediction = false;
-			vector<IdentificationData> identifications_positive;
-			vector<IdentificationData> identifications_negative;
+			vector<PeptideIdentification> identifications_positive;
+			vector<PeptideIdentification> identifications_negative;
 
 			
 			//-------------------------------------------------------------
@@ -247,7 +247,7 @@ class TOPPRTPredict
 		
 			for(UInt i = 0; i < identifications.size(); i++)
 			{
-				temp_peptide_hits = identifications[i].id.getPeptideHits();
+				temp_peptide_hits = identifications[i].getHits();
 				for(UInt j = 0; j < temp_peptide_hits.size(); j++)
 				{
 					peptides.push_back(temp_peptide_hits[j].getSequence());
@@ -299,21 +299,19 @@ class TOPPRTPredict
 			{
 				for(UInt i = 0; i < identifications.size(); i++)
 				{
-					temp_peptide_hits = identifications[i].id.getPeptideHits();
-					vector<ProteinHit> temp_protein_hits = identifications[i].id.getProteinHits();
+					temp_peptide_hits = identifications[i].getHits();
 					for(UInt j = 0; j < temp_peptide_hits.size(); j++)
 					{
 						DoubleReal temp_rt = predicted_data[temp_peptide_hits[j].getSequence()];
 	
-						temp_point.first = identifications[i].rt;
+						temp_point.first = identifications[i].getMetaValue("RT");
 						temp_point.second = temp_rt;
 						DoubleReal temp_p_value = svm.getPValue(sigma_0, sigma_max, temp_point);
-						temp_peptide_hits[j].setPredictedRTPValue(temp_p_value);
+						temp_peptide_hits[j].setMetaValue("predicted_RT_p_value",temp_p_value);
 	
-						performance_retention_times.push_back(identifications[i].rt);					
+						performance_retention_times.push_back(identifications[i].getMetaValue("RT"));					
 					}
-					identifications[i].id.setPeptideAndProteinHits(temp_peptide_hits,
-																												temp_protein_hits);				
+					identifications[i].setHits(temp_peptide_hits);				
 				}
 			}
 			else
@@ -321,15 +319,14 @@ class TOPPRTPredict
 				vector<PeptideHit> hits_positive;
 				vector<PeptideHit> hits_negative;
 				
-				IdentificationData temp_identification;
+				PeptideIdentification temp_identification;
 
 				for(UInt i = 0; i < identifications.size(); i++)
 				{					
 					hits_negative.clear();
 					hits_positive.clear();
 
-					temp_peptide_hits = identifications[i].id.getPeptideHits();
-					vector<ProteinHit> temp_protein_hits = identifications[i].id.getProteinHits();
+					temp_peptide_hits = identifications[i].getHits();
 					for(vector<PeptideHit>::iterator it = temp_peptide_hits.begin();
 							it != temp_peptide_hits.end();
 							++it)
@@ -343,15 +340,13 @@ class TOPPRTPredict
 							hits_negative.push_back(*it);
 						}
 					}
-					temp_identification.mz = identifications[i].mz;
-					temp_identification.rt = identifications[i].rt;
+					temp_identification.setMetaValue("MZ",identifications[i].getMetaValue("MZ"));
+					temp_identification.setMetaValue("RT",identifications[i].getMetaValue("RT"));
 										
-					temp_identification.id = identifications[i].id;
-					temp_identification.id.setPeptideAndProteinHits(hits_positive,
-																													temp_protein_hits);
+					temp_identification = identifications[i];
+					temp_identification.setHits(hits_positive);
 					identifications_positive.push_back(temp_identification);																														
-					temp_identification.id.setPeptideAndProteinHits(hits_negative,
-																													temp_protein_hits);
+					temp_identification.setHits(hits_negative);
 					identifications_negative.push_back(temp_identification);
 				}																														
 			}
@@ -372,8 +367,7 @@ class TOPPRTPredict
 			{
 				IdXML_file.store(outputfile_name,
 															 protein_identifications,
-															 identifications,
-															 predicted_data);
+															 identifications);
 				writeDebug_("Linear correlation between predicted and measured rt is: "
 										+ String(Math::BasicStatistics<Real>::pearsonCorrelationCoefficient(predicted_retention_times.begin(), 
 																			predicted_retention_times.end(), 

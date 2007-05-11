@@ -25,29 +25,22 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/InspectOutfile.h>
-#include <OpenMS/KERNEL/MSExperiment.h>
-#include <OpenMS/FORMAT/MzXMLFile.h>
-#include <OpenMS/FORMAT/MzDataFile.h>
+#include <OpenMS/FORMAT/FileHandler.h>
+
+#include <set>
 
 using namespace std;
 
 namespace OpenMS 
 {
 	InspectOutfile::InspectOutfile()
-	{}
-	
-	vector< UInt >
-	InspectOutfile::load(
-		const string& result_filename,
-		vector< IdentificationData >& identifications,
-		ProteinIdentification& protein_identification,
-		Real p_value_threshold)
-	throw (
-		Exception::FileNotFound,
-		Exception::ParseError,
-		Exception::IllegalArgument)
 	{
-		vector< ProteinHit > protein_hits;
+	}
+	
+	vector<UInt> InspectOutfile::load(const String& result_filename, vector<PeptideIdentification>& peptide_identifications, Identification& protein_identification, Real p_value_threshold)
+	throw (Exception::FileNotFound, Exception::ParseError, Exception::IllegalArgument)
+	{
+		vector<ProteinHit> protein_hits;
 
 		// check whether the p_value is correct
 		if ( (p_value_threshold < 0) || (p_value_threshold > 1) )
@@ -75,36 +68,38 @@ namespace OpenMS
 			DB_file_pos_column,
 			spec_file_pos_column
 		};
+
 		UInt number_of_columns = 16;
 		String line;
 		vector<String> substrings;
 
 		//	 record number, position in protein_hits
-		map< UInt, UInt > rn_position_map;
-		Identification* query = NULL;
-		PeptideHit peptide_hit;
+		map<UInt, UInt> rn_position_map;
+		//Identification* query = NULL;
+		//PeptideHit peptide_hit;
 		vector< PeptideHit >::iterator pep_hit_i;
 		DateTime datetime;
 		datetime.now();
-		ProteinHit protein_hit;
-		vector< pair< String, String > >::iterator prot_hit_i1, prot_hit_i2;
-		string accession, accession_type, spectrum_file;
-		UInt record_number, scan_number, start, end;
+		//ProteinHit protein_hit;
+		vector<pair<String, String> >::iterator prot_hit_i1, prot_hit_i2;
+		String accession, accession_type, spectrum_file;
+		UInt record_number(0), scan_number(0), start(0), end(0);
 		UInt rank = 0;
-		UInt peptide_hits;
+		UInt peptide_hits(0);
 		UInt line_number = 0; // used to report in which line an error occured
 		UInt scans = 0;
-		vector< UInt > corrupted_lines;
+		vector<UInt> corrupted_lines;
 		// to get the precursor retention time and mz values later, save the filename and the numbers of the scans
-		vector< pair< String, vector< UInt > > > files_and_scan_numbers;
-		vector< UInt >* scan_numbers = NULL;
+		vector<pair<String, vector<UInt> > > files_and_scan_numbers;
+		vector<UInt>* scan_numbers = NULL;
 		
 		ifstream result_file(result_filename.c_str());
-		if ( !result_file )
+		if (!result_file)
 		{
 			throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, result_filename);
 		}
 
+		PeptideIdentification pep_id;
 		while ( getline(result_file, line) )
 		{
 			++line_number;
@@ -121,6 +116,7 @@ namespace OpenMS
 				corrupted_lines.push_back(line_number);
 				continue;
 			}
+
 
 			// the is a header which is skipped
 			if ( substrings[0] == "#SpectrumFile" ) continue;
@@ -139,10 +135,10 @@ namespace OpenMS
 				// map the record number to the size in protein hits
 				rn_position_map[record_number] = protein_hits.size();
 
-				protein_hit.clear();
+				ProteinHit protein_hit;
 				protein_hit.setRank(rn_position_map.size());
 				protein_hit.setAccession(accession);
-				protein_hit.setAccessionType(accession_type);
+				//protein_hit.setAccessionType(accession_type);
 				//protein_hit.setScore(0.0);
 				//protein_hit.setScoreType(score_type_);
 				protein_hits.push_back(protein_hit);
@@ -152,11 +148,16 @@ namespace OpenMS
 			// the first time, the condition is always fullfilled because spectrum_file is ""
 			if ( (substrings[spectrum_file_column] != spectrum_file) || ((UInt) substrings[scan_column].toInt() != scan_number) )
 			{
-				identifications.push_back(IdentificationData());
-				query = &(identifications.back().id);
+				if (spectrum_file != "")
+				{
+					peptide_identifications.push_back(pep_id);
+				}
+				pep_id = PeptideIdentification();
+				//identifications.push_back(IdentificationData());
+				//query = &(identifications.back().id);
 				
-				query->setPeptideSignificanceThreshold(p_value_threshold);
-				query->setDateTime(datetime);
+				pep_id.setSignificanceThreshold(p_value_threshold);
+				//pep_id.setDateTime(datetime);
 				rank = 0;
 				
 				if ( substrings[spectrum_file_column] != spectrum_file )
@@ -170,13 +171,16 @@ namespace OpenMS
 				
 				scan_numbers->push_back(scan_number);
 				++scans;
+
 			}
 			
 			// get the peptide infos from the new peptide and insert it
-			peptide_hit.clear();
+			//peptide_hit.clear();
+			PeptideHit peptide_hit;
 			peptide_hit.setCharge(substrings[charge_column].toInt());
 			peptide_hit.setScore(substrings[MQ_score_column].toFloat());
-			peptide_hit.setScoreType("Inspect");
+			//peptide_hit.setScoreType("Inspect");
+			pep_id.setScoreType("Inspect");
 			start = substrings[peptide_column].find('.')+1;
 			end = substrings[peptide_column].find_last_of('.');
 			
@@ -211,12 +215,18 @@ namespace OpenMS
 
 			peptide_hit.setSequence(sequence_with_mods);
 			peptide_hit.setRank(++rank);
-			peptide_hit.addProteinIndex(datetime, accession);
 			
-			peptide_hits = query->getPeptideHits().size();
-			updatePeptideHits(peptide_hit, query->getPeptideHits());
-			rank -= ( peptide_hits == query->getPeptideHits().size() );
+			peptide_hit.addProteinAccession(accession);
+			
+			//peptide_hits = pep_id.getHits().size();
+			//updatePeptideHits(peptide_hit, );
+			pep_id.insertHit(peptide_hit);
+
+			//rank -= ( peptide_hits == query->getHits().size() );
 		}
+	
+		peptide_identifications.push_back(pep_id);
+		
 		// result file read
 		result_file.close();
 		result_file.clear();
@@ -237,41 +247,34 @@ namespace OpenMS
 //		}
 		
 		// get the precursor retention times and mz values
-		getPrecursorRTandMZ(files_and_scan_numbers, identifications);
+		getPrecursorRTandMZ(files_and_scan_numbers, peptide_identifications);
 
 		// if there's but one query the protein hits are inserted there instead of a ProteinIdentification object
-		if ( identifications.size() == 1 )
+		if (peptide_identifications.size() == 1)
 		{
-			query->setProteinHits(protein_hits);
-			query->setDateTime(datetime);
+			protein_identification.setHits(protein_hits);
+			protein_identification.setDateTime(datetime);
 		}
 		
-		protein_identification.setProteinHits(protein_hits);
+		protein_identification.setHits(protein_hits);
 		protein_identification.setDateTime(datetime);
-		
-		protein_hits.clear();
-		peptide_hit.clear();
-		protein_hit.clear();
 		
 		rn_position_map.clear();
 		return corrupted_lines;
   }
 
-	vector< UInt >
-	InspectOutfile::getSequences(
-		const string& database_filename,
-		const map< UInt, UInt >& wanted_records, // < record number, number of protein in a vector >
-		vector< String >& sequences)
+	vector<UInt> InspectOutfile::getSequences(const String& database_filename, const map<UInt, UInt>& wanted_records, // < record number, number of protein in a vector >
+		vector<String>& sequences)
 	throw (
 		Exception::FileNotFound)
 	{
 		ifstream database(database_filename.c_str());
-		if ( !database )
+		if (!database)
 		{
 			throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, database_filename);
 		}
 
-		vector< UInt > not_found;
+		vector<UInt> not_found;
 		UInt seen_records = 0;
 		stringbuf sequence;
 		database.seekg(0, ios::end);
@@ -297,15 +300,11 @@ namespace OpenMS
 		return not_found;
 	}
 	
-	void
-	InspectOutfile::getACAndACType(
-		String line,
-		string& accession,
-		string& accession_type)
+	void InspectOutfile::getACAndACType(String line, String& accession,	String& accession_type)
 	{
 		accession.clear();
 		accession_type.clear();
-		pair<string, string> p;
+		pair<String, String> p;
 		// if it's a FASTA line
 		if ( line.hasPrefix(">") ) line.erase(0,1);
 		if ( !line.empty() && (line[line.length()-1] < 33) ) line.resize(line.length()-1);
@@ -422,54 +421,8 @@ namespace OpenMS
 		}
 	}
 	
-	bool
-	InspectOutfile::updatePeptideHits(
-		PeptideHit& peptide_hit,
-		vector< PeptideHit >& peptide_hits)
-	{
-		// a peptide hit may only be inserted if it's score type matches the one of the existing hits
-		if ( (peptide_hits.empty()) || (peptide_hits[0].getScoreType() == peptide_hit.getScoreType()) )
-		{
-			// search for the peptide hit
-			vector< PeptideHit >::iterator pep_hit_i;
-			for ( pep_hit_i = peptide_hits.begin(); pep_hit_i != peptide_hits.end(); ++pep_hit_i)
-			{
-				if ( (pep_hit_i->getSequence() == peptide_hit.getSequence()) && (pep_hit_i->getScore() == peptide_hit.getScore()) ) break;
-			}
-			// if a new peptide is found, insert it
-			if ( pep_hit_i == peptide_hits.end() )
-			{
-				peptide_hits.push_back(peptide_hit);
-				return true;
-			}
-			// if the peptide has already been inserted, insert additional protein hits
-			else
-			{
-				vector< pair< String, String > >::iterator prot_hit_i1, prot_hit_i2;
-				// remove all protein hits from the peptide that are already in the list
-				for ( prot_hit_i1 = peptide_hit.getProteinIndices().begin(); prot_hit_i1 != peptide_hit.getProteinIndices().end(); )
-				{
-					prot_hit_i2 = find(pep_hit_i->getProteinIndices().begin(), pep_hit_i->getProteinIndices().end(), *prot_hit_i1);
-					if ( prot_hit_i2 != pep_hit_i->getProteinIndices().end() ) peptide_hit.getProteinIndices().erase(prot_hit_i1);
-					else ++prot_hit_i1;
-				}
-				// add the additional protein hits
-				for ( prot_hit_i2 = peptide_hit.getProteinIndices().begin(); prot_hit_i2 != peptide_hit.getProteinIndices().end(); ++prot_hit_i2 )
-				{
-					pep_hit_i->addProteinIndex(*prot_hit_i2);
-				}
-				return true;
-			}
-		}
-		return false;
-	}
-	
-	void
-	InspectOutfile::getPrecursorRTandMZ(
-		const vector< pair< String, vector< UInt > > >& files_and_scan_numbers,
-		vector< IdentificationData >& ids)
-	throw(
-		Exception::ParseError)
+	void InspectOutfile::getPrecursorRTandMZ(const vector<pair<String, vector<UInt> > >& files_and_scan_numbers,	vector<PeptideIdentification>& ids)
+	throw(Exception::ParseError)
 	{
 		MSExperiment<> experiment;
 		String type;
@@ -486,19 +439,19 @@ namespace OpenMS
 			
 			for ( vector< UInt >::const_iterator scan_i = fs_i->second.begin(); scan_i != fs_i->second.end(); ++scan_i )
 			{
-				ids[pos].mz = experiment[*scan_i - 1].getPrecursorPeak().getPosition()[0];
-				ids[pos++].rt = experiment[*scan_i - 1].getRT();
+				ids[pos].setMetaValue("MZ", experiment[*scan_i - 1].getPrecursorPeak().getPosition()[0]);
+				ids[pos++].setMetaValue("RT", experiment[*scan_i - 1].getRT());
 			}
 		}
 	}
 	
 	void
 	InspectOutfile::compressTrieDB(
-		const string& database_filename,
-		const string& index_filename,
+		const String& database_filename,
+		const String& index_filename,
 		vector< UInt >& wanted_records,
-		const string& snd_database_filename,
-		const string& snd_index_filename,
+		const String& snd_database_filename,
+		const String& snd_index_filename,
 		bool append)
 	throw (
 		Exception::FileNotFound,
@@ -588,11 +541,11 @@ namespace OpenMS
 	
 	void
 	InspectOutfile::generateTrieDB(
-		const string& source_database_filename,
-		const string& database_filename,
-		const string& index_filename,
+		const String& source_database_filename,
+		const String& database_filename,
+		const String& index_filename,
 		bool append,
-		const string species)
+		const String species)
 	throw (
 		Exception::FileNotFound,
 		Exception::ParseError,
@@ -605,7 +558,7 @@ namespace OpenMS
 		}
 		
 		// get the labels
-		string ac_label, sequence_start_label, sequence_end_label, comment_label, species_label;
+		String ac_label, sequence_start_label, sequence_end_label, comment_label, species_label;
 		getLabels(source_database_filename, ac_label, sequence_start_label, sequence_end_label, comment_label, species_label);
 
 		ofstream database;
@@ -747,17 +700,14 @@ namespace OpenMS
 		index.clear();
 	}
 	
-	void
-	InspectOutfile::getLabels(
-		const string& source_database_filename,
-		string& ac_label,
-		string& sequence_start_label,
-		string& sequence_end_label,
-		string& comment_label,
-		string& species_label)
-	throw (
-		Exception::FileNotFound,
-		Exception::ParseError)
+	void InspectOutfile::getLabels(
+		const String& source_database_filename,
+		String& ac_label,
+		String& sequence_start_label,
+		String& sequence_end_label,
+		String& comment_label,
+		String& species_label)
+	throw (Exception::FileNotFound, Exception::ParseError)
 	{
 		ifstream source_database(source_database_filename.c_str());
 		if ( !source_database ) throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, source_database_filename);
@@ -789,20 +739,14 @@ namespace OpenMS
 		source_database.clear();
 		
 		// if no known start seperator is found
-		if ( sequence_start_label.empty() )
+		if (sequence_start_label.empty())
 		{
 			throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "database has unknown file format (neither trie nor FASTA nor swissprot)" , source_database_filename);
 		}
 	}
 
-	vector< UInt >
-	InspectOutfile::getWantedRecords(
-		const string& result_filename,
-		Real p_value_threshold)
-	throw (
-		Exception::FileNotFound,
-		Exception::ParseError,
-		Exception::IllegalArgument)
+	vector<UInt> InspectOutfile::getWantedRecords(const String& result_filename, Real p_value_threshold)
+	throw (Exception::FileNotFound,	Exception::ParseError, Exception::IllegalArgument)
 	{
 		// check whether the p_value is correct
 		if ( (p_value_threshold < 0) || (p_value_threshold > 1) )
@@ -838,24 +782,24 @@ namespace OpenMS
 		vector< UInt > wanted_records;
 		
 		ifstream result_file(result_filename.c_str());
-		if ( !result_file )
+		if (!result_file)
 		{
 			throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, result_filename);
 		}
 		
-		while ( getline(result_file, line) )
+		while (getline(result_file, line))
 		{
-			if ( !line.empty() && (line[line.length()-1] < 33) ) line.resize(line.length()-1);
+			if (!line.empty() && (line[line.length()-1] < 33)) line.resize(line.length() - 1);
 			line.split('\t', substrings);
 
 			// if the version Inspect.20060620.zip is used, there is a header which is skipped
-			if ( substrings[0] == "#SpectrumFile" ) continue;
+			if (substrings[0] == "#SpectrumFile") continue;
 
 			// check whether the line has enough columns
-			if ( substrings.size() != number_of_columns ) continue;
+			if (substrings.size() != number_of_columns) continue;
 			
 			// take only those peptides whose p-value is less or equal the given threshold
-			if ( substrings[p_value_column].toFloat() > p_value_threshold ) continue;
+			if (substrings[p_value_column].toFloat() > p_value_threshold) continue;
 			
 			wanted_records_set.insert(substrings[record_number_column].toInt());
 		}
@@ -871,14 +815,8 @@ namespace OpenMS
 		return wanted_records;
 	}
 
-	template< typename PeakT >
-	void
-	InspectOutfile::getExperiment(
-		MSExperiment< PeakT >& exp,
-		String& type,
-		const String& in_filename)
-	throw(
-		Exception::ParseError)
+	template<typename PeakT> 	void InspectOutfile::getExperiment(MSExperiment<PeakT>& exp, String& type, const String& in_filename)
+	throw(Exception::ParseError)
 	{
 		type.clear();
 		exp.reset();
@@ -898,6 +836,6 @@ namespace OpenMS
 	const UInt InspectOutfile::protein_name_length_ = 80;
 	const UInt InspectOutfile::record_length_ = db_pos_length_ + trie_db_pos_length_ + protein_name_length_;
 	const char InspectOutfile::trie_delimiter_ = '*';
-	const string InspectOutfile::score_type_ = "Inspect";
+	const String InspectOutfile::score_type_ = "Inspect";
 	
 } //namespace OpenMS

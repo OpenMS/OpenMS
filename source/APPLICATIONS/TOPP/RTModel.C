@@ -201,10 +201,10 @@ class TOPPRTModel
 
 		ExitCodes main_(Int , char**)
 		{
-			vector<ProteinIdentification> protein_identifications;
-		  vector<IdentificationData> identifications;
-			vector<ProteinIdentification> protein_identifications_negative;
-		  vector<IdentificationData> identifications_negative;
+			vector<Identification> protein_identifications;
+		  vector<PeptideIdentification> identifications;
+			vector<Identification> protein_identifications_negative;
+		  vector<PeptideIdentification> identifications_negative;
 		  vector< String > training_peptides;
 		  vector< DoubleReal > training_retention_times;
 		  PeptideHit temp_peptide_hit;
@@ -455,12 +455,12 @@ class TOPPRTModel
 
 			for(UInt i = 0; i < identifications.size(); i++)
 			{
-				UInt temp_size = identifications[i].id.getPeptideHits().size();
+				UInt temp_size = identifications[i].getHits().size();
 				if (temp_size > 0)
 				{
 					if (temp_size == 1)
 					{
-						temp_peptide_hit = identifications[i].id.getPeptideHits()[0];
+						temp_peptide_hit = identifications[i].getHits()[0];
 						training_peptides.push_back(temp_peptide_hit.getSequence());
 						if (separation_prediction)
 						{
@@ -468,7 +468,7 @@ class TOPPRTModel
 						}	
 						else
 						{
-							training_retention_times.push_back(identifications[i].rt);
+							training_retention_times.push_back((UInt)(identifications[i].getMetaValue("RT")));
 						}
 					}
 					else
@@ -476,8 +476,8 @@ class TOPPRTModel
 						writeLog_("For one spectrum there should not be more than one peptide."
 								      "Please use the IDFilter with the -best_hits option to achieve this. Aborting!");
 						writeLog_("Hits: ");
-						for(vector<PeptideHit>::iterator it = identifications[i].id.getPeptideHits().begin(); 
-								it != identifications[i].id.getPeptideHits().end(); 
+						for(vector<PeptideHit>::const_iterator it = identifications[i].getHits().begin(); 
+								it != identifications[i].getHits().end(); 
 								it++)
 						{
 							writeLog_(String(it->getSequence()) + " score: " + String(it->getScore()));
@@ -491,12 +491,12 @@ class TOPPRTModel
 			{
 				for(UInt i = 0; i < identifications_negative.size(); i++)
 				{
-					UInt temp_size = identifications_negative[i].id.getPeptideHits().size();
+					UInt temp_size = identifications_negative[i].getHits().size();
 					if (temp_size > 0)
 					{
 						if (temp_size == 1)
 						{
-							temp_peptide_hit = identifications_negative[i].id.getPeptideHits()[0];
+							temp_peptide_hit = identifications_negative[i].getHits()[0];
 							training_peptides.push_back(temp_peptide_hit.getSequence());
 
 							training_retention_times.push_back(-1.0);
@@ -506,8 +506,8 @@ class TOPPRTModel
 							writeLog_("For one spectrum there should not be more than one peptide."
 									      "Please use the IDFilter with the -best_hits option to achieve this. Aborting!");
 							writeLog_("Hits: ");
-							for(vector<PeptideHit>::iterator it = identifications_negative[i].id.getPeptideHits().begin(); 
-									it != identifications_negative[i].id.getPeptideHits().end(); 
+							for(vector<PeptideHit>::const_iterator it = identifications_negative[i].getHits().begin(); 
+									it != identifications_negative[i].getHits().end(); 
 									it++)
 							{
 								writeLog_(String(it->getSequence()) + " score: " + String(it->getScore()));

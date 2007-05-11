@@ -45,25 +45,29 @@ START_TEST(IDSpectrumMapper, "$Id$")
 using namespace OpenMS;
 using namespace std;
 
-IDSpectrumMapper annotator;
 IDSpectrumMapper* ptr;
-vector<IdentificationData> identifications; 
-vector<ProteinIdentification> protein_identifications;
-float precision = 0.1;
 CHECK((IDSpectrumMapper()))
 	ptr = new IDSpectrumMapper();
 	TEST_NOT_EQUAL(ptr, 0)
 RESULT
 
-CHECK((template<class PeakT> UInt annotate(MSExperiment< PeakT >& experiment, const std::vector<IdentificationData>& identifications, float precision = 0.01f)))
-	vector<IdentificationData> identifications2; 
-	MSExperiment< Peak1D > experiment;
-	MSSpectrum< Peak1D > spectrum;
-	DSpectrum< 1 >::PrecursorPeakType peak;
+CHECK((template<class PeakT> UInt annotate(MSExperiment< PeakT >& experiment, const std::vector<PeptideIdentification>& identifications, float precision = 0.01f)))
+	//load id
+	vector<PeptideIdentification> identifications; 
+	vector<Identification> protein_identifications;
 	IdXMLFile().load("data/IDSpectrumMapper_test.idXML",
 								protein_identifications, 
 					   		identifications);
-	
+
+	TEST_EQUAL(identifications[0].getHits().size(), 2)
+	TEST_EQUAL(identifications[1].getHits().size(), 1)
+	TEST_EQUAL(identifications[2].getHits().size(), 2)
+	TEST_EQUAL(protein_identifications[0].getHits().size(), 2)
+
+	//create experiment
+	MSExperiment< Peak1D > experiment;
+	MSSpectrum< Peak1D > spectrum;
+	DSpectrum< 1 >::PrecursorPeakType peak;	
 	peak = spectrum.getPrecursorPeak();
 	peak.setPosition(0);
 	spectrum.setRT(60);
@@ -78,50 +82,25 @@ CHECK((template<class PeakT> UInt annotate(MSExperiment< PeakT >& experiment, co
 	experiment.push_back(spectrum);							
 	experiment[2].setPrecursorPeak(peak);
 	
+	//map
+	IDSpectrumMapper().annotate(experiment, identifications, 0.1);
 
-	annotator.annotate(experiment, identifications, precision);
-  annotator.getAnnotations(experiment, identifications2);
-  TEST_EQUAL(identifications2.size(), 2)
-  PRECISION(precision);
-  TEST_REAL_EQUAL(identifications2[0].rt, identifications[0].rt)
-  TEST_REAL_EQUAL(identifications2[0].mz, identifications[0].mz)
-  TEST_REAL_EQUAL(identifications2[1].rt, identifications[1].rt)
-  TEST_REAL_EQUAL(identifications2[1].mz, identifications[1].mz)
-RESULT
+	//scan 1
+	TEST_EQUAL(experiment[0].getPeptideIdentifications().size(), 1)
+	TEST_EQUAL(experiment[0].getPeptideIdentifications()[0].getHits().size(), 2)
+	TEST_EQUAL(experiment[0].getPeptideIdentifications()[0].getHits()[0].getSequence(), "LHASGITVTEIPVTATNFK")
+	TEST_EQUAL(experiment[0].getPeptideIdentifications()[0].getHits()[1].getSequence(), "MRSLGYVAVISAVATDTDK")
+	
+	//scan 2
+	TEST_EQUAL(experiment[1].getPeptideIdentifications().size(), 0)
+	
+	//scan 3
+	TEST_EQUAL(experiment[2].getPeptideIdentifications().size(), 1)	
+	TEST_EQUAL(experiment[2].getPeptideIdentifications()[0].getHits().size(), 1)
+	TEST_EQUAL(experiment[2].getPeptideIdentifications()[0].getHits()[0].getSequence(), "HSKLSAK")
 
-CHECK((template<class PeakT> void getAnnotations(const MSExperiment< PeakT >& experiment, std::vector<IdentificationData>& identifications)))
-	vector<IdentificationData> identifications2; 
-	MSExperiment< Peak1D > experiment;
-	MSSpectrum< Peak1D > spectrum;
-	DSpectrum< 1 >::PrecursorPeakType peak;
-	IdXMLFile().load("data/IDSpectrumMapper_test.idXML",
-								protein_identifications, 
-					   		identifications);
 	
-	peak = spectrum.getPrecursorPeak();
-	peak.setPosition(0);
-	spectrum.setRT(60);
-	experiment.push_back(spectrum);							
-	experiment[0].setPrecursorPeak(peak);
-	peak.setPosition(11);
-	spectrum.setRT(120);
-	experiment.push_back(spectrum);							
-	experiment[1].setPrecursorPeak(peak);
-	peak.setPosition(20);
-	spectrum.setRT(180);
-	experiment.push_back(spectrum);							
-	experiment[2].setPrecursorPeak(peak);
 	
-	annotator.annotate(experiment, identifications, precision);
-  annotator.getAnnotations(experiment, identifications2);
-  TEST_EQUAL(identifications2.size(), identifications.size())
-  PRECISION(precision);
-  TEST_REAL_EQUAL(identifications2[0].rt, identifications[0].rt)
-  TEST_REAL_EQUAL(identifications2[0].mz, identifications[0].mz)
-  TEST_REAL_EQUAL(identifications2[1].rt, identifications[1].rt)
-  TEST_REAL_EQUAL(identifications2[1].mz, identifications[1].mz)
-  TEST_REAL_EQUAL(identifications2[2].rt, identifications[2].rt)
-  TEST_REAL_EQUAL(identifications2[2].mz, identifications[2].mz)
 RESULT
 
 /////////////////////////////////////////////////////////////

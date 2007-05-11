@@ -35,10 +35,10 @@ namespace OpenMS
     
   }
   
-  void IDFeatureMapper::annotate(FeatureMap<>& fm, const vector<IdentificationData>& ids, const vector<ProteinIdentification>& protein_ids)
+  void IDFeatureMapper::annotate(FeatureMap<>& fm, const vector<PeptideIdentification>& ids, const vector<Identification>& protein_ids)
 	{		
 		//append protein identifications
-		fm.getProteinIdentifications().insert(fm.getProteinIdentifications().end(),protein_ids.begin(),protein_ids.end());
+		fm.getIdentifications().insert(fm.getIdentifications().end(),protein_ids.begin(),protein_ids.end());
 		
 		//iterate over the features
 		for(FeatureMap<>::Iterator f_it = fm.begin(); f_it!=fm.end(); ++f_it)
@@ -52,14 +52,14 @@ namespace OpenMS
 			//iterate over the IDs
 			for (UInt i=0; i<ids.size(); ++i)
 			{
-				if (ids[i].id.getPeptideHits().size()==0 && ids[i].id.getProteinHits().size()==0)
+				if (ids[i].getHits().size()==0)
 				{
 					continue;
 				}
 #ifdef DEBUG_ID_MAPPING
 				cout << "  * ID (rt/mz): " << ids[i].rt << " " << ids[i].mz << endl;
 #endif
-				DPosition<2> id_pos(ids[i].rt,ids[i].mz);
+				DPosition<2> id_pos(ids[i].getMetaValue("RT"),ids[i].getMetaValue("MZ"));
 				
 				//check if the ID lies within the bouning box. if it does not => next id
 				if (!bb.encloses(id_pos))
@@ -73,7 +73,7 @@ namespace OpenMS
 				{
 					if (ch_it->encloses(id_pos))
 					{
-						f_it->getIdentifications().push_back(ids[i].id);
+						f_it->getPeptideIdentifications().push_back(ids[i]);
 #ifdef DEBUG_ID_MAPPING
 						cout << "    * !!HIT!!" << endl;
 #endif

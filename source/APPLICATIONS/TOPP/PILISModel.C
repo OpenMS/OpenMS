@@ -155,8 +155,8 @@ class TOPPPILISModel
 
 
 			IdXMLFile id_in_file;
-			vector<ProteinIdentification> prot_ids;
-			vector<IdentificationData> peptide_ids;
+			vector<Identification> prot_ids;
+			vector<PeptideIdentification> peptide_ids;
 			id_in_file.load(id_in, prot_ids, peptide_ids);
 
 			Param model_param(model->getParameters());
@@ -174,9 +174,9 @@ class TOPPPILISModel
 			HashMap<String, HashMap<UInt, HashMap<UInt, PeptideHit> > > ids; // [peptide][charge][index]
 			for (UInt i = 0; i != peptide_ids.size(); ++i)
 			{
-				if (peptide_ids[i].id.getPeptideHits().size() > 0)
+				if (peptide_ids[i].getHits().size() > 0)
 				{
-					PeptideHit hit = *peptide_ids[i].id.getPeptideHits().begin();
+					PeptideHit hit = *peptide_ids[i].getHits().begin();
 					if (hit.getCharge() <= 2) // TODO set option
 					{
 						String sequence = hit.getSequence();

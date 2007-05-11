@@ -51,34 +51,33 @@ RESULT
 
 InspectOutfile file;
 
-CHECK(vector< UInt > load(const string& result_filename, vector< IdentificationData >&	identifications, ProteinIdentification&	protein_identification, const DoubleReal& p_value_threshold, const string& database_filename) throw (Exception::FileNotFound, Exception::ParseError, Exception::IllegalArgument))
-	vector< IdentificationData > identifications;
-	ProteinIdentification protein_identification;
-	file.load("data/InspectOutfile.out", identifications, protein_identification, 0.001);
+CHECK(vector< UInt > load(const String& result_filename, vector<PeptideIdentification>&	peptide_identifications, Identification&	protein_identification, const DoubleReal& p_value_threshold, const String& database_filename) throw (Exception::FileNotFound, Exception::ParseError, Exception::IllegalArgument))
+	vector<PeptideIdentification> peptide_identifications;
+	Identification protein_identification;
+	file.load("data/InspectOutfile.out", peptide_identifications, protein_identification, 0.001);
 	
-	TEST_EQUAL(identifications.size(), 1)
-	TEST_EQUAL(identifications[0].id.getPeptideHits().size(), 1)
-	TEST_REAL_EQUAL(identifications[0].id.getPeptideHits()[0].getScore(), -257)
-	TEST_EQUAL(identifications[0].id.getPeptideHits()[0].getSequence(), "KKLE")
-	TEST_EQUAL(identifications[0].id.getPeptideHits()[0].getScoreType(), "Inspect")
-	TEST_EQUAL(identifications[0].id.getPeptideHits()[0].getRank(), 1)
+	TEST_EQUAL(peptide_identifications.size(), 1)
+	TEST_EQUAL(peptide_identifications[0].getHits().size(), 1)
+	TEST_REAL_EQUAL(peptide_identifications[0].getHits()[0].getScore(), -257)
+	TEST_EQUAL(peptide_identifications[0].getHits()[0].getSequence(), "KKLE")
+	TEST_EQUAL(peptide_identifications[0].getScoreType(), "Inspect")
+	TEST_EQUAL(peptide_identifications[0].getHits()[0].getRank(), 1)
 
-	identifications.clear();
-	file.load("data/InspectOutfile.out", identifications, protein_identification, 0.01);
+	peptide_identifications.clear();
+	file.load("data/InspectOutfile.out", peptide_identifications, protein_identification, 0.01);
 	
-	TEST_EQUAL(identifications.size(), 1)
-	TEST_EQUAL(identifications[0].id.getPeptideHits().size(), 2)
-	TEST_REAL_EQUAL(identifications[0].id.getPeptideHits()[0].getScore(), -1456)
-	TEST_EQUAL(identifications[0].id.getPeptideHits()[0].getSequence(), "EKIE")
-	TEST_EQUAL(identifications[0].id.getPeptideHits()[0].getScoreType(), "Inspect")
-	TEST_EQUAL(identifications[0].id.getPeptideHits()[0].getRank(), 1)
-	TEST_REAL_EQUAL(identifications[0].id.getPeptideHits()[1].getScore(), -257)
-	TEST_EQUAL(identifications[0].id.getPeptideHits()[1].getSequence(), "KKLE")
-	TEST_EQUAL(identifications[0].id.getPeptideHits()[1].getScoreType(), "Inspect")
-	TEST_EQUAL(identifications[0].id.getPeptideHits()[1].getRank(), 2)
+	TEST_EQUAL(peptide_identifications.size(), 1)
+	TEST_EQUAL(peptide_identifications[0].getHits().size(), 2)
+	TEST_REAL_EQUAL(peptide_identifications[0].getHits()[0].getScore(), -1456)
+	TEST_EQUAL(peptide_identifications[0].getHits()[0].getSequence(), "EKIE")
+	TEST_EQUAL(peptide_identifications[0].getScoreType(), "Inspect")
+	TEST_EQUAL(peptide_identifications[0].getHits()[0].getRank(), 1)
+	TEST_REAL_EQUAL(peptide_identifications[0].getHits()[1].getScore(), -257)
+	TEST_EQUAL(peptide_identifications[0].getHits()[1].getSequence(), "KKLE")
+	TEST_EQUAL(peptide_identifications[0].getHits()[1].getRank(), 2)
 RESULT
 
-CHECK(void generateTrieDB(const std::string& source_database_filename, const std::string& database_filename, const std::string& index_filename, bool append = false, const std::string species = "") throw (Exception::FileNotFound, Exception::ParseError, Exception::UnableToCreateFile))
+CHECK(void generateTrieDB(const std::String& source_database_filename, const std::String& database_filename, const std::String& index_filename, bool append = false, const std::String species = "") throw (Exception::FileNotFound, Exception::ParseError, Exception::UnableToCreateFile))
 	file.generateTrieDB("data/Inspect_test.fasta", "InspectOutfile_test.trie", "InspectOutfile_test.index");
 	TEST_FILE("InspectOutfile_test.trie", "data/Inspect_test.trie")
 	TEST_FILE("InspectOutfile_test.index", "data/Inspect_test.index")
@@ -92,7 +91,7 @@ CHECK(void generateTrieDB(const std::string& source_database_filename, const std
 	remove("InspectOutfile_test.index");
 RESULT
 
-CHECK(void compressTrieDB(const std::string& database_filename, const std::string& index_filename, const std::vector< UInt >& wanted_records, const std::string& snd_database_filename, const std::string& snd_index_filename, bool append = false) throw (Exception::FileNotFound, Exception::ParseError, Exception::UnableToCreateFile))
+CHECK(void compressTrieDB(const std::String& database_filename, const std::String& index_filename, const std::vector< UInt >& wanted_records, const std::String& snd_database_filename, const std::String& snd_index_filename, bool append = false) throw (Exception::FileNotFound, Exception::ParseError, Exception::UnableToCreateFile))
 	vector< UInt > wanted_records(1, 0);
 	file.compressTrieDB("data/Inspect_test.trie", "data/Inspect_test.index", wanted_records, "InspectOutfile_test.trie", "InspectOutfile_test.index", true);
 
@@ -120,7 +119,7 @@ CHECK(void compressTrieDB(const std::string& database_filename, const std::strin
 RESULT
 
 
-CHECK(void getSequences(const String& database_filename, const map< Unsigned, UInt >& rt_position_map, vector< String >& sequences) throw (Exception::FileNotFound, Exception::ParseError))
+CHECK(void getSequences(const String& database_filename, const map< Unsigned, UInt >& getMetaValue("RT")_position_map, vector< String >& sequences) throw (Exception::FileNotFound, Exception::ParseError))
 	map< UInt, UInt > rn_position_map;
 	rn_position_map[0] = 0;
 	rn_position_map[1] = 1;
@@ -142,8 +141,8 @@ CHECK(void getSequences(const String& database_filename, const map< Unsigned, UI
 	found_sequences.clear();
 RESULT
 
-CHECK(void getACAndACType(String line, string& accession, string& accession_type))
-	string accession, accession_type;
+CHECK(void getACAndACType(String line, String& accession, String& accession_type))
+	String accession, accession_type;
 	file.getACAndACType(">sp|P02666|CASB_BOVIN Beta-casein precursor - Bos taurus (Bovine).", accession, accession_type);
 	TEST_EQUAL(accession, "P02666")
 	TEST_EQUAL(accession_type, "SwissProt")
@@ -193,32 +192,32 @@ CHECK(void getACAndACType(String line, string& accession, string& accession_type
 	TEST_EQUAL(accession_type, "SwissProt")
 RESULT
 
-CHECK(void getPrecursorRTandMZ(const vector< pair< String, vector< UInt > > >& files_and_scan_numbers, std::vector< IdentificationData >& ids))
+CHECK(void getPrecursorRTandMZ(const vector< pair< String, vector< UInt > > >& files_and_scan_numbers, std::vector< PeptideIdentification >& ids))
 	vector< pair< String, vector< UInt > > > files_and_scan_numbers;
 	files_and_scan_numbers.push_back(make_pair("data/InspectOutfile_test_1.mzXML", vector< UInt >(1, 4)));
 	files_and_scan_numbers.push_back(make_pair("data/InspectOutfile_test_2.mzXML", vector< UInt >(1, 4)));
 	
-	vector< IdentificationData > ids, ids_found;
-	ids_found.push_back(IdentificationData());
-	ids_found.push_back(IdentificationData());
+	vector< PeptideIdentification > ids, ids_found;
+	ids_found.push_back(PeptideIdentification());
+	ids_found.push_back(PeptideIdentification());
 	
-	ids.push_back(IdentificationData());
-	ids.back().rt = -1;
-	ids.back().mz = 123.456;
-	ids.push_back(IdentificationData());
-	ids.back().rt = 180;
-	ids.back().mz = 123.456;
+	ids.push_back(PeptideIdentification());
+	ids.back().setMetaValue("RT", -1);
+	ids.back().setMetaValue("MZ", 123.456);
+	ids.push_back(PeptideIdentification());
+	ids.back().setMetaValue("RT", 180);
+	ids.back().setMetaValue("MZ", 123.456);
 	
 	file.getPrecursorRTandMZ(files_and_scan_numbers, ids_found);
 	
-	TEST_REAL_EQUAL(ids_found.front().rt, ids.front().rt);
-	TEST_REAL_EQUAL(ids_found.front().mz, ids.front().mz);
-	TEST_REAL_EQUAL(ids_found.back().rt, ids.back().rt);
-	TEST_REAL_EQUAL(ids_found.back().mz, ids.back().mz);
+	TEST_REAL_EQUAL(ids_found.front().getMetaValue("RT"), ids.front().getMetaValue("RT"));
+	TEST_REAL_EQUAL(ids_found.front().getMetaValue("MZ"), ids.front().getMetaValue("MZ"));
+	TEST_REAL_EQUAL(ids_found.back().getMetaValue("RT"), ids.back().getMetaValue("RT"));
+	TEST_REAL_EQUAL(ids_found.back().getMetaValue("MZ"), ids.back().getMetaValue("MZ"));
 RESULT
 
-CHECK(void getLabels(const string& source_database_filename, string& ac_label, string& sequence_start_label, string& sequence_end_label, string& comment_label, string& species_label) throw (Exception::FileNotFound, Exception::ParseError))
-	string ac_label, sequence_start_label, sequence_end_label, comment_label, species_label;
+CHECK(void getLabels(const String& source_database_filename, String& ac_label, String& sequence_start_label, String& sequence_end_label, String& comment_label, String& species_label) throw (Exception::FileNotFound, Exception::ParseError))
+	String ac_label, sequence_start_label, sequence_end_label, comment_label, species_label;
 	file.getLabels("data/Inspect_test.fasta", ac_label, sequence_start_label, sequence_end_label, comment_label, species_label);
 	TEST_EQUAL(ac_label, ">")
 	TEST_EQUAL(sequence_start_label, ">")
@@ -227,49 +226,44 @@ CHECK(void getLabels(const string& source_database_filename, string& ac_label, s
 	TEST_EQUAL(species_label, ">")
 RESULT
 
-CHECK(vector< UInt > getWantedRecords(const string& result_filename, Real p_value_threshold) throw (Exception::FileNotFound, Exception::ParseError, Exception::IllegalArgument))
+CHECK(vector< UInt > getWantedRecords(const String& result_filename, Real p_value_threshold) throw (Exception::FileNotFound, Exception::ParseError, Exception::IllegalArgument))
 	vector< UInt > wanted_records = file.getWantedRecords("data/InspectOutfile.out", 0.01);
 	TEST_EQUAL (wanted_records.size(), 1)
 	if ( !wanted_records.empty() ) TEST_EQUAL (wanted_records.front(), 0)
 RESULT
 
+/*
 CHECK(bool updatePeptideHits(PeptideHit& peptide_hit, vector< PeptideHit >& peptide_hits))
 	DateTime date;
 	date.now();
 	vector< PeptideHit > peptide_hits;
 	PeptideHit peptide_hit1, peptide_hit2, peptide_hit3;
 	peptide_hit1.setScore(12.1);
-	peptide_hit1.setScoreType("SEQUEST prelim.");
 	peptide_hit1.setSequence("SEQVEST");
 	peptide_hit1.setRank(2);
-	peptide_hit1.addProteinIndex(date, "P02666");
+	peptide_hit1.addProteinAccession("P02666");
 	TEST_EQUAL(file.updatePeptideHits(peptide_hit1, peptide_hits), true)
 	TEST_EQUAL(peptide_hits.size(), 1)
 	if ( 1 == peptide_hits.size() )
 	{
 		TEST_EQUAL(peptide_hit1.getScore(), peptide_hits.front().getScore())
-		TEST_EQUAL(peptide_hit1.getScoreType(), peptide_hits.front().getScoreType())
 		TEST_EQUAL(peptide_hit1.getSequence(), peptide_hits.front().getSequence())
 		TEST_EQUAL(peptide_hit1.getRank(), peptide_hits.front().getRank())
 
 		// the peptides within a vector have to have the same scoreType
 		peptide_hit2 = peptide_hit1;
-		peptide_hit2.setScoreType("SEQUEST");
 		TEST_EQUAL(file.updatePeptideHits(peptide_hit2, peptide_hits), false)
 		TEST_EQUAL(peptide_hits.size(), 1)
 		
 		TEST_EQUAL(peptide_hit1.getScore(), peptide_hits.front().getScore())
-		TEST_EQUAL(peptide_hit1.getScoreType(), peptide_hits.front().getScoreType())
 		TEST_EQUAL(peptide_hit1.getSequence(), peptide_hits.front().getSequence())
 		TEST_EQUAL(peptide_hit1.getRank(), peptide_hits.front().getRank())
 
-		// if the identical peptide hit has already been inserted, nothing changes
-		peptide_hit2.setScoreType("SEQUEST prelim.");
+		// if the identical peptide hit has already been insegetMetaValue("RT")ed, nothing changes
 		TEST_EQUAL(file.updatePeptideHits(peptide_hit2, peptide_hits), true)
 		TEST_EQUAL(peptide_hits.size(), 1)
 			
 		TEST_EQUAL(peptide_hit1.getScore(), peptide_hits.front().getScore())
-		TEST_EQUAL(peptide_hit1.getScoreType(), peptide_hits.front().getScoreType())
 		TEST_EQUAL(peptide_hit1.getSequence(), peptide_hits.front().getSequence())
 		TEST_EQUAL(peptide_hit1.getRank(), peptide_hits.front().getRank())
 
@@ -279,7 +273,6 @@ CHECK(bool updatePeptideHits(PeptideHit& peptide_hit, vector< PeptideHit >& pept
 		TEST_EQUAL(peptide_hits.size(), 2)
 		
 		TEST_EQUAL(peptide_hit2.getScore(), peptide_hits.back().getScore())
-		TEST_EQUAL(peptide_hit2.getScoreType(), peptide_hits.back().getScoreType())
 		TEST_EQUAL(peptide_hit2.getSequence(), peptide_hits.back().getSequence())
 		TEST_EQUAL(peptide_hit2.getRank(), peptide_hits.back().getRank())
 
@@ -288,35 +281,31 @@ CHECK(bool updatePeptideHits(PeptideHit& peptide_hit, vector< PeptideHit >& pept
 		TEST_EQUAL(peptide_hits.size(), 3)
 		
 		TEST_EQUAL(peptide_hit2.getScore(), peptide_hits.back().getScore())
-		TEST_EQUAL(peptide_hit2.getScoreType(), peptide_hits.back().getScoreType())
 		TEST_EQUAL(peptide_hit2.getSequence(), peptide_hits.back().getSequence())
 		TEST_EQUAL(peptide_hit2.getRank(), peptide_hits.back().getRank())
 
-		// if the peptide hit has already been inserted, add additional protein hits
-		peptide_hit2.addProteinIndex(date, "Q5EEQ7");
+		// if the peptide hit has already been insegetMetaValue("RT")ed, add additional protein hits
+		peptide_hit2.addProteinAccession("Q5EEQ7");
 		TEST_EQUAL(file.updatePeptideHits(peptide_hit2, peptide_hits), true)
 		TEST_EQUAL(peptide_hits.size(), 3)
 		
 		TEST_EQUAL(peptide_hit2.getScore(), peptide_hits.back().getScore())
-		TEST_EQUAL(peptide_hit2.getScoreType(), peptide_hits.back().getScoreType())
 		TEST_EQUAL(peptide_hit2.getSequence(), peptide_hits.back().getSequence())
 		TEST_EQUAL(peptide_hit2.getRank(), peptide_hits.back().getRank())
 
 		// but the peptide hit (outside the vector) remains unchanged
 		peptide_hit3 = peptide_hit2;
-		peptide_hit3.getProteinIndices().clear();
-		peptide_hit3.addProteinIndex(date, "Q6UN63");
+		peptide_hit3.addProteinAccession("Q6UN63");
 		TEST_EQUAL(file.updatePeptideHits(peptide_hit3, peptide_hits), true)
 		TEST_EQUAL(peptide_hits.size(), 3)
-		peptide_hit2.addProteinIndex(date, "Q6UN63");
+		peptide_hit2.addProteinAccession("Q6UN63");
 		
 		TEST_EQUAL(peptide_hit2.getScore(), peptide_hits.back().getScore())
-		TEST_EQUAL(peptide_hit2.getScoreType(), peptide_hits.back().getScoreType())
 		TEST_EQUAL(peptide_hit2.getSequence(), peptide_hits.back().getSequence())
 		TEST_EQUAL(peptide_hit2.getRank(), peptide_hits.back().getRank())
 		
-		TEST_EQUAL(peptide_hit3.getProteinIndices().size(), 1)
+		TEST_EQUAL(peptide_hit3.getProteinAccessions().size(), 1)
 	}
 RESULT
-
+*/
 END_TEST

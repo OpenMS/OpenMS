@@ -51,117 +51,67 @@ CHECK((IdXMLFile()))
 	ptr = new IdXMLFile();
 RESULT
 
-CHECK((void load(const String& filename, std::vector<ProteinIdentification>& protein_identifications, std::vector<IdentificationData>& id_data) const throw(Exception::FileNotFound, Exception::ParseError)))
+CHECK((void load(const String& filename, std::vector<Identification>& protein_identifications, std::vector<PeptideIdentification>& id_data) const throw(Exception::FileNotFound, Exception::ParseError)))
 
-	vector<ProteinIdentification> protein_identifications; 
-	vector<IdentificationData> identifications;
+	vector<Identification> protein_identifications; 
+	vector<PeptideIdentification> identifications;
+	String date_string = "2007-05-02 21:22:05"; 
 
 	xml_file.load("data/IdXMLFile_test.idXML",
 							protein_identifications, 
 				   		identifications);
 	TEST_EQUAL(identifications.size(), 3)
-	TEST_EQUAL(identifications[0].rt, 120)
-	TEST_EQUAL(identifications[1].rt, 150)
-	TEST_EQUAL(identifications[2].rt, 160)
+	TEST_EQUAL(DoubleReal(identifications[0].getMetaValue("RT")), 120)
+	TEST_EQUAL(DoubleReal(identifications[1].getMetaValue("RT")), 150)
+	TEST_EQUAL(DoubleReal(identifications[2].getMetaValue("RT")), 160)
 	PRECISION(0.0001)
-	TEST_REAL_EQUAL(identifications[0].mz, 789.83)
-	TEST_REAL_EQUAL(identifications[1].mz, 135.29)
-	TEST_REAL_EQUAL(identifications[2].mz, 982.58)
-	TEST_REAL_EQUAL(identifications[0].id.getPeptideSignificanceThreshold(), 31.8621)
-	TEST_REAL_EQUAL(identifications[1].id.getPeptideSignificanceThreshold(), 12)
-	TEST_REAL_EQUAL(identifications[2].id.getPeptideSignificanceThreshold(), 19)
-	TEST_EQUAL(identifications[0].id.getPeptideHits().size(), 2)
-	TEST_EQUAL(identifications[1].id.getPeptideHits().size(), 1)
-	TEST_EQUAL(identifications[2].id.getPeptideHits().size(), 2)
-	TEST_REAL_EQUAL(identifications[0].id.getPeptideHits()[0].getScore(), 33.85)
-	TEST_REAL_EQUAL(identifications[0].id.getPeptideHits()[1].getScore(), 33.12)
-	TEST_REAL_EQUAL(identifications[1].id.getPeptideHits()[0].getScore(), 43.9)
-	TEST_REAL_EQUAL(identifications[2].id.getPeptideHits()[0].getScore(), 5.41)
-	TEST_REAL_EQUAL(identifications[2].id.getPeptideHits()[1].getScore(), 7.87)
-	TEST_EQUAL(identifications[0].id.getPeptideHits()[0].getScoreType(), "Mascot")
-	TEST_EQUAL(identifications[0].id.getPeptideHits()[1].getScoreType(), "Mascot")
-	TEST_EQUAL(identifications[1].id.getPeptideHits()[0].getScoreType(), "Mascot")
-	TEST_EQUAL(identifications[2].id.getPeptideHits()[0].getScoreType(), "Mascot")
-	TEST_EQUAL(identifications[2].id.getPeptideHits()[1].getScoreType(), "Mascot")
-	TEST_EQUAL(identifications[0].id.getPeptideHits()[0].getSequence(), "LHASGITVTEIPVTATNFK")
-	TEST_EQUAL(identifications[0].id.getPeptideHits()[1].getSequence(), "MRSLGYVAVISAVATDTDK")
-	TEST_EQUAL(identifications[1].id.getPeptideHits()[0].getSequence(), "HSKLSAK")
-	TEST_EQUAL(identifications[2].id.getPeptideHits()[0].getSequence(), "RASNSPQDPQSATAHSFR")
-	TEST_EQUAL(identifications[2].id.getPeptideHits()[1].getSequence(), "MYSTVGPA")
+	TEST_REAL_EQUAL(DoubleReal(identifications[0].getMetaValue("MZ")), 789.83)
+	TEST_REAL_EQUAL(DoubleReal(identifications[1].getMetaValue("MZ")), 135.29)
+	TEST_REAL_EQUAL(DoubleReal(identifications[2].getMetaValue("MZ")), 982.58)
+	TEST_REAL_EQUAL(identifications[0].getSignificanceThreshold(), 31.8621)
+	TEST_REAL_EQUAL(identifications[1].getSignificanceThreshold(), 12)
+	TEST_REAL_EQUAL(identifications[2].getSignificanceThreshold(), 19)
+	TEST_EQUAL(identifications[0].getHits().size(), 2)
+	TEST_EQUAL(identifications[1].getHits().size(), 1)
+	TEST_EQUAL(identifications[2].getHits().size(), 2)
+	TEST_REAL_EQUAL(identifications[0].getHits()[0].getScore(), 33.85)
+	TEST_REAL_EQUAL(identifications[0].getHits()[1].getScore(), 33.12)
+	TEST_REAL_EQUAL(identifications[1].getHits()[0].getScore(), 43.9)
+	TEST_REAL_EQUAL(identifications[2].getHits()[0].getScore(), 5.41)
+	TEST_REAL_EQUAL(identifications[2].getHits()[1].getScore(), 7.87)
+	TEST_EQUAL(identifications[0].getScoreType(), "Mascot")
+	TEST_EQUAL(identifications[1].getScoreType(), "Mascot")
+	TEST_EQUAL(identifications[2].getScoreType(), "Mascot")
+	TEST_EQUAL(identifications[0].getHits()[0].getSequence(), "LHASGITVTEIPVTATNFK")
+	TEST_EQUAL(identifications[0].getHits()[1].getSequence(), "MRSLGYVAVISAVATDTDK")
+	TEST_EQUAL(identifications[1].getHits()[0].getSequence(), "HSKLSAK")
+	TEST_EQUAL(identifications[2].getHits()[0].getSequence(), "RASNSPQDPQSATAHSFR")
+	TEST_EQUAL(identifications[2].getHits()[1].getSequence(), "MYSTVGPA")
+	TEST_EQUAL(DoubleReal(identifications[0].getHits()[0].getMetaValue("predicted_RT")), 122.5)
+	TEST_EQUAL(DoubleReal(identifications[0].getHits()[1].getMetaValue("predicted_RT")), 122.5)
+	TEST_EQUAL(DoubleReal(identifications[1].getHits()[0].getMetaValue("predicted_RT")), 151.5)
+	TEST_EQUAL(DoubleReal(identifications[2].getHits()[0].getMetaValue("predicted_RT")), 159.5)
+	TEST_EQUAL(DoubleReal(identifications[2].getHits()[1].getMetaValue("predicted_RT")), 159.5)
 	TEST_EQUAL(protein_identifications.size(), 1)
-	TEST_EQUAL(protein_identifications[0].getProteinHits()[0].getAccession(), "AAN17824")
-	TEST_EQUAL(protein_identifications[0].getProteinHits()[1].getAccession(), "GN1736")
-	TEST_REAL_EQUAL(protein_identifications[0].getProteinHits()[0].getScore(), 103.55)
-	TEST_REAL_EQUAL(protein_identifications[0].getProteinHits()[1].getScore(), 67.85)
-	TEST_EQUAL(protein_identifications[0].getProteinHits()[0].getScoreType(), "Mascot")
-	TEST_EQUAL(protein_identifications[0].getProteinHits()[1].getScoreType(), "Mascot")
-	TEST_EQUAL(protein_identifications[0].getProteinHits()[0].getAccessionType(), "SwissProt")
-	TEST_EQUAL(protein_identifications[0].getProteinHits()[1].getAccessionType(), "SwissProt")
-	
+	TEST_EQUAL(protein_identifications[0].getHits()[0].getAccession(), "AAN17824")
+	TEST_EQUAL(protein_identifications[0].getHits()[1].getAccession(), "GN1736")
+	TEST_REAL_EQUAL(protein_identifications[0].getHits()[0].getScore(), 103.55)
+	TEST_REAL_EQUAL(protein_identifications[0].getHits()[1].getScore(), 67.85)
+	TEST_EQUAL(protein_identifications[0].getScoreType(), "Mascot")
+	DateTime temp_date = protein_identifications[0].getDateTime();
+	String temp_string;
+	temp_date.get(temp_string);
+	TEST_EQUAL(temp_string, date_string)
+	Identification::SearchParameters sp = protein_identifications[0].getSearchParameters();
+	TEST_EQUAL(sp.db, "MSDB")
+	TEST_EQUAL(sp.db_version, "1.0")
+	TEST_EQUAL(sp.taxonomy, "vertebrates")
 RESULT
 
-CHECK((void load(const String& filename, std::vector<ProteinIdentification>& protein_identifications, std::vector<IdentificationData>& id_data, std::map<String, double>& predicted_retention_times) const throw(Exception::FileNotFound, Exception::ParseError)))
-
-	vector<ProteinIdentification> protein_identifications; 
-	vector<IdentificationData> identifications; 
-	map<String, double> predicted_retention_times;
-
-	xml_file.load("data/IdXMLFile_test.idXML",
-							protein_identifications, 
-				   		identifications,
-							predicted_retention_times);
-	TEST_EQUAL(identifications.size(), 3)
-	TEST_EQUAL(identifications[0].rt, 120)
-	TEST_EQUAL(identifications[1].rt, 150)
-	TEST_EQUAL(identifications[2].rt, 160)
-	PRECISION(0.0001)
-	TEST_REAL_EQUAL(identifications[0].mz, 789.83)
-	TEST_REAL_EQUAL(identifications[1].mz, 135.29)
-	TEST_REAL_EQUAL(identifications[2].mz, 982.58)
-	TEST_REAL_EQUAL(identifications[0].id.getPeptideSignificanceThreshold(), 31.8621)
-	TEST_REAL_EQUAL(identifications[1].id.getPeptideSignificanceThreshold(), 12)
-	TEST_REAL_EQUAL(identifications[2].id.getPeptideSignificanceThreshold(), 19)
-	TEST_EQUAL(identifications[0].id.getPeptideHits().size(), 2)
-	TEST_EQUAL(identifications[1].id.getPeptideHits().size(), 1)
-	TEST_EQUAL(identifications[2].id.getPeptideHits().size(), 2)
-	TEST_REAL_EQUAL(identifications[0].id.getPeptideHits()[0].getScore(), 33.85)
-	TEST_REAL_EQUAL(identifications[0].id.getPeptideHits()[1].getScore(), 33.12)
-	TEST_REAL_EQUAL(identifications[1].id.getPeptideHits()[0].getScore(), 43.9)
-	TEST_REAL_EQUAL(identifications[2].id.getPeptideHits()[0].getScore(), 5.41)
-	TEST_REAL_EQUAL(identifications[2].id.getPeptideHits()[1].getScore(), 7.87)
-	TEST_EQUAL(identifications[0].id.getPeptideHits()[0].getScoreType(), "Mascot")
-	TEST_EQUAL(identifications[0].id.getPeptideHits()[1].getScoreType(), "Mascot")
-	TEST_EQUAL(identifications[1].id.getPeptideHits()[0].getScoreType(), "Mascot")
-	TEST_EQUAL(identifications[2].id.getPeptideHits()[0].getScoreType(), "Mascot")
-	TEST_EQUAL(identifications[2].id.getPeptideHits()[1].getScoreType(), "Mascot")
-	TEST_EQUAL(identifications[0].id.getPeptideHits()[0].getSequence(), "LHASGITVTEIPVTATNFK")
-	TEST_EQUAL(identifications[0].id.getPeptideHits()[1].getSequence(), "MRSLGYVAVISAVATDTDK")
-	TEST_EQUAL(identifications[1].id.getPeptideHits()[0].getSequence(), "HSKLSAK")
-	TEST_EQUAL(identifications[2].id.getPeptideHits()[0].getSequence(), "RASNSPQDPQSATAHSFR")
-	TEST_EQUAL(identifications[2].id.getPeptideHits()[1].getSequence(), "MYSTVGPA")
-	TEST_EQUAL(protein_identifications.size(), 1)
-	TEST_EQUAL(protein_identifications[0].getProteinHits()[0].getAccession(), "AAN17824")
-	TEST_EQUAL(protein_identifications[0].getProteinHits()[1].getAccession(), "GN1736")
-	TEST_REAL_EQUAL(protein_identifications[0].getProteinHits()[0].getScore(), 103.55)
-	TEST_REAL_EQUAL(protein_identifications[0].getProteinHits()[1].getScore(), 67.85)
-	TEST_EQUAL(protein_identifications[0].getProteinHits()[0].getScoreType(), "Mascot")
-	TEST_EQUAL(protein_identifications[0].getProteinHits()[1].getScoreType(), "Mascot")
-	TEST_EQUAL(protein_identifications[0].getProteinHits()[0].getAccessionType(), "SwissProt")
-	TEST_EQUAL(protein_identifications[0].getProteinHits()[1].getAccessionType(), "SwissProt")
-	TEST_EQUAL(predicted_retention_times.size(), 5)
-	TEST_REAL_EQUAL(predicted_retention_times[string("LHASGITVTEIPVTATNFK")], 122.5)
-	TEST_REAL_EQUAL(predicted_retention_times[string("MRSLGYVAVISAVATDTDK")], 122.5)
-	TEST_REAL_EQUAL(predicted_retention_times[string("HSKLSAK")], 151.5)
-	TEST_REAL_EQUAL(predicted_retention_times[string("RASNSPQDPQSATAHSFR")], 159.5)
-	TEST_REAL_EQUAL(predicted_retention_times[string("MYSTVGPA")], 159.5)
-
-
-RESULT
-
-CHECK((void store(String filename, const std::vector<ProteinIdentification>& protein_identifications, const std::vector<IdentificationData>& id_data) const throw(Exception::UnableToCreateFile)))
+CHECK((void store(String filename, const std::vector<Identification>& protein_identifications, const std::vector<PeptideIdentification>& id_data) const throw(Exception::UnableToCreateFile)))
 												
-	vector<ProteinIdentification> protein_identifications; 
-	vector<IdentificationData> identifications; 
+	vector<Identification> protein_identifications; 
+	vector<PeptideIdentification> identifications; 
 
 	String temp_filename = "data/IdXMLFile_test_2.idXML";
 
@@ -176,114 +126,97 @@ CHECK((void store(String filename, const std::vector<ProteinIdentification>& pro
 							protein_identifications, 
 				   		identifications);
 	TEST_EQUAL(identifications.size(), 3)
-	TEST_EQUAL(identifications[0].rt, 120)
-	TEST_EQUAL(identifications[1].rt, 150)
-	TEST_EQUAL(identifications[2].rt, 160)
+	TEST_EQUAL(DoubleReal(identifications[0].getMetaValue("RT")), 120)
+	TEST_EQUAL(DoubleReal(identifications[1].getMetaValue("RT")), 150)
+	TEST_EQUAL(DoubleReal(identifications[2].getMetaValue("RT")), 160)
 	PRECISION(0.0001)
-	TEST_REAL_EQUAL(identifications[0].mz, 789.83)
-	TEST_REAL_EQUAL(identifications[1].mz, 135.29)
-	TEST_REAL_EQUAL(identifications[2].mz, 982.58)
-	TEST_REAL_EQUAL(identifications[0].id.getPeptideSignificanceThreshold(), 31.8621)
-	TEST_REAL_EQUAL(identifications[1].id.getPeptideSignificanceThreshold(), 12)
-	TEST_REAL_EQUAL(identifications[2].id.getPeptideSignificanceThreshold(), 19)
-	TEST_EQUAL(identifications[0].id.getPeptideHits().size(), 2)
-	TEST_EQUAL(identifications[1].id.getPeptideHits().size(), 1)
-	TEST_EQUAL(identifications[2].id.getPeptideHits().size(), 2)
-	TEST_REAL_EQUAL(identifications[0].id.getPeptideHits()[0].getScore(), 33.85)
-	TEST_REAL_EQUAL(identifications[0].id.getPeptideHits()[1].getScore(), 33.12)
-	TEST_REAL_EQUAL(identifications[1].id.getPeptideHits()[0].getScore(), 43.9)
-	TEST_REAL_EQUAL(identifications[2].id.getPeptideHits()[0].getScore(), 5.41)
-	TEST_REAL_EQUAL(identifications[2].id.getPeptideHits()[1].getScore(), 7.87)
-	TEST_EQUAL(identifications[0].id.getPeptideHits()[0].getScoreType(), "Mascot")
-	TEST_EQUAL(identifications[0].id.getPeptideHits()[1].getScoreType(), "Mascot")
-	TEST_EQUAL(identifications[1].id.getPeptideHits()[0].getScoreType(), "Mascot")
-	TEST_EQUAL(identifications[2].id.getPeptideHits()[0].getScoreType(), "Mascot")
-	TEST_EQUAL(identifications[2].id.getPeptideHits()[1].getScoreType(), "Mascot")
-	TEST_EQUAL(identifications[0].id.getPeptideHits()[0].getSequence(), "LHASGITVTEIPVTATNFK")
-	TEST_EQUAL(identifications[0].id.getPeptideHits()[1].getSequence(), "MRSLGYVAVISAVATDTDK")
-	TEST_EQUAL(identifications[1].id.getPeptideHits()[0].getSequence(), "HSKLSAK")
-	TEST_EQUAL(identifications[2].id.getPeptideHits()[0].getSequence(), "RASNSPQDPQSATAHSFR")
-	TEST_EQUAL(identifications[2].id.getPeptideHits()[1].getSequence(), "MYSTVGPA")
+	TEST_REAL_EQUAL(DoubleReal(identifications[0].getMetaValue("MZ")), 789.83)
+	TEST_REAL_EQUAL(DoubleReal(identifications[1].getMetaValue("MZ")), 135.29)
+	TEST_REAL_EQUAL(DoubleReal(identifications[2].getMetaValue("MZ")), 982.58)
+	TEST_REAL_EQUAL(identifications[0].getSignificanceThreshold(), 31.8621)
+	TEST_REAL_EQUAL(identifications[1].getSignificanceThreshold(), 12)
+	TEST_REAL_EQUAL(identifications[2].getSignificanceThreshold(), 19)
+	TEST_EQUAL(identifications[0].getHits().size(), 2)
+	TEST_EQUAL(identifications[1].getHits().size(), 1)
+	TEST_EQUAL(identifications[2].getHits().size(), 2)
+	TEST_REAL_EQUAL(identifications[0].getHits()[0].getScore(), 33.85)
+	TEST_REAL_EQUAL(identifications[0].getHits()[1].getScore(), 33.12)
+	TEST_REAL_EQUAL(identifications[1].getHits()[0].getScore(), 43.9)
+	TEST_REAL_EQUAL(identifications[2].getHits()[0].getScore(), 5.41)
+	TEST_REAL_EQUAL(identifications[2].getHits()[1].getScore(), 7.87)
+	TEST_EQUAL(identifications[0].getScoreType(), "Mascot")
+	TEST_EQUAL(identifications[1].getScoreType(), "Mascot")
+	TEST_EQUAL(identifications[0].getHits()[0].getSequence(), "LHASGITVTEIPVTATNFK")
+	TEST_EQUAL(identifications[0].getHits()[1].getSequence(), "MRSLGYVAVISAVATDTDK")
+	TEST_EQUAL(identifications[1].getHits()[0].getSequence(), "HSKLSAK")
+	TEST_EQUAL(identifications[2].getHits()[0].getSequence(), "RASNSPQDPQSATAHSFR")
+	TEST_EQUAL(identifications[2].getHits()[1].getSequence(), "MYSTVGPA")
 	TEST_EQUAL(protein_identifications.size(), 1)
-	TEST_EQUAL(protein_identifications[0].getProteinHits()[0].getAccession(), "AAN17824")
-	TEST_EQUAL(protein_identifications[0].getProteinHits()[1].getAccession(), "GN1736")
-	TEST_REAL_EQUAL(protein_identifications[0].getProteinHits()[0].getScore(), 103.55)
-	TEST_REAL_EQUAL(protein_identifications[0].getProteinHits()[1].getScore(), 67.85)
-	TEST_EQUAL(protein_identifications[0].getProteinHits()[0].getScoreType(), "Mascot")
-	TEST_EQUAL(protein_identifications[0].getProteinHits()[1].getScoreType(), "Mascot")
-	TEST_EQUAL(protein_identifications[0].getProteinHits()[0].getAccessionType(), "SwissProt")
-	TEST_EQUAL(protein_identifications[0].getProteinHits()[1].getAccessionType(), "SwissProt")
+	TEST_EQUAL(protein_identifications[0].getHits()[0].getAccession(), "AAN17824")
+	TEST_EQUAL(protein_identifications[0].getHits()[1].getAccession(), "GN1736")
+	TEST_REAL_EQUAL(protein_identifications[0].getHits()[0].getScore(), 103.55)
+	TEST_REAL_EQUAL(protein_identifications[0].getHits()[1].getScore(), 67.85)
+	TEST_EQUAL(protein_identifications[0].getScoreType(), "Mascot")
 									
 RESULT
 
-CHECK((void store(String filename, const std::vector<ProteinIdentification>& protein_identifications, const std::vector<IdentificationData>& id_data, const std::map<String, double>& predicted_retention_times) const throw(Exception::UnableToCreateFile)))
+CHECK((void store(String filename, const std::vector<Identification>& protein_identifications, const std::vector<PeptideIdentification>& id_data, const std::map<String, double>& predicted_retention_times) const throw(Exception::UnableToCreateFile)))
 												
-	vector<ProteinIdentification> protein_identifications; 
-	vector<IdentificationData> identifications; 
-	map<String, double> predicted_retention_times;
+	vector<Identification> protein_identifications; 
+	vector<PeptideIdentification> identifications; 
 
 	String temp_filename = "data/IdXMLFile_test_2.idXML";
 	NEW_TMP_FILE(temp_filename)
 	
 	xml_file.load("data/IdXMLFile_test.idXML", 
 							protein_identifications, 
-				   		identifications,
-								predicted_retention_times);
+				   		identifications);
 	xml_file.store(temp_filename, 
 									protein_identifications, 
-				   				identifications,
-									predicted_retention_times);
+				   				identifications);
 
 	xml_file.load(temp_filename,
 							protein_identifications, 
-				   		identifications,
-							predicted_retention_times);
+				   		identifications);
 
 	TEST_EQUAL(identifications.size(), 3)
-	TEST_EQUAL(identifications[0].rt, 120)
-	TEST_EQUAL(identifications[1].rt, 150)
-	TEST_EQUAL(identifications[2].rt, 160)
+	TEST_EQUAL(DoubleReal(identifications[0].getMetaValue("RT")), 120)
+	TEST_EQUAL(DoubleReal(identifications[1].getMetaValue("RT")), 150)
+	TEST_EQUAL(DoubleReal(identifications[2].getMetaValue("RT")), 160)
 	PRECISION(0.0001)
-	TEST_REAL_EQUAL(identifications[0].mz, 789.83)
-	TEST_REAL_EQUAL(identifications[1].mz, 135.29)
-	TEST_REAL_EQUAL(identifications[2].mz, 982.58)
-	TEST_REAL_EQUAL(identifications[0].id.getPeptideSignificanceThreshold(), 31.8621)
-	TEST_REAL_EQUAL(identifications[1].id.getPeptideSignificanceThreshold(), 12)
-	TEST_REAL_EQUAL(identifications[2].id.getPeptideSignificanceThreshold(), 19)
-	TEST_EQUAL(identifications[0].id.getPeptideHits().size(), 2)
-	TEST_EQUAL(identifications[1].id.getPeptideHits().size(), 1)
-	TEST_EQUAL(identifications[2].id.getPeptideHits().size(), 2)
-	TEST_REAL_EQUAL(identifications[0].id.getPeptideHits()[0].getScore(), 33.85)
-	TEST_REAL_EQUAL(identifications[0].id.getPeptideHits()[1].getScore(), 33.12)
-	TEST_REAL_EQUAL(identifications[1].id.getPeptideHits()[0].getScore(), 43.9)
-	TEST_REAL_EQUAL(identifications[2].id.getPeptideHits()[0].getScore(), 5.41)
-	TEST_REAL_EQUAL(identifications[2].id.getPeptideHits()[1].getScore(), 7.87)
-	TEST_EQUAL(identifications[0].id.getPeptideHits()[0].getScoreType(), "Mascot")
-	TEST_EQUAL(identifications[0].id.getPeptideHits()[1].getScoreType(), "Mascot")
-	TEST_EQUAL(identifications[1].id.getPeptideHits()[0].getScoreType(), "Mascot")
-	TEST_EQUAL(identifications[2].id.getPeptideHits()[0].getScoreType(), "Mascot")
-	TEST_EQUAL(identifications[2].id.getPeptideHits()[1].getScoreType(), "Mascot")
-	TEST_EQUAL(identifications[0].id.getPeptideHits()[0].getSequence(), "LHASGITVTEIPVTATNFK")
-	TEST_EQUAL(identifications[0].id.getPeptideHits()[1].getSequence(), "MRSLGYVAVISAVATDTDK")
-	TEST_EQUAL(identifications[1].id.getPeptideHits()[0].getSequence(), "HSKLSAK")
-	TEST_EQUAL(identifications[2].id.getPeptideHits()[0].getSequence(), "RASNSPQDPQSATAHSFR")
-	TEST_EQUAL(identifications[2].id.getPeptideHits()[1].getSequence(), "MYSTVGPA")
+	TEST_REAL_EQUAL(DoubleReal(identifications[0].getMetaValue("MZ")), 789.83)
+	TEST_REAL_EQUAL(DoubleReal(identifications[1].getMetaValue("MZ")), 135.29)
+	TEST_REAL_EQUAL(DoubleReal(identifications[2].getMetaValue("MZ")), 982.58)
+	TEST_REAL_EQUAL(identifications[0].getSignificanceThreshold(), 31.8621)
+	TEST_REAL_EQUAL(identifications[1].getSignificanceThreshold(), 12)
+	TEST_REAL_EQUAL(identifications[2].getSignificanceThreshold(), 19)
+	TEST_EQUAL(identifications[0].getHits().size(), 2)
+	TEST_EQUAL(identifications[1].getHits().size(), 1)
+	TEST_EQUAL(identifications[2].getHits().size(), 2)
+	TEST_REAL_EQUAL(identifications[0].getHits()[0].getScore(), 33.85)
+	TEST_REAL_EQUAL(identifications[0].getHits()[1].getScore(), 33.12)
+	TEST_REAL_EQUAL(identifications[1].getHits()[0].getScore(), 43.9)
+	TEST_REAL_EQUAL(identifications[2].getHits()[0].getScore(), 5.41)
+	TEST_REAL_EQUAL(identifications[2].getHits()[1].getScore(), 7.87)
+	TEST_EQUAL(identifications[0].getScoreType(), "Mascot")
+	TEST_EQUAL(identifications[1].getScoreType(), "Mascot")
+	TEST_EQUAL(identifications[0].getHits()[0].getSequence(), "LHASGITVTEIPVTATNFK")
+	TEST_EQUAL(identifications[0].getHits()[1].getSequence(), "MRSLGYVAVISAVATDTDK")
+	TEST_EQUAL(identifications[1].getHits()[0].getSequence(), "HSKLSAK")
+	TEST_EQUAL(identifications[2].getHits()[0].getSequence(), "RASNSPQDPQSATAHSFR")
+	TEST_EQUAL(identifications[2].getHits()[1].getSequence(), "MYSTVGPA")
 	TEST_EQUAL(protein_identifications.size(), 1)
-	TEST_EQUAL(protein_identifications[0].getProteinHits().size(), 2)
-	TEST_EQUAL(protein_identifications[0].getProteinHits()[0].getAccession(), "AAN17824")
-	TEST_EQUAL(protein_identifications[0].getProteinHits()[1].getAccession(), "GN1736")
-	TEST_REAL_EQUAL(protein_identifications[0].getProteinHits()[0].getScore(), 103.55)
-	TEST_REAL_EQUAL(protein_identifications[0].getProteinHits()[1].getScore(), 67.85)
-	TEST_EQUAL(protein_identifications[0].getProteinHits()[0].getScoreType(), "Mascot")
-	TEST_EQUAL(protein_identifications[0].getProteinHits()[1].getScoreType(), "Mascot")
-	TEST_EQUAL(protein_identifications[0].getProteinHits()[0].getAccessionType(), "SwissProt")
-	TEST_EQUAL(protein_identifications[0].getProteinHits()[1].getAccessionType(), "SwissProt")
-	TEST_EQUAL(predicted_retention_times.size(), 5)
-	TEST_REAL_EQUAL(predicted_retention_times[string("LHASGITVTEIPVTATNFK")], 122.5)
-	TEST_REAL_EQUAL(predicted_retention_times[string("MRSLGYVAVISAVATDTDK")], 122.5)
-	TEST_REAL_EQUAL(predicted_retention_times[string("HSKLSAK")], 151.5)
-	TEST_REAL_EQUAL(predicted_retention_times[string("RASNSPQDPQSATAHSFR")], 159.5)
-	TEST_REAL_EQUAL(predicted_retention_times[string("MYSTVGPA")], 159.5)
+	TEST_EQUAL(protein_identifications[0].getHits().size(), 2)
+	TEST_EQUAL(protein_identifications[0].getHits()[0].getAccession(), "AAN17824")
+	TEST_EQUAL(protein_identifications[0].getHits()[1].getAccession(), "GN1736")
+	TEST_REAL_EQUAL(protein_identifications[0].getHits()[0].getScore(), 103.55)
+	TEST_REAL_EQUAL(protein_identifications[0].getHits()[1].getScore(), 67.85)
+	TEST_EQUAL(protein_identifications[0].getScoreType(), "Mascot")
+	TEST_EQUAL(identifications[0].getHits()[0].getSequence(), "LHASGITVTEIPVTATNFK")
+	TEST_EQUAL(identifications[0].getHits()[1].getSequence(), "MRSLGYVAVISAVATDTDK")
+	TEST_EQUAL(identifications[1].getHits()[0].getSequence(), "HSKLSAK")
+	TEST_EQUAL(identifications[2].getHits()[0].getSequence(), "RASNSPQDPQSATAHSFR")
+	TEST_EQUAL(identifications[2].getHits()[1].getSequence(), "MYSTVGPA")
 									
 RESULT
 

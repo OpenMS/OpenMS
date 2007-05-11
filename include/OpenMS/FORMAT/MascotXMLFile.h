@@ -28,6 +28,7 @@
 #define OPENMS_FORMAT_MASCOTXMLFILE_H
 
 #include <OpenMS/METADATA/Identification.h>
+#include <OpenMS/METADATA/PeptideIdentification.h>
 
 #include <vector>
 
@@ -59,7 +60,7 @@ namespace OpenMS
 		    This class serves to read in a MascotXML file. The information can be 
 		    retrieved via the load function.      
 		  */
-	    void load(const String& filename, ProteinIdentification& protein_identification, std::vector<IdentificationData>& id_data ) const throw (Exception::FileNotFound, Exception::ParseError);
+	    void load(const String& filename, Identification& protein_identification, std::vector<PeptideIdentification>& id_data ) const throw (Exception::FileNotFound, Exception::ParseError);
       					 
   };
  

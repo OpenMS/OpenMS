@@ -27,166 +27,193 @@
 #ifndef OPENMS_METADATA_IDENTIFICATION_H
 #define OPENMS_METADATA_IDENTIFICATION_H
 
-#include <OpenMS/METADATA/PeptideHit.h>
 #include <OpenMS/METADATA/ProteinHit.h>
-#include <OpenMS/METADATA/ProteinIdentification.h>
-
-#include <string>
-#include <map>
+#include <OpenMS/METADATA/MetaInfoInterface.h>
+#include <OpenMS/DATASTRUCTURES/DateTime.h>
 
 namespace OpenMS
 {   	
   /**
-    @brief Representation of a database search with one spectrum
+    @brief Representation of a peptide/protein identification
     
-	  Represents the peptide and protein hits with additional parameters.
-		
-		@todo Store ScoreType (with direction) and AccessionType as Enum in Identification (Marc, Andreas)
-		
+    This class stores the general information and the protein hits of an identification run.
+    
+    The actual peptide hits are stored in PeptideIdentification instances that are part of 
+    spectra or features. 
+    
+    In order to be able to connect the Identification and the corresponding peptide identifications, both
+    classes have a string identifier.
+    Setting this identifier is especially important, when there can be several Identification and 
+    PeptideIdentification instances for a map.
+    
 		@ingroup Metadata
   */
-  class Identification : public ProteinIdentification
+  class Identification
+  	: public MetaInfoInterface
   {
-  public:
-
-    /** @name constructors,destructors,assignment operator <br> */
-    //@{
-    
-    /// default constructor
-    Identification();
-    
-    /// destructor
-    virtual ~Identification();
-    
-    /// copy constructor
-    Identification(const Identification& source);
-    
-    /// assignment operator
-    Identification& operator=(const Identification& source);
-    //@}
-    
-		/// Equality operator
-		bool operator == (const Identification& rhs) const;
-		
-		/// Inequality operator
-		bool operator != (const Identification& rhs) const;
-
-    /// read access to peptide hits
-    const std::vector<PeptideHit>& getPeptideHits() const;
-
-    /// mutable access to peptide hits
-    std::vector<PeptideHit>& getPeptideHits();
-
-		/// Inserts a peptide hit into a container
-    void insertPeptideHit(const PeptideHit& input);
-
-		/// Sets the peptide and protein hits
-    void setPeptideAndProteinHits(const std::vector<PeptideHit>& peptide_hits, 
-    															const std::vector<ProteinHit>& protein_hits);
-
-		/// retrival of the peptide significance threshold value
-    Real getPeptideSignificanceThreshold() const;
-
-		/// setting of the peptide significance threshold value
-		void setPeptideSignificanceThreshold(Real value);
-
-		/// clears all information of this instance
-    void clear();
-
-		/**
-			@brief sorts the peptide and protein hits according to their score
-					
-			@param inverse_score Setting this flag to true indiciates that a lower score is better
-		*/
-		void sort(bool inverse_score = false);
-
-		/// tests whether there is no information stored
-		bool empty() const;
-
-		/**
-			@brief sorts the peptide hits by sort() and assigns ranks according to the sorting
-			
-			@param inverse_score Setting this flag to true indiciates that a lower score is better
-		*/
-    void assignRanks(bool inverse_score = false);
-    
-		/**
-			@brief returns all referencing hits
-    	
-			Returns a vector of peptide hits that reference a protein hit with @code date_time @endcode
-			and @code accession @endcode.
-    */
-    std::vector<PeptideHit>* getReferencingHits(String date_time, String accession) const;
-
-		/**
-			@brief returns all non referencing peptide hits
-    	
-			Returns a vector of peptide hits that do not reference a protein hit in [protein_hits_begin, protein_hits_end)
-			together with the date given by @code date_time @endcode
-    */
-    template <class iteratorT>
-  	std::vector<PeptideHit>* getNonReferencingHits(iteratorT protein_hits_begin, iteratorT protein_hits_end, const String&	date_time) const
-  	{
-	  	std::vector<PeptideHit>* 	found_hits 	= new std::vector<PeptideHit>();
-	  	bool 											referenced 	= false;
-	  	String 										accession 	= "";
-	  			
-	  	// for every peptide hit
-			for(UInt i = 0; i < peptide_hits_.size(); i++)
+	  public:
+	 		///Hit type definition
+	 		typedef ProteinHit HitType;
+	 		
+			/// Orientation of the score
+			enum ScoreOrientation
 			{
-				const std::vector< std::pair<String, String> >& references = 
-						peptide_hits_[i].getProteinIndices();
-				//for every reference
-				for(UInt j = 0; j < references.size(); j++)
+				HIGHER_IS_BETTER, 
+				LOWER_IS_BETTER  
+			};
+			
+			/// Peak mass type
+			enum PeakMassType
+			{
+				MONOISOTOPIC,
+				AVERAGE
+			};
+			
+			enum DigestionEnzyme
+			{
+				TRYPSIN,
+				NO_ENZYME,
+				UNKNOWN_ENZYME
+			};
+			
+			/// Search parameters of the DB search
+			struct SearchParameters
+			{
+				String db; ///< The used database
+				String db_version; ///< The database version
+				String taxonomy; ///< The taxonomy restriction
+				String charges; ///< The allowed charges for the search
+				PeakMassType mass_type; ///< Mass type of the peaks
+				std::vector<String> fixed_modifications; ///< Used fixed modifications
+				std::vector<String> variable_modifications; ///< Allowed variable modifications
+				DigestionEnzyme enzyme; ///< The enzyme used for cleavage
+				UInt missed_cleavages; ///< The number of allowed missed cleavages
+				DoubleReal peak_mass_tolerance; ///< Mass tolerance of fragment ions (Dalton)
+				DoubleReal precursor_tolerance; ///< Mass tolerance of precursor ions (Dalton)
+				
+				SearchParameters()
+					: db(),
+						db_version(),
+						taxonomy(),
+						charges(),
+						mass_type(MONOISOTOPIC),
+						fixed_modifications(),
+						variable_modifications(),
+						enzyme(UNKNOWN_ENZYME),
+						missed_cleavages(0),
+						peak_mass_tolerance(0.0),
+						precursor_tolerance(0.0)
 				{
-					// for every protein hit
-					for(iteratorT protein_it = protein_hits_begin;
-							protein_it != protein_hits_end;
-							protein_it++)
-					{
-						accession = protein_it->getAccession();
-						if (references[j].first == date_time && references[j].second == accession)
-						{
-							referenced = true;
-						}
-					}
-				}
-				if (!referenced)
+				};
+
+				bool operator == (const SearchParameters& rhs) const
 				{
-					found_hits->push_back(peptide_hits_[i]);
+					return 	db == rhs.db &&
+									db_version == rhs.db_version &&
+									taxonomy == taxonomy &&
+									charges == charges &&
+									mass_type == mass_type &&
+									fixed_modifications == fixed_modifications &&
+									variable_modifications == variable_modifications &&
+									enzyme == enzyme &&
+									missed_cleavages == missed_cleavages &&
+									peak_mass_tolerance == peak_mass_tolerance &&
+									precursor_tolerance == precursor_tolerance;
+
 				}
-				referenced = false;
-			}
-	
-	  	return found_hits;  			  		
-  	}
 
-		/**
-			@brief returns all non referencing peptide hits
-    	
-			Returns a vector of peptide hits that do not reference a protein hit in @code protein_hits @endcode.
-			The String argument in the map stands for the String representation of the date_time object of
-			the ProteinIdentification the particular protein hit belongs to.
-    */
-  	std::vector<PeptideHit>* getNonReferencingHits(const std::multimap< String, ProteinHit >& protein_hits) const;
+				bool operator != (const SearchParameters& rhs) const
+				{
+					return !(*this == rhs);
+				}
+			};
+	  	
+	  	
+	    /** @name constructors,destructors,assignment operator <br> */
+	    //@{
+	    /// default constructor
+	    Identification();
+	    /// destructor
+	    virtual ~Identification();
+	    /// copy constructor
+	    Identification(const Identification& source);
+	    /// assignment operator
+	    Identification& operator=(const Identification& source);
+			/// Equality operator
+			bool operator == (const Identification& rhs) const;		
+			/// Inequality operator
+			bool operator != (const Identification& rhs) const;
+	    //@}	 
 
-  protected:
+	   	///@name Protein hit information
+	  	//@{	
+	    /// returns the protein hits
+	    const std::vector<ProteinHit>& getHits() const;
+			/// Appends a protein hit
+	    void insertHit(const ProteinHit& input);
+			/// Sets the peptide and protein hits
+	    void setHits(const std::vector<ProteinHit>& hits); 
+			/// returns the peptide significance threshold value
+	    Real getSignificanceThreshold() const;
+			/// setting of the peptide significance threshold value
+			void setSignificanceThreshold(Real value);
+	    /// returns the protein score type
+	    const String& getScoreType() const;   
+	    /// sets the protein score type
+	    void setScoreType(const String& type);
+	    /// returns true if a higher score represents a better score
+	    bool isHigherScoreBetter() const;   
+	    /// sets the orientation of the score (higher is better?)
+	    void setHigherScoreBetter(bool higher_is_better);
+			///sorts the peptide and protein hits according to their score
+			void sort();
+			/// sorts the peptide hits and assigns ranks according to the sorting
+	    void assignRanks();
+			//@}
 
-    std::vector<PeptideHit> peptide_hits_;						///< a list containing the peptide hits
-    Real peptide_significance_threshold_;						///< the peptide significance threshold
+	   	///@name General information
+	  	//@{
+			/// returns the date of the identification
+	    const DateTime& getDateTime() const;
+			/// sets the date of the identification
+	    void setDateTime(const DateTime& date);
+			/// sets the search engine type
+			void setSearchEngine(const String& search_engine);
+			/// returns the type of search engine used
+			const String& getSearchEngine() const;
+			/// sets the search engine version
+			void setSearchEngineVersion(const String& search_engine_version);
+			/// returns the search engine version
+			const String& getSearchEngineVersion() const;
+			/// sets the search parameters
+			void setSearchParameters(const SearchParameters& search_parameters);
+			/// returns the search parameters 
+			const SearchParameters& getSearchParameters() const; 
+	    /// returns the identifier
+	    const String& getIdentifier() const;
+	    /// sets the indentifier
+	    void setIdentifier(const String& id);
+			//@}
+			
+	  protected:
+	  
+			///@name General information (search engine, parameters and DB)
+	  	//@{
+			String id_;
+			String search_engine_;
+			String search_engine_version_;
+			SearchParameters search_parameters_;
+	    DateTime date_;
+	    //@}
+	   	
+			///@name Protein hit information
+	  	//@{
+	    String protein_score_type_;   
+			bool higher_score_better_;
+		  std::vector<ProteinHit> protein_hits_; 
+			Real protein_significance_threshold_;
+	    //@}
   };
 
-	///Struct that contains an Identification and its corresponding RT and m/z value
-	struct IdentificationData
-	{
-		DoubleReal rt;
-		DoubleReal mz;
-		Identification id;
-	
-		bool operator==(const IdentificationData& rhs) const
-		{
-			return rt==rhs.rt && mz==rhs.mz &&  id==rhs.id;
-		}
-	};
 } //namespace OpenMS
 #endif // OPENMS_METADATA_IDENTIFICATION_H

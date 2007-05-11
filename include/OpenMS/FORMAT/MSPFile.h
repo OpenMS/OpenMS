@@ -61,7 +61,7 @@ namespace OpenMS
 				@p map has to be a MSExperiment or have the same interface.
 			*/
 			template <typename MapType>
-			void load(const String& filename, std::vector<IdentificationData>& ids, MapType& map) throw (Exception::FileNotFound, Exception::ParseError)
+			void load(const String& filename, std::vector<PeptideIdentification>& ids, MapType& map) throw (Exception::FileNotFound, Exception::ParseError)
 			{
 				if (!File::exists(filename))
 				{
@@ -82,14 +82,9 @@ namespace OpenMS
 						std::vector<String> split, split2;
 						line.split(' ', split);
 						split[1].split('/', split2);
-						Identification id;
-						id.getPeptideHits().push_back(PeptideHit(0, "", 0, split2[1].toInt(), split2[0]));
-						IdentificationData data;
-						data.id = id;
-						data.mz = -1;
-						data.rt = -1;
-						ids.push_back(data);
-						std::cerr << split[1] << std::endl;
+						PeptideIdentification id;
+						id.insertHit(PeptideHit(0, "", 0, split2[1].toInt(), split2[0]));
+						ids.push_back(id);
 					}
 					if (line.hasPrefix("MW:"))
 					{

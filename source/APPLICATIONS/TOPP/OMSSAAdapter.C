@@ -311,12 +311,11 @@ class TOPPOMSSAAdapter
 
 			MzDataFile mzdata_infile;
 			mzdata_infile.setLogType(log_type_);
-			ProteinIdentification protein_identification;
-			vector<Identification> identifications;
+			Identification protein_identification;
+			vector<PeptideIdentification> peptide_ids;
 			mzdata_infile.load(inputfile_name, map);
 				
-			vector<IdentificationData> peptide_ids;
-			vector<ProteinIdentification> protein_identifications;
+			vector<Identification> protein_identifications;
 			//-------------------------------------------------------------
 			// calculations
 			//-------------------------------------------------------------
@@ -349,25 +348,24 @@ class TOPPOMSSAAdapter
 
 				// read OMSSA output
 				OMSSAXMLFile omssa_out_file;
-				vector<IdentificationData> tmp_peptide_ids;
-				ProteinIdentification tmp_protein_id;
+				vector<PeptideIdentification> tmp_peptide_ids;
+				Identification tmp_protein_id;
 				omssa_out_file.load(omssa_outfile_name, tmp_protein_id, tmp_peptide_ids);
 
 				if (tmp_peptide_ids.size() == 1)
 				{
-					writeDebug_(String(i) + ". found " + String(tmp_peptide_ids[0].id.getPeptideHits().size()) + " peptide identifications", 2);
-					tmp_peptide_ids[0].rt = it->getRT();
-					tmp_peptide_ids[0].mz = it->getPrecursorPeak().getPosition()[0];
+					writeDebug_(String(i) + ". found " + String(tmp_peptide_ids[0].getHits().size()) + " peptide identifications", 2);
+					tmp_peptide_ids[0].setMetaValue("RT", it->getRT());
+					tmp_peptide_ids[0].setMetaValue("MZ", it->getPrecursorPeak().getPosition()[0]);
 					peptide_ids.push_back(tmp_peptide_ids[0]);
-					// TODO protein mz/rt
 					protein_identifications.push_back(tmp_protein_id);
 				}
 				else
 				{
 					writeDebug_(String(i) + ". found " + String(tmp_peptide_ids.size()) + " peptide identifications", 2);
-					IdentificationData tmp_id_data;
-					tmp_id_data.rt = it->getRT();
-					tmp_id_data.mz = it->getPrecursorPeak().getPosition()[0];
+					PeptideIdentification tmp_id_data;
+					tmp_id_data.setMetaValue("RT", it->getRT());
+					tmp_id_data.setMetaValue("MZ", it->getPrecursorPeak().getPosition()[0]);
 					peptide_ids.push_back(tmp_id_data);
 					protein_identifications.push_back(tmp_protein_id);
 				}

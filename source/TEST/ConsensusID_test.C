@@ -51,8 +51,8 @@ CHECK(~ConsensusID())
 	delete(ptr);
 RESULT
 
-// Identification with 3 id runs is created
-vector<Identification> ids(3);
+// PeptideIdentification with 3 id runs is created
+vector<PeptideIdentification> ids(3);
 vector<PeptideHit> hits;
 // the first ID has 5 hits
 hits.resize(5);
@@ -71,7 +71,7 @@ hits[3].setScore(7);
 hits[4].setRank(5);
 hits[4].setSequence("E");
 hits[4].setScore(3);
-ids[0].getPeptideHits() = hits;
+ids[0].setHits(hits);
 // the second ID has 3 hits
 hits.resize(3);
 hits[0].setRank(1);
@@ -83,7 +83,7 @@ hits[1].setScore(30);
 hits[2].setRank(3);
 hits[2].setSequence("B");
 hits[2].setScore(29);
-ids[1].getPeptideHits() = hits;
+ids[1].setHits(hits);
 // the third ID has 10 hits
 hits.resize(10);
 hits[0].setRank(1);
@@ -116,9 +116,9 @@ hits[8].setScore(2);
 hits[9].setRank(10);
 hits[9].setSequence("K");
 hits[9].setScore(1);
-ids[2].getPeptideHits() = hits;
+ids[2].setHits(hits);
 
-CHECK(void apply(std::vector<Identification>& ids) throw (Exception::InvalidValue))
+CHECK(void apply(std::vector<PeptideIdentification>& ids) throw (Exception::InvalidValue))
 	PRECISION(0.01)
 	
 	// ***** Ranked ********
@@ -130,11 +130,11 @@ CHECK(void apply(std::vector<Identification>& ids) throw (Exception::InvalidValu
 	param.setValue("ConsideredHits",5);
 	consensus.setParameters(param);
 	//apply
-	vector<Identification> f = ids;
+	vector<PeptideIdentification> f = ids;
 	consensus.apply(f);
 	
 	TEST_EQUAL(f.size(),1);
-	hits = f[0].getPeptideHits();
+	hits = f[0].getHits();
 	TEST_EQUAL(hits.size(),7);
 	
 	TEST_EQUAL(hits[0].getRank(),1);
@@ -177,7 +177,7 @@ CHECK(void apply(std::vector<Identification>& ids) throw (Exception::InvalidValu
 	consensus.apply(f);
 	
 	TEST_EQUAL(f.size(),1);
-	hits = f[0].getPeptideHits();
+	hits = f[0].getHits();
 	TEST_EQUAL(hits.size(),7);
 	
 	TEST_EQUAL(hits[0].getRank(),1);
@@ -220,7 +220,7 @@ CHECK(void apply(std::vector<Identification>& ids) throw (Exception::InvalidValu
 	consensus.apply(f);
 	
 	TEST_EQUAL(f.size(),1);
-	hits = f[0].getPeptideHits();
+	hits = f[0].getHits();
 	TEST_EQUAL(hits.size(),6);
 	
 	TEST_EQUAL(hits[0].getRank(),1);
@@ -253,14 +253,17 @@ CHECK(void apply(std::vector<Identification>& ids) throw (Exception::InvalidValu
 	param.clear();
 	param.setValue("Algorithm","Average");
 	param.setValue("ConsideredHits",1);
-	param.setValue("InverseOrder",1);
 	consensus.setParameters(param);
-	//apply
 	f = ids;
+	for (UInt i = 0; i < f.size(); ++i)
+	{
+		f[i].setHigherScoreBetter(false);
+	}
+	//apply
 	consensus.apply(f);
 	
 	TEST_EQUAL(f.size(),1);
-	hits = f[0].getPeptideHits();
+	hits = f[0].getHits();
 	TEST_EQUAL(hits.size(),3);
 	
 	TEST_EQUAL(hits[0].getRank(),1);

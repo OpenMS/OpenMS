@@ -90,23 +90,23 @@ namespace OpenMS{
 
     //vector<double> result;
     
-    if (cspec.getIdentification().size() == 0 || cspec.getIdentification().begin()->getPeptideHits().size() == 0)
+    if (cspec.getPeptideIdentifications().size() == 0 || cspec.getPeptideIdentifications().begin()->getHits().size() == 0)
     {
       //result.push_back(-1000);
       return -1000; //result;
     }
     
     // sort PeptideHits
-    const_cast<Identification&>(*cspec.getIdentification().begin()).sort();
+    const_cast<PeptideIdentification&>(*cspec.getPeptideIdentifications().begin()).sort();
     
-    vector<PeptideHit>::const_iterator peph = cspec.getIdentification().begin()->getPeptideHits().begin();
+    vector<PeptideHit>::const_iterator peph = cspec.getPeptideIdentifications().begin()->getHits().begin();
     
     double xcorr = peph->getScore();
 
     ++peph;
     
     double deltaCn;
-    if ( peph != cspec.getIdentification().begin()->getPeptideHits().end() ) 
+    if ( peph != cspec.getPeptideIdentifications().begin()->getHits().end() ) 
     {
       deltaCn = (xcorr - peph->getScore()) / xcorr;
     }

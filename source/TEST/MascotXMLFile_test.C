@@ -32,7 +32,7 @@
 #include <OpenMS/FORMAT/MascotXMLFile.h>
 #include <OpenMS/METADATA/ContactPerson.h>
 #include <OpenMS/METADATA/Identification.h>
-#include <OpenMS/METADATA/ProteinIdentification.h>
+#include <OpenMS/METADATA/PeptideIdentification.h>
 
 #include <vector>
 
@@ -48,14 +48,14 @@ using namespace std;
 
 MascotXMLFile xml_file;
 MascotXMLFile* ptr;
-ProteinIdentification protein_identification;
-vector<IdentificationData> identifications; 
-vector<IdentificationData> identifications2; 
+Identification protein_identification;
+vector<PeptideIdentification> peptide_identifications; 
+vector<PeptideIdentification> peptide_identifications2; 
 DateTime date;
 String date_string_1;
 String date_string_2;
 PeptideHit peptide_hit;
-vector< pair<String, String> > references;
+vector<String> references;
 
 date.set("2006-03-09 11:31:52");
 
@@ -68,57 +68,51 @@ CHECK((void load(const String& filename, ProteinIdentification& protein_identifi
 
 	xml_file.load("data/MascotXMLFile_test_1.mascotXML",
 							protein_identification, 
-				   		identifications);
+				   		peptide_identifications);
 	
-	TEST_EQUAL(identifications.size(), 3)
+	TEST_EQUAL(peptide_identifications.size(), 3)
 	PRECISION(0.0001)
-	TEST_REAL_EQUAL(identifications[0].mz, 789.83)
-	TEST_REAL_EQUAL(identifications[1].mz, 135.29)
-	TEST_REAL_EQUAL(identifications[2].mz, 982.58)
+	TEST_REAL_EQUAL(peptide_identifications[0].getMetaValue("MZ"), 789.83)
+	TEST_REAL_EQUAL(peptide_identifications[1].getMetaValue("MZ"), 135.29)
+	TEST_REAL_EQUAL(peptide_identifications[2].getMetaValue("MZ"), 982.58)
 	PRECISION(0.00001)	
-	TEST_EQUAL(protein_identification.getProteinHits().size(), 2)
-	TEST_EQUAL(protein_identification.getProteinHits()[0].getAccession(), "AAN17824")
-	TEST_EQUAL(protein_identification.getProteinHits()[1].getAccession(), "GN1736")
-	TEST_REAL_EQUAL(protein_identification.getProteinHits()[0].getScore(), 619)
-	TEST_REAL_EQUAL(protein_identification.getProteinHits()[1].getScore(), 293)
-	TEST_EQUAL(protein_identification.getProteinHits()[0].getScoreType(), "Mascot")
-	TEST_EQUAL(protein_identification.getProteinHits()[1].getScoreType(), "Mascot")
+	TEST_EQUAL(protein_identification.getHits().size(), 2)
+	TEST_EQUAL(protein_identification.getHits()[0].getAccession(), "AAN17824")
+	TEST_EQUAL(protein_identification.getHits()[1].getAccession(), "GN1736")
+	TEST_REAL_EQUAL(protein_identification.getHits()[0].getScore(), 619)
+	TEST_REAL_EQUAL(protein_identification.getHits()[1].getScore(), 293)
+	TEST_EQUAL(protein_identification.getScoreType(), "Mascot")
 	
 	protein_identification.getDateTime().get(date_string_1);
 	TEST_EQUAL(date_string_1, "2006-03-09 11:31:52")
 	
-	TEST_REAL_EQUAL(identifications[0].id.getPeptideSignificanceThreshold(), 31.8621)
-	TEST_EQUAL(identifications[0].id.getPeptideHits().size(), 2)
+	TEST_REAL_EQUAL(peptide_identifications[0].getSignificanceThreshold(), 31.8621)
+	TEST_EQUAL(peptide_identifications[0].getHits().size(), 2)
 	
-	peptide_hit = identifications[0].id.getPeptideHits()[0];
-	references = peptide_hit.getProteinIndices();
+	peptide_hit = peptide_identifications[0].getHits()[0];
+	references = peptide_hit.getProteinAccessions();
 	TEST_EQUAL(references.size(), 2)
-	TEST_EQUAL(references[0].second, "AAN17824")
-	TEST_EQUAL(references[0].first, "2006-03-09 11:31:52")
-	TEST_EQUAL(references[1].second, "GN1736")
-	TEST_EQUAL(references[1].first, "2006-03-09 11:31:52")
-	peptide_hit = identifications[0].id.getPeptideHits()[1];
-	references = peptide_hit.getProteinIndices();
+	TEST_EQUAL(references[0], "AAN17824")
+	TEST_EQUAL(references[1], "GN1736")
+	peptide_hit = peptide_identifications[0].getHits()[1];
+	references = peptide_hit.getProteinAccessions();
 	TEST_EQUAL(references.size(), 1)
-	TEST_EQUAL(references[0].second, "AAN17824")
-	TEST_EQUAL(references[0].first, "2006-03-09 11:31:52")
-	peptide_hit = identifications[1].id.getPeptideHits()[0];
-	references = peptide_hit.getProteinIndices();
+	TEST_EQUAL(references[0], "AAN17824")
+	peptide_hit = peptide_identifications[1].getHits()[0];
+	references = peptide_hit.getProteinAccessions();
 	TEST_EQUAL(references.size(), 1)
-	TEST_EQUAL(references[0].second, "GN1736")
-	TEST_EQUAL(references[0].first, "2006-03-09 11:31:52")
+	TEST_EQUAL(references[0], "GN1736")
 	
-	TEST_EQUAL(identifications[1].id.getPeptideHits().size(), 1)
-	TEST_REAL_EQUAL(identifications[0].id.getPeptideHits()[0].getScore(), 33.85)
-	TEST_REAL_EQUAL(identifications[0].id.getPeptideHits()[1].getScore(), 33.12)
-	TEST_REAL_EQUAL(identifications[1].id.getPeptideHits()[0].getScore(), 43.9)
-	TEST_EQUAL(identifications[0].id.getPeptideHits()[0].getScoreType(), "Mascot")
-	TEST_EQUAL(identifications[0].id.getPeptideHits()[1].getScoreType(), "Mascot")
-	TEST_EQUAL(identifications[1].id.getPeptideHits()[0].getScoreType(), "Mascot")
-	TEST_EQUAL(identifications[0].id.getDateTime() == date, true)	
-	TEST_EQUAL(identifications[0].id.getPeptideHits()[0].getSequence(), "LHASGITVTEIPVTATNFK")
-	TEST_EQUAL(identifications[0].id.getPeptideHits()[1].getSequence(), "MRSLGYVAVISAVATDTDK")
-	TEST_EQUAL(identifications[1].id.getPeptideHits()[0].getSequence(), "HSKLSAK")
+	TEST_EQUAL(peptide_identifications[1].getHits().size(), 1)
+	TEST_REAL_EQUAL(peptide_identifications[0].getHits()[0].getScore(), 33.85)
+	TEST_REAL_EQUAL(peptide_identifications[0].getHits()[1].getScore(), 33.12)
+	TEST_REAL_EQUAL(peptide_identifications[1].getHits()[0].getScore(), 43.9)
+	TEST_EQUAL(peptide_identifications[0].getScoreType(), "Mascot")
+	TEST_EQUAL(peptide_identifications[1].getScoreType(), "Mascot")
+	TEST_EQUAL(protein_identification.getDateTime() == date, true)	
+	TEST_EQUAL(peptide_identifications[0].getHits()[0].getSequence(), "LHASGITVTEIPVTATNFK")
+	TEST_EQUAL(peptide_identifications[0].getHits()[1].getSequence(), "MRSLGYVAVISAVATDTDK")
+	TEST_EQUAL(peptide_identifications[1].getHits()[0].getSequence(), "HSKLSAK")
 RESULT
 
 /////////////////////////////////////////////////////////////

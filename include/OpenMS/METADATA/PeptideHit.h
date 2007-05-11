@@ -31,7 +31,7 @@
 
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
-#include <OpenMS/DATASTRUCTURES/DateTime.h>
+#include <OpenMS/METADATA/MetaInfoInterface.h>
 
 namespace OpenMS
 {
@@ -43,121 +43,108 @@ namespace OpenMS
 		@ingroup Metadata
   */
   class PeptideHit
+  	: public MetaInfoInterface
   {
   	public:
-  
-		/**	@name Constructors and Destructor */
-		//@{
-		
-		/// default constructor
-    PeptideHit();
-    
-		/// values constructor
-    PeptideHit(DoubleReal score, 
-    					 std::string score_type, 
-    					 UInt rank, 
-							 Int charge,
-    					 String sequence);
 
-		/// copy constructor
-    PeptideHit(const PeptideHit& source);
-				
-		/// destructor
-    virtual ~PeptideHit();
-    //@}
-    
-		/// assignment operator
-    PeptideHit& operator=(const PeptideHit& source);
-		/// Equality operator
-		bool operator == (const PeptideHit& rhs) const;
-		/// Inequality operator
-		bool operator != (const PeptideHit& rhs) const;
+			/// @name Comparators for PeptideHit and ProteinHit
+			//@{
+			/// Greater predicate for scores of hits
+			class ScoreMore
+			{
+			  public:
+			  	template<typename Arg>
+			    bool operator()(const Arg& a, const Arg& b)
+			    {
+			      return a.getScore() > b.getScore();
+			    }
+			};
+			
+			/// Lesser predicate for scores of hits
+			class ScoreLess
+			{
+			  public:
+			  	template<typename Arg>
+			    bool operator()(const Arg& a, const Arg& b)
+			    {
+			      return a.getScore() < b.getScore();
+			    }
+			};
+			//@}
 
-		/**	@name Accessors */
-		//@{
-		
-    /// returns the score of the peptide hit 
-    Real getScore() const;
-    
-		/// returns the type of the score
-    const std::string& getScoreType() const;
-		
-		/// returns the rank of the peptide hit
-    UInt getRank() const;
-		
-		/// returns the peptide sequence without trailing or following spaces
-  	String getSequence() const;
-		
-		/// returns the carge of the peptide
-		Int getCharge() const;
-		
-		/// returns the corresponding protein indices
-		const std::vector< std::pair<String, String> >& getProteinIndices() const;
-		
-		/// returns a mutable reference to the corresponding protein indices
-		std::vector< std::pair<String, String> >& getProteinIndices();
-
-		/**
-			@brief Sets the references to the protein hits of this peptide hit
-		 	
-			The format of one reference is < DateTime, Accession >
-		*/
-	  void setProteinIndices(const std::vector< std::pair<String, String> >& indices);
-    
-		/// sets the score of the peptide hit 
-    void setScore(DoubleReal score);
-    
-		/// sets the type of the score
-    void setScoreType(const std::string& score_type);
-
-		/// sets the rank
-    void setRank(UInt newrank);
-    
-		/// sets the peptide sequence
-		void setSequence(const String& sequence);
-
-		/// sets the charge of the peptide
-		void setCharge(Int charge);
-		
-		/**
-			@brief Adds a references to a protein hit of this peptide hit
-		 	
-			The format of one reference is < DateTime, Accession >
-		*/
-		void addProteinIndex(const std::pair<String, String>& index); 
-				
-		/**
-			@brief Adds a references to a protein hit of this peptide hit
-			 	
-			The format of one reference is < DateTime, Accession >
-		*/
-		void addProteinIndex(const DateTime& date, const String& accession); 
-
-    //@}
-
-		/// clears all information of the peptide hit
-    void clear();
-
-		void setPredictedRTPValue(DoubleReal value);
-
-		DoubleReal getPredictedRTPValue() const;
-
-  protected:
-    Real score_;									///< the score of the peptide hit
-    std::string score_type_;    	///< the score type of the peptide hit 
-		UInt rank_;    				///< the position(rank) where the hit 
-																	///< appeared in the hit list
-
-		/// the charge of the peptide
-		Int charge_;
-		
-    String sequence_;							///< the amino acid sequence of the 
-    															///< peptide hit
-    std::vector< std::pair<String, String> > corresponding_protein_indices_; ///< the indices 
-    															///< of the corresponding proteins
-
-		DoubleReal predicted_rt_p_value_;
-};
+			/**	@name Constructors and Destructor */
+			//@{
+			/// default constructor
+	    PeptideHit();
+	    
+			/// values constructor
+	    PeptideHit(DoubleReal score, 
+	    					 UInt rank, 
+								 Int charge,
+	    					 const String& sequence);
+	
+			/// copy constructor
+	    PeptideHit(const PeptideHit& source);
+					
+			/// destructor
+	    virtual ~PeptideHit();
+	    //@}
+	    
+			/// assignment operator
+	    PeptideHit& operator=(const PeptideHit& source);
+	
+			/// Equality operator
+			bool operator == (const PeptideHit& rhs) const;
+			
+			/// Inequality operator
+			bool operator != (const PeptideHit& rhs) const;
+	
+			/**	@name Accessors 
+			*/
+			//@{
+	    /// returns the score of the peptide hit 
+	    Real getScore() const;
+	    
+			/// returns the rank of the peptide hit
+	    UInt getRank() const;
+			
+			/// returns the peptide sequence without trailing or following spaces
+	  	String getSequence() const;
+			
+			/// returns the carge of the peptide
+			Int getCharge() const;
+			
+			/// returns the corresponding protein accessions
+			const std::vector<String>& getProteinAccessions() const;
+	
+			/// sets the corresponding protein accessions
+		  void setProteinAccessions(const std::vector<String>& accessions);
+	    
+			/// sets the score of the peptide hit 
+	    void setScore(DoubleReal score);
+	    
+			/// sets the rank
+	    void setRank(UInt newrank);
+	    
+			/// sets the peptide sequence
+			void setSequence(const String& sequence);
+	
+			/// sets the charge of the peptide
+			void setCharge(Int charge);
+			
+			/// adds a accession of a protein which contains this peptide hit
+			void addProteinAccession(const String& accession); 
+	    //@}
+	
+	  
+		protected:
+	    Real score_;									///< the score of the peptide hit
+			UInt rank_;    				///< the position(rank) where the hit appeared in the hit list
+			Int charge_; ///< the charge of the peptide
+	    String sequence_;							///< the amino acid sequence of the peptide hit 
+	    std::vector<String> corresponding_protein_accessions_; ///< the accessions of the corresponding proteins
+	
+	};
 
 } // namespace OpenMS
 

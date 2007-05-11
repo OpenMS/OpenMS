@@ -31,7 +31,7 @@ DIRECTORY=FILTERING/ID
 include ../../config_defs.mak
 
 CPP_SOURCES=\
-  IDFilter.C\
+	IDFilter.C
 
 include ../../common.mak
 -include .Dependencies

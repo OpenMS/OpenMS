@@ -182,17 +182,17 @@ class Test
 
 There are however circumstances that allow to omit these methods:
 - default constructor @n
-  Can be omitted when the class is entirely dependent on another class. 
-  In this case you should define the assignment operator private!
+  Can be omitted when the class is entirely dependent on some information or another class.
+  In this case you should declare the default constructor private!
 - destructor @n
   Should be a virtual function, unless you have a very good reason why it shouldn't.  (E.g., saving a vtable pointer.)  Essentially,
   the reason is that otherwise an <TT>operator delete</TT> invocation on a pointer to a base class will fail badly.
-- copy constricutor @n
+- copy constructor @n
   Can be omitted when it will not be used anyway, e.g. for classes that represent an anlgorithm.
-  In this case you should define the copy constructor private!
+  In this case you should declare the copy constructor private!
 - assignment operator @n
   Can be omitted when it will not be used anyway, e.g. for classes that represent an anlgorithm.
-  In this case you should define the assignment operator private!
+  In this case you should declare the assignment operator private!
 
 
 

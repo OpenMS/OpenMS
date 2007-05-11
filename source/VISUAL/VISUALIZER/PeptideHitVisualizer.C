@@ -21,7 +21,7 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: stefan_heess   $
+// $Maintainer: Marc Sturm   $
 // --------------------------------------------------------------------------
 
 //OpenMS
@@ -39,71 +39,59 @@ using namespace std;
 namespace OpenMS
 {
 
-//Constructor
-PeptideHitVisualizer::PeptideHitVisualizer(bool editable, QWidget *parent) : BaseVisualizer(editable, parent)
-{
-  
-	addLabel("Show PeptideHit information.");		
-	addSeperator();
-	addLineEdit(peptidehit_score_, "Score" );
-	addLineEdit(peptidehit_score_type_, "Score type" );
-	addLineEdit(peptidehit_charge_, "Charge" );
-	addLineEdit(peptidehit_rank_, "Rank" );
-	addTextEdit(peptidehit_sequence_, "Sequence" );
-	
-	
-	addSeperator();
-	
-	
-}
-
-
-
-
-void PeptideHitVisualizer::load(PeptideHit &h)
-{
-  ptr_ = &h;
-	
-	//Copy of current object for restoring the original values
-	tempPeptideHit_=h;
-  peptidehit_score_->setText(String(tempPeptideHit_.getScore()).c_str() );
-	peptidehit_score_->setReadOnly(true);
-	peptidehit_score_type_->setText(tempPeptideHit_.getScoreType().c_str() );
-	peptidehit_score_type_->setReadOnly(true);
-	peptidehit_charge_->setText(String(tempPeptideHit_.getCharge()).c_str() );
-	peptidehit_charge_->setReadOnly(true);
-  peptidehit_rank_->setText(String(tempPeptideHit_.getRank()).c_str());
-	peptidehit_rank_->setReadOnly(true);
-	peptidehit_sequence_->setText(tempPeptideHit_.getSequence().c_str()); 
-	peptidehit_sequence_->setReadOnly(true);
-	
-			
-}
-
-void PeptideHitVisualizer::store_()
-{
-	try
+	//Constructor
+	PeptideHitVisualizer::PeptideHitVisualizer(bool editable, QWidget *parent) : BaseVisualizer(editable, parent)
 	{
-	
-		//Information of PeptideHit is not to be changed.
-		//(*ptr_) =tempPeptideHit_ ;
+		addLabel("Show PeptideHit information.");		
+		addSeperator();
+		addLineEdit(peptidehit_score_, "Score" );
+		addLineEdit(peptidehit_charge_, "Charge" );
+		addLineEdit(peptidehit_rank_, "Rank" );
+		addTextEdit(peptidehit_sequence_, "Sequence" );
+		
+		addSeperator();	
 	}
-	catch(exception& e)
+	
+	void PeptideHitVisualizer::load(PeptideHit &h)
 	{
-		std::cout<<"Error while trying to store the new PeptideHit data. "<<e.what()<<endl;
+	  ptr_ = &h;
+		
+		//Copy of current object for restoring the original values
+		tempPeptideHit_=h;
+	  peptidehit_score_->setText(String(tempPeptideHit_.getScore()).c_str() );
+		peptidehit_score_->setReadOnly(true);
+		peptidehit_charge_->setText(String(tempPeptideHit_.getCharge()).c_str() );
+		peptidehit_charge_->setReadOnly(true);
+	  peptidehit_rank_->setText(String(tempPeptideHit_.getRank()).c_str());
+		peptidehit_rank_->setReadOnly(true);
+		peptidehit_sequence_->setText(tempPeptideHit_.getSequence().c_str()); 
+		peptidehit_sequence_->setReadOnly(true);			
 	}
-}
-
-void PeptideHitVisualizer::reject_()
-{
-	try
+	
+	void PeptideHitVisualizer::store_()
 	{
-		load(tempPeptideHit_);
+		try
+		{
+		
+			//Information of PeptideHit is not to be changed.
+			//(*ptr_) =tempPeptideHit_ ;
+		}
+		catch(exception& e)
+		{
+			std::cout<<"Error while trying to store the new PeptideHit data. "<<e.what()<<endl;
+		}
 	}
-	catch(exception e)
+	
+	void PeptideHitVisualizer::reject_()
 	{
-		cout<<"Error while trying to restore original PeptideHit data. "<<e.what()<<endl;
-	} 
-}
+		try
+		{
+			load(tempPeptideHit_);
+		}
+		catch(exception e)
+		{
+			cout<<"Error while trying to restore original PeptideHit data. "<<e.what()<<endl;
+		} 
+	}
 
 }

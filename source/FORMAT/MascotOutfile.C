@@ -27,11 +27,9 @@
 #include <OpenMS/CONCEPT/TimeStamp.h>
 #include <OpenMS/FORMAT/MascotOutfile.h>
 #include <OpenMS/FORMAT/TextFile.h>
+#include <OpenMS/METADATA/ProteinHit.h>
+#include <OpenMS/DATASTRUCTURES/DateTime.h>
 
-#include <cassert>
-#include <string>
-#include <sstream>
-#include <algorithm>
 #include <cmath>
 
 using namespace std;
@@ -43,7 +41,7 @@ namespace OpenMS
   {
   }
 
-	void MascotOutfile::load(String filename,	std::vector<IdentificationData>& identifications,	Real p) throw (Exception::ParseError)
+	void MascotOutfile::load(String filename,	Identification& protein_identification, std::vector<PeptideIdentification>& peptide_identifications, Real p) throw (Exception::ParseError)
 	{
   	TextFile f(filename);
   	vector<PeptideHit>::iterator peptide_hit_iterator;
@@ -53,8 +51,8 @@ namespace OpenMS
 		UInt number_of_queries = 0;
 		map<UInt, UInt> indices;
 		map<UInt, UInt>::iterator indices_iterator;
-		Int temp_int;
-		IdentificationData temp_identification;
+		Int temp_int = 0;
+		PeptideIdentification temp_identification;
 		vector<Int> charges;
 		Int temp_charge = 0;
 		String temp_identifier = "";
@@ -64,10 +62,10 @@ namespace OpenMS
 		Real temp_value = 0;
 		Real temp_significance_threshold = 0;
 		UInt index = 0;
-		String::SizeType tag_start;
-		String::SizeType tag_end;
+		String::SizeType tag_start = 0;
+		String::SizeType tag_end = 0;
 
-		identifications.clear();
+		peptide_identifications.clear();
 	
 		if (f.size() == 0)
 		{
@@ -103,7 +101,10 @@ namespace OpenMS
 		
 		date.set(ss.str().substr(6,2) + "." + ss.str().substr(4,2) + "." + 
 			ss.str().substr(0,4) + " " + it->suffix('=').trim());
-		temp_identification.id.setDateTime(date);
+		//temp_identification.id.setDateTime(date);
+		
+		// TODO
+		//temp_identification.setDateTime(date);
 		
   	// (1.0.1) parse for number of queries
   	it = f.search(it, "queries=");
@@ -163,8 +164,9 @@ namespace OpenMS
 				charges.push_back((-1 * temp_charge));				
 			}
 			parts.clear();
-			temp_identification.mz = parts[0].toFloat();
-			identifications.push_back(temp_identification);
+			//temp_identification.mz = parts[0].toFloat();
+			temp_identification.setMetaValue("MZ", parts[0].toFloat());
+			peptide_identifications.push_back(temp_identification);
 		}
 		
 		// (1.2) parse for peptide significance threshold
@@ -179,7 +181,7 @@ namespace OpenMS
 	  			"significance threshold for query " + String(indices_iterator->first)
  				+ " in summary section not found!" ,filename);			
 			}
-			identifications[indices_iterator->second].id.setPeptideSignificanceThreshold(
+			peptide_identifications[indices_iterator->second].setSignificanceThreshold(
 				it->suffix('=').trim().toFloat());
 		}
 		for(indices_iterator = indices.begin(); 
@@ -197,9 +199,9 @@ namespace OpenMS
 			temp_value = it->suffix('=').trim().toFloat();
 			temp_value = 10 * log10(temp_value / p / 20);
 			if (temp_value 
-						< identifications[indices_iterator->second].id.getPeptideSignificanceThreshold())
+						< peptide_identifications[indices_iterator->second].getSignificanceThreshold())
 			{
-				identifications[indices_iterator->second].id.setPeptideSignificanceThreshold(temp_value);
+				peptide_identifications[indices_iterator->second].setSignificanceThreshold(temp_value);
 			}
 		}
 		
@@ -264,6 +266,7 @@ namespace OpenMS
 			j = 1;
 			UInt counter = 1; //counter of the peptidehits
 	  	it = f.search(String("q")+String(i)+"_p" + String(j) + "=");
+			peptide_identifications[indices_iterator->second].setScoreType("Mascot");
 	  	while(it != f.end())
 	  	{
 	  		PeptideHit hit;
@@ -273,21 +276,21 @@ namespace OpenMS
 	  		hit.setSequence(parts[4]);
 				temp_score = parts[7].toFloat();			
 				hit.setScore(temp_score);
-				hit.setScoreType("Mascot");
+				//hit.setScoreType("Mascot");
 				hit.setCharge(charges[i]);
 	  		
 	  		hit.setRank(counter);
 	   		//(2.3) insert into hits vector
 	  		if (temp_score > 0)
 	  		{
-	  			identifications[indices_iterator->second].id.insertPeptideHit(hit);
+	  			peptide_identifications[indices_iterator->second].insertHit(hit);
 					counter++;
 	  		}
 	  		
 	  		if (number_of_queries > 1000)
 	  		{
 	  			temp_significance_threshold = 
-	  				identifications[indices_iterator->second].id.getPeptideSignificanceThreshold();
+	  				peptide_identifications[indices_iterator->second].getSignificanceThreshold();
 	
 		  		if (temp_score > temp_significance_threshold)
 		  		{
@@ -325,7 +328,7 @@ namespace OpenMS
  		if (number_of_queries == 1)
  		{  	
 	  	it = f.search(String("h")+String(i) + "=");
-	  	peptide_hits = identifications[0].id.getPeptideHits();
+	  	peptide_hits = peptide_identifications[0].getHits();
 	  	while(it != f.end())
 	  	{
 				ProteinHit protein_hit;
@@ -333,9 +336,9 @@ namespace OpenMS
 				Int peptide_index = -1;
 	
 				protein_hit.setAccession(it->suffix('=').prefix(','));
-				protein_hit.setAccessionType("SwissProt");
+				//protein_hit.setAccessionType("SwissProt");
 				protein_hit.setScore(it->substr(it->find(',')+1).prefix(',').toFloat());
-				protein_hit.setScoreType("Mascot");
+				//protein_hit.setScoreType("Mascot");
 				protein_hit.setRank(i);
 				
 	  		it = f.search(it,String("h")+String(i)+"_q" + String(j) + "=");	
@@ -375,7 +378,8 @@ namespace OpenMS
 				j = 1;
 		  	it = f.search(String("h")+String(i) + "=");
 			}						  	
-			identifications[0].id.setPeptideAndProteinHits(peptide_hits, protein_hits);
+			//peptide_identifications[0].setPeptideAndProteinHits(peptide_hits, protein_hits);
+			protein_identification.setHits(protein_hits);
 		}
 		
 		
@@ -394,12 +398,14 @@ namespace OpenMS
 				}
 				else
 				{
-					identifications[count].rt = it->suffix('=').trim().toFloat();
+					peptide_identifications[count].setMetaValue("RT", it->suffix('=').trim().toFloat());
 				}
 			}				
 			++count;
 		}
-		
+	
+		//protein_identification.setProteinAccessionType("SwissProt");
+		protein_identification.setScoreType("Mascot");
 		for(map<String, vector<Real> >::iterator protein_map_iterator = protein_map.begin();
 				protein_map_iterator != protein_map.end();
 				protein_map_iterator++)
@@ -415,10 +421,8 @@ namespace OpenMS
 														 protein_map_iterator->second[2]));
 				
 				protein_hit.setAccession(protein_map_iterator->first);
-				protein_hit.setAccessionType("SwissProt");
-				protein_hit.setScoreType("Mascot");
 	
-				identifications[0].id.insertProteinHit(protein_hit);
+				protein_identification.insertHit(protein_hit);
 			}
 		}
 	}

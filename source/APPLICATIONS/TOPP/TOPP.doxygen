@@ -69,7 +69,7 @@
  		- \subpage LabeledMatcher
 		- \subpage Decharger
   - <b>Identification</b>
-    - \subpage IDFilter
+    - \subpage IDFilter_TOPP
     - \subpage ConsensusID
     - \subpage InspectAdapter
   	- \subpage MascotAdapter

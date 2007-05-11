@@ -46,7 +46,6 @@ EXECUTABLES=\
 	FileMerger\
 	TOPPView\
 	BaselineFilter\
-	IDFilter\
 	MascotAdapter\
 	InspectAdapter\
 	SequestAdapter\
@@ -57,6 +56,7 @@ EXECUTABLES=\
 	DTAExtractor\
 	DBExporter\
 	DBImporter\
+	IDFilter\
 	IDMerger\
 	AdditiveSeries\
 	MapMatcher\

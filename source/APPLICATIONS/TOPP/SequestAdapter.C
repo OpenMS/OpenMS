@@ -1527,8 +1527,8 @@ class TOPPSequestAdapter
 				}
 				
 				SequestOutfile sequest_outfile;
-				vector< IdentificationData > identifications;
-				ProteinIdentification protein_identification;
+				vector<PeptideIdentification> identifications;
+				Identification protein_identification;
 				UInt identification_size = identifications.size();
 
 				vector<String> out_files;
@@ -1598,7 +1598,7 @@ class TOPPSequestAdapter
 						if ( identification_size != identifications.size() )
 						{
 							identification_size = identifications.size();
-							identifications.back().rt = filenames_and_precursor_retention_times[File::basename(filename)];
+							identifications.back().setMetaValue("RT",filenames_and_precursor_retention_times[File::basename(filename)]);
 						}
 					}
 				}
@@ -1623,13 +1623,13 @@ class TOPPSequestAdapter
 							if ( identification_size != identifications.size() )
 							{
 								identification_size = identifications.size();
-								identifications.back().rt = filenames_and_precursor_retention_times[File::basename(filename)];
+								identifications.back().setMetaValue("RT", filenames_and_precursor_retention_times[File::basename(filename)]);
 							}
 						}
 					}
 				}
 				
-				vector< ProteinIdentification > pis;
+				vector<Identification> pis;
 				pis.push_back(protein_identification);
 				
 				IdXMLFile().store(output_filename, pis, identifications);

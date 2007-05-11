@@ -153,7 +153,7 @@ namespace OpenMS
     void strip() const;
 
     /// access to peptide annotations
-    const std::vector<Identification>& getIdentification() const;
+    const std::vector<PeptideIdentification>& getPeptideIdentifications() const;
 		//@}
 
   private:

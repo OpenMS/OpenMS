@@ -33,6 +33,7 @@
 #include <xercesc/sax2/XMLReaderFactory.hpp>
 
 #include <iostream>
+#include <fstream>
 
 using namespace std;
 
@@ -45,8 +46,8 @@ namespace OpenMS
 	}
 
   void IdXMLFile::load(const String& filename, 
-  					 								 vector<ProteinIdentification>& protein_identifications,
-  													 std::vector<IdentificationData>& id_data)
+  					 								 vector<Identification>& protein_ids,
+  													 vector<PeptideIdentification>& peptide_ids)
   	const throw (Exception::FileNotFound, Exception::ParseError)
   {
   	//try to open file
@@ -69,66 +70,11 @@ namespace OpenMS
 		parser->setFeature(xercesc::XMLUni::fgSAX2CoreNameSpaces,false);
 		parser->setFeature(xercesc::XMLUni::fgSAX2CoreNameSpacePrefixes,false);
 
-		protein_identifications.clear();
-		id_data.clear();
+		protein_ids.clear();
+		peptide_ids.clear();
 
-		Internal::IdXMLHandler handler(protein_identifications,
-																				 id_data,
-																				 filename);
-
-		parser->setContentHandler(&handler);
-		parser->setErrorHandler(&handler);
-		
-		xercesc::LocalFileInputSource source( xercesc::XMLString::transcode(filename.c_str()) );
-		try 
-    {
-    	parser->parse(source);
-    	delete(parser);
-    }
-    catch (const xercesc::XMLException& toCatch) 
-    {
-      throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "", String("XMLException: ") + xercesc::XMLString::transcode(toCatch.getMessage()) );
-    }
-    catch (const xercesc::SAXException& toCatch) 
-    {
-      throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "", String("SAXException: ") + xercesc::XMLString::transcode(toCatch.getMessage()) );
-    }
-  }
-  					 
-  void IdXMLFile::load(const String& filename, 
-  					 								 vector<ProteinIdentification>& protein_identifications,
-  													 std::vector<IdentificationData>& id_data,
-      											 std::map<String, DoubleReal>& predicted_retention_times)
-  	const throw (Exception::FileNotFound, Exception::ParseError)
-  {
-  	//try to open file
-		if (!File::exists(filename))
-    {
-      throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename);
-    }
-		
-		// initialize parser
-		try 
-		{
-			xercesc::XMLPlatformUtils::Initialize();
-		}
-		catch (const xercesc::XMLException& toCatch) 
-		{
-			throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "", String("Error during initialization: ") + xercesc::XMLString::transcode(toCatch.getMessage()) );
-	  }
-
-		xercesc::SAX2XMLReader* parser = xercesc::XMLReaderFactory::createXMLReader();
-		parser->setFeature(xercesc::XMLUni::fgSAX2CoreNameSpaces,false);
-		parser->setFeature(xercesc::XMLUni::fgSAX2CoreNameSpacePrefixes,false);
-
-		// clear information
-		protein_identifications.clear();
-		id_data.clear();
-		predicted_retention_times.clear();
-
-		Internal::IdXMLHandler handler(protein_identifications,
-																				 id_data,
-																				 predicted_retention_times,
+		Internal::IdXMLHandler handler(protein_ids,
+																				 peptide_ids,
 																				 filename);
 
 		parser->setContentHandler(&handler);
@@ -151,8 +97,8 @@ namespace OpenMS
   }
   					 
   void IdXMLFile::store(String filename, 
-  					 									const vector<ProteinIdentification>& protein_identifications,
-  					 									const std::vector<IdentificationData>& id_data) const throw (Exception::UnableToCreateFile)
+  					 									const vector<Identification>& protein_ids,
+  					 									const vector<PeptideIdentification>& peptide_ids) const throw (Exception::UnableToCreateFile)
   {
 		std::ofstream os(filename.c_str());
 		if (!os)
@@ -161,35 +107,13 @@ namespace OpenMS
 		}
 
 		//read data and close stream
-		Internal::IdXMLHandler handler(protein_identifications,
-															 					 id_data,
+		Internal::IdXMLHandler handler(protein_ids,
+															 					 peptide_ids,
 															 					 filename);
 		handler.writeTo(os);
 		os.close();
 
   }
-
-  void IdXMLFile::store(String filename, 
-  					 									const vector<ProteinIdentification>& protein_identifications,
-  					 									const std::vector<IdentificationData>& id_data,
-  					 									const map<String, DoubleReal>& predicted_retention_times) 
-  	const throw (Exception::UnableToCreateFile)
-  {
-		std::ofstream os(filename.c_str());
-		if (!os)
-		{
-			throw Exception::UnableToCreateFile(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename);
-		}
-
-		//read data and close stream
-		Internal::IdXMLHandler handler(protein_identifications,
-																				 id_data,
-																				 predicted_retention_times,
-																				 filename);
-		handler.writeTo(os);
-		os.close();
-
-  } 
 
 
 } // namespace OpenMS

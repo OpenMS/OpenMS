@@ -43,194 +43,155 @@ START_TEST(ProteinHit, "$Id$")
 using namespace OpenMS;
 using namespace std;
 
-ProteinHit* ptr1 = 0;
+
 Real score = 4.4;
-std::string score_type = "XCorr";
 UInt rank = 3;
 String sequence = "ARRAY";
 String accession = "PROOE34";
-std::string accession_type = "SWISSPROT";
-	
+
+
+ProteinHit* ptr = 0;	
 CHECK(ProteinHit())
-	ptr1 = new ProteinHit();
-	TEST_NOT_EQUAL(ptr1, 0)
-	TEST_EQUAL(ptr1->getScore(), 0)
-	TEST_EQUAL(ptr1->getScoreType(), "")
-	TEST_EQUAL(ptr1->getRank(), 0)
-	TEST_EQUAL(ptr1->getAccession(), "")
-	TEST_EQUAL(ptr1->getAccessionType(), "")
-	TEST_EQUAL(ptr1->getSequence(), "")
+	ptr = new ProteinHit();
+	TEST_NOT_EQUAL(ptr, 0)
 RESULT
 
 CHECK(~ProteinHit())
-	ptr1 = new ProteinHit();	
-  delete ptr1;
+	ptr = new ProteinHit();	
+  delete ptr;
+RESULT
+
+CHECK((ProteinHit(DoubleReal score, UInt rank, String accession, String sequence)))
+	ProteinHit hit(score, rank, accession, sequence);
+	TEST_EQUAL(hit.getScore(), score)
+	TEST_EQUAL(hit.getRank(), rank)
+	TEST_EQUAL(hit.getAccession(), accession)
+	TEST_EQUAL(hit.getSequence(), sequence)
 RESULT
 
 CHECK(ProteinHit(const ProteinHit& source))
 	ProteinHit source;
 	source.setScore(score);
-	source.setScoreType(score_type);
 	source.setRank(rank);
 	source.setAccession(accession);
-	source.setAccessionType(accession_type);
 	source.setSequence(sequence);
-
-  ptr1 = new ProteinHit(source);
-	TEST_EQUAL(ptr1->getScore(), source.getScore())
-	TEST_EQUAL(ptr1->getScoreType(), source.getScoreType())
-	TEST_EQUAL(ptr1->getRank(), source.getRank())
-	TEST_EQUAL(ptr1->getAccession(), source.getAccession())
-	TEST_EQUAL(ptr1->getAccessionType(), source.getAccessionType())
-	TEST_EQUAL(ptr1->getSequence(), source.getSequence())		  
-RESULT
-
-CHECK((ProteinHit(DoubleReal score, std::string score_type, UInt rank, String accession, std::string accession_type, String sequence)))
-	ptr1 = new ProteinHit(score, score_type, rank, accession, accession_type, sequence);
-	TEST_EQUAL(ptr1->getScore(), score)
-	TEST_EQUAL(ptr1->getScoreType(), score_type)
-	TEST_EQUAL(ptr1->getRank(), rank)
-	TEST_EQUAL(ptr1->getAccession(), accession)
-	TEST_EQUAL(ptr1->getAccessionType(), accession_type)	
-	TEST_EQUAL(ptr1->getSequence(), sequence)
+	source.setMetaValue("label",17);
+  
+  ProteinHit hit(source);
+	
+	TEST_EQUAL(hit.getScore(), score)
+	TEST_EQUAL(hit.getRank(), rank)
+	TEST_EQUAL(hit.getAccession(), accession)
+	TEST_EQUAL(hit.getSequence(), sequence)
+	TEST_EQUAL((UInt)hit.getMetaValue("label"),17)
 RESULT
 
 CHECK(ProteinHit& operator=(const ProteinHit& source))
 	ProteinHit hit;
-	ptr1 = new ProteinHit(score, score_type, rank, accession, accession_type, sequence);
-	hit = *ptr1;
-	TEST_EQUAL(hit.getScore(), ptr1->getScore())
-	TEST_EQUAL(hit.getScoreType(), ptr1->getScoreType())
-	TEST_EQUAL(hit.getRank(), ptr1->getRank())
-	TEST_EQUAL(hit.getAccession(), ptr1->getAccession())
-	TEST_EQUAL(hit.getAccessionType(), ptr1->getAccessionType())	
-	TEST_EQUAL(hit.getSequence(), ptr1->getSequence())
-RESULT
-
-CHECK(bool operator != (const ProteinHit& rhs) const)
-  ProteinHit hit, hit2;
-  TEST_EQUAL(hit!=hit2,false);
-  hit.setScore(score);
-  TEST_EQUAL(hit!=hit2,true);
-  hit2.setScore(score);
-  TEST_EQUAL(hit!=hit2,false);
-  hit.setScoreType(score_type);
-  TEST_EQUAL(hit!=hit2,true);
-  hit2.setScoreType(score_type);
-  TEST_EQUAL(hit!=hit2,false);
-	hit.setRank(rank);
-  TEST_EQUAL(hit!=hit2,true);
-	hit2.setRank(rank);
-  TEST_EQUAL(hit!=hit2,false);
-	hit.setAccession(accession);
-  TEST_EQUAL(hit!=hit2,true);
-	hit2.setAccession(accession);
-	TEST_EQUAL(hit!=hit2,false);
-	hit.setAccessionType(accession_type);
-  TEST_EQUAL(hit!=hit2,true);
-	hit2.setAccessionType(accession_type);
-	TEST_EQUAL(hit!=hit2,false);
-	hit.setSequence(sequence);
-  TEST_EQUAL(hit!=hit2,true);
-	hit2.setSequence(sequence);
-	TEST_EQUAL(hit!=hit2,false);
+	ProteinHit hit2(score, rank, accession, sequence);
+	hit2.setMetaValue("label",17);
+	
+	hit = hit2;
+	
+	TEST_EQUAL(hit.getScore(), score)
+	TEST_EQUAL(hit.getRank(), rank)
+	TEST_EQUAL(hit.getAccession(), accession)
+	TEST_EQUAL(hit.getSequence(), sequence)
+	TEST_EQUAL((UInt)hit.getMetaValue("label"),17)
 RESULT
 
 CHECK(bool operator == (const ProteinHit& rhs) const)
   ProteinHit hit, hit2;
   TEST_EQUAL(hit==hit2,true);
+  
   hit.setScore(score);
   TEST_EQUAL(hit==hit2,false);
-  hit2.setScore(score);
-  TEST_EQUAL(hit==hit2,true);
-  hit.setScoreType(score_type);
-  TEST_EQUAL(hit==hit2,false);
-  hit2.setScoreType(score_type);
-  TEST_EQUAL(hit==hit2,true);
+	hit = hit2;
+  
 	hit.setRank(rank);
   TEST_EQUAL(hit==hit2,false);
-	hit2.setRank(rank);
-  TEST_EQUAL(hit==hit2,true);
+	hit = hit2;
+  
 	hit.setAccession(accession);
   TEST_EQUAL(hit==hit2,false);
-	hit2.setAccession(accession);
-	TEST_EQUAL(hit==hit2,true);
-	hit.setAccessionType(accession_type);
-  TEST_EQUAL(hit==hit2,false);
-	hit2.setAccessionType(accession_type);
-	TEST_EQUAL(hit==hit2,true);
+	hit = hit2;
+  
 	hit.setSequence(sequence);
   TEST_EQUAL(hit==hit2,false);
-	hit2.setSequence(sequence);
-	TEST_EQUAL(hit==hit2,true);
+	hit = hit2;
+	
+	hit.setMetaValue("label",17);
+  TEST_EQUAL(hit==hit2,false);
+	hit = hit2;
+RESULT
+
+CHECK(bool operator != (const ProteinHit& rhs) const)
+  ProteinHit hit, hit2;
+  TEST_EQUAL(hit!=hit2,false);
+  
+  hit.setScore(score);
+  TEST_EQUAL(hit!=hit2,true);
+  hit = hit2;
+  
+  hit.setRank(rank);
+  TEST_EQUAL(hit!=hit2,true);
+	hit = hit2;
+  
+  hit.setAccession(accession);
+  TEST_EQUAL(hit!=hit2,true);
+	hit = hit2;
+  
+	hit.setSequence(sequence);
+  TEST_EQUAL(hit!=hit2,true);
+	hit = hit2;
+
+	hit.setMetaValue("label",17);
+  TEST_EQUAL(hit!=hit2,true);
+	hit = hit2;
 RESULT
 
 CHECK(const String& getAccession() const)
-	ptr1 = new ProteinHit(score, score_type, rank, accession, accession_type, sequence);
-	TEST_EQUAL(ptr1->getAccession(), accession)
+	ProteinHit hit(score, rank, accession, sequence);
+	TEST_EQUAL(hit.getAccession(), accession)
 RESULT
 
 CHECK(const String& getSequence() const)
-	ptr1 = new ProteinHit(score, score_type, rank, accession, accession_type, sequence);
-	TEST_EQUAL(ptr1->getSequence(), sequence)
+	ProteinHit hit(score, rank, accession, sequence);
+	TEST_EQUAL(hit.getSequence(), sequence)
 RESULT
 
 CHECK(Real getScore() const)
-	ptr1 = new ProteinHit(score, score_type, rank, accession, accession_type, sequence);
-	TEST_EQUAL(ptr1->getScore(), score)
-RESULT
-
-CHECK(const std::string& getScoreType() const)
-	ptr1 = new ProteinHit(score, score_type, rank, accession, accession_type, sequence);
-	TEST_EQUAL(ptr1->getScoreType(), score_type)
+	ProteinHit hit(score, rank, accession, sequence);
+	TEST_EQUAL(hit.getScore(), score)
 RESULT
 
 CHECK(UInt getRank() const)
-	ptr1 = new ProteinHit(score, score_type, rank, accession, accession_type, sequence);
-	TEST_EQUAL(ptr1->getRank(), rank)
-RESULT
-
-CHECK(const std::string& getAccessionType() const)
-	ptr1 = new ProteinHit(score, score_type, rank, accession, accession_type, sequence);
-	TEST_EQUAL(ptr1->getAccessionType(), accession_type)
-RESULT
-
-CHECK(void clear())
-	ProteinHit hit;	
-	ptr1 = new ProteinHit(score, score_type, rank, accession, accession_type, sequence);
-	ptr1->clear();
-  TEST_EQUAL(hit==*ptr1,true);
+	ProteinHit hit(score, rank, accession, sequence);
+	TEST_EQUAL(hit.getRank(), rank)
 RESULT
 
 CHECK(void setRank(UInt newrank))
-	ptr1 = new ProteinHit();
-	ptr1->setRank(rank);
-	TEST_EQUAL(ptr1->getRank(), rank)	
+	ProteinHit hit;
+	hit.setRank(rank);
+	TEST_EQUAL(hit.getRank(), rank)	
 RESULT
 
 CHECK(void setScore(DoubleReal score))
-	ptr1->setScore(score);
-	TEST_EQUAL(ptr1->getScore(), score);
-RESULT
-
-CHECK(void setScoreType(const std::string& score_type))
-	ptr1->setScoreType(score_type);
-	TEST_EQUAL(ptr1->getScoreType(), score_type)
+	ProteinHit hit;
+	hit.setScore(score);
+	TEST_EQUAL(hit.getScore(), score);
 RESULT
 
 CHECK(void setSequence(const String& sequence))
-	ptr1->setSequence(sequence);
-	TEST_EQUAL(ptr1->getSequence(), sequence)
+	ProteinHit hit;
+	hit.setSequence(sequence);
+	TEST_EQUAL(hit.getSequence(), sequence)
 RESULT
 
 CHECK(void setAccession(const String& accession))
-	ptr1->setAccession(accession);
-	TEST_EQUAL(ptr1->getAccession(), accession)
-RESULT
-
-CHECK(void setAccessionType(const std::string& accession_type))
-	ptr1->setAccessionType(accession_type);
-	TEST_EQUAL(ptr1->getAccessionType(), accession_type)
+	ProteinHit hit;
+	hit.setAccession(accession);
+	TEST_EQUAL(hit.getAccession(), accession)
 RESULT
 
 /////////////////////////////////////////////////////////////

@@ -33,30 +33,21 @@ using namespace std;
 namespace OpenMS 
 {
 	ConsensusID::ConsensusID()
-		: DefaultParamHandler("ConsensusID"),
-			inverse_order_(false)
+		: DefaultParamHandler("ConsensusID")
 	{
 		defaults_.setValue("Algorithm","Ranked");
 		defaults_.setValue("ConsideredHits",10);
 		defaults_.setValue("NumberOfRuns",0);
-		defaults_.setValue("InverseOrder",0);
-		defaults_.setValue("MinOutputScore",0);
 		
 		defaultsToParam_();
 	}
 	
-	void ConsensusID::apply(vector<Identification>& ids) throw (Exception::InvalidValue)
+	void ConsensusID::apply(vector<PeptideIdentification>& ids) throw (Exception::InvalidValue)
 	{
 		//Abort if no IDs present
 		if (ids.size()==0)
 		{
 			return;
-		}
-		
-		//check order
-		if ((UInt)(param_.getValue("InverseOrder"))!=0)
-		{
-			inverse_order_ = true;
 		}
 		
 		String algorithm = param_.getValue("Algorithm");
@@ -69,12 +60,12 @@ namespace OpenMS
 		else if (algorithm == "Merge")
 		{	
 			merge_(ids);
-			ids[0].assignRanks(inverse_order_);
+			ids[0].assignRanks();
 		}
 		else if (algorithm == "Average")
 		{	
 			average_(ids);
-			ids[0].assignRanks(inverse_order_);
+			ids[0].assignRanks();
 		}
 		else
 		{
@@ -82,7 +73,7 @@ namespace OpenMS
 		}
 		
 #ifdef DEBUG_ID_CONSENSUS
-		vector<PeptideHit>& hits2 = ids[0].getPeptideHits();
+		const vector<PeptideHit>& hits2 = ids[0].getHits();
 		for (UInt i=0; i< hits2.size(); ++i)
 		{
 			cout << "  " << hits2[i].getSequence() << " " << hits2[i].getScore() << endl;
@@ -90,23 +81,23 @@ namespace OpenMS
 #endif
 	}
 
-	void ConsensusID::ranked_(vector<Identification>& ids)
+	void ConsensusID::ranked_(vector<PeptideIdentification>& ids)
 	{
 		map<String,Real> scores;		
 		UInt considered_hits = (UInt)(param_.getValue("ConsideredHits"));
 		UInt number_of_runs = (UInt)(param_.getValue("NumberOfRuns"));
 		
 		//iterate over the different ID runs
-		for (vector<Identification>::iterator id = ids.begin(); id != ids.end(); ++id)
+		for (vector<PeptideIdentification>::iterator id = ids.begin(); id != ids.end(); ++id)
 		{
 #ifdef DEBUG_ID_CONSENSUS
 					//cout << " - ID run" << endl;
 #endif
 			//make sure that the ranks are present
-			id->assignRanks(inverse_order_);
+			id->assignRanks();
 			//iterate over the hits
 			UInt hit_count = 1;
-			for (vector<PeptideHit>::const_iterator hit = id->getPeptideHits().begin(); hit != id->getPeptideHits().end() && hit_count <= considered_hits; ++hit)
+			for (vector<PeptideHit>::const_iterator hit = id->getHits().begin(); hit != id->getHits().end() && hit_count <= considered_hits; ++hit)
 			{
 				if (scores.find(hit->getSequence())==scores.end())
 				{
@@ -141,44 +132,46 @@ namespace OpenMS
 		}
 
 		//Replace IDs by consensus
-		Real min_score = (Real)(param_.getValue("MinOutputScore"));
 		ids.clear();
 		ids.resize(1);
-		vector<PeptideHit>& hits = ids[0].getPeptideHits();
+		ids[0].setScoreType("Consensus_averaged");
+
 		for (map<String,Real>::const_iterator it = scores.begin(); it != scores.end(); ++it)
 		{
-			if (it->second >= min_score)
-			{
-				PeptideHit hit;
-				hit.setScoreType("Consensus_averaged");
-				hit.setSequence(it->first);
-				hit.setScore(it->second);
-				hits.push_back(hit);
-			}
+			PeptideHit hit;
+			hit.setSequence(it->first);
+			hit.setScore(it->second);
+			ids[0].insertHit(hit);
 		}
 
 	}
 
-	void ConsensusID::merge_(vector<Identification>& ids)
+	void ConsensusID::merge_(vector<PeptideIdentification>& ids)
 	{
 		map<String,Real> scores;		
 		UInt considered_hits = (UInt)(param_.getValue("ConsideredHits"));
 				
 		//store the score type (to make sure only IDs of the same type are merged)
-		String score_type = ids[0].getPeptideHits().begin()->getScoreType();
+		String score_type = ids[0].getScoreType();
+		bool higher_better = ids[0].isHigherScoreBetter();
+		
 		//iterate over the different ID runs
-		for (vector<Identification>::iterator id = ids.begin(); id != ids.end(); ++id)
+		for (vector<PeptideIdentification>::iterator id = ids.begin(); id != ids.end(); ++id)
 		{
 			//check the score type
-			if (id->getPeptideHits().begin()->getScoreType()!=score_type)
+			if (id->getScoreType()!=score_type)
 			{
-				cerr << "Warning: You are merging different types of scores: '" << score_type << "' and '" << id->getPeptideHits().begin()->getScoreType() << "'" << endl;
+				cerr << "Warning: You are merging different types of scores: '" << score_type << "' and '" << id->getScoreType() << "'" << endl;
+			}
+			if (id->isHigherScoreBetter()!=higher_better)
+			{
+				cerr << "Warning: The score of the identifications have disagreeing score orientation!" << endl;
 			}
 			//make sure that the ranks are present
-			id->assignRanks(inverse_order_);
+			id->assignRanks();
 			//iterate over the hits
 			UInt hit_count = 1;
-			for (vector<PeptideHit>::const_iterator hit = id->getPeptideHits().begin(); hit != id->getPeptideHits().end() && hit_count <= considered_hits; ++hit)
+			for (vector<PeptideHit>::const_iterator hit = id->getHits().begin(); hit != id->getHits().end() && hit_count <= considered_hits; ++hit)
 			{
 				if (scores.find(hit->getSequence())==scores.end())
 				{
@@ -199,52 +192,62 @@ namespace OpenMS
 		}
 
 		//Replace IDs by consensus
-		Real min_score = (Real)(param_.getValue("MinOutputScore"));
 		ids.clear();
 		ids.resize(1);
-		vector<PeptideHit>& hits = ids[0].getPeptideHits();
+		ids[0].setScoreType(String("Consensus_merged (") + score_type +")");
+		ids[0].setHigherScoreBetter(higher_better);
+		
 		for (map<String,Real>::const_iterator it = scores.begin(); it != scores.end(); ++it)
 		{
-			if (it->second >= min_score)
-			{
-				PeptideHit hit;
-				hit.setScoreType("Consensus_averaged");
-				hit.setSequence(it->first);
-				hit.setScore(it->second);
-				hits.push_back(hit);
-			}
+			PeptideHit hit;
+			hit.setSequence(it->first);
+			hit.setScore(it->second);
+			ids[0].insertHit(hit);
 		}
 	}
 
-	void ConsensusID::average_(vector<Identification>& ids)
+	void ConsensusID::average_(vector<PeptideIdentification>& ids)
 	{
 		map<String,Real> scores;		
 		UInt considered_hits = (UInt)(param_.getValue("ConsideredHits"));
 		UInt number_of_runs = (UInt)(param_.getValue("NumberOfRuns"));
 		
+		//store the score type (to make sure only IDs of the same type are averaged)
+		String score_type = ids[0].getScoreType();
+		bool higher_better = ids[0].isHigherScoreBetter();
+				
 		//iterate over the different ID runs
-		for (vector<Identification>::iterator id = ids.begin(); id != ids.end(); ++id)
+		for (vector<PeptideIdentification>::iterator id = ids.begin(); id != ids.end(); ++id)
 		{
 #ifdef DEBUG_ID_CONSENSUS
-			//cout << " - ID run" << endl;
+			cout << " - ID run" << endl;
 #endif
 			//make sure that the ranks are present
-			id->assignRanks(inverse_order_);
+			id->assignRanks();
 			//iterate over the hits
 			UInt hit_count = 1;
-			for (vector<PeptideHit>::const_iterator hit = id->getPeptideHits().begin(); hit != id->getPeptideHits().end() && hit_count <= considered_hits; ++hit)
+			for (vector<PeptideHit>::const_iterator hit = id->getHits().begin(); hit != id->getHits().end() && hit_count <= considered_hits; ++hit)
 			{
+				//check the score type
+				if (id->getScoreType()!=score_type)
+				{
+					cerr << "Warning: You are averaging different types of scores: '" << score_type << "' and '" << id->getScoreType() << "'" << endl;
+				}
+				if (id->isHigherScoreBetter()!=higher_better)
+				{
+					cerr << "Warning: The score of the identifications have disagreeing score orientation!" << endl;
+				}
 				if (scores.find(hit->getSequence())==scores.end())
 				{
 #ifdef DEBUG_ID_CONSENSUS
-					//cout << " - New hit: " << hit->getSequence() << " " << hit->getScore() << endl;
+					cout << " - New hit: " << hit->getSequence() << " " << hit->getScore() << endl;
 #endif
 					scores.insert(make_pair(hit->getSequence(),hit->getScore()));  
 				}
 				else
 				{
 #ifdef DEBUG_ID_CONSENSUS
-					//cout << " - Summed up: " << hit->getSequence() << " " << hit->getScore() << endl;
+					cout << " - Summed up: " << hit->getSequence() << " " << hit->getScore() << endl;
 #endif
 					scores[hit->getSequence()] += hit->getScore();  
 				}
@@ -265,20 +268,20 @@ namespace OpenMS
 		}
 
 		//Replace IDs by consensus
-		Real min_score = (Real)(param_.getValue("MinOutputScore"));
 		ids.clear();
 		ids.resize(1);
-		vector<PeptideHit>& hits = ids[0].getPeptideHits();
+		ids[0].setScoreType(String("Consensus_averaged (") + score_type +")");
+		ids[0].setHigherScoreBetter(higher_better);
 		for (map<String,Real>::const_iterator it = scores.begin(); it != scores.end(); ++it)
 		{
-			if (it->second >= min_score)
-			{
-				PeptideHit hit;
-				hit.setScoreType("Consensus_averaged");
-				hit.setSequence(it->first);
-				hit.setScore(it->second);
-				hits.push_back(hit);
-			}
+			PeptideHit hit;
+			hit.setSequence(it->first);
+			hit.setScore(it->second);
+			ids[0].insertHit(hit);
+#ifdef DEBUG_ID_CONSENSUS
+			cout << " - Output hit: " << hit.getSequence() << " " << hit.getScore() << endl;
+#endif
+
 		}
 	}
 

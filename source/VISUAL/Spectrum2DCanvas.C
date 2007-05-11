@@ -1252,8 +1252,8 @@ namespace OpenMS
 				MSMetaDataExplorer dlg(true, this);
 	      dlg.setWindowTitle("View/Edit meta data");
 	      
-	      vector<Identification>& ids = features[result->data().toInt()].getIdentifications();
-				for (vector<Identification>::iterator it=ids.begin(); it!=ids.end(); ++it)
+	      vector<PeptideIdentification>& ids = features[result->data().toInt()].getPeptideIdentifications();
+				for (vector<PeptideIdentification>::iterator it=ids.begin(); it!=ids.end(); ++it)
 				{
 	    		dlg.visualize(*it);
 				}

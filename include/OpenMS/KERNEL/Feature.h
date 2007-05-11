@@ -29,7 +29,7 @@
 
 #include <OpenMS/KERNEL/Peak2D.h>
 #include <OpenMS/DATASTRUCTURES/ConvexHull2D.h>
-#include <OpenMS/METADATA/Identification.h>
+#include <OpenMS/METADATA/PeptideIdentification.h>
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/ModelDescription.h>
 
@@ -177,20 +177,20 @@ namespace OpenMS
 			}
 		};
 
-    /// returns a const reference to the Identification vector
-    inline const std::vector<Identification>& getIdentifications() const
+    /// returns a const reference to the PeptideIdentification vector
+    inline const std::vector<PeptideIdentification>& getPeptideIdentifications() const
     {
     	return identifications_;
     };
         	
-    /// returns a mutable reference to the Identification vector
-    inline std::vector<Identification>& getIdentifications()
+    /// returns a mutable reference to the PeptideIdentification vector
+    inline std::vector<PeptideIdentification>& getPeptideIdentifications()
     {
     	return identifications_;
     };
     
-    /// sets the Identification vector
-    inline void setIdentifications(const std::vector<Identification>& identifications)
+    /// sets the PeptideIdentification vector
+    inline void setPeptideIdentifications(const std::vector<PeptideIdentification>& identifications)
     {
     	identifications_ = identifications;
     };
@@ -207,8 +207,8 @@ namespace OpenMS
 		/**@brief Charge of the peptide represented by this feature.  The default
 			 value is 0, which represents an unknown charge state.  */
 		ChargeType charge_;
-		/// Peptide Identifications belonging to the feature
-	  std::vector<Identification> identifications_;
+		/// Peptide PeptideIdentifications belonging to the feature
+	  std::vector<PeptideIdentification> identifications_;
 	};
 	
 } // namespace OpenMS

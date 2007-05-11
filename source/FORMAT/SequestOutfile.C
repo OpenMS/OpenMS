@@ -27,173 +27,141 @@
 #include <OpenMS/FORMAT/SequestOutfile.h>
 #include <OpenMS/SYSTEM/File.h>
 
+#include <fstream>
+
 using namespace std;
 
 namespace OpenMS 
 {
-	SequestOutfile::SequestOutfile():
-		out2summary_number(0)
-	{}
+	SequestOutfile::SequestOutfile()
+		:	out2summary_number(0)
+	{
+	}
 	
-  void
-	SequestOutfile::load(
-		const string& result_filename,
-		vector< IdentificationData >&	identifications,
-		ProteinIdentification&	protein_identification,
-		const DoubleReal& p_value_threshold,
-		vector< DoubleReal >& pvalues,
-		const string& database)
-	throw(
-		Exception::FileNotFound,
-		Exception::ParseError)
+  void SequestOutfile::load(const String& result_filename, vector<PeptideIdentification>&	peptide_identifications, Identification&	protein_identification, const DoubleReal& p_value_threshold, vector<DoubleReal>& pvalues,	const String& database)
+		throw(Exception::FileNotFound, Exception::ParseError)
   {
 		// if no p_values were computed take all peptides
 		bool no_pvalues = pvalues.empty();
-		if ( no_pvalues ) pvalues.push_back(0.0); // to make sure pvalues.end() is never reached
+		if (no_pvalues) pvalues.push_back(0.0); // to make sure pvalues.end() is never reached
 		
   	// generally used variables
 		String line, buffer;
-		vector< String > substrings;
+		vector<String> substrings;
 		
 		// map the protein hits according to their accession number in the result file
-		map< String, UInt > ac_position_map;
+		map<String, UInt> ac_position_map;
 		
 		// get the protein hits that have already been found in another out-file
-		vector< ProteinHit > protein_hits = protein_identification.getProteinHits();
+		vector<ProteinHit> protein_hits = protein_identification.getHits();
+
 		// and insert them Into the map
-		for ( vector< ProteinHit >::const_iterator phit_i = protein_hits.begin(); phit_i != protein_hits.end(); ++phit_i )
+		for (vector<ProteinHit>::const_iterator phit_i = protein_hits.begin(); phit_i != protein_hits.end(); ++phit_i)
 		{
 			ac_position_map.insert(make_pair(phit_i->getAccession(), ac_position_map.size()));
 		}
 		
-		String
-			accession,
-			accession_type,
-			score_type;
+		String accession, accession_type,	score_type;
 		
 		DateTime datetime;
 		DoubleReal precursor_mz_value;
-  UInt
-			precursor_mass_type,
-			ion_mass_type,
-			number_of_columns,
-			displayed_peptides,
-			proteins_per_peptide;
+  UInt precursor_mass_type(0), ion_mass_type(0), number_of_columns(0), displayed_peptides(0), proteins_per_peptide(0);
 			
-  Int
-			charge,
-			number_column,
-			rank_sp_column,
-			id_column,
-			mh_column,
-			delta_cn_column,
-			xcorr_column,
-			sp_column,
-			sf_column,
-			ions_column,
-			reference_column,
-			peptide_column,
-			score_column;
+  Int	charge, number_column(0), rank_sp_column(0), id_column(0), mh_column(0), delta_cn_column(0), xcorr_column(0), sp_column(0), sf_column(0), ions_column(0), reference_column(0), peptide_column(0), score_column(0);
 		
 		readOutHeader(result_filename, datetime, precursor_mz_value, charge, precursor_mass_type, ion_mass_type, number_column, rank_sp_column, id_column, mh_column, delta_cn_column, xcorr_column, sp_column, sf_column, ions_column, reference_column, peptide_column, score_column, number_of_columns, displayed_peptides);
 		
 		// open the result
 		ifstream result_file(result_filename.c_str());
-		if ( !result_file )
+		if (!result_file)
 		{
 			throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, result_filename);
 		}
 		
 		UInt line_number = 1; // used to report in which line an error occured
-		while ( getline(result_file, line) ) // skip all lines until the one with '---'
+		while (getline(result_file, line)) // skip all lines until the one with '---'
 		{
-			if ( !line.empty() && (line[line.length()-1] < 33) ) line.resize(line.length()-1);
+			if (!line.empty() && (line[line.length()-1] < 33)) line.resize(line.length()-1);
 			line.trim();
 			++line_number;
-			if ( line.hasPrefix("---") ) break;
+			if (line.hasPrefix("---")) break;
 		}
 		
-		Identification* query;
-		identifications.push_back(IdentificationData());
-		identifications.back().mz = precursor_mz_value;
+		PeptideIdentification peptide_identification;
+		peptide_identification.setMetaValue("MZ", precursor_mz_value);
 		
-		query = &(identifications.back().id);
-		
-		vector< String > databases;
+		vector<String> databases;
 		databases.push_back(database);
-		
-		PeptideHit peptide_hit;
-		ProteinHit protein_hit;
 		
 		score_type = (sf_column == -1) ? "SEQUEST prelim." : "SEQUEST";
 
-		if ( no_pvalues ) pvalues.insert(pvalues.end(), displayed_peptides, 0.0);
-		vector< DoubleReal >::const_iterator p_value = pvalues.begin();
+		if (no_pvalues) pvalues.insert(pvalues.end(), displayed_peptides, 0.0);
+
+		vector<DoubleReal>::const_iterator p_value = pvalues.begin();
 		
-		for ( UInt viewed_peptides = 0; viewed_peptides < displayed_peptides; )
-// 		for ( UInt viewed_peptides = 0; viewed_peptides < 1; )
+		for (UInt viewed_peptides = 0; viewed_peptides < displayed_peptides; )
 		{
+			PeptideHit peptide_hit;
+			ProteinHit protein_hit;
+
 			++line_number;
 			// if less peptides were found than may be displayed, break
-			if ( !getline(result_file, line) ) break;
-			if ( !line.empty() && (line[line.length()-1] < 33) ) line.resize(line.length()-1);
+			if (!getline(result_file, line)) break;
+			if (!line.empty() && (line[line.length()-1] < 33)) line.resize(line.length() - 1);
 			line.trim();
-			if ( line.empty() ) continue; // skip empty lines
+			if (line.empty()) continue; // skip empty lines
 			++viewed_peptides;
 			
 			getColumns(line, substrings, number_of_columns, reference_column);
 			
 			// check whether the line has enough columns
-			if (substrings.size() < number_of_columns )
+			if (substrings.size() < number_of_columns)
 			{
 				stringstream error_message;
-				error_message << "Wrong number of columns in line " << line_number << "! (" << substrings.size() << " present, should be " << number_of_columns << ")";
+				error_message <<"Wrong number of columns in line " << line_number << "! (" << substrings.size() << " present, should be " << number_of_columns << ")";
 				result_file.close();
 				result_file.clear();
 				throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, error_message.str().c_str() , result_filename);
 			}
 			
 			// check whether there are multiple proteins that belong to this peptide
-			if ( substrings[reference_column].find_last_of('+') != String::npos )
+			if (substrings[reference_column].find_last_of('+') != String::npos)
 			{
 				// save the number of multiple proteins
 				proteins_per_peptide = substrings[reference_column].substr(substrings[reference_column].find_last_of('+')).toInt();
-				// and remove this number from the string
+				// and remove this number from the String
 				substrings[reference_column].resize(substrings[reference_column].find_last_of('+'));
 			}
-			else proteins_per_peptide = 0;
+			else 
+			{
+				proteins_per_peptide = 0;
+			}
 			
 			// get the peptide information and insert it
-			if ( p_value != pvalues.end() && (*p_value) <= p_value_threshold )
+			if (p_value != pvalues.end() && (*p_value) <= p_value_threshold)
 			{
-				peptide_hit.clear();
 				peptide_hit.setScore(atof(substrings[score_column].c_str()));
-				peptide_hit.setScoreType(score_type);
 				peptide_hit.setCharge(charge);
 				
 				peptide_hit.setSequence(substrings[peptide_column].substr(2, substrings[peptide_column].length()-4));
 				peptide_hit.setRank(substrings[rank_sp_column].substr(0, substrings[rank_sp_column].find('/')).toInt());
 				// get the protein information
-				protein_hit.clear();
 				getACAndACType(substrings[reference_column], accession, accession_type);
 				protein_hit.setAccession(accession);
-				protein_hit.setAccessionType(accession_type);
 				protein_hit.setRank(ac_position_map.size());
-				// score einfach zusammenrechnen?
-	//			protein_hit.setScore(0.0);
-	//			protein_hit.setScoreType(score_type);
+				// @todo score einfach zusammenrechnen? (Martin)
 				
-				if ( ac_position_map.insert(make_pair(accession, protein_hits.size())).second ) protein_hits.push_back(protein_hit);
+				if (ac_position_map.insert(make_pair(accession, protein_hits.size())).second) protein_hits.push_back(protein_hit);
 				
-				peptide_hit.addProteinIndex(datetime, accession);
+				peptide_hit.addProteinAccession(accession);
 				
-				for ( UInt i = 0; i < proteins_per_peptide; ++i )
+				for (UInt i = 0; i < proteins_per_peptide; ++i)
 				{
 					getline(result_file, line);
-					if ( !line.empty() && (line[line.length()-1] < 33) ) line.resize(line.length()-1);
+					if (!line.empty() && (line[line.length()-1] < 33) ) line.resize(line.length() - 1);
 					line.trim();
 					// all these lines look like '0  accession', e.g. '0  gi|1584947|prf||2123446B gamma sar'
-					if ( !line.hasPrefix("0  ") ) // if the line doesn't look like that
+					if (!line.hasPrefix("0  ")) // if the line doesn't look like that
 					{
 						stringstream error_message;
 						error_message << "Line " << line_number << " doesn't look like a line with additional found proteins! (Should look like this: 0  gi|1584947|prf||2123446B gamma sar)";
@@ -201,129 +169,101 @@ namespace OpenMS
 						result_file.clear();
 						throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, error_message.str().c_str() , result_filename);
 					}
-					line.erase(0,3);
+					line.erase(0, 3);
 					
-					protein_hit.clear();
 					getACAndACType(line, accession, accession_type);
 					protein_hit.setAccession(accession);
-					protein_hit.setAccessionType(accession_type);
 					protein_hit.setRank(ac_position_map.size());
-					// score einfach zusammenrechnen?
+					// @todo score einfach zusammenrechnen? (Martin)
 	//				protein_hit.setScore(0.0);
 	//				protein_hit.setScoreType(score_type);
 					
-					if ( ac_position_map.insert(make_pair(accession, protein_hits.size())).second ) protein_hits.push_back(protein_hit);
+					if (ac_position_map.insert(make_pair(accession, protein_hits.size())).second) protein_hits.push_back(protein_hit);
 					
-					peptide_hit.addProteinIndex(datetime, accession);
+					peptide_hit.addProteinAccession(accession);
 				}
-				
-				updatePeptideHits(peptide_hit, query->getPeptideHits());
+
+				peptide_identification.insertHit(peptide_hit);
 			}
 			else
 			{
-				for ( UInt i = 0; i < proteins_per_peptide; ++i ) getline(result_file, line);
+				for (UInt i = 0; i < proteins_per_peptide; ++i) getline(result_file, line);
 			}
+
 			++p_value;
 		}
 		result_file.close();
-		if ( no_pvalues ) pvalues.clear();
+		if (no_pvalues) pvalues.clear();
 		
-		// get the sequences of the protein
-//		vector< String > sequences;
-//		map< String, UInt > not_found;
-//		vector< pair< String, UInt > > found;
-//		for ( vector< String >::const_iterator db_i = databases.begin(); db_i != databases.end(); ++db_i )
-//		{
-//			getSequences(*db_i, ac_position_map, sequences, found, not_found);
-//			
-//			if ( db_i != databases.begin() ) ac_position_map = not_found;
-//		}
-//
-//		vector< String >::const_iterator seq_i = sequences.begin();
-//		for ( vector< pair< String, UInt > >::const_iterator protein_i = found.begin(); protein_i != found.end(); ++protein_i, ++seq_i)
-//		{
-//			protein_hits[protein_i->second].setSequence(*seq_i);
-//		}
-//		
-//		sequences.clear();
-//		found.clear();
-//		not_found.clear();
-		
-		if ( protein_hits.empty() ) identifications.pop_back();
+		if (peptide_identification.getHits().size() != 0)
+		{
+			peptide_identifications.push_back(peptide_identification);
+		}
+
+		if (protein_hits.empty()) 
+		{
+		}
 		else
 		{
-			protein_identification.setProteinHits(protein_hits);
+			protein_identification.setHits(protein_hits);
 			protein_identification.setDateTime(datetime);
-			protein_hits.clear();
 		}
 		
 		// if there's but one query the protein hits are inserted there instead of a ProteinIdentification object
-		if ( !identifications.empty() )
+		if (!peptide_identifications.empty())
 		{
-			if ( identifications.size() == 1 )
-			{
-				query->setProteinHits(protein_hits);
-				query->setDateTime(datetime);
-				query->setPeptideSignificanceThreshold(p_value_threshold);
-			}
-			else identifications.front().id.setProteinHits(vector< ProteinHit >()); // if several out-files were used, the first query owns a vector with protein hits
+			protein_identification.setHits(protein_hits);
+			protein_identification.setDateTime(datetime);
+			peptide_identifications.back().setSignificanceThreshold(p_value_threshold);
 		}
-		
-		peptide_hit.clear();
-		protein_hit.clear();
 		
 		ac_position_map.clear();
   }
 	
 	// get the columns from a line
-	bool
-	SequestOutfile::getColumns(
-		const String& line,
-		vector< String >& substrings,
-		UInt number_of_columns,
-		UInt reference_column)
+	bool SequestOutfile::getColumns(const String& line, vector<String>& substrings,	UInt number_of_columns,	UInt reference_column)
 	{
 		String buffer;
 
-		if ( line.empty() ) return false;
+		if (line.empty()) return false;
 		
 		line.split(' ', substrings);
 
 		// remove any empty strings
 		substrings.erase(remove(substrings.begin(),substrings.end(),""),substrings.end());
 
-		for ( vector< String >::iterator s_i = substrings.begin(); s_i != substrings.end(); )
+		for (vector<String>::iterator s_i = substrings.begin(); s_i != substrings.end(); )
 		{
 			// if there are three columns, the middle one being a '/', they are merged
-			if ( s_i+1 != substrings.end() )
+			if (s_i+1 != substrings.end())
 			{
-				if ( ((*(s_i+1)) == "/") && (s_i+2 != substrings.end()) )
+				if (((*(s_i+1)) == "/") && (s_i+2 != substrings.end()))
 				{
-					s_i->append(*(s_i+1));
-					s_i->append(*(s_i+2));
-					substrings.erase(s_i+2);
-					substrings.erase(s_i+1);
+					s_i->append(*(s_i + 1));
+					s_i->append(*(s_i + 2));
+					substrings.erase(s_i + 2);
+					substrings.erase(s_i + 1);
 				}
 				// if there are two columns, and the first ends with, or the second starts with a '/', they are merged
-				else if ( (*(s_i+1))[0] == '/' )
+				else if ((*(s_i + 1))[0] == '/')
 				{
-					s_i->append(*(s_i+1));
-					substrings.erase(s_i+1);
+					s_i->append(*(s_i + 1));
+					substrings.erase(s_i + 1);
 				}
-				else if ( (*(s_i))[s_i->length()-1] == '/' )
+				else if ((*(s_i))[s_i->length() - 1] == '/')
 				{
-					s_i->append(*(s_i+1));
-					substrings.erase(s_i+1);
+					s_i->append(*(s_i + 1));
+					substrings.erase(s_i + 1);
 				}
 				// if there are two columns and the second is a number preceeded by a '+', they are merged
-				else if ( (*(s_i+1))[0] == '+' )
+				else if ((*(s_i+1))[0] == '+')
 				{
 					bool is_digit = true;
-					for ( UInt i = 1; i < (s_i+1)->length(); ++i ) is_digit &= (bool) isdigit((*(s_i+1))[i]);
-					if ( is_digit && ((s_i+1)->length()-1) )
+					for (UInt i = 1; i < (s_i + 1)->length(); ++i) is_digit &= (bool)isdigit((*(s_i+1))[i]);
+					if (is_digit && ((s_i + 1)->length() - 1))
 					{
-						s_i->append(*(s_i+1));
-						substrings.erase(s_i+1);
+						s_i->append(*(s_i + 1));
+						substrings.erase(s_i + 1);
 					}
 					else ++s_i;
 				}
@@ -333,26 +273,19 @@ namespace OpenMS
 		}
 
 		// if there are more columns than should be, there were spaces in the protein column
-		for ( vector< String >::iterator s_i = substrings.begin()+reference_column; substrings.size() > number_of_columns; )
+		for (vector< String >::iterator s_i = substrings.begin()+reference_column; substrings.size() > number_of_columns; )
 		{
 			s_i->append(" ");
-			s_i->append(*(s_i+1));
-			substrings.erase(s_i+1);
+			s_i->append(*(s_i + 1));
+			substrings.erase(s_i + 1);
 		}
 		
 		return true;
 	}
 
 	// retrieve the sequences
-	void
-	SequestOutfile::getSequences(
-		const String& database_filename,
-		const map< String, UInt >& ac_position_map,
-		vector< String >& sequences,
-		vector< pair< String, UInt > >& found,
-		map< String, UInt >& not_found)
-	throw (
-		Exception::FileNotFound)
+	void SequestOutfile::getSequences(const String& database_filename, const map<String, UInt>& ac_position_map, vector<String>& sequences,	vector<pair<String, UInt> >& found,	map<String, UInt>& not_found)
+	throw (Exception::FileNotFound)
 	{
 		ifstream database_file(database_filename.c_str());
 		if ( !database_file )
@@ -362,20 +295,20 @@ namespace OpenMS
 		
 		String line, accession, accession_type, sequence;
 		not_found = ac_position_map;
-		map< String, UInt >::iterator nf_i = not_found.end();
-		while ( getline(database_file, line) && !not_found.empty() )
+		map<String, UInt>::iterator nf_i = not_found.end();
+		while (getline(database_file, line) && !not_found.empty())
 		{
-			if ( !line.empty() && (line[line.length()-1] < 33) ) line.resize(line.length()-1);
+			if (!line.empty() && (line[line.length()-1] < 33) ) line.resize(line.length() - 1);
 			line.trim();
 			
 			// empty and comment lines are skipped
-			if ( line.empty() || line.hasPrefix(";") ) continue;
+			if (line.empty() || line.hasPrefix(";")) continue;
 
 			// the sequence belonging to the predecessing protein ('>') is stored, so when a new protein ('>') is found, save the sequence of the old protein
-			if ( line.hasPrefix(">") )
+			if (line.hasPrefix(">"))
 			{
 				getACAndACType(line, accession, accession_type);
-				if ( nf_i != not_found.end() )
+				if (nf_i != not_found.end())
 				{
 					sequences.push_back(sequence);
 					found.push_back(*nf_i);
@@ -384,9 +317,9 @@ namespace OpenMS
 				nf_i = not_found.find(accession); // for the first protein in the database, there's no predecessing protein
 				sequence.clear();
 			}
-			else if ( nf_i != not_found.end() ) sequence.append(line);
+			else if (nf_i != not_found.end()) sequence.append(line);
 		}
-		if ( nf_i != not_found.end() )
+		if (nf_i != not_found.end())
 		{
 			sequences.push_back(sequence);
 			found.push_back(*nf_i);
@@ -397,15 +330,12 @@ namespace OpenMS
 		database_file.clear();
 	}
 	
-	void
-	SequestOutfile::getACAndACType(
-		String line,
-		string& accession,
-		string& accession_type)
+	void SequestOutfile::getACAndACType(String line, String& accession,	String& accession_type)
 	{
+		// @todo replace this by general FastA implementation?
 		accession.clear();
 		accession_type.clear();
-		pair<string, string> p;
+		pair<String, String> p;
 		// if it's a FASTA line
 		if ( line.hasPrefix(">") ) line.erase(0,1);
 		if ( !line.empty() && (line[line.length()-1] < 33) ) line.resize(line.length()-1);
@@ -522,51 +452,8 @@ namespace OpenMS
 		}
 	}
 	
-	bool
-	SequestOutfile::updatePeptideHits(
-		PeptideHit& peptide_hit,
-		vector< PeptideHit >& peptide_hits)
-	{
-		// a peptide hit may only be inserted if it's score type matches the one of the existing hits
-		if ( (peptide_hits.empty()) || (peptide_hits[0].getScoreType() == peptide_hit.getScoreType()) )
-		{
-			// search for the peptide hit
-			vector< PeptideHit >::iterator pep_hit_i;
-			for ( pep_hit_i = peptide_hits.begin(); pep_hit_i != peptide_hits.end(); ++pep_hit_i)
-			{
-				if ( (pep_hit_i->getSequence() == peptide_hit.getSequence()) && (pep_hit_i->getScore() == peptide_hit.getScore()) ) break;
-			}
-			// if a new peptide is found, insert it
-			if ( pep_hit_i == peptide_hits.end() )
-			{
-				peptide_hits.push_back(peptide_hit);
-				return true;
-			}
-			// if the peptide has already been inserted, insert additional protein hits
-			else
-			{
-				vector< pair< String, String > >::iterator prot_hit_i1, prot_hit_i2;
-				// remove all protein hits from the peptide that are already in the list
-				for ( prot_hit_i1 = peptide_hit.getProteinIndices().begin(); prot_hit_i1 != peptide_hit.getProteinIndices().end(); )
-				{
-					prot_hit_i2 = find(pep_hit_i->getProteinIndices().begin(), pep_hit_i->getProteinIndices().end(), *prot_hit_i1);
-					if ( prot_hit_i2 != pep_hit_i->getProteinIndices().end() ) peptide_hit.getProteinIndices().erase(prot_hit_i1);
-					else ++prot_hit_i1;
-				}
-				// add the additional protein hits
-				for ( prot_hit_i2 = peptide_hit.getProteinIndices().begin(); prot_hit_i2 != peptide_hit.getProteinIndices().end(); ++prot_hit_i2 )
-				{
-					pep_hit_i->addProteinIndex(*prot_hit_i2);
-				}
-				return true;
-			}
-		}
-		return false;
-	}
-
-	void
-	SequestOutfile::readOutHeader(
-		const string& result_filename,
+	void SequestOutfile::readOutHeader(
+		const String& result_filename,
 		DateTime& datetime,
 		DoubleReal& precursor_mz_value,
 		Int& charge,
@@ -587,9 +474,7 @@ namespace OpenMS
 		Int& score_column,
 		UInt& number_of_columns,
 		UInt& displayed_peptides)
-	throw(
-		Exception::FileNotFound,
-		Exception::ParseError)
+	throw(Exception::FileNotFound, Exception::ParseError)
 	{
 		// open the result
 		ifstream result_file( result_filename.c_str());
@@ -599,14 +484,14 @@ namespace OpenMS
 		}
 
 		String line, buffer;
-		vector< String > substrings;
+		vector<String> substrings;
 		
 		// get the date and time
 		DateTime datetime_empty;
 		datetime.clear();
 		datetime_empty.clear();
 		// search for the first line with a date: mm/dd/yyyy
-		while ( (getline(result_file, line)) && (datetime == datetime_empty) )
+		while ((getline(result_file, line)) && (datetime == datetime_empty))
 		{
 			if ( !line.empty() && (line[line.length()-1] < 33) ) line.resize(line.length()-1);
 			line.trim();
@@ -789,19 +674,12 @@ namespace OpenMS
 		result_file.clear();
 	}
 
-	void
-	SequestOutfile::out2SummaryHtml(
-		string out_filename,
-		const string& summary_filename,
-		const string& database_filename)
-	throw(
-		Exception::FileNotFound,
-		Exception::ParseError,
-		Exception::UnableToCreateFile)
+	void SequestOutfile::out2SummaryHtml(String out_filename, const String& summary_filename,	const String& database_filename)
+	throw(Exception::FileNotFound, Exception::ParseError,	Exception::UnableToCreateFile)
 	{
 		ofstream summary;
 		// write the fileheader, if not in append mode (one fileheader only)
-		if ( !out2summary_number )
+		if (!out2summary_number)
 		{
 			summary.open(summary_filename.c_str());
 			if ( !summary )
@@ -1003,7 +881,7 @@ namespace OpenMS
 			{
 				// save the number of multiple proteins
 				proteins_per_peptide = substrings[reference_column].substr(substrings[reference_column].find_last_of('+')).toInt();
-				// and remove this number from the string
+				// and remove this number from the String
 				substrings[reference_column].resize(substrings[reference_column].find_last_of('+'));
 			}
 			else proteins_per_peptide = 0;
@@ -1066,12 +944,8 @@ namespace OpenMS
 		summary.clear();
 	}
 	
-	void
-	SequestOutfile::finishSummaryHtml(
-		const string& summary_filename
-	)
-	throw(
-		Exception::UnableToCreateFile)
+	void SequestOutfile::finishSummaryHtml(const String& summary_filename)
+		throw(Exception::UnableToCreateFile)
 	{
 		ofstream summary(summary_filename.c_str(), ios::out | ios::app);
 		if ( !summary )
@@ -1083,12 +957,8 @@ namespace OpenMS
 		summary.clear();
 	}
 	
-	map< String, vector< DoubleReal > >
-	SequestOutfile::getPeptidePValues(
-// 		const string& out_dir,
-		const string& prob_filename)
-	throw(
-		Exception::FileNotFound)
+	map<String, vector<DoubleReal> > SequestOutfile::getPeptidePValues(const String& prob_filename)
+		throw(Exception::FileNotFound)
 	{
 		ifstream prob_file(prob_filename.c_str());
 		if ( !prob_file )
@@ -1102,7 +972,7 @@ namespace OpenMS
 		vector< String > substrings;
 		map< String, vector< DoubleReal > > filenames_and_pvalues;
 		vector< DoubleReal >* pvalues(0);
-		DoubleReal pvalue;
+		DoubleReal pvalue(0);
 		while ( getline(prob_file, line) )
 		{
 			if ( !line.empty() && (line[line.length()-1] < 33) ) line.resize(line.length()-1);
@@ -1121,3 +991,4 @@ namespace OpenMS
 		return filenames_and_pvalues;
 	}
 } //namespace OpenMS
+

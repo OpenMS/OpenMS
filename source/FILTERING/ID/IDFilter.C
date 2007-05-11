@@ -32,113 +32,35 @@ using namespace std;
 
 namespace OpenMS 
 {
-  IDFilter::IDFilter(): 
-    peptide_threshold_fraction_(1),
-    protein_threshold_fraction_(1),
-    proteins_()
+  IDFilter::IDFilter()
   {
-    
-  }
-  
-  IDFilter::IDFilter(const IDFilter& source):
-    peptide_threshold_fraction_(source.peptide_threshold_fraction_),
-    protein_threshold_fraction_(source.protein_threshold_fraction_),
-    proteins_(source.proteins_)
-  {
-    
   }
    
   IDFilter::~IDFilter()
   {
-    
   }
   
-  IDFilter& IDFilter::operator = (const IDFilter& source)
-  {
-    if (this == &source)
-    { 
-    	return *this;
-    }
-    
-    peptide_threshold_fraction_ = source.peptide_threshold_fraction_;
-    protein_threshold_fraction_ = source.protein_threshold_fraction_;
-    proteins_ = source.proteins_;
-    
-    return *this;
-  }
 
-  DoubleReal IDFilter::getPeptideThresholdFraction() const
-  {
-    return peptide_threshold_fraction_;
-  }
- 
-  void IDFilter::setPeptideThresholdFraction(DoubleReal peptide_threshold_fraction)
-  {
-    peptide_threshold_fraction_ = peptide_threshold_fraction;
-  }
-  
-  DoubleReal IDFilter::getProteinThresholdFraction() const
-  {
-    return protein_threshold_fraction_;
-  }
- 
-  void IDFilter::setProteinThresholdFraction(DoubleReal protein_threshold_fraction)
-  {
-    protein_threshold_fraction_ = protein_threshold_fraction;
-  }
- 
-  const vector< pair<String, String> >& IDFilter::getProteins() const
-  {
-    return proteins_;
-  }
- 
-  void IDFilter::setProteins(const vector< pair<String, String> >& proteins)
-  {
-    proteins_ = proteins;
-  }
-	
-	void IDFilter::filterIdentificationsByThresholds(const Identification& 	identification,
-																									DoubleReal 					peptide_threshold_fraction,
-																									DoubleReal 					protein_threshold_fraction,
-																									Identification& 				filtered_identification)
-	{
-		peptide_threshold_fraction_ = peptide_threshold_fraction;
-		protein_threshold_fraction_ = protein_threshold_fraction;
-		
-		filterIdentificationsByThresholds(identification, filtered_identification);
-	}
-
-	void IDFilter::filterIdentificationsByBestHits(const Identification& 	identification,
-																								 Identification& 				filtered_identification, 
+	void IDFilter::filterIdentificationsByBestHits(const PeptideIdentification& 	identification,
+																								 PeptideIdentification& 				filtered_identification, 
 																								 bool 									strict)
 	{
-		vector<PeptideHit> temp_peptide_hits;
 		vector<PeptideHit> filtered_peptide_hits;
 		PeptideHit temp_peptide_hit;
-		vector<ProteinHit> temp_protein_hits;
-		vector<ProteinHit> filtered_protein_hits;
-		ProteinHit temp_protein_hit;
-		Real max_value = 0;
-		Real temp_score = 0;
 		vector< UInt > new_peptide_indices;		
-		vector< UInt > new_protein_indices;		
-		DateTime date;
 
-		filtered_identification.clear();		
-		date = identification.getDateTime();
-
-		temp_protein_hits = identification.getProteinHits();
-		temp_peptide_hits = identification.getPeptideHits();
+		filtered_identification = identification;		
+		filtered_identification.setHits(vector<PeptideHit>());
 		
-		if (temp_peptide_hits.size() > 0)
+		if (identification.getHits().size() > 0)
 		{
-			max_value = temp_peptide_hits[0].getScore();
+			Real max_value = identification.getHits()[0].getScore();
 			new_peptide_indices.push_back(0);
 			
 			// searching for peptide(s) with maximal score			
-			for(UInt i = 1; i < temp_peptide_hits.size(); i++)
+			for(UInt i = 1; i < identification.getHits().size(); i++)
 			{
-				temp_score = temp_peptide_hits[i].getScore();
+				Real temp_score = identification.getHits()[i].getScore();
 				if (temp_score > max_value)
 				{
 					max_value = temp_score;
@@ -154,366 +76,156 @@ namespace OpenMS
 			{
 				for(UInt i = 0; i < new_peptide_indices.size(); i++)
 				{
-					filtered_peptide_hits.push_back(temp_peptide_hits[new_peptide_indices[i]]);
+					filtered_peptide_hits.push_back(identification.getHits()[new_peptide_indices[i]]);
 				}
 			}
 		}
 
-		if (temp_protein_hits.size() > 0)
+		if (filtered_peptide_hits.size() > 0)
 		{
-			max_value = temp_protein_hits[0].getScore();
-			new_protein_indices.push_back(0);
-
-			// searching for protein(s) with maximal score			
-			for(UInt i = 1; i < temp_protein_hits.size(); i++)
-			{
-				temp_score = temp_protein_hits[i].getScore();
-				if (temp_score > max_value)
-				{
-					max_value = temp_score;
-					new_protein_indices.clear();
-					new_protein_indices.push_back(i);
-				}				
-				else if (temp_score == max_value)
-				{
-					new_protein_indices.push_back(i);
-				}
-			}						
-			if (!strict || new_protein_indices.size() == 1)
-			{
-				for(UInt i = 0; i < new_protein_indices.size(); i++)
-				{
- 					filtered_protein_hits.push_back(temp_protein_hits[new_protein_indices[i]]);
- 				}
- 			}
-		}
-		if (filtered_peptide_hits.size() > 0 || filtered_protein_hits.size() > 0)
-		{
-  		filtered_identification.setPeptideAndProteinHits(filtered_peptide_hits, 
-  																											filtered_protein_hits);
-			filtered_identification.setPeptideSignificanceThreshold(identification.getPeptideSignificanceThreshold());
-			filtered_identification.setProteinSignificanceThreshold(identification.getProteinSignificanceThreshold());  																								
-			filtered_identification.setDateTime(date);
+  		filtered_identification.setHits(filtered_peptide_hits);
 			filtered_identification.assignRanks();  																								
 		}
 	}
 
-	void IDFilter::filterIdentificationsByThresholds(const Identification& 	identification,
-																									Identification& 				filtered_identification)
-	{
-		vector<PeptideHit> temp_peptide_hits;
-		vector<PeptideHit> filtered_peptide_hits;
-		PeptideHit temp_peptide_hit;
-		vector<ProteinHit> temp_protein_hits;
-		vector<ProteinHit> filtered_protein_hits;
-		ProteinHit temp_protein_hit;
-		DateTime date;
-
-		filtered_identification.clear();		
-		date = identification.getDateTime();
-
-		temp_protein_hits = identification.getProteinHits();
-		temp_peptide_hits = identification.getPeptideHits();
-		
-		if (temp_peptide_hits.size() > 0)
-		{
-			for(vector<PeptideHit>::iterator it = temp_peptide_hits.begin();
-					it != temp_peptide_hits.end();
-					it++)
-			{
-				if (it->getScore() >= 
-						peptide_threshold_fraction_ * 
-						identification.getPeptideSignificanceThreshold())
-				{	
- 					filtered_peptide_hits.push_back(*it);
-				}	
-			}
-		}
-
-		if (temp_protein_hits.size() > 0)
-		{
-			for(vector<ProteinHit>::iterator it = temp_protein_hits.begin();
-					it != temp_protein_hits.end();
-					it++)
-			{
-				if (it->getScore() >= 
-						protein_threshold_fraction_ * 
-						identification.getProteinSignificanceThreshold())
-				{	
- 					filtered_protein_hits.push_back(*it);
-				}	
-			}
-		}
-		if (filtered_peptide_hits.size() > 0 || filtered_protein_hits.size() > 0)
-		{
-  		filtered_identification.setPeptideAndProteinHits(filtered_peptide_hits, 
-  																											filtered_protein_hits);
-			filtered_identification.setPeptideSignificanceThreshold(identification.getPeptideSignificanceThreshold());
-			filtered_identification.setProteinSignificanceThreshold(identification.getProteinSignificanceThreshold());  																								
-			filtered_identification.setDateTime(date);
-			filtered_identification.assignRanks();  																								
-		}
-	}
-
-	void IDFilter::filterIdentificationsByProteins(const Identification& identification, 
+	void IDFilter::filterIdentificationsByProteins(const PeptideIdentification& identification, 
 																								 vector< pair<String, String> >proteins,
-																								 Identification& filtered_identification)
-	{
-		proteins_ = proteins;
-		
-		filterIdentificationsByProteins(identification, filtered_identification);
-	}
-
-	void IDFilter::filterIdentificationsByProteins(const Identification& 	identification,
-																								 Identification& 				filtered_identification)
+																								 PeptideIdentification& filtered_identification)
 	{
 		String protein_sequences;
 		String accession_sequences;
-		vector< UInt > new_peptide_indices;		
-		vector< UInt > new_protein_indices;
-		vector<PeptideHit> temp_peptide_hits;
 		vector<PeptideHit> filtered_peptide_hits;
-		vector<ProteinHit> temp_protein_hits;
-		vector<ProteinHit> filtered_protein_hits;
-		ProteinHit temp_protein_hit;
 		PeptideHit temp_peptide_hit;
-		DateTime date;		
 		
-		filtered_identification.clear();
-		date = identification.getDateTime();
-		temp_peptide_hits = identification.getPeptideHits();
-		temp_protein_hits = identification.getProteinHits();
-		for(UInt i = 0; i < proteins_.size(); i++)
+		filtered_identification = identification;
+		filtered_identification.setHits(vector<PeptideHit>());
+		
+		for(UInt i = 0; i < proteins.size(); i++)
 		{
-			accession_sequences.append("*" + proteins_[i].first);
-			protein_sequences.append("*" + proteins_[i].second);
+			if (proteins[i].first!="")
+			{
+				accession_sequences.append("*" + proteins[i].first);
+			}
+			if (proteins[i].second!="")
+			{
+				protein_sequences.append("*" + proteins[i].second);
+			}
 		}
 		accession_sequences.append("*");
+		protein_sequences.append("*");
 		
-		for(UInt i = 0; i < temp_peptide_hits.size(); i++)
+		for(UInt i = 0; i < identification.getHits().size(); i++)
 		{
-	  	if (protein_sequences.find(temp_peptide_hits[i].getSequence().c_str()) 
-	  			!= string::npos)
-	  	{
-	  		new_peptide_indices.push_back(i);
-	  	}
+			if (accession_sequences=="*")
+			{
+		  	if (protein_sequences.find(identification.getHits()[i].getSequence().c_str()) != string::npos)
+		  	{
+		  		filtered_peptide_hits.push_back(identification.getHits()[i]);
+		  	}
+			}
+			else
+			{
+				for(vector<String>::const_iterator ac_it = identification.getHits()[i].getProteinAccessions().begin();
+						ac_it != identification.getHits()[i].getProteinAccessions().end();
+						++ac_it)
+				{
+		  		if (accession_sequences.find("*" + *ac_it + "*") != string::npos)
+		  		{
+		  			filtered_peptide_hits.push_back(identification.getHits()[i]);
+		  		}
+		  	}
+			}
 		}
-		for(UInt i = 0; i < temp_protein_hits.size(); i++)
+		if (filtered_peptide_hits.size() > 0)
 		{
-	  	if (accession_sequences.find("*" 
-	  			+ temp_protein_hits[i].getAccession() 
-					+ "*") != string::npos)
-	  	{
-	  		new_protein_indices.push_back(i);
-	  	}
-		}
-		for(UInt i = 0; i < new_peptide_indices.size(); i++)
-		{
-			temp_peptide_hit = PeptideHit(temp_peptide_hits[new_peptide_indices[i]]);
-			temp_peptide_hit.setRank((i + 1));
-			filtered_peptide_hits.push_back(temp_peptide_hit);
-		}
-		for(UInt i = 0; i < new_protein_indices.size(); i++)
-		{
-			temp_protein_hit = ProteinHit(temp_protein_hits[new_protein_indices[i]]);
-			temp_protein_hit.setRank((i + 1));
-			filtered_protein_hits.push_back(temp_protein_hit);
-		}
-		if (filtered_peptide_hits.size() > 0 || filtered_protein_hits.size() > 0)
-		{
-  		filtered_identification.setPeptideAndProteinHits(filtered_peptide_hits, 
-  																								filtered_protein_hits);
-			filtered_identification.setPeptideSignificanceThreshold(identification.getPeptideSignificanceThreshold());
-			filtered_identification.setProteinSignificanceThreshold(identification.getProteinSignificanceThreshold());  																								
-			filtered_identification.setDateTime(date);  																								
+  		filtered_identification.setHits(filtered_peptide_hits);
+  		filtered_identification.assignRanks();																			
 		}
 	}
 	
-	void IDFilter::filterIdentificationsByProteins(const ProteinIdentification& 	identification, 
-                                                       ProteinIdentification&           filtered_identification)
+	void IDFilter::filterIdentificationsByProteins(const Identification& identification, 
+																											 vector< pair<String, String> > proteins,
+                                                       Identification& filtered_identification)
 	{
 		String protein_sequences;
 		String accession_sequences;
-		vector< UInt > new_protein_indices;
-		vector<ProteinHit> temp_protein_hits;
 		vector<ProteinHit> filtered_protein_hits;
 		ProteinHit temp_protein_hit;
-		DateTime date;		
 		
-		filtered_identification.clear();
-		date = identification.getDateTime();
-		temp_protein_hits = identification.getProteinHits();
-		for(UInt i = 0; i < proteins_.size(); i++)
+		filtered_identification=identification;
+		filtered_identification.setHits(vector<ProteinHit>());
+		
+		for(UInt i = 0; i < proteins.size(); i++)
 		{
-			accession_sequences.append("*" + proteins_[i].first);
+			accession_sequences.append("*" + proteins[i].first);
 		}
 		accession_sequences.append("*");
 		
-		for(UInt i = 0; i < temp_protein_hits.size(); i++)
+		for(UInt i = 0; i < identification.getHits().size(); i++)
 		{
-	  	if (accession_sequences.find("*" 
-	  			+ temp_protein_hits[i].getAccession() 
-					+ "*") != string::npos)
+	  	if (accession_sequences.find("*" + identification.getHits()[i].getAccession() + "*") != string::npos)
 	  	{
-	  		new_protein_indices.push_back(i);
+	  		filtered_protein_hits.push_back(identification.getHits()[i]);
 	  	}
-		}
-		for(UInt i = 0; i < new_protein_indices.size(); i++)
-		{
-			temp_protein_hit = ProteinHit(temp_protein_hits[new_protein_indices[i]]);
-			temp_protein_hit.setRank((i + 1));
-			filtered_protein_hits.push_back(temp_protein_hit);
 		}
 		if (filtered_protein_hits.size() > 0)
 		{
-                  filtered_identification.setProteinHits(filtered_protein_hits);
-			filtered_identification.setProteinSignificanceThreshold(identification.getProteinSignificanceThreshold());  																								
-			filtered_identification.setDateTime(date);  																								
+      filtered_identification.setHits(filtered_protein_hits);
+			filtered_identification.assignRanks();											
 		}
 	}
 	
-	void IDFilter::filterIdentificationsByRetentionTimes(const Identification& identification,
-																											const map<String, DoubleReal>& predicted_retention_times,
-																											DoubleReal measured_retention_time,
-																											DoubleReal predicted_sigma,
-																											DoubleReal allowed_deviation_factor,
-																											DoubleReal total_gradient_time,
-																											Identification& filtered_identification)
-	{
-		vector<PeptideHit> temp_peptide_hits;
-		vector<PeptideHit>::iterator it;
-		PeptideHit temp_peptide_hit;
-		String temp_sequence;
-		DoubleReal temp_retention_time = 0;
-		map<String, DoubleReal>::const_iterator const_it;
-		DoubleReal difference = 0;
-		DoubleReal allowed_deviation = 0;
-		DateTime date;		
-		
-		filtered_identification.clear();
-
-		allowed_deviation = allowed_deviation_factor * sqrt(2.0) * predicted_sigma;
-		date = identification.getDateTime();
-		
-		temp_peptide_hits = identification.getPeptideHits();
-		for(it = temp_peptide_hits.begin();
-				it != temp_peptide_hits.end();
-				it++)
-		{
-			temp_sequence = it->getSequence();
-			if ((const_it = predicted_retention_times.find(temp_sequence)) 
-					!= predicted_retention_times.end())
-			{
-				temp_retention_time = const_it->second;
-				difference = measured_retention_time - temp_retention_time;
-				difference /= total_gradient_time;
-				if (difference < 0)
-				{
-					difference *= -1;
-				}
-				if (difference <= allowed_deviation)
-				{
-					filtered_identification.insertPeptideHit(*it);
-				}
-			}
-		}
-		if (filtered_identification.getPeptideHits().size() > 0)
-		{
-			filtered_identification.setPeptideSignificanceThreshold(identification.getPeptideSignificanceThreshold());
-			filtered_identification.setProteinSignificanceThreshold(identification.getProteinSignificanceThreshold());  																								
-			filtered_identification.setDateTime(date);  																								
-		}
-	}
-	
-	void IDFilter::filterIdentificationsByExclusionPeptides(const Identification& identification,
+	void IDFilter::filterIdentificationsByExclusionPeptides(const PeptideIdentification& identification,
 																													vector<String> 				peptides,
-																													Identification& filtered_identification)
+																													PeptideIdentification& filtered_identification)
 	{
 		String protein_sequences;
 		String accession_sequences;
-		vector< UInt > new_peptide_indices;		
-		vector< UInt > new_protein_indices;
-		vector<PeptideHit> temp_peptide_hits;
 		vector<PeptideHit> filtered_peptide_hits;
 		PeptideHit temp_peptide_hit;
-		DateTime date;		
 		
-		filtered_identification.clear();
-		temp_peptide_hits = identification.getPeptideHits();
-		date = identification.getDateTime();
+		filtered_identification=identification;
+		filtered_identification.setHits(vector<PeptideHit>());
 		
-		for(UInt i = 0; i < temp_peptide_hits.size(); i++)
+		for(UInt i = 0; i < identification.getHits().size(); i++)
 		{
-	  	if (find(peptides.begin(), peptides.end(), 
-	  			temp_peptide_hits[i].getSequence().c_str()) 
-	  			== peptides.end())
+	  	if (find(peptides.begin(), peptides.end(), identification.getHits()[i].getSequence().c_str()) == peptides.end())
 	  	{
-	  		new_peptide_indices.push_back(i);
+	  		filtered_peptide_hits.push_back(identification.getHits()[i]);
 	  	}
 		}
-		for(UInt i = 0; i < new_peptide_indices.size(); i++)
+		if (filtered_peptide_hits.size() > 0)
 		{
-			temp_peptide_hit = PeptideHit(temp_peptide_hits[new_peptide_indices[i]]);
-			temp_peptide_hit.setRank((i + 1));
-			filtered_peptide_hits.push_back(temp_peptide_hit);
-		}
-		if (filtered_peptide_hits.size() > 0 || identification.getProteinHits().size() > 0)
-		{
-  		filtered_identification.setPeptideAndProteinHits(filtered_peptide_hits, 
-  																											identification.getProteinHits());
-			filtered_identification.setPeptideSignificanceThreshold(identification.getPeptideSignificanceThreshold());
-			filtered_identification.setProteinSignificanceThreshold(identification.getProteinSignificanceThreshold());  																								
-			filtered_identification.setDateTime(date);  																								
+  		filtered_identification.setHits(filtered_peptide_hits);
+			filtered_identification.assignRanks();
 		}
 	}
 	
-		bool IDFilter::filterIdentificationsByRTPValues(const Identification& 	identification,
-																							 			Identification& 				filtered_identification,
+		void IDFilter::filterIdentificationsByRTPValues(const PeptideIdentification& 	identification,
+																							 			PeptideIdentification& 				filtered_identification,
 																							 			DoubleReal 							p_value)
 	{
 		DoubleReal border = 1 - p_value;
 		vector< UInt > new_peptide_indices;		
-		vector< UInt > new_protein_indices;
-		vector<PeptideHit> temp_peptide_hits;
 		vector<PeptideHit> filtered_peptide_hits;
 		PeptideHit temp_peptide_hit;
-		DateTime date;
-		bool unset_p_values = false;
-		DoubleReal temp = 0.0;
 		
-		filtered_identification.clear();
-		temp_peptide_hits = identification.getPeptideHits();
-		date = identification.getDateTime();
+		filtered_identification=identification;
+		filtered_identification.setHits(vector<PeptideHit>());
 		
-		for(UInt i = 0; i < temp_peptide_hits.size(); i++)
+		for(UInt i = 0; i < identification.getHits().size(); i++)
 		{
-			temp = temp_peptide_hits[i].getPredictedRTPValue();
-	  	if (temp <= border)
-	  	{
-	  		new_peptide_indices.push_back(i);
-			}
-			if (temp < 0)
+			if (identification.getHits()[i].metaValueExists("predicted_RT_p_value") 
+			    && (DoubleReal)(identification.getHits()[i].getMetaValue("predicted_RT_p_value")) <= border )
 			{
-				unset_p_values = true;
-			}				
-		}		
-		
-		for(UInt i = 0; i < new_peptide_indices.size(); i++)
-		{
-			temp_peptide_hit = PeptideHit(temp_peptide_hits[new_peptide_indices[i]]);
-			temp_peptide_hit.setRank((i + 1));
-			filtered_peptide_hits.push_back(temp_peptide_hit);
+		  	filtered_peptide_hits.push_back(identification.getHits()[i]);
+			}		
 		}
-		if (filtered_peptide_hits.size() > 0 || identification.getProteinHits().size() > 0)
+		if (filtered_peptide_hits.size() > 0)
 		{
-  		filtered_identification.setPeptideAndProteinHits(filtered_peptide_hits, 
-  																											identification.getProteinHits());
-			filtered_identification.setPeptideSignificanceThreshold(identification.getPeptideSignificanceThreshold());
-			filtered_identification.setProteinSignificanceThreshold(identification.getProteinSignificanceThreshold());  																								
-			filtered_identification.setDateTime(date);  																								
+  		filtered_identification.setHits(filtered_peptide_hits);		
+  		filtered_identification.assignRanks();											
 		}
-		
-		return unset_p_values;
 	}																		 																										 
 		
 } // namespace OpenMS

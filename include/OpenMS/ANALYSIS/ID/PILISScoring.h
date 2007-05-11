@@ -28,7 +28,7 @@
 #ifndef OPENMS_ANALYSIS_ID_PILISSCORING_H
 #define OPENMS_ANALYSIS_ID_PILISSCORING_H
 
-#include <OpenMS/METADATA/Identification.h>
+#include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/DATASTRUCTURES/HashMap.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
@@ -83,10 +83,10 @@ namespace OpenMS
 			 */
 			//@{
 			/// performs an identification run on a PeakMap
-			void getScores(std::vector<Identification>& ids);
+			void getScores(std::vector<PeptideIdentification>& ids);
 
 			/// performs an identification run on a PeakSpectrum
-			void getScore(Identification& id);
+			void getScore(PeptideIdentification& id);
 			//@}
 
 		protected:
@@ -98,7 +98,7 @@ namespace OpenMS
 			void getSurvivalFunction_(HashMap<UInt, double>& points, std::vector<DPosition<2> >& survival_function);
 
 			///
-			void getScore_(Identification& id, double global_slope, double global_intercept);
+			void getScore_(PeptideIdentification& id, double global_slope, double global_intercept);
 	
 	};
 }

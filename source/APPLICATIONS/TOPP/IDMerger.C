@@ -25,7 +25,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/IdXMLFile.h>
-#include <OpenMS/METADATA/Identification.h>
+#include <OpenMS/METADATA/PeptideIdentification.h>
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 
@@ -71,10 +71,10 @@ class TOPPIDMerger
 	{
 		vector<String> 									file_names;
 		IdXMLFile 								IdXML_file;
-		vector<ProteinIdentification> 	protein_identifications;
-		vector<IdentificationData> 					identifications;
-		vector<ProteinIdentification> 	additional_protein_identifications;
-		vector<IdentificationData> 					additional_identifications;
+		vector<Identification> 	protein_identifications;
+		vector<PeptideIdentification> 					identifications;
+		vector<Identification> 	additional_protein_identifications;
+		vector<PeptideIdentification> 					additional_identifications;
 		UInt											counter = 0;
 		String 													out_file = "";
 		String 													file_list	= "";

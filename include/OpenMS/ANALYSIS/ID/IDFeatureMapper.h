@@ -35,9 +35,10 @@
 namespace OpenMS 
 {
   /**
-    @brief Annotates a FeatureMap instance with Identification instances
+    @brief Annotates a FeatureMap instance with PeptideIdentification instances
  		
- 		
+ 		The retention time and mass-to-charge ratio of the PeptideIdentification have to 
+ 		be given in the MetaInfoInterface ('MZ' and 'RT').
   */
   class IDFeatureMapper
   {
@@ -47,7 +48,7 @@ namespace OpenMS
       IDFeatureMapper();
       
 			///This method does the actual mapping
-		  void annotate(FeatureMap<>& fm, const std::vector<IdentificationData>& ids, const std::vector<ProteinIdentification>& protein_ids);      
+		  void annotate(FeatureMap<>& fm, const std::vector<PeptideIdentification>& ids, const std::vector<Identification>& protein_ids);      
   };
  
 } // namespace OpenMS

@@ -148,31 +148,31 @@ CHECK((void setComment(const String& comment)))
 	TEST_EQUAL(tmp.getComment(), "bla");
 RESULT
 
-CHECK((const std::vector<Identification>& getIdentifications() const))
+CHECK((const std::vector<PeptideIdentification>& getPeptideIdentifications() const))
 	SpectrumSettings tmp;
-	vector<Identification> vec(tmp.getIdentifications());
+	vector<PeptideIdentification> vec(tmp.getPeptideIdentifications());
 	TEST_EQUAL(vec.size(),0);
 RESULT
 
-CHECK((void setIdentifications(const std::vector<Identification>& identifications)))
+CHECK((void setPeptideIdentifications(const std::vector<PeptideIdentification>& identifications)))
 	SpectrumSettings tmp;
-	vector<Identification> vec;
+	vector<PeptideIdentification> vec;
 	
-	tmp.setIdentifications(vec);
-	TEST_EQUAL(tmp.getIdentifications().size(),0);
+	tmp.setPeptideIdentifications(vec);
+	TEST_EQUAL(tmp.getPeptideIdentifications().size(),0);
 	
-	Identification dbs;
+	PeptideIdentification dbs;
 	vec.push_back(dbs);
-	tmp.setIdentifications(vec);
-	TEST_EQUAL(tmp.getIdentifications().size(),1);
+	tmp.setPeptideIdentifications(vec);
+	TEST_EQUAL(tmp.getPeptideIdentifications().size(),1);
 RESULT
 
-CHECK((std::vector<Identification>& getIdentifications()))
+CHECK((std::vector<PeptideIdentification>& getPeptideIdentifications()))
 	SpectrumSettings tmp;
-	vector<Identification> vec;
+	vector<PeptideIdentification> vec;
 	
-	tmp.getIdentifications().resize(1);
-	TEST_EQUAL(tmp.getIdentifications().size(),1);
+	tmp.getPeptideIdentifications().resize(1);
+	TEST_EQUAL(tmp.getPeptideIdentifications().size(),1);
 RESULT
 
 CHECK((const std::map<String,MetaInfoDescription>& getMetaInfoDescriptions() const))
@@ -205,14 +205,14 @@ CHECK((SpectrumSettings& operator= (const SpectrumSettings& source)))
 	tmp.getAcquisitionInfo().setMethodOfCombination("test");
 	tmp.getInstrumentSettings().setMzRangeStart(47.11);
 	tmp.getPrecursor().setActivationEnergy(47.11);
-	tmp.getIdentifications().resize(1);
+	tmp.getPeptideIdentifications().resize(1);
 	tmp.setType(SpectrumSettings::PEAKS);
 	tmp.setComment("bla");
 	
 	SpectrumSettings tmp2(tmp);
 	TEST_EQUAL(tmp2.getComment(), "bla");
 	TEST_EQUAL(tmp2.getType(), SpectrumSettings::PEAKS);
-	TEST_EQUAL(tmp2.getIdentifications().size(), 1);	
+	TEST_EQUAL(tmp2.getPeptideIdentifications().size(), 1);	
 	TEST_REAL_EQUAL(tmp2.getPrecursor()==Precursor(), false);	
 	TEST_REAL_EQUAL(tmp2.getInstrumentSettings()==InstrumentSettings(), false);
 	TEST_EQUAL(tmp2.getAcquisitionInfo()==AcquisitionInfo(), false);  
@@ -225,7 +225,7 @@ CHECK((SpectrumSettings(const SpectrumSettings& source)))
 	tmp.getPrecursor().setActivationEnergy(47.11);
 	tmp.setType(SpectrumSettings::PEAKS);
 	tmp.setComment("bla");
-	tmp.getIdentifications().resize(1);
+	tmp.getPeptideIdentifications().resize(1);
 	
 	SpectrumSettings tmp2;
 	tmp2 = tmp;
@@ -234,7 +234,7 @@ CHECK((SpectrumSettings(const SpectrumSettings& source)))
 	TEST_REAL_EQUAL(tmp2.getPrecursor()==Precursor(), false);	
 	TEST_REAL_EQUAL(tmp2.getInstrumentSettings()==InstrumentSettings(), false);	
 	TEST_EQUAL(tmp2.getAcquisitionInfo()==AcquisitionInfo(), false);
-	TEST_EQUAL(tmp2.getIdentifications().size(), 1);	
+	TEST_EQUAL(tmp2.getPeptideIdentifications().size(), 1);	
 
 	tmp2 = SpectrumSettings();
 	TEST_EQUAL(tmp2.getComment(), "");
@@ -242,7 +242,7 @@ CHECK((SpectrumSettings(const SpectrumSettings& source)))
 	TEST_REAL_EQUAL(tmp2.getPrecursor()==Precursor(), true);	
 	TEST_REAL_EQUAL(tmp2.getInstrumentSettings()==InstrumentSettings(), true);	
 	TEST_EQUAL(tmp2.getAcquisitionInfo()==AcquisitionInfo(), true);
-	TEST_EQUAL(tmp2.getIdentifications().size(), 0);	
+	TEST_EQUAL(tmp2.getPeptideIdentifications().size(), 0);	
 
 RESULT
 
@@ -271,7 +271,7 @@ CHECK((bool operator== (const SpectrumSettings& rhs) const))
 	TEST_EQUAL(edit==empty, false);
 
 	edit = empty;
-	edit.getIdentifications().resize(1);
+	edit.getPeptideIdentifications().resize(1);
 	TEST_EQUAL(edit==empty, false);
 RESULT
 
@@ -300,7 +300,7 @@ CHECK((bool operator!= (const SpectrumSettings& rhs) const))
 	TEST_EQUAL(edit!=empty, true);
 	
 	edit = empty;
-	edit.getIdentifications().resize(1);
+	edit.getPeptideIdentifications().resize(1);
 	TEST_EQUAL(edit!=empty, true);
 RESULT
 

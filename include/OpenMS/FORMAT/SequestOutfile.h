@@ -31,14 +31,9 @@
 #include <OpenMS/DATASTRUCTURES/Date.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/METADATA/Identification.h>
-#include <OpenMS/METADATA/PeptideHit.h>
-#include <OpenMS/METADATA/ProteinHit.h>
-#include <OpenMS/METADATA/ProteinIdentification.h>
+#include <OpenMS/METADATA/PeptideIdentification.h>
 
-#include <fstream>
-#include <iostream>
 #include <map>
-#include <string>
 #include <vector>
 
 namespace OpenMS
@@ -72,30 +67,30 @@ namespace OpenMS
 				This class serves to read in a Sequest outfile. The information can be
 				retrieved via the load function.
 			*/
-			void load(const std::string& result_filename, std::vector< IdentificationData >& identifications, ProteinIdentification& protein_identification, const DoubleReal& p_value_threshold, std::vector< DoubleReal >& pvalues, const std::string& database = "") throw (Exception::FileNotFound, Exception::ParseError);
+			void load(const String& result_filename, std::vector<PeptideIdentification>& identifications, Identification& protein_identification, const DoubleReal& p_value_threshold, std::vector<DoubleReal>& pvalues, const String& database = "") throw (Exception::FileNotFound, Exception::ParseError);
 
 			
-			void finishSummaryHtml(const std::string& summary_filename) throw (Exception::UnableToCreateFile);
+			void finishSummaryHtml(const String& summary_filename) throw (Exception::UnableToCreateFile);
 
 			/// write a
-			void out2SummaryHtml(std::string out_filename, const std::string& summary_filename, const std::string& database_filename) throw(Exception::FileNotFound, Exception::ParseError, Exception::UnableToCreateFile);
+			void out2SummaryHtml(String out_filename, const String& summary_filename, const String& database_filename) throw(Exception::FileNotFound, Exception::ParseError, Exception::UnableToCreateFile);
 
-			std::map< String, std::vector< DoubleReal > > getPeptidePValues(/*const std::string& out_dir,*/ const std::string& prob_filename) throw (Exception::FileNotFound);
+			std::map<String, std::vector<DoubleReal> > getPeptidePValues(const String& prob_filename) throw (Exception::FileNotFound);
 			
 			/// retrieve columns from a Sequest outfile line
-			bool getColumns(const String& line, std::vector< String >& substrings, UInt number_of_columns, UInt reference_column);
+			bool getColumns(const String& line, std::vector<String>& substrings, UInt number_of_columns, UInt reference_column);
 			
 			/// retrieve sequences from a FASTA database
-			void getSequences(const String& database_filename, const std::map< String, UInt >& ac_position_map, std::vector< String >& sequences, std::vector< std::pair< String, UInt > >& found, std::map< String, UInt >& not_found) throw (Exception::FileNotFound);
+			void getSequences(const String& database_filename, const std::map<String, UInt>& ac_position_map, std::vector<String>& sequences, std::vector<std::pair<String, UInt> >& found, std::map<String, UInt>& not_found) throw (Exception::FileNotFound);
 				
 			/// retrieve the accession type and accession number from a protein description line
 			/// (e.g. from FASTA line: >gi|5524211|gb|AAD44166.1| cytochrome b [Elephas maximus maximus], get ac:AAD44166.1 ac type: GenBank)
-			void getACAndACType(String line, std::string& accession, std::string& accession_type);
+			void getACAndACType(String line, String& accession, String& accession_type);
 			
 			/// either insert the new peptide hit or update it's protein indices
-			bool updatePeptideHits(PeptideHit& peptide_hit, std::vector< PeptideHit >& peptide_hits);
+			//bool updatePeptideHits(PeptideHit& peptide_hit, std::vector<PeptideHit>& peptide_hits);
 
-			void readOutHeader(const std::string& result_filename, DateTime& datetime, DoubleReal& precursor_mz_value, Int& charge, UInt& precursor_mass_type, UInt& ion_mass_type, Int& number_column, Int& rank_sp_column, Int& id_column, Int& mh_column, Int& delta_cn_column, Int& xcorr_column, Int& sp_column, Int& sf_column, Int& ions_column, Int& reference_column, Int& peptide_column, Int& score_column, UInt& number_of_columns, UInt& displayed_peptides) throw(Exception::FileNotFound, Exception::ParseError);
+			void readOutHeader(const String& result_filename, DateTime& datetime, DoubleReal& precursor_mz_value, Int& charge, UInt& precursor_mass_type, UInt& ion_mass_type, Int& number_column, Int& rank_sp_column, Int& id_column, Int& mh_column, Int& delta_cn_column, Int& xcorr_column, Int& sp_column, Int& sf_column, Int& ions_column, Int& reference_column, Int& peptide_column, Int& score_column, UInt& number_of_columns, UInt& displayed_peptides) throw(Exception::FileNotFound, Exception::ParseError);
 			
 		private:
 			UInt out2summary_number;

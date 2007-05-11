@@ -34,60 +34,37 @@ namespace OpenMS
 {
 	// default constructor
   PeptideHit::PeptideHit()
-			:	score_(0), 
-				score_type_(""), 
-				rank_(0), 
-				charge_(0), 
-				sequence_(""),
-				predicted_rt_p_value_(-1)
+		:	score_(0), 
+			rank_(0), 
+			charge_(0)
   {
   }
   
 	// values constructor
-  PeptideHit::PeptideHit(DoubleReal score, 
-  											 std::string score_type, 
-  											 UInt rank, 
-												 Int charge,
-  											 String sequence)
-    	: score_(score), 
-    		score_type_(score_type), 
+  PeptideHit::PeptideHit(DoubleReal score, UInt rank, Int charge, const String& sequence)
+    	: MetaInfoInterface(),
+    		score_(score), 
     		rank_(rank),
 				charge_(charge),
-    		sequence_(sequence),
-				predicted_rt_p_value_(-1)
+    		sequence_(sequence)
   {
   	sequence_.trim();
   }
   
 	// copy constructor
   PeptideHit::PeptideHit(const PeptideHit& source)
-    	: //PersistentObject(source),
-				score_(source.score_), 
-				score_type_(source.score_type_), 
-				rank_(source.rank_),
-				charge_(source.charge_),
-				sequence_(source.sequence_),
-				corresponding_protein_indices_(source.corresponding_protein_indices_),
-				predicted_rt_p_value_(source.predicted_rt_p_value_)
+		:	MetaInfoInterface(source),
+			score_(source.score_), 
+			rank_(source.rank_),
+			charge_(source.charge_),
+			sequence_(source.sequence_),
+			corresponding_protein_accessions_(source.corresponding_protein_accessions_)
   {
   }
   
 	// destructor
   PeptideHit::~PeptideHit()
   {  	
-  	score_type_.erase();
-  	sequence_.erase();
-  }
-  
-  void PeptideHit::clear() {
-    //clearId();
-    score_ = 0;
-    score_type_.erase();
-    sequence_.erase();
-    rank_ = 0;
-		charge_ = 0;
-    corresponding_protein_indices_.clear();
-		predicted_rt_p_value_ = -1;
   }
    
   PeptideHit& PeptideHit::operator= (const PeptideHit& source)
@@ -95,60 +72,39 @@ namespace OpenMS
 	 	if (this == &source)
   	{
   		return *this;
-  	}  			
-    //PersistentObject::operator= (source);
+  	}
+  	
+  	MetaInfoInterface::operator=(source);
     score_ = source.score_;
 		charge_ = source.charge_;
-    score_type_ = source.score_type_;
 		rank_  = source.rank_;
     sequence_ = source.sequence_;
-    corresponding_protein_indices_ = source.corresponding_protein_indices_;
-		predicted_rt_p_value_ = source.predicted_rt_p_value_;
+    corresponding_protein_accessions_ = source.corresponding_protein_accessions_;
 
     return *this;
   }
 	
 	bool PeptideHit::operator == (const PeptideHit& rhs) const	
 	{
-		return score_ == rhs.score_ 
-			&& score_type_ == rhs.score_type_ 
+		return MetaInfoInterface::operator==(rhs)
+			&& score_ == rhs.score_ 
 			&& rank_ == rhs.rank_ 
 			&& charge_ == rhs.charge_
 			&& sequence_ == rhs.sequence_
-			&& corresponding_protein_indices_ == rhs.corresponding_protein_indices_
-		  && predicted_rt_p_value_ == rhs.predicted_rt_p_value_;
+			&& corresponding_protein_accessions_ == rhs.corresponding_protein_accessions_;
 	}
 
 	bool PeptideHit::operator != (const PeptideHit& rhs) const	
 	{
-		return !(*this == rhs);
-	}
-	
-	void PeptideHit::addProteinIndex(const pair<String, String>& index) 
-	{ 
-		bool found = false;
-		
-		for(vector< pair<String, String> >::iterator it = corresponding_protein_indices_.begin(); 
-				it != corresponding_protein_indices_.end();
-				it++)
-		{
-			if (it->first == index.first && it->second == index.second)
-			{
-				found = true;
-			}
-		}
-		if (!found)
-		{
-			corresponding_protein_indices_.push_back(index);		
-		}
+		return !operator==(rhs);
 	}
 
-	void PeptideHit::addProteinIndex(const DateTime& date, const String& accession) 
-	{ 
-		String date_time = "";
-		
-		date.get(date_time);
-		addProteinIndex(make_pair(date_time, accession));		
+	void PeptideHit::addProteinAccession(const String& accession) 
+	{
+		if (find(corresponding_protein_accessions_.begin(), corresponding_protein_accessions_.end(), accession) == corresponding_protein_accessions_.end())
+		{
+			corresponding_protein_accessions_.push_back(accession);
+		}
 	}
 
   // returns the score of the peptide hit 
@@ -157,12 +113,6 @@ namespace OpenMS
   	return score_;
   }
   
-  // returns the type of the score
-  const std::string& PeptideHit::getScoreType() const 
-  {
-  	return score_type_;
-  }
-	
 	// returns the rank of the peptide hit
   UInt PeptideHit::getRank() const 
   {
@@ -191,16 +141,10 @@ namespace OpenMS
 		charge_ = charge;
 	}
 	
-	// returns the corresponding protein indices
-	const vector< pair<String, String> >& PeptideHit::getProteinIndices() const 
+	// returns the corresponding protein accessions
+	const vector<String>& PeptideHit::getProteinAccessions() const 
 	{
-		return corresponding_protein_indices_;
-	}
-
-	// returns the corresponding protein indices
-	vector< pair<String, String> >& PeptideHit::getProteinIndices()
-	{
-		return corresponding_protein_indices_;
+		return corresponding_protein_accessions_;
 	}
 
   // sets the score of the peptide hit 
@@ -209,32 +153,10 @@ namespace OpenMS
   	score_ = score;
   }
   
-  // sets the type of the score
-  void PeptideHit::setScoreType(const std::string& score_type) 
-  {
-  	score_type_ = score_type;
-  }
-
 	// sets the rank
   void PeptideHit::setRank(UInt newrank) 
   {
   	rank_ = newrank;
   }
-  
-  void PeptideHit::setProteinIndices(const std::vector< std::pair<String, String> >& indices)
-  {
-  	corresponding_protein_indices_ = indices;
-  }
-  
-	void PeptideHit::setPredictedRTPValue(DoubleReal value)
-	{
-		predicted_rt_p_value_ = value;
-	}
-
-  DoubleReal PeptideHit::getPredictedRTPValue() const
-	{
-		return predicted_rt_p_value_;
-	}
-
 
 } // namespace OpenMS

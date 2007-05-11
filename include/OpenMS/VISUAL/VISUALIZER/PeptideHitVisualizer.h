@@ -21,7 +21,7 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: stefan_heess $
+// $Maintainer: Marc Sturm $
 // --------------------------------------------------------------------------
  
 #ifndef OPENMS_VISUAL_VISUALIZER_PEPTIDEHITVISUALIZER_H
@@ -34,12 +34,13 @@
 class QLabel;
 class QLineEdit;
 
-namespace OpenMS {
-/**
-@brief Class that displays all meta information for PeptideHit objects
-
-This class provides all functionality to view the meta information of an object of type PeptideHit.
-*/
+namespace OpenMS 
+{
+	/**
+		@brief Class that displays all meta information for PeptideHit objects
+	
+		This class provides all functionality to view the meta information of an object of type PeptideHit.
+	*/
 	class PeptideHitVisualizer : public BaseVisualizer
 	{
 		Q_OBJECT
@@ -59,12 +60,10 @@ This class provides all functionality to view the meta information of an object 
 
 	private:  
 		
-		/** @name Edit fields 
-   */
+		/// @name Edit fields 
     //@{
 		QLineEdit *peptidehit_score_;
 		QLineEdit *peptidehit_charge_;
-		QLineEdit *peptidehit_score_type_;
 		QLineEdit *peptidehit_rank_;
 		QTextEdit *peptidehit_sequence_;
 		//@}

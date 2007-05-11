@@ -21,7 +21,7 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: stefan_heess   $
+// $Maintainer: Marc Sturm   $
 // --------------------------------------------------------------------------
 
 //OpenMS
@@ -38,72 +38,61 @@ using namespace std;
 namespace OpenMS
 {
 
-//Constructor
-ProteinHitVisualizer::ProteinHitVisualizer(bool editable, QWidget *parent) : BaseVisualizer(editable, parent)
-{
-  
-	addLabel("Show ProteinHit information.");		
-	addSeperator();
-	addLineEdit(proteinhit_score_, "Score" );
-	addLineEdit(proteinhit_score_type_, "Score type" );
-	addLineEdit(proteinhit_rank_, "Rank" );
-	addLineEdit(proteinhit_accession_, "Accession" );
-	addLineEdit(proteinhit_accession_type_, "Accession type" );
-	addTextEdit(proteinhit_sequence_, "Sequence" );
-	
-	
-	addSeperator();
-	
-}
-
-
-
-void ProteinHitVisualizer::load(ProteinHit &h)
-{
-  ptr_ = &h;
-	
-	//Copy of current object for restoring the original values
-	tempProteinHit_=h;
-  proteinhit_score_->setText(String(tempProteinHit_.getScore()).c_str() );
-	proteinhit_score_->setReadOnly(true);
-	proteinhit_score_type_->setText(tempProteinHit_.getScoreType().c_str() );
-	proteinhit_score_type_->setReadOnly(true);
-  proteinhit_rank_->setText(String(tempProteinHit_.getRank()).c_str());
-	proteinhit_rank_->setReadOnly(true);
-	proteinhit_accession_->setText(tempProteinHit_.getAccession().c_str());
-	proteinhit_accession_->setReadOnly(true);
-	proteinhit_accession_type_->setText(tempProteinHit_.getAccessionType().c_str());
-	proteinhit_accession_type_->setReadOnly(true);
-	proteinhit_sequence_->setText(tempProteinHit_.getSequence().c_str()); 
-	proteinhit_sequence_->setReadOnly(true);
-	
+	//Constructor
+	ProteinHitVisualizer::ProteinHitVisualizer(bool editable, QWidget *parent) : BaseVisualizer(editable, parent)
+	{
+		addLabel("Show ProteinHit information.");		
+		addSeperator();
+		addLineEdit(proteinhit_score_, "Score" );
+		addLineEdit(proteinhit_rank_, "Rank" );
+		addLineEdit(proteinhit_accession_, "Accession" );
+		addTextEdit(proteinhit_sequence_, "Sequence" );
 			
-}
-
-void ProteinHitVisualizer::store_()
-{
-	try
-	{
+		addSeperator();
+	}
 	
-		//Information of ProteinHit is not to be changed.
-		//(*ptr_) =tempProteinHit_ ;
-	}
-	catch(exception& e)
+	
+	
+	void ProteinHitVisualizer::load(ProteinHit &h)
 	{
-		std::cout<<"Error while trying to store the new ProteinHit data. "<<e.what()<<endl;
+	  ptr_ = &h;
+		
+		//Copy of current object for restoring the original values
+		tempProteinHit_=h;
+	  proteinhit_score_->setText(String(tempProteinHit_.getScore()).c_str() );
+		proteinhit_score_->setReadOnly(true);
+	  proteinhit_rank_->setText(String(tempProteinHit_.getRank()).c_str());
+		proteinhit_rank_->setReadOnly(true);
+		proteinhit_accession_->setText(tempProteinHit_.getAccession().c_str());
+		proteinhit_accession_->setReadOnly(true);
+		proteinhit_sequence_->setText(tempProteinHit_.getSequence().c_str()); 
+		proteinhit_sequence_->setReadOnly(true);
 	}
-}
-
-void ProteinHitVisualizer::reject_()
-{
-	try
+	
+	void ProteinHitVisualizer::store_()
 	{
-		load(tempProteinHit_);
+		try
+		{
+		
+			//Information of ProteinHit is not to be changed.
+			//(*ptr_) =tempProteinHit_ ;
+		}
+		catch(exception& e)
+		{
+			std::cout<<"Error while trying to store the new ProteinHit data. "<<e.what()<<endl;
+		}
 	}
-	catch(exception e)
+	
+	void ProteinHitVisualizer::reject_()
 	{
-		cout<<"Error while trying to restore original ProteinHit data. "<<e.what()<<endl;
-	} 
-}
+		try
+		{
+			load(tempProteinHit_);
+		}
+		catch(exception e)
+		{
+			cout<<"Error while trying to restore original ProteinHit data. "<<e.what()<<endl;
+		} 
+	}
 
 }

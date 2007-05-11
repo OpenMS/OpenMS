@@ -44,260 +44,167 @@ using namespace OpenMS;
 using namespace std;
 
 float score = 4.4;
-std::string score_type = "XCorr";
 uint rank = 3;
 String sequence = "ARRAY";
 std::string sequence2 = "  ARRAY  ";
 Int charge;
 
-PeptideHit* ptr1 = 0;
-
+PeptideHit* ptr = 0;
 CHECK((PeptideHit()))
-	ptr1 = new PeptideHit();
-	TEST_NOT_EQUAL(ptr1, 0)
-	TEST_EQUAL(ptr1->getScore(), 0)
-	TEST_EQUAL(ptr1->getScoreType(), "")
-	TEST_EQUAL(ptr1->getRank(), 0)
-	TEST_EQUAL(ptr1->getCharge(), 0)
-	TEST_EQUAL(ptr1->getSequence(), "")
+	ptr = new PeptideHit();
+	TEST_NOT_EQUAL(ptr, 0)
 RESULT
 
 CHECK((~PeptideHit()))
-	delete ptr1;
+	delete ptr;
 RESULT
 
-CHECK((PeptideHit(double score, std::string score_type, uint rank, Int charge, String sequence)))
-	ptr1 = new PeptideHit(score, score_type, rank, charge, sequence);
-	TEST_EQUAL(ptr1->getScore(), score)
-	TEST_EQUAL(ptr1->getScoreType(), score_type)
-	TEST_EQUAL(ptr1->getRank(), rank)
-	TEST_EQUAL(ptr1->getCharge(), charge)
-	TEST_EQUAL(ptr1->getSequence(), sequence)
-	TEST_EQUAL(ptr1->getPredictedRTPValue(), -1)
+CHECK((PeptideHit(double score, uint rank, Int charge, String sequence)))
+	PeptideHit hit(score, rank, charge, sequence);
+	TEST_EQUAL(hit.getScore(), score)
+	TEST_EQUAL(hit.getRank(), rank)
+	TEST_EQUAL(hit.getCharge(), charge)
+	TEST_EQUAL(hit.getSequence(), sequence)
 RESULT
 
 CHECK((PeptideHit& operator=(const PeptideHit& source)))
 	PeptideHit hit;
-	ptr1 = new PeptideHit(score, score_type, rank, charge, sequence);
-	hit = *ptr1;
-	TEST_EQUAL(hit.getScore(), ptr1->getScore())
-	TEST_EQUAL(hit.getScoreType(), ptr1->getScoreType())
-	TEST_EQUAL(hit.getRank(), ptr1->getRank())
-	TEST_EQUAL(hit.getSequence(), ptr1->getSequence())
-	TEST_EQUAL(hit.getPredictedRTPValue(), ptr1->getPredictedRTPValue())		
+	PeptideHit hit2(score, rank, charge, sequence);
+	hit2.setMetaValue("label",17);
+	
+	hit = hit2;
+	
+	TEST_EQUAL(hit.getScore(), score)
+	TEST_EQUAL(hit.getRank(), rank)
+	TEST_EQUAL(hit.getCharge(), charge)
+	TEST_EQUAL(hit.getSequence(), sequence)
+	TEST_EQUAL((UInt)hit.getMetaValue("label"),17)
 RESULT
 
 CHECK((PeptideHit(const PeptideHit& source)))
 	PeptideHit source;
 	source.setScore(score);
-	source.setScoreType(score_type);
 	source.setRank(rank);
 	source.setSequence(sequence);
-
-  ptr1 = new PeptideHit(source);
-	TEST_EQUAL(ptr1->getScore(), source.getScore())
-	TEST_EQUAL(ptr1->getScoreType(), source.getScoreType())
-	TEST_EQUAL(ptr1->getRank(), source.getRank())
-	TEST_EQUAL(ptr1->getSequence(), source.getSequence())		  
-	TEST_EQUAL(ptr1->getPredictedRTPValue(), source.getPredictedRTPValue())		
-			
+	source.setMetaValue("label",17);
+	
+  PeptideHit hit(source);
+	
+	TEST_EQUAL(hit.getScore(), source.getScore())
+	TEST_EQUAL(hit.getRank(), source.getRank())
+	TEST_EQUAL(hit.getSequence(), source.getSequence())
+	TEST_EQUAL((UInt)hit.getMetaValue("label"),17) 
 RESULT
 
 CHECK((bool operator == (const PeptideHit& rhs) const))
   PeptideHit hit, hit2;
   TEST_EQUAL(hit==hit2,true);
+
   hit.setScore(score);
   TEST_EQUAL(hit==hit2,false);
-  hit2.setScore(score);
-  TEST_EQUAL(hit==hit2,true);
-  hit.setScoreType(score_type);
+	hit=hit2;
+	
+  hit.setRank(rank);
   TEST_EQUAL(hit==hit2,false);
-  hit2.setScoreType(score_type);
-  TEST_EQUAL(hit==hit2,true);
-	hit.setRank(rank);
-  TEST_EQUAL(hit==hit2,false);
-	hit2.setRank(rank);
-  TEST_EQUAL(hit==hit2,true);
+	hit=hit2;
+	
 	hit.setSequence(sequence);
   TEST_EQUAL(hit==hit2,false);
-	hit2.setSequence(sequence);
-	TEST_EQUAL(hit==hit2,true);
-	hit.setPredictedRTPValue(0.6);
+	hit=hit2;
+	
+	hit.setMetaValue("label",17);
   TEST_EQUAL(hit==hit2,false);
-	hit2.setPredictedRTPValue(0.6);
-	TEST_EQUAL(hit==hit2,true);
+	hit=hit2;
 RESULT
 
 CHECK((bool operator != (const PeptideHit& rhs) const))
   PeptideHit hit, hit2;
   TEST_EQUAL(hit!=hit2,false);
+
   hit.setScore(score);
   TEST_EQUAL(hit!=hit2,true);
-  hit2.setScore(score);
-  TEST_EQUAL(hit!=hit2,false);
-  hit.setScoreType(score_type);
+	hit=hit2;
+	
+  hit.setRank(rank);
   TEST_EQUAL(hit!=hit2,true);
-  hit2.setScoreType(score_type);
-  TEST_EQUAL(hit!=hit2,false);
-	hit.setRank(rank);
-  TEST_EQUAL(hit!=hit2,true);
-	hit2.setRank(rank);
-  TEST_EQUAL(hit!=hit2,false);
+	hit=hit2;
+	
 	hit.setSequence(sequence);
   TEST_EQUAL(hit!=hit2,true);
-	hit2.setSequence(sequence);
-	TEST_EQUAL(hit!=hit2,false);
-	hit.setPredictedRTPValue(0.6);
+	hit=hit2;
+	
+	hit.setMetaValue("label",17);
   TEST_EQUAL(hit!=hit2,true);
-	hit2.setPredictedRTPValue(0.6);
-	TEST_EQUAL(hit!=hit2,false);
+	hit=hit2;
 RESULT
 
 CHECK((float getScore() const))
-	ptr1 = new PeptideHit(score, score_type, rank, charge, sequence);
-	TEST_EQUAL(ptr1->getScore(), score)
-RESULT
-
-CHECK((const std::string& getScoreType() const))
-	ptr1 = new PeptideHit(score, score_type, rank, charge, sequence);
-	TEST_EQUAL(ptr1->getScoreType(), score_type)
+	PeptideHit hit(score, rank, charge, sequence);
+	TEST_EQUAL(hit.getScore(), score)
 RESULT
 
 CHECK((UInt getRank() const))
-	ptr1 = new PeptideHit(score, score_type, rank, charge, sequence);
-	TEST_EQUAL(ptr1->getRank(), rank)
+	PeptideHit hit(score, rank, charge, sequence);
+	TEST_EQUAL(hit.getRank(), rank)
 RESULT
 
 CHECK((String getSequence() const))
-	ptr1 = new PeptideHit(score, score_type, rank, charge, sequence);
-	TEST_EQUAL(ptr1->getSequence(), sequence)
-RESULT
-
-CHECK((void clear()))
-	ptr1 = new PeptideHit(score, score_type, rank, charge, sequence);
-  ptr1->setPredictedRTPValue(0.3);
-	ptr1->clear();
-	TEST_EQUAL(ptr1->getScore(), 0)
-	TEST_EQUAL(ptr1->getScoreType(), "")
-	TEST_EQUAL(ptr1->getRank(), 0)
-	TEST_EQUAL(ptr1->getSequence(), "")
-	TEST_EQUAL(ptr1->getPredictedRTPValue(), -1)
+	PeptideHit hit(score, rank, charge, sequence);
+	TEST_EQUAL(hit.getSequence(), sequence)
 RESULT
 
 CHECK((void setRank(UInt newrank)))
-	ptr1 = new PeptideHit();
-	ptr1->setRank(rank);
-	TEST_EQUAL(ptr1->getRank(), rank)
+	PeptideHit hit;
+	hit.setRank(rank);
+	TEST_EQUAL(hit.getRank(), rank)
 RESULT
 
 CHECK((void setScore(DoubleReal score)))
-	ptr1 = new PeptideHit();
-	ptr1->setScore(score);
-	TEST_EQUAL(ptr1->getScore(), score)
-RESULT
-
-CHECK((void setScoreType(const std::string& score_type)))
-	ptr1 = new PeptideHit();
-	ptr1->setScoreType(score_type);
-	TEST_EQUAL(ptr1->getScoreType(), score_type)
+	PeptideHit hit;
+	hit.setScore(score);
+	TEST_EQUAL(hit.getScore(), score)
 RESULT
 
 CHECK((void setSequence(const String& sequence)))
-	ptr1 = new PeptideHit();
-	ptr1->setSequence(sequence);
-	TEST_EQUAL(ptr1->getSequence(), sequence)
-	ptr1->setSequence(sequence2);
-	TEST_EQUAL(ptr1->getSequence(), sequence)	
+	PeptideHit hit;
+	hit.setSequence(sequence);
+	TEST_EQUAL(hit.getSequence(), sequence)
+	hit.setSequence(sequence2);
+	TEST_EQUAL(hit.getSequence(), sequence)	
 RESULT
 
-CHECK((void addProteinIndex(const std::pair<String, String>& index)))
+CHECK((void addProteinAccession(const String& accession)))
 	String date;
-	vector< pair<String, String> > indices;
+	vector<String> indices;
 
 	date = "2006-12-12 11:59:59";
-	ptr1 = new PeptideHit();
+	PeptideHit hit;
 
-	ptr1->addProteinIndex(make_pair(date, String("ACC392")));
-	ptr1->addProteinIndex(make_pair(date, String("ACC392")));
-	ptr1->addProteinIndex(make_pair(date, String("ACD392")));
-	indices = ptr1->getProteinIndices();
+	hit.addProteinAccession("ACC392");
+	hit.addProteinAccession("ACD392");
+	indices = hit.getProteinAccessions();
 	TEST_EQUAL(indices.size(), 2)
-	TEST_EQUAL(indices[0].first == String("2006-12-12 11:59:59"), true)
-	TEST_EQUAL(indices[0].second == String("ACC392"), true)
-	TEST_EQUAL(indices[1].first == String("2006-12-12 11:59:59"), true)
-	TEST_EQUAL(indices[1].second == String("ACD392"), true)
-
+	TEST_EQUAL(indices[0] == String("ACC392"), true)
+	TEST_EQUAL(indices[1] == String("ACD392"), true)
 RESULT
 
-CHECK((void addProteinIndex(const DateTime& date, const String& accession)))
-	DateTime date;
-	vector< pair<String, String> > indices;
-
-	date.set("2006-12-12 11:59:59");
-	ptr1 = new PeptideHit();
-
-	ptr1->addProteinIndex(date, "ACC392");
-	ptr1->addProteinIndex(date, "ACC392");
-	ptr1->addProteinIndex(date, "ACD392");
-	indices = ptr1->getProteinIndices();
-	TEST_EQUAL(indices.size(), 2)
-	TEST_EQUAL(indices[0].first == String("2006-12-12 11:59:59"), true)
-	TEST_EQUAL(indices[0].second == String("ACC392"), true)
-	TEST_EQUAL(indices[1].first == String("2006-12-12 11:59:59"), true)
-	TEST_EQUAL(indices[1].second == String("ACD392"), true)
-
+CHECK((void setProteinAccessions(const std::vector< std::pair<String, String> >& indices)))
+	vector<String> vec;
+	vec.push_back("ACC392");
+	vec.push_back("ACD392");
+	PeptideHit hit;
+	hit.addProteinAccession("ACC392");
+	hit.addProteinAccession("ACD392");
+	TEST_EQUAL(vec == hit.getProteinAccessions(), true)
 RESULT
 
-CHECK((void setProteinIndices(const std::vector< std::pair<String, String> >& indices)))
-	vector< pair<String, String> > indices1;
-	vector< pair<String, String> > indices2;
-
-	ptr1 = new PeptideHit();
-
-	indices1.push_back(make_pair("2006-12-12 11:59:59", "ACC392"));
-	indices1.push_back(make_pair("2006-12-12 11:59:59", "ACC392"));
-	indices1.push_back(make_pair("2006-12-12 11:59:59", "ACD392"));
-	ptr1->setProteinIndices(indices1);
-	indices2 = ptr1->getProteinIndices();
-	TEST_EQUAL(indices1 == indices2, true)
-
-RESULT
-
-CHECK((std::vector< std::pair<String, String>& getProteinIndices()))
-	DateTime date;
-	vector< pair<String, String> > indices;
-
-	date.set("2006-12-12 11:59:59");
-	ptr1 = new PeptideHit();
-
-	ptr1->addProteinIndex(date, "ACC392");
-	ptr1->addProteinIndex(date, "ACC392");
-	ptr1->addProteinIndex(date, "ACD392");
-	indices = ptr1->getProteinIndices();
-	TEST_EQUAL(indices.size(), 2)
-	TEST_EQUAL(indices[0].first == String("2006-12-12 11:59:59"), true)
-	TEST_EQUAL(indices[0].second == String("ACC392"), true)
-	TEST_EQUAL(indices[1].first == String("2006-12-12 11:59:59"), true)
-	TEST_EQUAL(indices[1].second == String("ACD392"), true)
-
-RESULT
-
-CHECK((const std::vector< std::pair<String, String>& getProteinIndices() const))
-	DateTime date;
-
-	date.set("2006-12-12 11:59:59");
-	ptr1 = new PeptideHit();
-
-	ptr1->addProteinIndex(date, "ACC392");
-	ptr1->addProteinIndex(date, "ACC392");
-	ptr1->addProteinIndex(date, "ACD392");
-	const vector< pair<String, String> >& indices = ptr1->getProteinIndices();
-	TEST_EQUAL(indices.size(), 2)
-	TEST_EQUAL(indices[0].first == String("2006-12-12 11:59:59"), true)
-	TEST_EQUAL(indices[0].second == String("ACC392"), true)
-	TEST_EQUAL(indices[1].first == String("2006-12-12 11:59:59"), true)
-	TEST_EQUAL(indices[1].second == String("ACD392"), true)
-
+CHECK((const std::vector< std::pair<String, String>& getProteinAccessions() const))
+	PeptideHit hit;
+	hit.addProteinAccession("ACC392");
+	hit.addProteinAccession("ACD392");
+	TEST_EQUAL(hit.getProteinAccessions().size(), 2)
+	TEST_EQUAL(hit.getProteinAccessions()[0], "ACC392")
+	TEST_EQUAL(hit.getProteinAccessions()[1], "ACD392")
 RESULT
 
 CHECK(Int getCharge() const)
@@ -313,20 +220,6 @@ CHECK(void setCharge(Int charge))
 	hit.setCharge(-43);
 	TEST_EQUAL(-43, hit.getCharge())
 RESULT
-
-CHECK(void setPredictedRTPValue(DoubleReal value))
-	ptr1 = new PeptideHit(score, score_type, rank, charge, sequence);
-  ptr1->setPredictedRTPValue(0.3);
-  TEST_EQUAL(ptr1->getPredictedRTPValue(), 0.3)
-RESULT
-
-CHECK(DoubleReal getPredictedRTPValue() const)
-	ptr1 = new PeptideHit(score, score_type, rank, charge, sequence);
-  ptr1->setPredictedRTPValue(0.3);
-  TEST_EQUAL(ptr1->getPredictedRTPValue(), 0.3)
-RESULT
-
-
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

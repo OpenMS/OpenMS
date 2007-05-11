@@ -27,6 +27,7 @@
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
+#include <OpenMS/FORMAT/MzXMLFile.h>
 #include <OpenMS/FORMAT/InspectInfile.h>
 #include <OpenMS/FORMAT/InspectOutfile.h>
 #include <OpenMS/FORMAT/PTMXMLFile.h>
@@ -986,7 +987,7 @@ class TOPPInspectAdapter
 				if ( wanted_records.empty() )
 				{
 					IdXMLFile IdXML_file;
-					IdXML_file.store(output_filename, vector< ProteinIdentification >(), vector< IdentificationData >());
+					IdXML_file.store(output_filename, vector<Identification>(), vector<PeptideIdentification>());
 					inspect_out = false;
 					writeLog_("No proteins matching criteria for generating minimized database for blind search!");
 					
@@ -1035,8 +1036,8 @@ class TOPPInspectAdapter
 				
 				if ( !File::empty(inspect_output_filename) )
 				{
-					vector< IdentificationData > identifications;
-					ProteinIdentification protein_identification;
+					vector<PeptideIdentification> identifications;
+					Identification protein_identification;
 					
 					try
 					{
@@ -1049,14 +1050,14 @@ class TOPPInspectAdapter
 						return INPUT_FILE_CORRUPT;
 					}
 					
-					vector< ProteinIdentification > protein_identifications;
+					vector<Identification> protein_identifications;
 					protein_identifications.push_back(protein_identification);
 					
 					IdXML_file.store(output_filename, protein_identifications, identifications);
 				}
 				else
 				{
-					IdXML_file.store(output_filename, vector< ProteinIdentification >(), vector< IdentificationData >());
+					IdXML_file.store(output_filename, vector<Identification>(), vector<PeptideIdentification>());
 					writeLog_("No proteins identified!");
 				}
 			}

@@ -172,8 +172,7 @@ class TOPPPILISIdentification
 			id_param.setValue("fixed_modifications", getStringOption_("fixed_modifications"));
 			PILIS_id.setParameters(id_param);
 
-			vector<Identification> ids;
-			vector<IdentificationData> id_data;
+			vector<PeptideIdentification> ids;
 
 			// perform the identification of the given spectra
 			UInt no(1);
@@ -188,16 +187,13 @@ class TOPPPILISIdentification
 				if (it->getMSLevel() == 2)
 				{
 					writeDebug_(String(no) + "/" + String(exp.size()), 1);
-					Identification id;
+					PeptideIdentification id;
 					PILIS_id.getIdentification(id, *it);
 		
-					ids.push_back(id);
+					id.setMetaValue("RT", it->getRT());
+					id.setMetaValue("MZ", it->getPrecursorPeak().getPosition()[0]);
 
-					IdentificationData id_data_tmp;
-					id_data_tmp.rt = it->getRT();
-					id_data_tmp.mz = it->getPrecursorPeak().getPosition()[0];
-					id_data_tmp.id = id;
-					id_data.push_back(id_data_tmp);
+					ids.push_back(id);
 				}
 			}
 
@@ -216,10 +212,11 @@ class TOPPPILISIdentification
 			UInt max_candidates = getIntOption_("max_candidates");
 			for (UInt i = 0; i != ids.size(); ++i)
 			{
-				id_data[i].id = ids[i];
-				if (id_data[i].id.getPeptideHits().size() > max_candidates)
+				if (ids[i].getHits().size() > max_candidates)
 				{
-					id_data[i].id.getPeptideHits().resize(max_candidates);
+					vector<PeptideHit> hits = ids[i].getHits();
+					hits.resize(max_candidates);
+					ids[i].setHits(hits);
 				}
 			}
 			
@@ -231,7 +228,7 @@ class TOPPPILISIdentification
 			// writing output
 			//-------------------------------------------------------------
 		
-			IdXMLFile().store(out, vector<ProteinIdentification>(), id_data);
+			IdXMLFile().store(out, vector<Identification>(), ids);
 			
 			return EXECUTION_OK;
 		}

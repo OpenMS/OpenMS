@@ -37,33 +37,6 @@
 #include <OpenMS/DATASTRUCTURES/DateTime.h>
 
 
-//OpenMS meta data include
-#include <OpenMS/METADATA/Sample.h>
-#include <OpenMS/METADATA/Digestion.h>
-#include <OpenMS/METADATA/Modification.h>
-#include <OpenMS/METADATA/Tagging.h>
-#include <OpenMS/METADATA/HPLC.h>
-#include <OpenMS/METADATA/Gradient.h>
-#include <OpenMS/METADATA/Software.h>
-#include <OpenMS/METADATA/SourceFile.h>
-#include <OpenMS/METADATA/ContactPerson.h>
-#include <OpenMS/METADATA/Instrument.h>
-#include <OpenMS/METADATA/IonSource.h>
-#include <OpenMS/METADATA/IonDetector.h>
-#include <OpenMS/METADATA/MassAnalyzer.h>
-#include <OpenMS/METADATA/ProcessingMethod.h>
-#include <OpenMS/METADATA/ProteinIdentification.h>
-#include <OpenMS/METADATA/Identification.h>
-#include <OpenMS/METADATA/ProteinHit.h>
-#include <OpenMS/METADATA/PeptideHit.h>
-#include <OpenMS/METADATA/ExperimentalSettings.h>
-#include <OpenMS/METADATA/Acquisition.h>
-#include <OpenMS/METADATA/AcquisitionInfo.h>
-#include <OpenMS/METADATA/MetaInfoDescription.h>
-#include <OpenMS/METADATA/Precursor.h>
-#include <OpenMS/METADATA/InstrumentSettings.h>
-#include <OpenMS/METADATA/SpectrumSettings.h>
-
 // QT includes
 #include <QtGui/QMessageBox>
 #include <QtGui/QRadioButton>

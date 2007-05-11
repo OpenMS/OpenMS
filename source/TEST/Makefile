@@ -80,7 +80,7 @@ EXECUTABLES_METADATA = \
 	Sample_test\
 	Acquisition_test\
 	Identification_test\
-	ProteinIdentification_test\
+	PeptideIdentification_test\
 	AcquisitionInfo_test\
 	Precursor_test\
 	ContactPerson_test\
@@ -167,7 +167,6 @@ EXECUTABLES_FORMAT = \
 	Param_test\
 	FeatureXMLFile_test\
 	FeaturePairsFile_test\
-	IdXMLFile_test\
 	MascotXMLFile_test\
 	GridFile_test\
 	PeakFileOptions_test\
@@ -182,7 +181,8 @@ EXECUTABLES_FORMAT = \
 	DBAdapter_test\
 	OMSSAXMLFile_test\
 	XTandemXMLFile_test\
-	MSPFile_test
+	MSPFile_test\
+	IdXMLFile_test
 
 #MATH
 
@@ -198,7 +198,6 @@ EXECUTABLES_MATH = \
 #FILTERING
 
 EXECUTABLES_FILTERING = \
-	IDFilter_test\
 	LinearResampler_test\
 	TopHatFilter_test\
 	MorphFilter_test\
@@ -240,6 +239,8 @@ EXECUTABLES_FILTERING = \
 	SavitzkyGolayQRFilter_test\
 	SavitzkyGolaySVDFilter_test\
 	InternalCalibration_test\
+	IDFilter_test
+
 
 #COMPARISON
 

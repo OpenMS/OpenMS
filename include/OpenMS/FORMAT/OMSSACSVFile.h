@@ -27,15 +27,15 @@
 #ifndef OPENMS_FORMAT_OMSSACSVFILE_H
 #define OPENMS_FORMAT_OMSSACSVFILE_H
 
-#include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/METADATA/Identification.h>
+#include <OpenMS/METADATA/PeptideIdentification.h>
 
-#include <fstream>
 #include <vector>
 
 
 namespace OpenMS
 {
+	class String;
  	/**
  		@brief File adapter for OMSSACSV files.
  		
@@ -60,7 +60,7 @@ namespace OpenMS
 				@p protein_identification the protein identification data
 				@p id_data the peptide ids of the file
       */
-			void load(const String& filename, ProteinIdentification& protein_identification, std::vector<IdentificationData>& id_data) const throw (Exception::FileNotFound, Exception::ParseError);
+			void load(const String& filename, Identification& protein_identification, std::vector<PeptideIdentification>& id_data) const throw (Exception::FileNotFound, Exception::ParseError);
   };
 } // namespace OpenMS
 

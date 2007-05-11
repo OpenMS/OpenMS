@@ -26,7 +26,6 @@
 
 #include <OpenMS/FORMAT/HANDLERS/XTandemXMLHandler.h>
 #include <xercesc/sax2/Attributes.hpp>
-#include <iostream>
 
 using namespace std;
 using namespace xercesc;
@@ -36,8 +35,8 @@ namespace OpenMS
 	namespace Internal
 	{
   
-  XTandemXMLHandler::XTandemXMLHandler(ProteinIdentification& protein_identification,
-								  									 vector<IdentificationData>& id_data, 
+  XTandemXMLHandler::XTandemXMLHandler(Identification& protein_identification,
+								  									 vector<PeptideIdentification>& id_data, 
       								 							 const String& filename) :
     XMLHandler(filename),
     protein_identification_(protein_identification),
@@ -67,26 +66,24 @@ namespace OpenMS
 
 		if (tag_ == "domain")
 		{
-			actual_peptide_hit_.clear();
+			actual_peptide_hit_ = PeptideHit();
 
 			Int hyperscore_index(attributes.getIndex(XMLString::transcode("hyperscore")));
 			double hyperscore(String(XMLString::transcode(attributes.getValue(hyperscore_index))).toDouble());
 
 			actual_peptide_hit_.setScore(hyperscore);
-			actual_peptide_hit_.setScoreType("XTandem");
-			actual_peptide_hit_.clear();
+			//actual_peptide_hit_.setScoreType("XTandem");
+			//actual_peptide_hit_.clear();
 
 			Int seq_index(attributes.getIndex(XMLString::transcode("seq")));
 			String seq(XMLString::transcode(attributes.getValue(seq_index)));
 
 			actual_peptide_hit_.setSequence(seq);
 
-			IdentificationData id_dat;
-			id_dat.id = Identification();
-			id_dat.id.getPeptideHits().push_back(actual_peptide_hit_);
-			id_data_.push_back(id_dat);
-
-			cerr << "Found peptide: " << seq << ", hyperscore=" << hyperscore << endl;
+			//IdentificationData id_dat;
+			//id_dat.id = Identification();
+			//id_dat.id.getHits().push_back(actual_peptide_hit_);
+			//id_data_.push_back(id_dat);
 
 			return;
 		}
@@ -103,21 +100,21 @@ namespace OpenMS
  		if (tag_ == "domain")
 		{
 			///cerr << "MSHits " << actual_peptide_hit_.getSequence() << endl;
-			actual_peptide_hit_.setScoreType("XTandem");
+			//actual_peptide_hit_.setScoreType("XTandem");
 			//IdentificationData id_dat;
 			//id_dat.id = Identification();
-			//id_dat.id.getPeptideHits().push_back(actual_peptide_hit_);
+			//id_dat.id.getHits().push_back(actual_peptide_hit_);
 			//id_data_.push_back(id_dat);
 			if (id_data_.size() == 0)
 			{
-				IdentificationData id_dat;
-				id_dat.id = Identification();
-				id_dat.id.getPeptideHits().push_back(actual_peptide_hit_);
-				id_data_.push_back(id_dat);
+				//IdentificationData id_dat;
+				//id_dat.id = Identification();
+				//id_dat.id.getHits().push_back(actual_peptide_hit_);
+				//id_data_.push_back(id_dat);
 			}
 			else
 			{
-				id_data_[0].id.getPeptideHits().push_back(actual_peptide_hit_);
+				//id_data_[0].id.getHits().push_back(actual_peptide_hit_);
 			}
 			tag_ = "";
 			return;

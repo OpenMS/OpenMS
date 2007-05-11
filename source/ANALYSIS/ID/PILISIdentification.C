@@ -159,7 +159,7 @@ namespace OpenMS
 		return sequence_db_;
 	}
 	
-	void PILISIdentification::getIdentifications(vector<Identification>& ids, const PeakMap& exp)
+	void PILISIdentification::getIdentifications(vector<PeptideIdentification>& ids, const PeakMap& exp)
 	{
 		UInt max_candidates = (UInt)param_.getValue("max_candidates");
 		for (PeakMap::ConstIterator it = exp.begin(); it != exp.end(); ++it)
@@ -169,12 +169,12 @@ namespace OpenMS
 				continue;
 			}
 
-			Identification id;
+			PeptideIdentification id;
 			getIdentification(id, *it);
 			
-			//if (id.getPeptideHits().size() > max_candidates)
+			//if (id.getHits().size() > max_candidates)
 			//{
-			//	id.getPeptideHits().resize(max_candidates);
+			//	id.getHits().resize(max_candidates);
 			//}
 
 			ids.push_back(id);
@@ -186,18 +186,20 @@ namespace OpenMS
 			scoring.getScores(ids);
 		}
 
-		for (vector<Identification>::iterator it = ids.begin(); it != ids.end(); ++it)
+		for (vector<PeptideIdentification>::iterator it = ids.begin(); it != ids.end(); ++it)
 		{
-			if (it->getPeptideHits().size() > max_candidates)
+			if (it->getHits().size() > max_candidates)
 			{
-				it->getPeptideHits().resize(max_candidates);
+				vector<PeptideHit> tmp_hits = it->getHits();
+				tmp_hits.resize(max_candidates);
+				it->setHits(tmp_hits);
 			}
 		}
 
 		return;
 	}
 
-	void PILISIdentification::getIdentification(Identification& id, const PeakSpectrum& spec)
+	void PILISIdentification::getIdentification(PeptideIdentification& id, const PeakSpectrum& spec)
 	{
 		if (spec.getMSLevel() != 2)
 		{
@@ -232,7 +234,7 @@ namespace OpenMS
     
 		//cerr << "#cand peptides: " << cand_peptides.size() << ", " << pre_pos << ", +/- " << pre_tol << endl;
 
-		Identification pre_id;
+		PeptideIdentification pre_id;
 		getPreIdentification_(pre_id, spec_copy, cand_peptides);
 
 		getFinalIdentification_(id, spec_copy, pre_id);
@@ -244,15 +246,17 @@ namespace OpenMS
 		}
 
 		UInt max_candidates = (UInt)param_.getValue("max_candidates");
-		if (id.getPeptideHits().size() > max_candidates)
+		if (id.getHits().size() > max_candidates)
 		{
-			id.getPeptideHits().resize(max_candidates);
+			vector<PeptideHit> tmp_hits = id.getHits();
+			tmp_hits.resize(max_candidates);
+			id.setHits(tmp_hits);
 		}
 
 		return;
 	}
 
-	void PILISIdentification::getPreIdentification_(Identification& id, const PeakSpectrum& spec, const std::vector<PILISSequenceDB::PepStruct>& cand_peptides)
+	void PILISIdentification::getPreIdentification_(PeptideIdentification& id, const PeakSpectrum& spec, const std::vector<PILISSequenceDB::PepStruct>& cand_peptides)
 	{
     // get simple spectra for pre-eliminate most of the candidates
     for (vector<PILISSequenceDB::PepStruct>::const_iterator it1 = cand_peptides.begin(); it1 != cand_peptides.end(); ++it1)
@@ -262,27 +266,28 @@ namespace OpenMS
       getSpectrum_(sim_spec, it1->peptide, it1->charge);
 
       double score = (*pre_scorer_)(sim_spec, spec);
-      PeptideHit peptide_hit(score, "PILIS", 0, it1->charge, it1->peptide);
-      id.insertPeptideHit(peptide_hit);
+      PeptideHit peptide_hit(score, 0, it1->charge, it1->peptide);
+      id.insertHit(peptide_hit);
     }
 
     id.assignRanks();
 		return;
 	}
 
-	void PILISIdentification::getFinalIdentification_(Identification& id, const PeakSpectrum& spec, const Identification& pre_id)
+	void PILISIdentification::getFinalIdentification_(PeptideIdentification& id, const PeakSpectrum& spec, const PeptideIdentification& pre_id)
 	{
 		UInt max_candidates = (UInt)param_.getValue("max_candidates");
-		for (UInt i = 0; i < pre_id.getPeptideHits().size() && i < max_candidates; ++i)
+		id.setScoreType("PILIS");
+		for (UInt i = 0; i < pre_id.getHits().size() && i < max_candidates; ++i)
     {
-      String sequence = pre_id.getPeptideHits()[i].getSequence();
+      String sequence = pre_id.getHits()[i].getSequence();
       AASequence peptide_sequence(sequence);
       PeakSpectrum sim_spec;
-      getPILISModel_()->getSpectrum(sim_spec, peptide_sequence, pre_id.getPeptideHits()[i].getCharge());
+      getPILISModel_()->getSpectrum(sim_spec, peptide_sequence, pre_id.getHits()[i].getCharge());
 
       double score = (*scorer_)(sim_spec, spec);
-      PeptideHit peptide_hit(score, "PILIS", 0, pre_id.getPeptideHits()[i].getCharge(), sequence);
-      id.insertPeptideHit(peptide_hit);
+      PeptideHit peptide_hit(score, 0, pre_id.getHits()[i].getCharge(), sequence);
+      id.insertHit(peptide_hit);
     }
 
     id.assignRanks();

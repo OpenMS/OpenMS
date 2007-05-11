@@ -468,11 +468,11 @@ IDFilter_test: $(NUMERICDIFF)
 	@$(call TEST_FILE_EQUAL,IDFilter_1_output.idXML,IDFilter_1_output.tmp)
 
 	@$(ECHO) "- Test 2: threshold fractions"
-	@$(call RUN_PROG_OPT,IDFilter,-in IDFilter_1_input.idXML -out IDFilter_2_output.tmp -pep_fraction 1 -prot_fraction 1)
+	@$(call RUN_PROG_OPT,IDFilter,-in IDFilter_2_input.idXML -out IDFilter_2_output.tmp -pep_fraction 1 -prot_fraction 1)
 	@$(call TEST_FILE_EQUAL,IDFilter_2_output.idXML,IDFilter_2_output.tmp)
 
 	@$(ECHO) "- Test 3: exclusion peptides"
-	@$(call RUN_PROG_OPT,IDFilter,-in IDFilter_1_input.idXML -out IDFilter_3_output.tmp -exclusion_peptides_file IDFilter_3_input.idXML)
+	@$(call RUN_PROG_OPT,IDFilter,-in IDFilter_3_input.idXML -out IDFilter_3_output.tmp -exclusion_peptides_file IDFilter_3_input.idXML)
 	@$(call TEST_FILE_EQUAL,IDFilter_3_output.idXML,IDFilter_3_output.tmp)
 
 	@$(ECHO) "- Test 4: retention time"
@@ -600,7 +600,7 @@ InspectAdapter_test: $(NUMERICDIFF)
 
 	@$(ECHO) "- Test 2: -inspect_out"
 	@$(call RUN_PROG_OPT,InspectAdapter,-ini InspectAdapter_1_parameters.ini -in InspectAdapter.out -out InspectAdapter_2_output.tmp -inspect_out)
-	@$(SED) -i 's/^.*date_group_0.*$$/# date group removed/g' InspectAdapter_2_output.tmp
+	@$(SED) -i 's/^.*date.*$$/# date removed/g' InspectAdapter_2_output.tmp
 	@$(call TEST_FILE_EQUAL,InspectAdapter_2_output.idXML,InspectAdapter_2_output.tmp)
 	@$(RM) -rf Inspect_FASTAFile_test4.trie Inspect_FASTAFile_test4.index
 

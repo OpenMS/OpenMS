@@ -21,7 +21,7 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: stefan_heess $
+// $Maintainer: Marc Sturm $
 // --------------------------------------------------------------------------
  
 #ifndef OPENMS_VISUAL_VISUALIZER_PROTEINHITVISUALIZER_H
@@ -34,12 +34,13 @@
 class QLabel;
 class QLineEdit;
 
-namespace OpenMS {
-/**
-@brief Class that displays all meta information for ProteinHit objects
-
-This class provides all functionality to view the meta information of an object of type ProteinHit.
-*/
+namespace OpenMS 
+{
+	/**
+		@brief Class that displays all meta information for ProteinHit objects
+		
+		This class provides all functionality to view the meta information of an object of type ProteinHit.
+	*/
 	class ProteinHitVisualizer : public BaseVisualizer
 	{
 		Q_OBJECT
@@ -59,14 +60,11 @@ This class provides all functionality to view the meta information of an object 
 
 	private:  
 		
-		/** @name Edit fields 
-   */
+		///@name Edit fields 
     //@{
 		QLineEdit *proteinhit_score_;
-		QLineEdit *proteinhit_score_type_;
 		QLineEdit *proteinhit_rank_;
 		QLineEdit *proteinhit_accession_;
-		QLineEdit *proteinhit_accession_type_;
 		QTextEdit *proteinhit_sequence_;
 		//@}
 		

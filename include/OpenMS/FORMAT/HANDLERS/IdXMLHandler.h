@@ -29,10 +29,9 @@
 
 #include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
 #include <OpenMS/METADATA/Identification.h>
+#include <OpenMS/METADATA/PeptideIdentification.h>
 
 #include <vector>
-#include <map>
-#include <fstream>
 
 namespace OpenMS
 {
@@ -49,13 +48,9 @@ namespace OpenMS
   {
     public:
       /// Constructor for loading
-      IdXMLHandler(std::vector<ProteinIdentification>& protein_identifications, std::vector<IdentificationData>& id_data, const String& filename);
-      /// Constructor for loading
-      IdXMLHandler(std::vector<ProteinIdentification>& protein_identifications, std::vector<IdentificationData>& id_data, std::map<String, DoubleReal>& predicted_retention_times, const String& filename);
+      IdXMLHandler(std::vector<Identification>& protein_identifications, std::vector<PeptideIdentification>& id_data, const String& filename);
       /// Constructor for storing
-      IdXMLHandler(const std::vector<ProteinIdentification>& protein_identifications, const std::vector<IdentificationData>& id_data, const String& filename);
-      /// Constructor for storing
-      IdXMLHandler(const std::vector<ProteinIdentification>& protein_identifications, const std::vector<IdentificationData>& id_data, const std::map<String, DoubleReal>& predicted_retention_times, const String& filename);
+      IdXMLHandler(const std::vector<Identification>& protein_identifications, const std::vector<PeptideIdentification>& id_data, const String& filename);
       
       /// Destructor
       ~IdXMLHandler();
@@ -74,8 +69,9 @@ namespace OpenMS
 
 
     protected:
-      std::vector<ProteinIdentification>* protein_identifications_;
-      std::vector<IdentificationData>* id_data_;
+      
+			std::vector<Identification>* protein_identifications_;
+      std::vector<PeptideIdentification>* id_data_;
       ProteinHit actual_protein_hit_;
       std::vector<ProteinHit> actual_protein_hits_;
       PeptideHit actual_peptide_hit_;
@@ -83,37 +79,33 @@ namespace OpenMS
 			UInt peptide_identification_index_;
 			UInt protein_identification_index_;
 			bool inside_peptide_;   	
-      const std::vector<ProteinIdentification> const_protein_identifications_;
-      const std::vector<IdentificationData> const_id_data_;
-			const std::map<String, DoubleReal> const_predicted_retention_times_;
+      const std::vector<Identification> const_protein_identifications_;
+      const std::vector<PeptideIdentification> const_id_data_;
 			String tag_;      	
 			UInt charge_identification_index_;
 			bool inside_protein_;
 			bool inside_global_protein_;
 			std::vector<UInt> actual_peptide_indices_;
-			std::map<String, DoubleReal>* predicted_retention_times_;
 			std::vector< String > date_times_temp_;
 			UInt date_times_counter_;
 			String actual_date_time_;
+			Identification::SearchParameters actual_search_parameters_;
 			
 		private:
-				/// determines the date group index
-		    UInt getDateGroupIndex(DateTime 												date_time,
-			  															std::map< String , UInt> date_times);
 			  																
-				/// writes a peptide to the ostream 'os'			  																
-				void writePeptideHit(std::ostream& os, 
-		 													String shift,
-		 													PeptideHit hit,
-		 													Real significance_threshold,
-		 													UInt identification_index,
-		 													Int charge, 
-		 													Real precursor_retention_time,
-		 													Real precursor_mz,
-		 													DateTime date_time,
-					  									std::map< String , UInt> date_times,
-														  DoubleReal predicted_rt_p_value = -1);
-
+			/// writes a peptide to the ostream 'os'			  																
+			void writePeptideHit(std::ostream& os, 
+  					 							String shift,
+			  									PeptideHit hit,
+			  									Real significance_threshold,
+			  									UInt identification_index,
+			  									DataValue precursor_retention_time,
+			  									DataValue precursor_mz,
+													String identifier,
+													String score_type,
+													bool higher_score_better,
+			  									DoubleReal predicted_retention_time,
+													DoubleReal predicted_rt_p_value);
 
   };
 

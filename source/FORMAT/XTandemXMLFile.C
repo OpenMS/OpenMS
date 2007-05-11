@@ -32,8 +32,6 @@
 #include <xercesc/framework/LocalFileInputSource.hpp>
 #include <xercesc/sax2/XMLReaderFactory.hpp>
 
-#include <iostream>
-
 using namespace xercesc;
 using namespace std;
 
@@ -49,7 +47,7 @@ namespace OpenMS
 	{
 	}
 	
-  void XTandemXMLFile::load(const String& filename, ProteinIdentification& protein_identification, std::vector<IdentificationData>& id_data) const throw (Exception::FileNotFound, Exception::ParseError)
+  void XTandemXMLFile::load(const String& filename, Identification& protein_identification, vector<PeptideIdentification>& id_data) const throw (Exception::FileNotFound, Exception::ParseError)
   {
   	//try to open file
 		if (!File::exists(filename))
@@ -70,9 +68,6 @@ namespace OpenMS
 		xercesc::SAX2XMLReader* parser = xercesc::XMLReaderFactory::createXMLReader();
 		parser->setFeature(xercesc::XMLUni::fgSAX2CoreNameSpaces,false);
 		parser->setFeature(xercesc::XMLUni::fgSAX2CoreNameSpacePrefixes,false);
-
-		protein_identification.clear();
-		id_data.clear();
 
 		Internal::XTandemXMLHandler handler(protein_identification, id_data, filename);
 

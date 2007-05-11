@@ -55,7 +55,7 @@ struct IDData
 {
 	DoubleReal mz;
 	DoubleReal rt;
-	vector<Identification> ids;
+	vector<PeptideIdentification> ids;
 };
 
 class TOPPConsensusID
@@ -143,8 +143,8 @@ class TOPPConsensusID
 			consensus.setParameters(alg_param);
 
 			IdXMLFile ax_file;
-			vector<ProteinIdentification> prot_ids;
-			vector<IdentificationData> all_ids;
+			vector<Identification> prot_ids;
+			vector<PeptideIdentification> all_ids;
 
 			//feature mode
 			if (feature_mode)
@@ -167,25 +167,24 @@ class TOPPConsensusID
 				for (UInt i = 0; i < features.size(); ++i)
 				{
 					//cout << "ConsensusID -- Feature " << features[i].getRT() << " / " << features[i].getMZ() << " ("<< i+1 << ")" << endl;
-					consensus.apply(features[i].getIdentifications());
+					consensus.apply(features[i].getPeptideIdentifications());
 				}
 				
 				// writing output
 				all_ids.clear();
-				IdentificationData id;
 				for (UInt i = 0; i < features.size(); ++i)
 				{
-					id.rt = features[i].getRT();
-					id.mz = features[i].getMZ();
-					for (vector<Identification>::const_iterator id_it = features[i].getIdentifications().begin(); 
-							 id_it != features[i].getIdentifications().end(); 
+
+					for (vector<PeptideIdentification>::const_iterator id_it = features[i].getPeptideIdentifications().begin(); 
+							 id_it != features[i].getPeptideIdentifications().end(); 
 							 ++id_it)
 					{
-						id.id = *id_it;
-						all_ids.push_back(id);
+						all_ids.push_back(*id_it);
+						all_ids.back().setMetaValue("RT",features[i].getRT());
+						all_ids.back().setMetaValue("MZ",features[i].getMZ());
 					}
 				}
-				ax_file.store(out,features.getProteinIdentifications(),all_ids);
+				ax_file.store(out,features.getIdentifications(),all_ids);
 				
 				//write output features (those with IDs)
 				if (feature_out_file!="")
@@ -193,7 +192,7 @@ class TOPPConsensusID
 					FeatureMap<> features_out;
 					for (UInt i = 0; i < features.size(); ++i)
 					{
-						if (features[i].getIdentifications().size()!=0 && features[i].getIdentifications()[0].getPeptideHits().size()!=0)
+						if (features[i].getPeptideIdentifications().size()!=0 && features[i].getPeptideIdentifications()[0].getHits().size()!=0)
 						{
 							features_out.push_back(features[i]);
 						}
@@ -206,7 +205,7 @@ class TOPPConsensusID
 				//Identifications merged by precursor position
 				vector<IDData> prec_data;
 				//Storage for protein identifications
-				vector< ProteinIdentification > prot_id_out;
+				vector< Identification > prot_id_out;
 				
 				//load and merge ids (by precursor position)
 				for(UInt i = 0; i < ids.size(); ++i)
@@ -216,13 +215,15 @@ class TOPPConsensusID
 					// Append protein IDs
 					prot_id_out.insert(prot_id_out.end(), prot_ids.begin(), prot_ids.end());
 					// Insert peptide IDs
-					for (vector<IdentificationData>::iterator ins = all_ids.begin(); ins != all_ids.end(); ++ins)
+					for (vector<PeptideIdentification>::iterator ins = all_ids.begin(); ins != all_ids.end(); ++ins)
 					{
-						writeDebug_(String("  ID: ") + ins->rt + " / " + ins->mz, 4);
+						DoubleReal rt = (DoubleReal)(ins->getMetaValue("RT"));
+						DoubleReal mz = (DoubleReal)(ins->getMetaValue("MZ"));
+						writeDebug_(String("  ID: ") + rt + " / " + mz, 4);
 						vector<IDData>::iterator pos = prec_data.begin();
 						while (pos != prec_data.end())
 						{
-							if (fabs(pos->rt - ins->rt) < 0.1 && fabs(pos->mz - ins->mz) < 0.1 )
+							if (fabs(pos->rt - rt) < 0.1 && fabs(pos->mz - mz) < 0.1 )
 							{
 								break;
 							}
@@ -232,15 +233,15 @@ class TOPPConsensusID
 						if (pos != prec_data.end())
 						{
 							writeDebug_(String("    Appending IDs to precursor: ") + pos->rt + " / " + pos->mz, 4);
-							pos->ids.push_back(ins->id);
+							pos->ids.push_back(*ins);
 						}
 						//insert new entry
 						else
 						{
 							IDData tmp;
-							tmp.mz = ins->mz;
-							tmp.rt = ins->rt;
-							tmp.ids.push_back(ins->id);
+							tmp.mz = mz;
+							tmp.rt = rt;
+							tmp.ids.push_back(*ins);
 							prec_data.push_back(tmp);
 							writeDebug_(String("    Inserting new precursor: ") + tmp.rt + " / " + tmp.mz, 4);
 						}
@@ -256,13 +257,12 @@ class TOPPConsensusID
 				
 				// writing output
 				all_ids.clear();
-				IdentificationData id;
+				PeptideIdentification id;
 				for (vector<IDData>::iterator it = prec_data.begin(); it!=prec_data.end(); ++it)
 				{
-					id.rt = it->rt;
-					id.mz = it->mz;
-					id.id = it->ids[0];
-					all_ids.push_back(id);
+					all_ids.push_back(it->ids[0]);
+					all_ids.back().setMetaValue("RT",it->rt);
+					all_ids.back().setMetaValue("MZ",it->mz);
 				}
 				ax_file.store(out,prot_id_out,all_ids);
 			}

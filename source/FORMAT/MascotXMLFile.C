@@ -32,9 +32,6 @@
 #include <xercesc/framework/LocalFileInputSource.hpp>
 #include <xercesc/sax2/XMLReaderFactory.hpp>
 
-#include <iostream>
-
-
 using namespace xercesc;
 using namespace std;
 
@@ -46,9 +43,9 @@ namespace OpenMS
 	  	
 	}
 
-  void MascotXMLFile::load(const String& filename,
-						      					ProteinIdentification& protein_identification, 
-						      					std::vector<IdentificationData>& id_data
+  void MascotXMLFile::load(const String& filename, 
+						      					Identification& protein_identification, 
+						      					vector<PeptideIdentification>& id_data
 						      				) const throw (Exception::FileNotFound, Exception::ParseError)
   {
   	//try to open file
@@ -70,9 +67,6 @@ namespace OpenMS
 		xercesc::SAX2XMLReader* parser = xercesc::XMLReaderFactory::createXMLReader();
 		parser->setFeature(xercesc::XMLUni::fgSAX2CoreNameSpaces,false);
 		parser->setFeature(xercesc::XMLUni::fgSAX2CoreNameSpacePrefixes,false);
-
-		protein_identification.clear();
-		id_data.clear();
 
 		Internal::MascotXMLHandler handler(protein_identification, id_data, filename);
 
@@ -98,11 +92,11 @@ namespace OpenMS
 		// Since the mascot xml can contain "peptides" without sequences the identifications 
 		// without any real peptide hit are removed
   	vector<PeptideHit> peptide_hits;
-  	vector<IdentificationData>::iterator id_it = id_data.begin();
+  	vector<PeptideIdentification>::iterator id_it = id_data.begin();
 
 		while(id_it != id_data.end())
 		{
-			peptide_hits = id_it->id.getPeptideHits();
+			peptide_hits = id_it->getHits();
 			if (peptide_hits.size() == 0 || (peptide_hits.size() == 1 && peptide_hits[0].getSequence() == ""))
 			{
 				id_it = id_data.erase(id_it);

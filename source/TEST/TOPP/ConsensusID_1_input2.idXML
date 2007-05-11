@@ -10,15 +10,17 @@
 		</admin>
 		<settings>
 			<userParam name="number_of_identifications" value="4" />
-			<userParam name="number_of_protein_identifications" value="0" />
+			<userParam name="number_of_protein_identifications" value="1" />
 			<userParam name="retention_time_type" value="float" />
 			<userParam name="mz_type" value="float" />
 			<userParam name="retention_time_unit" value="seconds" />
 			<userParam name="mz_unit" value="Thomson" />
-			<userParam name="date_group_0" value="2005-01-27 17:47:41"/>
 		</settings>
 	</description>
 	<ident>
+		<proteinGroup count="0">
+			<userParam name="date" value="2005-01-27 17:47:41" />
+		</proteinGroup>
 		<peptide>
 			<seq>A</seq>
 			<userParam name="identification_index" value="0" />
@@ -26,7 +28,6 @@
 			<userParam name="precursor_mz" value="1" />
 			<userParam name="score" value="3" />
 			<userParam name="score_type" value="Mascot" />
-			<userParam name="date_group_index" value="0"/>
 		</peptide>
 		<peptide>
 			<seq>B</seq>
@@ -35,7 +36,6 @@
 			<userParam name="precursor_mz" value="2" />
 			<userParam name="score" value="2" />
 			<userParam name="score_type" value="Mascot" />
-			<userParam name="date_group_index" value="0"/>
 		</peptide>
 		<peptide>
 			<seq>C</seq>
@@ -44,7 +44,6 @@
 			<userParam name="precursor_mz" value="3" />
 			<userParam name="score" value="1" />
 			<userParam name="score_type" value="Mascot" />
-			<userParam name="date_group_index" value="0"/>
 		</peptide>
 		<peptide>
 			<seq>D</seq>
@@ -53,7 +52,6 @@
 			<userParam name="precursor_mz" value="4" />
 			<userParam name="score" value="4" />
 			<userParam name="score_type" value="Mascot" />
-			<userParam name="date_group_index" value="0"/>
 		</peptide>
 	</ident>
 </mzIdent>

@@ -11,52 +11,42 @@
 			<userParam name="mz_type" value="float" />
 			<userParam name="retention_time_unit" value="seconds" />
 			<userParam name="mz_unit" value="Thomson" />
-# date group removed
 		</settings>
 	</description>
 	<ident>
 		<proteinGroup count="0">
 			<protein>
-				<dbName>SwissProt</dbName>
 				<dbID>Q9CQV8</dbID>
 				<peptide>
 					<seq>NQGD</seq>
 					<userParam name="identification_index" value="0" />
-					<userParam name="peptide_significance_threshold" value="0.975"/>
+					<userParam name="significance_threshold" value="0.975"/>
 					<userParam name="precursor_charge" value="1" />
 					<userParam name="precursor_retention_time" value="21.9494" />
 					<userParam name="precursor_mz" value="433.803" />
 					<userParam name="score" value="-12.839" />
-					<userParam name="score_type" value="Inspect"/>
-					<userParam name="date_group_index" value="0"/>
+					<userParam name="score_type" value="Inspect" />
+					<userParam name="identifier" value="" />
+					<userParam name="higher_score_better" value="1" />
 				</peptide>
 				<userParam name="protein_identification_index" value="0"/>
-				<userParam name="date_group_index" value="0"/>
 				<userParam name="score" value="0"/>
-				<userParam name="score_type" value=""/>
 			</protein>
-			<userParam name="proteins" value="all"/>
-		</proteinGroup>
-		<proteinGroup count="0">
-			<protein>
-				<dbName>SwissProt</dbName>
-				<dbID>Q9CQV8</dbID>
-				<peptide>
-					<seq>NQGD</seq>
-					<userParam name="identification_index" value="0" />
-					<userParam name="peptide_significance_threshold" value="0.975"/>
-					<userParam name="precursor_charge" value="1" />
-					<userParam name="precursor_retention_time" value="21.9494" />
-					<userParam name="precursor_mz" value="433.803" />
-					<userParam name="score" value="-12.839" />
-					<userParam name="score_type" value="Inspect"/>
-					<userParam name="date_group_index" value="0"/>
-				</peptide>
-				<userParam name="identification_index" value="0"/>
-				<userParam name="date_group_index" value="0"/>
-				<userParam name="score" value="0"/>
-				<userParam name="score_type" value=""/>
-			</protein>
+			<userParam name="db" value=""/>
+			<userParam name="db_version" value=""/>
+			<userParam name="taxonomy" value=""/>
+			<userParam name="charges" value=""/>
+			<userParam name="mass_type" value="0"/>
+			<userParam name="enzyme" value="2"/>
+			<userParam name="missed_cleavages" value="0"/>
+			<userParam name="peak_mass_tolerance" value="0"/>
+			<userParam name="precursor_tolerance" value="0"/>
+# date removed
+			<userParam name="search_engine" value=""/>
+			<userParam name="search_engine_version" value=""/>
+			<userParam name="identifier" value=""/>
+			<userParam name="score_type" value=""/>
+			<userParam name="higher_score_better" value="1"/>
 			<userParam name="proteins" value="all"/>
 		</proteinGroup>
 	</ident>

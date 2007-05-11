@@ -317,31 +317,31 @@ CHECK(meta info with assignment)
 	TEST_EQUAL(p2.getMetaValue(2), "bla")
 RESULT
 
-CHECK((const std::vector<Identification>& getIdentifications() const))
+CHECK((const std::vector<PeptideIdentification>& getPeptideIdentifications() const))
 	Feature tmp;
-	vector<Identification> vec(tmp.getIdentifications());
+	vector<PeptideIdentification> vec(tmp.getPeptideIdentifications());
 	TEST_EQUAL(vec.size(),0);
 RESULT
 
-CHECK((void setIdentifications(const std::vector<Identification>& identifications)))
+CHECK((void setPeptideIdentifications(const std::vector<PeptideIdentification>& identifications)))
 	Feature tmp;
-	vector<Identification> vec;
+	vector<PeptideIdentification> vec;
 	
-	tmp.setIdentifications(vec);
-	TEST_EQUAL(tmp.getIdentifications().size(),0);
+	tmp.setPeptideIdentifications(vec);
+	TEST_EQUAL(tmp.getPeptideIdentifications().size(),0);
 	
-	Identification dbs;
+	PeptideIdentification dbs;
 	vec.push_back(dbs);
-	tmp.setIdentifications(vec);
-	TEST_EQUAL(tmp.getIdentifications().size(),1);
+	tmp.setPeptideIdentifications(vec);
+	TEST_EQUAL(tmp.getPeptideIdentifications().size(),1);
 RESULT
 
-CHECK((std::vector<Identification>& getIdentifications()))
+CHECK((std::vector<PeptideIdentification>& getPeptideIdentifications()))
 	Feature tmp;
-	vector<Identification> vec;
+	vector<PeptideIdentification> vec;
 	
-	tmp.getIdentifications().resize(1);
-	TEST_EQUAL(tmp.getIdentifications().size(),1);
+	tmp.getPeptideIdentifications().resize(1);
+	TEST_EQUAL(tmp.getPeptideIdentifications().size(),1);
 RESULT
 
 //do not change these datastructures, they are used in the following tests...

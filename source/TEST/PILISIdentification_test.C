@@ -80,21 +80,21 @@ CHECK(void setModel(PILISModel* hmm_model))
 	ptr->setModel(model);
 RESULT
 
-CHECK(void getIdentification(Identification& id, const PeakSpectrum& spectrum))
-	Identification id;
+CHECK(void getIdentification(PeptideIdentification& id, const PeakSpectrum& spectrum))
+	PeptideIdentification id;
 	ptr->getIdentification(id, spec);
-	TEST_EQUAL(id.getPeptideHits().size(), 3)
-	TEST_EQUAL(id.getPeptideHits().begin()->getSequence(), "DFPIANGER")
+	TEST_EQUAL(id.getHits().size(), 3)
+	TEST_EQUAL(id.getHits().begin()->getSequence(), "DFPIANGER")
 RESULT
 
-CHECK(void getIdentifications(std::vector<Identification>& ids, const PeakMap& exp))
-	vector<Identification> ids;
+CHECK(void getIdentifications(std::vector<PeptideIdentification>& ids, const PeakMap& exp))
+	vector<PeptideIdentification> ids;
 	PeakMap map;
 	map.push_back(spec);
 	ptr->getIdentifications(ids, map);
 	TEST_EQUAL(ids.size(), map.size())
-	TEST_EQUAL(ids.begin()->getPeptideHits().size(), 3)
-	TEST_EQUAL(ids.begin()->getPeptideHits().begin()->getSequence(), "DFPIANGER")
+	TEST_EQUAL(ids.begin()->getHits().size(), 3)
+	TEST_EQUAL(ids.begin()->getHits().begin()->getSequence(), "DFPIANGER")
 RESULT
 
 /////////////////////////////////////////////////////////////

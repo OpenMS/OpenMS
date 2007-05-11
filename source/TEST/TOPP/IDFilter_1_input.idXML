@@ -27,7 +27,18 @@
 				<userParam name="date_group_index" value="0"/>
 				<userParam name="score" value="32.3"/>
 				<userParam name="score_type" value="Mascot"/>
-                                <userParam name="date_group_index" value="0"/>
+        <userParam name="date_group_index" value="0"/>
+				<peptide>
+					<seq>TEST</seq>
+					<userParam name="identification_index" value="0" />
+					<userParam name="peptide_significance_threshold" value="31.8621"/>
+					<userParam name="precursor_charge" value="2" />
+					<userParam name="precursor_retention_time" value="0" />
+					<userParam name="precursor_mz" value="0" />
+					<userParam name="score" value="11.37" />
+					<userParam name="score_type" value="Mascot" />
+					<userParam name="date_group_index" value="0"/>
+				</peptide>
 			</protein>
 			<protein>
 				<dbName>SwissProt</dbName>
@@ -36,7 +47,7 @@
 				<userParam name="date_group_index" value="0"/>
 				<userParam name="score" value="28.1"/>
 				<userParam name="score_type" value="Mascot"/>
-                                <userParam name="date_group_index" value="0"/>
+        <userParam name="date_group_index" value="0"/>
 			</protein>
 			<protein>
 				<dbName>SwissProt</dbName>
@@ -472,17 +483,6 @@
 			</protein>
 			<userParam name="proteins" value="all"/>
 		</proteinGroup>
-		<peptide>
-			<seq>LHASGITVTEIPVTATNFK</seq>
-			<userParam name="identification_index" value="0" />
-			<userParam name="peptide_significance_threshold" value="31.8621"/>
-			<userParam name="precursor_charge" value="2" />
-			<userParam name="precursor_retention_time" value="0" />
-			<userParam name="precursor_mz" value="0" />
-			<userParam name="score" value="33.85" />
-			<userParam name="score_type" value="Mascot" />
-			<userParam name="date_group_index" value="0"/>
-		</peptide>
 		<peptide>
 			<seq>MRSLGYVAVISAVATDTDK</seq>
 			<userParam name="identification_index" value="0" />

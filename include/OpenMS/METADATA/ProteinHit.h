@@ -31,6 +31,7 @@
 
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/METADATA/MetaInfoInterface.h>
 
 namespace OpenMS
 {
@@ -43,74 +44,70 @@ namespace OpenMS
 		@ingroup Metadata
   */
   class ProteinHit
+  	: public MetaInfoInterface
   {
   	public:
 		
-		/**	@name Constructors and Destructor */
-		//@{
-		
-		/// default constructor
-    ProteinHit();
-    
-		/// values constructor
-    ProteinHit(DoubleReal score, std::string score_type, UInt rank, String accession, std::string accession_type, String sequence);
+			/**	@name Constructors and Destructor */
+			//@{
+			
+			/// default constructor
+	    ProteinHit();
+	    
+			/// values constructor
+	    ProteinHit(DoubleReal score, UInt rank, String accession, String sequence);
+	
+			/// copy constructor
+	    ProteinHit(const ProteinHit& source);
+					
+			/// destructor
+	    virtual ~ProteinHit();
+	    //@}
+	    
+			/// assignment operator
+	    ProteinHit& operator=(const ProteinHit& source);
+			
+			/// Equality operator
+			bool operator == (const ProteinHit& rhs) const;
+			
+			/// Inequality operator
+			bool operator != (const ProteinHit& rhs) const;
+	
+	
+			/**	@name Accessors */
+			//@{
+			
+	    /// returns the score of the protein hit 
+	    Real getScore() const;
+	    
+			/// returns the rank of the protein hit
+	    UInt getRank() const;
+			
+			/// returns the protein sequence
+			const String& getSequence() const;
+			
+			/// returns the accession of the protein
+			const String& getAccession() const;
+	
+	    /// sets the score of the protein hit 
+	    void setScore(DoubleReal score);
+			
+			/// sets the rank
+	    void setRank(UInt newrank);
+			
+			/// sets the protein sequence
+			void setSequence(const String& sequence);
+			
+			/// sets the accession of the protein
+			void setAccession(const String& accession);
+	    //@}
 
-		/// copy constructor
-    ProteinHit(const ProteinHit& source);
-				
-		/// destructor
-    ~ProteinHit();
-    //@}
-    
-		/// assignment operator
-    ProteinHit& operator=(const ProteinHit& source);
-		/// Equality operator
-		bool operator == (const ProteinHit& rhs) const;
-		/// Inequality operator
-		bool operator != (const ProteinHit& rhs) const;
-
-
-		/**	@name Accessors */
-		//@{
-		
-    /// returns the score of the protein hit 
-    Real getScore() const;
-    /// returns the type of the score
-    const std::string& getScoreType() const;
-		/// returns the rank of the protein hit
-    UInt getRank() const;
-		/// returns the protein sequence
-		const String& getSequence() const;
-		/// returns the accession of the protein
-		const String& getAccession() const;
-		/// returns the type of the accession string of the protein
-		const std::string& getAccessionType() const;   	
-
-    /// sets the score of the protein hit 
-    void setScore(DoubleReal score);
-    /// sets the type of the score
-    void setScoreType(const std::string& score_type);
-		/// sets the rank
-    void setRank(UInt newrank);
-		/// sets the protein sequence
-		void setSequence(const String& sequence);
-		/// sets the accession of the protein
-		void setAccession(const String& accession);
-		/// sets the type of the accession string of the protein
-		void setAccessionType(const std::string& accession_type);  	
-				
-    //@}
-
-		/// clears all information of the protein hit
-    void clear();
-  protected:
-    Real score_;									///< the score of the protein hit
-    std::string score_type_;    	///< the score type of the protein hit 
-		UInt rank_;    				///< the position(rank) where the hit 
-																	///< appeared in the hit list
-    String accession_;						///< the protein identifier
-    std::string accession_type_;	///< the type of the accession
-    String sequence_;							///< the amino acid sequence of the protein hit
+	  protected:
+	    Real score_;					///< the score of the protein hit
+	    String score_type_;   ///< the score type of the protein hit 
+			UInt rank_;    				///< the position(rank) where the hit appeared in the hit list
+	    String accession_;	 	///< the protein identifier
+	    String sequence_;		 	///< the amino acid sequence of the protein hit
 
   };
 

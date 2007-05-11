@@ -62,18 +62,18 @@ namespace OpenMS
 	{
 	}
 
-	void PILISScoring::getScore(Identification& id)
+	void PILISScoring::getScore(PeptideIdentification& id)
 	{
-    if (id.getPeptideHits().size() == 0)
+    if (id.getHits().size() == 0)
     {
       return;
     }
 
-    if (id.getPeptideHits().size() > 2)
+    if (id.getHits().size() > 2)
     {
       vector<double> scores;
-      vector<PeptideHit>::const_iterator it = id.getPeptideHits().begin();
-      for (++it; it != id.getPeptideHits().end(); ++it)
+      vector<PeptideHit>::const_iterator it = id.getHits().begin();
+      for (++it; it != id.getHits().end(); ++it)
       {
         scores.push_back(it->getScore());
       }
@@ -85,24 +85,26 @@ namespace OpenMS
 
       if (slope != 0 && intercept != 0)
       {
-        for (vector<PeptideHit>::iterator it = id.getPeptideHits().begin(); it != id.getPeptideHits().end(); ++it)
+				id.setScoreType("PILIS-E-value");
+				vector<PeptideHit> tmp_hits = id.getHits();
+        for (vector<PeptideHit>::iterator it = tmp_hits.begin(); it != tmp_hits.end(); ++it)
         {
           double evalue = exp(intercept + slope * log(it->getScore()));
           it->setScore(evalue);
-					it->setScoreType("PILIS-E-value");
         }
+				id.setHits(tmp_hits);
       }
     }
 	}
 
-	void PILISScoring::getScores(vector<Identification>& ids)
+	void PILISScoring::getScores(vector<PeptideIdentification>& ids)
 	{
 		// get all but the first scores
   	vector<double> global_scores;
-  	for (vector<Identification>::const_iterator it = ids.begin(); it != ids.end(); ++it)
+  	for (vector<PeptideIdentification>::const_iterator it = ids.begin(); it != ids.end(); ++it)
   	{
-    	vector<PeptideHit>::const_iterator it1 = it->getPeptideHits().begin();
-    	for (++it1; it1 != it->getPeptideHits().end(); ++it1)
+    	vector<PeptideHit>::const_iterator it1 = it->getHits().begin();
+    	for (++it1; it1 != it->getHits().end(); ++it1)
     	{
       	global_scores.push_back(it1->getScore());
     	}
@@ -114,7 +116,7 @@ namespace OpenMS
 		getFitParameter_(global_slope, global_intercept,  global_scores, (double)param_.getValue("global_linear_fitting_threshold"));
 
 		// annotate the identification with both scores (global and single identification)
-		for (vector<Identification>::iterator it = ids.begin(); it != ids.end(); ++it)
+		for (vector<PeptideIdentification>::iterator it = ids.begin(); it != ids.end(); ++it)
 		{
 			getScore_(*it, global_slope, global_intercept);
 		}
@@ -122,9 +124,9 @@ namespace OpenMS
 		return;
 	}
 
-	void PILISScoring::getScore_(Identification& id, double global_slope, double global_intercept)
+	void PILISScoring::getScore_(PeptideIdentification& id, double global_slope, double global_intercept)
 	{
-		if (id.getPeptideHits().size() == 0)
+		if (id.getHits().size() == 0)
 		{
 			return;
 		}
@@ -136,11 +138,11 @@ namespace OpenMS
 		}
 
 		// if possible and allowed using local scoring 
-		if (id.getPeptideHits().size() > 2 && use_local_scoring)
+		if (id.getHits().size() > 2 && use_local_scoring)
 		{
 			vector<double> scores;
-			vector<PeptideHit>::const_iterator it = id.getPeptideHits().begin();
-			for (++it; it != id.getPeptideHits().end(); ++it)
+			vector<PeptideHit>::const_iterator it = id.getHits().begin();
+			for (++it; it != id.getHits().end(); ++it)
 			{
 				scores.push_back(it->getScore());
 			}
@@ -152,42 +154,50 @@ namespace OpenMS
 
 			if (slope != 0 && intercept != 0)
 			{
-				for (vector<PeptideHit>::iterator it = id.getPeptideHits().begin(); it != id.getPeptideHits().end(); ++it)
+				id.setScoreType("PILIS-E-value");
+				vector<PeptideHit> tmp_hits = id.getHits();
+				for (vector<PeptideHit>::iterator it = tmp_hits.begin(); it != tmp_hits.end(); ++it)
 				{
 					double local_evalue = exp(intercept + slope * log(it->getScore()));
 					double global_evalue = exp(global_intercept + global_slope * log(it->getScore()));
 					it->setScore(local_evalue * global_evalue);
-					it->setScoreType("PILIS-E-value");
 				}
+				id.setHits(tmp_hits);
 			}
 			else
 			{
 				double score_default_value = (double)param_.getValue("score_default_value");
-				for (vector<PeptideHit>::iterator it = id.getPeptideHits().begin(); it != id.getPeptideHits().end(); ++it)
+				id.setScoreType("PILIS-E-value");
+				vector<PeptideHit> tmp_hits = id.getHits();
+				for (vector<PeptideHit>::iterator it = tmp_hits.begin(); it != tmp_hits.end(); ++it)
 				{
-					it->setScoreType("PILIS-E-value");
 					it->setScore(score_default_value);
 				}
+				id.setHits(tmp_hits);
 			}
 		}
 		else
 		{
 			if (global_intercept != 0 && global_slope != 0)
 			{
-				for (vector<PeptideHit>::iterator it = id.getPeptideHits().begin(); it != id.getPeptideHits().end(); ++it)
+				id.setScoreType("PILIS-E-value");
+				vector<PeptideHit> tmp_hits = id.getHits();
+				for (vector<PeptideHit>::iterator it = tmp_hits.begin(); it != tmp_hits.end(); ++it)
 				{
 					it->setScore(exp(global_intercept + global_slope * log(it->getScore())));
-					it->setScoreType("PILIS-E-value");
 				}
+				id.setHits(tmp_hits);
 			}
 			else
 			{
 				double score_default_value = (double)param_.getValue("score_default_value");
-				for (vector<PeptideHit>::iterator it = id.getPeptideHits().begin(); it != id.getPeptideHits().end(); ++it)
+				id.setScoreType("PILIS-E-value");
+				vector<PeptideHit> tmp_hits = id.getHits();
+				for (vector<PeptideHit>::iterator it = tmp_hits.begin(); it != tmp_hits.end(); ++it)
 				{
 					it->setScore(score_default_value);
-					it->setScoreType("PILIS-E-value");
 				}
+				id.setHits(tmp_hits);
 			}
 		}
 	}

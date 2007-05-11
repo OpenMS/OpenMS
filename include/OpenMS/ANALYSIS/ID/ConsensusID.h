@@ -28,7 +28,7 @@
 #define OPENMS_ANALYSIS_ID_CONSENSUSID_H
 
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
-#include <OpenMS/METADATA/Identification.h>
+#include <OpenMS/METADATA/PeptideIdentification.h>
 
 #include <vector>
 
@@ -39,17 +39,18 @@ namespace OpenMS
     
     Available algorithms are:
     - Merge -- merges the runs with respect to their score. The score is not modified.
+    					 Make sure to use PeptideIdentifications with the same score type only!
     - Ranked -- reorders the hits according to a consensus score computed from the ranks in the input runs.
                 The score is normalized to the interval (0,100).
+                The PeptideIdentifications do not need to have the same score type.
     - Average -- reorders the hits according to the average score of the input runs.
+    						 Make sure to use PeptideIdentifications with the same score type only!
 		
 		The following parameters can be given:
 		- Algorithm -- see above.
 		- ConsideredHits -- the number of top hits to use as input.
 		- NumberOfRuns -- the number of runs used as input. This information is used in 'Ranked' and 'Average' to
-		                  compute the new scores.
-		- InverseOrder -- indicates that the lower scores are better scores.
-		- MinOutputScore -- the minimum score a hit has to have to be reported as output.
+		                  compute the new scores. If not given, the number of input identifications is taken. 
   */
   class ConsensusID
   	: public DefaultParamHandler
@@ -58,8 +59,12 @@ namespace OpenMS
 	  	///Default constructor
 	  	ConsensusID();
   		
-  		///Calculates the consensus ID for a Feature
-  		void apply(std::vector<Identification>& ids) throw (Exception::InvalidValue);
+  		/**
+  			@brief Calculates the consensus ID for a set of PeptideIdentification
+  			
+  			@note Make sure that the score orientation (PeptideIdentification::isHigherScoreBetter())is set properly!
+  		*/
+  		void apply(std::vector<PeptideIdentification>& ids) throw (Exception::InvalidValue);
   		
   	private:
   		///Hidden and not implemented copy constructor
@@ -69,14 +74,11 @@ namespace OpenMS
 			ConsensusID& operator = (const ConsensusID&);
 			
 			/// Merge algorithm
-			void merge_(std::vector<Identification>& ids);
+			void merge_(std::vector<PeptideIdentification>& ids);
 			/// Ranked algorithm
-			void ranked_(std::vector<Identification>& ids);
+			void ranked_(std::vector<PeptideIdentification>& ids);
 			/// Average score algorithm
-			void average_(std::vector<Identification>& ids);
-			
-			/// This flag indicates that a bigger score is better
-			bool inverse_order_;
+			void average_(std::vector<PeptideIdentification>& ids);
   };
  
 } // namespace OpenMS

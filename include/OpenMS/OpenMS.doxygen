@@ -79,10 +79,10 @@ Ideen:
 - Seeder/Extender: Analyse der MassenSpur-Distanzen
 
 Todos:
-- Spectrum3DCanvas: fix grab keyboard (buddy?)
-- Store ScoreType (with direction) and AccessionType as Enum in Identification
 - Add getPrecursorRT(rt/scan nr) and update ID adapters and IDSpectrumMapper 
+- Spectrum3DCanvas: fix grab keyboard (buddy?)
 - TOPP tutorial: Usecases AW-Daten
+- make -j<x>
 
 Thomas Schreiner: 
 - mzData fixen (CV)
@@ -115,5 +115,14 @@ Stefan Rink:
 
 Diplomarbeit TOPPAS:
 - TOPPViewBase: Parameters (Typ: enum, inputfile, inputfiles, outputfile, outputfiles)
+
+ID:
+ - IdXMLFile
+ - IDFilter
+   - Filtern nach absoluter Score
+   - Filtern nach Top X Hits
+ - Neue Infos aus Mascot, Sequest, ... parsen (Identifier setzen bei Inspect, OMSSA, XTANDEM, Sequest)
+ - Identification -> ProteinIdentification (+ getter und setter)
+ - Visualizer updaten
 
 ***********************************************************************/

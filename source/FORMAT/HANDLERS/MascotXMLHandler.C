@@ -28,8 +28,6 @@
 
 #include <xercesc/sax2/Attributes.hpp>
 
-#include <iostream>
-
 using namespace std;
 using namespace xercesc;
 
@@ -38,8 +36,8 @@ namespace OpenMS
 	namespace Internal
 	{
   
-  MascotXMLHandler::MascotXMLHandler(ProteinIdentification& protein_identification,
-								  									 vector<IdentificationData>& id_data, 
+  MascotXMLHandler::MascotXMLHandler(Identification& protein_identification,
+								  									 vector<PeptideIdentification>& id_data, 
       								 							 const String& filename) :
     XMLHandler(filename),
     protein_identification_(protein_identification),
@@ -72,7 +70,7 @@ namespace OpenMS
 		{
 			actual_query_ = (String(XMLString::transcode(attributes.getValue(0u))).trim()).toInt();
 		}
-		else 
+		else if (tag_ == "peptide" || tag_ == "u_peptide") 
 		{
 			if (tag_ == "peptide")
 			{
@@ -101,18 +99,19 @@ namespace OpenMS
  		if (tag_ == "protein")
  		{	
  			// since Mascot uses SwissProt IDs we set this type here
-			actual_protein_hit_.setAccessionType("SwissProt");
-			actual_protein_hit_.setScoreType("Mascot");
- 			protein_identification_.insertProteinHit(actual_protein_hit_);
- 			actual_protein_hit_.clear();
+			//actual_protein_hit_.setAccessionType("SwissProt");
+			//actual_protein_hit_.setScoreType("Mascot");
+			//protein_identification_.setProteinAccessionType("SwissProt"); // @todo why sp? (andreas, nico)
+			protein_identification_.setScoreType("Mascot");
+ 			protein_identification_.insertHit(actual_protein_hit_);
+ 			actual_protein_hit_ = ProteinHit();
  		}
  		else if (tag_ == "peptide")
  		{
-			bool													already_stored = false;
-			vector<PeptideHit>::iterator  it;
+			bool already_stored = false;
+			vector<PeptideHit>::iterator it;
  			
-			vector<PeptideHit>& temp_peptide_hits = 
-				id_data_[peptide_identification_index_].id.getPeptideHits();
+			vector<PeptideHit> temp_peptide_hits = id_data_[peptide_identification_index_].getHits();
 				
 			it = temp_peptide_hits.begin();
 			while(it != temp_peptide_hits.end() && !already_stored)
@@ -125,22 +124,29 @@ namespace OpenMS
 			}
 			if (!already_stored)
 			{
-				actual_peptide_hit_.setScoreType("Mascot");
-				actual_peptide_hit_.addProteinIndex(make_pair(date_time_string_, actual_protein_hit_.getAccession()));
-	 			id_data_[peptide_identification_index_].id.insertPeptideHit(actual_peptide_hit_); 			
+				id_data_[peptide_identification_index_].setScoreType("Mascot");
+				actual_peptide_hit_.addProteinAccession(actual_protein_hit_.getAccession());
+	 			id_data_[peptide_identification_index_].insertHit(actual_peptide_hit_); 			
 			}
 			else
 			{
 				it--;
-				it->addProteinIndex(make_pair(date_time_string_, actual_protein_hit_.getAccession()));
+				it->addProteinAccession(actual_protein_hit_.getAccession());
+				id_data_[peptide_identification_index_].setHits(temp_peptide_hits);
 			}
- 			actual_peptide_hit_.clear();
+ 			actual_peptide_hit_ = PeptideHit();
  		}
  		else if (tag_ == "u_peptide")
  		{
-			actual_peptide_hit_.setScoreType("Mascot");
- 			id_data_[peptide_identification_index_].id.insertPeptideHit(actual_peptide_hit_); 			
- 			actual_peptide_hit_.clear();
+			id_data_[peptide_identification_index_].setScoreType("Mascot");
+ 			id_data_[peptide_identification_index_].insertHit(actual_peptide_hit_); 			
+ 			actual_peptide_hit_ = PeptideHit();
+ 		}
+ 		else if (tag_ == "mascot_search_results")
+ 		{
+ 			protein_identification_.setSearchEngine("Mascot");
+ 			protein_identification_.setIdentifier(identifier_);
+ 			protein_identification_.setSearchParameters(search_parameters_);
  		}
 		tag_ = "";
  	} 
@@ -151,9 +157,11 @@ namespace OpenMS
 		if (tag_ == "NumQueries")
 		{
 			id_data_.resize(((String) XMLString::transcode(chars)).trim().toInt());
-			for(UInt i = 0; i < id_data_.size(); i++)
+			for(vector<PeptideIdentification>::iterator it = id_data_.begin();
+				  it != id_data_.end();
+				  ++it)
 			{
-				id_data_[i].id.setDateTime(date_);
+				it->setIdentifier(identifier_);
 			}
 			tag_ = "";
 		}
@@ -163,7 +171,7 @@ namespace OpenMS
 		}
 		else if (tag_ == "pep_exp_mz")
 		{
-			id_data_[peptide_identification_index_].mz = ((String) XMLString::transcode(chars)).trim().toFloat();
+			id_data_[peptide_identification_index_].setMetaValue("MZ", ((String) XMLString::transcode(chars)).trim().toFloat());
 			tag_ = "";
 		}
 		else if (tag_ == "pep_exp_z")
@@ -178,7 +186,7 @@ namespace OpenMS
 		}
 		else if (tag_ == "pep_homol")
 		{			
-			id_data_[peptide_identification_index_].id.setPeptideSignificanceThreshold(
+			id_data_[peptide_identification_index_].setSignificanceThreshold(
 					((String) XMLString::transcode(chars)).trim().toFloat());
 			tag_ = "";
 		}
@@ -190,11 +198,11 @@ namespace OpenMS
 			// According to matrixscience the homology threshold is only used if it exists and is
 			// smaller than the identity threshold.
 			temp_homology = 
-				id_data_[peptide_identification_index_].id.getPeptideSignificanceThreshold();
+				id_data_[peptide_identification_index_].getSignificanceThreshold();
 			temp_identity = ((String) XMLString::transcode(chars)).trim().toFloat();
 			if (temp_homology > temp_identity || temp_homology == 0)
 			{
-				id_data_[peptide_identification_index_].id.setPeptideSignificanceThreshold(
+				id_data_[peptide_identification_index_].setSignificanceThreshold(
 					temp_identity);				
 			}
 			tag_ = "";
@@ -213,6 +221,7 @@ namespace OpenMS
 			{
 				date_.set(parts[0] + ' ' + parts[1].prefix('Z'));
 				date_time_string_ = parts[0] + ' ' + parts[1].prefix('Z');
+				identifier_ = "Mascot_" + date_time_string_;
 			}
 			protein_identification_.setDateTime(date_);
 		}
@@ -224,8 +233,20 @@ namespace OpenMS
 			title.split('_', parts);
 			if (parts.size() == 2)
 			{
-				id_data_[actual_query_ - 1].rt = parts[1].toFloat();
+				id_data_[actual_query_ - 1].setMetaValue("RT", parts[1].toFloat());
 			}
+		}
+		else if (tag_ == "MascotVer")
+		{
+			protein_identification_.setSearchEngineVersion(((String) XMLString::transcode(chars)).trim());
+		}
+		else if (tag_ == "DB")
+		{
+			search_parameters_.db = (((String) XMLString::transcode(chars)).trim());			
+		}
+		else if (tag_ == "FastaVer")
+		{
+			search_parameters_.db_version = (((String) XMLString::transcode(chars)).trim());			
 		}
   }
 

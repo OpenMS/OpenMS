@@ -2048,8 +2048,8 @@ namespace OpenMS
 			QString name = QFileDialog::getOpenFileName(this,"Select identification data",param_.getValue("Preferences:DefaultPath").toString().c_str(),tr("identfication files (*.idXML);; all files (*.*)"));
 			if(name!="")
 			{
-				vector<IdentificationData> identifications; 
-				vector<ProteinIdentification> protein_identifications; 
+				vector<PeptideIdentification> identifications; 
+				vector<Identification> protein_identifications; 
 				IdXMLFile().load(name.toStdString(), protein_identifications, identifications);
 				if (layer.type==LayerData::DT_PEAK)
 				{

@@ -51,12 +51,11 @@ namespace OpenMS
 			/**
 				@brief Annotates the spectra belonging to the experiment
 				
-				The retention times and mz-values are used to find the 
-				spectrum in experiment to which the corresponding 
-				identification belongs. The Identification is then added to the spectrum      					
+		 		The retention time and mass-to-charge ratio of the PeptideIdentification have to 
+		 		be given in the MetaInfoInterface ('MZ' and 'RT').   					
       */
       template <class PeakT>				
-      UInt annotate(MSExperiment< PeakT >& experiment, const std::vector<IdentificationData>& identifications, DoubleReal precision = 0.01f)
+      UInt annotate(MSExperiment< PeakT >& experiment, const std::vector<PeptideIdentification>& identifications, DoubleReal precision = 0.01f)
   		{
 				std::multimap<DoubleReal, UInt> experiment_precursors;
 				std::multimap<DoubleReal, UInt> identifications_precursors;
@@ -77,7 +76,7 @@ namespace OpenMS
 				}
 				for(UInt i = 0; i < identifications.size(); i++)
 				{
-					identifications_precursors.insert(std::make_pair(identifications[i].rt, i));
+					identifications_precursors.insert(std::make_pair(identifications[i].getMetaValue("RT"), i));
 				}
 				experiment_iterator = experiment_precursors.begin();
 				identifications_iterator = identifications_precursors.begin();	
@@ -95,13 +94,13 @@ namespace OpenMS
 						if (((temp < precision) && temp >= 0) || (((-1 * temp) < precision) && temp < 0))
 						{
 							experiment_precursor_position = experiment[experiment_iterator->second].getPrecursorPeak().getPosition()[0];
-							identifications_precursor_position = identifications[identifications_iterator->second].mz;				
+							identifications_precursor_position = identifications[identifications_iterator->second].getMetaValue("MZ");				
 							temp = identifications_precursor_position - experiment_precursor_position;
 							if (((temp < precision) && temp >= 0) || ((-1 * temp < precision) && temp < 0))
 							{
-								if (!identifications[identifications_iterator->second].id.empty())
+								if (!(identifications[identifications_iterator->second].empty()))
 								{
-									experiment[experiment_iterator->second].getIdentifications().push_back(identifications[identifications_iterator->second].id);
+									experiment[experiment_iterator->second].getPeptideIdentifications().push_back(identifications[identifications_iterator->second]);
 									counter++;
 								}
 							}
@@ -113,38 +112,6 @@ namespace OpenMS
 				}
 				return counter;  			
   		}
-      				 
-			/**
-				@brief stores all annotations of the spectra in the specific member variables							
-      	
-				Every non-empty Identification that is associated with a spectrum is
-				stored as well as the retention times and the mz-values.				
-      */				
-      template <class PeakT>				
-      void getAnnotations(const MSExperiment< PeakT >& experiment, std::vector<IdentificationData>& identifications)
-      {
-				identifications.clear();
-				std::vector<Identification> temp_identifications;
-				IdentificationData tmp_id;
-				for(UInt i = 0; i < experiment.size(); i++)
-				{
-					temp_identifications = experiment[i].getIdentifications();
-					if (temp_identifications.size() > 0)
-					{
-						tmp_id.rt = experiment[i].getRT();				
-						tmp_id.mz = experiment[i].getPrecursorPeak().getPosition()[0];
-						for(UInt j = 0; j < temp_identifications.size(); j++)
-						{
-							if (!temp_identifications[j].empty())
-							{
-								tmp_id.id = temp_identifications[j];
-								identifications.push_back(tmp_id);
-							}
-						}
-					}
-				}							      	
-      }
-      
     
     protected:
       

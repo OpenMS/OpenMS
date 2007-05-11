@@ -227,9 +227,6 @@ namespace OpenMS
     return const_cast<ClusterSpectrum*>(this)->spec();
   }
   
-  /** 
-  do not use with python!
-  */
   PeakSpectrum& ClusterSpectrum::spec()
   {
     // in case spec is changed, binrep needs to be recreated
@@ -249,13 +246,13 @@ namespace OpenMS
     }
   }
 
-  const std::vector<Identification>& ClusterSpectrum::getIdentification() const
+  const std::vector<PeptideIdentification>& ClusterSpectrum::getPeptideIdentifications() const
   {
     //todo 
 
     getSpec();
 
-    return specp_->getIdentifications();
+    return specp_->getPeptideIdentifications();
   }
   
   //todo not usable without prior spec() or binrep if created from id
@@ -301,11 +298,11 @@ namespace OpenMS
 
   PeptideHit ClusterSpectrum::getTophit() const
   {
-    const vector<Identification>& dbsl = getIdentification();
-    if ( dbsl.size() > 0 && dbsl.begin()->getPeptideHits().size() > 0 )
+    const vector<PeptideIdentification>& dbsl = getPeptideIdentifications();
+    if ( dbsl.size() > 0 && dbsl.begin()->getHits().size() > 0 )
     {
     	cout << "Inside"<< endl;
-      return *dbsl.begin()->getPeptideHits().begin();
+      return *dbsl.begin()->getHits().begin();
     }
     return PeptideHit();
   }

@@ -21,7 +21,7 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: stefan_heess  $
+// $Maintainer: Marc Sturm  $
 // --------------------------------------------------------------------------
 
 #ifndef OPENMS_VISUAL_MSMETADATAEXPLORER_H
@@ -49,7 +49,7 @@ namespace OpenMS
 	class ExperimentalSettings;
 	class Gradient;
 	class HPLC;
-	class Identification;
+	class PeptideIdentification;
 	class Instrument;
 	class InstrumentSettings;
 	class IonDetector;
@@ -64,7 +64,7 @@ namespace OpenMS
 	class Precursor;
 	class ProcessingMethod;
 	class ProteinHit;
-	class ProteinIdentification;
+	class Identification;
 	class Sample;
 	class SampleTreatment;
 	class Software;
@@ -107,8 +107,8 @@ namespace OpenMS
 			bool isEditable();	
 				
 			/// Defines friend classess that can use the functionality of the subclasses.
-			friend class ProteinIdentificationVisualizer;
 			friend class IdentificationVisualizer;
+			friend class PeptideIdentificationVisualizer;
       
     public slots:
 			/// Set a list of error strings due to invalid date format.
@@ -160,8 +160,8 @@ namespace OpenMS
 			void visualize_(MassAnalyzer& meta, QTreeWidgetItem* parent=0);
 			/// Calls visualizer class for class type ProcessingMethod
 			void visualize_(ProcessingMethod& meta, QTreeWidgetItem* parent=0);
-			/// Calls visualizer class for class type ProteinIdentification
-			void visualize_(ProteinIdentification& meta, QTreeWidgetItem* parent=0);
+			/// Calls visualizer class for class type Identification
+			void visualize_(Identification& meta, QTreeWidgetItem* parent=0);
 			/// Calls visualizer class for class type ProteinHit
 			void visualize_(ProteinHit& meta, QTreeWidgetItem* parent=0);
 			/// Calls visualizer class for class type PeptideHit
@@ -176,59 +176,59 @@ namespace OpenMS
 			void visualize_(Precursor& meta, QTreeWidgetItem* parent=0);
 			/// Calls visualizer class for class type InstrumentSettings
 			void visualize_(InstrumentSettings& meta, QTreeWidgetItem* parent=0);
-			/// Calls visualizer class for class type Identification
-			void visualize_(Identification& meta, QTreeWidgetItem* parent=0);
+			/// Calls visualizer class for class type PeptideIdentification
+			void visualize_(PeptideIdentification& meta, QTreeWidgetItem* parent=0);
 			
 			
 			
 			/** 
 			@brief Update visible protein hits.
 				
-			Updates the protein hit information of objects of type ProteinIdentification.
+			Updates the protein hit information of objects of type Identification.
 				
 			@param pid  Identifier of the identification object belonging to this database search.
-			@param tree_item_id  Identifier of the item in the tree belonging to the ProteinIdentification object that is displayed.
+			@param tree_item_id  Identifier of the item in the tree belonging to the Identification object that is displayed.
 			*/
-			void updateProteinHits_(ProteinIdentification pid, int tree_item_id);
+			void updateProteinHits_(Identification pid, int tree_item_id);
 		 	
 			 
 			 
 			/** 
 				@brief Update visible peptide hits.
 				
-				Updates the peptide hit information of objects of type Identification depending on a threshold.
+				Updates the peptide hit information of objects of type PeptideIdentification depending on a threshold.
 				
 				@param id  Identifier of the identification object belonging to this database search.
-				@param tree_item_id  Identifier of the item in the tree belonging to the ProteinIdentification object that is displayed.
+				@param tree_item_id  Identifier of the item in the tree belonging to the Identification object that is displayed.
 			*/
-			void updatePeptideHits_(Identification id, int tree_item_id);
+			void updatePeptideHits_(PeptideIdentification id, int tree_item_id);
 			
 			
 			/** 
 				@brief Update visible peptide hits.
 				
-				Updates the peptide hit information of objects of type Identification depending on referencing protein hits.
+				Updates the peptide hit information of objects of type PeptideIdentification depending on referencing protein hits.
 				
 				@param id  Identifier of the identification object belonging to this database search.
-				@param tree_item_id Identifier of the item in the tree belonging to the ProteinIdentification object that is displayed.
+				@param tree_item_id Identifier of the item in the tree belonging to the Identification object that is displayed.
 				@param ref_date Petide Hits referencing to protein hits with the same date of database search.
 				@param ref_acc Petide Hits referencing to protein hits with the same acquisition number.
 			*/
-			void updateRefPeptideHits_(Identification id, int tree_item_id, String ref_date, String ref_acc);
+			void updateRefPeptideHits_(PeptideIdentification id, int tree_item_id, String ref_date, String ref_acc);
 			
 			
 			/** 
 				@brief Update visible peptide hits.
 				
-				Updates the peptide hit information of objects of type Identification depending non referencing protein hits.<br>
+				Updates the peptide hit information of objects of type PeptideIdentification depending non referencing protein hits.<br>
 				Only peptide hits that do not reference any protein hit will be displayed.			 			 
 				
-				Updates the peptide hit information of objects of type Identification depending on referencing protein hits.
+				Updates the peptide hit information of objects of type PeptideIdentification depending on referencing protein hits.
 				
 				@param id  Identifier of the identification object belonging to this database search.
-				@param tree_item_id  Identifier of the item in the tree belonging to the ProteinIdentification object that is displayed.
+				@param tree_item_id  Identifier of the item in the tree belonging to the Identification object that is displayed.
 			*/
-			void updateNonRefPeptideHits_(Identification id,  int tree_item_id);
+			void updateNonRefPeptideHits_(PeptideIdentification id,  int tree_item_id);
 			 
 			/// Connects the Signals of all visualier classes with Slot setStatus()
 			void connectVisualizer_(BaseVisualizer*);

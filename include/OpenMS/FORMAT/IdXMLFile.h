@@ -24,10 +24,11 @@
 // $Maintainer: Nico Pfeifer $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_FORMAT_IdXMLFile_H
-#define OPENMS_FORMAT_IdXMLFile_H
+#ifndef OPENMS_FORMAT_IDXMLFILE_H
+#define OPENMS_FORMAT_IDXMLFILE_H
 
 #include <OpenMS/METADATA/Identification.h>
+#include <OpenMS/METADATA/PeptideIdentification.h>
 
 #include <vector>
 
@@ -40,6 +41,10 @@ namespace OpenMS
     the schema of IdXML files.
 		
 		A documented schema for this format can be found at http://open-ms.sourceforge.net/schemas/. 
+		
+		One file can contain several identification runs. Each run consists of peptide hits stored in 
+		PeptideIdentification and (optional) protein hits stored in Identification. Peptide and protein
+		hits are connected via a string identifier. We use the searche engine and the date as identifier.
 		
   	@todo Document and upload schema (Nico)
   	
@@ -59,35 +64,16 @@ namespace OpenMS
 				The information is read in and the information is stored in the
 				corresponding variables
       */
-      void load(const String& filename, std::vector<ProteinIdentification>& protein_identifications, std::vector<IdentificationData>& id_data) const throw (Exception::FileNotFound, Exception::ParseError);
-      					 
-			/**
-      	@brief Loads the identifications of an IdXML file
-
-				The information is read in and the information is stored in the
-				corresponding variables. This function offers the possibility to load 
-				the predicted retention times which can be
-				used to filter the peptides via the TOPP tool IDFilter.
-      */
-      void load(const String& filename, std::vector<ProteinIdentification>& protein_identifications, std::vector<IdentificationData>& id_data, std::map<String, DoubleReal>& predicted_retention_times)  	const throw (Exception::FileNotFound, Exception::ParseError);
-      					 
+      void load(const String& filename, std::vector<Identification>& protein_ids, std::vector<PeptideIdentification>& peptide_ids) const throw (Exception::FileNotFound, Exception::ParseError);
+      					 			 
 			/**
       	@brief Stores the data in an IdXML file
 
 				The data is read in and stored in the file 'filename'.
       */
-      void store(String filename, const std::vector<ProteinIdentification>& protein_identifications, const std::vector<IdentificationData>& id_data) const throw (Exception::UnableToCreateFile); 
-
-			/**
-      	@brief Stores the data in an IdXML file
-
-				The data is read in and stored in the file 'filename'.
-      */
-      void store(String filename, const std::vector<ProteinIdentification>& protein_identifications, const std::vector<IdentificationData>& id_data, const std::map<String, DoubleReal>& predicted_retention_times) 
-      	const throw (Exception::UnableToCreateFile); 
-
+      void store(String filename, const std::vector<Identification>& protein_ids, const std::vector<PeptideIdentification>& peptide_ids) const throw (Exception::UnableToCreateFile); 
   };
  
 } // namespace OpenMS
 
-#endif // OPENMS_FORMAT_IdXMLFile_H
+#endif // OPENMS_FORMAT_IDXMLFILE_H

@@ -55,42 +55,39 @@ CHECK(([EXTRA]~IDFeatureMapper()))
 	delete ptr;
 RESULT
 
-CHECK((void annotate(FeatureMap<>& fm, const std::vector<IdentificationData>& ids, const std::vector<ProteinIdentification>& protein_ids) throw(Exception::Precondition)))
-
-//load id data
-vector<IdentificationData> identifications; 
-vector<ProteinIdentification> protein_identifications; 
-IdXMLFile().load("data/IDFeatureMapper_test.idXML", protein_identifications, identifications);
-
-//load feature data
-FeatureMap<> fm;
-FeatureXMLFile().load("data/IDFeatureMapper_test.featureXML", fm);
-
-//map
-IDFeatureMapper().annotate(fm,identifications,protein_identifications);
-
-//test protein ids
-TEST_EQUAL(fm.getProteinIdentifications().size(),1)
-TEST_EQUAL(fm.getProteinIdentifications()[0].getProteinHits().size(),2)
-TEST_EQUAL(fm.getProteinIdentifications()[0].getProteinHits()[0].getAccession(),"ABCDE")
-TEST_EQUAL(fm.getProteinIdentifications()[0].getProteinHits()[1].getAccession(),"FGHIJ")
-
-//test peptide ids
-TEST_EQUAL(fm[0].getIdentifications().size(),5)
-TEST_EQUAL(fm[1].getIdentifications().size(),0)
-TEST_EQUAL(fm[2].getIdentifications().size(),0)
-TEST_EQUAL(fm[0].getIdentifications()[0].getPeptideHits().size(),1)
-TEST_EQUAL(fm[0].getIdentifications()[1].getPeptideHits().size(),1)
-TEST_EQUAL(fm[0].getIdentifications()[2].getPeptideHits().size(),1)
-TEST_EQUAL(fm[0].getIdentifications()[3].getPeptideHits().size(),1)
-TEST_EQUAL(fm[0].getIdentifications()[4].getPeptideHits().size(),1)
-TEST_EQUAL(fm[0].getIdentifications()[0].getPeptideHits()[0].getSequence(),"A")
-TEST_EQUAL(fm[0].getIdentifications()[1].getPeptideHits()[0].getSequence(),"B")
-TEST_EQUAL(fm[0].getIdentifications()[2].getPeptideHits()[0].getSequence(),"C")
-TEST_EQUAL(fm[0].getIdentifications()[3].getPeptideHits()[0].getSequence(),"D")
-TEST_EQUAL(fm[0].getIdentifications()[4].getPeptideHits()[0].getSequence(),"E")
-
-TEST_EQUAL(fm[0].getIdentifications()[0].getProteinHits().size(),0)
+CHECK((void annotate(FeatureMap<>& fm, const std::vector<PeptideIdentification>& ids, const std::vector<ProteinIdentification>& protein_ids) throw(Exception::Precondition)))
+	//load id data
+	vector<PeptideIdentification> identifications; 
+	vector<Identification> protein_identifications; 
+	IdXMLFile().load("data/IDFeatureMapper_test.idXML", protein_identifications, identifications);
+	
+	//load feature data
+	FeatureMap<> fm;
+	FeatureXMLFile().load("data/IDFeatureMapper_test.featureXML", fm);
+	
+	//map
+	IDFeatureMapper().annotate(fm,identifications,protein_identifications);
+	
+	//test protein ids
+	TEST_EQUAL(fm.getIdentifications().size(),1)
+	TEST_EQUAL(fm.getIdentifications()[0].getHits().size(),2)
+	TEST_EQUAL(fm.getIdentifications()[0].getHits()[0].getAccession(),"ABCDE")
+	TEST_EQUAL(fm.getIdentifications()[0].getHits()[1].getAccession(),"FGHIJ")
+	
+	//test peptide ids
+	TEST_EQUAL(fm[0].getPeptideIdentifications().size(),5)
+	TEST_EQUAL(fm[1].getPeptideIdentifications().size(),0)
+	TEST_EQUAL(fm[2].getPeptideIdentifications().size(),0)
+	TEST_EQUAL(fm[0].getPeptideIdentifications()[0].getHits().size(),1)
+	TEST_EQUAL(fm[0].getPeptideIdentifications()[1].getHits().size(),1)
+	TEST_EQUAL(fm[0].getPeptideIdentifications()[2].getHits().size(),1)
+	TEST_EQUAL(fm[0].getPeptideIdentifications()[3].getHits().size(),1)
+	TEST_EQUAL(fm[0].getPeptideIdentifications()[4].getHits().size(),1)
+	TEST_EQUAL(fm[0].getPeptideIdentifications()[0].getHits()[0].getSequence(),"A")
+	TEST_EQUAL(fm[0].getPeptideIdentifications()[1].getHits()[0].getSequence(),"B")
+	TEST_EQUAL(fm[0].getPeptideIdentifications()[2].getHits()[0].getSequence(),"C")
+	TEST_EQUAL(fm[0].getPeptideIdentifications()[3].getHits()[0].getSequence(),"D")
+	TEST_EQUAL(fm[0].getPeptideIdentifications()[4].getHits()[0].getSequence(),"E")
 RESULT
 
 /////////////////////////////////////////////////////////////

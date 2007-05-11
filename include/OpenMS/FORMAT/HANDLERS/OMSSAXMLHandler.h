@@ -29,6 +29,7 @@
 
 #include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
 #include <OpenMS/METADATA/Identification.h>
+#include <OpenMS/METADATA/PeptideIdentification.h>
 
 #include <vector>
 
@@ -45,10 +46,10 @@ namespace OpenMS
   {
     public:
       /// Default constructor
-      OMSSAXMLHandler(ProteinIdentification& protein_identification, std::vector<IdentificationData>& identifications, const String& filename);
+      OMSSAXMLHandler(Identification& protein_identification, std::vector<PeptideIdentification>& identifications, const String& filename);
 
       /// Destructor
-      ~OMSSAXMLHandler();
+      virtual ~OMSSAXMLHandler();
       
 			// Docu in base class
       void endElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname);
@@ -62,10 +63,10 @@ namespace OpenMS
     private:
     	
 			/// the protein identifications
-    	ProteinIdentification& protein_identification_;
+    	Identification& protein_identification_;
 
 			/// the identifications (storing the peptide hits)
-      std::vector<IdentificationData>& id_data_;
+      std::vector<PeptideIdentification>& id_data_;
       ProteinHit actual_protein_hit_;												
       PeptideHit actual_peptide_hit_;
 			//UInt peptide_identification_index_;

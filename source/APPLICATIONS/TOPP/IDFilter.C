@@ -27,7 +27,7 @@
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/FILTERING/ID/IDFilter.h>
 #include <OpenMS/FORMAT/FASTAFile.h>
-#include <OpenMS/METADATA/Identification.h>
+#include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 
@@ -39,7 +39,7 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-	@page IDFilter IDFilter
+	@page IDFilter_TOPP IDFilter
 	
 	@brief Filters Filters identification engine results by different criteria.
 	
@@ -135,14 +135,13 @@ class TOPPIDFilter
 			
 		IDFilter filter;
 		IdXMLFile IdXML_file;
-		vector<ProteinIdentification> protein_identifications;
-		vector<IdentificationData> identifications;
-		vector<IdentificationData> identifications_exclusion;
-		vector<IdentificationData> filtered_identifications;
-		Identification filtered_identification;
+		vector<Identification> protein_identifications;
+		vector<PeptideIdentification> identifications;
+		vector<PeptideIdentification> identifications_exclusion;
+		vector<PeptideIdentification> filtered_identifications;
+		PeptideIdentification filtered_identification;
 		vector<UInt> charges;
 		vector< pair< String, String > > sequences;
-		map<String, DoubleReal> predicted_retention_times;
 		vector<String> exclusion_peptides;
 		bool rt_filtering = false;
 		DoubleReal p_value = 0.05;
@@ -183,16 +182,11 @@ class TOPPIDFilter
 	
 		if (rt_filtering)
 		{
-			IdXML_file.load(inputfile_name,
-														protein_identifications, 
-														identifications,
-														predicted_retention_times);
+			IdXML_file.load(inputfile_name, protein_identifications, identifications);
 		}
 		else
 		{
-			IdXML_file.load(inputfile_name, 
-														protein_identifications, 
-														identifications);				
+			IdXML_file.load(inputfile_name, protein_identifications, identifications);				
 		}
 		if (sequences_file_name != "")
 		{
@@ -201,13 +195,11 @@ class TOPPIDFilter
 			
 		if (exclusion_peptides_file_name  != "")
 		{
-			IdXML_file.load(exclusion_peptides_file_name, 
-													  protein_identifications, 
-													 	identifications_exclusion);
+			IdXML_file.load(exclusion_peptides_file_name, protein_identifications, identifications_exclusion);
 			for(UInt i = 0; i < identifications_exclusion.size(); i++)
 			{
-				for(vector<PeptideHit>::const_iterator it = identifications_exclusion[i].id.getPeptideHits().begin();
-						it != identifications_exclusion[i].id.getPeptideHits().end();
+				for(vector<PeptideHit>::const_iterator it = identifications_exclusion[i].getHits().begin();
+						it != identifications_exclusion[i].getHits().end();
 						it++)
 				{
 					exclusion_peptides.push_back(it->getSequence());
@@ -222,56 +214,37 @@ class TOPPIDFilter
 		// Filtering identifications	by thresholds
 		for(UInt i = 0; i < identifications.size(); i++)
 		{       
-			filter.filterIdentificationsByThresholds(identifications[i].id, 
-																							 peptide_significance_threshold_fraction, 
-																							 protein_significance_threshold_fraction,
-																							 filtered_identification);
+			filter.filterIdentificationsByThreshold(identifications[i], peptide_significance_threshold_fraction, filtered_identification);
 			if (sequences_file_name != "")
 			{
-				Identification temp_identification = filtered_identification;
-				filter.filterIdentificationsByProteins(temp_identification, 
-																							 sequences,
-																							 filtered_identification);
+				PeptideIdentification temp_identification = filtered_identification;				
+				filter.filterIdentificationsByProteins(temp_identification, sequences, filtered_identification);
 			}
 
 			if (rt_filtering)
 			{
-				Identification temp_identification = filtered_identification;
-				bool unset_p_values = filter.filterIdentificationsByRTPValues(temp_identification,
-																																			filtered_identification,
-																																			p_value);
-				if (unset_p_values)
-				{
-					writeDebug_("There were peptides without predicted retention time."
-											+ String(" These peptides\nwere not filtered. Please")
-											+ " use the RTModel and RTPredict tools to get the "
-											+ "predicted retention times", 1);
-											
-				}																																		
+				PeptideIdentification temp_identification = filtered_identification;
+				filter.filterIdentificationsByRTPValues(temp_identification, filtered_identification, p_value);																																
 			}
 
 			if (exclusion_peptides_file_name != "")
 			{
-				Identification temp_identification = filtered_identification;
-				filter.filterIdentificationsByExclusionPeptides(temp_identification,
-																												exclusion_peptides,
-																												filtered_identification); 				
+				PeptideIdentification temp_identification = filtered_identification;
+				filter.filterIdentificationsByExclusionPeptides(temp_identification, exclusion_peptides, filtered_identification); 				
 			}
 	
 			if (strict)
 			{
-				Identification temp_identification = filtered_identification;
-				filter.filterIdentificationsByBestHits(temp_identification,
-																							 filtered_identification,
-																							 strict); 				
+				PeptideIdentification temp_identification = filtered_identification;
+				filter.filterIdentificationsByBestHits(temp_identification, filtered_identification, strict); 				
 			}
 
 			if(!filtered_identification.empty())
 			{
-			  IdentificationData tmp;
-			  tmp.id = filtered_identification;
-			  tmp.rt = identifications[i].rt;
-			  tmp.mz = identifications[i].mz;
+			  PeptideIdentification tmp;
+			  tmp = filtered_identification;
+			  tmp.setMetaValue("RT", identifications[i].getMetaValue("RT"));
+			  tmp.setMetaValue("MZ", identifications[i].getMetaValue("MZ"));
 				filtered_identifications.push_back(tmp);
 			}
 		}
@@ -282,16 +255,11 @@ class TOPPIDFilter
 		
 		if (rt_filtering)
 		{
-			IdXML_file.store(outputfile_name,
-														 protein_identifications, 
-												 		 filtered_identifications,
-												 		 predicted_retention_times);
+			IdXML_file.store(outputfile_name, protein_identifications, filtered_identifications);
 		}
 		else
 		{
-			IdXML_file.store(outputfile_name,
-														 protein_identifications, 
-												 		 filtered_identifications);
+			IdXML_file.store(outputfile_name, protein_identifications, filtered_identifications);
 		}
 		return EXECUTION_OK;
 	}

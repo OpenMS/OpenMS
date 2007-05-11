@@ -60,6 +60,27 @@ namespace OpenMS
 		index_to_name_[5] = "color";
 		index_to_description_[5] = "color used for visialization e.g. #FF00FF for purple";
 		index_to_unit_[5] = "";
+
+		name_to_index_["RT"] = 6;
+		index_to_name_[6] = "RT";
+		index_to_description_[6] = "the retention time of an identification";
+		index_to_unit_[6] = "";
+
+		name_to_index_["MZ"] = 7;
+		index_to_name_[7] = "MZ";
+		index_to_description_[7] = "the MZ of an identification";
+		index_to_unit_[7] = "";
+
+		name_to_index_["predicted_RT"] = 8;
+		index_to_name_[8] = "predicted_RT";
+		index_to_description_[8] = "the predicted retention time of a peptide hit";
+		index_to_unit_[8] = "";
+
+		name_to_index_["predicted_RT_p_value"] = 9;
+		index_to_name_[9] = "predicted_RT_p_value";
+		index_to_description_[9] = "the predicted RT p-value of a peptide hit";
+		index_to_unit_[9] = "";
+
 	}
 	
 

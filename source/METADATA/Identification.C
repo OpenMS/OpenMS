@@ -26,6 +26,7 @@
 
 #include <OpenMS/METADATA/Identification.h>
 #include <OpenMS/CONCEPT/Exception.h>
+#include <OpenMS/METADATA/PeptideHit.h>
 #include <sstream>
 #include <algorithm>
 
@@ -34,216 +35,189 @@ using namespace std;
 namespace OpenMS {
 
   Identification::Identification()
-    : ProteinIdentification(),
-    	peptide_hits_(), 
-    	peptide_significance_threshold_(0) 
+    : MetaInfoInterface(),
+			higher_score_better_(true),
+			protein_significance_threshold_(0.0)
   {
   }
 
-  Identification::Identification(const Identification& source) : 
-  	ProteinIdentification(source), 
-  	peptide_hits_(source.peptide_hits_), 
-  	peptide_significance_threshold_(source.peptide_significance_threshold_) 
+  Identification::Identification(const Identification& source) 
+		: MetaInfoInterface(source), 
+			id_(source.id_),
+			search_engine_(source.search_engine_),
+			search_engine_version_(source.search_engine_version_),
+			search_parameters_(source.search_parameters_),
+			date_(source.date_),
+			protein_score_type_(source.protein_score_type_),
+			higher_score_better_(source.higher_score_better_),
+			protein_hits_(source.protein_hits_),
+	  	protein_significance_threshold_(source.protein_significance_threshold_) 
   {
   }
   
   Identification::~Identification() 
   {
-  	peptide_hits_.clear();
-  	protein_hits_.clear();
   }
-  
-  // read access to peptide hits
-  const std::vector<PeptideHit>& Identification::getPeptideHits() const 
- 	{ 
- 		return peptide_hits_;
- 	}
+ 
+	void Identification::setDateTime(const DateTime& date)
+	{
+		date_ = date;
+	}
 
-  // mutable access to peptide hits
-  std::vector<PeptideHit>& Identification::getPeptideHits() 
- 	{ 
- 		return peptide_hits_;
- 	}
+	const DateTime& Identification::getDateTime() const
+	{
+		return date_;
+	}
+
+	void Identification::setHits(const vector<ProteinHit>& protein_hits)
+	{
+		protein_hits_ = protein_hits;
+	}
+
+	const vector<ProteinHit>& Identification::getHits() const
+	{
+		return protein_hits_;
+	}
 
 	// retrival of the peptide significance threshold value
-  Real Identification::getPeptideSignificanceThreshold() const 
+  Real Identification::getSignificanceThreshold() const 
   { 
-  	return peptide_significance_threshold_;
+  	return protein_significance_threshold_;
   }
 
 	// setting of the peptide significance threshold value
-	void Identification::setPeptideSignificanceThreshold(Real value) 
+	void Identification::setSignificanceThreshold(Real value) 
 	{ 
-		peptide_significance_threshold_ = value;
+		protein_significance_threshold_ = value;
+	}
+ 
+	void Identification::setScoreType(const String& type)
+	{
+		protein_score_type_ = type;
 	}
 
-  void Identification::clear()
-  {
-   date_.clear();
-   peptide_significance_threshold_ = 0;
-   protein_significance_threshold_ = 0;
-   peptide_hits_.clear();
-   protein_hits_.clear();
-  }
-  
+	const String& Identification::getScoreType() const
+	{
+		return protein_score_type_;
+	}
+
+	void Identification::insertHit(const ProteinHit& protein_hit)
+	{
+		protein_hits_.push_back(protein_hit);
+	}
+
   Identification& Identification::operator=(const Identification& source) 
   {
   	if (this == &source)
   	{
   		return *this;		
   	}
-    //PersistentObject::operator=(source);
-    date_ = source.date_;
-    peptide_hits_ = source.peptide_hits_;
+    MetaInfoInterface::operator=(source);
+		id_ = source.id_;
+		search_engine_ = source.search_engine_;
+		search_engine_version_ = source.search_engine_version_;
+		search_parameters_ = source.search_parameters_;
+		date_ = source.date_;
     protein_hits_ = source.protein_hits_;
-    peptide_significance_threshold_ = source.peptide_significance_threshold_;
+		protein_score_type_ = source.protein_score_type_;
     protein_significance_threshold_ = source.protein_significance_threshold_;
+		higher_score_better_ = source.higher_score_better_;
     return *this;  
   }
 
 	// Equality operator
 	bool Identification::operator == (const Identification& rhs) const
 	{
-		return date_ == rhs.getDateTime() 
-						&& peptide_hits_ == rhs.getPeptideHits()
-						&& protein_hits_ == rhs.getProteinHits()
-						&& peptide_significance_threshold_ == rhs.getPeptideSignificanceThreshold()
-						&& protein_significance_threshold_ == rhs.getProteinSignificanceThreshold();						 
+		return 	MetaInfoInterface::operator==(rhs) &&
+						id_ == rhs.id_ &&
+						search_engine_ == rhs.search_engine_ &&
+				    search_engine_version_ == rhs.search_engine_version_ &&
+						search_parameters_ == rhs.search_parameters_ &&
+						date_ == rhs.date_ &&
+						protein_hits_ == rhs.protein_hits_ &&
+						protein_score_type_ == rhs.protein_score_type_ &&
+						protein_significance_threshold_ == rhs.protein_significance_threshold_ &&
+						higher_score_better_ == rhs.higher_score_better_;
+
 	}
 		
 	// Inequality operator
 	bool Identification::operator != (const Identification& rhs) const
 	{
-		return !(*this == rhs);						 
+		return !operator==(rhs);						 
 	}
 	
-	// inserts a peptide hit if the peptide hit has the same score type as the existing hits
-  void Identification::insertPeptideHit(const PeptideHit& input)
-  {
-    if ( !peptide_hits_.size() )
-    {  
-      peptide_hits_.push_back(input);
-    }
-    else if ( peptide_hits_.begin()->getScoreType() == input.getScoreType() )
-    {
-      peptide_hits_.push_back(input);
-    }
-    else
-    {
-      stringstream ss;
-      ss << "'" << peptide_hits_.begin()->getScoreType() << "' != '" <<  input.getScoreType() << "'";
-      throw Exception::Base(__FILE__, __LINE__, __PRETTY_FUNCTION__,"Incompatible PeptideHit.score_type",ss.str().c_str());
-    }
-  }
-
-	// Stores peptide and protein hits and clears all previous hit information
-  void Identification::setPeptideAndProteinHits(const std::vector<PeptideHit>& peptide_hits, const std::vector<ProteinHit>& protein_hits)
-  {
-  	peptide_hits_.clear();
-  	protein_hits_.clear();
-  	peptide_hits_ = peptide_hits;
-  	protein_hits_ = protein_hits;
-  }
-  
-  void Identification::assignRanks(bool inverse_score)
+  void Identification::assignRanks()
   {
     UInt rank = 1;
-    sort(inverse_score);
-    for ( vector<PeptideHit>::iterator lit = peptide_hits_.begin(); lit != peptide_hits_.end(); ++lit )
-    {
-      lit->setRank(rank++);
-    }
-    rank = 1;
+    sort();
     for ( vector<ProteinHit>::iterator lit = protein_hits_.begin(); lit != protein_hits_.end(); ++lit )
     {
       lit->setRank(rank++);
     }
   }
     
-  void Identification::sort(bool inverse_score)
+  void Identification::sort()
   {
-  	ProteinIdentification::sort(inverse_score);
-   	if (inverse_score)
+	
+ 		if (higher_score_better_)
   	{
-			std::sort(peptide_hits_.begin(), peptide_hits_.end(), ScoreLess());
+			std::sort(protein_hits_.begin(), protein_hits_.end(), PeptideHit::ScoreMore());
   	}
   	else
   	{
-  		std::sort(peptide_hits_.begin(), peptide_hits_.end(), ScoreMore());
+  		std::sort(protein_hits_.begin(), protein_hits_.end(), PeptideHit::ScoreLess());
   	}
   }
-  
-	bool Identification::empty() const
+
+	bool Identification::isHigherScoreBetter() const
 	{
-		DateTime temp_date;
-		
-		return (peptide_significance_threshold_ == 0
-						&& protein_significance_threshold_ == 0
-						&& protein_hits_.size() == 0
-						&& peptide_hits_.size() == 0
-						&& date_ == temp_date);		
+		return higher_score_better_;
+	} 
+	   
+	void Identification::setHigherScoreBetter(bool value)
+	{
+		higher_score_better_ = value;
+	} 
+
+	const String& Identification::getIdentifier() const
+	{
+		return id_;
+	} 
+	
+	void Identification::setIdentifier(const String& id)
+	{
+		id_ = id;
+	}
+
+	void Identification::setSearchEngine(const String& search_engine)
+	{
+		search_engine_ = search_engine;
 	}
 	
-  vector<PeptideHit>* Identification::getReferencingHits(String date_time, String accession) const
-  {
-  	vector<PeptideHit>* found_hits = new vector<PeptideHit>();
-  	
-  	// for every peptide hit
-		for(UInt i = 0; i < peptide_hits_.size(); i++)
-		{
-			const vector< pair<String, String> >& references = peptide_hits_[i].getProteinIndices();
-			//for every reference of the peptide hit
-			for(UInt j = 0; j < references.size(); j++)
-			{
-				if (references[j].first == date_time && references[j].second == accession)
-				{
-					found_hits->push_back(peptide_hits_[i]);
-				}
-			}
-		}
-		return found_hits;
-  	
-  }
-
-	vector<PeptideHit>* Identification::getNonReferencingHits(const multimap< String, ProteinHit >& protein_hits) const
-  {
-  	vector<PeptideHit>* 								found_hits;
-  	vector<PeptideHit>* 								all_found_hits 		= new vector<PeptideHit>();
-  	String 															temp_key 					= "";
-		vector<ProteinHit> 									temp_hits;
-
-		for(multimap< String, ProteinHit >::const_iterator hits_it = protein_hits.begin();
-				hits_it != protein_hits.end();
-				hits_it++)
-		{
-			if (temp_key == "")
-			{
-				temp_key = hits_it->first;
-			}
-			if (temp_key == hits_it->first)
-			{ 
-				temp_hits.push_back(hits_it->second);
-			}
-			else
-			{
-				found_hits = getNonReferencingHits(temp_hits.begin(), 
-																					 temp_hits.end(), 
-																					 temp_key);
-	  		all_found_hits->insert(all_found_hits->end(), found_hits->begin(), found_hits->end());
-				delete found_hits;  							
+	const String& Identification::getSearchEngine() const
+	{
+		return search_engine_;
+	}
 	
-				temp_hits.clear();
-				temp_hits.push_back(hits_it->second);
-				temp_key = hits_it->first;																					 				
-			}
-		}
-		found_hits = getNonReferencingHits(temp_hits.begin(), 
-																			 temp_hits.end(), 
-																			 temp_key);
-		all_found_hits->insert(all_found_hits->end(), found_hits->begin(), found_hits->end());
-		delete found_hits;  							
-
-  	return all_found_hits;
+	void Identification::setSearchEngineVersion(const String& search_engine_version)
+	{
+		search_engine_version_ = search_engine_version;
+	}
+	
+	const String& Identification::getSearchEngineVersion() const
+	{
+		return search_engine_version_;
+	}
+	
+	void Identification::setSearchParameters(const SearchParameters& search_parameters)
+	{
+		search_parameters_ = search_parameters;
+	}
+	
+	const Identification::SearchParameters& Identification::getSearchParameters() const
+	{
+		return search_parameters_;
 	}
 
 }// namespace OpenMS

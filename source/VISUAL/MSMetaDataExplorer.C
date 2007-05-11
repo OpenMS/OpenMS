@@ -21,7 +21,7 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: stefan_heess $
+// $Maintainer: Marc Sturm $
 // --------------------------------------------------------------------------
 
 
@@ -43,7 +43,7 @@
 #include <OpenMS/VISUAL/VISUALIZER/IonDetectorVisualizer.h>
 #include <OpenMS/VISUAL/VISUALIZER/MassAnalyzerVisualizer.h>
 #include <OpenMS/VISUAL/VISUALIZER/ProcessingMethodVisualizer.h>
-#include <OpenMS/VISUAL/VISUALIZER/ProteinIdentificationVisualizer.h>
+#include <OpenMS/VISUAL/VISUALIZER/IdentificationVisualizer.h>
 #include <OpenMS/VISUAL/VISUALIZER/ProteinHitVisualizer.h>
 #include <OpenMS/VISUAL/VISUALIZER/PeptideHitVisualizer.h>
 #include <OpenMS/VISUAL/VISUALIZER/ExperimentalSettingsVisualizer.h>
@@ -52,7 +52,7 @@
 #include <OpenMS/VISUAL/VISUALIZER/MetaInfoDescriptionVisualizer.h>
 #include <OpenMS/VISUAL/VISUALIZER/PrecursorVisualizer.h>
 #include <OpenMS/VISUAL/VISUALIZER/InstrumentSettingsVisualizer.h>
-#include <OpenMS/VISUAL/VISUALIZER/IdentificationVisualizer.h>
+#include <OpenMS/VISUAL/VISUALIZER/PeptideIdentificationVisualizer.h>
 #include <OpenMS/VISUAL/VISUALIZER/SpectrumSettingsVisualizer.h>
 
 #include <QtGui/QLabel>
@@ -179,12 +179,12 @@ namespace OpenMS
 	//	Functions modifying the listview
 	//--------------------------------------------------------------------------
 	
-	void MSMetaDataExplorer::updateProteinHits_(ProteinIdentification pid, int tree_item_id)
+	void MSMetaDataExplorer::updateProteinHits_(Identification pid, int tree_item_id)
 	{
 	
-		float threshold = pid.getProteinSignificanceThreshold();
+		float threshold = pid.getSignificanceThreshold();
 		
-		// find item in tree belonging to ProteinIdentification object
+		// find item in tree belonging to Identification object
 		QTreeWidgetItem* item = treeview_->findItems(QString::number(tree_item_id),Qt::MatchExactly | Qt::MatchRecursive, 1).first();	
 		
 		//set the items visible or not visible depending to their score and the current threshold
@@ -210,11 +210,11 @@ namespace OpenMS
 		
 	}
 	
-	void MSMetaDataExplorer::updatePeptideHits_(Identification id, int tree_item_id)
+	void MSMetaDataExplorer::updatePeptideHits_(PeptideIdentification id, int tree_item_id)
 	{
-		float threshold = id.getPeptideSignificanceThreshold();
+		float threshold = id.getSignificanceThreshold();
 			
-		// find item in tree belonging to Identification object
+		// find item in tree belonging to PeptideIdentification object
 		QTreeWidgetItem *item = treeview_->findItems(QString::number(tree_item_id),Qt::MatchExactly | Qt::MatchRecursive, 1).first();	
 		
 		//set the items visible or not visible depending to their score and the current threshold
@@ -240,112 +240,110 @@ namespace OpenMS
 	}
 
 	
-	void MSMetaDataExplorer::updateRefPeptideHits_(Identification id, int tree_item_id, String ref_date, String ref_acc)
+	void MSMetaDataExplorer::updateRefPeptideHits_(PeptideIdentification id, int tree_item_id, String ref_date, String ref_acc)
 	{
-	  if(ref_date.trim()=="" && ref_acc.trim()=="")
-		{
-			return;
-		}
-
-		id.sort();
-				
-		// find item in tree belonging to Identification object
-		QTreeWidgetItem *item = treeview_->findItems(QString::number(tree_item_id),Qt::MatchExactly | Qt::MatchRecursive, 1).first();	 
-		
-		map<string,bool> tree_items;
-		
-		//search all peptide hits IN IDENTIFICATION		
-		vector< PeptideHit >& peps= id.getPeptideHits();
-		bool hit = false;
-		for(UInt i=0; i<peps.size(); ++i)
-		{
-					vector<pair<String, String> >& protlist = peps[i].getProteinIndices();
-					
-					String name = String("Pep ") + peps[i].getSequence() + " (" + peps[i].getScore() + ")";
-					//search all protein hits belonging to current peptide hit
-					for(vector< pair<String, String> >::iterator it = protlist.begin(); it != protlist.end();	it++)
-					{
-						//Check if peptide hit refers to a certain protein hit.
-						if( (ref_date.trim()=="" && it->second == ref_acc )|| 
-								(it->first==ref_date && ref_acc.trim()=="") ||
-								(it->first==ref_date && it->second == ref_acc)   )
-						{
-							hit = true;
-							break;	
-						}
-						
-					}
-					
-			tree_items.insert(make_pair(name, hit) );
-			hit = false;		
-		}
-		
-		
-		for(int i=0; i<item->childCount(); ++i)
-		{
-			QTreeWidgetItem* child = item->child(i);
-			map<string,bool>::iterator iter = tree_items.find(child->text(0).toStdString() );
-			
-			if(! iter->second )
-			{
-				child->setHidden(true);	
-			}
-			else
-			{
-				child->setHidden(false);
-			}
-			
-		}	
-		
-		//parent item must be collapsed and re-expanded so the items will be shown...
-		treeview_->collapseItem(item);
-		treeview_->expandItem(item);
+//	  if(ref_date.trim()=="" && ref_acc.trim()=="")
+//		{
+//			return;
+//		}
+//
+//		id.sort();
+//				
+//		// find item in tree belonging to PeptideIdentification object
+//		QTreeWidgetItem *item = treeview_->findItems(QString::number(tree_item_id),Qt::MatchExactly | Qt::MatchRecursive, 1).first();	 
+//		
+//		map<string,bool> tree_items;
+//		
+//		//search all peptide hits IN IDENTIFICATION		
+//		bool hit = false;
+//		for(UInt i=0; i<id.getHits().size(); ++i)
+//		{
+//			vector<pair<String, String> >& protlist = id.getHits()[i].getProteinAccessions();
+//			
+//			String name = String("Pep ") + id.getHits()[i].getSequence() + " (" + id.getHits()[i].getScore() + ")";
+//			//search all protein hits belonging to current peptide hit
+//			for(vector< pair<String, String> >::iterator it = protlist.begin(); it != protlist.end();	it++)
+//			{
+//				//Check if peptide hit refers to a certain protein hit.
+//				if( (ref_date.trim()=="" && it->second == ref_acc )|| 
+//						(it->first==ref_date && ref_acc.trim()=="") ||
+//						(it->first==ref_date && it->second == ref_acc)   )
+//				{
+//					hit = true;
+//					break;	
+//				}
+//			}
+//					
+//			tree_items.insert(make_pair(name, hit) );
+//			hit = false;		
+//		}
+//		
+//		
+//		for(int i=0; i<item->childCount(); ++i)
+//		{
+//			QTreeWidgetItem* child = item->child(i);
+//			map<string,bool>::iterator iter = tree_items.find(child->text(0).toStdString() );
+//			
+//			if(! iter->second )
+//			{
+//				child->setHidden(true);	
+//			}
+//			else
+//			{
+//				child->setHidden(false);
+//			}
+//			
+//		}	
+//		
+//		//parent item must be collapsed and re-expanded so the items will be shown...
+//		treeview_->collapseItem(item);
+//		treeview_->expandItem(item);
 	}
 	
 		
 	
-	void MSMetaDataExplorer::updateNonRefPeptideHits_(Identification id, int tree_item_id)
+	void MSMetaDataExplorer::updateNonRefPeptideHits_(PeptideIdentification id, int tree_item_id)
 	{
-		vector< ProteinHit > prots = id.getProteinHits(); 
-		
-		String date_time;
-		id.getDateTime().get(date_time);
-		
-		multimap< String, ProteinHit > map;
-		for(vector<ProteinHit>::iterator it = prots.begin(); it != prots.end();	it++)
-		{
-			map.insert(make_pair(date_time, *it));
-		}
-		
-		vector<PeptideHit>* hits = id.getNonReferencingHits(map);
-		
-		// find item in tree belonging to Identification object
-		QTreeWidgetItem *item = treeview_->findItems(QString::number(tree_item_id),Qt::MatchExactly | Qt::MatchRecursive, 1).first();	
-			
-		//set the items visible or not visible depending of non referencing peptide hits
-		for(int i=0; i<item->childCount(); ++i)
-		{
-			QTreeWidgetItem* child = item->child(i);
-			
-			for(UInt i=0; i<hits->size(); ++i)
-			{
-				String seq = (*hits)[i].getSequence();
-				String name = String("Pep ") + seq + " (" + (*hits)[i].getScore() + ")";
-				
-				if( child->text(0).toStdString() == name.c_str() )
-				{
-					child->setHidden(false);
-					break;
-				}
-				else
-				{
-					child->setHidden(true);
-				}
-			}
-		}
-		//parent item must be collapsed and re-expanded so the items will be shown...
-		treeview_->collapseItem(item);
-		treeview_->expandItem(item);
+//		vector< ProteinHit > prots = id.getHits(); 
+//		
+//		String date_time;
+//		id.getDateTime().get(date_time);
+//		
+//		multimap< String, ProteinHit > map;
+//		for(vector<ProteinHit>::iterator it = prots.begin(); it != prots.end();	it++)
+//		{
+//			map.insert(make_pair(date_time, *it));
+//		}
+//		
+//		vector<PeptideHit>* hits = id.getNonReferencingHits(map);
+//		
+//		// find item in tree belonging to PeptideIdentification object
+//		QTreeWidgetItem *item = treeview_->findItems(QString::number(tree_item_id),Qt::MatchExactly | Qt::MatchRecursive, 1).first();	
+//			
+//		//set the items visible or not visible depending of non referencing peptide hits
+//		for(int i=0; i<item->childCount(); ++i)
+//		{
+//			QTreeWidgetItem* child = item->child(i);
+//			
+//			for(UInt i=0; i<hits->size(); ++i)
+//			{
+//				String seq = (*hits)[i].getSequence();
+//				String name = String("Pep ") + seq + " (" + (*hits)[i].getScore() + ")";
+//				
+//				if( child->text(0).toStdString() == name.c_str() )
+//				{
+//					child->setHidden(false);
+//					break;
+//				}
+//				else
+//				{
+//					child->setHidden(true);
+//				}
+//			}
+//		}
+//		//parent item must be collapsed and re-expanded so the items will be shown...
+//		treeview_->collapseItem(item);
+//		treeview_->expandItem(item);
 	}
 	
 	
@@ -494,10 +492,10 @@ namespace OpenMS
 		//check for Sample
 		visualize_(meta.getSample(), item);
 		
-		//check for ProteinIdentification
-		for(UInt i=0; i<meta.getProteinIdentifications().size(); ++i)    
+		//check for Identification
+		for(UInt i=0; i<meta.getIdentifications().size(); ++i)    
 		{
-			visualize_(meta.getProteinIdentifications()[i], item);
+			visualize_(meta.getIdentifications()[i], item);
 		}
 		
 		//check for ProcessingMethod
@@ -572,14 +570,14 @@ namespace OpenMS
 	}
 	
 	
-	//Visualizing Identification object
-	void MSMetaDataExplorer::visualize_(Identification& meta, QTreeWidgetItem* parent)
+	//Visualizing PeptideIdentification object
+	void MSMetaDataExplorer::visualize_(PeptideIdentification& meta, QTreeWidgetItem* parent)
 	{
-		IdentificationVisualizer *visualizer = new IdentificationVisualizer(isEditable(), this, this); 
+		PeptideIdentificationVisualizer *visualizer = new PeptideIdentificationVisualizer(isEditable(), this, this); 
 		
     QStringList labels;
     int id = ws_->addWidget(visualizer);
-    labels << "Identification" << QString::number(id);
+    labels << "PeptideIdentification" << QString::number(id);
 
 		visualizer->load(meta,id);  
 
@@ -593,20 +591,20 @@ namespace OpenMS
 			item = new QTreeWidgetItem(parent, labels );
 		}
 			
-		//check for proteins and peptides hits
-		meta.sort();
-		vector< ProteinHit > prots = meta.getProteinHits(); 
-		vector< PeptideHit > peps = meta.getPeptideHits();  
-			
-		//list all peptides hits in the tree
-		if(peps.size() != 0)
-		{
-			for(UInt i=0; i<peps.size(); ++i)    
-			{
-				visualize_(peps[i], item, &prots);
-			}
-		}
-		connectVisualizer_(visualizer);
+//		//check for proteins and peptides hits
+//		meta.sort();
+//		vector< ProteinHit > prots = meta.getHits(); 
+//		vector< PeptideHit > peps = meta.getHits();  
+//			
+//		//list all peptides hits in the tree
+//		if(peps.size() != 0)
+//		{
+//			for(UInt i=0; i<peps.size(); ++i)    
+//			{
+//				visualize_(peps[i], item, &prots);
+//			}
+//		}
+//		connectVisualizer_(visualizer);
 	}
 	
 	
@@ -864,20 +862,20 @@ namespace OpenMS
 			item = new QTreeWidgetItem(parent, labels );
 		} 
 			
-		//get all protein hits for the peptide hits
-		vector<pair<String, String> > protlist = meta.getProteinIndices();
-		for(vector< pair<String, String> >::iterator it = protlist.begin(); it != protlist.end();	it++)
-		{
-			//find all protein hits from the indices and visualize them.						
-			for(vector<ProteinHit>::iterator prot_it = prots->begin(); prot_it != prots->end(); prot_it++)
-			{
-				if(it->second == prot_it->getAccession()  )
-				{
-					visualize_(*(prot_it), item);
-				}
-			}
-		}
-		connectVisualizer_(visualizer);
+//		//get all protein hits for the peptide hits
+//		vector<pair<String, String> > protlist = meta.getProteinAccessions();
+//		for(vector< pair<String, String> >::iterator it = protlist.begin(); it != protlist.end();	it++)
+//		{
+//			//find all protein hits from the indices and visualize them.						
+//			for(vector<ProteinHit>::iterator prot_it = prots->begin(); prot_it != prots->end(); prot_it++)
+//			{
+//				if(it->second == prot_it->getAccession()  )
+//				{
+//					visualize_(*(prot_it), item);
+//				}
+//			}
+//		}
+//		connectVisualizer_(visualizer);
 	}
 	
 	
@@ -955,14 +953,14 @@ namespace OpenMS
 	}
 	
 	
-	//Visualizing ProteinIdentification object
-	void MSMetaDataExplorer::visualize_(ProteinIdentification& meta, QTreeWidgetItem* parent)
+	//Visualizing Identification object
+	void MSMetaDataExplorer::visualize_(Identification& meta, QTreeWidgetItem* parent)
 	{
-		ProteinIdentificationVisualizer *visualizer = new ProteinIdentificationVisualizer(isEditable(), this, this); 
+		IdentificationVisualizer *visualizer = new IdentificationVisualizer(isEditable(), this, this); 
 		
     QStringList labels;
     int id = ws_->addWidget(visualizer);
-    labels << "ProteinIdentification" << QString::number(id);
+    labels << "Identification" << QString::number(id);
     
     visualizer->load(meta,id);  
     
@@ -978,7 +976,7 @@ namespace OpenMS
 
 		//check for proteinhits objects
 		//meta.sort();
-		vector< ProteinHit > v= meta.getProteinHits();  
+		vector< ProteinHit > v= meta.getHits();  
 		for(UInt i=0; i<v.size(); ++i)    
 		{
 			visualize_(v[i], item);
@@ -1117,10 +1115,10 @@ namespace OpenMS
 		//check for InstrumentSettings
 		visualize_(meta.getInstrumentSettings(), item);
 		
-		//check for Identification
-		for(UInt i=0; i<meta.getIdentifications().size(); ++i)    
+		//check for PeptideIdentification
+		for(UInt i=0; i<meta.getPeptideIdentifications().size(); ++i)    
 		{
-			visualize_(meta.getIdentifications()[i], item);
+			visualize_(meta.getPeptideIdentifications()[i], item);
 		}
 		
 		//check for Precursor

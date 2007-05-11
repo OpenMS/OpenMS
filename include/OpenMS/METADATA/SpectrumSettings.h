@@ -32,7 +32,7 @@
 #include <OpenMS/METADATA/AcquisitionInfo.h>
 #include <OpenMS/METADATA/MetaInfoDescription.h>
 #include <OpenMS/METADATA/Precursor.h>
-#include <OpenMS/METADATA/Identification.h>
+#include <OpenMS/METADATA/PeptideIdentification.h>
 
 #include <map>
 #include <vector>
@@ -131,12 +131,12 @@ namespace OpenMS
       /// sets the precursor
       void setPrecursor(const Precursor& precursor);
 			
-      /// returns a const reference to the Identification vector
-	    const std::vector<Identification>& getIdentifications() const;	    	
-      /// returns a mutable reference to the Identification vector
-	    std::vector<Identification>& getIdentifications();
-	    /// sets the Identification vector
-	    void setIdentifications(const std::vector<Identification>& identifications);	
+      /// returns a const reference to the PeptideIdentification vector
+	    const std::vector<PeptideIdentification>& getPeptideIdentifications() const;	    	
+      /// returns a mutable reference to the PeptideIdentification vector
+	    std::vector<PeptideIdentification>& getPeptideIdentifications();
+	    /// sets the PeptideIdentification vector
+	    void setPeptideIdentifications(const std::vector<PeptideIdentification>& identifications);	
 
     protected:
     	SpectrumType type_;
@@ -146,7 +146,7 @@ namespace OpenMS
       AcquisitionInfo acquisition_info_;
       std::map<String,MetaInfoDescription> meta_info_descriptions_;
       Precursor precursor_;
-	    std::vector<Identification> identification_;
+	    std::vector<PeptideIdentification> identification_;
   };
 
 	///Print the contents to a stream.

@@ -31,8 +31,8 @@
 #include <OpenMS/ANALYSIS/ID/PILISModel.h>
 #include <OpenMS/ANALYSIS/ID/PILISSequenceDB.h>
 
-#include <OpenMS/FORMAT/Param.h>
-#include <OpenMS/METADATA/Identification.h>
+#include <OpenMS/METADATA/PeptideIdentification.h>
+
 #include <OpenMS/KERNEL/StandardTypes.h>
 
 #include <vector>
@@ -79,10 +79,10 @@ namespace OpenMS
 			void setModel(PILISModel* hmm_model);
 
 			/// performs an identification run on a PeakMap
-			void getIdentifications(std::vector<Identification>& ids, const PeakMap& exp);
+			void getIdentifications(std::vector<PeptideIdentification>& ids, const PeakMap& exp);
 
 			/// performs an identification run on a PeakSpectrum
-			void getIdentification(Identification& id, const PeakSpectrum& spectrum);
+			void getIdentification(PeptideIdentification& id, const PeakSpectrum& spectrum);
 			//@}
 
 		protected:
@@ -91,10 +91,10 @@ namespace OpenMS
 			void getSpectrum_(PeakSpectrum& spec, const String& sequence, int charge);
 		
 			/// performs a pre-scoring of the given spec with very simple spectra from the candidate peptides
-			void getPreIdentification_(Identification& id, const PeakSpectrum& spec, const std::vector<PILISSequenceDB::PepStruct>& cand_peptides);
+			void getPreIdentification_(PeptideIdentification& id, const PeakSpectrum& spec, const std::vector<PILISSequenceDB::PepStruct>& cand_peptides);
 
 			/// performs a identification via spectra comparison with the PILISModel spectrum generator
-			void getFinalIdentification_(Identification& id, const PeakSpectrum& spec, const Identification& pre_id);
+			void getFinalIdentification_(PeptideIdentification& id, const PeakSpectrum& spec, const PeptideIdentification& pre_id);
 	
 			/// returns the model pointer
 			PILISModel* getPILISModel_();

@@ -28,7 +28,6 @@
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/FORMAT/MascotXMLFile.h>
 #include <OpenMS/FORMAT/MascotInfile.h>
-#include <OpenMS/FORMAT/MascotOutfile.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/FILTERING/ID/IDFilter.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
@@ -242,12 +241,11 @@ class TOPPMascotAdapter
 			IDFilter filter;
 			MascotXMLFile mascotXML_file;
 			MascotInfile mascot_infile;
-			MascotOutfile mascot_outfile;
 			ContactPerson contact_person;
 			vector<String> mods;
 			vector<String> variable_mods;
-			ProteinIdentification protein_identification;
-			vector<IdentificationData> identifications;
+			Identification protein_identification;
+			vector<PeptideIdentification> identifications;
 			vector<Int> charges;
 			vector<String> parts;
 			DoubleReal precursor_mass_tolerance(0);
@@ -550,7 +548,7 @@ class TOPPMascotAdapter
 			//-------------------------------------------------------------
 			// writing output
 			//-------------------------------------------------------------
-				vector<ProteinIdentification> protein_identifications;
+				vector<Identification> protein_identifications;
 				protein_identifications.push_back(protein_identification);
 				IdXMLFile().store(outputfile_name,
 															 protein_identifications, 
