@@ -11,7 +11,7 @@
 		</admin>
 		<settings>
 			<userParam name="number_of_identifications" value="2" />
-			<userParam name="number_of_protein_identifications" value="0" />
+			<userParam name="number_of_protein_identifications" value="1" />
 			<userParam name="retention_time_type" value="float" />
 			<userParam name="mz_type" value="float" />
 			<userParam name="retention_time_unit" value="seconds" />
@@ -20,6 +20,17 @@
 		</settings>
 	</description>
 	<ident>
+		<proteinGroup count="0">
+			<protein>
+				<dbName>SwissProt</dbName>
+				<dbID>Q824A5</dbID>
+				<userParam name="protein_identification_index" value="0"/>
+				<userParam name="date_group_index" value="0"/>
+				<userParam name="score" value="32.3"/>
+				<userParam name="score_type" value="Mascot"/>
+			</protein>
+			<userParam name="proteins" value="all"/>
+		</proteinGroup>
 		<peptide>
 			<seq>LLNGTVVSK</seq>
 			<userParam name="identification_index" value="0" />

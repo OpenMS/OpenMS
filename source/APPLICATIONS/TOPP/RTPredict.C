@@ -308,6 +308,7 @@ class TOPPRTPredict
 						temp_point.second = temp_rt;
 						DoubleReal temp_p_value = svm.getPValue(sigma_0, sigma_max, temp_point);
 						temp_peptide_hits[j].setMetaValue("predicted_RT_p_value",temp_p_value);
+						temp_peptide_hits[j].setMetaValue("predicted_RT",temp_rt);
 	
 						performance_retention_times.push_back(identifications[i].getMetaValue("RT"));					
 					}
