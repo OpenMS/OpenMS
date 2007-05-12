@@ -472,7 +472,7 @@ IDFilter_test: $(NUMERICDIFF)
 	@$(call TEST_FILE_EQUAL,IDFilter_2_output.idXML,IDFilter_2_output.tmp)
 
 	@$(ECHO) "- Test 3: exclusion peptides"
-	@$(call RUN_PROG_OPT,IDFilter,-in IDFilter_3_input.idXML -out IDFilter_3_output.tmp -exclusion_peptides_file IDFilter_3_input.idXML)
+	@$(call RUN_PROG_OPT,IDFilter,-in IDFilter_3_input.idXML -out IDFilter_3_output.tmp -exclusion_peptides_file IDFilter_3_2_input.idXML)
 	@$(call TEST_FILE_EQUAL,IDFilter_3_output.idXML,IDFilter_3_output.tmp)
 
 	@$(ECHO) "- Test 4: retention time"
