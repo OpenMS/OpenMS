@@ -239,7 +239,7 @@ class TOPPIDFilter
 				filter.filterIdentificationsByBestHits(temp_identification, filtered_identification, strict); 				
 			}
 
-			if(!filtered_identification.empty())
+			if(!filtered_identification.getHits().empty())
 			{
 			  PeptideIdentification tmp;
 			  tmp = filtered_identification;

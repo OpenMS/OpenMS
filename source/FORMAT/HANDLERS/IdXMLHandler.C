@@ -169,8 +169,6 @@ namespace OpenMS
 				temp_protein_hits = const_protein_identifications_[j].getHits();
 				String temp_id = const_protein_identifications_[j].getIdentifier();
 				vector<PeptideHit> referencing_peptide_hits;
-				DoubleReal predicted_rt;
-				DoubleReal predicted_rt_p_value;
 
 				for(vector<ProteinHit>::const_iterator protein_hits_it = temp_protein_hits.begin();
 						protein_hits_it != temp_protein_hits.end();
@@ -194,22 +192,6 @@ namespace OpenMS
 									peptide_hits_it != referencing_peptide_hits.end();
 									peptide_hits_it++)
 							{
-								if (const_id_data_[i].metaValueExists("predicted_RT"))
-								{
-									predicted_rt = DoubleReal(const_id_data_[i].getMetaValue("predicted_RT"));
-								}
-								else
-								{
-									predicted_rt = -1;
-								}							
-								if (const_id_data_[i].metaValueExists("predicted_RT_p_value"))
-								{
-									predicted_rt_p_value = DoubleReal(const_id_data_[i].getMetaValue("predicted_RT_p_value"));
-								}
-								else
-								{
-									predicted_rt_p_value = -1;
-								}							
 								writePeptideHit(os, 
 	  														String("\t\t\t\t"),
 	  														*peptide_hits_it,
@@ -219,9 +201,7 @@ namespace OpenMS
 	  														const_id_data_[i].getMetaValue("MZ"),
 																const_id_data_[i].getIdentifier(),
 																const_id_data_[i].getScoreType(),
-																const_id_data_[i].isHigherScoreBetter(),
-	  														predicted_rt,
-	  														predicted_rt_p_value);
+																const_id_data_[i].isHigherScoreBetter());
 	
 							} // peptide_hits_it
 							referencing_peptide_hits.clear();
@@ -302,29 +282,10 @@ namespace OpenMS
 		{			
 			const_id_data_[i].getNonReferencingHits(all_protein_hits, non_referencing_peptide_hits);				 								  														  
 																  														 
-			DoubleReal predicted_rt;
-			DoubleReal predicted_rt_p_value;
 			for(vector<PeptideHit>::const_iterator peptide_hits_it = non_referencing_peptide_hits.begin();
 					peptide_hits_it != 	non_referencing_peptide_hits.end();
 					peptide_hits_it++)
 			{	
-				if (const_id_data_[i].metaValueExists("predicted_RT"))
-				{
-					predicted_rt = DoubleReal(const_id_data_[i].getMetaValue("predicted_RT"));
-				}
-				else
-				{
-					predicted_rt = -1;
-				}							
-				if (const_id_data_[i].metaValueExists("predicted_RT_p_value"))
-				{
-					predicted_rt_p_value = DoubleReal(const_id_data_[i].getMetaValue("predicted_RT_p_value"));
-				}
-				else
-				{
-					predicted_rt_p_value = -1;
-				}							
-
 				writePeptideHit(os, 
 	  										String("\t\t"),
 												*peptide_hits_it,
@@ -334,9 +295,7 @@ namespace OpenMS
 												const_id_data_[i].getMetaValue("MZ"),
 												const_id_data_[i].getIdentifier(),
 												const_id_data_[i].getScoreType(),
-												const_id_data_[i].isHigherScoreBetter(),
-												predicted_rt,
-												predicted_rt_p_value);
+												const_id_data_[i].isHigherScoreBetter());
 			}
 		}
 
@@ -659,17 +618,32 @@ namespace OpenMS
 			  																	DataValue precursor_mz,
 																					String identifier,
 																					String score_type,
-																					bool higher_score_better,
-			  																	DoubleReal predicted_retention_time,
-																					DoubleReal predicted_rt_p_value)
+																					bool higher_score_better)
   {
   	String 																temp_peptide_sequence 		= "";
-		
+		DoubleReal                            predicted_rt = -1;
+		DoubleReal                            predicted_rt_p_value = -1;		
 		if (identifier == "")
 		{
 //			throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__,"No identifier set for identification ",String(identification_index));
 		}  			
 
+		if (hit.metaValueExists("predicted_RT"))
+		{
+				predicted_rt = DoubleReal(hit.getMetaValue("predicted_RT"));
+		}
+		else
+		{
+				predicted_rt = -1;
+		}							
+		if (hit.metaValueExists("predicted_RT_p_value"))
+		{
+				predicted_rt_p_value = DoubleReal(hit.getMetaValue("predicted_RT_p_value"));
+		}
+		else
+		{
+				predicted_rt_p_value = -1;
+		}							
 		os <<  shift << "<peptide>\n"
 		<< shift << "\t<seq>";
 		temp_peptide_sequence = hit.getSequence();
@@ -694,7 +668,7 @@ namespace OpenMS
 				 << "\" />\n"
 				 << shift << "\t<userParam name=\"predicted_precursor_retention_time\" "
 				 << "value=\"" 
-				 << predicted_retention_time
+				 << predicted_rt
 				 << "\" />\n";
 		}
 

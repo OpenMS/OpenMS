@@ -103,9 +103,7 @@ namespace OpenMS
 			  									DataValue precursor_mz,
 													String identifier,
 													String score_type,
-													bool higher_score_better,
-			  									DoubleReal predicted_retention_time,
-													DoubleReal predicted_rt_p_value);
+													bool higher_score_better);
 
   };
 
