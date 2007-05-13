@@ -126,7 +126,9 @@ namespace OpenMS
 				intensity_std += ( (traits_->getPeakIntensity(*it) - intensity_avg) * (traits_->getPeakIntensity(*it) - intensity_avg) );
 			}		
 			intensity_std /= set.size();
-			intensity_std = sqrt(intensity_std);						
+			intensity_std = sqrt(intensity_std);			
+			
+			f.setIntensity(2.345 * intensity_std);
 		}
 		
 		f.setRT(traits_->getPeakRt(max_intensity_index));

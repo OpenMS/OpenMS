@@ -45,7 +45,7 @@ namespace OpenMS
     
     defaults_.setValue("intensity_factor",0.03f);
 		
-		defaults_.setValue("min_intensity_contribution",0.1f);
+		defaults_.setValue("min_intensity_contribution",0.9f);
 
     defaultsToParam_();
 	}
