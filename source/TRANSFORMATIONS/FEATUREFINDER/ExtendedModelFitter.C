@@ -21,7 +21,7 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Clemens Groepl, Marcel Grunert $
+// $Maintainer: Clemens Groepl, Marcel Grunert $	
 // --------------------------------------------------------------------------
 
 
@@ -66,16 +66,21 @@ namespace OpenMS
 
 	ExtendedModelFitter::ExtendedModelFitter()
 		: BaseModelFitter(),
-			quality_(0),
-			model2D_(),
-			mz_stat_(),
-			rt_stat_(),
-			stdev_mz_(0), 
-			stdev_rt1_(0), 
-			stdev_rt2_(0),
-			min_(), 
-			max_(),
-			counter_(0)
+		quality_(0),
+	 	model2D_(),
+		mz_stat_(),
+		rt_stat_(),
+		stdev_mz_(0), 
+		stdev_rt1_(0), 
+		stdev_rt2_(0),
+		min_(), 
+		max_(),
+		counter_(0),
+		iso_stdev_first_(0),
+		iso_stdev_last_(0),
+		iso_stdev_stepsize_(0),
+		first_mz_model_(0),
+		last_mz_model_(0)
 	{
 		setName(getProductName());
 		
@@ -479,19 +484,52 @@ namespace OpenMS
 		{
 			rt_model = new LmaGaussModel();
 			rt_model->setInterpolationStep(interpolation_step_rt_);
-			dynamic_cast<LmaGaussModel*>(rt_model)->setParam(rt_stat_, scale_factor_, standard_deviation_, expected_value_, min_[RT], max_[RT]);
+
+			Param tmp;
+			tmp.setValue("bounding_box:min",min_[RT] );
+			tmp.setValue("bounding_box:max",max_[RT] );
+			tmp.setValue("statistics:variance",rt_stat_.variance() );
+			tmp.setValue("statistics:mean",rt_stat_.mean() );			
+			tmp.setValue("lma:scale_factor",  scale_factor_);
+			tmp.setValue("lma:standard_deviation",  standard_deviation_);
+			tmp.setValue("lma:expected_value",  expected_value_);
+			
+			static_cast<LmaGaussModel*>(rt_model)->setParameters( tmp );
 		}
 		else if (rt_fit==EMGAUSS)
 		{
 			rt_model = new EmgModel();
 			rt_model->setInterpolationStep(interpolation_step_rt_);
-			dynamic_cast<EmgModel*>(rt_model)->setParam(rt_stat_, height_, width_, symmetry_, retention_, min_[RT], max_[RT]);
+
+			Param tmp;
+			tmp.setValue("bounding_box:min",min_[RT] );
+			tmp.setValue("bounding_box:max",max_[RT] );
+			tmp.setValue("statistics:variance",rt_stat_.variance() );
+			tmp.setValue("statistics:mean",rt_stat_.mean() );			
+			tmp.setValue("emg:height",height_);
+			tmp.setValue("emg:width",width_);
+			tmp.setValue("emg:symmetry",symmetry_);
+			tmp.setValue("emg:retention",retention_);
+	
+			static_cast<LmaGaussModel*>(rt_model)->setParameters( tmp );
 		}
 		else if (rt_fit==LOGNORMAL)
 		{
 			rt_model = new LogNormalModel();
 			rt_model->setInterpolationStep(interpolation_step_rt_);
-			dynamic_cast<LogNormalModel*>(rt_model)->setParam(rt_stat_, height_, width_, symmetry_, retention_, r_, min_[RT], max_[RT]);
+
+			Param tmp;
+			tmp.setValue("bounding_box:min",min_[RT] );
+			tmp.setValue("bounding_box:max",max_[RT] );
+			tmp.setValue("statistics:variance",rt_stat_.variance() );
+			tmp.setValue("statistics:mean",rt_stat_.mean() );			
+			tmp.setValue("emg:height",height_);
+			tmp.setValue("emg:width",width_);
+			tmp.setValue("emg:symmetry",symmetry_);
+			tmp.setValue("emg:retention",retention_);
+			tmp.setValue("lognormal:r",  r_);
+	
+			static_cast<LmaGaussModel*>(rt_model)->setParameters( tmp );
 		}
 		else
 		{
@@ -516,9 +554,7 @@ namespace OpenMS
 			res = fitOffset_(rt_model, set, stdev_rt1_, stdev_rt2_, interpolation_step_rt_);
 
 		return res;
-
 	}
-
 
 	double ExtendedModelFitter::fitOffset_(	InterpolationModel* model,
 																					const IndexSet& set, const double stdev1,  const double stdev2,

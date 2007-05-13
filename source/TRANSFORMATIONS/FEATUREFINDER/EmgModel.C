@@ -53,7 +53,7 @@ namespace OpenMS
 	EmgModel::EmgModel(const EmgModel& source)
 		: InterpolationModel(source)
 	{
-		setParam(source.statistics_, source.height_, source.width_, source.symmetry_, source.retention_, source.min_, source.max_);
+		setParameters( source.getParameters() );
 		updateMembers_();
 	}
 
@@ -66,7 +66,7 @@ namespace OpenMS
 		if (&source == this) return *this;
 		
 		InterpolationModel::operator = (source);
-		setParam(source.statistics_, source.height_, source.width_, source.symmetry_, source.retention_, source.min_, source.max_);
+		setParameters( source.getParameters() );
 		updateMembers_();
 		
 		return *this;
@@ -96,29 +96,6 @@ namespace OpenMS
 
 		interpolation_.setScale  ( interpolation_step_ );
 		interpolation_.setOffset ( min_ );
-	}
-
-	void EmgModel::setParam(const BasicStatistics& statistics, CoordinateType height, CoordinateType width, CoordinateType symmetry, CoordinateType retention, CoordinateType min, CoordinateType max)
-	{
-		statistics_.setMean(statistics.mean());
-		statistics_.setVariance(statistics.variance());
-		min_ = min;
-		max_ = max;
-		height_ = height;
-		width_ =  width;
-		symmetry_ =  symmetry;
-		retention_ = retention;
-
-		param_.setValue("bounding_box:min", min_);
-		param_.setValue("bounding_box:max", max_);
-		param_.setValue("statistics:mean", statistics_.mean());
-		param_.setValue("statistics:variance", statistics_.variance());
-		param_.setValue("emg:height", height_);
-		param_.setValue("emg:width", width_);
-		param_.setValue("emg:symmetry", symmetry_);
-		param_.setValue("emg:retention", retention_);
-
-		setSamples();
 	}
 
 	void EmgModel::setOffset(CoordinateType offset)

@@ -51,7 +51,7 @@ namespace OpenMS
 	LmaGaussModel::LmaGaussModel(const LmaGaussModel& source)
 		: InterpolationModel(source)
 	{
-		setParam(source.statistics_, source.scale_factor_, source.standard_deviation_, source.expected_value_, source.min_, source.max_);
+		setParameters( source.getParameters() );
 		updateMembers_();
 	}
 
@@ -64,7 +64,7 @@ namespace OpenMS
 		if (&source == this) return *this;
 		
 		InterpolationModel::operator = (source);
-		setParam(source.statistics_, source.scale_factor_, source.standard_deviation_, source.expected_value_, source.min_, source.max_);
+		setParameters( source.getParameters() );
 		updateMembers_();
 		
 		return *this;
@@ -91,27 +91,6 @@ namespace OpenMS
 
 		interpolation_.setScale  ( interpolation_step_ );
 		interpolation_.setOffset ( min_ );
-	}
-
-	void LmaGaussModel::setParam(const BasicStatistics& statistics, CoordinateType scale_factor, CoordinateType standard_deviation, CoordinateType expected_value, CoordinateType min, CoordinateType max)
-	{
-		statistics_.setMean(statistics.mean());
-		statistics_.setVariance(statistics.variance());
-		min_ = min;
-		max_ = max;
-		scale_factor_ = scale_factor;
-		standard_deviation_ = standard_deviation;
-		expected_value_ = expected_value;
-
-		param_.setValue("bounding_box:min", min_);
-		param_.setValue("bounding_box:max", max_);
-		param_.setValue("statistics:mean", statistics_.mean());
-		param_.setValue("statistics:variance", statistics_.variance());
-		param_.setValue("lma:scale_factor", scale_factor_);
-		param_.setValue("lma:standard_deviation", standard_deviation_);
-		param_.setValue("lma:expected_value", expected_value_);
-
-		setSamples();
 	}
 
 	void LmaGaussModel::setOffset(CoordinateType offset)

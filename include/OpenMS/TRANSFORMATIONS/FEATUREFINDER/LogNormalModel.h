@@ -36,8 +36,8 @@ namespace OpenMS
 	
 	/** 
 		@brief Log-normal distribution model for elution profiles.
-	
-		@todo Remove setParam method and use setParameters instead (Clemens, Marcel)
+
+		@ingroup FeatureFinder
 	*/
 	class LogNormalModel
 		: public InterpolationModel
@@ -59,8 +59,6 @@ namespace OpenMS
 
 		/// assignment operator
 		virtual LogNormalModel& operator = (const LogNormalModel& source);
-
-		void setParam(const BasicStatistics& statistics, CoordinateType height, CoordinateType width, CoordinateType symmetry, CoordinateType retention, CoordinateType r, CoordinateType min, CoordinateType max);
 
 		/// create new LogNormalModel object (needed by Factory)
 		static BaseModel<1>* create()

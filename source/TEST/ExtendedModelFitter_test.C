@@ -287,7 +287,7 @@ CHECK(static const String getName())
 	TEST_EQUAL(ExtendedModelFitter::getProductName(),"ExtendedModelFitter");
 RESULT
 
-/*
+
 CHECK(void setData(const ChargedIndexSet& set))
 
 	const double default_precision = 0.1;
@@ -343,18 +343,17 @@ CHECK(void setData(const ChargedIndexSet& set))
 	TEST_REAL_EQUAL(fitter.getRT(), 5);
 
 RESULT
-*/
 
-/*
+
+
 CHECK(void ExtendedModelFitter::optimize())
 
 // *************************************************
 // *** check parameter optimization at EMG model ***
 // *************************************************
 	EmgModel em1;
-	Math::BasicStatistics<>  stat;
-	stat.setVariance(0.0);
-	
+	Param tmp;
+
 	// model parameter
 	double height_ = 1000.0;
 	double width_ = 2;
@@ -367,7 +366,14 @@ CHECK(void ExtendedModelFitter::optimize())
 	while (symmetry_ < 8.4) 
 	{
 		// set model parameter
-		em1.setParam(stat, height_, width_, symmetry_, retention_, min_, max_);
+		tmp.setValue("bounding_box:min", min_);
+		tmp.setValue("bounding_box:max", max_);
+		tmp.setValue("statistics:variance",  0.0);
+		tmp.setValue("emg:height",height_);
+		tmp.setValue("emg:width",width_);
+		tmp.setValue("emg:symmetry",symmetry_);
+		tmp.setValue("emg:retention",retention_);
+		em1.setParameters(tmp);
 
 		// get samples from model
 		DPeakArray<1> dpa1;
@@ -423,12 +429,17 @@ CHECK(void ExtendedModelFitter::optimize())
 // *** check parameter optimization with noise at EMG model ***
 // ************************************************************
 	EmgModel em2;
-	Math::BasicStatistics<>  stat2;
-	stat.setVariance(0.0);
 	em2.setInterpolationStep(0.1);
 	
 	// set model parameter
-	em2.setParam(stat2, 1000, 2, 1.3, 700, 650, 750);
+	tmp.setValue("bounding_box:min", 650);
+	tmp.setValue("bounding_box:max", 750);
+	tmp.setValue("statistics:variance",  0.0);
+	tmp.setValue("emg:height",1000.0);
+	tmp.setValue("emg:width",2.0);
+	tmp.setValue("emg:symmetry",1.3);
+	tmp.setValue("emg:retention",700);
+	em2.setParameters(tmp);
 
 	// get samples from model
 	DPeakArray<1> dpa2;
@@ -499,10 +510,17 @@ CHECK(void ExtendedModelFitter::optimize())
 // *** check parameter optimization at LogNormal model ***
 // *******************************************************
 	LogNormalModel logm1;	
-	Math::BasicStatistics<>  stat3;
-	stat3.setVariance(0.0);
 	logm1.setInterpolationStep(0.1);
-	logm1.setParam(stat3, 850.0, 20.0, 1.5, 30.0, 2.0, 1.0, 70.0);
+	
+	tmp.setValue("bounding_box:min", 1.0);
+	tmp.setValue("bounding_box:max", 70.0);
+	tmp.setValue("statistics:variance",  0.0);
+	tmp.setValue("emg:height",  850.0);
+	tmp.setValue("emg:width",  20.0);
+	tmp.setValue("emg:symmetry",  1.5);
+	tmp.setValue("emg:retention",  30.0);
+	tmp.setValue("lognormal:r",  2.0);
+	logm1.setParameters(tmp);
 
 	// get samples from model
 	DPeakArray<1> dpa3;
@@ -562,8 +580,6 @@ CHECK(void ExtendedModelFitter::optimize())
 // *** check parameter optimization at LmaGauss model ***
 // ******************************************************
 	LmaGaussModel lm1;
-	Math::BasicStatistics<>  stat4;
-	stat4.setVariance(0.0);
 	lm1.setInterpolationStep(0.1);
 
 	// model parameter
@@ -572,6 +588,7 @@ CHECK(void ExtendedModelFitter::optimize())
 	double expected_value = 665.0;
 	double min = 650;
 	double max = 700;
+	Param tmp2;
 
 	// iterate expected_value
 	while (expected_value < max)
@@ -580,7 +597,13 @@ CHECK(void ExtendedModelFitter::optimize())
 		while (standard_deviation < 10) 
 		{
 			// set model parameter
-			lm1.setParam(stat4, scale_factor, standard_deviation,expected_value,min, max);	
+			tmp2.setValue("bounding_box:min", min);
+			tmp2.setValue("bounding_box:max", max);
+			tmp2.setValue("statistics:variance", 0.0);
+			tmp2.setValue("lma:scale_factor", scale_factor);
+			tmp2.setValue("lma:standard_deviation", standard_deviation);
+			tmp2.setValue("lma:expected_value", expected_value);	
+			lm1.setParameters(tmp2);
 		
 			// get samples from model
 			DPeakArray<1> dpa4;
@@ -641,8 +664,6 @@ CHECK(void ExtendedModelFitter::optimize())
 	} 
 
 RESULT
-*/
-
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

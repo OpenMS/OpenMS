@@ -63,18 +63,25 @@ RESULT
 // assignment operator
 CHECK(EmgModel& operator = (const EmgModel& source))
 	EmgModel em1;
-	Math::BasicStatistics<>  stat;
-	stat.setMean(680.1);
-	stat.setVariance(2.0);
 	em1.setInterpolationStep(0.2);
-	em1.setParam(stat, 100000.0, 5.0, 5.0, 725.0, 678.9, 789.0);
+
+	Param tmp;
+	tmp.setValue("bounding_box:min", 678.9);
+	tmp.setValue("bounding_box:max", 789.0);
+	tmp.setValue("statistics:mean", 680.1 );
+	tmp.setValue("statistics:variance",  2.0);
+	tmp.setValue("emg:height",100000.0);
+	tmp.setValue("emg:width",5.0);
+	tmp.setValue("emg:symmetry",5.0);
+	tmp.setValue("emg:retention",725.0);
+	em1.setParameters(tmp);
 
 	EmgModel em2;
 	em2 = em1;
 	
 	EmgModel em3;
 	em3.setInterpolationStep(0.2);
-	em3.setParam(stat, 100000.0, 5.0, 5.0, 725.0, 678.9, 789.0);
+	em3.setParameters(tmp);
 
   	em1 = EmgModel();
 	TEST_EQUAL(em3.getParameters(), em2.getParameters())
@@ -83,40 +90,55 @@ RESULT
 // copy ctor
 CHECK(EmgModel(const EmgModel& source))
 	EmgModel em1;
-	Math::BasicStatistics<>  stat;
-	stat.setMean(680.1);
-	stat.setVariance(2.0);
 	em1.setInterpolationStep(0.2);
-	em1.setParam(stat, 100000.0, 5.0, 5.0, 725.0, 678.9, 789.0);
+
+	Param tmp;
+	tmp.setValue("bounding_box:min", 678.9);
+	tmp.setValue("bounding_box:max", 789.0);
+	tmp.setValue("statistics:mean", 680.1 );
+	tmp.setValue("statistics:variance",  2.0);
+	tmp.setValue("emg:height",100000.0);
+	tmp.setValue("emg:width",5.0);
+	tmp.setValue("emg:symmetry",5.0);
+	tmp.setValue("emg:retention",725.0);
+	em1.setParameters(tmp);
 
 	EmgModel em2(em1);
   	EmgModel em3;
 	em3.setInterpolationStep(0.2);
-	em3.setParam(stat, 100000.0, 5.0, 5.0, 725.0, 678.9, 789.0);
+	em3.setParameters(tmp);
 
  	em1 = EmgModel();
 	TEST_EQUAL(em3.getParameters(), em2.getParameters())
 RESULT
 
-CHECK(void setParam(Param param))
+
+CHECK([EXTRA] DefaultParamHandler::setParameters(...))
+
 	PRECISION(0.001)
 	EmgModel em1;
-	Math::BasicStatistics<>  stat;
-	stat.setMean(679.1);
-	stat.setVariance(2.0);
 
-	em1.setParam(stat, 100000.0, 5.0, 5.0, 1200.0, 678.9, 680.9);
+	Param tmp;
+	tmp.setValue("bounding_box:min", 678.9);
+	tmp.setValue("bounding_box:max", 680.9);
+	tmp.setValue("statistics:mean", 679.1 );
+	tmp.setValue("statistics:variance",  2.0);
+	tmp.setValue("emg:height", 100000.0);
+	tmp.setValue("emg:width", 5.0);
+	tmp.setValue("emg:symmetry", 5.0);
+	tmp.setValue("emg:retention", 1200.0);
+	em1.setParameters(tmp);
 	em1.setOffset(680.0);
 
 	TEST_REAL_EQUAL(em1.getCenter(), 680.2)
 
-	EmgModel em2;
-	em2.setParameters(em1.getParameters());
+	EmgModel em3;
+	em3.setParameters(em1.getParameters());
 
 	DPeakArray<1> dpa1;
 	DPeakArray<1> dpa2;
 	em1.getSamples(dpa1);
-	em2.getSamples(dpa2);
+	em3.getSamples(dpa2);
 
 	PRECISION(0.0001)
 	TEST_EQUAL(dpa1.size(),dpa2.size())
@@ -127,48 +149,64 @@ CHECK(void setParam(Param param))
 		TEST_REAL_EQUAL(dpa1[i].getIntensity(),dpa2[i].getIntensity())
 	}
 
-RESULT
+	EmgModel em2;
+	em2.setInterpolationStep(0.1);
 
-CHECK(void setParam(const Math::BasicStatistics&, CoordinateType, CoordinateType, CoordinateType, CoordinateType, CoordinateType, CoordinateType))
-	EmgModel em1;
-	Math::BasicStatistics<>  stat;
-	stat.setMean(0.0);
-	stat.setVariance(0.1);
-	em1.setInterpolationStep(0.1);
-	em1.setParam(stat, 10.0, 1.0, 2.0, 3.0, -1.0, 4.0);
+	tmp.setValue("bounding_box:min", -1.0);
+	tmp.setValue("bounding_box:max", 4.0);
+	tmp.setValue("statistics:mean", 0.0 );
+	tmp.setValue("statistics:variance",  0.1);
+	tmp.setValue("emg:height", 10.0);
+	tmp.setValue("emg:width", 1.0);
+	tmp.setValue("emg:symmetry", 2.0);
+	tmp.setValue("emg:retention", 3.0);
+	em2.setParameters(tmp);
 
-	TEST_REAL_EQUAL(em1.getCenter(), 0.0)
+	TEST_REAL_EQUAL(em2.getCenter(), 0.0)
 
 	PRECISION(0.01)
-	TEST_REAL_EQUAL(em1.getIntensity(-1.0), 0.0497198);
-	TEST_REAL_EQUAL(em1.getIntensity(0.0), 0.164882);
-	TEST_REAL_EQUAL(em1.getIntensity(1.0), 0.54166);
-	TEST_REAL_EQUAL(em1.getIntensity(2.0), 1.69364);
+	TEST_REAL_EQUAL(em2.getIntensity(-1.0), 0.0497198);
+	TEST_REAL_EQUAL(em2.getIntensity(0.0), 0.164882);
+	TEST_REAL_EQUAL(em2.getIntensity(1.0), 0.54166);
+	TEST_REAL_EQUAL(em2.getIntensity(2.0), 1.69364);
 
-	em1.setInterpolationStep(0.2);
-	em1.setSamples();
+	em2.setInterpolationStep(0.2);
+	em2.setSamples();
 
-	TEST_REAL_EQUAL(em1.getIntensity(-1.0), 0.0497198);
-	TEST_REAL_EQUAL(em1.getIntensity(0.0), 0.164882);
-	TEST_REAL_EQUAL(em1.getIntensity(1.0), 0.54166);
-	TEST_REAL_EQUAL(em1.getIntensity(2.0), 1.69364);
+	TEST_REAL_EQUAL(em2.getIntensity(-1.0), 0.0497198);
+	TEST_REAL_EQUAL(em2.getIntensity(0.0), 0.164882);
+	TEST_REAL_EQUAL(em2.getIntensity(1.0), 0.54166);
+	TEST_REAL_EQUAL(em2.getIntensity(2.0), 1.69364);
 
 
 	// checked small values of parameter symmetry
-	em1.setParam(stat, 10.0, 6.0, 1.0, 3.0, 0.0, 10.0);
-	TEST_REAL_EQUAL(em1.getIntensity(2.0), 747203);
+	tmp.setValue("bounding_box:min", 0.0);
+	tmp.setValue("bounding_box:max", 10.0);
+	tmp.setValue("statistics:mean", 0.0 );
+	tmp.setValue("statistics:variance",  0.1);
+	tmp.setValue("emg:height", 10.0);
+	tmp.setValue("emg:width", 6.0);
+	tmp.setValue("emg:symmetry", 1.0);
+	tmp.setValue("emg:retention", 3.0);
+	em2.setParameters(tmp);
 
-	em1.setParam(stat, 10.0, 6.0, 0.1, 3.0, 0.0, 10.0);
-	ABORT_IF(isinf(em1.getIntensity(2.0)))
+	TEST_REAL_EQUAL(em2.getIntensity(2.0), 747203);
 
-	em1.setParam(stat, 10.0, 6.0, 0.16, 3.0, 0.0, 10.0);
-	ABORT_IF(isinf(em1.getIntensity(2.0)))
+	tmp.setValue("emg:symmetry", 0.1);
+	em2.setParameters(tmp);
+	ABORT_IF(isinf(em2.getIntensity(2.0)))
 
-	em1.setParam(stat, 10.0, 6.0, 0.17, 3.0, 0.0, 10.0);
-	ABORT_IF(isinf(!em1.getIntensity(2.0)))
+	tmp.setValue("emg:symmetry", 0.16);
+	em2.setParameters(tmp);
+	ABORT_IF(isinf(em2.getIntensity(2.0)))
 
-	em1.setParam(stat, 10.0, 6.0, 0.2, 3.0, 0.0, 10.0);
-	ABORT_IF(!isinf(em1.getIntensity(2.0)))
+	tmp.setValue("emg:symmetry", 0.17);
+	em2.setParameters(tmp);
+	ABORT_IF(isinf(!em2.getIntensity(2.0)))
+
+	tmp.setValue("emg:symmetry", 0.2);
+	em2.setParameters(tmp);
+	ABORT_IF(!isinf(em2.getIntensity(2.0)))
 
 RESULT
 
@@ -176,16 +214,21 @@ RESULT
 CHECK(void setOffset(double offset))
 
 	EmgModel em1;
-	Math::BasicStatistics<>  stat;
-	stat.setMean(680.1);
-	stat.setVariance(2.0);
-	em1.setParam(stat, 100000.0, 5.0, 5.0, 725.0, 678.9, 789.0);
+	
+	Param tmp;
+	tmp.setValue("bounding_box:min", 678.9);
+	tmp.setValue("bounding_box:max", 789.0);
+	tmp.setValue("statistics:mean", 680.1 );
+	tmp.setValue("statistics:variance",  2.0);
+	tmp.setValue("emg:height", 100000.0);
+	tmp.setValue("emg:width", 5.0);
+	tmp.setValue("emg:symmetry", 5.0);
+	tmp.setValue("emg:retention", 725.0);
+	em1.setParameters(tmp);
 	em1.setOffset(680.9);
 
 	EmgModel em2;
-	stat.setMean(680.1);
-	stat.setVariance(2.0);
-	em2.setParam(stat, 100000.0, 5.0, 5.0, 725.0, 678.9, 789.0);
+	em2.setParameters(tmp);
 	em2.setOffset(680.9);
 
 	TEST_EQUAL(em1.getParameters(), em2.getParameters())
@@ -206,6 +249,36 @@ CHECK(void setOffset(double offset))
 		TEST_REAL_EQUAL(dpa1[i].getIntensity(),dpa2[i].getIntensity())
 	}
 
+RESULT
+
+
+CHECK(CoordinateType getCenter() const)
+	// already test above, but just for the sake of it
+
+	PRECISION(0.001)
+	EmgModel em1;
+	
+	Param tmp;
+	tmp.setValue("bounding_box:min", 	678.9);
+	tmp.setValue("bounding_box:max", 789.0);
+	tmp.setValue("statistics:mean", 680.1 );
+	tmp.setValue("statistics:variance",  2.0);
+	tmp.setValue("emg:height",  100000.0);
+	tmp.setValue("emg:width",  5.0);
+	tmp.setValue("emg:symmetry",  5.0);
+	tmp.setValue("emg:retention",  725.0);
+	em1.setParameters(tmp);
+	em1.setOffset(680.0);
+	TEST_REAL_EQUAL(em1.getCenter(), 681.2)
+
+RESULT
+
+CHECK(static BaseModel<1>* create())
+	// already test above
+RESULT
+
+CHECK(void setSamples())
+	// already test above
 RESULT
 
 /////////////////////////////////////////////////////////////

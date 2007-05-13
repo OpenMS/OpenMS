@@ -36,8 +36,8 @@ namespace OpenMS
 {
 	/** 
 		@brief Exponentially modified gaussian distribution model for elution profiles.
-		
-		@todo Remove setParam method and use setParameters instead (Clemens, Marcel)
+
+		@ingroup FeatureFinder
 	*/
 	class EmgModel
 		: public InterpolationModel
@@ -59,8 +59,6 @@ namespace OpenMS
 
 		/// assignment operator
 		virtual EmgModel& operator = (const EmgModel& source);
-
-		void setParam(const BasicStatistics& statistics, CoordinateType height, CoordinateType width, CoordinateType symmetry, CoordinateType retention, CoordinateType min, CoordinateType max);
 
 		/// create new EmgModel object (needed by Factory)
 		static BaseModel<1>* create()

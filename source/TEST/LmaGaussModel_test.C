@@ -62,35 +62,47 @@ RESULT
 // assignment operator
 CHECK(LmaGaussModel& operator = (const LmaGaussModel& source))
 	LmaGaussModel lm1;
-	Math::BasicStatistics<>  stat;
-	stat.setMean(680.1);
-	stat.setVariance(2.0);
 	lm1.setInterpolationStep(0.3);
-	lm1.setParam(stat, 1000000.0, 2.0, 680.0, 678.9, 789.0);
 
-  LmaGaussModel lm2;
-  lm2 = lm1;
+	Param tmp;
+	tmp.setValue("bounding_box:min", 678.9);
+	tmp.setValue("bounding_box:max", 789.0);
+	tmp.setValue("statistics:mean", 680.1 );
+	tmp.setValue("statistics:variance",  2.0);
+	tmp.setValue("lma:scale_factor", 1000000.0);
+	tmp.setValue("lma:standard_deviation", 2.0);
+	tmp.setValue("lma:expected_value", 680.0);
+	lm1.setParameters(tmp);
 
-  LmaGaussModel lm3;
+	LmaGaussModel lm2;
+  	lm2 = lm1;
+
+  	LmaGaussModel lm3;
 	lm3.setInterpolationStep(0.3);
-	lm3.setParam(stat, 1000000.0, 2.0, 680.0, 678.9, 789.0);
-
+	lm3.setParameters(tmp);
+	
 	TEST_EQUAL(lm3.getParameters(), lm2.getParameters())
 RESULT
 
 // copy ctor
 CHECK(LmaGaussModel(const LmaGaussModel& source))
 	LmaGaussModel lm1;
-	Math::BasicStatistics<>  stat;
-	stat.setMean(680.1);
-	stat.setVariance(2.0);
 	lm1.setInterpolationStep(0.3);
-	lm1.setParam(stat, 10.0, 2.0, 680.0, 678.9, 789.0);
+
+	Param tmp;
+	tmp.setValue("bounding_box:min", 678.9);
+	tmp.setValue("bounding_box:max", 789.0);
+	tmp.setValue("statistics:mean", 680.1 );
+	tmp.setValue("statistics:variance",  2.0);
+	tmp.setValue("lma:scale_factor", 10.0);
+	tmp.setValue("lma:standard_deviation", 2.0);
+	tmp.setValue("lma:expected_value", 680.0);
+	lm1.setParameters(tmp);
 
 	LmaGaussModel lm2(lm1);
-  LmaGaussModel lm3;
+  	LmaGaussModel lm3;
 	lm3.setInterpolationStep(0.3);
-	lm3.setParam(stat, 10.0, 2.0, 680.0, 678.9, 789.0);
+	lm3.setParameters(tmp);
 
 	TEST_EQUAL(lm3.getParameters(), lm2.getParameters())
 RESULT
@@ -98,11 +110,16 @@ RESULT
 CHECK(void setParam(Param param))
 	PRECISION(0.001)
 	LmaGaussModel lm1;
-	Math::BasicStatistics<>  stat;
-	stat.setMean(679.1);
-	stat.setVariance(2.0);
-
-	lm1.setParam(stat, 10.0, 2.0, 700.0, 678.9, 680.9);
+	
+	Param tmp;
+	tmp.setValue("bounding_box:min", 678.9);
+	tmp.setValue("bounding_box:max", 680.9);
+	tmp.setValue("statistics:mean", 679.1 );
+	tmp.setValue("statistics:variance",  2.0);
+	tmp.setValue("lma:scale_factor", 10.0);
+	tmp.setValue("lma:standard_deviation", 2.0);
+	tmp.setValue("lma:expected_value", 700.0);
+	lm1.setParameters(tmp);
 	lm1.setOffset(680.0);
 
 	TEST_REAL_EQUAL(lm1.getCenter(), 680.2)
@@ -125,13 +142,18 @@ CHECK(void setParam(Param param))
 	}
 RESULT
 
-CHECK(void setParam(const Math::BasicStatistics&,CoordinateType,CoordinateType,CoordinateType,CoordinateType,CoordinateType))
+CHECK([EXTRA] DefaultParamHandler::setParameters(...))
 	LmaGaussModel lm1;
-	Math::BasicStatistics<>  stat;
-	stat.setMean(0.0);
-	stat.setVariance(0.1);
-	lm1.setInterpolationStep(0.001);
-	lm1.setParam(stat, 1.0, 2.0, 3.0, -1.0, 4.0);
+	
+	Param tmp;
+	tmp.setValue("bounding_box:min", -1.0);
+	tmp.setValue("bounding_box:max", 4.0);
+	tmp.setValue("statistics:mean", 0.0 );
+	tmp.setValue("statistics:variance",  0.1);
+	tmp.setValue("lma:scale_factor", 1.0);
+	tmp.setValue("lma:standard_deviation", 2.0);
+	tmp.setValue("lma:expected_value", 3.0);
+	lm1.setParameters(tmp);
 
 	TEST_REAL_EQUAL(lm1.getCenter(), 0.0)
 
@@ -150,7 +172,8 @@ CHECK(void setParam(const Math::BasicStatistics&,CoordinateType,CoordinateType,C
 	TEST_REAL_EQUAL(lm1.getIntensity(2.0), 0.176033);
 
 	PRECISION(0.1)
-	lm1.setParam(stat, 10.0, 2.0, 3.0, -1.0, 4.0);
+	tmp.setValue("lma:scale_factor", 10.0);
+	lm1.setParameters(tmp);
 	lm1.setSamples();
 	
 	TEST_REAL_EQUAL(lm1.getIntensity(-1.0), 0.269955);
@@ -165,16 +188,20 @@ RESULT
 CHECK(void setOffset(double offset))
 
 	LmaGaussModel lm1;
-	Math::BasicStatistics<>  stat;
-	stat.setMean(680.1);
-	stat.setVariance(2.0);
-	lm1.setParam(stat, 10.0, 2.0, 700.0, 678.9, 789.0);
+
+	Param tmp;
+	tmp.setValue("bounding_box:min", 678.9);
+	tmp.setValue("bounding_box:max", 789.0);
+	tmp.setValue("statistics:mean", 680.1 );
+	tmp.setValue("statistics:variance",  2.0);
+	tmp.setValue("lma:scale_factor", 10.0);
+	tmp.setValue("lma:standard_deviation", 2.0);
+	tmp.setValue("lma:expected_value", 700.0);
+	lm1.setParameters(tmp);
 	lm1.setOffset(680.9);
 
 	LmaGaussModel lm2;
-	stat.setMean(680.1);
-	stat.setVariance(2.0);
-	lm2.setParam(stat, 10.0, 2.0, 700.0, 678.9, 789.0);
+	lm2.setParameters(tmp);
 	lm2.setOffset(680.9);
 
 	TEST_EQUAL(lm1.getParameters(), lm2.getParameters())
@@ -197,15 +224,32 @@ CHECK(void setOffset(double offset))
 
 RESULT
 
-// checked by other check-methods 
-// It is not necessarily to test the methods again.
 CHECK(CoordinateType getCenter() const)
+	// already test above, but just for the sake of it
+	PRECISION(0.001)
+	LmaGaussModel lm1;
+	
+	Param tmp;
+	tmp.setValue("bounding_box:min", 678.9);
+	tmp.setValue("bounding_box:max", 789.0);
+	tmp.setValue("statistics:mean", 680.1 );
+	tmp.setValue("statistics:variance",  2.0);
+	tmp.setValue("lma:scale_factor", 10.0);
+	tmp.setValue("lma:standard_deviation", 2.0);
+	tmp.setValue("lma:expected_value", 700.0);	
+	lm1.setParameters(tmp);
+	lm1.setOffset(680.0);
+
+	TEST_REAL_EQUAL(lm1.getCenter(), 681.2)
+
 RESULT
 
 CHECK(static BaseModel<1>* create())
+	// already test above
 RESULT
 
 CHECK(void setSamples())
+	// already test above
 RESULT
 
 /////////////////////////////////////////////////////////////

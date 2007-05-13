@@ -99,7 +99,7 @@ namespace OpenMS
 		 <td>distance between two isotopes of charge +1</td></tr>
 		 </table>
 		 
-		 @todo use DefaultParamHandler (Clemens, Marcel)
+		 @ingroup FeatureFinder
   */
 
 
@@ -230,34 +230,37 @@ namespace OpenMS
 		/// Maximum number of iterations
 		unsigned int max_iteration_;
 
-		/// parameter of log normal function
+		/// parameter of log normal function:
 		/// r is the ratio between h and the height at which w and s are computed
 		double r_;
 
-		/// parameter of emg and log normal function
+		/// parameter of emg and log normal function:height
 		double height_;
+		/// parameter of emg and log normal function: width
 		double width_;
+		/// parameter of emg and log normal function: symmetry
 		double symmetry_;
+		/// parameter of emg and log normal function: retention time
 		double retention_;
+		/// parameter indicates symmetric peaks
 		bool symmetric_;
+		/// gsl status
 		std::string gsl_status_;
-
-		/// the name of the function
+		/// function for fitting
 		std::string profile_;
 
-		/** 
-			Test for the convergence of the sequence by comparing the last iteration step dx
-    	with the absolute error epsabs and relative error epsrel to the current position x 
-    */
+		/** Test for the convergence of the sequence by comparing the last iteration step dx with the absolute error epsabs and relative error epsrel to the current position x */
+		/// absolute error
 		double eps_abs_;
+		/// relative error
 		double eps_rel_;
 
-		/// parameter of gauss function
+		/// parameter of gauss function: standard deviation
 		double standard_deviation_;
+		/// parameter of gauss function: scale factor
 		double scale_factor_;
+		/// parameter of gauss function: expected value
 		double expected_value_;
-
-		
 
   };
 }

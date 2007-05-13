@@ -38,8 +38,8 @@ namespace OpenMS
 		@brief Normal distribution model for elution profiles.
 			
 		To be used in combination with the Levenberg-Marquardt algorithm fitting algorithm.
-		
-		@todo Remove setParam method and use setParameters instead (Clemens, Marcel)
+
+		@ingroup FeatureFinder
 	*/
 	class LmaGaussModel
 		: public InterpolationModel
@@ -61,8 +61,6 @@ namespace OpenMS
 
 		/// assignment operator
 		virtual LmaGaussModel& operator = (const LmaGaussModel& source);
-
-		void setParam(const BasicStatistics& statistics, CoordinateType scale_factor, CoordinateType standard_deviation, CoordinateType expected_value, CoordinateType min, CoordinateType max);
 
 		/// create new EmgModel object (needed by Factory)
 		static BaseModel<1>* create()
