@@ -98,6 +98,8 @@ CHECK(([EXTRA]IndexSet nextSeed()))
 	
 	Param param;
   param.setValue("min_number_scans",5);
+	param.setValue("max_rt_dist_merging",0);
+	param.setValue("max_mz_dist_merging",0);
 	seeder.setParameters(param);
 	
 	// test first seeding region	

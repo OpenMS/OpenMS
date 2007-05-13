@@ -49,8 +49,7 @@ namespace OpenMS
 			/// charge estimate (convention: zero means "no charge estimate")
 			UInt charge_;			
 		};
-		
-  	
+		  	
     IsotopeCluster()
       : peaks_(), 
       	scans_()

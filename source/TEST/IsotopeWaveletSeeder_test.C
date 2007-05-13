@@ -102,6 +102,9 @@ CHECK(([EXTRA]IndexSet nextSeed()))
 	param.setValue("intensity_factor",1.4);
 	param.setValue("rt_tolerance_cluster",2.0);
 	param.setValue("mass_tolerance_cluster",2.0);
+	param.setValue("max_rt_dist_merging",0);
+	param.setValue("max_mz_dist_merging",0);
+	
 	seeder.setParameters(param);
 	
 	FeaFiModule::IndexSet  region = seeder.nextSeed();

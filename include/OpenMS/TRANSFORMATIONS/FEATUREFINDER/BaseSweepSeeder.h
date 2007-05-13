@@ -95,12 +95,18 @@ namespace OpenMS
   			  	
     		IsotopeClusterScoredCharge()
       		:	IsotopeCluster(),
-						scored_charges_()
+						scored_charges_(),
+						first_scan_(),
+						last_scan_()
 		  	{	
 				}
 				
     		/// vector of scored charges
     		std::vector< ScoredChargeType > scored_charges_;
+				/// first scan
+				UInt first_scan_;
+				/// last scan
+				UInt last_scan_;
   		};		
 
 			/// LC-MS map
@@ -185,6 +191,12 @@ namespace OpenMS
 			
 			/// check for matching cluster. called when there are several point cluster with similar masses.
 			bool checkForMatchingCluster_(const std::pair<TableIteratorType, TableIteratorType>&, const UInt, TableIteratorType&);
+			
+			/// computes the median scan number for a hash entry
+			void computeBorders_(TableIteratorType& entry);
+			
+			/// filters the hash for overlapping point cluster with the same charge
+			void filterHashForOverlaps_();
 							
 			/// Maps m/z to sets of peaks 
 		  TableType iso_map_;
@@ -206,6 +218,12 @@ namespace OpenMS
 			
 			/// Rt tolerance for sweepline		
 			UInt rt_tolerance_cluster_;
+			
+			/// Max. distance in rt for merged peak cluster
+			UInt max_rt_dist_merging_;
+			
+			/// Max. distance in mz for merged peak cluster
+			CoordinateType max_mz_dist_merging_;
 		
   };
 }

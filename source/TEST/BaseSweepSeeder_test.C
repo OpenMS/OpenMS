@@ -175,6 +175,8 @@ CHECK((virtual IndexSet nextSeed()))
 	p.setValue("scans_to_sumup",0);
 	p.setValue("min_number_scans",0);
 	p.setValue("min_number_peaks",0);
+	p.setValue("max_rt_dist_merging",0);
+	p.setValue("max_mz_dist_merging",0);
 	tss1.setParameters(p);
 	
 	FeaFiTraits traits;

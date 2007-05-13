@@ -122,8 +122,7 @@ namespace OpenMS
 			}
 			 traits_->getPeakFlag(*citer) = FeaFiTraits::INSIDE_BOUNDARY;
     }
-   
-    		
+       		
 		// remember last extracted point (in this case the seed !)
 		last_pos_extracted_[RawDataPoint2D::RT] = traits_->getPeakRt(seed);
 		last_pos_extracted_[RawDataPoint2D::MZ] = traits_->getPeakMz(seed);

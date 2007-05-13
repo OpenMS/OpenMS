@@ -39,10 +39,13 @@ namespace OpenMS
 	class BaseQuality;
 
 	/**
-		 @brief Simple model fitter using gaussian or isotope model in mz and bigauss in rt.
+		 @brief Matches a peptide template (based on averagines) to signals extracted from a LC-MS map.
 
-		 For the isotope model different charges and deviations are tested.
-		 
+		 The template is two-dimensional (consists of a part for m/z and rt). The m/z domain is
+		 based on averagines and also contains a parameter for the mass (in-)accuracy of the
+		 mass analyser ("isotope_model:stdev"). To achieve a higher performance, you should set the
+		 range of tested value to a small value.
+				 
 		 Parameters:
 		 <table>
 		 <tr><td></td><td></td><td>tolerance_stdev_bounding_box</td>
@@ -104,17 +107,19 @@ namespace OpenMS
 				MZ = RawDataPoint2D::MZ
 			};
 	  
-			/// 
+			/// Ion count
 			typedef FeaFiTraits::IntensityType IntensityType;
-			///
+			/// Single coordinate
 			typedef FeaFiTraits::CoordinateType Coordinate;
-			///		
+			///	Single coordinate
 			typedef Feature::CoordinateType CoordinateType;
-			///
+			/// Position in 2D
 			typedef Feature::PositionType PositionType2D;
-			///
+			/// Quality of a feature
+			typedef Feature::QualityType QualityType;
+			
 			enum RtFitting { RTGAUSS=0, BIGAUSS=1};
-			/// 
+			
 			enum MzFitting { MZGAUSS=0, CHARGE1=1, CHARGE2=2, CHARGE3=3, CHARGE4=4	, CHARGE5=5, CHARGE6=6 };
 	
 	    /// Default constructor

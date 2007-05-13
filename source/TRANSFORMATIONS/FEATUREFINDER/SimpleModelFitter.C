@@ -35,6 +35,7 @@
 #include <fstream>
 #include <numeric>
 
+#include<OpenMS/SYSTEM/StopWatch.h>
 
 using namespace std;
 
@@ -68,7 +69,7 @@ namespace OpenMS
 		defaults_.setValue("min_num_peaks:extended",10);
 		defaults_.setValue("intensity_cutoff_factor",0.05f);
 		defaults_.setValue("rt:interpolation_step",0.2f);
-		defaults_.setValue("mz:interpolation_step",0.03f);
+		defaults_.setValue("mz:interpolation_step",0.2f);
 		defaults_.setValue("mz:model_type:first",0);
 		defaults_.setValue("mz:model_type:last",4);
 		defaults_.setValue("quality:type","Correlation");
@@ -145,9 +146,8 @@ namespace OpenMS
 		}
 		
 		quality_->setTraits(traits_);
-		ModelDescription<2> model_desc;
-		double quality = 0.0;
-		double max_quality = -std::numeric_limits<double>::max();
+		QualityType quality = 0.0;
+		QualityType max_quality = -std::numeric_limits<double>::max();
 				
 		// Calculate statistics
 		mz_stat_.update( 	IntensityIterator(set.begin(),traits_),
@@ -192,6 +192,9 @@ namespace OpenMS
 		}
 		
 		std::cout << "Checking charge state from " << first_mz << " to " << last_mz << std::endl;
+// 		ModelDescription<2> model_desc; // model  with best correlation
+		
+		ProductModel<2>* final;
 		
 		// Test charges and stdevs
 		for ( float stdev = iso_stdev_first_; stdev <= iso_stdev_last_; stdev += iso_stdev_stepsize_)
@@ -202,20 +205,21 @@ namespace OpenMS
 				if (quality > max_quality)
 				{
 					max_quality = quality;
-					model_desc = ModelDescription<2>(&model2D_);
+// 					model_desc = ModelDescription<2>(&model2D_);		// store model
+					final = new ProductModel<2>(model2D_);	
 				}
 			}
 		}
 	
 		// model with highest correlation
-		ProductModel<2>* final = static_cast< ProductModel<2>* >(model_desc.createModel());
+// 		ProductModel<2>* final = static_cast< ProductModel<2>* >(model_desc.createModel());
 		
 		// model_desc.createModel() returns 0 if class model_desc is not initialized
 		// in this case something went wrong during the modelfitting and we stop.
 		if (! final) 
 		{
 			throw UnableToFit(__FILE__, __LINE__,__PRETTY_FUNCTION__,
-										"UnableToFit-BadQuality","Zero quality after fitting. Skipping this feature");			
+										"UnableToFit-BadQuality","Zero or bad quality after fitting. Skipping this feature");			
 			delete final;   
 		}
 
@@ -307,7 +311,8 @@ namespace OpenMS
 		{
 			f.setCharge(0);		
 		}
-				
+			
+		// How to compute feature intensity ?	
 		Int const intensity_choice = param_.getValue("feature_intensity_sum");
 		IntensityType feature_intensity = 0.0;
 		
@@ -380,7 +385,7 @@ namespace OpenMS
 	  return f;
 	}
 
-	double SimpleModelFitter::fit_(const IndexSet& set, MzFitting mz_fit, RtFitting rt_fit, Coordinate isotope_stdev)
+	SimpleModelFitter::QualityType SimpleModelFitter::fit_(const IndexSet& set, MzFitting mz_fit, RtFitting rt_fit, Coordinate isotope_stdev)
 	{
 
 		// Build Models
@@ -442,25 +447,25 @@ namespace OpenMS
 		}
 		model2D_.setModel(MZ, mz_model).setModel(RT, rt_model);
 
-		double res;
+		QualityType res;
 		res = fitOffset_(mz_model, set, stdev_mz_, stdev_mz_, interpolation_step_mz_);
 		res = fitOffset_(rt_model, set, stdev_rt1_, stdev_rt2_, interpolation_step_rt_);
 		return res;
 	}
 
 
-	double SimpleModelFitter::fitOffset_(	InterpolationModel* model, const IndexSet& set, double stdev1, double stdev2, Coordinate offset_step)
+	SimpleModelFitter::QualityType SimpleModelFitter::fitOffset_(	InterpolationModel* model, const IndexSet& set, double stdev1, double stdev2, Coordinate offset_step)
 	{
 		const Coordinate offset_min = model->getInterpolation().supportMin() - stdev1;
 		const Coordinate offset_max = model->getInterpolation().supportMin() + stdev2;
 
 		Coordinate offset;
-		double correlation;
+		QualityType correlation;
 
 		//test model with default offset
 		Coordinate max_offset = model->getInterpolation().getOffset();
-		double max_correlation = quality_->evaluate(set, model2D_);
-
+		QualityType max_correlation = quality_->evaluate(set, model2D_);
+	
 		//test different offsets
 		for ( offset = offset_min; offset <= offset_max; offset += offset_step )
 		{
@@ -472,10 +477,10 @@ namespace OpenMS
 				max_offset = offset;
 			}
 		}
+			
 		model->setOffset(max_offset);
 		return max_correlation;
-	}
-
+	}	
 }
 
 

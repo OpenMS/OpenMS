@@ -112,6 +112,7 @@ namespace OpenMS
 				return interpolation_.value(coord);
 			}
 
+			/// Returns the interpolation class
 			const LinearInterpolation& getInterpolation() const
 			{
 				return interpolation_;

@@ -52,6 +52,11 @@ BaseSweepSeeder::BaseSweepSeeder()
 		defaults_.setValue("mass_tolerance_cluster",1.2);
 		// rt tolerance for cluster construction (given in number of scans)
 		defaults_.setValue("rt_tolerance_cluster",2);		
+		
+		// max distance in rt for merged peak cluster (given in # scans)
+		defaults_.setValue("max_rt_dist_merging",80.0);
+		// max distance in mz for merged peak cluster 
+		defaults_.setValue("max_mz_dist_merging",3.0);
 }
 
 BaseSweepSeeder::BaseSweepSeeder(const BaseSweepSeeder& source) : BaseSeeder(source) {}
@@ -97,6 +102,10 @@ void BaseSweepSeeder::updateMembers_()
 	// sweepline params
 	mass_tolerance_cluster_      = param_.getValue("mass_tolerance_cluster");
 	rt_tolerance_cluster_            = (UInt) param_.getValue("rt_tolerance_cluster");
+	
+	// cluster merging params
+	max_rt_dist_merging_          = param_.getValue("max_rt_dist_merging"); 
+	max_mz_dist_merging_       = param_.getValue("max_mz_dist_merging");
 }
 
 void BaseSweepSeeder::sweep_()
@@ -220,7 +229,8 @@ void BaseSweepSeeder::sweep_()
 		cout << "List of seeding regions: " << endl;
 		for (TableConstIteratorType iter = iso_map_.begin(); iter != iso_map_.end(); ++iter)
 		{
-			cout << "m/z " << iter->first << " charge: " << iter->second.peaks_.charge_ << endl;
+			cout << "m/z " << iter->first << " charge: " << iter->second.peaks_.charge_ ;
+			cout << " first scan " << iter->second.first_scan_ << " last scan " << iter->second.last_scan_ << endl;
 			
 			for (vector<UInt>::const_iterator citer = 	iter->second.scans_.begin(); 
 						citer != iter->second.scans_.end();
@@ -237,20 +247,145 @@ void BaseSweepSeeder::sweep_()
 		
 }
 
+void BaseSweepSeeder::computeBorders_(TableIteratorType& entry)
+{
+	if (entry->second.scans_.size() == 0) return;		
+	
+	sort(entry->second.scans_.begin(),entry->second.scans_.end());
+	
+	entry->second.first_scan_ = *entry->second.scans_.begin();
+	entry->second.last_scan_ = *(entry->second.scans_.end() - 1);
+}
+
+void BaseSweepSeeder::filterHashForOverlaps_()
+{
+		vector<bool> seen(iso_map_.size(),false);		
+		
+// 		cout << "Init: " << iso_map_.size() << " " << seen.size() << endl;
+		
+		vector<TableIteratorType> toDelete;
+		vector<int> indizes;
+
+		UInt counter = 0;
+		
+		for (TableIteratorType iter = iso_map_.begin(); counter < (iso_map_.size() - 1); ++iter, ++counter)
+		{			
+			TableIteratorType tmp_iter = iter;			
+			++tmp_iter;
+		
+			CoordinateType mz_dist = 0;
+			UInt rt_dist                    = 0;
+			
+// 			cout << "seen (1) : " << seen.size() << " " << counter << " "<< iso_map_.size() << endl;
+			if (seen.at(counter)) 
+			{
+// 				cout << "I know this one already." << endl;
+				continue; // we've seen that one already
+			}
+			UInt tmpc = counter + 1;
+			
+			while (  tmp_iter !=iso_map_.end() && mz_dist < max_mz_dist_merging_ )
+			{			
+				bool rt_overlap = false;
+				
+				// test if cluster overlap
+				if (	(iter->second.first_scan_ < tmp_iter->second.first_scan_ && // first case
+				       iter->second.last_scan_ > tmp_iter->second.last_scan_ ) ||
+							 (iter->second.first_scan_ < tmp_iter->second.first_scan_ && // second case
+				       iter->second.last_scan_ > tmp_iter->second.first_scan_ ) || 
+							 (iter->second.first_scan_ < tmp_iter->second.last_scan_ && // third case
+				       iter->second.last_scan_ > tmp_iter->second.last_scan_ )  )
+				{
+					rt_overlap = true;				
+				}
+				       
+				rt_dist   = tmp_iter->second.first_scan_ - iter->second.last_scan_;
+				mz_dist = tmp_iter->first - iter->first;
+				
+				if (rt_dist < max_rt_dist_merging_) rt_overlap = true;
+				
+// 				cout << "rt_dist: " << rt_dist << endl;
+				
+				// we merge only features with the same charge, overlap in rt and if we haven't seen them yet.
+				if ( tmp_iter->second.peaks_.charge_ == iter->second.peaks_.charge_ 
+				     && rt_overlap
+						 && !seen.at(tmpc)) 
+				{
+					// merging features...
+					cout << "Match found. rt_overlap: " << rt_overlap << " mz dist: " << (tmp_iter->first - iter->first) << endl;
+					// copy scans
+					for (std::vector<UInt>::const_iterator scan_iter = tmp_iter->second.scans_.begin(); 
+								scan_iter != tmp_iter->second.scans_.end();
+								++scan_iter) 
+					{
+						iter->second.scans_.push_back(*scan_iter);
+					}
+					
+					// copy peaks
+					for (std::set<IDX>::const_iterator set_iter = tmp_iter->second.peaks_.begin();
+								set_iter != tmp_iter->second.peaks_.end();
+								++set_iter)
+					{
+						iter->second.peaks_.insert(*set_iter);	
+					}
+					
+					// copy charge estimates for each scan
+					for (std::vector< ScoredChargeType >::const_iterator sc_iter =  tmp_iter->second.scored_charges_.begin();
+								sc_iter !=  tmp_iter->second.scored_charges_.end();
+								++sc_iter)
+					{
+						iter->second.scored_charges_.push_back(*sc_iter);					
+					}
+					
+					// recompute median
+					computeBorders_(iter);		
+					
+					// mark this cluster as deleted
+					toDelete.push_back(tmp_iter);
+					indizes.push_back(tmpc);
+					// and seen
+// 					cout << "seen (2) : " << seen.size() << " " << tmpc << " "<< iso_map_.size() << endl;
+					seen.at(tmpc) = true;
+				} // end of if (...)
+				
+				++tmp_iter;
+				++tmpc;
+			} // end of while
+						
+		} // end of for all table entries
+		
+// 		cout << "Erasing: " << endl;
+		// delete spurious cluster
+		for (UInt i=0; i<toDelete.size();++i)
+		{
+			iso_map_.erase(toDelete[i]);
+// 			cout << "iso_map_.size() " << iso_map_.size() << endl;
+		}
+	
+} // end of filterHashForOverlaps_(...)
+
 void BaseSweepSeeder::filterHash_()
 {
-		vector<TableIteratorType> toDelete;
-	
 		cout << iso_map_.size() << " isotopic clusters were found." << endl;
 	
 		UInt min_number_scans = param_.getValue("min_number_scans");
 		UInt min_number_peaks = param_.getValue("min_number_peaks");
-	
-		// Remove cluster containing too few scans or peaks
+				
 		for (TableIteratorType iter = iso_map_.begin(); iter != iso_map_.end(); ++iter)
-		{
-			sort(iter->second.scans_.begin(),iter->second.scans_.end());
+		{	
+			computeBorders_(iter);		
+		}
 		
+		cout << "filtering (1)" << endl;
+		// filter hash two times (!)
+		filterHashForOverlaps_( );
+		cout << "filtering (2)" << endl;
+		filterHashForOverlaps_( );
+	
+		vector<TableIteratorType> toDelete;
+		// Finally, remove cluster containing too few scans or peaks
+		for (TableIteratorType iter = iso_map_.begin(); iter != iso_map_.end(); ++iter)
+		{				
 			if (iter->second.scans_.size() < min_number_scans ||  iter->second.peaks_.size() < min_number_peaks)
 			{
 				toDelete.push_back(iter);
@@ -462,8 +597,8 @@ void BaseSweepSeeder::AlignAndSum_(SpectrumType& scan, const SpectrumType& neigh
 
         if (index_newscan > 0)
         {
-            double left_diff   = fabs(scan[index_newscan-1].getMZ() - mass);
-            double right_diff = fabs(scan[index_newscan].getMZ() - mass);
+            CoordinateType left_diff   = fabs(scan[index_newscan-1].getMZ() - mass);
+            CoordinateType right_diff = fabs(scan[index_newscan].getMZ() - mass);
 
             // check which neighbour is closer
             if (left_diff < right_diff && (left_diff < mass_tolerance_alignment_) )
@@ -477,7 +612,7 @@ void BaseSweepSeeder::AlignAndSum_(SpectrumType& scan, const SpectrumType& neigh
         }
         else // no left neighbour available
         {
-            double right_diff = fabs(scan[index_newscan].getMZ() - mass);
+            CoordinateType right_diff = fabs(scan[index_newscan].getMZ() - mass);
             if (right_diff < mass_tolerance_alignment_)
             {
                 scan[index_newscan].setIntensity( scan[index_newscan].getIntensity() + p.getIntensity() );
