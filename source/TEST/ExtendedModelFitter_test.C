@@ -345,7 +345,7 @@ CHECK(void setData(const ChargedIndexSet& set))
 RESULT
 
 
-
+/*
 CHECK(void ExtendedModelFitter::optimize())
 
 // *************************************************
@@ -664,6 +664,7 @@ CHECK(void ExtendedModelFitter::optimize())
 	} 
 
 RESULT
+*/
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
