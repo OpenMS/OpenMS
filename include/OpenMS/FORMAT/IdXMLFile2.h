@@ -24,8 +24,8 @@
 // $Maintainer: Marc Sturm $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_FORMAT_IDXMLFILE_H
-#define OPENMS_FORMAT_IDXMLFILE_H
+#ifndef OPENMS_FORMAT_IDXMLFILE2_H
+#define OPENMS_FORMAT_IDXMLFILE2_H
 
 #include <OpenMS/METADATA/Identification.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
@@ -53,13 +53,13 @@ namespace OpenMS
   	
   	@ingroup FileIO
   */
-  class IdXMLFile
+  class IdXMLFile2
   	: protected Internal::XMLHandler
   {
 		public:
 		
 			/// Constructor
-			IdXMLFile();
+			IdXMLFile2();
 			
 			/**
 			@brief Loads the identifications of an IdXML file
@@ -119,4 +119,4 @@ namespace OpenMS
  
 } // namespace OpenMS
 
-#endif // OPENMS_FORMAT_IDXMLFILE_H
+#endif // OPENMS_FORMAT_IDXMLFILE2_H

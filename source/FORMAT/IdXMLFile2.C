@@ -24,7 +24,7 @@
 // $Maintainer: Marc Sturm $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/FORMAT/IdXMLFile.h>
+#include <OpenMS/FORMAT/IdXMLFile2.h>
 #include <OpenMS/SYSTEM/File.h>
 
 #include <xercesc/sax2/SAX2XMLReader.hpp>
@@ -39,13 +39,13 @@ using namespace std;
 namespace OpenMS 
 {
 
-	IdXMLFile::IdXMLFile()
+	IdXMLFile2::IdXMLFile2()
 		: last_meta_(0)
 	{
 	  	
 	}
 
-  void IdXMLFile::load(const String& filename,  vector<Identification>& protein_ids, vector<PeptideIdentification>& peptide_ids)
+  void IdXMLFile2::load(const String& filename,  vector<Identification>& protein_ids, vector<PeptideIdentification>& peptide_ids)
   	 throw (Exception::FileNotFound, Exception::ParseError)
   {
   	prot_ids_ = &protein_ids;
@@ -69,8 +69,8 @@ namespace OpenMS
 		parser->setFeature(xercesc::XMLUni::fgSAX2CoreNameSpaces,false);
 		parser->setFeature(xercesc::XMLUni::fgSAX2CoreNameSpacePrefixes,false);
 
-		parser->setContentHandler(const_cast<IdXMLFile*>(this));
-		parser->setErrorHandler(const_cast<IdXMLFile*>(this));
+		parser->setContentHandler(const_cast<IdXMLFile2*>(this));
+		parser->setErrorHandler(const_cast<IdXMLFile2*>(this));
 		
 		xercesc::LocalFileInputSource source( xercesc::XMLString::transcode(filename.c_str()) );
 		try 
@@ -88,7 +88,7 @@ namespace OpenMS
     }
   }
   					 
-  void IdXMLFile::store(String filename, const vector<Identification>& protein_ids, const vector<PeptideIdentification>& peptide_ids) throw (Exception::UnableToCreateFile)
+  void IdXMLFile2::store(String filename, const vector<Identification>& protein_ids, const vector<PeptideIdentification>& peptide_ids) throw (Exception::UnableToCreateFile)
   {
   		//open stream
 		std::ofstream os(filename.c_str());
@@ -132,6 +132,18 @@ namespace OpenMS
 			 { 
 			 	os << "enzyme=\"trypsin\" ";
 			 }
+			 if (params[i].enzyme == Identification::PEPSIN_A)
+			 { 
+			 	os << "enzyme=\"pepsin_a\" ";
+			 }
+			 if (params[i].enzyme == Identification::PROTEASE_K)
+			 { 
+			 	os << "enzyme=\"protease_k\" ";
+			 }
+			 if (params[i].enzyme == Identification::CHYMOTRYPSIN)
+			 { 
+			 	os << "enzyme=\"chymotrpsin\" ";
+			 }
 			 else if (params[i].enzyme == Identification::NO_ENZYME)
 			 { 
 			 	os << "enzyme=\"no_enzyme\" ";
@@ -171,7 +183,7 @@ namespace OpenMS
   }
 
   
-	void IdXMLFile::startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const xercesc::Attributes& attributes)
+	void IdXMLFile2::startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const xercesc::Attributes& attributes)
 	{		
 		String element = xercesc::XMLString::transcode(qname);
 		
@@ -198,7 +210,6 @@ namespace OpenMS
 			param_.missed_cleavages = attributeAsInt(attributes,"missed_cleavages");
 			param_.peak_mass_tolerance = attributeAsDouble(attributes,"peak_mass_tolerance");
 			param_.precursor_tolerance = attributeAsDouble(attributes,"precursor_peak_tolerance");
-			//TODO docu mass type
 			if (attributes.getValue(xercesc::XMLString::transcode("mass_type") == xercesc::XMLString::transcode("monoisotopic")))
 			{
 				param_.mass_type = Identification::MONOISOTOPIC;
@@ -207,11 +218,22 @@ namespace OpenMS
 			{
 				param_.mass_type = Identification::AVERAGE;
 			}
-			//TODO docu enzymes
 			if (attributes.getValue(xercesc::XMLString::transcode("enzyme") == xercesc::XMLString::transcode("typsin")))
 			{
 				param_.enzyme = Identification::TRYPSIN;
 			}
+			else if (attributes.getValue(xercesc::XMLString::transcode("enzyme") == xercesc::XMLString::transcode("pepsin_a")))
+			{
+				param_.enzyme = Identification::PEPSIN_A;
+			}
+			else if (attributes.getValue(xercesc::XMLString::transcode("enzyme") == xercesc::XMLString::transcode("protease_k")))
+			{
+				param_.enzyme = Identification::PROTEASE_K;
+			}
+			else if (attributes.getValue(xercesc::XMLString::transcode("enzyme") == xercesc::XMLString::transcode("chymotrpsin")))
+			{
+				param_.enzyme = Identification::CHYMOTRYPSIN;
+			}			 
 			else if (attributes.getValue(xercesc::XMLString::transcode("enzyme") == xercesc::XMLString::transcode("no_enzyme")))
 			{
 				param_.enzyme = Identification::NO_ENZYME;
@@ -394,7 +416,7 @@ namespace OpenMS
 		}
 	}
 	
-	void IdXMLFile::endElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname)
+	void IdXMLFile2::endElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname)
 	{
 		String element = xercesc::XMLString::transcode(qname);
 		
@@ -451,7 +473,7 @@ namespace OpenMS
 
 	}
 
-	void IdXMLFile::writeUserParam_(std::ostream& os, const MetaInfoInterface& meta, UInt indent) const
+	void IdXMLFile2::writeUserParam_(std::ostream& os, const MetaInfoInterface& meta, UInt indent) const
 	{
 		std::vector<std::string> keys;
 		meta.getKeys(keys);

@@ -47,8 +47,8 @@ namespace OpenMS
     		rank_(rank),
 				charge_(charge),
     		sequence_(sequence),
-			aa_before(''),
-			aa_after('')
+				aa_before_(' '),
+				aa_after_(' ')
   {
   	sequence_.trim();
   }
@@ -60,8 +60,8 @@ namespace OpenMS
 			rank_(source.rank_),
 			charge_(source.charge_),
 			sequence_(source.sequence_),
-			aa_before(source.aa_before),
-			aa_after(source.aa_after),
+			aa_before_(source.aa_before_),
+			aa_after_(source.aa_after_),
 			corresponding_protein_accessions_(source.corresponding_protein_accessions_)
   {
   }

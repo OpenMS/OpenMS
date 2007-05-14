@@ -45,8 +45,7 @@ namespace OpenMS
     classes have a string identifier.
     Setting this identifier is especially important, when there can be several Identification and 
     PeptideIdentification instances for a map.
-    
-    @todo Add more enzymes, update IdXMLFile (Marc, Andreas)
+
     @todo Add MetaInfoInterface to modifications, update IdXMLFile (Andreas)
      
 		@ingroup Metadata
@@ -75,6 +74,9 @@ namespace OpenMS
 			enum DigestionEnzyme
 			{
 				TRYPSIN,
+				PEPSIN_A,
+				PROTEASE_K,
+				CHYMOTRYPSIN,
 				NO_ENZYME,
 				UNKNOWN_ENZYME
 			};
