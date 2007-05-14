@@ -38,6 +38,7 @@ namespace OpenMS
 		model_desc_       = rhs.model_desc_;
 		convex_hulls_     = rhs.convex_hulls_;
 		charge_           = rhs.charge_;
+		identifications_  = rhs.identifications_;
 		
 		return *this;
 	}

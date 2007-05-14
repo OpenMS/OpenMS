@@ -92,32 +92,25 @@ Stefan Heess:
 - QT fehler Metadaten einzelne Spektren mit ID
 
 Stefan Rink:
-- ToolsDialog: 
-	- Nur anwendbare Tools anzeigen 
-		- statische Methode aus TOPPBase ausbauen
-		- Tools direkt in ToolsDialog
-	- Beim Laden und Speichern des INI-File
-		- TOPPViewBase "Preferences:DefaultPath" benutzen
 - ParamEditor: 
-	-	Name kann nicht leer sein
-	- QShortcut:
-		-public slots
-		-Copy (CTRL+C), Cut (CTRL+X), Paste (CTRL+V), Insert new section (S), Insert new value(V), Delete (ENTF)
-	- insert: Typ 'string', gleich Name editieren -> dann kann der nicht leer sein 
-	- Modified 'flag' in ParamEditor, nicht im INIFileEditor
-		- signal 'modified(bool)'
-		- delete/insert -> edited
-		- store -> not edited / gelber Hintergrund entfernen
-- INIFileEditor:
-	- Edit Menü mit Copy, Cut, Paste, Insert new section, Insert new value, Delete (Slots in ParamEditor)
-- ParamEditor Fehler beim Validieren -> im Dialog anzeigen, nicht in der Kommandozeile
-- Param um Beschreibung ergänzen -> im ParamEditor anzeigen bei 'hover'
+	- insert: Typ 'string' 
+	- Alle Fehler beim Validieren in einem Dialog anzeigen, nicht in der Kommandozeile
+	- Verhindern, daß man items unter items pasten kann (geht mit Keyboard-Shortcuts)
+	- Copy, Paste, Copy (alles mit selbem Item) führt zu segmentation fault
+	- Copy, Paste, Copy (unterschiedliche Items/Sections)-> gepastetes Item verschwindet
+	- Verhindern, daß Sections/Items mit gleichem Namen in der gleichen Section angelegt werden können
+	- Man muß auch mehrmals pasten können!
+- Param um Beschreibung ergänzen 
+	- zweite map<String,String>
+	- Beschriebungen werden nur bei nicht-leerem String überschrieben
+	- im ParamEditor anzeigen bei 'hover'
 
 Diplomarbeit TOPPAS:
 - TOPPViewBase: Parameters (Typ: enum, inputfile, inputfiles, outputfile, outputfiles)
 
 ID:
  - IdXMLFile
+ 	 - Schema docu
  - IDFilter
    - Filtern nach absoluter Score
    - Filtern nach Top X Hits

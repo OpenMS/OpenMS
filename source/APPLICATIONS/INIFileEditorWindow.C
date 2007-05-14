@@ -56,15 +56,13 @@ namespace OpenMS
 		
 		edit_ = new QMenu("&Edit",this);
 		menuBar()->addMenu(edit_);
-		edit_->addAction("&Copy",editor_,SLOT(copySubTree()));
-		edit_->addAction("&Cut",editor_,SLOT(cutSubTree()));
+		edit_->addAction("&Copy",editor_,SLOT(copySubTree()), Qt::CTRL+Qt::Key_C);
+		edit_->addAction("&Cut",editor_,SLOT(cutSubTree()), Qt::CTRL+Qt::Key_X);
+		edit_->addAction("&Paste",editor_,SLOT(pasteSubTree()), Qt::CTRL+Qt::Key_V);
+		edit_->addAction("&Delete",editor_,SLOT(deleteItem()), Qt::Key_Delete);
 		edit_->addSeparator();
-		edit_->addAction("&Paste",editor_,SLOT(pasteSubTree()));
-		edit_->addSeparator();
-		edit_->addAction("&Delete",editor_,SLOT(deleteItem()));
-		edit_->addSeparator();
-		edit_->addAction("Insert new &Section",editor_,SLOT(insertNode()));
-		edit_->addAction("Insert new &Value",editor_,SLOT(insertItem()));
+		edit_->addAction("Insert new &Section",editor_,SLOT(insertNode()), Qt::Key_S);
+		edit_->addAction("Insert new &Value",editor_,SLOT(insertItem()), Qt::Key_V);
 		//edit_->setEnabled(false);
 		
 		connect(editor_,SIGNAL(modified(bool)),this,SLOT(updateWindowTitle(bool)));
@@ -102,23 +100,23 @@ namespace OpenMS
 	
 	bool INIFileEditorWindow::saveFile()
 	{
-		if(!filename_.isEmpty() && !editor_->isNameEmpty())
-		{
-			editor_->store();
-			param_.store(filename_.toStdString());
-			QString str=QString("%1 - INIFileEditor").arg(filename_);
-			setWindowTitle(str.remove(0,str.lastIndexOf('/')+1));
-			
-			return true;
-		}
-		else if(filename_.isEmpty())
+		if(filename_.isEmpty())
 		{
 			QMessageBox::warning(this,"No ini-file!","You have to open an ini-file before saving!");
+			return false;
 		}
 		else if(editor_->isNameEmpty())
 		{
 			QMessageBox::warning(this,"Empty Name","You have to enter a name before saving!");
+			return false;
 		}
+		
+		editor_->store();
+		param_.store(filename_.toStdString());
+		QString str=QString("%1 - INIFileEditor").arg(filename_);
+		setWindowTitle(str.remove(0,str.lastIndexOf('/')+1));
+		
+		return true;
 	}
 	
 	

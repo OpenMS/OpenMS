@@ -209,14 +209,18 @@ namespace OpenMS
 		list.push_back("value");
 		list.push_back("type");
 		setHeaderLabels(list);
+	}
+	
+	void ParamEditor::createShortCuts()
+	{
 		new QShortcut(Qt::CTRL+Qt::Key_C, this, SLOT(copySubTree()));
 		new QShortcut(Qt::CTRL+Qt::Key_X, this, SLOT(cutSubTree()));
 		new QShortcut(Qt::CTRL+Qt::Key_V, this, SLOT(pasteSubTree()));
 		new QShortcut(Qt::Key_S, this, SLOT(insertNode()));
 		new QShortcut(Qt::Key_V, this, SLOT(insertItem())); 
-		new QShortcut(Qt::Key_Delete, this, SLOT(deleteItem()));
+		new QShortcut(Qt::Key_Delete, this, SLOT(deleteItem()));	
 	}
-	   
+	
 	void ParamEditor::editChanged(QTreeWidgetItem* /*current*/, QTreeWidgetItem* previous)
 	{
 		if(previous)
@@ -641,31 +645,35 @@ namespace OpenMS
 		{
 			// there is no item under the requested position
 			QMenu menu(this);
-			menu.addAction(tr("&Insert item"), this, SLOT(insertItem()));
-			menu.addAction(tr("&Insert node"), this, SLOT(insertNode()));
+			menu.addAction(tr("&Insert new value"), this, SLOT(insertItem()));
+			menu.addAction(tr("&Insert new section"), this, SLOT(insertNode()));
 			menu.exec(event->globalPos());
 			selected_item_=NULL;
 		}
 		else if (selected_item_->data(0,Qt::UserRole)==NODE)
 		{
 			QMenu menu(this);
+			menu.addAction(tr("&Copy"), this, SLOT(copySubTree()));
+			menu.addAction(tr("C&ut"), this, SLOT(cutSubTree()));
+			menu.addAction(tr("&Paste"), this, SLOT(pasteSubTree()));
+			menu.addSeparator();
 			menu.addAction(tr("&Delete"), this, SLOT(deleteItem()));
-			menu.addAction(tr("&Insert value"), this, SLOT(insertItem()));
-			menu.addAction(tr("&Insert section"), this, SLOT(insertNode()));
+			menu.addAction(tr("&Insert new value"), this, SLOT(insertItem()));
+			menu.addAction(tr("&Insert new section"), this, SLOT(insertNode()));
 			menu.addSeparator();
 			menu.addAction(tr("&Expand"), this, SLOT(expandTree()));
 			menu.addAction(tr("&Collapse"), this, SLOT(collapseTree()));
-			menu.addSeparator();
-			menu.addAction(tr("&Copy"), this, SLOT(copySubTree()));
-			menu.addAction(tr("&Paste"), this, SLOT(pasteSubTree()));
+
 			menu.exec(event->globalPos());
 			selected_item_=NULL;
 		}
 		else if(selected_item_->data(0,Qt::UserRole)==ITEM)
 		{
 			QMenu menu(this);
-			menu.addAction(tr("&Delete"), this, SLOT(deleteItem()));
 			menu.addAction(tr("&Copy"), this, SLOT(copySubTree()));
+			menu.addAction(tr("C&ut"), this, SLOT(cutSubTree()));
+			menu.addSeparator();
+			menu.addAction(tr("&Delete"), this, SLOT(deleteItem()));
 			menu.exec(event->globalPos());
 			selected_item_=NULL;
 		}

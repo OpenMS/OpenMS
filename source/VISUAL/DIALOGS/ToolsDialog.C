@@ -61,15 +61,15 @@ namespace OpenMS
 				
 		if (layer->type==LayerData::DT_PEAK)
 		{
-			list<<"FileFilter"<<"BaselineFilter"<<"NoiseFilter"<<"PeakPicker"<<"Resampler"<<"SpectraFilter"<<"MapNormalizer"<<"InternalCalibration"<<"FeatureFinder";
+			list<<"FileFilter"<<"FileInfo"<<"BaselineFilter"<<"NoiseFilter"<<"PeakPicker"<<"Resampler"<<"SpectraFilter"<<"MapNormalizer"<<"InternalCalibration"<<"FeatureFinder";
 		}
 		else if (layer->type==LayerData::DT_FEATURE)
 		{
-			list<<"FileConverter"<<"FileInfo"<<"LabeledMatcher"<<"Decharger";
+			list<<"FileFilter"<<"FileConverter"<<"FileInfo"<<"LabeledMatcher"<<"Decharger";
 		}
 		else if (layer->type==LayerData::DT_FEATURE_PAIR)
 		{
-			list<<"FileConverter"<<"FileInfo"<<"LabeledMatcher"<<"Decharger"<<"FeaturePairSplitter";
+			list<<"FileConverter"<<"LabeledMatcher"<<"Decharger"<<"FeaturePairSplitter";
 		}
 		list.push_front("<select>");
 		tools_combo_=new QComboBox;
@@ -103,6 +103,7 @@ namespace OpenMS
 		main_grid->addLayout(radio_grid,3,1);
 		
 		editor_=new ParamEditor;
+		editor_->createShortCuts();
 		
 		main_grid->addWidget(editor_,4,0,2,4);
 		

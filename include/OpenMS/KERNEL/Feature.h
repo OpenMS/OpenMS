@@ -97,13 +97,16 @@ namespace OpenMS
 				overall_quality_(feature.overall_quality_),
 				model_desc_(feature.model_desc_),
 				convex_hulls_(feature.convex_hulls_),
-				charge_(feature.charge_)
+				charge_(feature.charge_),
+				identifications_(feature.identifications_)
 		{
 			std::copy(feature.qualities_,feature.qualities_+2,qualities_);
 		}
 
 		/// Destructor
-		~Feature() {}
+		~Feature()
+		{
+		}
 		//@}
 		
 		/**	@name Accessors	*/

@@ -106,11 +106,13 @@ namespace OpenMS
 			void deleteAll();
 			/// is data changed since last save?
 			bool isModified();
-			/// /// invalid input entered for the name
+			/// invalid input entered for the name
 			bool isNameEmpty();
 			/// types of data elements
 			enum{NODE,ITEM};
-
+			/// Creates default shortcuts for copy, cut, paste, ...
+			void createShortCuts();
+				
 		public slots:
 			/// deletes an item and its children
 			void deleteItem();
@@ -157,7 +159,7 @@ namespace OpenMS
 			bool modified_;
 			/// counts the number of modifications to the items
 			UInt modificationsCount_;
-			/// invalid input entered for the name
+			/// invalid input entered for the name of an item
 			bool is_name_empty_;
 			
 	};
