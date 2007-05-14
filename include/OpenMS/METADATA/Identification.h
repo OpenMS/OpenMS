@@ -46,6 +46,9 @@ namespace OpenMS
     Setting this identifier is especially important, when there can be several Identification and 
     PeptideIdentification instances for a map.
     
+    @todo Add more enzymes, update IdXMLFile (Marc, Andreas)
+    @todo Add MetaInfoInterface to modifications, update IdXMLFile (Andreas)
+     
 		@ingroup Metadata
   */
   class Identification
@@ -78,6 +81,7 @@ namespace OpenMS
 			
 			/// Search parameters of the DB search
 			struct SearchParameters
+				: public MetaInfoInterface
 			{
 				String db; ///< The used database
 				String db_version; ///< The database version

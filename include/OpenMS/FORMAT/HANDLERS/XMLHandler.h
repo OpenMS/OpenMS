@@ -34,6 +34,7 @@
 
 #include <xercesc/sax2/DefaultHandler.hpp>
 #include <xercesc/sax/Locator.hpp>
+#include <xercesc/sax2/Attributes.hpp>
 
 namespace OpenMS
 {
@@ -215,9 +216,21 @@ namespace OpenMS
 				}
 				message += " in file " + file_;
 			}
-
+		
+		inline const char* attributeAsString(const xercesc::Attributes& a, const char* name) const
+		{
+			return xercesc::XMLString::transcode(a.getValue(xercesc::XMLString::transcode(name)));
+		}
+		inline Int attributeAsInt(const xercesc::Attributes& a, const char* name) const
+		{
+			return xercesc::XMLString::parseInt(a.getValue(xercesc::XMLString::transcode(name)));
+		}
+		inline DoubleReal attributeAsDouble(const xercesc::Attributes& a, const char* name) const
+		{
+			return atof(xercesc::XMLString::transcode(a.getValue(xercesc::XMLString::transcode(name))));
+		}
 	};
-
+	
 	} // namespace Internal
 } // namespace OpenMS
 

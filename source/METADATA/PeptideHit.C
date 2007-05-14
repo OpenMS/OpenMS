@@ -46,7 +46,9 @@ namespace OpenMS
     		score_(score), 
     		rank_(rank),
 				charge_(charge),
-    		sequence_(sequence)
+    		sequence_(sequence),
+			aa_before(''),
+			aa_after('')
   {
   	sequence_.trim();
   }
@@ -58,6 +60,8 @@ namespace OpenMS
 			rank_(source.rank_),
 			charge_(source.charge_),
 			sequence_(source.sequence_),
+			aa_before(source.aa_before),
+			aa_after(source.aa_after),
 			corresponding_protein_accessions_(source.corresponding_protein_accessions_)
   {
   }
@@ -79,6 +83,8 @@ namespace OpenMS
 		charge_ = source.charge_;
 		rank_  = source.rank_;
     sequence_ = source.sequence_;
+    aa_before_ = source.aa_before_;
+    aa_after_ = source.aa_after_;
     corresponding_protein_accessions_ = source.corresponding_protein_accessions_;
 
     return *this;
@@ -91,6 +97,8 @@ namespace OpenMS
 			&& rank_ == rhs.rank_ 
 			&& charge_ == rhs.charge_
 			&& sequence_ == rhs.sequence_
+			&& aa_before_ == rhs.aa_before_
+			&& aa_after_ == rhs.aa_after_
 			&& corresponding_protein_accessions_ == rhs.corresponding_protein_accessions_;
 	}
 
@@ -158,5 +166,26 @@ namespace OpenMS
   {
   	rank_ = newrank;
   }
+
+	void PeptideHit::setAABefore(char acid)
+	{
+		aa_before_ = acid;
+	}
+	
+	char PeptideHit::getAABefore() const
+	{
+		return aa_before_;
+	}
+	
+	void PeptideHit::setAAAfter(char acid)
+	{
+		aa_after_ = acid;
+	}
+	
+	char PeptideHit::getAAAfter() const
+	{
+		return aa_after_;
+	}
+
 
 } // namespace OpenMS

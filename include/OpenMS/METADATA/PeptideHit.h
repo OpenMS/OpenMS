@@ -134,6 +134,18 @@ namespace OpenMS
 			
 			/// adds a accession of a protein which contains this peptide hit
 			void addProteinAccession(const String& accession); 
+			
+			/// sets the amino acid before the sequence
+			void setAABefore(char acid);
+			/// returns the amino acid before the sequence
+			char getAABefore() const;
+
+			/// sets the amino acid after the sequence
+			void setAAAfter(char acid);
+			/// returns the amino acid after the sequence
+			char getAAAfter() const;
+
+			
 	    //@}
 	
 	  
@@ -141,7 +153,9 @@ namespace OpenMS
 	    Real score_;									///< the score of the peptide hit
 			UInt rank_;    				///< the position(rank) where the hit appeared in the hit list
 			Int charge_; ///< the charge of the peptide
-	    String sequence_;							///< the amino acid sequence of the peptide hit 
+	    String sequence_;							///< the amino acid sequence of the peptide hit
+	    char aa_before_; ///< Amino acid before the sequence
+	    char aa_after_; ///< Amino acid after the sequence
 	    std::vector<String> corresponding_protein_accessions_; ///< the accessions of the corresponding proteins
 	
 	};
