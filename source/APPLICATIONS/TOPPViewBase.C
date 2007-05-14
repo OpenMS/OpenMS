@@ -1925,8 +1925,9 @@ namespace OpenMS
 		if (ws_->activeWindow())
 		{
 			String tmp_dir = param_.getValue("Preferences:TmpPath").toString();
+			String default_dir = param_.getValue("Preferences:DefaultPath").toString();
 			
-			ToolsDialog dialog(this,tmp_dir);
+			ToolsDialog dialog(this,tmp_dir,default_dir,getCurrentLayer());
 		
 			if(dialog.exec()==QDialog::Accepted)
 			{

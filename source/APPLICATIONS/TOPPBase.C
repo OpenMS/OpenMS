@@ -49,11 +49,6 @@ namespace OpenMS
 			debug_level_(-1),
 			log_type_(ProgressLogger::NONE)
 	{
-		QStringList list=registerTools();
-		if( find(list.begin(), list.end(), QString(tool_name.c_str())) == list.end() )
-		{
-			cout << "Warning: '" << tool_name << "' is no registered TOPP tool name!" << endl; 
-		}	
 	}
 
 	TOPPBase::~TOPPBase()
@@ -868,19 +863,7 @@ namespace OpenMS
 			high = tmp.toDouble();
 		}
 	}
-	
-	const QStringList TOPPBase::registerTools()
-	{
-		QStringList tools;
-		tools<<"AdditiveSeries"<<"IDMerger"<<"BaselineFilter"<<"ConsensusID"<<"Decharger"<<"DBExporter"
-		<<"DBImporter"<<"DTAExtractor"<<"FeatureFinder"<<"FeaturePairSplitter"<<"FileConverter"<<"FileFilter"
-		<<"FileInfo"<<"FileMerger"<<"IDFilter"<<"InspectAdapter"<<"LabeledMatcher"<<"MapAlignment"<<"MapDewarper"
-		<<"MapMatcher"<<"MascotAdapter"<<"NoiseFilter"<<"OMSSAAdapter"<<"PeakPicker"<<"PILISIdentification"
-		<<"PILISModel"<<"Resampler"<<"RTModel"<<"RTPredict"<<"SequestAdapter"<<"SpectraFilter"<<"UnlabeledMatcher"
-		<<"MapNormalizer" <<"InternalCalibration";
-		return tools;
-	}
-	
+
 	Param TOPPBase::getSubsectionDefaults_(const String& /*section*/) const
 	{
 		Param tmp;

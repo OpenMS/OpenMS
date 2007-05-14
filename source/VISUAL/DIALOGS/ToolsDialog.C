@@ -28,6 +28,7 @@
 #include <OpenMS/VISUAL/DIALOGS/ToolsDialog.h>
 #include <OpenMS/VISUAL/ParamEditor.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
+#include <OpenMS/VISUAL/LayerData.h>
 #include <OpenMS/FORMAT/Param.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <QtCore/QStringList>
@@ -46,16 +47,30 @@ using namespace std;
 namespace OpenMS
 {
 
-	ToolsDialog::ToolsDialog( QWidget * parent, String tmp_dir)
+	ToolsDialog::ToolsDialog( QWidget * parent, String tmp_dir, String default_dir, const LayerData* layer)
 		: QDialog(parent),
-			tmp_dir_(tmp_dir)
+			tmp_dir_(tmp_dir),
+			default_dir_(default_dir)			
 	{
 		QGridLayout *main_grid=new QGridLayout(this);
 		QLabel *label=NULL;
 
 		label=new QLabel("TOPP tool:");
 		main_grid->addWidget(label,0,0);
-		QStringList list = TOPPBase::registerTools();
+		QStringList list;
+				
+		if (layer->type==LayerData::DT_PEAK)
+		{
+			list<<"FileFilter"<<"BaselineFilter"<<"NoiseFilter"<<"PeakPicker"<<"Resampler"<<"SpectraFilter"<<"MapNormalizer"<<"InternalCalibration"<<"FeatureFinder";
+		}
+		else if (layer->type==LayerData::DT_FEATURE)
+		{
+			list<<"FileConverter"<<"FileInfo"<<"LabeledMatcher"<<"Decharger";
+		}
+		else if (layer->type==LayerData::DT_FEATURE_PAIR)
+		{
+			list<<"FileConverter"<<"FileInfo"<<"LabeledMatcher"<<"Decharger"<<"FeaturePairSplitter";
+		}
 		list.push_front("<select>");
 		tools_combo_=new QComboBox;
 		tools_combo_->addItems(list);
@@ -153,6 +168,10 @@ namespace OpenMS
 		{
 			QMessageBox::critical(this,"Error",(String("Could not open '")+tmp_dir_+"/in.ini'!").c_str());
 		}
+		else if(editor_->isNameEmpty())
+		{
+			QMessageBox::critical(this,"Error","Name of an item is still empty!");
+		}
 		else
 		{
 			ok_button_->setEnabled(true);
@@ -231,7 +250,7 @@ namespace OpenMS
 	bool ToolsDialog::loadIni()
 	{
 		QString string;
-		filename_=QFileDialog::getOpenFileName(this,tr("Open ini file"),".",tr("ini files (*.ini);; all files (*.*)"));
+		filename_=QFileDialog::getOpenFileName(this,tr("Open ini file"),default_dir_.c_str(),tr("ini files (*.ini);; all files (*.*)"));
 		
 		if(!filename_.isEmpty())
 		{
@@ -295,7 +314,7 @@ namespace OpenMS
 	
 	bool ToolsDialog::storeIni()
 	{
-		filename_=QFileDialog::getSaveFileName(this,tr("Save ini file"),".",tr("ini files (*.ini)"));
+		filename_=QFileDialog::getSaveFileName(this,tr("Save ini file"),default_dir_.c_str(),tr("ini files (*.ini)"));
 		if(!filename_.isEmpty() && !arg_param_.empty())
 		{
 			if(!filename_.endsWith(".ini")) filename_.append(".ini");

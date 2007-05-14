@@ -52,20 +52,18 @@ namespace OpenMS
 		public:
 			 INIFileEditorWindow(QWidget *parent = 0);
 			void closeEvent(QCloseEvent *event);
-			bool isChanged();
-		
 		public slots:
 			bool openFile(const String& filename="");
 			bool saveFile();
 			bool saveFileAs();
-			void setChanged(QTreeWidgetItem * item, int column);
+			void updateWindowTitle(bool);
 		
 		private:
 			QToolBar* toolbar_;
 			ParamEditor* editor_;
 			Param param_;
 			QString filename_;
-			bool changed_;
+			QMenu* edit_;
 	};
 }
 

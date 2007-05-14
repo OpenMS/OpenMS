@@ -46,7 +46,7 @@
 #include <QtGui/QColor>
 #include <QtGui/QPainter>
 #include <QtGui/QBrush>
-
+#include <QtGui/QShortcut>
 
 
 using namespace std;
@@ -60,6 +60,7 @@ namespace OpenMS
 			{
 			}
 		 
+
 		QWidget *ParamEditorDelegate::createEditor(QWidget *parent, const QStyleOptionViewItem& /*option*/, const QModelIndex& index ) const
 		{
 			QString str = index.model()->data(index, Qt::DisplayRole).toString();
@@ -90,6 +91,7 @@ namespace OpenMS
 				QLineEdit *editor = new QLineEdit(parent);
 				return editor;
 			}
+
 			return 0;
 		}
 		 
@@ -123,60 +125,67 @@ namespace OpenMS
 		 
 		void ParamEditorDelegate::setModelData(QWidget *editor, QAbstractItemModel *model, const QModelIndex &index) const
 		{
-			QVariant past_value = index.model()->data(index, 33);
+			QVariant initial_value = index.model()->data(index, 33);
 			QVariant present_value = index.model()->data(index, Qt::DisplayRole);
+			
 			if(index.column()==2)
 			{
 				QComboBox *combo= static_cast<QComboBox*>(editor);
-				QVariant editor_value(combo->currentText());
-				model->setData(index, editor_value);
-				if(!past_value.isValid()) model->setData(index, present_value, 33);
-				if(editor_value!=past_value)
+				QVariant new_value(combo->currentText());
+				if(new_value!=present_value && !initial_value.isValid())
 				{
+					model->setData(index, present_value, 33);
 					model->setData(index,QBrush(Qt::yellow),Qt::BackgroundRole);
+					emit modified(true);
 				}
-				else
+				else if(new_value==initial_value)
 				{
 					model->setData(index,QBrush(Qt::white),Qt::BackgroundRole);
+					emit modified(false);
 				}
+				model->setData(index, new_value);
 			}
 			else if(index.column()==1)
 			{
 				QLineEdit *edit= static_cast<QLineEdit*>(editor);
-				QVariant editor_value(edit->text());
-				model->setData(index, editor_value);
-				if(!past_value.isValid()) model->setData(index, present_value, 33);
-				if(editor_value!=past_value)
+				QVariant new_value(edit->text());
+				if(new_value!=present_value && !initial_value.isValid())
 				{
+					model->setData(index, present_value, 33);
 					model->setData(index,QBrush(Qt::yellow),Qt::BackgroundRole);
+					emit modified(true);
 				}
-				else
+				else if(new_value==initial_value)
 				{
 					model->setData(index,QBrush(Qt::white),Qt::BackgroundRole);
+					emit modified(false);
 				}
+				model->setData(index, new_value);
 			}
 			else if(index.column()==0)
 			{
 				QLineEdit *edit= static_cast<QLineEdit*>(editor);
-				QVariant editor_value(edit->text());
-				model->setData(index, editor_value);
-				if(!past_value.isValid()) model->setData(index, present_value, 33);
-				if(editor_value!=past_value)
+				QVariant new_value(edit->text());
+				if(new_value!=present_value && !initial_value.isValid())
 				{
+					model->setData(index, present_value, 33);
 					model->setData(index,QBrush(Qt::yellow),Qt::BackgroundRole);
+					emit modified(true);
 				}
-				else
+				else if(new_value==initial_value)
 				{
 					model->setData(index,QBrush(Qt::white),Qt::BackgroundRole);
+					emit modified(false);
 				}
+				model->setData(index, new_value);
 			}
 		}
 		 
+		
 		void ParamEditorDelegate::updateEditorGeometry(QWidget* editor, const QStyleOptionViewItem& option, const QModelIndex& /*index*/) const
 		{
 			editor->setGeometry(option.rect);
 		}
-		
 	}
 
 	ParamEditor::ParamEditor(QWidget * parent)
@@ -184,19 +193,46 @@ namespace OpenMS
 	  	param_editable_(0),
 	  	param_const_(0),
 		selected_item_(0),
-		copied_item_(0)
+		copied_item_(0),
+		modified_(false),
+		modificationsCount_(0),
+		is_name_empty_(false)
 	{
 		setMinimumSize(500,300);
 		setItemDelegate(new Internal::ParamEditorDelegate);
 		setWindowTitle("ParamEditor");
 		setColumnCount(3);
+		connect(itemDelegate(),SIGNAL(modified(bool)),this,SLOT(setModified(bool)));
+		connect(this, SIGNAL(currentItemChanged ( QTreeWidgetItem *, QTreeWidgetItem*)),this,SLOT(editChanged(QTreeWidgetItem*, QTreeWidgetItem*))); 
 		QStringList list;
 		list.push_back("name");
 		list.push_back("value");
 		list.push_back("type");
 		setHeaderLabels(list);
+		new QShortcut(Qt::CTRL+Qt::Key_C, this, SLOT(copySubTree()));
+		new QShortcut(Qt::CTRL+Qt::Key_X, this, SLOT(cutSubTree()));
+		new QShortcut(Qt::CTRL+Qt::Key_V, this, SLOT(pasteSubTree()));
+		new QShortcut(Qt::Key_S, this, SLOT(insertNode()));
+		new QShortcut(Qt::Key_V, this, SLOT(insertItem())); 
+		new QShortcut(Qt::Key_Delete, this, SLOT(deleteItem()));
 	}
-	    
+	   
+	void ParamEditor::editChanged(QTreeWidgetItem* /*current*/, QTreeWidgetItem* previous)
+	{
+		if(previous)
+		{
+			if(previous->text(0).isEmpty())
+			{				
+				editItem(previous,0);
+				setCurrentItem(previous);
+				is_name_empty_=true;
+			}
+			else
+			{
+				is_name_empty_=false;
+			}
+		}
+	}
 	void ParamEditor::load(const Param& param)
 	{
 		string up, down ,key, key_without_prefix, new_prefix ,type, prefix = "";
@@ -345,7 +381,7 @@ namespace OpenMS
 		load(param);
 	}
 	    
-	bool ParamEditor::store() const
+	bool ParamEditor::store()
 	{
 		bool ret=false;
 		if (isValid()) 
@@ -361,10 +397,12 @@ namespace OpenMS
 					storeRecursive_(parent->child(i),"");	//whole tree recursively
 				}	
 			}
+			modificationsCount_=1;
+			setModified(false);
 		}
 		else 
 		{
-			QMessageBox::critical(const_cast<ParamEditor*>(this),"Error writing file!","Look at the output to stderr for details!");
+			QMessageBox::critical(this,"Error writing file!","Look at the output to stderr for details!");
 		}
 		return ret;
 	}
@@ -382,13 +420,21 @@ namespace OpenMS
 	    
 	void ParamEditor::deleteItem()
 	{
-		QTreeWidgetItem* item=currentItem();
-		if (!item) return;
+		QTreeWidgetItem* item=selected_item_;
+		if (!item)
+		{
+			item=currentItem();
+			if(!item)
+			{
+				return;
+			}
+		}
 		for(int i=item->childCount()-1; i>=0; i--)
 		{
 			deleteItemRecursive_(item->child(i));
 		}
 		delete item;
+		setModified(true);
 	}
 		
 	void ParamEditor::deleteItemRecursive_(QTreeWidgetItem* item)
@@ -409,25 +455,28 @@ namespace OpenMS
 		{
 			deleteItemRecursive_(item->child(i));
 		}
+		setModified(true);
 	}
 		
 	void ParamEditor::insertItem()
 	{
+		if(!selected_item_)
+		{
+			selected_item_=currentItem();
+			
+			if(!selected_item_)
+			{
+				selected_item_=invisibleRootItem();
+			}
+		}
 		QTreeWidgetItem* parent=selected_item_;
 		QTreeWidgetItem* item=NULL;
-			
-		if(!parent)
-		{
-			item=new QTreeWidgetItem(invisibleRootItem());
-		}
-		else if(parent->data(0,Qt::UserRole)==NODE)
-		{
-			item=new QTreeWidgetItem(parent);
-		}
-		else if(parent->data(0,Qt::UserRole)==ITEM)
+		
+		if(parent->data(0,Qt::UserRole)==ITEM)
 		{
 			return;
 		}
+		item=new QTreeWidgetItem(parent);
 		item->setText(0, "");
 		item->setText(1, "");
 		item->setText(2, "");
@@ -435,25 +484,32 @@ namespace OpenMS
 		item->setData(1,Qt::UserRole,ITEM);
 		item->setData(2,Qt::UserRole,ITEM);
 		item->setFlags( Qt::ItemIsSelectable | Qt::ItemIsEnabled | Qt::ItemIsEditable);
+		item->setBackground (0,Qt::yellow);
+		item->setBackground (1,Qt::yellow);
+		item->setBackground (2,Qt::yellow);
+		setCurrentItem(item);
+		editItem(item);
+		setModified(true);
 	}
 	    
 	void ParamEditor::insertNode()
 	{
+		if(!selected_item_)
+		{
+			selected_item_=currentItem();
+			if(!selected_item_)
+			{
+				selected_item_=invisibleRootItem();
+			}
+		}
 		QTreeWidgetItem* parent=selected_item_;
 		QTreeWidgetItem* item=NULL;
-			
-		if(!parent)
-		{
-			item=new QTreeWidgetItem(invisibleRootItem());
-		}
-		else if(parent->data(0,Qt::UserRole)==NODE)
-		{
-			item=new QTreeWidgetItem(parent);
-		}
-		else if(parent->data(0,Qt::UserRole)==ITEM)
+		
+		if(parent->data(0,Qt::UserRole)==ITEM)
 		{
 			return;
 		}
+		item=new QTreeWidgetItem(parent);
 		item->setText(0, "");
 		item->setText(1, "");
 		item->setText(2, "");
@@ -461,10 +517,24 @@ namespace OpenMS
 		item->setData(1,Qt::UserRole,NODE);
 		item->setData(2,Qt::UserRole,NODE);
 		item->setFlags( Qt::ItemIsSelectable | Qt::ItemIsEnabled | Qt::ItemIsEditable);
+		item->setBackground (0,Qt::yellow);
+		item->setBackground (1,Qt::yellow);
+		item->setBackground (2,Qt::yellow);
+		setCurrentItem(item);
+		editItem(item);
+		setModified(true);
 	}
 	
-	void ParamEditor::storeRecursive_(const QTreeWidgetItem* child, String path) const
+	void ParamEditor::storeRecursive_(QTreeWidgetItem* child, String path)
 	{
+		child->setData ( 0, Qt::BackgroundRole, QBrush(Qt::white));
+		child->setData ( 1, Qt::BackgroundRole, QBrush(Qt::white));
+		child->setData ( 2, Qt::BackgroundRole, QBrush(Qt::white));
+		
+		child->setData ( 0, 33, QVariant());
+		child->setData ( 0, 33, QVariant());
+		child->setData ( 0, 33, QVariant());
+	
 		if (path=="")
 		{
 			path = child->text(0).toStdString();
@@ -563,24 +633,7 @@ namespace OpenMS
 		return true;
 	}
 
-	void ParamEditor::keyPressEvent(QKeyEvent* e)
-	{
-		if(e->key()==Qt::Key_Delete)
-		{
-			selected_item_=currentItem();
-			deleteItem();
-		}
-		else if(e->key()==Qt::Key_Insert)
-		{
-			selected_item_=currentItem();
-			insertItem();
-		}
-		else
-		{
-			QAbstractItemView::keyPressEvent ( e );
-		}
-	}
-
+	
 	void ParamEditor::contextMenuEvent(QContextMenuEvent* event)
 	{
 		selected_item_ = itemAt(event->pos());
@@ -591,6 +644,7 @@ namespace OpenMS
 			menu.addAction(tr("&Insert item"), this, SLOT(insertItem()));
 			menu.addAction(tr("&Insert node"), this, SLOT(insertNode()));
 			menu.exec(event->globalPos());
+			selected_item_=NULL;
 		}
 		else if (selected_item_->data(0,Qt::UserRole)==NODE)
 		{
@@ -605,6 +659,7 @@ namespace OpenMS
 			menu.addAction(tr("&Copy"), this, SLOT(copySubTree()));
 			menu.addAction(tr("&Paste"), this, SLOT(pasteSubTree()));
 			menu.exec(event->globalPos());
+			selected_item_=NULL;
 		}
 		else if(selected_item_->data(0,Qt::UserRole)==ITEM)
 		{
@@ -612,6 +667,7 @@ namespace OpenMS
 			menu.addAction(tr("&Delete"), this, SLOT(deleteItem()));
 			menu.addAction(tr("&Copy"), this, SLOT(copySubTree()));
 			menu.exec(event->globalPos());
+			selected_item_=NULL;
 		}
 		
 	}
@@ -635,7 +691,15 @@ namespace OpenMS
 	
 	void ParamEditor::copySubTree()
 	{
-		if(!selected_item_) return;
+		if(!selected_item_)
+		{
+			selected_item_=currentItem();
+			if(!selected_item_)
+			{
+				return;
+			}
+		}
+		
 		if(copied_item_ != NULL)
 		{
 			delete copied_item_;
@@ -645,17 +709,66 @@ namespace OpenMS
 		{
 			copied_item_=selected_item_->clone();
 		}
+		selected_item_=NULL;
 	}
 	
 	void ParamEditor::pasteSubTree()
 	{
-		if(!selected_item_) return;
+		if(!selected_item_)
+		{
+			selected_item_=currentItem();
+			if(!selected_item_)
+			{
+				selected_item_=invisibleRootItem();
+			}
+		}
 		if(copied_item_)
 		{
 			selected_item_->addChild(copied_item_);
+			setModified(true);
 			selected_item_=NULL;
 		}
 	}
 	
+	void ParamEditor::cutSubTree()
+	{
+		copySubTree();
+		deleteItem();
+	}
+	
+	void ParamEditor::setModified(bool is_modified)
+	{
+			if(is_modified)
+			{
+				++modificationsCount_;
+				//cerr<<"\n"<<modificationsCount_<<"\n";
+			}
+			else 
+			{
+				--modificationsCount_;
+				//cerr<<"\n"<<modificationsCount_<<"\n";
 
+			}
+	
+		if(modificationsCount_==0)
+		{
+			modified_=false;
+		}
+		else
+		{
+			modified_=true;
+		}
+		emit modified(modified_);
+	}
+
+	bool ParamEditor::isModified()
+	{
+		return modified_;
+	}
+	
+	bool ParamEditor::isNameEmpty()
+	{
+		return is_name_empty_;
+	}
+	
 } // namespace OpenMS

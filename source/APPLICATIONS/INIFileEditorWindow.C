@@ -39,7 +39,7 @@ namespace OpenMS
 {
 
 	INIFileEditorWindow::INIFileEditorWindow(QWidget *parent) 
-		: QMainWindow(parent),changed_(false)
+		: QMainWindow(parent)
 	{
 		setWindowTitle("INIFileEditor");
 		editor_=new ParamEditor;
@@ -53,9 +53,22 @@ namespace OpenMS
 		file->addAction("Save &As",this,SLOT(saveFileAs()));
 		file->addSeparator();
 		file->addAction("&Quit",this,SLOT(close()));
-		connect(editor_,SIGNAL(itemChanged ( QTreeWidgetItem *, int)),this,SLOT(setChanged(QTreeWidgetItem *, int)));
+		
+		edit_ = new QMenu("&Edit",this);
+		menuBar()->addMenu(edit_);
+		edit_->addAction("&Copy",editor_,SLOT(copySubTree()));
+		edit_->addAction("&Cut",editor_,SLOT(cutSubTree()));
+		edit_->addSeparator();
+		edit_->addAction("&Paste",editor_,SLOT(pasteSubTree()));
+		edit_->addSeparator();
+		edit_->addAction("&Delete",editor_,SLOT(deleteItem()));
+		edit_->addSeparator();
+		edit_->addAction("Insert new &Section",editor_,SLOT(insertNode()));
+		edit_->addAction("Insert new &Value",editor_,SLOT(insertItem()));
+		//edit_->setEnabled(false);
+		
+		connect(editor_,SIGNAL(modified(bool)),this,SLOT(updateWindowTitle(bool)));
 	}
-	
 	
 	bool INIFileEditorWindow::openFile(const String& filename)
 	{
@@ -89,7 +102,7 @@ namespace OpenMS
 	
 	bool INIFileEditorWindow::saveFile()
 	{
-		if(!filename_.isEmpty())
+		if(!filename_.isEmpty() && !editor_->isNameEmpty())
 		{
 			editor_->store();
 			param_.store(filename_.toStdString());
@@ -98,9 +111,13 @@ namespace OpenMS
 			
 			return true;
 		}
-		else
+		else if(filename_.isEmpty())
 		{
-			return saveFileAs();
+			QMessageBox::warning(this,"No ini-file!","You have to open an ini-file before saving!");
+		}
+		else if(editor_->isNameEmpty())
+		{
+			QMessageBox::warning(this,"Empty Name","You have to enter a name before saving!");
 		}
 	}
 	
@@ -108,7 +125,7 @@ namespace OpenMS
 	bool INIFileEditorWindow::saveFileAs()
 	{
 		filename_=QFileDialog::getSaveFileName(this,tr("Save ini file"),".",tr("ini files (*.ini)"));
-		if(!filename_.isEmpty())
+		if(!filename_.isEmpty() && !editor_->isNameEmpty())
 		{
 			if(!filename_.endsWith(".ini")) filename_.append(".ini");
 			editor_->store();
@@ -117,12 +134,16 @@ namespace OpenMS
 			setWindowTitle(str.remove(0,str.lastIndexOf('/')+1));
 			return true;
 		}
+		else if(editor_->isNameEmpty())
+		{
+			QMessageBox::warning(this,"Empty Name","You have to enter a name before saving!");
+		}
 		return false;
 	}
 	
 	void INIFileEditorWindow::closeEvent(QCloseEvent* /*event*/)
 	{
-		if(isChanged())
+		if(editor_->isModified())
 		{
 			if (QMessageBox::question(this,"Save?","Do you want to save your changes?",QMessageBox::Ok|QMessageBox::Cancel)==QMessageBox::Ok)
 			{
@@ -130,26 +151,18 @@ namespace OpenMS
 			}
 		}
 	}
-	void INIFileEditorWindow::setChanged(QTreeWidgetItem * item, int column)
+	void INIFileEditorWindow::updateWindowTitle(bool update)
 	{
-		if(item->data(column,33).isValid() && item->data(column,33)!=item->data(column,Qt::DisplayRole))
+		if(update)
 		{
-			changed_=true;
 			QString str=QString("%1 * - INIFileEditor").arg(filename_);
 			setWindowTitle(str.remove(0,str.lastIndexOf('/')+1));
 		}
 		else
 		{
-			changed_=false;
 			QString str=QString("%1 - INIFileEditor").arg(filename_);
 			setWindowTitle(str.remove(0,str.lastIndexOf('/')+1));
 		}
 	}
-	
-	bool INIFileEditorWindow::isChanged()
-	{
-		return changed_;
-	}
-	
 }
 

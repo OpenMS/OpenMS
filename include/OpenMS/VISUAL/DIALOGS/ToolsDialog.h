@@ -40,6 +40,8 @@ namespace OpenMS
 {
 	class ParamEditor;
 	class Param;
+	class LayerData;
+		
 	/**
 		@brief Dialog for executing a TOPP Tool
 		
@@ -56,7 +58,7 @@ namespace OpenMS
 		
 		public:
 			/// constructor is given tmp_dir where the input-,output-files are saved
-			ToolsDialog( QWidget* parent, String tmp_dir );
+			ToolsDialog( QWidget* parent, String tmp_dir, String default_dir, const LayerData* layer);
 			/// to get the parameter name for output
 			String getOutput();
 			/// to get the parameter name for input
@@ -103,6 +105,8 @@ namespace OpenMS
 			String output_string_;
 			/// Temporary files directory
 			String tmp_dir_;
+			/// default-dir of ini-file to open
+			String default_dir_;
 			/// name of ini-file
 			QString filename_;
 			

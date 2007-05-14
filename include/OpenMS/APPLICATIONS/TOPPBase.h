@@ -187,9 +187,6 @@ namespace OpenMS
 			
 		};
 	
-		/// registers each Tool in a QStringList
-		static const QStringList registerTools();
-
 		
 	 private:
 

@@ -68,7 +68,8 @@ namespace OpenMS
 		     void setEditorData(QWidget *editor, const QModelIndex &index) const;
 		     void setModelData(QWidget *editor, QAbstractItemModel *model, const QModelIndex &index) const;
 		     void updateEditorGeometry(QWidget *editor, const QStyleOptionViewItem &option, const QModelIndex &index) const;
-		
+		 signals:
+			void modified(bool) const;
 		};
 	}
 
@@ -95,16 +96,18 @@ namespace OpenMS
 			void load(const Param& param);
 			/// load method for editable Param object
 			void loadEditable(Param& param);
-			/// used to insert or delete elements by certain key events
-			void keyPressEvent(QKeyEvent* e);
 			/// used to insert or delete elements by mouseclick events
 			void contextMenuEvent(QContextMenuEvent* event);
 			/// store edited data in Param object
-			bool store() const;
+			bool store();
 			/// check if edited data still valid before storing
 			bool isValid() const;
 			/// delete all items
 			void deleteAll();
+			/// is data changed since last save?
+			bool isModified();
+			/// /// invalid input entered for the name
+			bool isNameEmpty();
 			/// types of data elements
 			enum{NODE,ITEM};
 
@@ -123,12 +126,21 @@ namespace OpenMS
 			void copySubTree();
 			/// paste subtree
 			void pasteSubTree();
+			/// cut subtree
+			void cutSubTree();
+			/// modifies the changed flag
+			void setModified(bool is_modified);
+			/// edit the changed item if empty
+			void editChanged( QTreeWidgetItem * current, QTreeWidgetItem* previous);
+		signals:
+			/// item was edited
+			void modified(bool);
 		
 		private:
 			/// recursive helper method for method isValid()
 			bool isValidRecursive_(QTreeWidgetItem* parent) const;
 			/// recursive helper method for method storeRecursive()
-			void storeRecursive_(const QTreeWidgetItem* child, String path) const;
+			void storeRecursive_(QTreeWidgetItem* child, String path);
 			/// recursive helper method for slot deleteItem()
 			void deleteItemRecursive_(QTreeWidgetItem* item);
 			
@@ -141,6 +153,12 @@ namespace OpenMS
 			QTreeWidgetItem* selected_item_;
 			/// item copied or no item copied
 			QTreeWidgetItem* copied_item_;
+			/// modified flag
+			bool modified_;
+			/// counts the number of modifications to the items
+			UInt modificationsCount_;
+			/// invalid input entered for the name
+			bool is_name_empty_;
 			
 	};
 
