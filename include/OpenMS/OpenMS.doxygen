@@ -109,7 +109,7 @@ Diplomarbeit TOPPAS:
 - TOPPViewBase: Parameters (Typ: enum, inputfile, inputfiles, outputfile, outputfiles)
 
 ID:
- - IdXMLFile Schema docu + upload
+ - IdXMLFile Enums + Upload
  - IDFilter
    - Filtern nach absoluter Score
    - Filtern nach Top X Hits

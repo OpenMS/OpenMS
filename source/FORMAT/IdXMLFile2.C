@@ -40,7 +40,8 @@ namespace OpenMS
 {
 
 	IdXMLFile2::IdXMLFile2()
-		: last_meta_(0)
+		: XMLHandler(""),
+			last_meta_(0)
 	{
 	  	
 	}
@@ -115,8 +116,8 @@ namespace OpenMS
 		for(UInt i=0; i!=params.size();++i)
 		{
 			os << "    <SearchParameters "
-				 << "id=\"" << i << '" '
-				 << "db=\"" << params[i].db << '" '
+				 << "id=\"" << i << "\" "
+				 << "db=\"" << params[i].db << "\" "
 				 << "db_version=\"" << params[i].db_version << "\" "
 				 << "taxonomy=\"" << params[i].taxonomy << "\" ";
 			 if (params[i].mass_type == Identification::MONOISOTOPIC)
@@ -187,6 +188,8 @@ namespace OpenMS
 	{		
 		String element = xercesc::XMLString::transcode(qname);
 		
+		cout << "Start: " << element << endl;
+		
 		//START
 		if (element == "IdXML")
 		{
@@ -203,13 +206,18 @@ namespace OpenMS
 			param_ = Identification::SearchParameters();
 			
 			//load parameters
+			cout << "-1-" << endl;
 			param_.db = attributeAsString(attributes,"db");
 			param_.db_version = attributeAsString(attributes,"db_version");
+			cout << "-2-" << endl;
 			param_.taxonomy = attributeAsString(attributes,"taxonomy");
 			param_.charges = attributeAsString(attributes,"charges");
+			cout << "-3-" << endl;
 			param_.missed_cleavages = attributeAsInt(attributes,"missed_cleavages");
+			cout << "-4-" << endl;
 			param_.peak_mass_tolerance = attributeAsDouble(attributes,"peak_mass_tolerance");
 			param_.precursor_tolerance = attributeAsDouble(attributes,"precursor_peak_tolerance");
+			cout << "-5-" << endl;
 			if (attributes.getValue(xercesc::XMLString::transcode("mass_type") == xercesc::XMLString::transcode("monoisotopic")))
 			{
 				param_.mass_type = Identification::MONOISOTOPIC;
@@ -419,6 +427,8 @@ namespace OpenMS
 	void IdXMLFile2::endElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname)
 	{
 		String element = xercesc::XMLString::transcode(qname);
+		
+		cout << "End: " << element << endl;
 		
 		//START
 		if (element == "IdXML")

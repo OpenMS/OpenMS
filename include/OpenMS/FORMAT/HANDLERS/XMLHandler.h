@@ -81,8 +81,6 @@ namespace OpenMS
   		String errorString();
 
   	protected:
-  		XMLHandler(); /// Not implemented => protected
-			
 			/// Error message of the last error
 			String error_message_;
 			
@@ -229,6 +227,11 @@ namespace OpenMS
 		{
 			return atof(xercesc::XMLString::transcode(a.getValue(xercesc::XMLString::transcode(name))));
 		}
+		
+		private:
+			XMLHandler(); /// Not implemented => private
+		
+
 	};
 	
 	} // namespace Internal

@@ -57,12 +57,13 @@ namespace OpenMS
       virtual void startElement(const XMLCh* const uri, const XMLCh* const local_name, const XMLCh* const qname, const xercesc::Attributes& attributes);
 
     protected:
-    	/// Not implemented => protected
-    	ParamXMLHandler();
-    	
       std::vector<std::string> nodes_;
       std::string path_;
       std::map<std::string, DataValue>& values_;
+		
+		private:
+    	/// Not implemented => private
+    	ParamXMLHandler();
   };
 
 	} // namespace Internal
