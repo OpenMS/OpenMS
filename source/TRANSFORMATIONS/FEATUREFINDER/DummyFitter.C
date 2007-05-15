@@ -109,26 +109,27 @@ namespace OpenMS
 				max_intensity = traits_->getPeakIntensity(*it);
 			}		
 		}		
-		UInt use_max_intensity = param_.getValue("use_fwhm_intensity");
+		UInt use_fwhm_intensity = param_.getValue("use_fwhm_intensity");
 		
-		if (use_max_intensity == 0)
+		if (use_fwhm_intensity == 0)
 		{
 			f.setIntensity(intensity_sum);
 		}
 		else
 		{
-			IntensityType intensity_avg = intensity_sum /= set.size();
-			IntensityType intensity_std = 0.0;
-		
-			// compute standard deviation of intensities
-			for (IndexSet::const_iterator it=set.begin(); it!=set.end(); ++it) 
-			{
-				intensity_std += ( (traits_->getPeakIntensity(*it) - intensity_avg) * (traits_->getPeakIntensity(*it) - intensity_avg) );
-			}		
-			intensity_std /= set.size();
-			intensity_std = sqrt(intensity_std);			
-			
-			f.setIntensity(2.345 * intensity_std);
+			f.setIntensity(max_intensity);
+// 			IntensityType intensity_avg = intensity_sum /= set.size();
+// 			IntensityType intensity_std = 0.0;
+// 		
+// 			// compute standard deviation of intensities
+// 			for (IndexSet::const_iterator it=set.begin(); it!=set.end(); ++it) 
+// 			{
+// 				intensity_std += ( (traits_->getPeakIntensity(*it) - intensity_avg) * (traits_->getPeakIntensity(*it) - intensity_avg) );
+// 			}		
+// 			intensity_std /= set.size();
+// 			intensity_std = sqrt(intensity_std);			
+// 			
+// 			f.setIntensity(2.345 * intensity_std);
 		}
 		
 		f.setRT(traits_->getPeakRt(max_intensity_index));

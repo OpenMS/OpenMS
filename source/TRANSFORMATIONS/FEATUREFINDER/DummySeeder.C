@@ -224,7 +224,7 @@ namespace OpenMS
 			}
 		}
 	
-		for (unsigned int i=0; i<toDelete.size();++i)
+		for (UInt i=0; i<toDelete.size();++i)
 		{
 			iso_map_.erase(toDelete[i]);
 		}
