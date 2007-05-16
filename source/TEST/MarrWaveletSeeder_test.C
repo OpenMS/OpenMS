@@ -103,6 +103,8 @@ CHECK(([EXTRA]IndexSet nextSeed()))
 	param.setValue("scans_to_sumup",4);
 	param.setValue("cwt_scale",0.07);
 	param.setValue("min_peaks_per_scan",0);
+	param.setValue("max_rt_dist_merging",0);
+	param.setValue("max_mz_dist_merging",0);	
 	seeder.setParameters(param);
 	
 	// test first seeding region	

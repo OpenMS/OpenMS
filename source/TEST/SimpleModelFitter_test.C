@@ -106,7 +106,7 @@ CHECK(([EXTRA]void SimpleModelFitter::setParameters(const Param& param)))
 	TEST_EQUAL(p2.getValue("isotope_model:stdev:step"),DataValue(0.02f))
 	// check defaults
 	TEST_EQUAL(p2.getValue("intensity_cutoff_factor"),DataValue(0.05f))
-	TEST_EQUAL(p2.getValue("mz:interpolation_step"),DataValue(0.03f))
+	TEST_EQUAL(p2.getValue("mz:interpolation_step"),DataValue(0.2f))
 	TEST_EQUAL(p2.getValue("rt:interpolation_step"),DataValue(0.2f))
 	TEST_EQUAL(p2.getValue("min_num_peaks:final"),DataValue(5))
 	TEST_EQUAL(p2.getValue("min_num_peaks:extended"),DataValue(10))
