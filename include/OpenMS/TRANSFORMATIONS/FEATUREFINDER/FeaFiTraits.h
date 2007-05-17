@@ -60,10 +60,9 @@ namespace OpenMS
 			typedef IsotopeCluster::IndexSet IndexSet;
 			/// index set with associated charge estimate
 			typedef IsotopeCluster::ChargedIndexSet ChargedIndexSet;
-
-	    /// Flag for each data point
-	    enum Flag { UNUSED, SEED, INSIDE_BOUNDARY, INSIDE_FEATURE };
-			
+			/// Flag for each data point
+		 enum Flag { UNUSED, USED };
+					
 			/// Internal map type
 	    typedef MSExperimentExtern< Peak1D > MapType;
 			/// Intensity type of the map

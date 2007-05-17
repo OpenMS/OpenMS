@@ -166,8 +166,8 @@ traits->setData(exp.begin(), exp.end(),100);
 
 // first two points are already in some other feature region
 // => check if points included in other features are ignored
-traits->getPeakFlag(make_pair(0,0)) = FeaFiTraits::INSIDE_FEATURE;
-traits->getPeakFlag(make_pair(0,1)) = FeaFiTraits::INSIDE_FEATURE;
+traits->getPeakFlag(make_pair(0,0)) = FeaFiTraits::USED;
+traits->getPeakFlag(make_pair(0,1)) = FeaFiTraits::USED;
 
 extender.setTraits(traits);
 

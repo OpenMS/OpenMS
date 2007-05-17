@@ -117,8 +117,8 @@ RESULT
 CHECK((const Flag& getPeakFlag(const IDX &index) const ))
 	FeaFiTraits t;
 	t.setData(exp.begin(),exp.end(),2);
-	t.getPeakFlag(make_pair(0,0)) = FeaFiTraits::SEED;
-	TEST_EQUAL(t.getPeakFlag(make_pair(0,0)), FeaFiTraits::SEED)
+	t.getPeakFlag(make_pair(0,0)) = FeaFiTraits::USED;
+	TEST_EQUAL(t.getPeakFlag(make_pair(0,0)), FeaFiTraits::USED)
 	TEST_EQUAL(t.getPeakFlag(make_pair(0,1)), FeaFiTraits::UNUSED)
 	TEST_EQUAL(t.getPeakFlag(make_pair(0,2)), FeaFiTraits::UNUSED)
 	TEST_EQUAL(t.getPeakFlag(make_pair(1,0)), FeaFiTraits::UNUSED)

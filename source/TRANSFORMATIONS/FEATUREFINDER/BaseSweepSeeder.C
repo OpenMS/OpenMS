@@ -54,9 +54,9 @@ BaseSweepSeeder::BaseSweepSeeder()
 		defaults_.setValue("rt_tolerance_cluster",2);		
 		
 		// max distance in rt for merged peak cluster (given in # scans)
-		defaults_.setValue("max_rt_dist_merging",80.0);
+		defaults_.setValue("max_rt_dist_merging",40.0);
 		// max distance in mz for merged peak cluster 
-		defaults_.setValue("max_mz_dist_merging",3.0);
+		defaults_.setValue("max_mz_dist_merging",1.5);
 }
 
 BaseSweepSeeder::BaseSweepSeeder(const BaseSweepSeeder& source) : BaseSeeder(source) {}
@@ -136,13 +136,13 @@ void BaseSweepSeeder::sweep_()
 			
 			#ifdef DEBUG_FEATUREFINDER
 			// write debug output
-			fname = String("scan_aligned_") + current_scan.getRT();;
-			out.open( fname.c_str() );
-			for(UInt k = 0; k<current_scan.size();++k)
-			{
-				out << current_scan[k].getMZ() << " " << current_scan[k].getIntensity() << endl;
-			}
-			out.close();
+// 			fname = String("scan_aligned_") + current_scan.getRT();;
+// 			out.open( fname.c_str() );
+// 			for(UInt k = 0; k<current_scan.size();++k)
+// 			{
+// 				out << current_scan[k].getMZ() << " " << current_scan[k].getIntensity() << endl;
+// 			}
+// 			out.close();
 			#endif
 			
 			// detect isotopic pattern...
@@ -152,7 +152,7 @@ void BaseSweepSeeder::sweep_()
 						citer != iso_curr_scan.end();
 						++citer)
 			{
-				traits_->getPeakFlag( make_pair( currscan_index, citer->first ) ) = FeaFiTraits::SEED;			
+ 				traits_->getPeakFlag( make_pair( currscan_index, citer->first ) ) = FeaFiTraits::USED;			
 			}
 			
 			// for each m/z position with score: 
@@ -189,10 +189,10 @@ void BaseSweepSeeder::sweep_()
 				{
 					mz_dist = ( start_mz - traits_->getPeakMz( make_pair(currscan_index,this_peak) ) );
 					
-					if (traits_->getPeakFlag( make_pair(currscan_index,this_peak) ) == FeaFiTraits::UNUSED )
+					if ( traits_->getPeakFlag( make_pair(currscan_index,this_peak) ) == FeaFiTraits::UNUSED )
 					{
 						entry_to_insert->second.peaks_.insert( make_pair(currscan_index,this_peak) );
-						traits_->getPeakFlag( make_pair(currscan_index,this_peak) ) = FeaFiTraits::SEED;
+						traits_->getPeakFlag( make_pair(currscan_index,this_peak) ) = FeaFiTraits::USED;
 					}
 					--this_peak;
 				}
@@ -204,10 +204,10 @@ void BaseSweepSeeder::sweep_()
 				// and to the right (we walk for at most 5 Th)
 				while (mz_dist < 5.0 && this_peak < current_scan.size() )
 				{
-					if (traits_->getPeakFlag( make_pair(currscan_index,this_peak) ) == FeaFiTraits::UNUSED )
+					if ( traits_->getPeakFlag( make_pair(currscan_index,this_peak) )  == FeaFiTraits::UNUSED )
 					{
 						entry_to_insert->second.peaks_.insert( make_pair(currscan_index,this_peak) );
-						traits_->getPeakFlag( make_pair(currscan_index,this_peak) ) = FeaFiTraits::SEED;
+						traits_->getPeakFlag( make_pair(currscan_index,this_peak) ) = FeaFiTraits::USED;
 					}
 					
 					mz_dist = ( traits_->getPeakMz( make_pair(currscan_index,++this_peak) )  - start_mz );
@@ -318,7 +318,10 @@ void BaseSweepSeeder::filterHashForOverlaps_()
 								scan_iter != tmp_iter->second.scans_.end();
 								++scan_iter) 
 					{
-						iter->second.scans_.push_back(*scan_iter);
+						if ( *(iter->second.scans_.end() - 1 ) != *scan_iter)	// scan already contained ??
+						{
+							iter->second.scans_.push_back(*scan_iter);
+						}
 					}
 					
 					// copy peaks

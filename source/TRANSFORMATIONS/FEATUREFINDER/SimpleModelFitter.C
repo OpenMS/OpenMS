@@ -192,28 +192,26 @@ namespace OpenMS
 		}
 		
 		std::cout << "Checking charge state from " << first_mz << " to " << last_mz << std::endl;
-// 		ModelDescription<2> model_desc; // model  with best correlation
 		
-		ProductModel<2>* final;
+		ProductModel<2>* final;	// model  with best correlation
 		
 		// Test charges and stdevs
 		for ( float stdev = iso_stdev_first_; stdev <= iso_stdev_last_; stdev += iso_stdev_stepsize_)
 		{
+// 			std::cout << "Testing stdev " << stdev << std::endl;
 			for (Int mz_fit_type = first_mz; mz_fit_type <= last_mz; ++mz_fit_type)
 			{
+// 				std::cout << "Testing charge state  " << mz_fit_type << std::endl;
 				quality = fit_(set, static_cast<MzFitting>(mz_fit_type), BIGAUSS, stdev);
+// 				std::cout << "Quality : " << quality << std::endl;
 				if (quality > max_quality)
 				{
 					max_quality = quality;
-// 					model_desc = ModelDescription<2>(&model2D_);		// store model
-					final = new ProductModel<2>(model2D_);	
+					final = new ProductModel<2>(model2D_);	// store model
 				}
 			}
 		}
 	
-		// model with highest correlation
-// 		ProductModel<2>* final = static_cast< ProductModel<2>* >(model_desc.createModel());
-		
 		// model_desc.createModel() returns 0 if class model_desc is not initialized
 		// in this case something went wrong during the modelfitting and we stop.
 		if (! final) 
@@ -309,7 +307,7 @@ namespace OpenMS
 		// its charge state. The value 0 indicates that charge state is undetermined.
 		else 
 		{
-			f.setCharge(0);		
+			f.setCharge(0);		// undetermined charge state !!
 		}
 			
 		// How to compute feature intensity ?	
@@ -338,7 +336,7 @@ namespace OpenMS
 		traits_->addConvexHull(model_set, f);
 		
 		std::cout << QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss").toStdString() << " Feature " << counter_ << ": (" << f.getRT()
-							<< "," << f.getMZ() << ") Qual.:" << max_quality << "\n";
+									<< "," << f.getMZ() << ") Qual.:" << max_quality << "\n";
 		
 		f.setQuality(RT, quality_->evaluate(model_set, *final->getModel(RT), RT ));
 		f.setQuality(MZ, quality_->evaluate(model_set, *(static_cast<InterpolationModel*>(final->getModel(MZ)) ),MZ ));
@@ -465,7 +463,7 @@ namespace OpenMS
 		//test model with default offset
 		Coordinate max_offset = model->getInterpolation().getOffset();
 		QualityType max_correlation = quality_->evaluate(set, model2D_);
-	
+			
 		//test different offsets
 		for ( offset = offset_min; offset <= offset_max; offset += offset_step )
 		{

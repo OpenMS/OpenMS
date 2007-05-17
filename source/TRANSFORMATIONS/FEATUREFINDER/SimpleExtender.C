@@ -120,7 +120,6 @@ namespace OpenMS
         seed = *citer;
         max_intensity = traits_->getPeakIntensity(seed);						
 			}
-			 traits_->getPeakFlag(*citer) = FeaFiTraits::INSIDE_BOUNDARY;
     }
        		
 		// remember last extracted point (in this case the seed !)
@@ -132,7 +131,6 @@ namespace OpenMS
     {	
     	ProbabilityType priority = computePeakPriority_(*citer);
     	priorities_[*citer] = priority;
-			traits_->getPeakFlag(*citer) = FeaFiTraits::INSIDE_BOUNDARY;
 			boundary_.push(IndexWithPriority(*citer,priority));
     }
 		// pass on charge information
@@ -174,15 +172,15 @@ namespace OpenMS
 			moveRtDown_(current_index);
 
 			// check peak flags (if data point is already inside a feature region or used as seed, we discard it)
-			if (traits_->getPeakFlag(current_index) == FeaFiTraits::INSIDE_BOUNDARY)
-			{
-				traits_->getPeakFlag(current_index) = FeaFiTraits::INSIDE_FEATURE;
+// 			if ( traits_->getPeakFlag(current_index) == FeaFiTraits::UNUSED)
+// 			{
+				traits_->getPeakFlag(current_index) = FeaFiTraits::USED;
 				region_.insert(current_index);
 // 				#ifdef DEBUG_FEATUREFINDER
 // 				cout << "Adding " << traits_->getPeakRt(current_index) << " " << traits_->getPeakMz(current_index) << " to region." << endl;
 // 	 			cout << "Intensity of the added point is : " << traits_->getPeakIntensity(current_index) << endl;
 // 				#endif
-			}
+// 			}
     } // end of while ( !boundary_.empty() )
 
     cout << "Feature region size: " << region_.size() << endl;
@@ -301,14 +299,14 @@ namespace OpenMS
 		{
 		 return;
 		}
-    if (traits_->getPeakFlag(index) == FeaFiTraits::UNUSED)
+    if ( traits_->getPeakFlag(index) == FeaFiTraits::UNUSED)
     {
 			double pr_new = computePeakPriority_(index);
 			
 			if (pr_new > priority_threshold_)
 			{
 				map<IDX, double>::iterator piter = priorities_.find(index);
-				traits_->getPeakFlag(index) = FeaFiTraits::INSIDE_BOUNDARY;
+				traits_->getPeakFlag(index) = FeaFiTraits::USED;
 				priorities_[index] = pr_new;
 				boundary_.push(IndexWithPriority(index,pr_new));
 			}

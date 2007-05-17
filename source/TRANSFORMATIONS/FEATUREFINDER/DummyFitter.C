@@ -57,7 +57,6 @@ namespace OpenMS
 
 	DummyFitter::~DummyFitter()  { }
 
-
   DummyFitter::DummyFitter(const DummyFitter& rhs)
     : BaseModelFitter(rhs)
   {
@@ -80,7 +79,7 @@ namespace OpenMS
 			for (IndexSet::const_iterator it=set.begin(); it!=set.end(); ++it) 
 			{
 				traits_->getPeakFlag(*it) = FeaFiTraits::UNUSED;
-			}
+				}
 			
 			String mess = String("Skipping feature, IndexSet size too small: ") + set.size();
 			throw UnableToFit(__FILE__, __LINE__,__PRETTY_FUNCTION__, "UnableToFit-IndexSet", mess.c_str());
@@ -92,7 +91,7 @@ namespace OpenMS
 		// in mz dimension is equal to the monoisotopic peak.
 		Feature f;
 		f.setOverallQuality(1.0);
-		f.setCharge(0);		
+		f.setCharge(set.charge_);		// use charge prediction of seeder
 		
 		// set feature coordinates and intensity
 		IntensityType intensity_sum  = 0.0;		
@@ -102,7 +101,6 @@ namespace OpenMS
 		for (IndexSet::const_iterator it=set.begin(); it!=set.end(); ++it) 
 		{
 			intensity_sum += traits_->getPeakIntensity(*it);
-			traits_->getPeakFlag(*it) = FeaFiTraits::INSIDE_FEATURE;
 			if (traits_->getPeakIntensity(*it) > max_intensity)
 			{
 				max_intensity_index = *it;
@@ -118,6 +116,9 @@ namespace OpenMS
 		else
 		{
 			f.setIntensity(max_intensity);
+//
+// if you remove this, Ole is going to decapitate you !!
+//
 // 			IntensityType intensity_avg = intensity_sum /= set.size();
 // 			IntensityType intensity_std = 0.0;
 // 		

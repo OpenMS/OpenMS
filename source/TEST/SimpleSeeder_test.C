@@ -143,8 +143,8 @@ CHECK((IndexSet nextSeed()))
 	
   FeaFiTraits* traits = new FeaFiTraits();
 	traits->setData(exp.begin(), exp.end(),100);
-	traits->getPeakFlag(make_pair(0,4)) = FeaFiTraits::INSIDE_FEATURE;
-	traits->getPeakFlag(make_pair(1,4)) = FeaFiTraits::INSIDE_FEATURE;
+	traits->getPeakFlag(make_pair(0,4)) = FeaFiTraits::USED;
+	traits->getPeakFlag(make_pair(1,4)) = FeaFiTraits::USED;
 	
 	SimpleSeeder seeder;
 	seeder.setTraits(traits);

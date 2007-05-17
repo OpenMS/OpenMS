@@ -166,7 +166,7 @@ namespace OpenMS
 		{
 			for (IndexSet::const_iterator it=set.begin(); it!=set.end(); ++it) 
 			{
-				traits_->getPeakFlag(*it) = FeaFiTraits::UNUSED;
+				traits_->getPeakFlag(*it) =FeaFiTraits::UNUSED;
 			}
 			
 			String mess = String("Skipping feature, IndexSet size too small: ") + set.size();
@@ -283,9 +283,10 @@ namespace OpenMS
 			if ( final->isContained(traits_->getPeakPos(*it)) )
 			{
 				model_set.insert(*it);
-			}else		// free dismissed peak via setting the appropriate flag
+			}
+			else		// free dismissed peak via setting the appropriate flag
 			{
-				traits_->getPeakFlag(*it) = FeaFiTraits::UNUSED;
+					traits_->getPeakFlag(*it) = FeaFiTraits::UNUSED;
 			}
 		}
 		// Print number of selected peaks after cutoff

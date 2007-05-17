@@ -141,9 +141,9 @@ namespace OpenMS
 			moveRtDown_(current_index);
 
 			// check flags (if data point is already inside a feature region or used as seed, we discard it)
-			if (traits_->getPeakFlag(current_index) == FeaFiTraits::UNUSED)
+			if ( traits_->getPeakFlag(current_index) == FeaFiTraits::UNUSED )
 			{
-				traits_->getPeakFlag(current_index) = FeaFiTraits::INSIDE_FEATURE;
+				traits_->getPeakFlag(current_index) = FeaFiTraits::USED;
 				region_.insert(current_index);
 				intensity_sum += traits_->getPeakIntensity(current_index);
 				

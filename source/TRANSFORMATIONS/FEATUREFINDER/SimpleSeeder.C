@@ -108,7 +108,7 @@ namespace OpenMS
 		
 		// while the current peak is either already used or in a feature
 		// jump to next peak...
-		while (current_peak_ != indizes_.end() && traits_->getPeakFlag(*current_peak_) != FeaFiTraits::UNUSED) 
+		while (current_peak_ != indizes_.end() && traits_->getPeakFlag(*current_peak_) == FeaFiTraits::USED) 
 		{
 			current_peak_++;
 		}
@@ -121,7 +121,7 @@ namespace OpenMS
 		nr_seeds_++;
 		
 		// set flag
-		traits_->getPeakFlag(*current_peak_) = FeaFiTraits::SEED;
+		traits_->getPeakFlag(*current_peak_) = FeaFiTraits::USED;
 		
 		ChargedIndexSet result;
 		result.insert( *current_peak_++ );
