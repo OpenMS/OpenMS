@@ -1,298 +1,113 @@
-<?xml version="1.0" encoding="ISO-8859-1" standalone="yes"?>
-<mzIdent>
-	<description>
-		<admin>
-			<sampleName> unknown </sampleName>
-		</admin>
-		<settings>
-			<userParam name="number_of_identifications" value="1" />
-			<userParam name="number_of_protein_identifications" value="1" />
-			<userParam name="retention_time_type" value="float" />
-			<userParam name="mz_type" value="float" />
-			<userParam name="retention_time_unit" value="seconds" />
-			<userParam name="mz_unit" value="Thomson" />
-		</settings>
-	</description>
-	<ident>
-		<proteinGroup count="0">
-			<protein>
-				<dbID>Q824A5</dbID>
-				<peptide>
-					<seq>TEST</seq>
-					<userParam name="identification_index" value="0" />
-					<userParam name="significance_threshold" value="31.8621"/>
-					<userParam name="precursor_charge" value="2" />
-					<userParam name="precursor_retention_time" value="0" />
-					<userParam name="precursor_mz" value="0" />
-					<userParam name="score" value="11.37" />
-					<userParam name="score_type" value="Mascot" />
-					<userParam name="identifier" value="2005-01-27 17:47:41" />
-					<userParam name="higher_score_better" value="1" />
-				</peptide>
-				<userParam name="protein_identification_index" value="0"/>
-				<userParam name="score" value="32.3"/>
-			</protein>
-			<protein>
-				<dbID>AAD30739</dbID>
-				<userParam name="protein_identification_index" value="0"/>
-				<userParam name="score" value="28.1"/>
-			</protein>
-			<protein>
-				<dbID>S53854</dbID>
-				<userParam name="protein_identification_index" value="0"/>
-				<userParam name="score" value="27.7"/>
-			</protein>
-			<protein>
-				<dbID>Q872T5</dbID>
-				<userParam name="protein_identification_index" value="0"/>
-				<userParam name="score" value="27.4"/>
-			</protein>
-			<protein>
-				<dbID>O13443</dbID>
-				<userParam name="protein_identification_index" value="0"/>
-				<userParam name="score" value="25.6"/>
-			</protein>
-			<protein>
-				<dbID>Q8DJX9</dbID>
-				<userParam name="protein_identification_index" value="0"/>
-				<userParam name="score" value="25.4"/>
-			</protein>
-			<protein>
-				<dbID>Q8TGW6</dbID>
-				<userParam name="protein_identification_index" value="0"/>
-				<userParam name="score" value="25.3"/>
-			</protein>
-			<protein>
-				<dbID>Q9QI95</dbID>
-				<userParam name="protein_identification_index" value="0"/>
-				<userParam name="score" value="25.1"/>
-			</protein>
-			<protein>
-				<dbID>O71997</dbID>
-				<userParam name="protein_identification_index" value="0"/>
-				<userParam name="score" value="25"/>
-			</protein>
-			<protein>
-				<dbID>Q8SVD3</dbID>
-				<userParam name="protein_identification_index" value="0"/>
-				<userParam name="score" value="25"/>
-			</protein>
-			<protein>
-				<dbID>Q867D4</dbID>
-				<userParam name="protein_identification_index" value="0"/>
-				<userParam name="score" value="24.9"/>
-			</protein>
-			<protein>
-				<dbID>Q41475</dbID>
-				<userParam name="protein_identification_index" value="0"/>
-				<userParam name="score" value="24.9"/>
-			</protein>
-			<protein>
-				<dbID>BAA11814</dbID>
-				<userParam name="protein_identification_index" value="0"/>
-				<userParam name="score" value="24.7"/>
-			</protein>
-			<protein>
-				<dbID>Q9BQF3</dbID>
-				<userParam name="protein_identification_index" value="0"/>
-				<userParam name="score" value="24.7"/>
-			</protein>
-			<protein>
-				<dbID>E984068</dbID>
-				<userParam name="protein_identification_index" value="0"/>
-				<userParam name="score" value="24.7"/>
-			</protein>
-			<protein>
-				<dbID>Q9QHD0</dbID>
-				<userParam name="protein_identification_index" value="0"/>
-				<userParam name="score" value="24.6"/>
-			</protein>
-			<protein>
-				<dbID>AAB20042</dbID>
-				<userParam name="protein_identification_index" value="0"/>
-				<userParam name="score" value="24.6"/>
-			</protein>
-			<protein>
-				<dbID>E86143</dbID>
-				<userParam name="protein_identification_index" value="0"/>
-				<userParam name="score" value="24.5"/>
-			</protein>
-			<protein>
-				<dbID>A53592</dbID>
-				<userParam name="protein_identification_index" value="0"/>
-				<userParam name="score" value="24.4"/>
-			</protein>
-			<protein>
-				<dbID>Q9UBC8</dbID>
-				<userParam name="protein_identification_index" value="0"/>
-				<userParam name="score" value="24.4"/>
-			</protein>
-			<protein>
-				<dbID>Q86VF0</dbID>
-				<userParam name="protein_identification_index" value="0"/>
-				<userParam name="score" value="24.4"/>
-			</protein>
-			<protein>
-				<dbID>Q9ET00</dbID>
-				<userParam name="protein_identification_index" value="0"/>
-				<userParam name="score" value="24.4"/>
-			</protein>
-			<protein>
-				<dbID>E990633</dbID>
-				<userParam name="protein_identification_index" value="0"/>
-				<userParam name="score" value="24.4"/>
-			</protein>
-			<protein>
-				<dbID>I52651</dbID>
-				<userParam name="protein_identification_index" value="0"/>
-				<userParam name="score" value="24.3"/>
-			</protein>
-			<protein>
-				<dbID>E970438</dbID>
-				<userParam name="protein_identification_index" value="0"/>
-				<userParam name="score" value="24.3"/>
-			</protein>
-			<protein>
-				<dbID>AAB31418</dbID>
-				<userParam name="protein_identification_index" value="0"/>
-				<userParam name="score" value="24.3"/>
-			</protein>
-			<protein>
-				<dbID>Q9XY15</dbID>
-				<userParam name="protein_identification_index" value="0"/>
-				<userParam name="score" value="24.3"/>
-			</protein>
-			<protein>
-				<dbID>AAC51380</dbID>
-				<userParam name="protein_identification_index" value="0"/>
-				<userParam name="score" value="24.3"/>
-			</protein>
-			<protein>
-				<dbID>AAD10122</dbID>
-				<userParam name="protein_identification_index" value="0"/>
-				<userParam name="score" value="24.3"/>
-			</protein>
-			<protein>
-				<dbID>BAA08782</dbID>
-				<userParam name="protein_identification_index" value="0"/>
-				<userParam name="score" value="24.2"/>
-			</protein>
-			<protein>
-				<dbID>Q9BSL5</dbID>
-				<userParam name="protein_identification_index" value="0"/>
-				<userParam name="score" value="24.2"/>
-			</protein>
-			<protein>
-				<dbID>AAD14237</dbID>
-				<userParam name="protein_identification_index" value="0"/>
-				<userParam name="score" value="24.2"/>
-			</protein>
-			<protein>
-				<dbID>Q8CQX5</dbID>
-				<userParam name="protein_identification_index" value="0"/>
-				<userParam name="score" value="24.1"/>
-			</protein>
-			<protein>
-				<dbID>Q39918</dbID>
-				<userParam name="protein_identification_index" value="0"/>
-				<userParam name="score" value="24.1"/>
-			</protein>
-			<protein>
-				<dbID>Q96628</dbID>
-				<userParam name="protein_identification_index" value="0"/>
-				<userParam name="score" value="24.1"/>
-			</protein>
-			<protein>
-				<dbID>AAA16498</dbID>
-				<userParam name="protein_identification_index" value="0"/>
-				<userParam name="score" value="24.1"/>
-			</protein>
-			<protein>
-				<dbID>AAB86604</dbID>
-				<userParam name="protein_identification_index" value="0"/>
-				<userParam name="score" value="24.1"/>
-			</protein>
-			<protein>
-				<dbID>Q8IU67</dbID>
-				<userParam name="protein_identification_index" value="0"/>
-				<userParam name="score" value="24"/>
-			</protein>
-			<protein>
-				<dbID>Q7UEH1</dbID>
-				<userParam name="protein_identification_index" value="0"/>
-				<userParam name="score" value="24"/>
-			</protein>
-			<protein>
-				<dbID>Q9GU43</dbID>
-				<userParam name="protein_identification_index" value="0"/>
-				<userParam name="score" value="24"/>
-			</protein>
-			<protein>
-				<dbID>AAC51472</dbID>
-				<userParam name="protein_identification_index" value="0"/>
-				<userParam name="score" value="24"/>
-			</protein>
-			<protein>
-				<dbID>AAA88055</dbID>
-				<userParam name="protein_identification_index" value="0"/>
-				<userParam name="score" value="24"/>
-			</protein>
-			<protein>
-				<dbID>Q9WTS1</dbID>
-				<userParam name="protein_identification_index" value="0"/>
-				<userParam name="score" value="23.9"/>
-			</protein>
-			<protein>
-				<dbID>S44465</dbID>
-				<userParam name="protein_identification_index" value="0"/>
-				<userParam name="score" value="23.9"/>
-			</protein>
-			<protein>
-				<dbID>Q8NFW3</dbID>
-				<userParam name="protein_identification_index" value="0"/>
-				<userParam name="score" value="23.9"/>
-			</protein>
-			<protein>
-				<dbID>Q9UK71</dbID>
-				<userParam name="protein_identification_index" value="0"/>
-				<userParam name="score" value="23.9"/>
-			</protein>
-			<protein>
-				<dbID>Q83416</dbID>
-				<userParam name="protein_identification_index" value="0"/>
-				<userParam name="score" value="23.9"/>
-			</protein>
-			<protein>
-				<dbID>E1260572</dbID>
-				<userParam name="protein_identification_index" value="0"/>
-				<userParam name="score" value="23.9"/>
-			</protein>
-			<protein>
-				<dbID>S47210</dbID>
-				<userParam name="protein_identification_index" value="0"/>
-				<userParam name="score" value="23.8"/>
-			</protein>
-			<protein>
-				<dbID>AAC51621</dbID>
-				<userParam name="protein_identification_index" value="0"/>
-				<userParam name="score" value="23.8"/>
-			</protein>
-			<userParam name="db" value=""/>
-			<userParam name="db_version" value=""/>
-			<userParam name="taxonomy" value=""/>
-			<userParam name="charges" value=""/>
-			<userParam name="mass_type" value="0"/>
-			<userParam name="enzyme" value="2"/>
-			<userParam name="missed_cleavages" value="0"/>
-			<userParam name="peak_mass_tolerance" value="0"/>
-			<userParam name="precursor_tolerance" value="0"/>
-			<userParam name="date" value="2005-01-27 17:47:41"/>
-			<userParam name="search_engine" value=""/>
-			<userParam name="search_engine_version" value=""/>
-			<userParam name="identifier" value="2005-01-27 17:47:41"/>
-			<userParam name="score_type" value="Mascot"/>
-			<userParam name="higher_score_better" value="1"/>
-			<userParam name="proteins" value="all"/>
-		</proteinGroup>
-	</ident>
-</mzIdent>
+<?xml version="1.0" encoding="UTF-8"?>
+<IdXML xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/IdXML_1_0.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <SearchParameters id="SP_0" db="" db_version="" taxonomy="" mass_type="monoisotopic" charges="" enzyme="unknown_enzyme" missed_cleavages="0" precursor_peak_tolerance="0" peak_mass_tolerance="0" >
+  </SearchParameters>
+  <IdentificationRun date="2005-01-27T17:47:41" search_engine="" search_engine_version="" search_parameters_ref="SP_0" >
+    <ProteinIdentification score_type="Mascot" higher_score_better="true" significance_threshold="0" >
+      <ProteinHit id="PH_0" accession="Q824A5" score="32.3" sequence="" >
+      </ProteinHit>
+      <ProteinHit id="PH_1" accession="AAD30739" score="28.1" sequence="" >
+      </ProteinHit>
+      <ProteinHit id="PH_2" accession="S53854" score="27.7" sequence="" >
+      </ProteinHit>
+      <ProteinHit id="PH_3" accession="Q872T5" score="27.4" sequence="" >
+      </ProteinHit>
+      <ProteinHit id="PH_4" accession="O13443" score="25.6" sequence="" >
+      </ProteinHit>
+      <ProteinHit id="PH_5" accession="Q8DJX9" score="25.4" sequence="" >
+      </ProteinHit>
+      <ProteinHit id="PH_6" accession="Q8TGW6" score="25.3" sequence="" >
+      </ProteinHit>
+      <ProteinHit id="PH_7" accession="Q9QI95" score="25.1" sequence="" >
+      </ProteinHit>
+      <ProteinHit id="PH_8" accession="O71997" score="25" sequence="" >
+      </ProteinHit>
+      <ProteinHit id="PH_9" accession="Q8SVD3" score="25" sequence="" >
+      </ProteinHit>
+      <ProteinHit id="PH_10" accession="Q867D4" score="24.9" sequence="" >
+      </ProteinHit>
+      <ProteinHit id="PH_11" accession="Q41475" score="24.9" sequence="" >
+      </ProteinHit>
+      <ProteinHit id="PH_12" accession="BAA11814" score="24.7" sequence="" >
+      </ProteinHit>
+      <ProteinHit id="PH_13" accession="Q9BQF3" score="24.7" sequence="" >
+      </ProteinHit>
+      <ProteinHit id="PH_14" accession="E984068" score="24.7" sequence="" >
+      </ProteinHit>
+      <ProteinHit id="PH_15" accession="Q9QHD0" score="24.6" sequence="" >
+      </ProteinHit>
+      <ProteinHit id="PH_16" accession="AAB20042" score="24.6" sequence="" >
+      </ProteinHit>
+      <ProteinHit id="PH_17" accession="E86143" score="24.5" sequence="" >
+      </ProteinHit>
+      <ProteinHit id="PH_18" accession="A53592" score="24.4" sequence="" >
+      </ProteinHit>
+      <ProteinHit id="PH_19" accession="Q9UBC8" score="24.4" sequence="" >
+      </ProteinHit>
+      <ProteinHit id="PH_20" accession="Q86VF0" score="24.4" sequence="" >
+      </ProteinHit>
+      <ProteinHit id="PH_21" accession="Q9ET00" score="24.4" sequence="" >
+      </ProteinHit>
+      <ProteinHit id="PH_22" accession="E990633" score="24.4" sequence="" >
+      </ProteinHit>
+      <ProteinHit id="PH_23" accession="I52651" score="24.3" sequence="" >
+      </ProteinHit>
+      <ProteinHit id="PH_24" accession="E970438" score="24.3" sequence="" >
+      </ProteinHit>
+      <ProteinHit id="PH_25" accession="AAB31418" score="24.3" sequence="" >
+      </ProteinHit>
+      <ProteinHit id="PH_26" accession="Q9XY15" score="24.3" sequence="" >
+      </ProteinHit>
+      <ProteinHit id="PH_27" accession="AAC51380" score="24.3" sequence="" >
+      </ProteinHit>
+      <ProteinHit id="PH_28" accession="AAD10122" score="24.3" sequence="" >
+      </ProteinHit>
+      <ProteinHit id="PH_29" accession="BAA08782" score="24.2" sequence="" >
+      </ProteinHit>
+      <ProteinHit id="PH_30" accession="Q9BSL5" score="24.2" sequence="" >
+      </ProteinHit>
+      <ProteinHit id="PH_31" accession="AAD14237" score="24.2" sequence="" >
+      </ProteinHit>
+      <ProteinHit id="PH_32" accession="Q8CQX5" score="24.1" sequence="" >
+      </ProteinHit>
+      <ProteinHit id="PH_33" accession="Q39918" score="24.1" sequence="" >
+      </ProteinHit>
+      <ProteinHit id="PH_34" accession="Q96628" score="24.1" sequence="" >
+      </ProteinHit>
+      <ProteinHit id="PH_35" accession="AAA16498" score="24.1" sequence="" >
+      </ProteinHit>
+      <ProteinHit id="PH_36" accession="AAB86604" score="24.1" sequence="" >
+      </ProteinHit>
+      <ProteinHit id="PH_37" accession="Q8IU67" score="24" sequence="" >
+      </ProteinHit>
+      <ProteinHit id="PH_38" accession="Q7UEH1" score="24" sequence="" >
+      </ProteinHit>
+      <ProteinHit id="PH_39" accession="Q9GU43" score="24" sequence="" >
+      </ProteinHit>
+      <ProteinHit id="PH_40" accession="AAC51472" score="24" sequence="" >
+      </ProteinHit>
+      <ProteinHit id="PH_41" accession="AAA88055" score="24" sequence="" >
+      </ProteinHit>
+      <ProteinHit id="PH_42" accession="Q9WTS1" score="23.9" sequence="" >
+      </ProteinHit>
+      <ProteinHit id="PH_43" accession="S44465" score="23.9" sequence="" >
+      </ProteinHit>
+      <ProteinHit id="PH_44" accession="Q8NFW3" score="23.9" sequence="" >
+      </ProteinHit>
+      <ProteinHit id="PH_45" accession="Q9UK71" score="23.9" sequence="" >
+      </ProteinHit>
+      <ProteinHit id="PH_46" accession="Q83416" score="23.9" sequence="" >
+      </ProteinHit>
+      <ProteinHit id="PH_47" accession="E1260572" score="23.9" sequence="" >
+      </ProteinHit>
+      <ProteinHit id="PH_48" accession="S47210" score="23.8" sequence="" >
+      </ProteinHit>
+      <ProteinHit id="PH_49" accession="AAC51621" score="23.8" sequence="" >
+      </ProteinHit>
+    </ProteinIdentification>
+    <PeptideIdentification score_type="Mascot" higher_score_better="true" significance_threshold="31.8621" MZ="0" RT="0" >
+      <PeptideHit score="11.37" sequence="TEST" charge="2" protein_refs="PH_0" >
+      </PeptideHit>
+    </PeptideIdentification>
+  </IdentificationRun>
+</IdXML>
