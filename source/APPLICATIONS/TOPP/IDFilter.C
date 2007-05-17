@@ -93,7 +93,7 @@ using namespace std;
 		</li>
 	</ul>
 	
-	@todo make filtering by score possible (Nico)
+	@todo make filtering by absulote score and top x hits possible (Nico)
 */
 
 // We do not want this class to show up in the docu:

@@ -110,13 +110,5 @@ Stefan Rink:
 Diplomarbeit TOPPAS:
 - TOPPViewBase: Parameters (Typ: enum, inputfile, inputfiles, outputfile, outputfiles)
 
-ID:
- - IDFilter
-   - Filtern nach absoluter Score
-   - Filtern nach Top X Hits
- - Inspect, OMSSA, XTANDEM, Sequest
- 	 - Neue Infos parsen
- 	 - Identifier setzen (Search engine + '_' + datum))
-
 
 ***********************************************************************/
