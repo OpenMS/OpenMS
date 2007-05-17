@@ -27,10 +27,12 @@
 #ifndef OPENMS_FORMAT_BASE64_H
 #define OPENMS_FORMAT_BASE64_H
 
+#ifndef OPENMS_IS_BIG_ENDIAN
 #if defined OPENMS_BIG_ENDIAN
 #define OPENMS_IS_BIG_ENDIAN true
 #else
 #define OPENMS_IS_BIG_ENDIAN false
+#endif
 #endif
 
 #include <cmath>

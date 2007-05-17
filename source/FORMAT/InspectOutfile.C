@@ -24,6 +24,13 @@
 // $Maintainer: Martin Langwisch $
 // --------------------------------------------------------------------------
 
+#if defined OPENMS_BIG_ENDIAN
+#define OPENMS_IS_BIG_ENDIAN true
+#endif
+#if defined OPENMS_LITTLE_ENDIAN
+#define OPENMS_IS_BIG_ENDIAN false
+#endif
+
 #include <OpenMS/FORMAT/InspectOutfile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 
@@ -85,7 +92,7 @@ namespace OpenMS
 		String accession, accession_type, spectrum_file;
 		UInt record_number(0), scan_number(0), start(0), end(0);
 		UInt rank = 0;
-		UInt peptide_hits(0);
+		//UInt peptide_hits = 0;
 		UInt line_number = 0; // used to report in which line an error occured
 		UInt scans = 0;
 		vector<UInt> corrupted_lines;
@@ -511,18 +518,47 @@ namespace OpenMS
 			}
 			index.seekg((*wr_i) * record_length_);
 			index.read(index_record, record_length_);
-			
+
 			// all but the first sequence are preceded by an asterisk
 			if ( append ) snd_database.put(trie_delimiter_);
 			append = true;
 			
+			// check if we have to reverse the database_pos part (which is saved in little endian)
+			if (OPENMS_IS_BIG_ENDIAN)
+			{
+				char tmp;
+				for (UInt i = 0; i < trie_db_pos_length_ / 2; i++)
+				{
+					tmp = index_record[db_pos_length_ + i];
+					index_record[db_pos_length_ + i] = index_record[db_pos_length_ + trie_db_pos_length_ - 1 - i];
+					index_record[db_pos_length_ + trie_db_pos_length_ - 1 - i] = tmp;
+				}
+			}
+
 			// go to the beginning of the sequence
+
+			// whoever wrote this code - please don't ever do this again.
+			// x86 does *not* have a monopoly, nor does little endian.
 			memcpy(&database_pos, index_record + db_pos_length_, trie_db_pos_length_);
 			database.seekg(database_pos);
 			
 			// store the corresponding index for the second database
 			snd_database_pos = snd_database.tellp(); // get the position in the second database
+
 			memcpy(index_record + db_pos_length_, &snd_database_pos, trie_db_pos_length_); // and copy to its place in the index record
+
+			// fixing the above "suboptimal" code
+			if (OPENMS_IS_BIG_ENDIAN)
+			{
+				char tmp;
+				for (UInt i = 0; i < trie_db_pos_length_ / 2; i++)
+				{
+					tmp = index_record[db_pos_length_ + i];
+					index_record[db_pos_length_ + i] = index_record[db_pos_length_ + trie_db_pos_length_ - 1 - i];
+					index_record[db_pos_length_ + trie_db_pos_length_ - 1 - i] = tmp;
+				}
+			}
+
 			snd_index.write((char*) index_record, record_length_); // because only the trie-db position changed, not the position in the original database, nor the protein name
 			
 			// store the sequence
@@ -530,6 +566,7 @@ namespace OpenMS
 			snd_database << sequence.str();
 			sequence.str("");
 		}
+		
 		
 		if ( empty_records ) wanted_records.clear();
 		delete(index_record);
@@ -625,7 +662,33 @@ namespace OpenMS
 						
 						// write the record
 						memcpy(record, &source_database_pos, db_pos_length_); // source database position
+					  if (OPENMS_IS_BIG_ENDIAN)
+						{
+							char tmp;
+							for (UInt i = 0; i < db_pos_length_ / 2; i++)
+							{
+								tmp = record[i];
+								record[i] = record[db_pos_length_ - 1 - i];
+								record[db_pos_length_ - 1 - i] = tmp;
+							}
+						}
+						
+						// whoever wrote this code - please don't ever do this again.
+						// x86 does *not* have a monopoly, nor does little endian.
 						memcpy(record + db_pos_length_, &database_pos, trie_db_pos_length_); // database position
+						
+						// fix the above "suboptimal" code
+						if (OPENMS_IS_BIG_ENDIAN)
+						{
+							char tmp;
+							for (UInt i = 0; i < trie_db_pos_length_ / 2; i++)
+							{
+								tmp = record[db_pos_length_ + i];
+								record[db_pos_length_ + i] = record[db_pos_length_ + trie_db_pos_length_ - 1 - i];
+								record[db_pos_length_ + trie_db_pos_length_ - 1 - i] = tmp;
+							}
+						}
+
 						index.write(record, record_length_);
 						// protein name / accession has already been written
 						database << sequence;
@@ -683,8 +746,34 @@ namespace OpenMS
 			database_pos = database.tellp();
 			
 			// write the record
+			// whoever wrote this code - please don't ever do this again.
+			// x86 does *not* have a monopoly, nor does little endian.
 			memcpy(record, &source_database_pos, db_pos_length_); // source database position
+			if (OPENMS_IS_BIG_ENDIAN == true)
+			{
+				char tmp;
+				for (UInt i = 0; i < db_pos_length_ / 2; i++)
+				{
+					tmp = record[i];
+					record[i] = record[db_pos_length_ - 1 - i];
+					record[db_pos_length_ - 1 - i] = tmp;
+				}
+			}
+
 			memcpy(record + db_pos_length_, &database_pos, trie_db_pos_length_); // database position
+
+			// fix the above "suboptimal" code
+			if (OPENMS_IS_BIG_ENDIAN)
+			{
+				char tmp;
+				for (UInt i = 0; i < trie_db_pos_length_ / 2; i++)
+				{
+					tmp = record[db_pos_length_ + i];
+					record[db_pos_length_ + i] = record[db_pos_length_ + trie_db_pos_length_ - 1 - i];
+					record[db_pos_length_ + trie_db_pos_length_ - 1 - i] = tmp;
+				}
+			}
+
 			index.write(record, record_length_);
 			// protein name / accession has already been written
 			database << sequence;
