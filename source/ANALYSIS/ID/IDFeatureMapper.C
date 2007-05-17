@@ -35,7 +35,7 @@ namespace OpenMS
     
   }
   
-  void IDFeatureMapper::annotate(FeatureMap<>& fm, const vector<PeptideIdentification>& ids, const vector<Identification>& protein_ids)
+  void IDFeatureMapper::annotate(FeatureMap<>& fm, const vector<PeptideIdentification>& ids, const vector<Identification>& protein_ids) throw (Exception::MissingInformation)
 	{		
 		//append protein identifications
 		fm.getIdentifications().insert(fm.getIdentifications().end(),protein_ids.begin(),protein_ids.end());
@@ -56,6 +56,17 @@ namespace OpenMS
 				{
 					continue;
 				}
+
+				if (!ids[i].metaValueExists("RT"))
+				{
+					throw Exception::MissingInformation(__FILE__,__LINE__,__PRETTY_FUNCTION__, "IDSpectrumMapper: MetaValue 'RT' missing!"); 
+				}
+
+				if (!ids[i].metaValueExists("MZ"))
+				{
+					throw Exception::MissingInformation(__FILE__,__LINE__,__PRETTY_FUNCTION__, "IDSpectrumMapper: MetaValue 'MZ' missing!"); 
+				}
+
 #ifdef DEBUG_ID_MAPPING
 				cout << "  * ID (rt/mz): " << ids[i].rt << " " << ids[i].mz << endl;
 #endif

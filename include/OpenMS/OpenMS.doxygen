@@ -79,7 +79,6 @@ Ideen:
 - Seeder/Extender: Analyse der MassenSpur-Distanzen
 
 Todos:
-- IdXMLFile2 schreiben
 - Visualizer updaten
 - Identification -> ProteinIdentification (+ getter und setter)
 - Add getPrecursorRT(rt/scan nr) and update ID adapters and IDSpectrumMapper 

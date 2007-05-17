@@ -34,9 +34,12 @@ namespace OpenMS
 {
 	// default constructor
   PeptideHit::PeptideHit()
-		:	score_(0), 
+		:	MetaInfoInterface(),
+			score_(0), 
 			rank_(0), 
-			charge_(0)
+			charge_(0),
+			aa_before_(' '),
+			aa_after_(' ')
   {
   }
   

@@ -60,7 +60,7 @@ namespace OpenMS
 	  	ConsensusID();
   		
   		/**
-  			@brief Calculates the consensus ID for a set of PeptideIdentification
+  			@brief Calculates the consensus ID for a set of PeptideIdentification instances of the same spectrum
   			
   			@note Make sure that the score orientation (PeptideIdentification::isHigherScoreBetter())is set properly!
   		*/

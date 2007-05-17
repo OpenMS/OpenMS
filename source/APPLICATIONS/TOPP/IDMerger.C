@@ -69,23 +69,14 @@ class TOPPIDMerger
 	
 	ExitCodes main_(int , char**)
 	{
-		vector<String> 									file_names;
-		IdXMLFile 								IdXML_file;
-		vector<Identification> 	protein_identifications;
-		vector<PeptideIdentification> 					identifications;
-		vector<Identification> 	additional_protein_identifications;
-		vector<PeptideIdentification> 					additional_identifications;
-		UInt											counter = 0;
-		String 													out_file = "";
-		String 													file_list	= "";
-
-
 		//-------------------------------------------------------------
 		// parameter handling
 		//-------------------------------------------------------------
 	
 		//file list
-		file_list = getStringOption_("in");
+		String file_list = getStringOption_("in");
+		
+		vector<String> file_names;
 		file_list.split(',', file_names);
 		if (file_names.size() < 2)
 		{
@@ -95,7 +86,7 @@ class TOPPIDMerger
 		}
 
 		//output file names and types
-		out_file = getStringOption_("out");
+		String out_file = getStringOption_("out");
 				
 		//-------------------------------------------------------------
 		// testing whether input and output files are accessible
@@ -111,15 +102,30 @@ class TOPPIDMerger
 		//-------------------------------------------------------------
 		// calculations
 		//-------------------------------------------------------------
-		IdXML_file.load(file_names[0],
-													protein_identifications,
-													identifications);
+		IdXMLFile file;
+		vector<Identification> 	protein_identifications;
+		vector<PeptideIdentification> identifications;
+		vector<Identification> 	additional_protein_identifications;
+		vector<PeptideIdentification> additional_identifications;
+		
+		file.load(file_names[0], protein_identifications, identifications);
 
-		for(counter = 1; counter < file_names.size(); ++counter)
+		vector<String> used_ids;
+		for(UInt counter = 1; counter < file_names.size(); ++counter)
 		{
-			IdXML_file.load(file_names[counter],
-														additional_protein_identifications,
-														additional_identifications);
+			file.load(file_names[counter], additional_protein_identifications, additional_identifications);
+			
+			
+			for (UInt i=0; i<additional_protein_identifications.size();++i)
+			{
+				if (find(used_ids.begin(), used_ids.end(), additional_protein_identifications[i].getIdentifier())!=used_ids.end())
+				{
+					writeLog_(String("Error: The idenitifier '") + additional_protein_identifications[i].getIdentifier() + "' was used before!");
+					return INCOMPATIBLE_INPUT_DATA;
+				}
+				used_ids.push_back(additional_protein_identifications[i].getIdentifier());
+			}
+			
 			protein_identifications.insert(protein_identifications.end(), additional_protein_identifications.begin(), additional_protein_identifications.end());
 			identifications.insert(identifications.end(), additional_identifications.begin(), additional_identifications.end());
 		}										
@@ -128,7 +134,7 @@ class TOPPIDMerger
 		// writing output
 		//-------------------------------------------------------------
 			
-		IdXML_file.store(out_file, 
+		file.store(out_file, 
 													protein_identifications, 
 													identifications);
 			

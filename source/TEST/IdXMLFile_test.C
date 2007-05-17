@@ -21,18 +21,14 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Nico Pfeifer $
+// $Maintainer: Marc Sturm $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/ClassTest.h>
 
 ///////////////////////////
 
-#include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
-#include <OpenMS/METADATA/Identification.h>
-
-#include <vector>
 
 ///////////////////////////
 
@@ -45,179 +41,278 @@ using namespace OpenMS;
 using namespace std;
 
 IdXMLFile* ptr;
-IdXMLFile xml_file;
-
 CHECK((IdXMLFile()))
 	ptr = new IdXMLFile();
 RESULT
 
-CHECK((void load(const String& filename, std::vector<Identification>& protein_identifications, std::vector<PeptideIdentification>& id_data) const throw(Exception::FileNotFound, Exception::ParseError)))
-
-	vector<Identification> protein_identifications; 
-	vector<PeptideIdentification> identifications;
-	String date_string = "2007-05-02 21:22:05"; 
-
-	xml_file.load("data/IdXMLFile_test.idXML",
-							protein_identifications, 
-				   		identifications);
-	TEST_EQUAL(identifications.size(), 3)
-	TEST_EQUAL(DoubleReal(identifications[0].getMetaValue("RT")), 120)
-	TEST_EQUAL(DoubleReal(identifications[1].getMetaValue("RT")), 150)
-	TEST_EQUAL(DoubleReal(identifications[2].getMetaValue("RT")), 160)
-	PRECISION(0.0001)
-	TEST_REAL_EQUAL(DoubleReal(identifications[0].getMetaValue("MZ")), 789.83)
-	TEST_REAL_EQUAL(DoubleReal(identifications[1].getMetaValue("MZ")), 135.29)
-	TEST_REAL_EQUAL(DoubleReal(identifications[2].getMetaValue("MZ")), 982.58)
-	TEST_REAL_EQUAL(identifications[0].getSignificanceThreshold(), 31.8621)
-	TEST_REAL_EQUAL(identifications[1].getSignificanceThreshold(), 12)
-	TEST_REAL_EQUAL(identifications[2].getSignificanceThreshold(), 19)
-	TEST_EQUAL(identifications[0].getHits().size(), 2)
-	TEST_EQUAL(identifications[1].getHits().size(), 1)
-	TEST_EQUAL(identifications[2].getHits().size(), 2)
-	TEST_REAL_EQUAL(identifications[0].getHits()[0].getScore(), 33.85)
-	TEST_REAL_EQUAL(identifications[0].getHits()[1].getScore(), 33.12)
-	TEST_REAL_EQUAL(identifications[1].getHits()[0].getScore(), 43.9)
-	TEST_REAL_EQUAL(identifications[2].getHits()[0].getScore(), 5.41)
-	TEST_REAL_EQUAL(identifications[2].getHits()[1].getScore(), 7.87)
-	TEST_EQUAL(identifications[0].getScoreType(), "Mascot")
-	TEST_EQUAL(identifications[1].getScoreType(), "Mascot")
-	TEST_EQUAL(identifications[2].getScoreType(), "Mascot")
-	TEST_EQUAL(identifications[0].getHits()[0].getSequence(), "LHASGITVTEIPVTATNFK")
-	TEST_EQUAL(identifications[0].getHits()[1].getSequence(), "MRSLGYVAVISAVATDTDK")
-	TEST_EQUAL(identifications[1].getHits()[0].getSequence(), "HSKLSAK")
-	TEST_EQUAL(identifications[2].getHits()[0].getSequence(), "RASNSPQDPQSATAHSFR")
-	TEST_EQUAL(identifications[2].getHits()[1].getSequence(), "MYSTVGPA")
-	TEST_EQUAL(DoubleReal(identifications[0].getHits()[0].getMetaValue("predicted_RT")), 122.5)
-	TEST_EQUAL(DoubleReal(identifications[0].getHits()[1].getMetaValue("predicted_RT")), 122.5)
-	TEST_EQUAL(DoubleReal(identifications[1].getHits()[0].getMetaValue("predicted_RT")), 151.5)
-	TEST_EQUAL(DoubleReal(identifications[2].getHits()[0].getMetaValue("predicted_RT")), 159.5)
-	TEST_EQUAL(DoubleReal(identifications[2].getHits()[1].getMetaValue("predicted_RT")), 159.5)
-	TEST_EQUAL(protein_identifications.size(), 1)
-	TEST_EQUAL(protein_identifications[0].getHits()[0].getAccession(), "AAN17824")
-	TEST_EQUAL(protein_identifications[0].getHits()[1].getAccession(), "GN1736")
-	TEST_REAL_EQUAL(protein_identifications[0].getHits()[0].getScore(), 103.55)
-	TEST_REAL_EQUAL(protein_identifications[0].getHits()[1].getScore(), 67.85)
-	TEST_EQUAL(protein_identifications[0].getScoreType(), "Mascot")
-	DateTime temp_date = protein_identifications[0].getDateTime();
-	String temp_string;
-	temp_date.get(temp_string);
-	TEST_EQUAL(temp_string, date_string)
-	Identification::SearchParameters sp = protein_identifications[0].getSearchParameters();
-	TEST_EQUAL(sp.db, "MSDB")
-	TEST_EQUAL(sp.db_version, "1.0")
-	TEST_EQUAL(sp.taxonomy, "vertebrates")
-RESULT
-
-CHECK((void store(String filename, const std::vector<Identification>& protein_identifications, const std::vector<PeptideIdentification>& id_data) const throw(Exception::UnableToCreateFile)))
-												
-	vector<Identification> protein_identifications; 
-	vector<PeptideIdentification> identifications; 
-
-	String temp_filename = "data/IdXMLFile_test_2.idXML";
-
-	NEW_TMP_FILE(temp_filename)
-	xml_file.load("data/IdXMLFile_test.idXML", 
-							protein_identifications, 
-				   		identifications);
-	xml_file.store(temp_filename, 
-							    protein_identifications, 
-				   				identifications);
-	xml_file.load(temp_filename, 
-							protein_identifications, 
-				   		identifications);
-	TEST_EQUAL(identifications.size(), 3)
-	TEST_EQUAL(DoubleReal(identifications[0].getMetaValue("RT")), 120)
-	TEST_EQUAL(DoubleReal(identifications[1].getMetaValue("RT")), 150)
-	TEST_EQUAL(DoubleReal(identifications[2].getMetaValue("RT")), 160)
-	PRECISION(0.0001)
-	TEST_REAL_EQUAL(DoubleReal(identifications[0].getMetaValue("MZ")), 789.83)
-	TEST_REAL_EQUAL(DoubleReal(identifications[1].getMetaValue("MZ")), 135.29)
-	TEST_REAL_EQUAL(DoubleReal(identifications[2].getMetaValue("MZ")), 982.58)
-	TEST_REAL_EQUAL(identifications[0].getSignificanceThreshold(), 31.8621)
-	TEST_REAL_EQUAL(identifications[1].getSignificanceThreshold(), 12)
-	TEST_REAL_EQUAL(identifications[2].getSignificanceThreshold(), 19)
-	TEST_EQUAL(identifications[0].getHits().size(), 2)
-	TEST_EQUAL(identifications[1].getHits().size(), 1)
-	TEST_EQUAL(identifications[2].getHits().size(), 2)
-	TEST_REAL_EQUAL(identifications[0].getHits()[0].getScore(), 33.85)
-	TEST_REAL_EQUAL(identifications[0].getHits()[1].getScore(), 33.12)
-	TEST_REAL_EQUAL(identifications[1].getHits()[0].getScore(), 43.9)
-	TEST_REAL_EQUAL(identifications[2].getHits()[0].getScore(), 5.41)
-	TEST_REAL_EQUAL(identifications[2].getHits()[1].getScore(), 7.87)
-	TEST_EQUAL(identifications[0].getScoreType(), "Mascot")
-	TEST_EQUAL(identifications[1].getScoreType(), "Mascot")
-	TEST_EQUAL(identifications[0].getHits()[0].getSequence(), "LHASGITVTEIPVTATNFK")
-	TEST_EQUAL(identifications[0].getHits()[1].getSequence(), "MRSLGYVAVISAVATDTDK")
-	TEST_EQUAL(identifications[1].getHits()[0].getSequence(), "HSKLSAK")
-	TEST_EQUAL(identifications[2].getHits()[0].getSequence(), "RASNSPQDPQSATAHSFR")
-	TEST_EQUAL(identifications[2].getHits()[1].getSequence(), "MYSTVGPA")
-	TEST_EQUAL(protein_identifications.size(), 1)
-	TEST_EQUAL(protein_identifications[0].getHits()[0].getAccession(), "AAN17824")
-	TEST_EQUAL(protein_identifications[0].getHits()[1].getAccession(), "GN1736")
-	TEST_REAL_EQUAL(protein_identifications[0].getHits()[0].getScore(), 103.55)
-	TEST_REAL_EQUAL(protein_identifications[0].getHits()[1].getScore(), 67.85)
-	TEST_EQUAL(protein_identifications[0].getScoreType(), "Mascot")
-									
-RESULT
-
-CHECK((void store(String filename, const std::vector<Identification>& protein_identifications, const std::vector<PeptideIdentification>& id_data, const std::map<String, double>& predicted_retention_times) const throw(Exception::UnableToCreateFile)))
-												
-	vector<Identification> protein_identifications; 
-	vector<PeptideIdentification> identifications; 
-
-	String temp_filename = "data/IdXMLFile_test_2.idXML";
-	NEW_TMP_FILE(temp_filename)
+CHECK(void load(const String& filename, std::vector<Identification>& protein_ids, std::vector<PeptideIdentification>& peptide_ids) throw (Exception::FileNotFound, Exception::ParseError))
+	std::vector<Identification> protein_ids;
+	std::vector<PeptideIdentification> peptide_ids;
+	IdXMLFile().load("data/IdXMLFile_whole.idXML", protein_ids, peptide_ids);
 	
-	xml_file.load("data/IdXMLFile_test.idXML", 
-							protein_identifications, 
-				   		identifications);
-	xml_file.store(temp_filename, 
-									protein_identifications, 
-				   				identifications);
+	TEST_EQUAL(protein_ids.size(),2)
+	TEST_EQUAL(peptide_ids.size(),3)
+	
+	/////////////// protein id 1 //////////////////
+	TEST_EQUAL(protein_ids[0].getScoreType(),"MOWSE")
+	TEST_EQUAL(protein_ids[0].isHigherScoreBetter(),true)
+	TEST_EQUAL(protein_ids[0].getSearchEngine(),"Mascot")
+	TEST_EQUAL(protein_ids[0].getSearchEngineVersion(),"2.1.0")
+	String tmp;
+	protein_ids[0].getDateTime().getDate(tmp);
+	TEST_EQUAL(tmp,"2006-01-12")
+	protein_ids[0].getDateTime().getTime(tmp);
+	TEST_EQUAL(tmp,"12:13:14")
+	TEST_EQUAL(protein_ids[0].getIdentifier(),"Mascot_2006-01-12T12:13:14")
+	TEST_EQUAL(protein_ids[0].getSearchParameters().db,"MSDB")
+	TEST_EQUAL(protein_ids[0].getSearchParameters().db_version,"1.0")
+	TEST_EQUAL(protein_ids[0].getSearchParameters().enzyme,Identification::TRYPSIN)
+	TEST_EQUAL(protein_ids[0].getSearchParameters().charges,"+1, +2")
+	TEST_EQUAL(protein_ids[0].getSearchParameters().mass_type,Identification::AVERAGE)
+	TEST_REAL_EQUAL(protein_ids[0].getSearchParameters().peak_mass_tolerance,0.3)
+	TEST_REAL_EQUAL(protein_ids[0].getSearchParameters().precursor_tolerance,1.0)
+	TEST_EQUAL((String)(protein_ids[0].getMetaValue("name")),"ProteinIdentification")
+	TEST_EQUAL(protein_ids[0].getHits().size(),2)
+	//protein hit 1
+	TEST_REAL_EQUAL(protein_ids[0].getHits()[0].getScore(),34.4)
+	TEST_EQUAL(protein_ids[0].getHits()[0].getAccession(),"PROT1")
+	TEST_EQUAL(protein_ids[0].getHits()[0].getSequence(),"ABCDEFG")
+	TEST_EQUAL((String)(protein_ids[0].getHits()[0].getMetaValue("name")),"ProteinHit")
+	//protein hit 2
+	TEST_REAL_EQUAL(protein_ids[0].getHits()[1].getScore(),24.4)
+	TEST_EQUAL(protein_ids[0].getHits()[1].getAccession(),"PROT2")
+	TEST_EQUAL(protein_ids[0].getHits()[1].getSequence(),"ABCDEFG")
+	
+	//peptide id 1
+	TEST_EQUAL(peptide_ids[0].getScoreType(),"MOWSE")
+	TEST_EQUAL(peptide_ids[0].isHigherScoreBetter(),false)
+	TEST_EQUAL(peptide_ids[0].getIdentifier(),"Mascot_2006-01-12T12:13:14")
+	TEST_REAL_EQUAL((DoubleReal)(peptide_ids[0].getMetaValue("MZ")),675.9)
+	TEST_REAL_EQUAL((DoubleReal)(peptide_ids[0].getMetaValue("RT")),1234.5)
+	TEST_EQUAL((UInt)(peptide_ids[0].getMetaValue("spectrum_reference")),17)
+	TEST_EQUAL((String)(peptide_ids[0].getMetaValue("name")),"PeptideIdentification")
+	TEST_EQUAL(peptide_ids[0].getHits().size(),2)
+	//peptide hit 1
+	TEST_REAL_EQUAL(peptide_ids[0].getHits()[0].getScore(),0.9)
+	TEST_EQUAL(peptide_ids[0].getHits()[0].getSequence(),"PEP1")
+	TEST_EQUAL(peptide_ids[0].getHits()[0].getCharge(),1)
+	TEST_EQUAL(peptide_ids[0].getHits()[0].getAABefore(),'A')
+	TEST_EQUAL(peptide_ids[0].getHits()[0].getAAAfter(),'B')
+	TEST_EQUAL(peptide_ids[0].getHits()[0].getProteinAccessions().size(),2)
+	TEST_EQUAL(peptide_ids[0].getHits()[0].getProteinAccessions()[0],"PROT1")
+	TEST_EQUAL(peptide_ids[0].getHits()[0].getProteinAccessions()[1],"PROT2")
+	TEST_EQUAL((String)(peptide_ids[0].getHits()[0].getMetaValue("name")),"PeptideHit")
+	//peptide hit 2
+	TEST_REAL_EQUAL(peptide_ids[0].getHits()[1].getScore(),1.4)
+	TEST_EQUAL(peptide_ids[0].getHits()[1].getSequence(),"PEP2")
+	TEST_EQUAL(peptide_ids[0].getHits()[1].getCharge(),1)
+	TEST_EQUAL(peptide_ids[0].getHits()[1].getProteinAccessions().size(),0)
+	TEST_EQUAL(peptide_ids[0].getHits()[1].getAABefore(),' ')
+	TEST_EQUAL(peptide_ids[0].getHits()[1].getAAAfter(),' ')
+	
+	//peptide id 2
+	TEST_EQUAL(peptide_ids[1].getScoreType(),"MOWSE")
+	TEST_EQUAL(peptide_ids[1].isHigherScoreBetter(),true)
+	TEST_EQUAL(peptide_ids[1].getIdentifier(),"Mascot_2006-01-12T12:13:14")
+	TEST_EQUAL(peptide_ids[1].getHits().size(),2)
+	//peptide hit 1
+	TEST_REAL_EQUAL(peptide_ids[1].getHits()[0].getScore(),44.4)
+	TEST_EQUAL(peptide_ids[1].getHits()[0].getSequence(),"PEP3")
+	TEST_EQUAL(peptide_ids[1].getHits()[0].getCharge(),2)
+	TEST_EQUAL(peptide_ids[1].getHits()[0].getProteinAccessions().size(),0)
+	TEST_EQUAL(peptide_ids[1].getHits()[0].getAABefore(),' ')
+	TEST_EQUAL(peptide_ids[1].getHits()[0].getAAAfter(),' ')
+	
+	//peptide hit 2
+	TEST_REAL_EQUAL(peptide_ids[1].getHits()[1].getScore(),33.3)
+	TEST_EQUAL(peptide_ids[1].getHits()[1].getSequence(),"PEP4")
+	TEST_EQUAL(peptide_ids[1].getHits()[1].getCharge(),2)
+	TEST_EQUAL(peptide_ids[1].getHits()[1].getProteinAccessions().size(),0)
+	TEST_EQUAL(peptide_ids[1].getHits()[1].getAABefore(),' ')
+	TEST_EQUAL(peptide_ids[1].getHits()[1].getAAAfter(),' ')
+	
+	/////////////// protein id 2 //////////////////
+	TEST_EQUAL(protein_ids[1].getScoreType(),"MOWSE")
+	TEST_EQUAL(protein_ids[1].isHigherScoreBetter(),true)
+	TEST_EQUAL(protein_ids[1].getSearchEngine(),"Mascot")
+	TEST_EQUAL(protein_ids[1].getSearchEngineVersion(),"2.1.1")
+	tmp="";
+	protein_ids[1].getDateTime().getDate(tmp);
+	TEST_EQUAL(tmp,"2007-01-12")
+	protein_ids[1].getDateTime().getTime(tmp);
+	TEST_EQUAL(tmp,"12:13:14")
+	TEST_EQUAL(protein_ids[1].getIdentifier(),"Mascot_2007-01-12T12:13:14")
+	TEST_EQUAL(protein_ids[1].getSearchParameters().db,"MSDB")
+	TEST_EQUAL(protein_ids[1].getSearchParameters().db_version,"1.1")
+	TEST_EQUAL(protein_ids[1].getSearchParameters().enzyme,Identification::UNKNOWN_ENZYME)
+	TEST_EQUAL(protein_ids[1].getSearchParameters().charges,"+1, +2, +3")
+	TEST_EQUAL(protein_ids[1].getSearchParameters().mass_type,Identification::MONOISOTOPIC)
+	TEST_REAL_EQUAL(protein_ids[1].getSearchParameters().peak_mass_tolerance,0.3)
+	TEST_REAL_EQUAL(protein_ids[1].getSearchParameters().precursor_tolerance,1.0)
+	TEST_EQUAL(protein_ids[1].getSearchParameters().fixed_modifications.size(),2)
+	TEST_EQUAL(protein_ids[1].getSearchParameters().fixed_modifications[0],"Fixed")
+	TEST_EQUAL(protein_ids[1].getSearchParameters().fixed_modifications[1],"Fixed2")
+	TEST_EQUAL(protein_ids[1].getSearchParameters().variable_modifications.size(),2)
+	TEST_EQUAL(protein_ids[1].getSearchParameters().variable_modifications[0],"Variable")
+	TEST_EQUAL(protein_ids[1].getSearchParameters().variable_modifications[1],"Variable2")
+	TEST_EQUAL(protein_ids[1].getHits().size(),1)
+	//protein hit 1
+	TEST_REAL_EQUAL(protein_ids[1].getHits()[0].getScore(),100.0)
+	TEST_EQUAL(protein_ids[1].getHits()[0].getAccession(),"PROT3")
+	TEST_EQUAL(protein_ids[1].getHits()[0].getSequence(),"")
+	//peptide id 3
+	TEST_EQUAL(peptide_ids[2].getScoreType(),"MOWSE")
+	TEST_EQUAL(peptide_ids[2].isHigherScoreBetter(),true)
+	TEST_EQUAL(peptide_ids[2].getIdentifier(),"Mascot_2007-01-12T12:13:14")
+	TEST_EQUAL(peptide_ids[2].getHits().size(),1)
+	//peptide hit 1
+	TEST_REAL_EQUAL(peptide_ids[2].getHits()[0].getScore(),1.4)
+	TEST_EQUAL(peptide_ids[2].getHits()[0].getSequence(),"PEP5")
+	TEST_EQUAL(peptide_ids[2].getHits()[0].getCharge(),1)
+	TEST_EQUAL(peptide_ids[2].getHits()[0].getProteinAccessions().size(),1)
+	TEST_EQUAL(peptide_ids[2].getHits()[0].getProteinAccessions()[0],"PROT3")
+	TEST_EQUAL(peptide_ids[2].getHits()[0].getAABefore(),' ')
+	TEST_EQUAL(peptide_ids[2].getHits()[0].getAAAfter(),' ')
+RESULT
 
-	xml_file.load(temp_filename,
-							protein_identifications, 
-				   		identifications);
+CHECK(void store(String filename, const std::vector<Identification>& protein_ids, const std::vector<PeptideIdentification>& peptide_ids) throw (Exception::UnableToCreateFile))
+	
+	cout << endl << endl << endl;
+	
+	//store and load data
+	std::vector<Identification> protein_ids, protein_ids2;
+	std::vector<PeptideIdentification> peptide_ids, peptide_ids2;
+	IdXMLFile().load("data/IdXMLFile_whole.idXML", protein_ids2, peptide_ids2);	
+	String filename;
+	NEW_TMP_FILE(filename)
+	IdXMLFile().store(filename, protein_ids2, peptide_ids2);	
+	IdXMLFile().load(filename, protein_ids, peptide_ids);
+	
+	
+	TEST_EQUAL(protein_ids.size(),2)
+	TEST_EQUAL(peptide_ids.size(),3)
 
-	TEST_EQUAL(identifications.size(), 3)
-	TEST_EQUAL(DoubleReal(identifications[0].getMetaValue("RT")), 120)
-	TEST_EQUAL(DoubleReal(identifications[1].getMetaValue("RT")), 150)
-	TEST_EQUAL(DoubleReal(identifications[2].getMetaValue("RT")), 160)
-	PRECISION(0.0001)
-	TEST_REAL_EQUAL(DoubleReal(identifications[0].getMetaValue("MZ")), 789.83)
-	TEST_REAL_EQUAL(DoubleReal(identifications[1].getMetaValue("MZ")), 135.29)
-	TEST_REAL_EQUAL(DoubleReal(identifications[2].getMetaValue("MZ")), 982.58)
-	TEST_REAL_EQUAL(identifications[0].getSignificanceThreshold(), 31.8621)
-	TEST_REAL_EQUAL(identifications[1].getSignificanceThreshold(), 12)
-	TEST_REAL_EQUAL(identifications[2].getSignificanceThreshold(), 19)
-	TEST_EQUAL(identifications[0].getHits().size(), 2)
-	TEST_EQUAL(identifications[1].getHits().size(), 1)
-	TEST_EQUAL(identifications[2].getHits().size(), 2)
-	TEST_REAL_EQUAL(identifications[0].getHits()[0].getScore(), 33.85)
-	TEST_REAL_EQUAL(identifications[0].getHits()[1].getScore(), 33.12)
-	TEST_REAL_EQUAL(identifications[1].getHits()[0].getScore(), 43.9)
-	TEST_REAL_EQUAL(identifications[2].getHits()[0].getScore(), 5.41)
-	TEST_REAL_EQUAL(identifications[2].getHits()[1].getScore(), 7.87)
-	TEST_EQUAL(identifications[0].getScoreType(), "Mascot")
-	TEST_EQUAL(identifications[1].getScoreType(), "Mascot")
-	TEST_EQUAL(identifications[0].getHits()[0].getSequence(), "LHASGITVTEIPVTATNFK")
-	TEST_EQUAL(identifications[0].getHits()[1].getSequence(), "MRSLGYVAVISAVATDTDK")
-	TEST_EQUAL(identifications[1].getHits()[0].getSequence(), "HSKLSAK")
-	TEST_EQUAL(identifications[2].getHits()[0].getSequence(), "RASNSPQDPQSATAHSFR")
-	TEST_EQUAL(identifications[2].getHits()[1].getSequence(), "MYSTVGPA")
-	TEST_EQUAL(protein_identifications.size(), 1)
-	TEST_EQUAL(protein_identifications[0].getHits().size(), 2)
-	TEST_EQUAL(protein_identifications[0].getHits()[0].getAccession(), "AAN17824")
-	TEST_EQUAL(protein_identifications[0].getHits()[1].getAccession(), "GN1736")
-	TEST_REAL_EQUAL(protein_identifications[0].getHits()[0].getScore(), 103.55)
-	TEST_REAL_EQUAL(protein_identifications[0].getHits()[1].getScore(), 67.85)
-	TEST_EQUAL(protein_identifications[0].getScoreType(), "Mascot")
-	TEST_EQUAL(identifications[0].getHits()[0].getSequence(), "LHASGITVTEIPVTATNFK")
-	TEST_EQUAL(identifications[0].getHits()[1].getSequence(), "MRSLGYVAVISAVATDTDK")
-	TEST_EQUAL(identifications[1].getHits()[0].getSequence(), "HSKLSAK")
-	TEST_EQUAL(identifications[2].getHits()[0].getSequence(), "RASNSPQDPQSATAHSFR")
-	TEST_EQUAL(identifications[2].getHits()[1].getSequence(), "MYSTVGPA")
-									
+	/////////////// protein id 1 //////////////////
+	TEST_EQUAL(protein_ids[0].getScoreType(),"MOWSE")
+	TEST_EQUAL(protein_ids[0].isHigherScoreBetter(),true)
+	TEST_EQUAL(protein_ids[0].getSearchEngine(),"Mascot")
+	TEST_EQUAL(protein_ids[0].getSearchEngineVersion(),"2.1.0")
+	String tmp;
+	protein_ids[0].getDateTime().getDate(tmp);
+	TEST_EQUAL(tmp,"2006-01-12")
+	protein_ids[0].getDateTime().getTime(tmp);
+	TEST_EQUAL(tmp,"12:13:14")
+	TEST_EQUAL(protein_ids[0].getIdentifier(),"Mascot_2006-01-12T12:13:14")
+	TEST_EQUAL(protein_ids[0].getSearchParameters().db,"MSDB")
+	TEST_EQUAL(protein_ids[0].getSearchParameters().db_version,"1.0")
+	TEST_EQUAL(protein_ids[0].getSearchParameters().enzyme,Identification::TRYPSIN)
+	TEST_EQUAL(protein_ids[0].getSearchParameters().charges,"+1, +2")
+	TEST_EQUAL(protein_ids[0].getSearchParameters().mass_type,Identification::AVERAGE)
+	TEST_REAL_EQUAL(protein_ids[0].getSearchParameters().peak_mass_tolerance,0.3)
+	TEST_REAL_EQUAL(protein_ids[0].getSearchParameters().precursor_tolerance,1.0)
+	TEST_EQUAL((String)(protein_ids[0].getMetaValue("name")),"ProteinIdentification")
+	TEST_EQUAL(protein_ids[0].getHits().size(),2)
+	//protein hit 1
+	TEST_REAL_EQUAL(protein_ids[0].getHits()[0].getScore(),34.4)
+	TEST_EQUAL(protein_ids[0].getHits()[0].getAccession(),"PROT1")
+	TEST_EQUAL(protein_ids[0].getHits()[0].getSequence(),"ABCDEFG")
+	TEST_EQUAL((String)(protein_ids[0].getHits()[0].getMetaValue("name")),"ProteinHit")
+	//protein hit 2
+	TEST_REAL_EQUAL(protein_ids[0].getHits()[1].getScore(),24.4)
+	TEST_EQUAL(protein_ids[0].getHits()[1].getAccession(),"PROT2")
+	TEST_EQUAL(protein_ids[0].getHits()[1].getSequence(),"ABCDEFG")
+	
+	//peptide id 1
+	TEST_EQUAL(peptide_ids[0].getScoreType(),"MOWSE")
+	TEST_EQUAL(peptide_ids[0].isHigherScoreBetter(),false)
+	TEST_EQUAL(peptide_ids[0].getIdentifier(),"Mascot_2006-01-12T12:13:14")
+	TEST_REAL_EQUAL((DoubleReal)(peptide_ids[0].getMetaValue("MZ")),675.9)
+	TEST_REAL_EQUAL((DoubleReal)(peptide_ids[0].getMetaValue("RT")),1234.5)
+	TEST_EQUAL((UInt)(peptide_ids[0].getMetaValue("spectrum_reference")),17)
+	TEST_EQUAL((String)(peptide_ids[0].getMetaValue("name")),"PeptideIdentification")
+	TEST_EQUAL(peptide_ids[0].getHits().size(),2)
+	//peptide hit 1
+	TEST_REAL_EQUAL(peptide_ids[0].getHits()[0].getScore(),0.9)
+	TEST_EQUAL(peptide_ids[0].getHits()[0].getSequence(),"PEP1")
+	TEST_EQUAL(peptide_ids[0].getHits()[0].getCharge(),1)
+	TEST_EQUAL(peptide_ids[0].getHits()[0].getAABefore(),'A')
+	TEST_EQUAL(peptide_ids[0].getHits()[0].getAAAfter(),'B')
+	TEST_EQUAL(peptide_ids[0].getHits()[0].getProteinAccessions().size(),2)
+	TEST_EQUAL(peptide_ids[0].getHits()[0].getProteinAccessions()[0],"PROT1")
+	TEST_EQUAL(peptide_ids[0].getHits()[0].getProteinAccessions()[1],"PROT2")
+	TEST_EQUAL((String)(peptide_ids[0].getHits()[0].getMetaValue("name")),"PeptideHit")
+	//peptide hit 2
+	TEST_REAL_EQUAL(peptide_ids[0].getHits()[1].getScore(),1.4)
+	TEST_EQUAL(peptide_ids[0].getHits()[1].getSequence(),"PEP2")
+	TEST_EQUAL(peptide_ids[0].getHits()[1].getCharge(),1)
+	TEST_EQUAL(peptide_ids[0].getHits()[1].getProteinAccessions().size(),0)
+	TEST_EQUAL(peptide_ids[0].getHits()[1].getAABefore(),' ')
+	TEST_EQUAL(peptide_ids[0].getHits()[1].getAAAfter(),' ')
+	//peptide id 2
+	TEST_EQUAL(peptide_ids[1].getScoreType(),"MOWSE")
+	TEST_EQUAL(peptide_ids[1].isHigherScoreBetter(),true)
+	TEST_EQUAL(peptide_ids[1].getIdentifier(),"Mascot_2006-01-12T12:13:14")
+	TEST_EQUAL(peptide_ids[1].getHits().size(),2)
+	//peptide hit 1
+	TEST_REAL_EQUAL(peptide_ids[1].getHits()[0].getScore(),44.4)
+	TEST_EQUAL(peptide_ids[1].getHits()[0].getSequence(),"PEP3")
+	TEST_EQUAL(peptide_ids[1].getHits()[0].getCharge(),2)
+	TEST_EQUAL(peptide_ids[1].getHits()[0].getProteinAccessions().size(),0)
+	TEST_EQUAL(peptide_ids[1].getHits()[0].getAABefore(),' ')
+	TEST_EQUAL(peptide_ids[1].getHits()[0].getAAAfter(),' ')
+	//peptide hit 2
+	TEST_REAL_EQUAL(peptide_ids[1].getHits()[1].getScore(),33.3)
+	TEST_EQUAL(peptide_ids[1].getHits()[1].getSequence(),"PEP4")
+	TEST_EQUAL(peptide_ids[1].getHits()[1].getCharge(),2)
+	TEST_EQUAL(peptide_ids[1].getHits()[1].getProteinAccessions().size(),0)
+	TEST_EQUAL(peptide_ids[1].getHits()[1].getAABefore(),' ')
+	TEST_EQUAL(peptide_ids[1].getHits()[1].getAAAfter(),' ')
+
+	/////////////// protein id 2 //////////////////
+	TEST_EQUAL(protein_ids[1].getScoreType(),"MOWSE")
+	TEST_EQUAL(protein_ids[1].isHigherScoreBetter(),true)
+	TEST_EQUAL(protein_ids[1].getSearchEngine(),"Mascot")
+	TEST_EQUAL(protein_ids[1].getSearchEngineVersion(),"2.1.1")
+	tmp="";
+	protein_ids[1].getDateTime().getDate(tmp);
+	TEST_EQUAL(tmp,"2007-01-12")
+	protein_ids[1].getDateTime().getTime(tmp);
+	TEST_EQUAL(tmp,"12:13:14")
+	TEST_EQUAL(protein_ids[1].getIdentifier(),"Mascot_2007-01-12T12:13:14")
+	TEST_EQUAL(protein_ids[1].getSearchParameters().db,"MSDB")
+	TEST_EQUAL(protein_ids[1].getSearchParameters().db_version,"1.1")
+	TEST_EQUAL(protein_ids[1].getSearchParameters().enzyme,Identification::UNKNOWN_ENZYME)
+	TEST_EQUAL(protein_ids[1].getSearchParameters().charges,"+1, +2, +3")
+	TEST_EQUAL(protein_ids[1].getSearchParameters().mass_type,Identification::MONOISOTOPIC)
+	TEST_REAL_EQUAL(protein_ids[1].getSearchParameters().peak_mass_tolerance,0.3)
+	TEST_REAL_EQUAL(protein_ids[1].getSearchParameters().precursor_tolerance,1.0)
+	TEST_EQUAL(protein_ids[1].getSearchParameters().fixed_modifications.size(),2)
+	TEST_EQUAL(protein_ids[1].getSearchParameters().fixed_modifications[0],"Fixed")
+	TEST_EQUAL(protein_ids[1].getSearchParameters().fixed_modifications[1],"Fixed2")
+	TEST_EQUAL(protein_ids[1].getSearchParameters().variable_modifications.size(),2)
+	TEST_EQUAL(protein_ids[1].getSearchParameters().variable_modifications[0],"Variable")
+	TEST_EQUAL(protein_ids[1].getSearchParameters().variable_modifications[1],"Variable2")
+	TEST_EQUAL(protein_ids[1].getHits().size(),1)
+	//protein hit 1
+	TEST_REAL_EQUAL(protein_ids[1].getHits()[0].getScore(),100.0)
+	TEST_EQUAL(protein_ids[1].getHits()[0].getAccession(),"PROT3")
+	TEST_EQUAL(protein_ids[1].getHits()[0].getSequence(),"")
+	//peptide id 3
+	TEST_EQUAL(peptide_ids[2].getScoreType(),"MOWSE")
+	TEST_EQUAL(peptide_ids[2].isHigherScoreBetter(),true)
+	TEST_EQUAL(peptide_ids[2].getIdentifier(),"Mascot_2007-01-12T12:13:14")
+	TEST_EQUAL(peptide_ids[2].getHits().size(),1)
+	//peptide hit 1
+	TEST_REAL_EQUAL(peptide_ids[2].getHits()[0].getScore(),1.4)
+	TEST_EQUAL(peptide_ids[2].getHits()[0].getSequence(),"PEP5")
+	TEST_EQUAL(peptide_ids[2].getHits()[0].getCharge(),1)
+	TEST_EQUAL(peptide_ids[2].getHits()[0].getProteinAccessions().size(),1)
+	TEST_EQUAL(peptide_ids[2].getHits()[0].getProteinAccessions()[0],"PROT3")
+	TEST_EQUAL(peptide_ids[2].getHits()[0].getAABefore(),' ')
+	TEST_EQUAL(peptide_ids[2].getHits()[0].getAAAfter(),' ')
+
+	TEST_EQUAL(peptide_ids==peptide_ids2,true)
+	TEST_EQUAL(protein_ids==protein_ids2,true)
 RESULT
 
 /////////////////////////////////////////////////////////////

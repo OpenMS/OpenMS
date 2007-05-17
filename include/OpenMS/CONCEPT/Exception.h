@@ -178,7 +178,7 @@ namespace OpenMS
 		{
 			public:
 			///
-			Precondition(const char* file, int line, const char* function, const char* condition)	throw();
+			Precondition(const char* file, int line, const char* function, const std::string& condition)	throw();
 		};
 
 		/**	
@@ -193,7 +193,22 @@ namespace OpenMS
 		{
 			public:
 			///
-			Postcondition(const char* file, int line, const char* function, const char* condition) throw();
+			Postcondition(const char* file, int line, const char* function, const std::string& condition) throw();
+		};
+
+		/**	
+			@brief Not all required information provided.
+			
+			Information that are required are not provided.
+			Especially usefull for missing MetaInfo values.
+
+			@ingroup Exceptions
+		*/
+		class MissingInformation
+			: public Base
+		{
+			public:
+				MissingInformation(const char* file, int line, const char* function, const std::string& error_message) throw();
 		};
 
 

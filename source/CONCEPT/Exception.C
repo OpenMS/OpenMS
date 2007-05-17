@@ -150,24 +150,21 @@ namespace OpenMS
 				what_ = message;
 			}
 
-			Precondition::Precondition(const char* file, int line, const char* function, const char* condition)
-				throw()
+			Precondition::Precondition(const char* file, int line, const char* function, const string& condition) throw()
 				: Base(file, line, function, "Precondition failed", "")
 			{
 				what_ += std::string(condition);
 				globalHandler.setMessage(what_);
 			}
 
-			Postcondition::Postcondition(const char* file, int line, const char* function, const char* condition)
-				throw()
+			Postcondition::Postcondition(const char* file, int line, const char* function, const string& condition) throw()
 				: Base(file, line, function, "Postcondition failed", "")
 			{
 				what_ += std::string(condition);
 				globalHandler.setMessage(what_);
 			}
 
-			IndexUnderflow::IndexUnderflow(const char* file, int line, const char* function, Int index, UInt size)
-				throw()
+			IndexUnderflow::IndexUnderflow(const char* file, int line, const char* function, Int index, UInt size) throw()
 				: Base(file, line, function,"IndexUnderflow", ""),
 					size_(size),
 					index_(index)
@@ -400,15 +397,21 @@ namespace OpenMS
 		  IllegalArgument::IllegalArgument(const char* file, int line, const char* function, const char* argument) throw()
     		: Base(file, line, function)
   		{
-    		what_ = "The Argument ";
+    		what_ = "The Argument '";
     		what_ += argument;
-    		what_ += "is not legal for this Operation";
+    		what_ += "' is not legal for this Operation";
     		globalHandler.setMessage(what_);
   		}
 
   		IllegalArgument::~IllegalArgument() throw()
   		{
   		}
+
+			MissingInformation::MissingInformation(const char* file, int line, const char* function, const string& error_message) throw()
+    		: Base(file, line, function)
+			{
+				what_ = error_message;
+			}
 
 			DEF_EXCEPTION(DivisionByZero, "a division by zero was requested")
 

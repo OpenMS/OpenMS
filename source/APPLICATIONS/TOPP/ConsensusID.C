@@ -24,6 +24,7 @@
 // $Maintainer: Marc Sturm $
 // --------------------------------------------------------------------------
 
+#include <OpenMS/CONCEPT/VersionInfo.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/METADATA/Identification.h>
@@ -184,7 +185,13 @@ class TOPPConsensusID
 						all_ids.back().setMetaValue("MZ",features[i].getMZ());
 					}
 				}
-				ax_file.store(out,features.getIdentifications(),all_ids);
+				vector< Identification > prot_id_out(1);
+				DateTime date;
+				date.now();
+				prot_id_out[0].setDateTime(date);
+				prot_id_out[0].setSearchEngine("OpenMS/ConsensusID");
+				prot_id_out[0].setSearchEngineVersion(VersionInfo::getVersion());
+				ax_file.store(out,prot_id_out,all_ids);
 				
 				//write output features (those with IDs)
 				if (feature_out_file!="")
@@ -204,16 +211,12 @@ class TOPPConsensusID
 			{
 				//Identifications merged by precursor position
 				vector<IDData> prec_data;
-				//Storage for protein identifications
-				vector< Identification > prot_id_out;
 				
 				//load and merge ids (by precursor position)
 				for(UInt i = 0; i < ids.size(); ++i)
 				{
 					writeDebug_(String("Mapping ids: ") + ids[i], 2);
 					ax_file.load(ids[i],prot_ids, all_ids);
-					// Append protein IDs
-					prot_id_out.insert(prot_id_out.end(), prot_ids.begin(), prot_ids.end());
 					// Insert peptide IDs
 					for (vector<PeptideIdentification>::iterator ins = all_ids.begin(); ins != all_ids.end(); ++ins)
 					{
@@ -251,6 +254,7 @@ class TOPPConsensusID
 				//do consensus
 				for (vector<IDData>::iterator it = prec_data.begin(); it!=prec_data.end(); ++it)
 				{
+					writeDebug_(String("Calculating consensus for : ") + it->rt + " / " + it->mz + " #peptide ids: " + it->ids.size(), 4);
 					//cout << "ConsensusID -- Precursor " << it->rt << " / " << it->mz  << endl;
 					consensus.apply(it->ids);
 				}
@@ -264,6 +268,14 @@ class TOPPConsensusID
 					all_ids.back().setMetaValue("RT",it->rt);
 					all_ids.back().setMetaValue("MZ",it->mz);
 				}
+				
+				//store consensus
+				vector< Identification > prot_id_out(1);
+				DateTime date;
+				date.now();
+				prot_id_out[0].setDateTime(date);
+				prot_id_out[0].setSearchEngine("OpenMS/ConsensusID");
+				prot_id_out[0].setSearchEngineVersion(VersionInfo::getVersion());
 				ax_file.store(out,prot_id_out,all_ids);
 			}
 			return EXECUTION_OK;

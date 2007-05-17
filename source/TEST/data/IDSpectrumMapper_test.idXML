@@ -1,99 +1,29 @@
-<!-- -*- Mode: XML; tab-width: 2; -*- -->
-<mzIdent>
-	<description>
-		<admin>
-			<sampleName> unknown </sampleName>
-			<contact>
-				<name>TestName</name>
-				<institution>TestInstitution</institution>
-				<contactInfo>TestInfo</contactInfo>
-			</contact>
-		</admin>
-		<settings>
-			<userParam name="number_of_identifications" value="3" />
-			<userParam name="number_of_protein_identifications" value="1" />
-			<userParam name="retention_time_type" value="float" />
-			<userParam name="mz_type" value="float" />
-			<userParam name="retention_time_unit" value="seconds" />
-			<userParam name="mz_unit" value="Thomson" />
-			<userParam name="date_group_0" value="2006-03-09 11:31:52"/>
-		</settings>
-	</description>
-	<ident>
-		<proteinGroup count="0">
-			<protein>
-				<dbName>SwissProt</dbName>
-				<dbID>AAN17824</dbID>
-				<peptide>
-					<seq>LHASGITVTEIPVTATNFK</seq>
-					<userParam name="identification_index" value="0" />
-					<userParam name="peptide_significance_threshold" value="31.8621"/>
-					<userParam name="precursor_charge" value="3" />
-					<userParam name="precursor_retention_time" value="60" />
-					<userParam name="precursor_mz" value="0" />
-					<userParam name="score" value="33.85" />
-					<userParam name="date_group_index" value="0"/>
-				</peptide>
-				<peptide>
-					<seq>MRSLGYVAVISAVATDTDK</seq>
-					<userParam name="identification_index" value="0" />
-					<userParam name="peptide_significance_threshold" value="31.8621"/>
-					<userParam name="precursor_charge" value="3" />
-					<userParam name="precursor_retention_time" value="60" />
-					<userParam name="precursor_mz" value="0" />
-					<userParam name="score" value="33.12" />
-					<userParam name="date_group_index" value="0"/>
-				</peptide>
-				<userParam name="protein_identification_index" value="0"/>
-				<userParam name="date_group_index" value="0"/>
-			</protein>
-			<protein>
-				<dbName>SwissProt</dbName>
-				<dbID>GN1736</dbID>
-				<peptide>
-					<seq>LHASGITVTEIPVTATNFK</seq>
-					<userParam name="identification_index" value="0" />
-					<userParam name="peptide_significance_threshold" value="31.8621"/>
-					<userParam name="precursor_charge" value="3" />
-					<userParam name="precursor_retention_time" value="60" />
-					<userParam name="precursor_mz" value="0" />
-					<userParam name="score" value="33.85" />
-					<userParam name="date_group_index" value="0"/>
-				</peptide>
-				<peptide>
-					<seq>HSKLSAK</seq>
-					<userParam name="identification_index" value="1" />
-					<userParam name="peptide_significance_threshold" value="12"/>
-					<userParam name="precursor_charge" value="2" />
-					<userParam name="precursor_retention_time" value="120" />
-					<userParam name="precursor_mz" value="11" />
-					<userParam name="score" value="43.9" />
-					<userParam name="date_group_index" value="0"/>
-				</peptide>
-				<userParam name="protein_identification_index" value="0"/>
-				<userParam name="date_group_index" value="0"/>
-			</protein>
-			<userParam name="proteins" value="all"/>
-		</proteinGroup>
-		<peptide>
-			<seq>RASNSPQDPQSATAHSFR</seq>
-			<userParam name="identification_index" value="2" />
-			<userParam name="peptide_significance_threshold" value="19"/>
-			<userParam name="precursor_charge" value="2" />
-			<userParam name="precursor_retention_time" value="180" />
-			<userParam name="precursor_mz" value="20" />
-			<userParam name="score" value="5.41" />
-			<userParam name="date_group_index" value="0"/>
-		</peptide>
-		<peptide>
-			<seq>MYSTVGPA</seq>
-			<userParam name="identification_index" value="2" />
-			<userParam name="peptide_significance_threshold" value="19"/>
-			<userParam name="precursor_charge" value="2" />
-			<userParam name="precursor_retention_time" value="180" />
-			<userParam name="precursor_mz" value="20" />
-			<userParam name="score" value="7.87" />
-			<userParam name="date_group_index" value="0"/>
-		</peptide>
-	</ident>
-</mzIdent>
+<?xml version="1.0" encoding="UTF-8"?>
+<IdXML xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/IdXML_1_0.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <SearchParameters id="SP_0" db="" db_version="" taxonomy="" mass_type="monoisotopic" charges="" enzyme="unknown_enzyme" missed_cleavages="0" precursor_peak_tolerance="0" peak_mass_tolerance="0" >
+  </SearchParameters>
+  <IdentificationRun date="2006-03-09T11:31:52" search_engine="" search_engine_version="" search_parameters_ref="SP_0" >
+    <ProteinIdentification score_type="" higher_score_better="true" significance_threshold="0" >
+      <ProteinHit id="PH_0" accession="AAN17824" score="0" sequence="" >
+      </ProteinHit>
+      <ProteinHit id="PH_1" accession="GN1736" score="0" sequence="" >
+      </ProteinHit>
+    </ProteinIdentification>
+    <PeptideIdentification score_type="" higher_score_better="true" significance_threshold="31.8621" MZ="0" RT="60" >
+      <PeptideHit score="33.85" sequence="LHASGITVTEIPVTATNFK" charge="3" protein_refs="PH_0 PH_1" >
+      </PeptideHit>
+      <PeptideHit score="33.12" sequence="MRSLGYVAVISAVATDTDK" charge="3" protein_refs="PH_0" >
+      </PeptideHit>
+    </PeptideIdentification>
+    <PeptideIdentification score_type="" higher_score_better="true" significance_threshold="12" MZ="11" RT="120" >
+      <PeptideHit score="43.9" sequence="HSKLSAK" charge="2" protein_refs="PH_1" >
+      </PeptideHit>
+    </PeptideIdentification>
+    <PeptideIdentification score_type="" higher_score_better="true" significance_threshold="19" MZ="20" RT="180" >
+      <PeptideHit score="5.41" sequence="RASNSPQDPQSATAHSFR" charge="2" >
+      </PeptideHit>
+      <PeptideHit score="7.87" sequence="MYSTVGPA" charge="2" >
+      </PeptideHit>
+    </PeptideIdentification>
+  </IdentificationRun>
+</IdXML>

@@ -10,7 +10,7 @@
 //  modify it under the terms of the GNU Lesser General Public
 //  License as published by the Free Software Foundation; either
 //  version 2.1 of the License, or (at your option) any later version.
-// 
+//
 //  This library is distributed in the hope that it will be useful,
 //  but WITHOUT ANY WARRANTY; without even the implied warranty of
 //  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
@@ -24,37 +24,21 @@
 // $Maintainer: Marc Sturm $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_ID_IDFEATUREMAPPER_H
-#define OPENMS_ANALYSIS_ID_IDFEATUREMAPPER_H
 
-#include <OpenMS/KERNEL/FeatureMap.h>
-#include <OpenMS/METADATA/Identification.h>
+#include <OpenMS/FORMAT/IdXMLFile2.h>
+#include <OpenMS/FORMAT/IdXMLFile.h>
 
-#include <vector>
+using namespace OpenMS;
+using namespace std;
 
-namespace OpenMS 
+int main( int argc, char ** argv )
 {
-  /**
-    @brief Annotates a FeatureMap instance with PeptideIdentification instances
- 		
- 		The retention time and mass-to-charge ratio of the PeptideIdentification have to 
- 		be given in the MetaInfoInterface ('MZ' and 'RT').
-  */
-  class IDFeatureMapper
-  {
-    public:
+	std::vector<Identification> protein_ids;
+	std::vector<PeptideIdentification> peptide_ids;
+	
+	IdXMLFile2().load(argv[1], protein_ids, peptide_ids);	
+	IdXMLFile().store(argv[2], protein_ids, peptide_ids);	
+	
+	return 0;
+}
 
-      /// Default constructor
-      IDFeatureMapper();
-      
-			/**
-				@brief This method does the actual mapping
-			
-				The exception MissingInformation is thrown if the MetaInfoInterface of @p ids does not contain 'MZ' and 'RT'.
-			*/
-		  void annotate(FeatureMap<>& fm, const std::vector<PeptideIdentification>& ids, const std::vector<Identification>& protein_ids) throw (Exception::MissingInformation);      
-  };
- 
-} // namespace OpenMS
-
-#endif // OPENMS_ANALYSIS_ID_IDFEATUREMAPPER_H

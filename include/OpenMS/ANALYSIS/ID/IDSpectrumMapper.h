@@ -53,9 +53,11 @@ namespace OpenMS
 				
 		 		The retention time and mass-to-charge ratio of the PeptideIdentification have to 
 		 		be given in the MetaInfoInterface ('MZ' and 'RT').   					
+      	
+      	The exception MissingInformation is thrown if the MetaInfoInterface of @p identifications does not contain 'MZ' and 'RT'.
       */
       template <class PeakT>				
-      UInt annotate(MSExperiment< PeakT >& experiment, const std::vector<PeptideIdentification>& identifications, DoubleReal precision = 0.01f)
+      UInt annotate(MSExperiment< PeakT >& experiment, const std::vector<PeptideIdentification>& identifications, DoubleReal precision = 0.01f) throw (Exception::MissingInformation)
   		{
 				std::multimap<DoubleReal, UInt> experiment_precursors;
 				std::multimap<DoubleReal, UInt> identifications_precursors;
@@ -76,6 +78,15 @@ namespace OpenMS
 				}
 				for(UInt i = 0; i < identifications.size(); i++)
 				{
+					if (!identifications[i].metaValueExists("RT"))
+					{
+						throw Exception::MissingInformation(__FILE__,__LINE__,__PRETTY_FUNCTION__, "IDSpectrumMapper: MetaValue 'RT' missing!"); 
+					}
+
+					if (!identifications[i].metaValueExists("MZ"))
+					{
+						throw Exception::MissingInformation(__FILE__,__LINE__,__PRETTY_FUNCTION__, "IDSpectrumMapper: MetaValue 'MZ' missing!"); 
+					}
 					identifications_precursors.insert(std::make_pair(identifications[i].getMetaValue("RT"), i));
 				}
 				experiment_iterator = experiment_precursors.begin();

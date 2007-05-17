@@ -21,7 +21,7 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Nico Pfeifer $
+// $Maintainer: Marc Sturm $
 // --------------------------------------------------------------------------
 
 #ifndef OPENMS_FORMAT_IDXMLFILE_H
@@ -29,6 +29,7 @@
 
 #include <OpenMS/METADATA/Identification.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
+#include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
 
 #include <vector>
 
@@ -46,32 +47,75 @@ namespace OpenMS
 		PeptideIdentification and (optional) protein hits stored in Identification. Peptide and protein
 		hits are connected via a string identifier. We use the searche engine and the date as identifier.
 		
-  	@todo Document and upload schema (Nico)
+  	@todo Document and upload schema (Marc)
   	
   	@note This format will only be used until the HUPO-PSI AnalysisXML format is finished!
   	
   	@ingroup FileIO
   */
   class IdXMLFile
+  	: protected Internal::XMLHandler
   {
-    public:
-      /// Constructor
-      IdXMLFile();
-      
+		public:
+		
+			/// Constructor
+			IdXMLFile();
+			
 			/**
-      	@brief Loads the identifications of an IdXML file
-
+				@brief Loads the identifications of an IdXML file
+				
 				The information is read in and the information is stored in the
 				corresponding variables
-      */
-      void load(const String& filename, std::vector<Identification>& protein_ids, std::vector<PeptideIdentification>& peptide_ids) const throw (Exception::FileNotFound, Exception::ParseError);
-      					 			 
+			*/
+			void load(const String& filename, std::vector<Identification>& protein_ids, std::vector<PeptideIdentification>& peptide_ids) throw (Exception::FileNotFound, Exception::ParseError);
+			 			 
 			/**
-      	@brief Stores the data in an IdXML file
-
+				@brief Stores the data in an IdXML file
+				
 				The data is read in and stored in the file 'filename'.
-      */
-      void store(String filename, const std::vector<Identification>& protein_ids, const std::vector<PeptideIdentification>& peptide_ids) const throw (Exception::UnableToCreateFile); 
+			*/
+			void store(String filename, const std::vector<Identification>& protein_ids, const std::vector<PeptideIdentification>& peptide_ids) throw (Exception::UnableToCreateFile); 
+  	
+  	protected:
+		
+			/// Writes the xml file to the ostream 'os'
+			void writeTo(std::ostream& os);
+			
+			// Docu in base class
+			virtual void endElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname);
+			
+			// Docu in base class
+			virtual void startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const xercesc::Attributes& attributes);
+			
+			/// writes user parameters
+			void writeUserParam_(std::ostream& os, const MetaInfoInterface& meta, UInt indent) const;
+			
+			/// @name members for loading data
+			//@{
+			/// Pointer to fill in protein identifications
+			std::vector<Identification>* prot_ids_;
+			/// Pointer to fill in peptide identifications
+			std::vector<PeptideIdentification>* pep_ids_;
+			/// Pointer to last read object with MetaInfoInterface
+			MetaInfoInterface* last_meta_;
+			/// Search parameters map (key is the "id")
+			std::map<String,Identification::SearchParameters> parameters_;
+			/// Temporary search parameters variable
+			Identification::SearchParameters param_;
+			/// Temporary id
+			String id_;
+			/// Temporary protein identification
+			Identification prot_id_;
+			/// Temporary peptide identification
+			PeptideIdentification pep_id_;
+			/// Temporary protein hit
+			ProteinHit prot_hit_;
+			/// Temporary peptide hit
+			PeptideHit pep_hit_;
+			/// 
+			std::map<String,String> proteinid_to_accession_;
+			
+			//@}
   };
  
 } // namespace OpenMS

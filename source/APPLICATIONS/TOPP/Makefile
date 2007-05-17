@@ -45,6 +45,7 @@ EXECUTABLES=\
 	FileFilter\
 	FileMerger\
 	TOPPView\
+	IdXMLConverter\
 	BaselineFilter\
 	MascotAdapter\
 	InspectAdapter\
@@ -139,6 +140,10 @@ FileFilter: FileFilter.o
 	$(CP) $@ $(OPENMS_PATH)/bin/   
 
 TOPPView: TOPPView.o
+	$(CXX) $(LDFLAGS) -o $@ $< $(LIBS)
+	$(CP) $@ $(OPENMS_PATH)/bin/   
+
+IdXMLConverter: IdXMLConverter.o
 	$(CXX) $(LDFLAGS) -o $@ $< $(LIBS)
 	$(CP) $@ $(OPENMS_PATH)/bin/   
 

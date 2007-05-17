@@ -1,182 +1,43 @@
-<?xml version="1.0" encoding="ISO-8859-1" standalone="yes"?>
-<mzIdent>
-	<description>
-		<admin>
-			<sampleName> unknown </sampleName>
-		</admin>
-		<settings>
-			<userParam name="number_of_identifications" value="2" />
-			<userParam name="number_of_protein_identifications" value="2" />
-			<userParam name="retention_time_type" value="float" />
-			<userParam name="mz_type" value="float" />
-			<userParam name="retention_time_unit" value="seconds" />
-			<userParam name="mz_unit" value="Thomson" />
-		</settings>
-	</description>
-	<ident>
-		<proteinGroup count="0">
-			<protein>
-				<dbID>F1_PRO1</dbID>
-				<peptide>
-					<seq>F1_PRO1_PEP1</seq>
-					<userParam name="identification_index" value="0" />
-					<userParam name="significance_threshold" value="0"/>
-					<userParam name="precursor_charge" value="2" />
-					<userParam name="precursor_retention_time" value="-1" />
-					<userParam name="precursor_mz" value="623.58" />
-					<userParam name="score" value="40.5" />
-					<userParam name="score_type" value="Mascot" />
-					<userParam name="identifier" value="2006-10-07 06:30:59" />
-					<userParam name="higher_score_better" value="1" />
-				</peptide>
-				<peptide>
-					<seq>F1_PRO1_PEP2</seq>
-					<userParam name="identification_index" value="0" />
-					<userParam name="significance_threshold" value="0"/>
-					<userParam name="precursor_charge" value="2" />
-					<userParam name="precursor_retention_time" value="-1" />
-					<userParam name="precursor_mz" value="623.58" />
-					<userParam name="score" value="30.5" />
-					<userParam name="score_type" value="Mascot" />
-					<userParam name="identifier" value="2006-10-07 06:30:59" />
-					<userParam name="higher_score_better" value="1" />
-				</peptide>
-				<userParam name="protein_identification_index" value="0"/>
-				<userParam name="score" value="40"/>
-			</protein>
-			<protein>
-				<dbID>F1_PRO2</dbID>
-				<peptide>
-					<seq>F1_PRO2_PEP1</seq>
-					<userParam name="identification_index" value="0" />
-					<userParam name="significance_threshold" value="0"/>
-					<userParam name="precursor_charge" value="2" />
-					<userParam name="precursor_retention_time" value="-1" />
-					<userParam name="precursor_mz" value="623.58" />
-					<userParam name="score" value="40.5" />
-					<userParam name="score_type" value="Mascot" />
-					<userParam name="identifier" value="2006-10-07 06:30:59" />
-					<userParam name="higher_score_better" value="1" />
-				</peptide>
-				<userParam name="protein_identification_index" value="0"/>
-				<userParam name="score" value="40"/>
-			</protein>
-			<userParam name="db" value=""/>
-			<userParam name="db_version" value=""/>
-			<userParam name="taxonomy" value=""/>
-			<userParam name="charges" value=""/>
-			<userParam name="mass_type" value="0"/>
-			<userParam name="enzyme" value="2"/>
-			<userParam name="missed_cleavages" value="0"/>
-			<userParam name="peak_mass_tolerance" value="0"/>
-			<userParam name="precursor_tolerance" value="0"/>
-			<userParam name="date" value="2006-10-07 06:30:59"/>
-			<userParam name="search_engine" value=""/>
-			<userParam name="search_engine_version" value=""/>
-			<userParam name="identifier" value="2006-10-07 06:30:59"/>
-			<userParam name="score_type" value="Mascot"/>
-			<userParam name="higher_score_better" value="1"/>
-			<userParam name="proteins" value="all"/>
-		</proteinGroup>
-		<proteinGroup count="1">
-			<protein>
-				<dbID>F2_PRO1</dbID>
-				<peptide>
-					<seq>F2_PRO1_PEP1</seq>
-					<userParam name="identification_index" value="1" />
-					<userParam name="significance_threshold" value="0"/>
-					<userParam name="precursor_charge" value="2" />
-					<userParam name="precursor_retention_time" value="-1" />
-					<userParam name="precursor_mz" value="623.58" />
-					<userParam name="score" value="40.5" />
-					<userParam name="score_type" value="Mascot" />
-					<userParam name="identifier" value="2006-10-07 06:31:08" />
-					<userParam name="higher_score_better" value="1" />
-				</peptide>
-				<userParam name="protein_identification_index" value="1"/>
-				<userParam name="score" value="40"/>
-			</protein>
-			<protein>
-				<dbID>F2_PRO2</dbID>
-				<peptide>
-					<seq>F2_PRO2_PEP1</seq>
-					<userParam name="identification_index" value="1" />
-					<userParam name="significance_threshold" value="0"/>
-					<userParam name="precursor_charge" value="2" />
-					<userParam name="precursor_retention_time" value="-1" />
-					<userParam name="precursor_mz" value="623.58" />
-					<userParam name="score" value="40.5" />
-					<userParam name="score_type" value="Mascot" />
-					<userParam name="identifier" value="2006-10-07 06:31:08" />
-					<userParam name="higher_score_better" value="1" />
-				</peptide>
-				<peptide>
-					<seq>F2_PRO2_PEP2</seq>
-					<userParam name="identification_index" value="1" />
-					<userParam name="significance_threshold" value="0"/>
-					<userParam name="precursor_charge" value="2" />
-					<userParam name="precursor_retention_time" value="-1" />
-					<userParam name="precursor_mz" value="623.58" />
-					<userParam name="score" value="30.5" />
-					<userParam name="score_type" value="Mascot" />
-					<userParam name="identifier" value="2006-10-07 06:31:08" />
-					<userParam name="higher_score_better" value="1" />
-				</peptide>
-				<userParam name="protein_identification_index" value="1"/>
-				<userParam name="score" value="40"/>
-			</protein>
-			<userParam name="db" value=""/>
-			<userParam name="db_version" value=""/>
-			<userParam name="taxonomy" value=""/>
-			<userParam name="charges" value=""/>
-			<userParam name="mass_type" value="0"/>
-			<userParam name="enzyme" value="2"/>
-			<userParam name="missed_cleavages" value="0"/>
-			<userParam name="peak_mass_tolerance" value="0"/>
-			<userParam name="precursor_tolerance" value="0"/>
-			<userParam name="date" value="2006-10-07 06:31:08"/>
-			<userParam name="search_engine" value=""/>
-			<userParam name="search_engine_version" value=""/>
-			<userParam name="identifier" value="2006-10-07 06:31:08"/>
-			<userParam name="score_type" value="Mascot"/>
-			<userParam name="higher_score_better" value="1"/>
-			<userParam name="proteins" value="all"/>
-		</proteinGroup>
-		<peptide>
-			<seq>F1_PEP1</seq>
-			<userParam name="identification_index" value="0" />
-			<userParam name="significance_threshold" value="0"/>
-			<userParam name="precursor_charge" value="2" />
-			<userParam name="precursor_retention_time" value="-1" />
-			<userParam name="precursor_mz" value="623.58" />
-			<userParam name="score" value="30.5" />
-			<userParam name="score_type" value="Mascot" />
-			<userParam name="identifier" value="2006-10-07 06:30:59" />
-			<userParam name="higher_score_better" value="1" />
-		</peptide>
-		<peptide>
-			<seq>F1_PEP2</seq>
-			<userParam name="identification_index" value="0" />
-			<userParam name="significance_threshold" value="0"/>
-			<userParam name="precursor_charge" value="2" />
-			<userParam name="precursor_retention_time" value="-1" />
-			<userParam name="precursor_mz" value="623.58" />
-			<userParam name="score" value="30.5" />
-			<userParam name="score_type" value="Mascot" />
-			<userParam name="identifier" value="2006-10-07 06:30:59" />
-			<userParam name="higher_score_better" value="1" />
-		</peptide>
-		<peptide>
-			<seq>F2_PEP1</seq>
-			<userParam name="identification_index" value="1" />
-			<userParam name="significance_threshold" value="0"/>
-			<userParam name="precursor_charge" value="2" />
-			<userParam name="precursor_retention_time" value="-1" />
-			<userParam name="precursor_mz" value="623.58" />
-			<userParam name="score" value="30.5" />
-			<userParam name="score_type" value="Mascot" />
-			<userParam name="identifier" value="2006-10-07 06:31:08" />
-			<userParam name="higher_score_better" value="1" />
-		</peptide>
-	</ident>
-</mzIdent>
+<?xml version="1.0" encoding="UTF-8"?>
+<IdXML xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/IdXML_1_0.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <SearchParameters id="SP_0" db="" db_version="" taxonomy="" mass_type="monoisotopic" charges="" enzyme="unknown_enzyme" missed_cleavages="0" precursor_peak_tolerance="0" peak_mass_tolerance="0" >
+  </SearchParameters>
+  <IdentificationRun date="2006-10-07T06:30:59" search_engine="" search_engine_version="" search_parameters_ref="SP_0" >
+    <ProteinIdentification score_type="Mascot" higher_score_better="true" significance_threshold="0" >
+      <ProteinHit id="PH_0" accession="F1_PRO1" score="40" sequence="" >
+      </ProteinHit>
+      <ProteinHit id="PH_1" accession="F1_PRO2" score="40" sequence="" >
+      </ProteinHit>
+    </ProteinIdentification>
+    <PeptideIdentification score_type="Mascot" higher_score_better="true" significance_threshold="0" MZ="623.58" RT="-1" >
+      <PeptideHit score="40.5" sequence="F1_PRO1_PEP1" charge="2" protein_refs="PH_0" >
+      </PeptideHit>
+      <PeptideHit score="30.5" sequence="F1_PRO1_PEP2" charge="2" protein_refs="PH_0" >
+      </PeptideHit>
+      <PeptideHit score="40.5" sequence="F1_PRO2_PEP1" charge="2" protein_refs="PH_1" >
+      </PeptideHit>
+      <PeptideHit score="30.5" sequence="F1_PEP1" charge="2" >
+      </PeptideHit>
+      <PeptideHit score="30.5" sequence="F1_PEP2" charge="2" >
+      </PeptideHit>
+    </PeptideIdentification>
+  </IdentificationRun>
+  <IdentificationRun date="2006-10-07T06:31:08" search_engine="" search_engine_version="" search_parameters_ref="SP_0" >
+    <ProteinIdentification score_type="Mascot" higher_score_better="true" significance_threshold="0" >
+      <ProteinHit id="PH_2" accession="F2_PRO1" score="40" sequence="" >
+      </ProteinHit>
+      <ProteinHit id="PH_3" accession="F2_PRO2" score="40" sequence="" >
+      </ProteinHit>
+    </ProteinIdentification>
+    <PeptideIdentification score_type="Mascot" higher_score_better="true" significance_threshold="0" MZ="623.58" RT="-1" >
+      <PeptideHit score="40.5" sequence="F2_PRO1_PEP1" charge="2" protein_refs="PH_2" >
+      </PeptideHit>
+      <PeptideHit score="40.5" sequence="F2_PRO2_PEP1" charge="2" protein_refs="PH_3" >
+      </PeptideHit>
+      <PeptideHit score="30.5" sequence="F2_PRO2_PEP2" charge="2" protein_refs="PH_3" >
+      </PeptideHit>
+      <PeptideHit score="30.5" sequence="F2_PEP1" charge="2" >
+      </PeptideHit>
+    </PeptideIdentification>
+  </IdentificationRun>
+</IdXML>

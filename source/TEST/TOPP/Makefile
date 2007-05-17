@@ -655,12 +655,12 @@ ConsensusID_test: $(NUMERICDIFF)
 
 	@$(ECHO) "- Test 1: Map consensus"
 	@$(call RUN_PROG_OPT,ConsensusID,-ini ConsensusID_1_parameters.ini -out ConsensusID_1_output.tmp)
-	@$(SED) -i 's/^.*date_group_0.*$$/# date group removed/g' ConsensusID_1_output.tmp
+	@$(SED) -i 's/^.*IdentificationRun date.*$$/#Run removed because of date/g' ConsensusID_1_output.tmp
 	@$(call TEST_FILE_EQUAL,ConsensusID_1_output.idXML)
 
 	@$(ECHO) "- Test 2: Feature consensus"
 	@$(call RUN_PROG_OPT,ConsensusID,-ini ConsensusID_2_parameters.ini -out ConsensusID_2_output.tmp -features ConsensusID_2_features.featureXML)
-	@$(SED) -i 's/^.*date_group_0.*$$/# date group removed/g' ConsensusID_2_output.tmp
+	@$(SED) -i 's/^.*IdentificationRun date.*$$/#Run removed because of date/g' ConsensusID_2_output.tmp
 	@$(call TEST_FILE_EQUAL,ConsensusID_2_output.idXML)
 
 ###########################################################################################
