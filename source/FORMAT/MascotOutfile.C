@@ -163,10 +163,10 @@ namespace OpenMS
 			{
 				charges.push_back((-1 * temp_charge));				
 			}
-			parts.clear();
 			//temp_identification.mz = parts[0].toFloat();
 			temp_identification.setMetaValue("MZ", parts[0].toFloat());
 			peptide_identifications.push_back(temp_identification);
+			parts.clear();
 		}
 		
 		// (1.2) parse for peptide significance threshold
