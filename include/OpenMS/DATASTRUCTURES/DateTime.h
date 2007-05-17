@@ -41,7 +41,8 @@ namespace OpenMS
 		
 		@ingroup Datastructures
 	*/
-	class DateTime : public QDateTime
+	class DateTime 
+		: public QDateTime
 	{
 		public:
 		
@@ -53,6 +54,8 @@ namespace OpenMS
 			DateTime();
 			/// Copy constructor
 			DateTime(const DateTime& date);
+			/// Copy constructor from Qt base class
+			DateTime(const QDateTime& date);
 			
 			/// Assignment operator
 			DateTime& operator= (const DateTime& source);

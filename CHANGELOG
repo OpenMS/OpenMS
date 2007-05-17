@@ -4,7 +4,10 @@ Changes from OpenMS 0.95 to 1.0
 - Removed Boost dependencies
 - Qt4 port
 - Added experimental support for MacOS 10
-- Added tutorial
+- Added OpenMS and TOPP tutorial 
 - merged libOpenMS and libOpenMS_GUI
 - New TOPP tools: INIFileEditor, ConsensusID
 - The TOPPView application was completely rewritten
+- Redesign of protein and peptide identification datastructures
+- New format for protein and peptide identification: IdXML
+- Added annotated schemas for all OpenMS XML formats

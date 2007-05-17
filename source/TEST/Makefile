@@ -182,7 +182,7 @@ EXECUTABLES_FORMAT = \
 	OMSSAXMLFile_test\
 	XTandemXMLFile_test\
 	MSPFile_test\
-	IdXMLFile_test\
+	IdXMLFile_test
 
 #MATH
 

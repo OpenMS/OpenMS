@@ -81,6 +81,10 @@ namespace OpenMS
 		index_to_description_[9] = "the predicted RT p-value of a peptide hit";
 		index_to_unit_[9] = "";
 
+		name_to_index_["spectrum_reference"] = 10;
+		index_to_name_[10] = "spectrum_reference";
+		index_to_description_[10] = "Refenference to a spectrum or feature number";
+		index_to_unit_[10] = "";
 	}
 	
 

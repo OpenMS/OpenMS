@@ -98,11 +98,11 @@ namespace OpenMS
   			/// Pointer to last read object with MetaInfoInterface
   			MetaInfoInterface* last_meta_;
   			/// Search parameters map (key is the "id")
-  			std::map<UInt,Identification::SearchParameters> parameters_;
+  			std::map<String,Identification::SearchParameters> parameters_;
   			/// Temporary search parameters variable
   			Identification::SearchParameters param_;
   			/// Temporary id
-  			UInt id_;
+  			String id_;
   			/// Temporary protein identification
   			Identification prot_id_;
   			/// Temporary peptide identification

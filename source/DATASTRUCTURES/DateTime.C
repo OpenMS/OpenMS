@@ -45,6 +45,12 @@ namespace OpenMS
 		
 	}
 
+	DateTime::DateTime(const QDateTime& date): 
+		QDateTime(date)
+	{
+		
+	}
+
 	DateTime& DateTime::operator= (const DateTime& source)
 	{
 	  if (&source == this)

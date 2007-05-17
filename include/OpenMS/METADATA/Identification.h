@@ -42,9 +42,9 @@ namespace OpenMS
     spectra or features. 
     
     In order to be able to connect the Identification and the corresponding peptide identifications, both
-    classes have a string identifier.
-    Setting this identifier is especially important, when there can be several Identification and 
-    PeptideIdentification instances for a map.
+    classes have a string identifier. We recommend using the search engine name and the date as identifier.
+    Setting this identifier is especially important, when there are several identification runs for a map
+    i.e. several Identification instances.
 
     @todo Add MetaInfoInterface to modifications, update IdXMLFile (Andreas)
      

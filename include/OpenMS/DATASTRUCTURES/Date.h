@@ -55,7 +55,9 @@ namespace OpenMS
 			Date();
 			/// Copy constructor
 			Date(const Date& date);
-			
+			/// Copy constructor from Qt base class
+			Date(const QDate& date);
+
 			/// Assignment operator
 			Date& operator= (const Date& source);
 			

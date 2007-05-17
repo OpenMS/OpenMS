@@ -79,6 +79,9 @@ Ideen:
 - Seeder/Extender: Analyse der MassenSpur-Distanzen
 
 Todos:
+- IdXMLFile2 schreiben
+- Visualizer updaten
+- Identification -> ProteinIdentification (+ getter und setter)
 - Add getPrecursorRT(rt/scan nr) and update ID adapters and IDSpectrumMapper 
 - Spectrum3DCanvas: fix grab keyboard (buddy?)
 - TOPP tutorial: Usecases AW-Daten
@@ -109,12 +112,12 @@ Diplomarbeit TOPPAS:
 - TOPPViewBase: Parameters (Typ: enum, inputfile, inputfiles, outputfile, outputfiles)
 
 ID:
- - IdXMLFile Enums + Upload
  - IDFilter
    - Filtern nach absoluter Score
    - Filtern nach Top X Hits
- - Neue Infos aus Mascot, Sequest, ... parsen (Identifier setzen bei Inspect, OMSSA, XTANDEM, Sequest)
- - Identification -> ProteinIdentification (+ getter und setter)
- - Visualizer updaten
+ - Inspect, OMSSA, XTANDEM, Sequest
+ 	 - Neue Infos parsen
+ 	 - Identifier setzen (Search engine + '_' + datum))
+
 
 ***********************************************************************/

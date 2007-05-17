@@ -219,13 +219,55 @@ namespace OpenMS
 		{
 			return xercesc::XMLString::transcode(a.getValue(xercesc::XMLString::transcode(name)));
 		}
+
 		inline Int attributeAsInt(const xercesc::Attributes& a, const char* name) const
 		{
 			return xercesc::XMLString::parseInt(a.getValue(xercesc::XMLString::transcode(name)));
 		}
+
 		inline DoubleReal attributeAsDouble(const xercesc::Attributes& a, const char* name) const
 		{
 			return atof(xercesc::XMLString::transcode(a.getValue(xercesc::XMLString::transcode(name))));
+		}
+
+		inline void optionalAttributeAsString(String& value, const xercesc::Attributes& a, const char* name) const
+		{
+			const XMLCh* val = a.getValue(xercesc::XMLString::transcode(name));
+			if (val!=0)
+			{
+				String tmp = xercesc::XMLString::transcode(val);
+				if (!tmp.empty())
+				{
+					value = tmp;
+				}
+			}
+		}
+		
+		inline void optionalAttributeAsInt(Int& value, const xercesc::Attributes& a, const char* name) const
+		{
+			const XMLCh* val = a.getValue(xercesc::XMLString::transcode(name));
+			if (val!=0)
+			{
+				value = xercesc::XMLString::parseInt(val);
+			}
+		}
+
+		inline void optionalAttributeAsUInt(UInt& value, const xercesc::Attributes& a, const char* name) const
+		{
+			const XMLCh* val = a.getValue(xercesc::XMLString::transcode(name));
+			if (val!=0)
+			{
+				value = xercesc::XMLString::parseInt(val);
+			}
+		}
+		
+		inline void optionalAttributeAsDouble(DoubleReal& value, const xercesc::Attributes& a, const char* name) const
+		{
+			const XMLCh* val = a.getValue(xercesc::XMLString::transcode(name));
+			if (val!=0)
+			{
+				value = atof(xercesc::XMLString::transcode(val));
+			}
 		}
 		
 		private:

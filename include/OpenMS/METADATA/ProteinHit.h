@@ -104,7 +104,6 @@ namespace OpenMS
 
 	  protected:
 	    Real score_;					///< the score of the protein hit
-	    String score_type_;   ///< the score type of the protein hit 
 			UInt rank_;    				///< the position(rank) where the hit appeared in the hit list
 	    String accession_;	 	///< the protein identifier
 	    String sequence_;		 	///< the amino acid sequence of the protein hit

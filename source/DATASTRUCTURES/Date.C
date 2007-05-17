@@ -45,6 +45,11 @@ namespace OpenMS
 	{
 	}
 
+	Date::Date(const QDate& date): 
+		QDate(date)
+	{
+	}
+
 	Date& Date::operator= (const Date& source)
 	{
 	  if (&source == this)
