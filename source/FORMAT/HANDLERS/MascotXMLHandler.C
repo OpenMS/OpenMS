@@ -99,9 +99,6 @@ namespace OpenMS
  		if (tag_ == "protein")
  		{	
  			// since Mascot uses SwissProt IDs we set this type here
-			//actual_protein_hit_.setAccessionType("SwissProt");
-			//actual_protein_hit_.setScoreType("Mascot");
-			//protein_identification_.setProteinAccessionType("SwissProt"); // @todo why sp? (andreas, nico)
 			protein_identification_.setScoreType("Mascot");
  			protein_identification_.insertHit(actual_protein_hit_);
  			actual_protein_hit_ = ProteinHit();

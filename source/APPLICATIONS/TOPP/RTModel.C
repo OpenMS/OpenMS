@@ -452,7 +452,6 @@ class TOPPRTModel
 			//-------------------------------------------------------------
 			// calculations
 			//-------------------------------------------------------------
-
 			for(UInt i = 0; i < identifications.size(); i++)
 			{
 				UInt temp_size = identifications[i].getHits().size();
