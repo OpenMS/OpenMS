@@ -1,512 +1,87 @@
-<?xml version="1.0" encoding="ISO-8859-1" standalone="yes"?>
-<mzIdent>
-	<description>
-		<admin>
-			<sampleName> unknown </sampleName>
-		</admin>
-		<settings>
-			<userParam name="number_of_identifications" value="1" />
-			<userParam name="number_of_protein_identifications" value="1" />
-			<userParam name="retention_time_type" value="float" />
-			<userParam name="mz_type" value="float" />
-			<userParam name="retention_time_unit" value="seconds" />
-			<userParam name="mz_unit" value="Thomson" />
-		</settings>
-	</description>
-	<ident>
-		<proteinGroup count="0">
-			<protein>
-				<dbID>LGBO</dbID>
-				<peptide>
-					<seq>TPEVDDEALEK</seq>
-					<userParam name="identification_index" value="0" />
-					<userParam name="significance_threshold" value="0"/>
-					<userParam name="precursor_charge" value="2" />
-					<userParam name="precursor_retention_time" value="230.45" />
-					<userParam name="precursor_mz" value="623.52" />
-					<userParam name="score" value="38.11" />
-					<userParam name="score_type" value="Mascot" />
-					<userParam name="identifier" value="Mascot_2006-10-07 06:31:08" />
-					<userParam name="higher_score_better" value="1" />
-				</peptide>
-				<userParam name="protein_identification_index" value="0"/>
-				<userParam name="score" value="38"/>
-			</protein>
-			<protein>
-				<dbID>LGBUI</dbID>
-				<peptide>
-					<seq>TPEVDDEALEK</seq>
-					<userParam name="identification_index" value="0" />
-					<userParam name="significance_threshold" value="0"/>
-					<userParam name="precursor_charge" value="2" />
-					<userParam name="precursor_retention_time" value="230.45" />
-					<userParam name="precursor_mz" value="623.52" />
-					<userParam name="score" value="38.11" />
-					<userParam name="score_type" value="Mascot" />
-					<userParam name="identifier" value="Mascot_2006-10-07 06:31:08" />
-					<userParam name="higher_score_better" value="1" />
-				</peptide>
-				<userParam name="protein_identification_index" value="0"/>
-				<userParam name="score" value="38"/>
-			</protein>
-			<protein>
-				<dbID>1B0O</dbID>
-				<peptide>
-					<seq>TPEVDDEALEK</seq>
-					<userParam name="identification_index" value="0" />
-					<userParam name="significance_threshold" value="0"/>
-					<userParam name="precursor_charge" value="2" />
-					<userParam name="precursor_retention_time" value="230.45" />
-					<userParam name="precursor_mz" value="623.52" />
-					<userParam name="score" value="38.11" />
-					<userParam name="score_type" value="Mascot" />
-					<userParam name="identifier" value="Mascot_2006-10-07 06:31:08" />
-					<userParam name="higher_score_better" value="1" />
-				</peptide>
-				<userParam name="protein_identification_index" value="0"/>
-				<userParam name="score" value="38"/>
-			</protein>
-			<protein>
-				<dbID>1BEBA</dbID>
-				<peptide>
-					<seq>TPEVDDEALEK</seq>
-					<userParam name="identification_index" value="0" />
-					<userParam name="significance_threshold" value="0"/>
-					<userParam name="precursor_charge" value="2" />
-					<userParam name="precursor_retention_time" value="230.45" />
-					<userParam name="precursor_mz" value="623.52" />
-					<userParam name="score" value="38.11" />
-					<userParam name="score_type" value="Mascot" />
-					<userParam name="identifier" value="Mascot_2006-10-07 06:31:08" />
-					<userParam name="higher_score_better" value="1" />
-				</peptide>
-				<userParam name="protein_identification_index" value="0"/>
-				<userParam name="score" value="38"/>
-			</protein>
-			<protein>
-				<dbID>1BSOA</dbID>
-				<peptide>
-					<seq>TPEVDDEALEK</seq>
-					<userParam name="identification_index" value="0" />
-					<userParam name="significance_threshold" value="0"/>
-					<userParam name="precursor_charge" value="2" />
-					<userParam name="precursor_retention_time" value="230.45" />
-					<userParam name="precursor_mz" value="623.52" />
-					<userParam name="score" value="38.11" />
-					<userParam name="score_type" value="Mascot" />
-					<userParam name="identifier" value="Mascot_2006-10-07 06:31:08" />
-					<userParam name="higher_score_better" value="1" />
-				</peptide>
-				<userParam name="protein_identification_index" value="0"/>
-				<userParam name="score" value="38"/>
-			</protein>
-			<protein>
-				<dbID>1BSQA</dbID>
-				<peptide>
-					<seq>TPEVDDEALEK</seq>
-					<userParam name="identification_index" value="0" />
-					<userParam name="significance_threshold" value="0"/>
-					<userParam name="precursor_charge" value="2" />
-					<userParam name="precursor_retention_time" value="230.45" />
-					<userParam name="precursor_mz" value="623.52" />
-					<userParam name="score" value="38.11" />
-					<userParam name="score_type" value="Mascot" />
-					<userParam name="identifier" value="Mascot_2006-10-07 06:31:08" />
-					<userParam name="higher_score_better" value="1" />
-				</peptide>
-				<userParam name="protein_identification_index" value="0"/>
-				<userParam name="score" value="38"/>
-			</protein>
-			<protein>
-				<dbID>1DV9A</dbID>
-				<peptide>
-					<seq>TPEVDDEALEK</seq>
-					<userParam name="identification_index" value="0" />
-					<userParam name="significance_threshold" value="0"/>
-					<userParam name="precursor_charge" value="2" />
-					<userParam name="precursor_retention_time" value="230.45" />
-					<userParam name="precursor_mz" value="623.52" />
-					<userParam name="score" value="38.11" />
-					<userParam name="score_type" value="Mascot" />
-					<userParam name="identifier" value="Mascot_2006-10-07 06:31:08" />
-					<userParam name="higher_score_better" value="1" />
-				</peptide>
-				<userParam name="protein_identification_index" value="0"/>
-				<userParam name="score" value="38"/>
-			</protein>
-			<protein>
-				<dbID>CAA06532</dbID>
-				<peptide>
-					<seq>TPEVDDEALEK</seq>
-					<userParam name="identification_index" value="0" />
-					<userParam name="significance_threshold" value="0"/>
-					<userParam name="precursor_charge" value="2" />
-					<userParam name="precursor_retention_time" value="230.45" />
-					<userParam name="precursor_mz" value="623.52" />
-					<userParam name="score" value="38.11" />
-					<userParam name="score_type" value="Mascot" />
-					<userParam name="identifier" value="Mascot_2006-10-07 06:31:08" />
-					<userParam name="higher_score_better" value="1" />
-				</peptide>
-				<userParam name="protein_identification_index" value="0"/>
-				<userParam name="score" value="38"/>
-			</protein>
-			<protein>
-				<dbID>AAA30411</dbID>
-				<peptide>
-					<seq>TPEVDDEALEK</seq>
-					<userParam name="identification_index" value="0" />
-					<userParam name="significance_threshold" value="0"/>
-					<userParam name="precursor_charge" value="2" />
-					<userParam name="precursor_retention_time" value="230.45" />
-					<userParam name="precursor_mz" value="623.52" />
-					<userParam name="score" value="38.11" />
-					<userParam name="score_type" value="Mascot" />
-					<userParam name="identifier" value="Mascot_2006-10-07 06:31:08" />
-					<userParam name="higher_score_better" value="1" />
-				</peptide>
-				<userParam name="protein_identification_index" value="0"/>
-				<userParam name="score" value="38"/>
-			</protein>
-			<protein>
-				<dbID>AAA30412</dbID>
-				<peptide>
-					<seq>TPEVDDEALEK</seq>
-					<userParam name="identification_index" value="0" />
-					<userParam name="significance_threshold" value="0"/>
-					<userParam name="precursor_charge" value="2" />
-					<userParam name="precursor_retention_time" value="230.45" />
-					<userParam name="precursor_mz" value="623.52" />
-					<userParam name="score" value="38.11" />
-					<userParam name="score_type" value="Mascot" />
-					<userParam name="identifier" value="Mascot_2006-10-07 06:31:08" />
-					<userParam name="higher_score_better" value="1" />
-				</peptide>
-				<userParam name="protein_identification_index" value="0"/>
-				<userParam name="score" value="38"/>
-			</protein>
-			<protein>
-				<dbID>CAA32835</dbID>
-				<peptide>
-					<seq>TPEVDDEALEK</seq>
-					<userParam name="identification_index" value="0" />
-					<userParam name="significance_threshold" value="0"/>
-					<userParam name="precursor_charge" value="2" />
-					<userParam name="precursor_retention_time" value="230.45" />
-					<userParam name="precursor_mz" value="623.52" />
-					<userParam name="score" value="38.11" />
-					<userParam name="score_type" value="Mascot" />
-					<userParam name="identifier" value="Mascot_2006-10-07 06:31:08" />
-					<userParam name="higher_score_better" value="1" />
-				</peptide>
-				<userParam name="protein_identification_index" value="0"/>
-				<userParam name="score" value="38"/>
-			</protein>
-			<protein>
-				<dbID>LGSH</dbID>
-				<peptide>
-					<seq>TPEVDNEALEK</seq>
-					<userParam name="identification_index" value="0" />
-					<userParam name="significance_threshold" value="0"/>
-					<userParam name="precursor_charge" value="2" />
-					<userParam name="precursor_retention_time" value="230.45" />
-					<userParam name="precursor_mz" value="623.52" />
-					<userParam name="score" value="8.88" />
-					<userParam name="score_type" value="Mascot" />
-					<userParam name="identifier" value="Mascot_2006-10-07 06:31:08" />
-					<userParam name="higher_score_better" value="1" />
-				</peptide>
-				<userParam name="protein_identification_index" value="0"/>
-				<userParam name="score" value="9"/>
-			</protein>
-			<protein>
-				<dbID>S00132</dbID>
-				<peptide>
-					<seq>TPEVDNEALEK</seq>
-					<userParam name="identification_index" value="0" />
-					<userParam name="significance_threshold" value="0"/>
-					<userParam name="precursor_charge" value="2" />
-					<userParam name="precursor_retention_time" value="230.45" />
-					<userParam name="precursor_mz" value="623.52" />
-					<userParam name="score" value="8.88" />
-					<userParam name="score_type" value="Mascot" />
-					<userParam name="identifier" value="Mascot_2006-10-07 06:31:08" />
-					<userParam name="higher_score_better" value="1" />
-				</peptide>
-				<userParam name="protein_identification_index" value="0"/>
-				<userParam name="score" value="9"/>
-			</protein>
-			<protein>
-				<dbID>AAA31510</dbID>
-				<peptide>
-					<seq>TPEVDNEALEK</seq>
-					<userParam name="identification_index" value="0" />
-					<userParam name="significance_threshold" value="0"/>
-					<userParam name="precursor_charge" value="2" />
-					<userParam name="precursor_retention_time" value="230.45" />
-					<userParam name="precursor_mz" value="623.52" />
-					<userParam name="score" value="8.88" />
-					<userParam name="score_type" value="Mascot" />
-					<userParam name="identifier" value="Mascot_2006-10-07 06:31:08" />
-					<userParam name="higher_score_better" value="1" />
-				</peptide>
-				<userParam name="protein_identification_index" value="0"/>
-				<userParam name="score" value="9"/>
-			</protein>
-			<protein>
-				<dbID>CAD32664</dbID>
-				<peptide>
-					<seq>LTLVTENNDVK</seq>
-					<userParam name="identification_index" value="0" />
-					<userParam name="significance_threshold" value="0"/>
-					<userParam name="precursor_charge" value="2" />
-					<userParam name="precursor_retention_time" value="230.45" />
-					<userParam name="precursor_mz" value="623.52" />
-					<userParam name="score" value="7.06" />
-					<userParam name="score_type" value="Mascot" />
-					<userParam name="identifier" value="Mascot_2006-10-07 06:31:08" />
-					<userParam name="higher_score_better" value="1" />
-				</peptide>
-				<userParam name="protein_identification_index" value="0"/>
-				<userParam name="score" value="7"/>
-			</protein>
-			<protein>
-				<dbID>Q6NT31_HUMAN</dbID>
-				<peptide>
-					<seq>SISVEDKTDVR</seq>
-					<userParam name="identification_index" value="0" />
-					<userParam name="significance_threshold" value="0"/>
-					<userParam name="precursor_charge" value="2" />
-					<userParam name="precursor_retention_time" value="230.45" />
-					<userParam name="precursor_mz" value="623.52" />
-					<userParam name="score" value="6.66" />
-					<userParam name="score_type" value="Mascot" />
-					<userParam name="identifier" value="Mascot_2006-10-07 06:31:08" />
-					<userParam name="higher_score_better" value="1" />
-				</peptide>
-				<userParam name="protein_identification_index" value="0"/>
-				<userParam name="score" value="7"/>
-			</protein>
-			<protein>
-				<dbID>Q6NT47_HUMAN</dbID>
-				<peptide>
-					<seq>SISVEDKTDVR</seq>
-					<userParam name="identification_index" value="0" />
-					<userParam name="significance_threshold" value="0"/>
-					<userParam name="precursor_charge" value="2" />
-					<userParam name="precursor_retention_time" value="230.45" />
-					<userParam name="precursor_mz" value="623.52" />
-					<userParam name="score" value="6.66" />
-					<userParam name="score_type" value="Mascot" />
-					<userParam name="identifier" value="Mascot_2006-10-07 06:31:08" />
-					<userParam name="higher_score_better" value="1" />
-				</peptide>
-				<userParam name="protein_identification_index" value="0"/>
-				<userParam name="score" value="7"/>
-			</protein>
-			<protein>
-				<dbID>Q6NT53_HUMAN</dbID>
-				<peptide>
-					<seq>SISVEDKTDVR</seq>
-					<userParam name="identification_index" value="0" />
-					<userParam name="significance_threshold" value="0"/>
-					<userParam name="precursor_charge" value="2" />
-					<userParam name="precursor_retention_time" value="230.45" />
-					<userParam name="precursor_mz" value="623.52" />
-					<userParam name="score" value="6.66" />
-					<userParam name="score_type" value="Mascot" />
-					<userParam name="identifier" value="Mascot_2006-10-07 06:31:08" />
-					<userParam name="higher_score_better" value="1" />
-				</peptide>
-				<userParam name="protein_identification_index" value="0"/>
-				<userParam name="score" value="7"/>
-			</protein>
-			<protein>
-				<dbID>AAL47008</dbID>
-				<peptide>
-					<seq>SISVEDKTDVR</seq>
-					<userParam name="identification_index" value="0" />
-					<userParam name="significance_threshold" value="0"/>
-					<userParam name="precursor_charge" value="2" />
-					<userParam name="precursor_retention_time" value="230.45" />
-					<userParam name="precursor_mz" value="623.52" />
-					<userParam name="score" value="6.66" />
-					<userParam name="score_type" value="Mascot" />
-					<userParam name="identifier" value="Mascot_2006-10-07 06:31:08" />
-					<userParam name="higher_score_better" value="1" />
-				</peptide>
-				<userParam name="protein_identification_index" value="0"/>
-				<userParam name="score" value="7"/>
-			</protein>
-			<protein>
-				<dbID>AAK57558</dbID>
-				<peptide>
-					<seq>SISVEDKTDVR</seq>
-					<userParam name="identification_index" value="0" />
-					<userParam name="significance_threshold" value="0"/>
-					<userParam name="precursor_charge" value="2" />
-					<userParam name="precursor_retention_time" value="230.45" />
-					<userParam name="precursor_mz" value="623.52" />
-					<userParam name="score" value="6.66" />
-					<userParam name="score_type" value="Mascot" />
-					<userParam name="identifier" value="Mascot_2006-10-07 06:31:08" />
-					<userParam name="higher_score_better" value="1" />
-				</peptide>
-				<userParam name="protein_identification_index" value="0"/>
-				<userParam name="score" value="7"/>
-			</protein>
-			<protein>
-				<dbID>AAK76362</dbID>
-				<peptide>
-					<seq>SISVEDKTDVR</seq>
-					<userParam name="identification_index" value="0" />
-					<userParam name="significance_threshold" value="0"/>
-					<userParam name="precursor_charge" value="2" />
-					<userParam name="precursor_retention_time" value="230.45" />
-					<userParam name="precursor_mz" value="623.52" />
-					<userParam name="score" value="6.66" />
-					<userParam name="score_type" value="Mascot" />
-					<userParam name="identifier" value="Mascot_2006-10-07 06:31:08" />
-					<userParam name="higher_score_better" value="1" />
-				</peptide>
-				<userParam name="protein_identification_index" value="0"/>
-				<userParam name="score" value="7"/>
-			</protein>
-			<protein>
-				<dbID>A43800</dbID>
-				<peptide>
-					<seq>EQMATSGNEPGK</seq>
-					<userParam name="identification_index" value="0" />
-					<userParam name="significance_threshold" value="0"/>
-					<userParam name="precursor_charge" value="2" />
-					<userParam name="precursor_retention_time" value="230.45" />
-					<userParam name="precursor_mz" value="623.52" />
-					<userParam name="score" value="5.57" />
-					<userParam name="score_type" value="Mascot" />
-					<userParam name="identifier" value="Mascot_2006-10-07 06:31:08" />
-					<userParam name="higher_score_better" value="1" />
-				</peptide>
-				<userParam name="protein_identification_index" value="0"/>
-				<userParam name="score" value="6"/>
-			</protein>
-			<protein>
-				<dbID>Q6NRU0_XENLA</dbID>
-				<peptide>
-					<seq>VVEVFSEYFK</seq>
-					<userParam name="identification_index" value="0" />
-					<userParam name="significance_threshold" value="0"/>
-					<userParam name="precursor_charge" value="2" />
-					<userParam name="precursor_retention_time" value="230.45" />
-					<userParam name="precursor_mz" value="623.52" />
-					<userParam name="score" value="5.24" />
-					<userParam name="score_type" value="Mascot" />
-					<userParam name="identifier" value="Mascot_2006-10-07 06:31:08" />
-					<userParam name="higher_score_better" value="1" />
-				</peptide>
-				<userParam name="protein_identification_index" value="0"/>
-				<userParam name="score" value="5"/>
-			</protein>
-			<protein>
-				<dbID>Q6P408_MOUSE</dbID>
-				<peptide>
-					<seq>TPQADKTEEVK</seq>
-					<userParam name="identification_index" value="0" />
-					<userParam name="significance_threshold" value="0"/>
-					<userParam name="precursor_charge" value="2" />
-					<userParam name="precursor_retention_time" value="230.45" />
-					<userParam name="precursor_mz" value="623.52" />
-					<userParam name="score" value="4.59" />
-					<userParam name="score_type" value="Mascot" />
-					<userParam name="identifier" value="Mascot_2006-10-07 06:31:08" />
-					<userParam name="higher_score_better" value="1" />
-				</peptide>
-				<userParam name="protein_identification_index" value="0"/>
-				<userParam name="score" value="5"/>
-			</protein>
-			<protein>
-				<dbID>AAF28968</dbID>
-				<peptide>
-					<seq>AQQRMSGTLEK</seq>
-					<userParam name="identification_index" value="0" />
-					<userParam name="significance_threshold" value="0"/>
-					<userParam name="precursor_charge" value="2" />
-					<userParam name="precursor_retention_time" value="230.45" />
-					<userParam name="precursor_mz" value="623.52" />
-					<userParam name="score" value="5.61" />
-					<userParam name="score_type" value="Mascot" />
-					<userParam name="identifier" value="Mascot_2006-10-07 06:31:08" />
-					<userParam name="higher_score_better" value="1" />
-				</peptide>
-				<userParam name="protein_identification_index" value="0"/>
-				<userParam name="score" value="4"/>
-			</protein>
-			<protein>
-				<dbID>Q6P3L3_BRARE</dbID>
-				<peptide>
-					<seq>LSSEDKEAIEK</seq>
-					<userParam name="identification_index" value="0" />
-					<userParam name="significance_threshold" value="0"/>
-					<userParam name="precursor_charge" value="2" />
-					<userParam name="precursor_retention_time" value="230.45" />
-					<userParam name="precursor_mz" value="623.52" />
-					<userParam name="score" value="4.24" />
-					<userParam name="score_type" value="Mascot" />
-					<userParam name="identifier" value="Mascot_2006-10-07 06:31:08" />
-					<userParam name="higher_score_better" value="1" />
-				</peptide>
-				<userParam name="protein_identification_index" value="0"/>
-				<userParam name="score" value="4"/>
-			</protein>
-			<protein>
-				<dbID>Q7SZD3_BRARE</dbID>
-				<peptide>
-					<seq>LSSEDKEAIEK</seq>
-					<userParam name="identification_index" value="0" />
-					<userParam name="significance_threshold" value="0"/>
-					<userParam name="precursor_charge" value="2" />
-					<userParam name="precursor_retention_time" value="230.45" />
-					<userParam name="precursor_mz" value="623.52" />
-					<userParam name="score" value="4.24" />
-					<userParam name="score_type" value="Mascot" />
-					<userParam name="identifier" value="Mascot_2006-10-07 06:31:08" />
-					<userParam name="higher_score_better" value="1" />
-				</peptide>
-				<userParam name="protein_identification_index" value="0"/>
-				<userParam name="score" value="4"/>
-			</protein>
-			<protein>
-				<dbID>Q9DGC5_ORENI</dbID>
-				<peptide>
-					<seq>FLKASHAYALK</seq>
-					<userParam name="identification_index" value="0" />
-					<userParam name="significance_threshold" value="0"/>
-					<userParam name="precursor_charge" value="2" />
-					<userParam name="precursor_retention_time" value="230.45" />
-					<userParam name="precursor_mz" value="623.52" />
-					<userParam name="score" value="3.94" />
-					<userParam name="score_type" value="Mascot" />
-					<userParam name="identifier" value="Mascot_2006-10-07 06:31:08" />
-					<userParam name="higher_score_better" value="1" />
-				</peptide>
-				<userParam name="protein_identification_index" value="0"/>
-				<userParam name="score" value="4"/>
-			</protein>
-			<userParam name="db" value="MSDB"/>
-			<userParam name="db_version" value="MSDB_20050227.fasta"/>
-			<userParam name="taxonomy" value=""/>
-			<userParam name="charges" value=""/>
-			<userParam name="mass_type" value="0"/>
-			<userParam name="enzyme" value="2"/>
-			<userParam name="missed_cleavages" value="0"/>
-			<userParam name="peak_mass_tolerance" value="0"/>
-			<userParam name="precursor_tolerance" value="0"/>
-			<userParam name="date" value="2006-10-07 06:31:08"/>
-			<userParam name="search_engine" value="Mascot"/>
-			<userParam name="search_engine_version" value="2.1.03"/>
-			<userParam name="identifier" value="Mascot_2006-10-07 06:31:08"/>
-			<userParam name="score_type" value="Mascot"/>
-			<userParam name="higher_score_better" value="1"/>
-			<userParam name="proteins" value="all"/>
-		</proteinGroup>
-	</ident>
-</mzIdent>
+<?xml version="1.0" encoding="UTF-8"?>
+<IdXML xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/IdXML_1_0.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <SearchParameters id="SP_0" db="MSDB" db_version="MSDB_20050227.fasta" taxonomy="" mass_type="monoisotopic" charges="" enzyme="unknown_enzyme" missed_cleavages="0" precursor_peak_tolerance="0" peak_mass_tolerance="0" >
+  </SearchParameters>
+  <IdentificationRun date="2006-10-07T06:31:08" search_engine="Mascot" search_engine_version="2.1.03" search_parameters_ref="SP_0" >
+    <ProteinIdentification score_type="Mascot" higher_score_better="true" significance_threshold="0" >
+      <ProteinHit id="PH_0" accession="LGBO" score="38" sequence="" >
+      </ProteinHit>
+      <ProteinHit id="PH_1" accession="LGBUI" score="38" sequence="" >
+      </ProteinHit>
+      <ProteinHit id="PH_2" accession="1B0O" score="38" sequence="" >
+      </ProteinHit>
+      <ProteinHit id="PH_3" accession="1BEBA" score="38" sequence="" >
+      </ProteinHit>
+      <ProteinHit id="PH_4" accession="1BSOA" score="38" sequence="" >
+      </ProteinHit>
+      <ProteinHit id="PH_5" accession="1BSQA" score="38" sequence="" >
+      </ProteinHit>
+      <ProteinHit id="PH_6" accession="1DV9A" score="38" sequence="" >
+      </ProteinHit>
+      <ProteinHit id="PH_7" accession="CAA06532" score="38" sequence="" >
+      </ProteinHit>
+      <ProteinHit id="PH_8" accession="AAA30411" score="38" sequence="" >
+      </ProteinHit>
+      <ProteinHit id="PH_9" accession="AAA30412" score="38" sequence="" >
+      </ProteinHit>
+      <ProteinHit id="PH_10" accession="CAA32835" score="38" sequence="" >
+      </ProteinHit>
+      <ProteinHit id="PH_11" accession="LGSH" score="9" sequence="" >
+      </ProteinHit>
+      <ProteinHit id="PH_12" accession="S00132" score="9" sequence="" >
+      </ProteinHit>
+      <ProteinHit id="PH_13" accession="AAA31510" score="9" sequence="" >
+      </ProteinHit>
+      <ProteinHit id="PH_14" accession="CAD32664" score="7" sequence="" >
+      </ProteinHit>
+      <ProteinHit id="PH_15" accession="Q6NT31_HUMAN" score="7" sequence="" >
+      </ProteinHit>
+      <ProteinHit id="PH_16" accession="Q6NT47_HUMAN" score="7" sequence="" >
+      </ProteinHit>
+      <ProteinHit id="PH_17" accession="Q6NT53_HUMAN" score="7" sequence="" >
+      </ProteinHit>
+      <ProteinHit id="PH_18" accession="AAL47008" score="7" sequence="" >
+      </ProteinHit>
+      <ProteinHit id="PH_19" accession="AAK57558" score="7" sequence="" >
+      </ProteinHit>
+      <ProteinHit id="PH_20" accession="AAK76362" score="7" sequence="" >
+      </ProteinHit>
+      <ProteinHit id="PH_21" accession="A43800" score="6" sequence="" >
+      </ProteinHit>
+      <ProteinHit id="PH_22" accession="Q6NRU0_XENLA" score="5" sequence="" >
+      </ProteinHit>
+      <ProteinHit id="PH_23" accession="Q6P408_MOUSE" score="5" sequence="" >
+      </ProteinHit>
+      <ProteinHit id="PH_24" accession="AAF28968" score="4" sequence="" >
+      </ProteinHit>
+      <ProteinHit id="PH_25" accession="Q6P3L3_BRARE" score="4" sequence="" >
+      </ProteinHit>
+      <ProteinHit id="PH_26" accession="Q7SZD3_BRARE" score="4" sequence="" >
+      </ProteinHit>
+      <ProteinHit id="PH_27" accession="Q9DGC5_ORENI" score="4" sequence="" >
+      </ProteinHit>
+    </ProteinIdentification>
+    <PeptideIdentification score_type="Mascot" higher_score_better="true" significance_threshold="0" MZ="623.52" RT="230.45" >
+      <PeptideHit score="38.11" sequence="TPEVDDEALEK" charge="2" protein_refs="PH_0 PH_1 PH_2 PH_3 PH_4 PH_5 PH_6 PH_7 PH_8 PH_9 PH_10" >
+      </PeptideHit>
+      <PeptideHit score="8.88" sequence="TPEVDNEALEK" charge="2" protein_refs="PH_11 PH_12 PH_13" >
+      </PeptideHit>
+      <PeptideHit score="7.06" sequence="LTLVTENNDVK" charge="2" protein_refs="PH_14" >
+      </PeptideHit>
+      <PeptideHit score="6.66" sequence="SISVEDKTDVR" charge="2" protein_refs="PH_15 PH_16 PH_17 PH_18 PH_19 PH_20" >
+      </PeptideHit>
+      <PeptideHit score="5.57" sequence="EQMATSGNEPGK" charge="2" protein_refs="PH_21" >
+      </PeptideHit>
+      <PeptideHit score="5.24" sequence="VVEVFSEYFK" charge="2" protein_refs="PH_22" >
+      </PeptideHit>
+      <PeptideHit score="4.59" sequence="TPQADKTEEVK" charge="2" protein_refs="PH_23" >
+      </PeptideHit>
+      <PeptideHit score="5.61" sequence="AQQRMSGTLEK" charge="2" protein_refs="PH_24" >
+      </PeptideHit>
+      <PeptideHit score="4.24" sequence="LSSEDKEAIEK" charge="2" protein_refs="PH_25 PH_26" >
+      </PeptideHit>
+      <PeptideHit score="3.94" sequence="FLKASHAYALK" charge="2" protein_refs="PH_27" >
+      </PeptideHit>
+    </PeptideIdentification>
+  </IdentificationRun>
+</IdXML>
