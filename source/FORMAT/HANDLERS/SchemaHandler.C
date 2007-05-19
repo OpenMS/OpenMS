@@ -90,17 +90,20 @@ namespace OpenMS
 	
 	UInt SchemaHandler::str2enum_(UInt index, const String& value, const char* message)
 	{
+		//std::cout << "looking up key \"" << value << "\" in map nr. " << index << "..." << std::endl;
+
 		String2EnumMap::const_iterator it =  str2enum_array_[index].find(value);
 		if (it == str2enum_array_[index].end()) // no enum-value for string defined
 		{  
 			const xercesc::Locator* loc = 0;
 			setDocumentLocator(loc);
-			std::cout << "Warning: Unhandled " << message << " \"" << value << "\" parsed in " << file_ << std::endl;
-		}	
+			std::cout << "Warning: Unhandled object \"" << message << "\"=\"" << value << "\" parsed in " << file_ << std::endl;
+		}
 		else
 		{
 			return it->second;
 		}
+		
 		return 0;
 	}
 

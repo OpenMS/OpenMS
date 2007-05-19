@@ -159,8 +159,12 @@ namespace OpenMS
 				";CID;PSD;PD;SID",
 
 				// Ontology
+/*
 				";ScanMode;Polarity;TimeInMinutes;TimeInSeconds;MassToChargeRatio;ChargeState;"
 				"Intensity;IntensityUnits;Method;CollisionEnergy;EnergyUnits",
+*/
+				";PSI:1000036;PSI:1000037;PSI:1000038;PSI:1000039;PSI:1000040;PSI:1000041;"
+				"PSI:1000042;PSI:1000043;PSI:1000044;PSI:1000045;PSI:1000046",
 
 				// Tags
 				";mzData;description;spectrumList;spectrum;spectrumDesc;spectrumSettings;"
@@ -172,7 +176,7 @@ namespace OpenMS
 				
 				// Attributes
 				";name;value;id;count;spectrumType;methodOfCombination;acqNumber;msLevel;"
-				"mzRangeStart;mzRangeStop;supDataArrayRef;precision;endian;length;version",
+				"mzRangeStart;mzRangeStop;supDataArrayRef;precision;endian;length;version;accession",
 			}
 		};
 
@@ -236,6 +240,7 @@ namespace OpenMS
 				"Sector;FourierTransform;IonStorage",
 
 				// Ontology
+/*
 				";SampleNumber;SampleName;SampleState;SampleMass;SampleVolume;SampleConcentration;"
 				"InletType;IonizationType;IonizationMode;AnalyzerType;Resolution;ResolutionMethod;"
 				"ResolutionType;Accuracy;ScanRate;ScanTime;ScanFunction;ScanDirection;ScanLaw;"
@@ -243,7 +248,14 @@ namespace OpenMS
 				"FinalMSExponent;MagneticFieldStrength;DetectorType;DetectorAcquisitionMode;"
 				"DetectorResolution;ADCSamplingFrequency;Vendor;Model;Customization;"
 				"Deisotoping;ChargeDeconvolution;PeakProcessing",
-
+*/
+				";PSI:1000001;PSI:1000002;PSI:1000003;PSI:1000004;PSI:1000005;PSI:1000006;"
+				"PSI:1000007;PSI:1000008;PSI:1000009;PSI:1000010;PSI:1000011;PSI:1000012;"
+				"PSI:1000013;PSI:1000014;PSI:1000015;PSI:1000016;PSI:1000017;PSI:1000018;PSI:1000019;"
+				"PSI:1000020;PSI:1000021;PSI:1000022;PSI:1000023;"
+				"PSI:1000024;PSI:1000025;PSI:1000026;PSI:1000027;"
+				"PSI:1000028;PSI:1000029;PSI:1000030;PSI:1000031;PSI:1000032;"
+				"PSI:1000033;PSI:1000034;PSI:1000035",
 				// Tags
 				";description;admin;sampleName;sampleDescription;sourceFile;nameOfFile;"
 				"pathToFile;fileType;contact;name;institution;contactInfo;instrument;instrumentName;"

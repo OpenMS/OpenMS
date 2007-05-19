@@ -148,7 +148,7 @@ namespace OpenMS
 			*/
 			enum Attributes { ATTNULL, NAME, VALUE, ID, COUNT, SPECTRUMTYPE, METHOD_OF_COMBINATION,
 			                 ACQNUMBER, MSLEVEL, MZRANGE_START, MZRANGE_STOP,
-			                 SUP_DATA_ARRAY_REF, ATT_PRECISION, ATT_ENDIAN, LENGTH, VERSION, ATT_NUM};
+			                 SUP_DATA_ARRAY_REF, ATT_PRECISION, ATT_ENDIAN, LENGTH, VERSION, ACCESSION, ATT_NUM};
 			
 			/** @brief indices for ontology terms used by mzData
 
@@ -364,6 +364,7 @@ namespace OpenMS
 		template <typename MapType>
 		void MzDataHandler<MapType>::startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const xercesc::Attributes& attributes)
 		{
+			//std::cout << "begin startelement" << std::endl;
 			
 // 			std::cout << "Start: '" << xercesc::XMLString::transcode(qname) << "'" << std::endl;
 			
@@ -391,9 +392,12 @@ namespace OpenMS
 				case CVPARAM: 
 				case USERPARAM:
 				{
+					String accession = getAttributeAsString_(ACCESSION);
 					String name = getAttributeAsString_(NAME);
 					String value = getAttributeAsString_(VALUE);
 					
+					//std::cout << "got accession: " << accession << " + " << value << std::endl;
+					//std::cout << "got name: " << name << " + " << value << std::endl;
 					if (name == "")
 					{
 						error("missing required attribute 'name'");
@@ -410,7 +414,7 @@ namespace OpenMS
 						}
 						else
 						{
-							cvParam_(name, value);
+							cvParam_(accession, value);
 						}
 					}
 					break;
@@ -519,12 +523,14 @@ namespace OpenMS
 					}
 					break;
 			}
+			//std::cout << "end startelement" << std::endl;
 		}
 
 
 		template <typename MapType>
 		void MzDataHandler<MapType>::endElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname)
 		{
+			//std::cout << "begin endelement" << std::endl;
 			
 // 			std::cout << "End: '" << xercesc::XMLString::transcode(qname) << "'" << std::endl;
 			
@@ -581,6 +587,7 @@ namespace OpenMS
 					logger_.endProgress();
 					break;
 			}
+			//std::cout << "end endelement" << std::endl;
 		}
 
 		template <typename MapType>
@@ -613,9 +620,11 @@ namespace OpenMS
 		}
 
 		template <typename MapType>
-		void MzDataHandler<MapType>::cvParam_(const String& name, const String& value)
+		void MzDataHandler<MapType>::cvParam_(const String& accession, const String& value)
 		{
-			int ont = str2enum_(ONTOLOGYMAP, name, "cvParam element"); // index of current ontology term
+			//std::cout << "accession is '" << accession << "'." << std::endl;
+			int ont = str2enum_(ONTOLOGYMAP, accession, "cvParam element"); // index of current ontology term
+
 			std::string error = "";
 			if(is_parser_in_tag_[SPECTRUMINSTRUMENT] || is_parser_in_tag_[ACQINSTRUMENT])
 			{
@@ -625,7 +634,7 @@ namespace OpenMS
 				switch (ont)
 				{
 					case SCANMODE:
-						sett.setScanMode( (InstrumentSettings::ScanMode)str2enum_(SCANMODEMAP, value) );
+						sett.setScanMode( (InstrumentSettings::ScanMode)str2enum_(SCANMODEMAP, value, (accession + " value").c_str()) );
 						break;
 					case TIMEMIN:
 						spec_.setRT(asFloat_(value)*60); //Minutes to seconds
@@ -642,7 +651,7 @@ namespace OpenMS
 						}
 						break;
 					case POLARITY:
-						sett.setPolarity( (IonSource::Polarity)str2enum_(POLARITYMAP, value) );
+						sett.setPolarity( (IonSource::Polarity)str2enum_(POLARITYMAP, value, (accession + " value").c_str()) );
 						break;
 				  default:      
 				  	error = "SpectrumDescription.SpectrumSettings.SpectrumInstrument";
@@ -685,13 +694,13 @@ namespace OpenMS
 				switch (ont)
 				{
 					case METHOD:
-						prec_->setActivationMethod((Precursor::ActivationMethod)str2enum_(ACTMETHODMAP, value));
+						prec_->setActivationMethod((Precursor::ActivationMethod)str2enum_(ACTMETHODMAP, value, (accession + " value").c_str()));
 						break;
 					case ENERGY: 
 						prec_->setActivationEnergy( asFloat_(value) );
 						break;
 					case EUNITS:
-						prec_->setActivationEnergyUnit((Precursor::EnergyUnits)str2enum_(EUNITSMAP, value));
+						prec_->setActivationEnergyUnit((Precursor::EnergyUnits)str2enum_(EUNITSMAP, value, (accession + " value").c_str()));
 						break;
 					default:
 						error = "PrecursorList.Precursor.Activation.UserParam";
@@ -699,13 +708,14 @@ namespace OpenMS
 			}
 			else
 			{
-				warning(String("Invalid cvParam: name=\"") + name + ", value=\"" + value + "\"");
+				warning(String("Invalid cvParam: accession=\"") + accession + ", value=\"" + value + "\"");
 			}
 
 			if (error != "")
 			{
-				warning(String("Invalid cvParam: name=\"") + name + ", value=\"" + value + "\" in " + error);
+				warning(String("Invalid cvParam: accession=\"") + accession + ", value=\"" + value + "\" in " + error);
 			}
+			//std::cout << "End of MzDataHander::cvParam_" << std::endl;
 		}
 
 		template <typename MapType>

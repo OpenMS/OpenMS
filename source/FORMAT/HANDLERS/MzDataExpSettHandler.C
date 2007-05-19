@@ -89,6 +89,9 @@ namespace OpenMS
 							const Locator* loc = 0;
 							setDocumentLocator(loc);
 							String tmp = String("Unhandled tag \"comments\" with content: ") + XMLString::transcode(chars);
+							// I'm pretty convinced the whole "loc" thing is broken.
+							// If the "warning" line ever troubles you, try the following one:
+							// warning(SAXParseException(message, 0, 0, 0, 0 )); 
 							warning(SAXParseException(XMLString::transcode(tmp.c_str()), *loc )); 
 						}
 						break;
@@ -123,6 +126,9 @@ namespace OpenMS
 							const Locator* loc = 0;
 							setDocumentLocator(loc);
 							String tmp = String("Unhandled tag \"name\" with content: ") + XMLString::transcode(chars);
+							// I'm pretty convinced the whole "loc" thing is broken.
+							// If the "warning" line ever troubles you, try the following one:
+							// warning(SAXParseException(message, 0, 0, 0, 0 )); 
 							warning(SAXParseException(XMLString::transcode(tmp.c_str()), *loc )); 
 						}
 						break;
@@ -132,8 +138,7 @@ namespace OpenMS
 	
   void MzDataExpSettHandler::startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const Attributes& attributes)
   {
-  	
-  	//cout << "Exp - Start: '" << XMLString::transcode(qname) << "'" << endl;
+  	//cout << "Exp - Start - Start: '" << XMLString::transcode(qname) << "'" << endl;
 		
 		int tag = str2enum_(TAGMAP,XMLString::transcode(qname),"opening tag");	// index of current tag
 		is_parser_in_tag_[tag] = true;
@@ -141,7 +146,9 @@ namespace OpenMS
 		// Do something depending on the tag
 		switch(tag) 
 		{
-			case CVPARAM:	cvParam_(attributes.getValue(XMLString::transcode("name")),attributes.getValue(XMLString::transcode("value"))); break;
+			case CVPARAM:
+				cvParam_(attributes.getValue(XMLString::transcode("accession")),attributes.getValue(XMLString::transcode("value")));
+				break;
 		  case USERPARAM:	userParam_(attributes.getValue(XMLString::transcode("name")),attributes.getValue(XMLString::transcode("value"))); break;
 			case CONTACT:  contact_ = new ContactPerson(); break;
 			case ANALYZER: analyzer_ = new MassAnalyzer(); break;
@@ -152,14 +159,14 @@ namespace OpenMS
 				}
 				break;
 		}
+  	//cout << "Exp - Start - End: '" << XMLString::transcode(qname) << "'" << endl;
 	}
 
 
 
 	void MzDataExpSettHandler::endElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname)
-  {
-  	
-  	//cout << "Exp - End: '" << XMLString::transcode(qname) << "'" << endl;
+  {	
+  	//cout << "Exp - End - Start: '" << XMLString::transcode(qname) << "'" << endl;
   		
 		int tag = str2enum_(TAGMAP,XMLString::transcode(qname),"closing tag");  // index of current tag
 		is_parser_in_tag_[tag] = false;
@@ -175,6 +182,7 @@ namespace OpenMS
 				delete analyzer_;
 				break;
 		}
+  	//cout << "Exp - End - End: '" << XMLString::transcode(qname) << "'" << endl;
   }
 
 
@@ -197,6 +205,9 @@ namespace OpenMS
 			const Locator* loc = 0;
 			setDocumentLocator(loc);
 			String tmp = String("Invalid userParam: name=\"") + XMLString::transcode(name) + "\", value=\"" + XMLString::transcode(value) + "\"";
+							// I'm pretty convinced the whole "loc" thing is broken.
+							// If the "warning" line ever troubles you, try the following one:
+							// warning(SAXParseException(message, 0, 0, 0, 0 )); 
 			warning(SAXParseException(XMLString::transcode(tmp.c_str()), *loc )); 
 		}
 	}
@@ -204,116 +215,147 @@ namespace OpenMS
 
 	void MzDataExpSettHandler::cvParam_(const XMLCh* name, const XMLCh* value)
 	{
-		//cout << "cvParam_: '" << XMLString::transcode(name) << "' - '" << XMLString::transcode(value) << "'";
+		String value_transcoded;
+		if (value == NULL)
+		{
+			value_transcoded = "";
+		}
+		else
+		{
+			value_transcoded = XMLString::transcode(value);
+		}
+		//cout << "Beginning cvParam_: '" << XMLString::transcode(name) << "value: " << value_transcoded << "." << std::endl;
 		int ont = str2enum_(ONTOLOGYMAP,XMLString::transcode(name),"cvParam element"); // index of current ontology term
 
 		std::string error = "";
-		if (is_parser_in_tag_[DETECTOR]){
+		if (is_parser_in_tag_[DETECTOR])
+		{
 			IonDetector& ion_d = exp_->getInstrument().getIonDetector();
-			switch (ont){
-			case DETECTTYPE: ion_d.setType( (IonDetector::Type)str2enum_(TYPEMAP,XMLString::transcode(value)) ); break;
-			case DETECTRES:  ion_d.setResolution( asFloat_(XMLString::transcode(value)) ); break;
-			case ADCFREQ:    ion_d.setADCSamplingFrequency( asFloat_(XMLString::transcode(value)) ); break;
-			case ACQMODE:
-				ion_d.setAcquisitionMode((IonDetector::AcquisitionMode)str2enum_(ACQMODEMAP,XMLString::transcode(value)) );
-				break;
-			default:         error = "Description.Instrument.Detector.UserParam";
+			switch (ont)
+			{
+				case DETECTTYPE: ion_d.setType( (IonDetector::Type)str2enum_(TYPEMAP,value_transcoded) ); break;
+				case DETECTRES:  ion_d.setResolution( asFloat_(value_transcoded) ); break;
+				case ADCFREQ:    ion_d.setADCSamplingFrequency( asFloat_(value_transcoded) ); break;
+				case ACQMODE:
+					ion_d.setAcquisitionMode((IonDetector::AcquisitionMode)str2enum_(ACQMODEMAP, value_transcoded) );
+					break;
+				default:         error = "Description.Instrument.Detector.UserParam";
 			}
-		} else if (is_parser_in_tag_[INSTSRC]) {
+		}
+		else if (is_parser_in_tag_[INSTSRC])
+		{
 			IonSource& ion_s = exp_->getInstrument().getIonSource();
-			switch (ont) {
-			case IONTYPE:   ion_s.setIonizationMethod( (IonSource::IonizationMethod)str2enum_(IONTYPEMAP,XMLString::transcode(value)) ); break;
-			case INLETTYPE:	ion_s.setInletType( (IonSource::InletType)str2enum_(INLETTYPEMAP,XMLString::transcode(value)) ); break;
-			case IONMODE:   ion_s.setPolarity( (IonSource::Polarity)str2enum_(IONMODEMAP,XMLString::transcode(value)) ); break;
-			default:        error = "Description.Instrument.Source.UserParam";
+			switch (ont)
+			{
+				case IONTYPE:   ion_s.setIonizationMethod( (IonSource::IonizationMethod)str2enum_(IONTYPEMAP, value_transcoded) ); break;
+				case INLETTYPE:	ion_s.setInletType( (IonSource::InletType)str2enum_(INLETTYPEMAP, value_transcoded) ); break;
+				case IONMODE:   ion_s.setPolarity( (IonSource::Polarity)str2enum_(IONMODEMAP, value_transcoded) ); break;
+				default:        error = "Description.Instrument.Source.UserParam";
 			}
 		}
-		else if (is_parser_in_tag_[SAMPLEDESCRIPTION]) {
+		else if (is_parser_in_tag_[SAMPLEDESCRIPTION])
+		{
 			Sample& sample = exp_->getSample();
-			switch (ont){
-			case SAMPLENAME_ONT: sample.setName( XMLString::transcode(value) ); break;
-			case SAMPLESTATE:
-				sample.setState( (Sample::SampleState)str2enum_(SAMPLESTATEMAP,XMLString::transcode(value)) );
-				break;
-			case SAMPLEMASS:     sample.setMass( asFloat_(XMLString::transcode(value)) ); break;
-			case SAMPLEVOLUME:   sample.setVolume( asFloat_(XMLString::transcode(value)) ); break;
-			case SAMPLECONC: 	   sample.setConcentration( asFloat_(XMLString::transcode(value)) ); break;
-			case SAMPLENUMBER:   sample.setNumber( XMLString::transcode(value) ); break;
-		  default:             error = "Description.Admin.SampleDescription.UserParam";
+			switch (ont)
+			{
+				case SAMPLENAME_ONT: sample.setName( value_transcoded ); break;
+				case SAMPLESTATE:
+					sample.setState( (Sample::SampleState)str2enum_(SAMPLESTATEMAP, value_transcoded) );
+					break;
+				case SAMPLEMASS:     sample.setMass( asFloat_(value_transcoded) ); break;
+				case SAMPLEVOLUME:   sample.setVolume( asFloat_(value_transcoded) ); break;
+				case SAMPLECONC: 	   sample.setConcentration( asFloat_(value_transcoded) ); break;
+				case SAMPLENUMBER:   sample.setNumber( value_transcoded ); break;
+			  default:             error = "Description.Admin.SampleDescription.UserParam";
 			}
 		}
-		else if (is_parser_in_tag_[ANALYZER]) {
+		else if (is_parser_in_tag_[ANALYZER])
+		{
 			typedef MassAnalyzer MA;
-			switch (ont){
-			case ANALYZTYPE:
-				analyzer_->setType( (MA::AnalyzerType)str2enum_(ANALYZERTYPEMAP,XMLString::transcode(value)));
-				break;
-			case RESOLUTION:	analyzer_->setResolution( asFloat_(XMLString::transcode(value)) ); break;
-			case ACCURACY:	  analyzer_->setAccuracy( asFloat_(XMLString::transcode(value)) ); break;
-			case SCANRATE:   	analyzer_->setScanRate( asFloat_(XMLString::transcode(value)) ); break;
-			case SCANTIME:	  analyzer_->setScanTime( asFloat_(XMLString::transcode(value)) ); break;
-			case TOFLENGTH:   analyzer_->setTOFTotalPathLength( asFloat_(XMLString::transcode(value)) ); break;
-			case ISOWIDTH:    analyzer_->setIsolationWidth( asFloat_(XMLString::transcode(value)) ); break;
-			case MAGSTRENGTH: analyzer_->setMagneticFieldStrength( asFloat_(XMLString::transcode(value)) ); break;
-			case FINALMSEXP:	analyzer_->setFinalMSExponent( asInt_(XMLString::transcode(value)) ); break;
-			case RESMETHOD:
-				analyzer_->setResolutionMethod( (MA::ResolutionMethod)str2enum_(RESMETHODMAP,XMLString::transcode(value)));
-				break;
-			case RESTYPE:
-				analyzer_->setResolutionType( (MA::ResolutionType)str2enum_(RESTYPEMAP,XMLString::transcode(value)));
-				break;
-			case SCANFCT:
-				analyzer_->setScanFunction( (MA::ScanFunction)str2enum_(SCANFUNCTIONMAP,XMLString::transcode(value)));
-				break;
-			case SCANDIR:
-				analyzer_->setScanDirection( (MA::ScanDirection)str2enum_(SCANDIRECTIONMAP,XMLString::transcode(value)));
-				break;
-			case SCANLAW:
-				analyzer_->setScanLaw( (MA::ScanLaw)str2enum_(SCANLAWMAP,XMLString::transcode(value)));
-				break;
-			case TANDEM:
-				analyzer_->setTandemScanMethod((MA::TandemScanningMethod)str2enum_(TANDEMMAP,XMLString::transcode(value)));
-				break;
-			case REFLECTRON:
-				analyzer_->setReflectronState( (MA::ReflectronState)str2enum_(REFLECTRONMAP,XMLString::transcode(value)));
-				break;
-			default:          error = "AnalyzerList.Analyzer.UserParam";
+			switch (ont)
+			{
+				case ANALYZTYPE:
+					analyzer_->setType( (MA::AnalyzerType)str2enum_(ANALYZERTYPEMAP, value_transcoded));
+					break;
+				case RESOLUTION:	analyzer_->setResolution( asFloat_(value_transcoded) ); break;
+				case ACCURACY:	  analyzer_->setAccuracy( asFloat_(value_transcoded) ); break;
+				case SCANRATE:   	analyzer_->setScanRate( asFloat_(value_transcoded) ); break;
+				case SCANTIME:	  analyzer_->setScanTime( asFloat_(value_transcoded) ); break;
+				case TOFLENGTH:   analyzer_->setTOFTotalPathLength( asFloat_(value_transcoded) ); break;
+				case ISOWIDTH:    analyzer_->setIsolationWidth( asFloat_(value_transcoded) ); break;
+				case MAGSTRENGTH: analyzer_->setMagneticFieldStrength( asFloat_(value_transcoded) ); break;
+				case FINALMSEXP:	analyzer_->setFinalMSExponent( asInt_(value_transcoded) ); break;
+				case RESMETHOD:
+					analyzer_->setResolutionMethod( (MA::ResolutionMethod)str2enum_(RESMETHODMAP, value_transcoded));
+					break;
+				case RESTYPE:
+					analyzer_->setResolutionType( (MA::ResolutionType)str2enum_(RESTYPEMAP, value_transcoded));
+					break;
+				case SCANFCT:
+					analyzer_->setScanFunction( (MA::ScanFunction)str2enum_(SCANFUNCTIONMAP, value_transcoded));
+					break;
+				case SCANDIR:
+					analyzer_->setScanDirection( (MA::ScanDirection)str2enum_(SCANDIRECTIONMAP, value_transcoded));
+					break;
+				case SCANLAW:
+					analyzer_->setScanLaw( (MA::ScanLaw)str2enum_(SCANLAWMAP, value_transcoded));
+					break;
+				case TANDEM:
+					analyzer_->setTandemScanMethod((MA::TandemScanningMethod)str2enum_(TANDEMMAP, value_transcoded));
+					break;
+				case REFLECTRON:
+					analyzer_->setReflectronState( (MA::ReflectronState)str2enum_(REFLECTRONMAP, value_transcoded));
+					break;
+				default:          error = "AnalyzerList.Analyzer.UserParam";
 			}
 		}
-		else if (is_parser_in_tag_[INSTADDITIONAL]) {
-			switch (ont){
-			case VENDOR: exp_->getInstrument().setVendor(XMLString::transcode(value)); break;
-			case MODEL:	 exp_->getInstrument().setModel(XMLString::transcode(value)); break;
-			case CUSTOM: exp_->getInstrument().setCustomizations(XMLString::transcode(value)); break;
-			default:     error = "Description.Instrument.Additional";
+		else if (is_parser_in_tag_[INSTADDITIONAL])
+		{
+			switch (ont)
+			{
+				case VENDOR: exp_->getInstrument().setVendor(value_transcoded); break;
+				case MODEL:	 exp_->getInstrument().setModel(value_transcoded); break;
+				case CUSTOM: exp_->getInstrument().setCustomizations(value_transcoded); break;
+				default:     error = "Description.Instrument.Additional";
 			}
 		}
-		else if (is_parser_in_tag_[PROCMETHOD]) {
+		else if (is_parser_in_tag_[PROCMETHOD])
+		{
 			ProcessingMethod& meth = exp_->getProcessingMethod();
-			switch (ont)	{
-			case DEISOTOPED:  meth.setDeisotoping(asBool_(XMLString::transcode(value))); break;
-			case DECONVOLVED: meth.setChargeDeconvolution(asBool_(XMLString::transcode(value))); break;
-			case PEAKPROC:
-				meth.setSpectrumType( (SpectrumSettings::SpectrumType)str2enum_(PEAKPROCMAP,XMLString::transcode(value)));
-				break;
-			default:          error = "DataProcessing.ProcessingMethod.UserParam";
+			switch (ont)
+			{
+				case DEISOTOPED:  meth.setDeisotoping(asBool_(value_transcoded)); break;
+				case DECONVOLVED: meth.setChargeDeconvolution(asBool_(value_transcoded)); break;
+				case PEAKPROC:
+					meth.setSpectrumType( (SpectrumSettings::SpectrumType)str2enum_(PEAKPROCMAP, value_transcoded));
+					break;
+				default:          error = "DataProcessing.ProcessingMethod.UserParam";
 			}
 		}
 		else
 		{
 			const Locator* loc = 0;
 			setDocumentLocator(loc);
-			String tmp = String("Invalid cvParam: name=\"") + XMLString::transcode(name) + "\", value=\"" + XMLString::transcode(value) + "\"";
+			String tmp = String("Invalid cvParam: name=\"") + XMLString::transcode(name) + "\", value=\"" + value_transcoded + "\"";
+			// std::cout << "Invalid cvParam, tmp:" << tmp << "." << std::endl;
+							// I'm pretty convinced the whole "loc" thing is broken.
+							// If the "warning" line ever troubles you, try the following one:
+							// warning(SAXParseException(message, 0, 0, 0, 0 )); 
 			warning(SAXParseException(XMLString::transcode(tmp.c_str()), *loc )); 
 		}
+		//std::cout << "done parsing cvParam, error:" << error << "." << std::endl;
 		
 		if (error != "")
 		{
 			const Locator* loc = 0;
 			setDocumentLocator(loc);
-			String tmp = String("Invalid cvParam: name=\"") + XMLString::transcode(name) +"\", value=\"" + XMLString::transcode(value) +"\" in " + error;
-			warning(SAXParseException(XMLString::transcode(tmp.c_str()), *loc )); 
+			String tmp = String("Invalid cvParam: name=\"") + XMLString::transcode(name) +"\", value=\"" + value_transcoded +"\" in " + error;
+			XMLCh *message = XMLString::transcode(tmp.c_str());
+//			this one is definitely broken
+//			warning(SAXParseException(message, *loc )); 
+			warning(SAXParseException(message, 0, 0, 0, 0 )); 
 		}
+		//std::cout << "done with cvParam_" << std::endl;
 	}
 
 	void MzDataExpSettHandler::writeTo(std::ostream& os)
