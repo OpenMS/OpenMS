@@ -120,7 +120,7 @@ namespace OpenMS
 					tmp_peak_.setIntensity(i->getIntensity());
 					tmp_peak_.setMZ(i->getMZ());
 					tmp_peak_.setRT(i.getRT());
-					
+					tmp_peak_.setCharge(0);
 					max_peak = &tmp_peak_;
 				}
 			}
@@ -145,6 +145,7 @@ namespace OpenMS
 						tmp_peak_.setIntensity(i->getIntensity());
 						tmp_peak_.setMZ(i->getMZ());
 						tmp_peak_.setRT(i->getRT());
+						tmp_peak_.setCharge(i->getCharge());
 						tmp_peak_.getConvexHulls() = i->getConvexHulls();
 						
 						max_peak = &tmp_peak_;
@@ -920,9 +921,13 @@ namespace OpenMS
 						{
 							//show Peak Coordinates
 							emit sendCursorStatus(max_peak->getMZ(), max_peak->getIntensity(), max_peak->getRT());
-							string meta = max_peak->getMetaValue(3).toString();
-							if (meta!="")
-								sendStatusMessage(meta, 0);
+							//show status message (label + charge)
+							String status;
+							String label = max_peak->getMetaValue(3).toString();
+							if (label!="") status = status + " Label: " + label;
+							String charge = max_peak->getCharge();
+							if (charge!="") status = status + " Charge: " + charge;
+							if (status!="") sendStatusMessage(status, 0);
 						}
 						
 						selected_peak_ = max_peak;
@@ -955,10 +960,14 @@ namespace OpenMS
 						if (max_peak) 	 
 						{ 	 
 							// show Peak Coordinates (with intensity) 	 
-							emit sendCursorStatus(max_peak->getMZ(), max_peak->getIntensity(), max_peak->getRT()); 	 
-							//show lable 	 
-							string meta = max_peak->getMetaValue(3).toString(); 	 
-							if (meta!="") sendStatusMessage(meta, 0); 	 
+							emit sendCursorStatus(max_peak->getMZ(), max_peak->getIntensity(), max_peak->getRT()); 	  
+							//show status message (label + charge)
+							String status;
+							String label = max_peak->getMetaValue(3).toString();
+							if (label!="") status = status + " Label: " + label;
+							String charge = max_peak->getCharge();
+							if (charge!="") status = status + " Charge: " + charge;
+							if (status!="") sendStatusMessage(status, 0);	 
 						} 	 
 						else 	 
 						{ 	 
