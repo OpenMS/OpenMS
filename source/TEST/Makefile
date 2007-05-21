@@ -79,7 +79,7 @@ EXECUTABLES_METADATA = \
 	Tagging_test\
 	Sample_test\
 	Acquisition_test\
-	Identification_test\
+	ProteinIdentification_test\
 	PeptideIdentification_test\
 	AcquisitionInfo_test\
 	Precursor_test\

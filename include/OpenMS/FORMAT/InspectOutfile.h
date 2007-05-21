@@ -33,7 +33,7 @@
 //#include <OpenMS/FORMAT/MzDataFile.h>
 //#include <OpenMS/FORMAT/MzXMLFile.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
-#include <OpenMS/METADATA/Identification.h>
+#include <OpenMS/METADATA/ProteinIdentification.h>
 //#include <OpenMS/METADATA/PeptideHit.h>
 //#include <OpenMS/METADATA/ProteinHit.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
@@ -63,7 +63,7 @@ namespace OpenMS
 			InspectOutfile();
 			
 			/// load the results of an Inspect search
-			std::vector<UInt> load(const String& result_filename, std::vector<PeptideIdentification>& peptide_identifications, Identification& protein_identification, Real p_value_threshold) throw (Exception::FileNotFound, Exception::ParseError, Exception::IllegalArgument);
+			std::vector<UInt> load(const String& result_filename, std::vector<PeptideIdentification>& peptide_identifications, ProteinIdentification& protein_identification, Real p_value_threshold) throw (Exception::FileNotFound, Exception::ParseError, Exception::IllegalArgument);
 			
 			std::vector< UInt > getWantedRecords(const String& result_filename, Real p_value_threshold) throw (Exception::FileNotFound, Exception::ParseError, Exception::IllegalArgument);
 

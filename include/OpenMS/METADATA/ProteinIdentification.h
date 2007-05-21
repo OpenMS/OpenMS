@@ -24,8 +24,8 @@
 // $Maintainer: Nico Pfeifer $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_METADATA_IDENTIFICATION_H
-#define OPENMS_METADATA_IDENTIFICATION_H
+#ifndef OPENMS_METADATA_PROTEINIDENTIFICATION_H
+#define OPENMS_METADATA_PROTEINIDENTIFICATION_H
 
 #include <OpenMS/METADATA/ProteinHit.h>
 #include <OpenMS/METADATA/MetaInfoInterface.h>
@@ -34,23 +34,23 @@
 namespace OpenMS
 {   	
   /**
-    @brief Representation of a peptide/protein identification
+    @brief Representation of a peptide/protein ProteinIdentification
     
-    This class stores the general information and the protein hits of an identification run.
+    This class stores the general information and the protein hits of an ProteinIdentification run.
     
     The actual peptide hits are stored in PeptideIdentification instances that are part of 
     spectra or features. 
     
-    In order to be able to connect the Identification and the corresponding peptide identifications, both
+    In order to be able to connect the ProteinIdentification and the corresponding peptide identifications, both
     classes have a string identifier. We recommend using the search engine name and the date as identifier.
-    Setting this identifier is especially important, when there are several identification runs for a map
-    i.e. several Identification instances.
+    Setting this identifier is especially important, when there are several ProteinIdentification runs for a map
+    i.e. several ProteinIdentification instances.
 
     @todo Add MetaInfoInterface to modifications, update IdXMLFile (Andreas)
      
 		@ingroup Metadata
   */
-  class Identification
+  class ProteinIdentification
   	: public MetaInfoInterface
   {
 	  public:
@@ -138,17 +138,17 @@ namespace OpenMS
 	    /** @name constructors,destructors,assignment operator <br> */
 	    //@{
 	    /// default constructor
-	    Identification();
+	    ProteinIdentification();
 	    /// destructor
-	    virtual ~Identification();
+	    virtual ~ProteinIdentification();
 	    /// copy constructor
-	    Identification(const Identification& source);
+	    ProteinIdentification(const ProteinIdentification& source);
 	    /// assignment operator
-	    Identification& operator=(const Identification& source);
+	    ProteinIdentification& operator=(const ProteinIdentification& source);
 			/// Equality operator
-			bool operator == (const Identification& rhs) const;		
+			bool operator == (const ProteinIdentification& rhs) const;		
 			/// Inequality operator
-			bool operator != (const Identification& rhs) const;
+			bool operator != (const ProteinIdentification& rhs) const;
 	    //@}	 
 
 	   	///@name Protein hit information
@@ -179,9 +179,9 @@ namespace OpenMS
 
 	   	///@name General information
 	  	//@{
-			/// returns the date of the identification
+			/// returns the date of the ProteinIdentification
 	    const DateTime& getDateTime() const;
-			/// sets the date of the identification
+			/// sets the date of the ProteinIdentification
 	    void setDateTime(const DateTime& date);
 			/// sets the search engine type
 			void setSearchEngine(const String& search_engine);
@@ -222,4 +222,4 @@ namespace OpenMS
   };
 
 } //namespace OpenMS
-#endif // OPENMS_METADATA_IDENTIFICATION_H
+#endif // OPENMS_METADATA_PROTEINIDENTIFICATION_H

@@ -155,7 +155,7 @@ class TOPPPILISModel
 
 
 			IdXMLFile id_in_file;
-			vector<Identification> prot_ids;
+			vector<ProteinIdentification> prot_ids;
 			vector<PeptideIdentification> peptide_ids;
 			id_in_file.load(id_in, prot_ids, peptide_ids);
 

@@ -27,7 +27,7 @@
 #ifndef OPENMS_FORMAT_IDXMLFILE2_H
 #define OPENMS_FORMAT_IDXMLFILE2_H
 
-#include <OpenMS/METADATA/Identification.h>
+#include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 
 #include <vector>
@@ -42,7 +42,7 @@ namespace OpenMS
 		
 		A documented schema for this format can be found at http://open-ms.sourceforge.net/schemas/. 
 		
-		One file can contain several identification runs. Each run consists of peptide hits stored in 
+		One file can contain several ProteinIdentification runs. Each run consists of peptide hits stored in 
 		PeptideIdentification and (optional) protein hits stored in Identification. Peptide and protein
 		hits are connected via a string identifier. We use the searche engine and the date as identifier.
 		
@@ -64,14 +64,14 @@ namespace OpenMS
 				The information is read in and the information is stored in the
 				corresponding variables
       */
-      void load(const String& filename, std::vector<Identification>& protein_ids, std::vector<PeptideIdentification>& peptide_ids) const throw (Exception::FileNotFound, Exception::ParseError);
+      void load(const String& filename, std::vector<ProteinIdentification>& protein_ids, std::vector<PeptideIdentification>& peptide_ids) const throw (Exception::FileNotFound, Exception::ParseError);
       					 			 
 			/**
       	@brief Stores the data in an IdXML file
 
 				The data is read in and stored in the file 'filename'.
       */
-      void store(String filename, const std::vector<Identification>& protein_ids, const std::vector<PeptideIdentification>& peptide_ids) const throw (Exception::UnableToCreateFile); 
+      void store(String filename, const std::vector<ProteinIdentification>& protein_ids, const std::vector<PeptideIdentification>& peptide_ids) const throw (Exception::UnableToCreateFile); 
   };
  
 } // namespace OpenMS

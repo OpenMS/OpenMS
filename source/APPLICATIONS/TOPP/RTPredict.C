@@ -27,7 +27,7 @@
 #include <OpenMS/ANALYSIS/SVM/SVMWrapper.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/FORMAT/LibSVMEncoder.h>
-#include <OpenMS/METADATA/Identification.h>
+#include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/MATH/STATISTICS/BasicStatistics.h>
 
@@ -91,7 +91,7 @@ class TOPPRTPredict
 		ExitCodes main_(int , char**)
 		{
 			IdXMLFile IdXML_file;
-			vector<Identification> protein_identifications;
+			vector<ProteinIdentification> protein_identifications;
 			vector<PeptideIdentification> identifications;
 			vector< String > peptides;
 			vector< DoubleReal > training_retention_times;

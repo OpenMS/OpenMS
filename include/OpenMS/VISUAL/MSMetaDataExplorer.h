@@ -64,7 +64,7 @@ namespace OpenMS
 	class Precursor;
 	class ProcessingMethod;
 	class ProteinHit;
-	class Identification;
+	class ProteinIdentification;
 	class Sample;
 	class SampleTreatment;
 	class Software;
@@ -107,7 +107,7 @@ namespace OpenMS
 			bool isEditable();	
 				
 			/// Defines friend classess that can use the functionality of the subclasses.
-			friend class IdentificationVisualizer;
+			friend class ProteinIdentificationVisualizer;
 			friend class PeptideIdentificationVisualizer;
       
     public slots:
@@ -160,8 +160,8 @@ namespace OpenMS
 			void visualize_(MassAnalyzer& meta, QTreeWidgetItem* parent=0);
 			/// Calls visualizer class for class type ProcessingMethod
 			void visualize_(ProcessingMethod& meta, QTreeWidgetItem* parent=0);
-			/// Calls visualizer class for class type Identification
-			void visualize_(Identification& meta, QTreeWidgetItem* parent=0);
+			/// Calls visualizer class for class type ProteinIdentification
+			void visualize_(ProteinIdentification& meta, QTreeWidgetItem* parent=0);
 			/// Calls visualizer class for class type ProteinHit
 			void visualize_(ProteinHit& meta, QTreeWidgetItem* parent=0);
 			/// Calls visualizer class for class type PeptideHit
@@ -186,10 +186,10 @@ namespace OpenMS
 				
 			Updates the protein hit information of objects of type Identification.
 				
-			@param pid  Identifier of the identification object belonging to this database search.
-			@param tree_item_id  Identifier of the item in the tree belonging to the Identification object that is displayed.
+			@param pid  Identifier of the ProteinIdentification object belonging to this database search.
+			@param tree_item_id  Identifier of the item in the tree belonging to the ProteinIdentification object that is displayed.
 			*/
-			void updateProteinHits_(Identification pid, int tree_item_id);
+			void updateProteinHits_(ProteinIdentification pid, int tree_item_id);
 		 	
 			 
 			 
@@ -198,8 +198,8 @@ namespace OpenMS
 				
 				Updates the peptide hit information of objects of type PeptideIdentification depending on a threshold.
 				
-				@param id  Identifier of the identification object belonging to this database search.
-				@param tree_item_id  Identifier of the item in the tree belonging to the Identification object that is displayed.
+				@param id  Identifier of the ProteinIdentification object belonging to this database search.
+				@param tree_item_id  Identifier of the item in the tree belonging to the ProteinIdentification object that is displayed.
 			*/
 			void updatePeptideHits_(PeptideIdentification id, int tree_item_id);
 			
@@ -209,8 +209,8 @@ namespace OpenMS
 				
 				Updates the peptide hit information of objects of type PeptideIdentification depending on referencing protein hits.
 				
-				@param id  Identifier of the identification object belonging to this database search.
-				@param tree_item_id Identifier of the item in the tree belonging to the Identification object that is displayed.
+				@param id  Identifier of the ProteinIdentification object belonging to this database search.
+				@param tree_item_id Identifier of the item in the tree belonging to the ProteinIdentification object that is displayed.
 				@param ref_date Petide Hits referencing to protein hits with the same date of database search.
 				@param ref_acc Petide Hits referencing to protein hits with the same acquisition number.
 			*/
@@ -225,8 +225,8 @@ namespace OpenMS
 				
 				Updates the peptide hit information of objects of type PeptideIdentification depending on referencing protein hits.
 				
-				@param id  Identifier of the identification object belonging to this database search.
-				@param tree_item_id  Identifier of the item in the tree belonging to the Identification object that is displayed.
+				@param id  Identifier of the ProteinIdentification object belonging to this database search.
+				@param tree_item_id  Identifier of the item in the tree belonging to the ProteinIdentification object that is displayed.
 			*/
 			void updateNonRefPeptideHits_(PeptideIdentification id,  int tree_item_id);
 			 

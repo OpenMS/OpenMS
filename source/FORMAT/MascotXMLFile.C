@@ -44,7 +44,7 @@ namespace OpenMS
 	}
 
   void MascotXMLFile::load(const String& filename, 
-						      					Identification& protein_identification, 
+						      					ProteinIdentification& protein_identification, 
 						      					vector<PeptideIdentification>& id_data
 						      				) const throw (Exception::FileNotFound, Exception::ParseError)
   {

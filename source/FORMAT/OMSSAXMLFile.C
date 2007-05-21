@@ -47,7 +47,7 @@ namespace OpenMS
 	{
 	}
 	
-  void OMSSAXMLFile::load(const String& filename, Identification& protein_identification, vector<PeptideIdentification>& id_data) const throw (Exception::FileNotFound, Exception::ParseError)
+  void OMSSAXMLFile::load(const String& filename, ProteinIdentification& protein_identification, vector<PeptideIdentification>& id_data) const throw (Exception::FileNotFound, Exception::ParseError)
   {
   	//try to open file
 		if (!File::exists(filename))

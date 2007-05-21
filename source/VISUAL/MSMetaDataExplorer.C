@@ -43,7 +43,7 @@
 #include <OpenMS/VISUAL/VISUALIZER/IonDetectorVisualizer.h>
 #include <OpenMS/VISUAL/VISUALIZER/MassAnalyzerVisualizer.h>
 #include <OpenMS/VISUAL/VISUALIZER/ProcessingMethodVisualizer.h>
-#include <OpenMS/VISUAL/VISUALIZER/IdentificationVisualizer.h>
+#include <OpenMS/VISUAL/VISUALIZER/ProteinIdentificationVisualizer.h>
 #include <OpenMS/VISUAL/VISUALIZER/ProteinHitVisualizer.h>
 #include <OpenMS/VISUAL/VISUALIZER/PeptideHitVisualizer.h>
 #include <OpenMS/VISUAL/VISUALIZER/ExperimentalSettingsVisualizer.h>
@@ -179,12 +179,12 @@ namespace OpenMS
 	//	Functions modifying the listview
 	//--------------------------------------------------------------------------
 	
-	void MSMetaDataExplorer::updateProteinHits_(Identification pid, int tree_item_id)
+	void MSMetaDataExplorer::updateProteinHits_(ProteinIdentification pid, int tree_item_id)
 	{
 	
 		float threshold = pid.getSignificanceThreshold();
 		
-		// find item in tree belonging to Identification object
+		// find item in tree belonging to ProteinIdentification object
 		QTreeWidgetItem* item = treeview_->findItems(QString::number(tree_item_id),Qt::MatchExactly | Qt::MatchRecursive, 1).first();	
 		
 		//set the items visible or not visible depending to their score and the current threshold
@@ -492,10 +492,10 @@ namespace OpenMS
 		//check for Sample
 		visualize_(meta.getSample(), item);
 		
-		//check for Identification
-		for(UInt i=0; i<meta.getIdentifications().size(); ++i)    
+		//check for ProteinIdentification
+		for(UInt i=0; i<meta.getProteinIdentifications().size(); ++i)    
 		{
-			visualize_(meta.getIdentifications()[i], item);
+			visualize_(meta.getProteinIdentifications()[i], item);
 		}
 		
 		//check for ProcessingMethod
@@ -953,10 +953,10 @@ namespace OpenMS
 	}
 	
 	
-	//Visualizing Identification object
-	void MSMetaDataExplorer::visualize_(Identification& meta, QTreeWidgetItem* parent)
+	//Visualizing ProteinIdentification object
+	void MSMetaDataExplorer::visualize_(ProteinIdentification& meta, QTreeWidgetItem* parent)
 	{
-		IdentificationVisualizer *visualizer = new IdentificationVisualizer(isEditable(), this, this); 
+		ProteinIdentificationVisualizer *visualizer = new ProteinIdentificationVisualizer(isEditable(), this, this); 
 		
     QStringList labels;
     int id = ws_->addWidget(visualizer);

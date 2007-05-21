@@ -52,10 +52,10 @@ CHECK(MascotOutfile())
 	TEST_NOT_EQUAL(ptr, 0)
 RESULT
 
-CHECK((void load(String filename, Identification& identification, std::vector<Identification>& peptide_identifications, Real p = 0.05) throw(Exception::ParseError)))
+CHECK((void load(String filename, ProteinIdentification& identification, std::vector<ProteinIdentification>& peptide_identifications, Real p = 0.05) throw(Exception::ParseError)))
 	ptr = new MascotOutfile();
 	vector<PeptideIdentification> peptide_identifications;
-	Identification protein_identification;
+	ProteinIdentification protein_identification;
 
 	ptr->load("data/MascotOutfile2.txt", protein_identification, peptide_identifications);
 

@@ -55,7 +55,7 @@ using namespace std;
 	modes:
 	<ol>	
 				<li>
-				The whole process of identification via Mascot is executed. 
+				The whole process of ProteinIdentification via Mascot is executed. 
 				Inputfile is a mzData file containing the MS/MS spectra
 			 	for which the identifications are to be found. The results
 			 	are written as a IdXML output file. This mode is selected
@@ -63,7 +63,7 @@ using namespace std;
 			 	</li>
 				
 				<li>
-				Only the first part of the identification process is performed.
+				Only the first part of the ProteinIdentification process is performed.
 				This means that the MS/MS data is transformed into Mascot
 				Generic Format (mgf) which can be used directly with Mascot.
 				Being in the cgi directory of the Mascot directory calling a Mascot
@@ -77,7 +77,7 @@ using namespace std;
 				</li>
 				
 				<li>
-				Only the second part of the identification process is performed.
+				Only the second part of the ProteinIdentification process is performed.
 				This means that the outputfile of the Mascot server is
 				translated into IdXML.
 				
@@ -89,7 +89,7 @@ using namespace std;
 	If your Mascot server is installed on the same computer as the 
 	TOPP applications the MascotAdapter can be executed in mode 1. 
 	Otherwise the Mascot engine has to be executed manually assisted
-	by mode 2 and mode 3. The identification steps then look like:
+	by mode 2 and mode 3. The ProteinIdentification steps then look like:
 	
 	<ul>
 		<li>
@@ -244,7 +244,7 @@ class TOPPMascotAdapter
 			ContactPerson contact_person;
 			vector<String> mods;
 			vector<String> variable_mods;
-			Identification protein_identification;
+			ProteinIdentification protein_identification;
 			vector<PeptideIdentification> identifications;
 			vector<Int> charges;
 			vector<String> parts;
@@ -548,7 +548,7 @@ class TOPPMascotAdapter
 			//-------------------------------------------------------------
 			// writing output
 			//-------------------------------------------------------------
-				vector<Identification> protein_identifications;
+				vector<ProteinIdentification> protein_identifications;
 				protein_identifications.push_back(protein_identification);
 				IdXMLFile().store(outputfile_name,
 															 protein_identifications, 

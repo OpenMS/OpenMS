@@ -28,16 +28,16 @@
 #define OPENMS_ANALYSIS_ID_IDSPECTRUMMAPPER_H
 
 #include <OpenMS/KERNEL/MSExperiment.h>
-#include <OpenMS/METADATA/Identification.h>
+#include <OpenMS/METADATA/ProteinIdentification.h>
 
 #include <vector>
 
 namespace OpenMS 
 {
   /**
-    @brief Annotate a MSExperiment instances with Identification instances
+    @brief Annotate a MSExperiment instances with ProteinIdentification instances
     
-    The identifications stored in a Identification instance can be added to the
+    The identifications stored in a ProteinIdentification instance can be added to the
     corresponding spectrum. Furthermore the annotations that are present
     can be retrieved.
   */

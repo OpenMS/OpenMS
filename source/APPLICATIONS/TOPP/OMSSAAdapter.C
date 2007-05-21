@@ -311,11 +311,11 @@ class TOPPOMSSAAdapter
 
 			MzDataFile mzdata_infile;
 			mzdata_infile.setLogType(log_type_);
-			Identification protein_identification;
+			ProteinIdentification protein_identification;
 			vector<PeptideIdentification> peptide_ids;
 			mzdata_infile.load(inputfile_name, map);
 				
-			vector<Identification> protein_identifications;
+			vector<ProteinIdentification> protein_identifications;
 			//-------------------------------------------------------------
 			// calculations
 			//-------------------------------------------------------------
@@ -349,7 +349,7 @@ class TOPPOMSSAAdapter
 				// read OMSSA output
 				OMSSAXMLFile omssa_out_file;
 				vector<PeptideIdentification> tmp_peptide_ids;
-				Identification tmp_protein_id;
+				ProteinIdentification tmp_protein_id;
 				omssa_out_file.load(omssa_outfile_name, tmp_protein_id, tmp_peptide_ids);
 
 				if (tmp_peptide_ids.size() == 1)

@@ -45,8 +45,8 @@ CHECK((IdXMLFile()))
 	ptr = new IdXMLFile();
 RESULT
 
-CHECK(void load(const String& filename, std::vector<Identification>& protein_ids, std::vector<PeptideIdentification>& peptide_ids) throw (Exception::FileNotFound, Exception::ParseError))
-	std::vector<Identification> protein_ids;
+CHECK(void load(const String& filename, std::vector<ProteinIdentification>& protein_ids, std::vector<PeptideIdentification>& peptide_ids) throw (Exception::FileNotFound, Exception::ParseError))
+	std::vector<ProteinIdentification> protein_ids;
 	std::vector<PeptideIdentification> peptide_ids;
 	IdXMLFile().load("data/IdXMLFile_whole.idXML", protein_ids, peptide_ids);
 	
@@ -66,9 +66,9 @@ CHECK(void load(const String& filename, std::vector<Identification>& protein_ids
 	TEST_EQUAL(protein_ids[0].getIdentifier(),"Mascot_2006-01-12T12:13:14")
 	TEST_EQUAL(protein_ids[0].getSearchParameters().db,"MSDB")
 	TEST_EQUAL(protein_ids[0].getSearchParameters().db_version,"1.0")
-	TEST_EQUAL(protein_ids[0].getSearchParameters().enzyme,Identification::TRYPSIN)
+	TEST_EQUAL(protein_ids[0].getSearchParameters().enzyme,ProteinIdentification::TRYPSIN)
 	TEST_EQUAL(protein_ids[0].getSearchParameters().charges,"+1, +2")
-	TEST_EQUAL(protein_ids[0].getSearchParameters().mass_type,Identification::AVERAGE)
+	TEST_EQUAL(protein_ids[0].getSearchParameters().mass_type,ProteinIdentification::AVERAGE)
 	TEST_REAL_EQUAL(protein_ids[0].getSearchParameters().peak_mass_tolerance,0.3)
 	TEST_REAL_EQUAL(protein_ids[0].getSearchParameters().precursor_tolerance,1.0)
 	TEST_EQUAL((String)(protein_ids[0].getMetaValue("name")),"ProteinIdentification")
@@ -144,9 +144,9 @@ CHECK(void load(const String& filename, std::vector<Identification>& protein_ids
 	TEST_EQUAL(protein_ids[1].getIdentifier(),"Mascot_2007-01-12T12:13:14")
 	TEST_EQUAL(protein_ids[1].getSearchParameters().db,"MSDB")
 	TEST_EQUAL(protein_ids[1].getSearchParameters().db_version,"1.1")
-	TEST_EQUAL(protein_ids[1].getSearchParameters().enzyme,Identification::UNKNOWN_ENZYME)
+	TEST_EQUAL(protein_ids[1].getSearchParameters().enzyme,ProteinIdentification::UNKNOWN_ENZYME)
 	TEST_EQUAL(protein_ids[1].getSearchParameters().charges,"+1, +2, +3")
-	TEST_EQUAL(protein_ids[1].getSearchParameters().mass_type,Identification::MONOISOTOPIC)
+	TEST_EQUAL(protein_ids[1].getSearchParameters().mass_type,ProteinIdentification::MONOISOTOPIC)
 	TEST_REAL_EQUAL(protein_ids[1].getSearchParameters().peak_mass_tolerance,0.3)
 	TEST_REAL_EQUAL(protein_ids[1].getSearchParameters().precursor_tolerance,1.0)
 	TEST_EQUAL(protein_ids[1].getSearchParameters().fixed_modifications.size(),2)
@@ -175,12 +175,12 @@ CHECK(void load(const String& filename, std::vector<Identification>& protein_ids
 	TEST_EQUAL(peptide_ids[2].getHits()[0].getAAAfter(),' ')
 RESULT
 
-CHECK(void store(String filename, const std::vector<Identification>& protein_ids, const std::vector<PeptideIdentification>& peptide_ids) throw (Exception::UnableToCreateFile))
+CHECK(void store(String filename, const std::vector<ProteinIdentification>& protein_ids, const std::vector<PeptideIdentification>& peptide_ids) throw (Exception::UnableToCreateFile))
 	
 	cout << endl << endl << endl;
 	
 	//store and load data
-	std::vector<Identification> protein_ids, protein_ids2;
+	std::vector<ProteinIdentification> protein_ids, protein_ids2;
 	std::vector<PeptideIdentification> peptide_ids, peptide_ids2;
 	IdXMLFile().load("data/IdXMLFile_whole.idXML", protein_ids2, peptide_ids2);	
 	String filename;
@@ -205,9 +205,9 @@ CHECK(void store(String filename, const std::vector<Identification>& protein_ids
 	TEST_EQUAL(protein_ids[0].getIdentifier(),"Mascot_2006-01-12T12:13:14")
 	TEST_EQUAL(protein_ids[0].getSearchParameters().db,"MSDB")
 	TEST_EQUAL(protein_ids[0].getSearchParameters().db_version,"1.0")
-	TEST_EQUAL(protein_ids[0].getSearchParameters().enzyme,Identification::TRYPSIN)
+	TEST_EQUAL(protein_ids[0].getSearchParameters().enzyme,ProteinIdentification::TRYPSIN)
 	TEST_EQUAL(protein_ids[0].getSearchParameters().charges,"+1, +2")
-	TEST_EQUAL(protein_ids[0].getSearchParameters().mass_type,Identification::AVERAGE)
+	TEST_EQUAL(protein_ids[0].getSearchParameters().mass_type,ProteinIdentification::AVERAGE)
 	TEST_REAL_EQUAL(protein_ids[0].getSearchParameters().peak_mass_tolerance,0.3)
 	TEST_REAL_EQUAL(protein_ids[0].getSearchParameters().precursor_tolerance,1.0)
 	TEST_EQUAL((String)(protein_ids[0].getMetaValue("name")),"ProteinIdentification")
@@ -281,9 +281,9 @@ CHECK(void store(String filename, const std::vector<Identification>& protein_ids
 	TEST_EQUAL(protein_ids[1].getIdentifier(),"Mascot_2007-01-12T12:13:14")
 	TEST_EQUAL(protein_ids[1].getSearchParameters().db,"MSDB")
 	TEST_EQUAL(protein_ids[1].getSearchParameters().db_version,"1.1")
-	TEST_EQUAL(protein_ids[1].getSearchParameters().enzyme,Identification::UNKNOWN_ENZYME)
+	TEST_EQUAL(protein_ids[1].getSearchParameters().enzyme,ProteinIdentification::UNKNOWN_ENZYME)
 	TEST_EQUAL(protein_ids[1].getSearchParameters().charges,"+1, +2, +3")
-	TEST_EQUAL(protein_ids[1].getSearchParameters().mass_type,Identification::MONOISOTOPIC)
+	TEST_EQUAL(protein_ids[1].getSearchParameters().mass_type,ProteinIdentification::MONOISOTOPIC)
 	TEST_REAL_EQUAL(protein_ids[1].getSearchParameters().peak_mass_tolerance,0.3)
 	TEST_REAL_EQUAL(protein_ids[1].getSearchParameters().precursor_tolerance,1.0)
 	TEST_EQUAL(protein_ids[1].getSearchParameters().fixed_modifications.size(),2)

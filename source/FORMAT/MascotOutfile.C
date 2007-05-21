@@ -41,7 +41,7 @@ namespace OpenMS
   {
   }
 
-	void MascotOutfile::load(String filename,	Identification& protein_identification, std::vector<PeptideIdentification>& peptide_identifications, Real p) throw (Exception::ParseError)
+	void MascotOutfile::load(String filename,	ProteinIdentification& protein_identification, std::vector<PeptideIdentification>& peptide_identifications, Real p) throw (Exception::ParseError)
 	{
   	TextFile f(filename);
   	vector<PeptideHit>::iterator peptide_hit_iterator;

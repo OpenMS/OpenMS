@@ -27,7 +27,7 @@
 #include <OpenMS/ANALYSIS/SVM/SVMWrapper.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/FORMAT/LibSVMEncoder.h>
-#include <OpenMS/METADATA/Identification.h>
+#include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 
 #include <map>
@@ -201,9 +201,9 @@ class TOPPRTModel
 
 		ExitCodes main_(Int , char**)
 		{
-			vector<Identification> protein_identifications;
+			vector<ProteinIdentification> protein_identifications;
 		  vector<PeptideIdentification> identifications;
-			vector<Identification> protein_identifications_negative;
+			vector<ProteinIdentification> protein_identifications_negative;
 		  vector<PeptideIdentification> identifications_negative;
 		  vector< String > training_peptides;
 		  vector< DoubleReal > training_retention_times;

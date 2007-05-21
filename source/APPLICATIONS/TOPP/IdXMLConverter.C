@@ -33,7 +33,7 @@ using namespace std;
 
 int main( int argc, char ** argv )
 {
-	std::vector<Identification> protein_ids;
+	std::vector<ProteinIdentification> protein_ids;
 	std::vector<PeptideIdentification> peptide_ids;
 	
 	IdXMLFile2().load(argv[1], protein_ids, peptide_ids);	

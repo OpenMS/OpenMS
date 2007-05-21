@@ -46,7 +46,7 @@ namespace OpenMS
 	}
 
   void IdXMLFile2::load(const String& filename, 
-  					 								 vector<Identification>& protein_ids,
+  					 								 vector<ProteinIdentification>& protein_ids,
   													 vector<PeptideIdentification>& peptide_ids)
   	const throw (Exception::FileNotFound, Exception::ParseError)
   {
@@ -97,7 +97,7 @@ namespace OpenMS
   }
   					 
   void IdXMLFile2::store(String filename, 
-  					 									const vector<Identification>& protein_ids,
+  					 									const vector<ProteinIdentification>& protein_ids,
   					 									const vector<PeptideIdentification>& peptide_ids) const throw (Exception::UnableToCreateFile)
   {
 		std::ofstream os(filename.c_str());

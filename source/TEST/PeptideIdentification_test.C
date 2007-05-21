@@ -50,7 +50,7 @@ using namespace std;
 float peptide_significance_threshold = 42.3;
 std::vector<PeptideHit> peptide_hits;
 PeptideHit peptide_hit;
-Identification protein_identification;
+ProteinIdentification protein_identification;
 vector<PeptideIdentification> identifications; 
 MascotXMLFile xml_file;
 

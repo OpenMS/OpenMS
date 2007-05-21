@@ -27,7 +27,7 @@
 #ifndef OPENMS_FORMAT_IDXMLFILE_H
 #define OPENMS_FORMAT_IDXMLFILE_H
 
-#include <OpenMS/METADATA/Identification.h>
+#include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
 
@@ -43,7 +43,7 @@ namespace OpenMS
 		
 		A documented schema for this format can be found at http://open-ms.sourceforge.net/schemas/. 
 		
-		One file can contain several identification runs. Each run consists of peptide hits stored in 
+		One file can contain several ProteinIdentification runs. Each run consists of peptide hits stored in 
 		PeptideIdentification and (optional) protein hits stored in Identification. Peptide and protein
 		hits are connected via a string identifier. We use the searche engine and the date as identifier.
 		
@@ -67,14 +67,14 @@ namespace OpenMS
 				The information is read in and the information is stored in the
 				corresponding variables
 			*/
-			void load(const String& filename, std::vector<Identification>& protein_ids, std::vector<PeptideIdentification>& peptide_ids) throw (Exception::FileNotFound, Exception::ParseError);
+			void load(const String& filename, std::vector<ProteinIdentification>& protein_ids, std::vector<PeptideIdentification>& peptide_ids) throw (Exception::FileNotFound, Exception::ParseError);
 			 			 
 			/**
 				@brief Stores the data in an IdXML file
 				
 				The data is read in and stored in the file 'filename'.
 			*/
-			void store(String filename, const std::vector<Identification>& protein_ids, const std::vector<PeptideIdentification>& peptide_ids) throw (Exception::UnableToCreateFile); 
+			void store(String filename, const std::vector<ProteinIdentification>& protein_ids, const std::vector<PeptideIdentification>& peptide_ids) throw (Exception::UnableToCreateFile); 
   	
   	protected:
 		
@@ -93,20 +93,20 @@ namespace OpenMS
 			/// @name members for loading data
 			//@{
 			/// Pointer to fill in protein identifications
-			std::vector<Identification>* prot_ids_;
+			std::vector<ProteinIdentification>* prot_ids_;
 			/// Pointer to fill in peptide identifications
 			std::vector<PeptideIdentification>* pep_ids_;
 			/// Pointer to last read object with MetaInfoInterface
 			MetaInfoInterface* last_meta_;
 			/// Search parameters map (key is the "id")
-			std::map<String,Identification::SearchParameters> parameters_;
+			std::map<String,ProteinIdentification::SearchParameters> parameters_;
 			/// Temporary search parameters variable
-			Identification::SearchParameters param_;
+			ProteinIdentification::SearchParameters param_;
 			/// Temporary id
 			String id_;
-			/// Temporary protein identification
-			Identification prot_id_;
-			/// Temporary peptide identification
+			/// Temporary protein ProteinIdentification
+			ProteinIdentification prot_id_;
+			/// Temporary peptide ProteinIdentification
 			PeptideIdentification pep_id_;
 			/// Temporary protein hit
 			ProteinHit prot_hit_;

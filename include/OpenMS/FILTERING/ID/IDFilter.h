@@ -28,7 +28,7 @@
 #define OPENMS_FILTERING_ID_IDFILTER_H
 
 #include <OpenMS/DATASTRUCTURES/String.h>
-#include <OpenMS/METADATA/Identification.h>
+#include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 
 #include <vector>
@@ -40,9 +40,9 @@ namespace OpenMS
     
     The identifications are filtered by significance thresholds and
     by sequences. The filtering by significance thresholds looks for the 
-    best identification that fullfills the significance threshold criterium.
+    best ProteinIdentification that fullfills the significance threshold criterium.
     score > significance-threshold * significance_fraction. 
-    The filtering by sequences looks for the best identification that
+    The filtering by sequences looks for the best ProteinIdentification that
     is contained in one of the protein sequences.
   
   	@todo Adapt to new classes (Marc)
@@ -57,7 +57,7 @@ namespace OpenMS
       /// Destructor
       ~IDFilter();
 
-      /// filters an identification corresponding to the @p threshold_fraction
+      /// filters an ProteinIdentification corresponding to the @p threshold_fraction
       template <class IdentificationType>
 			void filterIdentificationsByThreshold(const IdentificationType& identification, DoubleReal threshold_fraction, IdentificationType& filtered_identification)
 			{
@@ -85,14 +85,14 @@ namespace OpenMS
 				}
 			}
 			
-      /// filters an identification keeping only the best scoring hits (if strict is set, keeping only the best hit only if it is the only hit with that score)
+      /// filters an ProteinIdentification keeping only the best scoring hits (if strict is set, keeping only the best hit only if it is the only hit with that score)
 			void filterIdentificationsByBestHits(const PeptideIdentification& identification, PeptideIdentification& filtered_identification, bool strict = false);
 
-      /// filters an identification corresponding to the given proteins
+      /// filters an ProteinIdentification corresponding to the given proteins
 			void filterIdentificationsByProteins(const PeptideIdentification& identification, std::vector< std::pair<String, String> > proteins, PeptideIdentification& filtered_identification);
 
-      /// filters a protein identification corresponding to the given proteins only proteins with the same accession
-			void filterIdentificationsByProteins(const Identification& identification, std::vector< std::pair<String, String> > proteins,Identification& filtered_identification);
+      /// filters a protein ProteinIdentification corresponding to the given proteins only proteins with the same accession
+			void filterIdentificationsByProteins(const ProteinIdentification& identification, std::vector< std::pair<String, String> > proteins, ProteinIdentification& filtered_identification);
 																														
 			/// removes all peptide hits having a sequence equal to a element in <code>peptides</code>
 			void filterIdentificationsByExclusionPeptides(const PeptideIdentification& identification, std::vector<String> peptides, PeptideIdentification& filtered_identification);
@@ -100,8 +100,8 @@ namespace OpenMS
 		  /**
 				@brief Filters the peptide hits according to their predicted rt p-values
 				
-				Filters the peptide hits of this identification by the 
-				probability (p-value) of a correct identification having a deviation between 
+				Filters the peptide hits of this ProteinIdentification by the 
+				probability (p-value) of a correct ProteinIdentification having a deviation between 
 				observed and predicted rt equal or bigger than allowed. If there are 
 				unset p_values of the peptide hits the function returns 'true' 
 				otherwise 'false'.
@@ -113,18 +113,18 @@ namespace OpenMS
 			void filterIdentificationsByThresholds(MSExperiment< PeakT >& experiment, DoubleReal peptide_threshold_fraction, DoubleReal protein_threshold_fraction)
 			{
 				//filter protein hits
-				Identification temp_protein_identification;				
-				std::vector<Identification> filtered_protein_identifications;
+				ProteinIdentification temp_protein_identification;				
+				std::vector<ProteinIdentification> filtered_protein_identifications;
 					
-				for(UInt j = 0; j < experiment.getIdentifications().size(); j++)
+				for(UInt j = 0; j < experiment.getProteinIdentifications().size(); j++)
 				{
-					filterIdentificationsByThreshold(experiment.getIdentifications()[j], protein_threshold_fraction, temp_protein_identification);
+					filterIdentificationsByThreshold(experiment.getProteinIdentifications()[j], protein_threshold_fraction, temp_protein_identification);
 					if (!temp_protein_identification.getHits().empty())
 					{
 						filtered_protein_identifications.push_back(temp_protein_identification);
 					}
 				}
-				experiment.setIdentifications(filtered_protein_identifications);
+				experiment.setProteinIdentifications(filtered_protein_identifications);
 				
 				//filter peptide hits
 				PeptideIdentification temp_identification;

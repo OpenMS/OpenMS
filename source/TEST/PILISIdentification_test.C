@@ -87,11 +87,11 @@ CHECK(void getIdentification(PeptideIdentification& id, const PeakSpectrum& spec
 	TEST_EQUAL(id.getHits().begin()->getSequence(), "DFPIANGER")
 RESULT
 
-CHECK(void getIdentifications(std::vector<PeptideIdentification>& ids, const PeakMap& exp))
+CHECK(void getProteinIdentifications(std::vector<PeptideIdentification>& ids, const PeakMap& exp))
 	vector<PeptideIdentification> ids;
 	PeakMap map;
 	map.push_back(spec);
-	ptr->getIdentifications(ids, map);
+	ptr->getProteinIdentifications(ids, map);
 	TEST_EQUAL(ids.size(), map.size())
 	TEST_EQUAL(ids.begin()->getHits().size(), 3)
 	TEST_EQUAL(ids.begin()->getHits().begin()->getSequence(), "DFPIANGER")

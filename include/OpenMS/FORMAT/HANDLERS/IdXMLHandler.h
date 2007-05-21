@@ -28,7 +28,7 @@
 #define OPENMS_FORMAT_HANDLERS_IDXMLHANDLER_H
 
 #include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
-#include <OpenMS/METADATA/Identification.h>
+#include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 
 #include <vector>
@@ -48,9 +48,9 @@ namespace OpenMS
   {
     public:
       /// Constructor for loading
-      IdXMLHandler(std::vector<Identification>& protein_identifications, std::vector<PeptideIdentification>& id_data, const String& filename);
+      IdXMLHandler(std::vector<ProteinIdentification>& protein_identifications, std::vector<PeptideIdentification>& id_data, const String& filename);
       /// Constructor for storing
-      IdXMLHandler(const std::vector<Identification>& protein_identifications, const std::vector<PeptideIdentification>& id_data, const String& filename);
+      IdXMLHandler(const std::vector<ProteinIdentification>& protein_identifications, const std::vector<PeptideIdentification>& id_data, const String& filename);
       
       /// Destructor
       ~IdXMLHandler();
@@ -70,7 +70,7 @@ namespace OpenMS
 
     protected:
       
-			std::vector<Identification>* protein_identifications_;
+			std::vector<ProteinIdentification>* protein_identifications_;
       std::vector<PeptideIdentification>* id_data_;
       ProteinHit actual_protein_hit_;
       std::vector<ProteinHit> actual_protein_hits_;
@@ -79,7 +79,7 @@ namespace OpenMS
 			UInt peptide_identification_index_;
 			UInt protein_identification_index_;
 			bool inside_peptide_;   	
-      const std::vector<Identification> const_protein_identifications_;
+      const std::vector<ProteinIdentification> const_protein_identifications_;
       const std::vector<PeptideIdentification> const_id_data_;
 			String tag_;      	
 			UInt charge_identification_index_;
@@ -89,7 +89,7 @@ namespace OpenMS
 			std::vector< String > date_times_temp_;
 			UInt date_times_counter_;
 			String actual_date_time_;
-			Identification::SearchParameters actual_search_parameters_;
+			ProteinIdentification::SearchParameters actual_search_parameters_;
 			
 		private:
 			  																

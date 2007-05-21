@@ -29,7 +29,7 @@
 
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
-#include <OpenMS/METADATA/Identification.h>
+#include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/CONCEPT/Exception.h>
 
 #include <vector>
@@ -64,7 +64,7 @@ namespace OpenMS
 		    retrieved via the load function. This class is only contained to be compatible with previous versions.
 		    You should use the MascotXMLFile instead. 
 		  */
-			void load(String filename, Identification& protein_identification, std::vector<PeptideIdentification>& peptide_identifications, Real p = 0.05) throw (Exception::ParseError);
+			void load(String filename, ProteinIdentification& protein_identification, std::vector<PeptideIdentification>& peptide_identifications, Real p = 0.05) throw (Exception::ParseError);
 
     protected:
 

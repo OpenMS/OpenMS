@@ -27,7 +27,7 @@
 #ifndef OPENMS_FORMAT_XTANDEMXMLFILE_H
 #define OPENMS_FORMAT_XTANDEMXMLFILE_H
 
-#include <OpenMS/METADATA/Identification.h>
+#include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 
 #include <vector>
@@ -67,7 +67,7 @@ namespace OpenMS
 		  	
 		  	@ingroup FileIO
 		  */
-	    void load(const String& filename, Identification& protein_identification, std::vector<PeptideIdentification>& id_data) const throw (Exception::FileNotFound, Exception::ParseError);
+	    void load(const String& filename, ProteinIdentification& protein_identification, std::vector<PeptideIdentification>& id_data) const throw (Exception::FileNotFound, Exception::ParseError);
 
 		protected:
 

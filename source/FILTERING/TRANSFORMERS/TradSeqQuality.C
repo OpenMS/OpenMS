@@ -69,7 +69,7 @@ namespace OpenMS{
 
   /**
    \return a Quality measure based on the often used limits for sequest scores (XCorr and deltaCn) <br>
-    if a Identification is not fit ( no PeptideHit etc) -1000 is returned
+    if a ProteinIdentification is not fit ( no PeptideHit etc) -1000 is returned
    */
   double TradSeqQuality::operator() (const ClusterSpectrum& cspec)
   {

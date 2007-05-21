@@ -55,7 +55,7 @@ CPP_SOURCES=\
 	MetaInfoRegistry.C\
 	MetaInfoInterface.C\
 	PeptideIdentification.C\
-	Identification.C
+	ProteinIdentification.C
 
 include ../common.mak
 -include .Dependencies

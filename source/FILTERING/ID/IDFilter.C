@@ -143,9 +143,9 @@ namespace OpenMS
 		}
 	}
 	
-	void IDFilter::filterIdentificationsByProteins(const Identification& identification, 
+	void IDFilter::filterIdentificationsByProteins(const ProteinIdentification& identification, 
 																											 vector< pair<String, String> > proteins,
-                                                       Identification& filtered_identification)
+                                                       ProteinIdentification& filtered_identification)
 	{
 		String protein_sequences;
 		String accession_sequences;

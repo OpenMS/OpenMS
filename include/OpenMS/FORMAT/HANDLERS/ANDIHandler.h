@@ -163,7 +163,7 @@ namespace OpenMS
 			"number of times processed", "Processing Method error log", "history of calibration",
 			"number of times calibrated", "Instrument serial number", "Instrument id comments",
 			"Instrument software revision", "Instrument firmware revision",
-			"Operating system revision", "Instrument identification code",
+			"Operating system revision", "Instrument ProteinIdentification code",
 			"Spectrometer inlet temperature", "Additional ionization mode information",
 			"Ionization source temperature", "Accelerating Potential",
 			"Instrument parameter comments", "Detector potential", "Detector entrance potential"};

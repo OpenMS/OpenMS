@@ -80,11 +80,12 @@ Ideen:
 
 Todos:
 - Visualizer updaten
-- Identification -> ProteinIdentification (+ getter und setter)
+- altes IdXMLFile2 + IdXMLConverter raus
 - Add getPrecursorRT(rt/scan nr) and update ID adapters and IDSpectrumMapper 
 - Spectrum3DCanvas: fix grab keyboard (buddy?)
 - TOPP tutorial: Usecases AW-Daten
 - make -j<x>
+
 
 Thomas Schreiner: 
 - mzData fixen (CV)

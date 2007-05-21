@@ -115,7 +115,7 @@ namespace OpenMS
 		double global_intercept = 0;
 		getFitParameter_(global_slope, global_intercept,  global_scores, (double)param_.getValue("global_linear_fitting_threshold"));
 
-		// annotate the identification with both scores (global and single identification)
+		// annotate the ProteinIdentification with both scores (global and single identification)
 		for (vector<PeptideIdentification>::iterator it = ids.begin(); it != ids.end(); ++it)
 		{
 			getScore_(*it, global_slope, global_intercept);

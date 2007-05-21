@@ -62,7 +62,7 @@ using namespace std;
 	modes:
 	<ol>	
 				<li>
-				The whole process of identification via Sequest is executed. 
+				The whole process of ProteinIdentification via Sequest is executed. 
 				Inputfile is one (or more) mz file containing the MS/MS spectra
 				for which identifications are to be found
 				and one ore two databases in FASTA format containing
@@ -73,7 +73,7 @@ using namespace std;
 			 	</li>
 				
 				<li>
-				Only the first part of the identification process is performed.
+				Only the first part of the ProteinIdentification process is performed.
 				This means that a Sequest input file is generated and dta files are
 				created from the mz file.
 				Calling an Sequest process should look like the following:				
@@ -86,7 +86,7 @@ using namespace std;
 				</li>
 				
 				<li>
-				Only the second part of the identification process is performed.
+				Only the second part of the ProteinIdentification process is performed.
 				This means that the output of sequest is translated into IdXML.
 				
 				This mode is selected by the <b>-sequest_out</b> option in the command line.
@@ -1528,7 +1528,7 @@ class TOPPSequestAdapter
 				
 				SequestOutfile sequest_outfile;
 				vector<PeptideIdentification> identifications;
-				Identification protein_identification;
+				ProteinIdentification protein_identification;
 				UInt identification_size = identifications.size();
 
 				vector<String> out_files;
@@ -1629,7 +1629,7 @@ class TOPPSequestAdapter
 					}
 				}
 				
-				vector<Identification> pis;
+				vector<ProteinIdentification> pis;
 				pis.push_back(protein_identification);
 				
 				IdXMLFile().store(output_filename, pis, identifications);

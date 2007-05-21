@@ -44,7 +44,7 @@ namespace OpenMS
 	{
 	}
 	
-	vector<UInt> InspectOutfile::load(const String& result_filename, vector<PeptideIdentification>& peptide_identifications, Identification& protein_identification, Real p_value_threshold)
+	vector<UInt> InspectOutfile::load(const String& result_filename, vector<PeptideIdentification>& peptide_identifications, ProteinIdentification& protein_identification, Real p_value_threshold)
 	throw (Exception::FileNotFound, Exception::ParseError, Exception::IllegalArgument)
 	{
 		vector<ProteinHit> protein_hits;

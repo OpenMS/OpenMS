@@ -465,7 +465,7 @@ namespace OpenMS
 				
 			This exception should be thrown to indicate not yet inplemented
 			methods.  If you take the time to use the detailed constructor
-			instead of the default constructor, identification of the concerned
+			instead of the default constructor, ProteinIdentification of the concerned
 			source will get \e much easier!
 
 			@ingroup Exceptions

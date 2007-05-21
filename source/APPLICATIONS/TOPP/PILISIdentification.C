@@ -41,10 +41,10 @@ using namespace std;
 /**
 	@page PILISIdentification PILISIdentification
 	
-	@brief Performs an identification with PILIS
+	@brief Performs an ProteinIdentification with PILIS
 
-	The PILISIdentification TOPP tool performs a identification run with 
-	the PILIS identification engine. As input the file given in the in 
+	The PILISIdentification TOPP tool performs a ProteinIdentification run with 
+	the PILIS ProteinIdentification engine. As input the file given in the in 
 	parameters is used. The identifications are written into an IdXML
 	file given in the out parameter. Additionally the model_file must be 
 	specified. To perform a search also a peptide database file should be
@@ -62,7 +62,7 @@ class TOPPPILISIdentification
 {
 	public:
 		TOPPPILISIdentification()
-			: TOPPBase("PILISIdentification", "performs an identification with the PILIS engine")
+			: TOPPBase("PILISIdentification", "performs an ProteinIdentification with the PILIS engine")
 		{
 		}
 	
@@ -158,7 +158,7 @@ class TOPPPILISIdentification
 			db->addPeptidesFromFile(getStringOption_("peptide_db_file"));
 		
 
-			// create identification and set the options
+			// create ProteinIdentification and set the options
 			PILISIdentification PILIS_id;
 			
 			PILIS_id.setSequenceDB(db);
@@ -174,7 +174,7 @@ class TOPPPILISIdentification
 
 			vector<PeptideIdentification> ids;
 
-			// perform the identification of the given spectra
+			// perform the ProteinIdentification of the given spectra
 			UInt no(1);
 			for (PeakMap::Iterator it = exp.begin(); it != exp.end(); ++it, ++no)
 			{
@@ -228,7 +228,7 @@ class TOPPPILISIdentification
 			// writing output
 			//-------------------------------------------------------------
 		
-			IdXMLFile().store(out, vector<Identification>(), ids);
+			IdXMLFile().store(out, vector<ProteinIdentification>(), ids);
 			
 			return EXECUTION_OK;
 		}

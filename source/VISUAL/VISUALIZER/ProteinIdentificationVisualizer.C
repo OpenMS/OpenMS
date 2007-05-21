@@ -25,7 +25,7 @@
 // --------------------------------------------------------------------------s
 
 
-#include <OpenMS/VISUAL/VISUALIZER/IdentificationVisualizer.h>
+#include <OpenMS/VISUAL/VISUALIZER/ProteinIdentificationVisualizer.h>
 #include <OpenMS/DATASTRUCTURES/DateTime.h>
 #include <OpenMS/VISUAL/MSMetaDataExplorer.h>
 
@@ -42,12 +42,12 @@ using namespace std;
 namespace OpenMS
 {
 	//Constructor
-	IdentificationVisualizer::IdentificationVisualizer(bool editable, QWidget *parent, MSMetaDataExplorer *caller) : BaseVisualizer(editable, parent)
+	ProteinIdentificationVisualizer::ProteinIdentificationVisualizer(bool editable, QWidget *parent, MSMetaDataExplorer *caller) : BaseVisualizer(editable, parent)
 	{
 		type_="Identification";
 		pidv_caller_= caller;
 	
-		addLabel("Modify protein identification information.");	
+		addLabel("Modify protein ProteinIdentification information.");	
 		addSeperator();        
 		addLineEdit(proteinidentification_date_, "Date of search" );
 		addDoubleLineEdit(proteinidentification_threshold_, "Protein significance threshold" );	
@@ -64,7 +64,7 @@ namespace OpenMS
 
 
 
-	void IdentificationVisualizer::load(Identification &s, int tree_item_id)
+	void ProteinIdentificationVisualizer::load(ProteinIdentification &s, int tree_item_id)
 	{
 	  //Pointer to current object to keep track of the actual object
 		ptr_ = &s;
@@ -82,7 +82,7 @@ namespace OpenMS
 	}
 	
 	
-	void IdentificationVisualizer::updateTree_()
+	void ProteinIdentificationVisualizer::updateTree_()
 	{
 		String m(proteinidentification_threshold_->text().toStdString());
 		tempproteinidentification_.setSignificanceThreshold(m.toFloat());
@@ -92,7 +92,7 @@ namespace OpenMS
 	}
 	
 	
-	void IdentificationVisualizer::store_()
+	void ProteinIdentificationVisualizer::store_()
 	{
 		try
 		{
@@ -120,12 +120,12 @@ namespace OpenMS
 		}
 		catch(exception& e)
 		{
-			std::cout<<"Error while trying to store the new protein identification data. "<<e.what()<<endl;
+			std::cout<<"Error while trying to store the new protein ProteinIdentification data. "<<e.what()<<endl;
 		}
 		
 	}
 	
-	void IdentificationVisualizer::reject_()
+	void ProteinIdentificationVisualizer::reject_()
 	{
 		
 		try
@@ -134,7 +134,7 @@ namespace OpenMS
 		}
 		catch(exception e)
 		{
-			cout<<"Error while trying to restore original protein identification data. "<<e.what()<<endl;
+			cout<<"Error while trying to restore original protein ProteinIdentification data. "<<e.what()<<endl;
 		}
 		
 	}

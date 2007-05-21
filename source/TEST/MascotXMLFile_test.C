@@ -31,7 +31,7 @@
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/FORMAT/MascotXMLFile.h>
 #include <OpenMS/METADATA/ContactPerson.h>
-#include <OpenMS/METADATA/Identification.h>
+#include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 
 #include <vector>
@@ -48,7 +48,7 @@ using namespace std;
 
 MascotXMLFile xml_file;
 MascotXMLFile* ptr;
-Identification protein_identification;
+ProteinIdentification protein_identification;
 vector<PeptideIdentification> peptide_identifications; 
 vector<PeptideIdentification> peptide_identifications2; 
 DateTime date;

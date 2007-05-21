@@ -82,10 +82,10 @@ namespace OpenMS
 			/** @name Accessors
 			 */
 			//@{
-			/// performs an identification run on a PeakMap
+			/// performs an ProteinIdentification run on a PeakMap
 			void getScores(std::vector<PeptideIdentification>& ids);
 
-			/// performs an identification run on a PeakSpectrum
+			/// performs an ProteinIdentification run on a PeakSpectrum
 			void getScore(PeptideIdentification& id);
 			//@}
 

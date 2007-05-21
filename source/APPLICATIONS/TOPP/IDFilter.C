@@ -41,10 +41,10 @@ using namespace std;
 /**
 	@page IDFilter_TOPP IDFilter
 	
-	@brief Filters Filters identification engine results by different criteria.
+	@brief Filters Filters ProteinIdentification engine results by different criteria.
 	
 	This tool is used to filter the identifications found by
-	an identification tool like Mascot&copy;. The identifications 
+	an ProteinIdentification tool like Mascot&copy;. The identifications 
 	can be filtered by different criteria.
 	
 	<ul>
@@ -105,7 +105,7 @@ class TOPPIDFilter
 {
  public:
 	TOPPIDFilter()
-		: TOPPBase("IDFilter","filters identification engine results by different criteria")
+		: TOPPBase("IDFilter","filters ProteinIdentification engine results by different criteria")
 	{
 		
 	}
@@ -120,7 +120,7 @@ class TOPPIDFilter
 		registerStringOption_("exclusion_peptides_file","<file>","","An IdXML file. Peptides having the same sequence as any peptide in this file will be filtered out",false);
 		registerDoubleOption_("pep_fraction","<fraction>",0.0,"the fraction of the peptide significance threshold that should be reached by a peptide hit",false);	
 		registerDoubleOption_("prot_fraction","<fraction>",0.0,"the fraction of the protein significance threshold that should be reached by a protein hit",false);
-		registerDoubleOption_("p_value","<significance>",0.05,"The probability of a correct identification having a deviation between observed and predicted rt equal or bigger than allowed",false);	
+		registerDoubleOption_("p_value","<significance>",0.05,"The probability of a correct ProteinIdentification having a deviation between observed and predicted rt equal or bigger than allowed",false);	
 		registerFlag_("best_hits","If this flag is set only the highest scoring hit is kept.\n"
 															"If there are two or more highest scoring hits, none are kept.");
 		registerFlag_("rt_filtering","If this flag is set rt filtering will be pursued.");
@@ -135,7 +135,7 @@ class TOPPIDFilter
 			
 		IDFilter filter;
 		IdXMLFile IdXML_file;
-		vector<Identification> protein_identifications;
+		vector<ProteinIdentification> protein_identifications;
 		vector<PeptideIdentification> identifications;
 		vector<PeptideIdentification> identifications_exclusion;
 		vector<PeptideIdentification> filtered_identifications;

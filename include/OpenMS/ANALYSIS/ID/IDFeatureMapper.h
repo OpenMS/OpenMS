@@ -28,7 +28,7 @@
 #define OPENMS_ANALYSIS_ID_IDFEATUREMAPPER_H
 
 #include <OpenMS/KERNEL/FeatureMap.h>
-#include <OpenMS/METADATA/Identification.h>
+#include <OpenMS/METADATA/ProteinIdentification.h>
 
 #include <vector>
 
@@ -52,7 +52,7 @@ namespace OpenMS
 			
 				The exception MissingInformation is thrown if the MetaInfoInterface of @p ids does not contain 'MZ' and 'RT'.
 			*/
-		  void annotate(FeatureMap<>& fm, const std::vector<PeptideIdentification>& ids, const std::vector<Identification>& protein_ids) throw (Exception::MissingInformation);      
+		  void annotate(FeatureMap<>& fm, const std::vector<PeptideIdentification>& ids, const std::vector<ProteinIdentification>& protein_ids) throw (Exception::MissingInformation);      
   };
  
 } // namespace OpenMS

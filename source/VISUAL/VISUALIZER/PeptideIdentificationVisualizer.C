@@ -45,7 +45,7 @@ namespace OpenMS
 		type_="PeptideIdentification";
 		pidv_caller_= caller;
 		
-		addLabel("Modify identification information.");	
+		addLabel("Modify ProteinIdentification information.");	
 		addSeperator();        
 //		addLineEdit(identification_date_, "Date and Time of DB search" );
 		addDoubleLineEdit(identification_threshold_, "Peptide significance threshold" );	
@@ -127,7 +127,7 @@ namespace OpenMS
 			{
 				if(date.isNull())
 				{
-					std::string status= "Format of date in IDENTIFICATION is not correct.";
+					std::string status= "Format of date in ProteinIdentification is not correct.";
 					emit sendStatus(status);
 				}
 			}
@@ -137,7 +137,7 @@ namespace OpenMS
 		}
 		catch(exception& e)
 		{
-			std::cout<<"Error while trying to store the identification data. "<<e.what()<<endl;
+			std::cout<<"Error while trying to store the ProteinIdentification data. "<<e.what()<<endl;
 		}
 		
 	}
@@ -151,7 +151,7 @@ namespace OpenMS
 		}
 		catch(exception e)
 		{
-			cout<<"Error while trying to restore original protein identification data. "<<e.what()<<endl;
+			cout<<"Error while trying to restore original protein ProteinIdentification data. "<<e.what()<<endl;
 		}
 		
 	}

@@ -28,7 +28,7 @@
 #define OPENMS_VISUAL_VISUALIZER_IDENTIFICATIONVISUALIZER_H
 
 //OpenMS
-#include <OpenMS/METADATA/Identification.h>
+#include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/VISUAL/VISUALIZER/BaseVisualizer.h>
 
 class QLineEdit;
@@ -39,22 +39,22 @@ namespace OpenMS
 	class MSMetaDataExplorer;
 
 	/**
-		@brief Class that displays all meta information for Identification objects
+		@brief Class that displays all meta information for ProteinIdentification objects
 	
 		This class provides all functionality to view the meta information of an object of type Identification.
 	
 		@todo Add search_engine, search_engine_version, date, identifier, score_type, score_orientation and search_parameters; fix filtering (Marc)
 	*/
-	class IdentificationVisualizer : public BaseVisualizer
+	class ProteinIdentificationVisualizer : public BaseVisualizer
 	{
 		Q_OBJECT
 
 	public: 
 	  /// Default constructor
-		IdentificationVisualizer(bool editable= FALSE, QWidget *parent =0, MSMetaDataExplorer *caller=0);
+		ProteinIdentificationVisualizer(bool editable= FALSE, QWidget *parent =0, MSMetaDataExplorer *caller=0);
 	
 		/// Loads the meta data from the object to the viewer. Gets the id of the item in the tree as parameter.
-		void load(Identification &s, int tree_item_id);
+		void load(ProteinIdentification &s, int tree_item_id);
 	  
 	private slots:
 		/// Save all changes
@@ -72,9 +72,9 @@ namespace OpenMS
 		
 	private:  
 		/// Pointer to current object to keep track of the actual object
-		Identification *ptr_;
+		ProteinIdentification *ptr_;
 		/// Copy of current object for restoring the original values
-		Identification  tempproteinidentification_;
+		ProteinIdentification  tempproteinidentification_;
 	  /// Pointer to MSMetaDataExplorer
 		MSMetaDataExplorer *pidv_caller_;
 		/// The id of the item in the tree

@@ -28,7 +28,7 @@
 
 ///////////////////////////
 #include <OpenMS/METADATA/SpectrumSettings.h>
-#include <OpenMS/METADATA/Identification.h>
+#include <OpenMS/METADATA/ProteinIdentification.h>
 ///////////////////////////
 
 using namespace OpenMS;

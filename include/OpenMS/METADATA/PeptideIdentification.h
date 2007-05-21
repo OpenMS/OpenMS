@@ -40,7 +40,7 @@ namespace OpenMS
     @brief Represents the peptide hits for a spectrum
     
 	  This class is closely related to Identification, which stores the protein hits 
-	  and the general information about the identification run.
+	  and the general information about the ProteinIdentification run.
 	  
 	  When loading PeptideHit instances from a File, the retention time and mass-to-charge ratio
 	  of the precursor spectrum is stored in the MetaInfoInterface using the names 'MZ' and 'RT'.
@@ -104,7 +104,7 @@ namespace OpenMS
 		  void assignRanks();
 		  /// Sorts the hits by score
 		  void sort();
-		  /// Returns if this identification result is empty
+		  /// Returns if this ProteinIdentification result is empty
 		  bool empty() const;
 		  
 			///@name Methods for linking peptide and protein hits
@@ -119,7 +119,7 @@ namespace OpenMS
 			//@}
 			
 	  protected:
-			String id_;													 ///< Identifier by which Identification and PeptideIdentification are matched
+			String id_;													 ///< Identifier by which ProteinIdentification and PeptideIdentification are matched
 	    std::vector<PeptideHit> hits_; 			 ///< A list containing the peptide hits
 	    Real significance_threshold_;   		 ///< the peptide significance threshold
 	    String score_type_;									 ///< The score type (Mascot, Sequest, e-value, p-value) 

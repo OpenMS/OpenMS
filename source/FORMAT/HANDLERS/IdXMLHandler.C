@@ -39,7 +39,7 @@ namespace OpenMS
 {
 	namespace Internal
 	{
-  IdXMLHandler::IdXMLHandler(vector<Identification>& protein_identifications,
+  IdXMLHandler::IdXMLHandler(vector<ProteinIdentification>& protein_identifications,
   									 std::vector<PeptideIdentification>& id_data,
    									 const String& filename ) :
     XMLHandler(filename),
@@ -65,7 +65,7 @@ namespace OpenMS
   {
   }
 
-  IdXMLHandler::IdXMLHandler(const vector<Identification>& protein_identifications,
+  IdXMLHandler::IdXMLHandler(const vector<ProteinIdentification>& protein_identifications,
   									 const std::vector<PeptideIdentification>& id_data,
    									 const String& filename) :
     XMLHandler(filename),
@@ -111,7 +111,7 @@ namespace OpenMS
   	String																actual_date_time_;
   	map< String , UInt>::iterator					date_times_iterator;
 		UInt 																	group_count = 0;
-		Identification::SearchParameters 			search_parameters;
+		ProteinIdentification::SearchParameters 			search_parameters;
 		
 		date_time.now();
 		date_time.get(actual_date_time_);
@@ -240,7 +240,7 @@ namespace OpenMS
   			
   			if (const_protein_identifications_[j].getIdentifier() == "")
   			{
-//  				throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__,"No identifier set for identification ",String(j));
+//  				throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__,"No identifier set for ProteinIdentification ",String(j));
   			}  			
 
 				os << "\t\t\t<userParam name=\"enzyme\" value=\"" << search_parameters.enzyme << "\"/>\n"
@@ -350,7 +350,7 @@ namespace OpenMS
 			{
 				for(Int i = 0; i < ((String) XMLString::transcode(attributes.getValue(1u))).toInt(); i++)
 				{
-					Identification temp_protein_identification;
+					ProteinIdentification temp_protein_identification;
 					protein_identifications_->push_back(temp_protein_identification);
 				}
 			}
@@ -485,7 +485,7 @@ namespace OpenMS
 			}
 			else if (attribute_value == "mass_type")
 			{
-				actual_search_parameters_.mass_type = (Identification::PeakMassType)((String) XMLString::transcode(attributes.getValue(1u))).toInt();
+				actual_search_parameters_.mass_type = (ProteinIdentification::PeakMassType)((String) XMLString::transcode(attributes.getValue(1u))).toInt();
 			}
 			else if (attribute_value == "fixed_modifications")
 			{							
@@ -497,7 +497,7 @@ namespace OpenMS
 			}
 			else if (attribute_value == "enzyme")
 			{
-				actual_search_parameters_.enzyme = (Identification::DigestionEnzyme)((String) XMLString::transcode(attributes.getValue(1u))).toInt();
+				actual_search_parameters_.enzyme = (ProteinIdentification::DigestionEnzyme)((String) XMLString::transcode(attributes.getValue(1u))).toInt();
 			}
 			else if (attribute_value == "missed_cleavages")
 			{
@@ -584,7 +584,7 @@ namespace OpenMS
  		if (tag_ == "proteinGroup")
  		{
  			(*protein_identifications_)[protein_identification_index_].setSearchParameters(actual_search_parameters_);
- 			actual_search_parameters_ = Identification::SearchParameters();
+ 			actual_search_parameters_ = ProteinIdentification::SearchParameters();
  		}
 
 		tag_ = "";
@@ -625,7 +625,7 @@ namespace OpenMS
 		DoubleReal                            predicted_rt_p_value = -1;		
 		if (identifier == "")
 		{
-//			throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__,"No identifier set for identification ",String(identification_index));
+//			throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__,"No identifier set for ProteinIdentification ",String(identification_index));
 		}  			
 
 		if (hit.metaValueExists("predicted_RT"))

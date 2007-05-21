@@ -42,7 +42,7 @@ namespace OpenMS
 	 Therefore the intensity at every position x in the input raw data is spread to the two
 	 adjacent resampling points.
 	 This method preserves the area of the input signal and also the centroid position of a peak.
-	 Therefore it is recommended for quantitation as well as for identification experiments.
+	 Therefore it is recommended for quantitation as well as for ProteinIdentification experiments.
 	 
 	 @note Use this method only for high resoluted data (< 0.1 Th between two adjacent raw data points).
 	       The resampling rate should be >= the precision.

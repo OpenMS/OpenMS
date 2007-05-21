@@ -28,7 +28,7 @@
 #define OPENMS_FORMAT_HANDLERS_PTMXMLHANDLER_H
 
 #include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
-#include <OpenMS/METADATA/Identification.h>
+#include <OpenMS/METADATA/ProteinIdentification.h>
 
 #include <vector>
 #include <map>

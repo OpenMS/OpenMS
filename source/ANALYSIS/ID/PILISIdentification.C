@@ -159,7 +159,7 @@ namespace OpenMS
 		return sequence_db_;
 	}
 	
-	void PILISIdentification::getIdentifications(vector<PeptideIdentification>& ids, const PeakMap& exp)
+	void PILISIdentification::getProteinIdentifications(vector<PeptideIdentification>& ids, const PeakMap& exp)
 	{
 		UInt max_candidates = (UInt)param_.getValue("max_candidates");
 		for (PeakMap::ConstIterator it = exp.begin(); it != exp.end(); ++it)

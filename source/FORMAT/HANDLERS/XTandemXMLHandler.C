@@ -35,7 +35,7 @@ namespace OpenMS
 	namespace Internal
 	{
   
-  XTandemXMLHandler::XTandemXMLHandler(Identification& protein_identification,
+  XTandemXMLHandler::XTandemXMLHandler(ProteinIdentification& protein_identification,
 								  									 vector<PeptideIdentification>& id_data, 
       								 							 const String& filename) :
     XMLHandler(filename),
@@ -81,7 +81,7 @@ namespace OpenMS
 			actual_peptide_hit_.setSequence(seq);
 
 			//IdentificationData id_dat;
-			//id_dat.id = Identification();
+			//id_dat.id = ProteinIdentification();
 			//id_dat.id.getHits().push_back(actual_peptide_hit_);
 			//id_data_.push_back(id_dat);
 
@@ -102,13 +102,13 @@ namespace OpenMS
 			///cerr << "MSHits " << actual_peptide_hit_.getSequence() << endl;
 			//actual_peptide_hit_.setScoreType("XTandem");
 			//IdentificationData id_dat;
-			//id_dat.id = Identification();
+			//id_dat.id = ProteinIdentification();
 			//id_dat.id.getHits().push_back(actual_peptide_hit_);
 			//id_data_.push_back(id_dat);
 			if (id_data_.size() == 0)
 			{
 				//IdentificationData id_dat;
-				//id_dat.id = Identification();
+				//id_dat.id = ProteinIdentification();
 				//id_dat.id.getHits().push_back(actual_peptide_hit_);
 				//id_data_.push_back(id_dat);
 			}

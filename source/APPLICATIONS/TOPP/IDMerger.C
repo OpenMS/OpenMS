@@ -103,9 +103,9 @@ class TOPPIDMerger
 		// calculations
 		//-------------------------------------------------------------
 		IdXMLFile file;
-		vector<Identification> 	protein_identifications;
+		vector<ProteinIdentification> 	protein_identifications;
 		vector<PeptideIdentification> identifications;
-		vector<Identification> 	additional_protein_identifications;
+		vector<ProteinIdentification> 	additional_protein_identifications;
 		vector<PeptideIdentification> additional_identifications;
 		
 		file.load(file_names[0], protein_identifications, identifications);

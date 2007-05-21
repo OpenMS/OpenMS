@@ -51,7 +51,7 @@ CPP_SOURCES=\
 	ProteinHitVisualizer.C\
 	PeptideHitVisualizer.C\
 	PeptideIdentificationVisualizer.C\
-	IdentificationVisualizer.C\
+	ProteinIdentificationVisualizer.C\
 	ExperimentalSettingsVisualizer.C\
 	AcquisitionVisualizer.C\
 	AcquisitionInfoVisualizer.C\
@@ -86,7 +86,7 @@ MOC_SOURCES=\
 	MetaInfoDescriptionVisualizer_moc.C\
 	PrecursorVisualizer_moc.C\
 	InstrumentSettingsVisualizer_moc.C\
-	IdentificationVisualizer_moc.C\
+	ProteinIdentificationVisualizer_moc.C\
 	SpectrumSettingsVisualizer_moc.C	
 
 SOURCES		= $(CPP_SOURCES) $(MOC_SOURCES)
@@ -191,8 +191,8 @@ PrecursorVisualizer_moc.C:  $(HEADER_DIR)/PrecursorVisualizer.h
 InstrumentSettingsVisualizer_moc.C:  $(HEADER_DIR)/InstrumentSettingsVisualizer.h
 	$(MOC) $(HEADER_DIR)/InstrumentSettingsVisualizer.h -o InstrumentSettingsVisualizer_moc.C		
 
-IdentificationVisualizer_moc.C:  $(HEADER_DIR)/IdentificationVisualizer.h
-	$(MOC) $(HEADER_DIR)/IdentificationVisualizer.h -o IdentificationVisualizer_moc.C		
+ProteinIdentificationVisualizer_moc.C:  $(HEADER_DIR)/ProteinIdentificationVisualizer.h
+	$(MOC) $(HEADER_DIR)/ProteinIdentificationVisualizer.h -o ProteinIdentificationVisualizer_moc.C		
 	
 SpectrumSettingsVisualizer_moc.C:  $(HEADER_DIR)/SpectrumSettingsVisualizer.h
 	$(MOC) $(HEADER_DIR)/SpectrumSettingsVisualizer.h -o SpectrumSettingsVisualizer_moc.C

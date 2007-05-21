@@ -27,7 +27,7 @@
 #include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/FORMAT/DTAFile.h>
 #include <OpenMS/COMPARISON/CLUSTERING/ClusterSpectrum.h>
-#include <OpenMS/METADATA/Identification.h>
+#include <OpenMS/METADATA/ProteinIdentification.h>
 ///////////////////////////
 
 #include <OpenMS/COMPARISON/CLUSTERING/ClusterSpectrum.h>

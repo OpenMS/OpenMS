@@ -43,7 +43,7 @@ namespace OpenMS
 	class PeakSpectrumCompareFunctor;
 	
 	/**
-	  @brief This class actually implements a complete identification run with PILIS
+	  @brief This class actually implements a complete ProteinIdentification run with PILIS
 
 		The PILISIdentification class needs a PILISModel and a PILISSequenceDB to generate
 		identifications. Simply call getIdentifications with a PeakMap.
@@ -72,16 +72,16 @@ namespace OpenMS
 			/** @name Accessors
 			 */
 			//@{
-			/// sets the sequence DB to be used for the identification runs
+			/// sets the sequence DB to be used for the ProteinIdentification runs
 			void setSequenceDB(PILISSequenceDB* sequence_db);
 
-			/// sets the model to be used for the identification run
+			/// sets the model to be used for the ProteinIdentification run
 			void setModel(PILISModel* hmm_model);
 
-			/// performs an identification run on a PeakMap
-			void getIdentifications(std::vector<PeptideIdentification>& ids, const PeakMap& exp);
+			/// performs an ProteinIdentification run on a PeakMap
+			void getProteinIdentifications(std::vector<PeptideIdentification>& ids, const PeakMap& exp);
 
-			/// performs an identification run on a PeakSpectrum
+			/// performs an ProteinIdentification run on a PeakSpectrum
 			void getIdentification(PeptideIdentification& id, const PeakSpectrum& spectrum);
 			//@}
 
@@ -93,7 +93,7 @@ namespace OpenMS
 			/// performs a pre-scoring of the given spec with very simple spectra from the candidate peptides
 			void getPreIdentification_(PeptideIdentification& id, const PeakSpectrum& spec, const std::vector<PILISSequenceDB::PepStruct>& cand_peptides);
 
-			/// performs a identification via spectra comparison with the PILISModel spectrum generator
+			/// performs a ProteinIdentification via spectra comparison with the PILISModel spectrum generator
 			void getFinalIdentification_(PeptideIdentification& id, const PeakSpectrum& spec, const PeptideIdentification& pre_id);
 	
 			/// returns the model pointer

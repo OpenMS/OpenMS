@@ -36,7 +36,7 @@ namespace OpenMS
 	namespace Internal
 	{
   
-  MascotXMLHandler::MascotXMLHandler(Identification& protein_identification,
+  MascotXMLHandler::MascotXMLHandler(ProteinIdentification& protein_identification,
 								  									 vector<PeptideIdentification>& id_data, 
       								 							 const String& filename) :
     XMLHandler(filename),

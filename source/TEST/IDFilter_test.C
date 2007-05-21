@@ -33,6 +33,7 @@
 #include <OpenMS/FILTERING/ID/IDFilter.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
+#include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/FORMAT/MascotOutfile.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
 
@@ -49,11 +50,11 @@ using namespace OpenMS;
 using namespace std;
 
 ///load input data
-std::vector< Identification > protein_identifications;
+std::vector< ProteinIdentification > protein_identifications;
 std::vector< PeptideIdentification > identifications;
 IdXMLFile().load("data/IDFilter_test.idXML", protein_identifications, identifications);
-PeptideIdentification identification = identifications[0];							
-Identification protein_identification = protein_identifications[0];							
+PeptideIdentification identification = identifications[0];
+ProteinIdentification protein_identification = protein_identifications[0];							
 
 /// Proteins for search
 vector< pair<String, String> > proteins;
@@ -70,8 +71,8 @@ CHECK(~IDFilter())
 	delete ptr;	
 RESULT
 
-CHECK((void filterIdentificationsByProteins(const Identification& identification, std::vector< std::pair<String, String> > proteins, Identification& filtered_identification)))	
-	Identification protein_identification2;
+CHECK((void filterIdentificationsByProteins(const ProteinIdentification& identification, std::vector< std::pair<String, String> > proteins, ProteinIdentification& filtered_identification)))	
+	ProteinIdentification protein_identification2;
 
 	IDFilter().filterIdentificationsByProteins(protein_identification, proteins, protein_identification2);
 	

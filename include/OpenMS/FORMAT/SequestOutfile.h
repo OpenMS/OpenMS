@@ -30,7 +30,7 @@
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/DATASTRUCTURES/Date.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
-#include <OpenMS/METADATA/Identification.h>
+#include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 
 #include <map>
@@ -67,7 +67,7 @@ namespace OpenMS
 				This class serves to read in a Sequest outfile. The information can be
 				retrieved via the load function.
 			*/
-			void load(const String& result_filename, std::vector<PeptideIdentification>& identifications, Identification& protein_identification, const DoubleReal& p_value_threshold, std::vector<DoubleReal>& pvalues, const String& database = "") throw (Exception::FileNotFound, Exception::ParseError);
+			void load(const String& result_filename, std::vector<PeptideIdentification>& identifications, ProteinIdentification& protein_identification, const DoubleReal& p_value_threshold, std::vector<DoubleReal>& pvalues, const String& database = "") throw (Exception::FileNotFound, Exception::ParseError);
 
 			
 			void finishSummaryHtml(const String& summary_filename) throw (Exception::UnableToCreateFile);

@@ -58,7 +58,7 @@ RESULT
 CHECK((void annotate(FeatureMap<>& fm, const std::vector<PeptideIdentification>& ids, const std::vector<ProteinIdentification>& protein_ids) throw(Exception::Precondition)))
 	//load id data
 	vector<PeptideIdentification> identifications; 
-	vector<Identification> protein_identifications; 
+	vector<ProteinIdentification> protein_identifications; 
 	IdXMLFile().load("data/IDFeatureMapper_test.idXML", protein_identifications, identifications);
 	
 	//load feature data
@@ -69,10 +69,10 @@ CHECK((void annotate(FeatureMap<>& fm, const std::vector<PeptideIdentification>&
 	IDFeatureMapper().annotate(fm,identifications,protein_identifications);
 	
 	//test protein ids
-	TEST_EQUAL(fm.getIdentifications().size(),1)
-	TEST_EQUAL(fm.getIdentifications()[0].getHits().size(),2)
-	TEST_EQUAL(fm.getIdentifications()[0].getHits()[0].getAccession(),"ABCDE")
-	TEST_EQUAL(fm.getIdentifications()[0].getHits()[1].getAccession(),"FGHIJ")
+	TEST_EQUAL(fm.getProteinIdentifications().size(),1)
+	TEST_EQUAL(fm.getProteinIdentifications()[0].getHits().size(),2)
+	TEST_EQUAL(fm.getProteinIdentifications()[0].getHits()[0].getAccession(),"ABCDE")
+	TEST_EQUAL(fm.getProteinIdentifications()[0].getHits()[1].getAccession(),"FGHIJ")
 	
 	//test peptide ids
 	TEST_EQUAL(fm[0].getPeptideIdentifications().size(),5)

@@ -30,7 +30,7 @@
 
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/FORMAT/OMSSAXMLFile.h>
-#include <OpenMS/METADATA/Identification.h>
+#include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 
 #include <vector>
@@ -47,7 +47,7 @@ using namespace std;
 
 OMSSAXMLFile xml_file;
 OMSSAXMLFile* ptr;
-Identification protein_identification;
+ProteinIdentification protein_identification;
 vector<PeptideIdentification> peptide_identifications; 
 vector<PeptideIdentification> peptide_identifications2; 
 String date_string_1;
@@ -65,7 +65,7 @@ RESULT
 
 ptr = new OMSSAXMLFile();
 
-CHECK(void load(const String& filename, Identification& protein_identification, std::vector<PeptideIdentification>& id_data) const throw(Exception::FileNotFound, Exception::ParseError))
+CHECK(void load(const String& filename, ProteinIdentification& protein_identification, std::vector<PeptideIdentification>& id_data) const throw(Exception::FileNotFound, Exception::ParseError))
 
 	xml_file.load("data/OMSSAXMLFile_test_1.xml",	protein_identification, peptide_identifications);
 

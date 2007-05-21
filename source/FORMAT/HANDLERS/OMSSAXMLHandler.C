@@ -35,7 +35,7 @@ namespace OpenMS
 	namespace Internal
 	{
   
-  OMSSAXMLHandler::OMSSAXMLHandler(Identification& protein_identification,
+  OMSSAXMLHandler::OMSSAXMLHandler(ProteinIdentification& protein_identification,
 								  									 vector<PeptideIdentification>& id_data, 
       								 							 const String& filename) :
     XMLHandler(filename),
@@ -88,13 +88,13 @@ namespace OpenMS
 			
 			//actual_peptide_hit_.setScoreType("OMSSA");
 			//IdentificationData id_dat;
-			//id_dat.id = Identification();
+			//id_dat.id = ProteinIdentification();
 			//id_dat.id.getHits().push_back(actual_peptide_hit_);
 			//id_data_.push_back(id_dat);
 			if (id_data_.size() == 0)
 			{
 				//IdentificationData id_dat;
-				//id_dat.id = Identification();
+				//id_dat.id = ProteinIdentification();
 				//id_dat.id.getHits().push_back(actual_peptide_hit_);
 				//id_data_.push_back(id_dat);
 			}

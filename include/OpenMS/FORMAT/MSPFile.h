@@ -30,7 +30,7 @@
 #include <OpenMS/FORMAT/TextFile.h>
 #include <OpenMS/FORMAT/HANDLERS/MzDataHandler.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
-#include <OpenMS/METADATA/Identification.h>
+#include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <cctype>
 #include <fstream>

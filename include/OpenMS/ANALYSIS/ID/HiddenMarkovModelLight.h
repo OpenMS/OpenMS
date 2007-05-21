@@ -42,7 +42,7 @@ namespace OpenMS
     @brief State for the light weighted Hidden Markov Model implementation
 
 		The lightweighted Hidden Markov Model implementation has no Strings for
-		identifications. Instead of Strings unsigned ints are used for identification
+		identifications. Instead of Strings unsigned ints are used for ProteinIdentification
 		which can be combined with enums.
 	*/
 	class HMMStateLight

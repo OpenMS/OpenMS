@@ -28,7 +28,7 @@
 #define OPENMS_FORMAT_HANDLERS_MASCOTXMLHANDLER_H
 
 #include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
-#include <OpenMS/METADATA/Identification.h>
+#include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 
 #include <vector>
@@ -46,7 +46,7 @@ namespace OpenMS
   {
     public:
       /// Constructor
-      MascotXMLHandler(Identification& protein_identification, std::vector<PeptideIdentification>& identifications, const String& filename);
+      MascotXMLHandler(ProteinIdentification& protein_identification, std::vector<PeptideIdentification>& identifications, const String& filename);
 
       /// Destructor
       virtual ~MascotXMLHandler();
@@ -62,7 +62,7 @@ namespace OpenMS
 		  
     private:
     	
-    	Identification& protein_identification_;				///< the protein identifications
+    	ProteinIdentification& protein_identification_;				///< the protein identifications
       std::vector<PeptideIdentification>& id_data_;				///< the identifications (storing the peptide hits)
       ProteinHit actual_protein_hit_;												
       PeptideHit actual_peptide_hit_;
@@ -71,7 +71,7 @@ namespace OpenMS
 			DateTime date_;
 			String date_time_string_;
 			UInt actual_query_;
-			Identification::SearchParameters search_parameters_;
+			ProteinIdentification::SearchParameters search_parameters_;
 			String identifier_;
   };
 

@@ -248,22 +248,22 @@ namespace OpenMS
 		return os;
 	}
 	
- 	const vector<Identification>& ExperimentalSettings::getIdentifications() const
+ 	const vector<ProteinIdentification>& ExperimentalSettings::getProteinIdentifications() const
  	{
   	return protein_identifications_;	   		
  	}	
  		    	
-  vector<Identification>& ExperimentalSettings::getIdentifications()
+  vector<ProteinIdentification>& ExperimentalSettings::getProteinIdentifications()
   {
   	return protein_identifications_;	
   }
   
-  void ExperimentalSettings::setIdentifications(const vector<Identification>& protein_identifications)
+  void ExperimentalSettings::setProteinIdentifications(const vector<ProteinIdentification>& protein_identifications)
   {
   	protein_identifications_ = protein_identifications;
   }
   
-  void ExperimentalSettings::addIdentification(Identification& protein_identification)
+  void ExperimentalSettings::addProteinIdentification(ProteinIdentification& protein_identification)
   {
   	protein_identifications_.push_back(protein_identification);
   }

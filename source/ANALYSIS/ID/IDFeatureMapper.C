@@ -35,10 +35,10 @@ namespace OpenMS
     
   }
   
-  void IDFeatureMapper::annotate(FeatureMap<>& fm, const vector<PeptideIdentification>& ids, const vector<Identification>& protein_ids) throw (Exception::MissingInformation)
+  void IDFeatureMapper::annotate(FeatureMap<>& fm, const vector<PeptideIdentification>& ids, const vector<ProteinIdentification>& protein_ids) throw (Exception::MissingInformation)
 	{		
 		//append protein identifications
-		fm.getIdentifications().insert(fm.getIdentifications().end(),protein_ids.begin(),protein_ids.end());
+		fm.getProteinIdentifications().insert(fm.getProteinIdentifications().end(),protein_ids.begin(),protein_ids.end());
 		
 		//iterate over the features
 		for(FeatureMap<>::Iterator f_it = fm.begin(); f_it!=fm.end(); ++f_it)

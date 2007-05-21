@@ -27,7 +27,7 @@
 #include <OpenMS/CONCEPT/VersionInfo.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
-#include <OpenMS/METADATA/Identification.h>
+#include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/ANALYSIS/ID/IDFeatureMapper.h>
 #include <OpenMS/ANALYSIS/ID/ConsensusID.h>
@@ -42,7 +42,7 @@ using namespace std;
 /**
 	@page ConsensusID ConsensusID
 	
-	@brief Combines results of Identification engines.
+	@brief Combines results of ProteinIdentification engines.
 	
 	For a detailed description of the algorithms and parameters see the the documentation of
 	the ConsensusID class.
@@ -64,7 +64,7 @@ class TOPPConsensusID
 {
 	public:
 		TOPPConsensusID()
-			: TOPPBase("ConsensusID","Combines results of Identification engines.")
+			: TOPPBase("ConsensusID","Combines results of ProteinIdentification engines.")
 		{
 			
 		}
@@ -144,7 +144,7 @@ class TOPPConsensusID
 			consensus.setParameters(alg_param);
 
 			IdXMLFile ax_file;
-			vector<Identification> prot_ids;
+			vector<ProteinIdentification> prot_ids;
 			vector<PeptideIdentification> all_ids;
 
 			//feature mode
@@ -185,7 +185,7 @@ class TOPPConsensusID
 						all_ids.back().setMetaValue("MZ",features[i].getMZ());
 					}
 				}
-				vector< Identification > prot_id_out(1);
+				vector< ProteinIdentification > prot_id_out(1);
 				DateTime date;
 				date.now();
 				prot_id_out[0].setDateTime(date);
@@ -270,7 +270,7 @@ class TOPPConsensusID
 				}
 				
 				//store consensus
-				vector< Identification > prot_id_out(1);
+				vector< ProteinIdentification > prot_id_out(1);
 				DateTime date;
 				date.now();
 				prot_id_out[0].setDateTime(date);

@@ -48,7 +48,7 @@ namespace OpenMS
 	  	
 	}
 
-  void IdXMLFile::load(const String& filename,  vector<Identification>& protein_ids, vector<PeptideIdentification>& peptide_ids)
+  void IdXMLFile::load(const String& filename,  vector<ProteinIdentification>& protein_ids, vector<PeptideIdentification>& peptide_ids)
   	 throw (Exception::FileNotFound, Exception::ParseError)
   {
   	//Filename for error messages in XMLHandler
@@ -101,16 +101,16 @@ namespace OpenMS
 		pep_ids_ = 0;
 		last_meta_ = 0;
 		parameters_.clear();
-		param_ = Identification::SearchParameters();
+		param_ = ProteinIdentification::SearchParameters();
 		String id_ = "";
-		prot_id_ = Identification();
+		prot_id_ = ProteinIdentification();
 		pep_id_ = PeptideIdentification();
 		prot_hit_ = ProteinHit();
 		pep_hit_ = PeptideHit();
 		proteinid_to_accession_.clear();
   }
   					 
-  void IdXMLFile::store(String filename, const vector<Identification>& protein_ids, const vector<PeptideIdentification>& peptide_ids) throw (Exception::UnableToCreateFile)
+  void IdXMLFile::store(String filename, const vector<ProteinIdentification>& protein_ids, const vector<PeptideIdentification>& peptide_ids) throw (Exception::UnableToCreateFile)
   {
   		//open stream
 		std::ofstream os(filename.c_str());
@@ -124,8 +124,8 @@ namespace OpenMS
 		os << "<IdXML xsi:noNamespaceSchemaLocation=\"http://open-ms.sourceforge.net/schemas/IdXML_1_0.xsd\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">" << endl;
 		
 		//look up different search parameters
-		vector<Identification::SearchParameters> params;
-		for (vector<Identification>::const_iterator it = protein_ids.begin(); it!=protein_ids.end(); ++it)
+		vector<ProteinIdentification::SearchParameters> params;
+		for (vector<ProteinIdentification>::const_iterator it = protein_ids.begin(); it!=protein_ids.end(); ++it)
 		{
 			if (find(params.begin(), params.end(), it->getSearchParameters())==params.end())
 			{
@@ -141,36 +141,36 @@ namespace OpenMS
 				 << "db=\"" << params[i].db << "\" "
 				 << "db_version=\"" << params[i].db_version << "\" "
 				 << "taxonomy=\"" << params[i].taxonomy << "\" ";
-			if (params[i].mass_type == Identification::MONOISOTOPIC)
+			if (params[i].mass_type == ProteinIdentification::MONOISOTOPIC)
 			{ 
 				os << "mass_type=\"monoisotopic\" ";
 			}
-			else if (params[i].mass_type == Identification::AVERAGE)
+			else if (params[i].mass_type == ProteinIdentification::AVERAGE)
 			{ 
 				os << "mass_type=\"average\" ";
 			}
 			os << "charges=\"" << params[i].charges << "\" ";
-			if (params[i].enzyme == Identification::TRYPSIN)
+			if (params[i].enzyme == ProteinIdentification::TRYPSIN)
 			{ 
 				os << "enzyme=\"trypsin\" ";
 			}
-			if (params[i].enzyme == Identification::PEPSIN_A)
+			if (params[i].enzyme == ProteinIdentification::PEPSIN_A)
 			{ 
 				os << "enzyme=\"pepsin_a\" ";
 			}
-			if (params[i].enzyme == Identification::PROTEASE_K)
+			if (params[i].enzyme == ProteinIdentification::PROTEASE_K)
 			{ 
 				os << "enzyme=\"protease_k\" ";
 			}
-			if (params[i].enzyme == Identification::CHYMOTRYPSIN)
+			if (params[i].enzyme == ProteinIdentification::CHYMOTRYPSIN)
 			{ 
 				os << "enzyme=\"chymotrypsin\" ";
 			}
-			else if (params[i].enzyme == Identification::NO_ENZYME)
+			else if (params[i].enzyme == ProteinIdentification::NO_ENZYME)
 			{ 
 				os << "enzyme=\"no_enzyme\" ";
 			}
-			else if (params[i].enzyme == Identification::UNKNOWN_ENZYME)
+			else if (params[i].enzyme == ProteinIdentification::UNKNOWN_ENZYME)
 			{ 
 				os << "enzyme=\"unknown_enzyme\" ";
 			}
@@ -202,7 +202,7 @@ namespace OpenMS
 		//Identifiers of protein identifications that are already written
 		vector<String> done_identifiers;
 		
-		//write Identification Runs
+		//write ProteinIdentification Runs
 		for (UInt i=0; i<protein_ids.size(); ++i)
 		{
 			done_identifiers.push_back(protein_ids[i].getIdentifier());
@@ -347,9 +347,9 @@ namespace OpenMS
 		pep_ids_ = 0;
 		last_meta_ = 0;
 		parameters_.clear();
-		param_ = Identification::SearchParameters();
+		param_ = ProteinIdentification::SearchParameters();
 		String id_ = "";
-		prot_id_ = Identification();
+		prot_id_ = ProteinIdentification();
 		pep_id_ = PeptideIdentification();
 		prot_hit_ = ProteinHit();
 		pep_hit_ = PeptideHit();
@@ -376,7 +376,7 @@ namespace OpenMS
 			id_ =  attributeAsString(attributes,"id");
 			
 			//reset parameters
-			param_ = Identification::SearchParameters();
+			param_ = ProteinIdentification::SearchParameters();
 			
 			//load parameters
 			param_.db = attributeAsString(attributes,"db");
@@ -391,11 +391,11 @@ namespace OpenMS
 			const XMLCh* mass_type = attributes.getValue(xercesc::XMLString::transcode("mass_type"));
 			if (xercesc::XMLString::equals(mass_type,xercesc::XMLString::transcode("monoisotopic")))
 			{
-				param_.mass_type = Identification::MONOISOTOPIC;
+				param_.mass_type = ProteinIdentification::MONOISOTOPIC;
 			}
 			else if (xercesc::XMLString::equals(mass_type,xercesc::XMLString::transcode("average")))
 			{
-				param_.mass_type = Identification::AVERAGE;
+				param_.mass_type = ProteinIdentification::AVERAGE;
 			}
 			//enzyme
 			const XMLCh* enzyme = attributes.getValue(xercesc::XMLString::transcode("enzyme"));
@@ -403,27 +403,27 @@ namespace OpenMS
 			{
 				if (xercesc::XMLString::equals(enzyme,xercesc::XMLString::transcode("trypsin")))
 				{
-					param_.enzyme = Identification::TRYPSIN;
+					param_.enzyme = ProteinIdentification::TRYPSIN;
 				}
 				else if (xercesc::XMLString::equals(enzyme,xercesc::XMLString::transcode("pepsin_a")))
 				{
-					param_.enzyme = Identification::PEPSIN_A;
+					param_.enzyme = ProteinIdentification::PEPSIN_A;
 				}
 				else if (xercesc::XMLString::equals(enzyme,xercesc::XMLString::transcode("protease_k")))
 				{
-					param_.enzyme = Identification::PROTEASE_K;
+					param_.enzyme = ProteinIdentification::PROTEASE_K;
 				}
 				else if (xercesc::XMLString::equals(enzyme,xercesc::XMLString::transcode("chymotrypsin")))
 				{
-					param_.enzyme = Identification::CHYMOTRYPSIN;
+					param_.enzyme = ProteinIdentification::CHYMOTRYPSIN;
 				}			 
 				else if (xercesc::XMLString::equals(enzyme,xercesc::XMLString::transcode("no_enzyme")))
 				{
-					param_.enzyme = Identification::NO_ENZYME;
+					param_.enzyme = ProteinIdentification::NO_ENZYME;
 				}
 				else if (xercesc::XMLString::equals(enzyme,xercesc::XMLString::transcode("unknown_enzyme")))
 				{
-					param_.enzyme = Identification::UNKNOWN_ENZYME;
+					param_.enzyme = ProteinIdentification::UNKNOWN_ENZYME;
 				}
 			}
 			last_meta_ = &param_;	
@@ -445,7 +445,7 @@ namespace OpenMS
 		else if (element == "IdentificationRun")
 		{
 			pep_id_ = PeptideIdentification();
-			prot_id_ = Identification();
+			prot_id_ = ProteinIdentification();
 
 			prot_id_.setSearchEngine(attributeAsString(attributes,"search_engine"));
 			prot_id_.setSearchEngineVersion(attributeAsString(attributes,"search_engine_version"));
@@ -465,7 +465,7 @@ namespace OpenMS
 			prot_id_.setIdentifier(prot_id_.getSearchEngine() + '_' + attributeAsString(attributes,"date"));
 		}
 		
-		//PROTE IDENTIFICATION
+		//PROTE ProteinIdentification
 		else if (element == "ProteinIdentification")
 		{
 			prot_id_.setScoreType(attributeAsString(attributes,"score_type"));
@@ -697,7 +697,7 @@ namespace OpenMS
 		else if (element == "ProteinIdentification")
 		{
 			prot_ids_->push_back(prot_id_);
-			prot_id_ = Identification();
+			prot_id_ = ProteinIdentification();
 			last_meta_  = 0;		
 		}
 		else if (element == "ProteinHit")

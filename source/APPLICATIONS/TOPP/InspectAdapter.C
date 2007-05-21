@@ -54,7 +54,7 @@ using namespace std;
 	modes:
 	<ol>	
 				<li>
-				The whole process of identification via Inspect is executed. 
+				The whole process of ProteinIdentification via Inspect is executed. 
 				Inputfile is a file (or directory with files) containing the MS/MS spectra
 				(Supported spectrum file formats are .mzXML, .mzData)
 				for which identifications are to be found
@@ -72,7 +72,7 @@ using namespace std;
 			 	</li>
 				
 				<li>
-				Only the first part of the identification process is performed.
+				Only the first part of the ProteinIdentification process is performed.
 				This means that an Inspect input file is generated and the given databases are 
 				converted and merged into one trie database. This file can be used
 				directly with Inspect whereas the created database and the spectrum file(s)
@@ -87,7 +87,7 @@ using namespace std;
 				</li>
 				
 				<li>
-				Only the second part of the identification process is performed.
+				Only the second part of the ProteinIdentification process is performed.
 				This means that the output of an Inspect run is analyzed and the result
 				written to an IdXML file.
 				
@@ -987,7 +987,7 @@ class TOPPInspectAdapter
 				if ( wanted_records.empty() )
 				{
 					IdXMLFile IdXML_file;
-					IdXML_file.store(output_filename, vector<Identification>(), vector<PeptideIdentification>());
+					IdXML_file.store(output_filename, vector<ProteinIdentification>(), vector<PeptideIdentification>());
 					inspect_out = false;
 					writeLog_("No proteins matching criteria for generating minimized database for blind search!");
 					
@@ -1037,7 +1037,7 @@ class TOPPInspectAdapter
 				if ( !File::empty(inspect_output_filename) )
 				{
 					vector<PeptideIdentification> identifications;
-					Identification protein_identification;
+					ProteinIdentification protein_identification;
 					
 					try
 					{
@@ -1050,14 +1050,14 @@ class TOPPInspectAdapter
 						return INPUT_FILE_CORRUPT;
 					}
 					
-					vector<Identification> protein_identifications;
+					vector<ProteinIdentification> protein_identifications;
 					protein_identifications.push_back(protein_identification);
 					
 					IdXML_file.store(output_filename, protein_identifications, identifications);
 				}
 				else
 				{
-					IdXML_file.store(output_filename, vector<Identification>(), vector<PeptideIdentification>());
+					IdXML_file.store(output_filename, vector<ProteinIdentification>(), vector<PeptideIdentification>());
 					writeLog_("No proteins identified!");
 				}
 			}

@@ -54,7 +54,7 @@ RESULT
 CHECK((template<class PeakT> UInt annotate(MSExperiment< PeakT >& experiment, const std::vector<PeptideIdentification>& identifications, float precision = 0.01f)))
 	//load id
 	vector<PeptideIdentification> identifications; 
-	vector<Identification> protein_identifications;
+	vector<ProteinIdentification> protein_identifications;
 	IdXMLFile().load("data/IDSpectrumMapper_test.idXML",
 								protein_identifications, 
 					   		identifications);

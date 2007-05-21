@@ -38,7 +38,7 @@ namespace OpenMS
 	{
 	}
 	
-  void SequestOutfile::load(const String& result_filename, vector<PeptideIdentification>&	peptide_identifications, Identification&	protein_identification, const DoubleReal& p_value_threshold, vector<DoubleReal>& pvalues,	const String& database)
+  void SequestOutfile::load(const String& result_filename, vector<PeptideIdentification>&	peptide_identifications, ProteinIdentification&	protein_identification, const DoubleReal& p_value_threshold, vector<DoubleReal>& pvalues,	const String& database)
 		throw(Exception::FileNotFound, Exception::ParseError)
   {
 		// if no p_values were computed take all peptides
