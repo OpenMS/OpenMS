@@ -978,13 +978,14 @@ namespace OpenMS
 								gsl_blas_dnrm2(s->f));
 			}
 			else {
-				printf ("before loop iter: %4u x = % 15.8f % 15.8f  % 15.8f  % 15.8f % 15.8f |f(x)| = %g\n", iter,
+				printf ("before loop iter: %4u x = % 15.8f % 15.8f  % 15.8f  % 15.8f |f(x)| = %g\n", iter,
 								gsl_vector_get(s->x,0),
 								gsl_vector_get(s->x,1),
 								gsl_vector_get(s->x,2),
 								gsl_vector_get(s->x,3),
 								//gsl_vector_get(s->x,4),
 								gsl_blas_dnrm2(s->f));
+
 			}
 		}
 #endif
@@ -1014,7 +1015,7 @@ namespace OpenMS
 									gsl_blas_dnrm2(s->f));
 				}
 				else {
-					printf ("in loop iter: %4u x = % 15.8f % 15.8f  % 15.8f  % 15.8f % 15.8f |f(x)| = %g\n", iter,
+					printf ("in loop iter: %4u x = % 15.8f % 15.8f  % 15.8f  % 15.8f |f(x)| = %g\n", iter,
 									gsl_vector_get(s->x,0),
 									gsl_vector_get(s->x,1),
 									gsl_vector_get(s->x,2),
