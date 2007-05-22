@@ -6,7 +6,7 @@
 // --------------------------------------------------------------------------
 //  Copymain (C) 2003-2005 -- Oliver Kohlbacher, Knut Reinert
 //
-//  this library is free software; you can redistribute it and/or
+//  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
 //  License as published by the Free Software Foundation; either
 //  version 2.1 of the License, or (at your option) any later version.
@@ -140,6 +140,16 @@ void DataTable::addComboBox(QComboBox* &ptr , const QString &label)
 	row_++;	
 }
 
+void DataTable::addBooleanComboBox(QComboBox* &ptr ,  const QString &label)
+{
+	ptr = new QComboBox(this);
+	ptr->insertItem(0,"false");
+	ptr->insertItem(1,"true");
+	addLabel_(label, row_);
+	mainlayout_->addWidget(ptr, row_, 1,1, 2);
+	ptr->blockSignals(true);
+	row_++;
+}
 
 void DataTable::fillComboBox(QComboBox* &ptr , const std::string* items, int agr)
 {

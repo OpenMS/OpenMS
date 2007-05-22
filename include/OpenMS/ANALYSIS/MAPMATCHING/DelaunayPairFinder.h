@@ -146,7 +146,8 @@ namespace OpenMS
 
     /// Nested class, which inherits from the cgal Point_2 class and additionally contains the a reference to
     /// the corresponding element and an unique key
-  class Point : public CGAL::Point_2< CGAL::Cartesian<double> >
+  	class Point 
+  	: public CGAL::Point_2< CGAL::Cartesian<double> >
     {
     public:
 
@@ -206,7 +207,8 @@ namespace OpenMS
 
     /// To construct a delaunay triangulation with our Point class we have to write an own
     /// geometric traits class and the operator() (that generates a Point given a CGAL circle)
-  class  GeometricTraits : public CGAL::Cartesian<double>
+  	class  GeometricTraits 
+  		: public CGAL::Cartesian<double>
     {
     public:
       typedef Point Point_2;

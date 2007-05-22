@@ -6,7 +6,7 @@
 // --------------------------------------------------------------------------
 //  Copymain (C) 2003-2005 -- Oliver Kohlbacher, Knut Reinert
 //
-//  this library is free identification; you can redistribute it and/or
+//  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
 //  License as published by the Free PeptideIdentification Foundation; either
 //  version 2.1 of the License, or (at your option) any later version.
@@ -32,6 +32,7 @@
 #include <QtGui/QLineEdit>
 #include <QtGui/QValidator>
 #include <QtGui/QPushButton>
+#include <QtGui/QComboBox>
 
 #include <iostream>
 
@@ -40,33 +41,26 @@ using namespace std;
 namespace OpenMS
 {
 
-	PeptideIdentificationVisualizer::PeptideIdentificationVisualizer(bool editable, QWidget *parent, MSMetaDataExplorer *caller) : BaseVisualizer(editable,parent)
+	PeptideIdentificationVisualizer::PeptideIdentificationVisualizer(bool editable, QWidget *parent, MSMetaDataExplorer *caller) 
+		: BaseVisualizer(editable,parent)
 	{
 		type_="PeptideIdentification";
 		pidv_caller_= caller;
 		
-		addLabel("Modify ProteinIdentification information.");	
-		addSeperator();        
-//		addLineEdit(identification_date_, "Date and Time of DB search" );
+		addLineEdit(identifier_, "Identifier<br>(of corresponding ProteinIdentification)" );
+		addSeperator();   
+		
+		addLineEdit(score_type_, "Score type" );
+		addBooleanComboBox(higher_better_,"Higher score is better"); 
 		addDoubleLineEdit(identification_threshold_, "Peptide significance threshold" );	
+		
 		addSeperator();       
-		addLabel("Show peptide hits with score equal or higher than current threshold.");
-		addLabel("(To show all peptide hits set threshold to 0).");
-		addButton(updatebutton_, "Show peptide hits");
-		addSeperator();
-		addLabel("Show peptide hits referencing a certain protein.");
-//		addLineEdit(identification_ref_date_, "Date and Time of DB search (YYYY-MM-DD hh:mm:ss)" );
-//		addLineEdit(identification_acc_, "Accession number of the protein." );
-		addButton(updatebutton2_, "Show peptide hits");
-		addSeperator();
-		addLabel("Show peptide hits NOT referencing any protein.");
-		addButton(updatebutton3_, "Show peptide hits");
+		addLabel("Show peptide hits with score equal or better than a threshold.");
+		QPushButton* button;
+		addLineEditButton("Score threshold", filter_threshold_, button, "Filter");
+		connect(button, SIGNAL(clicked()), this, SLOT(updateTree_()) );
 		
 		finishAdding_();
-		
-		connect(updatebutton_, SIGNAL(clicked()), this, SLOT(updateTree_()) );
-		connect(updatebutton2_, SIGNAL(clicked()), this, SLOT(searchRefPeptides_()) );
-		connect(updatebutton3_, SIGNAL(clicked()), this, SLOT(searchNonRefPeptides_()) );
 	}
 
 	void PeptideIdentificationVisualizer::load(PeptideIdentification &s, int tree_item_id)
@@ -80,60 +74,33 @@ namespace OpenMS
 		//Copy of current object for restoring the original values
 		tempidentification_=s;
 	  
-		identification_threshold_->setText(String ( tempidentification_.getSignificanceThreshold() ).c_str() );					
+	  identifier_->setText(tempidentification_.getIdentifier().toQString());
+		identification_threshold_->setText(QString::number(tempidentification_.getSignificanceThreshold()));					
+		score_type_->setText(tempidentification_.getScoreType().toQString());
+		higher_better_->setCurrentIndex(tempidentification_.isHigherScoreBetter());
 	}
 	
 	void PeptideIdentificationVisualizer::updateTree_()
 	{
-		String m(identification_threshold_->text().toStdString()) ;
-		tempidentification_.setSignificanceThreshold(m.toFloat());
-				
-//	pidv_caller_->updatePeptideHits_(tempidentification_, tree_id_ );
-		
-	}
-	
-	void PeptideIdentificationVisualizer::searchRefPeptides_()
-	{
-		
-//		String ref_date(identification_ref_date_->text().toStdString());
-//		String ref_acc(identification_acc_->text().toStdString());
-		
-//		pidv_caller_->updateRefPeptideHits_(tempidentification_, tree_id_, ref_date, ref_acc);
-		
-	}
-	
-	void PeptideIdentificationVisualizer::searchNonRefPeptides_()
-	{
-		//pidv_caller_->updateNonRefPeptideHits_(tempidentification_ , tree_id_ );
+		if (filter_threshold_->text()!="")
+		{
+			pidv_caller_->filterHits_(filter_threshold_->text().toDouble(),tempidentification_.isHigherScoreBetter(),tree_id_ );
+		}
+		else
+		{
+			pidv_caller_->showAllHits_(tree_id_);
+		}
 	}
 	
 	void PeptideIdentificationVisualizer::store_()
 	{
-		
-		
 		try
 		{
-			String m(identification_threshold_->text().toStdString());
-			(*ptr_).setSignificanceThreshold(m.toFloat());
-			DateTime date;
-//			String o(identification_date_->text().toStdString());
-			String o("");
-			try
-			{
-				date.set(o);
-				//(*ptr_).setDateTime(date);
-			}
-			catch(exception& e)
-			{
-				if(date.isNull())
-				{
-					std::string status= "Format of date in ProteinIdentification is not correct.";
-					emit sendStatus(status);
-				}
-			}
-			
+			ptr_->setIdentifier(identifier_->text());
+			ptr_->setSignificanceThreshold(identification_threshold_->text().toFloat());
+			ptr_->setScoreType(score_type_->text());
+			ptr_->setHigherScoreBetter(higher_better_->currentIndex());
 			tempidentification_=(*ptr_);		
-		
 		}
 		catch(exception& e)
 		{
@@ -144,7 +111,6 @@ namespace OpenMS
 	
 	void PeptideIdentificationVisualizer::reject_()
 	{
-		
 		try
 		{
 			load(*ptr_, tree_id_);
@@ -153,7 +119,6 @@ namespace OpenMS
 		{
 			cout<<"Error while trying to restore original protein ProteinIdentification data. "<<e.what()<<endl;
 		}
-		
 	}
 
 }

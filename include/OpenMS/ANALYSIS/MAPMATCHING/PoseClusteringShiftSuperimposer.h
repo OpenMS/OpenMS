@@ -787,7 +787,7 @@ namespace OpenMS
        "left/right" or "right/left", such that a value between 0 and 1 is
        returned.
 
-       @todo Take the quality of the elements themselves into account, i.e., how good they fit to their model. (Eva)
+       @improvement Take the quality of the elements themselves into account, i.e., how good they fit to their model. (Eva)
     */
     ShiftType shift_( PointType const & left, PointType const & right ) const
     {

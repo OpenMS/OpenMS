@@ -45,9 +45,7 @@ namespace OpenMS
 		One file can contain several ProteinIdentification runs. Each run consists of peptide hits stored in 
 		PeptideIdentification and (optional) protein hits stored in Identification. Peptide and protein
 		hits are connected via a string identifier. We use the searche engine and the date as identifier.
-		
-  	@todo Document and upload schema (Nico)
-  	
+
   	@note This format will only be used until the HUPO-PSI AnalysisXML format is finished!
   	
   	@ingroup FileIO

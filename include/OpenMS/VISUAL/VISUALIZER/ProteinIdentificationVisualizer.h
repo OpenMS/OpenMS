@@ -6,7 +6,7 @@
 // --------------------------------------------------------------------------
 //  Copyright (C) 2003-2005 -- Oliver Kohlbacher, Knut Reinert
 //
-//  This library is free proteinIdentification; you can redistribute it and/or
+//  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
 //  License as published by the Free Software Foundation; either
 //  version 2.1 of the License, or (at your option) any later version.
@@ -41,9 +41,7 @@ namespace OpenMS
 	/**
 		@brief Class that displays all meta information for ProteinIdentification objects
 	
-		This class provides all functionality to view the meta information of an object of type Identification.
-	
-		@todo Add search_engine, search_engine_version, date, identifier, score_type, score_orientation and search_parameters; fix filtering (Marc)
+		This class provides all functionality to view the meta information of an object of type Identification.	
 	*/
 	class ProteinIdentificationVisualizer : public BaseVisualizer
 	{
@@ -74,21 +72,35 @@ namespace OpenMS
 		/// Pointer to current object to keep track of the actual object
 		ProteinIdentification *ptr_;
 		/// Copy of current object for restoring the original values
-		ProteinIdentification  tempproteinidentification_;
+		ProteinIdentification  tempidentification_;
 	  /// Pointer to MSMetaDataExplorer
 		MSMetaDataExplorer *pidv_caller_;
 		/// The id of the item in the tree
 		int tree_id_;
 		
-		/** @name Edit fields
-   */
+		/// @name Edit fields
     //@{
-		QLineEdit *proteinidentification_date_;
-		QLineEdit *proteinidentification_threshold_;
+		QLineEdit* engine_;
+		QLineEdit* engine_version_;
+		QLineEdit* identification_date_;
+		QLineEdit* identification_threshold_;
+		QLineEdit* identifier_;
+		QLineEdit* score_type_;
+		QComboBox* higher_better_;
+		
+		QLineEdit* db_;
+		QLineEdit* db_version_;
+		QLineEdit* taxonomy_;
+		QLineEdit* charges_;
+		QLineEdit* missed_cleavages_;
+		QLineEdit* peak_tolerance_;
+		QLineEdit* precursor_tolerance_;
+		QComboBox* mass_type_;
+		QComboBox* enzyme_;
 		//@}
 
-    /// Update button
-		QPushButton *updatebutton_;
+    /// Threshold for foltering by score
+		QLineEdit* filter_threshold_;
 		
 		
 		

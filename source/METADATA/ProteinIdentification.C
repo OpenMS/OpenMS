@@ -32,7 +32,11 @@
 
 using namespace std;
 
-namespace OpenMS {
+namespace OpenMS
+{
+
+	const std::string ProteinIdentification::NamesOfPeakMassType[] = {"Monoisotopic","Average"};
+	const std::string ProteinIdentification::NamesOfDigestionEnzyme[] = {"Trypsin", "Pepsin A", "Protease K", "Chymotrypsin", "No enzyme", "Unknown"};
 
   ProteinIdentification::ProteinIdentification()
     : MetaInfoInterface(),

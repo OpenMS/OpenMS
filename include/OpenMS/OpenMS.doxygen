@@ -79,20 +79,18 @@ Ideen:
 - Seeder/Extender: Analyse der MassenSpur-Distanzen
 
 Todos:
-- Visualizer updaten
-- altes IdXMLFile2 + IdXMLConverter raus
 - Add getPrecursorRT(rt/scan nr) and update ID adapters and IDSpectrumMapper 
 - Spectrum3DCanvas: fix grab keyboard (buddy?)
 - TOPP tutorial: Usecases AW-Daten
+- checker
 - make -j<x>
+- altes IdXMLFile2 + IdXMLConverter raus
 
-
-Thomas Schreiner: 
-- mzData fixen (CV)
+Thomas Schreiner:
 - 4611/raw_cut.mzData -> mzXML -> nicht mehr zu laden!
-
-Stefan Heess:
-- QT fehler Metadaten einzelne Spektren mit ID
+- FeatureXML: Options einbauen und testen
+- DBAdapter: Add identification information
+- DBConnection: mehrere Verbindunden gleichzeitig
 
 Stefan Rink:
 - ParamEditor: 

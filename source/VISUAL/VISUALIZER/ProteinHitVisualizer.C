@@ -6,7 +6,7 @@
 // --------------------------------------------------------------------------
 //  Copymain (C) 2003-2005 -- Oliver Kohlbacher, Knut Reinert
 //
-//  this library is free software; you can redistribute it and/or
+//  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
 //  License as published by the Free Software Foundation; either
 //  version 2.1 of the License, or (at your option) any later version.
@@ -41,14 +41,12 @@ namespace OpenMS
 	//Constructor
 	ProteinHitVisualizer::ProteinHitVisualizer(bool editable, QWidget *parent) : BaseVisualizer(editable, parent)
 	{
-		addLabel("Show ProteinHit information.");		
-		addSeperator();
 		addLineEdit(proteinhit_score_, "Score" );
 		addLineEdit(proteinhit_rank_, "Rank" );
 		addLineEdit(proteinhit_accession_, "Accession" );
 		addTextEdit(proteinhit_sequence_, "Sequence" );
 			
-		addSeperator();
+		finishAdding_();
 	}
 	
 	
@@ -57,7 +55,6 @@ namespace OpenMS
 	{
 	  ptr_ = &h;
 		
-		//Copy of current object for restoring the original values
 		tempProteinHit_=h;
 	  proteinhit_score_->setText(String(tempProteinHit_.getScore()).c_str() );
 		proteinhit_score_->setReadOnly(true);
@@ -73,9 +70,7 @@ namespace OpenMS
 	{
 		try
 		{
-		
-			//Information of ProteinHit is not to be changed.
-			//(*ptr_) =tempProteinHit_ ;
+			(*ptr_) =tempProteinHit_ ;
 		}
 		catch(exception& e)
 		{

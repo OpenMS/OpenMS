@@ -34,6 +34,8 @@
 #include <string>
 #include <vector>
 
+class QString;
+
 namespace OpenMS
 {
 	/**	
@@ -79,8 +81,10 @@ namespace OpenMS
 		//@{
 		/// Default constructor
 		String();
-		/// Copy constructor
+		/// Constructor from std::string
 		String(const std::string& s);
+		/// Constructor from Qt QString
+		String(const QString& s);
 		/// Constructor from char*
 		String(const char* s);
 		/// Constructor from a char
@@ -148,28 +152,22 @@ namespace OpenMS
 		*/
 		//@{
 		/// returns the prefix of length @p length
-		String prefix(SizeType length) const 
-			throw(Exception::IndexOverflow);
+		String prefix(SizeType length) const throw(Exception::IndexOverflow);
 		
 		/// returns the suffix of length @p length
-		String suffix(SizeType length) const 
-			throw(Exception::IndexOverflow);
+		String suffix(SizeType length) const throw(Exception::IndexOverflow);
 
 		/// returns the prefix of length @p length
-		String prefix(Int length) const 
-			throw(Exception::IndexUnderflow, Exception::IndexOverflow);
+		String prefix(Int length) const throw(Exception::IndexUnderflow, Exception::IndexOverflow);
 		
 		/// returns the suffix of length @p length
-		String suffix(Int length) const 
-			throw(Exception::IndexUnderflow, Exception::IndexOverflow);
+		String suffix(Int length) const throw(Exception::IndexUnderflow, Exception::IndexOverflow);
 		
 		/// returns the prefix up to char @p delim
-		String prefix(char delim) const 
-			throw(Exception::ElementNotFound<char>);
+		String prefix(char delim) const throw(Exception::ElementNotFound<char>);
 		
 		/// returns the suffix up to char @p delim
-		String suffix(char delim) const 
-			throw(Exception::ElementNotFound<char>);
+		String suffix(char delim) const throw(Exception::ElementNotFound<char>);
 		/**
 			@brief Returns a substring
 			
@@ -235,16 +233,16 @@ namespace OpenMS
 			This method extracts only the integral part of the string.
 			If you want the result rounded, use toFloat() and round the result.
 		*/
-		int toInt() const
-      throw(Exception::ConversionError);
+		int toInt() const throw(Exception::ConversionError);
 
 		/// Conversion to float
-		float toFloat() const
-      throw(Exception::ConversionError);    
+		float toFloat() const throw(Exception::ConversionError);    
 
 		/// Conversion to double
-		double toDouble() const
-      throw(Exception::ConversionError);    
+		double toDouble() const throw(Exception::ConversionError);    
+
+		/// Conversion to Qt QString
+		QString toQString() const;
 
 		//@}
 

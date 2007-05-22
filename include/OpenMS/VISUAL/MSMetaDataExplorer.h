@@ -113,8 +113,7 @@ namespace OpenMS
     public slots:
 			/// Set a list of error strings due to invalid date format.
 			void setStatus(std::string status);
-			
-			
+
 		private slots:
 			/// Raises the corresponding viewer from the widget stack according to the item selected in the tree.
 			void showDetails_(QTreeWidgetItem *item, int column);
@@ -123,61 +122,43 @@ namespace OpenMS
 			void saveAll_();
 							 
     private:
-			/// Calls visualizer class for class type ExperimentalSettings.
+    	///@name Visualizer for the different classes
+    	//@{
 			void visualize_(ExperimentalSettings& meta, QTreeWidgetItem* parent=0); 
-			/// Calls visualizer class for class type SpectrumSettings.
 			void visualize_(SpectrumSettings& meta, QTreeWidgetItem* parent=0); 
-		 	/// Calls visualizer class for class type MetaInfoInterface.
-			void visualize_(MetaInfoInterface& meta, QTreeWidgetItem* parent=0); 
-			/// Calls visualizer class for class type Sample.
+		 	void visualize_(MetaInfoInterface& meta, QTreeWidgetItem* parent=0); 
 			void visualize_(Sample& meta, QTreeWidgetItem* parent=0); 
-			/// Calls visualizer class for class type HPLC.
 			void visualize_(HPLC& meta, QTreeWidgetItem* parent=0); 
-			/// Calls visualizer class for class type Digestion.
 			void visualize_(Digestion& meta, QTreeWidgetItem* parent=0); 
-			/// Calls visualizer class for class type Modification.
 			void visualize_(Modification& meta, QTreeWidgetItem* parent=0); 
-			/// Calls visualizer class for class type Tagging.
 			void visualize_(Tagging& meta, QTreeWidgetItem* parent=0); 
-			/// Calls visualizer class for class type Gradient.
 			void visualize_(Gradient& meta, QTreeWidgetItem* parent=0); 
-			/// Calls visualizer class for class type Software.
 			void visualize_(Software& meta, QTreeWidgetItem* parent=0); 
-			/// Calls visualizer class for class type SourceFile
 			void visualize_(SourceFile& meta, QTreeWidgetItem* parent=0); 
-			/// Calls visualizer class for class type ContactPerson
 			void visualize_(ContactPerson& meta, QTreeWidgetItem* parent=0); 
-			/// Calls visualizer class for class type Instrument
 			void visualize_(Instrument& meta, QTreeWidgetItem* parent=0); 
-			/// Calls visualizer class for class type IonSource
 			void visualize_(IonSource& meta, QTreeWidgetItem* parent=0);
-			/// Calls visualizer class for class type IonDetector
 			void visualize_(IonDetector& meta, QTreeWidgetItem* parent=0);
-			/// Calls visualizer class for class type MassAnalyzer
 			void visualize_(MassAnalyzer& meta, QTreeWidgetItem* parent=0);
-			/// Calls visualizer class for class type ProcessingMethod
 			void visualize_(ProcessingMethod& meta, QTreeWidgetItem* parent=0);
-			/// Calls visualizer class for class type ProteinIdentification
 			void visualize_(ProteinIdentification& meta, QTreeWidgetItem* parent=0);
-			/// Calls visualizer class for class type ProteinHit
 			void visualize_(ProteinHit& meta, QTreeWidgetItem* parent=0);
-			/// Calls visualizer class for class type PeptideHit
 			void visualize_(PeptideHit& meta, QTreeWidgetItem* parent=0);
-			/// Calls visualizer class for class type Aquisition
 			void visualize_(Acquisition& meta, QTreeWidgetItem* parent=0);
-			/// Calls visualizer class for class type AcquisitionInfo
 			void visualize_(AcquisitionInfo& meta, QTreeWidgetItem* parent=0);
-			/// Calls visualizer class for class type MetaInfoDescription
 			void visualize_(MetaInfoDescription& meta,  QTreeWidgetItem* parent=0, const String& key="");
-			/// Calls visualizer class for class type Precursor
 			void visualize_(Precursor& meta, QTreeWidgetItem* parent=0);
-			/// Calls visualizer class for class type InstrumentSettings
 			void visualize_(InstrumentSettings& meta, QTreeWidgetItem* parent=0);
-			/// Calls visualizer class for class type PeptideIdentification
 			void visualize_(PeptideIdentification& meta, QTreeWidgetItem* parent=0);
-			 
+			//@}
+			
 			/// Connects the Signals of all visualier classes with Slot setStatus()
 			void connectVisualizer_(BaseVisualizer*);
+
+			/// Filters hits according to a score @a threshold. Takes the score orientation into account
+			void filterHits_(DoubleReal threshold, bool higher_better, int tree_item_id);
+			/// Shows hits.
+			void showAllHits_(int tree_item_id);
 			
 			/// A list of setting errors due to invalid formats.
 			std::string status_list_;

@@ -32,6 +32,7 @@
 #include <sstream>
 #include <limits>
 #include <algorithm>
+#include <QtCore/QString>
 
 using namespace std;
 
@@ -52,7 +53,13 @@ namespace OpenMS
 	}
 
 	String::String(const char* s)
-		:	string(s)
+		: string(s)
+	{
+		
+	}
+
+	String::String(const QString& s)
+		:	string(s.toStdString())
 	{
 	}
 
@@ -512,6 +519,10 @@ namespace OpenMS
 		}
 	}
 
+	QString String::toQString() const
+	{
+		return QString(this->c_str());
+	}
 
 	int String::toInt() const throw(Exception::ConversionError)
 	{

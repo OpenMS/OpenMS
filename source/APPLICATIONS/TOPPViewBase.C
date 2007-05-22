@@ -1995,7 +1995,11 @@ namespace OpenMS
 				process.start(dialog.getTool().c_str(),args);
 				if (!process.waitForFinished(80000000))
 				{
-					QMessageBox::critical(this,"Execution of TOPP tool not successful!","See log window for details.");
+					QMessageBox::critical(this,"Execution of TOPP tool not successful!","The tool returned a exit code other than 0.<br>See log window for details.");
+				}
+				else if (process.exitStatus()==QProcess::CrashExit)
+				{
+					QMessageBox::critical(this,"Execution of TOPP tool not successful!",(String("The tool crashed during execution.<br>If you want to debug this crash, check the input files in '") + tmp_dir + "' or enable 'debug' mode in the TOPP ini file.").toQString());
 				}
 				else if (!File::readable(tmp_dir+"/out"))
 				{

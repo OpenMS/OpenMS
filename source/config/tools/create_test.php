@@ -100,7 +100,7 @@ foreach ($class_info["public-long"] as $c)
 {
 	if (trim($c) != $class_info["classname"]."()")
 	{
-		print "CHECK($c)\n";
+		print "CHECK(($c))\n";
 		print "  // TODO\n";
 		print "RESULT\n";
 		print "\n";

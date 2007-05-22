@@ -46,7 +46,7 @@ namespace OpenMS
     Setting this identifier is especially important, when there are several ProteinIdentification runs for a map
     i.e. several ProteinIdentification instances.
 
-    @todo Add MetaInfoInterface to modifications, update IdXMLFile (Andreas)
+    @todo Add MetaInfoInterface to modifications => update IdXMLFile and ProteinIdentificationVisualizer (Andreas)
      
 		@ingroup Metadata
   */
@@ -56,20 +56,17 @@ namespace OpenMS
 	  public:
 	 		///Hit type definition
 	 		typedef ProteinHit HitType;
-	 		
-			/// Orientation of the score
-			enum ScoreOrientation
-			{
-				HIGHER_IS_BETTER, 
-				LOWER_IS_BETTER  
-			};
 			
 			/// Peak mass type
 			enum PeakMassType
 			{
 				MONOISOTOPIC,
-				AVERAGE
+				AVERAGE,
+				SIZE_OF_PEAKMASSTYPE
 			};
+			/// Names corresponding to peak mass types
+			static const std::string NamesOfPeakMassType[SIZE_OF_PEAKMASSTYPE];
+			
 			
 			enum DigestionEnzyme
 			{
@@ -78,8 +75,11 @@ namespace OpenMS
 				PROTEASE_K,
 				CHYMOTRYPSIN,
 				NO_ENZYME,
-				UNKNOWN_ENZYME
+				UNKNOWN_ENZYME,
+				SIZE_OF_DIGESTIONENZYME
 			};
+			/// Names corresponding to digestion enzymes
+			static const std::string NamesOfDigestionEnzyme[SIZE_OF_DIGESTIONENZYME];
 			
 			/// Search parameters of the DB search
 			struct SearchParameters

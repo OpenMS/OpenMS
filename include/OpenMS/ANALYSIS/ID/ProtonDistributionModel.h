@@ -59,7 +59,7 @@ namespace OpenMS
 			Charge state intensities of differently charged equal (e.g. y7+ and y7++) ions can be calculated
 			using the getChargeStateIntensities function.
 
-			@TODO implement gb values in Residue and use these
+			@todo implement gb values in Residue and use these (Andreas)
 	*/
 	class ProtonDistributionModel : public DefaultParamHandler
 	{

@@ -402,7 +402,7 @@ namespace OpenMS
 		
     QStringList labels;
     int id = ws_->addWidget(visualizer);
-    labels << "PeptideIdentification" << QString::number(id);
+    labels << QString("PeptideIdentification %1").arg(meta.getScoreType().c_str()) << QString::number(id);
 
 		visualizer->load(meta,id);  
 
@@ -417,7 +417,7 @@ namespace OpenMS
 		}
 			
 		//check for proteins and peptides hits
-		meta.sort();
+		meta.assignRanks();
 			
 		//list all peptides hits in the tree
 		for(UInt i=0; i<meta.getHits().size(); ++i)    
@@ -434,7 +434,7 @@ namespace OpenMS
 		
     QStringList labels;
     int id = ws_->addWidget(visualizer);
-    labels << "ProteinIdentification" << QString::number(id);
+    labels << QString("ProteinIdentification %1").arg(meta.getSearchEngine().c_str()) << QString::number(id);
     
     visualizer->load(meta,id);  
     
@@ -449,11 +449,11 @@ namespace OpenMS
 		}
 
 		//check for proteinhits objects
-		meta.sort();
-		vector< ProteinHit > v= meta.getHits();  
-		for(UInt i=0; i<v.size(); ++i)    
+		meta.assignRanks();
+
+		for(UInt i=0; i<meta.getHits().size(); ++i)    
 		{
-			visualize_(v[i], item);
+			visualize_(const_cast<ProteinHit&>(meta.getHits()[i]), item);
 		}
 		
 		connectVisualizer_(visualizer);
@@ -963,7 +963,49 @@ namespace OpenMS
 		}
 		connectVisualizer_(visualizer);
 	}
+
+	void MSMetaDataExplorer::filterHits_(DoubleReal threshold, bool higher_better, int tree_item_id)
+	{		
+		// find item in tree belonging to PeptideIdentification object
+		QTreeWidgetItem *item = treeview_->findItems(QString::number(tree_item_id),Qt::MatchExactly | Qt::MatchRecursive, 1).first();
 	
+		//set the items visible or not visible depending to their score and the current threshold
+		for(int i=0; i<item->childCount(); ++i)
+		{
+			QTreeWidgetItem* child = item->child(i);
+	
+			if( (higher_better && child->text(2).toFloat() <= threshold) || (!higher_better && child->text(2).toFloat() >= threshold) )
+			{
+				child->setHidden(true);
+			}
+			else
+			{
+				child->setHidden(false);
+			}
+		}
+	
+		//parent item must be collapsed and re-expanded so the items will be shown...
+		treeview_->collapseItem(item);
+		treeview_->expandItem(item);
+	}			
+
+	/// Filters hits according to a score @a threshold. Takes the score orientation into account
+	void MSMetaDataExplorer::showAllHits_(int tree_item_id)
+	{
+		// find item in tree belonging to PeptideIdentification object
+		QTreeWidgetItem *item = treeview_->findItems(QString::number(tree_item_id),Qt::MatchExactly | Qt::MatchRecursive, 1).first();
+	
+		//set the items visible or not visible depending to their score and the current threshold
+		for(int i=0; i<item->childCount(); ++i)
+		{
+			item->child(i)->setHidden(false);
+		}
+	
+		//parent item must be collapsed and re-expanded so the items will be shown...
+		treeview_->collapseItem(item);
+		treeview_->expandItem(item);
+	}
+
 
 }//end of MSMetaDataExplorer
 

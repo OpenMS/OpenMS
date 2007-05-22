@@ -6,7 +6,7 @@
 // --------------------------------------------------------------------------
 //  Copyright (C) 2003-2005 -- Oliver Kohlbacher, Knut Reinert
 //
-//  This library is free sortware; you can redistribute it and/or
+//  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
 //  License as published by the Free Software Foundation; either
 //  version 2.1 of the License, or (at your option) any later version.
@@ -41,9 +41,7 @@ namespace OpenMS
 	/**
 		@brief Class that displays all meta information for PeptideIdentification objects
 
-		This class provides all functionality to view the meta information of an object of type PeptideIdentification.
-		
-		@todo Add score_type, score_orientation and identifier; fix filtering (Marc)
+		This class provides all functionality to view the meta information of an object of type PeptideIdentification.		
 	*/
 	class PeptideIdentificationVisualizer : public BaseVisualizer
 	{
@@ -62,35 +60,16 @@ namespace OpenMS
 			void store_();
 			/// Restore all changes
 			void reject_();
-			
-		private:  	
 			/** 
-			@brief Updates the tree by calling MSMetaDataExplorer::updatePeptideHits(PeptideIdentification, int)
-				
-			Calls MSMetaDataExplorer::updatePeptideHits(PeptideIdentification, int).<br>
-			Updates the tree depending of the protein significance threshold.<br>
-			Only ProteinHits with a score superior or equal to the current threshold will be displayed.
+				@brief Updates the tree by calling MSMetaDataExplorer::updatePeptideHits(PeptideIdentification, int)
+					
+				Calls MSMetaDataExplorer::updatePeptideHits(PeptideIdentification, int).<br>
+				Updates the tree depending of the protein significance threshold.<br>
+				Only ProteinHits with a score superior or equal to the current threshold will be displayed.
 			*/
 			void updateTree_();
 			
-			/** 
-			@brief Updates the tree by calling MSMetaDataExplorer::updatePeptideHits(PeptideIdentification, int, String, String)
-				
-			Calls MSMetaDataExplorer::updatePeptideHits(PeptideIdentification, int, String, String).<br>
-			Updates the tree depending on the searched ProteinHit.<br>
-			Only PeptideHits that reference the searched ProteinHit will be displayed.
-			*/
-			void searchRefPeptides_();
-			
-			/** 
-			@brief Updates the tree by calling MSMetaDataExplorer::updatePeptideHits(PeptideIdentification, int, String, String)
-				
-			Calls MSMetaDataExplorer::updatePeptideHits(PeptideIdentification, int, String, String).<br>
-			Updates the tree depending on the existing ProteinHits.<br>
-			Only PeptideHits that do not refererence any ProteinHit will be displayed.
-			*/
-			void searchNonRefPeptides_();
-			
+		private:  	
 			/// Pointer to current object to keep track of the actual object
 			PeptideIdentification *ptr_;
 			/// Copy of current object for restoring the original values
@@ -102,15 +81,14 @@ namespace OpenMS
 			
 			/// @name Edit fields
 	    //@{
-			QLineEdit *identification_threshold_;
+			QLineEdit* identifier_;
+			QLineEdit* score_type_;
+			QComboBox* higher_better_;
+			QLineEdit* identification_threshold_;
 			//@}
 	
-	    /// @name Some buttons.
-			//@{
-			QPushButton *updatebutton_;
-			QPushButton *updatebutton2_;
-			QPushButton *updatebutton3_;
-			//@}
+	    /// Threshold for foltering by score
+			QLineEdit* filter_threshold_;
 					
 	};
 }

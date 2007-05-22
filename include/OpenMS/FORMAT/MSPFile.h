@@ -40,8 +40,8 @@ namespace OpenMS
 	/**
 		@brief File adapter for MzData files
 	
-		@TODO add ProgressLogger to File? (andreas)
-		@TODO is TextFile a good idea? (andreas)
+		@todo add ProgressLogger to File? (Andreas)
+		@todo is TextFile a good idea? (Andreas)
 		@ingroup FileIO
 	*/
 	class MSPFile /*

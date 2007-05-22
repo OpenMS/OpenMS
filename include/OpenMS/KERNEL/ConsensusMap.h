@@ -44,7 +44,7 @@ namespace OpenMS
     as an STL vector (model of Random Access Container and Back Insertion Sequence).
     
   
-    @TODO use STL list instead of vector (because of insertion and deletion of elements) (Eva)
+    @improvement use STL list instead of vector (because of insertion and deletion of elements) (Eva)
     
     @ingroup Kernel
   */

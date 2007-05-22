@@ -147,7 +147,7 @@ namespace OpenMS
 			//@{
 			/** @brief writes the HMM into a file in YGF format
 
-					TODO link
+					@todo link (Andreas)
 			*/
 			void writetoYGFFile(const String& filename);
 	

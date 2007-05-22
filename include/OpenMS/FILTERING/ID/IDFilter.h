@@ -44,8 +44,6 @@ namespace OpenMS
     score > significance-threshold * significance_fraction. 
     The filtering by sequences looks for the best ProteinIdentification that
     is contained in one of the protein sequences.
-  
-  	@todo Adapt to new classes (Marc)
   */
   class IDFilter
   {

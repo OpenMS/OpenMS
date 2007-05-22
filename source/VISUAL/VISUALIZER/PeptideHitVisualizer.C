@@ -6,7 +6,7 @@
 // --------------------------------------------------------------------------
 //  Copymain (C) 2003-2005 -- Oliver Kohlbacher, Knut Reinert
 //
-//  this library is free software; you can redistribute it and/or
+//  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
 //  License as published by the Free Software Foundation; either
 //  version 2.1 of the License, or (at your option) any later version.
@@ -42,21 +42,18 @@ namespace OpenMS
 	//Constructor
 	PeptideHitVisualizer::PeptideHitVisualizer(bool editable, QWidget *parent) : BaseVisualizer(editable, parent)
 	{
-		addLabel("Show PeptideHit information.");		
-		addSeperator();
 		addLineEdit(peptidehit_score_, "Score" );
 		addLineEdit(peptidehit_charge_, "Charge" );
 		addLineEdit(peptidehit_rank_, "Rank" );
 		addTextEdit(peptidehit_sequence_, "Sequence" );
 		
-		addSeperator();	
+		finishAdding_();
 	}
 	
 	void PeptideHitVisualizer::load(PeptideHit &h)
 	{
 	  ptr_ = &h;
 		
-		//Copy of current object for restoring the original values
 		tempPeptideHit_=h;
 	  peptidehit_score_->setText(String(tempPeptideHit_.getScore()).c_str() );
 		peptidehit_score_->setReadOnly(true);
@@ -72,9 +69,7 @@ namespace OpenMS
 	{
 		try
 		{
-		
-			//Information of PeptideHit is not to be changed.
-			//(*ptr_) =tempPeptideHit_ ;
+			(*ptr_) =tempPeptideHit_ ;
 		}
 		catch(exception& e)
 		{
