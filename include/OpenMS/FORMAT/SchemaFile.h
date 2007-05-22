@@ -38,7 +38,7 @@ namespace OpenMS
 	namespace Internal
 	{
 		class SchemaHandler;
-	
+		
 		///Base class for loading/storing XML files that have a handler derived from SchemaHandler.
 		class SchemaFile
 		{

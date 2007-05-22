@@ -46,8 +46,6 @@ namespace OpenMS
 
 		MapType has to be a MSExperiment or have the same interface.
 		Do not use this class. It is only needed in MzXMLFile.
-  	
-  	@todo Softly abort parsing after metadata, if only metadata should be read (Thomas S.)
   */
 	template <typename MapType>
   class MzXMLHandler
@@ -235,11 +233,8 @@ namespace OpenMS
   		
 		if(is_parser_in_tag_[PEAKS])
 		{
-			if (!options_.getMetadataOnly())
-			{
-				//chars may be split to several chunks => concatenate them
-				char_rest_ += xercesc::XMLString::transcode(chars);
-			}
+			//chars may be split to several chunks => concatenate them
+			char_rest_ += xercesc::XMLString::transcode(chars);
 		}
 		else if (	is_parser_in_tag_[OFFSET] ||
 							is_parser_in_tag_[INDEXOFFSET] ||
@@ -249,7 +244,7 @@ namespace OpenMS
 		}
 		else if (	is_parser_in_tag_[PRECURSORMZ])
 		{
-			if (spec_ != 0 && !options_.getMetadataOnly())
+			if (spec_ != 0)
 			{
 				spec_->getPrecursorPeak().getPosition()[0] = asFloat_(xercesc::XMLString::transcode(chars));
 			}
@@ -266,7 +261,7 @@ namespace OpenMS
 			}
 			else if (is_parser_in_tag_[SCAN])
 			{
-				if (spec_ != 0 && !options_.getMetadataOnly())
+				if (spec_ != 0)
 				{
 					spec_->setComment( xercesc::XMLString::transcode(chars) );
 				}
@@ -298,13 +293,10 @@ namespace OpenMS
 		switch(tag)
 		{
 			case MSRUN:
-				if (!options_.getMetadataOnly())
+				tmp_str = getAttributeAsString_(SCANCOUNT);
+				if (tmp_str!="") // optional attribute
 				{
-					tmp_str = getAttributeAsString_(SCANCOUNT);
-					if (tmp_str!="") // optional attribute
-					{
-						exp_->reserve( asUInt_(tmp_str) );
-					}
+					exp_->reserve( asUInt_(tmp_str) );
 				}
 				logger_.startProgress(0,asUInt_(tmp_str),"loading mzXML file");
 				// fall through?
@@ -480,7 +472,7 @@ namespace OpenMS
 				break;
 			case PRECURSORMZ:
 				{
-					if (!spec_ || options_.getMetadataOnly()) break;
+					if (!spec_) break;
 					
 					PrecursorPeakType& peak = spec_->getPrecursorPeak();
 					
@@ -552,7 +544,7 @@ namespace OpenMS
 				break;
 			case SCAN:
 				{
-					if (options_.getMetadataOnly()) break;
+					if (options_.getMetadataOnly()) throw EndParsingSoftly(__FILE__,__LINE__,__PRETTY_FUNCTION__);
 					
 					tmp_str = getAttributeAsString_(NUM);
 					if (tmp_str == "")
@@ -924,10 +916,7 @@ namespace OpenMS
 					}
 					else if (is_parser_in_tag_[SCAN] )
 					{
-						if (!options_.getMetadataOnly())
-						{
-							setAddInfo_(	*spec_, name, value, "Instrument.Comment");
-						}
+						setAddInfo_(	*spec_, name, value, "Instrument.Comment");
 					}
 					else
 					{
@@ -983,7 +972,7 @@ namespace OpenMS
 		if (tag==PEAKS && spec_ != 0)
 		{
 			//std::cout << "reading scan" << std::endl;
-			if (char_rest_=="" || options_.getMetadataOnly()) // no peaks
+			if (char_rest_=="") // no peaks
 			{
 				return;
 			}

@@ -47,6 +47,17 @@ namespace OpenMS
   	: public xercesc::DefaultHandler
   {
     public:
+	  	/// Exception that is thrown if the parsing is ended by some event (e.g. if only a prefix of the XML file is needed).
+	  	class EndParsingSoftly
+	  		: public Exception::Base
+	  	{
+	  		public:
+		  		EndParsingSoftly(const char* file, int line, const char* function) throw()
+		  			:Exception::Base(file,line,function)
+		  		{
+		  		}
+	  	};
+
     	/// Default constructor
       XMLHandler(const String& filename);
 			/// Destructor
@@ -65,7 +76,7 @@ namespace OpenMS
 			
 			/// Fatal error handler. Throws a ParseError exception
 			void fatalError(const String& msg);
-			/// Error handler.
+			/// Error handler for recoverable errors.
 			void error(const String& msg);
 			/// Warning handler.
 			void warning(const String& msg);
@@ -215,21 +226,25 @@ namespace OpenMS
 				message += " in file " + file_;
 			}
 		
+		/// Converts an attribute to a String
 		inline const char* attributeAsString(const xercesc::Attributes& a, const char* name) const
 		{
 			return xercesc::XMLString::transcode(a.getValue(xercesc::XMLString::transcode(name)));
 		}
-
+		
+		/// Converts an attribute to a Int
 		inline Int attributeAsInt(const xercesc::Attributes& a, const char* name) const
 		{
 			return xercesc::XMLString::parseInt(a.getValue(xercesc::XMLString::transcode(name)));
 		}
-
+		
+		/// Converts an attribute to a DoubleReal
 		inline DoubleReal attributeAsDouble(const xercesc::Attributes& a, const char* name) const
 		{
 			return atof(xercesc::XMLString::transcode(a.getValue(xercesc::XMLString::transcode(name))));
 		}
 
+		/// Assigns the attribute content to the String @a value if the attribute is present
 		inline void optionalAttributeAsString(String& value, const xercesc::Attributes& a, const char* name) const
 		{
 			const XMLCh* val = a.getValue(xercesc::XMLString::transcode(name));
@@ -243,6 +258,7 @@ namespace OpenMS
 			}
 		}
 		
+		/// Assigns the attribute content to the Int @a value if the attribute is present
 		inline void optionalAttributeAsInt(Int& value, const xercesc::Attributes& a, const char* name) const
 		{
 			const XMLCh* val = a.getValue(xercesc::XMLString::transcode(name));
@@ -252,6 +268,7 @@ namespace OpenMS
 			}
 		}
 
+		/// Assigns the attribute content to the UInt @a value if the attribute is present
 		inline void optionalAttributeAsUInt(UInt& value, const xercesc::Attributes& a, const char* name) const
 		{
 			const XMLCh* val = a.getValue(xercesc::XMLString::transcode(name));
@@ -261,6 +278,7 @@ namespace OpenMS
 			}
 		}
 		
+		/// Assigns the attribute content to the DoubleReal @a value if the attribute is present
 		inline void optionalAttributeAsDouble(DoubleReal& value, const xercesc::Attributes& a, const char* name) const
 		{
 			const XMLCh* val = a.getValue(xercesc::XMLString::transcode(name));

@@ -514,7 +514,10 @@ CHECK(([EXTRA] load with metadata only flag))
 
 	// real test
 	mzxml.load("data/MzXMLFile_test_1.mzXML",e);
-
+	
+	//check number of scans
+	TEST_EQUAL(e.size(),0)
+	
 	//---------------------------------------------------------------------------
   // const SourceFile& getSourceFile() const;
   //---------------------------------------------------------------------------

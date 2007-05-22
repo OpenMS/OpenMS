@@ -84,7 +84,6 @@ namespace OpenMS
 			setDocumentLocator(loc);
 			
 			appendLocation_(loc, error_message_);
-			// Thow error here as well?????
 		}
 		
 		void XMLHandler::warning(const String& msg)

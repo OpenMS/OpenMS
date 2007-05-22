@@ -110,6 +110,9 @@ namespace OpenMS
 				case DESCRIPTION: 
 					exp_sett_ << '<' << xercesc::XMLString::transcode(qname) << '>'; 
 					break;
+				case FEATURELIST:
+					if (options_.getMetadataOnly()) throw EndParsingSoftly(__FILE__,__LINE__,__PRETTY_FUNCTION__);
+					break;
 	   		case FEATURE: 	 
 	   			feature_        = new Feature();
 	   			break;

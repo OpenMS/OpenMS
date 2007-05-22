@@ -83,6 +83,7 @@ Todos:
 - Spectrum3DCanvas: fix grab keyboard (buddy?)
 - TOPP tutorial: Usecases AW-Daten
 - checker
+- Quadtree ausbauen
 - make -j<x>
 - altes IdXMLFile2 + IdXMLConverter raus
 

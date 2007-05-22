@@ -55,8 +55,6 @@ namespace OpenMS
 			
 			MapType has to be a MSExperiment or have the same interface.
 			Do not use this class. It is only needed in MzDataFile.
-			
-			@todo Softly abort parsing after metadata, if only metadata should be read (Thomas S.)
 		*/
 		template <typename MapType>
 		class MzDataHandler
@@ -313,8 +311,6 @@ namespace OpenMS
 							}
 							break;
 						case DATA:
-							if (options_.getMetadataOnly()) break;
-							
 							data_to_decode_.push_back(xercesc::XMLString::transcode(chars));		// store characters for later
 							if (is_parser_in_tag_[MZARRAYBINARY]) array_name_.push_back("mz");
 							if (is_parser_in_tag_[INTENARRAYBINARY]) array_name_.push_back("intens");
@@ -426,6 +422,7 @@ namespace OpenMS
 					spec_ = SpectrumType();
 					break;
 			  case SPECTRUMLIST:
+			  	if (options_.getMetadataOnly()) throw EndParsingSoftly(__FILE__,__LINE__,__PRETTY_FUNCTION__);
 			  	//std::cout << Date::now() << " Reserving space for spectra" << std::endl;
 			  	exp_->reserve( asInt_(getAttributeAsString_(COUNT)) );
 			  	logger_.startProgress(0,asInt_(getAttributeAsString_(COUNT)),"loading mzData file");
@@ -494,8 +491,6 @@ namespace OpenMS
 					meta_id_ = getAttributeAsString_(SUP_DATA_ARRAY_REF);
 					break;
 				case DATA:
-					if (options_.getMetadataOnly()) break;
-					
 					// store precision for later
 					precisions_.push_back((Precision)str2enum_(PRECISION, getAttributeAsString_(ATT_PRECISION)));
 					endians_.push_back((Endian)str2enum_(ENDIAN, getAttributeAsString_(ATT_ENDIAN)));

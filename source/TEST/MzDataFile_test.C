@@ -525,7 +525,10 @@ CHECK(([EXTRA] load with metadata-only flag))
 
 	// real test
 	mzdata.load("data/MzDataFile_test_1.mzData",e);
-  
+
+	//check number of scans
+	TEST_EQUAL(e.size(),0)
+
   //---------------------------------------------------------------------------
   // const SourceFile& getSourceFile() const;
   //---------------------------------------------------------------------------

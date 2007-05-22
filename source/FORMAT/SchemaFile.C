@@ -82,6 +82,10 @@ namespace OpenMS
 			{
 				throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "", String("SAXException: ") + xercesc::XMLString::transcode(toCatch.getMessage()) );
 			}
+			catch (const XMLHandler::EndParsingSoftly& /*toCatch*/)
+			{
+				//nothing to do here, as this exception is used to softly abort the parsing for whatever reason.
+			}
 		}
 	
 		void SchemaFile::save_(const String& filename, SchemaHandler* handler) const throw (Exception::UnableToCreateFile)
