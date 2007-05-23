@@ -750,6 +750,37 @@ CHECK(MSExperiment& operator=(const ExperimentalSettings &source))
 	TEST_EQUAL(exp2.getExperimentalSettings().getComment(),"test");
 RESULT
 
+CHECK(ConstIterator getPrecursorSpectrum(ConstIterator iterator) const)
+	MSExperiment<> exp;
+	exp.resize(10);
+	exp[0].setMSLevel(1);
+	exp[1].setMSLevel(2);
+	exp[2].setMSLevel(1);
+	exp[3].setMSLevel(2);
+	exp[4].setMSLevel(2);
+	
+	TEST_EQUAL(exp.getPrecursorSpectrum(exp.begin())==exp.end(),true)
+	TEST_EQUAL(exp.getPrecursorSpectrum(exp.begin()+1)==exp.begin(),true)
+	TEST_EQUAL(exp.getPrecursorSpectrum(exp.begin()+2)==exp.end(),true)
+	TEST_EQUAL(exp.getPrecursorSpectrum(exp.begin()+3)==exp.begin()+2,true)
+	TEST_EQUAL(exp.getPrecursorSpectrum(exp.begin()+4)==exp.begin()+2,true)
+	TEST_EQUAL(exp.getPrecursorSpectrum(exp.end())==exp.end(),true)
+
+	exp[0].setMSLevel(2);
+	exp[1].setMSLevel(1);
+	exp[2].setMSLevel(1);
+	exp[3].setMSLevel(1);
+	exp[4].setMSLevel(1);
+	
+	TEST_EQUAL(exp.getPrecursorSpectrum(exp.begin())==exp.end(),true)
+	TEST_EQUAL(exp.getPrecursorSpectrum(exp.begin()+1)==exp.end(),true)
+	TEST_EQUAL(exp.getPrecursorSpectrum(exp.begin()+2)==exp.end(),true)
+	TEST_EQUAL(exp.getPrecursorSpectrum(exp.begin()+3)==exp.end(),true)
+	TEST_EQUAL(exp.getPrecursorSpectrum(exp.begin()+4)==exp.end(),true)
+	TEST_EQUAL(exp.getPrecursorSpectrum(exp.end())==exp.end(),true)
+	
+RESULT
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST

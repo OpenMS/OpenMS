@@ -439,7 +439,33 @@ namespace OpenMS
 		const ExperimentalSettings& getExperimentalSettings() const { return *this; }
 		/// returns the meta information of this experiment (mutable access)
 		ExperimentalSettings& getExperimentalSettings() { return *this; }
+		
+		/**
+			@brief Returns the precursor spectrum of the scan pointed to by @p iterator
+		
+			If there is no precursor scan the past-the-end iterator is returned.
+		*/
+		ConstIterator getPrecursorSpectrum(ConstIterator iterator) const
+		{
+			if (iterator==this->end() || iterator==this->begin())
+			{
+				return this->end();
+			}
+			UInt ms_level = iterator->getMSLevel();
+			do
+			{
+				--iterator;
+				if (iterator->getMSLevel() < ms_level)
+				{
+					return iterator;
+				}
+			}
+			while (iterator!=this->begin());
 			
+			return this->end();
+		}
+		
+		
 	protected:
 	
 	    // Docu in base class

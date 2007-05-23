@@ -39,6 +39,7 @@ endif
 
 EXECUTABLES=\
 	$(LIBSVM_EXEC)\
+	MapAlignment\
 	ConsensusID\
 	FileConverter\
 	FileInfo\
@@ -70,7 +71,6 @@ EXECUTABLES=\
 	XTandemAdapter\
 	OMSSAAdapter\
 	UnlabeledMatcher\
-	MapAlignment\
 	MapNormalizer\
 	Decharger\
 	INIFileEditor\
