@@ -282,7 +282,7 @@ namespace OpenMS
           case PARAM:
           break;
           case MAPLIST:
-          tmp_str = getAttributeAsString_(COUNT);
+          tmp_str = getAttributeAsString_(COUNT, true, qname);
           if (tmp_str != "")
           {
             UInt count = asUInt_(tmp_str);
@@ -291,7 +291,7 @@ namespace OpenMS
           }
           break;
           case MAPTYPE:
-          tmp_str = getAttributeAsString_(NAME);
+          tmp_str = getAttributeAsString_(NAME, true, qname);
           if (tmp_str != "")
           {
             if (tmp_str == "feature_map")
@@ -309,11 +309,11 @@ namespace OpenMS
           }
           break;
           case MAP:
-          tmp_str = getAttributeAsString_(ID);
+          tmp_str = getAttributeAsString_(ID, true, qname);
           if (tmp_str != "")
           {
             UInt id = asUInt_(tmp_str);
-            tmp_str = getAttributeAsString_(NAME);
+            tmp_str = getAttributeAsString_(NAME, true, qname);
 
             // load FeatureMapXML
             if (feature_map_flag_ && load_elements_maps_)
@@ -341,19 +341,19 @@ namespace OpenMS
           consensus_element_range_ = true;
           break;
           case CENTROID:
-          tmp_str = getAttributeAsString_(RT_ATT);
+          tmp_str = getAttributeAsString_(RT_ATT, true, qname);
           if (tmp_str != "")
           {
             pos_[Peak2D::RT] = asDouble_(tmp_str);
           }
 
-          tmp_str = getAttributeAsString_(MZ_ATT);
+          tmp_str = getAttributeAsString_(MZ_ATT, true, qname);
           if (tmp_str != "")
           {
             pos_[Peak2D::MZ] = asDouble_(tmp_str);
           }
 
-          tmp_str = getAttributeAsString_(IT);
+          tmp_str = getAttributeAsString_(IT, true, qname);
           if (tmp_str != "")
           {
             it_ = asDouble_(tmp_str);
@@ -362,32 +362,32 @@ namespace OpenMS
           case RANGE:
           if (consensus_element_range_)
           {
-            tmp_str = getAttributeAsString_(RTMIN);
+            tmp_str = getAttributeAsString_(RTMIN, true, qname);
             if (tmp_str != "")
             {
               pos_range_.setMinX(asDouble_(tmp_str));
 
-              tmp_str = getAttributeAsString_(RTMAX);
+              tmp_str = getAttributeAsString_(RTMAX, true, qname);
               if (tmp_str != "")
               {
                 pos_range_.setMaxX(asDouble_(tmp_str));
 
-                tmp_str = getAttributeAsString_(MZMIN);
+                tmp_str = getAttributeAsString_(MZMIN, true, qname);
                 if (tmp_str != "")
                 {
                   pos_range_.setMinY(asDouble_(tmp_str));
 
-                  tmp_str = getAttributeAsString_(MZMAX);
+                  tmp_str = getAttributeAsString_(MZMAX, true, qname);
                   if (tmp_str != "")
                   {
                     pos_range_.setMaxY(asDouble_(tmp_str));
 
-                    tmp_str = getAttributeAsString_(ITMIN);
+                    tmp_str = getAttributeAsString_(ITMIN, true, qname);
                     if (tmp_str != "")
                     {
                       it_range_.setMin(asDouble_(tmp_str));
 
-                      tmp_str = getAttributeAsString_(ITMAX);
+                      tmp_str = getAttributeAsString_(ITMAX, true, qname);
                       if (tmp_str != "")
                       {
                         it_range_.setMax(asDouble_(tmp_str));
@@ -405,11 +405,11 @@ namespace OpenMS
             if (load_elements_maps_)
             {
               IndexTuple< ElementContainerType > act_index_tuple;
-              tmp_str = getAttributeAsString_(MAP_ATT);
+              tmp_str = getAttributeAsString_(MAP_ATT, true, qname);
               if (tmp_str != "")
               {
                 UInt map_index = asUInt_(tmp_str);
-                tmp_str = getAttributeAsString_(ID);
+                tmp_str = getAttributeAsString_(ID, true, qname);
     
                 if (tmp_str != "")
                 {
@@ -418,10 +418,10 @@ namespace OpenMS
                   act_index_tuple.setMapIndex(map_index);
                   act_index_tuple.setElementIndex(element_index);
     
-                  tmp_str = getAttributeAsString_(RT_ATT);
+                  tmp_str = getAttributeAsString_(RT_ATT, true, qname);
                   PositionType pos;
                   pos[0] = asDouble_(tmp_str);
-                  tmp_str = getAttributeAsString_(MZ_ATT);
+                  tmp_str = getAttributeAsString_(MZ_ATT, true, qname);
                   pos[1] = asDouble_(tmp_str);
     
                   act_index_tuple.setTransformedPosition(pos);

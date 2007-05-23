@@ -279,7 +279,9 @@ namespace OpenMS
 			void readPeakSupplementalData_( PeakType& /*peak*/, UInt /*n*/)
 			{
 			}
-
+			
+			private:
+				MzDataHandler(); // not impelmented -> private
 		};
 
 		//--------------------------------------------------------------------------------
@@ -385,51 +387,38 @@ namespace OpenMS
 				case DESCRIPTION: 
 					exp_sett_ << '<' << xercesc::XMLString::transcode(qname) << '>'; 
 					break;
-				case CVPARAM: 
+				case CVPARAM:
+				{
+					String accession = getAttributeAsString_(ACCESSION, true, qname);
+					String value = getAttributeAsString_(VALUE, false, qname);
+					cvParam_(accession, value);
+				}
+				break;
 				case USERPARAM:
 				{
-					String accession = getAttributeAsString_(ACCESSION);
-					String name = getAttributeAsString_(NAME);
-					String value = getAttributeAsString_(VALUE);
-					
-					//std::cout << "got accession: " << accession << " + " << value << std::endl;
-					//std::cout << "got name: " << name << " + " << value << std::endl;
-					if (name == "")
-					{
-						error("missing required attribute 'name'");
-					}
-					else if  (value == "")
-					{
-						error("missing required attribute 'value'");
-					}
-					else 
-					{
-						if (tag == USERPARAM)
-						{
-							userParam_(name, value);
-						}
-						else
-						{
-							cvParam_(accession, value);
-						}
-					}
-					break;
+					String name = getAttributeAsString_(NAME, true, qname);
+					String value = getAttributeAsString_(VALUE, false, qname);
+					userParam_(name, value);
 			  }
+				break;
 				case SUPARRAYBINARY:
-					meta_id_ = getAttributeAsString_(ID);
+					meta_id_ = getAttributeAsString_(ID, true, qname);
 					break;
 				case SPECTRUM:
 					spec_ = SpectrumType();
 					break;
 			  case SPECTRUMLIST:
-			  	if (options_.getMetadataOnly()) throw EndParsingSoftly(__FILE__,__LINE__,__PRETTY_FUNCTION__);
-			  	//std::cout << Date::now() << " Reserving space for spectra" << std::endl;
-			  	exp_->reserve( asInt_(getAttributeAsString_(COUNT)) );
-			  	logger_.startProgress(0,asInt_(getAttributeAsString_(COUNT)),"loading mzData file");
-			  	//std::cout << Date::now() << " done" << std::endl;
+			  	{
+				  	if (options_.getMetadataOnly()) throw EndParsingSoftly(__FILE__,__LINE__,__PRETTY_FUNCTION__);
+				  	//std::cout << Date::now() << " Reserving space for spectra" << std::endl;
+				  	UInt count = asInt_(getAttributeAsString_(COUNT, true, qname));
+				  	exp_->reserve(count);
+				  	logger_.startProgress(0,count,"loading mzData file");
+				  	//std::cout << Date::now() << " done" << std::endl;
+			  	}
 			  	break;
 				case ACQSPEC:
-					tmp_type = getAttributeAsString_(SPECTRUMTYPE);
+					tmp_type = getAttributeAsString_(SPECTRUMTYPE, true, qname);
 					if  (tmp_type == "CentroidMassSpectrum")
 					{
 						spec_.setType(SpectrumSettings::PEAKS);
@@ -443,21 +432,21 @@ namespace OpenMS
 						spec_.setType(SpectrumSettings::UNKNOWN);
 					}
 					
-					spec_.getAcquisitionInfo().setMethodOfCombination(getAttributeAsString_(METHOD_OF_COMBINATION));
+					spec_.getAcquisitionInfo().setMethodOfCombination(getAttributeAsString_(METHOD_OF_COMBINATION, true, qname));
 					break;
 				case ACQUISITION:
 					{
 						spec_.getAcquisitionInfo().insert(spec_.getAcquisitionInfo().end(), Acquisition());
 						acq_ = &(spec_.getAcquisitionInfo().back());
-						acq_->setNumber(asInt_(getAttributeAsString_(ACQNUMBER)));
+						acq_->setNumber(asInt_(getAttributeAsString_(ACQNUMBER, true, qname)));
 					}	
 					break;
 				case SPECTRUMINSTRUMENT:
 				case ACQINSTRUMENT:
 				{
-					spec_.setMSLevel(asInt_(getAttributeAsString_(MSLEVEL)));
-					String start = getAttributeAsString_(MZRANGE_START);
-					String stop = getAttributeAsString_(MZRANGE_STOP);
+					spec_.setMSLevel(asInt_(getAttributeAsString_(MSLEVEL, true, qname)));
+					String start = getAttributeAsString_(MZRANGE_START, false, qname);
+					String stop = getAttributeAsString_(MZRANGE_STOP, false, qname);
 					
 					if  (start != "")
 					{
@@ -488,22 +477,22 @@ namespace OpenMS
 					//UNHANDLED: "spectrumRef";
 					break;
 				case SUPDESC:
-					meta_id_ = getAttributeAsString_(SUP_DATA_ARRAY_REF);
+					meta_id_ = getAttributeAsString_(SUP_DATA_ARRAY_REF, true, qname);
 					break;
 				case DATA:
 					// store precision for later
-					precisions_.push_back((Precision)str2enum_(PRECISION, getAttributeAsString_(ATT_PRECISION)));
-					endians_.push_back((Endian)str2enum_(ENDIAN, getAttributeAsString_(ATT_ENDIAN)));
+					precisions_.push_back((Precision)str2enum_(PRECISION, getAttributeAsString_(ATT_PRECISION, true, qname)));
+					endians_.push_back((Endian)str2enum_(ENDIAN, getAttributeAsString_(ATT_ENDIAN, true, qname)));
 					if (is_parser_in_tag_[MZARRAYBINARY])
 					{
-						peak_count_ = asInt_(getAttributeAsString_(LENGTH));
+						peak_count_ = asInt_(getAttributeAsString_(LENGTH, true, qname));
 						//std::cout << Date::now() << " Reserving space for peaks" << std::endl;
 						spec_.getContainer().reserve(peak_count_);
 					}
 					break;
 				case MZDATA:
 					{
-						String s = getAttributeAsString_(VERSION);
+						String s = getAttributeAsString_(VERSION, true, qname);
 						for (UInt index=0; index<Schemes::MzData_num; ++index)
 						{
 							if (s!=String(schema_) && s.hasSubstring(Schemes::MzData[index][0]))

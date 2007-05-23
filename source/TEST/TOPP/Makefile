@@ -46,7 +46,6 @@ UNCONDITIONAL_TESTS = \
 	FileInfo_test \
 	FileMerger_test \
 	IDFilter_test \
-	InspectAdapter_test \
 	LabeledMatcher_test \
 	MapDewarper_test \
 	MapMatcher_test \
@@ -54,12 +53,13 @@ UNCONDITIONAL_TESTS = \
 	NoiseFilter_test \
 	PeakPicker_test \
 	Resampler_test \
-	SequestAdapter_test\
 	SpectraFilter_test \
 	MapAlignment_test \
 	UnlabeledMatcher_test \
   FeatureFinder_test\
-	InternalCalibration_test
+	InternalCalibration_test\
+	SequestAdapter_test\
+	InspectAdapter_test
 
 ifeq ($(LIBSVM_SUPPORT),true)
 LIBSVM_TESTS= \
@@ -663,26 +663,9 @@ ConsensusID_test: $(NUMERICDIFF)
 	@$(SED) -i 's/^.*IdentificationRun date.*$$/#Run removed because of date/g' ConsensusID_2_output.tmp
 	@$(call TEST_FILE_EQUAL,ConsensusID_2_output.idXML)
 
-###########################################################################################
-## Tests for processing pipelines.
-
-MyoQuant_test: $(NUMERICDIFF)
-	@$(ECHO) ""
-	@$(ECHO) "MyoQuant_test:"
-
-	@$(ECHO) "- Test 1: Additive Series using intensity ratio of tryptic peptides T11hu / T10ho, no dewarping"
-
-	@$(foreach number, 06 07 08 09 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 , \
-	  ${ECHO} Finding features in LC-MS map ${number}; \
-	  $(call RUN_PROG_OPT,FeatureFinder,-ini MyoQuant_1_parameters.ini -in MyoQuant_1_input${number}.mzData -out MyoQuant_1_feat${number}_xml.tmp); \
-	  )
-	@$(ECHO) "	AdditiveSeries, linear regression";
-	@$(call RUN_PROG_OPT,AdditiveSeries,-ini MyoQuant_1_parameters.ini)
-	@$(call TEST_FILE_EQUAL,MyoQuant_1_output.xml)
-
 PairwiseSuperposition_test: $(NUMERICDIFF)
 	@$(ECHO) ""
-	@$(ECHO) "PairwiseSuperposition_test:"
+	@$(ECHO) "PairwiseSuperposition:"
 	@$(ECHO) "- Test 1: UnlabeledMatcher, MapMatcher, and MapDewarper"
 	@$(ECHO) "	PairwiseSuperposition_1_input1.featureXML shall be transformed into PairwiseSuperposition_1_output1.featureXML"
 	@$(ECHO) "	which is much closer to PairwiseSuperposition_1_input2.featureXML"
@@ -700,7 +683,7 @@ PairwiseSuperposition_test: $(NUMERICDIFF)
 
 InternalCalibration_test: $(NUMERICDIFF)
 	@$(ECHO) ""
-	@$(ECHO) "InternalCalibration_test:"
+	@$(ECHO) "InternalCalibration:"
 	@$(ECHO) "- Test1: calibration of raw data"
 	@$(call RUN_PROG_OPT,InternalCalibration,-in InternalCalibration_1_input.mzData -out InternalCalibration_1_output.tmp -ref_masses InternalCalibration_ref_masses -ini InternalCalibration_parameters.ini)
 	@$(call TEST_FILE_EQUAL,InternalCalibration_1_output.mzData,InternalCalibration_1_output.tmp)
@@ -708,5 +691,19 @@ InternalCalibration_test: $(NUMERICDIFF)
 	@$(call RUN_PROG_OPT,InternalCalibration,-in InternalCalibration_2_input.mzData -out InternalCalibration_2_output.tmp -ref_masses InternalCalibration_ref_masses -peak_data)
 	@$(call TEST_FILE_EQUAL,InternalCalibration_2_output.mzData,InternalCalibration_2_output.tmp)
 
+###########################################################################################
+## Tests for processing pipelines.
 
+MyoQuant_test: $(NUMERICDIFF)
+	@$(ECHO) ""
+	@$(ECHO) "MyoQuant:"
 
+	@$(ECHO) "- Test 1: Additive Series using intensity ratio of tryptic peptides T11hu / T10ho, no dewarping"
+
+	@$(foreach number, 06 07 08 09 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 , \
+	  ${ECHO} Finding features in LC-MS map ${number}; \
+	  $(call RUN_PROG_OPT,FeatureFinder,-ini MyoQuant_1_parameters.ini -in MyoQuant_1_input${number}.mzData -out MyoQuant_1_feat${number}_xml.tmp); \
+	  )
+	@$(ECHO) "	AdditiveSeries, linear regression";
+	@$(call RUN_PROG_OPT,AdditiveSeries,-ini MyoQuant_1_parameters.ini)
+	@$(call TEST_FILE_EQUAL,MyoQuant_1_output.xml)

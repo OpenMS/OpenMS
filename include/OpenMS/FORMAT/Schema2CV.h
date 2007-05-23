@@ -120,11 +120,12 @@ namespace OpenMS
 				virtual void startElement(const XMLCh* const uri, const XMLCh* const localname, const XMLCh* const qname, const xercesc::Attributes& attrs);
 				
 			protected:
-				/// Hidden and not implemented default constructor
-				Schema2CVHandler();
-				
 				/// Reference to Schema2CV to fill
 				Schema2CV& mapping_;
+
+			private:
+				/// Hidden and not implemented default constructor
+				Schema2CVHandler();
 		};
 	}
 	

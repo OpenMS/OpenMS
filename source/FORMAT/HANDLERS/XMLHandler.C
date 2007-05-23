@@ -84,6 +84,8 @@ namespace OpenMS
 			setDocumentLocator(loc);
 			
 			appendLocation_(loc, error_message_);
+			
+			cerr << error_message_ << endl;
 		}
 		
 		void XMLHandler::warning(const String& msg)
@@ -94,6 +96,8 @@ namespace OpenMS
 			setDocumentLocator(loc);
 			
 			appendLocation_(loc, error_message_);
+			
+			cerr << error_message_ << endl;
 		}
 		
 		void XMLHandler::characters(const XMLCh* const /*chars*/, unsigned int /*length*/)

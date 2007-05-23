@@ -172,7 +172,6 @@ namespace OpenMS
 
 	void SchemaHandler::checkAttribute_(UInt attribute, const String& required, const String& required_alt)
 	{
-		//TODO improve performace
 		const XMLCh* tmp = xercesc::XMLString::transcode(enum2str_(att_map_, attribute).c_str());
 		if (tmp==0) return;
 		if (atts_->getIndex(tmp)==-1) return;
@@ -183,12 +182,15 @@ namespace OpenMS
 		}
 	}
 
-	String SchemaHandler::getAttributeAsString_(UInt attribute)
+	String SchemaHandler::getAttributeAsString_(UInt attribute, bool is_required, const XMLCh* tag)
 	{
-		//TODO improve performace
 		const XMLCh* tmp = xercesc::XMLString::transcode(enum2str_(att_map_, attribute).c_str());
 		if (atts_->getIndex(tmp)==-1) 
 		{
+			if (is_required)
+			{
+				error(String("Required attribute '") + enum2str_(att_map_, attribute) + "' missing in tag '" + xercesc::XMLString::transcode(tag) + "'!");
+			}
 			return "";
 		}
 		return xercesc::XMLString::transcode(atts_->getValue(tmp));

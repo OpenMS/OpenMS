@@ -88,7 +88,6 @@ Todos:
 - altes IdXMLFile2 + IdXMLConverter raus
 
 Thomas Schreiner:
-- 4611/raw_cut.mzData -> mzXML -> nicht mehr zu laden!
 - FeatureXML: Options einbauen und testen
 - DBAdapter: Add identification information
 - DBConnection: mehrere Verbindunden gleichzeitig

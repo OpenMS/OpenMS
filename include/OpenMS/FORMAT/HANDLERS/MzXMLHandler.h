@@ -35,6 +35,8 @@
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 
+#include <stack>
+
 namespace OpenMS
 {
 	class MetaInfoInterface;
@@ -64,6 +66,7 @@ namespace OpenMS
 				decoder_(),
 				peak_count_(0),
 				char_rest_(),
+				last_scan_num_(0),
 				spec_write_counter_(1),
 				logger_(logger)
   		{
@@ -80,6 +83,7 @@ namespace OpenMS
 				decoder_(),
 				peak_count_(0),
 				char_rest_(),
+				last_scan_num_(0),
 				spec_write_counter_(1),
 				logger_(logger)
   		{
@@ -106,112 +110,115 @@ namespace OpenMS
 			void setOptions(const PeakFileOptions& opt) { options_ = opt; }
 
     protected:
-		/// map pointer for reading
-		MapType* exp_;
-		/// map pointer for writing
-		const MapType* cexp_;
-
-		/** @brief indices for tags used by mzData
-
-			Used to access is_parser_in_tag_.
-			If you add tags, also add them to XMLSchemes.h.
-			Add no elements to the enum after TAG_NUM.
-		*/
-		enum Tags { TAGNULL=0, MSRUN, INDEX, OFFSET, SHA1, PARENTFILE, INSTRUMENT, DATAPROCESSING,
-								SEPARATION, SPOTTING, SCAN, SCANORIGIN, PRECURSORMZ, MALDI, PEAKS, NAMEVALUE,
-								COMMENT, SOFTWARE, INDEXOFFSET, OPERATOR, MANUFACTURER, MODEL, IONISATION,
-								ANALYZER, DETECTOR, RESOLUTION, MZXML, PROCESSING, SEPARATIONTECH, TAG_NUM};
-
-
-		/** @brief indices for attributes used by MzXML
-
-			Used to access enum2str_() with ATTMAP.
-			If you add terms, also add them to XMLSchemes.h
-		*/
-		enum Attributes {ATTNULL, POLARITY, SCANTYPE, CENTROIDED, DEISOTOPED,
-										 DECONVOLUTED, RETTIME,IONENERGY, COLLENERGY, PRESSURE,
-										 STARTMZ, ENDMZ, LOWMZ, HIGHMZ, BASEPEAKMZ, BASEPEAKINT,
-										 TOTIONCURRENT, PEAKSCOUNT, NUM, MSLEVEL, SCANCOUNT,
-										 FILENAME, FILETYPE, SOFTWAREVERSION, NAME, TYPE,
-										 COMPLETION_TIME, PRECURSOR_INTENSITY, PRECURSOR_CHARGE,
-										 FIRST_NAME, LAST_NAME, EMAIL, PHONE, URI, VALUE, CATEGORY,
-										 PRECISION, BYTEORDER, PAIRORDER, SCHEMA, SPOT_INTEGRATION,
-										 INTENSITY_CUTOFF, STARTTIME, ENDTIME, FILESHA1, PARENTFILEID,
-										 PRECURSOR_SCANNUM, WINDOW_WIDENESS, PLATEID, SPOTID,
-										 LASER_SHOOT_COUNT, LASER_FREQUENCY, LASER_INTESITY};
-
-		/** @brief indices for enum2str-maps used by mzXML
-
-			Used to access enum2str_().
-			If you add maps, also add them to XMLSchemes.h.
-			Add no elements to the enum after MAP_NUM.
-			Each map corresponds to a string in XMLSchemes.h.
-		*/
-		enum MapTypes {	POLARITYMAP=0, IONTYPEMAP, TYPEMAP, ANALYZERTYPEMAP, SCANMODEMAP,
-										ATTMAP, TAGMAP, RESMETHODMAP, PEAKPROCMAP, PRECISIONMAP,MAP_NUM};
-
-		/// Possible precisions for Base64 data encoding
-		enum Precision { UNKNOWN_PRECISION, REAL, DOUBLE};
-
-		typedef typename MapType::SpectrumType SpectrumType;
-		typedef typename SpectrumType::PeakType PeakType;
-		typedef typename SpectrumType::Iterator  PeakIterator;
-		typedef typename SpectrumType::PrecursorPeakType PrecursorPeakType;
-
-		PeakFileOptions options_;
-		
-		/**@name temporary datastructures to hold parsed data */
-    //@{
-		SpectrumType* spec_;
-		MassAnalyzer* analyzer_;
-		MetaInfoDescription* meta_;
-		String meta_id_;
-		Base64 decoder_;
-		UInt peak_count_;
-		Precision precision_;
-		String char_rest_;
-
-		//@}
-
-		/// spectrum counter (spectra without peaks are not written)
-		UInt spec_write_counter_;
-		
-		/// Progress logging class
-		const ProgressLogger& logger_;
-		
-		/// Add name, value and description to a given MetaInfo object
-		void setAddInfo_(MetaInfoInterface& info, const String& name, const String& value, const String& description)
-		{
-			info.metaRegistry().registerName(name, description);
-			info.setMetaValue(name,value);
-		}
-
-		/// write metaInfo to xml (usually in nameValue-tag)
-		inline void writeUserParam_(std::ostream& os, const MetaInfoInterface& meta,
-																int indent=4, String tag="nameValue")
-		{
-			std::vector<std::string> keys;  // Vector to hold keys to meta info
-			meta.getKeys(keys);
-
-			for (std::vector<std::string>::const_iterator it = keys.begin(); it!=keys.end(); ++it)
-				if ( (*it)[0] != '#')  // internally used meta info start with '#'
+			/// map pointer for reading
+			MapType* exp_;
+			/// map pointer for writing
+			const MapType* cexp_;
+	
+			/** @brief indices for tags used by mzData
+	
+				Used to access is_parser_in_tag_.
+				If you add tags, also add them to XMLSchemes.h.
+				Add no elements to the enum after TAG_NUM.
+			*/
+			enum Tags { TAGNULL=0, MSRUN, INDEX, OFFSET, SHA1, PARENTFILE, INSTRUMENT, DATAPROCESSING,
+									SEPARATION, SPOTTING, SCAN, SCANORIGIN, PRECURSORMZ, MALDI, PEAKS, NAMEVALUE,
+									COMMENT, SOFTWARE, INDEXOFFSET, OPERATOR, MANUFACTURER, MODEL, IONISATION,
+									ANALYZER, DETECTOR, RESOLUTION, MZXML, PROCESSING, SEPARATIONTECH, TAG_NUM};
+	
+	
+			/** @brief indices for attributes used by MzXML
+	
+				Used to access enum2str_() with ATTMAP.
+				If you add terms, also add them to XMLSchemes.h
+			*/
+			enum Attributes {ATTNULL, POLARITY, SCANTYPE, CENTROIDED, DEISOTOPED,
+											 DECONVOLUTED, RETTIME,IONENERGY, COLLENERGY, PRESSURE,
+											 STARTMZ, ENDMZ, LOWMZ, HIGHMZ, BASEPEAKMZ, BASEPEAKINT,
+											 TOTIONCURRENT, PEAKSCOUNT, NUM, MSLEVEL, SCANCOUNT,
+											 FILENAME, FILETYPE, SOFTWAREVERSION, NAME, TYPE,
+											 COMPLETION_TIME, PRECURSOR_INTENSITY, PRECURSOR_CHARGE,
+											 FIRST_NAME, LAST_NAME, EMAIL, PHONE, URI, VALUE, CATEGORY,
+											 PRECISION, BYTEORDER, PAIRORDER, SCHEMA, SPOT_INTEGRATION,
+											 INTENSITY_CUTOFF, STARTTIME, ENDTIME, FILESHA1, PARENTFILEID,
+											 PRECURSOR_SCANNUM, WINDOW_WIDENESS, PLATEID, SPOTID,
+											 LASER_SHOOT_COUNT, LASER_FREQUENCY, LASER_INTESITY};
+	
+			/** @brief indices for enum2str-maps used by mzXML
+	
+				Used to access enum2str_().
+				If you add maps, also add them to XMLSchemes.h.
+				Add no elements to the enum after MAP_NUM.
+				Each map corresponds to a string in XMLSchemes.h.
+			*/
+			enum MapTypes {	POLARITYMAP=0, IONTYPEMAP, TYPEMAP, ANALYZERTYPEMAP, SCANMODEMAP,
+											ATTMAP, TAGMAP, RESMETHODMAP, PEAKPROCMAP, PRECISIONMAP,MAP_NUM};
+	
+			/// Possible precisions for Base64 data encoding
+			enum Precision { UNKNOWN_PRECISION, REAL, DOUBLE};
+	
+			typedef typename MapType::SpectrumType SpectrumType;
+			typedef typename SpectrumType::PeakType PeakType;
+			typedef typename SpectrumType::Iterator  PeakIterator;
+			typedef typename SpectrumType::PrecursorPeakType PrecursorPeakType;
+	
+			PeakFileOptions options_;
+			
+			/**@name temporary datastructures to hold parsed data */
+	    //@{
+			SpectrumType* spec_;
+			MassAnalyzer* analyzer_;
+			MetaInfoDescription* meta_;
+			String meta_id_;
+			Base64 decoder_;
+			UInt peak_count_;
+			Precision precision_;
+			String char_rest_;
+			UInt last_scan_num_;
+			//@}
+	
+			/// spectrum counter (spectra without peaks are not written)
+			UInt spec_write_counter_;
+			
+			/// Progress logging class
+			const ProgressLogger& logger_;
+			
+			/// Add name, value and description to a given MetaInfo object
+			void setAddInfo_(MetaInfoInterface& info, const String& name, const String& value, const String& description)
 			{
-				String name = *it;
-				os << String(indent,'\t') << "<" << tag << " name=\"";
-				if (tag=="processingOperation" && name.find('#')!=std::string::npos)
-				{
-					std::vector<String> parts;
-					name.split('#',parts);
-					os << parts[0] << "\" type=\"" << parts[1];
-				}
-				else
-				{
-					os << name;
-				}
-				os << "\" value=\""
-					 << meta.getMetaValue(*it) << "\"/>\n";
+				info.metaRegistry().registerName(name, description);
+				info.setMetaValue(name,value);
 			}
-		}
+	
+			/// write metaInfo to xml (usually in nameValue-tag)
+			inline void writeUserParam_(std::ostream& os, const MetaInfoInterface& meta,
+																	int indent=4, String tag="nameValue")
+			{
+				std::vector<std::string> keys;  // Vector to hold keys to meta info
+				meta.getKeys(keys);
+	
+				for (std::vector<std::string>::const_iterator it = keys.begin(); it!=keys.end(); ++it)
+					if ( (*it)[0] != '#')  // internally used meta info start with '#'
+				{
+					String name = *it;
+					os << String(indent,'\t') << "<" << tag << " name=\"";
+					if (tag=="processingOperation" && name.find('#')!=std::string::npos)
+					{
+						std::vector<String> parts;
+						name.split('#',parts);
+						os << parts[0] << "\" type=\"" << parts[1];
+					}
+					else
+					{
+						os << name;
+					}
+					os << "\" value=\""
+						 << meta.getMetaValue(*it) << "\"/>\n";
+				}
+			}
+		
+		private:
+			MzXMLHandler(); // not impelmented -> private
   };
 
 
@@ -268,12 +275,12 @@ namespace OpenMS
 			}
 			else if (String(xercesc::XMLString::transcode(chars)).trim()!="")
 			{
-				std::cout << "Unhandled characters: \"" << xercesc::XMLString::transcode(chars) << "\"" << std::endl;
+				std::cerr << "Unhandled characters: \"" << xercesc::XMLString::transcode(chars) << "\"" << std::endl;
 			}
 		}
 		else if (String(xercesc::XMLString::transcode(chars)).trim()!="")
 		{
-				std::cout << "Unhandled characters: \"" << xercesc::XMLString::transcode(chars) << "\"" << std::endl;
+				std::cerr << "Unhandled characters: \"" << xercesc::XMLString::transcode(chars) << "\"" << std::endl;
 		}
   	//std::cout << " -- !Chars -- " << std::endl;
   }
@@ -285,7 +292,10 @@ namespace OpenMS
   void MzXMLHandler<MapType>::startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const xercesc::Attributes& attributes)
   {
   	//std::cout << " -- Start -- "<< xercesc::XMLString::transcode(qname) << " -- " << std::endl;
-  	
+  	//std::cout << " skip size: " << 	skip_tag_.size();
+  	//if (skip_tag_.size()) std::cout << " skip current: " << skip_tag_.top();
+  	//std::cout << std::endl;
+		
 		int tag = enterTag(qname, attributes);
 		if (skip_tag_.top()) return;
 		
@@ -293,18 +303,18 @@ namespace OpenMS
 		switch(tag)
 		{
 			case MSRUN:
-				tmp_str = getAttributeAsString_(SCANCOUNT);
-				if (tmp_str!="") // optional attribute
+				tmp_str = getAttributeAsString_(SCANCOUNT, false, qname);
+				if (tmp_str!="") 
 				{
 					exp_->reserve( asUInt_(tmp_str) );
 				}
 				logger_.startProgress(0,asUInt_(tmp_str),"loading mzXML file");
-				// fall through?
+				// fall through to next tag because of different MzXML versions... -> no break
 			case MZXML:
 				// look for schema information
 				if (atts_->getIndex(xercesc::XMLString::transcode(enum2str_(ATTMAP,SCHEMA).c_str()))!=-1)
 				{
-					tmp_str = getAttributeAsString_(SCHEMA);
+					tmp_str = getAttributeAsString_(SCHEMA, false, qname);
 					//std::cout << "SCHEMA: " << tmp_str << std::endl;
 					if (tmp_str!="")
 					{
@@ -324,34 +334,22 @@ namespace OpenMS
 				}
 				break;
 			case PARENTFILE:
-				tmp_str = getAttributeAsString_(FILENAME);
-				if (tmp_str != "") // required attribute
+				tmp_str = getAttributeAsString_(FILENAME, true, qname);
+				if (tmp_str != "") 
 				{
 					exp_->getSourceFile().setNameOfFile( tmp_str.c_str() );
 				}
-				else
-				{
-					error("'fileName' attribute missing in 'parentFile' tag");
-				}
 				
-				tmp_str = getAttributeAsString_(FILETYPE);
-				if (tmp_str != "") // required attribute
+				tmp_str = getAttributeAsString_(FILETYPE, true, qname);
+				if (tmp_str != "") 
 				{
 					exp_->getSourceFile().setFileType( tmp_str );
 				}
-				else
-				{
-					error("'fileType' attribute missing in 'parentFile' tag");
-				}
 				
-				tmp_str = getAttributeAsString_(FILESHA1);
-				if (tmp_str != "") // required attribute
+				tmp_str = getAttributeAsString_(FILESHA1, true, qname);
+				if (tmp_str != "") 
 				{
 					exp_->getSourceFile().setSha1(tmp_str);
-				}
-				else
-				{
-					error("'fileSha1' attribute missing in 'parentFile' tag");
 				}
 				break;
 			case INSTRUMENT:
@@ -372,38 +370,26 @@ namespace OpenMS
 			case SOFTWARE:
 				if (is_parser_in_tag_[DATAPROCESSING])
 				{
-					tmp_str = getAttributeAsString_(SOFTWAREVERSION);
-					if (tmp_str != "") // required attribute
+					tmp_str = getAttributeAsString_(SOFTWAREVERSION, true, qname);
+					if (tmp_str != "") 
 					{
 						exp_->getSoftware().setVersion(tmp_str);
 					}
-					else
-					{
-						error("'software' tag below 'dataProcessing' tag misses required attribute 'version'");
-					}
 					
-					tmp_str = getAttributeAsString_(NAME);
-					if (tmp_str != "") // required attribute
+					tmp_str = getAttributeAsString_(NAME, true, qname);
+					if (tmp_str != "") 
 					{
 						exp_->getSoftware().setName(tmp_str);
 					}
-					else
-					{
-						error("'software' tag below 'dataProcessing' tag misses required attribute 'name'");
-					}
 					
-					tmp_str = getAttributeAsString_(TYPE);
-					if (tmp_str != "") // required attribute
+					tmp_str = getAttributeAsString_(TYPE, true, qname);
+					if (tmp_str != "") 
 					{
 						exp_->getSoftware().setComment(tmp_str);
 					}
-					else
-					{
-						error("'software' tag below 'dataProcessing' tag misses required attribute 'version'");
-					}
 					
-					tmp_str = getAttributeAsString_(COMPLETION_TIME);
-					if (tmp_str != "") // optional attribute
+					tmp_str = getAttributeAsString_(COMPLETION_TIME, false, qname);
+					if (tmp_str != "") 
 					{
 						exp_->getSoftware().setCompletionTime( asDateTime_(tmp_str) );
 					}
@@ -421,38 +407,26 @@ namespace OpenMS
 					registry.registerName(swt,swt_d);
 					registry.registerName(cmpl,cmpl_d);
 					
-					tmp_str = getAttributeAsString_(NAME);
-					if (tmp_str != "") // required attribute
+					tmp_str = getAttributeAsString_(NAME, true, qname);
+					if (tmp_str != "") 
 					{
 						exp_->getInstrument().setMetaValue(swn, tmp_str);
 					}
-					else
-					{
-						error("'software' tag below 'instrument' tag misses required attribute 'name'");
-					}
 					
-					tmp_str = getAttributeAsString_(SOFTWAREVERSION);
-					if (tmp_str != "") // required attribute
+					tmp_str = getAttributeAsString_(SOFTWAREVERSION, true, qname);
+					if (tmp_str != "") 
 					{
 						exp_->getInstrument().setMetaValue(swv, tmp_str);
 					}
-					else
-					{
-						error("'software' tag below 'instrument' tag misses required attribute 'version'");
-					}
 					
-					tmp_str = getAttributeAsString_(TYPE);
-					if (tmp_str != "") // required attribute
+					tmp_str = getAttributeAsString_(TYPE, true, qname);
+					if (tmp_str != "") 
 					{
 						exp_->getInstrument().setMetaValue(swt, tmp_str);
 					}
-					else
-					{
-						error("'software' tag below 'instrument' tag misses required attribute 'type'");
-					}
 					
-					tmp_str = getAttributeAsString_(COMPLETION_TIME);
-					if  (tmp_str != "") // optional attribute
+					tmp_str = getAttributeAsString_(COMPLETION_TIME, false, qname);
+					if  (tmp_str != "") 
 					{
 						DateTime time = asDateTime_(tmp_str);
 						time.get(tmp_str);
@@ -476,26 +450,26 @@ namespace OpenMS
 					
 					PrecursorPeakType& peak = spec_->getPrecursorPeak();
 					
-					tmp_str = getAttributeAsString_(PRECURSOR_INTENSITY);
-					if (tmp_str != "") // optional attribute
+					tmp_str = getAttributeAsString_(PRECURSOR_INTENSITY, false, qname);
+					if (tmp_str != "") 
 					{
 						peak.setIntensity( asFloat_(tmp_str) );
 					}
 					
-					tmp_str = getAttributeAsString_(PRECURSOR_CHARGE);
-					if (tmp_str != "") // optional attribute
+					tmp_str = getAttributeAsString_(PRECURSOR_CHARGE, false, qname);
+					if (tmp_str != "")
 					{
 						peak.setCharge(asInt_(tmp_str));
 					}
 					
-					tmp_str = getAttributeAsString_(PRECURSOR_SCANNUM);
-					if (tmp_str != "") // optional attribute
+					tmp_str = getAttributeAsString_(PRECURSOR_SCANNUM, false, qname);
+					if (tmp_str != "")
 					{
 						// ignore
 					}
 					
-					tmp_str = getAttributeAsString_(WINDOW_WIDENESS);
-					if (tmp_str != "") // optional attribute
+					tmp_str = getAttributeAsString_(WINDOW_WIDENESS, false, qname);
+					if (tmp_str != "")
 					{
 						spec_->getPrecursor().setWindowSize(asDouble_(tmp_str));
 					}
@@ -503,42 +477,34 @@ namespace OpenMS
 				break;
 			case MALDI:
 				{
-					tmp_str = getAttributeAsString_(PLATEID);
-					if (tmp_str != "") // required attribute
+					tmp_str = getAttributeAsString_(PLATEID, true, qname);
+					if (tmp_str != "") 
 					{
-						// TODO
-					}
-					else
-					{
-						error("'maldi' tag misses required attribute 'plateID'");
+						// ignored
 					}
 					
-					tmp_str = getAttributeAsString_(SPOTID);
-					if (tmp_str != "") // required attribute
+					tmp_str = getAttributeAsString_(SPOTID, true, qname);
+					if (tmp_str != "") 
 					{
-						// TODO
-					}
-					else
-					{
-						error("'maldi' tag misses required attribute 'spotID'");
+						// ignored
 					}
 					
-					tmp_str = getAttributeAsString_(LASER_SHOOT_COUNT);
-					if (tmp_str != "") // optional attribute
+					tmp_str = getAttributeAsString_(LASER_SHOOT_COUNT, false, qname);
+					if (tmp_str != "") 
 					{
-						// TODO
+						// ignored
 					}
 					
-					tmp_str = getAttributeAsString_(LASER_FREQUENCY);
-					if (tmp_str != "") // optional attribute
+					tmp_str = getAttributeAsString_(LASER_FREQUENCY, false, qname);
+					if (tmp_str != "") 
 					{
-						// TODO
+						// ignored
 					}
 					
-					tmp_str = getAttributeAsString_(LASER_INTESITY);
-					if (tmp_str != "") // optional attribute
+					tmp_str = getAttributeAsString_(LASER_INTESITY, false, qname);
+					if (tmp_str != "") 
 					{
-						// TODO
+						// ignored
 					}
 				}
 				break;
@@ -546,44 +512,36 @@ namespace OpenMS
 				{
 					if (options_.getMetadataOnly()) throw EndParsingSoftly(__FILE__,__LINE__,__PRETTY_FUNCTION__);
 					
-					tmp_str = getAttributeAsString_(NUM);
-					if (tmp_str == "")
-					{
-						error("'scan' tag misses required attribute 'num'");
-						break;
-					}
-					if (asUInt_(tmp_str) != exp_->size() + 1)
+					tmp_str = getAttributeAsString_(NUM, true, qname);
+					
+					//std::cout << "Last: " << last_scan_num_ << "  - Scan num: " << tmp_str << std::endl; 
+					
+					if (asUInt_(tmp_str) != last_scan_num_ + 1)
 					{
 						// num tag starts from 1 and must be consecutive
 						error("non-consecutive numbers in 'scan' tags");
-						break;
 					}
+					++last_scan_num_;
 					
 					SpectrumType spec;
 					
-					// required attributes
-					tmp_str = getAttributeAsString_(MSLEVEL);
+					tmp_str = getAttributeAsString_(MSLEVEL, true, qname);
 					if (tmp_str != "")
 					{
 						spec.setMSLevel(asInt_(tmp_str));
 					}
 					else
 					{
-						error("'scan' tag misses required attribute 'msLevel'");
 						break;
 					}
 					
-					tmp_str = getAttributeAsString_(PEAKSCOUNT);
+					tmp_str = getAttributeAsString_(PEAKSCOUNT, true, qname);
 					if (tmp_str != "")
 					{
 						peak_count_ = asInt_(tmp_str);
 					}
-					else
-					{
-						error("'scan' tag misses required attribute 'peaksCount'");
-					}
-
-					// optional attributes
+					
+					//optinal attributes
 					for (UInt i=0; i<attributes.getLength(); i++)
 					{
 						int att = str2enum_(ATTMAP,xercesc::XMLString::transcode(attributes.getQName(i)),"scan attribute");
@@ -624,6 +582,7 @@ namespace OpenMS
 					}
 					
 					// check if the scan is in the desired range
+					//std::cout << "Range: " << options_.getRTRange() << " RT: " << spec.getRT() << std::endl;
 					if (options_.hasRTRange() && !options_.getRTRange().encloses(DPosition<1>(spec.getRT()))
 					 || options_.hasMSLevels() && !options_.containsMSLevel(spec.getMSLevel()))
 					{
@@ -640,89 +599,62 @@ namespace OpenMS
 				}
 				break;
 			case SCANORIGIN:
-				tmp_str = getAttributeAsString_(PARENTFILEID);
-				if (tmp_str != "") // required attribute
+				tmp_str = getAttributeAsString_(PARENTFILEID, true, qname);
+				if (tmp_str != "") 
 				{
 					// ignore
-				}
-				else
-				{
-					error("'parentFileID' attribute missing in 'scanOrigin' tag");
 				}
 				
-				tmp_str = getAttributeAsString_(NUM);
-				if (tmp_str != "") // required attribute
+				tmp_str = getAttributeAsString_(NUM, true, qname);
+				if (tmp_str != "") 
 				{
 					// ignore
-				}
-				else
-				{
-					error("'num' attribute missing in 'scanOrigin' tag");
 				}
 				break;
 			case OPERATOR:
 				{
-					String first = getAttributeAsString_(FIRST_NAME);  // required attribute
-					String last = getAttributeAsString_(LAST_NAME);    // required attribute
+					String first = getAttributeAsString_(FIRST_NAME, true, qname);  
+					String last = getAttributeAsString_(LAST_NAME, true, qname);    
 					
-					if (first == "")
+					exp_->getContacts().insert(exp_->getContacts().end(), ContactPerson());
+					exp_->getContacts().back().setFirstName(first);
+					exp_->getContacts().back().setLastName(last);
+					
+					tmp_str = getAttributeAsString_(EMAIL, false, qname);
+					if (tmp_str != "") 
 					{
-						error("'operator' tag misses required attribute 'first'");
+						exp_->getContacts().back().setEmail(tmp_str);
 					}
-					else if (last == "")
+					
+					String contact_info;
+					tmp_str = getAttributeAsString_(PHONE, false, qname);
+					if (tmp_str != "") 
 					{
-						error("'operator' tag misses required attribute 'last'");
+						contact_info = "PHONE: " + tmp_str;
 					}
-					else
+					
+					tmp_str = getAttributeAsString_(URI, false, qname);
+					if (tmp_str != "") 
 					{
-						exp_->getContacts().insert(exp_->getContacts().end(), ContactPerson());
-						exp_->getContacts().back().setFirstName(first);
-						exp_->getContacts().back().setLastName(last);
-						
-						tmp_str = getAttributeAsString_(EMAIL);
-						if (tmp_str != "") // optional attribute
-						{
-							exp_->getContacts().back().setEmail(tmp_str);
-						}
-						
-						String contact_info;
-						tmp_str = getAttributeAsString_(PHONE);
-						if (tmp_str != "") // optional attribute
-						{
-							contact_info = "PHONE: " + tmp_str;
-						}
-						
-						tmp_str = getAttributeAsString_(URI);
-						if (tmp_str != "") // optional attribute
-						{
-							contact_info += String(contact_info == "" ? "" : " ") + "URI: " + tmp_str;
-						}
-						
-						// if either one of phone or uri was specified
-						if (contact_info != "")
-						{
-							exp_->getContacts().back().setContactInfo(contact_info);
-						}
+						contact_info += String(contact_info == "" ? "" : " ") + "URI: " + tmp_str;
+					}
+					
+					// if either one of phone or uri was specified
+					if (contact_info != "")
+					{
+						exp_->getContacts().back().setContactInfo(contact_info);
 					}
 				}
 				break;
 			case MANUFACTURER:
 				{
-					tmp_str = getAttributeAsString_(CATEGORY);
-					if (tmp_str == "") // required attribute
+					tmp_str = getAttributeAsString_(CATEGORY, true, qname);
+					if (tmp_str == enum2str_(TAGMAP,MANUFACTURER))
 					{
-						error("'manufacturer' tag misses required attribute 'category'");
-					}
-					else if (tmp_str == enum2str_(TAGMAP,MANUFACTURER))
-					{
-						tmp_str = getAttributeAsString_(VALUE);
+						tmp_str = getAttributeAsString_(VALUE, true, qname);
 						if (tmp_str != "")
 						{
 							exp_->getInstrument().setVendor(tmp_str);
-						}
-						else
-						{
-							error("'manufacturer' tag misses required attribute 'value'");
 						}
 					}
 					else
@@ -733,21 +665,13 @@ namespace OpenMS
 				break;
 			case MODEL:
 				{
-					tmp_str = getAttributeAsString_(CATEGORY);
-					if (tmp_str == "") // required attribute
+					tmp_str = getAttributeAsString_(CATEGORY, true, qname);
+					if (tmp_str == enum2str_(TAGMAP,MODEL))
 					{
-						error("'model' tag misses required attribute 'category'");
-					}
-					else if (tmp_str == enum2str_(TAGMAP,MODEL))
-					{
-						tmp_str = getAttributeAsString_(VALUE);
+						tmp_str = getAttributeAsString_(VALUE, true, qname);
 						if (tmp_str != "")
 						{
 							exp_->getInstrument().setModel(tmp_str);
-						}
-						else
-						{
-							error("'model' tag misses required attribute 'value'");
 						}
 					}
 					else
@@ -758,24 +682,13 @@ namespace OpenMS
 				break;
 			case IONISATION:
 				{
-					tmp_str = getAttributeAsString_(CATEGORY);
-					if (tmp_str == "") // required attribute
+					tmp_str = getAttributeAsString_(CATEGORY, true, qname);
+					if (tmp_str == enum2str_(TAGMAP,IONISATION))
 					{
-						error("'ionization' tag misses required attribute 'category'");
-					}
-					else if (tmp_str == enum2str_(TAGMAP,IONISATION))
-					{
-						tmp_str = getAttributeAsString_(VALUE);
+						tmp_str = getAttributeAsString_(VALUE, true, qname);
 						if (tmp_str != "")
 						{
-							exp_->getInstrument().getIonSource().setIonizationMethod(
-								(IonSource::IonizationMethod)
-								str2enum_(IONTYPEMAP, tmp_str, "ionization type")
-							);
-						}
-						else
-						{
-							error("'ionization' tag misses required attribute 'value'");
+							exp_->getInstrument().getIonSource().setIonizationMethod((IonSource::IonizationMethod) str2enum_(IONTYPEMAP, tmp_str, "ionization type") );
 						}
 					}
 					else
@@ -786,25 +699,16 @@ namespace OpenMS
 				break;
 			case ANALYZER:
 				{
-					tmp_str = getAttributeAsString_(CATEGORY);
-					if (tmp_str == "")
+					tmp_str = getAttributeAsString_(CATEGORY, true, qname);
+					if (tmp_str == enum2str_(TAGMAP,ANALYZER))
 					{
-						error("'analyzer' tag misses required attribute 'category'");
-					}
-					else if (tmp_str == enum2str_(TAGMAP,ANALYZER))
-					{
-						tmp_str = getAttributeAsString_(VALUE);
+						tmp_str = getAttributeAsString_(VALUE, false, qname);
 						if (tmp_str != "")
 						{
 							exp_->getInstrument().getMassAnalyzers().insert(exp_->getInstrument().getMassAnalyzers().end(), MassAnalyzer());
 							analyzer_ = &(exp_->getInstrument().getMassAnalyzers().back());
-							analyzer_->setType( (MassAnalyzer::AnalyzerType)
-								str2enum_(ANALYZERTYPEMAP, tmp_str, "analyzer type")
+							analyzer_->setType( (MassAnalyzer::AnalyzerType) str2enum_(ANALYZERTYPEMAP, tmp_str, "analyzer type")
 							);
-						}
-						else
-						{
-							error("'analyzer' tag misses required attribute 'value'");
 						}
 					}
 					else
@@ -815,22 +719,14 @@ namespace OpenMS
 				break;
 			case DETECTOR:
 				{
-					tmp_str = getAttributeAsString_(CATEGORY);
-					if (tmp_str == "")
+					tmp_str = getAttributeAsString_(CATEGORY, true, qname);
+					if (tmp_str == enum2str_(TAGMAP,DETECTOR))
 					{
-						error("'detector' tag misses required attribute 'category'");
-					}
-					else if (tmp_str == enum2str_(TAGMAP,DETECTOR))
-					{
-						tmp_str = getAttributeAsString_(VALUE);
+						tmp_str = getAttributeAsString_(VALUE, true, qname);
 						if (tmp_str != "")
 						{
 							IonDetector& ion_d = exp_->getInstrument().getIonDetector();
 							ion_d.setType( (IonDetector::Type) str2enum_(TYPEMAP, tmp_str, "detector type") );
-						}
-						else
-						{
-							error("'detector' tag misses required attribute 'value'");
 						}
 					}
 					else
@@ -841,24 +737,16 @@ namespace OpenMS
 				break;
 			case RESOLUTION:
 				{
-					tmp_str = getAttributeAsString_(CATEGORY);
-					if (tmp_str == "")
+					tmp_str = getAttributeAsString_(CATEGORY, true, qname);
+					if (tmp_str == enum2str_(TAGMAP,RESOLUTION))
 					{
-						error("'resolution' tag misses required attribute 'category'");
-					}
-					else if (tmp_str == enum2str_(TAGMAP,RESOLUTION))
-					{
-						tmp_str = getAttributeAsString_(VALUE);
+						tmp_str = getAttributeAsString_(VALUE, true, qname);
 						if (tmp_str != "")
 						{
 							if (analyzer_ == 0) break;
 							analyzer_->setResolutionMethod(
 								(MassAnalyzer::ResolutionMethod)
 								str2enum_(RESMETHODMAP, tmp_str, "resolution method"));
-						}
-						else
-						{
-							error("'resolution' tag misses required attribute 'value'");
 						}
 					}
 					else
@@ -868,7 +756,7 @@ namespace OpenMS
 				}
 				break;
 			case DATAPROCESSING:
-					// optional attributes
+					//optinal attributes
 					for (UInt i=0; i<attributes.getLength(); i++)
 					{
 						int att = str2enum_(ATTMAP,xercesc::XMLString::transcode(attributes.getQName(i)),"dataprocessing attribute");
@@ -896,17 +784,15 @@ namespace OpenMS
 					break;
 			case NAMEVALUE:
 				{
-					String name = getAttributeAsString_(NAME);
-					String value = getAttributeAsString_(VALUE);
+					String name = getAttributeAsString_(NAME, true, qname);
+					String value = getAttributeAsString_(VALUE, true, qname);
 					
 					if (name == "")
 					{
-						error("'nameValue' tag misses required attribute 'name'");
 						break;
 					}
 					else if (value == "")
 					{
-						error("'nameValue' tag misses required attribute 'value'");
 						break;
 					}
 					
@@ -926,21 +812,13 @@ namespace OpenMS
 				break;
 			case PROCESSING:
 				{
-					String name = getAttributeAsString_(NAME);
-					String value = getAttributeAsString_(TYPE);
+					String name = getAttributeAsString_(NAME, true, qname);
+					String type = getAttributeAsString_(TYPE, true, qname);
+					String value = getAttributeAsString_(VALUE, true, qname);
 					
-					if (name == "")
+					if (value != "" && name != "")
 					{
-						error("'processingOperation' tag misses required attribute 'name'");
-					}
-					else if (value == "")
-					{
-						error("'processingOperation' tag misses required attribute 'value'");
-					}
-					else
-					{
-						setAddInfo_(exp_->getProcessingMethod(), name + "#" + value,
-							getAttributeAsString_(VALUE), "Processing.Comment");
+						setAddInfo_(exp_->getProcessingMethod(), name + "#" + type, value, "Processing.Comment");
 					}
 				}
 				break;
@@ -1173,7 +1051,7 @@ namespace OpenMS
 
 		os << "\t\t</dataProcessing>\n";
 		
-		int min_ms_level = std::numeric_limits<int>::max();
+		std::stack<UInt> open_scans;
 		
 		// write scans
 		for (UInt s=0; s<cexp_->size(); s++)
@@ -1181,15 +1059,15 @@ namespace OpenMS
 			logger_.setProgress(s);
 			const SpectrumType& spec = (*cexp_)[s];
 						
-			int MSLevel = spec.getMSLevel();
-			min_ms_level = std::min(MSLevel,min_ms_level);
+			int ms_level = spec.getMSLevel();
+			open_scans.push(ms_level);
 			
-			os << String(MSLevel+1,'\t')
+			os << String(ms_level+1,'\t')
 				 << "<scan num=\"" << spec_write_counter_++ << "\" msLevel=\""
-				 << MSLevel << "\" peaksCount=\""
+				 << ms_level << "\" peaksCount=\""
 				 << spec.size() << "\" polarity=\""
 				 << enum2str_(POLARITYMAP,spec.getInstrumentSettings().getPolarity());
-
+			
 			if (spec.getInstrumentSettings().getScanMode())
 			{
 				os << "\" scanType=\""
@@ -1206,7 +1084,7 @@ namespace OpenMS
 			const PrecursorPeakType& peak = spec.getPrecursorPeak();
 			if (peak!= PrecursorPeakType())
 			{
-				os << String(MSLevel+2,'\t') << "<precursorMz precursorIntensity=\""
+				os << String(ms_level+2,'\t') << "<precursorMz precursorIntensity=\""
 					 << peak.getIntensity();
 				if (peak.getCharge()!=0)
 					os << "\" precursorCharge=\"" << peak.getCharge();
@@ -1216,7 +1094,7 @@ namespace OpenMS
 
 			if (spec.size() > 0)
 			{
-				os << String(MSLevel+2,'\t') << "<peaks precision=\"32\""
+				os << String(ms_level+2,'\t') << "<peaks precision=\"32\""
 					 << " byteOrder=\"network\" pairOrder=\"m/z-int\">";
 				
 				//std::cout << "Writing scan " << s << std::endl;
@@ -1233,28 +1111,29 @@ namespace OpenMS
 			}
 			else
 			{
-				os << String(MSLevel+2,'\t') << "<peaks precision=\"32\""
+				os << String(ms_level+2,'\t') << "<peaks precision=\"32\""
 					 << " byteOrder=\"network\" pairOrder=\"m/z-int\" xsi:nil=\"1\"/>\n";
 			}
 			
-			writeUserParam_(os,spec,MSLevel+2);
+			writeUserParam_(os,spec,ms_level+2);
 			if (spec.getComment() != "")
 			{
-				os << String(MSLevel+2,'\t') << "<comment>" << spec.getComment() << "</comment>\n";
+				os << String(ms_level+2,'\t') << "<comment>" << spec.getComment() << "</comment>\n";
 			}
 			
 			//check MS level of next scan and close scans (scans can be nested)
-			int next_MSLevel = min_ms_level;
+			int next_ms_level = 0;
 			if (s < cexp_->size()-1)
 			{
-				next_MSLevel = ((*cexp_)[s+1]).getMSLevel();
+				next_ms_level = ((*cexp_)[s+1]).getMSLevel();
 			}
-			//std::cout << "scan: " << s << " this: " << MSLevel << " next: " << next_MSLevel << std::endl;
-			if (next_MSLevel <= MSLevel)
+			//std::cout << "scan: " << s << " this: " << ms_level << " next: " << next_ms_level << std::endl;
+			if (next_ms_level <= ms_level)
 			{
-				for (Int i = 0; i<= MSLevel-next_MSLevel; ++i)
+				for (Int i = 0; i<= ms_level-next_ms_level && !open_scans.empty(); ++i)
 				{
-					os << String(MSLevel-i+1,'\t') << "</scan>\n";
+					os << String(ms_level-i+1,'\t') << "</scan>\n";
+					open_scans.pop();
 				}
 			}
 		}

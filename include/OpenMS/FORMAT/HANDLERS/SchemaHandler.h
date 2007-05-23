@@ -86,9 +86,6 @@ namespace OpenMS
 			virtual void writeTo(std::ostream& os) = 0;
 
     protected:
-    	/// Default construtctor not implemented => protected
-    	SchemaHandler();
-			
 			std::stack<bool> skip_tag_;
 			
 			/// is parser currently in tag with given index?
@@ -188,13 +185,20 @@ namespace OpenMS
 			/// check if value of attribute equals the required value, otherwise throw error
 			void checkAttribute_(UInt attribute, const String& required, const String& required_alt="");
 	
-			/// return value of attribute as String
-			String getAttributeAsString_(UInt attribute);
+			/**
+				@brief returns the value of attribute as a String
+				
+				If an attributes is @p required and not present an error message is created using the @p tag name
+			*/
+			String getAttributeAsString_(UInt attribute, bool is_required, const XMLCh* tag);
 			
 			
 			void setMaps_(UInt tagmap, UInt attmap);
 			
 		private:
+    	/// Default construtctor not implemented => private
+    	SchemaHandler();
+    	
 			UInt tag_map_, att_map_;
   	
   	};

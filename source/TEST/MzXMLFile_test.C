@@ -31,6 +31,7 @@
 #include <OpenMS/FORMAT/MzXMLFile.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/MSExperimentExtern.h>
+#include <OpenMS/KERNEL/StandardTypes.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -56,6 +57,18 @@ RESULT
 
 CHECK((~MzXMLFile()))
 	delete ptr;
+RESULT
+
+Internal::MzXMLHandler<PeakMap>* ptr2 = 0;
+CHECK(MzXMLHandler(MapType& exp, const String& filename, ProgressLogger& logger))
+	ProgressLogger log;
+	PeakMap map;
+	ptr2 = new Internal::MzXMLHandler<PeakMap>(map,"bla",log);
+	TEST_NOT_EQUAL(ptr2, 0)
+RESULT
+
+CHECK((~MzXMLHandler()))
+	delete ptr2;
 RESULT
 
 CHECK(const PeakFileOptions& getOptions() const)
@@ -653,15 +666,16 @@ CHECK(([EXTRA] load with RT range))
 	MSExperiment< RawDataPoint1D > e;
 	MzXMLFile mzxml;
 	mzxml.getOptions().setRTRange(makeRange(100, 200));
-	mzxml.load("data/MzXMLFile_test_1.mzXML",e);
+	mzxml.load("data/MzXMLFile_test_2.mzXML",e);
 	//---------------------------------------------------------------------------
 	// 120: (110,100) (120,200) (130,100)
 	// 180: (100,100) (110,200) (120,300) (130,200) (140,100)
 	//--------------------------------------------------------------------------- 
-// 	TEST_REAL_EQUAL(e[0].getContainer().size(), 3)
-// 	TEST_REAL_EQUAL(e[1].getContainer().size(), 5)
+ 	TEST_REAL_EQUAL(e.size(), 2)
+ 	TEST_REAL_EQUAL(e[0].getContainer().size(), 3)
+ 	TEST_REAL_EQUAL(e[1].getContainer().size(), 5)
 
-/*	TEST_REAL_EQUAL(e[0].getContainer()[0].getPosition()[0], 110)
+	TEST_REAL_EQUAL(e[0].getContainer()[0].getPosition()[0], 110)
 	TEST_REAL_EQUAL(e[0].getContainer()[0].getIntensity(), 100)
 	TEST_REAL_EQUAL(e[0].getContainer()[1].getPosition()[0], 120)
 	TEST_REAL_EQUAL(e[0].getContainer()[1].getIntensity(), 200)
@@ -676,7 +690,7 @@ CHECK(([EXTRA] load with RT range))
 	TEST_REAL_EQUAL(e[1].getContainer()[3].getPosition()[0], 130)
 	TEST_REAL_EQUAL(e[1].getContainer()[3].getIntensity(), 200)
 	TEST_REAL_EQUAL(e[1].getContainer()[4].getPosition()[0], 140)
-	TEST_REAL_EQUAL(e[1].getContainer()[4].getIntensity(), 100)*/
+	TEST_REAL_EQUAL(e[1].getContainer()[4].getIntensity(), 100)
 RESULT
 
 CHECK(([EXTRA] load with intensity range))
@@ -742,7 +756,7 @@ CHECK(([EXTRA] load/store for nested scans))
 	f.load(tmp_filename,e2);
 	TEST_EQUAL(e2.size(),5);
 
-	//MS level 1-3
+	//MS level 2
 	e2[0].setMSLevel(2);
 	e2[1].setMSLevel(2);
 	e2[2].setMSLevel(2);
@@ -758,6 +772,16 @@ CHECK(([EXTRA] load/store for nested scans))
 	e2[2].setMSLevel(3);
 	e2[3].setMSLevel(2);
 	e2[4].setMSLevel(3);
+	f.store(tmp_filename,e2);
+	f.load(tmp_filename,e2);
+	TEST_EQUAL(e2.size(),5);
+
+	//MS level 1-3 (not starting with 1)
+	e2[0].setMSLevel(2);
+	e2[1].setMSLevel(1);
+	e2[2].setMSLevel(2);
+	e2[3].setMSLevel(3);
+	e2[4].setMSLevel(1);
 	f.store(tmp_filename,e2);
 	f.load(tmp_filename,e2);
 	TEST_EQUAL(e2.size(),5);

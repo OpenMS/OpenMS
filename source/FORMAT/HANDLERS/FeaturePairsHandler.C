@@ -42,30 +42,30 @@ namespace OpenMS
       case FEATURE:  feature_        = new Feature(); break;
       case PAIR:     pair_           = new ElementPair <Feature> (); break;
       case QUALITY:
-        tmp_str = getAttributeAsString_(DIM);
+        tmp_str = getAttributeAsString_(DIM, true, qname);
         current_qcoord_ = asUInt_(tmp_str);
         break;
       case POSITION:
-        tmp_str = getAttributeAsString_(DIM);
+        tmp_str = getAttributeAsString_(DIM, true, qname);
         current_pcoord_ = asUInt_(tmp_str);
         break;
       case CONVEXHULL: current_chull_  = new ConvexHull2D(); break;
       case HULLPOINT:  hull_position_  = new Feature::PositionType(); break;
       case HPOSITION:
-        tmp_str = getAttributeAsString_(DIM);
+        tmp_str = getAttributeAsString_(DIM, true, qname);
         current_hcoord_ = asUInt_(tmp_str);
         break;
       case FEATMODEL:
         model_desc_ = new ModelDescription<2>();
         param_ = new Param();
-        tmp_str = getAttributeAsString_(NAME);
+        tmp_str = getAttributeAsString_(NAME, true, qname);
         if (tmp_str != "")
           model_desc_->setName(tmp_str);
         break;
       case PARAM:
         {
-          String name = getAttributeAsString_(NAME);
-          String value = getAttributeAsString_(VALUE);
+          String name = getAttributeAsString_(NAME, true, qname);
+          String value = getAttributeAsString_(VALUE, true, qname);
           if (name != "" && value != "")
             param_->setValue(name, value);
           break;
