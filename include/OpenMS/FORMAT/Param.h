@@ -61,7 +61,7 @@ namespace OpenMS
 	{
 	 public:
     /// Const iterator
-    typedef std::map<std::string, DataValue>::const_iterator ConstIterator;
+    typedef std::map<String, DataValue>::const_iterator ConstIterator;
 
     /** @name Constructors and Destructors
 		 */
@@ -83,20 +83,20 @@ namespace OpenMS
     bool operator == (const Param& rhs) const;
 
     /// Set a Int value.
-    void setValue(const std::string& key, Int value);
+    void setValue(const String& key, Int value);
     /// Set a float value.
-    void setValue(const std::string& key, float value);
+    void setValue(const String& key, float value);
     /// Set a double value.
-    void setValue(const std::string& key, double value);
+    void setValue(const String& key, double value);
     /// Set a string value.
-    void setValue(const std::string& key, const std::string& value);
+    void setValue(const String& key, const String& value);
 
     /**
 			 @brief Get a value by its key.
 
 			 To check if there is no value for the given key, compare the return value with DataValue::EMPTY
     */
-    const DataValue& getValue(const std::string& key) const;
+    const DataValue& getValue(const String& key) const;
 
     ///Returns the number of entries (leafs).
     UInt size() const;
@@ -108,7 +108,7 @@ namespace OpenMS
     ///Insert all values of @p para and adds the prefix @p prefix.
     void insert(String prefix, const Param& para);
     ///Remove all entries that start with @p prefix.
-    void remove(const std::string& prefix);
+    void remove(const String& prefix);
 
     /**
     	@brief Insert all values of @p para and adds the prefix @p prefix, if the values are not already set.
@@ -139,7 +139,7 @@ namespace OpenMS
 			 @param remove_prefix indicates if the prefix is removed before adding entries to the new Param
 			 @param new_prefix is added to the front of all keys
     */
-		Param copy(const std::string& prefix, bool remove_prefix=false, String new_prefix="") const;
+		Param copy(const String& prefix, bool remove_prefix=false, String new_prefix="") const;
 	
 		/** @brief Like copy(), but with support for "inherit" items.
 				
@@ -148,12 +148,12 @@ namespace OpenMS
 				new_prefix.  (Keeping old_prefix seems to make no sense in combination
 				with inheritance.)
 		 */
-    Param copyWithInherit(const std::string& old_prefix, const std::string& new_prefix="") const;
+    Param copyWithInherit(const String& old_prefix, const String& new_prefix="") const;
 
     ///Write XML file.
-    void store(const std::string& filename) const throw (Exception::UnableToCreateFile);
+    void store(const String& filename) const throw (Exception::UnableToCreateFile);
     ///Read XML file.
-    void load(const std::string& filename) throw (Exception::FileNotFound,Exception::ParseError);
+    void load(const String& filename) throw (Exception::FileNotFound,Exception::ParseError);
 
     /**
 			 @brief Parses command line arguments.
@@ -185,7 +185,7 @@ namespace OpenMS
 			 @param misc key where all non-option arguments are stored
 			 @param unknown key where all unknown options are stored
     */
-    void parseCommandLine(const int argc , char** argv, const std::map<std::string, std::string>& options_with_argument, const std::map<std::string, std::string>& options_without_argument, const std::string& misc="misc", const std::string& unknown="unknown");
+    void parseCommandLine(const int argc , char** argv, const std::map<String, String>& options_with_argument, const std::map<String, String>& options_without_argument, const String& misc="misc", const String& unknown="unknown");
 
 
     /// Returns a constant iterator to the begin of the stored values.
@@ -202,7 +202,7 @@ namespace OpenMS
 
 	 protected:
     /// internal storage container
-    std::map<std::string, DataValue> values_;
+    std::map<String, DataValue> values_;
 
 		friend std::ostream& operator << (std::ostream& os, const Param& param);
 

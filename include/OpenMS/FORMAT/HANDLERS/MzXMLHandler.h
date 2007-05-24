@@ -194,10 +194,10 @@ namespace OpenMS
 			inline void writeUserParam_(std::ostream& os, const MetaInfoInterface& meta,
 																	int indent=4, String tag="nameValue")
 			{
-				std::vector<std::string> keys;  // Vector to hold keys to meta info
+				std::vector<String> keys;  // Vector to hold keys to meta info
 				meta.getKeys(keys);
 	
-				for (std::vector<std::string>::const_iterator it = keys.begin(); it!=keys.end(); ++it)
+				for (std::vector<String>::const_iterator it = keys.begin(); it!=keys.end(); ++it)
 					if ( (*it)[0] != '#')  // internally used meta info start with '#'
 				{
 					String name = *it;

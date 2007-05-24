@@ -32,6 +32,7 @@
 
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/Types.h>
+#include <OpenMS/DATASTRUCTURES/String.h>
 
 namespace OpenMS
 {
@@ -68,36 +69,36 @@ namespace OpenMS
 				Registers a string, stores it's description and unit, and returns the corresponding index.
 				If the string is already registered, it retuns the index of the string.
 			*/
-			UInt registerName(const std::string& name, const std::string& description, const std::string& unit="");
+			UInt registerName(const String& name, const String& description, const String& unit="");
 	
 			///Returns the corresponding integer to a string
-			UInt getIndex(const std::string& name) const throw(Exception::InvalidValue);
+			UInt getIndex(const String& name) const throw(Exception::InvalidValue);
 	
 			///Returns the corresponding name to an index
-			std::string getName(UInt index) const throw(Exception::InvalidValue);
+			String getName(UInt index) const throw(Exception::InvalidValue);
 	
 	
 			/// retuns the description of an index
-			std::string getDescription(UInt index) const throw(Exception::InvalidValue);
+			String getDescription(UInt index) const throw(Exception::InvalidValue);
 			/// retuns the description of a name
-			std::string getDescription(const std::string& name) const throw(Exception::InvalidValue);
+			String getDescription(const String& name) const throw(Exception::InvalidValue);
 	
 			/// retuns the unit of an index
-			std::string getUnit(UInt index) const throw(Exception::InvalidValue);
+			String getUnit(UInt index) const throw(Exception::InvalidValue);
 			/// retuns the unit of a name
-			std::string getUnit(const std::string& name) const throw(Exception::InvalidValue);
+			String getUnit(const String& name) const throw(Exception::InvalidValue);
 
 		private:
 			/// internal counter, that stores the next index to assign
 			UInt next_index_;
 			/// map from name to index
-			std::map<std::string,UInt> name_to_index_;
+			std::map<String,UInt> name_to_index_;
 			/// map from index to name
-			std::map<UInt,std::string> index_to_name_;
+			std::map<UInt,String> index_to_name_;
 			/// map from index to description
-			std::map<UInt,std::string> index_to_description_;
+			std::map<UInt,String> index_to_description_;
 			/// map from index to unit
-			std::map<UInt,std::string> index_to_unit_;
+			std::map<UInt,String> index_to_unit_;
 
 	};
 

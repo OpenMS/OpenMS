@@ -37,7 +37,8 @@
 
 namespace OpenMS
 {
-
+	class String;
+	
 	/**
 		@brief A Type-Name-Value tuple class.
 		
@@ -76,34 +77,34 @@ namespace OpenMS
     bool operator!= (const MetaInfo& rhs) const;
 
 		/// returns the value corresponding to a string
-		const DataValue& getValue(const std::string& name) const;
+		const DataValue& getValue(const String& name) const;
 		/// returns the value corresponding to an index
 		const DataValue& getValue(UInt index) const;
 
 		/// returns if this MetaInfo is set
-		bool exists(const std::string& name) const;
+		bool exists(const String& name) const;
 		/// returns if this MetaInfo is set
 		bool exists(UInt index) const;
 
 		/// sets the value (string) corresponding to a name
-		void setValue(const std::string& name, const std::string& value);
+		void setValue(const String& name, const String& value);
 		/// sets the value (string) corresponding to an index
-		void setValue(UInt index, const std::string& value);
+		void setValue(UInt index, const String& value);
 		/// sets the value (integer) corresponding to a name
-		void setValue(const std::string& name, Int value);
+		void setValue(const String& name, Int value);
 		/// sets the value (integer) corresponding to an index
 		void setValue(UInt index, Int value);
 		/// sets the value (double) corresponding to a name
-		void setValue(const std::string& name, double value);
+		void setValue(const String& name, double value);
 		/// sets the value (double) corresponding to an index
 		void setValue(UInt index, double value);
 		/// sets the DataValue corresponding to a name
-		void setValue(const std::string& name, const DataValue& value);
+		void setValue(const String& name, const DataValue& value);
 		///  sets the DataValue corresponding to an index
 		void setValue(UInt index, const DataValue& value);
 		
 		/// Removes the DataValue corresponding to @p name if it exists
-		void removeValue(const std::string& name);
+		void removeValue(const String& name);
 		/// Removes the DataValue corresponding to @p index if it exists
 		void removeValue(UInt index);		
 		
@@ -111,7 +112,7 @@ namespace OpenMS
 		static MetaInfoRegistry& registry();
     
     /// fills the given vector with a list of all keys for which a value is set
-    void getKeys(std::vector<std::string>& keys) const;
+    void getKeys(std::vector<String>& keys) const;
 
 		/// fills the given vector with a list of all keys for which a value is set
     void getKeys(std::vector<UInt>& keys) const;

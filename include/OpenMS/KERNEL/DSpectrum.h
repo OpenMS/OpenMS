@@ -481,13 +481,13 @@ namespace OpenMS
 			}
 			
 			///Returns the name
-			std::string getName() const
+			String getName() const
 			{
 				 return name_; 
 			}
 			
 			///Sets the name
-			void setName(const std::string& name)
+			void setName(const String& name)
 			{
 				name_ = name;
 			}
@@ -561,7 +561,7 @@ namespace OpenMS
 			UInt ms_level_;
 			
 			/// Name
-			std::string name_;	
+			String name_;	
 	};
 
 	///Print the contents to a stream.

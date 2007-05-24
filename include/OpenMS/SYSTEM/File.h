@@ -24,7 +24,6 @@
 // $Maintainer: Marc Sturm $
 // --------------------------------------------------------------------------
 
-#include <string>
 #include <vector>
 
 #ifndef OPENMS_SYSTEM_FILE_H
@@ -44,32 +43,32 @@ namespace OpenMS
 		public:
 			
 			/// Method used to test if a @p file exists.
-			static bool exists(const std::string& file);
+			static bool exists(const String& file);
 		
 			/// Return true if the file does not exist of the file is empty
-			static bool empty(const std::string& file);
+			static bool empty(const String& file);
 		
 			/**
 				@brief Removes a file (if it exists). 
 			
 				@return Returns true if the file was successfully deleted (or if it did not exist).
 			*/
-			static bool remove(const std::string& file);
+			static bool remove(const String& file);
 
 			/// Replaces the relative path in the argument with the absolute path.
-			static void absolutePath(std::string& file);
+			static void absolutePath(String& file);
 
 			/// Returns the basename of the file (without the path).
-			static String basename(const std::string& file);
+			static String basename(const String& file);
 
 			/// Returns the path of the file (without the file name).
-			static String path(const std::string& file);
+			static String path(const String& file);
 			
 			/// Return true if the file exists and is readable
-			static bool readable(const std::string& file);
+			static bool readable(const String& file);
 
 			/// Return true if the file is writable
-			static bool writable(const std::string& file);
+			static bool writable(const String& file);
 			
 			/**
 				@brief Looks up the location of @p filename
@@ -87,7 +86,7 @@ namespace OpenMS
 				
 				@return If there are matching files
 			*/
-			static bool fileList(const std::string& dir, const std::string& file_pattern, std::vector<String>& output);
+			static bool fileList(const String& dir, const String& file_pattern, std::vector<String>& output);
 	};
 
 }

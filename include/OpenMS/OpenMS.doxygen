@@ -79,12 +79,14 @@ Ideen:
 - Seeder/Extender: Analyse der MassenSpur-Distanzen
 
 Todos:
-- Add getPrecursorRT(rt/scan nr) and update ID adapters and IDSpectrumMapper 
-- Spectrum3DCanvas: fix grab keyboard (buddy?)
-- TOPP tutorial: Usecases AW-Daten
+- TOPPView
+  - Mapping ID-Specktren
+  - Speicher von ID 
+- DB-Schema ID
 - checker
 - Quadtree ausbauen
-- make -j<x>
+- Spectrum3DCanvas: fix grab keyboard (buddy?)
+- TOPP tutorial: Usecases AW-Daten
 - altes IdXMLFile2 + IdXMLConverter raus
 
 Thomas Schreiner:

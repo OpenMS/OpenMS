@@ -137,7 +137,7 @@ namespace OpenMS
       	
       	If the filename is empty, the application name + ".ini" is used as filename
       */
-      void loadPreferences(std::string filename="");
+      void loadPreferences(String filename="");
       /// stores the preferences (used when this window is closed)
       void savePreferences();
 			
