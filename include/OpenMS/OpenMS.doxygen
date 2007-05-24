@@ -79,7 +79,6 @@ Ideen:
 - Seeder/Extender: Analyse der MassenSpur-Distanzen
 
 Todos:
-- DB-Schema ID
 - checker
 - Quadtree ausbauen
 - Spectrum3DCanvas: fix grab keyboard (buddy?)

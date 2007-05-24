@@ -1,5 +1,17 @@
 SET FOREIGN_KEY_CHECKS=0;
 
+-- --------------------------------------------------------
+
+-- 
+-- Table structure for table `ADMIN_Version`
+-- 
+
+CREATE TABLE ADMIN_Version (
+  version varchar(50) NOT NULL default ''
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+-- --------------------------------------------------------
+
 -- 
 -- Table structure for table `DATA_ExperimentGroup`
 -- 
@@ -73,7 +85,7 @@ CREATE TABLE DATA_Precursor (
   ActivationMethod enum('UNKNOWN','CID','PSD','PD','SID') NOT NULL default 'UNKNOWN',
   ActivationEnergy float default NULL,
   ActivationEnergyUnit enum('UNKNOWN','EV','PERCENT') NOT NULL default 'UNKNOWN',
-  WindowSize float NOT NULL DEFAULT '0',
+  WindowSize float NOT NULL default '0',
   PRIMARY KEY  (id),
   KEY peak_list (fid_Spectrum),
   KEY fid_MetaInfo (fid_MetaInfo)
@@ -105,45 +117,15 @@ CREATE TABLE DATA_Spectrum (
 -- --------------------------------------------------------
 
 -- 
--- Table structure for table `ID_Identification`
+-- Table structure for table `ID_FixedModifications`
 -- 
 
-CREATE TABLE ID_Identification (
-  id bigint(20) unsigned NOT NULL auto_increment,
-  fid_Spectrum bigint(20) unsigned default NULL,
-  fid_File bigint(20) unsigned default NULL,
-  fid_MetaInfo bigint(20) unsigned default NULL,
-  `Date` date default NULL,
-  Charge smallint(6) NOT NULL default '0',
-  PeptideSignificanceThreshold float NOT NULL default '0',
-  ProteinSignificanceThreshold float NOT NULL default '0',
+CREATE TABLE ID_FixedModifications (
+  id bigint(20) unsigned NOT NULL default '0',
+  fid_SearchParameters bigint(20) unsigned NOT NULL default '0',
+  name varchar(50) NOT NULL default '',
   PRIMARY KEY  (id),
-  KEY fid_Spectrum (fid_Spectrum),
-  KEY fid_MetaInfo (fid_MetaInfo),
-  KEY fid_File (fid_File)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
-
--- --------------------------------------------------------
-
--- 
--- Table structure for table `ID_IdentificationParameters`
--- 
-
-CREATE TABLE ID_IdentificationParameters (
-  id bigint(20) unsigned NOT NULL auto_increment,
-  fid_Identification bigint(20) unsigned NOT NULL default '0',
-  SoftwareName varchar(50) NOT NULL default '',
-  `Database` varchar(50) default NULL,
-  DatabaseVersion varchar(20) default NULL,
-  Taxonomy varchar(30) default NULL,
-  FixedModifications varchar(100) default NULL,
-  VariableModifications varchar(100) default NULL,
-  MissedCleavages smallint(6) default NULL,
-  MassType enum('monoisotopic','average') NOT NULL default 'monoisotopic',
-  IonTolerance float default NULL,
-  PeptideTolerance float default NULL,
-  PRIMARY KEY  (id),
-  KEY fid_Identification (fid_Identification)
+  KEY fid_SearchParameters (fid_SearchParameters)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 -- --------------------------------------------------------
@@ -155,14 +137,36 @@ CREATE TABLE ID_IdentificationParameters (
 CREATE TABLE ID_PeptideHit (
   id bigint(20) unsigned NOT NULL auto_increment,
   fid_Identification bigint(20) unsigned NOT NULL default '0',
+  fid_MetaInfo bigint(20) unsigned default NULL,
   Score float NOT NULL default '0',
-  ScoreType enum('Unknown','Mascot','Sequest','Probability','CrossCorrelation') NOT NULL default 'Unknown',
-  Rank smallint(5) unsigned NOT NULL default '0',
   Sequence varchar(100) NOT NULL default '',
+  charge tinyint(4) default NULL,
+  AABefore char(1) default NULL,
+  AAAfter char(1) default NULL,
   PRIMARY KEY  (id),
   KEY db_search (fid_Identification),
   KEY Score (Score),
-  KEY Rank (Rank)
+  KEY fid_MetaInfo (fid_MetaInfo)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+-- --------------------------------------------------------
+
+-- 
+-- Table structure for table `ID_PeptideIdentification`
+-- 
+
+CREATE TABLE ID_PeptideIdentification (
+  id bigint(20) unsigned NOT NULL auto_increment,
+  fid_Spectrum bigint(20) unsigned default NULL,
+  fid_File bigint(20) unsigned default NULL,
+  fid_MetaInfo bigint(20) unsigned default NULL,
+  SignificanceThreshold float NOT NULL default '0',
+  ScoreType varchar(100) NOT NULL default '',
+  HigherScoreBetter tinyint(1) NOT NULL default '0',
+  PRIMARY KEY  (id),
+  KEY fid_Spectrum (fid_Spectrum),
+  KEY fid_MetaInfo (fid_MetaInfo),
+  KEY fid_File (fid_File)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 -- --------------------------------------------------------
@@ -173,17 +177,74 @@ CREATE TABLE ID_PeptideHit (
 
 CREATE TABLE ID_ProteinHit (
   id bigint(20) unsigned NOT NULL auto_increment,
-  fid_Identification bigint(20) unsigned NOT NULL default '0',
+  fid_ProteinIdentification bigint(20) unsigned NOT NULL default '0',
+  fid_MetaInfo bigint(20) unsigned default NULL,
   Score float NOT NULL default '0',
-  ScoreType enum('Unknown','Mascot','Sequest','Probability','CrossCorrelation') NOT NULL default 'Unknown',
-  Rank smallint(5) unsigned NOT NULL default '0',
   Accession varchar(20) NOT NULL default '0',
-  AccessionType enum('Unknown','SwissProt','RefSeq') NOT NULL default 'Unknown',
   Sequence varchar(100) NOT NULL default '',
   PRIMARY KEY  (id),
-  KEY db_search (fid_Identification),
+  KEY db_search (fid_ProteinIdentification),
   KEY Score (Score),
-  KEY Rank (Rank)
+  KEY fid_MetaInfo (fid_MetaInfo)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+-- --------------------------------------------------------
+
+-- 
+-- Table structure for table `ID_ProteinIdentification`
+-- 
+
+CREATE TABLE ID_ProteinIdentification (
+  id bigint(20) unsigned NOT NULL auto_increment,
+  fid_MSExperiment bigint(20) unsigned default NULL,
+  fid_File bigint(20) unsigned default NULL,
+  fid_MetaInfo bigint(20) unsigned default NULL,
+  SearchEngine varchar(40) NOT NULL default '',
+  SearchEngineVersion varchar(10) NOT NULL default '',
+  `Date` date default NULL,
+  ScoreType varchar(100) NOT NULL default '',
+  HigherScoreBetter tinyint(1) NOT NULL default '0',
+  SignificanceThreshold float NOT NULL default '0',
+  PRIMARY KEY  (id),
+  KEY fid_Spectrum (fid_MSExperiment),
+  KEY fid_MetaInfo (fid_MetaInfo),
+  KEY fid_File (fid_File)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+-- --------------------------------------------------------
+
+-- 
+-- Table structure for table `ID_SearchParameters`
+-- 
+
+CREATE TABLE ID_SearchParameters (
+  id bigint(20) unsigned NOT NULL auto_increment,
+  fid_Identification bigint(20) unsigned NOT NULL default '0',
+  DB varchar(40) NOT NULL default '',
+  DBVersion varchar(10) NOT NULL default '',
+  Taxonomy varchar(50) NOT NULL default '',
+  Charges varchar(20) NOT NULL default '',
+  MassType enum('average','monoisotopic') NOT NULL default 'monoisotopic',
+  Enzyme enum('trypsin','pepsin_a','protease_k','chymotrypsin','no_enzyme','unknown_enzyme') NOT NULL default 'unknown_enzyme',
+  MissedCleavages tinyint(4) NOT NULL default '0',
+  PeakMassTolerance float NOT NULL default '0',
+  PrecursorTolerance float NOT NULL default '0',
+  PRIMARY KEY  (id),
+  KEY fid_Identification (fid_Identification)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+-- --------------------------------------------------------
+
+-- 
+-- Table structure for table `ID_VariableModifications`
+-- 
+
+CREATE TABLE ID_VariableModifications (
+  id bigint(20) unsigned NOT NULL default '0',
+  fid_SearchParameters bigint(20) unsigned NOT NULL default '0',
+  name varchar(50) NOT NULL default '',
+  PRIMARY KEY  (id),
+  KEY fid_SearchParameters (fid_SearchParameters)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 -- --------------------------------------------------------
@@ -300,9 +361,9 @@ CREATE TABLE META_File (
   id bigint(20) unsigned NOT NULL auto_increment,
   FileName varchar(50) collate latin1_general_ci NOT NULL default '',
   FilePath varchar(80) collate latin1_general_ci NOT NULL default '',
-	sha1 varchar(40) collate latin1_general_ci NOT NULL default '',
+  sha1 varchar(40) collate latin1_general_ci NOT NULL default '',
   Size float unsigned NOT NULL default '0',
-  `Type` text collate latin1_general_ci NOT NULL default '',
+  `Type` text collate latin1_general_ci NOT NULL,
   PRIMARY KEY  (id)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_general_ci;
 
@@ -643,18 +704,6 @@ CREATE TABLE META_TypeNameValue (
   PRIMARY KEY  (fid_MetaInfo,Name)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_general_ci;
 
--- --------------------------------------------------------
-
--- 
--- Table structure for table `ADMIN_Version`
--- 
-
-CREATE TABLE `ADMIN_Version` (
-  `version` varchar(50) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
-
--- --------------------------------------------------------
-
 -- 
 -- Constraints for dumped tables
 -- 
@@ -696,30 +745,52 @@ ALTER TABLE `DATA_Spectrum`
   ADD CONSTRAINT Spectrum_ibfk_2 FOREIGN KEY (fid_MSExperiment) REFERENCES META_MSExperiment (id) ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- 
--- Constraints for table `ID_Identification`
+-- Constraints for table `ID_FixedModifications`
 -- 
-ALTER TABLE `ID_Identification`
-  ADD CONSTRAINT Identification_ibfk_1 FOREIGN KEY (fid_Spectrum) REFERENCES DATA_Spectrum (id) ON DELETE CASCADE ON UPDATE CASCADE,
-  ADD CONSTRAINT Identification_ibfk_2 FOREIGN KEY (fid_MetaInfo) REFERENCES META_MetaInfo (id) ON DELETE SET NULL ON UPDATE SET NULL,
-  ADD CONSTRAINT ID_Identification_ibfk_1 FOREIGN KEY (fid_File) REFERENCES META_File (id) ON DELETE SET NULL ON UPDATE SET NULL;
-
--- 
--- Constraints for table `ID_IdentificationParameters`
--- 
-ALTER TABLE `ID_IdentificationParameters`
-  ADD CONSTRAINT IdentificationParameters_ibfk_1 FOREIGN KEY (fid_Identification) REFERENCES ID_Identification (id) ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE `ID_FixedModifications`
+  ADD CONSTRAINT ID_FixedModifications_ibfk_1 FOREIGN KEY (fid_SearchParameters) REFERENCES ID_SearchParameters (id) ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- 
 -- Constraints for table `ID_PeptideHit`
 -- 
 ALTER TABLE `ID_PeptideHit`
-  ADD CONSTRAINT PeptideHit_ibfk_1 FOREIGN KEY (fid_Identification) REFERENCES ID_Identification (id) ON DELETE CASCADE ON UPDATE CASCADE;
+  ADD CONSTRAINT ID_PeptideHit_ibfk_1 FOREIGN KEY (fid_Identification) REFERENCES ID_PeptideIdentification (id) ON DELETE CASCADE ON UPDATE CASCADE,
+  ADD CONSTRAINT ID_PeptideHit_ibfk_2 FOREIGN KEY (fid_MetaInfo) REFERENCES META_MetaInfo (id) ON DELETE SET NULL ON UPDATE SET NULL;
+
+-- 
+-- Constraints for table `ID_PeptideIdentification`
+-- 
+ALTER TABLE `ID_PeptideIdentification`
+  ADD CONSTRAINT ID_PeptideIdentification_ibfk_1 FOREIGN KEY (fid_Spectrum) REFERENCES DATA_Spectrum (id) ON DELETE CASCADE ON UPDATE CASCADE,
+  ADD CONSTRAINT ID_PeptideIdentification_ibfk_2 FOREIGN KEY (fid_File) REFERENCES META_File (id) ON DELETE SET NULL ON UPDATE SET NULL,
+  ADD CONSTRAINT ID_PeptideIdentification_ibfk_3 FOREIGN KEY (fid_MetaInfo) REFERENCES META_MetaInfo (id) ON DELETE SET NULL ON UPDATE SET NULL;
 
 -- 
 -- Constraints for table `ID_ProteinHit`
 -- 
 ALTER TABLE `ID_ProteinHit`
-  ADD CONSTRAINT ProteinHit_ibfk_1 FOREIGN KEY (fid_Identification) REFERENCES ID_Identification (id) ON DELETE CASCADE ON UPDATE CASCADE;
+  ADD CONSTRAINT ID_ProteinHit_ibfk_1 FOREIGN KEY (fid_ProteinIdentification) REFERENCES ID_ProteinIdentification (id) ON DELETE CASCADE ON UPDATE CASCADE,
+  ADD CONSTRAINT ID_ProteinHit_ibfk_2 FOREIGN KEY (fid_MetaInfo) REFERENCES META_MetaInfo (id) ON DELETE SET NULL ON UPDATE SET NULL;
+
+-- 
+-- Constraints for table `ID_ProteinIdentification`
+-- 
+ALTER TABLE `ID_ProteinIdentification`
+  ADD CONSTRAINT Identification_ibfk_2 FOREIGN KEY (fid_MetaInfo) REFERENCES META_MetaInfo (id) ON DELETE SET NULL ON UPDATE SET NULL,
+  ADD CONSTRAINT ID_ProteinIdentification_ibfk_1 FOREIGN KEY (fid_File) REFERENCES META_File (id) ON DELETE SET NULL ON UPDATE SET NULL,
+  ADD CONSTRAINT ID_ProteinIdentification_ibfk_2 FOREIGN KEY (fid_MSExperiment) REFERENCES META_MSExperiment (id) ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- 
+-- Constraints for table `ID_SearchParameters`
+-- 
+ALTER TABLE `ID_SearchParameters`
+  ADD CONSTRAINT IdentificationParameters_ibfk_1 FOREIGN KEY (fid_Identification) REFERENCES ID_ProteinIdentification (id) ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- 
+-- Constraints for table `ID_VariableModifications`
+-- 
+ALTER TABLE `ID_VariableModifications`
+  ADD CONSTRAINT ID_VariableModifications_ibfk_1 FOREIGN KEY (fid_SearchParameters) REFERENCES ID_SearchParameters (id) ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- 
 -- Constraints for table `LINK_ExperimentGroup_MSExperiment`
@@ -872,13 +943,7 @@ ALTER TABLE `META_Software`
 ALTER TABLE `META_SpectrumQuality`
   ADD CONSTRAINT SpectrumQuality_ibfk_1 FOREIGN KEY (fid_Spectrum) REFERENCES DATA_Spectrum (id) ON DELETE CASCADE ON UPDATE CASCADE;
 
--- 
--- Constraints for table `META_TypeNameValue`
--- 
-ALTER TABLE `META_TypeNameValue`
-  ADD CONSTRAINT TypeNameValue_ibfk_1 FOREIGN KEY (fid_MetaInfo) REFERENCES META_MetaInfo (id) ON DELETE CASCADE ON UPDATE CASCADE;
-
--- --------------------------------------------------------
+-------------------------------------------------- DATA ----------------------------------------------------------
 
 -- 
 -- Dumping data for table `ADMIN_Version`
