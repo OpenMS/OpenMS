@@ -24,8 +24,8 @@
 // $Maintainer: Marc Sturm $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_CONCEPT_PROGRESS_H
-#define OPENMS_CONCEPT_PROGRESS_H
+#ifndef OPENMS_CONCEPT_PROGRESSLOGGER_H
+#define OPENMS_CONCEPT_PROGRESSLOGGER_H
 
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
@@ -93,5 +93,5 @@ namespace OpenMS
 
 }//namespace OpenMS
 
-#endif //OPENMS_CONCEPT_PROGRESS_H
+#endif //OPENMS_CONCEPT_PROGRESSLOGGER_H
 

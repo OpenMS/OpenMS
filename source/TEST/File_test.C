@@ -39,18 +39,18 @@ START_TEST(TextFile, "$Id$")
 
 /////////////////////////////////////////////////////////////
 
-CHECK((bool exists(const std::string &file)))
+CHECK((bool exists(const String &file)))
 	TEST_EQUAL(File::exists("does_not_exists.txt"), false)
 	TEST_EQUAL(File::exists("data/File_test_text.txt"), true)
 RESULT
 
-CHECK((bool empty(const std::string &file)))
+CHECK((bool empty(const String &file)))
 	TEST_EQUAL(File::empty("does_not_exists.txt"), true)
 	TEST_EQUAL(File::empty("data/File_test_empty.txt"), true)	
 	TEST_EQUAL(File::empty("data/File_test_text.txt"), false)
 RESULT
 
-CHECK((bool remove(const std::string &file)))
+CHECK((bool remove(const String &file)))
 	//deleteing non-existing file
 	TEST_EQUAL(File::remove("does_not_exists.txt"), true)
 	
@@ -64,13 +64,13 @@ CHECK((bool remove(const std::string &file)))
 	TEST_EQUAL(File::remove(filename), true)	
 RESULT
 
-CHECK((bool readable(const std::string &file)))
+CHECK((bool readable(const String &file)))
 	TEST_EQUAL(File::readable("does_not_exists.txt"), false)
 	TEST_EQUAL(File::readable("data/File_test_empty.txt"), true)	
 	TEST_EQUAL(File::readable("data/File_test_text.txt"), true)
 RESULT
 
-CHECK((bool writable(const std::string &file)))
+CHECK((bool writable(const String &file)))
 	TEST_EQUAL(File::writable("/this/file/cannot/be/written/does_not_exists.txt"), false)
 	String filename;
 	NEW_TMP_FILE(filename);
@@ -84,19 +84,19 @@ CHECK((String find(const String &filename, std::vector< String > directories=std
 	TEST_NOT_EQUAL(File::find("File.h",vec),"");
 RESULT
 
-CHECK((void absolutePath(std::string &file)))
+CHECK((void absolutePath(String &file)))
 	// not testable
 RESULT
 
-CHECK((String path(const std::string &file)))
+CHECK((String path(const String &file)))
 	// not testable
 RESULT
 
-CHECK((String basename(const std::string &file)))
+CHECK((String basename(const String &file)))
 	TEST_EQUAL(File::basename("/souce/config/bla/bluff.h"),"bluff.h");
 RESULT
 
-CHECK((bool fileList(const std::string &dir, const std::string &file_pattern, std::vector< String > &output)))
+CHECK((bool fileList(const String &dir, const String &file_pattern, std::vector< String > &output)))
 	vector<String> vec;
 	TEST_EQUAL(File::fileList("data/","*.bliblaluff",vec),false);
 RESULT

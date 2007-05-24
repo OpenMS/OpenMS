@@ -59,18 +59,6 @@ CHECK((~MzXMLFile()))
 	delete ptr;
 RESULT
 
-Internal::MzXMLHandler<PeakMap>* ptr2 = 0;
-CHECK(MzXMLHandler(MapType& exp, const String& filename, ProgressLogger& logger))
-	ProgressLogger log;
-	PeakMap map;
-	ptr2 = new Internal::MzXMLHandler<PeakMap>(map,"bla",log);
-	TEST_NOT_EQUAL(ptr2, 0)
-RESULT
-
-CHECK((~MzXMLHandler()))
-	delete ptr2;
-RESULT
-
 CHECK(const PeakFileOptions& getOptions() const)
 	MzXMLFile file;
 	TEST_EQUAL(file.getOptions().hasMSLevels(),false)

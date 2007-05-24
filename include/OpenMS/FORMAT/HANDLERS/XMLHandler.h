@@ -227,25 +227,25 @@ namespace OpenMS
 			}
 		
 		/// Converts an attribute to a String
-		inline const char* attributeAsString(const xercesc::Attributes& a, const char* name) const
+		inline const char* attributeAsString_(const xercesc::Attributes& a, const char* name) const
 		{
 			return xercesc::XMLString::transcode(a.getValue(xercesc::XMLString::transcode(name)));
 		}
 		
 		/// Converts an attribute to a Int
-		inline Int attributeAsInt(const xercesc::Attributes& a, const char* name) const
+		inline Int attributeAsInt_(const xercesc::Attributes& a, const char* name) const
 		{
 			return xercesc::XMLString::parseInt(a.getValue(xercesc::XMLString::transcode(name)));
 		}
 		
 		/// Converts an attribute to a DoubleReal
-		inline DoubleReal attributeAsDouble(const xercesc::Attributes& a, const char* name) const
+		inline DoubleReal attributeAsDouble_(const xercesc::Attributes& a, const char* name) const
 		{
 			return atof(xercesc::XMLString::transcode(a.getValue(xercesc::XMLString::transcode(name))));
 		}
 
 		/// Assigns the attribute content to the String @a value if the attribute is present
-		inline void optionalAttributeAsString(String& value, const xercesc::Attributes& a, const char* name) const
+		inline void optionalAttributeAsString_(String& value, const xercesc::Attributes& a, const char* name) const
 		{
 			const XMLCh* val = a.getValue(xercesc::XMLString::transcode(name));
 			if (val!=0)
@@ -259,7 +259,7 @@ namespace OpenMS
 		}
 		
 		/// Assigns the attribute content to the Int @a value if the attribute is present
-		inline void optionalAttributeAsInt(Int& value, const xercesc::Attributes& a, const char* name) const
+		inline void optionalAttributeAsInt_(Int& value, const xercesc::Attributes& a, const char* name) const
 		{
 			const XMLCh* val = a.getValue(xercesc::XMLString::transcode(name));
 			if (val!=0)
@@ -269,7 +269,7 @@ namespace OpenMS
 		}
 
 		/// Assigns the attribute content to the UInt @a value if the attribute is present
-		inline void optionalAttributeAsUInt(UInt& value, const xercesc::Attributes& a, const char* name) const
+		inline void optionalAttributeAsUInt_(UInt& value, const xercesc::Attributes& a, const char* name) const
 		{
 			const XMLCh* val = a.getValue(xercesc::XMLString::transcode(name));
 			if (val!=0)
@@ -279,7 +279,7 @@ namespace OpenMS
 		}
 		
 		/// Assigns the attribute content to the DoubleReal @a value if the attribute is present
-		inline void optionalAttributeAsDouble(DoubleReal& value, const xercesc::Attributes& a, const char* name) const
+		inline void optionalAttributeAsDouble_(DoubleReal& value, const xercesc::Attributes& a, const char* name) const
 		{
 			const XMLCh* val = a.getValue(xercesc::XMLString::transcode(name));
 			if (val!=0)

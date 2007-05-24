@@ -90,7 +90,7 @@ CHECK(Type getTypeByContent(const String& filename) throw(Exception::FileNotFoun
 	TEST_EQUAL(tmp.getTypeByContent("data/class_test_infile.txt"), FileHandler::UNKNOWN)
 RESULT
 
-CHECK(template<class PeakType> bool loadExperiment(const String& filename, MSExperiment<PeakType>& exp, Type force_type = UNKNOWN))
+CHECK(template <class PeakType> bool loadExperiment(const String &filename, MSExperiment< PeakType > &exp, Type force_type=UNKNOWN, ProgressLogger::LogType log=ProgressLogger::NONE))
 	FileHandler tmp;
 	MSExperiment<> exp;
 	TEST_EQUAL(tmp.loadExperiment("test.bla",exp), false)	
@@ -153,6 +153,17 @@ CHECK(bool isSupported(Type type))
 #else
 	TEST_EQUAL(false, tmp.isSupported(FileHandler::ANDIMS));
 #endif
+RESULT
+
+CHECK(const PeakFileOptions& getOptions() const)
+	FileHandler a;
+	TEST_EQUAL(a.getOptions().hasMSLevels(),false)
+RESULT
+
+CHECK(PeakFileOptions& getOptions())
+	FileHandler a;
+	a.getOptions().addMSLevel(1);
+	TEST_EQUAL(a.getOptions().hasMSLevels(),true);
 RESULT
 
 /////////////////////////////////////////////////////////////

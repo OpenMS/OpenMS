@@ -24,8 +24,8 @@
 // $Maintainer: Marc Sturm $
 // --------------------------------------------------------------------------
  
-#ifndef OPENMS_VISUAL_VISUALIZER_IDENTIFICATIONVISUALIZER_H
-#define OPENMS_VISUAL_VISUALIZER_IDENTIFICATIONVISUALIZER_H
+#ifndef OPENMS_VISUAL_VISUALIZER_PROTEINIDENTIFICATIONVISUALIZER_H
+#define OPENMS_VISUAL_VISUALIZER_PROTEINIDENTIFICATIONVISUALIZER_H
 
 //OpenMS
 #include <OpenMS/METADATA/ProteinIdentification.h>
@@ -101,10 +101,7 @@ namespace OpenMS
 
     /// Threshold for foltering by score
 		QLineEdit* filter_threshold_;
-		
-		
-		
-					
+
 	};
 }
-#endif
+#endif //OPENMS_VISUAL_VISUALIZER_PROTEINIDENTIFICATIONVISUALIZER_H

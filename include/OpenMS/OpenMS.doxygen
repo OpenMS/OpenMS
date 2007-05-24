@@ -79,11 +79,13 @@ Ideen:
 - Seeder/Extender: Analyse der MassenSpur-Distanzen
 
 Todos:
-- checker
 - Quadtree ausbauen
+- DefaultParamHandler: add Descriptions
 - Spectrum3DCanvas: fix grab keyboard (buddy?)
 - TOPP tutorial: Usecases AW-Daten
 - altes IdXMLFile2 + IdXMLConverter raus
+- leere Tests finden
+- checker
 
 Thomas Schreiner:
 - FeatureXML: Options einbauen und testen

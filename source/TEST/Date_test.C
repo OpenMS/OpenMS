@@ -51,6 +51,14 @@ CHECK(([EXTRA]~Date()))
 	delete s_ptr;
 RESULT
 
+CHECK(Date(const QDate &date))
+	QDate qd(1999,12,24);
+	Date d(qd);
+	TEST_EQUAL(d.year(),1999)
+	TEST_EQUAL(d.month(),12)
+	TEST_EQUAL(d.day(),24)
+RESULT
+
 CHECK((void get(UInt& month, UInt& day, UInt& year) const))
   Date date;
   UInt d,m,y;

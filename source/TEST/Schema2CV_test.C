@@ -39,7 +39,7 @@ using namespace OpenMS;
 using namespace std;
 
 Schema2CV* ptr = 0;
-CHECK((DPeak()))
+CHECK((Schema2CV()))
 	ptr = new Schema2CV();
 	TEST_NOT_EQUAL(ptr, 0)
 RESULT

@@ -51,6 +51,18 @@ CHECK(([EXTRA] ~String()))
 	delete s_ptr;
 RESULT
 
+CHECK(String(const QString &s))
+	QString qs("bla");
+	String s(qs);
+	TEST_EQUAL(s=="bla",true)
+RESULT
+
+CHECK(QString toQString() const)
+	QString qs("bla");
+	String s("bla");
+	TEST_EQUAL(s.toQString()==qs,true)
+RESULT
+
 CHECK((String(const char* s, SizeType length)))
 	String s("abcdedfg",5);
 	TEST_EQUAL(s,"abcde")

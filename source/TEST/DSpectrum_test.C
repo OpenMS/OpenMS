@@ -83,7 +83,7 @@ CHECK((void setMSLevel(UInt ms_level)))
 	TEST_EQUAL(ds.getMSLevel(),17)
 RESULT
 
-CHECK((void updateRanges()))
+CHECK((virtual void updateRanges()))
   DSpectrum<2> s;
   s.push_back(dp2_1);
   s.push_back(dp2_2);
@@ -272,12 +272,12 @@ CHECK((bool operator != (const DSpectrum& rhs) const))
 	TEST_EQUAL(empty!=edit, true);	
 RESULT
 
-CHECK((std::string getName() const))
+CHECK((String getName() const))
 	DSpectrum<1> s;
 	TEST_EQUAL(s.getName(),"")
 RESULT
 
-CHECK((void setName(const std::string& name)))
+CHECK((void setName(const String &name)))
 	DSpectrum<1> s;
 	s.setName("bla");
 	TEST_EQUAL(s.getName(),"bla")
@@ -291,14 +291,14 @@ CHECK((const ContainerType& getContainer() const))
 	TEST_EQUAL(ds.getContainer().size(), 0)
 RESULT
 
-CHECK(reference operator[] (size_type n))
+CHECK((reference operator[] (size_type n)))
 	DSpectrum<2> ds;
 	ds.getContainer().resize(1);
 	ds[0].setIntensity(5.0);
 	TEST_EQUAL(ds.getContainer()[0].getIntensity(),5.0);
 RESULT
 
-CHECK(const_reference operator[] (size_type n) const)
+CHECK((const_reference operator[] (size_type n) const))
 	DSpectrum<2> ds;
 	ds.getContainer().resize(1);
 	ds.getContainer()[0].setIntensity(5.0);

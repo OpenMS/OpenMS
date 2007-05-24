@@ -61,7 +61,6 @@ namespace OpenMS
 	     @brief Constructor
 	     
 	     @param parent The parent widget
-	     @param name The widget's name
 	     @param canvas_3d The main 3d canvas
 	    */
 			Spectrum3DOpenGLCanvas(QWidget* parent, Spectrum3DCanvas& canvas_3d);

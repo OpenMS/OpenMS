@@ -373,20 +373,20 @@ namespace OpenMS
 		else if (element == "SearchParameters")
 		{
 			//store id
-			id_ =  attributeAsString(attributes,"id");
+			id_ =  attributeAsString_(attributes,"id");
 			
 			//reset parameters
 			param_ = ProteinIdentification::SearchParameters();
 			
 			//load parameters
-			param_.db = attributeAsString(attributes,"db");
-			param_.db_version = attributeAsString(attributes,"db_version");
+			param_.db = attributeAsString_(attributes,"db");
+			param_.db_version = attributeAsString_(attributes,"db_version");
 
-			optionalAttributeAsString(param_.taxonomy, attributes,"taxonomy");
-			param_.charges = attributeAsString(attributes,"charges");
-			optionalAttributeAsUInt(param_.missed_cleavages, attributes,"missed_cleavages");
-			param_.peak_mass_tolerance = attributeAsDouble(attributes,"peak_mass_tolerance");
-			param_.precursor_tolerance = attributeAsDouble(attributes,"precursor_peak_tolerance");
+			optionalAttributeAsString_(param_.taxonomy, attributes,"taxonomy");
+			param_.charges = attributeAsString_(attributes,"charges");
+			optionalAttributeAsUInt_(param_.missed_cleavages, attributes,"missed_cleavages");
+			param_.peak_mass_tolerance = attributeAsDouble_(attributes,"peak_mass_tolerance");
+			param_.precursor_tolerance = attributeAsDouble_(attributes,"precursor_peak_tolerance");
 			//mass type
 			const XMLCh* mass_type = attributes.getValue(xercesc::XMLString::transcode("mass_type"));
 			if (xercesc::XMLString::equals(mass_type,xercesc::XMLString::transcode("monoisotopic")))
@@ -430,13 +430,13 @@ namespace OpenMS
 		}
 		else if (element == "FixedModification")
 		{
-			param_.fixed_modifications.push_back(attributeAsString(attributes,"name"));
+			param_.fixed_modifications.push_back(attributeAsString_(attributes,"name"));
 			//change this line as soon as there is a MetaInfoInterface for modifications (Andreas)
 			last_meta_ = 0;
 		}
 		else if (element == "VariableModification")
 		{
-			param_.variable_modifications.push_back(attributeAsString(attributes,"name"));
+			param_.variable_modifications.push_back(attributeAsString_(attributes,"name"));
 			//change this line as soon as there is a MetaInfoInterface for modifications (Andreas)
 			last_meta_ = 0;
 		}
@@ -447,11 +447,11 @@ namespace OpenMS
 			pep_id_ = PeptideIdentification();
 			prot_id_ = ProteinIdentification();
 
-			prot_id_.setSearchEngine(attributeAsString(attributes,"search_engine"));
-			prot_id_.setSearchEngineVersion(attributeAsString(attributes,"search_engine_version"));
+			prot_id_.setSearchEngine(attributeAsString_(attributes,"search_engine"));
+			prot_id_.setSearchEngineVersion(attributeAsString_(attributes,"search_engine_version"));
 
 			//search parameters
-			String ref = attributeAsString(attributes,"search_parameters_ref");
+			String ref = attributeAsString_(attributes,"search_parameters_ref");
 			if (parameters_.find(ref)==parameters_.end())
 			{
 				throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "", String("Invalid search parameters reference '") + ref + "'" );
@@ -459,20 +459,20 @@ namespace OpenMS
 			prot_id_.setSearchParameters(parameters_[ref]);
 			
 			//date
-			prot_id_.setDateTime(DateTime::fromString(attributeAsString(attributes,"date"),"yyyy-MM-ddThh:mm:ss"));
+			prot_id_.setDateTime(DateTime::fromString(attributeAsString_(attributes,"date"),"yyyy-MM-ddThh:mm:ss"));
 			
 			//set identifier
-			prot_id_.setIdentifier(prot_id_.getSearchEngine() + '_' + attributeAsString(attributes,"date"));
+			prot_id_.setIdentifier(prot_id_.getSearchEngine() + '_' + attributeAsString_(attributes,"date"));
 		}
 		
 		//PROTE ProteinIdentification
 		else if (element == "ProteinIdentification")
 		{
-			prot_id_.setScoreType(attributeAsString(attributes,"score_type"));
+			prot_id_.setScoreType(attributeAsString_(attributes,"score_type"));
 			
 			//optional significance threshold
 			DoubleReal tmp=0.0;
-			optionalAttributeAsDouble(tmp,attributes,"significance_threshold");
+			optionalAttributeAsDouble_(tmp,attributes,"significance_threshold");
 			if (tmp!=0.0)
 			{
 				prot_id_.setSignificanceThreshold(tmp);
@@ -497,19 +497,19 @@ namespace OpenMS
 		else if (element == "ProteinHit")
 		{
 			prot_hit_ = ProteinHit();
-			String accession = attributeAsString(attributes,"accession");
+			String accession = attributeAsString_(attributes,"accession");
 			prot_hit_.setAccession(accession);
-			prot_hit_.setScore(attributeAsDouble(attributes,"score"));
+			prot_hit_.setScore(attributeAsDouble_(attributes,"score"));
 			
 			//sequence
 			String tmp="";
-			optionalAttributeAsString(tmp,attributes,"sequence");
+			optionalAttributeAsString_(tmp,attributes,"sequence");
 			prot_hit_.setSequence(tmp);
 			
 			last_meta_ = &prot_hit_;			
 			
 			//insert id and accession to map
-			proteinid_to_accession_[attributeAsString(attributes,"id")] = accession;
+			proteinid_to_accession_[attributeAsString_(attributes,"id")] = accession;
 		}
 		
 		//PEPTIDES
@@ -519,11 +519,11 @@ namespace OpenMS
 			//set identifier
 			pep_id_.setIdentifier(prot_ids_->back().getIdentifier());
 			
-			pep_id_.setScoreType(attributeAsString(attributes,"score_type"));
+			pep_id_.setScoreType(attributeAsString_(attributes,"score_type"));
 			
 			//optional significance threshold
 			DoubleReal tmp=0.0;
-			optionalAttributeAsDouble(tmp,attributes,"significance_threshold");
+			optionalAttributeAsDouble_(tmp,attributes,"significance_threshold");
 			if (tmp!=0.0)
 			{
 				pep_id_.setSignificanceThreshold(tmp);
@@ -546,20 +546,20 @@ namespace OpenMS
 			
 			//MZ
 			DoubleReal tmp2=-numeric_limits<DoubleReal>::max();
-			optionalAttributeAsDouble(tmp2, attributes,"MZ");
+			optionalAttributeAsDouble_(tmp2, attributes,"MZ");
 			if (tmp2!=-numeric_limits<DoubleReal>::max())
 			{
 				pep_id_.setMetaValue("MZ", tmp2);
 			}
 			//RT
 			tmp2=-numeric_limits<DoubleReal>::max();
-			optionalAttributeAsDouble(tmp2, attributes,"RT");
+			optionalAttributeAsDouble_(tmp2, attributes,"RT");
 			if (tmp2!=-numeric_limits<DoubleReal>::max())
 			{
 				pep_id_.setMetaValue("RT", tmp2);
 			}
 			Int tmp3=-numeric_limits<Int>::max();
-			optionalAttributeAsInt(tmp3, attributes,"spectrum_reference");
+			optionalAttributeAsInt_(tmp3, attributes,"spectrum_reference");
 			if (tmp3!=-numeric_limits<Int>::max())
 			{
 				pep_id_.setMetaValue("spectrum_reference", tmp3);				
@@ -571,20 +571,20 @@ namespace OpenMS
 		{
 			pep_hit_ = PeptideHit();
 			
-			pep_hit_.setCharge(attributeAsInt(attributes,"charge"));
-			pep_hit_.setScore(attributeAsDouble(attributes,"score"));
-			pep_hit_.setSequence(attributeAsString(attributes,"sequence"));
+			pep_hit_.setCharge(attributeAsInt_(attributes,"charge"));
+			pep_hit_.setScore(attributeAsDouble_(attributes,"score"));
+			pep_hit_.setSequence(attributeAsString_(attributes,"sequence"));
 			
 			//aa_before
 			String tmp="";
-			optionalAttributeAsString(tmp,attributes,"aa_before");
+			optionalAttributeAsString_(tmp,attributes,"aa_before");
 			if (!tmp.empty())
 			{
 				pep_hit_.setAABefore(tmp[0]);
 			}
 			//aa_after
 			tmp="";
-			optionalAttributeAsString(tmp,attributes,"aa_after");
+			optionalAttributeAsString_(tmp,attributes,"aa_after");
 			if (!tmp.empty())
 			{
 				pep_hit_.setAAAfter(tmp[0]);

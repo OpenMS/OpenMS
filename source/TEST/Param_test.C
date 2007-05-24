@@ -51,30 +51,30 @@ CHECK((~Param()))
 	delete d10_ptr;
 RESULT
 
-CHECK((const DataValue& getValue(const std::string& key) const))
+CHECK((const DataValue& getValue(const String& key) const))
 	Param p;
 	TEST_REAL_EQUAL(p.getValue("key")==DataValue::EMPTY, true)
 RESULT
 
-CHECK((void setValue(const std::string& key, const std::string& value)))
+CHECK((void setValue(const String& key, const String& value)))
 	Param p;
 	p.setValue("key","value");
 	TEST_EQUAL(p.getValue("key"), "value")
 RESULT
 
-CHECK((void setValue(const std::string& key, Int value)))
+CHECK((void setValue(const String& key, Int value)))
 	Param p;
 	p.setValue("key",17);
 	TEST_EQUAL(Int(p.getValue("key")), 17)
 RESULT
 
-CHECK((void setValue(const std::string& key, float value)))
+CHECK((void setValue(const String& key, float value)))
 	Param p;
 	p.setValue("key",17.4f);
 	TEST_REAL_EQUAL(float(p.getValue("key")), 17.4)
 RESULT
 
-CHECK((void setValue(const std::string& key, double value)))
+CHECK((void setValue(const String& key, double value)))
 	Param p;
 	p.setValue("key",17.4);
 	TEST_REAL_EQUAL(double(p.getValue("key")), 17.4)
@@ -133,7 +133,7 @@ CHECK((Param& operator = (const Param& rhs)))
 RESULT
 
 
-CHECK((void remove(const std::string& prefix)))
+CHECK((void remove(const String& prefix)))
 	Param p2(p);
 	
 	p2.remove("test:float");
@@ -176,12 +176,12 @@ CHECK((bool operator == (const Param& rhs) const))
 	TEST_EQUAL(p==p2, false)
 RESULT
 
-CHECK((void load(const std::string& filename) throw(Exception::FileNotFound, Exception::ParseError)))
+CHECK((void load(const String& filename) throw(Exception::FileNotFound, Exception::ParseError)))
 	Param p2;
 	TEST_EXCEPTION(Exception::FileNotFound, p2.load("FileDoesNotExist.xml"))	
 RESULT
 
-CHECK((void store(const std::string& filename) const throw(Exception::UnableToCreateFile)))
+CHECK((void store(const String& filename) const throw(Exception::UnableToCreateFile)))
 	Param p2(p);
 	
 	//exception
@@ -219,7 +219,7 @@ CHECK((void insert(String prefix, const Param& para)))
 	TEST_EQUAL(Int(p2.getValue("test2:int")), 18)	
 RESULT
 
-CHECK((Param copy(const std::string& prefix, bool remove_prefix=false, String new_prefix="") const))
+CHECK((Param copy(const String& prefix, bool remove_prefix=false, String new_prefix="") const))
 	Param p2;
 
 	p2 = p.copy("notthere:");
@@ -254,7 +254,7 @@ CHECK((Param copy(const std::string& prefix, bool remove_prefix=false, String ne
 	TEST_EQUAL(Int(p2.getValue("test2:int")), 18)
 RESULT
 
-CHECK((Param copyWithInherit(const std::string& old_prefix, const std::string& new_prefix="") const))
+CHECK((Param copyWithInherit(const String& old_prefix, const String& new_prefix="") const))
 {
 	Param p0;
 	p0.setValue("test:float",17.4f);
@@ -423,7 +423,7 @@ CHECK((void parseCommandLine(const int argc, char** argv, String prefix = "")))
 	TEST_EQUAL(p20==p30,true)
 RESULT
 
-CHECK((void parseCommandLine(const int argc, char** argv, const std::map<std::string, std::string>& options_with_argument, const std::map<std::string, std::string>& options_without_argument, const std::string& misc="misc", const std::string& unknown="unknown")))
+CHECK((void parseCommandLine(const int argc, char** argv, const std::map<String, String>& options_with_argument, const std::map<String, String>& options_without_argument, const String& misc="misc", const String& unknown="unknown")))
 	map<String,String> with,without;
 	with["-a"]="a";
 	with["-b"]="b";

@@ -39,7 +39,7 @@ using namespace OpenMS;
 using namespace std;
 
 ControlledVocabulary* ptr = 0;
-CHECK((DPeak()))
+CHECK((ControlledVocabulary()))
 	ptr = new ControlledVocabulary();
 	TEST_NOT_EQUAL(ptr, 0)
 RESULT
@@ -53,7 +53,7 @@ CHECK(const String& name() const)
 RESULT
 
 ControlledVocabulary cv;
-CHECK(bool loadFromOBO(const String& name, const String& filename) throw (Exception::FileNotFound, Exception::ParseError))
+CHECK(void loadFromOBO(const String &name, const String &filename) throw (Exception::FileNotFound, Exception::ParseError))
 	cv.loadFromOBO("bla","data/ControlledVocabulary.obo");
 	TEST_EQUAL(cv.name(),"bla")
 RESULT

@@ -47,7 +47,7 @@ CHECK((~MaxReducer()))
 			delete ptr;
 RESULT
 
-CHECK((static const String getName()))
+CHECK((static const String getProductName()))
 	 	MaxReducer m;
     TEST_EQUAL(m.getName(),"MaxReducer")	
 RESULT

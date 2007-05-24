@@ -46,7 +46,7 @@ CHECK((~SumReducer()))
 			delete ptr;
 RESULT
 
-CHECK((static const String getName()))
+CHECK((static const String getProductName()))
 	SumReducer s;
   TEST_EQUAL(s.getName(),"SumReducer")	
 RESULT

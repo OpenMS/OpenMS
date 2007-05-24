@@ -327,7 +327,19 @@ CHECK((std::string toString() const))
   TEST_EQUAL(a.toString(), "47.11")
   a = DataValue(-23456.78);
   TEST_EQUAL(a.toString(), "-23456.78")
-  
+RESULT
+
+CHECK((QString toQString() const))
+	DataValue a;
+  TEST_EQUAL(a.toQString().toStdString(), "")  
+  a = DataValue("hello");
+  TEST_EQUAL(a.toQString().toStdString(),"hello")
+	a = DataValue(5);
+  TEST_EQUAL(a.toQString().toStdString(), "5")
+  a = DataValue(47.11);
+  TEST_EQUAL(a.toQString().toStdString(), "47.110000")
+  a = DataValue(-23456.78);
+  TEST_EQUAL(a.toQString().toStdString(), "-23456.780000")
 RESULT
 
 CHECK(([EXTRA] friend std::ostream& operator<<(std::ostream&, const DataValue&)))

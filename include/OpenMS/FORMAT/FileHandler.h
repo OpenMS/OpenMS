@@ -100,7 +100,7 @@ namespace OpenMS
 			 @param exp The MSExperiment to load the data into.
 			 @param force_type Forces to load the file with that file type.<BR>
 			 If no type is forced, it is determined from the extention ( or from the content if that fails).
-
+			 @param log Progress logging mode
 			 @return true if the file could be loaded, false otherwise
 		*/
 		template <class PeakType> bool loadExperiment(const String& filename, MSExperiment<PeakType>& exp, Type force_type = UNKNOWN, ProgressLogger::LogType log = ProgressLogger::NONE)

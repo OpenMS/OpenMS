@@ -335,7 +335,7 @@ CHECK((template<class ExperimentType> void storeExperiment(ExperimentType& exp))
 		RESULT		
 	
 		// check if first spectrum of saved experiment can be loaded correctly
-CHECK((template <class SpectrumType> void loadSpectrum(UID id, SpectrumType &spec, PeakFileOptions options=PeakFileOptions())))
+CHECK((template <class SpectrumType> void loadSpectrum(UID id, SpectrumType &spec)))
 	  	DBAdapter a(con);
 		  
 			MSSpectrum<> spec;
@@ -397,7 +397,7 @@ CHECK((template <class SpectrumType> void loadSpectrum(UID id, SpectrumType &spe
 		
 	  // load experiment from database
 		// (this implicitly checks if the new experiment was stored correctly)
-CHECK((template <class ExperimentType> void loadExperiment(UID id, ExperimentType &exp, PeakFileOptions options=PeakFileOptions())))
+CHECK((template <class ExperimentType> void loadExperiment(UID id, ExperimentType &exp)))
 		  DBAdapter a(con);
 		  MSExperiment<> exp_new;
 		  std::map<String, MetaInfoDescription> descriptions;
@@ -675,7 +675,18 @@ CHECK((template <class ExperimentType> void loadExperiment(UID id, ExperimentTyp
 			a.loadExperiment(in.getPersistenceId(),out);
 			TEST_EQUAL(in==out, true)
 		RESULT
+
+		CHECK(const PeakFileOptions& getOptions() const)
+			DBAdapter a(con);
+			TEST_EQUAL(a.getOptions().hasMSLevels(),false)
+		RESULT
 		
+		CHECK(PeakFileOptions& getOptions())
+			DBAdapter a(con);
+			a.getOptions().addMSLevel(1);
+			TEST_EQUAL(a.getOptions().hasMSLevels(),true);
+		RESULT
+
 	} // DB up-to-date
 
 } // credentials

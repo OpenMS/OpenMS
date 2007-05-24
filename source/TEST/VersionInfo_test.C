@@ -47,12 +47,12 @@ CHECK(static String getVersion() throw())
 	TEST_EQUAL(VersionInfo::getVersion(), PACKAGE_VERSION)
 RESULT
 
-CHECK(static int getMajorRevision())
+CHECK(static Int getMajorRevision())
 	// just to call the method
 	TEST_NOT_EQUAL(VersionInfo::getMajorRevision(), -1)
 RESULT
 
-CHECK(static int getMinorRevision())
+CHECK(static Int getMinorRevision())
 	// just to call the method
 	TEST_NOT_EQUAL(VersionInfo::getMinorRevision(), -1)
 RESULT
