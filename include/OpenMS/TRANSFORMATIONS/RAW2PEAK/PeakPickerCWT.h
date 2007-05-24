@@ -258,7 +258,18 @@ namespace OpenMS
 
       // empty spectra shouldn't be picked
       if(first == last)
+			{
         return;
+			}
+			else
+			{
+				// only one "peak"
+				if (last - first == 1)
+				{
+					// @todo handle spectra with only one raw data point (seg. faulted) (Chris Bielow)
+					return;
+				}
+			}
       typedef typename OutputPeakContainer::value_type OutputPeakType;
 
       //clear the peak shapes vector
