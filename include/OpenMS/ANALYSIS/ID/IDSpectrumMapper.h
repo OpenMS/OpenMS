@@ -59,23 +59,15 @@ namespace OpenMS
       template <class PeakT>				
       UInt annotate(MSExperiment< PeakT >& experiment, const std::vector<PeptideIdentification>& identifications, DoubleReal precision = 0.01f) throw (Exception::MissingInformation)
   		{
+  			//store mapping of scan RT to index
 				std::multimap<DoubleReal, UInt> experiment_precursors;
-				std::multimap<DoubleReal, UInt> identifications_precursors;
-				std::multimap<DoubleReal, UInt>::iterator experiment_iterator;
-				std::multimap<DoubleReal, UInt>::iterator identifications_iterator;
-				DoubleReal temp_experiment_value;
-				DoubleReal temp_identification_value;
-				DoubleReal experiment_precursor_position;
-				DoubleReal identifications_precursor_position;
-				DoubleReal temp;
-				DoubleReal actual_retention_time = 0;
-				UInt counter = 0;
-					
 				for(UInt i = 0; i < experiment.size(); i++)
 				{
-					actual_retention_time = experiment[i].getRT();
-					experiment_precursors.insert(std::make_pair(actual_retention_time, i));
+					experiment_precursors.insert(std::make_pair(experiment[i].getRT(), i));
 				}
+				
+				//store mapping of identification RT to index
+				std::multimap<DoubleReal, UInt> identifications_precursors;
 				for(UInt i = 0; i < identifications.size(); i++)
 				{
 					if (!identifications[i].metaValueExists("RT"))
@@ -89,26 +81,24 @@ namespace OpenMS
 					}
 					identifications_precursors.insert(std::make_pair(identifications[i].getMetaValue("RT"), i));
 				}
-				experiment_iterator = experiment_precursors.begin();
-				identifications_iterator = identifications_precursors.begin();	
 				
-				while(experiment_iterator != experiment_precursors.end()
-							&& identifications_iterator != identifications_precursors.end())
+				//calculate the actual mapping
+				std::multimap<DoubleReal, UInt>::iterator experiment_iterator = experiment_precursors.begin();
+				std::multimap<DoubleReal, UInt>::iterator identifications_iterator = identifications_precursors.begin();	
+				UInt counter = 0;				
+				while(experiment_iterator != experiment_precursors.end() && identifications_iterator != identifications_precursors.end())
 				{
-					temp_experiment_value = experiment_iterator->first;
 					while(identifications_iterator != identifications_precursors.end())
 					{
-						temp_identification_value = identifications_iterator->first;
-						temp = temp_experiment_value - temp_identification_value;
-						
-						/// testing whether the retention times are within the precision threshold
-						if (((temp < precision) && temp >= 0) || (((-1 * temp) < precision) && temp < 0))
+						// testing whether the retention times are within the precision threshold
+						if (fabs(experiment_iterator->first - identifications_iterator->first) < precision)
 						{
-							experiment_precursor_position = experiment[experiment_iterator->second].getPrecursorPeak().getPosition()[0];
-							identifications_precursor_position = identifications[identifications_iterator->second].getMetaValue("MZ");				
-							temp = identifications_precursor_position - experiment_precursor_position;
-							if (((temp < precision) && temp >= 0) || ((-1 * temp < precision) && temp < 0))
+							//std::cout << "RT matching (scan/id) " << experiment_iterator->first << " / " << identifications_iterator->first << std::endl;	
+							
+							// testing wheather the m/z fits
+							if (fabs((DoubleReal)(identifications[identifications_iterator->second].getMetaValue("MZ")) -  (DoubleReal)(experiment[experiment_iterator->second].getPrecursorPeak().getPosition()[0])) < precision)
 							{
+								//std::cout << "MZ matching (scan/id) " << (DoubleReal)(experiment[experiment_iterator->second].getPrecursorPeak().getPosition()[0]) << " / " << (DoubleReal)(identifications[identifications_iterator->second].getMetaValue("MZ")) << std::endl;	
 								if (!(identifications[identifications_iterator->second].empty()))
 								{
 									experiment[experiment_iterator->second].getPeptideIdentifications().push_back(identifications[identifications_iterator->second]);

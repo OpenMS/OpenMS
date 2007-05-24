@@ -281,39 +281,23 @@ namespace OpenMS
 			//draw precursor peaks
 			if (getLayerFlag(layer_index,LayerData::P_PRECURSORS))
 			{
+				const ExperimentType& exp = getPeakData(layer_index); 
 				painter.setPen(Qt::black);
-				for (ExperimentType::ConstIterator i = getPeakData(layer_index).RTBegin(visible_area_.min()[1]); 
-						 i != getPeakData(layer_index).RTEnd(visible_area_.max()[1]); 
+				for (ExperimentType::ConstIterator i = exp.RTBegin(visible_area_.min()[1]); 
+						 i != exp.RTEnd(visible_area_.max()[1]); 
 						 ++i)
 				{
-					//this is a MS/MS scan
+					//this is an MS/MS scan
 					if (i->getMSLevel()==2)
 					{
-						//cout << "Looking for Precursor scan of " << i->getRT() << " " << i->getPrecursorPeak().getPosition()[0] << endl;
-						//look up precursor peak scan for RT
-						ExperimentType::ConstIterator prec = i;
-						while(true)
+						ExperimentType::ConstIterator prec=exp.getPrecursorSpectrum(i);
+						if (prec!=exp.end())
 						{
-							//cout << "prec " << prec->getMSLevel() << " " << prec->getRT() << endl;
-							//we have found the precursor
-							if (prec->getMSLevel()==1)
-							{
-								//cout << "HIT!" << endl;
-								//draw icon
-								dataToWidget_(i->getPrecursorPeak().getPosition()[0], prec->getRT(),pos);
-								painter.drawLine(pos.x(),pos.y()+2,pos.x()+2,pos.y());
-								painter.drawLine(pos.x()+2,pos.y(),pos.x(),pos.y()-2);
-								painter.drawLine(pos.x(),pos.y()-2,pos.x()-2,pos.y());
-								painter.drawLine(pos.x()-2,pos.y(),pos.x(),pos.y()+2);
-								//abort while loop
-								break;
-							}
-							//there is no precusor scan for this MS/MS scan
-							if (prec == getPeakData(layer_index).begin())
-							{
-								break;
-							}
-							--prec;
+							dataToWidget_(i->getPrecursorPeak().getPosition()[0], prec->getRT(),pos);
+							painter.drawLine(pos.x(),pos.y()+2,pos.x()+2,pos.y());
+							painter.drawLine(pos.x()+2,pos.y(),pos.x(),pos.y()-2);
+							painter.drawLine(pos.x(),pos.y()-2,pos.x()-2,pos.y());
+							painter.drawLine(pos.x()-2,pos.y(),pos.x(),pos.y()+2);
 						}
 					}
 				}
