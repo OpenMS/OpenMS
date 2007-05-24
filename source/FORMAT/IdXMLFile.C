@@ -333,7 +333,7 @@ namespace OpenMS
 		{
 			if (find(done_identifiers.begin(), done_identifiers.end(), peptide_ids[i].getIdentifier())==done_identifiers.end())
 			{
-				cerr << "Warning (IdXMLFile): Omitting peptide idenitification because of missing ProteinIdenitfication with idenitifier '" << peptide_ids[i].getIdentifier() << "'!" << endl;
+				cerr << "Warning (IdXMLFile): Omitting peptide identification because of missing ProteinIdentification with identifier '" << peptide_ids[i].getIdentifier() << "'!" << endl;
 			}
 		}
 		//write footer
