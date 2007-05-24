@@ -161,7 +161,7 @@ CHECK(bool operator== (const SampleTreatment& rhs) const)
 	edit = empty;
 	TEST_EQUAL(edit==empty, true);			
 
-	edit.setMetaValue("color",string("red"));
+	edit.setMetaValue("color",String("red"));
 	TEST_EQUAL(edit==empty, false);
 	edit = empty;
 	TEST_EQUAL(edit==empty, true);	

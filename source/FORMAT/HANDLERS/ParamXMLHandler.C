@@ -38,7 +38,7 @@ namespace OpenMS
 	namespace Internal
 	{
 
-	ParamXMLHandler::ParamXMLHandler(map<std::string,DataValue>& values, const String& filename)
+	ParamXMLHandler::ParamXMLHandler(map<String,DataValue>& values, const String& filename)
 		: XMLHandler(filename),
 			values_(values)
 	{
@@ -124,7 +124,7 @@ namespace OpenMS
 			nodes_.pop_back();
 			//renew path
 			path_ = "";
-			for (vector<string>::iterator it = nodes_.begin(); it != nodes_.end();++it)
+			for (vector<String>::iterator it = nodes_.begin(); it != nodes_.end();++it)
 			{
 				path_ += *it+":";
 			}

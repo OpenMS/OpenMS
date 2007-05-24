@@ -69,29 +69,29 @@ namespace OpenMS
 	
 	
 	// get/set the values
-	void Param::setValue(const string& key, Int value)
+	void Param::setValue(const String& key, Int value)
 	{
 		values_[key] = value;
 	}
 	
-	void Param::setValue(const string& key, float value)
+	void Param::setValue(const String& key, float value)
 	{
 		values_[key] = value;
 	}
 
-	void Param::setValue(const string& key, double value)
+	void Param::setValue(const String& key, double value)
 	{
 		values_[key] = value;
 	}
 
-	void Param::setValue(const string& key, const string& value)
+	void Param::setValue(const String& key, const String& value)
 	{
 		values_[key] = value;
 	}
 	
-	const DataValue& Param::getValue(const string& key) const
+	const DataValue& Param::getValue(const String& key) const
 	{
-		map<string, DataValue>::const_iterator it=values_.find(key);
+		map<String, DataValue>::const_iterator it=values_.find(key);
 		if (it!=values_.end())
 		{
 			return it->second;
@@ -104,7 +104,7 @@ namespace OpenMS
 	{
 		if (prefix.empty() )
 		{
-			for(map<string,DataValue>::const_iterator it = para.values_.begin(); it != para.values_.end();++it)
+			for(map<String,DataValue>::const_iterator it = para.values_.begin(); it != para.values_.end();++it)
 			{
 				values_[it->first]=it->second;
 			}
@@ -112,7 +112,7 @@ namespace OpenMS
 		else
 		{
 			prefix.ensureLastChar(':');
-			for(map<string,DataValue>::const_iterator it = para.values_.begin(); it != para.values_.end();++it)
+			for(map<String,DataValue>::const_iterator it = para.values_.begin(); it != para.values_.end();++it)
 			{
 				values_[prefix+it->first]=it->second;
 			}
@@ -126,7 +126,7 @@ namespace OpenMS
 			prefix.ensureLastChar(':');
 		}	
 		
-		for(map<string,DataValue>::const_iterator it = defaults.values_.begin(); it != defaults.values_.end();++it)
+		for(map<String,DataValue>::const_iterator it = defaults.values_.begin(); it != defaults.values_.end();++it)
 		{
 			if (values_.find(prefix+it->first)==values_.end())
 			{
@@ -136,9 +136,9 @@ namespace OpenMS
 		}
 	}
 	
-	void Param::remove(const string& prefix)
+	void Param::remove(const String& prefix)
 	{
-		map<string,DataValue>::iterator it = values_.lower_bound(prefix);
+		map<String,DataValue>::iterator it = values_.lower_bound(prefix);
 		while (it!=values_.end())
 		{
 			if (it->first.substr(0,prefix.size())==prefix)
@@ -153,7 +153,7 @@ namespace OpenMS
 		}
 	}
 
-	Param Param::copy(const string& prefix, bool remove_prefix, String new_prefix) const
+	Param Param::copy(const String& prefix, bool remove_prefix, String new_prefix) const
 	{
 		if (!new_prefix.empty())
 		{
@@ -162,7 +162,7 @@ namespace OpenMS
 		
 		Param out;
 		string key;
-		for ( map<string,DataValue>::const_iterator it = values_.lower_bound(prefix);
+		for ( map<String,DataValue>::const_iterator it = values_.lower_bound(prefix);
 					(it != values_.end()) && (it->first.size() >= prefix.size()) && (it->first.substr(0,prefix.size())==prefix);
 					++it
 				)
@@ -188,7 +188,7 @@ namespace OpenMS
 		return out;
 	}
 
-	Param Param::copyWithInherit(const std::string& old_prefix, const std::string& new_prefix) const
+	Param Param::copyWithInherit(const String& old_prefix, const String& new_prefix) const
 	{
 		if ( *old_prefix.rbegin() != ':' )
 		{
@@ -220,7 +220,7 @@ namespace OpenMS
 	}
 
 
-	void Param::store(const string& filename) const throw (Exception::UnableToCreateFile)
+	void Param::store(const String& filename) const throw (Exception::UnableToCreateFile)
 	{
 		string up, down ,key, key_without_prefix, new_prefix ,type, prefix = "";
 		UInt common, level=1;
@@ -235,7 +235,7 @@ namespace OpenMS
 		
   	os << "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>\n";
   	os << "<PARAMETERS>\n";
-		for(map<string,DataValue>::const_iterator it = values_.begin(); it != values_.end();++it)
+		for(map<String,DataValue>::const_iterator it = values_.begin(); it != values_.end();++it)
 		{
 			//init variables
 			key = it->first;
@@ -349,7 +349,7 @@ namespace OpenMS
     os.close();
 	}
 	
-	void Param::load(const string& filename) throw (FileNotFound,ParseError)
+	void Param::load(const String& filename) throw (FileNotFound,ParseError)
 	{
    	//try to open file
 		if (!File::exists(filename))
@@ -441,7 +441,7 @@ namespace OpenMS
     }
 	}
 
-	void Param::parseCommandLine(const int argc , char **argv, const map<std::string, std::string>& options_with_argument, const std::map<std::string, std::string>& options_without_argument, const std::string& misc, const std::string& unknown)
+	void Param::parseCommandLine(const int argc , char **argv, const map<String, String>& options_with_argument, const std::map<String, String>& options_without_argument, const String& misc, const String& unknown)
 	{
 		//determine misc key
     string misc_key = misc;
@@ -513,7 +513,7 @@ namespace OpenMS
 
 	ostream& operator << (ostream& os, const Param& param)
  	{
-		for (map<string,DataValue>::const_iterator it = param.values_.begin(); it != param.values_.end();++it)
+		for (map<String,DataValue>::const_iterator it = param.values_.begin(); it != param.values_.end();++it)
 		{
 		 os << "\""<<it->first<< "\"  ->  \""<< it->second.toString()<< "\"" << endl;
 		}
@@ -538,7 +538,7 @@ namespace OpenMS
 	void Param::checkDefaults(const String& name, const Param& defaults, String prefix, std::ostream& os) const
 	{
 		//Extract right parameters
-		map<string,DataValue> check;
+		map<String,DataValue> check;
 		if ( prefix.empty() )
 		{
 			check = values_;
@@ -549,7 +549,7 @@ namespace OpenMS
 			check = copy(prefix,true).values_;
 		}
 		//check
-		for(map<string,DataValue>::const_iterator it = check.begin(); it != check.end();++it)
+		for(map<String,DataValue>::const_iterator it = check.begin(); it != check.end();++it)
 		{
 			if (defaults.values_.find(it->first)==defaults.values_.end())
 			{

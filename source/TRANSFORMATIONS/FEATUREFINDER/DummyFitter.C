@@ -145,7 +145,7 @@ namespace OpenMS
 		stringstream s;
 		s <<  "Feature #" << counter_ << ", +" << f.getCharge() << ", " << set.size() << "->" << set.size() 
 			<< ", Corr: (" << f.getOverallQuality() << "," << f.getQuality(1) << "," << f.getQuality(0) << ")";
-		f.setMetaValue(3,s.str());
+		f.setMetaValue(3,String(s.str()));
 		
 		#ifdef DEBUG_FEATUREFINDER
 		// write debug output

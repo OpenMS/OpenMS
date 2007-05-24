@@ -124,13 +124,13 @@ namespace OpenMS
 			switch(result.value(0).toInt())
 			{
 				case 0: //string
-					info.setMetaValue(result.value(1).toString().toAscii().data(),result.value(2).toString().toStdString());
+					info.setMetaValue(result.value(1).toString(),result.value(2).toString());
 					break;
 				case 1: //double
-					info.setMetaValue(result.value(1).toString().toAscii().data(),result.value(2).toDouble());
+					info.setMetaValue(result.value(1).toString(),result.value(2).toDouble());
 					break;
 				case 2: //int
-					info.setMetaValue(result.value(1).toString().toAscii().data(),result.value(2).toInt());
+					info.setMetaValue(result.value(1).toString(),result.value(2).toInt());
 					break;
 				default:
 					throw Exception::Base(__FILE__, __LINE__, __PRETTY_FUNCTION__,"DBAdapter","Unknown META_TypeNameValue:type in DBAdapter!");
@@ -212,10 +212,10 @@ namespace OpenMS
 			
 			query.str("");
 			query << "INSERT INTO META_TypeNameValue (fid_MetaInfo,Name,Type,Value) VALUES ";
-			vector<string> keys;
+			vector<String> keys;
 			info.getKeys(keys);
 			const DataValue* val = 0;
-			vector<string>::iterator it = keys.begin();
+			vector<String>::iterator it = keys.begin();
 			while (true)
 			{
 				query << "('" << meta_id << "','" << *it;
@@ -298,11 +298,11 @@ namespace OpenMS
 		db_con_.executeQuery(query.str(),result);
 		result.first();
 
-		file.setNameOfFile(result.value(0).toString().toAscii().data());
-		file.setPathToFile(result.value(1).toString().toAscii().data());
+		file.setNameOfFile(result.value(0).toString());
+		file.setPathToFile(result.value(1).toString());
 		file.setFileSize(result.value(2).toDouble());
-		file.setFileType(result.value(3).toString().toAscii().data());
-		file.setSha1(result.value(4).toString().toAscii().data());
+		file.setFileType(result.value(3).toString());
+		file.setSha1(result.value(4).toString());
 	}
 
 	UID DBAdapter::storeFile_(const String& parent_table, UID parent_id, const SourceFile& file)
@@ -501,14 +501,14 @@ namespace OpenMS
 		db_con_.executeQuery(query.str(), result);
 		result.first();
 		
-		sample.setName(result.value(0).toString().toAscii().data());
-		sample.setNumber(result.value(1).toString().toAscii().data());
+		sample.setName(result.value(0).toString());
+		sample.setNumber(result.value(1).toString());
 		sample.setMass(result.value(2).toDouble());
 		sample.setVolume(result.value(3).toDouble());
 		sample.setConcentration(result.value(4).toDouble());
 		sample.setState((Sample::SampleState) result.value(5).toInt());
-		sample.setOrganism(result.value(6).toString().toAscii().data());
-		sample.setComment(result.value(7).toString().toAscii().data());
+		sample.setOrganism(result.value(6).toString());
+		sample.setComment(result.value(7).toString());
 		loadMetaInfo_(result.value(8).toInt(),sample);
 		
 		// loading Treatments
@@ -534,7 +534,7 @@ namespace OpenMS
 				db_con_.executeQuery(query.str(), sub_result);
 				sub_result.first();
 				
-				digestion.setEnzyme(sub_result.value(0).toString().toAscii().data());
+				digestion.setEnzyme(sub_result.value(0).toString());
 				digestion.setDigestionTime(sub_result.value(1).toDouble());
 				digestion.setPh(sub_result.value(2).toDouble());
 				digestion.setTemperature(sub_result.value(3).toDouble());
@@ -553,8 +553,8 @@ namespace OpenMS
 				if (sub_result.value(6).toInt() == 1)
 				{
 					loadMetaInfo_(meta_id, tagging);
-					tagging.setReagentName(sub_result.value(0).toString().toAscii().data());
-					tagging.setAffectedAminoAcids(sub_result.value(1).toString().toAscii().data());
+					tagging.setReagentName(sub_result.value(0).toString());
+					tagging.setAffectedAminoAcids(sub_result.value(1).toString());
 					tagging.setSpecificityType((Modification::SpecificityType) sub_result.value(2).toInt());
 					tagging.setMass(sub_result.value(3).toDouble());
 					tagging.setMassShift(sub_result.value(4).toDouble());
@@ -565,8 +565,8 @@ namespace OpenMS
 				// we have a real modification
 				{
 					loadMetaInfo_(meta_id, modification);
-					modification.setReagentName(sub_result.value(0).toString().toAscii().data());
-					modification.setAffectedAminoAcids(sub_result.value(1).toString().toAscii().data());
+					modification.setReagentName(sub_result.value(0).toString());
+					modification.setAffectedAminoAcids(sub_result.value(1).toString());
 					modification.setSpecificityType((Modification::SpecificityType) sub_result.value(2).toInt());
 					modification.setMass(sub_result.value(3).toDouble());
 					sample.addTreatment(modification);
@@ -623,7 +623,7 @@ namespace OpenMS
 		else
 		{
 			result.first();
-			String db_version = result.value(0).toString().toAscii().data();
+			String db_version = result.value(0).toString();
 			db_version = db_version.suffix(':');
 			db_version = db_version.prefix('$');
 			db_version.trim();
@@ -681,7 +681,7 @@ namespace OpenMS
 		db_con_.executeQuery("SET FOREIGN_KEY_CHECKS=0;",dummy);
 		while (result.isValid())
 		{
-			db_con_.executeQuery(String("DROP TABLE `") + result.value(0).toString().toAscii().data() + "`;", dummy);
+			db_con_.executeQuery(String("DROP TABLE `") + result.value(0).toString() + "`;", dummy);
 			result.next();
 		}
 		db_con_.executeQuery("SET FOREIGN_KEY_CHECKS=1;",dummy);

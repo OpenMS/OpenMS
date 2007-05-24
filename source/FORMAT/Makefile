@@ -35,6 +35,7 @@ DIRECTORY=FORMAT
 
 CPP_SOURCES=\
 	Base64.C\
+	Param.C\
 	ControlledVocabulary.C\
 	Schema2CV.C\
 	DTAFile.C\
@@ -51,7 +52,6 @@ CPP_SOURCES=\
 	FASTAFile.C\
 	FileHandler.C\
 	MzXMLFile.C\
-	Param.C\
 	MzDataFile.C\
 	IdXMLFile.C\
 	IdXMLFile2.C\

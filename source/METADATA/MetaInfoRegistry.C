@@ -27,7 +27,6 @@
 #include <sstream>
 
 #include <OpenMS/METADATA/MetaInfoRegistry.h>
-#include <OpenMS/DATASTRUCTURES/String.h>
 
 using namespace std;
 
@@ -112,9 +111,9 @@ namespace OpenMS
 	}
 		
 
-	UInt MetaInfoRegistry::registerName(const string& name, const string& description, const string& unit) 
+	UInt MetaInfoRegistry::registerName(const String& name, const String& description, const String& unit) 
 	{
-		map<string,UInt>::iterator it = name_to_index_.find(name);
+		map<String,UInt>::iterator it = name_to_index_.find(name);
 		if (it == name_to_index_.end())
 		{
 			name_to_index_[name] = next_index_;
@@ -129,9 +128,9 @@ namespace OpenMS
 		}
 	}
 	
-	UInt MetaInfoRegistry::getIndex(const string& name) const throw(Exception::InvalidValue)
+	UInt MetaInfoRegistry::getIndex(const String& name) const throw(Exception::InvalidValue)
 	{
-		map<string,UInt>::const_iterator it = name_to_index_.find(name);
+		map<String,UInt>::const_iterator it = name_to_index_.find(name);
 		if (it != name_to_index_.end())
 		{
 			return it->second;
@@ -140,9 +139,9 @@ namespace OpenMS
 	}
 
 
-	string MetaInfoRegistry::getDescription(UInt index) const throw(Exception::InvalidValue)
+	String MetaInfoRegistry::getDescription(UInt index) const throw(Exception::InvalidValue)
 	{
-		map<UInt,string>::const_iterator it = index_to_description_.find(index);
+		map<UInt,String>::const_iterator it = index_to_description_.find(index);
 		if (it == index_to_description_.end())
 		{
 			throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__,"Unregistered index!",String(index));
@@ -150,7 +149,7 @@ namespace OpenMS
 		return it->second;
 	}
  
-	string MetaInfoRegistry::getDescription(const std::string& name) const throw(Exception::InvalidValue)
+	String MetaInfoRegistry::getDescription(const String& name) const throw(Exception::InvalidValue)
 	{
 		UInt index = getIndex(name);
 		if  (index==0)
@@ -160,9 +159,9 @@ namespace OpenMS
 		return (index_to_description_.find(index))->second;
 	}
 
-	string MetaInfoRegistry::getUnit(UInt index) const throw(Exception::InvalidValue)
+	String MetaInfoRegistry::getUnit(UInt index) const throw(Exception::InvalidValue)
 	{
-		map<UInt,string>::const_iterator it = index_to_unit_.find(index);
+		map<UInt,String>::const_iterator it = index_to_unit_.find(index);
 		if (it == index_to_description_.end())
 		{
 			throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__,"Unregistered index!",String(index));
@@ -170,7 +169,7 @@ namespace OpenMS
 		return it->second;
 	}
 	
-	string MetaInfoRegistry::getUnit(const string& name) const throw(Exception::InvalidValue)
+	String MetaInfoRegistry::getUnit(const String& name) const throw(Exception::InvalidValue)
 	{
 		UInt index = getIndex(name);
 		if  (index==0)
@@ -180,9 +179,9 @@ namespace OpenMS
 		return (index_to_unit_.find(index))->second;
 	}
 
-  string  MetaInfoRegistry::getName(UInt index) const throw(Exception::InvalidValue)
+  String MetaInfoRegistry::getName(UInt index) const throw(Exception::InvalidValue)
   {
-		map<UInt,string>::const_iterator it = index_to_name_.find(index);
+		map<UInt,String>::const_iterator it = index_to_name_.find(index);
 		if (it != index_to_name_.end())
 		{
 			return it->second;

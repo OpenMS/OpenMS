@@ -1056,14 +1056,14 @@ namespace OpenMS
           {
             file_name.append("."+format.toLower());
           }
-					if (File::writable(file_name.toStdString()))
+					if (File::writable(file_name))
 					{
           	QImage image = window->getImage(dialog->getXSize(),dialog->getYSize());
           	image.save(file_name,format.toAscii().data(),100);
         	}
         	else
         	{
-        	  QMessageBox::critical(this,"Error writing file!",(String("Cannot write to '")+file_name.toStdString()	+"'!").c_str());
+        	  QMessageBox::critical(this,"Error writing file!",(String("Cannot write to '")+file_name	+"'!").c_str());
         	}
         }
       }
@@ -1755,7 +1755,7 @@ namespace OpenMS
     return 0;
   }
 
-  void TOPPViewBase::loadPreferences(string filename)
+  void TOPPViewBase::loadPreferences(String filename)
   {
     //compose default ini file path
     String default_ini_file;
@@ -1819,7 +1819,7 @@ namespace OpenMS
 
     for (int i = 0; i < recent_files_.size(); ++i)
     {
-      param_.setValue("Preferences:RecentFiles:"+String(i),recent_files_[i].toStdString());
+      param_.setValue("Preferences:RecentFiles:"+String(i),recent_files_[i]);
     }
 		
 		//set version
@@ -1847,7 +1847,7 @@ namespace OpenMS
 			{
 				mow = OpenDialog::NOISE_ESTIMATOR;
 			}
-   		addSpectrum(action->text().toStdString(),!recent_as_new_layer_->isChecked(),(String)param_.getValue("Preferences:DefaultMapView")=="2D",true,mow);
+   		addSpectrum(action->text(),!recent_as_new_layer_->isChecked(),(String)param_.getValue("Preferences:DefaultMapView")=="2D",true,mow);
 			setCursor(Qt::ArrowCursor); 	
 		}
  }
@@ -2055,7 +2055,7 @@ namespace OpenMS
 			{
 				vector<PeptideIdentification> identifications; 
 				vector<ProteinIdentification> protein_identifications; 
-				IdXMLFile().load(name.toStdString(), protein_identifications, identifications);
+				IdXMLFile().load(name, protein_identifications, identifications);
 				if (layer.type==LayerData::DT_PEAK)
 				{
 					IDSpectrumMapper().annotate(const_cast<LayerData&>(layer).peaks, identifications, 0.1);
@@ -2184,7 +2184,7 @@ namespace OpenMS
 			QString name = QInputDialog::getText(this,"New layer name","Name:");
 			if (name!="")
 			{
-				const_cast<LayerData&>(layer).name = name.toStdString();
+				const_cast<LayerData&>(layer).name = name;
 				updateLayerbar();
 			}
 		}

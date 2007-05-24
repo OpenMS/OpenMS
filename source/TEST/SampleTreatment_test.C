@@ -123,10 +123,10 @@ CHECK([EXTRA] MetaInfo)
 	s.metaRegistry().registerName("origin","","");
 	s.metaRegistry().registerName("size","","");
 	
-	s.setMetaValue("origin",string("cow"));
+	s.setMetaValue("origin",String("cow"));
 	s.setMetaValue("size",1.0);
 	TEST_EQUAL(s.isMetaEmpty(),false)
-	TEST_EQUAL(string(s.getMetaValue("origin")),"cow")
+	TEST_EQUAL(String(s.getMetaValue("origin")),"cow")
 	TEST_REAL_EQUAL(double(s.getMetaValue("size")),1.0)
 RESULT
 
@@ -134,7 +134,7 @@ CHECK((SampleTreatment(const SampleTreatment&)))
 	Test s;
 	//set
 	s.setComment("TTEST");
-	s.setMetaValue("origin",string("horse"));
+	s.setMetaValue("origin",String("horse"));
 	//copy
 	Test s2(s);
 	//get
@@ -146,7 +146,7 @@ CHECK((SampleTreatment& operator=(const SampleTreatment&)))
 	Test s,s2;
 	//set
 	s.setComment("TTEST");
-	s.setMetaValue("origin",string("horse"));
+	s.setMetaValue("origin",String("horse"));
 	//assign
 	s2 = s;
 	//get
@@ -162,7 +162,7 @@ CHECK((virtual SampleTreatment* clone() const=0))
 	
 	//set
 	s.setComment("TTEST");
-	s.setMetaValue("origin",string("horse"));
+	s.setMetaValue("origin",String("horse"));
 
 	//assign
 	st1 = &s;
@@ -182,7 +182,7 @@ CHECK((bool operator== (const SampleTreatment& rhs) const))
 	edit = empty;
 	TEST_EQUAL(edit==empty, true);		
 
-	edit.setMetaValue("color",string("red"));
+	edit.setMetaValue("color",String("red"));
 	TEST_EQUAL(edit==empty, false);
 	edit = empty;
 	TEST_EQUAL(edit==empty, true);	

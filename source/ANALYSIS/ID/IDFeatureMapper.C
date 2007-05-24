@@ -68,7 +68,7 @@ namespace OpenMS
 				}
 
 #ifdef DEBUG_ID_MAPPING
-				cout << "  * ID (rt/mz): " << ids[i].rt << " " << ids[i].mz << endl;
+				cout << "  * ID (rt/mz): " << ids[i].getMetaValue("RT") << " " << ids[i].getMetaValue("MZ") << endl;
 #endif
 				DPosition<2> id_pos(ids[i].getMetaValue("RT"),ids[i].getMetaValue("MZ"));
 				

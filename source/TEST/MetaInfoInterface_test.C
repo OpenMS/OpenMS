@@ -60,38 +60,38 @@ CHECK((MetaInfoRegistry& metaRegistry()))
 	TEST_EQUAL(mi.metaRegistry().getIndex("testname"),1024);
 RESULT
 
-CHECK((void setMetaValue(UInt index, const std::string& value)))
+CHECK((void setMetaValue(UInt index, const String& value)))
 	string tmp;
-	mi.setMetaValue(1024,string("testtesttest"));
+	mi.setMetaValue(1024,String("testtesttest"));
 RESULT
 
-CHECK((void setMetaValue(const std::string& name, const std::string& value)))
+CHECK((void setMetaValue(const String& name, const String& value)))
 	string tmp;
-	mi.setMetaValue("testname",string("testtesttest2"));
+	mi.setMetaValue("testname",String("testtesttest2"));
 RESULT
 
 CHECK((const DataValue& getMetaValue(UInt index) const throw(Exception::InvalidValue)))
 	string tmp;
-	mi.setMetaValue(1024,string("testtesttest"));
-	tmp = string(mi.getMetaValue(1024));
+	mi.setMetaValue(1024,String("testtesttest"));
+	tmp = String(mi.getMetaValue(1024));
 	TEST_EQUAL("testtesttest",tmp)
 RESULT
 
-CHECK((const DataValue& getMetaValue(const std::string& name) const throw(Exception::InvalidValue)))
+CHECK((const DataValue& getMetaValue(const String& name) const throw(Exception::InvalidValue)))
 	string tmp;
-	mi.setMetaValue("testname",string("testtesttest2"));
-	tmp = string(mi.getMetaValue("testname"));
+	mi.setMetaValue("testname",String("testtesttest2"));
+	tmp = String(mi.getMetaValue("testname"));
 	TEST_EQUAL("testtesttest2",tmp)
 RESULT
 
-CHECK((void setMetaValue(const std::string& name, Int value)))
+CHECK((void setMetaValue(const String& name, Int value)))
 	Int tmp;
 	mi.setMetaValue("cluster_id",4711);
 	tmp = Int(mi.getMetaValue("cluster_id"));
 	TEST_EQUAL(tmp,4711)
 RESULT
 
-CHECK((void setMetaValue(const std::string& name, double value)))
+CHECK((void setMetaValue(const String& name, double value)))
 	double tmp;
 	mi.setMetaValue("cluster_id",4711.1234);
 	tmp = double(mi.getMetaValue("cluster_id"));
@@ -115,7 +115,7 @@ RESULT
 CHECK((bool isMetaEmpty() const))
 	MetaInfoInterface tmp;
 	TEST_EQUAL(tmp.isMetaEmpty(),true)
-	tmp.setMetaValue(1024,string("testtesttest"));
+	tmp.setMetaValue(1024,String("testtesttest"));
 	TEST_EQUAL(tmp.isMetaEmpty(),false)
 RESULT
 
@@ -150,22 +150,22 @@ CHECK((MetaInfoInterface& operator = (const MetaInfoInterface& rhs)))
 	TEST_REAL_EQUAL(mi3.isMetaEmpty(),true)	
 RESULT
 
-CHECK((void setMetaValue(const std::string& name, const DataValue& value)))
+CHECK((void setMetaValue(const String& name, const DataValue& value)))
 	DataValue tmp("testtesttest3");
 	mi.setMetaValue("testname",tmp);
-	tmp = string(mi.getMetaValue("testname"));
+	tmp = String(mi.getMetaValue("testname"));
 	TEST_EQUAL("testtesttest3",tmp)
 RESULT
 
 CHECK((void setMetaValue(UInt index, const DataValue& value)))
 	DataValue tmp("testtesttest3");
 	mi.setMetaValue(2,tmp);
-	tmp = string(mi.getMetaValue(2));
+	tmp = String(mi.getMetaValue(2));
 	TEST_EQUAL("testtesttest3",tmp)
 RESULT
 
-CHECK((void getKeys(std::vector<std::string>& keys) const))
-	vector<string> tmp,tmp2;
+CHECK((void getKeys(std::vector<String>& keys) const))
+	vector<String> tmp,tmp2;
 	tmp.push_back("cluster_id");
 	tmp.push_back("testname");
 	mi.getKeys(tmp2);
@@ -227,7 +227,7 @@ CHECK(void getKeys(std::vector< UInt > &keys) const)
 	TEST_EQUAL(vec[4],1027)
 RESULT
 
-CHECK((bool metaValueExists(const std::string& name) const))
+CHECK((bool metaValueExists(const String& name) const))
 	MetaInfoInterface mi4;
 	TEST_EQUAL(mi4.metaValueExists("cluster_id"),false)
 	mi4.setMetaValue("cluster_id",4712.1234);
@@ -241,8 +241,8 @@ CHECK((bool metaValueExists(UInt index) const))
 	TEST_EQUAL(mi4.metaValueExists(2),true)
 RESULT
 
-CHECK(([EXTRA] void getKeys(std::vector<std::string>& keys) const))
-	std::vector<std::string> keys;
+CHECK(([EXTRA] void getKeys(std::vector<String>& keys) const))
+	std::vector<String> keys;
 	mi.getKeys(keys);	
 	TEST_EQUAL(keys.size(),2)
 	TEST_EQUAL(keys[0],"cluster_id")
@@ -294,7 +294,7 @@ CHECK((void removeMetaValue(UInt index)))
 	i.removeMetaValue(1234);
 RESULT
 
-CHECK((void removeMetaValue(const std::string& name)))
+CHECK((void removeMetaValue(const String& name)))
 	MetaInfoInterface i,i2;
 	
 	i.setMetaValue("label",String("bla"));

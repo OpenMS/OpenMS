@@ -40,20 +40,20 @@ using namespace std;
 
 namespace OpenMS 
 {
-
-	bool File::exists(const string& file)
+	
+	bool File::exists(const String& file)
 	{
 		QFileInfo fi(file.c_str());
 		return fi.exists();
 	}
 
-	bool File::empty(const string& file)
+	bool File::empty(const String& file)
 	{
 		QFileInfo fi(file.c_str());
 		return (!fi.exists() || fi.size()==0);
 	}
 
-	bool File::remove(const string& file)
+	bool File::remove(const String& file)
 	{
 		if (!exists(file)) return true;
 		
@@ -61,31 +61,31 @@ namespace OpenMS
 	  return true;
 	}
 	
-	void File::absolutePath(string& file)
+	void File::absolutePath(String& file)
 	{
 		QFileInfo fi(file.c_str());
 		file = fi.absoluteFilePath().toAscii().data();
 	}
 
-	String File::basename(const string& file)
+	String File::basename(const String& file)
 	{
 		QFileInfo fi(file.c_str());
 		return fi.fileName().toAscii().data();
 	}
 
-	String File::path(const string& file)
+	String File::path(const String& file)
 	{
 		QFileInfo fi(file.c_str());
 		return fi.path().toAscii().data();
 	}
 
-	bool File::readable(const string& file)
+	bool File::readable(const String& file)
 	{
 		QFileInfo fi(file.c_str());
 		return (fi.exists() && fi.isReadable());
 	}
 
-	bool File::writable(const string& file)
+	bool File::writable(const String& file)
 	{
 		QFile f;
 		f.setFileName(file.c_str());
@@ -122,7 +122,7 @@ namespace OpenMS
 		return "";
 	}
 	
-	bool File::fileList(const std::string& dir, const std::string& file_pattern, vector<String>& output)
+	bool File::fileList(const String& dir, const String& file_pattern, vector<String>& output)
 	{
 		QDir d(dir.c_str(), file_pattern.c_str(), QDir::Name, QDir::Files);
 		QStringList list = d.entryList();

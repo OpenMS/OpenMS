@@ -1572,7 +1572,7 @@ namespace OpenMS
 			p.setPosition(pos);
 			if (it == id.begin())
 			{
-				p.setMetaValue("IonName", string(name.c_str()));
+				p.setMetaValue("IonName", String(name.c_str()));
 			}
 
 			if (pos >= (double)param_.getValue("lower_mz") && pos <= (double)param_.getValue("upper_mz"))
@@ -1583,7 +1583,7 @@ namespace OpenMS
 
 			if (it == id.begin())
 			{
-				p.setMetaValue("IonName", string(""));
+				p.setMetaValue("IonName", String(""));
 			}
 		}
 

@@ -67,7 +67,7 @@ namespace OpenMS
   	return !(operator==(rhs));
  	}
 	
-	const DataValue& MetaInfo::getValue(const std::string& name) const
+	const DataValue& MetaInfo::getValue(const String& name) const
 	{
 		map<UInt,DataValue>::const_iterator it = index_to_value_.find(registry_.getIndex(name));
 		if (it != index_to_value_.end())
@@ -88,17 +88,17 @@ namespace OpenMS
 	}
 
 
-	void MetaInfo::setValue(const std::string& name, const std::string& value)
+	void MetaInfo::setValue(const String& name, const String& value)
 	{
 		index_to_value_[registry_.getIndex(name)] = DataValue(value);
 	}
 
-	void MetaInfo::setValue(UInt index, const std::string& value)
+	void MetaInfo::setValue(UInt index, const String& value)
 	{
 		index_to_value_[index] = DataValue(value);
 	}
 
-	void MetaInfo::setValue(const std::string& name, Int value)
+	void MetaInfo::setValue(const String& name, Int value)
 	{
 		index_to_value_[registry_.getIndex(name)] = DataValue(value);
 	}
@@ -108,7 +108,7 @@ namespace OpenMS
 		index_to_value_[index] = DataValue(value);
 	}
 
-	void MetaInfo::setValue(const std::string& name, double value)
+	void MetaInfo::setValue(const String& name, double value)
 	{
 		index_to_value_[registry_.getIndex(name)] = DataValue(value);
 	}
@@ -118,7 +118,7 @@ namespace OpenMS
 		index_to_value_[index] = DataValue(value);
 	}
 
-	void MetaInfo::setValue(const std::string& name, const DataValue& value)
+	void MetaInfo::setValue(const String& name, const DataValue& value)
 	{
 		index_to_value_[registry_.getIndex(name)] = value;
 	}
@@ -133,7 +133,7 @@ namespace OpenMS
 		return registry_;
 	}
 
-	bool MetaInfo::exists(const std::string& name) const
+	bool MetaInfo::exists(const String& name) const
 	{
 		try
 		{
@@ -158,7 +158,7 @@ namespace OpenMS
 		return true;
 	}
 
-	void MetaInfo::removeValue(const std::string& name)
+	void MetaInfo::removeValue(const String& name)
 	{
 		map<UInt,DataValue>::iterator it = index_to_value_.find(registry_.getIndex(name));
 		if (it != index_to_value_.end())
@@ -176,7 +176,7 @@ namespace OpenMS
 		}
 	}
 
-  void MetaInfo::getKeys(vector<string>& keys) const
+  void MetaInfo::getKeys(vector<String>& keys) const
   {
     keys.resize(index_to_value_.size());
     UInt i =0;

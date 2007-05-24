@@ -283,7 +283,7 @@ CHECK((Sample(const Sample& source)))
 	s.setConcentration(4711.4);
 
 	//meta info
-	s.setMetaValue("label",string("horse"));
+	s.setMetaValue("label",String("horse"));
 	
 	//subsamples
 	Sample ss;
@@ -335,7 +335,7 @@ CHECK((Sample& operator= (const Sample& source)))
 	s.setConcentration(4711.4);
 
 	//meta
-	s.setMetaValue("label",string("horse"));
+	s.setMetaValue("label",String("horse"));
 	
 	//subsamples
 	Sample ss;

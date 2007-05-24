@@ -123,7 +123,7 @@ CHECK(Digestion(const Digestion&))
 	s.setDigestionTime(4711.2);
 	s.setTemperature(4711.3);
 	s.setPh(4711.4);
-	s.setMetaValue("color",string("red"));
+	s.setMetaValue("color",String("red"));
 	
 	//copy
 	Digestion s2(s);
@@ -143,7 +143,7 @@ CHECK(Digestion& operator=(const Digestion&))
 	s.setDigestionTime(4711.2);
 	s.setTemperature(4711.3);
 	s.setPh(4711.4);
-	s.setMetaValue("color",string("red"));
+	s.setMetaValue("color",String("red"));
 
 	//assign
 	s2 = s;
@@ -167,7 +167,7 @@ CHECK(SampleTreatment* clone() const)
 	s.setDigestionTime(4711.2);
 	s.setTemperature(4711.3);
 	s.setPh(4711.4);
-	s.setMetaValue("color",string("red"));
+	s.setMetaValue("color",String("red"));
 	
 	//assign
 	st1 = &s;
@@ -207,7 +207,7 @@ CHECK(bool operator== (const SampleTreatment& rhs) const)
 	edit = empty;
 	TEST_EQUAL(edit==empty, true);		
 
-	edit.setMetaValue("color",string("red"));
+	edit.setMetaValue("color",String("red"));
 	TEST_EQUAL(edit==empty, false);
 	edit = empty;
 	TEST_EQUAL(edit==empty, true);	

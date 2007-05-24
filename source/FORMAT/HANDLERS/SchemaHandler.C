@@ -160,10 +160,10 @@ namespace OpenMS
 
 	void SchemaHandler::writeUserParam_(std::ostream& os, const MetaInfoInterface& meta, int indent)
 	{
-		std::vector<std::string> keys;  // Vector to hold keys to meta info
+		std::vector<String> keys;  // Vector to hold keys to meta info
 		meta.getKeys(keys);
 
-		for (std::vector<std::string>::const_iterator it = keys.begin(); it!=keys.end(); ++it)
+		for (std::vector<String>::const_iterator it = keys.begin(); it!=keys.end(); ++it)
 			if ( (*it)[0] != '#')  // internally used meta info start with '#'
 				os << String(indent,'\t') << "<userParam name=\""
 						<< *it << "\" value=\""

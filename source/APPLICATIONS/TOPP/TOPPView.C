@@ -122,7 +122,7 @@ void print_usage()
 int main( int argc, char ** argv )
 {
 	//list of all the valid options
-	map<string,string> valid_options, valid_flags;
+	map<String,String> valid_options, valid_flags;
 	valid_flags["--help"] = "help";
 	valid_options["-ini"] = "ini";
 	

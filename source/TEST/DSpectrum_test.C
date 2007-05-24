@@ -670,8 +670,8 @@ RESULT
 CHECK(([EXTRA] setMetaValue(index,string)/getMetaValue(index)))
 	DSpectrum<1> ds;
 	ds.metaRegistry().registerName("type","","");
-	ds.setMetaValue("type",std::string("theoretical"));
-	TEST_EQUAL(std::string(ds.getMetaValue("type")),std::string("theoretical"))
+	ds.setMetaValue("type",String("theoretical"));
+	TEST_EQUAL(String(ds.getMetaValue("type")),String("theoretical"))
 RESULT
 
 CHECK(([EXTRA] setMetaValue(index,float)/getMetaValue(index)))
@@ -690,22 +690,22 @@ RESULT
 
 CHECK(([EXTRA] meta info with copy constructor))
 	DSpectrum<1> p;
-	p.setMetaValue(2,std::string("bla"));
+	p.setMetaValue(2,String("bla"));
  	DSpectrum<1> p2(p);
 	TEST_EQUAL(p.getMetaValue(2), "bla")
 	TEST_EQUAL(p2.getMetaValue(2), "bla")
- 	p.setMetaValue(2,std::string("bluff"));
+ 	p.setMetaValue(2,String("bluff"));
 	TEST_EQUAL(p.getMetaValue(2), "bluff")
 	TEST_EQUAL(p2.getMetaValue(2), "bla")
 RESULT
 
 CHECK(([EXTRA] meta info with assignment))
 	DSpectrum<1> p;
-	p.setMetaValue(2,std::string("bla"));
+	p.setMetaValue(2,String("bla"));
  	DSpectrum<1> p2 = p;
 	TEST_EQUAL(p.getMetaValue(2), "bla")
 	TEST_EQUAL(p2.getMetaValue(2), "bla")
- 	p.setMetaValue(2,std::string("bluff"));
+ 	p.setMetaValue(2,String("bluff"));
 	TEST_EQUAL(p.getMetaValue(2), "bluff")
 	TEST_EQUAL(p2.getMetaValue(2), "bla")
 RESULT

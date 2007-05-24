@@ -104,22 +104,22 @@ RESULT
 
 CHECK(([EXTRA] meta info with copy constructor))
 	DPeak<1> p;
-	p.setMetaValue(2,std::string("bla"));
+	p.setMetaValue(2,String("bla"));
  	DPeak<1> p2(p);
 	TEST_EQUAL(p.getMetaValue(2), "bla")
 	TEST_EQUAL(p2.getMetaValue(2), "bla")
- 	p.setMetaValue(2,std::string("bluff"));
+ 	p.setMetaValue(2,String("bluff"));
 	TEST_EQUAL(p.getMetaValue(2), "bluff")
 	TEST_EQUAL(p2.getMetaValue(2), "bla")
 RESULT
 
 CHECK(([EXTRA] meta info with assignment))
 	DPeak<1> p;
-	p.setMetaValue(2,std::string("bla"));
+	p.setMetaValue(2,String("bla"));
  	DPeak<1> p2 = p;
 	TEST_EQUAL(p.getMetaValue(2), "bla")
 	TEST_EQUAL(p2.getMetaValue(2), "bla")
- 	p.setMetaValue(2,std::string("bluff"));
+ 	p.setMetaValue(2,String("bluff"));
 	TEST_EQUAL(p.getMetaValue(2), "bluff")
 	TEST_EQUAL(p2.getMetaValue(2), "bla")
 RESULT

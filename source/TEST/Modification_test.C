@@ -114,7 +114,7 @@ CHECK(Modification(const Modification&))
 	s.setMass(11.9);
 	s.setSpecificityType(Modification::AA);
 	s.setAffectedAminoAcids("ABCDE");
-	s.setMetaValue("color",string("red"));
+	s.setMetaValue("color",String("red"));
 
 	//copy
 	Modification s2(s);
@@ -124,7 +124,7 @@ CHECK(Modification(const Modification&))
 	TEST_REAL_EQUAL(s.getMass(),11.9)
 	TEST_EQUAL(s.getSpecificityType(),Modification::AA)
 	TEST_EQUAL(s.getAffectedAminoAcids(),"ABCDE")
-	TEST_EQUAL(string(s.getMetaValue("color")),"red")
+	TEST_EQUAL(String(s.getMetaValue("color")),"red")
 	
 RESULT
 
@@ -136,7 +136,7 @@ CHECK(Modification& operator=(const Modification&))
 	s.setMass(11.9);
 	s.setSpecificityType(Modification::AA);
 	s.setAffectedAminoAcids("ABCDE");
-	s.setMetaValue("color",string("red"));
+	s.setMetaValue("color",String("red"));
 
 	//assign
 	s2 = s;
@@ -146,7 +146,7 @@ CHECK(Modification& operator=(const Modification&))
 	TEST_REAL_EQUAL(s.getMass(),11.9)
 	TEST_EQUAL(s.getSpecificityType(),Modification::AA)
 	TEST_EQUAL(s.getAffectedAminoAcids(),"ABCDE")
-	TEST_EQUAL(string(s.getMetaValue("color")),"red")
+	TEST_EQUAL(String(s.getMetaValue("color")),"red")
 RESULT
 
 //clone
@@ -161,7 +161,7 @@ CHECK(SampleTreatment* clone() const)
 	s.setMass(11.9);
 	s.setSpecificityType(Modification::AA);
 	s.setAffectedAminoAcids("ABCDE");
-	s.setMetaValue("color",string("red"));
+	s.setMetaValue("color",String("red"));
 
 	//assign
 	st1 = &s;
@@ -173,7 +173,7 @@ CHECK(SampleTreatment* clone() const)
 	TEST_REAL_EQUAL(dp->getMass(),11.9)
 	TEST_EQUAL(dp->getSpecificityType(),Modification::AA)
 	TEST_EQUAL(dp->getAffectedAminoAcids(),"ABCDE")
-	TEST_EQUAL(string(dp->getMetaValue("color")),"red")
+	TEST_EQUAL(String(dp->getMetaValue("color")),"red")
 RESULT
 
 CHECK(bool operator== (const SampleTreatment& rhs) const)
@@ -196,7 +196,7 @@ CHECK(bool operator== (const SampleTreatment& rhs) const)
 	edit = empty;
 	TEST_EQUAL(edit==empty, true);			
 
-	edit.setMetaValue("color",string("red"));
+	edit.setMetaValue("color",String("red"));
 	TEST_EQUAL(edit==empty, false);
 	edit = empty;
 	TEST_EQUAL(edit==empty, true);	

@@ -424,6 +424,12 @@ namespace OpenMS
 		{
 			visualize_(const_cast<PeptideHit&>(meta.getHits()[i]), item);
 		}
+
+		if(! meta.isMetaEmpty() )
+		{
+			visualize_(dynamic_cast<MetaInfoInterface&>(meta), item);
+		}
+
 		connectVisualizer_(visualizer);
 	}
 
@@ -454,6 +460,11 @@ namespace OpenMS
 		for(UInt i=0; i<meta.getHits().size(); ++i)    
 		{
 			visualize_(const_cast<ProteinHit&>(meta.getHits()[i]), item);
+		}
+		
+		if(! meta.isMetaEmpty() )
+		{
+			visualize_(dynamic_cast<MetaInfoInterface&>(meta), item);
 		}
 		
 		connectVisualizer_(visualizer);
@@ -713,7 +724,12 @@ namespace OpenMS
 		{
 			item = new QTreeWidgetItem(parent, labels );
 		} 
-		
+
+		if(! meta.isMetaEmpty() )
+		{
+			visualize_(dynamic_cast<MetaInfoInterface&>(meta), item);
+		}
+
 		connectVisualizer_(visualizer);
 	}
 	
@@ -788,6 +804,12 @@ namespace OpenMS
 		{
 			item = new QTreeWidgetItem(parent, labels );
 		} 
+		
+		if(! meta.isMetaEmpty() )
+		{
+			visualize_(dynamic_cast<MetaInfoInterface&>(meta), item);
+		}
+		
 		connectVisualizer_(visualizer);
 	}
 	

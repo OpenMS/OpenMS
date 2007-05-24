@@ -391,7 +391,7 @@ namespace OpenMS
 		stringstream meta ;
 		meta << "Feature #" << counter_ << ", +"	<< f.getCharge() << ", " << set.size() << "->" << model_set.size() 
 				 << ", Corr: (" << max_quality << ","  << f.getQuality(RT) << "," << f.getQuality(MZ) << ")";
-		f.setMetaValue(3,meta.str());
+		f.setMetaValue(3,String(meta.str()));
 
 		#ifdef DEBUG_FEATUREFINDER
 		// write debug output

@@ -424,7 +424,7 @@ CHECK((void parseCommandLine(const int argc, char** argv, String prefix = "")))
 RESULT
 
 CHECK((void parseCommandLine(const int argc, char** argv, const std::map<std::string, std::string>& options_with_argument, const std::map<std::string, std::string>& options_without_argument, const std::string& misc="misc", const std::string& unknown="unknown")))
-	map<string,string> with,without;
+	map<String,String> with,without;
 	with["-a"]="a";
 	with["-b"]="b";
 	with["-c"]="c";

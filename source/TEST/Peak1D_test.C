@@ -104,22 +104,22 @@ RESULT
 
 CHECK(([EXTRA] meta info with copy constructor))
 	Peak1D p;
-	p.setMetaValue(2,std::string("bla"));
+	p.setMetaValue(2,String("bla"));
  	Peak1D p2(p);
 	TEST_EQUAL(p.getMetaValue(2), "bla")
 	TEST_EQUAL(p2.getMetaValue(2), "bla")
- 	p.setMetaValue(2,std::string("bluff"));
+ 	p.setMetaValue(2,String("bluff"));
 	TEST_EQUAL(p.getMetaValue(2), "bluff")
 	TEST_EQUAL(p2.getMetaValue(2), "bla")
 RESULT
 
 CHECK(([EXTRA] meta info with assignment))
 	Peak1D p;
-	p.setMetaValue(2,std::string("bla"));
+	p.setMetaValue(2,String("bla"));
  	Peak1D p2 = p;
 	TEST_EQUAL(p.getMetaValue(2), "bla")
 	TEST_EQUAL(p2.getMetaValue(2), "bla")
- 	p.setMetaValue(2,std::string("bluff"));
+ 	p.setMetaValue(2,String("bluff"));
 	TEST_EQUAL(p.getMetaValue(2), "bluff")
 	TEST_EQUAL(p2.getMetaValue(2), "bla")
 RESULT

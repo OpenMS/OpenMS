@@ -722,7 +722,7 @@ namespace OpenMS
 
 	void IdXMLFile::writeUserParam_(std::ostream& os, const MetaInfoInterface& meta, UInt indent) const
 	{
-		std::vector<std::string> keys;
+		std::vector<String> keys;
 		meta.getKeys(keys);
 		
 		for (UInt i = 0; i!=keys.size();++i)

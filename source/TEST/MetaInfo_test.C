@@ -60,38 +60,38 @@ CHECK((static MetaInfoRegistry& registry()))
 	TEST_EQUAL (mi.registry().getIndex("testname"),1024);
 RESULT
 
-CHECK((void setValue(UInt index, const std::string& value)))
+CHECK((void setValue(UInt index, const String& value)))
 	string tmp;
-	mi.setValue(1024,string("testtesttest"));
+	mi.setValue(1024,String("testtesttest"));
 RESULT
 
 CHECK((const DataValue& getValue(UInt index) const))
 	string tmp;
-	mi.setValue(1024,string("testtesttest"));
-	tmp = string(mi.getValue(1024));
+	mi.setValue(1024,String("testtesttest"));
+	tmp = String(mi.getValue(1024));
 	TEST_EQUAL("testtesttest",tmp)
 RESULT
 
-CHECK((void setValue(const std::string& name, const std::string& value)))
+CHECK((void setValue(const String& name, const String& value)))
 	string tmp;
-	mi.setValue("testname",string("testtesttest2"));
+	mi.setValue("testname",String("testtesttest2"));
 RESULT
 
-CHECK((const DataValue& getValue(const std::string& name) const))
+CHECK((const DataValue& getValue(const String& name) const))
 	string tmp;
-	mi.setValue("testname",string("testtesttest2"));
-	tmp = string(mi.getValue("testname"));
+	mi.setValue("testname",String("testtesttest2"));
+	tmp = String(mi.getValue("testname"));
 	TEST_EQUAL("testtesttest2",tmp)
 RESULT
 
-CHECK((void setValue(const std::string& name, Int value)))
+CHECK((void setValue(const String& name, Int value)))
 	Int tmp;
 	mi.setValue("cluster_id",4711);
 	tmp = Int(mi.getValue("cluster_id"));
 	TEST_EQUAL(tmp,4711)
 RESULT
 
-CHECK((void setValue(const std::string& name, double value)))
+CHECK((void setValue(const String& name, double value)))
 	double tmp;
 	mi.setValue("cluster_id",4711.1234);
 	tmp = double(mi.getValue("cluster_id"));
@@ -115,39 +115,39 @@ RESULT
 CHECK((bool empty() const))
 	MetaInfo tmp;
 	TEST_EQUAL(tmp.empty(),true)
-	tmp.setValue(1024,string("testtesttest"));
+	tmp.setValue(1024,String("testtesttest"));
 	TEST_EQUAL(tmp.empty(),false)
 RESULT
 
 CHECK((MetaInfo(const MetaInfo& rhs)))
 	MetaInfo mi3(mi);
 	TEST_REAL_EQUAL(double(mi3.getValue("cluster_id")),4712.1234)
-	TEST_EQUAL("testtesttest2",string(mi3.getValue("testname")))
+	TEST_EQUAL("testtesttest2",String(mi3.getValue("testname")))
 RESULT
 
 CHECK((MetaInfo& operator = (const MetaInfo& rhs)))
 	MetaInfo mi3;
 	mi3 = mi;
 	TEST_REAL_EQUAL(double(mi3.getValue("cluster_id")),4712.1234)
-	TEST_EQUAL("testtesttest2",string(mi3.getValue("testname")))
+	TEST_EQUAL("testtesttest2",String(mi3.getValue("testname")))
 RESULT
 
-CHECK((void setValue(const std::string& name, const DataValue& value)))
+CHECK((void setValue(const String& name, const DataValue& value)))
 	DataValue tmp("testtesttest3");
 	mi.setValue("testname",tmp);
-	tmp = string(mi.getValue("testname"));
+	tmp = String(mi.getValue("testname"));
 	TEST_EQUAL("testtesttest3",tmp)
 RESULT
 
 CHECK((void setValue(UInt index, const DataValue& value)))
 	DataValue tmp("testtesttest3");
 	mi.setValue(2,tmp);
-	tmp = string(mi.getValue(2));
+	tmp = String(mi.getValue(2));
 	TEST_EQUAL("testtesttest3",tmp)
 RESULT
 
-CHECK((void getKeys(std::vector<std::string>& keys) const))
-	vector<string> tmp,tmp2;
+CHECK((void getKeys(std::vector<String>& keys) const))
+	vector<String> tmp,tmp2;
 	tmp.push_back("cluster_id");
 	tmp.push_back("testname");
 	mi.getKeys(tmp2);
@@ -209,7 +209,7 @@ CHECK(void getKeys(std::vector< UInt > &keys) const)
 	TEST_EQUAL(vec[4],1027)
 RESULT
 
-CHECK((bool exists(const std::string& name) const))
+CHECK((bool exists(const String& name) const))
 	MetaInfo mi4;
 	TEST_EQUAL(mi4.exists("cluster_id"),false)
 	mi4.setValue("cluster_id",4712.1234);
@@ -268,7 +268,7 @@ CHECK((void removeValue(UInt index)))
 	i.removeValue(1234);
 RESULT
 
-CHECK((void removeValue(const std::string& name)))
+CHECK((void removeValue(const String& name)))
 	MetaInfo i,i2;
 	
 	i.setValue("label",String("bla"));

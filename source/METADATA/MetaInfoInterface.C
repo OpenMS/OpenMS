@@ -102,7 +102,7 @@ namespace OpenMS
   	return !(operator==(rhs));
  	}
 
-	const DataValue& MetaInfoInterface::getMetaValue(const std::string& name) const throw (Exception::InvalidValue)
+	const DataValue& MetaInfoInterface::getMetaValue(const String& name) const throw (Exception::InvalidValue)
 	{
 		if (meta_==0)
 		{
@@ -120,7 +120,7 @@ namespace OpenMS
 		return meta_->getValue(index); 
 	}
 	
-	bool MetaInfoInterface::metaValueExists(const std::string& name) const
+	bool MetaInfoInterface::metaValueExists(const String& name) const
 	{
 		if (meta_==0)
 		{
@@ -137,19 +137,19 @@ namespace OpenMS
 		return meta_->exists(index);
 	}
 
-	void MetaInfoInterface::setMetaValue(const std::string& name, const std::string& value)
+	void MetaInfoInterface::setMetaValue(const String& name, const String& value)
 	{
 		createIfNotExists_();
 		meta_->setValue(name,value);
 	}
 
-	void MetaInfoInterface::setMetaValue(UInt index, const std::string& value)
+	void MetaInfoInterface::setMetaValue(UInt index, const String& value)
 	{
 		createIfNotExists_();
 		meta_->setValue(index,value);			
 	}
 
-	void MetaInfoInterface::setMetaValue(const std::string& name, Int value)
+	void MetaInfoInterface::setMetaValue(const String& name, Int value)
 	{
 		createIfNotExists_();
 		meta_->setValue(name,value);			
@@ -161,7 +161,7 @@ namespace OpenMS
 		meta_->setValue(index,value);				
 	}
 
-	void MetaInfoInterface::setMetaValue(const std::string& name, double value)
+	void MetaInfoInterface::setMetaValue(const String& name, double value)
 	{
 		createIfNotExists_();
 		meta_->setValue(name,value);			
@@ -173,7 +173,7 @@ namespace OpenMS
 		meta_->setValue(index,value);				
 	}
 	
-	void MetaInfoInterface::setMetaValue(const std::string& name, const DataValue& value)
+	void MetaInfoInterface::setMetaValue(const String& name, const DataValue& value)
 	{
 		createIfNotExists_();
 		meta_->setValue(name,value);
@@ -198,7 +198,7 @@ namespace OpenMS
 		}
 	}
 
-  void MetaInfoInterface::getKeys(std::vector<std::string>& keys) const
+  void MetaInfoInterface::getKeys(std::vector<String>& keys) const
   {
 		if (meta_!=0)
 		{
@@ -229,7 +229,7 @@ namespace OpenMS
 		meta_ = 0;
   }
 
-	void MetaInfoInterface::removeMetaValue(const std::string& name)
+	void MetaInfoInterface::removeMetaValue(const String& name)
 	{
 		if (meta_!=0)
 		{
