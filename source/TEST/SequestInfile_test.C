@@ -157,22 +157,22 @@ CHECK(const String& getSequenceHeaderFilter())
 RESULT
 
 
-CHECK(void setPeptideMassTolerance(Real value))
-	file.setPeptideMassTolerance(1.3);
-	TEST_REAL_EQUAL(file.getPeptideMassTolerance() , 1.3)
+CHECK(void setPrecursorMassTolerance(Real value))
+	file.setPrecursorMassTolerance(1.3);
+	TEST_REAL_EQUAL(file.getPrecursorMassTolerance() , 1.3)
 RESULT
 
-CHECK(Real getPeptideMassTolerance())
-	TEST_REAL_EQUAL(file.getPeptideMassTolerance() , 1.3)
+CHECK(Real getPrecursorMassTolerance())
+	TEST_REAL_EQUAL(file.getPrecursorMassTolerance() , 1.3)
 RESULT
 
-CHECK(void setFragmentIonTolerance(Real value))
-	file.setFragmentIonTolerance(0.3);
-	TEST_REAL_EQUAL(file.getFragmentIonTolerance() , 0.3)
+CHECK(void setPeakMassTolerance(Real value))
+	file.setPeakMassTolerance(0.3);
+	TEST_REAL_EQUAL(file.getPeakMassTolerance() , 0.3)
 RESULT
 
-CHECK(Real getFragmentIonTolerance())
-	TEST_REAL_EQUAL(file.getFragmentIonTolerance() , 0.3)
+CHECK(Real getPeakMassTolerance())
+	TEST_REAL_EQUAL(file.getPeakMassTolerance() , 0.3)
 RESULT
 
 CHECK(void setMatchPeakTolerance(Real value))

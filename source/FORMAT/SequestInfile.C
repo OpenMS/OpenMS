@@ -38,8 +38,8 @@ namespace OpenMS
 		ion_series_weights_("0.0 1.0 0.0 0.0 0.0 0.0 0.0 1.0 0.0"),
 		dyn_mods_("0 X"),
 		protein_mass_filter_("0 0"),
-		peptide_mass_tolerance_(0),
-		fragment_ion_tolerance_(0),
+		precursor_mass_tolerance_(0),
+		peak_mass_tolerance_(0),
 		match_peak_tolerance_(0),
 		ion_cutoff_percentage_(0),
 		dyn_n_term_mod_(0),
@@ -79,8 +79,8 @@ namespace OpenMS
 		dyn_mods_ = sequest_infile.getDynMods(),
 		partial_sequence_ = sequest_infile.getPartialSequence(),
 		sequence_header_filter_ = sequest_infile.getSequenceHeaderFilter();
-		peptide_mass_tolerance_ = sequest_infile.getPeptideMassTolerance(),
-		fragment_ion_tolerance_ = sequest_infile.getFragmentIonTolerance(),
+		precursor_mass_tolerance_ = sequest_infile.getPrecursorMassTolerance(),
+		peak_mass_tolerance_ = sequest_infile.getPeakMassTolerance(),
 		dyn_n_term_mod_ = sequest_infile.getDynNTermMod(),
 		dyn_c_term_mod_ = sequest_infile.getDynCTermMod(),
 		ion_cutoff_percentage_ = sequest_infile.getIonCutoffPercentage(),
@@ -126,8 +126,8 @@ namespace OpenMS
 			dyn_mods_ = sequest_infile.getDynMods(),
 			partial_sequence_ = sequest_infile.getPartialSequence(),
 			sequence_header_filter_ = sequest_infile.getSequenceHeaderFilter();
-			peptide_mass_tolerance_ = sequest_infile.getPeptideMassTolerance(),
-			fragment_ion_tolerance_ = sequest_infile.getFragmentIonTolerance(),
+			precursor_mass_tolerance_ = sequest_infile.getPrecursorMassTolerance(),
+			peak_mass_tolerance_ = sequest_infile.getPeakMassTolerance(),
 			dyn_n_term_mod_ = sequest_infile.getDynNTermMod(),
 			dyn_c_term_mod_ = sequest_infile.getDynCTermMod(),
 			ion_cutoff_percentage_ = sequest_infile.getIonCutoffPercentage(),
@@ -172,13 +172,13 @@ namespace OpenMS
 		
 		ofs << "database_name = " << database_ << endl;
 		
-		ofs << "peptide_mass_tolerance = " << peptide_mass_tolerance_ << endl;
+		ofs << "peptide_mass_tolerance = " << precursor_mass_tolerance_ << endl;
 		
 		ofs << "peptide_mass_units = " << peptide_mass_unit_ << "; 0=amu, 1=mmu, 2=ppm" << endl;
 		
 		ofs << "ion_series = " << neutral_losses_for_ions_ << " " << ion_series_weights_  << ";nABY ABCDVWXYZ" << endl;
 		
-		ofs << "fragment_ion_tolerance = " << fragment_ion_tolerance_ << endl;
+		ofs << "fragment_ion_tolerance = " << peak_mass_tolerance_ << endl;
 		
 		ofs << "num_output_lines = " << output_lines_ << endl;
 		
@@ -320,7 +320,7 @@ namespace OpenMS
 	}
 	
 	const String& SequestInfile::getDatabase() const {return database_;}
-	void SequestInfile::setDatabase(const String& value){database_ = value;}
+	void SequestInfile::setDatabase(const String& database){database_ = database;}
 	
 	const String& SequestInfile::getNeutralLossesForIons() const {return neutral_losses_for_ions_;}
 	void SequestInfile::setNeutralLossesForIons(const String& neutral_losses_for_ions){neutral_losses_for_ions_ = neutral_losses_for_ions;}
@@ -341,48 +341,54 @@ namespace OpenMS
 	void SequestInfile::setProteinMassFilter(const String& protein_mass_filter){protein_mass_filter_ = protein_mass_filter;}
 	
 	
-	Real SequestInfile::getPeptideMassTolerance() const {return peptide_mass_tolerance_;}
-	void SequestInfile::setPeptideMassTolerance(Real value){peptide_mass_tolerance_ = value;}
+	Real SequestInfile::getPrecursorMassTolerance() const {return precursor_mass_tolerance_;}
+	void SequestInfile::setPrecursorMassTolerance(Real precursor_mass_tolerance){precursor_mass_tolerance_ = precursor_mass_tolerance;}
 	
-	Real SequestInfile::getFragmentIonTolerance() const {return fragment_ion_tolerance_;}
-	void SequestInfile::setFragmentIonTolerance(Real value){fragment_ion_tolerance_ = value;}
+	Real SequestInfile::getPeakMassTolerance() const {return peak_mass_tolerance_;}
+	void SequestInfile::setPeakMassTolerance(Real peak_mass_tolerance){peak_mass_tolerance_ = peak_mass_tolerance;}
 	
 	Real SequestInfile::getMatchPeakTolerance() const {return match_peak_tolerance_;}
-	void SequestInfile::setMatchPeakTolerance(Real value){match_peak_tolerance_ = value;}
+	void SequestInfile::setMatchPeakTolerance(Real match_peak_tolerance){match_peak_tolerance_ = match_peak_tolerance;}
 	
 	Real SequestInfile::getIonCutoffPercentage() const {return ion_cutoff_percentage_;}
-	void SequestInfile::setIonCutoffPercentage(Real value){ion_cutoff_percentage_ = value;}
+	void SequestInfile::setIonCutoffPercentage(Real ion_cutoff_percentage){ion_cutoff_percentage_ = ion_cutoff_percentage;}
 	
 	Real SequestInfile::getDynNTermMod() const {return dyn_n_term_mod_;}
-	void SequestInfile::setDynNTermMod(Real mass){dyn_n_term_mod_ = mass;}
+	void SequestInfile::setDynNTermMod(Real dyn_n_term_mod){dyn_n_term_mod_ = dyn_n_term_mod;}
 	
 	Real SequestInfile::getDynCTermMod() const {return dyn_c_term_mod_;}
-	void SequestInfile::setDynCTermMod(Real mass){dyn_c_term_mod_ = mass;}
+	void SequestInfile::setDynCTermMod(Real dyn_c_term_mod){dyn_c_term_mod_ = dyn_c_term_mod;}
 	
 	Real SequestInfile::getStatNTermMod() const {return stat_n_term_mod_;}
-	void SequestInfile::setStatNTermMod(Real mass){stat_n_term_mod_ = mass;}
+	void SequestInfile::setStatNTermMod(Real stat_n_term_mod){stat_n_term_mod_ = stat_n_term_mod;}
 	
 	Real SequestInfile::getStatCTermMod() const {return stat_c_term_mod_;}
-	void SequestInfile::setStatCTermMod(Real mass){stat_c_term_mod_ = mass;}
+	void SequestInfile::setStatCTermMod(Real stat_c_term_mod){stat_c_term_mod_ = stat_c_term_mod;}
 	
 	Real SequestInfile::getStatNTermProtMod() const {return stat_n_term_prot_mod_;}
-	void SequestInfile::setStatNTermProtMod(Real mass){stat_n_term_prot_mod_ = mass;}
+	void SequestInfile::setStatNTermProtMod(Real stat_n_term_prot_mod){stat_n_term_prot_mod_ = stat_n_term_prot_mod;}
 	
 	Real SequestInfile::getStatCTermProtMod() const {return stat_c_term_prot_mod_;}
-	void SequestInfile::setStatCTermProtMod(Real mass){stat_c_term_prot_mod_ = mass;}
+	void SequestInfile::setStatCTermProtMod(Real stat_c_term_prot_mod){stat_c_term_prot_mod_ = stat_c_term_prot_mod;}
 	
 	
 	Int SequestInfile::getPeptideMassUnit() const {return peptide_mass_unit_;}
-	void SequestInfile::setPeptideMassUnit(Int value){peptide_mass_unit_ = value;}
+	void SequestInfile::setPeptideMassUnit(Int peptide_mass_unit){peptide_mass_unit_ = peptide_mass_unit;}
 	
 	Int SequestInfile::getOutputLines() const {return output_lines_;}
-	void SequestInfile::setOutputLines(Int value){output_lines_ = value;}
+	void SequestInfile::setOutputLines(Int output_lines){output_lines_ = output_lines;}
 	
 	Int SequestInfile::getEnzymeNumber() const {return enzyme_number_;}
+	String SequestInfile::getEnzyme() const
+	{
+		map< String, vector< String > >::const_iterator einfo_i = enzyme_info_.begin();
+		for ( UInt enzyme_number = 0; enzyme_number < enzyme_number_; ++enzyme_number, ++einfo_i ) {}
+		return einfo_i->first;
+	}
 	Int SequestInfile::setEnzyme(String enzyme_name)
 	{
 		enzyme_number_ = 0;
-		std::map< String, std::vector< String > >::const_iterator einfo_i;
+		map< String, vector< String > >::const_iterator einfo_i;
 		for ( einfo_i = enzyme_info_.begin(); einfo_i != enzyme_info_.end(); ++einfo_i, ++enzyme_number_ )
 		{
 			if ( einfo_i->first == enzyme_name ) break;
@@ -391,47 +397,46 @@ namespace OpenMS
 	}
 	
 	Int SequestInfile::getMaxAAPerModPerPeptide() const {return max_AA_per_mod_per_peptide_;}
-	void SequestInfile::setMaxAAPerModPerPeptide(Int value){max_AA_per_mod_per_peptide_ = value;}
+	void SequestInfile::setMaxAAPerModPerPeptide(Int max_AA_per_mod_per_peptide){max_AA_per_mod_per_peptide_ = max_AA_per_mod_per_peptide;}
 	
 	Int SequestInfile::getMaxModsPerPeptide() const {return max_mods_per_peptide_;}
-	void SequestInfile::setMaxModsPerPeptide(Int value){max_mods_per_peptide_ = value;}
+	void SequestInfile::setMaxModsPerPeptide(Int max_mods_per_peptide){max_mods_per_peptide_ = max_mods_per_peptide;}
 	
 	Int SequestInfile::getNucleotideReadingFrame() const {return nucleotide_reading_frame_;}
-	void SequestInfile::setNucleotideReadingFrame(Int value){nucleotide_reading_frame_ = value;}
+	void SequestInfile::setNucleotideReadingFrame(Int nucleotide_reading_frame){nucleotide_reading_frame_ = nucleotide_reading_frame;}
 	
 	Int SequestInfile::getMaxInternalCleavageSites() const {return max_internal_cleavage_sites_;}
-	void SequestInfile::setMaxInternalCleavageSites(Int value){max_internal_cleavage_sites_ = value;}
+	void SequestInfile::setMaxInternalCleavageSites(Int max_internal_cleavage_sites){max_internal_cleavage_sites_ = max_internal_cleavage_sites;}
 	
 	Int SequestInfile::getMatchPeakCount() const {return match_peak_count_;}
-	void SequestInfile::setMatchPeakCount(Int value){match_peak_count_ = value;}
+	void SequestInfile::setMatchPeakCount(Int match_peak_count){match_peak_count_ = match_peak_count;}
 	
 	Int SequestInfile::getMatchPeakAllowedError() const {return match_peak_allowed_error_;}
-	void SequestInfile::setMatchPeakAllowedError(Int value){match_peak_allowed_error_ = value;}
-	
+	void SequestInfile::setMatchPeakAllowedError(Int match_peak_allowed_error){match_peak_allowed_error_ = match_peak_allowed_error;}
 	
 	bool SequestInfile::getShowFragmentIons() const {return show_fragment_ions_;}
-	void SequestInfile::setShowFragmentIons(bool value){show_fragment_ions_ = value;}
+	void SequestInfile::setShowFragmentIons(bool show_fragment_ions){show_fragment_ions_ = show_fragment_ions;}
 	
 	bool SequestInfile::getPrintDuplicateReferences() const {return print_duplicate_references_;}
-	void SequestInfile::setPrintDuplicateReferences(bool value){print_duplicate_references_ = value;}
+	void SequestInfile::setPrintDuplicateReferences(bool print_duplicate_references){print_duplicate_references_ = print_duplicate_references;}
 	
 // 	bool SequestInfile::getUsePhosphoFragmentation() const {return use_phospho_fragmentation_;}
-// 	void SequestInfile::setUsePhosphoFragmentation(bool value){use_phospho_fragmentation_ = value;}
+// 	void SequestInfile::setUsePhosphoFragmentation(bool use_phospho_fragmentation){use_phospho_fragmentation_ = use_phospho_fragmentation;}
 	
 	bool SequestInfile::getRemovePrecursorNearPeaks() const {return remove_precursor_near_peaks_;}
-	void SequestInfile::setRemovePrecursorNearPeaks(bool value){remove_precursor_near_peaks_ = value;}
+	void SequestInfile::setRemovePrecursorNearPeaks(bool remove_precursor_near_peaks){remove_precursor_near_peaks_ = remove_precursor_near_peaks;}
 	
 	bool SequestInfile::getMassTypeParent() const {return mass_type_parent_;}
-	void SequestInfile::setMassTypeParent(bool value){mass_type_parent_ = value;}
+	void SequestInfile::setMassTypeParent(bool mass_type_parent){mass_type_parent_ = mass_type_parent;}
 	
 	bool SequestInfile::getMassTypeFragment() const {return mass_type_fragment_;}
-	void SequestInfile::setMassTypeFragment(bool value){mass_type_fragment_ = value;}
+	void SequestInfile::setMassTypeFragment(bool mass_type_fragment){mass_type_fragment_ = mass_type_fragment;}
 	
 	bool SequestInfile::getNormalizeXcorr() const {return normalize_xcorr_;}
-	void SequestInfile::setNormalizeXcorr(bool value){normalize_xcorr_ = value;}
+	void SequestInfile::setNormalizeXcorr(bool normalize_xcorr){normalize_xcorr_ = normalize_xcorr;}
 	
 	bool SequestInfile::getResiduesInUpperCase() const {return residues_in_upper_case_;}
-	void SequestInfile::setResiduesInUpperCase(bool value){residues_in_upper_case_ = value;}
+	void SequestInfile::setResiduesInUpperCase(bool residues_in_upper_case){residues_in_upper_case_ = residues_in_upper_case;}
 	
 	
 	const map< char, Real >& SequestInfile::getStatMods() const {return stat_mods_;}

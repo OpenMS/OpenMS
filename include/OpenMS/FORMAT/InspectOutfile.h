@@ -63,7 +63,7 @@ namespace OpenMS
 			InspectOutfile();
 			
 			/// load the results of an Inspect search
-			std::vector<UInt> load(const String& result_filename, std::vector<PeptideIdentification>& peptide_identifications, ProteinIdentification& protein_identification, Real p_value_threshold) throw (Exception::FileNotFound, Exception::ParseError, Exception::IllegalArgument);
+			std::vector<UInt> load(const String& result_filename, std::vector<PeptideIdentification>& peptide_identifications, ProteinIdentification& protein_identification, Real p_value_threshold, const String database_filename = "") throw (Exception::FileNotFound, Exception::ParseError, Exception::IllegalArgument);
 			
 			std::vector< UInt > getWantedRecords(const String& result_filename, Real p_value_threshold) throw (Exception::FileNotFound, Exception::ParseError, Exception::IllegalArgument);
 
@@ -90,7 +90,14 @@ namespace OpenMS
 			/// retrieve sequences from a trie database
 			std::vector<UInt> getSequences(const String& database_filename, const std::map<UInt, UInt>& wanted_records, std::vector<String>& sequences) throw (Exception::FileNotFound);
 
+			/// get the experiment from a file
 			template< typename PeakT > void getExperiment(MSExperiment< PeakT >& exp, String& type, const String& in_filename) throw(Exception::ParseError);
+
+			/// get the search engine and its version from a file with the output of InsPecT without parameters
+			void getSearchEngineAndVersion(const String& inspect_output_without_parameters_filename, ProteinIdentification& protein_identification) throw (Exception::FileNotFound);
+
+			/// read the header of an inspect output file and retrieve various informations
+			void readOutHeader(const String& filename, const String& header_line, Int& spectrum_file_column, Int& scan_column, Int& peptide_column, Int& protein_column, Int& charge_column, Int& MQ_score_column, Int& p_value_column, Int& record_number_column, Int& DB_file_pos_column, Int& spec_file_pos_column, UInt& number_of_columns) throw (Exception::ParseError);
 
 		protected:
 			/// a record in the index file that belongs to a trie database consists of three parts

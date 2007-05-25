@@ -78,9 +78,9 @@ namespace OpenMS
 			const String& getDb() const;
 			void setDb(const String& db);
 			
-			/// Specifies the name of a protease. "Trypsin", "None", and "Chymotrypsin" are the available values.
-			const String& getProtease() const;
-			void setProtease(const String& protease);
+			/// Specifies the name of a enzyme. "Trypsin", "None", and "Chymotrypsin" are the available values.
+			const String& getEnzyme() const;
+			void setEnzyme(const String& enzyme);
 			
 			/**
 				@brief Specifies an amino acid modification.
@@ -122,16 +122,16 @@ namespace OpenMS
 				
 				A candidate's flanking mass can differ from the tag's flanking mass by no more than this amount.
 			*/
-			const DoubleReal getPMTolerance() const;
-			void setPMTolerance(DoubleReal PM_tolerance);
+			const DoubleReal getPrecursorMassTolerance() const;
+			void setPrecursorMassTolerance(DoubleReal precursor_mass_tolerance);
 			
 			/**
 				@brief How far b and y peaks can be shifted from their expected masses.
 				
 				Default is 0.5. Higher values produce a more sensitive but much slower search.
 			*/
-			const DoubleReal getIonTolerance() const;
-			void setIonTolerance(DoubleReal ion_tolerance);
+			const DoubleReal getPeakMassTolerance() const;
+			void setPeakMassTolerance(DoubleReal peak_mass_tolerance);
 			
 			/// If set to true, attempt to guess the precursor charge and mass, and consider multiple charge states if feasible.
 			const unsigned int getMulticharge() const;
@@ -151,7 +151,7 @@ namespace OpenMS
 
     	String db_; ///< Specifies the name of a database (.trie file) to search. The .trie file contains one or more protein sequences delimited by asterisks, with no whitespace or other data. Use PrepDB.py (see above) to prepare a .trie file. Most .trie files have a corresponding .index file giving the names of the proteins. You can specify at most one database.
 
-			String protease_; ///< Specifies the name of a protease. "Trypsin", "None", and "Chymotrypsin" are the available values.
+			String enzyme_; ///< Specifies the name of a enzyme. "Trypsin", "None", and "Chymotrypsin" are the available values.
 
 			std::vector< std::vector< String > > mod_; ///< Specifies an amino acid modification. The delta mass (in daltons) and affected amino acids are required. The first four characters of the name should be unique. Valid values for "type" are "fix", "cterminal", "nterminal", and "opt" (the default). Examples:
 
@@ -162,9 +162,9 @@ namespace OpenMS
 
 		  	DoubleReal maxptmsize_; ///< For blind search, specifies the maximum modification size (in Da) to consider. Defaults to 200. Larger values require more time to search. <0 is not set
 
-			DoubleReal PM_tolerance_; ///< Specifies the parent mass tolerance, in Daltons. A candidate's flanking mass can differ from the tag's flanking mass by no more than ths amount. <0 is not set
+			DoubleReal precursor_mass_tolerance_; ///< Specifies the parent mass tolerance, in Daltons. A candidate's flanking mass can differ from the tag's flanking mass by no more than ths amount. <0 is not set
 
-			DoubleReal ion_tolerance_; ///< How far b and y peaks can be shifted from their expected masses. Default is 0.5. Higher values produce a more sensitive but much slower search. <0 is not set
+			DoubleReal peak_mass_tolerance_; ///< How far b and y peaks can be shifted from their expected masses. Default is 0.5. Higher values produce a more sensitive but much slower search. <0 is not set
 			
 			unsigned int multicharge_; ///< If set to true, attempt to guess the precursor charge and mass, and consider multiple charge states if feasible.
 			/// 0 - false, 1 - true, 2 - not set

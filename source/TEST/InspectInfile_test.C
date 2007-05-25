@@ -74,13 +74,13 @@ CHECK(const String& getDb() const)
 RESULT
 
 
-CHECK(void setProtease(const String& protease))
-	file.setProtease("Trypsin");
-	TEST_EQUAL(file.getProtease(), "Trypsin")
+CHECK(void setEnzyme(const String& protease))
+	file.setEnzyme("Trypsin");
+	TEST_EQUAL(file.getEnzyme(), "Trypsin")
 RESULT
 
-CHECK(const String& getProtease() const)
-	TEST_EQUAL(file.getProtease(), "Trypsin")
+CHECK(const String& getEnzyme() const)
+	TEST_EQUAL(file.getEnzyme(), "Trypsin")
 RESULT
 
 
@@ -151,23 +151,23 @@ CHECK(const DoubleReal getMaxPTMsize() const)
 RESULT
 
 
-CHECK(void setPMTolerance(DoubleReal PM_tolerance))
-	file.setPMTolerance(1.3);
-	TEST_EQUAL(file.getPMTolerance(), 1.3)
+CHECK(void setPrecursorMassTolerance(DoubleReal precursor_mass_tolerance))
+	file.setPrecursorMassTolerance(1.3);
+	TEST_EQUAL(file.getPrecursorMassTolerance(), 1.3)
 RESULT
 
-CHECK(const DoubleReal getPMTolerance() const)
-	TEST_EQUAL(file.getPMTolerance(), 1.3)
+CHECK(const DoubleReal getPrecursorMassTolerance() const)
+	TEST_EQUAL(file.getPrecursorMassTolerance(), 1.3)
 RESULT
 
 
-CHECK(void setIonTolerance(DoubleReal ion_tolerance))
-	file.setIonTolerance(0.3);
-	TEST_EQUAL(file.getIonTolerance(), 0.3)
+CHECK(void setPeakMassTolerance(DoubleReal peak_mass_tolerance))
+	file.setPeakMassTolerance(0.3);
+	TEST_EQUAL(file.getPeakMassTolerance(), 0.3)
 RESULT
 
-CHECK(const DoubleReal getIonTolerance() const)
-	TEST_EQUAL(file.getIonTolerance(), 0.3)
+CHECK(const DoubleReal getPeakMassTolerance() const)
+	TEST_EQUAL(file.getPeakMassTolerance(), 0.3)
 RESULT
 
 

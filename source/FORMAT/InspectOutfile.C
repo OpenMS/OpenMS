@@ -40,233 +40,185 @@ using namespace std;
 
 namespace OpenMS 
 {
-	InspectOutfile::InspectOutfile()
-	{
-	}
-	
-	vector<UInt> InspectOutfile::load(const String& result_filename, vector<PeptideIdentification>& peptide_identifications, ProteinIdentification& protein_identification, Real p_value_threshold)
+	InspectOutfile::InspectOutfile() {}
+
+	vector<UInt> InspectOutfile::load(const String& result_filename, vector<PeptideIdentification>& peptide_identifications, ProteinIdentification& protein_identification, Real p_value_threshold, const String database_filename)
 	throw (Exception::FileNotFound, Exception::ParseError, Exception::IllegalArgument)
 	{
-		vector<ProteinHit> protein_hits;
-
 		// check whether the p_value is correct
 		if ( (p_value_threshold < 0) || (p_value_threshold > 1) )
 		{
 			throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "p_value_threshold");
 		}
-
-		// get the header
-		enum columns
-		{
-			spectrum_file_column,
-			scan_column,
-			peptide_column,
-			protein_column,
-			charge_column,
-			MQ_score_column,
-			cut_score_column,
-			intense_by_column,
-			by_present_column,
-			number_of_tryptic_termini_column,
-			p_value_column,
-			delta_score_column,
-			delta_score_other_column,
-			record_number_column,
-			DB_file_pos_column,
-			spec_file_pos_column
-		};
-
-		UInt number_of_columns = 16;
-		String line;
-		vector<String> substrings;
-
-		//	 record number, position in protein_hits
-		map<UInt, UInt> rn_position_map;
-		//Identification* query = NULL;
-		//PeptideHit peptide_hit;
-		vector< PeptideHit >::iterator pep_hit_i;
-		DateTime datetime;
-		datetime.now();
-		//ProteinHit protein_hit;
-		vector<pair<String, String> >::iterator prot_hit_i1, prot_hit_i2;
-		String accession, accession_type, spectrum_file;
-		UInt record_number(0), scan_number(0), start(0), end(0);
-		UInt rank = 0;
-		//UInt peptide_hits = 0;
-		UInt line_number = 0; // used to report in which line an error occured
-		UInt scans = 0;
-		vector<UInt> corrupted_lines;
-		// to get the precursor retention time and mz values later, save the filename and the numbers of the scans
-		vector<pair<String, vector<UInt> > > files_and_scan_numbers;
-		vector<UInt>* scan_numbers = NULL;
 		
 		ifstream result_file(result_filename.c_str());
 		if (!result_file)
 		{
 			throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, result_filename);
 		}
+		
+		String
+			line,
+			accession,
+			accession_type,
+			spectrum_file,
+			identifier;
+			
+		UInt record_number(0), scan_number(0), line_number(0), scans(0);
+		
+		vector<String> substrings;
+		vector<UInt> corrupted_lines;
+		
+		PeptideIdentification* peptide_identification_p = NULL;
 
-		PeptideIdentification pep_id;
+		DateTime datetime;
+		datetime.now();
+		datetime.getDate(line);
+		if ( protein_identification.getSearchEngine().empty() ) identifier = "InsPecT_" + line;
+		else protein_identification.getSearchEngine() + "_" + line;
+		line.clear();
+		
+		// to get the precursor retention time and mz values later, save the filename and the numbers of the scans
+		vector<pair<String, vector<UInt> > > files_and_scan_numbers;
+		vector<UInt>* scan_numbers = NULL;
+		// the record number is mapped to the position in the protein hits, to retrieve their sequences
+		map< UInt, UInt > rn_position_map;
+		
+		// get the header
+		Int
+			spectrum_file_column,
+			scan_column,
+			peptide_column,
+			protein_column,
+			charge_column,
+			MQ_score_column,
+			p_value_column,
+			record_number_column,
+			DB_file_pos_column,
+			spec_file_pos_column;
+			
+		String::size_type start, end;
+			
+		UInt number_of_columns(0);
+		
+		if ( !getline(result_file, line) )
+		{
+			throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "This doesn't seem to be an Inspect output file (not enough columns)!", result_filename);
+		}
+		++line_number;
+		readOutHeader(result_filename, line, spectrum_file_column, scan_column, peptide_column, protein_column, charge_column, MQ_score_column, p_value_column, record_number_column, DB_file_pos_column, spec_file_pos_column, number_of_columns);
+		
 		while ( getline(result_file, line) )
 		{
 			++line_number;
 			if ( !line.empty() && (line[line.length()-1] < 33) ) line.resize(line.length()-1);
-			line.split('\t', substrings);
-
+			line.trim();
+			if ( line.empty() ) continue;
+			
 			// check whether the line has enough columns
+			line.split('\t', substrings);
 			if ( substrings.size() != number_of_columns )
 			{
-				if ( line_number == 1 )
-				{
-					throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, result_filename + " doesn't seem to be an inspect output file!", result_filename);
-				}
 				corrupted_lines.push_back(line_number);
 				continue;
 			}
-
-
-			// the is a header which is skipped
-			if ( substrings[0] == "#SpectrumFile" ) continue;
-
-			// take only those peptides whose p-value is less or equal the given threshold
+			
+			// if the pvalue is too small, skip the line
 			if ( substrings[p_value_column].toFloat() > p_value_threshold ) continue;
-
+			
+			// the protein
+			ProteinHit protein_hit;
 			// get accession number and type
 			getACAndACType(substrings[protein_column], accession, accession_type);
-
+			protein_hit.setAccession(accession);
+// 			protein_hit.setScore(0.0);
+			
+			// the database position of the protein (the i-th protein)
 			record_number = substrings[record_number_column].toInt();
 			
-			// if a new protein is found, get the rank and insert it
+			// map the database position of the protein to its position in the protein hits and insert it, if it's a new protein
 			if ( rn_position_map.find(record_number) == rn_position_map.end() )
 			{
-				// map the record number to the size in protein hits
-				rn_position_map[record_number] = protein_hits.size();
-
-				ProteinHit protein_hit;
-				protein_hit.setRank(rn_position_map.size());
-				protein_hit.setAccession(accession);
-				//protein_hit.setAccessionType(accession_type);
-				//protein_hit.setScore(0.0);
-				//protein_hit.setScoreType(score_type_);
-				protein_hits.push_back(protein_hit);
+				rn_position_map[record_number] = protein_identification.getHits().size();
+				protein_identification.insertHit(protein_hit);
 			}
 			
-			// if a new query is found, insert it into the vector
-			// the first time, the condition is always fullfilled because spectrum_file is ""
+			// if a new scan is found (new file or new scan), insert it into the vector (the first time the condition is fullfilled because spectrum_file is "")
 			if ( (substrings[spectrum_file_column] != spectrum_file) || ((UInt) substrings[scan_column].toInt() != scan_number) )
 			{
-				if (spectrum_file != "")
-				{
-					peptide_identifications.push_back(pep_id);
-				}
-				pep_id = PeptideIdentification();
-				//identifications.push_back(IdentificationData());
-				//query = &(identifications.back().id);
-				
-				pep_id.setSignificanceThreshold(p_value_threshold);
-				//pep_id.setDateTime(datetime);
-				rank = 0;
-				
-				if ( substrings[spectrum_file_column] != spectrum_file )
+				if ( substrings[spectrum_file_column] != spectrum_file ) // if it's a new file, insert it into the vector (used to retrieve RT and MT later)
 				{
 					files_and_scan_numbers.push_back(make_pair(substrings[spectrum_file_column], vector< UInt >()));
 					scan_numbers = &(files_and_scan_numbers.back().second);
 				}
+				
+				peptide_identifications.push_back(PeptideIdentification());
+				peptide_identification_p = &(peptide_identifications.back());
+				
+				peptide_identification_p->setIdentifier(identifier);
+				peptide_identification_p->setSignificanceThreshold(p_value_threshold);
+				peptide_identification_p->setScoreType(score_type_);
 				
 				spectrum_file = substrings[spectrum_file_column];
 				scan_number = substrings[scan_column].toInt();
 				
 				scan_numbers->push_back(scan_number);
 				++scans;
-
 			}
 			
 			// get the peptide infos from the new peptide and insert it
-			//peptide_hit.clear();
 			PeptideHit peptide_hit;
 			peptide_hit.setCharge(substrings[charge_column].toInt());
 			peptide_hit.setScore(substrings[MQ_score_column].toFloat());
-			//peptide_hit.setScoreType("Inspect");
-			pep_id.setScoreType("Inspect");
-			start = substrings[peptide_column].find('.')+1;
-			end = substrings[peptide_column].find_last_of('.');
+			peptide_hit.setRank(0); // all ranks are set to zero and assigned later
 			
-			//remove modifications (small characters)
-			String sequence_with_mods = substrings[peptide_column].substr(start, end-start);
-			sequence_with_mods.remove('a');
-			sequence_with_mods.remove('b');
-			sequence_with_mods.remove('c');
-			sequence_with_mods.remove('d');
-			sequence_with_mods.remove('e');
-			sequence_with_mods.remove('f');
-			sequence_with_mods.remove('g');
-			sequence_with_mods.remove('h');
-			sequence_with_mods.remove('i');
-			sequence_with_mods.remove('j');
-			sequence_with_mods.remove('k');
-			sequence_with_mods.remove('l');
-			sequence_with_mods.remove('m');
-			sequence_with_mods.remove('n');
-			sequence_with_mods.remove('o');
-			sequence_with_mods.remove('p');
-			sequence_with_mods.remove('q');
-			sequence_with_mods.remove('r');
-			sequence_with_mods.remove('s');
-			sequence_with_mods.remove('t');
-			sequence_with_mods.remove('u');
-			sequence_with_mods.remove('v');
-			sequence_with_mods.remove('w');
-			sequence_with_mods.remove('x');
-			sequence_with_mods.remove('y');
-			sequence_with_mods.remove('z');
-
-			peptide_hit.setSequence(sequence_with_mods);
-			peptide_hit.setRank(++rank);
+			// get the sequence and the amino acid before and after
+			String sequence, sequence_with_mods;
+			sequence_with_mods = substrings[peptide_column];
+			start = sequence_with_mods.find('.') + 1;
+			end = sequence_with_mods.find_last_of('.');
+			if ( start >= 2 ) peptide_hit.setAABefore(sequence_with_mods[start - 2]);
+			if ( end< sequence_with_mods.length() + 1 ) peptide_hit.setAAAfter(sequence_with_mods[end + 1]);
 			
+			//remove modifications (small characters and anything that's not in the alphabet)
+			sequence_with_mods = substrings[peptide_column].substr(start, end-start);
+			for ( String::ConstIterator c_i = sequence_with_mods.begin(); c_i != sequence_with_mods.end(); ++c_i )
+			{
+				if ( (bool) isalpha(*c_i) && (bool) isupper(*c_i) ) sequence.append(1, *c_i);
+			}
+			
+			peptide_hit.setSequence(sequence);
 			peptide_hit.addProteinAccession(accession);
 			
-			//peptide_hits = pep_id.getHits().size();
-			//updatePeptideHits(peptide_hit, );
-			pep_id.insertHit(peptide_hit);
-
-			//rank -= ( peptide_hits == query->getHits().size() );
+			peptide_identification_p->insertHit(peptide_hit);
 		}
-	
-		peptide_identifications.push_back(pep_id);
-		
 		// result file read
 		result_file.close();
 		result_file.clear();
 		
-//		// search the sequence of the proteins
-//		if ( !protein_hits.empty() )
-//		{
-//			vector< String > sequences;
-//			getSequences(database_filename, rn_position_map, sequences);
-//
-//			// set the retrieved sequences
-//			vector< String >::const_iterator s_i = sequences.begin();
-//			for ( map< UInt, UInt >::const_iterator rn_i = rn_position_map.begin(); rn_i != rn_position_map.end(); ++rn_i, ++s_i )
-//			{
-//				protein_hits[rn_i->second].setSequence(*s_i);
-//			}
-//			sequences.clear();
-//		}
+		if ( !peptide_identifications.empty() ) peptide_identification_p->assignRanks();
 		
+		// search the sequence of the proteins
+		if ( !protein_identification.getHits().empty() && !database_filename.empty() )
+		{
+			vector< ProteinHit > protein_hits = protein_identification.getHits();
+			vector< String > sequences;
+			getSequences(database_filename, rn_position_map, sequences);
+			
+			// set the retrieved sequences
+			vector< String >::const_iterator s_i = sequences.begin();
+			for ( map< UInt, UInt >::const_iterator rn_i = rn_position_map.begin(); rn_i != rn_position_map.end(); ++rn_i, ++s_i ) protein_hits[rn_i->second].setSequence(*s_i);
+			
+			sequences.clear();
+			rn_position_map.clear();
+			protein_identification.setHits(protein_hits);
+			protein_hits.clear();
+		}
 		// get the precursor retention times and mz values
 		getPrecursorRTandMZ(files_and_scan_numbers, peptide_identifications);
-
-		// if there's but one query the protein hits are inserted there instead of a ProteinIdentification object
-		if (peptide_identifications.size() == 1)
-		{
-			protein_identification.setHits(protein_hits);
-			protein_identification.setDateTime(datetime);
-		}
-		
-		protein_identification.setHits(protein_hits);
 		protein_identification.setDateTime(datetime);
+		protein_identification.setIdentifier(identifier);
 		
-		rn_position_map.clear();
 		return corrupted_lines;
   }
 
@@ -280,14 +232,14 @@ namespace OpenMS
 		{
 			throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, database_filename);
 		}
-
+		
 		vector<UInt> not_found;
 		UInt seen_records = 0;
 		stringbuf sequence;
 		database.seekg(0, ios::end);
 		streampos sp = database.tellg();
 		database.seekg(0, ios::beg);
-
+		
 		for ( map< UInt, UInt >::const_iterator wr_i = wanted_records.begin(); wr_i !=  wanted_records.end(); ++wr_i )
 		{
 			for ( ; seen_records < wr_i->first; ++seen_records )
@@ -299,16 +251,18 @@ namespace OpenMS
 			if ( sequences.back().empty() ) not_found.push_back(wr_i->first);
 			sequence.str("");
 		}
-
+		
 		// close the filestreams
 		database.close();
 		database.clear();
 		
 		return not_found;
 	}
-	
+
 	void InspectOutfile::getACAndACType(String line, String& accession,	String& accession_type)
 	{
+		String swissprot_prefixes = "JLOPQUX";
+		// @todo replace this by general FastA implementation?
 		accession.clear();
 		accession_type.clear();
 		pair<String, String> p;
@@ -354,13 +308,28 @@ namespace OpenMS
 			}
 			else
 			{
-				accession_type = "gi";
-				if ( snd != String::npos ) accession = line.substr(3, snd-4);
-				else
+				String::size_type pos1 = line.find('(', 0);
+				String::size_type pos2;
+				if ( pos1 != String::npos )
 				{
-					if ( snd == String::npos ) snd = line.find(' ', 3);
-					if ( snd != String::npos ) accession = line.substr(3, snd-3);
-					else accession = line.substr(3);
+					pos2 = line.find(')', ++pos1);
+					if ( pos2 != String::npos )
+					{
+						accession = line.substr(pos1, pos2 - pos1);
+						if ( (accession.size() == 6) && (String(swissprot_prefixes).find(accession[0], 0) != String::npos) ) accession_type = "SwissProt";
+						else accession.clear();
+					}
+				}
+				if ( accession.empty() )
+				{
+					accession_type = "gi";
+					if ( snd != String::npos ) accession = line.substr(3, snd-4);
+					else
+					{
+						if ( snd == String::npos ) snd = line.find(' ', 3);
+						if ( snd != String::npos ) accession = line.substr(3, snd-3);
+						else accession = line.substr(3);
+					}
 				}
 			}
 		}
@@ -369,13 +338,6 @@ namespace OpenMS
 			accession = line.substr(4, line.find('|', 4) - 4);
 			accession_type = "NCBI";
 		}
-// 		// if it's a swissprot line
-// 		else if ( line.hasPrefix("AC") )
-// 		{
-// 			line.erase(0,2);
-// 			accession = line.trim();
-// 			accession_type = "SwissProt";
-// 		}
 		else if ( line.hasPrefix("gnl") )
 		{
 			line.erase(0,3);
@@ -398,7 +360,7 @@ namespace OpenMS
 				if ( pos2 != String::npos )
 				{
 					accession = line.substr(pos1, pos2 - pos1);
-					if ( (accession.size() == 6) && (String("OPQ").find(accession[0], 0) != String::npos) ) accession_type = "SwissProt";
+					if ( (accession.size() == 6) && (String(swissprot_prefixes).find(accession[0], 0) != String::npos) ) accession_type = "SwissProt";
 					else accession.clear();
 				}
 			}
@@ -406,16 +368,16 @@ namespace OpenMS
 			{
 				pos1 = line.find('|');
 				accession = line.substr(0, pos1);
-				if ( (accession.size() == 6) && (String("OPQ").find(accession[0], 0) != String::npos) ) accession_type = "SwissProt";
+				if ( (accession.size() == 6) && (String(swissprot_prefixes).find(accession[0], 0) != String::npos) ) accession_type = "SwissProt";
 				else
 				{
 					pos1 = line.find(' ');
 					accession = line.substr(0, pos1);
-					if ( (accession.size() == 6) && (String("OPQ").find(accession[0], 0) != String::npos) ) accession_type = "SwissProt";
+					if ( (accession.size() == 6) && (String(swissprot_prefixes).find(accession[0], 0) != String::npos) ) accession_type = "SwissProt";
 					else
 					{
 						accession = line.substr(0, 6);
-						if ( String("OPQ").find(accession[0], 0) != String::npos ) accession_type = "SwissProt";
+						if ( String(swissprot_prefixes).find(accession[0], 0) != String::npos ) accession_type = "SwissProt";
 						else accession.clear();
 					}
 				}
@@ -427,7 +389,7 @@ namespace OpenMS
 			accession_type = "unknown";
 		}
 	}
-	
+
 	void InspectOutfile::getPrecursorRTandMZ(const vector<pair<String, vector<UInt> > >& files_and_scan_numbers,	vector<PeptideIdentification>& ids)
 	throw(Exception::ParseError)
 	{
@@ -451,7 +413,7 @@ namespace OpenMS
 			}
 		}
 	}
-	
+
 	void
 	InspectOutfile::compressTrieDB(
 		const String& database_filename,
@@ -575,7 +537,7 @@ namespace OpenMS
 		snd_database.close();
 		snd_index.close();
 	}
-	
+
 	void
 	InspectOutfile::generateTrieDB(
 		const String& source_database_filename,
@@ -708,7 +670,7 @@ namespace OpenMS
 				if ( line.hasPrefix(ac_label) )
 				{
 					pos = ac_label.length(); // find the beginning of the accession
-
+					
 					while ( (line.length() > pos) && (line[pos] < 33) ) ++pos; // discard the whitespaces after the label
 					if ( pos != line.length() ) // if no accession is found, skip this protein
 					{
@@ -717,7 +679,7 @@ namespace OpenMS
 						protein_name = line.substr(pos, protein_name_length_);
 						protein_name.substitute('>', '}');
 						memcpy(protein_name_pos, protein_name.c_str(), protein_name.length());
-
+						
 						record_flags |= ac_flag; // set the ac flag
 					}
 					else record_flags = 0;
@@ -788,7 +750,7 @@ namespace OpenMS
 		index.close();
 		index.clear();
 	}
-	
+
 	void InspectOutfile::getLabels(
 		const String& source_database_filename,
 		String& ac_label,
@@ -843,47 +805,59 @@ namespace OpenMS
 			throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "p_value_threshold");
 		}
 		
-		// get the header
-		enum columns
-		{
-			spectrum_file_column,
-			scan_column,
-			peptide_column,
-			protein_column,
-			charge_column,
-			MQ_score_column,
-			cut_score_column,
-			intense_by_column,
-			by_present_column,
-			number_of_tryptic_termini_column,
-			p_value_column,
-			delta_score_column,
-			delta_score_other_column,
-			record_number_column,
-			DB_file_pos_column,
-			spec_file_pos_column
-		};
-		UInt number_of_columns = 16;
-		String line;
-		vector<String> substrings;
-		
-		set< UInt > wanted_records_set;
-		vector< UInt > wanted_records;
-		
 		ifstream result_file(result_filename.c_str());
 		if (!result_file)
 		{
 			throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, result_filename);
 		}
 		
+		String line;
+		vector<String> substrings;
+		
+		set< UInt > wanted_records_set;
+		vector< UInt >
+			wanted_records,
+			corrupted_lines;
+		
+		UInt line_number(0);
+		
+		// get the header
+		Int
+			spectrum_file_column,
+			scan_column,
+			peptide_column,
+			protein_column,
+			charge_column,
+			MQ_score_column,
+			p_value_column,
+			record_number_column,
+			DB_file_pos_column,
+			spec_file_pos_column;
+			
+		UInt number_of_columns;
+		
+		if ( !getline(result_file, line) )
+		{
+			throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "This doesn't seem to be an Inspect output file (not enough columns)!", result_filename);
+		}
+		++line_number;
+		readOutHeader(result_filename, line, spectrum_file_column, scan_column, peptide_column, protein_column, charge_column, MQ_score_column, p_value_column, record_number_column, DB_file_pos_column, spec_file_pos_column, number_of_columns);
+		
 		while (getline(result_file, line))
 		{
+			++line_number;
 			if (!line.empty() && (line[line.length()-1] < 33)) line.resize(line.length() - 1);
+			line.trim();
+			if ( line.empty() ) continue;
 			line.split('\t', substrings);
-
-			// if the version Inspect.20060620.zip is used, there is a header which is skipped
-			if (substrings[0] == "#SpectrumFile") continue;
-
+			
+			// check whether the line has enough columns
+			if ( substrings.size() != number_of_columns )
+			{
+				corrupted_lines.push_back(line_number);
+				continue;
+			}
+			
 			// check whether the line has enough columns
 			if (substrings.size() != number_of_columns) continue;
 			
@@ -904,8 +878,8 @@ namespace OpenMS
 		return wanted_records;
 	}
 
-	template<typename PeakT> 	void InspectOutfile::getExperiment(MSExperiment<PeakT>& exp, String& type, const String& in_filename)
-	throw(Exception::ParseError)
+	template<typename PeakT> void InspectOutfile::getExperiment(MSExperiment<PeakT>& exp, String& type, const String& in_filename)
+	throw (Exception::ParseError)
 	{
 		type.clear();
 		exp.reset();
@@ -918,6 +892,63 @@ namespace OpenMS
 		}
 		type = fh.typeToName(in_type);
 		fh.loadExperiment(in_filename, exp, in_type);
+	}
+	
+	void InspectOutfile::getSearchEngineAndVersion(const String& inspect_output_without_parameters_filename, ProteinIdentification& protein_identification) throw (Exception::FileNotFound)
+	{
+		ifstream inspect_output_without_parameters(inspect_output_without_parameters_filename.c_str());
+		if (!inspect_output_without_parameters)
+		{
+			throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, inspect_output_without_parameters_filename);
+		}
+		
+		// searching for something like this: InsPecT vesrion 20060907
+		String line;
+		vector< String > substrings;
+		while (getline(inspect_output_without_parameters, line))
+		{
+			if (!line.empty() && (line[line.length()-1] < 33)) line.resize(line.length() - 1);
+			line.trim();
+			if ( line.empty() ) continue;
+			
+			line.split(' ', substrings);
+			if ( substrings.size() != 3 ) continue;
+			line = substrings[0];
+			line.toLower();
+			if ( line.hasPrefix("inspect") )
+			{
+				protein_identification.setSearchEngine(substrings[0]);
+				protein_identification.setSearchEngineVersion(substrings[2]);
+			}
+		}
+	}
+	
+	void InspectOutfile::readOutHeader(const String& filename, const String& header_line, Int& spectrum_file_column, Int& scan_column, Int& peptide_column, Int& protein_column, Int& charge_column, Int& MQ_score_column, Int& p_value_column, Int& record_number_column, Int& DB_file_pos_column, Int& spec_file_pos_column, UInt& number_of_columns) throw (Exception::ParseError)
+	{
+		spectrum_file_column = scan_column = peptide_column = protein_column = charge_column = MQ_score_column = p_value_column = record_number_column = DB_file_pos_column = spec_file_pos_column = -1;
+		
+		vector< String > substrings;
+		header_line.split('\t', substrings);
+		
+		// #SpectrumFile	Scan#	Annotation	Protein	Charge	MQScore	Length	TotalPRMScore	MedianPRMScore	FractionY	FractionB	Intensity	NTT	p-value	F-Score	DeltaScore	DeltaScoreOther	RecordNumber	DBFilePos	SpecFilePos
+		for ( vector< String >::const_iterator s_i = substrings.begin(); s_i != substrings.end(); ++s_i )
+		{
+			if ( (*s_i) == "#SpectrumFile" ) spectrum_file_column = s_i - substrings.begin();
+			else if ( (*s_i) == "Scan#" ) scan_column = s_i - substrings.begin();
+			else if ( (*s_i) == "Annotation" ) peptide_column = s_i - substrings.begin();
+			else if ( (*s_i) == "Protein" ) protein_column = s_i - substrings.begin();
+			else if ( (*s_i) == "Charge" ) charge_column = s_i - substrings.begin();
+			else if ( (*s_i) == "MQScore" ) MQ_score_column = s_i - substrings.begin();
+			else if ( (*s_i) == "p-value" ) p_value_column = s_i - substrings.begin();
+			else if ( (*s_i) == "RecordNumber" ) record_number_column = s_i - substrings.begin();
+			else if ( (*s_i) == "DBFilePos" ) DB_file_pos_column = s_i - substrings.begin();
+			else if ( (*s_i) == "SpecFilePos" ) spec_file_pos_column = s_i - substrings.begin();
+		}
+		if ( (spectrum_file_column == -1) || (scan_column == -1) || (peptide_column == -1) || (protein_column == -1) || (charge_column == -1) || (MQ_score_column == -1) || (p_value_column == -1) || (record_number_column == -1) || (DB_file_pos_column == -1) || (spec_file_pos_column == -1) )
+		{
+			throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "at least one of the columns '#SpectrumFile', 'Scan#', 'Annotation', 'Protein', 'Charge', 'MQScore', 'p-value', 'RecordNumber', 'DBFilePos' or 'SpecFilePos' is missing!", filename);
+		}
+		number_of_columns = substrings.size();
 	}
 	
 	const UInt InspectOutfile::db_pos_length_ = 8;

@@ -54,48 +54,48 @@ using namespace std;
 
 /**
 	@page SequestAdapter SequestAdapter
-	
+
 	@brief Identifies peptides in MS/MS spectra via Sequest.
-	
-	This wrapper application serves for getting peptide identifications
+
+	This wrapper application serves for getting peptide peptide_identifications
 	for MS/MS spectra. The wrapper can be executed in three different
 	modes:
-	<ol>	
+	<ol>
 				<li>
-				The whole process of ProteinIdentification via Sequest is executed. 
+				The whole process of ProteinIdentification via Sequest is executed.
 				Inputfile is one (or more) mz file containing the MS/MS spectra
-				for which identifications are to be found
+				for which peptide_identifications are to be found
 				and one ore two databases in FASTA format containing
 				the possible proteins.
 				The results are written as an IdXML output file. This mode is selected
 			 	by default.
 				Note: You need a user with network access on the computer hosting sequest.
 			 	</li>
-				
+
 				<li>
 				Only the first part of the ProteinIdentification process is performed.
 				This means that a Sequest input file is generated and dta files are
 				created from the mz file.
-				Calling an Sequest process should look like the following:				
-				
+				Calling an Sequest process should look like the following:
+
 				@code sequest -P\<inputfilename\> \<path to dta files\>*.dta  @endcode
 
 				Consult your Sequest reference manual for further details.
-				
+
 				This mode is selected by the <b>-sequest_in</b> option in the command line.
 				</li>
-				
+
 				<li>
 				Only the second part of the ProteinIdentification process is performed.
 				This means that the output of sequest is translated into IdXML.
-				
+
 				This mode is selected by the <b>-sequest_out</b> option in the command line.
 				</li>
 	</ol>
 */
 
 // We do not want this class to show up in the docu -> cond
-// @cond 
+// @cond
 
 class TOPPSequestAdapter
 	: public TOPPBase
@@ -105,7 +105,7 @@ class TOPPSequestAdapter
 			: TOPPBase("SequestAdapter", "annotates MS/MS spectra using Sequest.")
 		{
 		}
-	
+
 	protected:
 		static const Int max_peptide_mass_units = 2;
 		static const UInt max_dtas_per_run = 1000; // sequest has a problem when there are too many dtas, so they have to be splitted, 1000 seemed to work very good
@@ -144,9 +144,6 @@ class TOPPSequestAdapter
 																																																			"e.g. \\\\computername\\username\\temp_data_dir", false);
 			registerStringOption_("db_directory_network", "<path>", "", "network path of the database directory", false);
 			registerStringOption_("sequest_input_directory_network", "<path>", "", "network path of the sequest input file directory", false);
-			registerStringOption_("peptide_prophet_directory", "<dir>", "", "the directory in which peptide prophet is located\n"
-																																"peptide prophet is used to compute the p-values,\n"
-																																"without it, all peptide found are accepted", false);
 			addEmptyLine_();
 			registerDoubleOption_("precursor_mass_tolerance", "<tol>", 2.0 , "the precursor mass tolerance", false);
 			registerDoubleOption_("peak_mass_tolerance", "<tol>", 1.0, "the peak mass tolerance", false);
@@ -282,14 +279,14 @@ class TOPPSequestAdapter
 				{
 					return composition;
 				}
-				
+
 				// if this is a composition, insert its elements into the vector
 				iso_sym_occ.push_back(vector< String >());
 				iso_sym_occ.back().push_back(isotope);
 				iso_sym_occ.back().push_back(symbol);
 				iso_sym_occ.back().push_back(occurences);
 			}
-			
+
 			return String();
 		}
 
@@ -332,7 +329,7 @@ class TOPPSequestAdapter
 			MSExperiment<>& msexperiment,
 			const String& common_name,
 			const vector< Int >& charges,
-			map< String, DoubleReal >& filenames_and_precursor_retention_times,
+			map< String, Real >& filenames_and_precursor_retention_times,
 			bool make_dtas = true)
 		throw (Exception::UnableToCreateFile)
 		{
@@ -340,7 +337,7 @@ class TOPPSequestAdapter
 			String filename;
 			UInt scan_number = 0;
 			UInt msms_spectra = 0;
-			
+
 			for ( MSExperiment<>::Iterator spec_i = msexperiment.begin(); spec_i != msexperiment.end(); ++spec_i )
 			{
 				++scan_number;
@@ -355,8 +352,9 @@ class TOPPSequestAdapter
 							++dtas;
 							dtafile.store(filename, *spec_i);
 						}
-						filename.replace(filename.length() - 4, 4, ".out");
-						filenames_and_precursor_retention_times[File::basename(filename)] = spec_i->getRT();
+// 						filename.replace(filename.length() - 4, 4, ".out");
+// 						filenames_and_precursor_retention_times[File::basename(filename)] = spec_i->getRT();
+						filenames_and_precursor_retention_times[filename] = spec_i->getRT();
 					}
 					else
 					{
@@ -369,14 +367,15 @@ class TOPPSequestAdapter
 								spec_i->getPrecursorPeak().setCharge(*i);
 								dtafile.store(filename, *spec_i);
 							}
-							filename.replace(filename.length() - 4, 4, ".out");
-							filenames_and_precursor_retention_times[File::basename(filename)] = spec_i->getRT();
+// 							filename.replace(filename.length() - 4, 4, ".out");
+// 							filenames_and_precursor_retention_times[File::basename(filename)] = spec_i->getRT();
+							filenames_and_precursor_retention_times[filename] = spec_i->getRT();
 						}
 						spec_i->getPrecursorPeak().setCharge(0);
 					}
 				}
 			}
-			
+
 			return msms_spectra;
 		}
 
@@ -385,11 +384,11 @@ class TOPPSequestAdapter
 			//-------------------------------------------------------------
 			// (1) variables
 			//-------------------------------------------------------------
-			
+
 			// (1.0) variables for running the program
 			SequestInfile sequest_infile;
 			SequestOutfile sequest_outfile;
-			
+
 			String
 				logfile,
 				output_filename,
@@ -408,44 +407,46 @@ class TOPPSequestAdapter
 				batch_filename,
 				string_buffer,
 				string_buffer2,
-				peptide_prophet_directory,
 				modifications_filename;
-			
+
 			ContactPerson contact_person;
-			
+
 			bool
 				sequest_in,
 				sequest_out,
 				keep_out_files,
-				keep_dta_files;
-			
+				keep_dta_files,
+				monoisotopic;
+
 			vector< String >
 				substrings,
 				substrings2,
 				spectra;
-			
+
 			vector< Int > charges;
-			
+
 			char char_buffer;
-			
-			DoubleReal
-				DoubleReal_buffer,
-				DoubleReal_buffer2;
-			
+
+   Real
+				Real_buffer,
+				Real_buffer2;
+
 			Int int_buffer;
-			
-			DoubleReal p_value;
-			
-			map< String, DoubleReal > filenames_and_precursor_retention_times;
-			
-			vector< String > tmp_names;
-			
+
+			Real p_value;
+
+			// the dta-names and their retention_times
+			map< String, Real > filenames_and_precursor_retention_times;
+
+			// filename and tag: file has to: 1 - exist  2 - be readable  4 - writable  8 - be deleted afterwards
+			vector< pair< String, UInt > > files;
+
 			//-------------------------------------------------------------
 			// (2) parsing and checking parameters
 			//-------------------------------------------------------------
-			
+
 			modifications_filename = getStringOption_("modifications_xml_file");
-			
+
 			if ( getFlag_("list_modifications") )
 			{
 				if ( modifications_filename.empty() )
@@ -468,7 +469,7 @@ class TOPPSequestAdapter
 					writeLog_(pe.getMessage());
 					return PARSE_ERROR;
 				}
-				
+
 				// output the information
 				stringstream ptm_info;
 				String::size_type max_name_length, max_composition_length, max_amino_acids_length;
@@ -485,8 +486,10 @@ class TOPPSequestAdapter
 				{
 					ptm_info << mod_i->first << String(max_name_length - mod_i->first.length(), ' ') << "\t" << mod_i->second.first << String(max_composition_length - mod_i->second.first.length(), ' ') << "\t" << mod_i->second.second << String(max_amino_acids_length - mod_i->second.second.length(), ' ') << endl;
 				}
+
+				return EXECUTION_OK;
 			}
-			
+
 			// only show the available enzymes, then quit
 			if ( getFlag_("show_enzymes") )
 			{
@@ -500,13 +503,14 @@ class TOPPSequestAdapter
 
 			// a 'normal' sequest run corresponds to both sequest_in and sequest_out set
 			if ( !sequest_in && !sequest_out ) sequest_in = sequest_out = true;
-			
+
 			logfile = getStringOption_("log");
 			if ( logfile.empty() )
 			{
 				logfile = "temp.sequest.log";
-				tmp_names.push_back(logfile);
+				files.push_back(make_pair(logfile, 4+8));
 			}
+			files.push_back(make_pair(logfile, 4));
 
 			string_buffer = getStringOption_("charges");
 			if ( string_buffer.empty() )
@@ -550,11 +554,11 @@ class TOPPSequestAdapter
 								if ( i ) charges.push_back(i);
 							}
 						}
-						
+
 						++s_i;
 					}
 				}
-				
+
 				if ( charges.empty() )
 				{
 					writeLog_("No charges states given. Aborting!");
@@ -567,7 +571,7 @@ class TOPPSequestAdapter
 					else ++i;
 				}
 			}
-			
+
 			temp_data_directory = getStringOption_("temp_data_directory");
 			if ( temp_data_directory.empty() )
 			{
@@ -576,7 +580,7 @@ class TOPPSequestAdapter
 			}
 			File::absolutePath(temp_data_directory);
 			temp_data_directory.ensureLastChar('/');
-			
+
 			string_buffer = getStringOption_("in");
 			if ( string_buffer.empty() )
 			{
@@ -596,7 +600,7 @@ class TOPPSequestAdapter
 					out_directory = string_buffer;
 					File::absolutePath(out_directory);
 					out_directory.ensureLastChar('/');
-					
+
 					// if only sequest_out is set, the mz files have to be given to retrieve the retention times
 					string_buffer = getStringOption_("mzFiles");
 					if ( string_buffer.empty() )
@@ -611,17 +615,17 @@ class TOPPSequestAdapter
 					}
 				}
 			}
-
+			
 			keep_out_files = getFlag_("keep_out_files");
 			if ( sequest_out && !sequest_in ) keep_out_files = true;
-
+			
 			keep_dta_files = getFlag_("keep_dta_files");
 			if ( sequest_in && !sequest_out ) keep_dta_files = true;
 			
 			contact_person.setName(getStringOption_("contact_name"));
 			contact_person.setInstitution(getStringOption_("contact_institution"));
 			contact_person.setContactInfo(getStringOption_("contact_info"));
-
+			
 			if ( sequest_in )
 			{
 				temp_data_directory_win = getStringOption_("temp_data_directory_win");
@@ -643,13 +647,14 @@ class TOPPSequestAdapter
 					writeLog_(temp_data_directory_network + "is no network path. Aborting!");
 					return ILLEGAL_PARAMETERS;
 				}
-					
+				
 				database = getStringOption_("db");
 				if ( database.empty() )
 				{
 					writeLog_("No database specified. Aborting!");
 					return ILLEGAL_PARAMETERS;
 				}
+				files.push_back(make_pair(database, 2));
 				
 				if ( !sequest_out )
 				{
@@ -678,7 +683,7 @@ class TOPPSequestAdapter
 					if ( input_filename.empty() )
 					{
 						input_filename = temp_data_directory + "temp.sequest.in";
-						tmp_names.push_back(input_filename);
+						files.push_back(make_pair(input_filename, 4+8));
 						input_file_directory_network = temp_data_directory_network;
 					}
 					else
@@ -689,6 +694,7 @@ class TOPPSequestAdapter
 							writeLog_("No network path for the directory of the Sequest input file given. Aborting!");
 							return ILLEGAL_PARAMETERS;
 						}
+						files.push_back(make_pair(input_filename, 2));
 					}
 					if ( !correctNetworkPath(input_file_directory_network) )
 					{
@@ -703,7 +709,7 @@ class TOPPSequestAdapter
 				user = getStringOption_("user");
 				
 				password = getStringOption_("password");
-			
+				
 				sequest_directory_win = getStringOption_("sequest_directory_win");
 				if ( !sequest_directory_win.hasSuffix("sequest.exe") ) sequest_directory_win.ensureLastChar('\\');
 				if ( !isWinFormat(sequest_directory_win) )
@@ -735,7 +741,7 @@ class TOPPSequestAdapter
 			if ( batch_filename.empty() )
 			{
 				batch_filename = "sequest_run.bat";
-				tmp_names.push_back(temp_data_directory + batch_filename);
+				files.push_back(make_pair(temp_data_directory + batch_filename, 4+8));
 			}
 			else if ( !batch_filename.hasSuffix(".bat") ) batch_filename.append(".bat");
 			
@@ -751,64 +757,57 @@ class TOPPSequestAdapter
 				if ( !database_directory_network.hasSuffix(string_buffer) ) database_directory_network.append(string_buffer);
 				sequest_infile.setDatabase(database_directory_network);
 				
-				DoubleReal_buffer = getDoubleOption_("precursor_mass_tolerance");
-				if ( DoubleReal_buffer == -1 )
+				Real_buffer = getDoubleOption_("precursor_mass_tolerance");
+				if ( Real_buffer == -1 )
 				{
 					writeLog_("No precursor mass tolerance specified. Aborting!");
 					return ILLEGAL_PARAMETERS;
 				}
-				else if ( DoubleReal_buffer < 0 )
+				else if ( Real_buffer < 0 )
 				{
 					writeLog_("Precursor mass tolerance < 0. Aborting!");
-
 					return ILLEGAL_PARAMETERS;
 				}
-				else sequest_infile.setPeptideMassTolerance(DoubleReal_buffer);
+				else sequest_infile.setPrecursorMassTolerance(Real_buffer);
 				
-				DoubleReal_buffer = getDoubleOption_("peak_mass_tolerance");
-				if ( DoubleReal_buffer == -1 )
+				Real_buffer = getDoubleOption_("peak_mass_tolerance");
+				if ( Real_buffer == -1 )
 				{
 					writeLog_("No peak mass tolerance specified. Aborting!");
-
 					return ILLEGAL_PARAMETERS;
 				}
-				else if ( DoubleReal_buffer < 0 )
+				else if ( Real_buffer < 0 )
 				{
-					writeLog_("Fragment ion tolerance < 0. Aborting!");
-
+					writeLog_("peak mass tolerance < 0. Aborting!");
 					return ILLEGAL_PARAMETERS;
 				}
-				else sequest_infile.setFragmentIonTolerance(DoubleReal_buffer);
+				else sequest_infile.setPeakMassTolerance(Real_buffer);
 				
-				DoubleReal_buffer = getDoubleOption_("match_peak_tol");
-				if ( DoubleReal_buffer == -1 )
+				Real_buffer = getDoubleOption_("match_peak_tol");
+				if ( Real_buffer == -1 )
 				{
 					writeLog_("No match peak tolerance specified. Aborting!");
-
 					return ILLEGAL_PARAMETERS;
 				}
-				else if ( DoubleReal_buffer < 0 )
+				else if ( Real_buffer < 0 )
 				{
 					writeLog_("Match peak tolerance < 0. Aborting!");
-
 					return ILLEGAL_PARAMETERS;
 				}
-				else sequest_infile.setMatchPeakTolerance(DoubleReal_buffer);
+				else sequest_infile.setMatchPeakTolerance(Real_buffer);
 				
-				DoubleReal_buffer = getDoubleOption_("ion_cutoff");
-				if ( DoubleReal_buffer < 0 || DoubleReal_buffer > 1 )
+				Real_buffer = getDoubleOption_("ion_cutoff");
+				if ( Real_buffer < 0 || Real_buffer > 1 )
 				{
 					writeLog_("Ion cutoff not in [0,1]. Aborting!");
-
 					return ILLEGAL_PARAMETERS;
 				}
-				else sequest_infile.setIonCutoffPercentage(DoubleReal_buffer);
+				else sequest_infile.setIonCutoffPercentage(Real_buffer);
 				
 				int_buffer = getIntOption_("pep_mass_unit");
 				if ( (int_buffer < 0) || (int_buffer > max_peptide_mass_units) )
 				{
 					writeLog_("Illegal peptide mass unit (not in [0,2]). Aborting!");
-
 					return ILLEGAL_PARAMETERS;
 				}
 				else sequest_infile.setPeptideMassUnit(int_buffer);
@@ -817,7 +816,6 @@ class TOPPSequestAdapter
 				if ( (int_buffer < 1) )
 				{
 					writeLog_("Illegal number of results (< 1). Aborting!");
-
 					return ILLEGAL_PARAMETERS;
 				}
 				else sequest_infile.setOutputLines(int_buffer);
@@ -835,13 +833,11 @@ class TOPPSequestAdapter
 						if ( (enzyme_info.size() < 3) || (enzyme_info.size() > 4) )
 						{
 							writeLog_("Illegal number of informations for enzyme (not in [3,4]). Aborting!");
-
 							return ILLEGAL_PARAMETERS;
 						}
 						if ( !((enzyme_info[1] == "0") || (enzyme_info[1] == "1"))  )
 						{
 							writeLog_("Cut direction for enzyme not specified correctly (has to be 1 (N to C)) or 0 (C to N))). Aborting!");
-
 							return ILLEGAL_PARAMETERS;
 						}
 						if ( enzyme_info.size() == 3 ) enzyme_info.push_back("-");
@@ -860,26 +856,26 @@ class TOPPSequestAdapter
 					}
 				}
 				
-				DoubleReal_buffer = getDoubleOption_("prot_mass");
-				if ( DoubleReal_buffer < 0 )
+				Real_buffer = getDoubleOption_("prot_mass");
+				if ( Real_buffer < 0 )
 				{
 					writeLog_("Illegal minimum protein mass (< 0). Aborting!");
 					return ILLEGAL_PARAMETERS;
 				}
 				else
 				{
-					DoubleReal_buffer2 = getDoubleOption_("max_prot_mass_or_tol");
-					if ( DoubleReal_buffer2 < 0 )
+					Real_buffer2 = getDoubleOption_("max_prot_mass_or_tol");
+					if ( Real_buffer2 < 0 )
 					{
 						writeLog_("Illegal maximum protein mass/ tolerance (< 0). Aborting!");
 						return ILLEGAL_PARAMETERS;
 					}
-					else if ( DoubleReal_buffer2 < DoubleReal_buffer && DoubleReal_buffer2 > 100  ) // the second value has either got to be a mass (greater than the first one), or a probability
+					else if ( Real_buffer2 < Real_buffer && Real_buffer2 > 100  ) // the second value has either got to be a mass (greater than the first one), or a probability
 					{
 						writeLog_("Illegal tolerance (not in [0, 100]). Aborting!");
 						return ILLEGAL_PARAMETERS;
 					}
-					else sequest_infile.setProteinMassFilter(String(DoubleReal_buffer) + " " +  String(DoubleReal_buffer2));
+					else sequest_infile.setProteinMassFilter(String(Real_buffer) + " " +  String(Real_buffer2));
 				}
 				
 				int_buffer = getIntOption_("max_num_dif_AA_per_mod");
@@ -943,7 +939,6 @@ class TOPPSequestAdapter
 				if ( (string_buffer.size() != 3) || (string_buffer2.find(string_buffer[0], 0) == String::npos) || (string_buffer2.find(string_buffer[1], 0) == String::npos) || (string_buffer2.find(string_buffer[2], 0) == String::npos) )
 				{
 					writeLog_("Neutral losses for ABY-ions not given (or illegal values given). Aborting!");
-
 					return ILLEGAL_PARAMETERS;
 				}
 				else
@@ -965,14 +960,14 @@ class TOPPSequestAdapter
 					for ( vector< String >::iterator s_i = substrings.begin(); s_i != substrings.end(); ++s_i )
 					{
 						// the values are expected to be Real, otherwise they will be seen as 0!
-						DoubleReal_buffer = atof(s_i->c_str());
-						if ( (DoubleReal_buffer < 0) || (DoubleReal_buffer > 1) )
+						Real_buffer = atof(s_i->c_str());
+						if ( (Real_buffer < 0) || (Real_buffer > 1) )
 						{
 							writeLog_("Illegal weights for ion series given. Aborting!");
-
+							
 							return ILLEGAL_PARAMETERS;
 						}
-						(*s_i) = String(DoubleReal_buffer);
+						(*s_i) = String(Real_buffer);
 					}
 					string_buffer.implode(substrings.begin(), substrings.end(), " ");
 					sequest_infile.setIonSeriesWeights(string_buffer);
@@ -980,26 +975,26 @@ class TOPPSequestAdapter
 				
 				// modifications
 				string_buffer = getStringOption_("modifications");
-				bool monoisotopic = getFlag_("use_monoisotopic_mod_mass");
+				monoisotopic = getFlag_("use_monoisotopic_mod_mass");
 				if ( !string_buffer.empty() ) // if modifications are used get look whether whether composition and residues (and type and name) is given which needs the isotope file, the name (and type) is used (then one additionally needs the modifications file) or only the mass and residues (and type and name) is given, in which case no further file is needed
 				{
 					string_buffer.split(':', substrings); // get the single modifications
-
+					
 					// one vector if compositions are used (needs isotope xml file) and one vector if masses were given
 					vector< vector< String > > iso_sym_occ, mass_res_type_name;
-
+					
 					// to store the informations about modifications from the ptm xml file
 					map< String, pair< String, String > > ptm_informations;
 					
 					// to get masses from a formula
 					EmpiricalFormula add_e_formula, sub_e_formula;
-
-					map< char, DoubleReal > stat_mods, dyn_mods;
-					map< String, DoubleReal > terminal_mods;
-
+					
+					map< char, Real > stat_mods, dyn_mods;
+					map< String, Real > terminal_mods;
+					
 					Int comp_mass_name_given(0);
 					String types = "dyn#stat#cterminal#nterminal#cterminal_dyn#nterminal_dyn#cterminal_prot#nterminal_prot#";
-
+					
 					for ( vector< String >::const_iterator mod_i = substrings.begin(); mod_i != substrings.end(); ++mod_i )
 					{
 						// clear the formulae
@@ -1013,9 +1008,9 @@ class TOPPSequestAdapter
 						mod_i->split(',', substrings2);
 						if ( substrings2.empty() ) substrings2.push_back(*mod_i);
 						mass_res_type_name.push_back(vector< String >(4));
-
+						
 						// check whether the first component is a composition, mass or name
-							// remove + signs
+						// remove + signs
 						if ( substrings2[0].hasPrefix("+") ) substrings2[0].erase(0, 1);
 						if ( substrings2[0].hasSuffix("+") ) substrings2[0].erase(substrings2[0].length() - 1, 1);
 						if ( substrings2[0].hasSuffix("-") ) // a '-' at the end will not be converted
@@ -1079,7 +1074,7 @@ class TOPPSequestAdapter
 									writeLog_("Modifications XML file is not readable. Aborting!");
 									return INPUT_FILE_NOT_READABLE;
 								}
-
+								
 								// getting all available modifications from a file
 								try
 								{
@@ -1091,7 +1086,7 @@ class TOPPSequestAdapter
 									return PARSE_ERROR;
 								}
 							}
-
+							
 							if ( ptm_informations.find(substrings2[0]) == ptm_informations.end() ) // if the modification cannot be found
 							{
 								writeLog_("The Modification " + substrings2[0] + " can not be found in file " + modifications_filename + ". Aborting!");
@@ -1115,7 +1110,7 @@ class TOPPSequestAdapter
 							else mass_res_type_name.back()[2] = "dyn";
 							comp_mass_name_given = 2;
 						}
-
+						
 						// now get the residues and, if available the type and the name
 						if ( comp_mass_name_given < 2 )
 						{
@@ -1211,15 +1206,15 @@ class TOPPSequestAdapter
 					}
 					
 					// save the dynamic modifications
-					map< DoubleReal, String > dyn_mods_by_mass;
-					for ( map< char, DoubleReal >::const_iterator dyn_i = dyn_mods.begin(); dyn_i != dyn_mods.end(); ++dyn_i )
+					map< Real, String > dyn_mods_by_mass;
+					for ( map< char, Real >::const_iterator dyn_i = dyn_mods.begin(); dyn_i != dyn_mods.end(); ++dyn_i )
 					{
 						dyn_mods_by_mass[dyn_i->second].append(1, dyn_i->first);
 					}
 					if ( dyn_mods_by_mass.size() <= 6 ) // Sequest doesn't allow more than six dynamic modifications (each amino acid may only be used once as only the mass of the last occurrence of an amino acid counts: 10K 12K leads to 12K)
 					{
 						String dyn_mods_as_string;
-						for ( map< DoubleReal, String >::const_iterator dyn_i = dyn_mods_by_mass.begin(); dyn_i != dyn_mods_by_mass.end(); ++dyn_i )
+						for ( map< Real, String >::const_iterator dyn_i = dyn_mods_by_mass.begin(); dyn_i != dyn_mods_by_mass.end(); ++dyn_i )
 						{
 							if ( dyn_i != dyn_mods_by_mass.begin() ) dyn_mods_as_string.append(" ");
 							dyn_mods_as_string.append(String(dyn_i->first) + " " + dyn_i->second);
@@ -1233,7 +1228,7 @@ class TOPPSequestAdapter
 					}
 					
 					// save the static modifications
-					for ( map< char, DoubleReal >::const_iterator stat_i = stat_mods.begin(); stat_i != stat_mods.end(); ++stat_i )
+					for ( map< char, Real >::const_iterator stat_i = stat_mods.begin(); stat_i != stat_mods.end(); ++stat_i )
 					{
 						char_buffer = sequest_infile.setStatMod(String(stat_i->first), stat_i->second);
 						if ( char_buffer )
@@ -1264,16 +1259,13 @@ class TOPPSequestAdapter
 			
 			if ( sequest_out )
 			{
-				peptide_prophet_directory = getStringOption_("peptide_prophet_directory");
-				if ( !peptide_prophet_directory.empty() ) peptide_prophet_directory.ensureLastChar('/');
-				
-				string_buffer = getStringOption_("out");
-				if ( string_buffer.empty() )
+				output_filename = getStringOption_("out");
+				if ( output_filename.empty() )
 				{
 					writeLog_("No output file specified. Aborting!");
 					return ILLEGAL_PARAMETERS;
 				}
-				else output_filename = string_buffer;
+				files.push_back(make_pair(output_filename, 4));
 				
 				p_value = getDoubleOption_("p_value");
 				if ( (p_value <= 0) || (p_value > 1) )
@@ -1284,65 +1276,43 @@ class TOPPSequestAdapter
 			}
 			
 			//-------------------------------------------------------------
-			// (3) running program according to parameters
+			// running program according to parameters
 			//-------------------------------------------------------------
-
-			// (3.1) checking accessability of files
+			
+			// checking accessability of files
 			bool existed = false;
-			if ( sequest_in )
+			UInt file_tag;
+			
+			for ( vector< pair< String, UInt > >::const_iterator files_i = files.begin(); files_i != files.end(); ++files_i )
 			{
-				existed = File::exists(input_filename);
-				if ( !File::writable(input_filename) )
-				{
-					throw Exception::UnableToCreateFile(__FILE__, __LINE__, __PRETTY_FUNCTION__, input_filename);
-				}
-				else if ( !existed ) remove(input_filename.c_str());
-				existed = false;
+				string_buffer = files_i->first;
+				file_tag = files_i->second;
 				
-				existed = File::exists(temp_data_directory + batch_filename);
-				if ( !File::writable(temp_data_directory + batch_filename) )
+				if ( (file_tag & 1) && !File::exists(string_buffer) )
 				{
-					throw Exception::UnableToCreateFile(__FILE__, __LINE__, __PRETTY_FUNCTION__, temp_data_directory + batch_filename);
+					throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, string_buffer);
 				}
-				else if ( !existed ) remove(String(temp_data_directory + batch_filename).c_str());
+				
+				if ( (file_tag & 2) && !File::readable(string_buffer) )
+				{
+					throw Exception::FileNotReadable(__FILE__, __LINE__, __PRETTY_FUNCTION__, string_buffer);
+				}
+				
+				existed = File::exists(string_buffer);
+				if ( (file_tag & 4) && !File::writable(string_buffer) )
+				{
+					throw Exception::UnableToCreateFile(__FILE__, __LINE__, __PRETTY_FUNCTION__, string_buffer);
+				}
+				else if ( !existed ) remove(string_buffer.c_str());
 				existed = false;
 			}
 			
-			// (3.1.2) output file
-			if ( sequest_out )
-			{
-				existed = File::exists(output_filename);
-				if ( !File::writable(output_filename) )
-				{
-					throw Exception::UnableToCreateFile(__FILE__, __LINE__, __PRETTY_FUNCTION__, output_filename);
-				}
-				else if ( !existed ) remove(output_filename.c_str());
-				existed = false;
-
-				if ( sequest_in )
-				{
-					// database
-					if ( !File::exists(database) )
-					{
-						throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, database);
-					}
-					if ( !File::readable(database) )
-					{
-						throw Exception::FileNotReadable(__FILE__, __LINE__, __PRETTY_FUNCTION__, database);
-					}
-					if ( File::empty(database) )
-					{
-						throw Exception::FileEmpty(__FILE__, __LINE__, __PRETTY_FUNCTION__, database);
-					}
-				}
-			}
-			
-			// (3.2.1) creating the input file
+			// creating the input file
 			if ( sequest_in )
 			{
 				sequest_infile.store(input_filename);
 			}
-
+			
 			bool make_dtas = ( sequest_out && !sequest_in ) ? false : true; // if only sequest_out is set, just get the retention times
 			// creating the dta files
 			if ( make_dtas ) // if there are already .dta files in the folder, stop the adapter
@@ -1351,7 +1321,12 @@ class TOPPSequestAdapter
 				if (File::fileList(temp_data_directory,String("*.dta_*"),dummy))
 				{
 					writeLog_("There are already dta files in directory " + temp_data_directory + ". Aborting!");
-					for ( vector< String >::const_iterator tmp_names_i = tmp_names.begin(); tmp_names_i != tmp_names.end(); ++tmp_names_i ) remove(tmp_names_i->c_str());
+					
+					// deleting all temporary files
+					for ( vector< pair< String, UInt > >::const_iterator files_i = files.begin(); files_i != files.end(); ++files_i )
+					{
+						if ( files_i->second & 8 ) remove(files_i->first.c_str());
+					}
 					return UNKNOWN_ERROR;
 				}
 			}
@@ -1380,16 +1355,16 @@ class TOPPSequestAdapter
 				msms_spectra_in_file = MSExperiment2DTAs(msexperiment, dta_files_common_name, charges, filenames_and_precursor_retention_times, make_dtas);
 				
 				writeLog_(String(msms_spectra_in_file) + " MS/MS spectra in file " + *spec_i);
-
+				
 				msms_spectra_altogether += msms_spectra_in_file;
 			}
-
+			
 			if ( !msms_spectra_altogether )
 			{
 				writeLog_("No MS/MS spectra found in any of the mz files. Aborting!");
 				return UNKNOWN_ERROR;
 			}
-
+			
 			// (3.2.3) running the program
 			if ( sequest_in && sequest_out )
 			{
@@ -1400,7 +1375,7 @@ class TOPPSequestAdapter
 					sequest_screen_output = String::random(10);
 				}
 				while ( File::exists(sequest_screen_output) );
-				tmp_names.push_back(temp_data_directory + sequest_screen_output);
+				files.push_back(make_pair(temp_data_directory + sequest_screen_output, 4+8));
 				
 				ofstream batchfile(String(temp_data_directory + batch_filename).c_str());
 				if ( !batchfile )
@@ -1434,25 +1409,23 @@ class TOPPSequestAdapter
 				if ( status != 0 )
 				{
 					writeLog_("Sequest problem. Aborting! (Details can be seen in the logfile: \"" + logfile + "\")");
-					for ( vector< String >::const_iterator tmp_names_i = tmp_names.begin(); tmp_names_i != tmp_names.end(); ++tmp_names_i ) remove(tmp_names_i->c_str());
 					
-					// remove all dtas
-					writeLog_("removing dta files");
-					for ( PointerSizeUInt i = 0; i <= (PointerSizeUInt) (dtas / max_dtas_per_run); ++i )
+					// deleting all temporary files
+					for ( vector< pair< String, UInt > >::const_iterator files_i = files.begin(); files_i != files.end(); ++files_i )
 					{
-						vector<String> to_delete;
-						if (File::fileList(temp_data_directory,String("*.dta_") + i,to_delete))
-						{
-							for (vector<String>::const_iterator it = to_delete.begin(); it != to_delete.end(); ++it)
-							{
-								if ( !File::remove(temp_data_directory + *it) )
-								{
-									writeLog_(String("'") + temp_data_directory + *it + "' could not be removed!");
-								}
-							}
-						}
+						if ( files_i->second & 8 ) remove(files_i->first.c_str());
 					}
-					return EXTERNAL_PROGRAM_ERROR;
+					
+				// remove all dtas
+					if ( !keep_dta_files )
+					{
+						writeLog_("removing dta files");
+						for ( map< String, Real >::const_iterator dta_names_i = filenames_and_precursor_retention_times.begin(); dta_names_i != filenames_and_precursor_retention_times.end(); ++dta_names_i )
+						{
+							if ( !File::remove(dta_names_i->first) ) writeLog_("'" + string_buffer + "' could not be removed!");
+						}
+						return EXTERNAL_PROGRAM_ERROR;
+					}
 				}
 				
 				bool no_log = false;
@@ -1483,23 +1456,22 @@ class TOPPSequestAdapter
 				if ( no_log )
 				{
 					writeLog_("No Sequest log found!");
-					writeLog_("removing dta files");
+					
 					// remove all dtas
-					for ( PointerSizeUInt i = 0; i <= (PointerSizeUInt) (dtas / max_dtas_per_run); ++i )
+					if ( !keep_dta_files )
 					{
-						vector<String> to_delete;
-						if (File::fileList(temp_data_directory,String("*.dta_") + i,to_delete))
+						writeLog_("removing dta files");
+						for ( map< String, Real >::const_iterator dta_names_i = filenames_and_precursor_retention_times.begin(); dta_names_i != filenames_and_precursor_retention_times.end(); ++dta_names_i )
 						{
-							for (vector<String>::const_iterator it = to_delete.begin(); it != to_delete.end(); ++it)
-							{
-								if ( !File::remove(temp_data_directory + *it) )
-								{
-									writeLog_(String("'") + temp_data_directory + *it + "' could not be removed!");
-								}
-							}
+							if ( !File::remove(dta_names_i->first) ) writeLog_("'" + string_buffer + "' could not be removed!");
 						}
 					}
-					for ( vector< String >::const_iterator tmp_names_i = tmp_names.begin(); tmp_names_i != tmp_names.end(); ++tmp_names_i ) remove(tmp_names_i->c_str());
+					
+					// deleting all temporary files
+					for ( vector< pair< String, UInt > >::const_iterator files_i = files.begin(); files_i != files.end(); ++files_i )
+					{
+						if ( files_i->second & 8 ) remove(files_i->first.c_str());
+					}
 					return EXTERNAL_PROGRAM_ERROR;
 				}
 				else writeLog_(string_buffer);
@@ -1508,131 +1480,90 @@ class TOPPSequestAdapter
 			if ( sequest_out )
 			{
 				// remove all dtas
-				if ( !keep_dta_files ) 
+				if ( !keep_dta_files )
 				{
-					for ( PointerSizeUInt i = 0; i <= (PointerSizeUInt) (dtas / max_dtas_per_run); ++i )
+					writeLog_("removing dta files");
+					for ( map< String, Real >::const_iterator dta_names_i = filenames_and_precursor_retention_times.begin(); dta_names_i != filenames_and_precursor_retention_times.end(); ++dta_names_i )
 					{
-						vector<String> to_delete;
-						if (File::fileList(temp_data_directory,String("*.dta_") + i,to_delete))
-						{
-							for (vector<String>::const_iterator it = to_delete.begin(); it != to_delete.end(); ++it)
-							{
-								if ( !File::remove(temp_data_directory + *it) )
-								{
-									writeLog_(String("'") + temp_data_directory + *it + "' could not be removed!");
-								}
-							}
-						}
+						if ( !File::remove(dta_names_i->first) ) writeLog_("'" + string_buffer + "' could not be removed!");
 					}
 				}
 				
 				SequestOutfile sequest_outfile;
-				vector<PeptideIdentification> identifications;
+				vector<PeptideIdentification> peptide_identifications;
+				vector<ProteinIdentification> pis;
+				UInt peptide_identification_size = peptide_identifications.size();
 				ProteinIdentification protein_identification;
-				UInt identification_size = identifications.size();
-
+				
 				vector<String> out_files;
 				if (!File::fileList(out_directory, String("*.out"), out_files))
 				{
 					writeLog_(String("Error: No .out files found in '") + out_directory + "'. Aborting!");
-					for ( vector< String >::const_iterator tmp_names_i = tmp_names.begin(); tmp_names_i != tmp_names.end(); ++tmp_names_i ) remove(tmp_names_i->c_str());
+					
+					// deleting all temporary files
+					for ( vector< pair< String, UInt > >::const_iterator files_i = files.begin(); files_i != files.end(); ++files_i )
+					{
+						if ( files_i->second & 8 ) remove(files_i->first.c_str());
+					}
 					
 					return UNKNOWN_ERROR;
 				}
 				
-				String call;
-				map< String, vector< DoubleReal > > filenames_and_pvalues;
-				if ( !peptide_prophet_directory.empty() )
+				vector< pair < String, vector< Real > > > filenames_and_pvalues;
+				for ( vector< String >::iterator f_i = out_files.begin(); f_i != out_files.end(); ++f_i )
 				{
-					String summary = temp_data_directory + "tmp.summary.html";
-					for ( vector<String>::const_iterator i = out_files.begin(); i != out_files.end(); ++i )
+					filenames_and_pvalues.push_back(make_pair(out_directory + *f_i, vector< Real >()));
+				}
+// 				sequest_outfile.getPValuesFromOutFiles(filenames_and_pvalues);
+				
+				// set the parameters
+				ProteinIdentification::SearchParameters sp;
+				sp.db = "Fasta";
+				sp.taxonomy = sequest_infile.getSequenceHeaderFilter();
+				if ( monoisotopic ) sp.mass_type = ProteinIdentification::MONOISOTOPIC;
+				else sp.mass_type = ProteinIdentification::AVERAGE;
+				for ( vector< Int >::const_iterator c_i = charges.begin(); c_i != charges.end(); ++c_i )
+				{
+					if ( *c_i > 0 ) sp.charges.append("+");
+					sp.charges.append(String(*c_i));
+				}
+				if ( sequest_infile.getEnzyme() == "Trypsin" ) sp.enzyme = ProteinIdentification::TRYPSIN;
+				else if ( sequest_infile.getEnzyme() == "No_Enzyme" ) sp.enzyme = ProteinIdentification::NO_ENZYME;
+				else sp.enzyme = ProteinIdentification::UNKNOWN_ENZYME;
+				sp.peak_mass_tolerance = sequest_infile.getPeakMassTolerance();
+				sp.precursor_tolerance = sequest_infile.getPrecursorMassTolerance();
+				protein_identification.setSearchParameters(sp);
+				
+				for ( vector< pair < String, vector< Real > > >::iterator fp_i = filenames_and_pvalues.begin(); fp_i != filenames_and_pvalues.end(); ++fp_i )
+				{
+					try
 					{
-						sequest_outfile.out2SummaryHtml(out_directory + *i, summary, database);
+						sequest_outfile.load(fp_i->first, peptide_identifications, protein_identification, p_value, fp_i->second, database);
 					}
-					sequest_outfile.finishSummaryHtml(summary);
-					String peptide_prophet_output;
-					do
+					catch( Exception::ParseError pe )
 					{
-						peptide_prophet_output = temp_data_directory + String::random(10);
+						// deleting all temporary files
+						for ( vector< pair< String, UInt > >::const_iterator files_i = files.begin(); files_i != files.end(); ++files_i )
+						{
+							if ( files_i->second & 8 ) remove(files_i->first.c_str());
+						}
+						writeLog_(pe.getMessage());
+						return INPUT_FILE_CORRUPT;
 					}
-					while ( File::exists(peptide_prophet_output) );
-					tmp_names.push_back(peptide_prophet_output);
 					
-					call.append(peptide_prophet_directory);
-					call.append("runPeptideProphet ");
-					call.append(summary);
-					call.append(" 2> ");
-					call.append(peptide_prophet_output);
-					call.append(" 1> ");
-					call.append(peptide_prophet_output);
-					writeLog_(call.substr(0, call.find(" 2> ")));
-					Int status = system(call.c_str());
-					if ( status != 0 )
+					// save the retention times if peptides have been identified to the p-level
+					if ( peptide_identification_size != peptide_identifications.size() )
 					{
-						writeLog_("Problems with Peptide Prophet. Using all peptides!");
-						remove(summary.c_str());
-					}
-					else
-					{
-						filenames_and_pvalues = sequest_outfile.getPeptidePValues(/*out_directory,*/ summary + ".prob");
-						
-						remove(summary.c_str());
-						remove(String(summary + ".prob").c_str());
-						remove(String(summary + ".esi").c_str());
-						summary.replace(summary.length() - 4, 4, "model");
-						remove(summary.c_str());
-					}
-				}
-				String filename;
-				vector< DoubleReal > pvalues;
-				
-				String::size_type pos;
-				
-				if ( filenames_and_pvalues.empty() )
-				{
-					for ( vector<String>::const_iterator i = out_files.begin(); i != out_files.end(); ++i )
-					{
-						filename = out_directory + *i;
-						sequest_outfile.load(filename, identifications, protein_identification, p_value, pvalues/*, database*/);
-						// save the retention times if peptides have been identified to the p-level
-						if ( identification_size != identifications.size() )
-						{
-							identification_size = identifications.size();
-							identifications.back().setMetaValue("RT",filenames_and_precursor_retention_times[File::basename(filename)]);
-						}
-					}
-				}
-				else
-				{
-					for ( vector<String>::const_iterator i = out_files.begin(); i != out_files.end(); ++i )
-					{
-						filename = out_directory + *i;
-						// the keys in filenames_and_pvalues doesn't contain .out ends with the scan number and charge, there's nothing like: 100.2.d, just 100.2
-						string_buffer = /*out_directory +*/ i->substr(0, i->find_last_of('.'));
-						pos = string_buffer.find_last_of('.') + 1;
-						while ( pos < string_buffer.length() && (bool) isdigit(string_buffer[pos]) ) ++pos; // check whether the last part of the filename is a charge
-							// if it is not a charge, erase it
-						if ( pos != string_buffer.length() ) string_buffer.erase(string_buffer.find_last_of('.'));
-						
-						// if the file contains results
-						if ( filenames_and_pvalues.find(string_buffer) != filenames_and_pvalues.end() )
-						{
-							sequest_outfile.load(filename, identifications, protein_identification, p_value, filenames_and_pvalues[string_buffer]/*, database*/);
-
-							// save the retention times if peptides have been identified to the p-level
-							if ( identification_size != identifications.size() )
-							{
-								identification_size = identifications.size();
-								identifications.back().setMetaValue("RT", filenames_and_precursor_retention_times[File::basename(filename)]);
-							}
-						}
+						peptide_identification_size = peptide_identifications.size();
+						string_buffer = fp_i->first;
+						string_buffer.replace(string_buffer.length() - 3, 3, "out");
+						peptide_identifications.back().setMetaValue("RT", filenames_and_precursor_retention_times[string_buffer]);
 					}
 				}
 				
-				vector<ProteinIdentification> pis;
 				pis.push_back(protein_identification);
 				
-				IdXMLFile().store(output_filename, pis, identifications);
+				IdXMLFile().store(output_filename, pis, peptide_identifications);
 				
 				// remove all outs
 				if ( !keep_out_files )
@@ -1648,8 +1579,11 @@ class TOPPSequestAdapter
 				}
 			}
 			
-			// (3.3) deleting all temporary files
-			for ( vector< String >::const_iterator tmp_names_i = tmp_names.begin(); tmp_names_i != tmp_names.end(); ++tmp_names_i ) remove(tmp_names_i->c_str());
+			// deleting all temporary files
+			for ( vector< pair< String, UInt > >::const_iterator files_i = files.begin(); files_i != files.end(); ++files_i )
+			{
+				if ( files_i->second & 8 ) remove(files_i->first.c_str());
+			}
 			
 			return EXECUTION_OK;
 		}
@@ -1662,6 +1596,6 @@ class TOPPSequestAdapter
 int main( int argc, char ** argv )
 {
 	TOPPSequestAdapter tool;
-
+	
 	return tool.main(argc,argv);
 }

@@ -1,53 +1,15 @@
-<?xml version="1.0" encoding="ISO-8859-1" standalone="yes"?>
-<mzIdent>
-	<description>
-		<admin>
-			<sampleName> unknown </sampleName>
-		</admin>
-		<settings>
-			<userParam name="number_of_identifications" value="1" />
-			<userParam name="number_of_protein_identifications" value="1" />
-			<userParam name="retention_time_type" value="float" />
-			<userParam name="mz_type" value="float" />
-			<userParam name="retention_time_unit" value="seconds" />
-			<userParam name="mz_unit" value="Thomson" />
-		</settings>
-	</description>
-	<ident>
-		<proteinGroup count="0">
-			<protein>
-				<dbID>Q9CQV8</dbID>
-				<peptide>
-					<seq>NQGD</seq>
-					<userParam name="identification_index" value="0" />
-					<userParam name="significance_threshold" value="0.975"/>
-					<userParam name="precursor_charge" value="1" />
-					<userParam name="precursor_retention_time" value="21.9494" />
-					<userParam name="precursor_mz" value="433.803" />
-					<userParam name="score" value="-12.839" />
-					<userParam name="score_type" value="Inspect" />
-					<userParam name="identifier" value="" />
-					<userParam name="higher_score_better" value="1" />
-				</peptide>
-				<userParam name="protein_identification_index" value="0"/>
-				<userParam name="score" value="0"/>
-			</protein>
-			<userParam name="db" value=""/>
-			<userParam name="db_version" value=""/>
-			<userParam name="taxonomy" value=""/>
-			<userParam name="charges" value=""/>
-			<userParam name="mass_type" value="0"/>
-			<userParam name="enzyme" value="2"/>
-			<userParam name="missed_cleavages" value="0"/>
-			<userParam name="peak_mass_tolerance" value="0"/>
-			<userParam name="precursor_tolerance" value="0"/>
+<?xml version="1.0" encoding="UTF-8"?>
+<IdXML xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/IdXML_1_0.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <SearchParameters id="SP_0" db="" db_version="" taxonomy="" mass_type="monoisotopic" charges="" enzyme="unknown_enzyme" missed_cleavages="0" precursor_peak_tolerance="-1" peak_mass_tolerance="-1" >
+  </SearchParameters>
 # date removed
-			<userParam name="search_engine" value=""/>
-			<userParam name="search_engine_version" value=""/>
-			<userParam name="identifier" value=""/>
-			<userParam name="score_type" value=""/>
-			<userParam name="higher_score_better" value="1"/>
-			<userParam name="proteins" value="all"/>
-		</proteinGroup>
-	</ident>
-</mzIdent>
+    <ProteinIdentification score_type="" higher_score_better="true" significance_threshold="0" >
+      <ProteinHit id="PH_0" accession="Q9CQV8" score="0" sequence="" >
+      </ProteinHit>
+    </ProteinIdentification>
+    <PeptideIdentification score_type="Inspect" higher_score_better="true" significance_threshold="0.975" MZ="433.803" RT="21.9494" >
+      <PeptideHit score="-12.839" sequence="NQGD" charge="1" aa_before="E" aa_after="E" protein_refs="PH_0" >
+      </PeptideHit>
+    </PeptideIdentification>
+  </IdentificationRun>
+</IdXML>

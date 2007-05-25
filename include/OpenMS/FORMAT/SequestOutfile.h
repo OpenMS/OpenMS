@@ -32,9 +32,12 @@
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
+#include <OpenMS/MATH/STATISTICS/BasicStatistics.h>
 
 #include <map>
 #include <vector>
+#include <cmath>
+// #include <algorithm>
 
 namespace OpenMS
 {
@@ -67,33 +70,32 @@ namespace OpenMS
 				This class serves to read in a Sequest outfile. The information can be
 				retrieved via the load function.
 			*/
-			void load(const String& result_filename, std::vector<PeptideIdentification>& identifications, ProteinIdentification& protein_identification, const DoubleReal& p_value_threshold, std::vector<DoubleReal>& pvalues, const String& database = "") throw (Exception::FileNotFound, Exception::ParseError);
+			void load(const String& result_filename, std::vector<PeptideIdentification>& identifications, ProteinIdentification& protein_identification, const Real& p_value_threshold, std::vector<Real>& pvalues, const String& database = "") throw (Exception::FileNotFound, Exception::ParseError);
 
-			
-			void finishSummaryHtml(const String& summary_filename) throw (Exception::UnableToCreateFile);
+			/// retrieve the p-values
+// 			void getPValuesFromOutFiles(vector< pair < String, vector< Real > > >& filenames_and_pvalues) throw (Exception::FileNotFound, Exception::ParseError);
 
-			/// write a
-			void out2SummaryHtml(String out_filename, const String& summary_filename, const String& database_filename) throw(Exception::FileNotFound, Exception::ParseError, Exception::UnableToCreateFile);
-
-			std::map<String, std::vector<DoubleReal> > getPeptidePValues(const String& prob_filename) throw (Exception::FileNotFound);
-			
 			/// retrieve columns from a Sequest outfile line
 			bool getColumns(const String& line, std::vector<String>& substrings, UInt number_of_columns, UInt reference_column);
-			
+
 			/// retrieve sequences from a FASTA database
 			void getSequences(const String& database_filename, const std::map<String, UInt>& ac_position_map, std::vector<String>& sequences, std::vector<std::pair<String, UInt> >& found, std::map<String, UInt>& not_found) throw (Exception::FileNotFound);
-				
+
 			/// retrieve the accession type and accession number from a protein description line
 			/// (e.g. from FASTA line: >gi|5524211|gb|AAD44166.1| cytochrome b [Elephas maximus maximus], get ac:AAD44166.1 ac type: GenBank)
 			void getACAndACType(String line, String& accession, String& accession_type);
-			
-			/// either insert the new peptide hit or update it's protein indices
-			//bool updatePeptideHits(PeptideHit& peptide_hit, std::vector<PeptideHit>& peptide_hits);
 
-			void readOutHeader(const String& result_filename, DateTime& datetime, DoubleReal& precursor_mz_value, Int& charge, UInt& precursor_mass_type, UInt& ion_mass_type, Int& number_column, Int& rank_sp_column, Int& id_column, Int& mh_column, Int& delta_cn_column, Int& xcorr_column, Int& sp_column, Int& sf_column, Int& ions_column, Int& reference_column, Int& peptide_column, Int& score_column, UInt& number_of_columns, UInt& displayed_peptides) throw(Exception::FileNotFound, Exception::ParseError);
+			/// read the header of an out file and retrieve various informations
+			void readOutHeader(const String& result_filename, DateTime& datetime, Real& precursor_mz_value, Int& charge, UInt& precursor_mass_type, UInt& ion_mass_type, UInt& displayed_peptides, String& sequest, String& sequest_version, String& database_type, Int& number_column, Int& rank_sp_column, Int& id_column, Int& mh_column, Int& delta_cn_column, Int& xcorr_column, Int& sp_column, Int& sf_column, Int& ions_column, Int& reference_column, Int& peptide_column, Int& score_column, UInt& number_of_columns) throw(Exception::FileNotFound, Exception::ParseError);
 			
 		private:
-			UInt out2summary_number;
+			static Real const_weights_[];
+			static Real xcorr_weights_[];
+			static Real delta_cn_weights_[];
+			static Real rank_sp_weights_[];
+			static Real delta_mass_weights_[];
+			static UInt max_pep_lens_[];
+			static UInt num_frags_[];
    };
 	
 } //namespace OpenMS

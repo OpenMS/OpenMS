@@ -54,27 +54,69 @@ InspectOutfile file;
 CHECK(vector< UInt > load(const String& result_filename, vector<PeptideIdentification>&	peptide_identifications, ProteinIdentification&	protein_identification, const DoubleReal& p_value_threshold, const String& database_filename) throw (Exception::FileNotFound, Exception::ParseError, Exception::IllegalArgument))
 	vector<PeptideIdentification> peptide_identifications;
 	ProteinIdentification protein_identification;
+	
 	file.load("data/InspectOutfile.out", peptide_identifications, protein_identification, 0.001);
 	
 	TEST_EQUAL(peptide_identifications.size(), 1)
-	TEST_EQUAL(peptide_identifications[0].getHits().size(), 1)
-	TEST_REAL_EQUAL(peptide_identifications[0].getHits()[0].getScore(), -257)
-	TEST_EQUAL(peptide_identifications[0].getHits()[0].getSequence(), "KKLE")
-	TEST_EQUAL(peptide_identifications[0].getScoreType(), "Inspect")
-	TEST_EQUAL(peptide_identifications[0].getHits()[0].getRank(), 1)
+	if ( peptide_identifications.size() == 1 )
+	{
+		TEST_EQUAL(peptide_identifications[0].getHits().size(), 1)
+		TEST_EQUAL(peptide_identifications[0].getScoreType(), "Inspect")
+		TEST_REAL_EQUAL(peptide_identifications[0].getSignificanceThreshold(), 0.001)
+		if( peptide_identifications[0].getHits().size() == 1)
+		{
+			TEST_REAL_EQUAL(peptide_identifications[0].getHits()[0].getScore(), -257)
+			TEST_EQUAL(peptide_identifications[0].getHits()[0].getSequence(), "KKLE")
+			TEST_EQUAL(peptide_identifications[0].getHits()[0].getAABefore(), 'E')
+			TEST_EQUAL(peptide_identifications[0].getHits()[0].getAAAfter(), 'K')
+			TEST_EQUAL(peptide_identifications[0].getHits()[0].getRank(), 1)
+			TEST_EQUAL(peptide_identifications[0].getHits()[0].getCharge(), 1)
+			TEST_EQUAL(peptide_identifications[0].getHits()[0].getProteinAccessions().size(), 1)
+			if ( peptide_identifications[0].getHits()[0].getProteinAccessions().size() == 1 )
+			{
+				TEST_EQUAL(peptide_identifications[0].getHits()[0].getProteinAccessions()[0], "P68509")
+			}
+		}
+	}
 
 	peptide_identifications.clear();
 	file.load("data/InspectOutfile.out", peptide_identifications, protein_identification, 0.01);
 	
 	TEST_EQUAL(peptide_identifications.size(), 1)
-	TEST_EQUAL(peptide_identifications[0].getHits().size(), 2)
-	TEST_REAL_EQUAL(peptide_identifications[0].getHits()[0].getScore(), -1456)
-	TEST_EQUAL(peptide_identifications[0].getHits()[0].getSequence(), "EKIE")
-	TEST_EQUAL(peptide_identifications[0].getScoreType(), "Inspect")
-	TEST_EQUAL(peptide_identifications[0].getHits()[0].getRank(), 1)
-	TEST_REAL_EQUAL(peptide_identifications[0].getHits()[1].getScore(), -257)
-	TEST_EQUAL(peptide_identifications[0].getHits()[1].getSequence(), "KKLE")
-	TEST_EQUAL(peptide_identifications[0].getHits()[1].getRank(), 2)
+	if ( peptide_identifications.size() == 1 )
+	{
+		TEST_EQUAL(peptide_identifications[0].getHits().size(), 2)
+		TEST_EQUAL(peptide_identifications[0].getScoreType(), "Inspect")
+		TEST_REAL_EQUAL(peptide_identifications[0].getSignificanceThreshold(), 0.01)
+		if( peptide_identifications[0].getHits().size() == 2 )
+		{
+	// 		if( peptide_identifications[0].getHits().size() == 1)
+	// 		{
+				TEST_REAL_EQUAL(peptide_identifications[0].getHits()[0].getScore(), -257)
+				TEST_EQUAL(peptide_identifications[0].getHits()[0].getSequence(), "KKLE")
+				TEST_EQUAL(peptide_identifications[0].getHits()[0].getAABefore(), 'E')
+				TEST_EQUAL(peptide_identifications[0].getHits()[0].getAAAfter(), 'K')
+				TEST_EQUAL(peptide_identifications[0].getHits()[0].getRank(), 1)
+				TEST_EQUAL(peptide_identifications[0].getHits()[0].getCharge(), 1)
+				TEST_EQUAL(peptide_identifications[0].getHits()[0].getProteinAccessions().size(), 1)
+				if ( peptide_identifications[0].getHits()[0].getProteinAccessions().size() == 1 )
+				{
+					TEST_EQUAL(peptide_identifications[0].getHits()[0].getProteinAccessions()[0], "P68509")
+				}
+				TEST_REAL_EQUAL(peptide_identifications[0].getHits()[1].getScore(), -1456)
+				TEST_EQUAL(peptide_identifications[0].getHits()[1].getSequence(), "EKIE")
+				TEST_EQUAL(peptide_identifications[0].getHits()[1].getAABefore(), 'R')
+				TEST_EQUAL(peptide_identifications[0].getHits()[1].getAAAfter(), 'K')
+				TEST_EQUAL(peptide_identifications[0].getHits()[1].getRank(), 2)
+				TEST_EQUAL(peptide_identifications[0].getHits()[1].getCharge(), 1)
+				TEST_EQUAL(peptide_identifications[0].getHits()[1].getProteinAccessions().size(), 1)
+				if ( peptide_identifications[0].getHits()[0].getProteinAccessions().size() == 1 )
+				{
+					TEST_EQUAL(peptide_identifications[0].getHits()[0].getProteinAccessions()[0], "P68509")
+				}
+	// 		}
+		}
+	}
 RESULT
 
 CHECK(void generateTrieDB(const std::String& source_database_filename, const std::String& database_filename, const std::String& index_filename, bool append = false, const std::String species = "") throw (Exception::FileNotFound, Exception::ParseError, Exception::UnableToCreateFile))
@@ -232,80 +274,45 @@ CHECK(vector< UInt > getWantedRecords(const String& result_filename, Real p_valu
 	if ( !wanted_records.empty() ) TEST_EQUAL (wanted_records.front(), 0)
 RESULT
 
-/*
-CHECK(bool updatePeptideHits(PeptideHit& peptide_hit, vector< PeptideHit >& peptide_hits))
-	DateTime date;
-	date.now();
-	vector< PeptideHit > peptide_hits;
-	PeptideHit peptide_hit1, peptide_hit2, peptide_hit3;
-	peptide_hit1.setScore(12.1);
-	peptide_hit1.setSequence("SEQVEST");
-	peptide_hit1.setRank(2);
-	peptide_hit1.addProteinAccession("P02666");
-	TEST_EQUAL(file.updatePeptideHits(peptide_hit1, peptide_hits), true)
-	TEST_EQUAL(peptide_hits.size(), 1)
-	if ( 1 == peptide_hits.size() )
-	{
-		TEST_EQUAL(peptide_hit1.getScore(), peptide_hits.front().getScore())
-		TEST_EQUAL(peptide_hit1.getSequence(), peptide_hits.front().getSequence())
-		TEST_EQUAL(peptide_hit1.getRank(), peptide_hits.front().getRank())
-
-		// the peptides within a vector have to have the same scoreType
-		peptide_hit2 = peptide_hit1;
-		TEST_EQUAL(file.updatePeptideHits(peptide_hit2, peptide_hits), false)
-		TEST_EQUAL(peptide_hits.size(), 1)
-		
-		TEST_EQUAL(peptide_hit1.getScore(), peptide_hits.front().getScore())
-		TEST_EQUAL(peptide_hit1.getSequence(), peptide_hits.front().getSequence())
-		TEST_EQUAL(peptide_hit1.getRank(), peptide_hits.front().getRank())
-
-		// if the identical peptide hit has already been insegetMetaValue("RT")ed, nothing changes
-		TEST_EQUAL(file.updatePeptideHits(peptide_hit2, peptide_hits), true)
-		TEST_EQUAL(peptide_hits.size(), 1)
-			
-		TEST_EQUAL(peptide_hit1.getScore(), peptide_hits.front().getScore())
-		TEST_EQUAL(peptide_hit1.getSequence(), peptide_hits.front().getSequence())
-		TEST_EQUAL(peptide_hit1.getRank(), peptide_hits.front().getRank())
-
-		// two peptide hits are considered not equal if either their sequence or their score differs
-		peptide_hit2.setSequence("SEQVESTT");
-		TEST_EQUAL(file.updatePeptideHits(peptide_hit2, peptide_hits), true)
-		TEST_EQUAL(peptide_hits.size(), 2)
-		
-		TEST_EQUAL(peptide_hit2.getScore(), peptide_hits.back().getScore())
-		TEST_EQUAL(peptide_hit2.getSequence(), peptide_hits.back().getSequence())
-		TEST_EQUAL(peptide_hit2.getRank(), peptide_hits.back().getRank())
-
-		peptide_hit2.setScore(23.42);
-		TEST_EQUAL(file.updatePeptideHits(peptide_hit2, peptide_hits), true)
-		TEST_EQUAL(peptide_hits.size(), 3)
-		
-		TEST_EQUAL(peptide_hit2.getScore(), peptide_hits.back().getScore())
-		TEST_EQUAL(peptide_hit2.getSequence(), peptide_hits.back().getSequence())
-		TEST_EQUAL(peptide_hit2.getRank(), peptide_hits.back().getRank())
-
-		// if the peptide hit has already been insegetMetaValue("RT")ed, add additional protein hits
-		peptide_hit2.addProteinAccession("Q5EEQ7");
-		TEST_EQUAL(file.updatePeptideHits(peptide_hit2, peptide_hits), true)
-		TEST_EQUAL(peptide_hits.size(), 3)
-		
-		TEST_EQUAL(peptide_hit2.getScore(), peptide_hits.back().getScore())
-		TEST_EQUAL(peptide_hit2.getSequence(), peptide_hits.back().getSequence())
-		TEST_EQUAL(peptide_hit2.getRank(), peptide_hits.back().getRank())
-
-		// but the peptide hit (outside the vector) remains unchanged
-		peptide_hit3 = peptide_hit2;
-		peptide_hit3.addProteinAccession("Q6UN63");
-		TEST_EQUAL(file.updatePeptideHits(peptide_hit3, peptide_hits), true)
-		TEST_EQUAL(peptide_hits.size(), 3)
-		peptide_hit2.addProteinAccession("Q6UN63");
-		
-		TEST_EQUAL(peptide_hit2.getScore(), peptide_hits.back().getScore())
-		TEST_EQUAL(peptide_hit2.getSequence(), peptide_hits.back().getSequence())
-		TEST_EQUAL(peptide_hit2.getRank(), peptide_hits.back().getRank())
-		
-		TEST_EQUAL(peptide_hit3.getProteinAccessions().size(), 1)
-	}
+CHECK(template<typename PeakT> void getExperiment(MSExperiment<PeakT>& exp, String& type, const String& in_filename) throw(Exception::ParseError))
+	MSExperiment< > exp;
+	String type;
+	file.getExperiment(exp, type, "TOPP/Inspect_Sequest.mzXML");
+	TEST_EQUAL(type, "mzXML")
+	file.getExperiment(exp, type, "TOPP/Inspect_Sequest.mzData");
+	TEST_EQUAL(type, "mzData")
 RESULT
-*/
+
+CHECK(void getSearchEngineAndVersion(const String& inspect_output_without_parameters_filename, ProteinIdentification& protein_identification) throw (Exception::FileNotFound))
+	ProteinIdentification protein_identification;
+	file.getSearchEngineAndVersion("data/InspectOutfile_version_file.txt", protein_identification);
+	TEST_EQUAL(protein_identification.getSearchEngine(), "InsPecT");
+	TEST_EQUAL(protein_identification.getSearchEngineVersion(), "20060907");
+RESULT
+
+CHECK(void readOutHeader(const String& filename, const String& header_line, Int& spectrum_file_column, Int& scan_column, Int& peptide_column, Int& protein_column, Int& charge_column, Int& MQ_score_column, Int& p_value_column, Int& record_number_column, Int& DB_file_pos_column, Int& spec_file_pos_column) throw (Exception::ParseError))
+		
+	String header_line = "#SpectrumFile	Scan#	Annotation	Protein	Charge	MQScore	Length	TotalPRMScore	MedianPRMScore	FractionY	FractionB	Intensity	NTT	p-value	F-Score	DeltaScore	DeltaScoreOther	RecordNumber	DBFilePos	SpecFilePos";
+	
+	Int spectrum_file_column, scan_column, peptide_column, protein_column, charge_column, MQ_score_column, p_value_column, record_number_column, DB_file_pos_column, spec_file_pos_column;
+	UInt number_of_columns;
+	
+	file.readOutHeader("dummy_testfile", header_line, spectrum_file_column, scan_column, peptide_column, protein_column, charge_column, MQ_score_column, p_value_column, record_number_column, DB_file_pos_column, spec_file_pos_column, number_of_columns);
+	TEST_EQUAL(spectrum_file_column, 0)
+	TEST_EQUAL(scan_column, 1)
+	TEST_EQUAL(peptide_column, 2)
+	TEST_EQUAL(protein_column, 3)
+	TEST_EQUAL(charge_column, 4)
+	TEST_EQUAL(MQ_score_column, 5)
+	TEST_EQUAL(p_value_column, 13)
+	TEST_EQUAL(record_number_column, 17)
+	TEST_EQUAL(DB_file_pos_column, 18)
+	TEST_EQUAL(spec_file_pos_column, 19)
+	TEST_EQUAL(number_of_columns, 20)
+	
+	header_line = "#SpectrumFile	Scan#	Annotation	Protein	Charge	MQScore	Length	TotalPRMScore	MedianPRMScore	FractionY	FractionB	Intensity	NTT	p-value	F-Score	DeltaScore	DeltaScoreOther	RecordNumber	DBFilePos	";
+	
+	TEST_EXCEPTION(Exception::ParseError, file.readOutHeader("dummy_testfile", header_line, spectrum_file_column, scan_column, peptide_column, protein_column, charge_column, MQ_score_column, p_value_column, record_number_column, DB_file_pos_column, spec_file_pos_column, number_of_columns));
+RESULT
+
 END_TEST
