@@ -84,6 +84,16 @@ namespace OpenMS
 		index_to_name_[10] = "spectrum_reference";
 		index_to_description_[10] = "Refenference to a spectrum or feature number";
 		index_to_unit_[10] = "";
+
+		name_to_index_["ID"] = 11;
+		index_to_name_[11] = "ID";
+		index_to_description_[11] = "Some type of identifier";
+		index_to_unit_[11] = "";
+
+		name_to_index_["low_quality"] = 12;
+		index_to_name_[12] = "low_quality";
+		index_to_description_[12] = "Flag which indicatest that some entity has a low quality (e.g. a feature pair)";
+		index_to_unit_[12] = "";
 	}
 	
 

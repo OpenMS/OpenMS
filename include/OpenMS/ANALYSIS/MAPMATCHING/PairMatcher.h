@@ -30,7 +30,6 @@
 #include <OpenMS/ANALYSIS/MAPMATCHING/ElementPair.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/CONCEPT/FactoryProduct.h>
-#include <OpenMS/DATASTRUCTURES/QuadTree.h>
 
 #include <cmath>
 
@@ -71,7 +70,6 @@ namespace OpenMS
 			typedef FeatureMap<> FeatureMapType;
 			typedef ElementPair<> PairType;
       typedef std::vector< PairType > PairVectorType;
-			typedef QuadTree< FeatureType > QuadTreeType;
 			//@}
 			
 			/// Constructor
@@ -146,14 +144,6 @@ namespace OpenMS
 					return 1-erf((m-x)/sig1/sqrt2_);
 				}
 			}
-
-		private:
-			/// constants for accessing feature meta values
-			enum Constants
-			{
-				ID=11,				/**<  used to assocate the feature with its index in the set */
-				LOW_QUALITY		/**< used by the greedy approximation */
-			};
 
 	}; // end of class PairMatcher
 

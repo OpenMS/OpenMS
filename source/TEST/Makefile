@@ -55,7 +55,6 @@ EXECUTABLES_DATASTRUCTURES = \
 	DataValue_test\
 	SparseVector_test\
 	DateTime_test\
-	QuadTree_test\
 	RangeManager_test\
 	Matrix_test\
 	ConvexHull2D_test\

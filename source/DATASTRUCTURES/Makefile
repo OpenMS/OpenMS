@@ -42,7 +42,6 @@ CPP_SOURCES=\
 	Matrix.C\
 	SparseVector.C\
 	DateTime.C\
-	QuadTree.C\
 	ConvexHull2D.C\
   DefaultParamHandler.C
 

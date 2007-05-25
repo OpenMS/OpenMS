@@ -120,11 +120,11 @@ CHECK((const PairVectorType& run()))
 	TEST_REAL_EQUAL(pairs[0].getFirst().getMZ(),0.0f);
 	TEST_REAL_EQUAL(pairs[0].getFirst().getRT(),0.1f);
 	TEST_REAL_EQUAL(pairs[0].getSecond().getMZ(),4.0f);
-	TEST_REAL_EQUAL(pairs[0].getSecond().getRT(),0.2f);
+	TEST_REAL_EQUAL(pairs[0].getSecond().getRT(),0.0f);
 	TEST_REAL_EQUAL(pairs[1].getFirst().getMZ(),0.0f);
 	TEST_REAL_EQUAL(pairs[1].getFirst().getRT(),0.1f);
 	TEST_REAL_EQUAL(pairs[1].getSecond().getMZ(),4.0f);
-	TEST_REAL_EQUAL(pairs[1].getSecond().getRT(),0.0f);
+	TEST_REAL_EQUAL(pairs[1].getSecond().getRT(),0.2f);
 RESULT
 
 

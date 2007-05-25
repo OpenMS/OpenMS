@@ -63,8 +63,7 @@ namespace OpenMS
 
 		PairMatcher::PairMatcher(const PairMatcher& source)
 		: FactoryProduct(source), 
-			features_
-			(source.features_),
+			features_(source.features_),
 			pairs_(source.pairs_), 
 			best_pairs_()
 		{	
@@ -85,65 +84,42 @@ namespace OpenMS
 			pairs_.clear();
 
 			// calculate area of map
-			features_.updateRanges();
-
-			// fill tree
-			QuadTreeType tree(DRange<2>(features_.getMin()[0], features_.getMax()[0], features_.getMin()[1], features_.getMax()[1]));
-			for (UInt i=0; i<features_.size(); ++i)
-			{
-				try
-				{
-					tree.insert(features_[i].getPosition(), &features_[i] );
-				}
-				catch(Exception::IllegalTreeOperation e)
-				{
-					cout << "Warning: Multiple identical feature positions in given feature map!" << endl;
-				}
-			}
-
+			features_.sortByPosition();
+			
 			// set id for each feature
 			int id = -1;
 			for (FeatureMapType::Iterator it = features_.begin(); it != features_.end(); ++it)
 			{
-				it->setMetaValue(ID,++id);
+				it->setMetaValue(11,++id);
 			}
 
 			// check each feature
-			DRange<2> local;
 			for (FeatureMapType::const_iterator it=features_.begin(); it!=features_.end(); ++it)
 			{
-				//cout << "Testing feature " << it->getMZ()[0] << " " << it->getPosition()[1] << endl;
-				// set up local area to search for feature partner
-				int charge = it->getCharge();
-				double mz_opt = mz_pair_dist/charge;
-				local.setMinX(it->getPosition()[0]-rt_max);
-				local.setMaxX(it->getPosition()[0]-rt_min);
-				local.setMinY(it->getPosition()[1]+mz_opt-mz_diff);
-				local.setMaxY(it->getPosition()[1]+mz_opt+mz_diff);
-				
-				//cout << local << endl;
-				
-				for (QuadTreeType::Iterator check=tree.begin(local); check!=tree.end(); ++check)
+				//cout << "*****************************************************************" << endl;
+				//cout << "Testing feature: " << it->getRT() << " " << it->getMZ() << endl;
+				//cout << "RT range: " << it->getRT()-rt_max << " - " << it->getRT()-rt_min << endl;
+				//cout << "MZ range: " << it->getMZ()+mz_pair_dist/it->getCharge()-mz_diff << " - " << it->getMZ()+mz_pair_dist/it->getCharge()+mz_diff << endl;
+				//cout << "*****************************************************************" << endl;
+				FeatureMapType::const_iterator range = lower_bound(features_.begin(),features_.end(),it->getRT()-rt_max, Feature::NthPositionLess<0>());
+				while (range!=features_.end() && range->getRT() <= it->getRT()-rt_min)
 				{
-					//cout << "  Testing point" << endl;
-					if ( check->second->getCharge() == charge)
+					//cout << "Checking: " << range->getRT() << " " << range->getMZ() << endl;
+					if (range->getCharge() == it->getCharge()
+						&& range->getMZ() >=it->getMZ()+mz_pair_dist/it->getCharge()-mz_diff 
+						&& range->getMZ() <=it->getMZ()+mz_pair_dist/it->getCharge()+mz_diff)
 					{
-						//cout << "    charge ok" << endl;
-						// calculate score
-						double diff[2];
-						diff[RawDataPoint2D::MZ] = fabs( it->getMZ() - check->second->getMZ() );
-						diff[RawDataPoint2D::RT] = it->getRT() - check->second->getRT();
-
-						double score =  PValue_(diff[RawDataPoint2D::MZ], mz_opt, mz_stdev, mz_stdev)
-													* PValue_(diff[RawDataPoint2D::RT],rt_pair_dist, rt_stdev_low, rt_stdev_high)
-													* check->second->getOverallQuality()
-													* it->getOverallQuality();
-
-						pairs_.push_back(PairType( *it, *check->second, score));
+						
+						DoubleReal score =  PValue_(fabs( it->getMZ() - range->getMZ() ), mz_pair_dist/it->getCharge(), mz_stdev, mz_stdev)
+															* PValue_(it->getRT() - range->getRT(), rt_pair_dist, rt_stdev_low, rt_stdev_high)
+															* range->getOverallQuality()
+															* it->getOverallQuality();
+						//cout << "HIT: " << score << endl;
+						pairs_.push_back(PairType( *it, *range, score));
 					}
+					++range;
 				}
 			}
-
 			return pairs_;
 		}
 
@@ -157,9 +133,9 @@ namespace OpenMS
 
 			for (PairVectorType::iterator it=pairs_.begin(); it!=pairs_.end(); ++it)
 			{
-				it->getFirst().setMetaValue(LOW_QUALITY,0);
-				int id1 = it->getFirst().getMetaValue(ID);
-				int id2 = it->getSecond().getMetaValue(ID);
+				it->getFirst().setMetaValue(12,0);
+				int id1 = it->getFirst().getMetaValue(11);
+				int id2 = it->getSecond().getMetaValue(11);
 
 				feature2pair[id1].push_back( &(*it) );
 				feature2pair[id2].push_back( &(*it) );
@@ -168,18 +144,18 @@ namespace OpenMS
 			for (PairVectorType::iterator pair=pairs_.begin(); pair!=pairs_.end(); ++pair)
 			{
 				// Pair still in set
-				if (static_cast<int>(pair->getFirst().getMetaValue(LOW_QUALITY))==0)
+				if (static_cast<int>(pair->getFirst().getMetaValue(12))==0)
 				{
-					int id1 = pair->getFirst().getMetaValue(ID);
-					int id2 = pair->getSecond().getMetaValue(ID);
+					int id1 = pair->getFirst().getMetaValue(11);
+					int id2 = pair->getSecond().getMetaValue(11);
 					// 'Remove' (by setting the flag) all additional pairs the features belongs to
 					for (Feature2PairList::const_iterator it=feature2pair[id1].begin();
 							it!=feature2pair[id1].end(); ++it)
-						(*it)->getFirst().setMetaValue(LOW_QUALITY,1);
+						(*it)->getFirst().setMetaValue(12,1);
 
 					for (Feature2PairList::const_iterator it=feature2pair[id2].begin();
 							it!=feature2pair[id2].end(); ++it)
-						(*it)->getFirst().setMetaValue(LOW_QUALITY,1);
+						(*it)->getFirst().setMetaValue(12,1);
 
 					// Add pair into vector of best pairs
 					best_pairs_.push_back(*pair);
@@ -198,10 +174,10 @@ namespace OpenMS
 			{
 				DPosition<2> diff = pairs[i].getFirst().getPosition()-pairs[i].getSecond().getPosition();
 				out << setiosflags(ios::fixed) << setprecision(2)
-						<< pairs[i].getQuality() << "\t" << pairs[i].getFirst().getPosition()[0] << "\t" 
-						<< pairs[i].getFirst().getPosition()[1] << "\t" << pairs[i].getFirst().getIntensity() << "\t" 
-						<< pairs[i].getFirst().getOverallQuality() << "\t" << pairs[i].getSecond().getPosition()[0] << "\t"
-						<< pairs[i].getSecond().getPosition()[1] << "\t" << pairs[i].getSecond().getIntensity() << "\t"
+						<< pairs[i].getQuality() << "\t" << pairs[i].getFirst().getRT() << "\t" 
+						<< pairs[i].getFirst().getMZ() << "\t" << pairs[i].getFirst().getIntensity() << "\t" 
+						<< pairs[i].getFirst().getOverallQuality() << "\t" << pairs[i].getSecond().getRT() << "\t"
+						<< pairs[i].getSecond().getMZ() << "\t" << pairs[i].getSecond().getIntensity() << "\t"
 						<< pairs[i].getSecond().getOverallQuality() << "\t" << pairs[i].getFirst().getIntensity()/pairs[i].getSecond().getIntensity() << "\t"
 						<< pairs[i].getFirst().getCharge() << "\t" << diff[RawDataPoint2D::RT] << "\t"
 						<< diff[RawDataPoint2D::MZ] << endl;
