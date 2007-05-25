@@ -97,11 +97,11 @@ CHECK(([EXTRA]IndexSet nextSeed()))
 	seeder.setTraits(traits);
 	
 	Param param;
-	param.setValue("min_number_scans",0);
-	param.setValue("noise_level_signal",12000);
-	param.setValue("noise_level_cwt",9500);
+// 	param.setValue("min_number_scans",3);
+	param.setValue("avg_signal_factor",2);
+	param.setValue("avg_cwt_factor",2);
 	param.setValue("scans_to_sumup",4);
-	param.setValue("cwt_scale",0.07);
+	param.setValue("cwt_scale",0.05);
 	param.setValue("min_peaks_per_scan",0);
 	param.setValue("max_rt_dist_merging",0);
 	param.setValue("max_mz_dist_merging",0);	
@@ -109,7 +109,7 @@ CHECK(([EXTRA]IndexSet nextSeed()))
 	
 	// test first seeding region	
 	FeaFiModule::IndexSet region = seeder.nextSeed();
-
+	
 	ifstream infile( "data/MarrWaveletSeeder_region1");	
 	DoubleReal intensity, rt, mz;
 	
@@ -131,7 +131,6 @@ CHECK(([EXTRA]IndexSet nextSeed()))
 	
 	// retrieve second region
 	region = seeder.nextSeed();
-	
 	infile.open( "data/MarrWaveletSeeder_region2");	
 	
 	citer = region.begin();
@@ -182,4 +181,11 @@ RESULT
 /////////////////////////////////////////////////////////////
 END_TEST
 
-
+// 	ofstream outfile("region1");
+// 	for(FeaFiModule::IndexSet::const_iterator citer = region.begin();
+// 				citer != region.end();
+// 				++citer)
+// 	{
+// 		outfile << traits->getPeakRt(*citer) << " " << traits->getPeakMz(*citer) << " " << traits->getPeakIntensity(*citer) << endl;
+// 	}				
+// 	outfile.close();

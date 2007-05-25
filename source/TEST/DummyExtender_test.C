@@ -91,11 +91,7 @@ CHECK((const ChargedIndexSet& extend(const ChargedIndexSet &seed_region)))
 	
 	traits->setData(exp.begin(), exp.end(),100);	
 	extender.setTraits(traits);
-	
-	Param param;
-	param.setValue("min_intensity_contribution",0.05);
-	extender.setParameters(param);
-		
+			
 	FeaFiModule::ChargedIndexSet  set;
 	set.insert( std::make_pair(3,10) );		// point with max. ion count		
 	
@@ -109,26 +105,21 @@ CHECK((const ChargedIndexSet& extend(const ChargedIndexSet &seed_region)))
 
 	// extend seeding region	
 	FeaFiModule::ChargedIndexSet region = extender.extend(set);
-			
-	ifstream infile( "data/DummyExtender_region1");
+
+	// retrieved region should be the same as the seeding region	
+	FeaFiModule::ChargedIndexSet::const_iterator citer1 = region.begin();
+	FeaFiModule::ChargedIndexSet::const_iterator citer2 = set.begin();
 	
-	DoubleReal intensity, rt, mz;
+	ABORT_IF(region.size() !=set.size())
 	
-	FeaFiModule::ChargedIndexSet::const_iterator citer = region.begin();
-	while ( infile >> rt )
+	while (citer1 != region.end() )
 	{
-		infile >> mz >> intensity;
-		
-		TEST_NOT_EQUAL(citer == region.end(),true)
-		
-		TEST_REAL_EQUAL(traits->getPeakRt(*citer),rt)
-		TEST_REAL_EQUAL(traits->getPeakMz(*citer),mz)
-		TEST_REAL_EQUAL(traits->getPeakIntensity(*citer),intensity)
-				
-		++citer;				
-	}	
-	infile.close();
+		TEST_EQUAL( *citer1==*citer2, true)
+		++citer1;
+		++citer2;		
+	}
 	
+		
 RESULT
 
 /////////////////////////////////////////////////////////////

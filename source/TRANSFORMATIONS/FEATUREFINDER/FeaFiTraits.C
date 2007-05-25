@@ -153,6 +153,7 @@ namespace OpenMS
     	points.push_back(tmp);
     }
 		f.getConvexHulls().resize(f.getConvexHulls().size()+1);
+		// assignment operator computes convex hull
 		f.getConvexHulls()[f.getConvexHulls().size()-1] = points;	
 	}
 
@@ -276,25 +277,25 @@ namespace OpenMS
     << "\n\tmaximum: " << corr_max << endl;
 
     cout << "Exceptions:\n";
-    for (map<String,int>::const_iterator it=exception.begin(); it!=exception.end(); ++it)
+    for (map<String,Int>::const_iterator it=exception.begin(); it!=exception.end(); ++it)
     {
       cout << "\t" << it->first << ": " << it->second*100/no_exceptions << "% (" << it->second << ")\n";
     }
 
     cout << "Chosen mz models:\n";
-    for (map<String,int>::const_iterator it=mz_model.begin(); it!=mz_model.end(); ++it)
+    for (map<String,Int>::const_iterator it=mz_model.begin(); it!=mz_model.end(); ++it)
     {
       cout << "\t" << it->first << ": " << it->second*100/size << "% (" << it->second << ")\n";
     }
 
     cout << "Chosen mz stdevs:\n";
-    for (map<float,int>::const_iterator it=mz_stdev.begin(); it!=mz_stdev.end(); ++it)
+    for (map<float,Int>::const_iterator it=mz_stdev.begin(); it!=mz_stdev.end(); ++it)
     {
       cout << "\t" << it->first << ": " << it->second*100/(size-charge[0]) << "% (" << it->second << ")\n";
     }
 
     cout << "Charges:\n";
-    for (unsigned int i=1; i<charge.size(); ++i)
+    for (UInt i=1; i<charge.size(); ++i)
     {
       if (charge[i]!=0)
       {

@@ -33,6 +33,7 @@
 #include <OpenMS/DATASTRUCTURES/IsotopeCluster.h>
 
 #include <map>
+#include <limits>
 
 namespace OpenMS
 {
@@ -47,7 +48,7 @@ namespace OpenMS
 		
 		@note: Derived classes have to implement the method detectIsotopicPattern_(SpectrumType& scan ).
 		
-		@note: Scores for charge estimates should be >= 0 where a large score indicates a high confidence.
+		@note: Scores for charge estimates should be >= 0 where a low score indicates a high confidence e.g. score should be some sort of p value.
 		
 		@note: Method updateMembers() in each base class should call updateMembers() in this class before doing anything else. 
 		
@@ -98,7 +99,7 @@ namespace OpenMS
 						scored_charges_(),
 						first_scan_(),
 						last_scan_()
-		  	{	
+				{	
 				}
 				
     		/// vector of scored charges
@@ -107,7 +108,7 @@ namespace OpenMS
 				UInt first_scan_;
 				/// last scan
 				UInt last_scan_;
-  		};		
+			};		
 
 			/// LC-MS map
 			typedef FeaFiTraits::MapType MapType;
@@ -195,8 +196,17 @@ namespace OpenMS
 			/// computes the median scan number for a hash entry
 			void computeBorders_(TableIteratorType& entry);
 			
-			/// filters the hash for overlapping point cluster with the same charge
-			void filterHashForOverlaps_();
+			/// filters sweepline hash for overlapping point cluster with the same charge
+			void filterForOverlaps_();
+			
+			/// filters sweepline hash for tiny (and probably insignificant) regions
+			void filterForSize_();
+			
+			/// filters sweepline hash for regions with low p-value
+			void filterForSignificance_();
+			
+			/// Deletes the hash entries in @p entries.
+			void deleteHashEntries_(std::vector<TableIteratorType>& entries);
 							
 			/// Maps m/z to sets of peaks 
 		  TableType iso_map_;

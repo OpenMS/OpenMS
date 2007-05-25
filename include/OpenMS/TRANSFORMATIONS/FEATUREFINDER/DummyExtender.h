@@ -40,35 +40,10 @@ namespace OpenMS
 	/**
 	  @brief A straightforward implementation of the extension phase of the feature detection / quantification algorithm in OpenMS.
 		
-		As one can imagine, this module implements a rather trivial extension.
+		As one can imagine, this module implements a rather trivial extension and returns simply the seeding region without
+		any further extension. 
 		
-		This module takes a single data point (seed) or a group of points (seeding region) 
-		and adds further points until :
-		
-		 (a) until a given maximum distance from the highest data point in the seeding region is reached or
-		 (b) no more points are found in the neighbourhood of the seed that contribute a significant amount 
-		 of intensity to the feature.
-		 		 
-		 <table>
-			<tr>
-				<td>dist_mz_down / dist_mz_up</td>
-				<td>Lower and upper bound for the distance in m/z from the highest point.</td>
-			</tr>
-			<tr>
-				<td>dist_rt_down / dist_rt_up</td>
-				<td>Lower and upper bound for the distance in rt from the highest point.</td>
-			</tr>
-			<tr>
-				<td>intensity_perc</td>
-				<td>Minimum percentage of the intensity of the largest peak that a seed has to have
-				    (used only if min_nitensity is set to 0.</td>
-			</tr>
-				<td>min_intensity_contribution_</td>
-				<td>Minimum percentage of the feature intensity sum collected so far 
-				      that a point has to contribute.</td>
-			</tr>
-		</table>
-		
+		@note: Use the module for testing purposes only !	
 		
 		@ingroup FeatureFinder
 	*/
@@ -77,15 +52,6 @@ namespace OpenMS
   {
 
   public:
-  
-		/// Intensity of a data point
-  	typedef DoubleReal IntensityType;
-		/// Coordinates of a point (m/z and rt)
-  	typedef DoubleReal CoordinateType;
-		/// Priority of a point (see below)
-  	typedef DoubleReal ProbabilityType;
-		/// Position of a point
-		typedef  FeaFiTraits::PositionType2D PositionType2D;
   	/// Default constructor
     DummyExtender();
 
@@ -116,39 +82,7 @@ namespace OpenMS
   protected:
 		/// initialize member
   	virtual void updateMembers_();
-  	
-  	/// Checks if the current peak is too far from the centroid
-  	bool isTooFarFromSeed_(const IDX& current_index);
-   	
-   	/// Extends the seed into positive m/z direction   	
-  	void moveMzUp_(const IDX& current_peak);
-  	
-  	/// Extends the seed into negative m/z direction 
-  	void moveMzDown_(const IDX& current_peak);
-  	
-  	/// Extension into positive rt dimension 
-  	void moveRtUp_(const IDX& current_peak);
-  	
-  	/// Extends the seed into negative retention time direction 
-  	void moveRtDown_(const IDX& current_peak);
-     		
-		/// Represents the boundary of a feature 
-  	std::priority_queue< IDX > boundary_;    
-  	
-  	/// Seed position (seed is in this case the point with the highest intensity in the seeding region)
-  	PositionType2D seed_pos_;
-		  	
-		/// Maximum distance to seed in positive m/z
-		CoordinateType dist_mz_up_; 
-		/// Maximum distance to seed in negative m/z
-		CoordinateType dist_mz_down_; 
-		/// Maximum distance to seed in positive retention time
-		CoordinateType dist_rt_up_; 
-		/// Maximum distance to seed in negative retention time
-		CoordinateType dist_rt_down_;   			
-		/// The name speaks for itself
-		IntensityType min_intensity_contribution_;
-				
+  					
   };
 }
 #endif // OPENMS_TRANSFORMATIONS_FEATUREFINDER_DUMMYEXTENDER_H

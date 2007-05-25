@@ -50,8 +50,8 @@ namespace OpenMS
 			
 		// params for the cwt
 		defaults_.setValue("cwt_scale",0.1f);
-		defaults_.setValue("noise_level_signal",1000);
-		defaults_.setValue("noise_level_cwt",6000);
+		defaults_.setValue("avg_signal_factor",2);
+		defaults_.setValue("avg_cwt_factor",3);
 		
 		// minimum number of maxima in cwt
 		defaults_.setValue("min_peaks_per_scan",2);
@@ -98,8 +98,8 @@ namespace OpenMS
 		charge3_lb_	 = param_.getValue("charge3_lb");
 				
 		// thresholds for signal and cwt
-		noise_level_signal_ 							 = param_.getValue("noise_level_signal");
-		noise_level_cwt_                   = param_.getValue("noise_level_cwt");
+		avg_signal_factor_ 							 = param_.getValue("avg_signal_factor");
+		avg_cwt_factor_                  = param_.getValue("avg_cwt_factor");
 	
 		// scale of Marr wavelet
 		cwt_scale_                          = param_.getValue("cwt_scale");
@@ -114,7 +114,7 @@ namespace OpenMS
 			
 			double spacing_cwt = 0.0001; 		// spacing between sampling points of the wavelet
 			double resolution_cwt = 1.0;			 // compute convolution for each data point
-					
+						
 			ScoredMZVector scored_positions;
 			
 			cwt_.init(cwt_scale_, spacing_cwt);
@@ -137,10 +137,10 @@ namespace OpenMS
 				#endif
 				return scored_positions;
 			}
-	
+						
 			// search for maximal positions in the cwt and extract potential peaks
 			vector<Int> local_maxima;
-			getMaxPositions_(current_scan.begin(), current_scan.end(), cwt_, local_maxima 
+			getMaxPositions_(current_scan.begin(), current_scan.end(), /*cwt_,*/ local_maxima 
 																	#ifdef DEBUG_FEATUREFINDER
 											 						, current_scan.getRT() 
 																	#endif
@@ -198,19 +198,36 @@ namespace OpenMS
 			
 	} // end of void detectIsotopicPattern_(SpectrumType& )
 	
-	void MarrWaveletSeeder::getMaxPositions_( const SpectrumType::const_iterator&  first, 
-																						const SpectrumType::const_iterator&  last, 
-																						const ContinuousWaveletTransform& wt, 
-																						vector<Int>& localmax
-																						#ifdef DEBUG_FEATUREFINDER 
-																							, CoordinateType current_rt
-																						#endif
-																						)
+	void MarrWaveletSeeder::getMaxPositions_(const SpectrumType::const_iterator&  first, 
+																																	const SpectrumType::const_iterator&  last, 
+																																	vector<Int>& localmax
+																																	#ifdef DEBUG_FEATUREFINDER 
+																																	, CoordinateType current_rt
+																																	#endif
+																																	)
 	{
-		if (wt.getSize() == 0) return;
+		if (cwt_.getSize() == 0) return;
+		
+		IntensityType avg_signal = 0;
+		IntensityType avg_cwt 		= 0;
+		
+		for (SpectrumType::const_iterator citer = first; citer != last;++citer)
+		{
+				avg_signal +=	citer->getIntensity();
+		}
+		avg_signal /= distance(first,last);
+			
+		for(Int i=0;i<cwt_.getSize();++i)
+		{
+			avg_cwt += cwt_[i];	
+		}
+		avg_cwt /= cwt_.getSize();			
+		
+		IntensityType signal_threshold = avg_signal * avg_signal_factor_;
+		IntensityType cwt_threshold     = avg_cwt * avg_cwt_factor_;
 	
-		Int zeros_left_index  = wt.getLeftPaddingIndex();
-		Int zeros_right_index = wt.getRightPaddingIndex();
+		Int zeros_left_index  = cwt_.getLeftPaddingIndex();
+		Int zeros_right_index = cwt_.getRightPaddingIndex();
 			
 		// Points to most intensive data point in the signal
 		SpectrumType::const_iterator it_max_pos;
@@ -234,10 +251,11 @@ namespace OpenMS
 		Int i=0, j=0;
 		for(i=start; i<end; ++i)
 		{
+				
 			// Check for maximum in cwt at position i with cwt intensity > noise
-			if( ((wt[i-1] - wt[i]  ) < 0) &&
-					((wt[i] - wt[i+1]) > 0)  &&
-					( wt[i]  > noise_level_cwt_ ) )
+			if( ((cwt_[i-1] - cwt_[i]  ) < 0) &&
+					((cwt_[i] - cwt_[i+1]) > 0)  &&
+					( cwt_[i]  > cwt_threshold ) )
 			{
 				#ifdef DEBUG_FEATUREFINDER
 				String fname = String("cwt_localmax_") + current_rt;
@@ -262,12 +280,13 @@ namespace OpenMS
 				}
 	
 				// check if this intensity is higher than the signal intensity threshold
-				if (max_value > noise_level_signal_)
+				if (max_value > signal_threshold)
 				{
 					localmax.push_back(max_index);
 				}
 			}
-		}
+		} // end for (start ... end)
+		
 	}
 	
 	MarrWaveletSeeder::ProbabilityType MarrWaveletSeeder::testLocalVariance_(const vector<Int>& local_maxima , const UInt max_index)
@@ -286,8 +305,7 @@ namespace OpenMS
 		{
 			cwt_sum    += cwt_[j];
 			cwt_sqsum += (cwt_[j] * cwt_[j]);							
-		} 
-					
+		} 	
 		
 		IntensityType local_var = ( N * cwt_sqsum - ( cwt_sum * cwt_sum) ) / ( N * (N-1) );
 		
@@ -328,13 +346,14 @@ namespace OpenMS
 		null_var = ( N * cwt_sqsum - ( cwt_sum * cwt_sum) ) / ( N * (N-1) );
 		
 		IntensityType f_stat = local_var / null_var;		
+		IntensityType pvalue =  (1 - gsl_cdf_fdist_P(f_stat,29,29));
 		
 // 		cout << "local_var " << local_var << endl;
 // 		cout << "null_var " << null_var << endl;
 // 		cout << "Value of f_stat " << f_stat << endl;
 // 		cout << "p-value is " << (1 - gsl_cdf_fdist_P(f_stat,29,29)) << endl;
 
-		return f_stat; 
+		return pvalue; 
 	}
 
 	UInt MarrWaveletSeeder::distanceToCharge_(CoordinateType dist)

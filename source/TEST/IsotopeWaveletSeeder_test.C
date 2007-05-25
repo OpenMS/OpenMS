@@ -98,8 +98,6 @@ CHECK(([EXTRA]IndexSet nextSeed()))
 	
 	Param param;
   param.setValue("min_number_scans",11);
-	param.setValue("avg_intensity_factor",2.0);
-	param.setValue("intensity_factor",1.4);
 	param.setValue("rt_tolerance_cluster",2.0);
 	param.setValue("mass_tolerance_cluster",2.0);
 	param.setValue("max_rt_dist_merging",0);
@@ -128,7 +126,7 @@ CHECK(([EXTRA]IndexSet nextSeed()))
 	}	
 	infile.close();
 	
-	region = seeder.nextSeed();
+	region = seeder.nextSeed();	
 	infile.open( "data/IsotopeWaveletSeeder_region2");	
 	
 	citer = region.begin();
@@ -184,7 +182,7 @@ CHECK(([EXTRA]IndexSet nextSeed()))
 		++citer;				
 	}	
 	infile.close();	
-	
+
 	// test exception, there should be no more seeds
 	TEST_EXCEPTION( FeaFiModule::NoSuccessor , seeder.nextSeed() )
  

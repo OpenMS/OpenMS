@@ -34,6 +34,8 @@
 
 #include <gsl/gsl_cdf.h>
 
+#include <limits>
+
 namespace OpenMS
 {
 	/** 
@@ -145,8 +147,11 @@ namespace OpenMS
 		/// Precompute and store the gamma function (for the mother wavelet)
 		void generateGammaValues_();
 		
+		/// Compute null variance
+		void computeNullVariance_(const DPeakArray<1, PeakType >& cwt, const UInt charge );
+				
 		/// Compute local variance (in an interval) and test its significance
-		ProbabilityType testLocalVariance_(const DPeakArray<1, PeakType >& cwt , const Int index);
+		ProbabilityType testLocalVariance_(const DPeakArray<1, PeakType >& cwt, const UInt& start, const UInt charge);
 		
 		/**
 			@brief Computes the wavelet transform for several charges in nearly the same time.
@@ -155,7 +160,7 @@ namespace OpenMS
 		 	Note that you should compute a convolution instead of an correlation. Since we do not mirror the wavelet function
 		 	this yields the same.		
 		*/																			
-		void fastMultiCorrelate_(const SpectrumType& signal, std::vector<DPeakArray<1, PeakType > >* pwts, std::vector<double>* wt_thresholds);
+		void fastMultiCorrelate_(const SpectrumType& signal, std::vector<DPeakArray<1, PeakType > >* pwts);
 		
 		/** 
 				@brief Returns the lamba parameter of the mother wavelet
@@ -191,8 +196,10 @@ namespace OpenMS
 			return (res);
 		}
 		
+		UInt findNextMax(const DPeakArray<1, PeakType >& cwt, const UInt index);
+		
 		/// Assigns scores to each charge state of a isotopic pattern
-		ScoredMZVector identifyCharge_(const std::vector<DPeakArray<1, PeakType > >& candidates, const std::vector<double>* wt_thresholds, const SpectrumType& scan);
+		ScoredMZVector identifyCharge_(std::vector<DPeakArray<1, PeakType > >& candidates, SpectrumType& scan);
 		
 		/// Interpolates between to data points
 		inline double getInterpolatedValue_(double x0, double x, double x1, double f0, double f1) const
@@ -200,7 +207,7 @@ namespace OpenMS
 			return (f0 + (f1-f0)/(x1-x0) * (x-x0));
 		}
 
-		/// Returns a bucket containing the mass/charge @p mz
+		/// Returns an index pair containing the mass/charge @p mz
 		inline std::pair<Int, Int> getNearBys_(const SpectrumType& scan, double mz, UInt start=0)
 		{
 			for (UInt i=start; i<scan.getContainer().size(); ++i)
@@ -235,11 +242,15 @@ namespace OpenMS
 		/// Stores the Gamme function
 		HashMap<UInt, double> preComputedGamma_;
 		/// Determines threshold for the minimum score of a peak
-		IntensityType intensity_factor_;
+		IntensityType signal_avg_factor_;
 		/// Determines threshold for cwt of a peak
-		IntensityType avg_intensity_factor_;
+		IntensityType cwt_avg_factor_;
 		/// Tolerance for scan alignment
 		CoordinateType tolerance_scansum_;
+		/// variance on empty interval of cwt (used as null hypothesis)
+		std::vector<IntensityType> null_var_;
+		/// Number of samples for null hypothesis
+		std::vector<UInt> n_null_;
 		
   };
 }

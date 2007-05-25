@@ -37,8 +37,10 @@ namespace OpenMS
 	    waveletLength_(0),
 	    avMZSpacing_(0),
 	    min_spacing_(0),
-	    intensity_factor_(0), 
-			avg_intensity_factor_(0)
+	    signal_avg_factor_(0), 
+			cwt_avg_factor_(0),
+			null_var_(),
+			n_null_()
 	{
     setName(getProductName());
 
@@ -47,8 +49,8 @@ namespace OpenMS
 		defaults_.setValue("min_charge",1);
 		
 		// intensity threshold in cwt
-		defaults_.setValue("intensity_factor",1.5);
-		defaults_.setValue("avg_intensity_factor",3.0);
+		defaults_.setValue("signal_avg_factor",3.0);
+		defaults_.setValue("cwt_avg_factor",3.0);
 				
     defaultsToParam_();
 	}
@@ -59,7 +61,15 @@ namespace OpenMS
 
   IsotopeWaveletSeeder::IsotopeWaveletSeeder(const IsotopeWaveletSeeder& rhs)
     : BaseSweepSeeder(rhs),
-    	wavelet_initialized_(false)
+    	wavelet_initialized_(false),
+			peak_cut_off_(rhs.peak_cut_off_),
+			waveletLength_(rhs.peak_cut_off_),
+			avMZSpacing_(rhs.avMZSpacing_),
+			min_spacing_(rhs.min_spacing_),
+			signal_avg_factor_(rhs.signal_avg_factor_),
+			cwt_avg_factor_(rhs.cwt_avg_factor_),
+			null_var_(rhs.null_var_),
+			n_null_(rhs.n_null_)
   {
     updateMembers_();
   }
@@ -69,8 +79,17 @@ namespace OpenMS
     if (&rhs == this) return *this;
     
     BaseSweepSeeder::operator=(rhs);
+		
     wavelet_initialized_ = false;
-    
+    peak_cut_off_         = rhs.peak_cut_off_;
+		waveletLength_       = rhs.waveletLength_;
+		avMZSpacing_        = rhs.avMZSpacing_;
+		min_spacing_         = rhs.min_spacing_;
+		signal_avg_factor_  = rhs.signal_avg_factor_;
+		cwt_avg_factor_     = rhs.cwt_avg_factor_;
+		null_var_               = rhs.null_var_;
+		n_null_                 = rhs.n_null_;
+		
     updateMembers_();
     
     return *this;
@@ -81,8 +100,8 @@ namespace OpenMS
 		// update member of base class first
 		BaseSweepSeeder::updateMembers_();
 
-		intensity_factor_         = param_.getValue("intensity_factor");
-		avg_intensity_factor_   = param_.getValue("avg_intensity_factor");
+		signal_avg_factor_  = param_.getValue("signal_avg_factor");
+		cwt_avg_factor_     = param_.getValue("cwt_avg_factor");
 		
 		// delete old charge states
 		charges_.clear();
@@ -92,6 +111,9 @@ namespace OpenMS
     {
     	charges_.push_back(i);           
 		}
+		
+		null_var_.resize(charges_.size(),0.0);
+		n_null_.resize(charges_.size(),0);
 	}
 	
 	IsotopeWaveletSeeder::ScoredMZVector IsotopeWaveletSeeder::detectIsotopicPattern_(SpectrumType& scan ) 
@@ -111,29 +133,24 @@ namespace OpenMS
 	
 				wavelet_initialized_ = true;
 			}
-			
 			std::vector<DPeakArray<1, PeakType > >* pwts = NULL;
-			std::vector<double>* wt_thresholds = NULL;
-	
 			// store peak data, once for each charge state
 			pwts = new std::vector<DPeakArray<1, PeakType > > (charges_.size(), scan.getContainer() );
-			wt_thresholds = new std::vector<double> (charges_.size(), 0);
-	
-			// compute wavelet transform
-			fastMultiCorrelate_(scan, pwts, wt_thresholds);
-			// compute scores of charge states
-			ScoredMZVector scmzvec = identifyCharge_(*pwts, wt_thresholds, scan);
 			
+			// compute wavelet transform
+			fastMultiCorrelate_(scan, pwts);
+			// compute scores of charge states
+			ScoredMZVector scmzvec = identifyCharge_(*pwts,scan);
+
 			delete (pwts);
-			delete (wt_thresholds);
-	
+			
 			return scmzvec;
 	}
 	
 	void IsotopeWaveletSeeder::computeSpacings_()
 	{
 		CoordinateType MZspacing_sum = 0;
-		min_spacing_ = INT_MAX;
+		min_spacing_ = numeric_limits<CoordinateType>::max();
 		
 		double current_spacing;
 		for (MapType::ConstIterator it = traits_->getData().begin(); it != traits_->getData().end(); ++it)
@@ -179,7 +196,26 @@ namespace OpenMS
 		#endif
 	}
 	
-	void IsotopeWaveletSeeder::fastMultiCorrelate_(const SpectrumType& signal, std::vector<DPeakArray<1, PeakType > >* pwts, std::vector<double>* wt_thresholds)
+	void IsotopeWaveletSeeder::computeNullVariance_(const DPeakArray<1, PeakType >& cwt, const UInt charge_index )
+	{
+		IntensityType cwt_sum    = 0.0;
+		IntensityType cwt_sqsum = 0.0;
+	
+		CoordinateType first_mass = (cwt.size() > 0) ? cwt[ (cwt.size()-1) ].getMZ() : 0.0 ;
+		CoordinateType mass_diff  = 0.0;
+		UInt j = (cwt.size() > 0) ? (cwt.size() - 1) : 0;
+		
+		for (; mass_diff < 6.0 && j > 0; --j)
+		{
+			cwt_sum    += cwt[j].getIntensity();
+			cwt_sqsum += (cwt[j].getIntensity() * cwt[j].getIntensity());		
+			mass_diff    = cwt[j].getMZ() - first_mass;
+		}
+		n_null_[charge_index] = (cwt.size() - 1) - j;		
+		null_var_[charge_index] = ( n_null_[charge_index] * cwt_sqsum - ( cwt_sum * cwt_sum) ) / ( n_null_[charge_index] * (n_null_[charge_index]-1) );
+	}
+		
+	void IsotopeWaveletSeeder::fastMultiCorrelate_(const SpectrumType& signal, std::vector<DPeakArray<1, PeakType > >* pwts)
 	{
 		std::vector<DPeakArray<1, PeakType > >* res = pwts;
 		UInt signal_size = signal.size();
@@ -256,18 +292,18 @@ namespace OpenMS
 						cumSpacing += tmp_pos1 - tmp_pos;
 					}
 				}
-				max=-INT_MAX;
+				max = numeric_limits<double>::min();
 				for (UInt j=0; j<waveletLength_; ++j)
 				{
 					phis[k][j] -= (w_sum/(double)waveletLength_);
 					if (phis[k][j] > max)
 						max = phis[k][j];
 				}
+				
 				for (UInt j=0; j<waveletLength_; ++j)
 					phis[k][j] /= max;
-	
-				(*wt_thresholds)[k] = w_s_sum;
-			}
+				
+				}
 	
 			std::vector<double> sums (charges_.size());
 			k=0;
@@ -301,57 +337,31 @@ namespace OpenMS
 	} // end of fastMultiCorrelate(...)
 	
 	
-	IsotopeWaveletSeeder::ScoredMZVector IsotopeWaveletSeeder::identifyCharge_(const std::vector<DPeakArray<1, PeakType > >& candidates, 
-	                                                                                                                     const std::vector<double>* wt_thresholds, 
-																																								                                       const SpectrumType& scan)
+	IsotopeWaveletSeeder::ScoredMZVector IsotopeWaveletSeeder::identifyCharge_(std::vector<DPeakArray<1, PeakType > >& candidates,
+																																								                                       SpectrumType& scan)
 	{
-		std::vector<IntensityType> zeros (candidates[0].size(),0);
-		WaveletCollection scoresC (candidates.size(), zeros);
-		
-		ScoredMZVector scmzvec;	// container of scored mz positions
-			
-		std::vector<UInt> start_indices, end_indices;
-		
-		TempContainerType::iterator iter;
-		UInt start_index, end_index = 0;
-		Int c_index = 0; 																																		// Helping variables
-		CoordinateType seed_mz, c_check_point, c_val = 0.0;
-		IntensityType c_av_intens = 0.0;																						// mean of intensities in cwt								
-		std::vector<bool> processed (candidates[0].size(), false);
-		std::pair<Int, Int> c_between;
-		Int start, end = 0;
 	
-		Int last_end_index = 0;								  // remember index of last isotopic pattern in cwt vector	
-		ProbabilityType local_fstat = 0.0;		// remember last value of F-statistic
-		
-		ChargeVector::const_iterator charge_iter = charges_.begin();
-	
-		for (UInt c=0; c<candidates.size(); ++c)		// for each charge state
-		{		
-			processed = std::vector<bool> (candidates[0].size(), false); 				//Reset
-			TempContainerType c_candidate(candidates[c].size());
-			
-			//Ugly, but do not how to do this in a better (and easy) way
-			for (UInt i=0; i<candidates[c].size(); ++i)
-			{
-				c_candidate[i].setPosition(DPosition<2>( candidates[c][i].getPos(),i));
-				c_candidate[i].setIntensity( candidates[c][i].getIntensity() );
-			}
+		ScoredMZVector scmzvec;	 // scored positions
 				
-			sort (c_candidate.begin(), c_candidate.end(), 	ReverseComparator< RawDataPoint2D::IntensityLess >() );
-			c_av_intens = getAbsMean_(candidates[c], 0, candidates[c].size());
-					
-			for (iter=c_candidate.begin(); iter != c_candidate.end(); ++iter)
+		std::vector<IntensityType> cwt_thresholds(candidates.size(),0.0);		// threshold for cwt intensities (one for each charge state)
+		std::vector<UInt> last_pattern(candidates.size(),0);													// the last index where a pattern of was found (one for each charge)
+
+		for (UInt c = 0; c < candidates.size(); ++c)
+		{		
+			IntensityType avg_cwt  = 0;
+			
+			computeNullVariance_(candidates[c],c);
+			
+			// compute average intensity in cwt			
+			for (UInt i =0; i< candidates[c].size(); ++i)
 			{
-		 		if (iter->getIntensity() <= (*wt_thresholds)[c]*avg_intensity_factor_*c_av_intens) break;
-			}
-	
+				avg_cwt   += candidates[c][i].getIntensity();			
+			}						
+			avg_cwt 	/= candidates[c].size();
+			cwt_thresholds.at(c) =  avg_cwt * cwt_avg_factor_;		
+			
 			#ifdef DEBUG_FEATUREFINDER
-			std::cout << "Checking charge state " << *charge_iter << std::endl;
-			std::cout << "Average intensity: " << c_av_intens << std::endl;
-			std::cout << "Threshold for wt: " << ((*wt_thresholds)[c]*avg_intensity_factor_*c_av_intens) << std::endl;
-	
-			// write debug output
+			//write debug output
 			CoordinateType current_rt = scan.getRT();
 			String filename = String("isowavcwt_") + current_rt + "_charge_" + (c+1);
 			std::ofstream outfile(filename.c_str());
@@ -364,165 +374,76 @@ namespace OpenMS
 			outfile.close();
 			#endif
 			
-			// delete all points in cwt with intensity lower than chosen threshold	
-			c_candidate.erase (iter, c_candidate.end());
-
-			for (iter=c_candidate.begin(); iter != c_candidate.end(); ++iter)
-			{
-				// Retrieve index
-				c_index = (Int) (iter->getPosition().getY());	
-	
-				if (processed[c_index])
-				{
-				 continue;			   
-				}
-				
-				start_index = (c_index - (Int) waveletLength_-1) > 0 ? (c_index - (Int) waveletLength_-1) : 0 ;
-				end_index = (c_index+waveletLength_+1) < candidates[c].size() ? (c_index+waveletLength_+1) : (candidates[c].size() - 1) ;
-				seed_mz=iter->getPosition().getX();	// m/z is still X coordinate
-	
-// 				cout << start_index << " " << end_index << endl;
-				
-				//Catch impossible cases
-				if (end_index >= candidates[c].size() || start_index > end_index) 
-				{
-// 					cout << "end_index >= candidates[c].size() || start_index > end_index" << endl;
-// 					cout << start_index << " " << end_index << endl;
-				 	continue;
-				}  
-				//Mark as processed
-				for (UInt z=start_index; z<=end_index; ++z) processed[z] = true;				
-	
-				start=(-2*(peak_cut_off_ - 1))+1, end=(2*(peak_cut_off_ - 1))-1;
-													
-				for (Int v=start; v<=end; ++v)
-				{							
-					c_check_point = seed_mz+v*0.5/((double)c+1);
-					c_between = getNearBys_(scan, c_check_point, start_index);
-					
-					if (c_between.first < 0 || c_between.second < 0) 
-					{
-						break;
-					}
-					
-					c_val = getInterpolatedValue_(candidates[c][c_between.first].getPos(),
-													  													c_check_point,
-													  													candidates[c][c_between.second].getPos(),
-													  													candidates[c][c_between.first].getIntensity(),
-													  													candidates[c][c_between.second].getIntensity());
-																																													
-					if (fabs(c_val) < c_av_intens)
-					{
-					 continue;  
-					}			
-
-					if (abs(v)%2 == 1) // => valley
-					{
-						scoresC[c][c_index] -= c_val; // substract 
-					}
-					else // => peak
-					{
-						scoresC[c][c_index] += c_val;
-					}
-				} // end for (Int v=start; v<=end; ++v)
-					
-				if (scoresC[c][c_index] <= intensity_factor_*iter->getIntensity())
-				{
-					scoresC[c][c_index] = 0;
-				}
-				
-				// recompute local variance only if last pattern is more than 5 indizes away
-				if (c_between.first < (last_end_index + 5 ) &&
-				    c_between.first > (last_end_index - 5 ) &&
-						scoresC[c][c_index] != 0 &&
-            local_fstat > 0 )
-				{
-					scoresC[c][c_index] *= local_fstat;
-				}
-				else
-				{
-					// compute local variance and test its significance
-					local_fstat =  testLocalVariance_(candidates[c],c_between.first);
-					scoresC[c][c_index] *= local_fstat;
-					last_end_index = c_between.first;
-				}
-																								
-			} // end for (iter=c_candidate.begin();...)
-						
-			++charge_iter;
-		} // end of for (unsigned int c=0; c<candidates.size(); ++c)
-			
-			
-		//Now, since we computed all scores, we can hash all mz positions
-		UInt num_charges = candidates.size(); 
-		Int num_mzpos = candidates[0].size();
-		//This vector tells us the next mz position in charge i we have to hash
-		std::vector<Int> positions (num_charges, 0);
-			
- 		UInt count_finished_charges=0;
-		bool allZero;
-		DoubleList c_pair;
-	
-		// c_list is now charge_scores
-		// c_fill_list is scans
-		std::vector<ProbabilityType> charge_scores;
-		std::list<UInt> scans;
-			
-		std::vector<double>::iterator iter_cl, iter_cl_hash;
-
-		while (1) // ;-)
-		{
-			//Termination criterion
-			//Test for every charge ...
-			for (UInt c=0; c<num_charges; ++c)
-			{
-				//... if we hashed already all possible mz coordinates
-				if (positions[c] >= num_mzpos)
-				{
-					if (++count_finished_charges >= num_charges) return scmzvec;
-			
-					positions[c] = -1;
-				}
-			}
-			//End of Termination criterion
-		
-			for (UInt c=0; c<num_charges; ++c)
-			{
-				if (positions[c] >= num_mzpos) continue;			   
-	
-				//positions[c] also tells us the next candidate to hash
-				charge_scores.push_back (scoresC[c][positions[c]++]);
-			}
-	
-			for (UInt c=0; c<num_charges-1; ++c)
-			{
-				OPENMS_PRECONDITION(positions[c+1] == positions[c], "positions[c+1] != positions[c]");
-			}
-		
-			allZero=true;
-			for (iter_cl=charge_scores.begin(); iter_cl!=charge_scores.end(); ++iter_cl)
-			{
-				if (*iter_cl != 0) allZero=false;				
-			}
-	
-			if (!charge_scores.empty() && !allZero)
-			{
-			
-				ScoredChargeType sc_charge;	
-				for (UInt i = 0; i < charge_scores.size(); ++i)
-				{				
-					if (charge_scores[i] >= sc_charge.second)
-					{
-						sc_charge.first       = (i+1);
-						sc_charge.second	= charge_scores[i];
-					}
-				}
-				scmzvec.push_back( make_pair( (positions[0]-1),sc_charge) );	
-				
-			}
-	
-			charge_scores.clear();
 		}
+	
+		IntensityType avg_scan          = 0;		// average intensity in signal		
+		IntensityType scan_threshold = 0;		// threshold for signal intensity
+		
+		for (UInt z=0; z<scan.size();++z)
+		{
+			avg_scan += scan[z].getIntensity();
+		}
+		avg_scan /= scan.size();
+		scan_threshold = avg_scan * signal_avg_factor_;
+		
+		//std::cout << "Average intensity in scan: " << avg_scan << std::endl;
+		//std::cout << "Intensity threshold for signal: " << scan_threshold << std::endl;
+				
+		for (UInt i = 1; i < candidates[0].size(); ++i) 			// cwt's for all charge states have the same length....
+		{																						
+								
+				if (scan[i].getIntensity() < scan_threshold)	continue;	// ignore low intensity signals
+		
+				// vector of p-values
+				std::vector<ProbabilityType> charge_scores( candidates.size(),numeric_limits<ProbabilityType>::max() );
+
+				for (UInt c=0; c<candidates.size(); ++c)		// for all charge states
+				{											
+					// test if :
+					// intensity in cwt is higher than threshold 
+					// we are at a local max
+					// the last pattern is already behind us
+					if ( candidates[c][i].getIntensity() > cwt_thresholds[c] && 
+							 i > last_pattern[c] && 
+							(i - last_pattern[c]) > peak_cut_off_/ (c+1)  &&                                   
+							(scan[i-1].getIntensity() - scan[i].getIntensity() < 0.0) && 
+						  (scan[i+1].getIntensity() - scan[i].getIntensity() < 0.0) )						  	  
+					{						
+							UInt max = findNextMax(candidates[c],i);
+							ProbabilityType pvalue = testLocalVariance_(candidates[c],max,c);	
+							charge_scores.at(c) = pvalue;
+							last_pattern.at(c)     = max; 																	// store index of last pattern
+					} // end if (local max...)
+					
+				}  // end for all (charge states)
+				
+				// determine highest scoring charge state
+				ProbabilityType best_score = numeric_limits<ProbabilityType>::max();
+				UInt best_charge                = 0;
+				
+				for (UInt z=0;z<charge_scores.size();++z)
+				{
+					if (charge_scores.at(z) < best_score)	
+					{
+						best_score  = charge_scores.at(z);
+						best_charge = (z+1);
+					}				
+				}
+				
+				if (best_score == numeric_limits<ProbabilityType>::max()) continue;
+					
+				if (best_score == 0.0) 
+				{
+					best_score += 0.00000001; // add pseudo count for very low p-values
+				}
+				
+				ScoredChargeType sc_charge;
+				sc_charge.first 			= best_charge;		// charge
+				sc_charge.second = best_score;			// score
+					
+				scmzvec.push_back( make_pair( last_pattern.at(best_charge-1) ,sc_charge) );	// store scored m/z position
+					
+			}	// end for (UInt c = 0; c < candidates[0].size(); ++c)
 
 		// done
 		return scmzvec;
@@ -538,71 +459,77 @@ namespace OpenMS
 	  return (res/(double)(endIndex-startIndex+1));
 	}
 	
-	IsotopeWaveletSeeder::ProbabilityType IsotopeWaveletSeeder::testLocalVariance_(const DPeakArray<1, PeakType >& cwt, const Int index)
-	{	
+	UInt IsotopeWaveletSeeder::findNextMax(const DPeakArray<1, PeakType >& cwt, const UInt index)
+	{
+	
+		UInt max_index = index;
+		IntensityType max_intensity = cwt[index].getIntensity();
+		
+		CoordinateType first_mass =  cwt[index].getMZ();
+		CoordinateType mass_diff  = 0.0;
+		
+		// check to the left
+		UInt i = index;
+		while (mass_diff < 3.0 && i >= 1)
+		{
+			if (cwt[i].getIntensity() > 	max_intensity)
+			{
+				max_intensity = cwt[i].getIntensity();
+				max_index     = i;
+			}
+			mass_diff = (first_mass - cwt[i].getMZ());
+			--i;						
+		}
+		
+		// check to the right
+		i = index;
+		while (mass_diff < 3.0 && i<cwt.size())
+		{
+			if (cwt[i].getIntensity() > 	max_intensity)
+			{
+				max_intensity = cwt[i].getIntensity();
+				max_index     = i;
+			}
+			mass_diff = (cwt[i].getMZ() - first_mass);
+			++i;						
+		}		
+		
+		return max_index;
+	}
+
+	IsotopeWaveletSeeder::ProbabilityType IsotopeWaveletSeeder::testLocalVariance_(const DPeakArray<1, PeakType >& cwt, const UInt& start, const UInt charge_index)
+	{			
 		IntensityType cwt_sum    = 0.0;
 		IntensityType cwt_sqsum = 0.0;
-		
-		UInt N = 30; // number of samples: 10 to the left, 20 to the right 
-					
-		// compute local variance and test against variance in end or beginning of spectrum
-		
-		Int start = (index < 10 ) ? 0  : ( index - 10);
-		Int end  = (index + 20) < (Int) cwt.size() ? (index + 20) : cwt.size();
-
-		for (Int j = start ; j < end ; ++j)	// walk to the left in cwt
-		{
-			cwt_sum    += cwt[j].getIntensity();
-			cwt_sqsum += (cwt[j].getIntensity() * cwt[j].getIntensity());							
-		} 
-					
-		
-		IntensityType local_var = ( N * cwt_sqsum - ( cwt_sum * cwt_sum) ) / ( N * (N-1) );
-		
-		// we need to check for several cases:
-		// a) are we at the very beginning of the scan => compute variance at the end
-		// b) end of scan => other way around
-		// c) scan to short => do what ?
-		
-		if ( cwt.size() < 60 )
-		{
-			// cwt too small, return very small p-value
-			return 0.0001;	
-		}
 	
-		IntensityType null_var = 0;
-		cwt_sum  =  cwt_sqsum  = 0.0;
-
-		// check if we are at the beginning or end of the cwt
-		if (start < 30 )
+		CoordinateType first_mass =  cwt[start].getMZ();
+		CoordinateType mass_diff  = 0.0;
+		UInt i = start;
+		for (; mass_diff < 5.0 && i < cwt.size() ;++i)
 		{
-			// take end	
-			for (UInt j = (cwt.size() - 30); j < cwt.size(); ++j)	// walk to the left in cwt
-			{
-				cwt_sum    += cwt[j].getIntensity();
-				cwt_sqsum += (cwt[j].getIntensity() * cwt[j].getIntensity());							
-			} 
-		}
-		else
+			cwt_sum    += cwt[i].getIntensity();
+			cwt_sqsum += (cwt[i].getIntensity() * cwt[i].getIntensity());		
+			mass_diff    = cwt[i].getMZ() - first_mass;
+		} 			
+		UInt N_local = i-start;		
+		
+		first_mass =  cwt[start].getMZ();
+		mass_diff  = 0.0;
+		i = start;
+		for (; mass_diff < 5.0 && i >= 1 ;--i)
 		{
-			// take begin
-			for (UInt j = 0; j < 30; ++j)	// walk to the left in cwt
-			{
-				cwt_sum    += cwt[j].getIntensity();
-				cwt_sqsum += (cwt[j].getIntensity() * cwt[j].getIntensity());							
-			} 
-		}
+			cwt_sum    += cwt[i].getIntensity();
+			cwt_sqsum += (cwt[i].getIntensity() * cwt[i].getIntensity());		
+			mass_diff    = cwt[i].getMZ() - first_mass;
+		} 			
+		N_local += start-i;		
 		
-		null_var = ( N * cwt_sqsum - ( cwt_sum * cwt_sum) ) / ( N * (N-1) );
+		IntensityType local_var = ( N_local * cwt_sqsum - ( cwt_sum * cwt_sum) ) / ( N_local * (N_local-1) );
 		
-		IntensityType f_stat = local_var / null_var;		
+		IntensityType f_stat  = local_var/null_var_[charge_index];
+		ProbabilityType pval = (1 - gsl_cdf_fdist_P(f_stat, (N_local-1) , (n_null_[ charge_index ]-1) )) ;
 		
-// 		cout << "local_var " << local_var << endl;
-// 		cout << "null_var " << null_var << endl;
-// 		cout << "Value of f_stat " << f_stat << endl;
-// 		cout << "p-value is " << (1 - gsl_cdf_fdist_P(f_stat,29,29)) << endl;
-
-		return f_stat; 			
+		return pval; 			
 	}
 
 } // end of namespace OpenMS

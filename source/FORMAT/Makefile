@@ -69,7 +69,6 @@ CPP_SOURCES=\
 	XTandemXMLFile.C\
 	MSPFile.C
 
-
 ifeq ($(ANDIMS_SUPPORT),true)
 	ANDI_SOURCES=\
 		ANDIFile.C

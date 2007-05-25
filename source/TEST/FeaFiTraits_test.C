@@ -237,7 +237,7 @@ CHECK((void getNextRt(IDX &index) throw (NoSuccessor, Exception::Precondition)))
 	t.setData(exp2.begin(),exp2.end(),2);
 	FeaFiTraits::IDX i;
 	
-	//peak one
+	std::cout << "peak one" << std::endl;
 	i = make_pair(0,0);
 	t.getNextRt(i);
 	TEST_EQUAL(i.first,1)
@@ -247,7 +247,7 @@ CHECK((void getNextRt(IDX &index) throw (NoSuccessor, Exception::Precondition)))
 	TEST_EQUAL(i.second,0)
 	TEST_EXCEPTION(FeaFiTraits::NoSuccessor, t.getNextRt(i));
 
-	//peak two
+	std::cout << "peak two" << std::endl;
 	i = make_pair(0,1);
 	t.getNextRt(i);
 	TEST_EQUAL(i.first,1)
@@ -257,7 +257,7 @@ CHECK((void getNextRt(IDX &index) throw (NoSuccessor, Exception::Precondition)))
 	TEST_EQUAL(i.second,0)
 	TEST_EXCEPTION(FeaFiTraits::NoSuccessor, t.getNextRt(i));
 
-	//peak three
+	std::cout << "peak three" << std::endl;
 	i = make_pair(0,2);
 	t.getNextRt(i);
 	TEST_EQUAL(i.first,1)
@@ -267,7 +267,7 @@ CHECK((void getNextRt(IDX &index) throw (NoSuccessor, Exception::Precondition)))
 	TEST_EQUAL(i.second,0)
 	TEST_EXCEPTION(FeaFiTraits::NoSuccessor, t.getNextRt(i));
 
-	//peak four
+	std::cout << "peak four" << std::endl;
 	i = make_pair(0,3);
 	t.getNextRt(i);
 	TEST_EQUAL(i.first,1)
@@ -277,7 +277,7 @@ CHECK((void getNextRt(IDX &index) throw (NoSuccessor, Exception::Precondition)))
 	TEST_EQUAL(i.second,0)
 	TEST_EXCEPTION(FeaFiTraits::NoSuccessor, t.getNextRt(i));
 
-	//peak five
+	std::cout << "peak five" << std::endl;
 	i = make_pair(0,4);
 	t.getNextRt(i);
 	TEST_EQUAL(i.first,1)
@@ -288,7 +288,7 @@ CHECK((void getNextRt(IDX &index) throw (NoSuccessor, Exception::Precondition)))
 	TEST_EXCEPTION(FeaFiTraits::NoSuccessor, t.getNextRt(i));
 
 #ifdef OPENMS_DEBUG
-	//test for corrupt index
+	std::cout << "test for corrupt index" << std::endl;
 	i = make_pair(5,0);
 	TEST_EXCEPTION(Exception::Precondition, t.getNextRt(i));
 	i = make_pair(1,5);

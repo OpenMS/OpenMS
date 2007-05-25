@@ -168,8 +168,10 @@ namespace OpenMS
 					
 					if (count >= min_peaks_)  										
 					{
-						// use number of peaks as score
-						sc_charge.second = scorePattern_(data_intensities, model_intensities);
+						// use pvalue of chi^2 statistic as score
+						ProbabilityType pval = scorePattern_(data_intensities, model_intensities);
+						if (pval == 0.0) pval += 0.000000001; // add pseudo count
+						sc_charge.second = pval;
 						scored_positions.push_back( make_pair(j,sc_charge) );				
 					}
 				}
@@ -199,17 +201,17 @@ PickedPeakSeeder::ProbabilityType PickedPeakSeeder::scorePattern_(std::vector<In
 	for (UInt j=0;j<data.size();++j)
 	{
 			if (model[j] <= 0) continue; // skip zeros in model
-		
-// 			cout << "data: " << ( data[j] / data_sum) << " model: " << (model[j] / model_sum) << endl;
 				
 			temp = (data[j] / data_sum) - ( model[j] / model_sum);
 			chi_stat += (temp * temp) / (model[j] /  model_sum) ;	
 	}
-/*
+
 	cout << "test statistic " << chi_stat << endl;
-	cout << "p-value is " << (1 - gsl_cdf_chisq_P(chi_stat, (data.size() - 1 ))) << endl;*/
+	cout << "p-value is " << (1 - gsl_cdf_chisq_P(chi_stat, (data.size() - 1 ))) << endl;
 	
-	return chi_stat;
+	ProbabilityType pval = (1 - gsl_cdf_chisq_P(chi_stat, (data.size() - 1 )));
+	
+	return pval;
 }	
 	
 UInt PickedPeakSeeder::distanceToCharge_(CoordinateType dist)

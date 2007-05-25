@@ -47,7 +47,7 @@ namespace OpenMS
 			cout << endl << "IDFeatureMapper -- Feature " << f_it->getRT() << " " << f_it->getMZ() << endl;
 #endif
 			DBoundingBox<2> bb = f_it->getBoundingBox();
-			const Feature::ConvexHullVector& ch_vec = f_it->getConvexHulls();
+			Feature::ConvexHullVector& ch_vec = f_it->getConvexHulls();
 			
 			//iterate over the IDs
 			for (UInt i=0; i<ids.size(); ++i)
@@ -80,7 +80,7 @@ namespace OpenMS
 #endif
 					continue;
 				}
-				for(Feature::ConvexHullVector::const_iterator ch_it = ch_vec.begin(); ch_it!=ch_vec.end(); ++ch_it)
+				for(Feature::ConvexHullVector::iterator ch_it = ch_vec.begin(); ch_it!=ch_vec.end(); ++ch_it)
 				{
 					if (ch_it->encloses(id_pos))
 					{

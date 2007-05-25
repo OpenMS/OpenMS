@@ -104,7 +104,6 @@ CHECK(([EXTRA]IndexSet nextSeed()))
 	
 	// test first seeding region	
 	FeaFiModule::IndexSet region = seeder.nextSeed();
-		
 	ifstream infile( "data/PickedPeakSeeder_region1");	
 	DoubleReal intensity, rt, mz;
 	
@@ -126,8 +125,7 @@ CHECK(([EXTRA]IndexSet nextSeed()))
 	
 	// retrieve second region
 	region = seeder.nextSeed();
-	
-	infile.open( "data/PickedPeakSeeder_region2");	
+ 	infile.open( "data/PickedPeakSeeder_region2");	
 	
 	citer = region.begin();
 	while ( infile >> rt )

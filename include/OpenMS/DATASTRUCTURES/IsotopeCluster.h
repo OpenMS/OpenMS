@@ -40,14 +40,18 @@ namespace OpenMS
   	typedef std::pair<UInt,UInt> IDX;
 		/// Int set
 		typedef std::set<IDX> IndexSet;
+		/// Charge score
+		typedef DoubleReal ProbabilityType;	
 		
 		/// index set with associated charge estimate
 		struct ChargedIndexSet 
 		: public IndexSet
 		{
-			ChargedIndexSet() : charge_(0) { }
+			ChargedIndexSet() : charge_(0), max_charge_score_() { }
 			/// charge estimate (convention: zero means "no charge estimate")
 			UInt charge_;			
+			/// Score of highest scoring charge state
+			ProbabilityType max_charge_score_; 
 		};
 		  	
     IsotopeCluster()

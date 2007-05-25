@@ -146,23 +146,46 @@ namespace OpenMS
 				return false;
 			}
 			
-			/// returns if the @p point lies in the convex hull
-			bool encloses(const PointType& point) const
+			/** @short returns if the @p point lies in the convex hull
+			*
+			*   @bug: Due to numerical instabilities, this test for inclusion might return false even if
+			*              @p point is included  in the convex hull. As a preliminary workaround, we re-compute
+			*              the convex hull. Needs better testing or the next CGAL release .
+			**/
+			bool encloses(const PointType& point) 
 			{
 				if (!getBoundingBox().encloses(point))
 				{
 					return false;
-				}
-				//convert input to cgal
+				}				
+				// re-calculate convex hull
 				std::vector<Point_2> cgal_points;
+				std::vector<Point_2> cgal_result;
+				
 				for (PointArrayTypeConstIterator it = points_.begin(); it!=points_.end(); ++it)
 	      {
 					cgal_points.push_back( Point_2((*it)[0], (*it)[1]) );    
 	      }
+				points_.clear();
+					
+				CGAL::convex_hull_2( cgal_points.begin(), cgal_points.end(), std::inserter(cgal_result, cgal_result.begin() ) );
+	      // add the points
+				for (std::vector<Point_2>::const_iterator cit = cgal_result.begin(); cit !=	cgal_result.end(); ++cit)
+				{
+					points_.push_back( PointType(cit->x(),cit->y()) );			
+				} 					
+				
+				//convert input to cgal
+				cgal_points.clear();
+				cgal_result.clear();
+				for (PointArrayTypeConstIterator it = points_.begin(); it!=points_.end(); ++it)
+	      {
+					cgal_points.push_back( Point_2((*it)[0], (*it)[1]) );    
+	      }
+				// add point to be tested
 	      cgal_points.push_back( Point_2(point[0],point[1]) ); 
 				
 				//calculate convex hull
-				std::vector<Point_2> cgal_result;
 	  		CGAL::convex_hull_2( cgal_points.begin(), cgal_points.end(), std::inserter(cgal_result, cgal_result.begin() ) );
 				
 				//point added => return false

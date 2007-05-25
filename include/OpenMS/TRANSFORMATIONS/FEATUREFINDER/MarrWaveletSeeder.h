@@ -100,7 +100,7 @@ namespace OpenMS
 			/// container of scored m/z positions
 			typedef BaseSweepSeeder::ScoredMZVector ScoredMZVector;
 	
-		  /// Default constructor
+		  /// default constructor
 	    MarrWaveletSeeder();
 	
 	    /// destructor 
@@ -135,7 +135,6 @@ namespace OpenMS
 			/// Finds local maxima in cwt
 			void getMaxPositions_( const SpectrumType::const_iterator& first, 
 														 const SpectrumType::const_iterator& last, 
-														 const ContinuousWaveletTransform& wt,
 														 std::vector<Int>& localmax
 														#ifdef DEBUG_FEATUREFINDER
 														 ,CoordinateType curr_peak
@@ -180,10 +179,10 @@ namespace OpenMS
 			ContinuousWaveletTransformNumIntegration cwt_;
 						
 			/// intensity threshold for spectrum
-			IntensityType noise_level_signal_;
+			IntensityType avg_signal_factor_;
 		
 	   	/// intensity threshold for cwt
-	   	IntensityType noise_level_cwt_;
+	   	IntensityType avg_cwt_factor_;
 			
 			/// Marr wavelet scale
 			CoordinateType cwt_scale_;

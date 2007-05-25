@@ -153,6 +153,7 @@ class TOPPFeatureFinder
 		}
 		
 		ff.setParam(feafi_param);
+		ff.setLogType(log_type_);
 		
 		//New scope => exp is deleted as soon as the FeatureFinder has made a copy
 		writeLog_(String("Reading input file ") + in);

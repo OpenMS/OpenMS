@@ -98,10 +98,10 @@ namespace OpenMS
 			/// returns the container which holds the distribtion
 			const ContainerType& getContainer() const;
 
-			/// returns the weight maximal weight isotope which is stored in the distribution
+			/// returns the maximal weight isotope which is stored in the distribution
 			UInt getMax() const;
 
-			/// returns the weight minimal weight isotope which is stored in the distribution
+			/// returns the minimal weight isotope which is stored in the distribution
 			UInt getMin() const;
 
 			/// returns the size of the distribtion which is the number of isotopes in the distribution

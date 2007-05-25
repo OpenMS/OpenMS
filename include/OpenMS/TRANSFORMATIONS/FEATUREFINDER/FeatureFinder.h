@@ -31,6 +31,8 @@
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/BaseExtender.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeaFiTraits.h>
 
+#include <OpenMS/CONCEPT/ProgressLogger.h>
+
 namespace OpenMS
 {
   class BaseModelFitter;
@@ -76,7 +78,7 @@ namespace OpenMS
 	  	
 		@ingroup FeatureFinder
 	*/
-	class FeatureFinder
+	class FeatureFinder :  public ProgressLogger
 	{
 		public:
 	    typedef std::vector<BaseSeeder*> SeederVector;

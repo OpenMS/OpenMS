@@ -32,21 +32,10 @@ namespace OpenMS
 {
 
 	DummyExtender::DummyExtender() 
-	: BaseExtender(),
-		seed_pos_()
+	: BaseExtender()
 	{
     setName(getProductName());
-        
-    defaults_.setValue("dist_mz_up",6.0f);
-    defaults_.setValue("dist_mz_down",2.0f);
-    
-		defaults_.setValue("dist_rt_up",5.0f);
-    defaults_.setValue("dist_rt_down",5.0f);
-    
-    defaults_.setValue("intensity_factor",0.03f);
-		
-		defaults_.setValue("min_intensity_contribution",0.9f);
-
+   
     defaultsToParam_();
 	}
 
@@ -73,205 +62,15 @@ namespace OpenMS
 
   void DummyExtender::updateMembers_()
   {
-		// initialize members
-		dist_mz_up_                     = param_.getValue("dist_mz_up");
-		dist_mz_down_                 = param_.getValue("dist_mz_down");
-		dist_rt_up_       								  = param_.getValue("dist_rt_up");
-		dist_rt_down_   									= param_.getValue("dist_rt_down");
-		min_intensity_contribution_ = param_.getValue("min_intensity_contribution");
   }
 
 	const FeaFiModule::ChargedIndexSet& DummyExtender::extend(const ChargedIndexSet& seed_region)
 	{
-    // empty region and boundary datastructures
-    region_.clear();
-		boundary_ = priority_queue< IDX >();
-				
-		// find maximum of region (seed) and add data points in seeding region to feature
-		CoordinateType max_intensity = 0.0;
-		IDX seed;
-    for (IndexSet::const_iterator citer = seed_region.begin(); citer != seed_region.end(); ++citer)
-    {	
-      if (traits_->getPeakIntensity(*citer) > max_intensity)
-      {
-        seed = *citer;
-        max_intensity = traits_->getPeakIntensity(seed);						
-			}
-			region_.insert(*citer);
-    }
-		// pass on charge information
-		region_.charge_ = seed_region.charge_;
   
-		// remember last extracted point (in this case the seed !)
-		seed_pos_[RawDataPoint2D::RT] = traits_->getPeakRt(seed);
-		seed_pos_[RawDataPoint2D::MZ] = traits_->getPeakMz(seed);
-		// and insert it to the boundary
-		boundary_.push(seed);
-
-		cout << "Extending from " << traits_->getPeakRt(seed) << "/" << traits_->getPeakMz(seed); 
-		cout << " (" << seed.first << "/" << seed.second << ")" << endl;
-		
-		// compute intensity threshold and sum
-		IntensityType intensity_sum = 0.0;
-		
-				
-    while (!boundary_.empty())
-    {
-			// remove peak with highest priority
-			const IDX  current_index = boundary_.top();
-			boundary_.pop();
-			
-    	//Corrupt index
-    	OPENMS_PRECONDITION(current_index.first<traits_->getData().size(), "Scan index outside of map!");
-      OPENMS_PRECONDITION(current_index.second<traits_->getData()[current_index.first].size(), "Peak index outside of scan!");
-		
-			if (traits_->getPeakIntensity(current_index) < (intensity_sum/std::sqrt(std::max((IntensityType)region_.size(),1.0)) )  *  min_intensity_contribution_ )
-			{
-				#ifdef DEBUG_FEATUREFINDER
- 				cout << "Skipping point because of low intensity contribution. " << endl;
- 				cout << traits_->getPeakIntensity(current_index) << " " << (intensity_sum/std::sqrt(std::max((IntensityType) region_.size(),1.0) )  *  min_intensity_contribution_ ) << endl;
-				#endif
-				continue;			 
-			}
-						
-			// explore neighbourhood !
-			moveMzUp_(current_index);
-			moveMzDown_(current_index);
-			moveRtUp_(current_index);
-			moveRtDown_(current_index);
-
-			// check flags (if data point is already inside a feature region or used as seed, we discard it)
-			if ( traits_->getPeakFlag(current_index) == FeaFiTraits::UNUSED )
-			{
-				traits_->getPeakFlag(current_index) = FeaFiTraits::USED;
-				region_.insert(current_index);
-				intensity_sum += traits_->getPeakIntensity(current_index);
-				
-				#ifdef DEBUG_FEATUREFINDER
-	 			cout << "Added point to region. Intensity sum is now: " << intensity_sum << endl;
-	 			cout << "Intensity of included point is : " << traits_->getPeakIntensity(current_index) << endl;
-				#endif
-			}
-			
-			#ifdef DEBUG_FEATUREFINDER
-			cout << "Size of boundary: " << boundary_.size() << endl;
-			#endif
-			
-    } // end of while ( !boundary_.empty() )
-
-    cout << "Feature region size: " << region_.size() << endl;
+    cout << "Feature region size: " << seed_region.size() << endl;
     
-    return region_;
+    return seed_region;
 
 	} // end of extend
-
-
-	bool DummyExtender::isTooFarFromSeed_(const IDX& index)
-	{	
-  	//Corrupt index
-  	OPENMS_PRECONDITION(index.first<traits_->getData().size(), "Scan index outside of map!");
-    OPENMS_PRECONDITION(index.second<traits_->getData()[index.first].size() , "Peak index outside of scan!");
-
-    if ( traits_->getPeakMz(index) > seed_pos_[RawDataPoint2D::MZ] + dist_mz_up_   ||
-				 traits_->getPeakMz(index) < seed_pos_[RawDataPoint2D::MZ] - dist_mz_down_ ||
-				 traits_->getPeakRt(index) >  seed_pos_[RawDataPoint2D::RT] + dist_rt_up_   ||
-				 traits_->getPeakRt(index) <  seed_pos_[RawDataPoint2D::RT] - dist_rt_down_ )
-    {
-    	//too far
-			return true;
-    }
-		
-		//close enough
-		return false;
-	}
-
-	void DummyExtender::moveMzUp_(const IDX& index)
-	{
-    try
-    {
-    	IDX tmp = index;
-			while (true)
-			{
-				traits_->getNextMz(tmp);
-				if (isTooFarFromSeed_(tmp)) break;
-				
-				if (traits_->getPeakFlag(index) == FeaFiTraits::UNUSED)
-				{
-					boundary_.push(tmp);
-				}
-			}
-    }
-    catch(NoSuccessor)
-    {
-    }
-	}
-
-	void DummyExtender::moveMzDown_(const IDX& index)
-	{
-    try
-    {
-    	IDX tmp = index;
-			while (true)
-			{
-				traits_->getPrevMz(tmp);
-				if (isTooFarFromSeed_(tmp))	break;
-				
-				if (traits_->getPeakFlag(index) == FeaFiTraits::UNUSED)
-				{
-					boundary_.push(tmp);
-				}
-				
-			}
-    }
-    catch(NoSuccessor)
-    {
-    }
-	}
-
-	void DummyExtender::moveRtUp_(const IDX& index)
-	{
-    try
-    {
-    	IDX tmp = index;
-
-			while (true)
-			{
-				traits_->getNextRt(tmp);
-				if (isTooFarFromSeed_(tmp)) break;
-				
-				if (traits_->getPeakFlag(index) == FeaFiTraits::UNUSED)
-				{
-					boundary_.push(tmp);
-				}
-				
-			}
-    }
-    catch(NoSuccessor)
-    {
-    }
-	}
-
-	void DummyExtender::moveRtDown_(const IDX& index)
-	{
-    try
-    {
-			IDX tmp = index;
-			while (true)
-			{
-				traits_->getPrevRt(tmp);
-				if (isTooFarFromSeed_(tmp)) break;
-				
-				if (traits_->getPeakFlag(index) == FeaFiTraits::UNUSED)
-				{
-					boundary_.push(tmp);
-				}
-			
-			}
-    }
-    catch(NoSuccessor)
-    {
-    }
-	}
-	
 
 } // end of class DummyExtender
