@@ -120,9 +120,9 @@ namespace OpenMS
 		//@}
 
 		/// convert all char* struct members to string in case member is NULL
-		inline std::string string_(char* input)
+		inline String string_(char* input)
 		{
-			return (input == NULL)? "" : std::string(input);
+			return (input == NULL)? "" : String(input);
 		}
 
 		/** @brief check all float struct members in case member is negative
@@ -268,14 +268,14 @@ namespace OpenMS
 
 		ContactPerson contact;
 		contact.setLastName( string_(admin_data->operator_name) );
-		contact.setMetaValue(user_params_[CONTACT], std::string("Operator"));
+		contact.setMetaValue(user_params_[CONTACT], String("Operator"));
 		exp_.getContacts().push_back(contact);
 
 		
 		contact = ContactPerson();
 		contact.setLastName( string_(admin_data->dataset_owner) );
 		contact.setContactInfo( string_(admin_data->dataset_origin) );
-		contact.setMetaValue(user_params_[CONTACT], std::string("Dataset owner"));
+		contact.setMetaValue(user_params_[CONTACT], String("Dataset owner"));
 		exp_.getContacts().push_back(contact);
  		
 		typedef ProcessingMethod pm;
@@ -290,7 +290,7 @@ namespace OpenMS
 		std::stringstream buffer;
 		buffer << string_(admin_data->calibration_history_0) << string_(admin_data->calibration_history_1)
 					 << string_(admin_data->calibration_history_2) << string_(admin_data->calibration_history_3);
-		exp_.getProcessingMethod().setMetaValue(user_params_[CALHIST], buffer.str());	
+		exp_.getProcessingMethod().setMetaValue(user_params_[CALHIST], String(buffer.str()));	
 		exp_.getProcessingMethod().setMetaValue(user_params_[CALTIMES], int_(admin_data->number_times_calibrated));	
 
 		// unused MS_Admin_Data fields: comments, experiment_title, ms_template_revision, netcdf_revision, languages
@@ -350,7 +350,7 @@ namespace OpenMS
 		buffer << "LaserWaveLength=" << test_data->laser_wavelength << " ";
 		buffer << "FilamentCurrent=" << test_data->filament_current << " ";
 		buffer << "EmissionCurrent=" << test_data->emission_current << " ";
-		src.setMetaValue(user_params_[IONMODEADD], buffer.str());
+		src.setMetaValue(user_params_[IONMODEADD], String(buffer.str()));
 		src.setMetaValue(user_params_[SRCTEMP], test_data->source_temperature);
 		src.setMetaValue(user_params_[ACCPOT], test_data->accelerating_potential);
 
