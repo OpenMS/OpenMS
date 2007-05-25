@@ -56,7 +56,6 @@ namespace OpenMS
 	  trans_x_ =0.0;
 	  trans_y_ = 0.0;
 	  setSizePolicy(QSizePolicy::MinimumExpanding,QSizePolicy::MinimumExpanding);
-	  grabKeyboard();
 	}
 	  
 	Spectrum3DOpenGLCanvas::~Spectrum3DOpenGLCanvas()
@@ -463,9 +462,9 @@ namespace OpenMS
 	{
 		GLuint list = glGenLists(1);
 		glNewList(list,GL_COMPILE);
+		glBegin(GL_QUADS);
 	 	QColor color(canvas_3d_.param_.getValue("BackgroundColor").toQString());
 		qglColor(color);
-		glBegin(GL_QUADS);
 		glVertex3d(-corner_, 
 							 -corner_-2.0,
 							 -near_-2*corner_);
@@ -1105,6 +1104,22 @@ namespace OpenMS
 	void Spectrum3DOpenGLCanvas::keyReleaseEvent(QKeyEvent* e)
 	{
 		if (canvas_3d_.action_mode_== SpectrumCanvas::AM_ZOOM && e->key()==Qt::Key_Control)
+		{
+			zoom_mode_ = false;
+			setAngels(1440,0,0);
+			resetTranslation();
+			setZoomFactor(1.25,false);
+			canvas_3d_.update_buffer_ = true;
+			canvas_3d_.update_(__PRETTY_FUNCTION__);
+		  e->accept();
+		  return;
+		}
+		e->ignore();
+	}
+
+	void Spectrum3DOpenGLCanvas::focusOutEvent(QFocusEvent* e)
+	{
+		if (canvas_3d_.action_mode_== SpectrumCanvas::AM_ZOOM && zoom_mode_==true)
 		{
 			zoom_mode_ = false;
 			setAngels(1440,0,0);

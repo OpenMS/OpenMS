@@ -521,6 +521,7 @@
 				"/CONCEPT/Exception.h",
 				"/CONCEPT/Benchmark.h",
 				"/CONCEPT/Constants.h",
+				"CONCEPT/ProgressLogger.h",
 				"/config.h",
 				"include/OpenMS/APPLICATIONS/TOPPViewBase.h",
 				"_registerChildren.h",
@@ -655,7 +656,7 @@
 			{
 				
  				#parse test
- 				parseTestFile("$path/$testname",$tests);
+ 				$todo_tests = parseTestFile("$path/$testname",$tests);
 				
 				#compare declarations and tests
 				$out = compareDeclarationsAndTests($class_info["public-long"],$tests);
@@ -678,6 +679,14 @@
 						{
 							print "  Missing tests:\n";
 							foreach ($out["missing"] as $m)
+							{
+								print "    - '$m'\n";
+							}
+						}
+						if (count($todo_tests)!=0)
+						{
+							print "  Tests that contain 'TODO' or '????':\n";
+							foreach ($todo_tests as $m)
 							{
 								print "    - '$m'\n";
 							}

@@ -318,7 +318,9 @@ function getClassInfo($path,$header, $debug)
 function parseTestFile($filename,&$tests)
 {
 	$tests = array();
-	
+	$todo_tests = array();
+	$in_test = false;
+	$last_test = "";
 	#load file
 	$tmp = file($filename);
 	
@@ -337,9 +339,23 @@ function parseTestFile($filename,&$tests)
 			if (!beginsWith($function,"[EXTRA]"))
 			{
 				$tests[] = $function;
+				$last_test = $function;
+			}
+			$in_test = true;
+		}
+		else if (beginsWith($line,"RESULT"))
+		{
+			$in_test = false;
+		}
+		else if ($in_test)
+		{
+			if (strpos($line,"TODO")!==FALSE || strpos($line,"????")!==FALSE)
+			{
+				$todo_tests[] = $function;
 			}
 		}
 	}
+	return $todo_tests;
 }
 
 /// Comares declared and tested methods
