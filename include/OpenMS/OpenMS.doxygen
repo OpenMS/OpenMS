@@ -80,11 +80,8 @@ Ideen:
 
 Todos:
 - DefaultParamHandler: add Descriptions
-- Spectrum3DCanvas: fix grab keyboard (buddy?)
 - TOPP tutorial: Usecases AW-Daten
 - altes IdXMLFile2 + IdXMLConverter raus (Sequest/InspectAdapter-Test wieder drin?)
-- leere Tests finden
-- checker
 
 Thomas Schreiner:
 - FeatureXML: Options einbauen und testen

@@ -93,6 +93,7 @@ namespace OpenMS
 	
       /** @name Reimplemented QT events */
       //@{
+      	void focusOutEvent(QFocusEvent* e);
 	    void mouseMoveEvent(QMouseEvent* e);
 			void mouseReleaseEvent(QMouseEvent* e);
 	    void mousePressEvent(QMouseEvent* e);
