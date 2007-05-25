@@ -39,34 +39,10 @@ START_TEST(PairMatcher, "$Id PairMatcher_test.C 139 2006-07-14 10:08:39Z jjoachi
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-typedef PairMatcher::FeatureMapType Features;
-typedef PairMatcher::PairVectorType Pairs;
-
-Features features;
-features.resize(4);
+PairMatcher::FeatureMapType features;
+features.resize(1);
 features[0].setMZ(0.0f);
 features[0].setRT(0.1f);
-features[1].setMZ(4.0f);
-features[1].setRT(0.0f);
-features[2].setMZ(5.0f);
-features[2].setRT(0.9f);
-features[3].setMZ(4.0f);
-features[3].setRT(0.2f);
-
-features[0].setIntensity(1.0f);
-features[1].setIntensity(2.0f);
-features[2].setIntensity(3.0f);
-features[3].setIntensity(4.0f);
-
-features[0].setCharge(1);
-features[1].setCharge(1);
-features[2].setCharge(1);
-features[3].setCharge(1);
-
-features[0].setOverallQuality(1.0f);
-features[1].setOverallQuality(1.0f);
-features[2].setOverallQuality(1.0f);
-features[3].setOverallQuality(1.0f);
 
 PairMatcher* ptr = 0;
 CHECK((PairMatcher(FeatureMapType& features)))
@@ -85,16 +61,18 @@ RESULT
 
 CHECK((PairMatcher& operator = (const PairMatcher& source)))
 	Param p;	
+	p.setValue("rt_pair_dist",0.4);
 	p.setValue("rt_stdev_low",0.1);
 	p.setValue("rt_stdev_high",0.2);
-	p.setValue("mz_stdev",0.3);
+
 	p.setValue("mz_pair_dist",5.0);
-	p.setValue("rt_pair_dist",0.4);
+	p.setValue("mz_stdev",0.3);
+
   
   PairMatcher pm1(features);
 	pm1.setParameters(p);
 	
-	Features empty_features;
+	PairMatcher::FeatureMapType empty_features;
   PairMatcher pm2(empty_features);
   pm2 = pm1;
 
@@ -107,46 +85,132 @@ CHECK((PairMatcher(const PairMatcher& source)))
   PairMatcher pm2(pm1);
 
   TEST_EQUAL(pm1==pm2,true);
-
 RESULT
 
 
-CHECK((const PairVectorType& run()))
-	PairMatcher pm(features);
-	const Pairs& pairs = pm.run();
-	TEST_EQUAL(pairs.size(),2)
-	ABORT_IF(pairs.size()!=2)
+features.resize(10);
 
-	TEST_REAL_EQUAL(pairs[0].getFirst().getMZ(),0.0f);
-	TEST_REAL_EQUAL(pairs[0].getFirst().getRT(),0.1f);
-	TEST_REAL_EQUAL(pairs[0].getSecond().getMZ(),4.0f);
-	TEST_REAL_EQUAL(pairs[0].getSecond().getRT(),0.0f);
-	TEST_REAL_EQUAL(pairs[1].getFirst().getMZ(),0.0f);
-	TEST_REAL_EQUAL(pairs[1].getFirst().getRT(),0.1f);
-	TEST_REAL_EQUAL(pairs[1].getSecond().getMZ(),4.0f);
-	TEST_REAL_EQUAL(pairs[1].getSecond().getRT(),0.2f);
+//start
+features[0].setRT(1.0f);
+features[0].setMZ(1.0f);
+features[0].setCharge(1);
+features[0].setOverallQuality(1);
+features[0].setIntensity(4.0);
+
+
+//best
+features[1].setRT(1.5f);
+features[1].setMZ(5.0f);
+features[1].setCharge(1);
+features[1].setOverallQuality(1);
+features[1].setIntensity(2.0);
+
+//inside (down, up, left, right)
+features[2].setRT(1.0f);
+features[2].setMZ(5.0f);
+features[2].setCharge(1);
+features[2].setOverallQuality(1);
+
+features[3].setRT(3.0f);
+features[3].setMZ(5.0f);
+features[3].setCharge(1);
+features[3].setOverallQuality(1);
+
+features[4].setRT(1.5f);
+features[4].setMZ(4.8f);
+features[4].setCharge(1);
+features[4].setOverallQuality(1);
+
+features[5].setRT(1.5f);
+features[5].setMZ(5.2f);
+features[5].setCharge(1);
+features[5].setOverallQuality(1);
+
+//outside (down, up, left, right)
+features[6].setRT(0.0f);
+features[6].setMZ(5.0f);
+features[6].setCharge(1);
+features[6].setOverallQuality(1);
+
+features[7].setRT(4.0f);
+features[7].setMZ(5.0f);
+features[7].setCharge(1);
+features[7].setOverallQuality(1);
+
+features[8].setRT(1.5f);
+features[8].setMZ(4.0f);
+features[8].setCharge(1);
+features[8].setOverallQuality(1);
+
+features[9].setRT(1.5f);
+features[9].setMZ(6.0f);
+features[9].setCharge(1);
+features[9].setOverallQuality(1);
+
+PairMatcher pm(features);
+Param p;
+p.setValue("rt_pair_dist",0.4);
+p.setValue("rt_stdev_low",0.5);
+p.setValue("rt_stdev_high",1);
+p.setValue("mz_pair_dist",4.0);
+p.setValue("mz_stdev",0.3);
+pm.setParameters(p);
+
+CHECK((const PairVectorType& run()))	
+	const PairMatcher::PairVectorType& pairs = pm.run();
+	
+	TEST_EQUAL(pairs.size(),5)
+	ABORT_IF(pairs.size()!=5)
+	
+	PRECISION(0.01)
+	
+	TEST_REAL_EQUAL(pairs[0].getFirst().getMZ(),1.0f);
+	TEST_REAL_EQUAL(pairs[0].getFirst().getRT(),1.0f);
+	TEST_REAL_EQUAL(pairs[0].getSecond().getMZ(),5.0f);
+	TEST_REAL_EQUAL(pairs[0].getSecond().getRT(),1.0f);
+	TEST_REAL_EQUAL(pairs[0].getQuality(),0.4237f);
+	
+	TEST_REAL_EQUAL(pairs[1].getFirst().getMZ(),1.0f);
+	TEST_REAL_EQUAL(pairs[1].getFirst().getRT(),1.0f);
+	TEST_REAL_EQUAL(pairs[1].getSecond().getMZ(),4.8f);
+	TEST_REAL_EQUAL(pairs[1].getSecond().getRT(),1.5f);
+	TEST_REAL_EQUAL(pairs[1].getQuality(),0.4647f);
+		
+	TEST_REAL_EQUAL(pairs[2].getFirst().getMZ(),1.0f);
+	TEST_REAL_EQUAL(pairs[2].getFirst().getRT(),1.0f);
+	TEST_REAL_EQUAL(pairs[2].getSecond().getMZ(),5.0f);
+	TEST_REAL_EQUAL(pairs[2].getSecond().getRT(),1.5f);
+	TEST_REAL_EQUAL(pairs[2].getQuality(),0.9203f);
+		
+	TEST_REAL_EQUAL(pairs[3].getFirst().getMZ(),1.0f);
+	TEST_REAL_EQUAL(pairs[3].getFirst().getRT(),1.0f);
+	TEST_REAL_EQUAL(pairs[3].getSecond().getMZ(),5.2f);
+	TEST_REAL_EQUAL(pairs[3].getSecond().getRT(),1.5f);
+	TEST_REAL_EQUAL(pairs[3].getQuality(),0.4647f);
+		
+	TEST_REAL_EQUAL(pairs[4].getFirst().getMZ(),1.0f);
+	TEST_REAL_EQUAL(pairs[4].getFirst().getRT(),1.0f);
+	TEST_REAL_EQUAL(pairs[4].getSecond().getMZ(),5.0f);
+	TEST_REAL_EQUAL(pairs[4].getSecond().getRT(),3.0f);
+	TEST_REAL_EQUAL(pairs[4].getQuality(),0.1095f);
 RESULT
-
 
 CHECK((const PairVectorType& getBestPairs()))
-	PairMatcher pm(features);
-	pm.run();
-	const Pairs& pairs = pm.getBestPairs();
+	const PairMatcher::PairVectorType& pairs = pm.getBestPairs();
 	TEST_EQUAL(pairs.size(),1);
 	ABORT_IF(pairs.size()!=1)
-	TEST_REAL_EQUAL(pairs[0].getFirst().getMZ(),0.0f);
-	TEST_REAL_EQUAL(pairs[0].getFirst().getRT(),0.1f);
-	TEST_REAL_EQUAL(pairs[0].getSecond().getMZ(),4.0f);
-	TEST_REAL_EQUAL(pairs[0].getSecond().getRT(),0.0f);
+	TEST_REAL_EQUAL(pairs[0].getFirst().getMZ(),1.0f);
+	TEST_REAL_EQUAL(pairs[0].getFirst().getRT(),1.0f);
+	TEST_REAL_EQUAL(pairs[0].getSecond().getMZ(),5.0f);
+	TEST_REAL_EQUAL(pairs[0].getSecond().getRT(),1.5f);
+	TEST_REAL_EQUAL(pairs[0].getQuality(),0.9203f);
 RESULT
 
 CHECK((static void printInfo(std::ostream& out, const PairVectorType& pairs)))
-	PairMatcher pm(features);
-	pm.run();
-	const Pairs& pairs = pm.getBestPairs();
+	const PairMatcher::PairVectorType& pairs = pm.getBestPairs();
 	stringstream s;
 	PairMatcher::printInfo(s,pairs);
-	TEST_EQUAL(s.str(), "Found the following 1 pairs:\nQuality\tFirst[RT]\tFirst[MZ]\tFirst[Int]\tFirst[Corr]\tSecond[RT]\tSecond[MZ]\tSecond[Int]\tSecond[Corr]\tRatio\tCharge\tDiff[RT]\tDiff[MZ]\n0.36\t0.10\t0.00\t1.00\t1.00\t0.00\t4.00\t2.00\t1.00\t0.50\t1\t0.10\t-4.00\n");
+	TEST_EQUAL(s.str(), "Found the following 1 pairs:\nQuality\tFirst[RT]\tFirst[MZ]\tFirst[Int]\tFirst[Corr]\tSecond[RT]\tSecond[MZ]\tSecond[Int]\tSecond[Corr]\tRatio\tCharge\tDiff[RT]\tDiff[MZ]\n0.92\t1.00\t1.00\t4.00\t1.00\t1.50\t5.00\t2.00\t1.00\t2.00\t1\t0.50\t4.00\n");
 RESULT
 
 /////////////////////////////////////////////////////////////

@@ -57,9 +57,10 @@ UNCONDITIONAL_TESTS = \
 	MapAlignment_test \
 	UnlabeledMatcher_test \
   FeatureFinder_test\
-	InternalCalibration_test\
-	SequestAdapter_test\
-	InspectAdapter_test
+	InternalCalibration_test
+
+#	SequestAdapter_test\
+#	InspectAdapter_test
 
 ifeq ($(LIBSVM_SUPPORT),true)
 LIBSVM_TESTS= \

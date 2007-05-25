@@ -83,9 +83,6 @@ class TOPPLabeledMatcher
 							 "    <ITEM name=\"mz_pair_dist\" value=\"4.0\" type=\"float\"/>\n"
 							 "    <ITEM name=\"mz_stdev\" value=\"0.025\" type=\"float\"/>\n" 
 							 "  </NODE>");
-			addEmptyLine_();
-			addText_("Note: The mz_pair_dist is added while the rt_pair_dist is substracted when searching pairs.\n"
-			         "      This is due to the fact, that the heavier peptide normally elutes earlier!");
 			registerSubsection_("algorithm");
 	  }
 		

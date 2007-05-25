@@ -79,11 +79,10 @@ Ideen:
 - Seeder/Extender: Analyse der MassenSpur-Distanzen
 
 Todos:
-- Quadtree ausbauen
 - DefaultParamHandler: add Descriptions
 - Spectrum3DCanvas: fix grab keyboard (buddy?)
 - TOPP tutorial: Usecases AW-Daten
-- altes IdXMLFile2 + IdXMLConverter raus
+- altes IdXMLFile2 + IdXMLConverter raus (Sequest/InspectAdapter-Test wieder drin?)
 - leere Tests finden
 - checker
 

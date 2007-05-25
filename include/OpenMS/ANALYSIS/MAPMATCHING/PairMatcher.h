@@ -36,17 +36,14 @@
 namespace OpenMS
 {
 	/**
-	 	@brief The PairMatcher allows the matching of labeled features (features with a fixed distance)
-		as described in the thesis "Automated LC-MS data analysis for differential quantification
-		of MHC ligands using stable isotope labeling".
+	 	@brief The PairMatcher allows the matching of labeled features (features with a fixed distance).
 		
-		@note The mz_pair_dist is added while the rt_pair_dist is substracted when searching pairs.
-			    This is due to the fact, that the heavier peptide normally elutes earlier!
+		Finds feature pairs that have a defined distance in RT and m/z in the same map.
 
 	  Parameters:
 			<table>
 			<tr><td>mz_pair_dist</td>
-					<td>optimal pair distance in [Th] for features with charge +1</td></tr>
+					<td>optimal pair distance in [Th] for features with charge +1 (adapted to +2, +3, .. by division through charge)</td></tr>
 			<tr><td>rt_pair_dist</td>
 					<td>optimal pair distance in [min]</td></tr>
 			<tr><td>mz_stdev</td>
@@ -86,15 +83,13 @@ namespace OpenMS
 	
 			/** @brief Pairing step of the PairMatcher
 	
-				Return pairs of features that have the same charge and a distance
-				lying within a user-defined range.
+				Return pairs of features that have the same charge and a distance lying within a user-defined range.
 			*/
 			const PairVectorType& run();
 	
 			/** @brief Matching step of the PairMatcher
 	
-				Greedy 2-approximation to extract a set of pairs so that each feature
-				is contained in at most one pair.
+				Greedy 2-approximation to extract a set of pairs so that each feature is contained in at most one pair.
 			*/
 			const PairVectorType& getBestPairs();
 	
@@ -140,7 +135,8 @@ namespace OpenMS
 				{
 					return 1-erf((x-m)/sig2/sqrt2_);
 				}
-				else{
+				else
+				{
 					return 1-erf((m-x)/sig1/sqrt2_);
 				}
 			}

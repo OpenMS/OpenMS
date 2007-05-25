@@ -71,19 +71,20 @@ namespace OpenMS
 
 		const PairMatcher::PairVectorType& PairMatcher::run()
 		{
+			//RT settings
+			double rt_pair_dist = param_.getValue("rt_pair_dist");
 			double rt_stdev_low = param_.getValue("rt_stdev_low");
 			double rt_stdev_high = param_.getValue("rt_stdev_high");
+			//MZ settings
 			double mz_stdev = param_.getValue("mz_stdev");
 			double mz_pair_dist = param_.getValue("mz_pair_dist");
-			double rt_pair_dist = param_.getValue("rt_pair_dist");
 
-			double rt_min = rt_pair_dist - 2.0*rt_stdev_low;
-			double rt_max = rt_pair_dist + 2.0*rt_stdev_high;
-			double mz_diff = 2.0*mz_stdev;
-
+			//cout << "MZ Window: " << mz_pair_dist << " +/- " << mz_stdev << endl;						
+			//cout << "RT Window: " << rt_pair_dist << " + " << rt_stdev_high << " - " << rt_stdev_low << endl;
+			
 			pairs_.clear();
 
-			// calculate area of map
+			// sort features by RT (and MZ) to speed up searching afterwards
 			features_.sortByPosition();
 			
 			// set id for each feature
@@ -91,27 +92,28 @@ namespace OpenMS
 			for (FeatureMapType::Iterator it = features_.begin(); it != features_.end(); ++it)
 			{
 				it->setMetaValue(11,++id);
+				//cout <<"Feature " << id << ": " << it->getRT() << " / " << it->getMZ() << endl;
 			}
 
 			// check each feature
 			for (FeatureMapType::const_iterator it=features_.begin(); it!=features_.end(); ++it)
 			{
 				//cout << "*****************************************************************" << endl;
-				//cout << "Testing feature: " << it->getRT() << " " << it->getMZ() << endl;
-				//cout << "RT range: " << it->getRT()-rt_max << " - " << it->getRT()-rt_min << endl;
-				//cout << "MZ range: " << it->getMZ()+mz_pair_dist/it->getCharge()-mz_diff << " - " << it->getMZ()+mz_pair_dist/it->getCharge()+mz_diff << endl;
+				//cout << "Testing feature: " << it->getRT() << " / " << it->getMZ() << endl;
+				//cout << "RT range: " << it->getRT()+rt_pair_dist - 2.0*rt_stdev_low << " - " << it->getRT()+rt_pair_dist + 2.0*rt_stdev_high << endl;
+				//cout << "MZ range: " << it->getMZ()+mz_pair_dist/it->getCharge()-2.0*mz_stdev << " - " << it->getMZ()+mz_pair_dist/it->getCharge()+2.0*mz_stdev << endl;
 				//cout << "*****************************************************************" << endl;
-				FeatureMapType::const_iterator range = lower_bound(features_.begin(),features_.end(),it->getRT()-rt_max, Feature::NthPositionLess<0>());
-				while (range!=features_.end() && range->getRT() <= it->getRT()-rt_min)
+				FeatureMapType::const_iterator range = lower_bound(features_.begin(),features_.end(),it->getRT()+rt_pair_dist - 2.0*rt_stdev_low, Feature::NthPositionLess<0>());
+				while (range!=features_.end() && range->getRT() <= it->getRT()+rt_pair_dist + 2.0*rt_stdev_high)
 				{
-					//cout << "Checking: " << range->getRT() << " " << range->getMZ() << endl;
+					//cout << "Checking: " << range->getRT() << " / " << range->getMZ() << endl;
 					if (range->getCharge() == it->getCharge()
-						&& range->getMZ() >=it->getMZ()+mz_pair_dist/it->getCharge()-mz_diff 
-						&& range->getMZ() <=it->getMZ()+mz_pair_dist/it->getCharge()+mz_diff)
+						&& range->getMZ() >=it->getMZ()+mz_pair_dist/it->getCharge()-2.0*mz_stdev 
+						&& range->getMZ() <=it->getMZ()+mz_pair_dist/it->getCharge()+2.0*mz_stdev)
 					{
 						
-						DoubleReal score =  PValue_(fabs( it->getMZ() - range->getMZ() ), mz_pair_dist/it->getCharge(), mz_stdev, mz_stdev)
-															* PValue_(it->getRT() - range->getRT(), rt_pair_dist, rt_stdev_low, rt_stdev_high)
+						DoubleReal score =  PValue_(range->getMZ() - it->getMZ(), mz_pair_dist/it->getCharge(), mz_stdev, mz_stdev)
+															* PValue_(range->getRT() - it->getRT(), rt_pair_dist, rt_stdev_low, rt_stdev_high)
 															* range->getOverallQuality()
 															* it->getOverallQuality();
 						//cout << "HIT: " << score << endl;
@@ -125,6 +127,8 @@ namespace OpenMS
 
 		const PairMatcher::PairVectorType& PairMatcher::getBestPairs()
 		{
+			best_pairs_.clear();
+			
 			typedef std::list< PairType* > Feature2PairList;
 			typedef vector<Feature2PairList> ListVector;
 			ListVector feature2pair(features_.size());
@@ -172,7 +176,7 @@ namespace OpenMS
 					<< "\tRatio\tCharge\tDiff[RT]\tDiff[MZ]\n";
 			for (UInt i=0; i<pairs.size(); ++i)
 			{
-				DPosition<2> diff = pairs[i].getFirst().getPosition()-pairs[i].getSecond().getPosition();
+				DPosition<2> diff = pairs[i].getSecond().getPosition()-pairs[i].getFirst().getPosition();
 				out << setiosflags(ios::fixed) << setprecision(2)
 						<< pairs[i].getQuality() << "\t" << pairs[i].getFirst().getRT() << "\t" 
 						<< pairs[i].getFirst().getMZ() << "\t" << pairs[i].getFirst().getIntensity() << "\t" 
