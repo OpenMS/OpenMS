@@ -58,7 +58,14 @@ namespace OpenMS
   void OMSSAXMLHandler::startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const xercesc::Attributes& /*attributes*/)
 	{
 		tag_ = String(XMLString::transcode(qname));
-	
+
+		if (tag_ == "MSHitSet_number")
+		{
+			PeptideIdentification id_dat;
+			id_data_.push_back(id_dat);
+			return;
+		}
+
 		if (tag_ == "MSPepHit")
 		{
 			//tag_ = "";

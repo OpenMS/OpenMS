@@ -261,7 +261,8 @@ class TOPPPILISModel
 			double score_threshold = getDoubleOption_("score_threshold");
 			bool use_tic_filtering = getFlag_("use_tic_filtering");
 			bool use_score_filtering = getFlag_("use_score_filtering");
-			for (HashMap<UInt, PeptideHit>::ConstIterator it = ids_to_train.begin(); it != ids_to_train.end(); ++it)
+			UInt count(1);
+			for (HashMap<UInt, PeptideHit>::ConstIterator it = ids_to_train.begin(); it != ids_to_train.end(); ++it, count++)
 			{
 				//if (it->second.getScore() >= threshold)
 				//{
@@ -286,6 +287,7 @@ class TOPPPILISModel
 						writeDebug_(String("Error processing amino acid sequence: ")+e.what(), 1);
 						continue;
 					}
+					writeDebug_(String(count) + String("/") + String(ids_to_train.size()) + String(", training model with peptide ") + sequence + String("z=") + String(hit.getCharge()), 3);
 					model->train(exp[it->first], sequence, hit.getCharge());
 				}
 			}

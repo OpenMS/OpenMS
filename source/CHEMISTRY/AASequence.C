@@ -27,6 +27,7 @@
 
 #include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/CHEMISTRY/Residue.h>
+#include <OpenMS/CHEMISTRY/ResidueModification.h>
 #include <OpenMS/CHEMISTRY/ResidueDB.h>
 
 using namespace std;

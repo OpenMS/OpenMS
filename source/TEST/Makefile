@@ -265,6 +265,7 @@ EXECUTABLES_CHEMISTRY = \
 	Element_test\
 	ElementDB_test\
 	EmpiricalFormula_test\
+	ResidueModification_test\
 	Residue_test\
 	ResidueDB_test\
 	AASequence_test\

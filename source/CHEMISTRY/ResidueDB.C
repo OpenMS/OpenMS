@@ -26,6 +26,8 @@
 //
 
 #include <OpenMS/CHEMISTRY/ResidueDB.h>
+#include <OpenMS/CHEMISTRY/ResidueModification.h>
+#include <OpenMS/CHEMISTRY/Residue.h>
 #include <OpenMS/FORMAT/Param.h>
 #include <OpenMS/SYSTEM/File.h>
 
@@ -37,8 +39,8 @@ namespace OpenMS
 	{
 		readResiduesFromFile_("CHEMISTRY/Residues.xml" );
 		buildResidueNames_();
-		readModificationsFromFile_("CHEMISTRY/Modifications.xml" );
-		buildModificationNames_();
+		readResidueModificationsFromFile_("CHEMISTRY/Modifications.xml" );
+		buildResidueModificationNames_();
 		buildModifiedResidues_();
 	}
 
@@ -47,8 +49,8 @@ namespace OpenMS
 	{
 		readResiduesFromFile_(res_filename);
 		buildResidueNames_();
-		readModificationsFromFile_(mod_filename);
-		buildModificationNames_();
+		readResidueModificationsFromFile_(mod_filename);
+		buildResidueModificationNames_();
 		buildModifiedResidues_();
 	}
 	
@@ -89,7 +91,7 @@ namespace OpenMS
 		return residues_.size();
 	}
 			
-	const Residue::Modification* ResidueDB::getModification(const String& name) const
+	const ResidueModification* ResidueDB::getModification(const String& name) const
 	{
 		if (modification_names_.has(name))
 		{
@@ -98,16 +100,16 @@ namespace OpenMS
 		return 0;
 	}
 
-	set<const Residue::Modification*> ResidueDB::getModifications(const Residue* residue) const
+	set<const ResidueModification*> ResidueDB::getModifications(const Residue* residue) const
 	{
 		return getModifications(residue->getName());
 	}
 
-	set<const Residue::Modification*> ResidueDB::getModifications(const String& res_name) const
+	set<const ResidueModification*> ResidueDB::getModifications(const String& res_name) const
 	{
-		set <const Residue::Modification*> mods;
+		set <const ResidueModification*> mods;
 		// TODO speed up computation!
-		set<Residue::Modification*>::iterator mit = modifications_.begin();
+		set<ResidueModification*>::iterator mit = modifications_.begin();
 		for (;mit!=modifications_.end();++mit)
 		{
 			const set<Residue*> res = (*mit)->getValidResidues();
@@ -127,12 +129,12 @@ namespace OpenMS
 		return mods;
 	}
 	
-	const set<const Residue::Modification*>& ResidueDB::getModifications() const
+	const set<const ResidueModification*>& ResidueDB::getModifications() const
 	{
 		return const_modifications_;
 	}
 
-	set<const Residue*> ResidueDB::getResidues(const Residue::Modification* modification) const
+	set<const Residue*> ResidueDB::getResidues(const ResidueModification* modification) const
 	{
 		set<const Residue*> res;
 		set<const Residue*>::const_iterator it;
@@ -151,7 +153,7 @@ namespace OpenMS
 		set<const Residue*> res;
 		if (modification_names_.has(mod_name))
 		{
-			const Residue::Modification* mod = modification_names_[mod_name];
+			const ResidueModification* mod = modification_names_[mod_name];
 			set<const Residue*>::const_iterator it;
 			for (it=const_residues_.begin();it!=const_residues_.end();++it)
 			{
@@ -169,7 +171,7 @@ namespace OpenMS
 		return const_residues_;
 	}
 
-	UInt ResidueDB::getNumberOfModifications() const
+	UInt ResidueDB::getNumberOfResidueModifications() const
 	{
 		return modifications_.size();
 	}
@@ -177,13 +179,13 @@ namespace OpenMS
 	void ResidueDB::setModifications(const String& file_name) 
 		throw(Exception::FileNotFound, Exception::ParseError)
 	{
-		clearModifications_();
-		readModificationsFromFile_(file_name);
-		buildModificationNames_();
+		clearResidueModifications_();
+		readResidueModificationsFromFile_(file_name);
+		buildResidueModificationNames_();
 		buildModifiedResidues_();
 	}
 	
-	void ResidueDB::addModification(Residue::Modification /* modification */)
+	void ResidueDB::addResidueModification(ResidueModification /* modification */)
 	{
 		// TODO
 		
@@ -198,7 +200,7 @@ namespace OpenMS
 		buildModifiedResidues_();
 	}
 
-	void ResidueDB::addResidue(Residue residue)
+	void ResidueDB::addResidue(const Residue& residue)
 	{
 		Residue * r = new Residue(residue);
 		if (r->getName() != "")
@@ -218,7 +220,7 @@ namespace OpenMS
 		const_residues_.insert(r);
 	}
 
-	bool ResidueDB::hasModification(const String& mod_name) const
+	bool ResidueDB::hasResidueModification(const String& mod_name) const
 	{
 		if (modification_names_.has(mod_name))
 		{
@@ -293,7 +295,7 @@ namespace OpenMS
 		}
 	}
 	
-	void ResidueDB::readModificationsFromFile_(const String& filename)
+	void ResidueDB::readResidueModificationsFromFile_(const String& filename)
 		throw(Exception::FileNotFound, Exception::ParseError)
 	{
 		String file = File::find(filename);
@@ -317,7 +319,7 @@ namespace OpenMS
 			vector<String> split;
 			String(param.begin()->first).split(':',split);
 			String prefix = split[0] + split[1];
-			Residue::Modification* mod_ptr = new Residue::Modification();
+			ResidueModification* mod_ptr = new ResidueModification();
 
 			modifications_.insert(mod_ptr);
 			const_modifications_.insert(mod_ptr);
@@ -337,7 +339,7 @@ namespace OpenMS
 					}
 					valid_res.clear();
 					
-					mod_ptr = new Residue::Modification();
+					mod_ptr = new ResidueModification();
 					modifications_.insert(mod_ptr);
 					const_modifications_.insert(mod_ptr);
 				}
@@ -409,7 +411,7 @@ namespace OpenMS
 	void ResidueDB::clear_()
 	{
 		clearResidues_();
-		clearModifications_();
+		clearResidueModifications_();
 	}
 
 	void ResidueDB::clearResidues_()
@@ -424,9 +426,9 @@ namespace OpenMS
 		const_residues_.clear();
 	}
 
-	void ResidueDB::clearModifications_()
+	void ResidueDB::clearResidueModifications_()
 	{
-		set<Residue::Modification*>::iterator it;
+		set<ResidueModification*>::iterator it;
 		for (it=modifications_.begin();it!=modifications_.end();++it)
 		{
 			delete *it;
@@ -615,9 +617,9 @@ namespace OpenMS
 		}
 	}
 
-	void ResidueDB::buildModificationNames_()
+	void ResidueDB::buildResidueModificationNames_()
 	{
-		set<Residue::Modification*>::iterator it;
+		set<ResidueModification*>::iterator it;
 		for (it=modifications_.begin(); it!=modifications_.end(); ++it)
 		{
 			if ((*it)->getName() != "")
@@ -646,7 +648,7 @@ namespace OpenMS
 
 	void ResidueDB::buildModifiedResidues_()
 	{
-		set<Residue::Modification*>::iterator mit = modifications_.begin();
+		set<ResidueModification*>::iterator mit = modifications_.begin();
 		for (;mit!=modifications_.end();++mit)
 		{
 			set<Residue*> residues = (*mit)->getValidResidues();
@@ -661,7 +663,7 @@ namespace OpenMS
 				else
 				{
 					Residue * r = new Residue(**rit);
-					Residue::Modification * m = *mit;
+					ResidueModification * m = *mit;
 					r->setModification(m);
 					r->setAverageWeight(orig->getAverageWeight()+m->getAddAverageWeight()-m->getDelAverageWeight());
 					r->setMonoWeight(orig->getMonoWeight()+m->getAddMonoWeight()-m->getDelMonoWeight());

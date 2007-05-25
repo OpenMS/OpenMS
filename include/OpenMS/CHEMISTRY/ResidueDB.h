@@ -27,13 +27,16 @@
 #ifndef OPENMS_CHEMISTRY_RESIDUEDB_H
 #define OPENMS_CHEMISTRY_RESIDUEDB_H
 
-#include <OpenMS/CHEMISTRY/Residue.h>
 #include <OpenMS/DATASTRUCTURES/HashMap.h>
 
 #include <set>
 
 namespace OpenMS
 {
+	// forward declarations
+	class ResidueModification;
+	class Residue;
+
 	/** @ingroup Chemistry
 	
 			@brief residue data base which holds residues
@@ -50,8 +53,8 @@ namespace OpenMS
 			//@{
 			typedef std::set<Residue*>::iterator ResidueIterator;
 			typedef std::set<const Residue*>::const_iterator ResidueConstIterator;
-			typedef std::set<Residue::Modification*>::iterator ModificationIterator;
-			typedef std::set<const Residue::Modification*>::const_iterator ModificationConstIterator;
+			typedef std::set<ResidueModification*>::iterator ResidueModificationIterator;
+			typedef std::set<const ResidueModification*>::const_iterator ResidueModificationConstIterator;
 			//@}
 			
 			/** @name Constructors and Destructors
@@ -85,25 +88,25 @@ namespace OpenMS
 			UInt getNumberOfResidues() const;
 			
 			/// returns the number of modifications stored in this residue db
-			UInt getNumberOfModifications() const;
+			UInt getNumberOfResidueModifications() const;
 
 			/// resturns a pointer to modification with name name, if non is found 0 is returned
-			const Residue::Modification* getModification(const String& name) const;
+			const ResidueModification* getModification(const String& name) const;
 
 			/// returns a set of modifications which can be applied to the given residue
-			std::set<const Residue::Modification*> getModifications(const Residue* residue) const;
+			std::set<const ResidueModification*> getModifications(const Residue* residue) const;
 
 			/// returns a set of modifications which can be applied to the given residue
-			std::set<const Residue::Modification*> getModifications(const String& res_name) const;
+			std::set<const ResidueModification*> getModifications(const String& res_name) const;
 
 			/// returns a set of all modifications stored in this residue db
-			const std::set<const Residue::Modification*>& getModifications() const;
+			const std::set<const ResidueModification*>& getModifications() const;
 
 			/// returns a pointer to the residue with name, 3 letter code or 1 letter code name
 			const Residue* getResidue(const String& name) const;
 
 			/// returns a set of residues which can have the given modification 
-			std::set<const Residue*> getResidues(const Residue::Modification* modification) const;
+			std::set<const Residue*> getResidues(const ResidueModification* modification) const;
 
 			/// returns a set of residues which can have the given modification
 			std::set<const Residue*> getResidues(const String& mod_name) const;
@@ -115,20 +118,20 @@ namespace OpenMS
 			void setModifications(const String& filename) throw(Exception::FileNotFound, Exception::ParseError);
 
 			/// adds a modification, i.e. an unknown modification, where only the weights are known
-			void addModification(Residue::Modification modification);
+			void addResidueModification(ResidueModification modification);
 
 			/// sets the residues from given file
 			void setResidues(const String& filename) throw(Exception::FileNotFound, Exception::ParseError);
 
 			/// adds a residue, i.e. a unkown residue, where only the weight is known
-			void addResidue(Residue residue);
+			void addResidue(const Residue& residue);
 			//@}
 
 			/** @name Predicates
 			*/
 			//@{
 			/// returns true if the db contains a modification with the given name
-			bool hasModification(const String& name) const;
+			bool hasResidueModification(const String& name) const;
 
 			/// returns true if the db contains a residue with the given name
 			bool hasResidue(const String& name) const;
@@ -145,13 +148,13 @@ namespace OpenMS
 
 			inline ResidueConstIterator endResidue() const { return const_residues_.end(); }
 
-			inline ModificationIterator beginModification() { return modifications_.begin(); }
+			inline ResidueModificationIterator beginResidueModification() { return modifications_.begin(); }
 
-			inline ModificationIterator endModification() { return modifications_.end(); }
+			inline ResidueModificationIterator endResidueModification() { return modifications_.end(); }
 				
-			inline ModificationConstIterator beginModification() const { return const_modifications_.begin(); }
+			inline ResidueModificationConstIterator beginResidueModification() const { return const_modifications_.begin(); }
 
-			inline ModificationConstIterator endModification() const { return const_modifications_.end(); }
+			inline ResidueModificationConstIterator endResidueModification() const { return const_modifications_.end(); }
 			//@}
 
 		protected:
@@ -166,7 +169,7 @@ namespace OpenMS
 
 			/*_ reads modifications from a file
 			*/
-			void readModificationsFromFile_(const String& filename) throw(Exception::FileNotFound, Exception::ParseError);
+			void readResidueModificationsFromFile_(const String& filename) throw(Exception::FileNotFound, Exception::ParseError);
 
 			/*_ deletes all sub-instances of the stored data like modifications and residues
 			*/
@@ -178,7 +181,7 @@ namespace OpenMS
 
 			/*_ deletes all modifications and also modified residues
 			*/
-			void clearModifications_();
+			void clearResidueModifications_();
 
 			/*_ builds an index of residue names for fast access, synonyms are also considered
 			*/
@@ -186,7 +189,7 @@ namespace OpenMS
 
 			/*_ builds an index of modifications names for fast access, synonyms are also considered
 			*/
-			void buildModificationNames_();
+			void buildResidueModificationNames_();
 
 			/*_ builds modified residues from a given modifications and residues
 			*/
@@ -198,11 +201,11 @@ namespace OpenMS
 
 			std::set<const Residue*> const_residues_;
 		
-			HashMap<String, Residue::Modification*> modification_names_;
+			HashMap<String, ResidueModification*> modification_names_;
 			
-			std::set<Residue::Modification*> modifications_;
+			std::set<ResidueModification*> modifications_;
 
-			std::set<const Residue::Modification*> const_modifications_;
+			std::set<const ResidueModification*> const_modifications_;
 	};
 }
 #endif

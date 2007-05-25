@@ -82,6 +82,8 @@ namespace OpenMS
 		defaults_.setValue("charge_loss_factor", 0.5); // TODO
 		defaults_.setValue("pseudo_counts", 1e-15);
 
+		defaults_.setValue("max_isotope", 2);
+
 		defaultsToParam_();
 
 		initModels_();
@@ -128,23 +130,30 @@ namespace OpenMS
 	
 	void PILISModel::readFromFile(const String& filename)
 	{
-
 		// read the model
-		if (!File::exists(filename))
+		vector<String> paths;
+		paths.push_back(File::path(filename));
+		//cout << "PATH=" << paths.back() << endl;
+		String new_filename = File::find(File::basename(filename), paths);
+		if (new_filename == "")
+		{
+			new_filename = File::find(filename, paths);
+		}
+		if (!File::exists(new_filename))
  	  {
- 	   	throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename);
+ 	   	throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, new_filename);
     }
-    if (!File::readable(filename))
+    if (!File::readable(new_filename))
     {
-     	throw Exception::FileNotReadable(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename);
+     	throw Exception::FileNotReadable(__FILE__, __LINE__, __PRETTY_FUNCTION__, new_filename);
     }
-    if (File::empty(filename))
+    if (File::empty(new_filename))
     {
-     	throw Exception::FileEmpty(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename);
+     	throw Exception::FileEmpty(__FILE__, __LINE__, __PRETTY_FUNCTION__, new_filename);
     }
 
 		TextFile file;
-		file.load(filename, true);
+		file.load(new_filename, true);
 
 		TextFile::Iterator it_begin(file.begin()), it_end(file.begin());
 		it_begin = file.search(it_begin, "BASE_MODEL_BEGIN");
@@ -941,6 +950,8 @@ namespace OpenMS
 		hmm_.evaluate();
 		hmm_.estimateUntrainedTransitions();
 
+		//hmm_.dump();
+
 		hmm_precursor_.evaluate();
 
 		for (HashMap<Residue::ResidueType, HiddenMarkovModelLight>::Iterator it = hmms_losses_.begin(); it != hmms_losses_.end(); ++it)
@@ -1196,7 +1207,8 @@ namespace OpenMS
 		hmm_.disableTransitions();
 
 		// read the emission probs and put the peaks into a spec
-		IsotopeDistribution id(2);
+		UInt max_isotope = (UInt)param_.getValue("max_isotope");
+		IsotopeDistribution id(max_isotope);
 	
 		// register name
 		Peak1D p;

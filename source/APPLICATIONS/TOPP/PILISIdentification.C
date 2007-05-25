@@ -194,6 +194,11 @@ class TOPPPILISIdentification
 					id.setMetaValue("MZ", it->getPrecursorPeak().getPosition()[0]);
 
 					ids.push_back(id);
+
+					if (id.getHits().size() != 0)
+					{
+						writeDebug_(id.getHits().begin()->getSequence() + " (z=" + id.getHits().begin()->getCharge() + "), score=" + String(id.getHits().begin()->getScore()) , 10);
+					}
 				}
 			}
 

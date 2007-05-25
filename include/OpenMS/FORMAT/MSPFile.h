@@ -83,7 +83,7 @@ namespace OpenMS
 						line.split(' ', split);
 						split[1].split('/', split2);
 						PeptideIdentification id;
-						id.insertHit(PeptideHit(0, "", 0, split2[1].toInt(), split2[0]));
+						id.insertHit(PeptideHit(0, 0, split2[1].toInt(), split2[0]));
 						ids.push_back(id);
 					}
 					if (line.hasPrefix("MW:"))
@@ -126,7 +126,7 @@ namespace OpenMS
 			void store(const String& filename, const MapType& map)
 			const throw (Exception::UnableToCreateFile)
 			{
-				// TODO
+				throw Exception::NotImplemented(__FILE__, __LINE__, __PRETTY_FUNCTION__);
 			}
 		
 	};

@@ -120,6 +120,9 @@ namespace OpenMS
 			/// a peaks, just to not instantiate it over and over again
 			Peak1D p_;
 
+			///
+			std::vector<PeakSpectrum> sim_specs_;
+
 			/// flag whether the istance has a internal sequence db
 			bool own_sequence_db_;
 

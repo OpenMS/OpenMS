@@ -26,197 +26,12 @@
 //
 
 #include <OpenMS/CHEMISTRY/Residue.h>
+#include <OpenMS/CHEMISTRY/ResidueModification.h>
 
 using namespace std;
 
 namespace OpenMS
 {
-	// modification
-	Residue::Modification::Modification()
-		: add_average_weight_(0.0f),
-			add_mono_weight_(0.0f),
-			del_average_weight_(0.0f),
-			del_mono_weight_(0.0f)
-	{
-	}
-
-	Residue::Modification::Modification(const Modification& modification)
-		:	name_(modification.name_),
-			short_name_(modification.short_name_),
-			name_prefix_(modification.name_prefix_),
-			synonyms_(modification.synonyms_),
-			add_formula_(modification.add_formula_),
-			add_average_weight_(modification.add_average_weight_),
-			add_mono_weight_(modification.add_mono_weight_),
-			del_formula_(modification.del_formula_),
-			del_average_weight_(modification.del_average_weight_),
-			del_mono_weight_(modification.del_mono_weight_),
-			valid_residues_(modification.valid_residues_)
-	{
-	}
-
-	Residue::Modification::~Modification()
-	{
-	}
-
-	Residue::Modification& Residue::Modification::operator = (const Modification& modification)
-	{
-		if (this != &modification)
-		{
-			name_ = modification.name_;
-			name_prefix_ = modification.name_prefix_;
-			short_name_ = modification.short_name_;
-			synonyms_ = modification.synonyms_;
-			add_formula_ = modification.add_formula_;
-			add_average_weight_ = modification.add_average_weight_;
-			add_mono_weight_ = modification.add_mono_weight_;
-			del_formula_ = modification.del_formula_;
-			del_average_weight_ = modification.del_average_weight_;
-			del_mono_weight_ = modification.del_mono_weight_;
-			valid_residues_ = modification.valid_residues_;
-		}
-		return *this;
-	}
-	
-	void Residue::Modification::setName(const String& name)
-	{
-		name_ = name;
-	}
-
-	const String& Residue::Modification::getName() const
-	{
-		return name_;
-	}
-
-	void Residue::Modification::setShortName(const String& short_name)
-	{
-		short_name_ = short_name;
-	}
-
-	const String& Residue::Modification::getShortName() const
-	{
-		return short_name_;
-	}
-
-	void Residue::Modification::setNamePrefix(const String& prefix)
-	{
-		name_prefix_ = prefix;
-	}
-
-	const String& Residue::Modification::getNamePrefix() const
-	{
-		return name_prefix_;
-	}
-
-	void Residue::Modification::setSynonyms(const std::set<String>& synonyms)
-	{
-		synonyms_ = synonyms;
-	}
-
-	void Residue::Modification::addSynonym(const String& synonym)
-	{
-		synonyms_.insert(synonym);
-	}
-
-	const std::set<String>& Residue::Modification::getSynonyms() const
-	{
-		return synonyms_;
-	}
-	
-	void Residue::Modification::setAddFormula(const EmpiricalFormula& formula)
-	{
-		add_formula_ = formula;
-	}
-
-	const EmpiricalFormula& Residue::Modification::getAddFormula() const
-	{
-		return add_formula_;
-	}
-
-	void Residue::Modification::setAddAverageWeight(Real weight)
-	{
-		add_average_weight_ = weight;
-	}
-
-	Real Residue::Modification::getAddAverageWeight() const
-	{
-		return add_average_weight_;
-	}
-
-	void Residue::Modification::setAddMonoWeight(Real weight)
-	{
-		add_mono_weight_ = weight;
-	}
-
-	Real Residue::Modification::getAddMonoWeight() const
-	{
-		return add_mono_weight_;
-	}
-
-	void Residue::Modification::setDelFormula(const EmpiricalFormula& formula)
-	{
-		del_formula_ = formula;
-	}
-
-	const EmpiricalFormula& Residue::Modification::getDelFormula() const
-	{
-		return del_formula_;
-	}
-
-	void Residue::Modification::setDelAverageWeight(Real weight)
-	{
-		del_average_weight_ = weight;
-	}
-
-	Real Residue::Modification::getDelAverageWeight() const
-	{
-		return del_average_weight_;
-	}
-	
-	void Residue::Modification::setDelMonoWeight(Real weight)
-	{
-		del_mono_weight_ = weight;
-	}
-
-	Real Residue::Modification::getDelMonoWeight() const
-	{
-		return del_mono_weight_;
-	}
-
-	void Residue::Modification::setValidResidues(const set<Residue*>& valid_residues)
-	{
-		valid_residues_ = valid_residues;
-	}
-
-	void Residue::Modification::addValidResidue(Residue* valid_residue)
-	{
-		valid_residues_.insert(valid_residue);
-	}
-	
-	const set<Residue*>& Residue::Modification::getValidResidues() const
-	{
-		return valid_residues_;
-	}
-
-	bool Residue::Modification::operator == (const Residue::Modification& modification) const
-	{
-		return 	name_ == modification.name_ &&
-						name_prefix_ == modification.name_prefix_ &&
-						synonyms_ == modification.synonyms_ &&
-						add_formula_ == modification.add_formula_ &&
-						add_average_weight_ == modification.add_average_weight_ &&
-						add_mono_weight_ == modification.add_mono_weight_ &&
-						del_formula_ == modification.del_formula_ &&
-						del_average_weight_ == modification.del_average_weight_ &&
-						del_mono_weight_ == modification.del_mono_weight_ &&
-						valid_residues_ == modification.valid_residues_;
-	}
-	
-	bool Residue::Modification::operator != (const Residue::Modification& modification) const
-	{
-		return !(*this == modification);
-	}
-
 	// residue
 	Residue::Residue()
 		: name_("unknown"),
@@ -678,13 +493,13 @@ namespace OpenMS
 		}
 	}
 
-	void Residue::setModification(Modification* modification)
+	void Residue::setModification(ResidueModification* modification)
 	{
 		modification_ = modification;
 		is_modified_ = true;
 	}
 	
-	const Residue::Modification* Residue::getModification() const
+	const ResidueModification* Residue::getModification() const
 	{
 		return modification_;
 	}

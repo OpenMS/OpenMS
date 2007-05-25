@@ -273,8 +273,11 @@ namespace OpenMS
 			// transition prob counts
 			HashMap<HMMState*, HashMap<HMMState*, double> > count_trans_;
 
-			// transition probs from one training step			
+			// transition probs from one training step TODO not needed any more ????
 			HashMap<HMMState*, HashMap<HMMState*, double> > train_count_trans_;
+
+			// all transition probs of all training steps (for model checking)
+			HashMap<HMMState*, HashMap<HMMState*, std::vector<double> > > train_count_trans_all_;
 
 			// number of training steps of the transitions
 			HashMap<HMMState*, HashMap<HMMState*, UInt> > training_steps_count_;

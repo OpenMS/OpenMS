@@ -73,7 +73,7 @@ CHECK(void writetoYGFFile(const String& filename))
 RESULT
 
 CHECK(void readFromFile(const String& filename))
-	ptr->readFromFile("../../data/PILIS/PILIS_default_model.dat");
+	ptr->readFromFile("PILIS/PILIS_default_model.dat");
 RESULT
 
 CHECK(void writeToFile(const String& filename))

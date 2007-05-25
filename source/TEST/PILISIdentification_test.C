@@ -76,7 +76,7 @@ RESULT
 
 CHECK(void setModel(PILISModel* hmm_model))
 	PILISModel* model = new PILISModel();
-	model->readFromFile("../../data/PILIS/PILIS_default_model.dat");
+	model->readFromFile("PILIS/PILIS_default_model.dat");
 	ptr->setModel(model);
 RESULT
 

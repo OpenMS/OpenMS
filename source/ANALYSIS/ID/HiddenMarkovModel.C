@@ -30,6 +30,8 @@
 #include <iostream>
 #include <fstream>
 #include <stack>
+#include <cmath>
+#include <numeric>
 
 //#define PSEUDO_COUNTS 0.0000001
 #define PSEUDO_COUNTS   1e-15
@@ -134,39 +136,50 @@ namespace OpenMS
 		:	trans_(hmm.trans_),
 			count_trans_(hmm.count_trans_),
       train_count_trans_(hmm.train_count_trans_),
+			train_count_trans_all_(hmm.train_count_trans_all_),
       training_steps_count_(hmm.training_steps_count_),
       forward_(hmm.forward_),
       backward_(hmm.backward_),
       name_to_state_(hmm.name_to_state_),
       train_emission_prob_(hmm.train_emission_prob_),
       init_prob_(hmm.init_prob_),
-      states_(hmm.states_),
       trained_trans_(hmm.trained_trans_),
       synonym_trans_names_(hmm.synonym_trans_names_),
       synonym_trans_(hmm.synonym_trans_),
       enabled_trans_(hmm.enabled_trans_),
 			pseudo_counts_(hmm.pseudo_counts_)
 	{
+		for (set<HMMState*>::const_iterator it = hmm.states_.begin(); it != hmm.states_.end(); ++it)
+		{
+			states_.insert(new HMMState(**it));
+		}
 	}
 	
 	HiddenMarkovModel::~HiddenMarkovModel()
 	{
+		clear();
 	}
 
 	HiddenMarkovModel& HiddenMarkovModel::operator = (const HiddenMarkovModel& hmm)
 	{
 		if (&hmm != this)
 		{
+			clear();
+			for (set<HMMState*>::const_iterator it = hmm.states_.begin(); it != hmm.states_.end(); ++it)
+			{
+				states_.insert(new HMMState(**it));
+			}
+
 			trans_ = hmm.trans_;
 			count_trans_ = hmm.count_trans_;
 			train_count_trans_ = hmm.train_count_trans_;
+			train_count_trans_all_ = hmm.train_count_trans_all_;
 			training_steps_count_ = hmm.training_steps_count_;
 			forward_ = hmm.forward_;
 			backward_ = hmm.backward_;
 			name_to_state_ = hmm.name_to_state_;
 			train_emission_prob_ = hmm.train_emission_prob_;
 			init_prob_ = hmm.init_prob_;
-			states_ = hmm.states_;
 			trained_trans_ = hmm.trained_trans_;
 			synonym_trans_names_ = hmm.synonym_trans_names_;
 			synonym_trans_ = hmm.synonym_trans_;
@@ -574,7 +587,7 @@ namespace OpenMS
 		double num_px(0);
 		if (px != 0)
 		{
-			num_px = 1/px;
+			num_px = 1.0/px;
 		}
 
 #ifdef HIDDEN_MARKOV_MODEL_DEBUG
@@ -590,7 +603,7 @@ namespace OpenMS
 			tmp += pseudo_counts_ /*PSEUDO_COUNTS*/;
 			HMMState* s1 = it->first;
 			HMMState* s2 = it->second;
-			train_count_trans_[s1][s2] = tmp;
+			//train_count_trans_[s1][s2] = tmp;
 
 			if (synonym_trans_.has(s1) && synonym_trans_[s1].has(s2))
 			{
@@ -599,6 +612,7 @@ namespace OpenMS
 				s1 = tmp;
 			}
 			
+			train_count_trans_all_[s1][s2].push_back(tmp);
 			if (count_trans_.has(s1) && count_trans_[s1].has(s2))
 			{
 				count_trans_[s1][s2] += tmp;
@@ -829,7 +843,23 @@ namespace OpenMS
 		{
 			for (HashMap<HMMState*, double>::ConstIterator it1 = it->second.begin(); it1 != it->second.end(); ++it1)
 			{
-				cout << it->first->getName() << " -> " << it1->first->getName() << " " << it1->second << endl;
+				cout << it->first->getName() << " -> " << it1->first->getName() << " " << it1->second << " " << training_steps_count_[it->first][it1->first] << ": ";
+				vector<double> all_trans = train_count_trans_all_[it->first][it1->first];
+				
+				if (all_trans.size() != 0)
+				{
+					double sum = accumulate(all_trans.begin(), all_trans.end(), 0.0);
+					double avg(sum/double(all_trans.size()));
+					double rsd(0);
+					for (UInt i = 0; i != all_trans.size(); ++i)
+					{
+						cout << all_trans[i] << " ";
+						rsd += abs(all_trans[i] - avg);
+					}
+					cout << "rsd=" << rsd / double(all_trans.size()) / avg;
+				}
+				
+				cout << endl;
 			}
 		}
 		

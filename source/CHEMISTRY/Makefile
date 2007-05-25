@@ -34,6 +34,7 @@ ADD_CPP_SOURCES=\
 		Element.C\
 		ElementDB.C\
 		EmpiricalFormula.C\
+		ResidueModification.C\
 		Residue.C\
 		ResidueDB.C\
 		AASequence.C\

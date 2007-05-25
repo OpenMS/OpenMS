@@ -38,6 +38,9 @@
 
 namespace OpenMS
 {
+	// forward declarations
+	class ResidueModification;
+
 	/** 
 		@ingroup Chemistry
 		
@@ -46,148 +49,6 @@ namespace OpenMS
 	class Residue
 	{
 		public:
-		
-		/** @brief Representation of a modification
-		*/
-		class Modification
-		{
-			public:
-			
-				/** @name Constructors and Destructors
-				*/
-				//@{
-				/// default constructor
-				Modification();
-				
-				/// copy constructor
-				Modification(const Modification& modification);
-
-				/// destructor				
-				virtual ~Modification();
-				//@}
-
-				/** @name Assignment
-				*/
-				//@{
-				/// assignment operator
-				Modification& operator = (const Modification& modification);
-				//@}
-
-				/** @name Accessors
-				*/
-				//@{
-				/// sets the name of the modification
-				void setName(const String& name);
-
-				/// returns the name of the modification
-				const String& getName() const;
-
-				/// sets the short name of the modification, this name is used in PeptideSequence as output
-				void setShortName(const String& name);
-
-				/// returns the short name of the modification
-				const String& getShortName() const;
-
-				/// sets the naming prefix of modified residues
-				void setNamePrefix(const String& name_prefix);
-
-				/// returns the naming prefix of modified residues
-				const String& getNamePrefix() const;
-
-				/// sets the synonyms of the modification
-				void setSynonyms(const std::set<String>& synonyms);
-
-				/// adds a synonym to the modification
-				void addSynonym(const String& synonym);
-
-				/// returns the synonym names of the modifications
-				const std::set<String>& getSynonyms() const;
-				
-				/// sets the formula, which is added to the original residue
-				void setAddFormula(const EmpiricalFormula& formula);
-				
-				/// returns the formula, which is added to the original residue
-				const EmpiricalFormula& getAddFormula() const;
-
-				/// sets the average weight of the added formula
-				void setAddAverageWeight(Real weight);
-				
-				/// returns the weight of the added formula
-				Real getAddAverageWeight() const;
-
-				/// sets the mono isotopic weight of the added formula
-				void setAddMonoWeight(Real weight);
-
-				/// returns the mono isotopic weight of the added formula
-				Real getAddMonoWeight() const;
-
-				/// sets the formula which is deleted from the residue
-				void setDelFormula(const EmpiricalFormula& formula);
-				
-				/// returns the formula which is deleted from the residue
-				const EmpiricalFormula& getDelFormula() const;
-
-				/// sets the average weight of the deletion 
-				void setDelAverageWeight(Real weight);
-
-				/// returns the average weight of the deletion
-				Real getDelAverageWeight() const;
-
-				/// sets the mono isotopic weight of the deletion
-				void setDelMonoWeight(Real weight);
-
-				/// returns the mono isotopic weight of the deletion
-				Real getDelMonoWeight() const;
-
-				/// sets the residues where the modification can be applied to
-				void setValidResidues(const std::set<Residue*>& valid_residues);
-
-				/// adds a valid residue
-				void addValidResidue(Residue* valid_residue);
-				
-				/// returns the residues where the modifications can be applied to
-				const std::set<Residue*>& getValidResidues() const;
-				//@}
-
-				/** @name Predicates
-				*/
-				//@{
-				/// equality operator
-				bool operator == (const Modification& modification) const;
-
-				/// inequality operator
-				bool operator != (const Modification& modification) const;
-				//@}
-				
-			protected:
-
-				// basic
-				String name_;
-			
-				String short_name_;
-			
-				String name_prefix_;
-
-				std::set<String> synonyms_;
-
-				// additions
-				EmpiricalFormula add_formula_;
-
-				Real add_average_weight_;
-
-				Real add_mono_weight_;
-				
-				// deletions
-				EmpiricalFormula del_formula_;
-
-				Real del_average_weight_;
-
-				Real del_mono_weight_;
-
-				// residues 
-				std::set<Residue*> valid_residues_;
-		};
-		
 		
 			/** @name Typedefs and Constants
 			*/
@@ -392,8 +253,7 @@ namespace OpenMS
 							const String& three_letter_code,
 							const String& one_letter_code,
 							const EmpiricalFormula& formula,
-							const EmpiricalFormula& neutral_loss
-							);
+							const EmpiricalFormula& neutral_loss);
 	
 			/// destructor
 			virtual ~Residue();
@@ -485,10 +345,10 @@ namespace OpenMS
 			Real getMonoWeight(ResidueType res_type = Full) const;
 
 			/// sets the modification pointer
-			void setModification(Modification* modification);
+			void setModification(ResidueModification* modification);
 			
 			/// returns a pointer to the modification, if the residue is unmodified, 0 is returned
-			const Modification * getModification() const;
+			const ResidueModification * getModification() const;
 			
 			/// sets the name of the unmodified residue
 			void setUnmodifiedName(const String& name);
@@ -542,22 +402,22 @@ namespace OpenMS
 			/// sets the pkc of the residue
 			void setPkc(DoubleReal value);		
 		
-      ///
+      /// returns the side chain basicity
       Real getSideChainBasicity() const;
 
-      ///
+      /// sets the side chain basicity
       void setSideChainBasicity(Real gb_sc);
 
-      ///
+      /// returns the backbone basicitiy if located in N-terminal direction
       Real getBackboneBasicityLeft() const;
 
-      ///
+      /// sets the N-terminal direction backbone basicitiy
       void setBackboneBasicityLeft(Real gb_bb_l);
 
-      ///
+      /// returns the C-terminal direction backbone basicitiy
       Real getBackboneBasicityRight() const;
 
-      ///
+      /// sets the C-terminal direction backbone basicity
       void setBackboneBasicityRight(Real gb_bb_r);
 
 			/// true if the residue is a modified one
@@ -593,7 +453,7 @@ namespace OpenMS
 
 			String pre_mod_name_;
 
-			Modification * modification_;
+			ResidueModification* modification_;
 			
 			// loss
 			String loss_name_;

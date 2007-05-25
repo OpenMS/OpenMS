@@ -140,7 +140,6 @@ namespace OpenMS
       id_to_state_(hmm.id_to_state_),
       train_emission_prob_(hmm.train_emission_prob_),
       init_train_prob_(hmm.init_train_prob_),
-      states_(hmm.states_),
       trained_trans_(hmm.trained_trans_),
       synonym_trans_names_(hmm.synonym_trans_names_),
       synonym_trans_(hmm.synonym_trans_),
@@ -148,16 +147,34 @@ namespace OpenMS
       id_to_name_(hmm.id_to_name_),
 			pseudo_counts_(hmm.pseudo_counts_)
 	{
+		for (set<HMMStateLight*>::const_iterator it = hmm.states_.begin(); it != hmm.states_.end(); ++it)
+		{
+			states_.insert(new HMMStateLight(**it));
+		}
 	}
 	
 	HiddenMarkovModelLight::~HiddenMarkovModelLight()
 	{
+		for (set<HMMStateLight*>::const_iterator it = states_.begin(); it != states_.end(); ++it)
+		{
+			delete *it;
+		}
 	}
 
 	HiddenMarkovModelLight& HiddenMarkovModelLight::operator = (const HiddenMarkovModelLight& hmm)
 	{
 		if (&hmm != this)
 		{
+			for (set<HMMStateLight*>::const_iterator it = states_.begin(); it != states_.end(); ++it)
+			{
+				delete *it;
+			}
+
+			for (set<HMMStateLight*>::const_iterator it = hmm.states_.begin(); it != hmm.states_.end(); ++it)
+			{
+				states_.insert(new HMMStateLight(**it));
+			}
+
 			trans_ = hmm.trans_;
 			count_trans_ = hmm.count_trans_;
 			train_count_trans_ = hmm.train_count_trans_;
@@ -167,7 +184,6 @@ namespace OpenMS
 			id_to_state_ = hmm.id_to_state_;
 			train_emission_prob_ = hmm.train_emission_prob_;
 			init_train_prob_ = hmm.init_train_prob_;
-			states_ = hmm.states_;
 			trained_trans_ = hmm.trained_trans_;
 			synonym_trans_names_ = hmm.synonym_trans_names_;
 			synonym_trans_ = hmm.synonym_trans_;

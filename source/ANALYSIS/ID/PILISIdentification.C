@@ -238,6 +238,27 @@ namespace OpenMS
 		getPreIdentification_(pre_id, spec_copy, cand_peptides);
 
 		getFinalIdentification_(id, spec_copy, pre_id);
+/*
+		SpectrumAlignment aligner;
+		Param aligner_param(aligner.getParameters());
+		aligner_param.setValue("epsilon", 0.3);
+		aligner.setParameters(aligner_param);
+
+		for (UInt i = 0; i != id.getPeptideHits().size(); ++i)
+		{
+			vector<pair<UInt, UInt> > alignment;
+			aligner.getSpectrumAlignment(alignment, spec_copy, sim_specs_[i]);
+
+			cerr << i << " " << id.getPeptideHits()[i].getSequence() << endl;
+			double rms(0);
+			for (UInt j = 0; j != alignment.size(); ++j)
+			{
+				double mz1(spec_copy.getContainer()[alignment[j].first].getMZ()), mz2(sim_specs_[i].getContainer()[alignment[j].second].getMZ());
+				cerr << mz1 << " " << mz2 << " " << mz1 - mz2 << " " << sim_specs_[i].getContainer()[alignment[j].second].getMetaValue("IonName") << endl;
+				rms += pow(mz1 - mz2, 2.0);
+			}
+			cerr << "RMS=" << sqrt(rms/double(id.getPeptideHits().size())) << endl;
+		}*/
 
 		if ((UInt)param_.getValue("use_evalue_scoring") != 0)
 		{
@@ -253,12 +274,14 @@ namespace OpenMS
 			id.setHits(tmp_hits);
 		}
 
+		
+
 		return;
 	}
 
 	void PILISIdentification::getPreIdentification_(PeptideIdentification& id, const PeakSpectrum& spec, const std::vector<PILISSequenceDB::PepStruct>& cand_peptides)
 	{
-    // get simple spectra for pre-eliminate most of the candidates
+    // get simple spectra to pre-eliminate most of the candidates
     for (vector<PILISSequenceDB::PepStruct>::const_iterator it1 = cand_peptides.begin(); it1 != cand_peptides.end(); ++it1)
     {
       // TODO parameter settings
@@ -277,6 +300,7 @@ namespace OpenMS
 	void PILISIdentification::getFinalIdentification_(PeptideIdentification& id, const PeakSpectrum& spec, const PeptideIdentification& pre_id)
 	{
 		UInt max_candidates = (UInt)param_.getValue("max_candidates");
+		sim_specs_.clear();
 		id.setScoreType("PILIS");
 		for (UInt i = 0; i < pre_id.getHits().size() && i < max_candidates; ++i)
     {
@@ -284,7 +308,7 @@ namespace OpenMS
       AASequence peptide_sequence(sequence);
       PeakSpectrum sim_spec;
       getPILISModel_()->getSpectrum(sim_spec, peptide_sequence, pre_id.getHits()[i].getCharge());
-
+			sim_specs_.push_back(sim_spec);
       double score = (*scorer_)(sim_spec, spec);
       PeptideHit peptide_hit(score, 0, pre_id.getHits()[i].getCharge(), sequence);
       id.insertHit(peptide_hit);

@@ -27,6 +27,7 @@
 #include <OpenMS/FORMAT/MzDataFile.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/FORMAT/OMSSAXMLFile.h>
+#include <OpenMS/FORMAT/MascotInfile.h>
 #include <OpenMS/FORMAT/DTAFile.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
@@ -281,11 +282,14 @@ class TOPPOMSSAAdapter
 			parameters += " -tez " + String(getIntOption_("tez"));
 			parameters += " -tom " + String(getIntOption_("tom"));
 			parameters += " -tem " + String(getIntOption_("tem"));
-			parameters += " -f ";
-			String omssa_tmp_filename("omssa_tmp.dta");
-			parameters += omssa_tmp_filename;
-			parameters += " -ox " + omssa_outfile_name;
-			parameters += " -ni ";
+			//parameters += " -f ";
+			//String omssa_tmp_filename("omssa_tmp.dta");
+			//parameters += omssa_tmp_filename;
+			//-fm
+			parameters += " -fm " + String("omssa_input_file.mgf");
+			//parameters += " -ox " + omssa_outfile_name; // TODO!!!
+			parameters += " -oc omssa_tmp_output.csv";
+			//parameters += " -ni ";
 			parameters += " -he " + String(getDoubleOption_("he"));
 			if (getStringOption_("mf") != "")
 			{
@@ -320,22 +324,26 @@ class TOPPOMSSAAdapter
 			// calculations
 			//-------------------------------------------------------------
 	
-			UInt i(0);
-			for (PeakMap::ConstIterator it = map.begin(); it != map.end(); ++it, ++i)
-			{
-				if (it->getMSLevel() != 2)
-				{
-					continue;
-				}
-				PeakSpectrum spec(*it);
-				spec.getPrecursorPeak().setCharge(1);
-				DTAFile().store(omssa_tmp_filename, spec);
+			//UInt i(0);
+			//for (PeakMap::ConstIterator it = map.begin(); it != map.end(); ++it, ++i)
+			//{
+				MascotInfile omssa_infile;
+				omssa_infile.store("omssa_input_file.mgf", map, "OMSSA search tmp file");
+
+				//if (it->getMSLevel() != 2)
+				//{
+				//	continue;
+				//}
+
+				//PeakSpectrum spec(*it);
+				//spec.getPrecursorPeak().setCharge(1);
+				//DTAFile().store(omssa_tmp_filename, spec);
 				
-				writeDebug_("Precursor position: " + String(spec.getPrecursorPeak().getPosition()[0]), 3);
+				//writeDebug_("Precursor position: " + String(spec.getPrecursorPeak().getPosition()[0]), 3);
 
 				String call = omssa_dir + "/omssacl " + parameters;
 
-				writeDebug_(String(i) + "/" + String(map.size()), 2);
+				//writeDebug_(String(i) + "/" + String(map.size()), 2);
 
 				writeDebug_(call, 5);
 				int status = system(call.c_str());
@@ -343,7 +351,8 @@ class TOPPOMSSAAdapter
 				if (status != 0)
 				{
 					writeLog_("OMSSA problem. Warning, resuming with next spectrum! (Details can be seen in the logfile: \"" + logfile + "\")");
-					//return EXTERNAL_PROGRAM_ERROR;
+					// TODO cleanup
+					return EXTERNAL_PROGRAM_ERROR;
 				}
 
 				// read OMSSA output
@@ -352,6 +361,8 @@ class TOPPOMSSAAdapter
 				ProteinIdentification tmp_protein_id;
 				omssa_out_file.load(omssa_outfile_name, tmp_protein_id, tmp_peptide_ids);
 
+		
+		/*
 				if (tmp_peptide_ids.size() == 1)
 				{
 					writeDebug_(String(i) + ". found " + String(tmp_peptide_ids[0].getHits().size()) + " peptide identifications", 2);
@@ -369,13 +380,14 @@ class TOPPOMSSAAdapter
 					peptide_ids.push_back(tmp_id_data);
 					protein_identifications.push_back(tmp_protein_id);
 				}
-			}
+			}*/
 				
 			//-------------------------------------------------------------
 			// writing output
 			//-------------------------------------------------------------
 			
-			IdXMLFile().store(outputfile_name, protein_identifications, peptide_ids);
+			IdXMLFile().store(outputfile_name, protein_identifications, tmp_peptide_ids);
+			//IdXMLFile().store(outputfile_name, protein_identifications, peptide_ids);
 													 		 												 		 
 			// Deletion of temporary files
 			
