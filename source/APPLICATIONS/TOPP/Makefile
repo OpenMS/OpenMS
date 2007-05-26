@@ -46,7 +46,6 @@ EXECUTABLES=\
 	FileFilter\
 	FileMerger\
 	TOPPView\
-	IdXMLConverter\
 	BaselineFilter\
 	MascotAdapter\
 	InspectAdapter\

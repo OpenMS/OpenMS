@@ -81,7 +81,6 @@ Ideen:
 Todos:
 - DefaultParamHandler: add Descriptions
 - TOPP tutorial: Usecases AW-Daten
-- altes IdXMLFile2 + IdXMLConverter raus (Sequest/InspectAdapter-Test wieder drin?)
 
 Thomas Schreiner:
 - FeatureXML: Options einbauen und testen

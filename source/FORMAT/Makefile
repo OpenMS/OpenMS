@@ -54,7 +54,6 @@ CPP_SOURCES=\
 	MzXMLFile.C\
 	MzDataFile.C\
 	IdXMLFile.C\
-	IdXMLFile2.C\
 	FeatureXMLFile.C\
 	FeaturePairsFile.C\
 	MascotXMLFile.C\
