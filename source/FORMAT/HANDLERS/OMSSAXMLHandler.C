@@ -36,16 +36,14 @@ namespace OpenMS
 	{
   
   OMSSAXMLHandler::OMSSAXMLHandler(ProteinIdentification& protein_identification,
-								  									 vector<PeptideIdentification>& id_data, 
+								  									 vector<PeptideIdentification>& peptide_identifications, 
       								 							 const String& filename) :
     XMLHandler(filename),
     protein_identification_(protein_identification),
-    id_data_(id_data),
-    actual_protein_hit_(),
-    actual_peptide_hit_(),/*
-    peptide_identification_index_(0),*/
-		tag_()/*,
-		date_() */       
+    peptide_identifications_(peptide_identifications),
+    actual_peptide_hit_(),
+		actual_peptide_id_(),
+		tag_()
   {
   	
   }
@@ -57,31 +55,24 @@ namespace OpenMS
   
   void OMSSAXMLHandler::startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const xercesc::Attributes& /*attributes*/)
 	{
-		tag_ = String(XMLString::transcode(qname));
+		tag_ = String(XMLString::transcode(qname)).trim();
 
 		if (tag_ == "MSHitSet_number")
 		{
-			PeptideIdentification id_dat;
-			id_data_.push_back(id_dat);
 			return;
 		}
 
 		if (tag_ == "MSPepHit")
 		{
-			//tag_ = "";
 			return;
 		}
 		if (tag_ == "MSHits")
 		{
-			//actual_peptide_hit_.clear();
-			actual_peptide_hit_ = PeptideHit();
-			//tag_ = "";
 			return;
 		}
 
 		if (tag_ == "MSHitSet")
 		{
-			//tag_ = "";
 			return;
 		}
 	}
@@ -89,35 +80,32 @@ namespace OpenMS
   void OMSSAXMLHandler::endElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname)
  	{
  		tag_ = String(XMLString::transcode(qname)).trim();
+
+		// protein hits (MSPepHits) are handled in ::characters(...)
+
+		// end of peptide hit 
  		if (tag_ == "MSHits")
 		{
-			///cerr << "MSHits " << actual_peptide_hit_.getSequence() << endl;
-			
-			//actual_peptide_hit_.setScoreType("OMSSA");
-			//IdentificationData id_dat;
-			//id_dat.id = ProteinIdentification();
-			//id_dat.id.getHits().push_back(actual_peptide_hit_);
-			//id_data_.push_back(id_dat);
-			if (id_data_.size() == 0)
-			{
-				//IdentificationData id_dat;
-				//id_dat.id = ProteinIdentification();
-				//id_dat.id.getHits().push_back(actual_peptide_hit_);
-				//id_data_.push_back(id_dat);
-			}
-			else
-			{
-				//id_data_[0].id.getHits().push_back(actual_peptide_hit_);
-			}
+			actual_peptide_id_.insertHit(actual_peptide_hit_);
+			actual_peptide_hit_ = PeptideHit();
 			tag_ = "";
 			return;
 		}
+
+		// end of peptide id
+		if (tag_ == "MSHitSet")
+		{
+			peptide_identifications_.push_back(actual_peptide_id_);
+			actual_peptide_id_.assignRanks();
+			actual_peptide_id_ = PeptideIdentification();
+		}
+
 		tag_ = "";
  	} 
 
   void OMSSAXMLHandler::characters(const XMLCh* const chars, unsigned int /*length*/)
   {
-		//cerr << tag_ << " '" << XMLString::transcode(chars) << "'" << endl;
+		String value = ((String)XMLString::transcode(chars)).trim();
 		// MSPepHit section
     // <MSPepHit_start>0</MSPepHit_start>
     // <MSPepHit_stop>8</MSPepHit_stop>
@@ -127,37 +115,33 @@ namespace OpenMS
     // <MSPepHit_oid>6599</MSPepHit_oid>
 		if (tag_ == "MSPepHit_start")
 		{
-      // TODO
       tag_ = "";
       return;
 		}
 		if (tag_ == "MSPepHit_stop")
 		{
-      // TODO
       tag_ = "";
       return;
 		}
 		if (tag_ == "MSPepHit_accession")
 		{
-      // TODO
+      actual_peptide_hit_.addProteinAccession(value);
       tag_ = "";
       return;
 		}
 		if (tag_ == "MSPepHit_defline")
 		{
-      // TODO
+			// TODO add defline to ProteinHit?
       tag_ = "";
       return;
 		}
 		if (tag_ == "MSPepHit_protlength")
 		{
-      // TODO
       tag_ = "";
       return;
 		}
 		if (tag_ == "MSPepHit_oid")
 		{
-      // TODO
       tag_ = "";
       return;
 		}
@@ -173,28 +157,26 @@ namespace OpenMS
     // <MSHits_theomass>1101484</MSHits_theomass>
 		if (tag_ == "MSHits_evalue")
 		{
-			// TODO
+			actual_peptide_hit_.setScore(value.toDouble());
 			tag_ = "";
 			return;
 		}
 		if (tag_ == "MSHits_charge")
 		{
-			//cerr << tag_ << " '" << XMLString::transcode(chars) << "'" << endl;
-			actual_peptide_hit_.setCharge(((String) XMLString::transcode(chars)).trim().toInt());
+			actual_peptide_hit_.setCharge(value.toInt());
 			tag_ = "";
 			return;
 		}
 		if (tag_ == "MSHits_pvalue")
 		{
-			//cerr << tag_ << " '" << XMLString::transcode(chars) << "'" << endl;
-			actual_peptide_hit_.setScore(((String) XMLString::transcode(chars)).trim().toDouble());
+			// TODO extra field?
+			//actual_peptide_hit_.setScore(value.toDouble());
 			tag_ = "";
 			return;
 		}
 		if (tag_ == "MSHits_pepstring")
 		{
-			//cerr << tag_ << " '" << XMLString::transcode(chars) << "'" << endl;
-			actual_peptide_hit_.setSequence(((String)XMLString::transcode(chars)).trim());
+			actual_peptide_hit_.setSequence(value.trim());
 			tag_ = "";
 			return;
 		}
@@ -205,19 +187,25 @@ namespace OpenMS
 		}
 		if (tag_ == "MSHits_pepstart")
 		{
-			// TODO
+			if (value != "")
+			{
+				actual_peptide_hit_.setAABefore(value[0]);
+			}
 			tag_ = "";
 			return;
 		}
 		if (tag_ == "MSHits_pepstop")
 		{
-			// TODO
+			if (value != "")
+			{
+				actual_peptide_hit_.setAAAfter(value[0]);
+			}
 			tag_ = "";
 			return;
 		}
 		if (tag_ == "MSHits_theomass")
 		{
-			// TODO
+			
 			tag_ = "";
 			return;
 		}
@@ -225,3 +213,4 @@ namespace OpenMS
 
 	} // namespace Internal
 } // namespace OpenMS
+

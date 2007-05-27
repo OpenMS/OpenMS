@@ -45,8 +45,9 @@ namespace OpenMS
     public XMLHandler
   {
     public:
+
       /// Default constructor
-      OMSSAXMLHandler(ProteinIdentification& protein_identification, std::vector<PeptideIdentification>& identifications, const String& filename);
+      OMSSAXMLHandler(ProteinIdentification& protein_identification, std::vector<PeptideIdentification>& peptide_identifications, const String& filename);
 
       /// Destructor
       virtual ~OMSSAXMLHandler();
@@ -66,17 +67,21 @@ namespace OpenMS
     	ProteinIdentification& protein_identification_;
 
 			/// the identifications (storing the peptide hits)
-      std::vector<PeptideIdentification>& id_data_;
-      ProteinHit actual_protein_hit_;												
+      std::vector<PeptideIdentification>& peptide_identifications_;
+
+      ProteinHit actual_protein_hit_;
+
       PeptideHit actual_peptide_hit_;
-			//UInt peptide_identification_index_;
+
+			PeptideIdentification actual_peptide_id_;
+
+			ProteinIdentification actual_protein_id_;
+
 			String tag_;
-			//DateTime date_;
-			//String date_time_string_;
-			//UInt actual_query_;
   };
 
 	} // namespace Internal
 } // namespace OpenMS
 
 #endif // OPENMS_FORMAT_HANDLERS_OMSSAXMLHANDLER_H
+

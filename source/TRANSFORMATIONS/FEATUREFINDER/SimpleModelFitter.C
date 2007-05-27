@@ -193,7 +193,7 @@ namespace OpenMS
 		
 		std::cout << "Checking charge state from " << first_mz << " to " << last_mz << std::endl;
 		
-		ProductModel<2>* final;	// model  with best correlation
+		ProductModel<2>* final = 0;	// model  with best correlation
 		
 		// Test charges and stdevs
 		for ( float stdev = iso_stdev_first_; stdev <= iso_stdev_last_; stdev += iso_stdev_stepsize_)

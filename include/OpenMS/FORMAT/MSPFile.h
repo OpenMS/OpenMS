@@ -128,6 +128,13 @@ namespace OpenMS
 			{
 				throw Exception::NotImplemented(__FILE__, __LINE__, __PRETTY_FUNCTION__);
 			}
+
+			protected:
+				
+				template <typename MapType> void parseHeader_(const String& header, MapType& map)
+				{
+					 // TODO
+				}
 		
 	};
 

@@ -50,7 +50,8 @@ using namespace std;
 	
 	@brief Identifies peptides in MS/MS spectra via OMSSA (Open Mass Spectrometry Search Algorithm).
 	
-	todo
+	@todo add OMSSA version
+	@todo safe handling of tmp filenames (host_pid_hours_minutes_seconds.ending)
 */
 
 // We do not want this class to show up in the docu:
@@ -287,8 +288,7 @@ class TOPPOMSSAAdapter
 			//parameters += omssa_tmp_filename;
 			//-fm
 			parameters += " -fm " + String("omssa_input_file.mgf");
-			//parameters += " -ox " + omssa_outfile_name; // TODO!!!
-			parameters += " -oc omssa_tmp_output.csv";
+			parameters += " -oc omssa_tmp_output.xml";
 			//parameters += " -ni ";
 			parameters += " -he " + String(getDoubleOption_("he"));
 			if (getStringOption_("mf") != "")
@@ -324,28 +324,12 @@ class TOPPOMSSAAdapter
 			// calculations
 			//-------------------------------------------------------------
 	
-			//UInt i(0);
-			//for (PeakMap::ConstIterator it = map.begin(); it != map.end(); ++it, ++i)
-			//{
-				MascotInfile omssa_infile;
-				omssa_infile.store("omssa_input_file.mgf", map, "OMSSA search tmp file");
+			MascotInfile omssa_infile;
+			omssa_infile.store("omssa_input_file.mgf", map, "OMSSA search tmp file");
 
-				//if (it->getMSLevel() != 2)
-				//{
-				//	continue;
-				//}
+			String call = omssa_dir + "/omssacl " + parameters;
 
-				//PeakSpectrum spec(*it);
-				//spec.getPrecursorPeak().setCharge(1);
-				//DTAFile().store(omssa_tmp_filename, spec);
-				
-				//writeDebug_("Precursor position: " + String(spec.getPrecursorPeak().getPosition()[0]), 3);
-
-				String call = omssa_dir + "/omssacl " + parameters;
-
-				//writeDebug_(String(i) + "/" + String(map.size()), 2);
-
-				writeDebug_(call, 5);
+			writeDebug_(call, 5);
 				int status = system(call.c_str());
 		
 				if (status != 0)
@@ -361,34 +345,66 @@ class TOPPOMSSAAdapter
 				ProteinIdentification tmp_protein_id;
 				omssa_out_file.load(omssa_outfile_name, tmp_protein_id, tmp_peptide_ids);
 
-		
-		/*
-				if (tmp_peptide_ids.size() == 1)
+				// handle the search parameters
+				ProteinIdentification::SearchParameters search_parameters;
+				search_parameters.db = getStringOption_("d");
+				//search_parameters.db_version = 
+				search_parameters.taxonomy = getStringOption_("x");
+				search_parameters.charges = "+" + getStringOption_("zl") + "-+" + getStringOption_("zh");
+				ProteinIdentification::PeakMassType mass_type = ProteinIdentification::MONOISOTOPIC;
+				if (getIntOption_("tom") == 1)
 				{
-					writeDebug_(String(i) + ". found " + String(tmp_peptide_ids[0].getHits().size()) + " peptide identifications", 2);
-					tmp_peptide_ids[0].setMetaValue("RT", it->getRT());
-					tmp_peptide_ids[0].setMetaValue("MZ", it->getPrecursorPeak().getPosition()[0]);
-					peptide_ids.push_back(tmp_peptide_ids[0]);
-					protein_identifications.push_back(tmp_protein_id);
+					mass_type = ProteinIdentification::AVERAGE;
 				}
 				else
 				{
-					writeDebug_(String(i) + ". found " + String(tmp_peptide_ids.size()) + " peptide identifications", 2);
-					PeptideIdentification tmp_id_data;
-					tmp_id_data.setMetaValue("RT", it->getRT());
-					tmp_id_data.setMetaValue("MZ", it->getPrecursorPeak().getPosition()[0]);
-					peptide_ids.push_back(tmp_id_data);
-					protein_identifications.push_back(tmp_protein_id);
+					if (getIntOption_("tom") != 0)
+					{
+						writeLog_("Warning: unrecognized mass type: " + String(getIntOption_("tom")));
+					}
 				}
-			}*/
+				search_parameters.mass_type = mass_type;
+				vector<String> fixed_mods, var_mods;
+				getStringOption_("mf").split(',', fixed_mods);
+				if (fixed_mods.size() == 0)
+				{
+					if (getStringOption_("mf") != "")
+					{
+						fixed_mods.push_back(getStringOption_("mf"));
+					}
+				}
+				getStringOption_("mv").split(',', var_mods);
+				if (var_mods.size() == 0)
+				{
+					if (getStringOption_("mv") != "")
+					{
+						var_mods.push_back(getStringOption_("mv"));
+					}
+				}
+				search_parameters.fixed_modifications = fixed_mods;
+				search_parameters.variable_modifications = var_mods;
+				ProteinIdentification::DigestionEnzyme enzyme = ProteinIdentification::TRYPSIN;
 				
+				UInt e(getIntOption_("e"));
+				if (e != 0)
+				{
+					writeLog_("Warning: cannot handle enzyme: " + getIntOption_("e"));
+				}
+
+				search_parameters.enzyme = enzyme;
+				search_parameters.missed_cleavages = getIntOption_("v");
+				search_parameters.peak_mass_tolerance = getDoubleOption_("to");
+				search_parameters.precursor_tolerance = getDoubleOption_("te");
+
+				
+				tmp_protein_id.setSearchParameters(search_parameters);
+
+
 			//-------------------------------------------------------------
 			// writing output
 			//-------------------------------------------------------------
-			
 			IdXMLFile().store(outputfile_name, protein_identifications, tmp_peptide_ids);
-			//IdXMLFile().store(outputfile_name, protein_identifications, peptide_ids);
-													 		 												 		 
+			
 			// Deletion of temporary files
 			
 			return EXECUTION_OK;	
