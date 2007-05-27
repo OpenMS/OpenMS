@@ -28,15 +28,9 @@
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/FORMAT/OMSSAXMLFile.h>
 #include <OpenMS/FORMAT/MascotInfile.h>
-#include <OpenMS/FORMAT/DTAFile.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/SYSTEM/File.h>
-
-#include <map>
-#include <iostream>
-#include <fstream>
-#include <string>
 
 using namespace OpenMS;
 using namespace std;
@@ -52,6 +46,7 @@ using namespace std;
 	
 	@todo add OMSSA version
 	@todo safe handling of tmp filenames (host_pid_hours_minutes_seconds.ending)
+	@todo modes to read OMSSA output data and save in idXML format
 */
 
 // We do not want this class to show up in the docu:
@@ -288,7 +283,7 @@ class TOPPOMSSAAdapter
 			//parameters += omssa_tmp_filename;
 			//-fm
 			parameters += " -fm " + String("omssa_input_file.mgf");
-			parameters += " -oc omssa_tmp_output.xml";
+			parameters += " -ox " + omssa_outfile_name;
 			//parameters += " -ni ";
 			parameters += " -he " + String(getDoubleOption_("he"));
 			if (getStringOption_("mf") != "")
@@ -341,16 +336,14 @@ class TOPPOMSSAAdapter
 
 				// read OMSSA output
 				OMSSAXMLFile omssa_out_file;
-				vector<PeptideIdentification> tmp_peptide_ids;
-				ProteinIdentification tmp_protein_id;
-				omssa_out_file.load(omssa_outfile_name, tmp_protein_id, tmp_peptide_ids);
+				omssa_out_file.load(omssa_outfile_name, protein_identification, peptide_ids);
 
 				// handle the search parameters
 				ProteinIdentification::SearchParameters search_parameters;
 				search_parameters.db = getStringOption_("d");
 				//search_parameters.db_version = 
 				search_parameters.taxonomy = getStringOption_("x");
-				search_parameters.charges = "+" + getStringOption_("zl") + "-+" + getStringOption_("zh");
+				search_parameters.charges = "+" + String(getIntOption_("zl")) + "-+" + String(getIntOption_("zh"));
 				ProteinIdentification::PeakMassType mass_type = ProteinIdentification::MONOISOTOPIC;
 				if (getIntOption_("tom") == 1)
 				{
@@ -397,13 +390,28 @@ class TOPPOMSSAAdapter
 				search_parameters.precursor_tolerance = getDoubleOption_("te");
 
 				
-				tmp_protein_id.setSearchParameters(search_parameters);
+				protein_identification.setSearchParameters(search_parameters);
+
+			// write RT and MZ info to peptide identification
+			
+			// TODO test if sizes are equal (map level 2 spectra only)
+			UInt count = 0;
+			for (PeakMap::ConstIterator it = map.begin(); it != map.end(); ++it)
+			{
+				if (it->getMSLevel() == 2)
+				{
+					peptide_ids[count].setMetaValue("RT", it->getRT());
+					peptide_ids[count++].setMetaValue("MZ", it->getPrecursorPeak().getPosition()[0]);
+				}
+			}
 
 
 			//-------------------------------------------------------------
 			// writing output
 			//-------------------------------------------------------------
-			IdXMLFile().store(outputfile_name, protein_identifications, tmp_peptide_ids);
+
+			protein_identifications.push_back(protein_identification); 
+			IdXMLFile().store(outputfile_name, protein_identifications, peptide_ids);
 			
 			// Deletion of temporary files
 			

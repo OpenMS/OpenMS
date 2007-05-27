@@ -232,8 +232,58 @@ class TOPPPILISIdentification
 			//-------------------------------------------------------------
 			// writing output
 			//-------------------------------------------------------------
-		
-			IdXMLFile().store(out, vector<ProteinIdentification>(), ids);
+
+			DateTime now;
+			now.now();
+			String date_string;
+			now.set(date_string);
+			String identifier("PILIS_"+date_string);
+
+			UInt count(0);
+			for (PeakMap::ConstIterator it = exp.begin(); it != exp.end(); ++it)
+			{
+				if (it->getMSLevel() == 2)
+				{
+					ids[count].setMetaValue("RT", it->getRT());
+					ids[count].setMetaValue("MZ", it->getPrecursorPeak().getPosition()[0]);
+
+					ids[count].setIdentifier(identifier);
+					ids[count++].setHigherScoreBetter(false);
+				}
+			}
+
+			// search parameters
+			ProteinIdentification::SearchParameters search_parameters;
+			search_parameters.db = getStringOption_("peptide_db_file");
+			search_parameters.db_version = "";
+			search_parameters.taxonomy = "";
+			search_parameters.charges = getStringOption_("charges");
+			search_parameters.mass_type = ProteinIdentification::MONOISOTOPIC;
+			vector<String> fixed_mods;
+			getStringOption_("fixed_modifications").split(',', fixed_mods);
+			if (fixed_mods.size() == 0)
+			{
+				if (getStringOption_("fixed_modifications") != "")
+				{
+					fixed_mods.push_back(getStringOption_("fixed_modifications"));
+				}
+			}
+			search_parameters.fixed_modifications = fixed_mods;
+			search_parameters.enzyme = ProteinIdentification::TRYPSIN;
+			search_parameters.missed_cleavages = 1;
+			search_parameters.peak_mass_tolerance = getDoubleOption_("peak_mass_tolerance");
+			search_parameters.precursor_tolerance = getDoubleOption_("precursor_mass_tolerance");
+
+			ProteinIdentification protein_identification;
+			protein_identification.setDateTime(now);
+			protein_identification.setSearchEngine("PILIS");
+			protein_identification.setSearchEngineVersion("beta");
+			protein_identification.setSearchParameters(search_parameters);
+			protein_identification.setIdentifier(identifier);
+
+			vector<ProteinIdentification> protein_identifications;
+			protein_identifications.push_back(protein_identification);
+			IdXMLFile().store(out, protein_identifications, ids);
 			
 			return EXECUTION_OK;
 		}
