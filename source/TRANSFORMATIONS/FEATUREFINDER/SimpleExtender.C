@@ -113,6 +113,11 @@ namespace OpenMS
 		// find maximum of region (seed)
 		CoordinateType max_intensity = 0.0;
 		IDX seed;
+		
+		//////// debug
+		String fname = String("last_region");
+		ofstream file(fname.c_str()); 
+		
     for (IndexSet::const_iterator citer = seed_region.begin(); citer != seed_region.end(); ++citer)
     {	
       if (traits_->getPeakIntensity(*citer) > max_intensity)
@@ -120,8 +125,11 @@ namespace OpenMS
         seed = *citer;
         max_intensity = traits_->getPeakIntensity(seed);						
 			}
+			file << traits_->getPeakRt(*citer) << " " << traits_->getPeakMz(*citer) << " " << traits_->getPeakIntensity(*citer) << endl;						
     }
-       		
+		file.close();
+  	///////////     		
+	
 		// remember last extracted point (in this case the seed !)
 		last_pos_extracted_[RawDataPoint2D::RT] = traits_->getPeakRt(seed);
 		last_pos_extracted_[RawDataPoint2D::MZ] = traits_->getPeakMz(seed);
@@ -136,13 +144,13 @@ namespace OpenMS
 		// pass on charge information
 		region_.charge_ = seed_region.charge_;
 		
+		// re-compute intensity threshold 
+		intensity_threshold_ = (double)param_.getValue("intensity_factor") * traits_->getPeakIntensity(seed);
+		
 		cout << "Extending from " << traits_->getPeakRt(seed) << "/" << traits_->getPeakMz(seed); 
 		cout << " (" << seed.first << "/" << seed.second << ")" << endl;
-		cout << "Intensity " << traits_->getPeakIntensity(seed) << endl;
+		cout << "Intensity of seed " << traits_->getPeakIntensity(seed) << " intensity_threshold: " << intensity_threshold_ << endl;
 		
-		//compute intensity threshold 
-		intensity_threshold_ = (double)param_.getValue("intensity_factor") * traits_->getPeakIntensity(seed);
-
     while (!boundary_.empty())
     {
 			// remove peak with highest priority
@@ -150,6 +158,9 @@ namespace OpenMS
 			boundary_.pop();
 						
 			// 	check for corrupt index
+			if ( current_index.first >= traits_->getData().size()) std::cout << "Scan index outside of map!" << std::endl;
+			if ( current_index.second >= traits_->getData()[current_index.first].size() ) std::cout << "Peak index outside of scan!" << std::endl;
+			
     	OPENMS_PRECONDITION(current_index.first<traits_->getData().size(), "Scan index outside of map!");
       OPENMS_PRECONDITION(current_index.second<traits_->getData()[current_index.first].size(), "Peak index outside of scan!");
 
@@ -162,36 +173,30 @@ namespace OpenMS
 			// far away from the seed.			
 			// Add position to the current average of positions weighted by intensity
 			running_avg_.add(last_pos_extracted_,traits_->getPeakIntensity(current_index));
-			
-// 			cout << "Size of boundary: " << boundary_.size() << endl;
-						
+									
 			// explore neighbourhood of current peak
 			moveMzUp_(current_index);
 			moveMzDown_(current_index);
 			moveRtUp_(current_index);
 			moveRtDown_(current_index);
 
-			// check peak flags (if data point is already inside a feature region or used as seed, we discard it)
-// 			if ( traits_->getPeakFlag(current_index) == FeaFiTraits::UNUSED)
-// 			{
-				traits_->getPeakFlag(current_index) = FeaFiTraits::USED;
-				region_.insert(current_index);
-// 				#ifdef DEBUG_FEATUREFINDER
-// 				cout << "Adding " << traits_->getPeakRt(current_index) << " " << traits_->getPeakMz(current_index) << " to region." << endl;
-// 	 			cout << "Intensity of the added point is : " << traits_->getPeakIntensity(current_index) << endl;
-// 				#endif
-// 			}
+			// set peak flags and add to boundary
+			traits_->getPeakFlag(current_index) = FeaFiTraits::USED;
+			region_.insert(current_index);
+
     } // end of while ( !boundary_.empty() )
 
     cout << "Feature region size: " << region_.size() << endl;
     
     return region_;
-
 	} // end of extend
 
 
 	bool SimpleExtender::isTooFarFromCentroid_(const IDX& index)
 	{
+	
+		if ( index.first >= traits_->getData().size()) std::cout << "Scan index outside of map!" << std::endl;
+		if ( index.second >= traits_->getData()[index.first].size() ) std::cout << "Peak index outside of scan!" << std::endl;
 	
   	//Corrupt index
   	OPENMS_PRECONDITION(index.first<traits_->getData().size(), "Scan index outside of map!");

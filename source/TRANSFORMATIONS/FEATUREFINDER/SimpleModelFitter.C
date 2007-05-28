@@ -198,12 +198,9 @@ namespace OpenMS
 		// Test charges and stdevs
 		for ( float stdev = iso_stdev_first_; stdev <= iso_stdev_last_; stdev += iso_stdev_stepsize_)
 		{
-// 			std::cout << "Testing stdev " << stdev << std::endl;
 			for (Int mz_fit_type = first_mz; mz_fit_type <= last_mz; ++mz_fit_type)
 			{
-// 				std::cout << "Testing charge state  " << mz_fit_type << std::endl;
 				quality = fit_(set, static_cast<MzFitting>(mz_fit_type), BIGAUSS, stdev);
-// 				std::cout << "Quality : " << quality << std::endl;
 				if (quality > max_quality)
 				{
 					max_quality = quality;
@@ -363,6 +360,7 @@ namespace OpenMS
 				file << p[RT] << " " << p[MZ] << " " << final->getIntensity(p) << "\n";						
 			}
 		}
+		file.close();
 		
 		// write peaks remaining after model fit
 		fname = String("feature") + counter_ + "_" + rt + "_" + mz;

@@ -119,7 +119,6 @@ namespace OpenMS
 					flags_[i].assign(map_[i].size(),FeaFiTraits::UNUSED);
 				}
 		  }
-
 			
 			/// Const access to LC-MS map
 			inline const MapType& getData() const 
