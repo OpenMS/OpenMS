@@ -402,6 +402,14 @@ FileFilter_test: $(NUMERICDIFF)
 	@$(call RUN_PROG_OPT,FileFilter,-in FileFilter_4_input.mzData -out FileFilter_4_out.tmp -remove_zoom)
 	@$(call TEST_FILE_EQUAL,FileFilter_4_output.mzData,FileFilter_4_out.tmp)
 
+	@$(ECHO) "- Test 5: featureXML (upper bound)"
+	@$(call RUN_PROG_OPT,FileFilter,-in FileFilter_5_input.featureXML -out FileFilter_5_out.tmp -rt :1000 -mz :480 -int :79000 -charge :3 -q :0.6)
+	@$(call TEST_FILE_EQUAL,FileFilter_5_out.featureXML,FileFilter_5_out.tmp)
+
+	@$(ECHO) "- Test 6: featureXML (lower bound)"
+	@$(call RUN_PROG_OPT,FileFilter,-in FileFilter_5_input.featureXML -out FileFilter_6_out.tmp -rt 1000: -mz 440: -int 70000: -charge 3: -q 0.51:)
+	@$(call TEST_FILE_EQUAL,FileFilter_6_out.featureXML,FileFilter_6_out.tmp)
+
 FileInfo_test: $(NUMERICDIFF)
 	@$(ECHO) ""
 	@$(ECHO) "FileInfo:"

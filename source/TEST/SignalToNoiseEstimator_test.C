@@ -67,6 +67,30 @@ class TestSignalToNoiseEstimator
     }
     // do nothing here...
   }
+  virtual DoubleReal getMaxIntensity() const { return 1;}
+  virtual void setMaxIntensity(DoubleReal max_intensity)  { max_intensity = 1;}
+
+  virtual DoubleReal getAutoMaxStdevFactor() const  { return 1;};
+  virtual void setAutoMaxStdevFactor(DoubleReal value) { value = 1;}
+
+  virtual DoubleReal getAutoMaxPercentile() const  { return 1;};
+  virtual void setAutoMaxPercentile(DoubleReal value) { value = 1;}
+
+  virtual inline Int getAutoMode() const  { return 1;};
+  virtual void setAutoMode(Int value) { value = 1;}
+
+  virtual DoubleReal getWinLen() const  { return 1;};
+  virtual void setWinLen(DoubleReal win_len) { win_len = 1;}
+
+  virtual Int getBinCount() const  { return 1;};
+  virtual void setBinCount(Int bin_count) { bin_count = 1;}
+
+  virtual Int getMinReqElements() const  { return 1;};
+  virtual void setMinReqElements(Int min_required_elements) { min_required_elements = 1;}
+
+  virtual DoubleReal getNoiseForEmtpyWindow() const  { return 1;};
+  virtual void setNoiseForEmtpyWindow(DoubleReal noise_for_empty_window) { noise_for_empty_window = 1;} 
+  
 
 };
 

@@ -34,6 +34,9 @@
 using namespace OpenMS;
 using namespace std;
 
+#define DEBUG_TEST
+#undef DEBUG_TEST
+
 START_TEST(SignalToNoiseEstimatorMeanIterative, "$Id$")
 
 /////////////////////////////////////////////////////////////
@@ -49,7 +52,7 @@ CHECK(SignalToNoiseEstimatorMeanIterative())
         TEST_EQUAL(sne.getBinCount(), 30);
         TEST_REAL_EQUAL(sne.getSTDEVMultiplier(), 3);        
         TEST_EQUAL(sne.getMinReqElements(), 10);
-        TEST_REAL_EQUAL(sne.getNoiseForEmtpyWindow(), 2);
+        TEST_REAL_EQUAL(sne.getNoiseForEmtpyWindow(), 1e+20);
         TEST_REAL_EQUAL(sne.getMaxIntensity(), -1);
         TEST_REAL_EQUAL(sne.getAutoMode(), 0);
         TEST_REAL_EQUAL(sne.getAutoMaxPercentile(), 95);
@@ -210,7 +213,7 @@ RESULT
 
 CHECK(DoubleReal getNoiseForEmtpyWindow() const )
   const SignalToNoiseEstimatorMeanIterative<> sne;
-  TEST_EQUAL(sne.getNoiseForEmtpyWindow(), 2);
+  TEST_EQUAL(sne.getNoiseForEmtpyWindow(), 1e+20);
 RESULT
 
 CHECK(void setNoiseForEmtpyWindow(DoubleReal noise_for_empty_window))
@@ -239,21 +242,27 @@ PRECISION(0.5)
   sne.init(raw_data.begin(),raw_data.end());
 
   MSSpectrum < > stn_data;
+  
+#ifdef DEBUG_TEST
+  MSSpectrum < > stn_data__;
+#endif
+  
   dta_file.load("./data/SignalToNoiseEstimatorMeanIterative_test.out", stn_data);
   int i = 0;
   for (it=raw_data.begin();it!=raw_data.end(); ++it)
   {
     TEST_REAL_EQUAL (stn_data[i].getIntensity(), sne.getSignalToNoise(it));
-    
-    //Peak1D peak = (*it);
-    //peak.setIntensity(sne.getSignalToNoise(it));
-    //stn_data.push_back(peak);
+#ifdef DEBUG_TEST    
+    Peak1D peak = (*it);
+    peak.setIntensity(stn_data[i].getIntensity() / sne.getSignalToNoise(it));
+    stn_data__.push_back(peak);
+#endif    
     ++i;
   }
-
-  //dta_file.store("./data/SignalToNoiseEstimatorMeanIterative_test.tmp", stn_data);
   
-  //TEST_FILE("./data/SignalToNoiseEstimatorMeanIterative_test.tmp", "./data/SignalToNoiseEstimatorMeanIterative_test.out");
+#ifdef DEBUG_TEST
+  dta_file.store("./data/SignalToNoiseEstimatorMeanIterative_test.debug", stn_data__);
+#endif  
   
 RESULT
 

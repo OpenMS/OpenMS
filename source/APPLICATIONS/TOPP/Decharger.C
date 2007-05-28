@@ -112,24 +112,11 @@ class TOPPDecharger
     FeatureXMLFile().load(in,map);
     //map.sortByPosition();
 
-    FeatureMapType map_sm;
-    
-    // removing items with charge 1
-    for (uint i = 0; i<map.size(); ++i)
-    {
-      if (map[i].getCharge() > 1)
-      {
-        map_sm.push_back (map[i]);              
-      }
-    }
-  
-    std::cout << "removing features with charge 1...  #Features before: " << map.size() << "#Features after: " << map_sm.size() << "\n";
-
     //-------------------------------------------------------------
     // calculations
     //-------------------------------------------------------------
 
-    fdc.compute(map_sm);
+    fdc.compute(map);
     
     FeatureMapType feature_map = fdc.getFeatureMap();
 

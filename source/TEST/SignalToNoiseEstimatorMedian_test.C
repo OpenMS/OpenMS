@@ -48,7 +48,7 @@ CHECK(SignalToNoiseEstimatorMedian())
         TEST_REAL_EQUAL(sne.getWinLen(), 200);
         TEST_EQUAL(sne.getBinCount(), 30);
         TEST_EQUAL(sne.getMinReqElements(), 10);
-        TEST_REAL_EQUAL(sne.getNoiseForEmtpyWindow(), 2);
+        TEST_REAL_EQUAL(sne.getNoiseForEmtpyWindow(), 1e+20);
         TEST_REAL_EQUAL(sne.getMaxIntensity(), -1);
         TEST_REAL_EQUAL(sne.getAutoMode(), 0);
         TEST_REAL_EQUAL(sne.getAutoMaxPercentile(), 95);
@@ -193,7 +193,7 @@ RESULT
 
 CHECK(DoubleReal getNoiseForEmtpyWindow() const )
   const SignalToNoiseEstimatorMedian<> sne;
-  TEST_EQUAL(sne.getNoiseForEmtpyWindow(), 2);
+  TEST_EQUAL(sne.getNoiseForEmtpyWindow(), 1e+20);
 RESULT
 
 CHECK(void setNoiseForEmtpyWindow(DoubleReal noise_for_empty_window))

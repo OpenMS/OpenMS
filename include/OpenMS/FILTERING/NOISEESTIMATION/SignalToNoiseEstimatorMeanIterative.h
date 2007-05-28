@@ -57,11 +57,11 @@ namespace OpenMS
     Accepted Ini-File Parameters:
     <table>
     <tr><th>Parameter                                               </th><th>  Description                                </th></tr>
-    <tr><td> WindowLength          </td><td>  window length in Thomson                   </td></tr>
+    <tr><td> WinLen          </td><td>  window length in Thomson                   </td></tr>
     <tr><td> BinCount              </td><td>  number of bins used                        </td></tr>
     <tr><td> StdevMP               </td><td>  multiplier for stdev                       </td></tr>
-    <tr><td> MinReqElementsInWindow</td><td>  minimum number of elements required in a window   </td></tr>
-    <tr><td> NoiseEmptyWindow      </td><td>  noise value used for sparse windows        </td></tr>   
+    <tr><td> MinRequiredElements</td><td>  minimum number of elements required in a window   </td></tr>
+    <tr><td> NoiseForEmptyWindow      </td><td>  noise value used for sparse windows        </td></tr>   
       
     <tr><td> MaxIntensity          </td><td> maximal intensity used for histogram construction. By default, it will be calculated automatically (see AutoMode)<br>
                                                  If this parameter is given, the "AutoMode" is ignored 
@@ -125,7 +125,7 @@ namespace OpenMS
         defaults_.setValue("BinCount", 30); 
         defaults_.setValue("StdevMP", 3.0); 
         defaults_.setValue("MinRequiredElements", 10); 
-        defaults_.setValue("NoiseForEmptyWindow", 2.0); 
+        defaults_.setValue("NoiseForEmptyWindow", std::pow(10.0,20)); 
 
         SignalToNoiseEstimator< Container >::defaultsToParam_();
       }
@@ -479,7 +479,7 @@ namespace OpenMS
         {
           std::cerr << "WARNING in SignalToNoiseEstimatorMeanIterative: "
           << sparse_window_percent
-          << "% of all windows were sparse. You should consider decreasing WindowLength and/or MinReqElementsInWindow"
+          << "% of all windows were sparse. You should consider increasing WinLen or increasing MinReqElementsInWindow"
           << " You should also check the MaximalIntensity value (or the parameters for its heuristic estimation)"
           << " If it is too low, then too many high intensity peaks will be discarded, which leads to a sparse window!"
           << std::endl;
