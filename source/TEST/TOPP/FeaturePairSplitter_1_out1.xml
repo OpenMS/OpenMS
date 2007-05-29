@@ -62,6 +62,10 @@
 			</model>
 			<convexhull nr="0">
 				<hullpoint>
+					<hposition dim="0">1236.88</hposition>
+					<hposition dim="1">690</hposition>
+				</hullpoint>
+				<hullpoint>
 					<hposition dim="0">1241.4</hposition>
 					<hposition dim="1">689.6</hposition>
 				</hullpoint>
@@ -100,10 +104,6 @@
 				<hullpoint>
 					<hposition dim="0">1237.52</hposition>
 					<hposition dim="1">690.6</hposition>
-				</hullpoint>
-				<hullpoint>
-					<hposition dim="0">1236.88</hposition>
-					<hposition dim="1">690</hposition>
 				</hullpoint>
 				<hullpoint>
 					<hposition dim="0">1237.52</hposition>
@@ -152,6 +152,10 @@
 			</model>
 			<convexhull nr="0">
 				<hullpoint>
+					<hposition dim="0">1238.8</hposition>
+					<hposition dim="1">676</hposition>
+				</hullpoint>
+				<hullpoint>
 					<hposition dim="0">1243.39</hposition>
 					<hposition dim="1">675.6</hposition>
 				</hullpoint>
@@ -190,10 +194,6 @@
 				<hullpoint>
 					<hposition dim="0">1239.43</hposition>
 					<hposition dim="1">676.4</hposition>
-				</hullpoint>
-				<hullpoint>
-					<hposition dim="0">1238.8</hposition>
-					<hposition dim="1">676</hposition>
 				</hullpoint>
 				<hullpoint>
 					<hposition dim="0">1240.12</hposition>
@@ -320,6 +320,10 @@
 			</model>
 			<convexhull nr="0">
 				<hullpoint>
+					<hposition dim="0">1269.06</hposition>
+					<hposition dim="1">713.6</hposition>
+				</hullpoint>
+				<hullpoint>
 					<hposition dim="0">1270.53</hposition>
 					<hposition dim="1">712.2</hposition>
 				</hullpoint>
@@ -342,10 +346,6 @@
 				<hullpoint>
 					<hposition dim="0">1272.42</hposition>
 					<hposition dim="1">714</hposition>
-				</hullpoint>
-				<hullpoint>
-					<hposition dim="0">1269.06</hposition>
-					<hposition dim="1">713.6</hposition>
 				</hullpoint>
 				<hullpoint>
 					<hposition dim="0">1269.06</hposition>

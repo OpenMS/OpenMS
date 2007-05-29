@@ -40,7 +40,7 @@ namespace OpenMS
 		
 		@todo Use PeakFileOptions and write tests (Thomas S.)
 
-  	@note This format will only be used until the HUPO-PSI AnalysisXML format is finished!
+  	@note This format will eventually be replaced by the HUPO-PSI AnalysisXML format!
   	
   	@ingroup FileIO
   */

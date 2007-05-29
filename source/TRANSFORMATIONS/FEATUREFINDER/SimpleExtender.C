@@ -113,11 +113,7 @@ namespace OpenMS
 		// find maximum of region (seed)
 		CoordinateType max_intensity = 0.0;
 		IDX seed;
-		
-		//////// debug
-		String fname = String("last_region");
-		ofstream file(fname.c_str()); 
-		
+				
     for (IndexSet::const_iterator citer = seed_region.begin(); citer != seed_region.end(); ++citer)
     {	
       if (traits_->getPeakIntensity(*citer) > max_intensity)
@@ -125,10 +121,7 @@ namespace OpenMS
         seed = *citer;
         max_intensity = traits_->getPeakIntensity(seed);						
 			}
-			file << traits_->getPeakRt(*citer) << " " << traits_->getPeakMz(*citer) << " " << traits_->getPeakIntensity(*citer) << endl;						
     }
-		file.close();
-  	///////////     		
 	
 		// remember last extracted point (in this case the seed !)
 		last_pos_extracted_[RawDataPoint2D::RT] = traits_->getPeakRt(seed);

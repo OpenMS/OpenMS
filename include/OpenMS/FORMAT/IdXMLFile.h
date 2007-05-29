@@ -47,7 +47,7 @@ namespace OpenMS
 		PeptideIdentification and (optional) protein hits stored in Identification. Peptide and protein
 		hits are connected via a string identifier. We use the searche engine and the date as identifier.
 		
-  	@note This format will only be used until the HUPO-PSI AnalysisXML format is finished!
+  	@note This format will eventually be replaced by the HUPO-PSI AnalysisXML format!
   	
   	@ingroup FileIO
   */

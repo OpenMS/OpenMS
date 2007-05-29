@@ -74,7 +74,7 @@ class TOPPFileInfo
 		{
 			registerStringOption_("in","<file>","","input file");
 			registerStringOption_("in_type","<type>","","input file type (default: determined from file extension or content)\n"
-			                                            "Valid types are: 'dta', 'mzData', 'mzXML', 'DTA2D', 'ANDIMS' (cdf) , 'FeatureFile'", false);
+			                                            "Valid types are: 'dta', 'mzData', 'mzXML', 'DTA2D', 'ANDIMS' (cdf) , 'FeatureXML'", false);
 			registerFlag_("m","show meta information about the whole experiment");
 			registerFlag_("s","computes a five-number statistics of intensities (and feature qualities)");
 		}

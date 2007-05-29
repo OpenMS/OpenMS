@@ -2,7 +2,7 @@
 -- General information --
 
 file name: FileInfo_3_input.featureXML
-file type: FeatureFile
+file type: FeatureXML
 Number of features: 10
 
 retention time range: 537.41 / 539.232
