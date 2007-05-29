@@ -38,7 +38,7 @@
 
   In addition to the class documentation the following information can be found here:
 	<UL>
-	  <LI> @subpage Tutorial
+	  <LI> @subpage OpenMSTutorial
 	  <LI> @subpage coding_conventions
 	</UL>
 	@if INTERNAL_INFO
@@ -55,8 +55,12 @@
 	TOPP is a pipeline for the analysis of HPLC/MS data. It consists of several small applications that
   can be chained to create analysis pipelines tailored for a specific problem.
 	
-	Documentation of the TOPP tools can be found @subpage TOPP "here".
-	
+	There is a general documentation and a tutorial for TOPP:
+	<UL>
+	  <LI> @subpage TOPP
+	  <LI> @subpage TOPPTutorial 
+	</UL>
+
 	<HR>
 	@section authors_section Developers
 	The %OpenMS project was initiated by Prof. Oliver Kohlbacher and Prof. Knut Reinert.

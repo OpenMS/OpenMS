@@ -27,7 +27,7 @@
 /**
 	@page TOPPTutorial TOPP tutorial
 
-	This tutorial will give you a brief overview of the TOPP tools using thress examples.
+	This tutorial will give you a brief overview of the TOPP tools using three examples.
 
 	@section TOPP_fileformats File formats
 	
@@ -36,10 +36,11 @@
 	- @b featureXML The OpenMS format for quantitation results.
 	- @b idXML The OpenMS format for protein and peptide identification.
 	- @b consensusXML The OpenMS format for alignment of peak and feature data.	
+	- @b featurePairsXML The OpenMS format for feature pairs.
 	
-	Documented schemas of these formats can be found at http://open-ms.sourceforge.net/schemas/.
+	Documented schemas of the OpenMS formats can be found at http://open-ms.sourceforge.net/schemas/.
 	
-	Our formats @a featureXML and @a idXML will only be used until the HUPO-PSI AnalysisXML format is finished!
+	The @a featureXML, @a featurePairsXML and @a idXML format will evantually be replaced by the HUPO-PSI AnalysisXML format.
 	
 	@section TOPP_example1 Example 1: 
 	

@@ -181,7 +181,7 @@
 
 	<H2 style="border-top:2px solid grey;">Releases</H2>
 		<UL>
-				<LI><B>How is an new release created</B>
+				<LI><B>How is an new release created?</B>
 				<OL>
 					<LI> Prepare the release file (OpenMS):
 						<OL>
@@ -205,13 +205,17 @@
 					<LI> Go to "File Releases"
 					<LI> Now you can add your release
 					<LI> Go to "Edit Releases" to change the status of the old release to "hidden" 
+					<LI> Update the online documentation of OpenMS:
+						<OL>
+							<LI> Copy the documentation of the release to '/share/www/ApacheRoot/html/extern/OpenMS-release'.
+							     <BR> <b>Note: </b> Don't forget to execute 'make distclean' and 'configure'.
+						</OL>
 				</OL>
 	
 			<LI><B>Was ist für ein Release zu tun?</B>
 				<OL>
 					<LI> Fehler die 'source/config/tools/checker.php' ausgibt korrigieren
-					<LI> Docu unter 'doc/index.html' korrekturlesen
-					<LI> TOPP-Doku unter 'doc/html/TOPP.html' korrekturlesen
+					<LI> Docu korrekturlesen (OpenMS/TOPP)
 					<LI> Den Output von '&lt;topp-tool&gt; --help' korrekturlesen
 					<LI> Den Output der TOPP-tests 'source/TEST/TOPP/&lt;topp-tool&gt;.output' auf vergessenen Debug-Output prüfen
 				</OL>
