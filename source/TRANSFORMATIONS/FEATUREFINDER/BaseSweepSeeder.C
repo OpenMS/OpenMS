@@ -112,8 +112,13 @@ void BaseSweepSeeder::updateMembers_()
 
 void BaseSweepSeeder::sweep_()
 {
+		// progress logger
+		traits_->startProgress(0, traits_->getData().size() , "FeatureFinder");
+		
 		for (UInt currscan_index = 0; currscan_index < traits_->getData().size(); ++currscan_index)
-		{
+		{		
+			traits_->setProgress(currscan_index);
+		
 			// copy current scan. 
 			// This is necessary as the peak intensities have to be modified in the sumUp_ method
 			SpectrumType current_scan = traits_->getData()[currscan_index];
@@ -306,7 +311,7 @@ void BaseSweepSeeder::filterForOverlaps_()
 			TableIteratorType tmp_iter = iter;			
 			++tmp_iter;
 		
-			CoordinateType mz_dist = 0;
+			CoordinateType mz_dist = tmp_iter->first - iter->first;
 			UInt rt_dist                    = 0;
 
 			if (seen.at(counter)) 
@@ -320,12 +325,14 @@ void BaseSweepSeeder::filterForOverlaps_()
 				bool rt_overlap = false;
 				
 				// test if cluster overlap
-				if (	(iter->second.first_scan_ <= tmp_iter->second.first_scan_ && // first case
-				       iter->second.last_scan_ >= tmp_iter->second.last_scan_ ) ||
-							 (iter->second.first_scan_ <= tmp_iter->second.first_scan_ && // second case
-				       iter->second.last_scan_ >= tmp_iter->second.first_scan_ ) || 
-							 (iter->second.first_scan_ <= tmp_iter->second.last_scan_ && // third case
-				       iter->second.last_scan_ >= tmp_iter->second.last_scan_ )  )
+				if (	(iter->second.first_scan_ >= tmp_iter->second.first_scan_ && // first case
+				       iter->second.first_scan_ <= tmp_iter->second.last_scan_ ) ||
+							(iter->second.last_scan_ >= tmp_iter->second.first_scan_ && // second case
+				       iter->second.last_scan_ <= tmp_iter->second.first_scan_ ) ||
+							(tmp_iter->second.first_scan_ >= iter->second.first_scan_ && // third case
+				       tmp_iter->second.first_scan_ <= iter->second.last_scan_ ) ||
+							(tmp_iter->second.last_scan_ >= iter->second.first_scan_ && // fourth case
+				       tmp_iter->second.last_scan_ <= iter->second.first_scan_ ) )
 				{
 					rt_overlap = true;				
 				}
@@ -333,7 +340,7 @@ void BaseSweepSeeder::filterForOverlaps_()
 				rt_dist   = tmp_iter->second.first_scan_ - iter->second.last_scan_;
 				mz_dist = tmp_iter->first - iter->first;
 				
-				if (rt_dist < max_rt_dist_merging_) rt_overlap = true;
+				//if (rt_dist < max_rt_dist_merging_) rt_overlap = true;
 						
 				// we merge only features with the same charge, overlap in rt and if we haven't seen them yet.
 				if ( tmp_iter->second.peaks_.charge_ == iter->second.peaks_.charge_ 

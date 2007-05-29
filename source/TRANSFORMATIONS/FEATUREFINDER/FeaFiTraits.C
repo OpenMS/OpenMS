@@ -182,15 +182,16 @@ namespace OpenMS
     }
 
     // gather information for fitting summary
-    map<String,int> exception;									//count exceptions
-    int no_exceptions = 0;
-    map<String,int> mz_model;									//count used mz models
-    map<float,int> mz_stdev;										//count used mz standard deviations
-    vector<int> charge(10);											//count used charges
-    double corr_mean=0.0, corr_max=0.0, corr_min=1.0; 	//boxplot for correlation
+    map<String,UInt> exception;									//count exceptions
+    UInt no_exceptions = 0;
+    map<String,UInt> mz_model;							//count used mz models
+    map<float,UInt> mz_stdev;									//count used mz standard deviations
+    vector<UInt> charge(10);											//count used charges
+		
+    QualityType corr_mean=0.0, corr_max=0.0, corr_min=1.0; 	//boxplot for correlation
 
     StopWatch watch;
-    unsigned int seed_count = 0;
+    UInt seed_count = 0;
     try
   	{
       while (true)
@@ -218,13 +219,13 @@ namespace OpenMS
           // gather information for fitting summary
           const Feature& f = features_.back();
 
-          float corr = f.getOverallQuality();
+          QualityType corr = f.getOverallQuality();
           corr_mean += corr;
           if (corr<corr_min) corr_min = corr;
           if (corr>corr_max) corr_max = corr;
 
           // count estimated charge states
-          unsigned int ch = f.getCharge();
+          UInt ch = f.getCharge();
           if (ch>= charge.size())
           {
           	charge.resize(ch);
@@ -277,19 +278,19 @@ namespace OpenMS
     << "\n\tmaximum: " << corr_max << endl;
 
     cout << "Exceptions:\n";
-    for (map<String,Int>::const_iterator it=exception.begin(); it!=exception.end(); ++it)
+    for (map<String,UInt>::const_iterator it=exception.begin(); it!=exception.end(); ++it)
     {
       cout << "\t" << it->first << ": " << it->second*100/no_exceptions << "% (" << it->second << ")\n";
     }
 
     cout << "Chosen mz models:\n";
-    for (map<String,Int>::const_iterator it=mz_model.begin(); it!=mz_model.end(); ++it)
+    for (map<String,UInt>::const_iterator it=mz_model.begin(); it!=mz_model.end(); ++it)
     {
       cout << "\t" << it->first << ": " << it->second*100/size << "% (" << it->second << ")\n";
     }
 
     cout << "Chosen mz stdevs:\n";
-    for (map<float,Int>::const_iterator it=mz_stdev.begin(); it!=mz_stdev.end(); ++it)
+    for (map<float,UInt>::const_iterator it=mz_stdev.begin(); it!=mz_stdev.end(); ++it)
     {
       cout << "\t" << it->first << ": " << it->second*100/(size-charge[0]) << "% (" << it->second << ")\n";
     }
@@ -302,16 +303,17 @@ namespace OpenMS
         cout << "\t+" << i << ": " << charge[i]*100/(size-charge[0]) << "% (" << charge[i] << ")\n";
       }
 		}
-#ifdef DEBUG_FEATUREFINDER
+		
+		#ifdef DEBUG_FEATUREFINDER
     IndexSet empty;
     writeGnuPlotFile_(empty,true,nr_feat);
-#endif
+		#endif
 
     return features_;
 
   } // end of run(seeders, extenders, fitters)
 
-  void FeaFiTraits::writeGnuPlotFile_(IndexSet peaks, bool last,int nr_feat)
+  void FeaFiTraits::writeGnuPlotFile_(IndexSet peaks, bool last,UInt nr_feat)
   {
     // write feature + surrounding region to file
     if (!last)

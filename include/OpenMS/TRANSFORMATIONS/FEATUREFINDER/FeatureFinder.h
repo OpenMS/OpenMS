@@ -31,8 +31,6 @@
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/BaseExtender.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeaFiTraits.h>
 
-#include <OpenMS/CONCEPT/ProgressLogger.h>
-
 namespace OpenMS
 {
   class BaseModelFitter;
@@ -75,17 +73,23 @@ namespace OpenMS
 		model fitting classes.
 		
 		@note The input data should be sorted and not contain any tandem spectra.
-	  	
+		  	
 		@ingroup FeatureFinder
 	*/
-	class FeatureFinder :  public ProgressLogger
+	class FeatureFinder 
 	{
 		public:
+			/// seeder
 	    typedef std::vector<BaseSeeder*> SeederVector;
-	    typedef std::vector<BaseExtender*> ExtenderVector;
-	    typedef std::vector<BaseModelFitter*> FitterVector;
+	    /// extender
+			typedef std::vector<BaseExtender*> ExtenderVector;
+	    /// model fitter
+			typedef std::vector<BaseModelFitter*> FitterVector;
+			/// LC-MS data structures
 			typedef FeaFiTraits::MapType MapType;
-	
+			///Possible log types
+			typedef ProgressLogger::LogType LogType;
+				
 	    /// Default constructor.
 	    FeatureFinder();
 	    /// copy constructor
@@ -133,6 +137,7 @@ namespace OpenMS
 	    */
 	    bool setParam(const Param& param);
 	
+			void setLogType(LogType lg) const { traits_->setLogType(lg); };
 	
 	    /// Sets data using instance of MSExperimentExtern.
 	    template <class SpectrumIteratorType>

@@ -130,7 +130,7 @@ namespace OpenMS
 
 			/** @brief set the offset of the model
 
-				The whole model will be shifted to the new offset without being computing all over.
+				The whole model will be shifted to the new offset without being recomputed all over.
 				Setting takes affect immediately.
 			*/
 			virtual void setOffset(CoordinateType offset)

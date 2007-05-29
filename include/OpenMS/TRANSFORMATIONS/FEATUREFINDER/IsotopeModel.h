@@ -33,10 +33,8 @@
 namespace OpenMS
 {
   /** @brief Isotope distribution approximated using linear interpolation.
-	
-		@note: why is the sum of the intensities not 1 ??
-
-		Parameters:
+			
+			Parameters:
 		<table>
 			<tr><td>interpolation_step</td>
 					<td>step size used to interpolate model</td></tr>

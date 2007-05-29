@@ -158,7 +158,7 @@ namespace OpenMS
 		for (IndexSet::const_iterator it=set.begin(); it!=set.end(); ++it) 
 		{
 			FeaFiTraits::PositionType2D p = traits_->getPeakPos(*it);
-			file2 << p[1] << " " << p[0] << " " << traits_->getPeakIntensity(*it) << "\n";						
+			file2 << p[0] << " " << p[1] << " " << traits_->getPeakIntensity(*it) << "\n";						
 		}
 		file2.close();
 		#endif

@@ -179,7 +179,6 @@ namespace OpenMS
 			(*it)->setTraits(traits_);
 		}
 		
-		startProgress(100, 100, "FeatureFinder");
 		return traits_->run(seeders_,extenders_,fitters_);
 	}
 	

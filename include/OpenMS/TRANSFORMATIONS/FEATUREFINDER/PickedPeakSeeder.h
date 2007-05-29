@@ -85,12 +85,12 @@ namespace OpenMS
 			/// a single MS spectrum
 			typedef BaseSweepSeeder::SpectrumType SpectrumType;
 			
-		/// charge state estimate with associated score
-		typedef BaseSweepSeeder::ScoredChargeType ScoredChargeType;
-		/// m/z position in spectrum with charge estimate and score
-		typedef BaseSweepSeeder::ScoredMZType ScoredMZType;
-		/// container of scored m/z positions
-		typedef BaseSweepSeeder::ScoredMZVector ScoredMZVector;
+			/// charge state estimate with associated score
+			typedef BaseSweepSeeder::ScoredChargeType ScoredChargeType;
+			/// m/z position in spectrum with charge estimate and score
+			typedef BaseSweepSeeder::ScoredMZType ScoredMZType;
+			/// container of scored m/z positions
+			typedef BaseSweepSeeder::ScoredMZVector ScoredMZVector;
 		
 	    /// Default constructor
 	    PickedPeakSeeder();

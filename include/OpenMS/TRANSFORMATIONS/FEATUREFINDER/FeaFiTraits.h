@@ -36,6 +36,8 @@
 
 #include <OpenMS/DATASTRUCTURES/IsotopeCluster.h>
 
+#include <OpenMS/CONCEPT/ProgressLogger.h>
+
 #include <set>
 
 namespace OpenMS
@@ -51,7 +53,7 @@ namespace OpenMS
 
 		@ingroup FeatureFinder 	
 	*/
-	class FeaFiTraits
+	class FeaFiTraits : public ProgressLogger
 	{
 		public:
 			/// Int in a MSExperiment ( first index denotes rt, second m/z )
@@ -69,8 +71,10 @@ namespace OpenMS
 	    typedef MapType::IntensityType IntensityType;
 	    /// Coordinate type of the map
 	    typedef MapType::CoordinateType CoordinateType;
+			/// Quality type 
+			typedef Feature::QualityType QualityType;
 				
-	    /// 2D position type (needed for models)
+	    /// 2D position type (needed for averagine model)
 	    typedef DPosition<2> PositionType2D;
 	
 			/// No successor exception
@@ -207,7 +211,7 @@ namespace OpenMS
 	
 		protected:
 	  	/// Writes gnuplot output (only for debugging purposes)
-	    void writeGnuPlotFile_(IndexSet peaks, bool last,int nr_feat);
+	    void writeGnuPlotFile_(IndexSet peaks, bool last,UInt nr_feat);
 	
 	    /// Container for peak data
 	    MapType map_;

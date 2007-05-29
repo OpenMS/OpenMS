@@ -78,7 +78,7 @@ namespace OpenMS
 				noise_threshold = int_perc * traits_->getData().getMaxInt();			
 			}
 			
-			//reserve space for a quater of the peaks
+			//reserve space for a quarter of the peaks
 			indizes_.reserve((std::vector<IDX>::size_type)round(traits_->getData().getSize() / 4.0));
 			//fill indices for peaks above noise threshold
 			IDX tmp = make_pair(0,0);
@@ -94,6 +94,7 @@ namespace OpenMS
 					++tmp.second;
 				}
 				++tmp.first;
+							
 			}
 #ifdef DEBUG_FEATUREFINDER
  		std::cout	<< "Number of peaks above threshold (" << noise_threshold	<< "): " << indizes_.size() << endl;
@@ -101,7 +102,10 @@ namespace OpenMS
 			
 			// sort index vector by intensity of peaks (highest first)
 			sort(indizes_.rbegin(),indizes_.rend(),SimpleSeeder::IntensityLess::IntensityLess(traits_));
-		
+
+			// progress logger
+			traits_->startProgress(1, indizes_.size() , "FeatureFinder");
+					
 			current_peak_ = indizes_.begin();
 			is_initialized_ = true;
 		}
@@ -110,7 +114,7 @@ namespace OpenMS
 		// jump to next peak...
 		while (current_peak_ != indizes_.end() && traits_->getPeakFlag(*current_peak_) == FeaFiTraits::USED) 
 		{
-			current_peak_++;
+			++current_peak_;
 		}
 
 		if (current_peak_ == indizes_.end()) 
@@ -119,6 +123,7 @@ namespace OpenMS
 		}
 		
 		nr_seeds_++;
+		traits_->setProgress(nr_seeds_);
 		
 		// set flag
 		traits_->getPeakFlag(*current_peak_) = FeaFiTraits::USED;
