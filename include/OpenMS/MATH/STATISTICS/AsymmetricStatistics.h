@@ -21,7 +21,7 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Clemens Groepl $
+// $Maintainer: Clemens Groepl, Marcel Grunert $
 // --------------------------------------------------------------------------
 
 #ifndef OPENMS_MATH_STATISTICS_ASYMMETRICSTATISTICS_H
@@ -46,11 +46,12 @@ namespace OpenMS
 			used for consistency with BasisStatistic class
 			
 			@improvement Various performance improvements are possible, see code. (Clemens)
-			@todo Write test and documentation. (Clemens, Marcel)
 		*/
+
 		template < typename Real = double >
 		class AsymmetricStatistics : public BasicStatistics<Real>
 		{
+			/// The real type and basic statistics specified as template argument.
 			typedef BasicStatistics<Real> Base;
 			typedef typename Base::RealType RealType;
 
@@ -60,6 +61,8 @@ namespace OpenMS
 			Base::variance_;
 			
 		 public:
+
+			/// Default constructor.
 			AsymmetricStatistics()
 				: BasicStatistics<>(),
 					variance1_(1.0),
@@ -69,10 +72,12 @@ namespace OpenMS
 			RealType variance1() const throw(){ return variance1_; }
 			RealType variance2() const throw(){ return variance2_; }
 
+			/// Use this constructor if you want to update() immediately.
 			template < typename ProbabilityIterator, typename CoordinateIterator >
+			/** You can call this as often as you like, using different input vectors. */
 			void update( ProbabilityIterator const probability_begin,
-									 ProbabilityIterator const probability_end,
-									 CoordinateIterator  const coordinate_begin)
+				     ProbabilityIterator const probability_end,
+				     CoordinateIterator  const coordinate_begin)
 			{
 				clear();
 				variance1_ = 0;
@@ -124,7 +129,9 @@ namespace OpenMS
 				variance2_ /= sum2;
 				variance_ /= sum_;
 			}
+
 		 protected:
+			/// @name Protected Members
 			RealType variance1_, variance2_;
 		};
 		
