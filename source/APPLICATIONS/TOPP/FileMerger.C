@@ -47,8 +47,8 @@ using namespace std;
 	
 	The meta information that is valid for the whole experiment is taken from the first file.
 	
-	The retention times for the individual scans are taken from the input file(s) metadata,
-	form the input file names or are generated.
+	The retention times for the individual scans are taken from the input file(s) meta data,
+	from the input file names or are generated.
 */
 
 // We do not want this class to show up in the docu:

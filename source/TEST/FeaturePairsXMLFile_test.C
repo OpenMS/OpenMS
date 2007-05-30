@@ -27,11 +27,11 @@
 #include <OpenMS/CONCEPT/ClassTest.h>
 ///////////////////////////
 
-#include <OpenMS/FORMAT/FeaturePairsFile.h>
+#include <OpenMS/FORMAT/FeaturePairsXMLFile.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/ElementPair.h>
 ///////////////////////////
 
-START_TEST(FeaturePairsFile, "$Id$")
+START_TEST(FeaturePairsXMLFile, "$Id$")
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
@@ -39,21 +39,21 @@ START_TEST(FeaturePairsFile, "$Id$")
 using namespace OpenMS;
 using namespace std;
 
-FeaturePairsFile* ptr = 0;
-CHECK((FeaturePairsFile()))
-	ptr = new FeaturePairsFile();
+FeaturePairsXMLFile* ptr = 0;
+CHECK((FeaturePairsXMLFile()))
+	ptr = new FeaturePairsXMLFile();
 	TEST_NOT_EQUAL(ptr, 0)
 RESULT
 
-CHECK((~FeaturePairsFile()))
+CHECK((~FeaturePairsXMLFile()))
 	delete ptr;
 RESULT
 
 CHECK((void load(String filename, DFeaturePairVector<D>& pairs) throw(Exception::FileNotFound, Exception::ParseError)))
 	std::vector< ElementPair < Feature > >  pvector;
-	FeaturePairsFile pfile;
+	FeaturePairsXMLFile pfile;
 		   
-  pfile.load("data/FeaturePairsFile.xml",pvector);
+  pfile.load("data/FeaturePairsXMLFile.xml",pvector);
   ElementPair< Feature > pair = pvector.back();
   
   Feature first  = pair.getFirst();
@@ -72,13 +72,13 @@ RESULT
 CHECK((void store(String filename, const DFeaturePairVector<D>& pairs) const throw(Exception::UnableToCreateFile)))
 	std::string tmp_filename;
   std::vector< ElementPair < Feature > >  pvector;
-	FeaturePairsFile pfile;
+	FeaturePairsXMLFile pfile;
   
   NEW_TMP_FILE(tmp_filename);
-  pfile.load("data/FeaturePairsFile.xml",pvector);
+  pfile.load("data/FeaturePairsXMLFile.xml",pvector);
 	pfile.store(tmp_filename,pvector);
 	
-	TEST_FILE(tmp_filename.c_str(), "data/FeaturePairsFile.xml");
+	TEST_FILE(tmp_filename.c_str(), "data/FeaturePairsXMLFile.xml");
 RESULT
 
 /////////////////////////////////////////////////////////////

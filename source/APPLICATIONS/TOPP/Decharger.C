@@ -68,8 +68,8 @@ class TOPPDecharger
  protected:
   void registerOptionsAndFlags_()
   {
-    registerStringOption_("in","<file>","","input feat file");
-    registerStringOption_("out","<file>","","output feat file");
+    registerStringOption_("in","<file>","","input FeatureXML file");
+    registerStringOption_("out","<file>","","output FeatureXML file");
 
     addEmptyLine_();
     addText_("All other options of the Decharger depend on the FeatureDecharger and HierarchicalClustering used.\n"

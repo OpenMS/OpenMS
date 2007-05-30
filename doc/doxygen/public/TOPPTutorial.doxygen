@@ -27,16 +27,16 @@
 /**
 	@page TOPPTutorial TOPP tutorial
 
-	This tutorial will give you a brief overview of the TOPP tools using three examples.
+	This tutorial will give you a brief overview of the most important TOPP tools.
 
 	@section TOPP_fileformats File formats
 	
 	The main file formats for TOPP are:
 	- @b mzData The HUPO-PSI standard format for mass spectrometry data.
-	- @b featureXML The OpenMS format for quantitation results.
-	- @b idXML The OpenMS format for protein and peptide identification.
-	- @b consensusXML The OpenMS format for alignment of peak and feature data.	
-	- @b featurePairsXML The OpenMS format for feature pairs.
+	- @b featureXML The %OpenMS format for quantitation results.
+	- @b idXML The %OpenMS format for protein and peptide identification.
+	- @b consensusXML The %OpenMS format for alignment of peak and feature data.	
+	- @b featurePairsXML The %OpenMS format for feature pairs.
 	
 	Documented schemas of the OpenMS formats can be found at http://open-ms.sourceforge.net/schemas/.
 	

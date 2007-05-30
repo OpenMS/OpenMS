@@ -44,13 +44,11 @@ using namespace std;
 	@brief Dewarps a feature map by applying a transform to
 	the coordinates of each feature.
 	
-	The dewarping is the last and optional step in a map
-	matching workflow. The transform was computed in the map matching
-	step of the workflow. Currently, we use a piecewise
-	linear transform, but others can be implemented easily. This
+	The dewarping is the last step in a map matching workflow. 
+	The transform computed in the MapMatcher is now applied to the peak positions.
+	Currently, we use a piecewise linear transform, but others can be implemented easily. This
 	module simply applies this transform to the coordinates
 	of each feature contained in the corresponding grid cells.
-		
 */
 
 // We do not want this class to show up in the docu:
@@ -69,7 +67,7 @@ protected:
 
   void registerOptionsAndFlags_()
   {
-		registerStringOption_("feat","<file>","","the feature map to be transformed");
+		registerStringOption_("feat","<file>","","the input FeatureXML file to be transformed");
 		registerStringOption_("grid","<file>","","grid covering the map to be transformed");
     registerStringOption_("out","<file>","","dewarped feature map");
   }

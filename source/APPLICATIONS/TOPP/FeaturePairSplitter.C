@@ -24,7 +24,7 @@
 // $Maintainer: Clemens Groepl $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/FORMAT/FeaturePairsFile.h>
+#include <OpenMS/FORMAT/FeaturePairsXMLFile.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/DATASTRUCTURES/Date.h>
 
@@ -45,7 +45,7 @@ using namespace std;
 /**
 	@page FeaturePairSplitter FeaturePairSplitter
 
-	@brief Splits a feature pair file into two featureXML files.
+	@brief Splits a featurePairsXML file into two featureXML files.
 
 	This is just a small utility.  The features are copied from the pairs.  The
 	relative order of features is preserved.  For example the first two features
@@ -53,11 +53,9 @@ using namespace std;
 	The <i>quality</i> information of the feature pairs can be written to a third
 	file.
 
-  The input file is parsed by DFeaturePairsFile; a typical file name extension
-  would be ".pairs.xml".
+  A typical file name extension for the inpue would be ".featurePairsXML".
 
-  The two output files are written by FeatureXMLFile; a typical file name
-  extension would be '.featureXML'.
+ 	A typical file name extension for the two output files would be '.featureXML'.
 
 	The qualities are written one per line; a typical file name extension would be '.txt'.
 
@@ -81,9 +79,9 @@ class TOPPFeaturePairSplitter
   
   void registerOptionsAndFlags_()
   {
-    registerStringOption_("in","<file>","","input file");
-    registerStringOption_("out1","<file>","","first feature output file",false);
-    registerStringOption_("out2","<file>","","second feature output file",false);
+    registerStringOption_("in","<file>","","input FeaturePairsXML file");
+    registerStringOption_("out1","<file>","","first FeatureXML output file",false);
+    registerStringOption_("out2","<file>","","second FeatureXML output file",false);
     registerStringOption_("qual","<file>","","pair qualtities output file",false);
     registerStringOption_("dump","<files>","","pair dump output file (writes two files: <file> and <file>.gp)",false);
   }
@@ -107,7 +105,7 @@ class TOPPFeaturePairSplitter
 
 		// load data from input file.
     FeaturePairVector feature_pairs;
-		FeaturePairsFile feature_pairs_file;
+		FeaturePairsXMLFile feature_pairs_file;
 		feature_pairs_file.load(in,feature_pairs);
 
 		// store the data

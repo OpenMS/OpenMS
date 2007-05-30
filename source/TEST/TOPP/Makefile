@@ -492,7 +492,7 @@ LabeledMatcher_test: $(NUMERICDIFF)
 	@$(ECHO) ""
 	@$(ECHO) "LabeledMatcher:"
 	@$(call RUN_PROG_OPT,LabeledMatcher,-in LabeledMatcher_1_input.featureXML -ini LabeledMatcher_1_parameters.ini -out LabeledMatcher_1_output.tmp)
-	@$(call TEST_FILE_EQUAL,LabeledMatcher_1_output.pairs,LabeledMatcher_1_output.tmp)
+	@$(call TEST_FILE_EQUAL,LabeledMatcher_1_output.featurePairsXML,LabeledMatcher_1_output.tmp)
 
 
 MapAlignment_test: $(NUMERICDIFF)
@@ -518,7 +518,7 @@ MapAlignment_test: $(NUMERICDIFF)
 MapMatcher_test: $(NUMERICDIFF)
 	@$(ECHO) ""
 	@$(ECHO) "MapMatcher:"
-	@$(call RUN_PROG_OPT,MapMatcher,-pairs MapMatcher_1_input.pairs -grid MapMatcher_1_input.grid -out MapMatcher_1_output_grid.tmp)
+	@$(call RUN_PROG_OPT,MapMatcher,-pairs MapMatcher_1_input.featurePairsXML -grid MapMatcher_1_input.grid -out MapMatcher_1_output_grid.tmp)
 	@$(call TEST_FILE_EQUAL,MapMatcher_1_output.grid,MapMatcher_1_output_grid.tmp)
 
 MascotAdapter_test: $(NUMERICDIFF)
@@ -681,9 +681,9 @@ PairwiseSuperposition_test: $(NUMERICDIFF)
 	@$(ECHO) "  Find pairs using simple UnlabeledMatcher..."
 	@$(call RUN_PROG_OPT,UnlabeledMatcher,-ini PairwiseSuperposition_1_parameters.ini -in1 PairwiseSuperposition_1_input1.featureXML -in2 PairwiseSuperposition_1_input2.featureXML -pairs PairwiseSuperposition_1_output1_pairs.tmp -grid PairwiseSuperposition_1_output1_grid.tmp)
 	@$(call TEST_FILE_EQUAL,PairwiseSuperposition_1_output1.grid,PairwiseSuperposition_1_output1_grid.tmp)
-	@$(call TEST_FILE_EQUAL,PairwiseSuperposition_1_output1.pairs,PairwiseSuperposition_1_output1_pairs.tmp)
+	@$(call TEST_FILE_EQUAL,PairwiseSuperposition_1_output1.featurePairsXML,PairwiseSuperposition_1_output1_pairs.tmp)
 	@$(ECHO) "  Find affine map by linear regression using MapMatcher..."
-	@$(call RUN_PROG_OPT,MapMatcher,-pairs PairwiseSuperposition_1_output1.pairs -grid PairwiseSuperposition_1_output1.grid -out PairwiseSuperposition_1_output2_grid.tmp)
+	@$(call RUN_PROG_OPT,MapMatcher,-pairs PairwiseSuperposition_1_output1.featurePairsXML -grid PairwiseSuperposition_1_output1.grid -out PairwiseSuperposition_1_output2_grid.tmp)
 	@$(call TEST_FILE_EQUAL,PairwiseSuperposition_1_output2.grid,PairwiseSuperposition_1_output2_grid.tmp)
 	@$(ECHO) "  Apply affine map using MapDewarper..."
 	@$(call RUN_PROG_OPT,MapDewarper,-feat PairwiseSuperposition_1_input1.featureXML -grid PairwiseSuperposition_1_output2.grid -out PairwiseSuperposition_1_output1_feat.tmp)

@@ -24,23 +24,23 @@
 // $Maintainer: Eva Lange $
 // --------------------------------------------------------------------------
 
-#include<OpenMS/FORMAT/FeaturePairsFile.h>
+#include<OpenMS/FORMAT/FeaturePairsXMLFile.h>
 
 namespace OpenMS
 {
 
   // not much going on here...
 
-  FeaturePairsFile::FeaturePairsFile()
+  FeaturePairsXMLFile::FeaturePairsXMLFile()
       : SchemaFile()
   {
   }
   ///Destructor
-  FeaturePairsFile::~FeaturePairsFile()
+  FeaturePairsXMLFile::~FeaturePairsXMLFile()
   {
   }
 
-  void FeaturePairsFile::pairsToFeatures(const std::vector< ElementPair < Feature > > & pairs, FeatureMap<>& map)
+  void FeaturePairsXMLFile::pairsToFeatures(const std::vector< ElementPair < Feature > > & pairs, FeatureMap<>& map)
   {
     map.clear();
 
@@ -51,13 +51,13 @@ namespace OpenMS
     }
   }
 
-  void FeaturePairsFile::load(String filename, std::vector< ElementPair < Feature > > & pairs) throw (Exception::FileNotFound, Exception::ParseError)
+  void FeaturePairsXMLFile::load(String filename, std::vector< ElementPair < Feature > > & pairs) throw (Exception::FileNotFound, Exception::ParseError)
   {
     Internal::FeaturePairsHandler handler(pairs,filename);
     parse_(filename, &handler);
   }
 
-  void FeaturePairsFile::store(String filename, const std::vector< ElementPair < Feature > > & pairs) const throw (Exception::UnableToCreateFile)
+  void FeaturePairsXMLFile::store(String filename, const std::vector< ElementPair < Feature > > & pairs) const throw (Exception::UnableToCreateFile)
   {
     if (pairs.empty()) return;
     Internal::FeaturePairsHandler handler(pairs,filename);

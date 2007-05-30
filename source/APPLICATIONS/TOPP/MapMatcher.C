@@ -31,7 +31,7 @@
 #include <OpenMS/ANALYSIS/MAPMATCHING/ElementPair.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/Grid.h>
 #include <OpenMS/FORMAT/GridFile.h>
-#include <OpenMS/FORMAT/FeaturePairsFile.h>
+#include <OpenMS/FORMAT/FeaturePairsXMLFile.h>
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 
@@ -53,14 +53,15 @@ using namespace std;
 	@brief Computes a transformation for a list of feature pairs.
 
 	This is the second step in the map matching workflow. This application
-	takes a list of feature pairs as computed by the FeatureMatcher and
+	takes a list of feature pairs as computed by the UnlabeledMatcher and
 	a grid (partially) covering the LC/MS map. For each grid cell, a
 	transformation is computed that maps the feature partners on each
 	other. Currently, this transformation is linear.
 
 	The output of this application is the list of grid cells with the
 	estimated transformation.
-
+	
+	The next step in the map matching workflow is done by MapDewarper.
 */
 
 // We do not want this class to show up in the docu:
@@ -79,7 +80,7 @@ class TOPPMapMatcher
 
 	void registerOptionsAndFlags_()
 	{
-		registerStringOption_("pairs","<file>","","input feature pairs file");
+		registerStringOption_("pairs","<file>","","input FeaturePairsXML file");
 		registerStringOption_("grid","<file>","","input grid file");
 		registerStringOption_("out","<file>","","output grid file");
 		registerDoubleOption_("min_quality","<double>",0,"minimum quality of pairs considered",false);
@@ -111,7 +112,7 @@ class TOPPMapMatcher
 		writeLog_("Reading grid file " + grid_filename );
 		grid_file.load(grid_filename, grid);
 
-		FeaturePairsFile pairs_file;
+		FeaturePairsXMLFile pairs_file;
     std::vector< ElementPair < Feature > > pairs_vector;
 		writeLog_("Reading pairs file " + pairs_filename );
 		pairs_file.load(pairs_filename, pairs_vector);

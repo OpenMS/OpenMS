@@ -24,7 +24,7 @@
 // $Maintainer: Marc Sturm $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/FORMAT/FeaturePairsFile.h>
+#include <OpenMS/FORMAT/FeaturePairsXMLFile.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/PairMatcher.h>
 #include <OpenMS/KERNEL/ComparatorUtils.h>
@@ -71,9 +71,9 @@ class TOPPLabeledMatcher
 	
 	  void registerOptionsAndFlags_()
 	  {
-			registerStringOption_("in","<file>","","input file in FeatureMap format");
-			registerStringOption_("out","<file>","","output file in FeaturePairs format");
-			registerStringOption_("best","<file>","","output file of the best pairs in FeaturePairs format", false);
+			registerStringOption_("in","<file>","","input file in FeatureXML format");
+			registerStringOption_("out","<file>","","output file in FeaturePairsXML format");
+			registerStringOption_("best","<file>","","output file of the best pairs in FeaturePairsXML format", false);
 	  	addEmptyLine_();
 	  	addText_("RT and m/z shifts and ranges can currently only be given in the 'algorithm' part of INI file:\n"
 							 "  <NODE name=\"algorithm\">\n"
@@ -134,12 +134,12 @@ class TOPPLabeledMatcher
 	    //-------------------------------------------------------------
 	
 	    writeDebug_(String(" Writing results to ") + outputfile, 1 );
-	    FeaturePairsFile().store(outputfile,*pairs);
+	    FeaturePairsXMLFile().store(outputfile,*pairs);
 			
 			writeDebug_(String(" Writing results to ") + best_outputfile, 1 );
 			if (best_outputfile!="")
 	    {
-	    	FeaturePairsFile().store(best_outputfile,pm.getBestPairs());
+	    	FeaturePairsXMLFile().store(best_outputfile,pm.getBestPairs());
 	    }
 			
 	    return EXECUTION_OK;

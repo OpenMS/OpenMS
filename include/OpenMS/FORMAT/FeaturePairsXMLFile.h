@@ -24,8 +24,8 @@
 // $Maintainer: Eva Lange $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_FORMAT_FEATUREPAIRSFILE_H
-#define OPENMS_FORMAT_FEATUREPAIRSFILE_H
+#ifndef OPENMS_FORMAT_FeaturePairsXMLFile_H
+#define OPENMS_FORMAT_FeaturePairsXMLFile_H
 
 #include <OpenMS/FORMAT/SchemaFile.h>
 #include <OpenMS/FORMAT/HANDLERS/FeaturePairsHandler.h>
@@ -43,16 +43,16 @@ namespace OpenMS
 
     @ingroup FileIO
   */
-  class FeaturePairsFile
+  class FeaturePairsXMLFile
         : public Internal::SchemaFile
   {
   public:
     /** @name Constructors and Destructor */
     //@{
     ///Default constructor
-    FeaturePairsFile();
+    FeaturePairsXMLFile();
     ///Destructor
-    ~FeaturePairsFile();
+    ~FeaturePairsXMLFile();
     //@}
 
     /** @name Accessors */
@@ -74,4 +74,4 @@ namespace OpenMS
 
 } // namespace OpenMS
 
-#endif // OPENMS_FORMAT_DFEATUREPAIRSFILE_H
+#endif // OPENMS_FORMAT_DFeaturePairsXMLFile_H

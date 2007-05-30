@@ -56,19 +56,14 @@ using namespace std;
 	
 	<b>Finding the right parameters:</b><br>
 	Finding the right parameters for the peak picking is not trivial. The default parameters
-	will not work on most datasets. In order to find the standard parameters we propose the
+	will not work on most datasets. In order to find good parameters we propose the
 	following procedure:
-	-# Extract a single scan from your data
-		- You can do that using the \ref DTAExtractor tool
-		- You should extract a scan from the middle of the gradient. To get information about the
-	    gradient length, you can use the \ref FileInfo tool.
-	-# Load the scan in TOPPView
+	-# Load the data in TOPPView
+	-# Extract a single scan from the middle of the HPLC gradient (Right click on scan)
 	-# Experiment with the peak picking parameters until you have found the proper settings
-		- You can find the peak picker in \ref TOPPView in the menu 'Tools'
-		- The most important parameters are <tt>peak height</tt> and <tt>full width at half max</tt>. 
-			If you set them too high, not many peaks will be found!
-	-# Set the parameters <tt>peak_bound</tt>, <tt>peak_bound_ms2_level</tt>, <tt>fwhm_bound</tt> 
-		and <tt>scale</tt> in an INI file.
+		- You can find the peak picker in \ref TOPPView in the menu 'Layer' - 'Apply TOPP tool'
+		- The most important parameters are <tt>peak_bound</tt>/<tt>peak_bound_ms2_level</tt>, 
+		  <tt>fwhm_bound</tt> and <tt>scale</tt>.
 		- <tt>scale</tt> can be set to the equal to the <tt>peak_bound</tt> parameter.
 	
 	@ingroup TOPP

@@ -47,7 +47,7 @@
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/VISUAL/MSMetaDataExplorer.h>
-#include <OpenMS/FORMAT/FeaturePairsFile.h>
+#include <OpenMS/FORMAT/FeaturePairsXMLFile.h>
 #include <OpenMS/VISUAL/ParamEditor.h>
 #include <OpenMS/VISUAL/DIALOGS/ToolsDialog.h>
 #include <OpenMS/VISUAL/DIALOGS/TOPPViewPrefDialog.h>
@@ -857,7 +857,7 @@ namespace OpenMS
       std::vector< ElementPair < Feature > >  pairs;
       try
       {
-        FeaturePairsFile().load(filename,pairs);
+        FeaturePairsXMLFile().load(filename,pairs);
       }
       catch(Exception::Base& e)
       {
@@ -867,7 +867,7 @@ namespace OpenMS
       
       //convert to features
       FeatureMap<> map;
-      FeaturePairsFile::pairsToFeatures(pairs,map);
+      FeaturePairsXMLFile::pairsToFeatures(pairs,map);
       w->canvas()->addLayer(map,true);
       w->canvas()->setCurrentLayerName(caption);
     }
@@ -1967,7 +1967,7 @@ namespace OpenMS
 						--i;
 						feature_pairs.push_back(ElementPair<>(*i,*next));
 					}
-					FeaturePairsFile().store(tmp_dir+"/in",feature_pairs);
+					FeaturePairsXMLFile().store(tmp_dir+"/in",feature_pairs);
 				}
 				else
 				{

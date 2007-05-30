@@ -106,7 +106,7 @@ class TOPPFeatureFinder
 	void registerOptionsAndFlags_()
 	{
 		registerStringOption_("in","<file>","","input file in MzData format");
-		registerStringOption_("out","<file>","","output file in feature format");
+		registerStringOption_("out","<file>","","output file in FeatureXML format");
 		registerIntOption_("buffer_size","<size>",1500,"size of the spectrum buffer used internally", false);
 		
 		addEmptyLine_();

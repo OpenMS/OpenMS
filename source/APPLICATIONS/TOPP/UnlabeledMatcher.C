@@ -26,7 +26,7 @@
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/PoseClusteringPairwiseMapMatcher.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
-#include <OpenMS/FORMAT/FeaturePairsFile.h>
+#include <OpenMS/FORMAT/FeaturePairsXMLFile.h>
 #include <OpenMS/FORMAT/GridFile.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 
@@ -38,7 +38,7 @@ using namespace std;
 
 typedef ElementPair<Feature> FeaturePair;
 typedef std::vector<FeaturePair> FeaturePairVector;
-typedef FeaturePairsFile FeaturePairVectorFile;
+typedef FeaturePairsXMLFile FeaturePairVectorFile;
 
 
 //-------------------------------------------------------------
@@ -48,19 +48,15 @@ typedef FeaturePairsFile FeaturePairVectorFile;
 /**
   @page UnlabeledMatcher UnlabeledMatcher
   
-  @brief For each feature in a given map, this
-  module tries to find its partner in the second map.
+  @brief For each feature in a given map, this module tries to find its partner in the second map.
   
-  This module is the first step in the map matching
-  workflow. It identifies pairs of features in two
-  feature map. Currently, two different approaches
-  can be used: if there is only a slight shift
-  between the feature positions in the two maps,
-  a simple pairwise matching procedure can be used.
-  For more complex situations, an algorithm based
-  on pose clustering can be used to estimate
-  a transform and to compute feature pairs based
-  on this transform.
+  This module is the first step in the map matching workflow. It identifies pairs of features in two
+  feature map. Currently, two different approaches can be used: if there is only a slight shift
+  between the feature positions in the two maps, a simple pairwise matching procedure can be used.
+  For more complex situations, an algorithm based on pose clustering can be used to estimate
+  a transform and to compute feature pairs based on this transform.
+  
+  The next steps in the map matching workflow are done by MapMatcher and MapDewarper.
 */
 
 // We do not want this class to show up in the docu, thus:
@@ -79,9 +75,9 @@ class TOPPUnlabeledMatcher
 
     void registerOptionsAndFlags_()
     {
-			registerStringOption_("in1","<file>","","input feature file 1");
-			registerStringOption_("in2","<file>","","input feature file 2");
-			registerStringOption_("pairs","<file>","","output file: XML formatted list of feature pairs");
+			registerStringOption_("in1","<file>","","input FeatureXML file 1");
+			registerStringOption_("in2","<file>","","input FeatureXML file 2");
+			registerStringOption_("pairs","<file>","","output file in FeaturePairsXML format");
 			registerStringOption_("grid","<file>","","output file: grid covering the feature map");
 
 			addEmptyLine_();

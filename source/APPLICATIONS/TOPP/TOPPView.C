@@ -76,6 +76,13 @@
                                         are not removed from the data however. They can be displayed through the 
                                         'Intensity distribution' tool in the 'Layer' menu.
   </UL>
+
+  <B>Context menu options:</b>
+  <UL>
+  	<LI> Show the currently displayed data in 3D
+  	<LI> Extract a scan in 1D
+  	<LI> Edit meta data of a scan/feature
+  </UL>
 */
 
 //QT
