@@ -188,6 +188,7 @@ EXECUTABLES_FORMAT = \
 EXECUTABLES_MATH = \
 	LinearInterpolation_test\
 	BasicStatistics_test\
+	AsymmetricStatistics_test\
 	ROCCurve_test\
 	Histogram_test\
 	MathFunctions_test\

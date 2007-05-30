@@ -345,7 +345,7 @@ CHECK(void setData(const ChargedIndexSet& set))
 RESULT
 
 
-/*
+
 CHECK(void ExtendedModelFitter::optimize())
 
 // *************************************************
@@ -361,7 +361,7 @@ CHECK(void ExtendedModelFitter::optimize())
 	double retention_ = 700.0;
 	double min_ = 650;
 	double max_ = 750;
-
+	
 	// iterate symmetry from 1.3 to 8.3, i.e. fronted, symmetric and tailed peaks
 	while (symmetry_ < 8.4) 
 	{
@@ -422,12 +422,17 @@ CHECK(void ExtendedModelFitter::optimize())
 		TEST_EQUAL(fitter.getGSLStatus(), "success");
 
 		symmetry_ += 0.5;
+
+		// clear vector
+		dpa1.clear();
+		peak_array.clear();
 	}
 
 
 // ************************************************************
 // *** check parameter optimization with noise at EMG model ***
 // ************************************************************
+
 	EmgModel em2;
 	em2.setInterpolationStep(0.1);
 	
@@ -441,7 +446,7 @@ CHECK(void ExtendedModelFitter::optimize())
 	tmp.setValue("emg:retention",700);
 	em2.setParameters(tmp);
 
-	// get samples from model
+	//get samples from model
 	DPeakArray<1> dpa2;
 	em2.getSamples(dpa2);
 
@@ -504,6 +509,10 @@ CHECK(void ExtendedModelFitter::optimize())
 	TEST_REAL_EQUAL(fitter2.getWidth(), 2);
 	TEST_REAL_EQUAL(fitter2.getRT(), 700);
 	TEST_EQUAL(fitter2.getGSLStatus(), "success");
+
+	// clear vector
+	dpa2.clear();
+	peak_array2.clear();
 
 
 // *******************************************************
@@ -574,6 +583,10 @@ CHECK(void ExtendedModelFitter::optimize())
 	TEST_REAL_EQUAL(fitter3.getWidth(), 20.0);
 	TEST_REAL_EQUAL(fitter3.getSymmetry(), 1.5);
 	TEST_REAL_EQUAL(fitter3.getRT(), 30.0);
+
+	// clear vector
+	dpa3.clear();
+	peak_array3.clear();
 
 
 // ******************************************************
@@ -657,14 +670,19 @@ CHECK(void ExtendedModelFitter::optimize())
 			TEST_REAL_EQUAL(fitter4.getScaleFactor(), scale_factor);
 			TEST_EQUAL(fitter4.getGSLStatus(), "success");
 	
-			standard_deviation += 1;
+			standard_deviation += 2;
+
+			// clear vector
+			dpa4.clear();
+			peak_array4.clear();
+
 		}
 		standard_deviation = 0.5;
 		expected_value += 5;
 	} 
 
 RESULT
-*/
+
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
