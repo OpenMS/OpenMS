@@ -435,7 +435,7 @@ namespace OpenMS
     defaults_.setValue("Preferences:3D:AxesColor", "#000000");
     defaults_.setValue("Preferences:3D:Dot:LineWidth",2);
 		defaults_.setValue("Preferences:3D:DisplayedPeaks",10000);
-		defaults_.setValue("Preferences:3D:ReductionMode","Max reduction");
+		defaults_.setValue("Preferences:3D:ReductionMode","Off");
 		
 		defaults_.setValue("Preferences:Version","none");
 		
