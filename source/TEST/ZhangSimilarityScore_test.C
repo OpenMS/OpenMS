@@ -83,8 +83,8 @@ CHECK(static PeakSpectrumCompareFunctor* create())
 	TEST_EQUAL(psf->getName(), zhang.getName())
 RESULT
 
-CHECK(static const String getName())
-	TEST_EQUAL(ptr->getName(), "ZhangSimilarityScore")
+CHECK(static const String getProductName())
+	TEST_EQUAL(ptr->getProductName(), "ZhangSimilarityScore")
 RESULT
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

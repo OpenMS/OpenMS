@@ -76,8 +76,12 @@ CHECK(static void registerChildren())
 
 RESULT
 
-CHECK(template<typename SpectrumType> double apply(SpectrumType& /* spectrum */))
+CHECK(template<typename SpectrumType> double apply(SpectrumType&))
 	// nothing to test
+RESULT
+
+CHECK(static const String getProductName())
+	TEST_EQUAL(FilterFunctor::getProductName(), "FilterFunctor")
 RESULT
 
 CHECK(~FilterFunctor())

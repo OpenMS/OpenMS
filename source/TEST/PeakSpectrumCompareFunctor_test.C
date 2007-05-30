@@ -70,6 +70,10 @@ CHECK(static void registerChildren())
   c1 = Factory<PeakSpectrumCompareFunctor>::create("ZhangSimilarityScore");
 RESULT
 
+CHECK(static const String getProductName())
+	TEST_EQUAL(PeakSpectrumCompareFunctor::getProductName(), "PeakSpectrumCompareFunctor")
+RESULT
+
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

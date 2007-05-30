@@ -60,8 +60,12 @@ CHECK((PeakMarker(const PeakMarker& source)))
 	TEST_EQUAL(copy.getName(), e_ptr->getName())
 RESULT
 
-CHECK((template<typename SpectrumType> void apply(std::map<double, bool>& /* marked */, SpectrumType& /* spectrum */)))
+CHECK((template<typename SpectrumType> void apply(std::map<double, bool>&, SpectrumType&)))
 	// nothing to check
+RESULT
+
+CHECK(static const String getProductName())
+	TEST_EQUAL(e_ptr->getProductName(), "PeakMarker")
 RESULT
 
 CHECK((PeakMarker& operator = (const PeakMarker& source)))

@@ -28,13 +28,10 @@
 #define OPENMS_ANALYSIS_ID_PILISMODELGENERATOR_H
 
 #include <OpenMS/ANALYSIS/ID/PILISModel.h>
-
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 
 namespace OpenMS 
 {
-	class AASequence;
-	
 	/** 
 	  @brief This class implements the simulation of the spectra from PILIS
 

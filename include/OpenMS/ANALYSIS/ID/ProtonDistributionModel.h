@@ -58,8 +58,6 @@ namespace OpenMS
 
 			Charge state intensities of differently charged equal (e.g. y7+ and y7++) ions can be calculated
 			using the getChargeStateIntensities function.
-
-			@todo implement gb values in Residue and use these (Andreas)
 	*/
 	class ProtonDistributionModel : public DefaultParamHandler
 	{
@@ -134,22 +132,10 @@ namespace OpenMS
 
 			void calcChargeStateIntensities_(const AASequence& peptide, const AASequence& n_term_ion, const AASequence& c_term_ion, int charge, Residue::ResidueType n_term_type,	double& n_term1, double& c_term1, double& n_term2, double& c_term2,	FragmentationType type);
 
-			// initializes the parameters needed for the calculation
-			//void init_();
-
 			HashMap<UInt, double> sc_charge_;
 			HashMap<UInt, double> bb_charge_;
 			HashMap<UInt, double> sc_charge_full_;
 			HashMap<UInt, double> bb_charge_full_;
-
-			// contains the side chain proton affinities
-			//HashMap<String, double> gb_sc_;
-			// contains the backbone proton affinity contributions of the left amino acid
-			//HashMap<String, double> gb_bb_l_;
-			// contains the backbone proton affinity contributions of the right amino acid
-			//HashMap<String, double> gb_bb_r_;
-
-
 			double E_;
 			double E_c_term_;
 			double E_n_term_;

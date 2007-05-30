@@ -80,8 +80,8 @@ CHECK((static FilterFunctor* create()))
 	// nothin to test only within factory test
 RESULT
 
-CHECK((static const String getName()))
-	TEST_EQUAL(e_ptr->getName(), "TICFilter")
+CHECK((static const String getProductName()))
+	TEST_EQUAL(e_ptr->getProductName(), "TICFilter")
 RESULT
 
 delete e_ptr;

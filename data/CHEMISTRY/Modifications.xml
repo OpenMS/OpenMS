@@ -101,5 +101,26 @@
 				</NODE>
 			</NODE>
 		</NODE>
+		<NODE name="Deamidation">
+			<ITEM name="Name" value="Deamidation" type="string" />
+			<ITEM name="ShortName" value="deam" type="string" />
+			<ITEM name="NamePrefix" value="deaminated" type="string" />
+			<ITEM name="AddFormula" value="O" type="string" />
+			<ITEM name="DelFormula" value="NH" type="string" />
+			<NODE name="ValidResidues">
+				<NODE name="Asparagine">
+					<ITEM name="Name" value="deaminated Asparagine" type="string" />
+					<ITEM name="UnmodifiedName" value="Asn" type="string" />
+				</NODE>
+				<NODE name="Glutamine">
+					<ITEM name="Name" value="deaminated Glutamine" type="string" />
+					<ITEM name="UnmodifiedName" value="Gln" type="string" />
+				</NODE>
+				<NODE name="Arginine">
+					<ITEM name="Name" value="deaminated Arginine" type="string" />
+					<ITEM name="UnmodifiedName" value="Arg" type="string" />
+				</NODE>
+			</NODE>
+		</NODE>
 	</NODE>
 </PARAMETERS>

@@ -96,8 +96,8 @@ CHECK((static PeakMarker* create()))
 	TEST_EQUAL(pm->getName(), cm.getName())
 RESULT
 
-CHECK((static const String getName()))
-	TEST_EQUAL(e_ptr->getName(), "ComplementMarker")
+CHECK((static const String getProductName()))
+	TEST_EQUAL(e_ptr->getProductName(), "ComplementMarker")
 RESULT
 
 delete e_ptr;

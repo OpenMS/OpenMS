@@ -95,8 +95,8 @@ CHECK((static PeakMarker* create()))
 	TEST_EQUAL(pm->getName(), marker.getName())
 RESULT
 
-CHECK((static const String getName()))
-	TEST_EQUAL(e_ptr->getName(), "NeutralLossMarker")
+CHECK((static const String getProductName()))
+	TEST_EQUAL(e_ptr->getProductName(), "NeutralLossMarker")
 RESULT
 
 delete e_ptr;

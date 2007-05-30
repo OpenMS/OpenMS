@@ -30,6 +30,7 @@
 ///////////////////////////
 
 #include <OpenMS/CHEMISTRY/ResidueDB.h>
+#include <OpenMS/CHEMISTRY/Residue.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -48,6 +49,15 @@ RESULT
 
 CHECK(~ResidueDB())
 	delete e_ptr;
+RESULT
+
+CHECK(extra)
+	ResidueDB db;
+	for (ResidueDB::ResidueIterator it = db.beginResidue(); it != db.endResidue(); ++it)
+	{
+		cerr << (*it)->getName() << " " << (*it)->isModified() << endl;
+	}
+
 RESULT
 
 /////////////////////////////////////////////////////////////

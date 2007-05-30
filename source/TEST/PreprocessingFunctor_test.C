@@ -66,8 +66,12 @@ CHECK((void filterPeakSpectrum(PeakSpectrum& spectrum)))
 	// nothing to check
 RESULT
 
-CHECK(template<typename SpectrumType> void filterSpectrum(SpectrumType& /*spectrum*/))
+CHECK(template<typename SpectrumType> void filterSpectrum(SpectrumType&))
 	// nothing to check
+RESULT
+
+CHECK(static const String getProductName())
+	TEST_EQUAL(PreprocessingFunctor::getProductName(), "PreprocessingFunctor")
 RESULT
 
 CHECK((static void registerChildren()))

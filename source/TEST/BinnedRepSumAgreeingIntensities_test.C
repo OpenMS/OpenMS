@@ -110,8 +110,8 @@ CHECK(static BinnedRepCompareFunctor* create())
 	TEST_EQUAL(brcf->getName(), sai.getName())
 RESULT
 
-CHECK(static const String getName())
-	TEST_EQUAL(e_ptr->getName(), "BinnedRepSumAgreeingIntensities")
+CHECK(static const String getProductName())
+	TEST_EQUAL(e_ptr->getProductName(), "BinnedRepSumAgreeingIntensities")
 RESULT
 
 delete e_ptr;

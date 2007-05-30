@@ -119,17 +119,6 @@ CHECK(void addPrecursorPeaks(PeakSpectrum& spec, const AASequence& peptide, Int 
 	
 RESULT
 
-CHECK(const Param& getParameters() const)
-	Param p = ptr->getParameters();
-RESULT
-
-CHECK(void setParameters(const Param& param))
-	Param p = ptr->getParameters();
-	p.setValue("value_to_test", "true");
-	ptr->setParameters(p);
-	TEST_EQUAL(ptr->getParameters().getValue("value_to_test"), "true")
-RESULT
-
 CHECK(void getSpectrum(PeakSpectrum& spec, const AASequence& peptide, Int charge = 1))
 	// TODO
 RESULT

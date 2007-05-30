@@ -23,73 +23,47 @@
 // --------------------------------------------------------------------------
 // $Maintainer: Andreas Bertsch $
 // --------------------------------------------------------------------------
-//
 
 #include <OpenMS/CONCEPT/ClassTest.h>
 
 ///////////////////////////
 
-#include <OpenMS/FILTERING/TRANSFORMERS/IntensityBalanceFilter.h>
-#include <OpenMS/KERNEL/StandardTypes.h>
-#include <OpenMS/FORMAT/DTAFile.h>
+#include <OpenMS/ANALYSIS/ID/PILISScoring.h>
+
+///////////////////////////
+
+START_TEST(PILISScoring_test.C, "$Id: PILISScoring_test.C 2074 2007-05-25 14:05:42Z andreas_bertsch $")
+
+/////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////
 
 using namespace OpenMS;
 using namespace std;
 
-///////////////////////////
-
-START_TEST(IntensityBalanceFilter, "$Id$")
-
-/////////////////////////////////////////////////////////////
-
-IntensityBalanceFilter* e_ptr = 0;
-CHECK((IntensityBalanceFilter()))
-	e_ptr = new IntensityBalanceFilter;
-	TEST_NOT_EQUAL(e_ptr, 0)
+PILISScoring* ptr = 0;
+CHECK(PILISScoring())
+	ptr = new PILISScoring();
+	TEST_NOT_EQUAL(ptr, 0)
 RESULT
 
-CHECK((~IntensityBalanceFilter()))
-	delete e_ptr;
+CHECK(~PILISScoring())
+	delete ptr;
 RESULT
 
-e_ptr = new IntensityBalanceFilter();
+ptr = new PILISScoring();
 
-CHECK((IntensityBalanceFilter(const IntensityBalanceFilter& source)))
-	IntensityBalanceFilter copy(*e_ptr);
-	TEST_EQUAL(copy.getParameters(), e_ptr->getParameters())
-	TEST_EQUAL(copy.getName(), e_ptr->getName())
+CHECK(PILISScoring(const PILISScoring& model))
+	PILISScoring copy(*ptr);
+	TEST_EQUAL(copy.getParameters(), ptr->getParameters())
 RESULT
 
-CHECK((IntensityBalanceFilter& operator=(const IntensityBalanceFilter& source)))
-	IntensityBalanceFilter copy;
-	copy = *e_ptr;
-	TEST_EQUAL(copy.getParameters(), e_ptr->getParameters())
-	TEST_EQUAL(copy.getName(), e_ptr->getName())
+CHECK(PILISScoring& operator = (const PILISScoring& mode))
+	PILISScoring copy;
+	copy = *ptr;
+	TEST_EQUAL(copy.getParameters(), ptr->getParameters())
 RESULT
-
-CHECK((template<typename SpectrumType> double apply(SpectrumType& spectrum)))
-	DTAFile dta_file;
-	PeakSpectrum spec;
-	dta_file.load("data/Transformers_tests.dta", spec);
-
-	double filter = e_ptr->apply(spec);
-	TEST_REAL_EQUAL(filter, 0.842697)
-
-RESULT
-
-CHECK((static FilterFunctor* create()))
-	FilterFunctor* ff = IntensityBalanceFilter::create();
-	IntensityBalanceFilter filter;
-	TEST_EQUAL(ff->getParameters(), filter.getParameters())
-	TEST_EQUAL(ff->getName(), filter.getName())
-RESULT
-
-CHECK((static const String getProductName()))
-	TEST_EQUAL(e_ptr->getProductName(), "IntensityBalanceFilter")
-RESULT
-
-delete e_ptr;
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
+
 END_TEST

@@ -103,8 +103,8 @@ CHECK((static PreprocessingFunctor* create()))
 	TEST_EQUAL(ppf->getName(), norm.getName())
 RESULT
 
-CHECK((static const String getName()))
-	TEST_EQUAL(e_ptr->getName(), "Normalizer")
+CHECK((static const String getProductName()))
+	TEST_EQUAL(e_ptr->getProductName(), "Normalizer")
 RESULT
 	
 CHECK((void filterPeakMap(PeakMap& exp)))

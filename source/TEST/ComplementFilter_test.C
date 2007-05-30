@@ -90,8 +90,8 @@ CHECK((static FilterFunctor* create()))
 	TEST_EQUAL(ff->getName(), cf.getName())
 RESULT
 
-CHECK((static const String getName()))
-	TEST_EQUAL(e_ptr->getName(), "ComplementFilter")
+CHECK((static const String getProductName()))
+	TEST_EQUAL(e_ptr->getProductName(), "ComplementFilter")
 RESULT
 
 delete e_ptr;

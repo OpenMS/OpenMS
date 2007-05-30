@@ -89,8 +89,8 @@ CHECK((static PreprocessingFunctor* create()))
 	// only tested within the factory
 RESULT
 
-CHECK((static const String getName()))
-	TEST_EQUAL(e_ptr->getName(), "Scaler")
+CHECK((static const String getProductName()))
+	TEST_EQUAL(e_ptr->getProductName(), "Scaler")
 RESULT
 
 CHECK((void filterPeakMap(PeakMap& exp)))

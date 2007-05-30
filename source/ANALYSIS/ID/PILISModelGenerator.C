@@ -39,6 +39,22 @@ namespace OpenMS
 		defaultsToParam_();
 	}
 
+	PILISModelGenerator::PILISModelGenerator(const PILISModelGenerator& rhs)
+		:	DefaultParamHandler(rhs)
+	{
+		model_ = rhs.model_;
+	}
+
+	PILISModelGenerator& PILISModelGenerator::operator = (const PILISModelGenerator& rhs)
+	{
+		if (this != &rhs)
+		{
+			DefaultParamHandler::operator = (rhs);
+			model_ = rhs.model_;
+		}
+		return *this;
+	}
+
 	PILISModelGenerator::~PILISModelGenerator()
 	{
 	}

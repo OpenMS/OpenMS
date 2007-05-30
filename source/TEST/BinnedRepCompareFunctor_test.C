@@ -71,6 +71,10 @@ CHECK(static void registerChildren())
 	c1 = Factory<BinnedRepCompareFunctor>::create("BinnedRepMutualInformation");
 RESULT
 
+CHECK(static const String getProductName())
+	TEST_EQUAL(BinnedRepCompareFunctor::getProductName(), "BinnedRepCompareFunctor")
+RESULT
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST

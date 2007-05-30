@@ -79,7 +79,7 @@ CHECK((template<typename SpectrumType> void apply(std::map<double, bool> marked,
 	
 	TEST_EQUAL(marked.size(), 0)
 
-	// TODO (Andreas)
+	// @todo (Andreas)
 	//e_ptr->getParameters().setValue("n", 10);
 	//e_ptr->apply(spec);
 	//TEST_EQUAL(spec.size(), 10)
@@ -92,8 +92,8 @@ CHECK((static PeakMarker* create()))
 	TEST_EQUAL(pm->getName(), im.getName())
 RESULT
 
-CHECK((static const String getName()))
-	TEST_EQUAL(e_ptr->getName(), "IsotopeMarker")
+CHECK((static const String getProductName()))
+	TEST_EQUAL(e_ptr->getProductName(), "IsotopeMarker")
 RESULT
 
 delete e_ptr;

@@ -91,8 +91,8 @@ CHECK((static FilterFunctor* create()))
 	TEST_EQUAL(ff->getName(), good.getName())
 RESULT
 
-CHECK((static const String getName()))
-	TEST_EQUAL(e_ptr->getName(), "GoodDiffFilter")
+CHECK((static const String getProductName()))
+	TEST_EQUAL(e_ptr->getProductName(), "GoodDiffFilter")
 RESULT
 
 delete e_ptr;

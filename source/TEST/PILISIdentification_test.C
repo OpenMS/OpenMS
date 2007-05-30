@@ -62,7 +62,7 @@ CHECK(PILISIdentification(const PILISIdentification& source))
 	TEST_EQUAL(copy.getParameters(), ptr->getParameters())
 RESULT
 
-CHECK(PILISIdentification& operator = (const PILISIdentification&))
+CHECK(PILISIdentification& operator = (const PILISIdentification& source))
 	PILISIdentification copy;
 	copy = *ptr;
 	TEST_EQUAL(copy.getParameters(), ptr->getParameters())

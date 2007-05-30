@@ -88,8 +88,8 @@ CHECK(static FilterFunctor* create())
 	TEST_EQUAL(filter.getName(), ff->getName())
 RESULT
 
-CHECK(static const String getName())
-	TEST_EQUAL(e_ptr->getName(), "PeakDiffBins")
+CHECK(static const String getProductName())
+	TEST_EQUAL(e_ptr->getProductName(), "PeakDiffBins")
 RESULT
 
 CHECK(void setmask(std::vector<double>& newmask))

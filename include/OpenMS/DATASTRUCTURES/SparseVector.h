@@ -24,8 +24,8 @@
 // $Maintainer: Andreas Bertsch $
 // --------------------------------------------------------------------------
 //
-#ifndef OPENMS_DATASTRUCTURES_BINNEDSPARSEVECTOR_H
-#define OPENMS_DATASTRUCTURES_BINNEDSPARSEVECTOR_H
+#ifndef OPENMS_DATASTRUCTURES_SPARSEVECTOR_H
+#define OPENMS_DATASTRUCTURES_SPARSEVECTOR_H
 
 #include <map>
 
@@ -308,5 +308,5 @@ namespace OpenMS
   
 }
 
-#endif //OPENMS_DATASTRUCTURES_BINNEDSPARSEVECTOR_H
+#endif //OPENMS_DATASTRUCTURES_SPARSEVECTOR_H
 

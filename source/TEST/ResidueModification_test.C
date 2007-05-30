@@ -43,23 +43,23 @@ START_TEST(Residue, "$Id: Residue_test.C 1706 2007-03-06 15:38:20Z marc_sturm $"
 
 // Modification tests
 ResidueModification* m_ptr = 0;
-CHECK(Modification())
+CHECK(ResidueModification())
   m_ptr = new ResidueModification();
 	TEST_NOT_EQUAL(m_ptr, 0)
 RESULT
 
-CHECK(~Modification())
+CHECK(~ResidueModification())
 	delete m_ptr;
 RESULT
 
 m_ptr = new ResidueModification();
 
-CHECK(Modification(const Modification& modification))
+CHECK(ResidueModification(const ResidueModification& modification))
   ResidueModification m(*m_ptr);
 	TEST_EQUAL(m == *m_ptr, true)
 RESULT
 
-CHECK(Modification& operator = (const Modification& modification))
+CHECK(ResidueModification& operator = (const ResidueModification& modification))
 	ResidueModification m;
 	m = *m_ptr;
 	TEST_EQUAL(m == *m_ptr, true)
@@ -175,14 +175,14 @@ CHECK(const std::set<Residue*>& getValidResidues() const)
 	TEST_EQUAL(m_ptr->getValidResidues() == mod_valid_residues, true)
 RESULT
 
-CHECK(bool operator == (const Modification& modification) const)
+CHECK(bool operator == (const ResidueModification& modification) const)
 	ResidueModification m(*m_ptr);
 	TEST_EQUAL(m == *m_ptr, true)
 	m.addSynonym("syn4");
 	TEST_EQUAL(m == *m_ptr, false)
 RESULT
 
-CHECK(bool operator != (const Modification& modification) const)
+CHECK(bool operator != (const ResidueModification& modification) const)
 	ResidueModification m(*m_ptr);
 	TEST_EQUAL(m != *m_ptr, false)
 	m.addValidResidue(new Residue);

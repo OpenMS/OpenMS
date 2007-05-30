@@ -100,8 +100,8 @@ CHECK(static PeakSpectrumCompareFunctor* create())
 	TEST_EQUAL(cf->getParameters(), pre_comp.getParameters())
 RESULT
 
-CHECK(static const String getName())
-	TEST_EQUAL(e_ptr->getName(), "SpectrumPrecursorComparator")
+CHECK(static const String getProductName())
+	TEST_EQUAL(e_ptr->getProductName(), "SpectrumPrecursorComparator")
 RESULT
 
 delete e_ptr;

@@ -88,8 +88,8 @@ CHECK(static FilterFunctor* create())
 	TEST_EQUAL(ff->getName(), kq.getName())
 RESULT
 
-CHECK(static const String getName())
-	TEST_EQUAL(e_ptr->getName(), "KellerQuality")
+CHECK(static const String getProductName())
+	TEST_EQUAL(e_ptr->getProductName(), "KellerQuality")
 RESULT
 
 delete e_ptr;

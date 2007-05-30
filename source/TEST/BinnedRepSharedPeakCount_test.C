@@ -102,8 +102,8 @@ CHECK(static BinnedRepCompareFunctor* create())
 	TEST_EQUAL(cf->getName(), spc.getName())
 RESULT
 
-CHECK(static const String getName())
-	TEST_EQUAL(e_ptr->getName(), "BinnedRepSharedPeakCount")
+CHECK(static const String getProductName())
+	TEST_EQUAL(e_ptr->getProductName(), "BinnedRepSharedPeakCount")
 RESULT
 
 delete e_ptr;

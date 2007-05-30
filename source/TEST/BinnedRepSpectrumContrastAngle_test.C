@@ -88,8 +88,8 @@ CHECK(double operator () (const BinnedRep& a, const BinnedRep& b) const)
 	
 RESULT
 
-CHECK(static const String getName())
-	TEST_EQUAL(e_ptr->getName(), "BinnedRepSpectrumContrastAngle")
+CHECK(static const String getProductName())
+	TEST_EQUAL(e_ptr->getProductName(), "BinnedRepSpectrumContrastAngle")
 RESULT
 
 CHECK(double operator () (const BinnedRep& a) const)

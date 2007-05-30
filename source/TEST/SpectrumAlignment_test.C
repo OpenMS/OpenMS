@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework 
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2007 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2006 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -23,77 +23,41 @@
 // --------------------------------------------------------------------------
 // $Maintainer: Andreas Bertsch $
 // --------------------------------------------------------------------------
-//
 
 #include <OpenMS/CONCEPT/ClassTest.h>
 
 ///////////////////////////
 
-#include <OpenMS/FILTERING/TRANSFORMERS/PeakPosBins.h>
-#include <OpenMS/COMPARISON/CLUSTERING/ClusterSpectrum.h>
-#include <OpenMS/KERNEL/StandardTypes.h>
+#include <iostream>
+
+#include <OpenMS/COMPARISON/SPECTRA/SpectrumAlignment.h>
+#include <OpenMS/FILTERING/TRANSFORMERS/Normalizer.h>
 #include <OpenMS/FORMAT/DTAFile.h>
+
+///////////////////////////
+
+START_TEST(SpectrumAlignment, "$Id: SpectrumAlignment_test.C 2061 2007-05-22 13:33:06Z marc_sturm $")
+
+/////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////
 
 using namespace OpenMS;
 using namespace std;
 
-///////////////////////////
+SpectrumAlignment* ptr = 0;
 
-START_TEST(PeakPosBins, "$Id$")
-
-/////////////////////////////////////////////////////////////
-
-PeakPosBins* e_ptr = 0;
-CHECK(PeakPosBins())
-	e_ptr = new PeakPosBins;
-	TEST_NOT_EQUAL(e_ptr, 0)
+CHECK(SpectrumAlignment())
+	ptr = new SpectrumAlignment();
+	TEST_NOT_EQUAL(ptr, 0)
 RESULT
 
-CHECK(~PeakPosBins())
-	delete e_ptr;
+CHECK(virtual ~SpectrumAlignment())
+	delete ptr;
 RESULT
 
-e_ptr = new PeakPosBins();
-
-CHECK(PeakPosBins(const PeakPosBins& source))
-	PeakPosBins copy(*e_ptr);
-	TEST_EQUAL(copy.getParameters(), e_ptr->getParameters())
-	TEST_EQUAL(copy.getName(), e_ptr->getName())
-RESULT
-
-CHECK(PeakPosBins& operator=(const PeakPosBins& source))
-	PeakPosBins copy;
-	copy = *e_ptr;
-	TEST_EQUAL(copy.getParameters(), e_ptr->getParameters())
-	TEST_EQUAL(copy.getName(), e_ptr->getName())
-RESULT
-
-CHECK(std::vector<double> operator () (const ClusterSpectrum& spec))
-	DTAFile dta_file;
-	PeakSpectrum spec;
-	dta_file.load("data/Transformers_tests.dta", spec);
-	
-	vector<double> filter = (*e_ptr)(spec);
-
-	TEST_EQUAL(filter.size(), 10)
-
-	TEST_REAL_EQUAL(filter[0], 129)
-
-RESULT
-
-CHECK(static FilterFunctor* create())
-	FilterFunctor* ff = PeakPosBins::create();
-	PeakPosBins filter;
-	TEST_EQUAL(filter.getParameters(), ff->getParameters())
-	TEST_EQUAL(filter.getName(), ff->getName())
-RESULT
-
-CHECK(static const String getProductName())
-	TEST_EQUAL(e_ptr->getProductName(), "PeakPosBins")
-RESULT
-
-delete e_ptr;
+ptr = new SpectrumAlignment();
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
+
 END_TEST

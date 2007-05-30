@@ -179,6 +179,7 @@ EXECUTABLES_FORMAT = \
 	DBConnection_test\
 	DBAdapter_test\
 	OMSSAXMLFile_test\
+	OMSSACSVFile_test\
 	XTandemXMLFile_test\
 	MSPFile_test\
 	IdXMLFile_test
@@ -257,6 +258,7 @@ EXECUTABLES_COMPARISON=\
 	PeakSpectrumCompareFunctor_test\
 	SpectrumPrecursorComparator_test\
 	ZhangSimilarityScore_test\
+	SpectrumAlignment_test\
 	SpectrumAlignmentScore_test
 
 #CHEMISTRY
@@ -317,6 +319,8 @@ EXECUTABLES_ANALYSIS_ID =\
 	ProtonDistributionModel_test\
 	PILISSequenceDB_test\
 	PILISModel_test\
+	PILISModelGenerator_test\
+	PILISScoring_test\
 	PILISIdentification_test
 
 # APPLICATIONS

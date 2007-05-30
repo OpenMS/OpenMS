@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework 
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2007 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2006 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -23,76 +23,50 @@
 // --------------------------------------------------------------------------
 // $Maintainer: Andreas Bertsch $
 // --------------------------------------------------------------------------
-//
 
 #include <OpenMS/CONCEPT/ClassTest.h>
 
 ///////////////////////////
 
-#include <OpenMS/FILTERING/TRANSFORMERS/PeakPosBins.h>
-#include <OpenMS/COMPARISON/CLUSTERING/ClusterSpectrum.h>
-#include <OpenMS/KERNEL/StandardTypes.h>
-#include <OpenMS/FORMAT/DTAFile.h>
+#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/FORMAT/OMSSACSVFile.h>
+#include <OpenMS/METADATA/ProteinIdentification.h>
+#include <OpenMS/METADATA/PeptideIdentification.h>
+
+#include <vector>
+
+///////////////////////////
+
+START_TEST(OMSSACSVFile, "$Id: OMSSACSVFile_test.C 2061 2007-05-22 13:33:06Z marc_sturm $")
+
+/////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////
 
 using namespace OpenMS;
 using namespace std;
 
-///////////////////////////
+OMSSACSVFile xml_file;
+OMSSACSVFile* ptr;
+ProteinIdentification protein_identification;
+vector<PeptideIdentification> peptide_identifications; 
+vector<PeptideIdentification> peptide_identifications2; 
+String date_string_1;
+String date_string_2;
+PeptideHit peptide_hit;
 
-START_TEST(PeakPosBins, "$Id$")
-
-/////////////////////////////////////////////////////////////
-
-PeakPosBins* e_ptr = 0;
-CHECK(PeakPosBins())
-	e_ptr = new PeakPosBins;
-	TEST_NOT_EQUAL(e_ptr, 0)
+CHECK((OMSSACSVFile()))
+	ptr = new OMSSACSVFile();
+	TEST_NOT_EQUAL(ptr, 0)
 RESULT
 
-CHECK(~PeakPosBins())
-	delete e_ptr;
+CHECK(~OMSSACSVFile())
+	delete ptr;
 RESULT
 
-e_ptr = new PeakPosBins();
+ptr = new OMSSACSVFile();
 
-CHECK(PeakPosBins(const PeakPosBins& source))
-	PeakPosBins copy(*e_ptr);
-	TEST_EQUAL(copy.getParameters(), e_ptr->getParameters())
-	TEST_EQUAL(copy.getName(), e_ptr->getName())
+CHECK(void load(const String& filename, ProteinIdentification& protein_identification, std::vector<PeptideIdentification>& id_data) const throw(Exception::FileNotFound, Exception::ParseError))
 RESULT
-
-CHECK(PeakPosBins& operator=(const PeakPosBins& source))
-	PeakPosBins copy;
-	copy = *e_ptr;
-	TEST_EQUAL(copy.getParameters(), e_ptr->getParameters())
-	TEST_EQUAL(copy.getName(), e_ptr->getName())
-RESULT
-
-CHECK(std::vector<double> operator () (const ClusterSpectrum& spec))
-	DTAFile dta_file;
-	PeakSpectrum spec;
-	dta_file.load("data/Transformers_tests.dta", spec);
-	
-	vector<double> filter = (*e_ptr)(spec);
-
-	TEST_EQUAL(filter.size(), 10)
-
-	TEST_REAL_EQUAL(filter[0], 129)
-
-RESULT
-
-CHECK(static FilterFunctor* create())
-	FilterFunctor* ff = PeakPosBins::create();
-	PeakPosBins filter;
-	TEST_EQUAL(filter.getParameters(), ff->getParameters())
-	TEST_EQUAL(filter.getName(), ff->getName())
-RESULT
-
-CHECK(static const String getProductName())
-	TEST_EQUAL(e_ptr->getProductName(), "PeakPosBins")
-RESULT
-
-delete e_ptr;
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

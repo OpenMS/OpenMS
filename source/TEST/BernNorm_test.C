@@ -94,8 +94,8 @@ CHECK((static PreprocessingFunctor* create()))
 	TEST_EQUAL(ppf->getName(), bern.getName())
 RESULT
   
-CHECK((static const String getName()))
-	TEST_EQUAL(e_ptr->getName(), "BernNorm")
+CHECK((static const String getProductName()))
+	TEST_EQUAL(e_ptr->getProductName(), "BernNorm")
 RESULT
 
 CHECK((void filterPeakMap(PeakMap& exp)))

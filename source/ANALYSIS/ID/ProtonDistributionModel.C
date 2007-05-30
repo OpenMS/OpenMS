@@ -49,7 +49,6 @@ namespace OpenMS
 		defaults_.setValue("gb_bb_r_a-ion", 46.85);
 
 		defaultsToParam_();
-		// init_();
 	}
 
 	ProtonDistributionModel::~ProtonDistributionModel()
@@ -62,9 +61,6 @@ namespace OpenMS
 	    bb_charge_(model.bb_charge_),
 			sc_charge_full_(model.sc_charge_full_),
 			bb_charge_full_(model.bb_charge_full_),
-			/*gb_sc_(model.gb_sc_),
-			gb_bb_l_(model.gb_bb_l_),
-			gb_bb_r_(model.gb_bb_r_),*/
 			E_(model.E_),
 			E_c_term_(model.E_c_term_),
 			E_n_term_(model.E_n_term_)
@@ -80,9 +76,6 @@ namespace OpenMS
       bb_charge_  = model.bb_charge_;
       sc_charge_full_ = model.sc_charge_full_;
       bb_charge_full_ = model.bb_charge_full_;
-      //gb_sc_ = model.gb_sc_;
-      //gb_bb_l_ = model.gb_bb_l_;
-      //gb_bb_r_ = model.gb_bb_r_;
       E_ = model.E_;
       E_c_term_ = model.E_c_term_;
       E_n_term_ = model.E_n_term_;
@@ -120,71 +113,7 @@ namespace OpenMS
 	{
 		calcChargeStateIntensities_(peptide, n_term_ion, c_term_ion, charge, n_term_type, n_term1, c_term1, n_term2, c_term2, type);
 	}
-	/*														
-	void ProtonDistributionModel::init_()
-	{
-		//HashMap<String, double> gb_sc;
-	  gb_sc_["D"] = 784.0;
-	  gb_sc_["E"] = 790.0;
-	  gb_sc_["H"] = 927.84;
-	  gb_sc_["K"] = 926.74;
-	  gb_sc_["M"] = 830.0;
-	  gb_sc_["N"] = 864.94;
-	  gb_sc_["Q"] = 865.25;
-	  gb_sc_["R"] = 1000.0;
-	  gb_sc_["S"] = 775.0;
-	  gb_sc_["T"] = 780.0;
-	  gb_sc_["W"] = 909.53;
-	  gb_sc_["Y"] = 790.0;
-	  //HashMap<String, double> gb_bb_l;
-	  gb_bb_l_["A"] = 881.82;
-	  gb_bb_l_["C"] = 880.99; // CmC
-	  gb_bb_l_["D"] = 880.02;
-	  gb_bb_l_["E"] = 880.10;
-	  gb_bb_l_["F"] = 881.08;
-	  gb_bb_l_["G"] = 881.17;
-	  gb_bb_l_["H"] = 881.27;
-	  gb_bb_l_["I"] = 880.99;
-	  gb_bb_l_["K"] = 880.06;
-	  gb_bb_l_["L"] = 881.88;
-	  gb_bb_l_["M"] = 881.38;
-	  gb_bb_l_["N"] = 881.18;
-	  gb_bb_l_["P"] = 881.25;
-	  gb_bb_l_["Q"] = 881.50;
-	  gb_bb_l_["R"] = 882.98;
-		gb_bb_l_["S"] = 881.08;
-	  gb_bb_l_["T"] = 881.14;
-	  gb_bb_l_["V"] = 881.17;
-	  gb_bb_l_["W"] = 881.31;
-	  gb_bb_l_["Y"] = 881.20;
-	  gb_bb_l_["NH2"] = 916.84;
-	  //HashMap<String, double> gb_bb_r;
-	  gb_bb_r_["A"] = 0.00;
-	  gb_bb_r_["C"] = 0.12; // CmC
-	  gb_bb_r_["D"] = -0.63;
-	  gb_bb_r_["E"] = -0.39;
-	  gb_bb_r_["F"] = 0.03;
-	  gb_bb_r_["G"] = 0.92;
-	  gb_bb_r_["H"] = -0.19;
-	  gb_bb_r_["I"] = -1.17;
-	  gb_bb_r_["K"] = -0.71;
-	  gb_bb_r_["L"] = -0.09;
-	  gb_bb_r_["M"] = 0.30;
-	  gb_bb_r_["N"] = 1.56;
-	  gb_bb_r_["P"] = 11.75;
-	  gb_bb_r_["Q"] = 4.10;
-	  gb_bb_r_["R"] = 6.28;
-	  gb_bb_r_["S"] = 0.98;
-	  gb_bb_r_["T"] = 1.21;
-	  gb_bb_r_["V"] = -0.90;
- 	 	gb_bb_r_["W"] = 0.10;
- 	 	gb_bb_r_["Y"] = -0.38;
- 	 	gb_bb_r_["COOH"] = -95.82;
- 	 	gb_bb_r_["b-ion"] = 36.46;
-	  gb_bb_r_["a-ion"] = 46.85;
-		
-	}
-*/
+	
 	void ProtonDistributionModel::calculateProtonDistribution_(const AASequence& peptide, 
 																								int charge, Residue::ResidueType res_type, 
 																								bool fixed_proton, 
@@ -1249,9 +1178,6 @@ namespace OpenMS
 			}
 		}
 		
-		//cout << "charge: " << sum << endl;
-		
-		
 		if (sum < 1)
 		{
 			ints.push_back(1.0);
@@ -1266,11 +1192,11 @@ namespace OpenMS
 			double tmp = PROTON_LOSS_FACTOR * exp(-((pow(pa - PROTON_LOSS_DIFF, PROTON_LOSS_POWER)))/Constants::R/T);
 			ints.push_back(tmp/(tmp+1));
 			ints.push_back(1/(tmp+1));
-			//cout << "charge ratio: " << tmp/(tmp+1) << " " << 1/(tmp+1) << " " << tmp << " " << pa << endl;
 		}
 		
 		return ints;
 	}
 
 } // namespace OpenMS
+
 
