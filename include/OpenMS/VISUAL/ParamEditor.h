@@ -101,7 +101,7 @@ namespace OpenMS
 			/// store edited data in Param object
 			bool store();
 			/// check if edited data still valid before storing
-			bool isValid() const;
+			bool isValid(QStringList& list) const;
 			/// delete all items
 			void deleteAll();
 			/// is data changed since last save?
@@ -140,7 +140,7 @@ namespace OpenMS
 		
 		private:
 			/// recursive helper method for method isValid()
-			bool isValidRecursive_(QTreeWidgetItem* parent) const;
+			bool isValidRecursive_(QTreeWidgetItem* parent, QStringList& list) const;
 			/// recursive helper method for method storeRecursive()
 			void storeRecursive_(QTreeWidgetItem* child, String path);
 			/// recursive helper method for slot deleteItem()

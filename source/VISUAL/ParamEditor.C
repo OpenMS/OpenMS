@@ -225,9 +225,27 @@ namespace OpenMS
 	{
 		if(previous)
 		{
+			QTreeWidgetItem* parent=previous->parent();
+			if(!parent)
+			{
+				parent=invisibleRootItem();
+			}
+			Int child_count=0;
+			for (Int i = parent->childCount()-1; i >=0;i--)
+			{
+				if(parent->child(i)->text(0)==previous->text(0))
+				{
+					if(++child_count>1)
+					{
+						setCurrentItem(previous);
+						editItem(previous);
+						break;
+					}
+				}
+			}
 			if(previous->text(0).isEmpty())
-			{				
-				editItem(previous,0);
+			{	
+				editItem(previous);
 				setCurrentItem(previous);
 				is_name_empty_=true;
 			}
@@ -237,6 +255,7 @@ namespace OpenMS
 			}
 		}
 	}
+
 	void ParamEditor::load(const Param& param)
 	{
 		string up, down ,key, key_without_prefix, new_prefix ,type, prefix = "";
@@ -340,6 +359,9 @@ namespace OpenMS
 				item->setText(0, QString::fromStdString ( key_without_prefix));
 				item->setText(1, QString::fromStdString ( it->second.toString()));
 				item->setText(2, QString::fromStdString ( type));
+				//item->setWhatsThis(0,param.getDescription(it->first).toQString());
+				//item->setWhatsThis(1,param.getDescription(it->first).toQString());
+				//item->setWhatsThis(2,param.getDescription(it->first).toQString());
 				item->setData(0,Qt::UserRole,ITEM);
 				item->setData(1,Qt::UserRole,ITEM);
 				item->setData(2,Qt::UserRole,ITEM);
@@ -388,7 +410,8 @@ namespace OpenMS
 	bool ParamEditor::store()
 	{
 		bool ret=false;
-		if (isValid()) 
+		QStringList list;
+		if (isValid(list)) 
 		{
 			if(param_editable_!=NULL)
 			{
@@ -406,19 +429,20 @@ namespace OpenMS
 		}
 		else 
 		{
-			QMessageBox::critical(this,"Error writing file!","Look at the output to stderr for details!");
+			QMessageBox::critical(this,"ParamEditor: Error writing file!",list.join("\n"));
 		}
 		return ret;
 	}
 	    
-	bool ParamEditor::isValid() const
+	bool ParamEditor::isValid(QStringList& list) const
 	{
 		bool ret=true;
 		QTreeWidgetItem* parent=this->invisibleRootItem();
 		for (int i = 0; i < parent->childCount();++i)
 			{
-				if(!(isValidRecursive_(parent->child(i)))) ret=false;	//check whole tree recursively
+				if(!(isValidRecursive_(parent->child(i),list))) ret=false;	//check whole tree recursively
 			}	
+			
 		return ret;
 	}
 	    
@@ -483,7 +507,7 @@ namespace OpenMS
 		item=new QTreeWidgetItem(parent);
 		item->setText(0, "");
 		item->setText(1, "");
-		item->setText(2, "");
+		item->setText(2, "string");
 		item->setData(0,Qt::UserRole,ITEM);
 		item->setData(1,Qt::UserRole,ITEM);
 		item->setData(2,Qt::UserRole,ITEM);
@@ -516,7 +540,7 @@ namespace OpenMS
 		item=new QTreeWidgetItem(parent);
 		item->setText(0, "");
 		item->setText(1, "");
-		item->setText(2, "");
+		item->setText(2, "string");
 		item->setData(0,Qt::UserRole,NODE);
 		item->setData(1,Qt::UserRole,NODE);
 		item->setData(2,Qt::UserRole,NODE);
@@ -570,7 +594,7 @@ namespace OpenMS
 	}
 	   
 	
-	bool ParamEditor::isValidRecursive_(QTreeWidgetItem* parent) const
+	bool ParamEditor::isValidRecursive_(QTreeWidgetItem* parent,QStringList& list) const
 	{
 		bool ok;
 		// -- ITEM --
@@ -578,7 +602,7 @@ namespace OpenMS
 		{
 			if(parent->text(0).size()==0)
 			{
-				cerr << "ParamEditor: Error - Empty item name!" << endl;	
+				list<< "Error - Empty item name!";	
 				return false;
 			}
 			
@@ -588,7 +612,7 @@ namespace OpenMS
 				parent->text(1).toLong(&ok);
 				if(!ok)
 				{
-					cerr << "ParamEditor: Error - Invalid 'int' value '" << parent->text(1).toStdString() << "'!" << endl;	
+					list<<QString("Error - Invalid 'int' value '%1'!").arg(parent->text(1));	
 					return false;
 				}
 			}
@@ -597,7 +621,7 @@ namespace OpenMS
 				parent->text(1).toDouble(&ok);
 				if(!ok)
 				{
-					cerr << "ParamEditor: Error - Invalid 'float' value '" << parent->text(1).toStdString() << "'!" << endl;	
+					list<< QString("Error - Invalid 'float' value '%1'!").arg(parent->text(1));	
 					return false;
 				}
 			}
@@ -607,7 +631,7 @@ namespace OpenMS
 			}
 			else
 			{
-				cerr << "ParamEditor: Error - Unknown type '" << type << "'!" << endl;	
+				list<< QString("Error - Unknown type '%1'!").arg(type.c_str());	
 				return false;
 			}
 		}
@@ -617,14 +641,14 @@ namespace OpenMS
 			//name of node is empty
 			if(parent->text(0).size()==0)		
 			{
-				cerr << "ParamEditor: Error - Empty subsection!" << endl;	
+				list<< "Error - Empty subsection!";	
 				return false;
 			}
 			//check whole tree recursively
 			ok = true;
 			for (Int i = 0; i < parent->childCount();++i)
 			{
-				if(isValidRecursive_(parent->child(i))==false)
+				if(isValidRecursive_(parent->child(i), list)==false)
 				{
 					ok = false;
 				}
@@ -708,15 +732,8 @@ namespace OpenMS
 			}
 		}
 		
-		if(copied_item_ != NULL)
-		{
-			delete copied_item_;
-			copied_item_=selected_item_->clone();
-		}
-		else
-		{
-			copied_item_=selected_item_->clone();
-		}
+		copied_item_=selected_item_; // the item of whom we make copies
+		selected_item_=NULL; // always reset selected_item_ to NULL because we use it to check if user clicks in no item area
 		selected_item_=NULL;
 	}
 	
@@ -730,12 +747,32 @@ namespace OpenMS
 				selected_item_=invisibleRootItem();
 			}
 		}
-		if(copied_item_)
+		if(selected_item_->data(0,Qt::UserRole)==ITEM)
 		{
-			selected_item_->addChild(copied_item_);
 			setModified(true);
 			selected_item_=NULL;
+			return;
 		}
+		if(copied_item_ )
+		{
+			QTreeWidgetItem* new_child=copied_item_->clone();
+			selected_item_->addChild(new_child);
+			Int child_count=0;
+			for (Int i = selected_item_->childCount()-1; i >=0;i--)
+			{
+				if(selected_item_->child(i)->text(0)==new_child->text(0))
+				{
+					if(++child_count>1)
+					{
+						setCurrentItem(new_child);
+						editItem(new_child);
+						break;
+					}
+				}
+			}
+			setModified(true);
+		}
+		selected_item_=NULL;
 	}
 	
 	void ParamEditor::cutSubTree()
