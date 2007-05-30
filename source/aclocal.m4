@@ -675,7 +675,7 @@ ${RM} ${VERSION_FILE}
     DYNAROPTS="${DYNAROPTS} -G -fPIC -o"
   else 
     if test "${OS}" == Darwin ; then
-	    DYNAROPTS="${DYNAROPTS} -single_module -framework QtSql -framework QtCore -framework OpenGL -framework QtGui -framework QtOpenGl -L${[]PROJECTUPPER[]_PATH}/contrib/lib -lxerces-c -lnetcdf -lnetcdf_c++ -lCGAL -lgsl -lsvm.o ${[]PROJECTUPPER[]_PATH}/contrib/lib/ms10lib.a -dynamiclib -fPIC -o"
+	    DYNAROPTS="${DYNAROPTS} -single_module -framework QtSql -framework QtCore -framework OpenGL -framework QtGui -framework QtOpenGl -framework QtNetwork -L${[]PROJECTUPPER[]_PATH}/contrib/lib -lxerces-c -lnetcdf -lnetcdf_c++ -lCGAL -lgsl -lsvm.o ${[]PROJECTUPPER[]_PATH}/contrib/lib/ms10lib.a -dynamiclib -fPIC -o"
 		else	
   	  DYNAROPTS="${DYNAROPTS} -shared -fPIC -o"
 		fi
@@ -2952,7 +2952,8 @@ dnl		Fix up the Qt stuff for MacOS X -- here we need to use Qt frameworks
 dnl
 if test "${OS}" = "Darwin" ; then
 	QT_PLATFORM="Qt-Darwin"
-	QT_LIBOPTS="-framework QtCore -framework QtGui -framework QtSql -framework QtOpenGL"
+	QT_LIBOPTS="-framework QtCore -framework QtGui -framework QtSql -framework QtOpenGL -framework QtNetwork"
+
 dnl	QT_LIBPATHOPT=""
 dnl	QT_INCPATH=""
 dnl	OPENGL_INCPATH="-I/System/Library/Frameworks/OpenGL.framework/Versions/A/Headers -I/System/Library/Frameworks/AGL.framework/Versions/A/Headers"
@@ -3052,6 +3053,24 @@ else
       CF_ERROR
     fi
   fi
+
+  AC_MSG_CHECKING(for libQtNetwork)
+  if test "${QT_LIBPATH}" != "" ; then
+    if test -a "${QT_LIBPATH}/libQtNetwork.so" ; then
+      AC_MSG_RESULT(yes)
+    else
+      AC_MSG_RESULT((not found!))
+      AC_MSG_RESULT()
+      AC_MSG_RESULT([The QtNetwork library could not be found. Please specify the path to libqt])
+      AC_MSG_RESULT([by passing the option --with-qt-libs=DIR to configure.])
+      AC_MSG_RESULT([The QT package can be found under the following URL:])
+      AC_MSG_RESULT(  http://www.troll.no/qt)
+      AC_MSG_RESULT()
+      AC_MSG_RESULT(Note: OpenMS requires QT 4.x! QT3 is no longer supported.)
+      CF_ERROR
+    fi
+  fi
+
 	
 
 	dnl
@@ -3067,7 +3086,7 @@ else
 	if test "${QT_LIBPATH}" != /usr/lib && test "${QT_LIBPATH}" != "" ; then
 		[]PROJECTUPPER[]_LIBS="${[]PROJECTUPPER[]_LIBS} -L${QT_LIBPATH}"
 	fi
-	[]PROJECTUPPER[]_LIBS="${[]PROJECTUPPER[]_LIBS} -lQtCore -lQtSql"
+	[]PROJECTUPPER[]_LIBS="${[]PROJECTUPPER[]_LIBS} -lQtCore -lQtSql -lQtNetwork"
 fi
 ])
 
@@ -3236,7 +3255,7 @@ AC_DEFUN(CF_GUI_QT_LINK_TEST, [
 		AC_MSG_CHECKING(linking against QtOpenGL lib)
 
 		if test "${QT_PLATFORM}" != "Qt-Darwin"; then
-			LIBS="-ltGui -lQtOpenGL ${X11_LIBOPTS} ${LIBS} ${GUI_INCLUDES}"
+			LIBS="-lQtGui -lQtOpenGL ${X11_LIBOPTS} ${LIBS} ${GUI_INCLUDES}"
 		fi
 
 		QT_LINKING_OK=0
@@ -3262,7 +3281,7 @@ AC_DEFUN(CF_GUI_QT_LINK_TEST, [
 		AC_MSG_CHECKING(linking against QtSql lib)
 
 		if test "${QT_PLATFORM}" != "Qt-Darwin"; then
-			LIBS="${X11_LIBOPTS} ${LIBS} ${GUI_INCLUDES}"
+			LIBS="-lQtSql ${X11_LIBOPTS} ${LIBS} ${GUI_INCLUDES}"
 		fi
 
 		QT_LINKING_OK=0
@@ -3280,6 +3299,34 @@ AC_DEFUN(CF_GUI_QT_LINK_TEST, [
     else
       AC_MSG_RESULT(yes)
     fi
+
+
+
+    dnl
+    dnl linkin against QtNetwork
+    dnl
+    AC_MSG_CHECKING(linking against QtNetwork lib)
+
+    if test "${QT_PLATFORM}" != "Qt-Darwin"; then
+      LIBS="-lQtNetwork ${X11_LIBOPTS} ${LIBS} ${GUI_INCLUDES}"
+    fi
+
+    QT_LINKING_OK=0
+    AC_TRY_LINK([#include <QtNetwork/QHostInfo>], [QHostInfo host_info;], QT_LINKING_OK=1)
+
+    if test "${QT_LINKING_OK+set}" != set ; then
+      AC_MSG_RESULT(no)
+      AC_MSG_RESULT()
+      AC_MSG_RESULT([Cannot link against QtNetwork!])
+      AC_MSG_RESULT([If Qt4 is installed, please specify the path to the library])
+      AC_MSG_RESULT([using the option --with-qt-libs=DIR])
+      AC_MSG_RESULT()
+      AC_MSG_RESULT([Another possible reason is threading support. Have a look at the OpenMS installation documentation!])
+      CF_ERROR
+    else
+      AC_MSG_RESULT(yes)
+    fi
+
 
 		if test "${QT_PLATFORM}" != "Qt-Darwin"; then
 			LIBS=${SAVE_LIBS}

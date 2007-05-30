@@ -69,7 +69,7 @@ namespace OpenMS
 
 			/// Return true if the file is writable
 			static bool writable(const String& file);
-			
+
 			/**
 				@brief Looks up the location of @p filename
 				
@@ -87,6 +87,9 @@ namespace OpenMS
 				@return If there are matching files
 			*/
 			static bool fileList(const String& dir, const String& file_pattern, std::vector<String>& output);
+
+			/// returns a string, consisting of date, time, hostname, and process id, for example to use for uniquely named temp files
+			static String getUniqueName();
 	};
 
 }

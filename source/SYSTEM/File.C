@@ -26,15 +26,12 @@
 
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/DateTime.h>
 
 #include <QtCore/QFileInfo>
 #include <QtCore/QDir>
 #include <QtCore/QStringList>
-
-#include <fstream>
-#include <stdio.h>
-#include <stdlib.h>
-#include <iostream.h>
+#include <QtNetwork/QHostInfo>
 
 using namespace std;
 
@@ -145,6 +142,17 @@ namespace OpenMS
 		}
 		
 		return true;
+	}
+
+	String File::getUniqueName()
+	{
+		DateTime now;
+		String date_str, time_str;
+		now.now();
+		now.getDate(date_str);
+		now.getTime(time_str);
+		time_str.remove(':'); // remove ':', because of Windoze 
+		return date_str + "_" + time_str + "_" + String(QHostInfo::localHostName()) + "_" + String(getpid());
 	}
 
 } // namespace OpenMS

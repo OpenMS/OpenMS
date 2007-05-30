@@ -101,6 +101,15 @@ CHECK((bool fileList(const String &dir, const String &file_pattern, std::vector<
 	TEST_EQUAL(File::fileList("data/","*.bliblaluff",vec),false);
 RESULT
 
+CHECK(static String getUniqueName())
+	String unique_name = File::getUniqueName();
+	
+	// test if the string consists of three parts
+	vector<String> split;
+	unique_name.split('_', split);
+	TEST_EQUAL(split.size(), 4)
+RESULT
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST
