@@ -73,6 +73,13 @@ namespace OpenMS
 					DIMENSION = D
 				};
 				
+				PrecursorPeak()
+					: DPeak<D>(),
+						charge_(0)
+				{
+					
+				}
+				
 				/// non-mutable access to the charge
 				ChargeType const & getCharge() const
 				{
@@ -86,9 +93,9 @@ namespace OpenMS
 					return;
 				}
 				
-				protected:
-					
-					ChargeType charge_;
+			protected:
+				
+				ChargeType charge_;
 					
 		};
 		
