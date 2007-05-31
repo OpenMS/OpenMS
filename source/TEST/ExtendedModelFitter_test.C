@@ -385,7 +385,7 @@ CHECK(void ExtendedModelFitter::optimize())
 		for (UInt i=0; i<dpa1.size(); ++i) {
 			p.setMZ(1);
 			p.setRT(dpa1[i].getPosition()[0]);
-			p.setIntensity(dpa1[i].getPosition()[1]);
+			p.setIntensity(dpa1[i].getIntensity());
 			peak_array.push_back(p);
 		}
 		
@@ -470,10 +470,10 @@ CHECK(void ExtendedModelFitter::optimize())
 		p2.setMZ(1);
 		p2.setRT(dpa2[i].getPosition()[0]);
 
-		if (i%5 == 0 && (dpa2[i].getPosition()[1] > 1))
+		if (i%5 == 0 && (dpa2[i].getIntensity() > 1))
 			p2.setIntensity(noise);
 		else
-			p2.setIntensity(dpa2[i].getPosition()[1]);
+			p2.setIntensity(dpa2[i].getIntensity());
 		
 		peak_array2.push_back(p2);
 	}
@@ -545,7 +545,7 @@ CHECK(void ExtendedModelFitter::optimize())
 		//file3 << dpa3[i].getPosition()[0] << "	" << (dpa3[i].getPosition()[1]) << "\n";
 		p3.setMZ(1);
 		p3.setRT(dpa3[i].getPosition()[0]);
-		p3.setIntensity(dpa3[i].getPosition()[1]);
+		p3.setIntensity(dpa3[i].getIntensity());
 		peak_array3.push_back(p3);
 	}
 	//file3.close();
@@ -634,7 +634,7 @@ CHECK(void ExtendedModelFitter::optimize())
 				//file4 << dpa4[i].getPosition()[0] << "	" << (dpa4[i].getPosition()[1]) << "\n";
 				p4.setMZ(1);
 				p4.setRT(dpa4[i].getPosition()[0]);
-				p4.setIntensity(dpa4[i].getPosition()[1]);
+				p4.setIntensity(dpa4[i].getIntensity());
 				peak_array4.push_back(p4);
 			}
 			//file4.close();
