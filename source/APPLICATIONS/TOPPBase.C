@@ -481,7 +481,7 @@ namespace OpenMS
 		{
 			throw Exception::WrongParameterType(__FILE__,__LINE__,__PRETTY_FUNCTION__, name);
 		}
-		double tmp = getParamAsDouble_(name, String(p.default_value).toFloat());
+		double tmp = getParamAsDouble_(name, String(p.default_value).toDouble());
 		writeDebug_(String("Value of string option '") + name + "': " + String(tmp), 1);
 
 		if (p.required && fabs(tmp-String(p.default_value).toDouble()< 0.0001) )

@@ -123,6 +123,35 @@ CHECK((void filterIdentificationsByThreshold(const PeptideIdentification& identi
 	TEST_EQUAL(peptide_hits[4].getRank() , 5)
 RESULT
 
+CHECK((void filterIdentificationsByScore(const PeptideIdentification& identification, DoubleReal threshold_score, PeptideIdentification& filtered_identification)))
+	PeptideIdentification identification2;
+	vector<PeptideHit> peptide_hits;
+	
+	TEST_EQUAL(identification.getHits().size(), 10)	
+	IDFilter().filterIdentificationsByScore(identification, 41, identification2);
+	peptide_hits = identification2.getHits();
+	TEST_EQUAL(identification2.getScoreType() , "Mascot")
+	
+	TEST_EQUAL(peptide_hits.size(), 0)
+	IDFilter().filterIdentificationsByScore(identification, 33, identification2);
+	peptide_hits = identification2.getHits();
+	TEST_EQUAL(peptide_hits.size(), 5)
+	TEST_REAL_EQUAL(peptide_hits[0].getScore() , 40)
+	TEST_EQUAL(peptide_hits[0].getRank() , 1)
+	TEST_EQUAL((identification2.getHits()[0].getSequence()=="FINFGVNVEVLSRFQTK" && identification2.getHits()[1].getSequence()=="MSLLSNMISIVKVGYNAR") || (identification2.getHits()[0].getSequence()=="MSLLSNMISIVKVGYNAR" && identification2.getHits()[1].getSequence()=="FINFGVNVEVLSRFQTK") , true)
+	TEST_REAL_EQUAL(peptide_hits[1].getScore() , 40)
+	TEST_EQUAL(peptide_hits[1].getRank() , 2)
+	TEST_EQUAL(peptide_hits[2].getSequence() , "THPYGHAIVAGIERYPSK")
+	TEST_REAL_EQUAL(peptide_hits[2].getScore() , 39)
+	TEST_EQUAL(peptide_hits[2].getRank() , 3)
+	TEST_EQUAL(peptide_hits[3].getSequence() , "LHASGITVTEIPVTATNFK")
+	TEST_REAL_EQUAL(peptide_hits[3].getScore() , 34.85)
+	TEST_EQUAL(peptide_hits[3].getRank() , 4)
+	TEST_EQUAL(peptide_hits[4].getSequence() , "MRSLGYVAVISAVATDTDK")
+	TEST_REAL_EQUAL(peptide_hits[4].getScore() , 33.85)
+	TEST_EQUAL(peptide_hits[4].getRank() , 5)
+RESULT
+
 CHECK((void filterIdentificationsByExclusionPeptides(const PeptideIdentification& identification, std::vector<String> peptides, PeptideIdentification& filtered_identification)))
 	PeptideIdentification identification2;
 	vector<PeptideHit> peptide_hits;
@@ -227,6 +256,46 @@ CHECK((template<class PeakT> void filterIdentificationsByThresholds(MSExperiment
 	experiment[3].setPeptideIdentifications(ids);
 
 	IDFilter().filterIdentificationsByThresholds(experiment, 1.0, 1.0);
+	identification2 = experiment[3].getPeptideIdentifications()[0];
+	peptide_hits = identification2.getHits();
+	TEST_EQUAL(identification2.getScoreType() , "Mascot")
+	
+	TEST_EQUAL(peptide_hits.size(), 5)
+	TEST_REAL_EQUAL(peptide_hits[0].getScore() , 40)
+	TEST_EQUAL(peptide_hits[0].getRank() , 1)
+	TEST_EQUAL((identification2.getHits()[0].getSequence()=="FINFGVNVEVLSRFQTK" && identification2.getHits()[1].getSequence()=="MSLLSNMISIVKVGYNAR") || (identification2.getHits()[0].getSequence()=="MSLLSNMISIVKVGYNAR" && identification2.getHits()[1].getSequence()=="FINFGVNVEVLSRFQTK") , true)
+	TEST_REAL_EQUAL(peptide_hits[1].getScore() , 40)
+	TEST_EQUAL(peptide_hits[1].getRank() , 2)
+	TEST_EQUAL(peptide_hits[2].getSequence() , "THPYGHAIVAGIERYPSK")
+	TEST_REAL_EQUAL(peptide_hits[2].getScore() , 39)
+	TEST_EQUAL(peptide_hits[2].getRank() , 3)
+	TEST_EQUAL(peptide_hits[3].getSequence() , "LHASGITVTEIPVTATNFK")
+	TEST_REAL_EQUAL(peptide_hits[3].getScore() , 34.85)
+	TEST_EQUAL(peptide_hits[3].getRank() , 4)
+	TEST_EQUAL(peptide_hits[4].getSequence() , "MRSLGYVAVISAVATDTDK")
+	TEST_REAL_EQUAL(peptide_hits[4].getScore() , 33.85)
+	TEST_EQUAL(peptide_hits[4].getRank() , 5)
+RESULT
+
+CHECK((template<class PeakT> void filterIdentificationsByScores(MSExperiment< PeakT >& experiment, double peptide_threshold_fraction, double protein_threshold_fraction)))
+	
+	
+	MSExperiment< Peak1D > experiment;
+  vector< PeptideIdentification > ids;
+	PeptideIdentification identification2;
+	vector<PeptideHit> peptide_hits;
+	vector<ProteinHit> protein_hits;
+  
+  ids.push_back(identification);
+	
+	for(UInt i = 0; i < 5; ++i)
+	{
+		experiment.push_back(MSSpectrum< Peak1D >());
+	}
+	experiment[3].setMSLevel(2);
+	experiment[3].setPeptideIdentifications(ids);
+
+	IDFilter().filterIdentificationsByScores(experiment, 31.8621, 0);
 	identification2 = experiment[3].getPeptideIdentifications()[0];
 	peptide_hits = identification2.getHits();
 	TEST_EQUAL(identification2.getScoreType() , "Mascot")

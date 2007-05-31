@@ -488,6 +488,10 @@ IDFilter_test: $(NUMERICDIFF)
 	@$(call RUN_PROG_OPT,IDFilter,-in IDFilter_4_input.idXML -out IDFilter_4_output.tmp -rt_filtering -p_value 0.08)
 	@$(call TEST_FILE_EQUAL,IDFilter_4_output.idXML,IDFilter_4_output.tmp)
 
+	@$(ECHO) "- Test 5: threshold scores"
+	@$(call RUN_PROG_OPT,IDFilter,-in IDFilter_5_input.idXML -out IDFilter_5_output.tmp -pep_score 32 -prot_score 25)
+	@$(call TEST_FILE_EQUAL,IDFilter_5_output.idXML,IDFilter_5_output.tmp)
+
 LabeledMatcher_test: $(NUMERICDIFF)
 	@$(ECHO) ""
 	@$(ECHO) "LabeledMatcher:"

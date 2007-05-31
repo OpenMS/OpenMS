@@ -31,6 +31,9 @@
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 
+#include <limits>
+#include <cmath>
+
 using namespace OpenMS;
 using namespace std;
 
@@ -120,6 +123,8 @@ class TOPPIDFilter
 		registerStringOption_("exclusion_peptides_file","<file>","","An IdXML file. Peptides having the same sequence as any peptide in this file will be filtered out",false);
 		registerDoubleOption_("pep_fraction","<fraction>",0.0,"the fraction of the peptide significance threshold that should be reached by a peptide hit",false);	
 		registerDoubleOption_("prot_fraction","<fraction>",0.0,"the fraction of the protein significance threshold that should be reached by a protein hit",false);
+		registerDoubleOption_("pep_score","<score>",numeric_limits<int>::max(),"the score which should be reached by a peptide hit to be kept",false);	
+		registerDoubleOption_("prot_score","<score>",numeric_limits<int>::max(),"the score which should be reached by a protein hit to be kept",false);
 		registerDoubleOption_("p_value","<significance>",0.05,"The probability of a correct ProteinIdentification having a deviation between observed and predicted rt equal or bigger than allowed",false);	
 		registerFlag_("best_hits","If this flag is set only the highest scoring hit is kept.\n"
 															"If there are two or more highest scoring hits, none are kept.");
@@ -138,8 +143,10 @@ class TOPPIDFilter
 		vector<ProteinIdentification> protein_identifications;
 		vector<PeptideIdentification> identifications;
 		vector<PeptideIdentification> identifications_exclusion;
-		vector<PeptideIdentification> filtered_identifications;
+		vector<PeptideIdentification> filtered_peptide_identifications;
+		vector<ProteinIdentification> filtered_protein_identifications;
 		PeptideIdentification filtered_identification;
+		ProteinIdentification filtered_protein_identification;
 		vector<UInt> charges;
 		vector< pair< String, String > > sequences;
 		vector<String> exclusion_peptides;
@@ -158,6 +165,8 @@ class TOPPIDFilter
 		
 		DoubleReal peptide_significance_threshold_fraction = getDoubleOption_("pep_fraction");
 		DoubleReal protein_significance_threshold_fraction = getDoubleOption_("prot_fraction");
+		DoubleReal peptide_threshold_score = getDoubleOption_("pep_score");
+		DoubleReal protein_threshold_score = getDoubleOption_("prot_score");
 		
 		String sequences_file_name = getStringOption_("sequences_file");
 		if (sequences_file_name!="")
@@ -211,10 +220,17 @@ class TOPPIDFilter
 		// calculations
 		//-------------------------------------------------------------
 						
-		// Filtering identifications	by thresholds
+		// Filtering peptide identifications	according to set criteria
 		for(UInt i = 0; i < identifications.size(); i++)
-		{       
-			filter.filterIdentificationsByThreshold(identifications[i], peptide_significance_threshold_fraction, filtered_identification);
+		{
+			if (fabs(peptide_significance_threshold_fraction - 0) < 0.00001)
+			{
+				filtered_identification = identifications[i];
+			}
+			else
+			{
+				filter.filterIdentificationsByThreshold(identifications[i], peptide_significance_threshold_fraction, filtered_identification);
+			}
 			if (sequences_file_name != "")
 			{
 				PeptideIdentification temp_identification = filtered_identification;				
@@ -238,6 +254,12 @@ class TOPPIDFilter
 				PeptideIdentification temp_identification = filtered_identification;
 				filter.filterIdentificationsByBestHits(temp_identification, filtered_identification, strict); 				
 			}
+			
+			if (peptide_threshold_score != numeric_limits<int>::max())
+			{
+				PeptideIdentification temp_identification = filtered_identification;
+				filter.filterIdentificationsByScore(temp_identification, peptide_threshold_score, filtered_identification); 				
+			}
 
 			if(!filtered_identification.getHits().empty())
 			{
@@ -245,7 +267,37 @@ class TOPPIDFilter
 			  tmp = filtered_identification;
 			  tmp.setMetaValue("RT", identifications[i].getMetaValue("RT"));
 			  tmp.setMetaValue("MZ", identifications[i].getMetaValue("MZ"));
-				filtered_identifications.push_back(tmp);
+				filtered_peptide_identifications.push_back(tmp);
+			}
+		}
+						
+		// Filtering protein identifications	according to set criteria
+		for(UInt i = 0; i < protein_identifications.size(); i++)
+		{
+			if (fabs(protein_significance_threshold_fraction - 0) < 0.00001)
+			{       
+				filtered_protein_identification = protein_identifications[i];
+			}
+			else
+			{
+				filter.filterIdentificationsByThreshold(protein_identifications[i], protein_significance_threshold_fraction, filtered_protein_identification);
+			}
+			
+			if (sequences_file_name != "")
+			{
+				ProteinIdentification temp_identification = filtered_protein_identification;				
+				filter.filterIdentificationsByProteins(temp_identification, sequences, filtered_protein_identification);
+			}
+
+			if (protein_threshold_score != numeric_limits<int>::max())
+			{
+				ProteinIdentification temp_identification = filtered_protein_identification;
+				filter.filterIdentificationsByScore(temp_identification, protein_threshold_score, filtered_protein_identification); 				
+			}
+
+			if(!(filtered_protein_identification.getHits().empty()))
+			{
+				filtered_protein_identifications.push_back(filtered_protein_identification);
 			}
 		}
 						
@@ -253,14 +305,8 @@ class TOPPIDFilter
 		// writing output
 		//-------------------------------------------------------------
 		
-		if (rt_filtering)
-		{
-			IdXML_file.store(outputfile_name, protein_identifications, filtered_identifications);
-		}
-		else
-		{
-			IdXML_file.store(outputfile_name, protein_identifications, filtered_identifications);
-		}
+		IdXML_file.store(outputfile_name, filtered_protein_identifications, filtered_peptide_identifications);
+
 		return EXECUTION_OK;
 	}
 };

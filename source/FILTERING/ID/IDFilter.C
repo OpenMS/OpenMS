@@ -201,9 +201,9 @@ namespace OpenMS
 		}
 	}
 	
-		void IDFilter::filterIdentificationsByRTPValues(const PeptideIdentification& 	identification,
-																							 			PeptideIdentification& 				filtered_identification,
-																							 			DoubleReal 							p_value)
+	void IDFilter::filterIdentificationsByRTPValues(const PeptideIdentification& 	identification,
+																						 			PeptideIdentification& 				filtered_identification,
+																						 			DoubleReal 										p_value)
 	{
 		DoubleReal border = 1 - p_value;
 		vector< UInt > new_peptide_indices;		
