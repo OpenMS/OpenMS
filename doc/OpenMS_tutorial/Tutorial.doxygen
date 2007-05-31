@@ -27,8 +27,8 @@
 // Attention:
 // - prefix the tutorial pages with 'tutorial_'
 // - to add new pages you have to add them to:
-//    - doc/tutorial/refman_overwrite.tex (pdf output)
-//    - doc/doxygen/public/Tutorial_html.doxygen (html output)
+//    - doc/OpenMS_tutorial/refman_overwrite.tex (pdf output)
+//    - doc/doxygen/public/OpenMS_Tutorial_html.doxygen (html output)
 
 //####################################### TERMS #######################################
 

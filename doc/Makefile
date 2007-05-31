@@ -29,10 +29,11 @@
 help:
 	@echo ""
 	@echo "Main targets are:"
-	@echo "  - 'make [help]'    shows this help"
-	@echo "  - 'make doc'       creates the HTML documentation"
-	@echo "  - 'make tutorial'  creates the tutorial as a PDF"
-	@echo "  - 'make clean'     removes doxygen docu and tutorial"
+	@echo "  - 'make [help]'           shows this help"
+	@echo "  - 'make doc'              creates the HTML documentation (including HTML tutorials)"
+	@echo "  - 'make OpenMS_tutorial'  creates the OpenMS tutorial as a PDF"
+	@echo "  - 'make TOPP_tutorial'    creates the TOPP tutorial as a PDF"
+	@echo "  - 'make clean'            removes doxygen docu and tutorial"
 	@echo ""
 
 #######################################################################
@@ -50,17 +51,30 @@ idoc:
 	@doxygen doxygen/Doxyfile_internal
 
 #######################################################################
-# creates the tutorial
-tutorial: tutorial/Tutorial.doxygen tutorial/Doxyfile dummy
-	@rm -rf tutorial/latex_output
-	@doxygen tutorial/Doxyfile
-	@cp tutorial/refman_overwrite.tex tutorial/latex_output/refman.tex
-	@cd tutorial/latex_output/ && make
-	@cp tutorial/latex_output/refman.pdf Tutorial.pdf
+# creates the OpenMS tutorial
+OpenMS_tutorial: OpenMS_tutorial/OpenMS_Tutorial.doxygen OpenMS_tutorial/Doxyfile dummy
+	@rm -rf OpenMS_tutorial/latex_output
+	@doxygen OpenMS_tutorial/Doxyfile
+	@cp OpenMS_tutorial/refman_overwrite.tex OpenMS_tutorial/latex_output/refman.tex
+	@cd OpenMS_tutorial/latex_output/ && make
+	@cp OpenMS_tutorial/latex_output/refman.pdf OpenMS_tutorial.pdf
+
+
+#######################################################################
+# creates the TOPP tutorial
+TOPP_tutorial: TOPP_tutorial/TOPP_Tutorial.doxygen TOPP_tutorial/Doxyfile dummy
+	@rm -rf TOPP_tutorial/latex_output
+	@doxygen TOPP_tutorial/Doxyfile
+	@cp TOPP_tutorial/refman_overwrite.tex TOPP_tutorial/latex_output/refman.tex
+	@cd TOPP_tutorial/latex_output/ && make
+	@cp TOPP_tutorial/latex_output/refman.pdf TOPP_tutorial.pdf
 
 #######################################################################
 # cleaning up
 clean:
-	@rm -rf tutorial/latex_output/ doxygen/html_output/ doxygen/xml_output/ Tutorial.pdf doxygen/doxygen-error.log tutorial/doxygen-error.log doxygen/Doxyfile
+	@rm -rf doxygen/html_output/ doxygen/xml_output/ doxygen/doxygen-error.log doxygen/Doxyfile
+	@rm -rf OpenMS_tutorial/latex_output/ OpenMS_Tutorial.pdf OpenMS_tutorial/doxygen-error.log
+	@rm -rf TOPP_tutorial/latex_output/ TOPP_Tutorial.pdf TOPP_tutorial/doxygen-error.log
+
 
 dummy:
