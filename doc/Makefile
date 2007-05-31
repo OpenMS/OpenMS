@@ -73,8 +73,8 @@ TOPP_tutorial: TOPP_tutorial/TOPP_Tutorial.doxygen TOPP_tutorial/Doxyfile dummy
 # cleaning up
 clean:
 	@rm -rf doxygen/html_output/ doxygen/xml_output/ doxygen/doxygen-error.log doxygen/Doxyfile
-	@rm -rf OpenMS_tutorial/latex_output/ OpenMS_Tutorial.pdf OpenMS_tutorial/doxygen-error.log
-	@rm -rf TOPP_tutorial/latex_output/ TOPP_Tutorial.pdf TOPP_tutorial/doxygen-error.log
+	@rm -rf OpenMS_tutorial/latex_output/ OpenMS_tutorial.pdf OpenMS_tutorial/doxygen-error.log
+	@rm -rf TOPP_tutorial/latex_output/ TOPP_tutorial.pdf TOPP_tutorial/doxygen-error.log
 
 
 dummy:

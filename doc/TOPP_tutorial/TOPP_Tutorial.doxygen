@@ -24,14 +24,16 @@
 // $Maintainer: Marc Sturm $
 // --------------------------------------------------------------------------
 
+
+//##############################################################################
+
 /**
-	@page TOPP_Tutorial TOPP Tutorial
+	@page TOPP_general General introduction
 
 	This tutorial will give you a brief overview of the most important TOPP tools.
 	First some basics that you will need for every TOPP tool are explained,
 	then several example pipleines are shown.
-	
-	<HR>
+
 	@section TOPP_fileformats File formats
 	
 		The main file formats for TOPP are:
@@ -123,10 +125,14 @@
 			In the @b INIFileEditor the documentation of most parameters is displayed as tooltip when you hover 
 			over the parameter name with the mouse pointer. 
 	
-	<HR>
-	@section TOPP_example1 Example 1: File Handling
+*/
 
-		@subsection TOPP_files_info General information about peak and feature maps
+//##############################################################################
+
+/**
+	@page TOPP_example1 Example 1: File Handling
+
+		@section TOPP_files_info General information about peak and feature maps
 			
 			If you want some general information aout peak or feature maps, use the @b FileInfo tool.
 			It prints RT, m/z and intensity ranges, the overall number of peaks, and the distribution of MS levels
@@ -135,7 +141,7 @@
 			Additionally it can print a statistical summary of intensities and some meta information.
 			See the 'FileInfo --help' for details. 
 			
-		@subsection TOPP_files_conversion Converting your files to mzData
+		@section TOPP_files_conversion Converting your files to mzData
 		
 			OpenMS supports the HPLC-MS data formats @a mzData, @a mzXML and @a ANDI/MS.
 			Proprietary MS machine formats are not supported. If you need to convert these formats to
@@ -148,7 +154,7 @@
 FileConverter -in infile.mzData -out outfile.mzXML
 			@endcode
 		
-		@subsection TOPP_files_dta Converting between DTA and mzData
+		@section TOPP_files_dta Converting between DTA and mzData
 		
 			Sequest DTA files can be extracted from a mzData file using the @b DTAExtractor:
 			@code
@@ -161,7 +167,7 @@ FileMerger -in infile_list.txt -out outfile.mzData
 			The retention times of the scans can be generated, taken from the @a infile_list.txt or can be extrated
 			from the DTA file names. See the FileMerger documentation for details.
 		
-		@subsection TOPP_files_filter Extracting specific information from a file
+		@section TOPP_files_filter Extracting specific information from a file
 			
 			If you want to extract a part of the data from an mzData file, you can use the
 			@b FileFilter tool. It allows filtering for RT, m/z and intensity range or for MS level.
@@ -170,36 +176,57 @@ FileMerger -in infile_list.txt -out outfile.mzData
 FileFilter -in infile.mzData -levels 2 -rt 100:1500 -out outfile.mzData
 			@endcode
 
-	<HR>	
-	@section TOPP_example2 Example 2: Raw data processing
+*/
+
+//##############################################################################
+
+/**
+	@page TOPP_example2 Example 2: Raw data processing
 	
 		@image html TOPP_raw_data.png
+		@image latex TOPP_raw_data.png "" width=10cm
 
-	<HR>
-	@section TOPP_example3 Example 3: Consensus peptide identification
+*/
+
+//##############################################################################
+
+/**
+	@page TOPP_example3 Example 3: Consensus peptide identification
 	
 		@image html TOPP_consensus_id.png
-
+		@image latex TOPP_consensus_id.png "" width=14cm
 	
-	<HR>
-	@section TOPP_example4 Example 4: Map alignment
+*/
+
+//##############################################################################
+
+/**
+	@page TOPP_example4 Example 4: Map alignment
 	
 		@image html TOPP_map_mapping.png
-	
+		@image latex TOPP_map_mapping.png "" width=10cm
+			
 		@image html TOPP_map_mapping_old.png
+		@image latex TOPP_map_mapping_old.png "" width=14cm
 
-	
+*/
 
-	<HR>
-	@section TOPP_example5 Example 5: Isotope-labeled quantitation
+//##############################################################################
+
+/**
+	@page TOPP_example5 Example 5: Isotope-labeled quantitation
 
 		@image html TOPP_labeled_quant.png
+		@image latex TOPP_labeled_quant.png "" width=14cm
 
+*/
 
-	<HR>
-	@section TOPP_example6 Example 6: Label-free quantitation
+//##############################################################################
+
+/**
+	@page TOPP_example6 Example 6: Label-free quantitation
 	
 		@image html TOPP_labelfree_quant.png
-
+		@image latex TOPP_labelfree_quant.png "" width=14cm
 	
 */
