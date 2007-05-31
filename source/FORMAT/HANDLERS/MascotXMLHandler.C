@@ -209,6 +209,24 @@ namespace OpenMS
 			actual_peptide_hit_.setSequence(((String) XMLString::transcode(chars)).trim());
 			tag_ = "";
 		}
+		else if (tag_ == "pep_res_before")
+		{
+			String temp_string = ((String) XMLString::transcode(chars)).trim();
+			if (temp_string != "")
+			{
+				actual_peptide_hit_.setAABefore(temp_string[0]);
+			}
+			tag_ = "";
+		}
+		else if (tag_ == "pep_res_after")
+		{
+			String temp_string = ((String) XMLString::transcode(chars)).trim();
+			if (temp_string != "")
+			{
+				actual_peptide_hit_.setAAAfter(temp_string[0]);
+			}
+			tag_ = "";
+		}
 		else if (tag_ == "Date")
 		{	
 			vector< String > parts;

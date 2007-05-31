@@ -62,25 +62,25 @@
       </ProteinHit>
     </ProteinIdentification>
     <PeptideIdentification score_type="Mascot" higher_score_better="true" significance_threshold="0" MZ="623.52" RT="230.45" >
-      <PeptideHit score="38.11" sequence="TPEVDDEALEK" charge="2" protein_refs="PH_0 PH_1 PH_2 PH_3 PH_4 PH_5 PH_6 PH_7 PH_8 PH_9 PH_10" >
+      <PeptideHit score="38.11" sequence="TPEVDDEALEK" charge="2" aa_before="R" aa_after="F" protein_refs="PH_0 PH_1 PH_2 PH_3 PH_4 PH_5 PH_6 PH_7 PH_8 PH_9 PH_10" >
       </PeptideHit>
-      <PeptideHit score="8.88" sequence="TPEVDNEALEK" charge="2" protein_refs="PH_11 PH_12 PH_13" >
+      <PeptideHit score="8.88" sequence="TPEVDNEALEK" charge="2" aa_before="R" aa_after="F" protein_refs="PH_11 PH_12 PH_13" >
       </PeptideHit>
-      <PeptideHit score="7.06" sequence="LTLVTENNDVK" charge="2" protein_refs="PH_14" >
+      <PeptideHit score="7.06" sequence="LTLVTENNDVK" charge="2" aa_before="K" aa_after="S" protein_refs="PH_14" >
       </PeptideHit>
-      <PeptideHit score="6.66" sequence="SISVEDKTDVR" charge="2" protein_refs="PH_15 PH_16 PH_17 PH_18 PH_19 PH_20" >
+      <PeptideHit score="6.66" sequence="SISVEDKTDVR" charge="2" aa_before="R" aa_after="K" protein_refs="PH_15 PH_16 PH_17 PH_18 PH_19 PH_20" >
       </PeptideHit>
-      <PeptideHit score="5.57" sequence="EQMATSGNEPGK" charge="2" protein_refs="PH_21" >
+      <PeptideHit score="5.57" sequence="EQMATSGNEPGK" charge="2" aa_before="K" aa_after="A" protein_refs="PH_21" >
       </PeptideHit>
-      <PeptideHit score="5.24" sequence="VVEVFSEYFK" charge="2" protein_refs="PH_22" >
+      <PeptideHit score="5.24" sequence="VVEVFSEYFK" charge="2" aa_before="K" aa_after="E" protein_refs="PH_22" >
       </PeptideHit>
-      <PeptideHit score="4.59" sequence="TPQADKTEEVK" charge="2" protein_refs="PH_23" >
+      <PeptideHit score="4.59" sequence="TPQADKTEEVK" charge="2" aa_before="R" aa_after="E" protein_refs="PH_23" >
       </PeptideHit>
-      <PeptideHit score="5.61" sequence="AQQRMSGTLEK" charge="2" protein_refs="PH_24" >
+      <PeptideHit score="5.61" sequence="AQQRMSGTLEK" charge="2" aa_before="R" aa_after="V" protein_refs="PH_24" >
       </PeptideHit>
-      <PeptideHit score="4.24" sequence="LSSEDKEAIEK" charge="2" protein_refs="PH_25 PH_26" >
+      <PeptideHit score="4.24" sequence="LSSEDKEAIEK" charge="2" aa_before="K" aa_after="A" protein_refs="PH_25 PH_26" >
       </PeptideHit>
-      <PeptideHit score="3.94" sequence="FLKASHAYALK" charge="2" protein_refs="PH_27" >
+      <PeptideHit score="3.94" sequence="FLKASHAYALK" charge="2" aa_before="K" aa_after="S" protein_refs="PH_27" >
       </PeptideHit>
     </PeptideIdentification>
   </IdentificationRun>
