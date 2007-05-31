@@ -26,7 +26,7 @@
 
 /**
 	
-	@page OpenMSTutorial OpenMS Tutorial
+	@page OpenMSTutorial OpenMS tutorial
 
 	This tutorial gives an introduction to the OpenMS core datastructures and algorithms.
 	It is intended to allow for a quick start in writing your own applications based on
