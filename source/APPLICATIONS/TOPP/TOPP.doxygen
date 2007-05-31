@@ -52,6 +52,7 @@
     - @subpage SpectraFilter
     - @subpage MapNormalizer
 		- @subpage InternalCalibration
+		- @subpage ExternalCalibration
   - <b>Quantitation</b>
  		- @subpage FeatureFinder
   	- @subpage UnlabeledMatcher 

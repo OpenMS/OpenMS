@@ -240,7 +240,9 @@ EXECUTABLES_FILTERING = \
 	SavitzkyGolayQRFilter_test\
 	SavitzkyGolaySVDFilter_test\
 	InternalCalibration_test\
-	IDFilter_test
+	IDFilter_test\
+	ExternalCalibration_test
+
 
 
 #COMPARISON

@@ -30,7 +30,8 @@ DIRECTORY=FILTERING/CALIBRATION
 include ../../config_defs.mak
 
 CPP_SOURCES=\
-  InternalCalibration.C
+  InternalCalibration.C\
+	ExternalCalibration.C
 
 include ../../common.mak
 -include .Dependencies

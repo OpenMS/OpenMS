@@ -57,7 +57,8 @@ UNCONDITIONAL_TESTS = \
 	MapAlignment_test \
 	UnlabeledMatcher_test \
   FeatureFinder_test\
-	InternalCalibration_test
+	InternalCalibration_test\
+	ExternalCalibration_test
 
 #	SequestAdapter_test\
 #	InspectAdapter_test
@@ -704,13 +705,24 @@ InternalCalibration_test: $(NUMERICDIFF)
 	@$(call RUN_PROG_OPT,InternalCalibration,-in InternalCalibration_2_input.mzData -out InternalCalibration_2_output.tmp -ref_masses InternalCalibration_ref_masses -peak_data)
 	@$(call TEST_FILE_EQUAL,InternalCalibration_2_output.mzData,InternalCalibration_2_output.tmp)
 
+ExternalCalibration_test: $(NUMERICDIFF)
+	@$(ECHO) ""
+	@$(ECHO) "ExternalCalibration_test:"
+	@$(ECHO) "- Test1: calibration of raw data"
+	@$(call RUN_PROG_OPT,ExternalCalibration,-in ExternalCalibration_1_input.mzData -out ExternalCalibration_1_output.tmp -ref_masses ExternalCalibration_ref_masses -ini ExternalCalibration_parameters.ini -tof_const ExternalCalibration_const -ext_calibrants ExternalCalibration_1_calibrants.mzData 2>error)
+	@$(call TEST_FILE_EQUAL,ExternalCalibration_1_output.mzData,ExternalCalibration_1_output.tmp)
+	@$(ECHO) "- Test2: calibration of peak data"
+	@$(call RUN_PROG_OPT,ExternalCalibration,-in ExternalCalibration_2_input.mzData -out ExternalCalibration_2_output.tmp -ref_masses ExternalCalibration_ref_masses  -ini ExternalCalibration_parameters.ini -tof_const ExternalCalibration_const -ext_calibrants ExternalCalibration_2_calibrants.mzData -peak_data 2>error2)
+	@$(call TEST_FILE_EQUAL,ExternalCalibration_2_output.mzData,ExternalCalibration_2_output.tmp)
+
+
 ###########################################################################################
 ## Tests for processing pipelines.
+
 
 MyoQuant_test: $(NUMERICDIFF)
 	@$(ECHO) ""
 	@$(ECHO) "MyoQuant:"
-
 	@$(ECHO) "- Test 1: Additive Series using intensity ratio of tryptic peptides T11hu / T10ho, no dewarping"
 
 	@$(foreach number, 06 07 08 09 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 , \
