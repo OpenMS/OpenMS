@@ -28,7 +28,7 @@
 #define OPENMS_KERNEL_MSSPECTRUM_H
 
 #include <OpenMS/KERNEL/DSpectrum.h>
-#include <OpenMS/KERNEL/PeakArray.h>
+#include <OpenMS/KERNEL/DPeakArray.h>
 #include <OpenMS/KERNEL/Peak1D.h>
 #include <OpenMS/METADATA/SpectrumSettings.h>
 #include <OpenMS/FORMAT/PersistentObject.h>
