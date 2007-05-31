@@ -43,9 +43,11 @@ namespace OpenMS
     
     If you for example want to sort the elements of a constant container, you have to copy the whole container.
     To avoid copy actions this class only holds pointer to the constant elements of a container. 
-    It behaves like a DPeakArray. You can insert new elements, but it is not possible to change existing ones.
+    It behaves like a PeakArray. You can insert new elements, but it is not possible to change existing ones.
     (E.g. generating a DPeakConstReferenceArray pointer_array of a FeatureMap feature_map is done by:
     pointer_array(feature_map.begin(),feature_map.end()))
+
+		@todo Apparently there is something to do about reference operator [] (Eva)
     
     @ingroup Kernel
   */
@@ -54,7 +56,7 @@ namespace OpenMS
   {
   public:
 
-    ///ConstIterator for the DPeakArray
+    ///ConstIterator for the DPeakConstReferenceArray
     template <class IteratorPeakT>
     class DPeakConstReferenceArrayConstIterator
     {
@@ -224,9 +226,9 @@ namespace OpenMS
     };
 
 
-    /// Mutable iterator for the DPeakArray
+    /// Mutable iterator for the DPeakConstReferenceArray
     template <class IteratorPeakT>
-  class DPeakConstReferenceArrayIterator : public DPeakConstReferenceArrayConstIterator<IteratorPeakT>
+		class DPeakConstReferenceArrayIterator : public DPeakConstReferenceArrayConstIterator<IteratorPeakT>
     {
       friend class DPeakConstReferenceArray;
 

@@ -220,8 +220,8 @@ CHECK( void getSamples(SamplesType &cont) const )
 		
 		ProductModel pm2(pm1);
 		
-		DPeakArray<2> dpa1;
-		DPeakArray<2> dpa2;
+		DPeakArray<DPeak<2> > dpa1;
+		DPeakArray<DPeak<2> > dpa2;
 		pm1.getSamples(dpa1);
 		pm2.getSamples(dpa2);
 

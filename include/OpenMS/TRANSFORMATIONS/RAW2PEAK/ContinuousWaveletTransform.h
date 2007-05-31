@@ -59,17 +59,17 @@ public:
     {}
 
     /// Non-mutable access to the wavelet transform of the signal
-    inline const DPeakArray<1, RawDataPoint1D >& getSignal() const
+    inline const DPeakArray<RawDataPoint1D >& getSignal() const
     {
         return signal_;
     }
     /// Mutable access to the wavelet transform of the signal
-    inline DPeakArray<1, RawDataPoint1D >& getSignal()
+    inline DPeakArray<RawDataPoint1D >& getSignal()
     {
         return signal_;
     }
     /// Mutable access to the wavelet transform of the signal
-    inline void setSignal(const DPeakArray<1, RawDataPoint1D >& signal)
+    inline void setSignal(const DPeakArray<RawDataPoint1D >& signal)
     {
         signal_ = signal;
     }
@@ -209,7 +209,7 @@ public:
 
 protected:
     /// The transformed signal
-    DPeakArray<1, RawDataPoint1D > signal_;
+    DPeakArray<RawDataPoint1D > signal_;
 
     /// The pretabulated wavelet used for the transform
     std::vector<double> wavelet_;

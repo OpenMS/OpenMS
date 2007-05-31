@@ -33,7 +33,7 @@ namespace OpenMS
 	{
 		template <>
 		template <>
-		void MzDataHandler <MSExperiment<PickedPeak1D > >::writeDerivedPeakSupplementalData_ < DPeakArray<1, PickedPeak1D > >( std::ostream& os, DPeakArray<1, PickedPeak1D > const & container)
+		void MzDataHandler <MSExperiment<PickedPeak1D > >::writeDerivedPeakSupplementalData_ < DPeakArray<PickedPeak1D > >( std::ostream& os, DPeakArray<PickedPeak1D > const & container)
 		{
 			// default: write data in 32Bit -> fill float array
 			UInt container_size = container.size();

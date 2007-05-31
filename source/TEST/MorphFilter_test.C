@@ -26,6 +26,7 @@
 
 #include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/KERNEL/DPeakArray.h>
+#include <OpenMS/KERNEL/RawDataPoint1D.h>
 
 
 ///////////////////////////
@@ -64,7 +65,7 @@ CHECK(float& getStrucElemSize())
 RESULT
 
 CHECK((template< typename InputPeakIterator, typename OutputPeakContainer > void dilatation(InputPeakIterator first, InputPeakIterator last, OutputPeakContainer& result, int l)))
-  DPeakArray<1, RawDataPoint1D > raw(5);
+  DPeakArray<RawDataPoint1D > raw(5);
   raw[0].setIntensity(0);
   raw[1].setIntensity(1);
   raw[2].setIntensity(1);
@@ -77,7 +78,7 @@ CHECK((template< typename InputPeakIterator, typename OutputPeakContainer > void
   raw[3].setMZ(3);
   raw[4].setMZ(4);
   
-  DPeakArray< 1,RawDataPoint1D > filtered;
+  DPeakArray<RawDataPoint1D > filtered;
   
   MorphFilter m;
   unsigned int struc_length = 3;
@@ -92,7 +93,7 @@ CHECK((template< typename InputPeakIterator, typename OutputPeakContainer > void
 RESULT
 
 CHECK((template< typename InputPeakIterator, typename OutputPeakContainer > void erosion(InputPeakIterator first, InputPeakIterator last, OutputPeakContainer& result, int l)))
-  DPeakArray<1, RawDataPoint1D > raw(5);
+  DPeakArray<RawDataPoint1D > raw(5);
   raw[0].setIntensity(0);
   raw[1].setIntensity(1);
   raw[2].setIntensity(1);
@@ -105,7 +106,7 @@ CHECK((template< typename InputPeakIterator, typename OutputPeakContainer > void
   raw[3].setMZ(3);
   raw[4].setMZ(4);
   
-  DPeakArray< 1,RawDataPoint1D > filtered;
+  DPeakArray<RawDataPoint1D > filtered;
   
   MorphFilter m;
   unsigned int struc_length = 3;

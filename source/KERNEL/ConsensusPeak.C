@@ -28,5 +28,5 @@
 
 namespace OpenMS
 {
-		
+	ConsensusPeak<> default_consensuspeak;
 } 

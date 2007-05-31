@@ -35,8 +35,8 @@
 using namespace OpenMS;
 using namespace std;
 
-typedef DPeakArray< 1, Peak1D > PeakArrayType;
-typedef DPeakArray< 2, Peak2D > PeakArray2DType;
+typedef DPeakArray< Peak1D > PeakArrayType;
+typedef DPeakArray< Peak2D > PeakArray2DType;
 
 START_TEST(DPeakConstReferenceArray, "$Id$")
 

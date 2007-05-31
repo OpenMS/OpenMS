@@ -135,7 +135,7 @@ CHECK((Feature fit(const ChargedIndexSet &range)))
 		78.58007608, 67.34288093, 42.38668296, 19.59411554, 6.652431187, 1.65879841};
 
 	Peak2D p;
-	DPeakArray<2, Peak2D> peak_array;
+	DPeakArray<Peak2D> peak_array;
 	for (UInt mz=0; mz<mz_num; mz++) 
 	{
 		for (UInt rt=0; rt<rt_num; rt++)

@@ -252,13 +252,13 @@ CHECK((BilinearInterpolation( KeyType scale_0 = 1., KeyType offset_0 = 0., KeyTy
 }
 RESULT
 
-CHECK(ContainerType const& getData() const throw())
+CHECK(ContainerType const& getData() const)
 {
   // ???
 }
 RESULT
 
-CHECK(ContainerType& getData() throw())
+CHECK(ContainerType& getData())
 {
   // ???
 }
@@ -280,86 +280,86 @@ CHECK((void setMapping_0( KeyType const & scale, KeyType const & inside, KeyType
 }
 RESULT
 
-CHECK(void setOffset_0( KeyType const & offset ) throw())
+CHECK(void setOffset_0( KeyType const & offset ))
 {
   // ???
 }
 RESULT
 
-CHECK(void setScale_0( KeyType const & scale ) throw())
+CHECK(void setScale_0( KeyType const & scale ))
 {
   // ???
 }
 RESULT
 
-CHECK(KeyType const& getInsideReferencePoint_0() const throw())
+CHECK(KeyType const& getInsideReferencePoint_0() const)
 {
   // ???
 }
 RESULT
 
-CHECK(KeyType const& getOffset_0() const throw())
+CHECK(KeyType const& getOffset_0() const)
 {
   // ???
 }
 RESULT
-CHECK(KeyType const& getOutsideReferencePoint_0() const throw())
-{
-  // ???
-}
-RESULT
-
-CHECK(KeyType const& getScale_0() const throw())
+CHECK(KeyType const& getOutsideReferencePoint_0() const)
 {
   // ???
 }
 RESULT
 
-CHECK(KeyType index2key_0( KeyType pos ) const throw())
+CHECK(KeyType const& getScale_0() const)
 {
   // ???
 }
 RESULT
 
-CHECK(KeyType key2index_0( KeyType pos ) const throw())
+CHECK(KeyType index2key_0( KeyType pos ) const)
 {
   // ???
 }
 RESULT
 
-CHECK(KeyType supportMax_0() const throw())
+CHECK(KeyType key2index_0( KeyType pos ) const)
 {
   // ???
 }
 RESULT
 
-CHECK(KeyType supportMin_0() const throw())
+CHECK(KeyType supportMax_0() const)
 {
   // ???
 }
 RESULT
 
-CHECK((ValueType value( KeyType arg_pos_0, KeyType arg_pos_1 ) const throw()))
+CHECK(KeyType supportMin_0() const)
 {
   // ???
 }
 RESULT
 
-CHECK(bool empty() const throw())
+CHECK((ValueType value( KeyType arg_pos_0, KeyType arg_pos_1 ) const))
 {
   // ???
 }
 RESULT
 
-CHECK(template< typename SourceContainer > void setData( SourceContainer const & data ) throw())
+CHECK(bool empty() const)
 {
   // ???
 }
 RESULT
 
-CHECK((void addValue( KeyType arg_pos_0, KeyType arg_pos_1, ValueType arg_value ) throw()))
+CHECK(template< typename SourceContainer > void setData( SourceContainer const & data ))
 {
-	
+  // ???
+}
+RESULT
+
+CHECK((void addValue( KeyType arg_pos_0, KeyType arg_pos_1, ValueType arg_value )))
+{
+
 #define verbose(a)
 	// #define verbose(a) a
 

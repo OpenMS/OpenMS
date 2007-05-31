@@ -135,8 +135,8 @@ CHECK([EXTRA] DefaultParamHandler::setParameters(...))
 	EmgModel em3;
 	em3.setParameters(em1.getParameters());
 
-	DPeakArray<1> dpa1;
-	DPeakArray<1> dpa2;
+	DPeakArray<DPeak<1> > dpa1;
+	DPeakArray<DPeak<1> > dpa2;
 	em1.getSamples(dpa1);
 	em3.getSamples(dpa2);
 
@@ -235,8 +235,8 @@ CHECK(void setOffset(double offset))
 	TEST_REAL_EQUAL(em1.getCenter(), em2.getCenter())
 	TEST_REAL_EQUAL(em1.getCenter(), 682.1)
 
-	DPeakArray<1> dpa1;
-	DPeakArray<1> dpa2;
+	DPeakArray<DPeak<1> > dpa1;
+	DPeakArray<DPeak<1> > dpa2;
 	em1.getSamples(dpa1);
 	em2.getSamples(dpa2);
 

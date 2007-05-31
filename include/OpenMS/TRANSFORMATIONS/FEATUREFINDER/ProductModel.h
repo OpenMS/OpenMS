@@ -59,7 +59,7 @@ namespace OpenMS
  public:
     typedef typename DPeak<D>::IntensityType IntensityType;
     typedef DPosition<D> PositionType;
-    typedef DPeakArray<D, DPeak<D> > SamplesType;
+    typedef DPeakArray<DPeak<D> > SamplesType;
 
     /// Default constructor
     ProductModel()

@@ -133,8 +133,8 @@ CHECK([EXTRA] DefaultParamHandler::setParameters(...))
 	bgm2.setParameters(bgm1.getParameters());
 	TEST_REAL_EQUAL(bgm1.getCenter(), 681.2)
 
-	DPeakArray<1> dpa1;
-	DPeakArray<1> dpa2;
+	DPeakArray<DPeak<1> > dpa1;
+	DPeakArray<DPeak<1> > dpa2;
 	bgm1.getSamples(dpa1);
 	bgm2.getSamples(dpa2);
 
@@ -172,8 +172,8 @@ CHECK((void setOffset(double offset)))
 	TEST_REAL_EQUAL(bgm1.getCenter(), bgm2.getCenter())
 	TEST_REAL_EQUAL(bgm1.getCenter(), 682.1)
 
-	DPeakArray<1> dpa1;
-	DPeakArray<1> dpa2;
+	DPeakArray<DPeak<1> > dpa1;
+	DPeakArray<DPeak<1> > dpa2;
 	bgm1.getSamples(dpa1);
 	bgm2.getSamples(dpa2);
 

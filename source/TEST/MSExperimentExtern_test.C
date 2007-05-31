@@ -172,7 +172,7 @@ CHECK((template<class Container> void get2DData(Container& cont) const))
 	exp.push_back(spec);	
 	
 	//Convert
-	DPeakArray<2, RawDataPoint2D > a;
+	DPeakArray< RawDataPoint2D > a;
 	exp.get2DData(a);
 
 	//Tests
@@ -191,12 +191,12 @@ CHECK((template<class Container> void get2DData(Container& cont) const))
 	TEST_REAL_EQUAL(a[4].getMZ(),25);
 
 	//Convert
-	DPeakArray<2, Peak2D> list;
+	DPeakArray< Peak2D> list;
 	exp.get2DData(list);
 
 	//Tests
 	TEST_REAL_EQUAL(list.size(),5);
-	DPeakArray<2, Peak2D>::const_iterator it = list.begin();
+	DPeakArray< Peak2D>::const_iterator it = list.begin();
 	TEST_REAL_EQUAL(it->getRT(),11.1);
 	TEST_REAL_EQUAL(it->getMZ(),5);
 	TEST_REAL_EQUAL(it->getIntensity(),47.11);
@@ -219,7 +219,7 @@ CHECK((template<class Container> void set2DData(Container& cont)))
 	MSExperimentExtern<> exp;
 	
 	// create sample data
-	DPeakArray<2, Peak2D> input;
+	DPeakArray< Peak2D> input;
 	
 	Peak2D p1;
 	p1.setIntensity(1.0);
@@ -242,7 +242,7 @@ CHECK((template<class Container> void set2DData(Container& cont)))
 	exp.set2DData(input);
 	
 	// retrieve data again and check for changes
-	DPeakArray<2, Peak2D> output;
+	DPeakArray< Peak2D> output;
 	
 	exp.get2DData(output);
 	TEST_EQUAL(output==input,true);
@@ -607,7 +607,7 @@ CHECK((ConstIterator RTEnd(double rt) const))
 RESULT
 
 CHECK((void sortSpectra(bool sort_mz = true)))
-	DPeakArray<2, Peak2D> plist;
+	DPeakArray< Peak2D> plist;
 	
 	Peak2D p1;
 	p1.getPosition()[0] = 1.0;
@@ -641,7 +641,7 @@ CHECK((void sortSpectra(bool sort_mz = true)))
 RESULT
 
 CHECK((void reset()))
-	DPeakArray<2, Peak2D> plist;
+	DPeakArray< Peak2D> plist;
 	
 	Peak2D p;
 	p.getPosition()[0] = 1.0;
@@ -886,7 +886,7 @@ CHECK( void clear() )
 	MSExperimentExtern<> exp;
 	
 	// create sample data
-	DPeakArray<2, Peak2D> input;
+	DPeakArray< Peak2D> input;
 	
 	Peak2D p1;
 	p1.setIntensity(1.0);
@@ -916,7 +916,7 @@ RESULT
 CHECK( size_type size() const )
 	
 	MSExperimentExtern<> exp;
-	DPeakArray<2, Peak2D> input;
+	DPeakArray< Peak2D> input;
 	
 	Peak2D p1;
 	p1.setIntensity(1.0);

@@ -133,9 +133,9 @@ namespace OpenMS
 	
 				wavelet_initialized_ = true;
 			}
-			std::vector<DPeakArray<1, PeakType > >* pwts = NULL;
+			std::vector<DPeakArray<PeakType > >* pwts = NULL;
 			// store peak data, once for each charge state
-			pwts = new std::vector<DPeakArray<1, PeakType > > (charges_.size(), scan.getContainer() );
+			pwts = new std::vector<DPeakArray<PeakType > > (charges_.size(), scan.getContainer() );
 			
 			// compute wavelet transform
 			fastMultiCorrelate_(scan, pwts);
@@ -196,7 +196,7 @@ namespace OpenMS
 		#endif
 	}
 	
-	void IsotopeWaveletSeeder::computeNullVariance_(const DPeakArray<1, PeakType >& cwt, const UInt charge_index )
+	void IsotopeWaveletSeeder::computeNullVariance_(const DPeakArray<PeakType >& cwt, const UInt charge_index )
 	{
 		IntensityType cwt_sum    = 0.0;
 		IntensityType cwt_sqsum = 0.0;
@@ -215,9 +215,9 @@ namespace OpenMS
 		null_var_[charge_index] = ( n_null_[charge_index] * cwt_sqsum - ( cwt_sum * cwt_sum) ) / ( n_null_[charge_index] * (n_null_[charge_index]-1) );
 	}
 		
-	void IsotopeWaveletSeeder::fastMultiCorrelate_(const SpectrumType& signal, std::vector<DPeakArray<1, PeakType > >* pwts)
+	void IsotopeWaveletSeeder::fastMultiCorrelate_(const SpectrumType& signal, std::vector<DPeakArray<PeakType > >* pwts)
 	{
-		std::vector<DPeakArray<1, PeakType > >* res = pwts;
+		std::vector<DPeakArray<PeakType > >* res = pwts;
 		UInt signal_size = signal.size();
 	
 		WaveletCollection phis (charges_.size(), std::vector<double> (waveletLength_)); 		//all necessary wavelets (by rows)
@@ -337,7 +337,7 @@ namespace OpenMS
 	} // end of fastMultiCorrelate(...)
 	
 	
-	IsotopeWaveletSeeder::ScoredMZVector IsotopeWaveletSeeder::identifyCharge_(std::vector<DPeakArray<1, PeakType > >& candidates,
+	IsotopeWaveletSeeder::ScoredMZVector IsotopeWaveletSeeder::identifyCharge_(std::vector<DPeakArray<PeakType > >& candidates,
 																																								                                       SpectrumType& scan)
 	{
 	
@@ -365,7 +365,7 @@ namespace OpenMS
 			CoordinateType current_rt = scan.getRT();
 			String filename = String("isowavcwt_") + current_rt + "_charge_" + (c+1);
 			std::ofstream outfile(filename.c_str());
-			for (DPeakArray<1, PeakType >::const_iterator write_iter=candidates[c].begin(); 
+			for (DPeakArray<PeakType >::const_iterator write_iter=candidates[c].begin(); 
 						write_iter != candidates[c].end(); 
 						++write_iter)
 			{
@@ -449,7 +449,7 @@ namespace OpenMS
 		return scmzvec;
 	}
 
-	double IsotopeWaveletSeeder::getAbsMean_(const DPeakArray<1, PeakType >& signal, UInt startIndex, UInt endIndex) const
+	double IsotopeWaveletSeeder::getAbsMean_(const DPeakArray<PeakType >& signal, UInt startIndex, UInt endIndex) const
 	{
 	  double res=0;
 	  for (UInt i=startIndex; i<endIndex; ++i)
@@ -459,7 +459,7 @@ namespace OpenMS
 	  return (res/(double)(endIndex-startIndex+1));
 	}
 	
-	UInt IsotopeWaveletSeeder::findNextMax(const DPeakArray<1, PeakType >& cwt, const UInt index)
+	UInt IsotopeWaveletSeeder::findNextMax(const DPeakArray<PeakType >& cwt, const UInt index)
 	{
 	
 		UInt max_index = index;
@@ -497,7 +497,7 @@ namespace OpenMS
 		return max_index;
 	}
 
-	IsotopeWaveletSeeder::ProbabilityType IsotopeWaveletSeeder::testLocalVariance_(const DPeakArray<1, PeakType >& cwt, const UInt& start, const UInt charge_index)
+	IsotopeWaveletSeeder::ProbabilityType IsotopeWaveletSeeder::testLocalVariance_(const DPeakArray<PeakType >& cwt, const UInt& start, const UInt charge_index)
 	{			
 		IntensityType cwt_sum    = 0.0;
 		IntensityType cwt_sqsum = 0.0;

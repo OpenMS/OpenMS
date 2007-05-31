@@ -38,7 +38,7 @@ using namespace OpenMS;
 using namespace std;
 
 typedef FeatureMap< Feature > FeatureMapType;
-typedef DPeakArray< 2, Peak2D > PeakArrayType;
+typedef DPeakArray<Peak2D > PeakArrayType;
 typedef ConsensusFeature< FeatureMapType > ConsensusFeatureType;
 typedef ConsensusPeak< PeakArrayType > ConsensusPeakType;
 typedef ConsensusMap< ConsensusFeatureType > ConsensusMapType;

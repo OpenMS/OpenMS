@@ -41,19 +41,19 @@ namespace OpenMS
 		
 		@ingroup Kernel
 		A group of predicates that can be used to perform range operations on MS data.
-		They operate on classes that have the save interface as DSpectrum or DRawDataPoint respectively.
+		They operate on classes that have the save interface as Spectrum or DRawDataPoint respectively.
 		<BR>
 		<BR>
 		The code for the removal of spectra in a certain retention time range from a vector of spectra might look like this:
 		
 		@code
 		//data
-		std::vector< DSpectrum<1> > spectra;
+		std::vector< Spectrum<Peak1D> > spectra;
 		
 		//... spectra are added to the vector ...
 		
 		//range from 0.0 to 36.0 s
-		InRTRange< DSpectrum<1> > range(0.0, 36.0);
+		InRTRange< Spectrum<Peak1D> > range(0.0, 36.0);
 
 		//remove the range		
 		spectra.erase(remove_if(spectra.begin(), spectra.end(), range), spectra.end());	
@@ -63,7 +63,7 @@ namespace OpenMS
 		
 		@code
 		//data
-		DSpectrum<1, Peak1D > spectrum;
+		Spectrum<Peak1D> spectrum;
 		
 		//... peaks are added to the spectrum ...
 		
@@ -78,7 +78,7 @@ namespace OpenMS
 	/**
 		@brief Predicate that determines if a spectrum lies inside/outside a specific retention time range
 		
-		SpectrumType must be a DSpectrum or have the same interface
+		SpectrumType must be a Spectrum or have the same interface
 		
 		@ingroup RangeUtils
 	*/
@@ -121,7 +121,7 @@ namespace OpenMS
 	/**
 		@brief Predicate that determines if a spectrum lies inside/outside a specific MS level set
 		
-		SpectrumType must be a DSpectrum or have the same interface
+		SpectrumType must be a Spectrum or have the same interface
 		
 		@ingroup RangeUtils
 	*/	
@@ -162,7 +162,7 @@ namespace OpenMS
 	/**
 		@brief Predicate that determines if a spectrum has a certain scan mode
 		
-		SpectrumType must be a DSpectrum or have the same interface (SpectrumSettings)
+		SpectrumType must be a Spectrum or have the same interface (SpectrumSettings)
 		
 		@ingroup RangeUtils
 	*/	

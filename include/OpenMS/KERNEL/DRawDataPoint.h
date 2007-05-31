@@ -2,7 +2,7 @@
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
-//                   OpenMS Mass Spectrometry Framework 
+//                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
 //  Copyright (C) 2003-2007 -- Oliver Kohlbacher, Knut Reinert
 //
@@ -33,188 +33,207 @@
 
 namespace OpenMS
 {
-
+	
 	/**
-		@brief	D-dimensional raw data point.
-	 
-		This datastructure is intended for continous data.
-		If you want to handle picked data use DPeak or DPickedPeak.
-
-		@ingroup Kernel
-	*/
+	 @brief	D-dimensional raw data point.
+	
+	 This datastructure is intended for continous data.
+	 If you want to handle picked data use DPeak or DPickedPeak.
+	
+	 @ingroup Kernel
+	 */
 	template <UInt D>
-	class DRawDataPoint 	
+	class DRawDataPoint
 	{
-	 public:
-		
-		/** @name Type definitions
-		 */
-		//@{
-		/// Number of dimenstions
-		enum { DIMENSION = D };
-		/// Intensity type
-		typedef DoubleReal IntensityType;
-		/// Coordinate type (of the position)
-		typedef DoubleReal CoordinateType;
-		/// Position type
-		typedef DPosition<D> PositionType;
-		//@}
-
-		/** @name Constructors and Destructor
-		 */
-		//@{
-		/// Default constructor
-		DRawDataPoint() : position_(), intensity_(0) {}
-		/// Copy constructor
-		DRawDataPoint(const DRawDataPoint& p) 
+		public:
+			
+			/** @name Type definitions
+			 */
+			//@{
+			
+			/// Dimensionality
+			enum
+			{
+				DIMENSION = D
+			};
+			
+			/// Intensity type
+			typedef DoubleReal IntensityType;
+			
+			/// Coordinate type (of the position)
+			typedef DoubleReal CoordinateType;
+			
+			/// Position type
+			typedef DPosition<D> PositionType;
+			
+			//@}
+			
+			/** @name Constructors and Destructor
+			 */
+			//@{
+			/// Default constructor
+			DRawDataPoint() : position_(), intensity_(0)
+			{}
+			/// Copy constructor
+			DRawDataPoint(const DRawDataPoint& p)
 			: position_(p.position_), intensity_(p.intensity_)
-		{}
-		/**@brief Destructor
-
-		\note The destructor is non-virtual although many classes are derived from
-		  DRawDataPoint.  This is intentional, since otherwise we would "waste"
-		  space for a vtable pointer in each instance - but DRawDataPoints are
-		  used in great amounts for storing raw data. Normally you should not derive other classes from
-		  DRawDataPoint (unless you know what you are doing, of course).
-		*/
-		~DRawDataPoint() {}
-		//@}
-		
-		/**	
-			@name Accessors
-		 */
-		//@{
-		/// Non-mutable access to the data point intensity (height)
-		IntensityType getIntensity() const { return intensity_; }
-		
-		/// Non-mutable access to the data point intensity (height)
-		void setIntensity(IntensityType intensity) { intensity_ = intensity; }
-
-		/// Non-mutable access to the data point position (multidimensional)
-		const PositionType& getPosition() const { return position_; }
-		/// Mutable access to the data point position (multidimensional)
-		PositionType& getPosition() { return position_; }
-		/// Mutable access to the data point position (multidimensional)
-		void setPosition(PositionType const& position) { position_ = position; }
-
-		//@}
-
-		/// Assignment operator
-		DRawDataPoint& operator = (const DRawDataPoint& rhs)
-		{
-			if (this==&rhs) return *this;
+			{}
+			/**@brief Destructor
 			
-			intensity_ = rhs.intensity_;
-			position_ = rhs.position_;
-		
-			return *this;
-		}
-		
-		/// Equality operator
-		bool operator == (const DRawDataPoint& rhs) const
-		{
-			return  intensity_ == rhs.intensity_ && position_ == rhs.position_ ;
-		}
-
-		/// Equality operator
-		bool operator != (const DRawDataPoint& rhs) const
-		{
-			return !( operator==(rhs) );
-		}
-
-									
- 		/**	@name	Comparator classes.
-				These classes implement binary predicates that can be used 
-				to compare two peaks with respect to their intensities, positions.
-				They are employed by the sort methods in container classes such as DPeakArray.
-		*/
-		//@{
-
-		/// Compare by getIntensity()
-		struct IntensityLess
-			: std::binary_function < DRawDataPoint, DRawDataPoint, bool >
-		{
-			inline bool operator () ( DRawDataPoint const & left, DRawDataPoint const & right ) const
-			{
-				return ( left.getIntensity() < right.getIntensity() );
-			}
-			inline bool operator () ( DRawDataPoint const & left, IntensityType const & right ) const
-			{
-				return ( left.getIntensity() < right );
-			}
-			inline bool operator () ( IntensityType const & left, DRawDataPoint const & right ) const
-			{
-				return ( left< right.getIntensity() );
-			}
-			inline bool operator () ( IntensityType const & left, IntensityType const & right ) const
-			{
-				return ( left < right );
-			}
-		};
-		
-		/**
-			@brief Comparator for the i-th coordinate of the position.
-		*/
-		template <UInt i>
-		struct NthPositionLess
-			: std::binary_function <DRawDataPoint, DRawDataPoint, bool>
-		{
-			enum { DIMENSION = i };
+			 \note The destructor is non-virtual although many classes are derived from
+			 DRawDataPoint.  This is intentional, since otherwise we would "waste"
+			 space for a vtable pointer in each instance - but DRawDataPoints are
+			 used in great amounts for storing raw data. Normally you should not derive other classes from
+			 DRawDataPoint (unless you know what you are doing, of course).
+			 */
+			~DRawDataPoint()
+			{}
+			//@}
 			
-			/// comparison of two DRawDataPoints
-			inline bool operator () ( DRawDataPoint const & left, DRawDataPoint const & right ) const throw()
-			{
-				return (left.getPosition()[i] < right.getPosition()[i]);
-			}
-			
-			/// comparison of a DRawDataPoint with a CoordinateType
-			inline bool operator () ( DRawDataPoint const & left, CoordinateType right ) const throw()
-			{
-				return (left.getPosition()[i] < right );
-			}
-			
-			/// comparison of a CoordinateType with a DRawDataPoint
-			inline bool operator () ( CoordinateType left, DRawDataPoint const & right ) const throw()
-			{
-				return (left < right.getPosition()[i] );
-			}
-
 			/**
-				@brief Operator to check if comparison is done increasing or decreasing.
-				
-				Sometimes we need a way to find out which way the CoordinateType is
-				sorted and adding this overload seems to be the best way to achieve that goal.
-			*/
-			inline bool operator () ( CoordinateType left, CoordinateType right ) const throw()
-			{
-				return (left < right );
-			}
-
-		};
-
-		/**
-			@brief Comparator for the position.
+			 @name Accessors
+			 */
+			//@{
 			
-			Lexicographical comparison from dimension 0 to dimension D-1 is done.
-		*/
-		struct PositionLess
-			: public std::binary_function <DRawDataPoint, DRawDataPoint, bool>
-		{
-			inline bool operator () (const DRawDataPoint& a, const DRawDataPoint& b) const
+			/// Non-mutable access to the data point intensity (height)
+			IntensityType getIntensity() const
+			{ return intensity_; }
+			
+			/// Non-mutable access to the data point intensity (height)
+			void setIntensity(IntensityType intensity)
+			{ intensity_ = intensity; }
+			
+			/// Non-mutable access to the data point position (multidimensional)
+			const PositionType& getPosition() const
+			{ return position_; }
+			
+			/// Mutable access to the data point position (multidimensional)
+			PositionType& getPosition()
+			{ return position_; }
+			
+			/// Mutable access to the data point position (multidimensional)
+			void setPosition(PositionType const& position)
+			{ position_ = position; }
+			
+			//@}
+			
+			/// Assignment operator
+			DRawDataPoint& operator = (const DRawDataPoint& rhs)
 			{
-				return (a.getPosition() < b.getPosition());
+				if (this==&rhs) return *this;
+				
+				intensity_ = rhs.intensity_;
+				position_ = rhs.position_;
+				
+				return *this;
 			}
-		};
-		
-		//@}
-		
-		protected:
-		/// The data point position
-		PositionType	position_;
-		/// The data point intensity
-		IntensityType intensity_;
+			
+			/// Equality operator
+			bool operator == (const DRawDataPoint& rhs) const
+			{
+				return  intensity_ == rhs.intensity_ && position_ == rhs.position_ ;
+			}
+			
+			/// Equality operator
+			bool operator != (const DRawDataPoint& rhs) const
+			{
+				return !( operator==(rhs) );
+			}
+			
+			
+			/**	@name	Comparator classes.
+			 These classes implement binary predicates that can be used
+			 to compare two peaks with respect to their intensities, positions.
+			 They are employed by the sort methods in container classes such as PeakArray.
+			 */
+			//@{
+			
+			/// Compare by getIntensity()
+			struct IntensityLess
+			: std::binary_function < DRawDataPoint, DRawDataPoint, bool >
+			{
+				inline bool operator () ( DRawDataPoint const & left, DRawDataPoint const & right ) const
+				{
+					return ( left.getIntensity() < right.getIntensity() );
+				}
+				inline bool operator () ( DRawDataPoint const & left, IntensityType const & right ) const
+				{
+					return ( left.getIntensity() < right );
+				}
+				inline bool operator () ( IntensityType const & left, DRawDataPoint const & right ) const
+				{
+					return ( left< right.getIntensity() );
+				}
+				inline bool operator () ( IntensityType const & left, IntensityType const & right ) const
+				{
+					return ( left < right );
+				}
+			};
+			
+			/**
+			 @brief Comparator for the i-th coordinate of the position.
+			 */
+			template <UInt i>
+			struct NthPositionLess
+			: std::binary_function <DRawDataPoint, DRawDataPoint, bool>
+			{
+				enum
+				{ DIMENSION = i };
+				
+				/// comparison of two DRawDataPoints
+				inline bool operator () ( DRawDataPoint const & left, DRawDataPoint const & right ) const throw()
+				{
+					return (left.getPosition()[i] < right.getPosition()[i]);
+				}
+				
+				/// comparison of a DRawDataPoint with a CoordinateType
+				inline bool operator () ( DRawDataPoint const & left, CoordinateType right ) const throw()
+				{
+					return (left.getPosition()[i] < right );
+				}
+				
+				/// comparison of a CoordinateType with a DRawDataPoint
+				inline bool operator () ( CoordinateType left, DRawDataPoint const & right ) const throw()
+				{
+					return (left < right.getPosition()[i] );
+				}
+				
+				/**
+				 @brief Operator to check if comparison is done increasing or decreasing.
+				
+				 Sometimes we need a way to find out which way the CoordinateType is
+				 sorted and adding this overload seems to be the best way to achieve that goal.
+				 */
+				inline bool operator () ( CoordinateType left, CoordinateType right ) const throw()
+				{
+					return (left < right );
+				}
+				
+			};
+			
+			/**
+			 @brief Comparator for the position.
+			
+			 Lexicographical comparison from dimension 0 to dimension D-1 is done.
+			 */
+			struct PositionLess
+			: public std::binary_function <DRawDataPoint, DRawDataPoint, bool>
+			{
+				inline bool operator () (const DRawDataPoint& a, const DRawDataPoint& b) const
+				{
+					return (a.getPosition() < b.getPosition());
+				}
+			};
+			
+			//@}
+			
+			protected:
+				/// The data point position
+				PositionType	position_;
+				/// The data point intensity
+				IntensityType intensity_;
 	};
-
+	
 	///Print the contents to a stream.
 	template <UInt D>
 	std::ostream& operator << (std::ostream& os, const DRawDataPoint<D>& point)
@@ -223,7 +242,7 @@ namespace OpenMS
 		
 		return os;
 	}
-
+	
 } // namespace OpenMS
 
 #endif // OPENMS_KERNEL_DRAWDATAPOINT_H

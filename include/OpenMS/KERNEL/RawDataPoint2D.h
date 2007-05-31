@@ -221,7 +221,7 @@ namespace OpenMS
  		/**	@name	Comparator classes.
 				These classes implement binary predicates that can be used 
 				to compare two peaks with respect to their intensities, positions.
-				They are employed by the sort methods in container classes such as DPeakArray.
+				They are employed by the sort methods in container classes such as PeakArray.
 		*/
 		//@{
 

@@ -127,8 +127,8 @@ CHECK(void setParam(Param param))
 	LmaGaussModel lm2;
 	lm2.setParameters(lm1.getParameters());
 
-	DPeakArray<1> dpa1;
-	DPeakArray<1> dpa2;
+	DPeakArray<DPeak<1> > dpa1;
+	DPeakArray<DPeak<1> > dpa2;
 	lm1.getSamples(dpa1);
 	lm2.getSamples(dpa2);
 
@@ -208,8 +208,8 @@ CHECK(void setOffset(double offset))
 	TEST_REAL_EQUAL(lm1.getCenter(), lm2.getCenter())
 	TEST_REAL_EQUAL(lm1.getCenter(), 682.1)
 
-	DPeakArray<1> dpa1;
-	DPeakArray<1> dpa2;
+	DPeakArray<DPeak<1> > dpa1;
+	DPeakArray<DPeak<1> > dpa2;
 	lm1.getSamples(dpa1);
 	lm2.getSamples(dpa2);
 

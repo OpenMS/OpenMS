@@ -78,7 +78,7 @@ namespace OpenMS
     /// Raw data point type
     typedef RawDataPoint1D RawDataPointType;
     /// Raw data container type using for the temporary storage of the input data
-    typedef DPeakArray<1, RawDataPointType > RawDataArrayType;
+    typedef DPeakArray<RawDataPointType > RawDataArrayType;
     /// Raw data iterator type
     typedef RawDataArrayType::iterator RawDataPointIterator;
     /// Position type
@@ -539,7 +539,7 @@ namespace OpenMS
           spectrum.setType(SpectrumSettings::PEAKS);
 
           // copy the spectrum information
-          spectrum.getPrecursorPeak() = input_it->getPrecursorPeak();
+          spectrum.setPrecursorPeak(input_it->getPrecursorPeak());
           spectrum.setRT(input_it->getRT());
           spectrum.setMSLevel(input_it->getMSLevel());
           spectrum.getName() = input_it->getName();

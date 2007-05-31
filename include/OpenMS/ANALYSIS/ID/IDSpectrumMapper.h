@@ -31,6 +31,7 @@
 #include <OpenMS/METADATA/ProteinIdentification.h>
 
 #include <vector>
+#include <cmath>
 
 namespace OpenMS 
 {

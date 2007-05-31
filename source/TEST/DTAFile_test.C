@@ -30,6 +30,7 @@
 
 #include <OpenMS/FORMAT/DTAFile.h>
 #include <OpenMS/KERNEL/DSpectrum.h>
+#include <OpenMS/KERNEL/Peak1D.h>
 #include <OpenMS/KERNEL/DPeakArray.h>
 #include <OpenMS/KERNEL/RawDataPoint1D.h>
 
@@ -54,7 +55,7 @@ RESULT
 
 CHECK(template<typename SpectrumType> void load(const String& filename, SpectrumType& spectrum) throw(Exception::FileNotFound, Exception::ParseError))
 	PRECISION(0.01)
-	DSpectrum<1> s;
+	DSpectrum<> s;
 	DTAFile f1;
 	
 	TEST_EXCEPTION(Exception::FileNotFound, f1.load("data_Idontexist",s);)
@@ -66,7 +67,7 @@ CHECK(template<typename SpectrumType> void load(const String& filename, Spectrum
 	TEST_REAL_EQUAL(s.getPrecursorPeak().getCharge(), 3)
 
 	ABORT_IF(s.size() != 25)
-	DSpectrum<1>::ConstIterator it(s.begin());
+	DSpectrum<>::ConstIterator it(s.begin());
 	
 	TEST_REAL_EQUAL(it->getPosition()[0], 139.42)
 	TEST_REAL_EQUAL(it->getIntensity(), 318.52)
@@ -171,7 +172,7 @@ CHECK(template<typename SpectrumType> void load(const String& filename, Spectrum
 
 	//TEST WITH DPeakArray and DRawDataPoint
 
-	DSpectrum<1, DPeakArray<1, RawDataPoint1D > > s2;
+	DSpectrum<DPeakArray<RawDataPoint1D > > s2;
 	f1.load("data/DTAFile_test.dta",s2);
 	
 	TEST_EQUAL(s2.size(), 25);
@@ -179,7 +180,7 @@ CHECK(template<typename SpectrumType> void load(const String& filename, Spectrum
 	TEST_REAL_EQUAL(s2.getPrecursorPeak().getCharge(), 3)
 
 	ABORT_IF(s2.size() != 25)
-	DSpectrum<1, DPeakArray<1, RawDataPoint1D > >::ConstIterator it2(s2.begin());
+	DSpectrum<DPeakArray<RawDataPoint1D > >::ConstIterator it2(s2.begin());
 	
 	TEST_REAL_EQUAL(it2->getPosition()[0], 139.42)
 	TEST_REAL_EQUAL(it2->getIntensity(), 318.52)
@@ -287,8 +288,8 @@ CHECK(template<typename SpectrumType> void store(const String& filename, const S
 	NEW_TMP_FILE(filename);
 	
 	DTAFile dta;
-	DSpectrum<1> spec, spec2;
-	DSpectrum<1>::PeakType peak;
+	DSpectrum<> spec, spec2;
+	DSpectrum<>::PeakType peak;
 	
 	spec.getPrecursorPeak().getPosition()[0] = 582.40666;
 	spec.getPrecursorPeak().setCharge(3);
@@ -315,7 +316,7 @@ CHECK(template<typename SpectrumType> void store(const String& filename, const S
 	
 	ABORT_IF(spec2.getContainer().size() != 3)
 	
-	DSpectrum<1>::ConstIterator it = spec2.begin();
+	DSpectrum<>::ConstIterator it = spec2.begin();
 
 	TEST_REAL_EQUAL(it->getPosition()[0], 11.4)
 	TEST_REAL_EQUAL(it->getIntensity(), 11.5)
@@ -331,8 +332,8 @@ CHECK(template<typename SpectrumType> void store(const String& filename, const S
 
 	//TEST WITH DPeakArray and DRawDataPoint
 	
-	DSpectrum<1, DPeakArray<1,RawDataPoint1D > > raw_spec, raw_spec2;
-	DSpectrum<1, DPeakArray<1,RawDataPoint1D > >::PeakType raw_peak;
+	DSpectrum<DPeakArray<RawDataPoint1D > > raw_spec, raw_spec2;
+	DSpectrum<DPeakArray<RawDataPoint1D > >::PeakType raw_peak;
 	
 	raw_peak.getPosition()[0] = 11.4;
 	raw_peak.setIntensity(11.5);
@@ -353,7 +354,7 @@ CHECK(template<typename SpectrumType> void store(const String& filename, const S
 	
 	ABORT_IF(raw_spec2.getContainer().size() != 3)
 	
-	DSpectrum<1, DPeakArray<1,RawDataPoint1D > >::ConstIterator it2 = raw_spec2.begin();
+	DSpectrum<DPeakArray<RawDataPoint1D > >::ConstIterator it2 = raw_spec2.begin();
 
 	TEST_REAL_EQUAL(it2->getPosition()[0], 11.4)
 	TEST_REAL_EQUAL(it2->getIntensity(), 11.5)

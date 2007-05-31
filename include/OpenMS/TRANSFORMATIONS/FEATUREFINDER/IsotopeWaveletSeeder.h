@@ -148,10 +148,10 @@ namespace OpenMS
 		void generateGammaValues_();
 		
 		/// Compute null variance
-		void computeNullVariance_(const DPeakArray<1, PeakType >& cwt, const UInt charge );
+		void computeNullVariance_(const DPeakArray<PeakType >& cwt, const UInt charge );
 				
 		/// Compute local variance (in an interval) and test its significance
-		ProbabilityType testLocalVariance_(const DPeakArray<1, PeakType >& cwt, const UInt& start, const UInt charge);
+		ProbabilityType testLocalVariance_(const DPeakArray<PeakType >& cwt, const UInt& start, const UInt charge);
 		
 		/**
 			@brief Computes the wavelet transform for several charges in nearly the same time.
@@ -160,7 +160,7 @@ namespace OpenMS
 		 	Note that you should compute a convolution instead of an correlation. Since we do not mirror the wavelet function
 		 	this yields the same.		
 		*/																			
-		void fastMultiCorrelate_(const SpectrumType& signal, std::vector<DPeakArray<1, PeakType > >* pwts);
+		void fastMultiCorrelate_(const SpectrumType& signal, std::vector<DPeakArray<PeakType > >* pwts);
 		
 		/** 
 				@brief Returns the lamba parameter of the mother wavelet
@@ -196,10 +196,10 @@ namespace OpenMS
 			return (res);
 		}
 		
-		UInt findNextMax(const DPeakArray<1, PeakType >& cwt, const UInt index);
+		UInt findNextMax(const DPeakArray<PeakType >& cwt, const UInt index);
 		
 		/// Assigns scores to each charge state of a isotopic pattern
-		ScoredMZVector identifyCharge_(std::vector<DPeakArray<1, PeakType > >& candidates, SpectrumType& scan);
+		ScoredMZVector identifyCharge_(std::vector<DPeakArray<PeakType > >& candidates, SpectrumType& scan);
 		
 		/// Interpolates between to data points
 		inline double getInterpolatedValue_(double x0, double x, double x1, double f0, double f1) const
@@ -223,7 +223,7 @@ namespace OpenMS
 		}	
 		
 		/// Returns the absolute mean of the intensities in @p signal
-		double getAbsMean_(const DPeakArray<1, PeakType >& signal,
+		double getAbsMean_(const DPeakArray<PeakType >& signal,
 																		UInt startIndex, 
 																		UInt endIndex) const;
 										

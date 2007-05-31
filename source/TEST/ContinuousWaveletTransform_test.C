@@ -66,16 +66,16 @@ CHECK((void setWavelet(const std::vector<double>& wavelet)))
   TEST_REAL_EQUAL(cwt_copy.getSignalLength(), 2)
 RESULT
 
-CHECK((DPeakArray<1, RawDataPoint1D& getSignal()))
+CHECK((DPeakArray<RawDataPoint1D& getSignal()))
   ContinuousWaveletTransform cwt;
   
-  DPeakArray<1, RawDataPoint1D > signal(2);
+  DPeakArray<RawDataPoint1D > signal(2);
   cwt.getSignal() = signal;
   
   TEST_EQUAL(cwt.getSignal() == signal, true)
 RESULT
 
-CHECK((const DPeakArray<1, RawDataPoint1D& getSignal() const))
+CHECK((const DPeakArray<RawDataPoint1D& getSignal() const))
  ContinuousWaveletTransform cwt;
  
  TEST_EQUAL(cwt.getSignal().size() == 0, true)
@@ -96,7 +96,7 @@ RESULT
 CHECK((DoubleReal operator [] (unsigned int i) const))
   ContinuousWaveletTransform cwt;
   
-  DPeakArray<1, RawDataPoint1D > signal(1);
+  DPeakArray<RawDataPoint1D > signal(1);
   cwt.getSignal() = signal;
   
   ContinuousWaveletTransform const cwt_const(cwt);
@@ -155,7 +155,7 @@ CHECK((double& getSpacing()))
 RESULT
 
 CHECK((double& operator [] (unsigned int i)))
-  DPeakArray<1, RawDataPoint1D > signal;
+  DPeakArray<RawDataPoint1D > signal;
   RawDataPoint1D rp;
   rp.setIntensity(100);
   signal.push_back(rp);
@@ -198,7 +198,7 @@ CHECK((std::vector<double>& getWavelet()))
 RESULT
 
 CHECK((double& operator [] (unsigned int i)))
-  DPeakArray<1, RawDataPoint1D > signal;
+  DPeakArray<RawDataPoint1D > signal;
   signal.resize(1);
   signal[0].setIntensity(1);
   
@@ -239,10 +239,10 @@ CHECK((void setScale(DoubleReal scale)))
   TEST_REAL_EQUAL(cwt.getScale(), 0.2)
 RESULT
 
-CHECK((void setSignal(const DPeakArray<1, RawDataPoint1D >& signal)))
+CHECK((void setSignal(const DPeakArray<RawDataPoint1D >& signal)))
   ContinuousWaveletTransform cwt;
   
-  DPeakArray<1, RawDataPoint1D > signal(2);
+  DPeakArray<RawDataPoint1D > signal(2);
   cwt.setSignal(signal);
   
   TEST_EQUAL(cwt.getSignal() == signal, true)
@@ -272,10 +272,10 @@ CHECK((void setWavelet(const std::vector<double>& wavelet)))
   TEST_EQUAL(cwt.getWavelet() == w, true)
 RESULT
 
-CHECK((void setSignal(const DPeakArray<1, RawDataPoint1D >& signal)))
+CHECK((void setSignal(const DPeakArray<RawDataPoint1D >& signal)))
   ContinuousWaveletTransform cwt;
   
-  DPeakArray<1, RawDataPoint1D > signal(2);
+  DPeakArray<RawDataPoint1D > signal(2);
   cwt.setSignal(signal);
   
   TEST_EQUAL(cwt.getSignal() == signal, true)

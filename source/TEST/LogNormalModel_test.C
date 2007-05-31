@@ -204,8 +204,8 @@ CHECK(void setOffset(double offset))
 	TEST_REAL_EQUAL(logm1.getCenter(), logm2.getCenter())
 	TEST_REAL_EQUAL(logm1.getCenter(), 682.1)
 
-	DPeakArray<1> dpa1;
-	DPeakArray<1> dpa2;
+	DPeakArray<DPeak<1> > dpa1;
+	DPeakArray<DPeak<1> > dpa2;
 	logm1.getSamples(dpa1);
 	logm2.getSamples(dpa2);
 

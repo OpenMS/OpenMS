@@ -67,7 +67,7 @@ CHECK((template<class PeakT> UInt annotate(MSExperiment< PeakT >& experiment, co
 	//create experiment
 	MSExperiment< Peak1D > experiment;
 	MSSpectrum< Peak1D > spectrum;
-	DSpectrum< 1 >::PrecursorPeakType peak;	
+	DSpectrum<>::PrecursorPeakType peak;	
 	peak = spectrum.getPrecursorPeak();
 	peak.setPosition(0);
 	spectrum.setRT(60);

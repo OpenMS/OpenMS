@@ -524,7 +524,7 @@ namespace OpenMS
     // load MzData
     template <>
     template <>
-    void ConsensusXMLHandler< StarAlignment< ConsensusPeak< DPeakArray<2,Peak2D> > > >::loadFile_< ConsensusPeak< DPeakArray<2,Peak2D> > >( const String& file_name, UInt id, const ConsensusPeak< DPeakArray<2,Peak2D> >& /* c */) throw (Exception::FileNotFound, Exception::ParseError);
+    void ConsensusXMLHandler< StarAlignment< ConsensusPeak< DPeakArray<Peak2D> > > >::loadFile_< ConsensusPeak< DPeakArray<Peak2D> > >( const String& file_name, UInt id, const ConsensusPeak< DPeakArray<Peak2D> >& /* c */) throw (Exception::FileNotFound, Exception::ParseError);
 
     // load consensusXML
     template <>

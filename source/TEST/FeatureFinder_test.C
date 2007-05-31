@@ -125,7 +125,7 @@ RESULT
 
 CHECK((template <class SpectrumIteratorType> void setData(const SpectrumIteratorType &begin, const SpectrumIteratorType &end, UInt buffer_size)))
   	
-	DPeakArray<2, Peak2D> parray;
+	DPeakArray<Peak2D> parray;
 	
 	for (int i=0; i<10;++i)
 	{

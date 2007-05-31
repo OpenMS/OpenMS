@@ -347,7 +347,7 @@ RESULT
 CHECK((void addConvexHull(const IndexSet& set, Feature& f) const))
 	FeaFiTraits t;
 	Peak2D p;
-	DPeakArray<2, Peak2D> peak_array;
+	DPeakArray<Peak2D> peak_array;
 	p.getPosition()[0] = 1240.54;   p.getPosition()[1] = 687.6;     peak_array.push_back(p);
 	p.getPosition()[0] = 1241.81;   p.getPosition()[1] = 687.6;     peak_array.push_back(p);
 	p.getPosition()[0] = 1252.39;   p.getPosition()[1] = 687.6;     peak_array.push_back(p);

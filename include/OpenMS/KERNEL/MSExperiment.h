@@ -150,8 +150,8 @@ namespace OpenMS
 	    /**
 	    	@brief Reads out a 2D Spectrum
 	      	
-	      	Container is a DPeakArray<2> or a STL container of Peak2D 
-	      	or DRawDataPoint<2> which supports insert(), end() and back()
+				Container can be a PeakArray or an STL container of peaks which
+				supports insert(), end() and back()
 	    */
 	    template <class Container>
 	    void get2DData(Container& cont) const
@@ -178,7 +178,7 @@ namespace OpenMS
 	    /**
 	    	@brief Assignment of a 2D spectrum to MSExperiment
 	    	  	
-	    	Container is a DPeakArray<2> or a STL container of Peak2D or DRawDataPoint<2>
+	    	Container can be a PeakArray or an STL container of peaks.
 	    	
 	    	@note The container has to be sorted according to retention time. Otherwise a Precondition exception is thrown.
 	    */

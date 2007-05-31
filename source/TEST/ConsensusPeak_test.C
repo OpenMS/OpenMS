@@ -55,7 +55,7 @@ CHECK(ConsensusPeak& operator=(const ConsensusPeak& source))
   feat.setPosition(pos);
   feat.setIntensity(200);
   
-  IndexTuple<DPeakArray<2, Peak2D> > ind(1,3,feat);
+  IndexTuple<DPeakArray<Peak2D> > ind(1,3,feat);
   cons.insert(ind);
   
   ConsensusPeak<> cons_copy;
@@ -77,7 +77,7 @@ CHECK((ConsensusPeak(const ConsensusPeak& c_peak_1, const ConsensusPeak& c_peak_
   Peak2D feat1;
   feat1.setPosition(pos);
   feat1.setIntensity(200);
-  IndexTuple<DPeakArray<2, Peak2D> > ind1(1,3,feat1);
+  IndexTuple<DPeakArray<Peak2D> > ind1(1,3,feat1);
   cons1.insert(ind1);
   
   pos[0]=2;
@@ -86,7 +86,7 @@ CHECK((ConsensusPeak(const ConsensusPeak& c_peak_1, const ConsensusPeak& c_peak_
   Peak2D feat2;
   feat2.setPosition(pos);
   feat2.setIntensity(200);
-  IndexTuple<DPeakArray<2, Peak2D> > ind2(2,3,feat2);
+  IndexTuple<DPeakArray<Peak2D> > ind2(2,3,feat2);
   cons2.insert(ind2);
   
   ConsensusPeak<> cons3(cons1,cons2);
@@ -114,7 +114,7 @@ CHECK(ConsensusPeak(const ConsensusPeak& source))
   Peak2D feat;
   feat.setPosition(pos);
   feat.setIntensity(200);
-  IndexTuple<DPeakArray<2, Peak2D> > ind(1,3,feat);
+  IndexTuple<DPeakArray<Peak2D> > ind(1,3,feat);
   cons.insert(ind);
   ConsensusPeak<> cons_copy(cons);
   
@@ -206,7 +206,7 @@ CHECK((ConsensusPeak(UInt map_index, UInt peak_index, const ElementType& peak, c
   Peak2D feat2;
   feat2.setPosition(pos);
   feat2.setIntensity(200);
-  IndexTuple<DPeakArray<2, Peak2D> > ind2(2,3,feat2);
+  IndexTuple<DPeakArray<Peak2D> > ind2(2,3,feat2);
   cons2.insert(ind2);
   
   ConsensusPeak<> cons3(1,3,feat1,cons2);
@@ -233,7 +233,7 @@ CHECK(Group& getPeaks())
   Peak2D feat1;
   feat1.setPosition(pos);
   feat1.setIntensity(200);
-  IndexTuple<DPeakArray<2, Peak2D> > ind(2,3,feat1);
+  IndexTuple<DPeakArray<Peak2D> > ind(2,3,feat1);
   
   ConsensusPeak<>::Group group;
   group.insert(ind);
@@ -268,7 +268,7 @@ CHECK(const Group& getPeaks() const)
   Peak2D feat1;
   feat1.setPosition(pos);
   feat1.setIntensity(200);
-  IndexTuple<DPeakArray<2, Peak2D> > ind(2,3,feat1);
+  IndexTuple<DPeakArray<Peak2D> > ind(2,3,feat1);
   ConsensusPeak<> cons;
   cons.insert(ind);
   const ConsensusPeak<> cons_copy(cons);
@@ -300,7 +300,7 @@ CHECK(void insert(const IndexTuple& tuple))
   Peak2D feat1;
   feat1.setPosition(pos);
   feat1.setIntensity(200);
-  IndexTuple<DPeakArray<2, Peak2D> > ind(2,3,feat1);
+  IndexTuple<DPeakArray<Peak2D> > ind(2,3,feat1);
   
   ConsensusPeak<> cons;
   cons.insert(ind);
@@ -316,7 +316,7 @@ CHECK(void setIntensityRange(const IntensityBoundingBoxType& i))
   Peak2D feat1;
   feat1.setPosition(pos);
   feat1.setIntensity(200);
-  IndexTuple<DPeakArray<2, Peak2D> > ind(2,3,feat1);
+  IndexTuple<DPeakArray<Peak2D> > ind(2,3,feat1);
   
   ConsensusPeak<>::Group group;
   group.insert(ind);

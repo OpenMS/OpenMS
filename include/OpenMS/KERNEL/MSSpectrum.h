@@ -28,7 +28,7 @@
 #define OPENMS_KERNEL_MSSPECTRUM_H
 
 #include <OpenMS/KERNEL/DSpectrum.h>
-#include <OpenMS/KERNEL/DPeakArray.h>
+#include <OpenMS/KERNEL/PeakArray.h>
 #include <OpenMS/KERNEL/Peak1D.h>
 #include <OpenMS/METADATA/SpectrumSettings.h>
 #include <OpenMS/FORMAT/PersistentObject.h>
@@ -40,7 +40,7 @@ namespace OpenMS
 	/**
 		 @brief The representation of a 1D spectrum.
 
-		 It contains the data itself (DSpectrum) and metadata about spectrum specific instrument settings,
+		 It contains the data itself (Spectrum) and metadata about spectrum specific instrument settings,
 		 aquisition settings, description of the meta values used in the peaks and precursor info (SpectrumSettings).
 
 		 Several MSSpectrum instances are contained in MSExperiment e.g. class MSExperiment is essentially
@@ -56,7 +56,7 @@ namespace OpenMS
 	*/
 	template <typename PeakT = Peak1D >
 	class MSSpectrum
-		: public DSpectrum<1, DPeakArray<1, PeakT> >,
+		: public DSpectrum< DPeakArray< PeakT > >,
 			public SpectrumSettings,
 			public PersistentObject
 	{
@@ -76,11 +76,11 @@ namespace OpenMS
 		typedef PeakT PeakType;
 
 		/// Spectrum base type
-		typedef DSpectrum<1, DPeakArray<1, PeakT> > BaseSpectrum;
+		typedef DSpectrum< DPeakArray< PeakT > > BaseSpectrum;
 
 		/// Constructor
 		MSSpectrum():
-			DSpectrum<1, DPeakArray<1, PeakT> >(),
+			BaseSpectrum(),
 			SpectrumSettings(),
 			PersistentObject()
 		{
@@ -88,7 +88,7 @@ namespace OpenMS
 		}
 		/// Copy constructor
 		MSSpectrum(const MSSpectrum& source):
-			DSpectrum<1, DPeakArray<1, PeakT> >(source),
+			BaseSpectrum(source),
 			SpectrumSettings(source),
 			PersistentObject(source)
 		{
@@ -105,7 +105,7 @@ namespace OpenMS
 		{
 			if (&source == this) return *this;
 
-			DSpectrum<1, DPeakArray<1, PeakT> >::operator=(source);
+			BaseSpectrum::operator=(source);
 			SpectrumSettings::operator=(source);
 			PersistentObject::operator=(source);
 			return *this;
@@ -116,7 +116,7 @@ namespace OpenMS
 		{
 			return
 				SpectrumSettings::operator==(rhs) &&
-				DSpectrum<1, DPeakArray<1, PeakT> >::operator==(rhs)
+				BaseSpectrum::operator==(rhs)
 				;
 		}
 		/// Equality operator
@@ -141,10 +141,10 @@ namespace OpenMS
 		os << "-- MSSPECTRUM BEGIN --"<<std::endl;
 
 		//spectrum settings
-		os <<static_cast<const SpectrumSettings&>(spec);
+		os << static_cast<const SpectrumSettings&>(spec);
 
 		//peaklist
-		os <<static_cast<const DSpectrum<1, DPeakArray<1,PeakT> >&>(spec);
+		os << static_cast<const typename MSSpectrum<PeakT>::BaseSpectrum&>(spec);
 
 		os << "-- MSSPECTRUM END --"<<std::endl;
 

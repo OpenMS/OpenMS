@@ -28,9 +28,7 @@
 #define OPENMS_KERNEL_DPEAKARRAY_H
 
 #include <OpenMS/config.h>
-#include <OpenMS/KERNEL/Peak1D.h>
-#include <OpenMS/KERNEL/Peak2D.h>
-#include <OpenMS/KERNEL/DPeak.h>
+#include <OpenMS/CONCEPT/Macros.h>
 #include <OpenMS/KERNEL/ComparatorUtils.h>
 #include <OpenMS/FORMAT/PersistentObject.h>
 
@@ -41,23 +39,21 @@ namespace OpenMS
 {
 
 	/**	
-		@brief Non-polymorphic peak container implemented as an array
+		@brief Peak container implemented as an array.
 		
-		This class represents an array of D-dimensional peaks.
-		It is based on the STL vector class, but provides more a more 
-		convenient interface to manipulate these vectors, sort with
-		respect to specific dimensions or intensity and 
-		a convenient interface to the other OpenMS classes.
+		This class represents an array of D-dimensional peaks.  The peak type must
+		provide an enum DIMENSION (values 1, 2, and 3 are supported).  The
+		container is based on the STL vector class, but provides more a more
+		convenient interface to manipulate these vectors, sort with respect to
+		specific dimensions or intensity and a convenient interface to the other
+		OpenMS classes.
 		
-		This non-polymorphic peak array should not be used with objects 
-		that are derived from DPeak and DPeaks at a time. See DPeakArray
-		for a container that can handle mixed object types.
-		
-		@todo Take first template parameter from peak type (Clemens)
+		Note that this is a non-polymorphic container, i.e. you cannot store
+		objects of different types in it.
 		
 		@ingroup Kernel
 	*/
-	template <UInt D, typename PeakT = DPeak<D> >
+	template <typename PeakT>
 	class DPeakArray
 		:	public std::vector<PeakT>, 
 			public PersistentObject
@@ -66,8 +62,14 @@ namespace OpenMS
 		
 		/// Peak type
 		typedef PeakT PeakType;
+
+		/// Dimensionality of the peaks
+		/** Values 1, 2, and 3 are supported. */
+		enum { DIMENSION = PeakType::DIMENSION };
+
 		/// Base class type
 		typedef std::vector<PeakType> Base;
+
 		/// Mutable iterator		
 		typedef typename std::vector<PeakType>::iterator Iterator;
 		/// Non-mutable iterator
@@ -80,45 +82,34 @@ namespace OpenMS
 		/**	@name Constructors and Destructor
 		*/
 		//@{
+
 		/// See std::vector documentation.
-		inline DPeakArray() : PersistentObject() {} 
+		inline DPeakArray() : Base(), PersistentObject() {} 
+
 		/// See std::vector documentation.
 		inline DPeakArray(const DPeakArray& p) : Base(p), PersistentObject(p) {}
+
 		/// See std::vector documentation.
 		inline ~DPeakArray() {}
+
 		/// See std::vector documentation.
-		DPeakArray(typename std::vector<PeakType>::size_type n) : PersistentObject()
-		{
-			resize(n);
-		} 
+		DPeakArray(typename std::vector<PeakType>::size_type n) : Base(n), PersistentObject() {} 
+
 		/// See std::vector documentation.
-		DPeakArray(typename std::vector<PeakType>::size_type n, const PeakType& peak) : PersistentObject()
-		{
-			reserve(n);
-			for (typename std::vector<PeakType>::size_type i=0;i<n;i++)
-			{
-				push_back(peak);
-			}
-		} 
+		DPeakArray(typename std::vector<PeakType>::size_type n, const PeakType& peak) : Base(n, peak), PersistentObject() {} 
+
 		/// See std::vector documentation.
 		template <class InputIterator>
-		DPeakArray(InputIterator f, InputIterator l) : PersistentObject()
-		{
-			for (InputIterator it=f;it!=l;++it)
-			{
-				push_back(*it);
-			}
-		}
+		DPeakArray(InputIterator f, InputIterator l) : Base(f,l), PersistentObject() {}
+
 		//@}
 		
 		/// See std::vector documentation.
 		DPeakArray& operator = (const DPeakArray& rhs) 
 		{ 
 			if (this==&rhs) return *this;
-								
-			Base::resize(rhs.size());
-			std::copy(rhs.begin(), rhs.end(), Base::begin());
-			
+			Base::operator=(rhs);
+			// don't return Base immediately to avoid a cast
 			return *this;
 		}
 
@@ -160,7 +151,7 @@ namespace OpenMS
 			
 			<p> Thus your can e.g. write <code>peaks.sortByComparator <
 			Peak1D::IntensityLess > ()</code>, if peaks has type
-			<code>DPeakArray < 1, DPeak <1> ></code>.
+			<code>DPeakArray < Peak1D ></code>.
 		*/
 		//@{
 		template < typename ComparatorType >
@@ -219,16 +210,16 @@ namespace OpenMS
 	    };
 	};
 
-	///Print the contents to a stream.
-	template <UInt D, typename Peak>
-	std::ostream& operator << (std::ostream& os, const DPeakArray<D, Peak>& array)
+	/// Print the contents to a stream.
+	template <typename PeakT>
+	std::ostream& operator << (std::ostream& os, const DPeakArray<PeakT>& array)
 	{
-		os << "-- DPEAKARRAY-NONPOLYMORPHIC BEGIN --"<<std::endl;
-		for (typename DPeakArray<D, Peak>::const_iterator it = array.begin(); it!=array.end(); ++it)
+		os << "-- DPEAKARRAY BEGIN --"<<std::endl;
+		for (typename DPeakArray<PeakT>::const_iterator it = array.begin(); it!=array.end(); ++it)
 		{
 			os << *it << std::endl;
 		}
-		os << "-- DPEAKARRAY-NONPOLYMORPHIC END --"<<std::endl;
+		os << "-- DPEAKARRAY END --"<<std::endl;
 		return os;
 	}
 
@@ -236,10 +227,10 @@ namespace OpenMS
 //  Implementation of the inline / template functions
 //---------------------------------------------------------------
 
-	template <UInt D, typename PeakT > 
-	void DPeakArray<D,PeakT>::sortByNthPosition(UInt i) throw (Exception::NotImplemented)
+	template <typename PeakT > 
+	void DPeakArray<PeakT>::sortByNthPosition(UInt i) throw (Exception::NotImplemented)
 	{ 
-		OPENMS_PRECONDITION(i < Int(D), "illegal dimension")
+		OPENMS_PRECONDITION(i < UInt(DIMENSION), "illegal dimension")
 		if (i==0)
 		{
 			std::sort(Base::begin(), Base::end(), typename PeakType::template NthPositionLess<0>() );

@@ -54,7 +54,7 @@ namespace OpenMS
 			~MascotInfile();
 
 			/// stores the peak list in a MascotInfile that can be used as input for MASCOT shell execution
-			void store(const std::string& filename, const DPeakArray<1,Peak1D>& spec, DoubleReal mz , DoubleReal retention_time, std::string search_title);		
+			void store(const std::string& filename, const DPeakArray<Peak1D>& spec, DoubleReal mz , DoubleReal retention_time, std::string search_title);		
 
 			/// stores the experiment data in a MascotInfile that can be used as input for MASCOT shell execution
 			void store(const std::string& filename,
@@ -200,7 +200,7 @@ namespace OpenMS
 			/// writes the spectrum
 			void writeSpectrum_(FILE* fp,
 													const std::string& filename,
-													const DPeakArray<1,Peak1D>& peaks);
+													const DPeakArray<Peak1D>& peaks);
 						
 			/// writes the MSExperiment
 			void writeMSExperiment_(FILE* fp, 

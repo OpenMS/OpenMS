@@ -54,7 +54,7 @@ CHECK((~TopHatFilter()))
 RESULT
 
 CHECK((template<typename InputPeakIterator, typename OutputPeakContainer  > void filter(InputPeakIterator first, InputPeakIterator last,  OutputPeakContainer& baseline_filtered_container)))
-    DPeakArray<1,RawDataPoint1D > raw_data;
+    DPeakArray<RawDataPoint1D > raw_data;
     int i;
     for (i=0; i < 24; ++i)
     {
@@ -72,12 +72,12 @@ CHECK((template<typename InputPeakIterator, typename OutputPeakContainer  > void
       raw_data.push_back(p);
     }
 
-    DPeakArray<1,RawDataPoint1D > tophat_data;
+    DPeakArray<RawDataPoint1D > tophat_data;
     TopHatFilter tophat;
     tophat.setStrucElemSize(3);
     tophat.filter(raw_data,tophat_data);
 
-    DPeakArray<1,RawDataPoint1D >::ConstIterator it=tophat_data.begin();
+    DPeakArray<RawDataPoint1D >::ConstIterator it=tophat_data.begin();
     for (int i=0; i<24; ++i)
     {
       TEST_REAL_EQUAL(it->getIntensity(), 0)
@@ -86,7 +86,7 @@ RESULT
 
 
 CHECK((template<typename InputPeakIterator, typename OutputPeakContainer  > void filter(InputPeakIterator first, InputPeakIterator last, OutputPeakContainer& baseline_filtered_container)))
-    DPeakArray<1,RawDataPoint1D > raw_data;
+    DPeakArray<RawDataPoint1D > raw_data;
     int i;
     for (i=0; i<8; ++i)
     {
@@ -106,13 +106,13 @@ CHECK((template<typename InputPeakIterator, typename OutputPeakContainer  > void
       raw_data.push_back(p);
      }
 
-     DPeakArray<1,RawDataPoint1D > tophat_data;
+     DPeakArray<RawDataPoint1D > tophat_data;
 
      TopHatFilter tophat;
      tophat.setStrucElemSize(3);
      tophat.filter(raw_data.begin(),raw_data.end(),tophat_data);
 
-     DPeakArray<1,RawDataPoint1D >::ConstIterator it=tophat_data.begin();
+     DPeakArray<RawDataPoint1D >::ConstIterator it=tophat_data.begin();
      for (int i=0; i < 8; ++i)
        {
          TEST_REAL_EQUAL(it->getIntensity(), 0)
@@ -123,7 +123,7 @@ CHECK((template<typename InputPeakType, typename OutputPeakType > void filterExp
   MSExperiment< RawDataPoint1D > ms_exp_raw;
   MSExperiment< RawDataPoint1D > ms_exp_filtered;
 
-  DPeakArray<2,RawDataPoint2D > raw_data;
+  DPeakArray<RawDataPoint2D > raw_data;
   int i;
   for (i=0; i < 8; ++i)
   {
@@ -150,9 +150,9 @@ CHECK((template<typename InputPeakType, typename OutputPeakType > void filterExp
   
   tophat.filterExperiment(ms_exp_raw, ms_exp_filtered);
 
-  DPeakArray<2,Peak2D> dpeak_arra_filtered;
+  DPeakArray<Peak2D> dpeak_arra_filtered;
   ms_exp_filtered.get2DData(dpeak_arra_filtered);
-  DPeakArray<2,Peak2D>::iterator it = dpeak_arra_filtered.begin();
+  DPeakArray<Peak2D>::iterator it = dpeak_arra_filtered.begin();
   for (int i=0; i < 8; ++i)
   {
     TEST_REAL_EQUAL(it->getIntensity(), 0)
@@ -163,8 +163,8 @@ CHECK((template<typename InputSpectrumIterator, typename OutputPeakType > void f
   MSExperiment<RawDataPoint1D > ms_exp_raw;
   MSExperiment<RawDataPoint1D > ms_exp_filtered;
 
-  DPeakArray<2,RawDataPoint2D > raw_data;
-  DPeakArray<2,RawDataPoint2D > filtered_data;
+  DPeakArray<RawDataPoint2D > raw_data;
+  DPeakArray<RawDataPoint2D > filtered_data;
 
     int i;
     for (i=0; i<8; ++i)
@@ -192,7 +192,7 @@ CHECK((template<typename InputSpectrumIterator, typename OutputPeakType > void f
     tophat.filterExperiment(ms_exp_raw.begin(),ms_exp_raw.end(), ms_exp_filtered);
 
     ms_exp_filtered.get2DData(filtered_data);
-    DPeakArray<2,RawDataPoint2D >::iterator it = filtered_data.begin();
+    DPeakArray<RawDataPoint2D >::iterator it = filtered_data.begin();
     for (int i=0; i<8; ++i)
        {
          TEST_REAL_EQUAL(it->getIntensity(), 0)

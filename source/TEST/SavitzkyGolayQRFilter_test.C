@@ -40,7 +40,7 @@ START_TEST(SavitzkyGolayQRFilter<D>, "$Id$")
 
 using namespace OpenMS;
 
-typedef DPeakArray<1,RawDataPoint1D > RawDataArray1D;
+typedef DPeakArray<RawDataPoint1D > RawDataArray1D;
 typedef RawDataArray1D::Iterator RawDataIterator1D;
 typedef RawDataArray1D::ConstIterator RawDataConstIterator1D;
 

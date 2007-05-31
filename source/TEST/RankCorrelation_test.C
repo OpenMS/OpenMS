@@ -74,7 +74,7 @@ CHECK((double evaluate(const IndexSet& set, const BaseModel<1>& model, UInt dim)
 	gm1.setParameters(tmp);
 	
 	FeaFiTraits traits;
-	DPeakArray<2, Peak2D> peak_array;
+	DPeakArray<Peak2D> peak_array;
 	
 	Peak2D p1;
 	p1.getPosition()[0] = 1;
@@ -154,7 +154,7 @@ CHECK((double evaluate(const IndexSet& set, const BaseModel<2>& model)))
 	pm1.setModel(1,gm2);
 	
 	FeaFiTraits traits;
-	DPeakArray<2, Peak2D> peak_array;
+	DPeakArray<Peak2D> peak_array;
 	
 	Peak2D p1;
 	p1.getPosition()[0] = 1;

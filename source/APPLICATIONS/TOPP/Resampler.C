@@ -45,266 +45,273 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-	@page Resampler Resampler
-	
-	@brief Resampler can be used to transform an LC/MS map into a resampled map or a png image.
+ @page Resampler Resampler
 
-	The input is first resampled into a matrix using bilinear interpolation.
-	Then the content of the matrix is written into a mzData File or a png image.
-	The output has a uniform spacing in both dimensions regardless of the input.
+ @brief Resampler can be used to transform an LC/MS map into a resampled map or a png image.
 
-	@improvement maybe we could include support for one-dimensional resampling ("-cols auto -rows auto") for mzData output (Clemens)
-*/
+ The input is first resampled into a matrix using bilinear interpolation.
+ Then the content of the matrix is written into a mzData File or a png image.
+ The output has a uniform spacing in both dimensions regardless of the input.
+
+ @improvement maybe we could include support for one-dimensional resampling ("-cols auto -rows auto") for mzData output (Clemens)
+ */
 
 // We do not want this class to show up in the docu:
 /// @cond TOPPCLASSES
 
 class TOPPResampler
-	: public TOPPBase
+: public TOPPBase
 {
- public:
-	TOPPResampler()
-	: TOPPBase("Resampler", "transform an LC/MS map into a resampled map or a png image")
-	{
-	}
-	
- protected:
-
-	void registerOptionsAndFlags_()
-	{
-		registerStringOption_("in","<file>","","input file in MzData format");
-
-		// Note that we can have two output files.  At least one of them should be specified.
-		registerStringOption_("out","<file>","","output file in MzData format", false);
-		registerStringOption_("png","<file>","","output file in plain PNG format", false);
-		addText_("(Either -out or -png must be specified.)");
-
-		addEmptyLine_();
-		addText_("Parameters affecting the resampling:");
-		registerStringOption_("mz","[min]:[max]",":","mass-to-charge range in input to be resampled", false);
-		registerStringOption_("rt","[min]:[max]",":","retention time range in input to be resampled", false);
-		registerIntOption_("cols_mz","<number>",101,"peaks per spectrum in output (image width)", false);
-		registerIntOption_("rows_rt","<number>",101,"number of spectra in output (image height)", false);
-		registerFlag_("transpose","flag to transpose the resampled matrix (RT vs. m/z)");
-
-		addEmptyLine_();
-		addText_("Parameters affecting the image:");
-		registerStringOption_("gradient","<gradient>","","Intensity gradient that defines a colors for the range "
-																											"between 0 and 100. Example: '0,#FFFFFF;50,#FF0000;100,#000000'", false);
-		addEmptyLine_();
-		addText_("In mzData output, peaks are ordered ascending in RT and m/z.");
-		addText_("In png output, dimensions run bottom-up in RT and left-right in m/z.");
-	}
-
-	ExitCodes main_(int , char**)
-	{
-	
-		//-------------------------------------------------------------
-		// parameter handling
-		//-------------------------------------------------------------
-	
-		//file names
-
-		String in = getStringOption_("in");
-		inputFileReadable_(in);
-		
-		bool output_defined=false;	
-		String out = getStringOption_("out");
-		if (out!="")
+	public:
+		TOPPResampler()
+		: TOPPBase("Resampler", "transform an LC/MS map into a resampled map or a png image")
 		{
-			output_defined = true;
-			outputFileWritable_(out);
-		}
-		String png = getStringOption_("png");
-		if (png!="")
-		{
-			output_defined = true;
-			outputFileWritable_(png);
 		}
 		
-		if (!output_defined)
-		{
-			writeLog_("You need to specify an output destination using parameters \"out\" or \"png\".");
-			return MISSING_PARAMETERS;
-		}
-		
-		//parse RT and m/z range
-		String rt = getStringOption_("rt");
-		String mz = getStringOption_("mz");
-		double rt_l, rt_u, mz_l, mz_u;
-		//initialize ranges
-		mz_l = rt_l = -1 * numeric_limits<double>::max();
-		mz_u = rt_u = numeric_limits<double>::max();
+		protected:
+			
+			void registerOptionsAndFlags_()
+			{
+				registerStringOption_("in", "<file>", "", "input file in MzData format");
 				
-		//rt
-		parseRange_(rt,rt_l,rt_u);
-		writeDebug_("rt lower/upper bound: " + String(rt_l) + " / " + String(rt_u),1);	
-		//mz
-		parseRange_(mz,mz_l,mz_u);
-		writeDebug_("mz lower/upper bound: " + String(mz_l) + " / " + String(mz_u),1);	
-
-		//load needed data
-		typedef MSExperiment< Peak1D > MSExperimentType;
-		typedef MSExperimentType::SpectrumType SpectrumType;
-		MSExperimentType exp;
-		MzDataFile f;
-		f.setLogType(log_type_);
-		f.getOptions().setRTRange(DRange<1>(rt_l,rt_u));
-		f.getOptions().setMZRange(DRange<1>(mz_l,mz_u));
-		f.load(in,exp);
-		
-		//basic info
-		exp.updateRanges(1);
-
-		//update RT and m/z to the real data if no boundary was given
-		if (rt_l == -1 * numeric_limits<double>::max()) rt_l = exp.getMinRT();
-		if (rt_u == numeric_limits<double>::max()) rt_u = exp.getMaxRT();
-		if (mz_l == -1 * numeric_limits<double>::max()) mz_l = exp.getMinMZ();
-		if (mz_u == numeric_limits<double>::max()) mz_u = exp.getMaxMZ();
-
-		int rows = getIntOption_("rows_rt");
-		if ( rows < 1 )
-		{
-			writeLog_("Error: must have at least 1 row.");
-			return ILLEGAL_PARAMETERS;
-		}
-
-		int cols = getIntOption_("cols_mz");
-		if ( cols < 1 )
-		{
-			writeLog_("Error: must have at least 1 column.");
-			return ILLEGAL_PARAMETERS;
-		}
-
-
-		BilinearInterpolation<double,double> bilip;
-		bilip.getData().resize(rows,cols);
-
-		bool transpose = getFlag_("transpose");
-		if ( !transpose )
-		{ // not transposed
-			
-			bilip.setMapping_0( 0, rt_u, rows-1, rt_l ); // scans run bottom-up
-			bilip.setMapping_1( 0, mz_l, cols-1, mz_u ); // peaks run left-right
-
-			for ( MSExperimentType::ConstIterator spec_iter = exp.begin();
-						spec_iter != exp.end();
-						++spec_iter
-					)
-			{
-				if (spec_iter->getMSLevel()!=1)
-				{
-					continue;
-				}
-				double const rt = spec_iter->getRT();
-				for ( SpectrumType::ConstIterator peak1_iter = spec_iter->begin();
-							peak1_iter != spec_iter->end();
-							++peak1_iter
-						)
-				{
-					bilip.addValue(rt,peak1_iter->getMZ(),peak1_iter->getIntensity());
-				}
-			}
-		}
-		else
-		{ // transposed
-
-			bilip.setMapping_0( 0, mz_u, rows-1, mz_l ); // spectra run bottom-up
-			bilip.setMapping_1( 0, rt_l, cols-1, rt_u ); // scans run left-right
-
-			for ( MSExperimentType::ConstIterator spec_iter = exp.begin();
-						spec_iter != exp.end();
-						++spec_iter
-					)
-			{
-				if (spec_iter->getMSLevel()!=1)
-				{
-					continue;
-				}
-				double const rt = spec_iter->getRT();
-				for ( SpectrumType::ConstIterator peak1_iter = spec_iter->begin();
-							peak1_iter != spec_iter->end();
-							++peak1_iter
-						)
-				{
-					bilip.addValue(peak1_iter->getMZ(),rt,peak1_iter->getIntensity());
-				}
-			}
-
-		}
-		
-		if(!png.empty())
-		{
-			UInt scans = bilip.getData().sizePair().first;
-			UInt peaks = bilip.getData().sizePair().second;
-			
-			MultiGradient gradient;
-			String gradient_str = getStringOption_("gradient");
-			if (gradient_str!="")
-			{
-				gradient.fromString(String("Linear|") + gradient_str);
-			}
-			else
-			{
-				gradient.fromString("Linear|0,#FFFFFF;2,#FFFF00;11,#ffaa00;32,#ff0000;55,#aa00ff;78,#5500ff;100,#000000");
+				// Note that we can have two output files.  At least one of them should be specified.
+				registerStringOption_("out", "<file>", "", "output file in MzData format", false);
+				registerStringOption_("png", "<file>", "", "output file in plain PNG format", false);
+				addText_("(Either -out or -png must be specified.)");
+				
+				addEmptyLine_();
+				addText_("Parameters affecting the resampling:");
+				registerStringOption_("mz", "[min]:[max]", ":", "mass-to-charge range in input to be resampled", false);
+				registerStringOption_("rt", "[min]:[max]", ":", "retention time range in input to be resampled", false);
+				registerIntOption_("cols_mz", "<number>", 101, "peaks per spectrum in output (image width)", false);
+				registerIntOption_("rows_rt", "<number>", 101, "number of spectra in output (image height)", false);
+				registerFlag_("transpose", "flag to transpose the resampled matrix (RT vs. m/z)");
+				
+				addEmptyLine_();
+				addText_("Parameters affecting the image:");
+				registerStringOption_("gradient", "<gradient>", "", "Intensity gradient that defines a colors for the range "
+				"between 0 and 100. Example: '0,#FFFFFF;50,#FF0000;100,#000000'", false);
+				registerDoubleOption_("maxintensity", "<maxintensity>", 0,
+				"Maximum peak intensity used to determine range for colors.  "
+				"If 0, this is determined from data.", false);
+				addEmptyLine_();
+				addText_("In mzData output, peaks are ordered ascending in RT and m/z.");
+				addText_("In png output, dimensions run bottom-up in RT and left-right in m/z.");
 			}
 			
-			QImage image(peaks, scans, QImage::Format_RGB32);
-			DoubleReal factor = (*std::max_element(bilip.getData().begin(),bilip.getData().end())) /100.0;
-			for (UInt i=0; i<scans; ++i)
+			ExitCodes main_(int , char**)
 			{
-				for (UInt j=0; j<peaks; ++j)
+				
+				//-------------------------------------------------------------
+				// parameter handling
+				//-------------------------------------------------------------
+				
+				//file names
+				
+				String in = getStringOption_("in");
+				inputFileReadable_(in);
+				
+				bool output_defined=false;
+				String out = getStringOption_("out");
+				if (out!="")
 				{
-					image.setPixel(j,i,gradient.interpolatedColorAt(bilip.getData().getValue(i,j)/factor).rgb());
+					output_defined = true;
+					outputFileWritable_(out);
 				}
-			}
-			image.save(png.c_str(),"PNG");
-		}
-
-		if ( !out.empty() )
-		{
-			// all data in the matrix is copied to an MSExperiment,
-			// which is then written to an mzData file.
-
-			MSExperimentType exp_resampled;
-			exp_resampled.resize(rows);
-
-			for ( int row_index = 0; row_index < rows; ++row_index )
-			{
-				SpectrumType & spectrum = exp_resampled[rows-row_index-1]; // reversed order so that retention times are increasing again
-
-				spectrum.setRT( bilip.index2key_0( row_index ) );
-				spectrum.setMSLevel(1);
-				spectrum.resize(cols);
-
-				for ( int col_index = 0; col_index < cols; ++col_index )
+				String png = getStringOption_("png");
+				if (png!="")
 				{
-					typedef SpectrumType::PeakType PeakType;
-					PeakType & peak = spectrum[col_index];
-
-					peak.setIntensity( bilip.getData()(row_index,col_index) );
-					peak.setMZ( bilip.index2key_1( col_index ) );
-
-				} // col_index
-
-			} // row_index
-
-			MzDataFile f;
-			f.setLogType(log_type_);
-			f.store(out,exp_resampled);			
-
-		} // !out.empty()
-		
-		return EXECUTION_OK;
-	}	
-
+					output_defined = true;
+					outputFileWritable_(png);
+				}
+				
+				if (!output_defined)
+				{
+					writeLog_("You need to specify an output destination using parameters \"out\" or \"png\".");
+					return MISSING_PARAMETERS;
+				}
+				
+				//parse RT and m/z range
+				String rt = getStringOption_("rt");
+				String mz = getStringOption_("mz");
+				double rt_l, rt_u, mz_l, mz_u;
+				//initialize ranges
+				mz_l = rt_l = -1 * numeric_limits<double>::max();
+				mz_u = rt_u = numeric_limits<double>::max();
+				
+				//rt
+				parseRange_(rt, rt_l, rt_u);
+				writeDebug_("rt lower/upper bound: " + String(rt_l) + " / " + String(rt_u), 1);
+				//mz
+				parseRange_(mz, mz_l, mz_u);
+				writeDebug_("mz lower/upper bound: " + String(mz_l) + " / " + String(mz_u), 1);
+				
+				//load needed data
+				typedef MSExperiment< Peak1D > MSExperimentType;
+				typedef MSExperimentType::SpectrumType SpectrumType;
+				MSExperimentType exp;
+				MzDataFile f;
+				f.setLogType(log_type_);
+				f.getOptions().setRTRange(DRange<1>(rt_l, rt_u));
+				f.getOptions().setMZRange(DRange<1>(mz_l, mz_u));
+				f.load(in, exp);
+				
+				//basic info
+				exp.updateRanges(1);
+				
+				//update RT and m/z to the real data if no boundary was given
+				if (rt_l == -1 * numeric_limits<double>::max()) rt_l = exp.getMinRT();
+				if (rt_u == numeric_limits<double>::max()) rt_u = exp.getMaxRT();
+				if (mz_l == -1 * numeric_limits<double>::max()) mz_l = exp.getMinMZ();
+				if (mz_u == numeric_limits<double>::max()) mz_u = exp.getMaxMZ();
+				
+				int rows = getIntOption_("rows_rt");
+				if ( rows < 1 )
+				{
+					writeLog_("Error: must have at least 1 row.");
+					return ILLEGAL_PARAMETERS;
+				}
+				
+				int cols = getIntOption_("cols_mz");
+				if ( cols < 1 )
+				{
+					writeLog_("Error: must have at least 1 column.");
+					return ILLEGAL_PARAMETERS;
+				}
+				
+				
+				BilinearInterpolation<double, double> bilip;
+				bilip.getData().resize(rows, cols);
+				
+				bool transpose = getFlag_("transpose");
+				if ( !transpose )
+				{ // not transposed
+					
+					bilip.setMapping_0( 0, rt_u, rows-1, rt_l ); // scans run bottom-up
+					bilip.setMapping_1( 0, mz_l, cols-1, mz_u ); // peaks run left-right
+					
+					for ( MSExperimentType::ConstIterator spec_iter = exp.begin();
+																								spec_iter != exp.end();
+																								++spec_iter
+																								)
+					{
+						if (spec_iter->getMSLevel()!=1)
+						{
+							continue;
+						}
+						double const rt = spec_iter->getRT();
+						for ( SpectrumType::ConstIterator peak1_iter = spec_iter->begin();
+																												peak1_iter != spec_iter->end();
+																												++peak1_iter )
+						{
+							bilip.addValue(rt, peak1_iter->getMZ(), peak1_iter->getIntensity());
+						}
+					}
+				}
+				else
+				{ // transposed
+					
+					bilip.setMapping_0( 0, mz_u, rows-1, mz_l ); // spectra run bottom-up
+					bilip.setMapping_1( 0, rt_l, cols-1, rt_u ); // scans run left-right
+					
+					for ( MSExperimentType::ConstIterator spec_iter = exp.begin();
+																								spec_iter != exp.end();
+																								++spec_iter
+																								)
+					{
+						if (spec_iter->getMSLevel()!=1)
+						{
+							continue;
+						}
+						double const rt = spec_iter->getRT();
+						for ( SpectrumType::ConstIterator peak1_iter = spec_iter->begin();
+									peak1_iter != spec_iter->end();
+									++peak1_iter
+									)
+						{
+							bilip.addValue(peak1_iter->getMZ(), rt, peak1_iter->getIntensity());
+						}
+					}
+					
+				}
+				
+				if(!png.empty())
+				{
+					UInt scans = bilip.getData().sizePair().first;
+					UInt peaks = bilip.getData().sizePair().second;
+					
+					MultiGradient gradient;
+					String gradient_str = getStringOption_("gradient");
+					if (gradient_str!="")
+					{
+						gradient.fromString(String("Linear|") + gradient_str);
+					}
+					else
+					{
+						gradient.fromString("Linear|0,#FFFFFF;2,#FFFF00;11,#ffaa00;32,#ff0000;55,#aa00ff;78,#5500ff;100,#000000");
+					}
+					
+					QImage image(peaks, scans, QImage::Format_RGB32);
+					DoubleReal factor = getDoubleOption_("maxintensity");
+					if ( factor == 0 )
+					{
+						factor = (*std::max_element(bilip.getData().begin(), bilip.getData().end()));
+					}
+					factor /= 100.0;
+					for (UInt i=0; i<scans; ++i)
+					{
+						for (UInt j=0; j<peaks; ++j)
+						{
+							image.setPixel(j, i, gradient.interpolatedColorAt(bilip.getData().getValue(i, j)/factor).rgb());
+						}
+					}
+					image.save(png.c_str(), "PNG");
+				}
+				
+				if ( !out.empty() )
+				{
+					// all data in the matrix is copied to an MSExperiment,
+					// which is then written to an mzData file.
+					
+					MSExperimentType exp_resampled;
+					exp_resampled.resize(rows);
+					
+					for ( int row_index = 0; row_index < rows; ++row_index )
+					{
+						SpectrumType & spectrum = exp_resampled[rows-row_index-1]; // reversed order so that retention times are increasing again
+						
+						spectrum.setRT( bilip.index2key_0( row_index ) );
+						spectrum.setMSLevel(1);
+						spectrum.resize(cols);
+						
+						for ( int col_index = 0; col_index < cols; ++col_index )
+						{
+							typedef SpectrumType::PeakType PeakType;
+							PeakType & peak = spectrum[col_index];
+							
+							peak.setIntensity( bilip.getData()(row_index, col_index) );
+							peak.setMZ( bilip.index2key_1( col_index ) );
+							
+						} // col_index
+						
+					} // row_index
+					
+					MzDataFile f;
+					f.setLogType(log_type_);
+					f.store(out, exp_resampled);
+					
+				} // !out.empty()
+				
+				return EXECUTION_OK;
+			}
+			
 };
 
 
 int main( int argc, char ** argv )
 {
 	TOPPResampler tool;
-	return tool.main(argc,argv);
+	return tool.main(argc, argv);
 }
 
 /// @endcond

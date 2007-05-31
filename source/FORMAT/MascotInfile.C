@@ -56,7 +56,7 @@ namespace OpenMS
 	}
 	
 	void MascotInfile::store(const std::string& filename,
-													const DPeakArray<1,Peak1D>& spec, 
+													const DPeakArray<Peak1D>& spec, 
 													DoubleReal mz ,
 													DoubleReal retention_time, 
 													std::string search_title)		
@@ -226,7 +226,7 @@ namespace OpenMS
 	
 	void MascotInfile::writeSpectrum_(FILE* fp, 
 																		const std::string& filename,
-																		const DPeakArray<1,Peak1D>& peaks)
+																		const DPeakArray<Peak1D>& peaks)
 	{
 		stringstream ss;
 
@@ -263,7 +263,7 @@ namespace OpenMS
 			ss << retention_time_;
 			fputs(String("RTINSECONDS=" + ss.str() + "\n").c_str(),fp);				
 			
-			for (DPeakArray<1,Peak1D>::const_iterator it = peaks.begin() ; it != peaks.end();++it)
+			for (DPeakArray<Peak1D>::const_iterator it = peaks.begin() ; it != peaks.end();++it)
 			{
 				//mass
 				ss.str("");
@@ -331,7 +331,7 @@ namespace OpenMS
 					fputs(String("RTINSECONDS=" + ss.str() + "\n").c_str(),fp);		
 					fputs("\n",fp);
 							
-					for (DPeakArray<1,Peak1D>::iterator it = peaks.begin(); 
+					for (DPeakArray<Peak1D>::iterator it = peaks.begin(); 
 							 it != peaks.end();
 							 ++it)
 					{

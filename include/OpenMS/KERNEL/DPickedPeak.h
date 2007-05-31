@@ -233,7 +233,7 @@ namespace OpenMS
     /**	@name	Comparator classes.
     	These classes implement binary predicates that can be used 
     	to compare two peaks with respect to their width.
-    	They are usually employed by the sort methods of DPickedPeakList and DPickedPeakArray.
+    	They are usually employed by the sort methods of containers like PeakArray.
     */
     //@{
     /**

@@ -44,7 +44,7 @@ START_TEST(MascotInfile, "$Id$")
 /////////////////////////////////////////////////////////////
 
 //DPeakArray (dummy for spectrum)
-DPeakArray<1, Peak1D> spec;
+DPeakArray<Peak1D> spec;
 Peak1D tmp;
 vector<Int> charges;
 charges.push_back(2);

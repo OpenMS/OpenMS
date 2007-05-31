@@ -25,9 +25,14 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/KERNEL/DPeakArray.h>
+#include <OpenMS/KERNEL/DPeak.h>
+#include <OpenMS/KERNEL/Peak1D.h>
+#include <OpenMS/KERNEL/Peak2D.h>
 
 namespace OpenMS
 {	
-	DPeakArray<1> default_dpeakarray_1;
-	DPeakArray<2> default_dpeakarray_2;
+	DPeakArray < DPeak<1> > default_dpeakarray_dpeak1;
+	DPeakArray < DPeak<2> > default_dpeakarray_dpeak2;
+  DPeakArray < Peak1D   > default_dpeakarray_peak1d;
+  DPeakArray < Peak2D   > default_dpeakarray_peak2d;
 }

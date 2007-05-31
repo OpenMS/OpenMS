@@ -30,6 +30,7 @@
 #include <OpenMS/FORMAT/MzDataFile.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/MSExperimentExtern.h>
+#include <OpenMS/KERNEL/DPickedPeak.h>
 
 using namespace OpenMS;
 using namespace std;

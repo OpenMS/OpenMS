@@ -52,7 +52,7 @@ namespace OpenMS
 #undef DEBUG_MERGING
 
 template < typename ConsensusElementT = ConsensusFeature < FeatureMap< > > >
-class ConsensusMap : public DPeakArray< 2, ConsensusElementT >
+class ConsensusMap : public DPeakArray<ConsensusElementT >
   {
   public:
     /// Consensus element type
@@ -60,7 +60,7 @@ class ConsensusMap : public DPeakArray< 2, ConsensusElementT >
     /// Consensus element iterator
     typedef typename ConsensusElementType::Group::const_iterator ConsensusElementIterator;
     /// Base class type
-    typedef DPeakArray< 2, ConsensusElementType > Base;
+    typedef DPeakArray<ConsensusElementType > Base;
     /// Mutable iterator
     typedef typename Base::iterator Iterator;
     /// Non-mutable iterator

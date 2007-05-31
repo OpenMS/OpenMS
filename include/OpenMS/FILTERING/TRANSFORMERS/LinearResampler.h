@@ -31,7 +31,8 @@
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 
-#include <limits.h>
+#include <limits>
+#include <cmath>
 
 namespace OpenMS
 {

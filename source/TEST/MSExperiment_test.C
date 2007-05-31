@@ -166,7 +166,7 @@ CHECK((template<class Container> void get2DData(Container& cont) const))
 	exp.push_back(spec);	
 	
 	//Convert
-	DPeakArray<2, RawDataPoint2D > a;
+	DPeakArray<RawDataPoint2D> a;
 	exp.get2DData(a);
 
 	//Tests
@@ -185,12 +185,12 @@ CHECK((template<class Container> void get2DData(Container& cont) const))
 	TEST_REAL_EQUAL(a[4].getMZ(),25);
 
 	//Convert
-	DPeakArray<2, Peak2D> list;
+	DPeakArray<Peak2D> list;
 	exp.get2DData(list);
 
 	//Tests
 	TEST_REAL_EQUAL(list.size(),5);
-	DPeakArray<2, Peak2D>::const_iterator it = list.begin();
+	DPeakArray<Peak2D>::const_iterator it = list.begin();
 	TEST_REAL_EQUAL(it->getRT(),11.1);
 	TEST_REAL_EQUAL(it->getMZ(),5);
 	TEST_REAL_EQUAL(it->getIntensity(),47.11);
@@ -213,7 +213,7 @@ CHECK((template<class Container> void set2DData(const Container& cont) throw(Exc
 	MSExperiment<> exp;
 	
 	// create sample data
-	DPeakArray<2, Peak2D> input;
+	DPeakArray<Peak2D> input;
 	
 	Peak2D p1;
 	p1.setIntensity(1.0);
@@ -236,7 +236,7 @@ CHECK((template<class Container> void set2DData(const Container& cont) throw(Exc
 	exp.set2DData(input);
 	
 	// retrieve data again and check for changes
-	DPeakArray<2, Peak2D> output;
+	DPeakArray< Peak2D> output;
 	
 	exp.get2DData(output);
 	TEST_EQUAL(output==input,true);
@@ -506,7 +506,7 @@ CHECK((ConstAreaIterator areaEndConst() const))
 RESULT
 
 CHECK((ConstAreaIterator areaBeginConst(CoordinateType min_rt, CoordinateType max_rt, CoordinateType min_mz, CoordinateType max_mz) const))
-	DPeakArray<2, Peak2D> plist;
+	DPeakArray< Peak2D> plist;
 	
 	Peak2D p1;
 	p1.getPosition()[0] = 1.0;
@@ -543,7 +543,7 @@ CHECK((AreaIterator areaEnd()))
 RESULT
 
 CHECK((AreaIterator areaBegin(CoordinateType min_rt, CoordinateType max_rt, CoordinateType min_mz, CoordinateType max_mz)))
-	DPeakArray<2, Peak2D> plist;
+	DPeakArray< Peak2D> plist;
 	
 	Peak2D p1;
 	p1.getPosition()[0] = 1.0;
@@ -678,7 +678,7 @@ CHECK((ConstIterator RTEnd(double rt) const))
 RESULT
 
 CHECK((void sortSpectra(bool sort_mz = true)))
-	DPeakArray<2, Peak2D> plist;
+	DPeakArray< Peak2D> plist;
 	
 	Peak2D p1;
 	p1.getPosition()[0] = 1.0;
@@ -712,7 +712,7 @@ CHECK((void sortSpectra(bool sort_mz = true)))
 RESULT
 
 CHECK((void reset()))
-	DPeakArray<2, Peak2D> plist;
+	DPeakArray< Peak2D> plist;
 	
 	Peak2D p;
 	p.getPosition()[0] = 1.0;

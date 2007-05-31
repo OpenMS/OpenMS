@@ -28,6 +28,8 @@
 #define OPENMS_TRANSFORMATIONS_FEATUREFINDER_BASEMODEL_H
 
 #include <OpenMS/CONCEPT/FactoryProduct.h>
+#include <OpenMS/KERNEL/DPeak.h>
+#include <OpenMS/KERNEL/Peak1D.h>
 #include <OpenMS/KERNEL/DPeakArray.h>
 
 namespace OpenMS
@@ -53,7 +55,7 @@ namespace OpenMS
 		  	typedef typename DPeak<D>::CoordinateType CoordinateType;
 	      typedef DPosition<D> PositionType;
 	      typedef DPeak<D> PeakType;
-		  	typedef DPeakArray<D, DPeak<D> > SamplesType;
+		  	typedef DPeakArray<DPeak<D> > SamplesType;
 	
 	
 	      /// Default constructor. 

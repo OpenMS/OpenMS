@@ -43,9 +43,9 @@ using namespace std;
 
 //InRTRange
 
-InRTRange<DSpectrum<1> >* ptr = 0;
+InRTRange<DSpectrum<> >* ptr = 0;
 CHECK((InRTRange(double min, double max, bool reverse = false)))
-	ptr = new InRTRange<DSpectrum<1> >(5,10,false);
+	ptr = new InRTRange<DSpectrum<> >(5,10,false);
 	TEST_NOT_EQUAL(ptr, 0)
 RESULT
 
@@ -54,9 +54,9 @@ CHECK(([EXTRA]~InRTRange()))
 RESULT
 
 CHECK((bool operator()(const SpectrumType& s) const))
-	InRTRange<DSpectrum<1> > r(5,10,false);
-	InRTRange<DSpectrum<1> > r2(5,10,true);
-	DSpectrum<1> s;
+	InRTRange<DSpectrum<> > r(5,10,false);
+	InRTRange<DSpectrum<> > r2(5,10,true);
+	DSpectrum<> s;
 	s.setRT(4.9);
 	TEST_EQUAL(r(s), false);
 	TEST_EQUAL(r2(s), true);
@@ -77,10 +77,10 @@ RESULT
 
 //MSLevelRange
 
-InMSLevelRange<DSpectrum<1> >* ptr2 = 0;
+InMSLevelRange<DSpectrum<> >* ptr2 = 0;
 CHECK((MSLevelRange(const std::vector<UInt>& levels, bool reverse = false)))
 	vector<UInt> tmp;
-	ptr2 = new InMSLevelRange<DSpectrum<1> >(tmp,false);
+	ptr2 = new InMSLevelRange<DSpectrum<> >(tmp,false);
 	TEST_NOT_EQUAL(ptr2, 0)
 RESULT
 
@@ -93,9 +93,9 @@ CHECK((bool operator()(const SpectrumType& s) const))
 	tmp.push_back(2);
 	tmp.push_back(3);
 	tmp.push_back(4);
-	InMSLevelRange<DSpectrum<1> > r(tmp,false);
-	InMSLevelRange<DSpectrum<1> > r2(tmp,true);
-	DSpectrum<1> s;
+	InMSLevelRange<DSpectrum<> > r(tmp,false);
+	InMSLevelRange<DSpectrum<> > r2(tmp,true);
+	DSpectrum<> s;
 	s.setMSLevel(1);
 	TEST_EQUAL(r(s), false);
 	TEST_EQUAL(r2(s), true);
@@ -206,9 +206,9 @@ RESULT
 
 //IsEmptySpectrum
 
-IsEmptySpectrum<DSpectrum<1> >* ptr47 = 0;
+IsEmptySpectrum<DSpectrum<> >* ptr47 = 0;
 CHECK((IsEmptySpectrum(bool reverse = false)))
-	ptr47 = new IsEmptySpectrum<DSpectrum<1> >();
+	ptr47 = new IsEmptySpectrum<DSpectrum<> >();
 	TEST_NOT_EQUAL(ptr47, 0)
 RESULT
 
@@ -217,9 +217,9 @@ CHECK(([EXTRA]~IsEmptySpectrum()))
 RESULT
 
 CHECK((bool operator()(const SpectrumType& s) const))
-	IsEmptySpectrum<DSpectrum<1> > s;
-	IsEmptySpectrum<DSpectrum<1> > s2(true);
-	DSpectrum<1> spec;
+	IsEmptySpectrum<DSpectrum<> > s;
+	IsEmptySpectrum<DSpectrum<> > s2(true);
+	DSpectrum<> spec;
 	TEST_EQUAL(s(spec), true);
 	TEST_EQUAL(s2(spec), false);
 	spec.resize(5);

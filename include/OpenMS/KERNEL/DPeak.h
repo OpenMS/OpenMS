@@ -2,7 +2,7 @@
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
-//                   OpenMS Mass Spectrometry Framework 
+//                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
 //  Copyright (C) 2003-2007 -- Oliver Kohlbacher, Knut Reinert
 //
@@ -36,86 +36,89 @@
 
 namespace OpenMS
 {
-
-	/**	
-		@brief A D-dimensional peak.
-		
-		This datastructure is indended for picked peaks, which have no information
-		from peak picking annotated. If you want to handle peaks that have such
-		information, use DPickedPeak.
-		<BR>
-		The intensity of a peak is defined as the maximum of the model fitted to the raw data during peak picking
-		 i.e. aproximately the height of the highest raw data point.
 	
-		@ingroup Kernel
-	*/
+	/**
+	 @brief A D-dimensional peak.
+	
+	 This datastructure is indended for picked peaks, which have no information
+	 from peak picking annotated. If you want to handle peaks that have such
+	 information, use DPickedPeak.
+	 <BR>
+	 The intensity of a peak is defined as the maximum of the model fitted to the raw data during peak picking
+	 i.e. aproximately the height of the highest raw data point.
+	
+	 @ingroup Kernel
+	 */
 	template <UInt D>
-	class DPeak 
-		: public DRawDataPoint <D>, 
-			public MetaInfoInterface
+	class DPeak
+	: public DRawDataPoint <D>,
+	public MetaInfoInterface
 	{
 		public:
-		
-		/** @name Type definitions
-		*/
-		//@{	
-		enum { DIMENSION = D };
-		typedef DPosition<D> PositionType;
-		typedef DoubleReal CoordinateType;
-		typedef DoubleReal IntensityType;
-		//@}
-
-		/** @name Constructors and Destructor
-		*/
-		//@{
-		/// Default constructor
-		DPeak() 
+			
+			/** @name Type definitions
+			 */
+			//@{
+			enum
+			{
+				DIMENSION = D
+			};
+			typedef DPosition<D> PositionType;
+			typedef DoubleReal CoordinateType;
+			typedef DoubleReal IntensityType;
+			//@}
+			
+			/** @name Constructors and Destructor
+			 */
+			//@{
+			/// Default constructor
+			DPeak()
 			: DRawDataPoint<D>(),
-				MetaInfoInterface()
-		{
+			MetaInfoInterface()
+			{
+				
+			}
 			
-		}
-		
-		/// Copy constructor
-		inline DPeak(DPeak const& p) 
+			/// Copy constructor
+			inline DPeak(DPeak const& p)
 			: DRawDataPoint<D>(p),
-				MetaInfoInterface(p)
-		{
-		}
-
-		/// Destructor
-		~DPeak() 
-		{
-		}
-		//@}	
-
-		/// Assignment operator
-		DPeak& operator = (const DPeak& rhs)
-		{
-			if (this==&rhs) return *this;
+			MetaInfoInterface(p)
+			{
+			}
 			
-			DRawDataPoint<D>::operator = (rhs);
-			MetaInfoInterface::operator = (rhs);
+			/// Destructor
+			~DPeak()
+			{
+			}
+			//@}
 			
-			return *this;
-		}
-
-		/// Equality operator
-		bool operator == (const DPeak& rhs) const
-		{
-			return 
+			/// Assignment operator
+			DPeak& operator = (const DPeak& rhs)
+			{
+				if (this==&rhs) return *this;
+				
+				DRawDataPoint<D>::operator = (rhs);
+				MetaInfoInterface::operator = (rhs);
+				
+				return *this;
+			}
+			
+			/// Equality operator
+			bool operator == (const DPeak& rhs) const
+			{
+				return
 				DRawDataPoint<D>::operator == (rhs) &&
 				MetaInfoInterface::operator == (rhs)
-			;
-		}
-
-		/// Equality operator
-		bool operator != (const DPeak& rhs) const
-		{
-			return !(operator == (rhs));
-		}
+				;
+			}
+			
+			/// Equality operator
+			bool operator != (const DPeak& rhs) const
+			{
+				return !(operator == (rhs));
+			}
 	};
-
+	
 	///Print the contents to a stream.
 	template <UInt D>
 	std::ostream& operator << (std::ostream& os, const DPeak<D>& peak)
@@ -123,8 +126,8 @@ namespace OpenMS
 		os <<(DRawDataPoint<D>)peak;
 		return os;
 	}
-
-
+	
+	
 } // namespace OpenMS
 
 #endif // OPENMS_KERNEL_DPEAK_H
