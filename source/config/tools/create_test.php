@@ -87,12 +87,16 @@ START_TEST(<? print $class; ?>, "$Id$")
 
 <? print $class; ?>* ptr = 0;
 CHECK(<? print $class; ?>())
-	ptr = new <? print $class; ?>();
+{
+	tr = new <? print $class; ?>();
 	TEST_NOT_EQUAL(ptr, 0)
+}
 RESULT
 
 CHECK(~<? print $class; ?>())
+{
 	delete ptr;
+}
 RESULT
 
 <?
@@ -101,7 +105,9 @@ foreach ($class_info["public-long"] as $c)
 	if (trim($c) != $class_info["classname"]."()")
 	{
 		print "CHECK(($c))\n";
+		print "{\n";
 		print "  // TODO\n";
+		print "}\n";
 		print "RESULT\n";
 		print "\n";
 	}

@@ -29,7 +29,7 @@
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/BaseExtender.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeaFiTraits.h>
-#include <OpenMS/DATASTRUCTURES/RunningAveragePosition.h>
+#include <OpenMS/MATH/STATISTICS/AveragePosition.h>
 #include <OpenMS/MATH/MISC/LinearInterpolation.h>
 
 #include <queue>
@@ -186,7 +186,7 @@ namespace OpenMS
   	void checkNeighbour_(const IDX& index);
   	  	
   	/// keeps an running average of the peak coordinates weighted by the intensities 
-  	RunningAveragePosition< PositionType2D > running_avg_;
+  	Math::AveragePosition<2> running_avg_;
   	
   	/// Keeps track of peaks already included in the boundary (value is priority of peak) 
   	std::map<IDX, ProbabilityType> priorities_; 

@@ -44,7 +44,7 @@ namespace OpenMS
 
 			 @ingroup Math
 		*/
-		template < typename Real = double >
+		template < typename RealT = double >
 		class
 		BasicStatistics
 		{
@@ -52,7 +52,7 @@ namespace OpenMS
 		 public:
 
 			/// The real type specified as template argument.
-			typedef Real RealType;
+			typedef RealT RealType;
 
 			typedef std::vector < RealType > probability_container;
 			typedef std::vector < RealType > coordinate_container;
@@ -208,7 +208,7 @@ namespace OpenMS
 			*/
 			void normalApproximation ( probability_container & probability )
 			{
-				normalApproximation_internal ( probability, probability.size() );
+				normalApproximationHelper_ ( probability, probability.size() );
 				return;
 			}
 
@@ -221,7 +221,7 @@ namespace OpenMS
 															 )
 			{
 				probability.resize ( size );
-				normalApproximation_internal ( probability, size );
+				normalApproximationHelper_ ( probability, size );
 				return;
 			}
 
@@ -235,7 +235,7 @@ namespace OpenMS
 															 )
 			{ 
 				probability.resize ( coordinate.size() );
-				normalApproximation_internal ( probability, coordinate );
+				normalApproximationHelper_ ( probability, coordinate );
 				return;
 			}
 
@@ -284,8 +284,8 @@ namespace OpenMS
 			*/
 			template < typename IteratorType1, typename IteratorType2 >
 			static RealType classificationRate ( IteratorType1 begin_a, const IteratorType1 end_a,
-																						IteratorType2 begin_b, const IteratorType2 end_b
-																					)
+																					 IteratorType2 begin_b, const IteratorType2 end_b
+																				 )
 			{
 				Int count = 0;
 				RealType error = 0;
@@ -394,9 +394,9 @@ namespace OpenMS
 			/// @name Private Methods
 			//@{ 
 
-			void normalApproximation_internal ( probability_container & probability,
-																					typename probability_container::size_type const size
-																				)
+			void normalApproximationHelper_ ( probability_container & probability,
+																				typename probability_container::size_type const size
+																			)
 			{
 				RealType gaussSum = 0;
 				typename coordinate_container::size_type i;
@@ -412,9 +412,9 @@ namespace OpenMS
 				return;
 			}
 
-			void normalApproximation_internal ( probability_container & probability,
-																					coordinate_container const & coordinate
-																				)
+			void normalApproximationHelper_ ( probability_container & probability,
+																				coordinate_container const & coordinate
+																			)
 			{
 				RealType gaussSum = 0;
 				typename coordinate_container::size_type i;

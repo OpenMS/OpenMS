@@ -34,7 +34,8 @@ CPP_SOURCES= \
 	AsymmetricStatistics.C\
 	Histogram.C\
 	LinearRegression.C\
-	ROCCurve.C
+	ROCCurve.C\
+	AveragePosition.C
 
 include ../../common.mak
 -include .Dependencies

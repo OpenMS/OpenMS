@@ -37,7 +37,6 @@ CPP_SOURCES=\
 	DataValue.C\
 	HashMap.C\
 	String.C\
-	RunningAveragePosition.C\
 	Date.C\
 	Matrix.C\
 	SparseVector.C\

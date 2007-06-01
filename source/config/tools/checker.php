@@ -34,7 +34,7 @@
 	######################## helper functions ###############################
 	function printUsage()
 	{
-		print "Usage: checker.php <Absolut path to OpenMS> [-u \"user name\"] [-t test] [options]\n";
+		print "Usage: checker.php <Absolute path to OpenMS> [-u \"user name\"] [-t test] [options]\n";
 		print "\n";
 		print "If no user name is given, the tests are performed for all users.\n";
 		print "\n";
@@ -46,7 +46,7 @@
 		print "\n";
 		print "options:\n";
 		print "  -v         verbose mode\n";
-		print "  -x         do not rebuilt doxygen xml output\n";
+		print "  -x         do not rebuild doxygen xml output\n";
 		print "  -d <level> debug mode\n";
 		print "  --help     shows this help\n";
 	}

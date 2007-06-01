@@ -48,7 +48,6 @@ EXECUTABLES_DATASTRUCTURES = \
 	Date_test\
 	HashMap_test\
 	DPosition_test\
-	RunningAveragePosition_test\
 	DIntervalBase_test\
 	DRange_test\
 	DBoundingBox_test\
@@ -188,6 +187,7 @@ EXECUTABLES_FORMAT = \
 
 EXECUTABLES_MATH = \
 	LinearInterpolation_test\
+	AveragePosition_test\
 	BasicStatistics_test\
 	AsymmetricStatistics_test\
 	ROCCurve_test\

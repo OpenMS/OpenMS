@@ -88,8 +88,8 @@ namespace OpenMS
 				the container.  The second argument is the offset, which is
 				subtracted before everything else.
 				*/
-				BilinearInterpolation ( KeyType scale_0 = 1., KeyType offset_0 = 0.,
-				                        KeyType scale_1 = 1., KeyType offset_1 = 0.
+				BilinearInterpolation ( KeyType scale_0=1., KeyType offset_0=0.,
+				                        KeyType scale_1=1., KeyType offset_1=0.
 				                      )
 						: scale_0_ ( scale_0 ),
 						offset_0_ ( offset_0 ),
