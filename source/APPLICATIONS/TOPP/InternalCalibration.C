@@ -26,7 +26,6 @@
 
 #include <OpenMS/FORMAT/MzDataFile.h>
 #include <OpenMS/FORMAT/TextFile.h>
-#include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/FILTERING/CALIBRATION/InternalCalibration.h>
 
@@ -69,16 +68,16 @@ class TOPPInternalCalibration
 
  protected:
 
-  void registerOptionsAndFlags_()
-  {
-    registerStringOption_("in","<input file>","","input mzData file (raw or peak data)");
-    registerStringOption_("out","<output file>","","output mzData file (raw or peak data)");
-    registerStringOption_("ref_masses","<reference file>","","file containing reference masses(one per line)",true);
-		registerFlag_("peak_data","set this flag, if you have peak data, not raw data");
-		addEmptyLine_();
-  	addText_("If you want to calibrate raw data, it is necessary to perform a peak picking step before the "
-						 "actual calibration is done. The parameters for the peak picking step can be given "
-						 "given in the 'algorithm' part of INI file in the subsection PeakPicker, e.g.:\n"
+	 void registerOptionsAndFlags_()
+	 {
+		 registerStringOption_("in","<input file>","","input mzData file (raw or peak data)");
+		 registerStringOption_("out","<output file>","","output mzData file (raw or peak data)");
+		 registerStringOption_("ref_masses","<reference file>","","file containing reference masses(one per line)",true);
+		 registerFlag_("peak_data","set this flag, if you have peak data, not raw data");
+		 addEmptyLine_();
+		 addText_("If you want to calibrate raw data, it is necessary to perform a peak picking step before the "
+							"actual calibration is done. The parameters for the peak picking step can be given "
+							"given in the 'algorithm' part of INI file in the subsection PeakPicker, e.g.:\n"
 							"<NODE name=\"algorithm\">\n"
 						  " <NODE name=\"PeakPicker\">\n"
 							"  <NODE name=\"wavelet_transform\">\n"
@@ -91,66 +90,86 @@ class TOPPInternalCalibration
 							"  </NODE>\n"
 						  " </NODE>\n"
 						  "</NODE>");
-		addEmptyLine_();
-		registerSubsection_("algorithm");
-	}
+		 addEmptyLine_();
+		 registerSubsection_("algorithm");
+	 }
+	 
+	 Param getSubsectionDefaults_(const String& /* section*/) const
+	 {
+		 Param tmp;
+		 tmp.insert("PeakPicker:",PeakPickerCWT().getDefaults());
+		 return tmp;
+	 }
+	 
+	 
+	 ExitCodes main_(int , char**)
+	 {
+		 
+		 //-------------------------------------------------------------
+		 // parameter handling
+		 //-------------------------------------------------------------
+		 
+		 String in = getStringOption_("in");
+		 String out = getStringOption_("out");
+		 String ref = getStringOption_("ref_masses");
+		 bool peak_data = getFlag_("peak_data");
+		 //-------------------------------------------------------------
+		 // init InternalCalibration
+		 //-------------------------------------------------------------
+		 
+		 InternalCalibration calib;
+		 calib.setLogType(log_type_);
+		 Param param = getParam_().copy("algorithm:",true);
+		 calib.setParameters(param);
+		 
+		 //-------------------------------------------------------------
+		 // loading input
+		 //-------------------------------------------------------------
+		 MSExperiment<RawDataPoint1D > ms_exp_raw;
+		 MSExperiment<PickedPeak1D > ms_exp_peak;
 
-  ExitCodes main_(int , char**)
-  {
+		 
+		 MzDataFile mz_data_file;
+		 mz_data_file.setLogType(log_type_);
+		 if(peak_data)
+			 {
+				 mz_data_file.load(in,ms_exp_peak);
+			 }
+		 else  mz_data_file.load(in,ms_exp_raw);
+		 
+		 vector<double> ref_masses;
+		 TextFile ref_file;
+		 
+		 
+		 ref_file.load(ref,true);
+		 
+		 for(TextFile::Iterator iter = ref_file.begin(); iter != ref_file.end(); ++iter)
+			 {
+				 ref_masses.push_back(atof(iter->c_str()));
+			 }
+		 
+		 //-------------------------------------------------------------
+		 // perform calibration
+		 //-------------------------------------------------------------
 
-    //-------------------------------------------------------------
-    // parameter handling
-    //-------------------------------------------------------------
-
-    String in = getStringOption_("in");
-    String out = getStringOption_("out");
-    String ref = getStringOption_("ref_masses");
-		bool peak_data = getFlag_("peak_data");
-    //-------------------------------------------------------------
-    // init InternalCalibration
-    //-------------------------------------------------------------
-
-    InternalCalibration calib;
-		Param param = getParam_().copy("algorithm:",true);
-    calib.setParameters(param);
-	  std::cout << param.getValue("PeakPicker:thresholds:peak_bound")<<std::endl;
-    //-------------------------------------------------------------
-    // loading input
-    //-------------------------------------------------------------
-    MSExperiment<RawDataPoint1D > ms_exp_raw;
-    
-		MzDataFile mz_data_file;
-		mz_data_file.setLogType(log_type_);
-		mz_data_file.load(in,ms_exp_raw);
-
-		
-    vector<double> ref_masses;
-		TextFile ref_file;
-
-
-		ref_file.load(ref,true);
-
-		for(TextFile::Iterator iter = ref_file.begin(); iter != ref_file.end(); ++iter)
-			{
-				ref_masses.push_back(atof(iter->c_str()));
-			}
-		
-    //-------------------------------------------------------------
-    // perform calibration
-    //-------------------------------------------------------------
-		
-    calib.calibrate(ms_exp_raw,ref_masses,peak_data);
-
-    
-    //-------------------------------------------------------------
-    // writing output
-    //-------------------------------------------------------------
-
-		mz_data_file.store(out,ms_exp_raw);
-
-		
-    return EXECUTION_OK;
-  }
+		 if(peak_data)
+			 {
+				 calib.calibrate(ms_exp_peak,ref_masses);
+			 }
+		 else calib.calibrate(ms_exp_raw,ref_masses);
+		 
+		 //-------------------------------------------------------------
+		 // writing output
+		 //-------------------------------------------------------------
+		 if(peak_data)
+			 {
+				 mz_data_file.store(out,ms_exp_peak);
+			 }
+		 else mz_data_file.store(out,ms_exp_raw);
+		 
+		 
+		 return EXECUTION_OK;
+	 }
 };
 
 
