@@ -38,7 +38,7 @@
 
 
 namespace OpenMS
-{
+{     
 	/**
 		@brief Management and storage of INI files.
 		
@@ -83,13 +83,16 @@ namespace OpenMS
     bool operator == (const Param& rhs) const;
 
     /// Set a Int value.
-    void setValue(const String& key, Int value);
+    void setValue(const String& key, Int value, String description="");
+
     /// Set a float value.
-    void setValue(const String& key, float value);
+    void setValue(const String& key, float value, String description="");
+
     /// Set a double value.
-    void setValue(const String& key, double value);
+    void setValue(const String& key, double value, String description="");
+
     /// Set a string value.
-    void setValue(const String& key, const String& value);
+    void setValue(const String& key, const String& value, String description="");
 
     /**
 			 @brief Get a value by its key.
@@ -97,6 +100,13 @@ namespace OpenMS
 			 To check if there is no value for the given key, compare the return value with DataValue::EMPTY
     */
     const DataValue& getValue(const String& key) const;
+
+ /**
+			 @brief Get a description by its key.
+
+			 To check if there is no value for the given key, compare the return value with 0
+    */
+    const String& getDescription(const String& key) const;
 
     ///Returns the number of entries (leafs).
     UInt size() const;
@@ -201,8 +211,9 @@ namespace OpenMS
     }
 
 	 protected:
-    /// internal storage container
+    /// internal storage containers
     std::map<String, DataValue> values_;
+	 std::map<String, String> descriptions_;
 
 		friend std::ostream& operator << (std::ostream& os, const Param& param);
 

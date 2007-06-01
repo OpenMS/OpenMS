@@ -38,9 +38,10 @@ namespace OpenMS
 	namespace Internal
 	{
 
-	ParamXMLHandler::ParamXMLHandler(map<String,DataValue>& values, const String& filename)
+	ParamXMLHandler::ParamXMLHandler(map<String,DataValue>& values, map<String,String>& descriptions, const String& filename)
 		: XMLHandler(filename),
-			values_(values)
+			values_(values),
+			descriptions_(descriptions)
 	{
 
 	}
@@ -57,7 +58,7 @@ namespace OpenMS
 			Int type_index = attributes.getIndex(XMLString::transcode("type"));
 			Int name_index = attributes.getIndex(XMLString::transcode("name"));
 			Int value_index = attributes.getIndex(XMLString::transcode("value"));
-			
+			Int description_index = attributes.getIndex(XMLString::transcode("description"));
 			//check if attributes are present
 			if (type_index==-1 || name_index==-1)
 			{
@@ -97,6 +98,14 @@ namespace OpenMS
 			{
 				cout << "Warning: Ignoring entry '" << path_+XMLString::transcode(attributes.getValue(name_index)) << "' because of unknown type '"<< type << "'" << endl;
 			}
+			
+			String description;
+			if(description_index!=-1)
+			{
+				description = XMLString::transcode(attributes.getValue(description_index));
+			}
+			descriptions_[path_+XMLString::transcode(attributes.getValue(name_index))]=description;
+			
 		}
 		
 		if (String("NODE") == XMLString::transcode(qname))

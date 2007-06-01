@@ -221,11 +221,12 @@ namespace OpenMS
 		new QShortcut(Qt::Key_Delete, this, SLOT(deleteItem()));	
 	}
 	
-	void ParamEditor::editChanged(QTreeWidgetItem* /*current*/, QTreeWidgetItem* previous)
+	void ParamEditor::editChanged(QTreeWidgetItem* current, QTreeWidgetItem* previous)
 	{
 		if(previous)
 		{
 			QTreeWidgetItem* parent=previous->parent();
+
 			if(!parent)
 			{
 				parent=invisibleRootItem();
@@ -235,10 +236,16 @@ namespace OpenMS
 			{
 				if(parent->child(i)->text(0)==previous->text(0))
 				{
-					if(++child_count>1)
+					++child_count;
+					if(child_count>1 && current->text(0)!=previous->text(0))
 					{
 						setCurrentItem(previous);
 						editItem(previous);
+						break;
+					}
+					else if(child_count>1 && current->text(0)==previous->text(0))
+					{
+						editItem(current);
 						break;
 					}
 				}
@@ -359,9 +366,9 @@ namespace OpenMS
 				item->setText(0, QString::fromStdString ( key_without_prefix));
 				item->setText(1, QString::fromStdString ( it->second.toString()));
 				item->setText(2, QString::fromStdString ( type));
-				//item->setWhatsThis(0,param.getDescription(it->first).toQString());
-				//item->setWhatsThis(1,param.getDescription(it->first).toQString());
-				//item->setWhatsThis(2,param.getDescription(it->first).toQString());
+				item->setToolTip(0,param.getDescription(it->first).toQString());
+				item->setToolTip(1,param.getDescription(it->first).toQString());
+				item->setToolTip(2,param.getDescription(it->first).toQString());
 				item->setData(0,Qt::UserRole,ITEM);
 				item->setData(1,Qt::UserRole,ITEM);
 				item->setData(2,Qt::UserRole,ITEM);
@@ -449,6 +456,7 @@ namespace OpenMS
 	void ParamEditor::deleteItem()
 	{
 		QTreeWidgetItem* item=selected_item_;
+		selected_item_=NULL;
 		if (!item)
 		{
 			item=currentItem();
@@ -732,9 +740,8 @@ namespace OpenMS
 			}
 		}
 		
-		copied_item_=selected_item_; // the item of whom we make copies
+		copied_item_=selected_item_->clone(); // the item of whom we make copies
 		selected_item_=NULL; // always reset selected_item_ to NULL because we use it to check if user clicks in no item area
-		selected_item_=NULL;
 	}
 	
 	void ParamEditor::pasteSubTree()

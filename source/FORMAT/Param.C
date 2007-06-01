@@ -43,11 +43,11 @@ namespace OpenMS
 
 	using namespace Exception;
 
-	Param::Param(): values_(), inheritance_steps_max(15)
+	Param::Param(): values_(), descriptions_(), inheritance_steps_max(15)
 	{
 	}
 
-	Param::Param(const Param& rhs): values_(rhs.values_)
+	Param::Param(const Param& rhs): values_(rhs.values_), descriptions_(rhs.descriptions_)
 	{
 	}
 
@@ -59,34 +59,51 @@ namespace OpenMS
 	Param& Param::operator = (const Param& rhs)
 	{
 		values_ = rhs.values_;
+		descriptions_ = rhs.descriptions_;
 		return *this;
 	}
 
 	bool Param::operator == (const Param& rhs) const
 	{
-		return (values_ == rhs.values_);
+		return (values_ == rhs.values_ && descriptions_==rhs.descriptions_);
 	}
 	
 	
 	// get/set the values
-	void Param::setValue(const String& key, Int value)
+	void Param::setValue(const String& key, Int value, String description)
 	{
 		values_[key] = value;
+		if(!description.empty())
+		{
+			descriptions_[key]=description;
+		}
 	}
 	
-	void Param::setValue(const String& key, float value)
+	void Param::setValue(const String& key, float value, String description)
 	{
 		values_[key] = value;
+		if(!description.empty())
+		{
+			descriptions_[key]=description;
+		}
 	}
 
-	void Param::setValue(const String& key, double value)
+	void Param::setValue(const String& key, double value, String description)
 	{
 		values_[key] = value;
+		if(!description.empty())
+		{
+			descriptions_[key]=description;
+		}
 	}
 
-	void Param::setValue(const String& key, const String& value)
+	void Param::setValue(const String& key, const String& value, String description)
 	{
 		values_[key] = value;
+		if(!description.empty())
+		{
+			descriptions_[key]=description;
+		}
 	}
 	
 	const DataValue& Param::getValue(const String& key) const
@@ -100,6 +117,17 @@ namespace OpenMS
 			
 	}
 	
+	const String& Param::getDescription(const String& key) const
+	{
+		map<String, String>::const_iterator it=descriptions_.find(key);
+		if (it!=descriptions_.end())
+		{
+			return it->second;
+		}
+		return String::EMPTY;
+			
+	}
+	
 	void Param::insert(String prefix, const Param& para)
 	{
 		if (prefix.empty() )
@@ -108,6 +136,10 @@ namespace OpenMS
 			{
 				values_[it->first]=it->second;
 			}
+			for(map<String, String>::const_iterator it = para.descriptions_.begin(); it != para.descriptions_.end();++it)
+			{
+				descriptions_[it->first]=it->second;
+			}
 		}
 		else
 		{
@@ -115,6 +147,10 @@ namespace OpenMS
 			for(map<String,DataValue>::const_iterator it = para.values_.begin(); it != para.values_.end();++it)
 			{
 				values_[prefix+it->first]=it->second;
+			}
+			for(map<String,String>::const_iterator it = para.descriptions_.begin(); it != para.descriptions_.end();++it)
+			{
+				descriptions_[prefix+it->first]=it->second;
 			}
 		}
 	}
@@ -134,6 +170,14 @@ namespace OpenMS
 				values_[prefix+it->first]=it->second;
 			}
 		}
+		for(map<String,String>::const_iterator it = defaults.descriptions_.begin(); it != defaults.descriptions_.end();++it)
+		{
+			if (descriptions_.find(prefix+it->first)==descriptions_.end())
+			{
+				if (showMessage) cout << "Setting " << prefix+it->first << " to " << it->second << endl;
+				descriptions_[prefix+it->first]=it->second;
+			}
+		}
 	}
 	
 	void Param::remove(const String& prefix)
@@ -151,6 +195,23 @@ namespace OpenMS
 			}
 			it = values_.lower_bound(prefix);
 		}
+
+		//delete descriptions
+		
+		map<String,String>::iterator it2 = descriptions_.lower_bound(prefix);
+		while (it2!=descriptions_.end())
+		{
+			if (it2->first.substr(0,prefix.size())==prefix)
+			{
+				descriptions_.erase(it2);
+			}
+			else
+			{
+				break;
+			}
+			it2 = descriptions_.lower_bound(prefix);
+		}
+
 	}
 
 	Param Param::copy(const String& prefix, bool remove_prefix, String new_prefix) const
@@ -161,7 +222,7 @@ namespace OpenMS
 		}
 		
 		Param out;
-		string key;
+		String key;
 		for ( map<String,DataValue>::const_iterator it = values_.lower_bound(prefix);
 					(it != values_.end()) && (it->first.size() >= prefix.size()) && (it->first.substr(0,prefix.size())==prefix);
 					++it
@@ -185,6 +246,29 @@ namespace OpenMS
 			
 			out.values_[key]=it->second;
 		}
+		for ( map<String,String>::const_iterator it = descriptions_.lower_bound(prefix);
+					(it != descriptions_.end()) && (it->first.size() >= prefix.size()) && (it->first.substr(0,prefix.size())==prefix);
+					++it
+				)
+		{
+			//remove old prefix
+			if (remove_prefix)
+			{
+				key = it->first.substr(prefix.size(),it->first.size() - prefix.size());
+			}
+			else
+			{
+				key = it->first;
+			}
+			
+			// add new prefix
+			if (!new_prefix.empty())
+			{
+				key = new_prefix + key;
+			}
+			
+			out.descriptions_[key]=it->second;
+		}
 		return out;
 	}
 
@@ -201,7 +285,7 @@ namespace OpenMS
 			DataValue const * inherit_path_value = & result.getValue("inherit");
 			while ( ! inherit_path_value->isEmpty() )
 			{
-				string inherit_path = inherit_path_value->toString();
+				String inherit_path = inherit_path_value->toString();
 				if ( ++inheritance_steps > inheritance_steps_max )
 				{
 					throw Exception::ParseError
@@ -222,7 +306,7 @@ namespace OpenMS
 
 	void Param::store(const String& filename) const throw (Exception::UnableToCreateFile)
 	{
-		string up, down ,key, key_without_prefix, new_prefix ,type, prefix = "";
+		String up, down ,key, key_without_prefix, new_prefix ,type, prefix = "";
 		UInt common, level=1;
 		
 		ofstream os;
@@ -276,7 +360,7 @@ namespace OpenMS
 					if (down[i]==':')
 					{
 						--level;
-						string tmp = string (2*level,' ');
+						String tmp = string (2*level,' ');
 						os << tmp.c_str();
 						os << "</NODE>\n";						
 					}
@@ -291,9 +375,19 @@ namespace OpenMS
 				while (up != "")
 				{
 					UInt pos = up.find(":");
-					string tmp = string (2*level,' ');
+					String tmp = String (2*level,' ');
 					os << tmp.c_str();
+					map<String, String>::const_iterator iter=descriptions_.find(key);
+					
+					if(iter!=descriptions_.end())
+				{
+					tmp = "<NODE name=\""+up.substr(0,pos)+"\" description=\""+iter->second+"\" >\n";
+				}
+				else
+				{
 					tmp = "<NODE name=\""+up.substr(0,pos)+"\" >\n";
+				}
+					
 					os << tmp.c_str();
 					++level;
 					up = up.substr(pos+1,up.size());
@@ -301,7 +395,7 @@ namespace OpenMS
 			}
 			
 			//write item
-			string tmp = string (2*level,' ');
+			String tmp = string (2*level,' ');
 			os << tmp.c_str();
 			if (it->second.valueType()==DataValue::INTVALUE || it->second.valueType()==DataValue::LONVALUE || it->second.valueType()==DataValue::SHOVALUE  )
 			{
@@ -318,7 +412,16 @@ namespace OpenMS
 			
 			if(it->second.valueType()!=DataValue::EMPTYVALUE)
 			{
-				tmp = "<ITEM name=\""+key_without_prefix+"\" value=\""+it->second.toString()+"\" type=\""+type+"\" />\n";
+				map<String, String>::const_iterator iter=descriptions_.find(key);
+				if(iter!=descriptions_.end())
+				{
+					tmp = "<ITEM name=\""+key_without_prefix+"\" value=\""+it->second.toString()+"\" type=\""+type+"\" description=\""+iter->second+"\" />\n";
+				}
+				else
+				{
+					tmp = "<ITEM name=\""+key_without_prefix+"\" value=\""+it->second.toString()+"\" type=\""+type+"\" />\n";
+				}
+				
 				os << tmp.c_str();					
 			}
 				
@@ -338,7 +441,7 @@ namespace OpenMS
 				if (down[i]==':')
 				{
 					--level;
-					string tmp = string (2*level,' ');
+					String tmp = string (2*level,' ');
 					os << tmp.c_str();
 					os << "</NODE>\n";						
 				}
@@ -370,7 +473,7 @@ namespace OpenMS
 		xercesc::SAX2XMLReader* parser = xercesc::XMLReaderFactory::createXMLReader();
 		parser->setFeature(xercesc::XMLUni::fgSAX2CoreNameSpaces,false);
 		parser->setFeature(xercesc::XMLUni::fgSAX2CoreNameSpacePrefixes,false);
-		Internal::ParamXMLHandler handler(values_,filename);
+		Internal::ParamXMLHandler handler(values_, descriptions_, filename);
 		parser->setContentHandler(&handler);
 		parser->setErrorHandler(&handler);
 		
@@ -399,7 +502,7 @@ namespace OpenMS
 		}
 		
 		//parse arguments
-    string arg,arg1;
+    String arg,arg1;
     for(int i = 1; i < argc; ++i )
     { 
       //load the current and next argument:  arg and arg1 ("" at the last argument)
@@ -444,13 +547,13 @@ namespace OpenMS
 	void Param::parseCommandLine(const int argc , char **argv, const map<String, String>& options_with_argument, const std::map<String, String>& options_without_argument, const String& misc, const String& unknown)
 	{
 		//determine misc key
-    string misc_key = misc;
+    String misc_key = misc;
 
 		//determine unknown key
-    string unknown_key = unknown;
+    String unknown_key = unknown;
 
 		//parse arguments
-    string arg,arg1;
+    String arg,arg1;
     for(int i = 1; i < argc; ++i )
     { 
       //load the current and next argument:  arg and arg1 ("" at the last argument)
@@ -515,7 +618,14 @@ namespace OpenMS
  	{
 		for (map<String,DataValue>::const_iterator it = param.values_.begin(); it != param.values_.end();++it)
 		{
-		 os << "\""<<it->first<< "\"  ->  \""<< it->second.toString()<< "\"" << endl;
+			map<String, String>::const_iterator iter=param.descriptions_.find(it->first);
+			String description;
+			if (iter!=param.descriptions_.end())
+			{
+				description=" :"+iter->second;
+			}
+		
+			os << "\""<<it->first<< "\"  ->  \""<< it->second.toString()<< "\"" <<description<<endl;
 		}
 		return os;
 	}
@@ -533,27 +643,41 @@ namespace OpenMS
 	void Param::clear()
 	{
 		values_.clear();
+		descriptions_.clear();
 	}
 
 	void Param::checkDefaults(const String& name, const Param& defaults, String prefix, std::ostream& os) const
 	{
 		//Extract right parameters
-		map<String,DataValue> check;
+		map<String,DataValue> check_values;
+		map<String,String> check_descriptions;
 		if ( prefix.empty() )
 		{
-			check = values_;
+			check_values = values_;
+			check_descriptions=descriptions_;
 		}	
 		else
 		{
 			prefix.ensureLastChar(':');
-			check = copy(prefix,true).values_;
+			check_values = copy(prefix,true).values_;
+			check_descriptions = copy(prefix,true).descriptions_;
 		}
 		//check
-		for(map<String,DataValue>::const_iterator it = check.begin(); it != check.end();++it)
+		for(map<String,DataValue>::const_iterator it = check_values.begin(); it != check_values.end();++it)
 		{
 			if (defaults.values_.find(it->first)==defaults.values_.end())
 			{
 				os << "Warning: " << name << " received the unknown parameter '" << it->first << "'";
+				if (!prefix.empty()) os << " in '" << prefix << "'";
+				os << "!" << endl;
+			}
+		}
+		
+		for(map<String,String>::const_iterator it = check_descriptions.begin(); it != check_descriptions.end();++it)
+		{
+			if (defaults.descriptions_.find(it->first)==defaults.descriptions_.end())
+			{
+				os << "Warning: " << name << " received the unknown description '" << it->first << "'";
 				if (!prefix.empty()) os << " in '" << prefix << "'";
 				os << "!" << endl;
 			}

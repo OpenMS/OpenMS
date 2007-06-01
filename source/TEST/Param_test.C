@@ -56,28 +56,53 @@ CHECK((const DataValue& getValue(const String& key) const))
 	TEST_REAL_EQUAL(p.getValue("key")==DataValue::EMPTY, true)
 RESULT
 
-CHECK((void setValue(const String& key, const String& value)))
+CHECK((const String& getDescription(const String& key) const))
+	Param p;
+	TEST_REAL_EQUAL(p.getDescription("key")==String::EMPTY, true)
+RESULT
+
+CHECK((void setValue(const String& key, const String& value, String description)))
 	Param p;
 	p.setValue("key","value");
 	TEST_EQUAL(p.getValue("key"), "value")
+	TEST_STRING_EQUAL(p.getDescription("key"), p.getDescription("nodescriptionhere"))
+	p.setValue("key","value","thisvalue");
+	TEST_STRING_EQUAL(p.getDescription("key"), "thisvalue")
+	p.setValue("key","value");
+	TEST_STRING_EQUAL(p.getDescription("key"), "thisvalue")
 RESULT
 
-CHECK((void setValue(const String& key, Int value)))
+CHECK((void setValue(const String& key, Int value, String description)))
 	Param p;
 	p.setValue("key",17);
 	TEST_EQUAL(Int(p.getValue("key")), 17)
+	TEST_STRING_EQUAL(p.getDescription("key"), p.getDescription("nodescriptionhere"))
+	p.setValue("key",17,"thisvalue");
+	TEST_STRING_EQUAL(p.getDescription("key"), "thisvalue")
+	p.setValue("key",17);
+	TEST_STRING_EQUAL(p.getDescription("key"), "thisvalue")
 RESULT
 
-CHECK((void setValue(const String& key, float value)))
+CHECK((void setValue(const String& key, float value, String description)))
 	Param p;
 	p.setValue("key",17.4f);
 	TEST_REAL_EQUAL(float(p.getValue("key")), 17.4)
+	TEST_STRING_EQUAL(p.getDescription("key"), p.getDescription("nodescriptionhere"))
+	p.setValue("key",17.4f,"thisvalue");
+	TEST_STRING_EQUAL(p.getDescription("key"), "thisvalue")
+	p.setValue("key",17.4f);
+	TEST_STRING_EQUAL(p.getDescription("key"), "thisvalue")
 RESULT
 
-CHECK((void setValue(const String& key, double value)))
+CHECK((void setValue(const String& key, double value, String description)))
 	Param p;
 	p.setValue("key",17.4);
 	TEST_REAL_EQUAL(double(p.getValue("key")), 17.4)
+	TEST_STRING_EQUAL(p.getDescription("key"), p.getDescription("nodescriptionhere"))
+	p.setValue("key",17.4,"thisvalue");
+	TEST_STRING_EQUAL(p.getDescription("key"), "thisvalue")
+	p.setValue("key",17.4);
+	TEST_STRING_EQUAL(p.getDescription("key"), "thisvalue")
 RESULT
 
 CHECK((bool empty() const))
@@ -104,32 +129,44 @@ CHECK((UInt size() const))
 RESULT
 
 Param p;
-p.setValue("test:float",17.4f);
-p.setValue("test:string","test,test,test");
-p.setValue("test:int",17);
-p.setValue("test2:float",17.5f);
-p.setValue("test2:string","test2");
-p.setValue("test2:int",18);
+p.setValue("test:float",17.4f,"test:float");
+p.setValue("test:string","test,test,test","test:string");
+p.setValue("test:int",17,"test:int");
+p.setValue("test2:float",17.5f,"test2:float");
+p.setValue("test2:string","test2","test2:string");
+p.setValue("test2:int",18,"test2:int");
 
 CHECK((Param(const Param& rhs)))
 	Param p2(p);
 	TEST_REAL_EQUAL(float(p2.getValue("test:float")), 17.4)
+	TEST_STRING_EQUAL(p.getDescription("test:float"), "test:float")
 	TEST_EQUAL(p2.getValue("test:string"), "test,test,test")
+	TEST_STRING_EQUAL(p.getDescription("test:string"), "test:string")
 	TEST_EQUAL(Int(p2.getValue("test:int")), 17)
+	TEST_STRING_EQUAL(p.getDescription("test:int"), "test:int")
 	TEST_REAL_EQUAL(float(p2.getValue("test2:float")), 17.5)
+	TEST_STRING_EQUAL(p.getDescription("test2:float"), "test2:float")
 	TEST_EQUAL(p2.getValue("test2:string"), "test2")
+	TEST_STRING_EQUAL(p.getDescription("test2:string"), "test2:string")
 	TEST_EQUAL(Int(p2.getValue("test2:int")), 18)
+	TEST_STRING_EQUAL(p.getDescription("test2:int"), "test2:int")
 RESULT
 
 CHECK((Param& operator = (const Param& rhs)))
 	Param p2;
 	p2=p;
 	TEST_REAL_EQUAL(float(p2.getValue("test:float")), 17.4)
+	TEST_STRING_EQUAL(p.getDescription("test:float"), "test:float")
 	TEST_EQUAL(p2.getValue("test:string"), "test,test,test")
+	TEST_STRING_EQUAL(p.getDescription("test:string"), "test:string")
 	TEST_EQUAL(Int(p2.getValue("test:int")), 17)
+	TEST_STRING_EQUAL(p.getDescription("test:int"), "test:int")
 	TEST_REAL_EQUAL(float(p2.getValue("test2:float")), 17.5)
+	TEST_STRING_EQUAL(p.getDescription("test2:float"), "test2:float")
 	TEST_EQUAL(p2.getValue("test2:string"), "test2")
+	TEST_STRING_EQUAL(p.getDescription("test2:string"), "test2:string")
 	TEST_EQUAL(Int(p2.getValue("test2:int")), 18)
+	TEST_STRING_EQUAL(p.getDescription("test2:int"), "test2:int")
 RESULT
 
 
@@ -138,6 +175,7 @@ CHECK((void remove(const String& prefix)))
 	
 	p2.remove("test:float");
 	TEST_EQUAL(p2.getValue("test:float"), p2.getValue("novaluehere"))
+	TEST_STRING_EQUAL(p2.getDescription("test:float"), p2.getDescription("nodescriptionhere"))
 	TEST_EQUAL(p2.getValue("test:string"), "test,test,test")
 	TEST_EQUAL(Int(p2.getValue("test:int")), 17)
 	TEST_REAL_EQUAL(float(p2.getValue("test2:float")), 17.5)
@@ -146,8 +184,11 @@ CHECK((void remove(const String& prefix)))
 
 	p2.remove("test:");
 	TEST_EQUAL(p2.getValue("test:float"), p2.getValue("novaluehere"))
+	TEST_STRING_EQUAL(p2.getDescription("test:float"), p2.getDescription("nodescriptionhere"))
 	TEST_EQUAL(p2.getValue("test:string"), p2.getValue("novaluehere"))
+	TEST_STRING_EQUAL(p2.getDescription("test:string"), p2.getDescription("nodescriptionhere"))
 	TEST_EQUAL(p2.getValue("test:int"), p2.getValue("novaluehere"))
+	TEST_STRING_EQUAL(p2.getDescription("test:int"), p2.getDescription("nodescriptionhere"))
 	TEST_REAL_EQUAL(float(p2.getValue("test2:float")), 17.5)
 	TEST_EQUAL(p2.getValue("test2:string"), "test2")
 	TEST_EQUAL(Int(p2.getValue("test2:int")), 18)
@@ -158,8 +199,14 @@ CHECK((void remove(const String& prefix)))
 	TEST_EQUAL(p2.getValue("test:int"), p2.getValue("novaluehere"))
 	TEST_EQUAL(p2.getValue("test2:float"), p2.getValue("novaluehere"))
 	TEST_EQUAL(p2.getValue("test2:string"), p2.getValue("novaluehere"))
-	TEST_EQUAL(p2.getValue("test2:int"), p2.getValue("novaluehere"))	
+	TEST_EQUAL(p2.getValue("test2:int"), p2.getValue("novaluehere"))
 	
+	TEST_STRING_EQUAL(p2.getDescription("test:float"), p2.getDescription("nodescriptionhere"))
+	TEST_STRING_EQUAL(p2.getDescription("test:string"), p2.getDescription("nodescriptionhere"))
+	TEST_STRING_EQUAL(p2.getDescription("test:int"), p2.getDescription("nodescriptionhere"))
+	TEST_STRING_EQUAL(p2.getDescription("test2:float"), p2.getDescription("nodescriptionhere"))
+	TEST_STRING_EQUAL(p2.getDescription("test2:string"), p2.getDescription("nodescriptionhere"))
+	TEST_STRING_EQUAL(p2.getDescription("test:int"), p2.getDescription("nodescriptionhere"))
 RESULT
 
 
@@ -199,24 +246,43 @@ CHECK((void store(const String& filename) const throw(Exception::UnableToCreateF
 	TEST_REAL_EQUAL(float(p2.getValue("test2:float")), float(p3.getValue("test2:float")))
 	TEST_EQUAL(p2.getValue("test2:string"), p3.getValue("test2:string"))
 	TEST_EQUAL(p2.getValue("test2:int"), p3.getValue("test2:int"))	
+	
+	TEST_STRING_EQUAL(p2.getDescription("test:float"), p3.getDescription("test:float"))
+	TEST_STRING_EQUAL(p2.getDescription("test:string"), p3.getDescription("test:string"))
+	TEST_STRING_EQUAL(p2.getDescription("test:int"), p3.getDescription("test:int"))
+	TEST_STRING_EQUAL(p2.getDescription("test2:float"), p3.getDescription("test2:float"))
+	TEST_STRING_EQUAL(p2.getDescription("test2:string"), p3.getDescription("test2:string"))
+	TEST_STRING_EQUAL(p2.getDescription("test2:int"), p3.getDescription("test2:int"))
 RESULT
 
 CHECK((void insert(String prefix, const Param& para)))
 	Param p2;
 	p2.insert("test3",p);
 	TEST_REAL_EQUAL(float(p2.getValue("test3:test:float")), 17.4)
+	TEST_STRING_EQUAL(p2.getDescription("test3:test:float"), "test:float")
 	TEST_EQUAL(p2.getValue("test3:test:string"), "test,test,test")
+	TEST_STRING_EQUAL(p2.getDescription("test3:test:string"), "test:string")
 	TEST_EQUAL(Int(p2.getValue("test3:test:int")), 17)
+	TEST_STRING_EQUAL(p2.getDescription("test3:test:int"), "test:int")
 	TEST_REAL_EQUAL(float(p2.getValue("test3:test2:float")), 17.5)
+	TEST_STRING_EQUAL(p2.getDescription("test3:test2:float"), "test2:float")
 	TEST_EQUAL(p2.getValue("test3:test2:string"), "test2")
+	TEST_STRING_EQUAL(p2.getDescription("test3:test2:string"), "test2:string")
 	TEST_EQUAL(Int(p2.getValue("test3:test2:int")), 18)
+	TEST_STRING_EQUAL(p2.getDescription("test3:test2:int"), "test2:int")
 	p2.insert("",p);
 	TEST_REAL_EQUAL(float(p2.getValue("test:float")), 17.4)
+	TEST_STRING_EQUAL(p2.getDescription("test:float"), "test:float")
 	TEST_EQUAL(p2.getValue("test:string"), "test,test,test")
+	TEST_STRING_EQUAL(p2.getDescription("test:string"), "test:string")
 	TEST_EQUAL(Int(p2.getValue("test:int")), 17)
+	TEST_STRING_EQUAL(p2.getDescription("test:int"), "test:int")
 	TEST_REAL_EQUAL(float(p2.getValue("test2:float")), 17.5)
+	TEST_STRING_EQUAL(p2.getDescription("test2:float"), "test2:float")
 	TEST_EQUAL(p2.getValue("test2:string"), "test2")
+	TEST_STRING_EQUAL(p2.getDescription("test2:string"), "test2:string")
 	TEST_EQUAL(Int(p2.getValue("test2:int")), 18)	
+	TEST_STRING_EQUAL(p2.getDescription("test2:int"), "test2:int")
 RESULT
 
 CHECK((Param copy(const String& prefix, bool remove_prefix=false, String new_prefix="") const))
@@ -227,50 +293,68 @@ CHECK((Param copy(const String& prefix, bool remove_prefix=false, String new_pre
 
 	p2 = p.copy("test:");
 	TEST_REAL_EQUAL(float(p2.getValue("test:float")), 17.4)
+	TEST_STRING_EQUAL(p2.getDescription("test:float"), "test:float")
 	TEST_EQUAL(p2.getValue("test:string"), "test,test,test")
+	TEST_STRING_EQUAL(p2.getDescription("test:string"), "test:string")
 	TEST_EQUAL(Int(p2.getValue("test:int")), 17)
+	TEST_STRING_EQUAL(p2.getDescription("test:int"), "test:int")
 	TEST_EQUAL(p2.getValue("test2:float"), p2.getValue("novaluehere"))
+	TEST_STRING_EQUAL(p2.getDescription("test2:float"), p2.getDescription("nodescriptionhere"))
 	TEST_EQUAL(p2.getValue("test2:string"), p2.getValue("novaluehere"))
+	TEST_STRING_EQUAL(p2.getDescription("test2:string"), p2.getDescription("nodescriptionhere"))
 	TEST_EQUAL(p2.getValue("test2:int"), p2.getValue("novaluehere"))
+	TEST_STRING_EQUAL(p2.getDescription("test2:int"), p2.getDescription("nodescriptionhere"))
 
 	p2 = p.copy("test:",true);
 	TEST_REAL_EQUAL(float(p2.getValue("float")), 17.4)
+	TEST_STRING_EQUAL(p2.getDescription("float"), "test:float")
 	TEST_EQUAL(p2.getValue("string"), "test,test,test")
+	TEST_STRING_EQUAL(p2.getDescription("string"), "test:string")
 
 	p2 = p.copy("test:",true,"tttest");
 	TEST_REAL_EQUAL(float(p2.getValue("tttest:float")), 17.4)
+	TEST_STRING_EQUAL(p2.getDescription("tttest:float"), "test:float")
 	TEST_EQUAL(p2.getValue("tttest:string"), "test,test,test")
+	TEST_STRING_EQUAL(p2.getDescription("tttest:string"), "test:string")
 
 	p2 = p.copy("test:",false,"tttest");
 	TEST_REAL_EQUAL(float(p2.getValue("tttest:test:float")), 17.4)
+	TEST_STRING_EQUAL(p2.getDescription("tttest:test:float"), "test:float")
 	TEST_EQUAL(p2.getValue("tttest:test:string"), "test,test,test")
+	TEST_STRING_EQUAL(p2.getDescription("tttest:test:string"), "test:string")
 	
 	p2 = p.copy("test");
 	TEST_REAL_EQUAL(float(p2.getValue("test:float")), 17.4)
+	TEST_STRING_EQUAL(p2.getDescription("test:float"), "test:float")
 	TEST_EQUAL(p2.getValue("test:string"), "test,test,test")
+	TEST_STRING_EQUAL(p2.getDescription("test:string"), "test:string")
 	TEST_EQUAL(Int(p2.getValue("test:int")), 17)
+	TEST_STRING_EQUAL(p2.getDescription("test:int"), "test:int")
 	TEST_REAL_EQUAL(float(p2.getValue("test2:float")), 17.5)
+	TEST_STRING_EQUAL(p2.getDescription("test2:float"), "test2:float")
 	TEST_EQUAL(p2.getValue("test2:string"), "test2")
+	TEST_STRING_EQUAL(p2.getDescription("test2:string"), "test2:string")
 	TEST_EQUAL(Int(p2.getValue("test2:int")), 18)
+	TEST_STRING_EQUAL(p2.getDescription("test2:int"), "test2:int")
 RESULT
 
 CHECK((Param copyWithInherit(const String& old_prefix, const String& new_prefix="") const))
 {
 	Param p0;
-	p0.setValue("test:float",17.4f);
-	p0.setValue("test:inherit","test2");
-	p0.setValue("test:int",17);
-	p0.setValue("test:string","test,test,test");
+	p0.setValue("test:float",17.4f,"test:float");
+	p0.setValue("test:inherit","test2","test:inherit");
+	p0.setValue("test:int",17,"test:int");
+	p0.setValue("test:string","test,test,test","test:string");
 
-	p0.setValue("test2:double",18.2);
-	p0.setValue("test2:float",17.5f);
-	p0.setValue("test2:inherit","test3:test3a");
-	p0.setValue("test2:string","test2");
+	p0.setValue("test2:double",18.2,"test2:double");
+	p0.setValue("test2:float",17.5f,"test2:float");
+	p0.setValue("test2:inherit","test3:test3a","test2:inherit");
+	p0.setValue("test2:string","test2","test2:string");
 
-	p0.setValue("test3:bla","wrong");
-	p0.setValue("test3:test3a:anotherint",99);
-	p0.setValue("test3:test3a:bla","blubber");
-	p0.setValue("test3:test3a:inherit","non-existent:location");
+	p0.setValue("test3:bla","wrong","test3:bla");
+	p0.setValue("test3:test3a:anotherint",99,"test3:test3a:anotherint");
+	p0.setValue("test3:test3a:bla","blubber","test3:test3a:bla");
+	p0.setValue("test3:test3a:inherit","non-existent:location","test3:test3a:inherit");
 
 	Param p2;
 
@@ -279,13 +363,21 @@ CHECK((Param copyWithInherit(const String& old_prefix, const String& new_prefix=
 
 	p2 = p0.copyWithInherit("test:","new_prefix");
 	TEST_EQUAL(float(p2.getValue("new_prefix:float")), 17.4f);
+	TEST_STRING_EQUAL(p2.getDescription("new_prefix:float"), "test:float");
 	TEST_STRING_EQUAL(p2.getValue("new_prefix:string"), "test,test,test");
+	TEST_STRING_EQUAL(p2.getDescription("new_prefix:string"), "test:string");
 	TEST_EQUAL(int(p2.getValue("new_prefix:int")), 17);
+	TEST_STRING_EQUAL(p2.getDescription("new_prefix:int"), "test:int");
 	TEST_EQUAL(double(p2.getValue("new_prefix:double")), 18.2);
+	TEST_STRING_EQUAL(p2.getDescription("new_prefix:double"), "test2:double");
 	TEST_EQUAL(p2.getValue("new_prefix:nostring"), p2.getValue("novaluehere"));
+	TEST_STRING_EQUAL(p2.getDescription("new_prefix:nostring"), p2.getDescription("nodescriptionhere"));
 	TEST_EQUAL(int(p2.getValue("new_prefix:anotherint")), 99);
+	TEST_STRING_EQUAL(p2.getDescription("new_prefix:anotherint"), "test3:test3a:anotherint");
 	TEST_STRING_EQUAL(p2.getValue("new_prefix:bla"), "blubber");
+	TEST_STRING_EQUAL(p2.getDescription("new_prefix:bla"), "test3:test3a:bla");
 	TEST_EQUAL(p2.getValue("new_prefix:inherit"), p2.getValue("novaluehere"));
+	TEST_STRING_EQUAL(p2.getDescription("new_prefix:inherit"), p2.getDescription("nodescriptionhere"));
 
 	Param p3;
 
@@ -341,32 +433,40 @@ RESULT
 
 CHECK((void setDefaults(const Param& defaults, String prefix="", bool showMessage=false)))
 	Param defaults;
-	defaults.setValue("float",1.0f);	
-	defaults.setValue("float2",2.0f);
-	defaults.setValue("string","default string1");
-	defaults.setValue("string2","default string2");
+	defaults.setValue("float",1.0f,"float");	
+	defaults.setValue("float2",2.0f,"float2");
+	defaults.setValue("string","default string1","string");
+	defaults.setValue("string2","default string2","string2");
 	
 	Param p2;
-	p2.setValue("PATH:float",-1.0f);
-	p2.setValue("PATH:string","some string");
-	p2.setValue("float",-2.0f);
-	p2.setValue("string","other string");
+	p2.setValue("PATH:float",-1.0f,"PATH:float");
+	p2.setValue("PATH:string","some string","PATH:string");
+	p2.setValue("float",-2.0f,"float");
+	p2.setValue("string","other string","string");
 	
 	TEST_EQUAL(p2.size(),4);
 	
 	p2.setDefaults(defaults);
 	TEST_EQUAL(p2.size(),6);
 	TEST_REAL_EQUAL(float(p2.getValue("float")),-2.0);
+	TEST_STRING_EQUAL(p2.getDescription("float"),"float");
 	TEST_REAL_EQUAL(float(p2.getValue("float2")),2.0);
+	TEST_STRING_EQUAL(p2.getDescription("float2"),"float2");
 	TEST_EQUAL(string(p2.getValue("string")),"other string");
+	TEST_STRING_EQUAL(p2.getDescription("string"),"string");
 	TEST_EQUAL(string(p2.getValue("string2")),"default string2");
+	TEST_STRING_EQUAL(p2.getDescription("string2"),"string2");
 
 	p2.setDefaults(defaults,"PATH");
 	TEST_EQUAL(p2.size(),8);
 	TEST_REAL_EQUAL(float(p2.getValue("PATH:float")),-1.0);
+	TEST_STRING_EQUAL(p2.getDescription("PATH:float"),"PATH:float");
 	TEST_REAL_EQUAL(float(p2.getValue("PATH:float2")),2.0);
+	TEST_STRING_EQUAL(p2.getDescription("PATH:float2"),"float2");
 	TEST_EQUAL(string(p2.getValue("PATH:string")),"some string");
+	TEST_STRING_EQUAL(p2.getDescription("PATH:string"),"PATH:string");
 	TEST_EQUAL(string(p2.getValue("PATH:string2")),"default string2");
+	TEST_STRING_EQUAL(p2.getDescription("PATH:string2"),"string2");
 RESULT
 
 char* a1 ="executable";
@@ -487,6 +587,12 @@ CHECK([EXTRA](friend std::ostream& operator << (std::ostream& os, const Param& p
 	stringstream ss;
 	ss << p;
 	TEST_EQUAL(ss.str(), "\"key\"  ->  \"17.4\"\n")
+	p.clear();
+	ss.str("");
+	p.setValue("key",17.4, "thiskey");
+	ss<<p;
+	TEST_EQUAL(ss.str(), "\"key\"  ->  \"17.4\" :thiskey\n")
+	
 RESULT
 
 CHECK((ConstIterator begin() const))
@@ -506,30 +612,30 @@ RESULT
 CHECK((void checkDefaults(const String &name, const Param &defaults, String prefix="", std::ostream &os=std::cout) const))
 	ostringstream os;
 	Param p,d;
-	p.setValue("string",String("bla"));
-	p.setValue("int",5);
-	p.setValue("double",47.11);
-	
+	p.setValue("string",String("bla"),"string");
+	p.setValue("int",5,"int");
+	p.setValue("double",47.11,"double");
+		
 	p.checkDefaults("Test",d,"",os);
-	TEST_EQUAL(os.str()=="Warning: Test received the unknown parameter 'double'!\nWarning: Test received the unknown parameter 'int'!\nWarning: Test received the unknown parameter 'string'!\n",true);
+	TEST_EQUAL(os.str()=="Warning: Test received the unknown parameter 'double'!\nWarning: Test received the unknown parameter 'int'!\nWarning: Test received the unknown parameter 'string'!\nWarning: Test received the unknown description 'double'!\nWarning: Test received the unknown description 'int'!\nWarning: Test received the unknown description 'string'!\n",true);
 	
-	d.setValue("int",5);
-	d.setValue("double",47.11);
+	d.setValue("int",5,"int");
+	d.setValue("double",47.11,"double");
 	os.str("");
 	p.checkDefaults("Test",d,"",os);
-	TEST_EQUAL(os.str()=="Warning: Test received the unknown parameter 'string'!\n",true);
+	TEST_EQUAL(os.str()=="Warning: Test received the unknown parameter 'string'!\nWarning: Test received the unknown description 'string'!\n",true);
 	
 	p.clear();
-	p.setValue("pref:string",String("bla"));
-	p.setValue("pref:int",5);
-	p.setValue("pref:double",47.11);
+	p.setValue("pref:string",String("bla"),"pref:string");
+	p.setValue("pref:int",5,"pref:int");
+	p.setValue("pref:double",47.11,"pref:double");
 	os.str("");
 	p.checkDefaults("Test",d,"pref",os);
-	TEST_EQUAL(os.str()=="Warning: Test received the unknown parameter 'string' in 'pref:'!\n",true);
+	TEST_EQUAL(os.str()=="Warning: Test received the unknown parameter 'string' in 'pref:'!\nWarning: Test received the unknown description 'string' in 'pref:'!\n",true);
 
 	os.str("");
 	p.checkDefaults("Test",d,"pref:",os);
-	TEST_EQUAL(os.str()=="Warning: Test received the unknown parameter 'string' in 'pref:'!\n",true);
+	TEST_EQUAL(os.str()=="Warning: Test received the unknown parameter 'string' in 'pref:'!\nWarning: Test received the unknown description 'string' in 'pref:'!\n",true);
 RESULT
 
 /////////////////////////////////////////////////////////////

@@ -46,7 +46,7 @@ namespace OpenMS
   {
     public:
     	/// Default constructor
-      ParamXMLHandler(std::map<String, DataValue>& values, const String& filename);
+      ParamXMLHandler(std::map<String, DataValue>& values, std::map<String, String>& descriptions, const String& filename);
 			/// Destructor
       virtual ~ParamXMLHandler();
 
@@ -60,6 +60,7 @@ namespace OpenMS
       std::vector<String> nodes_;
       String path_;
       std::map<String, DataValue>& values_;
+	std::map<String, String>& descriptions_;
 		
 		private:
     	/// Not implemented => private
