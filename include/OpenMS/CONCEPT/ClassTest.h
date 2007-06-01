@@ -185,8 +185,8 @@ int main(int argc, char **argv)																											\
 		{																																								\
 			if (TEST::exception == 1) /* dummy to avoid compiler warnings */							\
 				TEST::exception++;																													\
-			std::cout << std::endl << "    (caught exception of type ";										\
-			std::cout << e.getName();																											\
+			std::cout << std::endl << "    (caught exception of type `"										\
+			          << e.getName() << "'";																							\
 			if ((e.getLine() > 0) && (!(e.getFile() == "")))															\
 				std::cout << " outside a subtest, which was thrown in line " << e.getLine()	\
 									<< " of file " << e.getFile()																			\
@@ -205,8 +205,8 @@ int main(int argc, char **argv)																											\
 		{																																								\
 			if (TEST::exception == 1) /* dummy to avoid compiler warnings */							\
 				TEST::exception++;																													\
-			std::cout << std::endl << "    (caught exception of type ";										\
-			std::cout << e.getName();																											\
+			std::cout << std::endl << "    (caught exception of type `"										\
+			          << e.getName() << "'";																							\
 			if ((e.getLine() > 0) && (!(e.getFile() == "")))															\
 				std::cout << " outside a subtest, which was thrown in line " << e.getLine()	\
 									<< " of file " << e.getFile()																			\
@@ -344,13 +344,13 @@ int main(int argc, char **argv)																											\
 		{																																																\
 			if (TEST::exception == 1) /* dummy to avoid compiler warnings */															\
 				TEST::exception++;																																					\
-			std::cout << std::endl << "    (caught exception of type ";																		\
-			std::cout << e.getName();																																			\
+			std::cout << std::endl << "    (caught exception of type `"																		\
+			          << e.getName() << "'";																															\
 			if ((e.getLine() > 0) && (!(e.getFile() == "")))																							\
 				std::cout << " outside a subtest, which was thrown in line " << e.getLine()									\
 									<< " of file " << e.getFile()																											\
-									<< " in function " << e.getFunction();																						\
-			std::cout << " while looking for file " << e.getFilename();																		\
+									<< " in function `" << e.getFunction();																						\
+			std::cout << "' while looking for file " << e.getFilename();																	\
 			std::cout << " - unexpected!) " << std::endl;																									\
 		}																																																\
   }																																																	\
@@ -366,15 +366,14 @@ int main(int argc, char **argv)																											\
 				TEST::newline = true;																																				\
 				std::cout << std::endl;																																			\
 			}																																															\
-      std::cout << "    (caught exception of type ";																								\
-      std::cout << e.getName();																																			\
+      std::cout << "    (caught exception of type `"																								\
+                << e.getName() << "'";																															\
       if ((e.getLine() > 0) && (!(e.getFile() == "")))																							\
-				std::cout << ", which was thrown in line " << e.getLine() << " of file " << e.getFile();		\
 				std::cout << " outside a subtest, which was thrown in line " << e.getLine()									\
 									<< " of file " << e.getFile()																											\
-									<< " in function " << e.getFunction();																						\
-      std::cout << " - unexpected!) " << std::endl;																									\
-			std::cout << "    (message is: " << e.what() << ")" << std::endl;															\
+									<< " in function `" << e.getFunction();																						\
+      std::cout << "' - unexpected!) " << std::endl;																								\
+			std::cout << "    (message is: `" << e.what() << "')" << std::endl;														\
     }																																																\
   }																																																	\
   catch (std::exception& e)																																					\
@@ -389,7 +388,7 @@ int main(int argc, char **argv)																											\
 				TEST::newline = true;																																				\
 				std::cout << std::endl;																																			\
 			}																																															\
-      std::cout << "    (caught std::exception. Cause: " << e.what() << ")" << std::endl;						\
+      std::cout << "    (caught std::exception. Cause: `" << e.what() << "')" << std::endl;					\
     }																																																\
   }																																																	\
   catch (std::string& e)																																						\
@@ -404,7 +403,7 @@ int main(int argc, char **argv)																											\
 				TEST::newline = true;																																				\
 				std::cout << std::endl;																																			\
 			}																																															\
-      std::cout << "    (caught std::string as an exception: " << e << ")" << std::endl;						\
+      std::cout << "    (caught std::string as an exception: `" << e << "')" << std::endl;					\
     }																																																\
   }																																																	\
   catch (const char* e)																																							\
@@ -419,7 +418,7 @@ int main(int argc, char **argv)																											\
 				TEST::newline = true;																																				\
 				std::cout << std::endl;																																			\
 			}																																															\
-      std::cout << "    (caught char pointer as an exception: " << e << ")" << std::endl;						\
+      std::cout << "    (caught char pointer as an exception: `" << e << "')" << std::endl;						\
     }																																																\
   }																																																	\
   catch (...)																																												\

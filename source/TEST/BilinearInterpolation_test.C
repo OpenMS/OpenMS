@@ -80,103 +80,15 @@ RESULT
 typedef BilinearInterpolation < float, double > BIFD;
 
 //-----------------------------------------------------------
-CHECK( default constructor )
-{
-	BIFD bifd;
-}
-RESULT
-
-#if 0
-
-//-----------------------------------------------------------
-CHECK( value() )
-{
-	typedef BilinearInterpolation < float, double > BIFD;
-	BIFD bifd;
-	int const rows = 5, cols = 5;
-	bifd.getData().resize(rows, cols);
-	bifd.addValue( 0, 0, 0 );
-	bifd.addValue( 0.5, 0, 10 );
-	STATUS("dump of matrix bifd follows");
-	std::ofstream original_pgm("original.pgm");
-	bifd.getData().writePGM(std::cout,100,0);
-	bifd.getData().writePGM(original_pgm,100,0);
-	STATUS("dump of matrix bifd finished");
-
-	for ( float x = -2; x <= rows + 1; x += .25 )
-	{
-		std::cout << "row:" << x << ":\t";
-		for ( float y = -2; y <= cols + 1; y += .25 )
-		{
-			std::cout << bifd.value(x,y) << ' ' ;
-		}
-		std::cout << '\n';
-	}
-
-	BIFD resampled;
-	resampled.getData().resize((rows+3)*4+1,(cols+3)*4+1);
-	bifd.setMapping_0 ( 4, 0, 8 );
-	bifd.setMapping_1 ( 4, 0, 8 );
-	for ( int p = 0; p != resampled.getData().size(); ++p )
-	{
-		const int i = resampled.getData().rowIndex(p);
-		const int j = resampled.getData().colIndex(p);
-		// std::cout << i <<' ' << j << ' ';
-		resampled.getData()(i,j) = bifd.value(i,j);
-	}
-	STATUS("dump of matrix resampled follows");
-	std::ofstream resampled_pgm("resampled.pgm");
-	resampled.getData().writePGM(std::cout,1000,100);
-	resampled.getData().writePGM(resampled_pgm,1000,100);
-	STATUS("dump of matrix resampled finished");
-
-}
-RESULT
-//-----------------------------------------------------------
-CHECK( simple painting application ... \n )
-{
-	typedef BilinearInterpolation < float, double > BIFD;
-	BIFD bifd;
-	BIFD resampled;
-	int const rows = 5, cols = 5;
-	bifd.getData().resize(rows, cols);
-	float x = 0, y = 0, it = 0;
-	for (;;)
-	{
-		std::cout << "Enter x y intensity ...\n";
-		std::cin >> x >> y >> it;
-		if ( ! std::cin ) break;
-		std::cout << "Read " << x <<' '<< y <<' '<< it <<'\n';
-		bifd.addValue( x, y, it );
-		std::ofstream original_pgm("original.pgm");
-		bifd.getData().writePGM(original_pgm,-100,0);
-		bifd.getData().writePGM(std::cout,100,0);
-		original_pgm.close();
-#if 0
-		resampled.getData().clear();
-		resampled.getData().resize((rows+3)*4+1,(cols+3)*4+1);
-		bifd.setMapping_0 ( 4, 0, 8 );
-		bifd.setMapping_1 ( 4, 0, 8 );
-		for ( int p = 0; p != resampled.getData().size(); ++p )
-		{
-			const int i = resampled.getData().rowIndex(p);
-			const int j = resampled.getData().colIndex(p);
-			resampled.getData()(i,j) = bifd.value(i,j);
-		}
-		std::ofstream resampled_pgm("resampled.pgm");
-		resampled.getData().writePGM(resampled_pgm,-100,0);
-		resampled_pgm.close();
-#endif
-	}
-	STATUS("Stop.");
-
-}
-RESULT
-
-#endif
-
 // Please do not remove the {} inside the CHECK...RESULT blocks.
 // Emacs will completely mess up the indentation otherwise.
+//-----------------------------------------------------------
+
+CHECK(BilinearInterpolation())
+{
+	BIFD bifd;
+}
+RESULT
 
 CHECK(BilinearInterpolation& operator= ( BilinearInterpolation const & arg ))
 {
@@ -246,23 +158,48 @@ CHECK(BilinearInterpolation( BilinearInterpolation const & arg ))
 }
 RESULT
 
-CHECK((BilinearInterpolation( KeyType scale_0 = 1., KeyType offset_0 = 0., KeyType scale_1 = 1., KeyType offset_1 = 0. )))
+CHECK(ContainerType& getData())
 {
-  // ???
+  BIFD bifd;
+	bifd.getData().resize(2,3);
+	bifd.getData()(1,2) = 10012;
+	bifd.getData()(0,0) = 10000;
+	bifd.getData()(1,0) = 10010;
+
+	BIFD const & bifd_cr(bifd);
+	TEST_REAL_EQUAL(bifd_cr.getData()(1,2),10012);
+	TEST_REAL_EQUAL(bifd_cr.getData()(0,0),10000);
+	TEST_REAL_EQUAL(bifd_cr.getData()(1,0),10010);
 }
 RESULT
 
 CHECK(ContainerType const& getData() const)
 {
-  // ???
+  // see above,  ContainerType& getData()
 }
 RESULT
 
-CHECK(ContainerType& getData())
+CHECK(template< typename SourceContainer > void setData( SourceContainer const & data ))
 {
-  // ???
+  BIFD bifd;
+	bifd.getData().resize(2,3);
+	bifd.getData()(1,2) = 10012;
+	bifd.getData()(0,0) = 10000;
+	bifd.getData()(1,0) = 10010;
+
+	BIFD const & bifd_cr(bifd);
+
+	BIFD bifd2;
+	bifd2.setData(bifd_cr.getData());
+
+	TEST_EQUAL(bifd.getData(),bifd2.getData());
+
+	BIFD bifd3;
+	bifd3.getData().resize(2,3);
+	TEST_NOT_EQUAL(bifd.getData(),bifd3.getData());
 }
 RESULT
+
 
 // Lots of methods with _0 and _1.
 // I'll deal with the _0 case first,
@@ -270,74 +207,236 @@ RESULT
 
 CHECK((void setMapping_0( KeyType const & inside_low, KeyType const & outside_low, KeyType const & inside_high, KeyType const & outside_high )))
 {
-  // ???
+	BIFD bifd;
+	bifd.setMapping_0(1,2,3,8);
+	TEST_REAL_EQUAL(bifd.getScale_0(),3);
+	TEST_REAL_EQUAL(bifd.getOffset_0(),-1);
+	TEST_REAL_EQUAL(bifd.getScale_1(),1);
+	TEST_REAL_EQUAL(bifd.getOffset_1(),0);
 }
 RESULT
 
-CHECK((void setMapping_0( KeyType const & scale, KeyType const & inside, KeyType const & outside )))
+CHECK((void setMapping_0( KeyType const & scale, KeyType const & inside_low, KeyType const & outside_low )))
 {
-  // ???
+	BIFD bifd;
+	bifd.setMapping_0(3,1,2);
+	TEST_REAL_EQUAL(bifd.getScale_0(),3);
+	TEST_REAL_EQUAL(bifd.getOffset_0(),-1);
+	TEST_REAL_EQUAL(bifd.getScale_1(),1);
+	TEST_REAL_EQUAL(bifd.getOffset_1(),0);
 }
 RESULT
 
 CHECK(void setOffset_0( KeyType const & offset ))
 {
-  // ???
-}
-RESULT
-
-CHECK(void setScale_0( KeyType const & scale ))
-{
-  // ???
-}
-RESULT
-
-CHECK(KeyType const& getInsideReferencePoint_0() const)
-{
-  // ???
+	BIFD bifd;
+	bifd.setOffset_0(987);
+	BIFD const& bifd_cr(bifd);
+	TEST_REAL_EQUAL(bifd_cr.getOffset_0(),987);
 }
 RESULT
 
 CHECK(KeyType const& getOffset_0() const)
 {
-  // ???
+  // see above,  void setOffset_0( KeyType const & offset )
 }
 RESULT
-CHECK(KeyType const& getOutsideReferencePoint_0() const)
+CHECK(void setScale_0( KeyType const & scale ))
 {
-  // ???
+	BIFD bifd;
+	bifd.setScale_0(987);
+	BIFD const& bifd_cr(bifd);
+	TEST_REAL_EQUAL(bifd_cr.getScale_0(),987);
 }
 RESULT
 
 CHECK(KeyType const& getScale_0() const)
 {
-  // ???
+  // see above,  void setScale_0( KeyType const & scale )
+}
+RESULT
+
+CHECK(KeyType const& getInsideReferencePoint_0() const)
+{
+ 	BIFD bifd;
+	bifd.setMapping_0(1,4,3,8);
+	TEST_REAL_EQUAL(bifd.getInsideReferencePoint_0(),1);
+	TEST_REAL_EQUAL(bifd.getOutsideReferencePoint_0(),4);
+	TEST_REAL_EQUAL(bifd.getInsideReferencePoint_1(),0);
+	TEST_REAL_EQUAL(bifd.getOutsideReferencePoint_1(),0);
+}
+RESULT
+
+CHECK(KeyType const& getOutsideReferencePoint_0() const)
+{
+  // see above,  getInsideReferencePoint_0()
 }
 RESULT
 
 CHECK(KeyType index2key_0( KeyType pos ) const)
 {
-  // ???
+ 	BIFD bifd;
+	bifd.setMapping_0(3,1,2);
+	TEST_REAL_EQUAL(bifd.index2key_0(0),-1);
+	TEST_REAL_EQUAL(bifd.index2key_1(0),0);
 }
 RESULT
 
 CHECK(KeyType key2index_0( KeyType pos ) const)
 {
-  // ???
+ 	BIFD bifd;
+	bifd.setMapping_0(3,1,2);
+	TEST_REAL_EQUAL(bifd.key2index_0(-1),0);
+	TEST_REAL_EQUAL(bifd.key2index_1(0),0);
 }
 RESULT
 
 CHECK(KeyType supportMax_0() const)
 {
-  // ???
+ 	BIFD bifd;
+
+	bifd.setMapping_0(3,1,2);
+	bifd.setMapping_1(5,3,4);
+
+	bifd.getData().resize(2,3);
+
+	TEST_REAL_EQUAL(bifd.index2key_0(0),-1);
+	TEST_REAL_EQUAL(bifd.index2key_0(1),2);
+	TEST_REAL_EQUAL(bifd.supportMin_0(),-4);
+	TEST_REAL_EQUAL(bifd.supportMax_0(),5);
+
+	TEST_REAL_EQUAL(bifd.index2key_1(0),-11);
+	TEST_REAL_EQUAL(bifd.index2key_1(2),-1);
+	TEST_REAL_EQUAL(bifd.supportMin_1(),-16);
+	TEST_REAL_EQUAL(bifd.supportMax_1(),4);
 }
 RESULT
 
 CHECK(KeyType supportMin_0() const)
 {
-  // ???
+  // see above,  supportMax_0
 }
 RESULT
+
+
+
+// here is the same stuff with _1 and _0 exchanged
+
+
+CHECK((void setMapping_1( KeyType const & inside_low, KeyType const & outside_low, KeyType const & inside_high, KeyType const & outside_high )))
+{
+	BIFD bifd;
+	bifd.setMapping_1(1,2,3,8);
+	TEST_REAL_EQUAL(bifd.getScale_1(),3);
+	TEST_REAL_EQUAL(bifd.getOffset_1(),-1);
+	TEST_REAL_EQUAL(bifd.getScale_0(),1);
+	TEST_REAL_EQUAL(bifd.getOffset_0(),0);
+}
+RESULT
+
+CHECK((void setMapping_1( KeyType const & scale, KeyType const & inside_low, KeyType const & outside_low )))
+{
+	BIFD bifd;
+	bifd.setMapping_1(3,1,2);
+	TEST_REAL_EQUAL(bifd.getScale_1(),3);
+	TEST_REAL_EQUAL(bifd.getOffset_1(),-1);
+	TEST_REAL_EQUAL(bifd.getScale_0(),1);
+	TEST_REAL_EQUAL(bifd.getOffset_0(),0);
+}
+RESULT
+
+CHECK(void setOffset_1( KeyType const & offset ))
+{
+	BIFD bifd;
+	bifd.setOffset_1(987);
+	BIFD const& bifd_cr(bifd);
+	TEST_REAL_EQUAL(bifd_cr.getOffset_1(),987);
+}
+RESULT
+
+CHECK(KeyType const& getOffset_1() const)
+{
+  // see above,  void setOffset_1( KeyType const & offset )
+}
+RESULT
+CHECK(void setScale_1( KeyType const & scale ))
+{
+	BIFD bifd;
+	bifd.setScale_1(987);
+	BIFD const& bifd_cr(bifd);
+	TEST_REAL_EQUAL(bifd_cr.getScale_1(),987);
+}
+RESULT
+
+CHECK(KeyType const& getScale_1() const)
+{
+  // see above,  void setScale_1( KeyType const & scale )
+}
+RESULT
+
+CHECK(KeyType const& getInsideReferencePoint_1() const)
+{
+ 	BIFD bifd;
+	bifd.setMapping_1(1,4,3,8);
+	TEST_REAL_EQUAL(bifd.getInsideReferencePoint_1(),1);
+	TEST_REAL_EQUAL(bifd.getOutsideReferencePoint_1(),4);
+	TEST_REAL_EQUAL(bifd.getInsideReferencePoint_0(),0);
+	TEST_REAL_EQUAL(bifd.getOutsideReferencePoint_0(),0);
+}
+RESULT
+
+CHECK(KeyType const& getOutsideReferencePoint_1() const)
+{
+  // see above,  getInsideReferencePoint_1()
+}
+RESULT
+
+CHECK(KeyType index2key_1( KeyType pos ) const)
+{
+ 	BIFD bifd;
+	bifd.setMapping_1(3,1,2);
+	TEST_REAL_EQUAL(bifd.index2key_1(0),-1);
+	TEST_REAL_EQUAL(bifd.index2key_0(0),0);
+}
+RESULT
+
+CHECK(KeyType key2index_1( KeyType pos ) const)
+{
+ 	BIFD bifd;
+	bifd.setMapping_1(3,1,2);
+	TEST_REAL_EQUAL(bifd.key2index_1(-1),0);
+	TEST_REAL_EQUAL(bifd.key2index_0(0),0);
+}
+RESULT
+
+CHECK(KeyType supportMax_1() const)
+{
+ 	BIFD bifd;
+
+	bifd.setMapping_1(3,1,2);
+	bifd.setMapping_0(5,3,4);
+
+	bifd.getData().resize(3,2);
+
+	TEST_REAL_EQUAL(bifd.index2key_1(0),-1);
+	TEST_REAL_EQUAL(bifd.index2key_1(1),2);
+	TEST_REAL_EQUAL(bifd.supportMin_1(),-4);
+	TEST_REAL_EQUAL(bifd.supportMax_1(),5);
+
+	TEST_REAL_EQUAL(bifd.index2key_0(0),-11);
+	TEST_REAL_EQUAL(bifd.index2key_0(2),-1);
+	TEST_REAL_EQUAL(bifd.supportMin_0(),-16);
+	TEST_REAL_EQUAL(bifd.supportMax_0(),4);
+}
+RESULT
+
+CHECK(KeyType supportMin_1() const)
+{
+  // see above,  supportMax_1
+}
+RESULT
+
+
 
 CHECK((ValueType value( KeyType arg_pos_0, KeyType arg_pos_1 ) const))
 {
@@ -347,13 +446,24 @@ RESULT
 
 CHECK(bool empty() const)
 {
-  // ???
-}
-RESULT
-
-CHECK(template< typename SourceContainer > void setData( SourceContainer const & data ))
-{
-  // ???
+	BIFD bifd;
+	TEST_EQUAL(bifd.empty(),true);
+	bifd.getData().resize(1,2);
+	TEST_EQUAL(bifd.empty(),false);
+	bifd.getData().resize(0,0);
+	TEST_EQUAL(bifd.empty(),true);
+	bifd.getData().resize(1,2);
+	TEST_EQUAL(bifd.empty(),false);
+	bifd.getData().resize(1,0);
+	TEST_EQUAL(bifd.empty(),true);
+	bifd.getData().resize(1,2);
+	TEST_EQUAL(bifd.empty(),false);
+	bifd.getData().resize(0,0);
+	TEST_EQUAL(bifd.empty(),true);
+	bifd.getData().resize(2,2);
+	TEST_EQUAL(bifd.empty(),false);
+	bifd.getData().clear();
+	TEST_EQUAL(bifd.empty(),true);
 }
 RESULT
 

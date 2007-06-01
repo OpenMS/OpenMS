@@ -82,7 +82,7 @@ typedef LinearInterpolation < float, double > LIFD;
 
 //-----------------------------------------------------------
 // Without these extra parens, check_test will not recognize this test...
-CHECK((LinearInterpolation( KeyType scale = 1., KeyType offset = 0. )))
+CHECK((LinearInterpolation(KeyType scale=1., KeyType offset=0.)))
 {
 	LIFD lifd0;
 	LIFD lifd1 ( 1.125 );
