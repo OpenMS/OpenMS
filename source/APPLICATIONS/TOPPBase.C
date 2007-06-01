@@ -138,13 +138,13 @@ namespace OpenMS
 					switch(it->type)
 					{
 						case ParameterInformation::STRING:
-							tmp.setValue(loc + it->name,it->default_value);
+							tmp.setValue(loc + it->name,it->default_value, it->description);
 							break;
 						case ParameterInformation::DOUBLE:
-							tmp.setValue(loc + it->name,String(it->default_value).toDouble());
+							tmp.setValue(loc + it->name,String(it->default_value).toDouble(), it->description);
 							break;
 						case ParameterInformation::INT:
-							tmp.setValue(loc + it->name,String(it->default_value).toInt());
+							tmp.setValue(loc + it->name,String(it->default_value).toInt(), it->description);
 							break;
 						case ParameterInformation::FLAG:
 							tmp.setValue(loc + it->name,"off");
@@ -155,10 +155,12 @@ namespace OpenMS
 				}
 			}
 			//subsections
-			for(vector<String>::const_iterator it = subsections_.begin(); it!=subsections_.end(); ++it)
+			for(map<String,String>::const_iterator it = subsections_.begin(); it!=subsections_.end(); ++it)
 			{
-				tmp.insert(loc + *it + ":",getSubsectionDefaults_(*it));
+				tmp.insert(loc + it->first + ":",getSubsectionDefaults_(it->first));
+				tmp.setDescription(loc + it->first, it->second);
 			}
+			tmp.setDescription(tool_name_ + ":1", String("Instance '1' section for '") + tool_name_ + "'");
 			tmp.store(ini_file);
 			return EXECUTION_OK;
 		}
@@ -748,7 +750,7 @@ namespace OpenMS
 			if (String(it->first).has(':'))
 			{
 				String sec = String(it->first).prefix(':');
-				if (find(subsections_.begin(), subsections_.end(), sec)==subsections_.end())
+				if (subsections_.find(sec)==subsections_.end())
 				{
 					if (!(location == "common::" && sec==tool_name_) )
 					{
@@ -844,9 +846,9 @@ namespace OpenMS
 		}
 	}
 
-	void TOPPBase::registerSubsection_(const String& name)
+	void TOPPBase::registerSubsection_(const String& name, const String& description)
 	{
-		subsections_.push_back(name);
+		subsections_[name] = description;
 	}
 
 	void TOPPBase::parseRange_(const String& text, double& low, double& high) const
@@ -866,9 +868,9 @@ namespace OpenMS
 
 	Param TOPPBase::getSubsectionDefaults_(const String& /*section*/) const
 	{
-		Param tmp;
-		tmp.setValue("dummy","Please replace this entry with your settings!");
-		return tmp;
+		throw Exception::NotImplemented(__FILE__,__LINE__,__PRETTY_FUNCTION__);
+		
+		return Param();
 	}
 	
 	

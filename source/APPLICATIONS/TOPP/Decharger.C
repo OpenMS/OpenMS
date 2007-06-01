@@ -77,7 +77,7 @@ class TOPPDecharger
              "For a detailed description, please have a look at the doxygen documentation.\n"
              "How the docu can be built is explained in OpenMS/doc/index.html."); 
     
-    registerSubsection_("algorithm");
+    registerSubsection_("algorithm","Feature decharging algorithm section");
   }
 
 

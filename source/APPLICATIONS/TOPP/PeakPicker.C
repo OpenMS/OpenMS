@@ -114,7 +114,7 @@ class TOPPPeakPicker
 		addEmptyLine_();
   	addText_("This application implements an algorithm for peak picking as\n"
 				     "described in Lange et al. (2006) Proc. PSB-06. ");
-  	registerSubsection_("algorithm");
+  	registerSubsection_("algorithm","Algorithm parameters section");
   }
   
   Param getSubsectionDefaults_(const String& /* section*/) const

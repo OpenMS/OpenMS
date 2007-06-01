@@ -60,7 +60,7 @@ namespace OpenMS
       std::vector<String> nodes_;
       String path_;
       std::map<String, DataValue>& values_;
-	std::map<String, String>& descriptions_;
+			std::map<String, String>& descriptions_;
 		
 		private:
     	/// Not implemented => private

@@ -109,13 +109,13 @@ class TOPPSpectraFilter
 							 "    <ITEM name=\"n\" value=\"100\" type=\"float\"/>\n"
 							 "  </NODE>");
 			// register one section for each algorithm
-			registerSubsection_("NLargest");
-			registerSubsection_("ParentPeakMower");
-			registerSubsection_("SqrtMower");
-			registerSubsection_("WindowMower");
-			registerSubsection_("Normalizer");
-			registerSubsection_("Scaler");
-			registerSubsection_("BernNorm");
+			registerSubsection_("NLargest","Section for NLargest filter");
+			registerSubsection_("ParentPeakMower","Section for ParentPeakMower filter");
+			registerSubsection_("SqrtMower","Section for SqrtMower filter");
+			registerSubsection_("WindowMower","Section for WindowMower filter");
+			registerSubsection_("Normalizer","Section for Normalizer filter");
+			registerSubsection_("Scaler","Section for Scaler filter");
+			registerSubsection_("BernNorm","Section for BernNorm filter");
 		}
 		
 		Param getSubsectionDefaults_(const String& section) const

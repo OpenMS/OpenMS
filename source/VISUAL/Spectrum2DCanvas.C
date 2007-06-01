@@ -62,10 +62,10 @@ namespace OpenMS
 			tmp_peak_()
 	{
     //Paramater handling
-    defaults_.setValue("BackgroundColor", "#ffffff");
-    defaults_.setValue("InterpolationSteps", 200);
-    defaults_.setValue("Dot:Gradient", "Linear|0,#efef00;7,#ffaa00;15,#ff0000;27,#aa00ff;55,#5500ff;100,#000000");
-    defaults_.setValue("MappingOfMzTo","X-Axis");
+    defaults_.setValue("BackgroundColor", "#ffffff", "Background color.");
+    defaults_.setValue("InterpolationSteps", 200, "Number of interploation steps for peak gradient precalculation.");
+    defaults_.setValue("Dot:Gradient", "Linear|0,#efef00;7,#ffaa00;15,#ff0000;27,#aa00ff;55,#5500ff;100,#000000", "Multi-color gradient for peaks.");
+    defaults_.setValue("MappingOfMzTo","X-Axis","Determines with axis is the m/z axis.");
 		defaultsToParam_();
 		setName("Spectrum2DCanvas");
 		setParameters(preferences);

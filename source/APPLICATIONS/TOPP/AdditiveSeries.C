@@ -107,12 +107,19 @@ class AdditiveSeries
 		registerDoubleOption_("rt_tolerance","<tol>",1.0, "Tolerance in RT dimension",false);
 
 		addEmptyLine_();
+		addText_("Feature/standard position:");
+		registerDoubleOption_("feature_rt","<rt>",0.0, "RT position of the feature");
+		registerDoubleOption_("feature_mz","<mz>",0.0, "m/z position of the feature");
+		registerDoubleOption_("standard_rt","<rt>",0.0, "RT position of the standard");
+		registerDoubleOption_("standard_mz","<mz>",0.0, "m/z position of the standard");
+		
+		addEmptyLine_();
 		addText_("GNUplot options:");
 		registerFlag_("write_gnuplot_output","Flag that activates the GNUplot output");
 		registerStringOption_("out_gp","<name>","","base file name (3 files with different extensions are created)",false);
 		registerStringOption_("mz_unit","<unit>","Thomson","the m/z unit of the plot",false);
 		registerStringOption_("rt_unit","<unit>","seconds","the RT unit of the plot",false);
-			
+		
 		addEmptyLine_();
 		addText_("Input featureXML files, spiked concentrations, feature position and standard position can only be specified in the INI file:\n"
 						 "  <NODE name=\"Files\">\n"
@@ -126,19 +133,30 @@ class AdditiveSeries
 						 "    <ITEM name=\"2\" value=\"2.0\" type=\"double\">\n"
 						 "    <ITEM name=\"3\" value=\"5.0\" type=\"double\">\n"
 						 "    <ITEM name=\"4\" value=\"10.0\" type=\"double\">\n"
-						 "  </NODE>\n"
-						 "  <NODE name=\"Feature\">\n"
-						 "    <ITEM name=\"MZ\" value=\"675.9\" type=\"float\">\n"
-						 "    <ITEM name=\"RT\" value=\"1246\" type=\"float\">\n"
-						 "  </NODE>\n"
-						 "  <NODE name=\"Standard\">\n"
-						 "    <ITEM name=\"MZ\" value=\"689.9\" type=\"float\">\n"
-						 "    <ITEM name=\"RT\" value=\"1246\" type=\"float\">\n"
-						 "  </NODE>");
-		registerSubsection_("Files");
-		registerSubsection_("Concentrations");
-		registerSubsection_("Feature");
-		registerSubsection_("Standard");
+						 "  </NODE>\n");
+		registerSubsection_("Files","Input featureXML section");
+		registerSubsection_("Concentrations","Spiked concentrations section");
+	}
+
+	Param getSubsectionDefaults_(const String& section) const
+	{
+		if (section=="Files")
+		{
+			Param tmp;
+			tmp.setValue("1","data/file1.xml");
+			tmp.setValue("2","data/file2.xml");
+			tmp.setValue("3","data/file3.xml");
+			return tmp;			
+		}
+		else if (section=="Concentrations")
+		{
+			Param tmp;
+			tmp.setValue("1",1.0);
+			tmp.setValue("2",2.0);
+			tmp.setValue("3",3.0);
+			return tmp;	
+		}
+		return Param();	
 	}
 
 
@@ -363,23 +381,23 @@ class AdditiveSeries
 
 		String out_f  = getStringOption_("out");
 
-		if (add_param.getValue("Feature:MZ").isEmpty() || add_param.getValue("Feature:RT").isEmpty() )
+		if (add_param.getValue("feature_mz").isEmpty() || add_param.getValue("feature_rt").isEmpty() )
 		{
 			writeLog_("Feature coordinates not given. Aborting.");
 			return ILLEGAL_PARAMETERS;
 		}
 		DPosition<2> feat_pos1;
-		feat_pos1[Feature::MZ] = (CoordinateType) add_param.getValue("Feature:MZ");
-		feat_pos1[Feature::RT] = (CoordinateType) add_param.getValue("Feature:RT");
+		feat_pos1[Feature::MZ] = (CoordinateType) add_param.getValue("feature_mz");
+		feat_pos1[Feature::RT] = (CoordinateType) add_param.getValue("feature_rt");
 
-		if (add_param.getValue("Standard:MZ").isEmpty() || add_param.getValue("Standard:RT").isEmpty() )
+		if (add_param.getValue("standard_mz").isEmpty() || add_param.getValue("standard_rt").isEmpty() )
 		{
 			writeLog_("Standard coordinates not given. Aborting.");
 			return ILLEGAL_PARAMETERS;
 		}
 		DPosition<2> feat_pos2;
-		feat_pos2[Feature::MZ] = (CoordinateType) add_param.getValue("Standard:MZ");
-		feat_pos2[Feature::RT] = (CoordinateType) add_param.getValue("Standard:RT");
+		feat_pos2[Feature::MZ] = (CoordinateType) add_param.getValue("standard_mz");
+		feat_pos2[Feature::RT] = (CoordinateType) add_param.getValue("standard_rt");
 
 		writeDebug_(String("Setting tolerances to ") + tol_mz + " " + tol_rt,1);
 

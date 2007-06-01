@@ -51,10 +51,10 @@ namespace OpenMS
 	{
 
     //Paramater handling
-    defaults_.setValue("HighColor", "#ff0000");
-    defaults_.setValue("IconColor", "#000000");
-    defaults_.setValue("PeakColor", "#0000ff");
-    defaults_.setValue("BackgroundColor", "#ffffff");
+    defaults_.setValue("HighColor", "#ff0000", "Highlighted peak color.");
+    defaults_.setValue("IconColor", "#000000", "Peak icon color.");
+    defaults_.setValue("PeakColor", "#0000ff", "Peak color.");
+    defaults_.setValue("BackgroundColor", "#ffffff", "Background color.");
 		defaultsToParam_();
 		setName("Spectrum1DCanvas");
 		setParameters(preferences);

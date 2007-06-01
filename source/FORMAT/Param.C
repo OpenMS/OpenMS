@@ -65,7 +65,7 @@ namespace OpenMS
 
 	bool Param::operator == (const Param& rhs) const
 	{
-		return (values_ == rhs.values_ && descriptions_==rhs.descriptions_);
+		return (values_ == rhs.values_);
 	}
 	
 	
@@ -174,7 +174,6 @@ namespace OpenMS
 		{
 			if (descriptions_.find(prefix+it->first)==descriptions_.end())
 			{
-				if (showMessage) cout << "Setting " << prefix+it->first << " to " << it->second << endl;
 				descriptions_[prefix+it->first]=it->second;
 			}
 		}
@@ -197,7 +196,6 @@ namespace OpenMS
 		}
 
 		//delete descriptions
-		
 		map<String,String>::iterator it2 = descriptions_.lower_bound(prefix);
 		while (it2!=descriptions_.end())
 		{
@@ -346,15 +344,15 @@ namespace OpenMS
 					common = i+1;
 				}
 			}
-//				cout << "key_wo: "<<key_without_prefix<<endl;
-//				cout << "key   : "<<key<<endl;
-//				cout << "prefix: "<<prefix<<endl;
-//				cout << "|||   : "<<key.substr(0, common)<<endl;
+			//cout << "key_wo: "<<key_without_prefix<<endl;
+			//cout << "key   : "<<key<<endl;
+			//cout << "prefix: "<<prefix<<endl;
+			//cout << "|||   : "<<key.substr(0, common)<<endl;
 			//write down
 			down = prefix.substr(common, prefix.size());
 			if (down!="")
 			{
-//					cout << "  <-  : "<<down<<endl;
+ 				//cout << "  <-  : "<<down<<endl;
 				for (UInt i = 0; i < down.size();++i)
 				{
 					if (down[i]==':')
@@ -369,28 +367,41 @@ namespace OpenMS
 			
 			//write up
 			up = key.substr(common, key.size()-common-key_without_prefix.size());
+			String nodepath = key.substr(0,common);
+			if (!nodepath.empty())
+			{
+				nodepath = nodepath.substr(0,-1);
+			}
 			if (up!="")
 			{
-//					cout << "  ->  : "<<up<<endl;
+				//cout << "  ->  : "<<up<<endl;
 				while (up != "")
 				{
-					UInt pos = up.find(":");
-					String tmp = String (2*level,' ');
-					os << tmp.c_str();
-					map<String, String>::const_iterator iter=descriptions_.find(key);
+					//name
+					String nodename = up.substr(0,up.find(":"));
+					os << String (2*level,' ') << "<NODE name=\"" << nodename << "\"";
 					
+					//description
+					if (nodepath.empty())
+					{
+						nodepath = nodename;
+					}
+					else
+					{
+						nodepath = nodepath + ":" + nodename;
+					}
+					//cout << "NODE: '" << nodename << "' Path: '" << nodepath << "' Common: '" << key.substr(0,common) << "'" << endl;
+					map<String, String>::const_iterator iter=descriptions_.find(nodepath);
 					if(iter!=descriptions_.end())
-				{
-					tmp = "<NODE name=\""+up.substr(0,pos)+"\" description=\""+iter->second+"\" >\n";
-				}
-				else
-				{
-					tmp = "<NODE name=\""+up.substr(0,pos)+"\" >\n";
-				}
+					{
+						//cout << "DESCRIPTION: " << iter->second << endl;
+						os << " description=\"" << iter->second <<"\"";
+					}
 					
-					os << tmp.c_str();
+					//closing tag and loop updates
+					os << ">\n";
 					++level;
-					up = up.substr(pos+1,up.size());
+					up = up.substr(nodename.size()+1,up.size());
 				}				
 			}
 			
@@ -672,15 +683,14 @@ namespace OpenMS
 				os << "!" << endl;
 			}
 		}
-		
-		for(map<String,String>::const_iterator it = check_descriptions.begin(); it != check_descriptions.end();++it)
+	}
+
+	void Param::setDescription(const String& location, const String& description)
+	{
+		map<String,DataValue>::iterator it = values_.lower_bound(location);
+		if (it!=values_.end() && description!="")
 		{
-			if (defaults.descriptions_.find(it->first)==defaults.descriptions_.end())
-			{
-				os << "Warning: " << name << " received the unknown description '" << it->first << "'";
-				if (!prefix.empty()) os << " in '" << prefix << "'";
-				os << "!" << endl;
-			}
+			descriptions_[location] = description;
 		}
 	}
 

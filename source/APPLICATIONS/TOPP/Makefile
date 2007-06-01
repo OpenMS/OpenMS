@@ -37,7 +37,7 @@ LIBSVM_EXEC=\
 	RTPredict
 endif
 
-EXECUTABLES=\
+TOPP_EXECUTABLES=\
 	$(LIBSVM_EXEC)\
 	MapAlignment\
 	ConsensusID\
@@ -45,7 +45,6 @@ EXECUTABLES=\
 	FileInfo\
 	FileFilter\
 	FileMerger\
-	TOPPView\
 	BaselineFilter\
 	MascotAdapter\
 	InspectAdapter\
@@ -72,11 +71,19 @@ EXECUTABLES=\
 	UnlabeledMatcher\
 	MapNormalizer\
 	Decharger\
-	INIFileEditor\
 	InternalCalibration\
 	ExternalCalibration
 
-all: $(EXECUTABLES)
+OTHER_EXECUTABLES=\
+	INIFileEditor\
+	TOPPView
+
+all: $(TOPP_EXECUTABLES) $(OTHER_EXECUTABLES)
+
+write_ini:
+	@mkdir -p ini
+	@cd ini
+	@for i in $(TOPP_EXECUTABLES); do `cd ini && $$i -write_ini $$i.ini`; done;
 
 # replace library-specific flags by application-
 # specific compiler flags
@@ -87,14 +94,15 @@ include ../../common.mak
 
 clean: default_clean
 	@-$(RM) -rf .Dependencies html 
-	@cd $(OPENMS_PATH)/bin/ 2>/dev/null | cat >/dev/null && rm -rf $(EXECUTABLES)
+	@cd $(OPENMS_PATH)/bin/ 2>/dev/null | cat >/dev/null && rm -rf $(TOPP_EXECUTABLES) $(OTHER_EXECUTABLES)
 
 ADD_CXXFLAGS= -D_REENTRANT
 
 LIBS=$(GUI_LIBS)
 
 CPP_SOURCES =\
-	$(EXECUTABLES:=.C)
+	$(EXECUTABLES:=.C)\
+	$(OTHER_EXECUTABLES:=.C)
 
 test:
 	cd ${OPENMS_PATH}/source/TEST/TOPP/ && make

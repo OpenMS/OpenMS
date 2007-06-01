@@ -35,9 +35,9 @@ namespace OpenMS
 	ConsensusID::ConsensusID()
 		: DefaultParamHandler("ConsensusID")
 	{
-		defaults_.setValue("Algorithm","Ranked");
-		defaults_.setValue("ConsideredHits",10);
-		defaults_.setValue("NumberOfRuns",0);
+		defaults_.setValue("Algorithm","Ranked","Allowed algorithm names are 'Ranked', 'Merge' and 'Average'.");
+		defaults_.setValue("ConsideredHits",10,"The number of top hits that are used for the consensus scoring.");
+		defaults_.setValue("NumberOfRuns",0,"Number of ID runs that are merged");
 		
 		defaultsToParam_();
 	}

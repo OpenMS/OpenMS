@@ -84,7 +84,7 @@ class TOPPUnlabeledMatcher
 			addText_("All other options can be given only in the 'algorithm' section  of the INI file.\n"
 							 "For a detailed description, please have a look at the doxygen documentation.\n"
 							 "How the documentation can be built is explained in OpenMS/doc/index.html.");
-    	registerSubsection_("algorithm");
+    	registerSubsection_("algorithm","Clustering parameters section");
     }
 
 		Param getSubsectionDefaults_(const String& /*section*/) const

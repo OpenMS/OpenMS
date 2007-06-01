@@ -58,7 +58,7 @@ namespace OpenMS
 			Int type_index = attributes.getIndex(XMLString::transcode("type"));
 			Int name_index = attributes.getIndex(XMLString::transcode("name"));
 			Int value_index = attributes.getIndex(XMLString::transcode("value"));
-			Int description_index = attributes.getIndex(XMLString::transcode("description"));
+				
 			//check if attributes are present
 			if (type_index==-1 || name_index==-1)
 			{
@@ -99,30 +99,32 @@ namespace OpenMS
 				cout << "Warning: Ignoring entry '" << path_+XMLString::transcode(attributes.getValue(name_index)) << "' because of unknown type '"<< type << "'" << endl;
 			}
 			
-			String description;
+			//parse description
+			Int description_index = attributes.getIndex(XMLString::transcode("description"));
 			if(description_index!=-1)
 			{
-				description = XMLString::transcode(attributes.getValue(description_index));
+				String description = XMLString::transcode(attributes.getValue(description_index));
+				descriptions_[path_+XMLString::transcode(attributes.getValue(name_index))] = description;
 			}
-			descriptions_[path_+XMLString::transcode(attributes.getValue(name_index))]=description;
 			
 		}
 		
 		if (String("NODE") == XMLString::transcode(qname))
 		{
-			String tmp;
-			for(UInt n = 0 ; n < attributes.getLength() ; n++ )
+			//parse name
+			Int name_index = attributes.getIndex(XMLString::transcode("name"));
+			String name = XMLString::transcode(attributes.getValue(name_index));
+	    nodes_.push_back(name);
+	    path_ += name + ":";
+
+			//parse description, if present
+			Int description_index = attributes.getIndex(XMLString::transcode("description"));
+			if(description_index!=-1)
 			{
-			  String attributesValue = XMLString::transcode(attributes.getValue(n));
-			  String attributesName = XMLString::transcode(attributes.getQName(n));
-		
-			  if( attributesName == "name" )
-			  {
-			    nodes_.push_back(attributesValue);
-					tmp += attributesValue + ":";
-				}
+				String description = XMLString::transcode(attributes.getValue(description_index));
+				descriptions_[path_.substr(0,-1)] = description;
 			}
-			path_ += tmp;
+			
 		}
 	}
 

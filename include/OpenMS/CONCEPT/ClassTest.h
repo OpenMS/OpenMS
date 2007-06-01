@@ -507,10 +507,10 @@ int main(int argc, char **argv)																											\
 		}																																														\
 		if (TEST::this_test)																																				\
 			std::cout << "    (line " << __LINE__ << ":  TEST_REAL_EQUAL(" #a "," #b "): got "				\
-				<< (a) << ", expected " << (b) << ")    +" << std::endl;																\
+				<< (a) << ", expected " << (b) << ")    + " << std::endl;																\
 		else																																												\
 			std::cout << __FILE__ ":" << TEST::test_line << ":  TEST_REAL_EQUAL(" #a "," #b "): got "	\
-				<< (a) << ", expected " << (b) << "    -" << std::endl;																	\
+				<< (a) << ", expected " << (b) << "    - " << std::endl;																\
 	}
 
 /**	@brief String equality macro.
@@ -536,10 +536,10 @@ int main(int argc, char **argv)																											\
 		}																																																	\
 		if (TEST::this_test)																																							\
 			std::cout << "    (line " << __LINE__ << " TEST_STRING_EQUAL("<< #a << "," << #b << "): got \""	\
-				<< (a) << "\", expected \"" << (b) << "\")    +" << std::endl;																\
+				<< (a) << "\", expected \"" << (b) << "\")    + " << std::endl;																\
 		else																																															\
 			std::cout << __FILE__ ":" << TEST::test_line << ":  TEST_STRING_EQUAL(" #a "," #b "): got \""		\
-				<< (a) << "\", expected \"" << (b) << "\"    -" << std::endl;																	\
+				<< (a) << "\", expected \"" << (b) << "\"    - " << std::endl;																\
 	}
 
 /**	@brief Generic equality macro.
@@ -569,10 +569,10 @@ int main(int argc, char **argv)																											\
 			}																																												\
 			if (TEST::this_test)																																		\
 				std::cout << "    (line " << __LINE__ << ":  TEST_EQUAL(" #a "," #b "): got "					\
-					<< (a) << ", expected " << (b) << ")    +" << std::endl;														\
+					<< (a) << ", expected " << (b) << ")    + " << std::endl;														\
 			else																																										\
 				std::cout << __FILE__ ":" << TEST::test_line << ":  TEST_EQUAL(" #a "," #b "): got "	\
-					<< (a) << ", expected " << (b) << "    -" << std::endl;															\
+					<< (a) << ", expected " << (b) << "    - " << std::endl;														\
 		}																																													\
 	}
 
@@ -601,10 +601,10 @@ int main(int argc, char **argv)																											\
 			}																																														\
 			if (TEST::this_test)																																				\
 			std::cout << "    (line " << __LINE__ << " TEST_NOT_EQUAL(" #a "," #b "): got "							\
-				<< (a) << ", forbidden is " << (b) << ")    +" << std::endl;															\
+				<< (a) << ", forbidden is " << (b) << ")    + " << std::endl;															\
 			else																																												\
 				std::cout << __FILE__ ":" << TEST::test_line << ":  TEST_NOT_EQUAL(" #a "," #b "): got "	\
-				<< (a) << ", forbidden is " << (b) << "    -" << std::endl;																\
+				<< (a) << ", forbidden is " << (b) << "    - " << std::endl;															\
 		}																																															\
 	}
 
@@ -653,7 +653,7 @@ int main(int argc, char **argv)																											\
 			{																																													\
 				case 0:																																									\
 					std::cout << __FILE__ ":" << TEST::test_line <<																				\
-					":  TEST_EXCEPTION(" #exception_type "," #command "): no exception thrown!    -"			\
+					":  TEST_EXCEPTION(" #exception_type "," #command "): no exception thrown!    - "			\
 					<< std::endl; break;																																	\
 				case 1:																																									\
 					std::cout << "    (line " << TEST::test_line <<																				\
@@ -662,10 +662,10 @@ int main(int argc, char **argv)																											\
 				case 2:																																									\
 					std::cout << __FILE__ ":" << TEST::test_line <<																				\
 					":  TEST_EXCEPTION(" #exception_type "," #command "): wrong exception thrown!  \""		\
-					<< TEST::exception_name << "\"    -" << std::endl; break;															\
+					<< TEST::exception_name << "\"    - " << std::endl; break;														\
 				case 3:																																									\
 					std::cout << __FILE__ ":" << TEST::test_line <<																				\
-					":  TEST_EXCEPTION(" #exception_type "," #command "): wrong exception thrown!     -"	\
+					":  TEST_EXCEPTION(" #exception_type "," #command "): wrong exception thrown!     - "	\
 					<< std::endl; break;																																	\
 			}																																													\
 		}																																														\

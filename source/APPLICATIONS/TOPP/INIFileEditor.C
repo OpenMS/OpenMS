@@ -76,7 +76,7 @@ int main(int argc, char** argv)
 	//Open passed file
 	if (argc==2)
 	{
-		cout << "OPEN: "  << argv[1] << endl;
+		//cout << "OPEN: "  << argv[1] << endl;
 		editor_window.openFile(argv[1]);
 	}
 	

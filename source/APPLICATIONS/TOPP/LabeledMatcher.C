@@ -83,7 +83,7 @@ class TOPPLabeledMatcher
 							 "    <ITEM name=\"mz_pair_dist\" value=\"4.0\" type=\"float\"/>\n"
 							 "    <ITEM name=\"mz_stdev\" value=\"0.025\" type=\"float\"/>\n" 
 							 "  </NODE>");
-			registerSubsection_("algorithm");
+			registerSubsection_("algorithm","Position shift parameters");
 	  }
 		
 		Param getSubsectionDefaults_(const String& /*section*/) const

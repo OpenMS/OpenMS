@@ -139,20 +139,20 @@ namespace OpenMS
 			};
 			
 			/// name of the parameter (internal and external)
-			std::string name;
+			String name;
 			/// type of the parameter
 			ParameterTypes type;
 			/// default value of the parameter stored as string
-			std::string default_value;
+			String default_value;
 			/// description of the parameter
-			std::string description;
+			String description;
 			/// argument in the description
-			std::string argument;
+			String argument;
 			/// flag that indicates if this parameter is required i.e. it must differ from the default value
 			bool required;
 			
 			/// Constructor that takes all members in declaration order
-			ParameterInformation(const std::string& n, ParameterTypes t, const std::string& arg,const std::string& def, const std::string& desc, bool req)
+			ParameterInformation(const String& n, ParameterTypes t, const String& arg,const String& def, const String& desc, bool req)
 			{
 				name = n;
 				type = t;
@@ -262,8 +262,8 @@ namespace OpenMS
 		*/
 		virtual Param getSubsectionDefaults_(const String& section) const;
 		
-		/// Storage location for allowed subsections
-		std::vector<String> subsections_;
+		/// Storage location and description for allowed subsections
+		std::map<String,String> subsections_;
 		
 		/** 
 			@name Internal parameter handling
@@ -394,7 +394,7 @@ namespace OpenMS
 			
 			@see checkParam_
 		*/
-		void registerSubsection_(const String& name);
+		void registerSubsection_(const String& name, const String& description);
 		
 		/// Adds an empty line between registered variables in the documentation.
 		void addEmptyLine_();

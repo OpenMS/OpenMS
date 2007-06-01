@@ -298,15 +298,16 @@ namespace OpenMS
 					common = i+1;
 				}
 			}
-	//				cout << "key_wo: "<<key_without_prefix<<endl;
-	//				cout << "key   : "<<key<<endl;
-	//				cout << "prefix: "<<prefix<<endl;
-	//				cout << "|||   : "<<key.substr(0, common)<<endl;
-				//write down
+			//cout << "key_wo: "<<key_without_prefix<<endl;
+			//cout << "key   : "<<key<<endl;
+			//cout << "prefix: "<<prefix<<endl;
+			//cout << "|||   : "<<key.substr(0, common)<<endl;
+			
+			//write down
 			down = prefix.substr(common, prefix.size());
 			if (down!="")
 			{
-	//				cout << "  <-  : "<<down<<endl;
+				//cout << "  <-  : "<<down<<endl;
 				for (UInt i = 0; i < down.size();++i)	
 				{
 					if (down[i]==':')
@@ -317,21 +318,40 @@ namespace OpenMS
 				}	
 			}
 				
-				//write up
+			//write up
 			up = key.substr(common, key.size()-common-key_without_prefix.size());
+			String nodepath = key.substr(0,common);
+			if (!nodepath.empty())
+			{
+				nodepath = nodepath.substr(0,-1);
+			}
 			if (up!="")
 			{
-	//					cout << "  ->  : "<<up<<endl;
+				//cout << "  ->  : "<<up<<endl;
 				while (up != "")
 				{
-					UInt pos = up.find(":");
+					String nodename = up.substr(0,up.find(":"));
 					item = new QTreeWidgetItem(parent);
-					item->setText(0, QString::fromStdString ( up.substr(0,pos)));
+					item->setText(0, QString::fromStdString ( nodename));
 					item->setText(1, QString::fromStdString ( ""));
 					item->setText(2, QString::fromStdString ( ""));
 					item->setData(0,Qt::UserRole,NODE);
 					item->setData(1,Qt::UserRole,NODE);
 					item->setData(2,Qt::UserRole,NODE);
+					
+					//description
+					if (nodepath.empty())
+					{
+						nodepath = nodename;
+					}
+					else
+					{
+						nodepath = nodepath + ":" + nodename;
+					}
+					//cout << "NODE: '" << nodepath << "': " << param.getDescription(nodepath) << endl;
+					item->setToolTip(0,param.getDescription(nodepath).toQString());
+					
+					//flags
 					if(param_editable_!=NULL)
 					{
 						item->setFlags( Qt::ItemIsSelectable | Qt::ItemIsEnabled | Qt::ItemIsEditable);
@@ -340,8 +360,10 @@ namespace OpenMS
 					{
 						item->setFlags( Qt::ItemIsEnabled );
 					}
-						parent=item;
-						up = up.substr(pos+1,up.size());
+					
+					//update loop variables
+					parent=item;
+					up = up.substr(nodename.size()+1,up.size());
 				}				
 			}
 				
@@ -367,8 +389,7 @@ namespace OpenMS
 				item->setText(1, QString::fromStdString ( it->second.toString()));
 				item->setText(2, QString::fromStdString ( type));
 				item->setToolTip(0,param.getDescription(it->first).toQString());
-				item->setToolTip(1,param.getDescription(it->first).toQString());
-				item->setToolTip(2,param.getDescription(it->first).toQString());
+				//cout << "ITEM: '" << key_without_prefix << "': " << param.getDescription(it->first) << endl;
 				item->setData(0,Qt::UserRole,ITEM);
 				item->setData(1,Qt::UserRole,ITEM);
 				item->setData(2,Qt::UserRole,ITEM);

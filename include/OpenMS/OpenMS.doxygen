@@ -83,8 +83,9 @@ Ideen:
 - Seeder/Extender: Analyse der MassenSpur-Distanzen
 
 Todos:
-- DefaultParamHandler: add Descriptions
-- TOPP tutorial: Usecases AW-Daten
+- 3D: int achse fixen
+- Testscript: erlaubte private desclarations / undefined method tests
+- TOPP tutorial
 
 Thomas Schreiner:
 - FeatureXML: Options einbauen und testen
@@ -100,10 +101,6 @@ Stefan Rink:
 	- Copy, Paste, Copy (unterschiedliche Items/Sections)-> gepastetes Item verschwindet
 	- Verhindern, daß Sections/Items mit gleichem Namen in der gleichen Section angelegt werden können
 	- Man muß auch mehrmals pasten können!
-- Param um Beschreibung ergänzen 
-	- zweite map<String,String>
-	- Beschriebungen werden nur bei nicht-leerem String überschrieben
-	- im ParamEditor anzeigen bei 'hover'
 
 Diplomarbeit TOPPAS:
 - TOPPViewBase: Parameters (Typ: enum, inputfile, inputfiles, outputfile, outputfiles)

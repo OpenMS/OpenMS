@@ -91,7 +91,7 @@ class TOPPInternalCalibration
 						  " </NODE>\n"
 						  "</NODE>");
 		 addEmptyLine_();
-		 registerSubsection_("algorithm");
+		 registerSubsection_("algorithm","Settings for the peak picking step.");
 	 }
 	 
 	 Param getSubsectionDefaults_(const String& /* section*/) const
@@ -118,7 +118,7 @@ class TOPPInternalCalibration
 		 //-------------------------------------------------------------
 		 
 		 InternalCalibration calib;
-		 calib.setLogType(log_type_);
+		 //calib.setLogType(log_type_);
 		 Param param = getParam_().copy("algorithm:",true);
 		 calib.setParameters(param);
 		 

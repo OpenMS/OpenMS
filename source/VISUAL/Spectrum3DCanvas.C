@@ -48,14 +48,14 @@ namespace OpenMS
 		: SpectrumCanvas(preferences, parent)
 	{  
     //Paramater handling
-    defaults_.setValue("Dot:ShadeMode", 1);
-    defaults_.setValue("Dot:Gradient", "Linear|0,#efef00;11,#ffaa00;32,#ff0000;55,#aa00ff;78,#5500ff;100,#000000");
-    defaults_.setValue("Dot:InterpolationSteps",200);
-    defaults_.setValue("BackgroundColor", "#ffffff");
-    defaults_.setValue("AxesColor", "#000000");
-    defaults_.setValue("Dot:LineWidth",2);
-		defaults_.setValue("DisplayedPeaks",10000);
-		defaults_.setValue("ReductionMode","Max reduction");
+    defaults_.setValue("Dot:ShadeMode", 1,"Shade mode (Single-color or gradient peaks).");
+    defaults_.setValue("Dot:Gradient", "Linear|0,#efef00;11,#ffaa00;32,#ff0000;55,#aa00ff;78,#5500ff;100,#000000", "Peak color gradient.");
+    defaults_.setValue("Dot:InterpolationSteps",200, "Interpolation steps for peak color gradient precalculation.");
+    defaults_.setValue("BackgroundColor", "#ffffff","Background color");
+    defaults_.setValue("AxesColor", "#000000","Axes color.");
+    defaults_.setValue("Dot:LineWidth",2,"Line width for peaks.");
+		defaults_.setValue("DisplayedPeaks",10000,"Number of peaks in reduced mode.");
+		defaults_.setValue("ReductionMode","Off","Reduction mode ('Off', 'Max Reduction' or 'Sum Reduction').");
 		setName("Spectrum3DCanvas");
 		defaultsToParam_();
 		setParameters(preferences);

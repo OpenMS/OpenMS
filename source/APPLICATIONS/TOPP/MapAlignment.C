@@ -109,8 +109,8 @@ protected:
 						 "    ...\n"
 						 "  </NODE>");
 			
-		registerSubsection_("algorithm");
-		registerSubsection_("file_names");
+		registerSubsection_("algorithm","Algorithm parameters section");
+		registerSubsection_("file_names","Input file name section");
 	}
 	
 	 Param getSubsectionDefaults_(const String& section) const

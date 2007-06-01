@@ -395,47 +395,44 @@ namespace OpenMS
 		connect(layer_manager_,SIGNAL(itemChanged(QListWidgetItem*)),this,SLOT(layerVisibilityChange(QListWidgetItem*)));
     windows->addAction("&Show layer window",layer_bar,SLOT(show()));
 
-	//log window
-	QDockWidget* log_bar = new QDockWidget("Log", this);
-	addDockWidget(Qt::BottomDockWidgetArea, log_bar);
-	log_ = new QTextEdit(log_bar);
-	log_->setReadOnly(true);
-	log_bar->setWidget(log_);
-	log_bar->hide();
+		//log window
+		QDockWidget* log_bar = new QDockWidget("Log", this);
+		addDockWidget(Qt::BottomDockWidgetArea, log_bar);
+		log_ = new QTextEdit(log_bar);
+		log_->setReadOnly(true);
+		log_bar->setWidget(log_);
+		log_bar->hide();
     windows->addAction("&Show log window",log_bar,SLOT(show()));
 
 	//################## DEFAULTS #################
     //general
-    defaults_.setValue("Preferences:DefaultMapView", "2D");
-    defaults_.setValue("Preferences:DefaultPath", ".");
-    defaults_.setValue("Preferences:TmpPath", "/tmp/");
-    defaults_.setValue("Preferences:NumberOfRecentFiles", 15);
-    defaults_.setValue("Preferences:Legend", "Show");
-    defaults_.setValue("Preferences:MapIntensityCutoff", "None");
+    defaults_.setValue("Preferences:DefaultMapView", "2D","Default visualization mode for maps.");
+    defaults_.setValue("Preferences:DefaultPath", ".","Default path for loading and storing files.");
+    defaults_.setValue("Preferences:TmpPath", "/tmp/","Path where temporary files can be created.");
+    defaults_.setValue("Preferences:NumberOfRecentFiles", 15,"Number of recent files in the main menu.");
+    defaults_.setValue("Preferences:Legend", "Show", "Legend visibility ('Show' or 'Hide')");
+    defaults_.setValue("Preferences:MapIntensityCutoff", "None","Low intensity cutoff for maps.");
     //db
-    defaults_.setValue("Preferences:DB:Host", "localhost");
-    defaults_.setValue("Preferences:DB:Login", "NoName");
-    defaults_.setValue("Preferences:DB:Name", "OpenMS");
-    defaults_.setValue("Preferences:DB:Port", "3306");
+    defaults_.setValue("Preferences:DB:Host", "localhost", "Database server host name.");
+    defaults_.setValue("Preferences:DB:Login", "NoName", "Database login.");
+    defaults_.setValue("Preferences:DB:Name", "OpenMS", "Database name.");
+    defaults_.setValue("Preferences:DB:Port", "3306", "Database server port.");
+    defaults_.setDescription("Preferences:DB","Database settings.");
     //1d
-    defaults_.setValue("Preferences:1D:HighColor", "#ff0000");
-    defaults_.setValue("Preferences:1D:IconColor", "#000000");
-    defaults_.setValue("Preferences:1D:PeakColor", "#0000ff");
-    defaults_.setValue("Preferences:1D:BackgroundColor", "#ffffff");
+    Spectrum1DCanvas* def1 = new Spectrum1DCanvas(Param(),0);
+    defaults_.insert("Preferences:1D:",def1->getDefaults());
+    delete def1;
+    defaults_.setDescription("Preferences:1D","Settings for single spectrum view.");
     //2d
-    defaults_.setValue("Preferences:2D:BackgroundColor", "#ffffff");
-    defaults_.setValue("Preferences:2D:InterpolationSteps", 200);
-    defaults_.setValue("Preferences:2D:Dot:Gradient", "Linear|0,#efef00;7,#ffaa00;15,#ff0000;27,#aa00ff;55,#5500ff;100,#000000");
-    defaults_.setValue("Preferences:2D:MappingOfMzTo","X-Axis");
+    Spectrum2DCanvas* def2 = new Spectrum2DCanvas(Param(),0);
+    defaults_.insert("Preferences:2D:",def2->getDefaults());
+    defaults_.setDescription("Preferences:2D","Settings for 2D map view.");
+    delete def2;
     //3d
-    defaults_.setValue("Preferences:3D:Dot:ShadeMode", 1);
-    defaults_.setValue("Preferences:3D:Dot:Gradient", "Linear|0,#efef00;11,#ffaa00;32,#ff0000;55,#aa00ff;78,#5500ff;100,#000000");
-    defaults_.setValue("Preferences:3D:Dot:InterpolationSteps",200);
-    defaults_.setValue("Preferences:3D:BackgroundColor", "#ffffff");
-    defaults_.setValue("Preferences:3D:AxesColor", "#000000");
-    defaults_.setValue("Preferences:3D:Dot:LineWidth",2);
-		defaults_.setValue("Preferences:3D:DisplayedPeaks",10000);
-		defaults_.setValue("Preferences:3D:ReductionMode","Off");
+    Spectrum3DCanvas* def3 = new Spectrum3DCanvas(Param(),0);
+    defaults_.insert("Preferences:3D:",def3->getDefaults());
+    delete def3;
+    defaults_.setDescription("Preferences:3D","Settings for 3D map view.");
 		
 		defaults_.setValue("Preferences:Version","none");
 		

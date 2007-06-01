@@ -99,7 +99,7 @@ class TOPPExternalCalibration
 						  " </NODE>\n"
 						  "</NODE>");
 		 addEmptyLine_();
-		 registerSubsection_("algorithm");
+		 registerSubsection_("algorithm","Algorithm section for peak picking");
   }
 
   ExitCodes main_(int , char**)
