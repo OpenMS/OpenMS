@@ -36,6 +36,7 @@
 #include <iostream>
 #include <iterator>
 #include <vector>
+#include <cstdlib>
 
 #include <OpenMS/CONCEPT/ClassTest.h>
 
@@ -52,6 +53,12 @@ namespace OpenMS
 		}
 		return os;
 	}
+
+	double rand01 ()
+	{
+		return double(rand()) / RAND_MAX;
+	}
+	
 }
 
 using namespace OpenMS;
@@ -84,9 +91,19 @@ typedef BilinearInterpolation < float, double > BIFD;
 // Emacs will completely mess up the indentation otherwise.
 //-----------------------------------------------------------
 
+BIFD * bifd_ptr = 0;
+
 CHECK(BilinearInterpolation())
 {
 	BIFD bifd;
+	bifd_ptr = new BIFD;
+	TEST_NOT_EQUAL(bifd_ptr,0);
+}
+RESULT
+
+CHECK(~BilinearInterpolation())
+{
+	delete bifd_ptr;
 }
 RESULT
 
@@ -436,14 +453,6 @@ CHECK(KeyType supportMin_1() const)
 }
 RESULT
 
-
-
-CHECK((ValueType value( KeyType arg_pos_0, KeyType arg_pos_1 ) const))
-{
-  // ???
-}
-RESULT
-
 CHECK(bool empty() const)
 {
 	BIFD bifd;
@@ -466,6 +475,11 @@ CHECK(bool empty() const)
 	TEST_EQUAL(bifd.empty(),true);
 }
 RESULT
+
+
+
+
+
 
 CHECK((void addValue( KeyType arg_pos_0, KeyType arg_pos_1, ValueType arg_value )))
 {
@@ -515,15 +529,73 @@ CHECK((void addValue( KeyType arg_pos_0, KeyType arg_pos_1, ValueType arg_value 
 			TEST_EQUAL(bifd_small.getData(),big_submatrix);
 		}
 	}
+#undef verbose
+
 }
 RESULT
 
-CHECK(~BilinearInterpolation())
+
+
+CHECK((ValueType value( KeyType arg_pos_0, KeyType arg_pos_1 ) const))
 {
-  // ???
+#define verbose(a)
+	// #define verbose(a) a
+
+	// initialize random number generator (not platform independent, but at
+	// least reproducible)
+	srand(2007);
+
+	PRECISION(0.01);
+
+	BIFD bifd_small;
+	BIFD bifd_big;
+
+	bifd_small.getData().resize(5,5,0);
+	bifd_big.getData().resize(15,15,0);
+	for ( int i = 0; i < 5; ++i )
+	{
+		for ( int j = 0; j < 5; ++j )
+		{
+			int num = int( floor(rand01() * 100.) );
+			bifd_small.getData()(i,j) = num;
+			bifd_big.getData()(i+5,j+5) = num;
+		}
+	}
+	
+	bifd_small.setMapping_0( 0, 0, 5, 5 );
+	bifd_small.setMapping_1( 0, 0, 5, 5 );
+	bifd_big.setMapping_0( 5, 0, 10, 5 );
+	bifd_big.setMapping_1( 5, 0, 10, 5 );
+	
+	Matrix<int> interpolated(151,151);
+
+	// you can view this as an image in PGM format
+	verbose(std::cout << "P2\n151 151\n100\n" << std::endl);
+
+	for ( int i = -50; i <= 100; ++i )
+	{
+		float p = i / 10.;
+		verbose(STATUS(i));
+
+		for ( int j = -50; j <= 100; ++j )
+		{
+			float q = j / 10.;
+			verbose(STATUS("i: " << i));
+			verbose(STATUS("j: " << j));
+
+			TEST_REAL_EQUAL(bifd_small.value(p,q),bifd_big.value(p,q));
+
+			interpolated(i+50,j+50) = int(bifd_small.value(p,q));
+		}
+	}
+
+	verbose(std::cout << interpolated << std::endl);
+
+
+#undef verbose
+	
 }
 RESULT
-
 
 
 //-----------------------------------------------------------
