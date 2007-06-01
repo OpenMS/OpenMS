@@ -35,22 +35,22 @@
 
 namespace OpenMS
 {
-  /**
+
+	#define DEBUG_MERGING
+	#undef DEBUG_MERGING
+
+	/**
     @brief A container for consensus elements.
     
     A ConsensusMap is a container holding 2-dimensional consensus elements (ConsensusFeature or ConsensusPeak)
     which in turn represent combined elements of 2-dimensional experiments.
     The map is implemented as a vector of elements and have basically the same interface
     as an STL vector (model of Random Access Container and Back Insertion Sequence).
-    
-  
+ 
     @improvement use STL list instead of vector (because of insertion and deletion of elements) (Eva)
     
     @ingroup Kernel
   */
-#define DEBUG_MERGING
-#undef DEBUG_MERGING
-
 template < typename ConsensusElementT = ConsensusFeature < FeatureMap< > > >
 class ConsensusMap : public DPeakArray<ConsensusElementT >
   {
