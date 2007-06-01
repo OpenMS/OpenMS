@@ -42,7 +42,11 @@ namespace OpenMS
   	<BR>
   	The intensity of a peak is defined as the maximum of the model fitted to the raw data during peak picking
   	i.e. aproximately the height of the highest raw data point.
-  	
+  
+		@todo This class is "pending-delete".  Apparently there is no longer a use
+		for it, since PickedPeak1D is there.	 Anybody who likes it please contact
+		the maintainer, otherwise it will be removed soon. (Eva)
+
   	@ingroup Kernel
   */
   template <UInt D>
