@@ -61,11 +61,13 @@ namespace OpenMS
 		edit_->addAction("&Paste",editor_,SLOT(pasteSubTree()), Qt::CTRL+Qt::Key_V);
 		edit_->addAction("&Delete",editor_,SLOT(deleteItem()), Qt::Key_Delete);
 		edit_->addSeparator();
-		edit_->addAction("Insert new &Section",editor_,SLOT(insertNode()), Qt::Key_S);
-		edit_->addAction("Insert new &Value",editor_,SLOT(insertItem()), Qt::Key_V);
-		//edit_->setEnabled(false);
+		edit_->addAction("Insert new S&ection",editor_,SLOT(insertNode()), Qt::CTRL+Qt::Key_E);
+		edit_->addAction("Insert &new Value",editor_,SLOT(insertItem()), Qt::CTRL+Qt::Key_N);
 		
 		connect(editor_,SIGNAL(modified(bool)),this,SLOT(updateWindowTitle(bool)));
+		
+		//create statusBar
+		statusBar();	
 	}
 	
 	bool INIFileEditorWindow::openFile(const String& filename)
@@ -91,7 +93,7 @@ namespace OpenMS
 			}
 			else
 			{
-				QMessageBox::critical(this,"Error opeing file",("The file '"+filename_.toStdString()+"' does not exist or is not readable!").c_str());		
+				QMessageBox::critical(this,"Error opening file",("The file '"+filename_.toStdString()+"' does not exist or is not readable!").c_str());		
 			}
 		}
 		return false;

@@ -192,11 +192,11 @@ namespace OpenMS
 	  : QTreeWidget(parent),
 	  	param_editable_(0),
 	  	param_const_(0),
-		selected_item_(0),
-		copied_item_(0),
-		modified_(false),
-		modificationsCount_(0),
-		is_name_empty_(false)
+			selected_item_(0),
+			copied_item_(0),
+			modified_(false),
+			modificationsCount_(0),
+			is_name_empty_(false)
 	{
 		setMinimumSize(500,300);
 		setItemDelegate(new Internal::ParamEditorDelegate);
@@ -216,8 +216,8 @@ namespace OpenMS
 		new QShortcut(Qt::CTRL+Qt::Key_C, this, SLOT(copySubTree()));
 		new QShortcut(Qt::CTRL+Qt::Key_X, this, SLOT(cutSubTree()));
 		new QShortcut(Qt::CTRL+Qt::Key_V, this, SLOT(pasteSubTree()));
-		new QShortcut(Qt::Key_S, this, SLOT(insertNode()));
-		new QShortcut(Qt::Key_V, this, SLOT(insertItem())); 
+		new QShortcut(Qt::CTRL+Qt::Key_E, this, SLOT(insertNode()));
+		new QShortcut(Qt::CTRL+Qt::Key_N, this, SLOT(insertItem())); 
 		new QShortcut(Qt::Key_Delete, this, SLOT(deleteItem()));	
 	}
 	
@@ -349,7 +349,7 @@ namespace OpenMS
 						nodepath = nodepath + ":" + nodename;
 					}
 					//cout << "NODE: '" << nodepath << "': " << param.getDescription(nodepath) << endl;
-					item->setToolTip(0,param.getDescription(nodepath).toQString());
+					item->setStatusTip(0,param.getDescription(nodepath).toQString());
 					
 					//flags
 					if(param_editable_!=NULL)
@@ -526,14 +526,13 @@ namespace OpenMS
 				selected_item_=invisibleRootItem();
 			}
 		}
-		QTreeWidgetItem* parent=selected_item_;
-		QTreeWidgetItem* item=NULL;
 		
+		QTreeWidgetItem* parent=selected_item_;
 		if(parent->data(0,Qt::UserRole)==ITEM)
 		{
-			return;
+			parent = selected_item_->parent();
 		}
-		item=new QTreeWidgetItem(parent);
+		QTreeWidgetItem* item = new QTreeWidgetItem(parent);
 		item->setText(0, "");
 		item->setText(1, "");
 		item->setText(2, "string");
@@ -559,17 +558,16 @@ namespace OpenMS
 				selected_item_=invisibleRootItem();
 			}
 		}
-		QTreeWidgetItem* parent=selected_item_;
-		QTreeWidgetItem* item=NULL;
 		
+		QTreeWidgetItem* parent=selected_item_;
 		if(parent->data(0,Qt::UserRole)==ITEM)
 		{
-			return;
+			parent = selected_item_->parent();
 		}
-		item=new QTreeWidgetItem(parent);
+		QTreeWidgetItem* item = new QTreeWidgetItem(parent);
 		item->setText(0, "");
 		item->setText(1, "");
-		item->setText(2, "string");
+		item->setText(2, "");
 		item->setData(0,Qt::UserRole,NODE);
 		item->setData(1,Qt::UserRole,NODE);
 		item->setData(2,Qt::UserRole,NODE);
@@ -627,7 +625,7 @@ namespace OpenMS
 	{
 		bool ok;
 		// -- ITEM --
-		if(parent->childCount()==0)		
+		if(parent->data(0,Qt::UserRole)==ITEM)		
 		{
 			if(parent->text(0).size()==0)
 			{
@@ -694,18 +692,15 @@ namespace OpenMS
 	void ParamEditor::contextMenuEvent(QContextMenuEvent* event)
 	{
 		selected_item_ = itemAt(event->pos());
-		if(!selected_item_)
+		
+		QMenu menu(this);
+		if(!selected_item_) // there is no item under the requested position
 		{
-			// there is no item under the requested position
-			QMenu menu(this);
 			menu.addAction(tr("&Insert new value"), this, SLOT(insertItem()));
 			menu.addAction(tr("&Insert new section"), this, SLOT(insertNode()));
-			menu.exec(event->globalPos());
-			selected_item_=NULL;
 		}
-		else if (selected_item_->data(0,Qt::UserRole)==NODE)
+		else if (selected_item_->data(0,Qt::UserRole)==NODE || selected_item_->data(0,Qt::UserRole)==ITEM)
 		{
-			QMenu menu(this);
 			menu.addAction(tr("&Copy"), this, SLOT(copySubTree()));
 			menu.addAction(tr("C&ut"), this, SLOT(cutSubTree()));
 			menu.addAction(tr("&Paste"), this, SLOT(pasteSubTree()));
@@ -713,25 +708,17 @@ namespace OpenMS
 			menu.addAction(tr("&Delete"), this, SLOT(deleteItem()));
 			menu.addAction(tr("&Insert new value"), this, SLOT(insertItem()));
 			menu.addAction(tr("&Insert new section"), this, SLOT(insertNode()));
+		}
+		if(selected_item_->data(0,Qt::UserRole)==NODE)
+		{
 			menu.addSeparator();
 			menu.addAction(tr("&Expand"), this, SLOT(expandTree()));
 			menu.addAction(tr("&Collapse"), this, SLOT(collapseTree()));
-
-			menu.exec(event->globalPos());
-			selected_item_=NULL;
 		}
-		else if(selected_item_->data(0,Qt::UserRole)==ITEM)
-		{
-			QMenu menu(this);
-			menu.addAction(tr("&Copy"), this, SLOT(copySubTree()));
-			menu.addAction(tr("C&ut"), this, SLOT(cutSubTree()));
-			menu.addSeparator();
-			menu.addAction(tr("&Delete"), this, SLOT(deleteItem()));
-			menu.exec(event->globalPos());
-			selected_item_=NULL;
-		}
-		
+		menu.exec(event->globalPos());
+		selected_item_=NULL;
 	}
+	
 	void ParamEditor::expandTree()
 	{
 		QTreeWidgetItem* item =currentItem();
@@ -775,12 +762,12 @@ namespace OpenMS
 				selected_item_=invisibleRootItem();
 			}
 		}
+		
 		if(selected_item_->data(0,Qt::UserRole)==ITEM)
 		{
-			setModified(true);
-			selected_item_=NULL;
-			return;
+			selected_item_ = selected_item_->parent();
 		}
+		
 		if(copied_item_ )
 		{
 			QTreeWidgetItem* new_child=copied_item_->clone();

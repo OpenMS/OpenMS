@@ -93,14 +93,10 @@ Thomas Schreiner:
 - DBConnection: mehrere Verbindunden gleichzeitig
 
 Stefan Rink:
-- ParamEditor: 
-	- insert: Typ 'string' 
-	- Alle Fehler beim Validieren in einem Dialog anzeigen, nicht in der Kommandozeile
-	- Verhindern, daß man items unter items pasten kann (geht mit Keyboard-Shortcuts)
-	- Copy, Paste, Copy (alles mit selbem Item) führt zu segmentation fault
-	- Copy, Paste, Copy (unterschiedliche Items/Sections)-> gepastetes Item verschwindet
-	- Verhindern, daß Sections/Items mit gleichem Namen in der gleichen Section angelegt werden können
-	- Man muß auch mehrmals pasten können!
+- ParamEditor:
+	- Wenn ein Fehler in das File einbaut und ohne zu speichern 'Quit' aufruft, schließt sich der Editor, ohne das man die Chance hat den Fehler zu korrigieren. In dem Fall sollte sollte das Schließen abgebrochen werden!
+  - Docu ParamEditorDelegate und INIFileEditorWindow  fehlt komplett. Code ist im allgemeinen auch nicht dokumentiert
+  - Shortcuts gehen im ToolsDialog nicht
 
 Diplomarbeit TOPPAS:
 - TOPPViewBase: Parameters (Typ: enum, inputfile, inputfiles, outputfile, outputfiles)
