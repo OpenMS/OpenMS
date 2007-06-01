@@ -20,3 +20,4 @@ Changes from OpenMS 0.95 to 1.0
 	- Added MapAlignment - Multiple alignment of LC-MS maps
 	- Added MapNormalizer - Normalization of peak intensities
 	- Added InternalCalibration - Calibration of peak m/z using reference masses
+	- Added ExternalCalibration - Conversion of flight times into m/z using external calibrant spectra
