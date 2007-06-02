@@ -61,7 +61,7 @@ CHECK((const String& getDescription(const String& key) const))
 	TEST_EQUAL(p.getDescription("key"),String::EMPTY)
 RESULT
 
-CHECK((void setValue(const String& key, const String& value, String description)))
+CHECK((void setValue(const String& key, const String& value, String description="")))
 	Param p;
 	p.setValue("key","value");
 	TEST_EQUAL(p.getValue("key"), "value")
@@ -72,7 +72,7 @@ CHECK((void setValue(const String& key, const String& value, String description)
 	TEST_STRING_EQUAL(p.getDescription("key"), "thisvalue")
 RESULT
 
-CHECK((void setValue(const String& key, Int value, String description)))
+CHECK((void setValue(const String& key, Int value, String description="")))
 	Param p;
 	p.setValue("key",17);
 	TEST_EQUAL(Int(p.getValue("key")), 17)
@@ -83,7 +83,7 @@ CHECK((void setValue(const String& key, Int value, String description)))
 	TEST_STRING_EQUAL(p.getDescription("key"), "thisvalue")
 RESULT
 
-CHECK((void setValue(const String& key, float value, String description)))
+CHECK((void setValue(const String& key, float value, String description="")))
 	Param p;
 	p.setValue("key",17.4f);
 	TEST_REAL_EQUAL(float(p.getValue("key")), 17.4)
@@ -94,7 +94,7 @@ CHECK((void setValue(const String& key, float value, String description)))
 	TEST_STRING_EQUAL(p.getDescription("key"), "thisvalue")
 RESULT
 
-CHECK((void setValue(const String& key, double value, String description)))
+CHECK((void setValue(const String& key, double value, String description="")))
 	Param p;
 	p.setValue("key",17.4);
 	TEST_REAL_EQUAL(double(p.getValue("key")), 17.4)

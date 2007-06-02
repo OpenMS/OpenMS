@@ -124,7 +124,7 @@ DPeak<1> p2;
 p2.setIntensity(100.0);
 p2.getPosition()[0] = 1300.0;
 
-CHECK((DSpectrum(const DSpectrum<D>& rhs)))
+CHECK((DSpectrum(const DSpectrum& rhs)))
 	DSpectrum1 s;
 	s.setMetaValue("label",5.0);
 	s.getContainer().push_back(p);

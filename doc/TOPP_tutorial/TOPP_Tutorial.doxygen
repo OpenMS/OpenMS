@@ -30,13 +30,22 @@
 /**
 	@page TOPP_general General introduction
 
-	This tutorial will give you a brief overview of the most important TOPP tools.
-	First some basics that you will need for every TOPP tool are explained,
-	then several example pipleines are shown.
+		This tutorial will give you a brief overview of the most important TOPP tools.
+		First some basics that you will need for every TOPP tool are explained,
+		then several example pipleines are shown.
 
 	@section TOPP_fileformats File formats
-	
-		The main file formats for TOPP are:
+		
+		The TOPP tools use the HUPO-PSI standard format mzData 1.05 as input format.
+		In order to convert other open formats (DTA, mzXML, ANDI/MS) to mzData, a file converter
+		is provided by TOPP.
+		
+		Proprietary MS machine formats are not supported. If you need to convert these formats to
+		mzData or mzXML, please have a look at the <a href="http://sashimi.sourceforge.net" target="blank_">SASHIMI project page</a>
+		or contact your MS machine vendor.
+		
+		mzData covers only the output of an mass-spectrometry experiment. For further analysis of this data
+		several other file formats are needed. The main file formats used by TOPP are:
 		- @b mzData The HUPO-PSI standard format for mass spectrometry data.
 		- @b featureXML The %OpenMS format for quantitation results.
 		- @b idXML The %OpenMS format for protein and peptide identification.
@@ -45,15 +54,15 @@
 		
 		Documented schemas of the OpenMS formats can be found at http://open-ms.sourceforge.net/schemas/.
 		
-		@note The @a featureXML, @a featurePairsXML and @a idXML format will evantually be replaced by the HUPO-PSI AnalysisXML format.
 
 	<HR>
 	@section TOPP_common_options Common arguments of the TOPP tools
-	
-		Common options of all TOPP tools are:
+		
+		The command line and INI file parameters of the TOPP tools vary due to the different tasks of the
+		the TOPP tools. However, all TOPP tools share this common interface:
 	  - <b>-ini &lt;file&gt;</b> Use the given TOPP INI file
 	  - <b>-log &lt;file&gt;</b> Location of the log file (default: 'TOPP.log')
-	  - <b>-instance &lt;n&gt;</b> Instance number for the TOPP INI file (default: '1')
+	  - <b>-instance &lt;n&gt;</b> Instance number in the TOPP INI file (default: '1')
 	  - <b>-debug &lt;n&gt;</b> Sets the debug level (default: '0')
 	  - <b>-write_ini &lt;file&gt;</b> Writes an example INI file
 	  - <b>-progress</b> Enables progress logging to command line
@@ -71,15 +80,15 @@
 
 		@subsection TOPP_parameter_structure General structure of an INI file
 		
-		An INI file is always enclosed by the @a <PARAMETERS> tag. Inside this tag, a tree-like hierachy
-		is created with @a <NODE> tags that represent sections and @a <ITEM> tags that each store one of the 
+		An INI file is always enclosed by the @a &lt;PARAMETERS&gt; tag. Inside this tag, a tree-like hierachy
+		is created with @a $lt;NODE&gt; tags that represent sections and @a %lt;ITEM&gt; tags that each store one of the 
 		parameters.
 		
 		Have a look at the example below for an example @a FileFilter INI file.
 		Several parameter sets for @a FileFilter instances can specified in a @a FileFilter section.
-		Inside this section, there can be several numbered subsections ('1', '2', ...). These numbers are 
-		the instance numbers, that make storing several parameter sets for the same tool possible.
-		(You can change the instance number a tool uses with the '-instance' command lines argument.)
+		In order to make storing several parameter sets for the same tool in one INI file possible,
+		the tool section contains one or serval numbered subsections ('1', '2', ...). These numbers are 
+		the instance numbers which can be changed using the  '-instance' command lines argument.
 		Inside each instance section, the actual parameters of the TOPP tool are given. Complex tools
 		can even contain several subsections in order to group related parameters.
 		
@@ -88,7 +97,7 @@
 		Example: Imagine we call the @a FileFilter tool with the INI file given below and instance number '2'. 
 		The FileFilter parameters @a rt and @a mz are looked up by the tool. 
 		@a mz can be found in section @a FileFilter - @a 2. @a rt is not specified in this section,
-		thus the @a common - @a FileFilter secion is checked, where it is found in our example. 
+		thus the @a common - @a FileFilter secion is checked first, where it is found in our example. 
 		When looking up the @a debug parameter, the tool would search the instance section and tool-specific common
 		section without finding a value. Finally the general @a common section would be checked, where the debug 
 		level is specified.
@@ -115,16 +124,25 @@
 
 </PARAMETERS>
 @endcode
+
+		@subsection TOPP_parameter_documentation Parameter documentation
 		
+			General documentation of  a TOPP tool and documentation for the command line parameters, 
+			can be displayed using the command line argument @a --help.
+			
+			Some TOPP tools also have subsections of parameters that are internally handed to
+			an algorithm. The documentation of these subsections is not displayed with @a --help.
+			It is however displayed in @b INIFileEditor (see next section).
+
 		@subsection TOPP_parameter_creation Creating an INI file for a TOPP tool
 		
-			The easiest way of creating a configuration file is to let the TOPP tool write the 
+			The easiest way of creating an INI file is to let the TOPP tool write its default 
 			configuration file using the argument '-write_ini'. Now the INI file can be adapted to your needs
 			using @b INIFileEditor.
 			@image html INIFileEditor.png
 			In the @b INIFileEditor the documentation of most parameters is displayed as tooltip when you hover 
 			over the parameter name with the mouse pointer. 
-	
+
 */
 
 //##############################################################################
@@ -134,25 +152,21 @@
 
 		@section TOPP_files_info General information about peak and feature maps
 			
-			If you want some general information aout peak or feature maps, use the @b FileInfo tool.
+			If you want some general information about a peak or feature map, use the @b FileInfo tool.
 			It prints RT, m/z and intensity ranges, the overall number of peaks, and the distribution of MS levels
-			to the command line.
-			
+			to the command line.@n
 			Additionally it can print a statistical summary of intensities and some meta information.
 			See the 'FileInfo --help' for details. 
 			
 		@section TOPP_files_conversion Converting your files to mzData
 		
-			OpenMS supports the HPLC-MS data formats @a mzData, @a mzXML and @a ANDI/MS.
-			Proprietary MS machine formats are not supported. If you need to convert these formats to
-			mzData or mzXML, please contact your MS vendor or have a look at the 
-			<a href="http://sashimi.sourceforge.net" target="blank_">SASHIMI project page</a>.
-			
 			The TOPP tools work only on the HUPO-PSI @a mzData format. If you need to convert @a mzXML or @a ANDI/MS
 			data to @a mzData, you can to that using the @b FileConverter, e.g.
 			@code
 FileConverter -in infile.mzData -out outfile.mzXML
 			@endcode
+			If you use the format names as file extension, the tool derives the format from the extension.
+			For other extensions, the file formats of the input and output file can be given explicitly.
 		
 		@section TOPP_files_dta Converting between DTA and mzData
 		
@@ -160,14 +174,17 @@ FileConverter -in infile.mzData -out outfile.mzXML
 			@code
 DTAExtractor -in infile.mzData -out outfile
 			@endcode
-			When you want to combine several files (e.g. DTA files) to an mzData file use the @b FileMerger:
+			The retention time of a scan (and the precursor mass-to-charge ratio for MS/MS scans)
+			is added to the output file names.  
+			
+			To combine several files (e.g. DTA files) to an mzData file use the @b FileMerger:
 			@code
 FileMerger -in infile_list.txt -out outfile.mzData
 			@endcode
 			The retention times of the scans can be generated, taken from the @a infile_list.txt or can be extrated
 			from the DTA file names. See the FileMerger documentation for details.
 		
-		@section TOPP_files_filter Extracting specific information from a file
+		@section TOPP_files_filter Extracting part of the data from a file
 			
 			If you want to extract a part of the data from an mzData file, you can use the
 			@b FileFilter tool. It allows filtering for RT, m/z and intensity range or for MS level.
@@ -175,7 +192,6 @@ FileMerger -in infile_list.txt -out outfile.mzData
 			@code
 FileFilter -in infile.mzData -levels 2 -rt 100:1500 -out outfile.mzData
 			@endcode
-
 */
 
 //##############################################################################
@@ -192,6 +208,19 @@ FileFilter -in infile.mzData -levels 2 -rt 100:1500 -out outfile.mzData
 
 /**
 	@page TOPP_example3 Example 3: Consensus peptide identification
+	
+		@b Aim: The use of several identification engines in order to compute a consensus
+		identification for a HPLC-MS\\MS experiment.
+		
+		OpenMS offers Adapters for the following comercial and free peptide identification engines:
+		Sequest, Mascot, OMSSA, Inspect and X!Tandem.@n
+		The adapters allow setting the input parameters and data for the identification
+		engine and resturn the result in the OpenMS idXML format.
+		
+		In order to improve the identification accuracy, several identification engines
+		can be used and a consensus identification can be calculated from the results.
+		The image below shows an example where Mascot and OMSSA results are fed to
+		the @b ConsensusID tool.
 	
 		@image html TOPP_consensus_id.png
 		@image latex TOPP_consensus_id.png "" width=14cm

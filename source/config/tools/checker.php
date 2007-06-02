@@ -524,6 +524,7 @@
 				"CONCEPT/ProgressLogger.h",
 				"/config.h",
 				"include/OpenMS/APPLICATIONS/TOPPViewBase.h",
+				"include/OpenMS/APPLICATIONS/INIFileEditorWindow.h",
 				"_registerChildren.h",
 				"DataReducer.h",
 				"SchemaFile.h",
@@ -661,6 +662,18 @@
 				#compare declarations and tests
 				$out = compareDeclarationsAndTests($class_info["public-long"],$tests);
 				
+				# remove methods that can be tested although they are not defined
+				$new_unknown = array();
+				foreach ($out["unknown"] as $m)
+				{
+					//print ">>> '".$m."'  '$classname()'\n";
+					if ($m != "$classname()" && $m != "~$classname()" && !beginsWith($m,"const $classname& operator=(") && !beginsWith($m, "$classname(const $classname&") )
+					{
+						$new_unknown[] = $m;
+					}
+				}
+				$out["unknown"] = $new_unknown;
+				
 				#output
 				if (count($out["missing"])!=0 || count($out["unknown"])!=0)
 				{
@@ -713,15 +726,18 @@
 			# non-public member
 			foreach($class_info["non-public"] as $tmp)
 			{
+				print "NP: '".$tmp."'\n";
 				# constructor, destructor, serialize methods and QT events are allowed
-				if ( endswith($tmp,'Event') || endsWith($tmp,'load')  || endsWith($tmp,'save') || endsWith($tmp,'serialize') || $tmp==$class_info["classname"] || $tmp=='~'.$class_info["classname"] )
+				if ( endswith($tmp,'Event') || endsWith($tmp,'load')  || endsWith($tmp,'save') || endsWith($tmp,'serialize') || $tmp==$class_info["classname"] || $tmp=='~'.$class_info["classname"] || $tmp=="operator=")
 				{
 					continue;
 				}
+				
 				if (!endswith($tmp,'_'))
 				{
 					$out[] = "  - invalid non-public method name '$tmp'\n";
 				}
+				//check if there is a underscore in the middle, that must not be there
 				else if (strpos(substr($tmp,0,-1),'_')!==FALSE)
 				{
 					$out[] = "  - invalid non-public method name '$tmp'\n";

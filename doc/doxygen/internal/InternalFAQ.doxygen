@@ -77,7 +77,10 @@
 	      </ul>
 
 	    <li><b>How can i speed up the compile process?</b><br>
-	      For g++ you can use the wrapper <tt>ccache</tt>.
+	      For g++ you can use the wrapper <tt>ccache</tt>. It caches the preprocessor output.
+	      <p>
+	      If you have several pocessors you can built OpenMS classes and tests
+	      in in several threads (2 per core) using the @a make option @a -j.
 
 		</UL>
 
@@ -90,8 +93,7 @@
 				Try 'make depend' in order to get the dependencies right!
 
 			<li><b>Can the CHECK-macro not handle template methods that have two or more arguments?</b><br>
-				Putt round brackets around the method declaration. Then it should work.
-		
+				Put round brackets around the method declaration. Then it should work.
 		</UL>
 
 	
@@ -213,12 +215,42 @@
 				</OL>
 	
 			<LI><B>Was ist für ein Release zu tun?</B>
+			
+				<p>
+				Jeder Maintainer muß seine Klassen und TOPP-Tools prüfen (oder jemanden finden, 
+				der es für einen macht). Fehlende Dokumentation oder Fehler in der Dokumentation
+				schrecken potentielle User ab!
+				
+				Hier eine Liste was zu tun ist (spätestens zwischen Feature-freeze und Release): 
 				<OL>
 					<LI> Fehler die 'source/config/tools/checker.php' ausgibt korrigieren
-					<LI> Docu korrekturlesen (OpenMS/TOPP)
-					<LI> Den Output von '&lt;topp-tool&gt; --help' korrekturlesen
+						<UL>
+							<LI> Mit @a -u kann man seinen Namen angeben (der bei Mantainer eingetragen ist)
+							<LI> Mit @a -v bekommt man mehr Informationen zu den Fehlern.
+							<LI> Mehr Informationen gibt's mit @a --help
+							<LI> Fragen oder Fehler im Skript bitte an Marc.
+						</UL>
 					<LI> Den Output der TOPP-tests 'source/TEST/TOPP/&lt;topp-tool&gt;.output' auf vergessenen Debug-Output prüfen
+					<LI> Dokumentation:
+						<UL>
+							<LI> OpenMS
+								<UL>
+									<LI> Tutorial schreiben / korrekturlesen
+									<LI> Klassendokumentation korrekturlesen  / ergänzen
+									<LI> Vergessene Methodendokumentaton ergänzen.
+								</UL>
+							<LI> TOPP
+								<UL>
+									<LI> Tutorial schreiben / korrekturlesen
+									<LI> Doxygen-Dokumentation korrekturlesen / ergänzen
+									<LI> Den Output von '&lt;topp-tool&gt; --help' korrekturlesen
+									<LI> Prüfen ob alle Parameter und Sektionen dokumentiert sind (@a -write_ini und INIFileEditor).
+								</UL>
+						</UL>
+					<LI> Klassen, die nicht ins Release sollen aus dem Release-Branch entfernen.
 				</OL>
+
+
 		</UL>
 		
 */

@@ -40,9 +40,9 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-	@page ConsensusID ConsensusID
+	@page ConsensusID_TOPP ConsensusID
 	
-	@brief Combines results of ProteinIdentification engines.
+	@brief Coputes a consensus identification from peptide identification engines.
 	
 	For a detailed description of the algorithms and parameters see the the documentation of
 	the ConsensusID class.
@@ -64,7 +64,7 @@ class TOPPConsensusID
 {
 	public:
 		TOPPConsensusID()
-			: TOPPBase("ConsensusID","Combines results of ProteinIdentification engines.")
+			: TOPPBase("ConsensusID","Coputes a consensus identification from peptide identification engines.")
 		{
 			
 		}

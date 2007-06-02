@@ -83,9 +83,9 @@ Ideen:
 - Seeder/Extender: Analyse der MassenSpur-Distanzen
 
 Todos:
+- Bild INIFileEditor mit ToolTip
+- docu subsections bei --help anzeigen + Text
 - 3D: int achse fixen
-- Testscript: erlaubte private desclarations / undefined method tests
-- TOPP tutorial
 
 Thomas Schreiner:
 - FeatureXML: Options einbauen und testen

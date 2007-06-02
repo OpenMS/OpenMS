@@ -61,7 +61,7 @@
 		- @subpage Decharger
   - <b>Protein/peptide Identification</b>
     - @subpage IDFilter_TOPP
-    - @subpage ConsensusID
+    - @subpage ConsensusID_TOPP
     - @subpage InspectAdapter
   	- @subpage MascotAdapter
     - @subpage SequestAdapter
