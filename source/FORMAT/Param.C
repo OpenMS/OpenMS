@@ -70,7 +70,7 @@ namespace OpenMS
 	
 	
 	// get/set the values
-	void Param::setValue(const String& key, Int value, String description)
+	void Param::setValue(const String& key, Int value, const String& description)
 	{
 		values_[key] = value;
 		if(!description.empty())
@@ -79,7 +79,7 @@ namespace OpenMS
 		}
 	}
 	
-	void Param::setValue(const String& key, float value, String description)
+	void Param::setValue(const String& key, float value, const String& description)
 	{
 		values_[key] = value;
 		if(!description.empty())
@@ -88,7 +88,7 @@ namespace OpenMS
 		}
 	}
 
-	void Param::setValue(const String& key, double value, String description)
+	void Param::setValue(const String& key, double value, const String& description)
 	{
 		values_[key] = value;
 		if(!description.empty())
@@ -97,7 +97,7 @@ namespace OpenMS
 		}
 	}
 
-	void Param::setValue(const String& key, const String& value, String description)
+	void Param::setValue(const String& key, const String& value, const String& description)
 	{
 		values_[key] = value;
 		if(!description.empty())
@@ -394,8 +394,11 @@ namespace OpenMS
 					map<String, String>::const_iterator iter=descriptions_.find(nodepath);
 					if(iter!=descriptions_.end())
 					{
+						//replace double quotes in descriptions
+						String tmp = iter->second;
+						tmp.substitute('"','\'');
 						//cout << "DESCRIPTION: " << iter->second << endl;
-						os << " description=\"" << iter->second <<"\"";
+						os << " description=\"" << tmp <<"\"";
 					}
 					
 					//closing tag and loop updates
@@ -426,7 +429,9 @@ namespace OpenMS
 				map<String, String>::const_iterator iter=descriptions_.find(key);
 				if(iter!=descriptions_.end())
 				{
-					tmp = "<ITEM name=\""+key_without_prefix+"\" value=\""+it->second.toString()+"\" type=\""+type+"\" description=\""+iter->second+"\" />\n";
+					String d = iter->second;
+					d.substitute('"','\'');
+					tmp = "<ITEM name=\""+key_without_prefix+"\" value=\""+it->second.toString()+"\" type=\""+type+"\" description=\""+d+"\" />\n";
 				}
 				else
 				{

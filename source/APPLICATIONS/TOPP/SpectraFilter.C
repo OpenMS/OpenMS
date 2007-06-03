@@ -78,44 +78,18 @@ class TOPPSpectraFilter
 			registerStringOption_("in", "<file>", "", "input file in MzData format");
 			registerStringOption_("out", "<file>", "", "output file in MzData format");
 			registerStringOption_("filters", "<filter1>[,<filter2>]", "", "filter to be applied");
+			
 			addEmptyLine_();
-			addText_("Available filters and their parameters are:\n"
-							 "  - NLargest: keeps the n most intensive peaks of each spectrum\n"
-							 "    - n: the numer of peaks to keep [200]\n"
-							 "  - ParentPeakMower: reduces the intensity of the unfragmented precursor peak ions\n"
-							 "    - window_size: the size of the m/z window where the peaks are removed, +/- window_size [2.0]\n"
-							 "    - default_charge: if the precursor has no charge set, the default charge is assumed [2]\n"
-							 "    - clean_all_charge_states: set to 1 if precursor ions of all possible charge states should be removed [1]\n"
-							 "    - set_to_zero: reduce the intensities of the precursor and related ions to zero [1]\n"
-							 "    - reduce_by_factor: reduce the intensities by a given factor (set 'set_to_zero' to 0) [0]\n"
-							 "    - factor: factor which is used to reduce the intensities if \"reduce_by_factor\" is selected [1000.0]\n"
-							 "    - consider_NH3_loss: whether NH3 loss peaks from the precursor should be removed [1]\n"
-							 "    - consider_H2O_loss: whether H2O loss peaks from the precursor should be removed [1]\n"
-							 "  - SqrtMower: set each intensity to the square root of the original intensity\n"
-							 "  - WindowMower: keeps the most abundand peaks in a sliding window\n"
-							 "    - windowsize: the size of the sliding window along the m/z axis [50]\n"
-							 "    - peakcount: the number of peaks that should be kept [2]\n"
-							 "  - Normalizer: normalizes the peaks to a maximum of '1'\n"
-							 "   - method: normalize to TIC (\"to_TIC\") or normalize to max intensity of one (\"to_one\") [to_TIC]\n"
-							 "  - Scaler: scales the peaks according to their rank in terms of intensity\n"
-							 "  - BernNorm: does the Bern et al. normalization\n"
-							 "    - C1 - C1 value of the normalization [48.0]\n"
-							 "    - C2 - C2 value of the normalization [400.0]\n"							 
-							 "    - threshold - threshold of the Bern et al. normalization [0.1]");
-			addEmptyLine_();
-			addText_("Parameters for the filter can only be fiven in the INI file.\n"
-							 "Example parameters section for the 'NLargest':\n"
-							 "  <NODE name=\"NLargest\">\n"
-							 "    <ITEM name=\"n\" value=\"100\" type=\"float\"/>\n"
-							 "  </NODE>");
+			addText_("Parameters for the filter can only be fiven in the INI file.");
+			
 			// register one section for each algorithm
-			registerSubsection_("NLargest","Section for NLargest filter");
-			registerSubsection_("ParentPeakMower","Section for ParentPeakMower filter");
-			registerSubsection_("SqrtMower","Section for SqrtMower filter");
-			registerSubsection_("WindowMower","Section for WindowMower filter");
-			registerSubsection_("Normalizer","Section for Normalizer filter");
-			registerSubsection_("Scaler","Section for Scaler filter");
-			registerSubsection_("BernNorm","Section for BernNorm filter");
+			registerSubsection_("NLargest","Keeps the n most intensive peaks of each spectrum.");
+			registerSubsection_("ParentPeakMower","Reduces the intensity of the unfragmented precursor peak ions.");
+			registerSubsection_("SqrtMower","Set each intensity to the square root of the original intensity.");
+			registerSubsection_("WindowMower","Keeps the most abundand peaks in a sliding window.");
+			registerSubsection_("Normalizer","Normalizes the peaks to a maximum of '1'.");
+			registerSubsection_("Scaler","Scales the peaks according to their rank in terms of intensity.");
+			registerSubsection_("BernNorm","Does the Bern et al. normalization.");
 		}
 		
 		Param getSubsectionDefaults_(const String& section) const

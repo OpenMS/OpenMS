@@ -726,7 +726,7 @@
 			# non-public member
 			foreach($class_info["non-public"] as $tmp)
 			{
-				print "NP: '".$tmp."'\n";
+				//print "NP: '".$tmp."'\n";
 				# constructor, destructor, serialize methods and QT events are allowed
 				if ( endswith($tmp,'Event') || endsWith($tmp,'load')  || endsWith($tmp,'save') || endsWith($tmp,'serialize') || $tmp==$class_info["classname"] || $tmp=='~'.$class_info["classname"] || $tmp=="operator=")
 				{

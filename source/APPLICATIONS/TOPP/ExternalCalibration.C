@@ -85,19 +85,7 @@ class TOPPExternalCalibration
 		registerFlag_("peak_data","set this flag, if you have peak data, not raw data");
 		addText_("\nIf you want to calibrate raw data, it is necessary to perform a peak picking step before the "
 							"actual calibration is done. \nThe parameters for the peak picking step can be given "
-							"given in the 'algorithm' part of INI file in the subsection PeakPicker, e.g.:\n"
-							"<NODE name=\"algorithm\">\n"
-						  " <NODE name=\"PeakPicker\">\n"
-							"  <NODE name=\"wavelet_transform\">\n"
-							"    <ITEM name=\"scale\" value=\"0.2\" type=\"float\" />\n"
-							"  </NODE>\n"
-							"  <NODE name=\"thresholds\">\n"
-							"    <ITEM name=\"peak_bound\" value=\"100\" type=\"float\" />\n"
-							"    <ITEM name=\"correlation\" value=\"0.5\" type=\"float\" />\n"
-							"    <ITEM name=\"fwhm_bound\" value=\"0.1\" type=\"float\"/>\n"
-							"  </NODE>\n"
-						  " </NODE>\n"
-						  "</NODE>");
+							"given in the 'algorithm' part of INI file in the subsection PeakPicker");
 		 addEmptyLine_();
 		 registerSubsection_("algorithm","Algorithm section for peak picking");
   }

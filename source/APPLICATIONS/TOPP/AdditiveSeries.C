@@ -107,33 +107,19 @@ class AdditiveSeries
 		registerDoubleOption_("rt_tolerance","<tol>",1.0, "Tolerance in RT dimension",false);
 
 		addEmptyLine_();
-		addText_("Feature/standard position:");
+		addText_("  Feature/standard position:");
 		registerDoubleOption_("feature_rt","<rt>",0.0, "RT position of the feature");
 		registerDoubleOption_("feature_mz","<mz>",0.0, "m/z position of the feature");
 		registerDoubleOption_("standard_rt","<rt>",0.0, "RT position of the standard");
 		registerDoubleOption_("standard_mz","<mz>",0.0, "m/z position of the standard");
 		
 		addEmptyLine_();
-		addText_("GNUplot options:");
+		addText_("  GNUplot options:");
 		registerFlag_("write_gnuplot_output","Flag that activates the GNUplot output");
 		registerStringOption_("out_gp","<name>","","base file name (3 files with different extensions are created)",false);
 		registerStringOption_("mz_unit","<unit>","Thomson","the m/z unit of the plot",false);
 		registerStringOption_("rt_unit","<unit>","seconds","the RT unit of the plot",false);
 		
-		addEmptyLine_();
-		addText_("Input featureXML files, spiked concentrations, feature position and standard position can only be specified in the INI file:\n"
-						 "  <NODE name=\"Files\">\n"
-						 "    <ITEM name=\"1\" value=\"data/file1.xml\" type=\"string\">\n"
-						 "    <ITEM name=\"2\" value=\"data/file2.xml\" type=\"string\">\n"
-						 "    <ITEM name=\"3\" value=\"data/file3.xml\" type=\"string\">\n"
-						 "    <ITEM name=\"4\" value=\"data/file4.xml\" type=\"string\">\n"
-						 "  </NODE>\n"
-						 "  <NODE name=\"Concentrations\">\n"
-						 "    <ITEM name=\"1\" value=\"0.0\" type=\"double\">\n"
-						 "    <ITEM name=\"2\" value=\"2.0\" type=\"double\">\n"
-						 "    <ITEM name=\"3\" value=\"5.0\" type=\"double\">\n"
-						 "    <ITEM name=\"4\" value=\"10.0\" type=\"double\">\n"
-						 "  </NODE>\n");
 		registerSubsection_("Files","Input featureXML section");
 		registerSubsection_("Concentrations","Spiked concentrations section");
 	}

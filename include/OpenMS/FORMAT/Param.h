@@ -83,16 +83,16 @@ namespace OpenMS
 			bool operator == (const Param& rhs) const;
 			
 			/// Set a Int value.
-			void setValue(const String& key, Int value, String description="");
+			void setValue(const String& key, Int value, const String& description="");
 			
 			/// Set a float value.
-			void setValue(const String& key, float value, String description="");
+			void setValue(const String& key, float value, const String& description="");
 			
 			/// Set a double value.
-			void setValue(const String& key, double value, String description="");
+			void setValue(const String& key, double value, const String& description="");
 			
-			/// Set a string value.
-			void setValue(const String& key, const String& value, String description="");
+			///Set a string value.
+			void setValue(const String& key, const String& value, const String& description="");
 			
 			/**
 				@brief Get a value by its key.

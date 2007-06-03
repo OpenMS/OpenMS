@@ -34,7 +34,7 @@ namespace OpenMS
     : PreprocessingFunctor()
   {
 		setName(NLargest::getProductName());
-    defaults_.setValue("n", 200);
+    defaults_.setValue("n", 200, "The numer of peaks to keep.");
 		defaultsToParam_();
   }
 

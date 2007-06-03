@@ -84,10 +84,6 @@ class TOPPConsensusID
 																									 "are mapped to features and the consensus is made for feaatures.",false);
 			registerStringOption_("features_out","<file>","","Features that have identifications are stored in this file."
 			                                                 "Only available when 'features' file is given!",false);
-			addEmptyLine_();
-			addText_("All other options of ConsensusID can be given only in the 'algorithm' seciton  of the INI file.\n"
-							 "For a detailed description, please have a look at the doxygen documentation.\n"
-							 "How the docu can be built is explained in OpenMS/doc/index.html.");
 			registerSubsection_("algorithm","Consensus algorithm section");
 		}
 	

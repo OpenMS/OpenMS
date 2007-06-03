@@ -35,7 +35,7 @@ namespace OpenMS
     : PreprocessingFunctor()
   {
 		setName(Normalizer::getProductName());
-    defaults_.setValue("method", "to_one");
+    defaults_.setValue("method", "to_one", "Normalize to TIC ('to_TIC') or normalize to max intensity of one (\"to_one\").");
 		defaultsToParam_();
   }
 

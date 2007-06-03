@@ -115,9 +115,7 @@ class TOPPFeatureFinder
 		
 		addEmptyLine_();
 		addText_("All other options of the Featurefinder depend on the Seeder, Extender and Modelfitter used.\n"
-						 "They can be given only in the 'algorithm' seciton  of the INI file.\n"
-						 "For a detailed description, please have a look at the doxygen documentation.\n"
-						 "How the docu can be built is explained in OpenMS/doc/index.html.");	
+						 "They can be given only in the 'algorithm' seciton  of the INI file.\n");	
 		
 		registerSubsection_("algorithm","Modules section");
 	}

@@ -73,9 +73,7 @@ class TOPPDecharger
 
     addEmptyLine_();
     addText_("All other options of the Decharger depend on the FeatureDecharger and HierarchicalClustering used.\n"
-             "They can be given only in the 'algorithm' section  of the INI file.\n"
-             "For a detailed description, please have a look at the doxygen documentation.\n"
-             "How the docu can be built is explained in OpenMS/doc/index.html."); 
+             "They can be given only in the 'algorithm' section  of the INI file.");
     
     registerSubsection_("algorithm","Feature decharging algorithm section");
   }

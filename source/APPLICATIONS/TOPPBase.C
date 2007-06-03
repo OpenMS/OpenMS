@@ -407,8 +407,33 @@ namespace OpenMS
 			}
 			
 			cerr << endl;
-
 		} 
+
+		if (subsections_.size()!=0)
+		{
+			//determin indentation of description
+			UInt indent = 0;
+			for(map<String,String>::const_iterator it = subsections_.begin(); it!=subsections_.end(); ++it)
+			{
+				indent = max(it->first.size(),indent);
+			}
+			indent += 6;
+			
+			//output
+			cerr << endl
+					 << "The following configuration subsections are valid:" << endl;
+			for(map<String,String>::const_iterator it = subsections_.begin(); it!=subsections_.end(); ++it)
+			{
+				String tmp = String(" - ") + it->first;
+				tmp.fillRight(' ',indent);
+				cerr << tmp << it->second << endl;
+			}
+			cerr << "You can write an example INI file using the '-write_ini' option." << endl
+					 << "Documentation of subsection parameters can be found in the" << endl
+					 << "doxygen documentation and as tooltip help in INIFileEditor." << endl
+					 << "Have a look at OpenMS/doc/index.html for more information." << endl;
+		}
+		cerr << endl;
 	}
 
 

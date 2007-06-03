@@ -61,7 +61,7 @@ CHECK((const String& getDescription(const String& key) const))
 	TEST_EQUAL(p.getDescription("key"),String::EMPTY)
 RESULT
 
-CHECK((void setValue(const String& key, const String& value, String description="")))
+CHECK((void setValue(const String& key, const String& value, const String& description="")))
 	Param p;
 	p.setValue("key","value");
 	TEST_EQUAL(p.getValue("key"), "value")
@@ -72,7 +72,7 @@ CHECK((void setValue(const String& key, const String& value, String description=
 	TEST_STRING_EQUAL(p.getDescription("key"), "thisvalue")
 RESULT
 
-CHECK((void setValue(const String& key, Int value, String description="")))
+CHECK((void setValue(const String& key, Int value, const String& description="")))
 	Param p;
 	p.setValue("key",17);
 	TEST_EQUAL(Int(p.getValue("key")), 17)
@@ -83,7 +83,7 @@ CHECK((void setValue(const String& key, Int value, String description="")))
 	TEST_STRING_EQUAL(p.getDescription("key"), "thisvalue")
 RESULT
 
-CHECK((void setValue(const String& key, float value, String description="")))
+CHECK((void setValue(const String& key, float value, const String& description="")))
 	Param p;
 	p.setValue("key",17.4f);
 	TEST_REAL_EQUAL(float(p.getValue("key")), 17.4)
@@ -94,7 +94,7 @@ CHECK((void setValue(const String& key, float value, String description="")))
 	TEST_STRING_EQUAL(p.getDescription("key"), "thisvalue")
 RESULT
 
-CHECK((void setValue(const String& key, double value, String description="")))
+CHECK((void setValue(const String& key, double value, const String& description="")))
 	Param p;
 	p.setValue("key",17.4);
 	TEST_REAL_EQUAL(double(p.getValue("key")), 17.4)
@@ -254,9 +254,9 @@ RESULT
 
 CHECK((void store(const String& filename) const throw(Exception::UnableToCreateFile)))
 	Param p2(p);
-	p2.setValue("test:a:a1", 47.1,"a1desc");
+	p2.setValue("test:a:a1", 47.1,"a1desc\"");
 	p2.setValue("test:b:b1", 47.1);
-	p2.setDescription("test:b","bdesc");
+	p2.setDescription("test:b","bdesc\"");
 	p2.setValue("test2:a:a1", 47.1);
 	p2.setValue("test2:b:b1", 47.1);
 	p2.setDescription("test2:a","adesc");
@@ -285,8 +285,8 @@ CHECK((void store(const String& filename) const throw(Exception::UnableToCreateF
 	TEST_STRING_EQUAL(p2.getDescription("test2:int"), p3.getDescription(""))
 	TEST_EQUAL(p3.getDescription("test"),"sectiondesc")
 	TEST_EQUAL(p3.getDescription("test:a"),"")
-	TEST_EQUAL(p3.getDescription("test:a:a1"),"a1desc")
-	TEST_EQUAL(p3.getDescription("test:b"),"bdesc")
+	TEST_EQUAL(p3.getDescription("test:a:a1"),"a1desc'")
+	TEST_EQUAL(p3.getDescription("test:b"),"bdesc'")
 	TEST_EQUAL(p3.getDescription("test:b:b1"),"")
 	TEST_EQUAL(p3.getDescription("test2:a"),"adesc")
 RESULT

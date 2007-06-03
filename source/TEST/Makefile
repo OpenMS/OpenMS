@@ -351,6 +351,7 @@ EXECUTABLES_TRANSFORMATIONS_FEATUREFINDER = \
 	SimpleExtender_test\
 	BaseModelFitter_test\
 	SimpleModelFitter_test\
+	ExtendedModelFitter_test\
 	InterpolationModel_test\
 	GaussModel_test\
 	BiGaussModel_test\

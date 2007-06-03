@@ -216,12 +216,25 @@ function getClassInfo($path,$header, $debug)
 	$found = false;
 	foreach ($paths as $p)
 	{
+		//find class
 		$tmp = "$path/doc/doxygen/xml_output/classOpenMS_1_1".$p.$members["classname"].".xml";
 		if (file_exists($tmp))
 		{
 			$class = simplexml_load_file($tmp);
 			$found = true;
 			break;
+		}
+		//find struct
+		else
+		{
+			$tmp = "$path/doc/doxygen/xml_output/structOpenMS_1_1".$p.$members["classname"].".xml";
+			if (file_exists($tmp))
+			{
+				$class = simplexml_load_file($tmp);
+				$found = true;
+				break;
+			}
+			
 		}
 	}
 	if (!$found)

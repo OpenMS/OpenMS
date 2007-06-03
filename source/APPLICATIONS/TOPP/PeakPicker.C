@@ -88,29 +88,7 @@ class TOPPPeakPicker
   	registerStringOption_("in","<file>","","input mzData file (raw data)");
 		registerStringOption_("out","<file>","","output mzData file (peak data)");
 		addEmptyLine_();
-  	addText_("Parameters for the peak picker algorithm can be given in the 'algorithm' part of INI file:\n"
-							"<NODE name=\"algorithm\">\n"
-						 	" <NODE name=\"SignalToNoiseEstimationParameter\">\n "
-						  "   <ITEM name=\"WindowLength\" value=\"200\" type=\"int\" />\n "
-				      "   <ITEM name=\"BinCount\" value=\"30\" type=\"int\" />\n "
-        			"   <ITEM name=\"MinReqElementsInWindow\" value=\"10\" type=\"int\" />\n"
-						  "   <ITEM name=\"NoiseEmptyWindow\" value=\"2\" type=\"int\" /> \n"
-						  " </NODE> \n"
-						  " <NODE name=\"Optimization\"> \n"
-							"  <ITEM name=\"optimization\" value=\"no\" type=\"string\"/>\n"
-						  " </NODE> "
-							"  <NODE name=\"wavelet_transform\">\n"
-							"    <ITEM name=\"scale\" value=\"0.2\" type=\"float\" />\n"
-							"  </NODE>\n"
-							"  <NODE name=\"thresholds\">\n"
-							"    <ITEM name=\"peak_bound\" value=\"100\" type=\"float\" />\n"
-							"    <ITEM name=\"peak_bound_ms2_level\" value=\"30\" type=\"float\" />\n"
-							"    <ITEM name=\"fwhm_bound\" value=\"0.1\" type=\"float\"/>\n"
-							"  </NODE>\n"
-						  " <NODE name=\"deconvolution\"> \n"
-						  "  <ITEM name=\"skip_deconvolution\" value=\"yes\" type=\"string\"/>\n"
-						  " </NODE>\n"
-							"</NODE>");
+  	addText_("Parameters for the peak picker algorithm can be given in the 'algorithm' part of INI file.");
 		addEmptyLine_();
   	addText_("This application implements an algorithm for peak picking as\n"
 				     "described in Lange et al. (2006) Proc. PSB-06. ");

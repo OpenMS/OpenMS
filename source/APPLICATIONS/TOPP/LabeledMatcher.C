@@ -75,14 +75,7 @@ class TOPPLabeledMatcher
 			registerStringOption_("out","<file>","","output file in FeaturePairsXML format");
 			registerStringOption_("best","<file>","","output file of the best pairs in FeaturePairsXML format", false);
 	  	addEmptyLine_();
-	  	addText_("RT and m/z shifts and ranges can currently only be given in the 'algorithm' part of INI file:\n"
-							 "  <NODE name=\"algorithm\">\n"
-							 "    <ITEM name=\"rt_pair_dist\" value=\"0.5\" type=\"float\"/>\n"
-							 "    <ITEM name=\"rt_stdev_low\" value=\"0.22\" type=\"float\"/>\n"
-							 "    <ITEM name=\"rt_stdev_high\" value=\"0.65\" type=\"float\"/>\n"
-							 "    <ITEM name=\"mz_pair_dist\" value=\"4.0\" type=\"float\"/>\n"
-							 "    <ITEM name=\"mz_stdev\" value=\"0.025\" type=\"float\"/>\n" 
-							 "  </NODE>");
+	  	addText_("Note: RT and m/z shifts and ranges can only be given in the 'algorithm' part of INI file.");
 			registerSubsection_("algorithm","Position shift parameters");
 	  }
 		
