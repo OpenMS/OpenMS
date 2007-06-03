@@ -385,6 +385,9 @@ AC_DEFUN(CF_DETECT_OS,[
 		BINFMT="Darwin-${OSREV}"
 		PROCESSOR=`${UNAME} -p`
 		ARCHITECTURE=`${UNAME} -m`
+		SED_INPLACE_PARAM="-itmp"
+	else
+		SED_INPLACE_PARAM="-i"
 	fi
 
 	if test "`echo $OS | ${CUT} -d_ -f1`" = "CYGWIN" ; then

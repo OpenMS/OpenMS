@@ -339,7 +339,7 @@ FeaturePairSplitter_test: $(NUMERICDIFF)
 	-qual FeaturePairSplitter_1_qual.tmp \
 	-dump FeaturePairSplitter_1_dump.tmp)
 	@$(MV) FeaturePairSplitter_1_dump.tmp.gp FeaturePairSplitter_1_dump_gp.tmp
-	@$(SED) -i 's/^\#.*$$/# (all comments removed)/g' FeaturePairSplitter_1_dump_gp.tmp FeaturePairSplitter_1_dump.tmp
+	@$(SED) $(SED_INPLACE_PARAM) 's/^\#.*$$/# (all comments removed)/g' FeaturePairSplitter_1_dump_gp.tmp FeaturePairSplitter_1_dump.tmp
 	@$(call TEST_FILE_EQUAL,FeaturePairSplitter_1_out1.xml)
 	@$(call TEST_FILE_EQUAL,FeaturePairSplitter_1_out2.xml)
 	@$(call TEST_FILE_EQUAL,FeaturePairSplitter_1_qual.wsv)
@@ -602,19 +602,19 @@ InspectAdapter_test: $(NUMERICDIFF)
 
 	@$(ECHO) "- Test 1: -inspect_in with mzXML"
 	@$(call RUN_PROG_OPT,InspectAdapter,-ini InspectAdapter_1_parameters.ini -inspect_in)
-	@$(SED) -i 's/^spectra,.*$$/spectra,dummy.mzXML/g' InspectAdapter_1_output.tmp
-	@$(SED) -i 's/^db,.*$$/db,dummy.trie/g' InspectAdapter_1_output.tmp
+	@$(SED) $(SED_INPLACE_PARAM) 's/^spectra,.*$$/spectra,dummy.mzXML/g' InspectAdapter_1_output.tmp
+	@$(SED) $(SED_INPLACE_PARAM) 's/^db,.*$$/db,dummy.trie/g' InspectAdapter_1_output.tmp
 	@$(call TEST_FILE_EQUAL,InspectAdapter_1_output.inspect_in,InspectAdapter_1_output.tmp)
 
 	@$(ECHO) "- Test 1: -inspect_in with mzData"
 	@$(call RUN_PROG_OPT,InspectAdapter,-ini InspectAdapter_1_parameters.ini -inspect_in -in Inspect_Sequest.mzData)
-	@$(SED) -i 's/^spectra,.*$$/spectra,dummy.mzXML/g' InspectAdapter_1_output.tmp
-	@$(SED) -i 's/^db,.*$$/db,dummy.trie/g' InspectAdapter_1_output.tmp
+	@$(SED) $(SED_INPLACE_PARAM) 's/^spectra,.*$$/spectra,dummy.mzXML/g' InspectAdapter_1_output.tmp
+	@$(SED) $(SED_INPLACE_PARAM) 's/^db,.*$$/db,dummy.trie/g' InspectAdapter_1_output.tmp
 	@$(call TEST_FILE_EQUAL,InspectAdapter_1_output.inspect_in,InspectAdapter_1_output.tmp)
 
 	@$(ECHO) "- Test 2: -inspect_out"
 	@$(call RUN_PROG_OPT,InspectAdapter,-ini InspectAdapter_1_parameters.ini -in InspectAdapter.out -out InspectAdapter_2_output.tmp -inspect_out)
-	@$(SED) -i 's/^.*date.*$$/# date removed/g' InspectAdapter_2_output.tmp
+	@$(SED) $(SED_INPLACE_PARAM) 's/^.*date.*$$/# date removed/g' InspectAdapter_2_output.tmp
 	@$(call TEST_FILE_EQUAL,InspectAdapter_2_output.idXML,InspectAdapter_2_output.tmp)
 	@$(RM) -rf Inspect_FASTAFile_test4.trie Inspect_FASTAFile_test4.index
 
@@ -636,7 +636,7 @@ SequestAdapter_test: $(NUMERICDIFF)
 
 	@$(ECHO) "- Test 2: -sequest_out"
 	@$(call RUN_PROG_OPT,SequestAdapter,-ini SequestAdapter_2_parameters.ini -in tmp -out SequestAdapter_2_output.tmp -sequest_out)
-	@$(SED) -i 's/^.*date_group_1.*$$/# date group removed/g' SequestAdapter_2_output.tmp
+	@$(SED) $(SED_INPLACE_PARAM) 's/^.*date_group_1.*$$/# date group removed/g' SequestAdapter_2_output.tmp
 	@$(call TEST_FILE_EQUAL,SequestAdapter_2_output.idXML,SequestAdapter_2_output.tmp)
 	@$(RM) -rf ./tmp/sequest_run.bat ./tmp/temp.sequest.in
 
@@ -669,12 +669,12 @@ ConsensusID_test: $(NUMERICDIFF)
 
 	@$(ECHO) "- Test 1: Map consensus"
 	@$(call RUN_PROG_OPT,ConsensusID,-ini ConsensusID_1_parameters.ini -out ConsensusID_1_output.tmp)
-	@$(SED) -i 's/^.*IdentificationRun date.*$$/#Run removed because of date/g' ConsensusID_1_output.tmp
+	@$(SED) $(SED_INPLACE_PARAM) 's/^.*IdentificationRun date.*$$/#Run removed because of date/g' ConsensusID_1_output.tmp
 	@$(call TEST_FILE_EQUAL,ConsensusID_1_output.idXML)
 
 	@$(ECHO) "- Test 2: Feature consensus"
 	@$(call RUN_PROG_OPT,ConsensusID,-ini ConsensusID_2_parameters.ini -out ConsensusID_2_output.tmp -features ConsensusID_2_features.featureXML)
-	@$(SED) -i 's/^.*IdentificationRun date.*$$/#Run removed because of date/g' ConsensusID_2_output.tmp
+	@$(SED) $(SED_INPLACE_PARAM) 's/^.*IdentificationRun date.*$$/#Run removed because of date/g' ConsensusID_2_output.tmp
 	@$(call TEST_FILE_EQUAL,ConsensusID_2_output.idXML)
 
 PairwiseSuperposition_test: $(NUMERICDIFF)
