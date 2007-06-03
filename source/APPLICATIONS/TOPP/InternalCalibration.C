@@ -104,72 +104,60 @@ class TOPPInternalCalibration
 	 
 	 ExitCodes main_(int , char**)
 	 {
-		 
-		 //-------------------------------------------------------------
-		 // parameter handling
-		 //-------------------------------------------------------------
-		 
-		 String in = getStringOption_("in");
-		 String out = getStringOption_("out");
-		 String ref = getStringOption_("ref_masses");
-		 bool peak_data = getFlag_("peak_data");
-		 //-------------------------------------------------------------
-		 // init InternalCalibration
-		 //-------------------------------------------------------------
-		 
-		 InternalCalibration calib;
-		 //calib.setLogType(log_type_);
-		 Param param = getParam_().copy("algorithm:",true);
-		 calib.setParameters(param);
-		 
-		 //-------------------------------------------------------------
-		 // loading input
-		 //-------------------------------------------------------------
-		 MSExperiment<RawDataPoint1D > ms_exp_raw;
-		 MSExperiment<PickedPeak1D > ms_exp_peak;
 
-		 
-		 MzDataFile mz_data_file;
-		 mz_data_file.setLogType(log_type_);
-		 if(peak_data)
-			 {
-				 mz_data_file.load(in,ms_exp_peak);
-			 }
-		 else  mz_data_file.load(in,ms_exp_raw);
-		 
-		 vector<double> ref_masses;
-		 TextFile ref_file;
-		 
-		 
-		 ref_file.load(ref,true);
-		 
-		 for(TextFile::Iterator iter = ref_file.begin(); iter != ref_file.end(); ++iter)
-			 {
-				 ref_masses.push_back(atof(iter->c_str()));
-			 }
-		 
-		 //-------------------------------------------------------------
-		 // perform calibration
-		 //-------------------------------------------------------------
+	  //-------------------------------------------------------------
+	  // parameter handling
+	  //-------------------------------------------------------------
 
-		 if(peak_data)
-			 {
-				 calib.calibrate(ms_exp_peak,ref_masses);
-			 }
-		 else calib.calibrate(ms_exp_raw,ref_masses);
-		 
-		 //-------------------------------------------------------------
-		 // writing output
-		 //-------------------------------------------------------------
-		 if(peak_data)
-			 {
-				 mz_data_file.store(out,ms_exp_peak);
-			 }
-		 else mz_data_file.store(out,ms_exp_raw);
-		 
-		 
-		 return EXECUTION_OK;
-	 }
+	  String in = getStringOption_("in");
+	  String out = getStringOption_("out");
+	  String ref = getStringOption_("ref_masses");
+	  bool peak_data = getFlag_("peak_data");
+	  //-------------------------------------------------------------
+	  // init InternalCalibration
+	  //-------------------------------------------------------------
+
+	  InternalCalibration calib;
+	  Param param = getParam_().copy("algorithm:",true);
+	  calib.setParameters(param);
+	
+	  //-------------------------------------------------------------
+	  // loading input
+	  //-------------------------------------------------------------
+	  MSExperiment<RawDataPoint1D > ms_exp_raw;
+	
+	  MzDataFile mz_data_file;
+	  mz_data_file.setLogType(log_type_);
+	  mz_data_file.load(in,ms_exp_raw);
+
+
+	
+	  vector<double> ref_masses;
+	  TextFile ref_file;
+
+
+	  ref_file.load(ref,true);
+
+	  for(TextFile::Iterator iter = ref_file.begin(); iter != ref_file.end(); ++iter)
+	    {
+		  ref_masses.push_back(atof(iter->c_str()));
+		}
+		
+	  //-------------------------------------------------------------
+	  // perform calibration
+	  //-------------------------------------------------------------
+		
+	  calib.calibrate(ms_exp_raw,ref_masses,peak_data);
+	
+	  //-------------------------------------------------------------
+	  // writing output
+	  //-------------------------------------------------------------
+	  mz_data_file.store(out,ms_exp_raw);
+
+		
+	  return EXECUTION_OK;
+    }
+
 };
 
 
