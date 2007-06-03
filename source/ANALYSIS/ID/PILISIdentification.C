@@ -159,16 +159,18 @@ namespace OpenMS
 		return sequence_db_;
 	}
 	
-	void PILISIdentification::getProteinIdentifications(vector<PeptideIdentification>& ids, const PeakMap& exp)
+	void PILISIdentification::getIdentifications(vector<PeptideIdentification>& ids, const PeakMap& exp)
 	{
 		UInt max_candidates = (UInt)param_.getValue("max_candidates");
-		for (PeakMap::ConstIterator it = exp.begin(); it != exp.end(); ++it)
+		UInt count(1);
+		for (PeakMap::ConstIterator it = exp.begin(); it != exp.end(); ++it, ++count)
 		{
 			if (it->getMSLevel() != 2)
 			{
 				continue;
 			}
 
+			//cerr << count << "/" << exp.size() << endl;
 			PeptideIdentification id;
 			getIdentification(id, *it);
 			
@@ -425,7 +427,7 @@ namespace OpenMS
 
 		if (fixed_modifications != "")
 		{
-			cerr << fixed_modifications << endl;
+			//cerr << fixed_modifications << endl;
 			vector<String> mod_split;
 
 			fixed_modifications.split(',', mod_split); // comma separated modifications

@@ -233,15 +233,15 @@ class TOPPOMSSAAdapter
 			// path to the log file
 			String logfile(getStringOption_("log"));
 			String omssa_dir(getStringOption_("omssa_dir"));
-			// log filestream (as long as the real logfile is not determined yet)
-			ofstream log;
 			String inputfile_name;
 			String outputfile_name;
-			String omssa_outfile_name("omssa_tmp_output.xml");
 			PeakMap map;
 			
 			String parameters;
-			
+			String unique_name = File::getUniqueName(); // body for the tmp files
+			String unique_input_name = unique_name + "_OMSSA.mgf";
+			String unique_output_name = unique_name + "_OMSSA.xml";
+
 			//-------------------------------------------------------------
 			// parsing parameters
 			//-------------------------------------------------------------
@@ -273,6 +273,7 @@ class TOPPOMSSAAdapter
 			parameters += " -zc " +  String(getIntOption_("zc"));
 			parameters += " -zcc " + String(getIntOption_("zcc"));
 			parameters += " -ht " +  String(getIntOption_("ht"));
+			parameters += " -i " + getStringOption_("i");
 			parameters += " -v " +   String(getIntOption_("v"));
 			parameters += " -e " +   String(getIntOption_("e"));
 			parameters += " -tez " + String(getIntOption_("tez"));
@@ -282,9 +283,15 @@ class TOPPOMSSAAdapter
 			//String omssa_tmp_filename("omssa_tmp.dta");
 			//parameters += omssa_tmp_filename;
 			//-fm
-			parameters += " -fm " + String("omssa_input_file.mgf");
-			parameters += " -ox " + omssa_outfile_name;
-			//parameters += " -ni ";
+			//parameters += " -fm " + String("omssa_input_file.mgf");
+			parameters += " -fm " + unique_input_name; 
+			//parameters += " -ox " + omssa_outfile_name;
+			parameters += " -ox " + unique_output_name;
+
+			if (getIntOption_("debug") == 0)
+			{
+				parameters += " -ni ";
+			}
 			parameters += " -he " + String(getDoubleOption_("he"));
 			if (getStringOption_("mf") != "")
 			{
@@ -320,77 +327,78 @@ class TOPPOMSSAAdapter
 			//-------------------------------------------------------------
 	
 			MascotInfile omssa_infile;
-			omssa_infile.store("omssa_input_file.mgf", map, "OMSSA search tmp file");
+			omssa_infile.store(unique_input_name, map, "OMSSA search tmp file");
 
 			String call = omssa_dir + "/omssacl " + parameters;
 
 			writeDebug_(call, 5);
-				int status = system(call.c_str());
+			int status = system(call.c_str());
 		
-				if (status != 0)
-				{
-					writeLog_("OMSSA problem. Warning, resuming with next spectrum! (Details can be seen in the logfile: \"" + logfile + "\")");
+			if (status != 0)
+			{
+				writeLog_("OMSSA problem. Warning, resuming with next spectrum! (Details can be seen in the logfile: \"" + logfile + "\")");
 					// TODO cleanup
-					return EXTERNAL_PROGRAM_ERROR;
-				}
+				return EXTERNAL_PROGRAM_ERROR;
+			}
 
 				// read OMSSA output
-				OMSSAXMLFile omssa_out_file;
-				omssa_out_file.load(omssa_outfile_name, protein_identification, peptide_ids);
+			OMSSAXMLFile omssa_out_file;
+			omssa_out_file.load(unique_output_name, protein_identification, peptide_ids);
 
-				// handle the search parameters
-				ProteinIdentification::SearchParameters search_parameters;
-				search_parameters.db = getStringOption_("d");
-				//search_parameters.db_version = 
-				search_parameters.taxonomy = getStringOption_("x");
-				search_parameters.charges = "+" + String(getIntOption_("zl")) + "-+" + String(getIntOption_("zh"));
-				ProteinIdentification::PeakMassType mass_type = ProteinIdentification::MONOISOTOPIC;
-				if (getIntOption_("tom") == 1)
+			// handle the search parameters
+			ProteinIdentification::SearchParameters search_parameters;
+			search_parameters.db = getStringOption_("d");
+			//search_parameters.db_version = 
+			search_parameters.taxonomy = getStringOption_("x");
+			search_parameters.charges = "+" + String(getIntOption_("zl")) + "-+" + String(getIntOption_("zh"));
+			ProteinIdentification::PeakMassType mass_type = ProteinIdentification::MONOISOTOPIC;
+
+			if (getIntOption_("tom") == 1)
+			{
+				mass_type = ProteinIdentification::AVERAGE;
+			}
+			else
+			{
+				if (getIntOption_("tom") != 0)
 				{
-					mass_type = ProteinIdentification::AVERAGE;
+					writeLog_("Warning: unrecognized mass type: " + String(getIntOption_("tom")));
 				}
-				else
+			}
+			search_parameters.mass_type = mass_type;
+			vector<String> fixed_mods, var_mods;
+			getStringOption_("mf").split(',', fixed_mods);
+			if (fixed_mods.size() == 0)
+			{
+				if (getStringOption_("mf") != "")
 				{
-					if (getIntOption_("tom") != 0)
-					{
-						writeLog_("Warning: unrecognized mass type: " + String(getIntOption_("tom")));
-					}
+					fixed_mods.push_back(getStringOption_("mf"));
 				}
-				search_parameters.mass_type = mass_type;
-				vector<String> fixed_mods, var_mods;
-				getStringOption_("mf").split(',', fixed_mods);
-				if (fixed_mods.size() == 0)
+			}
+			getStringOption_("mv").split(',', var_mods);
+			if (var_mods.size() == 0)
+			{
+				if (getStringOption_("mv") != "")
 				{
-					if (getStringOption_("mf") != "")
-					{
-						fixed_mods.push_back(getStringOption_("mf"));
-					}
+					var_mods.push_back(getStringOption_("mv"));
 				}
-				getStringOption_("mv").split(',', var_mods);
-				if (var_mods.size() == 0)
-				{
-					if (getStringOption_("mv") != "")
-					{
-						var_mods.push_back(getStringOption_("mv"));
-					}
-				}
-				search_parameters.fixed_modifications = fixed_mods;
-				search_parameters.variable_modifications = var_mods;
-				ProteinIdentification::DigestionEnzyme enzyme = ProteinIdentification::TRYPSIN;
+			}
+			search_parameters.fixed_modifications = fixed_mods;
+			search_parameters.variable_modifications = var_mods;
+			ProteinIdentification::DigestionEnzyme enzyme = ProteinIdentification::TRYPSIN;
 				
-				UInt e(getIntOption_("e"));
-				if (e != 0)
-				{
-					writeLog_("Warning: cannot handle enzyme: " + getIntOption_("e"));
-				}
+			UInt e(getIntOption_("e"));
+			if (e != 0)
+			{
+				writeLog_("Warning: cannot handle enzyme: " + getIntOption_("e"));
+			}
 
-				search_parameters.enzyme = enzyme;
-				search_parameters.missed_cleavages = getIntOption_("v");
-				search_parameters.peak_mass_tolerance = getDoubleOption_("to");
-				search_parameters.precursor_tolerance = getDoubleOption_("te");
+			search_parameters.enzyme = enzyme;
+			search_parameters.missed_cleavages = getIntOption_("v");
+			search_parameters.peak_mass_tolerance = getDoubleOption_("to");
+			search_parameters.precursor_tolerance = getDoubleOption_("te");
 
 				
-				protein_identification.setSearchParameters(search_parameters);
+			protein_identification.setSearchParameters(search_parameters);
 
 			// write RT and MZ info to peptide identification
 			
