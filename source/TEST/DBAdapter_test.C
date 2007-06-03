@@ -157,6 +157,34 @@ CHECK((bool checkDBVersion(bool warning)))
 		subsample.setMetaValue("label", String("pink"));
 		subsamples.push_back(subsample);
 		exp_original.getSample().setSubsamples(subsamples);
+
+		// setting experiment's first protein identification (+ 2 proteine hits)
+		ProteinIdentification pi;
+		ProteinHit ph;
+		pi.setSearchEngine("google");
+		pi.setSearchEngineVersion("beta");
+		DateTime datetime;
+		// does not save time yet, DB schema must be changed from Date to DateTime
+		datetime.set("2006-12-12 00:00:00");
+		pi.setDateTime(datetime);
+		pi.setScoreType("Type");
+		pi.setHigherScoreBetter(true);
+		pi.setSignificanceThreshold(3.456);
+		ph.setAccession("0110110");
+		std::vector<ProteinHit> vector_ph;
+		vector_ph.push_back(ph);
+		ph = ProteinHit();
+		ph.setScore(4.567);
+		ph.setAccession("1001001");
+		ph.setSequence("ZXY");
+		vector_ph.push_back(ph);
+		pi.setHits(vector_ph);	
+		exp_original.getProteinIdentifications().push_back(pi);
+
+		// setting experiment's second protein identification (+ no proteine hits)
+		pi = ProteinIdentification();
+		pi.setHigherScoreBetter(false);
+		exp_original.getProteinIdentifications().push_back(pi);
 		
 		ContactPerson contact;
 		contact.setFirstName("Ferdinand");
@@ -284,7 +312,38 @@ CHECK((bool checkDBVersion(bool warning)))
 		info.push_back(acquisition);
 		
 		spec.setAcquisitionInfo(info);
-		
+
+		PeptideIdentification pei;
+		PeptideHit peh;
+		// first PeptideIdentification (+ 2 PeptideHits) for 1st Spectrum
+		std::vector<PeptideIdentification> vec_pei;
+		pei.setSignificanceThreshold(1.235);
+		pei.setScoreType("ScoreType");
+		pei.setHigherScoreBetter(true);		
+//needs getter and setter methods first
+//		source_file.setNameOfFile("testberlin");
+//		source_file.setPathToFile("/testen/");	
+//		pei.setSourceFile(source_file);
+		std::vector<PeptideHit> vec_peh;
+		peh.setScore(2.345);
+		peh.setSequence("ABCD");
+		peh.setCharge(7);
+		peh.setAABefore('b');
+		peh.setAAAfter('c');
+		vec_peh.push_back(peh);
+		peh = PeptideHit();
+		peh.setAABefore('d');
+		peh.setAAAfter('e');
+		vec_peh.push_back(peh);
+		pei.setHits(vec_peh);
+		vec_pei.push_back(pei);		
+
+		// second PeptideIdentification (+ no PeptideHits) for 1st Spectrum
+		pei = PeptideIdentification();
+		pei.setHigherScoreBetter(false);		
+		vec_pei.push_back(pei);
+		spec.setPeptideIdentifications(vec_pei);
+
 		exp_original.push_back(spec);
 			
 		//MSMS spectrum
@@ -416,6 +475,35 @@ CHECK((template <class ExperimentType> void loadExperiment(UID id, ExperimentTyp
 			TEST_REAL_EQUAL(digestion->getDigestionTime(), 36.6 )
 			TEST_REAL_EQUAL(digestion->getPh(), 7.2 )
 			TEST_REAL_EQUAL(digestion->getTemperature(), 37.7 )
+
+			TEST_EQUAL(exp_new.getProteinIdentifications()[0].getSearchEngine(), "google" )
+			TEST_EQUAL(exp_new.getProteinIdentifications()[0].getSearchEngineVersion(), "beta" )
+			String date;
+			exp_new.getProteinIdentifications()[0].getDateTime().get(date);
+			TEST_EQUAL(date, "2006-12-12 00:00:00" )
+			TEST_EQUAL(exp_new.getProteinIdentifications()[0].getScoreType(), "Type" )
+			TEST_EQUAL(exp_new.getProteinIdentifications()[0].isHigherScoreBetter(), true )
+			TEST_REAL_EQUAL(exp_new.getProteinIdentifications()[0].getSignificanceThreshold(), 3.456 )
+			TEST_EQUAL(exp_new.getProteinIdentifications()[0].getHits()[0].getAccession(), "0110110" )
+			TEST_REAL_EQUAL(exp_new.getProteinIdentifications()[0].getHits()[1].getScore(), 4.567 )
+			TEST_EQUAL(exp_new.getProteinIdentifications()[0].getHits()[1].getAccession(), "1001001" )
+			TEST_EQUAL(exp_new.getProteinIdentifications()[0].getHits()[1].getSequence(), "ZXY" )
+
+			TEST_REAL_EQUAL(exp_new[0].getPeptideIdentifications()[0].getSignificanceThreshold(), 1.235 )	
+			TEST_EQUAL(exp_new[0].getPeptideIdentifications()[0].getScoreType(), "ScoreType" )
+			TEST_EQUAL(exp_new[0].getPeptideIdentifications()[0].isHigherScoreBetter(), true )
+// needs getter and setter methods first
+//			TEST_EQUAL(exp_new[0].getPeptideIdentifications()[0].getSourceFile().getNameOfFile(), "testberlin" )
+//			TEST_EQUAL(exp_new[0].getPeptideIdentifications()[0].getSourceFile().getPathToFile(), "/testen/" )
+			TEST_EQUAL(exp_new[0].getPeptideIdentifications()[1].isHigherScoreBetter(), false )
+
+			TEST_REAL_EQUAL(exp_new[0].getPeptideIdentifications()[0].getHits()[0].getScore(), 2.345 )	
+			TEST_EQUAL(exp_new[0].getPeptideIdentifications()[0].getHits()[0].getSequence(), "ABCD" )	
+			TEST_EQUAL(exp_new[0].getPeptideIdentifications()[0].getHits()[0].getCharge(), 7 )	
+			TEST_EQUAL(exp_new[0].getPeptideIdentifications()[0].getHits()[0].getAABefore(), 'b' )	
+			TEST_EQUAL(exp_new[0].getPeptideIdentifications()[0].getHits()[0].getAAAfter(), 'c' )	
+			TEST_EQUAL(exp_new[0].getPeptideIdentifications()[0].getHits()[1].getAABefore(), 'd' )	
+			TEST_EQUAL(exp_new[0].getPeptideIdentifications()[0].getHits()[1].getAAAfter(), 'e' )	
 			
 			TEST_EQUAL(exp_new.getSample().getSubsamples()[1].getState(), Sample::GAS )
 			TEST_EQUAL(exp_new.getSample().getSubsamples()[1].getOrganism(), "isistius brasiliensis (cookiecutter shar" )
