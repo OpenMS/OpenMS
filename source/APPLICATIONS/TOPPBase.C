@@ -415,7 +415,7 @@ namespace OpenMS
 			UInt indent = 0;
 			for(map<String,String>::const_iterator it = subsections_.begin(); it!=subsections_.end(); ++it)
 			{
-				indent = max(it->first.size(),indent);
+				indent = max((UInt)it->first.size(),indent);
 			}
 			indent += 6;
 			
