@@ -170,10 +170,13 @@ namespace OpenMS
 		//----------------------------------------------------------------------------------------
 		if (!checkDBVersion(true)) return;
 		
+		
+		
 		//----------------------------------------------------------------------------------------
-		//------------------------------- EXPERIMENTAL SETTINGS ---------------------------------- 
+		//------------------------------- EXPERIMENT --------------------------------------------- 
 		//----------------------------------------------------------------------------------------
 		
+		query.str("");
 		new_entry = (exp.getPersistenceId()==0);
 		if (new_entry)
 		{
@@ -201,6 +204,56 @@ namespace OpenMS
 		}
 		
 		storeMetaInfo_("META_MSExperiment", exp.getPersistenceId(), exp);
+		
+		//----------------------------------------------------------------------------------------
+		//------------------------------- PROTEIN IDENTIFICATIONS / HITS-------------------------- 
+		//----------------------------------------------------------------------------------------
+
+		std::vector<ProteinIdentification>& pi = exp.getProteinIdentifications();
+		String date;
+		
+		// first delete all old values, no matter whether we're updating or not
+		// do we have to delete the MetaInfo as well?
+		query.str("");
+		query << "DELETE FROM ID_ProteinIdentification WHERE fid_MSExperiment='" << exp.getPersistenceId() << "'";
+		db_con_.executeQuery(query.str(), result);
+
+		for (std::vector<ProteinIdentification>::const_iterator pi_it = pi.begin(); pi_it != pi.end(); pi_it++)
+		{
+			query.str("");
+			query << "INSERT INTO ID_ProteinIdentification SET ";
+			query << "fid_MSExperiment='" << exp.getPersistenceId() << "'";
+			query << ",SearchEngine='" << pi_it->getSearchEngine() << "'";
+			query << ",SearchEngineVersion='" << pi_it->getSearchEngineVersion() << "'";
+			pi_it->getDateTime().get(date);
+			query << ",Date='" << date << "'";
+			query << ",ScoreType='" << pi_it->getScoreType() << "'";
+			query << ",HigherScoreBetter='" << pi_it->isHigherScoreBetter() << "'";
+			query << ",SignificanceThreshold='" << pi_it->getSignificanceThreshold() << "'";
+			
+			db_con_.executeQuery(query.str(), result);
+			parent_id = db_con_.getAutoId();
+			
+			storeMetaInfo_("ID_ProteinIdentification", parent_id, *pi_it);
+			//needs getter and setter methods first
+			//storeFile_("ID_ProteinIdentification", parent_id, pi_it->getSourceFile());
+
+			for (std::vector<ProteinHit>::const_iterator ph_it = pi_it->getHits().begin(); ph_it != pi_it->getHits().end(); ph_it++)
+			{
+				query.str("");
+				query << "INSERT INTO ID_ProteinHit SET ";
+				query << "fid_ProteinIdentification='" << parent_id << "'";
+				query << ",Score='" << ph_it->getScore() << "'";
+				query << ",Accession='" << ph_it->getAccession() << "'";
+				query << ",Sequence='" << ph_it->getSequence() << "'";
+				
+				db_con_.executeQuery(query.str(), result);
+				meta_id = db_con_.getAutoId();
+				
+				storeMetaInfo_("ID_ProteinHit", meta_id, *ph_it);
+			}
+		}
+		
 		
 		//----------------------------------------------------------------------------------------
 		//-------------------------------------- SAMPLE ------------------------------------------ 
@@ -604,6 +657,53 @@ namespace OpenMS
 			
 
 			//----------------------------------------------------------------------------------------
+			//------------------------------- PEPTIDE IDENTIFICATIONS / HITS-------------------------- 
+			//----------------------------------------------------------------------------------------
+	
+			std::vector<PeptideIdentification>& pei = exp_it->getPeptideIdentifications();
+
+			// first delete all old values, no matter whether we're updating or not
+			// do we have to delete the MetaInfo as well?
+			query.str("");
+			query << "DELETE FROM ID_PeptideIdentification WHERE fid_Spectrum='";
+			query << exp_it->getPersistenceId() << "'";
+			db_con_.executeQuery(query.str(), result);
+			
+			for (std::vector<PeptideIdentification>::const_iterator pei_it = pei.begin(); pei_it != pei.end(); pei_it++)
+			{
+				query.str("");
+				query << "INSERT INTO ID_PeptideIdentification SET ";
+				query << "fid_Spectrum='" << exp_it->getPersistenceId() << "'";
+				query << ",SignificanceThreshold='" << pei_it->getSignificanceThreshold() << "'";
+				query << ",ScoreType='" << pei_it->getScoreType() << "'";
+				query << ",HigherScoreBetter='" << pei_it->isHigherScoreBetter() << "'";
+				
+				db_con_.executeQuery(query.str(), result);
+				parent_id = db_con_.getAutoId();
+				
+				storeMetaInfo_("ID_PeptideIdentification", parent_id, *pei_it);
+				//needs getter and setter methods first
+				//storeFile_("ID_PeptideIdentification", parent_id, pei_it->getSourceFile());
+	
+				for (std::vector<PeptideHit>::const_iterator peh_it = pei_it->getHits().begin(); peh_it != pei_it->getHits().end(); peh_it++)
+				{
+					query.str("");
+					query << "INSERT INTO ID_PeptideHit SET ";
+					query << "fid_Identification='" << parent_id << "'";
+					query << ",Score='" << peh_it->getScore() << "'";
+					query << ",charge='" << peh_it->getCharge() << "'";
+					query << ",Sequence='" << peh_it->getSequence() << "'";
+					query << ",AABefore='" << peh_it->getAABefore() << "'";
+					query << ",AAAfter='" << peh_it->getAAAfter() << "'";
+					
+					db_con_.executeQuery(query.str(), result);
+					meta_id = db_con_.getAutoId();
+					
+					storeMetaInfo_("ID_PeptideHit", meta_id, *peh_it);
+				}
+			}
+	
+			//----------------------------------------------------------------------------------------
 			//-------------------------------------- PRECURSOR --------------------------------------- 
 			//----------------------------------------------------------------------------------------
 			
@@ -781,7 +881,7 @@ namespace OpenMS
 		
 		std::stringstream query; // query to build
 		String tmp;              // temporary data
-		QSqlQuery result;        // place to store the query results in
+		QSqlQuery result, sub_result;        // place to store the query results in
 		UID parent_id;					 // holds ID of parent data set
 		
 		query << "SELECT Type-1,Date,fid_MetaInfo,Description FROM META_MSExperiment WHERE id='" << id << "'";
@@ -799,6 +899,58 @@ namespace OpenMS
 		exp.setComment(result.value(3).toString().toAscii().data());
 		loadMetaInfo_(result.value(2).toInt(),exp);
 		
+		std::vector<ProteinIdentification> pi_vec;
+	  std::vector<ProteinHit> ph_vec;
+		ProteinIdentification pi;
+	  ProteinHit ph;
+		
+		query.str("");
+		query << "SELECT id, SearchEngine, SearchEngineVersion, Date, ScoreType, HigherScoreBetter, SignificanceThreshold, fid_MetaInfo, fid_File	FROM ID_ProteinIdentification WHERE fid_MSExperiment='" << id << "'";
+
+		db_con_.executeQuery(query.str(),result);
+		
+		result.first();
+		while(result.isValid())
+		{
+			parent_id = result.value(0).toInt();
+			pi.setSearchEngine(result.value(1).toString().toAscii().data());
+			pi.setSearchEngineVersion(result.value(2).toString().toAscii().data());
+			pi.setDateTime(DateTime(result.value(3).toDateTime()));
+			pi.setScoreType(result.value(4).toString().toAscii().data());
+			pi.setHigherScoreBetter(result.value(5).toInt());
+			pi.setSignificanceThreshold(result.value(6).toDouble());
+			
+			loadMetaInfo_(result.value(7).toInt(), pi);
+			//needs getter and setter methods first
+			//			loadFile_(result.value(8).toInt(), pi.getSourceFile());
+			
+			query.str("");
+			query << "SELECT Score, Accession, Sequence, fid_MetaInfo FROM ID_ProteinHit WHERE fid_ProteinIdentification='" << parent_id << "'";
+			db_con_.executeQuery(query.str(),sub_result);
+		
+			sub_result.first();
+			while(sub_result.isValid())
+			{
+				ph.setScore(sub_result.value(0).toDouble());
+				ph.setAccession(sub_result.value(1).toString().toAscii().data());
+				ph.setSequence(sub_result.value(2).toString().toAscii().data());
+
+				loadMetaInfo_(sub_result.value(3).toInt(), ph);
+
+				ph_vec.push_back(ph);
+				
+				sub_result.next();
+			}
+
+			pi.setHits(ph_vec);
+
+			pi_vec.push_back(pi);
+
+			result.next();
+		}
+		
+		exp.setProteinIdentifications(pi_vec);
+
 		// Sample
 		Sample sample;
 		query.str("");
@@ -1024,7 +1176,7 @@ namespace OpenMS
 		spec = SpectrumType();
 		
 		std::stringstream query;     // query to build
-		QSqlQuery result;            // place to store the query results in
+		QSqlQuery result, sub_result;// place to store the query results in
 		InstrumentSettings settings; // stores settings that are read from DB
 		UID parent_id;               // stores parent_id of Acquisition
 		
@@ -1052,6 +1204,60 @@ namespace OpenMS
 		settings.setScanMode((InstrumentSettings::ScanMode) (result.value(3).toInt()));
 		spec.setInstrumentSettings(settings);
 		loadMetaInfo_(result.value(4).toInt(),spec.getInstrumentSettings());
+
+
+    // PeptideIdentification / PeptideHits
+
+		std::vector<PeptideIdentification> pei_vec;
+	  std::vector<PeptideHit> peh_vec;
+		PeptideIdentification pei;
+	  PeptideHit peh;
+		
+		query.str("");
+		query << "SELECT id, SignificanceThreshold, ScoreType, HigherScoreBetter, fid_MetaInfo, fid_File	FROM ID_PeptideIdentification WHERE fid_Spectrum='" << id << "'";
+
+		db_con_.executeQuery(query.str(),result);
+		
+		result.first();
+		while(result.isValid())
+		{
+			parent_id = result.value(0).toInt();
+			pei.setSignificanceThreshold(result.value(1).toDouble());
+			pei.setScoreType(result.value(2).toString().toAscii().data());
+			pei.setHigherScoreBetter(result.value(3).toInt());
+			
+			loadMetaInfo_(result.value(4).toInt(), pei);
+			//needs getter and setter methods first
+			//			loadFile_(result.value(5).toInt(), pei.getSourceFile());
+			
+			query.str("");
+			query << "SELECT Score, Sequence, Charge, AABefore, AAAfter, fid_MetaInfo FROM ID_PeptideHit WHERE fid_Identification='" << parent_id << "'";
+			db_con_.executeQuery(query.str(),sub_result);
+		
+			sub_result.first();
+			while(sub_result.isValid())
+			{
+				peh.setScore(sub_result.value(0).toDouble());
+				peh.setSequence(sub_result.value(1).toString().toAscii().data());
+				peh.setCharge(sub_result.value(2).toInt());
+				peh.setAABefore(sub_result.value(3).toString().toAscii().data()[0]);
+				peh.setAAAfter(sub_result.value(4).toString().toAscii().data()[0]);
+
+				loadMetaInfo_(sub_result.value(5).toInt(), peh);
+
+				peh_vec.push_back(peh);
+				
+				sub_result.next();
+			}
+
+			pei.setHits(peh_vec);
+
+			pei_vec.push_back(pei);
+
+			result.next();
+		}
+
+		spec.setPeptideIdentifications(pei_vec);
 
 		// AcquisitionInfo
 		query.str("");
