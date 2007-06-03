@@ -132,7 +132,7 @@ namespace OpenMS
 			/// sets the charge of the peptide
 			void setCharge(Int charge);
 			
-			/// adds a accession of a protein which contains this peptide hit
+			/// adds an accession of a protein which contains this peptide hit
 			void addProteinAccession(const String& accession); 
 			
 			/// sets the amino acid before the sequence

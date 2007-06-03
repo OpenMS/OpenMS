@@ -148,31 +148,31 @@ CHECK([EXTRA] DefaultParamHandler::setParameters(...))
 	// symmetry cannot be 1, because the log(1)=0 => division by zero
 	tmp.setValue("emg:symmetry",  1.0);
 	logm1.setParameters(tmp);
-	ABORT_IF(isnan(logm1.getIntensity(1.0)))
+	ABORT_IF(std::isnan(logm1.getIntensity(1.0)))
 
 	// symmetry cannot be 0, cause division by zero
 	tmp.setValue("emg:symmetry",  0.0);
 	logm1.setParameters(tmp);
-	ABORT_IF(isnan(logm1.getIntensity(1.0)))
+	ABORT_IF(std::isnan(logm1.getIntensity(1.0)))
 
 	// small values for the parameter symmetry are valid
 	tmp.setValue("emg:symmetry",  1.001);
 	logm1.setParameters(tmp);
-	ABORT_IF(!isnan(logm1.getIntensity(1.0)))
-	ABORT_IF(!isinf(logm1.getIntensity(1.0)))
+	ABORT_IF(!std::isnan(logm1.getIntensity(1.0)))
+	ABORT_IF(!std::isinf(logm1.getIntensity(1.0)))
 
 	tmp.setValue("emg:symmetry",  0.998);
 	logm1.setParameters(tmp);
-	ABORT_IF(!isinf(logm1.getIntensity(1.0)))
-	ABORT_IF(!isnan(logm1.getIntensity(1.0)))
+	ABORT_IF(!std::isinf(logm1.getIntensity(1.0)))
+	ABORT_IF(!std::isnan(logm1.getIntensity(1.0)))
 	
 	tmp.setValue("emg:symmetry",  0.001);
 	logm1.setParameters(tmp);
-	ABORT_IF(!isinf(logm1.getIntensity(1.0)))
+	ABORT_IF(!std::isinf(logm1.getIntensity(1.0)))
 	
 	tmp.setValue("emg:symmetry",  -0.001);
 	logm1.setParameters(tmp);
-	ABORT_IF(!isinf(logm1.getIntensity(1.0)))
+	ABORT_IF(!std::isinf(logm1.getIntensity(1.0)))
 
 
 RESULT
