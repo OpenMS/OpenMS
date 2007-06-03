@@ -349,7 +349,7 @@ namespace OpenMS
 						nodepath = nodepath + ":" + nodename;
 					}
 					//cout << "NODE: '" << nodepath << "': " << param.getDescription(nodepath) << endl;
-					item->setStatusTip(0,param.getDescription(nodepath).toQString());
+					item->setToolTip(0,param.getDescription(nodepath).toQString());
 					
 					//flags
 					if(param_editable_!=NULL)
