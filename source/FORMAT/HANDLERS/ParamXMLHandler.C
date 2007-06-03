@@ -64,7 +64,7 @@ namespace OpenMS
 			{
 				const Locator* loc = 0;
 				setDocumentLocator(loc);
-				String message = String("Missing attribure type or name in ITEM");
+				String message = String("Missing attribute type or name in ITEM");
 				error(SAXParseException(XMLString::transcode(message.c_str()), *loc ));
 			}		
 			

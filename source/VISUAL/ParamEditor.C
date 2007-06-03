@@ -65,7 +65,7 @@ namespace OpenMS
 		{
 			QString str = index.model()->data(index, Qt::DisplayRole).toString();
 			Int id=index.model()->data(index, Qt::UserRole).toInt();
-			if(index.column()==0)
+			if(index.column()==0)	// if it is the first column give me a QLineEdit with a regex validator that allows only words
 			{
 				QRegExp rx("\\S+");
 				QValidator *validator = new QRegExpValidator(rx, parent);
@@ -73,7 +73,7 @@ namespace OpenMS
 				editor->setValidator(validator);
 				return editor;
 			}
-			else if (index.column() == 2 && id==ParamEditor::ITEM)
+			else if (index.column() == 2 && id==ParamEditor::ITEM) // if we have an item and we are in the third column give me a combobox to choose the type 
 			{
 				QComboBox *editor = new QComboBox(parent);
 				QStringList list;
@@ -86,7 +86,7 @@ namespace OpenMS
 				}
 				return editor;
 			}
-			else if(index.column()==1 && id==ParamEditor::ITEM)
+			else if(index.column()==1 && id==ParamEditor::ITEM)	// if we are in the second column and it's an item give me a QLineEdit
 			{
 				QLineEdit *editor = new QLineEdit(parent);
 				return editor;
@@ -102,18 +102,18 @@ namespace OpenMS
 				QString str = index.model()->data(index, Qt::DisplayRole).toString();
 				QStringList list;
 				list<<"int"<<"float"<<"string";
-				int pos = list.indexOf(str);
+				int pos = list.indexOf(str);	// look for the string that is current displayed type
 				QComboBox *combo = static_cast<QComboBox*>(editor);
 				if (pos!=-1)
 				{
-					combo->setCurrentIndex(pos);
+					combo->setCurrentIndex(pos);	//set the current type in the combobox
 				}
 			}
 			else if(index.column()==1)
 			{
-				QString str = index.model()->data(index, Qt::DisplayRole).toString();
-				QLineEdit *edit = static_cast<QLineEdit*>(editor);
-				edit->setText(str);
+				QString str = index.model()->data(index, Qt::DisplayRole).toString();	// get the value from the model
+				QLineEdit *edit = static_cast<QLineEdit*>(editor);	// cast the editor to your actual widget
+				edit->setText(str);	// set it to the current value from the model
 			}
 			else if(index.column()==0)
 			{
@@ -132,13 +132,13 @@ namespace OpenMS
 			{
 				QComboBox *combo= static_cast<QComboBox*>(editor);
 				QVariant new_value(combo->currentText());
-				if(new_value!=present_value && !initial_value.isValid())
+				if(new_value!=present_value && !initial_value.isValid())	// if data of a cell gets a new value from the editor widget change color to yellow and emit the modified signal
 				{
-					model->setData(index, present_value, 33);
+					model->setData(index, present_value, 33);	// index is the current model index of the item cell with a new value for a cell in the model in data layer 33, the first lyer that has no predefined constant
 					model->setData(index,QBrush(Qt::yellow),Qt::BackgroundRole);
 					emit modified(true);
 				}
-				else if(new_value==initial_value)
+				else if(new_value==initial_value)	// if value changes back to original change backgroundcolor back to white and emit modified signal
 				{
 					model->setData(index,QBrush(Qt::white),Qt::BackgroundRole);
 					emit modified(false);
@@ -199,10 +199,10 @@ namespace OpenMS
 			is_name_empty_(false)
 	{
 		setMinimumSize(500,300);
-		setItemDelegate(new Internal::ParamEditorDelegate);
+		setItemDelegate(new Internal::ParamEditorDelegate);	// the delegate from above is set
 		setWindowTitle("ParamEditor");
 		setColumnCount(3);
-		connect(itemDelegate(),SIGNAL(modified(bool)),this,SLOT(setModified(bool)));
+		connect(itemDelegate(),SIGNAL(modified(bool)),this,SLOT(setModified(bool)));	// the modified signal from the delegate is connected with setModified that operates a counter variable to watch over changes
 		connect(this, SIGNAL(currentItemChanged ( QTreeWidgetItem *, QTreeWidgetItem*)),this,SLOT(editChanged(QTreeWidgetItem*, QTreeWidgetItem*))); 
 		QStringList list;
 		list.push_back("name");
@@ -223,16 +223,16 @@ namespace OpenMS
 	
 	void ParamEditor::editChanged(QTreeWidgetItem* current, QTreeWidgetItem* previous)
 	{
-		if(previous)
+		if(previous)	// if we have a previous item, if not previous is NULL and we have a crash
 		{
-			QTreeWidgetItem* parent=previous->parent();
+			QTreeWidgetItem* parent=previous->parent();	
 
 			if(!parent)
 			{
 				parent=invisibleRootItem();
 			}
 			Int child_count=0;
-			for (Int i = parent->childCount()-1; i >=0;i--)
+			for (Int i = parent->childCount()-1; i >=0;i--)	// we make sure that all childs of a section have a unique name if not editItem() when left for a new item
 			{
 				if(parent->child(i)->text(0)==previous->text(0))
 				{
@@ -250,7 +250,7 @@ namespace OpenMS
 					}
 				}
 			}
-			if(previous->text(0).isEmpty())
+			if(previous->text(0).isEmpty()) // we make sure that previous item has a name if not editItem()
 			{	
 				editItem(previous);
 				setCurrentItem(previous);
@@ -496,7 +496,7 @@ namespace OpenMS
 		
 	void ParamEditor::deleteItemRecursive_(QTreeWidgetItem* item)
 	{				
-		for(Int i=item->childCount()-1; i>=0; i--)
+		for(Int i=item->childCount()-1; i>=0; i--)	// childCount() is used every time and we count backwards because the number of childs changes
 		{
 			deleteItemRecursive_(item->child(i));
 		}
@@ -517,18 +517,18 @@ namespace OpenMS
 		
 	void ParamEditor::insertItem()
 	{
-		if(!selected_item_)
+		if(!selected_item_)	// if no item is selected
 		{
-			selected_item_=currentItem();
+			selected_item_=currentItem();	// get the current item
 			
-			if(!selected_item_)
+			if(!selected_item_)	// if we didn't select any item get the root item
 			{
 				selected_item_=invisibleRootItem();
 			}
 		}
 		
 		QTreeWidgetItem* parent=selected_item_;
-		if(parent->data(0,Qt::UserRole)==ITEM)
+		if(parent->data(0,Qt::UserRole)==ITEM)	// if selected item is an item then get the parent node as parent for new item 
 		{
 			parent = selected_item_->parent();
 		}
@@ -543,9 +543,9 @@ namespace OpenMS
 		item->setBackground (0,Qt::yellow);
 		item->setBackground (1,Qt::yellow);
 		item->setBackground (2,Qt::yellow);
-		setCurrentItem(item);
-		editItem(item);
-		setModified(true);
+		setCurrentItem(item);	// we set the new item to be current to prevent an empty name by editChanged
+		editItem(item);			// we edit the item because it is empty
+		setModified(true);		// and we tell everyone it's been modified
 	}
 	    
 	void ParamEditor::insertNode()
@@ -634,7 +634,7 @@ namespace OpenMS
 			}
 			
 			String type = parent->text(2).toStdString();
-			if(type=="int")
+			if(type=="int")	// we check if the type of an item is okay with the actual value, we do this by QString's conversion methods
 			{
 				parent->text(1).toLong(&ok);
 				if(!ok)
@@ -798,7 +798,7 @@ namespace OpenMS
 	
 	void ParamEditor::setModified(bool is_modified)
 	{
-			if(is_modified)
+			if(is_modified)	// here we increment or decement changes in the model that are signaled by the signal modified to see when the data is back in original state
 			{
 				++modificationsCount_;
 				//cerr<<"\n"<<modificationsCount_<<"\n";
@@ -812,13 +812,13 @@ namespace OpenMS
 	
 		if(modificationsCount_==0)
 		{
-			modified_=false;
+			modified_=false;	// == "original state"
 		}
 		else
 		{
 			modified_=true;
 		}
-		emit modified(modified_);
+		emit modified(modified_); // ParamEditor itself emits a modified signal for other widgets to check on the changes of ParamEditor
 	}
 
 	bool ParamEditor::isModified()

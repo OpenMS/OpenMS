@@ -50,20 +50,27 @@ namespace OpenMS
 		Q_OBJECT
 		
 		public:
+			/// menu is created here
 			 INIFileEditorWindow(QWidget *parent = 0);
+			/// when user closes window a message box asks the user if he wants to save
 			void closeEvent(QCloseEvent *event);
 		public slots:
+			///loads the xml-file into a Param object and loads Param into ParamEditor
 			bool openFile(const String& filename="");
+			/// saves the users changes in a xml-file if the Param object is valid
 			bool saveFile();
+			/// like saveFile but with a file dialog to choose a filename
 			bool saveFileAs();
+			/// if the user changes data in ParamEditor the title shows a '*'
 			void updateWindowTitle(bool);
 		
 		private:
-			QToolBar* toolbar_;
+			/// ParamEditor object for visualization
 			ParamEditor* editor_;
+			/// Param object for storing data
 			Param param_;
+			/// filename of xml-file to store the Param object
 			QString filename_;
-			QMenu* edit_;
 	};
 }
 

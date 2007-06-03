@@ -61,7 +61,7 @@ namespace OpenMS
 				
 		if (layer->type==LayerData::DT_PEAK)
 		{
-			list<<"FileFilter"<<"FileInfo"<<"BaselineFilter"<<"NoiseFilter"<<"PeakPicker"<<"Resampler"<<"SpectraFilter"<<"MapNormalizer"<<"InternalCalibration"<<"FeatureFinder";
+			list<<"FileFilter"<<"FileInfo"<<"NoiseFilter"<<"PeakPicker"<<"Resampler"<<"SpectraFilter"<<"MapNormalizer"<<"InternalCalibration"<<"FeatureFinder";
 		}
 		else if (layer->type==LayerData::DT_FEATURE)
 		{
@@ -219,6 +219,7 @@ namespace OpenMS
 			{
 				output_combo_->setCurrentIndex(pos);
 			}
+			editor_->setFocus(Qt::MouseFocusReason);
 		}
 	}
 	

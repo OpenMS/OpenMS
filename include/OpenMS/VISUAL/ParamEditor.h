@@ -62,13 +62,16 @@ namespace OpenMS
 
 		 public:
 		     ParamEditorDelegate(QObject *parent = 0);
-
+			/// Returns the widget(combobox or QLineEdit) used to edit the item specified by index for editing. Prevents edit operations on nodes' values and types
 		     QWidget *createEditor(QWidget *parent, const QStyleOptionViewItem &option, const QModelIndex &index) const;
-
+			/// Sets the data to be displayed and edited by the editor for the item specified by index.
 		     void setEditorData(QWidget *editor, const QModelIndex &index) const;
+			/// Sets the data for the specified model and item index from that supplied by the editor. If data changed in a cell, that is if it is different from an initial value, then set its background color to yellow and emit the modified signal otherwise make it white
 		     void setModelData(QWidget *editor, QAbstractItemModel *model, const QModelIndex &index) const;
+			/// Updates the editor for the item specified by index according to the style option given.    
 		     void updateEditorGeometry(QWidget *editor, const QStyleOptionViewItem &option, const QModelIndex &index) const;
 		 signals:
+			/// signal for showing ParamEditor if the Model data changed
 			void modified(bool) const;
 		};
 	}

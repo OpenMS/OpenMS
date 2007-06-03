@@ -54,17 +54,17 @@ namespace OpenMS
 		file->addSeparator();
 		file->addAction("&Quit",this,SLOT(close()));
 		
-		edit_ = new QMenu("&Edit",this);
-		menuBar()->addMenu(edit_);
-		edit_->addAction("&Copy",editor_,SLOT(copySubTree()), Qt::CTRL+Qt::Key_C);
-		edit_->addAction("&Cut",editor_,SLOT(cutSubTree()), Qt::CTRL+Qt::Key_X);
-		edit_->addAction("&Paste",editor_,SLOT(pasteSubTree()), Qt::CTRL+Qt::Key_V);
-		edit_->addAction("&Delete",editor_,SLOT(deleteItem()), Qt::Key_Delete);
-		edit_->addSeparator();
-		edit_->addAction("Insert new S&ection",editor_,SLOT(insertNode()), Qt::CTRL+Qt::Key_E);
-		edit_->addAction("Insert &new Value",editor_,SLOT(insertItem()), Qt::CTRL+Qt::Key_N);
+		QMenu* edit = new QMenu("&Edit",this);
+		menuBar()->addMenu(edit);
+		edit->addAction("&Copy",editor_,SLOT(copySubTree()), Qt::CTRL+Qt::Key_C);
+		edit->addAction("&Cut",editor_,SLOT(cutSubTree()), Qt::CTRL+Qt::Key_X);
+		edit->addAction("&Paste",editor_,SLOT(pasteSubTree()), Qt::CTRL+Qt::Key_V);
+		edit->addAction("&Delete",editor_,SLOT(deleteItem()), Qt::Key_Delete);
+		edit->addSeparator();
+		edit->addAction("Insert new S&ection",editor_,SLOT(insertNode()), Qt::CTRL+Qt::Key_E);
+		edit->addAction("Insert &new Value",editor_,SLOT(insertItem()), Qt::CTRL+Qt::Key_N);
 		
-		connect(editor_,SIGNAL(modified(bool)),this,SLOT(updateWindowTitle(bool)));
+		connect(editor_,SIGNAL(modified(bool)),this,SLOT(updateWindowTitle(bool)));	// we connect the "changes state"(changes made/no changes) signal from the ParamEditor to the window title updating slot
 		
 		//create statusBar
 		statusBar();	
@@ -113,11 +113,13 @@ namespace OpenMS
 			return false;
 		}
 		
-		editor_->store();
+		if(!editor_->store())
+		{
+			return false;
+		}
 		param_.store(filename_.toStdString());
 		QString str=QString("%1 - INIFileEditor").arg(filename_);
 		setWindowTitle(str.remove(0,str.lastIndexOf('/')+1));
-		
 		return true;
 	}
 	
@@ -141,14 +143,34 @@ namespace OpenMS
 		return false;
 	}
 	
-	void INIFileEditorWindow::closeEvent(QCloseEvent* /*event*/)
+	void INIFileEditorWindow::closeEvent(QCloseEvent* event)
 	{
 		if(editor_->isModified())
 		{
-			if (QMessageBox::question(this,"Save?","Do you want to save your changes?",QMessageBox::Ok|QMessageBox::Cancel)==QMessageBox::Ok)
+			QMessageBox::StandardButton result=QMessageBox::question(this,"Save?","Do you want to save your changes?",QMessageBox::Ok|QMessageBox::Cancel|QMessageBox::Discard);
+			if (result==QMessageBox::Ok)
 			{
-				saveFile();
+				if(saveFile())
+				{
+					event->accept();
+				}
+				else
+				{
+					event->ignore();
+				}
 			}
+			else if(result==QMessageBox::Cancel)
+			{
+				event->ignore();
+			}
+			else
+			{
+				event->accept();
+			}
+		}
+		else
+		{
+			event->accept();
 		}
 	}
 	void INIFileEditorWindow::updateWindowTitle(bool update)
