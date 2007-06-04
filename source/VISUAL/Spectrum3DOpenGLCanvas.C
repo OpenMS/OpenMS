@@ -91,6 +91,17 @@ namespace OpenMS
 		    AxisTickCalculator::calcGridLines(0.0,100.0,3,grid_intensity_,7,5,dist); 
 		    break;
 	  }
+	  
+	  //cout << endl;
+	  //for (UInt level=0; level!=grid_intensity_.size(); ++level)
+	  //{
+	  //	cout << "Level: " << level << endl;
+	  //	for (UInt tick=0; tick!=grid_intensity_[level].size(); ++tick)
+	  //	{
+	  //		cout << "  " << grid_intensity_[level][tick] << endl;
+	  //	}
+	  //}
+	  
 	  AxisTickCalculator::calcGridLines(canvas_3d_.visible_area_.min_[0],canvas_3d_.visible_area_.max_[0],3,grid_rt_,7,5,dist);
 	  AxisTickCalculator::calcGridLines(canvas_3d_.visible_area_.min_[1],canvas_3d_.visible_area_.max_[1],3,grid_mz_,7,5,dist);
 	}
@@ -247,6 +258,7 @@ namespace OpenMS
 		GLuint list = glGenLists(1);
 		glNewList(list,GL_COMPILE);	
 		QColor color(canvas_3d_.param_.getValue("AxesColor").toQString());
+		//cout << "Valid: '" << color.isValid() << "' name: " << color.name().toStdString() << endl;
  		qglColor(color);
 		QFont font("Typewriter");
 		font.setPixelSize(12);
@@ -261,7 +273,7 @@ namespace OpenMS
 		{
 			for(UInt i = 0;i<grid_rt_[0].size();i++)
 				{
-					result = QString("%1").arg(grid_rt_[0][i]);
+					result = QString::number(grid_rt_[0][i]);
 					renderText (-corner_-result.length()+scaledRT(grid_rt_[0][i]), 
 											-corner_-5.0,
 											-near_-2*corner_+15.0,
@@ -273,7 +285,7 @@ namespace OpenMS
 			{
 				for(UInt i = 0;i<grid_rt_[1].size();i++)
 					{
-						result = QString("%1").arg(grid_rt_[1][i]);
+						result = QString::number(grid_rt_[1][i]);
 						renderText (-corner_-result.length()+scaledRT(grid_rt_[1][i]), 
 												-corner_-5.0,
 												-near_-2*corner_+15.0,
@@ -285,7 +297,7 @@ namespace OpenMS
 			{
 				for(UInt i = 0;i<grid_rt_[2].size();i++)
 					{
-						result = QString("%1").arg(grid_rt_[2][i]);
+						result = QString::number(grid_rt_[2][i]);
 						renderText (-corner_-result.length()+scaledRT(grid_rt_[2][i]), 
 												-corner_-5.0,
 												-near_-2*corner_+15.0,
@@ -305,7 +317,7 @@ namespace OpenMS
 		{
 			for(UInt i = 0;i<grid_mz_[0].size();i++)
 			{
-				result = QString("%1").arg(grid_mz_[0][i]);
+				result = QString::number(grid_mz_[0][i]);
 				renderText (-corner_-15.0, 
 										-corner_-5.0,
 										-near_-2*corner_-scaledMZ(grid_mz_[0][i]),
@@ -318,7 +330,7 @@ namespace OpenMS
 				
 				for(UInt i = 0;i<grid_mz_[1].size();i++)
 					{
-						result = QString("%1").arg(grid_mz_[1][i]);
+						result = QString::number(grid_mz_[1][i]);
 						renderText (-corner_-15.0, 
 												-corner_-5.0,
 												-near_-2*corner_-scaledMZ(grid_mz_[1][i]),
@@ -330,7 +342,7 @@ namespace OpenMS
 			{
 				for(UInt i = 0;i<grid_mz_[2].size();i++)
 					{
-						result = QString("%1").arg(grid_mz_[2][i]);
+						result = QString::number(grid_mz_[2][i]);
 						renderText (-corner_-15.0, 
 												-corner_-5.0,
 												-near_-2*corner_-scaledMZ(grid_mz_[2][i]),
@@ -338,7 +350,8 @@ namespace OpenMS
 												font);
 					}
 			}
-		if(canvas_3d_.action_mode_ != SpectrumCanvas::AM_ZOOM)
+		//draw intensity legend if not in zoom mode (bird's eye view)
+		if(!(canvas_3d_.action_mode_ == SpectrumCanvas::AM_ZOOM && zoom_mode_) )
 			{
 				switch (canvas_3d_.intensity_mode_)
 					{	
@@ -355,7 +368,7 @@ namespace OpenMS
 							{
 								for(UInt i = 0;i<grid_intensity_log_[0].size();i++)
 									{
-										result = QString("%1").arg(grid_intensity_log_[0][i]);
+										result = QString::number(grid_intensity_log_[0][i]);
 										renderText (-corner_-result.length()-3.0, 
 																-corner_+scaledIntensity(grid_intensity_log_[0][i],canvas_3d_.current_layer_),
 																-near_-2*corner_,
@@ -375,7 +388,7 @@ namespace OpenMS
 						font.setPixelSize(10);
 						for(UInt i = 0;i<grid_intensity_[0].size();i++)
 							{ 
-								result = QString("%1").arg(grid_intensity_[0][i]);
+								result = QString::number(grid_intensity_[0][i]);
 								renderText (-corner_-result.length()-width_/200.0-5.0, 
 														-corner_+(2.0*grid_intensity_[0][i]),
 														-near_-2*corner_,
@@ -399,12 +412,12 @@ namespace OpenMS
 						}
 						if(grid_intensity_.size()>=3)
 						{
-								if(expo>=ceil(log10(grid_intensity_[2][0])))
-								{
-									expo =(int) ceil(log10(grid_intensity_[2][0]));
-								}	
+							if(expo>=ceil(log10(grid_intensity_[2][0])))
+							{
+								expo =(int) ceil(log10(grid_intensity_[2][0]));
+							}	
 						}
-						
+						//cout << "Expo: " << expo << endl;
 						
 						font.setPixelSize(12);
 						result =   QString("intensity e+%1").arg((double)expo,0,'f',1);

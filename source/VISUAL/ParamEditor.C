@@ -125,23 +125,18 @@ namespace OpenMS
 		 
 		void ParamEditorDelegate::setModelData(QWidget *editor, QAbstractItemModel *model, const QModelIndex &index) const
 		{
-			QVariant initial_value = index.model()->data(index, 33);
 			QVariant present_value = index.model()->data(index, Qt::DisplayRole);
 			
 			if(index.column()==2)
 			{
+				
 				QComboBox *combo= static_cast<QComboBox*>(editor);
 				QVariant new_value(combo->currentText());
-				if(new_value!=present_value && !initial_value.isValid())	// if data of a cell gets a new value from the editor widget change color to yellow and emit the modified signal
+				
+				if(new_value!=present_value)	// if data of a cell gets a new value from the editor widget change color to yellow and emit the modified signal
 				{
-					model->setData(index, present_value, 33);	// index is the current model index of the item cell with a new value for a cell in the model in data layer 33, the first lyer that has no predefined constant
 					model->setData(index,QBrush(Qt::yellow),Qt::BackgroundRole);
 					emit modified(true);
-				}
-				else if(new_value==initial_value)	// if value changes back to original change backgroundcolor back to white and emit modified signal
-				{
-					model->setData(index,QBrush(Qt::white),Qt::BackgroundRole);
-					emit modified(false);
 				}
 				model->setData(index, new_value);
 			}
@@ -149,16 +144,11 @@ namespace OpenMS
 			{
 				QLineEdit *edit= static_cast<QLineEdit*>(editor);
 				QVariant new_value(edit->text());
-				if(new_value!=present_value && !initial_value.isValid())
+				
+				if(new_value!=present_value)
 				{
-					model->setData(index, present_value, 33);
 					model->setData(index,QBrush(Qt::yellow),Qt::BackgroundRole);
 					emit modified(true);
-				}
-				else if(new_value==initial_value)
-				{
-					model->setData(index,QBrush(Qt::white),Qt::BackgroundRole);
-					emit modified(false);
 				}
 				model->setData(index, new_value);
 			}
@@ -166,16 +156,11 @@ namespace OpenMS
 			{
 				QLineEdit *edit= static_cast<QLineEdit*>(editor);
 				QVariant new_value(edit->text());
-				if(new_value!=present_value && !initial_value.isValid())
+			
+				if(new_value!=present_value)
 				{
-					model->setData(index, present_value, 33);
 					model->setData(index,QBrush(Qt::yellow),Qt::BackgroundRole);
 					emit modified(true);
-				}
-				else if(new_value==initial_value)
-				{
-					model->setData(index,QBrush(Qt::white),Qt::BackgroundRole);
-					emit modified(false);
 				}
 				model->setData(index, new_value);
 			}
@@ -213,6 +198,7 @@ namespace OpenMS
 	
 	void ParamEditor::createShortCuts()
 	{
+		cout << "creating shortcuts" << endl;
 		new QShortcut(Qt::CTRL+Qt::Key_C, this, SLOT(copySubTree()));
 		new QShortcut(Qt::CTRL+Qt::Key_X, this, SLOT(cutSubTree()));
 		new QShortcut(Qt::CTRL+Qt::Key_V, this, SLOT(pasteSubTree()));
@@ -586,10 +572,6 @@ namespace OpenMS
 		child->setData ( 1, Qt::BackgroundRole, QBrush(Qt::white));
 		child->setData ( 2, Qt::BackgroundRole, QBrush(Qt::white));
 		
-		child->setData ( 0, 33, QVariant());
-		child->setData ( 0, 33, QVariant());
-		child->setData ( 0, 33, QVariant());
-	
 		if (path=="")
 		{
 			path = child->text(0).toStdString();

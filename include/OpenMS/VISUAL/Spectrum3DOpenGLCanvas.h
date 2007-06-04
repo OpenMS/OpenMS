@@ -42,6 +42,10 @@ namespace OpenMS
 	/**
 		@brief OpenGL Canvas for 3D-visualization of map data
 		
+		@bug Peak coloring in log, snap and percentage mode does not work
+		@bug Legend color setting has no effect
+		@bug Resettng the angles after zooming does not work
+				
 		@ingroup SpectrumWidgets
 	*/
 	

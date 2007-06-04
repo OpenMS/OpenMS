@@ -85,7 +85,6 @@ Ideen:
 Todos:
 - Bild INIFileEditor mit ToolTip
 - Testbuits auf Release-Branch umstellen.
-- 3D: int achse fixen
 
 Thomas Schreiner:
 - FeatureXML: Options einbauen und testen
@@ -94,9 +93,7 @@ Thomas Schreiner:
 
 Stefan Rink:
 - ParamEditor:
-	- Wenn ein Fehler in das File einbaut und ohne zu speichern 'Quit' aufruft, schlieﬂt sich der Editor, ohne das man die Chance hat den Fehler zu korrigieren. In dem Fall sollte sollte das Schlieﬂen abgebrochen werden!
-  - Docu ParamEditorDelegate und INIFileEditorWindow  fehlt komplett. Code ist im allgemeinen auch nicht dokumentiert
-  - Shortcuts gehen im ToolsDialog nicht
+	- Shortcuts gehen im ToolsDialog nicht
 
 Diplomarbeit TOPPAS:
 - TOPPViewBase: Parameters (Typ: enum, inputfile, inputfiles, outputfile, outputfiles)
