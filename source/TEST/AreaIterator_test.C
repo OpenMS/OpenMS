@@ -74,11 +74,11 @@ exp[4].setMSLevel(1);
 exp[4][0].setMZ(502.1);
 exp[4][1].setMZ(510.1);
 
-CHECK(AreaIterator(const SpectrumIteratorType& spectrum_end, const PeakIteratorType& peak_end ))
+CHECK(AreaIterator(SpectrumIteratorType spectrum_end, PeakIteratorType peak_end))
 	ptr1 = new AI(exp.end(),exp.back().end());
 RESULT
 
-CHECK(AreaIterator(const SpectrumIteratorType& begin, const SpectrumIteratorType& end, CoordinateType low_mz, CoordinateType high_mz))
+CHECK(AreaIterator(SpectrumIteratorType begin, SpectrumIteratorType end, CoordinateType low_mz, CoordinateType high_mz))
 	ptr2 = new AI(exp.RTBegin(0), exp.RTEnd(0), 0, 0);
 RESULT
 
@@ -87,68 +87,168 @@ CHECK(~AreaIterator())
 	delete ptr2;
 RESULT
 
-CHECK(Tut ConstAreaIterator was er soll )
-	//whole area
-	AI it = AI(exp.RTBegin(0), exp.RTEnd(15), 500, 520);
-	TEST_REAL_EQUAL(it->getMZ(),502.0);
-	++it;
+CHECK(bool operator==(const AreaIterator &rhs) const)
+	AI a1(exp.end(),exp.back().end());
+	TEST_EQUAL(a1==a1, true)
+	
+	AI a2(exp.end(),exp.back().end());
+	++a2;
+	TEST_EQUAL(a2==a2, true)
+	
+	TEST_EQUAL(a1==a2, false)
+RESULT
+
+CHECK(bool operator!=(const AreaIterator &rhs) const)
+	AI a1(exp.end(),exp.back().end());
+	TEST_EQUAL(a1!=a1, false)
+	
+	AI a2(exp.end(),exp.back().end());
+	++a2;
+	TEST_EQUAL(a2!=a2, false)
+	
+	TEST_EQUAL(a1!=a2, true)
+RESULT
+
+CHECK(AreaIterator(const AreaIterator &rhs))
+	AI a1(exp.end(),exp.back().end());
+	AI a2(a1);
+	TEST_EQUAL(a1==a2, true)
+RESULT
+
+CHECK(AreaIterator& operator=(const AreaIterator &rhs))
+	AI a1(exp.end(),exp.back().end());
+	AI a2(exp.RTBegin(0), exp.RTEnd(0), 0, 0);
+	a1 = a2;
+	TEST_EQUAL(a1==a2, true)
+RESULT
+
+CHECK(reference operator *() const)
+	AI it = AI(exp.RTBegin(0), exp.RTEnd(7), 505, 520);
+	TEST_REAL_EQUAL((*it).getMZ(),510.0);
+RESULT
+
+CHECK(pointer operator->() const)
+	AI it = AI(exp.RTBegin(0), exp.RTEnd(7), 505, 520);
 	TEST_REAL_EQUAL(it->getMZ(),510.0);
-	++it;
-	TEST_REAL_EQUAL(it->getMZ(),504.0);
+RESULT
+
+CHECK(AreaIterator& operator++())
+	AI it = AI(exp.RTBegin(0), exp.RTEnd(7), 505, 520);
+	Map::PeakType* peak = &(*(it++));
+	TEST_REAL_EQUAL(peak->getMZ(),510.0);
+	peak = &(*(it++));
+	TEST_REAL_EQUAL(peak->getMZ(),506.0);
+	TEST_EQUAL(it==exp.areaEnd(),true);
+RESULT
+
+CHECK(AreaIterator operator++(int))
+	AI it = AI(exp.RTBegin(0), exp.RTEnd(7), 505, 520);
+	TEST_REAL_EQUAL(it->getMZ(),510.0);
 	++it;
 	TEST_REAL_EQUAL(it->getMZ(),506.0);
 	++it;
+	TEST_EQUAL(it==exp.areaEnd(),true);
+RESULT
+
+CHECK(CoordinateType getRT() const)
+	AI it = AI(exp.RTBegin(3), exp.RTEnd(9), 503, 509);
+	TEST_REAL_EQUAL(it->getMZ(),504.0);
+	TEST_REAL_EQUAL(it.getRT(),4.0);
+	++it;
+	TEST_REAL_EQUAL(it->getMZ(),506.0);
+	TEST_REAL_EQUAL(it.getRT(),4.0);
+	++it;
 	TEST_REAL_EQUAL(it->getMZ(),504.1);
+	TEST_REAL_EQUAL(it.getRT(),8.0);
 	++it;
 	TEST_REAL_EQUAL(it->getMZ(),506.1);
+	TEST_REAL_EQUAL(it.getRT(),8.0);
+	++it;
+	TEST_EQUAL(it==exp.areaEnd(),true);
+RESULT
+
+CHECK([EXTRA] Overall test)
+	//whole area
+	AI it = AI(exp.RTBegin(0), exp.RTEnd(15), 500, 520);
+	TEST_REAL_EQUAL(it->getMZ(),502.0);
+	TEST_REAL_EQUAL(it.getRT(),2.0);	
+	++it;
+	TEST_REAL_EQUAL(it->getMZ(),510.0);
+	TEST_REAL_EQUAL(it.getRT(),2.0);	
+	++it;
+	TEST_REAL_EQUAL(it->getMZ(),504.0);
+	TEST_REAL_EQUAL(it.getRT(),4.0);	
+	++it;
+	TEST_REAL_EQUAL(it->getMZ(),506.0);
+	TEST_REAL_EQUAL(it.getRT(),4.0);	
+	++it;
+	TEST_REAL_EQUAL(it->getMZ(),504.1);
+	TEST_REAL_EQUAL(it.getRT(),8.0);	
+	++it;
+	TEST_REAL_EQUAL(it->getMZ(),506.1);
+	TEST_REAL_EQUAL(it.getRT(),8.0);	
 	++it;
 	TEST_REAL_EQUAL(it->getMZ(),502.1);
+	TEST_REAL_EQUAL(it.getRT(),10.0);	
 	++it;
 	TEST_REAL_EQUAL(it->getMZ(),510.1);
+	TEST_REAL_EQUAL(it.getRT(),10.0);	
 	++it;
 	TEST_EQUAL(it==exp.areaEnd(),true);
 	
 	//center peaks
 	it = AI(exp.RTBegin(3), exp.RTEnd(9), 503, 509);
 	TEST_REAL_EQUAL(it->getMZ(),504.0);
+	TEST_REAL_EQUAL(it.getRT(),4.0);	
 	++it;
 	TEST_REAL_EQUAL(it->getMZ(),506.0);
+	TEST_REAL_EQUAL(it.getRT(),4.0);	
 	++it;
 	TEST_REAL_EQUAL(it->getMZ(),504.1);
+	TEST_REAL_EQUAL(it.getRT(),8.0);	
 	++it;
 	TEST_REAL_EQUAL(it->getMZ(),506.1);
+	TEST_REAL_EQUAL(it.getRT(),8.0);	
 	++it;
 	TEST_EQUAL(it==exp.areaEnd(),true);
 	
 	//upper left area
 	it = AI(exp.RTBegin(0), exp.RTEnd(7), 505, 520);
 	TEST_REAL_EQUAL(it->getMZ(),510.0);
+	TEST_REAL_EQUAL(it.getRT(),2.0);	
 	++it;
 	TEST_REAL_EQUAL(it->getMZ(),506.0);
+	TEST_REAL_EQUAL(it.getRT(),4.0);	
 	++it;
 	TEST_EQUAL(it==exp.areaEnd(),true);
 	
 	//upper right area
 	it = AI(exp.RTBegin(5), exp.RTEnd(11), 505, 520);
 	TEST_REAL_EQUAL(it->getMZ(),506.1);
+	TEST_REAL_EQUAL(it.getRT(),8.0);	
 	++it;
 	TEST_REAL_EQUAL(it->getMZ(),510.1);
+	TEST_REAL_EQUAL(it.getRT(),10.0);	
 	++it;
 	TEST_EQUAL(it==exp.areaEnd(),true);
 	
 	//lower right
 	it = AI(exp.RTBegin(5), exp.RTEnd(11), 500, 505);
 	TEST_REAL_EQUAL(it->getMZ(),504.1);
+	TEST_REAL_EQUAL(it.getRT(),8.0);	
 	++it;
 	TEST_REAL_EQUAL(it->getMZ(),502.1);
+	TEST_REAL_EQUAL(it.getRT(),10.0);	
 	++it;
 	TEST_EQUAL(it==exp.areaEnd(),true);
 
 	//lower left
 	it = AI(exp.RTBegin(0), exp.RTEnd(7), 500, 505);
 	TEST_REAL_EQUAL(it->getMZ(),502.0);
+	TEST_REAL_EQUAL(it.getRT(),2.0);	
 	++it;
 	TEST_REAL_EQUAL(it->getMZ(),504.0);
+	TEST_REAL_EQUAL(it.getRT(),4.0);	
 	++it;
 	TEST_EQUAL(it==exp.areaEnd(),true);
 

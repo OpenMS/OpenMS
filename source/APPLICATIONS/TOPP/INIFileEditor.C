@@ -80,6 +80,6 @@ int main(int argc, char** argv)
 		editor_window.openFile(argv[1]);
 	}
 	
-	editor_window.showMaximized();
+	editor_window.show();
 	return app.exec();
 }

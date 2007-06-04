@@ -165,7 +165,7 @@
 	      <tt>svn propset svn:keywords Id &lt;file&gt;</tt>
 	
 	    <li><b>How do i create a branch?</b><br>
-	      <tt>svn copy https://open-ms.svn.sourceforge.net/svnroot/open-ms/OpenMS \\<BR> https://open-ms.svn.sourceforge.net/svnroot/open-ms/branches/&lt;name&gt;/OpenMS/</tt>
+	      <tt>svn copy https://open-ms.svn.sourceforge.net/svnroot/open-ms/OpenMS \\<BR> https://open-ms.svn.sourceforge.net/svnroot/open-ms/branches/&lt;name&gt;/</tt>
 	
 	 		<li><b>How do i merge a branch into the trunk?</b><br>
 	 			Let's suppose the current revision is 25 and you added the branch in revision 10.

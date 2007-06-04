@@ -129,7 +129,7 @@ namespace OpenMS
 				}
 		
 				/// Test for inequality
-				bool operator!=(const AreaIterator& rhs)
+				bool operator!=(const AreaIterator& rhs) const
 				{
 					return !(*this == rhs);
 				}

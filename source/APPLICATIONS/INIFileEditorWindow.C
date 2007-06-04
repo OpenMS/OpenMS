@@ -65,9 +65,6 @@ namespace OpenMS
 		edit->addAction("Insert &new Value",editor_,SLOT(insertItem()), Qt::CTRL+Qt::Key_N);
 		
 		connect(editor_,SIGNAL(modified(bool)),this,SLOT(updateWindowTitle(bool)));	// we connect the "changes state"(changes made/no changes) signal from the ParamEditor to the window title updating slot
-		
-		//create statusBar
-		statusBar();	
 	}
 	
 	bool INIFileEditorWindow::openFile(const String& filename)
