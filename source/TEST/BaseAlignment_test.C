@@ -69,11 +69,11 @@ CHECK((BaseAlignment()))
   TEST_NOT_EQUAL(ptr, 0)
 RESULT
 
-CHECK((~BaseAlignment()))
+CHECK((virtual ~BaseAlignment()))
   delete ptr;
 RESULT
 
-CHECK((BaseAlignment& operator = (const BaseAlignment& source)))
+CHECK((virtual BaseAlignment& operator=(const BaseAlignment &source)))
   TestAlignment al;
   Param param;
   param.setValue("consensus_algorithm","delaunay");
@@ -148,7 +148,7 @@ CHECK((BaseAlignment(const BaseAlignment& source)))
   TEST_EQUAL(al_copy.getMapType() == "feature_map", true)
 RESULT
 
-CHECK((String getAlignmentTree() const))
+CHECK((virtual String getAlignmentTree() const=0))
 
 RESULT
 
@@ -159,7 +159,7 @@ CHECK((const String& getMapType() const))
   TEST_EQUAL(al.getMapType() == "feature_map", true)
 RESULT
 
-CHECK((const std::vector< ConsensusElementType >& getFinalConsensusMap() const))
+CHECK((const ConsensusMap< ConsensusElementType >& getFinalConsensusMap() const))
   TestAlignment al;
   
   TEST_EQUAL(al.getFinalConsensusMap().size() == 0,true)
@@ -186,13 +186,13 @@ CHECK((const std::vector< String >& getFileNames() const))
   TEST_EQUAL((al.getFileNames())[0] == "blub", true)
 RESULT
 
-CHECK((const std::vector< GridType >& getTransformationVector() const))
+CHECK((const std::vector< Grid >& getTransformationVector() const))
   TestAlignment alignment;
   
   TEST_EQUAL(alignment.getTransformationVector().size() == 0, true)
 RESULT
 
-CHECK((void run() throw(Exception::InvalidValue)))
+CHECK((virtual void run()=0 throw (Exception::InvalidValue)))
 
 RESULT
 
@@ -235,7 +235,7 @@ CHECK((void setMapType(const String& map_type)))
   TEST_EQUAL(al.getMapType() == "peak_map", true)
 RESULT
 
-CHECK((void setFinalConsensusMap(const std::vector < ConsensusElementType >& final_consensus_map)))
+CHECK((void setFinalConsensusMap(const ConsensusMap< ConsensusElementType > &final_consensus_map)))
   TestAlignment al;
   ConsensusMap<ConsensusFeatureType> cons_map(4);
   al.setFinalConsensusMap(cons_map);
@@ -243,7 +243,7 @@ CHECK((void setFinalConsensusMap(const std::vector < ConsensusElementType >& fin
   TEST_EQUAL(al.getFinalConsensusMap().size() == 4,true)
 RESULT
 
-CHECK((void setTransformationVector(const std::vector< GridType >& transformations)))
+CHECK((void setTransformationVector(const std::vector< Grid > &transformations)))
   TestAlignment alignment;
   std::vector< Grid > grid_vector(2);
   alignment.setTransformationVector(grid_vector);

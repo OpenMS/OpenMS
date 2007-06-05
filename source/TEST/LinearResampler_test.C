@@ -122,7 +122,7 @@ CHECK((DoubleReal getSpacing() const))
   TEST_EQUAL(tmp.getSpacing(),0.05);
 RESULT
 
-CHECK((double& getSpacing()))
+CHECK((void setSpacing(DoubleReal spacing)))
   LinearResampler tmp;
   tmp.setSpacing(0.1);
 

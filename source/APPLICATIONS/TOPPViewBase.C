@@ -1882,7 +1882,8 @@ namespace OpenMS
 		QDialog dialog(this);
 		QGridLayout* layout = new QGridLayout(&dialog);
 		//Editor
-		ParamEditor* edit = new ParamEditor(&dialog);		
+		ParamEditor* edit = new ParamEditor(&dialog);
+		edit->createShortcuts();
 		layout->addWidget(edit,0,0,1,3);
 		//Stretch
 		layout->setColumnStretch(0,2);

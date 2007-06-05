@@ -89,10 +89,6 @@ Nach Release:
 Thomas Schreiner:
 - DBConnection: mehrere Verbindunden gleichzeitig
 
-Stefan Rink:
-- ParamEditor:
-	- Shortcuts gehen im ToolsDialog nicht
-
 Diplomarbeit TOPPAS:
 - TOPPViewBase: Parameters (Typ: enum, inputfile, inputfiles, outputfile, outputfiles)
 

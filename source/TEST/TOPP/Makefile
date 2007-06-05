@@ -709,10 +709,10 @@ ExternalCalibration_test: $(NUMERICDIFF)
 	@$(ECHO) ""
 	@$(ECHO) "ExternalCalibration_test:"
 	@$(ECHO) "- Test1: calibration of raw data"
-	@$(call RUN_PROG_OPT,ExternalCalibration,-in ExternalCalibration_1_input.mzData -out ExternalCalibration_1_output.tmp -ref_masses ExternalCalibration_ref_masses -ini ExternalCalibration_parameters.ini -tof_const ExternalCalibration_const -ext_calibrants ExternalCalibration_1_calibrants.mzData 2>error)
+	@$(call RUN_PROG_OPT,ExternalCalibration,-in ExternalCalibration_1_input.mzData -out ExternalCalibration_1_output.tmp -ref_masses ExternalCalibration_ref_masses -ini ExternalCalibration_parameters.ini -tof_const ExternalCalibration_const -ext_calibrants ExternalCalibration_1_calibrants.mzData)
 	@$(call TEST_FILE_EQUAL,ExternalCalibration_1_output.mzData,ExternalCalibration_1_output.tmp)
 	@$(ECHO) "- Test2: calibration of peak data"
-	@$(call RUN_PROG_OPT,ExternalCalibration,-in ExternalCalibration_2_input.mzData -out ExternalCalibration_2_output.tmp -ref_masses ExternalCalibration_ref_masses  -ini ExternalCalibration_parameters.ini -tof_const ExternalCalibration_const -ext_calibrants ExternalCalibration_2_calibrants.mzData -peak_data 2>error2)
+	@$(call RUN_PROG_OPT,ExternalCalibration,-in ExternalCalibration_2_input.mzData -out ExternalCalibration_2_output.tmp -ref_masses ExternalCalibration_ref_masses  -ini ExternalCalibration_parameters.ini -tof_const ExternalCalibration_const -ext_calibrants ExternalCalibration_2_calibrants.mzData -peak_data)
 	@$(call TEST_FILE_EQUAL,ExternalCalibration_2_output.mzData,ExternalCalibration_2_output.tmp)
 
 

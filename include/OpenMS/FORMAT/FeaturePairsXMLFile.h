@@ -24,8 +24,8 @@
 // $Maintainer: Eva Lange $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_FORMAT_FeaturePairsXMLFile_H
-#define OPENMS_FORMAT_FeaturePairsXMLFile_H
+#ifndef OPENMS_FORMAT_FEATUREPAIRSXMLFILE_H
+#define OPENMS_FORMAT_FEATUREPAIRSXMLFILE_H
 
 #include <OpenMS/FORMAT/SchemaFile.h>
 #include <OpenMS/FORMAT/HANDLERS/FeaturePairsHandler.h>
@@ -74,4 +74,4 @@ namespace OpenMS
 
 } // namespace OpenMS
 
-#endif // OPENMS_FORMAT_DFeaturePairsXMLFile_H
+#endif // OPENMS_FORMAT_FEATUREPAIRSXMLFILE_H

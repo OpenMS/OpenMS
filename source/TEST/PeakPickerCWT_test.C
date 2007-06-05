@@ -45,11 +45,11 @@ CHECK((PeakPickerCWT()))
   TEST_NOT_EQUAL(ptr, 0)
 RESULT
 
-CHECK((~PeakPickerCWT()))
+CHECK((virtual ~PeakPickerCWT()))
   delete ptr;
 RESULT
 
-CHECK(setParam)
+CHECK((setParam))
   Param param;
   param.setValue("thresholds:correlation",0.8);
   param.setValue("wavelet_transform:scale",0.3);
@@ -209,7 +209,7 @@ CHECK((void setDeconvolutionFlag(const bool& deconvolution)))
   TEST_REAL_EQUAL(pp.getDeconvolutionFlag(),true)
 RESULT
 
-CHECK((void set2DOptimizationFlag(const bool& twod_optimization)))
+CHECK((void set2DOptimizationFlag(const bool &two_d_optimization)))
   PeakPickerCWT pp;
   
   pp.set2DOptimizationFlag(true);

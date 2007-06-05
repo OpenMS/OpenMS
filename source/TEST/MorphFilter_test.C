@@ -42,22 +42,22 @@ START_TEST(MorphFilter, "$Id$")
 /////////////////////////////////////////////////////////////
 
 MorphFilter* ptr = 0;
-CHECK(MorphFilter())
+CHECK((MorphFilter()))
   ptr = new MorphFilter();
   TEST_NOT_EQUAL(ptr, 0)
 RESULT
 
-CHECK(~MorphFilter())
+CHECK((virtual ~MorphFilter()))
   delete ptr;
 RESULT
 
-CHECK(Real getStrucElemSize() const)
+CHECK((Real getStrucElemSize() const))
   MorphFilter m;
   
   TEST_REAL_EQUAL(m.getStrucElemSize(),3)
 RESULT
 
-CHECK(float& getStrucElemSize())
+CHECK((void setStrucElemSize(Real struc_size)))
   MorphFilter m;
   m.setStrucElemSize(3.5);
   
@@ -120,7 +120,7 @@ CHECK((template< typename InputPeakIterator, typename OutputPeakContainer > void
   TEST_EQUAL(filtered[4].getIntensity(), 0)    
 RESULT
 
-CHECK(void setStrucElemSize(Real struc_size))
+CHECK((void setStrucElemSize(Real struc_size)))
   MorphFilter m;
   m.setStrucElemSize(3.5);
   

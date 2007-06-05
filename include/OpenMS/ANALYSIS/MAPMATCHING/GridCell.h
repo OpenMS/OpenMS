@@ -23,8 +23,8 @@
 // $Maintainer: Eva Lange $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_MAPMATCHING_DGRIDCELL_H
-#define OPENMS_ANALYSIS_MAPMATCHING_DGRIDCELL_H
+#ifndef OPENMS_ANALYSIS_MAPMATCHING_GRIDCELL_H
+#define OPENMS_ANALYSIS_MAPMATCHING_GRIDCELL_H
 
 #include <OpenMS/DATASTRUCTURES/DPosition.h>
 #include <OpenMS/DATASTRUCTURES/DRange.h>
@@ -98,4 +98,4 @@ namespace OpenMS
 
 } // end of namespace OpenMS
 
-#endif  // OPENMS_ANALYSIS_MAPMATCHER_DGRIDCELL_H
+#endif  // OPENMS_ANALYSIS_MAPMATCHING_GRIDCELL_H

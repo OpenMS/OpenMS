@@ -646,6 +646,10 @@
 			if (in_array($f,$doxygen_errors))
 			{
 				realOutput("Doxygen errors in '$f'",$user,$verbose,$f);
+				if ($verbose)
+				{
+					print "  See 'OpenMS/doc/doxygen/doxygen-error.log'\n";
+				}
 			}
 		}
 		
@@ -657,8 +661,10 @@
 			{
 				
  				#parse test
- 				$todo_tests = parseTestFile("$path/$testname",$tests);
-				
+ 				$tmp = parseTestFile("$path/$testname");
+ 				$todo_tests = $tmp["todo"];
+				$tests = $tmp["tests"];
+								
 				#compare declarations and tests
 				$out = compareDeclarationsAndTests($class_info["public-long"],$tests);
 				
@@ -675,7 +681,7 @@
 				$out["unknown"] = $new_unknown;
 				
 				#output
-				if (count($out["missing"])!=0 || count($out["unknown"])!=0)
+				if (count($out["missing"])!=0 || count($out["unknown"])!=0 || count($out["double"])!=0)
 				{
 					realOutput("Test errors in '$f'",$user,$verbose,$testname);
 					if ($verbose)
@@ -692,6 +698,15 @@
 						{
 							print "  Missing tests:\n";
 							foreach ($out["missing"] as $m)
+							{
+								print "    - '$m'\n";
+							}
+						}
+						if (count($out["double"])!=0)
+						{
+							$out["double"] = array_unique($out["double"]);
+							print "  Methods tested several times:\n";
+							foreach ($out["double"] as $m)
 							{
 								print "    - '$m'\n";
 							}
@@ -827,6 +842,10 @@
 			if (ereg("(.*/[a-zA-Z0-9_]+\.doxygen):[0-9]+:",$line,$parts))
 			{
 				realOutput("Doxygen errors in '".$parts[1]."'",$user,$verbose,"");
+				if ($verbose)
+				{
+					print "  See 'OpenMS/doc/doxygen/doxygen-error.log'\n";
+				}
 			}
 		}
 	}

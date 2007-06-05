@@ -114,7 +114,7 @@ namespace OpenMS
 			/// types of data elements
 			enum{NODE,ITEM};
 			/// Creates default shortcuts for copy, cut, paste, ...
-			void createShortCuts();
+			void createShortcuts();
 				
 		public slots:
 			/// deletes an item and its children

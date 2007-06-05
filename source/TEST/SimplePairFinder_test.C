@@ -49,11 +49,11 @@ CHECK((SimplePairFinder()))
 	TEST_NOT_EQUAL(ptr, 0)
 RESULT
 
-CHECK((~SimplePairFinder()))
+CHECK((virtual ~SimplePairFinder()))
 	delete ptr;
 RESULT
 
-CHECK((SimplePairFinder& operator = (SimplePairFinder source)))
+CHECK((virtual SimplePairFinder& operator=(SimplePairFinder source)))
   SimplePairFinder<FeatureMap<> > spf;
   spf.setDiffIntercept(0,10);
   spf.setDiffIntercept(1,15);
@@ -137,13 +137,13 @@ CHECK((static BasePairFinder<PointMapType>* create()))
   // 
 RESULT
 
-CHECK((static const String getName()))
+CHECK((static const String getProductName()))
   SimplePairFinder<FeatureMap<> > spf;
   
   TEST_EQUAL(spf.getName() == "simple",true)
 RESULT
 
-CHECK((void findElementPairs()))
+CHECK((virtual void findElementPairs()))
   FeatureMap<> scene;
   Feature feat1;
   Feature feat2;

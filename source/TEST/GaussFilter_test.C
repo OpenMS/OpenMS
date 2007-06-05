@@ -52,7 +52,7 @@ CHECK((GaussFilter()))
   TEST_NOT_EQUAL(dgauss_ptr, 0)
 RESULT
 
-CHECK((~GaussFilter()))
+CHECK((virtual ~GaussFilter()))
     delete dgauss_ptr;
 RESULT
 
@@ -83,7 +83,7 @@ CHECK((void init(float sigma, float spacing)))
   TEST_REAL_EQUAL(gaussian.getKernelWidth(),1.6);
 RESULT
 
-CHECK((void setKernelWidth(DoubleReal kernel_width)))
+CHECK((void setKernelWidth(DoubleReal kernel_width) throw (Exception::InvalidValue)))
   GaussFilter gaussian;
   gaussian.setKernelWidth(1.6);
 
@@ -114,7 +114,7 @@ CHECK((void setSpacing(DoubleReal spacing)))
   TEST_REAL_EQUAL(gaussian.getSpacing(),0.0001);
 RESULT
 
-CHECK((void setKernelWidth(DoubleReal kernel_width)))
+CHECK((void setKernelWidth(DoubleReal kernel_width) throw (Exception::InvalidValue)))
   GaussFilter gauss;
   gauss.setSigma(0.2);
 

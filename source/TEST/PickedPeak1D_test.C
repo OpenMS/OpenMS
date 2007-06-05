@@ -94,7 +94,7 @@ CHECK((DoubleReal getRValue() const))
 	TEST_EQUAL(p.getRValue(), 0)
 RESULT
 
-CHECK((DoubleReal& getRValue()))
+CHECK((DoubleReal getRValue() const))
 	PickedPeak1D p;
 	TEST_REAL_EQUAL(p.getRValue(), 0.0)
 	p.setRValue(0.456);
@@ -105,7 +105,7 @@ CHECK((DoubleReal& getRValue()))
 	TEST_REAL_EQUAL(p.getRValue(), 0.0)
 RESULT
 
-CHECK((DoubleReal& getArea()))
+CHECK((DoubleReal getArea() const))
 	PickedPeak1D p;
 	TEST_REAL_EQUAL(p.getArea(), 0.0)
 	p.setArea(123.456);
@@ -116,7 +116,7 @@ CHECK((DoubleReal& getArea()))
 	TEST_REAL_EQUAL(p.getArea(), 0.0)
 RESULT
 
-CHECK((DoubleReal& getFWHM()))
+CHECK((DoubleReal getFWHM() const))
 	PickedPeak1D p;
 	TEST_REAL_EQUAL(p.getFWHM(), 0.0)
 	p.setFWHM(123.456);
@@ -127,7 +127,7 @@ CHECK((DoubleReal& getFWHM()))
 	TEST_REAL_EQUAL(p.getFWHM(), 0.0)
 RESULT
 
-CHECK((DoubleReal& getLeftWidthParameter()))
+CHECK((DoubleReal getLeftWidthParameter() const))
 	PickedPeak1D p;
 	TEST_REAL_EQUAL(p.getLeftWidthParameter(), 0.0)
 	p.setLeftWidthParameter(123.456);
@@ -138,7 +138,7 @@ CHECK((DoubleReal& getLeftWidthParameter()))
 	TEST_REAL_EQUAL(p.getLeftWidthParameter(), 0.0)
 RESULT
 
-CHECK((DoubleReal& getRightWidthParameter()))
+CHECK((DoubleReal getRightWidthParameter() const))
 	PickedPeak1D p;
 	TEST_REAL_EQUAL(p.getRightWidthParameter(), 0.0)
 	p.setRightWidthParameter(123.456);
@@ -149,7 +149,7 @@ CHECK((DoubleReal& getRightWidthParameter()))
 	TEST_REAL_EQUAL(p.getRightWidthParameter(), 0.0)
 RESULT
 
-CHECK((PeakShapeType::Enum& getPeakShape()))
+CHECK((const PeakShapeType::Enum& getPeakShape() const))
 	PickedPeak1D p;
 	TEST_EQUAL(p.getPeakShape(), PeakShapeType::UNDEFINED)
 	p.setPeakShape(PeakShapeType::LORENTZ_PEAK);
@@ -158,7 +158,7 @@ CHECK((PeakShapeType::Enum& getPeakShape()))
 	TEST_EQUAL(p.getPeakShape(), PeakShapeType::SECH_PEAK)
 RESULT
 
-CHECK((DoubleReal& getSN()))
+CHECK((DoubleReal getSN() const))
 	PickedPeak1D p;
 	TEST_REAL_EQUAL(p.getSN(), 0.0)
 	p.setSN(123.456);
@@ -169,7 +169,7 @@ CHECK((DoubleReal& getSN()))
 	TEST_REAL_EQUAL(p.getSN(), 0.0)
 RESULT
 
-CHECK((Int& getCharge()))
+CHECK((Int getCharge() const))
 	PickedPeak1D p;
 	TEST_EQUAL(p.getCharge(), 0.0)
 	p.setCharge(12);

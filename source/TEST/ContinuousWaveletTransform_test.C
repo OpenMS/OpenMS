@@ -66,7 +66,7 @@ CHECK((void setWavelet(const std::vector<double>& wavelet)))
   TEST_REAL_EQUAL(cwt_copy.getSignalLength(), 2)
 RESULT
 
-CHECK((DPeakArray<RawDataPoint1D& getSignal()))
+CHECK((DPeakArray<RawDataPoint1D >& getSignal()))
   ContinuousWaveletTransform cwt;
   
   DPeakArray<RawDataPoint1D > signal(2);
@@ -75,7 +75,7 @@ CHECK((DPeakArray<RawDataPoint1D& getSignal()))
   TEST_EQUAL(cwt.getSignal() == signal, true)
 RESULT
 
-CHECK((const DPeakArray<RawDataPoint1D& getSignal() const))
+CHECK((const DPeakArray<RawDataPoint1D >& getSignal() const))
  ContinuousWaveletTransform cwt;
  
  TEST_EQUAL(cwt.getSignal().size() == 0, true)
@@ -93,7 +93,7 @@ CHECK((DoubleReal getSpacing() const))
   TEST_REAL_EQUAL(cwt.getSpacing(), 0)
 RESULT
 
-CHECK((DoubleReal operator [] (unsigned int i) const))
+CHECK((double operator[](unsigned int i) const ))
   ContinuousWaveletTransform cwt;
   
   DPeakArray<RawDataPoint1D > signal(1);
@@ -134,7 +134,7 @@ CHECK((const std::vector<double>& getWavelet() const))
   TEST_REAL_EQUAL(cwt.getWavelet().size(), 0)
 RESULT
 
-CHECK((DoubleReal operator [] (unsigned int i) const))
+CHECK((double operator[](unsigned int i) const ))
   ContinuousWaveletTransform cwt;
   
   TEST_REAL_EQUAL(cwt.getScale(), 0)
@@ -154,7 +154,7 @@ CHECK((double& getSpacing()))
   TEST_REAL_EQUAL(cwt.getSpacing(), 0.2)
 RESULT
 
-CHECK((double& operator [] (unsigned int i)))
+CHECK((double operator[](unsigned int i)))
   DPeakArray<RawDataPoint1D > signal;
   RawDataPoint1D rp;
   rp.setIntensity(100);
@@ -197,7 +197,7 @@ CHECK((std::vector<double>& getWavelet()))
   TEST_EQUAL(cwt.getWavelet() == w, true)
 RESULT
 
-CHECK((double& operator [] (unsigned int i)))
+CHECK((double operator[](unsigned int i)))
   DPeakArray<RawDataPoint1D > signal;
   signal.resize(1);
   signal[0].setIntensity(1);
@@ -208,7 +208,7 @@ CHECK((double& operator [] (unsigned int i)))
   TEST_REAL_EQUAL(cwt[0], 1)
 RESULT
 
-CHECK((void init(double scale, double spacing)))
+CHECK((virtual void init(double scale, double spacing)))
   ContinuousWaveletTransform cwt;
   double scale = 0.2;
   double spacing = 2.3;

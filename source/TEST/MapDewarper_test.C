@@ -64,11 +64,11 @@ CHECK((MapDewarper()))
 	TEST_NOT_EQUAL(pl_ptr, 0)
 RESULT
 
-CHECK((~MapDewarper()))
+CHECK((virtual ~MapDewarper()))
 	delete pl_ptr;
 RESULT
 
-CHECK((MapDewarper(const MapDewarper& source)))	
+CHECK((MapDewarper(const MapDewarper& source)))
 	Feature feat1, feat2, feat3;
 	
 	feat1.setMZ(1.0);
@@ -98,7 +98,7 @@ CHECK((MapDewarper(const MapDewarper& source)))
 				
 RESULT
 
-CHECK((MapDewarper& operator = (const MapDewarper& source)))
+CHECK((MapDewarper< MapType > & operator=(const MapDewarper &source)))
 
 	Feature feat1, feat2, feat3;
 	

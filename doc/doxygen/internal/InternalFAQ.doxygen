@@ -99,6 +99,15 @@
 	
 	<H2 style="border-top:2px solid grey;">Debugging</H2>
 		<UL>
+			<li><b>How do I debug a failed OpenMS test?</b><br>
+	    	Exeute the test with the '-V' option to see where the error
+	    	occurred.
+	    
+	    <li><b>How do I debug a failed TOPP test?</b><br>
+	    	Let 'make' execute the test in debug/verbose mode, e.g.:
+	    	<BR>
+	    	<tt>shell&gt; make DEBUG=1 VERBOSE=1 FeatureFinder_test</tt>
+			
 	    <li><b>How do I debug uncaught exceptions?</b><br>
 	      There is a mechanism to have a core dumped if an uncaught
 	      exception occurs.

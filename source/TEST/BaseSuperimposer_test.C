@@ -66,16 +66,16 @@ START_TEST(BaseSuperimposer, "$Id$")
 /////////////////////////////////////////////////////////////
 
 TestSuperimposer* ptr = 0;
-CHECK(BaseSuperimposer())
+CHECK((BaseSuperimposer()))
 	ptr = new TestSuperimposer();
 	TEST_NOT_EQUAL(ptr, 0)
 RESULT
 
-CHECK(~BaseSuperimposer())
+CHECK((virtual ~BaseSuperimposer()))
 	delete ptr;
 RESULT
 
-CHECK(BaseSuperimposer& operator = (BaseSuperimposer source))
+CHECK((virtual BaseSuperimposer& operator=(const BaseSuperimposer &source)))
   Param param;
   param.setValue("bla",3);
   ElementMapType first;
@@ -98,7 +98,7 @@ CHECK(BaseSuperimposer& operator = (BaseSuperimposer source))
   TEST_REAL_EQUAL((bsi.getTransformation(0)).getIntercept(),trafo.getIntercept())
 RESULT
 
-CHECK(BaseSuperimposer(const BaseSuperimposer& source))
+CHECK((BaseSuperimposer(const BaseSuperimposer& source)))
   Param param;
   param.setValue("bla",3);
   ElementMapType first;
@@ -120,7 +120,7 @@ CHECK(BaseSuperimposer(const BaseSuperimposer& source))
   TEST_REAL_EQUAL((bsi.getTransformation(0)).getIntercept(),trafo.getIntercept())
 RESULT
 
-CHECK(const Param& getParameters() const)
+CHECK((const Param& getParameters() const))
   Param param;
   param.setValue("bla",3);
   TestSuperimposer bsi;
@@ -129,11 +129,11 @@ CHECK(const Param& getParameters() const)
   TEST_EQUAL(bsi_copy.getParameters() == param,true)
 RESULT
 
-CHECK(const PointMapType& getElementMap(UInt index))
+CHECK((const PointMapType& getElementMap(UInt index)))
   
 RESULT
 
-CHECK(const PointMapType& getElementMap(UInt index) const)
+CHECK((const PointMapType& getElementMap(UInt index) const))
   ElementMapType map;
   TestSuperimposer bpf;
   bpf.setElementMap(0,map);
@@ -141,7 +141,7 @@ CHECK(const PointMapType& getElementMap(UInt index) const)
   TEST_EQUAL(&(bpf_copy.getElementMap(0)) == &map,true)
 RESULT
 
-CHECK(const TransformationType& getTransformation(UInt dim) const)
+CHECK((const TransformationType& getTransformation(UInt dim) const))
   TransformationType trafo(1.,2.);
   TestSuperimposer bsi;
   bsi.setTransformation(0,trafo);
@@ -151,18 +151,18 @@ CHECK(const TransformationType& getTransformation(UInt dim) const)
   TEST_REAL_EQUAL((bsi.getTransformation(0)).getIntercept(),trafo.getIntercept())
 RESULT
 
-CHECK(void run())
+CHECK((virtual void run()=0))
   
 RESULT
 
-CHECK((void setElementMap(UInt const index, const PointMapType& Element_map)))
+CHECK((void setElementMap(UInt const index, const PointMapType &element_map)))
   ElementMapType map;
   TestSuperimposer bsi;
   bsi.setElementMap(0,map);
   TEST_EQUAL(&(bsi.getElementMap(0)) == &map,true)
 RESULT
 
-CHECK(void setParameters(const Param& param))
+CHECK((void setParameters(const Param& param)))
   Param param;
   TestSuperimposer bsi;
   param.setValue("bla",3);

@@ -54,16 +54,16 @@ START_TEST(BaseMapMatcher, "$Id$")
 /////////////////////////////////////////////////////////////
 
 TestMapMatcher* ptr = 0;
-CHECK(BaseMapMatcher())
+CHECK((BaseMapMatcher()))
 	ptr = new TestMapMatcher();
 	TEST_NOT_EQUAL(ptr, 0)
 RESULT
 
-CHECK(~BaseMapMatcher())
+CHECK((virtual ~BaseMapMatcher()))
 	delete ptr;
 RESULT
 
-CHECK(BaseMapMatcher& operator = (const BaseMapMatcher& source))
+CHECK((BaseMapMatcher& operator = (const BaseMapMatcher& source)))
   TestMapMatcher tmm;
   Grid grid;
   grid.push_back(GridCell(1816,603.449,3108.3,1002.35));
@@ -78,7 +78,7 @@ CHECK(BaseMapMatcher& operator = (const BaseMapMatcher& source))
   TEST_REAL_EQUAL(tmm_copy.getMinQuality(),0.2)
 RESULT
 
-CHECK(BaseMapMatcher(const BaseMapMatcher& source))
+CHECK((BaseMapMatcher(const BaseMapMatcher& source)))
   TestMapMatcher tmm;
   Grid grid;
   grid.push_back(GridCell(1816,603.449,3108.3,1002.35));
@@ -92,7 +92,7 @@ CHECK(BaseMapMatcher(const BaseMapMatcher& source))
   TEST_REAL_EQUAL(tmm_copy.getMinQuality(),0.2)
 RESULT
 
-CHECK(FeaturePairVector& getElementPairs())
+CHECK((ElementPairVector& getElementPairs()))
   TestMapMatcher tmm;
   vector < ElementPair< Feature > > pairs;  
   Feature feat1;
@@ -104,7 +104,7 @@ CHECK(FeaturePairVector& getElementPairs())
   TEST_EQUAL(tmm.getElementPairs() == pairs,true)
 RESULT
 
-CHECK(Grid& getGrid())
+CHECK((Grid& getGrid()))
   TestMapMatcher tmm;
   Grid grid;
   grid.push_back(GridCell(1816,603.449,3108.3,1002.35));
@@ -113,14 +113,14 @@ CHECK(Grid& getGrid())
   TEST_EQUAL(tmm.getGrid() == grid,true)
 RESULT
 
-CHECK(QualityType& getMinQuality())
+CHECK((QualityType& getMinQuality()))
   TestMapMatcher tmm;
   tmm.getMinQuality() = 0.2;
   
   TEST_REAL_EQUAL(tmm.getMinQuality(),0.2)
 RESULT
 
-CHECK(bool operator == (const BaseMapMatcher& rhs))
+CHECK((bool operator == (const BaseMapMatcher& rhs)))
   TestMapMatcher tmm;
   Grid grid;
   grid.push_back(GridCell(1816,603.449,3108.3,1002.35));
@@ -132,30 +132,30 @@ CHECK(bool operator == (const BaseMapMatcher& rhs))
   TEST_EQUAL(tmm_copy == tmm,true)
 RESULT
 
-CHECK(const FeaturePairVector& getElementPairs() const)
+CHECK((const ElementPairVector& getElementPairs() const))
   TestMapMatcher tmm;
   
   TEST_REAL_EQUAL(tmm.getElementPairs().size(),0)
 RESULT
 
-CHECK(const Grid& getGrid() const)
+CHECK((const Grid& getGrid() const))
   TestMapMatcher tmm;
   Grid grid;
   
   TEST_EQUAL(tmm.getGrid() == grid,true)
 RESULT
 
-CHECK(QualityType getMinQuality() const)
+CHECK((QualityType getMinQuality() const))
   TestMapMatcher tmm;
   
   TEST_REAL_EQUAL(tmm.getMinQuality(),-1)
 RESULT
 
-CHECK(void estimateTransform())
+CHECK((virtual void estimateTransform()=0))
 
 RESULT
 
-CHECK(void setElementPairs(const FeaturePairVector& plist))
+CHECK((void setElementPairs(const ElementPairVector &plist)))
   TestMapMatcher tmm;
   vector < ElementPair< Feature > > pairs;    
   Feature feat1;
@@ -167,7 +167,7 @@ CHECK(void setElementPairs(const FeaturePairVector& plist))
   TEST_EQUAL(tmm.getElementPairs() == pairs,true)
 RESULT
 
-CHECK(void setGrid(const Grid& g))
+CHECK((void setGrid(const Grid& g)))
   TestMapMatcher tmm;
   Grid grid;
   grid.push_back(GridCell(1816,603.449,3108.3,1002.35));
@@ -176,7 +176,7 @@ CHECK(void setGrid(const Grid& g))
   TEST_EQUAL(tmm.getGrid() == grid,true)
 RESULT
 
-CHECK(void setMinQuality(QualityType qu))
+CHECK((void setMinQuality(QualityType qu)))
   TestMapMatcher tmm;
   tmm.setMinQuality(0.1);
   

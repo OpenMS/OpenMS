@@ -196,7 +196,7 @@ namespace OpenMS
 		setHeaderLabels(list);
 	}
 	
-	void ParamEditor::createShortCuts()
+	void ParamEditor::createShortcuts()
 	{
 		cout << "creating shortcuts" << endl;
 		new QShortcut(Qt::CTRL+Qt::Key_C, this, SLOT(copySubTree()));

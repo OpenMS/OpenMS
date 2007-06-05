@@ -51,7 +51,7 @@ CHECK((SavitzkyGolaySVDFilter()))
   TEST_NOT_EQUAL(dsg_ptr, 0)
 RESULT
 
-CHECK((~SavitzkyGolaySVDFilter()))
+CHECK((virtual ~SavitzkyGolaySVDFilter()))
   delete dsg_ptr;
 RESULT
 
@@ -98,7 +98,7 @@ CHECK((void setWindowSize(UInt frame_size)))
   TEST_EQUAL(sgolay.getWindowSize(),7);
 RESULT
 
-CHECK((template< typename InputPeakIterator, typename OutputPeakContainer  > void filter(InputPeakIterator first, InputPeakIterator last, OutputPeakContainer& smoothed_data_container) throw(Exception::InvalidSize)))
+CHECK((template <typename InputPeakIterator, typename OutputPeakContainer> void filter(InputPeakIterator first, InputPeakIterator last, OutputPeakContainer &smoothed_data_container)))
   RawDataArray1D raw(5);
   RawDataArray1D filtered;
 
@@ -209,7 +209,7 @@ CHECK((template<typename InputPeakType, typename OutputPeakType > void filterExp
   TEST_REAL_EQUAL(it->getIntensity(),sgolay.getCoeffs()[0])
 RESULT
 
-CHECK((template<typename InputPeakContainer, typename OutputPeakContainer > void filter(const InputPeakContainer& input_peak_container, OutputPeakContainer& smoothed_data_container)))
+CHECK((template <typename InputPeakContainer, typename OutputPeakContainer> void filter(const InputPeakContainer &input_peak_container, OutputPeakContainer &baseline_filtered_container)))
   RawDataArray1D raw(5);
   RawDataArray1D filtered;
 

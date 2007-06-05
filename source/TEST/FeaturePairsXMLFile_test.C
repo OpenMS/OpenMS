@@ -49,7 +49,7 @@ CHECK((~FeaturePairsXMLFile()))
 	delete ptr;
 RESULT
 
-CHECK((void load(String filename, DFeaturePairVector<D>& pairs) throw(Exception::FileNotFound, Exception::ParseError)))
+CHECK((void load(String filename, std::vector< ElementPair< Feature > > &pairs) throw (Exception::FileNotFound, Exception::ParseError)))
 	std::vector< ElementPair < Feature > >  pvector;
 	FeaturePairsXMLFile pfile;
 		   
@@ -69,7 +69,7 @@ CHECK((void load(String filename, DFeaturePairVector<D>& pairs) throw(Exception:
 	
 RESULT
 
-CHECK((void store(String filename, const DFeaturePairVector<D>& pairs) const throw(Exception::UnableToCreateFile)))
+CHECK((void store(String filename, const std::vector< ElementPair< Feature > > &pairs) const throw (Exception::UnableToCreateFile)))
 	std::string tmp_filename;
   std::vector< ElementPair < Feature > >  pvector;
 	FeaturePairsXMLFile pfile;

@@ -70,7 +70,8 @@ $basename = basename($header);
 $test_name = "$path/source/TEST/".substr($basename,0,-2)."_test.C";
 
 ######################## determine tested methods ##############################
-parseTestFile($test_name,&$tests);
+$tmp = parseTestFile($test_name);
+$tests = $tmp["tests"];
 
 if ($verbose)
 {
@@ -116,6 +117,7 @@ for($i=0; $i<count($tests); ++$i)
 {
 	for($j=0; $j<count($methods); ++$j)
 	{
+	  //print "\nTest: ".strtr($tests[$i],$replace_strings)."\nMethod: ".strtr($methods[$j],$replace_strings)."\n";
 		$penalty = levenshtein ( strtr($tests[$i],$replace_strings), strtr($methods[$j],$replace_strings), 1, 10, 10 );
 //		if ($penalty!=0)
 //		{
@@ -125,6 +127,7 @@ for($i=0; $i<count($tests); ++$i)
 		//print "-- '$tests[$i]'\n";
 		//print "-- '$methods[$j]'\n";
 		//print "-------> '".$dists[$i][$j]."'\n";
+		//print "done\n";
 	}
 }
 

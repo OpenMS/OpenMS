@@ -44,11 +44,11 @@ CHECK((ContinuousWaveletTransformNumIntegration()))
   TEST_NOT_EQUAL(ptr, 0)
 RESULT
 
-CHECK((~ContinuousWaveletTransformNumIntegration()))
+CHECK((virtual ~ContinuousWaveletTransformNumIntegration()))
   delete ptr;
 RESULT
 
-CHECK((void init(double scale, double spacing)))
+CHECK((virtual void init(double scale, double spacing)))
   ContinuousWaveletTransformNumIntegration transformer;
   float scale = 0.5;
   float spacing = 0.1;
@@ -59,7 +59,7 @@ CHECK((void init(double scale, double spacing)))
   TEST_REAL_EQUAL(transformer.getSpacing(),spacing)
 RESULT
 
-CHECK((template< typename InputPeakIterator > void transform(InputPeakIterator begin_input, InputPeakIterator end_input, float resolution)))
+CHECK((template <typename InputPeakIterator> void transform(InputPeakIterator begin_input, InputPeakIterator end_input, float resolution, unsigned int zeros=0)))
   ContinuousWaveletTransformNumIntegration transformer;
   float scale = 0.5;
   float spacing = 0.1;

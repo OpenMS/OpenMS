@@ -120,7 +120,7 @@ CHECK((const std::vector< String >& getFilenames() const))
   TEST_REAL_EQUAL(cons_map.getFilenames().size(),0)
 RESULT
 
-CHECK((const std::vector< typename ConsensusElementType::ElementContainerType >& getMapVector() const))
+CHECK((const std::vector< typename ConsensusElementType::ElementContainerType* >& getMapVector() const))
   ConsensusMap<ConsensusFeature < FeatureMap<> > > cons_map;
   
   TEST_REAL_EQUAL(cons_map.getMapVector().size(),0)
@@ -136,7 +136,7 @@ CHECK((std::vector< String >& getFilenames()))
   TEST_EQUAL(cons_map.getFilenames()[0] == "blub", true)
 RESULT
 
-CHECK((std::vector< typename ConsensusElementType::ElementContainerType >& getMapVector()))
+CHECK((std::vector< typename ConsensusElementType::ElementContainerType* >& getMapVector()))
   ConsensusMap<ConsensusFeature < FeatureMap<> > > cons_map;
   cons_map.getMapVector().resize(1);
   FeatureMap<> feat_map;
@@ -163,7 +163,7 @@ CHECK((void setFilenames(const std::vector < String >& filenames)))
   TEST_EQUAL(cons_map.getFilenames()[0] == "blub", true)
 RESULT
 
-CHECK((void setMapVector(const std::vector < typename ConsensusElementType::ElementContainerType >& map_vector)))
+CHECK((void setMapVector(const std::vector< typename ConsensusElementType::ElementContainerType * > &map_vector)))
   ConsensusMap<ConsensusFeature < FeatureMap<> > > cons_map;
   vector<FeatureMap<>* > map_vector(1);
   FeatureMap<> feat_map;

@@ -49,7 +49,7 @@ CHECK((PoseClusteringPairwiseMapMatcher()))
 	TEST_NOT_EQUAL(ptr, 0)
 RESULT
 
-CHECK((~PoseClusteringPairwiseMapMatcher()))
+CHECK((virtual ~PoseClusteringPairwiseMapMatcher()))
 	delete ptr;
 RESULT
 
@@ -94,13 +94,13 @@ CHECK((static BasePairwiseMapMatcher<MapT>* create()))
   
 RESULT
 
-CHECK((static const String getName()))
+CHECK((static const String getProductName()))
   PoseClusteringPairwiseMapMatcher<ElementMapType> pcpmm;
   
   TEST_EQUAL(pcpmm.getName() == "poseclustering_pairwise",true)
 RESULT
 
-CHECK((void run()))
+CHECK((virtual void run()))
   Param param;
   param.setValue("superimposer","poseclustering_shift");
   param.setValue("pair_finder","simple");

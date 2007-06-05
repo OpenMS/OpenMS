@@ -49,7 +49,7 @@ CHECK((TopHatFilter()))
   TEST_NOT_EQUAL(tophat_ptr, 0) 
 RESULT
 
-CHECK((~TopHatFilter()))
+CHECK((virtual ~TopHatFilter()))
   delete tophat_ptr;
 RESULT
 
