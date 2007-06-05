@@ -87,8 +87,6 @@ Nach Release:
 - Merge 1.0 in Trunk
 
 Thomas Schreiner:
-- FeatureXML: Options einbauen und testen
-- DBAdapter: Add identification information
 - DBConnection: mehrere Verbindunden gleichzeitig
 
 Stefan Rink:

@@ -79,7 +79,7 @@
 	    <li><b>How can i speed up the compile process?</b><br>
 	      For g++ you can use the wrapper <tt>ccache</tt>. It caches the preprocessor output.
 	      <p>
-	      If you have several pocessors you can built OpenMS classes and tests
+	      If you have several pocessors you can built OpenMS classes/tests and TOPP tools
 	      in in several threads (2 per core) using the @a make option @a -j.
 
 		</UL>

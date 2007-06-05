@@ -30,8 +30,8 @@
 
 #include <math.h>
 
-#include <OpenMS/KERNEL/DPickedPeak.h>
 #include <OpenMS/CONCEPT/Types.h>
+#include <OpenMS/KERNEL/PickedPeak1D.h>
 
 namespace OpenMS
 {

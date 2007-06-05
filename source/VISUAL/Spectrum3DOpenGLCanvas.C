@@ -224,9 +224,9 @@ namespace OpenMS
 						{
 							glCallList(gridlines_);
 						}
-						glDisable(GL_DEPTH_TEST);
+						//glDisable(GL_DEPTH_TEST);
 						glCallList(coord_);
-						glEnable(GL_DEPTH_TEST);
+						//glEnable(GL_DEPTH_TEST);
 					}
 					else //zoom
 					{
@@ -242,9 +242,9 @@ namespace OpenMS
 							glCallList(gridlines_);
 							glDisable (GL_LINE_STIPPLE);	
 						}
-						glDisable(GL_DEPTH_TEST);
+						//glDisable(GL_DEPTH_TEST);
 						glCallList(coord_);
-						glEnable(GL_DEPTH_TEST);
+						//glEnable(GL_DEPTH_TEST);
 					}
 					break;
 				default:
@@ -255,13 +255,14 @@ namespace OpenMS
 	
 	GLuint Spectrum3DOpenGLCanvas::makeLegend()
 	{
-		GLuint list = glGenLists(1);
-		glNewList(list,GL_COMPILE);	
-		QColor color(canvas_3d_.param_.getValue("AxesColor").toQString());
-		//cout << "Valid: '" << color.isValid() << "' name: " << color.name().toStdString() << endl;
- 		qglColor(color);
 		QFont font("Typewriter");
 		font.setPixelSize(12);
+ 		renderText (0.0, 0.0, 0.0, "", font);
+		
+		GLuint list = glGenLists(1);
+		glNewList(list,GL_COMPILE);
+		QColor color(canvas_3d_.param_.getValue("AxesColor").toQString());
+ 		qglColor(color);
 		QString result("RT");
  		renderText (0.0, 
 								-corner_-20.0, 
@@ -503,6 +504,7 @@ namespace OpenMS
 		glShadeModel(GL_FLAT);
 		glBegin(GL_LINES);
 		QColor color(canvas_3d_.param_.getValue("AxesColor").toQString());
+		
 		qglColor(color);
 		//x_achse
 		glVertex3d(-corner_, 
@@ -565,7 +567,6 @@ namespace OpenMS
 					{
 						
 						glBegin(GL_POINTS);
-						
 						double intensity = 0;
 						switch (canvas_3d_.intensity_mode_)
 						{
@@ -631,7 +632,6 @@ namespace OpenMS
 					if (it->getIntensity()>=min_int && it->getIntensity()<=max_int)
 					{
 						glBegin(GL_LINES);
-			
 						double intensity = 0;
 						switch (canvas_3d_.intensity_mode_)
 						{

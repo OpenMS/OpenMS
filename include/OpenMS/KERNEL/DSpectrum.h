@@ -143,12 +143,6 @@ namespace OpenMS
 		 Additionally an interface for the minimum and maximum position, and the minimum and maximum
 		 intensity of the peaks is provided by RangeManager.
 
-		 @todo Replace the retention start/stop stuff with a well-thought solution.
-		 It <i>may</i> be okay to store the normalized retention time here (please
-		 tell me a reasonably general scenario), but computing it clearly doesn't
-		 belong to a single spectrum! start and stop will be recorded thousands of
-		 times in a map!  -- Clemens to (whoever introduced this code).
-
 		 @ingroup Kernel
 	*/
 	template < typename ContainerT = DPeakArray<Peak1D> >
@@ -220,8 +214,6 @@ namespace OpenMS
 				container_(),
 				precursor_peak_(),
 				retention_time_(-1), // warning: don't change this !! Otherwise MSExperimentExtern might not behave as expected !!
-				retention_start_(0),
-				retention_stop_(0),
 				ms_level_(1),
 				name_()
 		{
@@ -234,8 +226,6 @@ namespace OpenMS
 				container_(rhs.container_),
 				precursor_peak_(rhs.precursor_peak_),
 				retention_time_(rhs.retention_time_),
-				retention_start_(rhs.retention_start_),
-				retention_stop_(rhs.retention_stop_),
 				ms_level_(rhs.ms_level_),
 				name_(rhs.name_)
 		{
@@ -257,8 +247,6 @@ namespace OpenMS
 			container_ = rhs.container_;
 			precursor_peak_ = rhs.precursor_peak_;
 			retention_time_ = rhs.retention_time_;
-			retention_start_ = rhs.retention_start_;
-			retention_stop_ = rhs.retention_stop_;
 			ms_level_ = rhs.ms_level_;
 			name_ = rhs.name_;
 			return *this;
@@ -273,8 +261,6 @@ namespace OpenMS
 				container_ == rhs.container_ &&
 				precursor_peak_ == rhs.precursor_peak_ &&
 				retention_time_ == rhs.retention_time_ &&
-				retention_start_ == rhs.retention_start_ &&
-				retention_stop_ == rhs.retention_stop_ &&
 				ms_level_ == rhs.ms_level_
 				;
 			//name_ == rhs.name_  // the name can differ => do not test it
@@ -527,44 +513,20 @@ namespace OpenMS
 			precursor_peak_ = peak;
 		}
 
-		/**
-			 @brief accessor for the normalized retention time
-
-			 Returns the normalized retention time, if the gradient start and stop time are known.
-			 Otherwise the absolut retention time is returned.
-		*/
-		CoordinateType getNormalizedRetentionTime() const
-		{
-			return (retention_stop_==0)? retention_time_: (retention_time_-retention_start_)/(retention_stop_-retention_start_);
-		}
-
 		/// returns the absolute retention time (unit is seconds)
 		CoordinateType getRT() const
 		{
 			return retention_time_;
 		}
 
-		/// returns the retention time interval start (unit is seconds)
-		CoordinateType getRTStart() const
-		{
-			return retention_start_;
-		}
-
-		/// returns the retention time interval stop (unit is seconds)
-		CoordinateType getRTStop() const
-		{
-			return retention_stop_;
-		}
 
 		/**
 			 Sets the retention time and the start/stop time of the gradient.
 			 The latter two are needed for calculating the normalized retention time
 		*/
-		void setRT(CoordinateType rt, CoordinateType start=0, CoordinateType stop=0)
+		void setRT(CoordinateType rt)
 		{
 			retention_time_= rt;
-			retention_start_ = start;
-			retention_stop_ = stop;
 		}
 
 		/**
@@ -655,10 +617,6 @@ namespace OpenMS
 
 		/// retention time
 		CoordinateType retention_time_;
-		/// retention time interval begin (for the calculation of the normalized RT)
-		CoordinateType retention_start_;
-		/// retention time interval end (for the calculation of the normalized RT)
-		CoordinateType retention_stop_;
 
 		/// MS level
 		UInt ms_level_;

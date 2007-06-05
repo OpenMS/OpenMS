@@ -38,7 +38,7 @@ namespace OpenMS
 	 @brief	D-dimensional raw data point.
 	
 	 This datastructure is intended for continous data.
-	 If you want to handle picked data use DPeak or DPickedPeak.
+	 If you want to handle picked data use DPeak or PickedPeak1D.
 	
 	 @ingroup Kernel
 	 */
