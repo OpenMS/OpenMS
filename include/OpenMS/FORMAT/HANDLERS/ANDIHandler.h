@@ -435,9 +435,7 @@ namespace OpenMS
 		exp_[index].resize(n);
 		spec_ = &exp_[index];
 
-		spec_->setRT( float_(scan_data->scan_acq_time),
-																			 float_(global_data->delay_time),
-																			 float_(global_data->run_time));
+		spec_->setRT( float_(scan_data->scan_acq_time));
 		spec_->setMSLevel(1);
 		spec_->getInstrumentSettings().setMzRangeStart(float_(scan_data->mass_range_min));
 		spec_->getInstrumentSettings().setMzRangeStop(float_(scan_data->mass_range_max));
