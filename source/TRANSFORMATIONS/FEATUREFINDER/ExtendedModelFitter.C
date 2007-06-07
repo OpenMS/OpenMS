@@ -100,14 +100,17 @@ namespace OpenMS
 		defaults_.setValue("mz:model_type:last",4);
 		defaults_.setValue("quality:type","Correlation");
 		defaults_.setValue("quality:minimum",0.65f);
+		
 		defaults_.setValue("isotope_model:stdev:first",0.04f);
 		defaults_.setValue("isotope_model:stdev:last",0.12f);
 		defaults_.setValue("isotope_model:stdev:step",0.04f);
+		
 		defaults_.setValue("isotope_model:averagines:C",0.0443f);
-		defaults_.setValue("isotope_model:averagines:H",0.0f);
-		defaults_.setValue("isotope_model:averagines:N",0.0037f);
-		defaults_.setValue("isotope_model:averagines:O",0.022f);
-		defaults_.setValue("isotope_model:averagines:S",0.0f);
+		defaults_.setValue("isotope_model:averagines:H",0.007f);
+		defaults_.setValue("isotope_model:averagines:N",0.0012f);
+		defaults_.setValue("isotope_model:averagines:O",0.013f);
+		defaults_.setValue("isotope_model:averagines:S",0.00037f);
+		
 		defaults_.setValue("isotope_model:isotope:trim_right_cutoff",0.001f);
 		defaults_.setValue("isotope_model:isotope:maximum",1000000);
 		defaults_.setValue("isotope_model:isotope:distance",1.000495f);

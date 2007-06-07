@@ -58,7 +58,7 @@ namespace OpenMS
 			SequestOutfile();
 			
 			 /**
-				@brief loads data from a Inspect outfile
+				@brief loads data from a Sequest outfile
 				
 				@param result_filename the file to be loaded
 				@param identifications the identifications

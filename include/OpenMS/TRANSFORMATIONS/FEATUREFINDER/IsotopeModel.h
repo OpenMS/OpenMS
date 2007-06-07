@@ -118,6 +118,8 @@ namespace OpenMS
 			 This is a m/z-value not necessarily the monoisotopic mass.
 		*/
 		CoordinateType getCenter() const;
+		
+		CoordinateType getMonoisotopicMz() const;
 
 		protected:
 			CoordinateType isotope_stdev_;
@@ -128,6 +130,7 @@ namespace OpenMS
 			Int max_isotope_;
 			double trim_right_cutoff_;
 			double isotope_distance_;
+			CoordinateType mono_mz_; 
   
   		void updateMembers_();
   };

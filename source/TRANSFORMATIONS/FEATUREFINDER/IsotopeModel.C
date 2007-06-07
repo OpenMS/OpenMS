@@ -39,12 +39,14 @@ namespace OpenMS
 			monoisotopic_mz_(0.0)
 		{
 			setName(getProductName());
-			
-			defaults_.setValue("averagines:C",0.0443);
-			defaults_.setValue("averagines:H",0.0);
-			defaults_.setValue("averagines:N",0.0037);
-			defaults_.setValue("averagines:O",0.022);
-			defaults_.setValue("averagines:S",0.0);
+	
+			// averagine as introduced by Senko et al. (1995)
+			defaults_.setValue("averagines:C",0.0443f);
+			defaults_.setValue("averagines:H",0.007f);
+			defaults_.setValue("averagines:N",0.0037f);
+			defaults_.setValue("averagines:O",0.022f);
+			defaults_.setValue("averagines:S",0.00037f);
+
 			defaults_.setValue("isotope:trim_right_cutoff",0.001);
 			defaults_.setValue("isotope:maximum",1000000);
 			defaults_.setValue("isotope:distance",1.000495);
@@ -82,8 +84,7 @@ namespace OpenMS
 			// MAGIC alert, num stdev for smooth table for normal distribution
 			CoordinateType normal_widening_num_stdev = 4.;
 			// Actual width for values in the smooth table for normal distribution
-			CoordinateType normal_widening_width = isotope_stdev_
-																						* normal_widening_num_stdev;
+			CoordinateType normal_widening_width = isotope_stdev_ * normal_widening_num_stdev;
 
 			typedef std::vector < double > ContainerType;
 			ContainerType isotopes_exact;
@@ -130,8 +131,8 @@ namespace OpenMS
 			// we don't need to move the 0-th entry
 			{
 				isotopes_exact [size_t(CoordinateType(i)*
-								isotope_distance_/interpolation_step_/charge_+0.5)]
-				=	isotopes_exact [ i ];
+								               isotope_distance_/interpolation_step_/charge_+0.5)]
+				                       =	isotopes_exact [ i ];
 				isotopes_exact [ i ] = 0;
 			}
 
@@ -173,9 +174,16 @@ namespace OpenMS
 				}
       }
 
+#if 0
 			interpolation_.setOffset(mean_-isotopes_mean-normal_widening_width);
 			monoisotopic_mz_ = mean_-isotopes_mean;
+			mono_mz_ = formula.getMonoWeight();
 			interpolation_.setScale ( interpolation_step_ );
+#else
+			interpolation_.setMapping(interpolation_step_, normal_widening_width / interpolation_step_, mean_ - isotopes_mean)	;
+			monoisotopic_mz_ = mean_-isotopes_mean;
+			mono_mz_ = formula.getMonoWeight();
+#endif
 
 			// scale data so that integral over distribution equals one
 			// multiply sum by interpolation_step_ -> rectangular approximation of integral
@@ -212,6 +220,13 @@ namespace OpenMS
 		IsotopeModel::CoordinateType IsotopeModel::getCenter() const
 		{
 			return monoisotopic_mz_;
+		}
+		
+		IsotopeModel::CoordinateType IsotopeModel::getMonoisotopicMz() const
+		{
+			std::cout << "charge_ " << charge_ << std::endl;
+			std::cout << "mono_mz_ " << mono_mz_ << std::endl;
+			return (mono_mz_/charge_);
 		}
 
 		void IsotopeModel::updateMembers_()

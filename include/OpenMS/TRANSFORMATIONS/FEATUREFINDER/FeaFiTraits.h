@@ -99,9 +99,10 @@ namespace OpenMS
 		
 				for (SpectrumIteratorType it = begin; it != end; ++it)
 				{
+					// remove empty scans and tandem spectra
 					if (it->getMSLevel() == 1 && it->size() > 0) 
 					{
-							map_.push_back(*it);	// remove empty scans.
+							map_.push_back(*it);
 					}
 				}	
 		    
