@@ -157,6 +157,8 @@ class TOPPFeatureFinder
 		writeLog_(String("Reading input file ") + in);
 		{
 			MSExperimentExtern<Peak1D > exp;
+			exp.setBufferSize( getIntOption_("buffer_size") );
+			exp.updateBuffer();
 			MzDataFile f;
 			f.setLogType(log_type_);
 			f.load(in,exp);
