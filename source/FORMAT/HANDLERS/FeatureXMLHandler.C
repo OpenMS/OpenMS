@@ -68,7 +68,14 @@ namespace OpenMS
 					}
 					break;
 				case FEATURE:
-					map_->push_back(*feature_);
+					if (
+							(!options_.hasRTRange() || options_.getRTRange().encloses(feature_->getPosition()[0]))
+					&&	(!options_.hasMZRange() || options_.getMZRange().encloses(feature_->getPosition()[1]))
+					&&	(!options_.hasIntensityRange() || options_.getIntensityRange().encloses(feature_->getIntensity()))
+					)
+					{
+						map_->push_back(*feature_);
+					}
 					delete feature_;
 					break;
 				case FEATMODEL:
@@ -216,7 +223,9 @@ namespace OpenMS
 				os << "\t\t<feature id=\"" << id_generator.getUID() << "\">" << std::endl;
 	
 				for (UInt i=0; i<2;i++)
+				{
 					os <<	"\t\t\t<position dim=\"" << i << "\">" << feat.getPosition()[i] << "</position>" << 	std::endl;
+				}
 	
 				os << "\t\t\t<intensity>" << feat.getIntensity() << "</intensity>" << std::endl;
 	
