@@ -519,7 +519,7 @@
   most adapters can be configured using @a PeakFileOptions. The following options 
   are available:
   - only a specific retention time range is loaded
-  - only a specific mass-to.charge ratio range is loaded
+  - only a specific mass-to-charge ratio range is loaded
   - only a specific intensity range is loaded
   - only spectra with a given MS level are loaded
   - only meta data of the whole experiment is loaded (@a ExperimentalSettings)
