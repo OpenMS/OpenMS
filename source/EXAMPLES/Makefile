@@ -85,3 +85,12 @@ Tutorial_Param: Tutorial_Param.o
 
 Tutorial_PeakPickerCWT: Tutorial_PeakPickerCWT.o
 	$(CXX) $(LDFLAGS) -o $@ $< $(GUI_LIBS)
+
+Tutorial_TopHatFilter: Tutorial_TopHatFilter.o
+	$(CXX) $(LDFLAGS) -o $@ $< $(GUI_LIBS)
+
+Tutorial_GaussFilter: Tutorial_GaussFilter.o
+	$(CXX) $(LDFLAGS) -o $@ $< $(GUI_LIBS)
+
+Tutorial_SavitzkyGolayFilter: Tutorial_SavitzkyGolayFilter.o
+	$(CXX) $(LDFLAGS) -o $@ $< $(GUI_LIBS)

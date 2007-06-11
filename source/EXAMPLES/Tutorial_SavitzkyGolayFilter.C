@@ -12,10 +12,10 @@ Int main()
   RawSpectrum spec_filtered;
   
   DTAFile dta_file;
-  dta_file.load("../TEST/data/PeakTypeEstimator_test.dta",spec_raw);
+  dta_file.load("../TEST/data/PeakTypeEstimator_raw.dta",spec_raw);
 
   SavitzkyGolaySVDFilter sg;
-  sg.setWindowLength(1.0);
+  sg.setWindowSize(21);
   sg.setOrder(3);
   
   sg.filter(spec_raw,spec_filtered);
