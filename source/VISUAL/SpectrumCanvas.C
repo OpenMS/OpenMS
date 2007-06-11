@@ -340,67 +340,60 @@ namespace OpenMS
   {
   	return overall_data_range_;
   }
-
-	void SpectrumCanvas::updateRanges_(UInt layer_index, UInt mz_dim, UInt rt_dim, UInt it_dim)
-	{
-		if (layer_index >= getLayerCount())
-		{
-			return;
-		}
-		
-		//update mz and RT
-		DRange<3>::PositionType min = overall_data_range_.min();
-		DRange<3>::PositionType max = overall_data_range_.max();
-		
-		if (getLayer(layer_index).type==LayerData::DT_PEAK)
-		{
-			if(show_reduced_)
-			{
-				const ExperimentType& red = getLayer(layer_index).reduced;
-				if (red.getMinMZ() < min[mz_dim]) min[mz_dim] = red.getMinMZ();
-				if (red.getMaxMZ() > max[mz_dim]) max[mz_dim] = red.getMaxMZ();
-				if (red.getMinRT() < min[rt_dim]) min[rt_dim] = red.getMinRT();
-				if (red.getMaxRT() > max[rt_dim]) max[rt_dim] = red.getMaxRT();
-				if (red.getMinInt() < min[it_dim]) min[it_dim] = red.getMinInt();
-				if (red.getMaxInt() > max[it_dim]) max[it_dim] = red.getMaxInt();
-			}
-			else
-			{
-				const ExperimentType& peaks = getLayer(layer_index).peaks;
-				if (peaks.getMinMZ() < min[mz_dim]) min[mz_dim] = peaks.getMinMZ();
-				if (peaks.getMaxMZ() > max[mz_dim]) max[mz_dim] = peaks.getMaxMZ();
-				if (peaks.getMinRT() < min[rt_dim]) min[rt_dim] = peaks.getMinRT();
-				if (peaks.getMaxRT() > max[rt_dim]) max[rt_dim] = peaks.getMaxRT();
-				if (peaks.getMinInt() < min[it_dim]) min[it_dim] = peaks.getMinInt();
-				if (peaks.getMaxInt() > max[it_dim]) max[it_dim] = peaks.getMaxInt();
-		
-			}
-		}
-		else
-		{
-			const FeatureMapType& feat = getLayer(layer_index).features;
-			if (feat.getMin()[1] < min[mz_dim]) min[mz_dim] = feat.getMin()[1];
-			if (feat.getMax()[1] > max[mz_dim]) max[mz_dim] = feat.getMax()[1];
-			if (feat.getMin()[0] < min[rt_dim]) min[rt_dim] = feat.getMin()[0];
-			if (feat.getMax()[0] > max[rt_dim]) max[rt_dim] = feat.getMax()[0];
-			if (feat.getMinInt() < min[it_dim]) min[it_dim] = feat.getMinInt();
-			if (feat.getMaxInt() > max[it_dim]) max[it_dim] = feat.getMaxInt();
-		}
-		
-		overall_data_range_.setMin(min);
-		overall_data_range_.setMax(max);
-		
-		//cout << "Updated range: " << overall_data_range_ << endl;
-	}
 	
 	void SpectrumCanvas::recalculateRanges_(UInt mz_dim, UInt rt_dim, UInt it_dim)
 	{
 		overall_data_range_ = DRange<3>::empty;
+		DRange<3>::PositionType min = overall_data_range_.min();
+		DRange<3>::PositionType max = overall_data_range_.max();
 		
-		for (UInt i=0; i< getLayerCount(); ++i)
+		for (UInt layer_index=0; layer_index< getLayerCount(); ++layer_index)
 		{
-			updateRanges_(i, mz_dim, rt_dim, it_dim);
+			if (getLayer(layer_index).type==LayerData::DT_PEAK)
+			{
+				if(show_reduced_)
+				{
+					const ExperimentType& red = getLayer(layer_index).reduced;
+					if (red.getMinMZ() < min[mz_dim]) min[mz_dim] = red.getMinMZ();
+					if (red.getMaxMZ() > max[mz_dim]) max[mz_dim] = red.getMaxMZ();
+					if (red.getMinRT() < min[rt_dim]) min[rt_dim] = red.getMinRT();
+					if (red.getMaxRT() > max[rt_dim]) max[rt_dim] = red.getMaxRT();
+					if (red.getMinInt() < min[it_dim]) min[it_dim] = red.getMinInt();
+					if (red.getMaxInt() > max[it_dim]) max[it_dim] = red.getMaxInt();
+				}
+				else
+				{
+					const ExperimentType& peaks = getLayer(layer_index).peaks;
+					if (peaks.getMinMZ() < min[mz_dim]) min[mz_dim] = peaks.getMinMZ();
+					if (peaks.getMaxMZ() > max[mz_dim]) max[mz_dim] = peaks.getMaxMZ();
+					if (peaks.getMinRT() < min[rt_dim]) min[rt_dim] = peaks.getMinRT();
+					if (peaks.getMaxRT() > max[rt_dim]) max[rt_dim] = peaks.getMaxRT();
+					if (peaks.getMinInt() < min[it_dim]) min[it_dim] = peaks.getMinInt();
+					if (peaks.getMaxInt() > max[it_dim]) max[it_dim] = peaks.getMaxInt();
+				}
+			}
+			else
+			{
+				const FeatureMapType& feat = getLayer(layer_index).features;
+				if (feat.getMin()[1] < min[mz_dim]) min[mz_dim] = feat.getMin()[1];
+				if (feat.getMax()[1] > max[mz_dim]) max[mz_dim] = feat.getMax()[1];
+				if (feat.getMin()[0] < min[rt_dim]) min[rt_dim] = feat.getMin()[0];
+				if (feat.getMax()[0] > max[rt_dim]) max[rt_dim] = feat.getMax()[0];
+				if (feat.getMinInt() < min[it_dim]) min[it_dim] = feat.getMinInt();
+				if (feat.getMaxInt() > max[it_dim]) max[it_dim] = feat.getMaxInt();
+			}	
 		}
+		//Add 1% margin to RT in order to display all the data
+		DoubleReal margin = 0.01*(max[rt_dim] - min[rt_dim]);
+		min[rt_dim] -= margin;
+		max[rt_dim] += margin;
+		//Add 1% margin to MZ in order to display all the data
+		margin = 0.01*(max[mz_dim] - min[mz_dim]);
+		min[mz_dim] -= margin;
+		max[mz_dim] += margin;
+		
+		overall_data_range_.setMin(min);
+		overall_data_range_.setMax(max);
 	}
 
 	double SpectrumCanvas::getSnapFactor()

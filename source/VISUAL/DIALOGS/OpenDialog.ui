@@ -5,8 +5,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>506</width>
-    <height>354</height>
+    <width>615</width>
+    <height>379</height>
    </rect>
   </property>
   <property name="windowTitle" >
@@ -147,7 +147,7 @@
             <widget class="QComboBox" name="filetypes_" >
              <property name="minimumSize" >
               <size>
-               <width>100</width>
+               <width>150</width>
                <height>0</height>
               </size>
              </property>

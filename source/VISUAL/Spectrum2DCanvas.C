@@ -536,7 +536,7 @@ namespace OpenMS
 		}
 		
 		//overall values update
-		updateRanges_(current_layer_,0,1,2);
+		recalculateRanges_(0,1,2);
 		//cout << "New data range: " << overall_data_range_ << endl;
 		
 		if (getLayerCount()==1)
