@@ -694,8 +694,8 @@ so the width of the smoothing intervall is given by frame_size*spacing of the ra
 The bigger the frame size or the smaller the order the smoother the signal (the more detail information get lost!). 
 
 The following example shows how to use a @a SavitzkyGolaySVDFilter (the @a SavitzkyGolayQRFilter has the same interface) 
-to smooth a single spectrum. The single raw data spectrum is loaded and resampled to equally spaced data.
-The frame size of the Savitzky Golay filter is set to 20 data points and the polynomial order is set to 3.
+to smooth a single spectrum. The single raw data spectrum is loaded and resampled to uniform data with a spacing of 0.01 /m/z.
+The frame size of the Savitzky Golay filter is set to 21 data points and the polynomial order is set to 3.
 Afterwards the is applied to the resampled spectrum.
 
 @dontinclude Tutorial_SavitzkyGolayFilter.C
