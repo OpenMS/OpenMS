@@ -102,7 +102,7 @@ namespace OpenMS
 					// remove empty scans and tandem spectra
 					if (it->getMSLevel() == 1 && it->size() > 0) 
 					{
-							map_.push_back(*it);
+						map_.push_back(*it);
 					}
 				}	
 		    

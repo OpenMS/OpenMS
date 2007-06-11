@@ -196,7 +196,7 @@ namespace OpenMS
 			return (res);
 		}
 		
-		UInt findNextMax(const DPeakArray<PeakType >& cwt, const UInt index);
+		UInt findNextMax_(const DPeakArray<PeakType >& cwt, const UInt index);
 		
 		/// Assigns scores to each charge state of a isotopic pattern
 		ScoredMZVector identifyCharge_(std::vector<DPeakArray<PeakType > >& candidates, SpectrumType& scan);
