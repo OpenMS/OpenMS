@@ -638,10 +638,70 @@ stored or used for further processing.
 
 @page tutorial_filtering Signal processing
  
+OpenMS offers several filters for the reduction of noise and baseline which disturb LC-MS measurements.
+These filters work spectra-wise and can therefore be applied to a whole raw data map as well as
+ to a single raw spectrum. All filters offer functions for the filtering of raw data containers 
+ (e.g. @a RawSpectrum) "filter" as well as functions for the processing of a collection of raw data
+ containers (e.g. @a RawMap) "filterExperiment". 
+ The functions "filter" and "filterExperiment" can both be invoked with an input container along with an output 
+ container or with iterators that define a range on the input container along with an output container.
  
 @section filtering_baseline Baseline filters
+Baseline reduction can be perfomed by the @a TopHatFilter. The top-hat filter is a morphological filter 
+which uses the basic morphological operations "erosion" and "dilatation" to remove the baseline in raw data.
+Because both operations are implemented as described by Van Herk the top-hat filter expects equally spaced raw
+data points. If your data are not uniform yet, please use the @a LinearResampler to generate equally spaced data.
+
+The @a TopHatFilter removes signal structures in the raw data which are broader than the size of the structuring element.
+
+The following example shows how to instantiate a tophat filter, set the lenth of the structuring element and 
+remove the base line in a raw LC-MS map.
+
+@dontinclude Tutorial_TopHatFilter.C
+  @skip main
+  @until end of main
+
+@note To remove the baseline the width of the structuring element should be greater than the width of a peak.
+
 
 @section filtering_smoothing Smoothing filters
+
+We offer two smoothing filters to reduce noise in LC-MS measurements.
+
+@subsection filtering_smoothing_gaussian Gaussian filter
+
+The class @a GaussFilter is a gaussian filter. The wider the kernel width the smoother the signal (the more detail 
+information get lost). 
+
+We show in the following example how to smooth a raw data map.
+The gaussian kernel width is set to 1 m/z.
+
+@dontinclude Tutorial_GaussFilter.C
+  @skip main
+  @until end of main
+
+
+@note Use a gaussian filter kernel which has approximately the same width as your mass peaks.
+
+@subsection filtering_smoothing_sgolay Savitzky Golay filter
+
+The Savitzky Golay filter is implemented in two ways @a SavitzkyGolaySVDFilter and @a SavitzkyGolayQRFilter. 
+Both filters come to the same result but in most cases the @a SavitzkyGolaySVDFilter has a better run time.
+The Savitzky Golay filters work only on equally spaced data. If your data are not uniform use the @a LinearResampler
+to generate equally spaced data. The smoothing degree depends on two parameters, the frame size and the order 
+of the polynomial used for smoothing. The frame size corresponds to the number of filter coefficients, 
+so the width of the smoothing intervall is given by frame_size*spacing of the raw data.
+The bigger the frame size or the smaller the order the smoother the signal (the more detail information get lost!). 
+
+The following example shows how to use a @a SavitzkyGolaySVDFilter (the @a SavitzkyGolayQRFilter has the same interface) 
+to smooth a single spectrum. The single raw data spectrum is loaded and resampled to equally spaced data.
+The frame size of the Savitzky Golay filter is set to 20 data points and the polynomial order is set to 3.
+Afterwards the is applied to the resampled spectrum.
+
+@dontinclude Tutorial_SavitzkyGolayFilter.C
+  @skip main
+  @until end of main
+         
 
 */
 
