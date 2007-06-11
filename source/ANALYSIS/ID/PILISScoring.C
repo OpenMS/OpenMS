@@ -103,6 +103,10 @@ namespace OpenMS
   	vector<double> global_scores;
   	for (vector<PeptideIdentification>::const_iterator it = ids.begin(); it != ids.end(); ++it)
   	{
+			if (it->getHits().size() == 0)
+			{
+				break;
+			}
     	vector<PeptideHit>::const_iterator it1 = it->getHits().begin();
     	for (++it1; it1 != it->getHits().end(); ++it1)
     	{
