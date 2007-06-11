@@ -195,24 +195,30 @@ namespace OpenMS
 		std::cout << " done." << std::endl;
 		#endif
 	}
-	
+			
 	void IsotopeWaveletSeeder::computeNullVariance_(const DPeakArray<PeakType >& cwt, const UInt charge_index )
 	{
-		IntensityType cwt_sum    = 0.0;
-		IntensityType cwt_sqsum = 0.0;
-	
+			
 		CoordinateType first_mass = (cwt.size() > 0) ? cwt[ (cwt.size()-1) ].getMZ() : 0.0 ;
 		CoordinateType mass_diff  = 0.0;
 		UInt j = (cwt.size() > 0) ? (cwt.size() - 1) : 0;
 		
+		IntensityType mean = 0.0;
+		IntensityType S       = 0.0;
+		UInt n                     = 0;
+						
 		for (; mass_diff < 6.0 && j > 0; --j)
 		{
-			cwt_sum    += cwt[j].getIntensity();
-			cwt_sqsum += (cwt[j].getIntensity() * cwt[j].getIntensity());		
+			++n;
+  		IntensityType delta = cwt[j].getIntensity() - mean;
+  		mean = mean + delta/n;
+  		S += delta*( cwt[j].getIntensity()  - mean);
+			
 			mass_diff    = cwt[j].getMZ() - first_mass;
+			
 		}
-		n_null_[charge_index] = (cwt.size() - 1) - j;		
-		null_var_[charge_index] = ( n_null_[charge_index] * cwt_sqsum - ( cwt_sum * cwt_sum) ) / ( n_null_[charge_index] * (n_null_[charge_index]-1) );
+		n_null_[charge_index] = n;		
+		null_var_[charge_index] = S / (n-1);
 	}
 		
 	void IsotopeWaveletSeeder::fastMultiCorrelate_(const SpectrumType& signal, std::vector<DPeakArray<PeakType > >* pwts)
@@ -351,7 +357,7 @@ namespace OpenMS
 			IntensityType avg_cwt  = 0;
 			
 			computeNullVariance_(candidates[c],c);
-			
+						
 			// compute average intensity in cwt			
 			for (UInt i =0; i< candidates[c].size(); ++i)
 			{
@@ -434,7 +440,7 @@ namespace OpenMS
 					
 				if (best_score == 0.0) 
 				{
-					best_score += 0.00000001; // add pseudo count for very low p-values
+					best_score += 0.00000001; // add pseudo count for zero p-values
 				}
 				
 				ScoredChargeType sc_charge;

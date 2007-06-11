@@ -226,7 +226,7 @@ namespace OpenMS
 		double getAbsMean_(const DPeakArray<PeakType >& signal,
 																		UInt startIndex, 
 																		UInt endIndex) const;
-										
+													
 		/// Does not need much explanation.
 		bool wavelet_initialized_;
 		/// Number of isotopic peaks a wavelet should contain		
