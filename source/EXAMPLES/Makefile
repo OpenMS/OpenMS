@@ -36,8 +36,10 @@ CPP_SOURCES=\
 	Tutorial_MetaInfo.C\
 	Tutorial_FileIO.C\
 	Tutorial_Param.C\
-	Tutorial_PeakPickerCWT.C
-	
+	Tutorial_PeakPickerCWT.C\
+	Tutorial_TopHatFilter.C\
+	Tutorial_GaussFilter.C\
+	Tutorial_SavitzkyGolayFilter.C	
 
 OBJECTS=$(SOURCES:.C=.o)
 
