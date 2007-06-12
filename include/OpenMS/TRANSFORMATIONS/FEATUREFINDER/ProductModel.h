@@ -73,7 +73,7 @@ namespace OpenMS
       {
       	String name = RawDataPoint2D::shortDimensionName(dim);
     		this->subsections_.push_back(name);
-    		this->defaults_.setValue(name,"GaussModel");
+    		this->defaults_.setValue(name,"GaussModel","Name of the model used for this dimension");
     	}
     	
     	//defaults

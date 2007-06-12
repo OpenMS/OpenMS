@@ -37,20 +37,24 @@ namespace OpenMS
 	{
     setName(getProductName());
     
-    defaults_.setValue("tolerance_rt",2.0f,"tolerance of score distribution in rt");
-    defaults_.setValue("tolerance_mz",0.5f,"tolerance of score distribution in mz");
+    defaults_.setValue("tolerance_rt",2.0f,"Boundary width in RT dimension");
+    defaults_.setValue("tolerance_mz",0.5f,"Boundary width in m/z dimension");
 		
-    defaults_.setValue("dist_mz_up",6.0f,"max distance in mz (from centroid)");
-    defaults_.setValue("dist_mz_down",2.0f,"max distance in mz (from centroid)");
-    defaults_.setValue("dist_rt_up",5.0f,"max distance in mz (from centroid)");
-    defaults_.setValue("dist_rt_down",5.0f,"max distance in mz (from centroid)");
+    defaults_.setValue("dist_mz_up",6.0f,"max distance in m/z (from centroid)");
+    defaults_.setValue("dist_mz_down",2.0f,"max distance in m/z (from centroid)");
+    defaults_.setValue("dist_rt_up",5.0f,"max distance in RT (from centroid)");
+    defaults_.setValue("dist_rt_down",5.0f,"max distance in RT (from centroid)");
     
 		// priority check is per default switched off
 		// these values were used for the Myoglobin quantification project
 		// DON'T REMOVE THIS
-		defaults_.setValue("priority_thr",-0.1f,"priority threshold");
+		defaults_.setValue("priority_thr",-0.1f,"Minimum priority for data points to be included into the boundary of the feature (default 0.0)"
+																						"The priority of a data point is a function of its intensity and its distance to the last point"
+																						"included into the feature region. Setting this threshold to zero or a very small value is"
+																						"usually a good idea.");
     
-		defaults_.setValue("intensity_factor",0.03f,"intensity threshold");
+		defaults_.setValue("intensity_factor",0.03f,"Influences for intensity (ion count) threshold in the feature extension. We include only raw data"
+																								"points into this region if their intensity is larger than [intensity_factor * (intensity of the seed)].");
 
     defaultsToParam_();
 	}

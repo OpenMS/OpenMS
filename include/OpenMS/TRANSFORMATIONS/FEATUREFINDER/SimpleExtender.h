@@ -80,7 +80,7 @@ namespace OpenMS
 			<tr><td>intensity_factor</td>
 					<td>Influences for intensity (ion count) threshold in the feature extension. We include only raw data
 					points into this region if their intensity is larger than [intensity_factor * (intensity of the seed)].
-					(default value is 0.03) .</td></tr>
+					(default value is 0.03).</td></tr>
 			</table>
 		
 		@ingroup FeatureFinder

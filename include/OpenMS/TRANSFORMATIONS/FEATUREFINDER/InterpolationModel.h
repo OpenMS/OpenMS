@@ -69,8 +69,8 @@ namespace OpenMS
 				: BaseModel<1>(),
 					interpolation_()
 			{
-				this->defaults_.setValue("interpolation_step",0.1);
-				this->defaults_.setValue("intensity_scaling",1.0);
+				this->defaults_.setValue("interpolation_step",0.1,"sampling resolution for the function");
+				this->defaults_.setValue("intensity_scaling",1.0,"intensity multiplicator");
 			}
 
       /// copy constructor

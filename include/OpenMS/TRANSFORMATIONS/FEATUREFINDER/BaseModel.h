@@ -62,7 +62,7 @@ namespace OpenMS
 	      BaseModel()
 					: FactoryProduct("BaseModel")
 				{
-					defaults_.setValue("cutoff",0.0);
+					defaults_.setValue("cutoff",0.0,"low intensity cutoff of the model");
 				}
 	
 	      /// copy constructor 

@@ -63,28 +63,39 @@ namespace OpenMS
 	{
 		setName(getProductName());
 		
-		defaults_.setValue("tolerance_stdev_bounding_box",3.0f,"bounding box standard deviation");
-		defaults_.setValue("feature_intensity_sum",1,"sum of data points");
-		defaults_.setValue("min_num_peaks:final",5,"minimum number of peaks after fitting");
-		defaults_.setValue("min_num_peaks:extended",10,"minimum number of peaks after extension");
-		defaults_.setValue("intensity_cutoff_factor",0.05f,"cutoff for feature intensity");
-		defaults_.setValue("rt:interpolation_step",0.2f,"interpolation step size (rt)");
-		defaults_.setValue("mz:interpolation_step",0.2f,"interpolation step size (mz)");
-		defaults_.setValue("mz:model_type:first",0,"first charge tested");
-		defaults_.setValue("mz:model_type:last",4,"last charge tested");
-		defaults_.setValue("quality:type","Correlation","quality type");
-		defaults_.setValue("quality:minimum",0.65f,"min quality");
+		defaults_.setValue("tolerance_stdev_bounding_box",3.0f,"bounding box has range [minimim of data, maximum of data] enlarged by tolerance_stdev_bounding_box times the standard deviation of the data");
+		defaults_.setValue("feature_intensity_sum",1,"If this parameter is set to one (default) the peptide abundance is estimated as the sum of all peak intensities within the feature region. Otherwise this abundance is estimated as the maximum intensity.");
+		defaults_.setValue("intensity_cutoff_factor",0.05f,"cutoff peaks with a predicted intensity below intensity_cutoff_factor times the maximal intensity of the model");
+		
+		defaults_.setValue("min_num_peaks:final",5,"minimum number of peaks left after cutoff. If smaller, feature will be discarded.");
+		defaults_.setValue("min_num_peaks:extended",10,"minimum number of peaks gathered by the BaseExtender. If smaller, feature will be discarded");
+		defaults_.setDescription("min_num_peaks","Required number of peaks for a feature");
+		
+		defaults_.setValue("rt:interpolation_step",0.2f,"step size in seconds used to interpolate model for RT");
+		defaults_.setDescription("rt","Model settings in RT");
+		defaults_.setValue("mz:interpolation_step",0.2f,"step size in Thomson used to interpolate model for m/z");
+		defaults_.setValue("mz:model_type:first",0,"first type of model to try in m/z, 0 = GaussModel, 1 = IsotopeModel with charge +1, ..., n = IsotopeModel with charge +n");
+		defaults_.setValue("mz:model_type:last",4,"last type of model to try in m/z");
+		defaults_.setDescription("mz","Model settings in m/z");
+		
+		defaults_.setValue("quality:type","Correlation","Name of the fit quality measure ('Correlation','EuclidianDistance','RankCorrelation')");
+		defaults_.setValue("quality:minimum",0.65f,"quality thresholf for a feature. If smaller feature will be discarded");
+		defaults_.setDescription("quality","Fitting quality settings");
+		
 		defaults_.setValue("isotope_model:stdev:first",0.04f,"first standard deviation tested");
 		defaults_.setValue("isotope_model:stdev:last",0.12f,"last standard deviation tested");
-		defaults_.setValue("isotope_model:stdev:step",0.04f,"step size for std test");
-		defaults_.setValue("isotope_model:averagines:C",0.0443f,"number of C atoms");
-		defaults_.setValue("isotope_model:averagines:H",0.0f,"number of H atoms");
-		defaults_.setValue("isotope_model:averagines:N",0.0037f,"number of N atoms");
-		defaults_.setValue("isotope_model:averagines:O",0.022f,"number of C atoms");
-		defaults_.setValue("isotope_model:averagines:S",0.0f,"number of S atoms");
-		defaults_.setValue("isotope_model:isotope:trim_right_cutoff",0.001f,"cutoff in averagine distribution");
-		defaults_.setValue("isotope_model:isotope:maximum",1000000,"maximum number of peaks");
+		defaults_.setValue("isotope_model:stdev:step",0.04f,"step size for tandard deviation test");
+		defaults_.setDescription("isotope_model:stdev","Instrument resolution settings for m/z");
+		defaults_.setValue("isotope_model:averagines:C",0.0443f,"fraction of C atoms");
+		defaults_.setValue("isotope_model:averagines:H",0.0f,"fraction of H atoms");
+		defaults_.setValue("isotope_model:averagines:N",0.0037f,"fraction of N atoms");
+		defaults_.setValue("isotope_model:averagines:O",0.022f,"fraction of C atoms");
+		defaults_.setValue("isotope_model:averagines:S",0.0f,"fraction of S atoms");
+		defaults_.setDescription("isotope_model:averagines","averagines are used to approximate the number of atoms (C,H,N,O,S) which a peptide of a given mass contains");
+		defaults_.setValue("isotope_model:isotope:trim_right_cutoff",0.001f,"use only isotopes with abundancies above this cutoff");
+		defaults_.setValue("isotope_model:isotope:maximum",1000000,"maximum number of isotopes being used for the IsotopeModel");
 		defaults_.setValue("isotope_model:isotope:distance",1.000495f,"distance of consecutive isotopic peaks");
+		defaults_.setDescription("isotope_model","Settings of the isotope model (m/z)");
 		
 		defaultsToParam_();
 	}
