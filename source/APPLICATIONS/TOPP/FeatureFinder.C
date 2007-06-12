@@ -125,11 +125,14 @@ class TOPPFeatureFinder
 		Param tmp;
 		
 		tmp.insert("Seeders:Seeder1",Factory<BaseSeeder>::create("SimpleSeeder")->getDefaults());
+		tmp.setDescription("Seeders","Seeder definitions are contained here");
 		tmp.setValue("Seeders:Seeder1:ID","SimpleSeeder");
 		tmp.insert("Extenders:Extender1",Factory<BaseExtender>::create("SimpleExtender")->getDefaults());	
 		tmp.setValue("Extenders:Extender1:ID","SimpleExtender");
+		tmp.setDescription("Extenders","Extender definitions are contained here");
 		tmp.insert("ModelFitters:ModelFitter1",Factory<BaseModelFitter>::create("SimpleModelFitter")->getDefaults());	
 		tmp.setValue("ModelFitters:ModelFitter1:ID","SimpleModelFitter");
+		tmp.setDescription("ModelFitters","ModelFitter definitions are contained here");
 		return tmp;
 	}
 
