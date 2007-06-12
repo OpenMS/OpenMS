@@ -341,6 +341,12 @@ namespace OpenMS
         }
       }
       
+			if (max_intensity_ <= 0)
+			{
+				std::cerr << "TODO SignalToNoiseEstimatorMedian: the max_intensity_ value should be positive! " << max_intensity_ << std::endl;
+				return;
+			}
+
       PeakIterator window_pos_center  = scan_first_;
       PeakIterator window_pos_borderleft = scan_first_;
       PeakIterator window_pos_borderright = scan_first_;
@@ -358,12 +364,12 @@ namespace OpenMS
          bin_value[bin] = (bin + 0.5) * bin_size;           
       }
       // bin in which a datapoint would fall
-      int to_bin;
+      int to_bin = 0;
 
       // index of bin where the median is located
-      int median_bin;
+      int median_bin = 0;
       // additive number of elements from left to x in histogram
-      int element_inc_count;
+      int element_inc_count = 0;
       
       // tracks elements in current window, which may vary because of uneven spaced data
       int elements_in_window = 0;
@@ -371,7 +377,7 @@ namespace OpenMS
       int window_count = 0;
       
       // number of elements where we find the median
-      int element_in_window_half;
+      int element_in_window_half = 0;
       
       double noise;    // noise value of a datapoint      
 
@@ -402,6 +408,7 @@ namespace OpenMS
         while (    (window_pos_borderright != scan_last_)
                 &&((*window_pos_borderright).getMZ() <= (*window_pos_center).getMZ() + window_half_size ) )
         {
+					//std::cerr << (*window_pos_borderright).getIntensity() << " " << bin_size << " " << bin_count_minus_1 << std::endl;
           to_bin = std::min((int) (((*window_pos_borderright).getIntensity()) / bin_size), bin_count_minus_1);
           ++histogram[to_bin];
           ++elements_in_window;
