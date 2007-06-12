@@ -63,28 +63,28 @@ namespace OpenMS
 	{
 		setName(getProductName());
 		
-		defaults_.setValue("tolerance_stdev_bounding_box",3.0f);
-		defaults_.setValue("feature_intensity_sum",1);
-		defaults_.setValue("min_num_peaks:final",5);
-		defaults_.setValue("min_num_peaks:extended",10);
-		defaults_.setValue("intensity_cutoff_factor",0.05f);
-		defaults_.setValue("rt:interpolation_step",0.2f);
-		defaults_.setValue("mz:interpolation_step",0.2f);
-		defaults_.setValue("mz:model_type:first",0);
-		defaults_.setValue("mz:model_type:last",4);
-		defaults_.setValue("quality:type","Correlation");
-		defaults_.setValue("quality:minimum",0.65f);
-		defaults_.setValue("isotope_model:stdev:first",0.04f);
-		defaults_.setValue("isotope_model:stdev:last",0.12f);
-		defaults_.setValue("isotope_model:stdev:step",0.04f);
-		defaults_.setValue("isotope_model:averagines:C",0.0443f);
-		defaults_.setValue("isotope_model:averagines:H",0.0f);
-		defaults_.setValue("isotope_model:averagines:N",0.0037f);
-		defaults_.setValue("isotope_model:averagines:O",0.022f);
-		defaults_.setValue("isotope_model:averagines:S",0.0f);
-		defaults_.setValue("isotope_model:isotope:trim_right_cutoff",0.001f);
-		defaults_.setValue("isotope_model:isotope:maximum",1000000);
-		defaults_.setValue("isotope_model:isotope:distance",1.000495f);
+		defaults_.setValue("tolerance_stdev_bounding_box",3.0f,"bounding box standard deviation");
+		defaults_.setValue("feature_intensity_sum",1,"sum of data points");
+		defaults_.setValue("min_num_peaks:final",5,"minimum number of peaks after fitting");
+		defaults_.setValue("min_num_peaks:extended",10,"minimum number of peaks after extension");
+		defaults_.setValue("intensity_cutoff_factor",0.05f,"cutoff for feature intensity");
+		defaults_.setValue("rt:interpolation_step",0.2f,"interpolation step size (rt)");
+		defaults_.setValue("mz:interpolation_step",0.2f,"interpolation step size (mz)");
+		defaults_.setValue("mz:model_type:first",0,"first charge tested");
+		defaults_.setValue("mz:model_type:last",4,"last charge tested");
+		defaults_.setValue("quality:type","Correlation","quality type");
+		defaults_.setValue("quality:minimum",0.65f,"min quality");
+		defaults_.setValue("isotope_model:stdev:first",0.04f,"first standard deviation tested");
+		defaults_.setValue("isotope_model:stdev:last",0.12f,"last standard deviation tested");
+		defaults_.setValue("isotope_model:stdev:step",0.04f,"step size for std test");
+		defaults_.setValue("isotope_model:averagines:C",0.0443f,"number of C atoms");
+		defaults_.setValue("isotope_model:averagines:H",0.0f,"number of H atoms");
+		defaults_.setValue("isotope_model:averagines:N",0.0037f,"number of N atoms");
+		defaults_.setValue("isotope_model:averagines:O",0.022f,"number of C atoms");
+		defaults_.setValue("isotope_model:averagines:S",0.0f,"number of S atoms");
+		defaults_.setValue("isotope_model:isotope:trim_right_cutoff",0.001f,"cutoff in averagine distribution");
+		defaults_.setValue("isotope_model:isotope:maximum",1000000,"maximum number of peaks");
+		defaults_.setValue("isotope_model:isotope:distance",1.000495f,"distance of consecutive isotopic peaks");
 		
 		defaultsToParam_();
 	}

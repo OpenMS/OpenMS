@@ -40,17 +40,17 @@ namespace OpenMS
 		{
 			setName(getProductName());
 			
-			defaults_.setValue("averagines:C",0.0443);
-			defaults_.setValue("averagines:H",0.0);
-			defaults_.setValue("averagines:N",0.0037);
-			defaults_.setValue("averagines:O",0.022);
-			defaults_.setValue("averagines:S",0.0);
-			defaults_.setValue("isotope:trim_right_cutoff",0.001);
-			defaults_.setValue("isotope:maximum",1000000);
-			defaults_.setValue("isotope:distance",1.000495);
-			defaults_.setValue("isotope:stdev",0.1);
-			defaults_.setValue("charge",1);
-			defaults_.setValue("statistics:mean",0.0);
+			defaults_.setValue("averagines:C",0.0443,"number of C atoms");
+			defaults_.setValue("averagines:H",0.0,"number of H atoms");
+			defaults_.setValue("averagines:N",0.0037,"number of N atoms");
+			defaults_.setValue("averagines:O",0.022,"number of O atoms");
+			defaults_.setValue("averagines:S",0.0,"number of S atoms");
+			defaults_.setValue("isotope:trim_right_cutoff",0.001,"cutoff in averagine distribution");
+			defaults_.setValue("isotope:maximum",1000000,"maximum isotopic peak");
+			defaults_.setValue("isotope:distance",1.000495,"distance between consecutive isotopic peaks");
+			defaults_.setValue("isotope:stdev",0.1,"standard deviation");
+			defaults_.setValue("charge",1,"charge of model");
+			defaults_.setValue("statistics:mean",0.0,"centroid");
 			
 			defaultsToParam_();
 		}

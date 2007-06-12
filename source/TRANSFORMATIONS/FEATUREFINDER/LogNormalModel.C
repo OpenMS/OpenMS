@@ -36,15 +36,15 @@ namespace OpenMS
 	{
 		setName(getProductName());
 		
-		defaults_.setValue("bounding_box:min",0.0f);
-		defaults_.setValue("bounding_box:max",1.0f);
-		defaults_.setValue("statistics:mean",0.0f);
-		defaults_.setValue("statistics:variance",1.0f);
-		defaults_.setValue("emg:height",100000.0f);
-		defaults_.setValue("emg:width",5.0f);
-		defaults_.setValue("emg:symmetry",5.0f);
-		defaults_.setValue("emg:retention",1200.0f);
-		defaults_.setValue("lognormal:r",2.0f);
+		defaults_.setValue("bounding_box:min",0.0f,"lower bound of bounding box");
+		defaults_.setValue("bounding_box:max",1.0f,"upper bound of bounding box");
+		defaults_.setValue("statistics:mean",0.0f,"mean");
+		defaults_.setValue("statistics:variance",1.0f,"variance");
+		defaults_.setValue("emg:height",100000.0f,"height");
+		defaults_.setValue("emg:width",5.0f,"width");
+		defaults_.setValue("emg:symmetry",5.0f,"symmetry factor");
+		defaults_.setValue("emg:retention",1200.0f,"retention");
+		defaults_.setValue("lognormal:r",2.0f,"lognormal scale");
 
 		defaultsToParam_();
 	}

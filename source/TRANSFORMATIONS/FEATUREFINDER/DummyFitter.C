@@ -48,9 +48,9 @@ namespace OpenMS
 	{
 		setName(getProductName());
 		
-		defaults_.setValue("min_num_peaks:final",5);
-		defaults_.setValue("min_num_peaks:extended",10);
-		defaults_.setValue("use_fwhm_intensity",0);
+		defaults_.setValue("min_num_peaks:final",5,"minimum number of data points after fitting");
+		defaults_.setValue("min_num_peaks:extended",10,"minimum number of data points before fitting");
+		defaults_.setValue("use_fwhm_intensity",0,"use full with at half maximum for abundance estimation");
 		
 		defaultsToParam_();
 	}

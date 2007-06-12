@@ -37,13 +37,13 @@ namespace OpenMS
 	{
 		setName(getProductName());
 		
-		defaults_.setValue("bounding_box:min",0.0f);
-		defaults_.setValue("bounding_box:max",1.0f);
-		defaults_.setValue("statistics:mean",0.0f);
-		defaults_.setValue("statistics:variance",1.0f);
-		defaults_.setValue("lma:scale_factor",1000000.0f);
-		defaults_.setValue("lma:standard_deviation",5.0f);
-		defaults_.setValue("lma:expected_value",1200.0f);
+		defaults_.setValue("bounding_box:min",0.0f,"lower bound of bounding box");
+		defaults_.setValue("bounding_box:max",1.0f,"upper bound of bounding box");
+		defaults_.setValue("statistics:mean",0.0f,"centroid");
+		defaults_.setValue("statistics:variance",1.0f,"variance");
+		defaults_.setValue("lma:scale_factor",1000000.0f,"scale");
+		defaults_.setValue("lma:standard_deviation",5.0f,"standard deviation");
+		defaults_.setValue("lma:expected_value",1200.0f,"expected value");
 
 		defaultsToParam_();
 	}

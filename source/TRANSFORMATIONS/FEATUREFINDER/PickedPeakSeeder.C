@@ -39,23 +39,23 @@ namespace OpenMS
 
     // lower and upper bounds for distances between isotopic peaks (defaults)
     // charge 1
-    defaults_.setValue("charge1_ub",1.6f);
-    defaults_.setValue("charge1_lb",0.7f);
+    defaults_.setValue("charge1_ub",1.6f,"upper bound charge 1");
+    defaults_.setValue("charge1_lb",0.7f,"lower bound charge 1");
     // charge 2
-    defaults_.setValue("charge2_ub",0.7f);
-    defaults_.setValue("charge2_lb",0.4f);
+    defaults_.setValue("charge2_ub",0.7f,"upper bound charge 2");
+    defaults_.setValue("charge2_lb",0.4f,"upper bound charge 2");
     // charge 3
-    defaults_.setValue("charge3_ub",0.4f);
-    defaults_.setValue("charge3_lb",0.27f);
+    defaults_.setValue("charge3_ub",0.4f,"upper bound charge 3");
+    defaults_.setValue("charge3_lb",0.27f,"upper bound charge 3");
     // charge 4
-    defaults_.setValue("charge4_ub",0.27f);
-    defaults_.setValue("charge4_lb",0.24f);
+    defaults_.setValue("charge4_ub",0.27f,"upper bound charge 4");
+    defaults_.setValue("charge4_lb",0.24f,"upper bound charge 4");
     // charge 5
-    defaults_.setValue("charge5_ub",0.24f);
-    defaults_.setValue("charge5_lb",0.15f);
+    defaults_.setValue("charge5_ub",0.24f,"upper bound charge 5");
+    defaults_.setValue("charge5_lb",0.15f,"upper bound charge 5");
 
     // minimum number of peaks per pattern (in one scan)
-    defaults_.setValue("min_peaks_per_scan",3);
+    defaults_.setValue("min_peaks_per_scan",3,"minimum number of peaks per pattern (in one scan)");
 
     defaultsToParam_();
 	}

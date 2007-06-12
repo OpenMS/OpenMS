@@ -39,22 +39,22 @@ namespace OpenMS
 		// lower and upper bounds for distances between isotopic peaks (defaults)
 		// we check for charges states up to three
 		// charge 1
-		defaults_.setValue("charge1_ub",1.3f);
-		defaults_.setValue("charge1_lb",0.70f);
+		defaults_.setValue("charge1_ub",1.3f,"upper bound charge 1");
+		defaults_.setValue("charge1_lb",0.70f,"lower bound charge 1");
 		// charge 2
-		defaults_.setValue("charge2_ub",0.70f);
-		defaults_.setValue("charge2_lb",0.40f);
+		defaults_.setValue("charge2_ub",0.70f,"upper bound charge 2");
+		defaults_.setValue("charge2_lb",0.40f,"lower bound charge 2");
 		// charge 3
-		defaults_.setValue("charge3_ub",0.40f);
-		defaults_.setValue("charge3_lb",0.1f);
+		defaults_.setValue("charge3_ub",0.40f,"upper bound charge 3");
+		defaults_.setValue("charge3_lb",0.1f,"lower bound charge 3");
 			
 		// params for the cwt
-		defaults_.setValue("cwt_scale",0.1f);
-		defaults_.setValue("avg_signal_factor",2);
-		defaults_.setValue("avg_cwt_factor",3);
+		defaults_.setValue("cwt_scale",0.1f,"cwt scale");
+		defaults_.setValue("avg_signal_factor",2,"signal threshold");
+		defaults_.setValue("avg_cwt_factor",3,"cwt threshold");
 		
 		// minimum number of maxima in cwt
-		defaults_.setValue("min_peaks_per_scan",2);
+		defaults_.setValue("min_peaks_per_scan",2,"minimum number of maxima in cwt");
 		
 		defaultsToParam_();
 	}

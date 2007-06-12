@@ -45,12 +45,12 @@ namespace OpenMS
     setName(getProductName());
 
 		// max and min charge states examined
-		defaults_.setValue("max_charge",4);
-		defaults_.setValue("min_charge",1);
+		defaults_.setValue("max_charge",4,"max charge state");
+		defaults_.setValue("min_charge",1,"min charge state");
 		
 		// intensity threshold in cwt
-		defaults_.setValue("signal_avg_factor",3.0);
-		defaults_.setValue("cwt_avg_factor",3.0);
+		defaults_.setValue("signal_avg_factor",3.0,"signal threshold");
+		defaults_.setValue("cwt_avg_factor",3.0,"cwt threshold");
 				
     defaultsToParam_();
 	}

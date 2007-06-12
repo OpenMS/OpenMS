@@ -34,11 +34,11 @@ namespace OpenMS
 		{
 			setName(getProductName());
 			
-			defaults_.setValue("bounding_box:min",0.0);
-			defaults_.setValue("bounding_box:max",1.0);
-			defaults_.setValue("statistics:mean",0.0);
-			defaults_.setValue("statistics:variance1",1.0);
-			defaults_.setValue("statistics:variance2",1.0);
+			defaults_.setValue("bounding_box:min",0.0,"lower end of bounding box");
+			defaults_.setValue("bounding_box:max",1.0,"upper end of bounding box");
+			defaults_.setValue("statistics:mean",0.0,"model centroid");
+			defaults_.setValue("statistics:variance1",1.0,"first variance");
+			defaults_.setValue("statistics:variance2",1.0,"second variance");
 			
 			defaultsToParam_();
 		}
