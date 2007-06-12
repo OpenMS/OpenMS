@@ -79,7 +79,7 @@ CHECK((DummySeeder(const DummySeeder &rhs)))
 	TEST_EQUAL(ms1 == ms2, true)
 RESULT
 
-CHECK((IndexSet nextSeed()))
+CHECK((ChargedIndexSet nextSeed()))
 	PRECISION(0.01)
 	
   DummySeeder seeder;

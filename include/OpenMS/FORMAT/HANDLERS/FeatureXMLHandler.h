@@ -25,8 +25,8 @@
 // --------------------------------------------------------------------------
 
 
-#ifndef OPENMS_FORMAT_HANDLERS_FeatureXMLHandler_H
-#define OPENMS_FORMAT_HANDLERS_FeatureXMLHandler_H
+#ifndef OPENMS_FORMAT_HANDLERS_FEATUREXMLHANDLER_H
+#define OPENMS_FORMAT_HANDLERS_FEATUREXMLHANDLER_H
 
 #include <OpenMS/KERNEL/Feature.h>
 #include <OpenMS/KERNEL/FeatureMap.h>

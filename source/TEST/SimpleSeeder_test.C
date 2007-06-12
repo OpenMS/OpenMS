@@ -135,7 +135,7 @@ p.setMZ(1200.0);
 p.setIntensity(110.0);
 s2.push_back(p);
 
-CHECK((IndexSet nextSeed()))
+CHECK((ChargedIndexSet nextSeed()))
   
 	MSExperiment<> exp;
 	exp.push_back(s1);

@@ -88,7 +88,7 @@ CHECK(SimpleExtender(const SimpleExtender &rhs))
 	TEST_EQUAL(ms1 == ms2, true)
 RESULT
 
-CHECK((const ChargedIndexSet& extend(const IndexSet &seed_region)))
+CHECK((const ChargedIndexSet& extend(const ChargedIndexSet &seed_region)))
 
 // this test checks the regions returned by SimpleExtender
 // on one artificial data set and a picked (centroided) data set

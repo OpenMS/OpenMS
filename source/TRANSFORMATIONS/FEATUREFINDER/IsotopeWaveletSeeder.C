@@ -409,7 +409,7 @@ namespace OpenMS
 							(scan[i-1].getIntensity() - scan[i].getIntensity() < 0.0) && 
 						  (scan[i+1].getIntensity() - scan[i].getIntensity() < 0.0) )						  	  
 					{						
-							UInt max = findNextMax(candidates[c],i);
+							UInt max = findNextMax_(candidates[c],i);
 							ProbabilityType pvalue = testLocalVariance_(candidates[c],max,c);	
 							charge_scores.at(c) = pvalue;
 							last_pattern.at(c)     = max; 																	// store index of last pattern
@@ -459,7 +459,7 @@ namespace OpenMS
 	  return (res/(double)(endIndex-startIndex+1));
 	}
 	
-	UInt IsotopeWaveletSeeder::findNextMax(const DPeakArray<PeakType >& cwt, const UInt index)
+	UInt IsotopeWaveletSeeder::findNextMax_(const DPeakArray<PeakType >& cwt, const UInt index)
 	{
 	
 		UInt max_index = index;

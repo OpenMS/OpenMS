@@ -145,6 +145,9 @@ CHECK((template <class SpectrumIteratorType> void setData(const SpectrumIterator
 
 RESULT
 
+CHECK(void setLogType(LogType lg) const)
+	////
+RESULT
 
 CHECK((void addSeeder(const String &name, const Param *param=0)))
 	// not much happening here
