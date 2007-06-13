@@ -47,11 +47,11 @@ namespace OpenMS
 		counter_(0)
 	{
 		setName(getProductName());
-		
+
 		defaults_.setValue("min_num_peaks:final",5,"minimum number of data points after fitting");
 		defaults_.setValue("min_num_peaks:extended",10,"minimum number of data points before fitting");
-		defaults_.setValue("use_fwhm_intensity",0,"use full with at half maximum for abundance estimation");
-		
+		defaults_.setValue("use_fwhm_intensity",0,"EXPERIMENTAL - SEE SOURCE CODE!  Switch to control what is reported as intensity:  Currently 0 means use sum of intensities and 1 means use maximum of intensities within feature region");
+
 		defaultsToParam_();
 	}
 
@@ -61,30 +61,30 @@ namespace OpenMS
     : BaseModelFitter(rhs)
   {
   }
-  
+
   DummyFitter& DummyFitter::operator= (const DummyFitter& rhs)
   {
     if (&rhs == this) return *this;
-    
+
     BaseModelFitter::operator=(rhs);
-    
+
     return *this;
   }
 
   Feature DummyFitter::fit(const ChargedIndexSet& set) throw (UnableToFit)
-	{		
+	{
 		// not enough peaks to fit
 		if (set.size() < static_cast<UInt>(param_.getValue("min_num_peaks:extended")))
 		{
-			for (IndexSet::const_iterator it=set.begin(); it!=set.end(); ++it) 
+			for (IndexSet::const_iterator it=set.begin(); it!=set.end(); ++it)
 			{
 				traits_->getPeakFlag(*it) = FeaFiTraits::UNUSED;
 				}
-			
+
 			String mess = String("Skipping feature, IndexSet size too small: ") + set.size();
 			throw UnableToFit(__FILE__, __LINE__,__PRETTY_FUNCTION__, "UnableToFit-IndexSet", mess.c_str());
 		}
-				
+
 		// Build Feature
 		// The feature coordinate in rt dimension is given
 		// by the centroid of the rt model whereas the coordinate
@@ -92,23 +92,23 @@ namespace OpenMS
 		Feature f;
 		f.setOverallQuality(1.0);
 		f.setCharge(set.charge_);		// use charge prediction of seeder
-		
+
 		// set feature coordinates and intensity
-		IntensityType intensity_sum  = 0.0;		
+		IntensityType intensity_sum  = 0.0;
 		IDX max_intensity_index;
 		IntensityType max_intensity = 0.0;
-		
-		for (IndexSet::const_iterator it=set.begin(); it!=set.end(); ++it) 
+
+		for (IndexSet::const_iterator it=set.begin(); it!=set.end(); ++it)
 		{
 			intensity_sum += traits_->getPeakIntensity(*it);
 			if (traits_->getPeakIntensity(*it) > max_intensity)
 			{
 				max_intensity_index = *it;
 				max_intensity = traits_->getPeakIntensity(*it);
-			}		
-		}		
+			}
+		}
 		UInt use_fwhm_intensity = param_.getValue("use_fwhm_intensity");
-		
+
 		if (use_fwhm_intensity == 0)
 		{
 			f.setIntensity(intensity_sum);
@@ -116,49 +116,51 @@ namespace OpenMS
 		else
 		{
 			f.setIntensity(max_intensity);
+
+			// (cg) 2007-06-13  Ok I am willing to leave this as it is :-( , but please dont forget to adjust the documentation of use_fwhm_intensity if you uncomment this later!
 //
 // if you remove this, Ole is going to decapitate you !!
 //
 // 			IntensityType intensity_avg = intensity_sum /= set.size();
 // 			IntensityType intensity_std = 0.0;
-// 		
+//
 // 			// compute standard deviation of intensities
-// 			for (IndexSet::const_iterator it=set.begin(); it!=set.end(); ++it) 
+// 			for (IndexSet::const_iterator it=set.begin(); it!=set.end(); ++it)
 // 			{
 // 				intensity_std += ( (traits_->getPeakIntensity(*it) - intensity_avg) * (traits_->getPeakIntensity(*it) - intensity_avg) );
-// 			}		
+// 			}
 // 			intensity_std /= set.size();
-// 			intensity_std = sqrt(intensity_std);			
-// 			
+// 			intensity_std = sqrt(intensity_std);
+//
 // 			f.setIntensity(2.345 * intensity_std);
 		}
-		
+
 		f.setRT(traits_->getPeakRt(max_intensity_index));
 		f.setMZ(traits_->getPeakMz(max_intensity_index));
-		
+
 		traits_->addConvexHull(set, f);
-		
+
 		std::cout << QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss").toStdString() << " Feature " << counter_ << ": (" << f.getRT();
 		std::cout	<< "," << f.getMZ() << ") Qual.:" << f.getOverallQuality() << "\n";
-		
+
 		// save meta data in feature for TOPPView
 		stringstream s;
-		s <<  "Feature #" << counter_ << ", +" << f.getCharge() << ", " << set.size() << "->" << set.size() 
+		s <<  "Feature #" << counter_ << ", +" << f.getCharge() << ", " << set.size() << "->" << set.size()
 			<< ", Corr: (" << f.getOverallQuality() << "," << f.getQuality(1) << "," << f.getQuality(0) << ")";
 		f.setMetaValue(3,String(s.str()));
-		
+
 		#ifdef DEBUG_FEATUREFINDER
 		// write debug output
 		CoordinateType rt = f.getRT();
 		CoordinateType mz = f.getMZ();
-				
+
 		// wrote peaks remaining after model fit
 		String fname = String("feature") + counter_ + "_" + rt + "_" + mz;
-		ofstream file2(fname.c_str()); 
-		for (IndexSet::const_iterator it=set.begin(); it!=set.end(); ++it) 
+		ofstream file2(fname.c_str());
+		for (IndexSet::const_iterator it=set.begin(); it!=set.end(); ++it)
 		{
 			FeaFiTraits::PositionType2D p = traits_->getPeakPos(*it);
-			file2 << p[0] << " " << p[1] << " " << traits_->getPeakIntensity(*it) << "\n";						
+			file2 << p[0] << " " << p[1] << " " << traits_->getPeakIntensity(*it) << "\n";
 		}
 		file2.close();
 		#endif

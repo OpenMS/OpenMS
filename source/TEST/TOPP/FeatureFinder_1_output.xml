@@ -42,7 +42,7 @@
 				<param name="MZ:intensity_scaling" value="1"></param>
 				<param name="MZ:interpolation_step" value="0.1"></param>
 				<param name="MZ:isotope:distance" value="1.00049"></param>
-				<param name="MZ:isotope:maximum" value="1000000"></param>
+				<param name="MZ:isotope:maximum" value="100"></param>
 				<param name="MZ:isotope:stdev" value="0.16"></param>
 				<param name="MZ:isotope:trim_right_cutoff" value="0.001"></param>
 				<param name="MZ:statistics:mean" value="690.398"></param>

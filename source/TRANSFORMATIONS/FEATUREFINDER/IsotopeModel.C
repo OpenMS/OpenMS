@@ -39,19 +39,20 @@ namespace OpenMS
 			monoisotopic_mz_(0.0)
 		{
 			setName(getProductName());
-			
-			defaults_.setValue("averagines:C",0.0443,"number of C atoms");
-			defaults_.setValue("averagines:H",0.0,"number of H atoms");
-			defaults_.setValue("averagines:N",0.0037,"number of N atoms");
-			defaults_.setValue("averagines:O",0.022,"number of O atoms");
-			defaults_.setValue("averagines:S",0.0,"number of S atoms");
-			defaults_.setValue("isotope:trim_right_cutoff",0.001,"cutoff in averagine distribution");
-			defaults_.setValue("isotope:maximum",1000000,"maximum isotopic peak");
-			defaults_.setValue("isotope:distance",1.000495,"distance between consecutive isotopic peaks");
-			defaults_.setValue("isotope:stdev",0.1,"standard deviation");
-			defaults_.setValue("charge",1,"charge of model");
-			defaults_.setValue("statistics:mean",0.0,"centroid");
-			
+
+			// TODO: Attention!! When merging Release1.0 back into HEAD, trust the numbers in HEAD.  Clemens and Ole have looked them up in literature.  The doc strings are probably better in Release1.0, however...
+			defaults_.setValue("averagines:C",0.0443,"Number of C atoms");
+			defaults_.setValue("averagines:H",0.0,"Number of H atoms");
+			defaults_.setValue("averagines:N",0.0037,"Number of N atoms");
+			defaults_.setValue("averagines:O",0.022,"Number of O atoms");
+			defaults_.setValue("averagines:S",0.0,"Number of S atoms");
+			defaults_.setValue("isotope:trim_right_cutoff",0.001,"Cutoff in averagine distribution, trailing isotopes below this relative intensity are not considered");
+			defaults_.setValue("isotope:maximum",100,"Maximum isotopic rank to be considered");
+			defaults_.setValue("isotope:distance",1.000495,"Distance between consecutive isotopic peaks");
+			defaults_.setValue("isotope:stdev",0.1,"Standard deviation of gaussian applied to the averagine isotopic pattern to simulate the inaccuracy of the mass spectrometer");
+			defaults_.setValue("charge",1,"Charge state of the model");
+			defaults_.setValue("statistics:mean",0.0,"Centroid m/z (as opposed to monoisotopic m/z)");
+
 			defaultsToParam_();
 		}
 
@@ -69,11 +70,11 @@ namespace OpenMS
    	IsotopeModel& IsotopeModel::operator = (const IsotopeModel& source)
 		{
 			if (&source == this) return *this;
-			
+
 			InterpolationModel::operator = (source);
 			setParameters( source.getParameters() );
 			updateMembers_();
-			
+
 			return *this;
 		}
 
@@ -230,7 +231,7 @@ namespace OpenMS
 			averagine_[N] = param_.getValue("averagines:N");
 			averagine_[O] = param_.getValue("averagines:O");
 			averagine_[S] = param_.getValue("averagines:S");
-			
+
 			setSamples();
 		}
 }

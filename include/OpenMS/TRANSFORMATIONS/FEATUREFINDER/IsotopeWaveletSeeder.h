@@ -38,14 +38,14 @@
 
 namespace OpenMS
 {
-	/** 
+	/**
 		@brief Seeding module which uses a isotopic wavelet to find seeds.
-	
+
 		This seeder select interesting regions in the map using a wavelet funtion
 		modelling the distribution of isotopic peak intensities.
-		
+
 		 Parameters:
-		 
+
 		 <table>
 		 <tr><td></td><td></td><td>max_charge</td>
 		 <td>The mother wavelet is precomputed for different charge states. This
@@ -68,58 +68,58 @@ namespace OpenMS
 		 <td>number of scans used for alignment</td></tr>
 		 <tr><td></td><td></td><td>tolerance_scansum</td>
 		 <td>mass tolerance during point alignment</td></tr>
-		  </table>		
-			
+		  </table>
+
 			There are additional parameter : @see BaseSweepSeeder
-	
+
 		@ingroup FeatureFinder
-	*/ 
-  class IsotopeWaveletSeeder 
+	*/
+  class IsotopeWaveletSeeder
     : public BaseSweepSeeder
   {
 
   public:
-		
+
 		/// intensity of a peak
 		typedef FeaFiTraits::IntensityType IntensityType;
 		/// coordinate ( in rt or m/z )
 		typedef FeaFiTraits::CoordinateType CoordinateType;
 		/// score
-		typedef DoubleReal ProbabilityType;	
+		typedef DoubleReal ProbabilityType;
 
 		/// a single MS spectrum
 		typedef BaseSweepSeeder::SpectrumType SpectrumType;
-		/// a peak 
-		typedef SpectrumType::PeakType PeakType;			
+		/// a peak
+		typedef SpectrumType::PeakType PeakType;
 		/// a container of peaks
 		typedef SpectrumType::ContainerType ContainerType;
 		/// a container of 2D peaks (only temporarily used)
-		typedef MSSpectrum< Peak2D >::ContainerType TempContainerType;	
-		
+		typedef MSSpectrum< Peak2D >::ContainerType TempContainerType;
+
 		/// charge state estimate with associated score
 		typedef BaseSweepSeeder::ScoredChargeType ScoredChargeType;
 		/// m/z position in spectrum with charge estimate and score
 		typedef BaseSweepSeeder::ScoredMZType ScoredMZType;
 		/// container of scored m/z positions
 		typedef BaseSweepSeeder::ScoredMZVector ScoredMZVector;
-		
+
 		/// The mother wavelets (one for each charge state)
-		typedef std::vector<std::vector<double> > WaveletCollection; 
+		typedef std::vector<std::vector<double> > WaveletCollection;
 		/// The Hash entry, stores pairs of scan number and list of charge scores
 		typedef std::pair<std::list<UInt>, std::list<double> > DoubleList;
 		/// Stores the charge states examined
 		typedef std::list<UInt> ChargeVector;
 
-		
+
     /// Default constructor
     IsotopeWaveletSeeder();
 
-    /// destructor 
+    /// destructor
     virtual ~IsotopeWaveletSeeder();
 
     /// Copy constructor
     IsotopeWaveletSeeder(const IsotopeWaveletSeeder& rhs);
-    
+
     /// Assignment operator
     IsotopeWaveletSeeder& operator= (const IsotopeWaveletSeeder& rhs);
 
@@ -132,53 +132,56 @@ namespace OpenMS
     {
       return "IsotopeWaveletSeeder";
     }
-		
+
   protected:
-	
-		/// detects isotopic pattern
+
+		/** @brief detects isotopic pattern
+
+			@improvement Why is a pointer being used here?  It would be faster to reuse a static member.  Avoid reallocation, pwts can be cleared instead.  (Clemens aking Maintainer)
+		*/
 		ScoredMZVector detectIsotopicPattern_(SpectrumType& scan);
-	
+
 		/// keeps member and param entries in synchrony
   	virtual void updateMembers_();
-  	
+
 		/// Computes m/z spacing of the LC-MS map
 		void computeSpacings_();
-		
+
 		/// Precompute and store the gamma function (for the mother wavelet)
 		void generateGammaValues_();
-		
+
 		/// Compute null variance
 		void computeNullVariance_(const DPeakArray<PeakType >& cwt, const UInt charge );
-				
+
 		/// Compute local variance (in an interval) and test its significance
 		ProbabilityType testLocalVariance_(const DPeakArray<PeakType >& cwt, const UInt& start, const UInt charge);
-		
+
 		/**
 			@brief Computes the wavelet transform for several charges in nearly the same time.
-			
+
 			The working horse of the discrete-time continuous wavelet transform, but for several charges at the same time.
 		 	Note that you should compute a convolution instead of an correlation. Since we do not mirror the wavelet function
-		 	this yields the same.		
-		*/																			
-		void fastMultiCorrelate_(const SpectrumType& signal, std::vector<DPeakArray<PeakType > >* pwts);
-		
-		/** 
-				@brief Returns the lamba parameter of the mother wavelet
-				
-				The lambda parameter essentially influences the shape of the wavelet.
-		 		Since isotope patterns depend on mass, the wavelet has to adapt its shape. 
-		 		For more insights look at the formula of the wavelet function. 
+		 	this yields the same.
 		*/
-		inline CoordinateType getLambda_(CoordinateType real_mass) const 
-		{	
-			return (0.035 + 0.000678*real_mass); 
-		}																	
-		
-		/// The wavelet (mother) function. 
+		void fastMultiCorrelate_(const SpectrumType& signal, std::vector<DPeakArray<PeakType > >* pwts);
+
+		/**
+				@brief Returns the lamba parameter of the mother wavelet
+
+				The lambda parameter essentially influences the shape of the wavelet.
+		 		Since isotope patterns depend on mass, the wavelet has to adapt its shape.
+		 		For more insights look at the formula of the wavelet function.
+		*/
+		inline CoordinateType getLambda_(CoordinateType real_mass) const
+		{
+			return (0.035 + 0.000678*real_mass);
+		}
+
+		/// The wavelet (mother) function.
  		inline double phiRaw_(double t, double lambda, double a) throw ()
-		{	
+		{
 			if (t>2*peak_cut_off_)	return(0);
-			
+
 			Int x0, x1; double f0, f1, fi, res=0;
 			x0 = (Int) trunc ((t/a + 1)/min_spacing_);
 			x1 = x0+1;
@@ -190,17 +193,17 @@ namespace OpenMS
 				res = (sin(2*M_PI*t/a) * exp(-lambda)) * ((pow(lambda,t/a)) / fi);
 				return (res);
 			}
-						
-			res = (sin(2*M_PI*t/a) * exp(-lambda) * (pow(lambda,t/a)) / tgamma ((t/a)+1)); 
+
+			res = (sin(2*M_PI*t/a) * exp(-lambda) * (pow(lambda,t/a)) / tgamma ((t/a)+1));
 
 			return (res);
 		}
-		
+
 		UInt findNextMax_(const DPeakArray<PeakType >& cwt, const UInt index);
-		
+
 		/// Assigns scores to each charge state of a isotopic pattern
 		ScoredMZVector identifyCharge_(std::vector<DPeakArray<PeakType > >& candidates, SpectrumType& scan);
-		
+
 		/// Interpolates between to data points
 		inline double getInterpolatedValue_(double x0, double x, double x1, double f0, double f1) const
 		{
@@ -220,16 +223,16 @@ namespace OpenMS
 
 			//not found
 			return std::make_pair(-1,-1);
-		}	
-		
+		}
+
 		/// Returns the absolute mean of the intensities in @p signal
 		double getAbsMean_(const DPeakArray<PeakType >& signal,
-																		UInt startIndex, 
+																		UInt startIndex,
 																		UInt endIndex) const;
-										
+
 		/// Does not need much explanation.
 		bool wavelet_initialized_;
-		/// Number of isotopic peaks a wavelet should contain		
+		/// Number of isotopic peaks a wavelet should contain
 		UInt peak_cut_off_;
 		/// Length of the mother wavelet
 		UInt waveletLength_;
@@ -251,7 +254,7 @@ namespace OpenMS
 		std::vector<IntensityType> null_var_;
 		/// Number of samples for null hypothesis
 		std::vector<UInt> n_null_;
-		
+
   };
 }
 #endif // OPENMS_TRANSFORMATIONS_FEATUREFINDER_ISOTOPEWAVELETSEEDER_H

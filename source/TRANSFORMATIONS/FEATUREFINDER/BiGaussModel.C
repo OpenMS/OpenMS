@@ -33,13 +33,13 @@ namespace OpenMS
 		: InterpolationModel(), statistics1_(), statistics2_()
 		{
 			setName(getProductName());
-			
-			defaults_.setValue("bounding_box:min",0.0,"lower end of bounding box");
-			defaults_.setValue("bounding_box:max",1.0,"upper end of bounding box");
-			defaults_.setValue("statistics:mean",0.0,"model centroid");
-			defaults_.setValue("statistics:variance1",1.0,"first variance");
-			defaults_.setValue("statistics:variance2",1.0,"second variance");
-			
+
+			defaults_.setValue("bounding_box:min",0.0,"Lower end of bounding box enclosing the data used to fit the model");
+			defaults_.setValue("bounding_box:max",1.0,"Upper end of bounding box enclosing the data used to fit the model");
+			defaults_.setValue("statistics:mean",0.0,"Centroid position of the model, this also separates both halves of the model ");
+			defaults_.setValue("statistics:variance1",1.0,"Variance of the first gaussian, used for the lower half of the model");
+			defaults_.setValue("statistics:variance2",1.0,"Variance of the second gaussian, used for the upper half of the model");
+
 			defaultsToParam_();
 		}
 
@@ -57,11 +57,11 @@ namespace OpenMS
    	BiGaussModel& BiGaussModel::operator = (const BiGaussModel& source)
 		{
 			if (&source == this) return *this;
-			
+
 			InterpolationModel::operator = (source);
 			setParameters( source.getParameters() );
 			updateMembers_();
-			
+
 			return *this;
 		}
 
@@ -97,14 +97,14 @@ namespace OpenMS
 		void BiGaussModel::updateMembers_()
 		{
 			InterpolationModel::updateMembers_();
-			
+
 			min_ = param_.getValue("bounding_box:min");
 			max_ = param_.getValue("bounding_box:max");
 			statistics1_.setMean(param_.getValue("statistics:mean"));
 			statistics2_.setMean(param_.getValue("statistics:mean"));
 			statistics1_.setVariance(param_.getValue("statistics:variance1"));
 			statistics2_.setVariance(param_.getValue("statistics:variance2"));
-			
+
 			setSamples();
 		}
 
@@ -115,7 +115,7 @@ namespace OpenMS
 			max_ += diff;
 			statistics1_.setMean(statistics1_.mean()+diff);
 			statistics2_.setMean(statistics2_.mean()+diff);
-			
+
 			InterpolationModel::setOffset(offset);
 
 			param_.setValue("bounding_box:min", min_);
