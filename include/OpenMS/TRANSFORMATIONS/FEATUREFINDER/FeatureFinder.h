@@ -34,17 +34,6 @@
 namespace OpenMS
 {
   class BaseModelFitter;
-
-	/**
-		@defgroup FeatureFinder FeatureFinder
-		
-		@brief The feature detection algorithm in OpenMS.
-		
-		@todo add FeaFiModule MainLoop (Clemens, Marcel)
-		
-		@ingroup Analysis
-	*/
-	
 	/**
 		@brief The base class of the Feature Finding algorithm.
 		

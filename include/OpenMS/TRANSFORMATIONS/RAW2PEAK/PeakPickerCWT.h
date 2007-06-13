@@ -50,16 +50,6 @@
 namespace OpenMS
 {
   /**
-     @defgroup PeakPicking PeakPicking
-
-     @brief Classes for the transformation of raw ms data into peak data.
-
-     This module contains all important classes that are involved in the peak picking as described by Lange et al. (2006) Proc. PSB-06.
-
-     @ingroup Analysis
-  */
-
-  /**
      @brief This class implements a peak picking algorithm using wavelet techniques (as described by Lange et al. (2006) Proc. PSB-06).
 
      This peak picking algorithm uses the continuous wavelet transform of a raw data signal to detect mass peaks.

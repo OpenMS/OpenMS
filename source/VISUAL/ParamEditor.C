@@ -335,7 +335,9 @@ namespace OpenMS
 						nodepath = nodepath + ":" + nodename;
 					}
 					//cout << "NODE: '" << nodepath << "': " << param.getDescription(nodepath) << endl;
-					item->setToolTip(0,param.getDescription(nodepath).toQString());
+					String description = param.getDescription(nodepath);
+					description.substitute("\n","<BR>");
+					item->setToolTip(0,description.toQString());
 					
 					//flags
 					if(param_editable_!=NULL)
@@ -374,7 +376,9 @@ namespace OpenMS
 				item->setText(0, QString::fromStdString ( key_without_prefix));
 				item->setText(1, QString::fromStdString ( it->second.toString()));
 				item->setText(2, QString::fromStdString ( type));
-				item->setToolTip(0,param.getDescription(it->first).toQString());
+				String description = param.getDescription(it->first);
+				description.substitute("\n","<BR>");
+				item->setToolTip(0,description.toQString());
 				//cout << "ITEM: '" << key_without_prefix << "': " << param.getDescription(it->first) << endl;
 				item->setData(0,Qt::UserRole,ITEM);
 				item->setData(1,Qt::UserRole,ITEM);

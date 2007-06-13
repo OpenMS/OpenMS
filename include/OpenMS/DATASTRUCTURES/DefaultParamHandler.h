@@ -58,8 +58,21 @@ namespace OpenMS
 		- If you need mutable access to the extra member variables, provide a set-method and make sure to set
 		  the corresponding value in param_ as well!
 
-		Remove param_ and defaults_ from derivated classes!!!
-
+		@b Parameter @b documentation: @n
+		Each default parameter has to be documented in a comprehensive way. This is done using the
+		Param::setValue methods and the Param::setDescription method.
+		
+		In order to avoid having to document the parameters in the code and in the doxygen documentation,
+		there is a mechanism for creating the doxygen documentation automatically. You simply have to add your
+		class to the program @a OpenMS/doc/doxygen/parameters/DefaultParamDocumenter.C. This program
+		generates a doxygen subpage for the parameters. The subpage can than be included into the 
+		class documentation using the following doxygen command:
+		@code
+@subpage <class name>_Parameters
+		@endcode
+		You can test if everything worked by calling @a make @a paramdoc in @a OpenMS/doc/.
+		The parameters documentation is written to @a OpenMS/docdoxygen/parameters/DefaultParameters.doxygen.
+		
 		@ingroup Datastructures
 	*/
 	class DefaultParamHandler

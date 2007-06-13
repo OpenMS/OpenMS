@@ -584,6 +584,21 @@ namespace OpenMS
 		return *this;
 	}
 
+	String& String::substitute(const String& from, const String& to)
+	{
+		if (!from.empty())
+		{
+	   	string::size_type loc = this->find(from, 0);
+	   	while( loc != string::npos ) 
+	   	{
+				this->replace(loc, from.size(), to);
+				loc = this->find('\n', 0);
+			}
+		}
+		
+		return *this;
+	}
+
 	String& String::remove(char what)
 	{
 		this->erase(std::remove(this->begin(), this->end(), what),this->end());

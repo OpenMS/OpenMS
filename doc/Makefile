@@ -24,6 +24,8 @@
 # $Maintainer: Marc Sturm $
 # --------------------------------------------------------------------------
 
+-include ../source/config.mak
+
 #######################################################################
 # HELP TARGET
 help:
@@ -37,8 +39,21 @@ help:
 	@echo ""
 
 #######################################################################
+# create parameter documentation of classes derived from DefaultParamHandler 
+paramdoc: doxygen/parameters/DefaultParamHandlerDocumenter.C ../source/config.mak dummy
+	@echo "";
+	@echo "Note: In order to built the parameter documentation for part of the algorithms, a functional OpenMS installation is required!";
+	@echo "";
+	@cd doxygen/parameters/ && \
+	 $(CXX) $(CXXFLAGS) $(ADD_CXXFLAGS) $(CPP_MODE_FLAGS) $(LIB_CXXFLAGS) $(OPENMS_INCLUDES) $(ADD_INCLUDES) -c DefaultParamHandlerDocumenter.C -o DefaultParamHandlerDocumenter.o && \
+	 $(CXX) $(LDFLAGS) -o DefaultParamHandlerDocumenter DefaultParamHandlerDocumenter.o $(GUI_LIBS) && \
+	 ./DefaultParamHandlerDocumenter;
+	@touch doxygen/parameters/DefaultParameters.doxygen
+
+#######################################################################
 # creates the documentation
 doc:
+	@make -i paramdoc
 	@rm -rf doxygen/xml_output doxygen/html_output
 	@test -f doxygen/Doxyfile || cp ../source/config/Doxyfile.in doxygen/Doxyfile
 	@doxygen doxygen/Doxyfile
@@ -46,6 +61,7 @@ doc:
 #######################################################################
 # creates the internal documentation
 idoc:
+	@make -i paramdoc
 	@rm -rf doxygen/xml_output doxygen/html_output
 	@test -f doxygen/Doxyfile || cp ../source/config/Doxyfile.in doxygen/Doxyfile
 	@doxygen doxygen/Doxyfile_internal
@@ -53,6 +69,7 @@ idoc:
 #######################################################################
 # creates the OpenMS tutorial
 OpenMS_tutorial: OpenMS_tutorial/OpenMS_Tutorial.doxygen OpenMS_tutorial/Doxyfile dummy
+	@make -i paramdoc
 	@rm -rf OpenMS_tutorial/latex_output
 	@doxygen OpenMS_tutorial/Doxyfile
 	@cp OpenMS_tutorial/refman_overwrite.tex OpenMS_tutorial/latex_output/refman.tex
@@ -63,6 +80,7 @@ OpenMS_tutorial: OpenMS_tutorial/OpenMS_Tutorial.doxygen OpenMS_tutorial/Doxyfil
 #######################################################################
 # creates the TOPP tutorial
 TOPP_tutorial: TOPP_tutorial/TOPP_Tutorial.doxygen TOPP_tutorial/Doxyfile dummy
+	@make -i paramdoc
 	@rm -rf TOPP_tutorial/latex_output
 	@doxygen TOPP_tutorial/Doxyfile
 	@cp TOPP_tutorial/refman_overwrite.tex TOPP_tutorial/latex_output/refman.tex
@@ -75,6 +93,5 @@ clean:
 	@rm -rf doxygen/html_output/ doxygen/xml_output/ doxygen/doxygen-error.log doxygen/Doxyfile
 	@rm -rf OpenMS_tutorial/latex_output/ OpenMS_tutorial.pdf OpenMS_tutorial/doxygen-error.log
 	@rm -rf TOPP_tutorial/latex_output/ TOPP_tutorial.pdf TOPP_tutorial/doxygen-error.log
-
 
 dummy:

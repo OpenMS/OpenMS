@@ -57,6 +57,7 @@ namespace OpenMS
 		considering also all other hits of all other spectra. The second type of scoring
 		is somewhat more accurate.
 
+		@ingroup Analysis_ID
 	*/
 	class PILISScoring : public DefaultParamHandler
 	{

@@ -1,0 +1,19 @@
+/**
+	@defgroup PeakPicking PeakPicking
+	
+	@brief Classes for the transformation of raw ms data into peak data.
+	
+	This module contains all important classes that are involved in the peak picking as described by Lange et al. (2006) Proc. PSB-06.
+	
+	@ingroup Analysis
+*/
+
+/**
+	@defgroup FeatureFinder FeatureFinder
+	
+	@brief The feature detection algorithm in OpenMS.
+	
+	@todo add FeaFiModule MainLoop (Clemens, Marcel)
+	
+	@ingroup Analysis
+*/

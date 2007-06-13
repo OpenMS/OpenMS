@@ -483,6 +483,28 @@ CHECK((String& substitute(char from, char to)))
 	TEST_EQUAL(s,".....")
 RESULT
 
+CHECK((String& substitute(char from, char to)))
+	String s = "abcdefg";
+
+	s.substitute("a","x");
+	TEST_EQUAL(s,"xbcdefg")
+
+	s.substitute("bcd","y");
+	TEST_EQUAL(s,"xyefg")
+
+	s.substitute("fg","");
+	TEST_EQUAL(s,"xye")
+
+	s.substitute("e","z!");
+	TEST_EQUAL(s,"xyz!")
+
+	s.substitute("u","blblblblbl");
+	TEST_EQUAL(s,"xyz!")
+
+	s.substitute("","blblblblbl");
+	TEST_EQUAL(s,"xyz!")
+RESULT
+
 CHECK((String& remove(char what)))
 	String s = "abcabc";
 

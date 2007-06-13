@@ -43,13 +43,13 @@ namespace OpenMS
 		@brief Management and storage of INI files.
 		
 		This class provides a means to associate string names to int/double/string values.
-		
-		It is similar to a map<string,DataValue> but it also supports hierarchical 
-		data and to save/load the contained data as XML.
-		
-		Hierachy levels are separated from each other and from the name by colons.
-		
+		It also supports hierarchical data and to save/load the contained data as XML.
+		Hierachy levels are separated from each other and from the name by colons. @n
 		Example: 'common:file_options:default_file_open_path = /share/'
+		
+		In addition to the Type-Name-Value tuples descriptions can be added to each secection and value.
+		See the setValue methods and setDescription(String). Newline characters in the description are
+		possible.
 		
 		@note In the XML representation only the types 'int', 'string' ,'float' and 'double' are available.
 		
@@ -104,7 +104,7 @@ namespace OpenMS
 			/**
 				@brief Sets a description for a key (section or actual value).
 				
-				The description is only set when a corresponding section or value exists.
+				@note The description is only set when a corresponding section or value exists.
 			*/
 			void setDescription(const String& location, const String& description);
 			
