@@ -24,8 +24,8 @@
 // $Maintainer: Stefan Rink $
 // --------------------------------------------------------------------------
 
-#ifndef INIFILEEDITORWINDOW_H
-#define INIFILEEDITORWINDOW_H
+#ifndef OPENMS_APPLICATIONS_INIFILEEDITORWINDOW_H
+#define OPENMS_APPLICATIONS_INIFILEEDITORWINDOW_H
 
 #include <OpenMS/VISUAL/ParamEditor.h>
 #include <OpenMS/FORMAT/Param.h>
@@ -74,4 +74,4 @@ namespace OpenMS
 	};
 }
 
-#endif
+#endif //OPENMS_APPLICATIONS_INIFILEEDITORWINDOW_H

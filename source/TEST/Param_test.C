@@ -254,7 +254,7 @@ RESULT
 
 CHECK((void store(const String& filename) const throw(Exception::UnableToCreateFile)))
 	Param p2(p);
-	p2.setValue("test:a:a1", 47.1,"a1desc\"");
+	p2.setValue("test:a:a1", 47.1,"a1desc\"\nnewline");
 	p2.setValue("test:b:b1", 47.1);
 	p2.setDescription("test:b","bdesc\"");
 	p2.setValue("test2:a:a1", 47.1);
@@ -285,7 +285,7 @@ CHECK((void store(const String& filename) const throw(Exception::UnableToCreateF
 	TEST_STRING_EQUAL(p2.getDescription("test2:int"), p3.getDescription(""))
 	TEST_EQUAL(p3.getDescription("test"),"sectiondesc")
 	TEST_EQUAL(p3.getDescription("test:a"),"")
-	TEST_EQUAL(p3.getDescription("test:a:a1"),"a1desc'")
+	TEST_EQUAL(p3.getDescription("test:a:a1"),"a1desc'\nnewline")
 	TEST_EQUAL(p3.getDescription("test:b"),"bdesc'")
 	TEST_EQUAL(p3.getDescription("test:b:b1"),"")
 	TEST_EQUAL(p3.getDescription("test2:a"),"adesc")

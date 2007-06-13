@@ -484,6 +484,7 @@ CHECK((String& substitute(char from, char to)))
 RESULT
 
 CHECK((String& substitute(char from, char to)))
+	//single occurence
 	String s = "abcdefg";
 
 	s.substitute("a","x");
@@ -503,6 +504,14 @@ CHECK((String& substitute(char from, char to)))
 
 	s.substitute("","blblblblbl");
 	TEST_EQUAL(s,"xyz!")
+	
+	//mutiple occurences
+	s = "abcdefgabcdefgabcdefgab";
+	s.substitute("ab","x");
+	TEST_EQUAL(s,"xcdefgxcdefgxcdefgx")
+
+	s.substitute("x","");
+	TEST_EQUAL(s,"cdefgcdefgcdefg")
 RESULT
 
 CHECK((String& remove(char what)))

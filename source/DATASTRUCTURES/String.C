@@ -592,7 +592,7 @@ namespace OpenMS
 	   	while( loc != string::npos ) 
 	   	{
 				this->replace(loc, from.size(), to);
-				loc = this->find('\n', 0);
+				loc = this->find(from, 0);
 			}
 		}
 		

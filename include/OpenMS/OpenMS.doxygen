@@ -81,12 +81,9 @@
 */
 
 /*************************** Marc's todos ******************************
-Ideen:
-- Seeder/Extender: Analyse der MassenSpur-Distanzen
-
 Todo:
-- Parameter-Docu-doxygen-Seiten gerieren und in Klassendocu / TOPP docu verlinken
 - Eva: XML-Schema
+- Generell: Tutorials, Parameter-Docu
 
 Nach Release:
 - Snapshot + search wieder auf Trunk umstellen
@@ -94,6 +91,9 @@ Nach Release:
 
 Thomas Schreiner:
 - DBConnection: mehrere Verbindunden gleichzeitig
+
+Stefan Rink:
+- Param als wirklicher Baum
 
 Diplomarbeit TOPPAS:
 - TOPPViewBase: Parameters (Typ: enum, inputfile, inputfiles, outputfile, outputfiles)

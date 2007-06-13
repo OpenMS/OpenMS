@@ -337,6 +337,7 @@ namespace OpenMS
 					//cout << "NODE: '" << nodepath << "': " << param.getDescription(nodepath) << endl;
 					String description = param.getDescription(nodepath);
 					description.substitute("\n","<BR>");
+					cout << description << endl << endl;
 					item->setToolTip(0,description.toQString());
 					
 					//flags
@@ -379,6 +380,7 @@ namespace OpenMS
 				String description = param.getDescription(it->first);
 				description.substitute("\n","<BR>");
 				item->setToolTip(0,description.toQString());
+				cout << description << endl << endl;
 				//cout << "ITEM: '" << key_without_prefix << "': " << param.getDescription(it->first) << endl;
 				item->setData(0,Qt::UserRole,ITEM);
 				item->setData(1,Qt::UserRole,ITEM);

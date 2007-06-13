@@ -394,9 +394,10 @@ namespace OpenMS
 					map<String, String>::const_iterator iter=descriptions_.find(nodepath);
 					if(iter!=descriptions_.end())
 					{
-						//replace double quotes in descriptions
+						//replace double quotes and newlines in descriptions
 						String tmp = iter->second;
 						tmp.substitute('"','\'');
+						tmp.substitute("\n","#br#");
 						//cout << "DESCRIPTION: " << iter->second << endl;
 						os << " description=\"" << tmp <<"\"";
 					}
@@ -431,6 +432,7 @@ namespace OpenMS
 				{
 					String d = iter->second;
 					d.substitute('"','\'');
+					d.substitute("\n","#br#");
 					tmp = "<ITEM name=\""+key_without_prefix+"\" value=\""+it->second.toString()+"\" type=\""+type+"\" description=\""+d+"\" />\n";
 				}
 				else
