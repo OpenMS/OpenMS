@@ -93,11 +93,10 @@ CHECK(([EXTRA]IndexSet nextSeed()))
  
 	MSExperiment<Peak1D > exp;
 	MzDataFile().load("data/MarrWaveletTestData.mzData",exp);
-	traits->setData(exp.begin(), exp.end(),100);
+	traits->setData(exp.begin(), exp.end(),1000);
 	seeder.setTraits(traits);
 	
 	Param param;
-// 	param.setValue("min_number_scans",3);
 	param.setValue("avg_signal_factor",2);
 	param.setValue("avg_cwt_factor",2);
 	param.setValue("scans_to_sumup",4);

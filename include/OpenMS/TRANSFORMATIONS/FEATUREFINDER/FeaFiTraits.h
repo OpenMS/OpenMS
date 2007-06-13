@@ -34,6 +34,8 @@
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeaFiModule.h>
 
+#include <OpenMS/FILTERING/NOISEESTIMATION/SignalToNoiseEstimatorMeanIterative.h>
+
 #include <OpenMS/DATASTRUCTURES/IsotopeCluster.h>
 
 #include <OpenMS/CONCEPT/ProgressLogger.h>
@@ -65,13 +67,15 @@ namespace OpenMS
 			/// Flag for each data point
 		 enum Flag { UNUSED, USED };
 					
-			/// Internal map type
+			/// The LC/MS map
 	    typedef MSExperimentExtern< Peak1D > MapType;
-			/// Intensity type of the map
+			/// A (single) MS spectrum
+			typedef MapType::SpectrumType SpectrumType;
+			/// The intensity of a point
 	    typedef MapType::IntensityType IntensityType;
-	    /// Coordinate type of the map
+	    /// Coordinate of a point (either retention time or m/z)
 	    typedef MapType::CoordinateType CoordinateType;
-			/// Quality type 
+			/// Quality (goodness of fit) of a feature
 			typedef Feature::QualityType QualityType;
 				
 	    /// 2D position type (needed for averagine model)
@@ -83,26 +87,63 @@ namespace OpenMS
 	    /// Default constructor
 	    FeaFiTraits();
 	
-	    /// destructor
+	    /// Destructor
 	    virtual ~FeaFiTraits();
 			
 			/**
 				@brief copy input data to external memory and update range information
 				
 				@p buffer_size is the size of the ring buffer used in the internal MSExperimentExtern
+				
+				@p sn_threshold is the minimum signal / noise threshold 
+				
 			*/
 			template <class SpectrumIteratorType>
-	    void setData(const SpectrumIteratorType& begin, const SpectrumIteratorType& end, UInt buffer_size)
+	    void setData(const SpectrumIteratorType& begin, const SpectrumIteratorType& end, UInt buffer_size, IntensityType sn_threshold = -1.0)
 		  {
 		  	map_.setBufferSize( buffer_size );
 				map_.updateBuffer();
 		
+				SignalToNoiseEstimatorMeanIterative< > sn_estimator;
+				
+				UInt sc=1;
+								
 				for (SpectrumIteratorType it = begin; it != end; ++it)
 				{
+					std::cout << "Reading scan " << sc++ << std::endl;
+					
 					// remove empty scans and tandem spectra
 					if (it->getMSLevel() == 1 && it->size() > 0) 
 					{
-						map_.push_back(*it);
+					
+						// filter for low intensity points
+						MapType::SpectrumType new_spec;		
+						new_spec.setRT( it->getRT() );
+						//new_spec.resize( it->size() );
+				
+						if (sn_threshold > 0.0)
+						{
+							sn_estimator.init(it->begin(),it->end());
+						}
+						for (SpectrumType::const_iterator cpit = it->begin();
+									cpit != it->end();
+									++cpit)
+						{
+							if (sn_threshold > 0.0)
+							{
+								if (sn_estimator.getSignalToNoise(cpit) >= sn_threshold)
+								{
+									new_spec.push_back(*cpit);				
+								}
+							}
+							else
+							{
+								new_spec.push_back(*cpit);											
+							}										
+						}
+								
+						map_.push_back(new_spec);				
+						//map_.push_back(*it);
 					}
 				}	
 		    

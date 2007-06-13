@@ -197,6 +197,17 @@ class SignalToNoiseEstimator: public DefaultParamHandler, public ProgressLogger
 
       return stn_estimates_[*data_point];
     }
+		
+		virtual double getSignalToNoise(const PeakType& data_point)
+    {
+      if (!is_result_valid_)
+      { 
+        // recompute ...
+        init(first_, last_);
+      }
+
+      return stn_estimates_[data_point];
+    }
 
   protected:
 

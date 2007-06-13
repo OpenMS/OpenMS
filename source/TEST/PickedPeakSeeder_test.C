@@ -93,7 +93,7 @@ CHECK(([EXTRA]IndexSet nextSeed()))
 	MSExperiment<Peak1D > exp;
 	MzDataFile().load("data/PickedPeakTestData.mzData",exp);
 	
-	traits->setData(exp.begin(), exp.end(),100);	
+	traits->setData(exp.begin(), exp.end(),1000);	
 	seeder.setTraits(traits);
 	
 	Param param;

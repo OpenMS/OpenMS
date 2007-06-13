@@ -407,7 +407,7 @@ namespace OpenMS
 				{											
 					// test if :
 					// intensity in cwt is higher than threshold 
-					// we are at a local max
+					// we are at a local max in the signal
 					// the last pattern is already behind us
 					if ( candidates[c][i].getIntensity() > cwt_thresholds[c] && 
 							 i > last_pattern[c] && 

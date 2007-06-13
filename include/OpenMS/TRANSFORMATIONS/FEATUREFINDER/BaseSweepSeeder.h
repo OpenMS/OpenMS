@@ -152,8 +152,17 @@ namespace OpenMS
 			/// Sums the intensities in adjacent scans
 		  void sumUp_(SpectrumType& scan, UInt current_scan_index);
 			
-			///Aligns the two scans and increases intensities of peaks in @p scan if those peaks are present in @p neighbour
+			/// Aligns two scans and increases intensities of peaks in @p scan if those peaks are present in @p neighbour
 			void AlignAndSum_(SpectrumType& scan, const SpectrumType& neighbour);
+			
+			/// Aligns two scans and substracts the intensities of matching points.
+			void AlignAndSubstract_(SpectrumType& scan, const SpectrumType& neighbour);
+			
+			/// Substracts the last scan
+			void substractLastScan_(SpectrumType& scan, UInt current_scan_index);
+						
+			/// Aligns current scan with its successor
+			void addNextScan_(SpectrumType& scan, UInt current_scan_index);
 			
 			/// Filter hash of point cluster
 			void filterHash_();

@@ -79,9 +79,13 @@ FeaFiModule::ChargedIndexSet BaseSweepSeeder::nextSeed() throw (NoSuccessor)
 {
 		if (!is_initialized_)
 		{
+			StopWatch w2;
+			w2.start();
 			sweep_();		// sweep across map and scan for pattern 
 			curr_region_  = iso_map_.begin();
 			is_initialized_ = true;
+			w2.stop();
+			cout << "Seeding took : " << w2.getClockTime() << " [s]" << endl;
 		}
 		
 		if ( curr_region_ == iso_map_.end() || iso_map_.size() == 0 )
@@ -115,13 +119,15 @@ void BaseSweepSeeder::sweep_()
 		// progress logger
 		traits_->startProgress(0, traits_->getData().size() , "FeatureFinder");
 		
+		// copy current scan. 
+		// This is necessary as the peak intensities have to be modified in the sumUp_ method
+ 		//SpectrumType current_scan  = traits_->getData()[0];
+				
 		for (UInt currscan_index = 0; currscan_index < traits_->getData().size(); ++currscan_index)
 		{		
 			traits_->setProgress(currscan_index);
-		
-			// copy current scan. 
-			// This is necessary as the peak intensities have to be modified in the sumUp_ method
-			SpectrumType current_scan = traits_->getData()[currscan_index];
+			
+			SpectrumType current_scan  = traits_->getData()[ currscan_index ];		
 			
 			cout << "---------------------------------------------------------------------------" << endl;
 			cout << "Processing scan " << (currscan_index + 1) << " of " << traits_->getData().size() << endl;
@@ -137,24 +143,44 @@ void BaseSweepSeeder::sweep_()
 			}
 			out.close();
 			#endif
-	
-			// align and sum
-			sumUp_(current_scan,currscan_index);
 			
+			StopWatch w;
+			w.start();			
+			sumUp_(current_scan,currscan_index);
+			w.stop();
+			cout << "Alignment took " << w.getClockTime() << " [s]. " << endl;
+			w.reset();
+// 			if (currscan_index == 0)
+// 			{
+// 				// align and sum up first scan(s)
+// 				sumUp_(current_scan,currscan_index);
+// 			}
+// 			else
+// 			{
+// 				// add next one
+// 				addNextScan_(current_scan,currscan_index);			
+// 				// substract last scan
+// 				substractLastScan_(current_scan,currscan_index);
+// 			}
+						
 			#ifdef DEBUG_FEATUREFINDER
 			// write debug output
-// 			fname = String("scan_aligned_") + current_scan.getRT();;
-// 			out.open( fname.c_str() );
-// 			for(UInt k = 0; k<current_scan.size();++k)
-// 			{
-// 				out << current_scan[k].getMZ() << " " << current_scan[k].getIntensity() << endl;
-// 			}
-// 			out.close();
+			fname = String("scan_aligned_") + current_scan.getRT();;
+			out.open( fname.c_str() );
+			for(UInt k = 0; k<current_scan.size();++k)
+			{
+				out << current_scan[k].getMZ() << " " << current_scan[k].getIntensity() << endl;
+			}
+			out.close();
 			#endif
-			
+						
 			// detect isotopic pattern...
+			w.start();		
 			ScoredMZVector iso_curr_scan = detectIsotopicPattern_(current_scan );
-				
+			w.stop();
+			cout << "Isotopic pattern detection took " << w.getClockTime() << " [s]. " << endl;
+			w.reset();	
+			
 			for (ScoredMZVector::const_iterator citer = iso_curr_scan.begin();
 						citer != iso_curr_scan.end();
 						++citer)
@@ -191,8 +217,8 @@ void BaseSweepSeeder::sweep_()
 				CoordinateType start_mz = traits_->getPeakMz( make_pair(currscan_index,this_peak) );
 				CoordinateType mz_dist  = 0;
 						
-				// walk to the left (for at most 1 Th)
-				while (mz_dist < 1.0 && this_peak >= 1)
+				// walk to the left (for at most 3 Th)
+				while (mz_dist < 3.0 && this_peak >= 1)
 				{
 					mz_dist = ( start_mz - traits_->getPeakMz( make_pair(currscan_index,this_peak) ) );
 					
@@ -209,7 +235,7 @@ void BaseSweepSeeder::sweep_()
 				mz_dist   = ( traits_->getPeakMz( make_pair(currscan_index,this_peak) )  - start_mz );
 					
 				// and to the right (we walk for at most 3 Th)
-				while (mz_dist < 3.0 && this_peak < current_scan.size() )
+				while (mz_dist < 2.0 && this_peak < current_scan.size() )
 				{
 					if ( traits_->getPeakFlag( make_pair(currscan_index,this_peak) )  == FeaFiTraits::UNUSED )
 					{
@@ -627,11 +653,31 @@ bool BaseSweepSeeder::checkForMatchingCluster_(const pair<TableIteratorType, Tab
 }
 
 void BaseSweepSeeder::sumUp_(SpectrumType& scan, UInt current_scan_index)
-{
+{	
 		for ( UInt i=current_scan_index + 1; i <= current_scan_index + scans_to_sumup_ && i < traits_->getData().size() ; ++i )
     {
-        AlignAndSum_(scan,traits_->getData()[i]);
+				AlignAndSum_(scan,traits_->getData()[i]);
     }
+}
+
+void BaseSweepSeeder::substractLastScan_(SpectrumType& current_scan, UInt current_scan_index)
+{
+		if (current_scan_index >= 1)
+		{		
+			cout << "Substracting " << (current_scan_index-1) << endl; 
+			AlignAndSubstract_(current_scan,traits_->getData()[ current_scan_index-1 ]);		
+		}
+}
+
+
+void BaseSweepSeeder::addNextScan_(SpectrumType& scan, UInt current_scan_index)
+{
+	UInt next_scan_index = current_scan_index + scans_to_sumup_;	
+
+	if (next_scan_index < traits_->getData().size() )
+	{
+		AlignAndSum_(scan,traits_->getData()[ next_scan_index ]);
+	}
 }
 
 void BaseSweepSeeder::AlignAndSum_(SpectrumType& scan, const SpectrumType& neighbour)
@@ -640,12 +686,9 @@ void BaseSweepSeeder::AlignAndSum_(SpectrumType& scan, const SpectrumType& neigh
         return;
 
     UInt index_newscan = 0;
-    for (UInt k=0; k<neighbour.size(); ++k)
+     for (SpectrumType::const_iterator p = neighbour.begin(); p != neighbour.end(); ++p)
     {
-        PeakType p			          = neighbour[k];
-        CoordinateType mass = p.getMZ();
-
-        while (scan[index_newscan].getMZ() < mass && index_newscan < scan.size())
+        while (scan[index_newscan].getMZ() < p->getMZ() && index_newscan < scan.size())
             ++index_newscan;
 
         // This seems to happen more frequently than expected -> quit the loop
@@ -654,25 +697,69 @@ void BaseSweepSeeder::AlignAndSum_(SpectrumType& scan, const SpectrumType& neigh
 
         if (index_newscan > 0)
         {
-            CoordinateType left_diff   = fabs(scan[index_newscan-1].getMZ() - mass);
-            CoordinateType right_diff = fabs(scan[index_newscan].getMZ() - mass);
+            CoordinateType left_diff   = fabs(scan[index_newscan-1].getMZ() - p->getMZ());
+            CoordinateType right_diff = fabs(scan[index_newscan].getMZ() - p->getMZ());
 
             // check which neighbour is closer
             if (left_diff < right_diff && (left_diff < mass_tolerance_alignment_) )
             {
-                scan[ (index_newscan-1) ].setIntensity( scan[ (index_newscan-1) ].getIntensity() + p.getIntensity() );
+                scan[ (index_newscan-1) ].setIntensity( scan[ (index_newscan-1) ].getIntensity() + p->getIntensity() );
             }
             else if (right_diff < mass_tolerance_alignment_)
             {
-                scan[ (index_newscan) ].setIntensity( scan[ (index_newscan) ].getIntensity() + p.getIntensity() );
+                scan[ (index_newscan) ].setIntensity( scan[ (index_newscan) ].getIntensity() + p->getIntensity() );
             }
         }
         else // no left neighbour available
         {
-            CoordinateType right_diff = fabs(scan[index_newscan].getMZ() - mass);
+            CoordinateType right_diff = fabs(scan[index_newscan].getMZ() - p->getMZ());
             if (right_diff < mass_tolerance_alignment_)
             {
-                scan[index_newscan].setIntensity( scan[index_newscan].getIntensity() + p.getIntensity() );
+                scan[index_newscan].setIntensity( scan[index_newscan].getIntensity() + p->getIntensity() );
+            }
+        }
+    } // end for (all peaks in neighbouring scan)
+		
+}	// end of AlignAndSum_(....)
+
+
+void BaseSweepSeeder::AlignAndSubstract_(SpectrumType& scan, const SpectrumType& neighbour)
+{
+    if (scan.size() == 0 || neighbour.size() == 0)
+        return;
+
+    UInt index_newscan = 0;
+    for (SpectrumType::const_iterator p = neighbour.begin(); p != neighbour.end(); ++p)
+    {
+
+        while (scan[index_newscan].getMZ() < p->getMZ() && index_newscan < scan.size())
+					++index_newscan;
+        
+				// This seems to happen more frequently than expected -> quit the loop
+        if (index_newscan >= scan.size() )
+            break;
+
+        if (index_newscan > 0)
+        {
+            CoordinateType left_diff   = fabs(scan[index_newscan-1].getMZ() - p->getMZ());
+            CoordinateType right_diff = fabs(scan[index_newscan].getMZ() - p->getMZ());
+
+            // check which neighbour is closer
+            if (left_diff < right_diff && (left_diff < mass_tolerance_alignment_) )
+            {
+                scan[ (index_newscan-1) ].setIntensity( scan[ (index_newscan-1) ].getIntensity() - p->getIntensity() );
+            }
+            else if (right_diff < mass_tolerance_alignment_)
+            {
+                scan[ (index_newscan) ].setIntensity( scan[ (index_newscan) ].getIntensity() - p->getIntensity() );
+            }
+        }
+        else // no left neighbour available
+        {
+            CoordinateType right_diff = fabs(scan[index_newscan].getMZ() - p->getMZ());
+            if (right_diff < mass_tolerance_alignment_)
+            {
+                scan[index_newscan].setIntensity( scan[index_newscan].getIntensity() - p->getIntensity() );
             }
         }
     } // end for (all peaks in neighbouring scan)

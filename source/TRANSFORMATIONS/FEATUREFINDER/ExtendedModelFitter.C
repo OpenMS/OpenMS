@@ -228,7 +228,7 @@ namespace OpenMS
 		Int last_mz  = last_mz_model_;
 		
 		/// Check charge estimate if charge is not specified by user
-		if (set.charge_ != 0 && (iso_stdev_first_ != iso_stdev_last_))
+		if (set.charge_ != 0 /*&& (iso_stdev_first_ != iso_stdev_last_)*/)
 		{
 			first_mz = set.charge_;
 			last_mz = set.charge_;
@@ -237,6 +237,8 @@ namespace OpenMS
 		}
 		std::cout << "Checking charge state from " << first_mz << " to " << last_mz << std::endl;
 	
+		ProductModel<2>* final = 0;	// model  with best correlation
+		
 		for ( float stdev = iso_stdev_first_; stdev <= iso_stdev_last_; stdev += iso_stdev_stepsize_)
 		{
 			for (Int mz_fit_type = first_mz; mz_fit_type <= last_mz; ++mz_fit_type)
@@ -253,15 +255,15 @@ namespace OpenMS
 				if (quality > max_quality)
 				{
 					max_quality = quality;
-					model_desc = ModelDescription<2>(&model2D_);
+					//model_desc = ModelDescription<2>(&model2D_);
+					final = new ProductModel<2>(model2D_);	// store model
 				}
 				
 			}
 		}
 		
-
 		// model with highest correlation
-		ProductModel<2>* final = dynamic_cast< ProductModel<2>* >(model_desc.createModel());
+		//ProductModel<2>* final = dynamic_cast< ProductModel<2>* >(model_desc.createModel());
 		
 		// model_desc.createModel() returns 0 if class model_desc is not initialized
 		// in this case something went wrong during the modelfitting and we stop.

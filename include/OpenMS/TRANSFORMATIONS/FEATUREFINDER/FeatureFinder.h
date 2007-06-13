@@ -85,8 +85,10 @@ namespace OpenMS
 			typedef std::vector<BaseExtender*> ExtenderVector;
 	    /// model fitter
 			typedef std::vector<BaseModelFitter*> FitterVector;
-			/// LC-MS data structures
+			/// LC-MS data structure
 			typedef FeaFiTraits::MapType MapType;
+			/// intensity of a signal
+			typedef FeaFiTraits::IntensityType IntensityType;
 			///Possible log types
 			typedef ProgressLogger::LogType LogType;
 				
@@ -141,9 +143,9 @@ namespace OpenMS
 	
 	    /// Sets data using instance of MSExperimentExtern.
 	    template <class SpectrumIteratorType>
-	    void setData(const SpectrumIteratorType& begin, const SpectrumIteratorType& end, UInt buffer_size)
+	    void setData(const SpectrumIteratorType& begin, const SpectrumIteratorType& end, UInt buffer_size, IntensityType sn_threshold = -1.0)
 		  { 
-	    	traits_->setData(begin, end, buffer_size); 
+	    	traits_->setData(begin, end, buffer_size, sn_threshold); 
 	    }
 		
 	    /// start feature finding

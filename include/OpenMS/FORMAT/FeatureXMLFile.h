@@ -24,8 +24,8 @@
 // $Maintainer: Ole Schulz-Trieglaff $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_FORMAT_FeatureXMLFile_H
-#define OPENMS_FORMAT_FeatureXMLFile_H
+#ifndef OPENMS_FORMAT_FEATUREXMLFILE_H
+#define OPENMS_FORMAT_FEATUREXMLFILE_H
 
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/FORMAT/SchemaFile.h>
