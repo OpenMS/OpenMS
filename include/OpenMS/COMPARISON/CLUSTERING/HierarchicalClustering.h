@@ -45,6 +45,8 @@ namespace OpenMS
     cutoff, i.e. the maximal allowed distance for merging two clusters.
         
     The result is an STL vector of vectors. Each inner vector respresents one cluster, holding the indices of the input elements.
+		 
+		@ref HierarchicalClustering_Parameters are explained on a separate page.
         
     @ingroup Comparison
   */

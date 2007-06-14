@@ -41,19 +41,10 @@ namespace OpenMS
 	  which Peak Pairs could get scores > 0 ? <br>
 	  Peaks get a score depending on the difference in position and the heights of the peaks <br>
 	  pairs with positions that differ more than some limit get score 0
-	  
-	  @param variation maximum difference in position (in percent of the current m/z)
-	      note that big values of variation ( 1 being the maximum ) result in consideration
-	      of all possible pairings which has a running time of O(n²)
-    @param int_cnt: how the peak heights are used in the score<br>
-      0 = product<br>
-      1 = sqrt(product)<br>
-      2 = sum <br>
-      3 = agreeing intensity<br>
-    @param keeppeaks
-      keep peaks without alignment partner in the consensus spectrum<br>
   	
   	@todo correct int_cnt sum (is that really normalizing? it is not!) (Andreas)
+		 
+		@ref SpectrumCheapDPCorr_Parameters are explained on a separate page.
 
 		@ingroup SpectraComparison
   */

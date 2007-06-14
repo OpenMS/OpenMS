@@ -23,7 +23,6 @@
 // --------------------------------------------------------------------------
 // $Maintainer: Andreas Bertsch $
 // --------------------------------------------------------------------------
-//
 
 #ifndef OPENMS_COMPARISON_SPECTRA_BINNEDREPSUMAGREEINGINTENSITIES_H
 #define OPENMS_COMPARISON_SPECTRA_BINNEDREPSUMAGREEINGINTENSITIES_H
@@ -34,11 +33,11 @@ namespace OpenMS
 {
 
   /**
-  		@brief calculates the sum of agreeing intensities for two spectra in binned representation
+		@brief calculates the sum of agreeing intensities for two spectra in binned representation
 
-			the sum of aggreing intensities was defined in ????
+		The sum of aggreing intensities was defined in ????
 
-			@ingroup SpectraComparison
+		@ingroup SpectraComparison
   */
   class BinnedRepSumAgreeingIntensities
     : public BinnedRepCompareFunctor

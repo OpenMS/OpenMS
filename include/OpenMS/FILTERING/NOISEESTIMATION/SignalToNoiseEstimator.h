@@ -40,15 +40,14 @@
 namespace OpenMS
 {
   /**
-    @brief  Signal to noise estimator. This class represents the abstract base class of a signal to noise estimator.
+    @brief This class represents the abstract base class of a signal to noise estimator.
 
     A signal to noise estimator should provide the signal to noise ratio of all raw data points
     in a given intervall [first_,last_).
-  
   */
   
-template < typename Container = MSSpectrum< > >
-class SignalToNoiseEstimator: public DefaultParamHandler, public ProgressLogger
+	template < typename Container = MSSpectrum< > >
+	class SignalToNoiseEstimator: public DefaultParamHandler, public ProgressLogger
   {
   public:
 

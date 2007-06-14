@@ -38,6 +38,8 @@ namespace OpenMS
   
 	  @param peakcount: nr of peaks that are augmented in each step
 	  @param windowsize: size of sliding window
+		 
+		@ref WindowMower_Parameters are explained on a separate page.
 
 		@ingroup SpectraPreprocessers
   */

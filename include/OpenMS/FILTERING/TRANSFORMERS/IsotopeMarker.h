@@ -44,6 +44,8 @@ namespace OpenMS
 	  @param marks times a peak needs to be marked to get marked in the result
 	  @param mz_variation m/z tolerance
 	  @param in_variation intensity variation in fraction of the theoretical isotope peak
+		 
+		@ref IsotopeMarker_Parameters are explained on a separate page.
 
 		@ingroup PeakMarker
   */

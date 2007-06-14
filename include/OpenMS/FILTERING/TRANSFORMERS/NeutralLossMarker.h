@@ -39,6 +39,8 @@ namespace OpenMS
  
  		@param marks frequency until it is marked
   	@param tolerance m/z tolerance
+		 
+		@ref NeutralLossMarker_Parameters are explained on a separate page.
 
 		@ingroup PeakMarker
   */

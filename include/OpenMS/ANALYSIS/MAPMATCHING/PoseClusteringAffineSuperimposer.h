@@ -47,15 +47,17 @@ namespace OpenMS
   /**
     @brief Superimposer that uses a voting scheme to find a good affine transformation.
 
-  It works on two element maps (FeatureMap is the default map type, 
-  but you can also use a pointer map like DPeakConstReferenceArray) and 
-  computes a affine transformation, that maps the elements of one map (scene map) 
-  as near as possible to the elements in the other map (model map).
-  A element can be a DPeak, a DFeature, a ConsensusPeak or ConsensusFeature 
-  (wheras DFeature is the default element type).
-
-  This superimposer hashs all possible affine transformations and defines the 
-  transformation with the most votes as the best one.        
+	  It works on two element maps (FeatureMap is the default map type, 
+	  but you can also use a pointer map like DPeakConstReferenceArray) and 
+	  computes a affine transformation, that maps the elements of one map (scene map) 
+	  as near as possible to the elements in the other map (model map).
+	  A element can be a DPeak, a DFeature, a ConsensusPeak or ConsensusFeature 
+	  (wheras DFeature is the default element type).
+	
+	  This superimposer hashs all possible affine transformations and defines the 
+	  transformation with the most votes as the best one.
+		 
+		@ref PoseClusteringAffineSuperimposer_Parameters are explained on a separate page.        
   */
   template < typename MapT = FeatureMap<> >
   class PoseClusteringAffineSuperimposer

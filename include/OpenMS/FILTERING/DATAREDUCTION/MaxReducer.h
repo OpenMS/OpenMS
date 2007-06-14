@@ -33,7 +33,8 @@ namespace OpenMS
 {	
 	/**
 		@brief Reduces the amount of data in an experiment by extracting the maximum intensity peaks.
-		
+		 
+		@ref MaxReducer_Parameters are explained on a separate page.
 	*/
 	class MaxReducer
 	  : public DataReducer

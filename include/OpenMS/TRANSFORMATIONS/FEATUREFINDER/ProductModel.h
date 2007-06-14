@@ -48,6 +48,8 @@ namespace OpenMS
 	<tr><td>DimensionTags: e.g. RT, MZ</td>
 			<td>model used for the specified dimension including model parameters</td></tr>
 	</table>
+		 
+	@ref ProductModel_Parameters are explained on a separate page.
 
 	@ingroup FeatureFinder
 */

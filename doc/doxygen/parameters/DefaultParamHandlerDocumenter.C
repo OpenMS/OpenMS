@@ -118,6 +118,8 @@ void writeParameters(std::ofstream& f, const String& class_name, const Param& pa
 	static vector<String> class_names;
 	if (class_name=="CREATE_MAIN_PAGE")
 	{
+		//sort classes
+		sort(class_names.begin(), class_names.end());
 		f << "/**" << endl;
 		f << " @page Parameters_Main_Page Class parameters summary" << endl;
 		
@@ -143,7 +145,7 @@ void writeParameters(std::ofstream& f, const String& class_name, const Param& pa
 		class_doc.substitute("::","_1_1");
 		f << "Parameters of <a href=\"" << class_doc << ".html\">" << class_name << "</a>:<BR><BR>\n";
 		f << "<table border=1>" << endl;
-		f <<"<tr><th>Name</th><th>Type</th><th>Description</th></tr>" << endl;
+		f <<"<tr><th>Name</th><th>Type</th><th>Default</th><th>Description</th></tr>" << endl;
 		String type, description;
 		for(map<String,DataValue>::const_iterator it = param.begin(); it != param.end();++it)
 		{
@@ -161,7 +163,7 @@ void writeParameters(std::ofstream& f, const String& class_name, const Param& pa
 			}
 			description = param.getDescription(it->first);
 			description.substitute("\n","@n ");
-			f <<"<tr><td><b>"<< it->first << "</b></td><td>" << type << "</td><td>" << description <<  "</td></tr>" << endl;
+			f <<"<tr><td><b>"<< it->first << "</b></td><td>" << type << "</td><td>" << it->second.toString() <<  "</td><td>" << description <<  "</td></tr>" << endl;
 		}
 		f << "</table>" << endl;
 		f << "*/" << endl;
@@ -257,7 +259,6 @@ int main (int argc , char** argv)
 	DOCME(TICFilter);
 	DOCME(TheoreticalSpectrumGenerator);
 	DOCME(ThresholdMower);
-	DOCME(TOPPViewBase);
 	DOCME(TwoDOptimization);
 	DOCME(WindowMower);
 	DOCME(ZhangSimilarityScore);
@@ -291,5 +292,3 @@ int main (int argc , char** argv)
 
   return 0;
 }
-
-

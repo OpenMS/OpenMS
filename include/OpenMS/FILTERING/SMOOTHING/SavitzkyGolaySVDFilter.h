@@ -91,8 +91,9 @@ namespace OpenMS
           The bigger the frame size the smoother the signal (the more detail information get lost!). The frame size corresponds to the number
           of filter coefficients, so the width of the smoothing intervall is given by frame_size*spacing of the raw data.
     
+		@ref SavitzkyGolaySVDFilter_Parameters are explained on a separate page.
+    
     @ingroup Filtering
-   
   */
   class SavitzkyGolaySVDFilter : public SmoothFilter, public DefaultParamHandler
   {

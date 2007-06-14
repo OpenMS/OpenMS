@@ -46,6 +46,7 @@ namespace OpenMS
      @note This pair finder does not offer a method to compute consensus elements given
      two element maps!
 
+		 @ref SimplePairFinder_Parameters are explained on a separate page.
   */
   template < typename MapT = FeatureMap< > >
   class SimplePairFinder : public BasePairFinder< MapT >

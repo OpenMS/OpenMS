@@ -60,6 +60,8 @@ namespace OpenMS
 					<td>averagines are used to approximate the number of atoms of a given element
 					 (C,H,N,O,S) given a mass</td></tr>
 		</table>
+		 
+		@ref IsotopeModel_Parameters are explained on a separate page.
 				
 		@ingroup FeatureFinder
 	*/

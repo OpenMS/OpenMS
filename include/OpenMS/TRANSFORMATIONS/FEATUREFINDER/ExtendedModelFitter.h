@@ -98,8 +98,10 @@ namespace OpenMS
 		 <tr><td>distance</td>
 		 <td>distance between two isotopes of charge +1</td></tr>
 		 </table>
+    
+    @ref ExtendedModelFitter_Parameters are explained on a separate page.
 		 
-		 @ingroup FeatureFinder
+		@ingroup FeatureFinder
   */
 
 

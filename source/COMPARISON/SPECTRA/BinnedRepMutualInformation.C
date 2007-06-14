@@ -37,7 +37,7 @@ namespace OpenMS
 		:	BinnedRepCompareFunctor()
   {
 		setName(BinnedRepMutualInformation::getProductName());
-    defaults_.setValue("intervals", 3);
+    defaults_.setValue("intervals", 3, "intervals peak intensity is discretized into intervals");
 		defaultsToParam_();
   }
 

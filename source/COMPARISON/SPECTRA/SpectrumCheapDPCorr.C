@@ -44,9 +44,9 @@ namespace OpenMS
 			lastconsensus_()
   {
 		setName(SpectrumCheapDPCorr::getProductName());
-    defaults_.setValue("variation", 0.001);
-    defaults_.setValue("int_cnt", 0); 
-    defaults_.setValue("keeppeaks", 0);
+    defaults_.setValue("variation", 0.001, "Maximum difference in position (in percent of the current m/z).\nNote that big values of variation ( 1 being the maximum ) result in consideration of all possible pairings which has a running time of O(n*n)");
+    defaults_.setValue("int_cnt", 0, "How the peak heights are used in the score.\n0 = product\n1 = sqrt(product)\n2 = sum\n3 = agreeing intensity\n"); 
+    defaults_.setValue("keeppeaks", 0, "Flag that states if peaks without alignment partner are kept in the consensus spectrum.");
     factor_ = 0.5;
 		defaultsToParam_();
   }
@@ -92,8 +92,8 @@ namespace OpenMS
 	}
 	
   /**
-  looks for peak pairs where there is just one or none possibility for alignment
-  and aligns them (if possible). The rest is aligned using dynprog_
+		looks for peak pairs where there is just one or none possibility for alignment
+		and aligns them (if possible). The rest is aligned using dynprog_
   */
   double SpectrumCheapDPCorr::operator () (const PeakSpectrum& x, const PeakSpectrum& y) const
   { 

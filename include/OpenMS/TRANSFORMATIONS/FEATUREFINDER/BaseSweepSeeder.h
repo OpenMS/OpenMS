@@ -66,7 +66,9 @@ namespace OpenMS
 		 <td>tolerance in m/z during assembly of isotopic point cluster </td></tr>
 		 	<tr><td></td><td></td><td>rt_tolerance_cluster</td>
 		 <td>tolerance in m/z during assembly of isotopic point cluster</td></tr>
-		</table>		
+		</table>
+		 
+		@ref BaseSweepSeeder_Parameters are explained on a separate page.
     
     @ingroup FeatureFinder
   */

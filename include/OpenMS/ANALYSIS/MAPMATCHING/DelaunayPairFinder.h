@@ -42,25 +42,27 @@ namespace OpenMS
 {
 
   /**
-     @brief This class implements an element pair finding algorithm.
-
-     This class implements a point pair finding algorithm.
-     It offers a method to determine element pairs in two element maps,
-     given two point maps and a transformation defined for the second element map (if no
-     transformation is given, the pairs are found in the two original maps). 
-     The pair finder also offers a method to compute consensus elements given 
-     two element maps. This algorithm is similar to the pair finding method as mentioned above,
-     but it implies that the scene map is already dewarped.
-           
-     To speed up the search for element pairs an consensus elements, the DelaunayPairFinder
-     uses the CGAL delaunay triangulation for the nearest neighbour search.
-
-     The first template parameter is the type of the consensus map and the second parameter is the type of the element maps.
-     
-     @note The RT and the MZ dimension are not equivalent, because two elements that differ in RT by 1s (or minute) are 
-     more similar than two points that differ in MZ by 1Th. To be able to use the euclidean distance in the nearest neighbour search, 
-     we have to transform the elements MZ position m into a new MZ position m'= m / (diff_intercept_RT/diff_intercept_MZ).
-     E.g. given diff_intercept_RT=1 and diff_intercept_MZ=0.1 results in 1s difference in RT is similar to 0.1Th difference in MZ.
+		@brief This class implements an element pair finding algorithm.
+		
+		This class implements a point pair finding algorithm.
+		It offers a method to determine element pairs in two element maps,
+		given two point maps and a transformation defined for the second element map (if no
+		transformation is given, the pairs are found in the two original maps). 
+		The pair finder also offers a method to compute consensus elements given 
+		two element maps. This algorithm is similar to the pair finding method as mentioned above,
+		but it implies that the scene map is already dewarped.
+		     
+		To speed up the search for element pairs an consensus elements, the DelaunayPairFinder
+		uses the CGAL delaunay triangulation for the nearest neighbour search.
+		
+		The first template parameter is the type of the consensus map and the second parameter is the type of the element maps.
+		
+		@note The RT and the MZ dimension are not equivalent, because two elements that differ in RT by 1s (or minute) are 
+		more similar than two points that differ in MZ by 1Th. To be able to use the euclidean distance in the nearest neighbour search, 
+		we have to transform the elements MZ position m into a new MZ position m'= m / (diff_intercept_RT/diff_intercept_MZ).
+		E.g. given diff_intercept_RT=1 and diff_intercept_MZ=0.1 results in 1s difference in RT is similar to 0.1Th difference in MZ.
+		 
+		@ref DelaunayPairFinder_Parameters are explained on a separate page.  
   */
   template < typename ConsensusMapT = FeatureMap< Feature >, typename ElementMapT = FeatureMap< > >
   class DelaunayPairFinder

@@ -23,7 +23,6 @@
 // --------------------------------------------------------------------------
 // $Maintainer: Andreas Bertsch $
 // --------------------------------------------------------------------------
-//
 
 #ifndef OPENMS_COMPARISON_SPECTRA_BINNEDREPMUTUALINFORMATION_H
 #define OPENMS_COMPARISON_SPECTRA_BINNEDREPMUTUALINFORMATION_H
@@ -37,11 +36,11 @@ namespace OpenMS
 		@brief Mutual Information content which is calculated from binned stick spectra
 
 		Binned spectra mutual information content was defined in ????
-  
-  	@param intervals peak intensity is discretized into intervals
 
 		@todo use fixed point arithmetics (at least round) due to 32/64 bit problems, its not worth using full precision (Andreas)
-
+    
+    @ref BinnedRepMutualInformation_Parameters are explained on a separate page.
+		
 		@ingroup SpectraComparison
   */
   class BinnedRepMutualInformation

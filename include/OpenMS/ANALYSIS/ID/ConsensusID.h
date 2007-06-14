@@ -41,10 +41,10 @@ namespace OpenMS
     - Marge
     - Ranked
     - Average
+		
+		@ref ConsensusID_Parameters are explained on a separate page.
 
 		@ingroup Analysis_ID
-
-  	@ref ConsensusID_Parameters are explained on a separate page.
   */
   class ConsensusID
   	: public DefaultParamHandler

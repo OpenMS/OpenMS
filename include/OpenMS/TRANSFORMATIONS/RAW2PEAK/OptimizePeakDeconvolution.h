@@ -84,15 +84,17 @@ namespace OpenMS
   }//namespace OptimizationFunctions
 
   /**
-		 @brief This class provides the deconvolution of peak regions using non-linear optimization.
-
-		 Given a vector of peak shapes, this class optimizes all peak shapes parameters using a non-linear optimization.
-		 For the non-linear optimization we use the Levenberg-Marquardt algorithm provided by the gsl.
-		 There are a few constraints for the parameters: the positions are equidistant according to the peptide
-		 mass rule, e.g. two consecutive isotopic peaks are 1.003/charge away from each other. Besides the
-		 peaks have all the same left and right width, respectively.
-
-		 @ingroup PeakPicking  
+		@brief This class provides the deconvolution of peak regions using non-linear optimization.
+		
+		Given a vector of peak shapes, this class optimizes all peak shapes parameters using a non-linear optimization.
+		For the non-linear optimization we use the Levenberg-Marquardt algorithm provided by the gsl.
+		There are a few constraints for the parameters: the positions are equidistant according to the peptide
+		mass rule, e.g. two consecutive isotopic peaks are 1.003/charge away from each other. Besides the
+		peaks have all the same left and right width, respectively.
+		
+		@ref OptimizePeakDeconvolution_Parameters are explained on a separate page.
+		
+		@ingroup PeakPicking  
 	*/
   class OptimizePeakDeconvolution : public DefaultParamHandler
   {

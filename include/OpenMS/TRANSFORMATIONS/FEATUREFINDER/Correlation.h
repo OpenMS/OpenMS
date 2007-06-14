@@ -35,16 +35,17 @@
 
 namespace OpenMS
 {
-	/** @brief Measures the quality of a modelfit to some realworld data. 
-	  
-	 		Implementation of class BaseQuality. The quality is measured as
-	 		the (squared) Pearson cross correlation of data and model.
-			
-			The correlation coefficient is squared in order to obtain a value 
-			between 0 and 1.
+	/** 
+		@brief Measures the quality of a modelfit to some realworld data. 
+  
+ 		Implementation of class BaseQuality. The quality is measured as
+ 		the (squared) Pearson cross correlation of data and model.
+		
+		The correlation coefficient is squared in order to obtain a value 
+		between 0 and 1.
 	 		
-	 		@ingroup FeatureFinder
-	 	*/
+ 		@ingroup FeatureFinder
+ 	*/
   class Correlation 
     : public BaseQuality
   {

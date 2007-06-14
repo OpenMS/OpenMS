@@ -37,8 +37,8 @@ namespace OpenMS
 
   /**
 	  @brief Aligns the peaks of two spectra
-
-		@param epsilon - defines the absolut error of the mass spectrometer; default value is 0.3
+		 
+		@ref SpectrumAlignment_Parameters are explained on a separate page.
 		
 		@ingroup SpectraComparison
   */

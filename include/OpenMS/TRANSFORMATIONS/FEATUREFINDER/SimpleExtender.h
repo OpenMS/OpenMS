@@ -83,6 +83,8 @@ namespace OpenMS
 					(default value is 0.03).</td></tr>
 			</table>
 		
+		@ref SimpleExtender_Parameters are explained on a separate page.
+		
 		@ingroup FeatureFinder
 	*/
   class SimpleExtender 

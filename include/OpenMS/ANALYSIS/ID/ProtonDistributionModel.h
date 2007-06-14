@@ -39,27 +39,28 @@ namespace OpenMS
 {
 	class AASequence;
 
-	/** @brief A proton distribution model to calculate the proton distribution over charged peptides
-	 	
-			The model uses proton affinity values of backbone nitrogens and sidechains to calculate the 
-			proton distribution of charged peptide among these sites. The possible sites are the peptide
-			bonds between the amino acids, the side chains and the C-terminus and N-terminus. The calculation
-			is done calculating a Boltzmann distribution of the sites.
+	/**
+		@brief A proton distribution model to calculate the proton distribution over charged peptides
+ 	
+		The model uses proton affinity values of backbone nitrogens and sidechains to calculate the 
+		proton distribution of charged peptide among these sites. The possible sites are the peptide
+		bonds between the amino acids, the side chains and the C-terminus and N-terminus. The calculation
+		is done calculating a Boltzmann distribution of the sites.
 
-			Details and the proton affinities can be found in
-			Z. Zhang, Prediction of Low-Energy Collision-Induced Dissociation Spectra of Peptides,
-	    Anal. Chem., 76 (14), 3908 - 3922, 2004
+		Details and the proton affinities can be found in
+		Z. Zhang, Prediction of Low-Energy Collision-Induced Dissociation Spectra of Peptides,
+    Anal. Chem., 76 (14), 3908 - 3922, 2004
 
-			A proton distribution can be calculated using the getProtonDistribution method. The backbone 
-			probabilities are reported in the first parameter (index 0 for the N-terminus, index 1 for the 
-			first peptide bond...), the site chain probabilities are reported in the second parameter 
-			(index 0, for the first amino acid...). The peptide and the number of protons as well as type 
-			of peptide (can be Reside::YIon for peptides and y-ions and any other ion type).
+		A proton distribution can be calculated using the getProtonDistribution method. The backbone 
+		probabilities are reported in the first parameter (index 0 for the N-terminus, index 1 for the 
+		first peptide bond...), the site chain probabilities are reported in the second parameter 
+		(index 0, for the first amino acid...). The peptide and the number of protons as well as type 
+		of peptide (can be Reside::YIon for peptides and y-ions and any other ion type).
 
-			Charge state intensities of differently charged equal (e.g. y7+ and y7++) ions can be calculated
-			using the getChargeStateIntensities function.
-
-			@subpage ProtonDistributionModel_Paramters are explained on a separate page.
+		Charge state intensities of differently charged equal (e.g. y7+ and y7++) ions can be calculated
+		using the getChargeStateIntensities function.
+	 
+		@ref ProtonDistributionModel_Parameters are explained on a separate page.
 	*/
 	class ProtonDistributionModel : public DefaultParamHandler
 	{

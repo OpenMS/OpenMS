@@ -40,7 +40,7 @@ namespace OpenMS
 		Z. Zhang, Prediction of Low-Energy Collision-Induced Dissociation Spectra of Peptides,
 		Anal. Chem., 76 (14), 3908 - 3922, 2004
 
-		@param epsilon - defines the absolut error of the mass spectrometer; default value is 0.2 Th
+		@ref ZhangSimilarityScore_Parameters are explained on a separate page.
 		
 		@ingroup SpectraComparison
   */

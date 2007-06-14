@@ -39,6 +39,8 @@ namespace OpenMS
   
 	  @param tolerance m/z tolerance
 	  @param marks times a peak needs to be marked to get marked in the result
+		 
+		@ref ComplementMarker_Parameters are explained on a separate page.
 
 		@ingroup PeakMarker
   */

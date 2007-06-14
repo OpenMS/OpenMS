@@ -39,9 +39,11 @@ namespace OpenMS
 {
   class String;
   /**
-     @brief This class is the base class for every peak picker.
-     
-     @ingroup PeakPicking
+		@brief This class is the base class for every peak picker.
+		 
+		@ref PeakPicker_Parameters are explained on a separate page.
+		
+		@ingroup PeakPicking
   */
   class PeakPicker : public DefaultParamHandler, public ProgressLogger
   {

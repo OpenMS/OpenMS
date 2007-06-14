@@ -37,6 +37,8 @@ namespace OpenMS
 {
   /**
   	@brief IsotopeDiffFilter returns total intensity of peak pairs that could result from isotope peaks
+		 
+		@ref IsotopeDiffFilter_Parameters are explained on a separate page.
   
  		@param tolerance m/z tolerance
 

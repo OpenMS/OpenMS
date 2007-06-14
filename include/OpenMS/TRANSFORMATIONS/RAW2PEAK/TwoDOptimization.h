@@ -108,6 +108,8 @@ namespace OpenMS
 		 provided from the GSL is used. The optimized parameters are the m/z values,
 		 the left and right width, which shall be equal for a peak in all scans,
 		 and the peaks' heights.
+		 
+		 @ref TwoDOptimization_Parameters are explained on a separate page.
 
 		 @ingroup PeakPicking
 	*/

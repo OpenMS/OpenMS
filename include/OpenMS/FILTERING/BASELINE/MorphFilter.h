@@ -46,6 +46,8 @@ namespace OpenMS
 		structuring element (a flat line) of length frameSize_.
 		
 		Erosion and dilatation are implemented using van Herk's method.
+		 
+		@ref MorphFilter_Parameters are explained on a separate page.
 */
 
   class MorphFilter 

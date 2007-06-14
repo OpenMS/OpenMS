@@ -68,6 +68,8 @@ namespace OpenMS
 		</table>		
 		
 		There are additional parameter : @see BaseSweepSeeder
+		 
+		@ref PickedPeakSeeder_Parameters are explained on a separate page.
 		  	
 		@ingroup FeatureFinder
 	*/

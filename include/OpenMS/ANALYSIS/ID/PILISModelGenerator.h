@@ -38,8 +38,13 @@ namespace OpenMS
 		PILIS uses a HMM based structure to model the population of fragment ions
 		from a peptide. The spectrum generator can be accessed via the getSpectrum
 		method.
+<<<<<<< .mine
+		 
+		@ref PILISModelGenerator_Parameters are explained on a separate page.
+=======
 
 		@subpage PILISModelGenerator_Parameters are explained on a separate page.
+>>>>>>> .r2188
 	*/	
 	class PILISModelGenerator : public DefaultParamHandler
 	{

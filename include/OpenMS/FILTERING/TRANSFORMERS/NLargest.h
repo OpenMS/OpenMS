@@ -36,6 +36,8 @@ namespace OpenMS
   	@brief NLargest removes all but the n largest peaks
   
   	@param n number of peaks to keep
+		 
+		@ref NLargest_Parameters are explained on a separate page.
 
 		@ingroup SpectraPreprocessers
   */

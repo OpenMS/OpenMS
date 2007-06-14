@@ -38,6 +38,8 @@ namespace OpenMS
 		@brief Normal distribution model for elution profiles.
 			
 		To be used in combination with the Levenberg-Marquardt algorithm fitting algorithm.
+		 
+		@ref InterpolationModel_Parameters are explained on a separate page.
 
 		@ingroup FeatureFinder
 	*/

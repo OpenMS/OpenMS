@@ -59,7 +59,9 @@ namespace OpenMS
 				<td>minimum number of peaks per cluster</td>
 			</tr>
 		</table>
-		
+
+    @ref DummySeeder_Parameters are explained on a separate page.
+
 		@ingroup FeatureFinder
 	*/ 
   class DummySeeder 

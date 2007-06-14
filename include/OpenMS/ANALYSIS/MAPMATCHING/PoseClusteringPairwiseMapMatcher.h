@@ -46,24 +46,26 @@
 namespace OpenMS
 {
   /**
-     @brief This class represents a point matching algorithm.
-     
-     It works on two point maps and computes a vector of corresponding points
-     in both maps (given by a point pairs vector). 
-     A point can be a DPeak, a DFeature, a ConsensusPeak or ConsensusFeature 
-     (wheras DFeature is the default element type).
-
-     Therefore it first estimates the transformation, which maps one point map
-     onto the other. This is done by a superimposer class 
-     (e.g. PoseClusteringShiftSuperimposer or the PoseClusteringAffineSuperimposer).
-     Afterwards a pairfinder class (e.g. SimplePairFinder or DelaunayPairFinder) 
-     dewarps the data and searches for corresponding points in both maps.
-          
-     @note If a piecewise transformation is assumed, the user can define a grid by setting 
-     the number of buckets in the RT as well as the MZ dimension.   
-     Call initGridTransformation() before run()!   
-     
-     @ingroup MatchingAlgorithm
+		@brief This class represents a point matching algorithm.
+		
+		It works on two point maps and computes a vector of corresponding points
+		in both maps (given by a point pairs vector). 
+		A point can be a DPeak, a DFeature, a ConsensusPeak or ConsensusFeature 
+		(wheras DFeature is the default element type).
+		
+		Therefore it first estimates the transformation, which maps one point map
+		onto the other. This is done by a superimposer class 
+		(e.g. PoseClusteringShiftSuperimposer or the PoseClusteringAffineSuperimposer).
+		Afterwards a pairfinder class (e.g. SimplePairFinder or DelaunayPairFinder) 
+		dewarps the data and searches for corresponding points in both maps.
+		    
+		@note If a piecewise transformation is assumed, the user can define a grid by setting 
+		the number of buckets in the RT as well as the MZ dimension.   
+		Call initGridTransformation() before run()!   
+		 
+		@ref PoseClusteringPairwiseMapMatcher_Parameters are explained on a separate page.
+		
+		@ingroup MatchingAlgorithm
   */
   template < typename MapT = FeatureMap< > >
   class PoseClusteringPairwiseMapMatcher 

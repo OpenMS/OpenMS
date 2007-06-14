@@ -38,6 +38,8 @@ namespace OpenMS
     @brief total intensity of peak pairs that could result from complementing fragments of charge state 1
   
   	@param tolerance mass tolerance
+		 
+		@ref ComplementFilter_Parameters are explained on a separate page.
 
 		@ingroup SpectraFilter
   */

@@ -65,8 +65,6 @@ namespace OpenMS
 					: FactoryProduct("BaseModel")
 				{
 					defaults_.setValue("cutoff",0.0,"Low intensity cutoff of the model.  Peaks below this intensity are not considered part of the model.");
-					// TODO intensity_scaling is implemented in InterpolationModel and in ProductModel in slightly different ways but using the same parameter name.  This is confusing and should be moved to the common base class template (Ole? Marcel? Clemens?)
-					// TODO defaults_.setValue("intensity_scaling",1.0,"Scaling factor used to adjust the model distribution to the intensities of the data");
 				}
 
 	      /// copy constructor

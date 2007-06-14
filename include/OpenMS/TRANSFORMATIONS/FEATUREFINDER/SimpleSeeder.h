@@ -55,6 +55,8 @@ namespace OpenMS
 				    (used only if min_nitensity is set to 0.</td>
 			</tr>
 		</table>
+		 
+		@ref SimpleSeeder_Parameters are explained on a separate page.
 		
 		@ingroup FeatureFinder
 	*/ 

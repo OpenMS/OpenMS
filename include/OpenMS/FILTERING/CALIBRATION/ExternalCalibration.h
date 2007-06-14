@@ -53,7 +53,6 @@ namespace OpenMS
 		 quadratic dependance of tof and m/z values.
 
 		 @note The input spectra need to contain flight times.
-     
   */
   class ExternalCalibration : public DefaultParamHandler,public ProgressLogger
   {

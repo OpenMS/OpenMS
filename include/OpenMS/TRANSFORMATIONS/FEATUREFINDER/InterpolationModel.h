@@ -33,23 +33,26 @@
 
 namespace OpenMS
 {
-  /** @brief Abstract class for 1D-models that are approximated using linear interpolation
-
-			Model wrapping LinearInterpolation for speed-up in calculation of predicted intensities
-			Derived classes have to implement setSamples()
-
-			Parameters:
-			<table>
-			<tr><td>interpolation_step</td>
-					<td>step size used to interpolate model</td></tr>
-			<tr><td>intensity_scaling</td>
-					<td>factor used to scale the calculated intensities</td></tr>
-			<tr><td>cutoff</td>
-					<td>peak with intensity below cutoff is not considered
-							 to be part of the model</td></tr>
-			</table>
-
-			@ingroup FeatureFinder
+  /** 
+  	@brief Abstract class for 1D-models that are approximated using linear interpolation
+		
+		Model wrapping LinearInterpolation for speed-up in calculation of predicted intensities
+		Derived classes have to implement setSamples()
+		
+		Parameters:
+		<table>
+		<tr><td>interpolation_step</td>
+				<td>step size used to interpolate model</td></tr>
+		<tr><td>intensity_scaling</td>
+				<td>factor used to scale the calculated intensities</td></tr>
+		<tr><td>cutoff</td>
+				<td>peak with intensity below cutoff is not considered
+						 to be part of the model</td></tr>
+		</table>
+		
+		@ref InterpolationModel_Parameters are explained on a separate page.
+		
+		@ingroup FeatureFinder
 
 	*/
     class InterpolationModel

@@ -37,7 +37,7 @@ namespace OpenMS
     : PeakSpectrumCompareFunctor()
   {
 		setName(ZhangSimilarityScore::getProductName());
-		defaults_.setValue("epsilon", 0.2);
+		defaults_.setValue("epsilon", 0.2, "defines the absolut error of the mass spectrometer");
 		defaultsToParam_();
   }
 

@@ -50,17 +50,17 @@
 namespace OpenMS
 {
   /**
-     @brief This class implements a peak picking algorithm using wavelet techniques (as described by Lange et al. (2006) Proc. PSB-06).
+		@brief This class implements a peak picking algorithm using wavelet techniques (as described by Lange et al. (2006) Proc. PSB-06).
+		
+		This peak picking algorithm uses the continuous wavelet transform of a raw data signal to detect mass peaks.
+		Afterwards a given asymmetric peak function is fitted to the raw data and important peak parameters (e.g. fwhm)
+		are extracted.
+		In an optional step these parameters can be optimized using a non-linear opimization method.
+		 
+		@ref PeakPickerCWT_Parameters are explained on a separate page.
 
-     This peak picking algorithm uses the continuous wavelet transform of a raw data signal to detect mass peaks.
-     Afterwards a given asymmetric peak function is fitted to the raw data and important peak parameters (e.g. fwhm)
-     are extracted.
-     In an optional step these parameters can be optimized using a non-linear opimization method.
-
-     @ingroup PeakPicking
-    
+    @ingroup PeakPicking
   */
-
   class PeakPickerCWT : public PeakPicker
   {
   public:

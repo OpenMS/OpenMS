@@ -52,6 +52,8 @@ namespace OpenMS
     <li>cluster consists of only one charge variant (but several peptides) -> split cluster in single elements</li>
     <li>cluster consists of several charge variants -> dispose cluster</li>
     </ul>
+		 
+		@ref FeatureDecharger_Parameters are explained on a separate page.
     
     @ingroup Analysis
   */

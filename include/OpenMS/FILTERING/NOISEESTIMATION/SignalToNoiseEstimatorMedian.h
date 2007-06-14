@@ -93,6 +93,7 @@ namespace OpenMS
               which gives an unreliable result
             .  
     
+		@ref SignalToNoiseEstimatorMedian_Parameters are explained on a separate page.
     
     @ingroup Filtering
     
