@@ -251,7 +251,7 @@ writeParameters(f,""#class_template_name,instantiation.getParameters());
 	// DOCME2(PoseClusteringAffineSuperimposer);
 	// DOCME2(PoseClusteringPairwiseMapMatcher);
 	// DOCME2(PoseClusteringShiftSuperimposer);
-	DOCME2(OpenMS::ProductModel,ProductModel<2>()); // YEAH!!!
+	DOCME2(ProductModel,ProductModel<2>()); // YEAH!!!
 	// DOCME2(SignalToNoiseEstimatorMeanIterative);
 	// DOCME2(SignalToNoiseEstimatorMedian);
 	// DOCME2(SimplePairFinder);
