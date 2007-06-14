@@ -122,7 +122,14 @@ void writeParameters(std::ofstream& f, const String& class_name, const Param& pa
 {
 	f <<
 		"/**\n"
-		" @page " << class_name << "_Parameters " << class_name << " algorithm parameters" << endl;
+		" @page " << class_name << "_Parameters " << class_name << " Parameters" << endl;
+
+	// Manually create a link to the class documentation.  Doxygen just won't do this with @link or @sa.
+	String class_doc = "./class";
+	if ( !class_name.hasPrefix("OpenMS::") ) class_doc += "OpenMS::";
+	class_doc += class_name;
+	class_doc.substitute("::","_1_1");
+	f << "<a href=\"" << class_doc << ".html\">" << class_name << "</a>\n";
 
 	String type, description;
 	for(map<String,DataValue>::const_iterator it = param.begin(); it != param.end();++it)
