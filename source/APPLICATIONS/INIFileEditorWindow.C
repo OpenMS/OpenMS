@@ -35,6 +35,8 @@
 #include <QtGui/QMessageBox>
 #include <QtGui/QCloseEvent>
 
+using namespace std;
+
 namespace OpenMS
 {
 
@@ -127,7 +129,12 @@ namespace OpenMS
 		if(!filename_.isEmpty() && !editor_->isNameEmpty())
 		{
 			if(!filename_.endsWith(".ini")) filename_.append(".ini");
-			editor_->store();
+			
+			if(!editor_->store())
+			{
+				return false;
+			}
+			
 			param_.store(filename_.toStdString());
 			QString str=QString("%1 - INIFileEditor").arg(filename_);
 			setWindowTitle(str.remove(0,str.lastIndexOf('/')+1));

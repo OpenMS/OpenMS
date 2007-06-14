@@ -640,7 +640,7 @@ namespace OpenMS
 			String description;
 			if (iter!=param.descriptions_.end())
 			{
-				description=" :"+iter->second;
+				description=" ("+iter->second+")";
 			}
 		
 			os << "\""<<it->first<< "\"  ->  \""<< it->second.toString()<< "\"" <<description<<endl;

@@ -198,7 +198,7 @@ namespace OpenMS
 	
 	void ParamEditor::createShortcuts()
 	{
-		cout << "creating shortcuts" << endl;
+		//cout << "creating shortcuts" << endl;
 		new QShortcut(Qt::CTRL+Qt::Key_C, this, SLOT(copySubTree()));
 		new QShortcut(Qt::CTRL+Qt::Key_X, this, SLOT(cutSubTree()));
 		new QShortcut(Qt::CTRL+Qt::Key_V, this, SLOT(pasteSubTree()));
@@ -436,7 +436,7 @@ namespace OpenMS
 			if(param_editable_!=NULL)
 			{
 				ret=true;
-				QTreeWidgetItem* parent=this->invisibleRootItem();  
+				QTreeWidgetItem* parent=this->invisibleRootItem();
 				param_editable_->clear();
 			
 				for (Int i = 0; i < parent->childCount();++i)
@@ -588,18 +588,22 @@ namespace OpenMS
 			path = path + ":" + child->text(0).toStdString();	
 		}
 		
+		//write back the description
+		String description = child->toolTip(0);
+		description.substitute("<BR>","\n");
+		
 		if(child->text(2)=="float")
 		{
-			param_editable_->setValue(path,child->text(1).toDouble());
+			param_editable_->setValue(path,child->text(1).toDouble(),description);
 		}
 		else if(child->text(2)=="string")
 		{
-			param_editable_->setValue(path, child->text(1).toStdString());
+			param_editable_->setValue(path, child->text(1).toStdString(),description);
 			//std::cerr<<"\n"<<path<<":  "<<child->text(1).toStdString()<<"\n";
 		}
 		else if(child->text(2)=="int")
 		{
-			param_editable_->setValue(path, child->text(1).toInt());
+			param_editable_->setValue(path, child->text(1).toInt(),description);
 		}
 	
 		for (Int i = 0; i < child->childCount();++i)
