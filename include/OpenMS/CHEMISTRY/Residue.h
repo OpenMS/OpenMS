@@ -204,7 +204,7 @@ namespace OpenMS
 
 			inline static const EmpiricalFormula& getZIonToFull()
 			{
-				static const EmpiricalFormula z_ion_to_full = EmpiricalFormula("N");
+				static const EmpiricalFormula z_ion_to_full = EmpiricalFormula("NH2");
 				return z_ion_to_full;
 			}
 

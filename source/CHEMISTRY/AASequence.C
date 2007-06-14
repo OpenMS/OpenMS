@@ -129,7 +129,7 @@ namespace OpenMS
 					case Residue::AIon:
 						return ef + Residue::getInternalToFull() - Residue::getAIonToFull() - Formulas::H;
 					case Residue::CIon:
-						return ef + Residue::getInternalToFull() - Formulas::OH + Formulas::NH - Formulas::H;
+						return ef + Residue::getInternalToFull() - Formulas::OH + Formulas::NH;
 					case Residue::XIon:
 						return ef + Residue::getInternalToFull() + Residue::getXIonToFull();
 					case Residue::YIon:

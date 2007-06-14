@@ -116,7 +116,7 @@ namespace OpenMS
 					ion = peptide.getPrefix(i);
 					double pos = ion.getMonoWeight(Residue::AIon, charge) / charge;
 					ions[pos] = ion;
-					names[pos] = "a"+i;
+					names[pos] = "a"+String(i) + String(charge, '+');
 				}
 				intensity = (double)param_.getValue("a_intensity");
 				break;
@@ -127,7 +127,7 @@ namespace OpenMS
 					ion = peptide.getPrefix(i);
 					double pos = ion.getMonoWeight(Residue::BIon, charge) / charge;
 					ions[pos] = ion;
-					names[pos] = "b"+i;
+					names[pos] = "b"+String(i) + String(charge, '+');
 				}
 				intensity = (double)param_.getValue("b_intensity");
 				break;
@@ -138,7 +138,7 @@ namespace OpenMS
 					ion = peptide.getPrefix(i);
 					double pos = ion.getMonoWeight(Residue::CIon, charge) / charge;
 					ions[pos] = ion;
-					names[pos] = "c"+i;
+					names[pos] = "c"+String(i) + String(charge, '+');
 				}
 				intensity = (double)param_.getValue("c_intensity");
 				break;
@@ -149,7 +149,7 @@ namespace OpenMS
 					ion = peptide.getSuffix(i);
 					double pos = ion.getMonoWeight(Residue::XIon, charge) / charge;
 					ions[pos] = ion;
-					names[pos] = "x"+i;
+					names[pos] = "x"+String(i) + String(charge, '+');
 				}
 				intensity = (double)param_.getValue("x_intensity");
 				break;
@@ -160,7 +160,7 @@ namespace OpenMS
 					ion = peptide.getSuffix(i);
 					double pos = ion.getMonoWeight(Residue::YIon, charge) / charge;
 					ions[pos] = ion;
-					names[pos] = "y"+i;
+					names[pos] = "y"+String(i) + String(charge, '+');
 				}
 				intensity = (double)param_.getValue("y_intensity");
 				break;
@@ -171,7 +171,7 @@ namespace OpenMS
 					ion = peptide.getSuffix(i);
 					double pos = ion.getMonoWeight(Residue::ZIon, charge) / charge;
 					ions[pos] = ion;
-					names[pos] = "z"+i;
+					names[pos] = "z" + String(i) + String(charge, '+');
 				}
 				intensity = (double)param_.getValue("z_intensity");
 				break;
@@ -192,7 +192,6 @@ namespace OpenMS
 			ion = cit->second;
 			double pos = cit->first;
 			String ion_name = names[pos];
-			
 			if (add_isotopes)
 			{
 				IsotopeDistribution dist = ion.getFormula(res_type, charge).getIsotopeDistribution(max_isotope);

@@ -480,7 +480,7 @@ namespace OpenMS
 			case AIon:
 				return mono_weight_ - getAIonToFullMonoWeight();
 			case CIon:
-				return mono_weight_ - EmpiricalFormula("OH").getAverageWeight() + EmpiricalFormula("NH").getAverageWeight();
+				return mono_weight_ - EmpiricalFormula("OH").getMonoWeight() + EmpiricalFormula("NH").getMonoWeight();
 			case XIon:
 				return mono_weight_ + getXIonToFullMonoWeight();
 			case YIon:

@@ -162,8 +162,10 @@ CHECK( template<typename InputPeakType>
   ptr->calibrate(calib_exp,exp,ref_masses);
 
 /// this is caused by the higher precision ExternalCalibration works with
-  file.store("ExternalCalibration_output.tmp",exp);
-  file.load("ExternalCalibration_output.tmp",exp);
+	String tmp_filename("ExternalCalibration_output.tmp");
+	NEW_TMP_FILE(tmp_filename);
+  file.store(tmp_filename,exp);
+  file.load(tmp_filename,exp);
   TEST_EQUAL(exp,res_exp)
 
 RESULT
@@ -214,8 +216,10 @@ CHECK( template<typename InputPeakType>
   ptr->calibrate(calib_exp,exp,ref_masses);
 
 /// this is caused by the higher precision ExternalCalibration works with
-  file.store("ExternalCalibration_output.tmp",exp);
-  file.load("ExternalCalibration_output.tmp",exp);
+	String tmp_filename("ExternalCalibration_output.tmp");
+	NEW_TMP_FILE(tmp_filename)
+  file.store(tmp_filename,exp);
+  file.load(tmp_filename,exp);
   TEST_EQUAL(exp,res_exp)
 
 RESULT	
