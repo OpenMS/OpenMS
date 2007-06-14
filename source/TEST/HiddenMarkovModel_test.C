@@ -54,7 +54,7 @@ CHECK(HMMState())
 	TEST_NOT_EQUAL(state_ptr, 0)
 RESULT
 
-CHECK(~HMMState())
+CHECK(virtual ~HMMState())
 	delete state_ptr;
 RESULT
 

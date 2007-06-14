@@ -45,7 +45,6 @@ using namespace std;
 	@brief Identifies peptides in MS/MS spectra via OMSSA (Open Mass Spectrometry Search Algorithm).
 	
 	@todo add OMSSA version
-	@todo safe handling of tmp filenames (host_pid_hours_minutes_seconds.ending)
 	@todo modes to read OMSSA output data and save in idXML format
 */
 
@@ -336,14 +335,19 @@ class TOPPOMSSAAdapter
 		
 			if (status != 0)
 			{
-				writeLog_("OMSSA problem. Warning, resuming with next spectrum! (Details can be seen in the logfile: \"" + logfile + "\")");
-					// TODO cleanup
+				writeLog_("Error: OMSSA problem! (Details can be seen in the logfile: \"" + logfile + "\")");
+				call = "rm " + unique_input_name + " " + unique_output_name;
+				system(call.c_str());
 				return EXTERNAL_PROGRAM_ERROR;
 			}
 
-				// read OMSSA output
+			// read OMSSA output
 			OMSSAXMLFile omssa_out_file;
 			omssa_out_file.load(unique_output_name, protein_identification, peptide_ids);
+
+			// delete temporary files
+			call = "rm " + unique_input_name + " " + unique_output_name;
+			system(call.c_str());
 
 			// handle the search parameters
 			ProteinIdentification::SearchParameters search_parameters;
@@ -412,7 +416,6 @@ class TOPPOMSSAAdapter
 					peptide_ids[count++].setMetaValue("MZ", it->getPrecursorPeak().getPosition()[0]);
 				}
 			}
-
 
 			//-------------------------------------------------------------
 			// writing output

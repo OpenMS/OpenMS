@@ -79,7 +79,6 @@ CHECK((static void registerChildren()))
 	ppf = Factory<PreprocessingFunctor>::create("WindowMower");
 	ppf = Factory<PreprocessingFunctor>::create("Scaler");
 	ppf = Factory<PreprocessingFunctor>::create("NLargest");
-	ppf = Factory<PreprocessingFunctor>::create("BernNorm");
 	ppf = Factory<PreprocessingFunctor>::create("MarkerMower");
 	ppf = Factory<PreprocessingFunctor>::create("SqrtMower");
 	ppf = Factory<PreprocessingFunctor>::create("Normalizer");

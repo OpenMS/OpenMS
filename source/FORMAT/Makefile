@@ -63,7 +63,6 @@ CPP_SOURCES=\
 	OMSSACSVFile.C\
 	PTMXMLFile.C\
 	ConsensusXMLFile.C\
-	XTandemXMLFile.C\
 	MSPFile.C
 
 ifeq ($(ANDIMS_SUPPORT),true)

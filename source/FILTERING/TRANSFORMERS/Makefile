@@ -29,7 +29,6 @@ include ../../config_defs.mak
 DIRECTORY=FILTERING/TRANSFORMERS
 
 CPP_SOURCES = \
-  BernNorm.C\
   GoodDiffFilter.C\
   NLargest.C\
   Scaler.C\

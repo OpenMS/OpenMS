@@ -45,8 +45,7 @@ CPP_SOURCES=\
 	XMLSchemes.C\
 	OMSSAXMLHandler.C\
 	PTMXMLHandler.C\
-	ConsensusXMLHandler.C\
-	XTandemXMLHandler.C
+	ConsensusXMLHandler.C
 
 ifeq ($(ANDIMS_SUPPORT),true)
 	ANDI_SOURCES=\

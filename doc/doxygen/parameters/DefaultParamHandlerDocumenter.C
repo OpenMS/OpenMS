@@ -53,19 +53,15 @@
 #include <OpenMS/FILTERING/TRANSFORMERS/ComplementFilter.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/ComplementMarker.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/GoodDiffFilter.h>
-#include <OpenMS/FILTERING/TRANSFORMERS/IntensityDistBins.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/IsotopeDiffFilter.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/IsotopeMarker.h>
-#include <OpenMS/FILTERING/TRANSFORMERS/KellerQuality.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/NLargest.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/NeutralLossDiffFilter.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/NeutralLossMarker.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/Normalizer.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/ParentPeakMower.h>
-#include <OpenMS/FILTERING/TRANSFORMERS/PeakPosBins.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/TICFilter.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/ThresholdMower.h>
-#include <OpenMS/FILTERING/TRANSFORMERS/TradSeqQuality.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/WindowMower.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/BaseSweepSeeder.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/BiGaussModel.h>
@@ -190,12 +186,10 @@ writeParameters(f,""#class_template_name,instantiation.getParameters());
 	DOCME(ExtendedModelFitter);
 	DOCME(GaussModel);
 	DOCME(GoodDiffFilter);
-	DOCME(IntensityDistBins);
 	DOCME(IsotopeDiffFilter);
 	DOCME(IsotopeMarker);
 	DOCME(IsotopeModel);
 	DOCME(IsotopeWaveletSeeder);
-	DOCME(KellerQuality);
 	DOCME(LmaGaussModel);
 	DOCME(LogNormalModel);
 	DOCME(MarrWaveletSeeder);
@@ -213,7 +207,6 @@ writeParameters(f,""#class_template_name,instantiation.getParameters());
 	DOCME(ParentPeakMower);
 	DOCME(PeakPicker);
 	DOCME(PeakPickerCWT);
-	DOCME(PeakPosBins);
 	// DOCME(PeakSpectrumCompareFunctor); // cannot instantiate (pure virtual functions)
 	DOCME(PickedPeakSeeder);
 	DOCME(ProtonDistributionModel);
@@ -234,7 +227,6 @@ writeParameters(f,""#class_template_name,instantiation.getParameters());
 	// DOCME(TOPPViewBase);  // runtime error (no QApplication instantiated)
 	DOCME(TheoreticalSpectrumGenerator);
 	DOCME(ThresholdMower);
-	DOCME(TradSeqQuality);
 	DOCME(TwoDOptimization);
 	DOCME(WindowMower);
 	DOCME(ZhangSimilarityScore);

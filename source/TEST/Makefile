@@ -176,7 +176,6 @@ EXECUTABLES_FORMAT = \
 	DBAdapter_test\
 	OMSSAXMLFile_test\
 	OMSSACSVFile_test\
-	XTandemXMLFile_test\
 	MSPFile_test\
 	IdXMLFile_test
 
@@ -209,7 +208,6 @@ EXECUTABLES_FILTERING = \
 	PreprocessingFunctor_test\
 	NLargest_test\
 	Scaler_test\
-	BernNorm_test\
 	Normalizer_test\
 	ParentPeakMower_test\
 	SqrtMower_test\

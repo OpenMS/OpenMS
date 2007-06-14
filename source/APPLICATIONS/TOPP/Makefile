@@ -66,7 +66,6 @@ TOPP_EXECUTABLES=\
 	FeatureFinder\
 	PILISModel\
 	PILISIdentification\
-	XTandemAdapter\
 	OMSSAAdapter\
 	UnlabeledMatcher\
 	MapNormalizer\

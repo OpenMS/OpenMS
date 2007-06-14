@@ -57,6 +57,25 @@ RESULT
 
 ptr = new SpectrumAlignment();
 
+CHECK(SpectrumAlignment(const SpectrumAlignment &source))
+	// TODO
+RESULT
+
+CHECK(SpectrumAlignment& operator=(const SpectrumAlignment &source))
+	// TODO
+RESULT
+		    
+CHECK(void getSpectrumAlignment(std::vector< std::pair< UInt, UInt > > &alignment, const PeakSpectrum &s1, const PeakSpectrum &s2) const)
+	// TODO
+RESULT
+
+CHECK(static const String getProductName())
+	// TODO
+RESULT
+
+
+ptr = new SpectrumAlignment();
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
