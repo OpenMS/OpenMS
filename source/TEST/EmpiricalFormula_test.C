@@ -109,6 +109,7 @@ CHECK(EmpiricalFormula& operator = (const String& rhs) throw(Exception::ParseErr
 	EmpiricalFormula ef;
 	ef = "C4";
 	TEST_EQUAL(*e_ptr == ef, true)
+	TEST_EXCEPTION(Exception::ParseError, ef = "2C4")
 RESULT
 
 

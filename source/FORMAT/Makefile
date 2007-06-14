@@ -47,6 +47,8 @@ CPP_SOURCES=\
 	InspectOutfile.C\
 	SequestInfile.C\
 	SequestOutfile.C\
+	PepNovoInfile.C\
+	PepNovoOutfile.C\
 	TextFile.C\
 	UniqueIdGenerator.C\
 	FASTAFile.C\

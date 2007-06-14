@@ -56,7 +56,7 @@ CHECK(void load(const String& filename, map< String, pair< String, String > >& p
 	map< String, pair< String, String > > ptm_informations;
 	xml_file.load("data/PTMs.xml", ptm_informations);
 	
-	TEST_EQUAL(ptm_informations["TEST"].first, "N(2) O(2) C(-1) H(-3)")
+	TEST_EQUAL(ptm_informations["TEST"].first, "N2O2-CH3")
 	TEST_EQUAL(ptm_informations["TEST"].second, "KLR")
 RESULT
 
@@ -71,7 +71,7 @@ CHECK(void store(String filename, const map< String, vector< String> >& ptm_info
 	ptm_informations.clear();
 	xml_file.load(temp_filename, ptm_informations);
 	
-	TEST_EQUAL(ptm_informations["TEST"].first, "N(2) O(2) C(-1) H(-3)")
+	TEST_EQUAL(ptm_informations["TEST"].first, "N2O2-CH3")
 	TEST_EQUAL(ptm_informations["TEST"].second, "KLR")
 RESULT
 

@@ -83,51 +83,141 @@ CHECK(const String& getEnzyme() const)
 	TEST_EQUAL(file.getEnzyme(), "Trypsin")
 RESULT
 
+CHECK(String handlePTMs(const String& modification_line, const String& modifications_filename, const bool monoisotopic) throw (Exception::FileNotReadable, Exception::FileNotFound, Exception::ParseError))
+	String modification_line = "10.3+,KRLNH,fix:Phosphorylation:+16,C:HCNO,nterm,Carbamylation:H2C,CHKNQRILDEST,opt,Methylation:16-,cterm:-16,nterm";
+	TEST_EXCEPTION(Exception::FileNotFound, file.handlePTMs(modification_line, "", true))
+	
+	modification_line = "2H20,KRLNH,fix";
+	TEST_EXCEPTION(Exception::ParseError, file.handlePTMs(modification_line, "TOPP/Inspect_PTMs.xml", true))
+	try
+	{
+		file.handlePTMs(modification_line, "TOPP/Inspect_PTMs.xml", true);
+	}
+	catch ( Exception::ParseError p_e )
+	{
+		TEST_EQUAL(String(p_e.getMessage()), "There's something wrong with this modification. Aborting! in: 2H20,KRLNH,fix")
+	}
 
-CHECK(void setMod(const vector< vector< String > >& mod))
-	vector< vector< String > > mod;
-	mod.push_back(vector< String >());
-	mod.back().push_back("+57");
-	mod.back().push_back("C");
-	mod.back().push_back("fix");
-	mod.back().push_back("carbamidomethylation");
-	file.setMod(mod);
-	TEST_EQUAL((file.getMod() == mod), true)
+	modification_line = "10.3+";
+	TEST_EXCEPTION(Exception::ParseError, file.handlePTMs(modification_line, "TOPP/Inspect_PTMs.xml", true))
+	try
+	{
+		file.handlePTMs(modification_line, "TOPP/Inspect_PTMs.xml", true);
+	}
+	catch ( Exception::ParseError p_e )
+	{
+		TEST_EQUAL(String(p_e.getMessage()), "No residues for modification given. Aborting! in: 10.3+")
+	}
+
+	modification_line = "10.3+,KRLNH,stat,PTM_0";
+	TEST_EXCEPTION(Exception::ParseError, file.handlePTMs(modification_line, "TOPP/Inspect_PTMs.xml", true))
+	try
+	{
+		file.handlePTMs(modification_line, "TOPP/Inspect_PTMs.xml", true);
+	}
+	catch ( Exception::ParseError p_e )
+	{
+		TEST_EQUAL(String(p_e.getMessage()), "There's something wrong with the type of this modification. Aborting! in: 10.3+,KRLNH,stat,PTM_0")
+	}
+
+	modification_line = "Phosphorylation:Phosphorylation";
+	TEST_EXCEPTION(Exception::ParseError, file.handlePTMs(modification_line, "TOPP/Inspect_PTMs.xml", true))
+	try
+	{
+		file.handlePTMs(modification_line, "TOPP/Inspect_PTMs.xml", true);
+	}
+	catch ( Exception::ParseError p_e )
+	{
+		TEST_EQUAL(String(p_e.getMessage()), "There's already a modification with this name. Aborting! in: Phosphorylation")
+	}
+
+	modification_line = "10.3+,KRLNH,fix:Phosphorylation:+16,C:HCNO,nterm,Carbamylation:H2C,CHKNQRILDEST,opt,Methylation:16-,cterm:-16,nterm";
+
+	// average masses
+	file.handlePTMs(modification_line, "TOPP/Inspect_PTMs.xml", false);
+
+	map< String, vector< String > > modifications;
+	modifications["PTM_0"] = vector< String >(3);
+	modifications["PTM_0"][0] = "KRLNH";
+	modifications["PTM_0"][1] = "10.3";
+	modifications["PTM_0"][2] = "FIX";
+	modifications["Phosphorylation"] = vector< String >(3);
+	modifications["Phosphorylation"][0] = "STYDHCR";
+	modifications["Phosphorylation"][1] = "79.9799";
+	modifications["Phosphorylation"][2] = "OPT";
+	modifications["PTM_2"] = vector< String >(3);
+	modifications["PTM_2"][0] = "C";
+	modifications["PTM_2"][1] = "16";
+	modifications["PTM_2"][2] = "OPT";
+	modifications["Carbamylation"] = vector< String >(3);
+	modifications["Carbamylation"][0] = "NTERM";
+	modifications["Carbamylation"][1] = "43.02474";
+	modifications["Carbamylation"][2] = "OPT";
+	modifications["Methylation"] = vector< String >(3);
+	modifications["Methylation"][0] = "CHKNQRILDEST";
+	modifications["Methylation"][1] = "14.02658";
+	modifications["Methylation"][2] = "OPT";
+	modifications["PTM_5"] = vector< String >(3);
+	modifications["PTM_5"][0] = "CTERM";
+	modifications["PTM_5"][1] = "-16";
+	modifications["PTM_5"][2] = "OPT";
+	modifications["PTM_6"] = vector< String >(3);
+	modifications["PTM_6"][0] = "NTERM";
+	modifications["PTM_6"][1] = "-16";
+	modifications["PTM_6"][2] = "OPT";
+
+	map< String, vector< String > >::const_iterator result_mod_i = file.getModifications().begin();
+	TEST_EQUAL(file.getModifications().size(), modifications.size())
+	if ( file.getModifications().size() == modifications.size() )
+	{
+		for ( map< String, vector< String > >::const_iterator mod_i = modifications.begin(); mod_i != modifications.end(); ++mod_i, ++result_mod_i )
+		{
+			TEST_EQUAL(result_mod_i->first, mod_i->first)
+			TEST_EQUAL(result_mod_i->second.size(), 3)
+			TEST_EQUAL(result_mod_i->second.size(), mod_i->second.size())
+			if ( result_mod_i->second.size() == mod_i->second.size() )
+			{
+				TEST_EQUAL(result_mod_i->second[0], mod_i->second[0])
+				TEST_EQUAL(result_mod_i->second[1], mod_i->second[1])
+				TEST_EQUAL(result_mod_i->second[2], mod_i->second[2])
+			}
+		}
+	}
+
+	// monoisotopic masses
+	file.handlePTMs(modification_line, "TOPP/Inspect_PTMs.xml", true);
+
+	modifications["Phosphorylation"][1] = "79.96635";
+	modifications["Carbamylation"][1] = "43.00581";
+	modifications["Methylation"][1] = "14.01565";
+
+	result_mod_i = file.getModifications().begin();
+	TEST_EQUAL(file.getModifications().size(), modifications.size())
+	if ( file.getModifications().size() == modifications.size() )
+	{
+		for ( map< String, vector< String > >::const_iterator mod_i = modifications.begin(); mod_i != modifications.end(); ++mod_i, ++result_mod_i )
+		{
+			TEST_EQUAL(result_mod_i->first, mod_i->first)
+			TEST_EQUAL(result_mod_i->second.size(), 3)
+			TEST_EQUAL(result_mod_i->second.size(), mod_i->second.size())
+			if ( result_mod_i->second.size() == mod_i->second.size() )
+			{
+				TEST_EQUAL(result_mod_i->second[0], mod_i->second[0])
+				TEST_EQUAL(result_mod_i->second[1], mod_i->second[1])
+				TEST_EQUAL(result_mod_i->second[2], mod_i->second[2])
+			}
+		}
+	}
 RESULT
 
-CHECK(void addMod(const vector< String >& mod))
-	vector< String > mod;
-	mod.push_back("80");
-	mod.push_back("STY");
-	mod.push_back("opt");
-	mod.push_back("phosphorylation");
-	file.addMod(mod);
-	TEST_EQUAL((file.getMod().back() == mod), true)
+
+CHECK(void setModificationsPerPeptide(int modifications_per_peptide))
+	file.setModificationsPerPeptide(2);
+	TEST_EQUAL(file.getModificationsPerPeptide(), 2)
 RESULT
 
-CHECK(vector< vector< String > >& getMod())
-	vector< vector< String > > mod;
-	mod.push_back(vector< String >());
-	mod.back().push_back("+57");
-	mod.back().push_back("C");
-	mod.back().push_back("fix");
-	mod.back().push_back("carbamidomethylation");
-	mod.push_back(vector< String >());
-	mod.back().push_back("80");
-	mod.back().push_back("STY");
-	mod.back().push_back("opt");
-	mod.back().push_back("phosphorylation");
-	TEST_EQUAL((file.getMod() == mod), true)
-RESULT
-
-
-CHECK(void setMods(int mods))
-	file.setMods(2);
-	TEST_EQUAL(file.getMods(), 2)
-RESULT
-
-CHECK(const int getMods() const)
-	TEST_EQUAL(file.getMods(), 2)
+CHECK(const int getModificationsPerPeptide() const)
+	TEST_EQUAL(file.getModificationsPerPeptide(), 2)
 RESULT
 
 
@@ -153,21 +243,21 @@ RESULT
 
 CHECK(void setPrecursorMassTolerance(DoubleReal precursor_mass_tolerance))
 	file.setPrecursorMassTolerance(1.3);
-	TEST_EQUAL(file.getPrecursorMassTolerance(), 1.3)
+	TEST_REAL_EQUAL(file.getPrecursorMassTolerance(), 1.3)
 RESULT
 
 CHECK(const DoubleReal getPrecursorMassTolerance() const)
-	TEST_EQUAL(file.getPrecursorMassTolerance(), 1.3)
+	TEST_REAL_EQUAL(file.getPrecursorMassTolerance(), 1.3)
 RESULT
 
 
 CHECK(void setPeakMassTolerance(DoubleReal peak_mass_tolerance))
 	file.setPeakMassTolerance(0.3);
-	TEST_EQUAL(file.getPeakMassTolerance(), 0.3)
+	TEST_REAL_EQUAL(file.getPeakMassTolerance(), 0.3)
 RESULT
 
 CHECK(const DoubleReal getPeakMassTolerance() const)
-	TEST_EQUAL(file.getPeakMassTolerance(), 0.3)
+	TEST_REAL_EQUAL(file.getPeakMassTolerance(), 0.3)
 RESULT
 
 
@@ -202,9 +292,10 @@ RESULT
 
 
 CHECK(void store(const String& filename) throw (Exception::UnableToCreateFile))
-	file.store("InspectInfile_test.txt");
-	TEST_FILE("InspectInfile_test.txt", "data/InspectInfile_test_template1.txt");
-	remove("InspectInfile_test.txt");
+	String filename;
+	NEW_TMP_FILE(filename)
+	file.store(filename);
+	TEST_FILE(filename.c_str(), "data/InspectInfile_test_template1.txt");
 RESULT
 
 /////////////////////////////////////////////////////////////

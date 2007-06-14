@@ -71,7 +71,7 @@ namespace OpenMS
 			*/
 			void load(const String& result_filename, std::vector<PeptideIdentification>& identifications, ProteinIdentification& protein_identification, const Real& p_value_threshold, std::vector<Real>& pvalues, const String& database = "") throw (Exception::FileNotFound, Exception::ParseError);
 
-			/// retrieve the p-values
+//			/// retrieve the p-values from the out files
 // 			void getPValuesFromOutFiles(vector< pair < String, vector< Real > > >& filenames_and_pvalues) throw (Exception::FileNotFound, Exception::ParseError);
 
 			/// retrieve columns from a Sequest outfile line

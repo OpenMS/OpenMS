@@ -27,18 +27,18 @@
 
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
-#include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/FORMAT/DTAFile.h>
 #include <OpenMS/FORMAT/MzXMLFile.h>
-#include <OpenMS/FORMAT/PTMXMLFile.h>
 #include <OpenMS/FORMAT/SequestInfile.h>
 #include <OpenMS/FORMAT/SequestOutfile.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/METADATA/ContactPerson.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/FORMAT/PTMXMLFile.h>
+
 
 #include <stdlib.h>
 #include <vector>
@@ -157,11 +157,11 @@ class TOPPSequestAdapter
 																																							"or '-' for unspecific cleavage", false);
 			registerFlag_("list_modifications", "show a list of the available modifications");
 			registerStringOption_("modifications", "<mods>", "", "the colon-seperated modifications; may be\n"
-																																													 "<name>,<type>, e.g.: Deamidation,opt or\n"
-																																													 "<composition>,<residues>,<type>,<name>, e.g.: H(2).C(2).O,KCS,opt,Acetyl or\n"
-																																													 "<mass>,<residues>,<type>,<name>, e.g.: 42.0367,KCS,opt,Acetyl or\n"
-																																													 "Valid values for \"type\" are \"fix\", \"cterminal\", \"nterminal\",\n"
-																																													 "and \"opt\" (the default).\n", false);
+																																														"<name>,<type>, e.g.: Deamidation,opt or\n"
+																																														"<composition>,<residues>,<type>,<name>, e.g.: H2C2O,KCS,opt,Acetyl or\n"
+																																														"<mass>,<residues>,<type>,<name>, e.g.: 42.0367,KCS,opt,Acetyl or\n"
+																																														"Valid values for type are \"fix\" and \"opt\" (default)\n"
+																																														"If you want terminal PTMs, write \"cterm\", \"nterm\", \"cterm_prot\" or \"nterm_prot\" instead of residues", false);
 			registerFlag_("use_monoisotopic_mod_mass", "use monoisotopic masses for the modifications");
 			registerStringOption_("modifications_xml_file", "<file>", "", "name of an XML file with the modifications", false);
 			registerIntOption_("max_num_dif_AA_per_mod", "<num>", 0, "limits the maximum total number of\n"
@@ -190,7 +190,6 @@ class TOPPSequestAdapter
 			registerIntOption_("match_peak_allowed_error", "<num>", 0, "see match_peak_count", false);
 			registerFlag_("show_fragment_ions", "If set the fragment peaks of the top scored peptide are listed\n"
 																																"at the end of the output");
-// 			registerFlag_("use_phospho_fragmentation", "?");
 			registerFlag_("remove_precursor_peak", "If set the peaks near (15 amu) the precursor are removed.");
 			registerFlag_("mass_type_precursor", "Set selects monoisotopic masses, not set selects average masses\n"
 																																 "for calculating precursor peaks.");
@@ -234,62 +233,6 @@ class TOPPSequestAdapter
 			registerStringOption_("contact_info", "<info>", "unknown", "Some information about the contact", false);
 		}
 
-		String get_composition_elements(const String& composition, vector< vector< String > >& iso_sym_occ, char seperator = ' ')
-		{
-			iso_sym_occ.clear();
-			vector< String > substrings;
-			composition.split(seperator, substrings); // get the single elements of the composition: e.g. 18O(-1) or C(3) or N
-			if ( substrings.empty() ) substrings.push_back(composition);
-			String::size_type pos, pos2;
-			String isotope, symbol, occurences;
-			// for each element, get the isotope (if used), the symbol and the occurences
-			for ( vector< String >::const_iterator e_i = substrings.begin(); e_i != substrings.end(); ++e_i )
-			{
-				isotope.clear();
-				occurences = "1";
-				pos = 0;
-				while ( (bool) isdigit((*e_i)[pos]) ) ++pos; // if an isotope is used, find it
-				isotope = e_i->substr(0, pos);
-				if ( isotope.empty() ) isotope = "0";
-				pos2 = e_i->find('(', pos);
-				if ( pos2 != String::npos ) // if the element occurs more than once, a bracket is found
-				{
-					symbol = e_i->substr(pos, pos2++ - pos);
-					occurences = e_i->substr(pos2, e_i->length() - pos2 - 1 );
-				}
-				else
-				{
-					symbol = e_i->substr(pos).toLower().firstToUpper();
-					occurences = "1";
-				}
-				// check whether this really is a chemical symbol (only characters, max length 2)
-				if ( symbol.length() > 2 || (isalpha(symbol[0]) == 0) || (isalpha(symbol[symbol.length() - 1]) == 0) ) return (composition);
-				// then check whether isotope and occurences are numbers
-				Int i_iso, i_occ;
-				try
-				{
-					i_iso = isotope.toInt();
-					i_occ = occurences.toInt();
-				}
-				catch( Exception::ConversionError ce )
-				{
-					return composition;
-				}
-				if ( String(i_iso) != isotope || String(i_occ) != occurences )
-				{
-					return composition;
-				}
-
-				// if this is a composition, insert its elements into the vector
-				iso_sym_occ.push_back(vector< String >());
-				iso_sym_occ.back().push_back(isotope);
-				iso_sym_occ.back().push_back(symbol);
-				iso_sym_occ.back().push_back(occurences);
-			}
-
-			return String();
-		}
-
 		bool isWinFormat(const string& name)
 		{
 			// check for the directory and the backslash afterwards
@@ -329,7 +272,8 @@ class TOPPSequestAdapter
 			MSExperiment<>& msexperiment,
 			const String& common_name,
 			const vector< Int >& charges,
-			map< String, Real >& filenames_and_precursor_retention_times,
+			map< String, Real >& outfile_names_and_precursor_retention_times,
+			vector< String >& dta_filenames,
 			bool make_dtas = true)
 		throw (Exception::UnableToCreateFile)
 		{
@@ -337,6 +281,7 @@ class TOPPSequestAdapter
 			String filename;
 			UInt scan_number = 0;
 			UInt msms_spectra = 0;
+			UInt dtas = 0;
 
 			for ( MSExperiment<>::Iterator spec_i = msexperiment.begin(); spec_i != msexperiment.end(); ++spec_i )
 			{
@@ -347,29 +292,28 @@ class TOPPSequestAdapter
 					if ( spec_i->getPrecursorPeak().getCharge() )
 					{
 						filename = common_name + "." + String(scan_number) + "." + String(spec_i->getPrecursorPeak().getCharge()) + ".dta_" + String( (PointerSizeUInt) (dtas / max_dtas_per_run) );
-						if ( make_dtas )
-						{
-							++dtas;
-							dtafile.store(filename, *spec_i);
-						}
-// 						filename.replace(filename.length() - 4, 4, ".out");
-// 						filenames_and_precursor_retention_times[File::basename(filename)] = spec_i->getRT();
-						filenames_and_precursor_retention_times[filename] = spec_i->getRT();
+						++dtas;
+						if ( make_dtas ) dtafile.store(filename, *spec_i);
+						dta_filenames.push_back(filename);
+						filename = File::basename(filename);
+						filename.replace(filename.length() - 4, 4, ".out");
+						outfile_names_and_precursor_retention_times[filename] = spec_i->getRT();
 					}
 					else
 					{
 						for ( vector< Int >::const_iterator i = charges.begin(); i != charges.end(); ++i )
 						{
 							filename = common_name + "." + String(scan_number) + "." + *i + ".dta_" + String( (PointerSizeUInt) (dtas / max_dtas_per_run) );
+							++dtas;
 							if ( make_dtas )
 							{
-								++dtas;
 								spec_i->getPrecursorPeak().setCharge(*i);
 								dtafile.store(filename, *spec_i);
 							}
-// 							filename.replace(filename.length() - 4, 4, ".out");
-// 							filenames_and_precursor_retention_times[File::basename(filename)] = spec_i->getRT();
-							filenames_and_precursor_retention_times[filename] = spec_i->getRT();
+							dta_filenames.push_back(filename);
+							filename = File::basename(filename);
+							filename.replace(filename.length() - 4, 4, ".out");
+							outfile_names_and_precursor_retention_times[filename] = spec_i->getRT();
 						}
 						spec_i->getPrecursorPeak().setCharge(0);
 					}
@@ -407,7 +351,9 @@ class TOPPSequestAdapter
 				batch_filename,
 				string_buffer,
 				string_buffer2,
-				modifications_filename;
+				modifications_filename,
+				dta_files_common_name,
+				basename;
 
 			ContactPerson contact_person;
 
@@ -425,8 +371,6 @@ class TOPPSequestAdapter
 
 			vector< Int > charges;
 
-			char char_buffer;
-
    Real
 				Real_buffer,
 				Real_buffer2;
@@ -435,8 +379,11 @@ class TOPPSequestAdapter
 
 			Real p_value;
 
-			// the dta-names and their retention_times
-			map< String, Real > filenames_and_precursor_retention_times;
+			// the outfile-names and their retention_times
+			map< String, Real > outfile_names_and_precursor_retention_times;
+			
+			// the names of the dta_files - used to erase them afterwards
+	 		vector< String > dta_filenames;
 
 			// filename and tag: file has to: 1 - exist  2 - be readable  4 - writable  8 - be deleted afterwards
 			vector< pair< String, UInt > > files;
@@ -444,7 +391,6 @@ class TOPPSequestAdapter
 			//-------------------------------------------------------------
 			// (2) parsing and checking parameters
 			//-------------------------------------------------------------
-
 			modifications_filename = getStringOption_("modifications_xml_file");
 
 			if ( getFlag_("list_modifications") )
@@ -459,37 +405,38 @@ class TOPPSequestAdapter
 					writeLog_("Modifications XML file is not readable. Aborting!");
 					return INPUT_FILE_NOT_READABLE;
 				}
-				map< String, pair< String, String > > ptm_informations;
+				map< String, pair< String, String > > PTM_informations;
 				try
 				{
-					PTMXMLFile().load(modifications_filename, ptm_informations);
+					PTMXMLFile().load(modifications_filename, PTM_informations);
 				}
 				catch ( Exception::ParseError pe )
 				{
 					writeLog_(pe.getMessage());
 					return PARSE_ERROR;
 				}
-
+				
 				// output the information
-				stringstream ptm_info;
+				stringstream PTM_info;
 				String::size_type max_name_length, max_composition_length, max_amino_acids_length;
-				max_name_length = max_composition_length = max_amino_acids_length = 0;
-				for ( map< String, pair< String, String > >::const_iterator mod_i = ptm_informations.begin(); mod_i != ptm_informations.end(); ++mod_i )
+				max_name_length = 4;
+				max_composition_length = max_amino_acids_length = 11;
+				for ( map< String, pair< String, String > >::const_iterator mod_i = PTM_informations.begin(); mod_i != PTM_informations.end(); ++mod_i )
 				{
 					max_name_length = max(max_name_length, mod_i->first.length());
 					max_composition_length = max(max_composition_length, mod_i->second.first.length());
 					max_amino_acids_length = max(max_amino_acids_length, mod_i->second.second.length());
 				}
-				ptm_info << "These modifications are taken from unimod" << endl;
-				ptm_info << "name" << String(max_name_length - 4, ' ') << "\t" << "composition" << String(max_composition_length - 11, ' ') << "\t" << "amino_acids" << String(max_amino_acids_length - 11, ' ') << endl;
-				for ( map< String, pair< String, String > >::const_iterator mod_i = ptm_informations.begin(); mod_i != ptm_informations.end(); ++mod_i )
+				PTM_info << "name" << String(max_name_length - 4, ' ') << "\t" << "composition" << String(max_composition_length - 11, ' ') << "\t" << "amino_acids" << String(max_amino_acids_length - 11, ' ') << endl;
+				for ( map< String, pair< String, String > >::const_iterator mod_i = PTM_informations.begin(); mod_i != PTM_informations.end(); ++mod_i )
 				{
-					ptm_info << mod_i->first << String(max_name_length - mod_i->first.length(), ' ') << "\t" << mod_i->second.first << String(max_composition_length - mod_i->second.first.length(), ' ') << "\t" << mod_i->second.second << String(max_amino_acids_length - mod_i->second.second.length(), ' ') << endl;
+					PTM_info << mod_i->first << String(max_name_length - mod_i->first.length(), ' ') << "\t" << mod_i->second.first << String(max_composition_length - mod_i->second.first.length(), ' ') << "\t" << mod_i->second.second << String(max_amino_acids_length - mod_i->second.second.length(), ' ') << endl;
 				}
-
+				std::cout << PTM_info.str() << std::endl;
+				
 				return EXECUTION_OK;
 			}
-
+			
 			// only show the available enzymes, then quit
 			if ( getFlag_("show_enzymes") )
 			{
@@ -927,7 +874,6 @@ class TOPPSequestAdapter
 				else sequest_infile.setMatchPeakAllowedError(int_buffer);
 				
 				sequest_infile.setShowFragmentIons(getFlag_("show_fragment_ions"));
-// 				sequest_infile.setUsePhosphoFragmentation(getFlag_("use_phospho_fragmentation"));
 				sequest_infile.setRemovePrecursorNearPeaks(getFlag_("remove_precursor_peak"));
 				sequest_infile.setMassTypeParent(getFlag_("mass_type_precursor"));
 				sequest_infile.setMassTypeFragment(getFlag_("mass_type_peak"));
@@ -972,280 +918,28 @@ class TOPPSequestAdapter
 					string_buffer.implode(substrings.begin(), substrings.end(), " ");
 					sequest_infile.setIonSeriesWeights(string_buffer);
 				}
-				
 				// modifications
 				string_buffer = getStringOption_("modifications");
 				monoisotopic = getFlag_("use_monoisotopic_mod_mass");
-				if ( !string_buffer.empty() ) // if modifications are used get look whether whether composition and residues (and type and name) is given which needs the isotope file, the name (and type) is used (then one additionally needs the modifications file) or only the mass and residues (and type and name) is given, in which case no further file is needed
+				try
 				{
-					string_buffer.split(':', substrings); // get the single modifications
-					
-					// one vector if compositions are used (needs isotope xml file) and one vector if masses were given
-					vector< vector< String > > iso_sym_occ, mass_res_type_name;
-					
-					// to store the informations about modifications from the ptm xml file
-					map< String, pair< String, String > > ptm_informations;
-					
-					// to get masses from a formula
-					EmpiricalFormula add_e_formula, sub_e_formula;
-					
-					map< char, Real > stat_mods, dyn_mods;
-					map< String, Real > terminal_mods;
-					
-					Int comp_mass_name_given(0);
-					String types = "dyn#stat#cterminal#nterminal#cterminal_dyn#nterminal_dyn#cterminal_prot#nterminal_prot#";
-					
-					for ( vector< String >::const_iterator mod_i = substrings.begin(); mod_i != substrings.end(); ++mod_i )
-					{
-						// clear the formulae
-						add_e_formula = "";
-						sub_e_formula = "";
-						
-						if ( mod_i->empty() ) continue;
-						
-						iso_sym_occ.clear();
-						// get the components of the modification
-						mod_i->split(',', substrings2);
-						if ( substrings2.empty() ) substrings2.push_back(*mod_i);
-						mass_res_type_name.push_back(vector< String >(4));
-						
-						// check whether the first component is a composition, mass or name
-						// remove + signs
-						if ( substrings2[0].hasPrefix("+") ) substrings2[0].erase(0, 1);
-						if ( substrings2[0].hasSuffix("+") ) substrings2[0].erase(substrings2[0].length() - 1, 1);
-						if ( substrings2[0].hasSuffix("-") ) // a '-' at the end will not be converted
-						{
-							substrings2[0].erase(substrings2[0].length() - 1, 1);
-							substrings2[0].insert(0, "-");
-						}
-						bool go_on = false;
-						try
-						{
-							go_on = ( String(substrings2[0].toDouble()) != substrings2[0] );
-							mass_res_type_name.back()[0] = substrings2[0]; // mass
-							comp_mass_name_given = 0;
-						}
-						catch ( Exception::ConversionError ce )
-						{
-							go_on = true;
-						}
-						if ( go_on && get_composition_elements(substrings2[0], iso_sym_occ, '.').empty() ) // if it is a composition, put it into the vector
-						{
-							mass_res_type_name.back()[0] = substrings2[0]; // composition
-							comp_mass_name_given = 1;
-							go_on = false;
-						}
-						if ( go_on ) // check whether it's an empirical formula
-						{
-							String::size_type pos = substrings2[0].find("-");
-							try
-							{
-								if ( pos != String::npos )
-								{
-									add_e_formula = substrings2[0].substr(0, pos);
-									sub_e_formula = substrings2[0].substr(++pos);
-								}
-								else
-								{
-									add_e_formula = substrings2[0];
-								}
-								// sum up the masses
-								if ( monoisotopic ) mass_res_type_name.back()[0] = String(add_e_formula.getMonoWeight() - sub_e_formula.getMonoWeight());
-								else mass_res_type_name.back()[0] = String(add_e_formula.getAverageWeight() - sub_e_formula.getAverageWeight());
-								go_on = false;
-								comp_mass_name_given = -1;
-							}
-							catch ( Exception::ParseError pe )
-							{
-								go_on = true;
-							}
-						}
-						if ( go_on ) // if it's a name, try to find it in the ptm xml file
-						{
-							if ( ptm_informations.empty() ) // if the ptm xml file has not been read yet, read it
-							{
-								if ( modifications_filename.empty() )
-								{
-									writeLog_("No modifications XML file given. Aborting!");
-									return INPUT_FILE_NOT_FOUND;
-								}
-								if ( !File::readable(modifications_filename) )
-								{
-									writeLog_("Modifications XML file is not readable. Aborting!");
-									return INPUT_FILE_NOT_READABLE;
-								}
-								
-								// getting all available modifications from a file
-								try
-								{
-									PTMXMLFile().load(modifications_filename, ptm_informations);
-								}
-								catch ( Exception::ParseError pe )
-								{
-									writeLog_(pe.getMessage());
-									return PARSE_ERROR;
-								}
-							}
-							
-							if ( ptm_informations.find(substrings2[0]) == ptm_informations.end() ) // if the modification cannot be found
-							{
-								writeLog_("The Modification " + substrings2[0] + " can not be found in file " + modifications_filename + ". Aborting!");
-								return ILLEGAL_PARAMETERS;
-							}
-							mass_res_type_name.back()[0] = ptm_informations[substrings2[0]].first; // composition
-							mass_res_type_name.back()[1] = ptm_informations[substrings2[0]].second; // residues
-							mass_res_type_name.back()[3] = substrings2[0]; // name
-							
-							// get the type
-							if ( substrings2.size() > 1 )
-							{
-								// if it's not a legal type
-								if ( types.find(substrings2[1]) == String::npos )
-								{
-									writeLog_("The given type (" + substrings2[1] + ") is neither dyn, stat, cterminal, nterminal, cterminal_dyn, nterminal_dyn, cterminal_prot nor nterminal_prot. Aborting!");
-									return ILLEGAL_PARAMETERS;
-								}
-								mass_res_type_name.back()[2] = substrings2[1];
-							}
-							else mass_res_type_name.back()[2] = "dyn";
-							comp_mass_name_given = 2;
-						}
-						
-						// now get the residues and, if available the type and the name
-						if ( comp_mass_name_given < 2 )
-						{
-							if ( substrings2.size() < 2 )
-							{
-								writeLog_("No residues for modification given (" + *mod_i + "). Aborting!");
-								return ILLEGAL_PARAMETERS;
-							}
-							// if the type is a terminal, there may be no residues
-							if ( types.find(substrings2[1]) != String::npos ) // the second one ought be residues if it's a non-terminal mod
-							{
-								if ( String("dyn#stat").find(substrings2[1]) != String::npos )
-								{
-									writeLog_("Non-terminal modification, but no residues given. Aborting!");
-									return ILLEGAL_PARAMETERS;
-								}
-								mass_res_type_name.back()[2] = substrings2[1];
-								
-								// get the name
-								if ( substrings2.size() > 2 ) mass_res_type_name.back()[3] = substrings2[2];
-							}
-							else
-							{
-								// get the residues
-								mass_res_type_name.back()[1] = substrings2[1];
-								mass_res_type_name.back()[1].substitute('*', 'X');
-								
-								// get the type
-								if ( substrings2.size() > 2 )
-								{
-									// if it's not a legal type
-									if ( types.find(substrings2[2]) == String::npos )
-									{
-										writeLog_("The given type (" + substrings2[2] + ") is neither dyn, stat, cterminal, nterminal, cterminal_dyn, nterminal_dyn, cterminal_prot nor nterminal_prot. Aborting!");
-										return ILLEGAL_PARAMETERS;
-									}
-									mass_res_type_name.back()[2] = substrings2[2];
-									
-									// get the name
-									if ( substrings2.size() > 3 ) mass_res_type_name.back()[3] = substrings2[3];
-								}
-								else mass_res_type_name.back()[2] = "dyn";
-							}
-						}
-						
-						// if a composition is given, get the corresponding mass
-						if ( comp_mass_name_given > 0 )
-						{
-								// get the single components of the composition, if a name was given (for not doing this work twice)
-							if ( comp_mass_name_given == 2 )
-							{
-								if ( !get_composition_elements(mass_res_type_name.back()[0], iso_sym_occ).empty() )
-								{
-									writeLog_("There's something wrong with this composition: " + mass_res_type_name.back()[0] + ". Aborting!");
-									return ILLEGAL_PARAMETERS;
-								}
-							}
-							for ( vector< vector< String > >::const_iterator comp_i = iso_sym_occ.begin(); comp_i != iso_sym_occ.end(); ++comp_i )
-							{
-								if ( (*comp_i)[0] == "0" )
-								{
-									if ( (*comp_i)[2].hasPrefix("-")  ) sub_e_formula += (*comp_i)[1] + (*comp_i)[2];
-									else add_e_formula += (*comp_i)[1] + (*comp_i)[2];
-								}
-								else // if an isotope was used, get the mass
-								{
-								}
-							}
-								// sum up the masses
-							if ( monoisotopic ) mass_res_type_name.back()[0] = String(add_e_formula.getMonoWeight() - sub_e_formula.getMonoWeight());
-							else mass_res_type_name.back()[0] = String(add_e_formula.getAverageWeight() - sub_e_formula.getAverageWeight());
-						}
-						
-						// for each type, collect all masses
-						if ( mass_res_type_name.back()[2] == "dyn" ) // dynamic
-						{
-							for ( string::const_iterator c_i = mass_res_type_name.back()[1].begin(); c_i != mass_res_type_name.back()[1].end(); ++c_i )
-							{
-								dyn_mods[*c_i] += mass_res_type_name.back()[0].toDouble();
-							}
-						}
-						else if ( mass_res_type_name.back()[2] == "stat" ) // static
-						{
-							for ( string::const_iterator c_i = mass_res_type_name.back()[1].begin(); c_i != mass_res_type_name.back()[1].end(); ++c_i )
-							{
-								stat_mods[*c_i] += mass_res_type_name.back()[0].toDouble();
-							}
-						}
-						else // terminal
-						{
-							terminal_mods[mass_res_type_name.back()[2]] += mass_res_type_name.back()[0].toDouble();
-						}
-					}
-					
-					// save the dynamic modifications
-					map< Real, String > dyn_mods_by_mass;
-					for ( map< char, Real >::const_iterator dyn_i = dyn_mods.begin(); dyn_i != dyn_mods.end(); ++dyn_i )
-					{
-						dyn_mods_by_mass[dyn_i->second].append(1, dyn_i->first);
-					}
-					if ( dyn_mods_by_mass.size() <= 6 ) // Sequest doesn't allow more than six dynamic modifications (each amino acid may only be used once as only the mass of the last occurrence of an amino acid counts: 10K 12K leads to 12K)
-					{
-						String dyn_mods_as_string;
-						for ( map< Real, String >::const_iterator dyn_i = dyn_mods_by_mass.begin(); dyn_i != dyn_mods_by_mass.end(); ++dyn_i )
-						{
-							if ( dyn_i != dyn_mods_by_mass.begin() ) dyn_mods_as_string.append(" ");
-							dyn_mods_as_string.append(String(dyn_i->first) + " " + dyn_i->second);
-						}
-						sequest_infile.setDynMods(dyn_mods_as_string);
-					}
-					else
-					{
-						writeLog_("Too many dynamic modifications used (probably at least one amino acid is used more than once. This causes some trouble to Sequest). Aborting!");
-						return ILLEGAL_PARAMETERS;
-					}
-					
-					// save the static modifications
-					for ( map< char, Real >::const_iterator stat_i = stat_mods.begin(); stat_i != stat_mods.end(); ++stat_i )
-					{
-						char_buffer = sequest_infile.setStatMod(String(stat_i->first), stat_i->second);
-						if ( char_buffer )
-						{
-							writeLog_("Unknown amino acid (" + String(char_buffer) + ") given. Aborting!");
-							return ILLEGAL_PARAMETERS;
-						}
-					}
-					// save the terminal modifications
-					sequest_infile.setStatNTermMod(terminal_mods["nterminal"]);
-					sequest_infile.setStatCTermMod(terminal_mods["cterminal"]);
-					sequest_infile.setDynNTermMod(terminal_mods["nterminal_dyn"]);
-					sequest_infile.setDynCTermMod(terminal_mods["cterminal_dyn"]);
-					sequest_infile.setStatNTermProtMod(terminal_mods["nterminal_prot"]);
-					sequest_infile.setStatCTermProtMod(terminal_mods["cterminal_prot"]);
+					sequest_infile.handlePTMs(string_buffer, modifications_filename, monoisotopic);
 				}
-				
+				catch ( Exception::FileNotFound fnf_e )
+				{
+					writeLog_("No modifications XML file given. Aborting!");
+					return INPUT_FILE_NOT_FOUND;
+				}
+				catch ( Exception::FileNotReadable fnr_e )
+				{
+					writeLog_("Modifications XML file is not readable. Aborting!");
+					return INPUT_FILE_NOT_READABLE;
+				}
+				catch ( Exception::ParseError p_e )
+				{
+					writeLog_(String(p_e.getMessage()) + ". Aborting!");
+					return PARSE_ERROR;
+				}
 				string_buffer = getStringOption_("partial_sequence");
 				string_buffer.split(',', substrings);
 				string_buffer.implode(substrings.begin(), substrings.end(), " ");
@@ -1278,7 +972,6 @@ class TOPPSequestAdapter
 			//-------------------------------------------------------------
 			// running program according to parameters
 			//-------------------------------------------------------------
-			
 			// checking accessability of files
 			bool existed = false;
 			UInt file_tag;
@@ -1288,7 +981,7 @@ class TOPPSequestAdapter
 				string_buffer = files_i->first;
 				file_tag = files_i->second;
 				
-				if ( (file_tag & 1) && !File::exists(string_buffer) )
+				if ( (file_tag & 1 || file_tag & 2) && !File::exists(string_buffer) )
 				{
 					throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, string_buffer);
 				}
@@ -1306,7 +999,6 @@ class TOPPSequestAdapter
 				else if ( !existed ) remove(string_buffer.c_str());
 				existed = false;
 			}
-			
 			// creating the input file
 			if ( sequest_in )
 			{
@@ -1315,35 +1007,16 @@ class TOPPSequestAdapter
 			
 			bool make_dtas = ( sequest_out && !sequest_in ) ? false : true; // if only sequest_out is set, just get the retention times
 			// creating the dta files
-			if ( make_dtas ) // if there are already .dta files in the folder, stop the adapter
-			{
-				vector<String> dummy;
-				if (File::fileList(temp_data_directory,String("*.dta_*"),dummy))
-				{
-					writeLog_("There are already dta files in directory " + temp_data_directory + ". Aborting!");
-					
-					// deleting all temporary files
-					for ( vector< pair< String, UInt > >::const_iterator files_i = files.begin(); files_i != files.end(); ++files_i )
-					{
-						if ( files_i->second & 8 ) remove(files_i->first.c_str());
-					}
-					return UNKNOWN_ERROR;
-				}
-			}
-			
 			MSExperiment<> msexperiment;
 			UInt msms_spectra_in_file;
 			UInt msms_spectra_altogether = 0;
 			if ( make_dtas ) writeLog_("creating dta files");
-			dtas = 0;
-			String basename, dta_files_common_name;
 			FileHandler fh;
 			FileHandler::Type type;
-			for ( vector< String >::const_iterator spec_i = spectra.begin(); spec_i != spectra.end(); ++spec_i )
+			// first get the dta names
+			for ( vector< String >::iterator spec_i = spectra.begin(); spec_i != spectra.end(); ++spec_i )
 			{
-				basename = File::basename(*spec_i);
-				dta_files_common_name = temp_data_directory + basename;
-				
+				File::absolutePath(*spec_i);
 				type = fh.getTypeByContent(*spec_i);
 				if ( type == FileHandler::UNKNOWN )
 				{
@@ -1352,17 +1025,59 @@ class TOPPSequestAdapter
 				}
 				fh.loadExperiment(*spec_i, msexperiment, type);
 				
-				msms_spectra_in_file = MSExperiment2DTAs(msexperiment, dta_files_common_name, charges, filenames_and_precursor_retention_times, make_dtas);
-				
-				writeLog_(String(msms_spectra_in_file) + " MS/MS spectra in file " + *spec_i);
+				msms_spectra_in_file = MSExperiment2DTAs(msexperiment, temp_data_directory + File::basename(*spec_i), charges, outfile_names_and_precursor_retention_times, dta_filenames, false);
 				
 				msms_spectra_altogether += msms_spectra_in_file;
+				
+				// if make_dtas is set, check whether one of them does already exist, if so, stop the adapter
+				if ( make_dtas )
+				{
+					for ( vector< String >::const_iterator dta_names_i = dta_filenames.begin(); dta_names_i != dta_filenames.end(); ++dta_names_i )
+					{
+						string_buffer = temp_data_directory + *dta_names_i;
+						if ( File::exists(string_buffer) )
+						{
+							writeLog_("The file " + string_buffer + " does already exist in directory " + temp_data_directory + ". Please remove it first. Aborting!");
+							// deleting all temporary files
+							for ( vector< pair< String, UInt > >::const_iterator files_i = files.begin(); files_i != files.end(); ++files_i )
+							{
+								if ( files_i->second & 8 ) remove(files_i->first.c_str());
+							}
+							return UNKNOWN_ERROR;
+						}
+					}
+				}
 			}
 			
+			// if no msms spectra were found
 			if ( !msms_spectra_altogether )
 			{
+					// deleting all temporary files
+				for ( vector< pair< String, UInt > >::const_iterator files_i = files.begin(); files_i != files.end(); ++files_i )
+				{
+					if ( files_i->second & 8 ) remove(files_i->first.c_str());
+				}
 				writeLog_("No MS/MS spectra found in any of the mz files. Aborting!");
 				return UNKNOWN_ERROR;
+			}
+			
+			// if make_dtas is set and non of the dta files did already exist, create them
+			if ( make_dtas )
+			{
+				for ( vector< String >::const_iterator spec_i = spectra.begin(); spec_i != spectra.end(); ++spec_i )
+				{
+					type = fh.getTypeByContent(*spec_i);
+					if ( type == FileHandler::UNKNOWN )
+					{
+						writeLog_("Could not determine type of the file. Aborting!");
+						return PARSE_ERROR;
+					}
+					fh.loadExperiment(*spec_i, msexperiment, type);
+					basename = File::basename(*spec_i);
+					dta_files_common_name = temp_data_directory + basename;
+					msms_spectra_in_file = MSExperiment2DTAs(msexperiment, dta_files_common_name, charges, outfile_names_and_precursor_retention_times, dta_filenames, make_dtas);
+					writeLog_(String(msms_spectra_in_file) + " MS/MS spectra in file " + *spec_i);
+				}
 			}
 			
 			// (3.2.3) running the program
@@ -1416,13 +1131,13 @@ class TOPPSequestAdapter
 						if ( files_i->second & 8 ) remove(files_i->first.c_str());
 					}
 					
-				// remove all dtas
+					// remove all dtas
 					if ( !keep_dta_files )
 					{
 						writeLog_("removing dta files");
-						for ( map< String, Real >::const_iterator dta_names_i = filenames_and_precursor_retention_times.begin(); dta_names_i != filenames_and_precursor_retention_times.end(); ++dta_names_i )
+						for ( vector< String >::const_iterator dta_names_i = dta_filenames.begin(); dta_names_i != dta_filenames.end(); ++dta_names_i )
 						{
-							if ( !File::remove(dta_names_i->first) ) writeLog_("'" + string_buffer + "' could not be removed!");
+							if ( !File::remove(*dta_names_i) ) writeLog_("'" + string_buffer + "' could not be removed!");
 						}
 						return EXTERNAL_PROGRAM_ERROR;
 					}
@@ -1461,9 +1176,9 @@ class TOPPSequestAdapter
 					if ( !keep_dta_files )
 					{
 						writeLog_("removing dta files");
-						for ( map< String, Real >::const_iterator dta_names_i = filenames_and_precursor_retention_times.begin(); dta_names_i != filenames_and_precursor_retention_times.end(); ++dta_names_i )
+						for ( vector< String >::const_iterator dta_names_i = dta_filenames.begin(); dta_names_i != dta_filenames.end(); ++dta_names_i )
 						{
-							if ( !File::remove(dta_names_i->first) ) writeLog_("'" + string_buffer + "' could not be removed!");
+							if ( !File::remove(*dta_names_i) ) writeLog_("'" + string_buffer + "' could not be removed!");
 						}
 					}
 					
@@ -1483,16 +1198,15 @@ class TOPPSequestAdapter
 				if ( !keep_dta_files )
 				{
 					writeLog_("removing dta files");
-					for ( map< String, Real >::const_iterator dta_names_i = filenames_and_precursor_retention_times.begin(); dta_names_i != filenames_and_precursor_retention_times.end(); ++dta_names_i )
+					for ( vector< String >::const_iterator dta_names_i = dta_filenames.begin(); dta_names_i != dta_filenames.end(); ++dta_names_i )
 					{
-						if ( !File::remove(dta_names_i->first) ) writeLog_("'" + string_buffer + "' could not be removed!");
+						if ( !File::remove(*dta_names_i) ) writeLog_("'" + string_buffer + "' could not be removed!");
 					}
 				}
 				
 				SequestOutfile sequest_outfile;
 				vector<PeptideIdentification> peptide_identifications;
 				vector<ProteinIdentification> pis;
-				UInt peptide_identification_size = peptide_identifications.size();
 				ProteinIdentification protein_identification;
 				
 				vector<String> out_files;
@@ -1508,7 +1222,6 @@ class TOPPSequestAdapter
 					
 					return UNKNOWN_ERROR;
 				}
-				
 				vector< pair < String, vector< Real > > > filenames_and_pvalues;
 				for ( vector< String >::iterator f_i = out_files.begin(); f_i != out_files.end(); ++f_i )
 				{
@@ -1534,6 +1247,7 @@ class TOPPSequestAdapter
 				sp.precursor_tolerance = sequest_infile.getPrecursorMassTolerance();
 				protein_identification.setSearchParameters(sp);
 				
+				UInt peptide_identification_size = peptide_identifications.size();
 				for ( vector< pair < String, vector< Real > > >::iterator fp_i = filenames_and_pvalues.begin(); fp_i != filenames_and_pvalues.end(); ++fp_i )
 				{
 					try
@@ -1555,9 +1269,9 @@ class TOPPSequestAdapter
 					if ( peptide_identification_size != peptide_identifications.size() )
 					{
 						peptide_identification_size = peptide_identifications.size();
-						string_buffer = fp_i->first;
-						string_buffer.replace(string_buffer.length() - 3, 3, "out");
-						peptide_identifications.back().setMetaValue("RT", filenames_and_precursor_retention_times[string_buffer]);
+						string_buffer = File::basename(fp_i->first);
+						if ( outfile_names_and_precursor_retention_times.find(string_buffer) != outfile_names_and_precursor_retention_times.end() ) peptide_identifications.back().setMetaValue("RT",  outfile_names_and_precursor_retention_times[string_buffer]);
+						else peptide_identifications.back().setMetaValue("RT", 0);
 					}
 				}
 				

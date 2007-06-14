@@ -49,6 +49,7 @@ TOPP_EXECUTABLES=\
 	MascotAdapter\
 	InspectAdapter\
 	SequestAdapter\
+	PepNovoAdapter\
 	PeakPicker\
 	LabeledMatcher\
 	MapDewarper\
@@ -205,9 +206,13 @@ MascotAdapter: MascotAdapter.o
 
 InspectAdapter: InspectAdapter.o
 	$(CXX) $(LDFLAGS) -o $@ $< $(LIBS)
-	$(CP) $@ $(OPENMS_PATH)/bin/   
+	$(CP) $@ $(OPENMS_PATH)/bin/
 
 SequestAdapter: SequestAdapter.o
+	$(CXX) $(LDFLAGS) -o $@ $< $(LIBS)
+	$(CP) $@ $(OPENMS_PATH)/bin/
+
+PepNovoAdapter: PepNovoAdapter.o
 	$(CXX) $(LDFLAGS) -o $@ $< $(LIBS)
 	$(CP) $@ $(OPENMS_PATH)/bin/
 

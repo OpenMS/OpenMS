@@ -93,6 +93,141 @@ CHECK(void addEnzymeInfo(String& value))
 	TEST_EQUAL(file.getEnzymeInfoAsString(), ss.str())
 RESULT
 
+CHECK(String handlePTMs(const String& modification_line, const String& modifications_filename, const bool monoisotopic) throw (Exception::FileNotReadable, Exception::FileNotFound, Exception::ParseError))
+	String modification_line = "10.3+,KRLNH,fix:Phosphorylation:+16,C:HCNO,nterm,Carbamylation:H2C,CHKNQRILDEST,opt,Methylation:16-,cterm:-16,nterm";
+	TEST_EXCEPTION(Exception::FileNotFound, file.handlePTMs(modification_line, "", true))
+	
+	modification_line = "2H20,KRLNH,fix";
+	TEST_EXCEPTION(Exception::ParseError, file.handlePTMs(modification_line, "TOPP/Sequest_PTMs.xml", true))
+	try
+	{
+		file.handlePTMs(modification_line, "TOPP/Sequest_PTMs.xml", true);
+	}
+	catch ( Exception::ParseError p_e )
+	{
+		TEST_EQUAL(String(p_e.getMessage()), "There's something wrong with this modification. Aborting! in: 2H20,KRLNH,fix")
+	}
+
+	modification_line = "10.3+";
+	TEST_EXCEPTION(Exception::ParseError, file.handlePTMs(modification_line, "TOPP/Sequest_PTMs.xml", true))
+	try
+	{
+		file.handlePTMs(modification_line, "TOPP/Sequest_PTMs.xml", true);
+	}
+	catch ( Exception::ParseError p_e )
+	{
+		TEST_EQUAL(String(p_e.getMessage()), "No residues for modification given. Aborting! in: 10.3+")
+	}
+
+	modification_line = "10.3+,KRLNH,stat,PTM_0";
+	TEST_EXCEPTION(Exception::ParseError, file.handlePTMs(modification_line, "TOPP/Sequest_PTMs.xml", true))
+	try
+	{
+		file.handlePTMs(modification_line, "TOPP/Sequest_PTMs.xml", true);
+	}
+	catch ( Exception::ParseError p_e )
+	{
+		TEST_EQUAL(String(p_e.getMessage()), "There's something wrong with the type of this modification. Aborting! in: 10.3+,KRLNH,stat,PTM_0")
+	}
+
+	modification_line = "Phosphorylation:Phosphorylation";
+	TEST_EXCEPTION(Exception::ParseError, file.handlePTMs(modification_line, "TOPP/Sequest_PTMs.xml", true))
+	try
+	{
+		file.handlePTMs(modification_line, "TOPP/Sequest_PTMs.xml", true);
+	}
+	catch ( Exception::ParseError p_e )
+	{
+		TEST_EQUAL(String(p_e.getMessage()), "There's already a modification with this name. Aborting! in: Phosphorylation")
+	}
+
+	modification_line = "10.3+,KRLNH,fix:Phosphorylation:+16,C:HCNO,nterm,Carbamylation:H2C,CHKNQRILDEST,opt,Methylation:16-,cterm,opt:-16,nterm,fix:17-,cterm_prot:-17,nterm_prot,fix";
+
+	// average masses
+	file.handlePTMs(modification_line, "TOPP/Sequest_PTMs.xml", false);
+
+	map< String, vector< String > > modifications;
+	modifications["PTM_0"] = vector< String >(3);
+	modifications["PTM_0"][0] = "KRLNH";
+	modifications["PTM_0"][1] = "10.3";
+	modifications["PTM_0"][2] = "FIX";
+	modifications["Phosphorylation"] = vector< String >(3);
+	modifications["Phosphorylation"][0] = "STYDHCR";
+	modifications["Phosphorylation"][1] = "79.9799";
+	modifications["Phosphorylation"][2] = "OPT";
+	modifications["PTM_2"] = vector< String >(3);
+	modifications["PTM_2"][0] = "C";
+	modifications["PTM_2"][1] = "16";
+	modifications["PTM_2"][2] = "OPT";
+	modifications["Carbamylation"] = vector< String >(3);
+	modifications["Carbamylation"][0] = "NTERM";
+	modifications["Carbamylation"][1] = "43.02474";
+	modifications["Carbamylation"][2] = "OPT";
+	modifications["Methylation"] = vector< String >(3);
+	modifications["Methylation"][0] = "CHKNQRILDEST";
+	modifications["Methylation"][1] = "14.02658";
+	modifications["Methylation"][2] = "OPT";
+	modifications["PTM_5"] = vector< String >(3);
+	modifications["PTM_5"][0] = "CTERM";
+	modifications["PTM_5"][1] = "-16";
+	modifications["PTM_5"][2] = "OPT";
+	modifications["PTM_6"] = vector< String >(3);
+	modifications["PTM_6"][0] = "NTERM";
+	modifications["PTM_6"][1] = "-16";
+	modifications["PTM_6"][2] = "FIX";
+	modifications["PTM_7"] = vector< String >(3);
+	modifications["PTM_7"][0] = "CTERM_PROT";
+	modifications["PTM_7"][1] = "-17";
+	modifications["PTM_7"][2] = "OPT";
+	modifications["PTM_8"] = vector< String >(3);
+	modifications["PTM_8"][0] = "NTERM_PROT";
+	modifications["PTM_8"][1] = "-17";
+	modifications["PTM_8"][2] = "FIX";
+
+	map< String, vector< String > >::const_iterator result_mod_i = file.getModifications().begin();
+	TEST_EQUAL(file.getModifications().size(), modifications.size())
+	if ( file.getModifications().size() == modifications.size() )
+	{
+		for ( map< String, vector< String > >::const_iterator mod_i = modifications.begin(); mod_i != modifications.end(); ++mod_i, ++result_mod_i )
+		{
+			TEST_EQUAL(result_mod_i->first, mod_i->first)
+			TEST_EQUAL(result_mod_i->second.size(), 3)
+			TEST_EQUAL(result_mod_i->second.size(), mod_i->second.size())
+			if ( result_mod_i->second.size() == mod_i->second.size() )
+			{
+				TEST_EQUAL(result_mod_i->second[0], mod_i->second[0])
+				TEST_EQUAL(result_mod_i->second[1], mod_i->second[1])
+				TEST_EQUAL(result_mod_i->second[2], mod_i->second[2])
+			}
+		}
+	}
+
+	// monoisotopic masses
+	file.handlePTMs(modification_line, "TOPP/Sequest_PTMs.xml", true);
+
+	modifications["Phosphorylation"][1] = "79.96635";
+	modifications["Carbamylation"][1] = "43.00582";
+	modifications["Methylation"][1] = "14.01565";
+
+	result_mod_i = file.getModifications().begin();
+	TEST_EQUAL(file.getModifications().size(), modifications.size())
+	if ( file.getModifications().size() == modifications.size() )
+	{
+		for ( map< String, vector< String > >::const_iterator mod_i = modifications.begin(); mod_i != modifications.end(); ++mod_i, ++result_mod_i )
+		{
+			TEST_EQUAL(result_mod_i->first, mod_i->first)
+			TEST_EQUAL(result_mod_i->second.size(), 3)
+			TEST_EQUAL(result_mod_i->second.size(), mod_i->second.size())
+			if ( result_mod_i->second.size() == mod_i->second.size() )
+			{
+				TEST_EQUAL(result_mod_i->second[0], mod_i->second[0])
+				TEST_EQUAL(result_mod_i->second[1], mod_i->second[1])
+				TEST_EQUAL(result_mod_i->second[2], mod_i->second[2])
+			}
+		}
+	}
+RESULT
+
 CHECK(void setDatabase(const String& value))
 	file.setDatabase("\\\\bude\\langwisc\\sequest_test\\Analysis.mzXML.fasta");
 	TEST_EQUAL(file.getDatabase() , "\\\\bude\\langwisc\\sequest_test\\Analysis.mzXML.fasta")
@@ -101,15 +236,6 @@ RESULT
 CHECK(const String& getDatabase())
 	TEST_EQUAL(file.getDatabase() , "\\\\bude\\langwisc\\sequest_test\\Analysis.mzXML.fasta")
 RESULT
-
-// CHECK(void setSndDatabase(const String& value))
-// 	file.setSndDatabase("\\\\bude\\langwisc\\sequest_test\\Analysis.mzXML.fasta1");
-// 	TEST_EQUAL(file.getSndDatabase() , "\\\\bude\\langwisc\\sequest_test\\Analysis.mzXML.fasta1")
-// RESULT
-// 
-// CHECK(const String& getSndDatabase())
-// 	TEST_EQUAL(file.getSndDatabase() , "\\\\bude\\langwisc\\sequest_test\\Analysis.mzXML.fasta1")
-// RESULT
 
 CHECK(void setNeutralLossesForIons(const String& value))
 	file.setNeutralLossesForIons("0 1 1");
@@ -127,15 +253,6 @@ RESULT
 
 CHECK(const String& getIonSeriesWeights())
 	TEST_EQUAL(file.getIonSeriesWeights() , "0 1.0 0 0 0 0 0 1.0 0")
-RESULT
-
-CHECK(void setDynMods(const String& value))
-	file.setDynMods("57.8 T 78 YW 0 X");
-	TEST_EQUAL(file.getDynMods() , "57.8 T 78 YW 0 X")
-RESULT
-
-CHECK(const String& getDynMods())
-	TEST_EQUAL(file.getDynMods() , "57.8 T 78 YW 0 X")
 RESULT
 
 CHECK(void setPartialSequence(const String& value))
@@ -201,61 +318,6 @@ RESULT
 CHECK(Real getProteinMassFilter())
 	TEST_EQUAL(file.getProteinMassFilter() , "30.2 0")
 RESULT
-
-CHECK(void setDynNTermMod(Real value))
-	file.setDynNTermMod(32.4);
-	TEST_REAL_EQUAL(file.getDynNTermMod() , 32.4)
-RESULT
-
-CHECK(Real getDynNTermMod())
-	TEST_REAL_EQUAL(file.getDynNTermMod() , 32.4)
-RESULT
-
-CHECK(void setDynCTermMod(Real value))
-	file.setDynCTermMod(32.0);
-	TEST_REAL_EQUAL(file.getDynCTermMod() , 32.0)
-RESULT
-
-CHECK(Real getDynCTermMod())
-	TEST_REAL_EQUAL(file.getDynCTermMod() , 32.0)
-RESULT
-
-CHECK(void setStatNTermMod(Real value))
-	file.setStatNTermMod(32.1);
-	TEST_REAL_EQUAL(file.getStatNTermMod() , 32.1)
-RESULT
-
-CHECK(Real getStatNTermMod())
-	TEST_REAL_EQUAL(file.getStatNTermMod() , 32.1)
-RESULT
-
-CHECK(void setStatCTermMod(Real value))
-	file.setStatCTermMod(32.2);
-	TEST_REAL_EQUAL(file.getStatCTermMod() , 32.2)
-RESULT
-
-CHECK(Real getStatCTermMod())
-	TEST_REAL_EQUAL(file.getStatCTermMod() , 32.2)
-RESULT
-
-CHECK(void setStatNTermProtMod(Real value))
-	file.setStatNTermProtMod(32.3);
-	TEST_REAL_EQUAL(file.getStatNTermProtMod() , 32.3)
-RESULT
-
-CHECK(Real getStatNTermProtMod())
-	TEST_REAL_EQUAL(file.getStatNTermProtMod() , 32.3)
-RESULT
-
-CHECK(void setStatCTermProtMod(Real value))
-	file.setStatCTermProtMod(32.5);
-	TEST_REAL_EQUAL(file.getStatCTermProtMod() , 32.5)
-RESULT
-
-CHECK(Real getStatCTermProtMod())
-	TEST_REAL_EQUAL(file.getStatCTermProtMod() , 32.5)
-RESULT
-
 
 CHECK(void setPeptideMassUnit(Int value))
 	file.setPeptideMassUnit(0);
@@ -358,15 +420,6 @@ CHECK(bool getPrintDuplicateReferences())
 	TEST_EQUAL(file.getPrintDuplicateReferences() , true)
 RESULT
 
-// CHECK(void setUsePhosphoFragmentation(bool value))
-// 	file.setUsePhosphoFragmentation(true);
-// 	TEST_EQUAL(file.getUsePhosphoFragmentation() , true)
-// RESULT
-// 
-// CHECK(bool getUsePhosphoFragmentation())
-// 	TEST_EQUAL(file.getUsePhosphoFragmentation() , true)
-// RESULT
-
 CHECK(void setRemovePrecursorNearPeaks(bool value))
 	file.setRemovePrecursorNearPeaks(true);
 	TEST_EQUAL(file.getRemovePrecursorNearPeaks() , true)
@@ -411,41 +464,6 @@ RESULT
 CHECK(bool getResiduesInUpperCase())
 	TEST_EQUAL(file.getResiduesInUpperCase() , true)
 RESULT
-
-vector< Real > masses(4, 0.1);
-String aas = "GASPVTCLIXNOBDQKZEMHFRYW";
-CHECK(char setStatMod(String& amino_acids, Real mass));
-	Real mass = 0.1;
-	String string_buffer = aas.substr(0,4);
-	TEST_EQUAL(file.setStatMod(string_buffer, mass), 0)
-	for ( String::const_iterator s_i = aas.begin()+4; s_i != aas.end(); ++s_i )
-	{
-		masses.push_back(++mass);
-		string_buffer = *s_i;
-		TEST_EQUAL(file.setStatMod(string_buffer, mass), 0)
-	}
-	
-	map< char, Real > mod_map = file.getStatMods();
-	size_t pos;
-	for ( map< char, Real >::const_iterator m_i = mod_map.begin(); m_i != mod_map.end(); ++m_i )
-	{
-		pos = aas.find(m_i->first);
-		TEST_NOT_EQUAL(pos, string::npos)
-		if ( pos != string::npos ) TEST_REAL_EQUAL(masses[pos], m_i->second)
-	}
-RESULT
-
-CHECK((const map< char, Real >& getStatMods()))
-	map< char, Real > mod_map = file.getStatMods();
-	size_t pos;
-	for ( map< char, Real >::const_iterator m_i = mod_map.begin(); m_i != mod_map.end(); ++m_i )
-	{
-		pos = aas.find(m_i->first);
-		TEST_NOT_EQUAL(pos, string::npos)
-		if ( pos != string::npos ) TEST_REAL_EQUAL(masses[pos], m_i->second)
-	}
-RESULT
-masses.clear();
 
 CHECK(void store(const String& filename))
 	String filename;

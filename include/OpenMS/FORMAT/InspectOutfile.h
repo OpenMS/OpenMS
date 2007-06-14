@@ -28,22 +28,10 @@
 #define OPENMS_FORMAT_INSPECTOUTFILE_H
 
 #include <OpenMS/CONCEPT/Exception.h>
-//#include <OpenMS/DATASTRUCTURES/Date.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
-//#include <OpenMS/FORMAT/MzDataFile.h>
-//#include <OpenMS/FORMAT/MzXMLFile.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
-//#include <OpenMS/METADATA/PeptideHit.h>
-//#include <OpenMS/METADATA/ProteinHit.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
-//#include <OpenMS/FORMAT/FileHandler.h>
-
-//#include <fstream>
-//#include <iostream>
-//#include <map>
-//#include <set>
-//#include <vector>
 
 namespace OpenMS
 {
@@ -77,9 +65,6 @@ namespace OpenMS
 			/// retrieve the accession type and accession number from a protein description line
 			/// (e.g. from FASTA line: >gi|5524211|gb|AAD44166.1| cytochrome b [Elephas maximus maximus], get ac:AAD44166.1 ac type: GenBank)
 			void getACAndACType(String line, String& accession, String& accession_type);
-			
-			/// either insert the new peptide hit or update it's protein indices
-			//bool updatePeptideHits(PeptideHit& peptide_hit, std::vector<PeptideHit>& peptide_hits);
 
 			/// retvrieve the precursor retention time and mz value
 			void getPrecursorRTandMZ(const std::vector<std::pair<String, std::vector<UInt> > >& files_and_scan_numbers, std::vector<PeptideIdentification>& ids) throw(Exception::ParseError);

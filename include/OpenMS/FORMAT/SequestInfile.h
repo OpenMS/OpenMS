@@ -29,12 +29,7 @@
 
 #include <OpenMS/DATASTRUCTURES/String.h>
 
-#include <fstream>
-#include <iostream>
 #include <map>
-#include <set>
-#include <sstream>
-#include <string>
 
 
 namespace OpenMS
@@ -84,11 +79,6 @@ namespace OpenMS
 			/// sets the weights for the a-, b-, c-, d-, v-, w-, x-, y- and z-ion series
 			void setIonSeriesWeights(const String& ion_series_weights);
 
-			/// returns the dynamic modifications
-			const String& getDynMods() const;
-			/// sets the dynamic modifications
-			void setDynMods(const String& dyn_mods);
-
 			/// returns the partial sequences (space delimited) that have to occur in the theortical spectra
 			const String& getPartialSequence() const;
 			/// sets the partial sequences (space delimited) that have to occur in the theortical spectra
@@ -124,37 +114,6 @@ namespace OpenMS
 			Real getIonCutoffPercentage() const;
 			/// sets the ion cutoff of the ratio matching theoretical peaks/theoretical peaks
 			void setIonCutoffPercentage(Real cutoff_percentage);
-
-			/// returns the dynamic modification for the N-terminal of the peptide
-			Real getDynNTermMod() const;
-			/// sets the dynamic modification for the N-terminal of the peptide
-			void setDynNTermMod(Real dyn_n_term_mod);
-
-			/// returns the dynamic modification for the C-terminal of the peptide
-			Real getDynCTermMod() const;
-			/// sets the dynamic modification for the C-terminal of the peptide
-			void setDynCTermMod(Real dyn_c_term_mod);
-
-			/// returns the static modification for the N-terminal of the peptide
-			Real getStatNTermMod() const;
-			/// sets the static modification for the N-terminal of the peptide
-			void setStatNTermMod(Real stat_n_term_mod);
-
-			/// returns the static modification for the C-terminal of the peptide
-			Real getStatCTermMod() const;
-			/// sets the static modification for the C-terminal of the peptide
-			void setStatCTermMod(Real stat_c_term_mod);
-
-			/// returns the static modification for the N-terminal of the protein
-			Real getStatNTermProtMod() const;
-			/// sets the static modification for the N-terminal of the protein
-			void setStatNTermProtMod(Real stat_n_term_prot_mod);
-
-			/// returns the static modification for the C-terminal of the protein
-			Real getStatCTermProtMod() const;
-			/// sets the static modification for the C-terminal of the protein
-			void setStatCTermProtMod(Real stat_c_term_prot_mod);
-
 
 			/// returns the peptide mass unit
 			Int getPeptideMassUnit() const;
@@ -224,9 +183,6 @@ namespace OpenMS
 			/// sets whether all proteins containing a found peptide should be displayed
 			void setPrintDuplicateReferences(bool print_duplicate_references);
 
-// 			bool getUsePhosphoFragmentation() const;
-// 			void setUsePhosphoFragmentation(bool use_phospho_fragmentation);
-
 			/// return whether peaks near (15 amu) the precursor peak are removed
 			bool getRemovePrecursorNearPeaks() const;
 			/// sets whether peaks near (15 amu) the precursor peak are removed
@@ -256,44 +212,33 @@ namespace OpenMS
 			/// the vector constists of four strings:
 			/// name, cut direction: 0 (N to C) / 1, cuts after (list of aa), doesn't cut before (list of aa)
 			void addEnzymeInfo(std::vector< String >& enzyme_info);
-
-			/// returns the static modifications (map of amino acids and corresponding modification)
-			const std::map< char, Real >& getStatMods() const;
-			/// set the static modification for an amino acid
-			char setStatMod(String amino_acid, Real mass);
+			
+			/// return the modifications (the modification names map to the affected residues, the mass change and the type)
+			const std::map< String, std::vector< String > >& getModifications() const;
+			
+			/// retrieves the name, mass change, affected residues, type and position for all modifications from a string
+			void handlePTMs(const String& modification_line, const String& modifications_filename, const bool monoisotopic) throw (Exception::FileNotReadable, Exception::FileNotFound, Exception::ParseError);
 
 		protected:
 			/// returns some standard enzymes (used to initialize the enzyme list)
 			void setStandardEnzymeInfo();
 
 			/// the amino acids in one-letter-code
-			static const String aas_single_letter_;// = "GASPVTCLIXNOBDQKZEMHFRYW";
-
-			/// the static modifications (map of amino acids and corresponding modification)
-			std::map< char, Real > stat_mods_;
+			static const String aas_single_letter_;
 
 			std::map< String, std::vector< String > > enzyme_info_; ///< an endline-delimited list of enzymes; each with cutting direction 0 (N to C) /1; cuts after (list of aa); doesn't cut before (list of aa); the attributes are tab-delimited
 			String database_; ///< database used
 			String snd_database_; ///< second database used
 			String neutral_losses_for_ions_; ///< whether neutral losses are considered for the a-; b- and y-ions (e.g. 011 for b- and y-ions)
 			String ion_series_weights_;///< weights for the a-; b-; c-; d-; v-; w-; x-; y- and z-ion series; space delimited
-			String dyn_mods_; ///< space-delimited list of dynamic modifications; each with weight and aas (space delimited)
 			String partial_sequence_; ///< space-delimited list of sequence parts that have to occur in the theortical spectra
 			String sequence_header_filter_;///< space-delimited list of sequences that have to occur or be absend (preceeded by a tilde) in a protein header; to be considered
 			String protein_mass_filter_;
-			
 			
 			Real precursor_mass_tolerance_;///< tolerance for matching a theoretical to an experimental peptide
 			Real peak_mass_tolerance_;///< tolerance for matching a theoretical to an experimental peak
 			Real match_peak_tolerance_;///< minimum distance between two experimental peaks
 			Real ion_cutoff_percentage_;///< cutoff of the ratio matching theoretical peaks/theoretical peaks
-			Real dyn_n_term_mod_;///< dynamic modifications for the N-terminal of a peptide
-			Real dyn_c_term_mod_;///< dynamic modifications for the C-terminal of a peptide
-			Real stat_n_term_mod_;///< static modifications for the N-terminal of a peptide
-			Real stat_c_term_mod_;///< static modifications for the C-terminal of a peptide
-			Real stat_n_term_prot_mod_;///< static modifications for the N-terminal of a protein
-			Real stat_c_term_prot_mod_;///< static modifications for the C-terminal of a protein
-			
 			
 			UInt peptide_mass_unit_;///< peptide mass unit (0 = amu; 1 = mmu; 2 = ppm)
 			UInt output_lines_;///< number of peptides to be displayed
@@ -318,12 +263,13 @@ namespace OpenMS
 			
 			bool show_fragment_ions_;///< wether to display fragment ions
 			bool print_duplicate_references_;///< whether all proteins containing a found peptide should be displayed
-//		bool use_phospho_fragmentation_;///< 
 			bool remove_precursor_near_peaks_;///< whether peaks near (15 amu) the precursor peak are removed
 			bool mass_type_parent_;///< mass type of the parent peak (0 - monoisotopic; 1 - average)
 			bool mass_type_fragment_;///< mass type of fragment peaks (0 - monoisotopic; 1 - average)
 			bool normalize_xcorr_;///< whether to display normalized xcorr values
 			bool residues_in_upper_case_;///< whether residues are in upper case
+			
+			std::map< String, std::vector< String > > PTMname_residues_mass_type_;///< the modification names map to the affected residues, the mass change and the type
   };
 
 } // namespace OpenMS

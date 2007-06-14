@@ -61,7 +61,7 @@
       <ProteinHit id="PH_27" accession="e148876" score="0" sequence="" >
       </ProteinHit>
     </ProteinIdentification>
-    <PeptideIdentification score_type="SEQUEST" higher_score_better="true" significance_threshold="1" MZ="866.606" RT="0" >
+    <PeptideIdentification score_type="SEQUEST" higher_score_better="true" significance_threshold="1" MZ="866.606" RT="21.9494" >
       <PeptideHit score="0.05" sequence="ETQAWSIATILETLYDL" charge="2" aa_before="C" aa_after="-" protein_refs="PH_0 PH_1 PH_2" >
       </PeptideHit>
       <PeptideHit score="0.04" sequence="QVLNPLLVLIFIPLFDL" charge="2" aa_before="M" aa_after="V" protein_refs="PH_3 PH_4" >
@@ -69,7 +69,7 @@
     </PeptideIdentification>
     <PeptideIdentification score_type="SEQUEST prelim." higher_score_better="true" significance_threshold="1" MZ="1299.41" RT="0" >
     </PeptideIdentification>
-    <PeptideIdentification score_type="SEQUEST" higher_score_better="true" significance_threshold="1" MZ="823.336" RT="0" >
+    <PeptideIdentification score_type="SEQUEST" higher_score_better="true" significance_threshold="1" MZ="823.336" RT="31.1325" >
       <PeptideHit score="0" sequence="WRAYTDM" charge="2" aa_before="M" aa_after="R" protein_refs="PH_5 PH_6 PH_7 PH_8 PH_9" >
       </PeptideHit>
       <PeptideHit score="0" sequence="VLMSDSGSE" charge="2" aa_before="E" aa_after="T" protein_refs="PH_10 PH_11 PH_12 PH_13 PH_14" >
@@ -77,7 +77,7 @@
     </PeptideIdentification>
     <PeptideIdentification score_type="SEQUEST prelim." higher_score_better="true" significance_threshold="1" MZ="1234.5" RT="0" >
     </PeptideIdentification>
-    <PeptideIdentification score_type="SEQUEST" higher_score_better="true" significance_threshold="1" MZ="863.966" RT="0" >
+    <PeptideIdentification score_type="SEQUEST" higher_score_better="true" significance_threshold="1" MZ="863.966" RT="26.3065" >
       <PeptideHit score="0.01" sequence="SNDASGNT" charge="2" aa_before="N" aa_after="W" protein_refs="PH_15 PH_16 PH_17 PH_18 PH_19 PH_20 PH_21 PH_22 PH_23 PH_24 PH_25 PH_26" >
       </PeptideHit>
       <PeptideHit score="0.02" sequence="FVSDPNS" charge="2" aa_before="T" aa_after="Y" protein_refs="PH_27" >
@@ -85,15 +85,15 @@
     </PeptideIdentification>
     <PeptideIdentification score_type="SEQUEST prelim." higher_score_better="true" significance_threshold="1" MZ="1295.45" RT="0" >
     </PeptideIdentification>
-    <PeptideIdentification score_type="SEQUEST prelim." higher_score_better="true" significance_threshold="1" MZ="1119.78" RT="0" >
+    <PeptideIdentification score_type="SEQUEST prelim." higher_score_better="true" significance_threshold="1" MZ="1119.78" RT="28.7128" >
     </PeptideIdentification>
     <PeptideIdentification score_type="SEQUEST prelim." higher_score_better="true" significance_threshold="1" MZ="1679.16" RT="0" >
     </PeptideIdentification>
-    <PeptideIdentification score_type="SEQUEST prelim." higher_score_better="true" significance_threshold="1" MZ="864.564" RT="0" >
+    <PeptideIdentification score_type="SEQUEST prelim." higher_score_better="true" significance_threshold="1" MZ="864.564" RT="35.2327" >
     </PeptideIdentification>
     <PeptideIdentification score_type="SEQUEST prelim." higher_score_better="true" significance_threshold="1" MZ="1296.35" RT="0" >
     </PeptideIdentification>
-    <PeptideIdentification score_type="SEQUEST prelim." higher_score_better="true" significance_threshold="1" MZ="895.9" RT="0" >
+    <PeptideIdentification score_type="SEQUEST prelim." higher_score_better="true" significance_threshold="1" MZ="895.9" RT="37.6401" >
     </PeptideIdentification>
     <PeptideIdentification score_type="SEQUEST prelim." higher_score_better="true" significance_threshold="1" MZ="1343.35" RT="0" >
     </PeptideIdentification>
