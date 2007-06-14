@@ -48,36 +48,14 @@ namespace OpenMS
 			own_sequence_db_(false),
 			own_model_(false)
 	{
-		defaults_.setValue("precursor_mass_tolerance", 3.0);
-		defaults_.setValue("peak_mass_tolerance", 0.3);
-		defaults_.setValue("max_candidates", 200);
-		defaults_.setValue("pre_score_name", "ZhangSimilarityScore");
-		defaults_.setValue("score_name", "SpectrumAlignmentScore");
-		defaults_.setValue("use_evalue_scoring", 1);
-		defaults_.setValue("fixed_modifications", "");
-/*
-		aa_weight_['K'] = 128.095;
-  	aa_weight_['M'] = 131.04;
-  	aa_weight_['F'] = 147.068;
-  	aa_weight_['P'] = 97.0528;
-  	aa_weight_['S'] = 87.032;
-  	aa_weight_['T'] = 101.048;
-  	aa_weight_['W'] = 186.079;
-  	aa_weight_['Y'] = 163.063;
-  	aa_weight_['V'] = 99.0684;
-  	aa_weight_['A'] = 71.0371;
-  	aa_weight_['R'] = 156.101;
-  	aa_weight_['N'] = 114.043;
-  	aa_weight_['D'] = 115.027;
-  	//aa_weight_['C'] = 161.015; //CmC
-		aa_weight_['C'] = 103.00919;
-  	aa_weight_['E'] = 129.043;
-  	aa_weight_['Q'] = 128.059;
-  	aa_weight_['G'] = 57.0215;
-  	aa_weight_['H'] = 137.059;
-  	aa_weight_['I'] = 113.084;
-  	aa_weight_['L'] = 113.084;
-*/
+		defaults_.setValue("precursor_mass_tolerance", 3.0, "Precursor mass tolerance which is used to query the peptide database for peptides");
+		defaults_.setValue("peak_mass_tolerance", 0.3, "Peak mass tolerance to align the simulated and experimental spectra");
+		defaults_.setValue("max_candidates", 200, "Number of candidates which are kept at the end of the identification");
+		defaults_.setValue("pre_score_name", "ZhangSimilarityScore", "The prescoring which is used");
+		defaults_.setValue("score_name", "SpectrumAlignmentScore", "The scoring for the comparison of simulated and experimental spectrum");
+		defaults_.setValue("use_evalue_scoring", 1, "If set to 1 EValue scoring as described in PILISScoring is used, otherwise similarity scores are directly reported");
+		defaults_.setValue("fixed_modifications", "", "fixed modifications to used in the format 57.001@C");
+		
 		defaultsToParam_();
 		updateMembers_();
 	}

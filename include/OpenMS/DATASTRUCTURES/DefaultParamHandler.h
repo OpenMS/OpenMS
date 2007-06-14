@@ -64,7 +64,7 @@ namespace OpenMS
 		
 		In order to avoid having to document the parameters in the code and in the doxygen documentation,
 		there is a mechanism for creating the doxygen documentation automatically. You simply have to add your
-		class to the program @a OpenMS/doc/doxygen/parameters/DefaultParamDocumenter.C. This program
+		class to the program @a OpenMS/doc/doxygen/parameters/DefaultParamHandlerDocumenter.C. This program
 		generates a doxygen subpage for the parameters. The subpage can than be included into the 
 		class documentation using the following doxygen command:
 		@code
