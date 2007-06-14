@@ -153,7 +153,7 @@ namespace OpenMS
 
 	void IsotopeDistribution::estimateFromPeptideWeight(double weight)
 	{
-		// - there are 5.45 Carbons per Residue (average, assuming equal occuring frenquencies)
+		// - there are 5.45 Carbons per Residue (average, assuming equally occuring frenquencies)
 		// - about 53.6% of the monoisotopic weight of a peptide is from Carbon (average...)
 		ContainerType C_dist;
 		C_dist.push_back(make_pair<UInt, double>(12, 0.9893));
