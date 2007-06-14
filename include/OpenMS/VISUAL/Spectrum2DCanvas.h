@@ -55,7 +55,9 @@ namespace OpenMS
   	The user can zoom, translate and select peaks. A
   	zoom stack is provided for going back to an earlier
   	view.
-
+		
+		@ref Spectrum2DCanvas_Parameters are explained on a separate page.
+		
   	@ingroup SpectrumWidgets
   */
   class Spectrum2DCanvas 

@@ -68,7 +68,7 @@ namespace OpenMS
 		generates a doxygen subpage for the parameters. The subpage can than be included into the 
 		class documentation using the following doxygen command:
 		@code
-@subpage <class name>_Parameters
+@ref <class name>_Parameters
 		@endcode
 		You can test if everything worked by calling @a make @a paramdoc in @a OpenMS/doc/.
 		The parameters documentation is written to @a OpenMS/docdoxygen/parameters/DefaultParameters.doxygen.

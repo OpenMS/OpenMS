@@ -32,29 +32,30 @@
 	<H2 style="border-top:2px solid grey;">General information</H2>
 		<UL>
 
-			<LI><B>Was sind die wichtigen URLs für OpenMS?</B>
+			<LI><B>Is there a central URL for OpenMS developers?</B>
 				<BR>
 				http://www-bs2.informatik.uni-tuebingen.de/services/OpenMS/search/
 				<BR>
-				Neben der Docu-Suche können dort weitere Links gefunden werden.
-
-			<LI><B>Wie update ich die Website?</B>
+				There you can search for OpenMS classes and it links out to several 
+				websites of interest.
+				
+			<LI><B>How do i update the website?</B>
 				<OL>
-					<LI> Das Modul website auschecken:
+					<LI> Check out the @a website module:
 					<BR>
 					<TT>svn co https://open-ms.svn.sourceforge.net/svnroot/open-ms/website</TT>
-					<LI> Die Website editieren
-					<LI> Änderungen einchecken
-					<LI> <TT>update.sh &lt;sf-login&gt;</TT> ausführen.
-					<LI> <TT>chmod -R 775</TT> in <TT>/home/groups/o/op/open-ms/htdocs/</TT> auf <TT>shell.sourceforge.net</TT> ausführen.
-							 <BR>(Damit alle Entwickler die Files überschreiben können).
+					<LI> Edit the website
+					<LI> Commit the changes
+					<LI> Execute <TT>update.sh &lt;sf-login&gt;</TT>
+					<LI> Execute <TT>chmod -R 775</TT> in <TT>/home/groups/o/op/open-ms/htdocs/</TT> auf <TT>shell.sourceforge.net</TT>.
+							 <BR>(Otherwise other developers will not be able to overwrite the files).
 				</OL>
 
 	    <li><b>How do I add a new directory in the <tt>source/</tt> directory to the built system?</b><br>
 	      Add the new directory to <tt>source/config/Makefile.in</tt>.
 
 	    <li><b>Can I use QT designer to create GUI widgets?</b><br>
-	      Yes! If you want to create a class called 'Widget':
+	      Yes! If you want to create a class called @a Widget:
 	
 	      <ul>
 	        <li>Create .ui-File with QT designer and store it as
@@ -77,20 +78,20 @@
 	      </ul>
 
 	    <li><b>How can i speed up the compile process?</b><br>
-	      For g++ you can use the wrapper <tt>ccache</tt>. It caches the preprocessor output.
-	      <p>
-	      If you have several pocessors you can built OpenMS classes/tests and TOPP tools
-	      in in several threads (2 per core) using the @a make option @a -j.
-
+	    	<UL>
+	      	<LI> For g++ you can use the wrapper <tt>ccache</tt>. It caches the preprocessor output.
+	      	<LI> If you have several pocessors you can built OpenMS classes/tests and TOPP tools
+	             in in several threads (2 per core) using the @a make option @a -j.
+				</UL>
 		</UL>
 
 	<H2 style="border-top:2px solid grey;">Common problems</H2>
 		<UL>
-			<li><b>After adding a class or after a SVN update, a 'undefined reference' error occurs during execution of programs.</b><br>
+			<li><b>After adding a class or after a SVN update, a @a undefined @a reference error occurs during execution of programs.</b><br>
 			  Execute <tt>make recollect</tt> in the <tt>source</tt> folder, which will update the files that are added to the library.
 			
-			<li><b>After a SVN update, a 'No rule to make target' error occurs during 'make'.</b><br>
-				Try 'make depend' in order to get the dependencies right!
+			<li><b>After a SVN update, a 'No rule to make target' error occurs during @a make.</b><br>
+				Try @a make @a depend in order to get the dependencies right!
 
 			<li><b>Can the CHECK-macro not handle template methods that have two or more arguments?</b><br>
 				Put round brackets around the method declaration. Then it should work.
@@ -100,11 +101,11 @@
 	<H2 style="border-top:2px solid grey;">Debugging</H2>
 		<UL>
 			<li><b>How do I debug a failed OpenMS test?</b><br>
-	    	Exeute the test with the '-V' option to see where the error
+	    	Exeute the test with the @a -V option to see where the error
 	    	occurred.
 	    
 	    <li><b>How do I debug a failed TOPP test?</b><br>
-	    	Let 'make' execute the test in debug/verbose mode, e.g.:
+	    	Let @a make execute the test in debug/verbose mode, e.g.:
 	    	<BR>
 	    	<tt>shell&gt; make DEBUG=1 VERBOSE=1 FeatureFinder_test</tt>
 			
@@ -121,7 +122,7 @@
 	
 	
 	    <li><b>Why is no core dumped, although a fatal error occured?</b><br>
-	      Try the 'ulimit -c unlimited' command. It sets the maximum
+	      Try the @a ulimit @a -c @a unlimited command. It sets the maximum
 	      size of a core to unlimited.
 	      <br>
 	      <br>
@@ -130,9 +131,9 @@
 	      We are not sure what causes this problem.
 	
 	
-	    <li><b>How can I set breakpoints in 'gdb' to debug OpenMS?</b><br>
-	      Let's say you want to debug the 'TOPPView' application and
-	      you want it to stop at line 341 of 'SpectrumMDIWindow.C'.
+	    <li><b>How can I set breakpoints in @a gdb to debug OpenMS?</b><br>
+	      Imagine you want to debug the @a TOPPView application and
+	      you want it to stop at line 341 of @a SpectrumMDIWindow.C.
 	      <br>
 	      <ol>
 	        <li>Run gdb:
@@ -177,13 +178,13 @@
 	      <tt>svn copy https://open-ms.svn.sourceforge.net/svnroot/open-ms/OpenMS \\<BR> https://open-ms.svn.sourceforge.net/svnroot/open-ms/branches/&lt;name&gt;/</tt>
 	
 	 		<li><b>How do i merge a branch into the trunk?</b><br>
-	 			Let's suppose the current revision is 25 and you added the branch in revision 10.
+	 			Imagine the current revision is 25 and you added the branch in revision 10.
 	 			<OL>
 	 				<LI>Merge the changes in the trunk since the branching into the branch:<BR>
 	 					<tt>cd OpenMS/</tt> (branch)<BR>
 	      		<tt>svn merge -r11:25 https://open-ms.svn.sourceforge.net/svnroot/open-ms/OpenMS</tt>
 	 				<LI>Commit the changes into the branch:<BR>
-	 					<tt>svn commit -m "merged -r11:25 of trunk into branch"</tt>
+	 					<tt>svn commit -m 'merged -r11:25 of trunk into branch'</tt>
 					<LI>Merge the branch into the trunk:<BR>
 						<tt>cd OpenMS/</tt> (trunk)<BR>
 	      		<tt>svn merge https://open-ms.svn.sourceforge.net/svnroot/open-ms/OpenMS \\<BR> https://open-ms.svn.sourceforge.net/svnroot/open-ms/branches/&lt;name&gt;/OpenMS/</tt>
@@ -207,56 +208,56 @@
 							<LI> Run the script <tt>source/config/tools/make_dist_contrib.sh</tt>
 						</OL>
 					<LI> FTP to upload.sourceforge.net (see http://sourceforge.net/docman/display_doc.php?docid=6445&group_id=1#howtoupload)
-					<LI> Login as "anonymous"
+					<LI> Login as @a anonymous
 					<LI> Use your e-mail address as the password for this login
-					<LI> Set your client to binary mode ("bin" on command-line clients)
-					<LI> Change your current directory to /incoming ("cd /incoming")
-					<LI> Upload the desired tarball file for the release ("put filename")
-					<LI> Login in the "Admin" section on http://sourceforge.net/project/showfiles.php?group_id=90558
-					<LI> Go to "File Releases"
+					<LI> Set your client to binary mode (@a bin on command-line clients)
+					<LI> Change your current directory to /incoming (@a cd @a /incoming)
+					<LI> Upload the desired tarball file for the release (@a put @a filename)
+					<LI> Login in the @a Admin section on http://sourceforge.net/project/showfiles.php?group_id=90558
+					<LI> Go to @a File @a Releases
 					<LI> Now you can add your release
-					<LI> Go to "Edit Releases" to change the status of the old release to "hidden" 
+					<LI> Go to @a Edit @a Releases to change the status of the old release to @a hidden 
 					<LI> Update the online documentation of OpenMS:
 						<OL>
-							<LI> Copy the documentation of the release to '/share/www/ApacheRoot/html/extern/OpenMS-release'.
-							     <BR> <b>Note: </b> Don't forget to execute 'make distclean' and 'configure'.
+							<LI> Copy the documentation of the release to @a /share/www/ApacheRoot/html/extern/OpenMS-release.
+							     <BR> <b>Note: </b> Do not forget to execute @a make @a distclean and @a configure.
 						</OL>
 				</OL>
 	
-			<LI><B>Was ist für ein Release zu tun?</B>
+			<LI><B>What has each developer to do for a release?</B>
 			
 				<p>
-				Jeder Maintainer muß seine Klassen und TOPP-Tools prüfen (oder jemanden finden, 
-				der es für einen macht). Fehlende Dokumentation oder Fehler in der Dokumentation
-				schrecken potentielle User ab!
-				
-				Hier eine Liste was zu tun ist (spätestens zwischen Feature-freeze und Release): 
+				Each maintainer must check his/her classes and TOPP tools.
+				Keep in mind that missing documenation scares off potential users!
+				<p>
+				Here is a list of what is to do: 
 				<OL>
-					<LI> Fehler die 'source/config/tools/checker.php' ausgibt korrigieren
+					<LI> Correct errors found by @a source/config/tools/checker.php.
 						<UL>
-							<LI> Mit @a -u kann man seinen Namen angeben (der bei Mantainer eingetragen ist)
-							<LI> Mit @a -v bekommt man mehr Informationen zu den Fehlern.
-							<LI> Mehr Informationen gibt's mit @a --help
-							<LI> Fragen oder Fehler im Skript bitte an Marc.
+							<LI> The option @a -u restricts the output to one maintainer
+							<LI> Verbose mode is enabled with @a -v
+							<LI> More options are given with @a --help
+							<LI> Send feedback concening the script to Marc
 						</UL>
-					<LI> Den Output der TOPP-tests 'source/TEST/TOPP/&lt;topp-tool&gt;.output' auf vergessenen Debug-Output prüfen
-					<LI> Dokumentation:
+					<LI> Check the output of TOPP tests @a source/TEST/TOPP/&lt;topp-tool&gt;.output for debug output
+					<LI> Documentation:
 						<UL>
 							<LI> OpenMS
 								<UL>
-									<LI> Tutorial schreiben / korrekturlesen
-									<LI> Klassendokumentation korrekturlesen  / ergänzen
-									<LI> Vergessene Methodendokumentaton ergänzen.
+									<LI> Write / correct tutorial
+									<LI> Write / correct tutorial class documentation
+									<LI> Complete method documentation
 								</UL>
 							<LI> TOPP
 								<UL>
-									<LI> Tutorial schreiben / korrekturlesen
-									<LI> Doxygen-Dokumentation korrekturlesen / ergänzen
-									<LI> Den Output von '&lt;topp-tool&gt; --help' korrekturlesen
-									<LI> Prüfen ob alle Parameter und Sektionen dokumentiert sind (@a -write_ini und INIFileEditor).
+									<LI> Write / correct tutorial
+									<LI> Write / correct tutorial doxygen documentation
+									<LI> Proof-read the output of @a &lt;topp-tool&gt; @a --help
+									<LI> Check if all parameters and sections are documented (@a -write_ini and @a INIFileEditor).
 								</UL>
 						</UL>
-					<LI> Klassen, die nicht ins Release sollen aus dem Release-Branch entfernen.
+					<LI> Remove classes not ready for release from the release branch.
+					<LI> Chgeck if all examples in @a OpenMS/source/EXAMPLES/ compile.
 				</OL>
 
 

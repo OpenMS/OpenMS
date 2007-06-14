@@ -44,7 +44,7 @@ namespace OpenMS
 
 		@ingroup Analysis_ID
 
-  	@subpage ConsensusID_Parameters are explained on a separate page.
+  	@ref ConsensusID_Parameters are explained on a separate page.
   */
   class ConsensusID
   	: public DefaultParamHandler

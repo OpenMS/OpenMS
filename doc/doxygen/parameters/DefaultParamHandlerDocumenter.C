@@ -85,7 +85,7 @@
 #include <OpenMS/VISUAL/Spectrum1DCanvas.h>
 #include <OpenMS/VISUAL/Spectrum2DCanvas.h>
 #include <OpenMS/VISUAL/Spectrum3DCanvas.h>
-
+#include <OpenMS/KERNEL/FeatureMap.h>
 
 // Documentation is in .h files:
 #include <OpenMS/ANALYSIS/DECHARGING/FeatureDecharger.h>
@@ -111,59 +111,87 @@ using namespace std;
 using namespace OpenMS;
 
 //**********************************************************************************
-//Helper method - do not change anything here
+//Helper method - use this method to generate the actual paramter documentation
 //**********************************************************************************
 void writeParameters(std::ofstream& f, const String& class_name, const Param& param)
 {
-	f <<
-		"/**\n"
-		" @page " << class_name << "_Parameters " << class_name << " Parameters" << endl;
-
-	// Manually create a link to the class documentation.  Doxygen just won't do this with @link or @sa.
-	String class_doc = "./class";
-	if ( !class_name.hasPrefix("OpenMS::") ) class_doc += "OpenMS::";
-	class_doc += class_name;
-	class_doc.substitute("::","_1_1");
-	f << "<a href=\"" << class_doc << ".html\">" << class_name << "</a>\n";
-
-	String type, description;
-	for(map<String,DataValue>::const_iterator it = param.begin(); it != param.end();++it)
+	static vector<String> class_names;
+	if (class_name=="CREATE_MAIN_PAGE")
 	{
-		if (it->second.valueType()==DataValue::INTVALUE || it->second.valueType()==DataValue::LONVALUE || it->second.valueType()==DataValue::SHOVALUE  )
+		f << "/**" << endl;
+		f << " @page Parameters_Main_Page Class parameters summary" << endl;
+		
+		for (vector<String>::const_iterator it = class_names.begin(); it!= class_names.end(); ++it)
 		{
-			type = "int";
+			f << " - @subpage " << *it << "_Parameters" << endl;
 		}
-		if (it->second.valueType()==DataValue::FLOVALUE || it->second.valueType()==DataValue::DOUVALUE )
-		{
-			type = "float";
-		}
-		if (it->second.valueType()==DataValue::STRVALUE )
-		{
-			type = "string";
-		}
-		description = param.getDescription(it->first);
-		description.substitute("\n","@n ");
-		f <<" - @b "<< it->first << " (" << type << "): " << description << endl;
+		
+		f << "*/" << endl;
+		f << endl;
 	}
-	f << "*/" << endl;
-	f << endl;
+	else
+	{
+		class_names.push_back(class_name);
+
+		f << "/**" << endl;
+		f << " @page " << class_name << "_Parameters " << class_name << " Parameters" << endl;
+	
+		// Manually create a link to the class documentation.  Doxygen just won't do this with @link or @sa.
+		String class_doc = "./class";
+		if ( !class_name.hasPrefix("OpenMS::") ) class_doc += "OpenMS::";
+		class_doc += class_name;
+		class_doc.substitute("::","_1_1");
+		f << "Parameters of <a href=\"" << class_doc << ".html\">" << class_name << "</a>:<BR><BR>\n";
+		f << "<table border=1>" << endl;
+		f <<"<tr><th>Name</th><th>Type</th><th>Description</th></tr>" << endl;
+		String type, description;
+		for(map<String,DataValue>::const_iterator it = param.begin(); it != param.end();++it)
+		{
+			if (it->second.valueType()==DataValue::INTVALUE || it->second.valueType()==DataValue::LONVALUE || it->second.valueType()==DataValue::SHOVALUE  )
+			{
+				type = "int";
+			}
+			if (it->second.valueType()==DataValue::FLOVALUE || it->second.valueType()==DataValue::DOUVALUE )
+			{
+				type = "float";
+			}
+			if (it->second.valueType()==DataValue::STRVALUE )
+			{
+				type = "string";
+			}
+			description = param.getDescription(it->first);
+			description.substitute("\n","@n ");
+			f <<"<tr><td><b>"<< it->first << "</b></td><td>" << type << "</td><td>" << description <<  "</td></tr>" << endl;
+		}
+		f << "</table>" << endl;
+		f << "*/" << endl;
+		f << endl;
+	}
 }
+
+//**********************************************************************************
+//Helper macros that can be used for easy classes
+//**********************************************************************************
+
+// for classes that have a default-constructor, simply use this macro with the class name
+#define DOCME(class) \
+writeParameters(f,""#class ,class().getParameters());
+
+// For class templates and classes without default constructor use this macro with the macro and a class instance
+// you may have to put parenteses around the instantiation
+#define DOCME2(class_template_name,instantiation) \
+writeParameters(f,""#class_template_name,instantiation.getParameters());
 
 //**********************************************************************************
 //Main method - add your class here
 //**********************************************************************************
-int main (int, char**)
+int main (int argc , char** argv)
 {
+	//some classes require a QApplication
+	QApplication app(argc,argv);
+	
 	ofstream f;
 	f.open("DefaultParameters.doxygen");
-
-	// for straight classes
-#define DOCME(class) \
-writeParameters(f,""#class ,class().getParameters());
-
-	// For class templates (you may have to put parens around the instantiation)
-#define DOCME2(class_template_name,instantiation) \
-writeParameters(f,""#class_template_name,instantiation.getParameters());
 
 	//////////////////////////////////
 	//
@@ -171,9 +199,9 @@ writeParameters(f,""#class_template_name,instantiation.getParameters());
 	//
 	//////////////////////////////////
 
-	//	DOCME(BaseSweepSeeder); // cannot instantiate (pure virtual functions)
+	//DOCME(BaseSweepSeeder); // cannot instantiate (pure virtual functions)
 	DOCME(BiGaussModel);
-	// DOCME(BinnedRepCompareFunctor); // cannot instantiate (pure virtual functions)
+	//DOCME(BinnedRepCompareFunctor); // cannot instantiate (pure virtual functions)
 	DOCME(BinnedRepMutualInformation);
 	DOCME(ComplementFilter);
 	DOCME(ComplementMarker);
@@ -201,7 +229,12 @@ writeParameters(f,""#class_template_name,instantiation.getParameters());
 	DOCME(PILISModel);
 	DOCME(PILISModelGenerator);
 	DOCME(PILISScoring);
-	// DOCME(PairMatcher);  // cannot instantiate (no default constructor)
+	
+	//PairMatcher
+	FeatureMap<> features;
+	PairMatcher pm(features);
+	writeParameters(f,"PairMatcher",pm.getParameters());
+	
 	DOCME(ParentPeakMower);
 	DOCME(PeakPicker);
 	DOCME(PeakPickerCWT);
@@ -213,18 +246,18 @@ writeParameters(f,""#class_template_name,instantiation.getParameters());
 	DOCME(SimpleExtender);
 	DOCME(SimpleModelFitter);
 	DOCME(SimpleSeeder);
-	// DOCME(Spectrum1DCanvas);  // cannot instantiate (no default constructor)
-	// DOCME(Spectrum2DCanvas);  // cannot instantiate (no default constructor)
-	// DOCME(Spectrum3DCanvas);  // cannot instantiate (no default constructor)
+	DOCME2(Spectrum1DCanvas,Spectrum1DCanvas(Param(),0));
+	DOCME2(Spectrum2DCanvas,Spectrum2DCanvas(Param(),0));
+	DOCME2(Spectrum3DCanvas,Spectrum3DCanvas(Param(),0));
 	DOCME(SpectrumAlignment);
 	DOCME(SpectrumAlignmentScore);
 	DOCME(SpectrumCheapDPCorr);
 	DOCME(SpectrumPrecursorComparator);
 	DOCME(SumReducer);
 	DOCME(TICFilter);
-	// DOCME(TOPPViewBase);  // runtime error (no QApplication instantiated)
 	DOCME(TheoreticalSpectrumGenerator);
 	DOCME(ThresholdMower);
+	DOCME(TOPPViewBase);
 	DOCME(TwoDOptimization);
 	DOCME(WindowMower);
 	DOCME(ZhangSimilarityScore);
@@ -252,6 +285,9 @@ writeParameters(f,""#class_template_name,instantiation.getParameters());
 	// DOCME2(SignalToNoiseEstimatorMeanIterative);
 	// DOCME2(SignalToNoiseEstimatorMedian);
 	// DOCME2(SimplePairFinder);
+
+	//create main page for all parameter documentations
+	writeParameters(f,"CREATE_MAIN_PAGE",Param());
 
   return 0;
 }

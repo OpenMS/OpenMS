@@ -62,6 +62,8 @@ namespace OpenMS
   /**
   	@brief Main window of TOPPView tool
   	
+  	@ref TOPPViewBase_Parameters are explained on a separate page.
+  	
   	@ingroup TOPPView_elements
   */
   class TOPPViewBase 

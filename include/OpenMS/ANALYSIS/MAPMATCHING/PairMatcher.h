@@ -39,20 +39,8 @@ namespace OpenMS
 	 	@brief The PairMatcher allows the matching of labeled features (features with a fixed distance).
 		
 		Finds feature pairs that have a defined distance in RT and m/z in the same map.
-
-	  Parameters:
-			<table>
-			<tr><td>mz_pair_dist</td>
-					<td>optimal pair distance in [Th] for features with charge +1 (adapted to +2, +3, .. by division through charge)</td></tr>
-			<tr><td>rt_pair_dist</td>
-					<td>optimal pair distance in [min]</td></tr>
-			<tr><td>mz_stdev</td>
-					<td>standard deviation from optimal m/z distance</td></tr>
-			<tr><td>rt_stdev_low</td>
-					<td>standard deviation below optimal retention time distance</td></tr>
-			<tr><td>rt_stdev_high</td>
-					<td>standard deviation above optimal retention time distance</td></tr>
-			</table>
+	
+		@ref PairMatcher_Parameters are explained on a separate page.
 	*/
 	class PairMatcher
 		: public FactoryProduct
