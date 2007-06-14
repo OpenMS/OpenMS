@@ -29,7 +29,6 @@
 #include <OpenMS/COMPARISON/SPECTRA/ZhangSimilarityScore.h>
 #include <OpenMS/COMPARISON/SPECTRA/SpectrumAlignmentScore.h>
 #include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
-#include <OpenMS/COMPARISON/CLUSTERING/ClusterSpectrum.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/Normalizer.h>
 #include <OpenMS/ANALYSIS/ID/PILISScoring.h>

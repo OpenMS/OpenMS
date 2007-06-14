@@ -29,7 +29,6 @@
 ///////////////////////////
 
 #include <OpenMS/COMPARISON/SPECTRA/BinnedRepSumAgreeingIntensities.h>
-#include <OpenMS/COMPARISON/CLUSTERING/ClusterSpectrum.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/FORMAT/DTAFile.h>
 

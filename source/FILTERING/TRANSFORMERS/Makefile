@@ -32,7 +32,6 @@ CPP_SOURCES = \
   BernNorm.C\
   GoodDiffFilter.C\
   NLargest.C\
-  ParentFilter.C\
   Scaler.C\
   ThresholdMower.C\
   ComplementFilter.C\
@@ -52,11 +51,6 @@ CPP_SOURCES = \
   IsotopeMarker.C\
   NeutralLossMarker.C\
   PeakMarker.C\
-  PeakPosBins.C\
-  PeakDiffBins.C\
-  KellerQuality.C\
-  TradSeqQuality.C\
-  IntensityDistBins.C\
   LinearResampler.C
 
 include ../../common.mak

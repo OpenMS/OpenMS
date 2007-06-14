@@ -32,7 +32,6 @@ include ../../config_defs.mak
 
 CPP_SOURCES=\
 	BinnedRep.C\
-	ClusterSpectrum.C\
 	HierarchicalClustering.C
 
 include ../../common.mak

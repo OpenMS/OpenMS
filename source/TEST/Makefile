@@ -228,12 +228,6 @@ EXECUTABLES_FILTERING = \
 	IsotopeMarker_test\
 	NeutralLossMarker_test\
 	MarkerMower_test\
-	ParentFilter_test\
-	TradSeqQuality_test\
-	PeakPosBins_test\
-	PeakDiffBins_test\
-	IntensityDistBins_test\
-	KellerQuality_test\
 	SavitzkyGolayQRFilter_test\
 	SavitzkyGolaySVDFilter_test\
 	InternalCalibration_test\
@@ -247,7 +241,6 @@ EXECUTABLES_FILTERING = \
 EXECUTABLES_COMPARISON=\
 	SpectrumCheapDPCorr_test\
 	BinnedRep_test\
-	ClusterSpectrum_test\
 	HierarchicalClustering_test\
 	BinnedRepCompareFunctor_test\
 	BinnedRepMutualInformation_test\

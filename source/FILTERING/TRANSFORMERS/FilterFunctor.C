@@ -29,16 +29,10 @@
 #include <OpenMS/FILTERING/TRANSFORMERS/ComplementFilter.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/GoodDiffFilter.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/IntensityBalanceFilter.h>
-#include <OpenMS/FILTERING/TRANSFORMERS/IntensityDistBins.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/NeutralLossDiffFilter.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/IsotopeDiffFilter.h>
-#include <OpenMS/FILTERING/TRANSFORMERS/KellerQuality.h>
-#include <OpenMS/FILTERING/TRANSFORMERS/ParentFilter.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/TICFilter.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/PeakDensityFilter.h>
-#include <OpenMS/FILTERING/TRANSFORMERS/PeakDiffBins.h>
-#include <OpenMS/FILTERING/TRANSFORMERS/PeakPosBins.h>
-#include <OpenMS/FILTERING/TRANSFORMERS/TradSeqQuality.h>
 
 #include <OpenMS/CONCEPT/Factory.h>
 
@@ -72,15 +66,9 @@ namespace OpenMS
 		Factory<FilterFunctor>::instance()->registerProduct(ComplementFilter::getProductName(), &ComplementFilter::create);
     Factory<FilterFunctor>::instance()->registerProduct(GoodDiffFilter::getProductName(), &GoodDiffFilter::create);
     Factory<FilterFunctor>::instance()->registerProduct(IntensityBalanceFilter::getProductName(), &IntensityBalanceFilter::create);
-    Factory<FilterFunctor>::instance()->registerProduct(IntensityDistBins::getProductName(), &IntensityDistBins::create);
     Factory<FilterFunctor>::instance()->registerProduct(NeutralLossDiffFilter::getProductName(), &NeutralLossDiffFilter::create);
     Factory<FilterFunctor>::instance()->registerProduct(IsotopeDiffFilter::getProductName(), &IsotopeDiffFilter::create);
-    Factory<FilterFunctor>::instance()->registerProduct(KellerQuality::getProductName(), &KellerQuality::create);
-    Factory<FilterFunctor>::instance()->registerProduct(ParentFilter::getProductName(), &ParentFilter::create);
     Factory<FilterFunctor>::instance()->registerProduct(TICFilter::getProductName(), &TICFilter::create);
     Factory<FilterFunctor>::instance()->registerProduct(PeakDensityFilter::getProductName(), &PeakDensityFilter::create);
-    Factory<FilterFunctor>::instance()->registerProduct(PeakDiffBins::getProductName(), &PeakDiffBins::create);
-    Factory<FilterFunctor>::instance()->registerProduct(PeakPosBins::getProductName(), &PeakPosBins::create);
-    Factory<FilterFunctor>::instance()->registerProduct(TradSeqQuality::getProductName(), &TradSeqQuality::create);
 	}
 }

@@ -33,7 +33,6 @@
 ///////////////////////////
 
 #include <OpenMS/KERNEL/DSpectrum.h>
-#include <OpenMS/COMPARISON/CLUSTERING/ClusterSpectrum.h>
 #include <OpenMS/FORMAT/DTAFile.h>
 #include <iostream>
 
