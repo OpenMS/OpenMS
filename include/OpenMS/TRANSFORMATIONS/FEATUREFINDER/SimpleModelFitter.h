@@ -125,7 +125,7 @@ namespace OpenMS
 	    /// Default constructor
 	    SimpleModelFitter();
 	
-	    /// destructor
+	    /// Destructor
 	    virtual ~SimpleModelFitter();
 
 	    /// Copy constructor
@@ -134,7 +134,7 @@ namespace OpenMS
 	    /// Assignment operator
 	    SimpleModelFitter& operator= (const SimpleModelFitter& rhs);
 	
-	    /// return next seed
+	    /// Return next seed
 	    Feature fit(const ChargedIndexSet& range) throw (UnableToFit);
 	
 	    static BaseModelFitter* create()
@@ -149,8 +149,7 @@ namespace OpenMS
 	
 		protected:
 			virtual void updateMembers_();
-			
-			/// fit offset by maximizing of quality
+
 			double fitOffset_(	InterpolationModel* model, const IndexSet& set, double stdev1, double stdev2, Coordinate offset_step);
 	
 			double fit_(	const IndexSet& set, MzFitting mz_fit, RtFitting rt_fit, Coordinate isotope_stdev=0.1);

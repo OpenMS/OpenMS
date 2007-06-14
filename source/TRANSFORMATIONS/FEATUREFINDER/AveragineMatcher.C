@@ -21,11 +21,11 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Clemens Groepl, Marcel Grunert $	
+// $Maintainer: Ole Schulz-Trieglaff $	
 // --------------------------------------------------------------------------
 
 
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/ExtendedModelFitter.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/AveragineMatcher.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/LmaGaussModel.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/GaussModel.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/EmgModel.h>
@@ -49,7 +49,7 @@ namespace OpenMS
 	
 	namespace Internal
 	{
-		// Helper struct for ExtendedModelFitter
+		// Helper struct for AveragineMatcher
 		struct ExpFitPolyData
 		{
 			size_t n;
@@ -61,10 +61,10 @@ namespace OpenMS
 	using namespace std;
 
 	//positions and signal values
-	vector<double> positionsDC_;
-	vector<double> signalDC_;
+	vector<double> positionsDC2_;
+	vector<double> signalDC2_;
 
-	ExtendedModelFitter::ExtendedModelFitter()
+	AveragineMatcher::AveragineMatcher()
 		: BaseModelFitter(),
 		quality_(0),
 	 	model2D_(),
@@ -118,19 +118,19 @@ namespace OpenMS
 		defaultsToParam_();
 	}
 
-	ExtendedModelFitter::~ExtendedModelFitter()
+	AveragineMatcher::~AveragineMatcher()
 	{
 		delete quality_;
 	}
 
-  ExtendedModelFitter::ExtendedModelFitter(const ExtendedModelFitter& rhs)
+  AveragineMatcher::AveragineMatcher(const AveragineMatcher& rhs)
     : BaseModelFitter(rhs),
     	quality_(0)
   {
     updateMembers_();
   }
   
-  ExtendedModelFitter& ExtendedModelFitter::operator= (const ExtendedModelFitter& rhs)
+  AveragineMatcher& AveragineMatcher::operator= (const AveragineMatcher& rhs)
   {
     if (&rhs == this) return *this;
     
@@ -141,7 +141,7 @@ namespace OpenMS
     return *this;
   }
 
-	void ExtendedModelFitter::updateMembers_()
+	void AveragineMatcher::updateMembers_()
 	{
 		if (quality_) delete quality_;
 		quality_ = Factory<BaseQuality>::create(param_.getValue("quality:type"));
@@ -162,7 +162,7 @@ namespace OpenMS
 		last_mz_model_ = (Int) param_.getValue("mz:model_type:last");
 	}
 
-	Feature ExtendedModelFitter::fit(const ChargedIndexSet& set) throw (UnableToFit)
+	Feature AveragineMatcher::fit(const ChargedIndexSet& set) throw (UnableToFit)
 	{
 		// not enough peaks to fit
 		if (set.size() < (UInt)(param_.getValue("min_num_peaks:extended")))
@@ -177,15 +177,18 @@ namespace OpenMS
 		}
 
 		quality_->setTraits(traits_);
-		ModelDescription<2> model_desc;
-		double quality = 0.0;
-		double max_quality = -std::numeric_limits<double>::max();
+		mz_lin_int_.getData().clear();		// empty interpolation datastructrure
+		
+		QualityType quality = 0.0;
+		QualityType max_quality = -std::numeric_limits<QualityType>::max();
 
 		// Calculate statistics
 		mz_stat_.update( IntensityIterator(set.begin(),traits_),IntensityIterator(set.end(),traits_),MzIterator(set.begin(),traits_) );
 		rt_stat_.update ( IntensityIterator(set.begin(),traits_),IntensityIterator(set.end(),traits_),RtIterator(set.begin(),traits_) );
 
 		// Calculate bounding box
+		CoordinateType min_mz_distance = std::numeric_limits<CoordinateType>::max();
+		CoordinateType prev_mz = 0.0;
 		IndexSetIter it=set.begin();
 		min_ = max_ = traits_->getPeakPos(*it);
 		for ( ++it; it!=set.end(); ++it )
@@ -193,10 +196,30 @@ namespace OpenMS
 			CoordinateType tmp = traits_->getPeakMz(*it);
 			if (min_[MZ] > tmp) min_[MZ] = tmp;
 			if (max_[MZ] < tmp) max_[MZ] = tmp;
+			
+			if (it != set.begin())
+			{
+				if (fabs(tmp - prev_mz) < min_mz_distance)
+				{
+					min_mz_distance = fabs(tmp - prev_mz);			
+				}		
+			}			
+			prev_mz = tmp;		
+						
 			tmp = traits_->getPeakRt(*it);
 			if (min_[RT] > tmp) min_[RT] = tmp;
 			if (max_[RT] < tmp) max_[RT] = tmp;
 		}
+		
+		CoordinateType sampling_size_mz = 3.0 *  (1.0/ (min_mz_distance*1.5));
+		mz_lin_int_.getData().resize((UInt) sampling_size_mz);	
+		mz_lin_int_.setMapping( 0, min_[MZ] , sampling_size_mz, max_[MZ]);
+		
+		for (IndexSetIter it=set.begin(); it!=set.end(); ++it )
+		{
+			mz_lin_int_.addValue( traits_->getPeakMz(*it),traits_->getPeakIntensity(*it) );			
+		}
+				
 
 		double const tolerance_stdev_box = param_.getValue("tolerance_stdev_bounding_box");
 		stdev_mz_ = sqrt ( mz_stat_.variance() ) * tolerance_stdev_box;
@@ -208,9 +231,9 @@ namespace OpenMS
 		min_[RT] -= stdev_rt1_;
 		max_[RT] += stdev_rt2_;
 
-		/// create a vector with RT-values & Intensity
-		/// compute the parameters (intial values) for the EMG & Gauss function and finally,
-		/// optimize the parameters with Levenberg-Marquardt algorithms
+		// create a vector with RT-values & Intensity
+		// compute the parameters (intial values) for the EMG & Gauss function and finally,
+		// optimize the parameters with Levenberg-Marquardt algorithms
 		if (profile_=="LmaGauss" || profile_=="EMG" || profile_=="LogNormal")
 		{
 			setData(set);
@@ -223,19 +246,17 @@ namespace OpenMS
 			}
 		}
 
-		/// Test different charges and stdevs
+		// Test charge states and stdevs
 		Int first_mz  = first_mz_model_;
 		Int last_mz  = last_mz_model_;
 		
-		/// Check charge estimate if charge is not specified by user
-		if (set.charge_ != 0 /*&& (iso_stdev_first_ != iso_stdev_last_)*/)
+		// Check charge estimate if charge is not specified by user
+		if (set.charge_ != 0)
 		{
 			first_mz = set.charge_;
 			last_mz = set.charge_;
-		// 	first_mz = (set.charge_ - 1);
-		//	last_mz = (set.charge_ + 1);		
 		}
-		std::cout << "Checking charge state from " << first_mz << " to " << last_mz << std::endl;
+		//cout << "Checking charge state from " << first_mz << " to " << last_mz << endl;
 	
 		ProductModel<2>* final = 0;	// model  with best correlation
 		
@@ -255,17 +276,12 @@ namespace OpenMS
 				if (quality > max_quality)
 				{
 					max_quality = quality;
-					//model_desc = ModelDescription<2>(&model2D_);
 					final = new ProductModel<2>(model2D_);	// store model
 				}
 				
 			}
 		}
-		
-		// model with highest correlation
-		//ProductModel<2>* final = dynamic_cast< ProductModel<2>* >(model_desc.createModel());
-		
-		// model_desc.createModel() returns 0 if class model_desc is not initialized
+	
 		// in this case something went wrong during the modelfitting and we stop.
 		if (! final)
 		{
@@ -274,28 +290,36 @@ namespace OpenMS
 		}
 
 		// find peak with highest predicted intensity to use as cutoff
-		float model_max = 0;
+// 		IntensityType model_max = 0;
+// 		for (IndexSetIter it=set.begin(); it!=set.end(); ++it)
+// 		{
+// 			IntensityType model_int = final->getIntensity(traits_->getPeakPos(*it));
+// 			if (model_int>model_max) model_max = model_int;
+// 		}
+// 		final->setCutOff( model_max * IntensityType(param_.getValue("intensity_cutoff_factor")));
+// 
+// 		// Cutoff low intensities wrt to model maximum -> cutoff independent of scaling
+// 		IndexSet model_set;
+// 		for (IndexSetIter it=set.begin(); it!=set.end(); ++it) 
+// 		{
+// 			if ( final->isContained(traits_->getPeakPos(*it)) )
+// 			{
+// 				model_set.insert(*it);
+// 			}
+// 			else		// free dismissed peak via setting the appropriate flag
+// 			{
+// 					traits_->getPeakFlag(*it) = FeaFiTraits::UNUSED;
+// 			}
+// 		}
+		
+		IndexSet model_set;
 		for (IndexSetIter it=set.begin(); it!=set.end(); ++it)
 		{
-			float model_int = final->getIntensity(traits_->getPeakPos(*it));
-			if (model_int>model_max) model_max = model_int;
+				model_set.insert(*it);		
 		}
-		final->setCutOff( model_max * float(param_.getValue("intensity_cutoff_factor")));
 
-		// Cutoff low intensities wrt to model maximum -> cutoff independent of scaling
-		IndexSet model_set;
-		for (IndexSetIter it=set.begin(); it!=set.end(); ++it) {
-			if ( final->isContained(traits_->getPeakPos(*it)) )
-			{
-				model_set.insert(*it);
-			}
-			else		// free dismissed peak via setting the appropriate flag
-			{
-					traits_->getPeakFlag(*it) = FeaFiTraits::UNUSED;
-			}
-		}
 		// Print number of selected peaks after cutoff
-		std::cout << " Selected " << model_set.size() << " from " << set.size() << " peaks.\n";
+		//cout << " Selected " << model_set.size() << " from " << set.size() << " peaks." << std::endl;
 
 		// not enough peaks left for feature
 		if (model_set.size() < (UInt)(param_.getValue("min_num_peaks:final")))
@@ -305,39 +329,49 @@ namespace OpenMS
 												"UnableToFit-FinalSet",
 												String("Skipping feature, IndexSet size after cutoff too small: ") + model_set.size() );
 		}
- 		max_quality = quality_->evaluate(model_set, *final); // recalculate quality after cutoff
+ 		//max_quality = quality_->evaluate(model_set, *final); // recalculate quality after cutoff
 
-		std::cout << "P-value : " << quality_->getPvalue() << std::endl;
+		//std::cout << "P-value : " << quality_->getPvalue() << std::endl;
+		
+		
+		
+		QualityType qual_mz =	quality_->evaluate(model_set, *final->getModel(MZ), MZ);
+		cout << "Quality in m/z : " << qual_mz << endl;
+		QualityType qual_rt =	quality_->evaluate(model_set, *final->getModel(RT), RT );
+		cout << "Quality in rt : " << qual_rt << endl;
+		
+		max_quality = (qual_mz + qual_rt) / 2.0;
 		
 		// fit has too low quality or fit was not possible i.e. because of zero stdev
-		if (max_quality < (float)(param_.getValue("quality:minimum")))
+		if (max_quality < (QualityType)(param_.getValue("quality:minimum")))
 		{
 			delete final;
 			String mess = String("Skipping feature, correlation too small: ") + max_quality;
 			throw UnableToFit(__FILE__, __LINE__,__PRETTY_FUNCTION__,"UnableToFit-Correlation", mess.c_str());
 		}
+		
 
 		// Calculate intensity scaling
-		float model_sum = 0;
-		float data_sum = 0;
-		float data_max = 0;
-		for (IndexSetIter it=model_set.begin(); it!=model_set.end(); ++it)
-		{
-			float model_int = final->getIntensity(traits_->getPeakPos(*it));
-			model_sum += model_int;
-			data_sum += traits_->getPeakIntensity(*it);
-			if (traits_->getPeakIntensity(*it) > data_max) data_max = traits_->getPeakIntensity(*it);
-		}
-
-		// fit has too low quality or fit was not possible i.e. because of zero stdev
-		if (model_sum == 0)
-		{
-			delete final;
-			throw UnableToFit(__FILE__, __LINE__,__PRETTY_FUNCTION__,
-												"UnableToFit-ZeroSum","Skipping feature, model_sum zero.");
-		}
-
-		final->setScale(data_max/model_max);	// use max quotient instead of sum quotient
+// 		IntensityType model_sum = 0;
+// 		IntensityType data_sum = 0;
+// 		IntensityType data_max = 0;
+// 		for (IndexSetIter it=model_set.begin(); it!=model_set.end(); ++it)
+// 		{
+// 			IntensityType model_int = final->getIntensity(traits_->getPeakPos(*it));
+// 			model_sum += model_int;
+// 			data_sum += traits_->getPeakIntensity(*it);
+// 			if (traits_->getPeakIntensity(*it) > data_max) data_max = traits_->getPeakIntensity(*it);
+// 		}
+// 
+// 		// fit has too low quality or fit was not possible i.e. because of zero stdev
+// 		if (model_sum == 0)
+// 		{
+// 			delete final;
+// 			throw UnableToFit(__FILE__, __LINE__,__PRETTY_FUNCTION__,
+// 												"UnableToFit-ZeroSum","Skipping feature, model_sum zero.");
+// 		}
+// 
+// 		final->setScale(data_max/model_max);	// use max quotient instead of sum quotient
 
 		// Build Feature
 		// The feature coordinate in rt dimension is given
@@ -359,8 +393,8 @@ namespace OpenMS
 			f.setCharge(0);		
 		}
 
-		int const intensity_choice = param_.getValue("feature_intensity_sum");
-		double feature_intensity = 0.0;
+		Int const intensity_choice = param_.getValue("feature_intensity_sum");
+		IntensityType feature_intensity = 0.0;
 		
 		if (intensity_choice == 1)
 		{
@@ -389,8 +423,8 @@ namespace OpenMS
 							<< max_quality << "\n";
 
 
-		f.setQuality(RT, quality_->evaluate(model_set, *final->getModel(RT), RT ));
-		f.setQuality(MZ, quality_->evaluate(model_set, *(dynamic_cast<InterpolationModel*>(final->getModel(MZ)) ), MZ ));
+		f.setQuality(RT, qual_rt);
+		f.setQuality(MZ, qual_mz);
 
 		// save meta data in feature for TOPPView
 		stringstream meta ;
@@ -437,8 +471,8 @@ namespace OpenMS
  		return f;
 	}
 
-	double ExtendedModelFitter::fit_(const IndexSet& set, MzFitting mz_fit, RtFitting rt_fit,
-																	 Coordinate isotope_stdev)
+	double AveragineMatcher::fit_(const IndexSet& set, MzFitting mz_fit, RtFitting rt_fit,
+																	 					  Coordinate isotope_stdev)
 	{
 		// Build Models
 		InterpolationModel* mz_model;
@@ -468,6 +502,8 @@ namespace OpenMS
 			tmp.setValue("charge", static_cast<Int>(mz_fit));
 			tmp.setValue("isotope:stdev",isotope_stdev);
 			tmp.setValue("statistics:mean", mz_stat_.mean());
+			
+			cout << "Setting averagine model to center " << mz_model->getCenter() << endl;
 			
 			static_cast<IsotopeModel*>(mz_model)->setParameters( tmp );
 		}
@@ -552,17 +588,133 @@ namespace OpenMS
 			static_cast<BiGaussModel*>(rt_model)->setParameters( tmp );
 		}
 
+		double res = fitOffset_mz_(mz_model,mz_fit,isotope_stdev);
+// 		if (profile_!="LmaGauss" && profile_!="EMG" && profile_!="LogNormal")
+// 			res = fitOffset_(rt_model, set, stdev_rt1_, stdev_rt2_, interpolation_step_rt_);
+
+		std::cout << *mz_model << std::endl;
+			
 		model2D_.setModel(MZ, mz_model).setModel(RT, rt_model);
-
-		double res;
-		res = fitOffset_(mz_model, set, stdev_mz_, stdev_mz_, interpolation_step_mz_);
-		if (profile_!="LmaGauss" && profile_!="EMG" && profile_!="LogNormal")
-			res = fitOffset_(rt_model, set, stdev_rt1_, stdev_rt2_, interpolation_step_rt_);
-
+			
 		return res;
 	}
+	
+	double AveragineMatcher::fitOffset_mz_(	InterpolationModel* mz_model,MzFitting mz_fit,Coordinate isotope_stdev)
+	{	
+		
+		// new model
+		InterpolationModel* iso_model;
+		iso_model = new IsotopeModel();
+		Param iso_param = param_.copy("isotope_model:",true);
+		iso_param.remove("stdev");
+		iso_model->setParameters(iso_param);
+		iso_model->setInterpolationStep(interpolation_step_mz_);
+			
+		QualityType max_corr         =  -std::numeric_limits<QualityType>::max();
+		CoordinateType max_center =  -std::numeric_limits<QualityType>::max();
+				
+		// normalize data and compute mean position
+		CoordinateType mz_data_sum  = 0.0;
+		CoordinateType mz_mean_pos = 0.0;
+		for (UInt i=0;i<mz_lin_int_.getData().size();++i)
+		{
+			mz_mean_pos += (mz_lin_int_.index2key(i) * mz_lin_int_.getData()[i]);
+			mz_data_sum += mz_lin_int_.getData()[i];
+		}	
+		mz_mean_pos /= mz_data_sum;
+		
+		cout << "mz_mean_pos = " << mz_mean_pos << endl;
+		
+		// compute m/z data average
+		CoordinateType mz_data_avg = 0.0;
+		for (UInt i=0;i<mz_lin_int_.getData().size();++i)
+		{
+			mz_data_avg += ( mz_lin_int_.getData()[i] / mz_data_sum);	
+		}	
+		mz_data_avg /= mz_lin_int_.getData().size();
+		
+		for (CoordinateType pos = mz_mean_pos- 0.2;
+		     pos <= mz_mean_pos+ 0.2;
+				 pos += 0.1)
+		{
+		
+			Param tmp;
+			tmp.setValue("charge", static_cast<Int>(mz_fit));
+			tmp.setValue("isotope:stdev",isotope_stdev);
+			tmp.setValue("statistics:mean", pos);
+	
+			static_cast<IsotopeModel*>(iso_model)->setParameters( tmp );
+		
+			iso_model->setSamples();
+			cout << "Setting averagine model to center " << iso_model->getCenter() << endl;
+			//cout << "Center : " << iso_model->getCenter() << endl;
+			
+			// normalize m/z model
+			IntensityType mz_model_sum = 0.0;
+			DPeakArray< DPeak<1> > samples;
+			iso_model->getSamples(samples);
+			for(UInt i=0; i<samples.size();++i)
+			{
+				mz_model_sum += samples[i].getIntensity();	
+			}
+		
+			// compute m/z model average (for the given set of data points)
+			CoordinateType mz_model_avg = 0.0;		
+			for (UInt i=0;i<mz_lin_int_.getData().size();++i)
+			{
+				mz_model_avg += ( iso_model->getIntensity(mz_lin_int_.index2key(i) ) / mz_model_sum);
+			} 		
+			mz_model_avg /= mz_lin_int_.getData().size();
+		
+			// compute Pearson correlation
+			IntensityType cross_product_sum = 0;
+			IntensityType data_square_sum   = 0;
+			IntensityType model_square_sum  = 0; 
+			for (UInt i=0;i<mz_lin_int_.getData().size();++i)
+			{
+// 					cout << "Predicted intensity for " << mz_lin_int_.index2key(i);
+// 					cout << " " <<  iso_model->getIntensity(mz_lin_int_.index2key(i) ) << endl;
+				
+					IntensityType m = (iso_model->getIntensity(mz_lin_int_.index2key(i) ) / mz_model_sum);
+					IntensityType d = (mz_lin_int_.getData()[i] / mz_data_sum);
+			
+					cross_product_sum += ( m - mz_model_avg) * ( d - mz_data_avg);
+					data_square_sum    += ( d - mz_data_avg)  * ( d - mz_data_avg);
+					model_square_sum  += ( m - mz_model_avg)  * ( m - mz_model_avg);					
+			}
+		
+			QualityType corr_mz = cross_product_sum / sqrt(data_square_sum * model_square_sum);
+			cout << "Pearson correlation in m/z : " << corr_mz << endl;
+		
+			if (corr_mz > max_corr)
+			{
+				max_corr   = corr_mz;
+				max_center = pos;
+			}
+				
+		}
+		
+		mz_model = new IsotopeModel();
+		Param p = param_.copy("isotope_model:",true);
+		p.remove("stdev");
+		mz_model->setParameters(p);
+		mz_model->setInterpolationStep(interpolation_step_mz_);
+			
+		Param tmp;
+		tmp.setValue("charge", static_cast<Int>(mz_fit));
+		tmp.setValue("isotope:stdev",isotope_stdev);
+		tmp.setValue("statistics:mean", max_center);
+					
+		static_cast<IsotopeModel*>(mz_model)->setParameters( tmp );
+		
+		cout << "Setting averagine model to center (finally) " << mz_model->getCenter() << endl;
+		cout << "Best offset: " << max_center << " with correlation " << max_corr << endl;
+				
+		return max_corr;
+	}
 
-	double ExtendedModelFitter::fitOffset_(	InterpolationModel* model,
+
+	double AveragineMatcher::fitOffset_(	InterpolationModel* model,
 																					const IndexSet& set, const double stdev1,  const double stdev2,
 																					const Coordinate offset_step)
 	{
@@ -592,7 +744,7 @@ namespace OpenMS
 	}
 
 	//create a vector with RT-values & Intensities and compute the parameters (intial values) for the EMG & Gauss function
-	void ExtendedModelFitter::setData(const IndexSet& set)
+	void AveragineMatcher::setData(const IndexSet& set)
 	{
 		// sum over all intensities
 		double sum = 0.0;
@@ -610,54 +762,54 @@ namespace OpenMS
 			//orgFile << position << "  " << mz << " " << signal << "\n";
 
 			// fill vectors with rt-postion and signal
-			if (positionsDC_.empty() || positionsDC_.back()!=position) {
-				positionsDC_.push_back(position);
-				signalDC_.push_back(signal);
+			if (positionsDC2_.empty() || positionsDC2_.back()!=position) {
+				positionsDC2_.push_back(position);
+				signalDC2_.push_back(signal);
 			}
 			else {
-				signal += signalDC_.back();
-				signalDC_.pop_back();
-				signalDC_.push_back(signal);
+				signal += signalDC2_.back();
+				signalDC2_.pop_back();
+				signalDC2_.push_back(signal);
 			}
 		}
 
 		// calculate the median
 		int median = 0;
 		float count = 0.0;
-		for (size_t current_point=0; current_point<positionsDC_.size();current_point++)
+		for (size_t current_point=0; current_point<positionsDC2_.size();current_point++)
 		{
-			count += signalDC_[current_point];
+			count += signalDC2_[current_point];
 			if (count <= sum/2)
 				median = current_point;
 		}
 
 		double sumS = 0.0;
-		for (size_t current_point=0; current_point<positionsDC_.size();current_point++)
+		for (size_t current_point=0; current_point<positionsDC2_.size();current_point++)
 		{
-			sumS += pow((positionsDC_[current_point] - positionsDC_[median]),2);
+			sumS += pow((positionsDC2_[current_point] - positionsDC2_[median]),2);
 		}
 
 		// calculate the stardard deviation
-		standard_deviation_ = sqrt(sumS/(positionsDC_.size() - 1));
+		standard_deviation_ = sqrt(sumS/(positionsDC2_.size() - 1));
 
 		// set expeceted value
-		expected_value_ = positionsDC_[median];//rt_stat_.mean();
+		expected_value_ = positionsDC2_[median];//rt_stat_.mean();
 
 		// calculate the heigth of the peak
-		height_ = signalDC_[median];
+		height_ = signalDC2_[median];
 
 		// calculate the width of the peak
 		// rt-values with intensity zero are not allowed for calculation of the width
-		width_ = abs(positionsDC_[positionsDC_.size()-1] - positionsDC_[0]);
+		width_ = abs(positionsDC2_[positionsDC2_.size()-1] - positionsDC2_[0]);
 
 		// calculate retention time
-		retention_ = positionsDC_[median];
+		retention_ = positionsDC2_[median];
 
 		// default is an asymmetric peak
 		symmetric_ = false;
 
 		// calculate the symmetry (fronted peak: s<1 , tailed peak: s>1)
-		symmetry_ = abs(positionsDC_.back() - positionsDC_[median])/abs(positionsDC_[median] - positionsDC_.front());
+		symmetry_ = abs(positionsDC2_.back() - positionsDC2_[median])/abs(positionsDC2_[median] - positionsDC2_.front());
 
 		// check the symmetry
 		if (isinf(symmetry_) || isnan(symmetry_))
@@ -701,7 +853,7 @@ namespace OpenMS
 	}
 
 	//Evaluation of the target function for nonlinear optimization.
-	int residualDC(const gsl_vector* x, void* params , gsl_vector* f)
+	int residualDC2(const gsl_vector* x, void* params , gsl_vector* f)
 	{
 		size_t n = ((struct ExpFitPolyData*)params)->n;
 		String profile = ((struct ExpFitPolyData*)params)->profile;
@@ -717,11 +869,11 @@ namespace OpenMS
 
 			for (size_t i = 0; i < n; i++)
 			{
-				double t = positionsDC_[i];
+				double t = positionsDC2_[i];
 
 				Yi=(1/(sqrt(2*M_PI)*normal_s))*exp(-((t-normal_m)*(t-normal_m))/(2*normal_s*normal_s))*normal_scale;
 
-				gsl_vector_set(f, i, (Yi - signalDC_[i]));
+				gsl_vector_set(f, i, (Yi - signalDC2_[i]));
 			}
 		}
 		else
@@ -739,12 +891,12 @@ namespace OpenMS
 				// iterate over all points of the signal
 				for (size_t i = 0; i < n; i++)
 				{
-					double t = positionsDC_[i];
+					double t = positionsDC2_[i];
 
 					// Simplified EMG
 					Yi=(h*w/s)*sqrt(2*M_PI)*exp(((w*w)/(2*s*s))-((t-z)/s))/(1+exp((-2.4055/sqrt(2))*(((t-z)/w)-w/s)));
 
-					gsl_vector_set(f, i, (Yi - signalDC_[i]));
+					gsl_vector_set(f, i, (Yi - signalDC2_[i]));
 				}
 			}
 			/// log normal
@@ -760,11 +912,11 @@ namespace OpenMS
 
 				for (size_t i = 0; i < n; i++)
 				{
-					double t = positionsDC_[i];
+					double t = positionsDC2_[i];
 
 					Yi = h*exp(-log(r)/(log(s)*log(s))*pow(log((t-z)*(s*s-1)/(w*s)+1),2));
 
-					gsl_vector_set(f, i, (Yi - signalDC_[i]));
+					gsl_vector_set(f, i, (Yi - signalDC2_[i]));
 				}
 			}
 		}
@@ -774,7 +926,7 @@ namespace OpenMS
 
 	/** Compute the Jacobian of the residual, where each row of the matrix corresponds to a
 	 *  point in the data. */
-	int jacobianDC(const gsl_vector* x, void* params, gsl_matrix* J)
+	int jacobianDC2(const gsl_vector* x, void* params, gsl_matrix* J)
 	{
 
 		size_t n = ((struct ExpFitPolyData*)params)->n;
@@ -791,7 +943,7 @@ namespace OpenMS
 
 			for (size_t i = 0; i < n; i++)
 			{
-				double t = positionsDC_[i];
+				double t = positionsDC2_[i];
 
 				// f'(normal_s)
 				derivative_normal_s = -((1/sqrt(2*M_PI))/(normal_s*normal_s))*exp(-((t-normal_m)*(t-normal_m))/(2*normal_s*normal_s))*normal_scale+((1/sqrt(2*M_PI))/(normal_s*normal_s*normal_s*normal_s))*((t-normal_m)*(t-normal_m))*exp(-((t-normal_m)*(t-normal_m))/(2*normal_s*normal_s))*normal_scale;
@@ -828,7 +980,7 @@ namespace OpenMS
 				// iterate over all points of the signal
 				for (size_t i = 0; i < n; i++)
 				{
-					double t = positionsDC_[i];
+					double t = positionsDC2_[i];
 
 					exp1 = exp(((w*w)/(2*s*s))-((t-z)/s));
 					exp2 = (1+exp((-emg_const/sqrt_2)*(((t-z)/w)-w/s)));
@@ -867,7 +1019,7 @@ namespace OpenMS
 				// iterate over all points of the signal
 				for (size_t i = 0; i < n; i++)
 				{
-					double t = positionsDC_[i];
+					double t = positionsDC2_[i];
 
 					double exp1  = exp(-log(r)/(log(s)*log(s))*pow(log((t-z)*(s*s-1)/(w*s)+1),2));
 					double term1 = (((t-z)*(s*s-1))/(w*s))+1;
@@ -899,23 +1051,23 @@ namespace OpenMS
 	}
 
 	// Driver function for the evaluation of function and jacobian.
-	int evaluateDC(const gsl_vector* x, void* params, gsl_vector* f, gsl_matrix* J)
+	int evaluateDC2(const gsl_vector* x, void* params, gsl_vector* f, gsl_matrix* J)
 	{
-		residualDC(x, params, f);
-		jacobianDC(x, params, J);
+		residualDC2(x, params, f);
+		jacobianDC2(x, params, J);
 
 		return GSL_SUCCESS;
 	}
 
 	// perform a nonlinear optimization
-	void ExtendedModelFitter::optimize()
+	void AveragineMatcher::optimize()
 	{
 		const gsl_multifit_fdfsolver_type *T;
 		gsl_multifit_fdfsolver *s;
 
 		int status;
 		size_t iter = 0;
-		const size_t n = positionsDC_.size();
+		const size_t n = positionsDC2_.size();
 
 		// number of parameter to be optimize
 		unsigned int p = 0;
@@ -954,9 +1106,9 @@ namespace OpenMS
 		r = gsl_rng_alloc (type);
 
 		struct ExpFitPolyData d = {n, profile_};
-		f.f = &residualDC;
-		f.df = &jacobianDC;
-		f.fdf = &evaluateDC;
+		f.f = &residualDC2;
+		f.df = &jacobianDC2;
+		f.fdf = &evaluateDC2;
 		f.n = n;
 		f.p = p;
 		f.params = &d;
@@ -1108,8 +1260,8 @@ namespace OpenMS
 		gsl_multifit_fdfsolver_free(s);
 
 #ifdef DEBUG_FEATUREFINDER
-		for (size_t current_point=0; current_point<positionsDC_.size();current_point++)
-			std::cout << positionsDC_[current_point] << " " << signalDC_[current_point] << std::endl;
+		for (size_t current_point=0; current_point<positionsDC2_.size();current_point++)
+			std::cout << positionsDC2_[current_point] << " " << signalDC2_[current_point] << std::endl;
 
 		cout << "" << endl;
 		cout << "*** parameter for optimization ***" << endl;
@@ -1124,46 +1276,46 @@ namespace OpenMS
 		cout << "      profile:  " << profile_ << endl;
 		cout << "" << endl;
 #endif
-		positionsDC_.clear();
-		signalDC_.clear();
+		positionsDC2_.clear();
+		signalDC2_.clear();
 	}
 
- 	ExtendedModelFitter::CoordinateType ExtendedModelFitter::getSymmetry() const 
+ 	AveragineMatcher::CoordinateType AveragineMatcher::getSymmetry() const 
 	{ 
 		return symmetry_; 
 	}
 	
-	ExtendedModelFitter::CoordinateType ExtendedModelFitter::getHeight() const 
+	AveragineMatcher::CoordinateType AveragineMatcher::getHeight() const 
 	{ 
 		return height_; 
 	}
 	
-	ExtendedModelFitter::CoordinateType ExtendedModelFitter::getWidth() const 
+	AveragineMatcher::CoordinateType AveragineMatcher::getWidth() const 
 	{ 
 		return width_; 
 	}
 	
-	ExtendedModelFitter::CoordinateType ExtendedModelFitter::getRT() const 
+	AveragineMatcher::CoordinateType AveragineMatcher::getRT() const 
 	{ 
 		return retention_; 
 	}
 
-	ExtendedModelFitter::CoordinateType ExtendedModelFitter::getStandardDeviation() const 
+	AveragineMatcher::CoordinateType AveragineMatcher::getStandardDeviation() const 
 	{ 
 		return standard_deviation_; 
 	}
 
-	ExtendedModelFitter::CoordinateType ExtendedModelFitter::getExpectedValue() const 
+	AveragineMatcher::CoordinateType AveragineMatcher::getExpectedValue() const 
 	{ 
 		return expected_value_; 
 	}
 
-	ExtendedModelFitter::CoordinateType ExtendedModelFitter::getScaleFactor() const 
+	AveragineMatcher::CoordinateType AveragineMatcher::getScaleFactor() const 
 	{ 
 		return scale_factor_; 
 	}
 
-	std::string ExtendedModelFitter::getGSLStatus() const 
+	std::string AveragineMatcher::getGSLStatus() const 
 	{ 
 		return gsl_status_; 
 	}

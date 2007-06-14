@@ -21,17 +21,19 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Clemens Groepl, Marcel Grunert $
+// $Maintainer: Ole Schulz-Trieglaff $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_TRANSFORMATIONS_FEATUREFINDER_EXTENDEDMODELFITTER_H
-#define OPENMS_TRANSFORMATIONS_FEATUREFINDER_EXTENDEDMODELFITTER_H
+#ifndef OPENMS_TRANSFORMATIONS_FEATUREFINDER_AVERAGINEMATCHER_H
+#define OPENMS_TRANSFORMATIONS_FEATUREFINDER_AVERAGINEMATCHER_H
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/BaseModelFitter.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeaFiTraits.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/ProductModel.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/InterpolationModel.h>
+
 #include <OpenMS/MATH/STATISTICS/AsymmetricStatistics.h>
+#include <OpenMS/MATH/MISC/LinearInterpolation.h>
 
 #include <gsl/gsl_rng.h>
 #include <gsl/gsl_randist.h>
@@ -104,16 +106,22 @@ namespace OpenMS
   */
 
 
-  class ExtendedModelFitter
+  class AveragineMatcher
     : public BaseModelFitter
   {
 
 	 public:
-
+		///
 		typedef IndexSet::const_iterator IndexSetIter;
+		///
 		typedef FeaFiTraits::CoordinateType Coordinate;
-
+		///
 		typedef Feature::CoordinateType CoordinateType;
+		/// 
+		typedef Feature::QualityType QualityType;
+		///	
+		typedef Feature::IntensityType IntensityType;
+		///	
 		typedef Feature::PositionType PositionType2D;
 
 		enum RtFitting{ RTGAUSS=0, LMAGAUSS=1, EMGAUSS=2, BIGAUSS=3, LOGNORMAL=4 };
@@ -126,28 +134,28 @@ namespace OpenMS
 			};
 
     /// Default constructor
-    ExtendedModelFitter();
+    AveragineMatcher();
 
     /// Destructor
-    virtual ~ExtendedModelFitter();
+    virtual ~AveragineMatcher();
 
    	/// Copy constructor
-    ExtendedModelFitter(const ExtendedModelFitter& rhs);
+    AveragineMatcher(const AveragineMatcher& rhs);
     
     /// Assignment operator
-    ExtendedModelFitter& operator= (const ExtendedModelFitter& rhs);
+    AveragineMatcher& operator= (const AveragineMatcher& rhs);
 
     /// Return next feature
     Feature fit(const ChargedIndexSet& range) throw (UnableToFit);
 
     static BaseModelFitter* create()
     {
-      return new ExtendedModelFitter();
+      return new AveragineMatcher();
     }
 
     static const String getProductName()
     {
-      return "ExtendedModelFitter";
+      return "AveragineMatcher";
     }
 
 	/// create a vector with RT-values & Intensities and compute the parameters (intial values) for the EMG, Gauss and logNormal function
@@ -193,8 +201,9 @@ namespace OpenMS
 
 		virtual void updateMembers_();
 
-		/// fit offset by maximizing of quality
 		double fitOffset_(InterpolationModel* model, const IndexSet& set, double stdev1, double stdev2, Coordinate offset_step);
+		
+		double fitOffset_mz_(InterpolationModel* iso_model,MzFitting mz_fit,Coordinate isotope_stdev);
 
 		double fit_(const IndexSet& set, MzFitting mz_fit, RtFitting rt_fit, Coordinate isotope_stdev=0.1);
 
@@ -229,7 +238,7 @@ namespace OpenMS
 		Int last_mz_model_;
 
 		/// Maximum number of iterations
-		unsigned int max_iteration_;
+		UInt max_iteration_;
 
 		/// parameter of log normal function:
 		/// r is the ratio between h and the height at which w and s are computed
@@ -263,6 +272,9 @@ namespace OpenMS
 		/// parameter of gauss function: expected value
 		double expected_value_;
 		
+		/// projection of points onto mz
+		Math::LinearInterpolation<CoordinateType,CoordinateType> mz_lin_int_;
+		
   };
 }
-#endif // OPENMS_TRANSFORMATIONS_FEATUREFINDER_EXTENDEDMODELFITTER_H
+#endif // OPENMS_TRANSFORMATIONS_FEATUREFINDER_AVERAGINEMATCHER_H

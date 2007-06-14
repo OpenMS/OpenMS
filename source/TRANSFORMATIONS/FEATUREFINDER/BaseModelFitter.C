@@ -31,6 +31,7 @@
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SimpleModelFitter.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/ExtendedModelFitter.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/DummyFitter.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/AveragineMatcher.h>
 
 namespace OpenMS
 {
@@ -39,6 +40,7 @@ namespace OpenMS
 		Factory<BaseModelFitter>::registerProduct(SimpleModelFitter::getProductName(), &SimpleModelFitter::create);
 		Factory<BaseModelFitter>::registerProduct(ExtendedModelFitter::getProductName(), &ExtendedModelFitter::create);
 		Factory<BaseModelFitter>::registerProduct(DummyFitter::getProductName(), &DummyFitter::create);
+		Factory<BaseModelFitter>::registerProduct(AveragineMatcher::getProductName(), &AveragineMatcher::create);
 	}	
 
 	BaseModelFitter::BaseModelFitter() 

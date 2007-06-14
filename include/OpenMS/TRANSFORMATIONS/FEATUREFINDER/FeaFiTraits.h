@@ -104,6 +104,8 @@ namespace OpenMS
 		  	map_.setBufferSize( buffer_size );
 				map_.updateBuffer();
 		
+				{ // sn_estimator has its very own scope.
+				
 				SignalToNoiseEstimatorMeanIterative< > sn_estimator;
 				
 				UInt sc=1;
@@ -141,12 +143,15 @@ namespace OpenMS
 								new_spec.push_back(*cpit);											
 							}										
 						}
-								
+						
+						std::cout << new_spec.size() << " of " << it->size() << " points remained." << std::endl;
 						map_.push_back(new_spec);				
 						//map_.push_back(*it);
 					}
 				}	
 		    
+				} // end of noise estimator scope
+				
 				// update range informations
 		    map_.updateRanges();
 		
