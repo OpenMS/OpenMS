@@ -49,7 +49,6 @@
 #include <OpenMS/FILTERING/DATAREDUCTION/SumReducer.h>
 #include <OpenMS/FILTERING/SMOOTHING/SavitzkyGolayQRFilter.h>
 #include <OpenMS/FILTERING/SMOOTHING/SavitzkyGolaySVDFilter.h>
-#include <OpenMS/FILTERING/TRANSFORMERS/BernNorm.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/ComplementFilter.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/ComplementMarker.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/GoodDiffFilter.h>
@@ -173,7 +172,6 @@ writeParameters(f,""#class_template_name,instantiation.getParameters());
 	//////////////////////////////////
 
 	//	DOCME(BaseSweepSeeder); // cannot instantiate (pure virtual functions)
-	DOCME(BernNorm);
 	DOCME(BiGaussModel);
 	// DOCME(BinnedRepCompareFunctor); // cannot instantiate (pure virtual functions)
 	DOCME(BinnedRepMutualInformation);

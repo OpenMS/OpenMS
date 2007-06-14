@@ -39,26 +39,26 @@ namespace OpenMS
 	TheoreticalSpectrumGenerator::TheoreticalSpectrumGenerator()
 		:	DefaultParamHandler("TheoreticalSpectrumGenerator")
 	{
-		defaults_.setValue("add_isotopes", 0);
-		defaults_.setValue("max_isotope", 2);
-		defaults_.setValue("add_metainfo", 0);
-		defaults_.setValue("add_losses", 0);
-		defaults_.setValue("add_precursor_peaks", 0);
+		defaults_.setValue("add_isotopes", 0, "If set to 1 isotope peaks of the product ion peaks are added");
+		defaults_.setValue("max_isotope", 2, "Defines the maximal isotopic peak which is added, add_isotopes must be set to 1");
+		defaults_.setValue("add_metainfo", 0, "Adds the type of peaks as metainfo to the peaks, like y8+, [M-H2O+2H]++");
+		defaults_.setValue("add_losses", 0, "Adds common losses to those ion expect to have them, only water and ammonia loss is considered");
+		defaults_.setValue("add_precursor_peaks", 0, "Adds peaks of the precursor to the spectrum, which happen to occur sometimes");
 
 		// intensity options of the ions
-		defaults_.setValue("y_intensity", 1.0);
-		defaults_.setValue("b_intensity", 1.0);
-		defaults_.setValue("a_intensity", 1.0);
-		defaults_.setValue("c_intensity", 1.0);
-		defaults_.setValue("x_intensity", 1.0);
-		defaults_.setValue("z_intensity", 1.0);
+		defaults_.setValue("y_intensity", 1.0, "Intensity of the y-ions");
+		defaults_.setValue("b_intensity", 1.0, "Intensity of the b-ions");
+		defaults_.setValue("a_intensity", 1.0, "Intensity of the a-ions");
+		defaults_.setValue("c_intensity", 1.0, "Intensity of the c-ions");
+		defaults_.setValue("x_intensity", 1.0, "Intensity of the x-ions");
+		defaults_.setValue("z_intensity", 1.0, "Intensity of the z-ions");
 
-		defaults_.setValue("relative_loss_intensity", 0.1);
+		defaults_.setValue("relative_loss_intensity", 0.1, "Intensity of loss ions, in relation to the intact ion intensity");
 		
 		// precursor intensity
-		defaults_.setValue("precursor_intensity", 1.0);
-		defaults_.setValue("precursor_H2O_intensity", 1.0);
-		defaults_.setValue("precursor_NH3_intensity", 1.0);
+		defaults_.setValue("precursor_intensity", 1.0, "Intensity of the precursor peak");
+		defaults_.setValue("precursor_H2O_intensity", 1.0, "Intensity of the H2O loss peak of the precursor");
+		defaults_.setValue("precursor_NH3_intensity", 1.0, "Intensity of the NH3 loss peak of the precursor");
 
 		defaultsToParam_();
 
