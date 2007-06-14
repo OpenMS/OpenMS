@@ -638,7 +638,7 @@ CHECK([EXTRA](friend std::ostream& operator << (std::ostream& os, const Param& p
 	ss.str("");
 	p.setValue("key",17.4, "thiskey");
 	ss<<p;
-	TEST_EQUAL(ss.str(), "\"key\"  ->  \"17.4\" :thiskey\n")
+	TEST_EQUAL(ss.str(), "\"key\"  ->  \"17.4\" (thiskey)\n")
 	
 RESULT
 
