@@ -38,7 +38,7 @@
 namespace OpenMS
 {
   /** 
-  	@brief Abstract base class for seeding modules.
+  	@brief Abstract base class for sweepline seeding modules.
 		
 		This is a base class for all seeding modules based on (or implementing) the sweepline paradigm
 		for peptide quantification / feature detection in LC/MS maps.
@@ -46,11 +46,9 @@ namespace OpenMS
 		This base offers methods used by all seeders such as sumUp_ and Align_, filters the hash of isotopic
 		cluster and determines a (preliminary) charge estimate.
 		
-		@note: Derived classes have to implement the method detectIsotopicPattern_(SpectrumType& scan ).
-		
-		@note: Scores for charge estimates should be >= 0 where a low score indicates a high confidence e.g. score should be some sort of p value.
-		
-		@note: Method updateMembers() in each base class should call updateMembers() in this class before doing anything else. 
+		@note Derived classes have to implement the method detectIsotopicPattern_(SpectrumType& scan ).
+		@note Scores for charge estimates should be >= 0 where a low score indicates a high confidence e.g. score should be some sort of p value.
+		@note Method updateMembers() in each base class should call updateMembers() in this class before doing anything else. 
 		
 		</table>
 		 <tr><td></td><td></td><td>min_number_scans</td>
@@ -67,9 +65,7 @@ namespace OpenMS
 		 	<tr><td></td><td></td><td>rt_tolerance_cluster</td>
 		 <td>tolerance in m/z during assembly of isotopic point cluster</td></tr>
 		</table>
-		 
-		@ref BaseSweepSeeder_Parameters are explained on a separate page.
-    
+		
     @ingroup FeatureFinder
   */
   class BaseSweepSeeder

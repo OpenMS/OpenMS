@@ -201,9 +201,7 @@ int main (int argc , char** argv)
 	//
 	//////////////////////////////////
 
-	//DOCME(BaseSweepSeeder); // cannot instantiate (pure virtual functions)
 	DOCME(BiGaussModel);
-	//DOCME(BinnedRepCompareFunctor); // cannot instantiate (pure virtual functions)
 	DOCME(BinnedRepMutualInformation);
 	DOCME(ComplementFilter);
 	DOCME(ComplementMarker);
@@ -240,7 +238,6 @@ int main (int argc , char** argv)
 	DOCME(ParentPeakMower);
 	DOCME(PeakPicker);
 	DOCME(PeakPickerCWT);
-	// DOCME(PeakSpectrumCompareFunctor); // cannot instantiate (pure virtual functions)
 	DOCME(PickedPeakSeeder);
 	DOCME(ProtonDistributionModel);
 	DOCME(SavitzkyGolayQRFilter);
@@ -270,13 +267,11 @@ int main (int argc , char** argv)
 	//////////////////////////////////
 
 	// DOCME2(BaseAlignment);
-	// DOCME2(BaseModel,BaseModel<1>()); // cannot instantiate (pure virtual functions)
 	// DOCME2(BasePairwiseMapMatcher);
 	// DOCME2(DelaunayPairFinder);
 	// DOCME2(FeatureDecharger);
 	// DOCME2(GaussFilter);
 	// DOCME2(HierarchicalClustering);
-	// DOCME2(InterpolationModel,InterpolationModel<>()); // cannot instantiate (pure virtual functions)
 	// DOCME2(LinearResampler);
 	// DOCME2(MorphFilter);
 	// DOCME2(PoseClusteringAffineSuperimposer);
