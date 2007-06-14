@@ -58,6 +58,8 @@ namespace OpenMS
 		is somewhat more accurate.
 
 		@ingroup Analysis_ID
+
+		@subpage PILISScoring_Parameters are explained on a separate page.
 	*/
 	class PILISScoring : public DefaultParamHandler
 	{

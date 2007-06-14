@@ -55,6 +55,8 @@ namespace OpenMS
 		method.
 
 		@ingroup Analysis_ID
+
+		@subpage PILISModel_Parameters are explained on a separate page.
 	*/	
 	class PILISModel : public DefaultParamHandler
 	{

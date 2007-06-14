@@ -40,6 +40,8 @@ namespace OpenMS
 		@brief Generates theoretical spectra with various options
 		
 		@ingroup Chemistry
+
+		@subpage TheoreticalSpectrumGenerator_Parameters are explained on a separate page.
 	*/
 	class TheoreticalSpectrumGenerator : public DefaultParamHandler
 	{

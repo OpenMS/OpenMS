@@ -49,6 +49,8 @@ namespace OpenMS
 		identifications. Simply call getIdentifications with a PeakMap.
 		
 		@ingroup Analysis_ID
+
+		@subpage PILISIdentification_Parameters are explained on a separate page.
 	*/
 	class PILISIdentification : public DefaultParamHandler
 	{
