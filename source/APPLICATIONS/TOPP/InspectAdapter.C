@@ -263,10 +263,10 @@ class TOPPInspectAdapter
 				blind_only(false),
 				blind(false),
 				no_tmp_dbs(false),
-				monoisotopic;
+				monoisotopic(false);
 			
-			Real p_value_threshold = 1.0;
-			Real cutoff_p_value;
+			Real p_value_threshold(1.0);
+			Real cutoff_p_value(0);
 			
 			char separator = '/';
 			
@@ -306,7 +306,7 @@ class TOPPInspectAdapter
 				
 				// output the information
 				stringstream ptm_info;
-				String::size_type max_name_length, max_composition_length, max_amino_acids_length;
+				String::size_type max_name_length(0), max_composition_length(0), max_amino_acids_length(0);
 				max_name_length = max_composition_length = max_amino_acids_length = 0;
 				for ( map< String, pair< String, String > >::const_iterator mod_i = ptm_informations.begin(); mod_i != ptm_informations.end(); ++mod_i )
 				{

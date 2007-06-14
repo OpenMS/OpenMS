@@ -240,7 +240,7 @@ class TOPPSequestAdapter
 			vector< String > substrings;
 			composition.split(seperator, substrings); // get the single elements of the composition: e.g. 18O(-1) or C(3) or N
 			if ( substrings.empty() ) substrings.push_back(composition);
-			String::size_type pos, pos2;
+			String::size_type pos(0), pos2(0);
 			String isotope, symbol, occurences;
 			// for each element, get the isotope (if used), the symbol and the occurences
 			for ( vector< String >::const_iterator e_i = substrings.begin(); e_i != substrings.end(); ++e_i )
@@ -412,11 +412,11 @@ class TOPPSequestAdapter
 			ContactPerson contact_person;
 
 			bool
-				sequest_in,
-				sequest_out,
-				keep_out_files,
-				keep_dta_files,
-				monoisotopic;
+				sequest_in(false),
+				sequest_out(false),
+				keep_out_files(false),
+				keep_dta_files(false),
+				monoisotopic(false);
 
 			vector< String >
 				substrings,
@@ -425,15 +425,15 @@ class TOPPSequestAdapter
 
 			vector< Int > charges;
 
-			char char_buffer;
+			char char_buffer(' ');
 
    Real
-				Real_buffer,
-				Real_buffer2;
+				Real_buffer(0),
+				Real_buffer2(0);
 
-			Int int_buffer;
+			Int int_buffer(0);
 
-			Real p_value;
+			Real p_value(0);
 
 			// the dta-names and their retention_times
 			map< String, Real > filenames_and_precursor_retention_times;
