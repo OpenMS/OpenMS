@@ -39,59 +39,27 @@ namespace OpenMS
     @brief Estimates the signal/noise (S/N) ratio of each data point in a scan
            based on an iterative scheme which discards high intensities
    
-    For each datapoint in the given scan, we collect a range of data points around it (param: WindowLength).
+    For each datapoint in the given scan, we collect a range of data points around it (param: <i>WinLen</i>).
     The noise for a datapoint is estimated iteratively by discarding peaks which are more than
-    (StdevMP * StDev) above the mean value. After three iterations, the mean value is 
-    considered to be the noise level. If the number of elements in the current window is not sufficient (param: MinReqElementsInWindow),
-    the noise level is set to a default value (param: NoiseEmptyWindow).
-		
-    The whole computation is histogram based, so the user will need to supply a number of bins (param: BinCount), which determines
+    (<i>StdevMP</i> * StDev) above the mean value. After three iterations, the mean value is 
+    considered to be the noise level. If the number of elements in the current window is not sufficient (param: <i>MinRequiredElements</i>),
+    the noise level is set to a default value (param: <i>NoiseForEmptyWindow</i>).
+    
+    The whole computation is histogram based, so the user will need to supply a number of bins (param: <i>BinCount</i>), which determines
     the level of error and runtime. The maximal intensity for a datapoint to be included in the histogram can be either determined 
-    automatically (param: AutoMode) by two different methods or can be set directly by the user (param: MaxIntensity).
-    If provided, the MaxIntensity param is always favoured over AutoMaxIntensity&AutoMode. Note that Auto-Mode will slow down the 
-    computation and is enabled by default!
+    automatically (param: <i>AutoMode</i>) by two different methods or can be set directly by the user (param: <i>MaxIntensity</i>).
     
-    The class will compute ALL S/N values when the first request is made. 
-    Changing any of the parameters will invalidate the S/N values.
+    Changing any of the parameters will invalidate the S/N values (which will invoke a recomputation on the next request).
 
-    Accepted Ini-File Parameters:
-    <table>
-    <tr><th>Parameter                                               </th><th>  Description                                </th></tr>
-    <tr><td> WinLen          </td><td>  window length in Thomson                   </td></tr>
-    <tr><td> BinCount              </td><td>  number of bins used                        </td></tr>
-    <tr><td> StdevMP               </td><td>  multiplier for stdev                       </td></tr>
-    <tr><td> MinRequiredElements</td><td>  minimum number of elements required in a window   </td></tr>
-    <tr><td> NoiseForEmptyWindow      </td><td>  noise value used for sparse windows        </td></tr>   
-      
-    <tr><td> MaxIntensity          </td><td> maximal intensity used for histogram construction. By default, it will be calculated automatically (see AutoMode)<br>
-                                                 If this parameter is given, the "AutoMode" is ignored 
-                                                 Be aware though that choosing an adverse "MaxIntensity" might lead to bad results
-                                                 All intensities EQUAL/ABOVE "MaxIntensity" will not be added to the histogram. If you 
-                                                 choose "MaxIntensity" too small, the noise estimate might be too small as well.
-                                                 If chosen too big, the bins become quite large (which you could counter by increasing
-                                                 "BinCount", which increases runtime). 
-                                                                                                        </td></tr>
-    <tr><td colspan=2> [The following 3 parameters belong together and should both be provided if <b>MaxIntensity</b> was NOT given]</td></tr>
 
-    <tr><td> AutoMode                 </td><td> method to use to determine "MaxIntensity": 
-                                                             <pre>-1           disable and use <u>MaxIntensity</u>
-                                                             <pre>0 [default]  use <i>mean</i> + <u>AutoMaxStdevFactor</u> * <i>stdev</i></pre> 
-                                                             <pre>1            <u>AutoMaxPercentile</u>th percentile</pre>
-                                                                                                                          </td></tr>
-    <tr><td> AutoMaxStdevFactor       </td><td> parameter for "MaxIntensity" estimation (if "AutoMode" == 0);<br>default: 3  </td></tr>
-                                                              
-    <tr><td> AutoMaxPercentile        </td><td> parameter for "MaxIntensity" estimation (if "AutoMode" == 1);<br>default: 95 (do NOT exceed 100)</td></tr>
-
-    </table>      
-    
     @note 
     Warning to *stderr* if sparse_window_percent > 20
-            - percent of windows that have less than "MinReqElementsInWindow" of elements
-              (noise estimates in those windows are simply a constant "NoiseEmptyWindow").
+            - percent of windows that have less than <i>MinRequiredElements</i> of elements
+              (noise estimates in those windows are simply a constant <i>NoiseForEmptyWindow</i>).   
 		 
-		@ref SignalToNoiseEstimatorMeanIterative_Parameters are explained on a separate page.
+    @ref SignalToNoiseEstimatorMeanIterative_Parameters are explained on a separate page.
     
-  	@ingroup Filtering
+    @ingroup Filtering
   */
   template < typename Container = MSSpectrum< > >
   class SignalToNoiseEstimatorMeanIterative : public SignalToNoiseEstimator< Container >
@@ -118,15 +86,19 @@ namespace OpenMS
       /// default constructor
       inline SignalToNoiseEstimatorMeanIterative()
       {
-        defaults_.setValue("MaxIntensity", -1); 
-        defaults_.setValue("AutoMaxStdevFactor", 3.0); 
-        defaults_.setValue("AutoMaxPercentile", 95); 
-        defaults_.setValue("AutoMode", 0); 
-        defaults_.setValue("WinLen", 200.0); 
-        defaults_.setValue("BinCount", 30); 
-        defaults_.setValue("StdevMP", 3.0); 
-        defaults_.setValue("MinRequiredElements", 10); 
-        defaults_.setValue("NoiseForEmptyWindow", std::pow(10.0,20)); 
+        defaults_.setValue("MaxIntensity", -1, "maximal intensity considered for histogram construction. By default, it will be calculated automatically (see AutoMode)."\
+" Only provide this parameter if you know what you are doing (and change 'AutoMode' to '-1')!"\
+" All intensities EQUAL/ABOVE 'MaxIntensity' will not be added to the histogram."\
+" If you choose 'MaxIntensity' too small, the noise estimate might be too small as well."\
+" If chosen too big, the bins become quite large (which you could counter by increasing 'BinCount', which increases runtime)."); 
+        defaults_.setValue("AutoMaxStdevFactor", 3.0, "parameter for 'MaxIntensity' estimation (if 'AutoMode' == 0): mean + 'AutoMaxStdevFactor' * stdev"); 
+        defaults_.setValue("AutoMaxPercentile", 95, "parameter for 'MaxIntensity' estimation (if 'AutoMode' == 1): AutoMaxPercentile th percentile"); 
+        defaults_.setValue("AutoMode", 0, "method to use to determine maximal intensity: -1 --> use 'MaxIntensity'; 0 --> 'AutoMaxStdevFactor' method (default); 1 --> 'AutoMaxPercentile' method"); 
+        defaults_.setValue("WinLen", 200.0, "window length in Thomson"); 
+        defaults_.setValue("BinCount", 30, "number of bins used for histogram"); 
+        defaults_.setValue("StdevMP", 3.0, "multiplier for stdev"); 
+        defaults_.setValue("MinRequiredElements", 10, "minimum number of elements required in a window (otherwise it is considered sparse)"); 
+        defaults_.setValue("NoiseForEmptyWindow", std::pow(10.0,20), "noise value used for sparse windows"); 
 
         SignalToNoiseEstimator< Container >::defaultsToParam_();
       }
@@ -503,6 +475,7 @@ namespace OpenMS
         stdev_                 = (double)param_.getValue("StdevMP"); 
         min_required_elements_ = param_.getValue("MinRequiredElements"); 
         noise_for_empty_window_= (double)param_.getValue("NoiseForEmptyWindow"); 
+        is_result_valid_ = false;
       }
   
       /// maximal intensity considered during binning (values above get discarded)

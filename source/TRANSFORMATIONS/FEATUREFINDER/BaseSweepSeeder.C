@@ -53,7 +53,7 @@ BaseSweepSeeder::BaseSweepSeeder()
 		// mass tolerance for point cluster construction
 		defaults_.setValue("mass_tolerance_cluster",1.2,"minimum number of peaks per cluster");
 		// rt tolerance for cluster construction (given in number of scans)
-		defaults_.setValue("rt_tolerance_cluster",2,"rt tolerance for cluster construction (given in number of scans");		
+		defaults_.setValue("rt_tolerance_cluster",2,"rt tolerance for cluster construction (given in number of scans)");		
 		
 		// max distance in rt for merged peak cluster (given in # scans)
 		defaults_.setValue("max_rt_dist_merging",40.0,"max distance in rt for merged peak cluster (given in # scans)");

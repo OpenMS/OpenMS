@@ -105,10 +105,6 @@ CHECK((SignalToNoiseEstimator()))
         TEST_NOT_EQUAL(ptr, 0)
 RESULT
 
-CHECK(virtual ~SignalToNoiseEstimator())
-        delete ptr;
-RESULT
-
 CHECK((const PeakIterator& getFirstDataPoint() const))
   // done above
 RESULT
@@ -131,6 +127,102 @@ CHECK((void setLastDataPoint(const PeakIterator &last)))
   sne.setLastDataPoint(spec.begin());
   
   TEST_EQUAL(sne.getLastDataPoint() == spec.begin(), true)
+RESULT
+
+CHECK((virtual DoubleReal getMaxIntensity() const =0))
+{
+  // abstract ...
+}
+RESULT
+
+CHECK((virtual void setMaxIntensity(DoubleReal max_intensity)=0))
+{
+  // abstract ...
+}
+RESULT
+
+CHECK((virtual DoubleReal getAutoMaxStdevFactor() const =0))
+{
+  // abstract ...
+}
+RESULT
+
+CHECK((virtual void setAutoMaxStdevFactor(DoubleReal value)=0))
+{
+  // abstract ...
+}
+RESULT
+
+CHECK((virtual DoubleReal getAutoMaxPercentile() const =0))
+{
+  // abstract ...
+}
+RESULT
+
+CHECK((virtual void setAutoMaxPercentile(DoubleReal value)=0))
+{
+  // abstract ...
+}
+RESULT
+
+CHECK((virtual Int getAutoMode() const =0))
+{
+  // abstract ...
+}
+RESULT
+
+CHECK((virtual void setAutoMode(Int auto_mode)=0))
+{
+  // abstract ...
+}
+RESULT
+
+CHECK((virtual DoubleReal getWinLen() const =0))
+{
+  // abstract ...
+}
+RESULT
+
+CHECK((virtual void setWinLen(DoubleReal win_len)=0))
+{
+  // abstract ...
+}
+RESULT
+
+CHECK((virtual Int getBinCount() const =0))
+{
+  // abstract ...
+}
+RESULT
+
+CHECK((virtual void setBinCount(Int bin_count)=0))
+{
+  // abstract ...
+}
+RESULT
+
+CHECK((virtual Int getMinReqElements() const =0))
+{
+  // abstract ...
+}
+RESULT
+
+CHECK((virtual void setMinReqElements(Int min_required_elements)=0))
+{
+  // abstract ...
+}
+RESULT
+
+CHECK((virtual DoubleReal getNoiseForEmtpyWindow() const =0))
+{
+  // abstract ...
+}
+RESULT
+
+CHECK((virtual void setNoiseForEmtpyWindow(DoubleReal noise_for_empty_window)=0))
+{
+  // abstract ...
+}
 RESULT
 
 
@@ -159,13 +251,13 @@ CHECK((SignalToNoiseEstimator& operator=(const SignalToNoiseEstimator &source)))
   TEST_REAL_EQUAL(sne_copy.getLastDataPoint() == spec.end(), true)
 RESULT
 
+
 CHECK((virtual ~SignalToNoiseEstimator()))
-  // ...
+        delete ptr;
 RESULT
 
 
-
-CHECK(virtual void init(const PeakIterator& it_begin, const PeakIterator& it_end))
+CHECK((virtual void init(const PeakIterator& it_begin, const PeakIterator& it_end)))
   TestSignalToNoiseEstimator sne;
   MSSpectrum<> spec;
   sne.init(spec.begin(), spec.end());
@@ -174,7 +266,7 @@ CHECK(virtual void init(const PeakIterator& it_begin, const PeakIterator& it_end
   TEST_EQUAL(sne.getLastDataPoint() == spec.end(), true)
 RESULT
 
-CHECK(virtual void init(const Container& c))
+CHECK((virtual void init(const Container& c)))
   TestSignalToNoiseEstimator sne;
   MSSpectrum<> spec;
   sne.init(spec);
@@ -183,7 +275,7 @@ CHECK(virtual void init(const Container& c))
   TEST_EQUAL(sne.getLastDataPoint() == spec.end(), true)
 RESULT
 
-CHECK(virtual double getSignalToNoise(const PeakIterator& data_point))
+CHECK((virtual double getSignalToNoise(const PeakIterator& data_point)))
   // hard to do without implementing computeSTN_ properly
 RESULT
 

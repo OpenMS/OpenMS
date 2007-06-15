@@ -56,6 +56,9 @@ namespace OpenMS
 		@ref FeatureDecharger_Parameters are explained on a separate page.
     
     @ingroup Analysis
+    
+    @ref FeatureDecharger_Parameters are explained on a seperate page
+        
   */
   
   class FeatureDecharger : public DefaultParamHandler
@@ -75,7 +78,7 @@ namespace OpenMS
       FeatureDecharger()
       : DefaultParamHandler("FeatureDecharger")
       {
-        defaults_.setValue("cluster_RT_MZ_relation", 100); // factor*MZ equals MZ_corrected space
+        defaults_.setValue("cluster_RT_MZ_relation", 100, "'cluster_RT_MZ_relation' * MZ ~ MZ_corrected space"); 
         //subsections_.push_back("HierarchicalClustering");
         HierarchicalClustering<> hc;
         defaults_.insert("HierarchicalClustering:",hc.getParameters());

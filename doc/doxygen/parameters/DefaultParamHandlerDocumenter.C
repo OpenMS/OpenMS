@@ -37,6 +37,7 @@
 #include <OpenMS/ANALYSIS/MAPMATCHING/PairMatcher.h>
 #include <OpenMS/APPLICATIONS/TOPPViewBase.h>
 #include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
+#include <OpenMS/COMPARISON/CLUSTERING/HierarchicalClustering.h>
 #include <OpenMS/COMPARISON/SPECTRA/BinnedRepCompareFunctor.h>
 #include <OpenMS/COMPARISON/SPECTRA/BinnedRepMutualInformation.h>
 #include <OpenMS/COMPARISON/SPECTRA/PeakSpectrumCompareFunctor.h>
@@ -111,7 +112,7 @@ using namespace std;
 using namespace OpenMS;
 
 //**********************************************************************************
-//Helper method - use this method to generate the actual paramter documentation
+//Helper method - use this method to generate the actual parameter documentation
 //**********************************************************************************
 void writeParameters(std::ofstream& f, const String& class_name, const Param& param)
 {
@@ -210,6 +211,7 @@ int main (int argc , char** argv)
 	DOCME(DummySeeder);
 	DOCME(EmgModel);
 	DOCME(ExtendedModelFitter);
+	DOCME(FeatureDecharger);
 	DOCME(GaussModel);
 	DOCME(GoodDiffFilter);
 	DOCME(IsotopeDiffFilter);
@@ -269,17 +271,16 @@ int main (int argc , char** argv)
 	// DOCME2(BaseAlignment);
 	// DOCME2(BasePairwiseMapMatcher);
 	// DOCME2(DelaunayPairFinder);
-	// DOCME2(FeatureDecharger);
 	// DOCME2(GaussFilter);
-	// DOCME2(HierarchicalClustering);
+	DOCME2(HierarchicalClustering, HierarchicalClustering<>());
 	// DOCME2(LinearResampler);
 	// DOCME2(MorphFilter);
 	// DOCME2(PoseClusteringAffineSuperimposer);
 	// DOCME2(PoseClusteringPairwiseMapMatcher);
 	// DOCME2(PoseClusteringShiftSuperimposer);
 	DOCME2(ProductModel,ProductModel<2>()); // YEAH!!!
-	// DOCME2(SignalToNoiseEstimatorMeanIterative);
-	// DOCME2(SignalToNoiseEstimatorMedian);
+	DOCME2(SignalToNoiseEstimatorMeanIterative,SignalToNoiseEstimatorMeanIterative<>());
+	DOCME2(SignalToNoiseEstimatorMedian,SignalToNoiseEstimatorMedian<>());
 	// DOCME2(SimplePairFinder);
 
 	//create main page for all parameter documentations

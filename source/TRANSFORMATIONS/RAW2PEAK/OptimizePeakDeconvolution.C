@@ -320,7 +320,7 @@ namespace OpenMS
 	
  
 	OptimizePeakDeconvolution::OptimizePeakDeconvolution( )
-		: DefaultParamHandler("OpimizePeakDeconvolution"),charge_(1)
+		: DefaultParamHandler("OptimizePeakDeconvolution"),charge_(1)
 	{
 		
 		defaults_.setValue("max_iteration",10);
