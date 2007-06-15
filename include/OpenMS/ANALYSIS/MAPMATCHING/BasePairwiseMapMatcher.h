@@ -95,8 +95,8 @@ namespace OpenMS
     {
       element_map_[0] = 0;
       element_map_[1] = 0;
-      defaults_.setValue("number_buckets:RT",1);
-      defaults_.setValue("number_buckets:MZ",1);
+      defaults_.setValue("number_buckets:RT",1, "TODO????");
+      defaults_.setValue("number_buckets:MZ",1, "TODO????");
       
 			// no need to call defaultsToParam_() as it is called in the non-abstract children 
     }

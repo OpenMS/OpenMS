@@ -110,10 +110,11 @@ namespace OpenMS
         	superimposer_(0),
         	pair_finder_(0)
     {
+    	//set the name for DefaultParamHandler error messages
     	setName(getProductName());
     	
-      defaults_.setValue("pairfinder:type", "simple");
-			defaults_.setValue("superimposer:type", "none");
+      defaults_.setValue("pairfinder:type", "SimplePairFinder","Used pair finder: 'SimplePairFinder' or 'DelaunayPairFinder'");
+			defaults_.setValue("superimposer:type", "none","Used superimposer: 'PoseClusteringShiftSuperimposer' or 'PoseClusteringAffineSuperimposer'");
 			subsections_.push_back("debug");
 			subsections_.push_back("pairfinder");
 			subsections_.push_back("superimposer");

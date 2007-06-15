@@ -38,7 +38,6 @@ namespace OpenMS
   /**
      @brief This class implements a simple point pair finding algorithm.
 
-     This class implements a point pair finding algorithm.
      It offers a method to determine element pairs in two element maps,
      given two point maps and a transformation defined for the second element map (if no
      transformation is given, the pairs are found in the two original maps).
@@ -84,13 +83,14 @@ namespace OpenMS
     SimplePairFinder()
 			: Base()
     {
+    	//set the name for DefaultParamHandler error messages
 			setName(getProductName());
 
-      defaults_.setValue("similarity:diff_intercept:RT",1);
-      defaults_.setValue("similarity:diff_intercept:MZ",0.1);
-      defaults_.setValue("similarity:diff_exponent:RT",2);
-      defaults_.setValue("similarity:diff_exponent:MZ",1);
-      defaults_.setValue("similarity:pair_min_quality",0.01);
+      defaults_.setValue("similarity:diff_intercept:RT",1,"TODO????");
+      defaults_.setValue("similarity:diff_intercept:MZ",0.1,"TODO????");
+      defaults_.setValue("similarity:diff_exponent:RT",2,"TODO????");
+      defaults_.setValue("similarity:diff_exponent:MZ",1,"TODO????");
+      defaults_.setValue("similarity:pair_min_quality",0.01,"Minimum required pair quality.");
 
       Base::defaultsToParam_();
     }
@@ -137,7 +137,7 @@ namespace OpenMS
     /// returns the name of this module
     static const String getProductName()
     {
-      return "simple";
+      return "SimplePairFinder";
     }
 
     /// Get diff exponent. See @sa similarity_().
@@ -318,12 +318,6 @@ namespace OpenMS
 
     /// The vector of transformed element positions of the second map
     std::vector<PositionType> transformed_positions_second_map_;
-
-
-		// Note on the following documentation comment:
-		// Every now and then the indentation gets messed up.
-		// So I inserted an html style bullet list.
-		// -- Clemens Groepl 2007-02-13
 
     /**@brief Compute the similarity for a pair of elements; larger quality
 			 values are better.

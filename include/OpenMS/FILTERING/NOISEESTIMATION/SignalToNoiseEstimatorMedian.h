@@ -93,6 +93,9 @@ namespace OpenMS
     /// default constructor
     inline SignalToNoiseEstimatorMedian()
     {
+    	//set the name for DefaultParamHandler error messages
+    	this->setName("SignalToNoiseEstimatorMedian");	
+
       defaults_.setValue("MaxIntensity", -1, "maximal intensity considered for histogram construction. By default, it will be calculated automatically (see AutoMode)."\
 " Only provide this parameter if you know what you are doing (and change 'AutoMode' to '-1')!"\
 " All intensities EQUAL/ABOVE 'MaxIntensity' will be added to the LAST histogram bin."\

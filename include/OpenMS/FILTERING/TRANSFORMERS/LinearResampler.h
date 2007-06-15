@@ -61,7 +61,7 @@ namespace OpenMS
       : DefaultParamHandler("LinearResampler")
       {
         //Parameter settings
-        defaults_.setValue("resampling_width",0.05);
+        defaults_.setValue("resampling_width",0.05,"Spacing of the resampled output peaks.");
         defaultsToParam_();
 	    }
 		

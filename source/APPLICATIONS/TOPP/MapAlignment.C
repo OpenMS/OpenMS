@@ -115,9 +115,9 @@ protected:
 					tmp.setValue("matching_algorithm:type","poseclustering_pairwise");
 					tmp.setValue("matching_algorithm:superimposer:type","poseclustering_affine");
 					tmp.insert("matching_algorithm:superimposer",Factory<BaseSuperimposer<> >::create("poseclustering_affine")->getDefaults());
-					tmp.setValue("matching_algorithm:pairfinder:type","delaunay");
-					tmp.insert("matching_algorithm:pairfinder",Factory<BasePairFinder<> >::create("delaunay")->getDefaults());
-					tmp.insert("consensus_algorithm",Factory<BasePairFinder<> >::create("delaunay")->getDefaults());
+					tmp.setValue("matching_algorithm:pairfinder:type","DelaunayPairFinder");
+					tmp.insert("matching_algorithm:pairfinder",Factory<BasePairFinder<> >::create("DelaunayPairFinder")->getDefaults());
+					tmp.insert("consensus_algorithm",Factory<BasePairFinder<> >::create("DelaunayPairFinder")->getDefaults());
 				}
 				if (section == "file_names")
 				{

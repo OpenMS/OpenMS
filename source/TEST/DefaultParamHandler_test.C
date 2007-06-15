@@ -48,8 +48,8 @@ class TestHandler
 		TestHandler(const String& name)
 			: DefaultParamHandler(name)
 		{
-			defaults_.setValue("int",0);
-			defaults_.setValue("string","default");
+			defaults_.setValue("int",0,"intdesc");
+			defaults_.setValue("string","default","stingdesc");
 			subsections_.push_back("ignore");
 			
 			defaultsToParam_();

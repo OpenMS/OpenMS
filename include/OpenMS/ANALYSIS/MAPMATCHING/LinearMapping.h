@@ -48,15 +48,19 @@ namespace OpenMS
 		/// Constructor
 		LinearMapping() 
 			: BaseMapping(),
-				slope_(1), intercept_(0) {}
+				slope_(1), 
+				intercept_(0) 
+		{
+		}
 			
 		/// Easy Constructor
 		LinearMapping(DoubleReal slope, DoubleReal intercept) 
 			: BaseMapping(),
-				slope_(slope), intercept_(intercept)
+				slope_(slope), 
+				intercept_(intercept)
 		{
-			this->param_.setValue("LinearMapping:slope", (double) slope);
-			this->param_.setValue("LinearMapping:intercept", (double) intercept);
+			this->param_.setValue("LinearMapping:slope", (double) slope, "The slope of the linear function");
+			this->param_.setValue("LinearMapping:intercept", (double) intercept,"The intercept of the linear function");
 		}
 		
 		/// Destructor

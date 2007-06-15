@@ -99,14 +99,15 @@ namespace OpenMS
     DelaunayPairFinder()
         : Base()
     {
+    	//set the name for DefaultParamHandler error messages
       setName(getProductName());
 
-      defaults_.setValue("similarity:max_pair_distance:RT",3);
-      defaults_.setValue("similarity:max_pair_distance:MZ",0.1);
-      defaults_.setValue("similarity:precision:RT",20);
-      defaults_.setValue("similarity:precision:MZ",0.5);
-      defaults_.setValue("similarity:diff_intercept:RT",1);
-      defaults_.setValue("similarity:diff_intercept:MZ",0.1);
+      defaults_.setValue("similarity:max_pair_distance:RT",3,"Maximum distance in RT dimension");
+      defaults_.setValue("similarity:max_pair_distance:MZ",0.1,"Maximum distance in m/z dimension");
+      defaults_.setValue("similarity:precision:RT",20,"TODO????");
+      defaults_.setValue("similarity:precision:MZ",0.5,"TODO????");
+      defaults_.setValue("similarity:diff_intercept:RT",1,"Factor for RT position used to balance the influence of RT and m/z deviations");
+      defaults_.setValue("similarity:diff_intercept:MZ",0.1,"Factor for m/z position used to balance the influence of RT and m/z deviations");
 
       Base::defaultsToParam_();
     }
@@ -132,7 +133,7 @@ namespace OpenMS
 
     /// Destructor
     virtual ~DelaunayPairFinder()
-  {}
+  	{}
 
     /// Returns an instance of this class
     static BasePairFinder<PointMapType>* create()
@@ -143,7 +144,7 @@ namespace OpenMS
     /// Returns the name of this module
     static const String getProductName()
     {
-      return "delaunay";
+      return "DelaunayPairFinder";
     }
 
     /// Nested class, which inherits from the cgal Point_2 class and additionally contains the a reference to

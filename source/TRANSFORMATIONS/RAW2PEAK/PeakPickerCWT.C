@@ -43,49 +43,49 @@ namespace OpenMS
       optimization_(false)
   {
     // if a peak picking parameter is missed in the param object the value should be substituted by a default value
-  	defaults_.setValue("thresholds:correlation",0.5);
-  	defaults_.setValue("wavelet_transform:scale",0.15);
-  	defaults_.setValue("wavelet_transform:spacing",0.001);
-  	defaults_.setValue("thresholds:noise_level",0.1);
-   	defaults_.setValue("thresholds:search_radius",3); 	
-		defaults_.setValue("thresholds:signal_to_noise",3);
+  	defaults_.setValue("thresholds:correlation",0.5,"TODO????");
+  	defaults_.setValue("wavelet_transform:scale",0.15,"TODO????");
+  	defaults_.setValue("wavelet_transform:spacing",0.001,"TODO????");
+  	defaults_.setValue("thresholds:noise_level",0.1,"TODO????");
+   	defaults_.setValue("thresholds:search_radius",3,"TODO????"); 	
+		defaults_.setValue("thresholds:signal_to_noise",3,"TODO????");
 		
 		//Optimization parameters
-  	defaults_.setValue("Optimization:optimization","no");
-		defaults_.setValue("Optimization:penalties:position",0.0);
-		defaults_.setValue("Optimization:penalties:left_width",1.0); 	
-		defaults_.setValue("Optimization:penalties:right_width",1.0); 	
-		defaults_.setValue("Optimization:iterations",15); 	
-		defaults_.setValue("Optimization:delta_abs_error",1e-04f); 	
-		defaults_.setValue("Optimization:delta_rel_error",1e-04f);
+  	defaults_.setValue("Optimization:optimization","no","TODO????");
+		defaults_.setValue("Optimization:penalties:position",0.0,"TODO????");
+		defaults_.setValue("Optimization:penalties:left_width",1.0,"TODO????"); 	
+		defaults_.setValue("Optimization:penalties:right_width",1.0,"TODO????"); 	
+		defaults_.setValue("Optimization:iterations",15,"TODO????"); 	
+		defaults_.setValue("Optimization:delta_abs_error",1e-04f,"TODO????"); 	
+		defaults_.setValue("Optimization:delta_rel_error",1e-04f,"TODO????");
 
 		// deconvolution parameters
-		defaults_.setValue("deconvolution:penalties:position",0.0);
-		defaults_.setValue("deconvolution:penalties:height",1.0);
-		defaults_.setValue("deconvolution:penalties:left_width",0.0);
-		defaults_.setValue("deconvolution:penalties:right_width",0.0);
-		defaults_.setValue("deconvolution:skip_deconvolution","yes");
-		defaults_.setValue("deconvolution:width_threshold",1.1);
-		defaults_.setValue("deconvolution:asym_threshold",0.3);
-		defaults_.setValue("deconvolution:fwhm_threshold",0.7);
-		defaults_.setValue("deconvolution:delta_abs_error",1e-05f);
-		defaults_.setValue("deconvolution:delta_rel_error",1e-05f);
-		defaults_.setValue("deconvolution:left_width",2);
-		defaults_.setValue("deconvolution:right_width",2);
-		defaults_.setValue("deconvolution:scaling",0.12);
-		defaults_.setValue("deconvolution:iterations",10);
+		defaults_.setValue("deconvolution:penalties:position",0.0,"TODO????");
+		defaults_.setValue("deconvolution:penalties:height",1.0,"TODO????");
+		defaults_.setValue("deconvolution:penalties:left_width",0.0,"TODO????");
+		defaults_.setValue("deconvolution:penalties:right_width",0.0,"TODO????");
+		defaults_.setValue("deconvolution:skip_deconvolution","yes","TODO????");
+		defaults_.setValue("deconvolution:width_threshold",1.1,"TODO????");
+		defaults_.setValue("deconvolution:asym_threshold",0.3,"TODO????");
+		defaults_.setValue("deconvolution:fwhm_threshold",0.7,"TODO????");
+		defaults_.setValue("deconvolution:delta_abs_error",1e-05f,"TODO????");
+		defaults_.setValue("deconvolution:delta_rel_error",1e-05f,"TODO????");
+		defaults_.setValue("deconvolution:left_width",2,"TODO????");
+		defaults_.setValue("deconvolution:right_width",2,"TODO????");
+		defaults_.setValue("deconvolution:scaling",0.12,"TODO????");
+		defaults_.setValue("deconvolution:iterations",10,"TODO????");
 
 		// 2D optimization parameters
-		defaults_.setValue("2D_optimization:penalties:position",0.0);
-		defaults_.setValue("2D_optimization:penalties:height",1.0);
-		defaults_.setValue("2D_optimization:penalties:left_width",0.0);
-		defaults_.setValue("2D_optimization:penalties:right_width",0.0);
-		defaults_.setValue("2D_optimization:thresholds:tolerance_mz",0.2);
-		defaults_.setValue("2D_optimization:thresholds:max_peak_distance",1.0);
-		defaults_.setValue("2D_optimization:skip_optimization","yes");
-		defaults_.setValue("2D_optimization:delta_abs_error",1e-05f);
-		defaults_.setValue("2D_optimization:delta_rel_error",1e-05f);
-		defaults_.setValue("2D_optimization:iterations",10);
+		defaults_.setValue("2D_optimization:penalties:position",0.0,"TODO????");
+		defaults_.setValue("2D_optimization:penalties:height",1.0,"TODO????");
+		defaults_.setValue("2D_optimization:penalties:left_width",0.0,"TODO????");
+		defaults_.setValue("2D_optimization:penalties:right_width",0.0,"TODO????");
+		defaults_.setValue("2D_optimization:thresholds:tolerance_mz",0.2,"TODO????");
+		defaults_.setValue("2D_optimization:thresholds:max_peak_distance",1.0,"TODO????");
+		defaults_.setValue("2D_optimization:skip_optimization","yes","TODO????");
+		defaults_.setValue("2D_optimization:delta_abs_error",1e-05f,"TODO????");
+		defaults_.setValue("2D_optimization:delta_rel_error",1e-05f,"TODO????");
+		defaults_.setValue("2D_optimization:iterations",10,"TODO????");
 
 		subsections_.push_back("SignalToNoiseEstimationParameter");
 		
@@ -93,7 +93,8 @@ namespace OpenMS
   }
 
   PeakPickerCWT::~PeakPickerCWT()
-  {}
+  {
+  }
 
   void PeakPickerCWT::updateMembers_()
   {

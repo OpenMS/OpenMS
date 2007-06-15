@@ -573,45 +573,21 @@ namespace OpenMS
 		:DefaultParamHandler("TwoDOptimization")
 	{
 		// 2D optimization parameters
-		defaults_.setValue("penalties:position",0.0);
-		defaults_.setValue("penalties:height",1.0);
-		defaults_.setValue("penalties:left_width",0.0);
-		defaults_.setValue("penalties:right_width",0.0);
-		defaults_.setValue("thresholds:tolerance_mz",0.2);
-		defaults_.setValue("thresholds:max_peak_distance",1.0);
-		defaults_.setValue("skip_optimization","yes");
-		defaults_.setValue("delta_abs_error",1e-05f);
-		defaults_.setValue("delta_rel_error",1e-05f);
-		defaults_.setValue("iterations",10);
-		defaults_.setValue("real_2D","yes");
+		defaults_.setValue("penalties:position",0.0,"TODO????");
+		defaults_.setValue("penalties:height",1.0,"TODO????");
+		defaults_.setValue("penalties:left_width",0.0,"TODO????");
+		defaults_.setValue("penalties:right_width",0.0,"TODO????");
+		defaults_.setValue("thresholds:tolerance_mz",0.2,"TODO????");
+		defaults_.setValue("thresholds:max_peak_distance",1.0,"TODO????");
+		defaults_.setValue("skip_optimization","yes","TODO????");
+		defaults_.setValue("delta_abs_error",1e-05f,"TODO????");
+		defaults_.setValue("delta_rel_error",1e-05f,"TODO????");
+		defaults_.setValue("iterations",10,"TODO????");
+		defaults_.setValue("real_2D","yes","TODO????");
 
 		defaultsToParam_();
 		updateMembers_();
 	}
-
-	TwoDOptimization::TwoDOptimization(const Param& param)
-		:DefaultParamHandler("TwoDOptimization")
-	{
-		// 2D optimization default parameters
-		defaults_.setValue("penalties:position",0.0);
-		defaults_.setValue("penalties:height",1.0);
-		defaults_.setValue("penalties:left_width",0.0);
-		defaults_.setValue("penalties:right_width",0.0);
-		defaults_.setValue("thresholds:tolerance_mz",0.2);
-		defaults_.setValue("thresholds:max_peak_distance",1.0);
-		defaults_.setValue("skip_optimization","yes");
-		defaults_.setValue("delta_abs_error",1e-05f);
-		defaults_.setValue("delta_rel_error",1e-05f);
-		defaults_.setValue("iterations",10);
-		defaults_.setValue("real_2D","yes");
-			
-		defaultsToParam_();
-		setParameters(param);
-			
-		updateMembers_();
-			
-	}
-
 	
 	TwoDOptimization::TwoDOptimization(const TwoDOptimization& opt)
 		:DefaultParamHandler(opt)

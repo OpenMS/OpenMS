@@ -119,23 +119,23 @@ namespace OpenMS
     {
       setName(getProductName());
 
-      defaults_.setValue("tuple_search:mz_bucket_size",1);
-      defaults_.setValue("transformation_space:shift_bucket_size:RT",1);
-      defaults_.setValue("transformation_space:shift_bucket_size:MZ",0.1);
-      defaults_.setValue("transformation_space:scaling_bucket_size:RT",0.5);
-      defaults_.setValue("transformation_space:scaling_bucket_size:MZ",0.1);
-      defaults_.setValue("transformation_space:bucket_window_shift:RT",1);
-      defaults_.setValue("transformation_space:bucket_window_shift:MZ",1);
-      defaults_.setValue("transformation_space:bucket_window_scaling:RT",1);
-      defaults_.setValue("transformation_space:bucket_window_scaling:MZ",1);
-      defaults_.setValue("transformation_space:min_shift:RT",-1000);
-      defaults_.setValue("transformation_space:min_shift:MZ",-5);
-      defaults_.setValue("transformation_space:max_shift:RT",1000);
-      defaults_.setValue("transformation_space:max_shift:MZ",5);
-      defaults_.setValue("transformation_space:min_scaling:RT",-3);
-      defaults_.setValue("transformation_space:min_scaling:MZ",-1.5);
-      defaults_.setValue("transformation_space:max_scaling:RT",3);
-      defaults_.setValue("transformation_space:max_scaling:MZ",1.5);
+      defaults_.setValue("tuple_search:mz_bucket_size",1,"TODO????");
+      defaults_.setValue("transformation_space:shift_bucket_size:RT",1,"TODO????");
+      defaults_.setValue("transformation_space:shift_bucket_size:MZ",0.1,"TODO????");
+      defaults_.setValue("transformation_space:scaling_bucket_size:RT",0.5,"TODO????");
+      defaults_.setValue("transformation_space:scaling_bucket_size:MZ",0.1,"TODO????");
+      defaults_.setValue("transformation_space:bucket_window_shift:RT",1,"TODO????");
+      defaults_.setValue("transformation_space:bucket_window_shift:MZ",1,"TODO????");
+      defaults_.setValue("transformation_space:bucket_window_scaling:RT",1,"TODO????");
+      defaults_.setValue("transformation_space:bucket_window_scaling:MZ",1,"TODO????");
+      defaults_.setValue("transformation_space:min_shift:RT",-1000,"TODO????");
+      defaults_.setValue("transformation_space:min_shift:MZ",-5,"TODO????");
+      defaults_.setValue("transformation_space:max_shift:RT",1000,"TODO????");
+      defaults_.setValue("transformation_space:max_shift:MZ",5,"TODO????");
+      defaults_.setValue("transformation_space:min_scaling:RT",-3,"TODO????");
+      defaults_.setValue("transformation_space:min_scaling:MZ",-1.5,"TODO????");
+      defaults_.setValue("transformation_space:max_scaling:RT",3,"TODO????");
+      defaults_.setValue("transformation_space:max_scaling:MZ",1.5,"TODO????");
 
       defaultsToParam_();
     }

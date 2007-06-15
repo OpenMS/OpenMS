@@ -130,9 +130,6 @@ namespace OpenMS
 		/// Constructor
 		TwoDOptimization();
 
-		/// Constructor using a Param-object
-		TwoDOptimization(const Param& param);
-
 		/// Copy constructor
 		TwoDOptimization(const TwoDOptimization& opt);
 

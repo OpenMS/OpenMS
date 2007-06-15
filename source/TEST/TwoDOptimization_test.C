@@ -99,25 +99,6 @@ CHECK((TwoDOptimization(const TwoDOptimization& opt)))
   TEST_REAL_EQUAL(rel_err, 0.001)
 RESULT
 
-CHECK((TwoDOptimization(const Param& param)))
-  PRECISION(0.0001)
-  String file = "data/TwoDOptimization.xml";	
-  Param param;
-	param.load(file);
-
-
-  TwoDOptimization opt_2d(param);
-  TEST_REAL_EQUAL(opt_2d.getPenalties().pos,10)
-  TEST_REAL_EQUAL(opt_2d.getPenalties().lWidth,0)
-	TEST_REAL_EQUAL(opt_2d.getPenalties().rWidth,0)
-  TEST_REAL_EQUAL(opt_2d.getPenalties().height,1)		
- 	TEST_EQUAL(20 == opt_2d.getMaxIterations(), true)
- 	TEST_REAL_EQUAL( opt_2d.getMaxAbsError(),0.001)
- 	TEST_REAL_EQUAL(opt_2d.getMaxRelError(),0.002)
-	TEST_REAL_EQUAL(opt_2d.getMZTolerance(),0.2)
-	TEST_REAL_EQUAL(opt_2d.getMaxPeakDistance(),1)			
-RESULT
-
 CHECK(( template <typename InputSpectrumIterator,typename OutputPeakType>
 			 void twoDOptimize(InputSpectrumIterator& first,
 												 InputSpectrumIterator& last,
@@ -160,7 +141,8 @@ CHECK(( template <typename InputSpectrumIterator,typename OutputPeakType>
   Param param;
 	param.load(file);
 
- 	TwoDOptimization opt_2d(param);
+ 	TwoDOptimization opt_2d;
+ 	opt_2d.setParameters(param);
   MSExperiment<RawDataPoint1D >::const_iterator first,last;
   first = raw_exp.begin();
   last = raw_exp.end();

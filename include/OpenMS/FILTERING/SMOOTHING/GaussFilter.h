@@ -70,7 +70,7 @@ namespace OpenMS
         DefaultParamHandler("GaussFilter")
       {
       	//Parameter settings
-      	defaults_.setValue("gaussian_width",0.8);
+      	defaults_.setValue("gaussian_width",0.8,"Use a gaussian filter kernel which has approximately the same width as your mass peaks");
         
          //members
         sigma_ = .1;

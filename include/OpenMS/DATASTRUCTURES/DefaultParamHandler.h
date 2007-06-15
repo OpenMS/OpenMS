@@ -57,7 +57,11 @@ namespace OpenMS
 		- Call updateMembers_() at the end of the derived classes' copy constructor and assignment operator.
 		- If you need mutable access to the extra member variables, provide a set-method and make sure to set
 		  the corresponding value in param_ as well!
-
+		
+		@b Base @b classes: @n
+		If you create a class @a A that is derived from DefaultParamHandler and derive another class @a B
+		for @a A, you should set use the setName(String) method to set the name used for error messages to @a B.
+		
 		@b Parameter @b documentation: @n
 		Each default parameter has to be documented in a comprehensive way. This is done using the
 		Param::setValue methods and the Param::setDescription method.
@@ -72,6 +76,8 @@ namespace OpenMS
 		@endcode
 		You can test if everything worked by calling @a make @a paramdoc in @a OpenMS/doc/.
 		The parameters documentation is written to @a OpenMS/docdoxygen/parameters/DefaultParameters.doxygen.
+		
+		@todo Transform the docuementation to a tree, as soon as the internal representation in Param is a tree as well (Marc, Stefan Rink)
 		
 		@ingroup Datastructures
 	*/

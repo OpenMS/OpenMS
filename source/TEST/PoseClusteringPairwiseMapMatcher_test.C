@@ -103,7 +103,7 @@ RESULT
 CHECK((virtual void run()))
   Param param;
   param.setValue("superimposer","poseclustering_shift");
-  param.setValue("pair_finder","simple");
+  param.setValue("pair_finder","SimplePairFinder");
   ElementMapType scene;
   Feature feat1;
   Feature feat2;

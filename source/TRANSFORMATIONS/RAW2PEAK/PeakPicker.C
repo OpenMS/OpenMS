@@ -31,10 +31,10 @@ namespace OpenMS
 	PeakPicker::PeakPicker()
     :DefaultParamHandler("PeakPicker")
   {
-  	defaults_.setValue("thresholds:signal_to_noise",3.0);
-  	defaults_.setValue("thresholds:peak_bound",200.0);
-  	defaults_.setValue("thresholds:peak_bound_ms2_level",50.0);
-  	defaults_.setValue("thresholds:fwhm_bound",0.2);
+  	defaults_.setValue("thresholds:signal_to_noise",3.0,"TODO????");
+  	defaults_.setValue("thresholds:peak_bound",200.0,"TODO????");
+  	defaults_.setValue("thresholds:peak_bound_ms2_level",50.0,"TODO????");
+  	defaults_.setValue("thresholds:fwhm_bound",0.2,"TODO????");
 
 		defaultsToParam_();
   }

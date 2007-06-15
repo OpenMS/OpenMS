@@ -76,7 +76,7 @@ RESULT
 CHECK((virtual BaseAlignment& operator=(const BaseAlignment &source)))
   TestAlignment al;
   Param param;
-  param.setValue("consensus_algorithm","delaunay");
+  param.setValue("consensus_algorithm","DelaunayPairFinder");
   al.setParameters(param);
   vector<FeatureMap<>*> map_vector;
   FeatureMap<> map;
@@ -114,7 +114,7 @@ RESULT
 CHECK((BaseAlignment(const BaseAlignment& source)))
   TestAlignment al;
   Param param;
-  param.setValue("consensus_algorithm","delaunay");
+  param.setValue("consensus_algorithm","DelaunayPairFinder");
   al.setParameters(param);
   vector<FeatureMap<>*> map_vector;
   FeatureMap<> map;

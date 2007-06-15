@@ -124,8 +124,11 @@ namespace OpenMS
 		{
 			return it->second;
 		}
-		return String::EMPTY;
-			
+		
+		//this construct is needed instead of using String::EMPTY because
+		//This method is used in initialization of static methods where Sting::EMPTY might by undefinded...
+		const static String empty;
+		return empty;	
 	}
 	
 	void Param::insert(String prefix, const Param& para)

@@ -69,7 +69,7 @@ namespace OpenMS
     BaseAlignment()
         : DefaultParamHandler("BaseAlignment")
     {
-    	defaults_.setValue("map_type","");
+    	defaults_.setValue("map_type","","Map type: 'peak_map', 'feature_map' or 'consensus_map'");
     	
     	defaultsToParam_();
     }

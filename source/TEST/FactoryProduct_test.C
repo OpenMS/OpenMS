@@ -50,8 +50,8 @@ class TestProduct1
 	TestProduct1()
 		: FactoryProduct("TestProduct1")
 	{
-		defaults_.setValue("check",0);
-		defaults_.setValue("value",1);
+		defaults_.setValue("check",0,"desc1");
+		defaults_.setValue("value",1,"desc2");
 		
 		defaultsToParam_();
 	}

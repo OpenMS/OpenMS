@@ -154,7 +154,7 @@ CHECK(void run() throw(Exception::InvalidValue))
   param.setValue("map_type","feature_map");
   param.setValue("matching_algorithm:type","poseclustering_pairwise");
   param.setValue("matching_algorithm:superimposer:type","poseclustering_affine");
-  param.setValue("matching_algorithm:pairfinder:type","delaunay");
+  param.setValue("matching_algorithm:pairfinder:type","DelaunayPairFinder");
   alignment.setParameters(param);
   alignment.run();
   

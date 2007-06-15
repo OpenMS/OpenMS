@@ -31,7 +31,10 @@ using namespace std;
 namespace OpenMS
 {
 	DefaultParamHandler::DefaultParamHandler(const String& name)
-		: error_name_(name),
+		: param_(),
+			defaults_(),
+			subsections_(),
+			error_name_(name),
 			check_defaults_(true)
 	{
 		
@@ -87,14 +90,16 @@ namespace OpenMS
 		{
 			if (defaults_.size()==0)
 			{
-				cout << "Warning no default parameters for DefaultParameterHandler '" << error_name_ << "' specified!" << endl;
+				cout << "Warning: no default parameters for DefaultParameterHandler '" << error_name_ << "' specified!" << endl;
 			}
 			
-			//remove registered subsections and check defaults
+			//remove registered subsections
 			for(vector<String>::const_iterator it = subsections_.begin(); it != subsections_.end(); ++it)
 			{
 				tmp.remove(*it+':');
 			}
+			
+			//check defaults
 			tmp.checkDefaults(error_name_,defaults_);
 		}
 		
@@ -104,6 +109,22 @@ namespace OpenMS
 
 	void DefaultParamHandler::defaultsToParam_()
 	{
+		//check if a description id given for all defaults
+		bool description_missing = false;
+		for(map<String,DataValue>::const_iterator it = defaults_.begin(); it != defaults_.end();++it)
+		{
+			//cout << "Name: " << it->first << endl;
+			if (defaults_.getDescription(it->first)=="")
+			{
+				description_missing = true;
+				break;
+			}
+		}
+		if (description_missing)
+		{
+			cout << "Warning: no default parameter description for DefaultParameterHandler '" << error_name_ << "' given!" << endl;
+		}
+		
 		param_.setDefaults(defaults_);
 		updateMembers_();	
 	}

@@ -113,7 +113,10 @@ namespace OpenMS
     StarAlignment()
 			: Base(),
 				reference_map_index_(0)
-    {}
+    {
+    	//set the name for DefaultParamHandler error messages
+    	this->setName("StarAlignment");	
+    }
 
     /// Copy constructor
     StarAlignment(const StarAlignment& source)

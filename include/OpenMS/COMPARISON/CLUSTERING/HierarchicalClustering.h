@@ -78,11 +78,10 @@ namespace OpenMS
       HierarchicalClustering()
       : DefaultParamHandler("HierarchicalClustering")
       {
-        defaults_.setValue("cluster_cutoff", 40.0, "maximal distance allowed between two clusters before merging them");           
-        defaults_.setValue("linkage_type", COMPLETE_LINKAGE, "clustering method (see LINKAGE_TYPE enum)"); 
+        defaults_.setValue("cluster_cutoff", 40.0, "maximal distance allowed between two clusters before merging them");           // maximal distance allowed between two clusters before merging them
+        defaults_.setValue("linkage_type", COMPLETE_LINKAGE,"clustering method: 0=complete linkage 1=single_linkage");
     
         defaultsToParam_();
-    
       }
 
       /// Copy constructor

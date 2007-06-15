@@ -212,14 +212,14 @@ namespace OpenMS
     {
 			setName(getProductName());
 			
-      defaults_.setValue("feature_map:bucket_size:RT",150);
-      defaults_.setValue("feature_map:bucket_size:MZ",4);
-      defaults_.setValue("transformation_space:shift_bucket_size:RT",5);
-      defaults_.setValue("transformation_space:shift_bucket_size:MZ",0.1);
-      defaults_.setValue("feature_map:bucket_window:RT",2);
-      defaults_.setValue("feature_map:bucket_window:MZ",1);
-      defaults_.setValue("transformation_space:bucket_window_shift:RT",2);
-      defaults_.setValue("transformation_space:bucket_window_shift:MZ",1);
+      defaults_.setValue("feature_map:bucket_size:RT",150,"TODO????");
+      defaults_.setValue("feature_map:bucket_size:MZ",4,"TODO????");
+      defaults_.setValue("transformation_space:shift_bucket_size:RT",5,"TODO????");
+      defaults_.setValue("transformation_space:shift_bucket_size:MZ",0.1,"TODO????");
+      defaults_.setValue("feature_map:bucket_window:RT",2,"TODO????");
+      defaults_.setValue("feature_map:bucket_window:MZ",1,"TODO????");
+      defaults_.setValue("transformation_space:bucket_window_shift:RT",2,"TODO????");
+      defaults_.setValue("transformation_space:bucket_window_shift:MZ",1,"TODO????");
 			subsections_.push_back("debug");
 			
       defaultsToParam_();
