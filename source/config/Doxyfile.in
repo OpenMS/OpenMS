@@ -108,7 +108,8 @@ RECURSIVE              = YES
 EXCLUDE                = 
 EXCLUDE_SYMLINKS       = NO
 EXCLUDE_PATTERNS       = */.svn/* \
-                         *_moc*
+                         *_moc* \
+                         */UIC/*
 EXAMPLE_PATH           = ../source/EXAMPLES/
 EXAMPLE_PATTERNS       = 
 EXAMPLE_RECURSIVE      = NO

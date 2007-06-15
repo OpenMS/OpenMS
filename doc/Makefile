@@ -42,7 +42,7 @@ help:
 # create parameter documentation of classes derived from DefaultParamHandler 
 paramdoc: doxygen/parameters/DefaultParamHandlerDocumenter.C ../source/config.mak dummy
 	@echo "";
-	@echo "Note: In order to build the parameter documentation for part of the algorithms, a functional OpenMS installation is required!";
+	@echo "Note: In order to build the parameter documentation for part of the algorithms, a functioning OpenMS installation and a running X-server is required!";
 	@echo "";
 	@cd doxygen/parameters/ && \
 	 $(CXX) $(CXXFLAGS) $(ADD_CXXFLAGS) $(CPP_MODE_FLAGS) $(LIB_CXXFLAGS) $(OPENMS_INCLUDES) $(ADD_INCLUDES) -c DefaultParamHandlerDocumenter.C -o DefaultParamHandlerDocumenter.o && \

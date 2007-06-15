@@ -197,9 +197,7 @@ int main (int argc , char** argv)
 	f.open("DefaultParameters.doxygen");
 
 	//////////////////////////////////
-	//
-	// Documentation is in .C files:
-	//
+	// Simple cases
 	//////////////////////////////////
 
 	DOCME(BiGaussModel);
@@ -231,12 +229,6 @@ int main (int argc , char** argv)
 	DOCME(PILISModel);
 	DOCME(PILISModelGenerator);
 	DOCME(PILISScoring);
-	
-	//PairMatcher
-	FeatureMap<> features;
-	PairMatcher pm(features);
-	writeParameters(f,"PairMatcher",pm.getParameters());
-	
 	DOCME(ParentPeakMower);
 	DOCME(PeakPicker);
 	DOCME(PeakPickerCWT);
@@ -261,27 +253,28 @@ int main (int argc , char** argv)
 	DOCME(TwoDOptimization);
 	DOCME(WindowMower);
 	DOCME(ZhangSimilarityScore);
-
+	DOCME(GaussFilter);
+	DOCME(MorphFilter);
+	DOCME(LinearResampler);
+	
 	//////////////////////////////////
-	//
-	// Documentation is in .h files:
-	//
+	// More complicated cases
 	//////////////////////////////////
 
-	// DOCME2(BaseAlignment);
-	// DOCME2(BasePairwiseMapMatcher);
-	// DOCME2(DelaunayPairFinder);
-	// DOCME2(GaussFilter);
+	DOCME2(DelaunayPairFinder,DelaunayPairFinder<>());
 	DOCME2(HierarchicalClustering, HierarchicalClustering<>());
-	// DOCME2(LinearResampler);
-	// DOCME2(MorphFilter);
-	// DOCME2(PoseClusteringAffineSuperimposer);
-	// DOCME2(PoseClusteringPairwiseMapMatcher);
-	// DOCME2(PoseClusteringShiftSuperimposer);
-	DOCME2(ProductModel,ProductModel<2>()); // YEAH!!!
+	DOCME2(PoseClusteringAffineSuperimposer,PoseClusteringAffineSuperimposer<>());
+	DOCME2(PoseClusteringPairwiseMapMatcher,PoseClusteringPairwiseMapMatcher<>());
+	DOCME2(PoseClusteringShiftSuperimposer,PoseClusteringShiftSuperimposer<>());
+	DOCME2(ProductModel,ProductModel<2>());
 	DOCME2(SignalToNoiseEstimatorMeanIterative,SignalToNoiseEstimatorMeanIterative<>());
 	DOCME2(SignalToNoiseEstimatorMedian,SignalToNoiseEstimatorMedian<>());
-	// DOCME2(SimplePairFinder);
+	DOCME2(SimplePairFinder,SimplePairFinder<>());
+
+	//PairMatcher
+	FeatureMap<> features;
+	PairMatcher pm(features);
+	writeParameters(f,"PairMatcher",pm.getParameters());
 
 	//create main page for all parameter documentations
 	writeParameters(f,"CREATE_MAIN_PAGE",Param());
