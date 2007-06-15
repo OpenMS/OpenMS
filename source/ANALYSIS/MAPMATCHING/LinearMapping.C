@@ -33,28 +33,20 @@ namespace OpenMS
   {
     if (this==&source) return *this;
       
-    BaseMapping::operator = (source);
-    slope_     = source.slope_;
-    intercept_ = source.intercept_;
+    BaseMapping::operator = (source);   
+    param_.setValue("slope",source.slope_);
+    param_.setValue("intercept",source.intercept_);
+    updateMembers_();
     return *this;
   }   
     
   void LinearMapping::setParam(DoubleReal sl, DoubleReal in)
   {
-    slope_ = sl;
-    this->param_.setValue("LinearMapping:slope", (DoubleReal) sl);
-    intercept_ = in;
-    this->param_.setValue("LinearMapping:intercept", (DoubleReal) in);
+    param_.setValue("slope",sl);
+    param_.setValue("intercept",in);
+    updateMembers_();
   }
       
-  void LinearMapping::setParam(const Param& pa)
-  {
-    slope_       = pa.getValue("LinearMapping:slope");
-    intercept_   = pa.getValue("LinearMapping:intercept");
-      
-    this->param_ = pa;
-  }
-    
   void LinearMapping::apply(DPosition<1>& pos) const
   {
     for (UInt i=0; i < 2; ++i)

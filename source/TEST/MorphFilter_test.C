@@ -120,13 +120,6 @@ CHECK((template< typename InputPeakIterator, typename OutputPeakContainer > void
   TEST_EQUAL(filtered[4].getIntensity(), 0)    
 RESULT
 
-CHECK((void setStrucElemSize(Real struc_size)))
-  MorphFilter m;
-  m.setStrucElemSize(3.5);
-  
-  TEST_REAL_EQUAL(m.getStrucElemSize(),3.5)
-RESULT
-
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST

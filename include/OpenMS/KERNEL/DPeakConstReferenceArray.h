@@ -47,9 +47,7 @@ namespace OpenMS
     (E.g. generating a DPeakConstReferenceArray pointer_array of a FeatureMap feature_map is done by:
     pointer_array(feature_map.begin(),feature_map.end()))
 
-		@todo Apparently there is something to do about reference operator [] (Eva)
-    
-    @ingroup Kernel
+		@ingroup Kernel
   */
   template <typename MapT>
   class DPeakConstReferenceArray
@@ -214,11 +212,7 @@ namespace OpenMS
         return (*vector_)[position_];
       }
 
-      //      reference operator [] (difference_type n)
-      //      {
-      //        return *((*this)+n);
-      //      }
-
+      
     protected:
 
       typename std::vector<IteratorPeakType*>* vector_;
@@ -268,11 +262,7 @@ namespace OpenMS
         return (*vector_)[position_];
       }
 
-      //      typename DPeakConstReferenceArrayIterator::reference operator [] (typename DPeakConstReferenceArrayIterator::difference_type n)
-      //      {
-      //        return *((*this)+n);
-      //      }
-
+     
       DPeakConstReferenceArrayIterator& operator ++ ()
       {
         DPeakConstReferenceArrayConstIterator<IteratorPeakType>::position_+=1;
@@ -497,12 +487,6 @@ namespace OpenMS
     }
 
     /// See std::vector documentation.
-    //     reference operator [](size_type n)
-    //     {
-    //       return *(vector_[n]);
-    //     }
-
-    /// See std::vector documentation.
     const_reference operator [](size_type n) const
     {
       return *(vector_[n]);
@@ -627,14 +611,14 @@ namespace OpenMS
     /** @name Accesssor methods
      */
     //@{
-    /// Set pointer to the base container
-    void setBaseContainerPointer(const BaseMapType& base_map) { base_container_ptr_ = &base_map; }
+    /// Set base container
+    void setBaseContainer(const BaseMapType& base_map) { base_container_ptr_ = &base_map; }
     /// Set pointer to the base container
     void setBaseContainerPointer(const BaseMapType* base_map_pointer) { base_container_ptr_ = base_map_pointer; }
-    /// Get grid
-    BaseMapType* getBaseContainerPointer() { return *base_container_ptr_; }
-    /// Get grid (non-mutable)
-    BaseMapType const* getBaseContainerPointer() const { return *base_container_ptr_; }
+    /// Get pointer to the base container
+    const BaseMapType* getBaseContainerPointer() const { return base_container_ptr_; }
+    /// Get reference to the base container
+    const BaseMapType& getBaseContainer() const { return *base_container_ptr_; }
     //@}
 
 
@@ -792,27 +776,13 @@ namespace OpenMS
     //----------------------------------------------------------------------
 
   protected:
-
-    typedef std::vector<const PeakType*> InternalPointerVector;
-
-    /**
-      @brief Do not use this.
-
-      ...unless you know what you are doing!  It is used by PointerPriorityQueue
-      which has a special constructor for vector arguments, which is faster than
-      using begin() and end() because it does not rely on push_back().
-    */
-    InternalPointerVector const & internalPointerVector() const
-    {
-      return vector_;
-    }
-
+  
     ///the internal vector of PeakType pointers
     std::vector<const PeakType*> vector_;
     ///the current capacity
     size_type capacity_;
     /// Pointer to the base container
-    BaseMapType* base_container_ptr_;
+    const BaseMapType* base_container_ptr_;
   };
 
   ///Print the contents to a stream.

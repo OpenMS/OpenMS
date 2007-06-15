@@ -67,28 +67,12 @@ CHECK((UInt getWindowSize() const))
   TEST_EQUAL(sgolay.getWindowSize(),17);
 RESULT
 
-CHECK((UInt getOrder() const))
-  SavitzkyGolayQRFilter sgolay;
-
-  TEST_EQUAL(sgolay.getOrder(),4);
-RESULT
 
 CHECK((void setOrder(UInt order)))
   SavitzkyGolayQRFilter sgolay;
   sgolay.setOrder(3);
 
   TEST_EQUAL(sgolay.getOrder(),3);
-RESULT
-
-CHECK((void setParameters(Param param) throw(Exception::InvalidValue)))
-  Param p;
-  p.setValue("polynomial_order",2);
-  p.setValue("frame_length",3);
-  SavitzkyGolayQRFilter sgolay;
-  sgolay.setParameters(p);
-
-  TEST_REAL_EQUAL(sgolay.getOrder(),2);
-  TEST_REAL_EQUAL(sgolay.getWindowSize(),3);
 RESULT
 
 CHECK((void setWindowSize(UInt frame_size)))
@@ -241,7 +225,6 @@ CHECK((template<typename InputPeakContainer, typename OutputPeakContainer > void
   ++it;
   TEST_REAL_EQUAL(it->getIntensity(),sgolay.getCoeffs()[0])
 RESULT
-
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

@@ -89,12 +89,7 @@ CHECK((Int getCharge() const))
 	TEST_EQUAL(p.getCharge(), 0)
 RESULT
 
-CHECK((DoubleReal getRValue() const))
-	PickedPeak1D	p;
-	TEST_EQUAL(p.getRValue(), 0)
-RESULT
-
-CHECK((DoubleReal getRValue() const))
+CHECK((void setRValue(DoubleReal r_value)))
 	PickedPeak1D p;
 	TEST_REAL_EQUAL(p.getRValue(), 0.0)
 	p.setRValue(0.456);
@@ -105,7 +100,7 @@ CHECK((DoubleReal getRValue() const))
 	TEST_REAL_EQUAL(p.getRValue(), 0.0)
 RESULT
 
-CHECK((DoubleReal getArea() const))
+CHECK((void setArea(DoubleReal area)))
 	PickedPeak1D p;
 	TEST_REAL_EQUAL(p.getArea(), 0.0)
 	p.setArea(123.456);
@@ -116,7 +111,7 @@ CHECK((DoubleReal getArea() const))
 	TEST_REAL_EQUAL(p.getArea(), 0.0)
 RESULT
 
-CHECK((DoubleReal getFWHM() const))
+CHECK((void setFWHM(DoubleReal fwhm)))
 	PickedPeak1D p;
 	TEST_REAL_EQUAL(p.getFWHM(), 0.0)
 	p.setFWHM(123.456);
@@ -127,7 +122,7 @@ CHECK((DoubleReal getFWHM() const))
 	TEST_REAL_EQUAL(p.getFWHM(), 0.0)
 RESULT
 
-CHECK((DoubleReal getLeftWidthParameter() const))
+CHECK((void setLeftWidthParameter(DoubleReal left_width_paramter)))
 	PickedPeak1D p;
 	TEST_REAL_EQUAL(p.getLeftWidthParameter(), 0.0)
 	p.setLeftWidthParameter(123.456);
@@ -138,7 +133,7 @@ CHECK((DoubleReal getLeftWidthParameter() const))
 	TEST_REAL_EQUAL(p.getLeftWidthParameter(), 0.0)
 RESULT
 
-CHECK((DoubleReal getRightWidthParameter() const))
+CHECK((void setRightWidthParameter(DoubleReal right_width_paramter)))
 	PickedPeak1D p;
 	TEST_REAL_EQUAL(p.getRightWidthParameter(), 0.0)
 	p.setRightWidthParameter(123.456);
@@ -149,7 +144,7 @@ CHECK((DoubleReal getRightWidthParameter() const))
 	TEST_REAL_EQUAL(p.getRightWidthParameter(), 0.0)
 RESULT
 
-CHECK((const PeakShapeType::Enum& getPeakShape() const))
+CHECK((void setPeakShape(const PeakShapeType::Enum &type)))
 	PickedPeak1D p;
 	TEST_EQUAL(p.getPeakShape(), PeakShapeType::UNDEFINED)
 	p.setPeakShape(PeakShapeType::LORENTZ_PEAK);
@@ -158,7 +153,7 @@ CHECK((const PeakShapeType::Enum& getPeakShape() const))
 	TEST_EQUAL(p.getPeakShape(), PeakShapeType::SECH_PEAK)
 RESULT
 
-CHECK((DoubleReal getSN() const))
+CHECK((void setSN(DoubleReal signal_to_noise)))
 	PickedPeak1D p;
 	TEST_REAL_EQUAL(p.getSN(), 0.0)
 	p.setSN(123.456);
@@ -169,7 +164,7 @@ CHECK((DoubleReal getSN() const))
 	TEST_REAL_EQUAL(p.getSN(), 0.0)
 RESULT
 
-CHECK((Int getCharge() const))
+CHECK((void setCharge(Int charge)))
 	PickedPeak1D p;
 	TEST_EQUAL(p.getCharge(), 0.0)
 	p.setCharge(12);
@@ -180,6 +175,27 @@ CHECK((Int getCharge() const))
 	TEST_EQUAL(p.getCharge(), 0)
 RESULT
 
+CHECK((double getSymmetricMeasure() const))
+  PickedPeak1D p;
+	p.setRightWidthParameter(123.456);
+	p.setLeftWidthParameter(123.456);
+	
+	TEST_REAL_EQUAL(p.getSymmetricMeasure(),1)
+RESULT
+
+CHECK((double operator () (DoubleReal x) const))
+  PickedPeak1D::PositionType pos,pos2;
+
+	pos[0] = 21.21;
+	PickedPeak1D p;
+	p.setMZ(2);
+	p.setIntensity(100);
+	p.setLeftWidthParameter(2);
+  p.setRightWidthParameter(p.getLeftWidthParameter());
+  p.setPeakShape(PeakShapeType::LORENTZ_PEAK);
+  
+  TEST_REAL_EQUAL(p(2),100)
+RESULT
 
 CHECK((PickedPeak1D(PickedPeak1D const& p)))
 	PickedPeak1D::PositionType pos,pos2;

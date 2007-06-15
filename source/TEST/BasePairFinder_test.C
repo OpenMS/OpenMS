@@ -137,16 +137,6 @@ CHECK((const ElementPairVectorType& getElementPairs() const))
   TEST_EQUAL(&(bpf_copy.getElementPairs()) == &pairs,true)
 RESULT
 
-CHECK((const Param& getParameters() const))
-  Param param;
-  param.setValue("bla",3);
-  TestPairFinder bpf;
-  bpf.setParameters(param);
-  const TestPairFinder bpf_copy(bpf);
- 
-  TEST_EQUAL(bpf_copy.getParameters() == param,true)
-RESULT
-
 CHECK((const PointMapType& getElementMap(UInt index) const))
   ElementMapType map;
   TestPairFinder bpf;
@@ -178,16 +168,6 @@ CHECK((void setElementPairs(ElementPairVectorType& element_pairs)))
   TEST_EQUAL(&(bpf_copy.getElementPairs()) == &pairs,true)
 RESULT
 
-CHECK((void setParameters(const Param& param)))
-  Param param;
-  TestPairFinder bpf;
-  param.setValue("bla",3);
-  bpf.setParameters(param);
-  const TestPairFinder bpf_copy(bpf);
- 
-  TEST_EQUAL(bpf_copy.getParameters() == param,true)
-RESULT
-
 CHECK((void setTransformation(UInt dim, const TransformationType& trafo)))
   TransformationType trafo(1.,2.);
   TestPairFinder bpf;
@@ -207,6 +187,10 @@ CHECK((const TransformationType& getTransformation(UInt dim) const))
   TEST_REAL_EQUAL((bpf.getTransformation(0)).getIntercept(),trafo.getIntercept())
 RESULT
 
+
+CHECK((int dumpElementPairs(const String &filename)))
+
+RESULT
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST

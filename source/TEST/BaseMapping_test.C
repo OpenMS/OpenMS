@@ -47,8 +47,6 @@ class TestMapping : public BaseMapping
    virtual void apply(DPosition<1>& ) const {}
 
    virtual void apply(DoubleReal& ) const {};
-  
-   virtual const String getName() { return "";}
 };
 
 START_TEST(BaseMapping, "$Id$")
@@ -70,34 +68,23 @@ CHECK((BaseMapping& operator = (const BaseMapping& rhs)))
   TestMapping tm;
   Param param;
   param.setValue("bla",3);  
-  tm.setParam(param);
+  tm.setParameters(param);
   
   TestMapping tm_copy;
   tm_copy = tm;
   
-  TEST_EQUAL(tm_copy.getParam() == param,true)
+  TEST_EQUAL(tm_copy.getParameters() == param,true)
 RESULT
 
 CHECK((BaseMapping(const BaseMapping& source)))
   TestMapping tm;
   Param param;
   param.setValue("bla",3);  
-  tm.setParam(param);
+  tm.setParameters(param);
   
   TestMapping tm_copy(tm);
   
-  TEST_EQUAL(tm_copy.getParam() == param,true)
-RESULT
-
-CHECK((virtual const Param& getParam() const))
-  TestMapping tm;
-  Param param;
-  
-  TEST_EQUAL(tm.getParam() == param,true)
-RESULT
-
-CHECK((virtual const String getName()=0))
-  
+  TEST_EQUAL(tm_copy.getParameters() == param,true)
 RESULT
 
 CHECK((virtual void apply(DoubleReal &pos) const =0))
@@ -106,15 +93,6 @@ RESULT
 
 CHECK((virtual void apply(DPosition< 1 > &) const =0))
   
-RESULT
-
-CHECK((virtual void setParam(const Param &p)))
-  TestMapping tm;
-  Param param;
-  param.setValue("bla",3);  
-  tm.setParam(param);
-  
-  TEST_EQUAL(tm.getParam() == param,true)
 RESULT
 
 /////////////////////////////////////////////////////////////

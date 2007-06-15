@@ -103,23 +103,6 @@ CHECK((Grid& operator = (const Grid& rhs)))
 	
 RESULT
 
-CHECK((bool operator == (const Grid& rhs) const))
-
-	GridCell c1(0.0,0.0,2.0,2.0);
-	GridCell c2(3.0,3.0,6.0,6.0);
-	
-	Grid grid;
-	grid.push_back(c1);
-	grid.push_back(c2);
-	
-	Grid grid_copy;
-	grid_copy.push_back(c1);
-	grid_copy.push_back(c2);
-	
-	TEST_EQUAL(grid_copy==grid,true);
-	
-RESULT
-
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST

@@ -137,7 +137,7 @@ namespace OpenMS
         delete cell_;
         break;
       case MAPPING:
-        mapping_->setParam(*param_);
+        mapping_->setParameters(*param_);
         cell_->getMappings().push_back(mapping_);
         delete param_;
         registerMappings_();
@@ -186,7 +186,7 @@ namespace OpenMS
         while (citer != mappings.end() )
         {
           os << "\t\t<mapping name=\"" << (*citer)->getName() << "\">" << std::endl;
-          Param map_param = (*citer)->getParam();
+          Param map_param = (*citer)->getParameters();
           Param::ConstIterator piter = map_param.begin();
           while (piter != map_param.end())
           {

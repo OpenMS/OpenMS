@@ -47,20 +47,28 @@ namespace OpenMS
 	 public:
 		/// Constructor
 		LinearMapping() 
-			: BaseMapping(),
-				slope_(1), 
-				intercept_(0) 
-		{
-		}
+			: BaseMapping()
+				{
+				  setName("LinearMapping");
+				  
+				  //Parameter settings
+      	  defaults_.setValue("slope",1);
+          defaults_.setValue("intercept",0);
+        
+          defaultsToParam_();
+				 }
 			
 		/// Easy Constructor
 		LinearMapping(DoubleReal slope, DoubleReal intercept) 
-			: BaseMapping(),
-				slope_(slope), 
-				intercept_(intercept)
+			: BaseMapping()
 		{
-			this->param_.setValue("LinearMapping:slope", (double) slope, "The slope of the linear function");
-			this->param_.setValue("LinearMapping:intercept", (double) intercept,"The intercept of the linear function");
+		  setName("LinearMapping");
+		  
+		  //Parameter settings
+    	defaults_.setValue("slope",slope);
+      defaults_.setValue("intercept",intercept);
+      
+      defaultsToParam_();
 		}
 		
 		/// Destructor
@@ -68,43 +76,49 @@ namespace OpenMS
       
     /// Copy constructor 
 		LinearMapping(const LinearMapping& source) 
-			: BaseMapping(source),
-				slope_(source.slope_), 
-				intercept_(source.intercept_)
+			: BaseMapping(source)
 		{
+		  updateMembers_();
 		}
 			
 		/// assignment operator
     LinearMapping& operator = (const LinearMapping& source);
 		
     void setParam(DoubleReal sl, DoubleReal in);
-			
-    void setParam(const Param& pa);
-		
+	
     void apply(DPosition<1>& pos) const;
 			
     void apply( DoubleReal & pos) const;
 			
-		inline const String getName()
-		{
-			return "LinearMapping";
-		}
-		
 		/// Non-mutable access to slope
 		inline DoubleReal getSlope() const { return slope_; }
 		/// Set slope
-		inline void setSlope(DoubleReal sl) { slope_ = sl; }
+		inline void setSlope(DoubleReal sl) 
+		{ 
+		  slope_ = sl; 
+		  param_.setValue("slope",slope_); 
+		}
 		
 		/// Non-mutable access to slope
 		inline DoubleReal getIntercept() const { return intercept_; }
 		/// Set slope
-		inline void setIntercept(DoubleReal in) { intercept_ = in; }
+		inline void setIntercept(DoubleReal in) 
+		{ 
+		  intercept_ = in; 
+		  param_.setValue("intercept",intercept_); 
+		}
 			
 	 protected:		
 		/// slope of the transform
 		DoubleReal slope_;
 		/// intercept 
 		DoubleReal intercept_;	
+		
+	 virtual void updateMembers_() 
+    {
+      slope_ = param_.getValue("slope"); 
+      intercept_ = param_.getValue("intercept"); 
+    }
 	};
 	
 } // end of namespace OpenMS

@@ -120,15 +120,6 @@ CHECK((BaseSuperimposer(const BaseSuperimposer& source)))
   TEST_REAL_EQUAL((bsi.getTransformation(0)).getIntercept(),trafo.getIntercept())
 RESULT
 
-CHECK((const Param& getParameters() const))
-  Param param;
-  param.setValue("bla",3);
-  TestSuperimposer bsi;
-  bsi.setParameters(param);
-  const TestSuperimposer bsi_copy(bsi);
-  TEST_EQUAL(bsi_copy.getParameters() == param,true)
-RESULT
-
 CHECK((const PointMapType& getElementMap(UInt index)))
   
 RESULT
@@ -155,20 +146,15 @@ CHECK((virtual void run()=0))
   
 RESULT
 
+CHECK((void registerChildren()))
+  
+RESULT
+
 CHECK((void setElementMap(UInt const index, const PointMapType &element_map)))
   ElementMapType map;
   TestSuperimposer bsi;
   bsi.setElementMap(0,map);
   TEST_EQUAL(&(bsi.getElementMap(0)) == &map,true)
-RESULT
-
-CHECK((void setParameters(const Param& param)))
-  Param param;
-  TestSuperimposer bsi;
-  param.setValue("bla",3);
-  bsi.setParameters(param);
-  const TestSuperimposer bsi_copy(bsi);
-  TEST_EQUAL(bsi_copy.getParameters() == param,true)
 RESULT
 
 CHECK((void setTransformation(UInt dim, const TransformationType& trafo)))

@@ -52,16 +52,16 @@ CHECK((virtual ~PoseClusteringShiftSuperimposer()))
 RESULT
 
 PoseClusteringShiftSuperimposer<FeatureMap<> >::Shift* ptr2;
-CHECK((Shift()))
+CHECK(([EXTRA]Shift()))
   ptr2 = new PoseClusteringShiftSuperimposer<FeatureMap<> >::Shift();
   TEST_NOT_EQUAL(ptr2, 0)
 RESULT
 
-CHECK((~Shift()))
+CHECK(([EXTRA]~Shift()))
   delete ptr2;
 RESULT
 
-CHECK((Shift& operator= (Shift const & source)))
+CHECK(([EXTRA]Shift& operator= (Shift const & source)))
   PoseClusteringShiftSuperimposer<FeatureMap<> >::Shift shift;
   shift.setQuality(0.1);
   shift.getPosition()[0] = 0.2;
@@ -75,7 +75,7 @@ CHECK((Shift& operator= (Shift const & source)))
   TEST_REAL_EQUAL(shift_copy.getPosition()[1], 0.4)
 RESULT
 
-CHECK((Shift(Shift const & source)))
+CHECK(([EXTRA]Shift(Shift const & source)))
   PoseClusteringShiftSuperimposer<FeatureMap<> >::Shift shift;
   shift.setQuality(0.1);
   shift.getPosition()[0] = 0.2;
@@ -88,7 +88,7 @@ CHECK((Shift(Shift const & source)))
   TEST_REAL_EQUAL(shift_copy.getPosition()[1], 0.4)
 RESULT
 
-CHECK((QualityType& getQuality()))
+CHECK(([EXTRA]QualityType& getQuality()))
   PoseClusteringShiftSuperimposer<FeatureMap<> >::Shift shift;
   shift.setQuality(0.1);
   
@@ -96,7 +96,7 @@ CHECK((QualityType& getQuality()))
 RESULT
 
 
-CHECK((PositionType& getPosition()))
+CHECK(([EXTRA]PositionType& getPosition()))
   PoseClusteringShiftSuperimposer<FeatureMap<> >::Shift shift;
   PositionType pos;
   pos[0] = 0.2;
@@ -107,20 +107,20 @@ CHECK((PositionType& getPosition()))
   TEST_REAL_EQUAL(shift.getPosition()[1], 0.4)
 RESULT
 
-CHECK((const PositionType& getPosition() const))
+CHECK(([EXTRA]const PositionType& getPosition() const))
   PoseClusteringShiftSuperimposer<FeatureMap<> >::Shift shift;
   
   TEST_REAL_EQUAL(shift.getPosition()[0], 0)
   TEST_REAL_EQUAL(shift.getPosition()[1], 0)
 RESULT
 
-CHECK((QualityType getQuality() const))
+CHECK(([EXTRA]QualityType getQuality() const))
   PoseClusteringShiftSuperimposer<FeatureMap<> >::Shift shift;
   
   TEST_REAL_EQUAL(shift.getQuality(), 0)
 RESULT
 
-CHECK((void setPosition(const PositionType& position)))
+CHECK(([EXTRA]void setPosition(const PositionType& position)))
   PoseClusteringShiftSuperimposer<FeatureMap<> >::Shift shift;
   PositionType pos;
   pos[0] = 0.2;
@@ -131,7 +131,7 @@ CHECK((void setPosition(const PositionType& position)))
   TEST_REAL_EQUAL(shift.getPosition()[1], 0.4)
 RESULT
 
-CHECK((void setQuality(QualityType quality)))
+CHECK(([EXTRA]void setQuality(QualityType quality)))
   PoseClusteringShiftSuperimposer<FeatureMap<> >::Shift shift;
   shift.setQuality(0.1);
   

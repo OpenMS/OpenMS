@@ -230,13 +230,6 @@ CHECK((void setFirst(const ElementType &frt)))
 	TEST_EQUAL( f, p.getFirst() )
 RESULT
 
-CHECK((void setQuality(QualityType ql)))
-	ElementPair<> p;
-	const ElementPair<>::QualityType q = 10.0;
-	p.setQuality(q);
-	
-	TEST_EQUAL( q, p.getQuality() )	
-RESULT
 
 CHECK((void setSecond(const ElementType &sec)))
 	ElementPair<> p;

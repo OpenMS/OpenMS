@@ -28,20 +28,10 @@
 
 namespace OpenMS
 {
-  void BaseMapping::setParam(const Param& p)
-  {
-    param_ = p;
-  }
-
-  const Param& BaseMapping::getParam() const
-  {
-    return param_;
-  }
-
   ///Print the contents to a stream.
   std::ostream& operator << (std::ostream& os, const BaseMapping& mapping)
   {
-    os << mapping.getParam();
+    os << mapping.getParameters();
     return os;
   }
 } // end of namespace OpenMS

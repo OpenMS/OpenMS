@@ -212,19 +212,6 @@ CHECK((template<typename InputPeakType, typename OutputPeakType > void filterExp
   TEST_REAL_EQUAL(it->getIntensity(),1)
 RESULT
 
-
-CHECK((void setCoeffs(std::vector<double>& coeffs)))
-  std::vector<double> coeffs(3);
-  coeffs[0]=1.2;
-  coeffs[1]=2.4;
-  coeffs[2]= 1.4;
-  SmoothFilter smooth;
-  smooth.setCoeffs(coeffs);
-  TEST_EQUAL(smooth.getCoeffs()[0],1.2)
-  TEST_EQUAL(smooth.getCoeffs()[1],2.4)
-  TEST_EQUAL(smooth.getCoeffs()[2],1.4)
-RESULT
-
 CHECK((template<typename InputPeakContainer, typename OutputPeakContainer > void filter(const InputPeakContainer& input_peak_container, OutputPeakContainer& smoothed_data_container)))
  RawDataArray1D raw(5);
   RawDataArray1D filtered(5);
@@ -263,20 +250,6 @@ CHECK((template<typename InputPeakContainer, typename OutputPeakContainer > void
   ++it;
   TEST_REAL_EQUAL(it->getIntensity(),1)
 RESULT
-
-CHECK((void setCoeffs(std::vector<double>& coeffs)))
-  std::vector<double> coeffs(3);
-  coeffs[0]=1.2;
-  coeffs[1]=2.4;
-  coeffs[2]= 1.4;
-  SmoothFilter smooth;
-  smooth.setCoeffs(coeffs);
-  TEST_EQUAL(smooth.getCoeffs()[0],1.2)
-  TEST_EQUAL(smooth.getCoeffs()[1],2.4)
-  TEST_EQUAL(smooth.getCoeffs()[2],1.4)
-RESULT
-
-
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

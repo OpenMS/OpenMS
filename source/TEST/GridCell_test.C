@@ -57,7 +57,6 @@ CHECK((~GridCell()))
 RESULT
 
 CHECK((GridCell(const GridCell& gc)))
-
 	GridCell c1(0.0, 0.0, 10.0, 10.0);
 	BaseMapping* m1 = new LinearMapping(3.0,4.0);
 	MappingVector mvec1;
@@ -69,23 +68,56 @@ CHECK((GridCell(const GridCell& gc)))
 	TEST_EQUAL(c1.min(),c2.min());
 	TEST_EQUAL(c1.max(),c2.max());
 	TEST_EQUAL(c1.getMappings()==c2.getMappings(),true);
-
 RESULT
 
-CHECK((bool operator == (const GridCell& rhs) const))
-
-	GridCell c1(0.0, 0.0, 10.0, 10.0);
-	GridCell c2(0.0, 0.0, 10.0, 10.0);
-
-	TEST_EQUAL(c1==c2,true);
+CHECK((GridCell(CoordinateType i, CoordinateType j, CoordinateType k, CoordinateType l)))
+  DPosition<2> min(0.0,0.0);
+  DPosition<2> max(10.0,10.0);
+  GridCell c1(0.0, 0.0, 10.0, 10.0);
 	
-	c2.setMaxX(4);
-	TEST_EQUAL(c1!=c2,true);
-
+	TEST_EQUAL(c1.min(),min)
+	TEST_EQUAL(c1.max(),max)
 RESULT
+
+CHECK((void setMappings(const MappingVector &m)))
+  GridCell c1;
+	BaseMapping* m1 = new LinearMapping(3.0,4.0);
+	MappingVector mvec1;
+	mvec1.push_back(m1);	
+	c1.setMappings(mvec1);
+
+	TEST_EQUAL(c1.getMappings()==mvec1,true);
+RESULT
+
+CHECK((const MappingVector& getMappings() const))
+  GridCell c1;
+	BaseMapping* m1 = new LinearMapping(3.0,4.0);
+	MappingVector mvec1;
+	mvec1.push_back(m1);	
+	c1.setMappings(mvec1);
+
+	TEST_EQUAL(c1.getMappings()==mvec1,true);
+RESULT
+
+CHECK((GridCell& operator=(const GridCell &rhs)))
+  GridCell c1(0.0, 0.0, 10.0, 10.0);
+	BaseMapping* m1 = new LinearMapping(3.0,4.0);
+	MappingVector mvec1;
+	mvec1.push_back(m1);	
+	c1.setMappings(mvec1);
+	
+	GridCell c2;
+	c2=c1;
+
+	TEST_EQUAL(c1.min(),c2.min());
+	TEST_EQUAL(c1.max(),c2.max());
+	TEST_EQUAL(c1.getMappings()==c2.getMappings(),true);
+RESULT
+
+
+
 
 CHECK((MappingVector& getMappings()))
-
 	GridCell c1;
 	BaseMapping* m1 = new LinearMapping(3.0,4.0);
 	MappingVector mvec1;
