@@ -83,8 +83,8 @@
 /*************************** Marc's todos ******************************
 Todo:
 - Eva: XML-Schema
-- Generell: Tutorials, Parameter-Docu
-- TOPP-Examples entfernen
+- Ole,Clemens: Parameter-docu aus doxygen raus
+- Generell: Tutorials
 
 Nach Release:
 - Snapshot + search wieder auf Trunk umstellen

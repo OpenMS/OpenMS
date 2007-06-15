@@ -67,24 +67,6 @@ typedef Feature::IntensityType IntensityType;
 	Groepl at al. (2005) Proc. CompLife pages 151-163 
 	and
 	Mayr et al. (2006) Journal of Proteome Research (5), pp. 414-421
-	
-	There are several parameters that influence the behaviour of
-	this application. This is an overview of the most important
-	ones, for a full description please have a look at the INI file
-	in the subdirectory Examples.
-	<ul>
-	<li><b>write_gnuplot_output</b>:
-	If set to true, a file with GNUplot commands is written that
-	draw the regression line together with its error bars.
-	</li>
-	<li><b>mz_tolerance</b>:
-	m/z range in which we search for the feature.
-	</li>
-	<li><b>rt_tolerance</b>:
-		m/z range in which we search for the feature.
-	</li>
-	</ul>
-	
 */
 
 // We do not want this class to show up in the docu:
