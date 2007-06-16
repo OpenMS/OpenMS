@@ -52,6 +52,7 @@ namespace OpenMS
 		{
 			disconnect();
 		}
+    db_handle_ = QSqlDatabase();
 		QSqlDatabase::removeDatabase(QSqlDatabase::defaultConnection);
 	}
 	
