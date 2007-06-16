@@ -49,11 +49,12 @@ namespace OpenMS
 		LinearMapping() 
 			: BaseMapping()
 				{
+				  //set the name for DefaultParamHandler error messages
 				  setName("LinearMapping");
 				  
 				  //Parameter settings
-      	  defaults_.setValue("slope",1);
-          defaults_.setValue("intercept",0);
+      	  defaults_.setValue("slope",1,"Slope of the linear transformation.");
+          defaults_.setValue("intercept",0,"Intercept of the linear transformation.");
         
           defaultsToParam_();
 				 }
@@ -65,8 +66,8 @@ namespace OpenMS
 		  setName("LinearMapping");
 		  
 		  //Parameter settings
-    	defaults_.setValue("slope",slope);
-      defaults_.setValue("intercept",intercept);
+    	defaults_.setValue("slope",slope,"Slope of the linear transformation.");
+      defaults_.setValue("intercept",intercept,"Intercept of the linear transformation.");
       
       defaultsToParam_();
 		}
