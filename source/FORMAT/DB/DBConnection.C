@@ -52,13 +52,21 @@ namespace OpenMS
 		{
 			disconnect();
 		}
+		QString name = db_handle_.databaseName();
     db_handle_ = QSqlDatabase();
-		QSqlDatabase::removeDatabase(QSqlDatabase::defaultConnection);
+		QSqlDatabase::removeDatabase(name);
 	}
 	
-	void DBConnection::connect(const string& db, const string& user, const string& password, const string& host,UInt port,const string& QTDBDriver) throw(InvalidQuery)
+	void DBConnection::connect(const string& db, const string& user, const string& password, const string& host,UInt port,const string& QTDBDriver, const string& connection_name) throw(InvalidQuery)
 	{
-		db_handle_ = QSqlDatabase::addDatabase(QTDBDriver.c_str(),QSqlDatabase::defaultConnection);
+		if (connection_name == "defaultConnection")
+    {
+      db_handle_ = QSqlDatabase::addDatabase(QTDBDriver.c_str());
+    }
+    else
+    {
+		  db_handle_ = QSqlDatabase::addDatabase(QTDBDriver.c_str(), QString(connection_name.c_str()));
+    }
 		db_handle_.setHostName(host.c_str());
 		db_handle_.setUserName(user.c_str());
 		db_handle_.setDatabaseName(db.c_str());
@@ -72,7 +80,8 @@ namespace OpenMS
 			//sore error
 			string error = db_handle_.lastError().databaseText().toAscii().data();
 			//close connection
-			QSqlDatabase::removeDatabase(QSqlDatabase::defaultConnection);
+      db_handle_ = QSqlDatabase();
+			QSqlDatabase::removeDatabase(QString(connection_name.c_str()));
 			
 			throw InvalidQuery(__FILE__, __LINE__, __PRETTY_FUNCTION__,query,error);
 		}

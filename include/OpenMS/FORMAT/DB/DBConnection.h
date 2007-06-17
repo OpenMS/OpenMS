@@ -101,7 +101,7 @@ namespace OpenMS
 	      @param port the port where the server is listening (default: 3306)
 	      @param QTDBDriver the QT database driver used for the connection (default: "QMYSQL3", unless you canged it in configure. See "OpenMS/include/OpenMS/config.h")
       */
-      void connect(const std::string& db, const std::string& user, const std::string& password, const std::string& host = "localhost", UInt port=3306, const std::string& QTDBDriver = DB_PLUGIN ) throw(InvalidQuery);
+      void connect(const std::string& db, const std::string& user, const std::string& password, const std::string& host = "localhost", UInt port=3306, const std::string& QTDBDriver = DB_PLUGIN, const std::string& connection_name="defaultConnection") throw(InvalidQuery);
 			
 			/// returns if a connection is established.
 			bool isConnected() const;

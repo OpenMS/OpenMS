@@ -91,6 +91,8 @@ if (do_tests)
 	//DB connection for DBAdapter
 	DBConnection con;
 	con.connect(db, user, password, host, port.toInt());
+	DBConnection con2;
+	con2.connect(db, user, password, host, port.toInt(), DB_PLUGIN, "alternateConnection");
 	
 	DBAdapter* ptr = 0;
 
@@ -396,6 +398,7 @@ CHECK((template<class ExperimentType> void storeExperiment(ExperimentType& exp))
 		// check if first spectrum of saved experiment can be loaded correctly
 CHECK((template <class SpectrumType> void loadSpectrum(UID id, SpectrumType &spec)))
 	  	DBAdapter a(con);
+	  	DBAdapter a2(con2);
 		  
 			MSSpectrum<> spec;
 			a.loadSpectrum(spec_tmp_id, spec);
@@ -440,7 +443,7 @@ CHECK((template <class SpectrumType> void loadSpectrum(UID id, SpectrumType &spe
 			a.getOptions() = options;
 			a.loadSpectrum(spec_tmp_id, spec);
 			
-			// check if the Intensity restriction worked - first peak (525) should have been skipped
+			// check if the Intensity restriction worked - first peak (565) should have been skipped
 			TEST_REAL_EQUAL( spec[0].getIntensity() , 620 )
 			TEST_REAL_EQUAL( spec[1].getIntensity() , 701 )
 
@@ -452,6 +455,10 @@ CHECK((template <class SpectrumType> void loadSpectrum(UID id, SpectrumType &spe
 			// check if the MZ restriction worked - first peak (600.1) should have been skipped
 			TEST_REAL_EQUAL( spec[0].getPosition()[0] , 700.1 )
 			TEST_REAL_EQUAL( spec[1].getPosition()[0] , 800.1 )
+
+			// testing concurrent DB connections
+			a2.loadSpectrum(spec_tmp_id, spec);
+			TEST_REAL_EQUAL( spec[0].getIntensity() , 565 )
 		RESULT
 		
 	  // load experiment from database
