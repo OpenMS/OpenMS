@@ -737,9 +737,50 @@ This class implements a simple generator to generate tandem MS spectra from a gi
 @page tutorial_analysis High level data analysis
  
  
-@section analysis_mapmapping Map mapping
+@section analysis_mapalignment Map alignment
+
+%OpenMS offers a number of classes for the alignment of LC-MS maps. The main classes and their functionality are 
+described in the next subsections in more detail.
+
+@subsection analysis_pairwisealignment Pairwise map alignment
+The class @a PoseClusteringPairwiseMapMatcher can be used to map the element of one LC-MS map onto the elements of another LC-MS map.
+Corresponding elements of the two maps are moved closer together and the retention time as well as the m/z dimensions of the 
+two maps become comparable.
+The transformation which maps one map onto the other is computed during the so called \b superposition \b phase.
+
+\e Superposition \e phase: 
+In the first step of the superpositon phase an approximation of the transformation is estimated which is used to determine  
+ reliable landmarks in the two maps. These landmarks enable in the second step the evaluation of a more precise transformation.
+ For both steps different classes can be chosen. Using the @a PoseClusteringSuperimposerAffine an affine transformation can be
+ estimated and the @a PoseClusteringSuperimposerShift estimes a transformation consisting of only a translation in rt and m/z.
+ Given a first approximation of the underlying warp, the @a SimplePairFinder or the @a DelaunayPairFinder can be used to determine
+ landmarks in the two maps which represent potential corresponding elements. These landmarks are used by the @a MapMatcherRegression 
+ to improve the inital transformation.
+The following example shows how to use the @a PoseClusteringPairwiseMapMatcher and the @a MapMatcherRegression for the pairwise alignment of two maps. 
+The @a PoseClusteringPairwiseMapMatcher is based on the @a PoseClusteringSuperimposerAffine, and a @a DelaunayPairFinder.
+The initial as well as the final transformation are stored in gridXML format.
+
+@dontinclude Tutorial_PairwiseAlignment.C
+  @skip main
+  @until end of main
+  
+@note The class @a MapDewarper can be used to apply the transformation to the elements of a map.
+
+
+@subsection analysis_multiplealignment Multiple map alignment
+The @a StarwiseAlignment class performs a star-like progressive multiple LC-MS map alignment based upon pairwise alignments as described above.
+Depending on the processing state of the input maps the output of a multiple alignment varies. 
+Peak maps are iteratively mapped onto one reference map and the result of the multiple peak map alignment are the dewarped maps themself.
+In case of multiple feature maps corresponding elements in all maps are determined during the so called \b consensus \b phase and 
+are combined to a @a ConsensusMap using @a DelaunayPairFinder.
+The @a StarwiseAlignment is able to compute the alignment of multiple peak, feature, or consensus maps.
+It provides the warps of all maps relative to the reference map as a result for the alignment of peak maps and computes a @a ConsensusMap as 
+a result of a multiple feature, or consensus map alignment. 
+The transformations can be stored in gridXML format using the @a GridFile as mentioned in the example above and can be applied to the maps using 
+the @a MapDewarper. The @a ConsensusMap can be stored in ConsensusXML using a @a ConsensusXMLFile.
 
 @section analysis_id Identification
+
 
 */
 
