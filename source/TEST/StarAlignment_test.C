@@ -52,59 +52,6 @@ CHECK((virtual ~StarAlignment()))
 	delete ptr;
 RESULT
 
-CHECK((virtual StarAlignment& operator=(StarAlignment source)))
-  StarAlignment< ConsensusFeature<FeatureMap<> > > alignment;
-  Param param;
-  param.setValue("matching_algorithm:type","poseclustering_pairwise");
-  alignment.setParameters(param);
-   
-  vector<FeatureMap<>*> map_vector;
-  FeatureMap<>map;
-  map_vector.push_back(&map);
-  alignment.setElementMapVector(map_vector);
-  
-  String name="blub";
-  vector<String> name_vector(1,name);
-  alignment.setFileNames(name_vector);
-  alignment.setMapType("feature_map");
-  alignment.setReferenceMapIndex(0);
-  
-  StarAlignment< ConsensusFeature<FeatureMap<> > > alignment_copy;
-  alignment_copy = alignment;
-
-  TEST_EQUAL(alignment.getParameters() == alignment_copy.getParameters(),true)
-  TEST_EQUAL(alignment_copy.getElementMapVector().size() == 1, true)
-  TEST_EQUAL(alignment_copy.getFileNames().size() == 1, true)
-  TEST_EQUAL((alignment_copy.getFileNames())[0] == "blub", true)
-  TEST_EQUAL(alignment_copy.getMapType() == "feature_map", true)
-RESULT
-
-CHECK((StarAlignment(const StarAlignment& source)))
-  StarAlignment< ConsensusFeature<FeatureMap<> > > alignment;
-  Param param;
-  param.setValue("matching_algorithm:type","poseclustering_pairwise");
-  alignment.setParameters(param);
-  vector<FeatureMap<>*> map_vector;
-  FeatureMap<>map;
-  map_vector.push_back(&map);
-  alignment.setElementMapVector(map_vector);
-  
-  String name="blub";
-  vector<String> name_vector(1,name);
-  alignment.setFileNames(name_vector);
-  alignment.setMapType("feature_map");
-  alignment.setReferenceMapIndex(0);
-    
-  StarAlignment< ConsensusFeature<FeatureMap<> > > alignment_copy(alignment);
-
-  TEST_EQUAL(alignment.getParameters() == alignment_copy.getParameters(),true)
-  TEST_EQUAL(alignment_copy.getElementMapVector().size() == 1, true)
-  TEST_EQUAL(alignment_copy.getFileNames().size() == 1, true)
-  TEST_EQUAL((alignment_copy.getFileNames())[0] == "blub", true)
-  TEST_EQUAL(alignment_copy.getMapType() == "feature_map", true)
-  TEST_REAL_EQUAL(alignment_copy.getReferenceMapIndex(),0)
-RESULT
-
 CHECK((virtual String getAlignmentTree() const))
   StarAlignment< ConsensusFeature<FeatureMap<> > > alignment;
   vector<FeatureMap<>*> map_vector;

@@ -37,12 +37,6 @@ class TestMapMatcher : public BaseMapMatcher<Feature>
 {
   public:
   TestMapMatcher() : BaseMapMatcher<Feature>(){}
-  TestMapMatcher(const TestMapMatcher& tm) : BaseMapMatcher<Feature>(tm){}
-  TestMapMatcher& operator=(const TestMapMatcher& tm)
-  {
-     BaseMapMatcher<Feature>::operator=(tm);
-     return *this;
-  }
     
    virtual void estimateTransform() {}
 };
@@ -61,35 +55,6 @@ RESULT
 
 CHECK((virtual ~BaseMapMatcher()))
 	delete ptr;
-RESULT
-
-CHECK((BaseMapMatcher& operator = (const BaseMapMatcher& source)))
-  TestMapMatcher tmm;
-  Grid grid;
-  grid.push_back(GridCell(1816,603.449,3108.3,1002.35));
-  tmm.setGrid(grid);
-  tmm.setMinQuality(0.2);
-  
-  TestMapMatcher tmm_copy;
-  tmm_copy = tmm;
-  
-  TEST_EQUAL(tmm_copy.getGrid() == grid,true)
-  TEST_REAL_EQUAL(tmm_copy.getElementPairs().size(),0)
-  TEST_REAL_EQUAL(tmm_copy.getMinQuality(),0.2)
-RESULT
-
-CHECK((BaseMapMatcher(const BaseMapMatcher& source)))
-  TestMapMatcher tmm;
-  Grid grid;
-  grid.push_back(GridCell(1816,603.449,3108.3,1002.35));
-  tmm.setGrid(grid);
-  tmm.setMinQuality(0.2);
-  
-  TestMapMatcher tmm_copy(tmm);
-  
-  TEST_EQUAL(tmm_copy.getGrid() == grid,true)
-  TEST_REAL_EQUAL(tmm_copy.getElementPairs().size(),0)
-  TEST_REAL_EQUAL(tmm_copy.getMinQuality(),0.2)
 RESULT
 
 CHECK((ElementPairVector& getElementPairs()))

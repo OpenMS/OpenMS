@@ -40,7 +40,8 @@ CPP_SOURCES=\
 	Tutorial_TopHatFilter.C\
 	Tutorial_GaussFilter.C\
 	Tutorial_SavitzkyGolayFilter.C\
-	Tutorial_FeatureFinder.C
+	Tutorial_FeatureFinder.C\
+	Tutorial_PairwiseAlignment.C
 
 OBJECTS=$(SOURCES:.C=.o)
 
@@ -97,4 +98,7 @@ Tutorial_SavitzkyGolayFilter: Tutorial_SavitzkyGolayFilter.o
 	$(CXX) $(LDFLAGS) -o $@ $< $(GUI_LIBS)
 
 Tutorial_FeatureFinder: Tutorial_FeatureFinder.o
+	$(CXX) $(LDFLAGS) -o $@ $< $(GUI_LIBS)
+	
+Tutorial_PairwiseAlignment: Tutorial_PairwiseAlignment.o
 	$(CXX) $(LDFLAGS) -o $@ $< $(GUI_LIBS)

@@ -43,13 +43,6 @@ class TestAlignment : public BaseAlignment<ConsensusFeatureType>
   public:
     TestAlignment() : BaseAlignment<ConsensusFeatureType>()
     {}
-    TestAlignment(const TestAlignment& bpf) : BaseAlignment<ConsensusFeatureType>(bpf)
-    {}
-    TestAlignment& operator=(const TestAlignment& bpf)
-    {
-      BaseAlignment<ConsensusFeatureType>::operator=(bpf);
-      return *this;
-    }
     virtual void run() throw (Exception::InvalidValue)
     {}
     virtual String getAlignmentTree() const
@@ -71,81 +64,6 @@ RESULT
 
 CHECK((virtual ~BaseAlignment()))
   delete ptr;
-RESULT
-
-CHECK((virtual BaseAlignment& operator=(const BaseAlignment &source)))
-  TestAlignment al;
-  Param param;
-  param.setValue("consensus_algorithm","DelaunayPairFinder");
-  al.setParameters(param);
-  vector<FeatureMap<>*> map_vector;
-  FeatureMap<> map;
-  map_vector.push_back(&map);
-  al.setElementMapVector(map_vector);
-  String name="blub";
-  vector<String> name_vector(1,name);
-  al.setFileNames(name_vector);
-  al.setMapType("feature_map");
-  LinearMapping trafo_rt(0.5,-5.99959);
-  LinearMapping trafo_mz(0.999999,-0.0990517);
-  BaseMapping* bm_rt = &trafo_rt;
-  BaseMapping* bm_mz = &trafo_mz;
-  Grid grid;
-  grid.push_back(GridCell(1816,603.449,3108.3,1002.35));
-  std::vector<BaseMapping*> mapping(2);
-  mapping[0] = bm_rt;
-  mapping[1] = bm_mz;
-  grid[0].setMappings(mapping);
-  std::vector< Grid > grid_vector(2);
-  grid_vector[1] = grid; 
-  al.setTransformationVector(grid_vector);
-
-  TestAlignment al_copy;
-  al_copy = al;
-
-  TEST_EQUAL(al.getTransformationVector() == al_copy.getTransformationVector(),true)
-  TEST_EQUAL(al.getParameters() == al_copy.getParameters(),true)
-  TEST_EQUAL(al_copy.getElementMapVector().size() == 1, true)
-  TEST_EQUAL(al_copy.getFileNames().size() == 1, true)
-  TEST_EQUAL((al_copy.getFileNames())[0] == "blub", true)
-  TEST_EQUAL(al_copy.getMapType() == "feature_map", true)
-RESULT
-
-CHECK((BaseAlignment(const BaseAlignment& source)))
-  TestAlignment al;
-  Param param;
-  param.setValue("consensus_algorithm","DelaunayPairFinder");
-  al.setParameters(param);
-  vector<FeatureMap<>*> map_vector;
-  FeatureMap<> map;
-  map_vector.push_back(&map);
-  al.setElementMapVector(map_vector);
-  String name="blub";
-  vector<String> name_vector(1,name);
-  al.setFileNames(name_vector);
-  al.setMapType("feature_map");
-  LinearMapping trafo_rt(0.5,-5.99959);
-  LinearMapping trafo_mz(0.999999,-0.0990517);
-  BaseMapping* bm_rt = &trafo_rt;
-  BaseMapping* bm_mz = &trafo_mz;
-  Grid grid;
-  grid.push_back(GridCell(1816,603.449,3108.3,1002.35));
-  std::vector<BaseMapping*> mapping(2);
-  mapping[0] = bm_rt;
-  mapping[1] = bm_mz;
-  grid[0].setMappings(mapping);
-  std::vector< Grid > grid_vector(2);
-  grid_vector[1] = grid; 
-  al.setTransformationVector(grid_vector);
-
-  TestAlignment al_copy(al);
-
-  TEST_EQUAL(al.getTransformationVector() == al_copy.getTransformationVector(),true)
-  TEST_EQUAL(al.getParameters() == al_copy.getParameters(),true)
-  TEST_EQUAL(al_copy.getElementMapVector().size() == 1, true)
-  TEST_EQUAL(al_copy.getFileNames().size() == 1, true)
-  TEST_EQUAL((al_copy.getFileNames())[0] == "blub", true)
-  TEST_EQUAL(al_copy.getMapType() == "feature_map", true)
 RESULT
 
 CHECK((virtual String getAlignmentTree() const=0))

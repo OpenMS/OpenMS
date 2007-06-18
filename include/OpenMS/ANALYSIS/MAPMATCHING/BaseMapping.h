@@ -45,7 +45,10 @@ namespace OpenMS
 		
 		/// Constructor
 		BaseMapping() 
-		: DefaultParamHandler("BaseMapping") {}
+		: DefaultParamHandler("BaseMapping") 
+		  {
+		    DefaultParamHandler::defaultsToParam_();
+		  }
 		
 		/// Destructor
 		virtual ~BaseMapping() {}

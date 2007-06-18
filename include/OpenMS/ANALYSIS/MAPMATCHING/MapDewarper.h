@@ -54,15 +54,6 @@ namespace OpenMS
         : grid_(), elements_()
     {}
 
-    /// Copy constructor
-    MapDewarper(const MapDewarper& source)
-        : grid_(source.grid_),
-        elements_(source.elements_)
-    {}
-
-    ///  Assignment operator
-    MapDewarper& operator = (const MapDewarper& source);
-
     /// Destructor
     virtual ~MapDewarper()
     {}
@@ -113,17 +104,6 @@ namespace OpenMS
     MapType elements_;
   }
   ; // end of class MapDewarper
-
-  template < typename MapType >
-  MapDewarper<MapType>& MapDewarper<MapType>::operator= (const MapDewarper& source)
-  {
-    if (&source == this)
-      return *this;
-
-    grid_     = source.grid_;
-    elements_ = source.elements_;
-    return *this;
-  }
 
   template < typename MapType >
   void MapDewarper<MapType>::dewarp()

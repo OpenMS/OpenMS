@@ -74,30 +74,6 @@ namespace OpenMS
     	defaultsToParam_();
     }
 
-    /// Copy constructor 
-    BaseAlignment(const BaseAlignment& source)
-        : DefaultParamHandler(source),
-        final_consensus_map_(source.final_consensus_map_),
-        transformations_(source.transformations_)
-    {
-    	updateMembers_();	
-    }
-
-    ///  Assignment operator 
-    virtual BaseAlignment& operator = (const BaseAlignment& source)
-    {
-      if (&source==this)
-        return *this;
-
-      DefaultParamHandler::operator=(source);
-      final_consensus_map_ = source.final_consensus_map_;
-      transformations_ = source.transformations_;
-      
-      updateMembers_();
-      
-      return *this;
-    }
-
     /// Destructor
     virtual ~BaseAlignment()
   {}

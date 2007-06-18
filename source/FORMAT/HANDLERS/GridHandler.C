@@ -39,8 +39,8 @@ namespace OpenMS
         mapping_(),
         param_()
     {
-      for (Int i=0; i<TAG_NUM; i++) in_tag_[i] = false;
-      for (Int i=0; i<MAP_NUM; i++) maps[i] = Map();
+      for (Int i=0; i<tag_num_; i++) in_tag_[i] = false;
+      for (Int i=0; i<map_num_; i++) maps_[i] = Map();
       setConstants_();
       fillMaps_();
       registerMappings_();
@@ -82,8 +82,8 @@ namespace OpenMS
         if (!(attributes.getIndex(xml_name)==-1))
         {
           String name = xercesc::XMLString::transcode(attributes.getValue(xml_name));
-          std::map<String,BaseMapping* >::const_iterator cit = mapping_instances.find(name);
-          if (cit == mapping_instances.end())
+          std::map<String,BaseMapping* >::const_iterator cit = mapping_instances_.find(name);
+          if (cit == mapping_instances_.end())
           {
             const xercesc::Locator* loc = 0;
             setDocumentLocator(loc);
@@ -103,7 +103,7 @@ namespace OpenMS
     // Docu in base class
     void GridHandler::characters(const XMLCh* const chars, unsigned int /*length*/)
     {
-      for (Int i=0; i<TAG_NUM; i++)
+      for (Int i=0; i<tag_num_; i++)
       {
         if (in_tag_[i])
         {

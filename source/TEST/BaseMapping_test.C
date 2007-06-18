@@ -66,25 +66,19 @@ RESULT
 
 CHECK((BaseMapping& operator = (const BaseMapping& rhs)))
   TestMapping tm;
-  Param param;
-  param.setValue("bla",3);  
-  tm.setParameters(param);
-  
+ 
   TestMapping tm_copy;
   tm_copy = tm;
   
-  TEST_EQUAL(tm_copy.getParameters() == param,true)
+  TEST_EQUAL(tm_copy.getParameters() == tm.getParameters(),true)
 RESULT
 
 CHECK((BaseMapping(const BaseMapping& source)))
   TestMapping tm;
-  Param param;
-  param.setValue("bla",3);  
-  tm.setParameters(param);
   
   TestMapping tm_copy(tm);
   
-  TEST_EQUAL(tm_copy.getParameters() == param,true)
+  TEST_EQUAL(tm_copy.getParameters() == tm.getParameters(),true)
 RESULT
 
 CHECK((virtual void apply(DoubleReal &pos) const =0))

@@ -138,53 +138,6 @@ CHECK(([EXTRA]void setQuality(QualityType quality)))
   TEST_REAL_EQUAL(shift.getQuality(), 0.1)
 RESULT
 
-CHECK((PoseClusteringShiftSuperimposer(const PoseClusteringShiftSuperimposer& source)))
-  PoseClusteringShiftSuperimposer<FeatureMap<> > pcsi;
-  pcsi.setShiftBucketSize(0,1.9);
-  pcsi.setShiftBucketSize(1,2.9);
-  pcsi.setElementBucketWindow(0,3);
-  pcsi.setElementBucketWindow(1,4);
-  pcsi.setShiftBucketWindow(0,4);
-  pcsi.setShiftBucketWindow(1,5);
-  
-  cout << pcsi.getParameters() << endl;
-  
-  PoseClusteringShiftSuperimposer<FeatureMap<> > pcsi_copy(pcsi);
-  
-   cout << pcsi_copy.getParameters() << endl;
-    
-  TEST_REAL_EQUAL(pcsi_copy.getShiftBucketSize(0),1.9)
-  TEST_REAL_EQUAL(pcsi_copy.getShiftBucketSize(1),2.9)
-  TEST_REAL_EQUAL(pcsi_copy.getElementBucketWindow(0),3)
-  TEST_REAL_EQUAL(pcsi_copy.getElementBucketWindow(1),4)
-  TEST_REAL_EQUAL(pcsi_copy.getShiftBucketWindow(0),4)
-  TEST_REAL_EQUAL(pcsi_copy.getShiftBucketWindow(1),5)
-RESULT
-
-CHECK((PoseClusteringShiftSuperimposer& operator=(const PoseClusteringShiftSuperimposer &source)))
-  PoseClusteringShiftSuperimposer<FeatureMap<> > pcsi;
-  pcsi.setShiftBucketSize(0,1.9);
-  pcsi.setShiftBucketSize(1,2.9);
-  pcsi.setElementBucketWindow(0,3);
-  pcsi.setElementBucketWindow(1,4);
-  pcsi.setShiftBucketWindow(0,4);
-  pcsi.setShiftBucketWindow(1,5);
-
-  cout << pcsi.getParameters() << endl;
-  
-  PoseClusteringShiftSuperimposer<FeatureMap<> > pcsi_copy;
-  pcsi_copy = pcsi;
-  
-  cout << pcsi_copy.getParameters() << endl;
-  
-  TEST_REAL_EQUAL(pcsi_copy.getShiftBucketSize(0),1.9)
-  TEST_REAL_EQUAL(pcsi_copy.getShiftBucketSize(1),2.9)
-  TEST_REAL_EQUAL(pcsi_copy.getElementBucketWindow(0),3)
-  TEST_REAL_EQUAL(pcsi_copy.getElementBucketWindow(1),4)
-  TEST_REAL_EQUAL(pcsi_copy.getShiftBucketWindow(0),4)
-  TEST_REAL_EQUAL(pcsi_copy.getShiftBucketWindow(1),5)  
-RESULT
-
 CHECK((UInt getElementBucketWindow(UInt dim) const))
   PoseClusteringShiftSuperimposer<FeatureMap<> > pcsi;
     

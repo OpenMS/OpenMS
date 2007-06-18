@@ -122,27 +122,6 @@ namespace OpenMS
 			Base::defaultsToParam_();
     }
 
-    /// Copy constructor
-    PoseClusteringPairwiseMapMatcher(const PoseClusteringPairwiseMapMatcher& source)
-        : Base(source),
-        	superimposer_(0),
-        	pair_finder_(0)
-    {
-    	updateMembers_();	
-    }
-
-    ///  Assignment operator
-    PoseClusteringPairwiseMapMatcher& operator= (const PoseClusteringPairwiseMapMatcher& source)
-    {
-      if (&source==this) return *this;
-
-      Base::operator = (source);
-			
-			updateMembers_();	
-			
-      return *this;
-    }
-
     /// Destructor
     virtual ~PoseClusteringPairwiseMapMatcher()
   	{

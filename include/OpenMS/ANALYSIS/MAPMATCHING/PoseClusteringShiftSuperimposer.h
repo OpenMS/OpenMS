@@ -212,8 +212,8 @@ namespace OpenMS
     {
 			setName(getProductName());
 			
-      defaults_.setValue("feature_map:bucket_size:RT",150,"TODO????");
-      defaults_.setValue("feature_map:bucket_size:MZ",4,"TODO????");
+      defaults_.setValue("feature_map:bucket_size:RT",150,"Number of surrounding buckets of element indices to be considered when computing shifts.");
+      defaults_.setValue("feature_map:bucket_size:MZ",4,"Number of surrounding buckets of element indices to be considered when computing shifts.");
       defaults_.setValue("transformation_space:shift_bucket_size:RT",5,"Defines the shift parameter's bucket size during histograming.");
       defaults_.setValue("transformation_space:shift_bucket_size:MZ",0.1,"Defines the shift parameter's bucket size during histograming.");
       defaults_.setValue("feature_map:bucket_window:RT",2,"Number of surrounding buckets of element indices to be considered when computing shifts.");
@@ -223,35 +223,6 @@ namespace OpenMS
 			subsections_.push_back("debug");
 			
       defaultsToParam_();
-    }
-
-    /// Copy constructor
-    PoseClusteringShiftSuperimposer(const PoseClusteringShiftSuperimposer& source)
-        : Base(source),
-        element_bucket_(source.element_bucket_),
-        shift_bucket_(source.shift_bucket_),
-        shift_bounding_box_(source.shift_bounding_box_),
-        shift_bounding_box_enlarged_(source.shift_bounding_box_enlarged_)
-    {
-			updateMembers_();
-    }
-
-    ///  Assignment operator
-    PoseClusteringShiftSuperimposer& operator = (const PoseClusteringShiftSuperimposer& source)
-    {
-      if (&source==this) return *this;
-
-      Base::operator=(source);
-      	
-      element_bucket_[0] = source.element_bucket_[0];
-      element_bucket_[1] = source.element_bucket_[1];
-      shift_bucket_ = source.shift_bucket_;
-      shift_bounding_box_ = source.shift_bounding_box_;
-      shift_bounding_box_enlarged_ = source.shift_bounding_box_enlarged_;
- 			
- 			updateMembers_();
- 			
-      return *this;
     }
 
     /// Destructor

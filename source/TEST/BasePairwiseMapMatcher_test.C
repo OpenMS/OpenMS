@@ -45,19 +45,6 @@ class TestPairwiseMapMatcher : public BasePairwiseMapMatcher<ElementMapType>
 	{ 
 		defaultsToParam_();
 	}
-  TestPairwiseMapMatcher(const TestPairwiseMapMatcher& bpf) 
-  	: BasePairwiseMapMatcher<ElementMapType>(bpf)
-  {
-  	updateMembers_();
-  }
-  TestPairwiseMapMatcher& operator=(const TestPairwiseMapMatcher& bpf)
-  {
-     BasePairwiseMapMatcher<ElementMapType>::operator=(bpf);
-     
-     updateMembers_();
-     
-     return *this;
-  }
   virtual void run() 
   {
   }
@@ -76,43 +63,6 @@ RESULT
 
 CHECK((~BasePairwiseMapMatcher()))
 	delete ptr;
-RESULT
-
-CHECK((BasePairwiseMapMatcher& operator = (const BasePairwiseMapMatcher& source)))
-  Param param;
-  param.setValue("bla",3);
-  ElementMapType first;
-  ElementMapType second;
-  
-  TestPairwiseMapMatcher bpmm;
-  bpmm.setParameters(param);
-  bpmm.setElementMap(0,first);
-  bpmm.setElementMap(1,second);
-  
-  TestPairwiseMapMatcher bpmm_copy;
-  bpmm_copy = bpmm;
-  
-  TEST_EQUAL(bpmm.getParameters() == bpmm_copy.getParameters(),true)
-  TEST_EQUAL(&(bpmm.getElementMap(0)) == &(bpmm_copy.getElementMap(0)),true)
-  TEST_EQUAL(&(bpmm.getElementMap(1)) == &(bpmm_copy.getElementMap(1)),true)
-RESULT
-
-CHECK((BasePairwiseMapMatcher(const BasePairwiseMapMatcher& source)))
-  Param param;
-  param.setValue("bla",3);
-  ElementMapType first;
-  ElementMapType second;
-  
-  TestPairwiseMapMatcher bpmm;
-  bpmm.setParameters(param);
-  bpmm.setElementMap(0,first);
-  bpmm.setElementMap(1,second);
-  
-  TestPairwiseMapMatcher bpmm_copy(bpmm);
-  
-  TEST_EQUAL(bpmm.getParameters() == bpmm_copy.getParameters(),true)
-  TEST_EQUAL(&(bpmm.getElementMap(0)) == &(bpmm_copy.getElementMap(0)),true)
-  TEST_EQUAL(&(bpmm.getElementMap(1)) == &(bpmm_copy.getElementMap(1)),true)
 RESULT
 
 CHECK((const ElementPairVectorType& getElementPairs() const))

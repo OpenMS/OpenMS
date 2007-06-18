@@ -49,20 +49,6 @@ class TestPairFinder
 		check_defaults_ = false; 
 	}
 	
-	TestPairFinder(const TestPairFinder& bpf) 
-	: BasePairFinder<ElementMapType>(bpf)
-	{	
-	}
-	
-	TestPairFinder& operator=(const TestPairFinder& bpf)
-	{
-		if (&bpf==this) return *this;
-		
-		BasePairFinder<ElementMapType>::operator=(bpf);
-		
-		return *this;
-	}
-	
 	virtual void findElementPairs() 
 	{
 		
@@ -85,48 +71,6 @@ CHECK((~BasePairFinder()))
 	delete ptr;
 RESULT
 
-CHECK((BasePairFinder& operator = (const BasePairFinder& source)))
-  Param param;
-  param.setValue("bla",3);
-  ElementMapType first;
-  ElementMapType second;
-  ElementPairVectorType pairs;
-  
-  TestPairFinder bpf;
-  bpf.setParameters(param);
-  bpf.setElementMap(0,first);
-  bpf.setElementMap(1,second);
-  bpf.setElementPairs(pairs);
-  
-  TestPairFinder bpf_copy;
-  bpf_copy = bpf;
-  
-  TEST_EQUAL(bpf.getParameters() == bpf_copy.getParameters(),true)
-  TEST_EQUAL(&(bpf.getElementMap(0)) == &(bpf_copy.getElementMap(0)),true)
-  TEST_EQUAL(&(bpf.getElementMap(1)) == &(bpf_copy.getElementMap(1)),true)
-	TEST_EQUAL(&(bpf.getElementPairs()) == &(bpf_copy.getElementPairs()),true)
-RESULT
-
-CHECK((BasePairFinder(const BasePairFinder& source)))
-  Param param;
-  param.setValue("bla",3);
-  ElementMapType first;
-  ElementMapType second;
-  ElementPairVectorType pairs;
-  
-  TestPairFinder bpf;
-  bpf.setParameters(param);
-  bpf.setElementMap(0,first);
-  bpf.setElementMap(1,second);
-  bpf.setElementPairs(pairs);
-  
-  TestPairFinder bpf_copy(bpf);
-  
-  TEST_EQUAL(bpf.getParameters() == bpf_copy.getParameters(),true)
-  TEST_EQUAL(&(bpf.getElementMap(0)) == &(bpf_copy.getElementMap(0)),true)
-  TEST_EQUAL(&(bpf.getElementMap(1)) == &(bpf_copy.getElementMap(1)),true)
-	TEST_EQUAL(&(bpf.getElementPairs()) == &(bpf_copy.getElementPairs()),true)
-RESULT
 
 CHECK((const ElementPairVectorType& getElementPairs() const))
 	ElementPairVectorType pairs;

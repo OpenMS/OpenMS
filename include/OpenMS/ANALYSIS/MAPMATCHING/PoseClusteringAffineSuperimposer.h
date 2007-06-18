@@ -140,44 +140,6 @@ namespace OpenMS
       defaultsToParam_();
     }
 
-    /// Copy constructor
-    PoseClusteringAffineSuperimposer(const PoseClusteringAffineSuperimposer& source)
-        : Base(source),
-        model_map_red_(source.model_map_red_),
-        scene_map_partners_(source.scene_map_partners_),
-        rt_hash_(source.rt_hash_),
-        mz_hash_(source.mz_hash_)
-    {
-      num_buckets_shift_[0] = source.num_buckets_shift_[0];
-      num_buckets_shift_[1] = source.num_buckets_shift_[1];
-      num_buckets_scaling_[0] = source.num_buckets_scaling_[0];
-      num_buckets_scaling_[1] = source.num_buckets_scaling_[1];
-
-      updateMembers_();
-    }
-
-    ///  Assignment operator
-    PoseClusteringAffineSuperimposer& operator = (const PoseClusteringAffineSuperimposer& source)
-    {
-      if (&source==this) return *this;
-
-      Base::operator=(source);
-
-      model_map_red_ = source.model_map_red_;
-      scene_map_partners_ = source.scene_map_partners_;
-      rt_hash_ = source.rt_hash_;
-      mz_hash_ = source.mz_hash_;
-
-      num_buckets_shift_[0] = source.num_buckets_shift_[0];
-      num_buckets_shift_[1] = source.num_buckets_shift_[1];
-      num_buckets_scaling_[0] = source.num_buckets_scaling_[0];
-      num_buckets_scaling_[1] = source.num_buckets_scaling_[1];
-
-      updateMembers_();
-
-      return *this;
-    }
-
     /// Destructor
     virtual ~PoseClusteringAffineSuperimposer()
     {

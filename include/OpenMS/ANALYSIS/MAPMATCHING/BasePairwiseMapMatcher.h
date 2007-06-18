@@ -101,39 +101,7 @@ namespace OpenMS
 			// no need to call defaultsToParam_() as it is called in the non-abstract children 
     }
 
-    /// Copy constructor
-    BasePairwiseMapMatcher(const BasePairwiseMapMatcher& source)
-        : FactoryProduct(source),
-        all_element_pairs_(source.all_element_pairs_),
-        bounding_box_scene_map_(source.bounding_box_scene_map_),
-        box_size_(source.box_size_)
-    {
-      element_map_[0] = source.element_map_[0];
-      element_map_[1] = source.element_map_[1];
-      grid_ = source.grid_;
-    	
-    	// no need to call defaultsToParam_() as it is called in the non-abstract children 
-    }
-
-    ///  Assignment operator
-    BasePairwiseMapMatcher& operator = (const BasePairwiseMapMatcher& source)
-    {
-      if (&source==this) return *this;
-
-      FactoryProduct::operator = (source);
-      	
-      element_map_[0] = source.element_map_[0];
-      element_map_[1] = source.element_map_[1];
-      all_element_pairs_ = source.all_element_pairs_;
-      grid_ = source.grid_;
-      bounding_box_scene_map_ = source.bounding_box_scene_map_;
-      box_size_ = source.box_size_;
-      
-      // no need to call defaultsToParam_() as it is called in the non-abstract children 
-      
-      return *this;
-    }
-
+   
     /// Destructor
     virtual ~BasePairwiseMapMatcher()
   	{

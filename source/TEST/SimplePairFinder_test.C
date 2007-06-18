@@ -53,41 +53,6 @@ CHECK((virtual ~SimplePairFinder()))
 	delete ptr;
 RESULT
 
-CHECK((virtual SimplePairFinder& operator=(SimplePairFinder source)))
-  SimplePairFinder<FeatureMap<> > spf;
-  spf.setDiffIntercept(0,10);
-  spf.setDiffIntercept(1,15);
-  spf.setDiffExponent(0,20);
-  spf.setDiffExponent(1,25);
-  spf.setPairMinQuality(0.9);
-  
-  SimplePairFinder<FeatureMap<> > spf_copy;
-  spf_copy = spf;
-  
-  TEST_REAL_EQUAL(spf_copy.getDiffIntercept(0),10)
-  TEST_REAL_EQUAL(spf_copy.getDiffIntercept(1),15)
-  TEST_REAL_EQUAL(spf_copy.getDiffExponent(0),20)
-  TEST_REAL_EQUAL(spf_copy.getDiffExponent(1),25)
-  TEST_REAL_EQUAL(spf_copy.getPairMinQuality(),0.9)
-RESULT
-
-CHECK((SimplePairFinder(const SimplePairFinder& source)))
-  SimplePairFinder<FeatureMap<> > spf;
-  spf.setDiffIntercept(0,10);
-  spf.setDiffIntercept(1,15);
-  spf.setDiffExponent(0,20);
-  spf.setDiffExponent(1,25);
-  spf.setPairMinQuality(0.9);
-  
-  SimplePairFinder<FeatureMap<> > spf_copy(spf);
-  
-  TEST_REAL_EQUAL(spf_copy.getDiffIntercept(0),10)
-  TEST_REAL_EQUAL(spf_copy.getDiffIntercept(1),15)
-  TEST_REAL_EQUAL(spf_copy.getDiffExponent(0),20)
-  TEST_REAL_EQUAL(spf_copy.getDiffExponent(1),25)
-  TEST_REAL_EQUAL(spf_copy.getPairMinQuality(),0.9)
-RESULT
-
 CHECK((double getDiffExponent(UInt dim)))
   SimplePairFinder<FeatureMap<> > spf;
   

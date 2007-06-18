@@ -101,31 +101,6 @@ namespace OpenMS
       element_map_[SCENE] = 0;
     }
 
-    /// Copy constructor
-    BaseSuperimposer(const BaseSuperimposer& source)
-        : FactoryProduct(source)
-    {
-      element_map_[MODEL] = source.element_map_[MODEL];
-      element_map_[SCENE] = source.element_map_[SCENE];
-      final_transformation_[RT] = source.final_transformation_[RT];
-      final_transformation_[MZ] = source.final_transformation_[MZ];
-    }
-
-    /// Assignment operator
-    virtual BaseSuperimposer& operator = (const BaseSuperimposer& source)
-    {
-      if (&source==this) return *this;
-        
-      FactoryProduct::operator=(source);
-      	
-      element_map_[MODEL] = source.element_map_[MODEL];
-      element_map_[SCENE] = source.element_map_[SCENE];
-      final_transformation_[RT] = source.final_transformation_[RT];
-      final_transformation_[MZ] = source.final_transformation_[MZ];
-      
-      return *this;
-    }
-
     /// Destructor
     virtual ~BaseSuperimposer()
   	{

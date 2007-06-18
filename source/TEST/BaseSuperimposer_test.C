@@ -45,16 +45,7 @@ class TestSuperimposer : public BaseSuperimposer<ElementMapType>
 	{ 
 		check_defaults_ = false; 
 	}
-	TestSuperimposer(const TestSuperimposer& bpf) 
-		: BaseSuperimposer<ElementMapType>(bpf)
-	{
-	}
-	
-	TestSuperimposer& operator=(const TestSuperimposer& bpf)
-	{
-		 BaseSuperimposer<ElementMapType>::operator=(bpf);
-		 return *this;
-	}
+
 	virtual void run() 
 	{
 	}
@@ -73,51 +64,6 @@ RESULT
 
 CHECK((virtual ~BaseSuperimposer()))
 	delete ptr;
-RESULT
-
-CHECK((virtual BaseSuperimposer& operator=(const BaseSuperimposer &source)))
-  Param param;
-  param.setValue("bla",3);
-  ElementMapType first;
-  ElementMapType second;
-  TransformationType trafo(1.,2.);
- 
-  TestSuperimposer bsi;
-  bsi.setParameters(param);
-  bsi.setElementMap(0,first);
-  bsi.setElementMap(1,second);
-  bsi.setTransformation(0,trafo);
-  
-  TestSuperimposer bsi_copy;
-  bsi_copy = bsi;
-  
-  TEST_EQUAL(bsi.getParameters() == bsi_copy.getParameters(),true)
-  TEST_EQUAL(&(bsi.getElementMap(0)) == &(bsi_copy.getElementMap(0)),true)
-  TEST_EQUAL(&(bsi.getElementMap(1)) == &(bsi_copy.getElementMap(1)),true)
-  TEST_REAL_EQUAL((bsi.getTransformation(0)).getSlope(),trafo.getSlope())
-  TEST_REAL_EQUAL((bsi.getTransformation(0)).getIntercept(),trafo.getIntercept())
-RESULT
-
-CHECK((BaseSuperimposer(const BaseSuperimposer& source)))
-  Param param;
-  param.setValue("bla",3);
-  ElementMapType first;
-  ElementMapType second;
-  TransformationType trafo(1.,2.);
- 
-  TestSuperimposer bsi;
-  bsi.setParameters(param);
-  bsi.setElementMap(0,first);
-  bsi.setElementMap(1,second);
-  bsi.setTransformation(0,trafo);
-  
-  TestSuperimposer bsi_copy(bsi);
-  
-  TEST_EQUAL(bsi.getParameters() == bsi_copy.getParameters(),true)
-  TEST_EQUAL(&(bsi.getElementMap(0)) == &(bsi_copy.getElementMap(0)),true)
-  TEST_EQUAL(&(bsi.getElementMap(1)) == &(bsi_copy.getElementMap(1)),true)
-  TEST_REAL_EQUAL((bsi.getTransformation(0)).getSlope(),trafo.getSlope())
-  TEST_REAL_EQUAL((bsi.getTransformation(0)).getIntercept(),trafo.getIntercept())
 RESULT
 
 CHECK((const PointMapType& getElementMap(UInt index)))

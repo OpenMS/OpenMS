@@ -52,46 +52,6 @@ CHECK((virtual ~DelaunayPairFinder()))
 	delete ptr;
 RESULT
 
-CHECK((DelaunayPairFinder(const DelaunayPairFinder &source)))
-  DelaunayPairFinder<FeatureMap<> > dpf;
-  dpf.setDiffIntercept(0,1);
-  dpf.setDiffIntercept(1,1);
-  dpf.setMaxPairDistance(0,20);
-  dpf.setMaxPairDistance(1,0.5);
-  dpf.setPrecision(0,30);
-  dpf.setPrecision(1,3.5);
-  
-  DelaunayPairFinder<FeatureMap<> > dpf_copy;
-  dpf_copy = dpf;
-  
-  TEST_REAL_EQUAL(dpf_copy.getDiffIntercept(0),1)
-  TEST_REAL_EQUAL(dpf_copy.getDiffIntercept(1),1)
-  TEST_REAL_EQUAL(dpf_copy.getMaxPairDistance(0),20)
-  TEST_REAL_EQUAL(dpf_copy.getMaxPairDistance(1),0.5)
-  TEST_REAL_EQUAL(dpf_copy.getPrecision(0),30)
-  TEST_REAL_EQUAL(dpf_copy.getPrecision(1),3.5)
-RESULT
-
-CHECK((virtual DelaunayPairFinder& operator=(DelaunayPairFinder source)))
-  DelaunayPairFinder<FeatureMap<> > dpf;
-  dpf.setDiffIntercept(0,1);
-  dpf.setDiffIntercept(1,1);
-  dpf.setMaxPairDistance(0,20);
-  dpf.setMaxPairDistance(1,0.5);
-  dpf.setPrecision(0,30);
-  dpf.setPrecision(1,3.5);
-  
-  DelaunayPairFinder<FeatureMap<> > dpf_copy;
-  dpf_copy = dpf;
-  
-  TEST_REAL_EQUAL(dpf_copy.getDiffIntercept(0),1)
-  TEST_REAL_EQUAL(dpf_copy.getDiffIntercept(1),1)
-  TEST_REAL_EQUAL(dpf_copy.getMaxPairDistance(0),20)
-  TEST_REAL_EQUAL(dpf_copy.getMaxPairDistance(1),0.5)
-  TEST_REAL_EQUAL(dpf_copy.getPrecision(0),30)
-  TEST_REAL_EQUAL(dpf_copy.getPrecision(1),3.5)
-RESULT
-
 DelaunayPairFinder<FeatureMap<> >::Point* ptr2 = 0;
 CHECK(([EXTRA]Point()))
 	ptr2 = new DelaunayPairFinder<FeatureMap<> >::Point();

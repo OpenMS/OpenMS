@@ -112,25 +112,6 @@ namespace OpenMS
       Base::defaultsToParam_();
     }
 
-    /// Copy constructor
-    DelaunayPairFinder(const DelaunayPairFinder& source)
-        : Base(source)
-    {
-      updateMembers_();
-    }
-
-    ///  Assignment operator
-    virtual DelaunayPairFinder& operator = (DelaunayPairFinder source)
-    {
-      if (&source==this) return *this;
-
-      Base::operator=(source);
-
-      updateMembers_();
-
-      return *this;
-    }
-
     /// Destructor
     virtual ~DelaunayPairFinder()
   	{}

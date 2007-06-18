@@ -103,8 +103,8 @@ namespace OpenMS
       /// Maps to assoziate Strings with enumeration values
       enum MapType {  TAGMAP };
       typedef std::map<std::string,int> Map;
-      static const int MAP_NUM = 1;
-      Map maps[MAP_NUM];
+      static const int map_num_ = 1;
+      Map maps_[map_num_];
 
       /// Vector of grid cell to be read
       Grid* grid_;
@@ -115,10 +115,10 @@ namespace OpenMS
       enum Tags { CELLLIST, CELL, FIRSTPOSITION, SECONDPOSITION,
                   FPOSITION, SPOSITION, MAPPINGLIST, MAPPING, PARAM };
 
-      static const int TAG_NUM = 9;
+      static const int tag_num_ = 9;
 
       /// Indicates which tag is currently parsed
-      bool in_tag_[TAG_NUM];
+      bool in_tag_[tag_num_];
 
       // temporary datastructures to hold parsed data
       GridCell* cell_;
@@ -128,26 +128,26 @@ namespace OpenMS
       UInt current_fcoord_;
       UInt current_scoord_;
 
-      std::map<String,BaseMapping* > mapping_instances;
+      std::map<String,BaseMapping* > mapping_instances_;
 
       inline void fillMaps_()
       {
-        fillMap_(maps[TAGMAP], tagsVector_);
+        fillMap_(maps_[TAGMAP], tagsVector_);
       }
 
       /// mapping types must be registred with the handler class
       inline void registerMappings_()
       {
         // insert new mappings (transformations) here.
-        mapping_instances["LinearMapping"] = new LinearMapping();
+        mapping_instances_["LinearMapping"] = new LinearMapping();
       }
 
       /// @brief Find value in the given map
       /// if not found: fatal error or warning message
       inline int useMap_(MapType type, String value, bool fatal=true, const char* message="")
       {
-        Map::const_iterator it =  maps[type].find(value);
-        if (it == maps[type].end())
+        Map::const_iterator it =  maps_[type].find(value);
+        if (it == maps_[type].end())
         {
           if (fatal)
           {
@@ -186,7 +186,7 @@ namespace OpenMS
         char* tags[]
         = {"celllist", "cell", "first", "second", "fposition",
            "sposition", "mappinglist", "mapping", "param"};
-        fillVector_(tagsVector_,tags,TAG_NUM);
+        fillVector_(tagsVector_,tags,tag_num_);
       }
 
       inline void fillVector_(std::vector<String>& vec, char* contents[], int nr)

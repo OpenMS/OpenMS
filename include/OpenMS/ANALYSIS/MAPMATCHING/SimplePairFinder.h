@@ -95,34 +95,6 @@ namespace OpenMS
       Base::defaultsToParam_();
     }
 
-    /// Copy constructor
-    SimplePairFinder(const SimplePairFinder& source)
-			: Base(source),
-				pair_min_quality_(source.pair_min_quality_),
-				transformed_positions_second_map_(source.transformed_positions_second_map_)
-    {
-      diff_intercept_[RawDataPoint2D::RT] = source.diff_intercept_[RawDataPoint2D::RT];
-      diff_intercept_[RawDataPoint2D::MZ] = source.diff_intercept_[RawDataPoint2D::MZ];
-      diff_exponent_[RawDataPoint2D::RT] = source.diff_exponent_[RawDataPoint2D::RT];
-      diff_exponent_[RawDataPoint2D::MZ] = source.diff_exponent_[RawDataPoint2D::MZ];
-
-			updateMembers_();
-    }
-
-    ///  Assignment operator
-    virtual SimplePairFinder& operator = (SimplePairFinder source)
-    {
-      if (&source==this) return *this;
-
-      Base::operator=(source);
-
-      transformed_positions_second_map_ = source.transformed_positions_second_map_;
-
-      updateMembers_();
-
-      return *this;
-    }
-
     /// Destructor
     virtual ~SimplePairFinder()
 		{

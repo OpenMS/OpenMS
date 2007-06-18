@@ -66,21 +66,6 @@ namespace OpenMS
 			: BaseMapMatcher<ElementType>()
 		{}
 
-		/// Copy constructor
-		MapMatcherRegression(const MapMatcherRegression& source)
-			: BaseMapMatcher<ElementType>(source)
-		{}
-
-		///  Assignment operator
-		MapMatcherRegression& operator = (const MapMatcherRegression& source)
-		{
-			if (&source==this)
-				return *this;
-
-			BaseMapMatcher<ElementType>::operator = (source);
-			return *this;
-		}
-
 		/// equality operator
 		bool operator == (const MapMatcherRegression& rhs)
 		{
