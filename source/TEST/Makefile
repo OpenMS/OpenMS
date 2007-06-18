@@ -173,6 +173,8 @@ EXECUTABLES_FORMAT = \
 	InspectOutfile_test\
 	SequestInfile_test\
 	SequestOutfile_test\
+	PepNovoInfile_test\
+	PepNovoOutfile_test\
 	PTMXMLFile_test\
 	ConsensusXMLFile_test\
 	DBConnection_test\
