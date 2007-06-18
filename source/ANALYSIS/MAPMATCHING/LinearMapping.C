@@ -49,10 +49,7 @@ namespace OpenMS
       
   void LinearMapping::apply(DPosition<1>& pos) const
   {
-    for (UInt i=0; i < 2; ++i)
-    {
-      pos[i] = intercept_ + slope_ * pos[i];
-    }
+   pos[0] = intercept_ + slope_ * pos[0];
   }
       
   void LinearMapping::apply( DoubleReal & pos) const
