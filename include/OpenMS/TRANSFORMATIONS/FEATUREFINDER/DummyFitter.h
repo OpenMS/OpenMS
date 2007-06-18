@@ -36,6 +36,8 @@ namespace OpenMS
 	/**
 		 @brief Dummy fitting. Use this module if you don't need any refinement of your features by model fitting.
 		 
+		 @note: Use this module for testing purposes only !	
+		 
 		 This module does not do anything besides constructing the feature from
 		 the region.
 		 

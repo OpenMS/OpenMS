@@ -112,7 +112,7 @@ namespace OpenMS
 		defaults_.setValue("isotope_model:averagines:S",0.00037f);
 		
 		defaults_.setValue("isotope_model:isotope:trim_right_cutoff",0.001f);
-		defaults_.setValue("isotope_model:isotope:maximum",1000000);
+		defaults_.setValue("isotope_model:isotope:maximum",10);
 		defaults_.setValue("isotope_model:isotope:distance",1.000495f);
 		
 		defaultsToParam_();
@@ -211,7 +211,7 @@ namespace OpenMS
 			if (max_[RT] < tmp) max_[RT] = tmp;
 		}
 		
-		CoordinateType sampling_size_mz = 3.0 *  (1.0/ (min_mz_distance*1.5));
+		CoordinateType sampling_size_mz =  2.0 / min_mz_distance;
 		mz_lin_int_.getData().resize((UInt) sampling_size_mz);	
 		mz_lin_int_.setMapping( 0, min_[MZ] , sampling_size_mz, max_[MZ]);
 		
@@ -278,7 +278,6 @@ namespace OpenMS
 					max_quality = quality;
 					final = new ProductModel<2>(model2D_);	// store model
 				}
-				
 			}
 		}
 	
@@ -443,59 +442,10 @@ namespace OpenMS
  		return f;
 	}
 
-	AveragineMatcher::QualityType AveragineMatcher::fit_(const IndexSet& set, MzFitting mz_fit, RtFitting rt_fit,
+	AveragineMatcher::QualityType AveragineMatcher::fit_(const IndexSet& /*set*/, MzFitting mz_fit, RtFitting /*rt_fit*/,
 																	 					  																	  Coordinate isotope_stdev)
 	{
 			// Build Models
-// 			Param iso_param = param_.copy("isotope_model:",true);
-// 			iso_param.remove("stdev");
-// 			mz_model->setParameters(iso_param);
-// 			mz_model_.setInterpolationStep(interpolation_step_mz_);
-			
-// 			Param tmp;
-//			iso_param.setValue("charge", static_cast<Int>(mz_fit));
-//			iso_param.setValue("isotope:stdev",isotope_stdev);
-//			iso_param.setValue("statistics:mean", mz_stat_.mean());
-			
-//			mz_model_.setParameters(iso_param);
-			//static_cast<IsotopeModel*>(mz_model)->setParameters( tmp );
-					
-// 			cout << "Init: Setting averagine model to center " << mz_model_.getCenter() << endl;
-
-
-// 		InterpolationModel* rt_model;
-// 		if (rt_fit==RTGAUSS)
-// 		{
-// 			rt_model = new GaussModel();
-// 			rt_model->setInterpolationStep(interpolation_step_rt_);
-// 			
-// 			Param tmp;
-// 			tmp.setValue("bounding_box:min",min_[RT] );
-// 			tmp.setValue("bounding_box:max",max_[RT] );
-// 			tmp.setValue("statistics:variance",rt_stat_.variance() );
-// 			tmp.setValue("statistics:mean",rt_stat_.mean() );			
-// 			
-// 			static_cast<GaussModel*>(rt_model)->setParameters( tmp );
-// 		}
-// 		else if (rt_fit==LMAGAUSS)
-// 		{
-// 			rt_model = new LmaGaussModel();
-// 			rt_model->setInterpolationStep(interpolation_step_rt_);
-// 
-// 			Param tmp;
-// 			tmp.setValue("bounding_box:min",min_[RT] );
-// 			tmp.setValue("bounding_box:max",max_[RT] );
-// 			tmp.setValue("statistics:variance",rt_stat_.variance() );
-// 			tmp.setValue("statistics:mean",rt_stat_.mean() );			
-// 			tmp.setValue("lma:scale_factor",  scale_factor_);
-// 			tmp.setValue("lma:standard_deviation",  standard_deviation_);
-// 			tmp.setValue("lma:expected_value",  expected_value_);
-// 			
-// 			static_cast<LmaGaussModel*>(rt_model)->setParameters( tmp );
-// 		}
-// 		else if (rt_fit==EMGAUSS)
-// 		{
-// 			rt_model = new EmgModel();
 			rt_model_.setInterpolationStep(interpolation_step_rt_);
 
 			Param tmp;
@@ -509,53 +459,11 @@ namespace OpenMS
 			tmp.setValue("emg:retention",retention_);
 	
 			rt_model_.setParameters(tmp);
+			double res = fit_mz_( mz_fit,isotope_stdev);
 			
-			//static_cast<LmaGaussModel*>(rt_model)->setParameters( tmp );
-// 		}
-// 		else if (rt_fit==LOGNORMAL)
-// 		{
-// 			rt_model = new LogNormalModel();
-// 			rt_model->setInterpolationStep(interpolation_step_rt_);
-// 
-// 			Param tmp;
-// 			tmp.setValue("bounding_box:min",min_[RT] );
-// 			tmp.setValue("bounding_box:max",max_[RT] );
-// 			tmp.setValue("statistics:variance",rt_stat_.variance() );
-// 			tmp.setValue("statistics:mean",rt_stat_.mean() );			
-// 			tmp.setValue("emg:height",height_);
-// 			tmp.setValue("emg:width",width_);
-// 			tmp.setValue("emg:symmetry",symmetry_);
-// 			tmp.setValue("emg:retention",retention_);
-// 			tmp.setValue("lognormal:r",  r_);
-// 	
-// 			static_cast<LmaGaussModel*>(rt_model)->setParameters( tmp );
-// 		}
-// 		else
-// 		{
-// 			rt_model = new BiGaussModel();
-// 			rt_model->setInterpolationStep(interpolation_step_rt_);
-// 			
-// 			Param tmp;
-// 			tmp.setValue("bounding_box:min", min_[RT]);
-// 			tmp.setValue("bounding_box:max", max_[RT]);
-// 			tmp.setValue("statistics:mean", rt_stat_.mean());
-// 			tmp.setValue("statistics:variance1", rt_stat_.variance1());
-// 			tmp.setValue("statistics:variance2", rt_stat_.variance2() );
-// 			
-// 			static_cast<BiGaussModel*>(rt_model)->setParameters( tmp );
-// 		}
-
-		double res = fit_mz_( mz_fit,isotope_stdev);
-// 		if (profile_!="LmaGauss" && profile_!="EMG" && profile_!="LogNormal")
-// 			res = fitOffset_(rt_model, set, stdev_rt1_, stdev_rt2_, interpolation_step_rt_);
-
-		std::cout << "-------------------------------- After matching : -------------------------------------------" << std::endl;
-		std::cout << mz_model_ << std::endl;
-		std::cout << "Averagine center: " << mz_model_.getCenter() << std::endl;
+			model2D_.setModel(MZ, &mz_model_).setModel(RT, &rt_model_);
 			
-		model2D_.setModel(MZ, &mz_model_).setModel(RT, &rt_model_);
-			
-		return res;
+			return res;
 	}
 	
 	AveragineMatcher::QualityType AveragineMatcher::compute_mz_corr_(IntensityType& mz_data_sum, 
@@ -643,18 +551,12 @@ namespace OpenMS
 			tmp.setValue("statistics:mean", pos);
 	
 			iso_model.setParameters(tmp);
-			
-			//static_cast<IsotopeModel*>(iso_model)->setParameters( tmp );
-		
 			iso_model.setSamples();
-			cout << "Setting averagine model to center " << iso_model.getCenter() << endl;
+			//cout << "Setting averagine model to center " << iso_model.getCenter() << endl;
 			//cout << "Center : " << iso_model->getCenter() << endl;
-			
-			
-			
-			// estimate goodness of fit
-			QualityType corr_mz = compute_mz_corr_(mz_data_sum, iso_model, mz_data_avg);
-			
+					
+			// estimate goodness of m/z fit
+			QualityType corr_mz = compute_mz_corr_(mz_data_sum, iso_model, mz_data_avg);			
 			if (corr_mz > max_corr)
 			{
 				max_corr   = corr_mz;
@@ -662,7 +564,7 @@ namespace OpenMS
 			}
 				
 		}		
-		mz_model_ = /*new*/ IsotopeModel();
+		mz_model_ = IsotopeModel();
 		Param p = param_.copy("isotope_model:",true);
 		p.remove("stdev");
 		mz_model_.setParameters(p);
@@ -673,13 +575,11 @@ namespace OpenMS
 		tmp.setValue("isotope:stdev",isotope_stdev);
 		tmp.setValue("statistics:mean", max_center);
 		mz_model_.setParameters(tmp);
-					
-		//static_cast<IsotopeModel*>(mz_model)->setParameters( tmp );
-		
-		cout << "Setting averagine model to center (finally) " << mz_model_.getCenter() << endl;
-		cout << "Best center: " << max_center << " with correlation " << max_corr << endl;
-		
-		cout << "in fitOffset_mz_: " << 	mz_model_ << endl;
+			
+// 		cout << "Setting averagine model to center (finally) " << mz_model_.getCenter() << endl;
+// 		cout << "Best center: " << max_center << " with correlation " << max_corr << endl;
+// 		
+// 		cout << "in fitOffset_mz_: " << 	mz_model_ << endl;
 		
 		return max_corr;
 	}

@@ -43,7 +43,7 @@ namespace OpenMS
 		As one can imagine, this module implements a rather trivial extension and returns simply the seeding region without
 		any further extension. 
 		
-		@note: Use the module for testing purposes only !	
+		@note: Use this module for testing purposes only !	
 		
 		@ingroup FeatureFinder
 	*/

@@ -144,9 +144,8 @@ namespace OpenMS
 							}										
 						}
 						
-						std::cout << new_spec.size() << " of " << it->size() << " points remained." << std::endl;
+						//std::cout << new_spec.size() << " of " << it->size() << " points remained." << std::endl;
 						map_.push_back(new_spec);				
-						//map_.push_back(*it);
 					}
 				}	
 		    
