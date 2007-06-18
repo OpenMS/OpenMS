@@ -69,7 +69,6 @@ idoc:
 #######################################################################
 # creates the OpenMS tutorial
 OpenMS_tutorial: OpenMS_tutorial/OpenMS_Tutorial.doxygen OpenMS_tutorial/Doxyfile dummy
-	@make -i paramdoc
 	@rm -rf OpenMS_tutorial/latex_output
 	@doxygen OpenMS_tutorial/Doxyfile
 	@cp OpenMS_tutorial/refman_overwrite.tex OpenMS_tutorial/latex_output/refman.tex
@@ -80,7 +79,6 @@ OpenMS_tutorial: OpenMS_tutorial/OpenMS_Tutorial.doxygen OpenMS_tutorial/Doxyfil
 #######################################################################
 # creates the TOPP tutorial
 TOPP_tutorial: TOPP_tutorial/TOPP_Tutorial.doxygen TOPP_tutorial/Doxyfile dummy
-	@make -i paramdoc
 	@rm -rf TOPP_tutorial/latex_output
 	@doxygen TOPP_tutorial/Doxyfile
 	@cp TOPP_tutorial/refman_overwrite.tex TOPP_tutorial/latex_output/refman.tex

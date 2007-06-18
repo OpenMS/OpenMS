@@ -39,7 +39,8 @@ CPP_SOURCES=\
 	Tutorial_PeakPickerCWT.C\
 	Tutorial_TopHatFilter.C\
 	Tutorial_GaussFilter.C\
-	Tutorial_SavitzkyGolayFilter.C	
+	Tutorial_SavitzkyGolayFilter.C\
+	Tutorial_FeatureFinder.C
 
 OBJECTS=$(SOURCES:.C=.o)
 
@@ -93,4 +94,7 @@ Tutorial_GaussFilter: Tutorial_GaussFilter.o
 	$(CXX) $(LDFLAGS) -o $@ $< $(GUI_LIBS)
 
 Tutorial_SavitzkyGolayFilter: Tutorial_SavitzkyGolayFilter.o
+	$(CXX) $(LDFLAGS) -o $@ $< $(GUI_LIBS)
+
+Tutorial_FeatureFinder: Tutorial_FeatureFinder.o
 	$(CXX) $(LDFLAGS) -o $@ $< $(GUI_LIBS)

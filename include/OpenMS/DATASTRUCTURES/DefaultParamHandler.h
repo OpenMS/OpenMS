@@ -41,6 +41,7 @@ namespace OpenMS
 		- it checks for wrong/misspelled parameters
 		- subsections that are passed to other classes can be excluded from the check (subsections_)
 		- it keeps member variables in syncronicity with the parameters stored in param_
+		- it helps to automatically create a doxygen documentation page for the parameters
 
 		Extra member variables are needed if getting the value from param_ would be too slow
 		e.g. when they are used in methods that are called very often.
