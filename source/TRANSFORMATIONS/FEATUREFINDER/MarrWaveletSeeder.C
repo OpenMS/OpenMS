@@ -46,7 +46,13 @@ namespace OpenMS
 		defaults_.setValue("charge2_lb",0.40f);
 		// charge 3
 		defaults_.setValue("charge3_ub",0.40f);
-		defaults_.setValue("charge3_lb",0.1f);
+		defaults_.setValue("charge3_lb",0.28f);
+		// charge 4
+		defaults_.setValue("charge4_ub",0.27f);
+		defaults_.setValue("charge4_lb",0.22f);
+		// charge 5
+		defaults_.setValue("charge5_ub",0.22f);
+		defaults_.setValue("charge5_lb",0.1f);
 			
 		// params for the cwt
 		defaults_.setValue("cwt_scale",0.1f);
@@ -96,6 +102,12 @@ namespace OpenMS
 	
 		charge3_ub_	= param_.getValue("charge3_ub");
 		charge3_lb_	 = param_.getValue("charge3_lb");
+		
+		charge4_ub_	= param_.getValue("charge4_ub");
+		charge4_lb_	 = param_.getValue("charge4_lb");
+		
+		charge5_ub_	= param_.getValue("charge5_ub");
+		charge5_lb_	 = param_.getValue("charge5_lb");
 				
 		// thresholds for signal and cwt
 		avg_signal_factor_ 							 = param_.getValue("avg_signal_factor");
@@ -370,6 +382,15 @@ namespace OpenMS
 		{
 			return 3;
 		}
+		else if (dist < charge4_ub_ && dist > charge4_lb_)
+		{
+			return 4;
+		}
+		else if (dist < charge5_ub_ && dist > charge5_lb_)
+		{
+			return 5;
+		}
+		
 		return 0;
 	}
 

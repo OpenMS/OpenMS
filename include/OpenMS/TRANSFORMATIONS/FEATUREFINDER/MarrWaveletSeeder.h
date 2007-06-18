@@ -51,6 +51,8 @@ namespace OpenMS
 		
 		Regions with local maxima a scored based on a F-statistic (compares variance of intervals in cwt).
 		
+		@note: This seeder supports only isotopic pattern with a charge <= 5 !
+		
 		Parameters:
 		
 		<table>

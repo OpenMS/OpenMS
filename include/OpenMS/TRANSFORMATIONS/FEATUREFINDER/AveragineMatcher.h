@@ -31,6 +31,8 @@
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeaFiTraits.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/ProductModel.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/InterpolationModel.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/IsotopeModel.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/EmgModel.h>
 
 #include <OpenMS/MATH/STATISTICS/AsymmetricStatistics.h>
 #include <OpenMS/MATH/MISC/LinearInterpolation.h>
@@ -123,9 +125,14 @@ namespace OpenMS
 		typedef Feature::IntensityType IntensityType;
 		///	
 		typedef Feature::PositionType PositionType2D;
-
+		///
+		typedef Feature::ChargeType ChargeType;
+		
+				
 		enum RtFitting{ RTGAUSS=0, LMAGAUSS=1, EMGAUSS=2, BIGAUSS=3, LOGNORMAL=4 };
 		enum MzFitting{ MZGAUSS=0, CHARGE1=1, CHARGE2=2, CHARGE3=3, CHARGE4=4	};
+		
+		
 
 		enum 
 			{
@@ -201,11 +208,13 @@ namespace OpenMS
 
 		virtual void updateMembers_();
 
-		double fitOffset_(InterpolationModel* model, const IndexSet& set, double stdev1, double stdev2, Coordinate offset_step);
+		QualityType fitOffset_(InterpolationModel* model, const IndexSet& set, double stdev1, double stdev2, Coordinate offset_step);
 		
-		double fitOffset_mz_(InterpolationModel* iso_model,MzFitting mz_fit,Coordinate isotope_stdev);
+		QualityType fit_mz_(MzFitting mz_fit,Coordinate isotope_stdev);
 
-		double fit_(const IndexSet& set, MzFitting mz_fit, RtFitting rt_fit, Coordinate isotope_stdev=0.1);
+		QualityType fit_(const IndexSet& set, MzFitting mz_fit, RtFitting rt_fit, Coordinate isotope_stdev=0.1);
+		
+		QualityType compute_mz_corr_(IntensityType& mz_data_sum, IsotopeModel& iso_model, CoordinateType& mz_data_avg);
 
 		BaseQuality* quality_;
 		ProductModel<2> model2D_;
@@ -274,6 +283,12 @@ namespace OpenMS
 		
 		/// projection of points onto mz
 		Math::LinearInterpolation<CoordinateType,CoordinateType> mz_lin_int_;
+		
+		/// Averagine template for m/z
+		IsotopeModel mz_model_;
+		
+		/// Exponentially modified Gaussian for retention time
+		EmgModel rt_model_;
 		
   };
 }

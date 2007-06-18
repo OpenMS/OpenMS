@@ -174,16 +174,8 @@ namespace OpenMS
 				}
       }
 
-#if 0
-			interpolation_.setOffset(mean_-isotopes_mean-normal_widening_width);
-			monoisotopic_mz_ = mean_-isotopes_mean;
-			mono_mz_ = formula.getMonoWeight();
-			interpolation_.setScale ( interpolation_step_ );
-#else
 			interpolation_.setMapping(interpolation_step_, normal_widening_width / interpolation_step_, mean_ - isotopes_mean)	;
 			monoisotopic_mz_ = mean_-isotopes_mean;
-			mono_mz_ = formula.getMonoWeight();
-#endif
 
 			// scale data so that integral over distribution equals one
 			// multiply sum by interpolation_step_ -> rectangular approximation of integral
@@ -221,14 +213,7 @@ namespace OpenMS
 		{
 			return monoisotopic_mz_;
 		}
-		
-		IsotopeModel::CoordinateType IsotopeModel::getMonoisotopicMz() const
-		{
-			std::cout << "charge_ " << charge_ << std::endl;
-			std::cout << "mono_mz_ " << mono_mz_ << std::endl;
-			return (mono_mz_/charge_);
-		}
-
+	
 		void IsotopeModel::updateMembers_()
 		{
 			InterpolationModel::updateMembers_();

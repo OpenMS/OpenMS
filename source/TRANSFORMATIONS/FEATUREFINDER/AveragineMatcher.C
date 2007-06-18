@@ -288,38 +288,22 @@ namespace OpenMS
 			throw UnableToFit(__FILE__, __LINE__,__PRETTY_FUNCTION__, "UnableToFit-BadQuality","Zero quality after fitting. Skipping this feature");
 			delete final;
 		}
-
-		// find peak with highest predicted intensity to use as cutoff
-// 		IntensityType model_max = 0;
-// 		for (IndexSetIter it=set.begin(); it!=set.end(); ++it)
-// 		{
-// 			IntensityType model_int = final->getIntensity(traits_->getPeakPos(*it));
-// 			if (model_int>model_max) model_max = model_int;
-// 		}
-// 		final->setCutOff( model_max * IntensityType(param_.getValue("intensity_cutoff_factor")));
-// 
-// 		// Cutoff low intensities wrt to model maximum -> cutoff independent of scaling
-// 		IndexSet model_set;
-// 		for (IndexSetIter it=set.begin(); it!=set.end(); ++it) 
-// 		{
-// 			if ( final->isContained(traits_->getPeakPos(*it)) )
-// 			{
-// 				model_set.insert(*it);
-// 			}
-// 			else		// free dismissed peak via setting the appropriate flag
-// 			{
-// 					traits_->getPeakFlag(*it) = FeaFiTraits::UNUSED;
-// 			}
-// 		}
 		
+		// Cutoff low intensities wrt to averagine model
 		IndexSet model_set;
-		for (IndexSetIter it=set.begin(); it!=set.end(); ++it)
+		for (IndexSetIter it=set.begin(); it!=set.end(); ++it) 
 		{
-				model_set.insert(*it);		
+			if (mz_model_.getIntensity( traits_->getPeakMz(*it) ) > IntensityType(param_.getValue("intensity_cutoff_factor")) )
+			{
+					model_set.insert(*it);
+ 			}
+			else		// free dismissed peak by setting the appropriate flag
+			{
+					traits_->getPeakFlag(*it) = FeaFiTraits::UNUSED;
+			}
 		}
-
 		// Print number of selected peaks after cutoff
-		//cout << " Selected " << model_set.size() << " from " << set.size() << " peaks." << std::endl;
+		cout << " Selected " << model_set.size() << " from " << set.size() << " peaks." << std::endl;
 
 		// not enough peaks left for feature
 		if (model_set.size() < (UInt)(param_.getValue("min_num_peaks:final")))
@@ -329,15 +313,26 @@ namespace OpenMS
 												"UnableToFit-FinalSet",
 												String("Skipping feature, IndexSet size after cutoff too small: ") + model_set.size() );
 		}
- 		//max_quality = quality_->evaluate(model_set, *final); // recalculate quality after cutoff
-
-		//std::cout << "P-value : " << quality_->getPvalue() << std::endl;
+ 		
+		// normalize data and compute mean position
+		CoordinateType mz_data_sum  = 0.0;
+		for (UInt i=0;i<mz_lin_int_.getData().size();++i)
+		{
+			mz_data_sum += mz_lin_int_.getData()[i];
+		}	
 		
-		
-		
-		QualityType qual_mz =	quality_->evaluate(model_set, *final->getModel(MZ), MZ);
+		// compute m/z data average
+		CoordinateType mz_data_avg = 0.0;
+		for (UInt i=0;i<mz_lin_int_.getData().size();++i)
+		{
+			mz_data_avg += ( mz_lin_int_.getData()[i] / mz_data_sum);	
+		}	
+		mz_data_avg /= mz_lin_int_.getData().size();
+				
+		//QualityType qual_mz =	quality_->evaluate(set, mz_model_/**final->getModel(MZ)*/, MZ);
+		QualityType qual_mz = compute_mz_corr_(mz_data_sum, mz_model_, mz_data_avg);
 		cout << "Quality in m/z : " << qual_mz << endl;
-		QualityType qual_rt =	quality_->evaluate(model_set, *final->getModel(RT), RT );
+		QualityType qual_rt =	quality_->evaluate(model_set, rt_model_/**final->getModel(RT)*/, RT );
 		cout << "Quality in rt : " << qual_rt << endl;
 		
 		max_quality = (qual_mz + qual_rt) / 2.0;
@@ -349,30 +344,7 @@ namespace OpenMS
 			String mess = String("Skipping feature, correlation too small: ") + max_quality;
 			throw UnableToFit(__FILE__, __LINE__,__PRETTY_FUNCTION__,"UnableToFit-Correlation", mess.c_str());
 		}
-		
-
-		// Calculate intensity scaling
-// 		IntensityType model_sum = 0;
-// 		IntensityType data_sum = 0;
-// 		IntensityType data_max = 0;
-// 		for (IndexSetIter it=model_set.begin(); it!=model_set.end(); ++it)
-// 		{
-// 			IntensityType model_int = final->getIntensity(traits_->getPeakPos(*it));
-// 			model_sum += model_int;
-// 			data_sum += traits_->getPeakIntensity(*it);
-// 			if (traits_->getPeakIntensity(*it) > data_max) data_max = traits_->getPeakIntensity(*it);
-// 		}
-// 
-// 		// fit has too low quality or fit was not possible i.e. because of zero stdev
-// 		if (model_sum == 0)
-// 		{
-// 			delete final;
-// 			throw UnableToFit(__FILE__, __LINE__,__PRETTY_FUNCTION__,
-// 												"UnableToFit-ZeroSum","Skipping feature, model_sum zero.");
-// 		}
-// 
-// 		final->setScale(data_max/model_max);	// use max quotient instead of sum quotient
-
+	
 		// Build Feature
 		// The feature coordinate in rt dimension is given
 		// by the centroid of the rt model whereas the coordinate
@@ -471,77 +443,60 @@ namespace OpenMS
  		return f;
 	}
 
-	double AveragineMatcher::fit_(const IndexSet& set, MzFitting mz_fit, RtFitting rt_fit,
-																	 					  Coordinate isotope_stdev)
+	AveragineMatcher::QualityType AveragineMatcher::fit_(const IndexSet& set, MzFitting mz_fit, RtFitting rt_fit,
+																	 					  																	  Coordinate isotope_stdev)
 	{
-		// Build Models
-		InterpolationModel* mz_model;
-		if (mz_fit==MZGAUSS)
-		{
-			mz_model = new GaussModel();
-			mz_model->setInterpolationStep(interpolation_step_mz_);
+			// Build Models
+// 			Param iso_param = param_.copy("isotope_model:",true);
+// 			iso_param.remove("stdev");
+// 			mz_model->setParameters(iso_param);
+// 			mz_model_.setInterpolationStep(interpolation_step_mz_);
 			
-			Param tmp;
-			tmp.setValue("bounding_box:min",min_[MZ] );
-			tmp.setValue("bounding_box:max",max_[MZ] );
-			tmp.setValue("statistics:variance",mz_stat_.variance() );
-			tmp.setValue("statistics:mean",mz_stat_.mean() );
+// 			Param tmp;
+//			iso_param.setValue("charge", static_cast<Int>(mz_fit));
+//			iso_param.setValue("isotope:stdev",isotope_stdev);
+//			iso_param.setValue("statistics:mean", mz_stat_.mean());
 			
-			static_cast<GaussModel*>(mz_model)->setParameters(tmp);			
-		}
-		else
-		{
-			// new model
-			mz_model = new IsotopeModel();
-			Param iso_param = param_.copy("isotope_model:",true);
-			iso_param.remove("stdev");
-			mz_model->setParameters(iso_param);
-			mz_model->setInterpolationStep(interpolation_step_mz_);
-			
-			Param tmp;
-			tmp.setValue("charge", static_cast<Int>(mz_fit));
-			tmp.setValue("isotope:stdev",isotope_stdev);
-			tmp.setValue("statistics:mean", mz_stat_.mean());
-			
-			cout << "Setting averagine model to center " << mz_model->getCenter() << endl;
-			
-			static_cast<IsotopeModel*>(mz_model)->setParameters( tmp );
-		}
+//			mz_model_.setParameters(iso_param);
+			//static_cast<IsotopeModel*>(mz_model)->setParameters( tmp );
+					
+// 			cout << "Init: Setting averagine model to center " << mz_model_.getCenter() << endl;
 
-		InterpolationModel* rt_model;
-		if (rt_fit==RTGAUSS)
-		{
-			rt_model = new GaussModel();
-			rt_model->setInterpolationStep(interpolation_step_rt_);
-			
-			Param tmp;
-			tmp.setValue("bounding_box:min",min_[RT] );
-			tmp.setValue("bounding_box:max",max_[RT] );
-			tmp.setValue("statistics:variance",rt_stat_.variance() );
-			tmp.setValue("statistics:mean",rt_stat_.mean() );			
-			
-			static_cast<GaussModel*>(rt_model)->setParameters( tmp );
-		}
-		else if (rt_fit==LMAGAUSS)
-		{
-			rt_model = new LmaGaussModel();
-			rt_model->setInterpolationStep(interpolation_step_rt_);
 
-			Param tmp;
-			tmp.setValue("bounding_box:min",min_[RT] );
-			tmp.setValue("bounding_box:max",max_[RT] );
-			tmp.setValue("statistics:variance",rt_stat_.variance() );
-			tmp.setValue("statistics:mean",rt_stat_.mean() );			
-			tmp.setValue("lma:scale_factor",  scale_factor_);
-			tmp.setValue("lma:standard_deviation",  standard_deviation_);
-			tmp.setValue("lma:expected_value",  expected_value_);
-			
-			static_cast<LmaGaussModel*>(rt_model)->setParameters( tmp );
-		}
-		else if (rt_fit==EMGAUSS)
-		{
-			rt_model = new EmgModel();
-			rt_model->setInterpolationStep(interpolation_step_rt_);
+// 		InterpolationModel* rt_model;
+// 		if (rt_fit==RTGAUSS)
+// 		{
+// 			rt_model = new GaussModel();
+// 			rt_model->setInterpolationStep(interpolation_step_rt_);
+// 			
+// 			Param tmp;
+// 			tmp.setValue("bounding_box:min",min_[RT] );
+// 			tmp.setValue("bounding_box:max",max_[RT] );
+// 			tmp.setValue("statistics:variance",rt_stat_.variance() );
+// 			tmp.setValue("statistics:mean",rt_stat_.mean() );			
+// 			
+// 			static_cast<GaussModel*>(rt_model)->setParameters( tmp );
+// 		}
+// 		else if (rt_fit==LMAGAUSS)
+// 		{
+// 			rt_model = new LmaGaussModel();
+// 			rt_model->setInterpolationStep(interpolation_step_rt_);
+// 
+// 			Param tmp;
+// 			tmp.setValue("bounding_box:min",min_[RT] );
+// 			tmp.setValue("bounding_box:max",max_[RT] );
+// 			tmp.setValue("statistics:variance",rt_stat_.variance() );
+// 			tmp.setValue("statistics:mean",rt_stat_.mean() );			
+// 			tmp.setValue("lma:scale_factor",  scale_factor_);
+// 			tmp.setValue("lma:standard_deviation",  standard_deviation_);
+// 			tmp.setValue("lma:expected_value",  expected_value_);
+// 			
+// 			static_cast<LmaGaussModel*>(rt_model)->setParameters( tmp );
+// 		}
+// 		else if (rt_fit==EMGAUSS)
+// 		{
+// 			rt_model = new EmgModel();
+			rt_model_.setInterpolationStep(interpolation_step_rt_);
 
 			Param tmp;
 			tmp.setValue("bounding_box:min",min_[RT] );
@@ -553,62 +508,106 @@ namespace OpenMS
 			tmp.setValue("emg:symmetry",symmetry_);
 			tmp.setValue("emg:retention",retention_);
 	
-			static_cast<LmaGaussModel*>(rt_model)->setParameters( tmp );
-		}
-		else if (rt_fit==LOGNORMAL)
-		{
-			rt_model = new LogNormalModel();
-			rt_model->setInterpolationStep(interpolation_step_rt_);
-
-			Param tmp;
-			tmp.setValue("bounding_box:min",min_[RT] );
-			tmp.setValue("bounding_box:max",max_[RT] );
-			tmp.setValue("statistics:variance",rt_stat_.variance() );
-			tmp.setValue("statistics:mean",rt_stat_.mean() );			
-			tmp.setValue("emg:height",height_);
-			tmp.setValue("emg:width",width_);
-			tmp.setValue("emg:symmetry",symmetry_);
-			tmp.setValue("emg:retention",retention_);
-			tmp.setValue("lognormal:r",  r_);
-	
-			static_cast<LmaGaussModel*>(rt_model)->setParameters( tmp );
-		}
-		else
-		{
-			rt_model = new BiGaussModel();
-			rt_model->setInterpolationStep(interpolation_step_rt_);
+			rt_model_.setParameters(tmp);
 			
-			Param tmp;
-			tmp.setValue("bounding_box:min", min_[RT]);
-			tmp.setValue("bounding_box:max", max_[RT]);
-			tmp.setValue("statistics:mean", rt_stat_.mean());
-			tmp.setValue("statistics:variance1", rt_stat_.variance1());
-			tmp.setValue("statistics:variance2", rt_stat_.variance2() );
-			
-			static_cast<BiGaussModel*>(rt_model)->setParameters( tmp );
-		}
+			//static_cast<LmaGaussModel*>(rt_model)->setParameters( tmp );
+// 		}
+// 		else if (rt_fit==LOGNORMAL)
+// 		{
+// 			rt_model = new LogNormalModel();
+// 			rt_model->setInterpolationStep(interpolation_step_rt_);
+// 
+// 			Param tmp;
+// 			tmp.setValue("bounding_box:min",min_[RT] );
+// 			tmp.setValue("bounding_box:max",max_[RT] );
+// 			tmp.setValue("statistics:variance",rt_stat_.variance() );
+// 			tmp.setValue("statistics:mean",rt_stat_.mean() );			
+// 			tmp.setValue("emg:height",height_);
+// 			tmp.setValue("emg:width",width_);
+// 			tmp.setValue("emg:symmetry",symmetry_);
+// 			tmp.setValue("emg:retention",retention_);
+// 			tmp.setValue("lognormal:r",  r_);
+// 	
+// 			static_cast<LmaGaussModel*>(rt_model)->setParameters( tmp );
+// 		}
+// 		else
+// 		{
+// 			rt_model = new BiGaussModel();
+// 			rt_model->setInterpolationStep(interpolation_step_rt_);
+// 			
+// 			Param tmp;
+// 			tmp.setValue("bounding_box:min", min_[RT]);
+// 			tmp.setValue("bounding_box:max", max_[RT]);
+// 			tmp.setValue("statistics:mean", rt_stat_.mean());
+// 			tmp.setValue("statistics:variance1", rt_stat_.variance1());
+// 			tmp.setValue("statistics:variance2", rt_stat_.variance2() );
+// 			
+// 			static_cast<BiGaussModel*>(rt_model)->setParameters( tmp );
+// 		}
 
-		double res = fitOffset_mz_(mz_model,mz_fit,isotope_stdev);
+		double res = fit_mz_( mz_fit,isotope_stdev);
 // 		if (profile_!="LmaGauss" && profile_!="EMG" && profile_!="LogNormal")
 // 			res = fitOffset_(rt_model, set, stdev_rt1_, stdev_rt2_, interpolation_step_rt_);
 
-		std::cout << *mz_model << std::endl;
+		std::cout << "-------------------------------- After matching : -------------------------------------------" << std::endl;
+		std::cout << mz_model_ << std::endl;
+		std::cout << "Averagine center: " << mz_model_.getCenter() << std::endl;
 			
-		model2D_.setModel(MZ, mz_model).setModel(RT, rt_model);
+		model2D_.setModel(MZ, &mz_model_).setModel(RT, &rt_model_);
 			
 		return res;
 	}
 	
-	double AveragineMatcher::fitOffset_mz_(	InterpolationModel* mz_model,MzFitting mz_fit,Coordinate isotope_stdev)
+	AveragineMatcher::QualityType AveragineMatcher::compute_mz_corr_(IntensityType& mz_data_sum, 
+																																																				IsotopeModel& iso_model,
+																																																				CoordinateType& mz_data_avg)
 	{	
+			// normalize m/z model
+			IntensityType mz_model_sum = 0.0;
+			DPeakArray< DPeak<1> > samples;
+			iso_model.getSamples(samples);
+			for(UInt i=0; i<samples.size();++i)
+			{
+				mz_model_sum += samples[i].getIntensity();	
+			}
 		
+			// compute m/z model average (for the given set of data points)
+			CoordinateType mz_model_avg = 0.0;		
+			for (UInt i=0;i<mz_lin_int_.getData().size();++i)
+			{
+				mz_model_avg += ( iso_model.getIntensity(mz_lin_int_.index2key(i) ) / mz_model_sum);
+			} 		
+			mz_model_avg /= mz_lin_int_.getData().size();
+			
+			// compute Pearson correlation
+			IntensityType cross_product_sum = 0;
+			IntensityType data_square_sum   = 0;
+			IntensityType model_square_sum  = 0; 
+			
+			for (UInt i=0;i<mz_lin_int_.getData().size();++i)
+			{
+					IntensityType m = (iso_model.getIntensity(mz_lin_int_.index2key(i) ) / mz_model_sum);
+					IntensityType d = (mz_lin_int_.getData()[i] / mz_data_sum);
+			
+					cross_product_sum += ( m - mz_model_avg) * ( d - mz_data_avg);
+					data_square_sum    += ( d - mz_data_avg)  * ( d - mz_data_avg);
+					model_square_sum  += ( m - mz_model_avg)  * ( m - mz_model_avg);					
+			}
+		
+			QualityType corr_mz = cross_product_sum / sqrt(data_square_sum * model_square_sum);
+			cout << "Pearson correlation in m/z : " << corr_mz << endl;
+	
+			return corr_mz;	
+	}
+	
+	AveragineMatcher::QualityType AveragineMatcher::fit_mz_(	/*IsotopeModel& mz_model,*/MzFitting charge,Coordinate isotope_stdev)
+	{			
 		// new model
-		InterpolationModel* iso_model;
-		iso_model = new IsotopeModel();
+		IsotopeModel iso_model;
 		Param iso_param = param_.copy("isotope_model:",true);
 		iso_param.remove("stdev");
-		iso_model->setParameters(iso_param);
-		iso_model->setInterpolationStep(interpolation_step_mz_);
+		iso_model.setParameters(iso_param);
+		iso_model.setInterpolationStep(interpolation_step_mz_);
 			
 		QualityType max_corr         =  -std::numeric_limits<QualityType>::max();
 		CoordinateType max_center =  -std::numeric_limits<QualityType>::max();
@@ -639,84 +638,56 @@ namespace OpenMS
 		{
 		
 			Param tmp;
-			tmp.setValue("charge", static_cast<Int>(mz_fit));
+			tmp.setValue("charge", static_cast<Int>(charge));
 			tmp.setValue("isotope:stdev",isotope_stdev);
 			tmp.setValue("statistics:mean", pos);
 	
-			static_cast<IsotopeModel*>(iso_model)->setParameters( tmp );
+			iso_model.setParameters(tmp);
+			
+			//static_cast<IsotopeModel*>(iso_model)->setParameters( tmp );
 		
-			iso_model->setSamples();
-			cout << "Setting averagine model to center " << iso_model->getCenter() << endl;
+			iso_model.setSamples();
+			cout << "Setting averagine model to center " << iso_model.getCenter() << endl;
 			//cout << "Center : " << iso_model->getCenter() << endl;
 			
-			// normalize m/z model
-			IntensityType mz_model_sum = 0.0;
-			DPeakArray< DPeak<1> > samples;
-			iso_model->getSamples(samples);
-			for(UInt i=0; i<samples.size();++i)
-			{
-				mz_model_sum += samples[i].getIntensity();	
-			}
-		
-			// compute m/z model average (for the given set of data points)
-			CoordinateType mz_model_avg = 0.0;		
-			for (UInt i=0;i<mz_lin_int_.getData().size();++i)
-			{
-				mz_model_avg += ( iso_model->getIntensity(mz_lin_int_.index2key(i) ) / mz_model_sum);
-			} 		
-			mz_model_avg /= mz_lin_int_.getData().size();
-		
-			// compute Pearson correlation
-			IntensityType cross_product_sum = 0;
-			IntensityType data_square_sum   = 0;
-			IntensityType model_square_sum  = 0; 
-			for (UInt i=0;i<mz_lin_int_.getData().size();++i)
-			{
-// 					cout << "Predicted intensity for " << mz_lin_int_.index2key(i);
-// 					cout << " " <<  iso_model->getIntensity(mz_lin_int_.index2key(i) ) << endl;
-				
-					IntensityType m = (iso_model->getIntensity(mz_lin_int_.index2key(i) ) / mz_model_sum);
-					IntensityType d = (mz_lin_int_.getData()[i] / mz_data_sum);
 			
-					cross_product_sum += ( m - mz_model_avg) * ( d - mz_data_avg);
-					data_square_sum    += ( d - mz_data_avg)  * ( d - mz_data_avg);
-					model_square_sum  += ( m - mz_model_avg)  * ( m - mz_model_avg);					
-			}
-		
-			QualityType corr_mz = cross_product_sum / sqrt(data_square_sum * model_square_sum);
-			cout << "Pearson correlation in m/z : " << corr_mz << endl;
-		
+			
+			// estimate goodness of fit
+			QualityType corr_mz = compute_mz_corr_(mz_data_sum, iso_model, mz_data_avg);
+			
 			if (corr_mz > max_corr)
 			{
 				max_corr   = corr_mz;
 				max_center = pos;
 			}
 				
-		}
-		
-		mz_model = new IsotopeModel();
+		}		
+		mz_model_ = /*new*/ IsotopeModel();
 		Param p = param_.copy("isotope_model:",true);
 		p.remove("stdev");
-		mz_model->setParameters(p);
-		mz_model->setInterpolationStep(interpolation_step_mz_);
+		mz_model_.setParameters(p);
+		mz_model_.setInterpolationStep(interpolation_step_mz_);
 			
 		Param tmp;
-		tmp.setValue("charge", static_cast<Int>(mz_fit));
+		tmp.setValue("charge", static_cast<Int>(charge));
 		tmp.setValue("isotope:stdev",isotope_stdev);
 		tmp.setValue("statistics:mean", max_center);
+		mz_model_.setParameters(tmp);
 					
-		static_cast<IsotopeModel*>(mz_model)->setParameters( tmp );
+		//static_cast<IsotopeModel*>(mz_model)->setParameters( tmp );
 		
-		cout << "Setting averagine model to center (finally) " << mz_model->getCenter() << endl;
-		cout << "Best offset: " << max_center << " with correlation " << max_corr << endl;
-				
+		cout << "Setting averagine model to center (finally) " << mz_model_.getCenter() << endl;
+		cout << "Best center: " << max_center << " with correlation " << max_corr << endl;
+		
+		cout << "in fitOffset_mz_: " << 	mz_model_ << endl;
+		
 		return max_corr;
 	}
 
 
-	double AveragineMatcher::fitOffset_(	InterpolationModel* model,
-																					const IndexSet& set, const double stdev1,  const double stdev2,
-																					const Coordinate offset_step)
+	AveragineMatcher::QualityType AveragineMatcher::fitOffset_(	InterpolationModel* model,
+																																													const IndexSet& set, const double stdev1,  const double stdev2,
+																																													const Coordinate offset_step)
 	{
 		const Coordinate offset_min = model->getInterpolation().supportMin() - stdev1;
 		const Coordinate offset_max = model->getInterpolation().supportMin() + stdev2;
