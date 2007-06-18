@@ -76,12 +76,12 @@
 		The following examples give an overview of how TOPP tools can be chained in order to create analysis 
 		pipelines. The issue of finding suitable parameters for the tools is not adressed here.
 		If you encounter problems during the execution of the example pipelines on your data, you probably have 
-		to adapt the parameters. Have a look at the documentation of the corresponding TOPP tool.
+		to adapt the parameters. Have a look at the documentation of the corresponding TOPP tool in that case.
 
 		@subsection TOPP_parameter_structure General structure of an INI file
 		
 		An INI file is always enclosed by the @a &lt;PARAMETERS&gt; tag. Inside this tag, a tree-like hierachy
-		is created with @a $lt;NODE&gt; tags that represent sections and @a %lt;ITEM&gt; tags that each store one of the 
+		is created with @a &lt;NODE&gt; tags that represent sections and @a &lt;ITEM&gt; tags that each store one of the 
 		parameters.
 		
 		Have a look at the example below for an example @a FileFilter INI file.
@@ -186,7 +186,7 @@ FileMerger -in infile_list.txt -out outfile.mzData
 		
 		@section TOPP_files_filter Extracting part of the data from a file
 			
-			If you want to extract a part of the data from an mzData file, you can use the
+			If you want to extract part of the data from an mzData file, you can use the
 			@b FileFilter tool. It allows filtering for RT, m/z and intensity range or for MS level.
 			To extract the MS/MS scans between retention time 100 and 1500, you would use the following command:
 			@code
@@ -198,10 +198,26 @@ FileFilter -in infile.mzData -levels 2 -rt 100:1500 -out outfile.mzData
 
 /**
 	@page TOPP_example2 Example 2: Raw data processing
-	
+		
+		@b Goal:
+		
 		@image html TOPP_raw_data.png
 		@image latex TOPP_raw_data.png "" width=10cm
-
+	
+	@section TOPP_example2_parameters PeakPicking parameters
+	
+	Finding the right parameters for the peak picking is not trivial. The default parameters
+	will not work on most datasets. In order to find good parameters we propose the
+	following procedure:
+	-# Load the data in TOPPView
+	-# Extract a single scan from the middle of the HPLC gradient (Right click on scan)
+	-# Experiment with the peak picking parameters until you have found the proper settings
+		- You can find the peak picker in @a TOPPView in the menu 'Layer' - 'Apply TOPP tool'
+		- The most important parameters are 
+		  - <tt>peak_bound</tt> - The minimum intensity of a peak in a MS scan
+		  - <tt>peak_bound_ms2_level</tt> - The minimum intensity of a peak in an MS/MS scan
+		  - <tt>fwhm_bound</tt> - Expected width of the peak
+		  - <tt>scale</tt> - Width of the used wavelet (can be set equal to 'fwhm_bound')
 */
 
 //##############################################################################
@@ -209,11 +225,11 @@ FileFilter -in infile.mzData -levels 2 -rt 100:1500 -out outfile.mzData
 /**
 	@page TOPP_example3 Example 3: Consensus peptide identification
 	
-		@b Aim: The use of several identification engines in order to compute a consensus
+		@b Goal: Use several identification engines in order to compute a consensus
 		identification for a HPLC-MS\\MS experiment.
 		
-		OpenMS offers Adapters for the following comercial and free peptide identification engines:
-		Sequest, Mascot, OMSSA, Inspect and X!Tandem.@n
+		OpenMS offers adapters for the following comercial and free peptide identification engines:
+		Sequest, Mascot, OMSSA and Inspect.@n
 		The adapters allow setting the input parameters and data for the identification
 		engine and resturn the result in the OpenMS idXML format.
 		
@@ -231,12 +247,24 @@ FileFilter -in infile.mzData -levels 2 -rt 100:1500 -out outfile.mzData
 
 /**
 	@page TOPP_example4 Example 4: Map alignment
+
+		@b Goal:
 	
 		@image html TOPP_map_mapping.png
 		@image latex TOPP_map_mapping.png "" width=10cm
-			
+
+	@section TOPP_example4_parameters MapAlignment parameters
+	
+		Finding the right parameters for the MapAlignment application can be done in the following way:
+		- ...
+
+
+		@b Goal:
+
 		@image html TOPP_map_mapping_old.png
 		@image latex TOPP_map_mapping_old.png "" width=14cm
+
+
 
 */
 
@@ -245,8 +273,26 @@ FileFilter -in infile.mzData -levels 2 -rt 100:1500 -out outfile.mzData
 /**
 	@page TOPP_example5 Example 5: Isotope-labeled quantitation
 
+		@b Goal: You want to differentially quantify the features of an isitope-labeled HPLC-MS map.
+		
+		The first step in this pipeline is to find the features of the HPLC-MS map. The FeatureFinder
+		application calculates the features from a raw/peak map.
+		
+		In the second step the labeled pairs (light/heavy) are determined by the LabeledMatcher.
+		The LabeledMatcher first determines all possible pair according to a given optimal shift and deviations in RT and m/z.
+		Then it resolves ambiguous pairs using a greedy-algorithm that prefers pairs with a higher score.
+		The score of a pair is the product of:
+		- feature quality of feature 1
+		- feature quality of feature 2
+		- quality measure for the shift (how near is it to the optimal shift)
+
 		@image html TOPP_labeled_quant.png
 		@image latex TOPP_labeled_quant.png "" width=14cm
+
+	@section TOPP_example5_parameters FeatureFinder parameters
+	
+		Finding the right parameters for the FeatureFinder application can be done in the following way:
+		- ...
 
 */
 
@@ -254,8 +300,11 @@ FileFilter -in infile.mzData -levels 2 -rt 100:1500 -out outfile.mzData
 
 /**
 	@page TOPP_example6 Example 6: Label-free quantitation
+
+		@b Goal: 
 	
 		@image html TOPP_labelfree_quant.png
 		@image latex TOPP_labelfree_quant.png "" width=14cm
 	
+		Help on how to find proper parameters for the Featurefinder can be found in section @ref TOPP_example5_parameters.
 */

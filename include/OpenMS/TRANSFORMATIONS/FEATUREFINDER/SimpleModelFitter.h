@@ -45,53 +45,6 @@ namespace OpenMS
 		based on averagines and also contains a parameter for the mass (in-)accuracy of the
 		mass analyser ("isotope_model:stdev"). To achieve a higher performance, you should set the
 		range of tested value to a small value.
-			 
-		Parameters:
-		<table>
-		<tr><td></td><td></td><td>tolerance_stdev_bounding_box</td>
-		<td>bounding box has range [minimim of data, maximum of data] enlarged
-		by tolerance_stdev_bounding_box times the standard deviation of the data</td></tr>
-		<tr><td></td><td></td><td>feature_intensity_max</td>
-		<td>If this parameter is set to one (default) the peptide abundance is estimated as the
-		sum of all peak intensities within the feature region. Otherwise this abundance is
-		estimated as the maximum intensity.</td></tr>
-		<tr><td></td><td></td><td>intensity_cutoff_factor</td>
-		<td>cutoff peaks with a predicted intensity below intensity_cutoff_factor times the maximal intensity of the model</td></tr>
-		<tr><td></td><td></td><td>feature_intensity_sum</td>
-		<td>estimate abundance of the compound as the sum of all contained peaks</td></tr>
-		<tr><td colspan="2">rt</td><td>interpolation_step</td>
-		<td>step size in seconds used to interpolate model for rt</td></tr>
-		<tr><td rowspan="2">mz</td><td></td><td>interpolation_step</td>
-		<td>step size in Thomson used to interpolate model for mz</td></tr>
-		<tr><td>model_type</td><td>first, last</td>
-		<td>first (last) type of model to try out in mz,
-		0 = GaussModel,<br>
-		1 = IsotopeModel with charge +1, ..., <br>
-		n = IsotopeModel with charge +n</td></tr>
-		<tr><td rowspan="2" colspan="2">quality</td><td>type</td>
-		<td>name of class derived from BaseModel, measurement for quality of fit</td></tr>
-		<tr><td>minimum</td>
-		<td>minimum quality of feature, if smaller feature will be discarded</td></tr>
-		<tr><td rowspan="2" colspan="2">min_num_peaks</td><td>extended</td>
-		<td>minimum number of peaks gathered by the BaseExtender.
-		If smaller, feature will be discarded </td></tr>
-		<tr><td>final</td>
-		<td>minimum number of peaks left after cutoff.
-		If smaller, feature will be discarded.</td></tr>
-		<tr><td rowspan="5">isotope_model</td><td>stdev</td><td>first, last, step</td>
-		<td>testing isotope standard deviations in range [stdev_first_mz,stdev_last_mz]
-		in steps of size stdev_step_mz.
-		Used to account for different data resolutions</td></tr>
-		<tr><td>avergines</td><td>C, H, N, O, S</td>
-		<td>averagines are used to approximate the number of atoms of a given element
-		(C,H,N,O,S) given a mass</td></tr>
-		<tr><td rowspan="3">isotope</td><td>trim_right_cutoff</td>
-		<td>use only isotopes with abundancies above this cutoff</td></tr>
-		<tr><td>maximum</td>
-		<td>maximum number of isotopes being used for the IsotopeModel</td></tr>
-		<tr><td>distance</td>
-		<td>distance between two isotopes of charge +1</td></tr>
-		</table>
 		 
 		@ref SimpleModelFitter_Parameters are explained on a separate page.
 		

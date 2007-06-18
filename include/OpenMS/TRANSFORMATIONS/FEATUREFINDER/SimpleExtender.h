@@ -57,33 +57,10 @@ namespace OpenMS
 		We stop the extension phase if all peaks contained in the
     boundary have an intensity lower than a threshold or are too
     distant from the centroid of the feature.
-
-		Parameters:
-			<table>
-			<tr><td>tolerance_rt</td>
-					<td>Scale for the interpolation of the rt priority distribution (default 2.0)</td></tr>
-			<tr><td>tolerance_mz</td>
-					<td>Scale for the interpolation of the mz priority distribution (default 0.5)</td></tr>
-			<tr><td>dist_mz_up</td>
-					<td>Maximum distance in positive mz direction for data points in the feature region (default 6.0)</td></tr>
-			<tr><td>dist_mz_down</td>
-					<td>Maximum distance in negative mz direction for data points in the feature region (default 2.0)</td></tr>
-			<tr><td>dist_rt_up</td>
-					<td>Maximum distance in postive rt direction for data points in the feature region (default 5.0)</td></tr>
-			<tr><td>dist_rt_down</td>
-					<td>Maximum distance in negative rt direction for data points in the feature region (default 5.0)</td></tr>
-			<tr><td>priority_thr</td>
-					<td>Minimum priority for data points to be included into the boundary of the feature (default 0.0)
-								The priority of a data point is a function of its intensity and its distance to the last point
-								included into the feature region. Setting this threshold to zero or a very small value is
-								usually a good idea. </td></tr>
-			<tr><td>intensity_factor</td>
-					<td>Influences for intensity (ion count) threshold in the feature extension. We include only raw data
-					points into this region if their intensity is larger than [intensity_factor * (intensity of the seed)].
-					(default value is 0.03).</td></tr>
-			</table>
 		
 		@ref SimpleExtender_Parameters are explained on a separate page.
+		
+		@todo Add an image for region, boundary, ... (Clemens)
 		
 		@ingroup FeatureFinder
 	*/

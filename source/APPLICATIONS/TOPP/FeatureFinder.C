@@ -54,38 +54,7 @@ using namespace std;
   feature region. The intensity of the feature is then given by the sum of the data points included
   in its regions.
   
-  <b>Seeding:</b><br>
-  Right now only the seeder with the ID <tt>SimpleSeeder</tt> should be used.
-  The critical parameters for this seeder are:
-  - <b>min_intensity</b> the minimum intensity to consider a data point as seed
-  - <b>intensity_perc</b> Minimum intensity percentage (relative to maximum peak) that a peak has to have
-       as a seed. Only used when min_intensity is 0.
-  
-  <b>Extension:</b><br>
-  Right now only the extender with the ID <tt>SimpleExtender</tt> should be used.
-	- <b>priority_thr</b> The priority of data point is a function of its intensity and its distance from the seed. 
-												Data points with a priority below this threshold are not included into the feature region.
-  - <b>dist_mz_up</b> determines how far from the seed data points are searched in direction to higher m/z
-  - <b>dist_mz_down</b> determines how far from the seed data points are searched in direction to lower m/z
-  - <b>dist_rt_up</b> determines how far from the seed data points are searched in direction to higher RT
-  - <b>dist_rt_down</b> determines how far from the seed data points are searched in direction to lower RT
-  
-  <b>Model fitting:</b><br>
-	Right now only the model fitter with the ID <tt>SimpleModelFitter</tt> should be used.
-	- <b>min_num_peaks:extended</b> the miniumum number of data points that a extended area has to contain
-	- <b>min_num_peaks:final</b> the minimum number of data points that a feature has to contain
-	- <b>model_type:first</b> min charge to consider for the model
-	- <b>model_type:last</b> max charge to consider for the model
-	- <b>quality:type</b> how the quality of a feature is measured. Use 'Correlation'. 
-	- <b>quality:minimum</b> min quality that a feature has to achieve
-	- <b>isotope_model:stdev:first</b> first std deviation for isotope model peaks to try
-	- <b>isotope_model:stdev:last</b> last std deviation for isotope model peaks to try
-	- <b>isotope_model:stdev:step</b> steps in between first and last std deviation for isotope model peaks
-	- <b>intensity_cutoff_factor</b> intensity ratio (compared to seed)
-	- <b>tolerance_stdev_bounding_box</b> influence of the width of the bounding box during the fit
-	- <b>intensity_cutoff_factor</b> After fitting, the model is used to truncate the feature region and to remove points with low probability under the model. This is the corresponding threshold.
-	- <b>mz:interpolation_step</b> Gives the interpolation step size in m/z domain
-	- <b>rt:interpolation_step</b> interpolation step size in time domain
+  How to find @ref TOPP_example5_parameters is described in the TOPP tutorial.
 
 */
 
@@ -126,12 +95,12 @@ class TOPPFeatureFinder
 		
 		tmp.insert("Seeders:Seeder1",Factory<BaseSeeder>::create("SimpleSeeder")->getDefaults());
 		tmp.setDescription("Seeders","Seeder definitions are contained here");
-		tmp.setValue("Seeders:Seeder1:ID","SimpleSeeder");
+		tmp.setValue("Seeders:Seeder1:ID","SimpleSeeder","Seeder type (right now 'SimpleSeeder' is recommended.\nOther types and their parameters can be found in the OpenMS documentation.\nAll classes derived from BaseSeeder are possible.");
 		tmp.insert("Extenders:Extender1",Factory<BaseExtender>::create("SimpleExtender")->getDefaults());	
-		tmp.setValue("Extenders:Extender1:ID","SimpleExtender");
+		tmp.setValue("Extenders:Extender1:ID","SimpleExtender","Extender type (right now 'SimpleExtender' is recommended.\nOther types and their parameters can be found in the OpenMS documentation.\nAll classes derived from BaseExtender are possible.");
 		tmp.setDescription("Extenders","Extender definitions are contained here");
 		tmp.insert("ModelFitters:ModelFitter1",Factory<BaseModelFitter>::create("SimpleModelFitter")->getDefaults());	
-		tmp.setValue("ModelFitters:ModelFitter1:ID","SimpleModelFitter");
+		tmp.setValue("ModelFitters:ModelFitter1:ID","SimpleModelFitter","ModelFitter type (right now 'SimpleModelFitter' is recommended.\nOther types and their parameters can be found in the OpenMS documentation.\nAll classes derived from BaseModelFitter are possible.");
 		tmp.setDescription("ModelFitters","ModelFitter definitions are contained here");
 		return tmp;
 	}

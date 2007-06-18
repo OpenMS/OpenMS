@@ -51,7 +51,7 @@
 							 <BR>(Otherwise other developers will not be able to overwrite the files).
 				</OL>
 
-	    <li><b>How do I add a new directory in the <tt>source/</tt> directory to the built system?</b><br>
+	    <li><b>How do I add a new directory in the <tt>source/</tt> directory to the build system?</b><br>
 	      Add the new directory to <tt>source/config/Makefile.in</tt>.
 
 	    <li><b>Can I use QT designer to create GUI widgets?</b><br>
@@ -80,7 +80,7 @@
 	    <li><b>How can i speed up the compile process?</b><br>
 	    	<UL>
 	      	<LI> For g++ you can use the wrapper <tt>ccache</tt>. It caches the preprocessor output.
-	      	<LI> If you have several pocessors you can built OpenMS classes/tests and TOPP tools
+	      	<LI> If you have several pocessors you can build OpenMS classes/tests and TOPP tools
 	             in in several threads (2 per core) using the @a make option @a -j.
 				</UL>
 		</UL>
