@@ -128,6 +128,7 @@ class TOPPIDFilter
 		registerDoubleOption_("p_value","<significance>",0.05,"The probability of a correct ProteinIdentification having a deviation between observed and predicted rt equal or bigger than allowed",false);	
 		registerFlag_("best_hits","If this flag is set only the highest scoring hit is kept.\n"
 															"If there are two or more highest scoring hits, none are kept.");
+		registerFlag_("best_n_hits","If this flag is set only the n highest scoring hits are kept.");
 		registerFlag_("rt_filtering","If this flag is set rt filtering will be pursued.");
 	}
 

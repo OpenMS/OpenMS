@@ -127,6 +127,43 @@ namespace OpenMS
 				}
 			}
 			
+		  /**
+		    @brief filters a ProteinIdentification or PeptideIdentification corresponding to the score.
+		    
+		    If the method higherScoreBetter() returns true for the IdentificationType the 
+		    n highestscoring hits are kept. Otherwise the n lowest scoring hits are kept. 
+		  */
+      template <class IdentificationType>
+			void filterIdentificationsByBestNHits(const IdentificationType& identification, UInt n, IdentificationType& filtered_identification)
+			{
+				typedef typename IdentificationType::HitType HitType;
+				std::vector<HitType> temp_hits;
+				std::vector<HitType> filtered_hits;
+				IdentificationType temp_identification;
+				UInt count = 0;
+				
+				temp_identification = identification;
+				filtered_identification = identification;
+				filtered_identification.setHits(std::vector<HitType>());
+				
+				temp_identification.sort();
+				
+				typename std::vector<HitType>::const_iterator it = temp_identification.getHits().begin();
+				while(it != temp_identification.getHits().end()
+							&& count < n)
+				{
+					filtered_hits.push_back(*it);
+					++it;
+					++count;	
+				}
+
+				if (filtered_hits.size() > 0)
+				{
+		  		filtered_identification.setHits(filtered_hits);																						
+					filtered_identification.assignRanks();  																								
+				}
+			}
+			
       /// filters a PeptideIdentification keeping only the best scoring hits (if strict is set, keeping only the best hit only if it is the only hit with that score)
 			void filterIdentificationsByBestHits(const PeptideIdentification& identification, PeptideIdentification& filtered_identification, bool strict = false);
 
@@ -214,6 +251,43 @@ namespace OpenMS
 					for(UInt j = 0; j < experiment[i].getPeptideIdentifications().size(); j++)
 					{
 						filterIdentificationsByScore(experiment[i].getPeptideIdentifications()[j], peptide_threshold_score, temp_identification);
+						if (!temp_identification.getHits().empty())
+						{
+							filtered_identifications.push_back(temp_identification);
+						}
+					}
+					experiment[i].setPeptideIdentifications(filtered_identifications);
+					filtered_identifications.clear();					
+				}				
+			}
+																															      
+      /// filters an MS/MS experiment corresponding to the best n hits for every spectrum
+			template <class PeakT>
+			void filterIdentificationsByBestNHits(MSExperiment< PeakT >& experiment, UInt n)
+			{
+				//filter protein hits
+				ProteinIdentification temp_protein_identification;				
+				std::vector<ProteinIdentification> filtered_protein_identifications;
+					
+				for(UInt j = 0; j < experiment.getProteinIdentifications().size(); j++)
+				{
+					filterIdentificationsByBestNHits(experiment.getProteinIdentifications()[j], n, temp_protein_identification);
+					if (!temp_protein_identification.getHits().empty())
+					{
+						filtered_protein_identifications.push_back(temp_protein_identification);
+					}
+				}
+				experiment.setProteinIdentifications(filtered_protein_identifications);
+				
+				//filter peptide hits
+				PeptideIdentification temp_identification;
+				std::vector<PeptideIdentification> filtered_identifications;
+				
+				for(UInt i = 0; i < experiment.size(); i++)
+				{
+					for(UInt j = 0; j < experiment[i].getPeptideIdentifications().size(); j++)
+					{
+						filterIdentificationsByBestNHits(experiment[i].getPeptideIdentifications()[j], n, temp_identification);
 						if (!temp_identification.getHits().empty())
 						{
 							filtered_identifications.push_back(temp_identification);
