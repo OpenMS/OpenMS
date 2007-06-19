@@ -37,8 +37,10 @@
 //   what classes are described and where these classes can be found (folder)
 // - Use @a to visually highlight class names, namespaces, etc
 // - When using example code, put it in the OpenMS/source/Examples folder
-//   to make sure it can be compiled. Dont forget to add the built example application
-//   to the svn ignore list: 'svn propedit svn:ignore source/EXAMPLES/'
+//   to make sure it can be compiled. The name of the file should be in the text
+//   to make the file easy to find for the user.
+//   Dont forget to add the built example application to the svn ignore list: 
+//   'svn propedit svn:ignore source/EXAMPLES/'
 // - When talking about OpenMS in general, prefix it with a '%'. Otherwise a
 //   link to the OpenMS namspace is generated automatically 
 
@@ -446,7 +448,7 @@
   @image html MetaInfo.png "The classes involved in meta information storage" 
   @image latex MetaInfo.png "The classes involved in meta information storage" width=5cm
   
-  The following example (Tutorial_MetaData.C) shows how to use @a Metadata.
+  The following example (Tutorial_MetaInfo.C) shows how to use @a Metadata.
   First we must register the names we want to use, then we can set the values:
   @dontinclude Tutorial_MetaInfo.C
   @skip main
@@ -541,7 +543,7 @@
   @a Param supports only the types @a string, @a int and @a float. @n
   Parameter names are given as a string including the sections and subsections in which ':' is used as a delimiter. 
   
-  The following example shows how a file description is given.
+  The following example (Tutorial_Param.C) shows how a file description is given.
   @dontinclude Tutorial_Param.C
   @skip main
   @until end of main
@@ -571,7 +573,7 @@ The classes described in this section can be found in the @a TRANSFORMATIONS fol
 For peak picking the class @a PeakPickerCWT is used. Because this class detects and 
 extracts mass spectrometric peaks it is applicable to LC-MS as well as MALDI raw data. 
 
-The following example shows how to open a raw map (in mzData format), initialize a
+The following example (Tutorial_PeakPickerCWT.C)shows how to open a raw map (in mzData format), initialize a
  PeakPickerCWT object, set the most important parameters (the scale of the wavelet, 
  a peak's minimal height and fwhm), and start the peak picking process.
 
@@ -619,7 +621,7 @@ These base classes define the interface of the concrete implementations.
 Exchanging a module simply works by changing the name handed over to the FeatureFinder.
 
 Writing an FeatureFinder application of your own is straightforward to do. 
-A short example is given below. First we need to instanciate the FeatureFinder
+A short example (Tutorial_FeatureFinder.C) is given below. First we need to instanciate the FeatureFinder
 and set the modules:
 
 @dontinclude Tutorial_FeatureFinder.C
@@ -656,8 +658,8 @@ data points. If your data are not uniform yet, please use the @a LinearResampler
 
 The @a TopHatFilter removes signal structures in the raw data which are broader than the size of the structuring element.
 
-The following example shows how to instantiate a tophat filter, set the lenth of the structuring element and 
-remove the base line in a raw LC-MS map.
+The following example (Tutorial_TopHatFilter.C) shows how to instantiate a tophat filter, set the lenth of the 
+structuring element and remove the base line in a raw LC-MS map.
 
 @dontinclude Tutorial_TopHatFilter.C
   @skip main
@@ -675,7 +677,7 @@ We offer two smoothing filters to reduce noise in LC-MS measurements.
 The class @a GaussFilter is a gaussian filter. The wider the kernel width the smoother the signal (the more detail 
 information get lost). 
 
-We show in the following example how to smooth a raw data map.
+We show in the following example (Tutorial_GaussFilter.C) how to smooth a raw data map.
 The gaussian kernel width is set to 1 m/z.
 
 @dontinclude Tutorial_GaussFilter.C
@@ -695,7 +697,7 @@ of the polynomial used for smoothing. The frame size corresponds to the number o
 so the width of the smoothing intervall is given by frame_size*spacing of the raw data.
 The bigger the frame size or the smaller the order the smoother the signal (the more detail information get lost!). 
 
-The following example shows how to use a @a SavitzkyGolaySVDFilter (the @a SavitzkyGolayQRFilter has the same interface) 
+The following example (Tutorial_SavitzkyGolayFilter.C) shows how to use a @a SavitzkyGolaySVDFilter (the @a SavitzkyGolayQRFilter has the same interface) 
 to smooth a single spectrum. The single raw data spectrum is loaded and resampled to uniform data with a spacing of 0.01 /m/z.
 The frame size of the Savitzky Golay filter is set to 21 data points and the polynomial order is set to 3.
 Afterwards the is applied to the resampled spectrum.
@@ -771,7 +773,7 @@ In the first step of the superpositon phase an approximation of the transformati
  Given a first approximation of the underlying warp, the @a SimplePairFinder or the @a DelaunayPairFinder can be used to determine
  landmarks in the two maps which represent potential corresponding elements. These landmarks are used by the @a MapMatcherRegression 
  to improve the inital transformation.
-The following example shows how to use the @a PoseClusteringPairwiseMapMatcher and the @a MapMatcherRegression for the pairwise alignment of two maps. 
+The following example (Tutorial_PairwiseAlignment.C) shows how to use the @a PoseClusteringPairwiseMapMatcher and the @a MapMatcherRegression for the pairwise alignment of two maps. 
 The @a PoseClusteringPairwiseMapMatcher is based on the @a PoseClusteringSuperimposerAffine, and a @a DelaunayPairFinder.
 The initial as well as the final transformation are stored in gridXML format.
 
