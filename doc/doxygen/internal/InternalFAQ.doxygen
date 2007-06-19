@@ -235,7 +235,6 @@
 					<LI> Correct errors found by @a source/config/tools/checker.php.
 						<UL>
 							<LI> The option @a -u restricts the output to one maintainer
-							<LI> Verbose mode is enabled with @a -v
 							<LI> More options are given with @a --help
 							<LI> Send feedback concening the script to Marc
 						</UL>

@@ -344,6 +344,7 @@ function parseTestFile($filename)
 		{
 			# strip brackets
 			$function = trim(substr($line,5));
+			//print "Function: $function \n";
 			while ($function[0]=='(' && $function[strlen($function)-1]==')')
 			{
 				$function = trim(substr($function,1,-1));

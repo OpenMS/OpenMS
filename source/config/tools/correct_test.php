@@ -161,6 +161,7 @@ for($i=0; $i<count($tests); ++$i)
 	print   "[i]      => ignore this test\n";
 	print   "[x]      => make [EXTRA] test (is ignored by checker.php)\n";
 	print   "[CTRL+C] => abort\n";
+	flush();
 	
 	//read in choise
 	do

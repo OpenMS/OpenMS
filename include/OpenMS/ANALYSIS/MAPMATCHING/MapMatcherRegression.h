@@ -44,7 +44,9 @@ namespace OpenMS
 {
 
   /**
-		 @brief Map matching using linear regression.
+		@brief Map matching using linear regression.
+		
+		@improvement Dewarping in m/z dimension should be optional.
 	*/
   template <typename ElementT = Feature >
   class MapMatcherRegression
