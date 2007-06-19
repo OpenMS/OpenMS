@@ -327,13 +327,13 @@ namespace OpenMS
 			mz_data_avg += ( mz_lin_int_.getData()[i] / mz_data_sum);	
 		}	
 		mz_data_avg /= mz_lin_int_.getData().size();
-				
-		//QualityType qual_mz =	quality_->evaluate(set, mz_model_/**final->getModel(MZ)*/, MZ);
+	
 		QualityType qual_mz = compute_mz_corr_(mz_data_sum, mz_model_, mz_data_avg);
 		cout << "Quality in m/z : " << qual_mz << endl;
 		QualityType qual_rt =	quality_->evaluate(model_set, rt_model_/**final->getModel(RT)*/, RT );
 		cout << "Quality in rt : " << qual_rt << endl;
 		
+		// composite feature quality is the average in rt and m/z
 		max_quality = (qual_mz + qual_rt) / 2.0;
 		
 		// fit has too low quality or fit was not possible i.e. because of zero stdev
@@ -478,6 +478,12 @@ namespace OpenMS
 			{
 				mz_model_sum += samples[i].getIntensity();	
 			}
+			
+			if (mz_model_sum == 0 || mz_data_sum == 0)
+			{
+				// fit failed
+				return -1.0;			
+			}
 		
 			// compute m/z model average (for the given set of data points)
 			CoordinateType mz_model_avg = 0.0;		
@@ -508,7 +514,7 @@ namespace OpenMS
 			return corr_mz;	
 	}
 	
-	AveragineMatcher::QualityType AveragineMatcher::fit_mz_(	/*IsotopeModel& mz_model,*/MzFitting charge,Coordinate isotope_stdev)
+	AveragineMatcher::QualityType AveragineMatcher::fit_mz_(MzFitting charge,Coordinate isotope_stdev)
 	{			
 		// new model
 		IsotopeModel iso_model;

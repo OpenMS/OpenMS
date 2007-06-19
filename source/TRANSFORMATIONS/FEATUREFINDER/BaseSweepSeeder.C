@@ -45,8 +45,10 @@ BaseSweepSeeder::BaseSweepSeeder()
 		// mass tolerance during scan alignment
 		defaults_.setValue("mass_tolerance_alignment", 0.1);
 		
-			// minimum number of scan per isotopic cluster
+			// minimum number of scans per isotopic cluster
 		defaults_.setValue("min_number_scans",5);
+			// maximum number of scans per isotopic cluster
+		defaults_.setValue("max_number_scans",300);
 		// minimum number of peaks per cluster
 		defaults_.setValue("min_number_peaks",20);		
 		
@@ -428,12 +430,19 @@ void BaseSweepSeeder::filterForSize_()
 		vector<TableIteratorType> entries_to_delete;
 	
 		UInt min_number_scans = param_.getValue("min_number_scans");
-		UInt min_number_peaks = param_.getValue("min_number_peaks");
+		UInt max_number_scans = param_.getValue("max_number_scans");
 		
-		// Finally, remove cluster containing too few scans or peaks
+		UInt min_number_peaks = param_.getValue("min_number_peaks");
+				
+		// Filter point cluster
 		for (TableIteratorType iter = iso_map_.begin(); iter != iso_map_.end(); ++iter)
 		{				
-			if (iter->second.scans_.size() < min_number_scans ||  iter->second.peaks_.size() < min_number_peaks)
+			std::vector<UInt>::iterator new_end = std::unique(iter->second.scans_.begin(),iter->second.scans_.end());
+			iter->second.scans_.erase(new_end,iter->second.scans_.end());
+		
+			if (iter->second.scans_.size() < min_number_scans || 
+					iter->second.scans_.size() > max_number_scans || 
+			    iter->second.peaks_.size() < min_number_peaks)
 			{
 				entries_to_delete.push_back(iter);
 			}
