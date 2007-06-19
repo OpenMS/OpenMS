@@ -164,9 +164,37 @@ void writeParameters(std::ofstream& f, const String& class_name, const Param& pa
 			}
 			description = param.getDescription(it->first);
 			description.substitute("\n","@n ");
-			f <<"<tr><td><b>"<< it->first << "</b></td><td>" << type << "</td><td>" << it->second.toString() <<  "</td><td>" << description <<  "</td></tr>" << endl;
+			
+			//create tooltips for sections if they are documented
+			String name = it->first;
+			vector<String> parts;
+			name.split(':', parts);
+			String prefix = "";
+			for (UInt i=0; i+1< parts.size(); ++i)
+			{
+				if (i==0)
+				{
+					prefix = parts[i];
+				}
+				else
+				{
+					prefix = prefix + ":" + parts[i];
+				}
+				String docu = param.getDescription(prefix);
+				if (docu!="")
+				{
+					parts[i] = String("<span title=\"") + docu + "\">" + parts[i] + "</span>"; 
+				}
+			}
+			if (parts.size()!=0)
+			{
+				name.implode(parts.begin(), parts.end(), ":");
+			}
+			
+			f <<"<tr><td><b>"<< name << "</b></td><td>" << type << "</td><td>" << it->second.toString() <<  "</td><td>" << description <<  "</td></tr>" << endl;
 		}
 		f << "</table>" << endl;
+		f << endl << "If a section is documented, the documentation is displayed as tooltip." << endl;
 		f << "*/" << endl;
 		f << endl;
 	}

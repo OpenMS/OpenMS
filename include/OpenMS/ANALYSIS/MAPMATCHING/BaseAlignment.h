@@ -48,8 +48,6 @@ namespace OpenMS
 		An element can be a DPeak, a DFeature, a ConsensusPeak or a ConsensusFeature.
 		Corresponding elements are grouped together and stored as a consensus
 		element in the final consensus map (a stl vector of consensus elements).
-		 
-		@ref BaseAlignment_Parameters are explained on a separate page.
   */
   template < typename ConsensusElementT >
   class BaseAlignment : public DefaultParamHandler

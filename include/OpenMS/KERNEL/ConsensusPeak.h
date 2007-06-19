@@ -39,13 +39,7 @@ namespace OpenMS
 	 @brief A 2-dimensional consensus peak.
 	
 	 A consensus peak represents corresponding peaks in multiple peakmaps.
-	
- 	 @improvement The value_type of the container must be Peak2D, but it is
-	 possible to instantiate this template differently.  As a remedy, we could
-	 use a template template argument, something like
-	 <code>template < template <typename> class ContainerT = DPeakArray> class
-	 ConsensusPeak</code>. (Eva or Clemens) 
-	 
+
 	 @ingroup Kernel
 	 */
 	template < typename ContainerT = DPeakArray< Peak2D > >
