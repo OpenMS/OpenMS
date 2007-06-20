@@ -12,7 +12,7 @@
 	<alignmentNewickTree> ((0:0,1:2):0)</alignmentNewickTree>
 	<transformationList>
 		<transformation id="0" name ="IdentityTransformation"/>
-		<transformation id="1" name="AffineTransformation"/>
+		<transformation id="1" name="AffineTransformation">
 			<cell nr="0">
 				<range rtMin="902.001" rtMax="1548.15" mzMin="603.349" mzMax="1002.25"/>
 				<mappinglist>
@@ -26,6 +26,7 @@
 					</mzMapping>
 				</mappinglist>
 			</cell>
+	 </transformation>		
 	</transformationList>
 	<consensusElementList>
 		<consensusElement id="0">

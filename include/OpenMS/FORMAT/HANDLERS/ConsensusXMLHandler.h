@@ -476,9 +476,10 @@ namespace OpenMS
       {
         if (s != ref_index)
         {
-          os << "\t\t<transformation id=\"" << (j+1) << "\" name=\"AffineTransformation\"/>\n";
+          os << "\t\t<transformation id=\"" << (j+1) << "\" name=\"AffineTransformation\">\n";
           os << "\t";
           writeCellList_(os,transformation_vector[s]);
+          os << "\t\t</transformation>\n";
           ++j;
         }
       }
