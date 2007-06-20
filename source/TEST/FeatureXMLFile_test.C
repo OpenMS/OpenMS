@@ -189,6 +189,7 @@ CHECK((void load(String filename, FeatureMap<>& feature_map) throw (Exception::F
 
 	dfmap_file.getOptions().setRTRange(makeRange(0, 10));
 	dfmap_file.load("data/FeatureXMLFile.xml",e);
+	TEST_EQUAL(e.size(), 1)
 	TEST_EQUAL(e[0].getPosition()[0], 0)
 	TEST_EQUAL(e[0].getPosition()[1], 35)
 	TEST_EQUAL(e[0].getIntensity(), 500)
@@ -196,6 +197,7 @@ CHECK((void load(String filename, FeatureMap<>& feature_map) throw (Exception::F
 	dfmap_file.getOptions() = PeakFileOptions();
 	dfmap_file.getOptions().setMZRange(makeRange(10, 50));
 	dfmap_file.load("data/FeatureXMLFile.xml",e);
+	TEST_EQUAL(e.size(), 1)
 	TEST_EQUAL(e[0].getPosition()[0], 0)
 	TEST_EQUAL(e[0].getPosition()[1], 35)
 	TEST_EQUAL(e[0].getIntensity(), 500)
@@ -203,6 +205,7 @@ CHECK((void load(String filename, FeatureMap<>& feature_map) throw (Exception::F
 	dfmap_file.getOptions() = PeakFileOptions();
 	dfmap_file.getOptions().setIntensityRange(makeRange(400, 600));
 	dfmap_file.load("data/FeatureXMLFile.xml",e);
+	TEST_EQUAL(e.size(), 1)
 	TEST_EQUAL(e[0].getPosition()[0], 0)
 	TEST_EQUAL(e[0].getPosition()[1], 35)
 	TEST_EQUAL(e[0].getIntensity(), 500)

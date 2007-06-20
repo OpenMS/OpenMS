@@ -46,15 +46,6 @@ VERSION="`grep AC_INIT /tmp/OpenMS-dist/OpenMS/source/configure.ac | awk -F, '{p
 echo "Version: ${VERSION}"
 echo ""
 
-# buid docu
-echo "building docu"
-cd OpenMS/doc/
-cp ../source/config/Doxyfile.in doxygen/Doxyfile
-sed -i -e "s/@PACKAGE_VERSION@/${VERSION}/g" doxygen/Doxyfile
-sed -i -e 's/@OPENMS_PATH@/\/tmp\/OpenMS-dist\/OpenMS/g' doxygen/Doxyfile
-make doc > /tmp/OpenMS-dist/make_doc.log 2>&1
-echo ""
-
 # remove SVN information
 echo "removing SVN info"
 REMOVE=`find . -name .svn -type d`

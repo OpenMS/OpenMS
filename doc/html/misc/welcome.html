@@ -27,18 +27,20 @@
   On these pages you find the OpenMS installation instructions for Linux and MacOS.
   
   <dt>OpenMS + TOPP documentation</dt>
-  The actual OpenMS and TOPP documentation has to be build using the tool <tt>doxygen</tt>.
-  <BR>
-  If you do not want to install <tt>doxygen</tt>, the documentation of the latest release can also be found 
-  <a href="http://www-bs2.informatik.uni-tuebingen.de/services/OpenMS-release/">online</a> or downloaded
-  from <a href="http://open-ms.sourceforge.net/download.php">www.OpenMS.de</a>.
-  
+	There are three ways to obtain the OpenMS/TOPP documentation.
+	<UL>
+		<LI> The documentation of the latest release is available <a target="blank_" href="http://www-bs2.informatik.uni-tuebingen.de/services/OpenMS-release/misc/welcome.html">online</a>
+		<LI> The documentation of the latest release can be downloaded of the SourceForge files section <a href="http://sourceforge.net/project/showfiles.php?group_id=90558">files</a> section
+		<LI> The documentation can be build from this source package (e.g. for development versions).
+	</UL>
+	
   <p>
 	If your OpenMS version is a development version from SVN, the following 
     applications are needed in order to create the OpenMS documentation:
   <UL>
 		<LI> <tt>doxygen</tt> (version 1.4.5 or higher is recommended as it is is aware of most STL classes)
 		<LI> <tt>pdflatex</tt> (for the pdf version of the tutorial)
+		<LI> <tt>OpenMS</tt> (for the parameter documentation)
 	</UL>
 	<p>
 	The commands used to build the documentation in <tt>OpenMS/doc/</tt> are:

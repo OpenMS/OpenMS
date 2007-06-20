@@ -202,6 +202,25 @@
 							<LI> SVN commit
 							<LI> Run the script <tt>source/config/tools/make_dist.sh</tt>
 						</OL>
+					<LI> Prepare the release file (doc):
+						<OL>
+							<LI> Check out the release and build the library
+							<LI> execute @a make @a doc @a TOPP_tutorial @a OpenMS_tutorial
+							<LI> Create an archive @a OpenMS_doc-&lt;version&gt;.tar.gz which contains the following files only
+								<UL>
+									<LI> OpenMS_doc-&lt;version&gt;
+									<UL>
+										<LI> index.html
+										<LI> html (including content)
+										<LI> OpenMS_tutorial.pdf
+										<LI> TOPP_tutorial.pdf
+										<LI> doxygen
+											<UL>
+												<LI> html_output (including content)
+											</UL>
+									</UL> 
+								</UL> 
+						</OL>
 					<LI> Prepare the release file (contrib):
 						<OL>
 							<LI> Update Version number in <tt>configure.ac</tt> (AC_INIT macro)
@@ -222,6 +241,7 @@
 							<LI> Copy the documentation of the release to @a /share/www/ApacheRoot/html/extern/OpenMS-release.
 							     <BR> <b>Note: </b> Do not forget to execute @a make @a distclean and @a configure.
 						</OL>
+
 				</OL>
 	
 			<LI><B>What has each developer to do for a release?</B>
@@ -238,7 +258,7 @@
 							<LI> More options are given with @a --help
 							<LI> Send feedback concening the script to Marc
 						</UL>
-					<LI> Check the output of TOPP tests @a source/TEST/TOPP/&lt;topp-tool&gt;.output for debug output
+					<LI> Check the output of TOPP tests @a source/TEST/TOPP/&lt;TOPP-tool&gt;.output for debug output
 					<LI> Documentation:
 						<UL>
 							<LI> OpenMS
@@ -251,12 +271,12 @@
 								<UL>
 									<LI> Write / correct tutorial
 									<LI> Write / correct tutorial doxygen documentation
-									<LI> Proof-read the output of @a &lt;topp-tool&gt; @a --help
+									<LI> Proof-read the output of @a &lt;TOPP-tool&gt; @a --help
 									<LI> Check if all parameters and sections are documented (@a -write_ini and @a INIFileEditor).
 								</UL>
 						</UL>
 					<LI> Remove classes not ready for release from the release branch.
-					<LI> Chgeck if all examples in @a OpenMS/source/EXAMPLES/ compile.
+					<LI> Check if all examples in @a OpenMS/source/EXAMPLES/ compile.
 				</OL>
 
 

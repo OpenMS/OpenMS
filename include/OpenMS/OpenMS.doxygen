@@ -82,16 +82,12 @@
 
 /*************************** Marc's todos ******************************
 Todo:
-- Eva: XML-Schema
 - Ole,Clemens: Parameter-docu aus doxygen raus
-- Generell: Tutorials
+- Generell: Tutorials, Checker
 
 Nach Release:
 - Snapshot + search wieder auf Trunk umstellen
 - Merge 1.0 in Trunk
-
-Thomas Schreiner:
-- DBConnection: mehrere Verbindunden gleichzeitig
 
 Stefan Rink:
 - Param als wirklicher Baum

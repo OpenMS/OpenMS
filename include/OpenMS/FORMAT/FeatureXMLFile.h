@@ -38,8 +38,6 @@ namespace OpenMS
 
 		A documented schema for this format can be found at http://open-ms.sourceforge.net/schemas/. 
 		
-		@todo Use PeakFileOptions and write tests (Thomas S.)
-
   	@note This format will eventually be replaced by the HUPO-PSI AnalysisXML format!
   	
   	@ingroup FileIO

@@ -49,9 +49,7 @@ namespace OpenMS
 				<td>peak with intensity below cutoff is not considered
 						 to be part of the model</td></tr>
 		</table>
-		
-		@ref InterpolationModel_Parameters are explained on a separate page.
-		
+
 		@ingroup FeatureFinder
 
 	*/

@@ -771,12 +771,12 @@ CHECK((template <class ExperimentType> void loadExperiment(UID id, ExperimentTyp
 			TEST_EQUAL(in==out, true)
 		RESULT
 
-		CHECK(const PeakFileOptions& getOptions() const)
+CHECK((const PeakFileOptions& getOptions() const))
 			DBAdapter a(con);
 			TEST_EQUAL(a.getOptions().hasMSLevels(),false)
 		RESULT
 		
-		CHECK(PeakFileOptions& getOptions())
+CHECK((PeakFileOptions& getOptions()))
 			DBAdapter a(con);
 			a.getOptions().addMSLevel(1);
 			TEST_EQUAL(a.getOptions().hasMSLevels(),true);

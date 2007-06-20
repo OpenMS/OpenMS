@@ -162,7 +162,7 @@ dirs: dummy
 	@cd APPLICATIONS; if $(MAKE) default; then cd .. ; else cd .. ; exit 1 ; fi ; 
 	@cd VISUAL; if $(MAKE) default; then cd .. ; else cd .. ; exit 1 ; fi ;
 
-lib:	.Dependencies dirs collect
+lib:	.Dependencies dirs
 	@$(ECHO) " "
 	@$(ECHO) "You may now install the libraries with the command"
 	@$(ECHO) " "

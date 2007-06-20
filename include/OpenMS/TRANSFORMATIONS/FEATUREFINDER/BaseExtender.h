@@ -38,8 +38,6 @@ namespace OpenMS
 		Every derived class has to implement the static functions
     "T* create()" and "const String getProductName()" (see FactoryProduct for details).
     
-    @ref BaseExtender_Parameters are explained on a separate page.
-    
     @ingroup FeatureFinder
   */
   class BaseExtender 
