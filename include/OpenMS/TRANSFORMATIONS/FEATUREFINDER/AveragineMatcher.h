@@ -203,6 +203,8 @@ namespace OpenMS
 
 	/// get GSL status
 	std::string getGSLStatus() const;
+	
+	void dump_all_(ChargedIndexSet set, UInt sampling_size);
 
 	 protected:
 
@@ -210,9 +212,9 @@ namespace OpenMS
 
 		QualityType fitOffset_(InterpolationModel* model, const IndexSet& set, double stdev1, double stdev2, Coordinate offset_step);
 		
-		QualityType fit_mz_(MzFitting mz_fit,Coordinate isotope_stdev);
+		QualityType fit_mz_(ChargedIndexSet set, UInt samplingsize, MzFitting charge,Coordinate isotope_stdev);
 
-		QualityType fit_(const IndexSet& set, MzFitting mz_fit, RtFitting rt_fit, Coordinate isotope_stdev=0.1);
+		QualityType fit_(const ChargedIndexSet& set, MzFitting mz_fit, RtFitting rt_fit, Coordinate isotope_stdev, UInt samplingsize);
 		
 		QualityType compute_mz_corr_(IntensityType& mz_data_sum, IsotopeModel& iso_model, CoordinateType& mz_data_avg);
 

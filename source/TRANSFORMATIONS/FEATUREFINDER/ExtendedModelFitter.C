@@ -35,6 +35,8 @@
 #include <OpenMS/CONCEPT/Factory.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/BaseQuality.h>
 
+#include <OpenMS/SYSTEM/StopWatch.h>
+
 #include <iostream>
 #include <fstream>
 #include <numeric>
@@ -555,7 +557,12 @@ namespace OpenMS
 		model2D_.setModel(MZ, mz_model).setModel(RT, rt_model);
 
 		double res;
+		StopWatch w;
+		w.start();
 		res = fitOffset_(mz_model, set, stdev_mz_, stdev_mz_, interpolation_step_mz_);
+		w.stop();
+		std::cout << "Time spent for mz offset: " << w.getClockTime() << std::endl;
+		
 		if (profile_!="LmaGauss" && profile_!="EMG" && profile_!="LogNormal")
 			res = fitOffset_(rt_model, set, stdev_rt1_, stdev_rt2_, interpolation_step_rt_);
 

@@ -455,7 +455,7 @@ void BaseSweepSeeder::filterForSignificance_()
 {
 	vector<TableIteratorType> entries_to_delete;
 		
-	ProbabilityType alpha = 0.1;
+	ProbabilityType alpha = 0.2;
 	//cout << "Filtering for significance with alpha: " << (alpha/iso_map_.size() ) << endl;	
 
 	for (TableIteratorType iter = iso_map_.begin(); iter != iso_map_.end(); ++iter)

@@ -264,14 +264,14 @@ namespace OpenMS
 		{
 			for (Int mz_fit_type = first_mz; mz_fit_type <= last_mz; ++mz_fit_type)
 			{
-				if (profile_=="LmaGauss")
-					quality = fit_(set, static_cast<MzFitting>(mz_fit_type), LMAGAUSS, stdev);
-				else if (profile_=="EMG" && symmetric_==false)
-					quality = fit_(set, static_cast<MzFitting>(mz_fit_type), EMGAUSS, stdev);
-				else if (profile_=="LogNormal" && symmetric_==false  && symmetry_!=1 && symmetry_!=0)
-					quality = fit_(set, static_cast<MzFitting>(mz_fit_type), LOGNORMAL, stdev);
-				else
-					quality = fit_(set, static_cast<MzFitting>(mz_fit_type), BIGAUSS, stdev);
+				//(if (profile_=="LmaGauss")
+					quality = fit_(set, static_cast<MzFitting>(mz_fit_type), LMAGAUSS, stdev, (UInt) sampling_size_mz );
+// 				else if (profile_=="EMG" && symmetric_==false)
+// 					quality = fit_(set, static_cast<MzFitting>(mz_fit_type), EMGAUSS, stdev);
+// 				else if (profile_=="LogNormal" && symmetric_==false  && symmetry_!=1 && symmetry_!=0)
+// 					quality = fit_(set, static_cast<MzFitting>(mz_fit_type), LOGNORMAL, stdev);
+// 				else
+// 					quality = fit_(set, static_cast<MzFitting>(mz_fit_type), BIGAUSS, stdev);
 
 				if (quality > max_quality)
 				{
@@ -327,13 +327,19 @@ namespace OpenMS
 			mz_data_avg += ( mz_lin_int_.getData()[i] / mz_data_sum);	
 		}	
 		mz_data_avg /= mz_lin_int_.getData().size();
-	
+				
+		//QualityType qual_mz =	quality_->evaluate(set, mz_model_/**final->getModel(MZ)*/, MZ);
 		QualityType qual_mz = compute_mz_corr_(mz_data_sum, mz_model_, mz_data_avg);
+		
+		if (qual_mz > 1.0)
+		{
+			dump_all_(set, (UInt) sampling_size_mz);		
+		}
+		
 		cout << "Quality in m/z : " << qual_mz << endl;
 		QualityType qual_rt =	quality_->evaluate(model_set, rt_model_/**final->getModel(RT)*/, RT );
 		cout << "Quality in rt : " << qual_rt << endl;
 		
-		// composite feature quality is the average in rt and m/z
 		max_quality = (qual_mz + qual_rt) / 2.0;
 		
 		// fit has too low quality or fit was not possible i.e. because of zero stdev
@@ -442,8 +448,8 @@ namespace OpenMS
  		return f;
 	}
 
-	AveragineMatcher::QualityType AveragineMatcher::fit_(const IndexSet& /*set*/, MzFitting mz_fit, RtFitting /*rt_fit*/,
-																	 					  																	  Coordinate isotope_stdev)
+	AveragineMatcher::QualityType AveragineMatcher::fit_(const ChargedIndexSet& set, MzFitting mz_fit, RtFitting /*rt_fit*/,
+																	 					  																	  Coordinate isotope_stdev, UInt sampling_size)
 	{
 			// Build Models
 			rt_model_.setInterpolationStep(interpolation_step_rt_);
@@ -459,11 +465,37 @@ namespace OpenMS
 			tmp.setValue("emg:retention",retention_);
 	
 			rt_model_.setParameters(tmp);
-			double res = fit_mz_( mz_fit,isotope_stdev);
+			double res = fit_mz_(set, sampling_size, mz_fit,isotope_stdev);
 			
 			model2D_.setModel(MZ, &mz_model_).setModel(RT, &rt_model_);
 			
 			return res;
+	}
+	
+	void AveragineMatcher::dump_all_(ChargedIndexSet set, UInt sampling_size)
+	{
+			// dumping linear interpolation DS
+			String filename = "dump_out_" + String(counter_) + String("_") + String(sampling_size);
+			std::ofstream outfile(filename.c_str());
+			
+			for (UInt i=0;i<mz_lin_int_.getData().size();++i)
+			{
+			outfile << mz_lin_int_.index2key(i) << " ";
+			outfile << (mz_lin_int_.getData()[i] ) << endl;
+			}
+			outfile.close();
+		
+			// feature region
+			String filename2 = "dump_region_out_" + String(counter_) + String("_") + String(sampling_size);
+			outfile.open(filename2.c_str());
+			for (ChargedIndexSet::const_iterator citer = set.begin();
+						citer != set.end();
+						++citer)
+			{
+				outfile << traits_->getPeakRt(*citer) << " " << traits_->getPeakMz(*citer) << " " << traits_->getPeakIntensity(*citer) << std::endl;
+			}
+			outfile.close();
+	
 	}
 	
 	AveragineMatcher::QualityType AveragineMatcher::compute_mz_corr_(IntensityType& mz_data_sum, 
@@ -477,12 +509,6 @@ namespace OpenMS
 			for(UInt i=0; i<samples.size();++i)
 			{
 				mz_model_sum += samples[i].getIntensity();	
-			}
-			
-			if (mz_model_sum == 0 || mz_data_sum == 0)
-			{
-				// fit failed
-				return -1.0;			
 			}
 		
 			// compute m/z model average (for the given set of data points)
@@ -508,13 +534,20 @@ namespace OpenMS
 					model_square_sum  += ( m - mz_model_avg)  * ( m - mz_model_avg);					
 			}
 		
+			if (data_square_sum == 0 ||
+					model_square_sum == 0)
+			{
+				std::cout << "Something went wrong in compute_mz_corr_ !!" << std::endl;
+				return -1.0;			
+			}
+			
 			QualityType corr_mz = cross_product_sum / sqrt(data_square_sum * model_square_sum);
 			cout << "Pearson correlation in m/z : " << corr_mz << endl;
 	
 			return corr_mz;	
 	}
 	
-	AveragineMatcher::QualityType AveragineMatcher::fit_mz_(MzFitting charge,Coordinate isotope_stdev)
+	AveragineMatcher::QualityType AveragineMatcher::fit_mz_(ChargedIndexSet set, UInt samplingsize, MzFitting charge,Coordinate isotope_stdev)
 	{			
 		// new model
 		IsotopeModel iso_model;
@@ -534,8 +567,15 @@ namespace OpenMS
 			mz_mean_pos += (mz_lin_int_.index2key(i) * mz_lin_int_.getData()[i]);
 			mz_data_sum += mz_lin_int_.getData()[i];
 		}	
-		mz_mean_pos /= mz_data_sum;
 		
+		if (mz_data_sum == 0.0)
+		{
+			dump_all_(set,(UInt) samplingsize);
+			return -1.0;		
+		}
+		
+		mz_mean_pos /= mz_data_sum;
+			
 		cout << "mz_mean_pos = " << mz_mean_pos << endl;
 		
 		// compute m/z data average
@@ -563,6 +603,12 @@ namespace OpenMS
 					
 			// estimate goodness of m/z fit
 			QualityType corr_mz = compute_mz_corr_(mz_data_sum, iso_model, mz_data_avg);			
+			
+			if (corr_mz == -1.0)
+			{
+					dump_all_(set,(UInt) samplingsize);
+			}
+			
 			if (corr_mz > max_corr)
 			{
 				max_corr   = corr_mz;
@@ -669,10 +715,10 @@ namespace OpenMS
 		// calculate the stardard deviation
 		standard_deviation_ = sqrt(sumS/(positionsDC2_.size() - 1));
 
-		// set expeceted value
+		// set expected value
 		expected_value_ = positionsDC2_[median];//rt_stat_.mean();
 
-		// calculate the heigth of the peak
+		// calculate the peak height
 		height_ = signalDC2_[median];
 
 		// calculate the width of the peak
