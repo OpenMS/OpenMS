@@ -77,7 +77,7 @@ CHECK((const std::string& getBoundary()))
 	TEST_EQUAL(file.getBoundary() , "ABCDEFGHIJKMNOPQRSTUVWXYZ")
 RESULT
 
-CHECK((void store(const std::string& filename, const DPeakArray<1>& spec, double mz, double retention_time, std::string search_title)))
+CHECK((void store(const std::string &filename, const DPeakArray< Peak1D > &spec, DoubleReal mz, DoubleReal retention_time, std::string search_title)))
 
 	// here a fixed name has to be used as it has to be in the template
 	file.store("MascotInfile_test.txt", spec, 1998.0f, 25.379, "TestTitle");
@@ -148,21 +148,21 @@ CHECK((UInt getMissedCleavages()))
 	TEST_EQUAL(file.getMissedCleavages() , 4711)
 RESULT
 
-CHECK((void setPrecursorMassTolerance(float precursor_mass_tolerance)))
+CHECK((void setPrecursorMassTolerance(Real precursor_mass_tolerance)))
 	file.setPrecursorMassTolerance(4711.1f);
 	TEST_REAL_EQUAL(file.getPrecursorMassTolerance() , 4711.1f)
 RESULT
 
-CHECK((float getPrecursorMassTolerance()))
+CHECK((Real getPrecursorMassTolerance()))
 	TEST_REAL_EQUAL(file.getPrecursorMassTolerance() , 4711.1f)
 RESULT
 
-CHECK((void setPeakMassTolerance(float ion_mass_tolerance)))
+CHECK((void setPeakMassTolerance(Real ion_mass_tolerance)))
 	file.setPeakMassTolerance(4711.2f);
 	TEST_REAL_EQUAL(file.getPeakMassTolerance() , 4711.2f)
 RESULT
 
-CHECK((float getPeakMassTolerance()))
+CHECK((Real getPeakMassTolerance()))
 	TEST_REAL_EQUAL(file.getPeakMassTolerance() , 4711.2f)
 RESULT
 

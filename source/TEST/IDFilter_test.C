@@ -62,16 +62,16 @@ proteins.push_back(pair<String, String>("Q824A5", "LHASGITVTEIPVTATNFK"));
 proteins.push_back(pair<String, String>("Q872T5", "THPYGHAIVAGIERYPSK"));
 
 IDFilter* ptr;
-CHECK(IDFilter())
+CHECK((IDFilter()))
 	ptr = new IDFilter();
 	TEST_NOT_EQUAL(ptr, 0);
 RESULT
 
-CHECK(~IDFilter())
+CHECK((~IDFilter()))
 	delete ptr;	
 RESULT
 
-CHECK((void filterIdentificationsByProteins(const ProteinIdentification& identification, std::vector< std::pair<String, String> > proteins, ProteinIdentification& filtered_identification)))	
+CHECK((void filterIdentificationsByProteins(const ProteinIdentification& identification, std::vector< std::pair<String, String> > proteins, ProteinIdentification& filtered_identification)))
 	ProteinIdentification protein_identification2;
 
 	IDFilter().filterIdentificationsByProteins(protein_identification, proteins, protein_identification2);
@@ -82,7 +82,7 @@ CHECK((void filterIdentificationsByProteins(const ProteinIdentification& identif
 	TEST_EQUAL(protein_identification2.getHits()[1].getAccession(), "Q872T5")
 RESULT
 
-CHECK((void filterIdentificationsByProteins(const PeptideIdentification& identification, std::vector< std::pair<String, String> > proteins, PeptideIdentification& filtered_identification)))	
+CHECK((void filterIdentificationsByProteins(const PeptideIdentification& identification, std::vector< std::pair<String, String> > proteins, PeptideIdentification& filtered_identification)))
 	PeptideIdentification identification2;
 
 	IDFilter().filterIdentificationsByProteins(identification, proteins, identification2);
@@ -93,7 +93,7 @@ CHECK((void filterIdentificationsByProteins(const PeptideIdentification& identif
 	TEST_EQUAL(identification2.getHits()[1].getSequence(), "MRSLGYVAVISAVATDTDK")
 RESULT
 
-CHECK((void filterIdentificationsByThreshold(const PeptideIdentification& identification, DoubleReal peptide_threshold_fraction, DoubleReal protein_threshold_fraction, PeptideIdentification& filtered_identification)))
+CHECK((template <class IdentificationType> void filterIdentificationsByThreshold(const IdentificationType &identification, DoubleReal threshold_fraction, IdentificationType &filtered_identification)))
 	PeptideIdentification identification2;
 	vector<PeptideHit> peptide_hits;
 	vector<ProteinHit> protein_hits;
@@ -123,7 +123,7 @@ CHECK((void filterIdentificationsByThreshold(const PeptideIdentification& identi
 	TEST_EQUAL(peptide_hits[4].getRank() , 5)
 RESULT
 
-CHECK((void filterIdentificationsByScore(const PeptideIdentification& identification, DoubleReal threshold_score, PeptideIdentification& filtered_identification)))
+CHECK((template <class IdentificationType> void filterIdentificationsByScore(const IdentificationType &identification, DoubleReal threshold_score, IdentificationType &filtered_identification)))
 	PeptideIdentification identification2;
 	vector<PeptideHit> peptide_hits;
 	
@@ -237,7 +237,7 @@ CHECK((void filterIdentificationsByBestHits(const PeptideIdentification& identif
 	TEST_EQUAL((identification2.getHits()[0].getSequence()=="FINFGVNVEVLSRFQTK" && identification2.getHits()[1].getSequence()=="MSLLSNMISIVKVGYNAR") || (identification2.getHits()[0].getSequence()=="MSLLSNMISIVKVGYNAR" && identification2.getHits()[1].getSequence()=="FINFGVNVEVLSRFQTK") , true)
 RESULT
 
-CHECK((template<class PeakT> void filterIdentificationsByThresholds(MSExperiment< PeakT >& experiment, double peptide_threshold_fraction, double protein_threshold_fraction)))
+CHECK((template <class PeakT> void filterIdentificationsByThresholds(MSExperiment< PeakT > &experiment, DoubleReal peptide_threshold_fraction, DoubleReal protein_threshold_fraction)))
 	
 	
 	MSExperiment< Peak1D > experiment;
@@ -277,7 +277,7 @@ CHECK((template<class PeakT> void filterIdentificationsByThresholds(MSExperiment
 	TEST_EQUAL(peptide_hits[4].getRank() , 5)
 RESULT
 
-CHECK((template<class PeakT> void filterIdentificationsByScores(MSExperiment< PeakT >& experiment, double peptide_threshold_fraction, double protein_threshold_fraction)))
+CHECK((template <class PeakT> void filterIdentificationsByScores(MSExperiment< PeakT > &experiment, DoubleReal peptide_threshold_score, DoubleReal protein_threshold_score)))
 	
 	
 	MSExperiment< Peak1D > experiment;
@@ -317,35 +317,7 @@ CHECK((template<class PeakT> void filterIdentificationsByScores(MSExperiment< Pe
 	TEST_EQUAL(peptide_hits[4].getRank() , 5)
 RESULT
 
-CHECK((template<class PeakT> void filterIdentificationsByScores(MSExperiment< PeakT >& experiment, double peptide_threshold_fraction, double protein_threshold_fraction)))
-	
-	
-	PeptideIdentification identification2;
-	vector<PeptideHit> peptide_hits;
-  
-	IDFilter().filterIdentificationsByScore(identification, 31.8621, identification2);
-	peptide_hits = identification2.getHits();
-
-	TEST_EQUAL(identification2.getScoreType() , "Mascot")
-	
-	TEST_EQUAL(peptide_hits.size(), 5)
-	TEST_REAL_EQUAL(peptide_hits[0].getScore() , 40)
-	TEST_EQUAL(peptide_hits[0].getRank() , 1)
-	TEST_EQUAL((identification2.getHits()[0].getSequence()=="FINFGVNVEVLSRFQTK" && identification2.getHits()[1].getSequence()=="MSLLSNMISIVKVGYNAR") || (identification2.getHits()[0].getSequence()=="MSLLSNMISIVKVGYNAR" && identification2.getHits()[1].getSequence()=="FINFGVNVEVLSRFQTK") , true)
-	TEST_REAL_EQUAL(peptide_hits[1].getScore() , 40)
-	TEST_EQUAL(peptide_hits[1].getRank() , 2)
-	TEST_EQUAL(peptide_hits[2].getSequence() , "THPYGHAIVAGIERYPSK")
-	TEST_REAL_EQUAL(peptide_hits[2].getScore() , 39)
-	TEST_EQUAL(peptide_hits[2].getRank() , 3)
-	TEST_EQUAL(peptide_hits[3].getSequence() , "LHASGITVTEIPVTATNFK")
-	TEST_REAL_EQUAL(peptide_hits[3].getScore() , 34.85)
-	TEST_EQUAL(peptide_hits[3].getRank() , 4)
-	TEST_EQUAL(peptide_hits[4].getSequence() , "MRSLGYVAVISAVATDTDK")
-	TEST_REAL_EQUAL(peptide_hits[4].getScore() , 33.85)
-	TEST_EQUAL(peptide_hits[4].getRank() , 5)
-RESULT
-
-CHECK(template <class IdentificationType> void filterIdentificationsByBestNHits(MSExperiment< PeakT >& experiment, UInt n))
+CHECK((template <class PeakT> void filterIdentificationsByBestNHits(MSExperiment< PeakT > &experiment, UInt n)))
 	MSExperiment< Peak1D > experiment;
   vector< PeptideIdentification > ids;
 	PeptideIdentification identification2;
@@ -378,7 +350,7 @@ CHECK(template <class IdentificationType> void filterIdentificationsByBestNHits(
 
 RESULT
 
-CHECK(template <class IdentificationType> void filterIdentificationsByBestNHits(const IdentificationType& identification, UInt n, IdentificationType& filtered_identification))
+CHECK((template <class IdentificationType> void filterIdentificationsByBestNHits(const IdentificationType& identification, UInt n, IdentificationType& filtered_identification)))
 	PeptideIdentification identification2;
 	vector<PeptideHit> peptide_hits;
   
@@ -396,6 +368,23 @@ CHECK(template <class IdentificationType> void filterIdentificationsByBestNHits(
 	TEST_REAL_EQUAL(peptide_hits[2].getScore() , 39)
 	TEST_EQUAL(peptide_hits[2].getRank() , 3)
 
+RESULT
+
+CHECK(void filterIdentificationsByRTPValues(const PeptideIdentification &identification, PeptideIdentification &filtered_identification, DoubleReal p_value=0.05))
+	PeptideIdentification filtered_identification;
+
+	IdXMLFile().load("data/IDFilter_test2.idXML", protein_identifications, identifications);
+	PeptideIdentification identification2 = identifications[0];
+	ProteinIdentification protein_identification2 = protein_identifications[0];							
+	IDFilter().filterIdentificationsByRTPValues(identification2 , filtered_identification, 0.08);
+	
+	vector<PeptideHit> hits = filtered_identification.getHits();
+	
+	TEST_EQUAL(hits.size(), 4)
+	TEST_EQUAL(hits[0].getSequence(), "LHASGITVTEIPVTATNFK")
+	TEST_EQUAL(hits[1].getSequence(), "DLEPGTDYEVTVSTLFGR")
+	TEST_EQUAL(hits[2].getSequence(), "FINFGVNVEVLSRFQTK")
+	TEST_EQUAL(hits[3].getSequence(), "MSLLSNMISIVKVGYNAR")
 RESULT
 
 /////////////////////////////////////////////////////////////

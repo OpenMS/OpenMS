@@ -55,7 +55,7 @@ CHECK((~LibSVMEncoder()))
 	delete ptr;
 RESULT
 
-CHECK((std::vector< std::pair<Int, DoubleReal>* encodeCompositionVector(const String& sequence, const String& allowed_characters = "ACDEFGHIKLMNPQRSTVWY")))
+CHECK((void encodeCompositionVector(const String &sequence, std::vector< std::pair< Int, DoubleReal > > &encoded_vector, const String &allowed_characters="ACDEFGHIKLMNPQRSTVWY")))
 	String sequence = "ACCGGGTTTT";
 	String allowed_characters = "ACNGT";
 	vector< pair<Int, DoubleReal> > encoded_sequence;
@@ -81,7 +81,7 @@ CHECK((std::vector< std::pair<Int, DoubleReal>* encodeCompositionVector(const St
 	TEST_EQUAL(it == encoded_sequence.end(), true)
 RESULT
 
-CHECK((std::vector< std::vector< std::pair<Int, DoubleReal>* encodeCompositionVectors(const std::vector<String>& sequences, const String& allowed_characters)))
+CHECK((void encodeCompositionVectors(const std::vector< String > &sequences, const String &allowed_characters, std::vector< std::vector< std::pair< Int, DoubleReal > > > &composition_vectors)))
 	vector<String> sequences;
 	String allowed_characters = "ACNGT";
 	vector< vector< pair<Int, DoubleReal> > > encoded_sequences;
@@ -119,7 +119,7 @@ CHECK((std::vector< std::vector< std::pair<Int, DoubleReal>* encodeCompositionVe
 	TEST_EQUAL(it == encoded_sequences[1].end(), true)
 RESULT
 
-CHECK((std::vector<svm_node*>* encodeLibSVMVectors( const std::vector< std::vector< std::pair<Int, DoubleReal> > >& feature_vectors)))
+CHECK((void encodeLibSVMVectors(const std::vector< std::vector< std::pair< Int, DoubleReal > > > &feature_vectors, std::vector< svm_node * > &libsvm_vectors)))
 	vector<String> sequences;
 	String allowed_characters = "ACNGT";
 	vector<vector< pair<Int, DoubleReal> > > encoded_sequences;
@@ -178,7 +178,7 @@ CHECK((svm_node* encodeLibSVMVector( const std::vector< std::pair<Int, DoubleRea
 	
 RESULT
 
-CHECK((svm_problem* encodeLibSVMProblem(const std::vector<svm_node*>& vectors, std::vector<DoubleReal>* labels)))
+CHECK((svm_problem* encodeLibSVMProblem(const std::vector< svm_node * > &vectors, std::vector< DoubleReal > &labels)))
 	vector<String> sequences;
 	String allowed_characters = "ACNGT";
 	vector<vector< pair<Int, DoubleReal> > > encoded_sequences;
@@ -220,7 +220,7 @@ CHECK((svm_problem* encodeLibSVMProblem(const std::vector<svm_node*>& vectors, s
 
 RESULT
 
-CHECK((svm_problem* encodeLibSVMProblemWithCompositionAndLengthVectors(const std::vector<String>& sequences, std::vector<DoubleReal>* labels, const String& allowed_characters, UInt maximum_sequence_length)))
+CHECK((svm_problem* encodeLibSVMProblemWithCompositionAndLengthVectors(const std::vector< String > &sequences, std::vector< DoubleReal > &labels, const String &allowed_characters, UInt maximum_sequence_length)))
 	vector<String> sequences;
 	String allowed_characters = "ACNGT";
 	svm_node* nodes;
@@ -261,7 +261,7 @@ CHECK((svm_problem* encodeLibSVMProblemWithCompositionAndLengthVectors(const std
 	delete problem;
 RESULT
 
-CHECK((svm_problem* encodeLibSVMProblemWithCompositionVectors(const std::vector<String>& sequences, std::vector<DoubleReal>* labels, const String& allowed_characters)))
+CHECK((svm_problem* encodeLibSVMProblemWithCompositionVectors(const std::vector< String > &sequences, std::vector< DoubleReal > &labels, const String &allowed_characters)))
 	vector<String> sequences;
 	String allowed_characters = "ACNGT";
 	svm_node* nodes;
@@ -317,7 +317,7 @@ CHECK((bool storeLibSVMProblem(const String& filename, const svm_problem* proble
 
 RESULT
 
-CHECK(svm_problem* loadLibSVMProblem(const String& filename))
+CHECK((svm_problem* loadLibSVMProblem(const String& filename)))
 	String allowed_characters = "ACNGT";
 	svm_problem* problem;
 	String temp_filename = "data/LibSVMEncoder_test.tmp";
@@ -344,7 +344,7 @@ CHECK((void encodeOligoBorders(String sequence, UInt k_mer_length, const String&
 	TEST_EQUAL(output, "(3, 1) (3, 1) (9, 2) (11, 2) (14, 3) (22, 3) ")
 RESULT
 
-CHECK((svm_problem* encodeLibSVMProblemWithOligoBorderVectors(const std::vector<String>& sequences, std::vector<DoubleReal>* labels, UInt k_mer_length, const String& allowed_characters, UInt border_length, bool strict = false, bool length_encoding = false)))
+CHECK((svm_problem* encodeLibSVMProblemWithOligoBorderVectors(const std::vector< String > &sequences, std::vector< DoubleReal > &labels, UInt k_mer_length, const String &allowed_characters, UInt border_length, bool strict=false, bool length_encoding=false)))
 	vector<String> sequences;
 	String allowed_characters = "ACNGT";
 	String output;

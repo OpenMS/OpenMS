@@ -47,12 +47,12 @@ DateTime date;
 date.set("27.01.2005 17:47:41");
 MascotOutfile* ptr = 0;
 
-CHECK(MascotOutfile())
+CHECK((MascotOutfile()))
 	ptr = new MascotOutfile();
 	TEST_NOT_EQUAL(ptr, 0)
 RESULT
 
-CHECK((void load(String filename, ProteinIdentification& identification, std::vector<ProteinIdentification>& peptide_identifications, Real p = 0.05) throw(Exception::ParseError)))
+CHECK((void load(String filename, ProteinIdentification &protein_identification, std::vector< PeptideIdentification > &peptide_identifications, Real p=0.05) throw (Exception::ParseError)))
 	ptr = new MascotOutfile();
 	vector<PeptideIdentification> peptide_identifications;
 	ProteinIdentification protein_identification;

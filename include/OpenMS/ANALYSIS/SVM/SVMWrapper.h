@@ -263,16 +263,16 @@ namespace OpenMS
 
 		protected:
 						
-			void destroyProblem(svm_problem* problem);
+			void destroyProblem_(svm_problem* problem);
 																	 				
 	 private:
-			UInt getNumberOfEnclosedPoints(DoubleReal m1, DoubleReal m2, const std::vector<std::pair<DoubleReal, DoubleReal> >& 	points);
+			UInt getNumberOfEnclosedPoints_(DoubleReal m1, DoubleReal m2, const std::vector<std::pair<DoubleReal, DoubleReal> >& 	points);
 	
 		  /**
 		    @brief Initializes the svm with standard parameters
 		    
 		  */
-	    void initParameters();
+	    void initParameters_();
 
 	    svm_parameter* 												param_;  	       	    // the parameters for the svm
 	    svm_model*     												model_;   			      // the learnt svm discriminant

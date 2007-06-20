@@ -63,7 +63,7 @@ CHECK((PeptideIdentification()))
 	TEST_NOT_EQUAL(ptr, 0)
 RESULT
 
-CHECK((~PeptideIdentification()))
+CHECK((virtual ~PeptideIdentification()))
 	PeptideIdentification hits;
 	delete ptr;
 RESULT
@@ -147,7 +147,7 @@ CHECK((bool operator != (const PeptideIdentification& rhs) const))
 RESULT
 
 
-CHECK((float getSignificanceThreshold() const))
+CHECK((Real getSignificanceThreshold() const))
 	PeptideIdentification hits;
 	hits.setSignificanceThreshold(peptide_significance_threshold);
 	TEST_EQUAL(hits.getSignificanceThreshold(), peptide_significance_threshold)
@@ -160,52 +160,52 @@ CHECK((const std::vector<PeptideHit>& getHits() const))
 	TEST_EQUAL(hits.getHits()[0] == peptide_hit, true)	
 RESULT
 
-CHECK((void insertHit(const PeptideHit& input)))
+CHECK((void insertHit(const PeptideHit &hit)))
 	PeptideIdentification hits;
 	hits.insertHit(peptide_hit);
 	TEST_EQUAL(hits.getHits().size() == 1, true)
 	TEST_EQUAL(*(hits.getHits().begin()) == peptide_hit, true)	
 RESULT
 
-CHECK((void setHits(const std::vector<PeptideHit>& peptide_hits)))
+CHECK((void setHits(const std::vector< PeptideHit > &hits)))
 	PeptideIdentification hits;
 	hits.setHits(peptide_hits);
 RESULT
 
-CHECK((void setSignificanceThreshold(float value)))
+CHECK((void setSignificanceThreshold(Real value)))
 	PeptideIdentification hits;
 	hits.setSignificanceThreshold(peptide_significance_threshold);
 	TEST_EQUAL(hits.getSignificanceThreshold(), peptide_significance_threshold)
 RESULT
 
-CHECK(String getScoreType() const)
+CHECK((String getScoreType() const))
 	PeptideIdentification hits;
 	TEST_EQUAL(hits.getScoreType(),"")
 RESULT
 
-CHECK(void setScoreType(const String& type))
+CHECK((void setScoreType(const String& type)))
 	PeptideIdentification hits;
 	hits.setScoreType("bla");
 	TEST_EQUAL(hits.getScoreType(),"bla")
 RESULT
 
-CHECK(bool isHigherScoreBetter() const)
+CHECK((bool isHigherScoreBetter() const))
 	PeptideIdentification hits;
 	TEST_EQUAL(hits.isHigherScoreBetter(),true)
 RESULT
 
-CHECK(void setHigherScoreBetter(bool value))
+CHECK((void setHigherScoreBetter(bool value)))
 	PeptideIdentification hits;
 	hits.setHigherScoreBetter(false);
 	TEST_EQUAL(hits.isHigherScoreBetter(),false)
 RESULT
 
-CHECK(const String& getIdentifier() const)
+CHECK((const String& getIdentifier() const))
 	PeptideIdentification hits;
 	TEST_EQUAL(hits.getIdentifier(),"")
 RESULT
 
-CHECK(void setIdentifier(const String& id))
+CHECK((void setIdentifier(const String& id)))
 	PeptideIdentification hits;
 	hits.setIdentifier("bla");
 	TEST_EQUAL(hits.getIdentifier(),"bla")
@@ -280,6 +280,194 @@ CHECK((void assignRanks()))
 	TEST_EQUAL(id.getHits()[2].getRank(), 3)
 RESULT
 
+CHECK(void getReferencingHits(const String &protein_accession, std::vector< PeptideHit > &peptide_hits) const)
+	PeptideIdentification id;
+	PeptideHit hit;
+	vector< PeptideHit > peptide_hits;
+	
+	hit.setScore(23);
+	hit.setSequence("FIRSTPROTEIN");
+	hit.addProteinAccession("TEST_PROTEIN1");
+	id.insertHit(hit);
+	
+	hit = PeptideHit();
+	hit.setScore(10);
+	hit.setSequence("SECONDPROTEIN");
+	hit.addProteinAccession("TEST_PROTEIN2");
+	id.insertHit(hit);
+
+	hit = PeptideHit();
+	hit.setScore(11);
+	hit.setSequence("THIRDPROTEIN");
+	hit.addProteinAccession("TEST_PROTEIN2");
+	id.insertHit(hit);
+
+	id.getReferencingHits("TEST_PROTEIN2", peptide_hits);
+	TEST_EQUAL(peptide_hits.size(), 2)
+	TEST_EQUAL(peptide_hits[0].getSequence(), String("SECONDPROTEIN"))
+	TEST_EQUAL(peptide_hits[1].getSequence(), String("THIRDPROTEIN"))
+	
+RESULT
+
+CHECK(void getReferencingHits(const std::vector< String > &accessions, std::vector< PeptideHit > &peptide_hits) const)
+	PeptideIdentification id;
+	PeptideHit hit;
+	vector< PeptideHit > peptide_hits;
+	vector<String> accessions;
+	
+	accessions.push_back("TEST_PROTEIN2");
+	accessions.push_back("TEST_PROTEIN3");
+	
+	hit.setScore(23);
+	hit.setSequence("FIRSTPROTEIN");
+	hit.addProteinAccession("TEST_PROTEIN1");
+	id.insertHit(hit);
+	
+	hit = PeptideHit();
+	hit.setScore(10);
+	hit.setSequence("SECONDPROTEIN");
+	hit.addProteinAccession("TEST_PROTEIN2");
+	id.insertHit(hit);
+
+	hit = PeptideHit();
+	hit.setScore(11);
+	hit.setSequence("THIRDPROTEIN");
+	hit.addProteinAccession("TEST_PROTEIN3");
+	id.insertHit(hit);
+
+	id.getReferencingHits(accessions, peptide_hits);
+	TEST_EQUAL(peptide_hits.size(), 2)
+	TEST_EQUAL(peptide_hits[0].getSequence(), String("SECONDPROTEIN"))
+	TEST_EQUAL(peptide_hits[1].getSequence(), String("THIRDPROTEIN"))	
+RESULT
+
+CHECK(void getReferencingHits(const std::vector< ProteinHit > &protein_hits, std::vector< PeptideHit > &peptide_hits) const)
+	PeptideIdentification id;
+	PeptideHit hit;
+	vector< PeptideHit > peptide_hits;
+	vector<ProteinHit> protein_hits;
+	ProteinHit p_hit;
+	
+	p_hit.setAccession("TEST_PROTEIN2");
+	protein_hits.push_back(p_hit);
+	p_hit.setAccession("TEST_PROTEIN3");
+	protein_hits.push_back(p_hit);
+			
+	hit.setScore(23);
+	hit.setSequence("FIRSTPROTEIN");
+	hit.addProteinAccession("TEST_PROTEIN1");
+	id.insertHit(hit);
+	
+	hit = PeptideHit();
+	hit.setScore(10);
+	hit.setSequence("SECONDPROTEIN");
+	hit.addProteinAccession("TEST_PROTEIN2");
+	id.insertHit(hit);
+
+	hit = PeptideHit();
+	hit.setScore(11);
+	hit.setSequence("THIRDPROTEIN");
+	hit.addProteinAccession("TEST_PROTEIN3");
+	id.insertHit(hit);
+
+	id.getReferencingHits(protein_hits, peptide_hits);
+	TEST_EQUAL(peptide_hits.size(), 2)
+	TEST_EQUAL(peptide_hits[0].getSequence(), String("SECONDPROTEIN"))
+	TEST_EQUAL(peptide_hits[1].getSequence(), String("THIRDPROTEIN"))	
+RESULT
+
+CHECK(void getNonReferencingHits(const String &protein_accession, std::vector< PeptideHit > &peptide_hits) const)
+	PeptideIdentification id;
+	PeptideHit hit;
+	vector< PeptideHit > peptide_hits;
+	
+	hit.setScore(23);
+	hit.setSequence("FIRSTPROTEIN");
+	hit.addProteinAccession("TEST_PROTEIN1");
+	id.insertHit(hit);
+	
+	hit = PeptideHit();
+	hit.setScore(10);
+	hit.setSequence("SECONDPROTEIN");
+	hit.addProteinAccession("TEST_PROTEIN2");
+	id.insertHit(hit);
+
+	hit = PeptideHit();
+	hit.setScore(11);
+	hit.setSequence("THIRDPROTEIN");
+	hit.addProteinAccession("TEST_PROTEIN2");
+	id.insertHit(hit);
+
+	id.getNonReferencingHits("TEST_PROTEIN2", peptide_hits);
+	TEST_EQUAL(peptide_hits.size(), 1)
+	TEST_EQUAL(peptide_hits[0].getSequence(), String("FIRSTPROTEIN"))
+RESULT
+
+CHECK(void getNonReferencingHits(const std::vector< String > &accessions, std::vector< PeptideHit > &peptide_hits) const)
+	PeptideIdentification id;
+	PeptideHit hit;
+	vector< PeptideHit > peptide_hits;
+	vector<String> accessions;
+	
+	accessions.push_back("TEST_PROTEIN2");
+	accessions.push_back("TEST_PROTEIN3");
+	
+	hit.setScore(23);
+	hit.setSequence("FIRSTPROTEIN");
+	hit.addProteinAccession("TEST_PROTEIN1");
+	id.insertHit(hit);
+	
+	hit = PeptideHit();
+	hit.setScore(10);
+	hit.setSequence("SECONDPROTEIN");
+	hit.addProteinAccession("TEST_PROTEIN2");
+	id.insertHit(hit);
+
+	hit = PeptideHit();
+	hit.setScore(11);
+	hit.setSequence("THIRDPROTEIN");
+	hit.addProteinAccession("TEST_PROTEIN3");
+	id.insertHit(hit);
+
+	id.getNonReferencingHits(accessions, peptide_hits);
+	TEST_EQUAL(peptide_hits.size(), 1)
+	TEST_EQUAL(peptide_hits[0].getSequence(), String("FIRSTPROTEIN"))
+
+RESULT
+
+CHECK(void getNonReferencingHits(const std::vector< ProteinHit > &protein_hits, std::vector< PeptideHit > &peptide_hits) const)
+	PeptideIdentification id;
+	PeptideHit hit;
+	vector< PeptideHit > peptide_hits;
+	vector<ProteinHit> protein_hits;
+	ProteinHit p_hit;
+	
+	p_hit.setAccession("TEST_PROTEIN2");
+	protein_hits.push_back(p_hit);
+	p_hit.setAccession("TEST_PROTEIN3");
+	protein_hits.push_back(p_hit);
+			
+	hit.setScore(23);
+	hit.setSequence("FIRSTPROTEIN");
+	hit.addProteinAccession("TEST_PROTEIN1");
+	id.insertHit(hit);
+	
+	hit = PeptideHit();
+	hit.setScore(10);
+	hit.setSequence("SECONDPROTEIN");
+	hit.addProteinAccession("TEST_PROTEIN2");
+	id.insertHit(hit);
+
+	hit = PeptideHit();
+	hit.setScore(11);
+	hit.setSequence("THIRDPROTEIN");
+	hit.addProteinAccession("TEST_PROTEIN3");
+	id.insertHit(hit);
+
+	id.getNonReferencingHits(protein_hits, peptide_hits);
+	TEST_EQUAL(peptide_hits.size(), 1)
+	TEST_EQUAL(peptide_hits[0].getSequence(), String("FIRSTPROTEIN"))
+RESULT
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
