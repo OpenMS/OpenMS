@@ -49,6 +49,7 @@ TOPP_EXECUTABLES=\
 	MascotAdapter\
 	InspectAdapter\
 	SequestAdapter\
+	PepNovoAdapter\
 	PeakPicker\
 	LabeledMatcher\
 	MapDewarper\
