@@ -54,7 +54,7 @@ CHECK(~LogNormalModel())
 RESULT
 
 
-CHECK(const String getName())
+CHECK((static const String getProductName()))
 	TEST_EQUAL(LogNormalModel::getProductName(),"LogNormalModel")
 	TEST_EQUAL(LogNormalModel().getName(),"LogNormalModel")
 RESULT

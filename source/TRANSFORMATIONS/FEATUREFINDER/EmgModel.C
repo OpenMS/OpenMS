@@ -98,7 +98,7 @@ namespace OpenMS
 		interpolation_.setOffset ( min_ );
 	}
 
-	void EmgModel::setOffset(CoordinateType offset)
+	void EmgModel::setOffset(double offset)
 	{
 		double diff = offset - getInterpolation().getOffset();
 		min_ += diff;

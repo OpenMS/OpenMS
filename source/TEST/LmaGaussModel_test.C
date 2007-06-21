@@ -54,7 +54,7 @@ CHECK(~LmaGaussModel())
 RESULT
 
 
-CHECK(const String getName())
+CHECK((static const String getProductName()))
 	TEST_EQUAL(LmaGaussModel::getProductName(),"LmaGaussModel")
 	TEST_EQUAL(LmaGaussModel().getName(),"LmaGaussModel")
 RESULT

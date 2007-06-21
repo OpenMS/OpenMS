@@ -45,7 +45,7 @@ using std::stringstream;
 EmgModel* ptr = 0;
 CHECK(EmgModel())
 	ptr = new EmgModel();
-  TEST_EQUAL(ptr->getName(), "EmgModel")
+  	TEST_EQUAL(ptr->getName(), "EmgModel")
 	TEST_NOT_EQUAL(ptr, 0)
 RESULT
 
@@ -55,7 +55,7 @@ CHECK(~EmgModel())
 RESULT
 
 
-CHECK(const String getName())
+CHECK((static const String getProductName()))
 	TEST_EQUAL(EmgModel::getProductName(),"EmgModel")
 	TEST_EQUAL(EmgModel().getName(),"EmgModel")
 RESULT
@@ -211,7 +211,7 @@ CHECK([EXTRA] DefaultParamHandler::setParameters(...))
 RESULT
 
 
-CHECK(void setOffset(double offset))
+CHECK((void setOffset(double offset)))
 
 	EmgModel em1;
 	

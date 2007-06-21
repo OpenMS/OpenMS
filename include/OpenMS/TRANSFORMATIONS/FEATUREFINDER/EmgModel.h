@@ -46,7 +46,6 @@ namespace OpenMS
 	 public:
 		typedef InterpolationModel::CoordinateType CoordinateType;
 		typedef Math::BasicStatistics<CoordinateType > BasicStatistics;
-		typedef InterpolationModel InterpolationModel;
 
 		/// Default constructor
 		EmgModel();

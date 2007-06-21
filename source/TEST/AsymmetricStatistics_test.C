@@ -80,7 +80,31 @@ START_TEST( AsymmetricStatistics, "$Id: AsymmetricStatistics_test.C 2300 2007-05
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
-CHECK( update )
+CHECK(AsymmetricStatistics())
+	// set the beginning of coordinates
+	float fvector_coord[90];
+	for ( int i = 0; i < 90; fvector_coord[i] = 1000 - i, ++i ) ;
+	
+	// set basic statistics 	
+	BasicStatistics < double > stats2 ( &*dvector_data, dvector_data + num_numbers, &*fvector_coord );
+	
+  	TEST_EQUAL(num_numbers,90);	
+	PRECISION(0.1);
+  	STATUS( stats2 );
+
+	TEST_REAL_EQUAL( stats2.sum(), 7096.78 );
+  	TEST_REAL_EQUAL( stats2.mean(), 954.86 );
+  	TEST_REAL_EQUAL( stats2.variance(), 638.663 );
+	
+	AsymmetricStatistics <> asy;
+
+	// test default values for variance1 and variance2
+	TEST_REAL_EQUAL( asy.variance1(), 1.0 );
+  	TEST_REAL_EQUAL( asy.variance2() , 1.0 );
+RESULT
+//-----------------------------------------------------------
+
+CHECK(template <typename ProbabilityIterator, typename CoordinateIterator> void update(ProbabilityIterator const probability_begin, ProbabilityIterator const probability_end, CoordinateIterator  const coordinate_begin))
 {
 	// set the beginning of coordinates
 	float fvector_coord[90];
@@ -115,6 +139,14 @@ CHECK( update )
 	TEST_REAL_EQUAL( asy.variance1(), 616.379 );
   	TEST_REAL_EQUAL( asy.variance2() , 661.202 );
 }
+RESULT
+
+CHECK(RealType variance1() const)
+	// already test above
+RESULT
+
+CHECK(RealType variance2() const)
+	// already test above
 RESULT
 
 //-----------------------------------------------------------

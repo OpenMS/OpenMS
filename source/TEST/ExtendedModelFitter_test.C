@@ -67,7 +67,33 @@ CHECK(~ExtendedModelFitter())
 	delete ptr;
 RESULT
 
-CHECK(void ExtendedModelFitter::setParameters(const Param& param))
+CHECK(static BaseModelFitter* create())
+	BaseModelFitter* model = ExtendedModelFitter::create();
+	TEST_NOT_EQUAL(model,0);
+	delete(model);
+RESULT
+
+CHECK((static const String getProductName()))
+	TEST_EQUAL(ExtendedModelFitter::getProductName(),"ExtendedModelFitter");
+RESULT
+
+CHECK((ExtendedModelFitter& operator=(const ExtendedModelFitter &rhs)))
+	ExtendedModelFitter ms1;
+	ExtendedModelFitter ms2;
+	
+	ms1 = ms2;
+	
+	TEST_EQUAL(ms1 == ms2, true)
+RESULT
+
+CHECK((ExtendedModelFitter(const ExtendedModelFitter &rhs)))
+	ExtendedModelFitter ms1;
+	ExtendedModelFitter ms2(ms1);
+		
+	TEST_EQUAL(ms1 == ms2, true)
+RESULT
+
+CHECK(([EXTRA]void ExtendedModelFitter::setParameters(const Param& param)))
 	ExtendedModelFitter* fitter = new ExtendedModelFitter();
 	Param p1;
 
@@ -104,7 +130,7 @@ CHECK(void ExtendedModelFitter::setParameters(const Param& param))
 RESULT
 
 
-CHECK( Feature fit(const ChargedIndexSet& set) throw (UnableToFit))
+CHECK((Feature fit(const ChargedIndexSet &range)))
 
 	// Test EMG Fitting (mz/rt)
 	const double default_precision = 0.1;
@@ -186,8 +212,7 @@ CHECK( Feature fit(const ChargedIndexSet& set) throw (UnableToFit))
 
 RESULT
 
-
-CHECK( Feature fit(const ChargedIndexSet& set) throw (UnableToFit))
+CHECK(([EXTRA]Feature fit(const ChargedIndexSet& set) throw (UnableToFit)))
 
 	// Test Isotope/Bigauss Fitting (mz/rt)
 	const double default_precision = 0.1;
@@ -277,18 +302,7 @@ CHECK( Feature fit(const ChargedIndexSet& set) throw (UnableToFit))
 
 RESULT
 
-CHECK(static BaseModelFitter* create())
-	BaseModelFitter* model = ExtendedModelFitter::create();
-	TEST_NOT_EQUAL(model,0);
-	delete(model);
-RESULT
-
-CHECK(static const String getName())
-	TEST_EQUAL(ExtendedModelFitter::getProductName(),"ExtendedModelFitter");
-RESULT
-
-
-CHECK(void setData(const ChargedIndexSet& set))
+CHECK(void setData(const IndexSet& set))
 
 	const double default_precision = 0.1;
 	PRECISION(default_precision)
@@ -346,7 +360,7 @@ RESULT
 
 
 /*
-CHECK(void ExtendedModelFitter::optimize())
+CHECK(([EXTRA]void ExtendedModelFitter::optimize()))
 
 // *************************************************
 // *** check parameter optimization at EMG model ***
@@ -683,6 +697,54 @@ CHECK(void ExtendedModelFitter::optimize())
 
 RESULT
 */
+
+CHECK(void optimize())
+	// already test above
+RESULT
+
+CHECK(int residual(const gsl_vector *x, void *, gsl_vector *f))
+	// already test above
+RESULT
+
+CHECK(int jacobian(const gsl_vector *x, void *, gsl_matrix *J))
+	// already test above
+RESULT
+
+CHECK(int evaluate(const gsl_vector *x, void *params, gsl_vector *f, gsl_matrix *J))
+	// already test above
+RESULT
+
+CHECK(CoordinateType getHeight() const)
+	// already test above
+RESULT
+
+CHECK(CoordinateType getWidth() const)
+	// already test above
+RESULT
+
+CHECK(CoordinateType getSymmetry() const)
+	// already test above
+RESULT
+
+CHECK(CoordinateType getRT() const)
+	// already test above
+RESULT
+
+CHECK(CoordinateType getStandardDeviation() const)
+	// already test above
+RESULT
+
+CHECK(CoordinateType getExpectedValue() const)
+	// already test above
+RESULT
+
+CHECK(CoordinateType getScaleFactor() const)
+	// already test above
+RESULT
+
+CHECK(std::string getGSLStatus() const)
+	// already test above
+RESULT
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

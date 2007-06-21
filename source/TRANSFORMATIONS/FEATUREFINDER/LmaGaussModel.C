@@ -93,7 +93,7 @@ namespace OpenMS
 		interpolation_.setOffset ( min_ );
 	}
 
-	void LmaGaussModel::setOffset(CoordinateType offset)
+	void LmaGaussModel::setOffset(double offset)
 	{
 		double diff = offset - getInterpolation().getOffset();
 		min_ += diff;

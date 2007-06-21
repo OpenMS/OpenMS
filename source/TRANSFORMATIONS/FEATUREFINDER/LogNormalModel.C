@@ -94,7 +94,7 @@ namespace OpenMS
 		interpolation_.setOffset ( min_ );
 	}
 
-	void LogNormalModel::setOffset(CoordinateType offset)
+	void LogNormalModel::setOffset(double offset)
 	{
 		double diff = offset - getInterpolation().getOffset();
 		min_ += diff;
