@@ -134,7 +134,7 @@ class TOPPFileConverter
 		//-------------------------------------------------------------
 		// reading input
 		//-------------------------------------------------------------
-		typedef MSExperiment< Peak1D > MSExperimentType;
+		typedef MSExperiment< RawDataPoint1D > MSExperimentType;
 		MSExperimentType exp;
 		
 		typedef MSExperimentType::SpectrumType SpectrumType;
