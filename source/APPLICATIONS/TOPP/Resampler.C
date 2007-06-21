@@ -193,7 +193,8 @@ class TOPPResampler
     // one row for each scan
     if (rows == 0)
     {
-      rows = exp.size();  		
+      rows = exp.size();
+      writeDebug_("row count: "+ String(rows) + " [" + String(rt_l) + " - " + String(rt_u) + "]", 1);  		
     }
     if ( rows < 1 )
 		{
@@ -206,6 +207,7 @@ class TOPPResampler
     if (cols == 0)
     {
       cols = int(mz_u - mz_l); 
+      writeDebug_("column count: "+ String(cols) + " [" + String(mz_l) + " - " + String(mz_u) + "]", 1);     
     }
 		if ( cols < 1 )
 		{
