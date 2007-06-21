@@ -104,7 +104,7 @@ CHECK(AsymmetricStatistics())
 RESULT
 //-----------------------------------------------------------
 
-CHECK(template <typename ProbabilityIterator, typename CoordinateIterator> void update(ProbabilityIterator const probability_begin, ProbabilityIterator const probability_end, CoordinateIterator  const coordinate_begin))
+CHECK(void update(ProbabilityIterator const probability_begin, ProbabilityIterator const probability_end, CoordinateIterator  const coordinate_begin))
 {
 	// set the beginning of coordinates
 	float fvector_coord[90];
