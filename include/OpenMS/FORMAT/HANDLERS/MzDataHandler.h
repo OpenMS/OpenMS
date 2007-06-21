@@ -514,6 +514,7 @@ namespace OpenMS
 		template <typename MapType>
 		void MzDataHandler<MapType>::endElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname)
 		{
+			static UInt scan_count = 0;
 			//std::cout << "begin endelement" << std::endl;
 			
 // 			std::cout << "End: '" << xercesc::XMLString::transcode(qname) << "'" << std::endl;
@@ -560,8 +561,8 @@ namespace OpenMS
 					{
 						fillData_();
 						exp_->push_back(spec_);
-						logger_.setProgress(exp_->size());
 					}
+					logger_.setProgress(++scan_count);
 					data_to_decode_.clear();
 					array_name_.clear();
 					precisions_.clear();
