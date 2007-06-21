@@ -111,18 +111,20 @@ namespace OpenMS
 	{
 		//check if a description id given for all defaults
 		bool description_missing = false;
+		String missing_parameters;
 		for(map<String,DataValue>::const_iterator it = defaults_.begin(); it != defaults_.end();++it)
 		{
 			//cout << "Name: " << it->first << endl;
 			if (defaults_.getDescription(it->first)=="")
 			{
 				description_missing = true;
+				missing_parameters += it->first+",";
 				break;
 			}
 		}
 		if (description_missing)
 		{
-			cout << "Warning: no default parameter description for DefaultParameterHandler '" << error_name_ << "' given!" << endl;
+			cout << "Warning: no default parameter description for parameters '" << missing_parameters<< "' of DefaultParameterHandler '" << error_name_ << "' given!" << endl;
 		}
 		
 		param_.setDefaults(defaults_);

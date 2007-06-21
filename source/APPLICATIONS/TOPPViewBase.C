@@ -434,7 +434,7 @@ namespace OpenMS
     delete def3;
     defaults_.setDescription("Preferences:3D","Settings for 3D map view.");
 		
-		defaults_.setValue("Preferences:Version","none");
+		defaults_.setValue("Preferences:Version","none","OpenMS version, used to check if the TOPPView.ini is up-to-date");
 		
 		subsections_.push_back("Preferences:RecentFiles");
 		
