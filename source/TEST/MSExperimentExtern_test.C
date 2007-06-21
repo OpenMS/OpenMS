@@ -265,22 +265,22 @@ CHECK((UInt getSize() const))
 		
 RESULT
 
-CHECK(([EXTRA]CoordinateType getMinMZ() const))
+CHECK((CoordinateType getMinMZ() const))
 	MSExperiment<RawDataPoint1D > tmp;
 	TEST_REAL_EQUAL(tmp.getMinMZ(),numeric_limits<DPosition<2>::CoordinateType>::max())
 RESULT
 
-CHECK(([EXTRA]CoordinateType getMaxMZ() const))
+CHECK((CoordinateType getMaxMZ() const))
 	MSExperiment<RawDataPoint1D > tmp;
 	TEST_REAL_EQUAL(tmp.getMaxMZ(),-numeric_limits<DPosition<2>::CoordinateType>::max())
 RESULT
 
-CHECK(([EXTRA]CoordinateType getMinRT() const))
+CHECK((CoordinateType getMinRT() const))
 	MSExperiment<RawDataPoint1D > tmp;
 	TEST_REAL_EQUAL(tmp.getMinRT(),numeric_limits<DPosition<2>::CoordinateType>::max())
 RESULT
 
-CHECK(([EXTRA]CoordinateType getMaxRT() const))
+CHECK((CoordinateType getMaxRT() const))
 	MSExperiment<RawDataPoint1D > tmp;
 	TEST_REAL_EQUAL(tmp.getMaxRT(),-numeric_limits<DPosition<2>::CoordinateType>::max())
 RESULT

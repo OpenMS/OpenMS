@@ -933,6 +933,31 @@ namespace OpenMS
         return AConstIterator();
       }
 
+      /// returns the minimal m/z value
+      CoordinateType getMinMZ() const
+      {
+        return RangeManagerType::pos_range_.min()[1];
+      }
+  
+      /// returns the maximal m/z value
+      CoordinateType getMaxMZ() const
+      {
+        return RangeManagerType::pos_range_.max()[1];
+      }
+  
+      /// returns the minimal retention time value
+      CoordinateType getMinRT() const
+      {
+        return RangeManagerType::pos_range_.min()[0];
+      }
+  
+      /// returns the maximal retention time value
+      CoordinateType getMaxRT() const
+      {
+        return RangeManagerType::pos_range_.max()[0];
+      }
+      
+
     protected:
       /// size of the internal buffer
       UInt buffer_size_;
