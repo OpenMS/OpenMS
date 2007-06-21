@@ -719,8 +719,8 @@
 			foreach($class_info["non-public"] as $tmp)
 			{
 				//print "NP: '".$tmp."'\n";
-				# constructor, destructor, serialize methods and QT events are allowed
-				if ( endswith($tmp,'Event') || endsWith($tmp,'load')  || endsWith($tmp,'save') || endsWith($tmp,'serialize') || $tmp==$class_info["classname"] || $tmp=='~'.$class_info["classname"] || $tmp=="operator=")
+				# constructor, destructor, serialize methods, QT events and Xerces-C parser methods are allowed
+				if ( endswith($tmp,'Event') || endsWith($tmp,'load')  || endsWith($tmp,'save') || endsWith($tmp,'serialize') || $tmp==$class_info["classname"] || $tmp=='~'.$class_info["classname"] || $tmp=="operator=" || $tmp=="startElement" || $tmp=="endElement")
 				{
 					continue;
 				}
