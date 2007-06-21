@@ -37,7 +37,7 @@ START_TEST(String, "$Id$")
 
 SequestOutfile* ptr = 0;
 
-CHECK((SequestOutfile()))
+CHECK(SequestOutfile())
 	ptr = new SequestOutfile();
 	TEST_NOT_EQUAL(ptr, 0)
 	delete(ptr);
@@ -45,7 +45,7 @@ RESULT
 
 SequestOutfile file;
 
-CHECK((void load(const String &result_filename, std::vector< PeptideIdentification > &identifications, ProteinIdentification &protein_identification, const Real &p_value_threshold, std::vector< Real > &pvalues, const String &database="") throw (Exception::FileNotFound, Exception::ParseError)))
+CHECK(void load(const String& result_filename, vector< PeptideIdentification >&	peptide_identifications, ProteinIdentification&	protein_identification, const Real& p_value_threshold, const vector< Real >& pvalues, const String& database = "", const String& snd_database = "") throw (Exception::FileNotFound, Exception::ParseError))
 	vector< PeptideIdentification > peptide_identifications;
 	ProteinIdentification protein_identification;
 	vector< Real > pvalues;
@@ -176,7 +176,7 @@ CHECK((void load(const String &result_filename, std::vector< PeptideIdentificati
 	TEST_EQUAL(protein_identification.getIdentifier(), "TurboSEQUEST_2004-03-16")
 RESULT
 
-CHECK((bool getColumns(const String& line, vector< String >& substrings, UInt number_of_columns, UInt reference_column)))
+CHECK(bool getColumns(const String& line, vector< String >& substrings, UInt number_of_columns, UInt reference_column))
 	String line = "  1.   1/80          0 1967.0013  0.0000  1.5789   310.3 0.05    0 18/64 gi|544379|sp|P35574|GDE RABIT   +2   C.ETQAWSIATILETLYDL.-";
 	vector< String > substrings, columns;
 	columns.push_back("1.");
@@ -205,7 +205,7 @@ CHECK((bool getColumns(const String& line, vector< String >& substrings, UInt nu
 	TEST_EQUAL((columns == substrings), true)
 RESULT
 
-CHECK((void getSequences(const String& database_filename, const map< String, UInt >& ac_position_map, vector< String >& sequences, vector< pair< String, UInt > >& found, map< String, UInt >& not_found) throw (Exception::FileNotFound)))
+CHECK(void getSequences(const String& database_filename, const map< String, UInt >& ac_position_map, vector< String >& sequences, vector< pair< String, UInt > >& found, map< String, UInt >& not_found) throw (Exception::FileNotFound))
 	map< String, UInt > ac_position_map, not_found;
 	ac_position_map["P02666"] = 0;
 	ac_position_map["Q9CQV8"] = 1;
@@ -256,7 +256,7 @@ CHECK((void getSequences(const String& database_filename, const map< String, UIn
 	not_found.clear();
 RESULT
 
-CHECK((void getACAndACType(String line, String& accession, String& accession_type)))
+CHECK(void getACAndACType(String line, String& accession, String& accession_type))
 	String accession, accession_type;
 	file.getACAndACType(">sp|P02666|CASB_BOVIN Beta-casein precursor - Bos taurus (Bovine).", accession, accession_type);
 	TEST_EQUAL(accession, "P02666")
@@ -306,82 +306,5 @@ CHECK((void getACAndACType(String line, String& accession, String& accession_typ
 	TEST_EQUAL(accession, "P68509")
 	TEST_EQUAL(accession_type, "SwissProt")
 RESULT
-
-/*
-CHECK((bool updatePeptideHits(PeptideHit& peptide_hit, vector< PeptideHit >& peptide_hits)))
-	DateTime date;
-	date.now();
-	vector< PeptideHit > peptide_hits;
-	PeptideHit peptide_hit1, peptide_hit2, peptide_hit3;
-	peptide_hit1.setScore(12.1);
-	peptide_hit1.setSequence("SEQVEST");
-	peptide_hit1.setRank(2);
-	peptide_hit1.addProteinAccession("P02666");
-	TEST_EQUAL(file.updatePeptideHits(peptide_hit1, peptide_hits), true)
-	TEST_EQUAL(peptide_hits.size(), 1)
-	if ( 1 == peptide_hits.size() )
-	{
-		TEST_EQUAL(peptide_hit1.getScore(), peptide_hits.front().getScore())
-		TEST_EQUAL(peptide_hit1.getSequence(), peptide_hits.front().getSequence())
-		TEST_EQUAL(peptide_hit1.getRank(), peptide_hits.front().getRank())
-
-		// the peptides within a vector have to have the same scoreType
-		peptide_hit2 = peptide_hit1;
-		TEST_EQUAL(file.updatePeptideHits(peptide_hit2, peptide_hits), false)
-		TEST_EQUAL(peptide_hits.size(), 1)
-		
-		TEST_EQUAL(peptide_hit1.getScore(), peptide_hits.front().getScore())
-		TEST_EQUAL(peptide_hit1.getSequence(), peptide_hits.front().getSequence())
-		TEST_EQUAL(peptide_hit1.getRank(), peptide_hits.front().getRank())
-
-		// if the identical peptide hit has already been inserted, nothing changes
-		TEST_EQUAL(file.updatePeptideHits(peptide_hit2, peptide_hits), true)
-		TEST_EQUAL(peptide_hits.size(), 1)
-			
-		TEST_EQUAL(peptide_hit1.getScore(), peptide_hits.front().getScore())
-		TEST_EQUAL(peptide_hit1.getSequence(), peptide_hits.front().getSequence())
-		TEST_EQUAL(peptide_hit1.getRank(), peptide_hits.front().getRank())
-
-		// two peptide hits are considered not equal if either their sequence or their score differs
-		peptide_hit2.setSequence("SEQVESTT");
-		TEST_EQUAL(file.updatePeptideHits(peptide_hit2, peptide_hits), true)
-		TEST_EQUAL(peptide_hits.size(), 2)
-		
-		TEST_EQUAL(peptide_hit2.getScore(), peptide_hits.back().getScore())
-		TEST_EQUAL(peptide_hit2.getSequence(), peptide_hits.back().getSequence())
-		TEST_EQUAL(peptide_hit2.getRank(), peptide_hits.back().getRank())
-
-		peptide_hit2.setScore(23.42);
-		TEST_EQUAL(file.updatePeptideHits(peptide_hit2, peptide_hits), true)
-		TEST_EQUAL(peptide_hits.size(), 3)
-		
-		TEST_EQUAL(peptide_hit2.getScore(), peptide_hits.back().getScore())
-		TEST_EQUAL(peptide_hit2.getSequence(), peptide_hits.back().getSequence())
-		TEST_EQUAL(peptide_hit2.getRank(), peptide_hits.back().getRank())
-
-		// if the peptide hit has already been inserted, add additional protein hits
-		peptide_hit2.addProteinAccession("Q5EEQ7");
-		TEST_EQUAL(file.updatePeptideHits(peptide_hit2, peptide_hits), true)
-		TEST_EQUAL(peptide_hits.size(), 3)
-		
-		TEST_EQUAL(peptide_hit2.getScore(), peptide_hits.back().getScore())
-		TEST_EQUAL(peptide_hit2.getSequence(), peptide_hits.back().getSequence())
-		TEST_EQUAL(peptide_hit2.getRank(), peptide_hits.back().getRank())
-
-		// but the peptide hit (outside the vector) remains unchanged
-		peptide_hit3 = peptide_hit2;
-		peptide_hit3.addProteinAccession("Q6UN63");
-		TEST_EQUAL(file.updatePeptideHits(peptide_hit3, peptide_hits), true)
-		TEST_EQUAL(peptide_hits.size(), 3)
-		peptide_hit2.addProteinAccession("Q6UN63");
-		
-		TEST_EQUAL(peptide_hit2.getScore(), peptide_hits.back().getScore())
-		TEST_EQUAL(peptide_hit2.getSequence(), peptide_hits.back().getSequence())
-		TEST_EQUAL(peptide_hit2.getRank(), peptide_hits.back().getRank())
-		
-		TEST_EQUAL(peptide_hit3.getProteinAccessions().size(), 1)
-	}
-RESULT
-*/
 
 END_TEST

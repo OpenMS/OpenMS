@@ -25,6 +25,16 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/InspectInfile.h>
+#include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
+#include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/FORMAT/PTMXMLFile.h>
+
+#include <fstream>
+#include <iostream>
+#include <sstream>
+
+#include <iostream>
+#include <fstream>
 
 using namespace std;
 
@@ -33,7 +43,7 @@ namespace OpenMS
 	
 	// default constructor
 	InspectInfile::InspectInfile():
-		mods_(-1),
+		modifications_per_peptide_(-1),
 		blind_(2),
 		maxptmsize_(-1.0),
 		precursor_mass_tolerance_(-1.0),
@@ -44,26 +54,25 @@ namespace OpenMS
 	}
 	
 	// copy constructor
-	InspectInfile::InspectInfile(
-		const InspectInfile& inspect_infile):
+	InspectInfile::InspectInfile(const InspectInfile& inspect_infile):
 		spectra_(inspect_infile.getSpectra()),
 		enzyme_(inspect_infile.getEnzyme()),
-		mod_(inspect_infile.getMod()),
-		mods_(inspect_infile.getMods()),
+		modifications_per_peptide_(inspect_infile.getModificationsPerPeptide()),
 		blind_(inspect_infile.getBlind()),
 		maxptmsize_(inspect_infile.getMaxPTMsize()),
 		precursor_mass_tolerance_(inspect_infile.getPrecursorMassTolerance()),
 		peak_mass_tolerance_(inspect_infile.getPeakMassTolerance()),
 		multicharge_(inspect_infile.getMulticharge()),
 		instrument_(inspect_infile.getInstrument()),
-		tag_count_(inspect_infile.getTagCount())
+		tag_count_(inspect_infile.getTagCount()),
+		PTMname_residues_mass_type_(inspect_infile.getModifications())
 	{
 	}
 	
 	// destructor
 	InspectInfile::~InspectInfile()
 	{
-		mod_.clear();
+		PTMname_residues_mass_type_.clear();
 	}
 	
 	// assignment operator
@@ -73,8 +82,7 @@ namespace OpenMS
 		{
 			spectra_ = inspect_infile.getSpectra();
 			enzyme_ = inspect_infile.getEnzyme();
-			mod_ = inspect_infile.getMod();
-			mods_ = inspect_infile.getMods();
+			modifications_per_peptide_ = inspect_infile.getModificationsPerPeptide();
 			blind_ = inspect_infile.getBlind();
 			maxptmsize_ = inspect_infile.getMaxPTMsize();
 			precursor_mass_tolerance_ = inspect_infile.getPrecursorMassTolerance();
@@ -82,6 +90,7 @@ namespace OpenMS
 			multicharge_ = inspect_infile.getMulticharge();
 			instrument_ = inspect_infile.getInstrument();
 			tag_count_ = inspect_infile.getTagCount();
+			PTMname_residues_mass_type_ = inspect_infile.getModifications();
 		}
 		return *this;
 	}
@@ -94,43 +103,221 @@ namespace OpenMS
 	{
 		ofstream ofs( filename.c_str() );
 		if ( !ofs ) throw Exception::UnableToCreateFile(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename);
+		stringstream file_content;
 
-		ofs << "spectra," << spectra_ << endl;
+		file_content << "spectra," << spectra_ << endl;
 
-		if ( !db_.empty() ) ofs << "db," << db_ << endl;
+		if ( !db_.empty() ) file_content << "db," << db_ << endl;
 
-		if ( !enzyme_.empty() ) ofs << "protease," << enzyme_ << endl;
+		if ( !enzyme_.empty() ) file_content << "protease," << enzyme_ << endl;
+		
+		if ( blind_ != 2 ) file_content << "blind," << blind_ << endl;
 
-		for ( vector< vector< String > >::const_iterator iter = mod_.begin(); iter != mod_.end(); ++iter )
+		//mod,+57,C,fix,carbamidomethylation
+		for ( map< String, vector< String > >::iterator mods_i = PTMname_residues_mass_type_.begin(); mods_i != PTMname_residues_mass_type_.end(); ++mods_i )
 		{
-			ofs << "mod";
-			for ( vector< String >::const_iterator i = iter->begin(); i != iter->end(); ++i)
-			{
-				if ( !i->empty()) ofs << "," << *i;
-			}
-			ofs << endl;
+			// fix", "cterminal", "nterminal", and "opt
+			mods_i->second[2].toLower();
+			if ( mods_i->second[2].hasSuffix("term") ) mods_i->second[2].append("inal");
+			file_content << "mod," << mods_i->second[1] << "," << mods_i->second[0] << "," << mods_i->second[2] << "," << mods_i->first << endl;
 		}
 
-		if ( mods_ > -1 ) ofs << "mods," << mods_ << endl;
+		if ( modifications_per_peptide_ > -1 ) file_content << "mods," << modifications_per_peptide_ << endl;
 
-		if ( blind_ != 2 ) ofs << "blind," << blind_ << endl;
+		if ( maxptmsize_ >= 0) file_content << "maxptmsize," << maxptmsize_ << endl;
 
-		if ( maxptmsize_ >= 0) ofs << "maxptmsize," << maxptmsize_ << endl;
+		if ( precursor_mass_tolerance_ >= 0 ) file_content << "PM_tolerance," << precursor_mass_tolerance_ << endl;
 
-		if ( precursor_mass_tolerance_ >= 0 ) ofs << "PM_tolerance," << precursor_mass_tolerance_ << endl;
+		if ( peak_mass_tolerance_ >= 0 ) file_content << "IonTolerance," << peak_mass_tolerance_ << endl;
 
-		if ( peak_mass_tolerance_ >= 0 ) ofs << "IonTolerance," << peak_mass_tolerance_ << endl;
+		if ( multicharge_ != 2 ) file_content << "multicharge," << multicharge_ << endl;
 
-		if ( multicharge_ != 2 ) ofs << "multicharge," << multicharge_ << endl;
+		if ( !instrument_.empty() ) file_content << "instrument," << instrument_ << endl;
 
-		if ( !instrument_.empty() ) ofs << "instrument," << instrument_ << endl;
-
-		if ( tag_count_ >= 0 ) ofs << "TagCount," << tag_count_ << endl;
-
+		if ( tag_count_ >= 0 ) file_content << "TagCount," << tag_count_ << endl;
+		
+		ofs << file_content.str();
+		
 		ofs.close();
 		ofs.clear();
 	}
 
+	void
+	InspectInfile::handlePTMs(
+		const String& modification_line,
+		const String&modifications_filename,
+		const bool monoisotopic
+		)
+	throw (
+		Exception::FileNotReadable,
+		Exception::FileNotFound,
+		Exception::ParseError
+		)
+	{
+		PTMname_residues_mass_type_.clear();
+		// to store the information about modifications from the ptm xml file
+		map< String, pair< String, String > > ptm_informations;
+		if ( !modification_line.empty() ) // if modifications are used look whether whether composition and residues (and type and name) is given, the name (type) is used (then the modifications file is needed) or only the mass and residues (and type and name) is given
+		{
+			vector< String > modifications, mod_parts;
+			modification_line.split(':', modifications); // get the single modifications
+			if ( modifications.empty() ) modifications.push_back(modification_line);
+			
+			// to get masses from a formula
+			EmpiricalFormula add_formula, substract_formula;
+			
+			String types = "OPT#FIX#";
+			String name, residues, mass, type;
+			
+			// 0 - mass; 1 - composition; 2 - ptm name
+			Int mass_or_composition_or_name;
+			
+			for ( vector< String >::const_iterator mod_i = modifications.begin(); mod_i != modifications.end(); ++mod_i )
+			{
+				if ( mod_i->empty() ) continue;
+				// clear the formulae
+				add_formula = substract_formula = name = residues = mass = type = "";
+				
+				// get the single parts of the modification string
+				mod_i->split(',', mod_parts);
+				if ( mod_parts.empty() ) mod_parts.push_back(*mod_i);
+				mass_or_composition_or_name = -1;
+				
+				// check whether the first part is a mass, composition or name
+				
+				// check whether it is a mass
+				try
+				{
+					mass = mod_parts.front();
+					// to check whether the first part is a mass, it is converted into a float and then back into a string and compared to the given string
+					// remove + signs because they don't appear in a float
+					if ( mass.hasPrefix("+") ) mass.erase(0, 1);
+					if ( mass.hasSuffix("+") ) mass.erase(mass.length() - 1, 1);
+					if ( mass.hasSuffix("-") ) // a - sign at the end will not be converted
+					{
+						mass.erase(mass.length() - 1, 1);
+						mass.insert(0, "-");
+					}
+					// if it is a mass
+					if ( String(mass.toFloat()) == mass ) mass_or_composition_or_name = 0;
+				}
+				catch ( Exception::ConversionError c_e ){ mass_or_composition_or_name = -1; }
+				
+				// check whether it is a name (look it up in the corresponding file)
+				if ( mass_or_composition_or_name == -1 )
+				{
+					if ( ptm_informations.empty() ) // if the ptm xml file has not been read yet, read it
+					{
+						if ( modifications_filename.empty() )
+						{
+							throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, modifications_filename);
+						}
+						if ( !File::readable(modifications_filename) )
+						{
+							throw Exception::FileNotReadable(__FILE__, __LINE__, __PRETTY_FUNCTION__, modifications_filename);
+						}
+						
+						// getting all available modifications from a file
+						PTMXMLFile().load(modifications_filename, ptm_informations);
+					}
+					// if the modification cannot be found
+					if ( ptm_informations.find(mod_parts.front()) != ptm_informations.end() )
+					{
+						mass = ptm_informations[mod_parts.front()].first; // composition
+						residues = ptm_informations[mod_parts.front()].second; // residues
+						name = mod_parts.front(); // name
+						
+						mass_or_composition_or_name = 2;
+					}
+				}
+				
+				// check whether it's an empirical formula / if a composition was given, get the mass
+				if ( mass_or_composition_or_name == -1 ) mass = mod_parts.front();
+				if ( mass_or_composition_or_name == -1 || mass_or_composition_or_name == 2 )
+				{
+					// check whether there is a positive and a negative formula
+					String::size_type pos = mass.find("-");
+					try
+					{
+						if ( pos != String::npos )
+						{
+							add_formula = mass.substr(0, pos);
+							substract_formula = mass.substr(++pos);
+						}
+						else
+						{
+							add_formula = mass;
+						}
+						// sum up the masses
+						if ( monoisotopic ) mass = String(add_formula.getMonoWeight() - substract_formula.getMonoWeight());
+						else mass = String(add_formula.getAverageWeight() - substract_formula.getAverageWeight());
+						if ( mass_or_composition_or_name == -1 ) mass_or_composition_or_name = 1;
+					}
+					catch ( Exception::ParseError pe )
+					{
+						PTMname_residues_mass_type_.clear();
+						throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, *mod_i, "There's something wrong with this modification. Aborting!");
+					}
+				}
+				
+				// now get the residues
+				mod_parts.erase(mod_parts.begin());
+				if ( mass_or_composition_or_name < 2 )
+				{
+					if ( mod_parts.empty() )
+					{
+						PTMname_residues_mass_type_.clear();
+						throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, *mod_i, "No residues for modification given. Aborting!");
+					}
+					
+					// get the residues
+					residues = mod_parts.front();
+					residues.substitute('*', 'X');
+					residues.toUpper();
+					mod_parts.erase(mod_parts.begin());
+				}
+				
+				// get the type
+				if ( mod_parts.empty() ) type = "OPT";
+				else
+				{
+					type = mod_parts.front();
+					type.toUpper();
+					if ( types.find(type) != String::npos ) mod_parts.erase(mod_parts.begin());
+					else type = "OPT";
+				}
+				
+				if ( mod_parts.size() > 1 )
+				{
+					PTMname_residues_mass_type_.clear();
+					throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, *mod_i, "There's something wrong with the type of this modification. Aborting!");
+				}
+				
+				// get the name
+				if ( mass_or_composition_or_name < 2 )
+				{
+					if ( mod_parts.empty() ) name = "PTM_" + String(PTMname_residues_mass_type_.size());
+					else name = mod_parts.front();
+				}
+				
+				// insert the modification
+				if ( PTMname_residues_mass_type_.find(name) == PTMname_residues_mass_type_.end() )
+				{
+					PTMname_residues_mass_type_[name] = vector< String >(3);
+					PTMname_residues_mass_type_[name][0] = residues;
+					PTMname_residues_mass_type_[name][1] = mass;
+					PTMname_residues_mass_type_[name][2] = type;
+				}
+				else
+				{
+					PTMname_residues_mass_type_.clear();
+					throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, *mod_i, "There's already a modification with this name. Aborting!");
+				}
+			}
+		}
+	}
+
+	const map< String, vector< String > >& InspectInfile::getModifications() const {return PTMname_residues_mass_type_;}
 
 	const string& InspectInfile::getSpectra() const {return spectra_;}
 	void InspectInfile::setSpectra(const string& spectra) {spectra_ = spectra;}
@@ -140,27 +327,21 @@ namespace OpenMS
 
 	const String& InspectInfile::getEnzyme() const {return enzyme_;}
 	void InspectInfile::setEnzyme(const String& enzyme) {enzyme_ = enzyme;}
-	
-	const vector< vector< String > >& InspectInfile::getMod() const {return mod_;}
-	vector< vector< String > >& InspectInfile::getMod() {return mod_;}
 
-	void InspectInfile::setMod(const vector< vector< String > >& mod) {mod_ = mod;}
-	void InspectInfile::addMod(const vector< String >& mod) {mod_.push_back(mod);}
-
-	const Int InspectInfile::getMods() const {return mods_;}
-	void InspectInfile::setMods(Int mods) {mods_ = mods;}
+	const Int InspectInfile::getModificationsPerPeptide() const {return modifications_per_peptide_;}
+	void InspectInfile::setModificationsPerPeptide(Int modifications_per_peptide) {modifications_per_peptide_ = modifications_per_peptide;}
 
 	const UInt InspectInfile::getBlind() const {return blind_;}
 	void InspectInfile::setBlind(UInt blind) {blind_ = blind;}
 
-	const DoubleReal InspectInfile::getMaxPTMsize() const {return maxptmsize_;}
-	void InspectInfile::setMaxPTMsize(DoubleReal maxptmsize) {maxptmsize_ = maxptmsize;}
+	const Real InspectInfile::getMaxPTMsize() const {return maxptmsize_;}
+	void InspectInfile::setMaxPTMsize(Real maxptmsize) {maxptmsize_ = maxptmsize;}
 
-	const DoubleReal InspectInfile::getPrecursorMassTolerance() const {return precursor_mass_tolerance_;}
-	void InspectInfile::setPrecursorMassTolerance(DoubleReal precursor_mass_tolerance) {precursor_mass_tolerance_ = precursor_mass_tolerance;}
+	const Real InspectInfile::getPrecursorMassTolerance() const {return precursor_mass_tolerance_;}
+	void InspectInfile::setPrecursorMassTolerance(Real precursor_mass_tolerance) {precursor_mass_tolerance_ = precursor_mass_tolerance;}
 
-	const DoubleReal InspectInfile::getPeakMassTolerance() const {return peak_mass_tolerance_;}
-	void InspectInfile::setPeakMassTolerance(DoubleReal ion_tolerance) {peak_mass_tolerance_ = ion_tolerance;}
+	const Real InspectInfile::getPeakMassTolerance() const {return peak_mass_tolerance_;}
+	void InspectInfile::setPeakMassTolerance(Real ion_tolerance) {peak_mass_tolerance_ = ion_tolerance;}
 
 	const UInt InspectInfile::getMulticharge() const {return multicharge_;}
 	void InspectInfile::setMulticharge(UInt multicharge) {multicharge_ = multicharge;}

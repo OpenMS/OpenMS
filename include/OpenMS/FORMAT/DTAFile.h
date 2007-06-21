@@ -163,7 +163,7 @@ namespace OpenMS
 				std::ofstream os(filename.c_str());
 				if (!os)
 				{
-					throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename);
+					throw Exception::UnableToCreateFile(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename);
 				}
 		
 				// Write mh+ mass

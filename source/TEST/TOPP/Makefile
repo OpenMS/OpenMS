@@ -50,6 +50,8 @@ UNCONDITIONAL_TESTS = \
 	MapDewarper_test \
 	MapMatcher_test \
 	MascotAdapter_test \
+	SequestAdapter_test\
+	InspectAdapter_test\
 	NoiseFilter_test \
 	PeakPicker_test \
 	Resampler_test \
@@ -59,9 +61,6 @@ UNCONDITIONAL_TESTS = \
   FeatureFinder_test\
 	InternalCalibration_test\
 	ExternalCalibration_test
-
-#	SequestAdapter_test\
-#	InspectAdapter_test
 
 ifeq ($(LIBSVM_SUPPORT),true)
 LIBSVM_TESTS= \
@@ -600,44 +599,51 @@ InspectAdapter_test: $(NUMERICDIFF)
 	@$(ECHO) ""
 	@$(ECHO) "InspectAdapter:"
 
-	@$(ECHO) "- Test 1: -inspect_in with mzXML"
-	@$(call RUN_PROG_OPT,InspectAdapter,-ini InspectAdapter_1_parameters.ini -inspect_in)
-	@$(SED) $(SED_INPLACE_PARAM) 's/^spectra,.*$$/spectra,dummy.mzXML/g' InspectAdapter_1_output.tmp
-	@$(SED) $(SED_INPLACE_PARAM) 's/^db,.*$$/db,dummy.trie/g' InspectAdapter_1_output.tmp
-	@$(call TEST_FILE_EQUAL,InspectAdapter_1_output.inspect_in,InspectAdapter_1_output.tmp)
+	@$(ECHO) "- Test 1: -list_modifications"
+	@$(call RUN_PROG_OPT,InspectAdapter,-ini InspectAdapter_1_parameters.ini -list_modifications > InspectAdapter_1_output.tmp)
+	@$(call TEST_FILE_EQUAL,InspectAdapter_1_output.modification_list.txt,InspectAdapter_1_output.tmp)
 
-	@$(ECHO) "- Test 1: -inspect_in with mzData"
-	@$(call RUN_PROG_OPT,InspectAdapter,-ini InspectAdapter_1_parameters.ini -inspect_in -in Inspect_Sequest.mzData)
-	@$(SED) $(SED_INPLACE_PARAM) 's/^spectra,.*$$/spectra,dummy.mzXML/g' InspectAdapter_1_output.tmp
-	@$(SED) $(SED_INPLACE_PARAM) 's/^db,.*$$/db,dummy.trie/g' InspectAdapter_1_output.tmp
-	@$(call TEST_FILE_EQUAL,InspectAdapter_1_output.inspect_in,InspectAdapter_1_output.tmp)
+	@$(ECHO) "- Test 2: -inspect_in with mzXML"
+	@$(call RUN_PROG_OPT,InspectAdapter,-ini InspectAdapter_1_parameters.ini -inspect_in -out InspectAdapter_2_output.tmp)
+	@$(SED) $(SED_INPLACE_PARAM) 's/^spectra,.*$$/spectra,dummy.mzXML/g' InspectAdapter_2_output.tmp
+	@$(SED) $(SED_INPLACE_PARAM) 's/^db,.*$$/db,dummy.trie/g' InspectAdapter_2_output.tmp
+	@$(call TEST_FILE_EQUAL,InspectAdapter_2_output.inspect_in,InspectAdapter_2_output.tmp)
 
-	@$(ECHO) "- Test 2: -inspect_out"
-	@$(call RUN_PROG_OPT,InspectAdapter,-ini InspectAdapter_1_parameters.ini -in InspectAdapter.out -out InspectAdapter_2_output.tmp -inspect_out)
-	@$(SED) $(SED_INPLACE_PARAM) 's/^.*date.*$$/# date removed/g' InspectAdapter_2_output.tmp
-	@$(call TEST_FILE_EQUAL,InspectAdapter_2_output.idXML,InspectAdapter_2_output.tmp)
+	@$(ECHO) "- Test 3: -inspect_in with mzData"
+	@$(call RUN_PROG_OPT,InspectAdapter,-ini InspectAdapter_1_parameters.ini -inspect_in -in Inspect.mzData -out InspectAdapter_3_output.tmp)
+	@$(SED) $(SED_INPLACE_PARAM) 's/^spectra,.*$$/spectra,dummy.mzXML/g' InspectAdapter_3_output.tmp
+	@$(SED) $(SED_INPLACE_PARAM) 's/^db,.*$$/db,dummy.trie/g' InspectAdapter_3_output.tmp
+	@$(call TEST_FILE_EQUAL,InspectAdapter_2_output.inspect_in,InspectAdapter_3_output.tmp)
+
+	@$(ECHO) "- Test 4: -inspect_out"
+	@$(call RUN_PROG_OPT,InspectAdapter,-ini InspectAdapter_1_parameters.ini -in InspectAdapter.out -out InspectAdapter_4_output.tmp -inspect_out)
+	@$(SED) $(SED_INPLACE_PARAM) 's/^.*date.*$$/# date removed/g' InspectAdapter_4_output.tmp
+	@$(call TEST_FILE_EQUAL,InspectAdapter_4_output.idXML,InspectAdapter_4_output.tmp)
 	@$(RM) -rf Inspect_FASTAFile_test4.trie Inspect_FASTAFile_test4.index
 
 SequestAdapter_test: $(NUMERICDIFF)
 	@$(ECHO) ""
 	@$(ECHO) "SequestAdapter:"
 
-	@$(RM) -rf ./tmp/Inspect_Sequest.dta_*  ./tmp/sequest_run.bat ./tmp/temp.sequest.in
-	@$(ECHO) "- Test 1: -sequest_in with mzXML"
-	@$(call RUN_PROG_OPT,SequestAdapter,-ini SequestAdapter_1_parameters.ini -in Inspect_Sequest.mzXML -out SequestAdapter_1_output.tmp -sequest_in)
-	@$(call TEST_FILE_EQUAL,SequestAdapter_1_output.sequest_in,SequestAdapter_1_output.tmp)
-	@$(RM) -rf ./tmp/Inspect_Sequest*.dta_*
+	@$(ECHO) "- Test 1: -list_modifications"
+	@$(call RUN_PROG_OPT,SequestAdapter,-ini SequestAdapter_1_parameters.ini -list_modifications > SequestAdapter_1_output.tmp)
+	@$(call TEST_FILE_EQUAL,SequestAdapter_1_output.modification_list.txt,SequestAdapter_1_output.tmp)
 
-	@$(RM) -rf ./tmp/Inspect_Sequest.dta_*  ./tmp/sequest_run.bat ./tmp/temp.sequest.in
-	@$(ECHO) "- Test 1: -sequest_in with mzData"
-	@$(call RUN_PROG_OPT,SequestAdapter,-ini SequestAdapter_1_parameters.ini -in Inspect_Sequest.mzXML -out SequestAdapter_1_output.tmp -sequest_in -in Inspect_Sequest.mzData)
-	@$(call TEST_FILE_EQUAL,SequestAdapter_1_output.sequest_in,SequestAdapter_1_output.tmp)
-	@$(RM) -rf ./tmp/Inspect_Sequest*.dta_*
+	@$(RM) -rf ./tmp/Sequest*.dta_*  ./tmp/sequest_run.bat ./tmp/temp.sequest.in
+	@$(ECHO) "- Test 2: -sequest_in with mzXML"
+	@$(call RUN_PROG_OPT,SequestAdapter,-ini SequestAdapter_1_parameters.ini -in Sequest.mzXML -out SequestAdapter_2_output.tmp -sequest_in)
+	@$(call TEST_FILE_EQUAL,SequestAdapter_2_output.sequest_in,SequestAdapter_2_output.tmp)
+	@$(RM) -rf ./tmp/Sequest*.dta_*
 
-	@$(ECHO) "- Test 2: -sequest_out"
-	@$(call RUN_PROG_OPT,SequestAdapter,-ini SequestAdapter_2_parameters.ini -in tmp -out SequestAdapter_2_output.tmp -sequest_out)
-	@$(SED) $(SED_INPLACE_PARAM) 's/^.*date_group_1.*$$/# date group removed/g' SequestAdapter_2_output.tmp
-	@$(call TEST_FILE_EQUAL,SequestAdapter_2_output.idXML,SequestAdapter_2_output.tmp)
+	@$(RM) -rf ./tmp/Sequest*.dta_*  ./tmp/sequest_run.bat ./tmp/temp.sequest.in
+	@$(ECHO) "- Test 3: -sequest_in with mzData"
+	@$(call RUN_PROG_OPT,SequestAdapter,-ini SequestAdapter_1_parameters.ini -in Sequest.mzData -out SequestAdapter_3_output.tmp -sequest_in -in Sequest.mzData)
+	@$(call TEST_FILE_EQUAL,SequestAdapter_2_output.sequest_in,SequestAdapter_3_output.tmp)
+	@$(RM) -rf ./tmp/Sequest*.dta_*
+
+	@$(ECHO) "- Test 4: -sequest_out"
+	@$(call RUN_PROG_OPT,SequestAdapter,-ini SequestAdapter_2_parameters.ini -in tmp -out SequestAdapter_4_output.tmp -sequest_out)
+	@$(call TEST_FILE_EQUAL,SequestAdapter_4_output.idXML,SequestAdapter_4_output.tmp)
 	@$(RM) -rf ./tmp/sequest_run.bat ./tmp/temp.sequest.in
 
 SpectraFilter_test: $(NUMERICDIFF)

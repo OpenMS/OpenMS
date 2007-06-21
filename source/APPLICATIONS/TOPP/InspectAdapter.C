@@ -21,7 +21,7 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Martin Langwisch $
+// $MaIntainer: Martin Langwisch $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
@@ -60,7 +60,7 @@ using namespace std;
 				for which peptide_identifications are to be found
 				and one ore more databases in either trie, FASTA or Swissprot format containing
 				the possible proteins.
-				The given databases are converted and merged into one trie database.
+				The given databases are converted and merged Into one trie database.
 				This is done because Inspect does the conversion anyway (though with a bug) and may
 				actually not use more than two databases (one of them in trie format).
 				Additionally you thus can reuse the database without having Inspect done the conversion
@@ -74,7 +74,7 @@ using namespace std;
 				<li>
 				Only the first part of the ProteinIdentification process is performed.
 				This means that an Inspect input file is generated and the given databases are 
-				converted and merged into one trie database. This file can be used
+				converted and merged Into one trie database. This file can be used
 				directly with Inspect whereas the created database and the spectrum file(s)
 				have to remain at the given positions.
 				Calling an Inspect process should look like the following:				
@@ -133,11 +133,11 @@ class TOPPInspectAdapter
 			registerDoubleOption_("peak_mass_tolerance", "<tol>", 1.0, "the peak mass tolerance", false);
 			registerFlag_("list_modifications", "show a list of the available modifications");
 			registerStringOption_("modifications", "<mods>", "", "the colon-seperated modifications; may be\n"
-																																													 "<name>,<type>, e.g.: Deamidation,opt or\n"
-																																													 "<composition>,<residues>,<type>,<name>, e.g.: H(2).C(2).O,KCS,opt,Acetyl or\n"
-																																													 "<mass>,<residues>,<type>,<name>, e.g.: 42.0367,KCS,opt,Acetyl or\n"
-																																													 "Valid values for \"type\" are \"fix\", \"cterminal\", \"nterminal\",\n"
-																																													 "and \"opt\" (the default).\n", false);
+																																														"<name>,<type>, e.g.: Deamidation,opt or\n"
+																																														"<composition>,<residues>,<type>,<name>, e.g.: H2C2O,KCS,opt,Acetyl or\n"
+																																														"<mass>,<residues>,<type>,<name>, e.g.: 42.0367,KCS,opt,Acetyl or\n"
+																																														"Valid values for type are \"fix\" and \"opt\" (default)\n"
+																																														"If you want terminal PTMs, write \"cterm\" or \"nterm\" instead of residues", false);
 			registerFlag_("use_monoisotopic_mod_mass", "use monoisotopic masses for the modifications");
 			registerStringOption_("modifications_xml_file", "<file>", "", "name of an XML file with the modifications", false);
 			registerStringOption_("cleavage", "<enz>", "Trypsin", "the enzyme used for digestion", false);
@@ -159,69 +159,13 @@ class TOPPInspectAdapter
 			registerIntOption_("min_spp", "<num>", -1, "minimum number of spectra a protein has to annotate\n"
 																																					 "to be added to the database", false);
 			registerStringOption_("snd_db", "<file>", "", "name of the minimized trie database generated when using blind mode.", false);
-			registerDoubleOption_("maxptmsize", "<num>", 250.0, "maximum modification size (in Da) to consider", false);
+			registerDoubleOption_("maxPTMsize", "<num>", 250.0, "maximum modification size (in Da) to consider", false);
 			registerStringOption_("contact_name", "<name>", "unknown", "Name of the contact", false);
 			registerStringOption_("contact_institution", "<name>", "unknown", "Name of the contact institution", false);
 			registerStringOption_("contact_info", "<info>", "unknown", "Some information about the contact", false);
 		}
 
-		String get_composition_elements(const String& composition, vector< vector< String > >& iso_sym_occ, char seperator = ' ')
-		{
-			iso_sym_occ.clear();
-			vector< String > substrings;
-			composition.split(seperator, substrings); // get the single elements of the composition: e.g. 18O(-1) or C(3) or N
-			if ( substrings.empty() ) substrings.push_back(composition);
-			String::size_type pos, pos2;
-			String isotope, symbol, occurences;
-			// for each element, get the isotope (if used), the symbol and the occurences
-			for ( vector< String >::const_iterator e_i = substrings.begin(); e_i != substrings.end(); ++e_i )
-			{
-				isotope.clear();
-				occurences = "1";
-				pos = 0;
-				while ( (bool) isdigit((*e_i)[pos]) ) ++pos; // if an isotope is used, find it
-				isotope = e_i->substr(0, pos);
-				if ( isotope.empty() ) isotope = "0";
-				pos2 = e_i->find('(', pos);
-				if ( pos2 != String::npos ) // if the element occurs more than once, a bracket is found
-				{
-					symbol = e_i->substr(pos, pos2++ - pos);
-					occurences = e_i->substr(pos2, e_i->length() - pos2 - 1 );
-				}
-				else
-				{
-					symbol = e_i->substr(pos).toLower().firstToUpper();
-					occurences = "1";
-				}
-				// check whether this really is a chemical symbol (only characters, max length 2)
-				if ( symbol.length() > 2 || (isalpha(symbol[0]) == 0) || (isalpha(symbol[symbol.length() - 1]) == 0) ) return (composition);
-				// then check whether isotope and occurences are numbers
-				Int i_iso, i_occ;
-				try
-				{
-					i_iso = isotope.toInt();
-					i_occ = occurences.toInt();
-				}
-				catch( Exception::ConversionError ce )
-				{
-					return composition;
-				}
-				if ( String(i_iso) != isotope || String(i_occ) != occurences )
-				{
-					return composition;
-				}
-				
-				// if this is a composition, insert its elements into the vector
-				iso_sym_occ.push_back(vector< String >());
-				iso_sym_occ.back().push_back(isotope);
-				iso_sym_occ.back().push_back(symbol);
-				iso_sym_occ.back().push_back(occurences);
-			}
-			
-			return String();
-		}
-
-		ExitCodes main_(int , char**)
+		ExitCodes main_(Int , char**)
 		{
 			//-------------------------------------------------------------
 			// (1) variables
@@ -263,10 +207,10 @@ class TOPPInspectAdapter
 				blind_only(false),
 				blind(false),
 				no_tmp_dbs(false),
-				monoisotopic(false);
+				monoisotopic;
 			
-			Real p_value_threshold(1.0);
-			Real cutoff_p_value(0);
+			Real p_value_threshold = 1.0;
+			Real cutoff_p_value;
 			
 			char separator = '/';
 			
@@ -293,10 +237,10 @@ class TOPPInspectAdapter
 					writeLog_("Modifications XML file is not readable. Aborting!");
 					return INPUT_FILE_NOT_READABLE;
 				}
-				map< String, pair< String, String > > ptm_informations;
+				map< String, pair< String, String > > PTM_informations;
 				try
 				{
-					PTMXMLFile().load(modifications_filename, ptm_informations);
+					PTMXMLFile().load(modifications_filename, PTM_informations);
 				}
 				catch ( Exception::ParseError pe )
 				{
@@ -305,21 +249,22 @@ class TOPPInspectAdapter
 				}
 				
 				// output the information
-				stringstream ptm_info;
-				String::size_type max_name_length(0), max_composition_length(0), max_amino_acids_length(0);
-				max_name_length = max_composition_length = max_amino_acids_length = 0;
-				for ( map< String, pair< String, String > >::const_iterator mod_i = ptm_informations.begin(); mod_i != ptm_informations.end(); ++mod_i )
+				stringstream PTM_info;
+				String::size_type max_name_length, max_composition_length, max_amino_acids_length;
+				max_name_length = 4;
+				max_composition_length = max_amino_acids_length = 11;
+				for ( map< String, pair< String, String > >::const_iterator mod_i = PTM_informations.begin(); mod_i != PTM_informations.end(); ++mod_i )
 				{
 					max_name_length = max(max_name_length, mod_i->first.length());
 					max_composition_length = max(max_composition_length, mod_i->second.first.length());
 					max_amino_acids_length = max(max_amino_acids_length, mod_i->second.second.length());
 				}
-				ptm_info << "These modifications are taken from unimod" << endl;
-				ptm_info << "name" << String(max_name_length - 4, ' ') << "\t" << "composition" << String(max_composition_length - 11, ' ') << "\t" << "amino_acids" << String(max_amino_acids_length - 11, ' ') << endl;
-				for ( map< String, pair< String, String > >::const_iterator mod_i = ptm_informations.begin(); mod_i != ptm_informations.end(); ++mod_i )
+				PTM_info << "name" << String(max_name_length - 4, ' ') << "\t" << "composition" << String(max_composition_length - 11, ' ') << "\t" << "amino_acids" << String(max_amino_acids_length - 11, ' ') << endl;
+				for ( map< String, pair< String, String > >::const_iterator mod_i = PTM_informations.begin(); mod_i != PTM_informations.end(); ++mod_i )
 				{
-					ptm_info << mod_i->first << String(max_name_length - mod_i->first.length(), ' ') << "\t" << mod_i->second.first << String(max_composition_length - mod_i->second.first.length(), ' ') << "\t" << mod_i->second.second << String(max_amino_acids_length - mod_i->second.second.length(), ' ') << endl;
+					PTM_info << mod_i->first << String(max_name_length - mod_i->first.length(), ' ') << "\t" << mod_i->second.first << String(max_composition_length - mod_i->second.first.length(), ' ') << "\t" << mod_i->second.second << String(max_amino_acids_length - mod_i->second.second.length(), ' ') << endl;
 				}
+				std::cout << PTM_info.str() << std::endl;
 				
 				return EXECUTION_OK;
 			}
@@ -569,212 +514,40 @@ class TOPPInspectAdapter
 				}
 				
 				// get the known modifications
+				monoisotopic = getFlag_("use_monoisotopic_mod_mass");
 				if ( !blind_only )
 				{
+					// modifications
 					string_buffer = getStringOption_("modifications");
-					monoisotopic = getFlag_("use_monoisotopic_mod_mass");
-					if ( !string_buffer.empty() ) // if modifications are used get look whether whether composition and residues (and type and name) is given which needs the isotope file, the name (and type) is used (then one additionally needs the modifications file) or only the mass and residues (and type and name) is given, in which case no further file is needed
+					try
 					{
-						string_buffer.split(':', substrings); // get the single modifications
-						
-						// one vector if compositions are used (needs isotope xml file) and one vector if masses were given
-						vector< vector< String > > iso_sym_occ, mass_res_type_name;
-						
-						// to store the informations about modifications from the ptm xml file
-						map< String, pair< String, String > > ptm_informations;
-						
-						// to get masses from a formula
-						EmpiricalFormula add_e_formula, sub_e_formula;
-						
-						Int comp_mass_name_given(0);
-						String types = "opt#fix#cterminal#nterminal";
-						
-						for ( vector< String >::const_iterator mod_i = substrings.begin(); mod_i != substrings.end(); ++mod_i )
-						{
-							// clear the formulae
-							add_e_formula = "";
-							sub_e_formula = "";
-							
-							if ( mod_i->empty() ) continue;
-							iso_sym_occ.clear();
-							// get the components of the modification
-							mod_i->split(',', substrings2);
-							if ( substrings2.empty() ) substrings2.push_back(*mod_i);
-							mass_res_type_name.push_back(vector< String >(4));
-							
-							// check whether the first component is a composition, mass or name
-								// remove + signs
-							if ( substrings2[0].hasPrefix("+") ) substrings2[0].erase(0, 1);
-							if ( substrings2[0].hasSuffix("+") ) substrings2[0].erase(substrings2[0].length() - 1, 1);
-							if ( substrings2[0].hasSuffix("-") ) // a '-' at the end will not be converted
-							{
-								substrings2[0].erase(substrings2[0].length() - 1, 1);
-								substrings2[0].insert(0, "-");
-							}
-							bool go_on = false;
-							try
-							{
-								go_on = ( String(substrings2[0].toDouble()) != substrings2[0] );
-								mass_res_type_name.back()[0] = substrings2[0]; // mass
-								comp_mass_name_given = 0;
-							}
-							catch ( Exception::ConversionError ce )
-							{
-								go_on = true;
-							}
-							if ( go_on && get_composition_elements(substrings2[0], iso_sym_occ, '.').empty() ) // if it is a composition, put it into the vector
-							{
-								mass_res_type_name.back()[0] = substrings2[0]; // composition
-								comp_mass_name_given = 1;
-								go_on = false;
-							}
-							if ( go_on ) // check whether it's an empirical formula
-							{
-								String::size_type pos = substrings2[0].find(".-");
-								try
-								{
-									if ( pos != String::npos )
-									{
-										add_e_formula = substrings2[0].substr(0, pos);
-										pos += 2;
-										sub_e_formula = substrings2[0].substr(pos);
-									}
-									else
-									{
-										add_e_formula = substrings2[0];
-									}
-									// sum up the masses
-									if ( monoisotopic ) mass_res_type_name.back()[0] = String(add_e_formula.getMonoWeight() - sub_e_formula.getMonoWeight());
-									else mass_res_type_name.back()[0] = String(add_e_formula.getAverageWeight() - sub_e_formula.getAverageWeight());
-									
-									go_on = false;
-									comp_mass_name_given = -1;
-								}
-								catch ( Exception::ParseError pe )
-								{
-									go_on = true;
-								}
-							}
-							if ( go_on ) // if it's a name, try to find it in the ptm xml file
-							{
-								if ( ptm_informations.empty() ) // if the ptm xml file has not been read yet, read it
-								{
-									if ( modifications_filename.empty() )
-									{
-										writeLog_("No modifications XML file given. Aborting!");
-										return INPUT_FILE_NOT_FOUND;
-									}
-									if ( !File::readable(modifications_filename) )
-									{
-										writeLog_("Modifications XML file is not readable. Aborting!");
-										return INPUT_FILE_NOT_READABLE;
-									}
-									
-									// getting all available modifications from a file
-									try
-									{
-										PTMXMLFile().load(modifications_filename, ptm_informations);
-									}
-									catch ( Exception::ParseError pe )
-									{
-										writeLog_(pe.getMessage());
-										return PARSE_ERROR;
-									}
-								}
-								
-								if ( ptm_informations.find(substrings2[0]) == ptm_informations.end() ) // if the modification cannot be found
-								{
-									writeLog_("The Modification " + substrings2[0] + " can not be found in file " + modifications_filename + ". Aborting!");
-									return ILLEGAL_PARAMETERS;
-								}
-								mass_res_type_name.back()[0] = ptm_informations[substrings2[0]].first; // composition
-								mass_res_type_name.back()[1] = ptm_informations[substrings2[0]].second; // residues
-								mass_res_type_name.back()[3] = substrings2[0]; // name
-								
-								// get the type
-								if ( substrings2.size() > 1 )
-								{
-									// if it's not a legal type
-									if ( types.find(substrings2[1]) == String::npos )
-									{
-										writeLog_("The given type (" + substrings2[1] + ") is neither opt, fix, cterminal nor nterminal. Aborting!");
-										return ILLEGAL_PARAMETERS;
-									}
-									mass_res_type_name.back()[2] = substrings2[1];
-								}
-								else mass_res_type_name.back()[2] = "opt";
-								comp_mass_name_given = 2;
-							}
-							
-							// now get the residues and, if available the type and the name
-							if ( comp_mass_name_given < 2 )
-							{
-								if ( substrings2.size() < 2 )
-								{
-									writeLog_("No residues for modification given (" + *mod_i + "). Aborting!");
-									return ILLEGAL_PARAMETERS;
-								}
-								// get the residues
-								mass_res_type_name.back()[1] = substrings2[1];
-								
-								// get the type
-								if ( substrings2.size() > 2 )
-								{
-									// if it's not a legal type
-									if ( types.find(substrings2[2]) == String::npos )
-									{
-										writeLog_("The given type (" + substrings2[2] + ") is neither opt, fix, cterminal nor nterminal. Aborting!");
-										return ILLEGAL_PARAMETERS;
-									}
-									mass_res_type_name.back()[2] = substrings2[2];
-									
-									// get the name
-									if ( substrings2.size() > 3 ) mass_res_type_name.back()[3] = substrings2[3];
-								}
-								else mass_res_type_name.back()[2] = "opt";
-							}
-							
-							// if a composition is given, get the corresponding mass
-							if ( comp_mass_name_given > 0 )
-							{
-								// get the single components of the composition, if a name was given (for not doing this work twice)
-								if ( comp_mass_name_given == 2 )
-								{
-									if ( !get_composition_elements(mass_res_type_name.back()[0], iso_sym_occ).empty() )
-									{
-										writeLog_("There's something wrong with this composition: " + mass_res_type_name.back()[0] + ". Aborting!");
-										return ILLEGAL_PARAMETERS;
-									}
-								}
-								for ( vector< vector< String > >::const_iterator comp_i = iso_sym_occ.begin(); comp_i != iso_sym_occ.end(); ++comp_i )
-								{
-									if ( (*comp_i)[0] == "0" )
-									{
-										if ( (*comp_i)[2].hasPrefix("-")  ) sub_e_formula += (*comp_i)[1] + (*comp_i)[2];
-										else add_e_formula += (*comp_i)[1] + (*comp_i)[2];
-									}
-									else // if an isotope was used, get the mass
-									{
-									}
-								}
-								// sum up the masses
-								if ( monoisotopic ) mass_res_type_name.back()[0] = String(add_e_formula.getMonoWeight() - sub_e_formula.getMonoWeight());
-								else mass_res_type_name.back()[0] = String(add_e_formula.getAverageWeight() - sub_e_formula.getAverageWeight());
-							}
-						}
-						
-						inspect_infile.setMod(mass_res_type_name);
+						inspect_infile.handlePTMs(string_buffer, modifications_filename, monoisotopic);
+					}
+					catch ( Exception::FileNotFound fnf_e )
+					{
+						writeLog_("No modifications XML file given. Aborting!");
+						return INPUT_FILE_NOT_FOUND;
+					}
+					catch ( Exception::FileNotReadable fnr_e )
+					{
+						writeLog_("Modifications XML file is not readable. Aborting!");
+						return INPUT_FILE_NOT_READABLE;
+					}
+					catch ( Exception::ParseError p_e )
+					{
+						writeLog_(String(p_e.getMessage()) + ". Aborting!");
+						return PARSE_ERROR;
 					}
 				}
 				
 				inspect_infile.setEnzyme(getStringOption_("cleavage"));
 				inspect_infile.setInstrument(getStringOption_("instrument"));
 				
-				inspect_infile.setMods(getIntOption_("max_modifications_pp"));
-				if ( inspect_infile.getMods() < 1 && /*!mod.empty()*/ !inspect_infile.getMod().empty() )
+				inspect_infile.setModificationsPerPeptide(getIntOption_("max_modifications_pp"));
+				if ( inspect_infile.getModificationsPerPeptide() < 1 && !inspect_infile.getModifications().empty() )
 				{
 					writeLog_("Modifications specified, but max_modifications_pp not set. Setting it to 1.");
-					inspect_infile.setMods(1);
+					inspect_infile.setModificationsPerPeptide(1);
 				}
 				
 				inspect_infile.setPrecursorMassTolerance(getDoubleOption_("precursor_mass_tolerance"));
@@ -800,7 +573,7 @@ class TOPPInspectAdapter
 					return ILLEGAL_PARAMETERS;
 				}
 				
-				inspect_infile.setMaxPTMsize(getDoubleOption_("maxptmsize") );
+				inspect_infile.setMaxPTMsize(getDoubleOption_("maxPTMsize") );
 				if ( (inspect_infile.getMaxPTMsize() < 10 || inspect_infile.getMaxPTMsize() > 2000) && inspect_infile.getMaxPTMsize() != -1)
 				{
 					writeLog_("Illegal maximum modification size (not in [10,2000]). Aborting!");
@@ -844,7 +617,7 @@ class TOPPInspectAdapter
 				string_buffer = files_i->first;
 				file_tag = files_i->second;
 				
-				if ( (file_tag & 1) && !File::exists(string_buffer) )
+				if ( (file_tag & 1 || file_tag & 2) && !File::exists(string_buffer) )
 				{
 					throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, string_buffer);
 				}
@@ -890,7 +663,7 @@ class TOPPInspectAdapter
 				}
 			}
 			
-			vector< unsigned int > wanted_records;
+			vector< UInt > wanted_records;
 			
 			// creating the input file and converting and merging the databases
 			if ( inspect_in )
@@ -934,7 +707,7 @@ class TOPPInspectAdapter
 				call.append(" -e ");
 				call.append(inspect_logfile);
 				
-				int status = system(call.c_str());
+				Int status = system(call.c_str());
 
 				if (status != 0)
 				{
@@ -969,11 +742,10 @@ class TOPPInspectAdapter
 				// setting the database name to the new database
 				inspect_infile.setDb(snd_db_filename);
 				inspect_infile.setBlind(true);
-				inspect_infile.getMod().clear();
 				inspect_infile.store(inspect_input_filename);
 			}
 			
-			// writing the output of inspect into an IdXML file
+			// writing the output of inspect Into an IdXML file
 			if ( inspect_in && inspect_out )
 			{
 				String call;
@@ -991,7 +763,7 @@ class TOPPInspectAdapter
 				writeLog_("Searching ...");
 				writeDebug_("The Inspect process created the following output:", 1);
 				
-				int status = system(call.c_str());
+				Int status = system(call.c_str());
 				
 				if (status != 0)
 				{
@@ -1020,7 +792,7 @@ class TOPPInspectAdapter
 					call.append("inspect > ");
 					// writing the inspect output to a temporary file
 					call.append(inspect_logfile);
-					int status = system(call.c_str());
+					Int status = system(call.c_str());
 					
 					if (status != 0)
 					{
@@ -1092,7 +864,7 @@ class TOPPInspectAdapter
 
 
 
-int main( int argc, char ** argv )
+Int main( Int argc, char ** argv )
 {
 	TOPPInspectAdapter tool;
 

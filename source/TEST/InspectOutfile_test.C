@@ -277,9 +277,9 @@ RESULT
 CHECK(template<typename PeakT> void getExperiment(MSExperiment<PeakT>& exp, String& type, const String& in_filename) throw(Exception::ParseError))
 	MSExperiment< > exp;
 	String type;
-	file.getExperiment(exp, type, "TOPP/Inspect_Sequest.mzXML");
+	file.getExperiment(exp, type, "TOPP/Inspect.mzXML");
 	TEST_EQUAL(type, "mzXML")
-	file.getExperiment(exp, type, "TOPP/Inspect_Sequest.mzData");
+	file.getExperiment(exp, type, "TOPP/Inspect.mzData");
 	TEST_EQUAL(type, "mzData")
 RESULT
 

@@ -919,6 +919,7 @@ namespace OpenMS
 			{
 				protein_identification.setSearchEngine(substrings[0]);
 				protein_identification.setSearchEngineVersion(substrings[2]);
+				return;
 			}
 		}
 	}

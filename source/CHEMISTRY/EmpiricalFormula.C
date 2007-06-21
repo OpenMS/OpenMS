@@ -549,7 +549,7 @@ namespace OpenMS
 			}
 			else
 			{
-				throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, formula, UInt(0));
+				throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, formula, "This formula does not begin with an element!");
 			}
 		}
 
