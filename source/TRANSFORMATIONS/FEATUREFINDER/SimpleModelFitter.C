@@ -86,11 +86,11 @@ namespace OpenMS
 		defaults_.setValue("isotope_model:stdev:last",0.12f,"last standard deviation tested");
 		defaults_.setValue("isotope_model:stdev:step",0.04f,"step size for tandard deviation test");
 		defaults_.setDescription("isotope_model:stdev","Instrument resolution settings for m/z");
-		defaults_.setValue("isotope_model:averagines:C",0.0443f,"fraction of C atoms");
-		defaults_.setValue("isotope_model:averagines:H",0.0f,"fraction of H atoms");
-		defaults_.setValue("isotope_model:averagines:N",0.0037f,"fraction of N atoms");
-		defaults_.setValue("isotope_model:averagines:O",0.022f,"fraction of C atoms");
-		defaults_.setValue("isotope_model:averagines:S",0.0f,"fraction of S atoms");
+		defaults_.setValue("isotope_model:averagines:C",0.0443f,"Number of C atoms per Dalton of the mass.");
+		defaults_.setValue("isotope_model:averagines:H",0.0f,"Number of H atoms per Dalton of the mass.");
+		defaults_.setValue("isotope_model:averagines:N",0.0037f,"Number of N atoms per Dalton of the mass.");
+		defaults_.setValue("isotope_model:averagines:O",0.022f,"Number of O atoms per Dalton of the mass.");
+		defaults_.setValue("isotope_model:averagines:S",0.0f,"Number of S atoms per Dalton of the mass.");
 		defaults_.setDescription("isotope_model:averagines","averagines are used to approximate the number of atoms (C,H,N,O,S) which a peptide of a given mass contains");
 		defaults_.setValue("isotope_model:isotope:trim_right_cutoff",0.001f,"use only isotopes with abundancies above this cutoff");
 		defaults_.setValue("isotope_model:isotope:maximum",1000000,"maximum number of isotopes being used for the IsotopeModel");

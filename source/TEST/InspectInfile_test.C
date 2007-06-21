@@ -43,48 +43,48 @@ START_TEST(InspectInfile, "$Id$")
 /////////////////////////////////////////////////////////////
 
 InspectInfile* ptr = 0;
-CHECK(InspectInfile())
+CHECK((InspectInfile()))
 	ptr = new InspectInfile();
 	TEST_NOT_EQUAL(ptr, 0)
 RESULT
 
-CHECK(~InspectInfile())
+CHECK((virtual ~InspectInfile()))
 	delete ptr;
 RESULT
 
 InspectInfile file;
 
-CHECK(void setSpectra(const string& spectra))
+CHECK((void setSpectra(const string& spectra)))
 	file.setSpectra("dummy4712");
 	TEST_EQUAL(file.getSpectra(), "dummy4712")
 RESULT
 
-CHECK(const string& getSpectra() const)
+CHECK((const string& getSpectra() const))
 	TEST_EQUAL(file.getSpectra(), "dummy4712")
 RESULT
 
 
-CHECK(void setDb(const String& db))
+CHECK((void setDb(const String& db)))
 	file.setDb("dummy4711");
 	TEST_EQUAL(file.getDb(), "dummy4711");
 RESULT
 
-CHECK(const String& getDb() const)
+CHECK((const String& getDb() const))
 	TEST_EQUAL(file.getDb(), "dummy4711");
 RESULT
 
 
-CHECK(void setEnzyme(const String& protease))
+CHECK((void setEnzyme(const String &enzyme)))
 	file.setEnzyme("Trypsin");
 	TEST_EQUAL(file.getEnzyme(), "Trypsin")
 RESULT
 
-CHECK(const String& getEnzyme() const)
+CHECK((const String& getEnzyme() const))
 	TEST_EQUAL(file.getEnzyme(), "Trypsin")
 RESULT
 
 
-CHECK(void setMod(const vector< vector< String > >& mod))
+CHECK((void setMod(const vector< vector< String > >& mod)))
 	vector< vector< String > > mod;
 	mod.push_back(vector< String >());
 	mod.back().push_back("+57");
@@ -95,7 +95,7 @@ CHECK(void setMod(const vector< vector< String > >& mod))
 	TEST_EQUAL((file.getMod() == mod), true)
 RESULT
 
-CHECK(void addMod(const vector< String >& mod))
+CHECK((void addMod(const vector< String >& mod)))
 	vector< String > mod;
 	mod.push_back("80");
 	mod.push_back("STY");
@@ -105,7 +105,7 @@ CHECK(void addMod(const vector< String >& mod))
 	TEST_EQUAL((file.getMod().back() == mod), true)
 RESULT
 
-CHECK(vector< vector< String > >& getMod())
+CHECK((vector< vector< String > >& getMod()))
 	vector< vector< String > > mod;
 	mod.push_back(vector< String >());
 	mod.back().push_back("+57");
@@ -121,87 +121,87 @@ CHECK(vector< vector< String > >& getMod())
 RESULT
 
 
-CHECK(void setMods(int mods))
+CHECK((void setMods(int mods)))
 	file.setMods(2);
 	TEST_EQUAL(file.getMods(), 2)
 RESULT
 
-CHECK(const int getMods() const)
+CHECK((const int getMods() const))
 	TEST_EQUAL(file.getMods(), 2)
 RESULT
 
 
-CHECK(void setBlind(unsigned int blind))
+CHECK((void setBlind(unsigned int blind)))
 	file.setBlind(1);
 	TEST_EQUAL(file.getBlind(), 1)
 RESULT
 
-CHECK(const unsigned int getBlind() const)
+CHECK((const unsigned int getBlind() const))
 	TEST_EQUAL(file.getBlind(), 1)
 RESULT
 
 
-CHECK(void setMaxPTMsize(DoubleReal maxptmsize))
+CHECK((void setMaxPTMsize(DoubleReal maxptmsize)))
 	file.setMaxPTMsize(250);
 	TEST_EQUAL(file.getMaxPTMsize(), 250)
 RESULT
 
-CHECK(const DoubleReal getMaxPTMsize() const)
+CHECK((const DoubleReal getMaxPTMsize() const))
 	TEST_EQUAL(file.getMaxPTMsize(), 250)
 RESULT
 
 
-CHECK(void setPrecursorMassTolerance(DoubleReal precursor_mass_tolerance))
+CHECK((void setPrecursorMassTolerance(DoubleReal precursor_mass_tolerance)))
 	file.setPrecursorMassTolerance(1.3);
 	TEST_EQUAL(file.getPrecursorMassTolerance(), 1.3)
 RESULT
 
-CHECK(const DoubleReal getPrecursorMassTolerance() const)
+CHECK((const DoubleReal getPrecursorMassTolerance() const))
 	TEST_EQUAL(file.getPrecursorMassTolerance(), 1.3)
 RESULT
 
 
-CHECK(void setPeakMassTolerance(DoubleReal peak_mass_tolerance))
+CHECK((void setPeakMassTolerance(DoubleReal peak_mass_tolerance)))
 	file.setPeakMassTolerance(0.3);
 	TEST_EQUAL(file.getPeakMassTolerance(), 0.3)
 RESULT
 
-CHECK(const DoubleReal getPeakMassTolerance() const)
+CHECK((const DoubleReal getPeakMassTolerance() const))
 	TEST_EQUAL(file.getPeakMassTolerance(), 0.3)
 RESULT
 
 
-CHECK(void setMulticharge(unsigned int multicharge))
+CHECK((void setMulticharge(unsigned int multicharge)))
 	file.setMulticharge(1);
 	TEST_EQUAL(file.getMulticharge(), 1)
 RESULT
 
-CHECK(const unsigned int getMulticharge() const)
+CHECK((const unsigned int getMulticharge() const))
 	TEST_EQUAL(file.getMulticharge(), 1)
 RESULT
 
 
-CHECK(void setInstrument(const String& instrument))
+CHECK((void setInstrument(const String& instrument)))
 	file.setInstrument("ESI-ION-TRAP");
 	TEST_EQUAL(file.getInstrument(), "ESI-ION-TRAP")
 RESULT
 
-CHECK(const String& getInstrument() const)
+CHECK((const String& getInstrument() const))
 	TEST_EQUAL(file.getInstrument(), "ESI-ION-TRAP")
 RESULT
 
 
-CHECK(void setTagCount(int TagCount))
+CHECK((void setTagCount(int TagCount)))
 	file.setTagCount(1);
 	TEST_EQUAL(file.getTagCount(), 1)
 RESULT
 
-CHECK(const int getTagCount() const)
+CHECK((const int getTagCount() const))
 	TEST_EQUAL(file.getTagCount(), 1)
 RESULT
 
 
-CHECK(void store(const String& filename) throw (Exception::UnableToCreateFile))
+CHECK((void store(const String& filename) throw (Exception::UnableToCreateFile)))
 	file.store("InspectInfile_test.txt");
 	TEST_FILE("InspectInfile_test.txt", "data/InspectInfile_test_template1.txt");
 	remove("InspectInfile_test.txt");
