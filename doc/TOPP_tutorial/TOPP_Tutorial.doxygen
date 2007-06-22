@@ -199,7 +199,12 @@ FileFilter -in infile.mzData -levels 2 -rt 100:1500 -out outfile.mzData
 /**
 	@page TOPP_example2 Example 2: Raw data processing
 		
-		@b Goal:
+		@b Goal: You want to identify all peaks in your raw data.
+
+		The first step shown here is the elimination of noise using the NoiseFilter. The
+		now smoothed raw data can be further processed by subtracting the baseline
+		with the BaselineFilter. Then use the PeakPicker to find all peaks in the
+		baseline-reduced raw data.
 		
 		@image html TOPP_raw_data.png
 		@image latex TOPP_raw_data.png "" width=10cm
