@@ -63,7 +63,7 @@ namespace OpenMS
 		normalize_xcorr_(0),
 		residues_in_upper_case_(1)
 	{
-		setStandardEnzymeInfo();
+		setStandardEnzymeInfo_();
 	}
 	
 	SequestInfile::SequestInfile(const SequestInfile& sequest_infile)
@@ -643,7 +643,7 @@ std::cout << "  " << s.str() << "  " << std::endl;
 		}
 	}
 	
-	void SequestInfile::setStandardEnzymeInfo()
+	void SequestInfile::setStandardEnzymeInfo_()
 	{
 		vector< String > info;
 		//		 cuts n to c?							 cuts before							doesn't cut after
