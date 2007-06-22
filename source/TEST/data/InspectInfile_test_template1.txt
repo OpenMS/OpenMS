@@ -2,12 +2,11 @@ spectra,dummy4712
 db,dummy4711
 protease,Trypsin
 blind,1
-mod,43.00582,NTERM,opt,Carbamylation
 mod,14.01565,CHKNQRILDEST,opt,Methylation
 mod,10.3,KRLNH,fix,PTM_0
 mod,16,C,opt,PTM_2
-mod,-16,CTERM,opt,PTM_5
-mod,-16,NTERM,opt,PTM_6
+mod,-16,CTERM,opt,PTM_4
+mod,-16,NTERM,opt,PTM_5
 mod,79.96635,STYDHCR,opt,Phosphorylation
 mods,2
 maxptmsize,250
