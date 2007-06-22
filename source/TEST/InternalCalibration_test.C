@@ -28,6 +28,7 @@
 
 ///////////////////////////
 #include <OpenMS/FILTERING/CALIBRATION/InternalCalibration.h>
+#include <OpenMS/FORMAT/MzDataFile.h>
 ///////////////////////////
 
 using namespace OpenMS;
