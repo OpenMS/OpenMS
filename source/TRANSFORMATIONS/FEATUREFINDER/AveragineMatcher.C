@@ -161,7 +161,29 @@ namespace OpenMS
 		first_mz_model_ = (Int) param_.getValue("mz:model_type:first");
 		last_mz_model_ = (Int) param_.getValue("mz:model_type:last");
 	}
-
+	
+	AveragineMatcher::QualityType AveragineMatcher::fit_loop_(const ChargedIndexSet& set, Int& first_mz, Int& last_mz, CoordinateType& sampling_size_mz , ProductModel<2>*& final) 
+	{
+		QualityType quality = 0.0;
+		QualityType max_quality = -std::numeric_limits<QualityType>::max();
+		
+		for ( float stdev = iso_stdev_first_; stdev <= iso_stdev_last_; stdev += iso_stdev_stepsize_)
+		{
+				for (Int mz_fit_type = first_mz; mz_fit_type <= last_mz; ++mz_fit_type)
+				{
+					quality = fit_(set, static_cast<MzFitting>(mz_fit_type), LMAGAUSS, stdev, (UInt) sampling_size_mz );
+				
+					if (quality > max_quality)
+					{
+						max_quality = quality;
+						final = new ProductModel<2>(model2D_);	// store model
+					}
+				}
+		}		
+		return max_quality;
+	}
+	
+	
 	Feature AveragineMatcher::fit(const ChargedIndexSet& set) throw (UnableToFit)
 	{
 		// not enough peaks to fit
@@ -179,7 +201,7 @@ namespace OpenMS
 		quality_->setTraits(traits_);
 		mz_lin_int_.getData().clear();		// empty interpolation datastructrure
 		
-		QualityType quality = 0.0;
+		//QualityType quality = 0.0;
 		QualityType max_quality = -std::numeric_limits<QualityType>::max();
 
 		// Calculate statistics
@@ -199,7 +221,7 @@ namespace OpenMS
 			
 			if (it != set.begin())
 			{
-				if (fabs(tmp - prev_mz) < min_mz_distance)
+				if (fabs(tmp - prev_mz) < min_mz_distance && fabs(tmp - prev_mz)  > 0.0)
 				{
 					min_mz_distance = fabs(tmp - prev_mz);			
 				}		
@@ -211,15 +233,14 @@ namespace OpenMS
 			if (max_[RT] < tmp) max_[RT] = tmp;
 		}
 		
-		CoordinateType sampling_size_mz =  2.0 / min_mz_distance;
+		CoordinateType sampling_size_mz = 120; //2.0 / min_mz_distance;
 		mz_lin_int_.getData().resize((UInt) sampling_size_mz);	
 		mz_lin_int_.setMapping( 0, min_[MZ] , sampling_size_mz, max_[MZ]);
 		
 		for (IndexSetIter it=set.begin(); it!=set.end(); ++it )
 		{
 			mz_lin_int_.addValue( traits_->getPeakMz(*it),traits_->getPeakIntensity(*it) );			
-		}
-				
+		}				
 
 		double const tolerance_stdev_box = param_.getValue("tolerance_stdev_bounding_box");
 		stdev_mz_ = sqrt ( mz_stat_.variance() ) * tolerance_stdev_box;
@@ -240,7 +261,8 @@ namespace OpenMS
 			if (symmetric_==false)
 				optimize();
 				
-			if (gsl_status_!="success") {
+			if (gsl_status_!="success") 
+			{
 				cout << profile_ + " status: " + gsl_status_ << endl;
 				//throw UnableToFit(__FILE__, __LINE__,__PRETTY_FUNCTION__,"UnableToFit-BadQuality",String("Skipping feature, " + profile_ + " status: " + gsl_status_));
 			}
@@ -258,28 +280,8 @@ namespace OpenMS
 		}
 		//cout << "Checking charge state from " << first_mz << " to " << last_mz << endl;
 	
-		ProductModel<2>* final = 0;	// model  with best correlation
-		
-		for ( float stdev = iso_stdev_first_; stdev <= iso_stdev_last_; stdev += iso_stdev_stepsize_)
-		{
-			for (Int mz_fit_type = first_mz; mz_fit_type <= last_mz; ++mz_fit_type)
-			{
-				//(if (profile_=="LmaGauss")
-					quality = fit_(set, static_cast<MzFitting>(mz_fit_type), LMAGAUSS, stdev, (UInt) sampling_size_mz );
-// 				else if (profile_=="EMG" && symmetric_==false)
-// 					quality = fit_(set, static_cast<MzFitting>(mz_fit_type), EMGAUSS, stdev);
-// 				else if (profile_=="LogNormal" && symmetric_==false  && symmetry_!=1 && symmetry_!=0)
-// 					quality = fit_(set, static_cast<MzFitting>(mz_fit_type), LOGNORMAL, stdev);
-// 				else
-// 					quality = fit_(set, static_cast<MzFitting>(mz_fit_type), BIGAUSS, stdev);
-
-				if (quality > max_quality)
-				{
-					max_quality = quality;
-					final = new ProductModel<2>(model2D_);	// store model
-				}
-			}
-		}
+		ProductModel<2>* final = 0;	// model  with best correlation		
+		fit_loop_(set, first_mz,last_mz,sampling_size_mz,final);
 	
 		// in this case something went wrong during the modelfitting and we stop.
 		if (! final)
@@ -292,7 +294,8 @@ namespace OpenMS
 		IndexSet model_set;
 		for (IndexSetIter it=set.begin(); it!=set.end(); ++it) 
 		{
-			if (mz_model_.getIntensity( traits_->getPeakMz(*it) ) > IntensityType(param_.getValue("intensity_cutoff_factor")) )
+			if (mz_model_.getIntensity( traits_->getPeakMz(*it) ) > IntensityType(param_.getValue("intensity_cutoff_factor")) &&
+			    rt_model_.getIntensity( traits_->getPeakRt(*it) ) > IntensityType(param_.getValue("intensity_cutoff_factor")) )
 			{
 					model_set.insert(*it);
  			}
@@ -306,11 +309,11 @@ namespace OpenMS
 
 		// not enough peaks left for feature
 		if (model_set.size() < (UInt)(param_.getValue("min_num_peaks:final")))
-		{
+		{				
 			delete final;
 			throw UnableToFit(__FILE__, __LINE__,__PRETTY_FUNCTION__,
-												"UnableToFit-FinalSet",
-												String("Skipping feature, IndexSet size after cutoff too small: ") + model_set.size() );
+																	"UnableToFit-FinalSet",
+												          String("Skipping feature, IndexSet size after cutoff too small: ") + model_set.size() );
 		}
  		
 		// normalize data and compute mean position
@@ -331,16 +334,39 @@ namespace OpenMS
 		//QualityType qual_mz =	quality_->evaluate(set, mz_model_/**final->getModel(MZ)*/, MZ);
 		QualityType qual_mz = compute_mz_corr_(mz_data_sum, mz_model_, mz_data_avg);
 		
-		if (qual_mz > 1.0)
+		if (qual_mz == -2.0)
 		{
 			dump_all_(set, (UInt) sampling_size_mz);		
 		}
 		
 		cout << "Quality in m/z : " << qual_mz << endl;
 		QualityType qual_rt =	quality_->evaluate(model_set, rt_model_/**final->getModel(RT)*/, RT );
+		if (isnan(qual_rt) ) qual_rt = -1.0;
 		cout << "Quality in rt : " << qual_rt << endl;
 		
 		max_quality = (qual_mz + qual_rt) / 2.0;
+		
+		if (max_quality < 0.2)
+		{
+			cout << "max quality is too low: " << max_quality << endl;
+		
+			// give last try
+// 			Int fmz = first_mz > 1 ? (first_mz-1) : 1;
+// 			Int lmz = last_mz <= 6 ? (last_mz+1) : 6;
+			
+			Int fmz = first_mz_model_;
+			Int lmz = last_mz_model_;
+			
+			cout << "Checking charge states " << fmz << " to " << lmz << endl;
+						
+			QualityType tmpq = fit_loop_(set, fmz,lmz,sampling_size_mz,final);	
+		
+			if ( ((tmpq + qual_rt) / 2.0) < max_quality)
+			{
+				cout << "QQQQQQQQQQQQQQQQQQQQ new quality in m/z: " << tmpq << endl;
+			}
+			
+		}
 		
 		// fit has too low quality or fit was not possible i.e. because of zero stdev
 		if (max_quality < (QualityType)(param_.getValue("quality:minimum")))
@@ -537,12 +563,12 @@ namespace OpenMS
 			if (data_square_sum == 0 ||
 					model_square_sum == 0)
 			{
-				std::cout << "Something went wrong in compute_mz_corr_ !!" << std::endl;
-				return -1.0;			
+// 				std::cout << "Something went wrong in compute_mz_corr_ !!" << std::endl;
+				return -2.0;			
 			}
 			
 			QualityType corr_mz = cross_product_sum / sqrt(data_square_sum * model_square_sum);
-			cout << "Pearson correlation in m/z : " << corr_mz << endl;
+// 			cout << "Pearson correlation in m/z : " << corr_mz << endl;
 	
 			return corr_mz;	
 	}
@@ -576,7 +602,7 @@ namespace OpenMS
 		
 		mz_mean_pos /= mz_data_sum;
 			
-		cout << "mz_mean_pos = " << mz_mean_pos << endl;
+// 		cout << "mz_mean_pos = " << mz_mean_pos << endl;
 		
 		// compute m/z data average
 		CoordinateType mz_data_avg = 0.0;
@@ -586,8 +612,8 @@ namespace OpenMS
 		}	
 		mz_data_avg /= mz_lin_int_.getData().size();
 		
-		for (CoordinateType pos = mz_mean_pos- 0.2;
-		     pos <= mz_mean_pos+ 0.2;
+		for (CoordinateType pos = mz_mean_pos- 0.5;
+		     pos <= mz_mean_pos+ 0.5;
 				 pos += 0.1)
 		{
 		
@@ -604,7 +630,7 @@ namespace OpenMS
 			// estimate goodness of m/z fit
 			QualityType corr_mz = compute_mz_corr_(mz_data_sum, iso_model, mz_data_avg);			
 			
-			if (corr_mz == -1.0)
+			if (corr_mz == -2.0)
 			{
 					dump_all_(set,(UInt) samplingsize);
 			}
@@ -928,7 +954,7 @@ namespace OpenMS
 					gsl_matrix_set(J, i, 3, derivative_retention);
 				}
 			}
-			/// log normal function
+			// log normal function
 			else
 			{
 				double h = gsl_vector_get(x,0);

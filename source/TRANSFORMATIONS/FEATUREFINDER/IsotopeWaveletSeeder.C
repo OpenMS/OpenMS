@@ -361,7 +361,7 @@ namespace OpenMS
 			// compute average intensity in cwt			
 			for (UInt i =0; i< candidates[c].size(); ++i)
 			{
-				avg_cwt   += candidates[c][i].getIntensity();			
+				avg_cwt   += fabs(candidates[c][i].getIntensity());			
 			}						
 			avg_cwt 	/= candidates[c].size();
 			cwt_thresholds.at(c) =  avg_cwt * cwt_avg_factor_;		
@@ -410,8 +410,8 @@ namespace OpenMS
 					// we are at a local max in the signal
 					// the last pattern is already behind us
 					if ( candidates[c][i].getIntensity() > cwt_thresholds[c] && 
-							 i > last_pattern[c] && 
-							(i - last_pattern[c]) > peak_cut_off_/ (c+1)  &&                                   
+// 							 i > last_pattern[c] && 
+							(candidates[c][i].getMZ() - candidates[c][ last_pattern[c] ].getMZ()) > /*peak_cut_off_*/ 3.0/ (c+1)  &&                                   
 							(scan[i-1].getIntensity() - scan[i].getIntensity() < 0.0) && 
 						  (scan[i+1].getIntensity() - scan[i].getIntensity() < 0.0) )						  	  
 					{						

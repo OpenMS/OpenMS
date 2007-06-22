@@ -100,6 +100,17 @@ namespace OpenMS
   	OPENMS_PRECONDITION(index.first<map_.size(), "Scan index outside of map!");
     OPENMS_PRECONDITION(index.second<map_[index.first].size(), "Peak index outside of scan!");
 		
+		if (index.first>=map_.size() )
+		{
+			cout << "Scan index outside of map!" << endl;
+			return;
+		}
+		if (index.second>=map_[index.first].size())
+		{
+			cout << "Peak index outside of scan!" << endl;
+			return;		
+		}	
+		
 		// first scan
 		if (index.first == 0)
 		{
@@ -109,7 +120,10 @@ namespace OpenMS
 		// perform binary search to find the neighbour in rt dimension
 		CoordinateType mz_pos = map_[index.first][index.second].getMZ();
 		--index.first;
-		MapType::SpectrumType::ConstIterator it = lower_bound(map_[index.first].begin(), map_[index.first].end(), map_[index.first+1][index.second], MapType::SpectrumType::PeakType::PositionLess());	
+		MapType::SpectrumType::ConstIterator it = lower_bound(map_[index.first].begin(), 
+		                                                                                  map_[index.first].end(), 
+																																								      map_[index.first+1][index.second], 
+																																								      MapType::SpectrumType::PeakType::PositionLess());	
 		
 		// if the found peak is at the end of the spectrum, there is not much we can do.
 		if ( it == map_[index.first].end() )

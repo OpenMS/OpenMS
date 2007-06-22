@@ -204,9 +204,15 @@ namespace OpenMS
 	/// get GSL status
 	std::string getGSLStatus() const;
 	
-	void dump_all_(ChargedIndexSet set, UInt sampling_size);
+
 
 	 protected:
+	 
+	 /// debug info
+	 	void dump_all_(ChargedIndexSet set, UInt sampling_size);
+	 
+		/// loop
+	 QualityType fit_loop_(const ChargedIndexSet& set, Int& first_mz, Int& last_mz, CoordinateType& sampling_size_mz , ProductModel<2>*& final); 
 
 		virtual void updateMembers_();
 

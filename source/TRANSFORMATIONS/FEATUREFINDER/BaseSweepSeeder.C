@@ -61,6 +61,9 @@ BaseSweepSeeder::BaseSweepSeeder()
 		defaults_.setValue("max_rt_dist_merging",40.0);
 		// max distance in mz for merged peak cluster 
 		defaults_.setValue("max_mz_dist_merging",1.5);
+		
+		// minimum p-value for a significant cluster
+		defaults_.setValue("fdr_alpha",5.0);
 }
 
 BaseSweepSeeder::BaseSweepSeeder(const BaseSweepSeeder& source) : BaseSeeder(source) {}
@@ -182,13 +185,13 @@ void BaseSweepSeeder::sweep_()
 			w.stop();
 			cout << "Isotopic pattern detection took " << w.getClockTime() << " [s]. " << endl;
 			w.reset();	
-			
+			/*
 			for (ScoredMZVector::const_iterator citer = iso_curr_scan.begin();
 						citer != iso_curr_scan.end();
 						++citer)
 			{
  				traits_->getPeakFlag( make_pair( currscan_index, citer->first ) ) = FeaFiTraits::USED;			
-			}
+			}*/
 			
 			// for each m/z position with score: 
 			// => check for cluster at similar m/z in previous scans
@@ -236,15 +239,17 @@ void BaseSweepSeeder::sweep_()
 				this_peak =  (citer->first+1);
 				mz_dist   = ( traits_->getPeakMz( make_pair(currscan_index,this_peak) )  - start_mz );
 					
-				// and to the right (we walk for at most 3 Th)
-				while (mz_dist < 2.0 && this_peak < current_scan.size() )
+				// and to the right (we walk for at most 2 Th)
+				while (mz_dist <= 3.0 && this_peak < current_scan.size() )
 				{
 					if ( traits_->getPeakFlag( make_pair(currscan_index,this_peak) )  == FeaFiTraits::UNUSED )
 					{
 						entry_to_insert->second.peaks_.insert( make_pair(currscan_index,this_peak) );
 						traits_->getPeakFlag( make_pair(currscan_index,this_peak) ) = FeaFiTraits::USED;
 					}					
-					mz_dist = ( traits_->getPeakMz( make_pair(currscan_index,++this_peak) )  - start_mz );
+					
+					mz_dist = ( traits_->getPeakMz( make_pair(currscan_index,this_peak) )  - start_mz );
+					++this_peak;
 				}
 							
 			}
@@ -454,8 +459,8 @@ void BaseSweepSeeder::filterForSize_()
 void BaseSweepSeeder::filterForSignificance_()
 {
 	vector<TableIteratorType> entries_to_delete;
-		
-	ProbabilityType alpha = 0.2;
+			
+	ProbabilityType alpha = param_.getValue("fdr_alpha");
 	//cout << "Filtering for significance with alpha: " << (alpha/iso_map_.size() ) << endl;	
 
 	for (TableIteratorType iter = iso_map_.begin(); iter != iso_map_.end(); ++iter)
