@@ -35,6 +35,7 @@ namespace OpenMS
 		:DefaultParamHandler("InternalCalibration")
 	{
 		subsections_.push_back("PeakPicker");
+		check_defaults_=false; // class has no own parameters
 	}
 	
   InternalCalibration::InternalCalibration(InternalCalibration& obj)

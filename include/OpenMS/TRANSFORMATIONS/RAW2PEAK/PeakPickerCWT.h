@@ -306,7 +306,7 @@ namespace OpenMS
 #endif
 
       // thresholds for deconvolution
-      double fwhm_threshold = (float)param_.getValue("deconvolution:fwhm_threshold");
+      double fwhm_threshold = (float)param_.getValue("deconvolution:fitting:fwhm_threshold");
       double symm_threshold = (float)param_.getValue("deconvolution:asym_threshold");
 
 

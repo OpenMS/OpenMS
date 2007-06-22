@@ -41,7 +41,9 @@ CPP_SOURCES=\
 	Tutorial_GaussFilter.C\
 	Tutorial_SavitzkyGolayFilter.C\
 	Tutorial_FeatureFinder.C\
-	Tutorial_PairwiseAlignment.C
+	Tutorial_PairwiseAlignment.C\
+	Tutorial_InternalCalibration.C\
+	Tutorial_ExternalCalibration.C
 
 OBJECTS=$(SOURCES:.C=.o)
 
@@ -99,6 +101,12 @@ Tutorial_SavitzkyGolayFilter: Tutorial_SavitzkyGolayFilter.o
 
 Tutorial_FeatureFinder: Tutorial_FeatureFinder.o
 	$(CXX) $(LDFLAGS) -o $@ $< $(GUI_LIBS)
-	
+
 Tutorial_PairwiseAlignment: Tutorial_PairwiseAlignment.o
+	$(CXX) $(LDFLAGS) -o $@ $< $(GUI_LIBS)
+
+Tutorial_InternalCalibration: Tutorial_InternalCalibration.o
+	$(CXX) $(LDFLAGS) -o $@ $< $(GUI_LIBS)
+
+Tutorial_ExternalCalibration: Tutorial_ExternalCalibration.o
 	$(CXX) $(LDFLAGS) -o $@ $< $(GUI_LIBS)

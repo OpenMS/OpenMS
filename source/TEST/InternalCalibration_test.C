@@ -2,7 +2,7 @@
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
-//                   OpenMS Mass Spectrometry Framework 
+//                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
 //  Copyright (C) 2003-2007 -- Oliver Kohlbacher, Knut Reinert
 //
@@ -21,106 +21,66 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Alexandra Zerck $
+// $Maintainer: Alexandra Zerck$
 // --------------------------------------------------------------------------
-//
 
 #include <OpenMS/CONCEPT/ClassTest.h>
 
 ///////////////////////////
-
 #include <OpenMS/FILTERING/CALIBRATION/InternalCalibration.h>
-#include <OpenMS/FORMAT/MzDataFile.h>
+///////////////////////////
 
 using namespace OpenMS;
 using namespace std;
 
-///////////////////////////
-
 START_TEST(InternalCalibration, "$Id$")
 
 /////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////
 
 InternalCalibration* ptr = 0;
-CHECK((InternalCalibration()))
-  ptr = new InternalCalibration;
-  TEST_NOT_EQUAL(ptr, 0)
+CHECK(InternalCalibration())
+{
+	ptr = new InternalCalibration();
+	TEST_NOT_EQUAL(ptr, 0)
+}
+RESULT
+
+CHECK(~InternalCalibration())
+{
+	delete ptr;
+}
 RESULT
 
 CHECK((~InternalCalibration()))
-  delete ptr;
+{
+  // TODO
+}
 RESULT
 
 ptr = new InternalCalibration();
 
-CHECK((InternalCalibration(const InternalCalibration& source)))
+CHECK((InternalCalibration(InternalCalibration &obj)))
+{
   InternalCalibration copy(*ptr);
   TEST_EQUAL(copy.getPeaks()== ptr->getPeaks(),true)
   TEST_EQUAL(copy.getMonoisotopicPeaks()==ptr->getMonoisotopicPeaks(),true )
+}
 RESULT
 
-CHECK((InternalCalibration& operator=(const InternalCalibration& source)))
+CHECK((InternalCalibration& operator=(const InternalCalibration &obj)))
+{
   InternalCalibration copy;
   copy = *ptr;
   TEST_EQUAL(copy.getPeaks()== ptr->getPeaks(),true)
   TEST_EQUAL(copy.getMonoisotopicPeaks()==ptr->getMonoisotopicPeaks(),true )
+
+}
 RESULT
 
-CHECK((const MSExperiment<PickedPeakType>& getPeaks() const))
-  MSExperiment<PickedPeak1D> exp;
-  MSSpectrum<PickedPeak1D> spec;
-  PickedPeak1D peak;
-  peak.setMZ(100.1);
-  spec.push_back(peak);
-  peak.setMZ(102.1);
-  spec.push_back(peak);
-  exp.push_back(spec);
-  ptr->setPeaks(exp);
-  TEST_EQUAL(ptr->getPeaks()== exp,true)
-RESULT
-  
-CHECK((void setPeaks( MSExperiment<PickedPeakType>& exp) ))
-  MSExperiment<PickedPeak1D> exp;
-  MSSpectrum<PickedPeak1D> spec;
-  PickedPeak1D peak;
-  peak.setMZ(100.1);
-  spec.push_back(peak);
-  peak.setMZ(102.1);
-  spec.push_back(peak);
-  exp.push_back(spec);
-  
-  ptr->setPeaks(exp);
-  TEST_EQUAL(ptr->getPeaks()==exp,true)
-RESULT
-
-CHECK((const std::vector<std::vector<UInt> >& getMonoisotopicPeaks() const))
-  std::vector<std::vector<UInt> > p;
-  std::vector<UInt> vec;
-  vec.push_back(1);
-  vec.push_back(2);
-  vec.push_back(3);
-  p.push_back(vec);
-  
-  p.push_back(vec);
-  ptr->setMonoisotopicPeaks(p);
-  TEST_EQUAL(ptr->getMonoisotopicPeaks()== p,true)
-RESULT
-  
-CHECK((void setMonoisotopicPeaks( std::vector<std::vector<UInt> >& p) ))
-  std::vector<std::vector<UInt> > p;
-  std::vector<UInt> vec;
-  vec.push_back(1);
-  vec.push_back(2);
-  vec.push_back(3);
-  p.push_back(vec);
-  ptr->setMonoisotopicPeaks(p);
-  TEST_EQUAL(ptr->getMonoisotopicPeaks()==p,true)
-RESULT
-
-
-CHECK( template<typename InputPeakType>
-       void calibrate(MSExperiment<InputPeakType>& exp, std::vector<double>& ref_masses,bool peak_data) )
-  PRECISION(0.000001)
+CHECK((template <typename InputPeakType> void calibrate(MSExperiment< InputPeakType > &exp, std::vector< double > &ref_masses, bool peak_data=false)))
+{
+    PRECISION(0.000001)
   MSExperiment<RawDataPoint1D> exp;
   MSExperiment<PickedPeak1D> exp_peaks;
   MzDataFile file;
@@ -150,9 +110,73 @@ CHECK( template<typename InputPeakType>
   it = lower_bound(exp_peaks[0].begin(),exp_peaks[0].end(),peak,RawDataPoint1D::PositionLess());
   --it;
   TEST_REAL_EQUAL(it->getMZ(),2465.19833942)
+}
 RESULT
+
+CHECK((const MSExperiment<PickedPeakType>& getPeaks() const))
+{
+  MSExperiment<PickedPeak1D> exp;
+  MSSpectrum<PickedPeak1D> spec;
+  PickedPeak1D peak;
+  peak.setMZ(100.1);
+  spec.push_back(peak);
+  peak.setMZ(102.1);
+  spec.push_back(peak);
+  exp.push_back(spec);
+  ptr->setPeaks(exp);
+  TEST_EQUAL(ptr->getPeaks()== exp,true)
+}
+RESULT
+
+CHECK((void setPeaks(const MSExperiment< PickedPeakType > &exp_peaks)))
+{
+  MSExperiment<PickedPeak1D> exp;
+  MSSpectrum<PickedPeak1D> spec;
+  PickedPeak1D peak;
+  peak.setMZ(100.1);
+  spec.push_back(peak);
+  peak.setMZ(102.1);
+  spec.push_back(peak);
+  exp.push_back(spec);
   
+  ptr->setPeaks(exp);
+  TEST_EQUAL(ptr->getPeaks()==exp,true)
+
+}
+RESULT
+
+CHECK((const std::vector<std::vector<UInt> >& getMonoisotopicPeaks() const))
+{
+  std::vector<std::vector<UInt> > p;
+  std::vector<UInt> vec;
+  vec.push_back(1);
+  vec.push_back(2);
+  vec.push_back(3);
+  p.push_back(vec);
+  
+  p.push_back(vec);
+  ptr->setMonoisotopicPeaks(p);
+  TEST_EQUAL(ptr->getMonoisotopicPeaks()== p,true)
+}
+RESULT
+
+CHECK((void setMonoisotopicPeaks(const std::vector< std::vector< UInt > > &monoiso_peaks)))
+{
+  std::vector<std::vector<UInt> > p;
+  std::vector<UInt> vec;
+  vec.push_back(1);
+  vec.push_back(2);
+  vec.push_back(3);
+  p.push_back(vec);
+  ptr->setMonoisotopicPeaks(p);
+  TEST_EQUAL(ptr->getMonoisotopicPeaks()==p,true)
+}
+RESULT
+
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST
+
+
+

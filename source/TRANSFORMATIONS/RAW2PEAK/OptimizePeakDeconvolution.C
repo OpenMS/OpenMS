@@ -323,16 +323,21 @@ namespace OpenMS
 		: DefaultParamHandler("OptimizePeakDeconvolution"),charge_(1)
 	{
 		
-		defaults_.setValue("max_iteration",10,"TODO????");
-		defaults_.setValue("eps_abs",1e-04,"TODO????");
-		defaults_.setValue("eps_rel",1e-04,"TODO????");
+		defaults_.setValue("max_iteration",10,"maximal number of iterations for the fitting step");
+		defaults_.setValue("eps_abs",1e-04,"if the absolute error gets smaller than this value the fitting is stopped");
+		defaults_.setValue("eps_rel",1e-04,"if the relative error gets smaller than this value the fitting is stopped");
 
-		defaults_.setValue("penalties:left_width",0,"TODO????");
-		defaults_.setValue("penalties:right_width",0,"TODO????");
-		defaults_.setValue("penalties:height",0,"TODO????");
-		defaults_.setValue("penalties:position",0,"TODO????");
+		defaults_.setValue("penalties:left_width",0,"penalty term for the fitting of the left width:"\
+											 "If the left width gets too broad or negative during the fitting it can be penalized.");
+		defaults_.setValue("penalties:right_width",0,"penalty term for the fitting of the right width:"\
+											 "If the right width gets too broad or negative during the fitting it can be penalized.");
+		defaults_.setValue("penalties:height",0,"penalty term for the fitting of the intensity:"\
+											 "If it gets negative during the fitting it can be penalized.");
+		defaults_.setValue("penalties:position",0,"penalty term for the fitting of the peak position:"\
+											 "If the position changes more than 0.5Da during the fitting it can be penalized as well as "\
+											 "discrepancies of the peptide mass rule.");
 
-		defaults_.setValue("fwhm_threshold",1,"TODO????");
+		defaults_.setValue("fwhm_threshold",1,"If a peaks is broader than fwhm_threshold, it is assumed that it contains another peaks and an additional peak is added.");
 
 		defaultsToParam_();
 	}

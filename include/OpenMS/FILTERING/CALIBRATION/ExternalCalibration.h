@@ -44,7 +44,10 @@
 #undef DEBUG_CALIBRATION
 namespace OpenMS
 {
-  /**
+
+
+
+	/**
      @brief This class implements an external calibration for TOF data using external calibrant spectra.
      
      The procedure is very similar to the one described in Gobom et al. (Anal Chem. 2002, 74 (15) pp 3915-23).
@@ -57,6 +60,19 @@ namespace OpenMS
   class ExternalCalibration : public DefaultParamHandler,public ProgressLogger
   {
   public:
+		/** @brief Inner Classes for Exception handling
+	     		
+	     		UnableToCalibrate-Exception if the calibration can not be performed because not enough reference masses
+					were detected.
+			*/
+		class UnableToCalibrate
+			: public Exception::Base
+		{
+		public:
+			UnableToCalibrate(const char* file, int line, const char* function, const std::string& name , const std::string& message) throw();
+			virtual ~UnableToCalibrate() throw();
+		};
+		
     /// Raw data point type
     typedef RawDataPoint1D RawDataPointType;
     
@@ -137,7 +153,7 @@ namespace OpenMS
     gsl_spline* spline_;
 
     /// Calculates the coefficients of the quadratic fit used for external calibration.
-    void calculateCalibCoeffs_(MSExperiment<PickedPeakType >& calib_peaks_ft);
+    void calculateCalibCoeffs_(MSExperiment<PickedPeakType >& calib_peaks_ft) throw (UnableToCalibrate);
 
 		
     /// determines the monoisotopic peaks
@@ -161,13 +177,13 @@ namespace OpenMS
 											std::vector<unsigned int>& obs_masses,std::vector<double>& exp_masses,unsigned int idx);
 		
     /// Calculate the mass value for a given flight time using the coefficients of the quadratic fit in a specific spectrum.
-    inline double m_q_(double ft, unsigned int spec)
+    inline double mQ_(double ft, unsigned int spec)
     {
       return coeff_quad_fit_[3*spec] + ft*coeff_quad_fit_[3*spec+1] + ft*ft*coeff_quad_fit_[3*spec+2]; 
     }
 		
     /// Calculate the mass value for a given flight time using the averaged coefficients of the quadratic fit.		
-    inline double m_q_av_(double ft)
+    inline double mQAv_(double ft)
     {
       return a_ + ft*b_ + ft*ft*c_; 
     }
@@ -205,7 +221,7 @@ namespace OpenMS
       {
 				for(unsigned int peak=0;peak <  exp[spec].size(); ++peak)
 					{
-						m = m_q_av_(exp[spec][peak].getMZ());
+						m = mQAv_(exp[spec][peak].getMZ());
 						exp[spec][peak].setPos(m - gsl_spline_eval(spline_,m,acc_));
 						
 					}

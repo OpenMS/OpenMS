@@ -10,9 +10,6 @@
 	    <ITEM name="tolerance_mz" value="0.2" type="float" />
             <ITEM name="max_peak_distance" value="1" type="float" />
  	</NODE>
-
-            <ITEM name="skip_optimization" value="no" type="string" />
-            <ITEM name="real_2D" value="no" type="string" />
             <ITEM name="iterations" value="20" type="float" />
             <ITEM name="delta_abs_error" value="0.001" type="float" />
             <ITEM name="delta_rel_error" value="0.002" type="float" />

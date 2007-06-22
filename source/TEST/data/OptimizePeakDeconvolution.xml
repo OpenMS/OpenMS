@@ -29,21 +29,22 @@
      </NODE>
 
     <NODE name="deconvolution">
-    	<NODE name="penalties">
-	    <ITEM name="height" value="1" type="float" />
-            <ITEM name="left_width" value="10" type="float" />
-            <ITEM name="right_width" value="10" type="float" />
-            <ITEM name="position" value="1" type="float" />
- 	</NODE>
-            <ITEM name="width_threshold" value="2" type="float" />
+        <NODE name="fitting">
+	    <NODE name="penalties">
+	        <ITEM name="height" value="1" type="float" />
+                <ITEM name="left_width" value="10" type="float" />
+                <ITEM name="right_width" value="10" type="float" />
+                <ITEM name="position" value="1" type="float" />
+ 	    </NODE>
+	    <ITEM name="max_iteration" value="20" type="float" />
+            <ITEM name="eps_abs" value="0.00000001" type="float" />
+            <ITEM name="eps_rel" value="0.00000001" type="float" />
+            <ITEM name="fwhm_threshold" value="0.7" type="float" />
+     	</NODE>
             <ITEM name="asym_threshold" value="0.3" type="float" />
             <ITEM name="left_width" value="2" type="float" />
             <ITEM name="right_width" value="2" type="float" />
-            <ITEM name="fwhm_threshold" value="0.7" type="float" />
             <ITEM name="scaling" value="0.12" type="float" />
-            <ITEM name="iterations" value="20" type="float" />
-            <ITEM name="delta_abs_error" value="0.00000001" type="float" />
-            <ITEM name="delta_rel_error" value="0.00000001" type="float" />
             <ITEM name="skip_deconvolution" value="no" type="string" />
      </NODE>
      <NODE name="2D_optimization">

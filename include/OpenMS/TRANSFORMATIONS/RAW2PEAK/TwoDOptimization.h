@@ -68,11 +68,7 @@ namespace OpenMS
 	
 	typedef std::pair<unsigned int,unsigned int> Idx  ;
 	typedef std::set<Idx> IndexSet;
-	
-  /**
-		 @brief Namespace for all functions and classes needed for 2D optimization.
-	
-	*/
+
   namespace OptimizationFunctions
   {
   

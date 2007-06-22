@@ -128,7 +128,7 @@ CHECK((bool optimize(std::vector<PeakShape>& peaks,int failure)))
 
 
  	OptimizePeakDeconvolution opt_deconv;
-  opt_deconv.setParameters(param.copy("deconvolution:",true));
+  opt_deconv.setParameters(param.copy("deconvolution:fitting:",true));
  	opt_deconv.optimize(peak_shapes,1);
  	TEST_REAL_EQUAL(peak_shape.mz_position,500)
  	TEST_REAL_EQUAL(peak_shape.left_width,2.5)
