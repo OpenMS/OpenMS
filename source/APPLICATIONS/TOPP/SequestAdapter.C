@@ -1233,7 +1233,7 @@ class TOPPSequestAdapter
 				ProteinIdentification::SearchParameters sp;
 				sp.db = "Fasta";
 				sp.taxonomy = sequest_infile.getSequenceHeaderFilter();
-				if ( monoisotopic ) sp.mass_type = ProteinIdentification::MONOISOTOPIC;
+				if ( getFlag_("mass_type_peak") ) sp.mass_type = ProteinIdentification::MONOISOTOPIC;
 				else sp.mass_type = ProteinIdentification::AVERAGE;
 				for ( vector< Int >::const_iterator c_i = charges.begin(); c_i != charges.end(); ++c_i )
 				{
