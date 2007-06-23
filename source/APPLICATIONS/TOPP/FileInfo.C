@@ -368,8 +368,6 @@ class TOPPFileInfo
 
 int main( int argc, char ** argv )
 {
-	RawDataPoint1D test;
-	cout << sizeof(test) << endl;
 	TOPPFileInfo tool;
 	return tool.main(argc,argv);
 }
