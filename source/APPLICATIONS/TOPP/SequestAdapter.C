@@ -573,6 +573,8 @@ class TOPPSequestAdapter
 			contact_person.setInstitution(getStringOption_("contact_institution"));
 			contact_person.setContactInfo(getStringOption_("contact_info"));
 			
+			monoisotopic = getFlag_("use_monoisotopic_mod_mass");
+			
 			if ( sequest_in )
 			{
 				temp_data_directory_win = getStringOption_("temp_data_directory_win");
@@ -920,7 +922,6 @@ class TOPPSequestAdapter
 				}
 				// modifications
 				string_buffer = getStringOption_("modifications");
-				monoisotopic = getFlag_("use_monoisotopic_mod_mass");
 				try
 				{
 					sequest_infile.handlePTMs(string_buffer, modifications_filename, monoisotopic);
