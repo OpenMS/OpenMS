@@ -102,12 +102,12 @@ namespace OpenMS
     	//set the name for DefaultParamHandler error messages
       setName(getProductName());
 
-      defaults_.setValue("similarity:max_pair_distance:RT",3,"Maximum distance in RT dimension");
-      defaults_.setValue("similarity:max_pair_distance:MZ",0.1,"Maximum distance in m/z dimension");
-      defaults_.setValue("similarity:precision:RT",20,"The precision of the element's retention time position.");
+      defaults_.setValue("similarity:max_pair_distance:RT",20,"Maximum distance in RT dimension");
+      defaults_.setValue("similarity:max_pair_distance:MZ",1,"Maximum distance in m/z dimension");
+      defaults_.setValue("similarity:precision:RT",60,"The precision of the element's retention time position.");
       defaults_.setValue("similarity:precision:MZ",0.5,"The precision of the element's m/z position.");
       defaults_.setValue("similarity:diff_intercept:RT",1,"Factor for RT position used to balance the influence of RT and m/z deviations");
-      defaults_.setValue("similarity:diff_intercept:MZ",0.1,"Factor for m/z position used to balance the influence of RT and m/z deviations");
+      defaults_.setValue("similarity:diff_intercept:MZ",0.01,"Factor for m/z position used to balance the influence of RT and m/z deviations");
 
       Base::defaultsToParam_();
     }

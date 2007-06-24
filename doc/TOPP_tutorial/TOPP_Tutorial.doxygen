@@ -32,7 +32,7 @@
 
 		This tutorial will give you a brief overview of the most important TOPP tools.
 		First some basics that you will need for every TOPP tool are explained,
-		then several example pipleines are shown.
+		then several example pipelines are shown.
 
 	@section TOPP_fileformats File formats
 		
@@ -199,7 +199,7 @@ FileFilter -in infile.mzData -levels 2 -rt 100:1500 -out outfile.mzData
 /**
 	@page TOPP_example2 Example 2: Raw data processing
 		
-		@b Goal: You want to identify all peaks in your raw data.
+		@b Goal: You want to find all peaks in your raw data.
 
 		The first step shown here is the elimination of noise using the NoiseFilter. The
 		now smoothed raw data can be further processed by subtracting the baseline
@@ -208,21 +208,27 @@ FileFilter -in infile.mzData -levels 2 -rt 100:1500 -out outfile.mzData
 		
 		@image html TOPP_raw_data.png
 		@image latex TOPP_raw_data.png "" width=10cm
+		
+		We offer two different smoothing filters which are a Gaussian filter and a Savitzky Golay filter,
+	  which can selected by the option '<tt>filter_type</tt>'. If you want to use the Savitzky Golay filter,
+	  or our @a BaselineFilter with non equally spaced raw data, e.g. TOF data, you have to generate equally spaced data by setting
+	  the '<tt>resampling</tt>' option. 
 	
-	@section TOPP_example2_parameters PeakPicking parameters
+	@section TOPP_example2_parameters Finding the right parameters for the NoiseFilter, the BaselineFilter
+	and the PeakPicker
 	
-	Finding the right parameters for the peak picking is not trivial. The default parameters
-	will not work on most datasets. In order to find good parameters we propose the
-	following procedure:
+	Finding the right parameters is not trivial. The default parameters	will not work on most datasets.
+	In order to find good parameters we propose the	following procedure:
 	-# Load the data in TOPPView
 	-# Extract a single scan from the middle of the HPLC gradient (Right click on scan)
-	-# Experiment with the peak picking parameters until you have found the proper settings
-		- You can find the peak picker in @a TOPPView in the menu 'Layer' - 'Apply TOPP tool'
-		- The most important parameters are 
+	-# Experiment with the parameters until you have found the proper settings
+		- You can find the @a NoiseFilter, the @a BaselineFilter, and the @a PeakPicker in @a TOPPView 
+		  in the menu 'Layer' - 'Apply TOPP tool'
+		- The most important parameters for the @a PeakPicker are 
 		  - <tt>peak_bound</tt> - The minimum intensity of a peak in a MS scan
-		  - <tt>peak_bound_ms2_level</tt> - The minimum intensity of a peak in an MS/MS scan
-		  - <tt>fwhm_bound</tt> - Expected width of the peak
-		  - <tt>scale</tt> - Width of the used wavelet (can be set equal to 'fwhm_bound')
+		  - <tt>peak_bound_ms2_level</tt> - The minimum intensity of a peak in a MS/MS scan
+		  - <tt>fwhm_bound</tt> - The minimal width of a peak
+		  - <tt>scale</tt> - Scale of the wavelet (can be set equal to 'fwhm_bound')
 */
 
 //##############################################################################
@@ -251,26 +257,40 @@ FileFilter -in infile.mzData -levels 2 -rt 100:1500 -out outfile.mzData
 //##############################################################################
 
 /**
-	@page TOPP_example4 Example 4: Map alignment
+	@page TOPP_example4 Example 4: Label free quantitation - peak and feature map alignment
 
-		@b Goal:
-	
-		@image html TOPP_map_mapping.png
-		@image latex TOPP_map_mapping.png "" width=10cm
+		@b Goal 1: Peak map alignment algorithms should map a number of peak maps onto comparable retention time and m/z dimensions.
+			
+		@image html TOPP_map_mapping_peaks.png
+		@image latex TOPP_map_mapping_peaks.png "" width=10cm
+		
+		@b Goal 2: However feature map alignment approaches should additionally find and group corresponding elements in the maps. 	
+		
+    @image html TOPP_map_mapping_features.png
+		@image latex TOPP_map_mapping_features.png "" width=10cm
+		
+		The %TOPP tool @b MapAlignment solves for both alignment problems.
+		
+	  Our multiple alignment approach is based on the combination of pairwise map alignments.
+		A pairwise map alignment proceeds in several steps. In the first step the retention time warp and 
+		the distortion in m/z is estimated using a pose clustering approach. This initial transformation
+		is used to find elements in the two maps which likely belong together. In the second step 
+		these pairs are used as landmarks and a final, improved transformation is estimated by which the
+		two maps are mapped onto each other in a third step. The first three steps constitute the so called \e superposition \e phase.
+		In case of a feature map alignment the corresponding elements are grouped together in a fourths step, the so
+		called \e consensus \e phase.
+		We offer three tools for the superposition phase of a pairwise feature map alignment which are @b UnlabeledMatcher, 
+	  @b MapMatcher, @b MapDewarper.
 
-	@section TOPP_example4_parameters MapAlignment parameters
-	
-		Finding the right parameters for the MapAlignment application can be done in the following way:
-		- ...
-
-
-		@b Goal:
-
-		@image html TOPP_map_mapping_old.png
-		@image latex TOPP_map_mapping_old.png "" width=14cm
-
-
-
+		@image html TOPP_map_mapping_modules.png
+		@image latex TOPP_map_mapping_modules.png "" width=14cm
+		
+		@section TOPP_example4_parameters Most important MapAlignment parameters
+		  - <tt>map_type</tt> - The type of the input maps ('peak_map','feature_map', or 'consensus_map')
+		  - <tt>matching_algorithm:number_buckets</tt> - The number of buckets in retention time and m/z dimension. If the number is set to one a globally defined warp is estimated 
+		  and if the number is greater than one the MapAlignment results in a piecewise defined transformation.  
+		  - <tt>matching_algorithm:superimposer:tuple_search:mz_bucket_size</tt> - The deviation of corresponding elements in m/z.
+		  - <tt>matching_algorithm:pairfinder:precision</tt> - The deviation of corresponding elements in retention time and m/z after dewarping.
 */
 
 //##############################################################################
@@ -299,17 +319,4 @@ FileFilter -in infile.mzData -levels 2 -rt 100:1500 -out outfile.mzData
 		Finding the right parameters for the FeatureFinder application can be done in the following way:
 		- ...
 
-*/
-
-//##############################################################################
-
-/**
-	@page TOPP_example6 Example 6: Label-free quantitation
-
-		@b Goal: 
-	
-		@image html TOPP_labelfree_quant.png
-		@image latex TOPP_labelfree_quant.png "" width=14cm
-	
-		Help on how to find proper parameters for the Featurefinder can be found in section @ref TOPP_example5_parameters.
 */

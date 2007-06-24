@@ -830,10 +830,18 @@ The following example (Tutorial_PairwiseAlignment.C) shows how to use the @a Pos
 The @a PoseClusteringPairwiseMapMatcher is based on the @a PoseClusteringSuperimposerAffine, and a @a DelaunayPairFinder.
 The initial as well as the final transformation are stored in gridXML format.
 
+We load two feature maps and instantiate a @a PoseClusteringPairwiseMapMatcher object. The @a PoseClusteringPairwiseMapMatcher
+gets references to both maps and a @a Param object which defines the type of transformation and pairfinder.
+Additionally the value of <tt>mz_bucket_size</tt> is set, which represents the maximal deviation in m/z of two corresponding elements.
 @dontinclude Tutorial_PairwiseAlignment.C
   @skip main
+  @until pcpm.run();
+The @a PoseClusteringPairwiseMapMatcher results in a vector of element pairs and an initial estimate of the transformation. 
+We store this initial transformation under "FirstAffineTransformation.gridXML" and pass the 
+element pairs along with the initial transformation to a @a MapMatcher object.
+  @until lr.setGrid(
+Using these landmarks an improved transformation is estimated and stored under "SecondAffineTransformation.gridXML"
   @until end of main
-  
 @note The class @a MapDewarper can be used to apply the transformation to the elements of a map.
 
 

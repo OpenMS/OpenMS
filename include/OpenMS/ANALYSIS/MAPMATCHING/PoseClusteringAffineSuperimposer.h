@@ -119,15 +119,15 @@ namespace OpenMS
     {
       setName(getProductName());
 
-      defaults_.setValue("tuple_search:mz_bucket_size",1,"An estimate of m/z deviation of corresponding elements in different maps.");
+      defaults_.setValue("tuple_search:mz_bucket_size",.5,"An estimate of m/z deviation of corresponding elements in different maps.");
       defaults_.setValue("transformation_space:shift_bucket_size:RT",1,"Defines the shift parameter's bucket size during histograming.");
       defaults_.setValue("transformation_space:shift_bucket_size:MZ",0.1,"Defines the shift parameter's bucket size during histograming.");
-      defaults_.setValue("transformation_space:scaling_bucket_size:RT",0.5,"Defines the scaling parameter's bucket size during histograming.");
+      defaults_.setValue("transformation_space:scaling_bucket_size:RT",0.1,"Defines the scaling parameter's bucket size during histograming.");
       defaults_.setValue("transformation_space:scaling_bucket_size:MZ",0.1,"Defines the scaling parameter's bucket size during histograming.");
-      defaults_.setValue("transformation_space:bucket_window_shift:RT",1,"Number of surrounding buckets of element indices to be considered when computing the shift parameter.");
-      defaults_.setValue("transformation_space:bucket_window_shift:MZ",1,"Number of surrounding buckets of element indices to be considered when computing the shift parameter.");
-      defaults_.setValue("transformation_space:bucket_window_scaling:RT",1,"Number of surrounding buckets of element indices to be considered when computing the scaling parameter.");
-      defaults_.setValue("transformation_space:bucket_window_scaling:MZ",1,"Number of surrounding buckets of element indices to be considered when computing the scaling parameter.");
+      defaults_.setValue("transformation_space:bucket_window_shift:RT",5,"Number of surrounding buckets of element indices to be considered when computing the shift parameter.");
+      defaults_.setValue("transformation_space:bucket_window_shift:MZ",5,"Number of surrounding buckets of element indices to be considered when computing the shift parameter.");
+      defaults_.setValue("transformation_space:bucket_window_scaling:RT",2,"Number of surrounding buckets of element indices to be considered when computing the scaling parameter.");
+      defaults_.setValue("transformation_space:bucket_window_scaling:MZ",2,"Number of surrounding buckets of element indices to be considered when computing the scaling parameter.");
       defaults_.setValue("transformation_space:min_shift:RT",-1000,"Minimal shift parameter which is considered during histogramming.");
       defaults_.setValue("transformation_space:min_shift:MZ",-5,"Minimal shift parameter which is considered during histogramming.");
       defaults_.setValue("transformation_space:max_shift:RT",1000,"Maximal shift parameter which is considered during histogramming.");
