@@ -804,13 +804,12 @@ This class implements a simple generator to generate tandem MS spectra from a gi
 /**
 
 @page tutorial_analysis High-level data analysis
- 
- 
-@section analysis_mapalignment Map alignment
 
 %OpenMS offers a number of classes for high-level data analysis. This covers map alignment, peptide/protein identification,
 clustering, etc.
 The classes described in this section can be found in the @a ANALYSIS folder.
+
+@section analysis_mapalignment Map alignment
 
 @subsection analysis_pairwisealignment Pairwise map alignment
 The class @a PoseClusteringPairwiseMapMatcher can be used to map the element of one LC-MS map onto the elements of another LC-MS map.
@@ -836,7 +835,7 @@ Additionally the value of <tt>mz_bucket_size</tt> is set, which represents the m
 @dontinclude Tutorial_PairwiseAlignment.C
   @skip main
   @until pcpm.run();
-The @a PoseClusteringPairwiseMapMatcher results in a vector of element pairs and an initial estimate of the transformation. 
+The @a PoseClusteringPairwiseMapMatcher determines a vector of element pairs and an initial estimate of the transformation. 
 We store this initial transformation under "FirstAffineTransformation.gridXML" and pass the 
 element pairs along with the initial transformation to a @a MapMatcher object.
   @until lr.setGrid(

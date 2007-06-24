@@ -214,8 +214,7 @@ FileFilter -in infile.mzData -levels 2 -rt 100:1500 -out outfile.mzData
 	  or our @a BaselineFilter with non equally spaced raw data, e.g. TOF data, you have to generate equally spaced data by setting
 	  the '<tt>resampling</tt>' option. 
 	
-	@section TOPP_example2_parameters Finding the right parameters for the NoiseFilter, the BaselineFilter
-	and the PeakPicker
+	@section TOPP_example2_parameters Finding the right parameters for the NoiseFilter, the BaselineFilter and the PeakPicker
 	
 	Finding the right parameters is not trivial. The default parameters	will not work on most datasets.
 	In order to find good parameters we propose the	following procedure:
@@ -278,7 +277,8 @@ FileFilter -in infile.mzData -levels 2 -rt 100:1500 -out outfile.mzData
 		these pairs are used as landmarks and a final, improved transformation is estimated by which the
 		two maps are mapped onto each other in a third step. The first three steps constitute the so called \e superposition \e phase.
 		In case of a feature map alignment the corresponding elements are grouped together in a fourths step, the so
-		called \e consensus \e phase.
+		called \e consensus \e phase. 
+		
 		We offer three tools for the superposition phase of a pairwise feature map alignment which are @b UnlabeledMatcher, 
 	  @b MapMatcher, @b MapDewarper.
 
