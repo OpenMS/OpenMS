@@ -113,21 +113,21 @@ CHECK((double getDiffIntercept(UInt dim)))
   DelaunayPairFinder<FeatureMap<> > dpf;
   
   TEST_REAL_EQUAL(dpf.getDiffIntercept(0),1)
-  TEST_REAL_EQUAL(dpf.getDiffIntercept(1),0.1)
+  TEST_REAL_EQUAL(dpf.getDiffIntercept(1),0.01)
 RESULT
 
 CHECK((float getMaxPairDistance(UInt dim)))
   DelaunayPairFinder<FeatureMap<> > dpf;
   
-  TEST_REAL_EQUAL(dpf.getMaxPairDistance(0),3)
+  TEST_REAL_EQUAL(dpf.getMaxPairDistance(0),20)
   TEST_REAL_EQUAL(dpf.getMaxPairDistance(1),1)
 RESULT
 
 CHECK((float getPrecision(UInt dim)))
   DelaunayPairFinder<FeatureMap<> > dpf;
   
-  TEST_REAL_EQUAL(dpf.getPrecision(0),20)
-  TEST_REAL_EQUAL(dpf.getPrecision(1),5)
+  TEST_REAL_EQUAL(dpf.getPrecision(0),60)
+  TEST_REAL_EQUAL(dpf.getPrecision(1),.5)
 RESULT
 
 CHECK((static BasePairFinder<PointMapType>* create()))

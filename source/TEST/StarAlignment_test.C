@@ -135,10 +135,6 @@ CHECK((virtual void run() throw (Exception::InvalidValue)))
   TEST_REAL_EQUAL(it->getElement().getPosition()[0],1194.82)  
   TEST_REAL_EQUAL(it->getElement().getPosition()[1],777.101)
   TEST_REAL_EQUAL(it->getElement().getIntensity(),1.78215e+07)
-  ++it;
-  TEST_REAL_EQUAL(it->getElement().getPosition()[0],2401.64)  
-  TEST_REAL_EQUAL(it->getElement().getPosition()[1],777.201)
-  TEST_REAL_EQUAL(it->getElement().getIntensity(),1.78215e+07)
 RESULT
 
 CHECK((void setReferenceMapIndex(UInt index) throw(Exception::InvalidValue)))

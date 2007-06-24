@@ -232,26 +232,55 @@ namespace OpenMS
     /// Get max_pair_distance_
     float getMaxPairDistance(UInt dim)
     {
-      return max_pair_distance_[dim];
+      if (dim == RawDataPoint2D::RT) return max_pair_distance_[dim];
+      else 
+        {
+          double diff = diff_intercept_[RawDataPoint2D::RT] / diff_intercept_[RawDataPoint2D::MZ];
+     
+          return max_pair_distance_[dim] / diff;      
+        }
     }
 
     /// Set max_pair_distance_
     void setMaxPairDistance(UInt dim, Real max_pair_distance)
     {
-      max_pair_distance_[dim] = max_pair_distance;
+      if (dim == RawDataPoint2D::RT) 
+      {
+        max_pair_distance_[dim] = max_pair_distance; 
+      }
+      else 
+      {
+        double diff = diff_intercept_[RawDataPoint2D::RT] / diff_intercept_[RawDataPoint2D::MZ];
+        max_pair_distance_[dim] = max_pair_distance * diff;     
+       }
       param_.setValue(String("similarity:max_pair_distance:") + RawDataPoint2D::shortDimensionName(dim), max_pair_distance);
     }
 
     /// Get precision
     float getPrecision(UInt dim)
     {
-      return precision_[dim];
+      if (dim == RawDataPoint2D::RT) return precision_[dim];
+      else 
+        {
+          double diff = diff_intercept_[RawDataPoint2D::RT] / diff_intercept_[RawDataPoint2D::MZ];
+     
+          return precision_[dim] / diff;      
+        }
+      
     }
 
     /// Set precision
     void setPrecision(UInt dim, Real precision)
     {
-      precision_[dim] = precision;
+      if (dim == RawDataPoint2D::RT) 
+      {
+        precision_[dim] = precision; 
+      }
+      else 
+      {
+        double diff = diff_intercept_[RawDataPoint2D::RT] / diff_intercept_[RawDataPoint2D::MZ];
+        precision_[dim] = precision * diff;     
+      }
       param_.setValue(String("similarity:precision:") + RawDataPoint2D::shortDimensionName(dim), precision);
     }
 
