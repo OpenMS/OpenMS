@@ -252,7 +252,7 @@ else m = add_formula.getAverageWeight() - substract_formula.getAverageWeight();
 stringstream s;
 s.precision(10);
 s << m;
-std::cout << "MARTIN: " << add_formula.getString() << "  " << mass;
+//std::cout << "MARTIN: " << add_formula.getString() << "  " << mass;
  std::cout << "  " << s.str() << "  ";
 s.precision(9);
 s.str("");

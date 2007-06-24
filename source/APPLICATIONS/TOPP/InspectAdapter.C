@@ -207,7 +207,7 @@ class TOPPInspectAdapter
 				blind_only(false),
 				blind(false),
 				no_tmp_dbs(false),
-				monoisotopic;
+				monoisotopic(false);
 			
 			Real p_value_threshold = 1.0;
 			Real cutoff_p_value;
