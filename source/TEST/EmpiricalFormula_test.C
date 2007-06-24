@@ -62,7 +62,7 @@ CHECK(EmpiricalFormula(const EmpiricalFormula& rhs))
 	TEST_EQUAL(ef == *e_ptr, true)
 RESULT
 
-CHECK(EmpiricalFormula(UInt number, const Element* element, Int charge = 0))
+CHECK((EmpiricalFormula(UInt number, const Element* element, Int charge = 0)))
 	EmpiricalFormula ef(4, e_ptr->getElement("C"));
 	TEST_EQUAL(ef == *e_ptr, true)
 	TEST_EQUAL(ef.getCharge(), 0)

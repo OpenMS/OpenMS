@@ -39,7 +39,7 @@ namespace OpenMS
   
   	@param tolerance m/z tolerance
 		 
-		@ref SpectraFilter_Parameters are explained on a separate page.
+		@ref NeutralLossDiffFilter_Parameters are explained on a separate page.
 
 		@ingroup SpectraFilter
   */

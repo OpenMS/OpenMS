@@ -50,4 +50,117 @@ CHECK(~Residue())
 	delete e_ptr;
 RESULT
 
+
+e_ptr = new Residue();
+EmpiricalFormula h2o("H2O");
+
+CHECK(inline static const EmpiricalFormula& getInternalToFull())
+	TEST_EQUAL(e_ptr->getInternalToFull(), h2o)
+RESULT
+
+
+CHECK(static Real getInternalToFullAverageWeight())
+	TEST_EQUAL(e_ptr->getInternalToFullAverageWeight(), h2o.getAverageWeight())
+RESULT
+
+CHECK(static Real getInternalToFullMonoWeight())
+
+RESULT
+
+CHECK(static const EmpiricalFormula& getNTerminalToFull())
+
+RESULT
+
+CHECK(static Real getNTerminalToFullAverageWeight())
+
+RESULT
+
+CHECK(static Real getNTerminalToFullMonoWeight())
+
+RESULT
+
+CHECK(static const EmpiricalFormula& getCTerminalToFull())
+
+RESULT
+
+CHECK(static Real getCTerminalToFullAverageWeight())
+
+RESULT
+
+CHECK(static Real getCTerminalToFullMonoWeight())
+
+RESULT
+
+CHECK(static const EmpiricalFormula& getBIonToFull())
+
+RESULT
+
+CHECK(static Real getBIonToFullAverageWeight())
+
+RESULT
+
+CHECK(static Real getBIonToFullMonoWeight())
+
+RESULT
+
+CHECK(static const EmpiricalFormula& getAIonToFull())
+
+RESULT
+
+CHECK(static Real getAIonToFullAverageWeight())
+
+RESULT
+
+CHECK(static Real getAIonToFullMonoWeight())
+
+RESULT
+
+CHECK(static const EmpiricalFormula& getYIonToFull())
+
+RESULT
+
+CHECK(static Real getYIonToFullAverageWeight())
+
+RESULT
+
+CHECK(static Real getYIonToFullMonoWeight())
+
+RESULT
+
+CHECK(static const EmpiricalFormula& getCIonToFull())
+
+RESULT
+
+CHECK(static Real getCIonToFullAverageWeight())
+
+RESULT
+
+CHECK(static Real getCIonToFullMonoWeight())
+
+RESULT
+
+CHECK(static const EmpiricalFormula& getXIonToFull())
+
+RESULT
+
+CHECK(static Real getXIonToFullAverageWeight())
+
+RESULT
+
+CHECK(static Real getXIonToFullMonoWeight())
+
+RESULT
+
+CHECK(static const EmpiricalFormula& getZIonToFull())
+
+RESULT
+
+CHECK(static Real getZIonToFullAverageWeight())
+
+RESULT
+
+CHECK(static Real getZIonToFullMonoWeight())
+
+RESULT
+
 END_TEST

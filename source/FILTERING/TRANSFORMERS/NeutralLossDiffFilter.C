@@ -32,14 +32,12 @@ using namespace std;
 
 namespace OpenMS
 {
-  // Bern have a different one  
-
   NeutralLossDiffFilter::NeutralLossDiffFilter()
     : FilterFunctor()
   { 
 		setName(NeutralLossDiffFilter::getProductName());
     //value from Bioinformatics, Bern 2004
-    defaults_.setValue("tolerance", 0.37f);
+    defaults_.setValue("tolerance", 0.37f, "Tolerance value defined by Bern et al.");
 		defaultsToParam_();
   }
   

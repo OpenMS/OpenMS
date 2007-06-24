@@ -51,7 +51,7 @@ CHECK((PILISSequenceDB()))
 	TEST_NOT_EQUAL(ptr, 0)
 RESULT
 
-CHECK((~PILISSequenceDB()))
+CHECK((virtual ~PILISSequenceDB()))
 	delete ptr;
 RESULT
 

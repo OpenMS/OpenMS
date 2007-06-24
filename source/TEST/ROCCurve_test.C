@@ -76,18 +76,18 @@ RESULT
 
 #endif
 
-CHECK((std::vector<std::pair<double, double> curve(uint resolution = 10)))
+CHECK((std::vector<std::pair<double, double> > curve(uint resolution = 10)))
   vector<pair<double,double> > curvePoints = rcp->curve(100);
   TEST_EQUAL(curvePoints.size(),100)
 RESULT
 
-CHECK(double cutoffPos(double fraction = 0.95))
+CHECK((double cutoffPos(double fraction = 0.95)))
   double cop = rcp->cutoffPos();
   bool inBounds( cop >=0 && cop <= 1 );
   TEST_EQUAL(inBounds,1)
 RESULT
 
-CHECK(double cutoffNeg(double fraction = 0.95))
+CHECK((double cutoffNeg(double fraction = 0.95)))
   double con = rcp->cutoffNeg();
   bool inBounds( con >=0 && con <= 1 );
   TEST_EQUAL(inBounds,1)

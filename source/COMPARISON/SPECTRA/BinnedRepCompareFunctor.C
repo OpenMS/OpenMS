@@ -25,7 +25,6 @@
 // --------------------------------------------------------------------------
 //
 #include <OpenMS/COMPARISON/SPECTRA/BinnedRepCompareFunctor.h>
-#include <OpenMS/COMPARISON/CLUSTERING/BinnedRep.h>
 
 #include <OpenMS/COMPARISON/SPECTRA/BinnedRepSpectrumContrastAngle.h>
 #include <OpenMS/COMPARISON/SPECTRA/BinnedRepSharedPeakCount.h>

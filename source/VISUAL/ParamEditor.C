@@ -27,7 +27,6 @@
 
 #include <OpenMS/VISUAL/ParamEditor.h>
 #include <OpenMS/FORMAT/Param.h>
-#include <OpenMS/CONCEPT/Types.h>
 
 #include <QtGui/QAction>
 #include <QtGui/QKeyEvent>

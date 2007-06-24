@@ -57,7 +57,7 @@ CHECK(PILISScoring(const PILISScoring& model))
 	TEST_EQUAL(copy.getParameters(), ptr->getParameters())
 RESULT
 
-CHECK(PILISScoring& operator = (const PILISScoring& mode))
+CHECK(PILISScoring& operator = (const PILISScoring& source))
 	PILISScoring copy;
 	copy = *ptr;
 	TEST_EQUAL(copy.getParameters(), ptr->getParameters())

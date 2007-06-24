@@ -126,18 +126,18 @@ CHECK(const Residue* getResidue(UInt index) const throw(Exception::IndexOverflow
 	TEST_EXCEPTION(Exception::IndexOverflow, seq.getResidue(1000))
 RESULT
 
-CHECK(EmpiricalFormula getFormula(Residue::ResidueType type = Residue::Full, Int charge = 0) const)
+CHECK((EmpiricalFormula getFormula(Residue::ResidueType type = Residue::Full, Int charge = 0) const))
 	AASequence seq("ACDEF");
 	TEST_EQUAL(seq.getFormula(), "SC26O12N5H35")
 	TEST_EQUAL(seq.getFormula(Residue::Full, 1), "SC26O12N5H36")
 	TEST_EQUAL(seq.getFormula(Residue::BIon, 0), "SC26O11N5H33")
 RESULT
 
-CHECK(Real getAverageWeight(Residue::ResidueType type = Residue::Full, Int charge = 0) const)
+CHECK((Real getAverageWeight(Residue::ResidueType type = Residue::Full, Int charge = 0) const))
 
 RESULT
 
-CHECK(Real getMonoWeight(Residue::ResidueType type = Residue::Full, Int charge = 0) const)
+CHECK((Real getMonoWeight(Residue::ResidueType type = Residue::Full, Int charge = 0) const))
 
 RESULT
 
@@ -169,7 +169,7 @@ CHECK(AASequence& operator += (const String&) throw(Exception::ParseError))
 
 RESULT
 
-CHECK(void setResidueDB(ResidueDB* res_db = 0))
+CHECK((void setResidueDB(ResidueDB* res_db = 0)))
 	// TODO
 RESULT
 

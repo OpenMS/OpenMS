@@ -25,7 +25,6 @@
 // --------------------------------------------------------------------------
 //
 #include <OpenMS/COMPARISON/SPECTRA/PeakSpectrumCompareFunctor.h>
-#include <OpenMS/KERNEL/StandardTypes.h>
 
 #include <OpenMS/COMPARISON/SPECTRA/SpectrumCheapDPCorr.h>
 #include <OpenMS/COMPARISON/SPECTRA/SpectrumPrecursorComparator.h>
