@@ -127,12 +127,28 @@ namespace OpenMS
 		typedef Feature::PositionType PositionType2D;
 		///
 		typedef Feature::ChargeType ChargeType;
+		///
+		typedef FeaFiTraits::IDX IDX;
 		
 				
 		enum RtFitting{ RTGAUSS=0, LMAGAUSS=1, EMGAUSS=2, BIGAUSS=3, LOGNORMAL=4 };
 		enum MzFitting{ MZGAUSS=0, CHARGE1=1, CHARGE2=2, CHARGE3=3, CHARGE4=4	};
 		
+		struct IndexMzLess
+		{
 		
+			IndexMzLess(FeaFiTraits*& fftraits)
+			: traits_(fftraits)
+			{						
+			}
+			
+			inline bool operator() (const IDX& x, const CoordinateType& mz)
+			{
+    		return traits_->getPeakMz(x) < mz;
+			}		
+		
+			FeaFiTraits* traits_;
+		};
 
 		enum 
 			{
@@ -204,8 +220,6 @@ namespace OpenMS
 	/// get GSL status
 	std::string getGSLStatus() const;
 	
-
-
 	 protected:
 	 
 	 /// debug info

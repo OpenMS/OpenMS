@@ -190,6 +190,10 @@ namespace OpenMS
 	    /// access intensity of peak with index @p index.
 	    inline IntensityType getPeakIntensity(const IDX& index) const
 	    { 
+				//Corrupt index
+		  	OPENMS_PRECONDITION(index.first<map_.size(), "Scan index outside of map!");
+		    OPENMS_PRECONDITION(index.second<map_[index.first].size(), "Peak index outside of scan!");
+			
 	    	return map_[index.first][index.second].getIntensity(); 
 	    }
 	    /// access m/z of peak with index @p index .

@@ -84,13 +84,13 @@ FeaFiModule::ChargedIndexSet BaseSweepSeeder::nextSeed() throw (NoSuccessor)
 {
 		if (!is_initialized_)
 		{
-			StopWatch w2;
-			w2.start();
+// 			StopWatch w2;
+// 			w2.start();
 			sweep_();		// sweep across map and scan for pattern 
 			curr_region_  = iso_map_.begin();
 			is_initialized_ = true;
-			w2.stop();
-			cout << "Seeding took : " << w2.getClockTime() << " [s]" << endl;
+// 			w2.stop();
+// 			cout << "Seeding took : " << w2.getClockTime() << " [s]" << endl;
 		}
 		
 		if ( curr_region_ == iso_map_.end() || iso_map_.size() == 0 )
@@ -155,18 +155,6 @@ void BaseSweepSeeder::sweep_()
 			w.stop();
 			cout << "Alignment took " << w.getClockTime() << " [s]. " << endl;
 			w.reset();
-// 			if (currscan_index == 0)
-// 			{
-// 				// align and sum up first scan(s)
-// 				sumUp_(current_scan,currscan_index);
-// 			}
-// 			else
-// 			{
-// 				// add next one
-// 				addNextScan_(current_scan,currscan_index);			
-// 				// substract last scan
-// 				substractLastScan_(current_scan,currscan_index);
-// 			}
 						
 			#ifdef DEBUG_FEATUREFINDER
 			// write debug output

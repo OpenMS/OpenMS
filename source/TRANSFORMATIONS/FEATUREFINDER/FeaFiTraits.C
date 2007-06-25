@@ -210,7 +210,7 @@ namespace OpenMS
   	{
       while (true)
       {
-				cout << "(1) Seeding ( seed # " << ++seed_count << ")..." << endl;
+				cout << "(1) Seeding ( seed # " << ++seed_count << " )..." << endl;
 				ChargedIndexSet seed_region = seeders[0]->nextSeed();
 				cout << "(2) Extension ..." << endl;
         watch.start();
