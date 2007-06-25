@@ -661,7 +661,7 @@
 				$out["unknown"] = $new_unknown;
 				
 				#output
-				if (count($out["missing"])!=0 || count($out["unknown"])!=0 || count($out["double"])!=0)
+				if (count($out["missing"])!=0 || count($out["unknown"])!=0 || count($out["double"])!=0 || count($todo_tests)!=0)
 				{
 					realOutput("Test errors in '$f'",$user,$testname);
 					if (count($out["unknown"])!=0)

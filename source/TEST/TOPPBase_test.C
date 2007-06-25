@@ -79,7 +79,12 @@ class TOPPBaseTest
 		{
 			return getFlag_(name);
 		}
-			
+
+		bool setByUser(const String& name) const
+		{
+			return setByUser_(name);
+		}
+
 		virtual ExitCodes main_(int /*argc*/ , char** /*argv*/)
 		{
 			return EXECUTION_OK;
@@ -184,6 +189,7 @@ char* a12 ="commandline";
 char* a13 ="4.5";
 char* a14 ="-intoption";
 char* a15 ="-doubleoption";
+char* a16 ="4711";
 
 CHECK(([EXTRA]String const& getIniLocation_() const))
 	//default 
@@ -193,6 +199,28 @@ CHECK(([EXTRA]String const& getIniLocation_() const))
 	char* instance_cl[3] = {a1, a5, a9}; //command line: "TOPPTOPPBaseTest -instance 5"
 	TOPPBaseTest tmp2(3,instance_cl);
 	TEST_EQUAL(tmp2.getIniLocation(),"TOPPBaseTest:5:")
+RESULT
+
+CHECK([EXTRA] bool setByUser_(const String& name) const)
+	//default 
+	TOPPBaseTest tmp;
+	TEST_EQUAL(tmp.setByUser("intoption"),false);
+
+	//command line
+	char* string_cl[3] = {a1, a14, a16}; //command line: "TOPPTOPPBaseTest -intoption 4711"
+	TOPPBaseTest tmp2(3,string_cl);
+
+	TEST_EQUAL(tmp2.setByUser("intoption"),true);
+	TEST_EQUAL(tmp2.setByUser("stringoption"),false);
+	TEST_EQUAL(tmp2.setByUser("doubleoption"),false);
+	
+	//ini file
+	char* both_cl[3] = {a1, a3, a7}; //command line: "TOPPTOPPBaseTest -ini data/TOPPBase_toolcommon.ini"
+	TOPPBaseTest tmp3(3,both_cl);
+	
+	TEST_EQUAL(tmp3.setByUser("intoption"),false);
+	TEST_EQUAL(tmp3.setByUser("stringoption"),true);
+	TEST_EQUAL(tmp3.setByUser("doubleoption"),false);
 RESULT
 
 CHECK(([EXTRA]String getStringOption_(const String& name) const))

@@ -405,16 +405,27 @@ namespace OpenMS
 		///Returns the value of a previously registered string option
 		String getStringOption_(const String& name) const throw (Exception::UnregisteredParameter, Exception::RequiredParameterNotGiven, Exception::WrongParameterType);
 		
-		///Returns the value of a previously registered double option
+		/**
+			@brief Returns the value of a previously registered double option
+			
+			If you want to find out if a value was really set or is a default value, use the setByUser_(String) method.
+		*/
 		double getDoubleOption_(const String& name) const throw (Exception::UnregisteredParameter, Exception::RequiredParameterNotGiven, Exception::WrongParameterType);
 		
-		///Returns the value of a previously registered integer option
+		/**
+			@brief Returns the value of a previously registered integer option
+			
+			If you want to find out if a value was really set or is a default value, use the setByUser_(String) method.
+		*/
 		Int getIntOption_(const String& name) const throw (Exception::UnregisteredParameter, Exception::RequiredParameterNotGiven, Exception::WrongParameterType);
 		
 		///Returns the value of a previously registered flag
 		bool getFlag_(const String& name) const throw (Exception::UnregisteredParameter, Exception::WrongParameterType);
 
-		/// Finds the the entry in the parameters_ array that has the name @p name
+		///Returns if an option was set by the user (needed to distinguish between user-set and default value)
+		bool setByUser_(const String& name) const throw (Exception::UnregisteredParameter);
+
+		/// Finds the entry in the parameters_ array that has the name @p name
 		const ParameterInformation& findEntry_(const String& name) const throw (Exception::UnregisteredParameter);
 
 		/**

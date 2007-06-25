@@ -129,7 +129,7 @@ CHECK((String getStringValue(const std::string& table, const std::string& column
 		TEST_EQUAL("bla",con.getStringValue("Dummy","text","5"));
 		TEST_EQUAL("bluff",con.getStringValue("Dummy","text","4711"));
 		TEST_EXCEPTION(DBConnection::InvalidQuery, con.getStringValue("Dummy2","text56","4711"))
-		//TODO test ConversionError 
+		TEST_EXCEPTION(Exception::ConversionError, con.getStringValue("Dummy","id","sdfsdfsdf"))
 	RESULT
 
 CHECK((Int getIntValue(const std::string& table, const std::string& column, const std::string& id) throw(InvalidQuery, NotConnected, Exception::ConversionError)))
@@ -138,7 +138,7 @@ CHECK((Int getIntValue(const std::string& table, const std::string& column, cons
 		TEST_EQUAL(5,con.getIntValue("Dummy","id","5"));
 		TEST_EQUAL(4711,con.getIntValue("Dummy","id","4711"));
 		TEST_EXCEPTION(DBConnection::InvalidQuery, con.getIntValue("Dummy2","text56","4711"))
-		//TODO test ConversionError 
+		TEST_EXCEPTION(Exception::ConversionError, con.getIntValue("Dummy","text","sdfsdf"))
 	RESULT
 
 CHECK((double getDoubleValue(const std::string& table, const std::string& column, const std::string& id) throw(InvalidQuery, NotConnected, Exception::ConversionError)))
@@ -146,8 +146,8 @@ CHECK((double getDoubleValue(const std::string& table, const std::string& column
 	  con.connect(db,user,password,host, port.toInt());
 		TEST_REAL_EQUAL(45.11,con.getDoubleValue("Dummy","number","5"));
 		TEST_REAL_EQUAL(471.123,con.getDoubleValue("Dummy","number","4711"));
-		TEST_EXCEPTION(DBConnection::InvalidQuery, con.getIntValue("Dummy2","text56","4711"))
-		//TODO test ConversionError 
+		TEST_EXCEPTION(DBConnection::InvalidQuery, con.getDoubleValue("Dummy2","text56","4711"))
+		TEST_EXCEPTION(Exception::ConversionError, con.getDoubleValue("Dummy","text","sdfsdf"))
 	RESULT
 
 CHECK((UInt getId(const std::string& table, const std::string& column, const std::string& value) throw(InvalidQuery, NotConnected)))

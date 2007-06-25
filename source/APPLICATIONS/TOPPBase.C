@@ -501,6 +501,39 @@ namespace OpenMS
 		return tmp;
 	}
 	
+	bool TOPPBase::setByUser_(const String& name) const throw (Exception::UnregisteredParameter)
+	{
+		//look up because of possible exception only
+		findEntry_(name);
+		
+		if (!param_cmdline_.getValue(name).isEmpty())
+		{
+			return true;
+		}
+
+		if (!param_instance_.getValue(name).isEmpty())
+		{
+			return true;
+		}
+
+		if (!param_instance_inherited_.getValue(name).isEmpty())
+		{
+			return true;
+		}
+		
+		if (!param_common_tool_.getValue(name).isEmpty())
+		{
+			return true;
+		}
+
+		if (!param_common_.getValue(name).isEmpty())
+		{
+			return true;
+		}
+
+		return false;
+	}
+	
 	double TOPPBase::getDoubleOption_(const String& name) const throw (Exception::UnregisteredParameter, Exception::RequiredParameterNotGiven, Exception::WrongParameterType )
 	{
 		const ParameterInformation& p = findEntry_(name);

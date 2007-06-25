@@ -415,28 +415,28 @@ FileInfo_test: $(NUMERICDIFF)
 	@$(ECHO) "FileInfo:"
 
 	@$(ECHO) "- Test 1: DTA file test"
-	@$(call RUN_PROG_OPT,FileInfo,-in FileInfo_1_input.txt -in_type DTa > FileInfo.tmp)
+	@$(call RUN_PROG_OPT,FileInfo,-in FileInfo_1_input.txt -in_type DTa -no_progress > FileInfo.tmp)
 	@$(call TEST_FILE_EQUAL,FileInfo_1_output.txt,FileInfo.tmp)
 
 	@$(ECHO) "- Test 2: DTA2D file test"
-	@$(call RUN_PROG_OPT,FileInfo,-in FileInfo_2_input.dta2d > FileInfo.tmp)
+	@$(call RUN_PROG_OPT,FileInfo,-in FileInfo_2_input.dta2d -no_progress > FileInfo.tmp)
 	@$(call TEST_FILE_EQUAL,FileInfo_2_output.txt,FileInfo.tmp)
 
 	@$(ECHO) "- Test 3: feature file test (with meta info and statistics)"
-	@$(call RUN_PROG_OPT,FileInfo,-in FileInfo_3_input.featureXML -m -s > FileInfo.tmp)
+	@$(call RUN_PROG_OPT,FileInfo,-in FileInfo_3_input.featureXML -m -s -no_progress > FileInfo.tmp)
 	@$(call TEST_FILE_EQUAL,FileInfo_3_output.txt,FileInfo.tmp)
 
 	@$(ECHO) "- Test 4: MzXML file test (with meta info)"
-	@$(call RUN_PROG_OPT,FileInfo,-in FileInfo_4_input.mzXML -m > FileInfo.tmp)
+	@$(call RUN_PROG_OPT,FileInfo,-in FileInfo_4_input.mzXML -m -no_progress > FileInfo.tmp)
 	@$(call TEST_FILE_EQUAL,FileInfo_4_output.txt,FileInfo.tmp)
 
 	@$(ECHO) "- Test 5: MzData file test (with meta info and statistics)"
-	@$(call RUN_PROG_OPT,FileInfo,-in FileInfo_5_input.txt -in_type MzDaTa -m -s > FileInfo.tmp)
+	@$(call RUN_PROG_OPT,FileInfo,-in FileInfo_5_input.txt -in_type MzDaTa -m -s -no_progress > FileInfo.tmp)
 	@$(call TEST_FILE_EQUAL,FileInfo_5_output.txt,FileInfo.tmp)
 
 ifeq ($(ANDIMS_SUPPORT),true)
 	@$(ECHO) "- Test 6: netCDF file test (with meta info)"
-	@$(call RUN_PROG_OPT,FileInfo,-in FileInfo_6_input.txt -in_type ANDIMS -m > FileInfo.tmp)
+	@$(call RUN_PROG_OPT,FileInfo,-in FileInfo_6_input.txt -in_type ANDIMS -m -no_progress > FileInfo.tmp)
 	@$(call TEST_FILE_EQUAL,FileInfo_6_output.txt,FileInfo.tmp)
 endif
 
