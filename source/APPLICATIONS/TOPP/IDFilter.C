@@ -121,11 +121,11 @@ class TOPPIDFilter
 		registerStringOption_("exclusion_peptides_file","<file>","","An IdXML file. Peptides having the same sequence as any peptide in this file will be filtered out",false);
 		registerDoubleOption_("pep_fraction","<fraction>",0.0,"the fraction of the peptide significance threshold that should be reached by a peptide hit",false);	
 		registerDoubleOption_("prot_fraction","<fraction>",0.0,"the fraction of the protein significance threshold that should be reached by a protein hit",false);
-		registerDoubleOption_("pep_score","<score>",numeric_limits<int>::max(),"the score which should be reached by a peptide hit to be kept",false);	
-		registerDoubleOption_("prot_score","<score>",numeric_limits<int>::max(),"the score which should be reached by a protein hit to be kept",false);
+		registerDoubleOption_("pep_score","<score>", 0,"the score which should be reached by a peptide hit to be kept",false);	
+		registerDoubleOption_("prot_score","<score>", 0,"the score which should be reached by a protein hit to be kept",false);
 		registerDoubleOption_("p_value","<significance>",0.05,"The probability of a correct ProteinIdentification having a deviation between observed and predicted rt equal or bigger than allowed",false);	
-		registerIntOption_("best_n_peptide_hits","<score>", numeric_limits<int>::max(), "If this value is set only the n highest scoring peptide hits are kept.", false);
-		registerIntOption_("best_n_protein_hits","<score>", numeric_limits<int>::max(), "If this value is set only the n highest scoring protein hits are kept.", false);
+		registerIntOption_("best_n_peptide_hits","<score>", 0, "If this value is set only the n highest scoring peptide hits are kept.", false);
+		registerIntOption_("best_n_protein_hits","<score>", 0, "If this value is set only the n highest scoring protein hits are kept.", false);
 		registerFlag_("best_hits", "If this flag is set only the highest scoring hit is kept.\n"
 															"If there are two or more highest scoring hits, none are kept.");
 		registerFlag_("rt_filtering","If this flag is set rt filtering will be pursued.");
@@ -259,13 +259,13 @@ class TOPPIDFilter
 				filter.filterIdentificationsByBestHits(temp_identification, filtered_identification, strict); 				
 			}
 			
-			if (peptide_threshold_score != numeric_limits<int>::max())
+			if (setByUser_("pep_score"))
 			{
 				PeptideIdentification temp_identification = filtered_identification;
 				filter.filterIdentificationsByScore(temp_identification, peptide_threshold_score, filtered_identification); 				
 			}
 
-			if (best_n_peptide_hits != numeric_limits<int>::max())
+			if (setByUser_("best_n_peptide_hits"))
 			{
 				PeptideIdentification temp_identification = filtered_identification;
 				filter.filterIdentificationsByBestNHits(temp_identification, best_n_peptide_hits, filtered_identification); 				
@@ -299,13 +299,13 @@ class TOPPIDFilter
 				filter.filterIdentificationsByProteins(temp_identification, sequences, filtered_protein_identification);
 			}
 
-			if (protein_threshold_score != numeric_limits<int>::max())
+			if (setByUser_("prot_score"))
 			{
 				ProteinIdentification temp_identification = filtered_protein_identification;
 				filter.filterIdentificationsByScore(temp_identification, protein_threshold_score, filtered_protein_identification); 				
 			}
 
-			if (best_n_protein_hits != numeric_limits<int>::max())
+			if (setByUser_("best_n_protein_hits"))
 			{
 				ProteinIdentification temp_identification = filtered_protein_identification;
 				filter.filterIdentificationsByBestNHits(temp_identification, best_n_protein_hits, filtered_protein_identification); 				
