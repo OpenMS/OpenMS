@@ -124,9 +124,10 @@ class TOPPIDFilter
 		registerDoubleOption_("pep_score","<score>",numeric_limits<int>::max(),"the score which should be reached by a peptide hit to be kept",false);	
 		registerDoubleOption_("prot_score","<score>",numeric_limits<int>::max(),"the score which should be reached by a protein hit to be kept",false);
 		registerDoubleOption_("p_value","<significance>",0.05,"The probability of a correct ProteinIdentification having a deviation between observed and predicted rt equal or bigger than allowed",false);	
-		registerFlag_("best_hits","If this flag is set only the highest scoring hit is kept.\n"
+		registerIntOption_("best_n_peptide_hits","<score>", numeric_limits<int>::max(), "If this value is set only the n highest scoring peptide hits are kept.", false);
+		registerIntOption_("best_n_protein_hits","<score>", numeric_limits<int>::max(), "If this value is set only the n highest scoring protein hits are kept.", false);
+		registerFlag_("best_hits", "If this flag is set only the highest scoring hit is kept.\n"
 															"If there are two or more highest scoring hits, none are kept.");
-		registerFlag_("best_n_hits","If this flag is set only the n highest scoring hits are kept.");
 		registerFlag_("rt_filtering","If this flag is set rt filtering will be pursued.");
 	}
 
@@ -152,6 +153,7 @@ class TOPPIDFilter
 		bool rt_filtering = false;
 		DoubleReal p_value = 0.05;
 		
+		
 		//-------------------------------------------------------------
 		// parsing parameters
 		//-------------------------------------------------------------
@@ -166,6 +168,9 @@ class TOPPIDFilter
 		DoubleReal protein_significance_threshold_fraction = getDoubleOption_("prot_fraction");
 		DoubleReal peptide_threshold_score = getDoubleOption_("pep_score");
 		DoubleReal protein_threshold_score = getDoubleOption_("prot_score");
+		
+		Int best_n_peptide_hits = getIntOption_("best_n_peptide_hits");
+		Int best_n_protein_hits = getIntOption_("best_n_protein_hits");
 		
 		String sequences_file_name = getStringOption_("sequences_file");
 		if (sequences_file_name!="")
@@ -260,6 +265,12 @@ class TOPPIDFilter
 				filter.filterIdentificationsByScore(temp_identification, peptide_threshold_score, filtered_identification); 				
 			}
 
+			if (best_n_peptide_hits != numeric_limits<int>::max())
+			{
+				PeptideIdentification temp_identification = filtered_identification;
+				filter.filterIdentificationsByBestNHits(temp_identification, best_n_peptide_hits, filtered_identification); 				
+			}
+
 			if(!filtered_identification.getHits().empty())
 			{
 			  PeptideIdentification tmp;
@@ -292,6 +303,12 @@ class TOPPIDFilter
 			{
 				ProteinIdentification temp_identification = filtered_protein_identification;
 				filter.filterIdentificationsByScore(temp_identification, protein_threshold_score, filtered_protein_identification); 				
+			}
+
+			if (best_n_protein_hits != numeric_limits<int>::max())
+			{
+				ProteinIdentification temp_identification = filtered_protein_identification;
+				filter.filterIdentificationsByBestNHits(temp_identification, best_n_protein_hits, filtered_protein_identification); 				
 			}
 
 			if(!(filtered_protein_identification.getHits().empty()))

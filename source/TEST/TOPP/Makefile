@@ -492,6 +492,10 @@ IDFilter_test: $(NUMERICDIFF)
 	@$(call RUN_PROG_OPT,IDFilter,-in IDFilter_5_input.idXML -out IDFilter_5_output.tmp -pep_score 32 -prot_score 25)
 	@$(call TEST_FILE_EQUAL,IDFilter_5_output.idXML,IDFilter_5_output.tmp)
 
+	@$(ECHO) "- Test 6: best n hits"
+	@$(call RUN_PROG_OPT,IDFilter,-in IDFilter_6_input.idXML -out IDFilter_6_output.tmp -best_n_peptide_hits 2 -best_n_protein_hits 10)
+	@$(call TEST_FILE_EQUAL,IDFilter_6_output.idXML,IDFilter_6_output.tmp)
+
 LabeledMatcher_test: $(NUMERICDIFF)
 	@$(ECHO) ""
 	@$(ECHO) "LabeledMatcher:"
