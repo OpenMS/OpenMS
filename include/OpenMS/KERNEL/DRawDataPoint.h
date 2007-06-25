@@ -58,7 +58,7 @@ namespace OpenMS
 			};
 			
 			/// Intensity type
-			typedef DoubleReal IntensityType;
+			typedef Real IntensityType;
 			
 			/// Coordinate type (of the position)
 			typedef DoubleReal CoordinateType;

@@ -291,7 +291,7 @@ namespace OpenMS
             }
             else
             {
-              g[j]=std::min(first->getIntensity(),g[j-1]);
+              g[j]=std::min((DoubleReal)(first->getIntensity()),g[j-1]);
             }
             ++first;
           }
@@ -312,7 +312,7 @@ namespace OpenMS
           }
           else
           {
-            g[j]=std::min(first->getIntensity(),g[j-1]);
+            g[j]=std::min((DoubleReal)(first->getIntensity()),g[j-1]);
           }
           ++first;
           ++j;
@@ -341,7 +341,7 @@ namespace OpenMS
           }
           else
           {
-            h[j]=std::min(first->getIntensity(),h[j+1]);
+            h[j]=std::min((DoubleReal)(first->getIntensity()),h[j+1]);
           }
           --first;
         }
@@ -376,7 +376,7 @@ namespace OpenMS
             }
             else
             {
-              g[j]=std::max(first->getIntensity(),g[j-1]);
+              g[j]=std::max((DoubleReal)(first->getIntensity()),g[j-1]);
             }
             ++first;
           }
@@ -397,7 +397,7 @@ namespace OpenMS
           }
           else
           {
-            g[j]=std::max(first->getIntensity(),g[j-1]);
+            g[j]=std::max((DoubleReal)(first->getIntensity()),g[j-1]);
           }
           ++first;
           ++j;
@@ -427,7 +427,7 @@ namespace OpenMS
           }
           else
           {
-            h[j]=std::max(last->getIntensity(),h[j+1]);
+            h[j]=std::max((DoubleReal)(last->getIntensity()),h[j+1]);
           }
           --last;
         }
@@ -439,7 +439,7 @@ namespace OpenMS
         while (last!=first)
         {
           --j;
-          h[j]=std::max(first->getIntensity(),h[j+1]);;
+          h[j]=std::max((DoubleReal)(first->getIntensity()),h[j+1]);;
           --last;
         }
       }

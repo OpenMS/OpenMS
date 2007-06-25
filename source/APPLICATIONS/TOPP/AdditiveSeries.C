@@ -42,7 +42,6 @@ using namespace Math;
 using namespace std;
 
 typedef Feature::CoordinateType CoordinateType;
-typedef Feature::IntensityType IntensityType;
 
 //-------------------------------------------------------------
 //Doxygen docu
@@ -393,7 +392,7 @@ class AdditiveSeries
 		}
 
 		// collect features
-		vector<IntensityType> intensities;
+		vector<DoubleReal> intensities;
 		vector<String>::const_iterator cit = files.begin();
 		while (cit != files.end())
 		{

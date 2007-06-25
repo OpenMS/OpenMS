@@ -273,7 +273,7 @@ namespace OpenMS
 
         // find maximum of current scan
         int size = 0;
-        double maxInt = 0;
+        typename PeakType::IntensityType maxInt = 0;
         PeakIterator run = scan_first_;
         while (run != scan_last_)
         {
