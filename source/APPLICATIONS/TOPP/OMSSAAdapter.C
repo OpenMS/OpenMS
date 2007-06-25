@@ -73,7 +73,11 @@ class TOPPOMSSAAdapter
 			registerStringOption_("d", "<file>", "", "Blast sequence library to search.  Do not include .p* filename suffixes", true);
 			registerIntOption_("pc", "<Integer>", 1, "The number of pseudocounts to add to each precursor mass bin", false);
 			registerStringOption_("omssa_dir", "<Directory>", "", "The directory of the OMSSA installation", true);
-			
+
+			registerFlag_("omssa_out", "If this flag is set, the parameter 'in' is considered as an output file of OMSSA and will be converted to IdXML");
+			registerStringOption_("omssa_out_format", "<type>", "", "Specifies the output format of OMSSA, if not given the format will be estimated", false);
+
+
 			//Input format and filename
 			//-f <String> single dta file to search
 			//-fx <String> multiple xml-encapsulated dta files to search
@@ -244,7 +248,14 @@ class TOPPOMSSAAdapter
 			//-------------------------------------------------------------
 			// parsing parameters
 			//-------------------------------------------------------------
-			
+		
+			if (getFlag_("omssa_out"))
+			{
+				
+			}
+
+
+
 			inputfile_name = getStringOption_("in");			
 			writeDebug_(String("Input file: ") + inputfile_name, 1);
 			if (inputfile_name == "")

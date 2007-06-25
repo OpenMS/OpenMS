@@ -95,8 +95,6 @@ using namespace std;
 			none of the hits will be kept.
 		</li>
 	</ul>
-	
-	@todo make filtering by absulote score and top x hits possible (Nico)
 */
 
 // We do not want this class to show up in the docu:

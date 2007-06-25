@@ -106,7 +106,7 @@ CHECK((bool has(const String& peptide) const))
 	TEST_EQUAL(ptr->has("DFPIANGERDFPIANGER"), false)
 RESULT
 
-CHECK((void getPeptides(std::vector<PepStruct>& peptides, double range_start = 0, double range_stop = std::numeric_limits<double>::max())))
+CHECK((void getPeptides(std::vector< PepStruct > &peptides, double range_start=0, double range_stop=std::numeric_limits< double >::max())))
 	vector<PILISSequenceDB::PepStruct> peptides;
 	ptr->getPeptides(peptides, 1017.7, 1021.7);
 	TEST_EQUAL(peptides.size(), 2)
