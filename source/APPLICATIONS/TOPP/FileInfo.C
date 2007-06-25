@@ -365,9 +365,17 @@ class TOPPFileInfo
 		}
 };
 
-
 int main( int argc, char ** argv )
 {
+//	RawDataPoint1D a;
+//	cout << "RawDataPoint1D: " << sizeof(a) << endl;
+//	DPosition<1> b;
+//	cout << "DPosition<1>: " << sizeof(b) << endl;
+//	DoubleReal c;
+//	cout << "DoubleReal: " << sizeof(c) << endl;
+//	DoubleReal d[1];
+//	cout << "DoubleReal[1]: " << sizeof(d) << endl;
+	
 	TOPPFileInfo tool;
 	return tool.main(argc,argv);
 }
