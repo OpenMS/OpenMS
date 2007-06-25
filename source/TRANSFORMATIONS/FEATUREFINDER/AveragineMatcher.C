@@ -408,7 +408,7 @@ namespace OpenMS
 		vector<IDX>::iterator iter = lower_bound(max_scan.begin(),max_scan.end(),mz_guess, AveragineMatcher::IndexMzLess::IndexMzLess(traits_));
 		
 		IntensityType max_mono_candidate_it       = 0.0;
-		CoordinateType max_mono_candidate_mz = 0.0;
+		CoordinateType max_mono_candidate_mz = traits_->getPeakMz(*iter);
 		CoordinateType mz_dist = 0.0;
 		
 // 		if ( iter == max_scan.end() ) 
@@ -430,6 +430,17 @@ namespace OpenMS
 			// walk to the left
 			for (vector<IDX>::iterator it = iter; it != max_scan.begin() && mz_dist <= 0.25; --it )
 			{
+			
+				if (it->first >= traits_->getData().size())
+				{
+					break;
+				}
+				
+				if (it->second >= traits_->getData()[it->first].size())
+				{
+					break;
+				}				
+			
 				if (traits_->getPeakIntensity(*it) > max_mono_candidate_it)
 				{
 					max_mono_candidate_it	   = traits_->getPeakIntensity(*it);
@@ -449,11 +460,16 @@ namespace OpenMS
 			
 // 				cout << "it: " << it->first << " " << it->second << endl;
 				
-// 				if (it->first >= traits_->getData().size())
-// 				{
-// 					cout << "Crash: " << iter->first << " " << iter->second << endl;
-// 					cout << "Crash: " << it->first << " " << it->second << endl;
-// 				}
+				if (it->first >= traits_->getData().size())
+				{
+					break;
+				}
+				
+				if (it->second >= traits_->getData()[it->first].size())
+				{
+					break;
+				}				
+				
 				if (traits_->getPeakIntensity(*it) > max_mono_candidate_it)
 				{
 					max_mono_candidate_it	   = traits_->getPeakIntensity(*it);

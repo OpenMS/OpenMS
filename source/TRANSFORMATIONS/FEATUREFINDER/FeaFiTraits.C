@@ -103,11 +103,13 @@ namespace OpenMS
 		if (index.first>=map_.size() )
 		{
 			cout << "Scan index outside of map!" << endl;
+			cout << index.first << " " << index.second << endl;
 			return;
 		}
 		if (index.second>=map_[index.first].size())
 		{
 			cout << "Peak index outside of scan!" << endl;
+			cout << index.first << " " << index.second << endl;
 			return;		
 		}	
 		
