@@ -210,7 +210,7 @@ namespace OpenMS
            --number_of_clusters;
         }
         
-        std::cout << "HC: remove dead clusters ... \n";
+        //std::cout << "HC: remove dead clusters ... \n";
                 
         // remove empty indices 
         ClusterIdxVectorType cl_tmp;

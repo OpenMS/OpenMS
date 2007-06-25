@@ -70,7 +70,7 @@ namespace OpenMS
 		registerIntOption_("instance","<n>",1,"Instance number for the TOPP INI file",false);
 		registerIntOption_("debug","<n>",0,"Sets the debug level",false);
 		registerStringOption_("write_ini","<file>","","Writes an example INI file",false);
-		registerFlag_("progress","Enables progress logging to command line");
+		registerFlag_("no_progress","Disables progress logging to command line");
 		registerFlag_("-help","Shows this help");
 		
 		// prepare options and flags for command line parsing
@@ -245,7 +245,7 @@ namespace OpenMS
 			//-------------------------------------------------------------
 			//progress logging
 			//-------------------------------------------------------------
-			if(getParamAsBool_("progress",false))
+			if(!getParamAsBool_("no_progress",false))
 			{
 				log_type_ = ProgressLogger::CMD;	
 			}
