@@ -65,6 +65,14 @@ using namespace std;
 			fraction parameter. The only difference is that it is used
 			to filter protein hits.
 		</li>
+		<li> 
+			<b>peptide score</b>:<br> This parameter 
+			specifies which score a peptide should have to be kept.
+		</li> 
+		<li> 
+			<b>protein score</b>:<br> This parameter 
+			specifies which score a protein should have to be kept.
+		</li>
 		<li>
 			<b>peptide seqences</b>:<br> If you know which proteins
 			are in the measured sample you can specify a FASTA file 
@@ -73,15 +81,9 @@ using namespace std;
 			in the sequences file will be filtered out. 
 		</li>
 		<li>
-			<b>predicted retention time</b>:<br> To filter identifications according to their 
-			predicted retention times you have to set two parameters:<br>  
-			The total number of seconds that the gradient ran. (The model is learnt for normalized retention times and the 
-			sigma that is calculated and stored in the IdXMLFile corresponds to these normalized retention times.) 
-			The maximum allowed deviation from the original
-			retention time using the laplace error model that is learnt for confidently assigned peptides in RTModel. 
-			It serves as a scaling of standard 
-			deviations that are allowed for the predicted retention times. If set to 1 this means that one standard 
-			deviation unit is allowed. 
+			<b>rt_filtering</b>:<br> To filter identifications according to their 
+			predicted retention times you have to set this flag. You can set the significance level
+			that should be used by setting the 'p_value' parameter.<br>  
 			This filter can only be applied to IdXML files produced by RTPredict.
 		</li>
 		<li>
@@ -93,6 +95,12 @@ using namespace std;
 			<b>best hits only</b>:<br> Only the best hit of a spectrum is kept.
 			If there is more than one hit for a spectrum with the maximal score then
 			none of the hits will be kept.
+		</li>
+		<li>
+			<b>best_n_peptide_hits</b>:<br> Only the best n peptide hits of a spectrum are kept.
+		</li>
+		<li>
+			<b>best_n_protein_hits</b>:<br> Only the best n protein hits of a spectrum are kept.
 		</li>
 	</ul>
 */
