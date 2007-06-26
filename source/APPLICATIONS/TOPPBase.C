@@ -147,7 +147,7 @@ namespace OpenMS
 							tmp.setValue(loc + it->name,String(it->default_value).toInt(), it->description);
 							break;
 						case ParameterInformation::FLAG:
-							tmp.setValue(loc + it->name,"off", it->description);
+							tmp.setValue(loc + it->name,"false", it->description);
 							break;
 						default:
 							break;

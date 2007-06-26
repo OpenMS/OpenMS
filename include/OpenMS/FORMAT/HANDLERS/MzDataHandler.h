@@ -570,6 +570,7 @@ namespace OpenMS
 					break;
 				case MZDATA:
 					logger_.endProgress();
+					scan_count = 0;
 					break;
 			}
 			//std::cout << "end endelement" << std::endl;

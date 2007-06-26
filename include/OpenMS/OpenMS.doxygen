@@ -83,8 +83,6 @@
 /*************************** Marc's todos ******************************
 Todo:
 - Ole,Clemens: Parameter-docu aus doxygen raus
-- Generell: Tutorials, Checker
-- Internal/External calibration in ToolsDialog
 
 Nach Release:
 - Snapshot + search wieder auf Trunk umstellen

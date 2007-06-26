@@ -256,31 +256,31 @@ FileFilter -in infile.mzData -levels 2 -rt 100:1500 -out outfile.mzData
 //##############################################################################
 
 /**
-	@page TOPP_example4 Example 4: Label free quantitation - peak and feature map alignment
+	@page TOPP_example4 Example 4: Map alignment
 
 		@b Goal 1: Peak map alignment algorithms should map a number of peak maps onto comparable retention time and m/z dimensions.
 			
 		@image html TOPP_map_mapping_peaks.png
 		@image latex TOPP_map_mapping_peaks.png "" width=10cm
 		
-		@b Goal 2: However feature map alignment approaches should additionally find and group corresponding elements in the maps. 	
+		
+		@b Goal 2: On consensus and feature maps the alignment approaches should find and group corresponding elements in the maps. 	
 		
     @image html TOPP_map_mapping_features.png
 		@image latex TOPP_map_mapping_features.png "" width=10cm
 		
-		The %TOPP tool @b MapAlignment solves for both alignment problems.
-		
-	  Our multiple alignment approach is based on the combination of pairwise map alignments.
+		The %TOPP tool @b MapAlignment solves both alignment problems.
+	  Our approach is based on the combination of pairwise map alignments.
 		A pairwise map alignment proceeds in several steps. In the first step the retention time warp and 
 		the distortion in m/z is estimated using a pose clustering approach. This initial transformation
 		is used to find elements in the two maps which likely belong together. In the second step 
 		these pairs are used as landmarks and a final, improved transformation is estimated by which the
-		two maps are mapped onto each other in a third step. The first three steps constitute the so called \e superposition \e phase.
-		In case of a feature map alignment the corresponding elements are grouped together in a fourths step, the so
-		called \e consensus \e phase. 
-		
-		We offer three tools for the superposition phase of a pairwise feature map alignment which are @b UnlabeledMatcher, 
-	  @b MapMatcher, @b MapDewarper.
+		two maps are mapped onto each other in a third step. The first three steps constitute the so called @a superposition @a phase.
+		In case of a feature map alignment the corresponding elements are grouped together in a fourths step, the so called @a consensus @a phase.
+
+		In addition to the @aMapAlignment, we offer three tools for the superposition phase of a pairwise feature map alignment which are @b UnlabeledMatcher, @b MapMatcher and @b MapDewarper.
+		These tools can be used if you want a fine-grained control over the matching process or if you
+		are not interested in the feature pairs, but in the actual mapping function.
 
 		@image html TOPP_map_mapping_modules.png
 		@image latex TOPP_map_mapping_modules.png "" width=14cm
@@ -296,9 +296,44 @@ FileFilter -in infile.mzData -levels 2 -rt 100:1500 -out outfile.mzData
 //##############################################################################
 
 /**
-	@page TOPP_example5 Example 5: Isotope-labeled quantitation
+	@page TOPP_example5 Example 5: Quantitation
+		
+		@section TOPP_example5_general General introduction to the FeatureFinder
+		
+		For quantitation the @a FeatureFinder tool is used. It extracts the features from raw or peak maps.
+		
+		The @a FeatureFinder algorithm consists of three parts. 
+		These parts are called @a modules in the following text.
+		The modules are:
+		- Seeder - This module finds interesting spots in the map, which possibly represent a feature.
+		           These so called @a seeds are handed to the next module.
+		- Extender - This module collects a set of peaks in the region around the seed. The goal in this
+		             module is to collect all the peaks belonging to one feature.
+		- ModelFitter - This module tries to fit a two-dimensional model to the putative feature.
+		                The model consists a isotope distribution (m/z) and a elution profile (RT).
+		                Features are only accepted if they reach a minimum score (similarity to the model).
+		
+		For each module, several implementations are available.@n
+		The following Seeders are available:
+		- SimpleSeeder - ...
+		- DummySeeder - ...
+		- IsotopeWaveletSeeder - ...
+		- MarrWaveletSeeder - ...
+		- PickedPeakSeeder - ...
 
-		@b Goal: You want to differentially quantify the features of an isitope-labeled HPLC-MS map.
+		The following Extenders are available:
+		- SimpleExtender - ...
+		- DummyExtender - ...
+		
+		The following ModelFitters are available:
+		- SimpleModelFitter - ...
+		- DummyModelFitter - ...
+		- ExtendedModelFitter - ...
+		
+
+	@section TOPP_example5_isotope_labeled Isotope-labeled quantitation
+	
+		@b Goal: You want to differentially quantify the features of an isotope-labeled HPLC-MS map.
 		
 		The first step in this pipeline is to find the features of the HPLC-MS map. The FeatureFinder
 		application calculates the features from a raw/peak map.
@@ -313,10 +348,15 @@ FileFilter -in infile.mzData -levels 2 -rt 100:1500 -out outfile.mzData
 
 		@image html TOPP_labeled_quant.png
 		@image latex TOPP_labeled_quant.png "" width=14cm
-
-	@section TOPP_example5_parameters FeatureFinder parameters
+		
+	@section TOPP_example5_labelfree Label-free quantitation
+		
+		@b Goal: You want to differentially quantify the features of two or more label-free HPLC-MS map.
+		
+		Mapping feature maps can be done with the @a MapAlignment tool.
+		Please have a look at @ref TOPP_example4.
+		
+		@image html TOPP_labelfree_quant.png
+		@image latex TOPP_labelfree_quant.png "" width=14cm	
 	
-		Finding the right parameters for the FeatureFinder application can be done in the following way:
-		- ...
-
 */

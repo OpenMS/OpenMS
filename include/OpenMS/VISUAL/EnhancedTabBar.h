@@ -51,13 +51,14 @@ namespace OpenMS
 		EnhancedTabBar( QWidget * parent = 0);
 		/// Destructor
 		~EnhancedTabBar();
-	
+		
 		signals:
 		/// Signal emited when double clicked. Returns the tab index
 		void doubleClicked(int);
 	
 		protected:
-		void mouseDoubleClickEvent ( QMouseEvent * e );
+		void mouseDoubleClickEvent(QMouseEvent* e);
+		void contextMenuEvent(QContextMenuEvent* e);
 	};
 
 }
