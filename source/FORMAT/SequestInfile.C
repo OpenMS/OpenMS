@@ -29,7 +29,6 @@
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/FORMAT/PTMXMLFile.h>
 
-#include <algorithm>
 #include <fstream>
 #include <iostream>
 #include <sstream>
@@ -64,7 +63,7 @@ namespace OpenMS
 		normalize_xcorr_(0),
 		residues_in_upper_case_(1)
 	{
-		setStandardEnzymeInfo();
+		setStandardEnzymeInfo_();
 	}
 	
 	SequestInfile::SequestInfile(const SequestInfile& sequest_infile)
@@ -470,7 +469,7 @@ namespace OpenMS
 			if ( modifications.empty() ) modifications.push_back(modification_line);
 			
 			// to get masses from a formula
-			EmpiricalFormula add_formula, substract_formula;
+			
 			
 			String types = "OPT#FIX#";
 			String name, residues, mass, type;
@@ -482,7 +481,7 @@ namespace OpenMS
 			{
 				if ( mod_i->empty() ) continue;
 				// clear the formulae
-				add_formula = substract_formula = name = residues = mass = type = "";
+				name = residues = mass = type = "";
 				
 				// get the single parts of the modification string
 				mod_i->split(',', mod_parts);
@@ -545,6 +544,7 @@ namespace OpenMS
 					String::size_type pos = mass.find("-");
 					try
 					{
+						EmpiricalFormula add_formula, substract_formula;
 						if ( pos != String::npos )
 						{
 							add_formula = mass.substr(0, pos);
@@ -555,6 +555,26 @@ namespace OpenMS
 							add_formula = mass;
 						}
 						// sum up the masses
+Real m;
+if ( monoisotopic ) m = add_formula.getMonoWeight() - substract_formula.getMonoWeight();
+else m = add_formula.getAverageWeight() - substract_formula.getAverageWeight();
+stringstream s;
+s.precision(10);
+s << m;
+std::cout << "MARTIN: " << add_formula.getString() << "  " << mass;
+ std::cout << "  " << s.str() << "  ";
+s.precision(9);
+s.str("");
+s << m;
+std::cout << "  " << s.str() << "  ";
+s.precision(8);
+s.str("");
+s << m;
+std::cout << "  " << s.str() << "  ";
+s.precision(7);
+s.str("");
+s << m;
+std::cout << "  " << s.str() << "  " << std::endl;
 						if ( monoisotopic ) mass = String(add_formula.getMonoWeight() - substract_formula.getMonoWeight());
 						else mass = String(add_formula.getAverageWeight() - substract_formula.getAverageWeight());
 						if ( mass_or_composition_or_name == -1 ) mass_or_composition_or_name = 1;
@@ -623,7 +643,7 @@ namespace OpenMS
 		}
 	}
 	
-	void SequestInfile::setStandardEnzymeInfo()
+	void SequestInfile::setStandardEnzymeInfo_()
 	{
 		vector< String > info;
 		//		 cuts n to c?							 cuts before							doesn't cut after

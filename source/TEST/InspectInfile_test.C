@@ -56,35 +56,37 @@ InspectInfile file;
 
 CHECK(void setSpectra(const string& spectra))
 	file.setSpectra("dummy4712");
-	TEST_EQUAL(file.getSpectra(), "dummy4712")
+	TEST_STRING_EQUAL(file.getSpectra(), "dummy4712")
 RESULT
 
 CHECK(const string& getSpectra() const)
-	TEST_EQUAL(file.getSpectra(), "dummy4712")
+	TEST_STRING_EQUAL(file.getSpectra(), "dummy4712")
 RESULT
 
 
 CHECK(void setDb(const String& db))
 	file.setDb("dummy4711");
-	TEST_EQUAL(file.getDb(), "dummy4711");
+	TEST_STRING_EQUAL(file.getDb(), "dummy4711");
 RESULT
 
 CHECK(const String& getDb() const)
-	TEST_EQUAL(file.getDb(), "dummy4711");
+	TEST_STRING_EQUAL(file.getDb(), "dummy4711");
 RESULT
 
 
 CHECK(void setEnzyme(const String& protease))
 	file.setEnzyme("Trypsin");
-	TEST_EQUAL(file.getEnzyme(), "Trypsin")
+	TEST_STRING_EQUAL(file.getEnzyme(), "Trypsin")
 RESULT
 
 CHECK(const String& getEnzyme() const)
-	TEST_EQUAL(file.getEnzyme(), "Trypsin")
+	TEST_STRING_EQUAL(file.getEnzyme(), "Trypsin")
 RESULT
 
 CHECK(String handlePTMs(const String& modification_line, const String& modifications_filename, const bool monoisotopic) throw (Exception::FileNotReadable, Exception::FileNotFound, Exception::ParseError))
-	String modification_line = "10.3+,KRLNH,fix:Phosphorylation:+16,C:HCNO,nterm,Carbamylation:H2C,CHKNQRILDEST,opt,Methylation:16-,cterm:-16,nterm";
+	String modification_line = "10.3+,KRLNH,fix:Phosphorylation:+16,C:H2C,CHKNQRILDEST,opt,Methylation:16-,cterm:-16,nterm";
+// 	"10.3+,KRLNH,fix:Phosphorylation:+16,C:HCNO,nterm,Carbamylation:H2C,CHKNQRILDEST,opt,Methylation:16-,cterm:-16,nterm";
+	
 	TEST_EXCEPTION(Exception::FileNotFound, file.handlePTMs(modification_line, "", true))
 	
 	modification_line = "2H20,KRLNH,fix";
@@ -95,7 +97,7 @@ CHECK(String handlePTMs(const String& modification_line, const String& modificat
 	}
 	catch ( Exception::ParseError p_e )
 	{
-		TEST_EQUAL(String(p_e.getMessage()), "There's something wrong with this modification. Aborting! in: 2H20,KRLNH,fix")
+		TEST_STRING_EQUAL(String(p_e.getMessage()), "There's something wrong with this modification. Aborting! in: 2H20,KRLNH,fix")
 	}
 
 	modification_line = "10.3+";
@@ -106,7 +108,7 @@ CHECK(String handlePTMs(const String& modification_line, const String& modificat
 	}
 	catch ( Exception::ParseError p_e )
 	{
-		TEST_EQUAL(String(p_e.getMessage()), "No residues for modification given. Aborting! in: 10.3+")
+		TEST_STRING_EQUAL(String(p_e.getMessage()), "No residues for modification given. Aborting! in: 10.3+")
 	}
 
 	modification_line = "10.3+,KRLNH,stat,PTM_0";
@@ -117,7 +119,7 @@ CHECK(String handlePTMs(const String& modification_line, const String& modificat
 	}
 	catch ( Exception::ParseError p_e )
 	{
-		TEST_EQUAL(String(p_e.getMessage()), "There's something wrong with the type of this modification. Aborting! in: 10.3+,KRLNH,stat,PTM_0")
+		TEST_STRING_EQUAL(String(p_e.getMessage()), "There's something wrong with the type of this modification. Aborting! in: 10.3+,KRLNH,stat,PTM_0")
 	}
 
 	modification_line = "Phosphorylation:Phosphorylation";
@@ -128,10 +130,11 @@ CHECK(String handlePTMs(const String& modification_line, const String& modificat
 	}
 	catch ( Exception::ParseError p_e )
 	{
-		TEST_EQUAL(String(p_e.getMessage()), "There's already a modification with this name. Aborting! in: Phosphorylation")
+		TEST_STRING_EQUAL(String(p_e.getMessage()), "There's already a modification with this name. Aborting! in: Phosphorylation")
 	}
 
-	modification_line = "10.3+,KRLNH,fix:Phosphorylation:+16,C:HCNO,nterm,Carbamylation:H2C,CHKNQRILDEST,opt,Methylation:16-,cterm:-16,nterm";
+	modification_line = "10.3+,KRLNH,fix:Phosphorylation:+16,C:H2C,CHKNQRILDEST,opt,Methylation:16-,cterm:-16,nterm";
+// 	"10.3+,KRLNH,fix:Phosphorylation:+16,C:HCNO,nterm,Carbamylation:H2C,CHKNQRILDEST,opt,Methylation:16-,cterm:-16,nterm";
 
 	// average masses
 	file.handlePTMs(modification_line, "TOPP/Inspect_PTMs.xml", false);
@@ -149,22 +152,30 @@ CHECK(String handlePTMs(const String& modification_line, const String& modificat
 	modifications["PTM_2"][0] = "C";
 	modifications["PTM_2"][1] = "16";
 	modifications["PTM_2"][2] = "OPT";
-	modifications["Carbamylation"] = vector< String >(3);
-	modifications["Carbamylation"][0] = "NTERM";
-	modifications["Carbamylation"][1] = "43.02474";
-	modifications["Carbamylation"][2] = "OPT";
+// 	modifications["Carbamylation"] = vector< String >(3);
+// 	modifications["Carbamylation"][0] = "NTERM";
+// 	modifications["Carbamylation"][1] = "43.02474";
+// 	modifications["Carbamylation"][2] = "OPT";
 	modifications["Methylation"] = vector< String >(3);
 	modifications["Methylation"][0] = "CHKNQRILDEST";
 	modifications["Methylation"][1] = "14.02658";
 	modifications["Methylation"][2] = "OPT";
+// 	modifications["PTM_5"] = vector< String >(3);
+// 	modifications["PTM_5"][0] = "CTERM";
+// 	modifications["PTM_5"][1] = "-16";
+// 	modifications["PTM_5"][2] = "OPT";
+// 	modifications["PTM_6"] = vector< String >(3);
+// 	modifications["PTM_6"][0] = "NTERM";
+// 	modifications["PTM_6"][1] = "-16";
+// 	modifications["PTM_6"][2] = "OPT";
+	modifications["PTM_4"] = vector< String >(3);
+	modifications["PTM_4"][0] = "CTERM";
+	modifications["PTM_4"][1] = "-16";
+	modifications["PTM_4"][2] = "OPT";
 	modifications["PTM_5"] = vector< String >(3);
-	modifications["PTM_5"][0] = "CTERM";
+	modifications["PTM_5"][0] = "NTERM";
 	modifications["PTM_5"][1] = "-16";
 	modifications["PTM_5"][2] = "OPT";
-	modifications["PTM_6"] = vector< String >(3);
-	modifications["PTM_6"][0] = "NTERM";
-	modifications["PTM_6"][1] = "-16";
-	modifications["PTM_6"][2] = "OPT";
 
 	map< String, vector< String > >::const_iterator result_mod_i = file.getModifications().begin();
 	TEST_EQUAL(file.getModifications().size(), modifications.size())
@@ -172,14 +183,14 @@ CHECK(String handlePTMs(const String& modification_line, const String& modificat
 	{
 		for ( map< String, vector< String > >::const_iterator mod_i = modifications.begin(); mod_i != modifications.end(); ++mod_i, ++result_mod_i )
 		{
-			TEST_EQUAL(result_mod_i->first, mod_i->first)
+			TEST_STRING_EQUAL(result_mod_i->first, mod_i->first)
 			TEST_EQUAL(result_mod_i->second.size(), 3)
 			TEST_EQUAL(result_mod_i->second.size(), mod_i->second.size())
 			if ( result_mod_i->second.size() == mod_i->second.size() )
 			{
-				TEST_EQUAL(result_mod_i->second[0], mod_i->second[0])
-				TEST_EQUAL(result_mod_i->second[1], mod_i->second[1])
-				TEST_EQUAL(result_mod_i->second[2], mod_i->second[2])
+				TEST_STRING_EQUAL(result_mod_i->second[0], mod_i->second[0])
+				TEST_STRING_EQUAL(result_mod_i->second[1], mod_i->second[1])
+				TEST_STRING_EQUAL(result_mod_i->second[2], mod_i->second[2])
 			}
 		}
 	}
@@ -188,7 +199,7 @@ CHECK(String handlePTMs(const String& modification_line, const String& modificat
 	file.handlePTMs(modification_line, "TOPP/Inspect_PTMs.xml", true);
 
 	modifications["Phosphorylation"][1] = "79.96635";
-	modifications["Carbamylation"][1] = "43.00581";
+// 	modifications["Carbamylation"][1] = "43.00582";
 	modifications["Methylation"][1] = "14.01565";
 
 	result_mod_i = file.getModifications().begin();
@@ -197,14 +208,14 @@ CHECK(String handlePTMs(const String& modification_line, const String& modificat
 	{
 		for ( map< String, vector< String > >::const_iterator mod_i = modifications.begin(); mod_i != modifications.end(); ++mod_i, ++result_mod_i )
 		{
-			TEST_EQUAL(result_mod_i->first, mod_i->first)
+			TEST_STRING_EQUAL(result_mod_i->first, mod_i->first)
 			TEST_EQUAL(result_mod_i->second.size(), 3)
 			TEST_EQUAL(result_mod_i->second.size(), mod_i->second.size())
 			if ( result_mod_i->second.size() == mod_i->second.size() )
 			{
-				TEST_EQUAL(result_mod_i->second[0], mod_i->second[0])
-				TEST_EQUAL(result_mod_i->second[1], mod_i->second[1])
-				TEST_EQUAL(result_mod_i->second[2], mod_i->second[2])
+				TEST_STRING_EQUAL(result_mod_i->second[0], mod_i->second[0])
+				TEST_STRING_EQUAL(result_mod_i->second[1].substr(0, 7), mod_i->second[1].substr(0, 7))
+				TEST_STRING_EQUAL(result_mod_i->second[2], mod_i->second[2])
 			}
 		}
 	}
@@ -273,11 +284,11 @@ RESULT
 
 CHECK(void setInstrument(const String& instrument))
 	file.setInstrument("ESI-ION-TRAP");
-	TEST_EQUAL(file.getInstrument(), "ESI-ION-TRAP")
+	TEST_STRING_EQUAL(file.getInstrument(), "ESI-ION-TRAP")
 RESULT
 
 CHECK(const String& getInstrument() const)
-	TEST_EQUAL(file.getInstrument(), "ESI-ION-TRAP")
+	TEST_STRING_EQUAL(file.getInstrument(), "ESI-ION-TRAP")
 RESULT
 
 

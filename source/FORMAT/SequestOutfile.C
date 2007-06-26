@@ -507,7 +507,7 @@ namespace OpenMS
 	{
 		charge = 0;
 		precursor_mz_value = 0;
-		precursor_mass_type = ion_mass_type = -1;
+		precursor_mass_type = ion_mass_type = 0;
 		
 		// open the result
 		ifstream result_file( result_filename.c_str());

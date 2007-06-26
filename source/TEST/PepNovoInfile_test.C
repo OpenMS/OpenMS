@@ -55,7 +55,8 @@ RESULT
 PepNovoInfile file;
 
 CHECK(String handlePTMs(const String& modification_line, const String& modifications_filename, const bool monoisotopic) throw (Exception::FileNotReadable, Exception::FileNotFound, Exception::ParseError))
-	String modification_line = "10.3+,KRLNH,fix:Phosphorylation:+16,C:HCNO,nterm,Carbamylation:H2C,CHKNQRILDEST,opt,Methylation:16-,cterm:-16,nterm";
+	String modification_line = "10.3+,KRLNH,fix:Phosphorylation:+16,C:H2C,CHKNQRILDEST,opt,Methylation:16-,cterm:-16,nterm";
+// 	"10.3+,KRLNH,fix:Phosphorylation:+16,C:HCNO,nterm,Carbamylation:H2C,CHKNQRILDEST,opt,Methylation:16-,cterm:-16,nterm";
 	TEST_EXCEPTION(Exception::FileNotFound, file.handlePTMs(modification_line, "", true))
 	
 	modification_line = "2H20,KRLNH,fix";
@@ -102,7 +103,8 @@ CHECK(String handlePTMs(const String& modification_line, const String& modificat
 		TEST_EQUAL(String(p_e.getMessage()), "There's already a modification with this name. Aborting! in: Phosphorylation")
 	}
 
-	modification_line = "10.3+,KRLNH,fix:Phosphorylation:+16,C:HCNO,nterm,Carbamylation:H2C,CHKNQRILDEST,opt,Methylation:16-,cterm:-16,nterm";
+	modification_line = "10.3+,KRLNH,fix:Phosphorylation:+16,C:H2C,CHKNQRILDEST,opt,Methylation:16-,cterm:-16,nterm";
+// 	"10.3+,KRLNH,fix:Phosphorylation:+16,C:HCNO,nterm,Carbamylation:H2C,CHKNQRILDEST,opt,Methylation:16-,cterm:-16,nterm";
 
 	// average masses
 	file.handlePTMs(modification_line, "TOPP/PepNovo_PTMs.xml", false);
@@ -120,22 +122,30 @@ CHECK(String handlePTMs(const String& modification_line, const String& modificat
 	modifications["PTM_2"][0] = "C";
 	modifications["PTM_2"][1] = "16";
 	modifications["PTM_2"][2] = "OPT";
-	modifications["Carbamylation"] = vector< String >(3);
-	modifications["Carbamylation"][0] = "NTERM";
-	modifications["Carbamylation"][1] = "43.02474";
-	modifications["Carbamylation"][2] = "OPT";
+// 	modifications["Carbamylation"] = vector< String >(3);
+// 	modifications["Carbamylation"][0] = "NTERM";
+// 	modifications["Carbamylation"][1] = "43.02474";
+// 	modifications["Carbamylation"][2] = "OPT";
 	modifications["Methylation"] = vector< String >(3);
 	modifications["Methylation"][0] = "CHKNQRILDEST";
 	modifications["Methylation"][1] = "14.02658";
 	modifications["Methylation"][2] = "OPT";
+// 	modifications["PTM_5"] = vector< String >(3);
+// 	modifications["PTM_5"][0] = "CTERM";
+// 	modifications["PTM_5"][1] = "-16";
+// 	modifications["PTM_5"][2] = "OPT";
+// 	modifications["PTM_6"] = vector< String >(3);
+// 	modifications["PTM_6"][0] = "NTERM";
+// 	modifications["PTM_6"][1] = "-16";
+// 	modifications["PTM_6"][2] = "OPT";
+	modifications["PTM_4"] = vector< String >(3);
+	modifications["PTM_4"][0] = "CTERM";
+	modifications["PTM_4"][1] = "-16";
+	modifications["PTM_4"][2] = "OPT";
 	modifications["PTM_5"] = vector< String >(3);
-	modifications["PTM_5"][0] = "CTERM";
+	modifications["PTM_5"][0] = "NTERM";
 	modifications["PTM_5"][1] = "-16";
 	modifications["PTM_5"][2] = "OPT";
-	modifications["PTM_6"] = vector< String >(3);
-	modifications["PTM_6"][0] = "NTERM";
-	modifications["PTM_6"][1] = "-16";
-	modifications["PTM_6"][2] = "OPT";
 
 	map< String, vector< String > >::const_iterator result_mod_i = file.getModifications().begin();
 	TEST_EQUAL(file.getModifications().size(), modifications.size())
@@ -159,7 +169,7 @@ CHECK(String handlePTMs(const String& modification_line, const String& modificat
 	file.handlePTMs(modification_line, "TOPP/PepNovo_PTMs.xml", true);
 
 	modifications["Phosphorylation"][1] = "79.96635";
-	modifications["Carbamylation"][1] = "43.00581";
+// 	modifications["Carbamylation"][1] = "43.00581";
 	modifications["Methylation"][1] = "14.01565";
 
 	result_mod_i = file.getModifications().begin();

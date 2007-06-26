@@ -221,7 +221,7 @@ namespace OpenMS
 
 		protected:
 			/// returns some standard enzymes (used to initialize the enzyme list)
-			void setStandardEnzymeInfo();
+			void setStandardEnzymeInfo_();
 
 			/// the amino acids in one-letter-code
 			static const String aas_single_letter_;
