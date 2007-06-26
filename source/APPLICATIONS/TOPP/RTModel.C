@@ -70,11 +70,11 @@ using namespace std;
 			border_length: border length for the POBK
 		</li>
 		<li>
-			sigma: the amount of positional smoothing for the POBK
-		</li>
-		<li>
 			k_mer_length: length of the signals considered in the 
 			POBK
+		</li>
+		<li>
+			sigma: the amount of positional smoothing for the POBK
 		</li>
 		<li>
 			degree: the degree parameter for the polynomial kernel
@@ -92,7 +92,7 @@ using namespace std;
 	
 	<br>
 	
-	The last 4 parameters (sigma, k_mer_length, degree, c, nu and p)
+	The last five parameters (sigma, degree, c, nu and p)
 	can be used in a 
 	cross validation (CV) to find the best parameters according to the 
 	training set. Therefore you have to specify the start value of a

@@ -47,7 +47,7 @@ using namespace std;
 	@brief Filters Filters ProteinIdentification engine results by different criteria.
 	
 	This tool is used to filter the identifications found by
-	an ProteinIdentification tool like Mascot&copy;. The identifications 
+	a peptide/protein identification tool like Mascot&copy;. The identifications 
 	can be filtered by different criteria.
 	
 	<ul>
@@ -82,8 +82,8 @@ using namespace std;
 		</li>
 		<li>
 			<b>rt_filtering</b>:<br> To filter identifications according to their 
-			predicted retention times you have to set this flag. You can set the significance level
-			that should be used by setting the 'p_value' parameter.<br>  
+			predicted retention times you have to set this flag. You can set the used significance level
+			by setting the 'p_value' parameter.<br>  
 			This filter can only be applied to IdXML files produced by RTPredict.
 		</li>
 		<li>
@@ -114,7 +114,7 @@ class TOPPIDFilter
 {
  public:
 	TOPPIDFilter()
-		: TOPPBase("IDFilter","filters ProteinIdentification engine results by different criteria")
+		: TOPPBase("IDFilter","filters protein/peptide identification engine results by different criteria")
 	{
 		
 	}
