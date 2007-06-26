@@ -54,8 +54,7 @@ using namespace std;
   feature region. The intensity of the feature is then given by the sum of the data points included
   in its regions.
   
-  How to find @ref TOPP_example5_parameters is described in the TOPP tutorial.
-
+  How to find suitable parameters is described in the TOPP tutorial.
 */
 
 // We do not want this class to show up in the docu:
