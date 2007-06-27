@@ -2,7 +2,7 @@
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
-//                   OpenMS Mass Spectrometry Framework 
+//                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
 //  Copyright (C) 2003-2007 -- Oliver Kohlbacher, Knut Reinert
 //
@@ -43,22 +43,22 @@ using namespace OpenMS;
 using namespace std;
 
 DBoundingBox<1>* ptr1 = 0;
-CHECK(DBoundingBox<1>())
+CHECK(DBoundingBox())
 	ptr1 = new DBoundingBox<1>;
 	TEST_NOT_EQUAL(ptr1, 0)
 RESULT
 
-CHECK(~DBoundingBox<1>())
+CHECK(~DBoundingBox())
 	delete ptr1;
 RESULT
 
 DBoundingBox<2>* ptr2 = 0;
-CHECK(DBoundingBox<2>())
+CHECK([EXTRA] DBoundingBox())
 	ptr2 = new DBoundingBox<2>;
 	TEST_NOT_EQUAL(ptr2, 0)
 RESULT
 
-CHECK(~DBoundingBox<2>())
+CHECK([EXTRA] ~DBoundingBox())
 	delete ptr2;
 RESULT
 
@@ -98,20 +98,26 @@ RESULT
 
 BB2 bb2f(bb2);
 
-CHECK(bool operator == (const DBoundingBox& bounding_box) const throw())
+CHECK(bool operator == (const DBoundingBox& rhs) const)
 	TEST_EQUAL(bb2f==bb2,true);
 RESULT
 
-CHECK(bool operator != (const DBoundingBox& bounding_box) const throw())
-	BB2 tmp;
-	TEST_EQUAL(bb2f==tmp,false);
-	TEST_EQUAL(bb2f!=tmp,true);
+CHECK(bool operator == (const Base& rhs) const)
+	BB2::Base base(bb2);
+	TEST_EQUAL(bb2f==base,true);
 RESULT
 
-CHECK(DBoundingBox& operator=(DBoundingBox bounding_box))
+CHECK(DBoundingBox& operator=(const DBoundingBox &rhs))
 	bb2 = BB2::zero;
   TEST_EQUAL(bb2.isEmpty(),false);
   bb2 = BB2::empty;
+  TEST_EQUAL(bb2.isEmpty(),true);
+RESULT
+
+CHECK(DBoundingBox& operator=(const Base &rhs))
+	bb2 = BB2::Base::zero;
+  TEST_EQUAL(bb2.isEmpty(),false);
+  bb2 = BB2::Base::empty;
   TEST_EQUAL(bb2.isEmpty(),true);
 RESULT
 
@@ -157,12 +163,12 @@ CHECK(bool encloses(PositionType const& position) const)
   // see above :-P
 RESULT
 
-CHECK(bool intersects(const DBoundingBox &query))	
+CHECK(bool intersects(DBoundingBox const &bounding_box) const)
 	DPosition<2> p1,p2,p3,one,two;
 	p1[0]=-1.0f;
 	p1[1]=-2.0f;
 	p2[0]=3.0f;
-	p2[1]=4.0f;	
+	p2[1]=4.0f;
 	p3[0]=-10.0f;
 	p3[1]=20.0f;
 	one[0]=1;
@@ -199,12 +205,12 @@ CHECK(bool intersects(const DBoundingBox &query))
 	r3.setMinY(-10.0f);
 	r3.setMaxX(10.0f);
 	r3.setMaxY(-9.0f);
-	TEST_EQUAL(r2.intersects(r3),false)		
+	TEST_EQUAL(r2.intersects(r3),false)
 	r3.setMinX(-10.0f);
 	r3.setMinY(0.0f);
 	r3.setMaxX(-9.0f);
 	r3.setMaxY(1.0f);
-	TEST_EQUAL(r2.intersects(r3),false)		
+	TEST_EQUAL(r2.intersects(r3),false)
 	r3.setMinX(-10.0f);
 	r3.setMinY(10.0f);
 	r3.setMax(r3.min()+one);
@@ -213,22 +219,22 @@ CHECK(bool intersects(const DBoundingBox &query))
 	r3.setMinY(0.0f);
 	r3.setMaxX(-9.0f);
 	r3.setMaxY(10.0f);
-	TEST_EQUAL(r2.intersects(r3),false)	
+	TEST_EQUAL(r2.intersects(r3),false)
 	r3.setMinX(9.0f);
 	r3.setMinY(0.0f);
 	r3.setMaxX(10.0f);
 	r3.setMaxY(10.0f);
-	TEST_EQUAL(r2.intersects(r3),false)	
+	TEST_EQUAL(r2.intersects(r3),false)
 	r3.setMinX(9.0f);
 	r3.setMinY(0.0f);
 	r3.setMaxX(10.0f);
 	r3.setMaxY(10.0f);
-	TEST_EQUAL(r2.intersects(r3),false)	
+	TEST_EQUAL(r2.intersects(r3),false)
 	r3.setMinX(9.0f);
 	r3.setMinY(-5.0f);
 	r3.setMaxX(10.0f);
 	r3.setMaxY(0.0f);
-	TEST_EQUAL(r2.intersects(r3),false)	
+	TEST_EQUAL(r2.intersects(r3),false)
 	r3.setMinX(9.0f);
 	r3.setMinY(-5.0f);
 	r3.setMaxX(10.0f);
@@ -238,32 +244,65 @@ CHECK(bool intersects(const DBoundingBox &query))
 	r3.setMinY(-5.0f);
 	r3.setMaxX(0.0f);
 	r3.setMaxY(0.0f);
-	TEST_EQUAL(r2.intersects(r3),true)	
+	TEST_EQUAL(r2.intersects(r3),true)
 	r3.setMinX(-5.0f);
 	r3.setMinY(-5.0f);
 	r3.setMaxX(5.0f);
 	r3.setMaxY(0.0f);
-	TEST_EQUAL(r2.intersects(r3),true)	
+	TEST_EQUAL(r2.intersects(r3),true)
 	r3.setMinX(-5.0f);
 	r3.setMinY(-5.0f);
 	r3.setMaxX(5.0f);
 	r3.setMaxY(5.0f);
-	TEST_EQUAL(r2.intersects(r3),true)	
+	TEST_EQUAL(r2.intersects(r3),true)
 	r3.setMinX(0.0f);
 	r3.setMinY(-5.0f);
 	r3.setMaxX(0.0f);
 	r3.setMaxY(0.0f);
-	TEST_EQUAL(r2.intersects(r3),true)	
+	TEST_EQUAL(r2.intersects(r3),true)
 	r3.setMinX(0.0f);
 	r3.setMinY(-5.0f);
 	r3.setMaxX(5.0f);
 	r3.setMaxY(0.0f);
-	TEST_EQUAL(r2.intersects(r3),true)	
+	TEST_EQUAL(r2.intersects(r3),true)
 	r3.setMinX(0.0f);
 	r3.setMinY(-5.0f);
 	r3.setMaxX(5.0f);
 	r3.setMaxY(5.0f);
-	TEST_EQUAL(r2.intersects(r3),true)		
+	TEST_EQUAL(r2.intersects(r3),true)
+RESULT
+
+CHECK(DBoundingBox(PositionType const &minimum, PositionType const &maximum))
+{
+	DPosition<1> min(2), max(5);
+	BB1 bb(min,max);
+	TEST_REAL_EQUAL(bb.min()[0], 2);
+	TEST_REAL_EQUAL(bb.max()[0], 5);
+}
+RESULT
+
+CHECK(DBoundingBox(const DBoundingBox &rhs))
+{
+	DPosition<1> min(2), max(5);
+	BB1 bb(min,max);
+	BB1 bb_copy(bb);
+	TEST_REAL_EQUAL(bb_copy.min()[0], 2);
+	TEST_REAL_EQUAL(bb_copy.max()[0], 5);
+}
+RESULT
+
+CHECK(std::ostream & operator<<(std::ostream &os, const DBoundingBox< D > &bounding_box))
+{
+	std::ostringstream os;
+	DPosition<1> min(2), max(5);
+	BB1 bb(min,max);
+	os << bb;
+  TEST_STRING_EQUAL( os.str(),
+		"--DBOUNDINGBOX BEGIN--\n"
+		"MIN --> 2\n"
+		"MAX --> 5\n"
+		"--DBOUNDINGBOX END--\n");
+}
 RESULT
 
 

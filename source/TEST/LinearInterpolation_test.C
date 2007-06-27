@@ -64,7 +64,7 @@ START_TEST( LinearInterpolation, "$Id$" )
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
-CHECK( typedefs )
+CHECK([EXTRA] typedefs )
 {
 	typedef LinearInterpolation < float, double > LIFD;
 	LIFD::ValueType     * value;

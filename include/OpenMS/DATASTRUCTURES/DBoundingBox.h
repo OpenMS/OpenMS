@@ -2,7 +2,7 @@
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
-//                   OpenMS Mass Spectrometry Framework 
+//                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
 //  Copyright (C) 2003-2007 -- Oliver Kohlbacher, Knut Reinert
 //
@@ -31,56 +31,56 @@
 
 namespace OpenMS
 {
-	
+
 	/**
 		@brief A D-dimensional bounding box.
-		 
+
 		A DBoundingBox denotes a closed interval.  Upper and lower margins are both contained.
-		
+
 		@ingroup Datastructures
 	*/
 	template <UInt D>
 	class DBoundingBox
 		:	public Internal::DIntervalBase<D>
 	{
-		
+
 	 public:
 
-		/**	
-			@name Type definitions 
-		*/	
+		/**
+			@name Type definitions
+		*/
 		//@{
 		/// Dimensions
 		enum { DIMENSION = D };
 		/// Base class type
-		typedef Internal::DIntervalBase<D> Base; 
+		typedef Internal::DIntervalBase<D> Base;
 		/// Position type
 		typedef typename Base::PositionType PositionType;
 		/// Coordinate type of the positions
 		typedef typename Base::CoordinateType CoordinateType;
 		//@}
 
-		
+
 		// for convenience
 		using Base::min_;
 		using Base::max_;
 
 		/**	@name Constructors and Destructor */
 		//@{
-		///Default constructor. 
+		///Default constructor.
 		DBoundingBox()
 			: Base()
 		{
-			
+
 		}
-		
+
 		/// Copy constructor
 		DBoundingBox(const DBoundingBox& rhs)
 			: Base(rhs)
 		{
-			
+
 		}
-		
+
 		/// Assignement operator
 		DBoundingBox & operator=(const DBoundingBox& rhs)
 		{
@@ -94,11 +94,11 @@ namespace OpenMS
 			Base::operator=(rhs);
 			return *this;
 		}
-		
+
 		/// Destructor
 		~DBoundingBox()
 		{
-			
+
 		}
 
 		///Constructor from two positions
@@ -130,22 +130,22 @@ namespace OpenMS
 
 		/**	@name Predicates */
 		//@{
-		
+
 		/// Equality operator
-		bool operator == (const DBoundingBox& rhs) const throw()
+		bool operator == (const DBoundingBox& rhs) const
 		{
 			return Base::operator==(rhs);
 		}
 
 		/// Equality operator
-		bool operator == (const Base& rhs) const throw()
+		bool operator == (const Base& rhs) const
 		{
 			return Base::operator==(rhs);
 		}
 
 		/**
 			@brief Checks whether this range contains a certain point.
-			
+
 			@param position The point's position.
 			@returns true if point lies inside this area.
 		*/
@@ -166,31 +166,31 @@ namespace OpenMS
 		{
 			return encloses( PositionType(x,y) );
 		}
-		
+
 		/**
 			 Checks whether this bounding box intersects with another bounding box
-		*/	
+		*/
 		bool intersects(DBoundingBox const & bounding_box) const
 		{
 			for ( UInt i = 0; i < DIMENSION; ++i )
 			{
-				if ( bounding_box .min_[i] > max_[i] ) return false; 
-				if ( bounding_box.max_[i] <  min_[i] ) return false; 
+				if ( bounding_box .min_[i] > max_[i] ) return false;
+				if ( bounding_box.max_[i] <  min_[i] ) return false;
 			}
 			return true;
-	  }         
+	  }
 
 		/// Test if bounding box is empty
-		bool isEmpty() const 
-		{ 
-			return *this == Base::empty; 
+		bool isEmpty() const
+		{
+			return *this == Base::empty;
 		}
-    
+
 		//@}
 
 
 	};
-	
+
 	/**@brief Print the contents to a stream.
 
 	@relatesalso DBoundingBox
@@ -205,7 +205,7 @@ namespace OpenMS
 		return os;
 	}
 
-	
+
 } // namespace OpenMS
 
 #endif // OPENMS_KERNEL_DBOUNDINGBOX_H
