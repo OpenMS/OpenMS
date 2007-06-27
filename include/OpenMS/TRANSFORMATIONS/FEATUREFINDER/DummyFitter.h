@@ -38,21 +38,6 @@ namespace OpenMS
 		
 		This module does not do anything besides constructing the feature from
 		the region.
-		
-		<table>
-			<tr>
-				<td>min_num_peaks:final</td>
-				<td>minimum number of peaks in the feature region.</td>
-			</tr>
-			<tr>
-				<td>min_num_peaks:extended</td>
-				<td>minimum number of peaks in the region after extension.</td>
-			</tr>
-			<tr>
-				<td>use_fwhm_intensity</td>
-				<td>binary value (0/1). Use fwhm (full witdth at half maximum) for quantification or not..</td>
-			</tr>
-		</table> 
     
     @ref DummyFitter_Parameters are explained on a separate page.
 		 

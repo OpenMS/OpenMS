@@ -41,7 +41,7 @@ namespace OpenMS
 {
 
 	/** 
-		@brief Seeding class that follows the description of Groepl et al (2004)
+		@brief Seeding class that follows the description of Groepl et al (2004).
  		
 		This class simply sorts the peaks according to intensity and proposes
 		the highest peak, which is not yet included in a feature, as next seed.

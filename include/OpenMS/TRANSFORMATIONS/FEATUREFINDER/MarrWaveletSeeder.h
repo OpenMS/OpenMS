@@ -74,8 +74,6 @@ namespace OpenMS
 		 <td>same as above for the wavelet transformed signal. </td></tr>
 		 </table>
 
-		 There are additional parameters : @see BaseSweepSeeder
-
 		@improvement The same thing is called avg_signal_factor in MarrWaveletSeeder and signal_avg_factor in IsotopeWaveletSeeder.  Unify this.
 		 
 		@ref MarrWaveletSeeder_Parameters are explained on a separate page.

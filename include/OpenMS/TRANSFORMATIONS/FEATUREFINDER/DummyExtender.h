@@ -38,12 +38,10 @@ namespace OpenMS
 {
 
 	/**
-	  @brief A straightforward implementation of the extension phase of the feature detection / quantification algorithm in OpenMS.
+	  @brief This extender does not extend the Seeding region.
 		
-		As one can imagine, this module implements a rather trivial extension and returns simply the seeding region without
-		any further extension. 
-		
-		@note Use the module for testing purposes only !	
+		This module simply returns the seeding region without any further extension.
+		It is used if your Seeding already returns an extended region, or for testing purposes.
 		
 		@ingroup FeatureFinder
 	*/

@@ -37,7 +37,7 @@ namespace OpenMS
 		setName(getProductName());
 		
 		// minimum sn ratio for "interesting" peaks
-		defaults_.setValue("min_snratio",1.1,"minimum sn ratio for interesting peaks");
+		defaults_.setValue("min_snratio",1.1,"minimum signal-to-noise ratio for interesting peaks");
 		// tolerance in m/z for a peak in the previous scan
 		defaults_.setValue("tolerance_mz",1.1f,"tolerance in m/z for a peak in the previous scan");
 			// minimum number of scan per isotopic cluster

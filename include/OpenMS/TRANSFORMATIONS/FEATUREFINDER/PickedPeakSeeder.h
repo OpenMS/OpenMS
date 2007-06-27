@@ -41,33 +41,6 @@ namespace OpenMS
 		This extender module sweeps through the scans and classifies cluster 
  		of peaks as candidate peptides if the distance between successive peaks 
  		is 1 Da (charge 1) , 0.5 Da (charge 2) or 0.3 Da (charge 3) etc.
-  	
-		Parameters:
-				
-		<table>
-		 <tr><td></td><td></td><td>charge1_ub</td>
-		 <td>upper bound for the distance between "charge one" maxima</td></tr>
-		 <tr><td></td><td></td><td>charge1_lb</td>
-		 <td>lower bound for charge one </td></tr>
-		 <tr><td></td><td></td><td>charge2_ub</td>
-		 <td>upper bound charge two </td></tr>
-		 <tr><td></td><td></td><td>charge2_lb</td>
-		 <td>lower bound charge two </td></tr>
-		 <tr><td></td><td></td><td>charge3_ub</td>
-		 <td>upper bound charge three </td></tr>
-		 <tr><td></td><td></td><td>charge3_lb</td>
-		 <td>lower bound charge three </td></tr>
-		 <tr><td></td><td></td><td>charge4_ub</td>
-		 <td>upper bound charge four </td></tr>
-		 <tr><td></td><td></td><td>charge4_lb</td>
-		 <td>lower bound charge four </td></tr>
-		 <tr><td></td><td></td><td>charge5_ub</td>
-		 <td>upper bound charge five </td></tr>
-		 <tr><td></td><td></td><td>charge5_lb</td>
-		 <td>lower bound charge five </td></tr>
-		</table>		
-		
-		There are additional parameter : @see BaseSweepSeeder
 		 
 		@ref PickedPeakSeeder_Parameters are explained on a separate page.
 		  	

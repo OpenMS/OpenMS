@@ -38,27 +38,6 @@ namespace OpenMS
 		@brief Seeding module which selects single peaks based on their s/n ratio.
 		
 		Groups of peaks a clustered within a certain distance and traced over consecutive scans.
-		
-		<table>
-			<tr>
-				<td>min_snratio</td>
-				<td>Minimum signal to noise ratio of a peak</td>
-			</tr>
-			<tr>
-				<td>tolerance_mz</td>
-				<td>tolerance in m/z for a peak in the previous scan.</td>
-			</tr>
-			<tr>
-				<td>min_number_scans</td>
-				<td>minimum number of scan per isotopic cluster.</td>
-			</tr>
-				<td>min_number_peaks</td>
-				<td>minimum number of peaks per cluster</td>
-			</tr>
-			<td>max_peak_distance</td>
-				<td>minimum number of peaks per cluster</td>
-			</tr>
-		</table>
 
     @ref DummySeeder_Parameters are explained on a separate page.
 

@@ -48,9 +48,8 @@ namespace OpenMS
 	{
 		setName(getProductName());
 
-		defaults_.setValue("min_num_peaks:final",5,"minimum number of data points after fitting");
-		defaults_.setValue("min_num_peaks:extended",10,"minimum number of data points before fitting");
-		defaults_.setValue("use_fwhm_intensity",0,"EXPERIMENTAL - SEE SOURCE CODE!  Switch to control what is reported as intensity:  Currently 0 means use sum of intensities and 1 means use maximum of intensities within feature region");
+		defaults_.setValue("min_num_peaks",10,"minimum number of peaks for a  valid feature");
+		defaults_.setValue("use_fwhm_intensity",0,"Switch to control what is reported as intensity:\n0 sum of peak intensities.\n1 maximum of intensities within feature region");
 
 		defaultsToParam_();
 	}
@@ -74,7 +73,7 @@ namespace OpenMS
   Feature DummyFitter::fit(const ChargedIndexSet& set) throw (UnableToFit)
 	{
 		// not enough peaks to fit
-		if (set.size() < static_cast<UInt>(param_.getValue("min_num_peaks:extended")))
+		if (set.size() < static_cast<UInt>(param_.getValue("min_num_peaks")))
 		{
 			for (IndexSet::const_iterator it=set.begin(); it!=set.end(); ++it)
 			{
