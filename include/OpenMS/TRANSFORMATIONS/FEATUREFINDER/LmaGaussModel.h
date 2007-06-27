@@ -74,7 +74,7 @@ namespace OpenMS
 		}
 
 		/// set offset without being computing all over and without any discrepancy
-		void setOffset(CoordinateType  offset);
+		void setOffset(double offset);
 
 		/// set sample/supporting points of interpolation
 		void setSamples();
