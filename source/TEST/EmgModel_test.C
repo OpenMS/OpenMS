@@ -43,25 +43,30 @@ using std::stringstream;
 
 // default ctor
 EmgModel* ptr = 0;
-CHECK(EmgModel())
+CHECK((EmgModel()))
 	ptr = new EmgModel();
   	TEST_EQUAL(ptr->getName(), "EmgModel")
 	TEST_NOT_EQUAL(ptr, 0)
 RESULT
 
 // destructor
-CHECK(~EmgModel())
+CHECK((virtual ~EmgModel()))
 	delete ptr;
 RESULT
-
 
 CHECK((static const String getProductName()))
 	TEST_EQUAL(EmgModel::getProductName(),"EmgModel")
 	TEST_EQUAL(EmgModel().getName(),"EmgModel")
 RESULT
 
+CHECK((static BaseModel<1>* create()))
+	BaseModel<1>* ptr = EmgModel::create();
+	TEST_EQUAL(ptr->getName(), "EmgModel")
+	TEST_NOT_EQUAL(ptr, 0)
+RESULT
+
 // assignment operator
-CHECK(EmgModel& operator = (const EmgModel& source))
+CHECK((virtual EmgModel& operator=(const EmgModel &source)))
 	EmgModel em1;
 	em1.setInterpolationStep(0.2);
 
@@ -82,13 +87,11 @@ CHECK(EmgModel& operator = (const EmgModel& source))
 	EmgModel em3;
 	em3.setInterpolationStep(0.2);
 	em3.setParameters(tmp);
-
-  	em1 = EmgModel();
-	TEST_EQUAL(em3.getParameters(), em2.getParameters())
+  	TEST_EQUAL(em3.getParameters(), em2.getParameters())
 RESULT
 
 // copy ctor
-CHECK(EmgModel(const EmgModel& source))
+CHECK((EmgModel(const EmgModel& source)))
 	EmgModel em1;
 	em1.setInterpolationStep(0.2);
 
@@ -210,7 +213,6 @@ CHECK([EXTRA] DefaultParamHandler::setParameters(...))
 
 RESULT
 
-
 CHECK((void setOffset(double offset)))
 
 	EmgModel em1;
@@ -251,8 +253,11 @@ CHECK((void setOffset(double offset)))
 
 RESULT
 
+CHECK((void setSamples()))
+	// already test above
+RESULT
 
-CHECK(CoordinateType getCenter() const)
+CHECK((CoordinateType getCenter() const))
 	// already test above, but just for the sake of it
 
 	PRECISION(0.001)
@@ -271,14 +276,6 @@ CHECK(CoordinateType getCenter() const)
 	em1.setOffset(680.0);
 	TEST_REAL_EQUAL(em1.getCenter(), 681.2)
 
-RESULT
-
-CHECK(static BaseModel<1>* create())
-	// already test above
-RESULT
-
-CHECK(void setSamples())
-	// already test above
 RESULT
 
 /////////////////////////////////////////////////////////////

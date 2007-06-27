@@ -49,18 +49,23 @@ CHECK(LmaGaussModel())
 RESULT
 
 // destructor
-CHECK(~LmaGaussModel())
+CHECK(virtual ~LmaGaussModel())
 	delete ptr;
 RESULT
-
 
 CHECK((static const String getProductName()))
 	TEST_EQUAL(LmaGaussModel::getProductName(),"LmaGaussModel")
 	TEST_EQUAL(LmaGaussModel().getName(),"LmaGaussModel")
 RESULT
 
+CHECK((static BaseModel<1>* create()))
+	BaseModel<1>* ptr = LmaGaussModel::create();
+	TEST_EQUAL(ptr->getName(), "LmaGaussModel")
+	TEST_NOT_EQUAL(ptr, 0)
+RESULT
+
 // assignment operator
-CHECK(LmaGaussModel& operator = (const LmaGaussModel& source))
+CHECK((virtual LmaGaussModel& operator=(const LmaGaussModel &source)))
 	LmaGaussModel lm1;
 	lm1.setInterpolationStep(0.3);
 
@@ -107,41 +112,6 @@ CHECK(LmaGaussModel(const LmaGaussModel& source))
 	TEST_EQUAL(lm3.getParameters(), lm2.getParameters())
 RESULT
 
-CHECK(void setParam(Param param))
-	PRECISION(0.001)
-	LmaGaussModel lm1;
-	
-	Param tmp;
-	tmp.setValue("bounding_box:min", 678.9);
-	tmp.setValue("bounding_box:max", 680.9);
-	tmp.setValue("statistics:mean", 679.1 );
-	tmp.setValue("statistics:variance",  2.0);
-	tmp.setValue("lma:scale_factor", 10.0);
-	tmp.setValue("lma:standard_deviation", 2.0);
-	tmp.setValue("lma:expected_value", 700.0);
-	lm1.setParameters(tmp);
-	lm1.setOffset(680.0);
-
-	TEST_REAL_EQUAL(lm1.getCenter(), 680.2)
-
-	LmaGaussModel lm2;
-	lm2.setParameters(lm1.getParameters());
-
-	DPeakArray<DPeak<1> > dpa1;
-	DPeakArray<DPeak<1> > dpa2;
-	lm1.getSamples(dpa1);
-	lm2.getSamples(dpa2);
-
-	PRECISION(0.0001)
-	TEST_EQUAL(dpa1.size(),dpa2.size())
-	ABORT_IF(dpa1.size()!=dpa2.size());
-	for (UInt i=0; i<dpa1.size(); ++i)
-	{
-		TEST_REAL_EQUAL(dpa1[i].getPosition()[0],dpa2[i].getPosition()[0])
-		TEST_REAL_EQUAL(dpa1[i].getIntensity(),dpa2[i].getIntensity())
-	}
-RESULT
-
 CHECK([EXTRA] DefaultParamHandler::setParameters(...))
 	LmaGaussModel lm1;
 	
@@ -184,7 +154,6 @@ CHECK([EXTRA] DefaultParamHandler::setParameters(...))
 
 RESULT
 
-
 CHECK(void setOffset(double offset))
 
 	LmaGaussModel lm1;
@@ -224,6 +193,10 @@ CHECK(void setOffset(double offset))
 
 RESULT
 
+CHECK((void setSamples()))
+	// already test above
+RESULT
+
 CHECK(CoordinateType getCenter() const)
 	// already test above, but just for the sake of it
 	PRECISION(0.001)
@@ -242,14 +215,6 @@ CHECK(CoordinateType getCenter() const)
 
 	TEST_REAL_EQUAL(lm1.getCenter(), 681.2)
 
-RESULT
-
-CHECK(static BaseModel<1>* create())
-	// already test above
-RESULT
-
-CHECK(void setSamples())
-	// already test above
 RESULT
 
 /////////////////////////////////////////////////////////////
