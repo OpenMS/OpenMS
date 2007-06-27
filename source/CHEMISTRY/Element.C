@@ -53,8 +53,8 @@ namespace OpenMS
 	Element::Element( const String& name,
 										const String& symbol,
 										UInt atomic_number,
-										Real average_weight,
-										Real mono_weight,
+										DoubleReal average_weight,
+										DoubleReal mono_weight,
 										const IsotopeDistribution& isotopes)
 		:	name_(name),
 			symbol_(symbol),
@@ -79,22 +79,22 @@ namespace OpenMS
 		return atomic_number_;
 	}
 	
-	void Element::setAverageWeight(Real weight)
+	void Element::setAverageWeight(DoubleReal weight)
 	{
 		average_weight_ = weight;
 	}
 	
-	Real Element::getAverageWeight() const
+	DoubleReal Element::getAverageWeight() const
 	{
 		return average_weight_;
 	}
 	
-	void Element::setMonoWeight(Real weight)
+	void Element::setMonoWeight(DoubleReal weight)
 	{
 		mono_weight_ = weight;
 	}
 	
-	Real Element::getMonoWeight() const
+	DoubleReal Element::getMonoWeight() const
 	{
 		return mono_weight_;
 	}

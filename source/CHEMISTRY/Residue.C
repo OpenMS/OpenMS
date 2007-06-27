@@ -271,22 +271,22 @@ namespace OpenMS
 		return loss_formula_;
 	}
 
-	void Residue::setLossAverageWeight(Real weight)
+	void Residue::setLossAverageWeight(DoubleReal weight)
 	{
 		loss_average_weight_ = weight;
 	}
 
-	Real Residue::getLossAverageWeight() const
+	DoubleReal Residue::getLossAverageWeight() const
 	{
 		return loss_average_weight_;
 	}
 
-	void Residue::setLossMonoWeight(Real weight)
+	void Residue::setLossMonoWeight(DoubleReal weight)
 	{
 		loss_mono_weight_ = weight;
 	}
 
-	Real Residue::getLossMonoWeight() const
+	DoubleReal Residue::getLossMonoWeight() const
 	{
 		return loss_mono_weight_;
 	}
@@ -369,7 +369,7 @@ namespace OpenMS
 		}
 	}
 
-	void Residue::setAverageWeight(Real weight, ResidueType res_type) 
+	void Residue::setAverageWeight(DoubleReal weight, ResidueType res_type) 
 	{
 		switch (res_type)
 		{
@@ -401,7 +401,7 @@ namespace OpenMS
 		}
 	}
 
-	Real Residue::getAverageWeight(ResidueType res_type) const
+	DoubleReal Residue::getAverageWeight(ResidueType res_type) const
 	{
 		switch (res_type)
 		{
@@ -431,7 +431,7 @@ namespace OpenMS
 		}
 	}
 
-	void Residue::setMonoWeight(Real weight, ResidueType res_type)
+	void Residue::setMonoWeight(DoubleReal weight, ResidueType res_type)
 	{
 		switch (res_type)
 		{
@@ -463,7 +463,7 @@ namespace OpenMS
 		}
 	}
 
-	Real Residue::getMonoWeight(ResidueType res_type) const
+	DoubleReal Residue::getMonoWeight(ResidueType res_type) const
 	{
 		switch (res_type)
 		{
@@ -524,32 +524,32 @@ namespace OpenMS
 		return low_mass_ions_;
 	}
 
-	Real Residue::getBackboneBasicityRight() const
+	DoubleReal Residue::getBackboneBasicityRight() const
 	{
 		return gb_bb_r_;
 	}
 
-	void Residue::setBackboneBasicityRight(Real gb_bb_r)
+	void Residue::setBackboneBasicityRight(DoubleReal gb_bb_r)
 	{
 		gb_bb_r_ = gb_bb_r;
 	}
 
-	Real Residue::getBackboneBasicityLeft() const
+	DoubleReal Residue::getBackboneBasicityLeft() const
 	{
 		return gb_bb_l_;
 	}
 
-	void Residue::setBackboneBasicityLeft(Real gb_bb_l)
+	void Residue::setBackboneBasicityLeft(DoubleReal gb_bb_l)
 	{
 		gb_bb_l_ = gb_bb_l;
 	}
 
-	Real Residue::getSideChainBasicity() const
+	DoubleReal Residue::getSideChainBasicity() const
 	{
 		return gb_sc_;
 	}
 
-	void Residue::setSideChainBasicity(Real gb_sc)
+	void Residue::setSideChainBasicity(DoubleReal gb_sc)
 	{
 		gb_sc_ = gb_sc;
 	}

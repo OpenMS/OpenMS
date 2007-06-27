@@ -30,6 +30,7 @@
 #include <OpenMS/FORMAT/MascotInfile.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
+#include <OpenMS/FORMAT/TextFile.h>
 #include <OpenMS/SYSTEM/File.h>
 
 using namespace OpenMS;
@@ -44,8 +45,7 @@ using namespace std;
 	
 	@brief Identifies peptides in MS/MS spectra via OMSSA (Open Mass Spectrometry Search Algorithm).
 	
-	@todo add OMSSA version
-	@todo modes to read OMSSA output data and save in idXML format
+	@improvement modes to read OMSSA output data and save in idXML format
 */
 
 // We do not want this class to show up in the docu:
@@ -74,8 +74,8 @@ class TOPPOMSSAAdapter
 			registerIntOption_("pc", "<Integer>", 1, "The number of pseudocounts to add to each precursor mass bin", false);
 			registerStringOption_("omssa_dir", "<Directory>", "", "The directory of the OMSSA installation", true);
 
-			registerFlag_("omssa_out", "If this flag is set, the parameter 'in' is considered as an output file of OMSSA and will be converted to IdXML");
-			registerStringOption_("omssa_out_format", "<type>", "", "Specifies the output format of OMSSA, if not given the format will be estimated", false);
+			//registerFlag_("omssa_out", "If this flag is set, the parameter 'in' is considered as an output file of OMSSA and will be converted to IdXML");
+			//registerStringOption_("omssa_out_format", "<type>", "", "Specifies the output format of OMSSA, if not given the format will be estimated", false);
 
 
 			//Input format and filename
@@ -89,7 +89,7 @@ class TOPPOMSSAAdapter
 			//-pm <String> search parameter input in xml format (contains search parameters but no spectra. overrides command line except for name of file containing spectra)
 			// input options are not all necessary as TOPP tools only accept mzData
 			registerIntOption_("hs", "<Integer>", 4, "the minimum number of m/z values a spectrum must have to be searched", false);
-			registerStringOption_("pm", "<file>", "", "search parameter input in xml format", false);
+			//registerStringOption_("pm", "<file>", "", "search parameter input in xml format", false);
 			
 			//Output results
 			//-o <String> filename for text asn.1 formatted search results
@@ -136,7 +136,6 @@ class TOPPOMSSAAdapter
 			//-h1 <Integer> number of peaks allowed in single charge window
 			//-h2 <Integer> number of peaks allowed in double charge window
 			//-cp <Integer> eliminate charge reduced precursors in spectra (0=no, 1=yes). Typically turned on for ETD spectra.
-			// TODO	
 
 			//Charge Handling
 			//Determination of precursor charge and product ion charges.  Presently, OMSSA estimates which precursors are 1+.  All other precursors are searched with charge from the minimum to maximum precursor charge specified.
@@ -219,9 +218,9 @@ class TOPPOMSSAAdapter
 			//-is <Double> evalue threshold to include a sequence in the iterative search, 0 = all
 			//-ir <Double> evalue threshold to replace a hit, 0 = only if better
 			//-ii <Double> evalue threshold to iteratively search a spectrum again, 0 = always
-			//registerDoubleOption_("is", "<Real>", "0.0", "evalue threshold to include a sequence in the iterative search, 0 = all", false);
-			//registerDoubleOption_("ir", "<Real>", "0.0", "evalue threshold to replace a hit, 0 = only if better", false);
-			//registerDoubleOption_("ii", "<Real>", "0.0", "evalue threshold to iteratively search a spectrum again, 0 = always", false);
+			registerDoubleOption_("is", "<Real>", 0.0, "evalue threshold to include a sequence in the iterative search, 0 = all", false);
+			registerDoubleOption_("ir", "<Real>", 0.0, "evalue threshold to replace a hit, 0 = only if better", false);
+			registerDoubleOption_("ii", "<Real>", 0.0, "evalue threshold to iteratively search a spectrum again, 0 = always", false);
 			
 			//-foms <String> read in search result in .oms format (binary asn.1). 
 			//-fomx <Double> read in search result in .omx format (xml). 
@@ -244,16 +243,32 @@ class TOPPOMSSAAdapter
 			String unique_name = File::getUniqueName(); // body for the tmp files
 			String unique_input_name = unique_name + "_OMSSA.mgf";
 			String unique_output_name = unique_name + "_OMSSA.xml";
+			String unique_version_name = unique_name + "_OMSSA_version";
 
 			//-------------------------------------------------------------
 			// parsing parameters
 			//-------------------------------------------------------------
 		
-			if (getFlag_("omssa_out"))
+			// get version of OMSSA
+			String version_call = omssa_dir + "/omssacl > " + unique_version_name;
+			int status = system(version_call.c_str());
+			if (status != 0)
 			{
-				
+				writeLog_("Warning: unable to determine the version of OMSSA");
+			}
+			TextFile text_file;
+			text_file.load(unique_version_name);
+			vector<String> version_split;
+			text_file.asString().split(' ', version_split);
+
+			String omssa_version;
+			if (version_split.size() == 2)
+			{
+				omssa_version = version_split[1];
 			}
 
+			version_call = "rm " + unique_version_name;
+			system(version_call.c_str());
 
 
 			inputfile_name = getStringOption_("in");			
@@ -276,26 +291,42 @@ class TOPPOMSSAAdapter
 		
 			parameters += " -d "  +  getStringOption_("d");
 			parameters += " -to " +  String(getDoubleOption_("to"));
+			parameters += " -hs " + String(getIntOption_("hs"));
 			parameters += " -te " +  String(getDoubleOption_("te"));
 			parameters += " -zl " +  String(getIntOption_("zl"));
 			parameters += " -zh " +  String(getIntOption_("zh"));
 			parameters += " -zt " +  String(getIntOption_("zt"));
 			parameters += " -zc " +  String(getIntOption_("zc"));
 			parameters += " -zcc " + String(getIntOption_("zcc"));
+			parameters += " -zoh " + String(getIntOption_("zoh"));
+			parameters += " -no " + String(getIntOption_("no"));
+			parameters += " -nox " + String(getIntOption_("nox"));
+			parameters += " -sp " + String(getIntOption_("sp"));
+			parameters += " -sb1 " + String(getIntOption_("sb1"));
+			parameters += " -sct " + String(getIntOption_("sct"));
+			parameters += " -x " + getStringOption_("x");
+			parameters += " -hl " + String(getIntOption_("hl"));
+			parameters += " -hm " + String(getIntOption_("hm"));
 			parameters += " -ht " +  String(getIntOption_("ht"));
+			parameters += " -tex " + String(getDoubleOption_("tex"));
 			parameters += " -i " + getStringOption_("i");
+			parameters += " -z1 " + String(getDoubleOption_("z1"));
 			parameters += " -v " +   String(getIntOption_("v"));
 			parameters += " -e " +   String(getIntOption_("e"));
 			parameters += " -tez " + String(getIntOption_("tez"));
 			parameters += " -tom " + String(getIntOption_("tom"));
 			parameters += " -tem " + String(getIntOption_("tem"));
-			//parameters += " -f ";
-			//String omssa_tmp_filename("omssa_tmp.dta");
-			//parameters += omssa_tmp_filename;
-			//-fm
-			//parameters += " -fm " + String("omssa_input_file.mgf");
+			parameters += " -mm " + String(getIntOption_("mm"));
+			parameters += " -is " + String(getDoubleOption_("is"));
+			parameters += " -ir " + String(getDoubleOption_("ir"));
+			parameters += " -ii " + String(getDoubleOption_("ii"));
+			
+			if (getFlag_("mnm"))
+			{
+				parameters += " -mnm ";
+			}
+
 			parameters += " -fm " + unique_input_name; 
-			//parameters += " -ox " + omssa_outfile_name;
 			parameters += " -ox " + unique_output_name;
 
 			if (getIntOption_("debug") == 0)
@@ -311,8 +342,6 @@ class TOPPOMSSAAdapter
 			{
 				parameters += " -mv " + getStringOption_("mv");
 			}
-			//parameters += " -pc 100 ";
-
 			
 			//-------------------------------------------------------------
 			// testing whether input and output files are accessible
@@ -342,7 +371,7 @@ class TOPPOMSSAAdapter
 			String call = omssa_dir + "/omssacl " + parameters;
 
 			writeDebug_(call, 5);
-			int status = system(call.c_str());
+			status = system(call.c_str());
 		
 			if (status != 0)
 			{
@@ -414,6 +443,8 @@ class TOPPOMSSAAdapter
 
 				
 			protein_identification.setSearchParameters(search_parameters);
+			protein_identification.setSearchEngineVersion(omssa_version);
+
 
 			// write RT and MZ info to peptide identification
 			

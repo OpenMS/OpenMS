@@ -144,12 +144,12 @@ namespace OpenMS
 		return ef;
 	}
 	
-	Real AASequence::getAverageWeight(Residue::ResidueType type, Int charge) const
+	DoubleReal AASequence::getAverageWeight(Residue::ResidueType type, Int charge) const
 	{
 		return getFormula(type, charge).getAverageWeight();
 	}
 
-	Real AASequence::getMonoWeight(Residue::ResidueType type, Int charge) const
+	DoubleReal AASequence::getMonoWeight(Residue::ResidueType type, Int charge) const
 	{
 		return getFormula(type, charge).getMonoWeight();
 	}

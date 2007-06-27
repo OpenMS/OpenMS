@@ -59,11 +59,11 @@ CHECK(inline static const EmpiricalFormula& getInternalToFull())
 RESULT
 
 
-CHECK(static Real getInternalToFullAverageWeight())
+CHECK(static DoubleReal getInternalToFullAverageWeight())
 	TEST_EQUAL(e_ptr->getInternalToFullAverageWeight(), h2o.getAverageWeight())
 RESULT
 
-CHECK(static Real getInternalToFullMonoWeight())
+CHECK(static DoubleReal getInternalToFullMonoWeight())
 
 RESULT
 
@@ -71,11 +71,11 @@ CHECK(static const EmpiricalFormula& getNTerminalToFull())
 
 RESULT
 
-CHECK(static Real getNTerminalToFullAverageWeight())
+CHECK(static DoubleReal getNTerminalToFullAverageWeight())
 
 RESULT
 
-CHECK(static Real getNTerminalToFullMonoWeight())
+CHECK(static DoubleReal getNTerminalToFullMonoWeight())
 
 RESULT
 
@@ -83,11 +83,11 @@ CHECK(static const EmpiricalFormula& getCTerminalToFull())
 
 RESULT
 
-CHECK(static Real getCTerminalToFullAverageWeight())
+CHECK(static DoubleReal getCTerminalToFullAverageWeight())
 
 RESULT
 
-CHECK(static Real getCTerminalToFullMonoWeight())
+CHECK(static DoubleReal getCTerminalToFullMonoWeight())
 
 RESULT
 
@@ -95,11 +95,11 @@ CHECK(static const EmpiricalFormula& getBIonToFull())
 
 RESULT
 
-CHECK(static Real getBIonToFullAverageWeight())
+CHECK(static DoubleReal getBIonToFullAverageWeight())
 
 RESULT
 
-CHECK(static Real getBIonToFullMonoWeight())
+CHECK(static DoubleReal getBIonToFullMonoWeight())
 
 RESULT
 
@@ -107,11 +107,11 @@ CHECK(static const EmpiricalFormula& getAIonToFull())
 
 RESULT
 
-CHECK(static Real getAIonToFullAverageWeight())
+CHECK(static DoubleReal getAIonToFullAverageWeight())
 
 RESULT
 
-CHECK(static Real getAIonToFullMonoWeight())
+CHECK(static DoubleReal getAIonToFullMonoWeight())
 
 RESULT
 
@@ -119,11 +119,11 @@ CHECK(static const EmpiricalFormula& getYIonToFull())
 
 RESULT
 
-CHECK(static Real getYIonToFullAverageWeight())
+CHECK(static DoubleReal getYIonToFullAverageWeight())
 
 RESULT
 
-CHECK(static Real getYIonToFullMonoWeight())
+CHECK(static DoubleReal getYIonToFullMonoWeight())
 
 RESULT
 
@@ -131,11 +131,11 @@ CHECK(static const EmpiricalFormula& getCIonToFull())
 
 RESULT
 
-CHECK(static Real getCIonToFullAverageWeight())
+CHECK(static DoubleReal getCIonToFullAverageWeight())
 
 RESULT
 
-CHECK(static Real getCIonToFullMonoWeight())
+CHECK(static DoubleReal getCIonToFullMonoWeight())
 
 RESULT
 
@@ -143,11 +143,11 @@ CHECK(static const EmpiricalFormula& getXIonToFull())
 
 RESULT
 
-CHECK(static Real getXIonToFullAverageWeight())
+CHECK(static DoubleReal getXIonToFullAverageWeight())
 
 RESULT
 
-CHECK(static Real getXIonToFullMonoWeight())
+CHECK(static DoubleReal getXIonToFullMonoWeight())
 
 RESULT
 
@@ -155,11 +155,11 @@ CHECK(static const EmpiricalFormula& getZIonToFull())
 
 RESULT
 
-CHECK(static Real getZIonToFullAverageWeight())
+CHECK(static DoubleReal getZIonToFullAverageWeight())
 
 RESULT
 
-CHECK(static Real getZIonToFullMonoWeight())
+CHECK(static DoubleReal getZIonToFullMonoWeight())
 
 RESULT
 

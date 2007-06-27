@@ -207,13 +207,13 @@ CHECK(bool isCharged() const)
 	TEST_EQUAL(e_ptr->isCharged(), false)
 RESULT
 
-CHECK(Real getAverageWeight() const)
+CHECK(DoubleReal getAverageWeight() const)
 	EmpiricalFormula ef("C2");
 	const Element* e = e_ptr->getElement("C");
 	TEST_REAL_EQUAL(ef.getAverageWeight(), e->getAverageWeight() * 2)
 RESULT
 
-CHECK(Real getMonoWeight() const)
+CHECK(DoubleReal getMonoWeight() const)
 	EmpiricalFormula ef("C2");
 	const Element* e = e_ptr->getElement("C");
 	TEST_REAL_EQUAL(ef.getMonoWeight(), e->getMonoWeight() * 2)

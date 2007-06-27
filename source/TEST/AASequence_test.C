@@ -133,11 +133,11 @@ CHECK((EmpiricalFormula getFormula(Residue::ResidueType type = Residue::Full, In
 	TEST_EQUAL(seq.getFormula(Residue::BIon, 0), "SC26O11N5H33")
 RESULT
 
-CHECK((Real getAverageWeight(Residue::ResidueType type = Residue::Full, Int charge = 0) const))
+CHECK((DoubleReal getAverageWeight(Residue::ResidueType type = Residue::Full, Int charge = 0) const))
 
 RESULT
 
-CHECK((Real getMonoWeight(Residue::ResidueType type = Residue::Full, Int charge = 0) const))
+CHECK((DoubleReal getMonoWeight(Residue::ResidueType type = Residue::Full, Int charge = 0) const))
 
 RESULT
 

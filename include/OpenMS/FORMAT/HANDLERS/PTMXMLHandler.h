@@ -49,7 +49,7 @@ namespace OpenMS
 				PTMXMLHandler(std::map< String, std::pair< String, String > >& ptm_informations, const String& filename);
 				
 				/// Destructor
-				~PTMXMLHandler();
+				virtual ~PTMXMLHandler();
 				
 				/// Writes the xml file to the ostream 'os'
 				void writeTo(std::ostream& os);

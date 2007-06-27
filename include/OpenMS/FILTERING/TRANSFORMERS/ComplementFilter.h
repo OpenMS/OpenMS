@@ -82,7 +82,7 @@ namespace OpenMS
 		
 			spectrum.getContainer().sortByPosition();
 	
-			/// @todo think about an correct fast algorithm, not just an heuristic (Andreas)
+			/// @improvement think about an correct fast algorithm, not just an heuristic (Andreas)
 	    uint j = spectrum.size() - 1;
 	    for (uint i = 0; i < spectrum.size() && i <= j; /*++i*/)
 	    {

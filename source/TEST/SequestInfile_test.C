@@ -155,7 +155,7 @@ CHECK(String handlePTMs(const String& modification_line, const String& modificat
 	modifications["PTM_0"][2] = "FIX";
 	modifications["Phosphorylation"] = vector< String >(3);
 	modifications["Phosphorylation"][0] = "STYDHCR";
-	modifications["Phosphorylation"][1] = "79.9799";
+	modifications["Phosphorylation"][1] = "79.97990108";
 	modifications["Phosphorylation"][2] = "OPT";
 	modifications["PTM_2"] = vector< String >(3);
 	modifications["PTM_2"][0] = "C";
@@ -167,7 +167,7 @@ CHECK(String handlePTMs(const String& modification_line, const String& modificat
 // 	modifications["Carbamylation"][2] = "OPT";
 	modifications["Methylation"] = vector< String >(3);
 	modifications["Methylation"][0] = "CHKNQRILDEST";
-	modifications["Methylation"][1] = "14.02658";
+	modifications["Methylation"][1] = "14.02658033";
 	modifications["Methylation"][2] = "OPT";
 // 	modifications["PTM_5"] = vector< String >(3);
 // 	modifications["PTM_5"][0] = "CTERM";
@@ -223,9 +223,9 @@ CHECK(String handlePTMs(const String& modification_line, const String& modificat
 	// monoisotopic masses
 	file.handlePTMs(modification_line, "TOPP/Sequest_PTMs.xml", true);
 
-	modifications["Phosphorylation"][1] = "79.96635";
+	modifications["Phosphorylation"][1] = "79.96634495";
 // 	modifications["Carbamylation"][1] = "43.00582";
-	modifications["Methylation"][1] = "14.01565";
+	modifications["Methylation"][1] = "14.01565003";
 
 	result_mod_i = file.getModifications().begin();
 	TEST_EQUAL(file.getModifications().size(), modifications.size())

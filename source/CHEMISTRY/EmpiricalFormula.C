@@ -64,9 +64,9 @@ namespace OpenMS
 	{
 	}
 	
-	Real EmpiricalFormula::getMonoWeight() const
+	DoubleReal EmpiricalFormula::getMonoWeight() const
 	{
-		Real weight(0);
+		DoubleReal weight(0);
 		HashMap<const Element*, UInt>::ConstIterator it=formula_.begin();
 		for (; it != formula_.end(); ++it)
 		{
@@ -75,9 +75,9 @@ namespace OpenMS
 		return weight;
 	}
 
-	Real EmpiricalFormula::getAverageWeight() const 
+	DoubleReal EmpiricalFormula::getAverageWeight() const 
 	{
-		Real weight(0);
+		DoubleReal weight(0);
 		HashMap<const Element*, UInt>::ConstIterator it=formula_.begin();
 		for (; it != formula_.end(); ++it)
 		{

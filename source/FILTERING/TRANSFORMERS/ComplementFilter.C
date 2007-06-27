@@ -31,8 +31,6 @@ using namespace std;
 
 namespace OpenMS
 {
-  // todo charge state 2?
-
   ComplementFilter::ComplementFilter()
 		:	FilterFunctor()
   { 

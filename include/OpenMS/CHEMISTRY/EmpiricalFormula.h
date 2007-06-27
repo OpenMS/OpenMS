@@ -89,10 +89,10 @@ namespace OpenMS
 			*/
 			//@{
 			/// returns the mono isotopic weight of the formula
-			Real getMonoWeight() const;
+			DoubleReal getMonoWeight() const;
 
 			/// returns the average weight of the formula
-			Real getAverageWeight() const;
+			DoubleReal getAverageWeight() const;
 
 			/** @brief returns the isotope distribution of the formula
 				*	The details of the calculation of the isotope distribution

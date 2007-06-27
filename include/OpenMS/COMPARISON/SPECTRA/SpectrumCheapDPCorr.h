@@ -42,8 +42,6 @@ namespace OpenMS
 	  Peaks get a score depending on the difference in position and the heights of the peaks <br>
 	  pairs with positions that differ more than some limit get score 0
   	
-  	@todo correct int_cnt sum (is that really normalizing? it is not!) (Andreas)
-		 
 		@ref SpectrumCheapDPCorr_Parameters are explained on a separate page.
 
 		@ingroup SpectraComparison
