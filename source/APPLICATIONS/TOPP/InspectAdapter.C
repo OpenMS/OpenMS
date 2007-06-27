@@ -54,19 +54,21 @@ using namespace std;
 	modes:
 	<ol>	
 				<li>
-				The whole process of ProteinIdentification via Inspect is executed. 
-				Inputfile is a file (or directory with files) containing the MS/MS spectra
+				The whole process of ProteinIdentification via Inspect is executed.
+				Inputfile is an mz file containing the MS/MS spectra
 				(Supported spectrum file formats are .mzXML, .mzData)
-				for which peptide_identifications are to be found
-				and one ore more databases in either trie, FASTA or Swissprot format containing
+				for which the identifications are to be found and one ore more
+				databases in either trie, FASTA or Swissprot format containing
 				the possible proteins.
-				The given databases are converted and merged Into one trie database.
-				This is done because Inspect does the conversion anyway (though with a bug) and may
-				actually not use more than two databases (one of them in trie format).
-				Additionally you thus can reuse the database without having Inspect done the conversion
+				The given databases are converted and merged into one trie database.
+				This is done because Inspect does the conversion anyway
+				(though with a bug) and may actually not use more than two
+				databases (one of them in trie format). Additionally you thus can
+				reuse the database without having Inspect done the conversion
 				everytime.
-				The drawback is, of course, that you need the same amount of space for the trie
-				database as well, which can, in case of large and/or many databases, be a problem.
+				The drawback is, of course, that you need the same amount of space
+				for the trie database as well, which can, in case of large and/or many
+				databases, be a problem.
 				The results are written as a IdXML output file. This mode is selected
 			 	by default.
 			 	</li>
@@ -77,7 +79,7 @@ using namespace std;
 				converted and merged Into one trie database. This file can be used
 				directly with Inspect whereas the created database and the spectrum file(s)
 				have to remain at the given positions.
-				Calling an Inspect process should look like the following:				
+				Calling an Inspect process should look like the following:
 				
 				@code ./inspect -i  inputfilename -o outputfilename  @endcode
 

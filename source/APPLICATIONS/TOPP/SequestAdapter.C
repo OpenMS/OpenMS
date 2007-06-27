@@ -64,9 +64,9 @@ using namespace std;
 				<li>
 				The whole process of ProteinIdentification via Sequest is executed.
 				Inputfile is one (or more) mz file containing the MS/MS spectra
-				for which peptide_identifications are to be found
-				and one ore two databases in FASTA format containing
-				the possible proteins.
+				(Supported spectrum file formats are .mzXML, .mzData)
+				for which the identifications are to be found and one database in
+				FASTA format containing the possible proteins.
 				The results are written as an IdXML output file. This mode is selected
 			 	by default.
 				Note: You need a user with network access on the computer hosting sequest.
@@ -76,7 +76,7 @@ using namespace std;
 				Only the first part of the ProteinIdentification process is performed.
 				This means that a Sequest input file is generated and dta files are
 				created from the mz file.
-				Calling an Sequest process should look like the following:
+				Calling a Sequest process should look like the following:
 
 				@code sequest -P\<inputfilename\> \<path to dta files\>*.dta  @endcode
 

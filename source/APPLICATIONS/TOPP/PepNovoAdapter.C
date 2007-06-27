@@ -63,29 +63,25 @@ using namespace std;
 				<li>
 				The whole process of identification via PepNovo is executed.
 				Inputfile is one (or more) mz file containing the MS/MS spectra
-				for which identifications are to be found
-				and one ore two databases in FASTA format containing
-				the possible proteins.
-				The results are written as an analysisXML output file. This mode is selected
-			 	by default.
-				Note: You need a user with network access on the computer hosting pepnovo.
+				(Supported spectrum file formats are .mzXML, .mzData)
+				for which the identifications are to be found. The results are written
+				as an idXML output file. This mode is selected by default.
 			 	</li>
 				
 				<li>
-				Only the first part of the identification process is performed.
+				Only the first part of the ProteinIdentification process is performed.
 				This means that a PepNovo input file is generated and dta files are
 				created from the mz file.
-				Calling an PepNovo process should look like the following:
+				The call for the corresponding DeNovo process is written to standard
+				output.
 				
-				@code pepnovo -P\<inputfilename\> \<path to dta files\>*.dta  @endcode
-
 				Consult your PepNovo reference manual for further details.
 				
 				This mode is selected by the <b>-pepnovo_in</b> option in the command line.
 				</li>
 				
 				<li>
-				Only the second part of the identification process is performed.
+				Only the second part of the ProteinIdentification process is performed.
 				This means that the output of pepnovo is translated into analysisXML.
 				
 				This mode is selected by the <b>-pepnovo_out</b> option in the command line.
