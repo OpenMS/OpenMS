@@ -41,9 +41,9 @@ BaseSweepSeeder::BaseSweepSeeder()
 				mass_tolerance_cluster_(0)
 {
 		// number of scans used for alignment
-		defaults_.setValue("scans_to_sumup",5,"number of scans used for alignment");
+		defaults_.setValue("scans_to_sumup",5,"number of scans that are combined in order to improve the signal-to-noise level.");
 		// mass tolerance during scan alignment
-		defaults_.setValue("mass_tolerance_alignment", 0.1,"mass tolerance during scan alignment");
+		defaults_.setValue("mass_tolerance_alignment", 0.1,"mass tolerance for comination of peaks from different scans.");
 		
 			// minimum number of scan per isotopic cluster
 		defaults_.setValue("min_number_scans",5,"minimum number of scan per isotopic cluster");
@@ -51,7 +51,7 @@ BaseSweepSeeder::BaseSweepSeeder()
 		defaults_.setValue("min_number_peaks",20,"minimum number of peaks per cluster");		
 		
 		// mass tolerance for point cluster construction
-		defaults_.setValue("mass_tolerance_cluster",1.2,"minimum number of peaks per cluster");
+		defaults_.setValue("mass_tolerance_cluster",1.2,"The m/z tolerance for looking up a signal in following scans.");
 		// rt tolerance for cluster construction (given in number of scans)
 		defaults_.setValue("rt_tolerance_cluster",2,"rt tolerance for cluster construction (given in number of scans)");		
 		

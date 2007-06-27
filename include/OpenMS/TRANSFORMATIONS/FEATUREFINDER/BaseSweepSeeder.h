@@ -43,27 +43,10 @@ namespace OpenMS
 		This is a base class for all seeding modules based on (or implementing) the sweepline paradigm
 		for peptide quantification / feature detection in LC/MS maps.
 		
-		This base offers methods used by all seeders such as sumUp_ and Align_, filters the hash of isotopic
-		cluster and determines a (preliminary) charge estimate.
+		All classes derived from this base class perform the following steps (they differ in the way they find isotopic patterns only): Several scans are combined to improve signal-to-noise level. Several signals that are found in close proximity are then combined to one signal. This is done for all spectra. A signal is only accepted when it is found in several consecutive spectra.
 		
 		@note Scores for charge estimates should be >= 0 where a low score indicates a high confidence e.g. score should be some sort of p value.
 		@note Method updateMembers() in each base class should call updateMembers() in this class before doing anything else. 
-		
-		</table>
-		 <tr><td></td><td></td><td>min_number_scans</td>
-		 <td>lower bound for the number of scans in which a isotopic pattern must occur 
-		  before it is accepted as seeding region</td></tr>
-		 <tr><td></td><td></td><td>min_number_peaks</td>
-		 <td>min. number of data points for a seeding region</td></tr>
-		 <tr><td></td><td></td><td>scans_to_sumup</td>
-		 <td>number of scans used during alignment </td></tr>
-		 <tr><td></td><td></td><td>mass_tolerance_alignment</td>
-		 <td>tolerance in m/z for aligned points </td></tr>
-		 	<tr><td></td><td></td><td>mass_tolerance_cluster</td>
-		 <td>tolerance in m/z during assembly of isotopic point cluster </td></tr>
-		 	<tr><td></td><td></td><td>rt_tolerance_cluster</td>
-		 <td>tolerance in m/z during assembly of isotopic point cluster</td></tr>
-		</table>
 		
     @ingroup FeatureFinder
   */

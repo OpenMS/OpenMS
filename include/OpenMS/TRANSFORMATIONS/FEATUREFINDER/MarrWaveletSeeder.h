@@ -51,29 +51,6 @@ namespace OpenMS
 
 		Regions with local maxima a scored based on a F-statistic (compares variance of intervals in cwt).
 
-		Parameters:
-
-		<table>
-		 <tr><td></td><td></td><td>charge1_ub</td>
-		 <td>upper bound for the distance between "charge one" maxima</td></tr>
-		 <tr><td></td><td></td><td>charge1_lb</td>
-		 <td>lower bound for charge one </td></tr>
-		 <tr><td></td><td></td><td>charge2_ub</td>
-		 <td>upper bound charge two </td></tr>
-		 <tr><td></td><td></td><td>charge2_lb</td>
-		 <td>lower bound charge two </td></tr>
-		 <tr><td></td><td></td><td>charge3_ub</td>
-		 <td>upper bound charge three </td></tr>
-		 <tr><td></td><td></td><td>charge3_lb</td>
-		 <td>lower bound charge three </td></tr>
-		 <tr><td></td><td></td><td>cwt_scale</td>
-		 <td>scale of Marr wavelet </td></tr>
-		 <tr><td></td><td></td><td>noise_level_signal</td>
-		 <td>intensity threshold for points in the current scan to be considered </td></tr>
-		 <tr><td></td><td></td><td>noise_level_cwt</td>
-		 <td>same as above for the wavelet transformed signal. </td></tr>
-		 </table>
-
 		@improvement The same thing is called avg_signal_factor in MarrWaveletSeeder and signal_avg_factor in IsotopeWaveletSeeder.  Unify this.
 		 
 		@ref MarrWaveletSeeder_Parameters are explained on a separate page.

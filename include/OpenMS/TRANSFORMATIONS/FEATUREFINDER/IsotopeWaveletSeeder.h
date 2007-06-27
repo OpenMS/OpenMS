@@ -43,34 +43,6 @@ namespace OpenMS
 		
 		This seeder select interesting regions in the map using a wavelet funtion
 		modelling the distribution of isotopic peak intensities.
-		
-		Parameters:
-		
-		<table>
-		<tr><td></td><td></td><td>max_charge</td>
-		<td>The mother wavelet is precomputed for different charge states. This
-		is the maximum charge state considered.</td></tr>
-		<tr><td></td><td></td><td>min_charge</td>
-		<td>The mother wavelet is precomputed for different charge states. This
-		is the minimum charge considered.</td></tr>
-		<tr><td></td><td></td><td>intensity_factor</td>
-		<td>Scores below the intensity of this point times this parameter are not
-		considered for charge estimation.</td></tr>
-		<tr><td></td><td></td><td>avg_intensity_factor</td>
-		<td>influences the threshold for interesting points in the wavelet transform. </td></tr>
-		<tr><td></td><td></td><td>min_samplingrate</td>
-		<td>minimum sampling rate (e.g. step size for cwt), usally determined by the average m/z spacing</td></tr>
-		<tr><td></td><td></td><td>mass_tolerance_right</td>
-		<td>width of seed bounding box to the right. </td></tr>
-		<tr><td></td><td></td><td>mass_tolerance_left</td>
-		<td>width of seed bounding box to the right. </td></tr>
-		<tr><td></td><td></td><td>scans_to_sumup</td>
-		<td>number of scans used for alignment</td></tr>
-		<tr><td></td><td></td><td>tolerance_scansum</td>
-		<td>mass tolerance during point alignment</td></tr>
-		</table>
-		
-		There are additional parameter : @see BaseSweepSeeder
 		 
 		@ref IsotopeWaveletSeeder_Parameters are explained on a separate page.
 

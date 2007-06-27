@@ -48,14 +48,6 @@ namespace OpenMS
 		defaults_.setValue("charge3_ub",0.40f,"Upper bound for distances between isotopic peaks (charge 3)");
 		defaults_.setValue("charge3_lb",0.1f,"Lower bound for distances between isotopic peaks (charge 3)");
 
-		/*
-		// TODO Hey this is really cool.  These params (see below) are named just the other way round in IsotopwWaveletSeeder :-(  I am assuming (for documentation) that they have the same semantics.  (cg) 2007-06-13
-
-		// intensity threshold in cwt
-		defaults_.setValue("signal_avg_factor",3.0,"Positions whose intensity is this factor above average are considered in charge detection");
-		defaults_.setValue("cwt_avg_factor",3.0,"Positions whose intensity in continuous wavelet transform is this factor above average are considered in charge detection");
-		*/
-
 		// params for the cwt
 		defaults_.setValue("cwt_scale",0.1f,"Scaling parameter for the Marr wavelet used by CWT");
 		defaults_.setValue("avg_signal_factor",2,"Positions whose intensity is this factor above average are considered in charge detection");

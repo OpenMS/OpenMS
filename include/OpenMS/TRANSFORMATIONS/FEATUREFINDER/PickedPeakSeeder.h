@@ -36,7 +36,7 @@
 namespace OpenMS
 {
 	/** 
-		@brief Seeding module which tries to find seeds by looking at 
+		@brief Seeding module which tries to find seeds by looking at isotopic patterns.
 
 		This extender module sweeps through the scans and classifies cluster 
  		of peaks as candidate peptides if the distance between successive peaks 
