@@ -170,9 +170,9 @@ namespace OpenMS
 		return;
 	}
 
-	void PILISModel::writetoYGFFile(const String& filename)
+	void PILISModel::writeGraphMLFile(const String& filename)
 	{
-		hmm_.writetoYGFFile(filename);
+		hmm_.writeGraphMLFile(filename);
 		return;
 	}
 

@@ -91,8 +91,8 @@ namespace OpenMS
 			*/ 
 			void readFromFile(const String& filename);
 
-			/// writes the HMM to the given file in the YGF format
-			void writetoYGFFile(const String& filename);
+			/// writes the HMM to the given file in the GraphML format. A detailed description of the GraphML format can be found under http://graphml.graphdrawing.org/
+			void writeGraphMLFile(const String& filename);
 
 			/** writes the model parameters into the given files
 			    @param filename filename of the base model

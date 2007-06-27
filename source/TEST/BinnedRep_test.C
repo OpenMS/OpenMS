@@ -59,7 +59,7 @@ CHECK(BinnedRep())
 	TEST_NOT_EQUAL(brp, 0)
 RESULT
 
-CHECK(BinnedRep(double, uint = 0))
+CHECK(BinnedRep(double, uint=0))
 	BinnedRep br(2.5, 1);
 	TEST_REAL_EQUAL(br.getBinSize(), 2.5)
 	TEST_EQUAL(br.getBinSpread(), 1)
@@ -68,7 +68,7 @@ RESULT
 delete brp;
 brp = new BinnedRep(spec, binsize, binspread);
 
-CHECK(BinnedRep(const PeakSpectrum& spec, double binsize = 1.0, uint binspread = 0))
+CHECK(BinnedRep(const PeakSpectrum& spec, double binsize=1.0, uint binspread=0))
 	BinnedRep br(spec);
 	TEST_REAL_EQUAL(br.getBinSize(), 1.0)
 	TEST_REAL_EQUAL(br.getBinSpread(), 0.0)
@@ -143,7 +143,7 @@ CHECK(intensity operator[] (int) const)
 	
 RESULT
 
-CHECK((friend void operator << (BinnedRep& bin_rep, const PeakSpectrum& spec)))
+CHECK([EXTRA](friend void operator << (BinnedRep& bin_rep, const PeakSpectrum& spec)))
 	
 RESULT
 

@@ -139,10 +139,6 @@ CHECK(bool operator == (const Element& element) const)
 	TEST_EQUAL(e == *e_ptr, false)
 RESULT
 
-CHECK(friend std::ostream& operator << (std::ostream& os, const Element& element))
-	// ???
-RESULT
-
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST

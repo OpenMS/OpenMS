@@ -145,11 +145,12 @@ namespace OpenMS
 			/** Accessors
 			*/
 			//@{
-			/** @brief writes the HMM into a file in YGF format
+			/** @brief writes the HMM into a file in GraphML format
 
-					@todo link (Andreas)
+					A detailed description of the GraphML format can be found under
+					http://graphml.graphdrawing.org/
 			*/
-			void writetoYGFFile(const String& filename);
+			void writeGraphMLFile(const String& filename);
 	
 			/// writes the HMM into an outstream
 			void write(std::ostream& out);

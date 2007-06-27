@@ -31,6 +31,8 @@
 #include <iostream>
 
 #include <OpenMS/COMPARISON/SPECTRA/ZhangSimilarityScore.h>
+#include <OpenMS/FORMAT/DTAFile.h>
+#include <OpenMS/FILTERING/TRANSFORMERS/Normalizer.h>
 
 ///////////////////////////
 
@@ -69,11 +71,42 @@ CHECK(ZhangSimilarityScore& operator = (const ZhangSimilarityScore& source))
 RESULT
 
 CHECK(double operator () (const PeakSpectrum& spec) const)
-	// TODO	
+	PeakSpectrum s1;
+  DTAFile().load("data/PILISSequenceDB_DFPIANGER_1.dta", s1);
+
+  Normalizer normalizer;
+  Param p(normalizer.getParameters());
+  p.setValue("method", "to_one");
+  normalizer.setParameters(p);
+  normalizer.filterSpectrum(s1);
+
+  double score = (*ptr)(s1);
+  TEST_REAL_EQUAL(score, 1.82682);
 RESULT
 
 CHECK(double operator () (const PeakSpectrum& spec1, const PeakSpectrum& spec2) const)
-	// TODO
+  PeakSpectrum s1, s2;
+  DTAFile().load("data/PILISSequenceDB_DFPIANGER_1.dta", s1);
+  DTAFile().load("data/PILISSequenceDB_DFPIANGER_1.dta", s2);
+
+  Normalizer normalizer;
+  Param p(normalizer.getParameters());
+  p.setValue("method", "to_one");
+  normalizer.setParameters(p);
+  normalizer.filterSpectrum(s1);
+  normalizer.filterSpectrum(s2);
+
+  PRECISION(0.01)
+
+  double score = (*ptr)(s1, s2);
+  TEST_REAL_EQUAL(score, 1.82682)
+
+  s2.getContainer().resize(100);
+
+  score = (*ptr)(s1, s2);
+
+  normalizer.filterSpectrum(s2);
+  TEST_REAL_EQUAL(score, 0.328749)
 RESULT
 
 CHECK(static PeakSpectrumCompareFunctor* create())

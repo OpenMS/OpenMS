@@ -54,7 +54,7 @@ RESULT
 e_ptr = new Residue();
 EmpiricalFormula h2o("H2O");
 
-CHECK(inline static const EmpiricalFormula& getInternalToFull())
+CHECK(static const EmpiricalFormula& getInternalToFull())
 	TEST_EQUAL(e_ptr->getInternalToFull(), h2o)
 RESULT
 

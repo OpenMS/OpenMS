@@ -49,12 +49,12 @@ HMMStateLight* state_ptr2 = 0;
 HMMStateLight* state_ptr3 = new HMMStateLight(0, true);
 
 // Hidden Markov Model State Tests
-CHECK(HMMStateLight())
+CHECK([EXTRA]HMMStateLight())
 	state_ptr = new HMMStateLight();
 	TEST_NOT_EQUAL(state_ptr, 0)
 RESULT
 
-CHECK(HMMStateLight(const HMMStateLight& state))
+CHECK([EXTRA]HMMStateLight(const HMMStateLight& state))
 	HMMStateLight copy(*state_ptr);
 	TEST_EQUAL(copy.getIdentifier(), state_ptr->getIdentifier())
 	TEST_EQUAL(copy.getSuccessorStates().size(), state_ptr->getSuccessorStates().size())
@@ -62,7 +62,7 @@ CHECK(HMMStateLight(const HMMStateLight& state))
 	TEST_EQUAL(copy.isHidden(), state_ptr->isHidden())
 RESULT
 
-CHECK(HMMStateLight& operator = (const HMMStateLight&))
+CHECK([EXTRA]HMMStateLight& operator = (const HMMStateLight&))
 	HMMStateLight copy;
 	copy = *state_ptr;
 	TEST_EQUAL(copy.getIdentifier(), state_ptr->getIdentifier())
@@ -71,69 +71,69 @@ CHECK(HMMStateLight& operator = (const HMMStateLight&))
 	TEST_EQUAL(copy.isHidden(), state_ptr->isHidden())
 RESULT
 
-CHECK(~HMMStateLight())
+CHECK([EXTRA] virtual ~HMMStateLight())
   delete state_ptr;
 RESULT
 
 state_ptr = 0;
 
 
-CHECK(HMMStateLight(UInt identifier, bool hidden = true))
+CHECK([EXTRA]HMMStateLight(UInt identifier, bool hidden = true))
 	state_ptr = new HMMStateLight(27, true);
 	TEST_NOT_EQUAL(state_ptr, 0)
 	state_ptr2 = new HMMStateLight(123, false);
 	TEST_NOT_EQUAL(state_ptr2, 0)
 RESULT
 
-CHECK(UInt getIdentifier() const)
+CHECK([EXTRA]UInt getIdentifier() const)
 	TEST_EQUAL(state_ptr->getIdentifier(), 27);
 	TEST_EQUAL(state_ptr2->getIdentifier(), 123);
 RESULT
 
-CHECK(bool isHidden() const)
+CHECK([EXTRA]bool isHidden() const)
 	TEST_EQUAL(state_ptr->isHidden(), true)
 	TEST_EQUAL(state_ptr2->isHidden(), false)
 RESULT
 
-CHECK(void setIdentifier(UInt id))
+CHECK([EXTRA]void setIdentifier(UInt id))
 	state_ptr->setIdentifier(1234);
 	TEST_EQUAL(state_ptr->getIdentifier(), 1234)
 	state_ptr->setIdentifier(27);
 RESULT
 
-CHECK(void setHidden(bool hidden))
+CHECK([EXTRA]void setHidden(bool hidden))
 	state_ptr->setHidden(false);
 	TEST_EQUAL(state_ptr->isHidden(), false)
 	state_ptr->setHidden(true);
 	TEST_EQUAL(state_ptr->isHidden(), true)
 RESULT
 
-CHECK(const std::set<HMMStateLight*>& getPredecessorStates() const)
+CHECK([EXTRA]const std::set<HMMStateLight*>& getPredecessorStates() const)
 	TEST_EQUAL(state_ptr->getPredecessorStates().size(), 0)
 RESULT
 
-CHECK(const std::set<HMMStateLight*>& getSuccessorStates() const)
+CHECK([EXTRA]const std::set<HMMStateLight*>& getSuccessorStates() const)
 	TEST_EQUAL(state_ptr->getSuccessorStates().size(), 0)
 RESULT
 
-CHECK(void addPredecessorState(HMMStateLight* state))
+CHECK([EXTRA]void addPredecessorState(HMMStateLight* state))
 	state_ptr->addPredecessorState(state_ptr2);
 	TEST_EQUAL(state_ptr->getPredecessorStates().size(), 1);
 	TEST_EQUAL(*state_ptr->getPredecessorStates().begin(), state_ptr2);
 RESULT
 
-CHECK(void deletePredecessorState(HMMStateLight* state))
+CHECK([EXTRA]void deletePredecessorState(HMMStateLight* state))
 	state_ptr->deletePredecessorState(state_ptr2);
 	TEST_EQUAL(state_ptr->getPredecessorStates().size(), 0);
 RESULT
 
-CHECK(void addSuccessorState(HMMStateLight* state))
+CHECK([EXTRA]void addSuccessorState(HMMStateLight* state))
   state_ptr->addSuccessorState(state_ptr2);
   TEST_EQUAL(state_ptr->getSuccessorStates().size(), 1);
   TEST_EQUAL(*state_ptr->getSuccessorStates().begin(), state_ptr2);
 RESULT
 
-CHECK(void deleteSuccessorState(HMMStateLight* state))
+CHECK([EXTRA]void deleteSuccessorState(HMMStateLight* state))
   state_ptr->deleteSuccessorState(state_ptr2);
   TEST_EQUAL(state_ptr->getSuccessorStates().size(), 0);
 RESULT
@@ -296,10 +296,14 @@ CHECK(void readFromFile(const String& filename))
 	// TODO
 RESULT
 
-//CHECK(void clear())
-//	ptr->clear();
-//  TEST_EQUAL(ptr->getNumberOfStates(), 0)
-//RESULT
+CHECK(void setPseudoCounts(double pseudo_counts))
+  ptr->setPseudoCounts(10e-3);
+RESULT
+
+CHECK(double getPseudoCounts() const)
+  TEST_EQUAL(ptr->getPseudoCounts(), 10e-3)
+RESULT
+
 
 
 /////////////////////////////////////////////////////////////

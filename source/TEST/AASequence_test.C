@@ -126,99 +126,99 @@ CHECK(const Residue* getResidue(UInt index) const throw(Exception::IndexOverflow
 	TEST_EXCEPTION(Exception::IndexOverflow, seq.getResidue(1000))
 RESULT
 
-CHECK((EmpiricalFormula getFormula(Residue::ResidueType type = Residue::Full, Int charge = 0) const))
+CHECK((EmpiricalFormula getFormula(Residue::ResidueType type = Residue::Full, Int charge=0) const))
 	AASequence seq("ACDEF");
 	TEST_EQUAL(seq.getFormula(), "SC26O12N5H35")
 	TEST_EQUAL(seq.getFormula(Residue::Full, 1), "SC26O12N5H36")
 	TEST_EQUAL(seq.getFormula(Residue::BIon, 0), "SC26O11N5H33")
 RESULT
 
-CHECK((DoubleReal getAverageWeight(Residue::ResidueType type = Residue::Full, Int charge = 0) const))
-
+CHECK((DoubleReal getAverageWeight(Residue::ResidueType type = Residue::Full, Int charge=0) const))
+	// TODO
 RESULT
 
-CHECK((DoubleReal getMonoWeight(Residue::ResidueType type = Residue::Full, Int charge = 0) const))
-
+CHECK((DoubleReal getMonoWeight(Residue::ResidueType type = Residue::Full, Int charge=0) const))
+  // TODO
 RESULT
 
 CHECK((HashMap<const EmpiricalFormula*, UInt> getNeutralLosses() const))
-
+  // TODO
 RESULT
 
 CHECK(const Residue* operator [] (Int index) const throw(Exception::IndexUnderflow, Exception::IndexOverflow))
-
+  // TODO
 RESULT
 
 CHECK(const Residue* operator [] (UInt index) const throw(Exception::IndexOverflow))
-
+  // TODO
 RESULT
 
 CHECK(AASequence operator + (const AASequence& peptide) const)
-
+  // TODO
 RESULT
 
 CHECK(AASequence operator + (const String& peptide) const throw(Exception::ParseError))
-
+  // TODO
 RESULT
 
 CHECK(AASequence& operator += (const AASequence&))
-
+  // TODO
 RESULT
 
 CHECK(AASequence& operator += (const String&) throw(Exception::ParseError))
-
+  // TODO
 RESULT
 
-CHECK((void setResidueDB(ResidueDB* res_db = 0)))
+CHECK((void setResidueDB(ResidueDB* res_db=0)))
 	// TODO
 RESULT
 
 CHECK(UInt size() const)
-
+  // TODO
 RESULT
 
 CHECK(AASequence getPrefix(UInt index) const throw(Exception::IndexOverflow))
-
+  // TODO
 RESULT
 
 CHECK(AASequence getSuffix(UInt index) const throw(Exception::IndexOverflow))
-
+  // TODO
 RESULT
 
 CHECK(AASequence getSubsequence(UInt index, UInt number) const throw(Exception::IndexOverflow))
-
+  // TODO
 RESULT
 
 CHECK(bool has(const Residue* residue) const)
-
+  // TODO
 RESULT
 
 CHECK(bool has(const String& name) const)
-
+  // TODO
 RESULT
 
 CHECK(bool hasSubsequence(const AASequence& peptide) const)
-
+  // TODO
 RESULT
 
 CHECK(bool hasSubsequence(const String& peptide) const throw(Exception::ParseError))
-
+  // TODO
 RESULT
 
 CHECK(bool hasPrefix(const AASequence& peptide) const)
-
+  // TODO
 RESULT
 
 CHECK(bool hasPrefix(const String& peptide) const throw(Exception::ParseError))
-
+  // TODO
 RESULT
 
 CHECK(bool hasSuffix(const AASequence& peptide) const)
-
+  // TODO
 RESULT
 
 CHECK(bool hasSuffix(const String& peptide) const throw(Exception::ParseError))
-
+  // TODO
 RESULT
 
 CHECK(ConstIterator begin() const)
@@ -237,13 +237,13 @@ CHECK(Iterator end())
 	// TODO
 RESULT
 
-CHECK(friend std::ostream& operator << (std::ostream& os, const AASequence& peptide))
+//CHECK(friend std::ostream& operator << (std::ostream& os, const AASequence& peptide))
+//  // TODO
+//RESULT
 
-RESULT
-
-CHECK(friend std::istream& operator >> (std::istream& is, const AASequence& peptide))
-
-RESULT
+//CHECK(friend std::istream& operator >> (std::istream& is, const AASequence& peptide))
+//  // TODO
+//RESULT
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

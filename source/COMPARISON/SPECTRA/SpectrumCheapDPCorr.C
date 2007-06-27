@@ -81,8 +81,7 @@ namespace OpenMS
     }
     else
     {
-			// TODO exception
-      //cerr << "factor should be between 0 and 1, ignored\n";
+			throw Exception::OutOfRange(__FILE__, __LINE__, __PRETTY_FUNCTION__);
     }
   }
   

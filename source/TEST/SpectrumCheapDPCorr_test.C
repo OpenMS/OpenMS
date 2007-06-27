@@ -125,7 +125,9 @@ CHECK(static const String getProductName())
 RESULT
 
 CHECK(void setFactor(double f))
-	// TODO
+	e_ptr->setFactor(0.3);
+
+	TEST_EXCEPTION(Exception::OutOfRange, e_ptr->setFactor(1.1))
 RESULT
 
 delete e_ptr;

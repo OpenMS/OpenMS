@@ -233,7 +233,7 @@ namespace OpenMS
 		UInt i = last_i;
 		UInt j = last_j;
 
-		while (i > 1 && j > 1)
+		while (i >= 1 && j >= 1)
 		{
 			if (traceback[i][j].first == i - 1 && traceback[i][j].second == j - 1)
 			{

@@ -141,7 +141,6 @@ CHECK(IsotopeDistribution& operator *= (UInt factor))
 	
 RESULT
 
-
 CHECK(ConstIterator begin() const)
 
 RESULT
@@ -211,7 +210,7 @@ CHECK(void renormalize())
 RESULT
 
 CHECK(void set(const ContainerType& distribution))
-	// TODO
+
 RESULT
 
 CHECK(void setTrimRightCutoff(double const cutoff))
