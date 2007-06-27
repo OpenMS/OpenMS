@@ -250,6 +250,8 @@ namespace OpenMS
 
 	void ParamEditor::load(const Param& param)
 	{
+		clear();
+		
 		string up, down ,key, key_without_prefix, new_prefix ,type, prefix = "";
 		UInt common;//, level=1;
 		QTreeWidgetItem* parent=this->invisibleRootItem();

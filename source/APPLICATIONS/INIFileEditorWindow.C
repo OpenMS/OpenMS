@@ -84,6 +84,7 @@ namespace OpenMS
 		{
 			if (File::readable(filename_.toStdString()))
 			{
+				param_.clear();
 				param_.load(filename_.toStdString());
 				editor_->loadEditable(param_);
 				QString str=QString("%1 - INIFileEditor").arg(filename_);
