@@ -101,9 +101,6 @@ namespace OpenMS
 				*/
 			IsotopeDistribution getIsotopeDistribution(UInt max_depth) const;
 
-			/// sets the element db, the elements are read from the given file
-			void setElementDB(const String& file_name) throw(Exception::FileNotFound, Exception::ParseError);
-
 			/// returns a pointer to the element with name or symbol or 0 if no such element is fount
 			const Element* getElement(const String& name) const;
 

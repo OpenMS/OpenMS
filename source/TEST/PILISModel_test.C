@@ -69,7 +69,6 @@ CHECK(PILISModel& operator = (const PILISModel& mode))
 RESULT
 
 CHECK(void writeGraphMLFile(const String& filename))
-	// TODO
 RESULT
 
 CHECK(void readFromFile(const String& filename))

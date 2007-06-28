@@ -233,10 +233,6 @@ CHECK(const ElementDB* getElementDB() const)
 	TEST_EQUAL(db->getElement("C")->getSymbol(), "C")
 RESULT
 
-CHECK(void setElementDB(const String& file_name) throw(Exception::FileNotFound, Exception::ParseError))
-	// TODO
-RESULT
-
 CHECK([EXTRA](friend std::ostream& operator << (std::ostream&, const EmpiricalFormula&)))
 	stringstream ss;
 	EmpiricalFormula ef("C2H5");
@@ -274,17 +270,34 @@ CHECK(bool operator == (const String& rhs) const throw(Exception::ParseError))
 RESULT
 
 CHECK(ConstIterator begin() const)
- // TODO
+	EmpiricalFormula ef("C6H12O6");
+	HashMap<String, UInt> formula;
+	formula["C"] = 6;
+	formula["H"] = 12;
+	formula["O"] = 6;
+	for (EmpiricalFormula::ConstIterator it = ef.begin(); it != ef.end(); ++it)
+	{
+		TEST_EQUAL(it->second, formula[it->first->getSymbol()])
+	}
+
 RESULT
 
 CHECK(ConstIterator end() const)
- // TODO
+ // tested above
 RESULT
 
 CHECK(IsotopeDistribution getIsotopeDistribution(UInt max_depth) const)
-	// TODO
+	EmpiricalFormula ef("C");
+	IsotopeDistribution iso = ef.getIsotopeDistribution(20);
+	double result[] = { 0.9893, 0.0107};
+	UInt i = 0;
+	for (IsotopeDistribution::ConstIterator it = iso.begin(); it != iso.end(); ++it, ++i)
+	{
+		TEST_REAL_EQUAL(it->second, result[i])
+	}
 RESULT
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST
+

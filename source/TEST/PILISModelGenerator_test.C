@@ -29,6 +29,7 @@
 ///////////////////////////
 
 #include <OpenMS/ANALYSIS/ID/PILISModelGenerator.h>
+#include <OpenMS/CHEMISTRY/AASequence.h>
 
 ///////////////////////////
 
@@ -61,6 +62,14 @@ CHECK(PILISModelGenerator& operator = (const PILISModelGenerator& mode))
 	PILISModelGenerator copy;
 	copy = *ptr;
 	TEST_EQUAL(copy.getParameters(), ptr->getParameters())
+RESULT
+
+CHECK(const PILISModel& getModel())
+	PILISModel model;
+	model = ptr->getModel();
+	PeakSpectrum spec;
+	model.getSpectrum(spec, AASequence("DFPIANGER"), 1);
+	TEST_EQUAL(spec.size(), 82);
 RESULT
 
 /////////////////////////////////////////////////////////////

@@ -311,16 +311,16 @@ namespace OpenMS
 	AASequence AASequence::getSubsequence(UInt index, UInt num) const
 		throw(Exception::IndexOverflow)
 	{
-		if (index > size())
+		if (index >= size())
 		{
 			throw Exception::IndexOverflow(__FILE__, __LINE__, __PRETTY_FUNCTION__, index, size());
 		}
-		if (index+num >= size())
+		if (index + num > size())
 		{
 			throw Exception::IndexOverflow(__FILE__, __LINE__, __PRETTY_FUNCTION__, index+num, size());
 		}
 		AASequence seq;
-		for (UInt i=index;i!=num;++i)
+		for (UInt i = index; i != index + num; ++i)
 		{
 			seq.peptide_.push_back(peptide_[i]);
 		}

@@ -66,7 +66,10 @@ namespace OpenMS
 			loss_mono_weight_(0.0f),
 			pka_(0.0),
 			pkb_(0.0),
-			pkc_(-1.0)
+			pkc_(-1.0),
+			gb_sc_(0.0),
+			gb_bb_l_(0.0),
+			gb_bb_r_(0.0)
 	{
 	}
 
@@ -90,7 +93,10 @@ namespace OpenMS
 			low_mass_ions_(residue.low_mass_ions_),
 			pka_(residue.pka_),
 			pkb_(residue.pkb_),
-			pkc_(residue.pkc_)
+			pkc_(residue.pkc_),
+			gb_sc_(residue.gb_sc_),
+			gb_bb_l_(residue.gb_bb_l_),
+			gb_bb_r_(residue.gb_bb_r_)
 	{
 	}
 	
@@ -122,6 +128,9 @@ namespace OpenMS
 			pka_ = residue.pka_;
 			pkb_ = residue.pkb_;
 			pkc_ = residue.pkc_;
+			gb_sc_ = residue.gb_sc_;
+			gb_bb_l_ = residue.gb_bb_l_;
+			gb_bb_r_ = residue.gb_bb_r_;
 		}
 		return *this;
 	}
@@ -581,7 +590,13 @@ namespace OpenMS
 						loss_formula_ == residue.loss_formula_ &&
 						loss_average_weight_ == residue.loss_average_weight_ &&
 						loss_mono_weight_ == residue.loss_mono_weight_ &&
-						low_mass_ions_ == residue.low_mass_ions_);
+						low_mass_ions_ == residue.low_mass_ions_ &&
+						pka_ == residue.pka_ &&
+						pkb_ == residue.pkb_ &&
+						pkc_ == residue.pkc_ &&
+						gb_sc_ == residue.gb_sc_ &&
+						gb_bb_l_ == residue.gb_bb_l_ &&
+						gb_bb_r_ == residue.gb_bb_r_);
 	}
 
 	bool Residue::operator == (char one_letter_code) const

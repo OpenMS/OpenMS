@@ -280,14 +280,12 @@ CHECK((void forwardDump()))
 RESULT
 
 CHECK((void write(std::ostream& out)))
-	// TODO
 	stringstream ss;
 	ptr->write(ss);
-
 RESULT
 
 CHECK((void writeGraphMLFile(const String& filename)))
-	// TODO
+
 RESULT
 
 CHECK((void clear()))

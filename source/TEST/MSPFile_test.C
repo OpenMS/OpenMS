@@ -54,8 +54,7 @@ CHECK((~MSPFile()))
 	delete ptr;
 RESULT
 
-CHECK((template <typename MapType> void load(const String &filename, std::vector< PeptideIdentification > &ids, MapType &map) throw (Exception::FileNotFound, Exception::ParseErro
-r)))
+CHECK((template <typename MapType> void load(const String &filename, std::vector< PeptideIdentification > &ids, MapType &map) throw (Exception::FileNotFound, Exception::ParseError)))
 	/*MSPFile msp_file;
 	PeakMap map;
 	vector<IdentificationData> ids;
