@@ -586,13 +586,14 @@ namespace OpenMS
 
 	String& String::substitute(const String& from, const String& to)
 	{
-		if (to.hasSubstring(from))
-		{
-			cerr << "Warning: String::substiture 'to' (" << to <<") many not contain 'from' (" << from <<"). Aborting!" << endl;
-			return *this;
-		}
 		if (!from.empty())
 		{
+			if (to.hasSubstring(from))
+			{
+				cerr << "Warning: String::substiture 'to' (" << to <<") many not contain 'from' (" << from <<"). Aborting!" << endl;
+				return *this;
+			}
+
 	   	string::size_type loc = this->find(from, 0);
 	   	while( loc != string::npos ) 
 	   	{
