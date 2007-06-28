@@ -162,12 +162,13 @@ void writeParameters(std::ofstream& f, const String& class_name, const Param& pa
 			{
 				type = "string";
 			}
+			//replace #, @ and newline in description
 			description = param.getDescription(it->first);
-			description.substitute("\n","@n ");
 			description.substitute("@","XXnot_containedXX");
 			description.substitute("XXnot_containedXX","@@");
 			description.substitute("#","XXnot_containedXX");
 			description.substitute("XXnot_containedXX","@#");
+			description.substitute("\n","@n ");
 
 			//create tooltips for sections if they are documented
 			String name = it->first;
@@ -195,7 +196,7 @@ void writeParameters(std::ofstream& f, const String& class_name, const Param& pa
 				name.implode(parts.begin(), parts.end(), ":");
 			}
 			
-			//replace # in values
+			//replace # and @ in values
 			String value = it->second.toString();
 			value.substitute("@","XXnot_containedXX");
 			value.substitute("XXnot_containedXX","@@");
