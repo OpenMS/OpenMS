@@ -164,7 +164,11 @@ void writeParameters(std::ofstream& f, const String& class_name, const Param& pa
 			}
 			description = param.getDescription(it->first);
 			description.substitute("\n","@n ");
-			
+			description.substitute("@","XXnot_containedXX");
+			description.substitute("XXnot_containedXX","@@");
+			description.substitute("#","XXnot_containedXX");
+			description.substitute("XXnot_containedXX","@#");
+
 			//create tooltips for sections if they are documented
 			String name = it->first;
 			vector<String> parts;
@@ -191,7 +195,14 @@ void writeParameters(std::ofstream& f, const String& class_name, const Param& pa
 				name.implode(parts.begin(), parts.end(), ":");
 			}
 			
-			f <<"<tr><td><b>"<< name << "</b></td><td>" << type << "</td><td>" << it->second.toString() <<  "</td><td>" << description <<  "</td></tr>" << endl;
+			//replace # in values
+			String value = it->second.toString();
+			value.substitute("@","XXnot_containedXX");
+			value.substitute("XXnot_containedXX","@@");
+			value.substitute("#","XXnot_containedXX");
+			value.substitute("XXnot_containedXX","@#");
+						
+			f <<"<tr><td><b>"<< name << "</b></td><td>" << type << "</td><td>" << value <<  "</td><td>" << description <<  "</td></tr>" << endl;
 		}
 		f << "</table>" << endl;
 		f << endl << "If a section is documented, the documentation is displayed as tooltip." << endl;

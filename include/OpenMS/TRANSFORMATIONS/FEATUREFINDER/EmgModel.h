@@ -37,7 +37,7 @@ namespace OpenMS
 	/** 
 		@brief Exponentially modified gaussian distribution model for elution profiles.
     
-    @ref InterpolationModel_Parameters are explained on a separate page.
+    @ref EmgModel_Parameters are explained on a separate page.
 
 		@ingroup FeatureFinder
 	*/

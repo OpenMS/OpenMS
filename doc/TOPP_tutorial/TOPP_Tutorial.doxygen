@@ -278,7 +278,7 @@ FileFilter -in infile.mzData -levels 2 -rt 100:1500 -out outfile.mzData
 		two maps are mapped onto each other in a third step. The first three steps constitute the so called @a superposition @a phase.
 		In case of a feature map alignment the corresponding elements are grouped together in a fourths step, the so called @a consensus @a phase.
 
-		In addition to the @aMapAlignment, we offer three tools for the superposition phase of a pairwise feature map alignment which are @b UnlabeledMatcher, @b MapMatcher and @b MapDewarper.
+		In addition to the @a MapAlignment, we offer three tools for the superposition phase of a pairwise feature map alignment which are @b UnlabeledMatcher, @b MapMatcher and @b MapDewarper.
 		These tools can be used if you want a fine-grained control over the matching process or if you
 		are not interested in the feature pairs, but in the actual mapping function.
 
