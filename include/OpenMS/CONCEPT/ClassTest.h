@@ -27,6 +27,12 @@
 #ifndef OPENMS_CONCEPT_CLASSTEST_H
 #define OPENMS_CONCEPT_CLASSTEST_H
 
+/** @brief Indicates that a class test is being compiled.
+
+	Used e.g. in OPENMS_PRECONDITION and OPENMS_POSTCONDITION so that	we
+	can	test these even if the global OPENMS_DEBUG macro is not set.
+*/
+#define OPENMS_WITHIN_CLASSTEST 1
 
 #include <OpenMS/config.h>
 #include <OpenMS/CONCEPT/Exception.h>

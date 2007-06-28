@@ -31,8 +31,8 @@ include "common_functions.php";
 
 if ( $argc<3 || $argc>4 )
 {
-	print "\n\nUsage: correct_test.php <Absolut path to OpenMS> <Absolut path to header> [-v]\n\n";
-	exit;	
+	print "\n\nUsage: correct_test.php <Absolute path to OpenMS> <Absolute path to header> [-v]\n\n";
+	exit;
 }
 
 ########################## auxilary functions ##################################
@@ -44,12 +44,12 @@ function penalize_name($f1, $f2)
 	$tmp = trim(substr($f1,0,strpos($f1,"(")));
 	$tmp = strtr($tmp,array("operator "=>"operator","operator\t"=>"operator"));
 	$n1 = trim(substr($tmp,max(strrpos($tmp," "), strrpos($tmp,"\t"))));
-	
+
 	# extract name (between whitepace and bracket
 	$tmp = trim(substr($f2,0,strpos($f2,"(")));
 	$tmp = strtr($tmp,array("operator "=>"operator","operator\t"=>"operator"));
 	$n2 = trim(substr($tmp,max(strrpos($tmp," "), strrpos($tmp,"\t"))));
-	
+
 	if ($n1==$n2)
 	{
 		return 0;
@@ -123,7 +123,7 @@ for($i=0; $i<count($tests); ++$i)
 //		{
 			$penalty += penalize_name($tests[$i],$methods[$j]);
 //		}
-		$dists[$i][$j] = $penalty;		
+		$dists[$i][$j] = $penalty;
 		//print "-- '$tests[$i]'\n";
 		//print "-- '$methods[$j]'\n";
 		//print "-------> '".$dists[$i][$j]."'\n";
@@ -143,13 +143,13 @@ for($i=0; $i<count($tests); ++$i)
 		$replace[] = $tests[$i];
 		continue;
 	}
-	
+
 	print "\n\nTest:     ".$tests[$i]."\n\n";
 	$j=0;
 	foreach ($array as $index => $score)
 	{
 		print "$j) ".str_pad($score, 4, " ", STR_PAD_LEFT)." - ".$methods[$index]."\n";
-		
+
 		//abort after 10
 		++$j;
 		if ($j==10)
@@ -161,15 +161,16 @@ for($i=0; $i<count($tests); ++$i)
 	print   "[i]      => ignore this test\n";
 	print   "[x]      => make [EXTRA] test (is ignored by checker.php)\n";
 	print   "[CTRL+C] => abort\n";
-	ob_flush(); flush();
-	
+	@ob_flush();
+	flush();
+
 	//read in choise
 	do
 	{
 		$line = trim(fgets($fp));
 	}
 	while($line!="" AND !ereg("^[0-9]$",$line) AND $line!="i" AND $line!="x");
-	
+
 	if ($line == "i")
 	{
 		$replace[] = $tests[$i];

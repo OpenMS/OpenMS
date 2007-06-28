@@ -2,7 +2,7 @@
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
-//                   OpenMS Mass Spectrometry Framework 
+//                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
 //  Copyright (C) 2003-2007 -- Oliver Kohlbacher, Knut Reinert
 //
@@ -25,6 +25,7 @@
 // --------------------------------------------------------------------------
 //
 
+
 #include <OpenMS/CONCEPT/ClassTest.h>
 
 ///////////////////////////
@@ -34,7 +35,7 @@
 
 ///////////////////////////
 
-START_TEST(Matrix, "$Id$")
+START_TEST(Matrix, "$Id$");
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
@@ -43,17 +44,11 @@ using namespace OpenMS;
 using namespace std;
 
 Matrix<int>* ptr = 0;
-CHECK(Matrix<int>())
-	ptr = new Matrix<int>;
-	TEST_NOT_EQUAL(ptr, 0)
-RESULT
-
-CHECK(~Matrix<int>())
-	delete ptr;
-RESULT
-
-CHECK(Matrix())
+CHECK((Matrix()))
 {
+	ptr = new Matrix<int>;
+	TEST_NOT_EQUAL(ptr, 0);
+
   Matrix<int> mi1;
 	TEST_EQUAL(mi1.size(),0);
 	TEST_EQUAL(mi1.cols(),0);
@@ -61,7 +56,13 @@ CHECK(Matrix())
 	TEST_EQUAL(mi1.empty(),true);
   STATUS("mi1:\n"<< mi1);
 }
-RESULT
+RESULT;
+
+CHECK((~Matrix()))
+{
+	delete ptr;
+}
+RESULT;
 
 Matrix<int> mi;
 
@@ -80,7 +81,23 @@ CHECK((void resize(size_type i, size_type j, value_type value = value_type())))
 }
 RESULT
 
-CHECK(Matrix(const Matrix & source))
+CHECK((void resize(std::pair<UInt,UInt> const & size_pair, value_type value = value_type())))
+{
+	std::pair<UInt,UInt> const sizepair(2,2);
+	mi.resize(sizepair,3);
+  STATUS("mi1:\n"<< mi);
+	mi.resize(2,3,7);
+  STATUS("mi1:\n"<< mi);
+	TEST_EQUAL(mi(0,0),3);
+	TEST_EQUAL(mi(0,1),3);
+	TEST_EQUAL(mi(0,2),3);
+	TEST_EQUAL(mi(1,0),3);
+	TEST_EQUAL(mi(1,1),7);
+	TEST_EQUAL(mi(1,2),7);
+}
+RESULT
+
+CHECK((Matrix(const Matrix & source)))
 {
   Matrix<int> mi2(mi);
   STATUS("mi2:\n"<< mi2);
@@ -95,7 +112,7 @@ CHECK(Matrix(const Matrix & source))
 }
 RESULT
 
-CHECK(Matrix& operator = (const Matrix & rhs))
+CHECK((Matrix& operator = (const Matrix & rhs)))
 {
 	Matrix<int> mi3;
   STATUS("mi3:\n"<<mi3);
@@ -150,7 +167,7 @@ CHECK((reference operator() (size_type const i, size_type const j)))
 }
 RESULT
 
-CHECK(void clear())
+CHECK((void clear()))
 {
 	Matrix<int> mi4(mi);
   STATUS("mi4:\n"<<mi4);
@@ -166,36 +183,48 @@ CHECK((void setValue(size_type const i, size_type const j, value_type value)))
 	STATUS("mi:\n"<<mi);
 	TEST_EQUAL(mi(1,1),18);
 }
-RESULT
+RESULT;
 
 Matrix<int> mi5(4,5,6);
 
 CHECK((Matrix(SizeType rows, SizeType cols, ValueType value = ValueType())))
-  STATUS("mi5:\n"<<mi5)
-	TEST_EQUAL(mi5.size(),20)
-RESULT
+{
+  STATUS("mi5:\n"<<mi5);
+	TEST_EQUAL(mi5.size(),20);
+}
+RESULT;
 
-CHECK(SizeType cols() const throw())
-	TEST_EQUAL(mi5.rows(),4)
-RESULT
+CHECK((SizeType cols() const))
+{
+	TEST_EQUAL(mi5.rows(),4);
+}
+RESULT;
 
-CHECK(SizeType rows() const throw())
-	TEST_EQUAL(mi5.cols(),5)
-RESULT
+CHECK((SizeType rows() const))
+{
+	TEST_EQUAL(mi5.cols(),5);
+}
+RESULT;
 
 Matrix<float> mf(6,7,8);
 
-CHECK(SizeType colIndex(SizeType index) const)
-	TEST_EQUAL(mf.colIndex(30),2)
-RESULT
+CHECK((SizeType colIndex(SizeType index) const))
+{
+	TEST_EQUAL(mf.colIndex(30),2);
+}
+RESULT;
 
 CHECK((SizeType const index(SizeType row, SizeType col) const))
-	TEST_EQUAL(mf.index(5,5),40)
-RESULT
+{
+	TEST_EQUAL(mf.index(5,5),40);
+}
+RESULT;
 
-CHECK(SizeType rowIndex(SizeType index) const)
-  TEST_EQUAL(mf.rowIndex(30),4)
-RESULT
+CHECK((SizeType rowIndex(SizeType index) const))
+{
+  TEST_EQUAL(mf.rowIndex(30),4);
+}
+RESULT;
 
 CHECK((std::pair<UInt,UInt> const indexPair(UInt index) const))
 {
@@ -204,6 +233,71 @@ CHECK((std::pair<UInt,UInt> const indexPair(UInt index) const))
 	TEST_EQUAL(result.second,2);
 }
 RESULT
+
+CHECK((std::pair<UInt,UInt> sizePair() const))
+{
+	Matrix<float> const mf(6,7,8);
+	TEST_EQUAL(mf.sizePair().first,6);
+	TEST_EQUAL(mf.sizePair().second,7);
+}
+RESULT
+
+CHECK((bool operator == ( Matrix const & rhs ) const throw (Exception::Precondition)))
+{
+	Matrix<int> mi1(4,5,6);
+	mi1(2,3)=17;
+	Matrix<int> mi2(4,5,6);
+	TEST_NOT_EQUAL(mi1,mi2);
+	mi1(2,3)=6;
+	TEST_EQUAL(mi1,mi2);
+
+	Matrix<int> mi3(5,4,6);
+	Matrix<int> mi4(4,4,6);
+	Matrix<int> mi5(5,5,6);
+	TEST_EXCEPTION(Exception::Precondition,mi1==mi3);
+	TEST_EXCEPTION(Exception::Precondition,mi1==mi4);
+	TEST_EXCEPTION(Exception::Precondition,mi1==mi5);
+}
+RESULT
+
+CHECK((bool operator < ( Matrix const & rhs ) const throw (Exception::Precondition)))
+{
+	Matrix<int> mi1(4,5,6);
+	TEST_EQUAL(mi1<mi1,false);
+	mi1(2,3)=17;
+	TEST_EQUAL(mi1<mi1,false);
+	Matrix<int> mi2(4,5,6);
+	TEST_EQUAL(mi1<mi2,false);
+	TEST_EQUAL(mi2<mi1,true);
+	mi2(2,3)=18;
+	TEST_EQUAL(mi1<mi2,true);
+
+	Matrix<int> mi3(5,4,6);
+	Matrix<int> mi4(4,4,6);
+	Matrix<int> mi5(5,5,6);
+	TEST_EXCEPTION(Exception::Precondition,mi1==mi3);
+	TEST_EXCEPTION(Exception::Precondition,mi1==mi4);
+	TEST_EXCEPTION(Exception::Precondition,mi1==mi5);
+}
+RESULT
+
+CHECK(std::ostream& operator << (std::ostream& os, const Matrix<Value>& matrix))
+{
+	Matrix<int> mi(2,3,6);
+	mi(1,2)=112;
+	mi(0,0)=100;
+	mi(1,1)=111;
+	mi(0,2)=103;
+	std::ostringstream os;
+	os << mi;
+	// Uh, finally I got the whitespace right
+	char matrix_dump[] =
+	"   100      6    103 \n"
+	"     6    111    112 \n";
+	TEST_EQUAL(os.str(),matrix_dump);
+}
+RESULT
+
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

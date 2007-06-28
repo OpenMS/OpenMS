@@ -2,7 +2,7 @@
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
-//                   OpenMS Mass Spectrometry Framework 
+//                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
 //  Copyright (C) 2003-2007 -- Oliver Kohlbacher, Knut Reinert
 //
@@ -35,22 +35,22 @@
 
 /**
 	@defgroup Conditions Condition macros
-	
+
 	@brief Macros used for to enforce preconditions and postconditions.
-	
-	These macros are enabled if debug info is enabled and optimization is disabled in configure. 
+
+	These macros are enabled if debug info is enabled and optimization is disabled in configure.
 	Otherwise they are replaced by an empty string, so they won't cost any performance.
-	
+
 	The macros throw Exception::Precondition or Exception::Postcondition respectively if the condition fails.
-	
+
 	@ingroup Concept
-	
+
 	@{
 */
 
-#ifdef OPENMS_DEBUG
+#if defined OPENMS_DEBUG || defined OPENMS_WITHIN_CLASSTEST
 
-/**	
+/**
 	@brief Precondition macro.
 
 	@hideinitializer
@@ -68,7 +68,7 @@
 		throw e;\
 	}\
 
-/**	
+/**
 	@brief Postcondition macro.
 
 	@hideinitializer
@@ -88,14 +88,14 @@
 
 #else
 
-/**	
+/**
 	@brief Precondition macro.
 
 	@hideinitializer
 */
 #define OPENMS_PRECONDITION(condition, message)
 
-/**	
+/**
 	@brief Postcondition macro.
 
 	@hideinitializer

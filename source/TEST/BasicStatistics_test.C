@@ -24,6 +24,8 @@
 // $Maintainer: Clemens Groepl $
 // --------------------------------------------------------------------------
 
+#include <OpenMS/CONCEPT/ClassTest.h>
+
 ///////////////////////////
 
 // This one is going to be tested.
@@ -40,8 +42,6 @@
 #include <vector>
 #include <string>
 
-#include <OpenMS/CONCEPT/ClassTest.h>
-
 
 ///////////////////////////
 
@@ -50,7 +50,7 @@ namespace OpenMS
 
 	// extra stuff required for this test
   double dvector_data[] =
-    { 
+    {
       82.70033, 18.53697, 130.43985, 71.42455, 50.63099, 20.31581, 30.19521,
       36.79161, 135.08596, 84.68491, 124.30681, 71.33620, 126.07538, 73.61598,
       130.07241, 88.97545, 112.80919, 81.12736, 170.80468, 74.20200, 29.40524,
@@ -78,7 +78,7 @@ namespace OpenMS
       71.72692, 52.76207, 15.71214, 116.18279, 75.74875, 115.52147, 91.14405,
       127.02429, 95.27849, 67.42286, 20.34733, 102.67339, 93.84615, 128.95366,
       69.28015, 138.62953, 94.72963, 129.24376, 66.28535, 27.90273, 58.98529,
-      29.84631, 47.59564, 118.73823, 77.77458, 72.75859, 18.41622  
+      29.84631, 47.59564, 118.73823, 77.77458, 72.75859, 18.41622
     };
 
   size_t num_numbers = sizeof (dvector_data) / sizeof (*dvector_data);
@@ -90,13 +90,14 @@ using namespace OpenMS::Math;
 
 /////////////////////////////////////////////////////////////
 
-START_TEST( BasicStatistics, "$Id$" )
+START_TEST( BasicStatistics, "$Id$" );
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
-CHECK( BasicStatistics )
+CHECK((BasicStatistics()))
 {
 
+	// This also tests the ctor from iterator range
   BasicStatistics < > stats ( &*dvector_data, dvector_data + num_numbers );
 
   TEST_EQUAL(num_numbers,195);
@@ -110,6 +111,7 @@ CHECK( BasicStatistics )
 
   for ( int i = 0; i < 195; fvector_coord[i] = 1000 - i, ++i ) ;
 
+	// This also tests the ctor from 2x iterator range
   BasicStatistics < double > stats2 ( &*dvector_data, dvector_data + num_numbers, &*fvector_coord );
 
   STATUS( stats );
@@ -120,7 +122,185 @@ CHECK( BasicStatistics )
 }
 RESULT
 //-----------------------------------------------------------
-CHECK( normalApproximation )
+CHECK((BasicStatistics(BasicStatistics const &arg)))
+{
+  BasicStatistics < > stats ( &*dvector_data, dvector_data + num_numbers );
+
+  TEST_EQUAL(num_numbers,195);
+  PRECISION(0.1);
+
+	BasicStatistics<> const & stats_cref = stats;
+
+	BasicStatistics<> stats_copy (stats_cref);
+
+  TEST_REAL_EQUAL( stats_copy.sum(), stats.sum() );
+  TEST_REAL_EQUAL( stats_copy.mean(), stats.mean() );
+  TEST_REAL_EQUAL( stats_copy.variance(), stats.variance() );
+}
+RESULT
+//-----------------------------------------------------------
+CHECK((BasicStatistics& operator=(BasicStatistics const &arg)))
+{
+  BasicStatistics < > stats ( &*dvector_data, dvector_data + num_numbers );
+
+  TEST_EQUAL(num_numbers,195);
+  PRECISION(0.1);
+
+	BasicStatistics<> const & stats_cref = stats;
+
+	BasicStatistics<> stats_copy;
+	stats_copy = stats_cref;
+
+  TEST_REAL_EQUAL( stats_copy.sum(), stats.sum() );
+  TEST_REAL_EQUAL( stats_copy.mean(), stats.mean() );
+  TEST_REAL_EQUAL( stats_copy.variance(), stats.variance() );
+
+}
+RESULT
+//-----------------------------------------------------------
+CHECK((void clear()))
+{
+	BasicStatistics < > stats ( &*dvector_data, dvector_data + num_numbers );
+  PRECISION(0.1);
+  TEST_REAL_EQUAL( stats.sum(), 15228.2 );
+  TEST_REAL_EQUAL( stats.mean(), 96.4639 );
+  TEST_REAL_EQUAL( stats.variance(), 3276.51 );
+  stats.clear();
+  TEST_REAL_EQUAL( stats.sum(), 0. );
+  TEST_REAL_EQUAL( stats.mean(), 0. );
+  TEST_REAL_EQUAL( stats.variance(), 0. );
+}
+RESULT
+//-----------------------------------------------------------
+CHECK((template <typename ProbabilityIterator> BasicStatistics(ProbabilityIterator const &probability_begin, ProbabilityIterator const &probability_end)))
+{
+	// already tested in ctor BasicStatistics()
+}
+RESULT
+//-----------------------------------------------------------
+CHECK((template <typename ProbabilityIterator, typename CoordinateIterator> BasicStatistics(ProbabilityIterator const &probability_begin, ProbabilityIterator const &probability_end, CoordinateIterator const &coordinate_begin)))
+{
+ 	// already tested in ctor BasicStatistics()
+}
+RESULT
+//-----------------------------------------------------------
+CHECK((template <typename ProbabilityIterator> void update(ProbabilityIterator probability_begin, ProbabilityIterator const probability_end)))
+{
+	BasicStatistics<> stats;
+  TEST_REAL_EQUAL( stats.sum(), 0. );
+  TEST_REAL_EQUAL( stats.mean(), 0. );
+  TEST_REAL_EQUAL( stats.variance(), 0. );
+	stats.update( &*dvector_data, dvector_data + num_numbers );
+  PRECISION(0.1);
+  TEST_REAL_EQUAL( stats.sum(), 15228.2 );
+  TEST_REAL_EQUAL( stats.mean(), 96.4639 );
+  TEST_REAL_EQUAL( stats.variance(), 3276.51 );
+}
+RESULT
+//-----------------------------------------------------------
+CHECK((template <typename ProbabilityIterator, typename CoordinateIterator> void update(ProbabilityIterator const probability_begin, ProbabilityIterator const probability_end, CoordinateIterator const coordinate_begin)))
+{
+	BasicStatistics<> stats;
+  TEST_REAL_EQUAL( stats.sum(), 0. );
+  TEST_REAL_EQUAL( stats.mean(), 0. );
+  TEST_REAL_EQUAL( stats.variance(), 0. );
+
+  float fvector_coord[195];
+	for ( int i = 0; i < 195; fvector_coord[i] = 1000 - i, ++i ) ;
+
+  stats.update( &*dvector_data, dvector_data + num_numbers, &*fvector_coord );
+
+  PRECISION(0.1);
+  TEST_REAL_EQUAL( stats.sum(), 15228.2 );
+  TEST_REAL_EQUAL( stats.mean(), 1000.-96.4639 );
+  TEST_REAL_EQUAL( stats.variance(), 3276.51 );
+}
+RESULT;
+//-----------------------------------------------------------
+
+BasicStatistics<double> bid;
+
+CHECK((RealType mean() const))
+{
+	TEST_EQUAL(bid.mean(),0.);
+	// continued below
+}
+RESULT
+
+CHECK((void setMean(RealType const &mean)))
+{
+	TEST_EQUAL(bid.mean(),0.);
+	bid.setMean(17.);
+	TEST_EQUAL(bid.mean(),17.);
+}
+RESULT
+
+CHECK((RealType variance() const))
+{
+	TEST_EQUAL(bid.variance(),0.);
+	// continued below
+}
+RESULT
+
+CHECK((void setVariance(RealType const &variance)))
+{
+	TEST_EQUAL(bid.variance(),0.);
+	bid.setVariance(18.);
+	TEST_EQUAL(bid.variance(),18.);
+}
+RESULT
+
+CHECK((RealType sum() const))
+{
+	TEST_EQUAL(bid.sum(),0.);
+	// continued below
+}
+RESULT
+
+CHECK((void setSum(RealType const &sum)))
+{
+	TEST_EQUAL(bid.sum(),0.);
+	bid.setSum(19.);
+	TEST_EQUAL(bid.sum(),19.);
+}
+RESULT
+
+//-----------------------------------------------------------
+
+CHECK((static RealType sqrt2pi()))
+{
+	TEST_EQUAL(BasicStatistics<>::sqrt2pi(),2.50662827463100050240);
+}
+RESULT
+
+CHECK((RealType normalDensity_sqrt2pi(RealType coordinate) const))
+{
+	bid.clear();
+	bid.setMean(10.);
+	bid.setVariance(3.);
+	PRECISION(.0001);
+	TEST_REAL_EQUAL(bid.normalDensity_sqrt2pi(10.),1.);
+	TEST_REAL_EQUAL(bid.normalDensity_sqrt2pi(7.),.22313016014842982893);
+	TEST_REAL_EQUAL(bid.normalDensity_sqrt2pi(9.),.84648172489061407405);
+	TEST_REAL_EQUAL(bid.normalDensity_sqrt2pi(11.),.84648172489061407405);
+}
+RESULT
+
+CHECK((RealType normalDensity(RealType const coordinate) const))
+{
+	bid.clear();
+	bid.setMean(10.);
+	bid.setVariance(3.);
+	PRECISION(.0001);
+	TEST_REAL_EQUAL(bid.normalDensity(10.),1./2.50662827463100050240);
+	TEST_REAL_EQUAL(bid.normalDensity(7.),.22313016014842982893/2.50662827463100050240);
+	TEST_REAL_EQUAL(bid.normalDensity(9.),.84648172489061407405/2.50662827463100050240);
+	TEST_REAL_EQUAL(bid.normalDensity(11.),.84648172489061407405/2.50662827463100050240);
+}
+RESULT
+
+//-----------------------------------------------------------
+CHECK((void normalApproximation(probability_container &probability, typename probability_container::size_type const size)))
 {
 
   double dvector2_data[] =
@@ -155,7 +335,7 @@ CHECK( normalApproximation )
 	std::vector < double > probs;
 	stats.normalApproximation ( probs, 6 );
 
-	double good_probs [] = 
+	double good_probs [] =
 		{
 			0.0241689,
 			0.824253,
@@ -171,10 +351,26 @@ CHECK( normalApproximation )
 		TEST_REAL_EQUAL( probs[i], good_probs[i] );
 	}
 
+	// testing CHECK((void normalApproximation(probability_container &probability)))
+	std::vector < double > probs2(6);
+	stats.normalApproximation ( probs2 );
+
+	for ( UInt i = 0; i < probs2.size(); ++i )
+	{
+		// STATUS( std::showpoint << "i:" << i << "  probs[i]:" << probs[i] << '\n');
+		TEST_REAL_EQUAL( probs2[i], good_probs[i] );
+	}
+
 }
 RESULT
 //-----------------------------------------------------------
-CHECK( normalApproximation )
+CHECK((void normalApproximation(probability_container &probability)))
+{
+  // already tested in CHECK((void normalApproximation(probability_container &probability, typename probability_container::size_type const size)))
+}
+RESULT
+//-----------------------------------------------------------
+CHECK((void normalApproximation(probability_container &probability, coordinate_container const &coordinate)))
 {
 
 	double magic1 = 200, magic2 = 100;
@@ -204,8 +400,8 @@ CHECK( normalApproximation )
 	TEST_REAL_EQUAL( stats.sum(), stats2.sum() );
 	TEST_REAL_EQUAL( stats.mean(), stats2.mean() / magic2 );
 	TEST_REAL_EQUAL( stats.variance(), stats2.variance() / magic2 / magic2 );
-	
-	
+
+
 }
 RESULT
 
@@ -214,21 +410,19 @@ CHECK((template< typename IteratorType1, typename IteratorType2 > static RealTyp
   std::list<DoubleReal> numbers2(20, 1.3);
   DoubleReal result = 0;
 
-  PRECISION(0.000001);  
-  result = BasicStatistics<DoubleReal>::meanSquareError(numbers1.begin(), numbers1.end(), numbers2.begin(), numbers2.end()); 	
+  PRECISION(0.000001);
+  result = BasicStatistics<DoubleReal>::meanSquareError(numbers1.begin(), numbers1.end(), numbers2.begin(), numbers2.end());
   TEST_REAL_EQUAL(result, 0.04);
-
-
 RESULT
 
 CHECK((template< typename IteratorType1, typename IteratorType2 > static RealType classificationRate( IteratorType1 begin_a, const IteratorType1 end_a, IteratorType2 begin_b, const IteratorType2 end_b )))
   std::vector<DoubleReal> numbers1(20, 1);
   std::vector<DoubleReal> numbers2(20, 1);
   DoubleReal result = 0;
-  
+
   numbers1.resize(40, -1);
   numbers2.resize(40, -1);
-  
+
   numbers1[2] = -1;
   numbers1[7] = -1;
   numbers1[11] = -1;
@@ -239,7 +433,7 @@ CHECK((template< typename IteratorType1, typename IteratorType2 > static RealTyp
   numbers1[29] = 1;
   numbers1[31] = 1;
   numbers1[37] = 1;
-  
+
   result = BasicStatistics<DoubleReal>::classificationRate(numbers1.begin(), numbers1.end(), numbers2.begin(), numbers2.end());
   TEST_REAL_EQUAL(result, 0.75);
 
@@ -249,7 +443,7 @@ CHECK((template< typename IteratorType1, typename IteratorType2 > static RealTyp
   std::vector<DoubleReal> numbers1(20, 1.5);
   std::vector<DoubleReal> numbers2(20, 1.3);
   DoubleReal result = 0;
-  
+
   numbers1[0] = 0.1;
   numbers2[0] = 0.5;
   numbers1[1] = 0.2;
@@ -260,7 +454,7 @@ CHECK((template< typename IteratorType1, typename IteratorType2 > static RealTyp
   numbers2[3] = 1.0;
   numbers1[4] = 3.2;
   numbers2[4] = 4.0;
-  result = BasicStatistics<DoubleReal>::pearsonCorrelationCoefficient(numbers1.begin(), numbers1.end(), numbers2.begin(), numbers2.end()); 	
+  result = BasicStatistics<DoubleReal>::pearsonCorrelationCoefficient(numbers1.begin(), numbers1.end(), numbers2.begin(), numbers2.end());
   TEST_REAL_EQUAL(result, 0.897811);
 
 RESULT

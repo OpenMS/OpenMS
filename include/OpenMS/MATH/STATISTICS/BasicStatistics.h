@@ -2,7 +2,7 @@
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
-//                   OpenMS Mass Spectrometry Framework 
+//                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
 //  Copyright (C) 2003-2007 -- Oliver Kohlbacher, Knut Reinert
 //
@@ -118,14 +118,14 @@ namespace OpenMS
 				clear();
 				unsigned pos = 0;
 				ProbabilityIterator iter = probability_begin;
-			
+
 				for ( ; iter != probability_end; ++iter, ++pos )
 				{
 					sum_  += *iter;
 					mean_ += *iter * pos;
 				}
 				mean_ /= sum_;
-      
+
 				for ( iter = probability_begin, pos = 0; iter != probability_end; ++iter, ++pos )
 				{
 					RealType diff = RealType(pos) - mean_;
@@ -168,16 +168,16 @@ namespace OpenMS
 			}
 
 			/// Returns the mean.
-			RealType mean ()     const throw() { return mean_; }
-			void setMean ( RealType const & mean ) throw() { mean_ = mean; }
+			RealType mean () const { return mean_; }
+			void setMean ( RealType const & mean ) { mean_ = mean; }
 
 			/// Returns the variance.
-			RealType variance() const throw() { return variance_; }
-			void setVariance ( RealType const & variance ) throw() { variance_ = variance; }
+			RealType variance() const { return variance_; }
+			void setVariance ( RealType const & variance ) { variance_ = variance; }
 
 			/// Returns the sum.
-			RealType sum()     const throw() { return sum_; }
-			void setSum ( RealType const & sum ) throw() { sum_ = sum; }
+			RealType sum() const { return sum_; }
+			void setSum ( RealType const & sum ) { sum_ = sum; }
 
 
 			/**@brief Returns the density of the normal approximation at point,
@@ -192,12 +192,12 @@ namespace OpenMS
 			}
 
 			/// Returns sqrt( 2 * pi ), which is useful to normalize the result of normalDensity_sqrt2pi().
-			static RealType sqrt2pi () throw() { return 2.50662827463100050240; }
+			static RealType sqrt2pi () { return 2.50662827463100050240; }
 
 			/**@brief See normalDensity_sqrt2pi().  Returns the density of the normal
 				 distribution at point.
 			*/
-			inline RealType normalDensity ( RealType & coordinate ) const throw()
+			inline RealType normalDensity ( RealType const coordinate ) const throw()
 			{
 				return normalDensity_sqrt2pi ( coordinate ) / sqrt2pi() ;
 			}
@@ -233,7 +233,7 @@ namespace OpenMS
 			void normalApproximation ( probability_container & probability,
 																 coordinate_container  const & coordinate
 															 )
-			{ 
+			{
 				probability.resize ( coordinate.size() );
 				normalApproximationHelper_ ( probability, coordinate );
 				return;
@@ -263,18 +263,18 @@ namespace OpenMS
 				RealType error = 0;
 				IteratorType1 & it_a = begin_a;
 				IteratorType2 & it_b = begin_b;
-    	      	
+
 				while(it_a != end_a && it_b != end_b)
 				{
 					RealType diff = *it_a - *it_b;
 					error += diff * diff;
 					++count;
 					++it_a;
-					++it_b;      		
+					++it_b;
 				}
-    	
+
 				return error / count;
-    	
+
 			}
 
 			/**@brief Calculates the classification rate for the values in [begin_a, end_a) and [begin_b, end_b)
@@ -291,12 +291,12 @@ namespace OpenMS
 				RealType error = 0;
 				IteratorType1 & it_a = begin_a;
 				IteratorType2 & it_b = begin_b;
-    	  
+
     	  if (it_a == end_a || it_b == end_b)
     	  {
     	  	return 0;
     	  }
-    	      	
+
 				while(it_a != end_a && it_b != end_b)
 				{
 					if ((*it_a < 0 && *it_b >= 0)
@@ -306,13 +306,13 @@ namespace OpenMS
 					}
 					++count;
 					++it_a;
-					++it_b;      		
+					++it_b;
 				}
-    	
+
 				return (count - error) / count;
-    	
-			}			
-			
+
+			}
+
 			/**@brief calculates the pearson correlation coefficient for the values in [begin_a, end_a) and [begin_b, end_b)
 
 			Calculates the linear correlation coefficient for the data given by the two iterator ranges. If
@@ -328,22 +328,22 @@ namespace OpenMS
 				RealType sum_a = 0;
 				RealType sum_b = 0;
 				RealType mean_a = 0;
-				RealType mean_b = 0;      	
+				RealType mean_b = 0;
 				IteratorType1 it_a = begin_a;
-				IteratorType2 it_b = begin_b;      	
+				IteratorType2 it_b = begin_b;
 				RealType numerator = 0;
 				RealType denominator_a = 0;
 				RealType denominator_b = 0;
 				RealType temp_a;
 				RealType temp_b;
-    	      	
+
 				while(it_a != end_a && it_b != end_b)
 				{
 					sum_a += *it_a;
 					sum_b += *it_b;
 					count++;
 					++it_a;
-					++it_b;      		
+					++it_b;
 				}
 				if (count > 0)
 				{
@@ -354,24 +354,24 @@ namespace OpenMS
 				{
 					return -1;
 				}
-    	
+
 				it_a = begin_a;
 				it_b = begin_b;
 				while(it_a != end_a && it_b != end_b)
 				{
 					temp_a = *it_a - mean_a;
 					temp_b = *it_b - mean_b;
-    		
+
 					numerator += (temp_a * temp_b);
 					denominator_a += (temp_a * temp_a);
 					denominator_b += (temp_b * temp_b);
 					++it_a;
-					++it_b;      		
-				}      	
+					++it_b;
+				}
 				temp_a = sqrt(denominator_a * denominator_b);
 				if (temp_a > 0)
 				{
-					return numerator / temp_a;      	
+					return numerator / temp_a;
 				}
 				else
 				{
@@ -382,17 +382,17 @@ namespace OpenMS
 		 protected:
 
 			/// @name Protected Members
-			//@{ 
+			//@{
 
 			RealType mean_;
 			RealType variance_;
 			RealType sum_;
-			
+
 		 private:
 			//@}
 
 			/// @name Private Methods
-			//@{ 
+			//@{
 
 			void normalApproximationHelper_ ( probability_container & probability,
 																				typename probability_container::size_type const size
@@ -400,7 +400,7 @@ namespace OpenMS
 			{
 				RealType gaussSum = 0;
 				typename coordinate_container::size_type i;
-      
+
 				// precondition size == probability.size() is guaranteed by wrappers.
 				for ( i = 0; i < size; ++i ) {
 					gaussSum += normalDensity_sqrt2pi ( i );
@@ -434,8 +434,8 @@ namespace OpenMS
 
 		};
 
-	} // namespace Math 
- 
+	} // namespace Math
+
 } // namespace OpenMS
 
 #endif // OPENMS_MATH_STATISTICS_BASICSTATISTICS_H
