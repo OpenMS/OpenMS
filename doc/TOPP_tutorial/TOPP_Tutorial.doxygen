@@ -48,11 +48,22 @@
 		several other file formats are needed. The main file formats used by TOPP are:
 		- @b mzData The HUPO-PSI standard format for mass spectrometry data.
 		- @b featureXML The %OpenMS format for quantitation results.
-		- @b idXML The %OpenMS format for protein and peptide identification.
 		- @b consensusXML The %OpenMS format for alignment of peak and feature data.	
 		- @b featurePairsXML The %OpenMS format for feature pairs.
-		
-		Documented schemas of the OpenMS formats can be found at http://open-ms.sourceforge.net/schemas/.
+		- @b idXML The %OpenMS format for protein and peptide identification. There is also an XSLT-script to
+		visualize the identifications in a web browser. The file can be downloaded from <tt>http://open-ms.sourceforge.net/schemas/IdXML.xsl</tt>.
+		To use the XSLT-script you have to download it into a directory of your choice (lets say C:\\scripts\\IdXML.xsl). Afterwards,
+		you have to add the line<br>
+		@code<?xml-stylesheet type="text/xsl" href="*PATH*IdXML.xsl"?>@endcode<br> 
+		after the first line of the idXML file,
+		which you want to inspect. This can be performed using a standard text editor. 
+		You just have to exchange *PATH* with the path to the directory, where the script was downloaded to.
+		For example, if you stored the XSLT-script into directory C:\\scripts\\ just exchange *PATH* with file:///C:/scripts/ . In the example,
+		the line should look like this<br>
+		@code<?xml-stylesheet type="text/xsl" href="file:///C:/scripts/IdXML.xsl"?>@endcode<br> 
+		You can now view the idXML file with your standard web browser.
+				
+		Documented schemas of the OpenMS formats can be found at http://open-ms.sourceforge.net/schemas/ .
 		
 
 	<HR>
