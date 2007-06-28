@@ -189,9 +189,6 @@ namespace OpenMS
 			void train();
 
 			/// sets the initial transition probability of the given state to prob
-			void setInitialTransitionProbability(HMMState* state, double prob);
-
-			/// sets the initial transition probability of the given state to prob
 			void setInitialTransitionProbability(const String& state, double prob);
 
 			/// clears the initial probabilities 

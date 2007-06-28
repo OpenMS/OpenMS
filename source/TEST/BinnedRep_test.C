@@ -68,6 +68,12 @@ RESULT
 delete brp;
 brp = new BinnedRep(spec, binsize, binspread);
 
+CHECK((intensity operator[](int) const))
+	PRECISION(0.000001)
+	TEST_REAL_EQUAL((*brp)[0], 0.0686275)
+	TEST_REAL_EQUAL((*brp)[19], 0)
+RESULT
+
 CHECK(BinnedRep(const PeakSpectrum& spec, double binsize=1.0, uint binspread=0))
 	BinnedRep br(spec);
 	TEST_REAL_EQUAL(br.getBinSize(), 1.0)
@@ -135,43 +141,61 @@ CHECK(unsigned int getPrecursorPeakCharge() const)
 RESULT
 
 CHECK(String str() const)
-	//TEST_EQUAL(brp->str(), "DASDAS")
-	// TODO
-RESULT
-
-CHECK(intensity operator[] (int) const)
-	
+	String tmp = brp->str();
+	TEST_EQUAL(tmp.size(), 6177)
 RESULT
 
 CHECK([EXTRA](friend void operator << (BinnedRep& bin_rep, const PeakSpectrum& spec)))
-	
+	BinnedRep br; 
+	br << spec;
+	TEST_EQUAL(br.size(), 1150)
 RESULT
 
 CHECK(void normalize())
-
+	BinnedRep br = *brp;
+	br.normalize();
+	double max = 0;
+	for (UInt i = 0; i != br.size(); ++i)
+	{
+		if (br[i] > max)
+		{
+			max = br[i];
+		}
+	}
+	PRECISION(0.00001)
+	TEST_EQUAL(max, 1)
 RESULT
 
 CHECK(unsigned int size() const)
 	TEST_EQUAL(brp->size(), 2297)
 RESULT
 
-CHECK(ConstIterator begin() const)
-	// TODO
-RESULT
-
-CHECK(ConstIterator end() const)
-	// TODO
-RESULT
-
 CHECK(Iterator begin())
-	// TODO
+	UInt i = 0;
+	for (BinnedRep::Iterator it = brp->begin(); it != brp->end(); ++it, ++i)
+	{
+	}
+	TEST_EQUAL(i , 2297)
 RESULT
 
 CHECK(Iterator end())
-	// TODO
+	// tested above	
 RESULT
 
-CHECK(~BinnedRep())
+CHECK(ConstIterator begin() const)
+	const BinnedRep new_rep = *brp;
+	UInt i = 0;
+	for (BinnedRep::ConstIterator it = new_rep.begin(); it != new_rep.end(); ++it, ++i)
+	{
+	}
+	TEST_EQUAL(i, 2297)
+RESULT
+
+CHECK(ConstIterator end() const)
+	// tested above
+RESULT
+
+CHECK(virtual ~BinnedRep())
   delete brp;
 RESULT
 

@@ -137,8 +137,12 @@ namespace OpenMS
 			virtual ~HiddenMarkovModelLight();
 			//@}
 			
-			///
-			void writetoYGFFile(const String& filename);
+			/** @brief writes HMM to GraphML formatted file.
+			
+					 A detailed description of the GraphML format can be found under
+           http://graphml.graphdrawing.org/
+			*/
+			void writeGraphMLFile(const String& filename);
 	
 			///
 			void write(std::ostream& out);

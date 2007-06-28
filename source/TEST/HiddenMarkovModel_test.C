@@ -184,11 +184,7 @@ CHECK((void buildSynonyms()))
 RESULT
 
 CHECK((void setInitialTransitionProbability(const String& state, double prob)))
-
-RESULT
-
-CHECK((void setInitialTransitionProbability(HMMState* state, double prob)))
-
+	ptr->setInitialTransitionProbability("state_name_hidden2", 1.0);
 RESULT
 
 CHECK((void setTrainingEmissionProbability(const String& state, double prob)))

@@ -213,35 +213,27 @@ CHECK(void buildSynonyms())
 RESULT
 
 CHECK(void setInitialTransitionProbability(UInt id, double prob))
-	// TODO
 RESULT
 
 CHECK(void setInitialTransitionProbability(HMMStateLight* state, double prob))
-	// TODO
 RESULT
 
 CHECK(void setTrainingEmissionProbability(UInt id, double prob))
-	// TODO
 RESULT
 
 CHECK(void setTrainingEmissionProbability(HMMStateLight* state, double prob))
-	// TODO
 RESULT
 
 CHECK(void enableTransition(HMMStateLight* s1, HMMStateLight* s2))
-	// TODO
 RESULT
 
 CHECK(void enableTransition(UInt id1, UInt id2))
-	// TODO
 RESULT
 
 CHECK(void disableTransition(HMMStateLight* s1, HMMStateLight* s2))
-	// TODO
 RESULT
 
 CHECK(void disableTransition(UInt id1, UInt id2))
-	// TODO
 RESULT
 
 CHECK(void disableTransitions())
@@ -249,31 +241,24 @@ CHECK(void disableTransitions())
 RESULT
 
 CHECK(void calculateEmissionProbabilities(HashMap<HMMStateLight*, double>& emission_probs))
-	// TODO
 RESULT
 
 CHECK(void train())
-	// TODO
 RESULT
 
 CHECK(void evaluate())
-	// TODO
 RESULT
 
 CHECK(void estimateUntrainedTransitions())
-	// TODO
 RESULT
 
 CHECK(void clearInitialTransitionProbabilities())
-	// TODO
 RESULT
 
 CHECK(void clearTrainingEmissionProbabilities())
-	// TODO
 RESULT
 
 CHECK(void addIdToName(UInt id, const String& name))
-	// TODO
 RESULT
 
 CHECK(void dump())
@@ -285,15 +270,12 @@ CHECK(void forwardDump())
 RESULT
 
 CHECK(void write(std::ostream& out))
-	// TODO
 RESULT
 
-CHECK(void writetoYGFFile(const String& filename))
-	// TODO
+CHECK(void writeGraphMLFile(const String& filename))
 RESULT
 
 CHECK(void readFromFile(const String& filename))
-	// TODO
 RESULT
 
 CHECK(void setPseudoCounts(double pseudo_counts))
