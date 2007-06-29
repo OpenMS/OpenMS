@@ -80,8 +80,19 @@ START_TEST( AsymmetricStatistics, "$Id$" )
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
-CHECK( update )
-{
+
+AsymmetricStatistics<double>* ptr = 0;
+CHECK(AsymmetricStatistics())
+        ptr = new AsymmetricStatistics<double>();
+        TEST_NOT_EQUAL(ptr, 0)
+RESULT
+
+CHECK(~AsymmetricStatistics())
+        delete ptr;
+RESULT
+
+CHECK((template <typename ProbabilityIterator, typename CoordinateIterator> void update(ProbabilityIterator const probability_begin, ProbabilityIterator const probability_end, CoordinateIterator const coordinate_begin)))
+
 	// set the beginning of coordinates
 	float fvector_coord[90];
 	for ( int i = 0; i < 90; fvector_coord[i] = 1000 - i, ++i ) ;
@@ -114,7 +125,15 @@ CHECK( update )
 	// test advanced statistics, computed in method update
 	TEST_REAL_EQUAL( asy.variance1(), 616.379 );
   	TEST_REAL_EQUAL( asy.variance2() , 661.202 );
-}
+
+RESULT
+
+CHECK((RealType variance1() const ))
+  	// already test above
+RESULT
+
+CHECK((RealType variance2() const ))
+	// already test above
 RESULT
 
 //-----------------------------------------------------------

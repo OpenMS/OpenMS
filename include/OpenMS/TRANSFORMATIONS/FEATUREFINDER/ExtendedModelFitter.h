@@ -45,7 +45,7 @@ namespace OpenMS
 	class BaseQuality;
 
 	/**
-		@brief Extended model fitter using gaussian or isotope model in mz and bigauss, lmagauss (bigauss with levenberg-marquardt aproximized parameters) or emg (exponent. modified gaussian with lma aproximized parameters) in rt.
+		@brief Extended model fitter using gaussian or isotope model in mz and bigauss, lmagauss (bigauss with Levenberg-Marquardt aproximized parameters) or emg (exponent. modified Gaussian with lma aproximized parameters) in rt.
 		
 		For the isotope model different charges and deviations are tested.<br>
     
@@ -80,7 +80,7 @@ namespace OpenMS
     /// Default constructor
     ExtendedModelFitter();
 
-    /// destructor
+    /// Destructor
     virtual ~ExtendedModelFitter();
 
    	/// Copy constructor
@@ -89,7 +89,7 @@ namespace OpenMS
     /// Assignment operator
     ExtendedModelFitter& operator= (const ExtendedModelFitter& rhs);
 
-    /// return next seed
+    /// Return next feature
     Feature fit(const ChargedIndexSet& range) throw (UnableToFit);
 
     static BaseModelFitter* create()
