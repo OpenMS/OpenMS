@@ -43,7 +43,12 @@ CPP_SOURCES=\
 	Tutorial_FeatureFinder.C\
 	Tutorial_PairwiseAlignment.C\
 	Tutorial_InternalCalibration.C\
-	Tutorial_ExternalCalibration.C
+	Tutorial_ExternalCalibration.C\
+	Tutorial_Residue.C\
+	Tutorial_Element.C\
+	Tutorial_EmpiricalFormula.C\
+	Tutorial_AASequence.C\
+	Tutorial_TheoreticalSpectrumGenerator.C
 
 OBJECTS=$(SOURCES:.C=.o)
 
@@ -109,4 +114,19 @@ Tutorial_InternalCalibration: Tutorial_InternalCalibration.o
 	$(CXX) $(LDFLAGS) -o $@ $< $(GUI_LIBS)
 
 Tutorial_ExternalCalibration: Tutorial_ExternalCalibration.o
+	$(CXX) $(LDFLAGS) -o $@ $< $(GUI_LIBS)
+
+Tutorial_Residue: Tutorial_Residue.o
+	$(CXX) $(LDFLAGS) -o $@ $< $(GUI_LIBS)
+
+Tutorial_Element: Tutorial_Element.o
+	$(CXX) $(LDFLAGS) -o $@ $< $(GUI_LIBS)
+
+Tutorial_EmpiricalFormula: Tutorial_EmpiricalFormula.o
+	$(CXX) $(LDFLAGS) -o $@ $< $(GUI_LIBS)
+
+Tutorial_AASequence: Tutorial_AASequence.o
+	$(CXX) $(LDFLAGS) -o $@ $< $(GUI_LIBS)
+
+Tutorial_TheoreticalSpectrumGenerator: Tutorial_TheoreticalSpectrumGenerator.o
 	$(CXX) $(LDFLAGS) -o $@ $< $(GUI_LIBS)

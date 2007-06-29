@@ -774,27 +774,91 @@ The classes described in this section can be found in the @a CHEMISTRY folder.
 
 @section Elements
 
-There is a representation of Elements implemented in %OpenMS. The correcsponding class is named @a Element. This class stores the relevant information about an element. The handling of the Elements are done by the class ElementDB, which is implemented as an singleton. This means there is only one instance of the class in %OpenMS. This is straightforward because the Elements do not change during execution. The data stored in an Element spans its name, symbol, atomic weight, and isotope distribution beside others. 
-// example
+There is a representation of Elements implemented in %OpenMS. The correcsponding class is named @a Element. This class stores the relevant information about an element. The handling of the Elements are done by the class ElementDB, which is implemented as an singleton. This means there is only one instance of the class in %OpenMS. This is straightforward because the Elements do not change during execution. Data stored in an Element spans its name, symbol, atomic weight, and isotope distribution beside others. 
+
+@dontinclude Tutorial_Element.C
+@skip ElementDB* db
+	@until endl
+
+Elements can be accessed by the @a ElementDB class. As it is implemented as a singleton only a pointer of the singleton can be used, via @a getInstance(). The example program writes the following output to the console.
+
+	@code
+		Carbon C 12 12.0107
+	@endcode
+
 
 @section EmpiricalFormula
 
-The Elements described in the section above can be combined to empirical formulas. Application are the exact weights of molecules, like peptides and their isotopic distributions. The class support a large number of operations like addition and substraction. 
-// example
-// isodist example
+The Elements described in the section above can be combined to empirical formulas. Application are the exact weights of molecules, like peptides and their isotopic distributions. The class support a large number of operations like addition and substraction. A simple example is given in the next few lines of code.
+
+@dontinclude Tutorial_EmpiricalFormula.C
+@skip methanol
+	@until endl
+
+Two instances of empirical formula are created. They are summed up, and some information about the new formula is printed to the terminal. The next lines show how to create and handle a isotopic distribution of a given formula.
+
+@skip iso_dist
+	@until }
+
+The isotopic distribution can be simply accessed by the @a getIsotopeDistribution() function. The parameter of this function describes how many isotopes should be reported. In our case, 3 are enough, as the following numbers get very small. On larger molecules, or when one want to have the exact distribution, this number can be set much higher. The output of the code snipped might look like this.
+
+	@code
+		O2CH6 1 50.0571
+		50 0.98387
+		51 0.0120698
+		52 0.00406
+	@endcode
+
 
 @section Residue
 
-A residue is represented in %OpenMS by the class @a Residue. It provides a container for the amino acids as well as some functionality. The class is able to provide information such as the isotope distribution of the residue, the average and monoisotopic weight. The residue can be identified by their full name, their three letter abbreviation or the single letter abreviation. The residue can also be modified, which is implemented in the Modification class. Additional less frequently used parameters of a residue like the gas-phase basicity are also availble.
+A residue is represented in %OpenMS by the class @a Residue. It provides a container for the amino acids as well as some functionality. The class is able to provide information such as the isotope distribution of the residue, the average and monoisotopic weight. The residue can be identified by their full name, their three letter abbreviation or the single letter abreviation. The residue can also be modified, which is implemented in the Modification class. Additional less frequently used parameters of a residue like the gas-phase basicity and pk values are also availble.
+
+@dontinclude Tutorial_Residue.C
+@skip ResidueDB res_db
+	@until endl
+
+This small example show how to create a instance of ResidueDB were all Residues are stored in. The amino acids themselves can be accessed via the getResidue function. ResidueDB read its amino acid and modification data from data/CHEMISTRY/. 
+
+The output of the example would look like this
+
+  @code
+		Lysine LYS K 146.188
+	@endcode
+
 
 @section AASequence
 This class handles the amino acid sequences in %OpenMS. A string of amino acid residues can be turned into a instance of @a AASequence to provide some commonly used operations and data. The implementation supports mathmatical operations like addition or substraction. Also, average and mono isotopic weight and isotope distributions are accessable. 
 
 %OpenMS handles mass spectrometry data all the weigths formulas and isotope distribution can be calculated depending on the charge state (additional proton count in case of positive ions) and ion type. Therefore the class allows for a flexible handling of amino acid strings.
 
+A very simple example of handling amino acid sequence with AASequence is given in the next few lines.
+
+@dontinclude Tutorial_AASequence.C
+@skip DFPIANGER
+	@until endl
+
+Not only the prefix, suffix and subsequence accession is supported, but also most of the features of EmpiricalFormulas and Residues given above. Additionally a number of predictaes like hasSuffix are supported. The output of the code snippet looks like this.
+
+	@code 
+		DFPIANGER DFPI ANGER 1018.08
+	@endcode
+
+
 @section TheoreticalSpectrumGenerator
 
 This class implements a simple generator to generate tandem MS spectra from a given peptide charge combination. There are various options which influence the occuring ions and their intensities.
+
+@dontinclude Tutorial_TheoreticalSpectrumGenerator.C
+@skip tsg
+	@until Spectrum 2
+
+The example shows how to put peaks of a certain type, y-ions in this case, into a spectrum. Spectrum 2 is filled with a complete spectrum of all peaks (a-, b-, y-ions and losses). The TheoreticalSpectrumGenerator has many parameters, which have a detailed description located in the class documentation. The output of the program looks like the following two lines.
+
+	@code
+		Spectrum 1 has 8 peaks.
+		Spectrum 2 has 32 peaks.
+	@endcode
 
 */
 
