@@ -13,8 +13,8 @@ Int main()
 	MSExperiment<> exp;
 	//... Fill peak map with points
 	ff.setData(exp.begin(),exp.end(),300);
-	
-	FeatureMap<> ouput = ff.run();
+
+	FeatureMap<> output = ff.run();
 
   return 0;
 } //end of main
