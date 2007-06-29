@@ -29,6 +29,5 @@ C   79.96635   OPTIONAL   ALL   C+80   Phosphorylation
 R   79.96635   OPTIONAL   ALL   R+80   Phosphorylation
 
 # Terminal PTMs
-C_TERM   -16   OPTIONAL   C_TERM   §-16   PTM_5
-N_TERM   43.00581   OPTIONAL   N_TERM   ^+43   Carbamylation
-N_TERM   -16   OPTIONAL   N_TERM   ^-16   PTM_6
+C_TERM   -16   OPTIONAL   C_TERM   §-16   PTM_4
+N_TERM   -16   OPTIONAL   N_TERM   ^-16   PTM_5
