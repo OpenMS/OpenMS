@@ -50,7 +50,10 @@ namespace OpenMS
 		For the isotope model different charges and deviations are tested.<br>
     
     @ref ExtendedModelFitter_Parameters are explained on a separate page.
-		 
+		
+		@todo Merge ExtendedModelFitter and SimpleModelFitter (Clemens)
+		@todo Check use of Enums for RT and m/z fit. They destroy the factory concept! (Clemens)
+		
 		@ingroup FeatureFinder
   */
   class ExtendedModelFitter

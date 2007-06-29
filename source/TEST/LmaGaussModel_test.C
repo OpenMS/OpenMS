@@ -42,25 +42,25 @@ using std::stringstream;
 
 // default ctor
 LmaGaussModel* ptr = 0;
-CHECK(LmaGaussModel())
+CHECK((LmaGaussModel()))
 	ptr = new LmaGaussModel();
   TEST_EQUAL(ptr->getName(), "LmaGaussModel")
 	TEST_NOT_EQUAL(ptr, 0)
 RESULT
 
 // destructor
-CHECK(~LmaGaussModel())
+CHECK((virtual ~LmaGaussModel()))
 	delete ptr;
 RESULT
 
 
-CHECK(const String getName())
+CHECK((static const String getProductName()))
 	TEST_EQUAL(LmaGaussModel::getProductName(),"LmaGaussModel")
 	TEST_EQUAL(LmaGaussModel().getName(),"LmaGaussModel")
 RESULT
 
 // assignment operator
-CHECK(LmaGaussModel& operator = (const LmaGaussModel& source))
+CHECK((virtual LmaGaussModel& operator=(const LmaGaussModel &source)))
 	LmaGaussModel lm1;
 	lm1.setInterpolationStep(0.3);
 
@@ -85,7 +85,7 @@ CHECK(LmaGaussModel& operator = (const LmaGaussModel& source))
 RESULT
 
 // copy ctor
-CHECK(LmaGaussModel(const LmaGaussModel& source))
+CHECK((LmaGaussModel(const LmaGaussModel& source)))
 	LmaGaussModel lm1;
 	lm1.setInterpolationStep(0.3);
 
@@ -107,7 +107,7 @@ CHECK(LmaGaussModel(const LmaGaussModel& source))
 	TEST_EQUAL(lm3.getParameters(), lm2.getParameters())
 RESULT
 
-CHECK(void setParam(Param param))
+CHECK([EXTRA] DefaultParamHandler::setParameters(...))
 	PRECISION(0.001)
 	LmaGaussModel lm1;
 	
@@ -185,7 +185,7 @@ CHECK([EXTRA] DefaultParamHandler::setParameters(...))
 RESULT
 
 
-CHECK(void setOffset(double offset))
+CHECK((void setOffset(CoordinateType offset)))
 
 	LmaGaussModel lm1;
 
@@ -224,7 +224,7 @@ CHECK(void setOffset(double offset))
 
 RESULT
 
-CHECK(CoordinateType getCenter() const)
+CHECK((CoordinateType getCenter() const))
 	// already test above, but just for the sake of it
 	PRECISION(0.001)
 	LmaGaussModel lm1;
@@ -244,11 +244,11 @@ CHECK(CoordinateType getCenter() const)
 
 RESULT
 
-CHECK(static BaseModel<1>* create())
+CHECK((static BaseModel<1>* create()))
 	// already test above
 RESULT
 
-CHECK(void setSamples())
+CHECK((void setSamples()))
 	// already test above
 RESULT
 

@@ -89,10 +89,10 @@ namespace OpenMS
 		defaults_.setDescription("isotope_model:stdev","Instrument resolution settings for m/z");
 		
 		defaults_.setValue("isotope_model:averagines:C",0.0443f,"Number of C atoms per Dalton of the mass.");
-		defaults_.setValue("isotope_model:averagines:H",0.0f,"Number of H atoms per Dalton of the mass.");
-		defaults_.setValue("isotope_model:averagines:N",0.0037f,"Number of N atoms per Dalton of the mass.");
-		defaults_.setValue("isotope_model:averagines:O",0.022f,"Number of O atoms per Dalton of the mass.");
-		defaults_.setValue("isotope_model:averagines:S",0.0f,"Number of S atoms per Dalton of the mass.");
+		defaults_.setValue("isotope_model:averagines:H",0.007f,"Number of H atoms per Dalton of the mass.");
+		defaults_.setValue("isotope_model:averagines:N",0.0012f,"Number of N atoms per Dalton of the mass.");
+		defaults_.setValue("isotope_model:averagines:O",0.013f,"Number of O atoms per Dalton of the mass.");
+		defaults_.setValue("isotope_model:averagines:S",0.00037f,"Number of S atoms per Dalton of the mass.");
 		defaults_.setDescription("isotope_model:averagines","Averagines are used to approximate the number of atoms (C,H,N,O,S) which a peptide of a given mass contains.");
 		
 		defaults_.setValue("isotope_model:isotope:trim_right_cutoff",0.001f,"Cutoff for averagine distribution, trailing isotopes below this relative intensity are not considered.");

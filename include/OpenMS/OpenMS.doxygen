@@ -81,9 +81,6 @@
 */
 
 /*************************** Marc's todos ******************************
-Todo:
-- Ole,Clemens: Parameter-docu aus doxygen raus
-
 Nach Release:
 - Snapshot + search wieder auf Trunk umstellen
 - Merge 1.0 in Trunk
