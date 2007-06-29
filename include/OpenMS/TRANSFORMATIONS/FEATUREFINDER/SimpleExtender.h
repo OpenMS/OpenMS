@@ -58,9 +58,9 @@ namespace OpenMS
     boundary have an intensity lower than a threshold or are too
     distant from the centroid of the feature.
 		
-		@ref SimpleExtender_Parameters are explained on a separate page.
+		@image html SimpleExtender.png
 		
-		@todo Add an image for region, boundary, ... (Clemens)
+		@ref SimpleExtender_Parameters are explained on a separate page.
 		
 		@ingroup FeatureFinder
 	*/

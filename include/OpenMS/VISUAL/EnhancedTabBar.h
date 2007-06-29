@@ -36,7 +36,7 @@ class QMouseEvent;
 namespace OpenMS 
 {
 	/**
-		@brief Tab bar which is aware of double clicking.
+		@brief Tab bar which is aware of double clicking and has a context menu to close it.
 		
 		It emits a signal, when a tab is double clicked.
 		
