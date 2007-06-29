@@ -84,7 +84,7 @@ namespace OpenMS
 		defaults_.setValue("deconvolution:fitting:fwhm_threshold",0.7,"If the fwhm of a peak is higher than fwhm_thresholds it is assumed that it consists of more than one peak and the deconvolution procedure is started.");
 		defaults_.setValue("deconvolution:fitting:eps_abs",1e-05f,"if the absolute error gets smaller than this value the fitting is stopped.");
 		defaults_.setValue("deconvolution:fitting:eps_rel",1e-05f,"if the relative error gets smaller than this value the fitting is stopped.");
-		defaults_.setValue("deconvolution:fitting:iterations",10,"maximal number of iterations for the fitting step");
+		defaults_.setValue("deconvolution:fitting:max_iteration",10,"maximal number of iterations for the fitting step");
 
 
 		subsections_.push_back("SignalToNoiseEstimationParameter");

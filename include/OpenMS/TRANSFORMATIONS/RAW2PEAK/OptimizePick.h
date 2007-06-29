@@ -168,15 +168,7 @@ namespace OpenMS
     /// Start the optimization of the peak shapes peaks. The original peak shapes will be subsituted by the optimized peak shapes.
     void optimize(std::vector<PeakShape>& peaks);
 
-   /** @brief Returns the squared pearson coefficient.
-
-        Computes the correlation of the peak and the original data given by the peak enpoints.
-        If the value is near 1, the fitted peakshape and the raw data are expected to be very similar. 
-    */
-    double correlate(const PeakShape& peak,
-                     double left_endpoint,
-                     double right_endpoint);
-
+  
   protected:
     /// Penalty factors
     struct OptimizationFunctions::PenaltyFactors penalties_;
@@ -187,6 +179,16 @@ namespace OpenMS
     /// Maximum absolute and relative error used in the optimization.  
     double eps_abs_;
     double eps_rel_;
+
+		 /** @brief Returns the squared pearson coefficient.
+
+        Computes the correlation of the peak and the original data given by the peak enpoints.
+        If the value is near 1, the fitted peakshape and the raw data are expected to be very similar. 
+    */
+    double correlate_(const PeakShape& peak,
+											double left_endpoint,
+											double right_endpoint);
+		
   };
 }
 

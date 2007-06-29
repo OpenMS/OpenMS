@@ -35,23 +35,23 @@
 
 namespace OpenMS
 {
-/**
-	@brief This class is the base class of the continuous wavelet transformation. 
-*/
-class ContinuousWaveletTransform
-{
-public:
+	/**
+		 @brief This class is the base class of the continuous wavelet transformation. 
+	*/
+	class ContinuousWaveletTransform
+	{
+	public:
     /// Raw data const iterator type
     typedef std::vector<RawDataPoint1D >::const_iterator RawDataPointConstIterator;
 
 
     /// Constructor
     ContinuousWaveletTransform()
-            : scale_(0),
-            spacing_(0),
-            signal_length_(0),
-            end_left_padding_(0),
-            begin_right_padding_(0)
+			: scale_(0),
+				spacing_(0),
+				signal_length_(0),
+				end_left_padding_(0),
+				begin_right_padding_(0)
     {}
 
     /// Destructor.
@@ -61,124 +61,124 @@ public:
     /// Non-mutable access to the wavelet transform of the signal
     inline const DPeakArray<RawDataPoint1D >& getSignal() const
     {
-        return signal_;
+			return signal_;
     }
     /// Mutable access to the wavelet transform of the signal
     inline DPeakArray<RawDataPoint1D >& getSignal()
     {
-        return signal_;
+			return signal_;
     }
     /// Mutable access to the wavelet transform of the signal
     inline void setSignal(const DPeakArray<RawDataPoint1D >& signal)
     {
-        signal_ = signal;
+			signal_ = signal;
     }
 
     /// Non-mutable access to the wavelet
     inline const std::vector<double>& getWavelet() const
     {
-        return wavelet_;
+			return wavelet_;
     }
     /// Mutable access to the wavelet
     inline std::vector<double>& getWavelet()
     {
-        return wavelet_;
+			return wavelet_;
     }
     /// Mutable access to the signal
     inline void setWavelet(const std::vector<double>& wavelet)
     {
-        wavelet_ = wavelet;
+			wavelet_ = wavelet;
     }
 
     // Non-mutable access to the scale of the wavelet
     inline DoubleReal getScale() const
     {
-        return scale_;
+			return scale_;
     }
     /// Mutable access to the spacing of raw data
     inline double& getScale()
     {
-        return scale_;
+			return scale_;
     }
     /// Mutable access to the spacing of raw data
     inline void setScale(DoubleReal scale)
     {
-        scale_ = scale;
+			scale_ = scale;
     }
 
     // Non-mutable access to the spacing of raw data
     inline DoubleReal getSpacing() const
     {
-        return spacing_;
+			return spacing_;
     }
     /// Mutable access to the spacing of raw data
     inline double& getSpacing()
     {
-        return spacing_;
+			return spacing_;
     }
     /// Mutable access to the spacing of raw data
     inline void setSpacing(double spacing)
     {
-        spacing_ = spacing;
+			spacing_ = spacing;
     }
 
     /// Non-mutable access to the position where the signal starts (in the intervall [0,end_left_padding_) are the padded zeros)
     inline Int getLeftPaddingIndex() const
     {
-        return end_left_padding_;
+			return end_left_padding_;
     }
     /// Mutable access to the position where the signal starts
     inline int& getLeftPaddingIndex()
     {
-        return end_left_padding_;
+			return end_left_padding_;
     }
     /// Mutable access to position where the signal starts
     inline void setLeftPaddingIndex(const int end_left_padding)
     {
-        end_left_padding_ = end_left_padding;
+			end_left_padding_ = end_left_padding;
     }
 
     /// Non-mutable access to the position where the signal ends (in the intervall (begin_right_padding_,end] are the padded zeros)
     inline Int getRightPaddingIndex() const
     {
-        return begin_right_padding_;
+			return begin_right_padding_;
     }
     /// Mutable access to the position where the signal starts
     inline int& getRightPaddingIndex()
     {
-        return begin_right_padding_;
+			return begin_right_padding_;
     }
     /// Mutable access to position where the signal starts
     inline void setRightPaddingIndex(const int begin_right_padding)
     {
-        begin_right_padding_ = begin_right_padding;
+			begin_right_padding_ = begin_right_padding;
     }
 
     /// Non-mutable access to signal length [end_left_padding,begin_right_padding]
     inline Int getSignalLength() const
     {
-        return signal_length_;
+			return signal_length_;
     }
     /// Mutable access to signal length [end_left_padding,begin_right_padding]
     inline int& getSignalLength()
     {
-        return signal_length_;
+			return signal_length_;
     }
     /// Mutable access to signal length [end_left_padding,begin_right_padding]
     inline void setSignalLength(const int signal_length)
     {
-        signal_length_ = signal_length;
+			signal_length_ = signal_length;
     }
 
     /// Non-mutable access to signal length including padded zeros [0,end]
     inline int getSize() const
     {
-        return signal_.size();
+			return signal_.size();
     }
 
 
     /**
-     @brief Perform possibly necessary preprocessing steps, like tabulating the Wavelet.
+			 @brief Perform possibly necessary preprocessing steps, like tabulating the Wavelet.
     */
     virtual void init(double scale, double spacing);
 
@@ -186,28 +186,18 @@ public:
     /// Yields the signal (intensity) at position i
     inline double operator [] (unsigned int i)
     {
-        return signal_[i].getIntensity();
+			return signal_[i].getIntensity();
     }
 
     inline double operator [] (unsigned int i) const
     {
-        return signal_[i].getIntensity();
+			return signal_[i].getIntensity();
     }
 		
-		template < typename InputPeakIterator >
-		double getInterpolatedValue_(double x, InputPeakIterator it_left)
-		{
-    	// Interpolate between the point to the left and the point to the right.
-    	double left_position = it_left->getMZ();
-    	double right_position = (it_left+1)->getMZ();
-    	double d=(x-left_position)/(right_position-left_position);
-
-    	return ((it_left+1)->getIntensity()*d+it_left->getIntensity()*(1-d));
-		}
 
 
 
-protected:
+	protected:
     /// The transformed signal
     DPeakArray<RawDataPoint1D > signal_;
 
@@ -228,7 +218,19 @@ protected:
     /// Computes the interpolated value at position x (mz) given the iterator it_left, which points
     /// to the left neighbour raw data point of x in the original data
     double getInterpolatedValue_(double x, RawDataPointConstIterator it_left);
-};
+
+		template < typename InputPeakIterator >
+		double getInterpolatedValue_(double x, InputPeakIterator it_left)
+		{
+    	// Interpolate between the point to the left and the point to the right.
+    	double left_position = it_left->getMZ();
+    	double right_position = (it_left+1)->getMZ();
+    	double d=(x-left_position)/(right_position-left_position);
+
+    	return ((it_left+1)->getIntensity()*d+it_left->getIntensity()*(1-d));
+		}
+
+	};
 
 } //namespace OpenMS
 

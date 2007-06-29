@@ -49,25 +49,6 @@ CHECK((virtual ~PeakPickerCWT()))
   delete ptr;
 RESULT
 
-CHECK((setParam))
-  Param param;
-  param.setValue("thresholds:correlation",0.8);
-  param.setValue("wavelet_transform:scale",0.3);
-  param.setValue("thresholds:noise_level",9);
-  param.setValue("thresholds:search_radius",2);
-  param.setValue("deconvolution:skip_deconvolution","no");
-  param.setValue("Optimization:optimization","two_dimensional");
-  
-  PeakPickerCWT pp;
-  pp.setParameters(param);
-  TEST_REAL_EQUAL(pp.getWaveletScale(),0.3)
-  TEST_REAL_EQUAL(pp.getPeakCorrBound(),0.8)
-  TEST_REAL_EQUAL(pp.getNoiseLevel(),9)
-  TEST_EQUAL(pp.getOptimizationFlag() == false, true)
-  TEST_REAL_EQUAL(pp.getSearchRadius(),2)
-	TEST_EQUAL(pp.getDeconvolutionFlag() == true, true)
-	TEST_EQUAL(pp.get2DOptimizationFlag() == true, true)
-RESULT
 
 MzDataFile mz_data_file;
 MSExperiment<RawDataPoint1D > exp_raw;
@@ -113,6 +94,16 @@ CHECK((template<typename InputPeakType, typename OutputPeakType > void pickExper
   TEST_EQUAL(e == exp_raw, true)
 RESULT
 
+CHECK((template <typename InputSpectrumIterator, typename OutputPeakType> void pickExperiment(InputSpectrumIterator first, InputSpectrumIterator last, MSExperimentExtern< OutputPeakType > &ms_exp_peaks)))
+  MSExperimentExtern<PickedPeak1D > peaks;
+  PeakPickerCWT pp;
+  pp.setPeakBound(1500);
+   
+  pp.pickExperiment(exp_raw.begin(),exp_raw.end(),peaks);
+  TEST_EQUAL(peaks.size() == exp_raw.size(), true)   
+  TEST_EQUAL((peaks[0].size() + peaks[1].size()), 9)
+RESULT
+		
 CHECK((template<typename InputSpectrumIterator, typename OutputPeakType > void pickExperiment(InputSpectrumIterator first, InputSpectrumIterator last, MSExperiment<OutputPeakType>& ms_exp_peaks)))
   MSExperiment<PickedPeak1D > peaks;
   PeakPickerCWT pp;
@@ -123,6 +114,48 @@ CHECK((template<typename InputSpectrumIterator, typename OutputPeakType > void p
   TEST_EQUAL((peaks[0].size() + peaks[1].size()), 9)
 RESULT
 
+CHECK((template <typename InputPeakType, typename OutputPeakType> void pickExperiment(const MSExperimentExtern< InputPeakType > &ms_exp_raw, MSExperimentExtern< OutputPeakType > &ms_exp_peaks)))
+	MSExperimentExtern<RawDataPoint1D > exp_raw_ext;
+  mz_data_file.load("data/PeakPicker_test.mzData",exp_raw_ext);
+	MSExperimentExtern<PickedPeak1D > peaks;
+  PeakPickerCWT pp;
+  pp.setPeakBound(1500);
+   
+  pp.pickExperiment(exp_raw_ext.begin(),exp_raw_ext.end(),peaks);
+  TEST_EQUAL(peaks.size() == exp_raw_ext.size(), true)   
+  TEST_EQUAL((peaks[0].size() + peaks[1].size()), 9)
+RESULT
+
+CHECK((template <typename OutputPeakType> void fillPeak(const PeakShape &, OutputPeakType &)))
+
+RESULT
+
+CHECK((template <typename OutputPeakType> void fillPeak(const PeakShape &peak_shape, PickedPeak1D &picked_peak)))
+  double height = 100.0;
+  double mz_position = 0.0;
+  double left_width = 4.0;
+  double right_width = 4.0;
+  double area = 100;
+  PeakShapeType::Enum type = PeakShapeType::LORENTZ_PEAK;
+    
+  PeakShape p(height,
+							mz_position,
+							left_width,
+							right_width,
+							area,
+							type);
+  PeakPickerCWT pp;
+  PickedPeak1D peak;
+  pp.fillPeak(p,peak);
+  TEST_REAL_EQUAL(p.r_value,peak.getRValue())
+  TEST_REAL_EQUAL(p.getFWHM(),peak.getFWHM())
+	TEST_REAL_EQUAL(p.left_width,peak.getLeftWidthParameter())
+	TEST_REAL_EQUAL(p.right_width,peak.getRightWidthParameter())
+	TEST_REAL_EQUAL(p.area,peak.getArea())
+	TEST_EQUAL(p.type,peak.getPeakShape())
+ 	TEST_EQUAL(p.signal_to_noise,peak.getSN())
+RESULT
+	
 CHECK((const ContinuousWaveletTransformNumIntegration& getWaveletTransform() const))
   PeakPickerCWT pp;
   
@@ -158,7 +191,13 @@ CHECK((Real getPeakBoundCWT() const))
   PeakPickerCWT pp;
   TEST_REAL_EQUAL(pp.getPeakBoundCWT(),0.0)
 RESULT
-
+	
+CHECK((Real getPeakBound() const))
+  PeakPickerCWT pp;
+  pp.setPeakBound(320);
+  TEST_REAL_EQUAL(pp.getPeakBound(),320)
+RESULT
+	
 CHECK((Real getPeakBoundMs2LevelCWT() const))
   PeakPickerCWT pp;
   TEST_REAL_EQUAL(pp.getPeakBoundMs2LevelCWT(),0.0)
@@ -170,6 +209,12 @@ CHECK((Real getPeakCorrBound() const))
   TEST_REAL_EQUAL(pp.getPeakCorrBound(),0.5)
 RESULT
 
+CHECK((void setPeakCorrBound(Real peak_corr_bound)))
+  PeakPickerCWT pp;
+  pp.setPeakCorrBound(0.6);
+  TEST_REAL_EQUAL(pp.getPeakCorrBound(),0.6)
+RESULT
+	
 CHECK((Real getWaveletScale() const))
   PeakPickerCWT pp;
   
@@ -224,6 +269,11 @@ CHECK((void setWaveletScale(Real scale)))
   TEST_REAL_EQUAL(pp.getWaveletScale(),0.1)
 RESULT
 
+CHECK((void setSearchRadius(UInt radius)))
+  PeakPickerCWT pp;
+  pp.setSearchRadius(5);
+  TEST_REAL_EQUAL(pp.getSearchRadius(),5)
+RESULT		
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST

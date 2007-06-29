@@ -442,7 +442,7 @@ namespace OpenMS
   }
 
 
-  double OptimizePick::correlate(const PeakShape& peak,
+  double OptimizePick::correlate_(const PeakShape& peak,
                                  double left_endpoint,
                                  double right_endpoint)
   {

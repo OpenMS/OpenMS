@@ -150,6 +150,25 @@ CHECK((double operator() (double x) const))
     TEST_REAL_EQUAL(peakshape.getFWHM(),.5)
 RESULT
 
+CHECK((double getFWHM() const))
+  double height = 100.0;
+  double mz_position = 0.0;
+  double left_width = 4.0;
+  double right_width = 4.0;
+  double area = 100;
+  PeakShapeType::Enum type = PeakShapeType::LORENTZ_PEAK;
+    
+  PeakShape p(height,
+							mz_position,
+							left_width,
+							right_width,
+							area,
+							type);
+
+
+  TEST_REAL_EQUAL(p.getFWHM(),1/right_width + 1/left_width)
+RESULT
+	
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
