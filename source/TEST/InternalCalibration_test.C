@@ -53,12 +53,6 @@ CHECK(~InternalCalibration())
 }
 RESULT
 
-CHECK((~InternalCalibration()))
-{
-  // TODO
-}
-RESULT
-
 ptr = new InternalCalibration();
 
 CHECK((InternalCalibration(InternalCalibration &obj)))

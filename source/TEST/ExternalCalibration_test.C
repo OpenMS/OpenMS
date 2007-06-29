@@ -106,7 +106,7 @@ RESULT
   
 
 
-CHECK((void calibrate(MSExperiment< PickedPeakType > &calib_spectra, MSExperiment< PeakType > &exp, std::vector< double > &exp_masses)))
+CHECK((template<typename PeakType> void calibrate(MSExperiment< RawDataPointType > &calib_spectra, MSExperiment< PeakType > &exp, std::vector< double > &exp_masses)))
   PRECISION(0.000001)
   std::cout.precision(12);
   MSExperiment<RawDataPoint1D> calib_exp;
@@ -170,7 +170,7 @@ CHECK((void calibrate(MSExperiment< PickedPeakType > &calib_spectra, MSExperimen
 
 RESULT
 
-CHECK((void calibrate(MSExperiment< PickedPeakType > &calib_spectra, MSExperiment< PeakType > &exp, std::vector< double > &exp_masses)))
+CHECK((template<typename PeakType> void calibrate(MSExperiment< PickedPeakType > &calib_spectra, MSExperiment< PeakType > &exp, std::vector< double > &exp_masses)))
   PRECISION(0.000001)
   std::cout.precision(12);
   MSExperiment<PickedPeak1D> calib_exp;

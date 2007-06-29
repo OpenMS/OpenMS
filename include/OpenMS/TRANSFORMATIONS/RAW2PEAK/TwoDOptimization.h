@@ -463,15 +463,13 @@ namespace OpenMS
 
     
 	template < >
-	void TwoDOptimization::
-	optimizeRegions_<MSExperiment<RawDataPoint1D >::const_iterator, PickedPeak1D >
+	void TwoDOptimization::optimizeRegions_<MSExperiment<RawDataPoint1D >::const_iterator, PickedPeak1D >
 	(MSExperiment<RawDataPoint1D >::const_iterator& first,
 	 MSExperiment<RawDataPoint1D >::const_iterator& last,
 	 MSExperiment<PickedPeak1D >& ms_exp);
 
 	template < >
-	void TwoDOptimization::
-	optimizeRegionsScanwise_<MSExperiment<RawDataPoint1D >::const_iterator, PickedPeak1D >
+	void TwoDOptimization::optimizeRegionsScanwise_<MSExperiment<RawDataPoint1D >::const_iterator, PickedPeak1D >
 	(MSExperiment<RawDataPoint1D >::const_iterator& first,
 	 MSExperiment<RawDataPoint1D >::const_iterator& last,
 	 MSExperiment<PickedPeak1D >& ms_exp);
