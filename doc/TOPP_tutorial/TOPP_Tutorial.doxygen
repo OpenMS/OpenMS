@@ -390,3 +390,24 @@ FileFilter -in infile.mzData -levels 2 -rt 100:1500 -out outfile.mzData
 		@image latex TOPP_labelfree_quant.png "" width=14cm
 
 */
+//##############################################################################
+
+/**
+	@page TOPP_example6 Example 6: Calibration
+
+		@section TOPP_example6_general General introduction to the calibration
+
+		We offer two calibration methods: an internal and an external calibration. Both
+		can handle peak data as well as raw data. If you want to calibrate raw data
+		a peak picking step is necessary, the important parameters can be set via the ini-file.
+		If you have already picked data don't forget the  '<tt>-peak_data</tt>' flag.
+
+		The external calibration is used to convert flight times into m/z- values with the
+		help of external calibrant spectra containing e.g. a polymer like polylysine. For the calibrant spectra
+		the calibration constants the machine uses need to be known as well as the expected masses. Then a quadratic function is fitted to
+		convert the flight times into m/z-values.
+
+		The internal calibration uses reference masses in the spectra to correct the m/z-values using a linear function.
+
+	
+*/
