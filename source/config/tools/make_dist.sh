@@ -38,6 +38,7 @@ rm -rf OpenMS-dist
 mkdir OpenMS-dist
 cd /tmp/OpenMS-dist
 svn co https://svn.sourceforge.net/svnroot/open-ms/$1 1>svn_extract.log 2>svn_extract_err.log || ( echo "cannot extract OpenMS" >&0 && exit )
+mv `basename $1` OpenMS
 echo ""
 
 # extracting version number
