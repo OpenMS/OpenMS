@@ -219,7 +219,8 @@
 												<LI> html_output (including content)
 											</UL>
 									</UL> 
-								</UL> 
+								</UL>
+							<LI> Make sure that the Parameter documentation was created and that the includes are correct.
 						</OL>
 					<LI> Prepare the release file (contrib):
 						<OL>
