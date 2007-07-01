@@ -108,7 +108,7 @@
 
 		<b>Example:</b> Below is the content of an INI file for @a FileFilter.
 
-		- Several parameter sets for a TOPP tool can be specified in a <i>tool section</i>.
+		 Several parameter sets for a TOPP tool can be specified in a <i>tool section</i>.
 			The tool section is always named after the program itself, in this case "FileFilter".
 		- In order to make storing several parameter sets for the same tool in one
 			INI file possible, the tool section contains one or serval
@@ -193,7 +193,7 @@
 			The TOPP tools work only on the HUPO-PSI @a mzData format. If you need to convert @a mzXML or @a ANDI/MS
 			data to @a mzData, you can to that using the @b FileConverter, e.g.
 			@code
-FileConverter -in infile.mzData -out outfile.mzXML
+FileConverter -in infile.mzXML -out outfile.mzData
 			@endcode
 			If you use the format names as file extension, the tool derives the format from the extension.
 			For other extensions, the file formats of the input and output file can be given explicitly.
@@ -204,8 +204,8 @@ FileConverter -in infile.mzData -out outfile.mzXML
 			@code
 DTAExtractor -in infile.mzData -out outfile
 			@endcode
-			The retention time of a scan (and the precursor mass-to-charge ratio for MS/MS scans)
-			is added to the output file names.
+			The retention time of a scan, the precursor mass-to-charge ratio (for MS/MS scans) and the file
+			extension are appended to the output file name.
 
 			To combine several files (e.g. DTA files) to an mzData file use the @b FileMerger:
 			@code
