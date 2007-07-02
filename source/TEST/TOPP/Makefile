@@ -416,28 +416,28 @@ FileInfo_test: $(NUMERICDIFF)
 	@$(ECHO) "FileInfo:"
 
 	@$(ECHO) "- Test 1: DTA file test"
-	@$(call RUN_PROG_OPT,FileInfo,-in FileInfo_1_input.txt -in_type DTa > FileInfo.tmp)
+	@$(call RUN_PROG_OPT,FileInfo,-in FileInfo_1_input.txt -in_type DTa -no_progress > FileInfo.tmp)
 	@$(call TEST_FILE_EQUAL,FileInfo_1_output.txt,FileInfo.tmp)
 
 	@$(ECHO) "- Test 2: DTA2D file test"
-	@$(call RUN_PROG_OPT,FileInfo,-in FileInfo_2_input.dta2d > FileInfo.tmp)
+	@$(call RUN_PROG_OPT,FileInfo,-in FileInfo_2_input.dta2d -no_progress > FileInfo.tmp)
 	@$(call TEST_FILE_EQUAL,FileInfo_2_output.txt,FileInfo.tmp)
 
 	@$(ECHO) "- Test 3: feature file test (with meta info and statistics)"
-	@$(call RUN_PROG_OPT,FileInfo,-in FileInfo_3_input.featureXML -m -s > FileInfo.tmp)
+	@$(call RUN_PROG_OPT,FileInfo,-in FileInfo_3_input.featureXML -m -s -no_progress > FileInfo.tmp)
 	@$(call TEST_FILE_EQUAL,FileInfo_3_output.txt,FileInfo.tmp)
 
 	@$(ECHO) "- Test 4: MzXML file test (with meta info)"
-	@$(call RUN_PROG_OPT,FileInfo,-in FileInfo_4_input.mzXML -m > FileInfo.tmp)
+	@$(call RUN_PROG_OPT,FileInfo,-in FileInfo_4_input.mzXML -m -no_progress > FileInfo.tmp)
 	@$(call TEST_FILE_EQUAL,FileInfo_4_output.txt,FileInfo.tmp)
 
 	@$(ECHO) "- Test 5: MzData file test (with meta info and statistics)"
-	@$(call RUN_PROG_OPT,FileInfo,-in FileInfo_5_input.txt -in_type MzDaTa -m -s > FileInfo.tmp)
+	@$(call RUN_PROG_OPT,FileInfo,-in FileInfo_5_input.txt -in_type MzDaTa -m -s -no_progress > FileInfo.tmp)
 	@$(call TEST_FILE_EQUAL,FileInfo_5_output.txt,FileInfo.tmp)
 
 ifeq ($(ANDIMS_SUPPORT),true)
 	@$(ECHO) "- Test 6: netCDF file test (with meta info)"
-	@$(call RUN_PROG_OPT,FileInfo,-in FileInfo_6_input.txt -in_type ANDIMS -m > FileInfo.tmp)
+	@$(call RUN_PROG_OPT,FileInfo,-in FileInfo_6_input.txt -in_type ANDIMS -m -no_progress > FileInfo.tmp)
 	@$(call TEST_FILE_EQUAL,FileInfo_6_output.txt,FileInfo.tmp)
 endif
 
@@ -492,6 +492,10 @@ IDFilter_test: $(NUMERICDIFF)
 	@$(ECHO) "- Test 5: threshold scores"
 	@$(call RUN_PROG_OPT,IDFilter,-in IDFilter_5_input.idXML -out IDFilter_5_output.tmp -pep_score 32 -prot_score 25)
 	@$(call TEST_FILE_EQUAL,IDFilter_5_output.idXML,IDFilter_5_output.tmp)
+
+	@$(ECHO) "- Test 6: best n hits"
+	@$(call RUN_PROG_OPT,IDFilter,-in IDFilter_6_input.idXML -out IDFilter_6_output.tmp -best_n_peptide_hits 2 -best_n_protein_hits 10)
+	@$(call TEST_FILE_EQUAL,IDFilter_6_output.idXML,IDFilter_6_output.tmp)
 
 LabeledMatcher_test: $(NUMERICDIFF)
 	@$(ECHO) ""
@@ -743,10 +747,10 @@ ExternalCalibration_test: $(NUMERICDIFF)
 	@$(ECHO) ""
 	@$(ECHO) "ExternalCalibration_test:"
 	@$(ECHO) "- Test1: calibration of raw data"
-	@$(call RUN_PROG_OPT,ExternalCalibration,-in ExternalCalibration_1_input.mzData -out ExternalCalibration_1_output.tmp -ref_masses ExternalCalibration_ref_masses -ini ExternalCalibration_parameters.ini -tof_const ExternalCalibration_const -ext_calibrants ExternalCalibration_1_calibrants.mzData 2>error)
+	@$(call RUN_PROG_OPT,ExternalCalibration,-in ExternalCalibration_1_input.mzData -out ExternalCalibration_1_output.tmp -ref_masses ExternalCalibration_ref_masses -ini ExternalCalibration_parameters.ini -tof_const ExternalCalibration_const -ext_calibrants ExternalCalibration_1_calibrants.mzData)
 	@$(call TEST_FILE_EQUAL,ExternalCalibration_1_output.mzData,ExternalCalibration_1_output.tmp)
 	@$(ECHO) "- Test2: calibration of peak data"
-	@$(call RUN_PROG_OPT,ExternalCalibration,-in ExternalCalibration_2_input.mzData -out ExternalCalibration_2_output.tmp -ref_masses ExternalCalibration_ref_masses  -ini ExternalCalibration_parameters.ini -tof_const ExternalCalibration_const -ext_calibrants ExternalCalibration_2_calibrants.mzData -peak_data 2>error2)
+	@$(call RUN_PROG_OPT,ExternalCalibration,-in ExternalCalibration_2_input.mzData -out ExternalCalibration_2_output.tmp -ref_masses ExternalCalibration_ref_masses  -ini ExternalCalibration_parameters.ini -tof_const ExternalCalibration_const -ext_calibrants ExternalCalibration_2_calibrants.mzData -peak_data)
 	@$(call TEST_FILE_EQUAL,ExternalCalibration_2_output.mzData,ExternalCalibration_2_output.tmp)
 
 

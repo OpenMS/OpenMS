@@ -22,12 +22,11 @@
 //
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Stefan Rink $
+// $Maintainer: Marc Sturm $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/VISUAL/ParamEditor.h>
 #include <OpenMS/FORMAT/Param.h>
-#include <OpenMS/CONCEPT/Types.h>
 
 #include <QtGui/QAction>
 #include <QtGui/QKeyEvent>
@@ -125,23 +124,18 @@ namespace OpenMS
 		 
 		void ParamEditorDelegate::setModelData(QWidget *editor, QAbstractItemModel *model, const QModelIndex &index) const
 		{
-			QVariant initial_value = index.model()->data(index, 33);
 			QVariant present_value = index.model()->data(index, Qt::DisplayRole);
 			
 			if(index.column()==2)
 			{
+				
 				QComboBox *combo= static_cast<QComboBox*>(editor);
 				QVariant new_value(combo->currentText());
-				if(new_value!=present_value && !initial_value.isValid())	// if data of a cell gets a new value from the editor widget change color to yellow and emit the modified signal
+				
+				if(new_value!=present_value)	// if data of a cell gets a new value from the editor widget change color to yellow and emit the modified signal
 				{
-					model->setData(index, present_value, 33);	// index is the current model index of the item cell with a new value for a cell in the model in data layer 33, the first lyer that has no predefined constant
 					model->setData(index,QBrush(Qt::yellow),Qt::BackgroundRole);
 					emit modified(true);
-				}
-				else if(new_value==initial_value)	// if value changes back to original change backgroundcolor back to white and emit modified signal
-				{
-					model->setData(index,QBrush(Qt::white),Qt::BackgroundRole);
-					emit modified(false);
 				}
 				model->setData(index, new_value);
 			}
@@ -149,16 +143,11 @@ namespace OpenMS
 			{
 				QLineEdit *edit= static_cast<QLineEdit*>(editor);
 				QVariant new_value(edit->text());
-				if(new_value!=present_value && !initial_value.isValid())
+				
+				if(new_value!=present_value)
 				{
-					model->setData(index, present_value, 33);
 					model->setData(index,QBrush(Qt::yellow),Qt::BackgroundRole);
 					emit modified(true);
-				}
-				else if(new_value==initial_value)
-				{
-					model->setData(index,QBrush(Qt::white),Qt::BackgroundRole);
-					emit modified(false);
 				}
 				model->setData(index, new_value);
 			}
@@ -166,16 +155,11 @@ namespace OpenMS
 			{
 				QLineEdit *edit= static_cast<QLineEdit*>(editor);
 				QVariant new_value(edit->text());
-				if(new_value!=present_value && !initial_value.isValid())
+			
+				if(new_value!=present_value)
 				{
-					model->setData(index, present_value, 33);
 					model->setData(index,QBrush(Qt::yellow),Qt::BackgroundRole);
 					emit modified(true);
-				}
-				else if(new_value==initial_value)
-				{
-					model->setData(index,QBrush(Qt::white),Qt::BackgroundRole);
-					emit modified(false);
 				}
 				model->setData(index, new_value);
 			}
@@ -211,8 +195,9 @@ namespace OpenMS
 		setHeaderLabels(list);
 	}
 	
-	void ParamEditor::createShortCuts()
+	void ParamEditor::createShortcuts()
 	{
+		//cout << "creating shortcuts" << endl;
 		new QShortcut(Qt::CTRL+Qt::Key_C, this, SLOT(copySubTree()));
 		new QShortcut(Qt::CTRL+Qt::Key_X, this, SLOT(cutSubTree()));
 		new QShortcut(Qt::CTRL+Qt::Key_V, this, SLOT(pasteSubTree()));
@@ -265,6 +250,8 @@ namespace OpenMS
 
 	void ParamEditor::load(const Param& param)
 	{
+		clear();
+		
 		string up, down ,key, key_without_prefix, new_prefix ,type, prefix = "";
 		UInt common;//, level=1;
 		QTreeWidgetItem* parent=this->invisibleRootItem();
@@ -349,7 +336,10 @@ namespace OpenMS
 						nodepath = nodepath + ":" + nodename;
 					}
 					//cout << "NODE: '" << nodepath << "': " << param.getDescription(nodepath) << endl;
-					item->setToolTip(0,param.getDescription(nodepath).toQString());
+					String description = param.getDescription(nodepath);
+					description.substitute("\n","<BR>");
+					//cout << description << endl << endl;
+					item->setToolTip(0,description.toQString());
 					
 					//flags
 					if(param_editable_!=NULL)
@@ -388,7 +378,10 @@ namespace OpenMS
 				item->setText(0, QString::fromStdString ( key_without_prefix));
 				item->setText(1, QString::fromStdString ( it->second.toString()));
 				item->setText(2, QString::fromStdString ( type));
-				item->setToolTip(0,param.getDescription(it->first).toQString());
+				String description = param.getDescription(it->first);
+				description.substitute("\n","<BR>");
+				item->setToolTip(0,description.toQString());
+				//cout << description << endl << endl;
 				//cout << "ITEM: '" << key_without_prefix << "': " << param.getDescription(it->first) << endl;
 				item->setData(0,Qt::UserRole,ITEM);
 				item->setData(1,Qt::UserRole,ITEM);
@@ -444,7 +437,7 @@ namespace OpenMS
 			if(param_editable_!=NULL)
 			{
 				ret=true;
-				QTreeWidgetItem* parent=this->invisibleRootItem();  
+				QTreeWidgetItem* parent=this->invisibleRootItem();
 				param_editable_->clear();
 			
 				for (Int i = 0; i < parent->childCount();++i)
@@ -586,10 +579,6 @@ namespace OpenMS
 		child->setData ( 1, Qt::BackgroundRole, QBrush(Qt::white));
 		child->setData ( 2, Qt::BackgroundRole, QBrush(Qt::white));
 		
-		child->setData ( 0, 33, QVariant());
-		child->setData ( 0, 33, QVariant());
-		child->setData ( 0, 33, QVariant());
-	
 		if (path=="")
 		{
 			path = child->text(0).toStdString();
@@ -600,18 +589,22 @@ namespace OpenMS
 			path = path + ":" + child->text(0).toStdString();	
 		}
 		
+		//write back the description
+		String description = child->toolTip(0);
+		description.substitute("<BR>","\n");
+		
 		if(child->text(2)=="float")
 		{
-			param_editable_->setValue(path,child->text(1).toDouble());
+			param_editable_->setValue(path,child->text(1).toDouble(),description);
 		}
 		else if(child->text(2)=="string")
 		{
-			param_editable_->setValue(path, child->text(1).toStdString());
+			param_editable_->setValue(path, child->text(1).toStdString(),description);
 			//std::cerr<<"\n"<<path<<":  "<<child->text(1).toStdString()<<"\n";
 		}
 		else if(child->text(2)=="int")
 		{
-			param_editable_->setValue(path, child->text(1).toInt());
+			param_editable_->setValue(path, child->text(1).toInt(),description);
 		}
 	
 		for (Int i = 0; i < child->childCount();++i)

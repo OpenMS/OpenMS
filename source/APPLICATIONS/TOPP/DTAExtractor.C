@@ -140,7 +140,7 @@ class TOPPDTAExtractor
 			// loading input
 			//-------------------------------------------------------------
 			
-			MSExperiment< > exp;
+			MSExperiment<RawDataPoint1D> exp;
 			MzDataFile f;
 			f.setLogType(log_type_);
 			f.getOptions().setRTRange(DRange<1>(rt_l,rt_u));
@@ -152,7 +152,7 @@ class TOPPDTAExtractor
 			// calculations
 			//-------------------------------------------------------------
 			
-			for (MSExperiment< >::iterator it = exp.begin(); it!= exp.end(); ++it)
+			for (MSExperiment<RawDataPoint1D>::iterator it = exp.begin(); it!= exp.end(); ++it)
 			{
 				//check for MS-level
 				bool in_level_range = false;

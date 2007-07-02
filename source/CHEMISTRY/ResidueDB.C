@@ -57,9 +57,7 @@ namespace OpenMS
 
 	ResidueDB::ResidueDB(const ResidueDB& /*res_db*/)
 	{
-		// TODO build new mods, res...
-		cerr << "ResidueDB::ResidueDB(const ResidueDB& res_db): implement me" << endl;
-		exit(1);
+		throw Exception::NotImplemented(__FILE__, __LINE__, __PRETTY_FUNCTION__);
 	}
 	
 
@@ -71,9 +69,7 @@ namespace OpenMS
 
 	ResidueDB& ResidueDB::operator = (const ResidueDB& /*res_db*/)
 	{
-		// TODO
-		cerr << "ResidueDB& ResidueDB::operator = (const ResidueDB& res_db)" << endl;
-		exit(1);
+		throw Exception::NotImplemented(__FILE__, __LINE__, __PRETTY_FUNCTION__);
 		return *this;
 	}
 
@@ -108,7 +104,7 @@ namespace OpenMS
 	set<const ResidueModification*> ResidueDB::getModifications(const String& res_name) const
 	{
 		set <const ResidueModification*> mods;
-		// TODO speed up computation!
+		// @improvement speed up computation!
 		set<ResidueModification*>::iterator mit = modifications_.begin();
 		for (;mit!=modifications_.end();++mit)
 		{
@@ -187,8 +183,7 @@ namespace OpenMS
 	
 	void ResidueDB::addResidueModification(ResidueModification /* modification */)
 	{
-		// TODO
-		
+		throw Exception::NotImplemented(__FILE__, __LINE__, __PRETTY_FUNCTION__);		
 	}
 	
 	void ResidueDB::setResidues(const String& file_name)
@@ -673,6 +668,18 @@ namespace OpenMS
 				}
 			}
 		}
+	}
+
+	bool ResidueDB::operator == (const ResidueDB& /*rhs*/) const
+	{
+		throw Exception::NotImplemented(__FILE__, __LINE__, __PRETTY_FUNCTION__);
+		return false;
+	}
+
+	bool ResidueDB::operator != (const ResidueDB& /*rhs*/) const
+	{
+		throw Exception::NotImplemented(__FILE__, __LINE__, __PRETTY_FUNCTION__);
+		return false;
 	}
 }
 

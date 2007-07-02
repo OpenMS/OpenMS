@@ -290,7 +290,7 @@ CHECK((bool checkDBVersion(bool warning)))
 		MetaInfoDescription desc;
 		desc.setName ("label");
 		desc.setComment ("This represents some artful kind of label.");
-		descriptions["label"]=desc;			// TODO: Check if MetaInfoDescription::name can be removed
+		descriptions["label"]=desc;
 		// create description and SourceFile of "icon"
 		desc.setName ("icon");
 		desc.setComment ("little icon with colors and stuff");
@@ -684,7 +684,7 @@ CHECK((template <class ExperimentType> void loadExperiment(UID id, ExperimentTyp
 			MetaInfoDescription desc;
 			desc.setName ("label");
 			desc.setComment ("This represents some artful kind of label.");
-			descriptions["label"]=desc;			// TODO: Check if MetaInfoDescription::name can be removed
+			descriptions["label"]=desc;
 			desc.setName ("icon");
 			desc.setComment ("little icon with colors and stuff");
 			
@@ -771,12 +771,12 @@ CHECK((template <class ExperimentType> void loadExperiment(UID id, ExperimentTyp
 			TEST_EQUAL(in==out, true)
 		RESULT
 
-		CHECK(const PeakFileOptions& getOptions() const)
+CHECK((const PeakFileOptions& getOptions() const))
 			DBAdapter a(con);
 			TEST_EQUAL(a.getOptions().hasMSLevels(),false)
 		RESULT
 		
-		CHECK(PeakFileOptions& getOptions())
+CHECK((PeakFileOptions& getOptions()))
 			DBAdapter a(con);
 			a.getOptions().addMSLevel(1);
 			TEST_EQUAL(a.getOptions().hasMSLevels(),true);

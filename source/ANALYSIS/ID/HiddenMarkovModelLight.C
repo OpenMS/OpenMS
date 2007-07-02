@@ -204,7 +204,7 @@ namespace OpenMS
 		return id_to_state_[id];
 	}
 	
-	void HiddenMarkovModelLight::writetoYGFFile(const String& filename)
+	void HiddenMarkovModelLight::writeGraphMLFile(const String& filename)
 	{
 		set<HMMStateLight*> states;
 		HashMap<HMMStateLight*, vector<HMMStateLight*> > transitions;

@@ -29,10 +29,8 @@ include ../../config_defs.mak
 DIRECTORY=FILTERING/TRANSFORMERS
 
 CPP_SOURCES = \
-  BernNorm.C\
   GoodDiffFilter.C\
   NLargest.C\
-  ParentFilter.C\
   Scaler.C\
   ThresholdMower.C\
   ComplementFilter.C\
@@ -52,12 +50,14 @@ CPP_SOURCES = \
   IsotopeMarker.C\
   NeutralLossMarker.C\
   PeakMarker.C\
-  PeakPosBins.C\
-  PeakDiffBins.C\
-  KellerQuality.C\
-  TradSeqQuality.C\
-  IntensityDistBins.C\
-  LinearResampler.C
+  LinearResampler.C\
+	ParentFilter.C\
+	TradSeqQuality.C\
+	PeakPosBins.C\
+	BernNorm.C\
+	PeakDiffBins.C\
+	IntensityDistBins.C\
+	KellerQuality.C
 
 include ../../common.mak
 -include .Dependencies

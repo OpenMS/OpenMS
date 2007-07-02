@@ -43,57 +43,58 @@ namespace OpenMS
       optimization_(false)
   {
     // if a peak picking parameter is missed in the param object the value should be substituted by a default value
-  	defaults_.setValue("thresholds:correlation",0.5);
-  	defaults_.setValue("wavelet_transform:scale",0.15);
-  	defaults_.setValue("wavelet_transform:spacing",0.001);
-  	defaults_.setValue("thresholds:noise_level",0.1);
-   	defaults_.setValue("thresholds:search_radius",3); 	
-		defaults_.setValue("thresholds:signal_to_noise",3);
+  	defaults_.setValue("thresholds:correlation",0.5,"minimal correlation of a peak and the raw signal. "\
+											 "If a peak has a lower correlation it is skipped.");
+  	defaults_.setValue("wavelet_transform:scale",0.15,"Width of the used wavelet. "\
+											 "Should correspond approx. to the fwhm of the peaks.");
+  	defaults_.setValue("wavelet_transform:spacing",0.001,"spacing of the cwt.");
+  	defaults_.setValue("thresholds:noise_level",0.1,"noise level for the search of the peak endpoints.");
+   	defaults_.setValue("thresholds:search_radius",3,"search radius for the search of the maximum in the signal after a maximum in the cwt was found"); 	
+		defaults_.setValue("thresholds:signal_to_noise",3,"minimal signal to noise value."\
+											 "If a peak has a s/n value it is skipped.");
 		
 		//Optimization parameters
-  	defaults_.setValue("Optimization:optimization","no");
-		defaults_.setValue("Optimization:penalties:position",0.0);
-		defaults_.setValue("Optimization:penalties:left_width",1.0); 	
-		defaults_.setValue("Optimization:penalties:right_width",1.0); 	
-		defaults_.setValue("Optimization:iterations",15); 	
-		defaults_.setValue("Optimization:delta_abs_error",1e-04f); 	
-		defaults_.setValue("Optimization:delta_rel_error",1e-04f);
+  	defaults_.setValue("Optimization:optimization","no","If the peak parameters position, intensity and left/right width"\
+											 "shall be optimized set optimization to yes.");
+		defaults_.setValue("Optimization:penalties:position",0.0,"penalty term for the fitting of the position:"\
+											 "If it differs too much from the initial one it can be penalized ");
+		defaults_.setValue("Optimization:penalties:left_width",1.0,"penalty term for the fitting of the left width:"\
+											 "If the left width differs too much from the initial one during the fitting it can be penalized."); 	
+		defaults_.setValue("Optimization:penalties:right_width",1.0,"penalty term for the fitting of the right width:"\
+											 "If the right width differs too much from the initial one during the fitting it can be penalized."); 	
+		defaults_.setValue("Optimization:iterations",15,"maximal number of iterations for the fitting step"); 	
+		defaults_.setValue("Optimization:delta_abs_error",1e-04f,"if the absolute error gets smaller than this value the fitting is stopped."); 	
+		defaults_.setValue("Optimization:delta_rel_error",1e-04f,"if the relative error gets smaller than this value the fitting is stopped");
 
 		// deconvolution parameters
-		defaults_.setValue("deconvolution:penalties:position",0.0);
-		defaults_.setValue("deconvolution:penalties:height",1.0);
-		defaults_.setValue("deconvolution:penalties:left_width",0.0);
-		defaults_.setValue("deconvolution:penalties:right_width",0.0);
-		defaults_.setValue("deconvolution:skip_deconvolution","yes");
-		defaults_.setValue("deconvolution:width_threshold",1.1);
-		defaults_.setValue("deconvolution:asym_threshold",0.3);
-		defaults_.setValue("deconvolution:fwhm_threshold",0.7);
-		defaults_.setValue("deconvolution:delta_abs_error",1e-05f);
-		defaults_.setValue("deconvolution:delta_rel_error",1e-05f);
-		defaults_.setValue("deconvolution:left_width",2);
-		defaults_.setValue("deconvolution:right_width",2);
-		defaults_.setValue("deconvolution:scaling",0.12);
-		defaults_.setValue("deconvolution:iterations",10);
+		defaults_.setValue("deconvolution:skip_deconvolution","yes","If you want heavily overlapping peaks to be separated set this value to \"no\"");
+		defaults_.setValue("deconvolution:asym_threshold",0.3,"If the symmetry of a peak is smaller than asym_thresholds it is assumed that it consists of more than one peak and the deconvolution procedure is started.");
+		defaults_.setValue("deconvolution:left_width",2,"1/left_width is the initial value for the left width of the peaks found in the deconvolution step.");
+		defaults_.setValue("deconvolution:right_width",2,"1/right_width is the initial value for the right width of the peaks found in the deconvolution step.");
+		defaults_.setValue("deconvolution:scaling",0.12,"Initial scaling of the cwt used in the seperation of heavily overlapping peaks. The initial value is used for charge 1, for higher charges it is adapted to scaling/charge.");
+		defaults_.setValue("deconvolution:fitting:penalties:position",0.0,"penalty term for the fitting of the peak position:"\
+											 "If the position changes more than 0.5Da during the fitting it can be penalized as well as "\
+											 "discrepancies of the peptide mass rule.");
+		defaults_.setValue("deconvolution:fitting:penalties:height",1.0,"penalty term for the fitting of the intensity:"\
+											 "If it gets negative during the fitting it can be penalized.");
+		defaults_.setValue("deconvolution:fitting:penalties:left_width",0.0,"penalty term for the fitting of the left width:"\
+											 "If the left width gets too broad or negative during the fitting it can be penalized.");
+		defaults_.setValue("deconvolution:fitting:penalties:right_width",0.0,"penalty term for the fitting of the right width:"\
+											 "If the right width gets too broad or negative during the fitting it can be penalized.");
+		defaults_.setValue("deconvolution:fitting:fwhm_threshold",0.7,"If the fwhm of a peak is higher than fwhm_thresholds it is assumed that it consists of more than one peak and the deconvolution procedure is started.");
+		defaults_.setValue("deconvolution:fitting:eps_abs",1e-05f,"if the absolute error gets smaller than this value the fitting is stopped.");
+		defaults_.setValue("deconvolution:fitting:eps_rel",1e-05f,"if the relative error gets smaller than this value the fitting is stopped.");
+		defaults_.setValue("deconvolution:fitting:max_iteration",10,"maximal number of iterations for the fitting step");
 
-		// 2D optimization parameters
-		defaults_.setValue("2D_optimization:penalties:position",0.0);
-		defaults_.setValue("2D_optimization:penalties:height",1.0);
-		defaults_.setValue("2D_optimization:penalties:left_width",0.0);
-		defaults_.setValue("2D_optimization:penalties:right_width",0.0);
-		defaults_.setValue("2D_optimization:thresholds:tolerance_mz",0.2);
-		defaults_.setValue("2D_optimization:thresholds:max_peak_distance",1.0);
-		defaults_.setValue("2D_optimization:skip_optimization","yes");
-		defaults_.setValue("2D_optimization:delta_abs_error",1e-05f);
-		defaults_.setValue("2D_optimization:delta_rel_error",1e-05f);
-		defaults_.setValue("2D_optimization:iterations",10);
 
 		subsections_.push_back("SignalToNoiseEstimationParameter");
-		
+		subsections_.push_back("2D_optimization");
 		defaultsToParam_();
   }
 
   PeakPickerCWT::~PeakPickerCWT()
-  {}
+  {
+  }
 
   void PeakPickerCWT::updateMembers_()
   {
@@ -956,7 +957,7 @@ namespace OpenMS
 					}
 
 				OptimizePeakDeconvolution opt;
-				opt.setParameters(param_.copy("deconvolution:",true));
+				opt.setParameters(param_.copy("deconvolution:fitting:",true));
 				opt.setCharge(charge);
 				
 				int runs=0;

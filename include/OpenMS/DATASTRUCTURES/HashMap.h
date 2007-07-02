@@ -2,7 +2,7 @@
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
-//                   OpenMS Mass Spectrometry Framework 
+//                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
 //  Copyright (C) 2003-2007 -- Oliver Kohlbacher, Knut Reinert
 //
@@ -38,11 +38,11 @@
 
 namespace OpenMS
 {
-	/**	
+	/**
 		@brief Generic Hash Map Class.
-		
-		This class implements a simple hash map using hashing by chaining.	
-		
+
+		This class implements a simple hash map using hashing by chaining.
+
 		@ingroup Datastructures
 	*/
 	template <class Key, class T>
@@ -57,12 +57,12 @@ namespace OpenMS
 		typedef Key KeyType;
 		///
 		typedef std::pair<Key, T>* PointerType;
-			
+
 
 		/**
 			@brief HashMap node (internal use only)
-			
-			
+
+
 		*/
 		struct Node
 		{
@@ -76,28 +76,28 @@ namespace OpenMS
 			{
 			}
 		};
-		
+
 		class ConstIterator;
 
 		/**
 			@brief HashMap iterator class
-			
-			
-			
+
+
+
 		*/
 		class Iterator
 		{
-			
+
 			friend class HashMap;
 			friend class ConstIterator;
-			
+
 			public:
 			typedef ValueType value_type;
 			typedef Int difference_type;
 			typedef std::forward_iterator_tag iterator_category;
 			typedef value_type& reference;
 			typedef value_type* pointer;
-			
+
 			Iterator() throw() {}
 
 			Iterator(const Iterator& it) throw()
@@ -126,7 +126,7 @@ namespace OpenMS
 			{
 				return (position_ != it.position_);
 			}
-			
+
 			reference operator * () throw()
 			{
 				return **position_;
@@ -165,14 +165,14 @@ namespace OpenMS
 				}
 
 				return *this;
-			} 
+			}
 
 			Iterator operator ++ (int)
 			{
 	      Iterator tmp(*this);
 	      ++(*this);//????
 	      return tmp;
-			} 
+			}
 
 			static Iterator end(const HashMap& hm)
 			{
@@ -203,26 +203,26 @@ namespace OpenMS
 			Node* position_;
 			UInt bucket_;
 			HashMap* bound_;
-		};	
+		};
 
 		/**
 			@brief HashMap const_iterator class
-			
-			
-			
+
+
+
 		*/
 		class ConstIterator
-		{			
+		{
 			friend class HashMap;
-			
+
 			public:
 			typedef ValueType value_type;
 			typedef Int difference_type;
 			typedef const ValueType& reference;
 			typedef const ValueType* pointer;
 			typedef std::forward_iterator_tag iterator_category;
-			
-			ConstIterator() throw() 
+
+			ConstIterator() throw()
 				:	position_(0),
 					bucket_(0),
 					bound_(0)
@@ -270,7 +270,7 @@ namespace OpenMS
 			{
 				return position_ != it.position_;
 			}
-			
+
 			bool operator == (const ConstIterator& it) const
 			{
 				return position_ == it.position_;
@@ -280,7 +280,7 @@ namespace OpenMS
 			{
 				return position_ != it.position_;
 			}
-			
+
 			ConstIterator& operator ++ ()
 			{
         position_ = position_->next;
@@ -299,27 +299,27 @@ namespace OpenMS
 				}
 
 				return *this;
-			} 
+			}
 
 			ConstIterator operator ++ (int)
 			{
 	      ConstIterator tmp(*this);
 	      ++(*this);
 	      return tmp;
-			} 
+			}
 
 			ConstIterator& operator -- ()
 			{
 				--position_;
 				return *this;
-			} 
+			}
 
 			ConstIterator operator -- (int)
 			{
 	      ConstIterator tmp(*this);
 	      --(*this);
 	      return tmp;
-			} 
+			}
 
 			reference operator * () const
 			{
@@ -401,10 +401,10 @@ namespace OpenMS
 		/**	@name	Exceptions
 		*/
 		//@{
-			
-		/**	
+
+		/**
 			@brief HashMap illegal key exception
-			
+
 			@ingroup Exceptions
 		*/
 		class IllegalKey
@@ -417,7 +417,7 @@ namespace OpenMS
 
 		//@}
 
-		/**	@name Constructors and Destructors 
+		/**	@name Constructors and Destructors
 		*/
 		//@{
 
@@ -428,7 +428,7 @@ namespace OpenMS
 		*/
 		HashMap(UInt initial_capacity = INITIAL_CAPACITY, UInt number_of_buckets = INITIAL_NUMBER_OF_BUCKETS)
 			throw();
-			
+
 		/**	Copy Constructor.
 		*/
 		HashMap(const HashMap& hash_map) throw();
@@ -447,7 +447,7 @@ namespace OpenMS
 				The capacity and the number of buckets remain unchanged.
 		*/
 		virtual void clear() throw();
-	
+
 		/**	Clear the hash map.
 				Remove all nodes from all buckets.
 				The capacity and the number of buckets remain unchanged.
@@ -456,7 +456,7 @@ namespace OpenMS
 		void destroy() throw();
 
 		//@}
-		/**	@name Assignment 
+		/**	@name Assignment
 		*/
 		//@{
 
@@ -495,7 +495,7 @@ namespace OpenMS
 		/**	Return the number of entries in the map.
 		*/
 		UInt getSize() const throw();
-			
+
 		/**	Return the number of entries in the map.
 		*/
 		UInt size() const throw();
@@ -507,7 +507,7 @@ namespace OpenMS
 			Iterator it = end();
 			UInt bucket = hash_(key);
 			Node*	node_ptr = bucket_[hash_(key)];
-			
+
 			for (; node_ptr != 0; node_ptr = node_ptr->next)
 			{
 				if (node_ptr->value.first == key)
@@ -516,11 +516,11 @@ namespace OpenMS
 					it.bucket_ = bucket;
 					break;
 				}
-			} 
+			}
 
 			return it;
 		}
-	
+
 		/** Find the element whose key is <tt>key</tt>.
 		*/
 		ConstIterator find(const Key& key) const throw()
@@ -528,7 +528,7 @@ namespace OpenMS
 			ConstIterator it = end();
 			UInt bucket = hash_(key);
 			Node*	node_ptr = bucket_[hash_(key)];
-			
+
 			for (; node_ptr != 0; node_ptr = node_ptr->next)
 			{
 				if (node_ptr->value.first == key)
@@ -537,7 +537,7 @@ namespace OpenMS
 					it.bucket_ = bucket;
 					break;
 				}
-			} 
+			}
 
 			return it;
 		}
@@ -552,7 +552,7 @@ namespace OpenMS
 				@exception IllegalKey if the given key does not exist
 				@param	key the key
 		*/
-		const T& operator [] (const Key& key) const 
+		const T& operator [] (const Key& key) const
 			throw(typename HashMap<Key, T>::IllegalKey);
 
 		/**	Insert a new entry into the hash map.
@@ -630,7 +630,7 @@ namespace OpenMS
 		virtual Node* newNode_(const ValueType& value, Node* next) const throw();
 
 		virtual void deleteNode_(Node* node) const throw();
-	
+
 		virtual UInt hash(const Key& key) const throw();
 
 		virtual bool needRehashing_() const throw();
@@ -638,7 +638,7 @@ namespace OpenMS
 		virtual void rehash() throw();
 
 		PointerType find_(const Key& key, UInt& index) throw();
-			
+
 		PointerType find_(const Key& key, UInt& index) const throw();
 
 		void deleteBuckets_() throw();
@@ -658,7 +658,7 @@ namespace OpenMS
 		*/
 		UInt capacity_;
 
-		/**	Buckets are stored as a vector of linked lists of Nodes 
+		/**	Buckets are stored as a vector of linked lists of Nodes
 		*/
 		std::vector<Node*> bucket_;
 
@@ -688,7 +688,7 @@ namespace OpenMS
 			bucket_((UInt)hash_map.bucket_.size())
 	{
 		Node* node = 0;
-		
+
 		for (UInt bucket = 0; bucket < (UInt)bucket_.size(); ++bucket)
 		{
 			bucket_[bucket] = 0;
@@ -706,7 +706,7 @@ namespace OpenMS
 	{
 		Node* node = 0;
 		Node* next_node = 0;
-		
+
 		for (UInt bucket = 0; bucket < (UInt)bucket_.size(); ++bucket)
 		{
 			for (node = bucket_[bucket]; node != 0; node = next_node)
@@ -714,7 +714,7 @@ namespace OpenMS
 				next_node = node->next;
 				deleteNode_(node);
 			}
-			
+
 			bucket_[bucket] = 0;
 		}
 
@@ -722,7 +722,7 @@ namespace OpenMS
 	}
 
 	template <class Key, class T>
-	inline 
+	inline
 	void HashMap<Key, T>::destroy()
 		throw()
 	{
@@ -746,7 +746,7 @@ namespace OpenMS
 		bucket_.resize(hash_map.bucket_.size());
 
 		Node* node = 0;
-		
+
 		for (UInt bucket = 0; bucket < (UInt)bucket_.size(); ++bucket)
 		{
 			bucket_[bucket] = 0;
@@ -759,7 +759,7 @@ namespace OpenMS
 	}
 
 	template <class Key, class T>
-	inline 
+	inline
 	const HashMap<Key, T>& HashMap<Key, T>::operator = (const HashMap& hash_map)
 		throw()
 	{
@@ -768,7 +768,7 @@ namespace OpenMS
 	}
 
 	template <class Key, class T>
-	inline 
+	inline
 	void HashMap<Key, T>::get(HashMap& hash_map) const
 		throw()
 	{
@@ -776,7 +776,7 @@ namespace OpenMS
 	}
 
 	template <class Key, class T>
-	inline 
+	inline
 	void HashMap<Key, T>::swap(HashMap& hash_map)
 		throw()
 	{
@@ -786,7 +786,7 @@ namespace OpenMS
 	}
 
 	template <class Key, class T>
-	inline 
+	inline
 	UInt HashMap<Key, T>::getBucketSize() const
 		throw()
 	{
@@ -794,7 +794,7 @@ namespace OpenMS
 	}
 
 	template <class Key, class T>
-	inline 
+	inline
 	UInt HashMap<Key, T>::getCapacity() const
 		throw()
 	{
@@ -802,7 +802,7 @@ namespace OpenMS
 	}
 
 	template <class Key, class T>
-	inline 
+	inline
 	UInt HashMap<Key, T>::getSize() const
 		throw()
 	{
@@ -810,7 +810,7 @@ namespace OpenMS
 	}
 
 	template <class Key, class T>
-	inline 
+	inline
 	UInt HashMap<Key, T>::size() const
 		throw()
 	{
@@ -818,23 +818,21 @@ namespace OpenMS
 	}
 
 	template <class Key, class T>
-	inline 
+	inline
 	T& HashMap<Key, T>::operator [] (const Key& key)
 		throw()
 	{
 		Iterator it = find(key);
 		if (it == end())
 		{
-			T value;
-			std::pair<Iterator, bool> result = insert(ValueType(key, value));
-			it = result.first;
-		} 
-		
+			it = insert(ValueType(key, T())).first;
+		}
+
 		return it->second;
 	}
 
 	template <class Key, class T>
-	inline 
+	inline
 	const T& HashMap<Key, T>::operator [] (const Key& key) const
 		throw(typename HashMap<Key, T>::IllegalKey)
 	{
@@ -842,8 +840,8 @@ namespace OpenMS
 		if (it == end())
 		{
 			throw IllegalKey(__FILE__, __LINE__, __PRETTY_FUNCTION__);
-		} 
-		else 
+		}
+		else
 		{
 			return it->second;
 		}
@@ -860,19 +858,19 @@ namespace OpenMS
 			{
 				rehash_();
 			}
-			
+
 			UInt bucket = hash_(item.first);
-			
+
 			Node* node_ptr = bucket_[bucket];
 			bucket_[bucket] = newNode_(item, node_ptr);
-			
+
 			++size_;
 			it.position_	= bucket_[bucket];
 			it.bucket_		= bucket;
 
 			return std::pair<Iterator, bool>(it, true);
-		} 
-		else 
+		}
+		else
 		{
 			// replace the existing value
 			it->second = item.second;
@@ -911,8 +909,8 @@ namespace OpenMS
 		if (node_ptr == bucket_[bucket])
 		{
 			bucket_[bucket] = node_ptr->next;
-		} 
-		else 
+		}
+		else
 		{
 			previous->next = node_ptr->next;
 		}
@@ -922,7 +920,7 @@ namespace OpenMS
 
 		return true;
 	}
-		
+
 	template <class Key, class T>
 	void HashMap<Key, T>::erase(Iterator pos)
 		throw()
@@ -931,12 +929,12 @@ namespace OpenMS
 		{
 			return;
 		}
-				
+
 		if (pos.position_ == bucket_[pos.bucket_])
 		{
 			bucket_[pos.bucket_] = pos.position_->next;
-		} 
-		else 
+		}
+		else
 		{
 			// walk over all nodes in this bucket and identify the predecessor
 			// of the node refered to by the iterator pos
@@ -947,7 +945,7 @@ namespace OpenMS
 				// remove the node and reconnect the list
 				prev->next = pos.position_->next;
 			}
-			else 
+			else
 			{
 				throw Exception::InvalidIterator(__FILE__, __LINE__, __PRETTY_FUNCTION__);
 			}
@@ -997,7 +995,7 @@ namespace OpenMS
 				Node* n = bucket_[bucket];
 				Node* next;
 				for (; (n->next != f.position_) && (n->next != 0); n = n->next);
-				
+
 				if (bucket == last_bucket)
 				{
 					// delete everything from f to l in this bucket
@@ -1030,7 +1028,7 @@ namespace OpenMS
 						}
 					}
 				}
-			} 
+			}
 			// if the current bucket lies between the first and the last bucket...
 			else if (bucket < last_bucket)
 			{
@@ -1067,7 +1065,7 @@ namespace OpenMS
 	}
 
 	template <class Key, class T>
-	inline 
+	inline
 	bool HashMap<Key, T>::has(const Key& key) const
 		throw()
 	{
@@ -1075,7 +1073,7 @@ namespace OpenMS
 	}
 
 	template <class Key, class T>
-	inline 
+	inline
 	bool HashMap<Key, T>::isEmpty() const
 		throw()
 	{
@@ -1086,11 +1084,11 @@ namespace OpenMS
 	bool HashMap<Key, T>::operator == (const HashMap& hash_map) const
 		throw()
 	{
-		if (size_ != hash_map.size_) 
+		if (size_ != hash_map.size_)
 		{
 			return false;
 		}
-		
+
 		for (ConstIterator it(begin()); it != end(); ++it)
 		{
 			ConstIterator hash_map_it(hash_map.find(it->first));
@@ -1099,7 +1097,7 @@ namespace OpenMS
 				return false;
 			}
 		}
-		
+
 		return true;
 	}
 
@@ -1174,14 +1172,14 @@ namespace OpenMS
 	{
 		return (UInt)(hash(key) % bucket_.size());
 	}
- 
+
 	template <class Key, class T>
 	void HashMap<Key, T>::rehash_()
 		throw()
 	{
 		// calculate the new number of buckets (in capacity_)
 		rehash();
-		
+
 		// save the old contents
 		std::vector<Node*> old_buckets(bucket_);
 
@@ -1204,9 +1202,9 @@ namespace OpenMS
 				next_node = node->next;
 				UInt new_bucket = (UInt)hash_(node->value.first);
 				node->next = bucket_[new_bucket];
-				bucket_[new_bucket] = node; 
+				bucket_[new_bucket] = node;
 			}
-		}		
+		}
 	}
 } // namespace OPENMS
 

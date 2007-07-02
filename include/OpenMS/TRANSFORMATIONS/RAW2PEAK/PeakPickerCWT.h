@@ -50,27 +50,17 @@
 namespace OpenMS
 {
   /**
-     @defgroup PeakPicking PeakPicking
+		@brief This class implements a peak picking algorithm using wavelet techniques (as described by Lange et al. (2006) Proc. PSB-06).
+		
+		This peak picking algorithm uses the continuous wavelet transform of a raw data signal to detect mass peaks.
+		Afterwards a given asymmetric peak function is fitted to the raw data and important peak parameters (e.g. fwhm)
+		are extracted.
+		In an optional step these parameters can be optimized using a non-linear opimization method.
+		 
+		@ref PeakPickerCWT_Parameters are explained on a separate page.
 
-     @brief Classes for the transformation of raw ms data into peak data.
-
-     This module contains all important classes that are involved in the peak picking as described by Lange et al. (2006) Proc. PSB-06.
-
-     @ingroup Analysis
+    @ingroup PeakPicking
   */
-
-  /**
-     @brief This class implements a peak picking algorithm using wavelet techniques (as described by Lange et al. (2006) Proc. PSB-06).
-
-     This peak picking algorithm uses the continuous wavelet transform of a raw data signal to detect mass peaks.
-     Afterwards a given asymmetric peak function is fitted to the raw data and important peak parameters (e.g. fwhm)
-     are extracted.
-     In an optional step these parameters can be optimized using a non-linear opimization method.
-
-     @ingroup PeakPicking
-    
-  */
-
   class PeakPickerCWT : public PeakPicker
   {
   public:
@@ -241,9 +231,9 @@ namespace OpenMS
       @note This method assumes that the InputPeakIterator (e.g. of type MSSpectrum<RawDataPoint1D >::const_iterator)
             points to a data point of type RawDataPoint1D or any other class derived from RawDataPoint1D.
         
-           The resulting peaks in the picked_peak_container (e.g. of type MSSpectrum<DPickedPeak<1> >)
+           The resulting peaks in the picked_peak_container (e.g. of type MSSpectrum<PickedPeak1D>)
            can be of type RawDataPoint1D or any other class derived from DRawDataPoint. 
-           We recommend to use the DPickedPeak<1> because it stores important information gained during
+           We recommend to use the PickedPeak1Dbecause it stores important information gained during
            the peak picking algorithm.
               
            If you use MSSpectrum iterators you have to set the SpectrumSettings on your own.              
@@ -316,7 +306,7 @@ namespace OpenMS
 #endif
 
       // thresholds for deconvolution
-      double fwhm_threshold = (float)param_.getValue("deconvolution:fwhm_threshold");
+      double fwhm_threshold = (float)param_.getValue("deconvolution:fitting:fwhm_threshold");
       double symm_threshold = (float)param_.getValue("deconvolution:asym_threshold");
 
 
@@ -470,16 +460,16 @@ namespace OpenMS
     /** @brief Applies the peak picking algorithm to a raw data point container.
         
       Picks the peaks in the input container (e.g. of type MSSpectrum<RawDataPoint1D >) 
-      and writes the resulting peaks to the picked_peak_container (e.g. MSSpectrum<DPickedPeak<1> >).
+      and writes the resulting peaks to the picked_peak_container (e.g. MSSpectrum<PickedPeak1D>).
 
         The ms_level should be one if the spectrum is a normal mass spectrum, or two if it is a tandem mass spectrum.
         
       @note This method assumes that the input_peak_container contains data points of type 
            RawDataPoint1D or any other class derived from DRawDataPoint. 
               
-           The resulting peaks in the picked_peak_container (e.g. of type MSSpectrum<DPickedPeak<1> >)
+           The resulting peaks in the picked_peak_container (e.g. of type MSSpectrum<PickedPeak1D>)
            can be of type RawDataPoint1D or any other class derived from DRawDataPoint. 
-           We recommend to use the DPickedPeak<1> because it stores important information gained during
+           We recommend to use the PickedPeak1Dbecause it stores important information gained during
            the peak picking algorithm.
             
            If you use MSSpectrum you have to set the SpectrumSettings by your own.
@@ -498,7 +488,7 @@ namespace OpenMS
               
       @note The InputSpectrumIterator should point to a MSSpectrum. Elements of the input spectren should be of type RawDataPoint1D 
               or any other derived class of DRawDataPoint.
-            For the resulting peaks we recommend to use the DPickedPeak<1> because it stores important information gained during
+            For the resulting peaks we recommend to use the PickedPeak1Dbecause it stores important information gained during
             the peak picking algorithm.  
 
         @note You have to copy the ExperimentalSettings of the raw data by your own.  
@@ -553,11 +543,9 @@ namespace OpenMS
       if(two_d_optimization_ || optimization_)
       {
 				Param two_d_param(param_.copy("2D_optimization:",true));
-				if(two_d_param.empty()) TwoDOptimization my_2d;
-				else TwoDOptimization my_2d(two_d_param);
 				
-        TwoDOptimization my_2d(param_);
-
+				TwoDOptimization my_2d;
+				my_2d.setParameters(two_d_param);
         my_2d.twoDOptimize(first,last,ms_exp_peaks,two_d_optimization_);
       }
       // sort spectra
@@ -572,7 +560,7 @@ namespace OpenMS
                 
         @note The InputSpectrumIterator should point to a MSSpectrum. Elements of the input spectren should be of type RawDataPoint1D 
                  or any other derived class of DRawDataPoint.
-              For the resulting peaks we recommend to use the DPickedPeak<1> because it stores important information gained during
+              For the resulting peaks we recommend to use the PickedPeak1Dbecause it stores important information gained during
               the peak picking algorithm.  
 
            @note You have to copy the ExperimentalSettings of the raw data on your own.   
@@ -619,7 +607,7 @@ namespace OpenMS
       The detected peaks are stored in a MSExperiment.
               
       @note The input peaks should be of type RawDataPoint1D or any other derived class of DRawDataPoint.
-            For the resulting peaks we recommend to use the DPickedPeak<1> because it stores important information gained during
+            For the resulting peaks we recommend to use the PickedPeak1Dbecause it stores important information gained during
             the peak picking algorithm.   
     */
     template <typename InputPeakType, typename OutputPeakType >
@@ -637,7 +625,7 @@ namespace OpenMS
         The detected peaks are stored in a MSExperiment.
                 
         @note The input peaks should be of type RawDataPoint1D or any other derived class of DRawDataPoint.
-              For the resulting peaks we recommend to use the DPickedPeak<1> because it stores important information gained during
+              For the resulting peaks we recommend to use the PickedPeak1Dbecause it stores important information gained during
               the peak picking algorithm.   
        */
     template <typename InputPeakType, typename OutputPeakType >
@@ -852,7 +840,7 @@ namespace OpenMS
   ; // end PeakPickerCWT
 
 
-  /// Fills the members of a DPickedPeak given an PeakShape
+  /// Fills the members of a PickedPeak1D given an PeakShape
   template <>
   void PeakPickerCWT::fillPeak< PickedPeak1D >(const PeakShape& peak_shape, PickedPeak1D& picked_peak);
 

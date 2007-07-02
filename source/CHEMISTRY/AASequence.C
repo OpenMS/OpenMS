@@ -129,7 +129,7 @@ namespace OpenMS
 					case Residue::AIon:
 						return ef + Residue::getInternalToFull() - Residue::getAIonToFull() - Formulas::H;
 					case Residue::CIon:
-						return ef + Residue::getInternalToFull() - Formulas::OH + Formulas::NH - Formulas::H;
+						return ef + Residue::getInternalToFull() - Formulas::OH + Formulas::NH;
 					case Residue::XIon:
 						return ef + Residue::getInternalToFull() + Residue::getXIonToFull();
 					case Residue::YIon:
@@ -144,12 +144,12 @@ namespace OpenMS
 		return ef;
 	}
 	
-	Real AASequence::getAverageWeight(Residue::ResidueType type, Int charge) const
+	DoubleReal AASequence::getAverageWeight(Residue::ResidueType type, Int charge) const
 	{
 		return getFormula(type, charge).getAverageWeight();
 	}
 
-	Real AASequence::getMonoWeight(Residue::ResidueType type, Int charge) const
+	DoubleReal AASequence::getMonoWeight(Residue::ResidueType type, Int charge) const
 	{
 		return getFormula(type, charge).getMonoWeight();
 	}
@@ -311,16 +311,16 @@ namespace OpenMS
 	AASequence AASequence::getSubsequence(UInt index, UInt num) const
 		throw(Exception::IndexOverflow)
 	{
-		if (index > size())
+		if (index >= size())
 		{
 			throw Exception::IndexOverflow(__FILE__, __LINE__, __PRETTY_FUNCTION__, index, size());
 		}
-		if (index+num >= size())
+		if (index + num > size())
 		{
 			throw Exception::IndexOverflow(__FILE__, __LINE__, __PRETTY_FUNCTION__, index+num, size());
 		}
 		AASequence seq;
-		for (UInt i=index;i!=num;++i)
+		for (UInt i = index; i != index + num; ++i)
 		{
 			seq.peptide_.push_back(peptide_[i]);
 		}

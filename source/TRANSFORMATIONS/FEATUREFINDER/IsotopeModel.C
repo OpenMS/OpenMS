@@ -39,21 +39,19 @@ namespace OpenMS
 			monoisotopic_mz_(0.0)
 		{
 			setName(getProductName());
-	
-			// averagine as introduced by Senko et al. (1995)
-			defaults_.setValue("averagines:C",0.0443f);
-			defaults_.setValue("averagines:H",0.007f);
-			defaults_.setValue("averagines:N",0.0037f);
-			defaults_.setValue("averagines:O",0.022f);
-			defaults_.setValue("averagines:S",0.00037f);
 
-			defaults_.setValue("isotope:trim_right_cutoff",0.001);
-			defaults_.setValue("isotope:maximum",1000000);
-			defaults_.setValue("isotope:distance",1.000495);
-			defaults_.setValue("isotope:stdev",0.1);
-			defaults_.setValue("charge",1);
-			defaults_.setValue("statistics:mean",0.0);
-			
+			defaults_.setValue("averagines:C",0.0443f,"Number of C atoms per Daton of mass.");
+			defaults_.setValue("averagines:H",0.007f,"Number of H atoms per Daton of mass.");
+			defaults_.setValue("averagines:N",0.0037f,"Number of N atoms per Daton of mass.");
+			defaults_.setValue("averagines:O",0.022f,"Number of O atoms per Daton of mass.");
+			defaults_.setValue("averagines:S",0.00037f,"Number of S atoms per Daton of mass.");
+			defaults_.setValue("isotope:trim_right_cutoff",0.001,"Cutoff in averagine distribution, trailing isotopes below this relative intensity are not considered");
+			defaults_.setValue("isotope:maximum",100,"Maximum isotopic rank to be considered");
+			defaults_.setValue("isotope:distance",1.000495,"Distance between consecutive isotopic peaks");
+			defaults_.setValue("isotope:stdev",0.1,"Standard deviation of gaussian applied to the averagine isotopic pattern to simulate the inaccuracy of the mass spectrometer");
+			defaults_.setValue("charge",1,"Charge state of the model");
+			defaults_.setValue("statistics:mean",0.0,"Centroid m/z (as opposed to monoisotopic m/z)");
+
 			defaultsToParam_();
 		}
 
@@ -71,11 +69,11 @@ namespace OpenMS
    	IsotopeModel& IsotopeModel::operator = (const IsotopeModel& source)
 		{
 			if (&source == this) return *this;
-			
+
 			InterpolationModel::operator = (source);
 			setParameters( source.getParameters() );
 			updateMembers_();
-			
+
 			return *this;
 		}
 
@@ -230,7 +228,7 @@ namespace OpenMS
 			averagine_[N] = param_.getValue("averagines:N");
 			averagine_[O] = param_.getValue("averagines:O");
 			averagine_[S] = param_.getValue("averagines:S");
-			
+
 			setSamples();
 		}
 }

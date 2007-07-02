@@ -45,8 +45,13 @@ namespace OpenMS
     cutoff, i.e. the maximal allowed distance for merging two clusters.
         
     The result is an STL vector of vectors. Each inner vector respresents one cluster, holding the indices of the input elements.
+		 
+		@ref HierarchicalClustering_Parameters are explained on a separate page.
         
     @ingroup Comparison
+    
+    @ref HierarchicalClustering_Parameters are explained on a seperate page
+        
   */
   
   template <typename ClusterPoint = DPosition<2> >
@@ -71,13 +76,12 @@ namespace OpenMS
       //@{
       /// default constructor
       HierarchicalClustering()
-      : DefaultParamHandler("FeatureDecharger")
+      : DefaultParamHandler("HierarchicalClustering")
       {
-        defaults_.setValue("cluster_cutoff", 40.0);           // maximal distance allowed between two clusters before merging them
-        defaults_.setValue("linkage_type", COMPLETE_LINKAGE); // clustering method
+        defaults_.setValue("cluster_cutoff", 40.0, "maximal distance allowed between two clusters before merging them");           // maximal distance allowed between two clusters before merging them
+        defaults_.setValue("linkage_type", COMPLETE_LINKAGE,"clustering method: 0=complete linkage 1=single_linkage");
     
         defaultsToParam_();
-    
       }
 
       /// Copy constructor
@@ -206,7 +210,7 @@ namespace OpenMS
            --number_of_clusters;
         }
         
-        std::cout << "HC: remove dead clusters ... \n";
+        //std::cout << "HC: remove dead clusters ... \n";
                 
         // remove empty indices 
         ClusterIdxVectorType cl_tmp;
@@ -306,7 +310,7 @@ namespace OpenMS
       }
 
       /// complete linkage clustering
-      /// we combine clusters #minrow and #mincolumn (#minrow is the new cluster index)
+      /// we combine clusters @p minrow and @p mincolumn (@p minrow is the new cluster index)
       inline void linkageComplete_(DistanceMatrixType& distanceMatrix, const uint&  minRow, const uint& minColumn)
       {
         // recompute data matrix entries
@@ -333,7 +337,7 @@ namespace OpenMS
       };
 
       /// single linkage clustering
-      /// we combine clusters #minrow and #mincolumn (#minrow is the new cluster index)
+      /// we combine clusters @p minrow and @p mincolumn (@p minrow is the new cluster index)
       inline void linkageSingle_(DistanceMatrixType& distanceMatrix, const uint& minRow, const uint& minColumn)
       {
         // recompute data matrix entries

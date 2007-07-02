@@ -51,13 +51,13 @@ CHECK(([EXTRA] ~String()))
 	delete s_ptr;
 RESULT
 
-CHECK(String(const QString &s))
+CHECK((String(const QString &s)))
 	QString qs("bla");
 	String s(qs);
 	TEST_EQUAL(s=="bla",true)
 RESULT
 
-CHECK(QString toQString() const)
+CHECK((QString toQString() const))
 	QString qs("bla");
 	String s("bla");
 	TEST_EQUAL(s.toQString()==qs,true)
@@ -374,7 +374,7 @@ CHECK((double toDouble() const throw(Exception::ConversionError)))
 	TEST_EQUAL(String(s.toDouble()),"47218.89");
 RESULT
 
-CHECK((String random(UInt length)))
+CHECK((static String random(UInt length)))
 	String s;
 	String s2 = s.random(10);
 	TEST_EQUAL(s2.size(),10);
@@ -481,6 +481,37 @@ CHECK((String& substitute(char from, char to)))
 	s = ".....";
 	s.substitute(',','.');
 	TEST_EQUAL(s,".....")
+RESULT
+
+CHECK((String& substitute(const String& from, const String& to)))
+	//single occurence
+	String s = "abcdefg";
+
+	s.substitute("a","x");
+	TEST_EQUAL(s,"xbcdefg")
+
+	s.substitute("bcd","y");
+	TEST_EQUAL(s,"xyefg")
+
+	s.substitute("fg","");
+	TEST_EQUAL(s,"xye")
+
+	s.substitute("e","z!");
+	TEST_EQUAL(s,"xyz!")
+
+	s.substitute("u","blblblblbl");
+	TEST_EQUAL(s,"xyz!")
+
+	s.substitute("","blblblblbl");
+	TEST_EQUAL(s,"xyz!")
+	
+	//mutiple occurences
+	s = "abcdefgabcdefgabcdefgab";
+	s.substitute("ab","x");
+	TEST_EQUAL(s,"xcdefgxcdefgxcdefgx")
+
+	s.substitute("x","");
+	TEST_EQUAL(s,"cdefgcdefgcdefg")
 RESULT
 
 CHECK((String& remove(char what)))

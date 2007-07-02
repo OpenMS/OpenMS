@@ -74,7 +74,7 @@ CHECK((template<typename SpectrumType> void filterSpectrum(SpectrumType& spectru
 	TEST_REAL_EQUAL((spec.begin() + 40)->getIntensity(), 37.5)
 
 	e_ptr->filterSpectrum(spec);
-	TEST_EQUAL((spec.begin() + 40)->getIntensity(), sqrt(37.5))
+	TEST_REAL_EQUAL((spec.begin() + 40)->getIntensity(), sqrt(37.5))
 RESULT
 
 CHECK((static PreprocessingFunctor* create()))
@@ -96,7 +96,7 @@ CHECK((void filterPeakMap(PeakMap& exp)))
 	TEST_REAL_EQUAL((pm.begin()->begin() + 40)->getIntensity(), 37.5)
 
 	e_ptr->filterPeakMap(pm);
-	TEST_EQUAL((pm.begin()->begin() + 40)->getIntensity(), sqrt(37.5))
+	TEST_REAL_EQUAL((pm.begin()->begin() + 40)->getIntensity(), sqrt(37.5))
 RESULT
 
 CHECK((void filterPeakSpectrum(PeakSpectrum& spectrum)))
@@ -107,7 +107,7 @@ CHECK((void filterPeakSpectrum(PeakSpectrum& spectrum)))
 	TEST_REAL_EQUAL((spec.begin() + 40)->getIntensity(), 37.5)
 
 	e_ptr->filterPeakSpectrum(spec);
-	TEST_EQUAL((spec.begin() + 40)->getIntensity(), sqrt(37.5))
+	TEST_REAL_EQUAL((spec.begin() + 40)->getIntensity(), sqrt(37.5))
 RESULT
 
 delete e_ptr;

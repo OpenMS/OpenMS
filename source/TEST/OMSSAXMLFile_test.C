@@ -69,7 +69,9 @@ CHECK(void load(const String& filename, ProteinIdentification& protein_identific
 
 	xml_file.load("data/OMSSAXMLFile_test_1.xml",	protein_identification, peptide_identifications);
 
-	// TODO
+	TEST_EQUAL(protein_identification.getHits().size(), 4)
+	TEST_EQUAL(peptide_identifications.size(), 1)
+
 RESULT
 
 /////////////////////////////////////////////////////////////

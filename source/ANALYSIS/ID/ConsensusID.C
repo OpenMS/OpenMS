@@ -35,9 +35,13 @@ namespace OpenMS
 	ConsensusID::ConsensusID()
 		: DefaultParamHandler("ConsensusID")
 	{
-		defaults_.setValue("Algorithm","Ranked","Allowed algorithm names are 'Ranked', 'Merge' and 'Average'.");
+		defaults_.setValue("Algorithm","Ranked","Allowed algorithm names are 'Ranked', 'Merge' and 'Average'.\n"
+											 "Merge -- merges the runs with respect to their score. The score is not modified. Make sure to use PeptideIdentifications with the same score type only!\n"
+										   "Ranked -- reorders the hits according to a consensus score computed from the ranks in the input runs. The score is normalized to the interval (0,100). The PeptideIdentifications do not need to have the same score type.\n"
+										   "Average -- reorders the hits according to the average score of the input runs. Make sure to use PeptideIdentifications with the same score type only!");
+  	
 		defaults_.setValue("ConsideredHits",10,"The number of top hits that are used for the consensus scoring.");
-		defaults_.setValue("NumberOfRuns",0,"Number of ID runs that are merged");
+		defaults_.setValue("NumberOfRuns",0,"The number of runs used as input. This information is used in 'Ranked' and 'Average' to compute the new scores. If not given, the number of input identifications is taken.");
 		
 		defaultsToParam_();
 	}

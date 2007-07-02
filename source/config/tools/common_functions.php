@@ -328,7 +328,7 @@ function getClassInfo($path,$header, $debug)
 }
 
 /// Load information about the tested methods
-function parseTestFile($filename,&$tests)
+function parseTestFile($filename)
 {
 	$tests = array();
 	$todo_tests = array();
@@ -344,6 +344,7 @@ function parseTestFile($filename,&$tests)
 		{
 			# strip brackets
 			$function = trim(substr($line,5));
+			//print "Function: $function \n";
 			while ($function[0]=='(' && $function[strlen($function)-1]==')')
 			{
 				$function = trim(substr($function,1,-1));
@@ -368,7 +369,7 @@ function parseTestFile($filename,&$tests)
 			}
 		}
 	}
-	return $todo_tests;
+	return array("todo"=>$todo_tests,"tests"=>$tests);
 }
 
 /// Comares declared and tested methods
@@ -388,9 +389,12 @@ function compareDeclarationsAndTests($declarations,$tests)
 	"*/" => "",
 	);
 	
+	$done = array();
+	
 	$out = array(
 		"missing" => array(),
 		"unknown" => array(),
+		"double"  => array()
 		);
 
 	#make a copy without whitespaces
@@ -407,11 +411,19 @@ function compareDeclarationsAndTests($declarations,$tests)
 		$pos = array_search($stripped,$tmp);
 		if ($pos === FALSE)
 		{
-			$out["unknown"][] = $t;
+			if (in_array($stripped,$done))
+			{
+				$out["double"][] = $t;
+			}
+			else
+			{
+				$out["unknown"][] = $t;
+			}
 		}
 		else
 		{
 			unset($tmp[$pos]);
+			$done[] = $stripped;
 		}
 	}
 	

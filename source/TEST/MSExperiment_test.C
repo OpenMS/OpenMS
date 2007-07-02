@@ -2,7 +2,7 @@
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
-//                   OpenMS Mass Spectrometry Framework 
+//                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
 //  Copyright (C) 2003-2007 -- Oliver Kohlbacher, Knut Reinert
 //
@@ -34,7 +34,7 @@
 
 ///////////////////////////
 
-START_TEST(MSExperiment, "$Id$")
+START_TEST(MSExperiment, "$Id$");
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
@@ -44,24 +44,30 @@ using namespace std;
 
 MSExperiment<>* ptr = 0;
 CHECK((MSExperiment()))
+{
 	ptr = new MSExperiment<>;
-	TEST_NOT_EQUAL(ptr, 0)
+	TEST_NOT_EQUAL(ptr, 0);
+}
 RESULT
 
 CHECK(([EXTRA]~MSExperiment()))
+{
 	delete ptr;
+}
 RESULT
 
 CHECK((MSExperiment(const MSExperiment& source)))
+{
   MSExperiment<> tmp;
   tmp.getContacts().resize(1);
   tmp.getContacts()[0].setFirstName("Name");
   tmp.resize(1);
-  
+
   MSExperiment<> tmp2(tmp);
-  TEST_EQUAL(tmp2.getContacts().size(),1);  
+  TEST_EQUAL(tmp2.getContacts().size(),1);
   TEST_EQUAL(tmp2.getContacts()[0].getFirstName(),"Name");
   TEST_EQUAL(tmp2.size(),1);
+}
 RESULT
 
 CHECK(MSExperiment& operator= (const MSExperiment& source))
@@ -75,28 +81,28 @@ CHECK(MSExperiment& operator= (const MSExperiment& source))
   p.setMZ(10.0);
   tmp[0].push_back(p);
   tmp.updateRanges();
-  
+
   MSExperiment<> tmp2;
   tmp2 = tmp;
-  TEST_EQUAL(tmp2.getContacts().size(),1);  
+  TEST_EQUAL(tmp2.getContacts().size(),1);
   TEST_EQUAL(tmp2.getContacts()[0].getFirstName(),"Name");
   TEST_EQUAL(tmp2.size(),1);
 	TEST_REAL_EQUAL(tmp2.getMinMZ(),5.0);
 	TEST_REAL_EQUAL(tmp2.getMaxMZ(),10.0);
-	
+
   tmp2 = MSExperiment<>();
-  TEST_EQUAL(tmp2.getContacts().size(),0);  
+  TEST_EQUAL(tmp2.getContacts().size(),0);
   TEST_EQUAL(tmp2.size(),0);
 RESULT
 
 CHECK((bool operator== (const MSExperiment& rhs) const))
   MSExperiment<> edit,empty;
-	
+
 	TEST_EQUAL(edit==empty, true);
-	
+
 	edit.getContacts().resize(1);
   TEST_EQUAL(edit==empty, false);
-	
+
 	edit = empty;
   edit.resize(1);
 	TEST_EQUAL(edit==empty, false);
@@ -104,12 +110,12 @@ RESULT
 
 CHECK((bool operator!= (const MSExperiment& rhs) const))
   MSExperiment<> edit,empty;
-	
+
 	TEST_EQUAL(edit!=empty, false);
-	
+
 	edit.getContacts().resize(1);
   TEST_EQUAL(edit!=empty, true);
-	
+
 	edit = empty;
   edit.resize(1);
 	TEST_EQUAL(edit!=empty, true);
@@ -141,7 +147,7 @@ CHECK((template<class Container> void get2DData(Container& cont) const))
 	spec.getContainer().push_back(peak);
 	peak.getPosition()[0] = 11;
 	spec.getContainer().push_back(peak);
-	exp.push_back(spec);	
+	exp.push_back(spec);
 
 	// third spectrum (MS)
 	spec.getContainer().clear();
@@ -151,7 +157,7 @@ CHECK((template<class Container> void get2DData(Container& cont) const))
 	spec.getContainer().push_back(peak);
 	peak.getPosition()[0] = 25;
 	spec.getContainer().push_back(peak);
-	exp.push_back(spec);	
+	exp.push_back(spec);
 
 	// forth spectrum (MS/MS)
 	spec.getContainer().clear();
@@ -163,8 +169,8 @@ CHECK((template<class Container> void get2DData(Container& cont) const))
 	spec.getContainer().push_back(peak);
 	peak.getPosition()[0] = 31;
 	spec.getContainer().push_back(peak);
-	exp.push_back(spec);	
-	
+	exp.push_back(spec);
+
 	//Convert
 	DPeakArray<RawDataPoint2D> a;
 	exp.get2DData(a);
@@ -211,40 +217,40 @@ RESULT
 
 CHECK((template<class Container> void set2DData(const Container& cont) throw(Exception::Precondition)))
 	MSExperiment<> exp;
-	
+
 	// create sample data
 	DPeakArray<Peak2D> input;
-	
+
 	Peak2D p1;
 	p1.setIntensity(1.0);
 	p1.setRT(2.0);
 	p1.setMZ(3.0);
 	input.push_back(p1);
-	
+
 	Peak2D p2;
 	p2.setIntensity(4.0);
 	p2.setRT(5.0);
 	p2.setMZ(6.0);
 	input.push_back(p2);
-	
+
 	Peak2D p3;
 	p3.setIntensity(7.5);
 	p3.setRT(8.5);
 	p3.setMZ(9.5);
 	input.push_back(p3);
-	
+
 	exp.set2DData(input);
-	
+
 	// retrieve data again and check for changes
 	DPeakArray< Peak2D> output;
-	
+
 	exp.get2DData(output);
 	TEST_EQUAL(output==input,true);
-	
+
 	//test precondition
 	input.push_back(p1);
 	TEST_EXCEPTION(Exception::Precondition,exp.set2DData(input));
-	
+
 RESULT
 
 CHECK(([EXTRA] MSExperiment<RawDataPoint1D >()))
@@ -301,21 +307,21 @@ CHECK((virtual void updateRanges()))
 	MSExperiment< RawDataPoint1D > tmp;
 	MSSpectrum< RawDataPoint1D > s;
 	RawDataPoint1D p;
-	
+
 	s.setMSLevel(1);
 	s.setRT(30.0);
 	p.getPosition()[0] = 5.0;
 	p.setIntensity(-5.0);
 	s.getContainer().push_back(p);
 	tmp.push_back(s);
-	
+
 	s.getContainer().clear();
 	s.setMSLevel(1);
 	s.setRT(40.0);
 	p.getPosition()[0] = 7.0;
 	p.setIntensity(-7.0);
 	s.getContainer().push_back(p);
-	tmp.push_back(s);	
+	tmp.push_back(s);
 
 	s.getContainer().clear();
 	s.setMSLevel(3);
@@ -323,7 +329,7 @@ CHECK((virtual void updateRanges()))
 	p.getPosition()[0] = 9.0;
 	p.setIntensity(-10.0);
 	s.getContainer().push_back(p);
-	tmp.push_back(s);	
+	tmp.push_back(s);
 
 	s.getContainer().clear();
 	s.setMSLevel(3);
@@ -331,11 +337,11 @@ CHECK((virtual void updateRanges()))
 	p.getPosition()[0] = 10.0;
 	p.setIntensity(-9.0);
 	s.getContainer().push_back(p);
-	tmp.push_back(s);	
-	
+	tmp.push_back(s);
+
 	tmp.updateRanges();
 	tmp.updateRanges(); //second time to check the initialization
-	
+
 	TEST_REAL_EQUAL(tmp.getMinMZ(),5.0)
 	TEST_REAL_EQUAL(tmp.getMaxMZ(),10.0)
 	TEST_REAL_EQUAL(tmp.getMinInt(),-10.0)
@@ -353,20 +359,20 @@ CHECK((virtual void updateRanges()))
 	TEST_REAL_EQUAL(tmp.getMaxInt(),-5.0)
 	TEST_REAL_EQUAL(tmp.getMinRT(),30.0)
 	TEST_REAL_EQUAL(tmp.getMaxRT(),50.0)
-	
+
 	TEST_REAL_EQUAL(tmp.getDataRange().min()[1],5.0)
 	TEST_REAL_EQUAL(tmp.getDataRange().max()[1],10.0)
 	TEST_REAL_EQUAL(tmp.getDataRange().min()[0],30.0)
 	TEST_REAL_EQUAL(tmp.getDataRange().max()[0],50.0)
-	
+
 	TEST_EQUAL(tmp.getMSLevels().size(),2)
 	TEST_EQUAL(tmp.getMSLevels()[0],1)
 	TEST_EQUAL(tmp.getMSLevels()[1],3)
-	
+
 	TEST_EQUAL(tmp.getSize(),4)
-	
+
 	//Update for MS level 1
-	
+
 	tmp.updateRanges(1);
 	tmp.updateRanges(1);
 	TEST_REAL_EQUAL(tmp.getMinMZ(),5.0)
@@ -394,7 +400,7 @@ CHECK((virtual void updateRanges()))
 	MSExperiment< RawDataPoint1D > tmp2;
 	MSSpectrum< RawDataPoint1D > s2;
 	RawDataPoint1D p2;
-	
+
 	s2.setRT(30.0);
 	p2.getPosition()[0] = 5.0;
 	p2.setIntensity(-5.0);
@@ -416,28 +422,28 @@ CHECK((virtual void updateRanges()))
 	TEST_REAL_EQUAL(tmp2.getMaxInt(),-5.0)
 	TEST_REAL_EQUAL(tmp2.getMinRT(),30.0)
 	TEST_REAL_EQUAL(tmp2.getMaxRT(),30.0)
-	
+
 RESULT
 
 CHECK((void updateRanges(Int ms_level)))
 	MSExperiment< RawDataPoint1D > tmp;
 	MSSpectrum< RawDataPoint1D > s;
 	RawDataPoint1D p;
-	
+
 	s.setMSLevel(1);
 	s.setRT(30.0);
 	p.getPosition()[0] = 5.0;
 	p.setIntensity(-5.0);
 	s.getContainer().push_back(p);
 	tmp.push_back(s);
-	
+
 	s.getContainer().clear();
 	s.setMSLevel(1);
 	s.setRT(40.0);
 	p.getPosition()[0] = 7.0;
 	p.setIntensity(-7.0);
 	s.getContainer().push_back(p);
-	tmp.push_back(s);	
+	tmp.push_back(s);
 
 	s.getContainer().clear();
 	s.setMSLevel(3);
@@ -445,7 +451,7 @@ CHECK((void updateRanges(Int ms_level)))
 	p.getPosition()[0] = 9.0;
 	p.setIntensity(-10.0);
 	s.getContainer().push_back(p);
-	tmp.push_back(s);	
+	tmp.push_back(s);
 
 	s.getContainer().clear();
 	s.setMSLevel(3);
@@ -453,10 +459,10 @@ CHECK((void updateRanges(Int ms_level)))
 	p.getPosition()[0] = 10.0;
 	p.setIntensity(-9.0);
 	s.getContainer().push_back(p);
-	tmp.push_back(s);	
-	
+	tmp.push_back(s);
+
 	//Update for MS level 1
-	
+
 	tmp.updateRanges(1);
 	tmp.updateRanges(1);
 	TEST_REAL_EQUAL(tmp.getMinMZ(),5.0)
@@ -484,7 +490,7 @@ CHECK((void updateRanges(Int ms_level)))
 	MSExperiment< RawDataPoint1D > tmp2;
 	MSSpectrum< RawDataPoint1D > s2;
 	RawDataPoint1D p2;
-	
+
 	s2.setRT(30.0);
 	p2.getPosition()[0] = 5.0;
 	p2.setIntensity(-5.0);
@@ -498,7 +504,7 @@ CHECK((void updateRanges(Int ms_level)))
 	TEST_REAL_EQUAL(tmp2.getMaxInt(),-5.0)
 	TEST_REAL_EQUAL(tmp2.getMinRT(),30.0)
 	TEST_REAL_EQUAL(tmp2.getMaxRT(),30.0)
-	
+
 RESULT
 
 CHECK((ConstAreaIterator areaEndConst() const))
@@ -507,7 +513,7 @@ RESULT
 
 CHECK((ConstAreaIterator areaBeginConst(CoordinateType min_rt, CoordinateType max_rt, CoordinateType min_mz, CoordinateType max_mz) const))
 	DPeakArray< Peak2D> plist;
-	
+
 	Peak2D p1;
 	p1.getPosition()[0] = 1.0;
 	p1.getPosition()[1] = 2.0;
@@ -521,12 +527,12 @@ CHECK((ConstAreaIterator areaBeginConst(CoordinateType min_rt, CoordinateType ma
 	p1.getPosition()[0] = 2.0;
 	p1.getPosition()[1] = 11.0;
 	plist.push_back(p1);
-	
+
 	MSExperiment<> exp;
 	exp.set2DData(plist);
 
 	MSExperiment<>::ConstAreaIterator it = exp.areaBeginConst(0,15,0,15);
-	
+
 	TEST_EQUAL(it->getPosition()[0],2.0);
 	it++;
 	TEST_EQUAL(it->getPosition()[0],3.0);
@@ -536,6 +542,11 @@ CHECK((ConstAreaIterator areaBeginConst(CoordinateType min_rt, CoordinateType ma
 	TEST_EQUAL(it->getPosition()[0],11.0);
 	it++;
 	TEST_EQUAL(it==exp.areaEndConst(),true);
+
+	TEST_EXCEPTION(Exception::Precondition,exp.areaBeginConst(15,0,0,15));
+	TEST_EXCEPTION(Exception::Precondition,exp.areaBeginConst(0,15,15,0));
+	TEST_EXCEPTION(Exception::Precondition,exp.areaBeginConst(15,0,15,0));
+
 RESULT
 
 CHECK((AreaIterator areaEnd()))
@@ -544,7 +555,7 @@ RESULT
 
 CHECK((AreaIterator areaBegin(CoordinateType min_rt, CoordinateType max_rt, CoordinateType min_mz, CoordinateType max_mz)))
 	DPeakArray< Peak2D> plist;
-	
+
 	Peak2D p1;
 	p1.getPosition()[0] = 1.0;
 	p1.getPosition()[1] = 2.0;
@@ -558,12 +569,12 @@ CHECK((AreaIterator areaBegin(CoordinateType min_rt, CoordinateType max_rt, Coor
 	p1.getPosition()[0] = 2.0;
 	p1.getPosition()[1] = 11.0;
 	plist.push_back(p1);
-	
+
 	MSExperiment<> exp;
 	exp.set2DData(plist);
 
 	MSExperiment<>::AreaIterator it = exp.areaBegin(0,15,0,15);
-	
+
 	TEST_EQUAL(it->getPosition()[0],2.0);
 	it->getPosition()[0] = 4711.0;
 	TEST_EQUAL(it->getPosition()[0],4711.0);
@@ -575,136 +586,141 @@ CHECK((AreaIterator areaBegin(CoordinateType min_rt, CoordinateType max_rt, Coor
 	TEST_EQUAL(it->getPosition()[0],11.0);
 	it++;
 	TEST_EQUAL(it==exp.areaEnd(),true);
+
+	TEST_EXCEPTION(Exception::Precondition,exp.areaBegin(15,0,0,15));
+	TEST_EXCEPTION(Exception::Precondition,exp.areaBegin(0,15,15,0));
+	TEST_EXCEPTION(Exception::Precondition,exp.areaBegin(15,0,15,0));
+
 RESULT
 
 CHECK((Iterator RTBegin(double rt)))
 	MSExperiment< RawDataPoint1D > tmp;
 	MSSpectrum< RawDataPoint1D > s;
 	RawDataPoint1D p;
-	
+
 	s.setRT(30.0);
-	tmp.push_back(s);	
+	tmp.push_back(s);
 	s.setRT(40.0);
-	tmp.push_back(s);	
+	tmp.push_back(s);
 	s.setRT(45.0);
-	tmp.push_back(s);	
+	tmp.push_back(s);
 	s.setRT(50.0);
 	tmp.push_back(s);
-	
+
 	MSExperiment< RawDataPoint1D >::Iterator it;
-	
+
 	it = tmp.RTBegin(20.0);
 	TEST_REAL_EQUAL(it->getRT(),30.0)
 	it = tmp.RTBegin(30.0);
 	TEST_REAL_EQUAL(it->getRT(),30.0)
 	it = tmp.RTBegin(31.0);
 	TEST_REAL_EQUAL(it->getRT(),40.0)
-	TEST_EQUAL(tmp.RTBegin(55.0) == tmp.end(), true) 
+	TEST_EQUAL(tmp.RTBegin(55.0) == tmp.end(), true)
 RESULT
 
 CHECK((Iterator RTEnd(double rt)))
 	MSExperiment< RawDataPoint1D > tmp;
 	MSSpectrum< RawDataPoint1D > s;
 	RawDataPoint1D p;
-	
+
 	s.setRT(30.0);
-	tmp.push_back(s);	
+	tmp.push_back(s);
 	s.setRT(40.0);
-	tmp.push_back(s);	
+	tmp.push_back(s);
 	s.setRT(45.0);
-	tmp.push_back(s);	
+	tmp.push_back(s);
 	s.setRT(50.0);
 	tmp.push_back(s);
-	
+
 	MSExperiment< RawDataPoint1D >::Iterator it;
-	
+
 	it = tmp.RTEnd(20.0);
 	TEST_REAL_EQUAL(it->getRT(),30.0)
 	it = tmp.RTEnd(30.0);
 	TEST_REAL_EQUAL(it->getRT(),40.0)
 	it = tmp.RTEnd(31.0);
 	TEST_REAL_EQUAL(it->getRT(),40.0)
-	TEST_EQUAL(tmp.RTBegin(55.0) == tmp.end(), true) 
+	TEST_EQUAL(tmp.RTBegin(55.0) == tmp.end(), true)
 RESULT
 
 CHECK((ConstIterator RTBegin(double rt) const))
 	MSExperiment< RawDataPoint1D > tmp;
 	MSSpectrum< RawDataPoint1D > s;
 	RawDataPoint1D p;
-	
+
 	s.setRT(30.0);
-	tmp.push_back(s);	
+	tmp.push_back(s);
 	s.setRT(40.0);
-	tmp.push_back(s);	
+	tmp.push_back(s);
 	s.setRT(45.0);
-	tmp.push_back(s);	
+	tmp.push_back(s);
 	s.setRT(50.0);
 	tmp.push_back(s);
-	
+
 	MSExperiment< RawDataPoint1D >::Iterator it;
-	
+
 	it = tmp.RTBegin(20.0);
 	TEST_REAL_EQUAL(it->getRT(),30.0)
 	it = tmp.RTBegin(30.0);
 	TEST_REAL_EQUAL(it->getRT(),30.0)
 	it = tmp.RTBegin(31.0);
 	TEST_REAL_EQUAL(it->getRT(),40.0)
-	TEST_EQUAL(tmp.RTBegin(55.0) == tmp.end(), true) 
+	TEST_EQUAL(tmp.RTBegin(55.0) == tmp.end(), true)
 RESULT
 
 CHECK((ConstIterator RTEnd(double rt) const))
 	MSExperiment< RawDataPoint1D > tmp;
 	MSSpectrum< RawDataPoint1D > s;
 	RawDataPoint1D p;
-	
+
 	s.setRT(30.0);
-	tmp.push_back(s);	
+	tmp.push_back(s);
 	s.setRT(40.0);
-	tmp.push_back(s);	
+	tmp.push_back(s);
 	s.setRT(45.0);
-	tmp.push_back(s);	
+	tmp.push_back(s);
 	s.setRT(50.0);
 	tmp.push_back(s);
-	
+
 	MSExperiment< RawDataPoint1D >::Iterator it;
-	
+
 	it = tmp.RTEnd(20.0);
 	TEST_REAL_EQUAL(it->getRT(),30.0)
 	it = tmp.RTEnd(30.0);
 	TEST_REAL_EQUAL(it->getRT(),40.0)
 	it = tmp.RTEnd(31.0);
 	TEST_REAL_EQUAL(it->getRT(),40.0)
-	TEST_EQUAL(tmp.RTBegin(55.0) == tmp.end(), true) 
+	TEST_EQUAL(tmp.RTBegin(55.0) == tmp.end(), true)
 RESULT
 
 CHECK((void sortSpectra(bool sort_mz = true)))
 	DPeakArray< Peak2D> plist;
-	
+
 	Peak2D p1;
 	p1.getPosition()[0] = 1.0;
 	p1.getPosition()[1] = 5.0;
 	plist.push_back(p1);
-		
+
 	Peak2D p2;
 	p2.getPosition()[0] = 1.0;
 	p2.getPosition()[1] = 3.0;
 	plist.push_back(p2);
-		
+
 	Peak2D p3;
 	p3.getPosition()[0] = 2.0;
 	p3.getPosition()[1] = 14.0;
 	plist.push_back(p3);
-	
+
 	Peak2D p4;
 	p4.getPosition()[0] = 2.0;
 	p4.getPosition()[1] = 11.0;
 	plist.push_back(p4);
-	
+
 	MSExperiment<> exp;
 	exp.set2DData(plist);
-	
+
 	exp.sortSpectra(true);
- 	
+
 	TEST_REAL_EQUAL(exp[0][0].getMZ(),3.0);
 	TEST_REAL_EQUAL(exp[0][1].getMZ(),5.0);
 	TEST_REAL_EQUAL(exp[1][0].getMZ(),11.0);
@@ -713,7 +729,7 @@ RESULT
 
 CHECK((void reset()))
 	DPeakArray< Peak2D> plist;
-	
+
 	Peak2D p;
 	p.getPosition()[0] = 1.0;
 	p.getPosition()[1] = 5.0;
@@ -721,13 +737,13 @@ CHECK((void reset()))
 	p.getPosition()[0] = 2.0;
 	p.getPosition()[1] = 3.0;
 	plist.push_back(p);
-		
+
 	MSExperiment<> exp;
 	exp.set2DData(plist);
 	exp.updateRanges();
-	
+
 	exp.reset();
-	
+
 	TEST_EQUAL(exp==MSExperiment<>(),true);
 RESULT
 
@@ -758,7 +774,7 @@ CHECK(ConstIterator getPrecursorSpectrum(ConstIterator iterator) const)
 	exp[2].setMSLevel(1);
 	exp[3].setMSLevel(2);
 	exp[4].setMSLevel(2);
-	
+
 	TEST_EQUAL(exp.getPrecursorSpectrum(exp.begin())==exp.end(),true)
 	TEST_EQUAL(exp.getPrecursorSpectrum(exp.begin()+1)==exp.begin(),true)
 	TEST_EQUAL(exp.getPrecursorSpectrum(exp.begin()+2)==exp.end(),true)
@@ -771,14 +787,14 @@ CHECK(ConstIterator getPrecursorSpectrum(ConstIterator iterator) const)
 	exp[2].setMSLevel(1);
 	exp[3].setMSLevel(1);
 	exp[4].setMSLevel(1);
-	
+
 	TEST_EQUAL(exp.getPrecursorSpectrum(exp.begin())==exp.end(),true)
 	TEST_EQUAL(exp.getPrecursorSpectrum(exp.begin()+1)==exp.end(),true)
 	TEST_EQUAL(exp.getPrecursorSpectrum(exp.begin()+2)==exp.end(),true)
 	TEST_EQUAL(exp.getPrecursorSpectrum(exp.begin()+3)==exp.end(),true)
 	TEST_EQUAL(exp.getPrecursorSpectrum(exp.begin()+4)==exp.end(),true)
 	TEST_EQUAL(exp.getPrecursorSpectrum(exp.end())==exp.end(),true)
-	
+
 RESULT
 
 /////////////////////////////////////////////////////////////

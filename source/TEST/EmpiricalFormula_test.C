@@ -2,7 +2,7 @@
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
-//                   OpenMS Mass Spectrometry Framework 
+//                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
 //  Copyright (C) 2003-2007 -- Oliver Kohlbacher, Knut Reinert
 //
@@ -62,7 +62,7 @@ CHECK(EmpiricalFormula(const EmpiricalFormula& rhs))
 	TEST_EQUAL(ef == *e_ptr, true)
 RESULT
 
-CHECK(EmpiricalFormula(UInt number, const Element* element, Int charge = 0))
+CHECK((EmpiricalFormula(UInt number, const Element* element, Int charge=0)))
 	EmpiricalFormula ef(4, e_ptr->getElement("C"));
 	TEST_EQUAL(ef == *e_ptr, true)
 	TEST_EQUAL(ef.getCharge(), 0)
@@ -207,13 +207,13 @@ CHECK(bool isCharged() const)
 	TEST_EQUAL(e_ptr->isCharged(), false)
 RESULT
 
-CHECK(Real getAverageWeight() const)
+CHECK(DoubleReal getAverageWeight() const)
 	EmpiricalFormula ef("C2");
 	const Element* e = e_ptr->getElement("C");
 	TEST_REAL_EQUAL(ef.getAverageWeight(), e->getAverageWeight() * 2)
 RESULT
 
-CHECK(Real getMonoWeight() const)
+CHECK(DoubleReal getMonoWeight() const)
 	EmpiricalFormula ef("C2");
 	const Element* e = e_ptr->getElement("C");
 	TEST_REAL_EQUAL(ef.getMonoWeight(), e->getMonoWeight() * 2)
@@ -233,11 +233,7 @@ CHECK(const ElementDB* getElementDB() const)
 	TEST_EQUAL(db->getElement("C")->getSymbol(), "C")
 RESULT
 
-CHECK(void setElementDB(const String& file_name) throw(Exception::FileNotFound, Exception::ParseError))
-	// TODO
-RESULT
-
-CHECK((friend std::ostream& operator << (std::ostream&, const EmpiricalFormula&)))
+CHECK([EXTRA](friend std::ostream& operator << (std::ostream&, const EmpiricalFormula&)))
 	stringstream ss;
 	EmpiricalFormula ef("C2H5");
 	ss << ef;
@@ -274,17 +270,34 @@ CHECK(bool operator == (const String& rhs) const throw(Exception::ParseError))
 RESULT
 
 CHECK(ConstIterator begin() const)
- // TODO
+	EmpiricalFormula ef("C6H12O6");
+	HashMap<String, UInt> formula;
+	formula["C"] = 6;
+	formula["H"] = 12;
+	formula["O"] = 6;
+	for (EmpiricalFormula::ConstIterator it = ef.begin(); it != ef.end(); ++it)
+	{
+		TEST_EQUAL(it->second, formula[it->first->getSymbol()])
+	}
+
 RESULT
 
 CHECK(ConstIterator end() const)
- // TODO
+ // tested above
 RESULT
 
-CHECK(IsotopeDistribution getIsotopeDistribution(UInt max_depth = 20) const)
-	// TODO
+CHECK(IsotopeDistribution getIsotopeDistribution(UInt max_depth) const)
+	EmpiricalFormula ef("C");
+	IsotopeDistribution iso = ef.getIsotopeDistribution(20);
+	double result[] = { 0.9893, 0.0107};
+	UInt i = 0;
+	for (IsotopeDistribution::ConstIterator it = iso.begin(); it != iso.end(); ++it, ++i)
+	{
+		TEST_REAL_EQUAL(it->second, result[i])
+	}
 RESULT
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST
+

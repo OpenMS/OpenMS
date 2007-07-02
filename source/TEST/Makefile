@@ -107,7 +107,6 @@ EXECUTABLES_KERNEL =\
 	DPeak_test\
 	Peak1D_test\
 	Peak2D_test\
-	DPickedPeak_test\
   PickedPeak1D_test\
 	DPeakArray_test\
 	DPeakConstReferenceArray_test\
@@ -145,8 +144,6 @@ ifeq ($(LIBSVM_SUPPORT),true)
 endif
 
 EXECUTABLES_FORMAT = \
-	ControlledVocabulary_test\
-	Schema2CV_test\
 	TextFile_test\
 	$(ANDI_EXECUTABLES_FORMAT)\
 	${LIBSVM_EXECUTABLES_FORMAT}\
@@ -181,9 +178,13 @@ EXECUTABLES_FORMAT = \
 	DBAdapter_test\
 	OMSSAXMLFile_test\
 	OMSSACSVFile_test\
-	XTandemXMLFile_test\
 	MSPFile_test\
-	IdXMLFile_test
+	IdXMLFile_test\
+	XTandemXMLFile_test\
+	Schema2CV_test\
+	ControlledVocabulary_test\
+	XTandemXMLFile_test
+
 
 #MATH
 
@@ -214,7 +215,6 @@ EXECUTABLES_FILTERING = \
 	PreprocessingFunctor_test\
 	NLargest_test\
 	Scaler_test\
-	BernNorm_test\
 	Normalizer_test\
 	ParentPeakMower_test\
 	SqrtMower_test\
@@ -233,26 +233,25 @@ EXECUTABLES_FILTERING = \
 	IsotopeMarker_test\
 	NeutralLossMarker_test\
 	MarkerMower_test\
-	ParentFilter_test\
-	TradSeqQuality_test\
-	PeakPosBins_test\
-	PeakDiffBins_test\
-	IntensityDistBins_test\
-	KellerQuality_test\
 	SavitzkyGolayQRFilter_test\
 	SavitzkyGolaySVDFilter_test\
 	InternalCalibration_test\
 	IDFilter_test\
-	ExternalCalibration_test
-
+	ExternalCalibration_test\
+	ParentFilter_test\
+	TradSeqQuality_test\
+	PeakPosBins_test\
+	BernNorm_test\
+	PeakDiffBins_test\
+	IntensityDistBins_test
 
 
 #COMPARISON
 
 EXECUTABLES_COMPARISON=\
+	ClusterSpectrum_test\
 	SpectrumCheapDPCorr_test\
 	BinnedRep_test\
-	ClusterSpectrum_test\
 	HierarchicalClustering_test\
 	BinnedRepCompareFunctor_test\
 	BinnedRepMutualInformation_test\

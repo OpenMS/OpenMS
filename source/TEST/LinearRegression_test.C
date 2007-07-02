@@ -92,6 +92,27 @@ CHECK((LinearRegression( LinearRegression const & arg )))
   TEST_REAL_EQUAL(linreg_ptr->getXIntercept(),linreg_copy.getXIntercept())
 RESULT
 
+CHECK((LinearRegression& operator=(LinearRegression const &arg)))
+	double ci=0.95;
+  int error = linreg_ptr->computeInterceptXAxisWeighted(ci,x_axis.begin(),x_axis.end(),y_axis.begin(),weight.begin());
+
+ 	LinearRegression<vector<double>::const_iterator> linreg_copy;
+  linreg_copy = (*linreg_ptr);
+
+  TEST_REAL_EQUAL(error,linreg_copy.getStandErrSlope());
+  TEST_REAL_EQUAL(linreg_ptr->getChiSquared(),linreg_copy.getChiSquared())
+  TEST_REAL_EQUAL(linreg_ptr->getIntercept(),linreg_copy.getIntercept())
+  TEST_REAL_EQUAL(linreg_ptr->getLower(),linreg_copy.getLower())
+  TEST_REAL_EQUAL(linreg_ptr->getUpper(),linreg_copy.getUpper())
+  TEST_REAL_EQUAL(linreg_ptr->getSlope(),linreg_copy.getSlope())
+  TEST_REAL_EQUAL(linreg_ptr->getStandDevRes(),linreg_copy.getStandDevRes())
+  TEST_REAL_EQUAL(linreg_ptr->getStandErrSlope(),linreg_copy.getStandErrSlope())
+  TEST_REAL_EQUAL(linreg_ptr->getRSquared(),linreg_copy.getRSquared())
+  TEST_REAL_EQUAL(linreg_ptr->getTValue(),linreg_copy.getTValue())
+  TEST_REAL_EQUAL(linreg_ptr->getXIntercept(),linreg_copy.getXIntercept())
+RESULT
+
+
 
 CHECK((DoubleReal getChiSquared() const))
   TEST_REAL_EQUAL(linreg_ptr->getChiSquared(),0)
@@ -133,15 +154,15 @@ CHECK((DoubleReal getXIntercept() const))
   TEST_REAL_EQUAL(linreg_ptr->getXIntercept(),-2.0)
 RESULT
 
-CHECK((inline DoubleReal getRSD() const))
+CHECK((DoubleReal getRSD() const))
   TEST_REAL_EQUAL(linreg_ptr->getRSD(),0.0)
 RESULT
 
-CHECK(inline DoubleReal getMeanRes() const)
+CHECK((DoubleReal getMeanRes() const))
   TEST_REAL_EQUAL(linreg_ptr->getMeanRes(),0.0)
 RESULT
 
-CHECK((~LinearRegression()))
+CHECK((virtual ~LinearRegression()))
   delete linreg_ptr;
 RESULT
 

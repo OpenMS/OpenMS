@@ -35,7 +35,7 @@
 namespace OpenMS
 {
 /** @brief Class for product models i.e. models with D independent dimensions
-  
+
 	The predicted intensity is simply the product of the intensities in each dimension
 
 	Parameters:
@@ -48,7 +48,9 @@ namespace OpenMS
 	<tr><td>DimensionTags: e.g. RT, MZ</td>
 			<td>model used for the specified dimension including model parameters</td></tr>
 	</table>
-	
+		 
+	@ref ProductModel_Parameters are explained on a separate page.
+
 	@ingroup FeatureFinder
 */
 	template <UInt D>
@@ -67,17 +69,17 @@ namespace OpenMS
 	    	distributions_(D,0)
     {
     	this->setName(this->getProductName());
-    	
+
     	//Register model info
       for (UInt dim=0; dim<D; ++dim)
       {
       	String name = RawDataPoint2D::shortDimensionName(dim);
     		this->subsections_.push_back(name);
-    		this->defaults_.setValue(name,"GaussModel");
+    		this->defaults_.setValue(name,"GaussModel","Name of the model used for this dimension");
     	}
-    	
+
     	//defaults
-      this->defaults_.setValue("intensity_scaling",1.0);
+      this->defaults_.setValue("intensity_scaling",1.0,"Scaling factor used to adjust the model distribution to the intensities of the data");
       this->defaultsToParam_();
     }
 
@@ -112,10 +114,10 @@ namespace OpenMS
     virtual ProductModel& operator = (const ProductModel& source)
     {
     	if (&source == this) return *this;
-    	
+
         BaseModel<D>::operator = (source);
 				scale_ = source.scale_;
-				
+
         for (UInt dim=0; dim<D; ++dim)
         {
           if (source.distributions_[dim])
@@ -126,7 +128,7 @@ namespace OpenMS
           }
       	}
         updateMembers_();
-        
+
         return *this;
     }
 
@@ -166,12 +168,12 @@ namespace OpenMS
     */
     ProductModel& setModel(UInt dim, BaseModel<1>* dist)
     {
-      OPENMS_PRECONDITION(dim<D, "ProductModel<D>:getModel(Position): index overflow!")
+      OPENMS_PRECONDITION(dim<D, "ProductModel<D>:getModel(Position): index overflow!");
       if (dist==0 || dist==distributions_[dim])
       {
       	return *this;
 			}
-			
+
       delete distributions_[dim];
       distributions_[dim] = dist;
 
@@ -186,7 +188,7 @@ namespace OpenMS
 
     BaseModel<1>* getModel(UInt dim) const
     {
-      OPENMS_PRECONDITION(dim<D, "ProductModel<D>:getModel(Position): index overflow!")
+      OPENMS_PRECONDITION(dim<D, "ProductModel<D>:getModel(Position): index overflow!");
       return distributions_[dim];
     }
 

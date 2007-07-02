@@ -40,12 +40,12 @@ START_TEST(ConsensusXMLFile, "$Id$")
 /////////////////////////////////////////////////////////////
 
 ConsensusXMLFile* ptr = 0;
-CHECK(ConsensusXMLFile())
+CHECK((ConsensusXMLFile()))
 	ptr = new ConsensusXMLFile();
 	TEST_NOT_EQUAL(ptr, 0)
 RESULT
 
-CHECK(~ConsensusXMLFile())
+CHECK((~ConsensusXMLFile()))
 	delete ptr;
 RESULT
 
@@ -91,7 +91,7 @@ CHECK((template<typename AlignmentT> void store(const String& filename, const Al
   TEST_FILE(tmp_filename.c_str(),"data/ConsensusXMLFile.xml");
 RESULT
 
-CHECK((template<typename ElementT> void load(const String& filename, ConsensusMap<ElementT>& map) throw(Exception::FileNotFound, Exception::ParseError)))
+CHECK((template <typename ElementT> void load(const String &filename, ConsensusMap< ElementT > &map, bool load_element_maps=true) throw (Exception::FileNotFound, Exception::ParseError)))
   ConsensusMap< ConsensusFeature<FeatureMap<> > > cons_map;
   ConsensusXMLFile cons_file;
   FeatureMap<> feat_map_1;

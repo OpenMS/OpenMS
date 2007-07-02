@@ -120,7 +120,21 @@ CHECK(void addPrecursorPeaks(PeakSpectrum& spec, const AASequence& peptide, Int 
 RESULT
 
 CHECK(void getSpectrum(PeakSpectrum& spec, const AASequence& peptide, Int charge = 1))
-	// TODO
+	PeakSpectrum spec;
+	ptr->getSpectrum(spec, peptide, 1);
+	TEST_EQUAL(spec.size(), 12)
+
+	PRECISION(0.001)
+
+	double result[] = {115.1, 147.113, 204.135, 261.16, 303.203, 348.192, 431.262, 476.251, 518.294, 575.319, 632.341, 665.362};
+	for (unsigned int i = 0; i != spec.size(); ++i)
+	{
+		TEST_REAL_EQUAL(spec.getContainer()[i].getPosition()[0], result[i])
+	}
+
+	spec.clear();
+	ptr->getSpectrum(spec, peptide, 2);
+	TEST_EQUAL(spec.size(), 24)
 RESULT
 
 /////////////////////////////////////////////////////////////

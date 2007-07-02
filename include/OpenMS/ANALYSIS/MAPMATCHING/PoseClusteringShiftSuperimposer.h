@@ -43,17 +43,19 @@ namespace OpenMS
 {
 
   /**
-  @brief Superimposer that uses a voting scheme to find a good translation.
-
-     It works on two element maps (FeatureMap is the default map type, 
-     but you can also use a pointer map like DPeakConstReferenceArray) and 
-     computes a translation, that maps the elements of one map (scene map) 
-     as near as possible to the elements in the other map (model map).
-     A element can be a DPeak, a DFeature, a ConsensusPeak or ConsensusFeature 
-     (wheras DFeature is the default element type).
-     
-     This superimposer hashs all possible shifts and defines the 
-     translation with the most votes as the best one.        
+		@brief Superimposer that uses a voting scheme to find a good translation.
+		
+		It works on two element maps (FeatureMap is the default map type, 
+		but you can also use a pointer map like DPeakConstReferenceArray) and 
+		computes a translation, that maps the elements of one map (scene map) 
+		as near as possible to the elements in the other map (model map).
+		A element can be a DPeak, a DFeature, a ConsensusPeak or ConsensusFeature 
+		(wheras DFeature is the default element type).
+		
+		This superimposer hashs all possible shifts and defines the 
+		translation with the most votes as the best one.  
+		 
+		@ref PoseClusteringShiftSuperimposer_Parameters are explained on a separate page.      
   */
   template < typename MapT = FeatureMap<> >
   class PoseClusteringShiftSuperimposer
@@ -210,46 +212,17 @@ namespace OpenMS
     {
 			setName(getProductName());
 			
-      defaults_.setValue("feature_map:bucket_size:RT",150);
-      defaults_.setValue("feature_map:bucket_size:MZ",4);
-      defaults_.setValue("transformation_space:shift_bucket_size:RT",5);
-      defaults_.setValue("transformation_space:shift_bucket_size:MZ",0.1);
-      defaults_.setValue("feature_map:bucket_window:RT",2);
-      defaults_.setValue("feature_map:bucket_window:MZ",1);
-      defaults_.setValue("transformation_space:bucket_window_shift:RT",2);
-      defaults_.setValue("transformation_space:bucket_window_shift:MZ",1);
+      defaults_.setValue("feature_map:bucket_size:RT",150,"Number of surrounding buckets of element indices to be considered when computing shifts.");
+      defaults_.setValue("feature_map:bucket_size:MZ",4,"Number of surrounding buckets of element indices to be considered when computing shifts.");
+      defaults_.setValue("transformation_space:shift_bucket_size:RT",5,"Defines the shift parameter's bucket size during histograming.");
+      defaults_.setValue("transformation_space:shift_bucket_size:MZ",0.1,"Defines the shift parameter's bucket size during histograming.");
+      defaults_.setValue("feature_map:bucket_window:RT",2,"Number of surrounding buckets of element indices to be considered when computing shifts.");
+      defaults_.setValue("feature_map:bucket_window:MZ",1,"Number of surrounding buckets of element indices to be considered when computing shifts.");
+      defaults_.setValue("transformation_space:bucket_window_shift:RT",2,"Number of surrounding buckets of shift indices to be considered when computing shifts.");
+      defaults_.setValue("transformation_space:bucket_window_shift:MZ",1,"Number of surrounding buckets of shift indices to be considered when computing shifts.");
 			subsections_.push_back("debug");
 			
       defaultsToParam_();
-    }
-
-    /// Copy constructor
-    PoseClusteringShiftSuperimposer(const PoseClusteringShiftSuperimposer& source)
-        : Base(source),
-        element_bucket_(source.element_bucket_),
-        shift_bucket_(source.shift_bucket_),
-        shift_bounding_box_(source.shift_bounding_box_),
-        shift_bounding_box_enlarged_(source.shift_bounding_box_enlarged_)
-    {
-			updateMembers_();
-    }
-
-    ///  Assignment operator
-    PoseClusteringShiftSuperimposer& operator = (const PoseClusteringShiftSuperimposer& source)
-    {
-      if (&source==this) return *this;
-
-      Base::operator=(source);
-      	
-      element_bucket_[0] = source.element_bucket_[0];
-      element_bucket_[1] = source.element_bucket_[1];
-      shift_bucket_ = source.shift_bucket_;
-      shift_bounding_box_ = source.shift_bounding_box_;
-      shift_bounding_box_enlarged_ = source.shift_bounding_box_enlarged_;
- 			
- 			updateMembers_();
- 			
-      return *this;
     }
 
     /// Destructor

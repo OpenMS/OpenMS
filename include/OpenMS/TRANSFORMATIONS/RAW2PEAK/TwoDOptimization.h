@@ -68,11 +68,7 @@ namespace OpenMS
 	
 	typedef std::pair<unsigned int,unsigned int> Idx  ;
 	typedef std::set<Idx> IndexSet;
-	
-  /**
-		 @brief Namespace for all functions and classes needed for 2D optimization.
-	
-	*/
+
   namespace OptimizationFunctions
   {
   
@@ -108,6 +104,8 @@ namespace OpenMS
 		 provided from the GSL is used. The optimized parameters are the m/z values,
 		 the left and right width, which shall be equal for a peak in all scans,
 		 and the peaks' heights.
+		 
+		 @ref TwoDOptimization_Parameters are explained on a separate page.
 
 		 @ingroup PeakPicking
 	*/
@@ -127,9 +125,6 @@ namespace OpenMS
       
 		/// Constructor
 		TwoDOptimization();
-
-		/// Constructor using a Param-object
-		TwoDOptimization(const Param& param);
 
 		/// Copy constructor
 		TwoDOptimization(const TwoDOptimization& opt);
@@ -468,15 +463,13 @@ namespace OpenMS
 
     
 	template < >
-	void TwoDOptimization::
-	optimizeRegions_<MSExperiment<RawDataPoint1D >::const_iterator, PickedPeak1D >
+	void TwoDOptimization::optimizeRegions_<MSExperiment<RawDataPoint1D >::const_iterator, PickedPeak1D >
 	(MSExperiment<RawDataPoint1D >::const_iterator& first,
 	 MSExperiment<RawDataPoint1D >::const_iterator& last,
 	 MSExperiment<PickedPeak1D >& ms_exp);
 
 	template < >
-	void TwoDOptimization::
-	optimizeRegionsScanwise_<MSExperiment<RawDataPoint1D >::const_iterator, PickedPeak1D >
+	void TwoDOptimization::optimizeRegionsScanwise_<MSExperiment<RawDataPoint1D >::const_iterator, PickedPeak1D >
 	(MSExperiment<RawDataPoint1D >::const_iterator& first,
 	 MSExperiment<RawDataPoint1D >::const_iterator& last,
 	 MSExperiment<PickedPeak1D >& ms_exp);

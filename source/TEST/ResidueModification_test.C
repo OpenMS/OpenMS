@@ -37,7 +37,7 @@ using namespace std;
 
 ///////////////////////////
 
-START_TEST(Residue, "$Id: Residue_test.C 1706 2007-03-06 15:38:20Z marc_sturm $")
+START_TEST(Residue, "$Id$")
 
 /////////////////////////////////////////////////////////////
 
@@ -115,19 +115,19 @@ CHECK(const EmpiricalFormula& getAddFormula() const)
 	TEST_EQUAL(mod_add_formula == m_ptr->getAddFormula(), true)
 RESULT
 
-CHECK(void setAddAverageWeight(Real weight))
+CHECK(void setAddAverageWeight(DoubleReal weight))
 	m_ptr->setAddAverageWeight(0.12345);
 RESULT
 
-CHECK(Real getAddAverageWeight() const)
+CHECK(DoubleReal getAddAverageWeight() const)
 	TEST_REAL_EQUAL(m_ptr->getAddAverageWeight(), 0.12345)
 RESULT
 
-CHECK(void setAddMonoWeight(Real weight))
+CHECK(void setAddMonoWeight(DoubleReal weight))
 	m_ptr->setAddMonoWeight(0.54321);
 RESULT
 
-CHECK(Real getAddMonoWeight() const)
+CHECK(DoubleReal getAddMonoWeight() const)
 	TEST_REAL_EQUAL(m_ptr->getAddMonoWeight(), 0.54321)
 RESULT
 
@@ -140,19 +140,19 @@ CHECK(const EmpiricalFormula& getDelFormula() const)
 	TEST_EQUAL(m_ptr->getDelFormula() == mod_del_formula, true)
 RESULT
 
-CHECK(void setDelAverageWeight(Real weight))
+CHECK(void setDelAverageWeight(DoubleReal weight))
 	m_ptr->setDelAverageWeight(0.1234);
 RESULT
 
-CHECK(Real getDelAverageWeight() const)
+CHECK(DoubleReal getDelAverageWeight() const)
 	TEST_REAL_EQUAL(m_ptr->getDelAverageWeight(), 0.1234)
 RESULT
 
-CHECK(void setDelMonoWeight(Real weight))
+CHECK(void setDelMonoWeight(DoubleReal weight))
 	m_ptr->setDelMonoWeight(0.4321);
 RESULT
 
-CHECK(Real getDelMonoWeight() const)
+CHECK(DoubleReal getDelMonoWeight() const)
 	TEST_REAL_EQUAL(m_ptr->getDelMonoWeight(), 0.4321)
 RESULT
 

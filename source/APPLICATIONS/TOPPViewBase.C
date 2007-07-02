@@ -434,7 +434,7 @@ namespace OpenMS
     delete def3;
     defaults_.setDescription("Preferences:3D","Settings for 3D map view.");
 		
-		defaults_.setValue("Preferences:Version","none");
+		defaults_.setValue("Preferences:Version","none","OpenMS version, used to check if the TOPPView.ini is up-to-date");
 		
 		subsections_.push_back("Preferences:RecentFiles");
 		
@@ -1122,22 +1122,23 @@ namespace OpenMS
     	DoubleReal max_rt;
     	DoubleReal min_mz;
     	DoubleReal max_mz;
-		if (dynamic_cast<Spectrum3DCanvas*>(activeWindow_()->canvas())!=0) //3D
-		{
-	    	min_rt = activeWindow_()->canvas()->getVisibleArea().min()[0];
-	    	max_rt = activeWindow_()->canvas()->getVisibleArea().max()[0];
-	    	min_mz = activeWindow_()->canvas()->getVisibleArea().min()[1];
-	    	max_mz = activeWindow_()->canvas()->getVisibleArea().max()[1];
-		}
-		else //1D or 2D
-		{
-	    	min_rt = activeWindow_()->canvas()->getVisibleArea().min()[1];
-	    	max_rt = activeWindow_()->canvas()->getVisibleArea().max()[1];
-	    	min_mz = activeWindow_()->canvas()->getVisibleArea().min()[0];
-	    	max_mz = activeWindow_()->canvas()->getVisibleArea().max()[0];			
-		}
     	
-    	cout << "RT: " << min_rt << "-"  << max_rt << " -- mz: " << min_mz << "-" << max_mz << endl; 
+			if (dynamic_cast<Spectrum3DCanvas*>(activeWindow_()->canvas())!=0) //3D
+			{
+		    	min_rt = activeWindow_()->canvas()->getVisibleArea().min()[0];
+		    	max_rt = activeWindow_()->canvas()->getVisibleArea().max()[0];
+		    	min_mz = activeWindow_()->canvas()->getVisibleArea().min()[1];
+		    	max_mz = activeWindow_()->canvas()->getVisibleArea().max()[1];
+			}
+			else //1D or 2D
+			{
+		    	min_rt = activeWindow_()->canvas()->getVisibleArea().min()[1];
+		    	max_rt = activeWindow_()->canvas()->getVisibleArea().max()[1];
+		    	min_mz = activeWindow_()->canvas()->getVisibleArea().min()[0];
+		    	max_mz = activeWindow_()->canvas()->getVisibleArea().max()[0];			
+			}
+    	
+    	//cout << "RT: " << min_rt << "-"  << max_rt << " -- mz: " << min_mz << "-" << max_mz << endl; 
     	
     	if (layer.type==LayerData::DT_PEAK)
     	{
@@ -1882,7 +1883,8 @@ namespace OpenMS
 		QDialog dialog(this);
 		QGridLayout* layout = new QGridLayout(&dialog);
 		//Editor
-		ParamEditor* edit = new ParamEditor(&dialog);		
+		ParamEditor* edit = new ParamEditor(&dialog);
+		edit->createShortcuts();
 		layout->addWidget(edit,0,0,1,3);
 		//Stretch
 		layout->setColumnStretch(0,2);

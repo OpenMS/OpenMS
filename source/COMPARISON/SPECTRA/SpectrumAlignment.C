@@ -26,7 +26,6 @@
 //
 
 #include <OpenMS/COMPARISON/SPECTRA/SpectrumAlignment.h>
-//#include <OpenMS/DATASTRUCTURES/HashMap.h>
 #include <cmath>
 #include <limits>
 #include <map>
@@ -41,7 +40,7 @@ namespace OpenMS
   SpectrumAlignment::SpectrumAlignment()
 		: FactoryProduct(SpectrumAlignment::getProductName())
   {
-		defaults_.setValue("epsilon", 0.3);
+		defaults_.setValue("epsilon", 0.3, "Defines the absolut error of the mass spectrometer");
 		defaultsToParam_();
   }
 
@@ -234,7 +233,7 @@ namespace OpenMS
 		UInt i = last_i;
 		UInt j = last_j;
 
-		while (i > 1 && j > 1)
+		while (i >= 1 && j >= 1)
 		{
 			if (traceback[i][j].first == i - 1 && traceback[i][j].second == j - 1)
 			{

@@ -36,11 +36,11 @@ namespace OpenMS
 	PILISScoring::PILISScoring()
 		:	DefaultParamHandler("PILISScoring")
 	{
-		defaults_.setValue("use_local_scoring", 1);
-		defaults_.setValue("survival_function_bin_size", 20);
-		defaults_.setValue("global_linear_fitting_threshold", 0.1);
-		defaults_.setValue("local_linear_fitting_threshold", 0.5);
-		defaults_.setValue("score_default_value", 10e10);
+		defaults_.setValue("use_local_scoring", 1, "If set to 1, a E-Value of an identification run of one spectrum is used additionally");
+		defaults_.setValue("survival_function_bin_size", 20, "Bin size of the survival function");
+		defaults_.setValue("global_linear_fitting_threshold", 0.1, "Fitting threshold of the survival function of the global E-Value calculation");
+		defaults_.setValue("local_linear_fitting_threshold", 0.5, "Fitting threshold of the survival function of the local E-Value calculation");
+		defaults_.setValue("score_default_value", 10e10, "If no score can be assigned use this one");
 		defaultsToParam_();
 	}
 
@@ -103,6 +103,10 @@ namespace OpenMS
   	vector<double> global_scores;
   	for (vector<PeptideIdentification>::const_iterator it = ids.begin(); it != ids.end(); ++it)
   	{
+			if (it->getHits().size() == 0)
+			{
+				break;
+			}
     	vector<PeptideHit>::const_iterator it1 = it->getHits().begin();
     	for (++it1; it1 != it->getHits().end(); ++it1)
     	{

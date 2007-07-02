@@ -21,11 +21,11 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Stefan Rink $
+// $Maintainer: Marc Sturm $
 // --------------------------------------------------------------------------
 
-#ifndef INIFILEEDITORWINDOW_H
-#define INIFILEEDITORWINDOW_H
+#ifndef OPENMS_APPLICATIONS_INIFILEEDITORWINDOW_H
+#define OPENMS_APPLICATIONS_INIFILEEDITORWINDOW_H
 
 #include <OpenMS/VISUAL/ParamEditor.h>
 #include <OpenMS/FORMAT/Param.h>
@@ -74,4 +74,4 @@ namespace OpenMS
 	};
 }
 
-#endif
+#endif //OPENMS_APPLICATIONS_INIFILEEDITORWINDOW_H

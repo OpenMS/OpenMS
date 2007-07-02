@@ -111,7 +111,7 @@ namespace OpenMS
           x_intercept_ = arg.x_intercept_;
           lower_ = arg.lower_;
           upper_ = arg.upper_;
-          t_star_ = arg.t_star;
+          t_star_ = arg.t_star_;
           r_squared_ = arg.r_squared_;
           stand_dev_residuals_ = arg.stand_dev_residuals_;
 					mean_residuals_  = arg.mean_residuals_;

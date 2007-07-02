@@ -55,11 +55,11 @@ RESULT
 IsotopeDistribution dist;
 String name("Name"), symbol("Symbol");
 UInt atomic_number(43);
-Real average_weight(0.12345);
-Real mono_weight(0.123456789);
+DoubleReal average_weight(0.12345);
+DoubleReal mono_weight(0.123456789);
 
 e_ptr = 0;
-CHECK((Element(const String& name, const String& symbol, UInt atomic_number, Real average_weight, Real mono_weight, const IsotopeDistribution& isotopes)))
+CHECK((Element(const String& name, const String& symbol, UInt atomic_number, DoubleReal average_weight, DoubleReal mono_weight, const IsotopeDistribution& isotopes)))
 	e_ptr = new Element(name, symbol, atomic_number, average_weight, mono_weight, dist);	
 	TEST_NOT_EQUAL(e_ptr, 0)
 RESULT
@@ -104,19 +104,19 @@ CHECK((const IsotopeDistribution& getIsotopeDistribution() const))
 	TEST_EQUAL(e_ptr->getIsotopeDistribution() == dist, true)
 RESULT
 
-CHECK(void setAverageWeight(Real weight))
+CHECK(void setAverageWeight(DoubleReal weight))
 	e_ptr->setAverageWeight(average_weight);
 RESULT
 
-CHECK(Real getAverageWeight() const)
+CHECK(DoubleReal getAverageWeight() const)
 	TEST_REAL_EQUAL(e_ptr->getAverageWeight(), average_weight)
 RESULT
 
-CHECK(void setMonoWeight(Real weight))
+CHECK(void setMonoWeight(DoubleReal weight))
 	e_ptr->setMonoWeight(2.333);
 RESULT
 
-CHECK(Real getMonoWeight() const)
+CHECK(DoubleReal getMonoWeight() const)
 	TEST_REAL_EQUAL(e_ptr->getMonoWeight(), 2.333)
 RESULT
 
@@ -137,10 +137,6 @@ CHECK(bool operator == (const Element& element) const)
 	TEST_EQUAL(e == *e_ptr, true)
 	e.setAverageWeight(0.54321);
 	TEST_EQUAL(e == *e_ptr, false)
-RESULT
-
-CHECK(friend std::ostream& operator << (std::ostream& os, const Element& element))
-	// ???
 RESULT
 
 /////////////////////////////////////////////////////////////

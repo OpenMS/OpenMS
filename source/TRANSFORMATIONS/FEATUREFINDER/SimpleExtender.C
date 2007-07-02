@@ -37,20 +37,24 @@ namespace OpenMS
 	{
     setName(getProductName());
     
-    defaults_.setValue("tolerance_rt",2.0f);
-    defaults_.setValue("tolerance_mz",0.5f);
+    defaults_.setValue("tolerance_rt",2.0f,"Boundary width in RT dimension (used for local extension of the region)");
+    defaults_.setValue("tolerance_mz",0.5f,"Boundary width in m/z dimension (used for local extension of the region)");
 		
-    defaults_.setValue("dist_mz_up",6.0f);
-    defaults_.setValue("dist_mz_down",2.0f);
-    defaults_.setValue("dist_rt_up",5.0f);
-    defaults_.setValue("dist_rt_down",5.0f);
+    defaults_.setValue("dist_mz_up",6.0f,"maximum high m/z distance of peak in the region/boundary from the seed");
+    defaults_.setValue("dist_mz_down",2.0f,"maximum low m/z distance of peak in the region/boundary from the seed");
+    defaults_.setValue("dist_rt_up",5.0f,"maximum high RT distance of peak in the region/boundary from the seed");
+    defaults_.setValue("dist_rt_down",5.0f,"maximum low RT distance of peak in the region/boundary from the seed");
     
 		// priority check is per default switched off
 		// these values were used for the Myoglobin quantification project
 		// DON'T REMOVE THIS
-		defaults_.setValue("priority_thr",-0.1f);
+		defaults_.setValue("priority_thr",-0.1f,"Minimum priority for data points to be included into the boundary of the feature (default 0.0)"
+																						"The priority of a data point is a function of its intensity and its distance to the last point"
+																						"included into the feature region. Setting this threshold to zero or a very small value is"
+																						"usually a good idea.");
     
-		defaults_.setValue("intensity_factor",0.03f);
+		defaults_.setValue("intensity_factor",0.03f,"Influences for intensity (ion count) threshold in the feature extension. We include only raw data"
+																								"points into this region if their intensity is larger than [intensity_factor * (intensity of the seed)].");
 
     defaultsToParam_();
 	}

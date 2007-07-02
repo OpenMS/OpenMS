@@ -114,33 +114,6 @@ namespace OpenMS
       transformation_[RawDataPoint2D::MZ].setIntercept(0);
     }
 
-    /// Copy constructor
-    BasePairFinder(const BasePairFinder& source)
-        : FactoryProduct(source),
-        element_pairs_(source.element_pairs_)
-    {
-      element_map_[MODEL] = source.element_map_[MODEL];
-      element_map_[SCENE] = source.element_map_[SCENE];
-      transformation_[RawDataPoint2D::RT] = source.transformation_[RawDataPoint2D::RT];
-      transformation_[RawDataPoint2D::MZ] = source.transformation_[RawDataPoint2D::MZ];
-    }
-
-    ///  Assignment operator
-    BasePairFinder& operator = (const BasePairFinder& source)
-    {
-      if (&source==this) return *this;
-
-      FactoryProduct::operator = (source);
-      
-      element_map_[MODEL] = source.element_map_[MODEL];
-      element_map_[SCENE] = source.element_map_[SCENE];
-      element_pairs_ = source.element_pairs_;
-      transformation_[RawDataPoint2D::RT] = source.transformation_[RawDataPoint2D::RT];
-      transformation_[RawDataPoint2D::MZ] = source.transformation_[RawDataPoint2D::MZ];
-      
-      return *this;
-    }
-
     /// Destructor
     virtual ~BasePairFinder()
 		{

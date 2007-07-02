@@ -68,8 +68,7 @@ CHECK(PILISModel& operator = (const PILISModel& mode))
 	TEST_EQUAL(copy.getParameters(), ptr->getParameters())
 RESULT
 
-CHECK(void writetoYGFFile(const String& filename))
-	// TODO
+CHECK(void writeGraphMLFile(const String& filename))
 RESULT
 
 CHECK(void readFromFile(const String& filename))

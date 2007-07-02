@@ -34,15 +34,15 @@
 
 namespace OpenMS
 {
-  /** @brief Abstract base class to calculate quality for Modelfitting
+  /**
+  	@brief Abstract base class to calculate quality for Modelfitting
     
-  	 Abstract base class to calculate quality for Modelfitting
-      every derived class has to implement the static functions
-      "T* create()" and "const String getProductName()" (see FactoryProduct for details)
+  	Abstract base class to calculate quality for Modelfitting
+    every derived class has to implement the static functions
+    "T* create()" and "const String getProductName()" (see FactoryProduct for details)
       
-      @ingroup FeatureFinder
-      
-   */
+    @ingroup FeatureFinder    
+  */
   class BaseQuality: public FeaFiModule
   {
 	  public:

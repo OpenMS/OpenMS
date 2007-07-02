@@ -52,7 +52,8 @@ namespace OpenMS
 		margin_(0),
 		legend_(legend),
 		tick_level_(3),
-		pen_width_(0)
+		pen_width_(0),
+		allow_short_numbers_(false)
 	{		
 		if (!(alignment==RIGHT || alignment==LEFT || alignment==BOTTOM || alignment==TOP))
 		{

@@ -47,7 +47,7 @@ using namespace std;
 	@brief Filters Filters ProteinIdentification engine results by different criteria.
 	
 	This tool is used to filter the identifications found by
-	an ProteinIdentification tool like Mascot&copy;. The identifications 
+	a peptide/protein identification tool like Mascot&copy;. The identifications 
 	can be filtered by different criteria.
 	
 	<ul>
@@ -65,6 +65,14 @@ using namespace std;
 			fraction parameter. The only difference is that it is used
 			to filter protein hits.
 		</li>
+		<li> 
+			<b>peptide score</b>:<br> This parameter 
+			specifies which score a peptide should have to be kept.
+		</li> 
+		<li> 
+			<b>protein score</b>:<br> This parameter 
+			specifies which score a protein should have to be kept.
+		</li>
 		<li>
 			<b>peptide seqences</b>:<br> If you know which proteins
 			are in the measured sample you can specify a FASTA file 
@@ -73,15 +81,9 @@ using namespace std;
 			in the sequences file will be filtered out. 
 		</li>
 		<li>
-			<b>predicted retention time</b>:<br> To filter identifications according to their 
-			predicted retention times you have to set two parameters:<br>  
-			The total number of seconds that the gradient ran. (The model is learnt for normalized retention times and the 
-			sigma that is calculated and stored in the IdXMLFile corresponds to these normalized retention times.) 
-			The maximum allowed deviation from the original
-			retention time using the laplace error model that is learnt for confidently assigned peptides in RTModel. 
-			It serves as a scaling of standard 
-			deviations that are allowed for the predicted retention times. If set to 1 this means that one standard 
-			deviation unit is allowed. 
+			<b>rt_filtering</b>:<br> To filter identifications according to their 
+			predicted retention times you have to set this flag. You can set the used significance level
+			by setting the 'p_value' parameter.<br>  
 			This filter can only be applied to IdXML files produced by RTPredict.
 		</li>
 		<li>
@@ -94,9 +96,13 @@ using namespace std;
 			If there is more than one hit for a spectrum with the maximal score then
 			none of the hits will be kept.
 		</li>
+		<li>
+			<b>best_n_peptide_hits</b>:<br> Only the best n peptide hits of a spectrum are kept.
+		</li>
+		<li>
+			<b>best_n_protein_hits</b>:<br> Only the best n protein hits of a spectrum are kept.
+		</li>
 	</ul>
-	
-	@todo make filtering by absulote score and top x hits possible (Nico)
 */
 
 // We do not want this class to show up in the docu:
@@ -108,7 +114,7 @@ class TOPPIDFilter
 {
  public:
 	TOPPIDFilter()
-		: TOPPBase("IDFilter","filters ProteinIdentification engine results by different criteria")
+		: TOPPBase("IDFilter","filters protein/peptide identification engine results by different criteria")
 	{
 		
 	}
@@ -123,10 +129,12 @@ class TOPPIDFilter
 		registerStringOption_("exclusion_peptides_file","<file>","","An IdXML file. Peptides having the same sequence as any peptide in this file will be filtered out",false);
 		registerDoubleOption_("pep_fraction","<fraction>",0.0,"the fraction of the peptide significance threshold that should be reached by a peptide hit",false);	
 		registerDoubleOption_("prot_fraction","<fraction>",0.0,"the fraction of the protein significance threshold that should be reached by a protein hit",false);
-		registerDoubleOption_("pep_score","<score>",numeric_limits<int>::max(),"the score which should be reached by a peptide hit to be kept",false);	
-		registerDoubleOption_("prot_score","<score>",numeric_limits<int>::max(),"the score which should be reached by a protein hit to be kept",false);
+		registerDoubleOption_("pep_score","<score>", 0,"the score which should be reached by a peptide hit to be kept",false);	
+		registerDoubleOption_("prot_score","<score>", 0,"the score which should be reached by a protein hit to be kept",false);
 		registerDoubleOption_("p_value","<significance>",0.05,"The probability of a correct ProteinIdentification having a deviation between observed and predicted rt equal or bigger than allowed",false);	
-		registerFlag_("best_hits","If this flag is set only the highest scoring hit is kept.\n"
+		registerIntOption_("best_n_peptide_hits","<score>", 0, "If this value is set only the n highest scoring peptide hits are kept.", false);
+		registerIntOption_("best_n_protein_hits","<score>", 0, "If this value is set only the n highest scoring protein hits are kept.", false);
+		registerFlag_("best_hits", "If this flag is set only the highest scoring hit is kept.\n"
 															"If there are two or more highest scoring hits, none are kept.");
 		registerFlag_("rt_filtering","If this flag is set rt filtering will be pursued.");
 	}
@@ -153,6 +161,7 @@ class TOPPIDFilter
 		bool rt_filtering = false;
 		DoubleReal p_value = 0.05;
 		
+		
 		//-------------------------------------------------------------
 		// parsing parameters
 		//-------------------------------------------------------------
@@ -167,6 +176,9 @@ class TOPPIDFilter
 		DoubleReal protein_significance_threshold_fraction = getDoubleOption_("prot_fraction");
 		DoubleReal peptide_threshold_score = getDoubleOption_("pep_score");
 		DoubleReal protein_threshold_score = getDoubleOption_("prot_score");
+		
+		Int best_n_peptide_hits = getIntOption_("best_n_peptide_hits");
+		Int best_n_protein_hits = getIntOption_("best_n_protein_hits");
 		
 		String sequences_file_name = getStringOption_("sequences_file");
 		if (sequences_file_name!="")
@@ -255,10 +267,16 @@ class TOPPIDFilter
 				filter.filterIdentificationsByBestHits(temp_identification, filtered_identification, strict); 				
 			}
 			
-			if (peptide_threshold_score != numeric_limits<int>::max())
+			if (setByUser_("pep_score"))
 			{
 				PeptideIdentification temp_identification = filtered_identification;
 				filter.filterIdentificationsByScore(temp_identification, peptide_threshold_score, filtered_identification); 				
+			}
+
+			if (setByUser_("best_n_peptide_hits"))
+			{
+				PeptideIdentification temp_identification = filtered_identification;
+				filter.filterIdentificationsByBestNHits(temp_identification, best_n_peptide_hits, filtered_identification); 				
 			}
 
 			if(!filtered_identification.getHits().empty())
@@ -289,10 +307,16 @@ class TOPPIDFilter
 				filter.filterIdentificationsByProteins(temp_identification, sequences, filtered_protein_identification);
 			}
 
-			if (protein_threshold_score != numeric_limits<int>::max())
+			if (setByUser_("prot_score"))
 			{
 				ProteinIdentification temp_identification = filtered_protein_identification;
 				filter.filterIdentificationsByScore(temp_identification, protein_threshold_score, filtered_protein_identification); 				
+			}
+
+			if (setByUser_("best_n_protein_hits"))
+			{
+				ProteinIdentification temp_identification = filtered_protein_identification;
+				filter.filterIdentificationsByBestNHits(temp_identification, best_n_protein_hits, filtered_protein_identification); 				
 			}
 
 			if(!(filtered_protein_identification.getHits().empty()))

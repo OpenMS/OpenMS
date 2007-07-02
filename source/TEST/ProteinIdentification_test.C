@@ -63,12 +63,12 @@ CHECK((ProteinIdentification()))
 	TEST_NOT_EQUAL(ptr, 0)
 RESULT
 
-CHECK((~Identification()))
+CHECK((virtual ~ProteinIdentification()))
 	ProteinIdentification hits;
 	delete ptr;
 RESULT
 
-CHECK((Identification(const ProteinIdentification& source)))
+CHECK((ProteinIdentification(const ProteinIdentification &source)))
 	ProteinIdentification hits;
 	hits.setDateTime(date);
 	hits.setSignificanceThreshold(protein_significance_threshold);
@@ -181,12 +181,6 @@ CHECK((bool operator != (const ProteinIdentification& rhs) const))
 	//rest does not need to be tested, as it is tested in the operator== test implicitly!
 RESULT
 
-CHECK((DateTime& getDateTime()))
-	ProteinIdentification hits;
-	hits.setDateTime(date);
-	TEST_EQUAL(hits.getDateTime() == date, true)  
-RESULT
-
 CHECK((const DateTime& getDateTime() const))
 	ProteinIdentification hits;
 	hits.setDateTime(date);
@@ -194,7 +188,7 @@ CHECK((const DateTime& getDateTime() const))
 	TEST_EQUAL(date_time == date, true)  
 RESULT
 
-CHECK((float getSignificanceThreshold() const))
+CHECK((Real getSignificanceThreshold() const))
 	ProteinIdentification hits;
 	hits.setSignificanceThreshold(protein_significance_threshold);
 	TEST_EQUAL(hits.getSignificanceThreshold(), protein_significance_threshold)	
@@ -220,13 +214,13 @@ CHECK((void setDateTime(const DateTime& date)))
 	TEST_EQUAL(hits.getDateTime() == date, true)
 RESULT
 
-CHECK((void setSignificanceThreshold(float value)))
+CHECK((void setSignificanceThreshold(Real value)))
 	ProteinIdentification hits;
 	hits.setSignificanceThreshold(protein_significance_threshold);
 	TEST_EQUAL(hits.getSignificanceThreshold(), protein_significance_threshold)
 RESULT
 
-CHECK((void setHits(const std::vector<ProteinHit>& protein_hits)))
+CHECK((void setHits(const std::vector< ProteinHit > &hits)))
 	ProteinHit hit_1;
 	ProteinHit hit_2;
 	ProteinHit hit_3;
@@ -248,67 +242,67 @@ CHECK((void setHits(const std::vector<ProteinHit>& protein_hits)))
 	TEST_EQUAL(id.getHits()[1].getAccession(), "THIRDPROTEIN")
 RESULT
 
-CHECK(String getScoreType() const)
+CHECK((const String& getScoreType() const))
 	ProteinIdentification hits;
 	TEST_EQUAL(hits.getScoreType(),"")
 RESULT
 
-CHECK(void setScoreType(const String& type))
+CHECK((void setScoreType(const String& type)))
 	ProteinIdentification hits;
 	hits.setScoreType("bla");
 	TEST_EQUAL(hits.getScoreType(),"bla")
 RESULT
 
-CHECK(bool isHigherScoreBetter() const)
+CHECK((bool isHigherScoreBetter() const))
 	ProteinIdentification hits;
 	TEST_EQUAL(hits.isHigherScoreBetter(),true)
 RESULT
 
-CHECK(void setHigherScoreBetter(bool value))
+CHECK((void setHigherScoreBetter(bool higher_is_better)))
 	ProteinIdentification hits;
 	hits.setHigherScoreBetter(false);
 	TEST_EQUAL(hits.isHigherScoreBetter(),false)
 RESULT
 
-CHECK(const String& getIdentifier() const)
+CHECK((const String& getIdentifier() const))
 	ProteinIdentification hits;
 	TEST_EQUAL(hits.getIdentifier(),"")
 RESULT
 
-CHECK(void setIdentifier(const String& id))
+CHECK((void setIdentifier(const String& id)))
 	ProteinIdentification hits;
 	hits.setIdentifier("bla");
 	TEST_EQUAL(hits.getIdentifier(),"bla")
 RESULT
 
-CHECK(const String& getSearchEngine() const)
+CHECK((const String& getSearchEngine() const))
 	ProteinIdentification hits;
 	TEST_EQUAL(hits.getSearchEngine(),"")
 RESULT
 
-CHECK(void setSearchEngine(const String& id))
+CHECK((void setSearchEngine(const String &search_engine)))
 	ProteinIdentification hits;
 	hits.setIdentifier("bla");
 	TEST_EQUAL(hits.getIdentifier(),"bla")
 RESULT
 
-CHECK(const String& getSearchEngineVersion() const)
+CHECK((const String& getSearchEngineVersion() const))
 	ProteinIdentification hits;
 	TEST_EQUAL(hits.getSearchEngineVersion(),"")
 RESULT
 
-CHECK(void setSearchEngineVersion(const String& id))
+CHECK((void setSearchEngineVersion(const String &search_engine_version)))
 	ProteinIdentification hits;
 	hits.setSearchEngineVersion("bla");
 	TEST_EQUAL(hits.getSearchEngineVersion(),"bla")
 RESULT
 
-CHECK(const String& getSearchParameters() const)
+CHECK((const SearchParameters& getSearchParameters() const))
 	ProteinIdentification hits;
 	TEST_EQUAL(hits.getSearchParameters()==ProteinIdentification::SearchParameters(),true)
 RESULT
 
-CHECK(void setSearchParameters(const String& id))
+CHECK((void setSearchParameters(const SearchParameters &search_parameters)))
 	ProteinIdentification hits;
 	ProteinIdentification::SearchParameters param;
 	param.db="Mascot";

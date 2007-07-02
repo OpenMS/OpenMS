@@ -99,29 +99,8 @@ CHECK((TwoDOptimization(const TwoDOptimization& opt)))
   TEST_REAL_EQUAL(rel_err, 0.001)
 RESULT
 
-CHECK((TwoDOptimization(const Param& param)))
-  PRECISION(0.0001)
-  String file = "data/TwoDOptimization.xml";	
-  Param param;
-	param.load(file);
 
-
-  TwoDOptimization opt_2d(param);
-  TEST_REAL_EQUAL(opt_2d.getPenalties().pos,10)
-  TEST_REAL_EQUAL(opt_2d.getPenalties().lWidth,0)
-	TEST_REAL_EQUAL(opt_2d.getPenalties().rWidth,0)
-  TEST_REAL_EQUAL(opt_2d.getPenalties().height,1)		
- 	TEST_EQUAL(20 == opt_2d.getMaxIterations(), true)
- 	TEST_REAL_EQUAL( opt_2d.getMaxAbsError(),0.001)
- 	TEST_REAL_EQUAL(opt_2d.getMaxRelError(),0.002)
-	TEST_REAL_EQUAL(opt_2d.getMZTolerance(),0.2)
-	TEST_REAL_EQUAL(opt_2d.getMaxPeakDistance(),1)			
-RESULT
-
-CHECK(( template <typename InputSpectrumIterator,typename OutputPeakType>
-			 void twoDOptimize(InputSpectrumIterator& first,
-												 InputSpectrumIterator& last,
-												 MSExperiment< OutputPeakType >& ms_exp)   ))
+CHECK(( template <typename InputSpectrumIterator,typename OutputPeakType>  void twoDOptimize(InputSpectrumIterator& first,InputSpectrumIterator& last,MSExperiment< OutputPeakType >& ms_exp,bool real2D=true)))
   MSSpectrum<PickedPeak1D > peaks;
 	
 	PickedPeak1D peak;
@@ -160,7 +139,8 @@ CHECK(( template <typename InputSpectrumIterator,typename OutputPeakType>
   Param param;
 	param.load(file);
 
- 	TwoDOptimization opt_2d(param);
+ 	TwoDOptimization opt_2d;
+ 	opt_2d.setParameters(param);
   MSExperiment<RawDataPoint1D >::const_iterator first,last;
   first = raw_exp.begin();
   last = raw_exp.end();
@@ -191,7 +171,27 @@ CHECK((void setMaxRelError(double eps_rel)))
     
  	TEST_REAL_EQUAL(rel_err, opt_2d.getMaxRelError())
 RESULT
+	
+CHECK((DoubleReal getMaxAbsError() const))
+  PRECISION(0.0001)
+  double abs_err = 0.01;
+   
+  TwoDOptimization opt_2d;
+  opt_2d.setMaxAbsError(abs_err);
+    
+ 	TEST_REAL_EQUAL(abs_err, opt_2d.getMaxAbsError())
+RESULT
 
+CHECK((DoubleReal getMaxRelError() const))
+  PRECISION(0.0001)
+  double rel_err = 0.01;
+   
+  TwoDOptimization opt_2d;
+  opt_2d.setMaxRelError(rel_err);
+    
+ 	TEST_REAL_EQUAL(rel_err, opt_2d.getMaxRelError())
+RESULT
+	
 CHECK((void setMaxPeakDistance(double max_peak_distance)))
   PRECISION(0.0001)
   double max_peak_distance = 0.01;
@@ -202,7 +202,19 @@ CHECK((void setMaxPeakDistance(double max_peak_distance)))
  	TEST_REAL_EQUAL(max_peak_distance, opt_2d.getMaxPeakDistance())
 RESULT
 
-CHECK((void setMZTolerance(double mz_tolerance)))
+CHECK((DoubleReal getMaxPeakDistance() const))
+  PRECISION(0.0001)
+  double max_peak_distance = 0.01;
+   
+  TwoDOptimization opt_2d;
+  opt_2d.setMaxPeakDistance(max_peak_distance);
+    
+ 	TEST_REAL_EQUAL(max_peak_distance, opt_2d.getMaxPeakDistance())
+RESULT
+
+
+
+CHECK((void setMZTolerance(double tolerance_mz)))
   PRECISION(0.0001)
   double mz_tolerance = 0.01;
    
@@ -211,8 +223,18 @@ CHECK((void setMZTolerance(double mz_tolerance)))
     
  	TEST_REAL_EQUAL(mz_tolerance, opt_2d.getMZTolerance())
 RESULT
-			
-CHECK((void setMaxIterations(const int max_iteration)))
+
+CHECK((DoubleReal getMZTolerance() const))
+  PRECISION(0.0001)
+  double mz_tolerance = 0.01;
+   
+  TwoDOptimization opt_2d;
+  opt_2d.setMZTolerance(mz_tolerance);
+    
+ 	TEST_REAL_EQUAL(mz_tolerance, opt_2d.getMZTolerance())
+RESULT
+
+CHECK((void setMaxIterations(int max_iteration)))
   int number = 20;
    
   TwoDOptimization opt_2d;
@@ -221,9 +243,17 @@ CHECK((void setMaxIterations(const int max_iteration)))
  	TEST_EQUAL(number == opt_2d.getMaxIterations(), true)
 RESULT
 
+CHECK((Int getMaxIterations() const))
+  int number = 20;
+   
+  TwoDOptimization opt_2d;
+  opt_2d.setMaxIterations(number);
+    
+ 	TEST_EQUAL(number == opt_2d.getMaxIterations(), true)
+RESULT
 
 	
-CHECK((void setPenalties(const struct OptimizationFunctions::PenaltyFactorsIntensity& penalties)))
+CHECK((void setPenalties(OptimizationFunctions::PenaltyFactorsIntensity& penalties)))
   PRECISION(0.0001)
   struct OptimizationFunctions::PenaltyFactorsIntensity penalties;
   penalties.pos = 0;
@@ -239,7 +269,21 @@ CHECK((void setPenalties(const struct OptimizationFunctions::PenaltyFactorsInten
 	TEST_REAL_EQUAL(penalties.height,opt_2d.getPenalties().height)
 RESULT
 
-	
+CHECK((const OptimizationFunctions::PenaltyFactorsIntensity& getPenalties() const))
+  PRECISION(0.0001)
+  struct OptimizationFunctions::PenaltyFactorsIntensity penalties;
+  penalties.pos = 0;
+  penalties.lWidth = 1;
+  penalties.rWidth = 2;
+  penalties.height = 3;
+
+  TwoDOptimization opt_2d;
+  opt_2d.setPenalties(penalties);
+  TEST_REAL_EQUAL(penalties.pos,opt_2d.getPenalties().pos)
+  TEST_REAL_EQUAL(penalties.lWidth,opt_2d.getPenalties().lWidth)
+  TEST_REAL_EQUAL(penalties.rWidth,opt_2d.getPenalties().rWidth)
+	TEST_REAL_EQUAL(penalties.height,opt_2d.getPenalties().height)
+RESULT
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

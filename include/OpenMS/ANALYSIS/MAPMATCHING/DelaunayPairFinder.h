@@ -42,25 +42,27 @@ namespace OpenMS
 {
 
   /**
-     @brief This class implements an element pair finding algorithm.
-
-     This class implements a point pair finding algorithm.
-     It offers a method to determine element pairs in two element maps,
-     given two point maps and a transformation defined for the second element map (if no
-     transformation is given, the pairs are found in the two original maps). 
-     The pair finder also offers a method to compute consensus elements given 
-     two element maps. This algorithm is similar to the pair finding method as mentioned above,
-     but it implies that the scene map is already dewarped.
-           
-     To speed up the search for element pairs an consensus elements, the DelaunayPairFinder
-     uses the CGAL delaunay triangulation for the nearest neighbour search.
-
-     The first template parameter is the type of the consensus map and the second parameter is the type of the element maps.
-     
-     @note The RT and the MZ dimension are not equivalent, because two elements that differ in RT by 1s (or minute) are 
-     more similar than two points that differ in MZ by 1Th. To be able to use the euclidean distance in the nearest neighbour search, 
-     we have to transform the elements MZ position m into a new MZ position m'= m / (diff_intercept_RT/diff_intercept_MZ).
-     E.g. given diff_intercept_RT=1 and diff_intercept_MZ=0.1 results in 1s difference in RT is similar to 0.1Th difference in MZ.
+		@brief This class implements an element pair finding algorithm.
+		
+		This class implements a point pair finding algorithm.
+		It offers a method to determine element pairs in two element maps,
+		given two point maps and a transformation defined for the second element map (if no
+		transformation is given, the pairs are found in the two original maps). 
+		The pair finder also offers a method to compute consensus elements given 
+		two element maps. This algorithm is similar to the pair finding method as mentioned above,
+		but it implies that the scene map is already dewarped.
+		     
+		To speed up the search for element pairs an consensus elements, the DelaunayPairFinder
+		uses the CGAL delaunay triangulation for the nearest neighbour search.
+		
+		The first template parameter is the type of the consensus map and the second parameter is the type of the element maps.
+		
+		@note The RT and the MZ dimension are not equivalent, because two elements that differ in RT by 1s (or minute) are 
+		more similar than two points that differ in MZ by 1Th. To be able to use the euclidean distance in the nearest neighbour search, 
+		we have to transform the elements MZ position m into a new MZ position m'= m / (diff_intercept_RT/diff_intercept_MZ).
+		E.g. given diff_intercept_RT=1 and diff_intercept_MZ=0.1 results in 1s difference in RT is similar to 0.1Th difference in MZ.
+		 
+		@ref DelaunayPairFinder_Parameters are explained on a separate page.  
   */
   template < typename ConsensusMapT = FeatureMap< Feature >, typename ElementMapT = FeatureMap< > >
   class DelaunayPairFinder
@@ -97,40 +99,22 @@ namespace OpenMS
     DelaunayPairFinder()
         : Base()
     {
+    	//set the name for DefaultParamHandler error messages
       setName(getProductName());
 
-      defaults_.setValue("similarity:max_pair_distance:RT",3);
-      defaults_.setValue("similarity:max_pair_distance:MZ",0.1);
-      defaults_.setValue("similarity:precision:RT",20);
-      defaults_.setValue("similarity:precision:MZ",0.5);
-      defaults_.setValue("similarity:diff_intercept:RT",1);
-      defaults_.setValue("similarity:diff_intercept:MZ",0.1);
+      defaults_.setValue("similarity:max_pair_distance:RT",20,"Maximum distance in RT dimension");
+      defaults_.setValue("similarity:max_pair_distance:MZ",1,"Maximum distance in m/z dimension");
+      defaults_.setValue("similarity:precision:RT",60,"The precision of the element's retention time position.");
+      defaults_.setValue("similarity:precision:MZ",0.5,"The precision of the element's m/z position.");
+      defaults_.setValue("similarity:diff_intercept:RT",1,"Factor for RT position used to balance the influence of RT and m/z deviations");
+      defaults_.setValue("similarity:diff_intercept:MZ",0.01,"Factor for m/z position used to balance the influence of RT and m/z deviations");
 
       Base::defaultsToParam_();
     }
 
-    /// Copy constructor
-    DelaunayPairFinder(const DelaunayPairFinder& source)
-        : Base(source)
-    {
-      updateMembers_();
-    }
-
-    ///  Assignment operator
-    virtual DelaunayPairFinder& operator = (DelaunayPairFinder source)
-    {
-      if (&source==this) return *this;
-
-      Base::operator=(source);
-
-      updateMembers_();
-
-      return *this;
-    }
-
     /// Destructor
     virtual ~DelaunayPairFinder()
-  {}
+  	{}
 
     /// Returns an instance of this class
     static BasePairFinder<PointMapType>* create()
@@ -141,7 +125,7 @@ namespace OpenMS
     /// Returns the name of this module
     static const String getProductName()
     {
-      return "delaunay";
+      return "DelaunayPairFinder";
     }
 
     /// Nested class, which inherits from the cgal Point_2 class and additionally contains the a reference to
@@ -248,26 +232,55 @@ namespace OpenMS
     /// Get max_pair_distance_
     float getMaxPairDistance(UInt dim)
     {
-      return max_pair_distance_[dim];
+      if (dim == RawDataPoint2D::RT) return max_pair_distance_[dim];
+      else 
+        {
+          double diff = diff_intercept_[RawDataPoint2D::RT] / diff_intercept_[RawDataPoint2D::MZ];
+     
+          return max_pair_distance_[dim] / diff;      
+        }
     }
 
     /// Set max_pair_distance_
     void setMaxPairDistance(UInt dim, Real max_pair_distance)
     {
-      max_pair_distance_[dim] = max_pair_distance;
+      if (dim == RawDataPoint2D::RT) 
+      {
+        max_pair_distance_[dim] = max_pair_distance; 
+      }
+      else 
+      {
+        double diff = diff_intercept_[RawDataPoint2D::RT] / diff_intercept_[RawDataPoint2D::MZ];
+        max_pair_distance_[dim] = max_pair_distance * diff;     
+       }
       param_.setValue(String("similarity:max_pair_distance:") + RawDataPoint2D::shortDimensionName(dim), max_pair_distance);
     }
 
     /// Get precision
     float getPrecision(UInt dim)
     {
-      return precision_[dim];
+      if (dim == RawDataPoint2D::RT) return precision_[dim];
+      else 
+        {
+          double diff = diff_intercept_[RawDataPoint2D::RT] / diff_intercept_[RawDataPoint2D::MZ];
+     
+          return precision_[dim] / diff;      
+        }
+      
     }
 
     /// Set precision
     void setPrecision(UInt dim, Real precision)
     {
-      precision_[dim] = precision;
+      if (dim == RawDataPoint2D::RT) 
+      {
+        precision_[dim] = precision; 
+      }
+      else 
+      {
+        double diff = diff_intercept_[RawDataPoint2D::RT] / diff_intercept_[RawDataPoint2D::MZ];
+        precision_[dim] = precision * diff;     
+      }
       param_.setValue(String("similarity:precision:") + RawDataPoint2D::shortDimensionName(dim), precision);
     }
 

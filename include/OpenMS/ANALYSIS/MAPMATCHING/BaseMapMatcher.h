@@ -65,26 +65,6 @@ namespace OpenMS
     BaseMapMatcher() : min_quality_(-1)
     {}
 
-    /// Copy constructor
-    BaseMapMatcher(const BaseMapMatcher& source)
-        : grid_(source.grid_),
-        element_pairs_(source.element_pairs_),
-        min_quality_(source.min_quality_)
-    {}
-
-    ///  Assignment operator
-    BaseMapMatcher& operator = (const BaseMapMatcher& source)
-    {
-      if (&source==this)
-        return *this;
-
-      grid_          = source.grid_;
-      element_pairs_ = source.element_pairs_;
-      min_quality_   = source.min_quality_;
-
-      return *this;
-    }
-
     /// Equality operator
     bool operator == (const BaseMapMatcher& rhs)
     {

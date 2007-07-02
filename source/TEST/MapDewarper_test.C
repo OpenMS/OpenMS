@@ -64,69 +64,8 @@ CHECK((MapDewarper()))
 	TEST_NOT_EQUAL(pl_ptr, 0)
 RESULT
 
-CHECK((~MapDewarper()))
+CHECK((virtual ~MapDewarper()))
 	delete pl_ptr;
-RESULT
-
-CHECK((MapDewarper(const MapDewarper& source)))	
-	Feature feat1, feat2, feat3;
-	
-	feat1.setMZ(1.0);
-	feat1.setRT(2.0);
-	feat2.setMZ(2.0);
-	feat2.setRT(5.0);
-	feat3.setMZ(2.0);
-	feat3.setRT(4.0);
-	
-	GridCell cell1(0,0,20,20);
-	Grid the_grid;
-	the_grid.push_back(cell1);
-		
-	FeatureMap<> feat_map;
-	feat_map.push_back(feat1);
-	feat_map.push_back(feat2);
-	feat_map.push_back(feat3);
-	
-	MapDewarper<> dewarper1;
-	dewarper1.setMap(feat_map);
-	dewarper1.setGrid(the_grid);
-	
-	MapDewarper<> dewarper2(dewarper1);
-	
-	TEST_EQUAL(dewarper1.getMap()==dewarper1.getMap(),true);
-	TEST_EQUAL(dewarper1.getGrid()==dewarper1.getGrid(),true);
-				
-RESULT
-
-CHECK((MapDewarper& operator = (const MapDewarper& source)))
-
-	Feature feat1, feat2, feat3;
-	
-	feat1.setMZ(1.0);
-	feat1.setRT(2.0);
-	feat2.setMZ(2.0);
-	feat2.setRT(5.0);
-	feat3.setMZ(2.0);
-	feat3.setRT(4.0);
-	
-	GridCell cell1(0,0,20,20);
-	Grid the_grid;
-	the_grid.push_back(cell1);
-		
-	FeatureMap<> feat_map;
-	feat_map.push_back(feat1);
-	feat_map.push_back(feat2);
-	feat_map.push_back(feat3);
-	
-	MapDewarper<> dewarper1;
-	dewarper1.setMap(feat_map);
-	dewarper1.setGrid(the_grid);
-	
-	MapDewarper<> dewarper2 = dewarper1;
-	
-	TEST_EQUAL(dewarper1.getMap()==dewarper1.getMap(),true);
-	TEST_EQUAL(dewarper1.getGrid()==dewarper1.getGrid(),true);
-				
 RESULT
 
 CHECK((void dewarp()))

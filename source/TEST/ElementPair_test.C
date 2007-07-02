@@ -41,16 +41,16 @@ START_TEST(ElementPair<>, "$Id$")
 using namespace OpenMS;
 
 ElementPair<>* d10_ptr = 0;
-CHECK(ElementPair())
+CHECK((ElementPair()))
 	d10_ptr = new ElementPair<>;
 	TEST_NOT_EQUAL(d10_ptr, 0)
 RESULT
 
-CHECK(~ElementPair())
+CHECK((virtual ~ElementPair()))
 	delete d10_ptr;
 RESULT
 
-CHECK( ElementPair(const ElementPair& fp) )
+CHECK((ElementPair(const ElementPair& fp)))
 	ElementPair<> p1;
 	p1.setQuality(5.0);
 	
@@ -60,7 +60,7 @@ CHECK( ElementPair(const ElementPair& fp) )
 
 RESULT
 
-CHECK( ElementPair(FeatureType const & first, FeatureType const & second, QualityType const & quality = QualityType(0)) )
+CHECK((ElementPair(ElementType const &first, ElementType const &second, QualityType const &quality=QualityType(0))))
 	Feature f1;
 	Feature f2;
 	
@@ -70,7 +70,7 @@ CHECK( ElementPair(FeatureType const & first, FeatureType const & second, Qualit
 	TEST_EQUAL( f2, pair.getSecond() )
 RESULT
 
-CHECK( ElementPair& operator = (const ElementPair& rhs) )
+CHECK((ElementPair& operator = (const ElementPair& rhs)))
 	ElementPair<> p1;
 	p1.setQuality( 5.0 );
 	
@@ -79,7 +79,7 @@ CHECK( ElementPair& operator = (const ElementPair& rhs) )
 	TEST_REAL_EQUAL( p1.getQuality(),p2.getQuality() )
 RESULT
 
-CHECK(bool operator == (const ElementPair& rhs) const)
+CHECK((bool operator == (const ElementPair& rhs) const))
 	ElementPair<> p1;
 	Feature f1;
   f1.setRT(1.0);
@@ -107,7 +107,7 @@ CHECK(bool operator == (const ElementPair& rhs) const)
   TEST_EQUAL(p1==p2,true);
 RESULT
 
-CHECK(bool operator != (const ElementPair& rhs) const)
+CHECK((bool operator != (const ElementPair& rhs) const))
 
 	ElementPair<> p1;
 	Feature f1;
@@ -135,7 +135,7 @@ CHECK(bool operator != (const ElementPair& rhs) const)
 
 RESULT
 
-CHECK(QualityType& getQuality())
+CHECK((QualityType& getQuality()))
 	ElementPair<> p;
 	TEST_REAL_EQUAL(p.getQuality(), 0.0)
 	p.getQuality() = 123.456;
@@ -146,7 +146,7 @@ CHECK(QualityType& getQuality())
 	TEST_REAL_EQUAL(p.getQuality(), 0.0)
 RESULT
 
-CHECK(void setQuality(QualityType ql))
+CHECK((void setQuality(QualityType ql)))
 	ElementPair<> p;
 	p.setQuality(123.456);
 	TEST_REAL_EQUAL(p.getQuality(), 123.456)
@@ -157,7 +157,7 @@ CHECK(void setQuality(QualityType ql))
 RESULT
 
 
-CHECK(FeatureType& getFirst())
+CHECK((ElementType& getFirst()))
 	ElementPair<> p;
 	
 	Feature f1;
@@ -172,7 +172,7 @@ CHECK(FeatureType& getFirst())
 
 RESULT
 
-CHECK(FeatureType& getSecond())
+CHECK((ElementType& getSecond()))
 	ElementPair<> p;
 	
 	Feature f1;
@@ -187,7 +187,7 @@ CHECK(FeatureType& getSecond())
 
 RESULT
 
-CHECK(const FeatureType& getFirst() const)
+CHECK((const ElementType& getFirst() const))
 	ElementPair<> p;
 	
 	Feature f1;
@@ -200,7 +200,7 @@ CHECK(const FeatureType& getFirst() const)
 
 RESULT
 
-CHECK(const FeatureType& getSecond() const)
+CHECK((const ElementType& getSecond() const))
 	ElementPair<> p;
 	
 	Feature f1;
@@ -213,7 +213,7 @@ CHECK(const FeatureType& getSecond() const)
 	
 RESULT
 
-CHECK( QualityType getQuality() const )
+CHECK((QualityType getQuality() const))
 	ElementPair<> p;
 	p.setQuality(3.0);
 	const ElementPair<>::QualityType q = p.getQuality();
@@ -222,7 +222,7 @@ CHECK( QualityType getQuality() const )
 
 RESULT
 
-CHECK( void setFirst(const FeatureType& frt) )
+CHECK((void setFirst(const ElementType &frt)))
 	ElementPair<> p;
 	const Feature f;
 	p.setFirst(f);
@@ -230,15 +230,8 @@ CHECK( void setFirst(const FeatureType& frt) )
 	TEST_EQUAL( f, p.getFirst() )
 RESULT
 
-CHECK( void setQuality(QualityType ql) )
-	ElementPair<> p;
-	const ElementPair<>::QualityType q = 10.0;
-	p.setQuality(q);
-	
-	TEST_EQUAL( q, p.getQuality() )	
-RESULT
 
-CHECK( void setSecond(const FeatureType& sec) )
+CHECK((void setSecond(const ElementType &sec)))
 	ElementPair<> p;
 	const Feature f;
 	p.setSecond(f);

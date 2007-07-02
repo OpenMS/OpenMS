@@ -37,20 +37,14 @@ namespace OpenMS
   /**
     @brief Calculates a consensus ID from several ID runs
     
-    Available algorithms are:
-    - Merge -- merges the runs with respect to their score. The score is not modified.
-    					 Make sure to use PeptideIdentifications with the same score type only!
-    - Ranked -- reorders the hits according to a consensus score computed from the ranks in the input runs.
-                The score is normalized to the interval (0,100).
-                The PeptideIdentifications do not need to have the same score type.
-    - Average -- reorders the hits according to the average score of the input runs.
-    						 Make sure to use PeptideIdentifications with the same score type only!
+    This class combines several ID runs using one of the following algorithms:
+    - Marge
+    - Ranked
+    - Average
 		
-		The following parameters can be given:
-		- Algorithm -- see above.
-		- ConsideredHits -- the number of top hits to use as input.
-		- NumberOfRuns -- the number of runs used as input. This information is used in 'Ranked' and 'Average' to
-		                  compute the new scores. If not given, the number of input identifications is taken. 
+		@ref ConsensusID_Parameters are explained on a separate page.
+
+		@ingroup Analysis_ID
   */
   class ConsensusID
   	: public DefaultParamHandler

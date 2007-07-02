@@ -180,6 +180,7 @@ CHECK((void load(String filename, FeatureMap<>& feature_map) throw (Exception::F
 	TEST_EQUAL(e.getSample().getConcentration(), 3.03f)
 	TEST_EQUAL(e.getSample().getMetaValue("URL"), "www.open-ms.de")
 	TEST_EQUAL(e.getSample().getMetaValue("SampleComment"), "Sample")
+//<<<<<<< .working
 	TEST_EQUAL(e[0].getPosition()[0], 25)
 	TEST_EQUAL(e[0].getPosition()[1], 0)
 	TEST_EQUAL(e[0].getIntensity(), 300)
@@ -206,6 +207,37 @@ CHECK((void load(String filename, FeatureMap<>& feature_map) throw (Exception::F
 	TEST_EQUAL(e[0].getPosition()[0], 0)
 	TEST_EQUAL(e[0].getPosition()[1], 35)
 	TEST_EQUAL(e[0].getIntensity(), 500)
+//=======
+//	TEST_EQUAL(e[0].getPosition()[0], 25)
+//	TEST_EQUAL(e[0].getPosition()[1], 0)
+//	TEST_EQUAL(e[0].getIntensity(), 300)
+//	TEST_EQUAL(e[1].getPosition()[0], 0)
+//	TEST_EQUAL(e[1].getPosition()[1], 35)
+//	TEST_EQUAL(e[1].getIntensity(), 500)
+//
+//	dfmap_file.getOptions().setRTRange(makeRange(0, 10));
+//	dfmap_file.load("data/FeatureXMLFile.xml",e);
+//	TEST_EQUAL(e.size(), 1)
+//	TEST_EQUAL(e[0].getPosition()[0], 0)
+//	TEST_EQUAL(e[0].getPosition()[1], 35)
+//	TEST_EQUAL(e[0].getIntensity(), 500)
+//
+//	dfmap_file.getOptions() = PeakFileOptions();
+//	dfmap_file.getOptions().setMZRange(makeRange(10, 50));
+//	dfmap_file.load("data/FeatureXMLFile.xml",e);
+//	TEST_EQUAL(e.size(), 1)
+//	TEST_EQUAL(e[0].getPosition()[0], 0)
+//	TEST_EQUAL(e[0].getPosition()[1], 35)
+//	TEST_EQUAL(e[0].getIntensity(), 500)
+//
+//	dfmap_file.getOptions() = PeakFileOptions();
+//	dfmap_file.getOptions().setIntensityRange(makeRange(400, 600));
+//	dfmap_file.load("data/FeatureXMLFile.xml",e);
+//	TEST_EQUAL(e.size(), 1)
+//	TEST_EQUAL(e[0].getPosition()[0], 0)
+//	TEST_EQUAL(e[0].getPosition()[1], 35)
+//	TEST_EQUAL(e[0].getIntensity(), 500)
+//>>>>>>> .merge-right.r2320
 RESULT
 
 CHECK((void store(String filename, const FeatureMap<>& feature_map) const throw(Exception::UnableToCreateFile)))

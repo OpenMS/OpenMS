@@ -60,7 +60,7 @@ using namespace std;
 				for which the identifications are to be found and one ore more
 				databases in either trie, FASTA or Swissprot format containing
 				the possible proteins.
-				The given databases are converted and merged into one trie database.
+				The given databases are converted and merged Into one trie database.
 				This is done because Inspect does the conversion anyway
 				(though with a bug) and may actually not use more than two
 				databases (one of them in trie format). Additionally you thus can
@@ -209,7 +209,7 @@ class TOPPInspectAdapter
 				blind_only(false),
 				blind(false),
 				no_tmp_dbs(false),
-				monoisotopic;
+				monoisotopic(false);
 			
 			Real p_value_threshold = 1.0;
 			Real cutoff_p_value;

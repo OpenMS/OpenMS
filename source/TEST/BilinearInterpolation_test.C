@@ -58,7 +58,7 @@ namespace OpenMS
 	{
 		return double(rand()) / RAND_MAX;
 	}
-	
+
 }
 
 using namespace OpenMS;
@@ -70,7 +70,7 @@ START_TEST( BilinearInterpolation, "$Id$" )
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
-CHECK( typedefs )
+CHECK([EXTRA] typedefs )
 {
 	typedef BilinearInterpolation < float, double > BIFD;
 	BIFD::ValueType     * value;
@@ -561,12 +561,12 @@ CHECK((ValueType value( KeyType arg_pos_0, KeyType arg_pos_1 ) const))
 			bifd_big.getData()(i+5,j+5) = num;
 		}
 	}
-	
+
 	bifd_small.setMapping_0( 0, 0, 5, 5 );
 	bifd_small.setMapping_1( 0, 0, 5, 5 );
 	bifd_big.setMapping_0( 5, 0, 10, 5 );
 	bifd_big.setMapping_1( 5, 0, 10, 5 );
-	
+
 	Matrix<int> interpolated(151,151);
 
 	// you can view this as an image in PGM format
@@ -593,7 +593,7 @@ CHECK((ValueType value( KeyType arg_pos_0, KeyType arg_pos_1 ) const))
 
 
 #undef verbose
-	
+
 }
 RESULT
 

@@ -129,11 +129,15 @@ for i in $* ; do
 		echo "Please check the log file: \"$i.log\"."
 		echo "--------------------------------------------"
 		echo "The failed lines are:"
+		echo "# BEGIN failed lines"
 		( ./$i -V 2>&1 |cat > $i.log ) 2>/dev/null
 		grep " - $" $i.log
+		echo "#  END  failed lines"
 		echo "--------------------------------------------"
 		echo "The last three lines are:"
+		echo "# BEGIN last three lines"
 		tail -3 $i.log
+		echo "#  END  last three lines"
 		echo "--------------------------------------------"
 		if test -f core ; then
 			rm core

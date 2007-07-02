@@ -124,8 +124,11 @@ namespace OpenMS
 		{
 			return it->second;
 		}
-		return String::EMPTY;
-			
+		
+		//this construct is needed instead of using String::EMPTY because
+		//This method is used in initialization of static methods where Sting::EMPTY might by undefinded...
+		const static String empty;
+		return empty;	
 	}
 	
 	void Param::insert(String prefix, const Param& para)
@@ -394,9 +397,10 @@ namespace OpenMS
 					map<String, String>::const_iterator iter=descriptions_.find(nodepath);
 					if(iter!=descriptions_.end())
 					{
-						//replace double quotes in descriptions
+						//replace double quotes and newlines in descriptions
 						String tmp = iter->second;
 						tmp.substitute('"','\'');
+						tmp.substitute("\n","#br#");
 						//cout << "DESCRIPTION: " << iter->second << endl;
 						os << " description=\"" << tmp <<"\"";
 					}
@@ -431,6 +435,7 @@ namespace OpenMS
 				{
 					String d = iter->second;
 					d.substitute('"','\'');
+					d.substitute("\n","#br#");
 					tmp = "<ITEM name=\""+key_without_prefix+"\" value=\""+it->second.toString()+"\" type=\""+type+"\" description=\""+d+"\" />\n";
 				}
 				else
@@ -638,7 +643,7 @@ namespace OpenMS
 			String description;
 			if (iter!=param.descriptions_.end())
 			{
-				description=" :"+iter->second;
+				description=" ("+iter->second+")";
 			}
 		
 			os << "\""<<it->first<< "\"  ->  \""<< it->second.toString()<< "\"" <<description<<endl;

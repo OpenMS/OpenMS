@@ -39,9 +39,11 @@ namespace OpenMS
   class Spectrum3DOpenGLCanvas;
   
   /**
-     @brief Canvas for 3D-visualization of map data
-
-     @ingroup SpectrumWidgets
+    @brief Canvas for 3D-visualization of map data
+		
+		@ref Spectrum3DCanvas_Parameters are explained on a separate page.
+		
+    @ingroup SpectrumWidgets
   */	
   class Spectrum3DCanvas
   	: public SpectrumCanvas

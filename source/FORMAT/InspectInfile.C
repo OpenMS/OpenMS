@@ -167,7 +167,7 @@ namespace OpenMS
 			String name, residues, mass, type;
 			
 			// 0 - mass; 1 - composition; 2 - ptm name
-			Int mass_or_composition_or_name;
+			Int mass_or_composition_or_name = -1;
 			
 			for ( vector< String >::const_iterator mod_i = modifications.begin(); mod_i != modifications.end(); ++mod_i )
 			{
@@ -246,10 +246,16 @@ namespace OpenMS
 							add_formula = mass;
 						}
 						// sum up the masses
-Real m;
-if ( monoisotopic ) m = add_formula.getMonoWeight() - substract_formula.getMonoWeight();
-else m = add_formula.getAverageWeight() - substract_formula.getAverageWeight();
-stringstream s;
+						DoubleReal m = 0;
+						if (monoisotopic) 
+						{
+							m = add_formula.getMonoWeight() - substract_formula.getMonoWeight();
+						}
+						else 
+						{
+							m = add_formula.getAverageWeight() - substract_formula.getAverageWeight();
+						}
+/*stringstream s; @todo remove this output?? (Martin)
 s.precision(10);
 s << m;
 //std::cout << "MARTIN: " << add_formula.getString() << "  " << mass;
@@ -265,7 +271,7 @@ std::cout << "  " << s.str() << "  ";
 s.precision(7);
 s.str("");
 s << m;
-std::cout << "  " << s.str() << "  " << std::endl;
+std::cout << "  " << s.str() << "  " << std::endl;*/
 						if ( monoisotopic ) mass = String(add_formula.getMonoWeight() - substract_formula.getMonoWeight());
 						else mass = String(add_formula.getAverageWeight() - substract_formula.getAverageWeight());
 						if ( mass_or_composition_or_name == -1 ) mass_or_composition_or_name = 1;

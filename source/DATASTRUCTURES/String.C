@@ -584,6 +584,27 @@ namespace OpenMS
 		return *this;
 	}
 
+	String& String::substitute(const String& from, const String& to)
+	{
+		if (!from.empty())
+		{
+			if (to.hasSubstring(from))
+			{
+				cerr << "Warning: String::substiture 'to' (" << to <<") many not contain 'from' (" << from <<"). Aborting!" << endl;
+				return *this;
+			}
+
+	   	string::size_type loc = this->find(from, 0);
+	   	while( loc != string::npos ) 
+	   	{
+				this->replace(loc, from.size(), to);
+				loc = this->find(from, 0);
+			}
+		}
+		
+		return *this;
+	}
+
 	String& String::remove(char what)
 	{
 		this->erase(std::remove(this->begin(), this->end(), what),this->end());

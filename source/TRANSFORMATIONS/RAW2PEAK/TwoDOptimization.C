@@ -573,45 +573,22 @@ namespace OpenMS
 		:DefaultParamHandler("TwoDOptimization")
 	{
 		// 2D optimization parameters
-		defaults_.setValue("penalties:position",0.0);
-		defaults_.setValue("penalties:height",1.0);
-		defaults_.setValue("penalties:left_width",0.0);
-		defaults_.setValue("penalties:right_width",0.0);
-		defaults_.setValue("thresholds:tolerance_mz",0.2);
-		defaults_.setValue("thresholds:max_peak_distance",1.0);
-		defaults_.setValue("skip_optimization","yes");
-		defaults_.setValue("delta_abs_error",1e-05f);
-		defaults_.setValue("delta_rel_error",1e-05f);
-		defaults_.setValue("iterations",10);
-		defaults_.setValue("real_2D","yes");
+		defaults_.setValue("penalties:position",0.0,"If the position changes more than 0.2Da during the fitting it can be penalized");
+		defaults_.setValue("penalties:height",1.0,"penalty term for the fitting of the intensity:"\
+											 "If it gets negative during the fitting it can be penalized.");
+		defaults_.setValue("penalties:left_width",0.0,"penalty term for the fitting of the left width:"\
+											 "If the left width gets too broad or negative during the fitting it can be penalized.");
+		defaults_.setValue("penalties:right_width",0.0,"penalty term for the fitting of the right width:"\
+											 "If the right width gets too broad or negative during the fitting it can be penalized.");
+		defaults_.setValue("thresholds:tolerance_mz",0.2,"mz tolerance for cluster construction");
+		defaults_.setValue("thresholds:max_peak_distance",1.0,"maximal peak distance in mz in a cluster");
+		defaults_.setValue("delta_abs_error",1e-05f,"if the absolute error gets smaller than this value the fitting is stopped.");
+		defaults_.setValue("delta_rel_error",1e-05f,"if the relative error gets smaller than this value the fitting is stopped.");
+		defaults_.setValue("iterations",10,"maximal number of iterations for the fitting step");
 
 		defaultsToParam_();
 		updateMembers_();
 	}
-
-	TwoDOptimization::TwoDOptimization(const Param& param)
-		:DefaultParamHandler("TwoDOptimization")
-	{
-		// 2D optimization default parameters
-		defaults_.setValue("penalties:position",0.0);
-		defaults_.setValue("penalties:height",1.0);
-		defaults_.setValue("penalties:left_width",0.0);
-		defaults_.setValue("penalties:right_width",0.0);
-		defaults_.setValue("thresholds:tolerance_mz",0.2);
-		defaults_.setValue("thresholds:max_peak_distance",1.0);
-		defaults_.setValue("skip_optimization","yes");
-		defaults_.setValue("delta_abs_error",1e-05f);
-		defaults_.setValue("delta_rel_error",1e-05f);
-		defaults_.setValue("iterations",10);
-		defaults_.setValue("real_2D","yes");
-			
-		defaultsToParam_();
-		setParameters(param);
-			
-		updateMembers_();
-			
-	}
-
 	
 	TwoDOptimization::TwoDOptimization(const TwoDOptimization& opt)
 		:DefaultParamHandler(opt)
@@ -1096,10 +1073,7 @@ namespace OpenMS
 		eps_abs_= (double)param_.getValue("delta_abs_error");
     eps_rel_= (double)param_.getValue("delta_rel_error");
 		max_iteration_= (int)param_.getValue("iterations");;
-		String real2D = (String)param_.getValue("real_2D");
-		if(real2D == "yes") real_2D_=true;
-		else real_2D_=false;
-
+		
 	}
 
 }

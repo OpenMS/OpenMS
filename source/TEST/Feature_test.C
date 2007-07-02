@@ -2,7 +2,7 @@
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
-//                   OpenMS Mass Spectrometry Framework 
+//                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
 //  Copyright (C) 2003-2007 -- Oliver Kohlbacher, Knut Reinert
 //
@@ -41,21 +41,20 @@ using namespace OpenMS;
 using namespace std;
 
 Feature* d_ptr = 0;
-CHECK(Feature())
+CHECK((Feature()))
+{
 	d_ptr = new Feature;
-	TEST_NOT_EQUAL(d_ptr, 0)
+	TEST_NOT_EQUAL(d_ptr, 0);
+}
 RESULT
 
-CHECK(~Feature())
+CHECK((~Feature()))
+{
 	delete d_ptr;
+}
 RESULT
 
-CHECK(QualityType getOverallQuality() const)
-	const Feature p;
-	TEST_REAL_EQUAL(p.getOverallQuality(), 0.0)
-RESULT
-
-CHECK(QualityType& getOverallQuality())
+CHECK((QualityType getOverallQuality() const))
 	Feature p;
 	TEST_REAL_EQUAL(p.getOverallQuality(), 0.0)
 	p.setOverallQuality(123.456);
@@ -66,7 +65,7 @@ CHECK(QualityType& getOverallQuality())
 	TEST_REAL_EQUAL(p.getOverallQuality(), 0.0)
 RESULT
 
-CHECK(setOverallQuality(QualityType))
+CHECK((void setOverallQuality(QualityType q)))
 	Feature p;
 	p.setOverallQuality(123.456);
 	TEST_REAL_EQUAL(p.getOverallQuality(), 123.456)
@@ -76,17 +75,7 @@ CHECK(setOverallQuality(QualityType))
 	TEST_REAL_EQUAL(p.getOverallQuality(), 0.0)
 RESULT
 
-
-CHECK(QualityType getQuality(Position) const)
-	const Feature p;
-	TEST_REAL_EQUAL(p.getQuality(0), 0.0)
-	TEST_REAL_EQUAL(p.getQuality(1), 0.0)
-#ifdef OPENMS_DEBUG
-  TEST_EXCEPTION(Exception::Precondition, p.getQuality(10))
-#endif
-RESULT
-
-CHECK(QualityType& getQuality(Position))
+CHECK((QualityType getQuality(UInt index) const))
 	Feature p;
 	TEST_REAL_EQUAL(p.getQuality(0), 0.0)
 	p.setQuality(0, 123.456);
@@ -96,12 +85,10 @@ CHECK(QualityType& getQuality(Position))
 	p.setQuality(0, 0.0);
 	TEST_REAL_EQUAL(p.getQuality(0), 0.0)
 	TEST_REAL_EQUAL(p.getQuality(1), 0.0)
-#ifdef OPENMS_DEBUG
   TEST_EXCEPTION(Exception::Precondition, p.getQuality(10))
-#endif
 RESULT
 
-CHECK(setQuality(QualityType,Position))
+CHECK((void setQuality(UInt index, QualityType q)))
 	Feature p;
 	p.setQuality(1, 123.456);
 	TEST_REAL_EQUAL(p.getQuality(1), 123.456)
@@ -110,19 +97,17 @@ CHECK(setQuality(QualityType,Position))
 	p.setQuality(1, 0.0);
 	TEST_REAL_EQUAL(p.getQuality(0), 0.0)
 	TEST_REAL_EQUAL(p.getQuality(1), 0.0)
-#ifdef OPENMS_DEBUG
   TEST_EXCEPTION(Exception::Precondition, p.setQuality(10,1.0))
-#endif
 RESULT
 
 
-CHECK(QualityType getModelDescription() const)
+CHECK((const ModelDescription<2>& getModelDescription() const))
 	const Feature p;
 	TEST_EQUAL(p.getModelDescription().getName(), "")
 	TEST_EQUAL(p.getModelDescription().getParam().empty(), true)
 RESULT
 
-CHECK(QualityType& getModelDescription())
+CHECK((ModelDescription<2>& getModelDescription()))
 	Feature p;
 	TEST_EQUAL(p.getModelDescription().getName(), "")
 	p.getModelDescription().setName("gauss");
@@ -131,7 +116,7 @@ CHECK(QualityType& getModelDescription())
   TEST_EQUAL(p.getModelDescription().getName(), "")
 RESULT
 
-CHECK(setModelDescription(const ModelDescription&))
+CHECK((void setModelDescription(const ModelDescription< 2 > &q)))
 	Feature p;
   ModelDescription<2> desc;
   desc.setName("gauss");
@@ -141,18 +126,18 @@ CHECK(setModelDescription(const ModelDescription&))
 	TEST_EQUAL(p.getModelDescription().getName(), "")
 RESULT
 
-CHECK(IntensityType getIntensity() const)
+CHECK([EXTRA](IntensityType getIntensity() const))
 	const Feature p;
 	TEST_REAL_EQUAL(p.getIntensity(), 0.0)
 RESULT
 
-CHECK(const PositionType& getPosition() const)
+CHECK([EXTRA](const PositionType& getPosition() const))
 	const Feature	p;
 	TEST_REAL_EQUAL(p.getPosition()[0], 0.0)
 	TEST_REAL_EQUAL(p.getPosition()[1], 0.0)
 RESULT
 
-CHECK(IntensityType& getIntensity())
+CHECK([EXTRA](IntensityType& getIntensity()))
 	Feature p;
 	TEST_REAL_EQUAL(p.getIntensity(), 0.0)
 	p.setIntensity(123.456);
@@ -163,7 +148,7 @@ CHECK(IntensityType& getIntensity())
 	TEST_REAL_EQUAL(p.getIntensity(), 0.0)
 RESULT
 
-CHECK(PositionType& getPosition())
+CHECK([EXTRA](PositionType& getPosition()))
 	Feature::PositionType pos;
 	Feature p;
 	pos = p.getPosition();
@@ -177,7 +162,7 @@ CHECK(PositionType& getPosition())
 	TEST_REAL_EQUAL(pos2[1], 2.0)
 RESULT
 
-CHECK(Feature(const Feature& p))
+CHECK((Feature(const Feature &feature)))
 	Feature::PositionType pos;
 	pos[0] = 21.21;
 	pos[1] = 22.22;
@@ -191,7 +176,7 @@ CHECK(Feature(const Feature& p))
   ModelDescription<2> desc;
   desc.setName("gauss");
   p.setModelDescription(desc);
-	
+
 	Feature::PositionType pos2;
 	Feature::IntensityType i2;
 
@@ -203,7 +188,7 @@ CHECK(Feature(const Feature& p))
 
 	TEST_REAL_EQUAL(pos2[0], 21.21)
 	TEST_REAL_EQUAL(pos2[1], 22.22)
-	
+
 	TEST_EQUAL(p.getMetaValue("cluster_id"),DataValue(4711));
 
   Feature::QualityType q2;
@@ -216,7 +201,7 @@ CHECK(Feature(const Feature& p))
 	TEST_EQUAL(copy_of_p.getModelDescription().getName(), "gauss")
 RESULT
 
-CHECK(Feature& operator = (const Feature& rhs))
+CHECK((Feature& operator = (const Feature& rhs)))
 	Feature::PositionType pos;
 	pos[0] = 21.21;
 	pos[1] = 22.22;
@@ -230,13 +215,13 @@ CHECK(Feature& operator = (const Feature& rhs))
   desc.setName("gauss");
   p.setModelDescription(desc);
 	p.setMetaValue("cluster_id",4712);
-	
+
 	Feature::PositionType pos2;
 	Feature::IntensityType i2;
 
 	Feature copy_of_p;
 	copy_of_p = p;
-		
+
 	i2 = copy_of_p.getIntensity();
 	pos2 = copy_of_p.getPosition();
 
@@ -254,14 +239,14 @@ CHECK(Feature& operator = (const Feature& rhs))
 	TEST_EQUAL(copy_of_p.getModelDescription().getName(), "gauss")
 RESULT
 
-CHECK(Feature& operator == (const Feature& rhs))
+CHECK((bool operator==(const Feature &rhs) const))
   ModelDescription<2> desc;
   desc.setName("gauss");
 
 	Feature p1;
 	Feature p2(p1);
 	TEST_REAL_EQUAL(p1==p2, true)
-	
+
 	p1.setIntensity(5);
   p1.setOverallQuality(0.9);
   p1.setQuality(0, 0.1);
@@ -272,30 +257,30 @@ CHECK(Feature& operator == (const Feature& rhs))
   p2.setQuality(0, 0.1);
   p2.setModelDescription(desc);
 	TEST_REAL_EQUAL(p1==p2, true)
-		
+
 	p1.getPosition()[0]=5;
 	TEST_REAL_EQUAL(p1==p2, false)
 	p2.getPosition()[0]=5;
-	TEST_REAL_EQUAL(p1==p2, true)	
+	TEST_REAL_EQUAL(p1==p2, true)
 RESULT
 
-CHECK(Feature& operator != (const Feature& rhs))
+CHECK([EXTRA](Feature& operator != (const Feature& rhs)))
 	Feature p1;
 	Feature p2(p1);
 	TEST_REAL_EQUAL(p1!=p2, false)
-	
+
 	p1.setIntensity(5);
 	TEST_REAL_EQUAL(p1!=p2, true)
 	p2.setIntensity(5);
 	TEST_REAL_EQUAL(p1!=p2, false)
-		
+
 	p1.getPosition()[0]=5;
 	TEST_REAL_EQUAL(p1!=p2, true)
 	p2.getPosition()[0]=5;
-	TEST_REAL_EQUAL(p1!=p2, false)	
+	TEST_REAL_EQUAL(p1!=p2, false)
 RESULT
 
-CHECK(meta info with copy constructor)
+CHECK(([EXTRA]meta info with copy constructor))
 	Feature p;
 	p.setMetaValue(2,String("bla"));
  	Feature p2(p);
@@ -306,7 +291,7 @@ CHECK(meta info with copy constructor)
 	TEST_EQUAL(p2.getMetaValue(2), "bla")
 RESULT
 
-CHECK(meta info with assignment)
+CHECK(([EXTRA]meta info with assignment))
 	Feature p;
 	p.setMetaValue(2,String("bla"));
  	Feature p2 = p;
@@ -326,10 +311,10 @@ RESULT
 CHECK((void setPeptideIdentifications(const std::vector<PeptideIdentification>& identifications)))
 	Feature tmp;
 	vector<PeptideIdentification> vec;
-	
+
 	tmp.setPeptideIdentifications(vec);
 	TEST_EQUAL(tmp.getPeptideIdentifications().size(),0);
-	
+
 	PeptideIdentification dbs;
 	vec.push_back(dbs);
 	tmp.setPeptideIdentifications(vec);
@@ -339,7 +324,7 @@ RESULT
 CHECK((std::vector<PeptideIdentification>& getPeptideIdentifications()))
 	Feature tmp;
 	vector<PeptideIdentification> vec;
-	
+
 	tmp.getPeptideIdentifications().resize(1);
 	TEST_EQUAL(tmp.getPeptideIdentifications().size(),1);
 RESULT
@@ -351,12 +336,12 @@ hulls[0].addPoint(DPosition<2>(3.0,4.0));
 hulls[1].addPoint(DPosition<2>(0.5,0.0));
 hulls[1].addPoint(DPosition<2>(1.0,1.0));
 
-CHECK(const ConvexHullVector& getConvexHulls() const)
+CHECK((const ConvexHullVector& getConvexHulls() const))
 	Feature tmp;
 	TEST_EQUAL(tmp.getConvexHulls().size(),0)
 RESULT
 
-CHECK(ConvexHullVector& getConvexHulls())
+CHECK((ConvexHullVector& getConvexHulls()))
 	Feature tmp;
 	tmp.setConvexHulls(hulls);
 	TEST_EQUAL(tmp.getConvexHulls().size(),2)
@@ -370,7 +355,7 @@ CHECK(ConvexHullVector& getConvexHulls())
 	TEST_REAL_EQUAL(tmp.getConvexHulls()[1].getPoints()[1][1],1.0)
 RESULT
 
-CHECK(void setConvexHulls(const ConvexHullVector& hulls))
+CHECK((void setConvexHulls(const ConvexHullVector& hulls)))
 	Feature tmp;
 	tmp.setConvexHulls(hulls);
 	TEST_EQUAL(tmp.getConvexHulls().size(),2)
@@ -384,7 +369,7 @@ CHECK(void setConvexHulls(const ConvexHullVector& hulls))
 	TEST_REAL_EQUAL(tmp.getConvexHulls()[1].getPoints()[1][1],1.0)
 RESULT
 
-CHECK((DBoundingBox<D> Feature<D, Traits>::getBoundingBox() const))
+CHECK((DBoundingBox<2> getBoundingBox() const))
 	Feature tmp;
 	tmp.setConvexHulls(hulls);
 	DBoundingBox<2> bb = tmp.getBoundingBox();
@@ -393,6 +378,26 @@ CHECK((DBoundingBox<D> Feature<D, Traits>::getBoundingBox() const))
 	TEST_REAL_EQUAL(bb.max()[0],3.0)
 	TEST_REAL_EQUAL(bb.max()[1],4.0)
 RESULT
+
+
+CHECK((const ChargeType& getCharge() const))
+{
+	Feature const tmp;
+	TEST_EQUAL(tmp.getCharge(),0);
+	// continued in setCharge()
+}
+RESULT
+
+CHECK((void setCharge(const ChargeType &ch)))
+{
+	Feature tmp;
+	TEST_EQUAL(tmp.getCharge(),0);
+	tmp.setCharge(17);
+	TEST_EQUAL(tmp.getCharge(),17);
+}
+RESULT
+
+
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

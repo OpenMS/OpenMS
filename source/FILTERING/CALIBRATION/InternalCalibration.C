@@ -32,13 +32,18 @@ namespace OpenMS
 {
 
 	InternalCalibration::InternalCalibration()
-		:DefaultParamHandler("InternalCalibration")
+		:DefaultParamHandler("InternalCalibration"),
+		 ProgressLogger()
 	{
 		subsections_.push_back("PeakPicker");
+		check_defaults_=false; // class has no own parameters
 	}
 	
   InternalCalibration::InternalCalibration(InternalCalibration& obj)
-		:DefaultParamHandler(obj),exp_peaks_(obj.exp_peaks_),monoiso_peaks_(obj.monoiso_peaks_)
+		: DefaultParamHandler(obj),
+			ProgressLogger(obj),
+		  exp_peaks_(obj.exp_peaks_),
+			monoiso_peaks_(obj.monoiso_peaks_)
   {
 	
   }

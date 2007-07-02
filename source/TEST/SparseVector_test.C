@@ -50,43 +50,65 @@ CHECK(SparseVector())
   TEST_NOT_EQUAL(sv2p, 0)
 RESULT
 
-CHECK(void resize())
+CHECK(SparseVector(int size))
+	SparseVector sv(300);
+	TEST_EQUAL(sv.size(), 300)
+RESULT
+
+CHECK(void resize(uint newsize))
   TEST_EQUAL(sv2p->size(),0)
   sv2p->resize(10);
   TEST_EQUAL(sv2p->size(),10)
 RESULT
 
-CHECK(operator[]())
+CHECK(DoubleProxy operator[](uint pos))
   TEST_EQUAL(sv2p->nonzero_size(),0)
   (*sv2p)[3] = 1.2;
   TEST_EQUAL(sv2p->nonzero_size(),1)
   (*sv2p)[9] = 1.2;
   TEST_EQUAL(sv2p->nonzero_size(),2)
 RESULT
- 
-CHECK(push_back())
-  sv2p->push_back(1.3);
-  TEST_EQUAL(sv2p->size(),11)
-  TEST_EQUAL(sv2p->nonzero_size(),3)
+
+CHECK(SparseVector(const SparseVector &source))
+	SparseVector sv(*sv2p);
+	TEST_EQUAL(sv.size(), 10)
+	TEST_EQUAL(sv[3], 1.2)
+	TEST_EQUAL(sv[9], 1.2)
 RESULT
 
-CHECK(contents + size)
-  uint i;
-  for ( i = 0; i < sv2p->size(); ++i )
-  {
-    if ( i == 3 || i == 9 )
-    {
-      TEST_REAL_EQUAL(1.2,(*sv2p)[i])
-    }
-    else if ( i == 10)
-    {
-      TEST_REAL_EQUAL(1.3,(*sv2p)[i])
-    }
-    else
-    {
-      TEST_REAL_EQUAL(0,(*sv2p)[i])
-    }
-  }
+CHECK(SparseVector& operator=(const SparseVector &source))
+	SparseVector sv;
+	sv = *sv2p;
+	TEST_EQUAL(sv.size(), 10)
+	TEST_EQUAL(sv[3], 1.2)
+	TEST_EQUAL(sv[9], 1.2)
+RESULT
+
+
+CHECK(const DoubleProxy operator[](uint pos) const)
+	const SparseVector sv = *sv2p;
+	TEST_REAL_EQUAL(sv[3], 1.2)
+	TEST_REAL_EQUAL(sv[9], 1.2)
+RESULT
+
+CHECK(void push_back(double value))
+  sv2p->push_back(1.3);
+  TEST_EQUAL(sv2p->size(),11)
+  TEST_EQUAL(sv2p->nonzero_size(), 3)
+RESULT
+
+CHECK(double at(uint pos) const)
+	SparseVector sv = *sv2p;
+	TEST_REAL_EQUAL(sv.at(3), sv[3])
+	TEST_REAL_EQUAL(sv.at(9), sv[9])
+RESULT
+
+CHECK(uint size() const)
+	TEST_EQUAL(sv2p->size(), 11)
+RESULT
+
+CHECK(uint nonzero_size() const)
+	TEST_EQUAL(sv2p->nonzero_size(), 3)
 RESULT
 
 CHECK(void clear())
@@ -95,7 +117,7 @@ CHECK(void clear())
   TEST_EQUAL(sv2p->nonzero_size(),0)
 RESULT
 
-CHECK(iterator)
+CHECK(iterator begin())
   sv2p->resize(10);
   uint i = 0;
   for ( SparseVector::iterator vit = sv2p->begin(); vit != sv2p->end();++vit)
@@ -123,7 +145,11 @@ CHECK(iterator)
   TEST_EQUAL(3,sv2p->nonzero_size())
 RESULT
 
-CHECK(const_iterator)
+CHECK(iterator end())
+	// tested above
+RESULT
+
+CHECK(const_iterator begin() const)
   uint i = 0;
   for ( SparseVector::const_iterator cvit = sv2p->begin(); cvit != sv2p->end();++cvit)
   {
@@ -141,7 +167,11 @@ CHECK(const_iterator)
   TEST_EQUAL(i,10)
 RESULT
 
-CHECK(~SparseVector())
+CHECK(const_iterator end() const)
+	// tested above
+RESULT
+
+CHECK(virtual ~SparseVector())
   delete sv2p;
 RESULT
 

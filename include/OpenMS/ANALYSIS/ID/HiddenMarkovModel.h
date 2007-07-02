@@ -145,11 +145,12 @@ namespace OpenMS
 			/** Accessors
 			*/
 			//@{
-			/** @brief writes the HMM into a file in YGF format
+			/** @brief writes the HMM into a file in GraphML format
 
-					@todo link (Andreas)
+					A detailed description of the GraphML format can be found under
+					http://graphml.graphdrawing.org/
 			*/
-			void writetoYGFFile(const String& filename);
+			void writeGraphMLFile(const String& filename);
 	
 			/// writes the HMM into an outstream
 			void write(std::ostream& out);
@@ -186,9 +187,6 @@ namespace OpenMS
 
 			/// trains the HMM; initial probabilities and emission probabilities of the emitting states should be set
 			void train();
-
-			/// sets the initial transition probability of the given state to prob
-			void setInitialTransitionProbability(HMMState* state, double prob);
 
 			/// sets the initial transition probability of the given state to prob
 			void setInitialTransitionProbability(const String& state, double prob);

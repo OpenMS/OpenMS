@@ -33,7 +33,6 @@
 #include <OpenMS/FILTERING/TRANSFORMERS/WindowMower.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/Scaler.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/NLargest.h>
-#include <OpenMS/FILTERING/TRANSFORMERS/BernNorm.h>
 #include <OpenMS/CONCEPT/Factory.h>
 
 namespace OpenMS
@@ -59,7 +58,6 @@ namespace OpenMS
     Factory<PreprocessingFunctor>::registerProduct(WindowMower::getProductName(), &WindowMower::create);
     Factory<PreprocessingFunctor>::registerProduct(Scaler::getProductName(), &Scaler::create);
     Factory<PreprocessingFunctor>::registerProduct(NLargest::getProductName(), &NLargest::create);
-    Factory<PreprocessingFunctor>::registerProduct(BernNorm::getProductName(), &BernNorm::create);
     Factory<PreprocessingFunctor>::registerProduct(MarkerMower::getProductName(), &MarkerMower::create);
     Factory<PreprocessingFunctor>::registerProduct(SqrtMower::getProductName(), &SqrtMower::create);
     Factory<PreprocessingFunctor>::registerProduct(Normalizer::getProductName(), &Normalizer::create);

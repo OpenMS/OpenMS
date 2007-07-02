@@ -36,6 +36,8 @@ namespace OpenMS
 	
 	/** 
 		@brief Log-normal distribution model for elution profiles.
+		 
+		@ref LogNormalModel_Parameters are explained on a separate page.
 
 		@ingroup FeatureFinder
 	*/

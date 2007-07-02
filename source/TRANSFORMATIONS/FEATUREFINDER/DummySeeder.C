@@ -37,15 +37,15 @@ namespace OpenMS
 		setName(getProductName());
 		
 		// minimum sn ratio for "interesting" peaks
-		defaults_.setValue("min_snratio",1.1);
+		defaults_.setValue("min_snratio",1.1,"minimum signal-to-noise ratio for interesting peaks");
 		// tolerance in m/z for a peak in the previous scan
-		defaults_.setValue("tolerance_mz",1.1f);
+		defaults_.setValue("tolerance_mz",1.1f,"tolerance in m/z for a peak in the previous scan");
 			// minimum number of scan per isotopic cluster
-		defaults_.setValue("min_number_scans",5);
+		defaults_.setValue("min_number_scans",5,"minimum number of scan per isotopic cluster");
 		// minimum number of peaks per cluster
-		defaults_.setValue("min_number_peaks",20);
+		defaults_.setValue("min_number_peaks",20,"minimum number of peaks per cluster");
 		// maximum distance to neighbouring peaks in the same scan
-		defaults_.setValue("max_peak_distance",1.2);
+		defaults_.setValue("max_peak_distance",1.2,"maximum distance to neighbouring peaks in the same scan");
 		
 		defaultsToParam_();
 	}

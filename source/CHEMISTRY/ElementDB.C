@@ -104,7 +104,7 @@ namespace OpenMS
 		param.load(file);
 
 		UInt an(0);
-		float avg_weight(0), mono_weight(0);
+		double avg_weight(0), mono_weight(0);
 		String name, symbol;
 		
 		// build prefix
@@ -208,8 +208,6 @@ namespace OpenMS
 			dist.push_back(make_pair<UInt, double>(it->first, it->second));
 		}
 	
-		// TODO sorting!
-		
 		IsotopeDistribution iso_dist;
 		iso_dist.set(dist);
 		iso_dist.setMaxIsotope(100);

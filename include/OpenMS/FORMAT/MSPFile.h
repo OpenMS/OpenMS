@@ -75,6 +75,8 @@ namespace OpenMS
 				std::ifstream is(filename.c_str());
 
 				typename MapType::SpectrumType spec;
+				spec.metaRegistry().registerName("MSPPeakInfo", "Detailed Info about the peak");
+
 				while (getline(is, line))
 				{
 					if (line.hasPrefix("Name:"))
@@ -107,7 +109,7 @@ namespace OpenMS
 							}
 							peak.setMZ(split[0].toFloat());
 							peak.setIntensity(split[1].toFloat());
-							//peak.setMetaValue("MSPPeakInfo", split[2]);
+							peak.setMetaValue("MSPPeakInfo", split[2]);
 							spec.push_back(peak);
 						}
 						

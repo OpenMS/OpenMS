@@ -63,13 +63,11 @@ namespace OpenMS
   vector<double> IntensityDistBins::operator() ( const ClusterSpectrum& cspec)
   {
     uint bins = (unsigned int)param_.getValue("bins");
-    double min = 1e258;
-    double max = 0;
+    Real min = 1e258;
+    Real max = 0;
     uint count = 0;
     for (MSSpectrum<Peak1D >::const_iterator dit = cspec.getSpec().begin(); dit != cspec.getSpec().end(); ++dit)
     {
-      //min = std::min(min,log(dit->getIntensity()));
-      //max = std::max(max,log(dit->getIntensity()));
       min = std::min(min,dit->getIntensity());
       max = std::max(max,dit->getIntensity());
       ++count;

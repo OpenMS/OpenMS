@@ -55,11 +55,11 @@ CHECK((PeptideHit()))
 	TEST_NOT_EQUAL(ptr, 0)
 RESULT
 
-CHECK((~PeptideHit()))
+CHECK((virtual ~PeptideHit()))
 	delete ptr;
 RESULT
 
-CHECK((PeptideHit(double score, uint rank, Int charge, String sequence)))
+CHECK((PeptideHit(DoubleReal score, UInt rank, Int charge, const String &sequence)))
 	PeptideHit hit(score, rank, charge, sequence);
 	TEST_EQUAL(hit.getScore(), score)
 	TEST_EQUAL(hit.getRank(), rank)
@@ -138,7 +138,7 @@ CHECK((bool operator != (const PeptideHit& rhs) const))
 	hit=hit2;
 RESULT
 
-CHECK((float getScore() const))
+CHECK((Real getScore() const))
 	PeptideHit hit(score, rank, charge, sequence);
 	TEST_EQUAL(hit.getScore(), score)
 RESULT
@@ -188,7 +188,7 @@ CHECK((void addProteinAccession(const String& accession)))
 	TEST_EQUAL(indices[1] == String("ACD392"), true)
 RESULT
 
-CHECK((void setProteinAccessions(const std::vector< std::pair<String, String> >& indices)))
+CHECK((void setProteinAccessions(const std::vector< String > &accessions)))
 	vector<String> vec;
 	vec.push_back("ACC392");
 	vec.push_back("ACD392");
@@ -198,7 +198,7 @@ CHECK((void setProteinAccessions(const std::vector< std::pair<String, String> >&
 	TEST_EQUAL(vec == hit.getProteinAccessions(), true)
 RESULT
 
-CHECK((const std::vector< std::pair<String, String>& getProteinAccessions() const))
+CHECK((const std::vector<String>& getProteinAccessions() const))
 	PeptideHit hit;
 	hit.addProteinAccession("ACC392");
 	hit.addProteinAccession("ACD392");
@@ -207,18 +207,43 @@ CHECK((const std::vector< std::pair<String, String>& getProteinAccessions() cons
 	TEST_EQUAL(hit.getProteinAccessions()[1], "ACD392")
 RESULT
 
-CHECK(Int getCharge() const)
+CHECK((Int getCharge() const))
 	PeptideHit hit;
 	
 	hit.setCharge(-43);
 	TEST_EQUAL(-43, hit.getCharge())
 RESULT
 
-CHECK(void setCharge(Int charge))
+CHECK((void setCharge(Int charge)))
 	PeptideHit hit;
 	
 	hit.setCharge(-43);
 	TEST_EQUAL(-43, hit.getCharge())
+RESULT
+
+CHECK(void setAABefore(char acid))
+	PeptideHit hit;
+	
+	hit.setAABefore('R');
+	TEST_EQUAL(hit.getAABefore(), 'R')
+RESULT
+CHECK(char getAABefore() const)
+	PeptideHit hit;
+	
+	hit.setAABefore('R');
+	TEST_EQUAL(hit.getAABefore(), 'R')
+RESULT
+CHECK(void setAAAfter(char acid))
+	PeptideHit hit;
+	
+	hit.setAAAfter('R');
+	TEST_EQUAL(hit.getAAAfter(), 'R')
+RESULT
+CHECK(char getAAAfter() const)
+	PeptideHit hit;
+	
+	hit.setAAAfter('R');
+	TEST_EQUAL(hit.getAAAfter(), 'R')
 RESULT
 
 /////////////////////////////////////////////////////////////

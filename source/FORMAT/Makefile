@@ -36,8 +36,6 @@ DIRECTORY=FORMAT
 CPP_SOURCES=\
 	Base64.C\
 	Param.C\
-	ControlledVocabulary.C\
-	Schema2CV.C\
 	DTAFile.C\
 	DTA2DFile.C\
 	PersistentObject.C\
@@ -67,8 +65,10 @@ CPP_SOURCES=\
 	OMSSACSVFile.C\
 	PTMXMLFile.C\
 	ConsensusXMLFile.C\
-	XTandemXMLFile.C\
-	MSPFile.C
+	MSPFile.C\
+	Schema2CV.C\
+	ControlledVocabulary.C\
+	XTandemXMLFile.C
 
 ifeq ($(ANDIMS_SUPPORT),true)
 	ANDI_SOURCES=\

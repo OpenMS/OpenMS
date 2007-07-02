@@ -213,6 +213,9 @@ namespace OpenMS
 		///Replaces all occurences of the character @p from by the character @p to.
 		String& substitute(char from, char to);
 
+		///Replaces all occurences of the string @p from by the string @p to.
+		String& substitute(const String& from, const String& to);
+
 		///Remove all occurences of the character @p what.
 		String& remove(char what);
 

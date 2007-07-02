@@ -97,6 +97,7 @@ WARN_LOGFILE           = ./doxygen/doxygen-error.log
 INPUT                  = ../include/OpenMS/ \
                          ../source/APPLICATIONS/TOPP/ \
                          ./OpenMS_tutorial/OpenMS_Tutorial.doxygen \
+                         ./doxygen/parameters/DefaultParameters.doxygen \
                          ./TOPP_tutorial/TOPP_Tutorial.doxygen \
 												 ./doxygen/public/ \
 												 ./doxygen/internal/
@@ -107,7 +108,8 @@ RECURSIVE              = YES
 EXCLUDE                = 
 EXCLUDE_SYMLINKS       = NO
 EXCLUDE_PATTERNS       = */.svn/* \
-                         *_moc*
+                         *_moc* \
+                         */UIC/*
 EXAMPLE_PATH           = ../source/EXAMPLES/
 EXAMPLE_PATTERNS       = 
 EXAMPLE_RECURSIVE      = NO

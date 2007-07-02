@@ -47,15 +47,17 @@ namespace OpenMS
   /**
     @brief Superimposer that uses a voting scheme to find a good affine transformation.
 
-  It works on two element maps (FeatureMap is the default map type, 
-  but you can also use a pointer map like DPeakConstReferenceArray) and 
-  computes a affine transformation, that maps the elements of one map (scene map) 
-  as near as possible to the elements in the other map (model map).
-  A element can be a DPeak, a DFeature, a ConsensusPeak or ConsensusFeature 
-  (wheras DFeature is the default element type).
-
-  This superimposer hashs all possible affine transformations and defines the 
-  transformation with the most votes as the best one.        
+	  It works on two element maps (FeatureMap is the default map type, 
+	  but you can also use a pointer map like DPeakConstReferenceArray) and 
+	  computes a affine transformation, that maps the elements of one map (scene map) 
+	  as near as possible to the elements in the other map (model map).
+	  A element can be a DPeak, a DFeature, a ConsensusPeak or ConsensusFeature 
+	  (wheras DFeature is the default element type).
+	
+	  This superimposer hashs all possible affine transformations and defines the 
+	  transformation with the most votes as the best one.
+		 
+		@ref PoseClusteringAffineSuperimposer_Parameters are explained on a separate page.        
   */
   template < typename MapT = FeatureMap<> >
   class PoseClusteringAffineSuperimposer
@@ -117,63 +119,25 @@ namespace OpenMS
     {
       setName(getProductName());
 
-      defaults_.setValue("tuple_search:mz_bucket_size",1);
-      defaults_.setValue("transformation_space:shift_bucket_size:RT",1);
-      defaults_.setValue("transformation_space:shift_bucket_size:MZ",0.1);
-      defaults_.setValue("transformation_space:scaling_bucket_size:RT",0.5);
-      defaults_.setValue("transformation_space:scaling_bucket_size:MZ",0.1);
-      defaults_.setValue("transformation_space:bucket_window_shift:RT",1);
-      defaults_.setValue("transformation_space:bucket_window_shift:MZ",1);
-      defaults_.setValue("transformation_space:bucket_window_scaling:RT",1);
-      defaults_.setValue("transformation_space:bucket_window_scaling:MZ",1);
-      defaults_.setValue("transformation_space:min_shift:RT",-1000);
-      defaults_.setValue("transformation_space:min_shift:MZ",-5);
-      defaults_.setValue("transformation_space:max_shift:RT",1000);
-      defaults_.setValue("transformation_space:max_shift:MZ",5);
-      defaults_.setValue("transformation_space:min_scaling:RT",-3);
-      defaults_.setValue("transformation_space:min_scaling:MZ",-1.5);
-      defaults_.setValue("transformation_space:max_scaling:RT",3);
-      defaults_.setValue("transformation_space:max_scaling:MZ",1.5);
+      defaults_.setValue("tuple_search:mz_bucket_size",.5,"An estimate of m/z deviation of corresponding elements in different maps.");
+      defaults_.setValue("transformation_space:shift_bucket_size:RT",1,"Defines the shift parameter's bucket size during histograming.");
+      defaults_.setValue("transformation_space:shift_bucket_size:MZ",0.1,"Defines the shift parameter's bucket size during histograming.");
+      defaults_.setValue("transformation_space:scaling_bucket_size:RT",0.1,"Defines the scaling parameter's bucket size during histograming.");
+      defaults_.setValue("transformation_space:scaling_bucket_size:MZ",0.1,"Defines the scaling parameter's bucket size during histograming.");
+      defaults_.setValue("transformation_space:bucket_window_shift:RT",5,"Number of surrounding buckets of element indices to be considered when computing the shift parameter.");
+      defaults_.setValue("transformation_space:bucket_window_shift:MZ",5,"Number of surrounding buckets of element indices to be considered when computing the shift parameter.");
+      defaults_.setValue("transformation_space:bucket_window_scaling:RT",2,"Number of surrounding buckets of element indices to be considered when computing the scaling parameter.");
+      defaults_.setValue("transformation_space:bucket_window_scaling:MZ",2,"Number of surrounding buckets of element indices to be considered when computing the scaling parameter.");
+      defaults_.setValue("transformation_space:min_shift:RT",-1000,"Minimal shift parameter which is considered during histogramming.");
+      defaults_.setValue("transformation_space:min_shift:MZ",-5,"Minimal shift parameter which is considered during histogramming.");
+      defaults_.setValue("transformation_space:max_shift:RT",1000,"Maximal shift parameter which is considered during histogramming.");
+      defaults_.setValue("transformation_space:max_shift:MZ",5,"Maximal shift parameter which is considered during histogramming.");
+      defaults_.setValue("transformation_space:min_scaling:RT",-3,"Minimal scaling parameter which is considered during histogramming.");
+      defaults_.setValue("transformation_space:min_scaling:MZ",-1.5,"Minimal scaling parameter which is considered during histogramming.");
+      defaults_.setValue("transformation_space:max_scaling:RT",3,"Maximal scaling parameter which is considered during histogramming.");
+      defaults_.setValue("transformation_space:max_scaling:MZ",1.5,"Maximal scaling parameter which is considered during histogramming.");
 
       defaultsToParam_();
-    }
-
-    /// Copy constructor
-    PoseClusteringAffineSuperimposer(const PoseClusteringAffineSuperimposer& source)
-        : Base(source),
-        model_map_red_(source.model_map_red_),
-        scene_map_partners_(source.scene_map_partners_),
-        rt_hash_(source.rt_hash_),
-        mz_hash_(source.mz_hash_)
-    {
-      num_buckets_shift_[0] = source.num_buckets_shift_[0];
-      num_buckets_shift_[1] = source.num_buckets_shift_[1];
-      num_buckets_scaling_[0] = source.num_buckets_scaling_[0];
-      num_buckets_scaling_[1] = source.num_buckets_scaling_[1];
-
-      updateMembers_();
-    }
-
-    ///  Assignment operator
-    PoseClusteringAffineSuperimposer& operator = (const PoseClusteringAffineSuperimposer& source)
-    {
-      if (&source==this) return *this;
-
-      Base::operator=(source);
-
-      model_map_red_ = source.model_map_red_;
-      scene_map_partners_ = source.scene_map_partners_;
-      rt_hash_ = source.rt_hash_;
-      mz_hash_ = source.mz_hash_;
-
-      num_buckets_shift_[0] = source.num_buckets_shift_[0];
-      num_buckets_shift_[1] = source.num_buckets_shift_[1];
-      num_buckets_scaling_[0] = source.num_buckets_scaling_[0];
-      num_buckets_scaling_[1] = source.num_buckets_scaling_[1];
-
-      updateMembers_();
-
-      return *this;
     }
 
     /// Destructor

@@ -42,14 +42,14 @@ using std::stringstream;
 
 // default ctor
 LogNormalModel* ptr = 0;
-CHECK(LogNormalModel())
+CHECK((LogNormalModel()))
 	ptr = new LogNormalModel();
   TEST_EQUAL(ptr->getName(), "LogNormalModel")
 	TEST_NOT_EQUAL(ptr, 0)
 RESULT
 
 // destructor
-CHECK(virtual ~LogNormalModel())
+CHECK((virtual ~LogNormalModel()))
 	delete ptr;
 RESULT
 
@@ -93,7 +93,7 @@ CHECK((virtual LogNormalModel& operator=(const LogNormalModel &source)))
 RESULT
 
 // copy ctor
-CHECK(LogNormalModel(const LogNormalModel& source))
+CHECK((LogNormalModel(const LogNormalModel& source)))
 	LogNormalModel logm1;
 	logm1.setInterpolationStep(0.2);
 
@@ -182,8 +182,7 @@ CHECK([EXTRA] DefaultParamHandler::setParameters(...))
 
 RESULT
 
-CHECK((void setOffset(double offset)))
-
+CHECK((void setOffset(CoordinateType offset)))
 	LogNormalModel logm1;
 	
 	Param tmp;
@@ -228,7 +227,7 @@ CHECK((void setSamples()))
 	// already test above
 RESULT
 
-CHECK(CoordinateType getCenter() const)
+CHECK((CoordinateType getCenter() const))
 	// already test above, but just for the sake of it
 	PRECISION(0.001)
 	LogNormalModel logm1;

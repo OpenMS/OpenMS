@@ -46,6 +46,8 @@ namespace OpenMS
 		structuring element (a flat line) of length frameSize_.
 		
 		Erosion and dilatation are implemented using van Herk's method.
+		 
+		@ref MorphFilter_Parameters are explained on a separate page.
 */
 
   class MorphFilter 
@@ -57,7 +59,7 @@ namespace OpenMS
       : DefaultParamHandler("MorphFilter"),
       struc_size_(3)
     {
-      defaults_.setValue("struc_elem_length",3);
+      defaults_.setValue("struc_elem_length",3,"Length of the structuring element. Should be wider than the expected peak width.");
     
       defaultsToParam_();
     }
@@ -289,7 +291,7 @@ namespace OpenMS
             }
             else
             {
-              g[j]=std::min(first->getIntensity(),g[j-1]);
+              g[j]=std::min((DoubleReal)(first->getIntensity()),g[j-1]);
             }
             ++first;
           }
@@ -310,7 +312,7 @@ namespace OpenMS
           }
           else
           {
-            g[j]=std::min(first->getIntensity(),g[j-1]);
+            g[j]=std::min((DoubleReal)(first->getIntensity()),g[j-1]);
           }
           ++first;
           ++j;
@@ -339,7 +341,7 @@ namespace OpenMS
           }
           else
           {
-            h[j]=std::min(first->getIntensity(),h[j+1]);
+            h[j]=std::min((DoubleReal)(first->getIntensity()),h[j+1]);
           }
           --first;
         }
@@ -374,7 +376,7 @@ namespace OpenMS
             }
             else
             {
-              g[j]=std::max(first->getIntensity(),g[j-1]);
+              g[j]=std::max((DoubleReal)(first->getIntensity()),g[j-1]);
             }
             ++first;
           }
@@ -395,7 +397,7 @@ namespace OpenMS
           }
           else
           {
-            g[j]=std::max(first->getIntensity(),g[j-1]);
+            g[j]=std::max((DoubleReal)(first->getIntensity()),g[j-1]);
           }
           ++first;
           ++j;
@@ -425,7 +427,7 @@ namespace OpenMS
           }
           else
           {
-            h[j]=std::max(last->getIntensity(),h[j+1]);
+            h[j]=std::max((DoubleReal)(last->getIntensity()),h[j+1]);
           }
           --last;
         }
@@ -437,7 +439,7 @@ namespace OpenMS
         while (last!=first)
         {
           --j;
-          h[j]=std::max(first->getIntensity(),h[j+1]);;
+          h[j]=std::max((DoubleReal)(first->getIntensity()),h[j+1]);;
           --last;
         }
       }

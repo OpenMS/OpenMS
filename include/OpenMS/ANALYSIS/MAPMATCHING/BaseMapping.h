@@ -30,7 +30,7 @@
 #include <OpenMS/DATASTRUCTURES/DPosition.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 
-#include <OpenMS/FORMAT/Param.h>
+#include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 
 namespace OpenMS
 {
@@ -39,20 +39,24 @@ namespace OpenMS
 		 that can be applied to a 2D-Position or a DoubleReal. 
 	  
 	*/
-	class BaseMapping
+	class BaseMapping : public DefaultParamHandler
 	{
 	 public:
 		
 		/// Constructor
-		BaseMapping() {}
+		BaseMapping() 
+		: DefaultParamHandler("BaseMapping") 
+		  {
+		    DefaultParamHandler::defaultsToParam_();
+		  }
 		
 		/// Destructor
 		virtual ~BaseMapping() {}
 			
 		/// Copy constructor 
 		BaseMapping(const BaseMapping& source)
+		 : DefaultParamHandler(source)
 		{
-			setParam(source.param_);
 		}
 			
 		/// Assignment operator
@@ -60,28 +64,16 @@ namespace OpenMS
 		{
 			if (this==&rhs) return *this;
 			
-			param_ = rhs.param_;
-			return *this;
+			DefaultParamHandler::operator=(rhs);
+      return *this;
 		}		
 		
-		/// Set parameters
-    virtual void setParam(const Param& p);
-		/// Get parameters
-    virtual const Param& getParam() const; 
-    						
 		/// Apply the transform to a feature
     virtual void apply(DPosition<1>& ) const = 0;
 
 		/// Apply the transformation
     virtual void apply( DoubleReal& pos) const = 0;
-	
-		/// Return the name of this transformation
-		virtual const String getName() = 0;
-					
-	 protected:		
-		/// Parameters defining the transformation
-		Param param_;				
-	}; // end of BaseMapping
+	  }; // end of BaseMapping
 					
 } // end of namespace OpenMS
 

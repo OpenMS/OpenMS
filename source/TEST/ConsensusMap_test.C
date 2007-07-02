@@ -120,7 +120,7 @@ CHECK((const std::vector< String >& getFilenames() const))
   TEST_REAL_EQUAL(cons_map.getFilenames().size(),0)
 RESULT
 
-CHECK((const std::vector< typename ConsensusElementType::ElementContainerType >& getMapVector() const))
+CHECK((const std::vector< typename ConsensusElementType::ElementContainerType* >& getMapVector() const))
   ConsensusMap<ConsensusFeature < FeatureMap<> > > cons_map;
   
   TEST_REAL_EQUAL(cons_map.getMapVector().size(),0)
@@ -136,7 +136,7 @@ CHECK((std::vector< String >& getFilenames()))
   TEST_EQUAL(cons_map.getFilenames()[0] == "blub", true)
 RESULT
 
-CHECK((std::vector< typename ConsensusElementType::ElementContainerType >& getMapVector()))
+CHECK((std::vector< typename ConsensusElementType::ElementContainerType* >& getMapVector()))
   ConsensusMap<ConsensusFeature < FeatureMap<> > > cons_map;
   cons_map.getMapVector().resize(1);
   FeatureMap<> feat_map;
@@ -163,7 +163,7 @@ CHECK((void setFilenames(const std::vector < String >& filenames)))
   TEST_EQUAL(cons_map.getFilenames()[0] == "blub", true)
 RESULT
 
-CHECK((void setMapVector(const std::vector < typename ConsensusElementType::ElementContainerType >& map_vector)))
+CHECK((void setMapVector(const std::vector< typename ConsensusElementType::ElementContainerType * > &map_vector)))
   ConsensusMap<ConsensusFeature < FeatureMap<> > > cons_map;
   vector<FeatureMap<>* > map_vector(1);
   FeatureMap<> feat_map;
@@ -179,6 +179,40 @@ CHECK((void setMapVector(const std::vector < typename ConsensusElementType::Elem
   TEST_REAL_EQUAL((*(cons_map.getMapVector()[0]))[0].getRT(),1)
   TEST_REAL_EQUAL((*(cons_map.getMapVector()[0]))[0].getMZ(),4)
   TEST_REAL_EQUAL((*(cons_map.getMapVector()[0]))[0].getIntensity(),23)
+RESULT
+
+CHECK((void merge()))
+  ConsensusMap<ConsensusFeature < FeatureMap<> > > cons_map;
+  vector<FeatureMap<>* > map_vector(3);
+  Feature feat_1;
+  feat_1.setRT(1);
+  feat_1.setMZ(4);
+  feat_1.setIntensity(23);
+  Feature feat_2;
+  feat_2.setRT(1.5);
+  feat_2.setMZ(4);
+  feat_2.setIntensity(23);
+  Feature feat_3;
+  feat_3.setRT(1.2);
+  feat_3.setMZ(4);
+  feat_3.setIntensity(23);
+  FeatureMap<> feat_map_1, feat_map_2,feat_map_3;
+  feat_map_1.push_back(feat_1);
+  feat_map_2.push_back(feat_2);
+  feat_map_3.push_back(feat_3);
+  map_vector[0] = &feat_map_1;
+  map_vector[1] = &feat_map_2;
+  map_vector[2] = &feat_map_3;
+  cons_map.setMapVector(map_vector);
+  
+  ConsensusFeature<FeatureMap<> > cons_1(0,0,feat_1,1,0,feat_2);
+  ConsensusFeature<FeatureMap<> > cons_2(2,0,feat_3);
+  cons_map.push_back(cons_1);
+  cons_map.push_back(cons_2);
+   
+  TEST_REAL_EQUAL(cons_map.size(),2)
+  cons_map.merge();
+  TEST_REAL_EQUAL(cons_map.size(),1)
 RESULT
 
 /////////////////////////////////////////////////////////////

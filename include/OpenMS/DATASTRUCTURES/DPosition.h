@@ -75,8 +75,8 @@ namespace OpenMS
 		*/
 		DPosition() { clear();	}
 		
-		/// Destructor
-		virtual ~DPosition() {}
+		/// Destructor (not-virtual as this will save a lot of space!)
+		~DPosition() {}
 
 		/// Constructor that fills all dimensions with the value @p x
 		DPosition(CoordinateType x)

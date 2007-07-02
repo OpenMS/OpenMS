@@ -133,22 +133,22 @@ namespace OpenMS
 		return add_formula_;
 	}
 
-	void ResidueModification::setAddAverageWeight(Real weight)
+	void ResidueModification::setAddAverageWeight(DoubleReal weight)
 	{
 		add_average_weight_ = weight;
 	}
 
-	Real ResidueModification::getAddAverageWeight() const
+	DoubleReal ResidueModification::getAddAverageWeight() const
 	{
 		return add_average_weight_;
 	}
 
-	void ResidueModification::setAddMonoWeight(Real weight)
+	void ResidueModification::setAddMonoWeight(DoubleReal weight)
 	{
 		add_mono_weight_ = weight;
 	}
 
-	Real ResidueModification::getAddMonoWeight() const
+	DoubleReal ResidueModification::getAddMonoWeight() const
 	{
 		return add_mono_weight_;
 	}
@@ -163,22 +163,22 @@ namespace OpenMS
 		return del_formula_;
 	}
 
-	void ResidueModification::setDelAverageWeight(Real weight)
+	void ResidueModification::setDelAverageWeight(DoubleReal weight)
 	{
 		del_average_weight_ = weight;
 	}
 
-	Real ResidueModification::getDelAverageWeight() const
+	DoubleReal ResidueModification::getDelAverageWeight() const
 	{
 		return del_average_weight_;
 	}
 	
-	void ResidueModification::setDelMonoWeight(Real weight)
+	void ResidueModification::setDelMonoWeight(DoubleReal weight)
 	{
 		del_mono_weight_ = weight;
 	}
 
-	Real ResidueModification::getDelMonoWeight() const
+	DoubleReal ResidueModification::getDelMonoWeight() const
 	{
 		return del_mono_weight_;
 	}

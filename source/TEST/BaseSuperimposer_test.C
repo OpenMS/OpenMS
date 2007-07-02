@@ -45,16 +45,7 @@ class TestSuperimposer : public BaseSuperimposer<ElementMapType>
 	{ 
 		check_defaults_ = false; 
 	}
-	TestSuperimposer(const TestSuperimposer& bpf) 
-		: BaseSuperimposer<ElementMapType>(bpf)
-	{
-	}
-	
-	TestSuperimposer& operator=(const TestSuperimposer& bpf)
-	{
-		 BaseSuperimposer<ElementMapType>::operator=(bpf);
-		 return *this;
-	}
+
 	virtual void run() 
 	{
 	}
@@ -66,74 +57,20 @@ START_TEST(BaseSuperimposer, "$Id$")
 /////////////////////////////////////////////////////////////
 
 TestSuperimposer* ptr = 0;
-CHECK(BaseSuperimposer())
+CHECK((BaseSuperimposer()))
 	ptr = new TestSuperimposer();
 	TEST_NOT_EQUAL(ptr, 0)
 RESULT
 
-CHECK(~BaseSuperimposer())
+CHECK((virtual ~BaseSuperimposer()))
 	delete ptr;
 RESULT
 
-CHECK(BaseSuperimposer& operator = (BaseSuperimposer source))
-  Param param;
-  param.setValue("bla",3);
-  ElementMapType first;
-  ElementMapType second;
-  TransformationType trafo(1.,2.);
- 
-  TestSuperimposer bsi;
-  bsi.setParameters(param);
-  bsi.setElementMap(0,first);
-  bsi.setElementMap(1,second);
-  bsi.setTransformation(0,trafo);
-  
-  TestSuperimposer bsi_copy;
-  bsi_copy = bsi;
-  
-  TEST_EQUAL(bsi.getParameters() == bsi_copy.getParameters(),true)
-  TEST_EQUAL(&(bsi.getElementMap(0)) == &(bsi_copy.getElementMap(0)),true)
-  TEST_EQUAL(&(bsi.getElementMap(1)) == &(bsi_copy.getElementMap(1)),true)
-  TEST_REAL_EQUAL((bsi.getTransformation(0)).getSlope(),trafo.getSlope())
-  TEST_REAL_EQUAL((bsi.getTransformation(0)).getIntercept(),trafo.getIntercept())
-RESULT
-
-CHECK(BaseSuperimposer(const BaseSuperimposer& source))
-  Param param;
-  param.setValue("bla",3);
-  ElementMapType first;
-  ElementMapType second;
-  TransformationType trafo(1.,2.);
- 
-  TestSuperimposer bsi;
-  bsi.setParameters(param);
-  bsi.setElementMap(0,first);
-  bsi.setElementMap(1,second);
-  bsi.setTransformation(0,trafo);
-  
-  TestSuperimposer bsi_copy(bsi);
-  
-  TEST_EQUAL(bsi.getParameters() == bsi_copy.getParameters(),true)
-  TEST_EQUAL(&(bsi.getElementMap(0)) == &(bsi_copy.getElementMap(0)),true)
-  TEST_EQUAL(&(bsi.getElementMap(1)) == &(bsi_copy.getElementMap(1)),true)
-  TEST_REAL_EQUAL((bsi.getTransformation(0)).getSlope(),trafo.getSlope())
-  TEST_REAL_EQUAL((bsi.getTransformation(0)).getIntercept(),trafo.getIntercept())
-RESULT
-
-CHECK(const Param& getParameters() const)
-  Param param;
-  param.setValue("bla",3);
-  TestSuperimposer bsi;
-  bsi.setParameters(param);
-  const TestSuperimposer bsi_copy(bsi);
-  TEST_EQUAL(bsi_copy.getParameters() == param,true)
-RESULT
-
-CHECK(const PointMapType& getElementMap(UInt index))
+CHECK((const PointMapType& getElementMap(UInt index)))
   
 RESULT
 
-CHECK(const PointMapType& getElementMap(UInt index) const)
+CHECK((const PointMapType& getElementMap(UInt index) const))
   ElementMapType map;
   TestSuperimposer bpf;
   bpf.setElementMap(0,map);
@@ -141,7 +78,7 @@ CHECK(const PointMapType& getElementMap(UInt index) const)
   TEST_EQUAL(&(bpf_copy.getElementMap(0)) == &map,true)
 RESULT
 
-CHECK(const TransformationType& getTransformation(UInt dim) const)
+CHECK((const TransformationType& getTransformation(UInt dim) const))
   TransformationType trafo(1.,2.);
   TestSuperimposer bsi;
   bsi.setTransformation(0,trafo);
@@ -151,24 +88,19 @@ CHECK(const TransformationType& getTransformation(UInt dim) const)
   TEST_REAL_EQUAL((bsi.getTransformation(0)).getIntercept(),trafo.getIntercept())
 RESULT
 
-CHECK(void run())
+CHECK((virtual void run()=0))
   
 RESULT
 
-CHECK((void setElementMap(UInt const index, const PointMapType& Element_map)))
+CHECK((void registerChildren()))
+  
+RESULT
+
+CHECK((void setElementMap(UInt const index, const PointMapType &element_map)))
   ElementMapType map;
   TestSuperimposer bsi;
   bsi.setElementMap(0,map);
   TEST_EQUAL(&(bsi.getElementMap(0)) == &map,true)
-RESULT
-
-CHECK(void setParameters(const Param& param))
-  Param param;
-  TestSuperimposer bsi;
-  param.setValue("bla",3);
-  bsi.setParameters(param);
-  const TestSuperimposer bsi_copy(bsi);
-  TEST_EQUAL(bsi_copy.getParameters() == param,true)
 RESULT
 
 CHECK((void setTransformation(UInt dim, const TransformationType& trafo)))

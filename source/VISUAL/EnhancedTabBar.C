@@ -27,6 +27,7 @@
 // OpenMS includes
 #include <OpenMS/VISUAL/EnhancedTabBar.h>
 #include <QtGui/QMouseEvent>
+#include <QtGui/QMenu>
 
 using namespace std;
 
@@ -43,7 +44,23 @@ namespace OpenMS
 	{
 		
 	}
-
+	
+	void EnhancedTabBar::contextMenuEvent(QContextMenuEvent* e)
+	{
+		QMenu menu(this);
+		menu.addAction("Close");
+		if (menu.exec(e->globalPos())!=0)
+		{
+		  for (int i=0; i<this->count(); ++i)
+	    {
+				if (tabRect(i).contains(e->pos()))
+				{
+					emit doubleClicked(i);
+					break;
+				}
+			}
+		}
+	}
 
 	void EnhancedTabBar::mouseDoubleClickEvent ( QMouseEvent * e )
 	{

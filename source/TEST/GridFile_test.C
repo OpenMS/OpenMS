@@ -51,11 +51,11 @@ CHECK((GridFile()))
 	TEST_NOT_EQUAL(ptr, 0)
 RESULT
 
-CHECK((~GridFile()))
+CHECK((virtual ~GridFile()))
 	delete ptr;
 RESULT
 
-CHECK((void load(String filename, DGrid<D>& grid) throw(Exception::FileNotFound, Exception::ParseError)))
+CHECK((void load(String filename, Grid &grid) throw (Exception::FileNotFound, Exception::ParseError)))
 	PRECISION(0.01)
 	
 	Grid grid;
@@ -74,7 +74,7 @@ CHECK((void load(String filename, DGrid<D>& grid) throw(Exception::FileNotFound,
 	TEST_EQUAL(mappings.size(),2);	
 RESULT
 
-CHECK((void store(String filename, const DGrid<D>& grid) const throw(Exception::UnableToCreateFile)))
+CHECK((void store(String filename, const Grid &grid) const  throw (Exception::UnableToCreateFile)))
 	
 	std::string tmp_filename;
   Grid grid;

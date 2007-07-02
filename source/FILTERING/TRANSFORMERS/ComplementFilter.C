@@ -31,14 +31,12 @@ using namespace std;
 
 namespace OpenMS
 {
-  // todo charge state 2?
-
   ComplementFilter::ComplementFilter()
 		:	FilterFunctor()
   { 
 		setName(ComplementFilter::getProductName());
     //value from Bioinformatics, Bern 2004
-		defaults_.setValue("tolerance", 0.37f);
+		defaults_.setValue("tolerance", 0.37f, "Tolerance value as defined by Bern et al.");
 		defaultsToParam_();
   }
 

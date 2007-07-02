@@ -60,8 +60,8 @@ namespace OpenMS
 			Element(const String& name,
 							const String& symbol,
 							UInt atomic_number,
-							Real average_weight,
-							Real mono_weight,
+							DoubleReal average_weight,
+							DoubleReal mono_weight,
 							const IsotopeDistribution& isotopes);
 
 			/// destructor
@@ -78,16 +78,16 @@ namespace OpenMS
 			UInt getAtomicNumber() const;
 			
 			/// sets the average weight of the element
-			void setAverageWeight(Real weight);
+			void setAverageWeight(DoubleReal weight);
 
 			/// returns the average weight of the element
-			Real getAverageWeight() const;
+			DoubleReal getAverageWeight() const;
 
 			/// sets the mono isotopic weight of the element
-			void setMonoWeight(Real weight);
+			void setMonoWeight(DoubleReal weight);
 
 			/// returns the mono isotopic weight of the element
-			Real getMonoWeight() const;
+			DoubleReal getMonoWeight() const;
 
 			/// sets the isotope distribution of the element
 			void setIsotopeDistribution(const IsotopeDistribution& isotopes);
@@ -140,10 +140,10 @@ namespace OpenMS
 			UInt atomic_number_;
 
 			/// average weight over all isotopes
-			Real average_weight_;
+			DoubleReal average_weight_;
 	
 			/// mono isotopic weight of the most frequent isotope
-			Real mono_weight_;
+			DoubleReal mono_weight_;
 
 			/// distribution of the isotopes
 			IsotopeDistribution isotopes_;

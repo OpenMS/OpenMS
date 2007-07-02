@@ -45,65 +45,17 @@ namespace OpenMS
 	class BaseQuality;
 
 	/**
-		 @brief Extended model fitter using gaussian or isotope model in mz and bigauss, lmagauss (bigauss with parameters estimated by levenberg-marquardt) 
-		 or emg (exponent. modified gaussian) for the retention time domain.
-
-		 For the isotope model different charges and deviations are tested.<br>
-		 Parameters:
-		 <table>
-		 <tr><td></td><td></td><td>tolerance_stdev_bounding_box</td>
-		 <td>bounding box has range [minimim of data, maximum of data] enlarged
-		 by tolerance_stdev_bounding_box times the standard deviation of the data</td></tr>
-		 <tr><td></td><td></td><td>feature_intensity_sum</td>
-		 <td>estimate abundance of the compound as the sum of all contained peaks</td></tr>
-		 <tr><td></td><td></td><td>intensity_cutoff_factor</td>
-		 <td>cutoff peaks with a predicted intensity below intensity_cutoff_factor times the maximal intensity of the model</td></tr>
-		 <tr><td rowspan="5" colspan="2">rt</td><td>interpolation_step</td>
-		 <td>step size in seconds used to interpolate model for rt</td></tr>
-		 <tr><td>max_iteration</td>
-		 <td>maximum number of iteration used by the Levenberg-Marquadt algorithms</td></tr>
-		 <tr><td>deltaAbsError</td>
-		 <td>absolute error used by the Levenberg-Marquardt algorithms</td></tr>
-		 <tr><td>deltaRelError</td>
-		 <td>relative error used by the Levenberg-Marquardt algorithms</td></tr>
-		 <tr><td>profile</td>
-		 <td>type of model to try out in rt, possible are GaussModel,							LmaGaussModel, EmgModel or LogNormalModel</td></tr>
-		 <tr><td rowspan="2">mz</td><td></td><td>interpolation_step</td>
-		 <td>step size in Thomson used to interpolate model for mz</td></tr>
-		 <tr><td>model_type</td><td>first, last</td>
-		 <td>first (last) type of model to try out in mz,
-		 0 = GaussModel,<br>
-		 1 = IsotopeModel with charge +1, ..., <br>
-		 n = IsotopeModel with charge +n</td></tr>
-		 <tr><td rowspan="2" colspan="2">quality</td><td>type</td>
-		 <td>name of class derived from BaseModel, measurement for quality of fit</td></tr>
-		 <tr><td>minimum</td>
-		 <td>minimum quality of feature, if smaller feature will be discarded</td></tr>
-		 <tr><td rowspan="2" colspan="2">min_num_peaks</td><td>extended</td>
-		 <td>minimum number of peaks gathered by the BaseExtender.
-		 If smaller, feature will be discarded </td></tr>
-		 <tr><td>final</td>
-		 <td>minimum number of peaks left after cutoff.
-		 If smaller, feature will be discarded.</td></tr>
-		 <tr><td rowspan="5">isotope_model</td><td>stdev</td><td>first, last, step</td>
-		 <td>testing isotope standard deviations in range [stdev_first_mz,stdev_last_mz]
-		 in steps of size stdev_step_mz.
-		 Used to account for different data resolutions</td></tr>
-		 <tr><td>avergines</td><td>C, H, N, O, S</td>
-		 <td>averagines are used to approximate the number of atoms of a given element
-		 (C,H,N,O,S) given a mass</td></tr>
-		 <tr><td rowspan="3">isotope</td><td>trim_right_cutoff</td>
-		 <td>use only isotopes with abundancies above this cutoff</td></tr>
-		 <tr><td>maximum</td>
-		 <td>maximum number of isotopes being used for the IsotopeModel</td></tr>
-		 <tr><td>distance</td>
-		 <td>distance between two isotopes of charge +1</td></tr>
-		 </table>
-		 
-		 @ingroup FeatureFinder
+		@brief Extended model fitter using gaussian or isotope model in mz and bigauss, lmagauss (bigauss with Levenberg-Marquardt aproximized parameters) or emg (exponent. modified Gaussian with lma aproximized parameters) in rt.
+		
+		For the isotope model different charges and deviations are tested.<br>
+    
+    @ref ExtendedModelFitter_Parameters are explained on a separate page.
+		
+		@todo Merge ExtendedModelFitter and SimpleModelFitter (Clemens)
+		@todo Check use of Enums for RT and m/z fit. They destroy the factory concept! (Clemens)
+		
+		@ingroup FeatureFinder
   */
-
-
   class ExtendedModelFitter
     : public BaseModelFitter
   {

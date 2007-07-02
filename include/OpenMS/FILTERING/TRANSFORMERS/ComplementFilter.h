@@ -38,6 +38,8 @@ namespace OpenMS
     @brief total intensity of peak pairs that could result from complementing fragments of charge state 1
   
   	@param tolerance mass tolerance
+		 
+		@ref ComplementFilter_Parameters are explained on a separate page.
 
 		@ingroup SpectraFilter
   */
@@ -80,7 +82,7 @@ namespace OpenMS
 		
 			spectrum.getContainer().sortByPosition();
 	
-			/// @todo think about an correct fast algorithm, not just an heuristic (Andreas)
+			/// @improvement think about an correct fast algorithm, not just an heuristic (Andreas)
 	    uint j = spectrum.size() - 1;
 	    for (uint i = 0; i < spectrum.size() && i <= j; /*++i*/)
 	    {

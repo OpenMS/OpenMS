@@ -48,61 +48,21 @@ CHECK((DelaunayPairFinder()))
 	TEST_NOT_EQUAL(ptr, 0)
 RESULT
 
-CHECK((~DelaunayPairFinder()))
+CHECK((virtual ~DelaunayPairFinder()))
 	delete ptr;
 RESULT
 
-CHECK((DelaunayPairFinder& operator = (DelaunayPairFinder source)))
-  DelaunayPairFinder<FeatureMap<> > dpf;
-  dpf.setDiffIntercept(0,1);
-  dpf.setDiffIntercept(1,1);
-  dpf.setMaxPairDistance(0,20);
-  dpf.setMaxPairDistance(1,0.5);
-  dpf.setPrecision(0,30);
-  dpf.setPrecision(1,3.5);
-  
-  DelaunayPairFinder<FeatureMap<> > dpf_copy;
-  dpf_copy = dpf;
-  
-  TEST_REAL_EQUAL(dpf_copy.getDiffIntercept(0),1)
-  TEST_REAL_EQUAL(dpf_copy.getDiffIntercept(1),1)
-  TEST_REAL_EQUAL(dpf_copy.getMaxPairDistance(0),20)
-  TEST_REAL_EQUAL(dpf_copy.getMaxPairDistance(1),0.5)
-  TEST_REAL_EQUAL(dpf_copy.getPrecision(0),30)
-  TEST_REAL_EQUAL(dpf_copy.getPrecision(1),3.5)
-RESULT
-
-CHECK((DelaunayPairFinder(const DelaunayPairFinder& source)))
-  DelaunayPairFinder<FeatureMap<> > dpf;
-  dpf.setDiffIntercept(0,1);
-  dpf.setDiffIntercept(1,1);
-  dpf.setMaxPairDistance(0,20);
-  dpf.setMaxPairDistance(1,0.5);
-  dpf.setPrecision(0,30);
-  dpf.setPrecision(1,3.5);
-  
-  DelaunayPairFinder<FeatureMap<> > dpf_copy;
-  dpf_copy = dpf;
-  
-  TEST_REAL_EQUAL(dpf_copy.getDiffIntercept(0),1)
-  TEST_REAL_EQUAL(dpf_copy.getDiffIntercept(1),1)
-  TEST_REAL_EQUAL(dpf_copy.getMaxPairDistance(0),20)
-  TEST_REAL_EQUAL(dpf_copy.getMaxPairDistance(1),0.5)
-  TEST_REAL_EQUAL(dpf_copy.getPrecision(0),30)
-  TEST_REAL_EQUAL(dpf_copy.getPrecision(1),3.5)
-RESULT
-
 DelaunayPairFinder<FeatureMap<> >::Point* ptr2 = 0;
-CHECK((Point()))
+CHECK(([EXTRA]Point()))
 	ptr2 = new DelaunayPairFinder<FeatureMap<> >::Point();
 	TEST_NOT_EQUAL(ptr2, 0)
 RESULT
 
-CHECK((~Point()))
+CHECK(([EXTRA]~Point()))
 	delete ptr2;
 RESULT
 
-CHECK((Point& operator = (const Point& source)))
+CHECK(([EXTRA]Point& operator = (const Point& source)))
   DelaunayPairFinder<FeatureMap<> >::Point p(1,2);
   DelaunayPairFinder<FeatureMap<> >::Point p_copy;
   p_copy = p;
@@ -111,7 +71,7 @@ CHECK((Point& operator = (const Point& source)))
   TEST_REAL_EQUAL(p_copy.hy(),2)
 RESULT
 
-CHECK((Point(Base::RT hx, Base::RT hy)))
+CHECK(([EXTRA]Point(Base::RT hx, Base::RT hy)))
   DelaunayPairFinder<FeatureMap<> >::Point p(1,2);
   DelaunayPairFinder<FeatureMap<> >::Point p_copy;
   p_copy = p;
@@ -120,7 +80,7 @@ CHECK((Point(Base::RT hx, Base::RT hy)))
   TEST_REAL_EQUAL(p_copy.hy(),2)
 RESULT
 
-CHECK((Point(Base::RT hx, Base::RT hy, const PointType& f, UInt k=0)))
+CHECK(([EXTRA]Point(Base::RT hx, Base::RT hy, const PointType& f, UInt k=0)))
   DelaunayPairFinder<FeatureMap<> >::Point p(1,2);
   DelaunayPairFinder<FeatureMap<> >::Point p_copy;
   p_copy = p;
@@ -129,7 +89,7 @@ CHECK((Point(Base::RT hx, Base::RT hy, const PointType& f, UInt k=0)))
   TEST_REAL_EQUAL(p_copy.hy(),2)
 RESULT
 
-CHECK((Point(const Base& cgal_point)))
+CHECK(([EXTRA]Point(const Base& cgal_point)))
   CGAL::Point_2< CGAL::Cartesian<double> > cp(1,2);
   DelaunayPairFinder<FeatureMap<> >::Point p(cp);
     	
@@ -137,7 +97,7 @@ CHECK((Point(const Base& cgal_point)))
   TEST_REAL_EQUAL(p.hy(),2)
 RESULT
 
-CHECK((Point(const Point& source)))
+CHECK(([EXTRA]Point(const Point& source)))
   DelaunayPairFinder<FeatureMap<> >::Point p(1,2);
   DelaunayPairFinder<FeatureMap<> >::Point p_copy(p);
   	
@@ -145,7 +105,7 @@ CHECK((Point(const Point& source)))
   TEST_REAL_EQUAL(p_copy.hy(),2)
 RESULT
 
-CHECK((Point_2 operator()(const Circle_2& c) const))
+CHECK(([EXTRA]Point_2 operator()(const Circle_2& c) const))
   //
 RESULT
 
@@ -153,31 +113,31 @@ CHECK((double getDiffIntercept(UInt dim)))
   DelaunayPairFinder<FeatureMap<> > dpf;
   
   TEST_REAL_EQUAL(dpf.getDiffIntercept(0),1)
-  TEST_REAL_EQUAL(dpf.getDiffIntercept(1),0.1)
+  TEST_REAL_EQUAL(dpf.getDiffIntercept(1),0.01)
 RESULT
 
 CHECK((float getMaxPairDistance(UInt dim)))
   DelaunayPairFinder<FeatureMap<> > dpf;
   
-  TEST_REAL_EQUAL(dpf.getMaxPairDistance(0),3)
+  TEST_REAL_EQUAL(dpf.getMaxPairDistance(0),20)
   TEST_REAL_EQUAL(dpf.getMaxPairDistance(1),1)
 RESULT
 
 CHECK((float getPrecision(UInt dim)))
   DelaunayPairFinder<FeatureMap<> > dpf;
   
-  TEST_REAL_EQUAL(dpf.getPrecision(0),20)
-  TEST_REAL_EQUAL(dpf.getPrecision(1),5)
+  TEST_REAL_EQUAL(dpf.getPrecision(0),60)
+  TEST_REAL_EQUAL(dpf.getPrecision(1),.5)
 RESULT
 
 CHECK((static BasePairFinder<PointMapType>* create()))
   // 
 RESULT
 
-CHECK((static const String getName()))
+CHECK((static const String getProductName()))
 	DelaunayPairFinder<FeatureMap<> > dpf;
 	
-  TEST_EQUAL(dpf.getName() == "delaunay",true)
+  TEST_EQUAL(dpf.getName() == "DelaunayPairFinder",true)
 RESULT
 
 CHECK((void findElementPairs()))

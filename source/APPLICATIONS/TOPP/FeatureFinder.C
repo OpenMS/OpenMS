@@ -54,39 +54,7 @@ using namespace std;
   feature region. The intensity of the feature is then given by the sum of the data points included
   in its regions.
   
-  <b>Seeding:</b><br>
-  Right now only the seeder with the ID <tt>SimpleSeeder</tt> should be used.
-  The critical parameters for this seeder are:
-  - <b>min_intensity</b> the minimum intensity to consider a data point as seed
-  - <b>intensity_perc</b> Minimum intensity percentage (relative to maximum peak) that a peak has to have
-       as a seed. Only used when min_intensity is 0.
-  
-  <b>Extension:</b><br>
-  Right now only the extender with the ID <tt>SimpleExtender</tt> should be used.
-	- <b>priority_thr</b> The priority of data point is a function of its intensity and its distance from the seed. 
-												Data points with a priority below this threshold are not included into the feature region.
-  - <b>dist_mz_up</b> determines how far from the seed data points are searched in direction to higher m/z
-  - <b>dist_mz_down</b> determines how far from the seed data points are searched in direction to lower m/z
-  - <b>dist_rt_up</b> determines how far from the seed data points are searched in direction to higher RT
-  - <b>dist_rt_down</b> determines how far from the seed data points are searched in direction to lower RT
-  
-  <b>Model fitting:</b><br>
-	Right now only the model fitter with the ID <tt>SimpleModelFitter</tt> should be used.
-	- <b>min_num_peaks:extended</b> the miniumum number of data points that a extended area has to contain
-	- <b>min_num_peaks:final</b> the minimum number of data points that a feature has to contain
-	- <b>model_type:first</b> min charge to consider for the model
-	- <b>model_type:last</b> max charge to consider for the model
-	- <b>quality:type</b> how the quality of a feature is measured. Use 'Correlation'. 
-	- <b>quality:minimum</b> min quality that a feature has to achieve
-	- <b>isotope_model:stdev:first</b> first std deviation for isotope model peaks to try
-	- <b>isotope_model:stdev:last</b> last std deviation for isotope model peaks to try
-	- <b>isotope_model:stdev:step</b> steps in between first and last std deviation for isotope model peaks
-	- <b>intensity_cutoff_factor</b> intensity ratio (compared to seed)
-	- <b>tolerance_stdev_bounding_box</b> influence of the width of the bounding box during the fit
-	- <b>intensity_cutoff_factor</b> After fitting, the model is used to truncate the feature region and to remove points with low probability under the model. This is the corresponding threshold.
-	- <b>mz:interpolation_step</b> Gives the interpolation step size in m/z domain
-	- <b>rt:interpolation_step</b> interpolation step size in time domain
-
+  How to find suitable parameters is described in the TOPP tutorial.
 */
 
 // We do not want this class to show up in the docu:
@@ -124,12 +92,42 @@ class TOPPFeatureFinder
 	{
 		Param tmp;
 		
+		//seeders - SimpleSeeder
 		tmp.insert("Seeders:Seeder1",Factory<BaseSeeder>::create("SimpleSeeder")->getDefaults());
-		tmp.setValue("Seeders:Seeder1:ID","SimpleSeeder");
+		tmp.setValue("Seeders:Seeder1:ID","SimpleSeeder","Seeder type");
+		tmp.setDescription("Seeders","Seeder definitions are contained here");
+		//seeders - DummySeeder
+		tmp.insert("Seeders:Seeder2",Factory<BaseSeeder>::create("DummySeeder")->getDefaults());
+		tmp.setValue("Seeders:Seeder2:ID","DummySeeder","Seeder type");
+		//seeders - IsotopeWaveletSeeder
+		tmp.insert("Seeders:Seeder3",Factory<BaseSeeder>::create("IsotopeWaveletSeeder")->getDefaults());
+		tmp.setValue("Seeders:Seeder3:ID","IsotopeWaveletSeeder","Seeder type");
+		//seeders - MarrWaveletSeeder
+		tmp.insert("Seeders:Seeder4",Factory<BaseSeeder>::create("MarrWaveletSeeder")->getDefaults());
+		tmp.setValue("Seeders:Seeder4:ID","MarrWaveletSeeder","Seeder type");
+		//seeders - PickedPeakSeeder
+		tmp.insert("Seeders:Seeder5",Factory<BaseSeeder>::create("PickedPeakSeeder")->getDefaults());
+		tmp.setValue("Seeders:Seeder5:ID","PickedPeakSeeder","Seeder type");
+		
+		//extenders - SimpleExtender
 		tmp.insert("Extenders:Extender1",Factory<BaseExtender>::create("SimpleExtender")->getDefaults());	
-		tmp.setValue("Extenders:Extender1:ID","SimpleExtender");
+		tmp.setValue("Extenders:Extender1:ID","SimpleExtender","Extender type");
+		tmp.setDescription("Extenders","Extender definitions are contained here");
+		//extenders - DummyExtender
+		tmp.insert("Extenders:Extender2",Factory<BaseExtender>::create("DummyExtender")->getDefaults());	
+		tmp.setValue("Extenders:Extender2:ID","DummyExtender","Extender type");
+		
+		//modelfitters - SimpleModelFitter
 		tmp.insert("ModelFitters:ModelFitter1",Factory<BaseModelFitter>::create("SimpleModelFitter")->getDefaults());	
-		tmp.setValue("ModelFitters:ModelFitter1:ID","SimpleModelFitter");
+		tmp.setValue("ModelFitters:ModelFitter1:ID","SimpleModelFitter","ModelFitter type");
+		tmp.setDescription("ModelFitters","ModelFitter definitions are contained here");
+		//modelfitters - DummyFitter
+		tmp.insert("ModelFitters:ModelFitter2",Factory<BaseModelFitter>::create("DummyFitter")->getDefaults());	
+		tmp.setValue("ModelFitters:ModelFitter2:ID","DummyFitter","ModelFitter type");
+		//modelfitters - ExtendedModelFitter
+		tmp.insert("ModelFitters:ModelFitter3",Factory<BaseModelFitter>::create("ExtendedModelFitter")->getDefaults());	
+		tmp.setValue("ModelFitters:ModelFitter3:ID","ExtendedModelFitter","ModelFitter type");
+		
 		return tmp;
 	}
 

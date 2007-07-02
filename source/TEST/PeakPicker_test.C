@@ -48,40 +48,6 @@ CHECK((~PeakPicker()))
   delete ptr;
 RESULT
 
-CHECK((PeakPicker& operator=(const PeakPicker& pp)))
-  Param param;
-  param.setValue("thresholds:signal_to_noise",7);
-  param.setValue("thresholds:peak_bound",100);
-  param.setValue("thresholds:peak_bound_ms2_level",10);
-  param.setValue("thresholds:fwhm_bound",0.5);
-  PeakPicker p;
-  p.setParameters(param);
-  
-  PeakPicker p_copy;
-  p_copy = p;
-  TEST_REAL_EQUAL(p_copy.getPeakBound(),100)
-  TEST_REAL_EQUAL(p_copy.getPeakBoundMs2Level(),10)
-  TEST_REAL_EQUAL(p_copy.getSignalToNoiseLevel(),7)
-  TEST_REAL_EQUAL(p_copy.getFwhmBound(),0.5)
-  TEST_EQUAL(p_copy.getParameters() == param, true)
-RESULT
-
-CHECK((void setParameters(Param param)))
-  Param param;
-  param.setValue("thresholds:signal_to_noise",7);
-  param.setValue("thresholds:peak_bound",100);
-  param.setValue("thresholds:peak_bound_ms2_level",10);
-  param.setValue("thresholds:fwhm_bound",0.5);
-  
-  PeakPicker pp;
-  pp.setParameters(param);
-  
-  TEST_REAL_EQUAL(pp.getPeakBound(),100)
-  TEST_REAL_EQUAL(pp.getPeakBoundMs2Level(),10)
-  TEST_REAL_EQUAL(pp.getSignalToNoiseLevel(),7)
-  TEST_REAL_EQUAL(pp.getFwhmBound(),0.5)
-  TEST_EQUAL(pp.getParameters() == param, true)
-RESULT
 
 CHECK((PeakPicker(const PeakPicker& pp)))
   Param param;
@@ -100,21 +66,6 @@ CHECK((PeakPicker(const PeakPicker& pp)))
   TEST_EQUAL(p_copy.getParameters() == param, true)
 RESULT
 
-CHECK((const Param& getParameters() const))
-  Param param;
-  param.setValue("thresholds:signal_to_noise",7);
-  param.setValue("thresholds:peak_bound",100);
-  param.setValue("thresholds:peak_bound_ms2_level",10);
-  param.setValue("thresholds:fwhm_bound",0.5);
-  
-  PeakPicker pp;
-  pp.setParameters(param);
-
-  TEST_REAL_EQUAL((double)pp.getParameters().getValue("thresholds:signal_to_noise"),7.0);
-  TEST_REAL_EQUAL((double)pp.getParameters().getValue("thresholds:peak_bound"),100.0);
-  TEST_REAL_EQUAL((double)pp.getParameters().getValue("thresholds:peak_bound_ms2_level"),10.0);
-  TEST_REAL_EQUAL((double)pp.getParameters().getValue("thresholds:fwhm_bound"),0.5);
-RESULT
 
 CHECK((Real getFwhmBound() const))
   PeakPicker pp;
@@ -128,6 +79,7 @@ CHECK((Real getPeakBound() const))
   TEST_REAL_EQUAL(pp.getPeakBound(),200)
 RESULT
 
+	
 CHECK((Real getPeakBoundMs2Level() const))
   PeakPicker pp;
   pp.setParameters(Param());
@@ -147,9 +99,6 @@ CHECK((void setFwhmBound(Real fwhm)))
   TEST_REAL_EQUAL(pp.getFwhmBound(),0.3)
 RESULT
 
-CHECK((void setParameters(const Param& param)))
-  // ???
-RESULT
 
 CHECK((void setPeakBound(Real peak_bound)))
   PeakPicker pp;

@@ -6,7 +6,7 @@
     <x>0</x>
     <y>0</y>
     <width>496</width>
-    <height>397</height>
+    <height>380</height>
    </rect>
   </property>
   <property name="windowTitle" >
@@ -35,7 +35,7 @@
        <property name="spacing" >
         <number>6</number>
        </property>
-       <item row="5" column="1" >
+       <item row="5" column="1" colspan="2" >
         <spacer>
          <property name="orientation" >
           <enum>Qt::Vertical</enum>
@@ -48,45 +48,75 @@
          </property>
         </spacer>
        </item>
-       <item row="2" column="3" >
-        <spacer>
-         <property name="orientation" >
-          <enum>Qt::Horizontal</enum>
+       <item row="3" column="2" >
+        <widget class="QLabel" name="label_14" >
+         <property name="text" >
+          <string>(3D is experimental)</string>
          </property>
-         <property name="sizeHint" >
+        </widget>
+       </item>
+       <item row="1" column="0" >
+        <widget class="QLabel" name="label_6" >
+         <property name="text" >
+          <string>Temporary file path:</string>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="0" >
+        <widget class="QLabel" name="label_5" >
+         <property name="text" >
+          <string>Default path:</string>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="0" >
+        <widget class="QLabel" name="label_7" >
+         <property name="text" >
+          <string>Number of recent files:</string>
+         </property>
+        </widget>
+       </item>
+       <item row="4" column="0" >
+        <widget class="QLabel" name="label_9" >
+         <property name="text" >
+          <string>Map intensity cutoff:</string>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="1" colspan="2" >
+        <widget class="QLineEdit" name="default_path" >
+         <property name="minimumSize" >
           <size>
-           <width>40</width>
-           <height>20</height>
+           <width>240</width>
+           <height>0</height>
           </size>
          </property>
-        </spacer>
+        </widget>
        </item>
-       <item row="0" column="2" >
-        <widget class="QPushButton" name="browse_default" >
-         <property name="text" >
-          <string>Browse</string>
+       <item row="1" column="1" colspan="2" >
+        <widget class="QLineEdit" name="temp_path" />
+       </item>
+       <item row="2" column="1" >
+        <widget class="QSpinBox" name="recent_files" >
+         <property name="maximumSize" >
+          <size>
+           <width>50</width>
+           <height>16777215</height>
+          </size>
+         </property>
+         <property name="maximum" >
+          <number>20</number>
+         </property>
+         <property name="minimum" >
+          <number>5</number>
          </property>
         </widget>
        </item>
-       <item row="1" column="2" >
-        <widget class="QPushButton" name="browse_temp" >
+       <item row="3" column="0" >
+        <widget class="QLabel" name="label_8" >
          <property name="text" >
-          <string>Browse</string>
+          <string>Default map view:</string>
          </property>
-        </widget>
-       </item>
-       <item row="4" column="1" >
-        <widget class="QComboBox" name="map_cutoff" >
-         <item>
-          <property name="text" >
-           <string>None</string>
-          </property>
-         </item>
-         <item>
-          <property name="text" >
-           <string>Noise Estimator</string>
-          </property>
-         </item>
         </widget>
        </item>
        <item row="3" column="1" >
@@ -109,69 +139,46 @@
          </item>
         </widget>
        </item>
-       <item row="3" column="0" >
-        <widget class="QLabel" name="label_8" >
+       <item row="4" column="1" colspan="2" >
+        <widget class="QComboBox" name="map_cutoff" >
+         <item>
+          <property name="text" >
+           <string>None</string>
+          </property>
+         </item>
+         <item>
+          <property name="text" >
+           <string>Noise Estimator</string>
+          </property>
+         </item>
+        </widget>
+       </item>
+       <item row="1" column="3" >
+        <widget class="QPushButton" name="browse_temp" >
          <property name="text" >
-          <string>Default map view:</string>
+          <string>Browse</string>
          </property>
         </widget>
        </item>
-       <item row="2" column="1" >
-        <widget class="QSpinBox" name="recent_files" >
-         <property name="maximumSize" >
+       <item row="0" column="3" >
+        <widget class="QPushButton" name="browse_default" >
+         <property name="text" >
+          <string>Browse</string>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="4" >
+        <spacer>
+         <property name="orientation" >
+          <enum>Qt::Horizontal</enum>
+         </property>
+         <property name="sizeHint" >
           <size>
-           <width>50</width>
-           <height>16777215</height>
+           <width>40</width>
+           <height>20</height>
           </size>
          </property>
-         <property name="maximum" >
-          <number>20</number>
-         </property>
-         <property name="minimum" >
-          <number>5</number>
-         </property>
-        </widget>
-       </item>
-       <item row="1" column="1" >
-        <widget class="QLineEdit" name="temp_path" />
-       </item>
-       <item row="0" column="1" >
-        <widget class="QLineEdit" name="default_path" >
-         <property name="minimumSize" >
-          <size>
-           <width>240</width>
-           <height>0</height>
-          </size>
-         </property>
-        </widget>
-       </item>
-       <item row="4" column="0" >
-        <widget class="QLabel" name="label_9" >
-         <property name="text" >
-          <string>Map intensity cutoff:</string>
-         </property>
-        </widget>
-       </item>
-       <item row="2" column="0" >
-        <widget class="QLabel" name="label_7" >
-         <property name="text" >
-          <string>Number of recent files:</string>
-         </property>
-        </widget>
-       </item>
-       <item row="0" column="0" >
-        <widget class="QLabel" name="label_5" >
-         <property name="text" >
-          <string>Default path:</string>
-         </property>
-        </widget>
-       </item>
-       <item row="1" column="0" >
-        <widget class="QLabel" name="label_6" >
-         <property name="text" >
-          <string>Temporary file path:</string>
-         </property>
-        </widget>
+        </spacer>
        </item>
       </layout>
      </widget>

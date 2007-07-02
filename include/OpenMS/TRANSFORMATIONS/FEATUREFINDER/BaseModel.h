@@ -34,12 +34,14 @@
 
 namespace OpenMS
 {
-  /** 
+  /**
   	@brief Abstract base class for all D-dimensional models.
-		
+
 		Every derived class has to implement the static functions
     "T* create()" and "const String getProductName()" (see FactoryProduct for details)
-		
+
+		@todo intensity_scaling is implemented in InterpolationModel and in ProductModel in slightly different ways but using the same parameter name.  This is confusing and anyway the scaling should be implemented in the common base class template.  (Ole? Marcel? Clemens?)
+
 		@ingroup FeatureFinder
    */
   template <UInt D>
@@ -50,62 +52,62 @@ namespace OpenMS
       public:
 	      typedef int Flag;
 	      typedef std::vector<Flag> Flags;
-	
+
 	      typedef typename DPeak<D>::IntensityType IntensityType;
 		  	typedef typename DPeak<D>::CoordinateType CoordinateType;
 	      typedef DPosition<D> PositionType;
 	      typedef DPeak<D> PeakType;
 		  	typedef DPeakArray<DPeak<D> > SamplesType;
-	
-	
-	      /// Default constructor. 
+
+
+	      /// Default constructor.
 	      BaseModel()
 					: FactoryProduct("BaseModel")
 				{
-					defaults_.setValue("cutoff",0.0);
+					defaults_.setValue("cutoff",0.0,"Low intensity cutoff of the model.  Peaks below this intensity are not considered part of the model.");
 				}
-	
-	      /// copy constructor 
+
+	      /// copy constructor
 	      BaseModel(const BaseModel& source)
 					: FactoryProduct(source),
 						cut_off_(source.cut_off_)
 				{
 				}
-	
-	      /// Destructor 
+
+	      /// Destructor
 	      virtual ~BaseModel()
-	      {	
+	      {
 	      }
-	
+
 	      /// assignment operator
 	      virtual BaseModel& operator = (const BaseModel& source)
 				{
 					if (&source == this) return *this;
-					
+
 					FactoryProduct::operator = (source);
 					cut_off_ = source.cut_off_;
-					
+
 					return *this;
 				}
-	
+
 	      /// register all derived classes here
 	      static void registerChildren();
-				
+
 	      /// acess model predicted intensity at position @p pos
 	      virtual IntensityType getIntensity(const PositionType& pos) const=0;
-	      
+
 	      /// check if position @p pos is part of the model regarding the models cut-off.
 	      virtual bool isContained(const PositionType& pos) const
 				{
 					return getIntensity(pos) >= cut_off_;
 				}
-	
+
 	      /// set DPeaks intensity to model predicted intensity.
 	      virtual void  fillIntensity(PeakType& peak) const
 				{
 					peak.setIntensity( getIntensity(peak.getPosition()) );
 				}
-	
+
 	      //// set DPeaks intensity to model predicted intensity.
 				template <class PeakIterator>
 	      void  fillIntensities(PeakIterator beg, PeakIterator end) const
@@ -115,23 +117,23 @@ namespace OpenMS
 						fillIntensity(*it);
 					}
 				}
-	
+
 				/// get cutoff value
-				virtual IntensityType getCutOff() const	
-				{	
-					return cut_off_;	
+				virtual IntensityType getCutOff() const
+				{
+					return cut_off_;
 				}
-	
+
 				///	set cutoff value
 				virtual void setCutOff(IntensityType cut_off)
 				{
 					cut_off_ = cut_off;
 					param_.setValue("cutoff",(double)cut_off_);
 				}
-				
+
 				/// get reasonable set of samples from the model (i.e. for printing)
 				virtual void getSamples(SamplesType& cont) const =0;
-	
+
 				/// fill stream with reasonable set of samples from the model (i.e. for printing)
 				virtual void getSamples(std::ostream& os)
 				{
@@ -142,10 +144,10 @@ namespace OpenMS
 						os << *it << std::endl;
 					}
 				}
-	
+
 			protected:
 				IntensityType cut_off_;
-	
+
 				virtual void updateMembers_()
 				{
 					cut_off_ = (double)param_.getValue("cutoff");

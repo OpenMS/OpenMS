@@ -39,12 +39,12 @@ namespace OpenMS
 {
 	class Element;
 	class ElementDB;
-	/** 
+	/**
 			@ingroup Chemistry
-	
+
 			@brief Representation of an empirical formula
-	 	
-		 	The formula can be used as follows: elements are 
+
+		 	The formula can be used as follows: elements are
 		 	represented through its symbol or full name. The
 		 	symbol or name is followed by a number. If not, the
 		 	frequency is set to one. Examples are CH3OH or CarbonHydrogen3OH.
@@ -53,10 +53,10 @@ namespace OpenMS
 			be used with '+' or '-' followed by a number, if no number follows
 		 	the charge of +/- 1 is set.
 	*/
-	
+
 	class EmpiricalFormula
 	{
-	
+
 		public:
 
 			/** @name Typedefs
@@ -71,16 +71,16 @@ namespace OpenMS
 			//@{
 			/// default constructor
 			EmpiricalFormula();
-	
+
 			/// copy constructor
 			EmpiricalFormula(const EmpiricalFormula& rhs);
-	
+
 			/// constructor from an OpenMS String
 			EmpiricalFormula(const String& rhs) throw(Exception::ParseError);
 
 			/// constructor with element pointer and number
 			EmpiricalFormula(UInt number, const Element* element, Int charge = 0);
-			
+
 			/// destructor
 			virtual ~EmpiricalFormula();
 			//@}
@@ -89,27 +89,24 @@ namespace OpenMS
 			*/
 			//@{
 			/// returns the mono isotopic weight of the formula
-			Real getMonoWeight() const;
-	
+			DoubleReal getMonoWeight() const;
+
 			/// returns the average weight of the formula
-			Real getAverageWeight() const;
+			DoubleReal getAverageWeight() const;
 
 			/** @brief returns the isotope distribution of the formula
 				*	The details of the calculation of the isotope distribution
 				* are described in the doc to the IsotopeDistribution class.
 				*	@param max_depth: this parameter gives the max isotope which is considered, if 0 all are reported
 				*/
-			IsotopeDistribution getIsotopeDistribution(UInt max_depth = 20) const;
-		
-			/// sets the element db, the elements are read from the given file
-			void setElementDB(const String& file_name) throw(Exception::FileNotFound, Exception::ParseError);
+			IsotopeDistribution getIsotopeDistribution(UInt max_depth) const;
 
 			/// returns a pointer to the element with name or symbol or 0 if no such element is fount
 			const Element* getElement(const String& name) const;
 
 			/// returns a pointer to the element with given atomic number or 0 if none if found
 			const Element* getElement(UInt atomic_number) const;
-			
+
 			/// returns a pointer to the element db which is used with this class
 			const ElementDB* getElementDB() const;
 
@@ -119,7 +116,7 @@ namespace OpenMS
 			/// returns the number of atoms with the given name
 			UInt getNumberOf(const String& name) const;
 
-			/// returns the number of atoms 
+			/// returns the number of atoms
 			UInt getNumberOf(const Element* element) const;
 
 			/// returns the atoms total
@@ -134,22 +131,22 @@ namespace OpenMS
 			/// returns the formula as a string
 			String getString() const;
 			//@}
-			
+
 			/** Assignment
 			*/
 			//@{
-			/// assignment operator 
+			/// assignment operator
 			EmpiricalFormula& operator = (const EmpiricalFormula& rhs);
-	
+
 			/// assignment operator which assigns an string to the formula
 			EmpiricalFormula& operator = (const String& rhs) throw(Exception::ParseError);
-	
-			/// adds the elements of the given formula 
+
+			/// adds the elements of the given formula
 			EmpiricalFormula& operator += (const EmpiricalFormula& rhs);
 
 			/// adds the elements from the given formula, which is given as a OpenMS String
 			EmpiricalFormula& operator += (const String& rhs) throw(Exception::ParseError);
-	
+
 			/// adds the elements of the given formula and returns a new formula
 			EmpiricalFormula operator + (const EmpiricalFormula& rhs) const;
 
@@ -174,10 +171,10 @@ namespace OpenMS
 			//@{
 			/// returns true if the formula does not contain a element
 			bool isEmpty() const;
-		
+
 			/// returns true if charge != 0
 			bool isCharged() const;
-			
+
 			/// returns true if the formula contains the element
 			bool hasElement(const Element* element) const;
 
@@ -186,7 +183,7 @@ namespace OpenMS
 
 			/// returns true if the formula contains the element with the given atomic number
 			bool hasElement(UInt atomic_number) const;
-			
+
 			/// returns true if the formulas contain equal elements in equal quantities
 			bool operator == (const EmpiricalFormula& rhs) const;
 
@@ -195,14 +192,14 @@ namespace OpenMS
 
 			/// returns true if the formulas differ in elements composition
 			bool operator != (const EmpiricalFormula& rhs) const;
-			
+
 			/// returns true if the formulas differ in elements composition
 			bool operator != (const String& rhs) const throw(Exception::ParseError);
 			//@}
 
 			/// writes the formula to a stream
 			friend std::ostream& operator << (std::ostream&, const EmpiricalFormula&);
-			
+
 			/** @name Iterators
 			*/
 			//@{
@@ -210,9 +207,9 @@ namespace OpenMS
 
 			inline ConstIterator end() const { return formula_.end(); }
 			//@}
-		
+
 		protected:
-		
+
 			HashMap<const Element*, UInt> formula_;
 
 			Int charge_;
@@ -220,20 +217,20 @@ namespace OpenMS
 			void readElementsFromFile_(const String& file_name) throw(Exception::FileNotFound, Exception::ParseError);
 
 			Int parseFormula_(HashMap<const Element*, UInt>& ef,const String& formula) const throw(Exception::ParseError);
-			
+
 			const ElementDB* element_db_;
 	};
 
 	std::ostream& operator << (std::ostream&, const EmpiricalFormula::EmpiricalFormula&);
 
-  /** 
+  /**
       @ingroup Chemistry
-  
+
       @brief some often used empirical formulas (which ist faster than creating instances of EmpiricalFormula from strings)
 
       To use i.e. an Hydrogen just use s.th. like Formulas::H
   */
-	
+
 	namespace Formulas
   {
     static const EmpiricalFormula& getH()
@@ -267,15 +264,15 @@ namespace OpenMS
     }
 
 		const EmpiricalFormula H = getH();
-		
+
 		const EmpiricalFormula H2O = getH2O();
-		
+
 		const EmpiricalFormula NH = getNH();
-		
+
 		const EmpiricalFormula OH = getOH();
-		
+
 		const EmpiricalFormula NH3 = getNH3();
-		
+
 		const EmpiricalFormula Water = getH2O();
 
 		const EmpiricalFormula Ammonia = getNH3();

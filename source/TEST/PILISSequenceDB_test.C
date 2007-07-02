@@ -51,7 +51,7 @@ CHECK((PILISSequenceDB()))
 	TEST_NOT_EQUAL(ptr, 0)
 RESULT
 
-CHECK((~PILISSequenceDB()))
+CHECK((virtual ~PILISSequenceDB()))
 	delete ptr;
 RESULT
 
@@ -106,7 +106,7 @@ CHECK((bool has(const String& peptide) const))
 	TEST_EQUAL(ptr->has("DFPIANGERDFPIANGER"), false)
 RESULT
 
-CHECK((void getPeptides(std::vector<PepStruct>& peptides, double range_start = 0, double range_stop = std::numeric_limits<double>::max())))
+CHECK((void getPeptides(std::vector<PepStruct> &peptides, double range_start=0, double range_stop=std::numeric_limits< double >::max())))
 	vector<PILISSequenceDB::PepStruct> peptides;
 	ptr->getPeptides(peptides, 1017.7, 1021.7);
 	TEST_EQUAL(peptides.size(), 2)
@@ -134,9 +134,10 @@ CHECK((double getFactor() const))
 	TEST_REAL_EQUAL(ptr->getFactor(), 10.0)
 RESULT
 
-CHECK((void digestProteinsTryptic(UInt missed_cleavages = 0)))
+CHECK((void digestProteinsTryptic(UInt missed_cleavages=0)))
 	ptr->digestProteinsTryptic();
-	// TODO
+	vector<PILISSequenceDB::PepStruct> peptides;
+	ptr->getPeptides(peptides);
 RESULT
 
 CHECK((void setFactor(double factor)))

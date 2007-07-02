@@ -122,7 +122,7 @@ CHECK((DoubleReal getSpacing() const))
   TEST_EQUAL(tmp.getSpacing(),0.05);
 RESULT
 
-CHECK((double& getSpacing()))
+CHECK((void setSpacing(DoubleReal spacing)))
   LinearResampler tmp;
   tmp.setSpacing(0.1);
 
@@ -158,13 +158,6 @@ CHECK((template< typename InputPeakIterator, typename OutputPeakContainer > void
   }
 
   TEST_REAL_EQUAL(sum, 20);
-RESULT
-
-CHECK((void setSpacing(DoubleReal spacing)))
-  LinearResampler tmp;
-  tmp.setSpacing(0.1);
-
-  TEST_EQUAL(tmp.getSpacing(),0.1);
 RESULT
 
 CHECK((template<typename InputPeakContainer, typename OutputPeakContainer > void raster(const InputPeakContainer& input_peak_container, OutputPeakContainer& baseline_filtered_container)))

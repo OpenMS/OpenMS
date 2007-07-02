@@ -21,7 +21,7 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Stefan Rink $
+// $Maintainer: Marc Sturm $
 // --------------------------------------------------------------------------
 
 // OpenMS includes
@@ -61,7 +61,7 @@ namespace OpenMS
 				
 		if (layer->type==LayerData::DT_PEAK)
 		{
-			list<<"FileFilter"<<"FileInfo"<<"NoiseFilter"<<"PeakPicker"<<"Resampler"<<"SpectraFilter"<<"MapNormalizer"<<"InternalCalibration"<<"FeatureFinder";
+			list<<"FileFilter"<<"FileInfo"<<"NoiseFilter"<<"BaseLineFilter"<<"PeakPicker"<<"Resampler"<<"SpectraFilter"<<"MapNormalizer"<<"InternalCalibration"<<"ExternalCalibration"<<"FeatureFinder";
 		}
 		else if (layer->type==LayerData::DT_FEATURE)
 		{
@@ -103,7 +103,7 @@ namespace OpenMS
 		main_grid->addLayout(radio_grid,3,1);
 		
 		editor_=new ParamEditor;
-		editor_->createShortCuts();
+		editor_->createShortcuts();
 		
 		main_grid->addWidget(editor_,4,0,2,4);
 		

@@ -39,159 +39,136 @@
 
 namespace OpenMS
 {
-	/** 
+	/**
 		@brief Seeding module based on the Marr wavelet transform to detect (poorly resolved) isotopic pattern.
-	  
+
  		Uses the continuous wavelet transform (and the Marr mother wavelet) to detect isotopic pattern
 		in each scan. Patterns that occur in several consecutive scans are joined to seeding regions
 		for the extension phase.
-		
+
 		The algorithm considers local maxima in the wavelet transform signal and checks for maxima
 		with a distance corresponding to isotopic pattern (e.g. 1 Th, 1/2 Th etc).
-		
+
 		Regions with local maxima a scored based on a F-statistic (compares variance of intervals in cwt).
-		
-		@note: This seeder supports only isotopic pattern with a charge <= 5 !
-		
-		Parameters:
-		
-		<table>
-		 <tr><td></td><td></td><td>charge1_ub</td>
-		 <td>upper bound for the distance between "charge one" maxima</td></tr>
-		 <tr><td></td><td></td><td>charge1_lb</td>
-		 <td>lower bound for charge one </td></tr>
-		 <tr><td></td><td></td><td>charge2_ub</td>
-		 <td>upper bound charge two </td></tr>
-		 <tr><td></td><td></td><td>charge2_lb</td>
-		 <td>lower bound charge two </td></tr>
-		 <tr><td></td><td></td><td>charge3_ub</td>
-		 <td>upper bound charge three </td></tr>
-		 <tr><td></td><td></td><td>charge3_lb</td>
-		 <td>lower bound charge three </td></tr>
-		 <tr><td></td><td></td><td>cwt_scale</td>
-		 <td>scale of Marr wavelet </td></tr>
-		 <tr><td></td><td></td><td>noise_level_signal</td>
-		 <td>intensity threshold for points in the current scan to be considered </td></tr>
-		 <tr><td></td><td></td><td>noise_level_cwt</td>
-		 <td>same as above for the wavelet transformed signal. </td></tr>
-		 </table>			
+
+		@improvement The same thing is called avg_signal_factor in MarrWaveletSeeder and signal_avg_factor in IsotopeWaveletSeeder.  Unify this.
 		 
-		 There are additional parameter : @see BaseSweepSeeder	
-		
+		@ref MarrWaveletSeeder_Parameters are explained on a separate page.
+
 		@ingroup FeatureFinder
-	*/ 
-  class MarrWaveletSeeder 
+	*/
+  class MarrWaveletSeeder
     : public BaseSweepSeeder
   {
-  	public:	
-		
+  	public:
+
 			/// intensity of a peak
 			typedef FeaFiTraits::IntensityType IntensityType;
 			/// coordinate ( in rt or m/z )
 		  typedef FeaFiTraits::CoordinateType CoordinateType;
 			/// score
-		  typedef DoubleReal ProbabilityType;	
+		  typedef DoubleReal ProbabilityType;
 
 			/// a single MS spectrum
 			typedef BaseSweepSeeder::SpectrumType SpectrumType;
-			
+
 			/// charge state estimate with associated score
 			typedef BaseSweepSeeder::ScoredChargeType ScoredChargeType;
 			/// m/z position in spectrum with charge estimate and score
 			typedef BaseSweepSeeder::ScoredMZType ScoredMZType;
 			/// container of scored m/z positions
 			typedef BaseSweepSeeder::ScoredMZVector ScoredMZVector;
-	
+
 		  /// default constructor
 	    MarrWaveletSeeder();
-	
-	    /// destructor 
+
+	    /// destructor
 	    virtual ~MarrWaveletSeeder();
 
 	    /// copy constructor
 	    MarrWaveletSeeder(const MarrWaveletSeeder& rhs);
-	    
+
 	    /// assignment operator
 	    MarrWaveletSeeder& operator= (const MarrWaveletSeeder& rhs);
-	
+
 			/// Creates an instance of this class
 	    static BaseSeeder* create()
 	    {
 	      return new MarrWaveletSeeder();
 	    }
-	
+
 			/// Well....
 	    static const String getProductName()
 	    {
 	      return "MarrWaveletSeeder";
 	    }
-		  
+
 			protected:
-			
+
 			/// keeps member and param entries in synchrony
 	  	virtual void updateMembers_();
-			
+
 			/// detects an isotopic pattern in a scan
 			ScoredMZVector detectIsotopicPattern_(SpectrumType& scan );
-	  		    
+
 			/// Finds local maxima in cwt
-			void getMaxPositions_( const SpectrumType::const_iterator& first, 
-														 const SpectrumType::const_iterator& last, 
+			void getMaxPositions_( const SpectrumType::const_iterator& first,
+														 const SpectrumType::const_iterator& last,
 														 std::vector<Int>& localmax
 														#ifdef DEBUG_FEATUREFINDER
 														 ,CoordinateType curr_peak
 														#endif
 														 );
-													
+
 			/// Compute local variance and test for significance
 			ProbabilityType testLocalVariance_(const std::vector<Int>& local_maxima, const UInt max_index);
-		 	
+
 	    /// estimate charge state
 	    UInt distanceToCharge_(CoordinateType dist);
-		
+
 		  /// indicates whether this module has been initialized
 		  bool is_initialized_;
-			
+
 			/// upper bound for distance between charge 1 peaks
 			CoordinateType charge1_ub_;
 			/// lower bound for distance between charge 1 peaks
 			CoordinateType charge1_lb_;
-			
+
 			/// upper bound for distance between charge 2 peaks
 			CoordinateType charge2_ub_;
 			/// lower bound for distance between charge 2 peaks
-			CoordinateType charge2_lb_;	
-			
+			CoordinateType charge2_lb_;
+
 			/// upper bound for distance between charge 3 peaks
 			CoordinateType charge3_ub_;
 			/// lower bound for distance between charge 3 peaks
-			CoordinateType charge3_lb_;	
-			
+			CoordinateType charge3_lb_;
+
 			/// upper bound for distance between charge 4 peaks
 			CoordinateType charge4_ub_;
 			/// lower bound for distance between charge 4 peaks
-			CoordinateType charge4_lb_;	
-			
+			CoordinateType charge4_lb_;
+
 			/// upper bound for distance between charge 5 peaks
 			CoordinateType charge5_ub_;
 			/// lower bound for distance between charge 4 peaks
 			CoordinateType charge5_lb_;
-			
+
 			/// computes the wavelet transform for a given scan
 			ContinuousWaveletTransformNumIntegration cwt_;
-						
+
 			/// intensity threshold for spectrum
 			IntensityType avg_signal_factor_;
-		
+
 	   	/// intensity threshold for cwt
 	   	IntensityType avg_cwt_factor_;
-			
+
 			/// Marr wavelet scale
 			CoordinateType cwt_scale_;
-			
+
 			/// Minimum number of local maxima in cwt for an isotopic pattern
 			UInt min_peaks_;
-			 
+
   };
 }
 #endif // OPENMS_TRANSFORMATIONS_FEATUREFINDER_MARRWAVELETSEEDER_H

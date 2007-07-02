@@ -169,7 +169,7 @@ CHECK((BaseSweepSeeder(const BaseSweepSeeder &source)))
 	TEST_EQUAL(tss1 == tss2,true)
 RESULT
 
-CHECK((virtual IndexSet nextSeed()))
+CHECK((virtual ChargedIndexSet nextSeed()))
 	TestSweepSeeder tss1;
 	Param p;
 	p.setValue("scans_to_sumup",0);
@@ -199,7 +199,7 @@ CHECK((virtual IndexSet nextSeed()))
 		spec.clear();	
 	}
 	
-	traits.setData(exp.begin(),exp.end(),10);
+	traits.setData(exp.begin(),exp.end(),100);
 	
 	tss1.setTraits( &traits );
 

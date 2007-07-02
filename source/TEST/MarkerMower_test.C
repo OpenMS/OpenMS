@@ -30,6 +30,7 @@
 ///////////////////////////
 
 #include <OpenMS/FILTERING/TRANSFORMERS/MarkerMower.h>
+#include <OpenMS/FILTERING/TRANSFORMERS/IsotopeMarker.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/FORMAT/DTAFile.h>
 
@@ -126,7 +127,8 @@ CHECK((void filterPeakSpectrum(PeakSpectrum& spectrum)))
 RESULT
 			
 CHECK((void insertmarker(PeakMarker* peak_marker)))
-	// TODO
+	IsotopeMarker marker;
+	e_ptr->insertmarker(&marker);
 RESULT
 
 delete e_ptr;

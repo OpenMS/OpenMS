@@ -117,7 +117,7 @@ class TOPPFileInfo
 					 << "file name: " << in << endl
 					 << "file type: " <<  fh.typeToName(in_type) << endl;
 			
-			MSExperiment< Peak1D > exp;
+			MSExperiment<RawDataPoint1D> exp;
 			FeatureMap<> feat;
 			ExperimentalSettings* exp_set;
 			//-------------------------------------------------------------
@@ -160,7 +160,7 @@ class TOPPFileInfo
 		
 				//count how many spectra per MS level there are
 				vector<UInt> counts(5);
-				for (MSExperiment< Peak1D >::iterator it = exp.begin(); it!=exp.end(); ++it)
+				for (MSExperiment<RawDataPoint1D>::iterator it = exp.begin(); it!=exp.end(); ++it)
 				{
 					counts[it->getMSLevel()]++;	
 				}
@@ -253,15 +253,15 @@ class TOPPFileInfo
 					//copy intensities of  MS-level 1 peaks
 					exp.updateRanges(1);
 					UInt size = exp.getSize();
-					Peak1D::IntensityType * intensities = new  Peak1D::IntensityType[ size ];
+					DoubleReal* intensities = new  DoubleReal[ size ];
 					UInt i = 0;
-		      for (MSExperiment<>::const_iterator spec = exp.begin(); spec != exp.end(); ++spec)
+		      for (MSExperiment<RawDataPoint1D>::const_iterator spec = exp.begin(); spec != exp.end(); ++spec)
 		      {
 			      if (spec->getMSLevel()!=1)
 			      {
 			          continue;
 			      }
-			      for (MSExperiment<>::SpectrumType::const_iterator it = spec->begin(); it!=spec->end(); ++it)
+			      for (MSExperiment<RawDataPoint1D>::SpectrumType::const_iterator it = spec->begin(); it!=spec->end(); ++it)
 			      {
 							intensities[i++] = it->getIntensity();
 			      }
@@ -298,11 +298,8 @@ class TOPPFileInfo
 				{
 					UInt size = feat.size();
 		
-					typedef FeatureMap<>::FeatureType::IntensityType IntensityType;
-					typedef FeatureMap<>::FeatureType::QualityType QualityType;
-		
-					IntensityType * intensities = new IntensityType[ size ];
-					QualityType * qualities	 = new QualityType[ size ];
+					DoubleReal* intensities = new DoubleReal[ size ];
+					DoubleReal* qualities	 = new DoubleReal[ size ];
 		
 					for (unsigned int i = 0; i < size; 	++i)
 					{
@@ -364,7 +361,6 @@ class TOPPFileInfo
 			return EXECUTION_OK;
 		}
 };
-
 
 int main( int argc, char ** argv )
 {

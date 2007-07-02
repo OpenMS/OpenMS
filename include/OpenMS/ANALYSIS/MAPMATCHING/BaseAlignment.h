@@ -47,8 +47,7 @@ namespace OpenMS
 		This class is the base class for the alignment of multiple element maps. 
 		An element can be a DPeak, a DFeature, a ConsensusPeak or a ConsensusFeature.
 		Corresponding elements are grouped together and stored as a consensus
-		element in the final consensus map (a stl vector of consensus elements). 
-   
+		element in the final consensus map (a stl vector of consensus elements).
   */
   template < typename ConsensusElementT >
   class BaseAlignment : public DefaultParamHandler
@@ -68,33 +67,9 @@ namespace OpenMS
     BaseAlignment()
         : DefaultParamHandler("BaseAlignment")
     {
-    	defaults_.setValue("map_type","");
+    	defaults_.setValue("map_type","","Map type: 'peak_map', 'feature_map' or 'consensus_map'");
     	
     	defaultsToParam_();
-    }
-
-    /// Copy constructor 
-    BaseAlignment(const BaseAlignment& source)
-        : DefaultParamHandler(source),
-        final_consensus_map_(source.final_consensus_map_),
-        transformations_(source.transformations_)
-    {
-    	updateMembers_();	
-    }
-
-    ///  Assignment operator 
-    virtual BaseAlignment& operator = (const BaseAlignment& source)
-    {
-      if (&source==this)
-        return *this;
-
-      DefaultParamHandler::operator=(source);
-      final_consensus_map_ = source.final_consensus_map_;
-      transformations_ = source.transformations_;
-      
-      updateMembers_();
-      
-      return *this;
     }
 
     /// Destructor

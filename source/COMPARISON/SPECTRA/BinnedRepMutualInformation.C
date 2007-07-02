@@ -37,7 +37,7 @@ namespace OpenMS
 		:	BinnedRepCompareFunctor()
   {
 		setName(BinnedRepMutualInformation::getProductName());
-    defaults_.setValue("intervals", 3);
+    defaults_.setValue("intervals", 3, "intervals peak intensity is discretized into intervals");
 		defaultsToParam_();
   }
 
@@ -68,14 +68,10 @@ namespace OpenMS
   {
     uint intervals = (unsigned int)param_.getValue("intervals");
    
-    //const BinnedRep& b = csb.getBinrep();
-    //const BinnedRep& a = csa.getBinrep();
-    
-    //double filterfactor = filter(csa,csb);
-    //if (filterfactor < 1e-12) return 0;
     //number of pairs where a falls into interval i and b falls into interval j
     vector<vector<double> > n = vector<vector<double> >(intervals, vector<double>(intervals, 0.0));
-    //marginal frequencies for x and y
+    
+		//marginal frequencies for x and y
     double result = 0;
     vector<double> na = vector<double>(intervals, 0.0);
     vector<double> nb = vector<double>(intervals, 0.0);

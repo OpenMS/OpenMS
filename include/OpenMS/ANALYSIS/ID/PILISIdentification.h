@@ -47,6 +47,10 @@ namespace OpenMS
 
 		The PILISIdentification class needs a PILISModel and a PILISSequenceDB to generate
 		identifications. Simply call getIdentifications with a PeakMap.
+		 
+		@ref PILISIdentification_Parameters are explained on a separate page.
+		
+		@ingroup Analysis_ID
 	*/
 	class PILISIdentification : public DefaultParamHandler
 	{

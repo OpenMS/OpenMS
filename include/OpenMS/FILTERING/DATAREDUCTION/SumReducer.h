@@ -34,6 +34,8 @@ namespace OpenMS
 	/**
 		@brief Reduces the amount of data in an experiment by summing the
 		intensities of neighboring peaks.
+		 
+		@ref SumReducer_Parameters are explained on a separate page.
 	*/
 	class SumReducer
 	  : public DataReducer

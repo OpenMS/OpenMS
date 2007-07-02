@@ -107,6 +107,27 @@ CHECK((void setMaxAbsError(double eps_abs)))
  	TEST_REAL_EQUAL(abs_err, opt_pick.getMaxAbsError())
 RESULT
 
+
+CHECK((DoubleReal getMaxAbsError() const))
+  PRECISION(0.0001)
+  double abs_err = 0.01;
+   
+  OptimizePick opt_pick;
+  opt_pick.setMaxAbsError(abs_err);
+    
+ 	TEST_REAL_EQUAL(abs_err, opt_pick.getMaxAbsError())
+RESULT
+
+CHECK((double& getMaxAbsError()))
+  PRECISION(0.0001)
+  double abs_err = 0.01;
+   
+  OptimizePick opt_pick;
+  opt_pick.setMaxAbsError(abs_err);
+    
+ 	TEST_REAL_EQUAL(abs_err, opt_pick.getMaxAbsError())
+RESULT
+	
 CHECK((void setMaxRelError(double eps_rel)))
   PRECISION(0.0001)
   double rel_err = 0.01;
@@ -117,6 +138,26 @@ CHECK((void setMaxRelError(double eps_rel)))
  	TEST_REAL_EQUAL(rel_err, opt_pick.getMaxRelError())
 RESULT
 
+CHECK((DoubleReal getMaxRelError() const	))
+  PRECISION(0.0001)
+  double rel_err = 0.01;
+   
+  OptimizePick opt_pick;
+  opt_pick.setMaxRelError(rel_err);
+    
+ 	TEST_REAL_EQUAL(rel_err, opt_pick.getMaxRelError())
+RESULT
+
+CHECK((double& getMaxRelError()))
+  PRECISION(0.0001)
+  double rel_err = 0.01;
+   
+  OptimizePick opt_pick;
+  opt_pick.setMaxRelError(rel_err);
+    
+ 	TEST_REAL_EQUAL(rel_err, opt_pick.getMaxRelError())
+RESULT
+	
 CHECK((void setNumberIterations(const int max_iteration)))
   unsigned int number = 20;
    
@@ -125,6 +166,25 @@ CHECK((void setNumberIterations(const int max_iteration)))
     
  	TEST_EQUAL(number == opt_pick.getNumberIterations(), true)
 RESULT
+
+CHECK((unsigned int& getNumberIterations()))
+  unsigned int number = 20;
+   
+  OptimizePick opt_pick;
+  opt_pick.setNumberIterations(number);
+    
+ 	TEST_EQUAL(number == opt_pick.getNumberIterations(), true)
+RESULT
+
+	
+CHECK((UInt getNumberIterations() const))
+  unsigned int number = 20;
+   
+  OptimizePick opt_pick;
+  opt_pick.setNumberIterations(number);
+    
+ 	TEST_EQUAL(number == opt_pick.getNumberIterations(), true)
+RESULT	
 
 CHECK((void setPenalties(const struct OptimizationFunctions::PenaltyFactors& penalties)))
   PRECISION(0.0001)
@@ -140,6 +200,35 @@ CHECK((void setPenalties(const struct OptimizationFunctions::PenaltyFactors& pen
   TEST_REAL_EQUAL(penalties.rWidth,opt_pick.getPenalties().rWidth)
 RESULT
 
+CHECK((const struct OptimizationFunctions::PenaltyFactors& getPenalties() const))
+  PRECISION(0.0001)
+  struct OptimizationFunctions::PenaltyFactors penalties;
+  penalties.pos = 0;
+  penalties.lWidth = 1;
+  penalties.rWidth = 2;
+    
+  OptimizePick opt_pick;
+  opt_pick.setPenalties(penalties);
+  TEST_REAL_EQUAL(penalties.pos,opt_pick.getPenalties().pos)
+  TEST_REAL_EQUAL(penalties.lWidth,opt_pick.getPenalties().lWidth)
+  TEST_REAL_EQUAL(penalties.rWidth,opt_pick.getPenalties().rWidth)
+RESULT
+
+CHECK((struct OptimizationFunctions::PenaltyFactors& getPenalties()))
+  PRECISION(0.0001)
+  struct OptimizationFunctions::PenaltyFactors penalties;
+  penalties.pos = 0;
+  penalties.lWidth = 1;
+  penalties.rWidth = 2;
+    
+  OptimizePick opt_pick;
+  opt_pick.setPenalties(penalties);
+  TEST_REAL_EQUAL(penalties.pos,opt_pick.getPenalties().pos)
+  TEST_REAL_EQUAL(penalties.lWidth,opt_pick.getPenalties().lWidth)
+  TEST_REAL_EQUAL(penalties.rWidth,opt_pick.getPenalties().rWidth)
+RESULT
+
+	
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST

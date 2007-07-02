@@ -52,6 +52,8 @@ namespace OpenMS
     @note The wider the kernel width the smoother the signal (the more detail information get lost!).
           Use a gaussian filter kernel which has approximately the same width as your mass peaks,
           whereas the gaussian peak width corresponds approximately to 8*sigma.
+		 
+		@ref GaussFilter_Parameters are explained on a separate page.
           
     @ingroup Filtering
   */
@@ -68,7 +70,7 @@ namespace OpenMS
         DefaultParamHandler("GaussFilter")
       {
       	//Parameter settings
-      	defaults_.setValue("gaussian_width",0.8);
+      	defaults_.setValue("gaussian_width",0.8,"Use a gaussian filter kernel which has approximately the same width as your mass peaks");
         
          //members
         sigma_ = .1;

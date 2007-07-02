@@ -33,7 +33,7 @@
 using namespace OpenMS;
 using namespace std;
 
-START_TEST(TOPPBase, "$Id$")
+START_TEST(TOPPBase, "$Id$");
 
 //test class with optional parameters
 class TOPPBaseTest
@@ -45,13 +45,13 @@ class TOPPBaseTest
 		{
 			main(0,0);
 		}
-		
+
 		TOPPBaseTest(int argc , char** argv)
 			: TOPPBase("TOPPBaseTest", "A test class")
 		{
-			main(argc,argv);	
+			main(argc,argv);
 		}
-		
+
 		virtual void registerOptionsAndFlags_()
 		{
 			registerStringOption_("stringoption","<string>","string default","string description",false);
@@ -75,11 +75,21 @@ class TOPPBaseTest
 			return getIntOption_(name);
 		}
 
+		Param const& getParam() const
+		{
+			return getParam_();
+		}
+
 		bool getFlag(const String& name) const
 		{
 			return getFlag_(name);
 		}
-			
+
+		bool setByUser(const String& name) const
+		{
+			return setByUser_(name);
+		}
+
 		virtual ExitCodes main_(int /*argc*/ , char** /*argv*/)
 		{
 			return EXECUTION_OK;
@@ -94,7 +104,7 @@ class TOPPBaseTest
 		{
 			inputFileReadable_(filename);
 		}
-		
+
 		void outputFileWritable(const String& filename) const
 		{
 			outputFileWritable_(filename);
@@ -104,7 +114,7 @@ class TOPPBaseTest
 		{
 			parseRange_(text, low, high);
 		}
-		
+
 };
 
 // Test class for no-optional parameters
@@ -117,13 +127,13 @@ class TOPPBaseTestNOP
 		{
 			main(0,0);
 		}
-		
+
 		TOPPBaseTestNOP(int argc , char** argv)
 			: TOPPBase("TOPPBaseTestNOP", "A test class with non-optional parameters")
 		{
-			main(argc,argv);	
+			main(argc,argv);
 		}
-		
+
 		virtual void registerOptionsAndFlags_()
 		{
 			registerStringOption_("stringoption","<string>","string default","string description");
@@ -184,9 +194,10 @@ char* a12 ="commandline";
 char* a13 ="4.5";
 char* a14 ="-intoption";
 char* a15 ="-doubleoption";
+char* a16 ="4711";
 
 CHECK(([EXTRA]String const& getIniLocation_() const))
-	//default 
+	//default
 	TOPPBaseTest tmp;
 	TEST_EQUAL(tmp.getIniLocation(),"TOPPBaseTest:1:")
 	//command line
@@ -195,20 +206,42 @@ CHECK(([EXTRA]String const& getIniLocation_() const))
 	TEST_EQUAL(tmp2.getIniLocation(),"TOPPBaseTest:5:")
 RESULT
 
+CHECK([EXTRA] bool setByUser_(const String& name) const)
+	//default
+	TOPPBaseTest tmp;
+	TEST_EQUAL(tmp.setByUser("intoption"),false);
+
+	//command line
+	char* string_cl[3] = {a1, a14, a16}; //command line: "TOPPTOPPBaseTest -intoption 4711"
+	TOPPBaseTest tmp2(3,string_cl);
+
+	TEST_EQUAL(tmp2.setByUser("intoption"),true);
+	TEST_EQUAL(tmp2.setByUser("stringoption"),false);
+	TEST_EQUAL(tmp2.setByUser("doubleoption"),false);
+
+	//ini file
+	char* both_cl[3] = {a1, a3, a7}; //command line: "TOPPTOPPBaseTest -ini data/TOPPBase_toolcommon.ini"
+	TOPPBaseTest tmp3(3,both_cl);
+
+	TEST_EQUAL(tmp3.setByUser("intoption"),false);
+	TEST_EQUAL(tmp3.setByUser("stringoption"),true);
+	TEST_EQUAL(tmp3.setByUser("doubleoption"),false);
+RESULT
+
 CHECK(([EXTRA]String getStringOption_(const String& name) const))
-	//default 
+	//default
 	TOPPBaseTest tmp;
 	TEST_EQUAL(tmp.getStringOption("stringoption"),"string default");
 	//command line
 	char* string_cl[3] = {a1, a10, a12}; //command line: "TOPPTOPPBaseTest -stringoption commandline"
 	TOPPBaseTest tmp2(3,string_cl);
 	TEST_EQUAL(tmp2.getStringOption("stringoption"),"commandline");
-	
+
 	//command line (when there is a ini file value too)
 	char* both_cl[5] = {a1, a10, a12, a3, a7}; //command line: "TOPPTOPPBaseTest -stringoption commandline -ini data/TOPPBase_toolcommon.ini"
 	TOPPBaseTest tmp3(5,both_cl);
 	TEST_EQUAL(tmp3.getStringOption("stringoption"),DataValue("commandline"));
-	
+
 	//ini file: instance section
 	char* common_cl[3] = {a1, a3, a7}; //command line: "TOPPTOPPBaseTest -ini data/TOPPBase_toolcommon.ini"
 	TOPPBaseTest tmp4(3,common_cl);
@@ -216,7 +249,7 @@ CHECK(([EXTRA]String getStringOption_(const String& name) const))
 	char* common5_cl[5] = {a1, a3, a7, a5, a9}; //command line: "TOPPTOPPBaseTest -ini data/TOPPBase_toolcommon.ini -instance 5"
 	TOPPBaseTest tmp5(5,common5_cl);
 	TEST_EQUAL(tmp5.getStringOption("stringoption"),DataValue("instance5"));
-	
+
 	//ini file: tool common section
 	char* common6_cl[5] = {a1, a3, a7, a5, a6}; //command line: "TOPPTOPPBaseTest -ini data/TOPPBase_toolcommon.ini -instance 6"
 	TOPPBaseTest tmp6(5,common6_cl);
@@ -232,48 +265,48 @@ CHECK(([EXTRA]String getStringOption_(const String& name) const))
 
 	//missing required parameters
 	char* string_cl2[2] = {a1, a11};
-	TOPPBaseTestNOP tmp8(2,string_cl2);	
+	TOPPBaseTestNOP tmp8(2,string_cl2);
 	TEST_EXCEPTION(Exception::RequiredParameterNotGiven,tmp8.getStringOption("stringoption"));
 RESULT
 
 CHECK(([EXTRA]String getIntOption_(const String& name) const))
-	//default 
+	//default
 	TOPPBaseTest tmp;
 	TEST_EQUAL(tmp.getIntOption("intoption"),4711);
 	//command line
 	char* string_cl[3] = {a1, a14, a6}; //command line: "TOPPTOPPBaseTest -intoption 6"
 	TOPPBaseTest tmp2(3,string_cl);
 	TEST_EQUAL(tmp2.getIntOption("intoption"),6);
-	
+
 	TEST_EXCEPTION(Exception::WrongParameterType,tmp2.getIntOption("doubleoption"));
 	TEST_EXCEPTION(Exception::UnregisteredParameter,tmp2.getIntOption("imleeewenit"));
-	
+
 	//missing required parameters
 	char* string_cl2[2] = {a1, a11};
-	TOPPBaseTestNOP tmp3(2,string_cl2);	
+	TOPPBaseTestNOP tmp3(2,string_cl2);
 	TEST_EXCEPTION(Exception::RequiredParameterNotGiven,tmp3.getIntOption("intoption"));
 RESULT
 
 CHECK(([EXTRA]String getDoubleOption_(const String& name) const))
-	//default 
+	//default
 	TOPPBaseTest tmp;
 	TEST_REAL_EQUAL(tmp.getDoubleOption("doubleoption"),0.4711);
 	//command line
 	char* string_cl[3] = {a1, a15, a13}; //command line: "TOPPTOPPBaseTest -doubleoption 4.5"
 	TOPPBaseTest tmp2(3,string_cl);
 	TEST_REAL_EQUAL(tmp2.getDoubleOption("doubleoption"),4.5);
-	
+
 	TEST_EXCEPTION(Exception::WrongParameterType,tmp2.getDoubleOption("intoption"));
 	TEST_EXCEPTION(Exception::UnregisteredParameter,tmp2.getDoubleOption("imleeewenit"));
 
 	//missing required parameters
 	char* string_cl2[2] = {a1, a11};
-	TOPPBaseTestNOP tmp3(2,string_cl2);	
+	TOPPBaseTestNOP tmp3(2,string_cl2);
 	TEST_EXCEPTION(Exception::RequiredParameterNotGiven,tmp3.getDoubleOption("doubleoption"));
 RESULT
 
 CHECK(([EXTRA]bool getFlag_(const String& name) const))
-	//default 
+	//default
 	TOPPBaseTest tmp;
 	TEST_EQUAL(tmp.getFlag("flag"),false);
 	//command line
@@ -305,22 +338,22 @@ CHECK(([EXTRA]void parseRange_(const String& text, double& low, double& high) co
 	double a = -1.0;
 	double b = -1.0;
 	String s;
-	
+
 	s = ":";
 	topp.parseRange(s,a,b);
 	TEST_REAL_EQUAL(a,-1.0);
 	TEST_REAL_EQUAL(b,-1.0);
-	
+
 	s = "4.5:";
 	topp.parseRange(s,a,b);
 	TEST_REAL_EQUAL(a,4.5);
 	TEST_REAL_EQUAL(b,-1.0);
-	
+
 	s = ":5.5";
 	topp.parseRange(s,a,b);
 	TEST_REAL_EQUAL(a,4.5);
 	TEST_REAL_EQUAL(b,5.5);
-	
+
 	s = "6.5:7.5";
 	topp.parseRange(s,a,b);
 	TEST_REAL_EQUAL(a,6.5);
@@ -328,7 +361,20 @@ CHECK(([EXTRA]void parseRange_(const String& text, double& low, double& high) co
 RESULT
 
 CHECK(([EXTRA]Param getParam_( const std::string& prefix ) const))
-	//TODO
+{
+	//ini file
+	char* tmp_argv[] = {a1, a3, a7}; //command line: "TOPPTOPPBaseTest -ini data/TOPPBase_toolcommon.ini"
+	TOPPBaseTest tmp_topp(sizeof(tmp_argv)/sizeof(*tmp_argv),tmp_argv);
+	// STATUS('\n'<<tmp_topp.getParam());
+
+	Param good_params;
+	good_params.setValue( "TOPPBaseTest:stringoption", "toolcommon" );
+	good_params.setValue( "ini", "data/TOPPBase_toolcommon.ini" );
+	good_params.setValue( "stringoption", "instance1" );
+	// STATUS('\n'<<good_params);
+
+	TEST_EQUAL(tmp_topp.getParam(), good_params);
+}
 RESULT
 
 /////////////////////////////////////////////////////////////

@@ -49,7 +49,7 @@ CHECK((~FeaturePairsXMLFile()))
 	delete ptr;
 RESULT
 
-CHECK((void load(String filename, DFeaturePairVector<D>& pairs) throw(Exception::FileNotFound, Exception::ParseError)))
+CHECK((void load(String filename, std::vector< ElementPair< Feature > > &pairs) throw (Exception::FileNotFound, Exception::ParseError)))
 	std::vector< ElementPair < Feature > >  pvector;
 	FeaturePairsXMLFile pfile;
 		   
@@ -69,7 +69,7 @@ CHECK((void load(String filename, DFeaturePairVector<D>& pairs) throw(Exception:
 	
 RESULT
 
-CHECK((void store(String filename, const DFeaturePairVector<D>& pairs) const throw(Exception::UnableToCreateFile)))
+CHECK((void store(String filename, const std::vector< ElementPair< Feature > > &pairs) const throw (Exception::UnableToCreateFile)))
 	std::string tmp_filename;
   std::vector< ElementPair < Feature > >  pvector;
 	FeaturePairsXMLFile pfile;
@@ -79,6 +79,22 @@ CHECK((void store(String filename, const DFeaturePairVector<D>& pairs) const thr
 	pfile.store(tmp_filename,pvector);
 	
 	TEST_FILE(tmp_filename.c_str(), "data/FeaturePairsXMLFile.xml");
+RESULT
+
+CHECK((static void pairsToFeatures(const std::vector< ElementPair< Feature > > &pairs, FeatureMap<> &map)))
+  FeatureMap<> map;
+  Feature feat_1, feat_2;
+  feat_1.setIntensity(10);
+  feat_2.setIntensity(20);
+  ElementPair< Feature > pair(feat_1,feat_2);
+  std::vector< ElementPair< Feature > > elem_vec;
+  elem_vec.push_back(pair);
+    
+  FeaturePairsXMLFile fp;
+  fp.pairsToFeatures(elem_vec,map);
+  
+  TEST_EQUAL(map[0] == feat_1,true) 
+  TEST_EQUAL(map[1] == feat_2,true)
 RESULT
 
 /////////////////////////////////////////////////////////////

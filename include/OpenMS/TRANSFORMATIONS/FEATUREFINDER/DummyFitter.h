@@ -34,30 +34,14 @@ namespace OpenMS
 {
 	
 	/**
-		 @brief Dummy fitting. Use this module if you don't need any refinement of your features by model fitting.
-		 
-		 @note: Use this module for testing purposes only !	
-		 
-		 This module does not do anything besides constructing the feature from
-		 the region.
-		 
-		 <table>
-			<tr>
-				<td>min_num_peaks:final</td>
-				<td>minimum number of peaks in the feature region.</td>
-			</tr>
-			<tr>
-				<td>min_num_peaks:extended</td>
-				<td>minimum number of peaks in the region after extension.</td>
-			</tr>
-			<tr>
-				<td>use_fwhm_intensity</td>
-				<td>binary value (0/1). Use fwhm (full witdth at half maximum) for quantification or not..</td>
-			</tr>
-		</table>
-		 
-		 @ingroup FeatureFinder
+		@brief Dummy fitting. Use this module if you don't need any refinement of your features by model fitting.
 		
+		This module does not do anything besides constructing the feature from
+		the region.
+    
+    @ref DummyFitter_Parameters are explained on a separate page.
+		 
+		@ingroup FeatureFinder
   */
   class DummyFitter
     : public BaseModelFitter

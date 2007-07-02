@@ -40,8 +40,8 @@ namespace OpenMS
 	{
 		setName(getProductName());
 		
-		defaults_.setValue("intensity_perc",0.03f);
-		defaults_.setValue("min_intensity",0.0f);
+		defaults_.setValue("min_intensity",0.03f,"Absolute value for the minimum intensity of a seed. If set to 0, a fixed percentage of the intensity of the largest peak is taken (see intensity_perc).");
+		defaults_.setValue("intensity_perc",0.0f,"Minimum percentage of the intensity of the largest peak that a seed has to have (used only if min_nitensity is set to 0).");
 		
 		defaultsToParam_();
 	}

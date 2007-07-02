@@ -33,24 +33,25 @@
 
 namespace OpenMS
 {
-  /** @brief Abstract class for 1D-models that are approximated using linear interpolation
-	
-			Model wrapping LinearInterpolation for speed-up in calculation of predicted intensities
-			Derived classes have to implement setSamples()
+  /** 
+  	@brief Abstract class for 1D-models that are approximated using linear interpolation
+		
+		Model wrapping LinearInterpolation for speed-up in calculation of predicted intensities
+		Derived classes have to implement setSamples()
+		
+		Parameters:
+		<table>
+		<tr><td>interpolation_step</td>
+				<td>step size used to interpolate model</td></tr>
+		<tr><td>intensity_scaling</td>
+				<td>factor used to scale the calculated intensities</td></tr>
+		<tr><td>cutoff</td>
+				<td>peak with intensity below cutoff is not considered
+						 to be part of the model</td></tr>
+		</table>
 
-			Parameters:
-			<table>
-			<tr><td>interpolation_step</td>
-					<td>step size used to interpolate model</td></tr>
-			<tr><td>intensity_scaling</td>
-					<td>factor used to scale the calculated intensities</td></tr>
-			<tr><td>cutoff</td>
-					<td>peak with intensity below cutoff is not considered
-							 to be part of the model</td></tr>
-			</table>
-			
-			@ingroup FeatureFinder
-			
+		@ingroup FeatureFinder
+
 	*/
     class InterpolationModel
     : public BaseModel<1>
@@ -69,8 +70,8 @@ namespace OpenMS
 				: BaseModel<1>(),
 					interpolation_()
 			{
-				this->defaults_.setValue("interpolation_step",0.1);
-				this->defaults_.setValue("intensity_scaling",1.0);
+				this->defaults_.setValue("interpolation_step",0.1,"Sampling rate for the interpolation of the model function ");
+				this->defaults_.setValue("intensity_scaling",1.0,"Scaling factor used to adjust the model distribution to the intensities of the data");
 			}
 
       /// copy constructor
@@ -91,12 +92,12 @@ namespace OpenMS
       virtual InterpolationModel& operator = (const InterpolationModel& source)
 			{
 				if (&source ==this) return *this;
-				
+
 				BaseModel<1>::operator = (source);
 				interpolation_step_ = source.interpolation_step_;
 				interpolation_ = source.interpolation_;
 				scaling_ = source.scaling_;
-				
+
 				return *this;
 			}
 
@@ -105,7 +106,7 @@ namespace OpenMS
 			{
 				return interpolation_.value(pos[0]);
 			}
-			
+
 			/// access model predicted intensity at position @p pos
       IntensityType getIntensity(CoordinateType coord) const
 			{
@@ -156,10 +157,10 @@ namespace OpenMS
 
 			/// set sample/supporting points of interpolation wrt params.
 			virtual void setSamples() =0;
-			
+
 			/**
 				@brief Set the interpolation step for the linear interpolation of the model
-				
+
 				For setting to take affect, call setSamples().
 			*/
 			void setInterpolationStep(CoordinateType interpolation_step)

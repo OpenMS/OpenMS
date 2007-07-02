@@ -39,7 +39,16 @@ CPP_SOURCES=\
 	Tutorial_PeakPickerCWT.C\
 	Tutorial_TopHatFilter.C\
 	Tutorial_GaussFilter.C\
-	Tutorial_SavitzkyGolayFilter.C	
+	Tutorial_SavitzkyGolayFilter.C\
+	Tutorial_FeatureFinder.C\
+	Tutorial_PairwiseAlignment.C\
+	Tutorial_InternalCalibration.C\
+	Tutorial_ExternalCalibration.C\
+	Tutorial_Residue.C\
+	Tutorial_Element.C\
+	Tutorial_EmpiricalFormula.C\
+	Tutorial_AASequence.C\
+	Tutorial_TheoreticalSpectrumGenerator.C
 
 OBJECTS=$(SOURCES:.C=.o)
 
@@ -84,4 +93,40 @@ Tutorial_Param: Tutorial_Param.o
 	$(CXX) $(LDFLAGS) -o $@ $< $(GUI_LIBS)
 
 Tutorial_PeakPickerCWT: Tutorial_PeakPickerCWT.o
+	$(CXX) $(LDFLAGS) -o $@ $< $(GUI_LIBS)
+
+Tutorial_TopHatFilter: Tutorial_TopHatFilter.o
+	$(CXX) $(LDFLAGS) -o $@ $< $(GUI_LIBS)
+
+Tutorial_GaussFilter: Tutorial_GaussFilter.o
+	$(CXX) $(LDFLAGS) -o $@ $< $(GUI_LIBS)
+
+Tutorial_SavitzkyGolayFilter: Tutorial_SavitzkyGolayFilter.o
+	$(CXX) $(LDFLAGS) -o $@ $< $(GUI_LIBS)
+
+Tutorial_FeatureFinder: Tutorial_FeatureFinder.o
+	$(CXX) $(LDFLAGS) -o $@ $< $(GUI_LIBS)
+
+Tutorial_PairwiseAlignment: Tutorial_PairwiseAlignment.o
+	$(CXX) $(LDFLAGS) -o $@ $< $(GUI_LIBS)
+
+Tutorial_InternalCalibration: Tutorial_InternalCalibration.o
+	$(CXX) $(LDFLAGS) -o $@ $< $(GUI_LIBS)
+
+Tutorial_ExternalCalibration: Tutorial_ExternalCalibration.o
+	$(CXX) $(LDFLAGS) -o $@ $< $(GUI_LIBS)
+
+Tutorial_Residue: Tutorial_Residue.o
+	$(CXX) $(LDFLAGS) -o $@ $< $(GUI_LIBS)
+
+Tutorial_Element: Tutorial_Element.o
+	$(CXX) $(LDFLAGS) -o $@ $< $(GUI_LIBS)
+
+Tutorial_EmpiricalFormula: Tutorial_EmpiricalFormula.o
+	$(CXX) $(LDFLAGS) -o $@ $< $(GUI_LIBS)
+
+Tutorial_AASequence: Tutorial_AASequence.o
+	$(CXX) $(LDFLAGS) -o $@ $< $(GUI_LIBS)
+
+Tutorial_TheoreticalSpectrumGenerator: Tutorial_TheoreticalSpectrumGenerator.o
 	$(CXX) $(LDFLAGS) -o $@ $< $(GUI_LIBS)

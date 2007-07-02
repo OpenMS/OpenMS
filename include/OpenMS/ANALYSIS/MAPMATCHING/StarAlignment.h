@@ -113,25 +113,13 @@ namespace OpenMS
     StarAlignment()
 			: Base(),
 				reference_map_index_(0)
-    {}
-
-    /// Copy constructor
-    StarAlignment(const StarAlignment& source)
-			: Base(source),
-				reference_map_index_(source.reference_map_index_)
-    {}
-
-    ///  Assignment operator
-    virtual StarAlignment& operator = (StarAlignment source)
     {
-      if (&source==this)
-        return *this;
+    	//set the name for DefaultParamHandler error messages
+    	this->setName("StarAlignment");	
+      Base::subsections_.push_back("matching_algorithm");
+      Base::subsections_.push_back("consensus_algorithm");
       
-      Base::operator = (source);
-      
-      reference_map_index_ = source.reference_map_index_;
-      
-      return *this;
+      Base::defaultsToParam_();
     }
 
     /// Destructor
@@ -289,12 +277,12 @@ namespace OpenMS
       if (data_value != DataValue::EMPTY)
 				{
 					pairwise_matcher_ = Factory<BasePairwiseMapMatcher< ConsensusVectorType > >::create(data_value);
+					param_matcher.remove("type");
 					pairwise_matcher_->setParameters(param_matcher);
 				}
       else
 				{
-					pairwise_matcher_ = Factory<BasePairwiseMapMatcher< ConsensusVectorType > >::create(data_value);
-					param_.setValue("matching_algorithm:type","poseclustering_pairwise");
+					pairwise_matcher_ = Factory<BasePairwiseMapMatcher< ConsensusVectorType > >::create("poseclustering_pairwise");
 					pairwise_matcher_->setParameters(param_matcher);
 				}
 
@@ -534,12 +522,12 @@ namespace OpenMS
 			if (data_value != DataValue::EMPTY)
 				{
 					pairwise_matcher_ = Factory<BasePairwiseMapMatcher< PeakConstReferenceMapType > >::create(data_value);
+					param_matcher.remove("type");
 					pairwise_matcher_->setParameters(param_matcher);
 				}
 			else
 				{
-					pairwise_matcher_ = Factory<BasePairwiseMapMatcher< PeakConstReferenceMapType > >::create(data_value);
-					param_.setValue("matching_algorithm:type","poseclustering_pairwise");
+					pairwise_matcher_ = Factory<BasePairwiseMapMatcher< PeakConstReferenceMapType > >::create("poseclustering_pairwise");
 					pairwise_matcher_->setParameters(param_matcher);
 				}
 			pairwise_matcher_->setElementMap(MODEL,reference_most_intense);
@@ -629,12 +617,12 @@ namespace OpenMS
       if (data_value != DataValue::EMPTY)
 				{
 					pairwise_matcher_ = Factory<BasePairwiseMapMatcher< PeakConstReferenceMapType > >::create(data_value);
+					param_matcher.remove("type");
 					pairwise_matcher_->setParameters(param_matcher);
 				}
       else
 				{
-					pairwise_matcher_ = Factory<BasePairwiseMapMatcher< PeakConstReferenceMapType > >::create(data_value);
-					param_.setValue("matching_algorithm:type","poseclustering_pairwise");
+					pairwise_matcher_ = Factory<BasePairwiseMapMatcher< PeakConstReferenceMapType > >::create("poseclustering_pairwise");
 					pairwise_matcher_->setParameters(param_matcher);
 				}
       pairwise_matcher_->setElementMap(MODEL,reference_most_intense);

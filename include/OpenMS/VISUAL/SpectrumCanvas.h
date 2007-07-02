@@ -57,7 +57,7 @@ namespace OpenMS
 		You should also create a subclass from SpectrumWidget which encloses
 		your class derived from SpectrumCanvas. To integrate your class into
 		TOPPView, you also need to derive a class from SpectrumWidget.
-		
+
 		@ingroup SpectrumWidgets
 	*/
 	class SpectrumCanvas 
@@ -701,26 +701,11 @@ namespace OpenMS
 		
 		/// Stores the currently visible area.
 		AreaType visible_area_;
-
-		/**
-			@brief Updates data and intensity range with the values of layer @p layer_index
-			
-			@param layer_index layer index
-			@param mz_dim Int of m/z in overall_data_range_
-			@param rt_dim Int of RT in overall_data_range_			
-			@param it_dim Int of intensity in overall_data_range_	
-			
-			@see overall_data_range_
-			
-			@note Make sure the updateRanges() of the layers has been called before this method is called
-		*/
-		void updateRanges_(UInt layer_index, UInt mz_dim, UInt rt_dim, UInt it_dim);
 		
 		/**
 			@brief Recalculates the data range.
 			
-			This method resets overall_data_range_ and calls updateRanges_(UInt,UInt,UInt,UInt)
-			for all layers.
+			A small margin is added to each side of the range in order to display all data.
 	
 			@param mz_dim Int of m/z in overall_data_range_
 			@param rt_dim Int of RT in overall_data_range_		

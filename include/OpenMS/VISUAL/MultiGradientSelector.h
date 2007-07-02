@@ -46,7 +46,7 @@ namespace OpenMS
 	/**
 		@brief A widget witch allows constructing gradients of multiple colors.
 		
-		\image html MultiGradientSelector.png
+		@image html MultiGradientSelector.png
 		
 		The above example image shows a MultiGradientSelector.
 		

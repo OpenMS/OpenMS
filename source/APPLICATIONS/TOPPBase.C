@@ -70,7 +70,7 @@ namespace OpenMS
 		registerIntOption_("instance","<n>",1,"Instance number for the TOPP INI file",false);
 		registerIntOption_("debug","<n>",0,"Sets the debug level",false);
 		registerStringOption_("write_ini","<file>","","Writes an example INI file",false);
-		registerFlag_("progress","Enables progress logging to command line");
+		registerFlag_("no_progress","Disables progress logging to command line");
 		registerFlag_("-help","Shows this help");
 		
 		// prepare options and flags for command line parsing
@@ -147,7 +147,7 @@ namespace OpenMS
 							tmp.setValue(loc + it->name,String(it->default_value).toInt(), it->description);
 							break;
 						case ParameterInformation::FLAG:
-							tmp.setValue(loc + it->name,"off");
+							tmp.setValue(loc + it->name,"false", it->description);
 							break;
 						default:
 							break;
@@ -245,7 +245,7 @@ namespace OpenMS
 			//-------------------------------------------------------------
 			//progress logging
 			//-------------------------------------------------------------
-			if(getParamAsBool_("progress",false))
+			if(!getParamAsBool_("no_progress",false))
 			{
 				log_type_ = ProgressLogger::CMD;	
 			}
@@ -499,6 +499,39 @@ namespace OpenMS
 		}
 		
 		return tmp;
+	}
+	
+	bool TOPPBase::setByUser_(const String& name) const throw (Exception::UnregisteredParameter)
+	{
+		//look up because of possible exception only
+		findEntry_(name);
+		
+		if (!param_cmdline_.getValue(name).isEmpty())
+		{
+			return true;
+		}
+
+		if (!param_instance_.getValue(name).isEmpty())
+		{
+			return true;
+		}
+
+		if (!param_instance_inherited_.getValue(name).isEmpty())
+		{
+			return true;
+		}
+		
+		if (!param_common_tool_.getValue(name).isEmpty())
+		{
+			return true;
+		}
+
+		if (!param_common_.getValue(name).isEmpty())
+		{
+			return true;
+		}
+
+		return false;
 	}
 	
 	double TOPPBase::getDoubleOption_(const String& name) const throw (Exception::UnregisteredParameter, Exception::RequiredParameterNotGiven, Exception::WrongParameterType )

@@ -187,12 +187,10 @@ CHECK((void getNextMz(IDX &index) const  throw (NoSuccessor, Exception::Precondi
 	TEST_EXCEPTION(FeaFiTraits::NoSuccessor, t.getNextMz(i));
 
 	//test for corrupt index
-#ifdef OPENMS_DEBUG
 	i = make_pair(5,0);
 	TEST_EXCEPTION(Exception::Precondition, t.getNextMz(i));
 	i = make_pair(1,5);
 	TEST_EXCEPTION(Exception::Precondition, t.getNextMz(i));
-#endif
 RESULT
 
 CHECK((void getPrevMz(IDX &index) const  throw (NoSuccessor, Exception::Precondition)))
@@ -215,12 +213,10 @@ CHECK((void getPrevMz(IDX &index) const  throw (NoSuccessor, Exception::Precondi
 	TEST_EXCEPTION(FeaFiTraits::NoSuccessor, t.getPrevMz(i));
 
 	//test for corrupt index
-#ifdef OPENMS_DEBUG
 	i = make_pair(5,0);
 	TEST_EXCEPTION(Exception::Precondition, t.getPrevMz(i));
 	i = make_pair(1,5);
 	TEST_EXCEPTION(Exception::Precondition, t.getPrevMz(i));
-#endif
 RESULT
 
 CHECK((void getNextRt(IDX &index) throw (NoSuccessor, Exception::Precondition)))

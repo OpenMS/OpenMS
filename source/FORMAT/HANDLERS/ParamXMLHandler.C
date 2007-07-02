@@ -104,6 +104,7 @@ namespace OpenMS
 			if(description_index!=-1)
 			{
 				String description = XMLString::transcode(attributes.getValue(description_index));
+				description.substitute("#br#","\n");
 				descriptions_[path_+XMLString::transcode(attributes.getValue(name_index))] = description;
 			}
 			

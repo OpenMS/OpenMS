@@ -56,33 +56,24 @@ namespace OpenMS
 		: DefaultParamHandler("PILISModel"),
 			valid_(false)
 	{	
-		defaults_.setValue("upper_mz", 2000.0);
-		defaults_.setValue("lower_mz", 200.0);
-		defaults_.setValue("charge_remote_threshold", 0.2);
-		//defaults_.setValue("charge_remote_factor", 1.0); // TODO
-		defaults_.setValue("charge_directed_threshold", 0.3);
-		//defaults_.setValue("charge_directed_factor", 1.0); // TODO
-		defaults_.setValue("side_chain_intensity_threshold", 0.0);
-		//defaults_.setValue("side_chain_factor", 1.0); // TODO
-		defaults_.setValue("model_depth", 4);
-		defaults_.setValue("visible_model_depth", 30);
-		defaults_.setValue("precursor_mass_tolerance", 3.0);
-		defaults_.setValue("peak_mass_tolerance", 0.3); // TODO
+		defaults_.setValue("upper_mz", 2000.0, "Max m/z value of product ions in the simulated spectrum");
+		defaults_.setValue("lower_mz", 200.0, "Lowest m/z value of product ions in the simulated spectrum");
+		defaults_.setValue("charge_remote_threshold", 0.2, "If the probability for the proton at the N-terminus is lower than this value, enable charge-remote pathways");
+		defaults_.setValue("charge_directed_threshold", 0.3, "Limit the proton availability at the N-terminus to at least this value for charge-directed pathways");
+		defaults_.setValue("side_chain_intensity_threshold", 0.0, "Side-chain pathways are active if this threshold is exceeded by the probability of N-terminal proton");
+		defaults_.setValue("model_depth", 4, "The number of explicitly modeled backbone cleavages from N-terminus and C-terminus, would be 9 for the default value");
+		defaults_.setValue("visible_model_depth", 30, "The maximal possible size of a peptide to be modeled");
+		defaults_.setValue("precursor_mass_tolerance", 3.0, "Mass tolerance of the precursor peak, used to identify the precursor peak and its loss peaks for training");
+		defaults_.setValue("peak_mass_tolerance", 0.3, "Peak mass tolerance of the product ions, used to identify the ions for training");
+		defaults_.setValue("fixed_modifications", "", "Fixed modifications in format '57.001@C'");
 
-		defaults_.setValue("fixed_modifications", "");
+		// TODO switch to toggle min intensities, more granulary ?
+		defaults_.setValue("min_main_ion_intensity", 0.02, "Minimal relative intensity (normalized to 1) a main ion, like y, b gets");
+		defaults_.setValue("min_loss_ion_intensity", 0.005, "Minimal relative intensity (normalized to 1) other ions have, like losses, a-ions, ++ ions");
+		defaults_.setValue("charge_loss_factor", 0.5, "Factor which accounts for the loss of a proton from a ++ ion, the higher the value the more ++ ions loose protons");
+		defaults_.setValue("pseudo_counts", 1e-15, "Value which is added for every transition trained of the underlying hidden Markov model");
 
-		// TODO max isotope support
-
-		// TODO switch to toggle min intensities
-		defaults_.setValue("min_main_ion_intensity", 0.02);
-		//defaults_.setValue("min_main_ion_intensity_threshold", 0.02);
-		defaults_.setValue("min_loss_ion_intensity", 0.005);
-		//defaults_.setValue("min_loss_ion_intensity_threshold", 0.005);
-
-		defaults_.setValue("charge_loss_factor", 0.5); // TODO
-		defaults_.setValue("pseudo_counts", 1e-15);
-
-		defaults_.setValue("max_isotope", 2);
+		defaults_.setValue("max_isotope", 2, "Maximal isotope peak which is reported by the model, 0 means all isotope peaks are reported");
 
 		defaultsToParam_();
 
@@ -179,9 +170,9 @@ namespace OpenMS
 		return;
 	}
 
-	void PILISModel::writetoYGFFile(const String& filename)
+	void PILISModel::writeGraphMLFile(const String& filename)
 	{
-		hmm_.writetoYGFFile(filename);
+		hmm_.writeGraphMLFile(filename);
 		return;
 	}
 

@@ -57,7 +57,8 @@ namespace OpenMS
 		    @brief loads data from a Mascot outfile
 		    
 		    @param filename the file to be loaded
-		    @param identifications the identifications
+		    @param protein_identification the protein identification
+		    @param peptide_identifications the peptide identifications
 				@param p the significance level (for the protein hit scores)
 
 		    This class serves to read in a Mascot outfile. The information can be 

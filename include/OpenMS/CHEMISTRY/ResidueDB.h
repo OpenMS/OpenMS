@@ -135,6 +135,12 @@ namespace OpenMS
 
 			/// returns true if the db contains a residue with the given name
 			bool hasResidue(const String& name) const;
+
+			/// equality operator
+			bool operator == (const ResidueDB& rhs) const;
+
+			/// inequality operator
+			bool operator != (const ResidueDB& rhs) const;
 			//@}
 			
 			/** @name Iterators

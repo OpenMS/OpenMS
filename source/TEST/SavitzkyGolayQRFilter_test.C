@@ -51,7 +51,7 @@ CHECK((SavitzkyGolayQRFilter()))
   TEST_NOT_EQUAL(dsg_ptr, 0)
 RESULT
 
-CHECK((~SavitzkyGolayQRFilter()))
+CHECK((virtual ~SavitzkyGolayQRFilter()))
   delete dsg_ptr;
 RESULT
 
@@ -67,28 +67,12 @@ CHECK((UInt getWindowSize() const))
   TEST_EQUAL(sgolay.getWindowSize(),17);
 RESULT
 
-CHECK((UInt getOrder() const))
-  SavitzkyGolayQRFilter sgolay;
-
-  TEST_EQUAL(sgolay.getOrder(),4);
-RESULT
 
 CHECK((void setOrder(UInt order)))
   SavitzkyGolayQRFilter sgolay;
   sgolay.setOrder(3);
 
   TEST_EQUAL(sgolay.getOrder(),3);
-RESULT
-
-CHECK((void setParameters(Param param) throw(Exception::InvalidValue)))
-  Param p;
-  p.setValue("polynomial_order",2);
-  p.setValue("frame_length",3);
-  SavitzkyGolayQRFilter sgolay;
-  sgolay.setParameters(p);
-
-  TEST_REAL_EQUAL(sgolay.getOrder(),2);
-  TEST_REAL_EQUAL(sgolay.getWindowSize(),3);
 RESULT
 
 CHECK((void setWindowSize(UInt frame_size)))
@@ -98,7 +82,7 @@ CHECK((void setWindowSize(UInt frame_size)))
   TEST_EQUAL(sgolay.getWindowSize(),7);
 RESULT
 
-CHECK((template< typename InputPeakIterator, typename OutputPeakContainer  > void filter(InputPeakIterator first, InputPeakIterator last, OutputPeakContainer& smoothed_data_container) throw(Exception::InvalidSize)))
+CHECK((template <typename InputPeakIterator, typename OutputPeakContainer> void filter(InputPeakIterator first, InputPeakIterator last, OutputPeakContainer &smoothed_data_container)))
   RawDataArray1D raw(5);
   RawDataArray1D filtered;
 
@@ -241,7 +225,6 @@ CHECK((template<typename InputPeakContainer, typename OutputPeakContainer > void
   ++it;
   TEST_REAL_EQUAL(it->getIntensity(),sgolay.getCoeffs()[0])
 RESULT
-
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

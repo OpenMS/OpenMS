@@ -36,7 +36,6 @@ CPP_SOURCES= \
 	DPeak.C\
   Peak1D.C\
   Peak2D.C\
-	DPickedPeak.C\
   PickedPeak1D.C\
 	Feature.C\
   DPeakArray.C\

@@ -37,6 +37,8 @@ namespace OpenMS
 {
   /**
   	@brief IsotopeDiffFilter returns total intensity of peak pairs that could result from isotope peaks
+		 
+		@ref IsotopeDiffFilter_Parameters are explained on a separate page.
   
  		@param tolerance m/z tolerance
 
@@ -83,8 +85,7 @@ namespace OpenMS
       	{
 					double pos_ij = spectrum.getContainer()[i+j].getPosition()[0];
 					double pos_i = spectrum.getContainer()[i].getPosition()[0];
-        	if (std::fabs(pos_ij - pos_i + 1) < tolerance /* &&
-							spectrum.getContainer()[i-j].getIntensity() < spectrum.getContainer()[i].getIntensity() */) /// @todo what does this cond. do? (andreas)
+        	if (std::fabs(pos_ij - pos_i + 1) < tolerance)
         	{
           	isodiff += spectrum.getContainer()[i].getIntensity() + spectrum.getContainer()[i+j].getIntensity();
         	}

@@ -626,7 +626,7 @@ namespace OpenMS
 	
 	}
 	
-	AveragineMatcher::QualityType AveragineMatcher::compute_mz_corr_(IntensityType& mz_data_sum, 
+	AveragineMatcher::QualityType AveragineMatcher::compute_mz_corr_(DoubleReal& mz_data_sum, 
 																																																				IsotopeModel& iso_model,
 																																																				CoordinateType& mz_data_avg)
 	{	

@@ -75,10 +75,6 @@ namespace OpenMS
 			void store(String filename, const std::vector<ProteinIdentification>& protein_ids, const std::vector<PeptideIdentification>& peptide_ids) throw (Exception::UnableToCreateFile); 
   	
   	protected:
-		
-			/// Writes the xml file to the ostream 'os'
-			void writeTo(std::ostream& os);
-			
 			// Docu in base class
 			virtual void endElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname);
 			

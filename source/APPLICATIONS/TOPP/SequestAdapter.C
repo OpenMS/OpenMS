@@ -573,6 +573,8 @@ class TOPPSequestAdapter
 			contact_person.setInstitution(getStringOption_("contact_institution"));
 			contact_person.setContactInfo(getStringOption_("contact_info"));
 			
+			monoisotopic = getFlag_("use_monoisotopic_mod_mass");
+			
 			if ( sequest_in )
 			{
 				temp_data_directory_win = getStringOption_("temp_data_directory_win");
@@ -1233,7 +1235,7 @@ class TOPPSequestAdapter
 				ProteinIdentification::SearchParameters sp;
 				sp.db = "Fasta";
 				sp.taxonomy = sequest_infile.getSequenceHeaderFilter();
-				if ( monoisotopic ) sp.mass_type = ProteinIdentification::MONOISOTOPIC;
+				if ( getFlag_("mass_type_peak") ) sp.mass_type = ProteinIdentification::MONOISOTOPIC;
 				else sp.mass_type = ProteinIdentification::AVERAGE;
 				for ( vector< Int >::const_iterator c_i = charges.begin(); c_i != charges.end(); ++c_i )
 				{

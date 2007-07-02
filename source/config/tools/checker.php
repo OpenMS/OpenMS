@@ -45,18 +45,14 @@
 		}
 		print "\n";
 		print "options:\n";
-		print "  -v         verbose mode\n";
 		print "  -x         do not rebuild doxygen xml output\n";
 		print "  -d <level> debug mode\n";
 		print "  --help     shows this help\n";
 	}
 
-	function realOutput($text,$user,$verbose,$filename)
+	function realOutput($text,$user,$filename)
 	{
-		if ($verbose)
-		{
-			print "------> ";
-		}
+		print "------> ";
 		print $text;
 		if ($user=="all" && $filename!="")
 		{
@@ -92,7 +88,7 @@
 	
 	$options = array("-u","-t","-d");
 	
-	$flags = array("-v", "-x");
+	$flags = array("-x");
 	
 	######################## parameter handling ###############################
 	
@@ -142,13 +138,6 @@
 	{
 		$path = $argv[1];
 	}
-	
-	# verbose
-	$verbose = false;
-	if (in_array("-v",$argv))
-	{
-		$verbose = true;
-	}
 
 	#debug
 	$debug = 0; 
@@ -184,14 +173,14 @@
 		$rebuilt_xml = false;
 	}
 	
-	if ($verbose)
-	{
-		print "Path   : '$path'\n";
-		print "User   : '$user'\n";
-		print "Test   : '$test'\n";
-		print "Debug  : '$debug'\n";
-		print "Doxygen: '$rebuilt_xml'\n";
-	}
+//	if ($verbose)
+//	{
+//		print "Path   : '$path'\n";
+//		print "User   : '$user'\n";
+//		print "Test   : '$test'\n";
+//		print "Debug  : '$debug'\n";
+//		print "Doxygen: '$rebuilt_xml'\n";
+//	}
 	######################## doxygen XML output ############################
 	if ($rebuilt_xml)
 	{
@@ -444,7 +433,7 @@
 							$right_guard = includeToGuard(suffix($f,strlen($guard)));
 							if ($right_guard!=$guard OR !beginsWith($guard,"OPENMS_"))
 							{
-								realOutput("Wrong header guard '$guard' in '$f'",$user,$verbose,$f);
+								realOutput("Wrong header guard '$guard' in '$f'",$user,$f);
 							}					
 							break;
 						}
@@ -453,7 +442,7 @@
 					$class = trim(substr($f,strrpos($f,"/")+1));
 					if ($i==count($file)-1 AND !in_array($class,$dont_report))
 					{
-						realOutput("Missing header guard in '$f' ",$user,$verbose,$f);
+						realOutput("Missing header guard in '$f' ",$user,$f);
 					}
 				}	
 			}
@@ -473,7 +462,7 @@
 			}
 			if ($tab_count!=1)
 			{
-				realOutput("Missing tab settings in '$f'",$user,$verbose,$f);
+				realOutput("Missing tab settings in '$f'",$user,$f);
 			}
 		}
 
@@ -487,11 +476,8 @@
 				{
 					if ($file_maintainers[$testname] != $file_maintainers[$f])
 					{
-						realOutput("Inconsistent maintainers in '$f' and '$testname'",$user,$verbose,$f);
-						if ($verbose)
-						{
-							print "  '$file_maintainers[$testname]'<->'$file_maintainers[$f]'\n";
-						}
+						realOutput("Inconsistent maintainers in '$f' and '$testname'",$user,$f);
+						print "  '$file_maintainers[$testname]'<->'$file_maintainers[$f]'\n";
 					}
 				}
 				# maintainer of source file
@@ -500,11 +486,8 @@
 				{
 					if ($file_maintainers[$source_name] != $file_maintainers[$f])
 					{
-						realOutput("Inconsistent maintainers in '$f' and '$source_name'",$user,$verbose,$f);
-						if ($verbose)
-						{
-							print "  '$file_maintainers[$source_name]'<->'$file_maintainers[$f]'\n";
-						}
+						realOutput("Inconsistent maintainers in '$f' and '$source_name'",$user,$f);
+						print "  '$file_maintainers[$source_name]'<->'$file_maintainers[$f]'\n";
 					}
 				}
 			}
@@ -547,11 +530,11 @@
 				{
 					if (!in_array($testname,$files))
 					{
-						realOutput("Missing test for '$f'",$user,$verbose,$f);
+						realOutput("Missing test for '$f'",$user,$f);
 					}
 					else if (!in_array($testname,$called_tests))
 					{
-						realOutput("Test not in Makefile for '$f'",$user,$verbose,$f);
+						realOutput("Test not in Makefile for '$f'",$user,$f);
 					}
 				}
 			}
@@ -583,7 +566,7 @@
 						//print "$f -> $hits[0]\n";
 						if (!file_exists($path."/".$hits[0]))
 						{
-							realOutput("Outdated test file '$f'",$user,$verbose,$f);
+							realOutput("Outdated test file '$f'",$user,$f);
 						}
 					}
 				}
@@ -592,7 +575,7 @@
 				{
 					if (!file_exists($path."/include/OpenMS/".substr($f,7,-2).".h"))
 					{
-						realOutput("Outdated source file '$f'",$user,$verbose,$f);
+						realOutput("Outdated source file '$f'",$user,$f);
 					}
 				}
 			}
@@ -632,7 +615,7 @@
 							}
 							if (!$brief)
 							{
-								realOutput("No @brief description for '$parts[2]' in '$f'",$user,$verbose,$f);
+								realOutput("No @brief description for '$parts[2]' in '$f'",$user,$f);
 							}
 						}
 					}
@@ -645,7 +628,8 @@
 		{
 			if (in_array($f,$doxygen_errors))
 			{
-				realOutput("Doxygen errors in '$f'",$user,$verbose,$f);
+				realOutput("Doxygen errors in '$f'",$user,$f);
+				print "  See 'OpenMS/doc/doxygen/doxygen-error.log'\n";
 			}
 		}
 		
@@ -657,8 +641,10 @@
 			{
 				
  				#parse test
- 				$todo_tests = parseTestFile("$path/$testname",$tests);
-				
+ 				$tmp = parseTestFile("$path/$testname");
+ 				$todo_tests = $tmp["todo"];
+				$tests = $tmp["tests"];
+								
 				#compare declarations and tests
 				$out = compareDeclarationsAndTests($class_info["public-long"],$tests);
 				
@@ -675,34 +661,40 @@
 				$out["unknown"] = $new_unknown;
 				
 				#output
-				if (count($out["missing"])!=0 || count($out["unknown"])!=0)
+				if (count($out["missing"])!=0 || count($out["unknown"])!=0 || count($out["double"])!=0 || count($todo_tests)!=0)
 				{
-					realOutput("Test errors in '$f'",$user,$verbose,$testname);
-					if ($verbose)
+					realOutput("Test errors in '$f'",$user,$testname);
+					if (count($out["unknown"])!=0)
 					{
-						if (count($out["unknown"])!=0)
+						print "  Tests of unknown methods:\n";
+						foreach ($out["unknown"] as $u)
 						{
-							print "  Tests of unknown methods:\n";
-							foreach ($out["unknown"] as $u)
-							{
-								print "    - '$u'\n";
-							}
+							print "    - '$u'\n";
 						}
-						if (count($out["missing"])!=0)
+					}
+					if (count($out["missing"])!=0)
+					{
+						print "  Missing tests:\n";
+						foreach ($out["missing"] as $m)
 						{
-							print "  Missing tests:\n";
-							foreach ($out["missing"] as $m)
-							{
-								print "    - '$m'\n";
-							}
+							print "    - '$m'\n";
 						}
-						if (count($todo_tests)!=0)
+					}
+					if (count($out["double"])!=0)
+					{
+						$out["double"] = array_unique($out["double"]);
+						print "  Methods tested several times:\n";
+						foreach ($out["double"] as $m)
 						{
-							print "  Tests that contain 'TODO' or '????':\n";
-							foreach ($todo_tests as $m)
-							{
-								print "    - '$m'\n";
-							}
+							print "    - '$m'\n";
+						}
+					}
+					if (count($todo_tests)!=0)
+					{
+						print "  Tests that contain 'TODO' or '????':\n";
+						foreach ($todo_tests as $m)
+						{
+							print "    - '$m'\n";
 						}
 					}
 				}
@@ -727,8 +719,8 @@
 			foreach($class_info["non-public"] as $tmp)
 			{
 				//print "NP: '".$tmp."'\n";
-				# constructor, destructor, serialize methods and QT events are allowed
-				if ( endswith($tmp,'Event') || endsWith($tmp,'load')  || endsWith($tmp,'save') || endsWith($tmp,'serialize') || $tmp==$class_info["classname"] || $tmp=='~'.$class_info["classname"] || $tmp=="operator=")
+				# constructor, destructor, serialize methods, QT events and Xerces-C parser methods are allowed
+				if ( endswith($tmp,'Event') || endsWith($tmp,'load')  || endsWith($tmp,'save') || endsWith($tmp,'serialize') || $tmp==$class_info["classname"] || $tmp=='~'.$class_info["classname"] || $tmp=="operator=" || $tmp=="startElement" || $tmp=="endElement")
 				{
 					continue;
 				}
@@ -746,13 +738,10 @@
 			#output
 			if (count($out)!=0)
 			{
-				realOutput("Coding convention violation in '$f'",$user,$verbose,$f);
-				if ($verbose)
+				realOutput("Coding convention violation in '$f'",$user,$f);
+				foreach ($out as $o)
 				{
-					foreach ($out as $o)
-					{
-						print $o;
-					}
+					print $o;
 				}
 			}
 		}
@@ -775,13 +764,10 @@
 				}
 				if (count($errors)!=0)
 				{
-					realOutput("Error/warnings in test output of '$testname'",$user,$verbose,$testname);
-					if ($verbose)
+					realOutput("Error/warnings in test output of '$testname'",$user,$testname);
+					foreach ($errors as $e)
 					{
-						foreach ($errors as $e)
-						{
-							print "  '$e'\n";
-						}
+						print "  '$e'\n";
 					}
 				}
 			}
@@ -804,13 +790,13 @@
 							$kw = true;
 							if (strpos($line,"Id")===FALSE)
 							{
-								realOutput("svn:keyword 'Id' not set for '$testname'",$user,$verbose,$testname);
+								realOutput("svn:keyword 'Id' not set for '$testname'",$user,$testname);
 							}
 						}
 					}
 					if (!$kw)
 					{
-						realOutput("svn:keyword 'Id' not set for '$testname'",$user,$verbose,$testname);
+						realOutput("svn:keyword 'Id' not set for '$testname'",$user,$testname);
 					}
 				}	
 			}
@@ -826,7 +812,8 @@
 			$line = trim($line);
 			if (ereg("(.*/[a-zA-Z0-9_]+\.doxygen):[0-9]+:",$line,$parts))
 			{
-				realOutput("Doxygen errors in '".$parts[1]."'",$user,$verbose,"");
+				realOutput("Doxygen errors in '".$parts[1]."'",$user,"");
+				print "  See 'OpenMS/doc/doxygen/doxygen-error.log'\n";
 			}
 		}
 	}
@@ -854,13 +841,10 @@
 				}
 				if (count($errors)!=0)
 				{
-					realOutput("Error/warnings in TOPP test output 'source/TEST/TOPP/$file'",$user,$verbose,$topp_file);
-					if ($verbose)
+					realOutput("Error/warnings in TOPP test output 'source/TEST/TOPP/$file'",$user,$topp_file);
+					foreach ($errors as $e)
 					{
-						foreach ($errors as $e)
-						{
-							print "  '$e'\n";
-						}
+						print "  '$e'\n";
 					}
 				}
 			}

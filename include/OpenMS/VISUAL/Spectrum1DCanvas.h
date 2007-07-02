@@ -41,7 +41,7 @@ namespace OpenMS
 	/**
 		@brief Canvas for visualization of spectrum
 		
-		@todo Add measurement (Andreas)
+		@ref Spectrum1DCanvas_Parameters are explained on a separate page.
 		
 		@ingroup SpectrumWidgets
 	*/

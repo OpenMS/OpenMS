@@ -578,7 +578,7 @@ The name of suplementary files has to begin with the name of the tested class.
 <UL>
 	<LI><TT>START_TEST(class_name, version)</TT><BR> Start of a class test file (initialization)
 	<LI><TT>END_TEST</TT><BR> End of a class test file (cleanup)
-	<LI><TT>CHECK(name)</TT><BR> Start of a single test, e.g. for a method
+	<LI><TT>CHECK(name)</TT><BR> Start of a method test. If the name starts with '[EXTRA]' it does not have to match a methods name.
 	<LI><TT>RESULT</TT><BR> End of a single test
 	<LI><TT>STATUS(message)</TT><BR> Shows a status message e.g. used to show the progress of a test preparations that take a while
 	<LI><TT>ABORT_IF(condition)</TT><BR> Skip remainder of substest if condition holds

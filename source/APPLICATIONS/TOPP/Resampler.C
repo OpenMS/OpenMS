@@ -26,8 +26,9 @@
 
 #include <OpenMS/config.h>
 
-#include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/KERNEL/MSExperimentExtern.h>
 #include <OpenMS/FORMAT/MzDataFile.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/MATH/MISC/BilinearInterpolation.h>
 #include <OpenMS/CONCEPT/VersionInfo.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
@@ -83,8 +84,8 @@ class TOPPResampler
 		addText_("Parameters affecting the resampling:");
 		registerStringOption_("mz", "[min]:[max]", ":", "mass-to-charge range in input to be resampled", false);
 		registerStringOption_("rt", "[min]:[max]", ":", "retention time range in input to be resampled", false);
-		registerIntOption_("cols_mz", "<number>", 101, "peaks per spectrum in output (image width)", false);
-		registerIntOption_("rows_rt", "<number>", 101, "number of spectra in output (image height)", false);
+		registerIntOption_("cols_mz", "<number>", 101, "peaks per spectrum in output (image width); use 0 for one col per Th", false);
+		registerIntOption_("rows_rt", "<number>", 101, "number of spectra in output (image height); use 0 for one row per scan", false);
 		registerFlag_("transpose", "flag to transpose the resampled matrix (RT vs. m/z)");
 
 		addEmptyLine_();
@@ -94,6 +95,7 @@ class TOPPResampler
 		registerDoubleOption_("maxintensity", "<maxintensity>", 0,
 													"Maximum peak intensity used to determine range for colors.  "
 													"If 0, this is determined from data.", false);
+    registerFlag_("log_intensity", "apply logarithm to intensity values");
 		addEmptyLine_();
 		addText_("In mzData output, peaks are ordered ascending in RT and m/z.");
 		addText_("In png output, dimensions run bottom-up in RT and left-right in m/z.");
@@ -110,6 +112,28 @@ class TOPPResampler
 
 		String in = getStringOption_("in");
 		inputFileReadable_(in);
+      
+    FileHandler fh;
+    FileHandler::Type in_type = FileHandler::UNKNOWN;
+    if (in_type==FileHandler::UNKNOWN)
+    {
+      in_type = fh.getTypeByFileName(in);
+      writeDebug_(String("Input file type (from file extention): ") + fh.typeToName(in_type), 2);
+    }
+
+    if (in_type==FileHandler::UNKNOWN)
+    {
+      in_type = fh.getTypeByContent(in);
+      writeDebug_(String("Input file type (from content): ") + fh.typeToName(in_type), 2);
+    }
+
+    if (in_type!=FileHandler::MZDATA)
+    {
+      writeLog_("Error: Input file type is not MzData!");
+      return INCOMPATIBLE_INPUT_DATA;
+    }
+      
+      
 
 		bool output_defined=false;
 		String out = getStringOption_("out");
@@ -147,7 +171,7 @@ class TOPPResampler
 		writeDebug_("mz lower/upper bound: " + String(mz_l) + " / " + String(mz_u), 1);
 
 		//load needed data
-		typedef MSExperiment< Peak1D > MSExperimentType;
+		typedef MSExperimentExtern< Peak1D > MSExperimentType;
 		typedef MSExperimentType::SpectrumType SpectrumType;
 		MSExperimentType exp;
 		MzDataFile f;
@@ -166,13 +190,25 @@ class TOPPResampler
 		if (mz_u == numeric_limits<double>::max()) mz_u = exp.getMaxMZ();
 
 		int rows = getIntOption_("rows_rt");
-		if ( rows < 1 )
+    // one row for each scan
+    if (rows == 0)
+    {
+      rows = exp.size();
+      writeDebug_("row count: "+ String(rows) + " [" + String(rt_l) + " - " + String(rt_u) + "]", 1);  		
+    }
+    if ( rows < 1 )
 		{
 			writeLog_("Error: must have at least 1 row.");
 			return ILLEGAL_PARAMETERS;
 		}
 
 		int cols = getIntOption_("cols_mz");
+    // one row for each Thomson
+    if (cols == 0)
+    {
+      cols = int(mz_u - mz_l); 
+      writeDebug_("column count: "+ String(cols) + " [" + String(mz_l) + " - " + String(mz_u) + "]", 1);     
+    }
 		if ( cols < 1 )
 		{
 			writeLog_("Error: must have at least 1 column.");
@@ -190,7 +226,7 @@ class TOPPResampler
 			bilip.setMapping_0( 0, rt_u, rows-1, rt_l ); // scans run bottom-up
 			bilip.setMapping_1( 0, mz_l, cols-1, mz_u ); // peaks run left-right
 
-			for ( MSExperimentType::ConstIterator spec_iter = exp.begin();
+			for ( MSExperimentType::Iterator spec_iter = exp.begin();
 						spec_iter != exp.end();
 						++spec_iter
 					)
@@ -214,7 +250,7 @@ class TOPPResampler
 			bilip.setMapping_0( 0, mz_u, rows-1, mz_l ); // spectra run bottom-up
 			bilip.setMapping_1( 0, rt_l, cols-1, rt_u ); // scans run left-right
 
-			for ( MSExperimentType::ConstIterator spec_iter = exp.begin();
+			for ( MSExperimentType::Iterator spec_iter = exp.begin();
 						spec_iter != exp.end();
 						++spec_iter
 					)
@@ -234,7 +270,7 @@ class TOPPResampler
 			}
 
 		}
-
+  
 		if(!png.empty())
 		{
 			UInt scans = bilip.getData().sizePair().first;
@@ -250,21 +286,43 @@ class TOPPResampler
 			{
 				gradient.fromString("Linear|0,#FFFFFF;2,#FFFF00;11,#ffaa00;32,#ff0000;55,#aa00ff;78,#5500ff;100,#000000");
 			}
-
-			QImage image(peaks, scans, QImage::Format_RGB32);
+      
+      bool use_log = getFlag_("log_intensity");
+      writeDebug_("log_intensity: " + String(use_log), 1);
+			
+      QImage image(peaks, scans, QImage::Format_RGB32);
 			DoubleReal factor = getDoubleOption_("maxintensity");
 			if ( factor == 0 )
 			{
 				factor = (*std::max_element(bilip.getData().begin(), bilip.getData().end()));
 			}
+      // logarithmize maxintensity as well
+      if (use_log)
+      {
+        factor = std::log(factor); 
+      }
 			factor /= 100.0;
-			for (UInt i=0; i<scans; ++i)
-			{
-				for (UInt j=0; j<peaks; ++j)
-				{
-					image.setPixel(j, i, gradient.interpolatedColorAt(bilip.getData().getValue(i, j)/factor).rgb());
-				}
-			}
+      // apply logarithm to intensities
+      if (use_log)
+      {
+  			for (UInt i=0; i<scans; ++i)
+  			{
+  				for (UInt j=0; j<peaks; ++j)
+  				{
+  					image.setPixel(j, i, gradient.interpolatedColorAt(std::log(bilip.getData().getValue(i, j))/factor).rgb());
+  				}
+  			}
+      }
+      else
+      {
+        for (UInt i=0; i<scans; ++i)
+        {
+          for (UInt j=0; j<peaks; ++j)
+          {
+            image.setPixel(j, i, gradient.interpolatedColorAt(bilip.getData().getValue(i, j)/factor).rgb());
+          }
+        }
+      }
 			image.save(png.c_str(), "PNG");
 		}
 
@@ -272,10 +330,8 @@ class TOPPResampler
 		{
 			// all data in the matrix is copied to an MSExperiment,
 			// which is then written to an mzData file.
-
-			MSExperimentType exp_resampled;
+			MSExperiment<> exp_resampled;
 			exp_resampled.resize(rows);
-
 			for ( int row_index = 0; row_index < rows; ++row_index )
 			{
 				SpectrumType & spectrum = exp_resampled[rows-row_index-1]; // reversed order so that retention times are increasing again

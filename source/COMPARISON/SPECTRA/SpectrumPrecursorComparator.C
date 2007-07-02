@@ -24,8 +24,8 @@
 // $Maintainer: Andreas Bertsch $
 // --------------------------------------------------------------------------
 //
-#include <OpenMS/COMPARISON/SPECTRA/SpectrumPrecursorComparator.h>
 
+#include <OpenMS/COMPARISON/SPECTRA/SpectrumPrecursorComparator.h>
 #include <cmath>
 
 using namespace std;
@@ -36,7 +36,7 @@ namespace OpenMS
     : PeakSpectrumCompareFunctor()
   {
 		setName(SpectrumPrecursorComparator::getProductName());
-    defaults_.setValue("window", 2);
+    defaults_.setValue("window", 2, "Allowed deviation between precursor peaks.");
 		defaultsToParam_();
   }
 
@@ -65,17 +65,15 @@ namespace OpenMS
 
   double SpectrumPrecursorComparator::operator()(const PeakSpectrum& x, const PeakSpectrum& y)const
   {
-    //double filterfactor = filter(csa,csb);
     double score = 0;
     double window = (double)param_.getValue("window");
-    //const MSSpectrum< Peak1D >& x = csa.getSpec();
-    //const MSSpectrum< Peak1D >& y = csb.getSpec();
     
     if (fabs (x.getPrecursorPeak().getPosition()[0] - y.getPrecursorPeak().getPosition()[0]) > window) 
 		{
 			return 0;
 		}
-    score = window - fabs(x.getPrecursorPeak().getPosition()[0] - y.getPrecursorPeak().getPosition()[0]);
+    
+		score = window - fabs(x.getPrecursorPeak().getPosition()[0] - y.getPrecursorPeak().getPosition()[0]);
     return score;
   }
 

@@ -91,20 +91,17 @@ CHECK(([EXTRA]void DummyFitter::setParameters(const Param& param)))
 	
 	// check default params
 	Param p1 = fitter->getParameters();
-	TEST_EQUAL(p1.getValue("min_num_peaks:final"),DataValue(5))
-	TEST_EQUAL(p1.getValue("min_num_peaks:extended"),DataValue(10))
+	TEST_EQUAL(p1.getValue("min_num_peaks"),DataValue(10))
 	TEST_EQUAL(p1.getValue("use_fwhm_intensity"),DataValue(0))
 	
 	// change default settings
 	Param p2;
-	p2.setValue("min_num_peaks:final",20);
-	p2.setValue("min_num_peaks:extended",34);
+	p2.setValue("min_num_peaks",20);
 	fitter->setParameters(p2);
 	
 	// check changes
 	Param p3 = fitter->getParameters();
-	TEST_EQUAL(p3.getValue("min_num_peaks:final"),DataValue(20))
-	TEST_EQUAL(p3.getValue("min_num_peaks:extended"),DataValue(34))
+	TEST_EQUAL(p3.getValue("min_num_peaks"),DataValue(20))
 
 RESULT
 

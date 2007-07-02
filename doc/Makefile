@@ -24,6 +24,8 @@
 # $Maintainer: Marc Sturm $
 # --------------------------------------------------------------------------
 
+-include ../source/config.mak
+
 #######################################################################
 # HELP TARGET
 help:
@@ -37,8 +39,21 @@ help:
 	@echo ""
 
 #######################################################################
+# create parameter documentation of classes derived from DefaultParamHandler 
+paramdoc: doxygen/parameters/DefaultParamHandlerDocumenter.C ../source/config.mak dummy
+	@echo "";
+	@echo "Note: In order to build the parameter documentation for most of the algorithms, a functioning OpenMS installation and a running X-server is required!";
+	@echo "";
+	@cd doxygen/parameters/ && \
+	 $(CXX) $(CXXFLAGS) $(ADD_CXXFLAGS) $(CPP_MODE_FLAGS) $(LIB_CXXFLAGS) $(OPENMS_INCLUDES) $(ADD_INCLUDES) -c DefaultParamHandlerDocumenter.C -o DefaultParamHandlerDocumenter.o && \
+	 $(CXX) $(LDFLAGS) -o DefaultParamHandlerDocumenter DefaultParamHandlerDocumenter.o $(GUI_LIBS) && \
+	 ./DefaultParamHandlerDocumenter;
+	@touch doxygen/parameters/DefaultParameters.doxygen
+
+#######################################################################
 # creates the documentation
 doc:
+	@make -i paramdoc
 	@rm -rf doxygen/xml_output doxygen/html_output
 	@test -f doxygen/Doxyfile || cp ../source/config/Doxyfile.in doxygen/Doxyfile
 	@doxygen doxygen/Doxyfile
@@ -46,6 +61,7 @@ doc:
 #######################################################################
 # creates the internal documentation
 idoc:
+	@make -i paramdoc
 	@rm -rf doxygen/xml_output doxygen/html_output
 	@test -f doxygen/Doxyfile || cp ../source/config/Doxyfile.in doxygen/Doxyfile
 	@doxygen doxygen/Doxyfile_internal
@@ -72,9 +88,9 @@ TOPP_tutorial: TOPP_tutorial/TOPP_Tutorial.doxygen TOPP_tutorial/Doxyfile dummy
 #######################################################################
 # cleaning up
 clean:
-	@rm -rf doxygen/html_output/ doxygen/xml_output/ doxygen/doxygen-error.log doxygen/Doxyfile
+	@rm -rf doxygen/html_output/ doxygen/xml_output/ doxygen/doxygen-error.log
 	@rm -rf OpenMS_tutorial/latex_output/ OpenMS_tutorial.pdf OpenMS_tutorial/doxygen-error.log
 	@rm -rf TOPP_tutorial/latex_output/ TOPP_tutorial.pdf TOPP_tutorial/doxygen-error.log
-
+	@rm -rf doxygen/parameters/DefaultParamHandlerDocumenter doxygen/parameters/DefaultParamHandlerDocumenter.o
 
 dummy:

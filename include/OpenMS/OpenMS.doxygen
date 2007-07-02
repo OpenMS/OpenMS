@@ -35,8 +35,8 @@
 	These pages contain the class documentation of %OpenMS. It is intended for prgrammers that
   want to develop software based on %OpenMS. If you only want to use the tools based on %OpenMS
   have a look at the at the TOPP tools.
-
-  In addition to the class documentation the following information can be found here:
+  
+	In addition to the class documentation the following information can be found here:
 	<UL>
 	  <LI> @subpage OpenMSTutorial
 	  <LI> @subpage coding_conventions
@@ -48,6 +48,8 @@
 	  <LI> @subpage FAQ
 	</UL>
 	@endif
+	The build process used for compiling and installing %OpenMS is explained in the
+  <b><a href="../../html/misc/welcome.html">installation instructions</a></b>.
 	
 	<HR>
 	@section TOPP_section TOPP - The OpenMS proteomics pipeline.
@@ -72,31 +74,23 @@
 		<LI> Eva Lange -- PeakPicking, MapMapping
 		<LI> Nico Pfeifer -- Retention time prediction
 		<LI> Ole Schulz-Trieglaff -- FeatureFinder
-		<LI> Marc Sturm -- Built system, Kernel, File formats, Visualization
+		<LI> Marc Sturm -- Build system, Kernel, File formats, Visualization
 		<LI> Alexandra Zerck -- PeakPicking, Calibration
 	</UL>
   
 */
 
 /*************************** Marc's todos ******************************
-Ideen:
-- Seeder/Extender: Analyse der MassenSpur-Distanzen
-
-Todos:
-- Bild INIFileEditor mit ToolTip
-- Testbuits auf Release-Branch umstellen.
-- 3D: int achse fixen
-
-Thomas Schreiner:
-- FeatureXML: Options einbauen und testen
-- DBAdapter: Add identification information
-- DBConnection: mehrere Verbindunden gleichzeitig
+Todo:
+ - OpenMS und TOPP papers
+ - TOPPView in TOPP tutorial
+ - Release:
+   - html-docu weg
+   - Docu teil von OpenMS Packet
+   - prefix im configure sollte gehen
 
 Stefan Rink:
-- ParamEditor:
-	- Wenn ein Fehler in das File einbaut und ohne zu speichern 'Quit' aufruft, schlieﬂt sich der Editor, ohne das man die Chance hat den Fehler zu korrigieren. In dem Fall sollte sollte das Schlieﬂen abgebrochen werden!
-  - Docu ParamEditorDelegate und INIFileEditorWindow  fehlt komplett. Code ist im allgemeinen auch nicht dokumentiert
-  - Shortcuts gehen im ToolsDialog nicht
+- Param als wirklicher Baum
 
 Diplomarbeit TOPPAS:
 - TOPPViewBase: Parameters (Typ: enum, inputfile, inputfiles, outputfile, outputfiles)

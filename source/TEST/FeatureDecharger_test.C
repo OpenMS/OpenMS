@@ -43,16 +43,16 @@ START_TEST(FeatureDecharger, "$Id$")
 /////////////////////////////////////////////////////////////
 
 FeatureDecharger* ptr = 0;
-CHECK(FeatureDecharger())
+CHECK((FeatureDecharger()))
 	ptr = new FeatureDecharger();
 	TEST_NOT_EQUAL(ptr, 0)
 RESULT
 
-CHECK(~FeatureDecharger())
+CHECK((virtual ~FeatureDecharger()))
 	delete ptr;
 RESULT
 
-CHECK(FeatureDecharger(const FeatureDecharger &source))
+CHECK((FeatureDecharger(const FeatureDecharger &source)))
   FeatureDecharger fdc;
 
   Param p = fdc.getParameters();
@@ -67,7 +67,7 @@ CHECK(FeatureDecharger(const FeatureDecharger &source))
   
 RESULT
 
-CHECK(FeatureDecharger& operator=(const FeatureDecharger &source))
+CHECK((FeatureDecharger& operator=(const FeatureDecharger &source)))
   FeatureDecharger fdc;
 
   Param p = fdc.getParameters();
@@ -83,11 +83,7 @@ CHECK(FeatureDecharger& operator=(const FeatureDecharger &source))
   
 RESULT
 
-CHECK(virtual ~FeatureDecharger())
-  //...
-RESULT
-
-CHECK(void compute(FeatureMapType &map))
+CHECK((void compute(FeatureMapType &map)))
   FeatureMap<> map;
 
   // load a feature map
@@ -97,7 +93,7 @@ CHECK(void compute(FeatureMapType &map))
   fdc.compute(map);
 RESULT
 
-CHECK(const FeatureMapType& getFeatureMap() const )
+CHECK((const FeatureMapType& getFeatureMap() const))
   FeatureMap<> map;
 
   // load a feature map

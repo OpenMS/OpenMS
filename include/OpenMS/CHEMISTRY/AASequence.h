@@ -96,10 +96,10 @@ namespace OpenMS
 			EmpiricalFormula getFormula(Residue::ResidueType type = Residue::Full, Int charge = 0) const;
 
 			/// returns the average weight of the peptide
-			Real getAverageWeight(Residue::ResidueType type = Residue::Full, Int charge = 0) const;
+			DoubleReal getAverageWeight(Residue::ResidueType type = Residue::Full, Int charge = 0) const;
 
 			/// returns the mono isotopic weight of the peptide
-			Real getMonoWeight(Residue::ResidueType type = Residue::Full, Int charge = 0) const;
+			DoubleReal getMonoWeight(Residue::ResidueType type = Residue::Full, Int charge = 0) const;
 
 			/// fills in the map the neutral loss formulas associated with their occuring frequency
 			HashMap<const EmpiricalFormula*, UInt> getNeutralLosses() const;

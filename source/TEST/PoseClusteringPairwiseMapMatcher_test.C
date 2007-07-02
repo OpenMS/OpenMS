@@ -49,61 +49,25 @@ CHECK((PoseClusteringPairwiseMapMatcher()))
 	TEST_NOT_EQUAL(ptr, 0)
 RESULT
 
-CHECK((~PoseClusteringPairwiseMapMatcher()))
+CHECK((virtual ~PoseClusteringPairwiseMapMatcher()))
 	delete ptr;
 RESULT
 
-CHECK((PoseClusteringPairwiseMapMatcher& operator= (const PoseClusteringPairwiseMapMatcher& source)))
-  Param param;
-  param.setValue("bla",3);
-  ElementMapType first;
-  ElementMapType second;
-  
-  PoseClusteringPairwiseMapMatcher<ElementMapType> pcpmm;
-  pcpmm.setParameters(param);
-  pcpmm.setElementMap(0,first);
-  pcpmm.setElementMap(1,second);
-  
-  PoseClusteringPairwiseMapMatcher<ElementMapType> pcpmm_copy;
-  pcpmm_copy = pcpmm;
-  
-  TEST_EQUAL(pcpmm.getParameters() == pcpmm_copy.getParameters(),true)
-  TEST_EQUAL(&(pcpmm.getElementMap(0)) == &(pcpmm_copy.getElementMap(0)),true)
-  TEST_EQUAL(&(pcpmm.getElementMap(1)) == &(pcpmm_copy.getElementMap(1)),true)
-RESULT
-
-CHECK((PoseClusteringPairwiseMapMatcher(const PoseClusteringPairwiseMapMatcher& source)))
-  Param param;
-  param.setValue("bla",3);
-  ElementMapType first;
-  ElementMapType second;
-  
-  PoseClusteringPairwiseMapMatcher<ElementMapType> pcpmm;
-  pcpmm.setParameters(param);
-  pcpmm.setElementMap(0,first);
-  pcpmm.setElementMap(1,second);
-  
-  PoseClusteringPairwiseMapMatcher<ElementMapType> pcpmm_copy(pcpmm);
-  
-  TEST_EQUAL(pcpmm.getParameters() == pcpmm_copy.getParameters(),true)
-  TEST_EQUAL(&(pcpmm.getElementMap(0)) == &(pcpmm_copy.getElementMap(0)),true)
-  TEST_EQUAL(&(pcpmm.getElementMap(1)) == &(pcpmm_copy.getElementMap(1)),true)
-RESULT
 
 CHECK((static BasePairwiseMapMatcher<MapT>* create()))
   
 RESULT
 
-CHECK((static const String getName()))
+CHECK((static const String getProductName()))
   PoseClusteringPairwiseMapMatcher<ElementMapType> pcpmm;
   
   TEST_EQUAL(pcpmm.getName() == "poseclustering_pairwise",true)
 RESULT
 
-CHECK((void run()))
+CHECK((virtual void run()))
   Param param;
-  param.setValue("superimposer","poseclustering_shift");
-  param.setValue("pair_finder","simple");
+  param.setValue("superimposer:type","poseclustering_shift");
+  param.setValue("pairfinder:type","SimplePairFinder");
   ElementMapType scene;
   Feature feat1;
   Feature feat2;

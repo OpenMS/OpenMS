@@ -30,7 +30,7 @@
 #include <OpenMS/FORMAT/MzDataFile.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/MSExperimentExtern.h>
-#include <OpenMS/KERNEL/DPickedPeak.h>
+#include <OpenMS/KERNEL/PickedPeak1D.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -123,7 +123,7 @@ CHECK((template<typename MapType> void load(const String& filename, MapType& map
 	TEST_REAL_EQUAL(e2[2].getContainer()[4].getIntensity(), 100)
 
   //---------------------------------------------------------------------------
-  // test with DPickedPeak
+  // test with PickedPeak1D
   //---------------------------------------------------------------------------
 	MSExperiment< PickedPeak1D > e;
 
@@ -522,7 +522,7 @@ CHECK(([EXTRA] load with metadata-only flag))
 	MzDataFile mzdata;
 	mzdata.getOptions().setMetadataOnly(true);
 	
-	MSExperiment< DPickedPeak<1> > e;
+	MSExperiment< PickedPeak1D > e;
 
 	// real test
 	mzdata.load("data/MzDataFile_test_1.mzData",e);

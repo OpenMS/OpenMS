@@ -102,16 +102,16 @@ namespace OpenMS
 			const EmpiricalFormula& getAddFormula() const;
 
 			/// sets the average weight of the added formula
-			void setAddAverageWeight(Real weight);
+			void setAddAverageWeight(DoubleReal weight);
 				
 			/// returns the weight of the added formula
-			Real getAddAverageWeight() const;
+			DoubleReal getAddAverageWeight() const;
 
 			/// sets the mono isotopic weight of the added formula
-			void setAddMonoWeight(Real weight);
+			void setAddMonoWeight(DoubleReal weight);
 
 			/// returns the mono isotopic weight of the added formula
-			Real getAddMonoWeight() const;
+			DoubleReal getAddMonoWeight() const;
 
 			/// sets the formula which is deleted from the residue
 			void setDelFormula(const EmpiricalFormula& formula);
@@ -120,16 +120,16 @@ namespace OpenMS
 			const EmpiricalFormula& getDelFormula() const;
 
 			/// sets the average weight of the deletion 
-			void setDelAverageWeight(Real weight);
+			void setDelAverageWeight(DoubleReal weight);
 
 			/// returns the average weight of the deletion
-			Real getDelAverageWeight() const;
+			DoubleReal getDelAverageWeight() const;
 
 			/// sets the mono isotopic weight of the deletion
-			void setDelMonoWeight(Real weight);
+			void setDelMonoWeight(DoubleReal weight);
 
 			/// returns the mono isotopic weight of the deletion
-			Real getDelMonoWeight() const;
+			DoubleReal getDelMonoWeight() const;
 
 			/// sets the residues where the modification can be applied to
 			void setValidResidues(const std::set<Residue*>& valid_residues);
@@ -165,16 +165,16 @@ namespace OpenMS
 			// additions
 			EmpiricalFormula add_formula_;
 
-			Real add_average_weight_;
+			DoubleReal add_average_weight_;
 
-			Real add_mono_weight_;
+			DoubleReal add_mono_weight_;
 				
 			// deletions
 			EmpiricalFormula del_formula_;
 
-			Real del_average_weight_;
+			DoubleReal del_average_weight_;
 
-			Real del_mono_weight_;
+			DoubleReal del_mono_weight_;
 
 			// residues 
 			std::set<Residue*> valid_residues_;

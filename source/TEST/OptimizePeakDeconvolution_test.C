@@ -72,14 +72,6 @@ CHECK((OptimizePeakDeconvolution& operator=(const OptimizePeakDeconvolution& opt
  
 RESULT
 
-CHECK((OptimizePeakDeconvolution( )))
-	OptimizePeakDeconvolution opt_deconv;
-  
-  int charge = opt_deconv.getCharge();
-
-	TEST_EQUAL(charge == 1, true)
- 
-RESULT
 
 CHECK((OptimizePeakDeconvolution(const OptimizePeakDeconvolution& opt)))
   PRECISION(0.0001)
@@ -128,7 +120,7 @@ CHECK((bool optimize(std::vector<PeakShape>& peaks,int failure)))
 
 
  	OptimizePeakDeconvolution opt_deconv;
-  opt_deconv.setParameters(param.copy("deconvolution:",true));
+  opt_deconv.setParameters(param.copy("deconvolution:fitting:",true));
  	opt_deconv.optimize(peak_shapes,1);
  	TEST_REAL_EQUAL(peak_shape.mz_position,500)
  	TEST_REAL_EQUAL(peak_shape.left_width,2.5)
@@ -147,8 +139,17 @@ CHECK((void setCharge(const int charge)))
  	TEST_EQUAL(charge == opt_deconv.getCharge(), true)
 RESULT
 
+CHECK((const int getCharge() const))
+  int charge = 2;
+   
+  OptimizePeakDeconvolution opt_deconv;
+  opt_deconv.setCharge(charge);
+    
+ 	TEST_EQUAL(charge == opt_deconv.getCharge(), true)
+RESULT
 	
-CHECK((void setPenalties(const struct OptimizationFunctions::PenaltyFactorsIntensity& penalties)))
+
+CHECK((void setPenalties(const OptimizationFunctions::PenaltyFactorsIntensity& penalties)))
   PRECISION(0.0001)
   struct OptimizationFunctions::PenaltyFactorsIntensity penalties;
   penalties.pos = 0;
@@ -164,6 +165,21 @@ CHECK((void setPenalties(const struct OptimizationFunctions::PenaltyFactorsInten
 	TEST_REAL_EQUAL(penalties.height,opt_deconv.getPenalties().height)
 RESULT
 
+CHECK(( const OptimizationFunctions::PenaltyFactorsIntensity& getPenalties() const))
+  PRECISION(0.0001)
+  struct OptimizationFunctions::PenaltyFactorsIntensity penalties;
+  penalties.pos = 0;
+  penalties.lWidth = 1;
+  penalties.rWidth = 2;
+  penalties.height = 3;
+
+  OptimizePeakDeconvolution opt_deconv;
+  opt_deconv.setPenalties(penalties);
+  TEST_REAL_EQUAL(penalties.pos,opt_deconv.getPenalties().pos)
+  TEST_REAL_EQUAL(penalties.lWidth,opt_deconv.getPenalties().lWidth)
+  TEST_REAL_EQUAL(penalties.rWidth,opt_deconv.getPenalties().rWidth)
+	TEST_REAL_EQUAL(penalties.height,opt_deconv.getPenalties().height)
+RESULT
 	
 
 /////////////////////////////////////////////////////////////

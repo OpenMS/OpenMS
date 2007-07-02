@@ -23,7 +23,6 @@
 // --------------------------------------------------------------------------
 // $Maintainer: Andreas Bertsch $
 // --------------------------------------------------------------------------
-//
 
 #ifndef OPENMS_COMPARISON_SPECTRA_BINNEDREPSHAREDPEAKCOUNT_H
 #define OPENMS_COMPARISON_SPECTRA_BINNEDREPSHAREDPEAKCOUNT_H

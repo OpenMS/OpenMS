@@ -45,7 +45,7 @@ namespace OpenMS
 	SVMWrapper::SVMWrapper() : param_(NULL), model_(NULL), sigma_(0), sigmas_(vector<DoubleReal>()), gauss_table_(), kernel_type_(PRECOMPUTED), border_length_(0), training_set_(NULL), training_problem_(NULL)
 	{	
 	  param_ = (struct svm_parameter*) malloc(sizeof(struct svm_parameter));
-	  initParameters();
+	  initParameters_();
 	}
 	
 	SVMWrapper::~SVMWrapper()
@@ -360,7 +360,7 @@ namespace OpenMS
 		
 			if (kernel_type_ == OLIGO)
 			{
- 		   	destroyProblem(problem);
+ 		   	destroyProblem_(problem);
 			}
   	}
 	}
@@ -646,7 +646,7 @@ namespace OpenMS
 						
 						if (param_->kernel_type == PRECOMPUTED)
 						{
-							destroyProblem(training_problem_);
+							destroyProblem_(training_problem_);
 						}
 
 						if (output && j == number_of_partitions - 1)
@@ -986,7 +986,7 @@ namespace OpenMS
 		}
 	}																			 						
 
-	void SVMWrapper::initParameters()
+	void SVMWrapper::initParameters_()
 	{
 		model_ = NULL;
 	  
@@ -1159,7 +1159,7 @@ namespace OpenMS
 		return kernel_matrix;
 	}
 	
-	void SVMWrapper::destroyProblem(svm_problem* problem)
+	void SVMWrapper::destroyProblem_(svm_problem* problem)
 	{
 		for(Int  i = 0; i < problem->l; i++)
 		{
@@ -1226,11 +1226,11 @@ namespace OpenMS
 		mean = accumulate(differences.begin(), differences.end(), 0.0) / differences.size();
 		sigma1 = mean;
 		sigma2 = mean;
-		while(target > getNumberOfEnclosedPoints(sigma1, sigma2, points) && counter < max_iterations)
+		while(target > getNumberOfEnclosedPoints_(sigma1, sigma2, points) && counter < max_iterations)
 		{
 			
 			cout << "sigma1: " << sigma1 << ", sigma2: " << sigma2 << " shape contains " 
-						<< ((getNumberOfEnclosedPoints(sigma1, sigma2, points) / ((DoubleReal)points.size())) * 100)
+						<< ((getNumberOfEnclosedPoints_(sigma1, sigma2, points) / ((DoubleReal)points.size())) * 100)
 						<< " % of points" << endl;
 
 			sigma1 += (step_size / 2);
@@ -1241,11 +1241,11 @@ namespace OpenMS
 		sigmas.second = sigma2;
 
 		cout << "sigma1: " << sigma1 << ", sigma2: " << sigma2 << " shape contains " 
-			<< ((getNumberOfEnclosedPoints(sigma1, sigma2, points) / ((DoubleReal)points.size())) * 100)
+			<< ((getNumberOfEnclosedPoints_(sigma1, sigma2, points) / ((DoubleReal)points.size())) * 100)
 			<< " % of points" << endl;			
 	}
 	
-	UInt SVMWrapper::getNumberOfEnclosedPoints(DoubleReal sigma1, 
+	UInt SVMWrapper::getNumberOfEnclosedPoints_(DoubleReal sigma1, 
 																						 DoubleReal sigma2, 
 																						 const vector<pair<DoubleReal, DoubleReal> >& points)
 	{

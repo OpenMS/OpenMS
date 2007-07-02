@@ -21,7 +21,7 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Clemens Groepl, Marcel Grunert $	
+// $Maintainer: Clemens Groepl, Marcel Grunert $
 // --------------------------------------------------------------------------
 
 
@@ -48,7 +48,7 @@ using namespace std;
 
 namespace OpenMS
 {
-	
+
 	namespace Internal
 	{
 		// Helper struct for ExtendedModelFitter
@@ -72,10 +72,10 @@ namespace OpenMS
 	 	model2D_(),
 		mz_stat_(),
 		rt_stat_(),
-		stdev_mz_(0), 
-		stdev_rt1_(0), 
+		stdev_mz_(0),
+		stdev_rt1_(0),
 		stdev_rt2_(0),
-		min_(), 
+		min_(),
 		max_(),
 		counter_(0),
 		iso_stdev_first_(0),
@@ -85,37 +85,47 @@ namespace OpenMS
 		last_mz_model_(0)
 	{
 		setName(getProductName());
+
+		defaults_.setValue("tolerance_stdev_bounding_box",3.0f,"Bounding box has range [minimim of data, maximum of data] enlarged by tolerance_stdev_bounding_box times the standard deviation of the data");
+		defaults_.setValue("intensity_cutoff_factor",0.05f,"Cutoff peaks with a predicted intensity below intensity_cutoff_factor times the maximal intensity of the model");
+		defaults_.setValue("feature_intensity_sum",1,"Determines what is reported as feature intensity.\n1: the sum of peak intensities;\n0: the maximum intensity of all peaks");
 		
-		defaults_.setValue("tolerance_stdev_bounding_box",3.0f);
-		defaults_.setValue("feature_intensity_sum",1);
-		defaults_.setValue("min_num_peaks:final",5);
-		defaults_.setValue("min_num_peaks:extended",10);
-		defaults_.setValue("intensity_cutoff_factor",0.05f);
-		defaults_.setValue("feature_intensity_sum",1);
-		defaults_.setValue("rt:interpolation_step",0.2f);
-		defaults_.setValue("rt:max_iteration",500);
-		defaults_.setValue("rt:deltaAbsError",0.0001);
-		defaults_.setValue("rt:deltaRelError",0.0001);
-		defaults_.setValue("rt:profile","EMG");
-		defaults_.setValue("mz:interpolation_step",0.03f);
-		defaults_.setValue("mz:model_type:first",0);
-		defaults_.setValue("mz:model_type:last",4);
-		defaults_.setValue("quality:type","Correlation");
-		defaults_.setValue("quality:minimum",0.65f);
+		defaults_.setValue("min_num_peaks:final",5,"Minimum number of peaks left after cutoff. If smaller, feature will be discarded.");
+		defaults_.setValue("min_num_peaks:extended",10,"Minimum number of peaks after extension. If smaller, feature will be discarded.");
+		defaults_.setDescription("min_num_peaks","Required number of peaks for a feature.");
 		
-		defaults_.setValue("isotope_model:stdev:first",0.04f);
-		defaults_.setValue("isotope_model:stdev:last",0.12f);
-		defaults_.setValue("isotope_model:stdev:step",0.04f);
+		defaults_.setValue("rt:interpolation_step",0.2f,"Step size in seconds used to interpolate model for RT.");
+		defaults_.setValue("rt:max_iteration",500,"Maximum number of iterations for RT fitting.");
+		defaults_.setValue("rt:deltaAbsError",0.0001,"Absolute error used by the Levenberg-Marquardt algorithms.");
+		defaults_.setValue("rt:deltaRelError",0.0001,"Relative error used by the Levenberg-Marquardt algorithms.");
+		defaults_.setValue("rt:profile","EMG","Type of RT model. Possible models are 'LmaGauss', 'EMG' and 'LogNormal'.");
+		defaults_.setDescription("rt","Model settings in RT dimension.");
 		
-		defaults_.setValue("isotope_model:averagines:C",0.0443f);
-		defaults_.setValue("isotope_model:averagines:H",0.007f);
-		defaults_.setValue("isotope_model:averagines:N",0.0012f);
-		defaults_.setValue("isotope_model:averagines:O",0.013f);
-		defaults_.setValue("isotope_model:averagines:S",0.00037f);
+		defaults_.setValue("mz:interpolation_step",0.03f,"Interpolation step size for m/z.");
+		defaults_.setValue("mz:model_type:first",0,"Numeric id of first m/z model fitted (usually indicating the charge state), 0 = no isotope pattern (fit a single gaussian).");
+		defaults_.setValue("mz:model_type:last",4,"Numeric id of last m/z model fitted (usually indicating the charge state), 0 = no isotope pattern (fit a single gaussian).");
+		defaults_.setDescription("mz","Model settings in m/z dimension.");
 		
-		defaults_.setValue("isotope_model:isotope:trim_right_cutoff",0.001f);
-		defaults_.setValue("isotope_model:isotope:maximum",1000000);
-		defaults_.setValue("isotope_model:isotope:distance",1.000495f);
+		defaults_.setValue("quality:type","Correlation","Type of the quality measure used to assess the fit of model vs data ('Correlation','EuclidianDistance','RankCorrelation').");
+		defaults_.setValue("quality:minimum",0.65f,"Minimum quality of fit, features below this threshold are discarded.");
+		defaults_.setDescription("quality","Fitting quality settings.");
+		
+		defaults_.setValue("isotope_model:stdev:first",0.04f,"First standard deviation to be considered for isotope model.");
+		defaults_.setValue("isotope_model:stdev:last",0.12f,"Last standard deviation to be considered for isotope model.");
+		defaults_.setValue("isotope_model:stdev:step",0.04f,"Step size for standard deviations considered for isotope model.");
+		defaults_.setDescription("isotope_model:stdev","Instrument resolution settings for m/z dimension.");
+		
+		defaults_.setValue("isotope_model:averagines:C",0.0443f,"Number of C atoms per Dalton of the mass.");
+		defaults_.setValue("isotope_model:averagines:H",0.007f,"Number of H atoms per Dalton of the mass.");
+		defaults_.setValue("isotope_model:averagines:N",0.0012f,"Number of N atoms per Dalton of the mass.");
+		defaults_.setValue("isotope_model:averagines:O",0.013f,"Number of O atoms per Dalton of the mass.");
+		defaults_.setValue("isotope_model:averagines:S",0.00037f,"Number of S atoms per Dalton of the mass.");
+		defaults_.setDescription("isotope_model:averagines","Averagines are used to approximate the number of atoms (C,H,N,O,S) which a peptide of a given mass contains.");
+		
+		defaults_.setValue("isotope_model:isotope:trim_right_cutoff",0.001f,"Cutoff for averagine distribution, trailing isotopes below this relative intensity are not considered.");
+		defaults_.setValue("isotope_model:isotope:maximum",100,"Maximum number of isotopes being used for the IsotopeModel.");
+		defaults_.setValue("isotope_model:isotope:distance",1.000495f,"Distance between consecutive isotopic peaks.");
+		defaults_.setDescription("isotope_model","Settings of the isotope model (m/z).");
 		
 		defaultsToParam_();
 	}
@@ -131,15 +141,15 @@ namespace OpenMS
   {
     updateMembers_();
   }
-  
+
   ExtendedModelFitter& ExtendedModelFitter::operator= (const ExtendedModelFitter& rhs)
   {
     if (&rhs == this) return *this;
-    
+
     BaseModelFitter::operator=(rhs);
-    
+
     updateMembers_();
-    
+
     return *this;
   }
 
@@ -147,7 +157,7 @@ namespace OpenMS
 	{
 		if (quality_) delete quality_;
 		quality_ = Factory<BaseQuality>::create(param_.getValue("quality:type"));
-		
+
 		max_iteration_ = param_.getValue("rt:max_iteration");
 		eps_abs_ = param_.getValue("rt:deltaAbsError");
 		eps_rel_ = param_.getValue("rt:deltaRelError");
@@ -155,11 +165,11 @@ namespace OpenMS
 
 		interpolation_step_mz_ = param_.getValue("mz:interpolation_step");
 		interpolation_step_rt_ = param_.getValue("rt:interpolation_step");
-		
+
 		iso_stdev_first_        = param_.getValue("isotope_model:stdev:first");
 		iso_stdev_last_        = param_.getValue("isotope_model:stdev:last");
 		iso_stdev_stepsize_ = param_.getValue("isotope_model:stdev:step");
-		
+
 		first_mz_model_ = (Int) param_.getValue("mz:model_type:first");
 		last_mz_model_ = (Int) param_.getValue("mz:model_type:last");
 	}
@@ -169,11 +179,11 @@ namespace OpenMS
 		// not enough peaks to fit
 		if (set.size() < (UInt)(param_.getValue("min_num_peaks:extended")))
 		{
-			for (IndexSet::const_iterator it=set.begin(); it!=set.end(); ++it) 
+			for (IndexSet::const_iterator it=set.begin(); it!=set.end(); ++it)
 			{
 				traits_->getPeakFlag(*it) =FeaFiTraits::UNUSED;
 			}
-			
+
 			String mess = String("Skipping feature, IndexSet size too small: ") + set.size();
 			throw UnableToFit(__FILE__, __LINE__,__PRETTY_FUNCTION__,"UnableToFit-IndexSet", mess.c_str());
 		}
@@ -218,7 +228,7 @@ namespace OpenMS
 			setData(set);
 			if (symmetric_==false)
 				optimize();
-				
+
 			if (gsl_status_!="success") {
 				cout << profile_ + " status: " + gsl_status_ << endl;
 				//throw UnableToFit(__FILE__, __LINE__,__PRETTY_FUNCTION__,"UnableToFit-BadQuality",String("Skipping feature, " + profile_ + " status: " + gsl_status_));
@@ -228,17 +238,17 @@ namespace OpenMS
 		/// Test different charges and stdevs
 		Int first_mz  = first_mz_model_;
 		Int last_mz  = last_mz_model_;
-		
+
 		/// Check charge estimate if charge is not specified by user
 		if (set.charge_ != 0 /*&& (iso_stdev_first_ != iso_stdev_last_)*/)
 		{
 			first_mz = set.charge_;
 			last_mz = set.charge_;
 		// 	first_mz = (set.charge_ - 1);
-		//	last_mz = (set.charge_ + 1);		
+		//	last_mz = (set.charge_ + 1);
 		}
 		std::cout << "Checking charge state from " << first_mz << " to " << last_mz << std::endl;
-	
+
 		ProductModel<2>* final = 0;	// model  with best correlation
 		
 		for ( float stdev = iso_stdev_first_; stdev <= iso_stdev_last_; stdev += iso_stdev_stepsize_)
@@ -260,13 +270,13 @@ namespace OpenMS
 					//model_desc = ModelDescription<2>(&model2D_);
 					final = new ProductModel<2>(model2D_);	// store model
 				}
-				
+
 			}
 		}
-		
+
 		// model with highest correlation
 		//ProductModel<2>* final = dynamic_cast< ProductModel<2>* >(model_desc.createModel());
-		
+
 		// model_desc.createModel() returns 0 if class model_desc is not initialized
 		// in this case something went wrong during the modelfitting and we stop.
 		if (! final)
@@ -310,7 +320,7 @@ namespace OpenMS
  		max_quality = quality_->evaluate(model_set, *final); // recalculate quality after cutoff
 
 		std::cout << "P-value : " << quality_->getPvalue() << std::endl;
-		
+
 		// fit has too low quality or fit was not possible i.e. because of zero stdev
 		if (max_quality < (float)(param_.getValue("quality:minimum")))
 		{
@@ -356,18 +366,18 @@ namespace OpenMS
 		}
 		// if we used a simple Gaussian model to fit the feature, we can't say anything about
 		// its charge state. The value 0 indicates that charge state is undetermined.
-		else 
+		else
 		{
-			f.setCharge(0);		
+			f.setCharge(0);
 		}
 
 		int const intensity_choice = param_.getValue("feature_intensity_sum");
 		double feature_intensity = 0.0;
-		
+
 		if (intensity_choice == 1)
 		{
 			// intensity of the feature is the sum of all included data points
-			for (IndexSetIter it=model_set.begin(); it!=model_set.end(); ++it) 
+			for (IndexSetIter it=model_set.begin(); it!=model_set.end(); ++it)
 			{
 				feature_intensity += traits_->getPeakIntensity(*it);
 			}
@@ -375,13 +385,13 @@ namespace OpenMS
 		else
 		{
 			// feature intensity is the maximum intensity of all peaks
-			for (IndexSetIter it=model_set.begin(); it!=model_set.end(); ++it) 
+			for (IndexSetIter it=model_set.begin(); it!=model_set.end(); ++it)
 			{
 				if (traits_->getPeakIntensity(*it) > feature_intensity)
 					feature_intensity = traits_->getPeakIntensity(*it);
-			}	
-		} 
-		
+			}
+		}
+
 		f.setIntensity(feature_intensity);
 		traits_->addConvexHull(model_set, f);
 
@@ -396,7 +406,7 @@ namespace OpenMS
 
 		// save meta data in feature for TOPPView
 		stringstream meta ;
-		meta << "Feature #" << counter_ << ", +"	<< f.getCharge() << ", " << set.size() << "->" << model_set.size() 
+		meta << "Feature #" << counter_ << ", +"	<< f.getCharge() << ", " << set.size() << "->" << model_set.size()
 				 << ", Corr: (" << max_quality << ","  << f.getQuality(RT) << "," << f.getQuality(MZ) << ")";
 		f.setMetaValue(3,String(meta.str()));
 
@@ -404,29 +414,29 @@ namespace OpenMS
 		// write debug output
 		CoordinateType rt = f.getRT();
 		CoordinateType mz = f.getMZ();
-		
-		// write feature model 
+
+		// write feature model
 		String fname = String("model")+ counter_ + "_" + rt + "_" + mz;
-		ofstream file(fname.c_str()); 
-		for (IndexSetIter it=model_set.begin(); it!=model_set.end(); ++it) 
+		ofstream file(fname.c_str());
+		for (IndexSetIter it=model_set.begin(); it!=model_set.end(); ++it)
 		{
 			DPosition<2> pos = traits_->getPeakPos(*it);
 			if ( final->isContained(pos) )
 			{
-				file << pos[RT] << " " << pos[MZ] << " " << final->getIntensity( traits_->getPeakPos(*it)) << "\n";						
+				file << pos[RT] << " " << pos[MZ] << " " << final->getIntensity( traits_->getPeakPos(*it)) << "\n";
 			}
 		}
 		file.close();
-	
+
 		// wrote peaks remaining after model fit
 		fname = String("feature") + counter_ +  "_" + rt + "_" + mz;
-		ofstream file2(fname.c_str()); 
-		for (IndexSetIter it=model_set.begin(); it!=model_set.end(); ++it) 
+		ofstream file2(fname.c_str());
+		for (IndexSetIter it=model_set.begin(); it!=model_set.end(); ++it)
 		{
 			DPosition<2> pos = traits_->getPeakPos(*it);
 			if ( final->isContained(pos) )
 			{
-				file2 << pos[RT] << " " << pos[MZ] << " " << traits_->getPeakIntensity(*it) << "\n";						
+				file2 << pos[RT] << " " << pos[MZ] << " " << traits_->getPeakIntensity(*it) << "\n";
 			}
 		}
 		file2.close();
@@ -448,14 +458,14 @@ namespace OpenMS
 		{
 			mz_model = new GaussModel();
 			mz_model->setInterpolationStep(interpolation_step_mz_);
-			
+
 			Param tmp;
 			tmp.setValue("bounding_box:min",min_[MZ] );
 			tmp.setValue("bounding_box:max",max_[MZ] );
 			tmp.setValue("statistics:variance",mz_stat_.variance() );
 			tmp.setValue("statistics:mean",mz_stat_.mean() );
-			
-			static_cast<GaussModel*>(mz_model)->setParameters(tmp);			
+
+			static_cast<GaussModel*>(mz_model)->setParameters(tmp);
 		}
 		else
 		{
@@ -465,12 +475,12 @@ namespace OpenMS
 			iso_param.remove("stdev");
 			mz_model->setParameters(iso_param);
 			mz_model->setInterpolationStep(interpolation_step_mz_);
-			
+
 			Param tmp;
 			tmp.setValue("charge", static_cast<Int>(mz_fit));
 			tmp.setValue("isotope:stdev",isotope_stdev);
 			tmp.setValue("statistics:mean", mz_stat_.mean());
-			
+
 			static_cast<IsotopeModel*>(mz_model)->setParameters( tmp );
 		}
 
@@ -479,13 +489,13 @@ namespace OpenMS
 		{
 			rt_model = new GaussModel();
 			rt_model->setInterpolationStep(interpolation_step_rt_);
-			
+
 			Param tmp;
 			tmp.setValue("bounding_box:min",min_[RT] );
 			tmp.setValue("bounding_box:max",max_[RT] );
 			tmp.setValue("statistics:variance",rt_stat_.variance() );
-			tmp.setValue("statistics:mean",rt_stat_.mean() );			
-			
+			tmp.setValue("statistics:mean",rt_stat_.mean() );
+
 			static_cast<GaussModel*>(rt_model)->setParameters( tmp );
 		}
 		else if (rt_fit==LMAGAUSS)
@@ -497,11 +507,11 @@ namespace OpenMS
 			tmp.setValue("bounding_box:min",min_[RT] );
 			tmp.setValue("bounding_box:max",max_[RT] );
 			tmp.setValue("statistics:variance",rt_stat_.variance() );
-			tmp.setValue("statistics:mean",rt_stat_.mean() );			
+			tmp.setValue("statistics:mean",rt_stat_.mean() );
 			tmp.setValue("lma:scale_factor",  scale_factor_);
 			tmp.setValue("lma:standard_deviation",  standard_deviation_);
 			tmp.setValue("lma:expected_value",  expected_value_);
-			
+
 			static_cast<LmaGaussModel*>(rt_model)->setParameters( tmp );
 		}
 		else if (rt_fit==EMGAUSS)
@@ -513,12 +523,12 @@ namespace OpenMS
 			tmp.setValue("bounding_box:min",min_[RT] );
 			tmp.setValue("bounding_box:max",max_[RT] );
 			tmp.setValue("statistics:variance",rt_stat_.variance() );
-			tmp.setValue("statistics:mean",rt_stat_.mean() );			
+			tmp.setValue("statistics:mean",rt_stat_.mean() );
 			tmp.setValue("emg:height",height_);
 			tmp.setValue("emg:width",width_);
 			tmp.setValue("emg:symmetry",symmetry_);
 			tmp.setValue("emg:retention",retention_);
-	
+
 			static_cast<LmaGaussModel*>(rt_model)->setParameters( tmp );
 		}
 		else if (rt_fit==LOGNORMAL)
@@ -530,27 +540,27 @@ namespace OpenMS
 			tmp.setValue("bounding_box:min",min_[RT] );
 			tmp.setValue("bounding_box:max",max_[RT] );
 			tmp.setValue("statistics:variance",rt_stat_.variance() );
-			tmp.setValue("statistics:mean",rt_stat_.mean() );			
+			tmp.setValue("statistics:mean",rt_stat_.mean() );
 			tmp.setValue("emg:height",height_);
 			tmp.setValue("emg:width",width_);
 			tmp.setValue("emg:symmetry",symmetry_);
 			tmp.setValue("emg:retention",retention_);
 			tmp.setValue("lognormal:r",  r_);
-	
+
 			static_cast<LmaGaussModel*>(rt_model)->setParameters( tmp );
 		}
 		else
 		{
 			rt_model = new BiGaussModel();
 			rt_model->setInterpolationStep(interpolation_step_rt_);
-			
+
 			Param tmp;
 			tmp.setValue("bounding_box:min", min_[RT]);
 			tmp.setValue("bounding_box:max", max_[RT]);
 			tmp.setValue("statistics:mean", rt_stat_.mean());
 			tmp.setValue("statistics:variance1", rt_stat_.variance1());
 			tmp.setValue("statistics:variance2", rt_stat_.variance2() );
-			
+
 			static_cast<BiGaussModel*>(rt_model)->setParameters( tmp );
 		}
 
@@ -676,10 +686,10 @@ namespace OpenMS
 		// optimize the symmetry
 		if (profile_=="LogNormal") {
 			// The computations can lead to an overflow error at very low values of symmetry (s~0).
-			
+
 			if (symmetry_<=0.8)
 				symmetry_=0.8;
-			
+
 			if (symmetry_==1)
 				symmetry_=1.1;
 
@@ -692,7 +702,7 @@ namespace OpenMS
 		else
 		{
 			// The computations can lead to an overflow error at very low values of symmetry (s~0). For s~5 the parameter can be aproximized by the Levenberg-Marquardt argorithms. (the other parameters are much greater than one)
-				
+
 			if (symmetry_<1)
 				symmetry_+=5;
 
@@ -930,10 +940,10 @@ namespace OpenMS
 		else if (profile_=="LogNormal") p = 4;//5;
 		else p = 4;
 
-		// gsl always excepts N>=p or default gsl error handler invoked, cause Jacobian be rectangular M x N with M>=N	
+		// gsl always excepts N>=p or default gsl error handler invoked, cause Jacobian be rectangular M x N with M>=N
 		if (n<p)
 			throw UnableToFit(__FILE__, __LINE__,__PRETTY_FUNCTION__,"UnableToFit-FinalSet","Skipping feature, gsl always expects N>=p");
- 
+
 		gsl_matrix *covar = gsl_matrix_alloc(p,p);
 		gsl_multifit_function_fdf f;
 
@@ -1135,44 +1145,44 @@ namespace OpenMS
 		signalDC_.clear();
 	}
 
- 	ExtendedModelFitter::CoordinateType ExtendedModelFitter::getSymmetry() const 
-	{ 
-		return symmetry_; 
-	}
-	
-	ExtendedModelFitter::CoordinateType ExtendedModelFitter::getHeight() const 
-	{ 
-		return height_; 
-	}
-	
-	ExtendedModelFitter::CoordinateType ExtendedModelFitter::getWidth() const 
-	{ 
-		return width_; 
-	}
-	
-	ExtendedModelFitter::CoordinateType ExtendedModelFitter::getRT() const 
-	{ 
-		return retention_; 
+ 	ExtendedModelFitter::CoordinateType ExtendedModelFitter::getSymmetry() const
+	{
+		return symmetry_;
 	}
 
-	ExtendedModelFitter::CoordinateType ExtendedModelFitter::getStandardDeviation() const 
-	{ 
-		return standard_deviation_; 
+	ExtendedModelFitter::CoordinateType ExtendedModelFitter::getHeight() const
+	{
+		return height_;
 	}
 
-	ExtendedModelFitter::CoordinateType ExtendedModelFitter::getExpectedValue() const 
-	{ 
-		return expected_value_; 
+	ExtendedModelFitter::CoordinateType ExtendedModelFitter::getWidth() const
+	{
+		return width_;
 	}
 
-	ExtendedModelFitter::CoordinateType ExtendedModelFitter::getScaleFactor() const 
-	{ 
-		return scale_factor_; 
+	ExtendedModelFitter::CoordinateType ExtendedModelFitter::getRT() const
+	{
+		return retention_;
 	}
 
-	std::string ExtendedModelFitter::getGSLStatus() const 
-	{ 
-		return gsl_status_; 
+	ExtendedModelFitter::CoordinateType ExtendedModelFitter::getStandardDeviation() const
+	{
+		return standard_deviation_;
+	}
+
+	ExtendedModelFitter::CoordinateType ExtendedModelFitter::getExpectedValue() const
+	{
+		return expected_value_;
+	}
+
+	ExtendedModelFitter::CoordinateType ExtendedModelFitter::getScaleFactor() const
+	{
+		return scale_factor_;
+	}
+
+	std::string ExtendedModelFitter::getGSLStatus() const
+	{
+		return gsl_status_;
 	}
 
 }

@@ -48,7 +48,7 @@ namespace OpenMS
      subtracted from the data. If the input data is raw data peak picking is done first.
      
   */
-  class InternalCalibration : public DefaultParamHandler
+  class InternalCalibration : public DefaultParamHandler, public ProgressLogger
   {
   public:
     /// Raw data point type
@@ -141,7 +141,7 @@ namespace OpenMS
     std::vector<double> corr_masses,rel_errors;
     corr_masses.resize(num_ref_peaks,0.);
     rel_errors.resize(num_ref_peaks,0.);
-    
+    startProgress(0,monoiso_peaks_.size(),"calibrate spectra");    
     // for each spectrum
     for(size_t spec=0;spec <  monoiso_peaks_.size(); ++spec)
       {
@@ -207,9 +207,9 @@ namespace OpenMS
 					}
 				delete x;
 				delete y;
-				
+				setProgress(spec);
       }// for(size_t spec=0;spec <  monoiso_peaks.size(); ++spec)
-		
+		endProgress();
 		
   }// calibrate(MSExperiment<InputPeakType> exp, std::vector<Real> ref_masses)
 

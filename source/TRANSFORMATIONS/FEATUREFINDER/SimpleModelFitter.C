@@ -63,34 +63,42 @@ namespace OpenMS
 	{
 		setName(getProductName());
 		
-		defaults_.setValue("tolerance_stdev_bounding_box",3.0f);
-		defaults_.setValue("feature_intensity_sum",1);
-		defaults_.setValue("min_num_peaks:final",5);
-		defaults_.setValue("min_num_peaks:extended",10);
-		defaults_.setValue("intensity_cutoff_factor",0.05f);
+		defaults_.setValue("tolerance_stdev_bounding_box",3.0f,"Bounding box has range [minimim of data, maximum of data] enlarged by tolerance_stdev_bounding_box times the standard deviation of the data.");
+		defaults_.setValue("feature_intensity_sum",1,"Determines what is reported as feature intensity.\n1: the sum of peak intensities;\n0: the maximum intensity of all peaks.");
+		defaults_.setValue("intensity_cutoff_factor",0.05f,"Cutoff peaks with a predicted intensity below intensity_cutoff_factor times the maximal intensity of the model.");
 		
-		defaults_.setValue("rt:interpolation_step",0.2f);
-		defaults_.setValue("mz:interpolation_step",0.2f);
+		defaults_.setValue("min_num_peaks:final",5,"Minimum number of peaks left after cutoff. If smaller, feature will be discarded.");
+		defaults_.setValue("min_num_peaks:extended",10,"Minimum number of peaks after extension. If smaller, feature will be discarded.");
+		defaults_.setDescription("min_num_peaks","Required number of peaks for a feature.");
 		
-		defaults_.setValue("mz:model_type:first",0);
-		defaults_.setValue("mz:model_type:last",4);
+		defaults_.setValue("rt:interpolation_step",0.2f,"Step size in seconds used to interpolate model for RT");
+		defaults_.setDescription("rt","Model settings in RT dimension.");
 		
-		defaults_.setValue("quality:type","Correlation");
-		defaults_.setValue("quality:minimum",0.65f);
+		defaults_.setValue("mz:interpolation_step",0.2f,"Step size in Thomson used to interpolate model for m/z.");
+		defaults_.setValue("mz:model_type:first",0,"First type of model to try in m/z, 0 = GaussModel, 1 = IsotopeModel with charge +1, ..., n = IsotopeModel with charge +n.");
+		defaults_.setValue("mz:model_type:last",4,"Last type of model to try in m/z.");
+		defaults_.setDescription("mz","Model settings in m/z dimension.");
 		
-		defaults_.setValue("isotope_model:stdev:first",0.04f);
-		defaults_.setValue("isotope_model:stdev:last",0.12f);
-		defaults_.setValue("isotope_model:stdev:step",0.04f);
-
-		defaults_.setValue("isotope_model:averagines:C",0.0443f);
-		defaults_.setValue("isotope_model:averagines:H",0.007f);
-		defaults_.setValue("isotope_model:averagines:N",0.0012f);
-		defaults_.setValue("isotope_model:averagines:O",0.013f);
-		defaults_.setValue("isotope_model:averagines:S",0.00037f);
-
-		defaults_.setValue("isotope_model:isotope:trim_right_cutoff",0.001f);
-		defaults_.setValue("isotope_model:isotope:maximum",1000000);
-		defaults_.setValue("isotope_model:isotope:distance",1.000495f);
+		defaults_.setValue("quality:type","Correlation","Type of the quality measure used to assess the fit of model vs data ('Correlation','EuclidianDistance','RankCorrelation').");
+		defaults_.setValue("quality:minimum",0.65f,"Minimum quality of fit, features below this threshold are discarded.");
+		defaults_.setDescription("quality","Fitting quality settings");
+		
+		defaults_.setValue("isotope_model:stdev:first",0.04f,"First standard deviation to be considered for isotope model.");
+		defaults_.setValue("isotope_model:stdev:last",0.12f,"Last standard deviation to be considered for isotope model.");
+		defaults_.setValue("isotope_model:stdev:step",0.04f,"Step size for standard deviations considered for isotope model.");
+		defaults_.setDescription("isotope_model:stdev","Instrument resolution settings for m/z");
+		
+		defaults_.setValue("isotope_model:averagines:C",0.0443f,"Number of C atoms per Dalton of the mass.");
+		defaults_.setValue("isotope_model:averagines:H",0.007f,"Number of H atoms per Dalton of the mass.");
+		defaults_.setValue("isotope_model:averagines:N",0.0012f,"Number of N atoms per Dalton of the mass.");
+		defaults_.setValue("isotope_model:averagines:O",0.013f,"Number of O atoms per Dalton of the mass.");
+		defaults_.setValue("isotope_model:averagines:S",0.00037f,"Number of S atoms per Dalton of the mass.");
+		defaults_.setDescription("isotope_model:averagines","Averagines are used to approximate the number of atoms (C,H,N,O,S) which a peptide of a given mass contains.");
+		
+		defaults_.setValue("isotope_model:isotope:trim_right_cutoff",0.001f,"Cutoff for averagine distribution, trailing isotopes below this relative intensity are not considered.");
+		defaults_.setValue("isotope_model:isotope:maximum",100,"Maximum number of isotopes being used for the IsotopeModel.");
+		defaults_.setValue("isotope_model:isotope:distance",1.000495f,"Distance of consecutive isotopic peaks");
+		defaults_.setDescription("isotope_model","Settings of the isotope model (m/z).");
 		
 		defaultsToParam_();
 	}
@@ -433,7 +441,8 @@ namespace OpenMS
 			tmp.setValue("statistics:mean",rt_stat_.mean() );			
 			
 			static_cast<GaussModel*>(rt_model)->setParameters( tmp );
-		}else
+		}
+		else
 		{
 			rt_model = new BiGaussModel();
 			rt_model->setInterpolationStep(interpolation_step_rt_);

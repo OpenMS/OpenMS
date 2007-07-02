@@ -41,26 +41,26 @@ BaseSweepSeeder::BaseSweepSeeder()
 				mass_tolerance_cluster_(0)
 {
 		// number of scans used for alignment
-		defaults_.setValue("scans_to_sumup",5);
+		defaults_.setValue("scans_to_sumup",5,"number of scans that are combined in order to improve the signal-to-noise level.");
 		// mass tolerance during scan alignment
-		defaults_.setValue("mass_tolerance_alignment", 0.1);
+		defaults_.setValue("mass_tolerance_alignment", 0.1,"mass tolerance for comination of peaks from different scans.");
 		
 			// minimum number of scans per isotopic cluster
-		defaults_.setValue("min_number_scans",5);
+		defaults_.setValue("min_number_scans",5,"minimum number of scan per isotopic cluster");
 			// maximum number of scans per isotopic cluster
 		defaults_.setValue("max_number_scans",300);
 		// minimum number of peaks per cluster
-		defaults_.setValue("min_number_peaks",20);		
+		defaults_.setValue("min_number_peaks",20,"minimum number of peaks per cluster");		
 		
 		// mass tolerance for point cluster construction
-		defaults_.setValue("mass_tolerance_cluster",1.2);
+		defaults_.setValue("mass_tolerance_cluster",1.2,"The m/z tolerance for looking up a signal in following scans.");
 		// rt tolerance for cluster construction (given in number of scans)
-		defaults_.setValue("rt_tolerance_cluster",2);		
+		defaults_.setValue("rt_tolerance_cluster",2,"rt tolerance for cluster construction (given in number of scans)");		
 		
 		// max distance in rt for merged peak cluster (given in # scans)
-		defaults_.setValue("max_rt_dist_merging",40.0);
+		defaults_.setValue("max_rt_dist_merging",40.0,"max distance in rt for merged peak cluster (given in # scans)");
 		// max distance in mz for merged peak cluster 
-		defaults_.setValue("max_mz_dist_merging",1.5);
+		defaults_.setValue("max_mz_dist_merging",1.5,"max distance in mz for merged peak cluster");
 		
 		// minimum p-value for a significant cluster
 		defaults_.setValue("fdr_alpha",5.0);

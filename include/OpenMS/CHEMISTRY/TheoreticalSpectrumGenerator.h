@@ -38,6 +38,8 @@ namespace OpenMS
 	
 	/** 
 		@brief Generates theoretical spectra with various options
+   	
+   	@ref TheoreticalSpectrumGenerator_Parameters are explained on a separate page.
 		
 		@ingroup Chemistry
 	*/

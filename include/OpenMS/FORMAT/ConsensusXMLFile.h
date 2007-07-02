@@ -41,8 +41,6 @@ namespace OpenMS
 		
 		A documented schema for this format can be found at http://open-ms.sourceforge.net/schemas/.
 		
-		@todo Create, document and upload schema (Eva)
-		
     @ingroup FileIO
   */
   class ConsensusXMLFile : public Internal::SchemaFile

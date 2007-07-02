@@ -38,7 +38,6 @@ namespace OpenMS
   /**
      @brief This class implements a simple point pair finding algorithm.
 
-     This class implements a point pair finding algorithm.
      It offers a method to determine element pairs in two element maps,
      given two point maps and a transformation defined for the second element map (if no
      transformation is given, the pairs are found in the two original maps).
@@ -46,6 +45,7 @@ namespace OpenMS
      @note This pair finder does not offer a method to compute consensus elements given
      two element maps!
 
+		 @ref SimplePairFinder_Parameters are explained on a separate page.
   */
   template < typename MapT = FeatureMap< > >
   class SimplePairFinder : public BasePairFinder< MapT >
@@ -83,43 +83,16 @@ namespace OpenMS
     SimplePairFinder()
 			: Base()
     {
+    	//set the name for DefaultParamHandler error messages
 			setName(getProductName());
-
-      defaults_.setValue("similarity:diff_intercept:RT",1);
-      defaults_.setValue("similarity:diff_intercept:MZ",0.1);
-      defaults_.setValue("similarity:diff_exponent:RT",2);
-      defaults_.setValue("similarity:diff_exponent:MZ",1);
-      defaults_.setValue("similarity:pair_min_quality",0.01);
+			
+			defaults_.setValue("similarity:diff_intercept:RT",1,"This parameter controls the asymptotic decay rate for large differences (for more details see the similarity measurement).");
+      defaults_.setValue("similarity:diff_intercept:MZ",0.1,"This parameter controls the asymptotic decay rate for large differences (for more details see the similarity measurement).");
+      defaults_.setValue("similarity:diff_exponent:RT",2,"This parameter is important for small differences (for more details see the similarity measurement).");
+      defaults_.setValue("similarity:diff_exponent:MZ",1,"This parameter is important for small differences (for more details see the similarity measurement).");
+      defaults_.setValue("similarity:pair_min_quality",0.01,"Minimum required pair quality.");
 
       Base::defaultsToParam_();
-    }
-
-    /// Copy constructor
-    SimplePairFinder(const SimplePairFinder& source)
-			: Base(source),
-				pair_min_quality_(source.pair_min_quality_),
-				transformed_positions_second_map_(source.transformed_positions_second_map_)
-    {
-      diff_intercept_[RawDataPoint2D::RT] = source.diff_intercept_[RawDataPoint2D::RT];
-      diff_intercept_[RawDataPoint2D::MZ] = source.diff_intercept_[RawDataPoint2D::MZ];
-      diff_exponent_[RawDataPoint2D::RT] = source.diff_exponent_[RawDataPoint2D::RT];
-      diff_exponent_[RawDataPoint2D::MZ] = source.diff_exponent_[RawDataPoint2D::MZ];
-
-			updateMembers_();
-    }
-
-    ///  Assignment operator
-    virtual SimplePairFinder& operator = (SimplePairFinder source)
-    {
-      if (&source==this) return *this;
-
-      Base::operator=(source);
-
-      transformed_positions_second_map_ = source.transformed_positions_second_map_;
-
-      updateMembers_();
-
-      return *this;
     }
 
     /// Destructor
@@ -136,7 +109,7 @@ namespace OpenMS
     /// returns the name of this module
     static const String getProductName()
     {
-      return "simple";
+      return "SimplePairFinder";
     }
 
     /// Get diff exponent. See @sa similarity_().
@@ -317,12 +290,6 @@ namespace OpenMS
 
     /// The vector of transformed element positions of the second map
     std::vector<PositionType> transformed_positions_second_map_;
-
-
-		// Note on the following documentation comment:
-		// Every now and then the indentation gets messed up.
-		// So I inserted an html style bullet list.
-		// -- Clemens Groepl 2007-02-13
 
     /**@brief Compute the similarity for a pair of elements; larger quality
 			 values are better.

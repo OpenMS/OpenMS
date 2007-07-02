@@ -193,7 +193,7 @@ namespace OpenMS
                   os << "\t\t\t\t\t<mzMapping name=\"" << (*citer)->getName() << "\">\n";
                 }
 
-              Param map_param = (*citer)->getParam();
+              Param map_param = (*citer)->getParameters();
               Param::ConstIterator piter = map_param.begin();
               while (piter != map_param.end())
               {
@@ -476,9 +476,10 @@ namespace OpenMS
       {
         if (s != ref_index)
         {
-          os << "\t\t<transformation id=\"" << (j+1) << "\" name=\"AffineTransformation\"/>\n";
+          os << "\t\t<transformation id=\"" << (j+1) << "\" name=\"AffineTransformation\">\n";
           os << "\t";
           writeCellList_(os,transformation_vector[s]);
+          os << "\t\t</transformation>\n";
           ++j;
         }
       }

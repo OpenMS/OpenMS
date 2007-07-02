@@ -21,7 +21,7 @@
 			<processingOperation name="processing 2" type="type 2" value="done 2"/>
 			<comment>Software Comment</comment>
 		</dataProcessing>
-		<scan num="1" msLevel="1" peaksCount="1" polarity="any" scanType="Full" centroided="1" deisotoped="1" chargeDeconvoluted="1" retentionTime="PT60S" ionizationEnergy="10" collisionEnergy="10" collisionGas="1" collisionGasPressure="10" startMz="0" endMz="0" lowMz="0" highMz="100" basePeakMz="10" basePeakIntensity="15" totIonCurrent="8">
+		<scan num="1" msLevel="1" peaksCount="1" polarity="any" scanType="Full" centroided="1" deisotoped="1" chargeDeconvoluted="1" retentionTime="PT60S" ionisationEnergy="10" collisionEnergy="10" collisionGas="1" collisionGasPressure="10" startMz="0" endMz="0" lowMz="0" highMz="100" basePeakMz="10" basePeakIntensity="15" totIonCurrent="8">
 			<peaks precision="32" byteOrder="network" pairOrder="m/z-int">QvAAAELIAAA=</peaks>
 			<nameValue name="URL1" value="www.open-ms.de"/>
 			<nameValue name="URL2" value="www.uni-tuebingen.de"/>

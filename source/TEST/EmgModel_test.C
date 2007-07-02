@@ -213,8 +213,7 @@ CHECK([EXTRA] DefaultParamHandler::setParameters(...))
 
 RESULT
 
-CHECK((void setOffset(double offset)))
-
+CHECK((void setOffset(CoordinateType offset)))
 	EmgModel em1;
 	
 	Param tmp;
@@ -276,6 +275,14 @@ CHECK((CoordinateType getCenter() const))
 	em1.setOffset(680.0);
 	TEST_REAL_EQUAL(em1.getCenter(), 681.2)
 
+RESULT
+
+CHECK((static BaseModel<1>* create()))
+	// already test above
+RESULT
+
+CHECK((void setSamples()))
+	// already test above
 RESULT
 
 /////////////////////////////////////////////////////////////

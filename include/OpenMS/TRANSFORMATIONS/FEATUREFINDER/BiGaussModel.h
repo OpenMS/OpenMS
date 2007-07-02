@@ -54,9 +54,11 @@ namespace OpenMS
 					<td>mean and variances of the data used to fit the model.
 							variance1 is the variance of the lower half of the asymmetric peak.</td></tr>
 		</table>
-				
+    
+    @ref BiGaussModel_Parameters are explained on a separate page.
+
 		@ingroup FeatureFinder
-		
+
 	*/
 	class BiGaussModel
   : public InterpolationModel
@@ -106,7 +108,7 @@ namespace OpenMS
 			CoordinateType max_;
 			Math::BasicStatistics<> statistics1_;
 			Math::BasicStatistics<> statistics2_;
-			
+
 			void updateMembers_();
   };
 }

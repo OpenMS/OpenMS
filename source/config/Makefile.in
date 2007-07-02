@@ -162,7 +162,7 @@ dirs: dummy
 	@cd APPLICATIONS; if $(MAKE) default; then cd .. ; else cd .. ; exit 1 ; fi ; 
 	@cd VISUAL; if $(MAKE) default; then cd .. ; else cd .. ; exit 1 ; fi ;
 
-lib:	.Dependencies dirs collect $(SHARED_LIBS)
+lib:	.Dependencies dirs
 	@$(ECHO) " "
 	@$(ECHO) "You may now install the libraries with the command"
 	@$(ECHO) " "
@@ -189,7 +189,7 @@ install.static:
 	@-mkdir $(OPENMS_PATH)/bin 2>/dev/null | cat >/dev/null    
 	@$(MV) -f $(STATIC_LIBS) $(OPENMS_PATH)/lib/$(BINFMT)
 
-install.shared:	
+install.shared: $(SHARED_LIBS)
 	@$(ECHO) Installing shared libraries under $(OPENMS_PATH)/lib/$(BINFMT)...
 	@-mkdir $(OPENMS_PATH)/lib 2>/dev/null | cat >/dev/null 
 	@-mkdir $(OPENMS_PATH)/lib/$(BINFMT) 2>/dev/null | cat >/dev/null

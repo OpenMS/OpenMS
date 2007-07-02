@@ -41,16 +41,16 @@ START_TEST(HierarchicalClustering, "$Id$")
 /////////////////////////////////////////////////////////////
 
 HierarchicalClustering<>* ptr = 0;
-CHECK(HierarchicalClustering())
+CHECK((HierarchicalClustering()))
         ptr = new HierarchicalClustering<>;
         TEST_NOT_EQUAL(ptr, 0)
 RESULT
 
-CHECK(~HierarchicalClustering())
+CHECK((virtual ~HierarchicalClustering()))
         delete ptr;
 RESULT
 
-CHECK(HierarchicalClustering(const HierarchicalClustering &source))
+CHECK((HierarchicalClustering(const HierarchicalClustering &source)))
   HierarchicalClustering<> hc;
 
   Param p = hc.getParameters();
@@ -65,7 +65,7 @@ CHECK(HierarchicalClustering(const HierarchicalClustering &source))
   
 RESULT
 
-CHECK(HierarchicalClustering& operator=(const HierarchicalClustering &source))
+CHECK((HierarchicalClustering& operator=(const HierarchicalClustering &source)))
   HierarchicalClustering<> hc;
 
   Param p = hc.getParameters();
@@ -79,11 +79,8 @@ CHECK(HierarchicalClustering& operator=(const HierarchicalClustering &source))
   TEST_EQUAL((double) p_copy.getValue("cluster_cutoff"), 41.5);
 RESULT
 
-CHECK(virtual ~HierarchicalClustering())
 
-RESULT
-
-CHECK(const ClusterIdxVectorType& getClusters() const )
+CHECK((const ClusterIdxVectorType& getClusters() const))
   //create some data ...
   
   std::vector< HierarchicalClustering<>::ClusterPointType> points(4);
@@ -114,11 +111,11 @@ CHECK(const ClusterIdxVectorType& getClusters() const )
   
 RESULT
 
-CHECK(void compute(const std::vector< ClusterPointType > &points) throw (Exception::NotImplemented))
+CHECK((void compute(const std::vector< ClusterPointType > &points) throw (Exception::NotImplemented)))
   // all done above... no need to do it again; its hard to split those three
 RESULT
 
-CHECK(void printStatistics(std::ostream &os))
+CHECK((void printStatistics(std::ostream &os)))
   // all done above... no need to do it again; its hard to split those three
 RESULT
 

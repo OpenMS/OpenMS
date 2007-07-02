@@ -29,10 +29,11 @@
 ///////////////////////////
 
 #include <OpenMS/ANALYSIS/ID/PILISScoring.h>
+#include <OpenMS/FORMAT/IdXMLFile.h>
 
 ///////////////////////////
 
-START_TEST(PILISScoring_test.C, "$Id: PILISScoring_test.C 2074 2007-05-25 14:05:42Z andreas_bertsch $")
+START_TEST(PILISScoring_test.C, "$Id$")
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
@@ -41,6 +42,7 @@ using namespace OpenMS;
 using namespace std;
 
 PILISScoring* ptr = 0;
+String filename("data/IDFilter_test2.idXML");
 CHECK(PILISScoring())
 	ptr = new PILISScoring();
 	TEST_NOT_EQUAL(ptr, 0)
@@ -52,15 +54,31 @@ RESULT
 
 ptr = new PILISScoring();
 
-CHECK(PILISScoring(const PILISScoring& model))
+CHECK(PILISScoring(const PILISScoring& source))
 	PILISScoring copy(*ptr);
 	TEST_EQUAL(copy.getParameters(), ptr->getParameters())
 RESULT
 
-CHECK(PILISScoring& operator = (const PILISScoring& mode))
+CHECK(PILISScoring& operator = (const PILISScoring& source))
 	PILISScoring copy;
 	copy = *ptr;
 	TEST_EQUAL(copy.getParameters(), ptr->getParameters())
+RESULT
+
+CHECK(void getScores(std::vector<PeptideIdentification>& ids))
+	vector<PeptideIdentification> ids;
+	vector<ProteinIdentification> prot_ids;
+	IdXMLFile().load(filename, prot_ids, ids);
+	ptr->getScores(ids);
+
+RESULT
+
+CHECK(void getScore(PeptideIdentification& id))
+	vector<PeptideIdentification> ids;
+	vector<ProteinIdentification> prot_ids;
+	IdXMLFile().load(filename, prot_ids, ids);
+	ptr->getScore(ids[0]);
+	TEST_REAL_EQUAL(ids[0].getHits().begin()->getScore(), 33.85)
 RESULT
 
 /////////////////////////////////////////////////////////////

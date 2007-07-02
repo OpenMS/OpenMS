@@ -52,8 +52,13 @@ namespace OpenMS
     <li>cluster consists of only one charge variant (but several peptides) -> split cluster in single elements</li>
     <li>cluster consists of several charge variants -> dispose cluster</li>
     </ul>
+		 
+		@ref FeatureDecharger_Parameters are explained on a separate page.
     
     @ingroup Analysis
+    
+    @ref FeatureDecharger_Parameters are explained on a seperate page
+        
   */
   
   class FeatureDecharger : public DefaultParamHandler
@@ -73,10 +78,11 @@ namespace OpenMS
       FeatureDecharger()
       : DefaultParamHandler("FeatureDecharger")
       {
-        defaults_.setValue("cluster_RT_MZ_relation", 100); // factor*MZ equals MZ_corrected space
-        //subsections_.push_back("HierarchicalClustering");
+        defaults_.setValue("cluster_RT_MZ_relation", 100, "Multiplication factor for m/z coordinates used to balance the influence of RT and m/z.");
+        
         HierarchicalClustering<> hc;
         defaults_.insert("HierarchicalClustering:",hc.getParameters());
+        
         defaultsToParam_();
       }
 

@@ -35,8 +35,6 @@ namespace OpenMS
 {
   /**	
   	@brief A FilterFunctor extracts some spectrum characteristics for quality assessment
-  	
-  	@todo write test (Andreas)
   */
   class FilterFunctor : public FactoryProduct
   {

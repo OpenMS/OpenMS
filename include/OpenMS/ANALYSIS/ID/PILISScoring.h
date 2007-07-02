@@ -56,7 +56,10 @@ namespace OpenMS
 		the significance of the peptide hit considering only one spectrum, and the other also
 		considering also all other hits of all other spectra. The second type of scoring
 		is somewhat more accurate.
+		 
+		@ref PILISScoring_Parameters are explained on a separate page.
 
+		@ingroup Analysis_ID
 	*/
 	class PILISScoring : public DefaultParamHandler
 	{

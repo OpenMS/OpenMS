@@ -45,8 +45,8 @@ namespace OpenMS
 		sum1 and sum2 are the sum of the intensities squared for each peak of both spectra respectively.
 
 		A binned version of this scoring is implemented in the ZhangSimilarityScoring class.
-
-		@param epsilon - defines the absolut error of the mass spectrometer; default value is 0.3 Th
+		 
+		@ref SpectrumAlignmentScore_Parameters are explained on a separate page.
 		
 		@ingroup SpectraComparison
   */

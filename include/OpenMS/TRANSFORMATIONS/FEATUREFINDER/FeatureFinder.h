@@ -34,17 +34,6 @@
 namespace OpenMS
 {
   class BaseModelFitter;
-
-	/**
-		@defgroup FeatureFinder FeatureFinder
-		
-		@brief The feature detection algorithm in OpenMS.
-		
-		@todo add FeaFiModule MainLoop (Clemens, Marcel)
-		
-		@ingroup Analysis
-	*/
-	
 	/**
 		@brief The base class of the Feature Finding algorithm.
 		
@@ -72,7 +61,11 @@ namespace OpenMS
 		initialises the traits class and the seeder, extender and
 		model fitting classes.
 		
-		@note The input data should be sorted and not contain any tandem spectra.
+		The base class of all FeatureFinder modules is FeaFiModule.
+		The base classes of the different modules are BaseSeeder, BaseExtender and BaseModelFitter.
+		The model fitter also relies on BaseModel and BaseQuality.
+		
+		@note The input data should be sorted according to RT.
 		  	
 		@ingroup FeatureFinder
 	*/

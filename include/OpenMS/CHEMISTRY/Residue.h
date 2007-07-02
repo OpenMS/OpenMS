@@ -64,15 +64,15 @@ namespace OpenMS
 			}
 
 			
-			inline static Real getInternalToFullAverageWeight()
+			inline static DoubleReal getInternalToFullAverageWeight()
 			{
-				static const Real internal_to_full_average_weight = getInternalToFull().getAverageWeight();
+				static const DoubleReal internal_to_full_average_weight = getInternalToFull().getAverageWeight();
 				return internal_to_full_average_weight;
 			}
 
-			inline static Real getInternalToFullMonoWeight()
+			inline static DoubleReal getInternalToFullMonoWeight()
 			{
-				static const Real internal_to_full_mono_weight = getInternalToFull().getMonoWeight();
+				static const DoubleReal internal_to_full_mono_weight = getInternalToFull().getMonoWeight();
 				return internal_to_full_mono_weight;
 			}
 
@@ -82,15 +82,15 @@ namespace OpenMS
 				return Nterminal_to_full;
 			}
 
-			inline static Real getNTerminalToFullAverageWeight()
+			inline static DoubleReal getNTerminalToFullAverageWeight()
 			{
-				static const Real Nterminal_to_full_average_weight = getNTerminalToFull().getAverageWeight();
+				static const DoubleReal Nterminal_to_full_average_weight = getNTerminalToFull().getAverageWeight();
 				return Nterminal_to_full_average_weight;
 			}
 
-			inline static Real getNTerminalToFullMonoWeight()
+			inline static DoubleReal getNTerminalToFullMonoWeight()
 			{
-				static const Real Nterminal_to_full_mono_weight = getNTerminalToFull().getMonoWeight();
+				static const DoubleReal Nterminal_to_full_mono_weight = getNTerminalToFull().getMonoWeight();
 				return Nterminal_to_full_mono_weight;
 			}
 			
@@ -100,15 +100,15 @@ namespace OpenMS
 				return Cterminal_to_full;
 			}
 
-			inline static Real getCTerminalToFullAverageWeight()
+			inline static DoubleReal getCTerminalToFullAverageWeight()
 			{
-				static const Real Cterminal_to_full_average_weight = getCTerminalToFull().getAverageWeight();
+				static const DoubleReal Cterminal_to_full_average_weight = getCTerminalToFull().getAverageWeight();
 				return Cterminal_to_full_average_weight;
 			}
 		
-			inline static Real getCTerminalToFullMonoWeight()
+			inline static DoubleReal getCTerminalToFullMonoWeight()
 			{
-				static const Real Cterminal_to_full_mono_weight = getCTerminalToFull().getMonoWeight();
+				static const DoubleReal Cterminal_to_full_mono_weight = getCTerminalToFull().getMonoWeight();
 				return Cterminal_to_full_mono_weight;
 			}
 		
@@ -118,15 +118,15 @@ namespace OpenMS
 				return b_ion_to_full;
 			}
 
-			inline static Real getBIonToFullAverageWeight()
+			inline static DoubleReal getBIonToFullAverageWeight()
 			{
-				static const Real b_ion_to_full_average_weight = getBIonToFull().getAverageWeight();
+				static const DoubleReal b_ion_to_full_average_weight = getBIonToFull().getAverageWeight();
 				return b_ion_to_full_average_weight;
 			}
 			
-			inline static Real getBIonToFullMonoWeight()
+			inline static DoubleReal getBIonToFullMonoWeight()
 			{
-				static const Real b_ion_to_full_mono_weight = getBIonToFull().getMonoWeight();
+				static const DoubleReal b_ion_to_full_mono_weight = getBIonToFull().getMonoWeight();
 				return b_ion_to_full_mono_weight;
 			}
 			
@@ -136,15 +136,15 @@ namespace OpenMS
 				return a_ion_to_full;
 			}
 	
-			inline static Real getAIonToFullAverageWeight()
+			inline static DoubleReal getAIonToFullAverageWeight()
 			{
-				static const Real a_ion_to_full_average_weight = getAIonToFull().getAverageWeight();
+				static const DoubleReal a_ion_to_full_average_weight = getAIonToFull().getAverageWeight();
 				return a_ion_to_full_average_weight;
 			}
 
-			inline static Real getAIonToFullMonoWeight()
+			inline static DoubleReal getAIonToFullMonoWeight()
 			{
-				static const Real a_ion_to_full_mono_weight = getAIonToFull().getMonoWeight();
+				static const DoubleReal a_ion_to_full_mono_weight = getAIonToFull().getMonoWeight();
 				return a_ion_to_full_mono_weight;
 			}
 
@@ -154,15 +154,15 @@ namespace OpenMS
 				return y_ion_to_full;
 			}
 
-			inline static Real getYIonToFullAverageWeight()
+			inline static DoubleReal getYIonToFullAverageWeight()
 			{
-				static const Real y_ion_to_full_average_weight = getYIonToFull().getAverageWeight();
+				static const DoubleReal y_ion_to_full_average_weight = getYIonToFull().getAverageWeight();
 				return y_ion_to_full_average_weight;
 			}
 
-			inline static Real getYIonToFullMonoWeight()
+			inline static DoubleReal getYIonToFullMonoWeight()
 			{
-				static const Real y_ion_to_full_mono_weight = getYIonToFull().getMonoWeight();
+				static const DoubleReal y_ion_to_full_mono_weight = getYIonToFull().getMonoWeight();
 				return y_ion_to_full_mono_weight;
 			}
 
@@ -172,15 +172,15 @@ namespace OpenMS
 				return c_ion_to_full;
 			}
 
-			inline static Real getCIonToFullAverageWeight()
+			inline static DoubleReal getCIonToFullAverageWeight()
 			{
-				static const Real c_ion_to_full_average_weight = getCIonToFull().getAverageWeight();
+				static const DoubleReal c_ion_to_full_average_weight = getCIonToFull().getAverageWeight();
 				return c_ion_to_full_average_weight;
 			}
 
-			inline static Real getCIonToFullMonoWeight()
+			inline static DoubleReal getCIonToFullMonoWeight()
 			{
-				static const Real c_ion_to_full_mono_weight = getCIonToFull().getMonoWeight();
+				static const DoubleReal c_ion_to_full_mono_weight = getCIonToFull().getMonoWeight();
 				return c_ion_to_full_mono_weight;
 			}
 			
@@ -190,33 +190,33 @@ namespace OpenMS
 				return x_ion_to_full;
 			}
 
-			inline static Real getXIonToFullAverageWeight()
+			inline static DoubleReal getXIonToFullAverageWeight()
 			{
-				static const Real x_ion_to_full_average_weight = getXIonToFull().getAverageWeight();
+				static const DoubleReal x_ion_to_full_average_weight = getXIonToFull().getAverageWeight();
 				return x_ion_to_full_average_weight;
 			}
 
-			inline static Real getXIonToFullMonoWeight()
+			inline static DoubleReal getXIonToFullMonoWeight()
 			{
-				static const Real x_ion_to_full_mono_weight = getXIonToFull().getMonoWeight();
+				static const DoubleReal x_ion_to_full_mono_weight = getXIonToFull().getMonoWeight();
 				return x_ion_to_full_mono_weight;
 			}
 
 			inline static const EmpiricalFormula& getZIonToFull()
 			{
-				static const EmpiricalFormula z_ion_to_full = EmpiricalFormula("N");
+				static const EmpiricalFormula z_ion_to_full = EmpiricalFormula("NH2");
 				return z_ion_to_full;
 			}
 
-			inline static Real getZIonToFullAverageWeight()
+			inline static DoubleReal getZIonToFullAverageWeight()
 			{
-				static const Real z_ion_to_full_average_weight = getZIonToFull().getAverageWeight();
+				static const DoubleReal z_ion_to_full_average_weight = getZIonToFull().getAverageWeight();
 				return z_ion_to_full_average_weight;
 			}
 
-			inline static Real getZIonToFullMonoWeight()
+			inline static DoubleReal getZIonToFullMonoWeight()
 			{
-				static const Real z_ion_to_full_mono_weight = getZIonToFull().getMonoWeight();
+				static const DoubleReal z_ion_to_full_mono_weight = getZIonToFull().getMonoWeight();
 				return z_ion_to_full_mono_weight;
 			}
 			//@}
@@ -309,16 +309,16 @@ namespace OpenMS
 			const EmpiricalFormula& getLossFormula() const;
 	
 			/// sets the average weight of the neutral loss molecule
-			void setLossAverageWeight(Real weight);
+			void setLossAverageWeight(DoubleReal weight);
 	
 			/// return the average weight of the neutral loss molecule
-			Real getLossAverageWeight() const;
+			DoubleReal getLossAverageWeight() const;
 	
 			/// sets the mono isotopic weight of the neutral loss molecule
-			void setLossMonoWeight(Real weight);
+			void setLossMonoWeight(DoubleReal weight);
 	
 			/// returns the mono isotopic weight of the neutral loss molecule
-			Real getLossMonoWeight() const;
+			DoubleReal getLossMonoWeight() const;
 	
 			/// set the neutral loss molecule weight (if there is one)
 			void setLossName(const String& name);
@@ -333,16 +333,16 @@ namespace OpenMS
 			EmpiricalFormula getFormula(ResidueType res_type = Full) const;
 	
 			/// sets average weight of the residue
-			void setAverageWeight(Real weight, ResidueType res_type = Full);
+			void setAverageWeight(DoubleReal weight, ResidueType res_type = Full);
 	
 			/// returns average weight of the residue
-			Real getAverageWeight(ResidueType res_type = Full) const;
+			DoubleReal getAverageWeight(ResidueType res_type = Full) const;
 	
 			/// sets mono weight of the residue
-			void setMonoWeight(Real weight, ResidueType res_type = Full);
+			void setMonoWeight(DoubleReal weight, ResidueType res_type = Full);
 	
 			/// returns mono weight of the residue
-			Real getMonoWeight(ResidueType res_type = Full) const;
+			DoubleReal getMonoWeight(ResidueType res_type = Full) const;
 
 			/// sets the modification pointer
 			void setModification(ResidueModification* modification);
@@ -403,22 +403,22 @@ namespace OpenMS
 			void setPkc(DoubleReal value);		
 		
       /// returns the side chain basicity
-      Real getSideChainBasicity() const;
+      DoubleReal getSideChainBasicity() const;
 
       /// sets the side chain basicity
-      void setSideChainBasicity(Real gb_sc);
+      void setSideChainBasicity(DoubleReal gb_sc);
 
       /// returns the backbone basicitiy if located in N-terminal direction
-      Real getBackboneBasicityLeft() const;
+      DoubleReal getBackboneBasicityLeft() const;
 
       /// sets the N-terminal direction backbone basicitiy
-      void setBackboneBasicityLeft(Real gb_bb_l);
+      void setBackboneBasicityLeft(DoubleReal gb_bb_l);
 
       /// returns the C-terminal direction backbone basicitiy
-      Real getBackboneBasicityRight() const;
+      DoubleReal getBackboneBasicityRight() const;
 
       /// sets the C-terminal direction backbone basicity
-      void setBackboneBasicityRight(Real gb_bb_r);
+      void setBackboneBasicityRight(DoubleReal gb_bb_r);
 
 			/// true if the residue is a modified one
 			bool isModified() const;
@@ -444,9 +444,9 @@ namespace OpenMS
 
 			EmpiricalFormula internal_formula_;
 
-			Real average_weight_;
+			DoubleReal average_weight_;
 
-			Real mono_weight_;
+			DoubleReal mono_weight_;
 
 			// modification
 			bool is_modified_;
@@ -460,9 +460,9 @@ namespace OpenMS
 
 			EmpiricalFormula loss_formula_;
 
-			Real loss_average_weight_;
+			DoubleReal loss_average_weight_;
 
-			Real loss_mono_weight_;
+			DoubleReal loss_mono_weight_;
 
 			// low mass markers like immonium ions
 			std::vector<EmpiricalFormula> low_mass_ions_;
@@ -476,11 +476,11 @@ namespace OpenMS
 			// pkc values
 			DoubleReal pkc_;
 		
-      Real gb_sc_;
+      DoubleReal gb_sc_;
 
-      Real gb_bb_l_;
+      DoubleReal gb_bb_l_;
 
-      Real gb_bb_r_;
+      DoubleReal gb_bb_r_;
 	
 	};
 	

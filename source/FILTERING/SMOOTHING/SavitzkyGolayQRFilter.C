@@ -37,8 +37,8 @@ namespace OpenMS
     : SmoothFilter(),
     DefaultParamHandler("SavitzkyGolayQRFilter")  
   {
-    defaults_.setValue("frame_length",17);
-    defaults_.setValue("polynomial_order",4);
+    defaults_.setValue("frame_length",17,"The number of subsequent peaks used for smoothing.");
+    defaults_.setValue("polynomial_order",4,"Order or the polynomial that is fitted.");
       
     defaultsToParam_();
       

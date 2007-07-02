@@ -193,7 +193,6 @@ class ConsensusMap : public DPeakArray<ConsensusElementT >
             active_intervalls.erase(it);
           }  
         }
-        
       
         // find within the groups of intersecting elements in rt, elements that overlap in m/z
         std::map < UInt, std::vector< UInt> >::iterator it = intersecting_intervalls.begin();

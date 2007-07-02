@@ -67,13 +67,13 @@ TOPP_EXECUTABLES=\
 	FeatureFinder\
 	PILISModel\
 	PILISIdentification\
-	XTandemAdapter\
 	OMSSAAdapter\
 	UnlabeledMatcher\
 	MapNormalizer\
 	Decharger\
 	InternalCalibration\
-	ExternalCalibration
+	ExternalCalibration\
+	XTandemAdapter
 
 OTHER_EXECUTABLES=\
 	INIFileEditor\

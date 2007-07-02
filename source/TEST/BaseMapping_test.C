@@ -47,8 +47,6 @@ class TestMapping : public BaseMapping
    virtual void apply(DPosition<1>& ) const {}
 
    virtual void apply(DoubleReal& ) const {};
-  
-   virtual const String getName() { return "";}
 };
 
 START_TEST(BaseMapping, "$Id$")
@@ -57,64 +55,38 @@ START_TEST(BaseMapping, "$Id$")
 /////////////////////////////////////////////////////////////
 
 TestMapping* ptr = 0;
-CHECK(BaseMapping())
+CHECK((BaseMapping()))
 	ptr = new TestMapping();
 	TEST_NOT_EQUAL(ptr, 0)
 RESULT
 
-CHECK(~BaseMapping())
+CHECK((virtual ~BaseMapping()))
 	delete ptr;
 RESULT
 
-CHECK(BaseMapping& operator = (const BaseMapping& rhs))
+CHECK((BaseMapping& operator = (const BaseMapping& rhs)))
   TestMapping tm;
-  Param param;
-  param.setValue("bla",3);  
-  tm.setParam(param);
-  
+ 
   TestMapping tm_copy;
   tm_copy = tm;
   
-  TEST_EQUAL(tm_copy.getParam() == param,true)
+  TEST_EQUAL(tm_copy.getParameters() == tm.getParameters(),true)
 RESULT
 
-CHECK(BaseMapping(const BaseMapping& source))
+CHECK((BaseMapping(const BaseMapping& source)))
   TestMapping tm;
-  Param param;
-  param.setValue("bla",3);  
-  tm.setParam(param);
   
   TestMapping tm_copy(tm);
   
-  TEST_EQUAL(tm_copy.getParam() == param,true)
+  TEST_EQUAL(tm_copy.getParameters() == tm.getParameters(),true)
 RESULT
 
-CHECK(const Param& getParam() const)
-  TestMapping tm;
-  Param param;
-  
-  TEST_EQUAL(tm.getParam() == param,true)
-RESULT
-
-CHECK(const String getName())
+CHECK((virtual void apply(DoubleReal &pos) const =0))
   
 RESULT
 
-CHECK(void apply( typename Traits::RealType & pos) const)
+CHECK((virtual void apply(DPosition< 1 > &) const =0))
   
-RESULT
-
-CHECK(void apply(DPosition<D>& ) const)
-  
-RESULT
-
-CHECK(void setParam(const Param& p))
-  TestMapping tm;
-  Param param;
-  param.setValue("bla",3);  
-  tm.setParam(param);
-  
-  TEST_EQUAL(tm.getParam() == param,true)
 RESULT
 
 /////////////////////////////////////////////////////////////

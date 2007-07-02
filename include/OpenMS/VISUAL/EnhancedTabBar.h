@@ -36,7 +36,7 @@ class QMouseEvent;
 namespace OpenMS 
 {
 	/**
-		@brief Tab bar which is aware of double clicking.
+		@brief Tab bar which is aware of double clicking and has a context menu to close it.
 		
 		It emits a signal, when a tab is double clicked.
 		
@@ -51,13 +51,14 @@ namespace OpenMS
 		EnhancedTabBar( QWidget * parent = 0);
 		/// Destructor
 		~EnhancedTabBar();
-	
+		
 		signals:
 		/// Signal emited when double clicked. Returns the tab index
 		void doubleClicked(int);
 	
 		protected:
-		void mouseDoubleClickEvent ( QMouseEvent * e );
+		void mouseDoubleClickEvent(QMouseEvent* e);
+		void contextMenuEvent(QContextMenuEvent* e);
 	};
 
 }

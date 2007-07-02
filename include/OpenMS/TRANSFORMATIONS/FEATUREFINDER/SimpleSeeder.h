@@ -41,20 +41,12 @@ namespace OpenMS
 {
 
 	/** 
-		@brief Seeding class that follows the description of Groepl et al (2004)
+		@brief Seeding class that follows the description of Groepl et al (2004).
  		
- 		<table>
-			<tr>
-				<td>min_intensity</td>
-				<td>Absolute value for the minimum intensity of a seed. If set to 0, a fixed 
-					  percentage of the intensity of the largest peak is taken (see below).</td>
-			</tr>
-			<tr>
-				<td>intensity_perc</td>
-				<td>Minimum percentage of the intensity of the largest peak that a seed has to have
-				    (used only if min_nitensity is set to 0.</td>
-			</tr>
-		</table>
+		This class simply sorts the peaks according to intensity and proposes
+		the highest peak, which is not yet included in a feature, as next seed.
+		 
+		@ref SimpleSeeder_Parameters are explained on a separate page.
 		
 		@ingroup FeatureFinder
 	*/ 

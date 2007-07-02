@@ -54,18 +54,8 @@ using namespace std;
 	In an optional third stage, the resulting fit can be further improved using
 	techniques from nonlinear optimization.
 	
-	<b>Finding the right parameters:</b><br>
-	Finding the right parameters for the peak picking is not trivial. The default parameters
-	will not work on most datasets. In order to find good parameters we propose the
-	following procedure:
-	-# Load the data in TOPPView
-	-# Extract a single scan from the middle of the HPLC gradient (Right click on scan)
-	-# Experiment with the peak picking parameters until you have found the proper settings
-		- You can find the peak picker in \ref TOPPView in the menu 'Layer' - 'Apply TOPP tool'
-		- The most important parameters are <tt>peak_bound</tt>/<tt>peak_bound_ms2_level</tt>, 
-		  <tt>fwhm_bound</tt> and <tt>scale</tt>.
-		- <tt>scale</tt> can be set to the equal to the <tt>peak_bound</tt> parameter.
-	
+	How to find @ref TOPP_example2_parameters is explained in the TOPP tutorial. 
+
 	@ingroup TOPP
 */
 

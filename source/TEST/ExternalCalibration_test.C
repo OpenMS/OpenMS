@@ -80,7 +80,7 @@ CHECK((const std::vector<double>& getML3s() const))
 RESULT  
 
   
-CHECK((void setML1s( std::vector<double>& ml1s) ))
+CHECK((void setML1s(const std::vector< double > &ml1s)))
   std::vector<double> vec;
   vec.push_back(0.1);
   vec.push_back(0.3);
@@ -88,7 +88,7 @@ CHECK((void setML1s( std::vector<double>& ml1s) ))
   TEST_EQUAL(ptr->getML1s()== vec,true)
 RESULT
 
-CHECK((void setML2s( std::vector<double>& ml2s) ))
+CHECK((void setML2s(const std::vector< double > &ml2s)))
   std::vector<double> vec;
   vec.push_back(0.1);
   vec.push_back(0.3);
@@ -96,7 +96,7 @@ CHECK((void setML2s( std::vector<double>& ml2s) ))
   TEST_EQUAL(ptr->getML2s()== vec,true)
 RESULT
 
-CHECK((void setML3s( std::vector<double>& ml3s) ))
+CHECK((void setML3s(const std::vector< double > &ml3s)))
   std::vector<double> vec;
   vec.push_back(0.1);
   vec.push_back(0.3);
@@ -106,8 +106,7 @@ RESULT
   
 
 
-CHECK( template<typename InputPeakType>
-       void calibrate(MSExperiment<RawDataPointType>& calib_spectra,MSExperiment<PeakType >& exp,std::vector<double>& exp_masses) )
+CHECK((template<typename PeakType> void calibrate(MSExperiment< RawDataPointType > &calib_spectra, MSExperiment< PeakType > &exp, std::vector< double > &exp_masses)))
   PRECISION(0.000001)
   std::cout.precision(12);
   MSExperiment<RawDataPoint1D> calib_exp;
@@ -162,16 +161,16 @@ CHECK( template<typename InputPeakType>
   ptr->calibrate(calib_exp,exp,ref_masses);
 
 /// this is caused by the higher precision ExternalCalibration works with
-  file.store("ExternalCalibration_output.tmp",exp);
-  file.load("ExternalCalibration_output.tmp",exp);
+
+	String tmp_filename;
+	NEW_TMP_FILE(tmp_filename);
+  file.store(tmp_filename,exp);
+  file.load(tmp_filename,exp);
   TEST_EQUAL(exp,res_exp)
 
 RESULT
 
-CHECK( template<typename InputPeakType>
-       void calibrate(MSExperiment<PickedPeakType>& calib_spectra,MSExperiment<PeakType >& exp,
-									 std::vector<double>& exp_masses) )
-
+CHECK((template<typename PeakType> void calibrate(MSExperiment< PickedPeakType > &calib_spectra, MSExperiment< PeakType > &exp, std::vector< double > &exp_masses)))
   PRECISION(0.000001)
   std::cout.precision(12);
   MSExperiment<PickedPeak1D> calib_exp;
@@ -214,8 +213,10 @@ CHECK( template<typename InputPeakType>
   ptr->calibrate(calib_exp,exp,ref_masses);
 
 /// this is caused by the higher precision ExternalCalibration works with
-  file.store("ExternalCalibration_output.tmp",exp);
-  file.load("ExternalCalibration_output.tmp",exp);
+	String tmp_filename;
+	NEW_TMP_FILE(tmp_filename)
+  file.store(tmp_filename,exp);
+  file.load(tmp_filename,exp);
   TEST_EQUAL(exp,res_exp)
 
 RESULT	

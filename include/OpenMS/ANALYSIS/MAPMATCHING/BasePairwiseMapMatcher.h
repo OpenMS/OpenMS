@@ -59,7 +59,7 @@ namespace OpenMS
 		@note If a piecewise transformation is assumed, the user can define a grid by setting 
 		the number of buckets in the RT as well as the MZ dimension. 
 		Call initGridTransformation() before run()!
-  */
+ */
   template < typename MapT = FeatureMap< > >
   class BasePairwiseMapMatcher 
   	: public FactoryProduct
@@ -93,45 +93,13 @@ namespace OpenMS
     {
       element_map_[0] = 0;
       element_map_[1] = 0;
-      defaults_.setValue("number_buckets:RT",1);
-      defaults_.setValue("number_buckets:MZ",1);
+      defaults_.setValue("number_buckets:RT",1, "To obtain a piecewise defined warping function the retention time dimension can be divided into a number of buckets.");
+      defaults_.setValue("number_buckets:MZ",1, "To obtain a piecewise defined warping function the m/z dimension can be divided into a number of buckets.");
       
 			// no need to call defaultsToParam_() as it is called in the non-abstract children 
     }
 
-    /// Copy constructor
-    BasePairwiseMapMatcher(const BasePairwiseMapMatcher& source)
-        : FactoryProduct(source),
-        all_element_pairs_(source.all_element_pairs_),
-        bounding_box_scene_map_(source.bounding_box_scene_map_),
-        box_size_(source.box_size_)
-    {
-      element_map_[0] = source.element_map_[0];
-      element_map_[1] = source.element_map_[1];
-      grid_ = source.grid_;
-    	
-    	// no need to call defaultsToParam_() as it is called in the non-abstract children 
-    }
-
-    ///  Assignment operator
-    BasePairwiseMapMatcher& operator = (const BasePairwiseMapMatcher& source)
-    {
-      if (&source==this) return *this;
-
-      FactoryProduct::operator = (source);
-      	
-      element_map_[0] = source.element_map_[0];
-      element_map_[1] = source.element_map_[1];
-      all_element_pairs_ = source.all_element_pairs_;
-      grid_ = source.grid_;
-      bounding_box_scene_map_ = source.bounding_box_scene_map_;
-      box_size_ = source.box_size_;
-      
-      // no need to call defaultsToParam_() as it is called in the non-abstract children 
-      
-      return *this;
-    }
-
+   
     /// Destructor
     virtual ~BasePairwiseMapMatcher()
   	{

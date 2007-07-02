@@ -297,7 +297,7 @@ namespace OpenMS
 													"Matrices have different row sizes.");
 			OPENMS_PRECONDITION(rows_ == rhs.rows_,
 													"Matrices have different column sizes.");
-			return static_cast < typename Matrix<Value>::Base const &>(*this) == static_cast < typename Matrix<Value>::Base const &>(rhs);
+ 			return static_cast < typename Matrix<Value>::Base const &>(*this) == static_cast < typename Matrix<Value>::Base const &>(rhs);
 		}
 
 		/**@brief Less-than comparator.  Comparison is done lexicographically: first by row, then by column.

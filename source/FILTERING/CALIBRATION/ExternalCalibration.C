@@ -29,16 +29,26 @@
 
 namespace OpenMS
 {
+	ExternalCalibration::UnableToCalibrate::UnableToCalibrate(const char* file, int line, const char* function, const std::string& name , const std::string& message) throw()
+		:	Base(file, line, function, name, message)
+	{
+	}
+
+	ExternalCalibration::UnableToCalibrate::~UnableToCalibrate() throw()
+	{	
+	}
+	
   ExternalCalibration::ExternalCalibration()
     :DefaultParamHandler("ExternalCalibration"),ProgressLogger()
   {
     subsections_.push_back("PeakPicker");
+		check_defaults_=false; // class has no own parameters
   }
 
   ExternalCalibration::~ExternalCalibration(){}
 
 
-  void ExternalCalibration::calculateCalibCoeffs_(MSExperiment<PickedPeakType >& calib_spectra)
+  void ExternalCalibration::calculateCalibCoeffs_(MSExperiment<PickedPeakType >& calib_spectra) throw (UnableToCalibrate)
   {
 		// flight times are needed later
     calib_peaks_ft_ = calib_spectra;
@@ -62,6 +72,11 @@ namespace OpenMS
 				gsl_matrix *X, *cov;
 				gsl_vector *y, *c;
 				int n = exp_masses.size();
+				if(n < 3)
+					{
+						continue;
+					}
+				
 				double chisq;
 				
 				// matrix containing the observations
@@ -119,17 +134,22 @@ namespace OpenMS
 					{
 #ifdef DEBUG_CALIBRATION
 						std::cout << exp_masses[p]
-											<< "\t"<<m_q_(calib_peaks_ft_[spec][monoiso_peaks_scan[p]].getMZ(),spec) - exp_masses[p]<< std::endl;
+											<< "\t"<<mQ_(calib_peaks_ft_[spec][monoiso_peaks_scan[p]].getMZ(),spec) - exp_masses[p]<< std::endl;
 #endif
-						errors_[exp_masses[p]].push_back((m_q_(calib_peaks_ft_[spec][monoiso_peaks_scan[p]].getMZ(),spec) - exp_masses[p]));
+						errors_[exp_masses[p]].push_back((mQ_(calib_peaks_ft_[spec][monoiso_peaks_scan[p]].getMZ(),spec) - exp_masses[p]));
 					}
 				setProgress(spec);
       }
     endProgress();
 
+		if(coeff_quad_fit_.size() == 0)
+			{
+				String mess = String("Data can't be calibrated, not enough reference masses found: ") + coeff_quad_fit_.size()/3;
+				throw UnableToCalibrate(__FILE__, __LINE__,__PRETTY_FUNCTION__,"UnableToCalibrate", mess.c_str());
+			}
     averageErrors_();
     averageCoefficients_();
-
+		
 		
     double* calib_masses = new double[error_medians_.size()];
     double* error_medians = new double[error_medians_.size()];
@@ -154,7 +174,7 @@ namespace OpenMS
 				matchMasses_(calib_spectra,monoiso_peaks,monoiso,exp_masses,spec);
 				for(unsigned int p=0; p < monoiso.size();++p)
 					{
-						double xi = m_q_(calib_peaks_ft_[spec][monoiso[p]].getMZ(),spec);
+						double xi = mQ_(calib_peaks_ft_[spec][monoiso[p]].getMZ(),spec);
 						if(xi > calib_masses[error_medians_.size()-1] ) continue;
 						if(xi < calib_masses[0]) continue;
 						std::cout << exp_masses[p] << "\t" 

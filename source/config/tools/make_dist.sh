@@ -38,21 +38,13 @@ rm -rf OpenMS-dist
 mkdir OpenMS-dist
 cd /tmp/OpenMS-dist
 svn co https://svn.sourceforge.net/svnroot/open-ms/$1 1>svn_extract.log 2>svn_extract_err.log || ( echo "cannot extract OpenMS" >&0 && exit )
+mv `basename $1` OpenMS
 echo ""
 
 # extracting version number
 echo "extracting version number"
 VERSION="`grep AC_INIT /tmp/OpenMS-dist/OpenMS/source/configure.ac | awk -F, '{print 'bla'$2'bla'}' | sed -e 's/\s//g'`"
 echo "Version: ${VERSION}"
-echo ""
-
-# buid docu
-echo "building docu"
-cd OpenMS/doc/
-cp ../source/config/Doxyfile.in doxygen/Doxyfile
-sed -i -e "s/@PACKAGE_VERSION@/${VERSION}/g" doxygen/Doxyfile
-sed -i -e 's/@OPENMS_PATH@/\/tmp\/OpenMS-dist\/OpenMS/g' doxygen/Doxyfile
-make doc > /tmp/OpenMS-dist/make_doc.log 2>&1
 echo ""
 
 # remove SVN information
