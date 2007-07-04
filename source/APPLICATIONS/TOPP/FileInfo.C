@@ -77,6 +77,7 @@ class TOPPFileInfo
 			                                            "Valid types are: 'dta', 'mzData', 'mzXML', 'DTA2D', 'ANDIMS' (cdf) , 'FeatureXML'", false);
 			registerFlag_("m","show meta information about the whole experiment");
 			registerFlag_("s","computes a five-number statistics of intensities (and feature qualities)");
+			registerFlag_("d","show detailed listing of all scans (for mzData only)");
 		}
 		
 		ExitCodes main_(int , char**)
@@ -175,6 +176,23 @@ class TOPPFileInfo
 				cout << endl;
 				
 				exp_set = &exp;
+				
+				
+				// Detailed listing of scans
+				if (getFlag_("d"))
+				{
+					UInt count=0;
+					for (MSExperiment<RawDataPoint1D>::iterator it = exp.begin(); it!=exp.end(); ++it)
+					{
+						++count;
+						cout << "scan " << count << ": peaks: " << it->size() << " -- RT " << it->getRT() << " -- m/z ";
+						if (it->size()!=0)
+						{
+							cout << it->begin()->getMZ() << "-" << (it->end()-1)->getMZ();
+						}
+						cout << endl;
+					}
+				}
 			}
 			//-------------------------------------------------------------
 			// Feature
@@ -355,7 +373,7 @@ class TOPPFileInfo
 							 ;
 				}
 			}
-			
+
 			cout << endl << endl;			
 			
 			return EXECUTION_OK;
