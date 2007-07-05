@@ -176,6 +176,18 @@
 	
 	    <li><b>How do i create a branch?</b><br>
 	      <tt>svn copy https://open-ms.svn.sourceforge.net/svnroot/open-ms/OpenMS \\<BR> https://open-ms.svn.sourceforge.net/svnroot/open-ms/branches/&lt;name&gt;/</tt>
+			
+			 <li><b>How do i merge the changes i made to the HEAD into the release branch?</b><br>
+			  Suppose you want to merge the changes you made in revision 2325 of the HEAD (/OpenMS) into the current
+			  revision of the release branch for Release 1.0 (/branches/Releases1.0).
+			  <OL>
+			  	<LI> Check out the release branch:<BR>
+			  			 <tt>svn co https://open-ms.svn.sourceforge.net/svnroot/open-ms/branches/Release1.0/</tt>
+			  	<LI> Merge the changes into the the branch:<BR>
+			  			 <tt>svn merge -r 2324:2325 https://open-ms.svn.sourceforge.net/svnroot/open-ms/OpenMS/</tt>
+			  	<LI> Resolve conflicts and make sure all tests run
+			  	<LI> Commit the changes
+			  </OL>
 	
 	 		<li><b>How do i merge a branch into the trunk?</b><br>
 	 			Imagine the current revision is 25 and you added the branch in revision 10.
