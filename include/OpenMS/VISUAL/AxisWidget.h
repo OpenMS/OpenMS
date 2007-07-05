@@ -33,6 +33,7 @@ class QPaintEvent;
 
 // OpenMS
 #include <OpenMS/CONCEPT/Types.h>
+#include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/MATH/MISC/MathFunctions.h>
 
 namespace OpenMS
@@ -90,10 +91,10 @@ namespace OpenMS
 			bool isLogScale();
 	
 			/// sets the legend text
-			void setLegend(const std::string& legend);
+			void setLegend(const String& legend);
 	
 			/// returns the actual legend text
-			std::string getLegend();
+			const String& getLegend();
 
 			/// set true to display the axis label in inverse order (left to right or bottom to top)
 			void setInverseOrientation(bool inverse_orientation);
@@ -142,7 +143,7 @@ namespace OpenMS
 			// interval of values on axis
 			double min_, max_;
 			/// text/unit on axis
-			std::string legend_;
+			String legend_;
 			/// maximum number of tick levels (default=3)
 			UInt tick_level_;
 			/// drawing thicker lines (e.g. in printing) leads to better results

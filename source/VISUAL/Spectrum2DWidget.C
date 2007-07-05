@@ -64,7 +64,7 @@ namespace OpenMS
 		grid_->addWidget(projection_horz_,0,1,1,2);
 		connect(canvas(), SIGNAL(showProjectionHorizontal(const MSExperiment<>&, Spectrum1DCanvas::DrawModes)), this, SLOT(horizontalProjection(const MSExperiment<>&, Spectrum1DCanvas::DrawModes)));
 		connect(canvas(), SIGNAL(showProjectionVertical(const MSExperiment<>&, Spectrum1DCanvas::DrawModes)), this, SLOT(verticalProjection(const MSExperiment<>&, Spectrum1DCanvas::DrawModes)));
-		connect(canvas(), SIGNAL(showProjectionInfo(int,double)), this, SLOT(projectionInfo(int,double)));
+		connect(canvas(), SIGNAL(showProjectionInfo(int,double,double)), this, SLOT(projectionInfo(int,double,double)));
 		connect(canvas(), SIGNAL(showCurrentPeaksAs3D()), this, SIGNAL(showCurrentPeaksAs3D()));
 		connect(canvas(), SIGNAL(showSpectrumAs1D(int)), this, SIGNAL(showSpectrumAs1D(int)));
 		
@@ -79,20 +79,26 @@ namespace OpenMS
 		projection_peaks_ = new QLabel("");
 		box_grid->addWidget(projection_peaks_,0,1,1,2);
 		
-		label = new QLabel("Intensity: ");
+		label = new QLabel("Intensity sum: ");
 		box_grid->addWidget(label,1,0);
 		projection_sum_ = new QLabel("");
 		box_grid->addWidget(projection_sum_,1,1,1,2);
+
+		label = new QLabel("Maximum intensity: ");
+		box_grid->addWidget(label,2,0);
+		projection_max_ = new QLabel("");
+		box_grid->addWidget(projection_max_,2,1,1,2);
+		
+		box_grid->setRowStretch(3,2);
 		
 		QPushButton* button = new QPushButton("Hide", projection_box_);
 		connect(button, SIGNAL(clicked()), this, SLOT(hideProjections()));
-		box_grid->addWidget(button,3,1);
+		box_grid->addWidget(button,4,1);
 
 		button = new QPushButton("Update", projection_box_);
 		connect(button, SIGNAL(clicked()), canvas(), SLOT(showProjections()));
-		box_grid->addWidget(button,3,2);
+		box_grid->addWidget(button,4,2);
 		
-		box_grid->setRowStretch(2,2);
 	}
 
 	Spectrum2DWidget::~Spectrum2DWidget()
@@ -100,10 +106,11 @@ namespace OpenMS
 		//cout << "DEST Spectrum2DWidget" << endl;
 	}
 
-	void Spectrum2DWidget::projectionInfo(int peaks, double intensity)
+	void Spectrum2DWidget::projectionInfo(int peaks, double intensity, double max)
 	{
 		projection_peaks_->setText(QString::number(peaks));
 		projection_sum_->setText(QString::number(intensity,'f',1));
+		projection_max_->setText(QString::number(max,'f',1));
 	}
 	
 	void Spectrum2DWidget::recalculateAxes_()
@@ -162,7 +169,6 @@ namespace OpenMS
 	
 	void Spectrum2DWidget::horizontalProjection(const MSExperiment<>& exp, Spectrum1DCanvas::DrawModes mode)
 	{
-		projection_horz_->mzToXAxis(true);
 		projection_horz_->showLegend(false);
 		projection_horz_->canvas()->setIntensityMode(SpectrumCanvas::IM_PERCENTAGE);
 		projection_horz_->canvas()->removeLayer(0);
@@ -176,7 +182,7 @@ namespace OpenMS
 	
 	void Spectrum2DWidget::verticalProjection(const MSExperiment<>& exp, Spectrum1DCanvas::DrawModes mode)
 	{
-		projection_vert_->mzToXAxis(false);
+		projection_vert_->canvas()->mzToXAxis(false);
 		projection_vert_->showLegend(false);
 		projection_vert_->canvas()->setIntensityMode(SpectrumCanvas::IM_PERCENTAGE);
 		projection_vert_->canvas()->removeLayer(0);

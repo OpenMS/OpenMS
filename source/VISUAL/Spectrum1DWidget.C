@@ -51,9 +51,20 @@ namespace OpenMS
 	
 	void Spectrum1DWidget::recalculateAxes_()
 	{
+		AxisWidget* mz_axis;
+		AxisWidget* it_axis;
+		
 		//determine axes
-		AxisWidget* mz_axis = x_axis_;
-		AxisWidget* it_axis = y_axis_;
+		if (canvas()->isMzToXAxis())
+		{
+			mz_axis = x_axis_;
+			it_axis = y_axis_;
+		}
+		else
+		{
+			mz_axis = y_axis_;
+			it_axis = x_axis_;
+		}
 		
 		// recalculate gridlines
 		mz_axis->setAxisBounds(canvas()->getVisibleArea().minX(), canvas()->getVisibleArea().maxX());

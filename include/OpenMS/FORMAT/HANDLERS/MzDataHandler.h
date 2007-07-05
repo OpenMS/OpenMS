@@ -787,15 +787,7 @@ namespace OpenMS
 			Internal::MzDataExpSettHandler handler( cexp_->getExperimentalSettings(),"");
 			handler.writeTo(os);
 
-			//determine how many spectra there are (count only those with peaks)
-			UInt count_tmp_  = 0;
-			for (UInt s=0; s<cexp_->size(); s++)
-			{
-				const SpectrumType& spec = (*cexp_)[s];
-				if (spec.size()!=0) ++count_tmp_;
-			}
-
-			os << "\t<spectrumList count=\"" << count_tmp_ << "\">\n";
+			os << "\t<spectrumList count=\"" << cexp_->size() << "\">\n";
 
 			int spectrum_ref = -1;
 			for (UInt s=0; s<cexp_->size(); s++)

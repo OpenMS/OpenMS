@@ -591,9 +591,6 @@ namespace OpenMS
 
 		///This function is called whenever the intensity mode changes. Reimplement if you need to react on such changes.
 		virtual void intensityModeChange_();
-
-		///This function is called whenever the action mode changes. Reimplement if you need to react on such changes.
-		virtual void axisMappingChange_();
 		
 		/**
 			@brief Sets the visible area

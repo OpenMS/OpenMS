@@ -455,6 +455,7 @@ namespace OpenMS
 		//create projection data
 		map<float, float> mz, rt;
 		UInt peak_count = 0;
+		DoubleReal intensity_max = 0.0;
 		DoubleReal intensity_sum = 0.0;
 		for (ExperimentType::ConstAreaIterator i = getCurrentPeakData().areaBeginConst(visible_area_.min()[1],visible_area_.max()[1],visible_area_.min()[0],visible_area_.max()[0]); 
 				 i != getCurrentPeakData().areaEndConst();
@@ -462,10 +463,13 @@ namespace OpenMS
 		{
 			if (i->getIntensity()>=getCurrentLayer().min_int && i->getIntensity()<=getCurrentLayer().max_int)
 			{
+				//sum
 				++peak_count;
 				intensity_sum += i->getIntensity();
 				mz[i->getMZ()] += i->getIntensity();
 				rt[i.getRT()] += i->getIntensity();
+				//max
+				intensity_max = max(intensity_max,(DoubleReal)(i->getIntensity()));
 			}
 		}
 		
@@ -511,7 +515,7 @@ namespace OpenMS
 			emit showProjectionHorizontal(projection_rt_,Spectrum1DCanvas::DM_CONNECTEDLINES);
 			emit showProjectionVertical(projection_mz_,Spectrum1DCanvas::DM_PEAKS);
 		}
-		showProjectionInfo(peak_count,intensity_sum);
+		showProjectionInfo(peak_count, intensity_sum, intensity_max);
 	}
 	
 	Int Spectrum2DCanvas::finishAdding(float low_intensity_cutoff)
@@ -687,6 +691,7 @@ namespace OpenMS
 		}
 		else
 		{
+			
 			emit updateVScrollbar(overall_data_range_.min()[0],visible_area_.min()[0],visible_area_.max()[0],overall_data_range_.max()[0]);
 			emit updateHScrollbar(overall_data_range_.min()[1],visible_area_.min()[1],visible_area_.max()[1],overall_data_range_.max()[1]);
 		}

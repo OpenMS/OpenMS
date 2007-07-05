@@ -93,7 +93,7 @@ namespace OpenMS
       /// Sets the data for the vertical projection
       void showProjectionVertical(const MSExperiment<>&, Spectrum1DCanvas::DrawModes);
       /// Shows the number of peaks and the intensity sum of the projection
-      void showProjectionInfo(int, double);
+      void showProjectionInfo(int, double, double);
       /// Requests to display the current peak data in 3D 
       void showCurrentPeaksAs3D();
 			/// Requests to display the spectrum with index @p index in 1D

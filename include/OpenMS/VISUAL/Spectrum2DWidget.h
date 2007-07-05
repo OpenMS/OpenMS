@@ -110,6 +110,8 @@ namespace OpenMS
 		QLabel* projection_peaks_;
 		/// Intensity sum of the projection
 		QLabel* projection_sum_;
+		/// Intensity maximum of the projection
+		QLabel* projection_max_;
 
 	private slots:
 		/// shows the horizontal projection with the given data and draw mode
@@ -117,7 +119,7 @@ namespace OpenMS
 		/// shows the vertical projection with the given data and draw mode
 		void verticalProjection(const MSExperiment<>&, Spectrum1DCanvas::DrawModes);
 		/// shows projections information
-		void projectionInfo(int peaks, double intensity);
+		void projectionInfo(int peaks, double intensity, double max);
 
 	};
 }

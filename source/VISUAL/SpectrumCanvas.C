@@ -125,11 +125,13 @@ namespace OpenMS
 	void SpectrumCanvas::mzToXAxis(bool mz_to_x_axis)
 	{
 		mz_to_x_axis_ = mz_to_x_axis;
-		axisMappingChange_();
-	}
-
-	void SpectrumCanvas::axisMappingChange_()
-	{
+		
+		//swap axes if necessary
+		if (spectrum_widget_)
+		{
+			spectrum_widget_->updateAxes();
+		}
+		
 		updateScrollbars_();
 		update_buffer_ = true;
 		update_(__PRETTY_FUNCTION__);

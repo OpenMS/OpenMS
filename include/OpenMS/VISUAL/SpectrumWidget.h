@@ -139,9 +139,7 @@ namespace OpenMS
 		public slots:
 			/// Shows the intensity distribution of the data
 			void showIntensityDistribution();
-			/// Sets mapping of m/z values to x-axis or y-axis
-			virtual void mzToXAxis(bool mz_to_x_axis);
-			/// Updates the axes by calling recalculateAxes_();
+			/// Updates the axes by setting the right labels and calling recalculateAxes_();
 			void updateAxes();
 			/**
 				@brief Updates the horizontal scrollbar

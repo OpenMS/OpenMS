@@ -41,7 +41,7 @@ namespace OpenMS
 			canvas_(0)
 	{
 		setAttribute(Qt::WA_DeleteOnClose);
-		setMinimumSize(200,200);
+		setMinimumSize(250,250);
 		grid_ = new QGridLayout(this);
 		grid_->setSpacing(0);
 		grid_->setMargin(1);
@@ -74,14 +74,8 @@ namespace OpenMS
 		connect(canvas_, SIGNAL(sendStatusMessage(std::string, OpenMS::UInt)),this, SIGNAL(sendStatusMessage(std::string, OpenMS::UInt)));
 		connect(canvas_, SIGNAL(sendCursorStatus(double,double,double)), this, SIGNAL(sendCursorStatus(double,double,double)));
 		
-		if (!canvas_->isMzToXAxis())
-		{
-			// swap legend text
-			std::string tmp = x_axis_->getLegend();
-			// and update axis with swapped legend text
-			x_axis_->setLegend(y_axis_->getLegend());
-			y_axis_->setLegend(tmp);
-		}
+		//swap axes if necessary
+		updateAxes();
 		
 		canvas_->setSpectrumWidget(this);
 	}
@@ -139,22 +133,14 @@ namespace OpenMS
 	
 	void SpectrumWidget::updateAxes()
 	{
-		recalculateAxes_();
-	}
-	
-	void SpectrumWidget::mzToXAxis(bool mz_to_x_axis) 
-	{
-		// check if we have to swap axis
-		if (mz_to_x_axis == canvas()->isMzToXAxis()) return;
-	
-		// update mapping info of cnavas
-		canvas()->mzToXAxis(mz_to_x_axis);
-	
-		// swap legend text
-		std::string tmp = x_axis_->getLegend();
-		x_axis_->setLegend(y_axis_->getLegend());
-		y_axis_->setLegend(tmp);
-	
+		//change axis lables if necessary
+		if (canvas()->isMzToXAxis()==true && x_axis_->getLegend().size()>=2 && x_axis_->getLegend().prefix(2)=="RT"
+		|| canvas()->isMzToXAxis()==false && y_axis_->getLegend().size()>=2 && y_axis_->getLegend().prefix(2)=="RT") 
+		{
+			std::string tmp = x_axis_->getLegend();
+			x_axis_->setLegend(y_axis_->getLegend());
+			y_axis_->setLegend(tmp);
+		}
 		recalculateAxes_();
 	}
 

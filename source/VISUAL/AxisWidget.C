@@ -348,7 +348,7 @@ namespace OpenMS
 		return show_legend_;
 	}
 	
-	std::string AxisWidget::getLegend()
+	const String& AxisWidget::getLegend()
 	{
 		return legend_;
 	}
@@ -367,7 +367,7 @@ namespace OpenMS
 		return inverse_orientation_;
 	}
 	
-	void AxisWidget::setLegend(const std::string& legend)
+	void AxisWidget::setLegend(const String& legend)
 	{
 		if (legend_ != legend)
 		{

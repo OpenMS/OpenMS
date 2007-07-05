@@ -26,7 +26,6 @@
 
 #include <OpenMS/config.h>
 
-#include <OpenMS/KERNEL/MSExperimentExtern.h>
 #include <OpenMS/FORMAT/MzDataFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/MATH/MISC/BilinearInterpolation.h>
@@ -171,7 +170,7 @@ class TOPPResampler
 		writeDebug_("mz lower/upper bound: " + String(mz_l) + " / " + String(mz_u), 1);
 
 		//load needed data
-		typedef MSExperimentExtern< Peak1D > MSExperimentType;
+		typedef MSExperiment< RawDataPoint1D > MSExperimentType;
 		typedef MSExperimentType::SpectrumType SpectrumType;
 		MSExperimentType exp;
 		MzDataFile f;
@@ -330,7 +329,7 @@ class TOPPResampler
 		{
 			// all data in the matrix is copied to an MSExperiment,
 			// which is then written to an mzData file.
-			MSExperiment<> exp_resampled;
+			MSExperiment< RawDataPoint1D > exp_resampled;
 			exp_resampled.resize(rows);
 			for ( int row_index = 0; row_index < rows; ++row_index )
 			{
