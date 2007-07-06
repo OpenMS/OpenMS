@@ -38,7 +38,7 @@ using namespace std;
 
 ///////////////////////////
 
-START_TEST(PepNovoInfile, "$Id: PepNovoInfile_test.C 2076 2007-05-25 16:20:21Z martinlangwisch $")
+START_TEST(String, "$Id$")
 
 /////////////////////////////////////////////////////////////
 
@@ -52,58 +52,54 @@ CHECK(~PepNovoInfile())
 	delete ptr;
 RESULT
 
+CHECK((PepNovoInfile& operator=(const PepNovoInfile& pepnovo_infile)))
+	PepNovoInfile pepnovo_infile1;
+  PepNovoInfile pepnovo_infile2;
+	pepnovo_infile2 = pepnovo_infile1;
+	PepNovoInfile pepnovo_infile3;
+	pepnovo_infile1 = PepNovoInfile();
+	TEST_EQUAL(( pepnovo_infile2 == pepnovo_infile3 ), true)
+RESULT
+
+CHECK((PepNovoInfile(const PepNovoInfile &pepnovo_infile)))
+	PepNovoInfile pepnovo_infile1;
+	PepNovoInfile pepnovo_infile2(pepnovo_infile1);
+	PepNovoInfile pepnovo_infile3;
+	pepnovo_infile1 = PepNovoInfile();
+	TEST_EQUAL(( pepnovo_infile2 == pepnovo_infile3 ), true)
+RESULT
+
+CHECK((bool operator==(const PepNovoInfile &pepnovo_infile) const))
+	PepNovoInfile pepnovo_infile1;
+	PepNovoInfile pepnovo_infile2;
+	TEST_EQUAL(( pepnovo_infile1 == pepnovo_infile2 ), true)
+RESULT
+
 PepNovoInfile file;
 
-CHECK(String handlePTMs(const String& modification_line, const String& modifications_filename, const bool monoisotopic) throw (Exception::FileNotReadable, Exception::FileNotFound, Exception::ParseError))
-	String modification_line = "10.3+,KRLNH,fix:Phosphorylation:+16,C:H2C,CHKNQRILDEST,opt,Methylation:16-,cterm:-16,nterm";
-// 	"10.3+,KRLNH,fix:Phosphorylation:+16,C:HCNO,nterm,Carbamylation:H2C,CHKNQRILDEST,opt,Methylation:16-,cterm:-16,nterm";
-	TEST_EXCEPTION(Exception::FileNotFound, file.handlePTMs(modification_line, "", true))
+CHECK(void handlePTMs(const String& modification_line, const String& modifications_filename, const bool monoisotopic) throw (Exception::FileNotReadable, Exception::FileNotFound, Exception::ParseError))
+
+	// test exceptions
+	String modification_line = "Phosphorylation";
+	TEST_EXCEPTION_WITH_MESSAGE(Exception::FileNotFound, file.handlePTMs(modification_line, "a", true), "the file `a' could not be found")
+	
+// 	TEST_EXCEPTION_WITH_MESSAGE(Exception::FileNotReadable, file.handlePTMs(modification_line, "data/PepNovo_unreadable_unwriteable.txt", true), "the file `data/PepNovo_unreadable_unwriteable.txt' is not readable for the current user")
 	
 	modification_line = "2H20,KRLNH,fix";
-	TEST_EXCEPTION(Exception::ParseError, file.handlePTMs(modification_line, "TOPP/PepNovo_PTMs.xml", true))
-	try
-	{
-		file.handlePTMs(modification_line, "TOPP/PepNovo_PTMs.xml", true);
-	}
-	catch ( Exception::ParseError p_e )
-	{
-		TEST_EQUAL(String(p_e.getMessage()), "There's something wrong with this modification. Aborting! in: 2H20,KRLNH,fix")
-	}
-
+	TEST_EXCEPTION_WITH_MESSAGE(Exception::ParseError, file.handlePTMs(modification_line, "TOPP/PepNovo_PTMs.xml", true), "There's something wrong with this modification. Aborting! in: 2H20,KRLNH,fix")
+	
 	modification_line = "10.3+";
-	TEST_EXCEPTION(Exception::ParseError, file.handlePTMs(modification_line, "TOPP/PepNovo_PTMs.xml", true))
-	try
-	{
-		file.handlePTMs(modification_line, "TOPP/PepNovo_PTMs.xml", true);
-	}
-	catch ( Exception::ParseError p_e )
-	{
-		TEST_EQUAL(String(p_e.getMessage()), "No residues for modification given. Aborting! in: 10.3+")
-	}
-
+	TEST_EXCEPTION_WITH_MESSAGE(Exception::ParseError, file.handlePTMs(modification_line, "TOPP/PepNovo_PTMs.xml", true), "No residues for modification given. Aborting! in: 10.3+")
+	
 	modification_line = "10.3+,KRLNH,stat,PTM_0";
-	TEST_EXCEPTION(Exception::ParseError, file.handlePTMs(modification_line, "TOPP/PepNovo_PTMs.xml", true))
-	try
-	{
-		file.handlePTMs(modification_line, "TOPP/PepNovo_PTMs.xml", true);
-	}
-	catch ( Exception::ParseError p_e )
-	{
-		TEST_EQUAL(String(p_e.getMessage()), "There's something wrong with the type of this modification. Aborting! in: 10.3+,KRLNH,stat,PTM_0")
-	}
-
+	TEST_EXCEPTION_WITH_MESSAGE(Exception::ParseError, file.handlePTMs(modification_line, "TOPP/PepNovo_PTMs.xml", true), "There's something wrong with the type of this modification. Aborting! in: 10.3+,KRLNH,stat,PTM_0")
+	
 	modification_line = "Phosphorylation:Phosphorylation";
-	TEST_EXCEPTION(Exception::ParseError, file.handlePTMs(modification_line, "TOPP/PepNovo_PTMs.xml", true))
-	try
-	{
-		file.handlePTMs(modification_line, "TOPP/PepNovo_PTMs.xml", true);
-	}
-	catch ( Exception::ParseError p_e )
-	{
-		TEST_EQUAL(String(p_e.getMessage()), "There's already a modification with this name. Aborting! in: Phosphorylation")
-	}
-
-	modification_line = "10.3+,KRLNH,fix:Phosphorylation:+16,C:H2C,CHKNQRILDEST,opt,Methylation:16-,cterm:-16,nterm";
+	TEST_EXCEPTION_WITH_MESSAGE(Exception::ParseError, file.handlePTMs(modification_line, "TOPP/PepNovo_PTMs.xml", true), "There's already a modification with this name. Aborting! in: Phosphorylation")
+	
+	
+	// test the actual program
+	modification_line = "10.3+,KRLNH,fix:+16,C:16-,cterm:-16,nterm";
 // 	"10.3+,KRLNH,fix:Phosphorylation:+16,C:HCNO,nterm,Carbamylation:H2C,CHKNQRILDEST,opt,Methylation:16-,cterm:-16,nterm";
 
 	// average masses
@@ -114,22 +110,22 @@ CHECK(String handlePTMs(const String& modification_line, const String& modificat
 	modifications["PTM_0"][0] = "KRLNH";
 	modifications["PTM_0"][1] = "10.3";
 	modifications["PTM_0"][2] = "FIX";
-	modifications["Phosphorylation"] = vector< String >(3);
-	modifications["Phosphorylation"][0] = "STYDHCR";
-	modifications["Phosphorylation"][1] = "79.9799";
-	modifications["Phosphorylation"][2] = "OPT";
-	modifications["PTM_2"] = vector< String >(3);
-	modifications["PTM_2"][0] = "C";
-	modifications["PTM_2"][1] = "16";
-	modifications["PTM_2"][2] = "OPT";
+//	modifications["Phosphorylation"] = vector< String >(3);
+//	modifications["Phosphorylation"][0] = "STYDHCR";
+//	modifications["Phosphorylation"][1] = "79.97990";
+//	modifications["Phosphorylation"][2] = "OPT";
+	modifications["PTM_1"] = vector< String >(3);
+	modifications["PTM_1"][0] = "C";
+	modifications["PTM_1"][1] = "16";
+	modifications["PTM_1"][2] = "OPT";
 // 	modifications["Carbamylation"] = vector< String >(3);
 // 	modifications["Carbamylation"][0] = "NTERM";
 // 	modifications["Carbamylation"][1] = "43.02474";
 // 	modifications["Carbamylation"][2] = "OPT";
-	modifications["Methylation"] = vector< String >(3);
-	modifications["Methylation"][0] = "CHKNQRILDEST";
-	modifications["Methylation"][1] = "14.02658";
-	modifications["Methylation"][2] = "OPT";
+//	modifications["Methylation"] = vector< String >(3);
+//	modifications["Methylation"][0] = "CHKNQRILDEST";
+//	modifications["Methylation"][1] = "14.02658";
+//	modifications["Methylation"][2] = "OPT";
 // 	modifications["PTM_5"] = vector< String >(3);
 // 	modifications["PTM_5"][0] = "CTERM";
 // 	modifications["PTM_5"][1] = "-16";
@@ -138,14 +134,14 @@ CHECK(String handlePTMs(const String& modification_line, const String& modificat
 // 	modifications["PTM_6"][0] = "NTERM";
 // 	modifications["PTM_6"][1] = "-16";
 // 	modifications["PTM_6"][2] = "OPT";
-	modifications["PTM_4"] = vector< String >(3);
-	modifications["PTM_4"][0] = "CTERM";
-	modifications["PTM_4"][1] = "-16";
-	modifications["PTM_4"][2] = "OPT";
-	modifications["PTM_5"] = vector< String >(3);
-	modifications["PTM_5"][0] = "NTERM";
-	modifications["PTM_5"][1] = "-16";
-	modifications["PTM_5"][2] = "OPT";
+	modifications["PTM_2"] = vector< String >(3);
+	modifications["PTM_2"][0] = "CTERM";
+	modifications["PTM_2"][1] = "-16";
+	modifications["PTM_2"][2] = "OPT";
+	modifications["PTM_3"] = vector< String >(3);
+	modifications["PTM_3"][0] = "NTERM";
+	modifications["PTM_3"][1] = "-16";
+	modifications["PTM_3"][2] = "OPT";
 
 	map< String, vector< String > >::const_iterator result_mod_i = file.getModifications().begin();
 	TEST_EQUAL(file.getModifications().size(), modifications.size())
@@ -153,14 +149,14 @@ CHECK(String handlePTMs(const String& modification_line, const String& modificat
 	{
 		for ( map< String, vector< String > >::const_iterator mod_i = modifications.begin(); mod_i != modifications.end(); ++mod_i, ++result_mod_i )
 		{
-			TEST_EQUAL(result_mod_i->first, mod_i->first)
+			TEST_STRING_EQUAL(result_mod_i->first, mod_i->first)
 			TEST_EQUAL(result_mod_i->second.size(), 3)
 			TEST_EQUAL(result_mod_i->second.size(), mod_i->second.size())
 			if ( result_mod_i->second.size() == mod_i->second.size() )
 			{
-				TEST_EQUAL(result_mod_i->second[0], mod_i->second[0])
-				TEST_EQUAL(result_mod_i->second[1], mod_i->second[1])
-				TEST_EQUAL(result_mod_i->second[2], mod_i->second[2])
+				TEST_STRING_EQUAL(result_mod_i->second[0], mod_i->second[0])
+				TEST_STRING_EQUAL(result_mod_i->second[1], mod_i->second[1])
+				TEST_STRING_EQUAL(result_mod_i->second[2], mod_i->second[2])
 			}
 		}
 	}
@@ -168,9 +164,9 @@ CHECK(String handlePTMs(const String& modification_line, const String& modificat
 	// monoisotopic masses
 	file.handlePTMs(modification_line, "TOPP/PepNovo_PTMs.xml", true);
 
-	modifications["Phosphorylation"][1] = "79.96635";
-// 	modifications["Carbamylation"][1] = "43.00581";
-	modifications["Methylation"][1] = "14.01565";
+//	modifications["Phosphorylation"][1] = "79.96635";
+// 	modifications["Carbamylation"][1] = "43.00582";
+//	modifications["Methylation"][1] = "14.01565";
 
 	result_mod_i = file.getModifications().begin();
 	TEST_EQUAL(file.getModifications().size(), modifications.size())
@@ -178,14 +174,77 @@ CHECK(String handlePTMs(const String& modification_line, const String& modificat
 	{
 		for ( map< String, vector< String > >::const_iterator mod_i = modifications.begin(); mod_i != modifications.end(); ++mod_i, ++result_mod_i )
 		{
-			TEST_EQUAL(result_mod_i->first, mod_i->first)
+			TEST_STRING_EQUAL(result_mod_i->first, mod_i->first)
 			TEST_EQUAL(result_mod_i->second.size(), 3)
 			TEST_EQUAL(result_mod_i->second.size(), mod_i->second.size())
 			if ( result_mod_i->second.size() == mod_i->second.size() )
 			{
-				TEST_EQUAL(result_mod_i->second[0], mod_i->second[0])
-				TEST_EQUAL(result_mod_i->second[1], mod_i->second[1])
-				TEST_EQUAL(result_mod_i->second[2], mod_i->second[2])
+				TEST_STRING_EQUAL(result_mod_i->second[0], mod_i->second[0])
+				TEST_STRING_EQUAL(result_mod_i->second[2], mod_i->second[2])
+			}
+		}
+	}
+RESULT
+
+CHECK((const std::map< String, std::vector< String > >& getModifications() const))
+	String modification_line = "10.3+,KRLNH,fix:+16,C:16-,cterm:-16,nterm";
+// 	"10.3+,KRLNH,fix:Phosphorylation:+16,C:HCNO,nterm,Carbamylation:H2C,CHKNQRILDEST,opt,Methylation:16-,cterm:-16,nterm";
+
+	// average masses
+	file.handlePTMs(modification_line, "TOPP/PepNovo_PTMs.xml", false);
+
+	map< String, vector< String > > modifications;
+	modifications["PTM_0"] = vector< String >(3);
+	modifications["PTM_0"][0] = "KRLNH";
+	modifications["PTM_0"][1] = "10.3";
+	modifications["PTM_0"][2] = "FIX";
+//	modifications["Phosphorylation"] = vector< String >(3);
+//	modifications["Phosphorylation"][0] = "STYDHCR";
+//	modifications["Phosphorylation"][1] = "79.97990";
+//	modifications["Phosphorylation"][2] = "OPT";
+	modifications["PTM_1"] = vector< String >(3);
+	modifications["PTM_1"][0] = "C";
+	modifications["PTM_1"][1] = "16";
+	modifications["PTM_1"][2] = "OPT";
+// 	modifications["Carbamylation"] = vector< String >(3);
+// 	modifications["Carbamylation"][0] = "NTERM";
+// 	modifications["Carbamylation"][1] = "43.02474";
+// 	modifications["Carbamylation"][2] = "OPT";
+//	modifications["Methylation"] = vector< String >(3);
+//	modifications["Methylation"][0] = "CHKNQRILDEST";
+//	modifications["Methylation"][1] = "14.02658";
+//	modifications["Methylation"][2] = "OPT";
+// 	modifications["PTM_5"] = vector< String >(3);
+// 	modifications["PTM_5"][0] = "CTERM";
+// 	modifications["PTM_5"][1] = "-16";
+// 	modifications["PTM_5"][2] = "OPT";
+// 	modifications["PTM_6"] = vector< String >(3);
+// 	modifications["PTM_6"][0] = "NTERM";
+// 	modifications["PTM_6"][1] = "-16";
+// 	modifications["PTM_6"][2] = "OPT";
+	modifications["PTM_2"] = vector< String >(3);
+	modifications["PTM_2"][0] = "CTERM";
+	modifications["PTM_2"][1] = "-16";
+	modifications["PTM_2"][2] = "OPT";
+	modifications["PTM_3"] = vector< String >(3);
+	modifications["PTM_3"][0] = "NTERM";
+	modifications["PTM_3"][1] = "-16";
+	modifications["PTM_3"][2] = "OPT";
+
+	map< String, vector< String > >::const_iterator result_mod_i = file.getModifications().begin();
+	TEST_EQUAL(file.getModifications().size(), modifications.size())
+	if ( file.getModifications().size() == modifications.size() )
+	{
+		for ( map< String, vector< String > >::const_iterator mod_i = modifications.begin(); mod_i != modifications.end(); ++mod_i, ++result_mod_i )
+		{
+			TEST_STRING_EQUAL(result_mod_i->first, mod_i->first)
+			TEST_EQUAL(result_mod_i->second.size(), 3)
+			TEST_EQUAL(result_mod_i->second.size(), mod_i->second.size())
+			if ( result_mod_i->second.size() == mod_i->second.size() )
+			{
+				TEST_STRING_EQUAL(result_mod_i->second[0], mod_i->second[0])
+				TEST_STRING_EQUAL(result_mod_i->second[1], mod_i->second[1])
+				TEST_STRING_EQUAL(result_mod_i->second[2], mod_i->second[2])
 			}
 		}
 	}
@@ -194,6 +253,12 @@ RESULT
 CHECK(String store(const String& filename) throw (Exception::UnableToCreateFile))
 	String filename;
 	NEW_TMP_FILE(filename)
+
+	// test exceptions
+	TEST_EXCEPTION_WITH_MESSAGE(Exception::UnableToCreateFile, file.store("data/PepNovo_unreadable_unwriteable.txt"), "the file `data/PepNovo_unreadable_unwriteable.txt' could not be created")
+	
+	
+	// test actual program
 	file.store(filename);
 	TEST_FILE(filename.c_str(), "data/PepNovoInfile_test_template.txt");
 RESULT

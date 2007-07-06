@@ -58,6 +58,15 @@ namespace OpenMS
 		if ( this != &pepnovo_infile ) PTMname_residues_mass_type_ = pepnovo_infile.getModifications();
 		return *this;
 	}
+	
+	bool PepNovoInfile::operator==(const PepNovoInfile& pepnovo_infile) const
+	{
+		if ( this != &pepnovo_infile )
+		{
+			return ( PTMname_residues_mass_type_ == pepnovo_infile.getModifications() );
+		}
+		return true;
+	}
 
 	String
 	PepNovoInfile::store(
@@ -66,7 +75,10 @@ namespace OpenMS
 		Exception::UnableToCreateFile)
 	{
 		ofstream ofs(filename.c_str());
-		if ( !ofs ) throw Exception::UnableToCreateFile(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename);
+		if ( !ofs )
+		{
+			throw Exception::UnableToCreateFile(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename);
+		}
 		
 		stringstream file_content;
 		String line, abbreviation_string;
@@ -76,7 +88,7 @@ namespace OpenMS
 		stringstream* sstream_p;
 		String residues, abbreviation;
 		String rounded_mass;
-		Int counter;
+		Int counter(-1);
 		// first write the fixed ptms
 		for ( map< String, vector< String > >::iterator mods_i = PTMname_residues_mass_type_.begin(); mods_i != PTMname_residues_mass_type_.end(); ++mods_i )
 		{
@@ -149,14 +161,12 @@ namespace OpenMS
 	void
 	PepNovoInfile::handlePTMs(
 		const String& modification_line,
-		const String&modifications_filename,
-		const bool monoisotopic
-		)
+		const String& modifications_filename,
+		const bool monoisotopic)
 	throw (
 		Exception::FileNotReadable,
 		Exception::FileNotFound,
-		Exception::ParseError
-		)
+		Exception::ParseError)
 	{
 		PTMname_residues_mass_type_.clear();
 		// to store the information about modifications from the ptm xml file
@@ -174,7 +184,7 @@ namespace OpenMS
 			String name, residues, mass, type;
 			
 			// 0 - mass; 1 - composition; 2 - ptm name
-			Int mass_or_composition_or_name;
+			Int mass_or_composition_or_name(-1);
 			
 			for ( vector< String >::const_iterator mod_i = modifications.begin(); mod_i != modifications.end(); ++mod_i )
 			{
@@ -212,7 +222,7 @@ namespace OpenMS
 				{
 					if ( ptm_informations.empty() ) // if the ptm xml file has not been read yet, read it
 					{
-						if ( modifications_filename.empty() )
+						if ( !File::exists(modifications_filename) )
 						{
 							throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, modifications_filename);
 						}
@@ -309,7 +319,8 @@ namespace OpenMS
 				{
 					PTMname_residues_mass_type_[name] = vector< String >(3);
 					PTMname_residues_mass_type_[name][0] = residues;
-					PTMname_residues_mass_type_[name][1] = mass;
+					// mass must not have more than 5 digits after the . (otherwise the test may fail)
+					PTMname_residues_mass_type_[name][1] = mass.substr(0, mass.find(".") + 6);
 					PTMname_residues_mass_type_[name][2] = type;
 				}
 				else

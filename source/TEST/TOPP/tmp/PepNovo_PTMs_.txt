@@ -7,32 +7,8 @@ N   10.3   FIXED   ALL   N+10   PTM_0
 H   10.3   FIXED   ALL   H+10   PTM_0
 
 # Optional PTMs
-T   43.02474   OPTIONAL   ALL   T+43   Carbamylation
-E   43.02474   OPTIONAL   ALL   E+43   Carbamylation
-R   43.02474   OPTIONAL   ALL   R+43   Carbamylation
-M   43.02474   OPTIONAL   ALL   M+43   Carbamylation
-C   14.02658   OPTIONAL   ALL   C+14   Methylation
-H   14.02658   OPTIONAL   ALL   H+14   Methylation
-K   14.02658   OPTIONAL   ALL   K+14   Methylation
-N   14.02658   OPTIONAL   ALL   N+14   Methylation
-Q   14.02658   OPTIONAL   ALL   Q+14   Methylation
-R   14.02658   OPTIONAL   ALL   R+14   Methylation
-I   14.02658   OPTIONAL   ALL   I+14   Methylation
-L   14.02658   OPTIONAL   ALL   L+14   Methylation
-D   14.02658   OPTIONAL   ALL   D+14   Methylation
-E   14.02658   OPTIONAL   ALL   E+14   Methylation
-S   14.02658   OPTIONAL   ALL   S+14   Methylation
-T   14.02658   OPTIONAL   ALL   T+14   Methylation
-C   16   OPTIONAL   ALL   C+16   PTM_2
-S   79.9799   OPTIONAL   ALL   S+80   Phosphorylation
-T   79.9799   OPTIONAL   ALL   T+80   Phosphorylation
-Y   79.9799   OPTIONAL   ALL   Y+80   Phosphorylation
-D   79.9799   OPTIONAL   ALL   D+80   Phosphorylation
-H   79.9799   OPTIONAL   ALL   H+80   Phosphorylation
-C   79.9799   OPTIONAL   ALL   C+80   Phosphorylation
-R   79.9799   OPTIONAL   ALL   R+80   Phosphorylation
+C   16   OPTIONAL   ALL   C+16   PTM_1
 
 # Terminal PTMs
-C_TERM   -16   OPTIONAL   C_TERM   §-16   PTM_5
-C_TERM   -16   OPTIONAL   C_TERM   §-16   PTM_7
-N_TERM   -16   OPTIONAL   N_TERM   ^-16   PTM_6
+C_TERM   -16   OPTIONAL   C_TERM   §-16   PTM_2
+N_TERM   -16   OPTIONAL   N_TERM   ^-16   PTM_3

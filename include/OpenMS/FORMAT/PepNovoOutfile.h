@@ -52,6 +52,18 @@ namespace OpenMS
 		public:
 			/// Constructor
 			PepNovoOutfile();
+
+			/// copy constructor
+			PepNovoOutfile(const PepNovoOutfile& pepnovo_outfile);
+
+			/// destructor
+			virtual ~PepNovoOutfile();
+
+			/// assignment operator
+			PepNovoOutfile& operator=(const PepNovoOutfile& pepnovo_outfile);
+
+			/// equality operator
+			bool operator==(const PepNovoOutfile& pepnovo_outfile) const;
 			
 			 /**
 				@brief loads data from a Inspect outfile

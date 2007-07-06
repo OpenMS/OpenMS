@@ -36,8 +36,21 @@ using namespace std;
 
 namespace OpenMS 
 {
-	PepNovoOutfile::PepNovoOutfile()
-	{}
+	PepNovoOutfile::PepNovoOutfile() {}
+	
+	PepNovoOutfile::PepNovoOutfile(const PepNovoOutfile&) {}
+
+	PepNovoOutfile::~PepNovoOutfile() {}
+
+	PepNovoOutfile& PepNovoOutfile::operator=(const PepNovoOutfile&)
+	{
+		return *this;
+	}
+	
+	bool PepNovoOutfile::operator==(const PepNovoOutfile&) const
+	{
+		return true;
+	}
 	
 	void
 	PepNovoOutfile::load(
@@ -80,7 +93,7 @@ namespace OpenMS
 			throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, result_filename);
 		}
 		
-		UInt line_number = 0; // used to report in which line an error occured
+		UInt line_number(0); // used to report in which line an error occured
 		
 		score_type = "PepNovo2";
 		version = "v2.00";
@@ -131,7 +144,9 @@ namespace OpenMS
 					
 					if ( columns.size() != 8 )
 					{
-						throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Not enough columns in file in line" + line_number + String(" (should be 8)!"), result_filename);
+						result_file.close();
+						result_file.clear();
+						throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Not enough columns in file in line " + String(line_number) + String(" (should be 8)!"), result_filename);
 					}
 				}
 				
@@ -146,6 +161,12 @@ namespace OpenMS
 					line.split('\t', substrings);
 					if ( !substrings.empty() )
 					{
+						if ( substrings.size() != 8 )
+						{
+							result_file.close();
+							result_file.clear();
+							throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Not enough columns in file in line " + String(line_number) + String(" (should be 8)!"), result_filename);
+						}
 						if ( 1 - substrings[columns["Prob"]].toFloat() <= p_value_threshold + FLT_EPSILON )
 						{
 							peptide_hit = PeptideHit();
@@ -170,9 +191,15 @@ namespace OpenMS
 		}
 		
 		result_file.close();
+		result_file.clear();
 	}
 
-	void PepNovoOutfile::getSearchEngineAndVersion(const String& pepnovo_output_without_parameters_filename, ProteinIdentification& protein_identification) throw (Exception::FileNotFound)
+	void
+	PepNovoOutfile::getSearchEngineAndVersion(
+		const String& pepnovo_output_without_parameters_filename,
+		ProteinIdentification& protein_identification)
+	throw (
+		Exception::FileNotFound)
 	{
 		ifstream pepnovo_output_without_parameters(pepnovo_output_without_parameters_filename.c_str());
 		if (!pepnovo_output_without_parameters)

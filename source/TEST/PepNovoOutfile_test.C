@@ -38,7 +38,7 @@ using namespace std;
 
 ///////////////////////////
 
-START_TEST(PepNovoOutfile, "$Id: PepNovoInfile_test.C 2076 2007-05-25 16:20:21Z martinlangwisch $")
+START_TEST(String, "$Id$")
 
 /////////////////////////////////////////////////////////////
 
@@ -52,15 +52,50 @@ CHECK(~PepNovoOutfile())
 	delete ptr;
 RESULT
 
+CHECK((PepNovoOutfile& operator=(const PepNovoOutfile &pepnovo_outfile)))
+	PepNovoOutfile pepnovo_outfile1;
+  PepNovoOutfile pepnovo_outfile2;
+	pepnovo_outfile2 = pepnovo_outfile1;
+	PepNovoOutfile pepnovo_outfile3;
+	pepnovo_outfile1 = PepNovoOutfile();
+	TEST_EQUAL(( pepnovo_outfile2 == pepnovo_outfile3 ), true)
+RESULT
+
+CHECK((PepNovoOutfile(const PepNovoOutfile &pepnovo_outfile)))
+	PepNovoOutfile pepnovo_outfile1;
+	PepNovoOutfile pepnovo_outfile2(pepnovo_outfile1);
+	PepNovoOutfile pepnovo_outfile3;
+	pepnovo_outfile1 = PepNovoOutfile();
+	TEST_EQUAL(( pepnovo_outfile2 == pepnovo_outfile3 ), true)
+RESULT
+
+CHECK((bool operator==(const PepNovoOutfile &pepnovo_outfile) const))
+	PepNovoOutfile pepnovo_outfile1;
+	PepNovoOutfile pepnovo_outfile2;
+	TEST_EQUAL(( pepnovo_outfile1 == pepnovo_outfile2 ), true)
+RESULT
+
 PepNovoOutfile file;
 
 
-CHECK(void load(const std::string& result_filename, std::vector< PeptideIdentification >& peptide_identifications, ProteinIdentification& protein_identification, const DoubleReal& p_value_threshold, const std::map< String, Real >& filenames_and_precursor_retention_times) throw (Exception::FileNotFound, Exception::ParseError))
+CHECK(void load(const std::string& result_filename, std::vector< PeptideIdentification >& peptide_identifications, ProteinIdentification& protein_identification, const Real& p_value_threshold, const std::map< String, Real >& dta_filenames_and_precursor_retention_times) throw (Exception::FileNotFound, Exception::ParseError))
 	
 	std::vector< PeptideIdentification > peptide_identifications;
 	ProteinIdentification protein_identification;
 	map< String, Real > filenames_and_precursor_retention_times;
+
+	// test exceptions
+	TEST_EXCEPTION_WITH_MESSAGE(Exception::FileNotFound, file.load("a", peptide_identifications, protein_identification, 0.915, filenames_and_precursor_retention_times), "the file `a' could not be found")
 	
+	TEST_EXCEPTION_WITH_MESSAGE(Exception::ParseError, file.load("data/PepNovoOutfile.out1", peptide_identifications, protein_identification, 0.915, filenames_and_precursor_retention_times), "data/PepNovoOutfile.out1 in: Not enough columns in file in line 2 (should be 8)!")
+	
+	TEST_EXCEPTION_WITH_MESSAGE(Exception::ParseError, file.load("data/PepNovoOutfile.out2", peptide_identifications, protein_identification, 0.915, filenames_and_precursor_retention_times), "data/PepNovoOutfile.out2 in: Not enough columns in file in line 7 (should be 8)!")
+	
+	peptide_identifications.clear();
+	protein_identification.setHits(vector< ProteinHit >());
+	
+	
+	// test the actual program
 	file.load("data/PepNovoOutfile.out", peptide_identifications, protein_identification, 0.915, filenames_and_precursor_retention_times);
 	
 	TEST_EQUAL(peptide_identifications.size(), 2)
@@ -126,6 +161,12 @@ RESULT
 
 CHECK(void getSearchEngineAndVersion(const String& pepnovo_output_without_parameters_filename, ProteinIdentification& protein_identification) throw (Exception::FileNotFound))
 	ProteinIdentification protein_identification;
+	
+	// test exceptions
+	TEST_EXCEPTION_WITH_MESSAGE(Exception::FileNotFound, file.getSearchEngineAndVersion("a", protein_identification), "the file `a' could not be found")
+	
+	
+	// test the actual program
 	file.getSearchEngineAndVersion("data/PepNovoOutfile_version_file.txt", protein_identification);
 	TEST_EQUAL(protein_identification.getSearchEngine(), "PepNovo");
 	TEST_EQUAL(protein_identification.getSearchEngineVersion(), "v2.00");

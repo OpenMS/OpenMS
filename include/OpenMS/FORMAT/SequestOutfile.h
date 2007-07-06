@@ -55,21 +55,33 @@ namespace OpenMS
 		public:
 			/// Constructor
 			SequestOutfile();
+
+			/// copy constructor
+			SequestOutfile(const SequestOutfile& sequest_outfile);
+
+			/// destructor
+			virtual ~SequestOutfile();
+
+			/// assignment operator
+			SequestOutfile& operator=(const SequestOutfile& sequest_outfile);
+
+			/// equality operator
+			bool operator==(const SequestOutfile& sequest_outfile) const;
 			
 			 /**
 				@brief loads data from a Sequest outfile
 				
 				@param result_filename the file to be loaded
-				@param identifications the identifications
+				@param peptide_identifications the identifications
 				@param protein_identification the protein identifications
 				@param p_value_threshold the significance level (for the peptide hit scores)
-			  @param pvalues a list with the pvalues of the peptides (pvalues computed with peptide prophet)
-			  @param database the database used for the search
+				@param pvalues a list with the pvalues of the peptides (pvalues computed with peptide prophet)
+				@param database the database used for the search
 				
 				This class serves to read in a Sequest outfile. The information can be
 				retrieved via the load function.
 			*/
-			void load(const String& result_filename, std::vector<PeptideIdentification>& identifications, ProteinIdentification& protein_identification, const Real& p_value_threshold, std::vector<Real>& pvalues, const String& database = "") throw (Exception::FileNotFound, Exception::ParseError);
+			void load(const String& result_filename, std::vector<PeptideIdentification>& peptide_identifications, ProteinIdentification& protein_identification, const Real p_value_threshold, std::vector<Real>& pvalues, const String& database = "") throw (Exception::FileNotFound, Exception::ParseError, Exception::IllegalArgument);
 
 //			/// retrieve the p-values from the out files
 // 			void getPValuesFromOutFiles(vector< pair < String, vector< Real > > >& filenames_and_pvalues) throw (Exception::FileNotFound, Exception::ParseError);

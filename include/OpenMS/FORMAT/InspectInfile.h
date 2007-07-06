@@ -58,6 +58,9 @@ namespace OpenMS
 			/// assignment operator
 			InspectInfile& operator=(const InspectInfile& inspect_infile);
 
+			/// equality operator
+			bool operator==(const InspectInfile& inspect_infile) const;
+
 			/// stores the experiment data in an Inspect input file that can be used as input for Inspect shell execution
 			void store(const String& filename) throw (Exception::UnableToCreateFile);
 
@@ -86,7 +89,7 @@ namespace OpenMS
 			
 			/// Number of PTMs permitted in a single peptide.
 			const Int getModificationsPerPeptide() const;
-			void setModificationsPerPeptide(Int mods);
+			void setModificationsPerPeptide(Int modifications_per_peptide);
 			
 			/**
 				@brief run Inspect in a blind mode
@@ -139,15 +142,16 @@ namespace OpenMS
 			
 			String spectra_; ///< Specifies a spectrum file to search.
 
-    	String db_; ///< Specifies the name of a database (.trie file) to search. The .trie file contains one or more protein sequences delimited by asterisks, with no whitespace or other data.
+			String db_; ///< Specifies the name of a database (.trie file) to search. The .trie file contains one or more protein sequences delimited by asterisks, with no whitespace or other data.
 
 			String enzyme_; ///< Specifies the name of a enzyme. "Trypsin", "None", and "Chymotrypsin" are the available values.
 
 			Int modifications_per_peptide_; ///< allowed number of modifications per peptide
 
-			UInt blind_; ///< If true, use the MS-Alignment algorithm to perform a blind search (allowing arbitrary modification masses). Running a blind search with one mod per peptide is slower than the normal (tag-based) search; running time is approximately 1 second per spectra per megabyte of database. Running a blind search with two mods is significantly slower. We recommend performing "blind" searches against a small database, containing proteins output by an earlier search. (The "Summary.py" script can be used to generate a second-pass database from initial search results) 0 - false, 1 - true, 2 - not set
+			UInt blind_; ///< If true, use the MS-Alignment algorithm to perform a blind search (allowing arbitrary modification masses). Running a blind search with one mod per peptide is slower than the normal (tag-based) search; running time is approximately 1 second per spectra per megabyte of database. Running a blind search with two mods is significantly slower. We recommend performing "blind" searches against a small database, containing proteins output by an earlier search. (The "Summary.py" script can be used to generate a second-pass database from initial search results)
+			/// 0 - false, 1 - true, 2 - not set
 
-		  DoubleReal maxptmsize_; ///< For blind search, specifies the maximum modification size (in Da) to consider. Defaults to 200. Larger values require more time to search. <0 is not set
+			Real maxptmsize_; ///< For blind search, specifies the maximum modification size (in Da) to consider. Defaults to 200. Larger values require more time to search. <0 is not set
 
 			Real precursor_mass_tolerance_; ///< Specifies the parent mass tolerance, in Daltons. A candidate's flanking mass can differ from the tag's flanking mass by no more than ths amount. <0 is not set
 

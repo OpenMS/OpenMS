@@ -109,7 +109,7 @@ class TOPPSequestAdapter
 	protected:
 		static const Int max_peptide_mass_units = 2;
 		static const UInt max_dtas_per_run = 1000; // sequest has a problem when there are too many dtas, so they have to be splitted, 1000 seemed to work very good
-		PointerSizeUInt dtas;
+		UInt dtas;
 
 		void registerOptionsAndFlags_()
 		{
@@ -258,7 +258,7 @@ class TOPPSequestAdapter
 
 		bool correctNetworkPath(String& network_path, UInt backslashes = 2)
 		{
-			String::size_type pos = 0;
+			String::size_type pos(0);
 			while ( (pos < network_path.length()) && (network_path[pos] == '\\') ) ++pos;
 			if ( pos < backslashes ) network_path.insert(network_path.begin(), backslashes-pos, '\\');
 			else network_path.erase(0, pos-backslashes);
@@ -279,9 +279,9 @@ class TOPPSequestAdapter
 		{
 			DTAFile dtafile;
 			String filename;
-			UInt scan_number = 0;
-			UInt msms_spectra = 0;
-			UInt dtas = 0;
+			UInt scan_number(0);
+			UInt msms_spectra(0);
+			UInt dtas(0);
 
 			for ( MSExperiment<>::Iterator spec_i = msexperiment.begin(); spec_i != msexperiment.end(); ++spec_i )
 			{
@@ -358,11 +358,11 @@ class TOPPSequestAdapter
 			ContactPerson contact_person;
 
 			bool
-				sequest_in,
-				sequest_out,
-				keep_out_files,
-				keep_dta_files,
-				monoisotopic;
+				sequest_in(false),
+				sequest_out(false),
+				keep_out_files(false),
+				keep_dta_files(false),
+				monoisotopic(false);
 
 			vector< String >
 				substrings,
@@ -372,12 +372,11 @@ class TOPPSequestAdapter
 			vector< Int > charges;
 
    Real
-				Real_buffer,
-				Real_buffer2;
+				Real_buffer(0.0),
+				Real_buffer2(0.0),
+				p_value(1.0);
 
-			Int int_buffer;
-
-			Real p_value;
+			Int int_buffer(0);
 
 			// the outfile-names and their retention_times
 			map< String, Real > outfile_names_and_precursor_retention_times;
@@ -418,9 +417,7 @@ class TOPPSequestAdapter
 				
 				// output the information
 				stringstream PTM_info;
-				String::size_type max_name_length, max_composition_length, max_amino_acids_length;
-				max_name_length = 4;
-				max_composition_length = max_amino_acids_length = 11;
+				String::size_type max_name_length(4), max_composition_length(11), max_amino_acids_length(11);
 				for ( map< String, pair< String, String > >::const_iterator mod_i = PTM_informations.begin(); mod_i != PTM_informations.end(); ++mod_i )
 				{
 					max_name_length = max(max_name_length, mod_i->first.length());
@@ -467,7 +464,7 @@ class TOPPSequestAdapter
 			}
 			else
 			{
-				Int range_start, range_end;
+				Int range_start(-1), range_end(-1);
 				string_buffer.split(',', substrings);
 				if ( substrings.empty() ) substrings.push_back(string_buffer);
 
@@ -572,8 +569,6 @@ class TOPPSequestAdapter
 			contact_person.setName(getStringOption_("contact_name"));
 			contact_person.setInstitution(getStringOption_("contact_institution"));
 			contact_person.setContactInfo(getStringOption_("contact_info"));
-			
-			monoisotopic = getFlag_("use_monoisotopic_mod_mass");
 			
 			if ( sequest_in )
 			{
@@ -975,8 +970,8 @@ class TOPPSequestAdapter
 			// running program according to parameters
 			//-------------------------------------------------------------
 			// checking accessability of files
-			bool existed = false;
-			UInt file_tag;
+			bool existed(false);
+			UInt file_tag(0);
 			
 			for ( vector< pair< String, UInt > >::const_iterator files_i = files.begin(); files_i != files.end(); ++files_i )
 			{
@@ -1010,8 +1005,8 @@ class TOPPSequestAdapter
 			bool make_dtas = ( sequest_out && !sequest_in ) ? false : true; // if only sequest_out is set, just get the retention times
 			// creating the dta files
 			MSExperiment<> msexperiment;
-			UInt msms_spectra_in_file;
-			UInt msms_spectra_altogether = 0;
+			UInt msms_spectra_in_file(0);
+			UInt msms_spectra_altogether(0);
 			if ( make_dtas ) writeLog_("creating dta files");
 			FileHandler fh;
 			FileHandler::Type type;
@@ -1145,7 +1140,7 @@ class TOPPSequestAdapter
 					}
 				}
 				
-				bool no_log = false;
+				bool no_log(false);
 				string_buffer.clear();
 				for ( PointerSizeUInt i = 0; i <= (PointerSizeUInt) (dtas / max_dtas_per_run); ++i )
 				{
@@ -1235,15 +1230,15 @@ class TOPPSequestAdapter
 				ProteinIdentification::SearchParameters sp;
 				sp.db = "Fasta";
 				sp.taxonomy = sequest_infile.getSequenceHeaderFilter();
-				if ( getFlag_("mass_type_peak") ) sp.mass_type = ProteinIdentification::MONOISOTOPIC;
+				if ( monoisotopic ) sp.mass_type = ProteinIdentification::MONOISOTOPIC;
 				else sp.mass_type = ProteinIdentification::AVERAGE;
 				for ( vector< Int >::const_iterator c_i = charges.begin(); c_i != charges.end(); ++c_i )
 				{
 					if ( *c_i > 0 ) sp.charges.append("+");
 					sp.charges.append(String(*c_i));
 				}
-				if ( sequest_infile.getEnzyme() == "Trypsin" ) sp.enzyme = ProteinIdentification::TRYPSIN;
-				else if ( sequest_infile.getEnzyme() == "No_Enzyme" ) sp.enzyme = ProteinIdentification::NO_ENZYME;
+				if ( sequest_infile.getEnzymeName() == "Trypsin" ) sp.enzyme = ProteinIdentification::TRYPSIN;
+				else if ( sequest_infile.getEnzymeName() == "No_Enzyme" ) sp.enzyme = ProteinIdentification::NO_ENZYME;
 				else sp.enzyme = ProteinIdentification::UNKNOWN_ENZYME;
 				sp.peak_mass_tolerance = sequest_infile.getPeakMassTolerance();
 				sp.precursor_tolerance = sequest_infile.getPrecursorMassTolerance();

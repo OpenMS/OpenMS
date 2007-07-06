@@ -36,20 +36,58 @@ START_TEST(String, "$Id$")
 
 
 SequestOutfile* ptr = 0;
-
 CHECK(SequestOutfile())
 	ptr = new SequestOutfile();
 	TEST_NOT_EQUAL(ptr, 0)
-	delete(ptr);
 RESULT
+
+CHECK(~SequestOutfile())
+	delete ptr;
+RESULT
+
+CHECK((SequestOutfile& operator=(const SequestOutfile &sequest_outfile)))
+	SequestOutfile sequest_outfile1;
+  SequestOutfile sequest_outfile2;
+	sequest_outfile2 = sequest_outfile1;
+	SequestOutfile sequest_outfile3;
+	sequest_outfile1 = SequestOutfile();
+	TEST_EQUAL(( sequest_outfile2 == sequest_outfile3 ), true)
+RESULT
+
+CHECK((SequestOutfile(const SequestOutfile &sequest_outfile)))
+	SequestOutfile sequest_outfile1;
+	SequestOutfile sequest_outfile2(sequest_outfile1);
+	SequestOutfile sequest_outfile3;
+	sequest_outfile1 = SequestOutfile();
+	TEST_EQUAL(( sequest_outfile2 == sequest_outfile3 ), true)
+RESULT
+
+CHECK((bool operator==(const SequestOutfile &sequest_outfile) const))
+	SequestOutfile sequest_outfile1;
+	SequestOutfile sequest_outfile2;
+	TEST_EQUAL(( sequest_outfile1 == sequest_outfile2 ), true)
+RESULT
+
 
 SequestOutfile file;
 
-CHECK(void load(const String& result_filename, vector< PeptideIdentification >&	peptide_identifications, ProteinIdentification&	protein_identification, const Real& p_value_threshold, const vector< Real >& pvalues, const String& database = "", const String& snd_database = "") throw (Exception::FileNotFound, Exception::ParseError))
+CHECK(void load(const String& result_filename, std::vector< PeptideIdentification >& peptide_identifications, ProteinIdentification& protein_identification, const Real p_value_threshold, std::vector< Real >& pvalues, const String& database="") throw (Exception::FileNotFound, Exception::ParseError, Exception::IllegalArgument))
 	vector< PeptideIdentification > peptide_identifications;
 	ProteinIdentification protein_identification;
 	vector< Real > pvalues;
 	
+	// test exceptions
+	TEST_EXCEPTION_WITH_MESSAGE(Exception::FileNotFound, file.load("a", peptide_identifications, protein_identification, 0.01, pvalues), "the file `a' could not be found")
+	TEST_EXCEPTION_WITH_MESSAGE(Exception::ParseError, file.load("data/SequestOutfile.out1", peptide_identifications, protein_identification, 0.01, pvalues), "data/SequestOutfile.out1 in: Wrong number of columns in line 16! (11 present, should be 12)")
+	TEST_EXCEPTION_WITH_MESSAGE(Exception::IllegalArgument, file.load("", peptide_identifications, protein_identification, 2.0, pvalues), "The Argument 'p_value_threshold' is not legal for this Operation")
+	TEST_EXCEPTION_WITH_MESSAGE(Exception::IllegalArgument, file.load("", peptide_identifications, protein_identification,-1.0, pvalues), "The Argument 'p_value_threshold' is not legal for this Operation")
+	
+	peptide_identifications.clear();
+	protein_identification.setHits(vector< ProteinHit >());
+	pvalues.clear();
+	
+
+	// test the actual program
 	file.load("data/SequestOutfile2.out", peptide_identifications, protein_identification, 1.0, pvalues);
 	TEST_EQUAL(peptide_identifications.size(), 1)
 	if ( peptide_identifications.size() == 1 ) TEST_EQUAL(peptide_identifications[0].getHits().empty(), true)
@@ -60,17 +98,17 @@ CHECK(void load(const String& result_filename, vector< PeptideIdentification >&	
 	if ( peptide_identifications.size() == 2 )
 	{
 		TEST_EQUAL(peptide_identifications[0].getHits().empty(), true)
-		TEST_EQUAL(peptide_identifications[0].getScoreType(), "SEQUEST prelim.")
-		TEST_EQUAL(peptide_identifications[0].getIdentifier(), "TurboSEQUEST_2004-03-16")
+		TEST_STRING_EQUAL(peptide_identifications[0].getScoreType(), "SEQUEST prelim.")
+		TEST_STRING_EQUAL(peptide_identifications[0].getIdentifier(), "TurboSEQUEST_2004-03-16")
 		TEST_REAL_EQUAL(peptide_identifications[0].getSignificanceThreshold(), 1.0)
 		TEST_EQUAL(peptide_identifications[1].getHits().size(), 4)
-		TEST_EQUAL(peptide_identifications[1].getScoreType(), "SEQUEST")
-		TEST_EQUAL(peptide_identifications[1].getIdentifier(), "TurboSEQUEST_2004-03-16")
+		TEST_STRING_EQUAL(peptide_identifications[1].getScoreType(), "SEQUEST")
+		TEST_STRING_EQUAL(peptide_identifications[1].getIdentifier(), "TurboSEQUEST_2004-03-16")
 		TEST_REAL_EQUAL(peptide_identifications[1].getSignificanceThreshold(), 1.0)
 		if ( peptide_identifications[1].getHits().size() == 4 )
 		{
 			TEST_REAL_EQUAL(peptide_identifications[1].getHits()[0].getScore(), 0.05)
-			TEST_EQUAL(peptide_identifications[1].getHits()[0].getSequence(), "ETQAWSIATILETLYDL")
+			TEST_STRING_EQUAL(peptide_identifications[1].getHits()[0].getSequence(), "ETQAWSIATILETLYDL")
 			TEST_EQUAL(peptide_identifications[1].getHits()[0].getAABefore(), 'C')
 			TEST_EQUAL(peptide_identifications[1].getHits()[0].getAAAfter(), '-')
 			TEST_EQUAL(peptide_identifications[1].getHits()[0].getRank(), 1)
@@ -78,12 +116,12 @@ CHECK(void load(const String& result_filename, vector< PeptideIdentification >&	
 			TEST_EQUAL(peptide_identifications[1].getHits()[0].getProteinAccessions().size(), 3)
 			if ( peptide_identifications[1].getHits()[0].getProteinAccessions().size() == 3 )
 			{
-				TEST_EQUAL(peptide_identifications[1].getHits()[0].getProteinAccessions()[0], "P35574")
-				TEST_EQUAL(peptide_identifications[1].getHits()[0].getProteinAccessions()[1], "2136928")
-				TEST_EQUAL(peptide_identifications[1].getHits()[0].getProteinAccessions()[2], "L10605")
+				TEST_STRING_EQUAL(peptide_identifications[1].getHits()[0].getProteinAccessions()[0], "P35574")
+				TEST_STRING_EQUAL(peptide_identifications[1].getHits()[0].getProteinAccessions()[1], "2136928")
+				TEST_STRING_EQUAL(peptide_identifications[1].getHits()[0].getProteinAccessions()[2], "L10605")
 			}
 			TEST_REAL_EQUAL(peptide_identifications[1].getHits()[1].getScore(), 0.04)
-			TEST_EQUAL(peptide_identifications[1].getHits()[1].getSequence(), "QVLNPLLVLIFIPLFDL")
+			TEST_STRING_EQUAL(peptide_identifications[1].getHits()[1].getSequence(), "QVLNPLLVLIFIPLFDL")
 			TEST_EQUAL(peptide_identifications[1].getHits()[1].getAABefore(), 'M')
 			TEST_EQUAL(peptide_identifications[1].getHits()[1].getAAAfter(), 'V')
 			TEST_EQUAL(peptide_identifications[1].getHits()[1].getRank(), 2)
@@ -91,11 +129,11 @@ CHECK(void load(const String& result_filename, vector< PeptideIdentification >&	
 			TEST_EQUAL(peptide_identifications[1].getHits()[1].getProteinAccessions().size(), 2)
 			if ( peptide_identifications[1].getHits()[1].getProteinAccessions().size() == 2 )
 			{
-				TEST_EQUAL(peptide_identifications[1].getHits()[1].getProteinAccessions()[0], "P46029")
-				TEST_EQUAL(peptide_identifications[1].getHits()[1].getProteinAccessions()[1], "U32507")
+				TEST_STRING_EQUAL(peptide_identifications[1].getHits()[1].getProteinAccessions()[0], "P46029")
+				TEST_STRING_EQUAL(peptide_identifications[1].getHits()[1].getProteinAccessions()[1], "U32507")
 			}
 			TEST_REAL_EQUAL(peptide_identifications[1].getHits()[2].getScore(), 0.02)
-			TEST_EQUAL(peptide_identifications[1].getHits()[2].getSequence(), "WVELGPSVLAGVGVMVLLI")
+			TEST_STRING_EQUAL(peptide_identifications[1].getHits()[2].getSequence(), "WVELGPSVLAGVGVMVLLI")
 			TEST_EQUAL(peptide_identifications[1].getHits()[2].getAABefore(), 'L')
 			TEST_EQUAL(peptide_identifications[1].getHits()[2].getAAAfter(), 'P')
 			TEST_EQUAL(peptide_identifications[1].getHits()[2].getRank(), 3)
@@ -103,10 +141,10 @@ CHECK(void load(const String& result_filename, vector< PeptideIdentification >&	
 			TEST_EQUAL(peptide_identifications[1].getHits()[2].getProteinAccessions().size(), 1)
 			if ( peptide_identifications[1].getHits()[2].getProteinAccessions().size() == 1 )
 			{
-				TEST_EQUAL(peptide_identifications[1].getHits()[2].getProteinAccessions()[0], "e148876")
+				TEST_STRING_EQUAL(peptide_identifications[1].getHits()[2].getProteinAccessions()[0], "e148876")
 			}
 			TEST_REAL_EQUAL(peptide_identifications[1].getHits()[3].getScore(), 0.14)
-			TEST_EQUAL(peptide_identifications[1].getHits()[3].getSequence(), "FDEITAMTGDGVNDAPALK")
+			TEST_STRING_EQUAL(peptide_identifications[1].getHits()[3].getSequence(), "FDEITAMTGDGVNDAPALK")
 			TEST_EQUAL(peptide_identifications[1].getHits()[3].getAABefore(), 'S')
 			TEST_EQUAL(peptide_identifications[1].getHits()[3].getAAAfter(), 'K')
 			TEST_EQUAL(peptide_identifications[1].getHits()[3].getRank(), 4)
@@ -114,14 +152,14 @@ CHECK(void load(const String& result_filename, vector< PeptideIdentification >&	
 			TEST_EQUAL(peptide_identifications[1].getHits()[3].getProteinAccessions().size(), 8)
 			if ( peptide_identifications[1].getHits()[3].getProteinAccessions().size() == 8 )
 			{
-				TEST_EQUAL(peptide_identifications[1].getHits()[3].getProteinAccessions()[0], "P20647")
-				TEST_EQUAL(peptide_identifications[1].getHits()[3].getProteinAccessions()[1], "P04192")
-				TEST_EQUAL(peptide_identifications[1].getHits()[3].getProteinAccessions()[2], "67962")
-				TEST_EQUAL(peptide_identifications[1].getHits()[3].getProteinAccessions()[3], "67961")
-				TEST_EQUAL(peptide_identifications[1].getHits()[3].getProteinAccessions()[4], "109166")
-				TEST_EQUAL(peptide_identifications[1].getHits()[3].getProteinAccessions()[5], "224621")
-				TEST_EQUAL(peptide_identifications[1].getHits()[3].getProteinAccessions()[6], "X02814")
-				TEST_EQUAL(peptide_identifications[1].getHits()[3].getProteinAccessions()[7], "J04703")
+				TEST_STRING_EQUAL(peptide_identifications[1].getHits()[3].getProteinAccessions()[0], "P20647")
+				TEST_STRING_EQUAL(peptide_identifications[1].getHits()[3].getProteinAccessions()[1], "P04192")
+				TEST_STRING_EQUAL(peptide_identifications[1].getHits()[3].getProteinAccessions()[2], "67962")
+				TEST_STRING_EQUAL(peptide_identifications[1].getHits()[3].getProteinAccessions()[3], "67961")
+				TEST_STRING_EQUAL(peptide_identifications[1].getHits()[3].getProteinAccessions()[4], "109166")
+				TEST_STRING_EQUAL(peptide_identifications[1].getHits()[3].getProteinAccessions()[5], "224621")
+				TEST_STRING_EQUAL(peptide_identifications[1].getHits()[3].getProteinAccessions()[6], "X02814")
+				TEST_STRING_EQUAL(peptide_identifications[1].getHits()[3].getProteinAccessions()[7], "J04703")
 			}
 		}
 	}
@@ -136,14 +174,14 @@ CHECK(void load(const String& result_filename, vector< PeptideIdentification >&	
 	TEST_EQUAL(peptide_identifications.size(), 1)
 	if ( peptide_identifications.size() == 1 )
 	{
-		TEST_EQUAL(peptide_identifications[0].getScoreType(), "SEQUEST")
-		TEST_EQUAL(peptide_identifications[0].getIdentifier(), "TurboSEQUEST_2004-03-16")
+		TEST_STRING_EQUAL(peptide_identifications[0].getScoreType(), "SEQUEST")
+		TEST_STRING_EQUAL(peptide_identifications[0].getIdentifier(), "TurboSEQUEST_2004-03-16")
 		TEST_EQUAL(peptide_identifications[0].getHits().size(), 2)
 		TEST_REAL_EQUAL(peptide_identifications[0].getSignificanceThreshold(), 0.01)
 		if ( peptide_identifications[0].getHits().size() == 2 )
 		{
 			TEST_REAL_EQUAL(peptide_identifications[0].getHits()[0].getScore(), 0.05)
-			TEST_EQUAL(peptide_identifications[0].getHits()[0].getSequence(), "ETQAWSIATILETLYDL")
+			TEST_STRING_EQUAL(peptide_identifications[0].getHits()[0].getSequence(), "ETQAWSIATILETLYDL")
 			TEST_EQUAL(peptide_identifications[0].getHits()[0].getAABefore(), 'C')
 			TEST_EQUAL(peptide_identifications[0].getHits()[0].getAAAfter(), '-')
 			TEST_EQUAL(peptide_identifications[0].getHits()[0].getRank(), 1)
@@ -151,12 +189,12 @@ CHECK(void load(const String& result_filename, vector< PeptideIdentification >&	
 			TEST_EQUAL(peptide_identifications[0].getHits()[0].getProteinAccessions().size(), 3)
 			if ( peptide_identifications[0].getHits()[0].getProteinAccessions().size() == 3 )
 			{
-				TEST_EQUAL(peptide_identifications[0].getHits()[0].getProteinAccessions()[0], "P35574")
-				TEST_EQUAL(peptide_identifications[0].getHits()[0].getProteinAccessions()[1], "2136928")
-				TEST_EQUAL(peptide_identifications[0].getHits()[0].getProteinAccessions()[2], "L10605")
+				TEST_STRING_EQUAL(peptide_identifications[0].getHits()[0].getProteinAccessions()[0], "P35574")
+				TEST_STRING_EQUAL(peptide_identifications[0].getHits()[0].getProteinAccessions()[1], "2136928")
+				TEST_STRING_EQUAL(peptide_identifications[0].getHits()[0].getProteinAccessions()[2], "L10605")
 			}
 			TEST_REAL_EQUAL(peptide_identifications[0].getHits()[1].getScore(), 0.04)
-			TEST_EQUAL(peptide_identifications[0].getHits()[1].getSequence(), "QVLNPLLVLIFIPLFDL")
+			TEST_STRING_EQUAL(peptide_identifications[0].getHits()[1].getSequence(), "QVLNPLLVLIFIPLFDL")
 			TEST_EQUAL(peptide_identifications[0].getHits()[1].getAABefore(), 'M')
 			TEST_EQUAL(peptide_identifications[0].getHits()[1].getAAAfter(), 'V')
 			TEST_EQUAL(peptide_identifications[0].getHits()[1].getRank(), 2)
@@ -164,16 +202,16 @@ CHECK(void load(const String& result_filename, vector< PeptideIdentification >&	
 			TEST_EQUAL(peptide_identifications[0].getHits()[1].getProteinAccessions().size(), 2)
 			if ( peptide_identifications[0].getHits()[1].getProteinAccessions().size() == 2 )
 			{
-				TEST_EQUAL(peptide_identifications[0].getHits()[1].getProteinAccessions()[0], "P46029")
-				TEST_EQUAL(peptide_identifications[0].getHits()[1].getProteinAccessions()[1], "U32507")
+				TEST_STRING_EQUAL(peptide_identifications[0].getHits()[1].getProteinAccessions()[0], "P46029")
+				TEST_STRING_EQUAL(peptide_identifications[0].getHits()[1].getProteinAccessions()[1], "U32507")
 			}
 		}
-		TEST_EQUAL(peptide_identifications[0].getIdentifier(), "TurboSEQUEST_2004-03-16")
+		TEST_STRING_EQUAL(peptide_identifications[0].getIdentifier(), "TurboSEQUEST_2004-03-16")
 	}
 	
-	TEST_EQUAL(protein_identification.getSearchEngine(), "TurboSEQUEST")
-	TEST_EQUAL(protein_identification.getSearchEngineVersion(), "v.27 (rev. 12)")
-	TEST_EQUAL(protein_identification.getIdentifier(), "TurboSEQUEST_2004-03-16")
+	TEST_STRING_EQUAL(protein_identification.getSearchEngine(), "TurboSEQUEST")
+	TEST_STRING_EQUAL(protein_identification.getSearchEngineVersion(), "v.27 (rev. 12)")
+	TEST_STRING_EQUAL(protein_identification.getIdentifier(), "TurboSEQUEST_2004-03-16")
 RESULT
 
 CHECK(bool getColumns(const String& line, vector< String >& substrings, UInt number_of_columns, UInt reference_column))
@@ -207,16 +245,23 @@ RESULT
 
 CHECK(void getSequences(const String& database_filename, const map< String, UInt >& ac_position_map, vector< String >& sequences, vector< pair< String, UInt > >& found, map< String, UInt >& not_found) throw (Exception::FileNotFound))
 	map< String, UInt > ac_position_map, not_found;
+	vector< String > sequences, found_sequences;
+	vector< pair< String, UInt > > found;
+
+	// test exceptions
+	TEST_EXCEPTION_WITH_MESSAGE(Exception::FileNotFound, file.getSequences("a", not_found, found_sequences, found, not_found), "the file `a' could not be found")
+
+
+	// test the actual program
 	ac_position_map["P02666"] = 0;
 	ac_position_map["Q9CQV8"] = 1;
 	ac_position_map["Q5EEQ7"] = 2;
 	ac_position_map["P68509"] = 3;
-	vector< String > sequences, found_sequences;
+	
 	sequences.push_back("MKVLILACLVALALARELEELNVPGEIVESLSSSEESITRINKKIEKFQSEEQQQTEDELQDKIHPFAQTQSLVYPFPGPIPNSLPQNIPPLTQTPVVVPPFLQPEVMGVSKVKEAMAPKHKEMPFPKYPVEPFTESQSLTLTDVENLHLPLPLLQSWMHQPHQPLPPTVMFPPQSVLSLSQSKVLPVPQKAVPYPQRDMPIQAFLLYQEPVLGPVRGPFPIIV");
 	sequences.push_back("TMDKSELVQKAKLAEQAERYDDMAAAMKAVTEQGHELSNEERNLLSVAYKNVVGARRSSWRVISSIEQKTERNEKKQQMGKEYREKIEAELQDICNDVLELLDKYLILNATQAESKVFYLKMKGDYFRYLSEVASGENKQTTVSNSQQAYQEAFEISKKEMQPTHPIRLGLALNFSVFYYEILNSPEKACSLAKTAFDEAIAELDTLNEESYKDSTLIMQLLRDNLTLWTSENQGDEGDAGEGEN");
 	sequences.push_back("SAPPSLLVLYFGKKELRAMKVLILACLVALALARELEELNVPGEIVESLSSSEESITRINKKIEKFQSEEQQQTEDELQDKIHPFAQTQSLVYPFPGPIPNSLPQNIPPLTQTPVVVPP");
 	sequences.push_back("GDREQLLQRARLAEQAERYDDMASAMKAVTELNEPLSNEDRNLLSVAYKNVVGARRSSWRVISSIEQKTMADGNEKKLEKVKAYREKIEKELETVCNDVLALLDKFLIKNCNDFQYESKVFYLKMKGDYYRYLAEVASGEKKNSVVEASEAAYKEAFEISKEHMQPTHPIRLGLALNFSVFYYEIQNAPEQACLLAKQAFDDAIAELDTLNEDSYKDSTLIMQLLRDNLTLWTSDQQDEEAGEGN");
-	vector< pair< String, UInt > > found;
 	
 	file.getSequences("data/Sequest_test.fasta", ac_position_map, found_sequences, found, not_found);
 	TEST_EQUAL(found.size(), 2)
@@ -259,52 +304,122 @@ RESULT
 CHECK(void getACAndACType(String line, String& accession, String& accession_type))
 	String accession, accession_type;
 	file.getACAndACType(">sp|P02666|CASB_BOVIN Beta-casein precursor - Bos taurus (Bovine).", accession, accession_type);
-	TEST_EQUAL(accession, "P02666")
-	TEST_EQUAL(accession_type, "SwissProt")
+	TEST_STRING_EQUAL(accession, "P02666")
+	TEST_STRING_EQUAL(accession_type, "SwissProt")
 	
 	file.getACAndACType(">tr|Q5EEQ7|Q5EEQ7_BOVIN Beta-casein (Fragment) - Bos taurus (Bovine).", accession, accession_type);
-	TEST_EQUAL(accession, "Q5EEQ7")
-	TEST_EQUAL(accession_type, "SwissProt")
+	TEST_STRING_EQUAL(accession, "Q5EEQ7")
+	TEST_STRING_EQUAL(accession_type, "SwissProt")
 	
 	file.getACAndACType("gi|110174602|gb|DQ660451.1|", accession, accession_type);
-	TEST_EQUAL("DQ660451.1", accession)
-	TEST_EQUAL("GenBank", accession_type)
+	TEST_STRING_EQUAL("DQ660451.1", accession)
+	TEST_STRING_EQUAL("GenBank", accession_type)
 	
 	file.getACAndACType("gi|1655698|emb|Y07752|VCPHEROPH", accession, accession_type);
-	TEST_EQUAL(accession, "Y07752")
-	TEST_EQUAL(accession_type, "EMBL")
+	TEST_STRING_EQUAL(accession, "Y07752")
+	TEST_STRING_EQUAL(accession_type, "EMBL")
 	
 	file.getACAndACType("gi|10038695|dbj|BAB12730|", accession, accession_type);
-	TEST_EQUAL(accession, "BAB12730")
-	TEST_EQUAL(accession_type, "DDBJ")
+	TEST_STRING_EQUAL(accession, "BAB12730")
+	TEST_STRING_EQUAL(accession_type, "DDBJ")
 	
 	file.getACAndACType("gi|9628804|ref|NP_043835|", accession, accession_type);
-	TEST_EQUAL(accession, "NP_043835")
-	TEST_EQUAL(accession_type, "NCBI")
+	TEST_STRING_EQUAL(accession, "NP_043835")
+	TEST_STRING_EQUAL(accession_type, "NCBI")
 	
 	file.getACAndACType("gi|21362794|sp|P58858.0|", accession, accession_type);
-	TEST_EQUAL(accession, "P58858.0")
-	TEST_EQUAL(accession_type, "SwissProt")
+	TEST_STRING_EQUAL(accession, "P58858.0")
+	TEST_STRING_EQUAL(accession_type, "SwissProt")
 	
 	file.getACAndACType("gi|21362794|tr|P58858.0|", accession, accession_type);
-	TEST_EQUAL(accession, "P58858.0")
-	TEST_EQUAL(accession_type, "SwissProt")
+	TEST_STRING_EQUAL(accession, "P58858.0")
+	TEST_STRING_EQUAL(accession_type, "SwissProt")
 
 	file.getACAndACType("gi|1619818|gnl|PID|d1013471|", accession, accession_type);
-	TEST_EQUAL(accession, "d1013471")
-	TEST_EQUAL(accession_type, "PID")
+	TEST_STRING_EQUAL(accession, "d1013471")
+	TEST_STRING_EQUAL(accession_type, "PID")
 
 	file.getACAndACType("Q30DX2 Gamma-gliadin/LMW-glutenin chimera Ch7 (Fragment).", accession, accession_type);
-	TEST_EQUAL(accession, "Q30DX2")
-	TEST_EQUAL(accession_type, "SwissProt")
+	TEST_STRING_EQUAL(accession, "Q30DX2")
+	TEST_STRING_EQUAL(accession_type, "SwissProt")
 
 	file.getACAndACType(">P68509|1433F_BOVIN", accession, accession_type);
-	TEST_EQUAL(accession, "P68509")
-	TEST_EQUAL(accession_type, "SwissProt")
+	TEST_STRING_EQUAL(accession, "P68509")
+	TEST_STRING_EQUAL(accession_type, "SwissProt")
 
 	file.getACAndACType(">ACBLA (P68509) F_BOVIN", accession, accession_type);
-	TEST_EQUAL(accession, "P68509")
-	TEST_EQUAL(accession_type, "SwissProt")
+	TEST_STRING_EQUAL(accession, "P68509")
+	TEST_STRING_EQUAL(accession_type, "SwissProt")
+RESULT
+
+CHECK(void readOutHeader(const String& result_filename, DateTime& datetime, Real& precursor_mz_value, Int& charge, UInt& precursor_mass_type, UInt& ion_mass_type, UInt& displayed_peptides, String& sequest, String& sequest_version, String& database_type, Int& number_column, Int& rank_sp_column, Int& id_column, Int& mh_column, Int& delta_cn_column, Int& xcorr_column, Int& sp_column, Int& sf_column, Int& ions_column, Int& reference_column, Int& peptide_column, Int& score_column, UInt& number_of_columns) throw(Exception::FileNotFound, Exception::ParseError))
+	
+	String result_filename = "TOPP/tmp/Sequest.mzXML.13.1.d.out";
+	DateTime datetime;
+	
+	Real precursor_mz_value(0.0);
+	Int
+	 charge(-1),
+	 number_column(-1),
+	 rank_sp_column(-1),
+	 id_column(-1),
+	 mh_column(-1),
+	 delta_cn_column(-1),
+	 xcorr_column(-1),
+	 sp_column(-1),
+	 sf_column(-1),
+	 ions_column(-1),
+	 reference_column(-1),
+	 peptide_column(-1),
+	 score_column(-1);
+	
+	UInt
+	 precursor_mass_type(0),
+	 ion_mass_type(0),
+	 displayed_peptides(0),
+	 number_of_columns(0);
+
+	String
+	 sequest,
+	 sequest_version,
+	 database_type,
+	 dt;
+
+	// test exceptions
+	TEST_EXCEPTION_WITH_MESSAGE(Exception::FileNotFound, file.readOutHeader("a", datetime, precursor_mz_value, charge, precursor_mass_type, ion_mass_type, displayed_peptides, sequest, sequest_version, database_type, number_column, rank_sp_column, id_column, mh_column, delta_cn_column, xcorr_column, sp_column, sf_column, ions_column, reference_column, peptide_column, score_column, number_of_columns), "the file `a' could not be found")
+	
+	TEST_EXCEPTION_WITH_MESSAGE(Exception::ParseError, file.readOutHeader("data/SequestOutfile_headerfile.txt", datetime, precursor_mz_value, charge, precursor_mass_type, ion_mass_type, displayed_peptides, sequest, sequest_version, database_type, number_column, rank_sp_column, id_column, mh_column, delta_cn_column, xcorr_column, sp_column, sf_column, ions_column, reference_column, peptide_column, score_column, number_of_columns), "data/SequestOutfile_headerfile.txt in: No Sequest version found!")
+	
+
+	// test the actual program
+	file.readOutHeader(result_filename, datetime, precursor_mz_value, charge, precursor_mass_type, ion_mass_type, displayed_peptides, sequest, sequest_version, database_type, number_column, rank_sp_column, id_column, mh_column, delta_cn_column, xcorr_column, sp_column, sf_column, ions_column, reference_column, peptide_column, score_column, number_of_columns);
+	
+	PRECISION(0.0001)
+	TEST_REAL_EQUAL(precursor_mz_value, 866.606)
+
+	TEST_STRING_EQUAL(sequest, "TurboSEQUEST")
+	TEST_STRING_EQUAL(sequest_version, "v.27 (rev. 12)")
+	TEST_STRING_EQUAL(database_type, "amino acids")
+	datetime.get(dt);
+	TEST_STRING_EQUAL(dt, "2007-01-17 17:29:00")
+
+	TEST_EQUAL(charge, 2)
+	TEST_EQUAL(number_column, 0)
+	TEST_EQUAL(rank_sp_column, 1)
+	TEST_EQUAL(id_column, 2)
+	TEST_EQUAL(mh_column, 3)
+	TEST_EQUAL(delta_cn_column, 4)
+	TEST_EQUAL(xcorr_column, 5)
+	TEST_EQUAL(sp_column, 6)
+	TEST_EQUAL(sf_column, 7)
+	TEST_EQUAL(ions_column, 9)
+	TEST_EQUAL(reference_column, 10)
+	TEST_EQUAL(peptide_column, 11)
+	TEST_EQUAL(score_column, 7)
+	TEST_EQUAL(number_of_columns, 12)
+	TEST_EQUAL(precursor_mass_type, 0)
+	TEST_EQUAL(ion_mass_type, 0)
+	TEST_EQUAL(displayed_peptides, 2)
 RESULT
 
 END_TEST

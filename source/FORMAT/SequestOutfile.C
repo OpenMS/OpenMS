@@ -34,9 +34,34 @@ using namespace std;
 namespace OpenMS 
 {
 	SequestOutfile::SequestOutfile() {}
+
+	SequestOutfile::SequestOutfile(const SequestOutfile&) {}
+
+	SequestOutfile::~SequestOutfile() {}
+
+	SequestOutfile& SequestOutfile::operator=(const SequestOutfile& sequest_outfile)
+	{
+		if (this == &sequest_outfile) return *this;
+		return *this;
+	}
+
+	bool SequestOutfile::operator==(const SequestOutfile&) const
+	{
+		return true;
+	}
 	
-	void SequestOutfile::load(const String& result_filename, vector<PeptideIdentification>&	peptide_identifications, ProteinIdentification&	protein_identification, const Real& p_value_threshold, vector<Real>& pvalues, const String& database)
-	throw(Exception::FileNotFound, Exception::ParseError)
+	void
+	SequestOutfile::load(
+		const String& result_filename,
+		vector<PeptideIdentification>& peptide_identifications,
+		ProteinIdentification& protein_identification,
+		const Real p_value_threshold,
+		vector<Real>& pvalues,
+		const String& database)
+	throw(
+		Exception::FileNotFound,
+		Exception::ParseError,
+		Exception::IllegalArgument)
   {
 		// check whether the p_value is correct
 		if ( (p_value_threshold < 0) || (p_value_threshold > 1) )
@@ -74,12 +99,33 @@ namespace OpenMS
 		String accession, accession_type,	score_type;
 		
 		DateTime datetime;
-		Real precursor_mz_value;
-		UInt precursor_mass_type(0), ion_mass_type(0), number_of_columns(0), displayed_peptides(0), proteins_per_peptide(0), line_number(0);
+		Real precursor_mz_value(0.0);
+		UInt
+			precursor_mass_type(0),
+			ion_mass_type(0),
+			number_of_columns(0),
+			displayed_peptides(0),
+			proteins_per_peptide(0),
+			line_number(0);
 		
-		Int	charge, number_column(0), rank_sp_column(0), id_column(0), mh_column(0), delta_cn_column(0), xcorr_column(0), sp_column(0), sf_column(0), ions_column(0), reference_column(0), peptide_column(0), score_column(0);
+		Int
+			charge(-1),
+			number_column(-1),
+			rank_sp_column(-1),
+			id_column(-1),
+			mh_column(-1),
+			delta_cn_column(-1),
+			xcorr_column(-1),
+			sp_column(-1),
+			sf_column(-1),
+			ions_column(-1),
+			reference_column(-1),
+			peptide_column(-1),
+			score_column(-1);
 		
-		String::size_type start, end;
+		String::size_type
+			start(0),
+			end(0);
 		
 		readOutHeader(result_filename, datetime, precursor_mz_value, charge, precursor_mass_type, ion_mass_type, displayed_peptides, sequest, sequest_version, database_type, number_column, rank_sp_column, id_column, mh_column, delta_cn_column, xcorr_column, sp_column, sf_column, ions_column, reference_column, peptide_column, score_column, number_of_columns);
 		
@@ -227,6 +273,7 @@ namespace OpenMS
 			++p_value;
 		}
 		result_file.close();
+		result_file.clear();
 		
 		if (no_pvalues) pvalues.clear();
 		peptide_identifications.push_back(peptide_identification);
@@ -238,7 +285,12 @@ namespace OpenMS
 	}
 	
 	// get the columns from a line
-	bool SequestOutfile::getColumns(const String& line, vector<String>& substrings,	UInt number_of_columns,	UInt reference_column)
+	bool
+	SequestOutfile::getColumns(
+		const String& line,
+		vector<String>& substrings,
+		UInt number_of_columns,
+		UInt reference_column)
 	{
 		String buffer;
 
@@ -275,7 +327,7 @@ namespace OpenMS
 				// if there are two columns and the second is a number preceeded by a '+', they are merged
 				else if ((*(s_i+1))[0] == '+')
 				{
-					bool is_digit = true;
+					bool is_digit(true);
 					for (UInt i = 1; i < (s_i + 1)->length(); ++i) is_digit &= (bool)isdigit((*(s_i+1))[i]);
 					if (is_digit && ((s_i + 1)->length() - 1))
 					{
@@ -301,8 +353,15 @@ namespace OpenMS
 	}
 
 	// retrieve the sequences
-	void SequestOutfile::getSequences(const String& database_filename, const map<String, UInt>& ac_position_map, vector<String>& sequences,	vector<pair<String, UInt> >& found,	map<String, UInt>& not_found)
-	throw (Exception::FileNotFound)
+	void
+	SequestOutfile::getSequences(
+		const String& database_filename,
+		const map<String, UInt>& ac_position_map,
+		vector<String>& sequences,
+		vector<pair<String, UInt> >& found,
+		map<String, UInt>& not_found)
+	throw (
+		Exception::FileNotFound)
 	{
 		ifstream database_file(database_filename.c_str());
 		if ( !database_file )
@@ -367,7 +426,7 @@ namespace OpenMS
 		}
 		else if ( line.hasPrefix("gi") )
 		{
-			String::size_type snd = line.find('|', 3);
+			String::size_type snd(line.find('|', 3));
 			String::size_type third(0);
 			if ( snd != String::npos )
 			{
@@ -396,8 +455,8 @@ namespace OpenMS
 			}
 			else
 			{
-				String::size_type pos1 = line.find('(', 0);
-				String::size_type pos2;
+				String::size_type pos1(line.find('(', 0));
+				String::size_type pos2(0);
 				if ( pos1 != String::npos )
 				{
 					pos2 = line.find(')', ++pos1);
@@ -440,8 +499,8 @@ namespace OpenMS
 		}
 		else
 		{
-			String::size_type pos1 = line.find('(', 0);
-			String::size_type pos2;
+			String::size_type pos1(line.find('(', 0));
+			String::size_type pos2(0);
 			if ( pos1 != String::npos )
 			{
 				pos2 = line.find(')', ++pos1);
@@ -506,7 +565,7 @@ namespace OpenMS
 	throw(Exception::FileNotFound, Exception::ParseError)
 	{
 		charge = 0;
-		precursor_mz_value = 0;
+		precursor_mz_value = 0.0;
 		precursor_mass_type = ion_mass_type = 0;
 		
 		// open the result
@@ -536,6 +595,8 @@ namespace OpenMS
 				// TurboSEQUEST v.27 (rev. 12), (c) 1998-2005
 				if ( !getline(result_file, line) )
 				{
+					result_file.close();
+					result_file.clear();
 					throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "No Sequest version found!" , result_filename);
 				}
 				if ( !line.empty() && (line[line.length()-1] < 33) ) line.resize(line.length()-1);
@@ -546,10 +607,12 @@ namespace OpenMS
 				buffer.toUpper();
 				if ( !buffer.hasSubstring("SEQUEST") )
 				{
+					result_file.close();
+					result_file.clear();
 					throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "No Sequest version found!" , result_filename);
 				}
 				// the search engine
-				String::size_type pos, pos1;
+				String::size_type pos(0), pos1(0);
 				pos1 = buffer.find("SEQUEST", 0) + strlen("SEQUEST");
 				pos = line.find(' ', 0);
 				if ( pos == String::npos || pos >= pos1 )
@@ -571,7 +634,7 @@ namespace OpenMS
 			{
 				line.erase(0, strlen("(M+H)+ mass = "));
 				line.split(' ', substrings);
-				precursor_mz_value = substrings[0].toDouble();
+				precursor_mz_value = substrings[0].toFloat();
 				charge = substrings[3].substr(1,2).toInt();
 				line = *(--substrings.end());
 				line.split('/', substrings);
@@ -870,7 +933,7 @@ namespace OpenMS
 // 				for ( vector< Real >::const_iterator dcn_i = delta_cns.begin(); dcn_i != delta_cns.end(); ++dcn_i, ++ds_i )
 // 				{
 // 					(*ds_i) += delta_cn_weights_[charge] * (delta_cns.back() - (*dcn_i));
-// 					++discriminant_scores_histogram[*ds_i]; // ### bucketing
+// 					++discriminant_scores_histogram[*ds_i]; // bucketing; not yet finished
 // 				}
 // 			}
 // 			// append the discriminant scores
@@ -883,7 +946,7 @@ namespace OpenMS
 // 		Math::BasicStatistics< >
 // 			correct,
 // 			incorrect;
-// ###
+// 			// unfinished;
 // 		correct.setMean();
 // 		correct.setVariance();
 // 		incorrect.setMean();

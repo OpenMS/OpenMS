@@ -42,8 +42,37 @@ namespace OpenMS
 {
 	InspectOutfile::InspectOutfile() {}
 
-	vector<UInt> InspectOutfile::load(const String& result_filename, vector<PeptideIdentification>& peptide_identifications, ProteinIdentification& protein_identification, Real p_value_threshold, const String database_filename)
-	throw (Exception::FileNotFound, Exception::ParseError, Exception::IllegalArgument)
+	/// copy constructor
+	InspectOutfile::InspectOutfile(const InspectOutfile&) {}
+
+	/// destructor
+	InspectOutfile::~InspectOutfile() {}
+
+	/// assignment operator
+	InspectOutfile& InspectOutfile::operator=(const InspectOutfile& inspect_outfile)
+	{
+		if (this == &inspect_outfile) return *this;
+		return *this;
+	}
+
+	/// equality operator
+	bool InspectOutfile::operator==(const InspectOutfile&) const
+	{
+		return true;
+	}
+
+	vector< UInt >
+	InspectOutfile::load(
+		const String& result_filename,
+		vector< PeptideIdentification >& peptide_identifications,
+		ProteinIdentification& protein_identification,
+		const Real p_value_threshold,
+		const String& database_filename)
+	throw (
+		Exception::FileNotFound,
+		Exception::ParseError,
+		Exception::IllegalArgument,
+		Exception::FileEmpty)
 	{
 		// check whether the p_value is correct
 		if ( (p_value_threshold < 0) || (p_value_threshold > 1) )
@@ -62,21 +91,35 @@ namespace OpenMS
 			accession,
 			accession_type,
 			spectrum_file,
-			identifier;
+			identifier,
+			dt;
 			
-		UInt record_number(0), scan_number(0), line_number(0), scans(0);
+		UInt
+			record_number(0),
+			scan_number(0),
+			line_number(0),
+			scans(0);
 		
 		vector<String> substrings;
 		vector<UInt> corrupted_lines;
 		
 		PeptideIdentification* peptide_identification_p = NULL;
+		
+		if ( !getline(result_file, line) ) // the header is read in a special function, so it can be skipped
+		{
+			result_file.close();
+			result_file.clear();
+			throw Exception::FileEmpty(__FILE__, __LINE__, __PRETTY_FUNCTION__, result_filename);
+		}
+		if ( !line.empty() && (line[line.length()-1] < 33) ) line.resize(line.length()-1);
+		line.trim();
+		++line_number;
 
 		DateTime datetime;
 		datetime.now();
-		datetime.getDate(line);
-		if ( protein_identification.getSearchEngine().empty() ) identifier = "InsPecT_" + line;
-		else protein_identification.getSearchEngine() + "_" + line;
-		line.clear();
+		datetime.getDate(dt);
+		if ( protein_identification.getSearchEngine().empty() ) identifier = "InsPecT_" + dt;
+		else protein_identification.getSearchEngine() + "_" + dt;
 		
 		// to get the precursor retention time and mz values later, save the filename and the numbers of the scans
 		vector<pair<String, vector<UInt> > > files_and_scan_numbers;
@@ -86,27 +129,30 @@ namespace OpenMS
 		
 		// get the header
 		Int
-			spectrum_file_column,
-			scan_column,
-			peptide_column,
-			protein_column,
-			charge_column,
-			MQ_score_column,
-			p_value_column,
-			record_number_column,
-			DB_file_pos_column,
-			spec_file_pos_column;
+			spectrum_file_column(-1),
+			scan_column(-1),
+			peptide_column(-1),
+			protein_column(-1),
+			charge_column(-1),
+			MQ_score_column(-1),
+			p_value_column(-1),
+			record_number_column(-1),
+			DB_file_pos_column(-1),
+			spec_file_pos_column(-1);
 			
-		String::size_type start, end;
+		String::size_type start(0), end(0);
 			
 		UInt number_of_columns(0);
-		
-		if ( !getline(result_file, line) )
+		try
 		{
-			throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "This doesn't seem to be an Inspect output file (not enough columns)!", result_filename);
+			readOutHeader(result_filename, line, spectrum_file_column, scan_column, peptide_column, protein_column, charge_column, MQ_score_column, p_value_column, record_number_column, DB_file_pos_column, spec_file_pos_column, number_of_columns);
 		}
-		++line_number;
-		readOutHeader(result_filename, line, spectrum_file_column, scan_column, peptide_column, protein_column, charge_column, MQ_score_column, p_value_column, record_number_column, DB_file_pos_column, spec_file_pos_column, number_of_columns);
+		catch( Exception::ParseError p_e )
+		{
+			result_file.close();
+			result_file.clear();
+			throw p_e;
+		}
 		
 		while ( getline(result_file, line) )
 		{
@@ -192,6 +238,7 @@ namespace OpenMS
 			
 			peptide_identification_p->insertHit(peptide_hit);
 		}
+		
 		// result file read
 		result_file.close();
 		result_file.clear();
@@ -214,6 +261,7 @@ namespace OpenMS
 			protein_identification.setHits(protein_hits);
 			protein_hits.clear();
 		}
+		
 		// get the precursor retention times and mz values
 		getPrecursorRTandMZ(files_and_scan_numbers, peptide_identifications);
 		protein_identification.setDateTime(datetime);
@@ -221,8 +269,12 @@ namespace OpenMS
 		
 		return corrupted_lines;
   }
-
-	vector<UInt> InspectOutfile::getSequences(const String& database_filename, const map<UInt, UInt>& wanted_records, // < record number, number of protein in a vector >
+	
+	// < record number, number of protein in a vector >
+	vector<UInt>
+	InspectOutfile::getSequences(
+		const String& database_filename,
+		const map<UInt, UInt>& wanted_records,
 		vector<String>& sequences)
 	throw (
 		Exception::FileNotFound)
@@ -234,7 +286,7 @@ namespace OpenMS
 		}
 		
 		vector<UInt> not_found;
-		UInt seen_records = 0;
+		UInt seen_records(0);
 		stringbuf sequence;
 		database.seekg(0, ios::end);
 		streampos sp = database.tellg();
@@ -259,7 +311,11 @@ namespace OpenMS
 		return not_found;
 	}
 
-	void InspectOutfile::getACAndACType(String line, String& accession,	String& accession_type)
+	void
+	InspectOutfile::getACAndACType(
+		String line,
+		String& accession,
+		String& accession_type)
 	{
 		String swissprot_prefixes = "JLOPQUX";
 		// @todo replace this by general FastA implementation?
@@ -279,7 +335,7 @@ namespace OpenMS
 		}
 		else if ( line.hasPrefix("gi") )
 		{
-			String::size_type snd = line.find('|', 3);
+			String::size_type snd(line.find('|', 3));
 			String::size_type third(0);
 			if ( snd != String::npos )
 			{
@@ -308,8 +364,8 @@ namespace OpenMS
 			}
 			else
 			{
-				String::size_type pos1 = line.find('(', 0);
-				String::size_type pos2;
+				String::size_type pos1(line.find('(', 0));
+				String::size_type pos2(0);
 				if ( pos1 != String::npos )
 				{
 					pos2 = line.find(')', ++pos1);
@@ -352,8 +408,8 @@ namespace OpenMS
 		}
 		else
 		{
-			String::size_type pos1 = line.find('(', 0);
-			String::size_type pos2;
+			String::size_type pos1(line.find('(', 0));
+			String::size_type pos2(0);
 			if ( pos1 != String::npos )
 			{
 				pos2 = line.find(')', ++pos1);
@@ -390,13 +446,17 @@ namespace OpenMS
 		}
 	}
 
-	void InspectOutfile::getPrecursorRTandMZ(const vector<pair<String, vector<UInt> > >& files_and_scan_numbers,	vector<PeptideIdentification>& ids)
-	throw(Exception::ParseError)
+	void
+	InspectOutfile::getPrecursorRTandMZ(
+		const vector<pair<String, vector<UInt> > >& files_and_scan_numbers,
+		vector<PeptideIdentification>& ids)
+	throw(
+		Exception::ParseError)
 	{
 		MSExperiment<> experiment;
 		String type;
 		
-		UInt pos = 0;
+		UInt pos(0);
 		for ( vector< pair< String, vector< UInt > > >::const_iterator fs_i = files_and_scan_numbers.begin(); fs_i != files_and_scan_numbers.end(); ++fs_i )
 		{
 			getExperiment(experiment, type, fs_i->first); // may throw an exception if the filetype could not be determined
@@ -427,11 +487,14 @@ namespace OpenMS
 		Exception::ParseError,
 		Exception::UnableToCreateFile)
 	{
-		if ( (database_filename == snd_database_filename) || (index_filename == snd_index_filename) )
+		if ( database_filename == snd_database_filename )
+		{
+			throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Same filename can not be used for original and second database!", database_filename);
+		}
+		if ( index_filename == snd_index_filename )
 		{
 			throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Same filename can not be used for original and second database!", index_filename);
 		}
-		
 		ifstream database( database_filename.c_str());
 		if ( !database )
 		{
@@ -441,6 +504,8 @@ namespace OpenMS
 		ifstream index(index_filename.c_str(), ios::in | ios::binary);
 		if ( !index )
 		{
+			database.close();
+			database.clear();
 			throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, index_filename);
 		}
 		
@@ -458,15 +523,33 @@ namespace OpenMS
 		ofstream snd_database;
 		if ( append ) snd_database.open(snd_database_filename.c_str(), std::ios::out | std::ios::app);
 		else snd_database.open(snd_database_filename.c_str(), std::ios::out | std::ios::trunc);
+		if ( !snd_database )
+		{
+			database.close();
+			database.clear();
+			index.close();
+			index.clear();
+			throw Exception::UnableToCreateFile(__FILE__, __LINE__, __PRETTY_FUNCTION__, snd_database_filename);
+		}
 		
 		ofstream snd_index;
 		if ( append ) snd_index.open(snd_index_filename.c_str(), std::ios::out | std::ios::binary | std::ios::app);
 		else snd_index.open(snd_index_filename.c_str(), std::ios::out | std::ios::binary | std::ios::trunc);
+		if ( !snd_index )
+		{
+			database.close();
+			database.clear();
+			index.close();
+			index.clear();
+			snd_database.close();
+			snd_database.clear();
+			throw Exception::UnableToCreateFile(__FILE__, __LINE__, __PRETTY_FUNCTION__, snd_index_filename);
+		}
 		
 		char* index_record = new char[record_length_]; // to copy one record from the index file
-		UInt database_pos, snd_database_pos; // their sizes HAVE TO BE 4 bytes
+		UInt database_pos(0), snd_database_pos(0); // their sizes HAVE TO BE 4 bytes
 		stringbuf sequence;
-		streampos index_pos;
+		streampos index_pos(0);
 		
 		for ( vector< UInt >::const_iterator wr_i = wanted_records.begin(); wr_i != wanted_records.end(); ++wr_i )
 		{
@@ -475,7 +558,13 @@ namespace OpenMS
 			{
 				delete(index_record);
 				database.close();
+				database.clear();
 				index.close();
+				index.clear();
+				snd_database.close();
+				snd_database.clear();
+				snd_index.close();
+				snd_index.clear();
 				throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "index file is too short!", index_filename);
 			}
 			index.seekg((*wr_i) * record_length_);
@@ -532,10 +621,14 @@ namespace OpenMS
 		
 		if ( empty_records ) wanted_records.clear();
 		delete(index_record);
-		index.close();
 		database.close();
+		database.clear();
+		index.close();
+		index.clear();
 		snd_database.close();
+		snd_database.clear();
 		snd_index.close();
+		snd_index.clear();
 	}
 
 	void
@@ -547,7 +640,6 @@ namespace OpenMS
 		const String species)
 	throw (
 		Exception::FileNotFound,
-		Exception::ParseError,
 		Exception::UnableToCreateFile)
 	{
 		ifstream source_database(source_database_filename.c_str());
@@ -565,14 +657,20 @@ namespace OpenMS
 		else database.open(database_filename.c_str());
 		if ( !database )
 		{
-			throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, database_filename);
+			source_database.close();
+			source_database.clear();
+			throw Exception::UnableToCreateFile(__FILE__, __LINE__, __PRETTY_FUNCTION__, database_filename);
 		}
 		ofstream index;
 		if ( append ) index.open(index_filename.c_str(), ios::app | ios::out | ios::binary );
 		else index.open(index_filename.c_str(), ios::out | ios::binary );
 		if ( !index )
 		{
-			throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, index_filename);
+			source_database.close();
+			source_database.clear();
+			database.close();
+			database.clear();
+			throw Exception::UnableToCreateFile(__FILE__, __LINE__, __PRETTY_FUNCTION__, index_filename);
 		}
 		
 		// using flags to mark what has already been read
@@ -583,10 +681,10 @@ namespace OpenMS
 		// the value
 		unsigned char record_flags = 0;
 		
-		String::size_type pos; // the position in a line
+		String::size_type pos(0); // the position in a line
 		unsigned long long source_database_pos = source_database.tellg(); // the start of a protein in the source database
 		unsigned long long source_database_pos_buffer = 0; // because you don't know whether a new protein starts unless the line is read, the actual position is buffered before any new getline
-		UInt database_pos;
+		UInt database_pos(0);
 		String line, sequence, protein_name;
 		char* record = new char[record_length_]; // a record in the index file
 		char* protein_name_pos = record + db_pos_length_ + trie_db_pos_length_;
@@ -760,8 +858,12 @@ namespace OpenMS
 		String& species_label)
 	throw (Exception::FileNotFound, Exception::ParseError)
 	{
+		ac_label = sequence_start_label = sequence_end_label = comment_label = species_label = "";
 		ifstream source_database(source_database_filename.c_str());
-		if ( !source_database ) throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, source_database_filename);
+		if ( !source_database )
+		{
+			throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, source_database_filename);
+		}
 		
 		String line;
 		while ( getline(source_database, line) && (sequence_start_label.empty()) )
@@ -797,7 +899,7 @@ namespace OpenMS
 	}
 
 	vector<UInt> InspectOutfile::getWantedRecords(const String& result_filename, Real p_value_threshold)
-	throw (Exception::FileNotFound,	Exception::ParseError, Exception::IllegalArgument)
+	throw (Exception::FileNotFound,	Exception::FileEmpty, Exception::IllegalArgument)
 	{
 		// check whether the p_value is correct
 		if ( (p_value_threshold < 0) || (p_value_threshold > 1) )
@@ -815,6 +917,7 @@ namespace OpenMS
 		vector<String> substrings;
 		
 		set< UInt > wanted_records_set;
+		
 		vector< UInt >
 			wanted_records,
 			corrupted_lines;
@@ -823,22 +926,24 @@ namespace OpenMS
 		
 		// get the header
 		Int
-			spectrum_file_column,
-			scan_column,
-			peptide_column,
-			protein_column,
-			charge_column,
-			MQ_score_column,
-			p_value_column,
-			record_number_column,
-			DB_file_pos_column,
-			spec_file_pos_column;
+			spectrum_file_column(-1),
+			scan_column(-1),
+			peptide_column(-1),
+			protein_column(-1),
+			charge_column(-1),
+			MQ_score_column(-1),
+			p_value_column(-1),
+			record_number_column(-1),
+			DB_file_pos_column(-1),
+			spec_file_pos_column(-1);
 			
-		UInt number_of_columns;
+		UInt number_of_columns(0);
 		
 		if ( !getline(result_file, line) )
 		{
-			throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "This doesn't seem to be an Inspect output file (not enough columns)!", result_filename);
+			result_file.close();
+			result_file.clear();
+			throw Exception::FileEmpty(__FILE__, __LINE__, __PRETTY_FUNCTION__, result_filename);
 		}
 		++line_number;
 		readOutHeader(result_filename, line, spectrum_file_column, scan_column, peptide_column, protein_column, charge_column, MQ_score_column, p_value_column, record_number_column, DB_file_pos_column, spec_file_pos_column, number_of_columns);
@@ -878,7 +983,8 @@ namespace OpenMS
 		return wanted_records;
 	}
 
-	template<typename PeakT> void InspectOutfile::getExperiment(MSExperiment<PeakT>& exp, String& type, const String& in_filename)
+	template<typename PeakT>
+	void InspectOutfile::getExperiment(MSExperiment<PeakT>& exp, String& type, const String& in_filename)
 	throw (Exception::ParseError)
 	{
 		type.clear();
@@ -922,6 +1028,9 @@ namespace OpenMS
 				return;
 			}
 		}
+		
+		inspect_output_without_parameters.close();
+		inspect_output_without_parameters.clear();
 	}
 	
 	void InspectOutfile::readOutHeader(const String& filename, const String& header_line, Int& spectrum_file_column, Int& scan_column, Int& peptide_column, Int& protein_column, Int& charge_column, Int& MQ_score_column, Int& p_value_column, Int& record_number_column, Int& DB_file_pos_column, Int& spec_file_pos_column, UInt& number_of_columns) throw (Exception::ParseError)
@@ -945,6 +1054,7 @@ namespace OpenMS
 			else if ( (*s_i) == "DBFilePos" ) DB_file_pos_column = s_i - substrings.begin();
 			else if ( (*s_i) == "SpecFilePos" ) spec_file_pos_column = s_i - substrings.begin();
 		}
+		
 		if ( (spectrum_file_column == -1) || (scan_column == -1) || (peptide_column == -1) || (protein_column == -1) || (charge_column == -1) || (MQ_score_column == -1) || (p_value_column == -1) || (record_number_column == -1) || (DB_file_pos_column == -1) || (spec_file_pos_column == -1) )
 		{
 			throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "at least one of the columns '#SpectrumFile', 'Scan#', 'Annotation', 'Protein', 'Charge', 'MQScore', 'p-value', 'RecordNumber', 'DBFilePos' or 'SpecFilePos' is missing!", filename);

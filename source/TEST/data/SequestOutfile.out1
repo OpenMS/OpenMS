@@ -1,0 +1,16 @@
+
+ example-rabbit.1055.1055.3.out
+ TurboSEQUEST v.27 (rev. 12), (c) 1999-2003
+ Molecular Biotechnology, Univ. of Washington, J.Eng/S.Morgan/J.Yates
+ Licensed to ThermoFinnigan Corp.
+ 03/16/2004, 02:32 PM, 4.6 sec. on MILES
+ (M+H)+ mass = 1966.7911 ~ 2.5000 (+3), fragment tol = 0.0000, MONO/MONO
+ total inten = 7275.7, lowest Sp = 225.4, # matched peptides = 74886
+ # amino acids = 1231264, # proteins = 4836, D:/database/rabbit.fasta
+ ion series nABY ABCDVWXYZ: 0 1 1 0.0 1.0 0.0 0.0 0.0 0.0 0.0 1.0 0.0
+ display top 12/12, ion % = 0.0, CODE = 101010
+ (M* +15.995) C=160.038 Enzyme:None selected
+ 
+  #   Rank/Sp      Id#     (M+H)+   deltCn   XCorr    Sp    Sf    P    Ions  Reference                            Peptide
+ ---  --------  --------  --------  ------  ------   ----  ----  ----  ----  ---------                            -------
+  1.   1 / 80          0 1967.0013  0.0000  1.5789   310.3 0.05    0 18/64  gi|544379|sp|P35574|GDE_RABIT   +2

@@ -73,7 +73,7 @@ namespace OpenMS
 	}
 	
 	// assignment operator
-	InspectInfile& InspectInfile::operator= (const InspectInfile& inspect_infile)
+	InspectInfile& InspectInfile::operator=(const InspectInfile& inspect_infile)
 	{
 		if (this != &inspect_infile)
 		{
@@ -91,6 +91,28 @@ namespace OpenMS
 		}
 		return *this;
 	}
+	
+	// equality operator
+	bool InspectInfile::operator==(const InspectInfile& inspect_infile) const
+	{
+		if (this != &inspect_infile)
+		{
+			bool equal = true;
+			equal &= ( spectra_ == inspect_infile.getSpectra() );
+			equal &= ( enzyme_ == inspect_infile.getEnzyme() );
+			equal &= ( modifications_per_peptide_ == inspect_infile.getModificationsPerPeptide() );
+			equal &= ( blind_ == inspect_infile.getBlind() );
+			equal &= ( maxptmsize_ == inspect_infile.getMaxPTMsize() );
+			equal &= ( precursor_mass_tolerance_ == inspect_infile.getPrecursorMassTolerance() );
+			equal &= ( peak_mass_tolerance_ == inspect_infile.getPeakMassTolerance() );
+			equal &= ( multicharge_ == inspect_infile.getMulticharge() );
+			equal &= ( instrument_ == inspect_infile.getInstrument() );
+			equal &= ( tag_count_ == inspect_infile.getTagCount() );
+			equal &= ( PTMname_residues_mass_type_ == inspect_infile.getModifications() );
+			return equal;
+		}
+		return true;
+	}
 
 	void
 	InspectInfile::store(
@@ -99,7 +121,10 @@ namespace OpenMS
 		Exception::UnableToCreateFile)
 	{
 		ofstream ofs( filename.c_str() );
-		if ( !ofs ) throw Exception::UnableToCreateFile(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename);
+		if ( !ofs )
+		{
+			throw Exception::UnableToCreateFile(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename);
+		}
 		stringstream file_content;
 
 		file_content << "spectra," << spectra_ << endl;
@@ -142,14 +167,12 @@ namespace OpenMS
 	void
 	InspectInfile::handlePTMs(
 		const String& modification_line,
-		const String&modifications_filename,
-		const bool monoisotopic
-		)
+		const String& modifications_filename,
+		const bool monoisotopic)
 	throw (
 		Exception::FileNotReadable,
 		Exception::FileNotFound,
-		Exception::ParseError
-		)
+		Exception::ParseError)
 	{
 		PTMname_residues_mass_type_.clear();
 		// to store the information about modifications from the ptm xml file
@@ -167,7 +190,7 @@ namespace OpenMS
 			String name, residues, mass, type;
 			
 			// 0 - mass; 1 - composition; 2 - ptm name
-			Int mass_or_composition_or_name = -1;
+			Int mass_or_composition_or_name(-1);
 			
 			for ( vector< String >::const_iterator mod_i = modifications.begin(); mod_i != modifications.end(); ++mod_i )
 			{
@@ -205,7 +228,7 @@ namespace OpenMS
 				{
 					if ( ptm_informations.empty() ) // if the ptm xml file has not been read yet, read it
 					{
-						if ( modifications_filename.empty() )
+						if ( !File::exists(modifications_filename) )
 						{
 							throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, modifications_filename);
 						}
@@ -246,36 +269,9 @@ namespace OpenMS
 							add_formula = mass;
 						}
 						// sum up the masses
-						DoubleReal m = 0;
-						if (monoisotopic) 
-						{
-							m = add_formula.getMonoWeight() - substract_formula.getMonoWeight();
-						}
-						else 
-						{
-							m = add_formula.getAverageWeight() - substract_formula.getAverageWeight();
-						}
-/*stringstream s; @todo remove this output?? (Martin)
-s.precision(10);
-s << m;
-//std::cout << "MARTIN: " << add_formula.getString() << "  " << mass;
- std::cout << "  " << s.str() << "  ";
-s.precision(9);
-s.str("");
-s << m;
-std::cout << "  " << s.str() << "  ";
-s.precision(8);
-s.str("");
-s << m;
-std::cout << "  " << s.str() << "  ";
-s.precision(7);
-s.str("");
-s << m;
-std::cout << "  " << s.str() << "  " << std::endl;*/
 						if ( monoisotopic ) mass = String(add_formula.getMonoWeight() - substract_formula.getMonoWeight());
 						else mass = String(add_formula.getAverageWeight() - substract_formula.getAverageWeight());
 						if ( mass_or_composition_or_name == -1 ) mass_or_composition_or_name = 1;
-// std::cout << "MARTIN: " << mass << "\t" << s.str() << std::endl;
 					}
 					catch ( Exception::ParseError pe )
 					{
@@ -329,7 +325,8 @@ std::cout << "  " << s.str() << "  " << std::endl;*/
 				{
 					PTMname_residues_mass_type_[name] = vector< String >(3);
 					PTMname_residues_mass_type_[name][0] = residues;
-					PTMname_residues_mass_type_[name][1] = mass;
+					// mass must not have more than 5 digits after the . (otherwise the test may fail)
+					PTMname_residues_mass_type_[name][1] = mass.substr(0, mass.find(".") + 6);
 					PTMname_residues_mass_type_[name][2] = type;
 				}
 				else

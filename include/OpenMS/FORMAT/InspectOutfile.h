@@ -47,19 +47,31 @@ namespace OpenMS
 	class InspectOutfile
 	{
 		public:
-			/// Constructor
+			/// default constructor
 			InspectOutfile();
+
+			/// copy constructor
+			InspectOutfile(const InspectOutfile& inspect_outfile);
+
+			/// destructor
+			virtual ~InspectOutfile();
+
+			/// assignment operator
+			InspectOutfile& operator=(const InspectOutfile& inspect_outfile);
+
+			/// equality operator
+			bool operator==(const InspectOutfile& inspect_outfile) const;
 			
 			/// load the results of an Inspect search
-			std::vector<UInt> load(const String& result_filename, std::vector<PeptideIdentification>& peptide_identifications, ProteinIdentification& protein_identification, Real p_value_threshold, const String database_filename = "") throw (Exception::FileNotFound, Exception::ParseError, Exception::IllegalArgument);
+			std::vector< UInt > load(const String& result_filename, std::vector< PeptideIdentification >& peptide_identifications, ProteinIdentification& protein_identification, const Real p_value_threshold, const String& database_filename = "") throw (Exception::FileNotFound, Exception::ParseError, Exception::IllegalArgument, Exception::FileEmpty);
 			
-			std::vector< UInt > getWantedRecords(const String& result_filename, Real p_value_threshold) throw (Exception::FileNotFound, Exception::ParseError, Exception::IllegalArgument);
+			std::vector< UInt > getWantedRecords(const String& result_filename, Real p_value_threshold) throw (Exception::FileNotFound, Exception::FileEmpty, Exception::IllegalArgument);
 
 			/// generates a trie database from another one, using the wanted records only
 			void compressTrieDB(const String& database_filename, const String& index_filename, std::vector<UInt>& wanted_records, const String& snd_database_filename, const String& snd_index_filename, bool append = false) throw (Exception::FileNotFound, Exception::ParseError, Exception::UnableToCreateFile);
 
 			/// generates a trie database from a given one (the type of database is determined by getLabels)
-			void generateTrieDB(const String& source_database_filename, const String& database_filename, const String& index_filename, bool append = false, const String species = "") throw (Exception::FileNotFound, Exception::ParseError, Exception::UnableToCreateFile);
+			void generateTrieDB(const String& source_database_filename, const String& database_filename, const String& index_filename, bool append = false, const String species = "") throw (Exception::FileNotFound, Exception::UnableToCreateFile);
 			
 
 			/// retrieve the accession type and accession number from a protein description line

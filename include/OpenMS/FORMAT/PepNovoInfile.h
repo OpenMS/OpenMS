@@ -24,8 +24,8 @@
 // $Maintainer: Martin Langwisch $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_FORMAT_SEQUESTINFILE_H
-#define OPENMS_FORMAT_SEQUESTINFILE_H
+#ifndef OPENMS_FORMAT_PEPNOVOINFILE_H
+#define OPENMS_FORMAT_PEPNOVOINFILE_H
 
 #include <OpenMS/DATASTRUCTURES/String.h>
 
@@ -37,7 +37,7 @@ namespace OpenMS
 	/**
 		@brief PepNovo input file adapter.
 		
-		Creates a sequest.params file for PepNovo search from a peak list.
+		Creates a pepnovo.params file for PepNovo search from a peak list.
   	  	
   	@ingroup FileIO
 	*/
@@ -48,13 +48,16 @@ namespace OpenMS
 			PepNovoInfile();
 
 			/// copy constructor
-			PepNovoInfile(const PepNovoInfile& sequest_infile);
+			PepNovoInfile(const PepNovoInfile& pepnovo_infile);
 
 			/// destructor
 			virtual ~PepNovoInfile();
 
 			/// assignment operator
-			PepNovoInfile& operator=(const PepNovoInfile& sequest_infile);
+			PepNovoInfile& operator=(const PepNovoInfile& pepnovo_infile);
+
+			/// equality operator
+			bool operator==(const PepNovoInfile& pepnovo_infile) const;
 
 			/// stores the experiment data in a PepNovo input file that can be used as input for PepNovo shell execution
 			String store(const String& filename) throw (Exception::UnableToCreateFile);
@@ -71,4 +74,4 @@ namespace OpenMS
 
 } // namespace OpenMS
 
-#endif // OPENMS_FORMAT_SEQUESTINFILE_H
+#endif // OPENMS_FORMAT_PEPNOVOINFILE_H

@@ -60,7 +60,7 @@ using namespace std;
 				for which the identifications are to be found and one ore more
 				databases in either trie, FASTA or Swissprot format containing
 				the possible proteins.
-				The given databases are converted and merged Into one trie database.
+				The given databases are converted and merged into one trie database.
 				This is done because Inspect does the conversion anyway
 				(though with a bug) and may actually not use more than two
 				databases (one of them in trie format). Additionally you thus can
@@ -211,8 +211,8 @@ class TOPPInspectAdapter
 				no_tmp_dbs(false),
 				monoisotopic(false);
 			
-			Real p_value_threshold = 1.0;
-			Real cutoff_p_value;
+			Real p_value_threshold(1.0);
+			Real cutoff_p_value(1.0);
 			
 			char separator = '/';
 			
@@ -252,9 +252,7 @@ class TOPPInspectAdapter
 				
 				// output the information
 				stringstream PTM_info;
-				String::size_type max_name_length, max_composition_length, max_amino_acids_length;
-				max_name_length = 4;
-				max_composition_length = max_amino_acids_length = 11;
+				String::size_type max_name_length(4), max_composition_length(11), max_amino_acids_length(11);
 				for ( map< String, pair< String, String > >::const_iterator mod_i = PTM_informations.begin(); mod_i != PTM_informations.end(); ++mod_i )
 				{
 					max_name_length = max(max_name_length, mod_i->first.length());
@@ -611,8 +609,8 @@ class TOPPInspectAdapter
 			//-------------------------------------------------------------
 			// checking accessability of files
 			
-			bool existed = false;
-			UInt file_tag;
+			bool existed(false);
+			UInt file_tag(0);
 			
 			for ( vector< pair< String, UInt > >::const_iterator files_i = files.begin(); files_i != files.end(); ++files_i )
 			{

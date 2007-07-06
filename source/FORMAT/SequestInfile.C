@@ -68,7 +68,7 @@ namespace OpenMS
 	
 	SequestInfile::SequestInfile(const SequestInfile& sequest_infile)
 	{
-		enzyme_info_ = sequest_infile.getEnzymeInfo(),
+		enzyme_info_ = sequest_infile.getEnzymeInfo_(),
 		database_ = sequest_infile.getDatabase(),
 		neutral_losses_for_ions_ = sequest_infile.getNeutralLossesForIons(),
 		ion_series_weights_ = sequest_infile.getIonSeriesWeights(),
@@ -107,36 +107,73 @@ namespace OpenMS
 	{
 		if ( this != &sequest_infile )
 		{
-			enzyme_info_ = sequest_infile.getEnzymeInfo(),
-			database_ = sequest_infile.getDatabase(),
-			neutral_losses_for_ions_ = sequest_infile.getNeutralLossesForIons(),
-			ion_series_weights_ = sequest_infile.getIonSeriesWeights(),
-			partial_sequence_ = sequest_infile.getPartialSequence(),
+			enzyme_info_ = sequest_infile.getEnzymeInfo_();
+			database_ = sequest_infile.getDatabase();
+			neutral_losses_for_ions_ = sequest_infile.getNeutralLossesForIons();
+			ion_series_weights_ = sequest_infile.getIonSeriesWeights();
+			partial_sequence_ = sequest_infile.getPartialSequence();
 			sequence_header_filter_ = sequest_infile.getSequenceHeaderFilter();
-			precursor_mass_tolerance_ = sequest_infile.getPrecursorMassTolerance(),
-			peak_mass_tolerance_ = sequest_infile.getPeakMassTolerance(),
-			ion_cutoff_percentage_ = sequest_infile.getIonCutoffPercentage(),
-			protein_mass_filter_ = sequest_infile.getProteinMassFilter(),
-			match_peak_tolerance_ = sequest_infile.getMatchPeakTolerance(),
-			peptide_mass_unit_ = sequest_infile.getPeptideMassUnit(),
-			output_lines_ = sequest_infile.getOutputLines(),
-			enzyme_number_ = sequest_infile.getEnzymeNumber(),
-			max_AA_per_mod_per_peptide_ = sequest_infile.getMaxAAPerModPerPeptide(),
-			max_mods_per_peptide_ = sequest_infile.getMaxModsPerPeptide(),
-			nucleotide_reading_frame_ = sequest_infile.getNucleotideReadingFrame(),
-			max_internal_cleavage_sites_ = sequest_infile.getMaxInternalCleavageSites(),
-			match_peak_count_ = sequest_infile.getMatchPeakCount(),
+			precursor_mass_tolerance_ = sequest_infile.getPrecursorMassTolerance();
+			peak_mass_tolerance_ = sequest_infile.getPeakMassTolerance();
+			ion_cutoff_percentage_ = sequest_infile.getIonCutoffPercentage();
+			protein_mass_filter_ = sequest_infile.getProteinMassFilter();
+			match_peak_tolerance_ = sequest_infile.getMatchPeakTolerance();
+			peptide_mass_unit_ = sequest_infile.getPeptideMassUnit();
+			output_lines_ = sequest_infile.getOutputLines();
+			enzyme_number_ = sequest_infile.getEnzymeNumber();
+			max_AA_per_mod_per_peptide_ = sequest_infile.getMaxAAPerModPerPeptide();
+			max_mods_per_peptide_ = sequest_infile.getMaxModsPerPeptide();
+			nucleotide_reading_frame_ = sequest_infile.getNucleotideReadingFrame();
+			max_internal_cleavage_sites_ = sequest_infile.getMaxInternalCleavageSites();
+			match_peak_count_ = sequest_infile.getMatchPeakCount();
 			match_peak_allowed_error_ = sequest_infile.getMatchPeakAllowedError();
-			show_fragment_ions_ = sequest_infile.getShowFragmentIons(),
-			print_duplicate_references_ = sequest_infile.getPrintDuplicateReferences(),
-			remove_precursor_near_peaks_ = sequest_infile.getRemovePrecursorNearPeaks(),
-			mass_type_parent_ = sequest_infile.getMassTypeParent(),
-			mass_type_fragment_ = sequest_infile.getMassTypeFragment(),
-			normalize_xcorr_ = sequest_infile.getNormalizeXcorr(),
+			show_fragment_ions_ = sequest_infile.getShowFragmentIons();
+			print_duplicate_references_ = sequest_infile.getPrintDuplicateReferences();
+			remove_precursor_near_peaks_ = sequest_infile.getRemovePrecursorNearPeaks();
+			mass_type_parent_ = sequest_infile.getMassTypeParent();
+			mass_type_fragment_ = sequest_infile.getMassTypeFragment();
+			normalize_xcorr_ = sequest_infile.getNormalizeXcorr();
 			residues_in_upper_case_ = sequest_infile.getResiduesInUpperCase();
 			PTMname_residues_mass_type_ = sequest_infile.getModifications();
 		}
 		return *this;
+	}
+	
+	bool SequestInfile::operator==(const SequestInfile& sequest_infile) const
+	{
+		if ( this != &sequest_infile )
+		{
+			bool equal = true;
+			equal &= ( enzyme_info_ == sequest_infile.getEnzymeInfo_() );
+			equal &= ( database_ == sequest_infile.getDatabase() );
+			equal &= ( neutral_losses_for_ions_ == sequest_infile.getNeutralLossesForIons() );
+			equal &= ( ion_series_weights_ == sequest_infile.getIonSeriesWeights() );
+			equal &= ( partial_sequence_ == sequest_infile.getPartialSequence() );
+			equal &= ( sequence_header_filter_ == sequest_infile.getSequenceHeaderFilter() );
+			equal &= ( precursor_mass_tolerance_ == sequest_infile.getPrecursorMassTolerance() );
+			equal &= ( peak_mass_tolerance_ == sequest_infile.getPeakMassTolerance() );
+			equal &= ( ion_cutoff_percentage_ == sequest_infile.getIonCutoffPercentage() );
+			equal &= ( protein_mass_filter_ == sequest_infile.getProteinMassFilter() );
+			equal &= ( match_peak_tolerance_ == sequest_infile.getMatchPeakTolerance() );
+			equal &= ( peptide_mass_unit_ == sequest_infile.getPeptideMassUnit() );
+			equal &= ( output_lines_ == sequest_infile.getOutputLines() );
+			equal &= ( enzyme_number_ == sequest_infile.getEnzymeNumber() );
+			equal &= ( max_AA_per_mod_per_peptide_ == sequest_infile.getMaxAAPerModPerPeptide() );
+			equal &= ( max_mods_per_peptide_ == sequest_infile.getMaxModsPerPeptide() );
+			equal &= ( nucleotide_reading_frame_ == sequest_infile.getNucleotideReadingFrame() );
+			equal &= ( max_internal_cleavage_sites_ == sequest_infile.getMaxInternalCleavageSites() );
+			equal &= ( match_peak_count_ == sequest_infile.getMatchPeakCount() );
+			equal &= ( match_peak_allowed_error_ == sequest_infile.getMatchPeakAllowedError() );
+			equal &= ( show_fragment_ions_ == sequest_infile.getShowFragmentIons() );
+			equal &= ( print_duplicate_references_ == sequest_infile.getPrintDuplicateReferences() );
+			equal &= ( remove_precursor_near_peaks_ == sequest_infile.getRemovePrecursorNearPeaks() );
+			equal &= ( mass_type_parent_ == sequest_infile.getMassTypeParent() );
+			equal &= ( mass_type_fragment_ == sequest_infile.getMassTypeFragment() );
+			equal &= ( normalize_xcorr_ == sequest_infile.getNormalizeXcorr() );
+			equal &= ( residues_in_upper_case_ == sequest_infile.getResiduesInUpperCase() );
+			equal &= ( PTMname_residues_mass_type_ == sequest_infile.getModifications() );
+		}
+		return true;
 	}
 	
 	void
@@ -149,13 +186,20 @@ namespace OpenMS
 		if ( !ofs ) throw Exception::UnableToCreateFile(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename);
 		stringstream file_content;
 		
-		Real dyn_n_term_mod, dyn_c_term_mod, stat_n_term_mod, stat_c_term_mod, stat_n_term_prot_mod, stat_c_term_prot_mod;
+		Real
+			dyn_n_term_mod(0.0),
+			dyn_c_term_mod(0.0),
+			stat_n_term_mod(0.0),
+			stat_c_term_mod(0.0),
+			stat_n_term_prot_mod(0.0),
+			stat_c_term_prot_mod(0.0);
+		
 		map< char, Real > stat_mods, dyn_mods;
 		map< char, Real >* mods_p;
 		dyn_n_term_mod = dyn_c_term_mod = stat_n_term_mod = stat_c_term_mod = stat_n_term_prot_mod = stat_c_term_prot_mod = .0;
 		
 		// compute the masses for the amino acids, divided into fixed and optional modifications
-		Real mass = .0;
+		Real mass(0.0);
 		String residues, dyn_mods_string;
 		for ( map< String, vector< String > >::const_iterator mods_i = PTMname_residues_mass_type_.begin(); mods_i != PTMname_residues_mass_type_.end(); ++mods_i )
 		{
@@ -180,6 +224,7 @@ namespace OpenMS
 				for ( String::const_iterator residue_i = residues.begin(); residue_i != residues.end(); ++residue_i ) (*mods_p)[*residue_i] += mass;
 			}
 		}
+		
 		// now put together all optional modifications with the same mass change
 		map< Real, String > dyn_mods_masses;
 		for ( map< char, Real >::const_iterator dyn_mod_i = dyn_mods.begin(); dyn_mod_i != dyn_mods.end(); ++dyn_mod_i )
@@ -301,15 +346,16 @@ namespace OpenMS
 		ofs.clear();
 	}
 
-	const map< String, vector< String > >& SequestInfile::getEnzymeInfo() const {return enzyme_info_;}
+	const map< String, vector< String > >& SequestInfile::getEnzymeInfo_() const {return enzyme_info_;}
 	
-	const String SequestInfile::getEnzymeInfoAsString() const
+	const String
+	SequestInfile::getEnzymeInfoAsString() const
 	{
 		stringstream ss;
-		UInt i = 0;
-		String::size_type max_name_length = 0;
-		String::size_type max_cut_before_length = 0;
-		String::size_type max_doesnt_cut_after_length = 0;
+		UInt i(0);
+		String::size_type max_name_length(0);
+		String::size_type max_cut_before_length(0);
+		String::size_type max_doesnt_cut_after_length(0);
 		ss << "[SEQUEST_ENZYME_INFO]" << endl;
 		for ( map< String, vector< String > >::const_iterator einfo_i = enzyme_info_.begin(); einfo_i != enzyme_info_.end(); ++einfo_i )
 		{
@@ -324,7 +370,8 @@ namespace OpenMS
 		return String(ss.str());
 	}
 	
-	void SequestInfile::addEnzymeInfo(vector< String >& enzyme_info)
+	void
+	SequestInfile::addEnzymeInfo(vector< String >& enzyme_info)
 	{
 		// remove duplicates from the concerned amino acids
 		set< char > aas;
@@ -382,20 +429,20 @@ namespace OpenMS
 	Real SequestInfile::getIonCutoffPercentage() const {return ion_cutoff_percentage_;}
 	void SequestInfile::setIonCutoffPercentage(Real ion_cutoff_percentage){ion_cutoff_percentage_ = ion_cutoff_percentage;}
 	
-	Int SequestInfile::getPeptideMassUnit() const {return peptide_mass_unit_;}
-	void SequestInfile::setPeptideMassUnit(Int peptide_mass_unit){peptide_mass_unit_ = peptide_mass_unit;}
+	UInt SequestInfile::getPeptideMassUnit() const {return peptide_mass_unit_;}
+	void SequestInfile::setPeptideMassUnit(UInt peptide_mass_unit){peptide_mass_unit_ = peptide_mass_unit;}
 	
-	Int SequestInfile::getOutputLines() const {return output_lines_;}
-	void SequestInfile::setOutputLines(Int output_lines){output_lines_ = output_lines;}
+	UInt SequestInfile::getOutputLines() const {return output_lines_;}
+	void SequestInfile::setOutputLines(UInt output_lines){output_lines_ = output_lines;}
 	
-	Int SequestInfile::getEnzymeNumber() const {return enzyme_number_;}
-	String SequestInfile::getEnzyme() const
+	UInt SequestInfile::getEnzymeNumber() const {return enzyme_number_;}
+	String SequestInfile::getEnzymeName() const
 	{
 		map< String, vector< String > >::const_iterator einfo_i = enzyme_info_.begin();
 		for ( UInt enzyme_number = 0; enzyme_number < enzyme_number_; ++enzyme_number, ++einfo_i ) {}
 		return einfo_i->first;
 	}
-	Int SequestInfile::setEnzyme(String enzyme_name)
+	UInt SequestInfile::setEnzyme(String enzyme_name)
 	{
 		enzyme_number_ = 0;
 		map< String, vector< String > >::const_iterator einfo_i;
@@ -406,23 +453,23 @@ namespace OpenMS
 		return ( einfo_i == enzyme_info_.end() ) ? enzyme_info_.size() : 0;
 	}
 	
-	Int SequestInfile::getMaxAAPerModPerPeptide() const {return max_AA_per_mod_per_peptide_;}
-	void SequestInfile::setMaxAAPerModPerPeptide(Int max_AA_per_mod_per_peptide){max_AA_per_mod_per_peptide_ = max_AA_per_mod_per_peptide;}
+	UInt SequestInfile::getMaxAAPerModPerPeptide() const {return max_AA_per_mod_per_peptide_;}
+	void SequestInfile::setMaxAAPerModPerPeptide(UInt max_AA_per_mod_per_peptide){max_AA_per_mod_per_peptide_ = max_AA_per_mod_per_peptide;}
 	
-	Int SequestInfile::getMaxModsPerPeptide() const {return max_mods_per_peptide_;}
-	void SequestInfile::setMaxModsPerPeptide(Int max_mods_per_peptide){max_mods_per_peptide_ = max_mods_per_peptide;}
+	UInt SequestInfile::getMaxModsPerPeptide() const {return max_mods_per_peptide_;}
+	void SequestInfile::setMaxModsPerPeptide(UInt max_mods_per_peptide){max_mods_per_peptide_ = max_mods_per_peptide;}
 	
-	Int SequestInfile::getNucleotideReadingFrame() const {return nucleotide_reading_frame_;}
-	void SequestInfile::setNucleotideReadingFrame(Int nucleotide_reading_frame){nucleotide_reading_frame_ = nucleotide_reading_frame;}
+	UInt SequestInfile::getNucleotideReadingFrame() const {return nucleotide_reading_frame_;}
+	void SequestInfile::setNucleotideReadingFrame(UInt nucleotide_reading_frame){nucleotide_reading_frame_ = nucleotide_reading_frame;}
 	
-	Int SequestInfile::getMaxInternalCleavageSites() const {return max_internal_cleavage_sites_;}
-	void SequestInfile::setMaxInternalCleavageSites(Int max_internal_cleavage_sites){max_internal_cleavage_sites_ = max_internal_cleavage_sites;}
+	UInt SequestInfile::getMaxInternalCleavageSites() const {return max_internal_cleavage_sites_;}
+	void SequestInfile::setMaxInternalCleavageSites(UInt max_internal_cleavage_sites){max_internal_cleavage_sites_ = max_internal_cleavage_sites;}
 	
-	Int SequestInfile::getMatchPeakCount() const {return match_peak_count_;}
-	void SequestInfile::setMatchPeakCount(Int match_peak_count){match_peak_count_ = match_peak_count;}
+	UInt SequestInfile::getMatchPeakCount() const {return match_peak_count_;}
+	void SequestInfile::setMatchPeakCount(UInt match_peak_count){match_peak_count_ = match_peak_count;}
 	
-	Int SequestInfile::getMatchPeakAllowedError() const {return match_peak_allowed_error_;}
-	void SequestInfile::setMatchPeakAllowedError(Int match_peak_allowed_error){match_peak_allowed_error_ = match_peak_allowed_error;}
+	UInt SequestInfile::getMatchPeakAllowedError() const {return match_peak_allowed_error_;}
+	void SequestInfile::setMatchPeakAllowedError(UInt match_peak_allowed_error){match_peak_allowed_error_ = match_peak_allowed_error;}
 	
 	bool SequestInfile::getShowFragmentIons() const {return show_fragment_ions_;}
 	void SequestInfile::setShowFragmentIons(bool show_fragment_ions){show_fragment_ions_ = show_fragment_ions;}
@@ -450,14 +497,12 @@ namespace OpenMS
 	void
 	SequestInfile::handlePTMs(
 		const String& modification_line,
-		const String&modifications_filename,
-		const bool monoisotopic
-		)
+		const String& modifications_filename,
+		const bool monoisotopic)
 	throw (
 		Exception::FileNotReadable,
 		Exception::FileNotFound,
-		Exception::ParseError
-		)
+		Exception::ParseError)
 	{
 		PTMname_residues_mass_type_.clear();
 		// to store the information about modifications from the ptm xml file
@@ -469,19 +514,19 @@ namespace OpenMS
 			if ( modifications.empty() ) modifications.push_back(modification_line);
 			
 			// to get masses from a formula
-			
+			EmpiricalFormula add_formula, substract_formula;
 			
 			String types = "OPT#FIX#";
 			String name, residues, mass, type;
 			
 			// 0 - mass; 1 - composition; 2 - ptm name
-			Int mass_or_composition_or_name;
+			Int mass_or_composition_or_name(-1);
 			
 			for ( vector< String >::const_iterator mod_i = modifications.begin(); mod_i != modifications.end(); ++mod_i )
 			{
 				if ( mod_i->empty() ) continue;
 				// clear the formulae
-				name = residues = mass = type = "";
+				add_formula = substract_formula = name = residues = mass = type = "";
 				
 				// get the single parts of the modification string
 				mod_i->split(',', mod_parts);
@@ -513,7 +558,7 @@ namespace OpenMS
 				{
 					if ( ptm_informations.empty() ) // if the ptm xml file has not been read yet, read it
 					{
-						if ( modifications_filename.empty() )
+						if ( !File::exists(modifications_filename) )
 						{
 							throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, modifications_filename);
 						}
@@ -544,7 +589,6 @@ namespace OpenMS
 					String::size_type pos = mass.find("-");
 					try
 					{
-						EmpiricalFormula add_formula, substract_formula;
 						if ( pos != String::npos )
 						{
 							add_formula = mass.substr(0, pos);
@@ -555,26 +599,6 @@ namespace OpenMS
 							add_formula = mass;
 						}
 						// sum up the masses
-Real m;
-if ( monoisotopic ) m = add_formula.getMonoWeight() - substract_formula.getMonoWeight();
-else m = add_formula.getAverageWeight() - substract_formula.getAverageWeight();
-stringstream s;
-s.precision(10);
-s << m;
-std::cout << "MARTIN: " << add_formula.getString() << "  " << mass;
- std::cout << "  " << s.str() << "  ";
-s.precision(9);
-s.str("");
-s << m;
-std::cout << "  " << s.str() << "  ";
-s.precision(8);
-s.str("");
-s << m;
-std::cout << "  " << s.str() << "  ";
-s.precision(7);
-s.str("");
-s << m;
-std::cout << "  " << s.str() << "  " << std::endl;
 						if ( monoisotopic ) mass = String(add_formula.getMonoWeight() - substract_formula.getMonoWeight());
 						else mass = String(add_formula.getAverageWeight() - substract_formula.getAverageWeight());
 						if ( mass_or_composition_or_name == -1 ) mass_or_composition_or_name = 1;
@@ -631,7 +655,8 @@ std::cout << "  " << s.str() << "  " << std::endl;
 				{
 					PTMname_residues_mass_type_[name] = vector< String >(3);
 					PTMname_residues_mass_type_[name][0] = residues;
-					PTMname_residues_mass_type_[name][1] = mass;
+					// mass must not have more than 5 digits after the . (otherwise the test may fail)
+					PTMname_residues_mass_type_[name][1] = mass.substr(0, mass.find(".") + 6);
 					PTMname_residues_mass_type_[name][2] = type;
 				}
 				else

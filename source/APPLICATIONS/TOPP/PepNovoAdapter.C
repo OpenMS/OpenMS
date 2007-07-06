@@ -163,8 +163,8 @@ class TOPPPepNovoAdapter
 		{
 			DTAFile dtafile;
 			String filename;
-			UInt scan_number = 0;
-			UInt msms_spectra = 0;
+			UInt scan_number(0);
+			UInt msms_spectra(0);
 			
 			for ( MSExperiment<>::Iterator spec_i = msexperiment.begin(); spec_i != msexperiment.end(); ++spec_i )
 			{
@@ -231,22 +231,22 @@ class TOPPPepNovoAdapter
 				pepnovo_modifications_filename;
 			
 			Int
-				max_number_of_tags,
-				tag_length,
-				min_sequence_length,
-				max_sequence_length,
-				num_results;
+				max_number_of_tags(0),
+				tag_length(0),
+				min_sequence_length(0),
+				max_sequence_length(0),
+				num_results(0);
 				
 			Real
-				p_value,
-				precursor_mass_tolerance,
-				peak_mass_tolerance;
+				p_value(1.0),
+				precursor_mass_tolerance(0.0),
+				peak_mass_tolerance(0.0);
 				
 			bool
-				pepnovo_in,
-				pepnovo_out,
-				keep_dta_files,
-				monoisotopic;
+				pepnovo_in(false),
+				pepnovo_out(false),
+				keep_dta_files(false),
+				monoisotopic(false);
 			
 			vector< String >
 				substrings,
@@ -302,9 +302,7 @@ class TOPPPepNovoAdapter
 				
 				// output the information
 				stringstream PTM_info;
-				String::size_type max_name_length, max_composition_length, max_amino_acids_length;
-				max_name_length = 4;
-				max_composition_length = max_amino_acids_length = 11;
+				String::size_type max_name_length(4), max_composition_length(11), max_amino_acids_length(11);
 				for ( map< String, pair< String, String > >::const_iterator mod_i = PTM_informations.begin(); mod_i != PTM_informations.end(); ++mod_i )
 				{
 					max_name_length = max(max_name_length, mod_i->first.length());
@@ -375,7 +373,7 @@ class TOPPPepNovoAdapter
 			}
 			else
 			{
-				Int range_start, range_end;
+				Int range_start(0), range_end(0);
 				string_buffer.split(',', substrings);
 				if ( substrings.empty() ) substrings.push_back(string_buffer);
 
@@ -504,18 +502,6 @@ class TOPPPepNovoAdapter
 			
 			if ( pepnovo_in )
 			{
-				if ( !pepnovo_out ) // if only pepnovo_in is set
-				{
-					input_filename = getStringOption_("out");
-					if ( input_filename.empty() )
-					{
-						writeLog_("No output file specified. Aborting!");
-						return ILLEGAL_PARAMETERS;
-					}
-					File::absolutePath(input_filename);
-					files.push_back(make_pair(input_filename, 4));
-				}
-				
 				// if pepnovo_in is set (independ whether pepnovo_out is set)
 				precursor_mass_tolerance = getDoubleOption_("precursor_mass_tolerance");
 				if ( precursor_mass_tolerance != -1 && precursor_mass_tolerance < 0 )
@@ -717,8 +703,8 @@ class TOPPPepNovoAdapter
 			//-------------------------------------------------------------
 
 			// (3.1) checking accessability of files
-			bool existed = false;
-			UInt file_tag;
+			bool existed(false);
+			UInt file_tag(0);
 			
 			for ( vector< pair< String, UInt > >::const_iterator files_i = files.begin(); files_i != files.end(); ++files_i )
 			{
@@ -747,8 +733,8 @@ class TOPPPepNovoAdapter
 			bool make_dtas = ( pepnovo_out && !pepnovo_in ) ? false : true; // if only pepnovo_out is set, just get the retention times
 			// creating the dta files
 			MSExperiment<> msexperiment;
-			UInt msms_spectra_in_file;
-			UInt msms_spectra_altogether = 0;
+			UInt msms_spectra_in_file(0);
+			UInt msms_spectra_altogether(0);
 			if ( make_dtas ) writeLog_("creating dta files");
 			FileHandler fh;
 			FileHandler::Type type;

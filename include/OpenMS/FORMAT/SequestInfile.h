@@ -56,11 +56,12 @@ namespace OpenMS
 			/// assignment operator
 			SequestInfile& operator=(const SequestInfile& sequest_infile);
 
+			/// equality operator
+			bool operator==(const SequestInfile& sequest_infile) const;
+
 			/// stores the experiment data in a Sequest input file that can be used as input for Sequest shell execution
 			void store(const String& filename) throw (Exception::UnableToCreateFile);
-
-			/// returns the enzyme list
-			const std::map< String, std::vector< String > >& getEnzymeInfo() const;
+			
 			/// returns the enzyme list as a string
 			const String getEnzymeInfoAsString() const;
 
@@ -113,37 +114,37 @@ namespace OpenMS
 			/// returns the the cutoff of the ratio matching theoretical peaks/theoretical peaks
 			Real getIonCutoffPercentage() const;
 			/// sets the ion cutoff of the ratio matching theoretical peaks/theoretical peaks
-			void setIonCutoffPercentage(Real cutoff_percentage);
+			void setIonCutoffPercentage(Real ion_cutoff_percentage);
 
 			/// returns the peptide mass unit
-			Int getPeptideMassUnit() const;
+			UInt getPeptideMassUnit() const;
 			/// sets the peptide mass unit
-			void setPeptideMassUnit(Int peptide_mass_unit);
+			void setPeptideMassUnit(UInt peptide_mass_unit);
 
 			/// return the number of peptides to be displayed
-			Int getOutputLines() const;
+			UInt getOutputLines() const;
 			/// sets the number of peptides to be displayed
-			void setOutputLines(Int output_lines);
+			void setOutputLines(UInt output_lines);
 
 			/// returns the enzyme used for cleavage (by means of the number from a list of enzymes)
-			Int getEnzymeNumber() const;
+			UInt getEnzymeNumber() const;
 			/// returns the enzyme used for cleavage
-			String getEnzyme() const;
+			String getEnzymeName() const;
 			/// sets the enzyme used for cleavage (by means of the number from a list of enzymes)
-			Int setEnzyme(String enzyme);
+			UInt setEnzyme(String enzyme_name);
 
 			/// returns the maximum number of amino acids containing the same modification in a peptide
-			Int getMaxAAPerModPerPeptide() const;
+			UInt getMaxAAPerModPerPeptide() const;
 			/// sets the maximum number of amino acids containing the same modification in a peptide
-			void setMaxAAPerModPerPeptide(Int max_aa_per_mod_per_peptide);
+			void setMaxAAPerModPerPeptide(UInt max_aa_per_mod_per_peptide);
 
 			/// returns the maximum number of modifications that are allowed in a peptide
-			Int getMaxModsPerPeptide() const;
+			UInt getMaxModsPerPeptide() const;
 			/// set the maximum number of modifications that are allowed in a peptide
-			void setMaxModsPerPeptide(Int max_mods_per_peptide);
+			void setMaxModsPerPeptide(UInt max_mods_per_peptide);
 
 			/// returns the nucleotide reading frame
-			Int getNucleotideReadingFrame() const;
+			UInt getNucleotideReadingFrame() const;
 			/// sets the nucleotide reading frame:
 			///		0 	The FASTA file contains amino acid codes. No translation is needed. This is the best and fastest case.
 			///		1 	The DNA sequence is scanned left to right (forward direction). The amino acid code starts with the first DNA code.
@@ -155,22 +156,22 @@ namespace OpenMS
 			///		7 	Use each of the DNA translations of the codes 1, 2, 3.
 			///		8 	Use each of the DNA translations of the codes 4, 5, 6.
 			///		9 	Use each of the DNA translations of the codes 1, 2, 3, 4, 5, 6.
-			void setNucleotideReadingFrame(Int nucleotide_reading_frame);
+			void setNucleotideReadingFrame(UInt nucleotide_reading_frame);
 
 			/// returns the maximum number of internal cleavage sites
-			Int getMaxInternalCleavageSites() const;
+			UInt getMaxInternalCleavageSites() const;
 			/// sets the maximum number of internal cleavage sites
-			void setMaxInternalCleavageSites(Int max_internal_cleavage_sites);
+			void setMaxInternalCleavageSites(UInt max_internal_cleavage_sites);
 
 			/// returns the number of top abundant peaks to match with theoretical ones
-			Int getMatchPeakCount() const;
+			UInt getMatchPeakCount() const;
 			/// sets the number of top abundant peaks to with theoretical ones
-			void setMatchPeakCount(Int match_peak_count);
+			void setMatchPeakCount(UInt match_peak_count);
 
 			/// returns the number of top abundant peaks that are allowed not to match with a theoretical peak
-			Int getMatchPeakAllowedError() const;
+			UInt getMatchPeakAllowedError() const;
 			/// sets the number of top abundant peaks that are allowed not to match with a theoretical peak
-			void setMatchPeakAllowedError(Int match_peak_allowed_error);
+			void setMatchPeakAllowedError(UInt match_peak_allowed_error);
 
 
 			/// returns whether fragment ions shall be displayed
@@ -220,6 +221,9 @@ namespace OpenMS
 			void handlePTMs(const String& modification_line, const String& modifications_filename, const bool monoisotopic) throw (Exception::FileNotReadable, Exception::FileNotFound, Exception::ParseError);
 
 		protected:
+			/// returns the enzyme list
+			const std::map< String, std::vector< String > >& getEnzymeInfo_() const;
+			
 			/// returns some standard enzymes (used to initialize the enzyme list)
 			void setStandardEnzymeInfo_();
 
