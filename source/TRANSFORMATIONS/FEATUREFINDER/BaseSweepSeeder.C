@@ -62,8 +62,8 @@ BaseSweepSeeder::BaseSweepSeeder()
 		// max distance in mz for merged peak cluster 
 		defaults_.setValue("max_mz_dist_merging",1.5,"max distance in mz for merged peak cluster");
 		
-		// minimum p-value for a significant cluster
-		defaults_.setValue("fdr_alpha",5.0);
+		// minimum false discovery rate for a significant cluster
+		defaults_.setValue("fdr_alpha",5.0,"minimum false discovery rate for a significant cluster");
 }
 
 BaseSweepSeeder::BaseSweepSeeder(const BaseSweepSeeder& source) : BaseSeeder(source) {}
@@ -84,13 +84,9 @@ FeaFiModule::ChargedIndexSet BaseSweepSeeder::nextSeed() throw (NoSuccessor)
 {
 		if (!is_initialized_)
 		{
-// 			StopWatch w2;
-// 			w2.start();
 			sweep_();		// sweep across map and scan for pattern 
 			curr_region_  = iso_map_.begin();
 			is_initialized_ = true;
-// 			w2.stop();
-// 			cout << "Seeding took : " << w2.getClockTime() << " [s]" << endl;
 		}
 		
 		if ( curr_region_ == iso_map_.end() || iso_map_.size() == 0 )
@@ -173,13 +169,13 @@ void BaseSweepSeeder::sweep_()
 			w.stop();
 			cout << "Isotopic pattern detection took " << w.getClockTime() << " [s]. " << endl;
 			w.reset();	
-			/*
+			
 			for (ScoredMZVector::const_iterator citer = iso_curr_scan.begin();
 						citer != iso_curr_scan.end();
 						++citer)
 			{
  				traits_->getPeakFlag( make_pair( currscan_index, citer->first ) ) = FeaFiTraits::USED;			
-			}*/
+			}
 			
 			// for each m/z position with score: 
 			// => check for cluster at similar m/z in previous scans
@@ -243,29 +239,7 @@ void BaseSweepSeeder::sweep_()
 			}
 					
 		}	// end loop for all scans
-		
-		#ifdef DEBUG_FEATUREFINDER 
-		cout << "-----------------------------------------------------------" << endl;
-		cout << "List of seeding regions: " << endl;
-		for (TableConstIteratorType iter = iso_map_.begin(); iter != iso_map_.end(); ++iter)
-		{
-			cout << "m/z " << iter->first << " charge: " << iter->second.peaks_.charge_ ;
-			cout << " first scan " << iter->second.first_scan_ << " last scan " << iter->second.last_scan_ << endl;
-			
-			for (vector<UInt>::const_iterator citer = 	iter->second.scans_.begin(); 
-						citer != iter->second.scans_.end();
-						++citer)
-			{
-				cout << "# scan : " << *citer << " (";
-				IDX tmp;
-				tmp.first = *citer;
-				cout << traits_->getPeakRt(tmp) << ")" << endl;				
-			}
-		
-		}
-		#endif
-		
-
+	
 		// fliter hash entries (by number of scans and number of points in the cluster)
 		filterHash_();		
 		
@@ -496,7 +470,7 @@ void BaseSweepSeeder::voteForCharge_()
 		       scmz_iter != iter->second.scored_charges_.end();
 					 ++scmz_iter)
 		{
-		//cout << "Vote for charge " << scmz_iter->first << " score " << scmz_iter->second << endl;
+			cout << "Vote for charge " << scmz_iter->first << " score " << scmz_iter->second << endl;
 			
 			if ( (scmz_iter->first-1) >= charge_scores.size() || charge_scores.size() == 0)
 			{
@@ -509,7 +483,7 @@ void BaseSweepSeeder::voteForCharge_()
 			}	
 		} // end for ( std::vector< ScoredChargeType > )
 		
-		//cout << "Done..." << endl;
+		cout << "Done..." << endl;
 		
 		// search for winning charge
 		ProbabilityType max_vote = numeric_limits<ProbabilityType>::max();
@@ -524,7 +498,7 @@ void BaseSweepSeeder::voteForCharge_()
 			}
 		
 		}
-		//cout << "And the winner is " << max_charge << " with score " << max_vote << endl;
+		cout << "And the winner is " << max_charge << " with score " << max_vote << endl;
 		
 		iter->second.peaks_.charge_                   = max_charge;
 		iter->second.peaks_.max_charge_score_ = max_vote;

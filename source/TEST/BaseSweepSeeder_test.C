@@ -102,9 +102,9 @@ class TestSweepSeeder : public BaseSweepSeeder
 					citer != scan.end();
 					++citer)
 		{
-			// charge estimate 2 and score 3.0 for everyone
+			// charge estimate 2 and score 0.1 for everyone
 			ScoredChargeType scc1;
-			scc1.first = 2; scc1.second = 3.0;
+			scc1.first = 2; scc1.second = 0.1;
 			
 			ScoredMZType scmz1;
 			scmz1.first = count++; scmz1.second = scc1;				

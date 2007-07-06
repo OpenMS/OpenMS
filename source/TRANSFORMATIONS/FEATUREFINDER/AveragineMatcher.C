@@ -411,6 +411,7 @@ namespace OpenMS
 			// walk to the left
 			for (vector<IDX>::iterator it = iter; it != max_scan.begin() && mz_dist <= 0.25; --it )
 			{
+				cout << "it: " << it->first << " " << it->second << endl;
 			
 				if (it->first >= traits_->getData().size())
 				{

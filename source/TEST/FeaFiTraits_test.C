@@ -80,12 +80,12 @@ p.setIntensity(1001.0);
 exp[1].push_back(p);
 
 
-CHECK((const MapType& getData() const ))
+CHECK((const MapType& getData() const))
 	FeaFiTraits t;
 	TEST_EQUAL(t.getData()==FeaFiTraits::MapType(),true)
 RESULT
 
-CHECK((template <class SpectrumIteratorType> void setData(const SpectrumIteratorType& begin, const SpectrumIteratorType& end, UInt buffer_size)))
+CHECK((template <class SpectrumIteratorType> void setData(const SpectrumIteratorType &begin, const SpectrumIteratorType &end, UInt buffer_size, IntensityType sn_threshold=-1.0)))
 	FeaFiTraits t;
 	t.setData(exp.begin(),exp.end(),2);
 	TEST_EQUAL(t.getData().getSize(),5)
@@ -104,7 +104,7 @@ CHECK((template <class SpectrumIteratorType> void setData(const SpectrumIterator
 	TEST_REAL_EQUAL(t.getData()[1][1].getIntensity(),1001.0)
 RESULT
 
-CHECK((Flag& getPeakFlag(const IDX &index) ))
+CHECK((Flag& getPeakFlag(const IDX &index)))
 	FeaFiTraits t;
 	t.setData(exp.begin(),exp.end(),2);
 	TEST_EQUAL(t.getPeakFlag(make_pair(0,0)), FeaFiTraits::UNUSED)
@@ -114,7 +114,7 @@ CHECK((Flag& getPeakFlag(const IDX &index) ))
 	TEST_EQUAL(t.getPeakFlag(make_pair(1,1)), FeaFiTraits::UNUSED)
 RESULT
 
-CHECK((const Flag& getPeakFlag(const IDX &index) const ))
+CHECK((const Flag& getPeakFlag(const IDX &index) const))
 	FeaFiTraits t;
 	t.setData(exp.begin(),exp.end(),2);
 	t.getPeakFlag(make_pair(0,0)) = FeaFiTraits::USED;
@@ -125,7 +125,7 @@ CHECK((const Flag& getPeakFlag(const IDX &index) const ))
 	TEST_EQUAL(t.getPeakFlag(make_pair(1,1)), FeaFiTraits::UNUSED)
 RESULT
 
-CHECK((IntensityType getPeakIntensity(const IDX &index) const ))
+CHECK((IntensityType getPeakIntensity(const IDX &index) const))
 	FeaFiTraits t;
 	t.setData(exp.begin(),exp.end(),2);
 	TEST_REAL_EQUAL(t.getPeakIntensity(make_pair(0,0)), 501.0)
@@ -135,7 +135,7 @@ CHECK((IntensityType getPeakIntensity(const IDX &index) const ))
 	TEST_REAL_EQUAL(t.getPeakIntensity(make_pair(1,1)), 1001.0)
 RESULT
 
-CHECK((CoordinateType getPeakMz(const IDX &index) const ))
+CHECK((CoordinateType getPeakMz(const IDX &index) const))
 	FeaFiTraits t;
 	t.setData(exp.begin(),exp.end(),2);
 	TEST_REAL_EQUAL(t.getPeakMz(make_pair(0,0)), 500.0)
@@ -145,7 +145,7 @@ CHECK((CoordinateType getPeakMz(const IDX &index) const ))
 	TEST_REAL_EQUAL(t.getPeakMz(make_pair(1,1)), 1000.0)
 RESULT
 
-CHECK((CoordinateType getPeakRt(const IDX &index) const ))
+CHECK((CoordinateType getPeakRt(const IDX &index) const))
 	FeaFiTraits t;
 	t.setData(exp.begin(),exp.end(),2);
 	TEST_REAL_EQUAL(t.getPeakRt(make_pair(0,0)), 1.1)
@@ -155,7 +155,7 @@ CHECK((CoordinateType getPeakRt(const IDX &index) const ))
 	TEST_REAL_EQUAL(t.getPeakRt(make_pair(1,1)), 2.2)
 RESULT
 
-CHECK((PositionType2D getPeakPos(const IDX &index) const ))
+CHECK((PositionType2D getPeakPos(const IDX &index) const))
 	FeaFiTraits t;
 	t.setData(exp.begin(),exp.end(),2);
 	TEST_EQUAL(t.getPeakPos(make_pair(0,0)),DPosition<2>(1.1,500.0))
@@ -402,7 +402,7 @@ CHECK((void addConvexHull(const IndexSet& set, Feature& f) const))
 	TEST_EQUAL(find(hull.getPoints().begin(), hull.getPoints().end(), ConvexHull2D::PointType(1237.27, 692)) != hull.getPoints().end(), true);
 RESULT
 
-CHECK( const FeatureMap& run(const std::vector< BaseSeeder * > &seeders, const std::vector< BaseExtender * > &extenders, const std::vector< BaseModelFitter * > &fitters) )
+CHECK((const FeatureMap& run(const std::vector< BaseSeeder * > &seeders, const std::vector< BaseExtender * > &extenders, const std::vector< BaseModelFitter * > &fitters)))
 	// this one is tested in the TOPP tool section
 RESULT
 

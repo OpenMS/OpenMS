@@ -123,7 +123,7 @@ CHECK((const FeatureMap& run()))
 	
 RESULT
 
-CHECK((template <class SpectrumIteratorType> void setData(const SpectrumIteratorType &begin, const SpectrumIteratorType &end, UInt buffer_size)))
+CHECK((template <class SpectrumIteratorType> void setData(const SpectrumIteratorType &begin, const SpectrumIteratorType &end, UInt buffer_size, IntensityType sn_threshold=-1.0)))
   	
 	DPeakArray<Peak2D> parray;
 	
@@ -145,7 +145,7 @@ CHECK((template <class SpectrumIteratorType> void setData(const SpectrumIterator
 
 RESULT
 
-CHECK(void setLogType(LogType lg) const)
+CHECK((void setLogType(LogType lg) const))
 	////
 RESULT
 
