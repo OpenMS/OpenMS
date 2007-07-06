@@ -74,6 +74,10 @@ CHECK()
 RESULT
 
 CHECK()
+	TEST_EXCEPTION_WITH_MESSAGE(Exception::NullPointer, throw Exception::NullPointer(__FILE__, __LINE__, __PRETTY_FUNCTION__), "a null pointer was specified")
+RESULT
+
+CHECK()
 	struct Dummy
 	{
 		std::string f_dummy(double, float,int,unsigned,long,unsigned long,char) { return __PRETTY_FUNCTION__; }

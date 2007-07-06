@@ -125,6 +125,7 @@ namespace TEST {																																		\
 	bool										this_test;																								\
 	int											exception = 0;																						\
 	std::string							exception_name = "";																			\
+	std::string							exception_message = "";																			\
 	std::string							test_name = "";																						\
   int											check_line = 0;																						\
   int											test_line = 0;																						\
@@ -672,6 +673,81 @@ int main(int argc, char **argv)																											\
 					std::cout << __FILE__ ":" << TEST::test_line <<																				\
 					":  TEST_EXCEPTION(" #exception_type "," #command "): wrong exception thrown!     - "	\
 					<< std::endl; break;																																	\
+			}																																													\
+		}																																														\
+	}
+
+/**	@brief Exception test macro (with test for exception message).
+
+  This macro checks if a given type of exception occured while executing the
+  given command and additionally tests for the message of the exception.
+  Example: \par #TEST_EXCEPTION(Exception::IndexOverflow,
+  vector3[-1], "a null pointer was specified")# \par If no, a wrong exception occured or a wrong message is
+  returned, false is returned, otherwise true.
+  @param exception_type the exception-class @param command
+  any general C++ or OpenMS-specific command @param message the message
+  the exception should give
+
+	 @hideinitializer
+*/
+#define TEST_EXCEPTION_WITH_MESSAGE(exception_type,command, message)																									\
+	{																																															\
+		TEST::test_line = __LINE__;																																	\
+		TEST::exception = 0;																																				\
+		try																																													\
+		{																																														\
+			command;																																									\
+		}																																														\
+		catch (exception_type et)																																			\
+		{																																														\
+			if ( std::string(et.getMessage()) != std::string(message) )																																			\
+			{																																			\
+				TEST::exception = 4;																																			\
+				TEST::exception_message = et.getMessage();																																			\
+			}																																			\
+			else TEST::exception = 1;																																			\
+		}																																														\
+		catch (::OpenMS::Exception::Base e)																													\
+		{																																														\
+			TEST::exception = 2;																																			\
+			TEST::exception_name = e.getName();																												\
+		}																																														\
+		catch (...)																																									\
+		{																																														\
+			TEST::exception = 3;																																			\
+		}																																														\
+		TEST::this_test = (TEST::exception == 1);																										\
+		TEST::test = TEST::test && TEST::this_test;																									\
+																																																\
+		if ((TEST::verbose > 1) || (!TEST::this_test && (TEST::verbose > 0)))												\
+		{																																														\
+			if (!TEST::newline)																																				\
+			{																																													\
+				TEST::newline = true;																																		\
+				std::cout << std::endl;																																	\
+			}																																													\
+			switch (TEST::exception)																																	\
+			{																																													\
+				case 0:																																									\
+					std::cout << __FILE__ ":" << TEST::test_line <<																				\
+					":  TEST_EXCEPTION(" #exception_type "," #command ", " #message "): no exception thrown!    - "			\
+					<< std::endl; break;																																	\
+				case 1:																																									\
+					std::cout << "    (line " << TEST::test_line <<																				\
+					" TEST_EXCEPTION(" #exception_type "," #command ", " #message "): OK)    +"													\
+					<< std::endl; break;																																	\
+				case 2:																																									\
+					std::cout << __FILE__ ":" << TEST::test_line <<																				\
+					":  TEST_EXCEPTION(" #exception_type "," #command ", " #message "): wrong exception thrown!  \""		\
+					<< TEST::exception_name << "\"    - " << std::endl; break;														\
+				case 3:																																									\
+					std::cout << __FILE__ ":" << TEST::test_line <<																				\
+					":  TEST_EXCEPTION(" #exception_type "," #command ", " #message "): wrong exception thrown!     - "	\
+					<< std::endl; break;																																	\
+				case 4:																																									\
+					std::cout << __FILE__ ":" << TEST::test_line <<																				\
+					":  TEST_EXCEPTION(" #exception_type "," #command ", " #message "): exception has wrong message: got '"	\
+					<< (TEST::exception_message) << "', expected '" << (message) << "'    - "<< std::endl; break;																																	\
 			}																																													\
 		}																																														\
 	}
