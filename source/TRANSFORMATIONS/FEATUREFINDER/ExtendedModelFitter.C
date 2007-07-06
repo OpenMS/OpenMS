@@ -242,8 +242,8 @@ namespace OpenMS
 		/// Check charge estimate if charge is not specified by user
 		if (set.charge_ != 0 /*&& (iso_stdev_first_ != iso_stdev_last_)*/)
 		{
-			first_mz = set.charge_;
-			last_mz = set.charge_;
+// 			first_mz = set.charge_;
+// 			last_mz = set.charge_;
 		// 	first_mz = (set.charge_ - 1);
 		//	last_mz = (set.charge_ + 1);
 		}

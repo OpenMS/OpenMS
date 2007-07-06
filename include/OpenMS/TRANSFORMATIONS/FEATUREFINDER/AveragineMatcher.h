@@ -52,7 +52,12 @@ namespace OpenMS
 		 @brief Extended model fitter using gaussian or isotope model in mz and bigauss, lmagauss (bigauss with parameters estimated by levenberg-marquardt) 
 		 or emg (exponent. modified gaussian) for the retention time domain.
 
-		 For the isotope model different charges and deviations are tested.<br>
+		 This module attempts to remove false positive regions from the feature list by
+		 matching the points in the region against an averagine model (Senko et al.).
+		 
+		 The m/z fitting part is much faster than all *ModelFitter modules but this code
+		 is still experimental and should be used with care.		 
+		 
 		 Parameters:
 		 <table>
 		 <tr><td></td><td></td><td>tolerance_stdev_bounding_box</td>
@@ -236,7 +241,7 @@ namespace OpenMS
 
 		QualityType fit_(const ChargedIndexSet& set, MzFitting mz_fit, RtFitting rt_fit, Coordinate isotope_stdev, UInt samplingsize);
 		
-		QualityType compute_mz_corr_(DoubleReal& mz_data_sum, IsotopeModel& iso_model, CoordinateType& mz_data_avg);
+		QualityType compute_mz_corr_(IntensityType& mz_data_sum, IsotopeModel& iso_model, CoordinateType& mz_data_avg);
 
 		BaseQuality* quality_;
 		ProductModel<2> model2D_;
