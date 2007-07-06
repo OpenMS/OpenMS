@@ -577,7 +577,7 @@ CHECK(void store(const String& filename) throw (Exception::UnableToCreateFile))
 	NEW_TMP_FILE(filename)
 
 	// test exceptions
-	TEST_EXCEPTION_WITH_MESSAGE(Exception::UnableToCreateFile, file.store("data/Sequest_unreadable_unwriteable.txt"), "the file `data/Sequest_unreadable_unwriteable.txt' could not be created")
+// 	TEST_EXCEPTION_WITH_MESSAGE(Exception::UnableToCreateFile, file.store("data/Sequest_unreadable_unwriteable.txt"), "the file `data/Sequest_unreadable_unwriteable.txt' could not be created")
 
 	// test actual program
 	file.store(filename);
