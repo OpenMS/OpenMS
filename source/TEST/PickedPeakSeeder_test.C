@@ -142,7 +142,7 @@ CHECK(([EXTRA]IndexSet nextSeed()))
 		++citer;				
 	}		
 	infile.close();
-			
+		
 	// done, should be the last region !
 	TEST_EXCEPTION( FeaFiModule::NoSuccessor , seeder.nextSeed() );
 
@@ -152,4 +152,12 @@ RESULT
 /////////////////////////////////////////////////////////////
 END_TEST
 
+// 	ofstream outfile("region1");
+// 	for(FeaFiModule::IndexSet::const_iterator citer = region.begin();
+// 				citer != region.end();
+// 				++citer)
+// 	{
+// 		outfile << traits->getPeakRt(*citer) << " " << traits->getPeakMz(*citer) << " " << traits->getPeakIntensity(*citer) << endl;
+// 	}				
+// 	outfile.close();
 

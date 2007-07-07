@@ -108,40 +108,28 @@ CHECK(([EXTRA]IndexSet nextSeed()))
 	
 	// test first seeding region	
 	FeaFiModule::IndexSet region = seeder.nextSeed();
-	
+
 	ifstream infile( "data/MarrWaveletSeeder_region1");	
 	DoubleReal intensity, rt, mz;
-	
 	FeaFiModule::IndexSet::const_iterator citer = region.begin();
-	
-		ofstream outfile("region1");
-	for(FeaFiModule::IndexSet::const_iterator citer = region.begin();
-				citer != region.end();
-				++citer)
+	while ( infile >> rt )
 	{
-		outfile << traits->getPeakRt(*citer) << " " << traits->getPeakMz(*citer) << " " << traits->getPeakIntensity(*citer) << endl;
-	}				
-	outfile.close();
+		infile >> mz >> intensity;
+		
+		TEST_NOT_EQUAL(citer == region.end(),true)
+		ABORT_IF(citer == region.end())
+		
+		TEST_REAL_EQUAL(traits->getPeakRt(*citer),rt)
+		TEST_REAL_EQUAL(traits->getPeakMz(*citer),mz)
+		TEST_REAL_EQUAL(traits->getPeakIntensity(*citer),intensity)
+				
+		++citer;				
+	}		
+	infile.close();
 	
-// 	while ( infile >> rt )
-// 	{
-// 		infile >> mz >> intensity;
-// 		
-// 		TEST_NOT_EQUAL(citer == region.end(),true)
-// 		ABORT_IF(citer == region.end())
-// 		
-// 		TEST_REAL_EQUAL(traits->getPeakRt(*citer),rt)
-// 		TEST_REAL_EQUAL(traits->getPeakMz(*citer),mz)
-// 		TEST_REAL_EQUAL(traits->getPeakIntensity(*citer),intensity)
-// 				
-// 		++citer;				
-// 	}		
-// 	infile.close();
-// 	
 	// retrieve second region
 	region = seeder.nextSeed();
 	infile.open( "data/MarrWaveletSeeder_region2");	
-	
 	citer = region.begin();
 	while ( infile >> rt )
 	{
@@ -159,8 +147,7 @@ CHECK(([EXTRA]IndexSet nextSeed()))
 	infile.close();
 	
 	// retrieve third region
-	region = seeder.nextSeed();
-	
+	region = seeder.nextSeed();	
 	infile.open( "data/MarrWaveletSeeder_region3");	
 	
 	citer = region.begin();

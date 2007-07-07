@@ -46,11 +46,11 @@ BaseSweepSeeder::BaseSweepSeeder()
 		defaults_.setValue("mass_tolerance_alignment", 0.1,"mass tolerance for comination of peaks from different scans.");
 		
 			// minimum number of scans per isotopic cluster
-		defaults_.setValue("min_number_scans",5,"minimum number of scan per isotopic cluster");
+		defaults_.setValue("min_number_scans",5,"min. number of scans");
 			// maximum number of scans per isotopic cluster
-		defaults_.setValue("max_number_scans",300);
+		defaults_.setValue("max_number_scans",300,"max. number of scans");
 		// minimum number of peaks per cluster
-		defaults_.setValue("min_number_peaks",20,"minimum number of peaks per cluster");		
+		defaults_.setValue("min_number_peaks",20,"minimum number of peaks");		
 		
 		// mass tolerance for point cluster construction
 		defaults_.setValue("mass_tolerance_cluster",1.2,"The m/z tolerance for looking up a signal in following scans.");

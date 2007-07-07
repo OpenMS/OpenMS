@@ -109,8 +109,8 @@ CHECK(([EXTRA]IndexSet nextSeed()))
 	
 	ifstream infile( "data/IsotopeWaveletSeeder_region1");	
 	DoubleReal intensity, rt, mz;
-	
 	FeaFiModule::IndexSet::const_iterator citer = region.begin();
+
 	while ( infile >> rt )
 	{
 		infile >> mz >> intensity;
@@ -125,7 +125,7 @@ CHECK(([EXTRA]IndexSet nextSeed()))
 		++citer;				
 	}	
 	infile.close();
-	
+
 	region = seeder.nextSeed();	
 	infile.open( "data/IsotopeWaveletSeeder_region2");	
 	
@@ -163,7 +163,7 @@ CHECK(([EXTRA]IndexSet nextSeed()))
 		++citer;				
 	}	
 	infile.close();
-	
+
 	region = seeder.nextSeed();
 	infile.open( "data/IsotopeWaveletSeeder_region4");	
 	
@@ -194,4 +194,12 @@ RESULT
 /////////////////////////////////////////////////////////////
 END_TEST
 
+// 	ofstream outfile("region1");
+// 	for(FeaFiModule::IndexSet::const_iterator citer = region.begin();
+// 				citer != region.end();
+// 				++citer)
+// 	{
+// 		outfile << traits->getPeakRt(*citer) << " " << traits->getPeakMz(*citer) << " " << traits->getPeakIntensity(*citer) << endl;
+// 	}				
+// 	outfile.close();
 

@@ -133,7 +133,6 @@ namespace OpenMS
 
 				wavelet_initialized_ = true;
 			}
-			// TODO why is a pointer being used here?  It would be faster to reuse a static member.  Avoid reallocation, pwts can be cleared instead.  (Clemens to Maintainer)
 			std::vector<DPeakArray<PeakType > >* pwts = NULL;
 			// store peak data, once for each charge state
 			pwts = new std::vector<DPeakArray<PeakType > > (charges_.size(), scan.getContainer() );
@@ -199,13 +198,6 @@ namespace OpenMS
 
 	void IsotopeWaveletSeeder::computeNullVariance_(const DPeakArray<PeakType >& cwt, const UInt charge_index )
 	{
-//<<<<<<< .working
-//			
-//=======
-//		IntensityType cwt_sum    = 0.0;
-//		IntensityType cwt_sqsum = 0.0;
-//
-//>>>>>>> .merge-right.r2320
 		CoordinateType first_mass = (cwt.size() > 0) ? cwt[ (cwt.size()-1) ].getMZ() : 0.0 ;
 		CoordinateType mass_diff  = 0.0;
 		UInt j = (cwt.size() > 0) ? (cwt.size() - 1) : 0;
@@ -216,26 +208,14 @@ namespace OpenMS
 						
 		for (; mass_diff < 6.0 && j > 0; --j)
 		{
-//<<<<<<< .working
 			++n;
   		IntensityType delta = cwt[j].getIntensity() - mean;
   		mean = mean + delta/n;
   		S += delta*( cwt[j].getIntensity()  - mean);
-			
-//=======
-//			cwt_sum    += cwt[j].getIntensity();
-//			cwt_sqsum += (cwt[j].getIntensity() * cwt[j].getIntensity());
-//>>>>>>> .merge-right.r2320
 			mass_diff    = cwt[j].getMZ() - first_mass;
-			
 		}
-//<<<<<<< .working
 		n_null_[charge_index] = n;		
 		null_var_[charge_index] = S / (n-1);
-//=======
-//		n_null_[charge_index] = (cwt.size() - 1) - j;
-//		null_var_[charge_index] = ( n_null_[charge_index] * cwt_sqsum - ( cwt_sum * cwt_sum) ) / ( n_null_[charge_index] * (n_null_[charge_index]-1) );
-//>>>>>>> .merge-right.r2320
 	}
 
 	void IsotopeWaveletSeeder::fastMultiCorrelate_(const SpectrumType& signal, std::vector<DPeakArray<PeakType > >* pwts)
@@ -254,7 +234,6 @@ namespace OpenMS
 
 		for (UInt i=0; i<signal_size; ++i)
 		{
-
 			//Now, let's sample the wavelets
 			for (charge_iter=charges_.begin(), k=0; charge_iter!=charges_.end(); ++charge_iter, ++k)
 			{
@@ -426,27 +405,18 @@ namespace OpenMS
 					// intensity in cwt is higher than threshold
 					// we are at a local max in the signal
 					// the last pattern is already behind us
-//<<<<<<< .working
 					if ( candidates[c][i].getIntensity() > cwt_thresholds[c] && 
 // 							 i > last_pattern[c] && 
-							(candidates[c][i].getMZ() - candidates[c][ last_pattern[c] ].getMZ()) > /*peak_cut_off_*/ 3.0/ (c+1)  &&                                   
+							(candidates[c][i].getMZ() - candidates[c][ last_pattern[c] ].getMZ()) > 3.0/ (c+1)  &&                                   
 							(scan[i-1].getIntensity() - scan[i].getIntensity() < 0.0) && 
 						  (scan[i+1].getIntensity() - scan[i].getIntensity() < 0.0) )						  	  
 					{						
 							UInt max = findNextMax_(candidates[c],i);
 							ProbabilityType pvalue = testLocalVariance_(candidates[c],max,c);	
-//=======
-//					if ( candidates[c][i].getIntensity() > cwt_thresholds[c] &&
-//							 i > last_pattern[c] &&
-//							(i - last_pattern[c]) > peak_cut_off_/ (c+1)  &&
-//							(scan[i-1].getIntensity() - scan[i].getIntensity() < 0.0) &&
-//						  (scan[i+1].getIntensity() - scan[i].getIntensity() < 0.0) )
-//					{
-//							UInt max = findNextMax_(candidates[c],i);
-//							ProbabilityType pvalue = testLocalVariance_(candidates[c],max,c);
-//>>>>>>> .merge-right.r2320
 							charge_scores.at(c) = pvalue;
-							last_pattern.at(c)     = max; 																	// store index of last pattern
+							last_pattern.at(c)     = max; 	
+												
+							// store index of last pattern
 					} // end if (local max...)
 
 				}  // end for all (charge states)
@@ -468,7 +438,6 @@ namespace OpenMS
 
 				if (best_score == 0.0)
 				{
-					// TODO magic alert!!!
 					best_score += 0.00000001; // add pseudo count for very low p-values
 				}
 
