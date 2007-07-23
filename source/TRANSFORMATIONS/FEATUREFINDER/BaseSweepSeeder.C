@@ -470,7 +470,7 @@ void BaseSweepSeeder::voteForCharge_()
 		       scmz_iter != iter->second.scored_charges_.end();
 					 ++scmz_iter)
 		{
-			cout << "Vote for charge " << scmz_iter->first << " score " << scmz_iter->second << endl;
+			//cout << "Vote for charge " << scmz_iter->first << " score " << scmz_iter->second << endl;
 			
 			if ( (scmz_iter->first-1) >= charge_scores.size() || charge_scores.size() == 0)
 			{
@@ -483,7 +483,7 @@ void BaseSweepSeeder::voteForCharge_()
 			}	
 		} // end for ( std::vector< ScoredChargeType > )
 		
-		cout << "Done..." << endl;
+		//cout << "Done..." << endl;
 		
 		// search for winning charge
 		ProbabilityType max_vote = numeric_limits<ProbabilityType>::max();

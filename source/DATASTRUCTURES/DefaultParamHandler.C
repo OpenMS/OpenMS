@@ -76,7 +76,6 @@ namespace OpenMS
 
 	DefaultParamHandler::~DefaultParamHandler()
 	{
-		
 	}	
 
 	void DefaultParamHandler::setParameters(const Param& param)

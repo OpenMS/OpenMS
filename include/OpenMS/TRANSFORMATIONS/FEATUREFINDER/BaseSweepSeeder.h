@@ -48,11 +48,6 @@ namespace OpenMS
 		@note Scores for charge estimates should be >= 0 where a low score indicates a high confidence e.g. score should be some sort of p value.
 		@note Method updateMembers() in each base class should call updateMembers() in this class before doing anything else. 
 		
-<<<<<<< .working
-		@note: Scores for charge estimates should be >= 0 where a low score indicates a high confidence e.g. score should be some sort of p-value.
-		
-		@note: Method updateMembers() in each base class should call updateMembers() in this class before doing anything else. 
-		
 		</table>
 		 <tr><td></td><td></td><td>min_number_scans</td>
 		 <td>lower bound for the number of scans in which a isotopic pattern must occur 
@@ -71,9 +66,9 @@ namespace OpenMS
 		 	<tr><td></td><td></td><td>rt_tolerance_cluster</td>
 		 <td>tolerance in m/z during assembly of isotopic point cluster</td></tr>
 		</table>		
-    
-=======
->>>>>>> .merge-right.r2320
+   
+		@improvement Seeder should pass a list of good charge states to model fitter instead of only the best one.
+		
     @ingroup FeatureFinder
   */
   class BaseSweepSeeder

@@ -49,14 +49,13 @@ namespace OpenMS
 	class BaseQuality;
 
 	/**
-		 @brief Extended model fitter using gaussian or isotope model in mz and bigauss, lmagauss (bigauss with parameters estimated by levenberg-marquardt) 
-		 or emg (exponent. modified gaussian) for the retention time domain.
+		 @brief Extended model fitter using an Averagine model in mz and EMG (Exponentially Modified Gaussian) for the retention time domain.
 
 		 This module attempts to remove false positive regions from the feature list by
 		 matching the points in the region against an averagine model (Senko et al.).
 		 
-		 The m/z fitting part is much faster than all *ModelFitter modules but this code
-		 is still experimental and should be used with care.		 
+		 @NOTE: (IMPORTANT) The m/z fitting part is much faster than all *ModelFitter modules but this code
+		 is still experimental and should be used with care only !		 
 		 
 		 Parameters:
 		 <table>

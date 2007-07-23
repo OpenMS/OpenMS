@@ -83,37 +83,48 @@ namespace OpenMS
 		last_mz_model_(0)
 	{
 		setName(getProductName());
+				
+		defaults_.setValue("tolerance_stdev_bounding_box",3.0f,"Bounding box has range [minimim of data, maximum of data] enlarged by tolerance_stdev_bounding_box times the standard deviation of the data");
+		defaults_.setValue("intensity_cutoff_factor",0.05f,"Cutoff peaks with a predicted intensity below intensity_cutoff_factor times the maximal intensity of the model");
+		defaults_.setValue("feature_intensity_sum",1,"Determines what is reported as feature intensity.\n1: the sum of peak intensities;\n0: the maximum intensity of all peaks");
 		
-		defaults_.setValue("tolerance_stdev_bounding_box",3.0f);
-		defaults_.setValue("feature_intensity_sum",1);
-		defaults_.setValue("min_num_peaks:final",5);
-		defaults_.setValue("min_num_peaks:extended",10);
-		defaults_.setValue("intensity_cutoff_factor",0.05f);
-		defaults_.setValue("feature_intensity_sum",1);
-		defaults_.setValue("rt:interpolation_step",0.2f);
-		defaults_.setValue("rt:max_iteration",500);
-		defaults_.setValue("rt:deltaAbsError",0.0001);
-		defaults_.setValue("rt:deltaRelError",0.0001);
-		defaults_.setValue("rt:profile","EMG");
-		defaults_.setValue("mz:interpolation_step",0.03f);
-		defaults_.setValue("mz:model_type:first",0);
-		defaults_.setValue("mz:model_type:last",4);
-		defaults_.setValue("quality:type","Correlation");
-		defaults_.setValue("quality:minimum",0.65f);
+		defaults_.setValue("min_num_peaks:final",5,"Minimum number of peaks left after cutoff. If smaller, feature will be discarded.");
+		defaults_.setValue("min_num_peaks:extended",10,"Minimum number of peaks after extension. If smaller, feature will be discarded.");
+		defaults_.setDescription("min_num_peaks","Required number of peaks for a feature.");
 		
-		defaults_.setValue("isotope_model:stdev:first",0.04f);
-		defaults_.setValue("isotope_model:stdev:last",0.12f);
-		defaults_.setValue("isotope_model:stdev:step",0.04f);
+		defaults_.setValue("rt:interpolation_step",0.2f,"Step size in seconds used to interpolate model for RT.");
+		defaults_.setValue("rt:max_iteration",500,"Maximum number of iterations for RT fitting.");
+		defaults_.setValue("rt:deltaAbsError",0.0001,"Absolute error used by the Levenberg-Marquardt algorithms.");
+		defaults_.setValue("rt:deltaRelError",0.0001,"Relative error used by the Levenberg-Marquardt algorithms.");
+		defaults_.setValue("rt:profile","EMG","Type of RT model. Currently only 'EMG' is supported.");
+		defaults_.setDescription("rt","Model settings in RT dimension.");
 		
-		defaults_.setValue("isotope_model:averagines:C",0.0443f);
-		defaults_.setValue("isotope_model:averagines:H",0.007f);
-		defaults_.setValue("isotope_model:averagines:N",0.0012f);
-		defaults_.setValue("isotope_model:averagines:O",0.013f);
-		defaults_.setValue("isotope_model:averagines:S",0.00037f);
+		defaults_.setValue("mz:interpolation_step",0.03f,"Interpolation step size for m/z.");
+		defaults_.setValue("mz:model_type:first",1,"Numeric id of first m/z model fitted (usually indicating the charge state).");
+		defaults_.setValue("mz:model_type:last",4,"Numeric id of last m/z model fitted (usually indicating the charge state).");
+		defaults_.setDescription("mz","Model settings in m/z dimension.");
 		
-		defaults_.setValue("isotope_model:isotope:trim_right_cutoff",0.001f);
-		defaults_.setValue("isotope_model:isotope:maximum",10);
-		defaults_.setValue("isotope_model:isotope:distance",1.000495f);
+		defaults_.setValue("quality:type","Correlation","Type of the quality measure used to assess the fit of model vs data ('Correlation','EuclidianDistance','RankCorrelation').");
+		defaults_.setValue("quality:minimum",0.65f,"Minimum quality of fit, features below this threshold are discarded.");
+		defaults_.setDescription("quality","Fitting quality settings.");
+		
+		defaults_.setValue("isotope_model:stdev:first",0.04f,"First standard deviation to be considered for isotope model.");
+		defaults_.setValue("isotope_model:stdev:last",0.12f,"Last standard deviation to be considered for isotope model.");
+		defaults_.setValue("isotope_model:stdev:step",0.04f,"Step size for standard deviations considered for isotope model.");
+		defaults_.setDescription("isotope_model:stdev","Instrument resolution settings for m/z dimension.");
+		
+		defaults_.setValue("isotope_model:averagines:C",0.0443f,"Number of C atoms per Dalton of the mass.");
+		defaults_.setValue("isotope_model:averagines:H",0.007f,"Number of H atoms per Dalton of the mass.");
+		defaults_.setValue("isotope_model:averagines:N",0.0012f,"Number of N atoms per Dalton of the mass.");
+		defaults_.setValue("isotope_model:averagines:O",0.013f,"Number of O atoms per Dalton of the mass.");
+		defaults_.setValue("isotope_model:averagines:S",0.00037f,"Number of S atoms per Dalton of the mass.");
+		defaults_.setDescription("isotope_model:averagines","Averagines are used to approximate the number of atoms (C,H,N,O,S) which a peptide of a given mass contains.");
+		
+		defaults_.setValue("isotope_model:isotope:trim_right_cutoff",0.001f,"Cutoff for averagine distribution, trailing isotopes below this relative intensity are not considered.");
+		defaults_.setValue("isotope_model:isotope:maximum",100,"Maximum number of isotopes being used for the IsotopeModel.");
+		defaults_.setValue("isotope_model:isotope:distance",1.000495f,"Distance between consecutive isotopic peaks.");
+		defaults_.setDescription("isotope_model","Settings of the isotope model (m/z).");
+		
 		
 		defaultsToParam_();
 	}
@@ -338,12 +349,11 @@ namespace OpenMS
 			mz_data_avg += ( mz_lin_int_.getData()[i] / mz_data_sum);	
 		}	
 		mz_data_avg /= mz_lin_int_.getData().size();
-				
-		//QualityType qual_mz =	quality_->evaluate(set, mz_model_/**final->getModel(MZ)*/, MZ);
+	
 		QualityType qual_mz = compute_mz_corr_(mz_data_sum, mz_model_, mz_data_avg);
 	
 // 		cout << "Quality in m/z : " << qual_mz << endl;
-		QualityType qual_rt =	quality_->evaluate(model_set, rt_model_/**final->getModel(RT)*/, RT );
+		QualityType qual_rt =	quality_->evaluate(model_set, rt_model_, RT );
 		if (isnan(qual_rt) ) qual_rt = -1.0;
 // 		cout << "Quality in rt : " << qual_rt << endl;
 		
@@ -351,12 +361,12 @@ namespace OpenMS
 
 		if (max_quality < 0.2)
 		{
-			cout << "max quality is too low: " << max_quality << endl;
+// 			cout << "max quality is too low: " << max_quality << endl;
 
 			Int fmz = first_mz_model_;
 			Int lmz = last_mz_model_;
 			
-			cout << "Checking charge states " << fmz << " to " << lmz << endl;
+// 			cout << "Checking charge states " << fmz << " to " << lmz << endl;
 			fit_loop_(set, fmz,lmz,sampling_size_mz,final);	
 			
 		}
@@ -411,7 +421,7 @@ namespace OpenMS
 			// walk to the left
 			for (vector<IDX>::iterator it = iter; it != max_scan.begin() && mz_dist <= 0.25; --it )
 			{
-				cout << "it: " << it->first << " " << it->second << endl;
+// 				cout << "it: " << it->first << " " << it->second << endl;
 			
 				if (it->first >= traits_->getData().size())
 				{
@@ -549,9 +559,9 @@ namespace OpenMS
 		#endif
 
 		++counter_;
-
+		
 		delete final;
-
+		
  		return f;
 	}
 
