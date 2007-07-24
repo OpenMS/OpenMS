@@ -53,13 +53,13 @@ using namespace std;
 
 /**
 	@page PepNovoAdapter PepNovoAdapter
-	
+
 	@brief Identifies peptides in MS/MS spectra via PepNovo.
-	
+
 	This wrapper application serves for getting peptide identifications
 	for MS/MS spectra. The wrapper can be executed in three different
 	modes:
-	<ol>	
+	<ol>
 				<li>
 				The whole process of identification via PepNovo is executed.
 				Inputfile is one (or more) mz file containing the MS/MS spectra
@@ -67,30 +67,36 @@ using namespace std;
 				for which the identifications are to be found. The results are written
 				as an idXML output file. This mode is selected by default.
 			 	</li>
-				
+
 				<li>
 				Only the first part of the ProteinIdentification process is performed.
 				This means that a PepNovo input file is generated and dta files are
 				created from the mz file.
 				The call for the corresponding DeNovo process is written to standard
 				output.
-				
+
 				Consult your PepNovo reference manual for further details.
-				
+
 				This mode is selected by the <b>-pepnovo_in</b> option in the command line.
 				</li>
-				
+
 				<li>
 				Only the second part of the ProteinIdentification process is performed.
 				This means that the output of pepnovo is translated into analysisXML.
-				
+
 				This mode is selected by the <b>-pepnovo_out</b> option in the command line.
 				</li>
 	</ol>
+
+	\todo provide symbolic names for "file flags", *never* use magic constants in code,
+		it's a maintenance nightmare! Use boolean operations & and | instead
+		of arithmetic + to combine flags, e.g. 4+8 should be 4 | 8.
+
+
 */
 
 // We do not want this class to show up in the docu -> cond
-// @cond 
+// @cond
 
 class TOPPPepNovoAdapter
 	: public TOPPBase
@@ -100,7 +106,7 @@ class TOPPPepNovoAdapter
 			: TOPPBase("PepNovoAdapter", "annotates MS/MS spectra using PepNovo.")
 		{
 		}
-	
+
 	protected:
 
 		void registerOptionsAndFlags_()
@@ -165,7 +171,7 @@ class TOPPPepNovoAdapter
 			String filename;
 			UInt scan_number(0);
 			UInt msms_spectra(0);
-			
+
 			for ( MSExperiment<>::Iterator spec_i = msexperiment.begin(); spec_i != msexperiment.end(); ++spec_i )
 			{
 				++scan_number;
@@ -198,7 +204,7 @@ class TOPPPepNovoAdapter
 					}
 				}
 			}
-			
+
 			return msms_spectra;
 		}
 
@@ -207,11 +213,11 @@ class TOPPPepNovoAdapter
 			//-------------------------------------------------------------
 			// (1) variables
 			//-------------------------------------------------------------
-			
+
 			// (1.0) variables for running the program
 			PepNovoInfile pepnovo_infile;
 			PepNovoOutfile pepnovo_outfile;
-			
+
 			String
 				logfile,
 				output_filename,
@@ -229,40 +235,40 @@ class TOPPPepNovoAdapter
 				basename,
 				dta_files_common_name,
 				pepnovo_modifications_filename;
-			
+
 			Int
 				max_number_of_tags(0),
 				tag_length(0),
 				min_sequence_length(0),
 				max_sequence_length(0),
 				num_results(0);
-				
+
 			Real
 				p_value(1.0),
 				precursor_mass_tolerance(0.0),
 				peak_mass_tolerance(0.0);
-				
+
 			bool
 				pepnovo_in(false),
 				pepnovo_out(false),
 				keep_dta_files(false),
 				monoisotopic(false);
-			
+
 			vector< String >
 				substrings,
 				substrings2,
 				spectra,
 				models;
-			
+
 			ContactPerson contact_person;
-			
+
 			ExitCodes exit_code = EXECUTION_OK;
-			
+
 			// filename and tag: file has to: 1 - exist  2 - be readable  4 - writable  8 - be deleted afterwards
 			vector< pair< String, UInt > > files;
-			
+
 			vector< Int > charges;
-			
+
 			map< String, Real > dta_filenames_and_precursor_retention_times;
 
 			/*
@@ -270,13 +276,13 @@ class TOPPPepNovoAdapter
 				FT - fourier transformation
 				ORBI - Orbitrap
 			*/
-			
+
 			//-------------------------------------------------------------
 			// (2) parsing and checking parameters
 			//-------------------------------------------------------------
-			
+
 			modifications_filename = getStringOption_("modifications_xml_file");
-			
+
 			if ( getFlag_("list_modifications") )
 			{
 				if ( modifications_filename.empty() )
@@ -299,7 +305,7 @@ class TOPPPepNovoAdapter
 					writeLog_(pe.getMessage());
 					return PARSE_ERROR;
 				}
-				
+
 				// output the information
 				stringstream PTM_info;
 				String::size_type max_name_length(4), max_composition_length(11), max_amino_acids_length(11);
@@ -315,10 +321,10 @@ class TOPPPepNovoAdapter
 					PTM_info << mod_i->first << String(max_name_length - mod_i->first.length(), ' ') << "\t" << mod_i->second.first << String(max_composition_length - mod_i->second.first.length(), ' ') << "\t" << mod_i->second.second << String(max_amino_acids_length - mod_i->second.second.length(), ' ') << endl;
 				}
 				std::cout << PTM_info.str() << std::endl;
-				
+
 				return EXECUTION_OK;
 			}
-			
+
 			if ( getFlag_("list_models") )
 			{
 				model_directory = getStringOption_("model_directory");
@@ -350,13 +356,13 @@ class TOPPPepNovoAdapter
 				}
 				return EXECUTION_OK;
 			}
-			
+
 			pepnovo_in = getFlag_("pepnovo_in");
 			pepnovo_out = getFlag_("pepnovo_out");
 
 			// a 'normal' pepnovo run corresponds to both pepnovo_in and pepnovo_out set
 			if ( !pepnovo_in && !pepnovo_out ) pepnovo_in = pepnovo_out = true;
-			
+
 			logfile = getStringOption_("log");
 			if ( logfile.empty() )
 			{
@@ -407,11 +413,11 @@ class TOPPPepNovoAdapter
 								if ( i ) charges.push_back(i);
 							}
 						}
-						
+
 						++s_i;
 					}
 				}
-				
+
 				if ( charges.empty() )
 				{
 					writeLog_("No charges states given. Aborting!");
@@ -432,7 +438,7 @@ class TOPPPepNovoAdapter
 					}
 				}
 			}
-			
+
 			temp_data_directory = getStringOption_("temp_data_directory");
 			if ( temp_data_directory.empty() )
 			{
@@ -441,7 +447,7 @@ class TOPPPepNovoAdapter
 			}
 			File::absolutePath(temp_data_directory);
 			temp_data_directory.ensureLastChar('/');
-			
+
 			string_buffer = getStringOption_("in");
 			if ( string_buffer.empty() )
 			{
@@ -458,7 +464,7 @@ class TOPPPepNovoAdapter
 				else // otherwise the pepnovo output is the input
 				{
 					pepnovo_output_filename = string_buffer;
-					
+
 					// if only pepnovo_out is set, the mz files have to be given to retrieve the retention times
 					string_buffer = getStringOption_("mzFiles");
 					if ( string_buffer.empty() )
@@ -476,18 +482,18 @@ class TOPPPepNovoAdapter
 
 			keep_dta_files = getFlag_("keep_dta_files");
 			if ( pepnovo_in && !pepnovo_out ) keep_dta_files = true;
-			
+
 			contact_person.setName(getStringOption_("contact_name"));
 			contact_person.setInstitution(getStringOption_("contact_institution"));
 			contact_person.setContactInfo(getStringOption_("contact_info"));
-			
+
 			min_sequence_length = getIntOption_("min_sequence_length");
 			if ( min_sequence_length < 3 || min_sequence_length > 40 )
 			{
 				writeLog_("min_sequence_length not in [3, 40]. Aborting!");
 				return ILLEGAL_PARAMETERS;
 			}
-				
+
 			max_sequence_length = getIntOption_("max_sequence_length");
 			if ( max_sequence_length < 3 || max_sequence_length > 40 )
 			{
@@ -499,7 +505,7 @@ class TOPPPepNovoAdapter
 				writeLog_("max_sequence_length is less than min_sequence_length. Aborting!");
 				return ILLEGAL_PARAMETERS;
 			}
-			
+
 			if ( pepnovo_in )
 			{
 				// if pepnovo_in is set (independ whether pepnovo_out is set)
@@ -509,21 +515,21 @@ class TOPPPepNovoAdapter
 					writeLog_("Precursor mass tolerance < 0. Aborting!");
 					return ILLEGAL_PARAMETERS;
 				}
-				
+
 				peak_mass_tolerance = getDoubleOption_("peak_mass_tolerance");
 				if ( peak_mass_tolerance != -1 && peak_mass_tolerance < 0 )
 				{
 					writeLog_("peak mass tolerance < 0. Aborting!");
 					return ILLEGAL_PARAMETERS;
 				}
-				
+
 				num_results = getIntOption_("num_results");
 				if ( (num_results < 1) )
 				{
 					writeLog_("Illegal number of results (< 1). Aborting!");
 					return ILLEGAL_PARAMETERS;
 				}
-				
+
 				pepnovo_directory = getStringOption_("pepnovo_directory");
 				if ( pepnovo_directory.empty() ) writeLog_("PepNovo working directory not given. Assuming PATH variable to be set accordingly.");
 				else
@@ -531,10 +537,10 @@ class TOPPPepNovoAdapter
 					File::absolutePath(pepnovo_directory);
 					pepnovo_directory.ensureLastChar('/');
 				}
-				
+
 				// set the protease (trypsin or not trypsin)
 				cleavage = getStringOption_("cleavage");
-				
+
 				// maximal number of tags to use for identification
 				max_number_of_tags = getIntOption_("max_number_of_tags");
 				if ( max_number_of_tags != -1 && (max_number_of_tags < 0 || max_number_of_tags > 200) )
@@ -542,7 +548,7 @@ class TOPPPepNovoAdapter
 					writeLog_("Maximal number of tags not in [1,200]. Aborting!");
 					return ILLEGAL_PARAMETERS;
 				}
-				
+
 				// length of the tags
 				tag_length = getIntOption_("tag_length");
 				if ( tag_length != -1 && (tag_length < 3 || tag_length > 6) )
@@ -550,7 +556,7 @@ class TOPPPepNovoAdapter
 					writeLog_("tag length is not in [3,6]. Aborting!");
 					return ILLEGAL_PARAMETERS;
 				}
-				
+
 				// model directory and model used if tryptic model (default) is used, pepnovo v1 is used, otherwise pepnovo v2 is used)
 				model_directory = getStringOption_("model_directory");
 				if ( model_directory.empty() )
@@ -610,7 +616,7 @@ class TOPPPepNovoAdapter
 						model_file.close();
 					}
 				}
-				
+
 				// the list with the names of the dta files to be analyzed
 				dta_list = getStringOption_("dta_list");
 				if ( dta_list.empty() )
@@ -628,7 +634,7 @@ class TOPPPepNovoAdapter
 					File::absolutePath(dta_list);
 					files.push_back(make_pair(dta_list, 4));
 				}
-				
+
 				// modifications
 				string_buffer = getStringOption_("modifications");
 				monoisotopic = getFlag_("use_monoisotopic_mod_mass");
@@ -651,14 +657,14 @@ class TOPPPepNovoAdapter
 					writeLog_(p_e.getMessage());
 					return PARSE_ERROR;
 				}
-				
+
 				if ( !pepnovo_infile.getModifications().empty() )
 				{
 					pepnovo_modifications_filename = model_directory + "PepNovo_PTMs.txt";
 					files.push_back(make_pair(pepnovo_modifications_filename, 4));
 				}
 			}
-			
+
 			if ( pepnovo_out )
 			{
 				output_filename = getStringOption_("out");
@@ -669,7 +675,7 @@ class TOPPPepNovoAdapter
 				}
 				File::absolutePath(output_filename);
 				files.push_back(make_pair(output_filename, 4));
-				
+
 				if ( pepnovo_output_filename.empty() ) pepnovo_output_filename = getStringOption_("pepnovo_output");
 				if ( pepnovo_in )
 				{
@@ -689,7 +695,7 @@ class TOPPPepNovoAdapter
 					File::absolutePath(pepnovo_output_filename);
 					files.push_back(make_pair(pepnovo_output_filename, 2));
 				}
-				
+
 				p_value = getDoubleOption_("p_value");
 				if ( (p_value <= 0) || (p_value > 1) )
 				{
@@ -697,7 +703,7 @@ class TOPPPepNovoAdapter
 					return ILLEGAL_PARAMETERS;
 				}
 			}
-			
+
 			//-------------------------------------------------------------
 			// (3) running program according to parameters
 			//-------------------------------------------------------------
@@ -705,22 +711,22 @@ class TOPPPepNovoAdapter
 			// (3.1) checking accessability of files
 			bool existed(false);
 			UInt file_tag(0);
-			
+
 			for ( vector< pair< String, UInt > >::const_iterator files_i = files.begin(); files_i != files.end(); ++files_i )
 			{
 				string_buffer = files_i->first;
 				file_tag = files_i->second;
-				
+
 				if ( (file_tag & 1 || file_tag & 2) && !File::exists(string_buffer) )
 				{
 					throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, string_buffer);
 				}
-				
+
 				if ( (file_tag & 2) && !File::readable(string_buffer) )
 				{
 					throw Exception::FileNotReadable(__FILE__, __LINE__, __PRETTY_FUNCTION__, string_buffer);
 				}
-				
+
 				existed = File::exists(string_buffer);
 				if ( (file_tag & 4) && !File::writable(string_buffer) )
 				{
@@ -749,11 +755,11 @@ class TOPPPepNovoAdapter
 					return PARSE_ERROR;
 				}
 				fh.loadExperiment(*spec_i, msexperiment, type);
-				
+
 				msms_spectra_in_file = MSExperiment2DTAs(msexperiment, temp_data_directory + File::basename(*spec_i), charges, dta_filenames_and_precursor_retention_times, false);
-				
+
 				msms_spectra_altogether += msms_spectra_in_file;
-				
+
 				// if make_dtas is set, check whether one of them does already exist, if so, stop the adapter
 				if ( make_dtas )
 				{
@@ -773,7 +779,7 @@ class TOPPPepNovoAdapter
 					}
 				}
 			}
-			
+
 			// if no msms spectra were found
 			if ( !msms_spectra_altogether )
 			{
@@ -785,7 +791,7 @@ class TOPPPepNovoAdapter
 				writeLog_("No MS/MS spectra found in any of the mz files. Aborting!");
 				return UNKNOWN_ERROR;
 			}
-			
+
 			// if make_dtas is set and non of the dta files did already exist, create them
 			if ( make_dtas )
 			{
@@ -803,7 +809,7 @@ class TOPPPepNovoAdapter
 					msms_spectra_in_file = MSExperiment2DTAs(msexperiment, dta_files_common_name, charges, dta_filenames_and_precursor_retention_times, make_dtas);
 					writeLog_(String(msms_spectra_in_file) + " MS/MS spectra in file " + *spec_i);
 				}
-				
+
 				// make a list of all dtas
 				ofstream dta_list_file(dta_list.c_str());
 				if ( !dta_list_file )
@@ -818,11 +824,11 @@ class TOPPPepNovoAdapter
 				dta_list_file.close();
 				dta_list_file.clear();
 			}
-			
+
 			String call, abbreviation_string;
 			vector< PeptideIdentification > peptide_identifications;
 			ProteinIdentification protein_identification;
-			
+
 			if ( pepnovo_in && !pepnovo_infile.getModifications().empty() )
 			{
 				try
@@ -836,7 +842,7 @@ class TOPPPepNovoAdapter
 					keep_dta_files = false;
 				}
 			}
-			
+
 			if ( exit_code == EXECUTION_OK )
 			{
 				if ( pepnovo_out ) // try to get the program version by starting the program without parameters and reading the output
@@ -851,10 +857,10 @@ class TOPPPepNovoAdapter
 						call.append("PepNovo_bin > " + output_filename);
 						status = system(call.c_str());
 					}
-					
+
 					if ( status == 256 ) pepnovo_outfile.getSearchEngineAndVersion(output_filename, protein_identification);
 				}
-				
+
 				// how to call the program (if only pepnovo_in is set, this is returned to the user, if both flags are set, this is exectued)
 				call = pepnovo_directory;
 				call.append("PepNovo_bin -list " + dta_list);
@@ -868,7 +874,7 @@ class TOPPPepNovoAdapter
 				call.append(" -max_length " + String(max_sequence_length));
 				call.append(" -model_dir " + model_directory);
 				call.append(" > " + pepnovo_output_filename);
-				
+
 				// if only pepnovo_in is set, output the call of pepnovo
 				if ( pepnovo_in )
 				{
@@ -877,7 +883,7 @@ class TOPPPepNovoAdapter
 						// running the program
 						writeLog_("System call: " + call);
 						int status = system(call.c_str());
-						
+
 						if ( status != 0 ) exit_code = EXTERNAL_PROGRAM_ERROR;
 					}
 					else
@@ -886,7 +892,7 @@ class TOPPPepNovoAdapter
 						writeLog_(call);
 					}
 				}
-				
+
 				if ( exit_code == EXECUTION_OK && pepnovo_out )
 				{
 					// remove all dtas
@@ -899,7 +905,7 @@ class TOPPPepNovoAdapter
 							if ( !File::remove(string_buffer) ) writeLog_("'" + string_buffer + "' could not be removed!");
 						}
 					}
-					
+
 					// set the parameters
 					ProteinIdentification::SearchParameters sp;
 					if ( monoisotopic ) sp.mass_type = ProteinIdentification::MONOISOTOPIC;
@@ -915,23 +921,23 @@ class TOPPPepNovoAdapter
 					sp.peak_mass_tolerance = peak_mass_tolerance;
 					sp.precursor_tolerance = precursor_mass_tolerance;
 					protein_identification.setSearchParameters(sp);
-					
+
 					pepnovo_outfile.load(pepnovo_output_filename, peptide_identifications, protein_identification, p_value, dta_filenames_and_precursor_retention_times);
-					
+
 					vector< ProteinIdentification > identifications;
 					identifications.push_back(protein_identification);
-					
+
 					IdXMLFile().store(output_filename, identifications, peptide_identifications);
 				}
 			}
-			
+
 			// deleting all temporary files
 			writeLog_("removing temporary files");
 			for ( vector< pair< String, UInt > >::const_iterator files_i = files.begin(); files_i != files.end(); ++files_i )
 			{
 				if ( files_i->second & 8 ) remove(files_i->first.c_str());
 			}
-			
+
 			if ( exit_code != EXECUTION_OK )
 			{
 				// remove all dtas
@@ -947,7 +953,7 @@ class TOPPPepNovoAdapter
 				if ( exit_code == EXTERNAL_PROGRAM_ERROR ) writeLog_("PepNovo problem. Aborting! (Details can be seen in the logfile: \"" + logfile + "\")");
 				return exit_code;
 			}
-			
+
 			return exit_code;
 		}
 };
